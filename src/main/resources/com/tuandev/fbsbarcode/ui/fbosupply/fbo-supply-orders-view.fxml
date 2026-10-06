@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import java.lang.String?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ProgressIndicator?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.SplitPane?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.ToggleButton?>
+<?import javafx.scene.control.Tooltip?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Priority?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+<?import org.kordamp.ikonli.javafx.FontIcon?>
+
+<VBox spacing="12.0" styleClass="card" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.tuandev.fbsbarcode.ui.fbosupply.FboSupplyOrdersController">
+    <padding><Insets top="16.0" right="16.0" bottom="16.0" left="16.0" /></padding>
+    <HBox alignment="CENTER_LEFT" spacing="10.0">
+        <Label fx:id="titleLabel" styleClass="h2" text="FBO supply orders" />
+        <Label fx:id="marketplaceLabel">
+            <styleClass><String fx:value="badge" /><String fx:value="badge-gray" /></styleClass>
+        </Label>
+        <Region HBox.hgrow="ALWAYS" />
+        <Label fx:id="lastSyncLabel" styleClass="text-muted" />
+        <ProgressIndicator fx:id="progressIndicator" managed="false" maxHeight="22.0" maxWidth="22.0" visible="false" />
+        <Button fx:id="refreshButton" mnemonicParsing="false" onAction="#refresh" text="Refresh">
+            <styleClass><String fx:value="button" /><String fx:value="btn-primary" /></styleClass>
+            <graphic><FontIcon iconLiteral="fth-refresh-cw" iconSize="15" /></graphic>
+            <tooltip><Tooltip fx:id="refreshTooltip" text="Refresh" /></tooltip>
+        </Button>
+    </HBox>
+    <Label fx:id="statusLabel" managed="false" styleClass="text-warning" visible="false" wrapText="true" />
+    <HBox alignment="CENTER_LEFT" spacing="10.0">
+        <TextField fx:id="searchField" prefWidth="340.0" promptText="Search" />
+        <ScrollPane fitToHeight="true" hbarPolicy="AS_NEEDED" maxHeight="48.0" styleClass="transparent-scroll-pane" vbarPolicy="NEVER" HBox.hgrow="ALWAYS">
+            <content>
+                <HBox spacing="7.0">
+                    <ToggleButton fx:id="allToggle" text="All" />
+                    <ToggleButton fx:id="preparingToggle" text="Preparing" />
+                    <ToggleButton fx:id="readyToggle" text="Ready" />
+                    <ToggleButton fx:id="inProgressToggle" text="In progress" />
+                    <ToggleButton fx:id="issueToggle" text="Issue" />
+                    <ToggleButton fx:id="completedToggle" text="Completed" />
+                    <ToggleButton fx:id="cancelledToggle" text="Cancelled" />
+                </HBox>
+            </content>
+        </ScrollPane>
+    </HBox>
+    <SplitPane dividerPositions="0.49" VBox.vgrow="ALWAYS">
+        <items>
+            <TableView fx:id="orderTable" id="fboSupplyOrderTable" minWidth="460.0">
+                <columns>
+                    <TableColumn fx:id="orderNumberColumn" prefWidth="125.0" text="Number" />
+                    <TableColumn fx:id="orderStatusColumn" prefWidth="145.0" text="Status" />
+                    <TableColumn fx:id="warehouseColumn" prefWidth="170.0" text="Warehouse" />
+                    <TableColumn fx:id="plannedColumn" prefWidth="130.0" text="Planned" />
+                    <TableColumn fx:id="quantityColumn" prefWidth="60.0" text="Qty" />
+                    <TableColumn fx:id="acceptedColumn" prefWidth="75.0" text="Accepted" />
+                    <TableColumn fx:id="updatedColumn" prefWidth="130.0" text="Updated" />
+                </columns>
+            </TableView>
+            <VBox spacing="9.0" minWidth="520.0">
+                <HBox alignment="CENTER_LEFT" spacing="10.0">
+                    <Label fx:id="selectedOrderLabel" styleClass="h3" />
+                    <Region HBox.hgrow="ALWAYS" />
+                    <Label fx:id="itemSummaryLabel" styleClass="text-muted" />
+                </HBox>
+                <TableView fx:id="itemTable" id="fboSupplyItemTable" VBox.vgrow="ALWAYS">
+                    <columns>
+                        <TableColumn fx:id="imageColumn" prefWidth="62.0" text="Image" />
+                        <TableColumn fx:id="itemNameColumn" prefWidth="190.0" text="Name" />
+                        <TableColumn fx:id="articleColumn" prefWidth="110.0" text="Article" />
+                        <TableColumn fx:id="skuColumn" prefWidth="100.0" text="SKU" />
+                        <TableColumn fx:id="barcodeColumn" prefWidth="125.0" text="Barcode" />
+                        <TableColumn fx:id="sizeColumn" prefWidth="70.0" text="Size" />
+                        <TableColumn fx:id="colorColumn" prefWidth="90.0" text="Color" />
+                        <TableColumn fx:id="itemQuantityColumn" prefWidth="58.0" text="Qty" />
+                        <TableColumn fx:id="itemAcceptedColumn" prefWidth="72.0" text="Accepted" />
+                        <TableColumn fx:id="kizColumn" prefWidth="62.0" text="KIZ" />
+                    </columns>
+                </TableView>
+            </VBox>
+        </items>
+    </SplitPane>
+</VBox>

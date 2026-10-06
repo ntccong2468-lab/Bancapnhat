@@ -1,0 +1,639 @@
+name: Create WCode JavaFX release
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: wcode-release-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  JAVA_VERSION: "25"
+  JAVA_DISTRIBUTION: oracle
+  NODE_VERSION: "22"
+  APP_NAME: WCode
+  APP_VENDOR: TuanDev
+  RELEASE_REPO: rupphi/relatest-wcode
+  WINDOWS_UPGRADE_UUID: 0356BE08-487C-4E04-A2C2-353AF93DB2DE
+  TIMESTAMP_URL: http://timestamp.digicert.com
+
+jobs:
+  validate:
+    name: Validate source release contract
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.release.outputs.version }}
+      tag: ${{ steps.release.outputs.tag }}
+      should_publish: ${{ steps.release.outputs.should_publish }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Test JavaFX and release contracts
+        run: >-
+          node --test
+          tools/javafx-production-entrypoint.test.mjs
+          tools/release-version.test.mjs
+          tools/update-manifest.test.mjs
+
+      - name: Require release source on the default branch
+        shell: bash
+        env:
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+        run: |
+          set -euo pipefail
+          if [[ "$GITHUB_REF_TYPE" == "branch" ]]; then
+            [[ "$GITHUB_REF_NAME" == "$DEFAULT_BRANCH" ]] || {
+              echo "Manual release rehearsals must run from $DEFAULT_BRANCH." >&2
+              exit 1
+            }
+          elif [[ "$GITHUB_REF_TYPE" == "tag" ]]; then
+            git merge-base --is-ancestor "$GITHUB_SHA" "origin/$DEFAULT_BRANCH" || {
+              echo "Release tags must point to a commit on $DEFAULT_BRANCH." >&2
+              exit 1
+            }
+          else
+            echo "Unsupported release ref type: $GITHUB_REF_TYPE" >&2
+            exit 1
+          fi
+
+      - name: Resolve version from pom.xml
+        id: release
+        run: node tools/release-version.mjs
+
+  windows:
+    name: Build Windows x64 JavaFX release
+    needs: validate
+    runs-on: windows-latest
+    environment: release
+    outputs:
+      windows_signing_enabled: ${{ steps.signing.outputs.windows_signing_enabled }}
+      update_manifest_enabled: ${{ steps.signing.outputs.update_manifest_enabled }}
+    env:
+      APP_VERSION: ${{ needs.validate.outputs.version }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: actions/setup-java@03ad4de0992f5dab5e18fcb136590ce7c4a0ac95 # v5.6.0
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: ${{ env.JAVA_DISTRIBUTION }}
+          cache: maven
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Resolve optional signing configuration
+        id: signing
+        shell: pwsh
+        env:
+          WINDOWS_SIGNING_CERTIFICATE: ${{ secrets.WINDOWS_SIGNING_CERTIFICATE }}
+          WINDOWS_SIGNING_PASSWORD: ${{ secrets.WINDOWS_SIGNING_PASSWORD }}
+          UPDATE_MANIFEST_PRIVATE_KEY: ${{ secrets.UPDATE_MANIFEST_PRIVATE_KEY }}
+          UPDATE_MANIFEST_PUBLIC_KEY: ${{ secrets.UPDATE_MANIFEST_PUBLIC_KEY }}
+          UPDATE_SIGNING_PUBLISHER: ${{ secrets.UPDATE_SIGNING_PUBLISHER }}
+        run: |
+          function Resolve-OptionalGroup([string] $label, [string[]] $names) {
+            $configured = @($names | Where-Object {
+              -not [string]::IsNullOrWhiteSpace([Environment]::GetEnvironmentVariable($_))
+            })
+            if ($configured.Count -ne 0 -and $configured.Count -ne $names.Count) {
+              throw "$label configuration is incomplete. Configure all values or none of them."
+            }
+            return $configured.Count -eq $names.Count
+          }
+
+          $windowsSigning = Resolve-OptionalGroup 'Windows Authenticode signing' @(
+            'WINDOWS_SIGNING_CERTIFICATE',
+            'WINDOWS_SIGNING_PASSWORD',
+            'UPDATE_SIGNING_PUBLISHER'
+          )
+          $manifestSigning = Resolve-OptionalGroup 'Update manifest signing' @(
+            'UPDATE_MANIFEST_PRIVATE_KEY',
+            'UPDATE_MANIFEST_PUBLIC_KEY'
+          )
+          "WINDOWS_SIGNING_ENABLED=$($windowsSigning.ToString().ToLowerInvariant())" |
+            Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          "UPDATE_MANIFEST_ENABLED=$($manifestSigning.ToString().ToLowerInvariant())" |
+            Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          "windows_signing_enabled=$($windowsSigning.ToString().ToLowerInvariant())" |
+            Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          "update_manifest_enabled=$($manifestSigning.ToString().ToLowerInvariant())" |
+            Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          "RELEASE_PUBLISHED_AT=$((Get-Date).ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ss.fffZ'))" |
+            Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+
+      - name: Test and build JavaFX application
+        shell: pwsh
+        env:
+          UPDATE_MANIFEST_PUBLIC_KEY: ${{ secrets.UPDATE_MANIFEST_PUBLIC_KEY }}
+          UPDATE_SIGNING_PUBLISHER: ${{ secrets.UPDATE_SIGNING_PUBLISHER }}
+        run: |
+          node --test tools/javafx-production-entrypoint.test.mjs tools/release-version.test.mjs tools/update-manifest.test.mjs
+          .\mvnw.cmd -B "-Dapp.version=$env:APP_VERSION" `
+            "-Dapp.update.public-key=$env:UPDATE_MANIFEST_PUBLIC_KEY" `
+            "-Dapp.update.publisher=$env:UPDATE_SIGNING_PUBLISHER" clean verify
+          if (-not (Test-Path "target\FBSBarcode-$env:APP_VERSION.jar" -PathType Leaf)) {
+            throw 'The JavaFX application JAR was not created.'
+          }
+
+      - name: Build JavaFX app-image
+        shell: pwsh
+        run: |
+          $input = Join-Path $PWD 'target\jpackage-input'
+          $imageRoot = Join-Path $PWD 'release-image'
+          New-Item -ItemType Directory -Force -Path "$input\lib", $imageRoot | Out-Null
+          Copy-Item "target\FBSBarcode-$env:APP_VERSION.jar" $input
+          Copy-Item 'target\lib\*' "$input\lib" -Recurse
+          jpackage --type app-image --name $env:APP_NAME --input $input `
+            --main-jar "FBSBarcode-$env:APP_VERSION.jar" `
+            --main-class com.tuandev.fbsbarcode.Launcher `
+            --dest $imageRoot --app-version $env:APP_VERSION --vendor $env:APP_VENDOR `
+            --icon src\main\resources\com\tuandev\fbsbarcode\assets\images\logo.ico `
+            --java-options "--enable-native-access=ALL-UNNAMED" `
+            --jlink-options "--strip-native-commands --strip-debug --no-man-pages --no-header-files --bind-services"
+          if ($LASTEXITCODE -ne 0 -or -not (Test-Path 'release-image\WCode\WCode.exe' -PathType Leaf)) {
+            throw 'jpackage did not create the JavaFX app-image.'
+          }
+          $configuration = Get-Content 'release-image\WCode\app\WCode.cfg' -Raw
+          if ($configuration -notmatch 'com\.tuandev\.fbsbarcode\.Launcher') {
+            throw 'The app-image does not launch JavaFX.'
+          }
+
+      - name: Build installers and apply optional Authenticode signing
+        shell: pwsh
+        env:
+          WINDOWS_SIGNING_CERTIFICATE: ${{ secrets.WINDOWS_SIGNING_CERTIFICATE }}
+          WINDOWS_SIGNING_PASSWORD: ${{ secrets.WINDOWS_SIGNING_PASSWORD }}
+          UPDATE_SIGNING_PUBLISHER: ${{ secrets.UPDATE_SIGNING_PUBLISHER }}
+        run: |
+          $certificate = $null
+          try {
+            $signingEnabled = $env:WINDOWS_SIGNING_ENABLED -ceq 'true'
+            $signTool = $null
+            if ($signingEnabled) {
+              $certificate = Join-Path $env:RUNNER_TEMP 'wcode-release-signing.pfx'
+              [IO.File]::WriteAllBytes($certificate, [Convert]::FromBase64String($env:WINDOWS_SIGNING_CERTIFICATE))
+              $signTool = Get-ChildItem "${env:ProgramFiles(x86)}\Windows Kits\10\bin\*\x64\signtool.exe" |
+                Sort-Object FullName -Descending | Select-Object -First 1 -ExpandProperty FullName
+              if ([string]::IsNullOrWhiteSpace($signTool)) { throw 'SignTool was not found.' }
+            } else {
+              Write-Host 'Authenticode secrets are not configured; producing unsigned Windows packages.'
+            }
+
+            function Sign-And-Verify([string] $file) {
+              if (-not $signingEnabled) { return }
+              & $signTool sign /fd SHA256 /td SHA256 /tr $env:TIMESTAMP_URL /f $certificate /p $env:WINDOWS_SIGNING_PASSWORD $file
+              if ($LASTEXITCODE -ne 0) { throw "SignTool failed for $file" }
+              & $signTool verify /pa /v $file
+              if ($LASTEXITCODE -ne 0) { throw "Authenticode verification failed for $file" }
+              $signature = Get-AuthenticodeSignature -LiteralPath $file
+              if ($signature.Status -ne 'Valid' -or $null -eq $signature.SignerCertificate -or
+                  $signature.SignerCertificate.Subject -cne $env:UPDATE_SIGNING_PUBLISHER) {
+                throw "Unexpected Authenticode publisher for $file"
+              }
+            }
+
+            $image = Join-Path $PWD 'release-image\WCode'
+            Sign-And-Verify (Join-Path $image 'WCode.exe')
+            New-Item -ItemType Directory -Force -Path release | Out-Null
+            Copy-Item check-portable.bat $image
+            Compress-Archive -Path "$image\*" -DestinationPath release\WCode-portable.zip
+
+            jpackage --verbose --type msi --name $env:APP_NAME --app-image $image --dest release `
+              --app-version $env:APP_VERSION --vendor $env:APP_VENDOR `
+              --install-dir 'WCodeApp' `
+              --win-upgrade-uuid $env:WINDOWS_UPGRADE_UUID --win-menu --win-shortcut --win-per-user-install
+            if ($LASTEXITCODE -ne 0) { throw 'MSI creation failed.' }
+            $msi = @(Get-ChildItem release -Filter 'WCode*.msi')
+            if ($msi.Count -ne 1) { throw 'Expected exactly one MSI.' }
+            $msiTarget = Join-Path $PWD 'release\WCode.msi'
+            if ($msi[0].FullName -cne $msiTarget) {
+              Move-Item -LiteralPath $msi[0].FullName -Destination $msiTarget -Force
+            }
+
+            jpackage --verbose --type exe --name $env:APP_NAME --app-image $image --dest release `
+              --app-version $env:APP_VERSION --vendor $env:APP_VENDOR `
+              --install-dir 'WCodeApp' `
+              --win-upgrade-uuid $env:WINDOWS_UPGRADE_UUID --win-menu --win-shortcut --win-per-user-install
+            if ($LASTEXITCODE -ne 0) { throw 'EXE creation failed.' }
+            $exe = @(Get-ChildItem release -Filter 'WCode*.exe')
+            if ($exe.Count -ne 1) { throw 'Expected exactly one EXE.' }
+            $exeTarget = Join-Path $PWD 'release\WCode.exe'
+            if ($exe[0].FullName -cne $exeTarget) {
+              Move-Item -LiteralPath $exe[0].FullName -Destination $exeTarget -Force
+            }
+
+            Sign-And-Verify (Join-Path $PWD 'release\WCode.msi')
+            Sign-And-Verify (Join-Path $PWD 'release\WCode.exe')
+          } finally {
+            if ($certificate -and (Test-Path $certificate)) { Remove-Item $certificate -Force }
+          }
+
+      - name: Verify install-over upgrade from WCode 1.1.9
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $oldInstaller = Join-Path $env:RUNNER_TEMP 'WCode-1.1.9.msi'
+          Invoke-WebRequest `
+            -Uri 'https://github.com/rupphi/relatest-wcode/releases/download/v1.1.9/WCode.msi' `
+            -OutFile $oldInstaller
+          $oldInstallerSha256 = (Get-FileHash $oldInstaller -Algorithm SHA256).Hash.ToLowerInvariant()
+          if ($oldInstallerSha256 -cne '654e71f4060475d3140210eab88a7d64c3904465c4ac8b602f41253ad8f07f11') {
+            throw "Unexpected WCode 1.1.9 installer checksum: $oldInstallerSha256"
+          }
+
+          function Install-Msi([string] $path) {
+            $arguments = @('/i', "`"$path`"", '/qn', '/norestart')
+            $process = Start-Process -FilePath 'msiexec.exe' -ArgumentList $arguments -Wait -PassThru
+            if ($process.ExitCode -notin @(0, 3010)) {
+              throw "MSI install failed with exit code $($process.ExitCode): $path"
+            }
+          }
+
+          Install-Msi $oldInstaller
+          $legacyDataDir = Join-Path $env:LOCALAPPDATA 'WCode'
+          $currentDataDir = Join-Path $env:LOCALAPPDATA 'WCodeData'
+          $oldExecutable = Join-Path $legacyDataDir 'WCode.exe'
+          if (-not (Test-Path $oldExecutable -PathType Leaf)) {
+            throw 'The released WCode 1.1.9 MSI did not install at its expected legacy path.'
+          }
+
+          $probeRoot = Join-Path $env:RUNNER_TEMP 'wcode-upgrade-db-probe'
+          New-Item -ItemType Directory -Force -Path $probeRoot | Out-Null
+          $probeSource = Join-Path $probeRoot 'UpgradeDatabaseProbe.java'
+          @'
+          import java.nio.file.Path;
+          import java.sql.Connection;
+          import java.sql.DriverManager;
+          import java.sql.ResultSet;
+          import java.sql.Statement;
+
+          public final class UpgradeDatabaseProbe {
+              public static void main(String[] args) throws Exception {
+                  Path database = Path.of(args[1]).toAbsolutePath();
+                  Class.forName("org.sqlite.JDBC");
+                  try (Connection connection = DriverManager.getConnection("jdbc:sqlite:" + database);
+                       Statement statement = connection.createStatement()) {
+                      if ("seed".equals(args[0])) {
+                          statement.execute("CREATE TABLE shops(id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL, api_key TEXT NOT NULL)");
+                          statement.execute("INSERT INTO shops(name, api_key) VALUES('upgrade-sentinel-shop', 'ci-placeholder')");
+                          statement.execute("PRAGMA user_version = 0");
+                          return;
+                      }
+                      if ("ready".equals(args[0])) {
+                          try (ResultSet version = statement.executeQuery("PRAGMA user_version")) {
+                              if (!version.next() || version.getInt(1) != 2) {
+                                  System.exit(2);
+                              }
+                          }
+                          return;
+                      }
+                      try (ResultSet integrity = statement.executeQuery("PRAGMA integrity_check")) {
+                          if (!integrity.next() || !"ok".equals(integrity.getString(1))) {
+                              throw new IllegalStateException("Migrated database integrity check failed");
+                          }
+                      }
+                      try (ResultSet version = statement.executeQuery("PRAGMA user_version")) {
+                          if (!version.next() || version.getInt(1) != 2) {
+                              throw new IllegalStateException("Migrated database schema version is not 2");
+                          }
+                      }
+                      try (ResultSet shop = statement.executeQuery(
+                              "SELECT marketplace FROM shops WHERE name='upgrade-sentinel-shop'")) {
+                          if (!shop.next() || !"WILDBERRIES".equals(shop.getString(1))) {
+                              throw new IllegalStateException("Legacy shop data was not migrated");
+                          }
+                      }
+                  }
+              }
+          }
+          '@ | Set-Content -LiteralPath $probeSource -Encoding utf8
+          $sqliteJar = Get-ChildItem 'target\lib\sqlite-jdbc-*.jar' | Select-Object -First 1 -ExpandProperty FullName
+          $slf4jApi = Get-ChildItem 'target\lib\slf4j-api-*.jar' | Select-Object -First 1 -ExpandProperty FullName
+          $slf4jSimple = Get-ChildItem 'target\lib\slf4j-simple-*.jar' | Select-Object -First 1 -ExpandProperty FullName
+          $probeClassPath = "$probeRoot;$sqliteJar;$slf4jApi;$slf4jSimple"
+          & javac -cp "$sqliteJar;$slf4jApi" $probeSource
+          if ($LASTEXITCODE -ne 0) { throw 'Could not compile the upgrade database probe.' }
+
+          New-Item -ItemType Directory -Force -Path $legacyDataDir | Out-Null
+          $legacyDatabase = Join-Path $legacyDataDir 'database.db'
+          & java -cp $probeClassPath UpgradeDatabaseProbe seed $legacyDatabase
+          if ($LASTEXITCODE -ne 0) { throw 'Could not seed the WCode 1.1.9 database.' }
+          $legacySentinel = Join-Path $legacyDataDir 'upgrade-data-sentinel.txt'
+          'preserve-user-data' | Set-Content -LiteralPath $legacySentinel -Encoding utf8
+
+          Install-Msi (Join-Path $PWD 'release\WCode.msi')
+          $newExecutable = Join-Path $env:LOCALAPPDATA 'WCodeApp\WCode.exe'
+          if (-not (Test-Path $newExecutable -PathType Leaf)) {
+            throw "WCode $env:APP_VERSION was not installed in the data-safe program directory."
+          }
+          if (-not (Test-Path $oldExecutable -PathType Leaf) -or
+              (Get-Content -LiteralPath $legacySentinel -Raw).Trim() -cne 'preserve-user-data') {
+            throw "The $env:APP_VERSION installer modified the legacy directory before data migration."
+          }
+
+          $newProcess = Start-Process -FilePath $newExecutable -PassThru
+          try {
+            $currentDatabase = Join-Path $currentDataDir 'database.db'
+            $currentSentinel = Join-Path $currentDataDir 'upgrade-data-sentinel.txt'
+            $migrationReady = $false
+            for ($attempt = 0; $attempt -lt 60; $attempt++) {
+              if ($newProcess.HasExited) {
+                $startupLog = Join-Path $currentDataDir 'logs\startup.log'
+                if (Test-Path $startupLog -PathType Leaf) { Get-Content $startupLog }
+                throw "The packaged WCode $env:APP_VERSION launcher exited during migration startup."
+              }
+              if ((Test-Path $currentDatabase -PathType Leaf) -and
+                  (Test-Path $currentSentinel -PathType Leaf)) {
+                & java -cp $probeClassPath UpgradeDatabaseProbe ready $currentDatabase
+                if ($LASTEXITCODE -eq 0) {
+                  $migrationReady = $true
+                  break
+                }
+              }
+              Start-Sleep -Seconds 1
+            }
+            if (-not $migrationReady -or
+                -not (Test-Path $currentDatabase -PathType Leaf) -or
+                (Get-Content -LiteralPath $currentSentinel -Raw).Trim() -cne 'preserve-user-data') {
+              throw "WCode $env:APP_VERSION did not finish migrating the legacy app-data directory."
+            }
+            & java -cp $probeClassPath UpgradeDatabaseProbe verify $currentDatabase
+            if ($LASTEXITCODE -ne 0) { throw 'The migrated WCode database failed verification.' }
+            if ((Test-Path (Join-Path $currentDataDir 'WCode.exe')) -or
+                (Test-Path (Join-Path $currentDataDir 'app')) -or
+                (Test-Path (Join-Path $currentDataDir 'runtime'))) {
+              throw 'Legacy jpackage binaries leaked into the new data-only directory.'
+            }
+            $startupLog = Join-Path $currentDataDir 'logs\startup.log'
+            if (Test-Path $startupLog -PathType Leaf) {
+              Get-Content $startupLog
+              throw "WCode $env:APP_VERSION recorded a startup failure after migration."
+            }
+          } finally {
+            if ($newProcess -and -not $newProcess.HasExited) {
+              Stop-Process -Id $newProcess.Id -Force
+            }
+          }
+
+          $uninstallRoots = @(
+            'HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*',
+            'HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*',
+            'HKLM:\Software\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*'
+          )
+          $registrations = @(
+            Get-ItemProperty -Path $uninstallRoots -ErrorAction SilentlyContinue |
+              Where-Object { $_.DisplayName -ceq 'WCode' -and $_.Publisher -ceq $env:APP_VENDOR }
+          )
+          $currentRegistrations = @($registrations | Where-Object DisplayVersion -ceq $env:APP_VERSION)
+          $legacyRegistrations = @($registrations | Where-Object DisplayVersion -ceq '1.1.9')
+          if ($currentRegistrations.Count -ne 1 -or $legacyRegistrations.Count -ne 1) {
+            throw "Expected separate legacy and data-safe WCode registrations, found $($registrations.Count)."
+          }
+
+      - name: Create optional signed update manifest and checksums
+        shell: pwsh
+        env:
+          UPDATE_MANIFEST_PRIVATE_KEY: ${{ secrets.UPDATE_MANIFEST_PRIVATE_KEY }}
+          UPDATE_MANIFEST_PUBLIC_KEY: ${{ secrets.UPDATE_MANIFEST_PUBLIC_KEY }}
+        run: |
+          if ($env:UPDATE_MANIFEST_ENABLED -ceq 'true') {
+            $env:RELEASE_NOTES_JSON = ConvertTo-Json -Compress -InputObject @(
+              'Chỉ hiển thị và cấp phát KIZ đã lưu thông thành công cho WB và Ozon',
+              'Hỗ trợ giấy chứng nhận phù hợp khi GTIN không có giấy công bố phù hợp',
+              'Thông báo rõ khi tài khoản Znack không đủ tiền và cho phép thử lại đúng pipeline cũ',
+              'Tự đồng bộ giấy tờ GTIN và tiếp tục lưu thông KIZ cũ của cửa hàng được chọn',
+              'Đọc đúng giấy chứng nhận từ schema thẻ GTIN của National Catalog',
+              'Xuất tem KIZ 58×40 nét hơn, có DataMatrix và logo Честный ЗНАК',
+              'Hướng dẫn người dùng ký điều khoản mới khi Znack trả lỗi 3055',
+              'Tự dọn supply WB cũ khi WB xác nhận supply không còn tồn tại',
+              'Giữ nguyên dữ liệu người dùng khi nâng cấp từ WCode 1.1.9 trở lên'
+            )
+            node tools/update-manifest.mjs release/WCode.msi release/update-manifest.json $env:APP_VERSION
+          } else {
+            Write-Host 'Update signing keys are not configured; omitting update-manifest.json.'
+          }
+          node --test tools/update-manifest.test.mjs
+          $lines = Get-ChildItem release -File | Where-Object Name -ne 'checksums.sha256' | Sort-Object Name | ForEach-Object {
+            "$((Get-FileHash $_.FullName -Algorithm SHA256).Hash.ToLowerInvariant())  $($_.Name)"
+          }
+          $lines | Set-Content release\checksums.sha256 -Encoding ascii
+
+      - name: Preserve Windows release
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: WCode-${{ needs.validate.outputs.tag }}-windows-x64
+          path: release/
+          if-no-files-found: error
+          retention-days: 30
+
+  macos:
+    name: Build macOS ${{ matrix.architecture }} JavaFX release
+    needs: validate
+    runs-on: ${{ matrix.runner }}
+    environment: release
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: macos-15-intel
+            architecture: x64
+            expected_architecture: x86_64
+            run_fxml_smoke: false
+          - runner: macos-15
+            architecture: arm64
+            expected_architecture: arm64
+            run_fxml_smoke: true
+    env:
+      APP_VERSION: ${{ needs.validate.outputs.version }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: actions/setup-java@03ad4de0992f5dab5e18fcb136590ce7c4a0ac95 # v5.6.0
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: ${{ env.JAVA_DISTRIBUTION }}
+          cache: maven
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Test and build JavaFX application
+        env:
+          UPDATE_MANIFEST_PUBLIC_KEY: ${{ secrets.UPDATE_MANIFEST_PUBLIC_KEY }}
+          UPDATE_SIGNING_PUBLISHER: ${{ secrets.UPDATE_SIGNING_PUBLISHER }}
+        run: |
+          set -euo pipefail
+          node --test tools/javafx-production-entrypoint.test.mjs tools/release-version.test.mjs tools/update-manifest.test.mjs
+          maven_args=(
+            "-Dapp.version=$APP_VERSION"
+            "-Dapp.update.public-key=$UPDATE_MANIFEST_PUBLIC_KEY"
+            "-Dapp.update.publisher=$UPDATE_SIGNING_PUBLISHER"
+          )
+          if [[ "${{ matrix.run_fxml_smoke }}" != "true" ]]; then
+            # The virtual Intel runner cannot host JavaFX Platform.startup in Surefire.
+            # The complete FXML suite runs on Windows and Apple Silicon, while the
+            # packaged x86_64 launcher is exercised below.
+            maven_args+=("-Dsurefire.excludes=**/FxmlSmokeTest.java")
+          fi
+          ./mvnw -B "${maven_args[@]}" clean verify
+          test -s "target/FBSBarcode-$APP_VERSION.jar"
+
+      - name: Build and verify native macOS packages
+        run: |
+          set -euo pipefail
+          architecture="${{ matrix.architecture }}"
+          expected_architecture="${{ matrix.expected_architecture }}"
+          input="$PWD/target/jpackage-input"
+          image_root="$PWD/release-image"
+          image="$image_root/WCode.app"
+          mkdir -p "$input/lib" "$image_root" release
+          cp "target/FBSBarcode-$APP_VERSION.jar" "$input/"
+          cp -R target/lib/. "$input/lib/"
+
+          jpackage --type app-image --name "$APP_NAME" --input "$input" \
+            --main-jar "FBSBarcode-$APP_VERSION.jar" \
+            --main-class com.tuandev.fbsbarcode.Launcher \
+            --dest "$image_root" --app-version "$APP_VERSION" --vendor "$APP_VENDOR" \
+            --mac-package-identifier com.tuandev.wcode \
+            --java-options "--enable-native-access=ALL-UNNAMED" \
+            --jlink-options "--strip-native-commands --strip-debug --no-man-pages --no-header-files --bind-services"
+
+          test -x "$image/Contents/MacOS/WCode"
+          grep -F 'com.tuandev.fbsbarcode.Launcher' "$image/Contents/app/WCode.cfg"
+          file "$image/Contents/MacOS/WCode" | grep -F "$expected_architecture"
+
+          smoke_data="$(mktemp -d "$RUNNER_TEMP/wcode-macos-smoke.XXXXXX")"
+          smoke_log="$RUNNER_TEMP/wcode-macos-$architecture.log"
+          JAVA_TOOL_OPTIONS="-Dwcode.appdata.dir=$smoke_data" \
+            "$image/Contents/MacOS/WCode" >"$smoke_log" 2>&1 &
+          smoke_pid=$!
+          for attempt in {1..15}; do
+            if ! kill -0 "$smoke_pid" 2>/dev/null; then
+              cat "$smoke_log"
+              wait "$smoke_pid" || true
+              echo "The packaged macOS $architecture launcher exited during startup." >&2
+              exit 1
+            fi
+            [[ -s "$smoke_data/database.db" ]] && break
+            sleep 1
+          done
+          test -s "$smoke_data/database.db"
+          test "$(sqlite3 "$smoke_data/database.db" 'PRAGMA integrity_check;')" = "ok"
+          if [[ -s "$smoke_data/logs/startup.log" ]]; then
+            cat "$smoke_data/logs/startup.log"
+            exit 1
+          fi
+          kill -TERM "$smoke_pid" 2>/dev/null || true
+          wait "$smoke_pid" || true
+
+          ditto -c -k --sequesterRsrc --keepParent "$image" "release/WCode-macos-$architecture.zip"
+          jpackage --type dmg --name "$APP_NAME" --app-image "$image" --dest release \
+            --app-version "$APP_VERSION" --vendor "$APP_VENDOR"
+          packages=(release/WCode*.dmg)
+          test "${#packages[@]}" -eq 1
+          test -s "${packages[0]}"
+          mv "${packages[0]}" "release/WCode-macos-$architecture.dmg"
+          test -s "release/WCode-macos-$architecture.zip"
+
+      - name: Preserve macOS release
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: WCode-${{ needs.validate.outputs.tag }}-macos-${{ matrix.architecture }}
+          path: release/
+          if-no-files-found: error
+          retention-days: 30
+
+  publish:
+    name: Publish verified JavaFX release
+    if: needs.validate.outputs.should_publish == 'true'
+    needs: [validate, windows, macos]
+    runs-on: ubuntu-latest
+    environment: release
+    env:
+      RELEASE_TAG: ${{ needs.validate.outputs.tag }}
+      APP_VERSION: ${{ needs.validate.outputs.version }}
+      WINDOWS_SIGNING_ENABLED: ${{ needs.windows.outputs.windows_signing_enabled }}
+      UPDATE_MANIFEST_ENABLED: ${{ needs.windows.outputs.update_manifest_enabled }}
+    steps:
+      - name: Download Windows assets
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: WCode-${{ needs.validate.outputs.tag }}-windows-x64
+          path: release
+
+      - name: Download macOS assets
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          pattern: WCode-${{ needs.validate.outputs.tag }}-macos-*
+          path: release
+          merge-multiple: true
+
+      - name: Verify release inventory
+        shell: bash
+        run: |
+          set -euo pipefail
+          for file in \
+            WCode.msi WCode.exe WCode-portable.zip \
+            WCode-macos-x64.dmg WCode-macos-x64.zip \
+            WCode-macos-arm64.dmg WCode-macos-arm64.zip; do
+            test -s "release/$file"
+          done
+          (cd release && find . -maxdepth 1 -type f ! -name checksums.sha256 -print0 \
+            | sort -z | xargs -0 sha256sum > checksums.sha256)
+          (cd release && sha256sum --check checksums.sha256)
+          if [[ "$UPDATE_MANIFEST_ENABLED" == 'true' ]]; then
+            test -s release/update-manifest.json
+            test "$(jq -r '.format' release/update-manifest.json)" = 'wcode-update-envelope-v1'
+          else
+            test ! -e release/update-manifest.json
+          fi
+
+      - name: Publish release assets
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+        run: |
+          set -euo pipefail
+          windows_trust_note=''
+          if [[ "$WINDOWS_SIGNING_ENABLED" != 'true' ]]; then
+            windows_trust_note=' Bộ cài Windows hiện chưa có chữ ký Authenticode.'
+          fi
+          notes="$(cat <<EOF
+          WCode ${APP_VERSION}
+
+          - Chỉ KIZ có trạng thái pháp lý IN_CIRCULATION mới được hiển thị là khả dụng và cấp cho WB/Ozon; KIZ đang chờ hoặc lưu thông lỗi được giữ lại để xử lý nhưng không thể dùng nhầm.
+          - Thêm nút xuất tem KIZ 58×40: chọn số lượng, lưu PDF gồm DataMatrix, tên sản phẩm, giới tính và size, sau đó tự mở file.
+          - Thêm thao tác lưu trữ KIZ lỗi; chỉ KIZ thuộc pipeline INTRODUCTION_FAILED mới được phép lưu trữ, không ảnh hưởng KIZ đang chờ hay còn có thể tiếp tục.
+          - Khi Znack trả lỗi 3590 do không đủ tiền, WCode hiện thông báo và nút Thử lại để tiếp tục đúng pipeline mua KIZ đã lưu, không tạo đơn mua trùng.
+          - Đồng bộ và lưu thông GTIN hỗ trợ cả Декларация о соответствии và Сертификат соответствия, ưu tiên giấy công bố rồi dùng giấy chứng nhận khi cần.
+          - Đọc đúng giấy chứng nhận, ngày giấy tờ, giới tính và size từ cả schema API chính thức lẫn schema thẻ GTIN của National Catalog; GTIN hợp lệ trong thùng rác được tự khôi phục.
+          - Khi mở app hoặc chủ động chọn cửa hàng có pipeline cũ đang chờ giấy tờ, WCode tự đồng bộ GTIN và tiếp tục lưu thông bằng chính KIZ đã mua, không mua trùng và không spam cửa sổ ký của cửa hàng khác.
+          - GTIN thiếu giấy tờ được thông báo bằng một dialog gọn có mã GTIN và tên sản phẩm; chi tiết kỹ thuật lặp lại không còn chiếm chỗ dưới từng item.
+          - Khi Znack trả lỗi 3055, WCode hướng dẫn vào Маркировка → tên người dùng → Документы от оператора để ký điều khoản mới và chờ hệ thống xử lý tối đa 48 giờ.
+          - Tem KIZ 58×40 dùng DataMatrix vector lớn, chữ rõ hơn, logo Честный ЗНАК và ưu tiên giới tính/size đồng bộ trực tiếp từ thẻ GTIN.
+          - Trạng thái kiểm tra KIZ EMITTED được hiển thị gọn là “Đang chờ lưu thông”.
+          - Tự xoá supply WB cũ khỏi danh sách khi WB xác nhận supply không còn tồn tại bằng 404; lỗi tạm thời không làm mất dữ liệu.
+
+          Khi nâng cấp từ 1.1.9, dữ liệu hiện có được sao chép an toàn sang thư mục WCodeData trước khi áp dụng schema mới. Các gói macOS hiện chưa được Apple notarize.${windows_trust_note}
+          EOF
+          )"
+          if gh release view "$RELEASE_TAG" --repo "$RELEASE_REPO" >/dev/null 2>&1; then
+            gh release edit "$RELEASE_TAG" --repo "$RELEASE_REPO" --title "WCode $APP_VERSION" --notes "$notes" --latest
+          else
+            gh release create "$RELEASE_TAG" --repo "$RELEASE_REPO" --title "WCode $APP_VERSION" --notes "$notes" --latest
+          fi
+          gh release upload "$RELEASE_TAG" --repo "$RELEASE_REPO" release/* --clobber

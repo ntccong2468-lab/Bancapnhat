@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.geometry.Insets?>
+<VBox spacing="10" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.tuandev.fbsbarcode.ui.gtinsync.GtinSyncController">
+  <padding><Insets top="12" right="12" bottom="12" left="12"/></padding>
+  <Label fx:id="titleLabel" styleClass="h2"/>
+  <Label fx:id="scopeLabel" styleClass="text-bold"/>
+  <Label fx:id="capabilityLabel" wrapText="true" styleClass="text-muted"/>
+  <FlowPane hgap="8" vgap="8">
+    <Button fx:id="syncButton" onAction="#onSync"/>
+    <Button fx:id="loadButton" onAction="#onLoad"/>
+    <Button fx:id="selectButton" onAction="#onSelectExact"/>
+    <Button fx:id="clearButton" onAction="#onClear"/>
+  </FlowPane>
+  <TextField fx:id="searchField"/>
+  <TableView fx:id="productTable" VBox.vgrow="ALWAYS" minHeight="180"/>
+  <FlowPane hgap="8" vgap="8">
+    <ComboBox fx:id="gtinBox" prefWidth="300"/>
+    <ComboBox fx:id="operationBox" prefWidth="180"/>
+    <ComboBox fx:id="oldBarcodeBox" prefWidth="190"/>
+    <Button fx:id="mappingButton" onAction="#onMapping"/>
+    <Button fx:id="previewButton" onAction="#onPreview"/>
+    <Button fx:id="confirmButton" onAction="#onConfirm" disable="true"/>
+  </FlowPane>
+  <TextArea fx:id="previewArea" editable="false" wrapText="true" prefRowCount="3" maxHeight="100"/>
+  <Label fx:id="statusLabel" wrapText="true"/>
+  <TableView fx:id="historyTable" prefHeight="140" minHeight="80"/>
+  <FlowPane hgap="8" vgap="8">
+    <Button fx:id="pauseButton" onAction="#onPause"/>
+    <Button fx:id="resumeButton" onAction="#onResume"/>
+    <Button fx:id="cancelButton" onAction="#onCancel"/>
+    <Button fx:id="reconcileButton" onAction="#onReconcile"/>
+    <Button fx:id="csvButton" onAction="#onCsv"/>
+    <Button fx:id="xlsxButton" onAction="#onXlsx"/>
+  </FlowPane>
+</VBox>

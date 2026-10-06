@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.String?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ProgressIndicator?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Pane?>
+<?import javafx.scene.layout.Priority?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+<?import org.kordamp.ikonli.javafx.FontIcon?>
+
+<HBox alignment="CENTER_LEFT" fillHeight="true" prefHeight="68.0" prefWidth="738.0" spacing="10.0" styleClass="header" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.tuandev.fbsbarcode.ui.workspace.WorkspaceHeaderController">
+    <children>
+        <VBox alignment="CENTER_LEFT" prefWidth="320.0" spacing="2.0">
+            <children>
+                <HBox alignment="CENTER_LEFT" minHeight="32.0" spacing="8.0">
+                    <children>
+                        <ComboBox fx:id="shopComboBox" prefHeight="32.0" prefWidth="220.0" promptText="Выберите магазин..." styleClass="combo-box" />
+                        <Button fx:id="editShopButton" alignment="CENTER" mnemonicParsing="false" onAction="#onEditShop" prefHeight="32.0" prefWidth="32.0">
+                            <styleClass>
+                                <String fx:value="btn-icon" />
+                            </styleClass>
+                            <graphic>
+                                <FontIcon iconLiteral="fth-edit-2" iconSize="16"/>
+                            </graphic>
+                        </Button>
+                        <Button fx:id="deleteShopButton" alignment="CENTER" mnemonicParsing="false" onAction="#onDeleteShop" prefHeight="32.0" prefWidth="32.0">
+                            <styleClass>
+                                <String fx:value="btn-icon" />
+                            </styleClass>
+                            <graphic>
+                                <FontIcon iconLiteral="fth-trash-2" iconSize="16" iconColor="#da373c"/>
+                            </graphic>
+                        </Button>
+                    </children>
+                </HBox>
+            </children>
+        </VBox>
+        <Pane HBox.hgrow="ALWAYS" />
+        <ProgressIndicator fx:id="syncLoadingIndicator" managed="false" maxHeight="18.0" maxWidth="18.0" prefHeight="18.0" prefWidth="18.0" visible="false" />
+        <Label fx:id="syncLoadingLabel" managed="false" styleClass="text-muted" text="%header.sync_products_kiz" visible="false" />
+        <Button fx:id="syncButton" mnemonicParsing="false" onAction="#onSync" prefHeight="34.0" text=" Синхронизировать WB">
+            <styleClass>
+                <String fx:value="button" />
+                <String fx:value="btn-primary" />
+            </styleClass>
+            <graphic>
+                <FontIcon iconLiteral="fth-refresh-cw" iconSize="16"/>
+            </graphic>
+        </Button>
+    </children>
+    <padding>
+        <Insets left="16.0" right="16.0" />
+    </padding>
+</HBox>

@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox spacing="12" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.tuandev.fbsbarcode.ui.znackregistration.ZnackCardRegistrationController">
+    <padding><Insets top="16" right="16" bottom="16" left="16"/></padding>
+    <HBox alignment="CENTER_LEFT" spacing="10">
+        <Label fx:id="titleLabel" text="Đăng ký Znack" styleClass="h2"/>
+        <Pane HBox.hgrow="ALWAYS"/>
+        <Label fx:id="loadingLabel" text="Đang tải..." visible="false" managed="false" styleClass="text-muted"/>
+        <Button fx:id="configButton" text="Cấu hình" onAction="#onConfig" styleClass="btn-secondary"/>
+        <Button fx:id="refreshButton" text="Làm mới" onAction="#onRefresh" styleClass="btn-secondary"/>
+    </HBox>
+    <HBox alignment="CENTER_LEFT" spacing="8">
+        <TextField fx:id="searchField" promptText="Tìm theo tên, article, SKU..." prefWidth="300"/>
+        <MenuButton fx:id="categoryMenuButton" text="Danh mục"/>
+        <ComboBox fx:id="statusFilter" prefWidth="180"/>
+        <Button fx:id="clearFiltersButton" text="Xóa bộ lọc" onAction="#onClearFilters"/>
+    </HBox>
+    <StackPane VBox.vgrow="ALWAYS">
+        <TableView fx:id="productTable">
+            <columns>
+                <TableColumn fx:id="imageColumn" text="Ảnh" prefWidth="72" maxWidth="82"/>
+                <TableColumn fx:id="nameColumn" text="Sản phẩm" prefWidth="230"/>
+                <TableColumn fx:id="articleColumn" text="Article" prefWidth="130"/>
+                <TableColumn fx:id="colorColumn" text="Màu" prefWidth="100"/>
+                <TableColumn fx:id="sizeColumn" text="Size" prefWidth="70"/>
+                <TableColumn fx:id="barcodeColumn" text="Barcode WB / GTIN" prefWidth="180"/>
+                <TableColumn fx:id="statusColumn" text="Trạng thái" prefWidth="135"/>
+                <TableColumn fx:id="actionColumn" text="Thao tác" prefWidth="110" maxWidth="140"/>
+            </columns>
+        </TableView>
+        <Label fx:id="emptyLabel" text="Không có SKU" visible="false" managed="false" styleClass="text-muted"/>
+    </StackPane>
+</VBox>

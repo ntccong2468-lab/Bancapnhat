@@ -1,0 +1,83 @@
+name: Build Znack Registration Test EXE
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [znack-registration-test]
+
+permissions:
+  contents: write
+
+jobs:
+  windows-exe:
+    runs-on: windows-latest
+    env:
+      WCODE_BUILD_PROFILE: znack-registration-test
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Set up JDK 25
+        uses: actions/setup-java@03ad4de0992f5dab5e18fcb136590ce7c4a0ac95 # v5.6.0
+        with:
+          java-version: "25"
+          distribution: oracle
+          cache: maven
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: "22"
+
+      - name: Resolve application version
+        shell: pwsh
+        run: '"APP_VERSION=$(node tools/release-version.mjs)" >> $env:GITHUB_ENV'
+
+      - name: Verify release contracts
+        run: >-
+          node --test
+          tools/javafx-production-entrypoint.test.mjs
+          tools/release-version.test.mjs
+          tools/update-manifest.test.mjs
+
+      - name: Build isolated Znack test EXE
+        shell: cmd
+        run: build.bat exe
+
+      - name: Verify and name installer
+        shell: pwsh
+        run: |
+          $installers = @(Get-ChildItem out -Filter 'WCodeZnackTest*.exe' -File)
+          if ($installers.Count -ne 1 -or $installers[0].Length -lt 1MB) {
+            throw 'jpackage did not create exactly one non-empty isolated Znack test EXE.'
+          }
+          $target = Join-Path $PWD "out\WCode-$env:APP_VERSION-Znack-Registration-Test.exe"
+          Move-Item -LiteralPath $installers[0].FullName -Destination $target -Force
+          $hash = (Get-FileHash $target -Algorithm SHA256).Hash.ToLowerInvariant()
+          "$hash  WCode-$env:APP_VERSION-Znack-Registration-Test.exe" |
+            Set-Content "out\WCode-$env:APP_VERSION-Znack-Registration-Test.sha256" -Encoding ascii
+
+      - name: Upload Windows test installer
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: WCode-${{ env.APP_VERSION }}-Znack-Registration-Test-Windows-x64
+          path: |
+            out/WCode-${{ env.APP_VERSION }}-Znack-Registration-Test.exe
+            out/WCode-${{ env.APP_VERSION }}-Znack-Registration-Test.sha256
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Publish test auto-update release
+        if: github.repository == 'rupphi/test-wcode' && github.ref == 'refs/heads/znack-registration-test'
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $tag = "znack-registration-test-v$env:APP_VERSION"
+          $exe = "out/WCode-$env:APP_VERSION-Znack-Registration-Test.exe"
+          $sha = "out/WCode-$env:APP_VERSION-Znack-Registration-Test.sha256"
+          $notes = "WCode Znack Registration Test $env:APP_VERSION`n`nIsolated test data; does not update GTIN back to Wildberries."
+          gh release view $tag --repo $env:GITHUB_REPOSITORY 2>$null
+          if ($LASTEXITCODE -eq 0) {
+            gh release upload $tag $exe $sha --clobber --repo $env:GITHUB_REPOSITORY
+          } else {
+            gh release create $tag $exe $sha --prerelease --target $env:GITHUB_SHA --title "WCode Znack Test $env:APP_VERSION" --notes $notes --repo $env:GITHUB_REPOSITORY
+          }
