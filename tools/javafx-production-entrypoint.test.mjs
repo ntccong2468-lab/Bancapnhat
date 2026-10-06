@@ -136,6 +136,13 @@ test("Windows CI builds a versioned downloadable JavaFX EXE without publishing a
   assert.doesNotMatch(workflow, /gh release|RELEASE_TOKEN/);
 });
 
+test("manual Windows installer builds can skip the macOS jobs", async () => {
+  const workflow = await readFile(new URL(".github/workflows/build-java.yml", root), "utf8");
+  assert.match(workflow, /workflow_dispatch:\s*\n\s*inputs:\s*\n\s*windows_only:/);
+  assert.match(workflow, /windows_only:[\s\S]*?type:\s*boolean\s*\n\s*default:\s*true/);
+  assert.match(workflow, /build-macos-test:\s*\n\s*if:\s*\$\{\{\s*github\.event_name != 'workflow_dispatch' \|\| !inputs\.windows_only\s*\}\}/);
+});
+
 test("Znack registration test EXE is isolated, has its own update channel, and cannot update WB", async () => {
   const [workflow, buildScript, appPaths, registrationWorkflow, updateService, updateClient] = await Promise.all([
     readFile(new URL(".github/workflows/build-znack-registration-test.yml", root), "utf8"),

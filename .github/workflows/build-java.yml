@@ -2,6 +2,11 @@ name: Build & Test JavaFX Desktop App
 
 on:
   workflow_dispatch:
+    inputs:
+      windows_only:
+        description: Build only the Windows test installer
+        type: boolean
+        default: true
   push:
     branches: [dev, main]
     paths-ignore:
@@ -74,6 +79,7 @@ jobs:
           retention-days: 14
 
   build-macos-test:
+    if: ${{ github.event_name != 'workflow_dispatch' || !inputs.windows_only }}
     name: Build macOS ${{ matrix.architecture }} test package
     runs-on: ${{ matrix.runner }}
     strategy:
