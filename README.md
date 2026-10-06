@@ -24,6 +24,14 @@ Liên hệ: Zalo 0335407670.
 
 ## Tải bản Windows
 
+Bản thử module GTIN từ nhánh `feat/windows-gtin-sync-20261006`:
+[tải bộ cài Windows x64 (ZIP)](https://github.com/ntccong2468-lab/Vncode/actions/runs/37519724842/artifacts/11440685457).
+Giải nén rồi chạy `WCode-1.1.32-Ozon-Test.exe`; Java đã được đóng gói kèm.
+Đây là EXE thử nghiệm chưa ký; cập nhật GTIN thật lên WB/Ozon vẫn bị khóa.
+Artifact được giữ 14 ngày; GitHub có thể yêu cầu đăng nhập để tải.
+
+Các bản WCode phát hành trước thay đổi GTIN:
+
 | Loại | Link |
 |---|---|
 | EXE installer | [WCode.exe](https://github.com/rupphi/relatest-wcode/releases/latest/download/WCode.exe) |
@@ -61,7 +69,9 @@ build.bat msi         # Windows MSI chưa ký
 ./build.sh deb        # Linux DEB
 ```
 
-Artifact gửi người dùng phải lấy từ workflow [release.yml](.github/workflows/release.yml). Workflow
+Bản phát hành chính thức lấy từ workflow [release.yml](.github/workflows/release.yml).
+Bộ cài thử nhánh GTIN ở trên lấy từ workflow [build-java.yml](.github/workflows/build-java.yml).
+Workflow phát hành
 dùng installer identity mới cho `1.1.10+` để không gọi uninstaller legacy vốn chứa binary chung với
 dữ liệu, rồi kiểm tra migration bằng MSI `1.1.9` thật. Authenticode và signed update manifest được
 bật khi các secret tương ứng đã cấu hình đầy đủ; thiếu cả nhóm secret không chặn build, nhưng cấu
@@ -86,10 +96,11 @@ xác minh. Kiểm thử hàng đợi dùng adapter fixture, không chứng minh 
 thành công trên tài khoản seller. Dữ liệu thiếu thuộc tính hoặc trạng thái đăng
 ký chắc chắn không được ghép tự động.
 
-Kiểm tra lại ngày 06/10/2026 trên Linux với JDK 25: `clean verify` qua **518 kiểm thử**;
-Node qua **17 kiểm thử**. Chưa build hoặc chạy installer/portable Windows cho
-nhánh này. Các link release phía trên là bản WCode đã phát hành, **không phải**
-bản GTIN mới. Xem [báo cáo chức năng](docs/validation/wcode-feature-parity.md),
+Kiểm tra ngày 06/10/2026 trên runner Windows với JDK 25: `clean verify` qua
+**518 kiểm thử**, Node qua **18 kiểm thử**, đóng gói EXE thành công.
+EXE đã tải xuống và đối chiếu SHA-256; cài đặt và chạy thử trên máy người dùng
+đang chờ nghiệm thu. Xem [báo cáo bộ cài thử](docs/validation/2026-10-06-windows-test-installer.md),
+[báo cáo chức năng](docs/validation/wcode-feature-parity.md),
 [hướng dẫn Windows và trạng thái nghiệm thu](docs/validation/windows-gtin-acceptance.md)
 và [trở ngại hợp đồng API](docs/gtin-marketplace-api-contracts.md).
 Lượt kiểm tra trước khi đẩy mã đã sửa lỗi xóa shop làm mất tác vụ GTIN chưa có

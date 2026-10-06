@@ -1,8 +1,9 @@
 # Bàn giao mã nguồn Windows và trạng thái nghiệm thu GTIN
 
 Ngày kiểm tra lại: 06/10/2026. Nhánh bàn giao: `feat/windows-gtin-sync-20261006`
-tại `ntccong2468-lab/Vncode`. Mã nguồn đã viết và build
-trên Linux; **chưa có bản Windows EXE/MSI/portable đã nghiệm thu cho nhánh này**.
+tại `ntccong2468-lab/Vncode`. Mã nguồn đã kiểm thử trên Linux và Windows.
+**Đã có EXE thử nghiệm Windows x64 chưa ký**, build native và checksum qua;
+cài đặt và chạy thử trên máy người dùng đang chờ nghiệm thu.
 Chức năng thêm/thay GTIN trên seller WB/Ozon **chưa sẵn sàng dùng thật**.
 
 ## Đã triển khai và xác minh
@@ -19,7 +20,9 @@ Chức năng thêm/thay GTIN trên seller WB/Ozon **chưa sẵn sàng dùng th�
 | UI và async | Load token chặn kết quả shop cũ; history cập nhật khi chạy; pause/cancel không bị khóa suốt queue; mutation giữ shop gốc |
 | RU/EN/VI/ZH, CSV/XLSX, FXML, navigation | Tests qua; XLSX ô chuỗi; CSV theo quy ước Excel có dấu nháy đơn |
 | Toàn bộ Java | JDK 25.0.4.1, Maven 3.8.5, Linux/Xorg: **518 tests, 0 failures/errors/skipped**, `clean verify` exit 0 |
-| Packaging contracts | Node: **17 tests passed**, exit 0; không sửa pipeline đóng gói |
+| Toàn bộ Java/FXML trên Windows | Runner Windows, JDK 25: **518 tests, 0 failures/errors/skipped**, `clean verify` exit 0 |
+| Packaging contracts | Node: **18 tests passed**, exit 0 trên Linux và Windows; thêm tùy chọn workflow chỉ build Windows |
+| EXE Windows x64 | `build.bat exe` thành công; tải và xác minh SHA-256, PE x86-64; xem [báo cáo bộ cài thử](2026-10-06-windows-test-installer.md) |
 | Chạy màn hình GTIN với fixture | Render JavaFX thực 1440×900, tiếng Việt, trên Linux; preview thay mã hiển thị và nút gửi bị khóa; có ảnh PNG đi kèm bàn giao |
 
 Nguồn production đọc National Catalog và sản phẩm sàn qua các client WCode
@@ -38,20 +41,24 @@ không ở tương lai quá 5 phút.
    giới hạn xóa/thay barcode và cách đối soát trước khi bật capability.
    Hiện `WbGtinAdapter` và `OzonGtinAdapter` khóa ADD/REPLACE; xem trước có thể
    hiển thị, xác nhận gửi bị khóa. HTTP 403 không chứng minh API không hỗ trợ.
-2. Môi trường hiện tại là Linux. Chưa chạy native launcher, Windows 100%/125%
-   scaling, EXE/MSI/app-image, upgrade MSI legacy hoặc DPAPI trên Windows.
-   Build JAR Linux không được bàn giao như installer Windows.
+2. Đã build EXE trên runner Windows và chạy full Java/FXML suite. Chưa cài
+   EXE hoặc chạy native launcher của package trên máy người dùng; hiển thị
+   Windows 100%/125%, MSI/app-image, upgrade MSI legacy và DPAPI runtime
+   vẫn chưa được nghiệm thu trong lượt này.
 3. Chưa có CryptoPro/chứng thư thử và fixture seller được phê duyệt để kiểm
    chứng tích hợp thật. Không dùng API key/chứng thư/database seller trong tests.
 
-Người dùng đã yêu cầu đẩy mã đã kiểm tra lên một nhánh GitHub mới trong
-`ntccong2468-lab/Vncode`. Không tự dispatch CI, phát hành release hoặc gửi
-mutation seller trong lượt kiểm tra/đẩy nhánh này.
+Người dùng đã yêu cầu đẩy mã lên nhánh mới trong `ntccong2468-lab/Vncode`,
+sau đó yêu cầu tạo bộ cài Windows để kiểm tra. Đã dispatch workflow build
+trên nhánh đó và bàn giao artifact thử nghiệm; không phát hành release hoặc
+gửi mutation seller.
 
 ## Build và nghiệm thu trên Windows x64
 
-Các lệnh dưới đây là hướng dẫn dùng pipeline hiện có; **chưa chạy trên Windows
-trong lượt này**. Cài JDK 25 x64 và Node 22 theo runbook hiện có; EXE/MSI cần
+Workflow đã chạy `mvnw.cmd -B clean verify`, các Node contracts và `build.bat exe`
+trên Windows thành công. Các lệnh bên dưới dùng để tự build thêm các loại gói;
+MSI và app-image chưa build trong lượt này. Cài JDK 25 x64 và Node 22 theo
+runbook hiện có; EXE/MSI cần
 WiX theo yêu cầu `jpackage`. Mở terminal ở thư mục mã nguồn, kiểm tra
 `java -version` trỏ đúng JDK 25:
 
@@ -65,7 +72,8 @@ build.bat msi
 
 Các gói local chưa được coi là signed release. Giữ cấu hình installer identity,
 update signature và bảo vệ app-data trong [runbook](../javafx-release-runbook.md).
-Link tải release trong README là WCode trước thay đổi, không chứa module mới.
+README có link riêng tới bộ cài thử GTIN; các link release WCode cũ không chứa
+module mới.
 
 Smoke-test launcher với app-data tạm riêng, không dùng database seller. Kiểm
 tra toàn bộ route trong [bảng bảo toàn chức năng](wcode-feature-parity.md),
