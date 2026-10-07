@@ -6,6 +6,7 @@ import com.tuandev.fbsbarcode.config.Database;
 import com.tuandev.fbsbarcode.integration.znack.registration.ZnackCardRegistrationModels.SearchCriteria;
 import com.tuandev.fbsbarcode.integration.znack.registration.ZnackCardRegistrationModels.Sku;
 import com.tuandev.fbsbarcode.integration.znack.registration.ZnackCardRegistrationModels.Status;
+import com.tuandev.fbsbarcode.integration.znack.registration.ZnackCardRegistrationModels.RegistrationAction;
 import com.tuandev.fbsbarcode.integration.znack.registration.ZnackCardRegistrationModels.WbCharacteristic;
 
 import java.sql.Connection;
@@ -21,6 +22,70 @@ import java.util.Locale;
 import java.util.Set;
 
 public class ZnackCardRegistrationRepository {
+    /** Atomically owns the exact loaded snapshot before any remote mutation. */
+    public boolean claim(int shopId, Sku sku, RegistrationAction action) {
+        if (sku == null || action == null) return false;
+        boolean allowed = switch (action) {
+            case REGISTER -> sku.canRegister();
+            case REQUEST_NEW_GTIN -> sku.needsGtinReview();
+            case RESUME -> sku.canResume();
+        };
+        if (!allowed) return false;
+        boolean newRow = action == RegistrationAction.REGISTER && sku.status() == Status.NOT_CREATED
+                && !sku.hasIdentity() && sku.registrationRevision().isBlank();
+        String now = Instant.now().toString();
+        try (Connection connection = Database.getConnection();
+             PreparedStatement statement = connection.prepareStatement("""
+                     INSERT INTO znack_card_registrations(shop_id,chrt_id,nm_id,vendor_code,source_barcode,
+                         status,created_at,updated_at)
+                     SELECT ?,?,?,?,?,'CHECKING',?,?
+                     WHERE EXISTS(SELECT 1 FROM wb_product_sizes s JOIN shops sh ON sh.id=s.shop_id
+                                  WHERE s.shop_id=? AND s.chrt_id=? AND s.nm_id=?
+                                    AND sh.marketplace='WILDBERRIES')
+                       AND (?=1 OR EXISTS(SELECT 1 FROM znack_card_registrations r
+                                          WHERE r.shop_id=? AND r.chrt_id=?))
+                     ON CONFLICT(shop_id,chrt_id) DO UPDATE SET status='CHECKING',error_message=NULL,
+                         updated_at=excluded.updated_at
+                     WHERE znack_card_registrations.nm_id=excluded.nm_id
+                       AND znack_card_registrations.status=?
+                       AND COALESCE(TRIM(znack_card_registrations.gtin),'')=?
+                       AND COALESCE(TRIM(znack_card_registrations.feed_id),'')=?
+                       AND COALESCE(znack_card_registrations.good_id,-1)=?
+                       AND znack_card_registrations.wb_updated=?
+                       AND znack_card_registrations.updated_at=?
+                     """)) {
+            int index=1;
+            statement.setInt(index++,shopId); statement.setLong(index++,sku.chrtId());
+            statement.setLong(index++,sku.nmId()); statement.setString(index++,sku.vendorCode());
+            statement.setString(index++,sku.sourceBarcode());
+            statement.setString(index++,now); statement.setString(index++,now);
+            statement.setInt(index++,shopId); statement.setLong(index++,sku.chrtId());
+            statement.setLong(index++,sku.nmId()); statement.setInt(index++,newRow?1:0);
+            statement.setInt(index++,shopId); statement.setLong(index++,sku.chrtId());
+            statement.setString(index++,sku.status().name()); statement.setString(index++,value(sku.gtin()).trim());
+            statement.setString(index++,value(sku.feedId()).trim());
+            statement.setLong(index++,sku.goodId()==null?-1:sku.goodId());
+            statement.setInt(index++,sku.wbUpdated()?1:0); statement.setString(index,sku.registrationRevision());
+            return statement.executeUpdate()==1;
+        } catch(SQLException error) { throw new RuntimeException(error); }
+    }
+
+    public Status checkpointStatus(int shopId,long chrtId) {
+        return checkpoint(shopId,chrtId).status();
+    }
+
+    public record Checkpoint(Status status,boolean hasGtin,boolean hasFeed) { }
+
+    public Checkpoint checkpoint(int shopId,long chrtId) {
+        try(Connection c=Database.getConnection();PreparedStatement s=c.prepareStatement(
+                "SELECT status,gtin,feed_id FROM znack_card_registrations WHERE shop_id=? AND chrt_id=?")) {
+            s.setInt(1,shopId);s.setLong(2,chrtId);
+            try(ResultSet r=s.executeQuery()) {
+                return r.next()?new Checkpoint(parseStatus(r.getString(1)),!value(r.getString(2)).isBlank(),
+                        !value(r.getString(3)).isBlank()):new Checkpoint(Status.NOT_CREATED,false,false);
+            }
+        }catch(SQLException error){throw new RuntimeException(error);}
+    }
     private static final String SELECT = """
             SELECT c.nm_id, s.chrt_id, COALESCE(c.subject_id, 0) AS subject_id,
                    c.vendor_code, c.subject_name, c.brand, c.title,
@@ -33,7 +98,8 @@ public class ZnackCardRegistrationRepository {
                     WHERE ch.shop_id=c.shop_id AND ch.nm_id=c.nm_id
                       AND ch.characteristic_id IN (14177449, 204557)
                     ORDER BY CASE ch.characteristic_id WHEN 14177449 THEN 0 ELSE 1 END LIMIT 1) AS color_value,
-                   r.gtin, r.good_id, r.feed_id, r.status, r.error_message, COALESCE(r.wb_updated, 0) AS wb_updated
+                   r.gtin, r.good_id, r.feed_id, r.status, r.error_message,
+                   r.updated_at AS registration_revision, COALESCE(r.wb_updated, 0) AS wb_updated
             FROM wb_product_cards c
             JOIN wb_product_sizes s ON s.shop_id=c.shop_id AND s.nm_id=c.nm_id
             LEFT JOIN wb_product_size_skus sku ON sku.shop_id=s.shop_id AND sku.chrt_id=s.chrt_id
@@ -80,6 +146,15 @@ public class ZnackCardRegistrationRepository {
         String status = value(criteria.status()).trim();
         if (!status.isBlank() && !"ALL".equals(status)) {
             if ("NOT_CREATED".equals(status)) sql.append(" AND r.status IS NULL");
+            else if("GTIN_REVIEW_REQUIRED".equals(status)) {
+                sql.append(" AND NULLIF(TRIM(r.gtin),'') IS NULL AND r.good_id IS NULL")
+                        .append(" AND NULLIF(TRIM(r.feed_id),'') IS NULL AND COALESCE(r.wb_updated,0)=0")
+                        .append(" AND r.status IN ('CHECKING','ALLOCATING_GTIN','GTIN_REVIEW_REQUIRED','ERROR')");
+            }
+            else if("FEED_REVIEW_REQUIRED".equals(status)) {
+                sql.append(" AND NULLIF(TRIM(r.gtin),'') IS NOT NULL AND (r.status IN ('FEED_SUBMITTING','FEED_REVIEW_REQUIRED')")
+                        .append(" OR (NULLIF(TRIM(r.feed_id),'') IS NULL AND r.status IN ('ERROR','GTIN_GENERATED','CHECKING')))");
+            }
             else if ("IN_PROGRESS".equals(status)) {
                 sql.append(" AND r.status NOT IN ('PUBLISHED','ERROR')");
             }
@@ -126,13 +201,12 @@ public class ZnackCardRegistrationRepository {
         }
     }
 
-    public Set<String> claimedGtins(int shopId) {
+    public Set<String> claimedGtins() {
         try (Connection connection = Database.getConnection();
              PreparedStatement statement = connection.prepareStatement("""
                      SELECT DISTINCT gtin FROM znack_card_registrations
-                     WHERE shop_id=? AND TRIM(COALESCE(gtin, ''))<>''
+                     WHERE TRIM(COALESCE(gtin, ''))<>''
                      """)) {
-            statement.setInt(1, shopId);
             try (ResultSet result = statement.executeQuery()) {
                 Set<String> values = new LinkedHashSet<>();
                 while (result.next()) values.add(result.getString(1));
@@ -154,6 +228,9 @@ public class ZnackCardRegistrationRepository {
                      ON CONFLICT(shop_id,chrt_id) DO UPDATE SET gtin=excluded.gtin,tnved=excluded.tnved,
                          category_id=excluded.category_id,good_name=excluded.good_name,payload_json=excluded.payload_json,
                          status='GTIN_GENERATED',error_message=NULL,updated_at=excluded.updated_at
+                    WHERE znack_card_registrations.status <> 'PUBLISHED'
+                      AND (NULLIF(TRIM(znack_card_registrations.gtin),'') IS NULL
+                           OR znack_card_registrations.gtin=excluded.gtin)
                      """)) {
             int index = 1;
             statement.setInt(index++, shopId);
@@ -168,7 +245,9 @@ public class ZnackCardRegistrationRepository {
             statement.setString(index++, payloadJson);
             statement.setString(index++, now);
             statement.setString(index, now);
-            statement.executeUpdate();
+            if (statement.executeUpdate() != 1) {
+                throw new IllegalStateException("Registration identity has changed or is already published.");
+            }
         } catch (SQLException error) {
             throw new RuntimeException(error);
         }
@@ -180,7 +259,7 @@ public class ZnackCardRegistrationRepository {
              PreparedStatement statement = connection.prepareStatement("""
                      UPDATE znack_card_registrations SET status=?,feed_id=COALESCE(?,feed_id),
                          good_id=COALESCE(?,good_id),error_message=?,
-                         wb_updated=COALESCE(?,wb_updated),updated_at=? WHERE shop_id=? AND chrt_id=?
+                         wb_updated=COALESCE(?,wb_updated),updated_at=? WHERE shop_id=? AND chrt_id=? AND status<>'PUBLISHED'
                      """)) {
             statement.setString(1, status.name());
             statement.setString(2, feedId);
@@ -221,7 +300,8 @@ public class ZnackCardRegistrationRepository {
                 result.getString("c246x328_url"), result.getString("square_url"), result.getString("hq_url"), result.getString("tm_url")),
                 result.getInt("need_kiz") != 0, result.getString("gtin"), nullableLong(result, "good_id"),
                 result.getString("feed_id"), parseStatus(status),
-                result.getString("error_message"), result.getInt("wb_updated") != 0, result.getString("wb_size"));
+                result.getString("error_message"), result.getInt("wb_updated") != 0,
+                result.getString("wb_size"), result.getString("registration_revision"));
     }
 
     private static Long nullableLong(ResultSet result, String column) throws SQLException {

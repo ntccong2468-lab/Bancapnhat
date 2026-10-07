@@ -10,7 +10,14 @@ public final class ZnackCardRegistrationModels {
     public enum Status {
         NOT_CREATED,
         CHECKING,
+        PREFLIGHT_ERROR,
+        ALLOCATING_GTIN,
+        GTIN_REVIEW_REQUIRED,
         GTIN_GENERATED,
+        READY_TO_SUBMIT,
+        PRE_SUBMIT_ERROR,
+        FEED_SUBMITTING,
+        FEED_REVIEW_REQUIRED,
         FEED_SUBMITTED,
         PROCESSING,
         READY_TO_SIGN,
@@ -19,14 +26,57 @@ public final class ZnackCardRegistrationModels {
         ERROR
     }
 
+    public enum RegistrationAction { REGISTER, REQUEST_NEW_GTIN, RESUME }
+
     public record Sku(long nmId, long chrtId, int subjectId, String vendorCode, String subjectName, String brand,
                       String title, String color, String size, List<String> barcodes, String imageUrl,
                       boolean needKiz, String gtin, Long goodId, String feedId, Status status,
-                      String errorMessage, boolean wbUpdated, String wbSize) {
+                      String errorMessage, boolean wbUpdated, String wbSize, String registrationRevision) {
         public Sku {
             barcodes = barcodes == null ? List.of() : List.copyOf(barcodes);
             status = status == null ? Status.NOT_CREATED : status;
             wbSize = wbSize == null ? "" : wbSize.trim();
+            registrationRevision = registrationRevision == null ? "" : registrationRevision;
+        }
+
+        public Sku(long nmId, long chrtId, int subjectId, String vendorCode, String subjectName, String brand,
+                   String title, String color, String size, List<String> barcodes, String imageUrl,
+                   boolean needKiz, String gtin, Long goodId, String feedId, Status status,
+                   String errorMessage, boolean wbUpdated, String wbSize) {
+            this(nmId,chrtId,subjectId,vendorCode,subjectName,brand,title,color,size,barcodes,imageUrl,
+                    needKiz,gtin,goodId,feedId,status,errorMessage,wbUpdated,wbSize,"");
+        }
+
+        public boolean hasIdentity() {
+            return hasGtin() || goodId != null || (feedId != null && !feedId.isBlank()) || wbUpdated;
+        }
+
+        public boolean hasGtin() { return gtin != null && !gtin.isBlank(); }
+
+        public boolean needsGtinReview() {
+            return !hasIdentity() && (status == Status.CHECKING || status == Status.ALLOCATING_GTIN
+                    || status == Status.GTIN_REVIEW_REQUIRED || status == Status.ERROR);
+        }
+
+        public boolean canRegister() {
+            return ((status == Status.NOT_CREATED || status == Status.PREFLIGHT_ERROR) && !hasIdentity())
+                    || (status == Status.ERROR && hasGtin() && hasFeed())
+                    || (status == Status.PRE_SUBMIT_ERROR && hasGtin() && !hasFeed() && goodId==null);
+        }
+
+        public boolean hasFeed() { return feedId != null && !feedId.isBlank(); }
+
+        public boolean needsFeedReview() {
+            return hasGtin() && (status == Status.FEED_SUBMITTING || status == Status.FEED_REVIEW_REQUIRED
+                    || (!hasFeed() && (status == Status.ERROR || status == Status.GTIN_GENERATED
+                    || status == Status.CHECKING)));
+        }
+
+        public boolean canResume() {
+            return hasGtin() && (hasFeed() || status==Status.READY_TO_SUBMIT)
+                    && status != Status.PUBLISHED && status != Status.ERROR
+                    && status != Status.NOT_CREATED && status != Status.GTIN_REVIEW_REQUIRED
+                    && status != Status.FEED_SUBMITTING && status != Status.FEED_REVIEW_REQUIRED;
         }
 
         public Sku(long nmId, long chrtId, int subjectId, String vendorCode, String subjectName, String brand,

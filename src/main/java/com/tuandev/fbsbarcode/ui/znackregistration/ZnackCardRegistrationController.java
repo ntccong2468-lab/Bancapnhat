@@ -59,6 +59,9 @@ public final class ZnackCardRegistrationController {
     private final List<CheckBox> subjectChecks = new ArrayList<>();
     private Shop shop;
     private boolean loading;
+    private boolean preparing;
+    private long shopEpoch;
+    private long loadSequence;
 
     @FXML private Label titleLabel;
     @FXML private Label loadingLabel;
@@ -69,6 +72,8 @@ public final class ZnackCardRegistrationController {
     @FXML private Button clearFiltersButton;
     @FXML private Button refreshButton;
     @FXML private Button configButton;
+    @FXML private Button selectAllButton;
+    @FXML private Button registerSelectedButton;
     @FXML private TableView<Sku> productTable;
     @FXML private TableColumn<Sku, Sku> imageColumn;
     @FXML private TableColumn<Sku, String> nameColumn;
@@ -82,6 +87,9 @@ public final class ZnackCardRegistrationController {
     @FXML
     private void initialize() {
         configureColumns();
+        productTable.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+        productTable.getSelectionModel().getSelectedItems().addListener(
+                (javafx.collections.ListChangeListener<Sku>) change -> updateActionState());
         statusFilter.getItems().setAll(StatusFilter.values());
         statusFilter.getSelectionModel().select(StatusFilter.ALL);
         statusFilter.valueProperty().addListener((obs, old, value) -> reload());
@@ -93,7 +101,10 @@ public final class ZnackCardRegistrationController {
     }
 
     public void setShop(Shop shop) {
+        shopEpoch++;
+        preparing=false;
         this.shop = shop != null && shop.getMarketplace() == Marketplace.WILDBERRIES ? shop : null;
+        productTable.getItems().clear();
         selectedSubjects.clear();
         loadSubjects();
         reload();
@@ -106,6 +117,8 @@ public final class ZnackCardRegistrationController {
         refreshButton.setText(i18n.tr("znack.registration.refresh"));
         configButton.setText(i18n.tr("znack.registration.config"));
         clearFiltersButton.setText(i18n.tr("znack.registration.clear"));
+        selectAllButton.setText(i18n.tr("znack.registration.select_all"));
+        registerSelectedButton.setText(i18n.tr("znack.registration.register_selected"));
         loadingLabel.setText(i18n.tr("znack.registration.loading"));
         emptyLabel.setText(i18n.tr("znack.registration.empty"));
         imageColumn.setText(i18n.tr("fbo.column.image"));
@@ -122,9 +135,38 @@ public final class ZnackCardRegistrationController {
 
     @FXML private void onRefresh() { reload(); }
 
+    @FXML private void onSelectAll() {
+        productTable.getSelectionModel().clearSelection();
+        for(int index=0;index<productTable.getItems().size();index++) {
+            if(eligible(productTable.getItems().get(index))) productTable.getSelectionModel().select(index);
+        }
+    }
+
+    @FXML private void onRegisterSelected() {
+        if(shop==null || preparing) return;
+        List<Sku> selected=productTable.getSelectionModel().getSelectedItems().stream()
+                .filter(this::eligible).toList();
+        if(selected.isEmpty())return;
+        long fresh=selected.stream().filter(Sku::needsGtinReview).count();
+        String message=java.text.MessageFormat.format(tr("znack.registration.confirm_selected"),selected.size());
+        if(fresh>0)message+="\n\n"+java.text.MessageFormat.format(tr("znack.registration.confirm_new_gtin"),fresh);
+        if(!confirm(message))return;
+        Shop owner=shop;long epoch=shopEpoch;
+        preparing=true;updateActionState();
+        prepareNext(selected,0,owner,epoch);
+    }
+
+    private void prepareNext(List<Sku> selected,int index,Shop owner,long epoch) {
+        if(!isCurrent(owner,epoch))return;
+        if(index==selected.size()) {preparing=false;updateActionState();reload();return;}
+        Sku sku=selected.get(index);
+        prepareCard(owner,epoch,sku,sku.needsGtinReview(),()->prepareNext(selected,index+1,owner,epoch));
+    }
+
     @FXML
     private void onConfig() {
         if (shop == null) return;
+        Shop owner=shop;long epoch=shopEpoch;
         ZnackModels.Settings current = settings();
         Dialog<Boolean> dialog = new Dialog<>();
         dialog.setTitle(tr("znack.registration.config"));
@@ -167,6 +209,7 @@ public final class ZnackCardRegistrationController {
         });
         dialog.setResultConverter(button -> button == save);
         if (dialog.showAndWait().orElse(false)) {
+            if(!isCurrent(owner,epoch))return;
             DocumentType type = documentType.getValue();
             ZnackRepository znack = new ZnackRepository(new ZnackModels.ShopContext(shop.getId(), shop.getName()));
             znack.saveSettings(current.withDefaultGoodsDocument(type.settingsCode,
@@ -189,11 +232,12 @@ public final class ZnackCardRegistrationController {
         categoryMenuButton.getItems().clear();
         subjectChecks.clear();
         if (shop == null) return;
+        Shop owner=shop;long epoch=shopEpoch;
         Task<List<String>> task = new Task<>() {
-            @Override protected List<String> call() { return repository.findSubjects(shop.getId()); }
+            @Override protected List<String> call() { return repository.findSubjects(owner.getId()); }
         };
-        task.setOnSucceeded(event -> buildSubjectMenu(task.getValue()));
-        task.setOnFailed(event -> showError(task.getException()));
+        task.setOnSucceeded(event -> {if(isCurrent(owner,epoch))buildSubjectMenu(task.getValue());});
+        task.setOnFailed(event -> {if(isCurrent(owner,epoch))showError(task.getException());});
         AppTaskExecutor.execute(task);
     }
 
@@ -219,20 +263,23 @@ public final class ZnackCardRegistrationController {
     }
 
     private void reload() {
-        if (loading) return;
+        long sequence=++loadSequence;
         if (shop == null) {
+            loading=false;setLoading(false);
             productTable.getItems().clear();
             updateEmpty();
             return;
         }
         loading = true;
         setLoading(true);
+        Shop owner=shop;long epoch=shopEpoch;
         SearchCriteria criteria = new SearchCriteria(shop.getId(), searchField.getText(),
                 List.copyOf(selectedSubjects), statusFilter.getValue().code, PAGE_SIZE, 0);
         Task<List<Sku>> task = new Task<>() {
             @Override protected List<Sku> call() { return repository.search(criteria); }
         };
         task.setOnSucceeded(event -> {
+            if(sequence!=loadSequence || !isCurrent(owner,epoch))return;
             loading = false;
             setLoading(false);
             productTable.getItems().setAll(task.getValue());
@@ -240,6 +287,7 @@ public final class ZnackCardRegistrationController {
             resumePending(task.getValue());
         });
         task.setOnFailed(event -> {
+            if(sequence!=loadSequence || !isCurrent(owner,epoch))return;
             loading = false;
             setLoading(false);
             showError(task.getException());
@@ -248,19 +296,29 @@ public final class ZnackCardRegistrationController {
     }
 
     private void createCard(Sku sku) {
-        boolean retryWithoutGtin = sku.status() == Status.CHECKING
-                && (sku.gtin() == null || sku.gtin().isBlank());
-        if (shop == null || (isBusy(sku.status()) && !retryWithoutGtin)) return;
-        List<WbCharacteristic> characteristics = repository.characteristics(shop.getId(), sku.nmId());
+        if(shop==null || preparing || !eligible(sku))return;
+        boolean fresh=sku.needsGtinReview();
+        if(fresh && !confirm(java.text.MessageFormat.format(tr("znack.registration.confirm_new_gtin"),1)))return;
+        Shop owner=shop;long epoch=shopEpoch;
+        preparing=true;updateActionState();
+        prepareCard(owner,epoch,sku,fresh,()->{preparing=false;updateActionState();reload();});
+    }
+
+    private void prepareCard(Shop owner,long epoch,Sku sku,boolean fresh,Runnable completed) {
+        if(!isCurrent(owner,epoch))return;
+        if(!eligible(sku)){completed.run();return;}
+        List<WbCharacteristic> characteristics = repository.characteristics(owner.getId(), sku.nmId());
         String tnved = ZnackWbAttributeMapper.findTnved(characteristics);
         if (tnved.isBlank()) {
             showWarning(java.text.MessageFormat.format(tr("znack.registration.missing_tnved"),
                     sku.vendorCode(), first(sku.sourceBarcode(), Long.toString(sku.chrtId())), sku.subjectName()));
+            completed.run();
             return;
         }
-        ZnackModels.Settings current = settings();
+        ZnackModels.Settings current = settings(owner);
         if (!current.hasDefaultGoodsDocument()) {
             showWarning(tr("znack.registration.missing_document_config"));
+            completed.run();
             return;
         }
         final String documentDate;
@@ -268,6 +326,7 @@ public final class ZnackCardRegistrationController {
             documentDate = normalizedDocumentDate(current.documentDate());
         } catch (IllegalArgumentException error) {
             showWarning(error.getMessage());
+            completed.run();
             return;
         }
         setLoading(true);
@@ -291,39 +350,51 @@ public final class ZnackCardRegistrationController {
             }
         };
         task.setOnSucceeded(event -> {
+            if(!isCurrent(owner,epoch))return;
             setLoading(false);
             AutomaticDraft result = task.getValue();
             if (!result.missingFields().isEmpty()) {
                 showWarning(java.text.MessageFormat.format(tr("znack.registration.missing_wb_fields"),
                         sku.vendorCode(), String.join("\n• ", result.missingFields())));
+                completed.run();
                 return;
             }
-            startWorkflow(sku, result.draft());
+            startWorkflow(owner,epoch,sku,result.draft(),fresh);
+            completed.run();
         });
         task.setOnFailed(event -> {
+            if(!isCurrent(owner,epoch))return;
             setLoading(false);
             showError(task.getException());
+            completed.run();
         });
         AppTaskExecutor.execute(task);
     }
 
-    private void startWorkflow(Sku sku, Draft draft) {
-        boolean started = workflow.start(shop, sku, draft, (status, detail) -> Platform.runLater(() -> {
+    private void startWorkflow(Shop owner,long epoch,Sku sku,Draft draft,boolean fresh) {
+        java.util.function.BiConsumer<Status,String> listener=(status,detail)->Platform.runLater(()->{
+            if(!isCurrent(owner,epoch))return;
             reload();
-            if (status == Status.ERROR) showWorkflowError(detail);
+            if (status == Status.ERROR || status == Status.GTIN_REVIEW_REQUIRED
+                    || status == Status.FEED_REVIEW_REQUIRED || status == Status.PRE_SUBMIT_ERROR
+                    || status == Status.PREFLIGHT_ERROR) showWorkflowError(detail);
             else if (status == Status.PUBLISHED && !detail.isBlank()) {
                 showInfo(tr("znack.registration.completed") + " " + detail);
             }
-        }));
+        });
+        boolean started=fresh ? workflow.requestNewGtin(owner,sku,draft,true,listener)
+                : workflow.start(owner,sku,draft,listener);
         if (!started) showInfo(tr("znack.registration.already_running"));
         reload();
     }
 
     private void resumePending(List<Sku> values) {
         if (shop == null) return;
+        Shop owner=shop;long epoch=shopEpoch;
         for (Sku sku : values) {
-            if (!isBusy(sku.status()) || sku.gtin() == null || sku.gtin().isBlank()) continue;
-            workflow.resume(shop, sku, (status, detail) -> Platform.runLater(() -> {
+            if (!sku.canResume()) continue;
+            workflow.resume(owner, sku, (status, detail) -> Platform.runLater(() -> {
+                if(!isCurrent(owner,epoch))return;
                 if (status == Status.ERROR) showWorkflowError(detail);
                 if (status == Status.PUBLISHED && !detail.isBlank()) {
                     showInfo(tr("znack.registration.completed") + " " + detail);
@@ -334,7 +405,10 @@ public final class ZnackCardRegistrationController {
     }
 
     private ZnackModels.Settings settings() {
-        return new ZnackRepository(new ZnackModels.ShopContext(shop.getId(), shop.getName())).getSettings();
+        return settings(shop);
+    }
+    private ZnackModels.Settings settings(Shop owner) {
+        return new ZnackRepository(new ZnackModels.ShopContext(owner.getId(), owner.getName())).getSettings();
     }
 
     private static ZnackSignatureProvider signer(ZnackModels.Settings settings) {
@@ -389,7 +463,11 @@ public final class ZnackCardRegistrationController {
         colorColumn.setCellValueFactory(cell -> new ReadOnlyStringWrapper(cell.getValue().color()));
         sizeColumn.setCellValueFactory(cell -> new ReadOnlyStringWrapper(cell.getValue().size()));
         barcodeColumn.setCellValueFactory(cell -> new ReadOnlyStringWrapper(barcodes(cell.getValue())));
-        statusColumn.setCellValueFactory(cell -> new ReadOnlyStringWrapper(statusText(cell.getValue().status())));
+        statusColumn.setCellValueFactory(cell -> new ReadOnlyStringWrapper(
+                cell.getValue().needsGtinReview() && !workflow.isRunning(shop,cell.getValue())
+                        ? statusText(Status.GTIN_REVIEW_REQUIRED)
+                        : cell.getValue().needsFeedReview() && !workflow.isRunning(shop,cell.getValue())
+                        ? statusText(Status.FEED_REVIEW_REQUIRED) : statusText(cell.getValue().status())));
         statusColumn.setCellFactory(column -> new TableCell<>() {
             @Override protected void updateItem(String item, boolean empty) {
                 super.updateItem(item, empty);
@@ -404,11 +482,10 @@ public final class ZnackCardRegistrationController {
             @Override protected void updateItem(Sku item, boolean empty) {
                 super.updateItem(item, empty);
                 if (empty || item == null) { setGraphic(null); return; }
-                button.setText(item.status() == Status.ERROR
-                        || (item.status() == Status.CHECKING && item.gtin() == null)
-                        ? tr("znack.registration.retry") : tr("znack.registration.create"));
-                button.setDisable((isBusy(item.status()) && !(item.status() == Status.CHECKING && item.gtin() == null))
-                        || item.status() == Status.PUBLISHED);
+                button.setText(item.needsGtinReview()?tr("znack.registration.new_gtin")
+                        : item.status()==Status.ERROR || item.status()==Status.PRE_SUBMIT_ERROR || item.status()==Status.PREFLIGHT_ERROR
+                        ?tr("znack.registration.retry"):tr("znack.registration.create"));
+                button.setDisable(preparing || !eligible(item));
                 setAlignment(Pos.CENTER);
                 setGraphic(button);
             }
@@ -435,6 +512,23 @@ public final class ZnackCardRegistrationController {
 
     private void setLoading(boolean value) {
         loadingLabel.setVisible(value); loadingLabel.setManaged(value); refreshButton.setDisable(value);
+        updateActionState();
+    }
+    private boolean isCurrent(Shop owner,long epoch) {return shop==owner && shopEpoch==epoch;}
+    private boolean eligible(Sku sku) {
+        return shop!=null && sku!=null && !workflow.isRunning(shop,sku)
+                && (sku.canRegister() || sku.needsGtinReview());
+    }
+    private void updateActionState() {
+        selectAllButton.setDisable(shop==null || preparing || loading);
+        registerSelectedButton.setDisable(shop==null || preparing || loading
+                || productTable.getSelectionModel().getSelectedItems().stream().noneMatch(this::eligible));
+        productTable.refresh();
+    }
+    private static boolean confirm(String message) {
+        Alert alert=new Alert(Alert.AlertType.CONFIRMATION,message,ButtonType.OK,ButtonType.CANCEL);
+        alert.setHeaderText(tr("znack.registration.register_selected"));
+        return alert.showAndWait().orElse(ButtonType.CANCEL)==ButtonType.OK;
     }
     private void updateEmpty() {
         boolean empty = productTable.getItems().isEmpty(); emptyLabel.setVisible(empty); emptyLabel.setManaged(empty);
@@ -480,7 +574,9 @@ public final class ZnackCardRegistrationController {
     }
 
     private enum StatusFilter {
-        ALL("ALL"), NOT_CREATED("NOT_CREATED"), IN_PROGRESS("IN_PROGRESS"), COMPLETED("COMPLETED"), ERROR("ERROR");
+        ALL("ALL"), NOT_CREATED("NOT_CREATED"), IN_PROGRESS("IN_PROGRESS"),
+        GTIN_REVIEW_REQUIRED("GTIN_REVIEW_REQUIRED"), FEED_REVIEW_REQUIRED("FEED_REVIEW_REQUIRED"),
+        COMPLETED("COMPLETED"), ERROR("ERROR");
         private final String code;
         StatusFilter(String code) { this.code = code; }
         @Override public String toString() { return tr("znack.registration.filter." + name().toLowerCase(Locale.ROOT)); }

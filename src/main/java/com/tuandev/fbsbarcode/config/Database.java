@@ -23,7 +23,7 @@ import com.tuandev.fbsbarcode.integration.znack.registration.ZnackCardRegistrati
 public class Database {
     private static final Logger LOGGER = LoggerFactory.getLogger(Database.class);
     private static final String DB_NAME = "database.db";
-    private static final int CURRENT_SCHEMA_VERSION = 3;
+    private static final int CURRENT_SCHEMA_VERSION = 4;
 
     public static int currentSchemaVersion() {
         return CURRENT_SCHEMA_VERSION;

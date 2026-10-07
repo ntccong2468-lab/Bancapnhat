@@ -20,6 +20,7 @@ public class ZnackApiClient {
     private static final long RATE_LIMIT_MAX_TOTAL_DELAY_MS = Duration.ofMinutes(5).toMillis();
     private static final long RATE_LIMIT_FALLBACK_DELAY_MS = 1_000L;
     private final OkHttpClient client;
+    private final OkHttpClient nonRepeatingClient;
     private final Sleeper sleeper;
     private final Gson gson = new Gson();
 
@@ -37,7 +38,22 @@ public class ZnackApiClient {
 
     ZnackApiClient(OkHttpClient client, Sleeper sleeper) {
         this.client = client;
+        this.nonRepeatingClient=client.newBuilder().retryOnConnectionFailure(false)
+                .followRedirects(false).followSslRedirects(false)
+                .addNetworkInterceptor(chain -> {
+                    // OkHttp may follow 503/421 even with connection retries disabled.
+                    // Use the original Call tag so auth follow-ups cannot lose this guard.
+                    NetworkAttempt attempt=chain.call().request().tag(NetworkAttempt.class);
+                    if(attempt==null || !attempt.sent.compareAndSet(false,true)) {
+                        throw new IOException("Automatic replay of a mutation request is blocked; reconcile its result.");
+                    }
+                    return chain.proceed(chain.request());
+                }).build();
         this.sleeper = sleeper;
+    }
+
+    private static final class NetworkAttempt {
+        private final java.util.concurrent.atomic.AtomicBoolean sent=new java.util.concurrent.atomic.AtomicBoolean();
     }
 
     public JsonObject authKey(String base) throws IOException { return get(authBase(base), "/auth/key", null).getAsJsonObject(); }
@@ -85,7 +101,7 @@ public class ZnackApiClient {
                 "/nk/attributes?cat_id=" + categoryId + "&attr_type=m", token);
     }
     public JsonElement submitNationalCatalogFeed(String base, String token, JsonElement feed) throws IOException {
-        return post(nationalCatalogBase(base), "/v3/feed", token, feed);
+        return postWithoutRetry(nationalCatalogBase(base), "/v3/feed", token, feed);
     }
     public JsonElement nationalCatalogFeedStatus(String base, String token, String feedId) throws IOException {
         return get(nationalCatalogBase(base), "/v3/feed-status?verbose=true&feed_id=" + url(feedId), token);
@@ -97,7 +113,7 @@ public class ZnackApiClient {
         if (body == null || body.isEmpty() || body.size() > 10) {
             throw new IllegalArgumentException("National Catalog signing accepts 1 to 10 cards per batch.");
         }
-        return post(nationalCatalogBase(base), "/v3/feed-product-sign-pkcs", token, body);
+        return postWithoutRetry(nationalCatalogBase(base), "/v3/feed-product-sign-pkcs", token, body);
     }
     public JsonObject createOrder(String base,String token,String omsId,byte[] body,String signature)throws IOException{
         Request request=new Request.Builder().url(join(base,"/api/v3/order?omsId="+url(omsId))).headers(suzHeaders(token).newBuilder().add("X-Signature",signature).build())
@@ -147,6 +163,7 @@ public class ZnackApiClient {
     private JsonElement getWithoutRetry(String base,String path,String token)throws IOException{return execute(new Request.Builder().url(join(base,path)).headers(headers(token)).get().build(),false,false);}
     private JsonElement suzGet(String base,String path,String token)throws IOException{return execute(new Request.Builder().url(join(base,path)).headers(suzHeaders(token)).get().build());}
     private JsonElement post(String base,String path,String token,Object body)throws IOException{return execute(new Request.Builder().url(join(base,path)).headers(headers(token)).post(RequestBody.create(gson.toJson(body),JSON)).build());}
+    private JsonElement postWithoutRetry(String base,String path,String token,Object body)throws IOException{return execute(new Request.Builder().url(join(base,path)).headers(headers(token)).post(RequestBody.create(gson.toJson(body),JSON)).build(),false,false);}
     private Headers headers(String token){Headers.Builder h=new Headers.Builder().add("Accept","application/json");if(token!=null&&!token.isBlank())h.add("Authorization","Bearer "+token);return h.build();}
     private Headers suzHeaders(String token){Headers.Builder h=new Headers.Builder().add("Accept","application/json");if(token!=null&&!token.isBlank())h.add("clientToken",token);return h.build();}
     // errorCode 1090 ("Проверка учетных данных УОТ не пройдена") is a transient SUZ/УОТ credential
@@ -162,7 +179,11 @@ public class ZnackApiClient {
     private JsonElement execute(Request request,boolean allowNotFoundBody,boolean allowRetry,boolean emptyOnNotFound)throws IOException{
         long rateLimitDelayUsed=0;
         for(int attempt=1;;attempt++){
-            try(Response response=client.newCall(request).execute()){
+            boolean repeatable=allowRetry&&isIdempotent(request);
+            OkHttpClient transport=repeatable?client:nonRepeatingClient;
+            Request attemptRequest=repeatable?request:request.newBuilder()
+                    .tag(NetworkAttempt.class,new NetworkAttempt()).build();
+            try(Response response=transport.newCall(attemptRequest).execute()){
                 String body=response.body()==null?"":response.body().string();
                 if(emptyOnNotFound&&response.code()==404){
                     LOGGER.info("Znack API returned no existing resource; continuing with an empty result. method={}, url={}",

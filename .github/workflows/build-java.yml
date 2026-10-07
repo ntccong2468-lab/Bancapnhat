@@ -53,6 +53,10 @@ jobs:
         shell: cmd
         run: build.bat exe
 
+      - name: Verify native Windows launcher and schema-3 history migration
+        shell: pwsh
+        run: ./tools/windows-native-smoke.ps1 -Version $env:APP_VERSION
+
       - name: Verify and name test installer
         shell: pwsh
         run: |
@@ -75,6 +79,7 @@ jobs:
           path: |
             out/WCode-${{ env.APP_VERSION }}-Ozon-Test.exe
             out/WCode-${{ env.APP_VERSION }}-Ozon-Test.sha256
+            out/native-smoke.json
           if-no-files-found: error
           retention-days: 14
 

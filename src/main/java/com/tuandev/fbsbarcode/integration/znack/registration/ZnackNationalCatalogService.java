@@ -88,6 +88,10 @@ public final class ZnackNationalCatalogService {
         return generateOne(token, Set.of());
     }
 
+    public String generateFreshOne(String token, Set<String> claimedGtins) throws Exception {
+        return allocate(token, claimedGtins, false);
+    }
+
     /**
      * Allocates one unclaimed National Catalog draft GTIN.
      *
@@ -96,19 +100,27 @@ public final class ZnackNationalCatalogService {
      * the draft list back instead of issuing the state-changing request again.</p>
      */
     public String generateOne(String token, Set<String> claimedGtins) throws Exception {
+        return allocate(token, claimedGtins, true);
+    }
+
+    private String allocate(String token, Set<String> claimedGtins, boolean reuseExisting) throws Exception {
         Set<String> claimed = normalizedGtins(claimedGtins);
         synchronized (GTIN_ALLOCATION_LOCK) {
             JsonElement beforeResponse = api.generatedGtins(settings.resolvedTrueApiBaseUrl(), token);
             List<String> before = draftGtins(beforeResponse);
             String reusable = firstUnclaimed(before, claimed);
-            if (!reusable.isBlank()) {
+            if (reuseExisting && !reusable.isBlank()) {
                 LOGGER.info("Reusing an existing unclaimed National Catalog draft GTIN.");
                 return reusable;
             }
 
             JsonElement generatedResponse = api.generateGtins(
                     settings.resolvedTrueApiBaseUrl(), token, 1);
-            String generated = firstUnclaimed(draftGtins(generatedResponse), claimed);
+            Set<String> previous = new LinkedHashSet<>(before);
+            List<String> returned = draftGtins(generatedResponse).stream()
+                    .filter(value -> !claimed.contains(value))
+                    .filter(value -> reuseExisting || !previous.contains(value)).toList();
+            String generated = returned.size() == 1 ? returned.getFirst() : "";
             if (!generated.isBlank()) return generated;
 
             // A successful allocation response without drafts is ambiguous. The allocation call
@@ -116,12 +128,11 @@ public final class ZnackNationalCatalogService {
             JsonElement readBackResponse = api.generatedGtins(
                     settings.resolvedTrueApiBaseUrl(), token);
             List<String> readBack = draftGtins(readBackResponse);
-            Set<String> previous = new LinkedHashSet<>(before);
-            String reconciled = readBack.stream()
+            List<String> candidates = readBack.stream()
                     .filter(value -> !claimed.contains(value))
                     .filter(value -> !previous.contains(value))
-                    .findFirst()
-                    .orElseGet(() -> firstUnclaimed(readBack, claimed));
+                    .toList();
+            String reconciled = candidates.size()==1 ? candidates.getFirst() : "";
             if (!reconciled.isBlank()) {
                 LOGGER.warn("National Catalog omitted drafts from the allocation response; "
                         + "recovered the allocated GTIN through exist=1.");

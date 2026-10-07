@@ -82,7 +82,7 @@ export async function buildSignedUpdateManifest({
       fileName: "WCode.msi",
       size: file.size,
       sha256: await sha256(installer),
-      url: `https://github.com/rupphi/relatest-wcode/releases/download/v${version}/WCode.msi`,
+      url: `https://github.com/ntccong2468-lab/Vncode/releases/download/v${version}/WCode.msi`,
     }],
   };
   const payloadBytes = Buffer.from(JSON.stringify(payload), "utf8");

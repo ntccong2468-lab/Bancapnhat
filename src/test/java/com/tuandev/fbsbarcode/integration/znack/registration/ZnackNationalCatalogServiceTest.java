@@ -19,6 +19,48 @@ import java.util.concurrent.atomic.AtomicInteger;
 import static org.junit.jupiter.api.Assertions.*;
 
 class ZnackNationalCatalogServiceTest {
+    @Test void explicitFreshAllocationSkipsExistingUnclaimedDrafts() throws Exception {
+        AtomicInteger allocations=new AtomicInteger();
+        ZnackApiClient api=new ZnackApiClient() {
+            @Override public JsonElement generatedGtins(String base,String token) {
+                return JsonParser.parseString("{\"result\":{\"drafts\":[{\"gtin\":\"04631993764363\"}]}}");
+            }
+            @Override public JsonElement generateGtins(String base,String token,int quantity) {
+                allocations.incrementAndGet();
+                return JsonParser.parseString("{\"result\":{\"drafts\":[{\"gtin\":\"04631993764370\"}]}}");
+            }
+        };
+        assertEquals("04631993764370",service(api).generateFreshOne("token",Set.of()));
+        assertEquals(1,allocations.get());
+    }
+    @Test void freshAllocationWithLostIdentityNeverFallsBackToAPreviousDraft() {
+        AtomicInteger allocations=new AtomicInteger();
+        ZnackApiClient api=new ZnackApiClient() {
+            @Override public JsonElement generatedGtins(String base,String token) {
+                return JsonParser.parseString("{\"result\":{\"drafts\":[{\"gtin\":\"04631993764363\"}]}}");
+            }
+            @Override public JsonElement generateGtins(String base,String token,int quantity) {
+                allocations.incrementAndGet();
+                return JsonParser.parseString("{\"result\":{\"monthly-limit\":{\"limit\":100,\"usage\":2}}}");
+            }
+        };
+        assertThrows(IllegalStateException.class,()->service(api).generateFreshOne("token",Set.of()));
+        assertEquals(1,allocations.get());
+    }
+    @Test void freshAllocationDoesNotGuessWhenReadBackContainsMultipleNewCodes() {
+        AtomicInteger reads=new AtomicInteger(),allocations=new AtomicInteger();
+        ZnackApiClient api=new ZnackApiClient() {
+            @Override public JsonElement generatedGtins(String base,String token) {
+                return JsonParser.parseString(reads.getAndIncrement()==0?"{\"result\":{\"drafts\":[]}}":
+                        "{\"result\":{\"drafts\":[{\"gtin\":\"04631993764363\"},{\"gtin\":\"04631993764370\"}]}}");
+            }
+            @Override public JsonElement generateGtins(String base,String token,int quantity) {
+                allocations.incrementAndGet();return JsonParser.parseString("{\"result\":{}}");
+            }
+        };
+        assertThrows(IllegalStateException.class,()->service(api).generateFreshOne("token",Set.of()));
+        assertEquals(1,allocations.get());
+    }
     @Test
     void retainsSchemaValueTypesAndSendsThemWithArticleAndSize() {
         var schema = ZnackNationalCatalogService.parseAttributes(JsonParser.parseString("""

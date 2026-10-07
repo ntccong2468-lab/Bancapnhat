@@ -24,11 +24,11 @@ Liên hệ: Zalo 0335407670.
 
 ## Tải bản Windows
 
-Bản thử module GTIN từ nhánh `feat/windows-gtin-sync-20261006`:
-[tải bộ cài Windows x64 (ZIP)](https://github.com/ntccong2468-lab/Vncode/actions/runs/37519724842/artifacts/11440685457).
-Giải nén rồi chạy `WCode-1.1.32-Ozon-Test.exe`; Java đã được đóng gói kèm.
-Đây là EXE thử nghiệm chưa ký; cập nhật GTIN thật lên WB/Ozon vẫn bị khóa.
-Artifact được giữ 14 ngày; GitHub có thể yêu cầu đăng nhập để tải.
+Bản Vncode 1.1.33 bổ sung phục hồi đăng ký GTIN theo mô tả công khai WCode 1.1.75:
+[tải bộ cài Windows x64](https://github.com/ntccong2468-lab/Vncode/releases/download/v1.1.33/Vncode-1.1.33-Windows-x64.exe).
+Java được đóng gói kèm; tải EXE rồi chạy để cài đặt. Đây là prerelease chưa ký.
+Xem [mô tả và giới hạn của bản này](docs/releases/Vncode-1.1.33.md).
+Cập nhật GTIN thật lên WB/Ozon trong module đồng bộ vẫn bị khóa chờ xác minh API.
 
 Các bản WCode phát hành trước thay đổi GTIN:
 

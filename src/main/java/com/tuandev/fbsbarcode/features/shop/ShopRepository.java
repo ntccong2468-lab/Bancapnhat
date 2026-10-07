@@ -138,11 +138,22 @@ public class ShopRepository {
                         }
                     }
                 }
+                try (PreparedStatement registration = conn.prepareStatement("""
+                            SELECT 1 FROM znack_card_registrations
+                            WHERE shop_id=? AND status NOT IN ('PUBLISHED','PRE_SUBMIT_ERROR','PREFLIGHT_ERROR') LIMIT 1
+                        """)) {
+                    registration.setInt(1, id);
+                    try (ResultSet result = registration.executeQuery()) {
+                        if (result.next()) {
+                            throw new IllegalStateException(I18nService.getInstance().tr("znack.registration.shop_delete_pending"));
+                        }
+                    }
+                }
                 ps.setInt(1, id);
                 int deleted = ps.executeUpdate();
                 conn.commit();
                 return deleted;
-            } catch (SQLException ex) {
+            } catch (SQLException | RuntimeException ex) {
                 conn.rollback();
                 throw ex;
             } finally {

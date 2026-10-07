@@ -18,12 +18,15 @@ env:
   NODE_VERSION: "22"
   APP_NAME: WCode
   APP_VENDOR: TuanDev
-  RELEASE_REPO: rupphi/relatest-wcode
+  RELEASE_REPO: ${{ github.repository }}
   WINDOWS_UPGRADE_UUID: 0356BE08-487C-4E04-A2C2-353AF93DB2DE
   TIMESTAMP_URL: http://timestamp.digicert.com
 
 jobs:
   validate:
+    # Vncode ships Windows test releases from the verified build-java artifact.
+    # The inherited multi-platform rehearsal remains available by explicit dispatch.
+    if: ${{ github.repository != 'ntccong2468-lab/Vncode' || github.event_name == 'workflow_dispatch' }}
     name: Validate source release contract
     runs-on: ubuntu-latest
     outputs:
@@ -294,7 +297,7 @@ jobs:
                       }
                       if ("ready".equals(args[0])) {
                           try (ResultSet version = statement.executeQuery("PRAGMA user_version")) {
-                              if (!version.next() || version.getInt(1) != 2) {
+                              if (!version.next() || version.getInt(1) != 4) {
                                   System.exit(2);
                               }
                           }
@@ -306,8 +309,8 @@ jobs:
                           }
                       }
                       try (ResultSet version = statement.executeQuery("PRAGMA user_version")) {
-                          if (!version.next() || version.getInt(1) != 2) {
-                              throw new IllegalStateException("Migrated database schema version is not 2");
+                          if (!version.next() || version.getInt(1) != 4) {
+                              throw new IllegalStateException("Migrated database schema version is not 4");
                           }
                       }
                       try (ResultSet shop = statement.executeQuery(

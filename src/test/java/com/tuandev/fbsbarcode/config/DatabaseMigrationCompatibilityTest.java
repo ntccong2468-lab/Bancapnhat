@@ -173,7 +173,7 @@ class DatabaseMigrationCompatibilityTest {
 
         try (LocalDataMigrationGate.Session ignored =
                 LocalDataMigrationGate.prepare(temp, "1.1.10", "javafx")) {
-            assertEquals(3, scalarInt("PRAGMA user_version"));
+            assertEquals(4, scalarInt("PRAGMA user_version"));
             assertEquals("WILDBERRIES", scalarText("SELECT marketplace FROM shops WHERE id=41"));
             assertEquals("preserve-token", scalarText("SELECT api_key FROM shops WHERE id=41"));
             assertEquals("ARTICLE-119", scalarText(
@@ -241,7 +241,7 @@ class DatabaseMigrationCompatibilityTest {
 
         try (LocalDataMigrationGate.Session ignored =
                 LocalDataMigrationGate.prepare(temp, "1.1.10", "javafx")) {
-            assertEquals(3, scalarInt("PRAGMA user_version"));
+            assertEquals(4, scalarInt("PRAGMA user_version"));
             assertEquals("WILDBERRIES", scalarText("SELECT marketplace FROM shops WHERE id=41"));
             assertEquals("preserve-token", scalarText("SELECT api_key FROM shops WHERE id=41"));
             assertEquals("90071992547409931234", scalarText("SELECT external_id FROM legacy_orders WHERE id=7"));

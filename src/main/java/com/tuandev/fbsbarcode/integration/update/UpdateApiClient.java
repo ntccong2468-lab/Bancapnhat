@@ -168,7 +168,11 @@ public class UpdateApiClient {
         }
         try {
             String dbUrl = ConfigService.getConfigValue("update_api_url");
-            if (dbUrl != null && !dbUrl.isBlank()) return dbUrl;
+            if (dbUrl != null && !dbUrl.isBlank()) {
+                String normalized=normalizeUpdateSource(dbUrl);
+                // Migrate the inherited vendor default; preserve explicitly configured custom sources.
+                if (!"https://api.github.com/repos/rupphi/relatest-wcode".equalsIgnoreCase(normalized)) return dbUrl;
+            }
         } catch (Exception ignored) {}
         return BuildConfig.getUpdateUrl();
     }

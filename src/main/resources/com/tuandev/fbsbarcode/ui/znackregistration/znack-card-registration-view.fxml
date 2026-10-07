@@ -15,6 +15,10 @@
         <Button fx:id="refreshButton" text="Làm mới" onAction="#onRefresh" styleClass="btn-secondary"/>
     </HBox>
     <HBox alignment="CENTER_LEFT" spacing="8">
+        <Button fx:id="selectAllButton" text="Chọn tất cả" onAction="#onSelectAll"/>
+        <Button fx:id="registerSelectedButton" text="Đăng ký sản phẩm đã chọn" onAction="#onRegisterSelected" styleClass="btn-primary"/>
+    </HBox>
+    <HBox alignment="CENTER_LEFT" spacing="8">
         <TextField fx:id="searchField" promptText="Tìm theo tên, article, SKU..." prefWidth="300"/>
         <MenuButton fx:id="categoryMenuButton" text="Danh mục"/>
         <ComboBox fx:id="statusFilter" prefWidth="180"/>
@@ -30,7 +34,7 @@
                 <TableColumn fx:id="sizeColumn" text="Size" prefWidth="70"/>
                 <TableColumn fx:id="barcodeColumn" text="Barcode WB / GTIN" prefWidth="180"/>
                 <TableColumn fx:id="statusColumn" text="Trạng thái" prefWidth="135"/>
-                <TableColumn fx:id="actionColumn" text="Thao tác" prefWidth="110" maxWidth="140"/>
+                <TableColumn fx:id="actionColumn" text="Thao tác" prefWidth="170" maxWidth="210"/>
             </columns>
         </TableView>
         <Label fx:id="emptyLabel" text="Không có SKU" visible="false" managed="false" styleClass="text-muted"/>

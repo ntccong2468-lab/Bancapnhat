@@ -36,7 +36,7 @@ test("builds a canonical envelope whose signed MSI fields verify independently",
     assert.match(payload.assets[0].sha256, /^[0-9a-f]{64}$/);
     assert.equal(
       payload.assets[0].url,
-      "https://github.com/rupphi/relatest-wcode/releases/download/v1.2.3/WCode.msi",
+      "https://github.com/ntccong2468-lab/Vncode/releases/download/v1.2.3/WCode.msi",
     );
     assert.equal(verify(null, payloadBytes, keys.publicKey, Buffer.from(envelope.signature, "base64")), true);
   } finally {

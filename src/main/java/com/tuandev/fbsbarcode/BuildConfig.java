@@ -23,7 +23,7 @@ public final class BuildConfig {
     }
 
     public static String getUpdateUrl() {
-        return PROPS.getProperty("app.update.url", "https://github.com/rupphi/relatest-wcode");
+        return PROPS.getProperty("app.update.url", "https://github.com/ntccong2468-lab/Vncode");
     }
 
     public static String getUpdateManifestPublicKey() {

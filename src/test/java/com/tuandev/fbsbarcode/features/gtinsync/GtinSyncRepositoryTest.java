@@ -37,7 +37,7 @@ class GtinSyncRepositoryTest {
         }
         try(var session=LocalDataMigrationGate.prepare(temp,"1.1.32","javafx")) {
             try(var c=Database.getConnection();var s=c.createStatement()) {
-                var v=s.executeQuery("PRAGMA user_version");assertTrue(v.next());assertEquals(3,v.getInt(1));v.close();
+                var v=s.executeQuery("PRAGMA user_version");assertTrue(v.next());assertEquals(4,v.getInt(1));v.close();
                 var integrity=s.executeQuery("PRAGMA integrity_check");assertEquals("ok",integrity.getString(1));integrity.close();
                 assertFalse(s.executeQuery("PRAGMA foreign_key_check").next());
                 var tables=s.executeQuery("SELECT count(*) FROM sqlite_master WHERE type='table' AND name LIKE 'gtin_sync_%'");assertEquals(5,tables.getInt(1));tables.close();
