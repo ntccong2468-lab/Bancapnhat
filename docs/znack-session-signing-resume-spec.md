@@ -2,13 +2,13 @@
 
 ## Objective
 
-Prevent persisted Znack purchase/introduction pipelines from repeatedly opening the CryptoPro certificate or token dialog after WCode starts, while preserving automatic continuation for work that the user started during the current app session.
+Prevent persisted Znack purchase/introduction pipelines from repeatedly opening the CryptoPro certificate or token dialog after VN code starts, while preserving automatic continuation for work that the user started during the current app session.
 
 ## Approved behavior
 
 - A pipeline created by a user action in the current process is authorized to request signatures for the rest of that process. It remains authorized if the user switches to another shop.
 - A pipeline restored from SQLite after app startup may continue steps that do not need a new signature. At the first signing boundary it waits without invoking CryptoPro.
-- After the startup shop list is loaded, the shop restored as active is authorized once and its persisted pipelines resume automatically. This covers cases where the user closed WCode to top up the Znack balance and then reopened it.
+- After the startup shop list is loaded, the shop restored as active is authorized once and its persisted pipelines resume automatically. This covers cases where the user closed VN code to top up the Znack balance and then reopened it.
 - Selecting a shop from the shop dropdown is explicit session authorization for that shop. Waiting restored pipelines for that shop resume in the background.
 - Restored pipelines belonging to other shops remain paused at the signing boundary until the user selects their shop.
 - Authorization and waiting state are in memory only. No database migration or persisted consent flag is introduced.

@@ -3,7 +3,7 @@
 ## Confirmed data model
 
 - A WB `vendorCode` (article) represents the color-level product card in the current seller catalog.
-- Every real WB size is identified by `sizes[].chrtID`; therefore WCode creates one National Catalog card/GTIN per existing size, never a Cartesian product of colors and sizes.
+- Every real WB size is identified by `sizes[].chrtID`; therefore VN code creates one National Catalog card/GTIN per existing size, never a Cartesian product of colors and sizes.
 - This test stops after the National Catalog card is published. It deliberately does not change the WB card or its `sizes[].skus` values.
 
 ## Guarded test workflow
@@ -32,7 +32,7 @@ The value is editable before creation. This keeps size cards unique and readable
 - No GTIN is generated before certificate authentication, quota, TN VED, category, document and every mandatory category attribute pass local validation.
 - `/v3/feed` supports at most 500 entries; the test deliberately submits one row at a time.
 - National Catalog signing endpoints accept at most 10 cards; the test signs one row at a time.
-- The test executable has a separate Windows application identity and stores data under `WCodeZnackRegistrationTestData`. It never scans or migrates production `WCodeData`/legacy directories and never offers a production auto-update.
+- The test executable has a separate Windows application identity and stores data under `VNcodeZnackRegistrationTestData`. It never scans or migrates production `VNcodeData`/legacy directories and never offers a production auto-update.
 - No request to `POST /content/v2/cards/update` exists in the test registration workflow.
 - The registration table stores GTIN, payload, feed ID, good ID and status per `(shop_id, chrt_id)`. Opening the tab resumes in-progress rows from the stored checkpoint.
 

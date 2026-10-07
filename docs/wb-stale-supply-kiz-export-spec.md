@@ -8,7 +8,7 @@ This change fixes stale Wildberries supplies in the FBS packing board, prevents 
 
 - A supply returned by the WB list or detail endpoints remains stored locally, including a real empty supply.
 - A successful `404 Not Found` response for a specific locally-open supply is authoritative evidence that WB no longer has it.
-- On that response WCode deletes the local `wb_supplies` row for the same shop and supply ID. Existing foreign-key cascades remove its local links.
+- On that response VN code deletes the local `wb_supplies` row for the same shop and supply ID. Existing foreign-key cascades remove its local links.
 - Authentication, rate-limit, timeout, server, and parsing failures never delete local data.
 - Both automatic overview sync and the manual WB sync verify locally-open supplies, prioritizing old zero-item rows.
 - The next board refresh therefore removes overnight empty supplies that WB already removed.
@@ -34,7 +34,7 @@ This change fixes stale Wildberries supplies in the FBS packing board, prevents 
 ## Standalone KIZ PDF export
 
 - Each GTIN item has an export icon. The action is enabled when at least one legally available KIZ exists.
-- WCode asks for a positive quantity no greater than the displayed/rechecked available count, then asks for the target PDF path and filename.
+- VN code asks for a positive quantity no greater than the displayed/rechecked available count, then asks for the target PDF path and filename.
 - Codes are rechecked and reserved transactionally after the user chooses the target, preventing concurrent workflows from selecting the same rows.
 - PDF layout is exactly 58 x 40 mm, one KIZ per page:
   - a printer-sharp GS1 DataMatrix occupies the left half at the largest safe square size;
@@ -42,7 +42,7 @@ This change fixes stale Wildberries supplies in the FBS packing board, prevents 
 - Product name comes from the synchronized Znack GTIN. Gender comes from the GTIN mapping rules. Size is resolved from synchronized WB product sizes matching those rules; multiple distinct values are compacted rather than guessed.
 - The PDF is generated to a staging file. The reserved rows are consumed before the staging file is atomically published, matching the existing order-export safety rule that favors preventing duplicate KIZ use.
 - If generation fails before consumption, all reservations are released. If publishing fails after consumption, the codes remain consumed to prevent duplicate circulation labels.
-- After successful publication WCode opens the PDF. Failure to open it does not invalidate the saved PDF or release the consumed codes.
+- After successful publication VN code opens the PDF. Failure to open it does not invalidate the saved PDF or release the consumed codes.
 
 ## Acceptance tests
 

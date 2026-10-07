@@ -29,7 +29,7 @@
 
 ### Task 1: GTIN screen, confirmation and history
 
-**Files:** Create `ui/gtinsync/GtinSyncController.java`, `GtinSyncViewModel.java`, `GtinSyncHistoryExporter.java`, and `src/main/resources/com/tuandev/fbsbarcode/ui/gtinsync/gtin-sync-view.fxml`; modify `ui/workspace/HomeController.java`, `ui/shop/ShopSidebarController.java`, sidebar FXML and four `i18n/messages_*.properties`; add controller/export tests and extend `ui/FxmlSmokeTest.java`.
+**Files:** Create `ui/gtinsync/GtinSyncController.java`, `GtinSyncViewModel.java`, `GtinSyncHistoryExporter.java`, and `src/main/resources/com/vncode/app/ui/gtinsync/gtin-sync-view.fxml`; modify `ui/workspace/HomeController.java`, `ui/shop/ShopSidebarController.java`, sidebar FXML and four `i18n/messages_*.properties`; add controller/export tests and extend `ui/FxmlSmokeTest.java`.
 
 **Interfaces:** `void GtinSyncController.setShop(Shop shop)`, `void dispose()`; view model `void load(Shop shop)`, `List<Preview> previewSelection()`, `UUID confirm(List<Preview> previews)`; exporter `void writeCsv(List<JobItem> items, Path file)`, `void writeXlsx(List<JobItem> items, Path file)`. Use core types and interfaces verbatim.
 
@@ -40,7 +40,7 @@
 
 ### Task 2: Workspace structure and full-feature preservation
 
-**Files:** Create `ui/workspace/WorkspaceNavigator.java`, `WorkspaceNavigationTest.java`, `docs/validation/wcode-feature-parity.md`; modify `HomeController.java`, `home-view.fxml`, `theme.css` and sidebar layout as needed.
+**Files:** Create `ui/workspace/WorkspaceNavigator.java`, `WorkspaceNavigationTest.java`, `docs/validation/vn-code-feature-parity.md`; modify `HomeController.java`, `home-view.fxml`, `theme.css` and sidebar layout as needed.
 
 **Interfaces:** navigator `void register(String route, Supplier<Node> view)`, `void show(String route)`, `String currentRoute()`. HomeController retains shop state/lifecycle but delegates screen selection; existing feature controllers and license restrictions remain active.
 

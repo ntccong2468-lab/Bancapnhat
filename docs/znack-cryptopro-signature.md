@@ -1,21 +1,21 @@
 # CryptoPro signatures for Znack
 
-WCode signs Znack requests directly with the locally installed CryptoPro signing components. Signature configuration, the selected certificate, normalized certificate metadata, and successful test time are stored independently for each shop. WCode never stores or supplies a PIN.
+VN code signs Znack requests directly with the locally installed CryptoPro signing components. Signature configuration, the selected certificate, normalized certificate metadata, and successful test time are stored independently for each shop. VN code never stores or supplies a PIN.
 
 ## Required tools
 
 - `cryptcp` signs authentication challenges, SUZ order bodies, True API documents, and local test payloads when it is available.
-- On Windows, when `cryptcp` is absent, WCode automatically signs through the free CryptoPro CAdES Browser Plug-in's `CAdESCOM` component, which is the same signing family used by browser portals such as True Mark.
+- On Windows, when `cryptcp` is absent, VN code automatically signs through the free CryptoPro CAdES Browser Plug-in's `CAdESCOM` component, which is the same signing family used by browser portals such as True Mark.
 - `certmgr` discovers certificates from the CryptoPro user certificate store.
-- A legacy `csptest` path may remain in shop persistence, but WCode does not use a container list as proof that a specific certificate has an accessible private key.
+- A legacy `csptest` path may remain in shop persistence, but VN code does not use a container list as proof that a specific certificate has an accessible private key.
 
-WCode searches `PATH` and common CryptoPro installation directories on Windows, Linux, and macOS. On Windows it supports `cryptcp.exe`, `cryptcp.x64.exe`, and `cryptcp.x86.exe`, including CryptoPro installed under the system `ProgramFiles` directories. WCode does not redistribute CryptoPro binaries; if `cryptcp` is unavailable on Windows, it uses the installed CAdESCOM component instead. CryptoPro CSP and access to the certificate's private key remain required in both cases. Znack Settings does not expose executable paths, arbitrary signer arguments, API host overrides, or other technical fields.
+VN code searches `PATH` and common CryptoPro installation directories on Windows, Linux, and macOS. On Windows it supports `cryptcp.exe`, `cryptcp.x64.exe`, and `cryptcp.x86.exe`, including CryptoPro installed under the system `ProgramFiles` directories. VN code does not redistribute CryptoPro binaries; if `cryptcp` is unavailable on Windows, it uses the installed CAdESCOM component instead. CryptoPro CSP and access to the certificate's private key remain required in both cases. Znack Settings does not expose executable paths, arbitrary signer arguments, API host overrides, or other technical fields.
 
 Signing uses the documented CryptoPro form:
 
 `cryptcp -sign -uMy -thumbprint <thumbprint> -der -attached|-detached <input> <output>`
 
-`-uMy` restricts certificate lookup to the current user's personal store, `-thumbprint` selects exactly one certificate, and `-der` produces binary CMS/CAdES for validation and Base64 transport. WCode deliberately does not pass `-pin` or `-askpin`; CryptoPro and the token keep control of native confirmation and PIN handling.
+`-uMy` restricts certificate lookup to the current user's personal store, `-thumbprint` selects exactly one certificate, and `-der` produces binary CMS/CAdES for validation and Base64 transport. VN code deliberately does not pass `-pin` or `-askpin`; CryptoPro and the token keep control of native confirmation and PIN handling.
 
 CryptoPro's official command-line reference is the source of truth for these options:
 
@@ -34,9 +34,9 @@ CryptoPro's official command-line reference is the source of truth for these opt
 
 `certmgr` output is not assumed to prove private-key availability. Only a successful real signing test through `cryptcp` or CAdESCOM marks that shop `VERIFIED` and proves that the selected certificate's private key is currently usable. Changing the certificate clears verification. Switching shops reloads the selected certificate and verification state of the new shop.
 
-Goods-document defaults are shop-scoped and optional for buying and downloading KIZ. If automatic introduction is enabled but required document data is missing, WCode keeps the downloaded codes available, skips introduction, and records `INTRODUCTION_SKIPPED_MISSING_DOCUMENTS`. There is no Advanced Settings section or KIZ PDF generation in the Znack UI.
+Goods-document defaults are shop-scoped and optional for buying and downloading KIZ. If automatic introduction is enabled but required document data is missing, VN code keeps the downloaded codes available, skips introduction, and records `INTRODUCTION_SKIPPED_MISSING_DOCUMENTS`. There is no Advanced Settings section or KIZ PDF generation in the Znack UI.
 
-When no usable certificate is found, WCode displays:
+When no usable certificate is found, VN code displays:
 
 `Không tìm thấy chữ ký điện tử. Vui lòng cắm USB token, kiểm tra CryptoPro rồi thử lại.`
 
@@ -49,8 +49,8 @@ When no usable certificate is found, WCode displays:
 
 ## Errors and security
 
-WCode distinguishes missing CryptoPro, absent token/certificate, unavailable private key, expired certificate, cancellation, timeout, signing failure, discovery failure, and invalid signature output. Signer output must be non-empty CMS/CAdES data; invalid or arbitrary command output is rejected.
+VN code distinguishes missing CryptoPro, absent token/certificate, unavailable private key, expired certificate, cancellation, timeout, signing failure, discovery failure, and invalid signature output. Signer output must be non-empty CMS/CAdES data; invalid or arbitrary command output is rejected.
 
 Payloads, tokens, PINs, private-key material, and raw signatures are not written to operation logs. Diagnostics are sanitized and truncated. Legacy generic signer commands are not executed; only recognizable `cryptcp` and `certmgr` paths are migrated, and ambiguous legacy configurations lose their verified state.
 
-The request mapping is verified against the local documentation fixtures in `../znack_api/ZnackAPIDocument_md/OMS_API_3.0.md` and `../znack_api/ZnackAPIDocument_md/Guides-v16.0-05.06.2026-at-13-02-49.md`. The desktop flow corresponds to browser signing as follows: browser certificate selection maps to the shop's selected CryptoPro certificate, browser signing confirmation maps to the native CryptoPro/token prompt, and browser-side Base64 CMS output maps to WCode's validated CryptoPro output.
+The request mapping is verified against the local documentation fixtures in `../znack_api/ZnackAPIDocument_md/OMS_API_3.0.md` and `../znack_api/ZnackAPIDocument_md/Guides-v16.0-05.06.2026-at-13-02-49.md`. The desktop flow corresponds to browser signing as follows: browser certificate selection maps to the shop's selected CryptoPro certificate, browser signing confirmation maps to the native CryptoPro/token prompt, and browser-side Base64 CMS output maps to VN code's validated CryptoPro output.

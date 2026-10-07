@@ -21,9 +21,9 @@ Source: `znack_api/ZnackAPIDocument_md/api-v5.62-05.06.2026-at-13-03-26.md`, sec
 - Java 25
 - OkHttp 4.12.0
 - JUnit Jupiter 5.12.1
-- Client: `src/main/java/com/tuandev/fbsbarcode/integration/znack/ZnackApiClient.java`
-- Catalog sync: `src/main/java/com/tuandev/fbsbarcode/integration/znack/ZnackProductService.java`
-- Tests: `src/test/java/com/tuandev/fbsbarcode/integration/znack/`
+- Client: `src/main/java/com/vncode/app/integration/znack/ZnackApiClient.java`
+- Catalog sync: `src/main/java/com/vncode/app/integration/znack/ZnackProductService.java`
+- Tests: `src/test/java/com/vncode/app/integration/znack/`
 
 ## Behavior
 
@@ -82,7 +82,7 @@ if (response.code() == 429 && isIdempotent(request) && attempt < MAX_ATTEMPTS) {
 - Repeated 429 responses terminate predictably within the attempt/time budget.
 - State-changing calls are never retried by this policy.
 - Partial catalog enrichment is visible in persisted operation logs.
-- Targeted and full WCode verification pass.
+- Targeted and full VN code verification pass.
 
 ## Open questions
 

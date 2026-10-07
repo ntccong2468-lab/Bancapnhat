@@ -3,7 +3,7 @@
 ## Problem
 
 Persisted KIZ purchase pipelines can remain in `WAITING_INTRODUCTION_READINESS` after the
-codes become ready when WCode fails to read the permit attached to the exact GTIN. The documented
+codes become ready when VN code fails to read the permit attached to the exact GTIN. The documented
 National Catalog `/v3/feed-product` response exposes permits through `good_attrs`, while the
 catalog UI payload exposes the same attributes through `businessLayer.attrGroup[].attributes[]`.
 Treating an unparsed UI-shaped card as "no document" incorrectly parks valid purchases.
@@ -11,7 +11,7 @@ Treating an unparsed UI-shaped card as "no document" incorrectly parks valid pur
 The authoritative circulation check is `/v4/rd-info-by-gtin`. Per National Catalog API v5.62 it
 returns `result.documents[]`; `23557` is a declaration, `23561` a conformity certificate and
 `23765` a state-registration certificate. Only permit status group `1` is valid for primary
-introduction. The optional request field `inn` is the goods-card owner's INN, so WCode must not
+introduction. The optional request field `inn` is the goods-card owner's INN, so VN code must not
 silently substitute the authenticated participant when no owner override was configured.
 
 The standalone 58 x 40 mm KIZ export label also derives gender/size from WB mappings instead of

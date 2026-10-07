@@ -2,11 +2,11 @@
 
 Status: approved for implementation
 Date: 2026-08-25
-Owner: WCode desktop
+Owner: VN code desktop
 
 ## Objective
 
-Add a dedicated **FBO supply orders** page to WCode so a seller can track inbound supply requests created for marketplace warehouses:
+Add a dedicated **FBO supply orders** page to VN code so a seller can track inbound supply requests created for marketplace warehouses:
 
 - Wildberries fulfillment-by-Wildberries supplies, named **FBW** by Wildberries;
 - Ozon fulfillment-by-Ozon supply requests, named **FBO** by Ozon.
@@ -35,12 +35,12 @@ Official reference: [Wildberries FBW supplies API](https://dev.wildberries.ru/do
 - Optional `dates[]` filters contain `from`, `till`, and `type`.
 - Optional `statusIDs[]` contains status IDs 1 through 6.
 - Response fields confirmed live: `preorderID`, nullable `supplyID`, `statusID`, `boxTypeID`, `createDate`, `supplyDate`, `factDate`, `updatedDate`, and masked `phone`.
-- WCode must never store `phone`.
-- Official limit per seller: 30 requests/minute, 2-second interval, burst 10. WCode will not use the burst allowance; it will keep at least 2 seconds between WB FBW calls for each shop.
+- VN code must never store `phone`.
+- Official limit per seller: 30 requests/minute, 2-second interval, burst 10. VN code will not use the burst allowance; it will keep at least 2 seconds between WB FBW calls for each shop.
 
 Status mapping:
 
-| WB `statusID` | Meaning | WCode group |
+| WB `statusID` | Meaning | VN code group |
 |---:|---|---|
 | 1 | Not planned | PREPARING |
 | 2 | Planned | READY |
@@ -49,7 +49,7 @@ Status mapping:
 | 5 | Accepted | COMPLETED |
 | 6 | Unloaded at gate | IN_PROGRESS |
 
-Wildberries removed textual `statusName`, `boxTypeName`, and `virtualTypeName` fields in November 2025. WCode must rely on numeric IDs and preserve unknown IDs instead of failing. See [WB API change notice](https://dev.wildberries.ru/release-notes?id=200).
+Wildberries removed textual `statusName`, `boxTypeName`, and `virtualTypeName` fields in November 2025. VN code must rely on numeric IDs and preserve unknown IDs instead of failing. See [WB API change notice](https://dev.wildberries.ru/release-notes?id=200).
 
 #### Supply details
 
@@ -73,7 +73,7 @@ Returns `packageCode`, package `quantity`, and barcode quantities. This endpoint
 
 #### Known WB limitation
 
-The list endpoint is the only supported discovery endpoint. An [official WB developer-community report](https://dev.wildberries.ru/forum/2085) describes cases where supplies visible in Seller Portal with planned or unloading-allowed statuses did not appear in the list response even though detail lookup by a known ID worked. WCode cannot discover an ID that WB omits. The UI must therefore show the last successful sync time and a concise marketplace-data limitation message, without claiming complete Seller Portal parity.
+The list endpoint is the only supported discovery endpoint. An [official WB developer-community report](https://dev.wildberries.ru/forum/2085) describes cases where supplies visible in Seller Portal with planned or unloading-allowed statuses did not appear in the list response even though detail lookup by a known ID worked. VN code cannot discover an ID that WB omits. The UI must therefore show the last successful sync time and a concise marketplace-data limitation message, without claiming complete Seller Portal parity.
 
 ### Ozon FBO
 
@@ -81,7 +81,7 @@ Base URL: `https://api-seller.ozon.ru`
 Authorization headers: `Client-Id` and `Api-Key`
 Official reference: [Ozon Seller API](https://docs.ozon.ru/api/seller/).
 
-The old `/v2/supply-order/list` and `/v2/supply-order/get` endpoints were retired. Ozon announced migration to v3 in [October 2025](https://t.me/s/OzonSellerAPI?before=581), removed v2 from documentation in [January 2026](https://t.me/s/OzonSellerAPI/592), and both v2 endpoints returned HTTP 404 during the live verification. WCode must use v3 only.
+The old `/v2/supply-order/list` and `/v2/supply-order/get` endpoints were retired. Ozon announced migration to v3 in [October 2025](https://t.me/s/OzonSellerAPI?before=581), removed v2 from documentation in [January 2026](https://t.me/s/OzonSellerAPI/592), and both v2 endpoints returned HTTP 404 during the live verification. VN code must use v3 only.
 
 #### Count requests by state
 
@@ -120,7 +120,7 @@ Validated request shape:
 
 `POST /v3/supply-order/get`
 
-Request: `{"order_ids":["..."]}`. WCode will use conservative batches of at most 50 IDs.
+Request: `{"order_ids":["..."]}`. VN code will use conservative batches of at most 50 IDs.
 
 Order fields confirmed live:
 
@@ -136,7 +136,7 @@ Supply fields confirmed live:
 - `supply_id`, `bundle_id`, `state`, `is_crossdock`, `macrolocal_cluster_id`;
 - `storage_warehouse` and `supply_tags`.
 
-Ozon deprecated `orders.supplies.storage_warehouse.arrival_date` in February 2026. WCode must not use it as a canonical delivery date; it will use the request time slot and status timestamps. See the [official Ozon change notice](https://t.me/s/OzonSellerAPI/619).
+Ozon deprecated `orders.supplies.storage_warehouse.arrival_date` in February 2026. VN code must not use it as a canonical delivery date; it will use the request time slot and status timestamps. See the [official Ozon change notice](https://t.me/s/OzonSellerAPI/619).
 
 #### Get supply contents
 
@@ -151,7 +151,7 @@ Product contents are fetched lazily when the user opens an order, then cached lo
 
 #### Ozon status mapping
 
-| Ozon state | WCode group |
+| Ozon state | VN code group |
 |---|---|
 | `DATA_FILLING` | PREPARING |
 | `READY_TO_SUPPLY` | READY |
@@ -166,7 +166,7 @@ Product contents are fetched lazily when the user opens an order, then cached lo
 | `OVERDUE` | ISSUE |
 | any new value | UNKNOWN, with raw value shown |
 
-Ozon does not publish a stable endpoint-specific numeric quota on the accessible supply-order reference. WCode will apply a conservative per-shop FBO read limiter of one request per second, honor `Retry-After`, stop paging on 429, and leave cached data visible. It must not retry continuously.
+Ozon does not publish a stable endpoint-specific numeric quota on the accessible supply-order reference. VN code will apply a conservative per-shop FBO read limiter of one request per second, honor `Retry-After`, stop paging on 429, and leave cached data visible. It must not retry continuously.
 
 ## User experience
 
@@ -303,7 +303,7 @@ Indexes support `(shop_id, status/state, updated_at DESC)`, `(shop_id, planned/t
 
 ## Tech stack and project conventions
 
-- Java 25 project conventions already used by the main WCode build;
+- Java 25 project conventions already used by the main VN code build;
 - JavaFX/FXML for UI;
 - OkHttp and Gson for HTTP/JSON;
 - SQLite through JDBC with WAL, foreign keys, busy timeout, bounded transactions, and additive schema support;
@@ -481,4 +481,4 @@ Run the full automated suite, package the app, then manually open a WB and Ozon 
 
 ## Approved product decisions
 
-The user confirmed that “FBO orders” means inbound supply requests created by the seller for WB/Ozon warehouses. WCode only needs to track their state and show which products/quantities the seller placed in each request. Remote create, cancel, reschedule, and edit actions remain outside this version.
+The user confirmed that “FBO orders” means inbound supply requests created by the seller for WB/Ozon warehouses. VN code only needs to track their state and show which products/quantities the seller placed in each request. Remote create, cancel, reschedule, and edit actions remain outside this version.

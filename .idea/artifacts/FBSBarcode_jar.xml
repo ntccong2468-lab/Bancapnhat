@@ -1,8 +1,8 @@
 <component name="ArtifactManager">
-  <artifact type="jar" name="FBSBarcode:jar">
-    <output-path>$PROJECT_DIR$/out/artifacts/FBSBarcode_jar</output-path>
-    <root id="archive" name="FBSBarcode.jar">
-      <element id="module-output" name="FBSBarcode" />
+  <artifact type="jar" name="VNcode:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/VNcode_jar</output-path>
+    <root id="archive" name="VNcode.jar">
+      <element id="module-output" name="VNcode" />
       <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/apache/xmlbeans/xmlbeans/5.3.0/xmlbeans-5.3.0.jar" path-in-jar="/" />
       <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/jetbrains/kotlin/kotlin-stdlib/1.8.21/kotlin-stdlib-1.8.21.jar" path-in-jar="/" />
       <element id="extracted-dir" path="$MAVEN_REPOSITORY$/com/itextpdf/font-asian/8.0.3/font-asian-8.0.3.jar" path-in-jar="/" />

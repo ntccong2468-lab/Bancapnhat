@@ -1,6 +1,6 @@
-# Bảo mật mã nguồn & chống crack — WCode
+# Bảo mật mã nguồn & chống crack — VN code
 
-Tóm tắt kết luận nghiên cứu (07/2026) và cách WCode được bảo vệ.
+Tóm tắt kết luận nghiên cứu (07/2026) và cách VN code được bảo vệ.
 
 ## Nguyên tắc cốt lõi: bảo vệ nằm ở server, không ở client
 
@@ -15,7 +15,7 @@ phí** reverse-engineering, không chống được người quyết tâm. Ai đ
 license + device fingerprint trên **mỗi** lời gọi. Một bản crack không mua được KIZ chỉ là bản demo.
 Đây là lớp bảo vệ thật; các lớp dưới chỉ là phụ trợ.
 
-Hiện trạng WCode: `LicenseService` xác thực với `license-server` (Ed25519, offline grace 14 ngày,
+Hiện trạng VN code: `LicenseService` xác thực với `license-server` (Ed25519, offline grace 14 ngày,
 chống lùi đồng hồ) và gate hai nút mua KIZ. Bước củng cố tiếp theo (khuyến nghị): cho pipeline
 mua KIZ đi qua server của mình thay vì gọi Znack trực tiếp từ client.
 

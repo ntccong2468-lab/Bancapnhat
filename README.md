@@ -1,6 +1,6 @@
-# WCode
+# VN code
 
-WCode là ứng dụng desktop JavaFX cho người bán **Wildberries** và **Ozon FBS**.
+VN code là ứng dụng desktop JavaFX cho người bán **Wildberries** và **Ozon FBS**.
 
 - Quản lý nhiều shop theo marketplace, không dùng nhầm credential giữa WB và Ozon.
 - Đồng bộ supply/order Wildberries và posting Ozon FBS.
@@ -9,7 +9,8 @@ WCode là ứng dụng desktop JavaFX cho người bán **Wildberries** và **Oz
 - Chuẩn bị đơn, ship và tải nhãn vận chuyển chính thức cho Ozon FBS Standard.
 - Lưu lịch sử in, template và dữ liệu cục bộ trong SQLite.
 
-Liên hệ: Zalo 0335407670.
+Dự án: https://github.com/ntccong2468-lab/Vncode.
+Mã nguồn gốc WCode do Nguyễn Anh Tuấn / TuanDev phát triển; VN code là bản fork tùy chỉnh.
 
 ## Công nghệ
 
@@ -24,19 +25,15 @@ Liên hệ: Zalo 0335407670.
 
 ## Tải bản Windows
 
-Bản Vncode 1.1.33 bổ sung phục hồi đăng ký GTIN theo mô tả công khai WCode 1.1.75:
-[tải bộ cài Windows x64](https://github.com/ntccong2468-lab/Vncode/releases/download/v1.1.33/Vncode-1.1.33-Windows-x64.exe).
-Java được đóng gói kèm; tải EXE rồi chạy để cài đặt. Đây là prerelease chưa ký.
-Xem [mô tả và giới hạn của bản này](docs/releases/Vncode-1.1.33.md).
+Bản **VN code 1.1.34** đổi tên giao diện, mã nguồn và bộ cài, giữ chức năng và dữ liệu từ bản trước.
+[Tải bộ cài Windows x64](https://github.com/ntccong2468-lab/Vncode/releases/download/v1.1.34/VN-code-1.1.34-Windows-x64.exe).
+Java được đóng gói kèm; tải EXE rồi chạy để cài đặt. Đây là prerelease chưa ký Authenticode.
+Xem [mô tả và giới hạn](docs/releases/VN-code-1.1.34.md).
 Cập nhật GTIN thật lên WB/Ozon trong module đồng bộ vẫn bị khóa chờ xác minh API.
 
-Các bản WCode phát hành trước thay đổi GTIN:
+Cài mới dùng `%LOCALAPPDATA%\VNcodeData`; nếu đã có dữ liệu ở `WCodeData`, ứng dụng tiếp tục dùng chính thư mục đó cùng giấy phép, lịch sử và khóa dữ liệu cũ. Không cần tự đổi tên thư mục. Thư mục chương trình mới là `VNcodeApp`, tên shortcut/launcher là **VN code**.
 
-| Loại | Link |
-|---|---|
-| EXE installer | [WCode.exe](https://github.com/rupphi/relatest-wcode/releases/latest/download/WCode.exe) |
-| MSI installer | [WCode.msi](https://github.com/rupphi/relatest-wcode/releases/latest/download/WCode.msi) |
-| Portable ZIP | [WCode-portable.zip](https://github.com/rupphi/relatest-wcode/releases/latest/download/WCode-portable.zip) |
+Thuộc tính JVM mới là `vncode.appdata.dir` và `vncode.data.profile`; các tên `wcode.*` cũ vẫn được hỗ trợ để giữ tương thích.
 
 Bản portable có `check-portable.bat` để thu thập cấu trúc package và startup log khi cần hỗ trợ.
 
@@ -52,7 +49,7 @@ Yêu cầu JDK 25. Node.js 22 chỉ cần cho các contract test của pipeline 
 ./mvnw javafx:run
 
 # Chạy app với dữ liệu thử cô lập
-./mvnw -Dwcode.appdata.dir=/tmp/wcode-smoke javafx:run
+./mvnw -Dvncode.appdata.dir=/tmp/vncode-smoke javafx:run
 
 # Kiểm tra contract build/release
 node --test tools/*.test.mjs
@@ -85,7 +82,7 @@ Xem [runbook phát hành JavaFX](docs/javafx-release-runbook.md) và
 
 Nhánh [feat/windows-gtin-sync-20261006](https://github.com/ntccong2468-lab/Vncode/tree/feat/windows-gtin-sync-20261006)
 bổ sung màn hình **GTIN WB / Ozon** trong ứng dụng
-JavaFX hiện có. Giữ các luồng WCode, thêm đọc GTIN đăng ký từ National Catalog,
+JavaFX hiện có. Giữ các luồng VN code, thêm đọc GTIN đăng ký từ National Catalog,
 đối chiếu article/màu/size, ánh xạ nội bộ, xem trước thêm/thay, lịch sử CSV/XLSX
 và hàng đợi SQLite có tạm dừng, hủy dòng chưa gửi, phục hồi và đối soát.
 
@@ -100,7 +97,7 @@ Kiểm tra ngày 06/10/2026 trên runner Windows với JDK 25: `clean verify` qu
 **518 kiểm thử**, Node qua **18 kiểm thử**, đóng gói EXE thành công.
 EXE đã tải xuống và đối chiếu SHA-256; cài đặt và chạy thử trên máy người dùng
 đang chờ nghiệm thu. Xem [báo cáo bộ cài thử](docs/validation/2026-10-06-windows-test-installer.md),
-[báo cáo chức năng](docs/validation/wcode-feature-parity.md),
+[báo cáo chức năng](docs/validation/vn-code-feature-parity.md),
 [hướng dẫn Windows và trạng thái nghiệm thu](docs/validation/windows-gtin-acceptance.md)
 và [trở ngại hợp đồng API](docs/gtin-marketplace-api-contracts.md).
 Lượt kiểm tra trước khi đẩy mã đã sửa lỗi xóa shop làm mất tác vụ GTIN chưa có
@@ -114,8 +111,8 @@ GTIN nguyên văn trong ô kiểu chuỗi.
 
 ## An toàn dữ liệu khi nâng cấp
 
-- Trên Windows, `1.1.10` sao chép/migrate dữ liệu legacy từ `%LOCALAPPDATA%\WCode` sang thư mục
-  dữ liệu riêng `%LOCALAPPDATA%\WCodeData`; binary nằm tại `%LOCALAPPDATA%\WCodeApp`.
+- Trên Windows, `1.1.10` sao chép/migrate dữ liệu legacy từ `%LOCALAPPDATA%\VN code` sang thư mục
+  dữ liệu riêng `%LOCALAPPDATA%\VNcodeData`; binary nằm tại `%LOCALAPPDATA%\VNcodeApp`.
 - Migration schema chạy tăng dần và snapshot SQLite được tạo, verify trước khi ghi.
 - Binary cũ fail closed khi gặp schema mới hơn; không tự hạ schema hoặc xóa dữ liệu.
 - Marketplace của shop là bất biến; credential Ozon không bao giờ được gửi tới endpoint WB và ngược lại.

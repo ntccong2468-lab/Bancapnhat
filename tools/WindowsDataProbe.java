@@ -1,4 +1,4 @@
-import com.tuandev.fbsbarcode.config.Database;
+import com.vncode.app.config.Database;
 import java.nio.file.Path;
 import java.sql.DriverManager;
 
@@ -6,7 +6,7 @@ import java.sql.DriverManager;
 public final class WindowsDataProbe {
     public static void main(String[] args) throws Exception {
         Path data = Path.of(args[1]).toAbsolutePath();
-        System.setProperty("wcode.appdata.dir", data.toString());
+        System.setProperty("vncode.appdata.dir", data.toString());
         if ("seed".equals(args[0])) {
             Database.initDatabase();
             try (var c = Database.getConnection(); var s = c.createStatement()) {

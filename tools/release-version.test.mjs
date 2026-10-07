@@ -9,7 +9,7 @@ const LEGACY_WINDOWS_UPGRADE_UUID = "D0FC7057-DA6C-3181-ADF9-C21DB2C9152A";
 const DATA_SAFE_WINDOWS_UPGRADE_UUID = "0356BE08-487C-4E04-A2C2-353AF93DB2DE";
 
 async function createProject(overrides = {}) {
-  const root = await mkdtemp(path.join(tmpdir(), "wcode-release-version-"));
+  const root = await mkdtemp(path.join(tmpdir(), "vncode-release-version-"));
   const files = {
     "pom.xml": `<?xml version="1.0"?>
 <project>
@@ -104,23 +104,23 @@ test("uses a data-safe Windows identity without uninstalling the legacy data dir
   );
   const declaration = workflow.match(/^\s*WINDOWS_UPGRADE_UUID:\s*([0-9A-F-]+)\s*$/m);
   const installerUses = workflow.match(/--win-upgrade-uuid \$env:WINDOWS_UPGRADE_UUID/g) ?? [];
-  const separatedInstallDirs = workflow.match(/--install-dir 'WCodeApp'/g) ?? [];
+  const separatedInstallDirs = workflow.match(/--install-dir 'VNcodeApp'/g) ?? [];
 
   assert.equal(declaration?.[1], DATA_SAFE_WINDOWS_UPGRADE_UUID);
   assert.notEqual(declaration?.[1], LEGACY_WINDOWS_UPGRADE_UUID,
-    "1.1.10 must not invoke the legacy uninstaller that removes LocalAppData/WCode");
+    "1.1.10 must not invoke the legacy uninstaller that removes LocalAppData/VN code");
   assert.equal(installerUses.length, 2, "both MSI and EXE must reuse the upgrade UUID");
   assert.equal(separatedInstallDirs.length, 2,
-    "both installers must keep executables outside the LocalAppData WCode data directory");
+    "both installers must keep executables outside the LocalAppData VN code data directory");
   assert.match(workflow, /releases\/download\/v1\.1\.9\/WCode\.msi/,
     "release CI must install the real previous MSI");
   assert.match(workflow, /654e71f4060475d3140210eab88a7d64c3904465c4ac8b602f41253ad8f07f11/,
     "release CI must pin the previous MSI checksum");
   assert.match(workflow, /upgrade-data-sentinel\.txt/,
     "release CI must verify that installer upgrades preserve local data");
-  assert.match(workflow, /LOCALAPPDATA 'WCodeData'/,
+  assert.match(workflow, /LOCALAPPDATA 'VNcodeData'/,
     "release CI must verify migration to a dedicated data-only directory");
-  assert.match(workflow, /LOCALAPPDATA 'WCodeApp\\WCode\.exe'/,
+  assert.match(workflow, /LOCALAPPDATA 'VNcodeApp\\VN code\.exe'/,
     "release CI must verify the data-safe executable path");
   assert.match(workflow, /UpgradeDatabaseProbe verify/,
     "release CI must verify migrated SQLite contents after launching the packaged app");
@@ -149,6 +149,6 @@ test("builds a releasable Windows package when optional signing secrets are abse
     "the signed update manifest must only be emitted when its key pair exists");
   assert.match(workflow, /Bộ cài Windows hiện chưa có chữ ký Authenticode/,
     "release notes must disclose unsigned Windows packages");
-  assert.doesNotMatch(workflow, /for file in \\\n\s+WCode\.msi WCode\.exe WCode-portable\.zip update-manifest\.json/,
+  assert.doesNotMatch(workflow, /for file in \\\n\s+VN-code\.msi VN code\.exe VN-code-portable\.zip update-manifest\.json/,
     "publishing must not require an optional manifest");
 });

@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.SplitPane?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.FlowPane?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Pane?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+
+<BorderPane prefHeight="760.0" prefWidth="1180.0" styleClass="root" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.vncode.app.ui.print.PrintTemplateDesignerController">
+    <top>
+        <VBox spacing="10.0" BorderPane.alignment="CENTER">
+            <padding>
+                <Insets bottom="12.0" left="16.0" right="16.0" top="16.0" />
+            </padding>
+            <HBox alignment="CENTER_LEFT" spacing="10.0">
+                <Label styleClass="h3" text="%template.title" />
+                <Label fx:id="templateMetaLabel" styleClass="text-muted" text="58x40 mm" />
+            </HBox>
+            <FlowPane hgap="8.0" vgap="8.0">
+                <children>
+                    <Label text="%template.type" />
+                    <ComboBox fx:id="templateTypeComboBox" prefWidth="120.0" />
+                    <ComboBox fx:id="templateComboBox" prefWidth="250.0" />
+                    <Button mnemonicParsing="false" onAction="#onCreateTemplate" text="%template.create" />
+                    <Button mnemonicParsing="false" onAction="#onDuplicateTemplate" text="%template.duplicate" />
+                    <Button mnemonicParsing="false" onAction="#onRenameTemplate" text="%template.rename" />
+                    <Button mnemonicParsing="false" onAction="#onDeleteTemplate" text="%template.delete" />
+                    <Button mnemonicParsing="false" onAction="#onSetDefaultTemplate" text="%template.set_default" />
+                    <Button mnemonicParsing="false" onAction="#onResetTemplate" text="%template.reset" />
+                    <Button mnemonicParsing="false" onAction="#onSaveTemplate" styleClass="btn-primary" text="%template.save" />
+                </children>
+            </FlowPane>
+        </VBox>
+    </top>
+    <center>
+        <SplitPane dividerPositions="0.22,0.72" BorderPane.alignment="CENTER">
+            <items>
+                <VBox spacing="10.0">
+                    <padding>
+                        <Insets bottom="16.0" left="16.0" right="12.0" top="6.0" />
+                    </padding>
+                    <Label styleClass="text-bold" text="%template.elements" />
+                    <ComboBox fx:id="addElementComboBox" prefWidth="220.0" promptText="%template.add_element_prompt" />
+                    <ListView fx:id="elementListView" prefHeight="560.0" />
+                </VBox>
+                <VBox alignment="TOP_CENTER" spacing="12.0">
+                    <padding>
+                        <Insets bottom="16.0" left="12.0" right="12.0" top="6.0" />
+                    </padding>
+                    <Label styleClass="text-bold" text="%template.preview" />
+                    <HBox alignment="CENTER_LEFT" spacing="8.0">
+                        <VBox alignment="TOP_CENTER" spacing="0.0">
+                            <children>
+                                <Label style="-fx-font-size: 10px;" styleClass="text-muted" text="mm" />
+                                <VBox fx:id="leftRulerBox" prefWidth="22.0" spacing="0.0" />
+                            </children>
+                        </VBox>
+                        <VBox alignment="TOP_LEFT" spacing="4.0">
+                            <children>
+                                <HBox fx:id="topRulerBox" alignment="CENTER_LEFT" spacing="0.0" />
+                                <StackPane style="-fx-background-color: -bg-tertiary; -fx-border-color: -border-color; -fx-border-radius: 10; -fx-background-radius: 10; -fx-padding: 20;">
+                                    <children>
+                                        <AnchorPane fx:id="previewPane" style="-fx-background-color: white; -fx-border-color: #0f172a; -fx-border-width: 1;">
+                                            <children>
+                                                <Pane fx:id="gridPane" mouseTransparent="true" style="-fx-background-color: transparent;" />
+                                                <Pane fx:id="designPane" style="-fx-background-color: transparent;" />
+                                            </children>
+                                        </AnchorPane>
+                                    </children>
+                                </StackPane>
+                            </children>
+                        </VBox>
+                    </HBox>
+                </VBox>
+                <ScrollPane fitToWidth="true" hbarPolicy="NEVER">
+                    <content>
+                        <VBox spacing="12.0">
+                            <padding>
+                                <Insets bottom="16.0" left="12.0" right="16.0" top="6.0" />
+                            </padding>
+                            <Label styleClass="text-bold" text="%template.properties" />
+                            <GridPane hgap="10.0" vgap="10.0">
+                                <children>
+                                    <Label text="%template.field.label" GridPane.columnIndex="0" GridPane.rowIndex="0" />
+                                    <TextField fx:id="labelField" GridPane.columnIndex="1" GridPane.rowIndex="0" />
+                                    <Label text="%template.field.prefix" GridPane.columnIndex="0" GridPane.rowIndex="1" />
+                                    <TextField fx:id="prefixField" promptText="%template.field.prefix_prompt" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                                    <Label fx:id="contentLabel" managed="false" text="%template.field.content" visible="false" GridPane.columnIndex="0" GridPane.rowIndex="2" />
+                                    <TextField fx:id="contentField" managed="false" promptText="%template.field.content_prompt" visible="false" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+                                    <Label text="%template.field.x" GridPane.columnIndex="0" GridPane.rowIndex="3" />
+                                    <TextField fx:id="xField" GridPane.columnIndex="1" GridPane.rowIndex="3" />
+                                    <Label text="%template.field.y" GridPane.columnIndex="0" GridPane.rowIndex="4" />
+                                    <TextField fx:id="yField" GridPane.columnIndex="1" GridPane.rowIndex="4" />
+                                    <Label text="%template.field.width" GridPane.columnIndex="0" GridPane.rowIndex="5" />
+                                    <TextField fx:id="widthField" GridPane.columnIndex="1" GridPane.rowIndex="5" />
+                                    <Label text="%template.field.height" GridPane.columnIndex="0" GridPane.rowIndex="6" />
+                                    <TextField fx:id="heightField" GridPane.columnIndex="1" GridPane.rowIndex="6" />
+                                    <Label text="%template.field.font" GridPane.columnIndex="0" GridPane.rowIndex="7" />
+                                    <TextField fx:id="fontSizeField" GridPane.columnIndex="1" GridPane.rowIndex="7" />
+                                    <Label text="%template.field.align" GridPane.columnIndex="0" GridPane.rowIndex="8" />
+                                    <ComboBox fx:id="alignComboBox" prefWidth="160.0" GridPane.columnIndex="1" GridPane.rowIndex="8" />
+                                </children>
+                            </GridPane>
+                            <Label fx:id="fieldValidationLabel" managed="false" styleClass="text-danger" text="" visible="false" />
+                            <CheckBox fx:id="snapToGridCheckBox" mnemonicParsing="false" selected="true" text="%template.snap_grid" />
+                            <CheckBox fx:id="visibleCheckBox" mnemonicParsing="false" text="%template.visible" />
+                            <CheckBox fx:id="boldCheckBox" mnemonicParsing="false" text="%template.bold" />
+                            <CheckBox fx:id="humanReadableCheckBox" mnemonicParsing="false" text="%template.human_readable" />
+                            <Separator />
+                            <HBox spacing="8.0">
+                                <children>
+                                    <Button fx:id="copyElementButton" mnemonicParsing="false" onAction="#onCopyElement" text="%template.copy" />
+                                    <Button fx:id="pasteElementButton" mnemonicParsing="false" onAction="#onPasteElement" text="%template.paste" />
+                                </children>
+                            </HBox>
+                            <Button fx:id="deleteElementButton" mnemonicParsing="false" onAction="#onDeleteElement" styleClass="btn-danger" text="%template.delete_selected" />
+                        </VBox>
+                    </content>
+                </ScrollPane>
+            </items>
+        </SplitPane>
+    </center>
+</BorderPane>

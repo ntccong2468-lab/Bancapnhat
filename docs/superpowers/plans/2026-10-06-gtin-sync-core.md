@@ -48,7 +48,7 @@ Collections are defensive copies; IDs/GTIN are strings. Validate positive shop I
 
 ### Task 1: GTIN validation and deterministic matching
 
-**Files:** Create `features/gtinsync/GtinSyncModels.java`, `RegisteredGtinValidator.java`, `GtinMatchingService.java`; create matching tests under `src/test/java/com/tuandev/fbsbarcode/features/gtinsync/`.
+**Files:** Create `features/gtinsync/GtinSyncModels.java`, `RegisteredGtinValidator.java`, `GtinMatchingService.java`; create matching tests under `src/test/java/com/vncode/app/features/gtinsync/`.
 
 **Interfaces:** `boolean RegisteredGtinValidator.isValid(String gtin)`; `MatchResult GtinMatchingService.match(ProductSnapshot product, List<RegisteredGtin> catalog)`.
 

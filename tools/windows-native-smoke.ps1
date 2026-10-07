@@ -4,7 +4,7 @@ $probeRoot = Join-Path $env:RUNNER_TEMP ("vncode-native-" + [guid]::NewGuid())
 $data = Join-Path $probeRoot 'data'
 $imageRoot = Join-Path $probeRoot 'image'
 New-Item -ItemType Directory -Force -Path $data, $imageRoot | Out-Null
-$classpath = "$PWD\target\FBSBarcode-$Version.jar;$PWD\target\lib\*"
+$classpath = "$PWD\target\VNcode-$Version.jar;$PWD\target\lib\*"
 & javac -cp $classpath -d $probeRoot tools\WindowsDataProbe.java
 if ($LASTEXITCODE -ne 0) { throw 'Cannot compile the native data probe.' }
 $probeClasspath = "$probeRoot;$classpath"
@@ -13,16 +13,16 @@ if ($LASTEXITCODE -ne 0) { throw 'Cannot seed isolated schema-3 registration his
 
 # Use the same JAR/dependency input and runtime options as the EXE installer.
 # The app-data override belongs only to this disposable smoke image.
-& jpackage --type app-image --name WCode --input target\jpackage-input `
-    --main-jar "FBSBarcode-$Version.jar" --main-class com.tuandev.fbsbarcode.Launcher `
-    --dest $imageRoot --app-version $Version --vendor TuanDev `
+& jpackage --type app-image --name "VN code" --input target\jpackage-input `
+    --main-jar "VNcode-$Version.jar" --main-class com.vncode.app.Launcher `
+    --dest $imageRoot --app-version $Version --vendor "VN code" `
     --java-options '--enable-native-access=ALL-UNNAMED' `
-    --java-options "-Dwcode.appdata.dir=$data" `
+    --java-options "-Dvncode.appdata.dir=$data" `
     --jlink-options '--strip-native-commands --strip-debug --no-man-pages --no-header-files --bind-services'
 if ($LASTEXITCODE -ne 0) { throw 'Native Windows app-image packaging failed.' }
-$launcher = Join-Path $imageRoot 'WCode\WCode.exe'
-$config = Get-Content (Join-Path $imageRoot 'WCode\app\WCode.cfg') -Raw
-if (-not $config.Contains('com.tuandev.fbsbarcode.Launcher')) { throw 'Incorrect packaged main class.' }
+$launcher = Join-Path $imageRoot 'VN code\VN code.exe'
+$config = Get-Content (Join-Path $imageRoot 'VN code\app\VN code.cfg') -Raw
+if (-not $config.Contains('com.vncode.app.Launcher')) { throw 'Incorrect packaged main class.' }
 $process = Start-Process -FilePath $launcher -PassThru
 try {
     $ready = $false
@@ -48,7 +48,17 @@ try {
         Get-Content $startupLog
         throw 'The packaged app recorded a startup exception.'
     }
+    $windowReady = $false
+    for ($attempt = 0; $attempt -lt 60; $attempt++) {
+        $process.Refresh()
+        if ($process.HasExited) { throw 'The native Windows launcher exited before showing its window.' }
+        if ($process.MainWindowTitle -ceq "VN code v$Version") { $windowReady = $true; break }
+        Start-Sleep -Milliseconds 500
+    }
+    if (-not $windowReady) { throw 'The native window did not show the expected VN code version.' }
     @{
+        appName = 'VN code'
+        windowTitle = $process.MainWindowTitle
         version = $Version
         platform = 'windows-x64'
         nativeLauncher = 'passed'

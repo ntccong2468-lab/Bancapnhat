@@ -11,11 +11,11 @@ test('publication requires the successful native build for the exact tag and rep
   }
 });
 test('publication rejects incomplete migration or live mutation smoke evidence',()=>{
-  const smoke={version:'1.1.33',platform:'windows-x64',nativeLauncher:'passed',schemaMigration:'3 to 4',historyPreserved:true,rollbackSnapshotVerified:true,liveMarketplaceMutations:false};
-  assert.doesNotThrow(()=>validateNativeSmoke(smoke,'1.1.33'));
-  for(const bad of [{...smoke,historyPreserved:false},{...smoke,liveMarketplaceMutations:true},
+  const smoke={appName:'VN code',windowTitle:'VN code v1.1.34',version:'1.1.34',platform:'windows-x64',nativeLauncher:'passed',schemaMigration:'3 to 4',historyPreserved:true,rollbackSnapshotVerified:true,liveMarketplaceMutations:false};
+  assert.doesNotThrow(()=>validateNativeSmoke(smoke,'1.1.34'));
+  for(const bad of [{...smoke,appName:'WCode'},{...smoke,windowTitle:'WCode v1.1.34'},{...smoke,historyPreserved:false},{...smoke,liveMarketplaceMutations:true},
     {...smoke,version:'1.1.32'},{...smoke,rollbackSnapshotVerified:false}]) {
-    assert.throws(()=>validateNativeSmoke(bad,'1.1.33'));
+    assert.throws(()=>validateNativeSmoke(bad,'1.1.34'));
   }
 });
 test('publication rejects unexpected files and requires the complete asset set',async()=>{

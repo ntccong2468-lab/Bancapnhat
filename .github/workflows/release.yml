@@ -1,4 +1,4 @@
-name: Create WCode JavaFX release
+name: Create VN code JavaFX release
 
 on:
   push:
@@ -14,15 +14,15 @@ permissions:
   contents: read
 
 concurrency:
-  group: wcode-release-${{ github.ref }}
+  group: vncode-release-${{ github.ref }}
   cancel-in-progress: false
 
 env:
   JAVA_VERSION: "25"
   JAVA_DISTRIBUTION: oracle
   NODE_VERSION: "22"
-  APP_NAME: WCode
-  APP_VENDOR: TuanDev
+  APP_NAME: VN code
+  APP_VENDOR: VN code
   RELEASE_REPO: ${{ github.repository }}
   WINDOWS_UPGRADE_UUID: 0356BE08-487C-4E04-A2C2-353AF93DB2DE
   TIMESTAMP_URL: http://timestamp.digicert.com
@@ -174,7 +174,7 @@ jobs:
           .\mvnw.cmd -B "-Dapp.version=$env:APP_VERSION" `
             "-Dapp.update.public-key=$env:UPDATE_MANIFEST_PUBLIC_KEY" `
             "-Dapp.update.publisher=$env:UPDATE_SIGNING_PUBLISHER" clean verify
-          if (-not (Test-Path "target\FBSBarcode-$env:APP_VERSION.jar" -PathType Leaf)) {
+          if (-not (Test-Path "target\VNcode-$env:APP_VERSION.jar" -PathType Leaf)) {
             throw 'The JavaFX application JAR was not created.'
           }
 
@@ -184,20 +184,20 @@ jobs:
           $input = Join-Path $PWD 'target\jpackage-input'
           $imageRoot = Join-Path $PWD 'release-image'
           New-Item -ItemType Directory -Force -Path "$input\lib", $imageRoot | Out-Null
-          Copy-Item "target\FBSBarcode-$env:APP_VERSION.jar" $input
+          Copy-Item "target\VNcode-$env:APP_VERSION.jar" $input
           Copy-Item 'target\lib\*' "$input\lib" -Recurse
           jpackage --type app-image --name $env:APP_NAME --input $input `
-            --main-jar "FBSBarcode-$env:APP_VERSION.jar" `
-            --main-class com.tuandev.fbsbarcode.Launcher `
+            --main-jar "VNcode-$env:APP_VERSION.jar" `
+            --main-class com.vncode.app.Launcher `
             --dest $imageRoot --app-version $env:APP_VERSION --vendor $env:APP_VENDOR `
-            --icon src\main\resources\com\tuandev\fbsbarcode\assets\images\logo.ico `
+            --icon src\main\resources\com\vncode\app\assets\images\logo.ico `
             --java-options "--enable-native-access=ALL-UNNAMED" `
             --jlink-options "--strip-native-commands --strip-debug --no-man-pages --no-header-files --bind-services"
-          if ($LASTEXITCODE -ne 0 -or -not (Test-Path 'release-image\WCode\WCode.exe' -PathType Leaf)) {
+          if ($LASTEXITCODE -ne 0 -or -not (Test-Path 'release-image\VN code\VN code.exe' -PathType Leaf)) {
             throw 'jpackage did not create the JavaFX app-image.'
           }
-          $configuration = Get-Content 'release-image\WCode\app\WCode.cfg' -Raw
-          if ($configuration -notmatch 'com\.tuandev\.fbsbarcode\.Launcher') {
+          $configuration = Get-Content 'release-image\VN code\app\VN code.cfg' -Raw
+          if ($configuration -notmatch 'com\.vncode\.app\.Launcher') {
             throw 'The app-image does not launch JavaFX.'
           }
 
@@ -213,7 +213,7 @@ jobs:
             $signingEnabled = $env:WINDOWS_SIGNING_ENABLED -ceq 'true'
             $signTool = $null
             if ($signingEnabled) {
-              $certificate = Join-Path $env:RUNNER_TEMP 'wcode-release-signing.pfx'
+              $certificate = Join-Path $env:RUNNER_TEMP 'vncode-release-signing.pfx'
               [IO.File]::WriteAllBytes($certificate, [Convert]::FromBase64String($env:WINDOWS_SIGNING_CERTIFICATE))
               $signTool = Get-ChildItem "${env:ProgramFiles(x86)}\Windows Kits\10\bin\*\x64\signtool.exe" |
                 Sort-Object FullName -Descending | Select-Object -First 1 -ExpandProperty FullName
@@ -235,38 +235,38 @@ jobs:
               }
             }
 
-            $image = Join-Path $PWD 'release-image\WCode'
-            Sign-And-Verify (Join-Path $image 'WCode.exe')
+            $image = Join-Path $PWD 'release-image\VN code'
+            Sign-And-Verify (Join-Path $image 'VN code.exe')
             New-Item -ItemType Directory -Force -Path release | Out-Null
             Copy-Item check-portable.bat $image
-            Compress-Archive -Path "$image\*" -DestinationPath release\WCode-portable.zip
+            Compress-Archive -Path "$image\*" -DestinationPath release\VN-code-portable.zip
 
             jpackage --verbose --type msi --name $env:APP_NAME --app-image $image --dest release `
               --app-version $env:APP_VERSION --vendor $env:APP_VENDOR `
-              --install-dir 'WCodeApp' `
+              --install-dir 'VNcodeApp' `
               --win-upgrade-uuid $env:WINDOWS_UPGRADE_UUID --win-menu --win-shortcut --win-per-user-install
             if ($LASTEXITCODE -ne 0) { throw 'MSI creation failed.' }
-            $msi = @(Get-ChildItem release -Filter 'WCode*.msi')
+            $msi = @(Get-ChildItem release -Filter 'VN code*.msi')
             if ($msi.Count -ne 1) { throw 'Expected exactly one MSI.' }
-            $msiTarget = Join-Path $PWD 'release\WCode.msi'
+            $msiTarget = Join-Path $PWD 'release\VN-code.msi'
             if ($msi[0].FullName -cne $msiTarget) {
               Move-Item -LiteralPath $msi[0].FullName -Destination $msiTarget -Force
             }
 
             jpackage --verbose --type exe --name $env:APP_NAME --app-image $image --dest release `
               --app-version $env:APP_VERSION --vendor $env:APP_VENDOR `
-              --install-dir 'WCodeApp' `
+              --install-dir 'VNcodeApp' `
               --win-upgrade-uuid $env:WINDOWS_UPGRADE_UUID --win-menu --win-shortcut --win-per-user-install
             if ($LASTEXITCODE -ne 0) { throw 'EXE creation failed.' }
-            $exe = @(Get-ChildItem release -Filter 'WCode*.exe')
+            $exe = @(Get-ChildItem release -Filter 'VN code*.exe')
             if ($exe.Count -ne 1) { throw 'Expected exactly one EXE.' }
-            $exeTarget = Join-Path $PWD 'release\WCode.exe'
+            $exeTarget = Join-Path $PWD 'release\VN-code.exe'
             if ($exe[0].FullName -cne $exeTarget) {
               Move-Item -LiteralPath $exe[0].FullName -Destination $exeTarget -Force
             }
 
-            Sign-And-Verify (Join-Path $PWD 'release\WCode.msi')
-            Sign-And-Verify (Join-Path $PWD 'release\WCode.exe')
+            Sign-And-Verify (Join-Path $PWD 'release\VN-code.msi')
+            Sign-And-Verify (Join-Path $PWD 'release\VN-code.exe')
           } finally {
             if ($certificate -and (Test-Path $certificate)) { Remove-Item $certificate -Force }
           }
@@ -294,13 +294,13 @@ jobs:
 
           Install-Msi $oldInstaller
           $legacyDataDir = Join-Path $env:LOCALAPPDATA 'WCode'
-          $currentDataDir = Join-Path $env:LOCALAPPDATA 'WCodeData'
+          $currentDataDir = Join-Path $env:LOCALAPPDATA 'VNcodeData'
           $oldExecutable = Join-Path $legacyDataDir 'WCode.exe'
           if (-not (Test-Path $oldExecutable -PathType Leaf)) {
             throw 'The released WCode 1.1.9 MSI did not install at its expected legacy path.'
           }
 
-          $probeRoot = Join-Path $env:RUNNER_TEMP 'wcode-upgrade-db-probe'
+          $probeRoot = Join-Path $env:RUNNER_TEMP 'vncode-upgrade-db-probe'
           New-Item -ItemType Directory -Force -Path $probeRoot | Out-Null
           $probeSource = Join-Path $probeRoot 'UpgradeDatabaseProbe.java'
           @'
@@ -364,10 +364,10 @@ jobs:
           $legacySentinel = Join-Path $legacyDataDir 'upgrade-data-sentinel.txt'
           'preserve-user-data' | Set-Content -LiteralPath $legacySentinel -Encoding utf8
 
-          Install-Msi (Join-Path $PWD 'release\WCode.msi')
-          $newExecutable = Join-Path $env:LOCALAPPDATA 'WCodeApp\WCode.exe'
+          Install-Msi (Join-Path $PWD 'release\VN-code.msi')
+          $newExecutable = Join-Path $env:LOCALAPPDATA 'VNcodeApp\VN code.exe'
           if (-not (Test-Path $newExecutable -PathType Leaf)) {
-            throw "WCode $env:APP_VERSION was not installed in the data-safe program directory."
+            throw "VN code $env:APP_VERSION was not installed in the data-safe program directory."
           }
           if (-not (Test-Path $oldExecutable -PathType Leaf) -or
               (Get-Content -LiteralPath $legacySentinel -Raw).Trim() -cne 'preserve-user-data') {
@@ -383,7 +383,7 @@ jobs:
               if ($newProcess.HasExited) {
                 $startupLog = Join-Path $currentDataDir 'logs\startup.log'
                 if (Test-Path $startupLog -PathType Leaf) { Get-Content $startupLog }
-                throw "The packaged WCode $env:APP_VERSION launcher exited during migration startup."
+                throw "The packaged VN code $env:APP_VERSION launcher exited during migration startup."
               }
               if ((Test-Path $currentDatabase -PathType Leaf) -and
                   (Test-Path $currentSentinel -PathType Leaf)) {
@@ -398,11 +398,11 @@ jobs:
             if (-not $migrationReady -or
                 -not (Test-Path $currentDatabase -PathType Leaf) -or
                 (Get-Content -LiteralPath $currentSentinel -Raw).Trim() -cne 'preserve-user-data') {
-              throw "WCode $env:APP_VERSION did not finish migrating the legacy app-data directory."
+              throw "VN code $env:APP_VERSION did not finish migrating the legacy app-data directory."
             }
             & java -cp $probeClassPath UpgradeDatabaseProbe verify $currentDatabase
-            if ($LASTEXITCODE -ne 0) { throw 'The migrated WCode database failed verification.' }
-            if ((Test-Path (Join-Path $currentDataDir 'WCode.exe')) -or
+            if ($LASTEXITCODE -ne 0) { throw 'The migrated VN code database failed verification.' }
+            if ((Test-Path (Join-Path $currentDataDir 'VN code.exe')) -or
                 (Test-Path (Join-Path $currentDataDir 'app')) -or
                 (Test-Path (Join-Path $currentDataDir 'runtime'))) {
               throw 'Legacy jpackage binaries leaked into the new data-only directory.'
@@ -410,7 +410,7 @@ jobs:
             $startupLog = Join-Path $currentDataDir 'logs\startup.log'
             if (Test-Path $startupLog -PathType Leaf) {
               Get-Content $startupLog
-              throw "WCode $env:APP_VERSION recorded a startup failure after migration."
+              throw "VN code $env:APP_VERSION recorded a startup failure after migration."
             }
           } finally {
             if ($newProcess -and -not $newProcess.HasExited) {
@@ -425,12 +425,12 @@ jobs:
           )
           $registrations = @(
             Get-ItemProperty -Path $uninstallRoots -ErrorAction SilentlyContinue |
-              Where-Object { $_.DisplayName -ceq 'WCode' -and $_.Publisher -ceq $env:APP_VENDOR }
+              Where-Object { ($_.DisplayName -ceq 'VN code' -and $_.Publisher -ceq $env:APP_VENDOR) -or ($_.DisplayName -ceq 'WCode' -and $_.Publisher -ceq 'TuanDev') }
           )
           $currentRegistrations = @($registrations | Where-Object DisplayVersion -ceq $env:APP_VERSION)
           $legacyRegistrations = @($registrations | Where-Object DisplayVersion -ceq '1.1.9')
           if ($currentRegistrations.Count -ne 1 -or $legacyRegistrations.Count -ne 1) {
-            throw "Expected separate legacy and data-safe WCode registrations, found $($registrations.Count)."
+            throw "Expected separate legacy and data-safe VN code registrations, found $($registrations.Count)."
           }
 
       - name: Create optional signed update manifest and checksums
@@ -451,7 +451,7 @@ jobs:
               'Tự dọn supply WB cũ khi WB xác nhận supply không còn tồn tại',
               'Giữ nguyên dữ liệu người dùng khi nâng cấp từ WCode 1.1.9 trở lên'
             )
-            node tools/update-manifest.mjs release/WCode.msi release/update-manifest.json $env:APP_VERSION
+            node tools/update-manifest.mjs release/VN-code.msi release/update-manifest.json $env:APP_VERSION
           } else {
             Write-Host 'Update signing keys are not configured; omitting update-manifest.json.'
           }
@@ -464,7 +464,7 @@ jobs:
       - name: Preserve Windows release
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: WCode-${{ needs.validate.outputs.tag }}-windows-x64
+          name: VN-code-${{ needs.validate.outputs.tag }}-windows-x64
           path: release/
           if-no-files-found: error
           retention-days: 30
@@ -520,7 +520,7 @@ jobs:
             maven_args+=("-Dsurefire.excludes=**/FxmlSmokeTest.java")
           fi
           ./mvnw -B "${maven_args[@]}" clean verify
-          test -s "target/FBSBarcode-$APP_VERSION.jar"
+          test -s "target/VNcode-$APP_VERSION.jar"
 
       - name: Build and verify native macOS packages
         run: |
@@ -529,27 +529,27 @@ jobs:
           expected_architecture="${{ matrix.expected_architecture }}"
           input="$PWD/target/jpackage-input"
           image_root="$PWD/release-image"
-          image="$image_root/WCode.app"
+          image="$image_root/VN code.app"
           mkdir -p "$input/lib" "$image_root" release
-          cp "target/FBSBarcode-$APP_VERSION.jar" "$input/"
+          cp "target/VNcode-$APP_VERSION.jar" "$input/"
           cp -R target/lib/. "$input/lib/"
 
           jpackage --type app-image --name "$APP_NAME" --input "$input" \
-            --main-jar "FBSBarcode-$APP_VERSION.jar" \
-            --main-class com.tuandev.fbsbarcode.Launcher \
+            --main-jar "VNcode-$APP_VERSION.jar" \
+            --main-class com.vncode.app.Launcher \
             --dest "$image_root" --app-version "$APP_VERSION" --vendor "$APP_VENDOR" \
-            --mac-package-identifier com.tuandev.wcode \
+            --mac-package-identifier com.vncode.app \
             --java-options "--enable-native-access=ALL-UNNAMED" \
             --jlink-options "--strip-native-commands --strip-debug --no-man-pages --no-header-files --bind-services"
 
-          test -x "$image/Contents/MacOS/WCode"
-          grep -F 'com.tuandev.fbsbarcode.Launcher' "$image/Contents/app/WCode.cfg"
-          file "$image/Contents/MacOS/WCode" | grep -F "$expected_architecture"
+          test -x "$image/Contents/MacOS/VN code"
+          grep -F 'com.vncode.app.Launcher' "$image/Contents/app/VN code.cfg"
+          file "$image/Contents/MacOS/VN code" | grep -F "$expected_architecture"
 
-          smoke_data="$(mktemp -d "$RUNNER_TEMP/wcode-macos-smoke.XXXXXX")"
-          smoke_log="$RUNNER_TEMP/wcode-macos-$architecture.log"
-          JAVA_TOOL_OPTIONS="-Dwcode.appdata.dir=$smoke_data" \
-            "$image/Contents/MacOS/WCode" >"$smoke_log" 2>&1 &
+          smoke_data="$(mktemp -d "$RUNNER_TEMP/vncode-macos-smoke.XXXXXX")"
+          smoke_log="$RUNNER_TEMP/vncode-macos-$architecture.log"
+          JAVA_TOOL_OPTIONS="-Dvncode.appdata.dir=$smoke_data" \
+            "$image/Contents/MacOS/VN code" >"$smoke_log" 2>&1 &
           smoke_pid=$!
           for attempt in {1..15}; do
             if ! kill -0 "$smoke_pid" 2>/dev/null; then
@@ -570,19 +570,19 @@ jobs:
           kill -TERM "$smoke_pid" 2>/dev/null || true
           wait "$smoke_pid" || true
 
-          ditto -c -k --sequesterRsrc --keepParent "$image" "release/WCode-macos-$architecture.zip"
+          ditto -c -k --sequesterRsrc --keepParent "$image" "release/VN-code-macos-$architecture.zip"
           jpackage --type dmg --name "$APP_NAME" --app-image "$image" --dest release \
             --app-version "$APP_VERSION" --vendor "$APP_VENDOR"
-          packages=(release/WCode*.dmg)
+          packages=(release/"VN code"*.dmg)
           test "${#packages[@]}" -eq 1
           test -s "${packages[0]}"
-          mv "${packages[0]}" "release/WCode-macos-$architecture.dmg"
-          test -s "release/WCode-macos-$architecture.zip"
+          mv "${packages[0]}" "release/VN-code-macos-$architecture.dmg"
+          test -s "release/VN-code-macos-$architecture.zip"
 
       - name: Preserve macOS release
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: WCode-${{ needs.validate.outputs.tag }}-macos-${{ matrix.architecture }}
+          name: VN-code-${{ needs.validate.outputs.tag }}-macos-${{ matrix.architecture }}
           path: release/
           if-no-files-found: error
           retention-days: 30
@@ -602,13 +602,13 @@ jobs:
       - name: Download Windows assets
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
-          name: WCode-${{ needs.validate.outputs.tag }}-windows-x64
+          name: VN-code-${{ needs.validate.outputs.tag }}-windows-x64
           path: release
 
       - name: Download macOS assets
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
-          pattern: WCode-${{ needs.validate.outputs.tag }}-macos-*
+          pattern: VN-code-${{ needs.validate.outputs.tag }}-macos-*
           path: release
           merge-multiple: true
 
@@ -617,9 +617,9 @@ jobs:
         run: |
           set -euo pipefail
           for file in \
-            WCode.msi WCode.exe WCode-portable.zip \
-            WCode-macos-x64.dmg WCode-macos-x64.zip \
-            WCode-macos-arm64.dmg WCode-macos-arm64.zip; do
+            VN-code.msi VN-code.exe VN-code-portable.zip \
+            VN-code-macos-x64.dmg VN-code-macos-x64.zip \
+            VN-code-macos-arm64.dmg VN-code-macos-arm64.zip; do
             test -s "release/$file"
           done
           (cd release && find . -maxdepth 1 -type f ! -name checksums.sha256 -print0 \
@@ -643,27 +643,27 @@ jobs:
             windows_trust_note=' Bộ cài Windows hiện chưa có chữ ký Authenticode.'
           fi
           notes="$(cat <<EOF
-          WCode ${APP_VERSION}
+          VN code ${APP_VERSION}
 
           - Chỉ KIZ có trạng thái pháp lý IN_CIRCULATION mới được hiển thị là khả dụng và cấp cho WB/Ozon; KIZ đang chờ hoặc lưu thông lỗi được giữ lại để xử lý nhưng không thể dùng nhầm.
           - Thêm nút xuất tem KIZ 58×40: chọn số lượng, lưu PDF gồm DataMatrix, tên sản phẩm, giới tính và size, sau đó tự mở file.
           - Thêm thao tác lưu trữ KIZ lỗi; chỉ KIZ thuộc pipeline INTRODUCTION_FAILED mới được phép lưu trữ, không ảnh hưởng KIZ đang chờ hay còn có thể tiếp tục.
-          - Khi Znack trả lỗi 3590 do không đủ tiền, WCode hiện thông báo và nút Thử lại để tiếp tục đúng pipeline mua KIZ đã lưu, không tạo đơn mua trùng.
+          - Khi Znack trả lỗi 3590 do không đủ tiền, VN code hiện thông báo và nút Thử lại để tiếp tục đúng pipeline mua KIZ đã lưu, không tạo đơn mua trùng.
           - Đồng bộ và lưu thông GTIN hỗ trợ cả Декларация о соответствии và Сертификат соответствия, ưu tiên giấy công bố rồi dùng giấy chứng nhận khi cần.
           - Đọc đúng giấy chứng nhận, ngày giấy tờ, giới tính và size từ cả schema API chính thức lẫn schema thẻ GTIN của National Catalog; GTIN hợp lệ trong thùng rác được tự khôi phục.
-          - Khi mở app hoặc chủ động chọn cửa hàng có pipeline cũ đang chờ giấy tờ, WCode tự đồng bộ GTIN và tiếp tục lưu thông bằng chính KIZ đã mua, không mua trùng và không spam cửa sổ ký của cửa hàng khác.
+          - Khi mở app hoặc chủ động chọn cửa hàng có pipeline cũ đang chờ giấy tờ, VN code tự đồng bộ GTIN và tiếp tục lưu thông bằng chính KIZ đã mua, không mua trùng và không spam cửa sổ ký của cửa hàng khác.
           - GTIN thiếu giấy tờ được thông báo bằng một dialog gọn có mã GTIN và tên sản phẩm; chi tiết kỹ thuật lặp lại không còn chiếm chỗ dưới từng item.
-          - Khi Znack trả lỗi 3055, WCode hướng dẫn vào Маркировка → tên người dùng → Документы от оператора để ký điều khoản mới và chờ hệ thống xử lý tối đa 48 giờ.
+          - Khi Znack trả lỗi 3055, VN code hướng dẫn vào Маркировка → tên người dùng → Документы от оператора để ký điều khoản mới và chờ hệ thống xử lý tối đa 48 giờ.
           - Tem KIZ 58×40 dùng DataMatrix vector lớn, chữ rõ hơn, logo Честный ЗНАК và ưu tiên giới tính/size đồng bộ trực tiếp từ thẻ GTIN.
           - Trạng thái kiểm tra KIZ EMITTED được hiển thị gọn là “Đang chờ lưu thông”.
           - Tự xoá supply WB cũ khỏi danh sách khi WB xác nhận supply không còn tồn tại bằng 404; lỗi tạm thời không làm mất dữ liệu.
 
-          Khi nâng cấp từ 1.1.9, dữ liệu hiện có được sao chép an toàn sang thư mục WCodeData trước khi áp dụng schema mới. Các gói macOS hiện chưa được Apple notarize.${windows_trust_note}
+          Khi nâng cấp từ 1.1.9, dữ liệu hiện có được sao chép an toàn sang thư mục VNcodeData trước khi áp dụng schema mới. Các gói macOS hiện chưa được Apple notarize.${windows_trust_note}
           EOF
           )"
           if gh release view "$RELEASE_TAG" --repo "$RELEASE_REPO" >/dev/null 2>&1; then
-            gh release edit "$RELEASE_TAG" --repo "$RELEASE_REPO" --title "WCode $APP_VERSION" --notes "$notes" --latest
+            gh release edit "$RELEASE_TAG" --repo "$RELEASE_REPO" --title "VN code $APP_VERSION" --notes "$notes" --latest
           else
-            gh release create "$RELEASE_TAG" --repo "$RELEASE_REPO" --title "WCode $APP_VERSION" --notes "$notes" --latest
+            gh release create "$RELEASE_TAG" --repo "$RELEASE_REPO" --title "VN code $APP_VERSION" --notes "$notes" --latest
           fi
           gh release upload "$RELEASE_TAG" --repo "$RELEASE_REPO" release/* --clobber

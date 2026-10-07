@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.String?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Menu?>
+<?import javafx.scene.control.MenuButton?>
+<?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.control.RadioMenuItem?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.layout.Pane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+<?import org.kordamp.ikonli.javafx.FontIcon?>
+
+<VBox alignment="TOP_CENTER" prefHeight="600.0" prefWidth="220.0" spacing="12.0" styleClass="sidebar" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.vncode.app.ui.shop.ShopSidebarController">
+    <children>
+        <HBox alignment="CENTER" spacing="10.0">
+            <children>
+                <ImageView fitHeight="40.0" fitWidth="40.0" pickOnBounds="true" preserveRatio="true">
+                    <image>
+                        <Image url="@/com/vncode/app/assets/images/logo.png" />
+                    </image>
+                </ImageView>
+                <Label alignment="CENTER_LEFT" text="VN code" textAlignment="LEFT" styleClass="h2">
+                    <font>
+                        <Font name="System Bold" size="22.0" />
+                    </font>
+                </Label>
+            </children>
+        </HBox>
+        <Button fx:id="templateButton" alignment="CENTER_LEFT" mnemonicParsing="false" onAction="#onSettings" prefHeight="30.0" prefWidth="190.0" text=" Дизайн шаблона">
+            <styleClass>
+                <String fx:value="button" />
+                <String fx:value="btn-warning" />
+            </styleClass>
+            <graphic>
+                <FontIcon iconLiteral="fth-edit" iconSize="16"/>
+            </graphic>
+        </Button>
+        <Button fx:id="addShopButton" alignment="CENTER_LEFT" mnemonicParsing="false" onAction="#onAddShop" prefHeight="30.0" prefWidth="190.0" text=" Добавить магазин">
+            <styleClass>
+                <String fx:value="button" />
+                <String fx:value="btn-primary" />
+            </styleClass>
+            <graphic>
+                <FontIcon iconLiteral="fth-plus" iconSize="16"/>
+            </graphic>
+        </Button>
+        <Label alignment="CENTER" maxWidth="1.7976931348623157E308" styleClass="text-muted text-bold" text="-" textAlignment="CENTER" />
+        <Button fx:id="dashboardButton" alignment="CENTER_LEFT" mnemonicParsing="false" onAction="#onDashboard" prefHeight="30.0" prefWidth="190.0" text=" Dashboard">
+            <styleClass>
+                <String fx:value="button" />
+                <String fx:value="btn-primary" />
+            </styleClass>
+            <graphic>
+                <FontIcon iconLiteral="fth-grid" iconSize="16"/>
+            </graphic>
+        </Button>
+        <Button fx:id="packingButton" alignment="CENTER_LEFT" mnemonicParsing="false" onAction="#onPacking" prefHeight="30.0" prefWidth="190.0" text=" Упаковка WB">
+            <styleClass>
+                <String fx:value="button" />
+                <String fx:value="btn-primary" />
+            </styleClass>
+            <graphic>
+                <FontIcon iconLiteral="fth-truck" iconSize="16"/>
+            </graphic>
+        </Button>
+        <Button fx:id="fboPackingButton" alignment="CENTER_LEFT" mnemonicParsing="false" onAction="#onFboPacking" prefHeight="30.0" prefWidth="190.0" text=" Đóng hàng FBO">
+            <styleClass>
+                <String fx:value="button" />
+                <String fx:value="btn-primary" />
+            </styleClass>
+            <graphic>
+                <FontIcon iconLiteral="fth-package" iconSize="16"/>
+            </graphic>
+        </Button>
+        <Button fx:id="fboOrdersButton" alignment="CENTER_LEFT" mnemonicParsing="false" onAction="#onFboOrders" prefHeight="30.0" prefWidth="190.0" text=" Đơn hàng FBO">
+            <styleClass>
+                <String fx:value="button" />
+                <String fx:value="btn-primary" />
+            </styleClass>
+            <graphic>
+                <FontIcon iconLiteral="fth-list" iconSize="16"/>
+            </graphic>
+        </Button>
+        <Button fx:id="kizMappingButton" alignment="CENTER_LEFT" mnemonicParsing="false" onAction="#onKizMapping" prefHeight="30.0" prefWidth="190.0" text=" KIZ Mapping">
+            <styleClass>
+                <String fx:value="button" />
+                <String fx:value="btn-primary" />
+            </styleClass>
+            <graphic>
+                <FontIcon iconLiteral="fth-link" iconSize="16"/>
+            </graphic>
+        </Button>
+        <Button fx:id="znackAutomationButton" alignment="CENTER_LEFT" mnemonicParsing="false" onAction="#onZnackAutomation" prefHeight="30.0" prefWidth="190.0" text=" Znack Automation">
+            <styleClass><String fx:value="button" /><String fx:value="btn-primary" /></styleClass>
+            <graphic><FontIcon iconLiteral="fth-tag" iconSize="16"/></graphic>
+        </Button>
+        <Button fx:id="znackRegistrationButton" alignment="CENTER_LEFT" mnemonicParsing="false" onAction="#onZnackRegistration" prefHeight="30.0" prefWidth="190.0" text=" Đăng ký Znack">
+            <styleClass><String fx:value="button" /><String fx:value="btn-primary" /></styleClass>
+            <graphic><FontIcon iconLiteral="fth-file-plus" iconSize="16"/></graphic>
+        </Button>
+        <Button fx:id="gtinSyncButton" alignment="CENTER_LEFT" onAction="#onGtinSync" prefHeight="30.0" prefWidth="190.0" text="GTIN WB / Ozon">
+            <styleClass><String fx:value="button"/><String fx:value="btn-primary"/></styleClass>
+            <graphic><FontIcon iconLiteral="fth-refresh-cw" iconSize="16"/></graphic>
+        </Button>
+        <Button fx:id="btnPrintHistory" alignment="CENTER_LEFT" mnemonicParsing="false" onAction="#onPrintHistory" prefHeight="30.0" prefWidth="190.0" text=" История печати">
+            <styleClass>
+                <String fx:value="button" />
+                <String fx:value="btn-secondary" />
+            </styleClass>
+            <graphic>
+                <FontIcon iconLiteral="fth-clock" iconSize="16"/>
+            </graphic>
+        </Button>
+        <Pane VBox.vgrow="ALWAYS" />
+        <MenuButton fx:id="settingsMenuButton" alignment="CENTER_LEFT" mnemonicParsing="false" prefHeight="30.0" prefWidth="190.0" text=" Settings">
+            <styleClass>
+                <String fx:value="button" />
+                <String fx:value="btn-secondary" />
+            </styleClass>
+            <graphic>
+                <FontIcon iconLiteral="fth-settings" iconSize="16"/>
+            </graphic>
+            <items>
+                <Menu fx:id="languageMenu" text="Language">
+                    <items>
+                        <RadioMenuItem fx:id="languageRuMenuItem" onAction="#onLanguageRu" text="Русский" />
+                        <RadioMenuItem fx:id="languageEnMenuItem" onAction="#onLanguageEn" text="English" />
+                        <RadioMenuItem fx:id="languageZhMenuItem" onAction="#onLanguageZh" text="中文" />
+                        <RadioMenuItem fx:id="languageViMenuItem" onAction="#onLanguageVi" text="Tiếng Việt" />
+                    </items>
+                </Menu>
+                <Menu fx:id="themeMenu" text="Theme">
+                    <items>
+                        <RadioMenuItem fx:id="themeDarkMenuItem" onAction="#onThemeDark" text="Dark" />
+                        <RadioMenuItem fx:id="themeLightMenuItem" onAction="#onThemeLight" text="Light" />
+                    </items>
+                </Menu>
+                <MenuItem fx:id="checkVersionMenuItem" onAction="#onCheckVersion" text="Check version" />
+                <MenuItem fx:id="activationMenuItem" onAction="#onActivation" text="Activate" />
+                <MenuItem fx:id="aboutMenuItem" onAction="#onAbout" text="About" />
+            </items>
+        </MenuButton>
+        <Label fx:id="activationStatusLabel" maxWidth="190.0" text="•" />
+    </children>
+    <padding>
+        <Insets bottom="8.0" left="8.0" right="8.0" top="8.0" />
+    </padding>
+</VBox>

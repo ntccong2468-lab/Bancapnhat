@@ -76,7 +76,7 @@ README có link riêng tới bộ cài thử GTIN; các link release WCode cũ k
 module mới.
 
 Smoke-test launcher với app-data tạm riêng, không dùng database seller. Kiểm
-tra toàn bộ route trong [bảng bảo toàn chức năng](wcode-feature-parity.md),
+tra toàn bộ route trong [bảng bảo toàn chức năng](vn-code-feature-parity.md),
 tiếng Việt và nhãn dài ở 100%/125%; shop switch khi đọc nền; chọn/thay preview;
 mapping chỉ nội bộ; confirm bị khóa khi capability chưa xác minh. Sau khi có
 adapter đã xác minh, chạy add/replace/reconcile với fixture giả, timeout sau

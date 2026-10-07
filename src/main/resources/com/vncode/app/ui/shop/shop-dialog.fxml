@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.layout.VBox?>
+
+<ScrollPane fitToWidth="true" focusTraversable="false" hbarPolicy="NEVER" maxHeight="420.0"
+            minHeight="120.0" pannable="true" prefViewportHeight="300.0" prefViewportWidth="380.0"
+            vbarPolicy="AS_NEEDED" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.vncode.app.ui.shop.ShopDialogController">
+    <content>
+        <VBox fx:id="shopFormContent" prefWidth="380.0" spacing="8.0" styleClass="dialog-content">
+            <padding>
+                <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
+            </padding>
+            <children>
+                <Label text="%shop_dialog.marketplace" />
+                <ComboBox fx:id="marketplaceField" maxWidth="Infinity" />
+                <Label text="%shop_dialog.name" />
+                <TextField fx:id="nameField" />
+                <Label fx:id="clientIdLabel" text="%shop_dialog.client_id" />
+                <TextField fx:id="clientIdField" />
+                <Label fx:id="apiKeyLabel" text="%shop_dialog.api_key" />
+                <PasswordField fx:id="apiKeyField" />
+                <Label fx:id="errorLabel" styleClass="error-label" visible="false" managed="false" wrapText="true" />
+            </children>
+        </VBox>
+    </content>
+</ScrollPane>

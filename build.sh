@@ -21,14 +21,14 @@ case "$(uname -s)" in
     ;;
 esac
 
-APP_NAME="WCode"
+APP_NAME="VN code"
 APP_VERSION="$(./mvnw help:evaluate -Dexpression=app.version -q -DforceStdout)"
 APP_VENDOR="$(./mvnw help:evaluate -Dexpression=app.vendor -q -DforceStdout)"
-MAIN_JAR="FBSBarcode-${APP_VERSION}.jar"
-MAIN_CLASS="com.tuandev.fbsbarcode.Launcher"
+MAIN_JAR="VNcode-${APP_VERSION}.jar"
+MAIN_CLASS="com.vncode.app.Launcher"
 JPACKAGE_INPUT="target/jpackage-input"
 
-echo "Building JavaFX WCode ${APP_VERSION} with Maven..."
+echo "Building JavaFX VN code ${APP_VERSION} with Maven..."
 ./mvnw -q clean verify
 test -s "target/${MAIN_JAR}" || {
   echo "Missing application JAR: target/${MAIN_JAR}" >&2
@@ -54,7 +54,10 @@ JPACKAGE_OPTIONS=(
 )
 
 if [[ "$(uname -s)" == "Linux" ]]; then
-  JPACKAGE_OPTIONS+=(--icon src/main/resources/com/tuandev/fbsbarcode/assets/images/logo.png)
+  JPACKAGE_OPTIONS+=(--icon src/main/resources/com/vncode/app/assets/images/logo.png)
+  if [[ "$PACKAGE_TYPE" != "app-image" ]]; then
+    JPACKAGE_OPTIONS+=(--linux-package-name vncode)
+  fi
 fi
 
 echo "Packaging JavaFX application as ${PACKAGE_TYPE}..."

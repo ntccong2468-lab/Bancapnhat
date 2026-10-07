@@ -12,7 +12,7 @@ jobs:
   windows-exe:
     runs-on: windows-latest
     env:
-      WCODE_BUILD_PROFILE: znack-registration-test
+      VNCODE_BUILD_PROFILE: znack-registration-test
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
@@ -45,23 +45,23 @@ jobs:
       - name: Verify and name installer
         shell: pwsh
         run: |
-          $installers = @(Get-ChildItem out -Filter 'WCodeZnackTest*.exe' -File)
+          $installers = @(Get-ChildItem out -Filter 'VN code Znack Test*.exe' -File)
           if ($installers.Count -ne 1 -or $installers[0].Length -lt 1MB) {
             throw 'jpackage did not create exactly one non-empty isolated Znack test EXE.'
           }
-          $target = Join-Path $PWD "out\WCode-$env:APP_VERSION-Znack-Registration-Test.exe"
+          $target = Join-Path $PWD "out\VN-code-$env:APP_VERSION-Znack-Registration-Test.exe"
           Move-Item -LiteralPath $installers[0].FullName -Destination $target -Force
           $hash = (Get-FileHash $target -Algorithm SHA256).Hash.ToLowerInvariant()
-          "$hash  WCode-$env:APP_VERSION-Znack-Registration-Test.exe" |
-            Set-Content "out\WCode-$env:APP_VERSION-Znack-Registration-Test.sha256" -Encoding ascii
+          "$hash  VN-code-$env:APP_VERSION-Znack-Registration-Test.exe" |
+            Set-Content "out\VN-code-$env:APP_VERSION-Znack-Registration-Test.sha256" -Encoding ascii
 
       - name: Upload Windows test installer
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: WCode-${{ env.APP_VERSION }}-Znack-Registration-Test-Windows-x64
+          name: VN-code-${{ env.APP_VERSION }}-Znack-Registration-Test-Windows-x64
           path: |
-            out/WCode-${{ env.APP_VERSION }}-Znack-Registration-Test.exe
-            out/WCode-${{ env.APP_VERSION }}-Znack-Registration-Test.sha256
+            out/VN-code-${{ env.APP_VERSION }}-Znack-Registration-Test.exe
+            out/VN-code-${{ env.APP_VERSION }}-Znack-Registration-Test.sha256
           if-no-files-found: error
           retention-days: 30
 
@@ -72,12 +72,12 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           $tag = "znack-registration-test-v$env:APP_VERSION"
-          $exe = "out/WCode-$env:APP_VERSION-Znack-Registration-Test.exe"
-          $sha = "out/WCode-$env:APP_VERSION-Znack-Registration-Test.sha256"
-          $notes = "WCode Znack Registration Test $env:APP_VERSION`n`nIsolated test data; does not update GTIN back to Wildberries."
+          $exe = "out/VN-code-$env:APP_VERSION-Znack-Registration-Test.exe"
+          $sha = "out/VN-code-$env:APP_VERSION-Znack-Registration-Test.sha256"
+          $notes = "VN code Znack Registration Test $env:APP_VERSION`n`nIsolated test data; does not update GTIN back to Wildberries."
           gh release view $tag --repo $env:GITHUB_REPOSITORY 2>$null
           if ($LASTEXITCODE -eq 0) {
             gh release upload $tag $exe $sha --clobber --repo $env:GITHUB_REPOSITORY
           } else {
-            gh release create $tag $exe $sha --prerelease --target $env:GITHUB_SHA --title "WCode Znack Test $env:APP_VERSION" --notes $notes --repo $env:GITHUB_REPOSITORY
+            gh release create $tag $exe $sha --prerelease --target $env:GITHUB_SHA --title "VN code Znack Test $env:APP_VERSION" --notes $notes --repo $env:GITHUB_REPOSITORY
           }

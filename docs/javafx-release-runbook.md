@@ -28,28 +28,25 @@ không được dùng lại vì uninstaller đó xóa thư mục `%LOCALAPPDATA%
 1.1.10, identity vĩnh viễn là `0356BE08-487C-4E04-A2C2-353AF93DB2DE` trong cả `build.bat` và
 workflow.
 
-Từ 1.1.10, chương trình Windows được cài tại `%LOCALAPPDATA%\WCodeApp`, dữ liệu hoạt động ở
-`%LOCALAPPDATA%\WCodeData`. Lần mở đầu tiên sao chép dữ liệu người dùng từ thư mục legacy
-`%LOCALAPPDATA%\WCode`, bỏ qua `WCode.exe`, `app` và `runtime`. Workflow phải cài thật MSI 1.1.9,
-seed dữ liệu, cài MSI mới song song, mở app đóng gói và xác minh SQLite/schema/shop/sentinel đã
-migrate. Registration legacy được giữ tạm thời để Windows Installer không xóa dữ liệu trước khi app
-mới sao chép xong.
+Bản VN code 1.1.34 cài chương trình tại `%LOCALAPPDATA%\VNcodeApp`. Cài mới lưu dữ liệu ở `%LOCALAPPDATA%\VNcodeData`; nếu có `WCodeData` từ bản trước thì dùng lại chính thư mục đó, cùng khóa và giấy phép. Với nguồn 1.1.9 ở `%LOCALAPPDATA%\WCode`, luồng migration legacy tiếp tục bỏ qua `WCode.exe`, `app` và `runtime`. Rehearsal cũ cài MSI 1.1.9 thật để xác minh nguồn dữ liệu này.
+
+Trên repository `ntccong2468-lab/Vncode`, bản thử Windows dùng workflow `build-java.yml` từ nhánh riêng. Sau khi native smoke thành công, tạo tag trên đúng commit được kiểm thử và một draft prerelease. Dispatch `release.yml` cùng input `windows_build_run_id`: publisher đối chiếu commit/tag, checksum, kiến trúc EXE, số kiểm thử và native history/snapshot trước khi phát hành. Workflow này dùng GITHUB_TOKEN trên runner, không yêu cầu RELEASE_TOKEN của upstream hoặc build macOS.
 
 macOS phát hành hai kiến trúc độc lập:
 
-- `WCode-macos-x64.dmg` và `.zip` cho Mac Intel;
-- `WCode-macos-arm64.dmg` và `.zip` cho Apple Silicon.
+- `VN-code-macos-x64.dmg` và `.zip` cho Mac Intel;
+- `VN-code-macos-arm64.dmg` và `.zip` cho Apple Silicon.
 
 Launcher trong mỗi app-image phải đúng kiến trúc runner. Các gói macOS hiện chưa ký Developer ID
 và chưa Apple notarize, vì vậy phải ghi rõ trạng thái này trong release notes.
 
 ## Sau khi workflow hoàn tất
 
-1. Nếu đã cấu hình chứng thư, verify Authenticode của `WCode.exe` và `WCode.msi`.
+1. Nếu đã cấu hình chứng thư, verify Authenticode của `VN code.exe` và `VN-code.msi`.
 2. Verify `checksums.sha256` bao phủ toàn bộ Windows/macOS assets; nếu có
    `update-manifest.json`, verify signed manifest khớp MSI cuối cùng.
 3. Cài từ 1.1.9, xác nhận registration 1.1.9 không bị uninstall trước migration, app phiên bản mới mở được
-   và dữ liệu shop/history đã chuyển sang `WCodeData` còn nguyên.
+   và dữ liệu shop/history đã chuyển sang `VNcodeData` còn nguyên.
 4. Mở app, kiểm tra Wildberries regression và Ozon read-only trước khi live mutation.
 5. Chỉ đánh dấu release `latest` sau khi canary operator hoàn tất một flow đóng gói thực.
 

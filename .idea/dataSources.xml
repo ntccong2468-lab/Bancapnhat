@@ -26,7 +26,7 @@
       <driver-ref>sqlite.xerial</driver-ref>
       <synchronize>true</synchronize>
       <jdbc-driver>org.sqlite.JDBC</jdbc-driver>
-      <jdbc-url>jdbc:sqlite:E:\Sources\JavaProjects\FBSBarcode\app\database.db</jdbc-url>
+      <jdbc-url>jdbc:sqlite:E:\Sources\JavaProjects\VNcode\app\database.db</jdbc-url>
       <working-dir>$ProjectFileDir$</working-dir>
     </data-source>
   </component>

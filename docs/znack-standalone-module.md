@@ -1,8 +1,8 @@
 # GTIN-centered Znack workflow
 
-WCode uses a shop-scoped GTIN workflow for Znack and KIZ allocation. It does not upload KIZ PDFs or generate standalone KIZ PDFs.
+VN code uses a shop-scoped GTIN workflow for Znack and KIZ allocation. It does not upload KIZ PDFs or generate standalone KIZ PDFs.
 
-Every Znack setting, certificate selection, GTIN, purchase order, downloaded code, circulation document, purchase pipeline, and operation log belongs to one WCode shop. Legacy unscoped Znack data is retained only as `znack_legacy_unscoped_*` audit archives when it cannot be assigned safely.
+Every Znack setting, certificate selection, GTIN, purchase order, downloaded code, circulation document, purchase pipeline, and operation log belongs to one VN code shop. Legacy unscoped Znack data is retained only as `znack_legacy_unscoped_*` audit archives when it cannot be assigned safely.
 
 ## Configuration
 

@@ -1,6 +1,6 @@
 # Trạng thái hợp đồng API cập nhật GTIN
 
-Ngày kiểm tra: 06/10/2026. Các thao tác đọc sử dụng API đã có trong WCode.
+Ngày kiểm tra: 06/10/2026. Các thao tác đọc sử dụng API đã có trong VN code.
 
 | Sàn | Tài liệu chính thức đã yêu cầu | Kết quả từ môi trường | Mutation mới |
 | --- | --- | --- | --- |

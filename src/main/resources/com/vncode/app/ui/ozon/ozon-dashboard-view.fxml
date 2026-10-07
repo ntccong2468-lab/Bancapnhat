@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ProgressIndicator?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.SplitPane?>
+<?import javafx.scene.control.Tab?>
+<?import javafx.scene.control.TabPane?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Pane?>
+<?import javafx.scene.layout.Priority?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+<?import org.kordamp.ikonli.javafx.FontIcon?>
+
+<VBox spacing="12.0" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.vncode.app.ui.ozon.OzonDashboardController">
+    <padding><Insets bottom="16.0" left="16.0" right="16.0" top="16.0" /></padding>
+    <children>
+        <HBox alignment="CENTER_LEFT" spacing="10.0">
+            <children>
+                <VBox spacing="3.0">
+                    <children>
+                        <Label fx:id="titleLabel" styleClass="h2" text="FBS orders" />
+                    </children>
+                </VBox>
+                <Region HBox.hgrow="ALWAYS" />
+                <ProgressIndicator fx:id="loadingIndicator" managed="false" maxHeight="18.0" maxWidth="18.0" visible="false" />
+                <Label fx:id="statusLabel" styleClass="text-muted" />
+                <Button fx:id="refreshButton" mnemonicParsing="false" onAction="#onRefresh" text="Refresh" />
+            </children>
+        </HBox>
+        <SplitPane dividerPositions="0.72" VBox.vgrow="ALWAYS">
+            <items>
+                <VBox spacing="8.0">
+                    <children>
+                        <TabPane fx:id="orderStatusTabs" styleClass="packing-tabs" tabClosingPolicy="UNAVAILABLE" VBox.vgrow="ALWAYS">
+                            <tabs>
+                        <Tab fx:id="newOrdersTab" text="New orders">
+                            <content>
+                                <VBox spacing="8.0">
+                                    <children>
+                                        <HBox fx:id="selectionActionBar" alignment="CENTER_LEFT" managed="false" spacing="10.0" styleClass="surface selection-action-bar" visible="false">
+                                            <children>
+                                                <Label fx:id="selectedCountLabel" styleClass="text-secondary text-bold" text="0 selected" />
+                                                <Button fx:id="moveToPackingButton" disable="true" mnemonicParsing="false" onAction="#onMoveToPacking" styleClass="btn-primary" text="Move to packing" />
+                                            </children>
+                                        </HBox>
+                                        <Label fx:id="emptyNewOrdersLabel" managed="false" styleClass="text-muted" text="No new orders" visible="false" />
+                                        <TableView fx:id="newOrdersTable" VBox.vgrow="ALWAYS">
+                                            <columnResizePolicy><TableView fx:constant="CONSTRAINED_RESIZE_POLICY" /></columnResizePolicy>
+                                            <columns>
+                                                <TableColumn fx:id="newOrderSelectTC" maxWidth="46.0" minWidth="46.0" prefWidth="46.0" resizable="false" text="" />
+                                                <TableColumn fx:id="newOrderImageTC" maxWidth="58.0" minWidth="58.0" prefWidth="58.0" resizable="false" text="" />
+                                                <TableColumn fx:id="newOrderNumberTC" maxWidth="110.0" minWidth="100.0" prefWidth="100.0" resizable="false" text="Order" />
+                                                <TableColumn fx:id="newOrderItemsTC" minWidth="140.0" prefWidth="270.0" text="Items" />
+                                            </columns>
+                                        </TableView>
+                                    </children>
+                                </VBox>
+                            </content>
+                        </Tab>
+                        <Tab fx:id="packingOrdersTab" text="Packing">
+                            <content>
+                                <VBox spacing="8.0">
+                                    <children>
+                                        <HBox fx:id="sortOptionsBox" alignment="CENTER_LEFT" spacing="12.0">
+                                            <children>
+                                                <CheckBox fx:id="sortByProductCheckBox" mnemonicParsing="false" selected="true" text="Product" />
+                                                <CheckBox fx:id="sortByArticleCheckBox" mnemonicParsing="false" selected="true" text="Article" />
+                                                <CheckBox fx:id="sortByColorCheckBox" mnemonicParsing="false" selected="true" text="Color" />
+                                                <CheckBox fx:id="sortBySizeCheckBox" mnemonicParsing="false" selected="true" text="Size" />
+                                                <Region HBox.hgrow="ALWAYS" />
+                                                <Button fx:id="printAllButton" disable="true" mnemonicParsing="false" onAction="#onPrintAll" prefHeight="32.0" styleClass="btn-success" text="Print all">
+                                                    <graphic><FontIcon iconLiteral="fth-printer" iconSize="16" /></graphic>
+                                                </Button>
+                                            </children>
+                                        </HBox>
+                                        <Label fx:id="emptyPackingOrdersLabel" managed="false" styleClass="text-muted" text="No packing orders" visible="false" />
+                                        <TableView fx:id="packingOrdersTable" VBox.vgrow="ALWAYS">
+                                            <columnResizePolicy><TableView fx:constant="CONSTRAINED_RESIZE_POLICY" /></columnResizePolicy>
+                                            <columns>
+                                                <TableColumn fx:id="packingOrderImageTC" maxWidth="58.0" minWidth="58.0" prefWidth="58.0" resizable="false" text="" />
+                                                <TableColumn fx:id="packingOrderNumberTC" maxWidth="110.0" minWidth="100.0" prefWidth="100.0" resizable="false" text="Order" />
+                                                <TableColumn fx:id="packingOrderItemsTC" minWidth="130.0" prefWidth="235.0" text="Items" />
+                                                <TableColumn fx:id="packingLabelTC" maxWidth="54.0" minWidth="54.0" prefWidth="54.0" resizable="false" text="" />
+                                            </columns>
+                                        </TableView>
+                                    </children>
+                                </VBox>
+                            </content>
+                        </Tab>
+                        <Tab fx:id="deliveringOrdersTab" text="Delivering">
+                            <content>
+                                <VBox spacing="8.0">
+                                    <children>
+                                        <Label fx:id="emptyDeliveringOrdersLabel" managed="false" styleClass="text-muted" text="No delivering orders" visible="false" />
+                                        <TableView fx:id="deliveringOrdersTable" VBox.vgrow="ALWAYS">
+                                            <columnResizePolicy><TableView fx:constant="CONSTRAINED_RESIZE_POLICY" /></columnResizePolicy>
+                                            <columns>
+                                                <TableColumn fx:id="deliveringOrderImageTC" maxWidth="58.0" minWidth="58.0" prefWidth="58.0" resizable="false" text="" />
+                                                <TableColumn fx:id="deliveringOrderNumberTC" maxWidth="110.0" minWidth="100.0" prefWidth="100.0" resizable="false" text="Order" />
+                                                <TableColumn fx:id="deliveringOrderItemsTC" minWidth="130.0" prefWidth="230.0" text="Items" />
+                                                <TableColumn fx:id="deliveringOrderStatusTC" minWidth="90.0" prefWidth="120.0" text="Status" />
+                                            </columns>
+                                        </TableView>
+                                    </children>
+                                </VBox>
+                            </content>
+                        </Tab>
+                            </tabs>
+                        </TabPane>
+                    </children>
+                </VBox>
+                <VBox fx:id="gtinInventoryPane" maxWidth="520.0" minWidth="360.0" prefWidth="420.0" spacing="10.0" styleClass="surface, gtin-inventory-pane">
+                    <children>
+                        <HBox alignment="CENTER_LEFT" spacing="8.0">
+                            <children>
+                                <Label fx:id="gtinInventoryTitleLabel" styleClass="h3" text="GTIN / KIZ" />
+                                <Pane HBox.hgrow="ALWAYS" />
+                                <Button fx:id="kizPolicyButton" mnemonicParsing="false" onAction="#onKizPolicy" prefHeight="30.0" prefWidth="30.0" styleClass="btn-icon,btn-secondary">
+                                    <graphic><FontIcon iconLiteral="fth-settings" iconSize="15" /></graphic>
+                                </Button>
+                                <ProgressIndicator fx:id="gtinInventoryLoading" managed="false" maxHeight="18.0" maxWidth="18.0" prefHeight="18.0" prefWidth="18.0" visible="false" />
+                                <Button fx:id="gtinInventoryRefreshButton" mnemonicParsing="false" onAction="#onRefreshGtinInventory" prefHeight="30.0" prefWidth="30.0" styleClass="btn-icon,btn-sync">
+                                    <graphic><FontIcon iconLiteral="fth-refresh-cw" iconSize="15" /></graphic>
+                                </Button>
+                            </children>
+                        </HBox>
+                        <TextField fx:id="gtinSearchField" promptText="Search GTIN" />
+                        <StackPane VBox.vgrow="ALWAYS">
+                            <children>
+                                <ScrollPane fitToWidth="true" hbarPolicy="NEVER">
+                                    <content><VBox fx:id="gtinInventoryList" spacing="8.0" /></content>
+                                </ScrollPane>
+                                <Label fx:id="gtinInventoryEmptyLabel" managed="false" maxWidth="240.0" styleClass="text-muted" text="No GTIN" textAlignment="CENTER" visible="false" wrapText="true" />
+                            </children>
+                        </StackPane>
+                    </children>
+                    <padding><Insets bottom="12.0" left="12.0" right="12.0" top="12.0" /></padding>
+                </VBox>
+            </items>
+        </SplitPane>
+    </children>
+</VBox>

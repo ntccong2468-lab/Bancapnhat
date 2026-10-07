@@ -2,7 +2,7 @@
 
 ## Objective
 
-When Znack rejects a KIZ order with error `3590` / `NotEnoughMoneyException`, WCode must explain that
+When Znack rejects a KIZ order with error `3590` / `NotEnoughMoneyException`, VN code must explain that
 the Znack balance is insufficient and let the user retry the same persisted purchase pipeline after
 funding the account. The retry must not create a parallel pipeline or automatically hammer Znack.
 

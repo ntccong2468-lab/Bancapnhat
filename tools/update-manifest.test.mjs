@@ -7,9 +7,9 @@ import test from "node:test";
 import { buildSignedUpdateManifest } from "./update-manifest.mjs";
 
 test("builds a canonical envelope whose signed MSI fields verify independently", async () => {
-  const directory = await mkdtemp(path.join(tmpdir(), "wcode-manifest-test-"));
+  const directory = await mkdtemp(path.join(tmpdir(), "vncode-manifest-test-"));
   try {
-    const installer = path.join(directory, "WCode.msi");
+    const installer = path.join(directory, "VN-code.msi");
     await writeFile(installer, Buffer.alloc(1024 * 1024, 0x5a), { mode: 0o600 });
     const keys = generateKeyPairSync("ed25519");
     const privateKey = keys.privateKey.export({ type: "pkcs8", format: "der" }).toString("base64");
@@ -31,12 +31,12 @@ test("builds a canonical envelope whose signed MSI fields verify independently",
     assert.equal(envelope.format, "wcode-update-envelope-v1");
     assert.equal(payload.version, "1.2.3");
     assert.deepEqual(payload.notes, ["Signed JavaFX release"]);
-    assert.equal(payload.assets[0].fileName, "WCode.msi");
+    assert.equal(payload.assets[0].fileName, "VN-code.msi");
     assert.equal(payload.assets[0].size, 1024 * 1024);
     assert.match(payload.assets[0].sha256, /^[0-9a-f]{64}$/);
     assert.equal(
       payload.assets[0].url,
-      "https://github.com/ntccong2468-lab/Vncode/releases/download/v1.2.3/WCode.msi",
+      "https://github.com/ntccong2468-lab/Vncode/releases/download/v1.2.3/VN-code.msi",
     );
     assert.equal(verify(null, payloadBytes, keys.publicKey, Buffer.from(envelope.signature, "base64")), true);
   } finally {
@@ -45,10 +45,10 @@ test("builds a canonical envelope whose signed MSI fields verify independently",
 });
 
 test("fails closed for mismatched keys, unsafe notes, versions, and installer sizes", async () => {
-  const directory = await mkdtemp(path.join(tmpdir(), "wcode-manifest-invalid-"));
+  const directory = await mkdtemp(path.join(tmpdir(), "vncode-manifest-invalid-"));
   try {
-    const installer = path.join(directory, "WCode.msi");
-    const undersizedInstaller = path.join(directory, "small", "WCode.msi");
+    const installer = path.join(directory, "VN-code.msi");
+    const undersizedInstaller = path.join(directory, "small", "VN-code.msi");
     await writeFile(installer, Buffer.alloc(1024 * 1024, 0x2a), { mode: 0o600 });
     const keys = generateKeyPairSync("ed25519");
     const other = generateKeyPairSync("ed25519");

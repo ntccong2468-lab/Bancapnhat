@@ -1,14 +1,14 @@
-# Spec: macOS artifacts for WCode releases
+# Spec: macOS artifacts for VN code releases
 
 ## Objective
 
-Every tagged WCode JavaFX release must publish runnable macOS packages alongside the existing Windows packages. Intel and Apple Silicon Macs receive native builds so JavaFX and SQLite native libraries match the target CPU.
+Every tagged VN code JavaFX release must publish runnable macOS packages alongside the existing Windows packages. Intel and Apple Silicon Macs receive native builds so JavaFX and SQLite native libraries match the target CPU.
 
 ## Tech Stack
 
 - GitHub Actions pinned to the stable `macos-15-intel` and `macos-15` runner labels.
 - Oracle JDK 25, Maven Wrapper, and `jpackage`.
-- Existing JavaFX launcher: `com.tuandev.fbsbarcode.Launcher`.
+- Existing JavaFX launcher: `com.vncode.app.Launcher`.
 
 ## Commands
 
@@ -50,7 +50,7 @@ matrix:
 
 ## Success Criteria
 
-- Tagged releases build `WCode-macos-x64.dmg`, `WCode-macos-x64.zip`, `WCode-macos-arm64.dmg`, and `WCode-macos-arm64.zip`.
+- Tagged releases build `VN-code-macos-x64.dmg`, `VN-code-macos-x64.zip`, `VN-code-macos-arm64.dmg`, and `VN-code-macos-arm64.zip`.
 - A Mac failure blocks the publish job; a partially built release is never marked latest.
 - Existing Windows 1.1.9-to-1.1.10 upgrade behavior remains intact; a signed update manifest is included when its signing keys are configured.
 - Release notes state that the initial Mac packages are not Apple-notarized.

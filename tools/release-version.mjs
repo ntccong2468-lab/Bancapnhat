@@ -77,7 +77,7 @@ async function main() {
 
 if (process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.argv[1])) {
   main().catch((error) => {
-    process.stderr.write(`Could not resolve the WCode release version: ${error.message}\n`);
+    process.stderr.write(`Could not resolve the VN code release version: ${error.message}\n`);
     process.exitCode = 1;
   });
 }

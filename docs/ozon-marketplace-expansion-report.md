@@ -1,12 +1,12 @@
-# Báo cáo mở rộng WCode sang Ozon
+# Báo cáo mở rộng VN code sang Ozon
 
 > Ngày nghiên cứu: 2026-08-18
-> Phạm vi: WCode desktop, Wildberries FBS hiện tại và Ozon Seller API
+> Phạm vi: VN code desktop, Wildberries FBS hiện tại và Ozon Seller API
 > Trạng thái: Ozon FBS Standard đã có production UI JavaFX; local/mock gate và live Java-core gate đã pass qua KIZ, ship và nhãn; Seller UI, Windows native và canary vẫn chờ xác nhận riêng
 
 ## 1. Kết luận
 
-WCode có thể mở rộng sang Ozon, nhưng đây không phải thay đổi chỉ gồm thêm Client-Id vào form cửa hàng. Mã hiện tại gắn trực tiếp Shop, Order, Supply, sticker, KIZ và đồng bộ vào mô hình Wildberries. Để thêm Ozon an toàn cần bốn thay đổi nền tảng:
+VN code có thể mở rộng sang Ozon, nhưng đây không phải thay đổi chỉ gồm thêm Client-Id vào form cửa hàng. Mã hiện tại gắn trực tiếp Shop, Order, Supply, sticker, KIZ và đồng bộ vào mô hình Wildberries. Để thêm Ozon an toàn cần bốn thay đổi nền tảng:
 
 1. Thêm marketplace vào danh tính cửa hàng và bắt buộc mọi command/workflow kiểm tra đúng sàn.
 2. Giữ adapter, DTO, bảng SQLite và sync state riêng cho WB và Ozon; chỉ dùng chung những mô hình thực sự trùng lặp như cửa hàng, tài nguyên in và KIZ inventory.
@@ -135,7 +135,7 @@ Base URL: https://api-seller.ozon.ru. Request dùng Content-Type: application/js
 | Tải trực tiếp | POST /v2/posting/fbs/package-label | Chỉ cho batch nhỏ; async là mặc định |
 | Act | /v2/posting/fbs/act/* | Để phase carriage/acceptance sau |
 
-Nhãn Ozon là tài liệu vận chuyển chính thức. Quy định packaging của Ozon nêu kích thước nhãn barcode 12 x 7,5 cm. Không resize nhãn Ozon thành template WB 58x40. WCode có thể tạo trang thông tin/KIZ riêng, nhưng phải giữ nguyên PDF/tỷ lệ barcode vận chuyển do Ozon cấp.
+Nhãn Ozon là tài liệu vận chuyển chính thức. Quy định packaging của Ozon nêu kích thước nhãn barcode 12 x 7,5 cm. Không resize nhãn Ozon thành template WB 58x40. VN code có thể tạo trang thông tin/KIZ riêng, nhưng phải giữ nguyên PDF/tỷ lệ barcode vận chuyển do Ozon cấp.
 
 ### 5.5 KIZ/exemplar
 
@@ -148,7 +148,7 @@ Nhãn Ozon là tài liệu vận chuyển chính thức. Quy định packaging c
 | Kiểm tra | POST /v5/fbs/posting/product/exemplar/status | Poll bounded đến terminal state |
 | Sửa exemplar | POST /v1/fbs/posting/product/exemplar/update | Chỉ cho correction flow |
 
-Ozon còn có IMEI, JW UIN, RNPT, GTD, country và weight requirements. MVP phải fail closed nếu posting có requirement WCode chưa hỗ trợ; không cho ship chỉ vì KIZ đã đủ.
+Ozon còn có IMEI, JW UIN, RNPT, GTD, country và weight requirements. MVP phải fail closed nếu posting có requirement VN code chưa hỗ trợ; không cho ship chỉ vì KIZ đã đủ.
 
 ## 6. Smoke test API thật trong giai đoạn nghiên cứu
 
@@ -336,9 +336,9 @@ Khi edit, marketplace disabled; API key để trống nghĩa là giữ key cũ. 
 7. Poll status bounded; chỉ terminal accepted mới cho ship.
 8. Gọi /v4/posting/fbs/ship sau explicit confirmation, với item/quantity mới nhất.
 9. Refresh đến awaiting_deliver hoặc status cho phép label.
-10. Tạo/poll label job, publish PDF atomically, rồi tạo trang WCode product/KIZ riêng nếu được chọn.
+10. Tạo/poll label job, publish PDF atomically, rồi tạo trang VN code product/KIZ riêng nếu được chọn.
 
-Khác WB, WCode phải tạo/lấy và validate exemplar trước khi in. Theo yêu cầu UX cập nhật, file có
+Khác WB, VN code phải tạo/lấy và validate exemplar trước khi in. Theo yêu cầu UX cập nhật, file có
 thể được publish/mở khi durable job ở `VALIDATED`, sau đó `set` và poll `status` chạy nền. Lệnh ship
 vẫn bắt buộc phụ thuộc persisted exemplar state `ACCEPTED`; job nền không được cấp thêm KIZ hoặc
 retry mutation mù.
@@ -346,7 +346,7 @@ retry mutation mù.
 ### 8.4 In ấn
 
 - Dùng nguyên PDF Ozon; không tái tạo barcode nếu đã có file chính thức.
-- Tách logic sinh nhãn: trang shipping label của Ozon được copy nguyên MediaBox/content stream, còn trang WCode KIZ là 58x40. Khi người dùng in, hai loại trang được ghép vào cùng một bundle PDF hỗ trợ mixed page size; PDF nhặt hàng A4 vẫn là file riêng.
+- Tách logic sinh nhãn: trang shipping label của Ozon được copy nguyên MediaBox/content stream, còn trang VN code KIZ là 58x40. Khi người dùng in, hai loại trang được ghép vào cùng một bundle PDF hỗ trợ mixed page size; PDF nhặt hàng A4 vẫn là file riêng.
 - Một posting nhiều item vẫn chỉ có shipping label theo posting/package; trang product/KIZ theo exemplar/item.
 - Print history lưu marketplace, posting number, item/exemplar linkage và template snapshot; không lưu PII.
 
@@ -360,7 +360,7 @@ retry mutation mù.
 - Màn hình chỉ hỗ trợ WB ẩn/disable rõ ràng cho shop Ozon; Ozon có posting/detail/mapping riêng.
 - Copy và validation thuộc catalog RU/EN/VI/ZH.
 
-**Rủi ro rollback bắt buộc:** binary WCode cũ đọc mọi row từ shops và coi là WB. Cần phát hành một compatibility release biết cột marketplace và ẩn shop không hỗ trợ trước khi cho phép tạo row Ozon. Sau khi N-1 an toàn nằm trong cửa sổ rollback mới bật feature flag tạo Ozon. Nếu bỏ qua, rollback có thể gửi Ozon API key đến endpoint Wildberries.
+**Rủi ro rollback bắt buộc:** binary VN code cũ đọc mọi row từ shops và coi là WB. Cần phát hành một compatibility release biết cột marketplace và ẩn shop không hỗ trợ trước khi cho phép tạo row Ozon. Sau khi N-1 an toàn nằm trong cửa sổ rollback mới bật feature flag tạo Ozon. Nếu bỏ qua, rollback có thể gửi Ozon API key đến endpoint Wildberries.
 
 ## 10. Test plan
 
@@ -434,7 +434,7 @@ Không dùng production order ngẫu nhiên. Fixture phải có posting/GTIN/KIZ
 ### Phase 2 - Print label
 
 - Label service bất đồng bộ, atomic publish, external IDs trong print history.
-- Giữ nguyên khổ PDF do Ozon phát hành cho warehouse (120x75 hoặc compact 58x40), tách khỏi custom label sản phẩm/KIZ của WCode.
+- Giữ nguyên khổ PDF do Ozon phát hành cho warehouse (120x75 hoặc compact 58x40), tách khỏi custom label sản phẩm/KIZ của VN code.
 - Native print rehearsal Windows/macOS.
 
 ### Phase 3 - KIZ exemplar
@@ -539,10 +539,10 @@ Posting vẫn ở `awaiting_packaging`; live test không gọi `/v4/posting/fbs/
 
 ### Vướng mắc được xác nhận qua live test
 
-1. Catalog của SKU chỉ trả barcode nội bộ `OZN...`, không trả GTIN `04645588781154`. Ozon vẫn validate KIZ thành công, nhưng WCode production cần mapping SKU/offer -> GTIN do người dùng quản lý hoặc lấy từ nguồn Znack; không thể suy ra GTIN từ barcode Ozon.
+1. Catalog của SKU chỉ trả barcode nội bộ `OZN...`, không trả GTIN `04645588781154`. Ozon vẫn validate KIZ thành công, nhưng VN code production cần mapping SKU/offer -> GTIN do người dùng quản lý hoặc lấy từ nguồn Znack; không thể suy ra GTIN từ barcode Ozon.
 2. Chuỗi article trên UI có thể khác `offer_id` API. Không tìm posting bằng exact text `BOdai/176`; phải dùng SKU/offer mapping đã đồng bộ.
 3. HTTP 200 từ `set` chỉ tạo tác vụ. Workflow bắt buộc poll `status` đến `ship_available` và kiểm tra lỗi từng mark trước khi cho ship.
-4. Sản phẩm hiện chỉ “có thể cần” маркировка, không bắt buộc. UI WCode phải cho phép thêm KIZ tự nguyện nhưng không được diễn giải cờ optional thành mandatory.
+4. Sản phẩm hiện chỉ “có thể cần” маркировка, không bắt buộc. UI VN code phải cho phép thêm KIZ tự nguyện nhưng không được diễn giải cờ optional thành mandatory.
 
 ## 17. Migration evidence của bản triển khai
 
@@ -622,7 +622,7 @@ Sau retry theo cùng confirmation token, Ozon trả HTTP 200. Readback tức th�
 
 Lần tạo label đầu trả HTTP 200 nhưng parser chỉ hiểu schema cũ `result.tasks[].task_type=big_label`, trong khi live v2 trả `result.task_id` trực tiếp. Parser đã hỗ trợ cả hai schema và test regression pass. Job tài liệu đầu không có task ID local được đánh dấu `FAILED/unparsed_task_id`; tạo lại một job tài liệu không thay đổi posting/KIZ, rồi poll đúng task đến `READY` và tải PDF chính thức.
 
-PDF cuối có SHA-256 `c77b9187b32619cbf41a26e12e2575edd48e0119e549e89cdc4918b3badd7777`, PDF 1.7, không mã hóa, không form/JavaScript, hai trang có MediaBox xấp xỉ `164.25 x 113.25 pt` và `164.40 x 113.38 pt` (compact 58x40 mm). Poppler render 300 DPI cho thấy trang QR/mã tuyến và trang barcode OZN/mô tả đều sắc nét, nằm trong biên, không overlap hoặc clipping. Đây là định dạng compact chính thức Ozon trả theo cấu hình warehouse; WCode giữ nguyên byte và không tái tạo barcode vận chuyển.
+PDF cuối có SHA-256 `c77b9187b32619cbf41a26e12e2575edd48e0119e549e89cdc4918b3badd7777`, PDF 1.7, không mã hóa, không form/JavaScript, hai trang có MediaBox xấp xỉ `164.25 x 113.25 pt` và `164.40 x 113.38 pt` (compact 58x40 mm). Poppler render 300 DPI cho thấy trang QR/mã tuyến và trang barcode OZN/mô tả đều sắc nét, nằm trong biên, không overlap hoặc clipping. Đây là định dạng compact chính thức Ozon trả theo cấu hình warehouse; VN code giữ nguyên byte và không tái tạo barcode vận chuyển.
 
 ### Bundle in và phiếu nhặt hàng ngày 2026-08-19
 
@@ -658,9 +658,9 @@ Build/release contract hiện yêu cầu:
 - `Launcher` → `MainApplication` là production entrypoint và FXML Ozon nằm trong main resources;
 - Maven compile/test/package JavaFX, tạo runnable JAR và `target/lib` cho `jpackage`;
 - không còn source set desktop khác, frontend web, bridge binding hoặc Gradle wrapper;
-- script local và workflow đều package `com.tuandev.fbsbarcode.Launcher`;
+- script local và workflow đều package `com.vncode.app.Launcher`;
 - Windows EXE/MSI dùng Upgrade UUID data-safe của 1.1.10+, giữ registration 1.1.9 trong lần chuyển
-  tiếp để không xóa `%LOCALAPPDATA%\WCode`, rồi app tự migrate sang `%LOCALAPPDATA%\WCodeData`;
+  tiếp để không xóa `%LOCALAPPDATA%\WCode`, rồi app tự migrate sang `%LOCALAPPDATA%\VNcodeData`;
   Authenticode và signed update manifest được bật khi repo có đủ secret tương ứng;
 - migration 1.1.9 → 1.1.10 vẫn khóa app-data, snapshot/verify trước ghi, giữ ID/token/FK/WB data,
   backfill `WILDBERRIES`, thêm schema Ozon và fail closed khi gặp schema mới hơn.
@@ -673,9 +673,9 @@ Gate khôi phục JavaFX ngày 2026-08-23:
 
 - `./mvnw -B clean verify`: pass 294/294 test, 0 failure/error/skip;
 - Node production/release contracts: pass 12/12; workflow YAML parse thành công;
-- macOS arm64 `./build.sh app-image`: tạo `out/WCode.app`, launcher config trỏ đúng
-  `com.tuandev.fbsbarcode.Launcher`, bundle signature/layout verify thành công;
-- packaged app chạy 12 giây với `wcode.appdata.dir` cô lập, tạo schema v2, verified snapshot và
+- macOS arm64 `./build.sh app-image`: tạo `out/VN code.app`, launcher config trỏ đúng
+  `com.vncode.app.Launcher`, bundle signature/layout verify thành công;
+- packaged app chạy 12 giây với `vncode.appdata.dir` cô lập, tạo schema v2, verified snapshot và
   marker `javafx-1.1.10.ready`; `integrity_check=ok`, không có FK error;
 - source, tests, docs, workflow và package không còn dependency/reference của desktop stack đã loại;
 - database/WAL, `kiz.txt` và output live của operator không được mở hoặc sửa trong gate này.

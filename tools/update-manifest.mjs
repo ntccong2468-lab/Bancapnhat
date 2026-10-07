@@ -48,14 +48,14 @@ export async function buildSignedUpdateManifest({
   privateKey,
   publicKey,
 }) {
-  if (typeof installer !== "string" || path.basename(installer) !== "WCode.msi" || !VERSION.test(version)) {
+  if (typeof installer !== "string" || path.basename(installer) !== "VN-code.msi" || !VERSION.test(version)) {
     throw new Error("release identity is invalid");
   }
   if (typeof mandatory !== "boolean") throw new Error("mandatory must be a boolean");
   validateNotes(notes);
   const file = await stat(installer);
   if (!file.isFile() || file.size < MIN_INSTALLER_BYTES || file.size > MAX_INSTALLER_BYTES) {
-    throw new Error("WCode.msi has an invalid size");
+    throw new Error("VN-code.msi has an invalid size");
   }
 
   let signingKey;
@@ -79,10 +79,10 @@ export async function buildSignedUpdateManifest({
     assets: [{
       platform: "windows-x64",
       kind: "msi",
-      fileName: "WCode.msi",
+      fileName: "VN-code.msi",
       size: file.size,
       sha256: await sha256(installer),
-      url: `https://github.com/ntccong2468-lab/Vncode/releases/download/v${version}/WCode.msi`,
+      url: `https://github.com/ntccong2468-lab/Vncode/releases/download/v${version}/VN-code.msi`,
     }],
   };
   const payloadBytes = Buffer.from(JSON.stringify(payload), "utf8");
@@ -102,7 +102,7 @@ export async function buildSignedUpdateManifest({
 
 async function main() {
   const [installer, output, version] = process.argv.slice(2);
-  if (!installer || !output || !version) throw new Error("usage: update-manifest.mjs <WCode.msi> <output> <version>");
+  if (!installer || !output || !version) throw new Error("usage: update-manifest.mjs <VN-code.msi> <output> <version>");
   let notes;
   try {
     notes = JSON.parse(process.env.RELEASE_NOTES_JSON ?? "[]");
