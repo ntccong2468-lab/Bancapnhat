@@ -35,10 +35,18 @@ set "MAIN_JAR=FBSBarcode-%APP_VERSION%.jar"
 set "MAIN_CLASS=com.tuandev.fbsbarcode.Launcher"
 set "JPACKAGE_INPUT=target\jpackage-input"
 echo Building JavaFX WCode %APP_VERSION% with Maven...
-call mvnw.cmd -q clean verify
-if errorlevel 1 exit /b 1
+if /I "%WCODE_REUSE_VERIFIED_BUILD%"=="true" (
+    echo Reusing Maven output already verified by this CI job.
+) else (
+    call mvnw.cmd -q clean verify
+    if errorlevel 1 exit /b 1
+)
 if not exist "target\%MAIN_JAR%" (
     echo Missing application JAR: target\%MAIN_JAR%
+    exit /b 1
+)
+if not exist "target\lib\*.jar" (
+    echo Missing verified runtime dependencies in target\lib.
     exit /b 1
 )
 

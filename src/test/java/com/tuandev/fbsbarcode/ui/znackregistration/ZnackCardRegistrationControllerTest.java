@@ -52,19 +52,31 @@ class ZnackCardRegistrationControllerTest {
     }
     @Test void cancellingFreshGtinConfirmationLeavesThePendingCardUnchanged() throws Exception {
         fx(()->{
+            // Other FXML tests may leave a dialog open. Never dismiss or inspect that dialog.
+            Alert unrelated=new Alert(Alert.AlertType.INFORMATION,"Unrelated fixture notification");
+            unrelated.show();
+            var previous=java.util.Set.copyOf(Window.getWindows());
             table().getSelectionModel().select(1);
             var cancelled=new CompletableFuture<Boolean>();
             Platform.runLater(()->{
                 for(Window window:Window.getWindows()) {
-                    if(window.getScene()!=null && window.getScene().getRoot() instanceof DialogPane pane) {
-                        assertTrue(pane.getContentText().contains("GS1"));
-                        ((Button)pane.lookupButton(ButtonType.CANCEL)).fire();cancelled.complete(true);return;
+                    if(!previous.contains(window) && window.getScene()!=null
+                            && window.getScene().getRoot() instanceof DialogPane pane
+                            && I18nService.getInstance().tr("znack.registration.register_selected").equals(pane.getHeaderText())) {
+                        // Close the dialog even if its warning is wrong, so assertion failures cannot hang FX.
+                        boolean warnsAboutQuota=pane.getContentText().contains("GS1");
+                        ((Button)pane.lookupButton(ButtonType.CANCEL)).fire();
+                        cancelled.complete(warnsAboutQuota);return;
                     }
                 }
                 cancelled.complete(false);
             });
-            button("registerSelectedButton").fire();
-            assertTrue(cancelled.getNow(false),"Expected a cancellable quota confirmation");return null;
+            try {
+                button("registerSelectedButton").fire();
+                assertTrue(cancelled.getNow(false),"Expected a cancellable GS1 quota confirmation");
+                assertTrue(unrelated.isShowing(),"The unrelated dialog must remain untouched");
+            } finally { unrelated.close(); }
+            return null;
         });
         try(var c=Database.getConnection();var s=c.createStatement();var r=s.executeQuery(
                 "SELECT status,gtin,updated_at FROM znack_card_registrations WHERE shop_id=1 AND chrt_id=2")) {
