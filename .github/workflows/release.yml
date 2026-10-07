@@ -4,6 +4,11 @@ on:
   push:
     tags: ["v*"]
   workflow_dispatch:
+    inputs:
+      windows_build_run_id:
+        description: Publish the verified Vncode Windows build from this run ID (empty for rehearsal)
+        type: string
+        default: ""
 
 permissions:
   contents: read
@@ -23,10 +28,32 @@ env:
   TIMESTAMP_URL: http://timestamp.digicert.com
 
 jobs:
+  publish-vncode-windows:
+    if: ${{ github.repository == 'ntccong2468-lab/Vncode' && github.event_name == 'workflow_dispatch' && inputs.windows_build_run_id != '' }}
+    name: Publish verified Vncode Windows prerelease
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      actions: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: "22"
+      - name: Verify publishing contracts
+        run: node --test tools/*.test.mjs
+      - name: Verify and publish the existing native build artifact
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BUILD_RUN_ID: ${{ inputs.windows_build_run_id }}
+        run: node tools/publish-vncode-windows.mjs "$BUILD_RUN_ID"
+
   validate:
     # Vncode ships Windows test releases from the verified build-java artifact.
     # The inherited multi-platform rehearsal remains available by explicit dispatch.
-    if: ${{ github.repository != 'ntccong2468-lab/Vncode' || github.event_name == 'workflow_dispatch' }}
+    if: ${{ github.repository != 'ntccong2468-lab/Vncode' || (github.event_name == 'workflow_dispatch' && inputs.windows_build_run_id == '') }}
     name: Validate source release contract
     runs-on: ubuntu-latest
     outputs:
