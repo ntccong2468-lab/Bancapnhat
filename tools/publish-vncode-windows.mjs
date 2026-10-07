@@ -58,12 +58,12 @@ async function main(runId) {
   assert.equal(bytes.readUInt32LE(pe+24+112+4*8),0);assert.equal(bytes.readUInt32LE(pe+24+112+4*8+4),0);
   const smoke=json(await readFile(path.join(directory,'native-smoke.json')));validateNativeSmoke(smoke,version);
   const log=command(['run','view',runId,'--repo',REPO,'--log']).replace(/\x1b\[[0-9;]*m/g,'');
-  assert.ok(log.includes('Tests run: 561, Failures: 0, Errors: 0, Skipped: 0'));
+  assert.ok(log.includes('Tests run: 562, Failures: 0, Errors: 0, Skipped: 0'));
   assert.match(log,/# tests\s+21(?:\s|$)/);
   if (original !== name) await copyFile(path.join(directory,original),path.join(directory,name));
   const runUrl=`https://github.com/${REPO}/actions/runs/${runId}`;
   const info={appName:"VN code",version,repository:REPO,sourceCommit:sha,githubRunId:Number(runId),githubRunUrl:runUrl,
-    javaFxmlTests:{run:561,failures:0,errors:0,skipped:0,platforms:['linux','windows']},
+    javaFxmlTests:{run:562,failures:0,errors:0,skipped:0,platforms:['linux','windows']},
     nodeContracts:{run:21,failures:0},nativeSmoke:smoke,
     installer:{filename:name,originalArtifactFilename:original,bytes:bytes.length,sha256:digest,architecture:'x86_64',authenticodeSigned:false},
     sourceBaseline:'WCode1.1.32 + existing Vncode GTIN module',publicRecoveryChangelog:'WCode1.1.75',
@@ -71,7 +71,7 @@ async function main(runId) {
   await writeFile(path.join(directory,'build-info.json'),JSON.stringify(info,null,2)+'\n');
   const notes=execFileSync('git',['show',`${sha}:docs/releases/VN-code-${version}.md`],{encoding:'utf8'})+
     `\n## Bộ cài và kiểm tra\n\nTải \`${name}\` bên dưới rồi chạy; Java đã được đóng gói kèm.\n\n`+
-    `- 561 kiểm thử Java/JavaFX, 21 Node contracts qua trên Windows; 0 thất bại/lỗi/bỏ qua.\n`+
+    `- 562 kiểm thử Java/JavaFX, 21 Node contracts qua trên Windows; 0 thất bại/lỗi/bỏ qua.\n`+
     `- Native Windows launcher và migration schema 3 → 4 giữ GTIN/feed/good ID/cờ WB; integrity/foreign keys và snapshot sạch.\n`+
     `- [CI Windows](${runUrl}), commit \`${sha}\`.\n`+
     `- SHA-256 EXE: \`${digest}\`.\n`+

@@ -33,7 +33,7 @@
 - [x] Add property-precedence and branding assertions; run targeted Maven tests and observe failure.
 - [x] Implement identity, namespace move, compatible directory selection and installer/resource renaming.
 - [x] Add legacy-directory regression cases; run full Maven verify and Node contracts, expecting no failures or skips.
-- [ ] Review the complete change, fix consequential findings, and commit.
+- [x] Review the complete change, fix consequential findings, and commit.
 
 ### Task 2: Windows delivery
 
@@ -48,3 +48,7 @@
 ## Implementation evidence
 
 2026-10-07: canonical-property/branding assertions RED (3 failures), targeted GREEN14; full Maven561 Java/FXML tests, Node21, zero failures/errors/skips. Linux packaged native window VN code v1.1.34, schema4 integrity/FK clean. Independent review found and verified fixes for the actual test-update repository guard and bounded window-title readiness. Durable compatibility identifiers, upstream service endpoints and source attribution are deliberately retained. Windows CI/publishing pending.
+
+Ownership follow-up: a new regression reproduced default-directory switching when a legacy folder appears after startup (RED1). Cache the selected default root for each base/platform/profile, preserving explicit override behavior. Full revalidation and native Windows rebuild required for this final source.
+
+Follow-up verification: full Maven562/562, Node21/21, zero failures/errors/skips. Regression selectedDefaultDirectoryCannotChangeWhileItsOwnershipLockIsHeld is GREEN; the previous Windows run was intentionally cancelled before native validation, and the final commit requires its own new build.

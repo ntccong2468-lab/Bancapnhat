@@ -122,6 +122,17 @@ class AppPathsTest {
         assertEquals(legacyTest, AppPaths.selectDataDirectory(tempDir, true, true));
     }
 
+    @Test
+    void selectedDefaultDirectoryCannotChangeWhileItsOwnershipLockIsHeld() throws Exception {
+        Path selected = AppPaths.defaultDataDirectory(tempDir, true, false);
+        try (var lock = AppDataLock.acquire(selected, "vn-code-instance")) {
+            Files.createDirectory(tempDir.resolve("WCodeData"));
+            assertEquals(selected, AppPaths.defaultDataDirectory(tempDir, true, false));
+            assertThrows(AppDataLock.AlreadyRunningException.class,
+                    () -> AppDataLock.acquire(AppPaths.defaultDataDirectory(tempDir, true, false), "second-instance"));
+        }
+    }
+
     private static void restore(String key, String value) {
         if (value == null) System.clearProperty(key);
         else System.setProperty(key, value);

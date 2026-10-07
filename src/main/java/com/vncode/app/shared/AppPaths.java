@@ -12,6 +12,9 @@ import java.util.Optional;
 import java.util.stream.Stream;
 
 public final class AppPaths {
+    private record DataDirectoryKey(Path base, boolean windows, boolean testProfile) {}
+    private static final java.util.concurrent.ConcurrentMap<DataDirectoryKey, Path> DEFAULT_DIRECTORIES =
+            new java.util.concurrent.ConcurrentHashMap<>();
     private static final String APP_DIR_NAME = "VNcode";
     private static final String WINDOWS_DATA_DIR_NAME = "VNcodeData";
     private static final String DATA_PROFILE_PROPERTY = "vncode.data.profile";
@@ -28,7 +31,14 @@ public final class AppPaths {
         }
         Path base = windowsLocalAppData()
                 .orElseGet(() -> Paths.get(System.getProperty("user.home", ".")));
-        return selectDataDirectory(base, isWindows(), isZnackRegistrationTestProfile());
+        return defaultDataDirectory(base, isWindows(), isZnackRegistrationTestProfile());
+    }
+
+    static Path defaultDataDirectory(Path base, boolean windows, boolean testProfile) {
+        // Every later database/license/log lookup must use the path chosen before locking.
+        DataDirectoryKey key = new DataDirectoryKey(base.toAbsolutePath().normalize(), windows, testProfile);
+        return DEFAULT_DIRECTORIES.computeIfAbsent(key, selected ->
+                selectDataDirectory(selected.base(), selected.windows(), selected.testProfile()));
     }
 
     // Reuse the legacy directory and its ownership lock; never copy a live database.
