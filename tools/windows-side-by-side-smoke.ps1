@@ -34,15 +34,16 @@ function Read-MsiProperty([string] $Package, [string] $Property) {
     $installer = New-Object -ComObject WindowsInstaller.Installer
     $database = $installer.OpenDatabase($Package, 0)
     $view = $database.OpenView("SELECT ``Value`` FROM ``Property`` WHERE ``Property`` = '$Property'")
-    try { $view.Execute(); $row = $view.Fetch(); if (-not $row) { throw "Missing MSI property: $Property" }; return $row.StringData(1) }
-    finally { $view.Close() }
+    try { [void]$view.Execute(); $row = $view.Fetch(); if (-not $row) { throw "Missing MSI property: $Property" }; return $row.StringData(1) }
+    finally { [void]$view.Close() }
 }
 $originalName = Read-MsiProperty $oldMsi 'ProductName'
 $originalVersion = Read-MsiProperty $oldMsi 'ProductVersion'
 Write-Host (ConvertTo-Json @{ originalName=$originalName; originalVersion=$originalVersion;
     nameType=$originalName.GetType().FullName; versionType=$originalVersion.GetType().FullName })
+if ($originalName -isnot [string] -or $originalVersion -isnot [string] -or
+    $originalName -cne 'WCode' -or $originalVersion -cne '1.1.75') { throw 'Incorrect original WCode MSI identity.' }
 if ($InspectOnly) { return } # Read-only diagnostic: never installs or produces release proof.
-if ($originalName -cne 'WCode' -or $originalVersion -cne '1.1.75') { throw 'Incorrect original WCode MSI identity.' }
 if (-not $MsiPath) {
     # jpackage embeds this delivered MSI; wixobj can contain another intermediate MSI.
     $MsiPath = Join-Path $PWD "target\jpackage-temp\msi\VN code-$Version.msi"
