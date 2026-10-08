@@ -27,7 +27,7 @@ public final class BuildConfig {
     }
 
     public static String getUpdateUrl() {
-        return PROPS.getProperty("app.update.url", "https://github.com/ntccong2468-lab/Vncode");
+        return PROPS.getProperty("app.update.url", "https://github.com/ntccong2468-lab/Bancapnhat");
     }
 
     public static String getUpdateManifestPublicKey() {

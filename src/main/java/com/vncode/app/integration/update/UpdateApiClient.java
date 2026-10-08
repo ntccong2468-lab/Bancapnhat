@@ -171,7 +171,8 @@ public class UpdateApiClient {
             if (dbUrl != null && !dbUrl.isBlank()) {
                 String normalized=normalizeUpdateSource(dbUrl);
                 // Migrate the inherited vendor default; preserve explicitly configured custom sources.
-                if (!"https://api.github.com/repos/rupphi/relatest-wcode".equalsIgnoreCase(normalized)) return dbUrl;
+                if (!"https://api.github.com/repos/rupphi/relatest-wcode".equalsIgnoreCase(normalized)
+                        && !"https://api.github.com/repos/ntccong2468-lab/Vncode".equalsIgnoreCase(normalized)) return dbUrl;
             }
         } catch (Exception ignored) {}
         return BuildConfig.getUpdateUrl();
