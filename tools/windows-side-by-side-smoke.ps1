@@ -1,4 +1,4 @@
-param([Parameter(Mandatory = $true)][string] $Version, [string] $MsiPath)
+param([Parameter(Mandatory = $true)][string] $Version, [string] $MsiPath, [switch] $InspectOnly)
 $ErrorActionPreference = 'Stop'
 # Installation/uninstallation is allowed only on a fresh disposable GitHub-hosted runner.
 if ($env:GITHUB_ACTIONS -cne 'true' -or $env:RUNNER_OS -cne 'Windows' -or
@@ -15,12 +15,6 @@ $oldSystem = Join-Path $env:ProgramData 'WCode'
 foreach ($directory in @($oldProgram, $oldDirectory, $oldData, $newData, $newProgram, $oldSystem)) {
     if (Test-Path $directory) { throw "Probe refuses to touch a pre-existing application directory: $directory" }
 }
-if (-not $MsiPath) {
-    # jpackage embeds this delivered MSI; wixobj can contain another intermediate MSI.
-    $MsiPath = Join-Path $PWD "target\jpackage-temp\msi\VN code-$Version.msi"
-    if (-not (Test-Path -LiteralPath $MsiPath -PathType Leaf)) { throw 'Missing the MSI embedded in the newly built EXE.' }
-}
-$MsiPath = (Resolve-Path -LiteralPath $MsiPath).Path
 $probeRoot = Join-Path $env:RUNNER_TEMP ("vncode-coinstall-" + [guid]::NewGuid())
 New-Item -ItemType Directory -Force -Path $probeRoot | Out-Null
 $oldExe = Join-Path $probeRoot 'WCode-1.1.75.exe'
@@ -43,8 +37,18 @@ function Read-MsiProperty([string] $Package, [string] $Property) {
     try { $view.Execute(); $row = $view.Fetch(); if (-not $row) { throw "Missing MSI property: $Property" }; return $row.StringData(1) }
     finally { $view.Close() }
 }
-if ((Read-MsiProperty $oldMsi 'ProductName') -cne 'WCode' -or
-    (Read-MsiProperty $oldMsi 'ProductVersion') -cne '1.1.75') { throw 'Incorrect original WCode MSI identity.' }
+$originalName = Read-MsiProperty $oldMsi 'ProductName'
+$originalVersion = Read-MsiProperty $oldMsi 'ProductVersion'
+Write-Host (ConvertTo-Json @{ originalName=$originalName; originalVersion=$originalVersion;
+    nameType=$originalName.GetType().FullName; versionType=$originalVersion.GetType().FullName })
+if ($InspectOnly) { return } # Read-only diagnostic: never installs or produces release proof.
+if ($originalName -cne 'WCode' -or $originalVersion -cne '1.1.75') { throw 'Incorrect original WCode MSI identity.' }
+if (-not $MsiPath) {
+    # jpackage embeds this delivered MSI; wixobj can contain another intermediate MSI.
+    $MsiPath = Join-Path $PWD "target\jpackage-temp\msi\VN code-$Version.msi"
+    if (-not (Test-Path -LiteralPath $MsiPath -PathType Leaf)) { throw 'Missing the MSI embedded in the newly built EXE.' }
+}
+$MsiPath = (Resolve-Path -LiteralPath $MsiPath).Path
 $upgrade = (Read-MsiProperty $MsiPath 'UpgradeCode').Trim('{}').ToUpperInvariant()
 if ($upgrade -cne '8CBBA0E2-6E73-4F56-9101-6BC0948D3C72' -or
     $upgrade -eq (Read-MsiProperty $oldMsi 'UpgradeCode').Trim('{}').ToUpperInvariant() -or

@@ -7,6 +7,10 @@ on:
         description: Build only the Windows test installer
         type: boolean
         default: true
+      msi_inspection_only:
+        description: Read-only inspection of the original MSI, no install/build/publication
+        type: boolean
+        default: false
   push:
     branches: [dev, main]
     paths-ignore:
@@ -18,7 +22,17 @@ permissions:
   contents: read
 
 jobs:
+  inspect-msi:
+    if: ${{ inputs.msi_inspection_only }}
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Inspect original MSI metadata without installation
+        shell: pwsh
+        run: ./tools/windows-side-by-side-smoke.ps1 -Version (node tools/release-version.mjs) -InspectOnly
+
   build-and-test:
+    if: ${{ !inputs.msi_inspection_only }}
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
