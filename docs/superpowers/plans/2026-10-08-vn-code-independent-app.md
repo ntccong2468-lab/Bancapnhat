@@ -40,8 +40,8 @@
 
 - [x] Add publication proof contract; observe missing validator/workflow RED; implement and obtain Node22 GREEN.
 - [x] PowerShell/YAML parse passed; independent review found no P1/P2 application defect. Delivered MSI path narrowed after contract RED/GREEN to exclude WiX intermediates.
-- [ ] Run native Windows CI on exact source commit; inspect Java/Node, migration and installation/uninstall proofs.
-- [ ] Publish a new prerelease from the verified tag and verify public installer checksums.
+- [x] Run native Windows CI on exact source commit; inspect Java/Node, migration and installation/uninstall proofs.
+- [x] Publish a new prerelease from the verified tag and verify public installer checksums.
 
 ### Task 3: Free personal edition
 
@@ -58,3 +58,13 @@ Final local verification: Maven551 Java/FXML tests, Node23 contracts, no failure
 Native run37842327089 passed551 Java/FXML,23 Node, EXE packaging and native history/window proof. Coexistence stopped before installation because the upstream1.1.9 URL returned404. Replaced the retired fixture with the genuine1.1.75 EXE supplied by the user (SHA509e29...), extracting only its MSI resource with resource-only Win32 loading; embedded MSI SHA5f109c..., ProductVersion1.1.75, all-users ProgramFiles/WCodeApp verified by local read-only PE/MSI inspection. No original bytecode/installer modification. Repeat native CI before release.
 
 Native run37843779293 again passed app suites, packaging and native history/window proof. Read-only MSI diagnostic37844872466 isolated the metadata defect: COM Execute/Close emit null placeholders into PowerShell pipeline, returning Object[] [null, property, null]. Suppress those method outputs explicitly; keep strict scalar/name/version checks and verify read-only inspection before repeating the full Windows probe.
+
+## Completed delivery
+
+- Verified application/tag commit: `bfa5a689a0329b9f770f30aeefa62f071ba9d86c`.
+- [Native Windows CI](https://github.com/ntccong2468-lab/Vncode/actions/runs/37845191448):551 Java/FXML and23 Node contracts, zero failures/errors/skips; native version window, schema/history/snapshot proof; real WCode1.1.75 installation followed by VN code install/fresh own data/uninstall, preserving WCode executable/data/registration.
+- [Publisher](https://github.com/ntccong2468-lab/Vncode/actions/runs/37846803832): exact verified tag/artifact, all6 assets uploaded and digest-checked, prerelease published.
+- [VN code1.1.34 Windows prerelease](https://github.com/ntccong2468-lab/Vncode/releases/tag/v1.1.34).
+- EXE140996096 bytes, SHA-256 `d3970ee5ca88f72a810bbedb807c84cdb7201b96c0d2ef132d0a7a01cea6ac79`; public download HTTP200 and all published checksums/build metadata independently verified.
+- Independent free personal app, own shop setup and empty data; no original license/report server dependency. Genuine upstream attribution and external authentication/signing/write-contract gates preserved.
+- Unsigned Windows prerelease, manual installation. No exact WCode1.1.75 source integration and no live seller/GS1/CryptoPro/printer acceptance; production GTIN ADD/REPLACE remains disabled.
