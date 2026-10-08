@@ -15,8 +15,6 @@ import com.vncode.app.features.packing.PackingWorkflow;
 import com.vncode.app.integration.wb.WbSupplySummary;
 import com.vncode.app.integration.wb.WbSupplyWorkflow;
 import com.vncode.app.integration.wb.WbSupplyNotEmptyException;
-import com.vncode.app.integration.license.LicenseService;
-import com.vncode.app.integration.license.LicenseState;
 import com.vncode.app.integration.znack.ZnackPurchaseCoordinator;
 import com.vncode.app.integration.znack.ZnackApiClient;
 import com.vncode.app.integration.znack.ZnackAuthService;
@@ -126,8 +124,6 @@ public class HomeController implements Initializable {
     private final SupplyLoadWorkflow supplyLoadWorkflow = new SupplyLoadWorkflow();
     private final OrderSortingService orderSortingService = new OrderSortingService();
     private final OrderSortPreferenceService orderSortPreferenceService = new OrderSortPreferenceService();
-    private final com.vncode.app.ui.license.LicenseDialogService licenseDialogService =
-            new com.vncode.app.ui.license.LicenseDialogService();
     private final PrintOptionsDialogService printOptionsDialogService = new PrintOptionsDialogService();
     private final PrintTemplateService printTemplateService = new PrintTemplateService();
     private final PrintTemplateDesignerService printTemplateDesignerService = new PrintTemplateDesignerService();
@@ -182,7 +178,6 @@ public class HomeController implements Initializable {
     private final PauseTransition fboSearchDebounce = new PauseTransition(javafx.util.Duration.millis(250));
     private static final int FBO_PAGE_SIZE = 50;
     private boolean fboLoading;
-    private boolean licenseExpiryWarned;
     private boolean fboHasMore;
     private final Consumer<com.vncode.app.shared.AppLanguage> languageListener =
             language -> Platform.runLater(this::applyTranslations);
@@ -217,26 +212,6 @@ public class HomeController implements Initializable {
         updateExportAvailability();
         loadShops();
         checkForUpdates();
-        refreshLicenseInBackground();
-    }
-
-    private void refreshLicenseInBackground() {
-        // Cập nhật sidebar mỗi khi trạng thái license đổi (kể cả từ vòng xác thực định kỳ).
-        LicenseService.getInstance().addListener(state ->
-                javafx.application.Platform.runLater(() -> updateLicenseSidebar(state)));
-        Task<LicenseState> refreshLicense = new Task<>() {
-            @Override protected LicenseState call() {
-                LicenseState state = LicenseService.getInstance().refresh();
-                LicenseService.getInstance().startBackgroundRevalidation();
-                return state;
-            }
-        };
-        refreshLicense.setOnSucceeded(e -> {
-            LicenseState state = refreshLicense.getValue();
-            updateLicenseSidebar(state);
-            notifyIfExpiringSoon(state);
-        });
-        AppTaskExecutor.execute(refreshLicense);
     }
 
     private void loadDynamicViews() {
@@ -702,31 +677,9 @@ public class HomeController implements Initializable {
         AppTaskExecutor.execute(task);
     }
 
-    private void showLicenseDialog() {
-        licenseDialogService.showDialog();
-        updateLicenseSidebar(LicenseService.getInstance().getState());
-    }
-
-    /** Cập nhật nhãn trạng thái license ở sidebar (gọi trên FX thread). */
-    private void updateLicenseSidebar(LicenseState state) {
-        if (shopSidebarController != null) {
-            shopSidebarController.setLicenseValid(state.kizAllowed());
-        }
-    }
-
-    /** Cảnh báo một lần khi license còn hạn nhưng sắp hết (<= 7 ngày). */
-    private void notifyIfExpiringSoon(LicenseState state) {
-        if (licenseExpiryWarned || state.status() != LicenseState.LicenseStatus.VALID || state.payload() == null) {
-            return;
-        }
-        long daysLeft = (state.payload().expiresAt() - System.currentTimeMillis()) / (24L * 60 * 60 * 1000);
-        if (daysLeft >= 0 && daysLeft <= 7) {
-            licenseExpiryWarned = true;
-            AlertService.showWarning(
-                    i18nService.tr("license.expiring.title"),
-                    i18nService.tr("license.expiring.header"),
-                    MessageFormat.format(i18nService.tr("license.expiring.content"), daysLeft));
-        }
+    private void showPersonalEdition() {
+        AlertService.showInfo(BuildConfig.getAppName(), i18nService.tr("edition.personal"),
+                i18nService.tr("edition.personal.details"));
     }
 
     private void showAboutDialog() {
@@ -1530,13 +1483,12 @@ public class HomeController implements Initializable {
         shopSidebarController.setOnZnackRegistration(this::showZnackRegistration);
         shopSidebarController.setOnPrintHistory(this::showPrintHistory);
         shopSidebarController.setOnCheckVersion(this::checkVersionManually);
-        shopSidebarController.setOnActivation(this::showLicenseDialog);
+        shopSidebarController.setOnPersonalEdition(this::showPersonalEdition);
         shopSidebarController.setOnAbout(this::showAboutDialog);
         shopSidebarController.setOnLanguageChanged(i18nService::setLanguage);
         shopSidebarController.setSelectedLanguage(i18nService.getCurrentLanguage());
         shopSidebarController.setOnThemeChanged(ThemeService::switchTheme);
         shopSidebarController.setSelectedTheme(ThemeService.getCurrentTheme().getKey());
-        shopSidebarController.setLicenseValid(LicenseService.getInstance().getState().kizAllowed());
         shopSidebarController.applyTranslations();
         sidebarContainer.getChildren().setAll(root);
     }

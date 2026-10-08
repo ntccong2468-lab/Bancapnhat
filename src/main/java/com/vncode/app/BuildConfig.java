@@ -38,9 +38,5 @@ public final class BuildConfig {
         return PROPS.getProperty("app.update.publisher", "");
     }
 
-    public static String getLicenseServerUrl() {
-        return PROPS.getProperty("app.license.url", "https://wcode.online");
-    }
-
     private BuildConfig() {}
 }

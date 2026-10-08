@@ -61,6 +61,30 @@ class GtinSyncControllerTest {
         assertTrue(repository.pending(1,Marketplace.WILDBERRIES).isEmpty());
         assertTrue(fx(()->button("confirmButton").isDisable()),"Unverified production adapter must remain blocked");
     }
+    @Test void personalAppConfirmsFixtureOperationWithoutWcodeActivation()throws Exception {
+        var cap=new Capability(true,true,"");
+        var submissions=new java.util.concurrent.atomic.AtomicInteger();
+        var adapter=new GtinMarketplaceAdapter(){
+            public Capability capability(ProductKey key){return cap;}
+            public ProductSnapshot read(ProductKey key){return products.stream().filter(p->p.key().equals(key)).findFirst().orElseThrow();}
+            public boolean conflicts(ProductKey key,String gtin){return false;}
+            public Submission submit(Preview p){submissions.incrementAndGet();return new Submission("personal-fixture");}
+            public Verification verify(Preview p,Submission submission){return Verification.APPLIED;}
+        };
+        load(adapter,List.of());
+        fx(()->{
+            table("productTable").getSelectionModel().select(0);
+            this.<RegisteredGtin>combo("gtinBox").setValue(first);
+            this.<Operation>combo("operationBox").setValue(Operation.ADD);
+            button("previewButton").fire();return null;
+        });
+        await(()->!fxUnchecked(()->button("confirmButton").isDisable()));
+        fx(()->{button("confirmButton").fire();return null;});
+        await(()->submissions.get()==1);
+        await(()->repository.history(1,Marketplace.WILDBERRIES).stream().anyMatch(i->i.status()==Status.SUCCEEDED));
+        assertFalse(java.nio.file.Files.exists(temp.resolve("license.json")));
+        assertEquals(1,submissions.get());
+    }
     @Test void runningQueuePublishesStateAndAllowsCancellingUnsentRows()throws Exception {
         var cap=new Capability(true,true,"");
         UUID job=repository.createJob(products.stream().map(p->new Preview(p,Operation.ADD,"",p.key().productId().equals("101")?first.gtin():alternate.gtin(),cap)).toList());

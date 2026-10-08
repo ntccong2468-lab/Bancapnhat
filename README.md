@@ -25,15 +25,15 @@ Mã nguồn gốc WCode do Nguyễn Anh Tuấn / TuanDev phát triển; VN code 
 
 ## Tải bản Windows
 
-Bản **VN code 1.1.34** đổi tên giao diện, mã nguồn và bộ cài, giữ chức năng và dữ liệu từ bản trước.
+Bản **VN code 1.1.34** là ứng dụng riêng, cài song song với WCode, giữ các chức năng đã phát triển.
 [Tải bộ cài Windows x64](https://github.com/ntccong2468-lab/Vncode/releases/download/v1.1.34/VN-code-1.1.34-Windows-x64.exe).
 Java được đóng gói kèm; tải EXE rồi chạy để cài đặt. Đây là prerelease chưa ký Authenticode.
 Xem [mô tả và giới hạn](docs/releases/VN-code-1.1.34.md).
 Cập nhật GTIN thật lên WB/Ozon trong module đồng bộ vẫn bị khóa chờ xác minh API.
 
-Cài mới dùng `%LOCALAPPDATA%\VNcodeData`; nếu đã có dữ liệu ở `WCodeData`, ứng dụng tiếp tục dùng chính thư mục đó cùng giấy phép, lịch sử và khóa dữ liệu cũ. Không cần tự đổi tên thư mục. Thư mục chương trình mới là `VNcodeApp`, tên shortcut/launcher là **VN code**.
+VN code cài ở `%LOCALAPPDATA%\VNcodeApp`, dùng dữ liệu riêng ở `%LOCALAPPDATA%\VNcodeData` và bắt đầu với danh sách shop trống. VN code là bản cá nhân miễn phí, không cần giấy phép WCode; thiết lập tài khoản shop và chứng thư riêng trong app mới. Cài hoặc gỡ VN code không thay thế WCode và không tự nhập dữ liệu WCode.
 
-Thuộc tính JVM mới là `vncode.appdata.dir` và `vncode.data.profile`; các tên `wcode.*` cũ vẫn được hỗ trợ để giữ tương thích.
+VN code chỉ dùng thuộc tính `vncode.appdata.dir` và `vncode.data.profile`; các thiết lập `wcode.*` không tác động đến ứng dụng mới. Cả kênh cập nhật chính và bản thử đều nằm trong repository này.
 
 Bản portable có `check-portable.bat` để thu thập cấu trúc package và startup log khi cần hỗ trợ.
 
@@ -68,9 +68,7 @@ build.bat msi         # Windows MSI chưa ký
 
 Bản phát hành chính thức lấy từ workflow [release.yml](.github/workflows/release.yml).
 Bộ cài thử nhánh GTIN ở trên lấy từ workflow [build-java.yml](.github/workflows/build-java.yml).
-Workflow phát hành
-dùng installer identity mới cho `1.1.10+` để không gọi uninstaller legacy vốn chứa binary chung với
-dữ liệu, rồi kiểm tra migration bằng MSI `1.1.9` thật. Authenticode và signed update manifest được
+Workflow phát hành kiểm tra cài và gỡ VN code bên cạnh WCode `1.1.9` thật trên runner Windows tạm; xác minh chương trình, dữ liệu và registration WCode giữ nguyên. VN code có installer identity riêng, không chạy migration từ dữ liệu WCode. Authenticode và signed update manifest được
 bật khi các secret tương ứng đã cấu hình đầy đủ; thiếu cả nhóm secret không chặn build, nhưng cấu
 hình dở dang sẽ bị từ chối. Version duy nhất nằm trong `pom.xml`; tag phát hành phải khớp
 `vMAJOR.MINOR.PATCH`.

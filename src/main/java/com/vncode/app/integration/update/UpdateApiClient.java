@@ -24,7 +24,7 @@ public class UpdateApiClient {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(UpdateApiClient.class);
     private static final Gson GSON = new Gson();
-    static final String ZNACK_TEST_UPDATE_SOURCE = "https://api.github.com/repos/rupphi/test-wcode";
+    static final String ZNACK_TEST_UPDATE_SOURCE = "https://api.github.com/repos/ntccong2468-lab/Vncode";
     static final String ZNACK_TEST_TAG_PREFIX = "znack-registration-test-v";
 
     private static final OkHttpClient CLIENT = new OkHttpClient.Builder()

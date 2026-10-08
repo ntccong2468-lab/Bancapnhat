@@ -107,6 +107,35 @@ class FxmlSmokeTest {
     }
 
     @Test
+    void personalEditionShowsFreeStatusWithoutActivationInEveryLanguage() throws Exception {
+        var task = new java.util.concurrent.FutureTask<Void>(() -> {
+            var i18n = I18nService.getInstance();
+            var previous = i18n.getCurrentLanguage();
+            try {
+                FXMLLoader loader = FxmlViewLoader.loader(ShopSidebarController.class, "shop-sidebar-view.fxml");
+                FxmlViewLoader.load(loader);
+                ShopSidebarController controller = loader.getController();
+                Label status = (Label) loader.getNamespace().get("editionStatusLabel");
+                assertNotNull(status, "The personal app must show its own free edition status");
+                for (var language : com.vncode.app.shared.AppLanguage.values()) {
+                    i18n.setLanguage(language);
+                    controller.applyTranslations();
+                    assertEquals("• " + i18n.tr("edition.personal"), status.getText());
+                    assertTrue(status.isVisible());
+                    var settings = (javafx.scene.control.MenuButton) loader.getNamespace().get("settingsMenuButton");
+                    assertTrue(settings.getItems().stream().noneMatch(item ->
+                            item.getText().equals(i18n.tr("license.menu"))), "No WCode activation entry");
+                }
+            } finally {
+                i18n.setLanguage(previous);
+            }
+            return null;
+        });
+        Platform.runLater(task);
+        task.get(10, TimeUnit.SECONDS);
+    }
+
+    @Test
     void restoringHeaderShopDoesNotMasqueradeAsAnExplicitUserSelection() throws Exception {
         CountDownLatch latch = new CountDownLatch(1);
         AtomicInteger selections = new AtomicInteger();

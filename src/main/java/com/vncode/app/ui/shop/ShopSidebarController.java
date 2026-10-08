@@ -60,11 +60,11 @@ public class ShopSidebarController {
     @FXML
     private MenuItem checkVersionMenuItem;
     @FXML
-    private MenuItem activationMenuItem;
+    private MenuItem personalEditionMenuItem;
     @FXML
     private MenuItem aboutMenuItem;
     @FXML
-    private Label activationStatusLabel;
+    private Label editionStatusLabel;
 
     private Runnable onPacking;
     private Runnable onDashboard;
@@ -77,11 +77,10 @@ public class ShopSidebarController {
     private Runnable onAddShop;
     private Runnable onOpenSettings;
     private Runnable onCheckVersion;
-    private Runnable onActivation;
+    private Runnable onPersonalEdition;
     private Runnable onAbout;
     private Consumer<AppLanguage> onLanguageChanged;
     private Consumer<String> onThemeChanged;
-    private boolean licenseValid;
     private Marketplace marketplace = Marketplace.WILDBERRIES;
 
     @FXML
@@ -143,8 +142,8 @@ public class ShopSidebarController {
         this.onCheckVersion = onCheckVersion;
     }
 
-    public void setOnActivation(Runnable onActivation) {
-        this.onActivation = onActivation;
+    public void setOnPersonalEdition(Runnable onPersonalEdition) {
+        this.onPersonalEdition = onPersonalEdition;
     }
 
     public void setOnAbout(Runnable onAbout) {
@@ -177,15 +176,6 @@ public class ShopSidebarController {
             case ZH -> languageZhMenuItem.setSelected(true);
             case VI -> languageViMenuItem.setSelected(true);
         }
-    }
-
-    public void setLicenseValid(boolean licenseValid) {
-        this.licenseValid = licenseValid;
-        I18nService i18n = I18nService.getInstance();
-        activationStatusLabel.setText(licenseValid
-                ? "• " + i18n.tr("license.status.short_valid")
-                : "• " + i18n.tr("license.status.short_invalid"));
-        activationStatusLabel.setStyle(licenseValid ? "-fx-text-fill: #22c55e; -fx-font-weight: 700;" : "-fx-text-fill: #ef4444; -fx-font-weight: 700;");
     }
 
     public void setMarketplace(Marketplace marketplace) {
@@ -223,10 +213,11 @@ public class ShopSidebarController {
         themeDarkMenuItem.setText(i18n.tr("settings.theme.dark"));
         themeLightMenuItem.setText(i18n.tr("settings.theme.light"));
         checkVersionMenuItem.setText(i18n.tr("settings.check_version"));
-        activationMenuItem.setText(i18n.tr("license.menu"));
+        personalEditionMenuItem.setText(i18n.tr("edition.personal"));
         aboutMenuItem.setText(i18n.tr("settings.about"));
         applyMarketplaceTexts();
-        setLicenseValid(licenseValid);
+        editionStatusLabel.setText("• " + i18n.tr("edition.personal"));
+        editionStatusLabel.setStyle("-fx-text-fill: #22c55e; -fx-font-weight: 700;");
     }
 
     private void applyMarketplaceTexts() {
@@ -350,9 +341,9 @@ public class ShopSidebarController {
     }
 
     @FXML
-    private void onActivation() {
-        if (onActivation != null) {
-            onActivation.run();
+    private void onPersonalEdition() {
+        if (onPersonalEdition != null) {
+            onPersonalEdition.run();
         }
     }
 

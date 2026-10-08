@@ -1,37 +1,15 @@
-# Bảo mật mã nguồn & chống crack — VN code
+# Bảo mật — VN code
 
-Tóm tắt kết luận nghiên cứu (07/2026) và cách VN code được bảo vệ.
+VN code là ứng dụng cá nhân miễn phí theo lựa chọn của chủ dự án. App không kích hoạt thuê bao,
+không tạo giấy phép WCode và không kết nối máy chủ giấy phép hoặc báo cáo lỗi của WCode.
+Các báo cáo lỗi chỉ hiển thị trong dialog có nút sao chép để người dùng tự xem và chia sẻ.
 
-## Nguyên tắc cốt lõi: bảo vệ nằm ở server, không ở client
+- WB/Ozon và GS1/Chesty Znak vẫn yêu cầu tài khoản, quyền truy cập và chứng thư hợp lệ của người dùng.
+- Giữ xác nhận mutation, kiểm tra shop/marketplace, idempotency và đối soát sau timeout.
+- Adapter đồng bộ GTIN production vẫn khóa ghi khi hợp đồng API chưa được xác minh.
+- Database và cache nằm trong thư mục VN code riêng; không đọc hoặc sửa dữ liệu/giấy phép WCode.
+- Không ghi credential, raw KIZ hoặc thông tin cá nhân vào log/báo cáo.
+- Update phải qua kiểm tra chữ ký và checksum hiện có. Không coi gói chưa ký là bản cập nhật đã tin cậy.
 
-Bytecode Java **luôn** decompile được (Vineflower, CFR, JADX...). Obfuscation chỉ **nâng chi
-phí** reverse-engineering, không chống được người quyết tâm. Ai đó có thể:
-- Decompile app và đọc logic.
-- Patch `LicenseFileVerifier.verify(...)` để luôn trả về hợp lệ, hoặc thay
-  `DEFAULT_PUBLIC_KEY_B64` bằng khóa của họ để tự ký license.
-- Bản cài `--win-per-user-install` nằm ở `%LOCALAPPDATA%` → jar ghi được, không cần quyền admin.
-
-→ Vì vậy **tính năng đáng tiền (mua KIZ / gọi Znack) phải được gate ở server của mình**, kiểm tra
-license + device fingerprint trên **mỗi** lời gọi. Một bản crack không mua được KIZ chỉ là bản demo.
-Đây là lớp bảo vệ thật; các lớp dưới chỉ là phụ trợ.
-
-Hiện trạng VN code: `LicenseService` xác thực với `license-server` (Ed25519, offline grace 14 ngày,
-chống lùi đồng hồ) và gate hai nút mua KIZ. Bước củng cố tiếp theo (khuyến nghị): cho pipeline
-mua KIZ đi qua server của mình thay vì gọi Znack trực tiếp từ client.
-
-## Obfuscation
-
-Maven/JavaFX là production build. Profile `-Pobfuscate` dùng cấu hình bảo thủ: không shrink hoặc
-optimize và giữ controller FXML, DTO Gson, record/enum cùng model được lưu trong SQLite. Profile này
-không được đưa vào release cho tới khi ProGuard được smoke-test đầy đủ với Java 25 và toàn bộ flow
-FXML, WB, Ozon, Znack, license, PDF.
-
-Obfuscation không thay thế ký artifact, kiểm tra marketplace boundary hoặc server-side license gate.
-- Muốn có string encryption + control-flow obfuscation (ProGuard free không có): cần công cụ trả phí
-  **Zelix KlassMaster** hoặc **Allatori** (~vài trăm USD/dev). Chỉ đáng đầu tư nếu quan sát thấy bị crack.
-
-## Việc nên làm khi phát hành
-
-1. Thay `LicenseFileVerifier.DEFAULT_PUBLIC_KEY_B64` bằng public key sinh trên server production.
-2. Ký Authenticode cho EXE/MSI (chống cảnh báo SmartScreen + chống sửa installer).
-3. Cân nhắc đưa call mua KIZ qua server (điểm 1 phần trên) — giá trị lớn nhất.
+Bản thử Windows hiện chưa ký Authenticode và chưa có signed update manifest; cài thủ công từ
+GitHub của chủ dự án. Profile obfuscation chỉ được dùng sau khi đã nghiệm thu với Java 25/FXML.

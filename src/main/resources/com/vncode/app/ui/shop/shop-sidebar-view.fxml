@@ -144,11 +144,11 @@
                     </items>
                 </Menu>
                 <MenuItem fx:id="checkVersionMenuItem" onAction="#onCheckVersion" text="Check version" />
-                <MenuItem fx:id="activationMenuItem" onAction="#onActivation" text="Activate" />
+                <MenuItem fx:id="personalEditionMenuItem" onAction="#onPersonalEdition" text="Free personal edition" />
                 <MenuItem fx:id="aboutMenuItem" onAction="#onAbout" text="About" />
             </items>
         </MenuButton>
-        <Label fx:id="activationStatusLabel" maxWidth="190.0" text="•" />
+        <Label fx:id="editionStatusLabel" maxWidth="190.0" text="•" />
     </children>
     <padding>
         <Insets bottom="8.0" left="8.0" right="8.0" top="8.0" />

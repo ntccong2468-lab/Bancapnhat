@@ -1,5 +1,7 @@
 # VN code Implementation Plan
 
+**Superseded:** use [independent application plan](2026-10-08-vn-code-independent-app.md). The user requested installation beside WCode with empty independent data.
+
 > **For agentic workers:** Use superpowers:executing-plans for inline implementation. User has authorized implementation and GitHub publication.
 
 **Goal:** Rename the existing Windows application to VN code without losing existing data.

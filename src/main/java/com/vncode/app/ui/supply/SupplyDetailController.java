@@ -26,7 +26,6 @@ import com.vncode.app.shared.AppTaskExecutor;
 import com.vncode.app.shared.FriendlyErrorService;
 import com.vncode.app.shared.I18nService;
 import com.vncode.app.ui.kizmapping.KizGtinMappingEditor;
-import com.vncode.app.ui.license.LicenseDialogService;
 import com.vncode.app.ui.znack.ZnackInsufficientFundsDialogService;
 import com.vncode.app.ui.znack.ZnackMissingDocumentsDialogService;
 import com.vncode.app.ui.znack.ZnackOperatorTermsDialogService;
@@ -735,9 +734,6 @@ public class SupplyDetailController {
 
     private void showBuy(ZnackGtinInventorySummary summary) {
         if (znackRepository == null || shop == null) {
-            return;
-        }
-        if (!new LicenseDialogService().ensureLicensed()) {
             return;
         }
         TextInputDialog dialog = new TextInputDialog("1");

@@ -112,18 +112,6 @@ public class ConfigService {
         return getConfigValue("activated_at");
     }
 
-    public static String getLicenseKey() {
-        return getConfigValue("license_key");
-    }
-
-    public static void setLicenseKey(String licenseKey) {
-        setConfigValue("license_key", licenseKey == null ? "" : licenseKey);
-    }
-
-    public static String getLicenseServerUrl() {
-        return getConfigValue("license_server_url");
-    }
-
     public static void setActivatedAt(String timestamp) {
         setConfigValue("activated_at", timestamp == null ? "" : timestamp);
     }

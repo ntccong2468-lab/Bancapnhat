@@ -19,11 +19,11 @@ if /I not "%PACKAGE_TYPE%"=="app-image" if /I not "%PACKAGE_TYPE%"=="exe" if /I 
 )
 
 set "APP_NAME=VN code"
-set "WINDOWS_UPGRADE_UUID=0356BE08-487C-4E04-A2C2-353AF93DB2DE"
+set "WINDOWS_UPGRADE_UUID=8CBBA0E2-6E73-4F56-9101-6BC0948D3C72"
 set "PROFILE_JAVA_OPTIONS="
 if /I "%VNCODE_BUILD_PROFILE%"=="znack-registration-test" (
     set "APP_NAME=VN code Znack Test"
-    set "WINDOWS_UPGRADE_UUID=F8B4C733-2982-47F0-9FF6-4454C3C103FE"
+    set "WINDOWS_UPGRADE_UUID=5570F943-39B6-43B8-A643-BBCB53910BF8"
     set "PROFILE_JAVA_OPTIONS=--java-options -Dvncode.data.profile=znack-registration-test"
 )
 for /f "delims=" %%a in ('mvnw.cmd help:evaluate -Dexpression^=app.version -q -DforceStdout 2^>nul') do set "APP_VERSION=%%a"
@@ -52,6 +52,7 @@ if not exist "target\lib\*.jar" (
 
 if exist "%JPACKAGE_INPUT%" rmdir /s /q "%JPACKAGE_INPUT%"
 if exist out rmdir /s /q out
+if exist "target\jpackage-temp" rmdir /s /q "target\jpackage-temp"
 mkdir "%JPACKAGE_INPUT%\lib"
 mkdir out
 copy /y "target\%MAIN_JAR%" "%JPACKAGE_INPUT%\%MAIN_JAR%" >nul
@@ -64,7 +65,7 @@ if /I "%VNCODE_BUILD_PROFILE%"=="znack-registration-test" if /I "%PACKAGE_TYPE%"
 if /I "%VNCODE_BUILD_PROFILE%"=="znack-registration-test" if /I "%PACKAGE_TYPE%"=="msi" set "INSTALLER_OPTIONS=--install-dir VNcodeZnackRegistrationTestApp --win-upgrade-uuid %WINDOWS_UPGRADE_UUID% --win-menu --win-shortcut --win-per-user-install"
 
 echo Packaging JavaFX application as %PACKAGE_TYPE%...
-jpackage --verbose --type %PACKAGE_TYPE% --name "%APP_NAME%" --input "%JPACKAGE_INPUT%" --main-jar "%MAIN_JAR%" --main-class %MAIN_CLASS% --dest out --app-version %APP_VERSION% --vendor "%APP_VENDOR%" --icon src\main\resources\com\vncode\app\assets\images\logo.ico %INSTALLER_OPTIONS% --java-options "--enable-native-access=ALL-UNNAMED" %PROFILE_JAVA_OPTIONS% --jlink-options "--strip-native-commands --strip-debug --no-man-pages --no-header-files --bind-services"
+jpackage --verbose --type %PACKAGE_TYPE% --name "%APP_NAME%" --input "%JPACKAGE_INPUT%" --main-jar "%MAIN_JAR%" --main-class %MAIN_CLASS% --dest out --temp "target\jpackage-temp" --app-version %APP_VERSION% --vendor "%APP_VENDOR%" --icon src\main\resources\com\vncode\app\assets\images\logo.ico %INSTALLER_OPTIONS% --java-options "--enable-native-access=ALL-UNNAMED" %PROFILE_JAVA_OPTIONS% --jlink-options "--strip-native-commands --strip-debug --no-man-pages --no-header-files --bind-services"
 if errorlevel 1 exit /b 1
 
 if /I "%PACKAGE_TYPE%"=="app-image" if exist check-portable.bat copy /y check-portable.bat "out\%APP_NAME%\check-portable.bat" >nul

@@ -1,5 +1,6 @@
 param([Parameter(Mandatory = $true)][string] $Version)
 $ErrorActionPreference = 'Stop'
+. (Join-Path $PSScriptRoot 'windows-smoke-common.ps1')
 $probeRoot = Join-Path $env:RUNNER_TEMP ("vncode-native-" + [guid]::NewGuid())
 $data = Join-Path $probeRoot 'data'
 $imageRoot = Join-Path $probeRoot 'image'
@@ -48,17 +49,10 @@ try {
         Get-Content $startupLog
         throw 'The packaged app recorded a startup exception.'
     }
-    $windowReady = $false
-    for ($attempt = 0; $attempt -lt 60; $attempt++) {
-        $process.Refresh()
-        if ($process.HasExited) { throw 'The native Windows launcher exited before showing its window.' }
-        if ($process.MainWindowTitle -ceq "VN code v$Version") { $windowReady = $true; break }
-        Start-Sleep -Milliseconds 500
-    }
-    if (-not $windowReady) { throw 'The native window did not show the expected VN code version.' }
+    $windowTitle = Wait-VncodeWindow -Process $process -Version $Version
     @{
         appName = 'VN code'
-        windowTitle = $process.MainWindowTitle
+        windowTitle = $windowTitle
         version = $Version
         platform = 'windows-x64'
         nativeLauncher = 'passed'

@@ -121,8 +121,8 @@ test("local build scripts invoke Maven and package the JavaFX launcher", async (
   }
   assert.match(scripts[1], /--install-dir VNcodeApp/,
     "Windows installers must not share the LocalAppData VN code data directory");
-  assert.match(scripts[1], /0356BE08-487C-4E04-A2C2-353AF93DB2DE/,
-    "local Windows packages must use the data-safe 1.1.10+ installer identity");
+  assert.match(scripts[1], /8CBBA0E2-6E73-4F56-9101-6BC0948D3C72/,
+    "local packages must use the independent VN code installer identity");
 });
 
 test("Windows CI builds a versioned downloadable JavaFX EXE without publishing a release", async () => {
@@ -158,11 +158,11 @@ test("Znack registration test EXE is isolated, has its own update channel, and c
   assert.match(buildScript, /--install-dir VNcodeZnackRegistrationTestApp/);
   assert.match(buildScript, /-Dvncode\.data\.profile=znack-registration-test/);
   assert.match(appPaths, /VNcodeZnackRegistrationTestData/);
-  assert.match(appPaths, /if \(isZnackRegistrationTestProfile\(\)\) \{\s*return List\.of\(\);/);
+  assert.match(appPaths, /legacyAppDataDirs\(\)\s*\{[\s\S]*?return List\.of\(\);/);
   assert.doesNotMatch(updateService, /isZnackRegistrationTestProfile/);
-  assert.match(updateClient, /https:\/\/api\.github\.com\/repos\/rupphi\/test-wcode/);
+  assert.match(updateClient, /https:\/\/api\.github\.com\/repos\/ntccong2468-lab\/Vncode/);
   assert.match(updateClient, /znack-registration-test-v/);
-  assert.match(workflow, /github\.repository == 'rupphi\/test-wcode'/,
+  assert.match(workflow, /github\.repository == 'ntccong2468-lab\/Vncode'/,
     'the isolated publisher must match the actual client update repository');
   assert.match(workflow, /gh release create/);
   assert.doesNotMatch(registrationWorkflow, /WbApiClient|cards\/update|appendGtin/);
@@ -206,5 +206,15 @@ test("tagged releases publish native macOS packages for Intel and Apple Silicon"
     "VN-code-macos-arm64.zip",
   ]) {
     assert.match(workflow, new RegExp(artifact.replaceAll(".", "\\.")));
+  }
+});
+
+// A personal fork must not package the original vendor entitlement/report clients.
+test("the personal app has no original license server dependency", async () => {
+  assert.equal(await exists("src/main/java/com/vncode/app/integration/license"), false);
+  assert.equal(await exists("src/main/java/com/vncode/app/ui/license"), false);
+  for (const file of await textFiles("src/main")) {
+    const content = await readFile(new URL(file, root), "utf8");
+    assert.doesNotMatch(content, /wcode\.online|LicenseDialogService|LicenseService/, file);
   }
 });

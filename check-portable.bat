@@ -31,7 +31,7 @@ echo Exit code: !ERRORLEVEL!
 popd
 echo.
 echo [5] Startup log
-if exist "%LOCALAPPDATA%\WCodeData\logs\startup.log" (type "%LOCALAPPDATA%\WCodeData\logs\startup.log") else if exist "%LOCALAPPDATA%\VNcodeData\logs\startup.log" (type "%LOCALAPPDATA%\VNcodeData\logs\startup.log") else (echo No startup.log was created.)
+if exist "%LOCALAPPDATA%\VNcodeData\logs\startup.log" (type "%LOCALAPPDATA%\VNcodeData\logs\startup.log") else (echo No startup.log was created.)
 ) > "%LOG_FILE%"
 
 type "%LOG_FILE%"

@@ -9,7 +9,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
-import java.util.stream.Stream;
 
 public final class AppPaths {
     private record DataDirectoryKey(Path base, boolean windows, boolean testProfile) {}
@@ -25,7 +24,7 @@ public final class AppPaths {
     }
 
     public static Path appDataDir() {
-        String override = compatibleProperty("vncode.appdata.dir", "wcode.appdata.dir");
+        String override = System.getProperty("vncode.appdata.dir", "");
         if (override != null && !override.isBlank()) {
             return Paths.get(override);
         }
@@ -41,47 +40,19 @@ public final class AppPaths {
                 selectDataDirectory(selected.base(), selected.windows(), selected.testProfile()));
     }
 
-    // Reuse the legacy directory and its ownership lock; never copy a live database.
+    // VN code owns a separate directory even when WCode is installed or running.
     static Path selectDataDirectory(Path base, boolean windows, boolean testProfile) {
-        String oldName = testProfile ? "WCodeZnackRegistrationTestData"
-                : windows ? "WCodeData" : "WCode";
-        Path legacy = base.resolve(oldName);
-        if (Files.exists(legacy, java.nio.file.LinkOption.NOFOLLOW_LINKS)) return legacy;
         return base.resolve(testProfile ? ZNACK_REGISTRATION_TEST_DIR_NAME
                 : windows ? WINDOWS_DATA_DIR_NAME : APP_DIR_NAME);
     }
 
-    private static String compatibleProperty(String canonical, String legacy) {
-        String value = System.getProperty(canonical);
-        return value == null || value.isBlank() ? System.getProperty(legacy, "") : value;
-    }
-
     public static List<Path> legacyAppDataDirs() {
-        String override = compatibleProperty("vncode.appdata.dir", "wcode.appdata.dir");
-        if (override != null && !override.isBlank()) {
-            return List.of();
-        }
-        // Test packages must never discover, copy or migrate a production VN code database.
-        if (isZnackRegistrationTestProfile()) {
-            return List.of();
-        }
-        Path base = windowsLocalAppData()
-                .orElseGet(() -> Paths.get(System.getProperty("user.home", ".")));
-        return Stream.of(
-                        isWindows() ? base.resolve("WCode") : null,
-                        base.resolve("FBSBarcode")
-                )
-                .filter(java.util.Objects::nonNull)
-                .filter(path -> !path.equals(appDataDir()))
-                .toList();
+        // Independent application: never scan, copy or migrate WCode user data.
+        return List.of();
     }
 
     public static Path logsDir() {
         return appDataDir().resolve("logs");
-    }
-
-    public static Path licenseFile() {
-        return appDataDir().resolve("license.json");
     }
 
     public static Path javaFxCacheDir() {
@@ -98,7 +69,7 @@ public final class AppPaths {
 
     public static boolean isZnackRegistrationTestProfile() {
         return ZNACK_REGISTRATION_TEST_PROFILE.equalsIgnoreCase(
-                compatibleProperty(DATA_PROFILE_PROPERTY, "wcode.data.profile").trim());
+                System.getProperty(DATA_PROFILE_PROPERTY, "").trim());
     }
 
     public static Path nativeTempDir() {
@@ -221,18 +192,14 @@ public final class AppPaths {
     }
 
     private static Path safeSystemDir() {
-        String directoryName = isZnackRegistrationTestProfile()
-                ? ZNACK_REGISTRATION_TEST_DIR_NAME
-                : APP_DIR_NAME;
         Path base = windowsProgramData()
                 .orElseGet(() -> windowsTemp().orElseGet(
                         () -> Paths.get(System.getProperty("java.io.tmpdir", "."))));
-        String legacyName = isZnackRegistrationTestProfile()
-                ? "WCodeZnackRegistrationTestData" : "WCode";
-        Path legacy = base.resolve(legacyName);
-        // Keep interrupted installer backups reachable after a branding upgrade.
-        return Files.exists(legacy, java.nio.file.LinkOption.NOFOLLOW_LINKS)
-                ? legacy : base.resolve(directoryName);
+        return selectSystemDirectory(base, isZnackRegistrationTestProfile());
+    }
+
+    static Path selectSystemDirectory(Path base, boolean testProfile) {
+        return base.resolve(testProfile ? ZNACK_REGISTRATION_TEST_DIR_NAME : APP_DIR_NAME);
     }
 
     private static boolean isWindows() {

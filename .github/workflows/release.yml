@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
     inputs:
       windows_build_run_id:
-        description: Publish the verified Vncode Windows build from this run ID (empty for rehearsal)
+        description: Publish the verified VN code Windows build from this run ID (empty for rehearsal)
         type: string
         default: ""
 
@@ -24,13 +24,13 @@ env:
   APP_NAME: VN code
   APP_VENDOR: VN code
   RELEASE_REPO: ${{ github.repository }}
-  WINDOWS_UPGRADE_UUID: 0356BE08-487C-4E04-A2C2-353AF93DB2DE
+  WINDOWS_UPGRADE_UUID: 8CBBA0E2-6E73-4F56-9101-6BC0948D3C72
   TIMESTAMP_URL: http://timestamp.digicert.com
 
 jobs:
   publish-vncode-windows:
     if: ${{ github.repository == 'ntccong2468-lab/Vncode' && github.event_name == 'workflow_dispatch' && inputs.windows_build_run_id != '' }}
-    name: Publish verified Vncode Windows prerelease
+    name: Publish verified VN code Windows prerelease
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -51,7 +51,7 @@ jobs:
         run: node tools/publish-vncode-windows.mjs "$BUILD_RUN_ID"
 
   validate:
-    # Vncode ships Windows test releases from the verified build-java artifact.
+    # VN code ships Windows test releases from the verified build-java artifact.
     # The inherited multi-platform rehearsal remains available by explicit dispatch.
     if: ${{ github.repository != 'ntccong2468-lab/Vncode' || (github.event_name == 'workflow_dispatch' && inputs.windows_build_run_id == '') }}
     name: Validate source release contract
@@ -271,167 +271,9 @@ jobs:
             if ($certificate -and (Test-Path $certificate)) { Remove-Item $certificate -Force }
           }
 
-      - name: Verify install-over upgrade from WCode 1.1.9
+      - name: Verify independent installation beside WCode and safe uninstall
         shell: pwsh
-        run: |
-          $ErrorActionPreference = 'Stop'
-          $oldInstaller = Join-Path $env:RUNNER_TEMP 'WCode-1.1.9.msi'
-          Invoke-WebRequest `
-            -Uri 'https://github.com/rupphi/relatest-wcode/releases/download/v1.1.9/WCode.msi' `
-            -OutFile $oldInstaller
-          $oldInstallerSha256 = (Get-FileHash $oldInstaller -Algorithm SHA256).Hash.ToLowerInvariant()
-          if ($oldInstallerSha256 -cne '654e71f4060475d3140210eab88a7d64c3904465c4ac8b602f41253ad8f07f11') {
-            throw "Unexpected WCode 1.1.9 installer checksum: $oldInstallerSha256"
-          }
-
-          function Install-Msi([string] $path) {
-            $arguments = @('/i', "`"$path`"", '/qn', '/norestart')
-            $process = Start-Process -FilePath 'msiexec.exe' -ArgumentList $arguments -Wait -PassThru
-            if ($process.ExitCode -notin @(0, 3010)) {
-              throw "MSI install failed with exit code $($process.ExitCode): $path"
-            }
-          }
-
-          Install-Msi $oldInstaller
-          $legacyDataDir = Join-Path $env:LOCALAPPDATA 'WCode'
-          $currentDataDir = Join-Path $env:LOCALAPPDATA 'VNcodeData'
-          $oldExecutable = Join-Path $legacyDataDir 'WCode.exe'
-          if (-not (Test-Path $oldExecutable -PathType Leaf)) {
-            throw 'The released WCode 1.1.9 MSI did not install at its expected legacy path.'
-          }
-
-          $probeRoot = Join-Path $env:RUNNER_TEMP 'vncode-upgrade-db-probe'
-          New-Item -ItemType Directory -Force -Path $probeRoot | Out-Null
-          $probeSource = Join-Path $probeRoot 'UpgradeDatabaseProbe.java'
-          @'
-          import java.nio.file.Path;
-          import java.sql.Connection;
-          import java.sql.DriverManager;
-          import java.sql.ResultSet;
-          import java.sql.Statement;
-
-          public final class UpgradeDatabaseProbe {
-              public static void main(String[] args) throws Exception {
-                  Path database = Path.of(args[1]).toAbsolutePath();
-                  Class.forName("org.sqlite.JDBC");
-                  try (Connection connection = DriverManager.getConnection("jdbc:sqlite:" + database);
-                       Statement statement = connection.createStatement()) {
-                      if ("seed".equals(args[0])) {
-                          statement.execute("CREATE TABLE shops(id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL, api_key TEXT NOT NULL)");
-                          statement.execute("INSERT INTO shops(name, api_key) VALUES('upgrade-sentinel-shop', 'ci-placeholder')");
-                          statement.execute("PRAGMA user_version = 0");
-                          return;
-                      }
-                      if ("ready".equals(args[0])) {
-                          try (ResultSet version = statement.executeQuery("PRAGMA user_version")) {
-                              if (!version.next() || version.getInt(1) != 4) {
-                                  System.exit(2);
-                              }
-                          }
-                          return;
-                      }
-                      try (ResultSet integrity = statement.executeQuery("PRAGMA integrity_check")) {
-                          if (!integrity.next() || !"ok".equals(integrity.getString(1))) {
-                              throw new IllegalStateException("Migrated database integrity check failed");
-                          }
-                      }
-                      try (ResultSet version = statement.executeQuery("PRAGMA user_version")) {
-                          if (!version.next() || version.getInt(1) != 4) {
-                              throw new IllegalStateException("Migrated database schema version is not 4");
-                          }
-                      }
-                      try (ResultSet shop = statement.executeQuery(
-                              "SELECT marketplace FROM shops WHERE name='upgrade-sentinel-shop'")) {
-                          if (!shop.next() || !"WILDBERRIES".equals(shop.getString(1))) {
-                              throw new IllegalStateException("Legacy shop data was not migrated");
-                          }
-                      }
-                  }
-              }
-          }
-          '@ | Set-Content -LiteralPath $probeSource -Encoding utf8
-          $sqliteJar = Get-ChildItem 'target\lib\sqlite-jdbc-*.jar' | Select-Object -First 1 -ExpandProperty FullName
-          $slf4jApi = Get-ChildItem 'target\lib\slf4j-api-*.jar' | Select-Object -First 1 -ExpandProperty FullName
-          $slf4jSimple = Get-ChildItem 'target\lib\slf4j-simple-*.jar' | Select-Object -First 1 -ExpandProperty FullName
-          $probeClassPath = "$probeRoot;$sqliteJar;$slf4jApi;$slf4jSimple"
-          & javac -cp "$sqliteJar;$slf4jApi" $probeSource
-          if ($LASTEXITCODE -ne 0) { throw 'Could not compile the upgrade database probe.' }
-
-          New-Item -ItemType Directory -Force -Path $legacyDataDir | Out-Null
-          $legacyDatabase = Join-Path $legacyDataDir 'database.db'
-          & java -cp $probeClassPath UpgradeDatabaseProbe seed $legacyDatabase
-          if ($LASTEXITCODE -ne 0) { throw 'Could not seed the WCode 1.1.9 database.' }
-          $legacySentinel = Join-Path $legacyDataDir 'upgrade-data-sentinel.txt'
-          'preserve-user-data' | Set-Content -LiteralPath $legacySentinel -Encoding utf8
-
-          Install-Msi (Join-Path $PWD 'release\VN-code.msi')
-          $newExecutable = Join-Path $env:LOCALAPPDATA 'VNcodeApp\VN code.exe'
-          if (-not (Test-Path $newExecutable -PathType Leaf)) {
-            throw "VN code $env:APP_VERSION was not installed in the data-safe program directory."
-          }
-          if (-not (Test-Path $oldExecutable -PathType Leaf) -or
-              (Get-Content -LiteralPath $legacySentinel -Raw).Trim() -cne 'preserve-user-data') {
-            throw "The $env:APP_VERSION installer modified the legacy directory before data migration."
-          }
-
-          $newProcess = Start-Process -FilePath $newExecutable -PassThru
-          try {
-            $currentDatabase = Join-Path $currentDataDir 'database.db'
-            $currentSentinel = Join-Path $currentDataDir 'upgrade-data-sentinel.txt'
-            $migrationReady = $false
-            for ($attempt = 0; $attempt -lt 60; $attempt++) {
-              if ($newProcess.HasExited) {
-                $startupLog = Join-Path $currentDataDir 'logs\startup.log'
-                if (Test-Path $startupLog -PathType Leaf) { Get-Content $startupLog }
-                throw "The packaged VN code $env:APP_VERSION launcher exited during migration startup."
-              }
-              if ((Test-Path $currentDatabase -PathType Leaf) -and
-                  (Test-Path $currentSentinel -PathType Leaf)) {
-                & java -cp $probeClassPath UpgradeDatabaseProbe ready $currentDatabase
-                if ($LASTEXITCODE -eq 0) {
-                  $migrationReady = $true
-                  break
-                }
-              }
-              Start-Sleep -Seconds 1
-            }
-            if (-not $migrationReady -or
-                -not (Test-Path $currentDatabase -PathType Leaf) -or
-                (Get-Content -LiteralPath $currentSentinel -Raw).Trim() -cne 'preserve-user-data') {
-              throw "VN code $env:APP_VERSION did not finish migrating the legacy app-data directory."
-            }
-            & java -cp $probeClassPath UpgradeDatabaseProbe verify $currentDatabase
-            if ($LASTEXITCODE -ne 0) { throw 'The migrated VN code database failed verification.' }
-            if ((Test-Path (Join-Path $currentDataDir 'VN code.exe')) -or
-                (Test-Path (Join-Path $currentDataDir 'app')) -or
-                (Test-Path (Join-Path $currentDataDir 'runtime'))) {
-              throw 'Legacy jpackage binaries leaked into the new data-only directory.'
-            }
-            $startupLog = Join-Path $currentDataDir 'logs\startup.log'
-            if (Test-Path $startupLog -PathType Leaf) {
-              Get-Content $startupLog
-              throw "VN code $env:APP_VERSION recorded a startup failure after migration."
-            }
-          } finally {
-            if ($newProcess -and -not $newProcess.HasExited) {
-              Stop-Process -Id $newProcess.Id -Force
-            }
-          }
-
-          $uninstallRoots = @(
-            'HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*',
-            'HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*',
-            'HKLM:\Software\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*'
-          )
-          $registrations = @(
-            Get-ItemProperty -Path $uninstallRoots -ErrorAction SilentlyContinue |
-              Where-Object { ($_.DisplayName -ceq 'VN code' -and $_.Publisher -ceq $env:APP_VENDOR) -or ($_.DisplayName -ceq 'WCode' -and $_.Publisher -ceq 'TuanDev') }
-          )
-          $currentRegistrations = @($registrations | Where-Object DisplayVersion -ceq $env:APP_VERSION)
-          $legacyRegistrations = @($registrations | Where-Object DisplayVersion -ceq '1.1.9')
-          if ($currentRegistrations.Count -ne 1 -or $legacyRegistrations.Count -ne 1) {
-            throw "Expected separate legacy and data-safe VN code registrations, found $($registrations.Count)."
-          }
+        run: ./tools/windows-side-by-side-smoke.ps1 -Version $env:APP_VERSION -MsiPath release/VN-code.msi
 
       - name: Create optional signed update manifest and checksums
         shell: pwsh

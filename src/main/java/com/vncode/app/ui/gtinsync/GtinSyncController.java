@@ -1,7 +1,6 @@
 package com.vncode.app.ui.gtinsync;
 
 import com.vncode.app.features.gtinsync.*;
-import com.vncode.app.integration.license.LicenseService;
 import com.vncode.app.models.Shop;
 import com.vncode.app.shared.*;
 import javafx.beans.property.ReadOnlyStringWrapper;
@@ -129,7 +128,6 @@ public final class GtinSyncController {
     }
     @FXML private void onConfirm() {
         if(preview.isEmpty()||busy||runningQueues.contains(scope(model.token()))||preview.stream().anyMatch(p->!p.capability().supports(p.operation())))return;
-        if(!LicenseService.getInstance().getState().kizAllowed()){statusLabel.setText(tr("gtinsync.license_required"));return;}
         var selected=preview;var token=model.token();invalidatePreview();
         background(token,()->new Confirmed(workspace.coordinator.confirm(selected),workspace.repository.history(token.shopId(),token.marketplace())),result->{
             showHistory(result.items());

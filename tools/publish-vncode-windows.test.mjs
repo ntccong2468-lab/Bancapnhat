@@ -20,10 +20,26 @@ test('publication rejects incomplete migration or live mutation smoke evidence',
 });
 test('publication rejects unexpected files and requires the complete asset set',async()=>{
   const {validateReleaseAssets}=await import('./publish-vncode-windows.mjs');
-  const names=['Vncode.exe','checksums.sha256','build-info.json','native-smoke.json','release-notes.md'];
+  const names=['Vncode.exe','checksums.sha256','build-info.json','native-smoke.json','side-by-side-smoke.json','release-notes.md'];
   const assets=names.map(name=>({name}));
   assert.doesNotThrow(()=>validateReleaseAssets(assets,names,true));
   assert.doesNotThrow(()=>validateReleaseAssets([],names,false));
   assert.throws(()=>validateReleaseAssets([...assets,{name:'update-manifest.json'}],names,false));
   assert.throws(()=>validateReleaseAssets(assets.slice(1),names,true));
+});
+
+test('publication requires independent installation, empty data and WCode-safe uninstall evidence', async()=>{
+  const {validateSideBySideSmoke}=await import('./publish-vncode-windows.mjs');
+  assert.equal(typeof validateSideBySideSmoke,'function');
+  const proof={appName:'VN code',version:'1.1.34',platform:'windows-x64',result:'passed',
+    wcodeVersion:'1.1.9',installerUpgradeUuid:'8CBBA0E2-6E73-4F56-9101-6BC0948D3C72',
+    windowTitle:'VN code v1.1.34',independentRegistrations:true,freshVncodeData:true,
+    wcodeFilesUnchanged:true,uninstallPreservesWcode:true,liveMarketplaceMutations:false};
+  assert.doesNotThrow(()=>validateSideBySideSmoke(proof,'1.1.34'));
+  for(const bad of [{...proof,freshVncodeData:false},{...proof,wcodeFilesUnchanged:false},
+    {...proof,independentRegistrations:false},{...proof,uninstallPreservesWcode:false},
+    {...proof,installerUpgradeUuid:'0356BE08-487C-4E04-A2C2-353AF93DB2DE'},
+    {...proof,liveMarketplaceMutations:true}]) {
+    assert.throws(()=>validateSideBySideSmoke(bad,'1.1.34'));
+  }
 });

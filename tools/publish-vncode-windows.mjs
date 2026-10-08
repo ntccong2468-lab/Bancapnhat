@@ -20,6 +20,14 @@ export function validateNativeSmoke(smoke,version) {
   assert.equal(smoke.historyPreserved,true);assert.equal(smoke.rollbackSnapshotVerified,true);
   assert.equal(smoke.liveMarketplaceMutations,false);
 }
+export function validateSideBySideSmoke(proof,version) {
+  assert.equal(proof.appName,'VN code');assert.equal(proof.version,version);
+  assert.equal(proof.platform,'windows-x64');assert.equal(proof.result,'passed');
+  assert.equal(proof.wcodeVersion,'1.1.9');assert.equal(proof.windowTitle,`VN code v${version}`);
+  assert.equal(proof.installerUpgradeUuid,'8CBBA0E2-6E73-4F56-9101-6BC0948D3C72');
+  for(const field of ['independentRegistrations','freshVncodeData','wcodeFilesUnchanged','uninstallPreservesWcode']) assert.equal(proof[field],true);
+  assert.equal(proof.liveMarketplaceMutations,false);
+}
 export function validateReleaseAssets(existing,names,complete=false) {
   const allowed=new Set(names);
   assert.ok(existing.every(asset=>allowed.has(asset.name)),"Unverified extra assets on the release draft.");
@@ -42,7 +50,7 @@ async function main(runId) {
   const run=api(`actions/runs/${runId}`),workflow=api('actions/workflows/build-java.yml');
   validateBuild(run,sha,workflow.id);
   // Publishing tooling may differ; the tested application and packaging input must match.
-  execFileSync('git',['diff','--quiet',sha,'HEAD','--','pom.xml','src','build.bat','build.sh','tools/windows-native-smoke.ps1','tools/WindowsDataProbe.java','.github/workflows/build-java.yml']);
+  execFileSync('git',['diff','--quiet',sha,'HEAD','--','pom.xml','src','build.bat','build.sh','tools/windows-native-smoke.ps1','tools/windows-side-by-side-smoke.ps1','tools/windows-smoke-common.ps1','tools/WindowsDataProbe.java','.github/workflows/build-java.yml']);
   const artifactName=`VN-code-${version}-Windows-x64`;
   const artifacts=api(`actions/runs/${runId}/artifacts?per_page=100`).artifacts.filter(a=>a.name===artifactName&&!a.expired);
   assert.equal(artifacts.length,1,'Require one unexpired Windows build artifact.');
@@ -57,27 +65,29 @@ async function main(runId) {
   assert.equal(bytes.readUInt16LE(pe+24),0x20b);
   assert.equal(bytes.readUInt32LE(pe+24+112+4*8),0);assert.equal(bytes.readUInt32LE(pe+24+112+4*8+4),0);
   const smoke=json(await readFile(path.join(directory,'native-smoke.json')));validateNativeSmoke(smoke,version);
+  const isolation=json(await readFile(path.join(directory,'side-by-side-smoke.json')));validateSideBySideSmoke(isolation,version);
   const log=command(['run','view',runId,'--repo',REPO,'--log']).replace(/\x1b\[[0-9;]*m/g,'');
-  assert.ok(log.includes('Tests run: 562, Failures: 0, Errors: 0, Skipped: 0'));
-  assert.match(log,/# tests\s+21(?:\s|$)/);
+  assert.ok(log.includes('Tests run: 551, Failures: 0, Errors: 0, Skipped: 0'));
+  assert.match(log,/# tests\s+23(?:\s|$)/);
   if (original !== name) await copyFile(path.join(directory,original),path.join(directory,name));
   const runUrl=`https://github.com/${REPO}/actions/runs/${runId}`;
   const info={appName:"VN code",version,repository:REPO,sourceCommit:sha,githubRunId:Number(runId),githubRunUrl:runUrl,
-    javaFxmlTests:{run:562,failures:0,errors:0,skipped:0,platforms:['linux','windows']},
-    nodeContracts:{run:21,failures:0},nativeSmoke:smoke,
+    javaFxmlTests:{run:551,failures:0,errors:0,skipped:0,platforms:['linux','windows']},
+    nodeContracts:{run:23,failures:0},nativeSmoke:smoke,sideBySideSmoke:isolation,
     installer:{filename:name,originalArtifactFilename:original,bytes:bytes.length,sha256:digest,architecture:'x86_64',authenticodeSigned:false},
     sourceBaseline:'WCode1.1.32 + existing Vncode GTIN module',publicRecoveryChangelog:'WCode1.1.75',
     exactWcode1_1_75SourceIntegrated:false,liveWbOzonGtinWriteEnabled:false,signedUpdateManifestPublished:false};
   await writeFile(path.join(directory,'build-info.json'),JSON.stringify(info,null,2)+'\n');
   const notes=execFileSync('git',['show',`${sha}:docs/releases/VN-code-${version}.md`],{encoding:'utf8'})+
     `\n## Bộ cài và kiểm tra\n\nTải \`${name}\` bên dưới rồi chạy; Java đã được đóng gói kèm.\n\n`+
-    `- 562 kiểm thử Java/JavaFX, 21 Node contracts qua trên Windows; 0 thất bại/lỗi/bỏ qua.\n`+
+    `- 551 kiểm thử Java/JavaFX, 23 Node contracts qua trên Windows; 0 thất bại/lỗi/bỏ qua.\n`+
     `- Native Windows launcher và migration schema 3 → 4 giữ GTIN/feed/good ID/cờ WB; integrity/foreign keys và snapshot sạch.\n`+
+    `- Cài/gỡ VN code song song với WCode 1.1.9 thật; giữ nguyên executable, dữ liệu và registration của WCode; VN code bắt đầu trống.\n`+
     `- [CI Windows](${runUrl}), commit \`${sha}\`.\n`+
     `- SHA-256 EXE: \`${digest}\`.\n`+
     `- Đây là prerelease chưa ký Authenticode; tải/cài thủ công. Live GS1/CryptoPro/seller/máy in chưa nghiệm thu; thêm/thay GTIN production WB/Ozon vẫn bị khóa.\n`;
   await writeFile(path.join(directory,'release-notes.md'),notes);
-  const assets=[name,'native-smoke.json','build-info.json','release-notes.md'];
+  const assets=[name,'native-smoke.json','side-by-side-smoke.json','build-info.json','release-notes.md'];
   const hashes={};for(const asset of assets)hashes[asset]=hash(await readFile(path.join(directory,asset)));
   await writeFile(path.join(directory,'checksums.sha256'),assets.map(a=>`${hashes[a]}  ${a}\n`).join(''));
   assets.push('checksums.sha256');hashes['checksums.sha256']=hash(await readFile(path.join(directory,'checksums.sha256')));

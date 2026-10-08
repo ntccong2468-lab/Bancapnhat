@@ -31,6 +31,15 @@ public final class WindowsDataProbe {
             try (var r = s.executeQuery("PRAGMA foreign_key_check")) {
                 if (r.next()) throw new IllegalStateException("Invalid foreign keys");
             }
+            if ("fresh".equals(args[0])) {
+                try (var r = s.executeQuery("SELECT COUNT(*) FROM shops")) {
+                    if (!r.next() || r.getInt(1) != 0) throw new IllegalStateException("WCode shops were imported");
+                }
+                if (java.nio.file.Files.exists(data.resolve("license.json"))) {
+                    throw new IllegalStateException("WCode license was imported");
+                }
+                return;
+            }
             try (var r = s.executeQuery("SELECT gtin,feed_id,good_id,wb_updated,status FROM znack_card_registrations WHERE shop_id=1 AND chrt_id=11")) {
                 if (!r.next() || !"04631993764363".equals(r.getString(1))
                         || !"native-feed".equals(r.getString(2)) || r.getLong(3) != 91

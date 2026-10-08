@@ -66,7 +66,7 @@ jobs:
           retention-days: 30
 
       - name: Publish test auto-update release
-        if: github.repository == 'rupphi/test-wcode' && github.ref == 'refs/heads/znack-registration-test'
+        if: github.repository == 'ntccong2468-lab/Vncode' && github.ref == 'refs/heads/znack-registration-test'
         shell: pwsh
         env:
           GH_TOKEN: ${{ github.token }}

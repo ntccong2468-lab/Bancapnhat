@@ -45,7 +45,6 @@ import com.vncode.app.shared.I18nService;
 import com.vncode.app.ui.kizmapping.KizGtinMappingEditor;
 import com.vncode.app.ui.kizmapping.OzonGtinMappingEditor;
 import com.vncode.app.ui.kizmapping.OzonKizPolicyEditor;
-import com.vncode.app.ui.license.LicenseDialogService;
 import com.vncode.app.ui.znack.ZnackInsufficientFundsDialogService;
 import com.vncode.app.ui.znack.ZnackMissingDocumentsDialogService;
 import com.vncode.app.ui.znack.ZnackOperatorTermsDialogService;
@@ -1017,7 +1016,7 @@ public final class OzonDashboardController {
     }
 
     private void showBuy(ZnackGtinInventorySummary summary) {
-        if (znackRepository == null || shop == null || !new LicenseDialogService().ensureLicensed()) return;
+        if (znackRepository == null || shop == null) return;
         TextInputDialog dialog = new TextInputDialog("1");
         AlertService.applyTheme(dialog);
         dialog.setTitle(tr("supply.gtin_inventory.buy_title"));
