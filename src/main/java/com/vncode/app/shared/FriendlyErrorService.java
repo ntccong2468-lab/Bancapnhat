@@ -29,6 +29,20 @@ public final class FriendlyErrorService {
     }
 
     public static String format(Throwable error) {
+        String code="VN_LOCAL";
+        Throwable cause=error;
+        for(int depth=0;cause!=null&&depth<8;depth++,cause=cause.getCause()) {
+            if(cause instanceof com.vncode.app.integration.wb.WbApiException wb){code="WB_HTTP_"+wb.getStatusCode();break;}
+            if(cause instanceof com.vncode.app.integration.ozon.OzonApiException ozon){code="OZON_HTTP_"+ozon.statusCode();break;}
+            if(cause instanceof CryptoProException crypto){code="CRYPTOPRO_"+crypto.code().name();break;}
+            if(cause instanceof java.net.UnknownHostException || cause instanceof java.net.ConnectException
+                    || cause instanceof java.net.SocketException || cause instanceof java.net.SocketTimeoutException){code="VN_NETWORK";break;}
+        }
+        String detail="VN_NETWORK".equals(code)?I18nService.getInstance().tr("error.network"):formatDetail(error);
+        return detail+"\n["+code+"]";
+    }
+
+    private static String formatDetail(Throwable error) {
         if (error == null) return I18nService.getInstance().tr("znack.signature.error.failed");
         if (error instanceof CryptoProException crypto) {
             return formatCryptoPro(crypto);

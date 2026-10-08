@@ -603,11 +603,39 @@ class FxmlSmokeTest {
                     assertEquals(i18n.tr("news.title"),pane.pageTitle());
                 }
                 assertEquals(20,pane.visibleItems());pane.loadMore();assertEquals(25,pane.visibleItems());
+                ScrollPane newsScroll=(ScrollPane)pane.getChildren().get(2);newsScroll.setVvalue(0.65);
                 pane.open(rows.getFirst());assertTrue(service.isRead("id0"));
-                assertTrue(pane.showingDetail());pane.back();assertFalse(pane.showingDetail());
+                assertTrue(pane.showingDetail());pane.back();assertFalse(pane.showingDetail());assertEquals(0.65,newsScroll.getVvalue(),0.001);
             } finally {i18n.setLanguage(previous);}return null;
         });
         Platform.runLater(task);task.get(10,TimeUnit.SECONDS);
+    }
+
+    @Test
+    void boardRefreshDiscardsAnOlderDispatchPageForTheSameShop() throws Exception {
+        var started=new CountDownLatch(1);var release=new CountDownLatch(1);var returned=new CountDownLatch(1);
+        var rows=java.util.stream.IntStream.range(1,51).mapToObj(n -> new com.vncode.app.integration.wb.WbSupplySummary("S"+n,"s",true,false,"now",1)).toList();
+        var fake=new com.vncode.app.features.packing.PackingWorkflow(){
+            @Override public com.vncode.app.integration.wb.WbSupplyRepository.SupplyPage loadDispatchPage(Shop shop,int offset){
+                started.countDown();try{release.await(5,TimeUnit.SECONDS);}catch(InterruptedException e){Thread.currentThread().interrupt();}
+                returned.countDown();return new com.vncode.app.integration.wb.WbSupplyRepository.SupplyPage(rows.subList(offset,Math.min(offset+20,50)),50,0,50);
+            }
+        };
+        var reference=new java.util.concurrent.atomic.AtomicReference<PackingController>();
+        var tableRef=new java.util.concurrent.atomic.AtomicReference<TableView<?>>();
+        var boardMethod=PackingController.class.getDeclaredMethod("setBoard",com.vncode.app.features.packing.PackingWorkflow.PackingBoard.class);boardMethod.setAccessible(true);
+        var setup=new java.util.concurrent.FutureTask<Void>(() -> {
+            FXMLLoader loader=FxmlViewLoader.loader(PackingController.class,"packing-view.fxml");FxmlViewLoader.load(loader);
+            PackingController controller=loader.getController();var field=PackingController.class.getDeclaredField("packingWorkflow");field.setAccessible(true);field.set(controller,fake);
+            controller.setShop(new Shop(1,"fixture","fixture"),false);
+            var delay=PackingController.class.getDeclaredField("delayTransition");delay.setAccessible(true);((javafx.animation.PauseTransition)delay.get(controller)).stop();
+            boardMethod.invoke(controller,new com.vncode.app.features.packing.PackingWorkflow.PackingBoard(java.util.List.of(),java.util.List.of(),rows.subList(0,40)));
+            reference.set(controller);tableRef.set((TableView<?>)loader.getNamespace().get("dispatchTable"));
+            ((Button)loader.getNamespace().get("dispatchMoreButton")).fire();return null;
+        });Platform.runLater(setup);setup.get(5,TimeUnit.SECONDS);assertTrue(started.await(5,TimeUnit.SECONDS));
+        var reset=new java.util.concurrent.FutureTask<Void>(() -> {boardMethod.invoke(reference.get(),new com.vncode.app.features.packing.PackingWorkflow.PackingBoard(java.util.List.of(),java.util.List.of(),rows.subList(0,20)));return null;});
+        Platform.runLater(reset);reset.get(5,TimeUnit.SECONDS);release.countDown();assertTrue(returned.await(5,TimeUnit.SECONDS));Thread.sleep(200);
+        var check=new java.util.concurrent.FutureTask<Void>(() -> {assertEquals(20,tableRef.get().getItems().size(),"Old page must not append after reset");return null;});Platform.runLater(check);check.get(5,TimeUnit.SECONDS);
     }
 
     private void assertLoads(Class<?> resourceOwner, String resourceName) throws Exception {

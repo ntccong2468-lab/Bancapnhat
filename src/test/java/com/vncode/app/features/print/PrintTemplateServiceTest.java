@@ -45,6 +45,7 @@ class PrintTemplateServiceTest {
     void shouldKeepFbsAndFboDefaultContentLayoutAligned() {
         PrintTemplate fbs = service.createSystemDefaultTemplate("FBS");
         PrintTemplate fbo = new FboPrintTemplateService().createSystemDefaultTemplate("FBO");
+        assertEquals(com.vncode.app.shared.I18nService.getInstance().tr("template.palette.pair_no"),type(fbo,PrintElementType.STICKER_TAIL).getLabel());
 
         assertSameLayout(field(fbs, PrintFieldKey.BRAND), field(fbo, PrintFieldKey.BRAND));
         assertSameLayout(field(fbs, PrintFieldKey.SUBJECT_NAME), field(fbo, PrintFieldKey.SUBJECT_NAME));

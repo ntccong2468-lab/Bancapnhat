@@ -62,4 +62,6 @@ public class FboPrintTemplateService extends PrintTemplateService {
         return template;
     }
 
+    @Override
+    protected String stickerTailLabel() {return i18n.tr("template.palette.pair_no");}
 }

@@ -100,6 +100,7 @@ public class PackingController {
     @FXML private javafx.scene.control.Button dispatchMoreButton;
     private int dispatchOffset;
     private boolean dispatchLoading;
+    private long dispatchEpoch;
     @FXML private TableColumn<WbSupplySummary, String> dispatchSupplyTC;
     @FXML private TableColumn<WbSupplySummary, String> dispatchStatusTC;
     @FXML private TableColumn<WbSupplySummary, Number> dispatchCountTC;
@@ -131,6 +132,7 @@ public class PackingController {
 
     public void setShop(Shop shop, boolean tokenValid) {
         shopGeneration++;
+        dispatchEpoch++;dispatchLoading=false;dispatchOffset=0;dispatchTable.getItems().clear();dispatchMoreButton.setDisable(true);
         this.shop = shop;
         this.tokenValid = tokenValid;
         selectedOrderIds.clear();
@@ -150,15 +152,15 @@ public class PackingController {
     }
 
     @FXML private void onLoadMoreDispatch() {
-        if(shop==null||dispatchLoading)return;Shop owner=shop;long generation=shopGeneration;int offset=dispatchOffset;
+        if(shop==null||dispatchLoading)return;Shop owner=shop;long generation=shopGeneration;long epoch=dispatchEpoch;int offset=dispatchOffset;
         dispatchLoading=true;dispatchMoreButton.setDisable(true);
         Task<com.vncode.app.integration.wb.WbSupplyRepository.SupplyPage> task=new Task<>(){
             protected com.vncode.app.integration.wb.WbSupplyRepository.SupplyPage call(){return packingWorkflow.loadDispatchPage(owner,offset);}
         };
-        task.setOnSucceeded(e->{if(!isCurrent(owner,generation))return;dispatchLoading=false;
+        task.setOnSucceeded(e->{if(!isCurrent(owner,generation)||epoch!=dispatchEpoch||offset!=dispatchOffset)return;dispatchLoading=false;
             dispatchTable.getItems().addAll(task.getValue().items());dispatchOffset+=task.getValue().items().size();
             dispatchMoreButton.setDisable(dispatchOffset>=task.getValue().totalItems());});
-        task.setOnFailed(e->{if(!isCurrent(owner,generation))return;dispatchLoading=false;dispatchMoreButton.setDisable(false);AlertService.showError(FriendlyErrorService.format(task.getException()));});
+        task.setOnFailed(e->{if(!isCurrent(owner,generation)||epoch!=dispatchEpoch||offset!=dispatchOffset)return;dispatchLoading=false;dispatchMoreButton.setDisable(false);AlertService.showError(FriendlyErrorService.format(task.getException()));});
         AppTaskExecutor.execute(task);
     }
 
@@ -339,6 +341,7 @@ public class PackingController {
         updateCategoryFilterOptions();
         applyNewOrderFilters();
         preparationTable.getItems().setAll(board.preparationSupplies());
+        dispatchEpoch++;
         dispatchTable.getItems().setAll(board.dispatchSupplies());
         dispatchOffset=board.dispatchSupplies().size();dispatchLoading=false;
         dispatchMoreButton.setDisable(shop==null||board.dispatchSupplies().size()<20);

@@ -10,6 +10,8 @@ public final class WindowsUpgradeDataProbe {
   if("seed".equals(args[0])) {
    Database.initDatabase();
    var service=new PrintTemplateService();var template=service.createTemplate("upgrade-personal-fixture");
+   var fboService=new com.vncode.app.features.fbo.FboPrintTemplateService();
+   var fbo=fboService.createTemplate("upgrade-personal-fbo-fixture");fbo.getElements().getFirst().setLabel("PERSONAL FBO");fboService.saveTemplate(fbo);
    template.getElements().stream().filter(e->e.getFieldKey()==PrintFieldKey.ARTICLE).findFirst().orElseThrow().setPrefix("PERSONAL");service.saveTemplate(template);
    try(var c=Database.getConnection();var s=c.createStatement()) {
     s.execute("INSERT INTO shops(id,name,marketplace,api_key) VALUES(1,'upgrade-fixture','WILDBERRIES','fixture')");

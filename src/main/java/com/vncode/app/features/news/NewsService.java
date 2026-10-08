@@ -25,7 +25,7 @@ public final class NewsService {
  }
  public void refresh() throws IOException {
   var client=new OkHttpClient.Builder().connectTimeout(5,TimeUnit.SECONDS).readTimeout(10,TimeUnit.SECONDS).build();
-  var request=new Request.Builder().url("https://raw.githubusercontent.com/ntccong2468-lab/Bancapnhat/main/news/feed.json").build();
+  var request=new Request.Builder().url("https://raw.githubusercontent.com/ntccong2468-lab/Bancapnhat/HEAD/news/feed.json").build();
   try(var response=client.newCall(request).execute()) {
    if(!response.isSuccessful()||response.body()==null)throw new IOException("NEWS_HTTP_"+response.code());
    try(var input=response.body().byteStream()) { byte[] bytes=input.readNBytes(1_000_001);if(bytes.length>1_000_000)throw new IOException("NEWS_SIZE");

@@ -1,0 +1,10 @@
+{
+  "version": "1.2.0",
+  "complete": false,
+  "blocked": [
+    "WB: official delivery contract verified; connect shipping form/preferences/search and mutation reconciliation",
+    "WB: remote dispatch pagination contract/performance acceptance (current paging is local SQLite)",
+    "Ozon: delivering contract found for third-party rFBS only; verify standard-FBS behavior and implement selection/label reminder",
+    "Znack: official category tree verified; disambiguate TN VED level-1 rule before automatic GTIN replacement"
+  ]
+}

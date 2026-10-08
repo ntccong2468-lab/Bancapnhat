@@ -29,7 +29,7 @@ env:
 
 jobs:
   publish-vncode-windows:
-    if: ${{ github.repository == 'ntccong2468-lab/Vncode' && github.event_name == 'workflow_dispatch' && inputs.windows_build_run_id != '' }}
+    if: ${{ github.repository == 'ntccong2468-lab/Bancapnhat' && github.event_name == 'workflow_dispatch' && inputs.windows_build_run_id != '' }}
     name: Publish verified VN code Windows prerelease
     runs-on: ubuntu-latest
     permissions:
@@ -53,7 +53,7 @@ jobs:
   validate:
     # VN code ships Windows test releases from the verified build-java artifact.
     # The inherited multi-platform rehearsal remains available by explicit dispatch.
-    if: ${{ github.repository != 'ntccong2468-lab/Vncode' || (github.event_name == 'workflow_dispatch' && inputs.windows_build_run_id == '') }}
+    if: ${{ (github.repository != 'ntccong2468-lab/Vncode' && github.repository != 'ntccong2468-lab/Bancapnhat') || (github.event_name == 'workflow_dispatch' && inputs.windows_build_run_id == '') }}
     name: Validate source release contract
     runs-on: ubuntu-latest
     outputs:

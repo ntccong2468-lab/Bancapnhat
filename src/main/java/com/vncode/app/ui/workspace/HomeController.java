@@ -231,7 +231,7 @@ public class HomeController implements Initializable {
             String[] keys={"sidebar.packing","sidebar.fbo_packing","sidebar.znack_registration","gtinsync.title"};
             Runnable[] actions={this::showPacking,this::showFboPacking,this::showZnackRegistration,this::showGtinSync};
             for(int i=0;i<keys.length;i++){javafx.scene.control.Button button=new javafx.scene.control.Button(i18nService.tr(keys[i]));Runnable action=actions[i];button.setOnAction(e -> action.run());button.setUserData(keys[i]);dashboardLinks.add(button);intro.getChildren().add(button);}
-            HBox overview=new HBox(20,intro,newsPane.preview());HBox.setHgrow(intro,javafx.scene.layout.Priority.ALWAYS);
+            javafx.scene.layout.FlowPane overview=new javafx.scene.layout.FlowPane(20,12,intro,newsPane.preview());intro.setPrefWidth(240);overview.setPrefWrapLength(600);
             newsPane.preview().setPrefWidth(300);financeDashboardView.getChildren().add(1,overview);
             financeDashboardView.sceneProperty().addListener((observable,oldScene,newScene) -> {
                 if(newScene==null)return;

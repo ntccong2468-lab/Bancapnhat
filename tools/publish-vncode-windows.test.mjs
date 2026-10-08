@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { validateBuild, validateNativeSmoke } from './publish-vncode-windows.mjs';
 const sha='3b5c725ec8b481556cb6635859b08dcdb66ab053';
-const run={status:'completed',conclusion:'success',head_sha:sha,workflow_id:7,repository:{full_name:'ntccong2468-lab/Vncode'},head_repository:{full_name:'ntccong2468-lab/Vncode'}};
+const run={status:'completed',conclusion:'success',head_sha:sha,workflow_id:7,repository:{full_name:'ntccong2468-lab/Bancapnhat'},head_repository:{full_name:'ntccong2468-lab/Bancapnhat'}};
 test('publication requires the successful native build for the exact tag and repository',()=>{
   assert.doesNotThrow(()=>validateBuild(run,sha,7));
   for(const bad of [{...run,conclusion:'failure'},{...run,head_sha:'0'.repeat(40)},
@@ -42,4 +42,17 @@ test('publication requires independent installation, empty data and WCode-safe u
     {...proof,liveMarketplaceMutations:true}]) {
     assert.throws(()=>validateSideBySideSmoke(bad,'1.1.34'));
   }
+});
+
+test('publication requires verified upgrade of the same existing VN code app',async()=>{
+ const {validateUpgradeSmoke}=await import('./publish-vncode-windows.mjs');
+ const proof={appName:'VN code',version:'1.2.0',fromVersion:'1.1.34',result:'passed',installerUpgradeUuid:'8CBBA0E2-6E73-4F56-9101-6BC0948D3C72',singleRegistration:true,dataPreserved:true,liveMarketplaceMutations:false,fingerprint:'a'.repeat(64)};
+ assert.doesNotThrow(()=>validateUpgradeSmoke(proof,'1.2.0'));
+ for(const bad of [{...proof,singleRegistration:false},{...proof,dataPreserved:false},{...proof,fromVersion:'1.0.0'},{...proof,installerUpgradeUuid:'other'}])assert.throws(()=>validateUpgradeSmoke(bad,'1.2.0'));
+});
+test('publication refuses incomplete functionality even when the native installer passes',async()=>{
+ const {validateReadiness}=await import('./publish-vncode-windows.mjs');
+ assert.throws(()=>validateReadiness({version:'1.2.0',complete:false,blocked:['WB shipping API']}));
+ assert.throws(()=>validateReadiness({version:'1.2.0',complete:true,blocked:['WB shipping API']}));
+ assert.doesNotThrow(()=>validateReadiness({version:'1.2.0',complete:true,blocked:[]}));
 });

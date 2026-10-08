@@ -41,7 +41,8 @@ try{
     $app=Start-Process $launcher -PassThru
     [void](Wait-VncodeWindow -Process $app -Version '1.1.34')
     Stop-Process -Id $app.Id -Force;$app.WaitForExit();$app=$null
-    & java --enable-native-access=ALL-UNNAMED -cp $probeClasspath WindowsUpgradeDataProbe seed $data
+    $baselineClasspath="$root;$program\app\*;$program\app\lib\*"
+    & java --enable-native-access=ALL-UNNAMED -cp $baselineClasspath WindowsUpgradeDataProbe seed $data
     if($LASTEXITCODE -ne 0){throw 'Cannot seed upgrade fixture.'}
     $before=& java --enable-native-access=ALL-UNNAMED -cp $probeClasspath WindowsUpgradeDataProbe fingerprint $data
     if($LASTEXITCODE -ne 0 -or $before -notmatch '^[0-9a-f]{64}$'){throw 'Invalid pre-upgrade fingerprint.'}
