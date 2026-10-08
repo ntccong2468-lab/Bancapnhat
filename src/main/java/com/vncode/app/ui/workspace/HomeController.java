@@ -147,6 +147,8 @@ public class HomeController implements Initializable {
 
     private BorderPane supplyManagementView;
     private VBox financeDashboardView;
+    private com.vncode.app.ui.news.NewsPane newsPane;
+    private final java.util.List<javafx.scene.control.Button> dashboardLinks=new java.util.ArrayList<>();
     private VBox printHistoryView;
     private VBox packingView;
     private VBox fboPackingView;
@@ -219,6 +221,29 @@ public class HomeController implements Initializable {
         financeDashboardView = FxmlViewLoader.load(financeLoader);
         financeDashboardController = financeLoader.getController();
         financeDashboardController.applyTranslations();
+        if(newsPane==null) {
+            var service=new com.vncode.app.features.news.NewsService(java.util.List.of(),
+                new com.vncode.app.features.news.NewsRepository(com.vncode.app.shared.AppPaths.appDataDir()));
+            newsPane=new com.vncode.app.ui.news.NewsPane(service,this::showDashboard,
+                count -> { if(workspaceHeaderController!=null)workspaceHeaderController.setUnreadNews(count); });
+            newsPane.setOnOpenPage(() -> setDynamicContent(newsPane));
+            VBox intro=new VBox(8);
+            String[] keys={"sidebar.packing","sidebar.fbo_packing","sidebar.znack_registration","gtinsync.title"};
+            Runnable[] actions={this::showPacking,this::showFboPacking,this::showZnackRegistration,this::showGtinSync};
+            for(int i=0;i<keys.length;i++){javafx.scene.control.Button button=new javafx.scene.control.Button(i18nService.tr(keys[i]));Runnable action=actions[i];button.setOnAction(e -> action.run());button.setUserData(keys[i]);dashboardLinks.add(button);intro.getChildren().add(button);}
+            HBox overview=new HBox(20,intro,newsPane.preview());HBox.setHgrow(intro,javafx.scene.layout.Priority.ALWAYS);
+            newsPane.preview().setPrefWidth(300);financeDashboardView.getChildren().add(1,overview);
+            financeDashboardView.sceneProperty().addListener((observable,oldScene,newScene) -> {
+                if(newScene==null)return;
+                if(newScene.getWindow()!=null&&newScene.getWindow().isShowing())javafx.application.Platform.runLater(newsPane::refreshAsync);
+                newScene.windowProperty().addListener((o,previous,window) -> {
+                    if(window!=null)window.showingProperty().addListener((shown,a,b) -> {
+                        if(b)javafx.application.Platform.runLater(newsPane::refreshAsync);
+                    });
+                });
+            });
+            workspaceHeaderController.setOnNews(() -> {newsPane.back();setDynamicContent(newsPane);});
+        } else newsPane.applyTranslations();
 
         FXMLLoader supplyLoader = FxmlViewLoader.loader(SupplyManagementController.class, "supply-management-view.fxml");
         supplyManagementView = FxmlViewLoader.load(supplyLoader);
@@ -1536,6 +1561,8 @@ public class HomeController implements Initializable {
     }
 
     private void applyTranslations() {
+        if(newsPane!=null)newsPane.applyTranslations();
+        for(var link:dashboardLinks)link.setText(i18nService.tr((String)link.getUserData()));
         if (disposed) {
             return;
         }

@@ -54,6 +54,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -585,6 +586,28 @@ class FxmlSmokeTest {
         });
         assertTrue(latch.await(5, TimeUnit.SECONDS));
         assertTrue(valid.get());
+    }
+
+    @Test
+    void newsPagePaginatesAndRendersSafeRichTextInAllLanguages() throws Exception {
+        var task = new java.util.concurrent.FutureTask<Void>(() -> {
+            var i18n=I18nService.getInstance();var previous=i18n.getCurrentLanguage();
+            try {
+                var rows=java.util.stream.IntStream.range(0,25).mapToObj(n ->
+                    new com.vncode.app.features.news.NewsItem("id"+n,java.time.Instant.EPOCH.plusSeconds(n),"Title "+n,"# Header\n**Bold** *italic*\n- item\n<script>plain text</script>")).toList();
+                var service=new com.vncode.app.features.news.NewsService(rows,
+                    new com.vncode.app.features.news.NewsRepository(appDataDir));
+                var pane=new com.vncode.app.ui.news.NewsPane(service,() -> {},count -> {});
+                for(var language:com.vncode.app.shared.AppLanguage.values()) {
+                    i18n.setLanguage(language);pane.applyTranslations();
+                    assertEquals(i18n.tr("news.title"),pane.pageTitle());
+                }
+                assertEquals(20,pane.visibleItems());pane.loadMore();assertEquals(25,pane.visibleItems());
+                pane.open(rows.getFirst());assertTrue(service.isRead("id0"));
+                assertTrue(pane.showingDetail());pane.back();assertFalse(pane.showingDetail());
+            } finally {i18n.setLanguage(previous);}return null;
+        });
+        Platform.runLater(task);task.get(10,TimeUnit.SECONDS);
     }
 
     private void assertLoads(Class<?> resourceOwner, String resourceName) throws Exception {

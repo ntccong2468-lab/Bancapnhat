@@ -31,6 +31,8 @@ public class WorkspaceHeaderController {
     @FXML
     private Label syncLoadingLabel;
 
+    @FXML private Button newsButton;
+    private Runnable onNews;
     private Runnable onSync;
     private Runnable onEditShop;
     private Runnable onDeleteShop;
@@ -80,6 +82,10 @@ public class WorkspaceHeaderController {
             onDeleteShop.run();
         }
     }
+
+    @FXML private void onNews() {if(onNews!=null)onNews.run();}
+    public void setOnNews(Runnable callback){onNews=callback;}
+    public void setUnreadNews(int count){newsButton.setText("🔔 " + count);newsButton.setAccessibleText(I18nService.getInstance().tr("news.title") + " " + count);}
 
     public void setOnSync(Runnable onSync) {
         this.onSync = onSync;

@@ -17,6 +17,7 @@
 
 <HBox alignment="CENTER_LEFT" fillHeight="true" prefHeight="68.0" prefWidth="738.0" spacing="10.0" styleClass="header" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.vncode.app.ui.workspace.WorkspaceHeaderController">
     <children>
+        <Button fx:id="newsButton" text="🔔 0" onAction="#onNews" />
         <VBox alignment="CENTER_LEFT" prefWidth="320.0" spacing="2.0">
             <children>
                 <HBox alignment="CENTER_LEFT" minHeight="32.0" spacing="8.0">
