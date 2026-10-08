@@ -75,6 +75,10 @@ jobs:
         shell: pwsh
         run: ./tools/windows-side-by-side-smoke.ps1 -Version $env:APP_VERSION
 
+      - name: Verify in-place upgrade from VN code 1.1.34 with saved data
+        shell: pwsh
+        run: ./tools/windows-upgrade-smoke.ps1 -Version $env:APP_VERSION
+
       - name: Verify and name test installer
         shell: pwsh
         run: |
@@ -99,6 +103,7 @@ jobs:
             out/VN-code-${{ env.APP_VERSION }}-Windows-x64.sha256
             out/native-smoke.json
             out/side-by-side-smoke.json
+            out/upgrade-smoke.json
           if-no-files-found: error
           retention-days: 14
 
