@@ -17,8 +17,8 @@ public final class WindowsUpgradeDataProbe {
     s.execute("INSERT INTO wb_product_sizes(shop_id,chrt_id,nm_id,tech_size) VALUES(1,11,101,'XL')");
     s.execute("INSERT INTO znack_card_registrations(shop_id,chrt_id,nm_id,gtin,feed_id,good_id,wb_updated,status,created_at,updated_at) VALUES(1,11,101,'04631993764363','fixture-feed',91,1,'ERROR','fixture','fixture')");
     s.execute("INSERT INTO znack_products(shop_id,gtin,product_name,synced_at) VALUES(1,'04631993764363','fixture','fixture')");
-    s.execute("INSERT INTO kiz_orders(id,shop_id,gtin,quantity,remote_status,local_status,created_at,updated_at) VALUES(100,1,'04631993764363',2,'completed','completed','fixture','fixture')");
-    s.execute("INSERT INTO kiz_codes(id,shop_id,order_id,raw_code,display_code,gtin,status,created_at,updated_at) VALUES(100,1,100,'fixture-code-available','fixture','04631993764363','available','fixture','fixture'),(101,1,100,'fixture-code-printed','fixture','04631993764363','printed','fixture','fixture')");
+    s.execute("INSERT INTO kiz_orders(id,shop_id,gtin,quantity,remote_status,local_status,created_at,updated_at) VALUES(100,1,'04631993764363',2,'completed','PDF_GENERATED','fixture','fixture')");
+    s.execute("INSERT INTO kiz_codes(id,shop_id,order_id,raw_code,display_code,gtin,status,legal_status,created_at,updated_at) VALUES(100,1,100,'fixture-code-available','fixture','04631993764363','AVAILABLE','RECEIVED','fixture','fixture'),(101,1,100,'fixture-code-printed','fixture','04631993764363','CONSUMED','PRINTED','fixture','fixture')");
     s.execute("INSERT INTO print_jobs(id,shop_id,shop_name,printed_at,item_count,template_layout_json,status) VALUES(100,1,'fixture','fixture',1,'{}','printed')");
     s.execute("INSERT INTO print_job_items(print_job_id,sort_index,order_id,barcode,kiz) VALUES(100,0,1,'fixture-barcode','fixture-printed-kiz')");
    }
