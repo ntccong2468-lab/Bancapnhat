@@ -68,7 +68,7 @@ build.bat msi         # Windows MSI chưa ký
 
 Bản phát hành chính thức lấy từ workflow [release.yml](.github/workflows/release.yml).
 Bộ cài thử nhánh GTIN ở trên lấy từ workflow [build-java.yml](.github/workflows/build-java.yml).
-Workflow phát hành kiểm tra cài và gỡ VN code bên cạnh WCode `1.1.9` thật trên runner Windows tạm; xác minh chương trình, dữ liệu và registration WCode giữ nguyên. VN code có installer identity riêng, không chạy migration từ dữ liệu WCode. Authenticode và signed update manifest được
+Workflow phát hành kiểm tra cài và gỡ VN code bên cạnh WCode `1.1.75` thật trên runner Windows tạm; xác minh chương trình, dữ liệu và registration WCode giữ nguyên. VN code có installer identity riêng, không chạy migration từ dữ liệu WCode. Authenticode và signed update manifest được
 bật khi các secret tương ứng đã cấu hình đầy đủ; thiếu cả nhóm secret không chặn build, nhưng cấu
 hình dở dang sẽ bị từ chối. Version duy nhất nằm trong `pom.xml`; tag phát hành phải khớp
 `vMAJOR.MINOR.PATCH`.

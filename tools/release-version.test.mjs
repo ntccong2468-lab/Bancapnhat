@@ -115,8 +115,10 @@ test("VN code has an independent Windows installer identity and tests coexistenc
   assert.ok(probe.includes('target\\jpackage-temp\\msi\\VN code-$Version.msi'),
     "select the delivered MSI payload, not WiX intermediate files");
   assert.match(probe, /RUNNER_ENVIRONMENT -cne 'github-hosted'/);
-  assert.match(probe, /releases\/download\/v1\.1\.9\/WCode\.msi/);
-  assert.match(probe, /654e71f4060475d3140210eab88a7d64c3904465c4ac8b602f41253ad8f07f11/);
+  assert.match(probe, /releases\/download\/v1\.1\.75\/WCode\.exe/);
+  assert.match(probe, /509e29e167b4731e8a387e4f9309cfb3779405ba84bd75c16ba9fd1ffab42cca/);
+  assert.match(probe, /5f109cb64afb6be8947a46238708c6e28e67dacdeb265ca5cb3189b30bb39a52/);
+  assert.match(probe, /EmbeddedMsi\]::Extract/);
   assert.match(probe, /WindowsDataProbe fresh/);
   assert.match(probe, /Invoke-Msi '\/x' \$MsiPath/);
   assert.match(probe, /Verify-WcodeUnchanged/);

@@ -29,7 +29,7 @@ không được dùng lại vì uninstaller đó xóa thư mục `%LOCALAPPDATA%
 
 Bản VN code 1.1.34 dùng upgrade UUID riêng `8CBBA0E2-6E73-4F56-9101-6BC0948D3C72`; không dùng lại identity WCode. Cài tại `%LOCALAPPDATA%\VNcodeApp`, dữ liệu riêng `%LOCALAPPDATA%\VNcodeData`, khởi tạo shop trống, dùng miễn phí và không cần giấy phép WCode. Không tự nhập bất kỳ dữ liệu hay backup WCode nào.
 
-Trên repository `ntccong2468-lab/Vncode`, workflow `build-java.yml` build EXE, chạy native migration fixture cô lập rồi cài MSI nhúng trong EXE song song với WCode 1.1.9 thật (checksum pin). Probe kiểm tra ProductName/Version/UpgradeCode, registration riêng, database trống, toàn vẹn dữ liệu WCode và gỡ VN code không ảnh hưởng WCode. Probe từ chối chạy trên máy người dùng hoặc thư mục ứng dụng đã có.
+Trên repository `ntccong2468-lab/Vncode`, workflow `build-java.yml` build EXE, chạy native migration fixture cô lập rồi cài MSI nhúng trong EXE song song với WCode 1.1.75 thật (EXE và MSI nhúng checksum pin). Probe kiểm tra ProductName/Version/UpgradeCode, registration riêng, database trống, toàn vẹn dữ liệu WCode và gỡ VN code không ảnh hưởng WCode. Probe từ chối chạy trên máy người dùng hoặc thư mục ứng dụng đã có.
 
 Sau khi CI thành công, tạo tag trên đúng commit được kiểm thử và một draft prerelease. Dispatch `release.yml` cùng input `windows_build_run_id`: publisher đối chiếu commit/tag, checksum, kiến trúc EXE, số kiểm thử, native history/snapshot và bằng chứng cài/gỡ song song trước khi phát hành. Workflow này dùng GITHUB_TOKEN trên runner, không yêu cầu RELEASE_TOKEN của upstream hoặc build macOS.
 

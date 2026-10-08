@@ -54,3 +54,5 @@
 Personal edition RED18: fixture confirmation stayed blocked and free sidebar status absent; GREEN18 after removal. Node subscription dependency contract RED, then all23 GREEN. Removed14 obsolete vendor licensing tests; final expected Java/FXML count551.
 
 Final local verification: Maven551 Java/FXML tests, Node23 contracts, no failures/errors/skips; packaged JAR contains no original licensing/report clients or server configuration. Windows native CI remains required.
+
+Native run37842327089 passed551 Java/FXML,23 Node, EXE packaging and native history/window proof. Coexistence stopped before installation because the upstream1.1.9 URL returned404. Replaced the retired fixture with the genuine1.1.75 EXE supplied by the user (SHA509e29...), extracting only its MSI resource with resource-only Win32 loading; embedded MSI SHA5f109c..., ProductVersion1.1.75, all-users ProgramFiles/WCodeApp verified by local read-only PE/MSI inspection. No original bytecode/installer modification. Repeat native CI before release.

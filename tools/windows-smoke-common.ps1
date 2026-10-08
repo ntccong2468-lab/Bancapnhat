@@ -7,6 +7,36 @@ using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Text;
 namespace VNcode.Smoke {
+    // Resource-only loading does not execute the original installer or its entry point.
+    public static class EmbeddedMsi {
+        [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+        private static extern IntPtr LoadLibraryEx(string path, IntPtr file, uint flags);
+        [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+        private static extern IntPtr FindResource(IntPtr module, string name, IntPtr type);
+        [DllImport("kernel32.dll", SetLastError = true)] private static extern IntPtr LoadResource(IntPtr module, IntPtr resource);
+        [DllImport("kernel32.dll")] private static extern IntPtr LockResource(IntPtr resource);
+        [DllImport("kernel32.dll", SetLastError = true)] private static extern uint SizeofResource(IntPtr module, IntPtr resource);
+        [DllImport("kernel32.dll")] private static extern bool FreeLibrary(IntPtr module);
+        public static void Extract(string executable, string destination) {
+            IntPtr module = LoadLibraryEx(executable, IntPtr.Zero, 0x2 | 0x20);
+            if (module == IntPtr.Zero) throw new InvalidOperationException("Cannot load installer resources.");
+            try {
+                IntPtr resource = FindResource(module, "MSI", new IntPtr(10));
+                if (resource == IntPtr.Zero) throw new InvalidOperationException("No embedded MSI resource.");
+                uint size = SizeofResource(module, resource);
+                if (size < 8 || size > int.MaxValue) throw new InvalidOperationException("Invalid embedded MSI size.");
+                IntPtr handle = LoadResource(module, resource);
+                IntPtr address = LockResource(handle);
+                if (handle == IntPtr.Zero || address == IntPtr.Zero) throw new InvalidOperationException("Cannot read MSI resource.");
+                byte[] data = new byte[(int)size];
+                Marshal.Copy(address, data, 0, data.Length);
+                byte[] magic = { 0xd0, 0xcf, 0x11, 0xe0, 0xa1, 0xb1, 0x1a, 0xe1 };
+                for (int i = 0; i < magic.Length; i++)
+                    if (data[i] != magic[i]) throw new InvalidOperationException("Invalid MSI compound-document header.");
+                System.IO.File.WriteAllBytes(destination, data);
+            } finally { FreeLibrary(module); }
+        }
+    }
     public static class VisibleWindows {
         private delegate bool WindowCallback(IntPtr window, IntPtr parameter);
         [DllImport("user32.dll")] private static extern bool EnumWindows(WindowCallback callback, IntPtr parameter);

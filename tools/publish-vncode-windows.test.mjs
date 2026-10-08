@@ -32,7 +32,7 @@ test('publication requires independent installation, empty data and WCode-safe u
   const {validateSideBySideSmoke}=await import('./publish-vncode-windows.mjs');
   assert.equal(typeof validateSideBySideSmoke,'function');
   const proof={appName:'VN code',version:'1.1.34',platform:'windows-x64',result:'passed',
-    wcodeVersion:'1.1.9',installerUpgradeUuid:'8CBBA0E2-6E73-4F56-9101-6BC0948D3C72',
+    wcodeVersion:'1.1.75',installerUpgradeUuid:'8CBBA0E2-6E73-4F56-9101-6BC0948D3C72',
     windowTitle:'VN code v1.1.34',independentRegistrations:true,freshVncodeData:true,
     wcodeFilesUnchanged:true,uninstallPreservesWcode:true,liveMarketplaceMutations:false};
   assert.doesNotThrow(()=>validateSideBySideSmoke(proof,'1.1.34'));

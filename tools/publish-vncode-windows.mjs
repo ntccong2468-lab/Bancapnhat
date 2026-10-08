@@ -23,7 +23,7 @@ export function validateNativeSmoke(smoke,version) {
 export function validateSideBySideSmoke(proof,version) {
   assert.equal(proof.appName,'VN code');assert.equal(proof.version,version);
   assert.equal(proof.platform,'windows-x64');assert.equal(proof.result,'passed');
-  assert.equal(proof.wcodeVersion,'1.1.9');assert.equal(proof.windowTitle,`VN code v${version}`);
+  assert.equal(proof.wcodeVersion,'1.1.75');assert.equal(proof.windowTitle,`VN code v${version}`);
   assert.equal(proof.installerUpgradeUuid,'8CBBA0E2-6E73-4F56-9101-6BC0948D3C72');
   for(const field of ['independentRegistrations','freshVncodeData','wcodeFilesUnchanged','uninstallPreservesWcode']) assert.equal(proof[field],true);
   assert.equal(proof.liveMarketplaceMutations,false);
@@ -82,7 +82,7 @@ async function main(runId) {
     `\n## Bộ cài và kiểm tra\n\nTải \`${name}\` bên dưới rồi chạy; Java đã được đóng gói kèm.\n\n`+
     `- 551 kiểm thử Java/JavaFX, 23 Node contracts qua trên Windows; 0 thất bại/lỗi/bỏ qua.\n`+
     `- Native Windows launcher và migration schema 3 → 4 giữ GTIN/feed/good ID/cờ WB; integrity/foreign keys và snapshot sạch.\n`+
-    `- Cài/gỡ VN code song song với WCode 1.1.9 thật; giữ nguyên executable, dữ liệu và registration của WCode; VN code bắt đầu trống.\n`+
+    `- Cài/gỡ VN code song song với WCode 1.1.75 thật; giữ nguyên executable, dữ liệu và registration của WCode; VN code bắt đầu trống.\n`+
     `- [CI Windows](${runUrl}), commit \`${sha}\`.\n`+
     `- SHA-256 EXE: \`${digest}\`.\n`+
     `- Đây là prerelease chưa ký Authenticode; tải/cài thủ công. Live GS1/CryptoPro/seller/máy in chưa nghiệm thu; thêm/thay GTIN production WB/Ozon vẫn bị khóa.\n`;

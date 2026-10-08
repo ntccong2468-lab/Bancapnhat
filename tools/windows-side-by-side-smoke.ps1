@@ -6,12 +6,13 @@ if ($env:GITHUB_ACTIONS -cne 'true' -or $env:RUNNER_OS -cne 'Windows' -or
     throw 'This installation probe requires a disposable GitHub-hosted Windows runner.'
 }
 . (Join-Path $PSScriptRoot 'windows-smoke-common.ps1')
+$oldProgram = Join-Path $env:ProgramFiles 'WCodeApp'
 $oldDirectory = Join-Path $env:LOCALAPPDATA 'WCode'
 $oldData = Join-Path $env:LOCALAPPDATA 'WCodeData'
 $newData = Join-Path $env:LOCALAPPDATA 'VNcodeData'
 $newProgram = Join-Path $env:LOCALAPPDATA 'VNcodeApp'
 $oldSystem = Join-Path $env:ProgramData 'WCode'
-foreach ($directory in @($oldDirectory, $oldData, $newData, $newProgram, $oldSystem)) {
+foreach ($directory in @($oldProgram, $oldDirectory, $oldData, $newData, $newProgram, $oldSystem)) {
     if (Test-Path $directory) { throw "Probe refuses to touch a pre-existing application directory: $directory" }
 }
 if (-not $MsiPath) {
@@ -22,11 +23,17 @@ if (-not $MsiPath) {
 $MsiPath = (Resolve-Path -LiteralPath $MsiPath).Path
 $probeRoot = Join-Path $env:RUNNER_TEMP ("vncode-coinstall-" + [guid]::NewGuid())
 New-Item -ItemType Directory -Force -Path $probeRoot | Out-Null
-$oldMsi = Join-Path $probeRoot 'WCode-1.1.9.msi'
-Invoke-WebRequest -Uri 'https://github.com/rupphi/relatest-wcode/releases/download/v1.1.9/WCode.msi' -OutFile $oldMsi
+$oldExe = Join-Path $probeRoot 'WCode-1.1.75.exe'
+$oldMsi = Join-Path $probeRoot 'WCode-1.1.75.msi'
+Invoke-WebRequest -Uri 'https://github.com/rupphi/relatest-wcode/releases/download/v1.1.75/WCode.exe' -OutFile $oldExe
+if ((Get-FileHash $oldExe -Algorithm SHA256).Hash.ToLowerInvariant() -cne
+    '509e29e167b4731e8a387e4f9309cfb3779405ba84bd75c16ba9fd1ffab42cca') {
+    throw 'Unexpected checksum for the real WCode 1.1.75 installer.'
+}
+[VNcode.Smoke.EmbeddedMsi]::Extract($oldExe, $oldMsi)
 if ((Get-FileHash $oldMsi -Algorithm SHA256).Hash.ToLowerInvariant() -cne
-    '654e71f4060475d3140210eab88a7d64c3904465c4ac8b602f41253ad8f07f11') {
-    throw 'Unexpected checksum for the real WCode 1.1.9 MSI.'
+    '5f109cb64afb6be8947a46238708c6e28e67dacdeb265ca5cb3189b30bb39a52') {
+    throw 'Unexpected checksum for the original embedded WCode 1.1.75 MSI.'
 }
 
 function Read-MsiProperty([string] $Package, [string] $Property) {
@@ -36,6 +43,8 @@ function Read-MsiProperty([string] $Package, [string] $Property) {
     try { $view.Execute(); $row = $view.Fetch(); if (-not $row) { throw "Missing MSI property: $Property" }; return $row.StringData(1) }
     finally { $view.Close() }
 }
+if ((Read-MsiProperty $oldMsi 'ProductName') -cne 'WCode' -or
+    (Read-MsiProperty $oldMsi 'ProductVersion') -cne '1.1.75') { throw 'Incorrect original WCode MSI identity.' }
 $upgrade = (Read-MsiProperty $MsiPath 'UpgradeCode').Trim('{}').ToUpperInvariant()
 if ($upgrade -cne '8CBBA0E2-6E73-4F56-9101-6BC0948D3C72' -or
     $upgrade -eq (Read-MsiProperty $oldMsi 'UpgradeCode').Trim('{}').ToUpperInvariant() -or
@@ -55,7 +64,7 @@ function Registrations([string] $Name) {
     return @(Get-ItemProperty $roots -ErrorAction SilentlyContinue | Where-Object DisplayName -CEQ $Name)
 }
 Invoke-Msi '/i' $oldMsi
-$oldExecutable = Join-Path $oldDirectory 'WCode.exe'
+$oldExecutable = Join-Path $oldProgram 'WCode.exe'
 if (-not (Test-Path $oldExecutable -PathType Leaf)) { throw 'The real WCode MSI did not install its native launcher.' }
 $classpath = "$PWD\target\VNcode-$Version.jar;$PWD\target\lib\*"
 & javac -cp $classpath -d $probeRoot tools\WindowsDataProbe.java
@@ -84,7 +93,7 @@ function Verify-WcodeUnchanged {
             (Get-FileHash $path -Algorithm SHA256).Hash -cne $before[$path]) { throw "WCode fixture changed: $path" }
     }
     $registrations = @(Registrations 'WCode')
-    if ($registrations.Count -ne 1 -or $registrations[0].DisplayVersion -cne '1.1.9') { throw 'WCode registration was replaced or removed.' }
+    if ($registrations.Count -ne 1 -or $registrations[0].DisplayVersion -cne '1.1.75') { throw 'WCode registration was replaced or removed.' }
 }
 $installed = $false
 $app = $null
@@ -115,7 +124,7 @@ try {
     New-Item -ItemType Directory -Force -Path out | Out-Null
     @{
         appName = 'VN code'; version = $Version; platform = 'windows-x64'; result = 'passed'
-        wcodeVersion = '1.1.9'; installerUpgradeUuid = $upgrade; windowTitle = $windowTitle
+        wcodeVersion = '1.1.75'; installerUpgradeUuid = $upgrade; windowTitle = $windowTitle
         independentRegistrations = $true; freshVncodeData = $true; wcodeFilesUnchanged = $true
         uninstallPreservesWcode = $true; liveMarketplaceMutations = $false
     } | ConvertTo-Json | Set-Content out\side-by-side-smoke.json -Encoding utf8
