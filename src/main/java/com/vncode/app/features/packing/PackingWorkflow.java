@@ -49,14 +49,13 @@ public class PackingWorkflow {
     public PackingBoard loadBoardData(Shop shop) {
         MarketplaceGuard.requireWildberries(shop);
         List<Order> newOrders = orderRepository.getOrdersForPackingStatus(shop.getId(), "new");
-        List<WbSupplySummary> allSupplies = supplyWorkflow.getSupplies(shop.getId());
-        List<WbSupplySummary> preparationSupplies = allSupplies.stream()
-                .filter(supply -> !supply.isDone())
-                .toList();
-        List<WbSupplySummary> dispatchSupplies = allSupplies.stream()
-                .filter(WbSupplySummary::isDone)
-                .toList();
+        List<WbSupplySummary> preparationSupplies = supplyRepository.getOpenSupplySummaries(shop.getId());
+        List<WbSupplySummary> dispatchSupplies = loadDispatchPage(shop,0).items();
         return new PackingBoard(newOrders, preparationSupplies, dispatchSupplies);
+    }
+
+    public WbSupplyRepository.SupplyPage loadDispatchPage(Shop shop,int offset){
+        MarketplaceGuard.requireWildberries(shop);return supplyRepository.findDispatchPage(shop.getId(),offset);
     }
 
     public void refreshBoardData(Shop shop) throws IOException {

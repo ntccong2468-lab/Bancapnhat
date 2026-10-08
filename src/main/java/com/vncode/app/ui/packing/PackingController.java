@@ -97,6 +97,9 @@ public class PackingController {
     @FXML private TableColumn<WbSupplySummary, Number> preparationCountTC;
     @FXML private TableColumn<WbSupplySummary, String> preparationCreatedTC;
     @FXML private TableView<WbSupplySummary> dispatchTable;
+    @FXML private javafx.scene.control.Button dispatchMoreButton;
+    private int dispatchOffset;
+    private boolean dispatchLoading;
     @FXML private TableColumn<WbSupplySummary, String> dispatchSupplyTC;
     @FXML private TableColumn<WbSupplySummary, String> dispatchStatusTC;
     @FXML private TableColumn<WbSupplySummary, Number> dispatchCountTC;
@@ -144,6 +147,19 @@ public class PackingController {
         } else {
             refresh();
         }
+    }
+
+    @FXML private void onLoadMoreDispatch() {
+        if(shop==null||dispatchLoading)return;Shop owner=shop;long generation=shopGeneration;int offset=dispatchOffset;
+        dispatchLoading=true;dispatchMoreButton.setDisable(true);
+        Task<com.vncode.app.integration.wb.WbSupplyRepository.SupplyPage> task=new Task<>(){
+            protected com.vncode.app.integration.wb.WbSupplyRepository.SupplyPage call(){return packingWorkflow.loadDispatchPage(owner,offset);}
+        };
+        task.setOnSucceeded(e->{if(!isCurrent(owner,generation))return;dispatchLoading=false;
+            dispatchTable.getItems().addAll(task.getValue().items());dispatchOffset+=task.getValue().items().size();
+            dispatchMoreButton.setDisable(dispatchOffset>=task.getValue().totalItems());});
+        task.setOnFailed(e->{if(!isCurrent(owner,generation))return;dispatchLoading=false;dispatchMoreButton.setDisable(false);AlertService.showError(FriendlyErrorService.format(task.getException()));});
+        AppTaskExecutor.execute(task);
     }
 
     @FXML
@@ -324,12 +340,15 @@ public class PackingController {
         applyNewOrderFilters();
         preparationTable.getItems().setAll(board.preparationSupplies());
         dispatchTable.getItems().setAll(board.dispatchSupplies());
+        dispatchOffset=board.dispatchSupplies().size();dispatchLoading=false;
+        dispatchMoreButton.setDisable(shop==null||board.dispatchSupplies().size()<20);
         updateSelectionState();
     }
 
     public void applyTranslations() {
         I18nService i18n = I18nService.getInstance();
         titleLabel.setText(i18n.tr("packing.title"));
+        dispatchMoreButton.setText(i18n.tr("news.more"));
         refreshButton.setText(i18n.tr("packing.refresh"));
         newOrdersTab.setText(i18n.tr("packing.tab.new"));
         preparationTab.setText(i18n.tr("packing.tab.preparation"));

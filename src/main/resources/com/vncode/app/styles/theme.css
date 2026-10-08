@@ -73,18 +73,18 @@
 }
 
 .root.theme-light {
-    -bg-primary: #F2F4F7;      /* Soft light grey background */
+    -bg-primary: #F7F5FA;      /* Soft light grey background */
     -bg-secondary: #FFFFFF;    /* Pure white cards/tables (matches Wildberries) */
     -bg-tertiary: #FFFFFF;     /* White/light panel background */
     -bg-odd-row: #F9FAFB;      /* Light grey alternating row (matches Wildberries) */
     -border-color: #E5E7EB;    /* Light grey border */
     -border-color-hover: #D1D5DB;
 
-    -text-primary: #111827;    /* Charcoal text (matches Wildberries) */
+    -text-primary: #24212B;    /* Charcoal text (matches Wildberries) */
     -text-secondary: #374151;  /* Slate text */
     -text-muted: #6B7280;      /* Grey text */
 
-    -accent: #9a41fe;          /* Wildberries purple/violet accent */
+    -accent: #8B2EC5;          /* VN code light theme */
     -accent-hover: #9941fef6;
     -accent-active: #963bfd;
     -accent-transparent: rgba(139, 92, 246, 0.12);
@@ -1093,3 +1093,8 @@
     -fx-background-color: #7F1D1D;
     -fx-text-fill: #FCA5A5;
 }
+
+/* VN code 1.2.0: clear control boundaries across tables and dialogs. */
+.button, .combo-box-base, .tab { -fx-background-radius: 6; }
+.button:focused, .combo-box-base:focused { -fx-border-color: -accent; -fx-border-radius: 6; }
+.menu-item .check-box { -fx-padding: 6 10 6 8; -fx-min-height: 30; }

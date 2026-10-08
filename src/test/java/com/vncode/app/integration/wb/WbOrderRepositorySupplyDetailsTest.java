@@ -29,6 +29,20 @@ class WbOrderRepositorySupplyDetailsTest {
     }
 
     @Test
+    void dispatchPagesContainTwentyNonemptySuppliesAndKeepUnknownCounts() throws Exception {
+        System.setProperty("vncode.appdata.dir",tempDir.toString());Database.initDatabase();
+        try(var c=Database.getConnection();var st=c.createStatement()) {
+            st.execute("INSERT INTO shops(id,name,api_key) VALUES(1,'Shop','fixture'),(2,'Other','fixture')");
+            for(int i=0;i<25;i++)st.execute("INSERT INTO wb_supplies(shop_id,supply_id,name,done,order_count,created_at,synced_at) VALUES(1,'S"+i+"','s',1,2,'now','now')");
+            st.execute("INSERT INTO wb_supplies(shop_id,supply_id,name,done,order_count,created_at,synced_at) VALUES(1,'EMPTY','e',1,0,'now','now'),(1,'UNKNOWN','u',1,NULL,'now','now'),(2,'OTHER','o',1,2,'now','now')");
+        }
+        var repo=new WbSupplyRepository();var first=repo.findDispatchPage(1,0);var second=repo.findDispatchPage(1,20);
+        assertEquals(20,first.items().size());assertEquals(6,second.items().size());assertEquals(26,first.totalItems());
+        var ids=java.util.stream.Stream.concat(first.items().stream(),second.items().stream()).map(WbSupplySummary::getSupplyId).toList();
+        assertFalse(ids.contains("EMPTY"));assertFalse(ids.contains("OTHER"));assertTrue(ids.contains("UNKNOWN"));assertEquals(26,new java.util.HashSet<>(ids).size());
+    }
+
+    @Test
     void shouldResolveSupplyProductInfoFromSkuWhenOrderMetadataIsMissing() throws Exception {
         System.setProperty("vncode.appdata.dir", tempDir.toString());
         Database.initDatabase();

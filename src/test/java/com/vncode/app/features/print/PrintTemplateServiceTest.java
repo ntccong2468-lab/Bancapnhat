@@ -56,7 +56,7 @@ class PrintTemplateServiceTest {
         assertSameLayout(type(fbs, PrintElementType.STICKER_TAIL), type(fbo, PrintElementType.STICKER_TAIL));
 
         PrintTemplateElement brand = field(fbs, PrintFieldKey.BRAND);
-        assertEquals(9f, brand.getFontSize());
+        assertEquals(10f, brand.getFontSize());
         assertTrue(brand.isBold());
         assertEquals(PrintTextAlign.CENTER, brand.getAlign());
         assertTrue(field(fbs, PrintFieldKey.SUBJECT_NAME).isBold());
@@ -164,7 +164,7 @@ class PrintTemplateServiceTest {
     }
 
     @Test
-    void shouldUpgradeOldFbsStickerTailDefaultAfterReload() {
+    void shouldPreserveOldFbsStickerTailDefaultDuringUpdate() {
         System.setProperty("vncode.appdata.dir", tempDir.toString());
         Database.initDatabase();
         PrintTemplateService templateService = new PrintTemplateService();
@@ -176,9 +176,9 @@ class PrintTemplateServiceTest {
         PrintTemplate reloaded = new PrintTemplateService().getDefaultTemplate();
 
         PrintTemplateElement stickerTail = type(reloaded, PrintElementType.STICKER_TAIL);
-        assertEquals(133, stickerTail.getX(), 0.01d);
-        assertEquals(24, stickerTail.getWidth(), 0.01d);
-        assertEquals(PrintTextAlign.LEFT, stickerTail.getAlign());
+        assertEquals(PrintTemplateService.mm(49), stickerTail.getX(), 0.01d);
+        assertEquals(PrintTemplateService.mm(6), stickerTail.getWidth(), 0.01d);
+        assertEquals(PrintTextAlign.RIGHT, stickerTail.getAlign());
     }
 
     @Test
@@ -198,7 +198,7 @@ class PrintTemplateServiceTest {
     }
 
     @Test
-    void shouldUpgradeOldFboStickerTailDefaultAfterReload() {
+    void shouldPreserveOldFboStickerTailDefaultDuringUpdate() {
         System.setProperty("vncode.appdata.dir", tempDir.toString());
         Database.initDatabase();
         FboPrintTemplateService templateService = new FboPrintTemplateService();
@@ -210,9 +210,9 @@ class PrintTemplateServiceTest {
         PrintTemplate reloaded = new FboPrintTemplateService().getDefaultTemplate();
 
         PrintTemplateElement stickerTail = type(reloaded, PrintElementType.STICKER_TAIL);
-        assertEquals(133, stickerTail.getX(), 0.01d);
-        assertEquals(24, stickerTail.getWidth(), 0.01d);
-        assertEquals(PrintTextAlign.LEFT, stickerTail.getAlign());
+        assertEquals(PrintTemplateService.mm(49), stickerTail.getX(), 0.01d);
+        assertEquals(PrintTemplateService.mm(6), stickerTail.getWidth(), 0.01d);
+        assertEquals(PrintTextAlign.RIGHT, stickerTail.getAlign());
     }
 
     private static PrintTemplateElement field(PrintTemplate template, PrintFieldKey key) {

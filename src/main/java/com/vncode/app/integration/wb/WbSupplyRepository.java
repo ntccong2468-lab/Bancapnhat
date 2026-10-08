@@ -94,6 +94,10 @@ public class WbSupplyRepository {
     }
 
     public List<WbSupplySummary> getSupplySummaries(int shopId) {
+        return getSupplySummaries(shopId,false);
+    }
+    public List<WbSupplySummary> getOpenSupplySummaries(int shopId){return getSupplySummaries(shopId,true);}
+    private List<WbSupplySummary> getSupplySummaries(int shopId,boolean openOnly) {
         List<WbSupplySummary> supplies = new ArrayList<>();
         String sql = """
                 SELECT s.supply_id,
@@ -109,8 +113,9 @@ public class WbSupplyRepository {
                        ), 0), s.order_count, 0) AS item_count
                 FROM wb_supplies s
                 WHERE s.shop_id = ?
+                %s
                 ORDER BY s.done ASC, s.created_at DESC, s.supply_id DESC
-                """;
+                """.formatted(openOnly?"AND COALESCE(s.done,0)=0":"");
         try (Connection conn = Database.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, shopId);
@@ -164,6 +169,10 @@ public class WbSupplyRepository {
 
     public SupplyPage findSupplyPage(
             int shopId, String query, Boolean done, int limit, int offset) {
+        return findSupplyPageInternal(shopId,query,done,limit,offset,false);
+    }
+    public SupplyPage findDispatchPage(int shopId,int offset){return findSupplyPageInternal(shopId,"",true,20,offset,true);}
+    private SupplyPage findSupplyPageInternal(int shopId,String query,Boolean done,int limit,int offset,boolean nonempty){
         if (shopId <= 0 || query == null || limit <= 0 || limit > 100 || offset < 0) {
             throw new IllegalArgumentException("Invalid supply page request");
         }
@@ -174,6 +183,7 @@ public class WbSupplyRepository {
                     OR LOWER(COALESCE(s.name, '')) LIKE ? ESCAPE '\\'
                 )
                 """;
+        if(nonempty)searchClause += " AND (s.order_count IS NULL OR s.order_count > 0 OR EXISTS (SELECT 1 FROM wb_supply_orders so WHERE so.shop_id=s.shop_id AND so.supply_id=s.supply_id)) ";
         String statusClause = done == null ? "" : "AND COALESCE(s.done, 0) = ?";
         String countSql = """
                 SELECT COALESCE(SUM(CASE WHEN COALESCE(s.done, 0) = 0 THEN 1 ELSE 0 END), 0) AS open_items,

@@ -212,6 +212,11 @@ public class WbApiClient {
     }
 
     private <T> T execute(String apiKey, Request request, Class<T> type) throws IOException {
+        if("GET".equals(request.method()))return new com.vncode.app.shared.ReadRetry().read(() -> executeOnce(apiKey,request,type));
+        return executeOnce(apiKey,request,type);
+    }
+
+    private <T> T executeOnce(String apiKey, Request request, Class<T> type) throws IOException {
         if (isContentApi(request.url())) {
             WbContentApiRateLimiter.awaitTurn(apiKey);
         } else if (isMarketplaceApi(request.url())) {

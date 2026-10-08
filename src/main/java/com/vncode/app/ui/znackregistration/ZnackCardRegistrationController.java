@@ -243,8 +243,10 @@ public final class ZnackCardRegistrationController {
 
     private void buildSubjectMenu(List<String> subjects) {
         VBox box = new VBox(4);
+        box.setPadding(new javafx.geometry.Insets(8));
         for (String subject : subjects) {
             CheckBox check = new CheckBox(subject);
+            check.setMinHeight(30);
             check.setMaxWidth(Double.MAX_VALUE);
             check.selectedProperty().addListener((obs, old, selected) -> {
                 if (selected) selectedSubjects.add(subject); else selectedSubjects.remove(subject);
