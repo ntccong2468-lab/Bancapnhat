@@ -4,6 +4,8 @@ Repository này phát triển **bản cập nhật VN code 1.2.0** trên nhánh 
 Bản cập nhật giữ cùng định danh bộ cài và dữ liệu VN code 1.1.34; không tạo thêm ứng dụng VN code và không thay đổi repository Vncode gốc.
 Chức năng 1.2.0 chưa hoàn tất và chưa phát hành bộ cài cuối. Xem [trạng thái](docs/releases/VN-code-1.2.0-status.json) và [bằng chứng API](docs/releases/VN-code-1.2.0-api-evidence.md).
 
+[Mô tả bản cập nhật mới nhất](docs/releases/VN-code-1.2.0.md), đối chiếu WCode/Wbcode 1.2.0 ngày 09/10/2026, phân biệt các phần đã triển khai và đang phát triển. Thiết kế module TN VED EAEU đã được người dùng duyệt; chưa triển khai module.
+
 VN code là ứng dụng desktop JavaFX cho người bán **Wildberries** và **Ozon FBS**.
 
 - Quản lý nhiều shop theo marketplace, không dùng nhầm credential giữa WB và Ozon.
