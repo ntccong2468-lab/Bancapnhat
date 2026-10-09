@@ -31,4 +31,17 @@ Xem [trạng thái đầy đủ](VN-code-1.2.2-status.json). FBO trong Preview v
 
 ## Kiểm tra và phát hành
 
-Đang kiểm tra bộ cài đúng commit trên Windows. Preview cài thủ công, Java được đóng gói; chưa ký Authenticode và chưa có signed update manifest/tự cập nhật.
+[Tải VN code 1.2.2 Preview — Windows x64](https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.2.2-preview.1/VN-code-1.2.2-preview.1-Windows-x64.exe), [Release và checksum](https://github.com/ntccong2468-lab/Bancapnhat/releases/tag/v1.2.2-preview.1).
+
+Đóng VN code trước khi chạy EXE. Preview cài thủ công, Java được đóng gói; chưa ký Authenticode và chưa có signed update manifest/tự cập nhật.
+
+[CI Windows](https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/37984754861) đạt **607 kiểm thử Java/JavaFX và 31 kiểm thử Node**, không lỗi hoặc bỏ qua. Source bộ cài đúng commit `d17ced942afd4231ca6821013c34e0e1ee11e11c`.
+
+- EXE mở đúng cửa sổ VN code v1.2.2; migration schema 3→4 giữ lịch sử, snapshot phục hồi được xác minh.
+- Cài/gỡ cạnh WCode 1.1.75 thật giữ nguyên chương trình và dữ liệu WCode.
+- Nâng cấp từ VN code 1.1.34, 1.2.0 Preview và 1.2.1 Preview giữ dữ liệu/template, chỉ có một registration VN code.
+- Kiểm thử hồi quy xác minh yêu cầu in khi đang tải, hủy khi lỗi/đổi ngữ cảnh, chống preflight trùng và hộp thoại shop cũ.
+
+[Báo cáo](../validation/vn-code-1.2.2/local-verification.json), [launcher](../validation/vn-code-1.2.2/native-smoke.json), [cài cạnh WCode](../validation/vn-code-1.2.2/side-by-side-smoke.json), [upgrade 1.1.34](../validation/vn-code-1.2.2/upgrade-smoke.json), [upgrade 1.2.0](../validation/vn-code-1.2.2/upgrade-preview-smoke.json), [upgrade 1.2.1](../validation/vn-code-1.2.2/upgrade-latest-preview-smoke.json).
+
+SHA-256 bộ cài: `4ef4b3881337f1414d684d0be0ced9b8543be6bf114031ec31e5c83227d93541` (141.094.400 byte). Chưa nghiệm thu với shop hoặc máy in thật.

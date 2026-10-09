@@ -12,7 +12,24 @@
     "node --test tools/*.test.mjs"
   ],
   "powerShellParse": "passed",
-  "windowsInstallerVerification": "pending exact-commit CI",
+  "windowsInstallerVerification": {
+    "result": "passed",
+    "runId": 37984754861,
+    "url": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/37984754861",
+    "sourceCommit": "d17ced942afd4231ca6821013c34e0e1ee11e11c",
+    "javaTests": 607,
+    "nodeTests": 31,
+    "installerSha256": "4ef4b3881337f1414d684d0be0ced9b8543be6bf114031ec31e5c83227d93541",
+    "installerBytes": 141094400,
+    "authenticodeSigned": false,
+    "upgradesFrom": [
+      "1.1.34",
+      "1.2.0",
+      "1.2.1"
+    ],
+    "nativeSmoke": "passed",
+    "coexistenceAndUninstall": "passed"
+  },
   "upstreamObservation": {
     "version": "1.3.1",
     "runId": 37983187676,
@@ -49,5 +66,19 @@
       "decision": "Publish Preview, retain FBO barcode behavior until GTIN recognition rules are verified",
       "costIfWrong": "FBO GTIN, GS1/signing and KIZ purchase-stage-report parity is incomplete"
     }
-  ]
+  ],
+  "sourceCommit": "d17ced942afd4231ca6821013c34e0e1ee11e11c",
+  "publication": {
+    "tag": "v1.2.2-preview.1",
+    "releaseUrl": "https://github.com/ntccong2468-lab/Bancapnhat/releases/tag/v1.2.2-preview.1",
+    "publishedAt": "2026-10-09T20:16:34Z",
+    "runId": 37985811718,
+    "workflowUrl": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/37985811718",
+    "prerelease": true,
+    "draft": false,
+    "downloadedAssetsVerified": 10,
+    "downloadedInstallerSha256Verified": true,
+    "signedUpdateManifestPublished": false,
+    "automaticUpdateEnabledForThisPreview": false
+  }
 }

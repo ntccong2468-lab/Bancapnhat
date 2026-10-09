@@ -1,0 +1,12 @@
+{
+  "version": "1.2.2",
+  "singleRegistration": true,
+  "liveMarketplaceMutations": false,
+  "fingerprint": "9423a46a2de9f02a0db6da09798e6c0b4ca672be2ffda62684b559bb5a09301c",
+  "appName": "VN code",
+  "fromVersion": "1.1.34",
+  "windowTitle": "VN code v1.2.2",
+  "result": "passed",
+  "dataPreserved": true,
+  "installerUpgradeUuid": "8CBBA0E2-6E73-4F56-9101-6BC0948D3C72"
+}
