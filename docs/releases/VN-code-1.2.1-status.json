@@ -14,6 +14,7 @@
     "Sửa điều hướng trang Tin tức/TN VED; trạng thái KIZ không che lỗi bằng nhãn màu xanh.",
     "Thêm Hướng dẫn VN code, thiết lập WB/Ozon, GTIN/KIZ và nâng cấp; nút trợ giúp mở đúng trang.",
     "Sửa chiều cao thẻ Dashboard/tin tức và giữ cột barcode/giá truy cập được khi mở kho GTIN ở cửa sổ nhỏ.",
-    "Dashboard và hướng dẫn luôn hiện khi chưa có shop; không giữ trang theo shop sau khi ngữ cảnh shop bị xóa."
+    "Dashboard và hướng dẫn luôn hiện khi chưa có shop; không giữ trang theo shop sau khi ngữ cảnh shop bị xóa.",
+    "TN VED: tải danh mục nền không ghi đè truy vấn và các trang kết quả người dùng vừa chọn."
   ]
 }

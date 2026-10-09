@@ -16,6 +16,7 @@ Bộ cài Windows chính thức 1.3.0 đã được kiểm tra SHA-256 và mở 
 | Supply WB theo ảnh đã duyệt | Sáu cột, WB barcode/GTIN riêng, ảnh 45×60, trạng thái gán KIZ và lỗi rõ ràng |
 | Hướng dẫn mới trong 1.3.0 | Hướng dẫn thiết lập VN code, WB/Ozon, nhãn, GTIN/KIZ và nâng cấp; nội dung chữ Việt/Nga/Anh/Trung |
 | Cửa sổ nhỏ/toolbar | Sửa đo chiều cao thẻ, cho khung chính co giãn, cuộn ngang bảng khi mở kho GTIN |
+| TN VED tải chậm | Giữ truy vấn đã gửi và các trang kết quả; không cho tác vụ khởi tạo nền ghi đè thao tác mới |
 | Tự đồng bộ đơn WB khi vào tab/đổi shop | Giữ luồng tự đồng bộ có sẵn và kiểm tra quyền theo shop |
 | GS1 RUS/thư/hoá đơn/đơn gia nhập và thay đổi ký số 1.3.0 | Chưa triển khai: cần hợp đồng API/luồng được xác minh |
 | Mua/kích hoạt license WCode | VN code vẫn là app cá nhân miễn phí theo yêu cầu chủ dự án |

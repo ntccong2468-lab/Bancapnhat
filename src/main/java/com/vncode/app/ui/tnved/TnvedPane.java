@@ -58,7 +58,12 @@ public final class TnvedPane extends BorderPane {
         widthProperty().addListener((o,a,b)->split.setOrientation(b.doubleValue()>0&&b.doubleValue()<850?javafx.geometry.Orientation.VERTICAL:javafx.geometry.Orientation.HORIZONTAL));
         more.setOnAction(e->search(false));importButton.setOnAction(e->chooseImport());backupButton.setOnAction(e->backup());refresh();
     }
-    public void refresh(){long epoch=++treeEpoch;background(()->{catalog.initialize();return catalog.children(null);},nodes->{if(epoch==treeEpoch){setRoots(nodes);search(true);}});}
+    public void refresh(){
+        long epoch=++treeEpoch,searchAtStart=searchEpoch;
+        background(()->{catalog.initialize();return catalog.children(null);},nodes->{
+            if(epoch==treeEpoch){setRoots(nodes);if(searchEpoch==searchAtStart)search(true);}
+        });
+    }
     public void setRoots(List<Node> nodes){displayedNode=null;detail.clear();var root=new TreeItem<Node>();for(var node:nodes)root.getChildren().add(branch(node));tree.setRoot(root);status.setText("21 phần gốc; mã chi tiết cần nhập từ danh mục có nguồn xác minh.");}
     private TreeItem<Node> branch(Node node) {
         var item=new TreeItem<>(node);

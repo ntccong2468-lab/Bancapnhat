@@ -26,5 +26,7 @@
       "reason": "Public source stops at 1.1.32 and authenticated 1.3.0 workflows were not verified",
       "costIfWrong": "GS1 delivery remains incomplete"
     }
-  ]
+  ],
+  "regressionFixed": "Delayed TN VED initial refresh cannot replace the submitted search or pagination; deterministic RED-to-GREEN regression verified",
+  "failedWindowsRun": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/37975644089"
 }

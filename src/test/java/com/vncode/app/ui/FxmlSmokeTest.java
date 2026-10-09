@@ -203,20 +203,34 @@ class FxmlSmokeTest {
         for(int i=0;i<110;i++)nodes.add(new com.vncode.app.features.tnved.TnvedModels.Node(String.format("01%08d",i),"01","LEAF","I","AlphaFixture","Thử nghiệm","","",true,true,date,null,source));
         c.importVersion(new com.vncode.app.features.tnved.TnvedModels.Version("pages-fixture",source,date),nodes,true);
         var holder=new java.util.concurrent.atomic.AtomicReference<com.vncode.app.ui.tnved.TnvedPane>();
-        var create=new java.util.concurrent.FutureTask<Void>(() -> {holder.set(new com.vncode.app.ui.tnved.TnvedPane(c));return null;});Platform.runLater(create);create.get(10,TimeUnit.SECONDS);
-        CountDownLatch first=new CountDownLatch(1),second=new CountDownLatch(1);
-        var search=new java.util.concurrent.FutureTask<Void>(() -> {
-            var pane=holder.get();var field=pane.getClass().getDeclaredField("query");field.setAccessible(true);var query=(TextField)field.get(pane);
-            var tf=pane.getClass().getDeclaredField("results");tf.setAccessible(true);var table=(TableView<?>)tf.get(pane);
-            table.getItems().addListener((javafx.collections.ListChangeListener<Object>)change->{if(table.getItems().size()==100)first.countDown();});
-            query.setText("AlphaFixture");query.fireEvent(new javafx.event.ActionEvent());return null;
-        });Platform.runLater(search);search.get(10,TimeUnit.SECONDS);assertTrue(first.await(10,TimeUnit.SECONDS));
-        var more=new java.util.concurrent.FutureTask<Void>(() -> {
-            var pane=holder.get();var field=pane.getClass().getDeclaredField("query");field.setAccessible(true);((TextField)field.get(pane)).setText("NotSubmittedFixture");
-            var tf=pane.getClass().getDeclaredField("results");tf.setAccessible(true);var table=(TableView<?>)tf.get(pane);
-            table.getItems().addListener((javafx.collections.ListChangeListener<Object>)change->{if(table.getItems().size()==110)second.countDown();});
-            var button=pane.getClass().getDeclaredField("more");button.setAccessible(true);((Button)button.get(pane)).fire();return null;
-        });Platform.runLater(more);more.get(10,TimeUnit.SECONDS);assertTrue(second.await(3,TimeUnit.SECONDS),"More must append the remaining ten Alpha rows, preserving the submitted query");
+        CountDownLatch first=new CountDownLatch(1),second=new CountDownLatch(1),initialRefresh=new CountDownLatch(1);
+        // initialize() synchronizes on the catalog, but searches do not. Hold the initial
+        // refresh until the user has searched and paginated, reproducing a slow Windows load.
+        synchronized(c) {
+            var create=new java.util.concurrent.FutureTask<Void>(() -> {
+                var pane=new com.vncode.app.ui.tnved.TnvedPane(c);holder.set(pane);
+                var field=pane.getClass().getDeclaredField("tree");field.setAccessible(true);
+                ((javafx.scene.control.TreeView<?>)field.get(pane)).rootProperty().addListener((o,a,b)->initialRefresh.countDown());return null;
+            });Platform.runLater(create);create.get(10,TimeUnit.SECONDS);
+            var search=new java.util.concurrent.FutureTask<Void>(() -> {
+                var pane=holder.get();var field=pane.getClass().getDeclaredField("query");field.setAccessible(true);var query=(TextField)field.get(pane);
+                var tf=pane.getClass().getDeclaredField("results");tf.setAccessible(true);var table=(TableView<?>)tf.get(pane);
+                table.getItems().addListener((javafx.collections.ListChangeListener<Object>)change->{if(table.getItems().size()==100)first.countDown();});
+                query.setText("AlphaFixture");query.fireEvent(new javafx.event.ActionEvent());return null;
+            });Platform.runLater(search);search.get(10,TimeUnit.SECONDS);assertTrue(first.await(10,TimeUnit.SECONDS));
+            var more=new java.util.concurrent.FutureTask<Void>(() -> {
+                var pane=holder.get();var field=pane.getClass().getDeclaredField("query");field.setAccessible(true);((TextField)field.get(pane)).setText("NotSubmittedFixture");
+                var tf=pane.getClass().getDeclaredField("results");tf.setAccessible(true);var table=(TableView<?>)tf.get(pane);
+                table.getItems().addListener((javafx.collections.ListChangeListener<Object>)change->{if(table.getItems().size()==110)second.countDown();});
+                var button=pane.getClass().getDeclaredField("more");button.setAccessible(true);((Button)button.get(pane)).fire();return null;
+            });Platform.runLater(more);more.get(10,TimeUnit.SECONDS);assertTrue(second.await(10,TimeUnit.SECONDS),"More must append the remaining ten Alpha rows, preserving the submitted query");
+        }
+        assertTrue(initialRefresh.await(10,TimeUnit.SECONDS),"The delayed initial catalog refresh must finish");
+        var verify=new java.util.concurrent.FutureTask<Void>(() -> {
+            var pane=holder.get();var tf=pane.getClass().getDeclaredField("results");tf.setAccessible(true);
+            assertEquals(110,((TableView<?>)tf.get(pane)).getItems().size(),"Initial catalog refresh must preserve the user's submitted search and pages");
+            assertEquals(21,pane.rootCount());return null;
+        });Platform.runLater(verify);verify.get(10,TimeUnit.SECONDS);
     }
     @Test void tnvedModuleHasNavigationAndShowsVerifiedRootSections() throws Exception {
         var catalog=new com.vncode.app.features.tnved.TnvedCatalog(appDataDir.resolve("tnved-ui-fixture.sqlite"));
