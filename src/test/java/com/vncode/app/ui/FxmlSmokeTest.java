@@ -290,6 +290,14 @@ class FxmlSmokeTest {
         System.clearProperty("vncode.appdata.dir");
     }
 
+    @Test void homeSmokeLoaderReleasesLanguageSubscriptions() throws Exception {
+        var listeners=I18nService.class.getDeclaredField("listeners");listeners.setAccessible(true);
+        int before=((java.util.List<?>)listeners.get(I18nService.getInstance())).size();
+        assertLoads(HomeController.class,"home-view.fxml");
+        assertEquals(before,((java.util.List<?>)listeners.get(I18nService.getInstance())).size(),
+                "A smoke-loaded Home must not receive later fixture language changes or launch database tasks after cleanup");
+    }
+
     @Test
     void shouldLoadAllPrimaryViews() throws Exception {
         assertLoads(com.vncode.app.ui.gtinsync.GtinSyncController.class, "gtin-sync-view.fxml");
@@ -852,6 +860,7 @@ class FxmlSmokeTest {
                 FXMLLoader loader = FxmlViewLoader.loader(resourceOwner, resourceName);
                 Object root = FxmlViewLoader.load(loader);
                 assertNotNull(root);
+                if (loader.getController() instanceof HomeController home) home.dispose();
                 loaded.set(true);
             } catch (Throwable ex) {
                 failed.set(true);

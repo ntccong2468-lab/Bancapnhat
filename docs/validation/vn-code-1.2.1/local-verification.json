@@ -1,7 +1,7 @@
 {
   "version": "1.2.1",
   "command": "DISPLAY=:99 /workspace/wcode-setup/mvn-bancapnhat clean verify",
-  "javaTests": 600,
+  "javaTests": 601,
   "javaFailures": 0,
   "javaErrors": 0,
   "javaSkipped": 0,
@@ -30,7 +30,9 @@
   "regressionFixed": "Delayed TN VED initial refresh cannot replace the submitted search or pagination; deterministic RED-to-GREEN regression verified",
   "failedWindowsRuns": [
     "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/37975644089",
-    "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/37976993400"
+    "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/37976993400",
+    "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/37978228917"
   ],
-  "upgradeProbeFix": "Preserve the preceding baseline fixture, let the old Preview launcher create its own fresh database, then validate before seeding; no production app changes"
+  "upgradeProbeFix": "Preserve the preceding baseline fixture, let the old Preview launcher create its own fresh database, then validate before seeding; no production app changes",
+  "smokeFixtureLifecycleFix": "Dispose smoke-loaded HomeController so later locale changes cannot enqueue inventory/database work after temporary appdata cleanup; listener-retention regression RED-to-GREEN"
 }
