@@ -28,5 +28,9 @@
     }
   ],
   "regressionFixed": "Delayed TN VED initial refresh cannot replace the submitted search or pagination; deterministic RED-to-GREEN regression verified",
-  "failedWindowsRun": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/37975644089"
+  "failedWindowsRuns": [
+    "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/37975644089",
+    "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/37976993400"
+  ],
+  "upgradeProbeFix": "Preserve the preceding baseline fixture, let the old Preview launcher create its own fresh database, then validate before seeding; no production app changes"
 }

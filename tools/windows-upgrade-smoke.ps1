@@ -21,9 +21,11 @@ if($FromPreview){
     $fingerprint=& java --enable-native-access=ALL-UNNAMED -cp $probeClasspath WindowsUpgradeDataProbe fingerprint $data
     if($LASTEXITCODE -ne 0 -or $fingerprint -cne $previous.fingerprint){throw 'Unexpected fixture data before preview upgrade.'}
     Move-Item -LiteralPath $data -Destination (Join-Path $root 'preserved-baseline-fixture')
+    if(Test-Path $data){throw 'Preview upgrade requires a fresh data directory after preserving the baseline fixture.'}
+}else{
+    & java --enable-native-access=ALL-UNNAMED -cp $probeClasspath WindowsDataProbe fresh $data
+    if ($LASTEXITCODE -ne 0) { throw 'Previous CI data is not the expected empty fixture.' }
 }
-& java --enable-native-access=ALL-UNNAMED -cp $probeClasspath WindowsDataProbe fresh $data
-if ($LASTEXITCODE -ne 0) { throw 'Previous CI data is not the expected empty fixture.' }
 $fromVersion=if($FromPreview){'1.2.0'}else{'1.1.34'}
 $oldExe=Join-Path $root "VN-code-$fromVersion.exe";$oldMsi=Join-Path $root "VN-code-$fromVersion.msi"
 $baselineUrl=if($FromPreview){'https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.2.0-preview.1/VN-code-1.2.0-preview.1-Windows-x64.exe'}else{'https://github.com/ntccong2468-lab/Vncode/releases/download/v1.1.34/VN-code-1.1.34-Windows-x64.exe'}
@@ -51,6 +53,8 @@ try{
     $app=Start-Process $launcher -PassThru
     [void](Wait-VncodeWindow -Process $app -Version $fromVersion)
     Stop-Process -Id $app.Id -Force;$app.WaitForExit();$app=$null
+    & java --enable-native-access=ALL-UNNAMED -cp $probeClasspath WindowsDataProbe fresh $data
+    if($LASTEXITCODE -ne 0){throw 'The baseline launcher did not create the expected empty upgrade fixture.'}
     $baselineClasspath="$root;$program\app\*;$program\app\lib\*"
     & java --enable-native-access=ALL-UNNAMED -cp $baselineClasspath WindowsUpgradeDataProbe seed $data
     if($LASTEXITCODE -ne 0){throw 'Cannot seed upgrade fixture.'}
