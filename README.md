@@ -16,7 +16,7 @@ VN code là ứng dụng desktop JavaFX cho người bán **Wildberries** và **
 - Lưu lịch sử in, template và dữ liệu cục bộ trong SQLite.
 
 Dự án: https://github.com/ntccong2468-lab/Vncode.
-Mã nguồn gốc WCode do Nguyễn Anh Tuấn / TuanDev phát triển; VN code là bản fork tùy chỉnh.
+Do Nguyễn Thành Công phát triển
 
 ## Công nghệ
 
@@ -31,7 +31,7 @@ Mã nguồn gốc WCode do Nguyễn Anh Tuấn / TuanDev phát triển; VN code 
 
 ## Tải bản Windows
 
-Bản **VN code 1.1.34** là ứng dụng riêng, cài song song với WCode, giữ các chức năng đã phát triển.
+Bản **VN code 1.1.34** là ứng dụng riêng.
 [Tải bộ cài Windows x64](https://github.com/ntccong2468-lab/Vncode/releases/download/v1.1.34/VN-code-1.1.34-Windows-x64.exe).
 Java được đóng gói kèm; tải EXE rồi chạy để cài đặt. Đây là prerelease chưa ký Authenticode.
 Xem [mô tả và giới hạn](docs/releases/VN-code-1.1.34.md).
@@ -39,7 +39,7 @@ Cập nhật GTIN thật lên WB/Ozon trong module đồng bộ vẫn bị khóa
 
 VN code cài ở `%LOCALAPPDATA%\VNcodeApp`, dùng dữ liệu riêng ở `%LOCALAPPDATA%\VNcodeData` và bắt đầu với danh sách shop trống. VN code là bản cá nhân miễn phí, không cần giấy phép WCode; thiết lập tài khoản shop và chứng thư riêng trong app mới. Cài hoặc gỡ VN code không thay thế WCode và không tự nhập dữ liệu WCode.
 
-VN code chỉ dùng thuộc tính `vncode.appdata.dir` và `vncode.data.profile`; các thiết lập `wcode.*` không tác động đến ứng dụng mới. Cả kênh cập nhật chính và bản thử đều nằm trong repository này.
+VN code chỉ dùng thuộc tính `vncode.appdata.dir` và `vncode.data.profile`. Cả kênh cập nhật chính và bản thử đều nằm trong repository này.
 
 Bản portable có `check-portable.bat` để thu thập cấu trúc package và startup log khi cần hỗ trợ.
 
