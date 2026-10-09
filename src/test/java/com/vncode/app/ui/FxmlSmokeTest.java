@@ -148,6 +148,22 @@ class FxmlSmokeTest {
         }
     }
 
+    @org.junit.jupiter.api.AfterEach
+    void awaitBackgroundTasksBeforeFixtureCleanup() throws Exception {
+        long deadline=System.nanoTime()+TimeUnit.SECONDS.toNanos(30);
+        do {
+            var barrier=new java.util.concurrent.FutureTask<Void>(() -> null);
+            Platform.runLater(barrier);barrier.get(5,TimeUnit.SECONDS);
+            if(!com.vncode.app.shared.AppTaskExecutor.hasRunningTasks()) {
+                var second=new java.util.concurrent.FutureTask<Void>(() -> null);
+                Platform.runLater(second);second.get(5,TimeUnit.SECONDS);
+                if(!com.vncode.app.shared.AppTaskExecutor.hasRunningTasks())return;
+            }
+            Thread.sleep(20);
+        } while(System.nanoTime()<deadline);
+        org.junit.jupiter.api.Assertions.fail("Background tasks still use the fixture; cannot clean up its SQLite files");
+    }
+
     @AfterAll
     static void clearAppDataOverride() {
         System.clearProperty("vncode.appdata.dir");
