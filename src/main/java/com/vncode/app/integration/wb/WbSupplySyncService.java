@@ -10,7 +10,7 @@ import java.util.List;
 
 public class WbSupplySyncService {
     private static final Logger LOGGER = LoggerFactory.getLogger(WbSupplySyncService.class);
-    private static final int PAGE_LIMIT = 1000;
+    private static final int PAGE_LIMIT = 20;
     private static final int RECENT_SUPPLY_DETAIL_LIMIT = 50;
     private static final int OPEN_SUPPLY_DETAIL_LIMIT = 20;
     private static final int INITIAL_OPEN_SUPPLY_SCAN_PAGES = 5;

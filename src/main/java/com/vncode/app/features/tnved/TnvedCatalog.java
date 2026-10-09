@@ -161,10 +161,21 @@ public final class TnvedCatalog {
     }
     public List<Node> search(String query,int offset,int limit,LocalDate date) throws SQLException {
         if(offset<0||limit<1||limit>100)throw new IllegalArgumentException("Invalid page.");
-        String dates=date==null?"":" AND n.is_active=1 AND (n.valid_from IS NULL OR n.valid_from<=?) AND (n.valid_to IS NULL OR n.valid_to>=?)";
-        try(var c=connect();var p=c.prepareStatement(select()+" WHERE v.active=1 AND n.search_text LIKE ? ESCAPE '\\'"+dates+" ORDER BY n.code LIMIT ? OFFSET ?")) {
-            String q=normalize(query==null?"":query).replace("\\","\\\\").replace("%","\\%").replace("_","\\_");int i=1;p.setString(i++,"%"+q+"%");
-            if(date!=null){p.setString(i++,date.toString());p.setString(i++,date.toString());}p.setInt(i++,limit);p.setInt(i,offset);try(var r=p.executeQuery()){return read(r);}
+        String eligibility=date==null?"":"""
+            WITH RECURSIVE eligible(id) AS (
+              SELECT n.id FROM tnved_nodes n JOIN tnved_versions v ON v.id=n.version_id
+              WHERE v.active=1 AND (v.valid_from IS NULL OR v.valid_from<=?) AND n.parent_id IS NULL
+                AND n.is_active=1 AND (n.valid_from IS NULL OR n.valid_from<=?) AND (n.valid_to IS NULL OR n.valid_to>=?)
+              UNION ALL
+              SELECT n.id FROM tnved_nodes n JOIN eligible parent ON parent.id=n.parent_id
+              WHERE n.is_active=1 AND (n.valid_from IS NULL OR n.valid_from<=?) AND (n.valid_to IS NULL OR n.valid_to>=?)
+            )
+            """;
+        String eligibleJoin=date==null?"":" JOIN eligible ON eligible.id=n.id";
+        try(var c=connect();var p=c.prepareStatement(eligibility+select()+eligibleJoin+" WHERE v.active=1 AND n.search_text LIKE ? ESCAPE '\\' ORDER BY n.code LIMIT ? OFFSET ?")) {
+            String q=normalize(query==null?"":query).replace("\\","\\\\").replace("%","\\%").replace("_","\\_");int i=1;
+            if(date!=null)for(int parameter=0;parameter<5;parameter++)p.setString(i++,date.toString());
+            p.setString(i++,"%"+q+"%");p.setInt(i++,limit);p.setInt(i,offset);try(var r=p.executeQuery()){return read(r);}
         }
     }
     public boolean isAssignable(String code,LocalDate date) throws SQLException {

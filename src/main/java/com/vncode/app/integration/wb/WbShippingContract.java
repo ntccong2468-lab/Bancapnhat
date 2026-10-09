@@ -58,6 +58,14 @@ public final class WbShippingContract {
             JsonArray results = response.getAsJsonObject().getAsJsonArray("results");
             if (results == null || results.size() != 1) throw new IllegalArgumentException();
             JsonObject result = results.get(0).getAsJsonObject();
+            if(supplyId.equals(result.has("supplyId")?result.get("supplyId").getAsString():null)
+                    &&result.has("error")&&result.get("error").isJsonObject()) {
+                JsonElement code=result.getAsJsonObject("error").get("code");
+                if(code!=null&&code.isJsonPrimitive()&&code.getAsJsonPrimitive().isNumber()) {
+                    int status=code.getAsBigDecimal().intValueExact();
+                    if(status>=400&&status<500)throw new WbApiException("WB_SHIPPING_REJECTED",status,"");
+                }
+            }
             JsonElement success = result.get("success");
             if (!supplyId.equals(result.get("supplyId").getAsString())
                     || success == null || !success.isJsonPrimitive()

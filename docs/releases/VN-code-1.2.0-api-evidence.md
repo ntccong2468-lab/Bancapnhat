@@ -36,7 +36,7 @@ Endpoint điểm nhận không công bố cursor hoặc limit. Vì vậy tìm ki
 
 `crossBorderType: 0` nghĩa là nội địa, không chứng minh shop thuộc Nga. Không dùng trường này một mình để tự suy ra quốc gia.
 
-Hợp đồng đã có lớp kiểm tra `WbShippingContract` và ba kiểm thử. Đây là nền tảng cho biểu mẫu giao hàng; chưa có kết nối biểu mẫu và lưu lựa chọn theo shop, nên không đánh dấu chức năng hoàn tất.
+Biểu mẫu đã nối vào trang supply, lưu lựa chọn theo shop và luôn yêu cầu chọn lại ngày. Thao tác ghi lưu checkpoint, đọc lại để đối soát đúng yêu cầu gốc và tắt retry/redirect ở tầng HTTP. Kiểm thử HTTP cục bộ xác nhận phản hồi 408 không gây gửi lại PATCH; chưa nghiệm thu với shop thật.
 
 ## Ozon: cần giữ đúng phạm vi vận chuyển
 

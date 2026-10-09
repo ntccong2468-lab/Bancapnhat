@@ -57,8 +57,61 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class FxmlSmokeTest {
+    @Test void wbShippingContextResetsAnOldLoadingButton() throws Exception {
+        var task=new java.util.concurrent.FutureTask<Void>(() -> {
+            var pane=new com.vncode.app.ui.supply.WbShippingPane();
+            var f=pane.getClass().getDeclaredField("load");f.setAccessible(true);var button=(Button)f.get(pane);
+            button.setDisable(true);pane.setContext(null,null);assertFalse(button.isDisabled());return null;
+        });Platform.runLater(task);task.get(10,TimeUnit.SECONDS);
+    }
+    @Test void wbShippingFormRequiresCountryAndAlwaysClearsThePreviousDate() throws Exception {
+        var task=new java.util.concurrent.FutureTask<Void>(() -> {
+            var pane=new com.vncode.app.ui.supply.WbShippingPane();
+            assertThrows(IllegalArgumentException.class,pane::selection);
+            var field=pane.getClass().getDeclaredField("date");field.setAccessible(true);var date=(DatePicker)field.get(pane);
+            date.setValue(java.time.LocalDate.now().plusDays(1));pane.setContext(null,null);assertEquals(null,date.getValue());return null;
+        });Platform.runLater(task);task.get(10,TimeUnit.SECONDS);
+    }
+    @Test void tnvedCopyFollowsTheDisplayedTreeDetailRatherThanOldTableSelection() throws Exception {
+        var c=new com.vncode.app.features.tnved.TnvedCatalog(appDataDir.resolve("tnved-copy-fixture.sqlite"));c.initialize();var roots=c.children(null);
+        var task=new java.util.concurrent.FutureTask<Void>(() -> {
+            var pane=new com.vncode.app.ui.tnved.TnvedPane(c);pane.setRoots(roots);
+            var tableField=pane.getClass().getDeclaredField("results");tableField.setAccessible(true);
+            var table=(TableView<com.vncode.app.features.tnved.TnvedModels.Node>)tableField.get(pane);
+            table.getItems().setAll(roots);table.getSelectionModel().select(0);
+            var treeField=pane.getClass().getDeclaredField("tree");treeField.setAccessible(true);
+            var tree=(javafx.scene.control.TreeView<com.vncode.app.features.tnved.TnvedModels.Node>)treeField.get(pane);
+            tree.getSelectionModel().select(tree.getRoot().getChildren().get(1));
+            var right=(VBox)((javafx.scene.control.SplitPane)pane.getCenter()).getItems().get(2);
+            ((Button)right.getChildren().get(2)).fire();assertEquals("II",javafx.scene.input.Clipboard.getSystemClipboard().getString());return null;
+        });Platform.runLater(task);task.get(10,TimeUnit.SECONDS);
+    }
+    @Test void tnvedLoadMoreKeepsTheSubmittedQueryWhenTheInputHasBeenEdited() throws Exception {
+        var c=new com.vncode.app.features.tnved.TnvedCatalog(appDataDir.resolve("tnved-pages-fixture.sqlite"));c.initialize();
+        var date=java.time.LocalDate.now();String source="https://www.consultant.ru/document/cons_doc_LAW_397176/";
+        var nodes=new java.util.ArrayList<com.vncode.app.features.tnved.TnvedModels.Node>();
+        nodes.add(new com.vncode.app.features.tnved.TnvedModels.Node("01","I","CHAPTER","I","Fixture","Fixture","","",false,true,date,null,source));
+        for(int i=0;i<110;i++)nodes.add(new com.vncode.app.features.tnved.TnvedModels.Node(String.format("01%08d",i),"01","LEAF","I","AlphaFixture","Thử nghiệm","","",true,true,date,null,source));
+        c.importVersion(new com.vncode.app.features.tnved.TnvedModels.Version("pages-fixture",source,date),nodes,true);
+        var holder=new java.util.concurrent.atomic.AtomicReference<com.vncode.app.ui.tnved.TnvedPane>();
+        var create=new java.util.concurrent.FutureTask<Void>(() -> {holder.set(new com.vncode.app.ui.tnved.TnvedPane(c));return null;});Platform.runLater(create);create.get(10,TimeUnit.SECONDS);
+        CountDownLatch first=new CountDownLatch(1),second=new CountDownLatch(1);
+        var search=new java.util.concurrent.FutureTask<Void>(() -> {
+            var pane=holder.get();var field=pane.getClass().getDeclaredField("query");field.setAccessible(true);var query=(TextField)field.get(pane);
+            var tf=pane.getClass().getDeclaredField("results");tf.setAccessible(true);var table=(TableView<?>)tf.get(pane);
+            table.getItems().addListener((javafx.collections.ListChangeListener<Object>)change->{if(table.getItems().size()==100)first.countDown();});
+            query.setText("AlphaFixture");query.fireEvent(new javafx.event.ActionEvent());return null;
+        });Platform.runLater(search);search.get(10,TimeUnit.SECONDS);assertTrue(first.await(10,TimeUnit.SECONDS));
+        var more=new java.util.concurrent.FutureTask<Void>(() -> {
+            var pane=holder.get();var field=pane.getClass().getDeclaredField("query");field.setAccessible(true);((TextField)field.get(pane)).setText("NotSubmittedFixture");
+            var tf=pane.getClass().getDeclaredField("results");tf.setAccessible(true);var table=(TableView<?>)tf.get(pane);
+            table.getItems().addListener((javafx.collections.ListChangeListener<Object>)change->{if(table.getItems().size()==110)second.countDown();});
+            var button=pane.getClass().getDeclaredField("more");button.setAccessible(true);((Button)button.get(pane)).fire();return null;
+        });Platform.runLater(more);more.get(10,TimeUnit.SECONDS);assertTrue(second.await(3,TimeUnit.SECONDS),"More must append the remaining ten Alpha rows, preserving the submitted query");
+    }
     @Test void tnvedModuleHasNavigationAndShowsVerifiedRootSections() throws Exception {
         var catalog=new com.vncode.app.features.tnved.TnvedCatalog(appDataDir.resolve("tnved-ui-fixture.sqlite"));
         catalog.initialize();var roots=catalog.children(null);

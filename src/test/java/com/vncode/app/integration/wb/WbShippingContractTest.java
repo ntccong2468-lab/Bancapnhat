@@ -44,4 +44,9 @@ class WbShippingContractTest {
         assertEquals(5, WbShippingContract.page(points, "орёл", 20).size());
         assertTrue(WbShippingContract.page(points, "Москва", 0).isEmpty());
     }
+    @Test void perSupplyRejectionRetainsItsSafeStatusWithoutRawDetail() {
+        var response=JsonParser.parseString("{\"results\":[{\"supplyId\":\"WB-GI-100\",\"error\":{\"code\":409,\"detail\":\"private account data\"}}]}");
+        var error=assertThrows(WbApiException.class,()->WbShippingContract.requireSuccess(response,"WB-GI-100"));
+        assertEquals(409,error.getStatusCode());assertFalse(error.getMessage().contains("private"));assertEquals("",error.getResponseBody());
+    }
 }

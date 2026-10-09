@@ -48,7 +48,15 @@ class TnvedCatalogTest {
         var c=catalog();c.importVersion(new Version("future-fixture",version("x").sourceUrl(),date.plusDays(2)),
                 List.of(node("01","I",false,null),node("0101210000","01",true,null)),true);
         assertFalse(c.isAssignable("0101210000",date));
+        assertTrue(c.search("0101210000",0,100,date).isEmpty());
         Path backup=c.snapshot();assertTrue(java.nio.file.Files.size(backup)>0);
         var restored=new TnvedCatalog(backup);assertEquals("future-fixture",restored.activeVersion());
+    }
+    @Test void effectiveSearchExcludesInactiveAncestors() throws Exception {
+        var c=catalog();c.importVersion(version("inactive-parent-fixture"),List.of(
+                new Node("01","I","CHAPTER","I","Fixture","Fixture","","",false,false,date,null,version("x").sourceUrl()),
+                node("0101210000","01",true,null)),true);
+        assertTrue(c.search("0101210000",0,100,date).isEmpty());
+        assertEquals(1,c.search("0101210000",0,100,null).size());
     }
 }

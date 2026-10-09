@@ -17,6 +17,15 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 class WbSupplySyncServiceTest {
+    @Test void incrementalSupplySyncRequestsOneRemoteBatchOfTwenty() throws Exception {
+        var calls=new java.util.concurrent.atomic.AtomicInteger();
+        var api=new WbApiClient(){@Override public WbSuppliesResponse getSupplies(String key,long next,int limit){
+            calls.incrementAndGet();assertEquals(20,limit);
+            return new com.google.gson.Gson().fromJson("{\"next\":20,\"supplies\":[{\"id\":\"WB-GI-FIXTURE\",\"done\":true}]}",WbSuppliesResponse.class);
+        }};
+        assertEquals(1,service(api).syncIncremental(shop));assertEquals(1,calls.get());
+        assertEquals(20,new WbSyncStateRepository().getShopSyncState(shop.getId()).suppliesNext());
+    }
     @TempDir Path appData;
     private final Shop shop = new Shop(1, "WB", Marketplace.WILDBERRIES, null, "token");
 

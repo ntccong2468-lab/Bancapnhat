@@ -2,9 +2,8 @@
   "version": "1.2.0",
   "complete": false,
   "blocked": [
-    "WB: official delivery contract verified; connect shipping form/preferences/search and mutation reconciliation",
-    "WB: remote dispatch pagination contract/performance acceptance (current paging is local SQLite)",
     "Ozon: delivering contract found for third-party rFBS only; verify standard-FBS behavior and implement selection/label reminder",
-    "Znack: official category tree verified; disambiguate TN VED level-1 rule before automatic GTIN replacement"
+    "Znack: automatic GTIN reallocation is not enabled solely on a section change; verified business rule/recovery remains required",
+    "TN VED: catalog/import/search/backup core implemented; product mappings, AI provider, marking rules, Yandex and integrated restore remain incomplete"
   ]
 }

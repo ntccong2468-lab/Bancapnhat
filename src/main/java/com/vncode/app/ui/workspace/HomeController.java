@@ -1363,6 +1363,7 @@ public class HomeController implements Initializable {
         long requestToken = state.nextSupplyRequestToken();
         state.setLoadedSupplyId(supply.getSupplyId());
         state.setLoadedSupplyName(supply.getName());
+        if(wbShippingPane!=null)wbShippingPane.setContext(shop,supply.getSupplyId());
         supplyDetailController.setLoading(true);
         refreshCurrentKizAttachmentProgress();
         supplyDetailController.setSupplyInfo(formatSupplyTitle(supply), "");
@@ -1532,6 +1533,7 @@ public class HomeController implements Initializable {
     }
 
     private com.vncode.app.ui.tnved.TnvedPane tnvedPane;
+    private com.vncode.app.ui.supply.WbShippingPane wbShippingPane;
     private void showTnved() {
         if(tnvedPane==null)tnvedPane=new com.vncode.app.ui.tnved.TnvedPane(
                 new com.vncode.app.features.tnved.TnvedCatalog(AppPaths.appDataDir().resolve("tnved.sqlite")));
@@ -1550,6 +1552,9 @@ public class HomeController implements Initializable {
 
         FXMLLoader supplyDetailLoader = FxmlViewLoader.loader(SupplyDetailController.class, "supply-detail-view.fxml");
         VBox supplyDetailRoot = FxmlViewLoader.load(supplyDetailLoader);
+        wbShippingPane=new com.vncode.app.ui.supply.WbShippingPane();
+        wbShippingPane.setContext(null,null);
+        supplyDetailRoot.getChildren().add(2,wbShippingPane);
         supplyDetailController = supplyDetailLoader.getController();
         supplyDetailController.setSortOptions(orderSortPreferenceService.load());
         supplyDetailController.setOnSortOptionsChanged(options -> {
@@ -2044,6 +2049,9 @@ public class HomeController implements Initializable {
         if (shop == null || supply == null || !state.isSelectedShopTokenValid()) {
             return;
         }
+        final com.vncode.app.ui.supply.WbShippingPane.Selection shipping;
+        try {shipping=wbShippingPane.selection();}
+        catch(IllegalArgumentException error){AlertService.showError(error.getMessage());return;}
         ButtonType deliver = new ButtonType(i18nService.tr("supply.deliver"), ButtonBar.ButtonData.OK_DONE);
         Alert confirm = new Alert(Alert.AlertType.CONFIRMATION,
                 MessageFormat.format(i18nService.tr("workspace.deliver.confirm.content"), supply.getSupplyId()),
@@ -2058,7 +2066,8 @@ public class HomeController implements Initializable {
         Task<Void> task = new Task<>() {
             @Override
             protected Void call() throws Exception {
-                packingWorkflow.deliverSupply(shop, supply);
+                packingWorkflow.deliverSupply(shop, supply,shipping.parameters());
+                new com.vncode.app.integration.wb.WbShippingPreferenceService().save(shop.getId(),shipping.preferences());
                 return null;
             }
         };

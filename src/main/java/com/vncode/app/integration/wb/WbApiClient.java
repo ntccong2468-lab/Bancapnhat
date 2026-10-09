@@ -31,6 +31,8 @@ public class WbApiClient {
             .callTimeout(Duration.ofSeconds(30))
             .build();
 
+    private static final OkHttpClient MUTATION_CLIENT = CLIENT.newBuilder().retryOnConnectionFailure(false).followRedirects(false).followSslRedirects(false).build();
+
     public WbProductCardsResponse getProductCards(String apiKey, String locale, String updatedAtCursor, Long nmIdCursor, int limit)
             throws IOException {
         Map<String, Object> cursor = new LinkedHashMap<>();
@@ -106,6 +108,27 @@ public class WbApiClient {
     public void deliverSupply(String apiKey, String supplyId) throws IOException {
         String url = "https://marketplace-api.wildberries.ru/api/v3/supplies/" + supplyId + "/deliver";
         patchJson(apiKey, url, Map.of());
+    }
+
+    public List<WbShippingContract.Point> getShippingPoints(String apiKey,String city,int cargoType) throws IOException {
+        if(city==null||city.isBlank()||city.length()>120||cargoType<1||cargoType>3
+                ||city.codePoints().noneMatch(c -> Character.UnicodeBlock.of(c)==Character.UnicodeBlock.CYRILLIC))
+            throw new IllegalArgumentException("A Cyrillic city and cargo type 1–3 are required.");
+        HttpUrl url=HttpUrl.get("https://marketplace-api.wildberries.ru/api/marketplace/v3/fbs/shipping-points")
+                .newBuilder().addQueryParameter("city",city.strip()).addQueryParameter("cargoType",Integer.toString(cargoType)).build();
+        ShippingPointsResponse response=getJson(apiKey,url.toString(),ShippingPointsResponse.class);
+        if(response==null||response.shippingPoints()==null)throw new IOException("WB_SHIPPING_POINTS_INVALID");
+        if(response.shippingPoints().size()>100_000)throw new IOException("WB_SHIPPING_POINTS_TOO_LARGE");
+        return response.shippingPoints().stream().filter(p -> p!=null&&p.id()>0&&p.name()!=null&&p.cargoTypes().contains(cargoType)).toList();
+    }
+    private record ShippingPointsResponse(List<WbShippingContract.Point> shippingPoints) { }
+
+    public void setSupplyShipping(String apiKey,WbShippingContract.Parameters parameters,java.time.Clock clock) throws IOException {
+        Request request=new Request.Builder().url("https://marketplace-api.wildberries.ru/api/marketplace/v3/fbs/supplies/shipping-method")
+                .header("Authorization","Bearer "+apiKey)
+                .patch(RequestBody.create(GSON.toJson(parameters.payload(clock)),JSON)).build();
+        var response=execute(apiKey,request,com.google.gson.JsonElement.class);
+        WbShippingContract.requireSuccess(response,parameters.supplyId());
     }
 
     public void deleteSupply(String apiKey, String supplyId) throws IOException {
@@ -222,7 +245,7 @@ public class WbApiClient {
         } else if (isMarketplaceApi(request.url())) {
             WbMarketplaceApiRateLimiter.awaitTurn(apiKey);
         }
-        try (Response response = CLIENT.newCall(request).execute()) {
+        try (Response response = ("GET".equals(request.method()) ? CLIENT : MUTATION_CLIENT).newCall(request).execute()) {
             String body = response.body() == null ? "" : response.body().string();
             if (!response.isSuccessful()) {
                 if (isContentApiRateLimited(request.url(), response.code())) {

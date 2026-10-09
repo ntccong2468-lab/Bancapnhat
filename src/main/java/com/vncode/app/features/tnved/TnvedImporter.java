@@ -23,6 +23,8 @@ public final class TnvedImporter {
                 List<List<String>> csv=parseCsv(text);
                 if(csv.isEmpty())throw new IllegalArgumentException("Missing CSV header.");
                 List<String> header=csv.getFirst();if(new HashSet<>(header).size()!=header.size())throw new IllegalArgumentException("Duplicate CSV columns.");
+                if(!header.containsAll(List.of("code","parent_code","node_type","section_code","name_ru","name_vi","is_leaf","is_active","valid_from")))
+                    throw new IllegalArgumentException("Missing required CSV columns.");
                 for(int i=1;i<csv.size();i++) {
                     var cells=csv.get(i);if(cells.size()==1&&cells.getFirst().isBlank())continue;
                     if(cells.size()!=header.size())throw new IllegalArgumentException("Inconsistent CSV column count.");

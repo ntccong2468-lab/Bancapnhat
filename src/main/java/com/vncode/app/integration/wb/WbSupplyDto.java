@@ -13,6 +13,9 @@ public class WbSupplyDto {
     private Integer crossBorderType;
     private Integer destinationOfficeId;
     private Integer recommendedWhId;
+    private String shippingDt;
+    private Long shippingPointId;
+    private String shippingType;
 
     public String getId() { return id; }
     public Boolean getIsB2b() { return isB2b; }
@@ -26,4 +29,7 @@ public class WbSupplyDto {
     public Integer getCrossBorderType() { return crossBorderType; }
     public Integer getDestinationOfficeId() { return destinationOfficeId; }
     public Integer getRecommendedWhId() { return recommendedWhId; }
+    public String getShippingDt() { return shippingDt; }
+    public Long getShippingPointId() { return shippingPointId; }
+    public String getShippingType() { return shippingType; }
 }

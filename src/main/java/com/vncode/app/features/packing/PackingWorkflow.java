@@ -127,6 +127,9 @@ public class PackingWorkflow {
     }
 
     public void deliverSupply(Shop shop, WbSupplySummary supply) throws IOException {
+        deliverSupply(shop,supply,null);
+    }
+    public void deliverSupply(Shop shop,WbSupplySummary supply,com.vncode.app.integration.wb.WbShippingContract.Parameters shipping) throws IOException {
         MarketplaceGuard.requireWildberries(shop);
         DeliveryPreflight preflight = inspectDelivery(shop.getId(), supply);
         if (!preflight.labelsPrinted()) {
@@ -136,6 +139,10 @@ public class PackingWorkflow {
             throw new IllegalStateException("В поставке есть товары с обязательной маркировкой без KIZ.");
         }
         validateMetadataBeforeDelivery(shop, supply.getSupplyId());
+        if(shipping!=null) {
+            if(!supply.getSupplyId().equals(shipping.supplyId()))throw new IllegalArgumentException("WB_SUPPLY_ID_MISMATCH");
+            new com.vncode.app.integration.wb.WbShippingService(apiClient,actionLogRepository,java.time.Clock.systemDefaultZone()).ensureShipping(shop,shipping,true);
+        }
         try {
             apiClient.deliverSupply(shop.getApiKey(), supply.getSupplyId());
             supplyRepository.markSupplyDelivered(shop.getId(), supply.getSupplyId());

@@ -20,4 +20,8 @@ class TnvedImporterTest {
   assertThrows(java.io.IOException.class,()->TnvedImporter.read(p));Files.writeString(Path.of(p+".manifest.json"),"{"+manifest+"}");
   var n=TnvedImporter.read(p).nodes().getFirst();assertEquals("01",n.code());assertEquals("Fixture, name",n.nameRu());assertEquals("Tên \"thử\"",n.nameVi());
  }
+ @Test void missingRequiredCsvHeadersCannotActivateAnEmptyReplacement() throws Exception {
+  Path p=dir.resolve("bad-header.csv");Files.writeString(p,"garbage\n");Files.writeString(Path.of(p+".manifest.json"),"{"+manifest+"}");
+  assertThrows(IllegalArgumentException.class,()->TnvedImporter.read(p));
+ }
 }
