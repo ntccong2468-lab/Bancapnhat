@@ -28,9 +28,9 @@ export function validateSideBySideSmoke(proof,version) {
   for(const field of ['independentRegistrations','freshVncodeData','wcodeFilesUnchanged','uninstallPreservesWcode']) assert.equal(proof[field],true);
   assert.equal(proof.liveMarketplaceMutations,false);
 }
-export function validateUpgradeSmoke(proof,version) {
+export function validateUpgradeSmoke(proof,version,fromVersion="1.1.34") {
   assert.equal(proof.appName,'VN code');assert.equal(proof.version,version);
-  assert.equal(proof.fromVersion,'1.1.34');assert.equal(proof.result,'passed');
+  assert.equal(proof.fromVersion,fromVersion);assert.equal(proof.result,'passed');
   assert.equal(proof.installerUpgradeUuid,'8CBBA0E2-6E73-4F56-9101-6BC0948D3C72');
   assert.equal(proof.singleRegistration,true);assert.equal(proof.dataPreserved,true);
   assert.equal(proof.liveMarketplaceMutations,false);assert.match(proof.fingerprint,/^[0-9a-f]{64}$/);

@@ -56,3 +56,10 @@ test('publication refuses incomplete functionality even when the native installe
  assert.throws(()=>validateReadiness({version:'1.2.0',complete:true,blocked:['WB shipping API']}));
  assert.doesNotThrow(()=>validateReadiness({version:'1.2.0',complete:true,blocked:[]}));
 });
+
+test('the next installer verifies upgrading the already released preview',async()=>{
+ const {validateUpgradeSmoke}=await import('./publish-vncode-windows.mjs');
+ const proof={appName:'VN code',version:'1.2.1',fromVersion:'1.2.0',result:'passed',installerUpgradeUuid:'8CBBA0E2-6E73-4F56-9101-6BC0948D3C72',singleRegistration:true,dataPreserved:true,liveMarketplaceMutations:false,fingerprint:'a'.repeat(64)};
+ assert.doesNotThrow(()=>validateUpgradeSmoke(proof,'1.2.1','1.2.0'));
+ assert.throws(()=>validateUpgradeSmoke({...proof,fromVersion:'1.1.34'},'1.2.1','1.2.0'));
+});

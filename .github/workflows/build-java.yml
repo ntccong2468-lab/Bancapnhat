@@ -79,6 +79,11 @@ jobs:
         shell: pwsh
         run: ./tools/windows-upgrade-smoke.ps1 -Version $env:APP_VERSION
 
+      - name: Verify upgrade from VN code 1.2.0 Preview with saved data
+        if: env.APP_VERSION != '1.2.0'
+        shell: pwsh
+        run: ./tools/windows-upgrade-smoke.ps1 -Version $env:APP_VERSION -FromPreview
+
       - name: Verify and name test installer
         shell: pwsh
         run: |
@@ -104,6 +109,7 @@ jobs:
             out/native-smoke.json
             out/side-by-side-smoke.json
             out/upgrade-smoke.json
+            out/upgrade-preview-smoke.json
           if-no-files-found: error
           retention-days: 14
 

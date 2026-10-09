@@ -9,21 +9,21 @@
 <?import javafx.scene.image.Image?>
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.Pane?>
 <?import javafx.scene.layout.Priority?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 <?import org.kordamp.ikonli.javafx.FontIcon?>
 
-<HBox alignment="CENTER_LEFT" fillHeight="true" prefHeight="68.0" prefWidth="738.0" spacing="10.0" styleClass="header" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.vncode.app.ui.workspace.WorkspaceHeaderController">
+<HBox alignment="CENTER_LEFT" fillHeight="true" prefHeight="84.0" prefWidth="738.0" spacing="10.0" styleClass="header" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.vncode.app.ui.workspace.WorkspaceHeaderController">
     <children>
-        <Button fx:id="newsButton" text="🔔 0" onAction="#onNews" />
-        <VBox alignment="CENTER_LEFT" prefWidth="320.0" spacing="2.0">
+        <VBox alignment="CENTER_LEFT" prefWidth="380.0" spacing="2.0">
             <children>
                 <HBox alignment="CENTER_LEFT" minHeight="32.0" spacing="8.0">
                     <children>
-                        <ComboBox fx:id="shopComboBox" prefHeight="32.0" prefWidth="220.0" promptText="Выберите магазин..." styleClass="combo-box" />
-                        <Button fx:id="editShopButton" alignment="CENTER" mnemonicParsing="false" onAction="#onEditShop" prefHeight="32.0" prefWidth="32.0">
+                        <ComboBox fx:id="shopComboBox" prefHeight="44.0" prefWidth="274.0" promptText="Выберите магазин..." styleClass="combo-box" />
+                        <Button fx:id="editShopButton" alignment="CENTER" mnemonicParsing="false" onAction="#onEditShop" prefHeight="44.0" prefWidth="42.0">
                             <styleClass>
                                 <String fx:value="btn-icon" />
                             </styleClass>
@@ -31,7 +31,7 @@
                                 <FontIcon iconLiteral="fth-edit-2" iconSize="16"/>
                             </graphic>
                         </Button>
-                        <Button fx:id="deleteShopButton" alignment="CENTER" mnemonicParsing="false" onAction="#onDeleteShop" prefHeight="32.0" prefWidth="32.0">
+                        <Button fx:id="deleteShopButton" alignment="CENTER" mnemonicParsing="false" onAction="#onDeleteShop" prefHeight="44.0" prefWidth="42.0">
                             <styleClass>
                                 <String fx:value="btn-icon" />
                             </styleClass>
@@ -46,7 +46,7 @@
         <Pane HBox.hgrow="ALWAYS" />
         <ProgressIndicator fx:id="syncLoadingIndicator" managed="false" maxHeight="18.0" maxWidth="18.0" prefHeight="18.0" prefWidth="18.0" visible="false" />
         <Label fx:id="syncLoadingLabel" managed="false" styleClass="text-muted" text="%header.sync_products_kiz" visible="false" />
-        <Button fx:id="syncButton" mnemonicParsing="false" onAction="#onSync" prefHeight="34.0" text=" Синхронизировать WB">
+        <Button fx:id="syncButton" mnemonicParsing="false" onAction="#onSync" prefHeight="46.0" text=" Синхронизировать WB">
             <styleClass>
                 <String fx:value="button" />
                 <String fx:value="btn-primary" />
@@ -55,6 +55,11 @@
                 <FontIcon iconLiteral="fth-refresh-cw" iconSize="16"/>
             </graphic>
         </Button>
+        <StackPane>
+            <Button fx:id="newsButton" onAction="#onNews" prefHeight="46" prefWidth="46" styleClass="btn-icon"><graphic><FontIcon iconLiteral="fth-bell" iconSize="20"/></graphic></Button>
+            <Label fx:id="newsBadge" text="0" visible="false" managed="false" mouseTransparent="true" styleClass="unread-badge" StackPane.alignment="TOP_RIGHT"/>
+        </StackPane>
+        <Button fx:id="supportButton" onAction="#onSupport" text="%header.support" prefHeight="46"><graphic><FontIcon iconLiteral="fth-message-circle" iconSize="18"/></graphic></Button>
     </children>
     <padding>
         <Insets left="16.0" right="16.0" />

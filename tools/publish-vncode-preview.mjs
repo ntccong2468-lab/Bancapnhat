@@ -7,14 +7,14 @@ import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {validateBuild,validateNativeSmoke,validateSideBySideSmoke,validateUpgradeSmoke,validateReleaseAssets} from './publish-vncode-windows.mjs';
 const REPO='ntccong2468-lab/Bancapnhat';
-const VERSION='1.2.0';
+import {resolveReleaseVersion} from './release-version.mjs';
 const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
 const gh=args=>execFileSync('gh',args,{encoding:'utf8',maxBuffer:32*1024*1024});
 const api=endpoint=>JSON.parse(gh(['api',`repos/${REPO}/${endpoint}`]));
 const json=bytes=>JSON.parse(bytes.toString('utf8').replace(/^\uFEFF/,''));
 export function validatePreview(status,tag) {
- assert.match(tag,/^v1\.2\.0-preview\.[1-9][0-9]*$/);
- assert.equal(status.version,VERSION);assert.equal(status.complete,false);
+ const match=/^v(\d{1,5}\.\d{1,5}\.\d{1,5})-preview\.[1-9][0-9]*$/.exec(tag);assert.ok(match);
+ assert.equal(status.version,match[1]);assert.equal(status.complete,false);
  assert.ok(Array.isArray(status.blocked)&&status.blocked.length>0);
  assert.ok(status.blocked.every(x=>typeof x==='string'&&x.length>0&&x.length<1000));
 }
@@ -27,7 +27,8 @@ export function validateInstaller(bytes,digest) {
 }
 async function main(runId,tag) {
  assert.match(runId??'',/^[1-9][0-9]{0,15}$/);
- const status=json(await readFile('docs/releases/VN-code-1.2.0-status.json'));validatePreview(status,tag);
+ const {version:VERSION}=await resolveReleaseVersion({root:process.cwd()});
+ const status=json(await readFile(`docs/releases/VN-code-${VERSION}-status.json`));validatePreview(status,tag);assert.equal(status.version,VERSION);
  assert.equal(execFileSync('git',['status','--porcelain'],{encoding:'utf8'}).trim(),'','Require a clean checkout.');
  const sha=execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim();
  const run=api(`actions/runs/${runId}`),workflow=api('actions/workflows/build-java.yml');validateBuild(run,sha,workflow.id);
@@ -42,6 +43,8 @@ async function main(runId,tag) {
  const native=json(await readFile(path.join(directory,'native-smoke.json')));validateNativeSmoke(native,VERSION);
  const coexist=json(await readFile(path.join(directory,'side-by-side-smoke.json')));validateSideBySideSmoke(coexist,VERSION);
  const upgrade=json(await readFile(path.join(directory,'upgrade-smoke.json')));validateUpgradeSmoke(upgrade,VERSION);
+ const previewUpgrade=VERSION==='1.2.0'?null:json(await readFile(path.join(directory,'upgrade-preview-smoke.json')));
+ if(previewUpgrade)validateUpgradeSmoke(previewUpgrade,VERSION,'1.2.0');
  const log=gh(['run','view',runId,'--repo',REPO,'--log']).replace(/\x1b\[[0-9;]*m/g,'');
  const javaTests=Math.max(0,...[...log.matchAll(/Tests run: (\d+), Failures: 0, Errors: 0, Skipped: 0/g)].map(x=>Number(x[1])));
  const nodeTests=Number(log.match(/(?:#|ℹ)\s*tests\s+(\d+)/)?.[1]??0);
@@ -50,16 +53,18 @@ async function main(runId,tag) {
  const info={appName:'VN code',version:VERSION,releaseTag:tag,stage:'preview',complete:false,
   sourceCommit:sha,repository:REPO,githubRunId:Number(runId),javaTests,nodeTests,
   installer:{filename,sha256:digest,bytes:bytes.length,architecture:'x86_64',authenticodeSigned:false},
-  liveMarketplaceMutations:false,signedUpdateManifestPublished:false,blocked:status.blocked,nativeSmoke:native,upgradeSmoke:upgrade};
+  liveMarketplaceMutations:false,signedUpdateManifestPublished:false,blocked:status.blocked,nativeSmoke:native,upgradeSmoke:upgrade,previewUpgradeSmoke:previewUpgrade};
  await writeFile(path.join(directory,'build-info.json'),JSON.stringify(info,null,2)+'\n');
  await writeFile(path.join(directory,'feature-status.json'),JSON.stringify(status,null,2)+'\n');
- const notes=`# VN code 1.2.0 — bản thử nghiệm\n\nBộ cài nâng cấp cho cùng ứng dụng VN code Windows, giữ định danh và dữ liệu VN code 1.1.34. Đây chưa phải bản hoàn thiện tương đương toàn bộ WCode 1.2.0.\n\n`+
+ const notes=`# VN code ${VERSION} — bản thử nghiệm\n\nBộ cài nâng cấp cho cùng ứng dụng VN code Windows, giữ định danh và dữ liệu VN code đã cài. Đã đối chiếu ảnh WCode 1.2.0 và release Wbcode 1.3.0; chưa tương đương toàn bộ chức năng của các bản này.\n\n`+
+  `## Thay đổi giao diện\n\n${(status.changes??[]).map(x=>`- ${x}`).join("\n")}\n\n`+
   `## Đã có trong bản này\n\n- Tin tức/Dashboard, cải tiến giao diện và giữ mẫu tem đã lưu.\n- WB: biểu mẫu giao hàng, lựa chọn theo shop, ngày phải chọn lại, đọc lại thông số sau khi lưu; không tự lặp thao tác ghi khi timeout.\n- Đồng bộ supply WB theo lô 20; bảng Đang giao phân trang và bỏ supply đã biết là rỗng.\n- Module TN VED: 21 phần gốc, tìm Việt/Nga offline, cây danh mục, nhập CSV/JSON có xác nhận nguồn/ngày hiệu lực và sao lưu. Mã chi tiết chưa nhập sẽ báo Chưa tải dữ liệu.\n\n`+
   `## Chưa hoàn tất\n\n${status.blocked.map(x=>`- ${x}`).join('\n')}\n\n`+
   `## Cài đặt và kiểm tra\n\nĐóng VN code rồi chạy **${filename}** bên dưới; Java đã được đóng gói. Bộ cài chưa ký Authenticode. Không phát hành manifest và không đưa bản thử này vào cập nhật tự động. Bản hoàn thiện tiếp theo sẽ dùng số phiên bản Windows cao hơn để tiếp tục nâng cấp cùng ứng dụng.\n\n`+
-  `- ${javaTests} kiểm thử Java/JavaFX và ${nodeTests} kiểm thử Node đạt trên Windows; 0 lỗi hoặc bỏ qua.\n- Launcher, kiểm tra cài song song và nâng cấp VN code 1.1.34 giữ dữ liệu đã đạt.\n- Chưa nghiệm thu với credential shop thật, nhà cung cấp AI hoặc máy in thật; không có thao tác ghi marketplace thật trong CI.\n- [CI](https://github.com/${REPO}/actions/runs/${runId}); commit ${sha}.\n- SHA-256: ${digest}.\n`;
+  `- ${javaTests} kiểm thử Java/JavaFX và ${nodeTests} kiểm thử Node đạt trên Windows; 0 lỗi hoặc bỏ qua.\n- Launcher, kiểm tra cài song song và nâng cấp VN code 1.1.34 giữ dữ liệu đã đạt.${previewUpgrade?" Nâng cấp từ VN code 1.2.0 Preview cũng đã đạt.":""}\n- Chưa nghiệm thu với credential shop thật, nhà cung cấp AI hoặc máy in thật; không có thao tác ghi marketplace thật trong CI.\n- [CI](https://github.com/${REPO}/actions/runs/${runId}); commit ${sha}.\n- SHA-256: ${digest}.\n`;
  await writeFile(path.join(directory,'release-notes.md'),notes);
  const assets=[filename,'build-info.json','feature-status.json','native-smoke.json','side-by-side-smoke.json','upgrade-smoke.json','release-notes.md'];
+ if(previewUpgrade)assets.push('upgrade-preview-smoke.json');
  const hashes={};for(const name of assets)hashes[name]=hash(await readFile(path.join(directory,name)));
  await writeFile(path.join(directory,'checksums.sha256'),assets.map(name=>`${hashes[name]}  ${name}\n`).join(''));assets.push('checksums.sha256');hashes['checksums.sha256']=hash(await readFile(path.join(directory,'checksums.sha256')));
  let releases=api('releases?per_page=100').filter(r=>r.tag_name===tag);assert.ok(releases.length<=1);

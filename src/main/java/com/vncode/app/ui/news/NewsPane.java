@@ -53,10 +53,27 @@ public final class NewsPane extends VBox {
  }
  public void back(){detailShown=false;opened=null;scroll.setContent(list);renderList();scroll.setVvalue(listScroll);Platform.runLater(()->{if(!detailShown){scroll.applyCss();scroll.layout();scroll.setVvalue(listScroll);}}); }
  private void renderList(){list.getChildren().clear();for(var item:visible)list.getChildren().add(row(item));if(visible.isEmpty())list.getChildren().add(new Label(tr("news.empty")));more.setVisible(!ended&&!detailShown);more.setManaged(!ended&&!detailShown);}
- private Node row(NewsItem item){Button button=new Button((service.isRead(item.id())?"":"New · ")+item.title()+"\n"+item.publishedAt().toString().substring(0,10));button.setWrapText(true);button.setMaxWidth(Double.MAX_VALUE);button.setOnAction(e->open(item));return button;}
- private void renderPreview(){preview.getChildren().clear();Label heading=new Label(tr("news.title"));heading.getStyleClass().add("h2");preview.getChildren().add(heading);var page=service.loadPage(null);for(var item:page.items().stream().limit(3).toList()){
-  Button button=new Button((service.isRead(item.id())?"":"New · ")+item.title());button.setWrapText(true);button.setMaxWidth(Double.MAX_VALUE);button.setOnAction(e->{open(item);if(onOpenPage!=null)onOpenPage.run();});preview.getChildren().add(button);
- }Button all=new Button(tr("news.all"));all.setOnAction(e->{back();if(onOpenPage!=null)onOpenPage.run();});preview.getChildren().add(all);}
+ private Button newsCard(NewsItem item,boolean dashboard) {
+  var heading=new Label(item.title());heading.setWrapText(true);heading.setMinWidth(0);heading.setMaxWidth(Double.MAX_VALUE);heading.getStyleClass().add("news-card-title");
+  var badge=new Label(tr("news.new"));badge.getStyleClass().add("unread-badge");badge.setVisible(!service.isRead(item.id()));badge.setManaged(badge.isVisible());badge.setMinWidth(Region.USE_PREF_SIZE);
+  var top=new HBox(10,heading,badge);HBox.setHgrow(heading,Priority.ALWAYS);
+  String plain=item.body().replaceAll("\\[[^]]+]\\([^)]+\\)"," ").replaceAll("[#*_`>]","").replaceAll("\\s+"," ").strip();
+  var summary=new Label(plain.length()>180?plain.substring(0,177)+"…":plain);summary.setWrapText(true);summary.getStyleClass().add("text-secondary");
+  var date=new Label(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm").withZone(java.time.ZoneId.of("Europe/Moscow")).format(item.publishedAt()));date.getStyleClass().add("text-muted");
+  var content=new VBox(12,top,summary,date);content.setMinWidth(0);var button=new Button();button.setGraphic(content);button.setWrapText(true);button.setContentDisplay(ContentDisplay.GRAPHIC_ONLY);button.setMaxWidth(Double.MAX_VALUE);button.setMinWidth(0);button.getStyleClass().add("news-card");button.setAccessibleText(item.title());
+  button.setOnAction(e->{open(item);if(dashboard&&onOpenPage!=null)onOpenPage.run();});return button;
+ }
+ private Node row(NewsItem item){return newsCard(item,false);}
+ private void renderPreview(){
+  preview.getChildren().clear();preview.getStyleClass().setAll("news-preview");
+  Label heading=new Label(tr("news.title"));heading.getStyleClass().add("h2");var count=new Label(Integer.toString(service.unreadCount()));count.getStyleClass().add("unread-badge");count.setVisible(service.unreadCount()>0);count.setManaged(count.isVisible());
+  var space=new Region();HBox.setHgrow(space,Priority.ALWAYS);var refresh=new Button();refresh.setGraphic(new org.kordamp.ikonli.javafx.FontIcon("fth-refresh-cw"));refresh.setTooltip(new Tooltip(tr("news.refresh")));refresh.setAccessibleText(tr("news.refresh"));refresh.setOnAction(e->refreshAsync());
+  preview.getChildren().add(new HBox(10,heading,count,space,refresh));var page=service.loadPage(null);
+  for(var item:page.items().stream().limit(2).toList())preview.getChildren().add(newsCard(item,true));
+  if(page.items().isEmpty()){var empty=new Label(tr("news.empty"));empty.getStyleClass().add("text-muted");preview.getChildren().add(empty);}
+  var spacer=new Region();spacer.setMinHeight(24);VBox.setVgrow(spacer,Priority.ALWAYS);preview.getChildren().add(spacer);
+  Button all=new Button(tr("news.all"));all.setMaxWidth(Double.MAX_VALUE);all.setPrefHeight(46);all.setOnAction(e->{back();if(onOpenPage!=null)onOpenPage.run();});preview.getChildren().add(all);
+ }
  private Runnable onOpenPage;
  public void setOnOpenPage(Runnable callback){onOpenPage=callback;}
  private void renderDetail(NewsItem item){detail.getChildren().clear();Label heading=new Label(item.title());heading.setWrapText(true);heading.getStyleClass().add("h2");detail.getChildren().add(heading);

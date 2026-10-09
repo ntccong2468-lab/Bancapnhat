@@ -1,0 +1,18 @@
+{
+  "scope": "First-run UI only; authenticated workflows not tested",
+  "visibleTitles": [
+    "Wbcode v1.3.0"
+  ],
+  "freshRunner": true,
+  "release": "v1.3.0",
+  "source": "official release installer",
+  "licenseActivated": false,
+  "shopCredentialsEntered": false,
+  "installerSha256": "1abd064e9f5cc74888fb9c737097e3a1030aa3dead3c42d2a52ea3bdd844f092",
+  "screenshot": "official-wbcode-1.3.0-first-run.png",
+  "nativeLaunch": "passed",
+  "windowMaximized": true,
+  "screenWidth": 1024,
+  "liveMarketplaceMutations": false,
+  "screenHeight": 768
+}

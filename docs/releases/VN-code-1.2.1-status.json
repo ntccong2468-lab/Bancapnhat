@@ -1,0 +1,19 @@
+{
+  "version": "1.2.1",
+  "complete": false,
+  "blocked": [
+    "Ozon: delivering contract found for third-party rFBS only; verify standard-FBS behavior and implement selection/label reminder",
+    "Znack: automatic GTIN reallocation is not enabled solely on a section change; verified business rule/recovery remains required",
+    "TN VED: catalog/import/search/backup core implemented; product mappings, AI provider, marking rules, Yandex and integrated restore remain incomplete",
+    "Wbcode 1.3.0: GS1 RUS membership/mail/invoices/application autofill and per-certificate signing changes have no verified public source/API contract; not implemented in this preview"
+  ],
+  "changes": [
+    "Dashboard trang chào với sáu thẻ chức năng, cột tin tức và giao diện tối theo ảnh tham chiếu.",
+    "Menu gọn, tô mục đang chọn; các công cụ GTIN/TN VED/thống kê/đơn FBO vẫn truy cập được.",
+    "Supply WB có cột WB/GTIN riêng, hàng cao hơn, mở kho GTIN và thông số giao khi cần.",
+    "Sửa điều hướng trang Tin tức/TN VED; trạng thái KIZ không che lỗi bằng nhãn màu xanh.",
+    "Thêm Hướng dẫn VN code, thiết lập WB/Ozon, GTIN/KIZ và nâng cấp; nút trợ giúp mở đúng trang.",
+    "Sửa chiều cao thẻ Dashboard/tin tức và giữ cột barcode/giá truy cập được khi mở kho GTIN ở cửa sổ nhỏ.",
+    "Dashboard và hướng dẫn luôn hiện khi chưa có shop; không giữ trang theo shop sau khi ngữ cảnh shop bị xóa."
+  ]
+}

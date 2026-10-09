@@ -148,7 +148,7 @@ public class HomeController implements Initializable {
     private BorderPane supplyManagementView;
     private VBox financeDashboardView;
     private com.vncode.app.ui.news.NewsPane newsPane;
-    private final java.util.List<javafx.scene.control.Button> dashboardLinks=new java.util.ArrayList<>();
+    private com.vncode.app.ui.dashboard.WelcomePane welcomePane;
     private VBox printHistoryView;
     private VBox packingView;
     private VBox fboPackingView;
@@ -208,7 +208,7 @@ public class HomeController implements Initializable {
         initializeBackgroundKizProgress();
         i18nService.addListener(languageListener);
 
-        contentPane.setVisible(false);
+        contentPane.setVisible(true);
         showDashboard();
         updateHeaderState();
         updateExportAvailability();
@@ -227,13 +227,10 @@ public class HomeController implements Initializable {
             newsPane=new com.vncode.app.ui.news.NewsPane(service,this::showDashboard,
                 count -> { if(workspaceHeaderController!=null)workspaceHeaderController.setUnreadNews(count); });
             newsPane.setOnOpenPage(() -> setDynamicContent(newsPane));
-            VBox intro=new VBox(8);
-            String[] keys={"sidebar.packing","sidebar.fbo_packing","sidebar.znack_registration","gtinsync.title"};
-            Runnable[] actions={this::showPacking,this::showFboPacking,this::showZnackRegistration,this::showGtinSync};
-            for(int i=0;i<keys.length;i++){javafx.scene.control.Button button=new javafx.scene.control.Button(i18nService.tr(keys[i]));Runnable action=actions[i];button.setOnAction(e -> action.run());button.setUserData(keys[i]);dashboardLinks.add(button);intro.getChildren().add(button);}
-            javafx.scene.layout.FlowPane overview=new javafx.scene.layout.FlowPane(20,12,intro,newsPane.preview());intro.setPrefWidth(240);overview.setPrefWrapLength(600);
-            newsPane.preview().setPrefWidth(300);financeDashboardView.getChildren().add(1,overview);
-            financeDashboardView.sceneProperty().addListener((observable,oldScene,newScene) -> {
+            welcomePane=new com.vncode.app.ui.dashboard.WelcomePane(newsPane.preview(),java.util.List.of(
+                this::showPacking,this::showZnackAutomation,this::showZnackRegistration,this::showFboPacking,
+                () -> onSettings(new ActionEvent()),this::showPrintHistory));
+            welcomePane.sceneProperty().addListener((observable,oldScene,newScene) -> {
                 if(newScene==null)return;
                 if(newScene.getWindow()!=null&&newScene.getWindow().isShowing())javafx.application.Platform.runLater(newsPane::refreshAsync);
                 newScene.windowProperty().addListener((o,previous,window) -> {
@@ -294,6 +291,10 @@ public class HomeController implements Initializable {
         ozonDashboardView = FxmlViewLoader.load(ozonLoader);
         ozonDashboardController = ozonLoader.getController();
         ozonDashboardController.setOnBusy((shopId, busy) -> markShopRunning(shopId, busy));
+        workspaceNavigator.register("welcome", () -> welcomePane);
+        workspaceNavigator.register("guides", () -> {if(guidesPane==null)guidesPane=new com.vncode.app.ui.guides.GuidesPane();return guidesPane;});
+        workspaceNavigator.register("news", () -> newsPane);
+        workspaceNavigator.register("tnved", () -> tnvedPane);
         workspaceNavigator.register("finance", () -> financeDashboardView);
         workspaceNavigator.register("supplies", () -> supplyManagementView);
         workspaceNavigator.register("packing", () -> packingView);
@@ -315,9 +316,13 @@ public class HomeController implements Initializable {
 
     private void showDashboard() {
         clearKizDraft();
-        setDynamicContent(financeDashboardView);
-        financeDashboardController.setShop(state.getSelectedShop());
+        setDynamicContent(welcomePane);
     }
+    private void showFinance() {
+        clearKizDraft();setDynamicContent(financeDashboardView);financeDashboardController.setShop(state.getSelectedShop());
+    }
+    private com.vncode.app.ui.guides.GuidesPane guidesPane;
+    private void showGuides(){clearKizDraft();workspaceNavigator.show("guides");}
 
     private void showOzonDashboard(boolean syncRemote) {
         clearKizDraft();
@@ -501,6 +506,10 @@ public class HomeController implements Initializable {
     private void displayDynamicContent(Node view) {
         clearFboQuantitiesIfLeaving(view);
         stopPackingDelayIfLeaving(view);
+        if(shopSidebarController!=null) {
+            String selected=view==welcomePane?"dashboardButton":view==guidesPane?"guidesButton":view==financeDashboardView?"financeButton":view==packingView||view==ozonDashboardView||view==supplyManagementView?"packingButton":view==fboPackingView?"fboPackingButton":view==fboSupplyOrdersView?"fboOrdersButton":view==kizMappingView?"kizMappingButton":view==znackAutomationView?"znackAutomationButton":view==znackRegistrationView?"znackRegistrationButton":view==printHistoryView?"btnPrintHistory":view==gtinSyncView?"gtinSyncButton":view==tnvedPane?"tnvedButton":"";
+            shopSidebarController.selectNavigation(selected);
+        }
         dynamicContentContainer.getChildren().setAll(view);
         view.setOpacity(0.0);
         FadeTransition fade = new FadeTransition(javafx.util.Duration.millis(120), view);
@@ -1500,6 +1509,8 @@ public class HomeController implements Initializable {
         shopSidebarController.setOnAddShop(() -> onAddShop(new ActionEvent()));
         shopSidebarController.setOnOpenSettings(() -> onSettings(new ActionEvent()));
         shopSidebarController.setOnDashboard(this::showDashboard);
+        shopSidebarController.setOnFinance(this::showFinance);
+        shopSidebarController.setOnGuides(this::showGuides);
         shopSidebarController.setOnTnved(this::showTnved);
         shopSidebarController.setOnPacking(this::showPacking);
         shopSidebarController.setOnFboPacking(this::showFboPacking);
@@ -1524,6 +1535,7 @@ public class HomeController implements Initializable {
         FXMLLoader loader = FxmlViewLoader.loader(WorkspaceHeaderController.class, "workspace-header-view.fxml");
         HBox root = FxmlViewLoader.load(loader);
         workspaceHeaderController = loader.getController();
+        workspaceHeaderController.setOnSupport(this::showGuides);
         workspaceHeaderController.setOnSync(() -> onSyncWildberries(new ActionEvent()));
         workspaceHeaderController.setOnEditShop(() -> onUpdateShop(new ActionEvent()));
         workspaceHeaderController.setOnDeleteShop(() -> onDeleteShop(new ActionEvent()));
@@ -1554,7 +1566,9 @@ public class HomeController implements Initializable {
         VBox supplyDetailRoot = FxmlViewLoader.load(supplyDetailLoader);
         wbShippingPane=new com.vncode.app.ui.supply.WbShippingPane();
         wbShippingPane.setContext(null,null);
-        supplyDetailRoot.getChildren().add(2,wbShippingPane);
+        var shippingSection=new javafx.scene.control.TitledPane(i18nService.tr("supply.shipping_options"),wbShippingPane);
+        shippingSection.setExpanded(false);shippingSection.setAnimated(false);shippingSection.visibleProperty().bind(wbShippingPane.visibleProperty());shippingSection.managedProperty().bind(shippingSection.visibleProperty());
+        supplyDetailRoot.getChildren().add(2,shippingSection);
         supplyDetailController = supplyDetailLoader.getController();
         supplyDetailController.setSortOptions(orderSortPreferenceService.load());
         supplyDetailController.setOnSortOptionsChanged(options -> {
@@ -1574,8 +1588,9 @@ public class HomeController implements Initializable {
     }
 
     private void applyTranslations() {
+        if(guidesPane!=null)guidesPane.applyTranslations();
         if(newsPane!=null)newsPane.applyTranslations();
-        for(var link:dashboardLinks)link.setText(i18nService.tr((String)link.getUserData()));
+        if(welcomePane!=null)welcomePane.applyTranslations();
         if (disposed) {
             return;
         }
@@ -1630,12 +1645,13 @@ public class HomeController implements Initializable {
     }
 
     private void clearWorkspaceView() {
-        contentPane.setVisible(false);
+        contentPane.setVisible(true);
         if (fboSupplyOrdersController != null) {
             fboSupplyOrdersController.setShop(null, false);
         }
         clearSupplyViews();
         updateHeaderState();
+        showDashboard();
     }
 
     private void clearSupplyViews() {
@@ -1676,6 +1692,7 @@ public class HomeController implements Initializable {
 
     private void resetLoadedSupply() {
         loadedSupplySummary = null;
+        if(wbShippingPane!=null)wbShippingPane.setContext(null,null);
         state.clearLoadedSupply();
         if (supplyDetailController != null) {
             supplyDetailController.setLoading(false);
@@ -1806,7 +1823,8 @@ public class HomeController implements Initializable {
     }
 
     private boolean isDashboardVisible() {
-        return financeDashboardView != null && dynamicContentContainer.getChildren().contains(financeDashboardView);
+        return (welcomePane != null && dynamicContentContainer.getChildren().contains(welcomePane))
+            || (financeDashboardView != null && dynamicContentContainer.getChildren().contains(financeDashboardView));
     }
 
     private boolean isOzonDashboardVisible() {

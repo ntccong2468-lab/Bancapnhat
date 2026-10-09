@@ -60,6 +60,112 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class FxmlSmokeTest {
+    @Test void narrowSupplyCanStillReachBarcodesWithInventoryClosed() throws Exception {
+        var task=new java.util.concurrent.FutureTask<Void>(() -> {
+            var loader=FxmlViewLoader.loader(SupplyDetailController.class,"supply-detail-view.fxml");Parent root=FxmlViewLoader.load(loader);var controller=(SupplyDetailController)loader.getController();var order=new com.vncode.app.models.Order();order.setId(123L);order.setName("Layout");controller.setOrders(java.util.List.of(order));
+            var table=(TableView<?>)loader.getNamespace().get("orderTable");var scene=new javafx.scene.Scene(root,740,730);scene.getStylesheets().add(getClass().getResource("/com/vncode/app/styles/theme.css").toExternalForm());var stage=new javafx.stage.Stage();stage.setScene(scene);
+            try {stage.show();root.applyCss();root.layout();assertTrue(((javafx.scene.layout.Region)root).minWidth(730)<=740,"Supply header must allow the workspace to shrink");assertTrue(table.lookupAll(".scroll-bar").stream().anyMatch(n->n instanceof javafx.scene.control.ScrollBar b&&b.getOrientation()==javafx.geometry.Orientation.HORIZONTAL&&b.isVisible()&&b.getMax()>b.getMin()&&b.getHeight()>=10),"Narrow supply must keep barcode and price accessible before opening inventory");}finally {stage.close();}return null;
+        });Platform.runLater(task);task.get(15,TimeUnit.SECONDS);
+    }
+    @Test void homeRootFitsAResizedWindowInsteadOfClippingTheWorkspace() throws Exception {
+        var task=new java.util.concurrent.FutureTask<Void>(() -> {
+            var loader=FxmlViewLoader.loader(HomeController.class,"home-view.fxml");Parent root=FxmlViewLoader.load(loader);var home=(HomeController)loader.getController();var scene=new javafx.scene.Scene(root,1040,760);scene.getStylesheets().add(getClass().getResource("/com/vncode/app/styles/theme.css").toExternalForm());var stage=new javafx.stage.Stage();stage.setScene(scene);
+            try {stage.show();root.applyCss();root.layout();assertTrue(((javafx.scene.layout.Region)root).minWidth(760)<=1040,"Home must be able to shrink below its preferred 1300px width");assertTrue(root.getLayoutBounds().getWidth()<=scene.getWidth()+1,"Home must fit the actual window");}finally {stage.close();home.dispose();}return null;
+        });Platform.runLater(task);task.get(15,TimeUnit.SECONDS);
+    }
+    @Test void guidesRemainReadableOnTheDarkViewport() throws Exception {
+        var task=new java.util.concurrent.FutureTask<Void>(() -> {
+            var pane=new com.vncode.app.ui.guides.GuidesPane();var shell=new javafx.scene.layout.BorderPane(pane);shell.getStyleClass().add("theme-dark");var scene=new javafx.scene.Scene(shell,1000,700);scene.getStylesheets().add(getClass().getResource("/com/vncode/app/styles/theme.css").toExternalForm());shell.applyCss();shell.layout();
+            var viewport=(javafx.scene.layout.Region)pane.lookup(".viewport");var background=(javafx.scene.paint.Color)viewport.getBackground().getFills().getFirst().getFill();
+            var title=(javafx.scene.paint.Color)((Label)pane.lookup(".welcome-title")).getTextFill();
+            if(background.getOpacity()==0)background=(javafx.scene.paint.Color)shell.getBackground().getFills().getFirst().getFill();
+            assertTrue(Math.abs(title.getBrightness()-background.getBrightness())>0.5,"Guide title must contrast with its actual viewport background");return null;
+        });Platform.runLater(task);task.get(10,TimeUnit.SECONDS);
+    }
+    @Test void homeShowsLandingAndGuidesWithoutAConfiguredShop() throws Exception {
+        var task=new java.util.concurrent.FutureTask<Void>(() -> {
+            var loader=FxmlViewLoader.loader(HomeController.class,"home-view.fxml");FxmlViewLoader.load(loader);var home=(HomeController)loader.getController();
+            try {
+                assertTrue(((Node)loader.getNamespace().get("contentPane")).isVisible(),"Fresh app must show the welcome page before shop setup");
+                var nf=HomeController.class.getDeclaredField("workspaceNavigator");nf.setAccessible(true);var navigator=(com.vncode.app.ui.workspace.WorkspaceNavigator)nf.get(home);navigator.show("finance");
+                var reset=HomeController.class.getDeclaredMethod("clearWorkspaceView");reset.setAccessible(true);reset.invoke(home);
+                assertEquals("welcome",navigator.currentRoute(),"Removing the shop context must leave shop-specific pages");
+                var guides=HomeController.class.getDeclaredMethod("showGuides");guides.setAccessible(true);guides.invoke(home);
+                assertTrue(((Node)loader.getNamespace().get("contentPane")).isVisible(),"Shop setup guides must stay visible without credentials");
+            }finally {home.dispose();}return null;
+        });Platform.runLater(task);task.get(15,TimeUnit.SECONDS);
+    }
+    @Test void dashboardCardsHaveUsableRenderedHeightsWithProductionThemes() throws Exception {
+        var task=new java.util.concurrent.FutureTask<Void>(() -> {
+            var item=new com.vncode.app.features.news.NewsItem("layout",java.time.Instant.now(),"Wildberries và Ozon: cập nhật thông tin sản phẩm", "Đồng bộ đơn hàng, kiểm tra GTIN và in nhãn theo cấu hình của từng cửa hàng. Xem chi tiết để chuẩn bị lô hàng.");
+            var news=new com.vncode.app.ui.news.NewsPane(new com.vncode.app.features.news.NewsService(java.util.List.of(item),new com.vncode.app.features.news.NewsRepository(appDataDir.resolve("layout-news"))),()->{},n->{});
+            var pane=new com.vncode.app.ui.dashboard.WelcomePane(news.preview(),java.util.stream.IntStream.range(0,6).mapToObj(i->(Runnable)()->{}).toList());
+            var scene=new javafx.scene.Scene(pane,1100,760);scene.getStylesheets().add(getClass().getResource("/com/vncode/app/styles/theme.css").toExternalForm());
+            var stage=new javafx.stage.Stage();stage.setScene(scene);
+            try {
+                stage.show();
+                for(String theme:java.util.List.of("theme-dark","theme-light")) {
+                    pane.getStyleClass().removeAll("theme-dark","theme-light");pane.getStyleClass().add(theme);pane.applyCss();pane.layout();
+                    for(var node:pane.lookupAll(".feature-card"))assertTrue(node.getBoundsInParent().getHeight()>=140&&node.getBoundsInParent().getHeight()<260,"Feature card must fit a normal dashboard row: "+node.getBoundsInParent().getHeight());
+                    for(var node:pane.lookupAll(".news-card"))assertTrue(node.getBoundsInParent().getHeight()<350,"News preview must not force a huge scroll area");
+                    assertTrue(pane.lookup(".welcome-title").localToScene(pane.lookup(".welcome-title").getBoundsInLocal()).getMinY()>=0,"Welcome title must be visible on first open");
+                }
+            } finally {stage.close();}return null;
+        });Platform.runLater(task);task.get(15,TimeUnit.SECONDS);
+    }
+    @Test void openedInventoryKeepsTrailingSupplyColumnsAccessible() throws Exception {
+        var task=new java.util.concurrent.FutureTask<Void>(() -> {
+            var loader=FxmlViewLoader.loader(SupplyDetailController.class,"supply-detail-view.fxml");Parent root=FxmlViewLoader.load(loader);var controller=(SupplyDetailController)loader.getController();
+            var order=new com.vncode.app.models.Order();order.setId(123L);order.setName("Sản phẩm kiểm tra");order.setBarcode("0123456789012");controller.setOrders(java.util.List.of(order));
+            var table=(TableView<?>)loader.getNamespace().get("orderTable");var scene=new javafx.scene.Scene(root,1040,730);scene.getStylesheets().add(getClass().getResource("/com/vncode/app/styles/theme.css").toExternalForm());var stage=new javafx.stage.Stage();stage.setScene(scene);
+            try {stage.show();((Button)loader.getNamespace().get("inventoryToggleButton")).fire();root.applyCss();root.layout();
+                assertTrue(table.lookupAll(".scroll-bar").stream().anyMatch(n->n instanceof javafx.scene.control.ScrollBar b&&b.getOrientation()==javafx.geometry.Orientation.HORIZONTAL&&b.isVisible()&&b.getMax()>b.getMin()&&b.getHeight()>=10),"Inventory must provide a usable horizontal scrollbar for barcode and price columns");
+            } finally {stage.close();}return null;
+        });Platform.runLater(task);task.get(15,TimeUnit.SECONDS);
+    }
+    @Test void guidesAreReachableFromHeaderAndSidebar() throws Exception {
+        var task=new java.util.concurrent.FutureTask<Void>(() -> {
+            var loader=FxmlViewLoader.loader(HomeController.class,"home-view.fxml");FxmlViewLoader.load(loader);var home=(HomeController)loader.getController();
+            try {var f=HomeController.class.getDeclaredField("workspaceNavigator");f.setAccessible(true);var nav=(com.vncode.app.ui.workspace.WorkspaceNavigator)f.get(home);nav.show("guides");assertEquals("guides",nav.currentRoute());
+                var side=HomeController.class.getDeclaredField("shopSidebarController");side.setAccessible(true);var guide=side.get(home).getClass().getDeclaredField("guidesButton");guide.setAccessible(true);((Button)guide.get(side.get(home))).fire();assertEquals("guides",nav.currentRoute());
+                nav.show("welcome");var hf=HomeController.class.getDeclaredField("workspaceHeaderController");hf.setAccessible(true);var help=hf.get(home).getClass().getDeclaredField("supportButton");help.setAccessible(true);((Button)help.get(hf.get(home))).fire();assertEquals("guides",nav.currentRoute());
+            }finally {home.dispose();}return null;
+        });Platform.runLater(task);task.get(15,TimeUnit.SECONDS);
+    }
+    @Test void newsAndTnvedCanBeOpenedThroughHomeNavigation() throws Exception {
+        var task=new java.util.concurrent.FutureTask<Void>(() -> {
+            var loader=FxmlViewLoader.loader(HomeController.class,"home-view.fxml");FxmlViewLoader.load(loader);var home=(HomeController)loader.getController();
+            try {
+                var field=HomeController.class.getDeclaredField("workspaceNavigator");field.setAccessible(true);var navigator=(com.vncode.app.ui.workspace.WorkspaceNavigator)field.get(home);
+                navigator.show("news");assertEquals("news",navigator.currentRoute());
+                var show=HomeController.class.getDeclaredMethod("showTnved");show.setAccessible(true);show.invoke(home);assertEquals("tnved",navigator.currentRoute());
+            } finally {home.dispose();}return null;
+        });Platform.runLater(task);task.get(15,TimeUnit.SECONDS);
+    }
+    @Test void welcomeCardsNavigateAndRemainReadableAtSmallWidth() throws Exception {
+        var task=new java.util.concurrent.FutureTask<Void>(() -> {
+            var clicks=new AtomicInteger();var news=new VBox(new Label("Tin tức"));
+            var actions=java.util.stream.IntStream.range(0,6).mapToObj(i -> (Runnable)clicks::incrementAndGet).toList();
+            var pane=new com.vncode.app.ui.dashboard.WelcomePane(news,actions);
+            var scene=new javafx.scene.Scene(pane,1100,700);pane.applyCss();pane.layout();
+            assertEquals(6,pane.lookupAll(".feature-card").size());
+            for(var node:pane.lookupAll(".feature-card"))((Button)node).fire();assertEquals(6,clicks.get());
+            pane.resize(760,700);pane.layout();assertTrue(pane.isCompact());
+            for(var language:com.vncode.app.shared.AppLanguage.values()) {I18nService.getInstance().setLanguage(language);pane.applyTranslations();assertFalse(pane.welcomeTitle().contains("welcome.title"));}
+            return null;
+        });Platform.runLater(task);task.get(10,TimeUnit.SECONDS);
+    }
+    @Test void supplyShowsSeparateBarcodesAndCanOpenInventoryWithoutLosingOrders() throws Exception {
+        var task=new java.util.concurrent.FutureTask<Void>(() -> {
+            var loader=FxmlViewLoader.loader(SupplyDetailController.class,"supply-detail-view.fxml");FxmlViewLoader.load(loader);
+            var table=(TableView<?>)loader.getNamespace().get("orderTable");assertEquals(6,table.getColumns().size());
+            assertNotNull(loader.getNamespace().get("barcodeTC"));
+            var inventory=(VBox)loader.getNamespace().get("gtinInventoryPane");assertFalse(inventory.isManaged());
+            ((Button)loader.getNamespace().get("inventoryToggleButton")).fire();assertTrue(inventory.isManaged());
+            ((Button)loader.getNamespace().get("inventoryToggleButton")).fire();assertFalse(inventory.isManaged());
+            assertTrue(((Button)loader.getNamespace().get("deliverButton")).isDisabled());return null;
+        });Platform.runLater(task);task.get(10,TimeUnit.SECONDS);
+    }
     @Test void wbShippingContextResetsAnOldLoadingButton() throws Exception {
         var task=new java.util.concurrent.FutureTask<Void>(() -> {
             var pane=new com.vncode.app.ui.supply.WbShippingPane();
@@ -133,10 +239,11 @@ class FxmlSmokeTest {
         System.setProperty("vncode.appdata.dir", appDataDir.toString());
         AtomicBoolean started = new AtomicBoolean(false);
         try {
-            Platform.startup(() -> started.set(true));
+            Platform.startup(() -> {Platform.setImplicitExit(false);started.set(true);});
         } catch (IllegalStateException alreadyStarted) {
             started.set(true);
         }
+        Platform.setImplicitExit(false);
         if (!started.get()) {
             CountDownLatch latch = new CountDownLatch(1);
             Platform.runLater(latch::countDown);
@@ -414,6 +521,7 @@ class FxmlSmokeTest {
             try {
                 FXMLLoader loader = FxmlViewLoader.loader(ShopSidebarController.class, "shop-sidebar-view.fxml");
                 Parent root = FxmlViewLoader.load(loader);
+                new javafx.scene.Scene(root,260,850);root.applyCss();root.layout();
                 found.set(root.lookup("#dashboardButton") != null
                         && root.lookup("#packingButton") != null
                         && root.lookup("#kizMappingButton") != null

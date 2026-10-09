@@ -1,20 +1,20 @@
 /* CSS Variables & Theme Definitions */
 .root {
     /* DEFAULT (DARK) THEME VARIABLES */
-    -bg-primary: #0F172A;        /* Deep slate navy */
-    -bg-secondary: #1E293B;      /* Medium slate card background */
-    -bg-tertiary: #1E293B;       /* Lighter slate panel background */
-    -bg-odd-row: #182235;        /* Contrasted odd row background */
-    -border-color: #334155;      /* Slate border */
-    -border-color-hover: #475569;
+    -bg-primary: #121119;        /* Deep slate navy */
+    -bg-secondary: #1F1E29;      /* Medium slate card background */
+    -bg-tertiary: #1F1E29;       /* Lighter slate panel background */
+    -bg-odd-row: #1F1E29;        /* Contrasted odd row background */
+    -border-color: #302E3F;      /* Slate border */
+    -border-color-hover: #454257;
 
-    -text-primary: #F8FAFC;      /* Slate 50 text */
-    -text-secondary: #CBD5E1;    /* Slate 300 text */
-    -text-muted: #64748B;        /* Slate 500 text */
+    -text-primary: #F1EFF7;      /* Slate 50 text */
+    -text-secondary: #BAB7C8;    /* Slate 300 text */
+    -text-muted: #8F8AA3;        /* Slate 500 text */
 
-    -accent: #9a41fe;            /* Soft Violet/Purple accent for dark mode readability */
-    -accent-hover: #9941fef6;
-    -accent-active: #963bfd;
+    -accent: #B55CF5;            /* Soft Violet/Purple accent for dark mode readability */
+    -accent-hover: #C071FA;
+    -accent-active: #9F45E3;
     -accent-transparent: rgba(167, 139, 250, 0.15);
 
     -danger: #EF4444;
@@ -29,30 +29,30 @@
     -warning-hover: #D97706;
 
     /* Button specific dark variables */
-    -btn-bg: #1E293B;
-    -btn-bg-hover: #334155;
-    -btn-bg-pressed: #0F172A;
-    -btn-text-color: #F8FAFC;
+    -btn-bg: #1F1E29;
+    -btn-bg-hover: #302E3F;
+    -btn-bg-pressed: #121119;
+    -btn-text-color: #F1EFF7;
     
     -fx-font-family: "Inter", "Segoe UI", sans-serif;
     -fx-font-size: 14px;
 }
 
 .root.theme-dark {
-    -bg-primary: #0F172A;
-    -bg-secondary: #1E293B;
-    -bg-tertiary: #1E293B;
-    -bg-odd-row: #182235;
-    -border-color: #334155;
-    -border-color-hover: #475569;
+    -bg-primary: #121119;
+    -bg-secondary: #1F1E29;
+    -bg-tertiary: #1F1E29;
+    -bg-odd-row: #1F1E29;
+    -border-color: #302E3F;
+    -border-color-hover: #454257;
 
-    -text-primary: #F8FAFC;
-    -text-secondary: #CBD5E1;
-    -text-muted: #64748B;
+    -text-primary: #F1EFF7;
+    -text-secondary: #BAB7C8;
+    -text-muted: #8F8AA3;
 
-    -accent: #9a41fe;
-    -accent-hover: #9941fef6;
-    -accent-active: #963bfd;
+    -accent: #B55CF5;
+    -accent-hover: #C071FA;
+    -accent-active: #9F45E3;
     -accent-transparent: rgba(167, 139, 250, 0.15);
 
     -danger: #EF4444;
@@ -66,10 +66,10 @@
     -warning: #F59E0B;
     -warning-hover: #D97706;
 
-    -btn-bg: #1E293B;
-    -btn-bg-hover: #334155;
-    -btn-bg-pressed: #0F172A;
-    -btn-text-color: #F8FAFC;
+    -btn-bg: #1F1E29;
+    -btn-bg-hover: #302E3F;
+    -btn-bg-pressed: #121119;
+    -btn-text-color: #F1EFF7;
 }
 
 .root.theme-light {
@@ -85,8 +85,8 @@
     -text-muted: #6B7280;      /* Grey text */
 
     -accent: #8B2EC5;          /* VN code light theme */
-    -accent-hover: #9941fef6;
-    -accent-active: #963bfd;
+    -accent-hover: #C071FA;
+    -accent-active: #9F45E3;
     -accent-transparent: rgba(139, 92, 246, 0.12);
 
     -danger: #EF4444;
@@ -1069,10 +1069,10 @@
 
 .theme-light .badge-gray {
     -fx-background-color: #E2E8F0;
-    -fx-text-fill: #475569;
+    -fx-text-fill: #454257;
 }
 .theme-dark .badge-gray {
-    -fx-background-color: #334155;
+    -fx-background-color: #302E3F;
     -fx-text-fill: #94A3B8;
 }
 
@@ -1098,3 +1098,42 @@
 .button, .combo-box-base, .tab { -fx-background-radius: 6; }
 .button:focused, .combo-box-base:focused { -fx-border-color: -accent; -fx-border-radius: 6; }
 .menu-item .check-box { -fx-padding: 6 10 6 8; -fx-min-height: 30; }
+
+/* Screenshot reference: quiet navigation, spacious cards and supply rows. */
+.root { -fx-font-family: "Segoe UI", "System"; }
+.header { -fx-background-color: -bg-secondary; -fx-padding: 14 20; }
+.sidebar { -fx-background-color: derive(-bg-primary, 7%); -fx-padding: 14 12 10 12; }
+.sidebar .button, .sidebar .menu-button { -fx-background-color: transparent; -fx-border-color: transparent; -fx-text-fill: -text-secondary; -fx-alignment: CENTER_LEFT; -fx-padding: 12 14; -fx-background-radius: 16; -fx-font-size: 16; }
+.sidebar .button .ikonli-font-icon { -fx-icon-color: -text-secondary; }
+.sidebar .button:hover { -fx-background-color: -accent-transparent; }
+.sidebar .button.nav-selected { -fx-background-color: -accent-transparent; -fx-text-fill: -accent; }
+.sidebar .button.nav-selected .ikonli-font-icon { -fx-icon-color: -accent; }
+.sidebar .button.add-shop { -fx-background-color: -accent; -fx-text-fill: white; -fx-font-weight: bold; }
+.sidebar .button.add-shop .ikonli-font-icon { -fx-icon-color: white; }
+.sidebar-scroll, .sidebar-scroll > .viewport, .welcome-scroll, .welcome-scroll > .viewport { -fx-background-color: transparent; }
+.sidebar-tools > .title { -fx-background-color: transparent; -fx-padding: 12; }
+.sidebar-tools > .content { -fx-background-color: transparent; -fx-border-color: transparent; }
+.welcome-body { -fx-padding: 24 24 28 24; }
+.welcome-title { -fx-font-size: 32; -fx-font-weight: bold; }
+.welcome-description { -fx-font-size: 16; -fx-text-fill: -text-secondary; }
+.feature-card, .news-card { -fx-background-color: -bg-secondary; -fx-border-color: -border-color; -fx-border-width: 1; -fx-background-radius: 20; -fx-border-radius: 20; -fx-padding: 20; -fx-alignment: TOP_LEFT; }
+.feature-card { -fx-min-height: 145; }
+.feature-card:hover, .news-card:hover { -fx-border-color: -accent; }
+.feature-title, .news-card-title { -fx-font-weight: bold; -fx-font-size: 16; }
+.feature-card .feature-icon { -fx-icon-color: -accent; }
+.feature-card .text-secondary, .news-card .text-secondary, .news-card .text-muted { -fx-font-weight: normal; }
+.sidebar-tools > .title > .text { -fx-fill: -text-secondary; }
+.guide-section { -fx-background-color: -bg-secondary; -fx-border-color: -border-color; -fx-background-radius: 16; -fx-border-radius: 16; -fx-padding: 20; }
+.news-preview { -fx-spacing: 16; }
+.news-card { -fx-padding: 24; -fx-min-height: 210; }
+.unread-badge { -fx-background-color: #FF6276; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 3 9; -fx-background-radius: 12; }
+.supply-detail { -fx-background-radius: 20; -fx-border-radius: 20; -fx-padding: 20; }
+.supply-detail #orderTable .table-row-cell { -fx-cell-size: 136; -fx-border-color: transparent transparent -border-color transparent; -fx-border-width: 0 0 1 0; }
+.supply-detail #orderTable .table-cell { -fx-padding: 14 16; -fx-font-size: 15; }
+.supply-detail #orderTable .column-header { -fx-pref-height: 56; }
+.supply-detail #orderTable { -fx-background-radius: 18; -fx-border-radius: 18; }
+.supply-detail #orderTable .scroll-bar:horizontal { -fx-min-height: 12; -fx-pref-height: 12; }
+.supply-detail #orderTable .scroll-bar:vertical { -fx-min-width: 12; -fx-pref-width: 12; }
+.supply-detail .button { -fx-background-radius: 16; -fx-font-size: 15; }
+.supply-detail .check-box { -fx-font-size: 16; }
+.supply-detail .badge { -fx-padding: 6 10; -fx-font-size: 13; -fx-background-radius: 10; }

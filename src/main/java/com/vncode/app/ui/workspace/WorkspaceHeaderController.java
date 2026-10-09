@@ -31,7 +31,11 @@ public class WorkspaceHeaderController {
     @FXML
     private Label syncLoadingLabel;
 
-    @FXML private Button newsButton;
+    @FXML private Button newsButton,supportButton;
+    @FXML private Label newsBadge;
+    private Runnable onSupport;
+    public void setOnSupport(Runnable callback){onSupport=callback;}
+    @FXML private void onSupport(){if(onSupport!=null)onSupport.run();}
     private Runnable onNews;
     private Runnable onSync;
     private Runnable onEditShop;
@@ -85,7 +89,7 @@ public class WorkspaceHeaderController {
 
     @FXML private void onNews() {if(onNews!=null)onNews.run();}
     public void setOnNews(Runnable callback){onNews=callback;}
-    public void setUnreadNews(int count){newsButton.setText("🔔 " + count);newsButton.setAccessibleText(I18nService.getInstance().tr("news.title") + " " + count);}
+    public void setUnreadNews(int count){newsBadge.setText(Integer.toString(Math.max(0,count)));newsBadge.setVisible(count>0);newsBadge.setManaged(count>0);newsButton.setAccessibleText(I18nService.getInstance().tr("news.title") + " " + count);}
 
     public void setOnSync(Runnable onSync) {
         this.onSync = onSync;
@@ -142,6 +146,8 @@ public class WorkspaceHeaderController {
 
     public void applyTranslations() {
         I18nService i18n = I18nService.getInstance();
+        supportButton.setText(i18n.tr("header.support"));
+        newsButton.setTooltip(new javafx.scene.control.Tooltip(i18n.tr("news.title")));
         shopComboBox.setPromptText(i18n.tr("header.shop_prompt"));
         syncButton.setText(" " + i18n.tr(marketplace == Marketplace.OZON ? "ozon.dashboard.refresh" : "header.sync"));
         syncLoadingLabel.setText(i18n.tr("header.sync_products_kiz"));

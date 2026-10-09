@@ -1,0 +1,30 @@
+{
+  "version": "1.2.1",
+  "command": "DISPLAY=:99 /workspace/wcode-setup/mvn-bancapnhat clean verify",
+  "javaTests": 600,
+  "javaFailures": 0,
+  "javaErrors": 0,
+  "javaSkipped": 0,
+  "nodeCommand": "node --test tools/*.test.mjs",
+  "nodeTests": 29,
+  "nodeFailures": 0,
+  "nodeSkipped": 0,
+  "uiSnapshots": "Linux JavaFX production components and HomeController using isolated demonstration data",
+  "windowsInstallerVerification": "pending exact-commit GitHub Actions run",
+  "liveMarketplaceMutations": false,
+  "deferredMinor": [
+    "Collapsed shipping section title keeps its original language until restart"
+  ],
+  "rulings": [
+    {
+      "decision": "Keep the approved labeled sidebar and add local guides; upstream icon-only rail is not reproduced",
+      "reason": "User approved the WCode 1.2.0 screenshot layout",
+      "costIfWrong": "Navigation appearance differs from Wbcode 1.3.0 first-run screen"
+    },
+    {
+      "decision": "Publish a Preview without GS1/signing feature parity",
+      "reason": "Public source stops at 1.1.32 and authenticated 1.3.0 workflows were not verified",
+      "costIfWrong": "GS1 delivery remains incomplete"
+    }
+  ]
+}

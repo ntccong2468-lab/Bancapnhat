@@ -15,6 +15,16 @@ import javafx.scene.control.ToggleGroup;
 import java.util.function.Consumer;
 
 public class ShopSidebarController {
+    @FXML private Button guidesButton;
+    private Runnable onGuides;
+    public void setOnGuides(Runnable action){onGuides=action;}
+    @FXML private void onGuides(){if(onGuides!=null)onGuides.run();}
+    @FXML private Button financeButton;
+    @FXML private javafx.scene.control.TitledPane toolsPane;
+    private Runnable onFinance;
+    public void setOnFinance(Runnable action){onFinance=action;}
+    @FXML private void onFinance(){if(onFinance!=null)onFinance.run();}
+    public void selectNavigation(String id){for(Button button:java.util.List.of(dashboardButton,packingButton,fboPackingButton,templateButton,kizMappingButton,znackRegistrationButton,znackAutomationButton,btnPrintHistory,gtinSyncButton,tnvedButton,fboOrdersButton,financeButton,guidesButton)){button.getStyleClass().remove("nav-selected");if(id.equals(button.getId()))button.getStyleClass().add("nav-selected");}}
     @FXML private Button tnvedButton;
     private Runnable onTnved;
     public void setOnTnved(Runnable action) { onTnved=action; }
@@ -100,6 +110,7 @@ public class ShopSidebarController {
         themeLightMenuItem.setToggleGroup(themeGroup);
 
         applyTranslations();
+        selectNavigation("dashboardButton");
     }
 
     public void setOnPrintHistory(Runnable onPrintHistory) {
@@ -220,6 +231,8 @@ public class ShopSidebarController {
         personalEditionMenuItem.setText(i18n.tr("edition.personal"));
         aboutMenuItem.setText(i18n.tr("settings.about"));
         applyMarketplaceTexts();
+        financeButton.setText(i18n.tr("sidebar.finance"));toolsPane.setText(i18n.tr("sidebar.tools"));tnvedButton.setText(i18n.tr("sidebar.tnved"));
+        guidesButton.setText(i18n.tr("guides.title"));
         editionStatusLabel.setText("• " + i18n.tr("edition.personal"));
         editionStatusLabel.setStyle("-fx-text-fill: #22c55e; -fx-font-weight: 700;");
     }

@@ -132,6 +132,13 @@ public class SupplyDetailController {
 
     // Consolidating category, article, color and size into nameTC
 
+    @FXML private TableColumn<Order,String> barcodeTC;
+    @FXML private VBox gtinInventoryPane;
+    @FXML private Button inventoryToggleButton;
+    private java.util.Map<Long,String> orderMappings=java.util.Map.of();
+    private long mappingRequest;
+    @FXML private void onToggleInventory(){boolean open=!gtinInventoryPane.isManaged();gtinInventoryPane.setManaged(open);gtinInventoryPane.setVisible(open);updateTableResizePolicy();}
+    private void updateTableResizePolicy(){double minimum=orderTable.getColumns().stream().mapToDouble(javafx.scene.control.TableColumnBase::getMinWidth).sum()+20;var policy=gtinInventoryPane.isManaged()||orderTable.getWidth()<minimum?TableView.UNCONSTRAINED_RESIZE_POLICY:TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN;if(orderTable.getColumnResizePolicy()!=policy)orderTable.setColumnResizePolicy(policy);}
     @FXML
     private TableColumn<Order, String> priceTC;
 
@@ -202,7 +209,10 @@ public class SupplyDetailController {
         imageTC.setCellValueFactory(cell -> new SimpleObjectProperty<>(cell.getValue().getImage()));
         nameTC.setCellValueFactory(new PropertyValueFactory<>("name"));
         priceTC.setCellValueFactory(data -> new javafx.beans.property.SimpleStringProperty(formatPrice(data.getValue().getPrice())));
-        orderTable.setColumnResizePolicy(TableView.UNCONSTRAINED_RESIZE_POLICY);
+        orderTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
+        orderTable.widthProperty().addListener((o,oldWidth,newWidth)->updateTableResizePolicy());
+        barcodeTC.setCellValueFactory(new PropertyValueFactory<>("barcode"));
+        barcodeTC.setCellFactory(column -> new BarcodeCell());
         configureImageColumn();
         nameTC.setCellFactory(column -> new OrderDetailsCell());
         centerColumn(priceTC);
@@ -312,7 +322,8 @@ public class SupplyDetailController {
     }
 
     public void setShop(Shop selected) {
-        shopGeneration++;
+        shopGeneration++;mappingRequest++;orderMappings=java.util.Map.of();
+        orderTable.refresh();
         shop = selected;
         purchasesStarting.clear();
         gtinSummaries = List.of();
@@ -384,7 +395,14 @@ public class SupplyDetailController {
     }
 
     public void setOrders(List<Order> orders) {
+        long request=++mappingRequest;orderMappings=java.util.Map.of();
         orderTable.getItems().setAll(orders == null ? List.of() : orders);
+        if(shop!=null&&orders!=null&&!orders.isEmpty()) {
+            int shopId=shop.getId();long generation=shopGeneration;
+            var ids=orders.stream().map(Order::getNmId).filter(java.util.Objects::nonNull).distinct().toList();
+            var task=new Task<java.util.Map<Long,String>>(){protected java.util.Map<Long,String> call(){return gtinRepository.findMappings(shopId,ids);}};
+            task.setOnSucceeded(e->{if(request==mappingRequest&&generation==shopGeneration){orderMappings=java.util.Map.copyOf(task.getValue());orderTable.refresh();}});AppTaskExecutor.execute(task);
+        }
         boolean hasOrders = orders != null && !orders.isEmpty();
         orderTable.setVisible(hasOrders);
         orderTable.setManaged(hasOrders);
@@ -476,6 +494,8 @@ public class SupplyDetailController {
         imageTC.setText(i18n.tr("supply.col.photo"));
         nameTC.setText(i18n.tr("supply.col.details"));
         priceTC.setText(i18n.tr("supply.col.price"));
+        barcodeTC.setText(i18n.tr("supply.col.barcodes"));inventoryToggleButton.setText(i18n.tr("supply.inventory_toggle"));
+        orderTable.refresh();
         if (orderLoadingLabel != null) {
             orderLoadingLabel.setText(i18n.tr("supply.loading_orders"));
         }
@@ -560,8 +580,8 @@ public class SupplyDetailController {
             private final StackPane placeholder = new StackPane();
 
             {
-                imageView.setFitWidth(36);
-                imageView.setFitHeight(48);
+                imageView.setFitWidth(45);
+                imageView.setFitHeight(60);
                 imageView.setPreserveRatio(true);
                 placeholder.getStyleClass().add("image-placeholder");
                 placeholder.setPrefSize(36, 48);
@@ -956,6 +976,12 @@ public class SupplyDetailController {
         return value == null ? "" : value;
     }
 
+    private final class BarcodeCell extends TableCell<Order,String> {
+        private final Label wb=new Label(),gtin=new Label();private final VBox content=new VBox(8,wb,gtin);
+        BarcodeCell(){wb.getStyleClass().add("text-bold");gtin.getStyleClass().add("text-secondary");content.setAlignment(Pos.CENTER_LEFT);setAlignment(Pos.CENTER_LEFT);}
+        @Override protected void updateItem(String value,boolean empty){super.updateItem(value,empty);setText(null);var row=getTableRow();var order=row==null?null:row.getItem();if(empty||order==null){setGraphic(null);return;}wb.setText("WB: "+(value==null||value.isBlank()?"—":value));String mapped=SupplyOrderPresentation.gtin(order,orderMappings);gtin.setText("GTIN: "+(mapped.isBlank()?"—":mapped));setGraphic(content);}
+    }
+
     private final class OrderDetailsCell extends TableCell<Order, String> {
         private final VBox vbox = new VBox(4);
         private final Label titleLabel = new Label();
@@ -1000,7 +1026,7 @@ public class SupplyDetailController {
             }
             metaBuilder.append(article);
             if (!size.isEmpty()) {
-                metaBuilder.append(" • Size: ").append(size);
+                metaBuilder.append(" • "+I18nService.getInstance().tr("supply.sort.size")+": ").append(size);
             }
             metaLabel.setText(metaBuilder.toString());
 
@@ -1016,10 +1042,10 @@ public class SupplyDetailController {
 
             if (order.isRequiresKiz()) {
                 String kizCode = order.getKiz();
-                String error = com.vncode.app.features.print.KizAttachmentCoordinator.getInstance().getAttachmentError(order.getId());
+                String error = com.vncode.app.features.print.KizAttachmentCoordinator.getInstance().getAttachmentError(order.getId()==null?-1:order.getId());
 
-                if (kizCode != null && !kizCode.isBlank()) {
-                    statusLabel.setText(I18nService.getInstance().tr("supply.status.kiz_attached"));
+                if (error == null && kizCode != null && !kizCode.isBlank()) {
+                    statusLabel.setText(I18nService.getInstance().tr("supply.status.kiz_assigned"));
                     statusLabel.getStyleClass().add("badge-green");
                     statusLabel.setVisible(true);
                     statusLabel.setManaged(true);
@@ -1052,7 +1078,7 @@ public class SupplyDetailController {
         }
         try {
             java.time.Instant instant = java.time.Instant.parse(value);
-            java.time.ZonedDateTime dateTime = instant.atZone(java.time.ZoneId.systemDefault());
+            java.time.ZonedDateTime dateTime = instant.atZone(java.time.ZoneId.of("Europe/Moscow"));
             return dateTime.format(java.time.format.DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm"));
         } catch (Exception ex) {
             return value;

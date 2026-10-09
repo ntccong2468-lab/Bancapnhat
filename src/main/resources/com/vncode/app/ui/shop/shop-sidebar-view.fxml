@@ -18,9 +18,10 @@
 <?import javafx.scene.text.Font?>
 <?import org.kordamp.ikonli.javafx.FontIcon?>
 
-<VBox alignment="TOP_CENTER" prefHeight="600.0" prefWidth="220.0" spacing="12.0" styleClass="sidebar" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.vncode.app.ui.shop.ShopSidebarController">
-    <children>
-        <HBox alignment="CENTER" spacing="10.0">
+
+<?import javafx.scene.control.TitledPane?>
+<VBox xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" alignment="TOP_CENTER" prefHeight="600.0" prefWidth="260" spacing="10" styleClass="sidebar" fx:controller="com.vncode.app.ui.shop.ShopSidebarController" minWidth="260" maxWidth="260">
+    <children><HBox alignment="CENTER" spacing="10.0">
             <children>
                 <ImageView fitHeight="40.0" fitWidth="40.0" pickOnBounds="true" preserveRatio="true">
                     <image>
@@ -34,100 +35,64 @@
                 </Label>
             </children>
         </HBox>
-        <Button fx:id="templateButton" alignment="CENTER_LEFT" mnemonicParsing="false" onAction="#onSettings" prefHeight="30.0" prefWidth="190.0" text=" Дизайн шаблона">
-            <styleClass>
-                <String fx:value="button" />
-                <String fx:value="btn-warning" />
-            </styleClass>
+        <Button fx:id="addShopButton" alignment="CENTER_LEFT" mnemonicParsing="false" onAction="#onAddShop" prefHeight="50" prefWidth="190.0" text=" Добавить магазин" maxWidth="1.7976931348623157E308" styleClass="button,add-shop">
             <graphic>
-                <FontIcon iconLiteral="fth-edit" iconSize="16"/>
+                <FontIcon iconLiteral="fth-plus" iconSize="16" />
             </graphic>
         </Button>
-        <Button fx:id="addShopButton" alignment="CENTER_LEFT" mnemonicParsing="false" onAction="#onAddShop" prefHeight="30.0" prefWidth="190.0" text=" Добавить магазин">
-            <styleClass>
-                <String fx:value="button" />
-                <String fx:value="btn-primary" />
-            </styleClass>
+        <ScrollPane fitToWidth="true" hbarPolicy="NEVER" styleClass="sidebar-scroll" VBox.vgrow="ALWAYS"><content><VBox spacing="8"><children><Button fx:id="dashboardButton" alignment="CENTER_LEFT" mnemonicParsing="false" onAction="#onDashboard" prefHeight="48" prefWidth="190.0" text=" Dashboard" maxWidth="1.7976931348623157E308" minHeight="48" styleClass="button,nav-item">
             <graphic>
-                <FontIcon iconLiteral="fth-plus" iconSize="16"/>
+                <FontIcon iconLiteral="fth-grid" iconSize="16" />
             </graphic>
         </Button>
-        <Label alignment="CENTER" maxWidth="1.7976931348623157E308" styleClass="text-muted text-bold" text="-" textAlignment="CENTER" />
-        <Button fx:id="tnvedButton" alignment="CENTER_LEFT" mnemonicParsing="false" onAction="#onTnved" prefHeight="30.0" prefWidth="190.0" text=" Mã TN VED" styleClass="button,btn-primary" />
-        <Button fx:id="dashboardButton" alignment="CENTER_LEFT" mnemonicParsing="false" onAction="#onDashboard" prefHeight="30.0" prefWidth="190.0" text=" Dashboard">
-            <styleClass>
-                <String fx:value="button" />
-                <String fx:value="btn-primary" />
-            </styleClass>
+        <Button fx:id="packingButton" alignment="CENTER_LEFT" mnemonicParsing="false" onAction="#onPacking" prefHeight="48" prefWidth="190.0" text=" Упаковка WB" maxWidth="1.7976931348623157E308" minHeight="48" styleClass="button,nav-item">
             <graphic>
-                <FontIcon iconLiteral="fth-grid" iconSize="16"/>
+                <FontIcon iconLiteral="fth-truck" iconSize="16" />
             </graphic>
         </Button>
-        <Button fx:id="packingButton" alignment="CENTER_LEFT" mnemonicParsing="false" onAction="#onPacking" prefHeight="30.0" prefWidth="190.0" text=" Упаковка WB">
-            <styleClass>
-                <String fx:value="button" />
-                <String fx:value="btn-primary" />
-            </styleClass>
+        <Button fx:id="fboPackingButton" alignment="CENTER_LEFT" mnemonicParsing="false" onAction="#onFboPacking" prefHeight="48" prefWidth="190.0" text=" Đóng hàng FBO" maxWidth="1.7976931348623157E308" minHeight="48" styleClass="button,nav-item">
             <graphic>
-                <FontIcon iconLiteral="fth-truck" iconSize="16"/>
+                <FontIcon iconLiteral="fth-package" iconSize="16" />
             </graphic>
         </Button>
-        <Button fx:id="fboPackingButton" alignment="CENTER_LEFT" mnemonicParsing="false" onAction="#onFboPacking" prefHeight="30.0" prefWidth="190.0" text=" Đóng hàng FBO">
-            <styleClass>
-                <String fx:value="button" />
-                <String fx:value="btn-primary" />
-            </styleClass>
+        <Button fx:id="templateButton" alignment="CENTER_LEFT" mnemonicParsing="false" onAction="#onSettings" prefHeight="48" prefWidth="190.0" text=" Дизайн шаблона" maxWidth="1.7976931348623157E308" minHeight="48" styleClass="button,nav-item">
             <graphic>
-                <FontIcon iconLiteral="fth-package" iconSize="16"/>
+                <FontIcon iconLiteral="fth-edit" iconSize="16" />
             </graphic>
         </Button>
-        <Button fx:id="fboOrdersButton" alignment="CENTER_LEFT" mnemonicParsing="false" onAction="#onFboOrders" prefHeight="30.0" prefWidth="190.0" text=" Đơn hàng FBO">
-            <styleClass>
-                <String fx:value="button" />
-                <String fx:value="btn-primary" />
-            </styleClass>
+        <Button fx:id="kizMappingButton" alignment="CENTER_LEFT" mnemonicParsing="false" onAction="#onKizMapping" prefHeight="48" prefWidth="190.0" text=" KIZ Mapping" maxWidth="1.7976931348623157E308" minHeight="48" styleClass="button,nav-item">
             <graphic>
-                <FontIcon iconLiteral="fth-list" iconSize="16"/>
+                <FontIcon iconLiteral="fth-link" iconSize="16" />
             </graphic>
         </Button>
-        <Button fx:id="kizMappingButton" alignment="CENTER_LEFT" mnemonicParsing="false" onAction="#onKizMapping" prefHeight="30.0" prefWidth="190.0" text=" KIZ Mapping">
-            <styleClass>
-                <String fx:value="button" />
-                <String fx:value="btn-primary" />
-            </styleClass>
+        <Button fx:id="znackRegistrationButton" alignment="CENTER_LEFT" mnemonicParsing="false" onAction="#onZnackRegistration" prefHeight="48" prefWidth="190.0" text=" Đăng ký Znack" maxWidth="1.7976931348623157E308" minHeight="48" styleClass="button,nav-item">
+            <graphic><FontIcon iconLiteral="fth-file-plus" iconSize="16" /></graphic>
+        </Button>
+        <Button fx:id="znackAutomationButton" alignment="CENTER_LEFT" mnemonicParsing="false" onAction="#onZnackAutomation" prefHeight="48" prefWidth="190.0" text=" Znack Automation" maxWidth="1.7976931348623157E308" minHeight="48" styleClass="button,nav-item">
+            <graphic><FontIcon iconLiteral="fth-tag" iconSize="16" /></graphic>
+        </Button>
+        <Button fx:id="btnPrintHistory" alignment="CENTER_LEFT" mnemonicParsing="false" onAction="#onPrintHistory" prefHeight="48" prefWidth="190.0" text=" История печати" maxWidth="1.7976931348623157E308" minHeight="48" styleClass="button,nav-item">
             <graphic>
-                <FontIcon iconLiteral="fth-link" iconSize="16"/>
+                <FontIcon iconLiteral="fth-clock" iconSize="16" />
             </graphic>
         </Button>
-        <Button fx:id="znackAutomationButton" alignment="CENTER_LEFT" mnemonicParsing="false" onAction="#onZnackAutomation" prefHeight="30.0" prefWidth="190.0" text=" Znack Automation">
-            <styleClass><String fx:value="button" /><String fx:value="btn-primary" /></styleClass>
-            <graphic><FontIcon iconLiteral="fth-tag" iconSize="16"/></graphic>
+        <Button fx:id="guidesButton" onAction="#onGuides" text="%guides.title" alignment="CENTER_LEFT" prefHeight="48" minHeight="48" maxWidth="1.7976931348623157E308" styleClass="button,nav-item"><graphic><FontIcon iconLiteral="fth-book-open" iconSize="16" /></graphic></Button>
+        <TitledPane text="%sidebar.tools" expanded="false" animated="false" styleClass="sidebar-tools" fx:id="toolsPane"><content><VBox spacing="4"><children><Button fx:id="gtinSyncButton" alignment="CENTER_LEFT" onAction="#onGtinSync" prefHeight="30.0" prefWidth="220" text="GTIN WB / Ozon" maxWidth="1.7976931348623157E308" styleClass="button,nav-item">
+            <graphic><FontIcon iconLiteral="fth-refresh-cw" iconSize="16" /></graphic>
         </Button>
-        <Button fx:id="znackRegistrationButton" alignment="CENTER_LEFT" mnemonicParsing="false" onAction="#onZnackRegistration" prefHeight="30.0" prefWidth="190.0" text=" Đăng ký Znack">
-            <styleClass><String fx:value="button" /><String fx:value="btn-primary" /></styleClass>
-            <graphic><FontIcon iconLiteral="fth-file-plus" iconSize="16"/></graphic>
+        <Button fx:id="tnvedButton" alignment="CENTER_LEFT" mnemonicParsing="false" onAction="#onTnved" prefHeight="30.0" prefWidth="220" text=" Mã TN VED" styleClass="button,nav-item" maxWidth="1.7976931348623157E308" />
+        <Button fx:id="fboOrdersButton" alignment="CENTER_LEFT" mnemonicParsing="false" onAction="#onFboOrders" prefHeight="30.0" prefWidth="220" text=" Đơn hàng FBO" maxWidth="1.7976931348623157E308" styleClass="button,nav-item">
+            <graphic>
+                <FontIcon iconLiteral="fth-list" iconSize="16" />
+            </graphic>
         </Button>
-        <Button fx:id="gtinSyncButton" alignment="CENTER_LEFT" onAction="#onGtinSync" prefHeight="30.0" prefWidth="190.0" text="GTIN WB / Ozon">
-            <styleClass><String fx:value="button"/><String fx:value="btn-primary"/></styleClass>
-            <graphic><FontIcon iconLiteral="fth-refresh-cw" iconSize="16"/></graphic>
-        </Button>
-        <Button fx:id="btnPrintHistory" alignment="CENTER_LEFT" mnemonicParsing="false" onAction="#onPrintHistory" prefHeight="30.0" prefWidth="190.0" text=" История печати">
+        <Button text="%sidebar.finance" alignment="CENTER_LEFT" onAction="#onFinance" styleClass="button,nav-item" maxWidth="1.7976931348623157E308" fx:id="financeButton" /></children></VBox></content></TitledPane></children></VBox></content></ScrollPane><MenuButton fx:id="settingsMenuButton" alignment="CENTER_LEFT" mnemonicParsing="false" prefHeight="46" prefWidth="236" text=" Settings" maxWidth="1.7976931348623157E308">
             <styleClass>
                 <String fx:value="button" />
                 <String fx:value="btn-secondary" />
             </styleClass>
             <graphic>
-                <FontIcon iconLiteral="fth-clock" iconSize="16"/>
-            </graphic>
-        </Button>
-        <Pane VBox.vgrow="ALWAYS" />
-        <MenuButton fx:id="settingsMenuButton" alignment="CENTER_LEFT" mnemonicParsing="false" prefHeight="30.0" prefWidth="190.0" text=" Settings">
-            <styleClass>
-                <String fx:value="button" />
-                <String fx:value="btn-secondary" />
-            </styleClass>
-            <graphic>
-                <FontIcon iconLiteral="fth-settings" iconSize="16"/>
+                <FontIcon iconLiteral="fth-settings" iconSize="16" />
             </graphic>
             <items>
                 <Menu fx:id="languageMenu" text="Language">
@@ -149,9 +114,8 @@
                 <MenuItem fx:id="aboutMenuItem" onAction="#onAbout" text="About" />
             </items>
         </MenuButton>
-        <Label fx:id="editionStatusLabel" maxWidth="190.0" text="•" />
-    </children>
-    <padding>
+        <Label fx:id="editionStatusLabel" maxWidth="1.7976931348623157E308" text="•" />
+    </children><padding>
         <Insets bottom="8.0" left="8.0" right="8.0" top="8.0" />
     </padding>
 </VBox>
