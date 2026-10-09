@@ -10,7 +10,7 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
-          ref: b5034df00a1e898124210437c522c92448ead5b3
+          ref: d17ced942afd4231ca6821013c34e0e1ee11e11c
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
         with:
           node-version: '22'
@@ -19,4 +19,4 @@ jobs:
       - name: Publish exact verified preview with checksums and smoke evidence
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: node tools/publish-vncode-preview.mjs 37980840932 v1.2.1-preview.1
+        run: node tools/publish-vncode-preview.mjs 37984754861 v1.2.2-preview.1
