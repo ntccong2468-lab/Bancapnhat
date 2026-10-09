@@ -1,12 +1,12 @@
 # VN code
 
-Repository này phát triển **bản cập nhật VN code 1.2.0** trên nhánh `update/vn-code-1.2.0`: https://github.com/ntccong2468-lab/Bancapnhat.
-Bản cập nhật giữ cùng định danh bộ cài và dữ liệu VN code 1.1.34; không tạo thêm ứng dụng VN code và không thay đổi repository Vncode gốc.
-Chức năng 1.2.0 chưa hoàn tất và chưa phát hành bộ cài cuối. Đã có [VN code 1.2.0 Preview 1](https://github.com/ntccong2468-lab/Bancapnhat/releases/tag/v1.2.0-preview.1) để cài kiểm tra, gồm [bộ cài Windows x64](https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.2.0-preview.1/VN-code-1.2.0-preview.1-Windows-x64.exe). Xem [trạng thái](docs/releases/VN-code-1.2.0-status.json) và [bằng chứng API](docs/releases/VN-code-1.2.0-api-evidence.md).
+Repository này phát triển **bản cập nhật VN code 1.2.1 Preview** trên nhánh `update/vn-code-1.2.0`: https://github.com/ntccong2468-lab/Bancapnhat.
+Bản cập nhật giữ cùng định danh bộ cài và dữ liệu VN code đã cài; nâng cấp từ 1.1.34 và 1.2.0 Preview đã được kiểm tra trên Windows. Repository Vncode gốc được giữ nguyên.
+[Tải bộ cài Windows x64 1.2.1 Preview](https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.2.1-preview.1/VN-code-1.2.1-preview.1-Windows-x64.exe), [Release](https://github.com/ntccong2468-lab/Bancapnhat/releases/tag/v1.2.1-preview.1), [mô tả và ảnh giao diện](docs/releases/VN-code-1.2.1.md), [phần đã triển khai/còn thiếu](docs/releases/VN-code-1.2.1-status.json). Đây là bản thử cài thủ công, chưa hoàn tất toàn bộ chức năng Wbcode mới nhất và chưa bật tự cập nhật.
 
 [Mô tả bản cập nhật 1.2.0](docs/releases/VN-code-1.2.0.md), đối chiếu WCode/Wbcode 1.2.0 ngày 09/10/2026, phân biệt các phần đã triển khai và đang phát triển. Module TN VED đã có danh mục gốc, tra cứu, nhập CSV/JSON và sao lưu; các phần liên kết sản phẩm/AI/marking/Yandex đang phát triển.
 
-Bản giao diện **1.2.1** đang được kiểm tra đóng gói Windows, đối chiếu ảnh WCode 1.2.0 và release Wbcode 1.3.0: [mô tả và ảnh giao diện](docs/releases/VN-code-1.2.1.md), [phần đã triển khai/còn thiếu](docs/releases/VN-code-1.2.1-status.json).
+Bản **1.2.1** đối chiếu ảnh WCode 1.2.0 đã duyệt và release Wbcode 1.3.0. Bộ cài chính thức 1.3.0 đã mở thử trên Windows; mã nguồn công khai vẫn là 1.1.32. Kiểm tra 1.2.1 đạt **601 kiểm thử Java/JavaFX và 29 kiểm thử Node**, mở launcher, migration, cài cạnh WCode và nâng cấp giữ dữ liệu: [CI Windows](https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/37980840932), [bằng chứng](docs/validation/vn-code-1.2.1/local-verification.json).
 
 VN code là ứng dụng desktop JavaFX cho người bán **Wildberries** và **Ozon FBS**.
 
@@ -33,10 +33,9 @@ Do Nguyễn Thành Công phát triển
 
 ## Tải bản Windows
 
-Bản **VN code 1.1.34** là ứng dụng riêng.
-[Tải bộ cài Windows x64](https://github.com/ntccong2468-lab/Vncode/releases/download/v1.1.34/VN-code-1.1.34-Windows-x64.exe).
-Java được đóng gói kèm; tải EXE rồi chạy để cài đặt. Đây là prerelease chưa ký Authenticode.
-Xem [mô tả và giới hạn](docs/releases/VN-code-1.1.34.md).
+Bản mới: [VN code 1.2.1 Preview — Windows x64](https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.2.1-preview.1/VN-code-1.2.1-preview.1-Windows-x64.exe).
+Đóng VN code rồi chạy EXE để nâng cấp cùng ứng dụng. Java được đóng gói kèm; bộ cài chưa ký Authenticode. Xem [mô tả và giới hạn](docs/releases/VN-code-1.2.1.md).
+Bản trước để đối chiếu: [1.2.0 Preview](https://github.com/ntccong2468-lab/Bancapnhat/releases/tag/v1.2.0-preview.1), [1.1.34](https://github.com/ntccong2468-lab/Vncode/releases/tag/v1.1.34).
 Cập nhật GTIN thật lên WB/Ozon trong module đồng bộ vẫn bị khóa chờ xác minh API.
 
 VN code cài ở `%LOCALAPPDATA%\VNcodeApp`, dùng dữ liệu riêng ở `%LOCALAPPDATA%\VNcodeData` và bắt đầu với danh sách shop trống. VN code là bản cá nhân miễn phí, không cần giấy phép WCode; thiết lập tài khoản shop và chứng thư riêng trong app mới. Cài hoặc gỡ VN code không thay thế WCode và không tự nhập dữ liệu WCode.

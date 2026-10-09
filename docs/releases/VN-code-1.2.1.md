@@ -33,6 +33,30 @@ Bộ cài Windows chính thức 1.3.0 đã được kiểm tra SHA-256 và mở 
 
 [Dashboard cửa sổ nhỏ](images/vn-code-1.2.1/dashboard-compact.png), [Dashboard sáng](images/vn-code-1.2.1/dashboard-light.png), [kho GTIN ở cửa sổ nhỏ](images/vn-code-1.2.1/supply-inventory-compact.png), [Hướng dẫn](images/vn-code-1.2.1/guides.png).
 
+## Bộ cài và kiểm tra Windows
+
+[Tải VN code 1.2.1 Preview — Windows x64](https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.2.1-preview.1/VN-code-1.2.1-preview.1-Windows-x64.exe), [Release và checksum](https://github.com/ntccong2468-lab/Bancapnhat/releases/tag/v1.2.1-preview.1).
+
+Đóng VN code trước khi chạy bộ cài. Java được đóng gói kèm; bản này chưa ký Authenticode. Bộ cài giữ UUID `8CBBA0E2-6E73-4F56-9101-6BC0948D3C72`, dùng cùng thư mục VNcodeApp/VNcodeData.
+
+[CI Windows](https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/37980840932) xác minh đúng commit `b5034df00a1e898124210437c522c92448ead5b3`: **601 kiểm thử Java/JavaFX và 29 kiểm thử Node**, không lỗi hoặc bỏ qua.
+
+| Kiểm tra thực tế trên Windows tạm | Kết quả |
+|---|---|
+| Cài EXE và mở cửa sổ VN code v1.2.1 | Đạt |
+| Migration schema 3→4, giữ lịch sử và snapshot phục hồi | Đạt |
+| Cài/gỡ cạnh WCode 1.1.75 thật | WCode giữ nguyên; VN code có registration và dữ liệu riêng |
+| Nâng cấp VN code 1.1.34→1.2.1 | Một registration, dữ liệu và template giữ nguyên |
+| Nâng cấp VN code 1.2.0 Preview→1.2.1 | Một registration, dữ liệu và template giữ nguyên |
+
+[Báo cáo kiểm tra](../validation/vn-code-1.2.1/local-verification.json), [launcher/migration](../validation/vn-code-1.2.1/native-smoke.json), [cài cạnh WCode](../validation/vn-code-1.2.1/side-by-side-smoke.json), [nâng cấp 1.1.34](../validation/vn-code-1.2.1/upgrade-smoke.json), [nâng cấp 1.2.0 Preview](../validation/vn-code-1.2.1/upgrade-preview-smoke.json).
+
+SHA-256 bộ cài: `2159133f48de2fcaaa2d39e5983157d9c713929c10479d0007f30463394d483f` (141.094.400 byte).
+
+## Quyết định bố cục và phạm vi
+
+Giữ menu có chữ theo ảnh 1.2.0 đã duyệt và bổ sung Hướng dẫn VN code. Giao diện này khác thanh menu chỉ có biểu tượng của Wbcode 1.3.0 khi mới mở. Bản phát hành là Preview vì chưa xác minh đầy đủ luồng đăng nhập 1.3.0 hoặc có mã nguồn tương ứng; GS1/thư/hoá đơn và thay đổi ký số còn thiếu.
+
 ## Giới hạn
 
 Xem [trạng thái đầy đủ](VN-code-1.2.1-status.json). Chưa nghiệm thu với shop/máy in thật. GTIN hiển thị lấy từ KIZ đã gán hoặc mapping đúng sản phẩm; không dùng barcode WB làm GTIN khi thiếu dữ liệu. “Đã gán KIZ” là trạng thái gán cục bộ, không thay thế xác nhận từ marketplace.

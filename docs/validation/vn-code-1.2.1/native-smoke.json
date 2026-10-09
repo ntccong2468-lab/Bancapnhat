@@ -1,0 +1,11 @@
+{
+  "rollbackSnapshotVerified": true,
+  "appName": "VN code",
+  "historyPreserved": true,
+  "windowTitle": "VN code v1.2.1",
+  "liveMarketplaceMutations": false,
+  "platform": "windows-x64",
+  "schemaMigration": "3 to 4",
+  "nativeLauncher": "passed",
+  "version": "1.2.1"
+}

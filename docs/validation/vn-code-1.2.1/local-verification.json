@@ -10,7 +10,24 @@
   "nodeFailures": 0,
   "nodeSkipped": 0,
   "uiSnapshots": "Linux JavaFX production components and HomeController using isolated demonstration data",
-  "windowsInstallerVerification": "pending exact-commit GitHub Actions run",
+  "windowsInstallerVerification": {
+    "result": "passed",
+    "runId": 37980840932,
+    "url": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/37980840932",
+    "sourceCommit": "b5034df00a1e898124210437c522c92448ead5b3",
+    "javaTests": 601,
+    "nodeTests": 29,
+    "installer": {
+      "filename": "VN-code-1.2.1-Windows-x64.exe",
+      "sha256": "2159133f48de2fcaaa2d39e5983157d9c713929c10479d0007f30463394d483f",
+      "bytes": 141094400,
+      "authenticodeSigned": false
+    },
+    "nativeLauncher": "native-smoke.json",
+    "coexistenceAndUninstall": "side-by-side-smoke.json",
+    "upgradeFrom1.1.34": "upgrade-smoke.json",
+    "upgradeFrom1.2.0Preview": "upgrade-preview-smoke.json"
+  },
   "liveMarketplaceMutations": false,
   "deferredMinor": [
     "Collapsed shipping section title keeps its original language until restart"
@@ -34,5 +51,22 @@
     "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/37978228917"
   ],
   "upgradeProbeFix": "Preserve the preceding baseline fixture, let the old Preview launcher create its own fresh database, then validate before seeding; no production app changes",
-  "smokeFixtureLifecycleFix": "Dispose smoke-loaded HomeController so later locale changes cannot enqueue inventory/database work after temporary appdata cleanup; listener-retention regression RED-to-GREEN"
+  "smokeFixtureLifecycleFix": "Dispose smoke-loaded HomeController so later locale changes cannot enqueue inventory/database work after temporary appdata cleanup; listener-retention regression RED-to-GREEN",
+  "sourceCommit": "b5034df00a1e898124210437c522c92448ead5b3",
+  "publication": {
+    "tag": "v1.2.1-preview.1",
+    "releaseUrl": "https://github.com/ntccong2468-lab/Bancapnhat/releases/tag/v1.2.1-preview.1",
+    "installerUrl": "https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.2.1-preview.1/VN-code-1.2.1-preview.1-Windows-x64.exe",
+    "publishedAt": "2026-10-09T19:43:35Z",
+    "runId": 37981944897,
+    "runAttempt": 2,
+    "workflowUrl": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/37981944897",
+    "prerelease": true,
+    "draft": false,
+    "signedUpdateManifestPublished": false,
+    "automaticUpdateEnabledForThisPreview": false,
+    "draftCreationWorkaround": "GitHub Actions could not create the draft (403); the existing authenticated GitHub session created it. The successful second workflow attempt verified and uploaded all nine assets and published it.",
+    "downloadedAssetsVerified": 9,
+    "downloadedInstallerSha256Verified": true
+  }
 }
