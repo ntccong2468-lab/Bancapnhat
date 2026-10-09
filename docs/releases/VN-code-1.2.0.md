@@ -41,8 +41,10 @@ Không tạo mã chi tiết giả; chương 77 không được tạo như chươ
 
 ## Bằng chứng kiểm tra và giới hạn
 
-Lỗi kiểm thử ghi nhầm dữ liệu thật của runner đã được sửa bằng thư mục tạm. [Windows CI 37863727261](https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/37863727261) đạt trên commit `de8c396`, gồm build EXE, launcher, cài song song và nâng cấp VN code 1.1.34 giữ dữ liệu. Các sửa lỗi rà soát và luồng giao WB sau commit này cần CI riêng; bằng chứng chính xác của bản thử được ghi trong `build-info.json` trên release.
+[VN code 1.2.0 Preview 1](https://github.com/ntccong2468-lab/Bancapnhat/releases/tag/v1.2.0-preview.1) đã phát hành ngày 09/10/2026. [Windows CI 37865887385](https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/37865887385) đạt tại commit `e7c4c9e1031f64d576cb696b9a7fa396fc7c86a3`: 589 kiểm thử Java/JavaFX, 27 kiểm thử Node, launcher, migration, cài song song và nâng cấp VN code 1.1.34 giữ dữ liệu. [Workflow phát hành 37866526374](https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/37866526374) xác minh artifact rồi tải lên GitHub; không tạo lại bộ cài.
 
-Xem [bằng chứng API](VN-code-1.2.0-api-evidence.md) và [trạng thái chức năng](VN-code-1.2.0-status.json). Mô tả này phản ánh tiến độ thực tế; không phải thông báo đã phát hành hoặc cam kết giống 100% mã nguồn upstream.
+Bộ cài Windows x64: `VN-code-1.2.0-preview.1-Windows-x64.exe`, 141078016 byte. SHA-256: `2290088fb9e1065430f4d9c5e9b47185c5581a93996b3ad692e8bbc846756ad1`. Release có checksum, build-info, trạng thái chức năng và ba kết quả kiểm tra Windows. Bộ cài chưa ký Authenticode; chưa nghiệm thu thao tác ghi với shop thật hoặc máy in thật.
+
+Xem [bằng chứng API](VN-code-1.2.0-api-evidence.md) và [trạng thái chức năng](VN-code-1.2.0-status.json). Đây là bản thử nghiệm của cùng ứng dụng VN code; bản đầy đủ chưa hoàn tất, chưa có cam kết giống 100% upstream. Bản hoàn thiện tiếp theo cần số phiên bản Windows cao hơn 1.2.0 để nâng cấp bản thử tại chỗ.
 
 Bản thử nghiệm chỉ được phát hành qua `publish-vncode-preview.mjs` với tag `v1.2.0-preview.N`, CI thành công đúng commit và các kiểm tra bộ cài đạt. Phải công bố toàn bộ phần còn thiếu; không phát hành manifest hoặc đưa preview vào cập nhật tự động. Công cụ phát hành đầy đủ tiếp tục chặn trạng thái `complete: false`.
