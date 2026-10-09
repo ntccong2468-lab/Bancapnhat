@@ -1499,6 +1499,7 @@ public class HomeController implements Initializable {
         shopSidebarController.setOnAddShop(() -> onAddShop(new ActionEvent()));
         shopSidebarController.setOnOpenSettings(() -> onSettings(new ActionEvent()));
         shopSidebarController.setOnDashboard(this::showDashboard);
+        shopSidebarController.setOnTnved(this::showTnved);
         shopSidebarController.setOnPacking(this::showPacking);
         shopSidebarController.setOnFboPacking(this::showFboPacking);
         shopSidebarController.setOnFboOrders(this::showFboSupplyOrders);
@@ -1528,6 +1529,13 @@ public class HomeController implements Initializable {
         workspaceHeaderController.setOnShopSelected(this::selectShopExplicitly);
         workspaceHeaderController.applyTranslations();
         headerContainer.getChildren().setAll(root);
+    }
+
+    private com.vncode.app.ui.tnved.TnvedPane tnvedPane;
+    private void showTnved() {
+        if(tnvedPane==null)tnvedPane=new com.vncode.app.ui.tnved.TnvedPane(
+                new com.vncode.app.features.tnved.TnvedCatalog(AppPaths.appDataDir().resolve("tnved.sqlite")));
+        setDynamicContent(tnvedPane);
     }
 
     private void initializeSupplyViews() {

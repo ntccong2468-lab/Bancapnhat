@@ -15,6 +15,10 @@ import javafx.scene.control.ToggleGroup;
 import java.util.function.Consumer;
 
 public class ShopSidebarController {
+    @FXML private Button tnvedButton;
+    private Runnable onTnved;
+    public void setOnTnved(Runnable action) { onTnved=action; }
+    @FXML private void onTnved() { if(onTnved!=null)onTnved.run(); }
     @FXML private Button gtinSyncButton;
     private Runnable onGtinSync;
     public void setOnGtinSync(Runnable action) { onGtinSync = action; }

@@ -53,6 +53,7 @@
             </graphic>
         </Button>
         <Label alignment="CENTER" maxWidth="1.7976931348623157E308" styleClass="text-muted text-bold" text="-" textAlignment="CENTER" />
+        <Button fx:id="tnvedButton" alignment="CENTER_LEFT" mnemonicParsing="false" onAction="#onTnved" prefHeight="30.0" prefWidth="190.0" text=" Mã TN VED" styleClass="button,btn-primary" />
         <Button fx:id="dashboardButton" alignment="CENTER_LEFT" mnemonicParsing="false" onAction="#onDashboard" prefHeight="30.0" prefWidth="190.0" text=" Dashboard">
             <styleClass>
                 <String fx:value="button" />

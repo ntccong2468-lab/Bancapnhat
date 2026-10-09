@@ -59,6 +59,19 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class FxmlSmokeTest {
+    @Test void tnvedModuleHasNavigationAndShowsVerifiedRootSections() throws Exception {
+        var catalog=new com.vncode.app.features.tnved.TnvedCatalog(appDataDir.resolve("tnved-ui-fixture.sqlite"));
+        catalog.initialize();var roots=catalog.children(null);
+        var task=new java.util.concurrent.FutureTask<Void>(() -> {
+            FXMLLoader loader=FxmlViewLoader.loader(ShopSidebarController.class,"shop-sidebar-view.fxml");
+            FxmlViewLoader.load(loader);var controller=(ShopSidebarController)loader.getController();
+            var clicked=new AtomicBoolean();controller.setOnTnved(()->clicked.set(true));
+            Button button=(Button)loader.getNamespace().get("tnvedButton");assertNotNull(button);button.fire();assertTrue(clicked.get());
+            var pane=new com.vncode.app.ui.tnved.TnvedPane(catalog);pane.setRoots(roots);
+            assertEquals(21,pane.rootCount());assertEquals("Chưa tải dữ liệu",pane.emptyBranchText());
+            return null;
+        });Platform.runLater(task);task.get(10,TimeUnit.SECONDS);
+    }
     @TempDir
     static Path appDataDir;
 
