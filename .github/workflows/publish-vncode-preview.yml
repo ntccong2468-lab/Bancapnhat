@@ -1,0 +1,22 @@
+name: Publish verified VN code Windows preview
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+  actions: read
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: e7c4c9e1031f64d576cb696b9a7fa396fc7c86a3
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: '22'
+      - name: Verify release tool contracts
+        run: node --test tools/*.test.mjs
+      - name: Publish exact verified preview with checksums and smoke evidence
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: node tools/publish-vncode-preview.mjs 37865887385 v1.2.0-preview.1
