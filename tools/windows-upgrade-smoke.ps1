@@ -1,5 +1,7 @@
-param([Parameter(Mandatory=$true)][string] $Version,[switch] $FromPreview)
+param([Parameter(Mandatory=$true)][string] $Version,[switch] $FromPreview,[switch] $FromLatestPreview)
 $ErrorActionPreference='Stop'
+if($FromPreview -and $FromLatestPreview){throw 'Choose exactly one preview baseline.'}
+$previewMode=$FromPreview -or $FromLatestPreview
 if ($env:GITHUB_ACTIONS -cne 'true' -or $env:RUNNER_OS -cne 'Windows' -or $env:RUNNER_ENVIRONMENT -cne 'github-hosted') {
     throw 'Upgrade installation probe requires a disposable GitHub-hosted Windows runner.'
 }
@@ -15,8 +17,8 @@ $classpath="$PWD\target\VNcode-$Version.jar;$PWD\target\lib\*"
 & javac -cp $classpath -d $root tools\WindowsDataProbe.java tools\WindowsUpgradeDataProbe.java
 if ($LASTEXITCODE -ne 0) { throw 'Cannot compile upgrade data probes.' }
 $probeClasspath="$root;$classpath"
-if($FromPreview){
-    $previous=Get-Content out\upgrade-smoke.json -Raw | ConvertFrom-Json
+if($previewMode){
+    $previous=Get-Content $(if($FromLatestPreview){'out\upgrade-preview-smoke.json'}else{'out\upgrade-smoke.json'}) -Raw | ConvertFrom-Json
     if($previous.result -cne 'passed' -or $previous.version -cne $Version -or -not $previous.dataPreserved){throw 'Require successful baseline upgrade before preview upgrade.'}
     $fingerprint=& java --enable-native-access=ALL-UNNAMED -cp $probeClasspath WindowsUpgradeDataProbe fingerprint $data
     if($LASTEXITCODE -ne 0 -or $fingerprint -cne $previous.fingerprint){throw 'Unexpected fixture data before preview upgrade.'}
@@ -26,10 +28,10 @@ if($FromPreview){
     & java --enable-native-access=ALL-UNNAMED -cp $probeClasspath WindowsDataProbe fresh $data
     if ($LASTEXITCODE -ne 0) { throw 'Previous CI data is not the expected empty fixture.' }
 }
-$fromVersion=if($FromPreview){'1.2.0'}else{'1.1.34'}
+$fromVersion=if($FromLatestPreview){'1.2.1'}elseif($FromPreview){'1.2.0'}else{'1.1.34'}
 $oldExe=Join-Path $root "VN-code-$fromVersion.exe";$oldMsi=Join-Path $root "VN-code-$fromVersion.msi"
-$baselineUrl=if($FromPreview){'https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.2.0-preview.1/VN-code-1.2.0-preview.1-Windows-x64.exe'}else{'https://github.com/ntccong2468-lab/Vncode/releases/download/v1.1.34/VN-code-1.1.34-Windows-x64.exe'}
-$baselineHash=if($FromPreview){'2290088fb9e1065430f4d9c5e9b47185c5581a93996b3ad692e8bbc846756ad1'}else{'d3970ee5ca88f72a810bbedb807c84cdb7201b96c0d2ef132d0a7a01cea6ac79'}
+$baselineUrl=if($FromLatestPreview){'https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.2.1-preview.1/VN-code-1.2.1-preview.1-Windows-x64.exe'}elseif($FromPreview){'https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.2.0-preview.1/VN-code-1.2.0-preview.1-Windows-x64.exe'}else{'https://github.com/ntccong2468-lab/Vncode/releases/download/v1.1.34/VN-code-1.1.34-Windows-x64.exe'}
+$baselineHash=if($FromLatestPreview){'2159133f48de2fcaaa2d39e5983157d9c713929c10479d0007f30463394d483f'}elseif($FromPreview){'2290088fb9e1065430f4d9c5e9b47185c5581a93996b3ad692e8bbc846756ad1'}else{'d3970ee5ca88f72a810bbedb807c84cdb7201b96c0d2ef132d0a7a01cea6ac79'}
 Invoke-WebRequest -Uri $baselineUrl -OutFile $oldExe
 if ((Get-FileHash $oldExe -Algorithm SHA256).Hash.ToLowerInvariant() -cne $baselineHash) { throw 'Incorrect baseline VN code installer checksum.' }
 [VNcode.Smoke.EmbeddedMsi]::Extract($oldExe,$oldMsi)
@@ -70,5 +72,5 @@ try{
     if($LASTEXITCODE -ne 0 -or $after -cne $before){throw 'Existing VN code data or saved templates changed during upgrade.'}
     Msi '/x' $newMsi;$installed=$false
     if(@(Registrations).Count -ne 0 -or -not(Test-Path (Join-Path $data 'database.db'))){throw 'Uninstall did not preserve upgrade data.'}
-    @{appName='VN code';fromVersion=$fromVersion;version=$Version;result='passed';installerUpgradeUuid=$upgrade;singleRegistration=$true;dataPreserved=$true;windowTitle=$window;liveMarketplaceMutations=$false;fingerprint=$after} | ConvertTo-Json | Set-Content $(if($FromPreview){'out\upgrade-preview-smoke.json'}else{'out\upgrade-smoke.json'}) -Encoding utf8
+    @{appName='VN code';fromVersion=$fromVersion;version=$Version;result='passed';installerUpgradeUuid=$upgrade;singleRegistration=$true;dataPreserved=$true;windowTitle=$window;liveMarketplaceMutations=$false;fingerprint=$after} | ConvertTo-Json | Set-Content $(if($FromLatestPreview){'out\upgrade-latest-preview-smoke.json'}elseif($FromPreview){'out\upgrade-preview-smoke.json'}else{'out\upgrade-smoke.json'}) -Encoding utf8
 }finally{if($app -and -not $app.HasExited){Stop-Process -Id $app.Id -Force};if($installed){Msi '/x' $activeMsi}}

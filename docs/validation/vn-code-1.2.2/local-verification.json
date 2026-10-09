@@ -1,0 +1,53 @@
+{
+  "version": "1.2.2",
+  "javaTests": 607,
+  "javaFailures": 0,
+  "javaErrors": 0,
+  "javaSkipped": 0,
+  "nodeTests": 31,
+  "nodeFailures": 0,
+  "nodeSkipped": 0,
+  "commands": [
+    "DISPLAY=:99 /workspace/wcode-setup/mvn-bancapnhat -B clean verify",
+    "node --test tools/*.test.mjs"
+  ],
+  "powerShellParse": "passed",
+  "windowsInstallerVerification": "pending exact-commit CI",
+  "upstreamObservation": {
+    "version": "1.3.1",
+    "runId": 37983187676,
+    "firstRunOnly": true,
+    "authenticatedWorkflowsTested": false
+  },
+  "liveMarketplaceMutations": false,
+  "review": {
+    "reviewer": "review_wbcode_131_follow_up",
+    "critical": 0,
+    "importantFixed": 2,
+    "minorDeferred": 1,
+    "fixes": [
+      "Synchronously claim print activity and hold it through deferred dialogs",
+      "Guard shop/supply/request token and disposal across preflight/dialog/export callbacks"
+    ]
+  },
+  "regressions": [
+    "Duplicate pending print consumes only once",
+    "Stale context and failed synchronization cancel pending print",
+    "FXML print button is requestable before orders finish loading",
+    "Print preflight claims activity synchronously; repeated clicks create exactly one verification",
+    "Stale preflight cannot open another shop's print dialog"
+  ],
+  "deferredMinor": [
+    "Shipping section title keeps its original language until restart"
+  ],
+  "rulings": [
+    {
+      "decision": "Keep approved labeled sidebar",
+      "costIfWrong": "Navigation differs from official 1.3.1 first-run icon rail"
+    },
+    {
+      "decision": "Publish Preview, retain FBO barcode behavior until GTIN recognition rules are verified",
+      "costIfWrong": "FBO GTIN, GS1/signing and KIZ purchase-stage-report parity is incomplete"
+    }
+  ]
+}

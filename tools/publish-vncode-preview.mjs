@@ -25,6 +25,11 @@ export function validateInstaller(bytes,digest) {
  assert.equal(bytes.subarray(offset,offset+4).toString(),'PE\0\0');assert.equal(bytes.readUInt16LE(offset+4),0x8664);
  assert.equal(bytes.readUInt16LE(offset+24),0x20b);
 }
+export function validatePreviewUpgrades(version,previous,latest) {
+ if(version==='1.2.0')return;
+ validateUpgradeSmoke(previous,version,'1.2.0');
+ if(version!=='1.2.1')validateUpgradeSmoke(latest,version,'1.2.1');
+}
 async function main(runId,tag) {
  assert.match(runId??'',/^[1-9][0-9]{0,15}$/);
  const {version:VERSION}=await resolveReleaseVersion({root:process.cwd()});
@@ -44,7 +49,8 @@ async function main(runId,tag) {
  const coexist=json(await readFile(path.join(directory,'side-by-side-smoke.json')));validateSideBySideSmoke(coexist,VERSION);
  const upgrade=json(await readFile(path.join(directory,'upgrade-smoke.json')));validateUpgradeSmoke(upgrade,VERSION);
  const previewUpgrade=VERSION==='1.2.0'?null:json(await readFile(path.join(directory,'upgrade-preview-smoke.json')));
- if(previewUpgrade)validateUpgradeSmoke(previewUpgrade,VERSION,'1.2.0');
+ const latestPreviewUpgrade=VERSION==='1.2.0'||VERSION==='1.2.1'?null:json(await readFile(path.join(directory,'upgrade-latest-preview-smoke.json')));
+ validatePreviewUpgrades(VERSION,previewUpgrade,latestPreviewUpgrade);
  const log=gh(['run','view',runId,'--repo',REPO,'--log']).replace(/\x1b\[[0-9;]*m/g,'');
  const javaTests=Math.max(0,...[...log.matchAll(/Tests run: (\d+), Failures: 0, Errors: 0, Skipped: 0/g)].map(x=>Number(x[1])));
  const nodeTests=Number(log.match(/(?:#|ℹ)\s*tests\s+(\d+)/)?.[1]??0);
@@ -53,18 +59,19 @@ async function main(runId,tag) {
  const info={appName:'VN code',version:VERSION,releaseTag:tag,stage:'preview',complete:false,
   sourceCommit:sha,repository:REPO,githubRunId:Number(runId),javaTests,nodeTests,
   installer:{filename,sha256:digest,bytes:bytes.length,architecture:'x86_64',authenticodeSigned:false},
-  liveMarketplaceMutations:false,signedUpdateManifestPublished:false,blocked:status.blocked,nativeSmoke:native,upgradeSmoke:upgrade,previewUpgradeSmoke:previewUpgrade};
+  liveMarketplaceMutations:false,signedUpdateManifestPublished:false,blocked:status.blocked,nativeSmoke:native,upgradeSmoke:upgrade,previewUpgradeSmoke:previewUpgrade,latestPreviewUpgradeSmoke:latestPreviewUpgrade};
  await writeFile(path.join(directory,'build-info.json'),JSON.stringify(info,null,2)+'\n');
  await writeFile(path.join(directory,'feature-status.json'),JSON.stringify(status,null,2)+'\n');
- const notes=`# VN code ${VERSION} — bản thử nghiệm\n\nBộ cài nâng cấp cho cùng ứng dụng VN code Windows, giữ định danh và dữ liệu VN code đã cài. Đã đối chiếu ảnh WCode 1.2.0 và release Wbcode 1.3.0; chưa tương đương toàn bộ chức năng của các bản này.\n\n`+
+ const notes=`# VN code ${VERSION} — bản thử nghiệm\n\nBộ cài nâng cấp cho cùng ứng dụng VN code Windows, giữ định danh và dữ liệu VN code đã cài. Đã đối chiếu ảnh WCode 1.2.0 và release Wbcode ${status.upstreamRelease??'1.3.0'}; chưa tương đương toàn bộ chức năng của các bản này.\n\n`+
   `## Thay đổi giao diện\n\n${(status.changes??[]).map(x=>`- ${x}`).join("\n")}\n\n`+
   `## Đã có trong bản này\n\n- Tin tức/Dashboard, cải tiến giao diện và giữ mẫu tem đã lưu.\n- WB: biểu mẫu giao hàng, lựa chọn theo shop, ngày phải chọn lại, đọc lại thông số sau khi lưu; không tự lặp thao tác ghi khi timeout.\n- Đồng bộ supply WB theo lô 20; bảng Đang giao phân trang và bỏ supply đã biết là rỗng.\n- Module TN VED: 21 phần gốc, tìm Việt/Nga offline, cây danh mục, nhập CSV/JSON có xác nhận nguồn/ngày hiệu lực và sao lưu. Mã chi tiết chưa nhập sẽ báo Chưa tải dữ liệu.\n\n`+
   `## Chưa hoàn tất\n\n${status.blocked.map(x=>`- ${x}`).join('\n')}\n\n`+
   `## Cài đặt và kiểm tra\n\nĐóng VN code rồi chạy **${filename}** bên dưới; Java đã được đóng gói. Bộ cài chưa ký Authenticode. Không phát hành manifest và không đưa bản thử này vào cập nhật tự động. Bản hoàn thiện tiếp theo sẽ dùng số phiên bản Windows cao hơn để tiếp tục nâng cấp cùng ứng dụng.\n\n`+
-  `- ${javaTests} kiểm thử Java/JavaFX và ${nodeTests} kiểm thử Node đạt trên Windows; 0 lỗi hoặc bỏ qua.\n- Launcher, kiểm tra cài song song và nâng cấp VN code 1.1.34 giữ dữ liệu đã đạt.${previewUpgrade?" Nâng cấp từ VN code 1.2.0 Preview cũng đã đạt.":""}\n- Chưa nghiệm thu với credential shop thật, nhà cung cấp AI hoặc máy in thật; không có thao tác ghi marketplace thật trong CI.\n- [CI](https://github.com/${REPO}/actions/runs/${runId}); commit ${sha}.\n- SHA-256: ${digest}.\n`;
+  `- ${javaTests} kiểm thử Java/JavaFX và ${nodeTests} kiểm thử Node đạt trên Windows; 0 lỗi hoặc bỏ qua.\n- Launcher, kiểm tra cài song song và nâng cấp VN code 1.1.34 giữ dữ liệu đã đạt.${previewUpgrade?" Nâng cấp từ VN code 1.2.0 Preview cũng đã đạt.":""}${latestPreviewUpgrade?" Nâng cấp từ VN code 1.2.1 Preview cũng đã đạt.":""}\n- Chưa nghiệm thu với credential shop thật, nhà cung cấp AI hoặc máy in thật; không có thao tác ghi marketplace thật trong CI.\n- [CI](https://github.com/${REPO}/actions/runs/${runId}); commit ${sha}.\n- SHA-256: ${digest}.\n`;
  await writeFile(path.join(directory,'release-notes.md'),notes);
  const assets=[filename,'build-info.json','feature-status.json','native-smoke.json','side-by-side-smoke.json','upgrade-smoke.json','release-notes.md'];
  if(previewUpgrade)assets.push('upgrade-preview-smoke.json');
+ if(latestPreviewUpgrade)assets.push('upgrade-latest-preview-smoke.json');
  const hashes={};for(const name of assets)hashes[name]=hash(await readFile(path.join(directory,name)));
  await writeFile(path.join(directory,'checksums.sha256'),assets.map(name=>`${hashes[name]}  ${name}\n`).join(''));assets.push('checksums.sha256');hashes['checksums.sha256']=hash(await readFile(path.join(directory,'checksums.sha256')));
  let releases=api('releases?per_page=100').filter(r=>r.tag_name===tag);assert.ok(releases.length<=1);

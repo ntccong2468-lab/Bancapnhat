@@ -60,6 +60,101 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class FxmlSmokeTest {
+    @Test void printPreflightClaimsActivityImmediately() throws Exception { assertPrintPreflightContext(true); }
+    @Test void printPreflightCannotOpenDialogsForAnotherShop() throws Exception { assertPrintPreflightContext(false); }
+    private void assertPrintPreflightContext(boolean checkImmediateActivity) throws Exception {
+        var release = new CountDownLatch(1);
+        var checked = new CountDownLatch(1);
+        var dialogs = new AtomicInteger();
+        var verifications = new AtomicInteger();
+        var holder = new java.util.concurrent.atomic.AtomicReference<HomeController>();
+        var setup = new java.util.concurrent.FutureTask<Void>(() -> {
+            var loader = FxmlViewLoader.loader(HomeController.class, "home-view.fxml"); FxmlViewLoader.load(loader);
+            var home = (HomeController) loader.getController(); holder.set(home);
+            var sf = HomeController.class.getDeclaredField("state"); sf.setAccessible(true); var state = sf.get(home);
+            var select = state.getClass().getDeclaredMethod("setSelectedShop", Shop.class); select.setAccessible(true);
+            select.invoke(state, new Shop(1, "Fixture A", "fixture-only"));
+            var supply = state.getClass().getDeclaredMethod("setLoadedSupplyId", String.class); supply.setAccessible(true); supply.invoke(state, "WB-A");
+            var order = new com.vncode.app.models.Order(); order.setId(123L);
+            var orders = state.getClass().getDeclaredMethod("setDisplayedOrders", java.util.List.class); orders.setAccessible(true); orders.invoke(state, java.util.List.of(order));
+            var workflow = HomeController.class.getDeclaredField("orderExportWorkflow"); workflow.setAccessible(true);
+            workflow.set(home, new com.vncode.app.features.print.OrderExportWorkflow() {
+                @Override public void verifyKizAvailability(java.util.List<com.vncode.app.models.Order> ignored, Shop shop) {
+                    verifications.incrementAndGet();
+                    try { assertTrue(release.await(10, TimeUnit.SECONDS)); }
+                    catch (InterruptedException ex) { Thread.currentThread().interrupt(); throw new IllegalStateException(ex); }
+                    checked.countDown();
+                }
+            });
+            var options = HomeController.class.getDeclaredField("printOptionsDialogService"); options.setAccessible(true);
+            options.set(home, new com.vncode.app.features.print.PrintOptionsDialogService() {
+                @Override public java.util.Optional<com.vncode.app.features.print.PrintJobOptions> chooseOptions() {
+                    dialogs.incrementAndGet(); return java.util.Optional.empty();
+                }
+            });
+            home.onExport(new javafx.event.ActionEvent());
+            var busy = HomeController.class.getDeclaredMethod("isShopBusy", int.class); busy.setAccessible(true);
+            if (checkImmediateActivity) {
+                assertTrue((boolean) busy.invoke(home, 1), "The print handoff must claim activity before its asynchronous task starts");
+                home.onExport(new javafx.event.ActionEvent());
+            }
+            select.invoke(state, new Shop(2, "Fixture B", "fixture-only"));
+            var clear = state.getClass().getDeclaredMethod("clearLoadedSupply"); clear.setAccessible(true); clear.invoke(state);
+            supply.invoke(state, "WB-B");
+            return null;
+        });
+        try {
+            Platform.runLater(setup); setup.get(15, TimeUnit.SECONDS); release.countDown();
+            assertTrue(checked.await(10, TimeUnit.SECONDS));
+            awaitBackgroundTasksBeforeFixtureCleanup();
+            var verify = new java.util.concurrent.FutureTask<Void>(() -> {
+                assertEquals(1, verifications.get(), "Repeated clicks must not create a second print preflight");
+                assertEquals(0, dialogs.get(), "The old shop's preflight must not open a deferred print dialog");
+                return null;
+            }); Platform.runLater(verify); verify.get(10, TimeUnit.SECONDS);
+        } finally {
+            release.countDown();
+            var cleanup = new java.util.concurrent.FutureTask<Void>(() -> { if(holder.get()!=null) holder.get().dispose(); return null; });
+            Platform.runLater(cleanup); cleanup.get(10, TimeUnit.SECONDS);
+        }
+    }
+    @Test void supplyPrintCanBeRequestedDuringLoadAndIsCancelledOnContextReset() throws Exception {
+        var task = new java.util.concurrent.FutureTask<Void>(() -> {
+            var loader = FxmlViewLoader.loader(HomeController.class, "home-view.fxml");
+            FxmlViewLoader.load(loader);
+            var home = (HomeController) loader.getController();
+            try {
+                var sf = HomeController.class.getDeclaredField("state"); sf.setAccessible(true);
+                var state = sf.get(home);
+                var select = state.getClass().getDeclaredMethod("setSelectedShop", Shop.class); select.setAccessible(true);
+                select.invoke(state, new Shop(1, "Fixture", "fixture-only"));
+                var supply = state.getClass().getDeclaredMethod("setLoadedSupplyId", String.class); supply.setAccessible(true);
+                supply.invoke(state, "WB-PRINT-FIXTURE");
+                var requestField = HomeController.class.getDeclaredField("supplyPrintRequest"); requestField.setAccessible(true);
+                var request = requestField.get(home);
+                var begin = request.getClass().getDeclaredMethod("begin", int.class, String.class, long.class); begin.setAccessible(true);
+                begin.invoke(request, 1, "WB-PRINT-FIXTURE", 10L);
+                var update = HomeController.class.getDeclaredMethod("updateHeaderState"); update.setAccessible(true); update.invoke(home);
+                var detailField = HomeController.class.getDeclaredField("supplyDetailController"); detailField.setAccessible(true);
+                var detail = detailField.get(home);
+                var buttonField = detail.getClass().getDeclaredField("printButton"); buttonField.setAccessible(true);
+                var button = (Button) buttonField.get(detail);
+                assertTrue(button.isVisible());
+                assertFalse(button.isDisabled(), "Printing must be requestable before the first background order refresh finishes");
+                home.onExport(new javafx.event.ActionEvent());
+                var pending = request.getClass().getDeclaredMethod("isPending"); pending.setAccessible(true);
+                assertTrue((boolean) pending.invoke(request));
+                assertTrue(button.isDisabled(), "Only one pending print request may be accepted");
+                home.onExport(new javafx.event.ActionEvent());
+                assertTrue((boolean) pending.invoke(request));
+                var reset = HomeController.class.getDeclaredMethod("resetLoadedSupply"); reset.setAccessible(true); reset.invoke(home);
+                assertFalse((boolean) pending.invoke(request));
+                assertTrue(button.isDisabled());
+            } finally { home.dispose(); }
+            return null;
+        });
+        Platform.runLater(task); task.get(15, TimeUnit.SECONDS);
+    }
     @Test void narrowSupplyCanStillReachBarcodesWithInventoryClosed() throws Exception {
         var task=new java.util.concurrent.FutureTask<Void>(() -> {
             var loader=FxmlViewLoader.loader(SupplyDetailController.class,"supply-detail-view.fxml");Parent root=FxmlViewLoader.load(loader);var controller=(SupplyDetailController)loader.getController();var order=new com.vncode.app.models.Order();order.setId(123L);order.setName("Layout");controller.setOrders(java.util.List.of(order));

@@ -122,6 +122,7 @@ public class HomeController implements Initializable {
     private final WbSupplyWorkflow wbSupplyWorkflow = new WbSupplyWorkflow();
     private final PackingWorkflow packingWorkflow = new PackingWorkflow();
     private final SupplyLoadWorkflow supplyLoadWorkflow = new SupplyLoadWorkflow();
+    private final SupplyPrintRequest supplyPrintRequest = new SupplyPrintRequest();
     private final OrderSortingService orderSortingService = new OrderSortingService();
     private final OrderSortPreferenceService orderSortPreferenceService = new OrderSortPreferenceService();
     private final PrintOptionsDialogService printOptionsDialogService = new PrintOptionsDialogService();
@@ -852,12 +853,22 @@ public class HomeController implements Initializable {
     }
 
     public void onExport(ActionEvent actionEvent) {
+        if (disposed) return;
         Shop shop = requireSelectedShop();
         if (shop == null) {
             return;
         }
         if (shop.getMarketplace() != Marketplace.WILDBERRIES) {
             showOzonDashboard(false);
+            return;
+        }
+        if (state.getLoadedSupplyId() == null || !state.isSelectedShopTokenValid()
+                || isShopBusy(shop.getId())) return;
+        if (supplyPrintRequest.isLoading()) {
+            if (supplyPrintRequest.request()) {
+                supplyDetailController.setStickerLoading(true, i18nService.tr("supply.loading_orders"));
+                updateExportAvailability();
+            }
             return;
         }
         if (state.getDisplayedOrders().isEmpty()) {
@@ -871,6 +882,7 @@ public class HomeController implements Initializable {
         List<Order> exportOrders = new ArrayList<>(state.getDisplayedOrders());
         String supplyId = state.getLoadedSupplyId();
         String supplyName = state.getLoadedSupplyName();
+        long exportRequestToken = state.getSupplyRequestToken();
 
         Task<Void> checkTask = new Task<>() {
             @Override
@@ -882,12 +894,13 @@ public class HomeController implements Initializable {
 
         checkTask.setOnRunning(e -> {
             markShopRunning(shop.getId(), true);
-            if (supplyDetailController != null) {
+            if (isCurrentExportRequest(shop.getId(), supplyId, exportRequestToken)) {
                 supplyDetailController.setStickerLoading(true, i18nService.tr("supply.loading_orders"));
             }
         });
         checkTask.setOnFailed(e -> {
             markShopRunning(shop.getId(), false);
+            if (!isCurrentExportRequest(shop.getId(), supplyId, exportRequestToken)) return;
             if (supplyDetailController != null) {
                 supplyDetailController.setStickerLoading(false);
             }
@@ -896,77 +909,104 @@ public class HomeController implements Initializable {
             AlertService.showError(ex.getMessage());
         });
         checkTask.setOnSucceeded(e -> {
-            markShopRunning(shop.getId(), false);
+            if (!isCurrentExportRequest(shop.getId(), supplyId, exportRequestToken)) {
+                markShopRunning(shop.getId(), false);
+                return;
+            }
             if (supplyDetailController != null) {
                 supplyDetailController.setStickerLoading(false);
             }
 
             javafx.application.Platform.runLater(() -> {
-                Optional<PrintJobOptions> printOptions = printOptionsDialogService.chooseOptions();
-                if (printOptions.isEmpty()) {
-                    return;
-                }
-
-                preparePdfSaveChooser();
-                File file = fileChooser.showSaveDialog(null);
-                if (file == null) {
-                    return;
-                }
-
-                File orderDetailsFile = new File(file.getParent(), "NHAT_HANG-" + file.getName());
-                Task<OrderExportWorkflow.ExportResult> exportTask = new Task<>() {
-                    @Override
-                    protected OrderExportWorkflow.ExportResult call() throws Exception {
-                        List<Order> ordersWithStickers = supplyLoadWorkflow.enrichStickers(shop, exportOrders);
-                        return orderExportWorkflow.export(
-                                new OrderExportWorkflow.ExportRequest(
-                                        shop,
-                                        supplyId,
-                                        supplyName,
-                                        ordersWithStickers,
-                                        printOptions.get(),
-                                        file,
-                                        orderDetailsFile
-                                )
-                        );
+                boolean exportStarted = false;
+                try {
+                    if (!isCurrentExportRequest(shop.getId(), supplyId, exportRequestToken)) return;
+                    Optional<PrintJobOptions> printOptions = printOptionsDialogService.chooseOptions();
+                    if (printOptions.isEmpty() || !isCurrentExportRequest(shop.getId(), supplyId, exportRequestToken)) {
+                        return;
                     }
-                };
 
-                exportTask.setOnRunning(ev -> {
-                    markShopRunning(shop.getId(), true);
-                    if (supplyDetailController != null) {
-                        supplyDetailController.setStickerLoading(true, i18nService.tr("supply.preparing_pdf"));
+                    preparePdfSaveChooser();
+                    File file = fileChooser.showSaveDialog(null);
+                    if (file == null || !isCurrentExportRequest(shop.getId(), supplyId, exportRequestToken)) {
+                        return;
                     }
-                });
-                exportTask.setOnFailed(ev -> {
-                    markShopRunning(shop.getId(), false);
-                    if (supplyDetailController != null) {
+
+                    File orderDetailsFile = new File(file.getParent(), "NHAT_HANG-" + file.getName());
+                    Task<OrderExportWorkflow.ExportResult> exportTask = new Task<>() {
+                        @Override
+                        protected OrderExportWorkflow.ExportResult call() throws Exception {
+                            List<Order> ordersWithStickers = supplyLoadWorkflow.enrichStickers(shop, exportOrders);
+                            return orderExportWorkflow.export(
+                                    new OrderExportWorkflow.ExportRequest(
+                                            shop,
+                                            supplyId,
+                                            supplyName,
+                                            ordersWithStickers,
+                                            printOptions.get(),
+                                            file,
+                                            orderDetailsFile
+                                    )
+                            );
+                        }
+                    };
+
+                    exportTask.setOnRunning(ev -> {
+                        markShopRunning(shop.getId(), true);
+                        if (isCurrentExportRequest(shop.getId(), supplyId, exportRequestToken)) {
+                            supplyDetailController.setStickerLoading(true, i18nService.tr("supply.preparing_pdf"));
+                        }
+                    });
+                    exportTask.setOnFailed(ev -> {
+                        markShopRunning(shop.getId(), false);
+                        if (!isCurrentExportRequest(shop.getId(), supplyId, exportRequestToken)) return;
+                        if (supplyDetailController != null) {
+                            supplyDetailController.setStickerLoading(false);
+                        }
+                        Throwable ex = exportTask.getException();
+                        LOGGER.error("Export thất bại cho shop {}", shop.getId(), ex);
+                        AlertService.showError(ex.getMessage());
+                    });
+                    exportTask.setOnSucceeded(ev -> {
+                        markShopRunning(shop.getId(), false);
+                        OrderExportWorkflow.ExportResult result = exportTask.getValue();
+                        // A confirmed job still reconciles its own shop even if its page was closed.
+                        if (result.kizAttachments() != null && !result.kizAttachments().isEmpty()) {
+                            enqueueBackgroundKizAttachment(shop, supplyId, supplyName, result);
+                        }
+                        if (!isCurrentExportRequest(shop.getId(), supplyId, exportRequestToken)) return;
                         supplyDetailController.setStickerLoading(false);
-                    }
-                    Throwable ex = exportTask.getException();
-                    LOGGER.error("Export thất bại cho shop {}", shop.getId(), ex);
-                    AlertService.showError(ex.getMessage());
-                });
-                exportTask.setOnSucceeded(ev -> {
-                    markShopRunning(shop.getId(), false);
-                    OrderExportWorkflow.ExportResult result = exportTask.getValue();
-                    state.setLoadedOrdersRaw(result.exportedOrders());
-                    applySortAndDisplayOrders();
-                    clearKizDraft();
-                    tryOpenFile(orderDetailsFile);
-                    tryOpenFile(file);
-                    enqueueBackgroundKizAttachment(shop, supplyId, supplyName, result);
-                    if (isPrintHistoryVisible()) {
-                        refreshPrintHistory();
-                    }
-                    if (isPackingVisible()) {
-                        refreshPackingView();
-                    }
-                });
-                AppTaskExecutor.execute(exportTask);
+                        state.setLoadedOrdersRaw(result.exportedOrders());
+                        applySortAndDisplayOrders();
+                        clearKizDraft();
+                        tryOpenFile(orderDetailsFile);
+                        tryOpenFile(file);
+                        if (isPrintHistoryVisible()) {
+                            refreshPrintHistory();
+                        }
+                        if (isPackingVisible()) {
+                            refreshPackingView();
+                        }
+                    });
+                    AppTaskExecutor.execute(exportTask);
+                    exportStarted = true;
+                } finally {
+                    if (!exportStarted) markShopRunning(shop.getId(), false);
+                }
             });
         });
-        AppTaskExecutor.execute(checkTask);
+        markShopRunning(shop.getId(), true);
+        try {
+            AppTaskExecutor.execute(checkTask);
+        } catch (RuntimeException error) {
+            markShopRunning(shop.getId(), false);
+            throw error;
+        }
+    }
+
+    private boolean isCurrentExportRequest(int shopId, String supplyId, long requestToken) {
+        return !disposed && state.isSelectedShopTokenValid()
+                && isCurrentSupplyRequest(shopId, supplyId, requestToken);
     }
 
     public void onSettings(ActionEvent event) {
@@ -1372,6 +1412,8 @@ public class HomeController implements Initializable {
         long requestToken = state.nextSupplyRequestToken();
         state.setLoadedSupplyId(supply.getSupplyId());
         state.setLoadedSupplyName(supply.getName());
+        supplyPrintRequest.begin(shop.getId(), supply.getSupplyId(), requestToken);
+        updateExportAvailability();
         if(wbShippingPane!=null)wbShippingPane.setContext(shop,supply.getSupplyId());
         supplyDetailController.setLoading(true);
         refreshCurrentKizAttachmentProgress();
@@ -1389,6 +1431,7 @@ public class HomeController implements Initializable {
                 return;
             }
             supplyDetailController.setLoading(false);
+            finishSupplyPrintRequest(shop.getId(), supply.getSupplyId(), requestToken, false);
             LOGGER.error("Không thể mở supply {}", supply.getSupplyId(), localTask.getException());
             supplyDetailController.showEmptyState("", "");
             AlertService.showError(localTask.getException().getMessage());
@@ -1427,6 +1470,7 @@ public class HomeController implements Initializable {
                 return;
             }
             supplyDetailController.setLoading(false);
+            finishSupplyPrintRequest(shop.getId(), supply.getSupplyId(), requestToken, false);
             applySortAndDisplayOrders();
             updateExportAvailability();
             refreshCurrentKizAttachmentProgress();
@@ -1459,9 +1503,18 @@ public class HomeController implements Initializable {
                         refreshTask.getValue() == null ? 0 : refreshTask.getValue().size()
                 ));
             }
+            finishSupplyPrintRequest(shop.getId(), supply.getSupplyId(), requestToken, true);
             startSilentImageWarmup(shop, supply, requestToken);
         });
         AppTaskExecutor.execute(refreshTask);
+    }
+
+    private void finishSupplyPrintRequest(int shopId, String supplyId, long requestToken, boolean success) {
+        boolean requested = supplyPrintRequest.isPending();
+        boolean print = supplyPrintRequest.complete(shopId, supplyId, requestToken, success);
+        if (requested) supplyDetailController.setStickerLoading(false);
+        updateExportAvailability();
+        if (print && canExport()) onExport(new ActionEvent());
     }
 
     private void startSilentImageWarmup(Shop shop, WbSupplySummary supply, long requestToken) {
@@ -1691,10 +1744,13 @@ public class HomeController implements Initializable {
     }
 
     private void resetLoadedSupply() {
+        boolean waitingForPrint = supplyPrintRequest.isPending();
+        supplyPrintRequest.cancel();
         loadedSupplySummary = null;
         if(wbShippingPane!=null)wbShippingPane.setContext(null,null);
         state.clearLoadedSupply();
         if (supplyDetailController != null) {
+            if (waitingForPrint) supplyDetailController.setStickerLoading(false);
             supplyDetailController.setLoading(false);
             refreshCurrentKizAttachmentProgress();
             supplyDetailController.setSupplyInfo("", "");
@@ -1940,7 +1996,8 @@ public class HomeController implements Initializable {
         return shop != null
                 && shop.getMarketplace() == Marketplace.WILDBERRIES
                 && state.getLoadedSupplyId() != null
-                && !state.getDisplayedOrders().isEmpty()
+                && (supplyPrintRequest.isLoading() || !state.getDisplayedOrders().isEmpty())
+                && !supplyPrintRequest.isPending()
                 && !running
                 && state.isSelectedShopTokenValid();
     }
@@ -2120,6 +2177,7 @@ public class HomeController implements Initializable {
             return;
         }
         disposed = true;
+        supplyPrintRequest.cancel();
         if (gtinSyncController != null) gtinSyncController.dispose();
         if (supplyDetailController != null) {
             supplyDetailController.dispose();
