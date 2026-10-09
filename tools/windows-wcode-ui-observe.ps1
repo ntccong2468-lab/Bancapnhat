@@ -9,6 +9,8 @@ using System.Runtime.InteropServices;
 public static class WCodeObservationWindow {
  [DllImport("user32.dll")] public static extern bool ShowWindow(IntPtr hwnd,int command);
  [DllImport("user32.dll")] public static extern bool SetForegroundWindow(IntPtr hwnd);
+ [DllImport("user32.dll")] public static extern bool SetCursorPos(int x,int y);
+ [DllImport("user32.dll")] public static extern void mouse_event(uint flags,uint x,uint y,uint data,UIntPtr extra);
 }
 '@
 $root=Join-Path $env:RUNNER_TEMP ('wcode-observe-'+[guid]::NewGuid());New-Item -ItemType Directory $root | Out-Null
@@ -32,8 +34,20 @@ try {
  if($handle -eq [IntPtr]::Zero){foreach($id in $ids){$candidate=Get-Process -Id $id;$candidate.Refresh();if($candidate.MainWindowHandle -ne [IntPtr]::Zero){$handle=$candidate.MainWindowHandle;break}}}
  if($handle -ne [IntPtr]::Zero){[WCodeObservationWindow]::ShowWindow($handle,3)|Out-Null;[WCodeObservationWindow]::SetForegroundWindow($handle)|Out-Null}
  Start-Sleep -Seconds 20
- $bounds=[Windows.Forms.SystemInformation]::VirtualScreen;$bitmap=New-Object Drawing.Bitmap $bounds.Width,$bounds.Height;$graphics=[Drawing.Graphics]::FromImage($bitmap)
- try{$graphics.CopyFromScreen($bounds.Left,$bounds.Top,0,0,$bitmap.Size);$bitmap.Save((Join-Path $out 'official-wbcode-1.3.0-first-run.png'),[Drawing.Imaging.ImageFormat]::Png)}finally{$graphics.Dispose();$bitmap.Dispose()}
+ $bounds=[Windows.Forms.SystemInformation]::VirtualScreen
+ function Save-ObservationImage([string]$Name){
+  $bitmap=New-Object Drawing.Bitmap $bounds.Width,$bounds.Height;$graphics=[Drawing.Graphics]::FromImage($bitmap)
+  try{$graphics.CopyFromScreen($bounds.Left,$bounds.Top,0,0,$bitmap.Size);$bitmap.Save((Join-Path $out $Name),[Drawing.Imaging.ImageFormat]::Png)}finally{$graphics.Dispose();$bitmap.Dispose()}
+ }
+ Save-ObservationImage 'official-wbcode-1.3.0-first-run.png'
+ # The book icon was visually identified in the previous maximized capture.
+ # Only open the public guide page; do not enter credentials or activate a license.
+ if($bounds.Width -eq 1024 -and $bounds.Height -eq 768){
+  [WCodeObservationWindow]::SetCursorPos(36,474)|Out-Null;Start-Sleep -Seconds 2
+  Save-ObservationImage 'official-wbcode-1.3.0-guides-hover.png'
+  [WCodeObservationWindow]::mouse_event(2,0,0,0,[UIntPtr]::Zero);[WCodeObservationWindow]::mouse_event(4,0,0,0,[UIntPtr]::Zero)
+  Start-Sleep -Seconds 8;Save-ObservationImage 'official-wbcode-1.3.0-guides.png'
+ }
  $windows=@($ids|ForEach-Object {[VNcode.Smoke.VisibleWindows]::Titles($_)})
  @{source='official release installer';release='v1.3.0';installerSha256=$hash;nativeLaunch='passed';visibleTitles=$windows;windowMaximized=($handle -ne [IntPtr]::Zero);screenWidth=$bounds.Width;screenHeight=$bounds.Height;freshRunner=$true;shopCredentialsEntered=$false;liveMarketplaceMutations=$false;licenseActivated=$false;scope='First-run UI only; authenticated workflows not tested';screenshot='official-wbcode-1.3.0-first-run.png'}|ConvertTo-Json|Set-Content (Join-Path $out 'observation.json') -Encoding utf8
 }finally{if($app -and -not $app.HasExited){Stop-Process -Id $app.Id -Force;$app.WaitForExit()};if($installed){$p=Start-Process msiexec.exe -ArgumentList @('/x',"`"$msi`"",'/qn','/norestart') -Wait -PassThru;if($p.ExitCode -notin @(0,3010)){throw 'Official app uninstall failed.'}}}
