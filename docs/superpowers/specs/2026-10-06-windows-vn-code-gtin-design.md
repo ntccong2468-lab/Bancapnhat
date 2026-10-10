@@ -1,16 +1,12 @@
-# Thiết kế WCode Windows và đồng bộ GTIN
+# Thiết kế VN code Windows và đồng bộ GTIN
 
 ## 1. Mục tiêu đã được người dùng duyệt
 
-Ứng dụng desktop Windows x64 giữ toàn bộ chức năng hiện có của WCode,
+Ứng dụng desktop Windows x64 giữ toàn bộ chức năng hiện có của ứng dụng tham chiếu,
 cải thiện giao diện và cấu trúc mã, bổ sung thêm GTIN thiếu và sửa/thay GTIN
 gán sai trên Wildberries và Ozon khi API của sàn cho phép. Người dùng đã
 chọn JavaFX + SQLite và duyệt sơ đồ nghiệp vụ. Đây là bản đặc tả để duyệt
 trước kế hoạch triển khai; chưa phải báo cáo chức năng đã được xây dựng.
-
-Nguồn nền: rupphi/test-wcode, commit
-8f7c3d1ac8598158029b8d037e2d3c128e240727, phiên bản 1.1.32.
-Giữ Java 25, JavaFX 25, Maven và cơ chế đóng gói jpackage.
 
 ## 2. Phạm vi bảo toàn chức năng
 

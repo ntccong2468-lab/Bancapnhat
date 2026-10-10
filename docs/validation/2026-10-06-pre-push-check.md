@@ -4,7 +4,7 @@ Ngày 06/10/2026. Mã nền trước lượt kiểm tra: `52f4f7f` trong checkou
 `/workspace/test-wcode`. Repository bàn giao: `ntccong2468-lab/Vncode`; nhánh mới
 `feat/windows-gtin-sync-20261006`. Repository đích chưa có commit khi kiểm tra;
 bàn giao snapshot mã nguồn đầy đủ, không đưa database, credential, cache hoặc
-artifact build vào Git. Giữ thông tin nguồn WCode và license hiện có.
+artifact build vào Git. Giữ thông tin nguồn ứng dụng tham chiếu và license hiện có.
 
 ## Lỗi được tìm và sửa
 

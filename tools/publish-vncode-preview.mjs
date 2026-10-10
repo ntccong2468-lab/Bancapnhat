@@ -62,7 +62,7 @@ async function main(runId,tag) {
   liveMarketplaceMutations:false,signedUpdateManifestPublished:false,blocked:status.blocked,nativeSmoke:native,upgradeSmoke:upgrade,previewUpgradeSmoke:previewUpgrade,latestPreviewUpgradeSmoke:latestPreviewUpgrade};
  await writeFile(path.join(directory,'build-info.json'),JSON.stringify(info,null,2)+'\n');
  await writeFile(path.join(directory,'feature-status.json'),JSON.stringify(status,null,2)+'\n');
- const notes=`# VN code ${VERSION} — bản thử nghiệm\n\nBộ cài nâng cấp cho cùng ứng dụng VN code Windows, giữ định danh và dữ liệu VN code đã cài. Đã đối chiếu ảnh WCode 1.2.0 và release Wbcode ${status.upstreamRelease??'1.3.0'}; chưa tương đương toàn bộ chức năng của các bản này.\n\n`+
+ const notes=`# VN code ${VERSION} — bản thử nghiệm\n\nBộ cài nâng cấp cho cùng ứng dụng VN code Windows, giữ định danh và dữ liệu VN code đã cài. Dự án do Nguyễn Thành Công phát triển và quản lý. Phạm vi đã triển khai và còn thiếu được ghi dưới đây.\n\n`+
   `## Thay đổi giao diện\n\n${(status.changes??[]).map(x=>`- ${x}`).join("\n")}\n\n`+
   `## Đã có trong bản này\n\n- Tin tức/Dashboard, cải tiến giao diện và giữ mẫu tem đã lưu.\n- WB: biểu mẫu giao hàng, lựa chọn theo shop, ngày phải chọn lại, đọc lại thông số sau khi lưu; không tự lặp thao tác ghi khi timeout.\n- Đồng bộ supply WB theo lô 20; bảng Đang giao phân trang và bỏ supply đã biết là rỗng.\n- Module TN VED: 21 phần gốc, tìm Việt/Nga offline, cây danh mục, nhập CSV/JSON có xác nhận nguồn/ngày hiệu lực và sao lưu. Mã chi tiết chưa nhập sẽ báo Chưa tải dữ liệu.\n\n`+
   `## Chưa hoàn tất\n\n${status.blocked.map(x=>`- ${x}`).join('\n')}\n\n`+

@@ -2,13 +2,13 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:executing-plans or superpowers:subagent-driven-development to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Add shop-scoped GTIN matching, supported marketplace updates and durable reconciliation without removing existing WCode functionality.
+**Goal:** Add shop-scoped GTIN matching, supported marketplace updates and durable reconciliation without removing existing application functionality.
 
 **Architecture:** Keep the existing JavaFX application and marketplace adapters. Add a focused `features/gtinsync` package; mutations pass through capability checks, confirmed previews and a persistent queue. Unsupported barcode replacement remains explicitly blocked.
 
 **Tech Stack:** Java 25, JavaFX 25, Maven, SQLite, Gson, OkHttp, JUnit 5, MockWebServer.
 
-**Spec:** `docs/superpowers/specs/2026-10-06-windows-wcode-gtin-design.md`
+**Spec:** `docs/superpowers/specs/2026-10-06-windows-vn-code-gtin-design.md`
 
 ## Global Constraints
 

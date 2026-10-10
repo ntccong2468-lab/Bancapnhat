@@ -1,8 +1,8 @@
-# Kiểm tra bảo toàn chức năng WCode
+# Kiểm tra bảo toàn chức năng ứng dụng tham chiếu
 
 Ngày: 06/10/2026. Nguồn: `rupphi/test-wcode`, commit gốc `8f7c3d1`, phiên bản
 1.1.32; nhánh triển khai `feat/windows-gtin-sync`. Giữ Java 25, JavaFX/FXML,
-SQLite, entrypoint và Maven/jpackage của WCode. Không thay thế các service
+SQLite, entrypoint và Maven/jpackage của ứng dụng tham chiếu. Không thay thế các service
 nghiệp vụ bằng luồng giả lập.
 
 | Chức năng hiện có | Đường đi sau thay đổi | Bằng chứng và giới hạn |

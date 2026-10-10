@@ -1,4 +1,4 @@
-name: Observe official Wbcode release UI
+name: Historical reference UI check (manual)
 on:
   workflow_dispatch:
 permissions:
@@ -8,11 +8,11 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
-      - name: Launch checksum-verified official Wbcode in a fresh Windows runner
+      - name: Launch checksum-verified reference fixture in a fresh Windows runner
         shell: pwsh
         run: ./tools/windows-wcode-ui-observe.ps1
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
-          name: official-Wbcode-1.3.1-UI-observation
+          name: reference-ui-observation
           path: out/wcode-observation/*
           if-no-files-found: error

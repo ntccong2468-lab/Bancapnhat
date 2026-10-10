@@ -2,9 +2,9 @@
 
 > **For agentic workers:** Use superpowers:executing-plans inline. Implementation, Windows packaging and GitHub publication are authorized; do not merge shared branches.
 
-**Goal:** Install VN code beside WCode with empty independent data and safe uninstall.
+**Goal:** Install VN code beside ứng dụng tham chiếu with empty independent data and safe uninstall.
 
-**Architecture:** Use new installer upgrade identities, fixed own data/cache roots and own update channels. Verify the MSI embedded in the produced EXE on a disposable hosted Windows runner against a checksum-pinned original WCode installation.
+**Architecture:** Use new installer upgrade identities, fixed own data/cache roots and own update channels. Verify the MSI embedded in the produced EXE on a disposable hosted Windows runner against a checksum-pinned original ứng dụng tham chiếu installation.
 
 **Tech Stack:** Java 25/JavaFX, Maven, jpackage/WiX, PowerShell, GitHub Actions.
 
@@ -13,16 +13,16 @@
 ## Global Constraints
 
 - Exact display VN code; version 1.1.34; separate VNcodeApp/VNcodeData; new upgrade UUIDs.
-- Empty initial shop/license/data; never copy WCode data or consume wcode JVM properties.
+- Empty initial shop/license/data; never copy ứng dụng tham chiếu data or consume ứng dụng tham chiếu JVM properties.
 - No production seller mutation or license bypass; preserve genuine upstream provenance.
 
 ## Review Focus
 
-- WCodeData, WCode, WCode test data and old update backups already exist.
-- A WCode process holds its own data lock while VN code starts.
-- Ambient wcode.appdata.dir/data.profile cannot redirect VN code.
+- WCodeData, ứng dụng tham chiếu, ứng dụng tham chiếu test data and old update backups already exist.
+- A ứng dụng tham chiếu process holds its own data lock while VN code starts.
+- Ambient ứng dụng tham chiếu.appdata.dir/data.profile cannot redirect VN code.
 - The production MSI has no test data override and retains the new upgrade identity.
-- Installing/uninstalling VN code leaves WCode bytes and registration intact; native probes refuse real user machines and pre-existing directories.
+- Installing/uninstalling VN code leaves ứng dụng tham chiếu bytes and registration intact; native probes refuse real user machines and pre-existing directories.
 
 ### Task 1: Independent roots and installer identity
 
@@ -36,7 +36,7 @@
 ### Task 2: Native installation proof and delivery
 
 **Files:** windows-smoke-common.ps1, windows-side-by-side-smoke.ps1, windows-native-smoke.ps1, WindowsDataProbe.java, publisher and workflows.
-**Interfaces:** Wait-VncodeWindow reads process-owned visible titles; side-by-side-smoke.json proves actual MSI identity, empty data and WCode-preserving uninstall; publisher rejects missing/failed proof.
+**Interfaces:** Wait-VncodeWindow reads process-owned visible titles; side-by-side-smoke.json proves actual MSI identity, empty data and ứng dụng tham chiếu-preserving uninstall; publisher rejects missing/failed proof.
 
 - [x] Add publication proof contract; observe missing validator/workflow RED; implement and obtain Node22 GREEN.
 - [x] PowerShell/YAML parse passed; independent review found no P1/P2 application defect. Delivered MSI path narrowed after contract RED/GREEN to exclude WiX intermediates.
@@ -62,9 +62,9 @@ Native run37843779293 again passed app suites, packaging and native history/wind
 ## Completed delivery
 
 - Verified application/tag commit: `bfa5a689a0329b9f770f30aeefa62f071ba9d86c`.
-- [Native Windows CI](https://github.com/ntccong2468-lab/Vncode/actions/runs/37845191448):551 Java/FXML and23 Node contracts, zero failures/errors/skips; native version window, schema/history/snapshot proof; real WCode1.1.75 installation followed by VN code install/fresh own data/uninstall, preserving WCode executable/data/registration.
+- [Native Windows CI](https://github.com/ntccong2468-lab/Vncode/actions/runs/37845191448):551 Java/FXML and23 Node contracts, zero failures/errors/skips; native version window, schema/history/snapshot proof; real ứng dụng kiểm thử tham chiếu installation followed by VN code install/fresh own data/uninstall, preserving ứng dụng tham chiếu executable/data/registration.
 - [Publisher](https://github.com/ntccong2468-lab/Vncode/actions/runs/37846803832): exact verified tag/artifact, all6 assets uploaded and digest-checked, prerelease published.
 - [VN code1.1.34 Windows prerelease](https://github.com/ntccong2468-lab/Vncode/releases/tag/v1.1.34).
 - EXE140996096 bytes, SHA-256 `d3970ee5ca88f72a810bbedb807c84cdb7201b96c0d2ef132d0a7a01cea6ac79`; public download HTTP200 and all published checksums/build metadata independently verified.
 - Independent free personal app, own shop setup and empty data; no original license/report server dependency. Genuine upstream attribution and external authentication/signing/write-contract gates preserved.
-- Unsigned Windows prerelease, manual installation. No exact WCode1.1.75 source integration and no live seller/GS1/CryptoPro/printer acceptance; production GTIN ADD/REPLACE remains disabled.
+- Unsigned Windows prerelease, manual installation. No exact ứng dụng kiểm thử tham chiếu source integration and no live seller/GS1/CryptoPro/printer acceptance; production GTIN ADD/REPLACE remains disabled.

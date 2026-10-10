@@ -1,57 +1,29 @@
-# JavaFX release runbook
+# Phát hành VN code JavaFX
 
-## Trước khi tạo tag
+VN code do **Nguyễn Thành Công** phát triển và quản lý. Mã ứng dụng và bản cập nhật ở các repository VN code của chủ dự án.
 
-1. Xác nhận project version và `app.version` trong `pom.xml` giống nhau.
-2. Chạy `node --test tools/*.test.mjs` và `./mvnw -B clean verify`.
-3. Kiểm tra migration bằng database fixture 1.1.9; không dùng database thật của operator.
-4. Kiểm tra không có secret/KIZ/database/WAL trong diff hoặc artifact.
-5. Tạo tag đúng dạng `vMAJOR.MINOR.PATCH` từ nhánh mặc định.
-6. Chạy workflow thủ công từ nhánh mặc định trước khi tag. Lần chạy thử phải build đủ Windows,
-   macOS Intel và macOS Apple Silicon nhưng không được publish release.
+## Trước khi phát hành
 
-## Release trust
+1. Phiên bản trong `pom.xml` là nguồn duy nhất; tag chính thức khớp `vMAJOR.MINOR.PATCH`, Preview dùng `vMAJOR.MINOR.PATCH-preview.N`.
+2. Chạy `./mvnw -B clean verify` và `node --test tools/*.test.mjs`.
+3. Kiểm tra Windows launcher, migration/snapshot bằng dữ liệu tạm, DPAPI khi có GS1, cài/gỡ độc lập và nâng cấp giữ dữ liệu từ các bản VN code đã phát hành.
+4. Không đưa database/WAL, khóa seller, mật khẩu, chữ ký hoặc KIZ thật vào artifact.
+5. Công bố đúng phần đã làm/còn thiếu, trạng thái chữ ký và nghiệm thu thật.
 
-Protected GitHub environment `release` cần `RELEASE_TOKEN` có `contents:write` trên
-`rupphi/relatest-wcode`. Các nhóm secret ký số sau là tùy chọn, nhưng mỗi nhóm phải được cấu hình
-đầy đủ hoặc bỏ trống hoàn toàn:
+## Định danh và chữ ký
 
-- Authenticode: `WINDOWS_SIGNING_CERTIFICATE`, `WINDOWS_SIGNING_PASSWORD` và
-  `UPDATE_SIGNING_PUBLISHER` khớp chính xác subject của certificate;
-- manifest: `UPDATE_MANIFEST_PRIVATE_KEY` và `UPDATE_MANIFEST_PUBLIC_KEY`.
+Giữ UpgradeCode production `8CBBA0E2-6E73-4F56-9101-6BC0948D3C72`, thư mục `%LOCALAPPDATA%\VNcodeApp` và `%LOCALAPPDATA%\VNcodeData`. Không đổi định danh khi phát hành bản cập nhật. Shop mới bắt đầu trống; nâng cấp giữ dữ liệu VN code.
 
-Nếu chưa có chứng thư/khóa, workflow vẫn build và kiểm tra bộ cài như các release hiện tại, nhưng
-không được mô tả artifact là đã ký. Khi có secret, workflow tự ký và verify trước khi upload.
+Workflow dùng quyền GitHub của repository đích. Authenticode chỉ bật khi cấu hình đầy đủ `WINDOWS_SIGNING_CERTIFICATE`, `WINDOWS_SIGNING_PASSWORD` và `UPDATE_SIGNING_PUBLISHER`. Manifest chỉ bật khi có đủ `UPDATE_MANIFEST_PRIVATE_KEY` và `UPDATE_MANIFEST_PUBLIC_KEY`. Không mô tả artifact chưa ký là đã ký.
 
-Windows Upgrade UUID `D0FC7057-DA6C-3181-ADF9-C21DB2C9152A` là identity legacy của 1.1.8/1.1.9;
-không được dùng lại vì uninstaller đó xóa thư mục `%LOCALAPPDATA%\WCode` chứa cả dữ liệu. Từ
-1.1.10, identity WCode là `0356BE08-487C-4E04-A2C2-353AF93DB2DE`; VN code dùng identity riêng bên dưới.
+Preview dùng đúng commit/run/artifact đã kiểm thử; publisher đối chiếu phiên bản, checksum, kiến trúc EXE, số kiểm thử và các báo cáo Windows trước upload. Giữ nguyên cấu trúc báo cáo/protocol kỹ thuật đã có. Không đưa Preview vào tự cập nhật.
 
-Bản VN code 1.1.34 dùng upgrade UUID riêng `8CBBA0E2-6E73-4F56-9101-6BC0948D3C72`; không dùng lại identity WCode. Cài tại `%LOCALAPPDATA%\VNcodeApp`, dữ liệu riêng `%LOCALAPPDATA%\VNcodeData`, khởi tạo shop trống, dùng miễn phí và không cần giấy phép WCode. Không tự nhập bất kỳ dữ liệu hay backup WCode nào.
+## Sau phát hành
 
-Trên repository `ntccong2468-lab/Vncode`, workflow `build-java.yml` build EXE, chạy native migration fixture cô lập rồi cài MSI nhúng trong EXE song song với WCode 1.1.75 thật (EXE và MSI nhúng checksum pin). Probe kiểm tra ProductName/Version/UpgradeCode, registration riêng, database trống, toàn vẹn dữ liệu WCode và gỡ VN code không ảnh hưởng WCode. Probe từ chối chạy trên máy người dùng hoặc thư mục ứng dụng đã có.
+Đối chiếu digest GitHub với `checksums.sha256`; mở launcher và kiểm tra nâng cấp. Với manifest có chữ ký, verify khớp MSI cuối cùng. Chỉ đánh dấu bản chính thức latest sau nghiệm thu phù hợp; Preview giữ prerelease.
 
-Sau khi CI thành công, tạo tag trên đúng commit được kiểm thử và một draft prerelease. Dispatch `release.yml` cùng input `windows_build_run_id`: publisher đối chiếu commit/tag, checksum, kiến trúc EXE, số kiểm thử, native history/snapshot và bằng chứng cài/gỡ song song trước khi phát hành. Workflow này dùng GITHUB_TOKEN trên runner, không yêu cầu RELEASE_TOKEN của upstream hoặc build macOS.
+Sửa mô tả hoặc metadata sau phát hành không đổi bộ cài/tag/commit đã kiểm thử. Nếu metadata đính kèm thay đổi, cập nhật checksum cho đúng tệp; giữ hash của EXE và các bằng chứng chạy.
 
-macOS phát hành hai kiến trúc độc lập:
+## Phục hồi
 
-- `VN-code-macos-x64.dmg` và `.zip` cho Mac Intel;
-- `VN-code-macos-arm64.dmg` và `.zip` cho Apple Silicon.
-
-Launcher trong mỗi app-image phải đúng kiến trúc runner. Các gói macOS hiện chưa ký Developer ID
-và chưa Apple notarize, vì vậy phải ghi rõ trạng thái này trong release notes.
-
-## Sau khi workflow hoàn tất
-
-1. Nếu đã cấu hình chứng thư, verify Authenticode của `VN code.exe` và `VN-code.msi`.
-2. Verify `checksums.sha256` bao phủ toàn bộ Windows/macOS assets; nếu có
-   `update-manifest.json`, verify signed manifest khớp MSI cuối cùng.
-3. Xác nhận `side-by-side-smoke.json`: WCode giữ nguyên, VN code có database trống và gỡ riêng an toàn.
-4. Mở app, kiểm tra Wildberries regression và Ozon read-only trước khi live mutation.
-5. Chỉ đánh dấu release `latest` sau khi canary operator hoàn tất một flow đóng gói thực.
-
-## Rollback
-
-Không hạ schema bằng tay. Dùng snapshot đã verify do `LocalDataMigrationGate` tạo, và chỉ restore
-khi app đã đóng cùng với app-data lock được giữ bởi recovery procedure. Luôn giữ lại installer và
-checksum của bản N-1.
+Không hạ schema bằng tay. Chỉ dùng snapshot đã verify khi app đóng và recovery giữ app-data lock. Giữ installer/checksum phiên bản trước. macOS build theo từng kiến trúc; công bố đúng trạng thái Developer ID/notarization khi phát hành.
