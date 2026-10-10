@@ -3,6 +3,8 @@ package com.vncode.app.features.gs1;
 import com.google.gson.*;
 import com.vncode.app.config.Database;
 import com.vncode.app.integration.gs1.Gs1Membership;
+import com.vncode.app.integration.gs1.Gs1MailAccount;
+import com.vncode.app.integration.gs1.Gs1MailClient;
 import java.nio.file.Path;
 import java.sql.*;
 import java.time.*;
@@ -26,6 +28,8 @@ public final class Gs1Repository {
             s.execute("CREATE TABLE IF NOT EXISTS gs1_requests(id TEXT PRIMARY KEY,inn TEXT NOT NULL,kind TEXT NOT NULL,recipient TEXT NOT NULL,subject TEXT NOT NULL,body TEXT NOT NULL,state TEXT NOT NULL,created_at TEXT NOT NULL)");
             s.execute("CREATE INDEX IF NOT EXISTS idx_gs1_requests_inn ON gs1_requests(inn,created_at)");
             s.execute("CREATE TABLE IF NOT EXISTS gs1_messages(inn TEXT NOT NULL,request_id TEXT NOT NULL,id TEXT NOT NULL,outgoing INTEGER NOT NULL,sender TEXT NOT NULL,body TEXT NOT NULL,unread INTEGER NOT NULL,invoice INTEGER NOT NULL DEFAULT 0,created_at TEXT NOT NULL,PRIMARY KEY(inn,request_id,id))");
+            s.execute("CREATE TABLE IF NOT EXISTS gs1_mail_accounts(inn TEXT PRIMARY KEY,payload TEXT NOT NULL)");
+            s.execute("CREATE TABLE IF NOT EXISTS gs1_attachments(inn TEXT NOT NULL,request_id TEXT NOT NULL,message_id TEXT NOT NULL,name TEXT NOT NULL,type TEXT NOT NULL,content BLOB NOT NULL,PRIMARY KEY(inn,request_id,message_id,name))");
         }catch(SQLException error){throw storeError();}
     }
     public Request createRequest(String inn,String kind,String recipient,String subject,String body){
@@ -72,6 +76,26 @@ public final class Gs1Repository {
         execute("UPDATE gs1_messages SET invoice=1 WHERE inn=? AND request_id=? AND id=?",inn,requestId,messageId);
     }
     public boolean hasConfirmedInvoice(String inn,String id){return messages(inn,id).stream().anyMatch(m->m.invoice()&&!m.outgoing());}
+    public void saveMailAccount(String inn,Gs1MailAccount account){
+        Gs1Membership.requireInn(inn);execute("INSERT INTO gs1_mail_accounts VALUES(?,?) ON CONFLICT(inn) DO UPDATE SET payload=excluded.payload",inn,new Gson().toJson(account));
+    }
+    public Optional<Gs1MailAccount> mailAccount(String inn){
+        Gs1Membership.requireInn(inn);
+        try(Connection c=connections.open();PreparedStatement p=c.prepareStatement("SELECT payload FROM gs1_mail_accounts WHERE inn=?")){
+            p.setString(1,inn);try(ResultSet r=p.executeQuery()){return r.next()?Optional.of(new Gson().fromJson(r.getString(1),Gs1MailAccount.class)):Optional.empty();}
+        }catch(SQLException error){throw storeError();}catch(RuntimeException invalid){return Optional.empty();}
+    }
+    public void addAttachment(String inn,String requestId,String messageId,Gs1MailClient.Attachment attachment){
+        request(inn,requestId);
+        execute("INSERT OR IGNORE INTO gs1_attachments VALUES(?,?,?,?,?,?)",inn,requestId,messageId,attachment.name(),attachment.type(),attachment.bytes());
+    }
+    public List<Gs1MailClient.Attachment> attachments(String inn,String requestId,String messageId){
+        request(inn,requestId);
+        try(Connection c=connections.open();PreparedStatement p=c.prepareStatement("SELECT name,type,content FROM gs1_attachments WHERE inn=? AND request_id=? AND message_id=?")){
+            p.setString(1,inn);p.setString(2,requestId);p.setString(3,messageId);
+            try(ResultSet r=p.executeQuery()){List<Gs1MailClient.Attachment> result=new ArrayList<>();while(r.next())result.add(new Gs1MailClient.Attachment(r.getString(1),r.getString(2),r.getBytes(3)));return List.copyOf(result);}
+        }catch(SQLException error){throw storeError();}
+    }
     public static boolean officialSender(String sender){return sender!=null&&Set.of("mail@gs1ru.org","markirovka@gs1ru.org","server@gs1ru.org").contains(sender.toLowerCase(Locale.ROOT));}
     public void saveMembership(Gs1Membership value){
         JsonObject json=new JsonObject();json.addProperty("inn",value.inn());json.addProperty("name",value.legalName());json.addProperty("member",value.member());json.addProperty("excluded",value.excluded());json.addProperty("expiry",value.expiry()==null?null:value.expiry().toString());json.addProperty("checkedAt",value.checkedAt().toString());json.addProperty("source",value.source());json.add("prefixes",new Gson().toJsonTree(value.prefixes()));
