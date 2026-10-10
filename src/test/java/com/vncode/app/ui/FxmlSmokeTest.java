@@ -60,6 +60,24 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class FxmlSmokeTest {
+    @Test void gs1StartsWithoutNetworkAndDiscardsOldShopCallbacks() throws Exception {
+        var entered=new CountDownLatch(1);var release=new CountDownLatch(1);var applied=new AtomicInteger();
+        var holder=new java.util.concurrent.atomic.AtomicReference<com.vncode.app.ui.gs1.Gs1Pane>();
+        var setup=new java.util.concurrent.FutureTask<Void>(() -> {
+            var pane=new com.vncode.app.ui.gs1.Gs1Pane();holder.set(pane);
+            pane.setShop(new Shop(1,"Fixture A","fixture"));
+            assertEquals(0,pane.activeTaskCount());
+            var method=pane.getClass().getDeclaredMethod("run",java.util.concurrent.Callable.class,java.util.function.Consumer.class);method.setAccessible(true);
+            method.invoke(pane,(java.util.concurrent.Callable<String>)()->{entered.countDown();release.await(5,TimeUnit.SECONDS);return "old shop";},(java.util.function.Consumer<String>)ignored->applied.incrementAndGet());
+            pane.setShop(new Shop(2,"Fixture B","fixture"));return null;
+        });
+        try{
+            Platform.runLater(setup);setup.get(10,TimeUnit.SECONDS);assertTrue(entered.await(5,TimeUnit.SECONDS));release.countDown();
+            awaitBackgroundTasksBeforeFixtureCleanup();assertEquals(0,applied.get());
+        }finally{
+            release.countDown();var close=new java.util.concurrent.FutureTask<Void>(() -> {if(holder.get()!=null)holder.get().dispose();return null;});Platform.runLater(close);close.get(5,TimeUnit.SECONDS);
+        }
+    }
     @Test void printPreflightClaimsActivityImmediately() throws Exception { assertPrintPreflightContext(true); }
     @Test void printPreflightCannotOpenDialogsForAnotherShop() throws Exception { assertPrintPreflightContext(false); }
     private void assertPrintPreflightContext(boolean checkImmediateActivity) throws Exception {
@@ -227,13 +245,17 @@ class FxmlSmokeTest {
             }finally {home.dispose();}return null;
         });Platform.runLater(task);task.get(15,TimeUnit.SECONDS);
     }
-    @Test void newsAndTnvedCanBeOpenedThroughHomeNavigation() throws Exception {
+    @Test void gs1NavigationWorksAndTnvedIsInternalOnly() throws Exception {
         var task=new java.util.concurrent.FutureTask<Void>(() -> {
             var loader=FxmlViewLoader.loader(HomeController.class,"home-view.fxml");FxmlViewLoader.load(loader);var home=(HomeController)loader.getController();
             try {
                 var field=HomeController.class.getDeclaredField("workspaceNavigator");field.setAccessible(true);var navigator=(com.vncode.app.ui.workspace.WorkspaceNavigator)field.get(home);
                 navigator.show("news");assertEquals("news",navigator.currentRoute());
-                var show=HomeController.class.getDeclaredMethod("showTnved");show.setAccessible(true);show.invoke(home);assertEquals("tnved",navigator.currentRoute());
+                navigator.show("gs1");assertEquals("gs1",navigator.currentRoute());
+                assertThrows(IllegalArgumentException.class,()->navigator.show("tnved"));
+                var sidebar=HomeController.class.getDeclaredField("shopSidebarController");sidebar.setAccessible(true);
+                var button=sidebar.get(home).getClass().getDeclaredField("gs1Button");button.setAccessible(true);
+                ((Button)button.get(sidebar.get(home))).fire();assertEquals("gs1",navigator.currentRoute());
             } finally {home.dispose();}return null;
         });Platform.runLater(task);task.get(15,TimeUnit.SECONDS);
     }
@@ -327,14 +349,14 @@ class FxmlSmokeTest {
             assertEquals(21,pane.rootCount());return null;
         });Platform.runLater(verify);verify.get(10,TimeUnit.SECONDS);
     }
-    @Test void tnvedModuleHasNavigationAndShowsVerifiedRootSections() throws Exception {
+    @Test void tnvedCatalogRemainsAvailableWithoutStandaloneNavigation() throws Exception {
         var catalog=new com.vncode.app.features.tnved.TnvedCatalog(appDataDir.resolve("tnved-ui-fixture.sqlite"));
         catalog.initialize();var roots=catalog.children(null);
         var task=new java.util.concurrent.FutureTask<Void>(() -> {
             FXMLLoader loader=FxmlViewLoader.loader(ShopSidebarController.class,"shop-sidebar-view.fxml");
             FxmlViewLoader.load(loader);var controller=(ShopSidebarController)loader.getController();
-            var clicked=new AtomicBoolean();controller.setOnTnved(()->clicked.set(true));
-            Button button=(Button)loader.getNamespace().get("tnvedButton");assertNotNull(button);button.fire();assertTrue(clicked.get());
+            assertFalse(loader.getNamespace().containsKey("tnvedButton"));
+            assertNotNull(loader.getNamespace().get("gs1Button"));
             var pane=new com.vncode.app.ui.tnved.TnvedPane(catalog);pane.setRoots(roots);
             assertEquals(21,pane.rootCount());assertEquals("Chưa tải dữ liệu",pane.emptyBranchText());
             return null;

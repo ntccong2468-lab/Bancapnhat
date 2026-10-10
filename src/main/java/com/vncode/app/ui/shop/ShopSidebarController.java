@@ -24,11 +24,13 @@ public class ShopSidebarController {
     private Runnable onFinance;
     public void setOnFinance(Runnable action){onFinance=action;}
     @FXML private void onFinance(){if(onFinance!=null)onFinance.run();}
-    public void selectNavigation(String id){for(Button button:java.util.List.of(dashboardButton,packingButton,fboPackingButton,templateButton,kizMappingButton,znackRegistrationButton,znackAutomationButton,btnPrintHistory,gtinSyncButton,tnvedButton,fboOrdersButton,financeButton,guidesButton)){button.getStyleClass().remove("nav-selected");if(id.equals(button.getId()))button.getStyleClass().add("nav-selected");}}
-    @FXML private Button tnvedButton;
-    private Runnable onTnved;
-    public void setOnTnved(Runnable action) { onTnved=action; }
-    @FXML private void onTnved() { if(onTnved!=null)onTnved.run(); }
+    public void selectNavigation(String id){for(Button button:java.util.List.of(dashboardButton,packingButton,fboPackingButton,templateButton,kizMappingButton,znackRegistrationButton,znackAutomationButton,btnPrintHistory,gtinSyncButton,gs1Button,fboOrdersButton,financeButton,guidesButton)){button.getStyleClass().remove("nav-selected");if(id.equals(button.getId()))button.getStyleClass().add("nav-selected");}}
+    @FXML private Button gs1Button;
+    private Runnable onGs1;
+    private int gs1Unread;
+    public void setOnGs1(Runnable action){onGs1=action;}
+    public void setGs1Unread(int count){gs1Unread=Math.max(0,count);if(gs1Button!=null)gs1Button.setText(" "+I18nService.getInstance().tr("gs1.title")+(gs1Unread>0?" ("+gs1Unread+")":""));}
+    @FXML private void onGs1(){if(onGs1!=null)onGs1.run();}
     @FXML private Button gtinSyncButton;
     private Runnable onGtinSync;
     public void setOnGtinSync(Runnable action) { onGtinSync = action; }
@@ -231,7 +233,7 @@ public class ShopSidebarController {
         personalEditionMenuItem.setText(i18n.tr("edition.personal"));
         aboutMenuItem.setText(i18n.tr("settings.about"));
         applyMarketplaceTexts();
-        financeButton.setText(i18n.tr("sidebar.finance"));toolsPane.setText(i18n.tr("sidebar.tools"));tnvedButton.setText(i18n.tr("sidebar.tnved"));
+        financeButton.setText(i18n.tr("sidebar.finance"));toolsPane.setText(i18n.tr("sidebar.tools"));setGs1Unread(gs1Unread);
         guidesButton.setText(i18n.tr("guides.title"));
         editionStatusLabel.setText("• " + i18n.tr("edition.personal"));
         editionStatusLabel.setStyle("-fx-text-fill: #22c55e; -fx-font-weight: 700;");

@@ -68,6 +68,7 @@
         <Button fx:id="znackRegistrationButton" alignment="CENTER_LEFT" mnemonicParsing="false" onAction="#onZnackRegistration" prefHeight="48" prefWidth="190.0" text=" Đăng ký Znack" maxWidth="1.7976931348623157E308" minHeight="48" styleClass="button,nav-item">
             <graphic><FontIcon iconLiteral="fth-file-plus" iconSize="16" /></graphic>
         </Button>
+        <Button fx:id="gs1Button" alignment="CENTER_LEFT" onAction="#onGs1" prefHeight="48" minHeight="48" maxWidth="1.7976931348623157E308" text="%gs1.title" styleClass="button,nav-item"><graphic><FontIcon iconLiteral="fth-mail" iconSize="16" /></graphic></Button>
         <Button fx:id="znackAutomationButton" alignment="CENTER_LEFT" mnemonicParsing="false" onAction="#onZnackAutomation" prefHeight="48" prefWidth="190.0" text=" Znack Automation" maxWidth="1.7976931348623157E308" minHeight="48" styleClass="button,nav-item">
             <graphic><FontIcon iconLiteral="fth-tag" iconSize="16" /></graphic>
         </Button>
@@ -80,7 +81,6 @@
         <TitledPane text="%sidebar.tools" expanded="false" animated="false" styleClass="sidebar-tools" fx:id="toolsPane"><content><VBox spacing="4"><children><Button fx:id="gtinSyncButton" alignment="CENTER_LEFT" onAction="#onGtinSync" prefHeight="30.0" prefWidth="220" text="GTIN WB / Ozon" maxWidth="1.7976931348623157E308" styleClass="button,nav-item">
             <graphic><FontIcon iconLiteral="fth-refresh-cw" iconSize="16" /></graphic>
         </Button>
-        <Button fx:id="tnvedButton" alignment="CENTER_LEFT" mnemonicParsing="false" onAction="#onTnved" prefHeight="30.0" prefWidth="220" text=" Mã TN VED" styleClass="button,nav-item" maxWidth="1.7976931348623157E308" />
         <Button fx:id="fboOrdersButton" alignment="CENTER_LEFT" mnemonicParsing="false" onAction="#onFboOrders" prefHeight="30.0" prefWidth="220" text=" Đơn hàng FBO" maxWidth="1.7976931348623157E308" styleClass="button,nav-item">
             <graphic>
                 <FontIcon iconLiteral="fth-list" iconSize="16" />
