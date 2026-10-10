@@ -60,6 +60,38 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class FxmlSmokeTest {
+    @Test void gs1DoesNotStartTwoOperationsInTheSameShopGeneration() throws Exception {
+        var release=new CountDownLatch(1);var holder=new java.util.concurrent.atomic.AtomicReference<com.vncode.app.ui.gs1.Gs1Pane>();
+        var work=new java.util.concurrent.Callable<String>(){public String call()throws Exception{release.await(10,TimeUnit.SECONDS);return "fixture";}};
+        var setup=new java.util.concurrent.FutureTask<Void>(()->{
+            var pane=new com.vncode.app.ui.gs1.Gs1Pane();holder.set(pane);
+            var method=pane.getClass().getDeclaredMethod("run",java.util.concurrent.Callable.class,java.util.function.Consumer.class);method.setAccessible(true);
+            method.invoke(pane,work,(java.util.function.Consumer<String>)ignored->{});
+            method.invoke(pane,work,(java.util.function.Consumer<String>)ignored->{});
+            assertEquals(1,pane.activeTaskCount(),"Thread actions must not start another operation while busy");return null;
+        });
+        try{Platform.runLater(setup);setup.get(10,TimeUnit.SECONDS);}
+        finally{release.countDown();awaitBackgroundTasksBeforeFixtureCleanup();var close=new java.util.concurrent.FutureTask<Void>(()->{if(holder.get()!=null)holder.get().dispose();return null;});Platform.runLater(close);close.get(5,TimeUnit.SECONDS);}
+    }
+    @Test void gs1LongConversationScrollsToNewestAfterTheSkinIsInstalled() throws Exception {
+        var holder=new java.util.concurrent.atomic.AtomicReference<com.vncode.app.ui.gs1.Gs1Pane>();var window=new java.util.concurrent.atomic.AtomicReference<javafx.stage.Stage>();
+        var setup=new java.util.concurrent.FutureTask<Void>(()->{
+            var pane=new com.vncode.app.ui.gs1.Gs1Pane();holder.set(pane);pane.setShop(new Shop(1,"GS1 UI fixture","fixture"));
+            var inn=pane.getClass().getDeclaredField("inn");inn.setAccessible(true);inn.set(pane,"7707083893");
+            var repository=pane.getClass().getDeclaredField("repository");repository.setAccessible(true);var repo=(com.vncode.app.features.gs1.Gs1Repository)repository.get(pane);
+            var request=repo.createRequest("7707083893","RENEWAL","mail@gs1ru.org","Scroll fixture","Draft");
+            for(int i=0;i<20;i++)repo.addMessage(request.inn(),request.id(),"scroll-"+i,false,"mail@gs1ru.org","Long fixture message\n".repeat(12),false);
+            var reload=pane.getClass().getDeclaredMethod("reloadRequests");reload.setAccessible(true);reload.invoke(pane);
+            var field=pane.getClass().getDeclaredField("requests");field.setAccessible(true);((javafx.scene.control.ListView<com.vncode.app.features.gs1.Gs1Repository.Request>)field.get(pane)).getSelectionModel().select(request);
+            var stage=new javafx.stage.Stage();window.set(stage);stage.setScene(new javafx.scene.Scene(pane,1100,650));stage.show();pane.applyCss();pane.layout();return null;
+        });
+        try{
+            Platform.runLater(setup);setup.get(10,TimeUnit.SECONDS);
+            var check=new java.util.concurrent.FutureTask<Void>(()->{var field=holder.get().getClass().getDeclaredField("conversationScroll");field.setAccessible(true);var scroll=(ScrollPane)field.get(holder.get());
+                assertTrue(scroll.getContent().getBoundsInLocal().getHeight()>scroll.getViewportBounds().getHeight());assertEquals(1,scroll.getVvalue(),0.001);return null;});
+            Platform.runLater(check);check.get(10,TimeUnit.SECONDS);
+        }finally{var close=new java.util.concurrent.FutureTask<Void>(()->{if(holder.get()!=null)holder.get().dispose();if(window.get()!=null)window.get().close();return null;});Platform.runLater(close);close.get(5,TimeUnit.SECONDS);}
+    }
     @Test void gs1StartsWithoutNetworkAndDiscardsOldShopCallbacks() throws Exception {
         var entered=new CountDownLatch(1);var release=new CountDownLatch(1);var applied=new AtomicInteger();
         var holder=new java.util.concurrent.atomic.AtomicReference<com.vncode.app.ui.gs1.Gs1Pane>();

@@ -36,6 +36,9 @@ public final class Gs1LettersService {
             repository.setState(inn,id,Gs1Repository.State.SENT);
             repository.addMessage(inn,parent,letter.messageId(),true,account.from(),request.body(),false);
             for(var attachment:letter.attachments())repository.addAttachment(inn,parent,letter.messageId(),attachment);
+        }catch(Gs1MailClient.NotSentException notSent){
+            repository.releaseUnsent(inn,id);
+            throw new IOException("gs1.mail_not_sent");
         }catch(IOException|RuntimeException ambiguous){
             repository.setState(inn,id,Gs1Repository.State.RECONCILE_REQUIRED);
             throw new IOException("GS1 mail delivery is unconfirmed; inspect the mailbox before sending again");
@@ -46,10 +49,27 @@ public final class Gs1LettersService {
     }
     public Gs1Repository.Request preparePaymentProof(String inn,String parentId,Gs1MailClient.Attachment proof){
         var original=repository.request(inn,parentId);
-        if(!repository.hasConfirmedInvoice(inn,parentId))throw new IllegalStateException("An invoice for this request must be confirmed first");
-        if(original.kind().equals("JOIN")||original.kind().startsWith("PAYMENT_PROOF:"))throw new IllegalStateException("Select the original GS1 mail request");
-        var request=repository.createRequest(inn,"PAYMENT_PROOF:"+parentId,original.recipient(),"Подтверждение оплаты — "+original.subject(),"Здравствуйте!\n\nИНН: "+inn+"\nНаправляем подтверждение оплаты по счету в данном обращении. Просим подтвердить получение.\n");
+        if(!canPreparePaymentProof(inn,parentId))throw new IllegalStateException("Verify this invoice and reconcile any previous payment proof before preparing another send");
+        var invoice=repository.verifiedInvoice(inn,parentId).orElseThrow();
+        var request=repository.createRequest(inn,"PAYMENT_PROOF:"+parentId,original.recipient(),"Подтверждение оплаты — "+original.subject(),"Здравствуйте!\n\nИНН: "+inn+"\nСчет: "+invoice.number()+"\nСумма: "+invoice.amount()+" "+invoice.currency()+"\nНаправляем подтверждение оплаты по счету в данном обращении. Просим подтвердить получение.\n");
         repository.addAttachment(inn,request.id(),"draft",proof);return request;
+    }
+    public boolean canPreparePaymentProof(String inn,String parentId){
+        var original=repository.request(inn,parentId);
+        return !original.kind().equals("JOIN")&&!original.kind().startsWith("PAYMENT_PROOF:")&&repository.hasConfirmedInvoice(inn,parentId)&&!repository.hasBlockingOperation(inn,"PAYMENT_PROOF:"+parentId);
+    }
+    /** Operator supplies a copy from Sent. Exact matching proves identity, not SMTP status itself. */
+    public Gs1Repository.State reconcileSent(Gs1MailAccount account,String inn,String id,byte[] evidence)throws IOException{
+        var request=repository.request(inn,id);
+        if(request.state()!=Gs1Repository.State.SENDING&&request.state()!=Gs1Repository.State.RECONCILE_REQUIRED)throw new IllegalStateException("Only an unconfirmed delivery can be reconciled");
+        var letter=letter(request);
+        if(!new Gs1MailClient().matchesSentEvidence(evidence,account,letter))throw new IllegalArgumentException("Sent copy does not match this reviewed letter");
+        try{repository.recordSentCopy(inn,id,java.util.HexFormat.of().formatHex(java.security.MessageDigest.getInstance("SHA-256").digest(evidence)));}
+        catch(java.security.NoSuchAlgorithmException impossible){throw new IllegalStateException(impossible);}
+        repository.setState(inn,id,Gs1Repository.State.SENT);
+        repository.addMessage(inn,parent(request),letter.messageId(),true,account.from(),request.body(),false);
+        for(var attachment:letter.attachments())repository.addAttachment(inn,parent(request),letter.messageId(),attachment);
+        return Gs1Repository.State.SENT;
     }
     public int refresh(Gs1MailAccount account,String inn)throws IOException{
         Set<String> ids=new LinkedHashSet<>();repository.requests(inn).stream().filter(r->!r.kind().equals("JOIN")&&!r.kind().startsWith("PAYMENT_PROOF:")).forEach(r->ids.add(r.id()));

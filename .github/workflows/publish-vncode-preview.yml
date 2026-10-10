@@ -1,6 +1,19 @@
 name: Publish verified VN code Windows preview
 on:
   workflow_dispatch:
+    inputs:
+      source_commit:
+        description: Exact commit of the successful Windows build
+        required: true
+        type: string
+      build_run_id:
+        description: Successful build-java.yml run ID for that commit
+        required: true
+        type: string
+      preview_tag:
+        description: Preview tag matching pom.xml, for example v1.3.0-preview.1
+        required: true
+        type: string
 permissions:
   contents: write
   actions: read
@@ -10,7 +23,7 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
-          ref: d17ced942afd4231ca6821013c34e0e1ee11e11c
+          ref: ${{ inputs.source_commit }}
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
         with:
           node-version: '22'
@@ -19,4 +32,6 @@ jobs:
       - name: Publish exact verified preview with checksums and smoke evidence
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: node tools/publish-vncode-preview.mjs 37984754861 v1.2.2-preview.1
+          BUILD_RUN_ID: ${{ inputs.build_run_id }}
+          PREVIEW_TAG: ${{ inputs.preview_tag }}
+        run: node tools/publish-vncode-preview.mjs "$BUILD_RUN_ID" "$PREVIEW_TAG"

@@ -38,9 +38,19 @@ class Gs1RepositoryTest {
         var a=repository.createRequest("7707083893","RENEWAL","mail@gs1ru.org","A","body");
         var b=repository.createRequest("7707083893","RENEWAL","mail@gs1ru.org","B","body");
         repository.addMessage(a.inn(),a.id(),"invoice-fixture",false,"mail@gs1ru.org","Invoice",true);
-        repository.confirmInvoice(a.inn(),a.id(),"invoice-fixture");
+        repository.confirmInvoice(a.inn(),a.id(),"invoice-fixture",new Gs1Repository.PortalInvoice(a.inn(),"INV-123","1000","RUB"));
         assertTrue(repository.hasConfirmedInvoice(a.inn(),a.id()));
         assertFalse(repository.hasConfirmedInvoice(b.inn(),b.id()));
-        assertThrows(SecurityException.class,()->repository.confirmInvoice("7811089030",a.id(),"invoice-fixture"));
+        assertThrows(SecurityException.class,()->repository.confirmInvoice("7811089030",a.id(),"invoice-fixture",new Gs1Repository.PortalInvoice("7811089030","INV-123","1000","RUB")));
+    }
+    @Test void aFromHeaderAloneCannotVerifyAnInvoice() {
+        var repository=new Gs1Repository(directory.resolve("fixture.db"));
+        var request=repository.createRequest("7707083893","RENEWAL","mail@gs1ru.org","A","body");
+        repository.addMessage(request.inn(),request.id(),"forged",false,"mail@gs1ru.org","Purported invoice",true);
+        assertFalse(repository.hasConfirmedInvoice(request.inn(),request.id()));
+        assertThrows(SecurityException.class,()->repository.confirmInvoice(request.inn(),request.id(),"forged",new Gs1Repository.PortalInvoice("7811089030","INV-123","1000","RUB")));
+        assertThrows(IllegalArgumentException.class,()->new Gs1Repository.PortalInvoice(request.inn(),"","1000","RUB"));
+        assertThrows(IllegalArgumentException.class,()->new Gs1Repository.PortalInvoice(request.inn(),"INV-123","-1000","RUB"));
+        assertFalse(repository.hasConfirmedInvoice(request.inn(),request.id()));
     }
 }

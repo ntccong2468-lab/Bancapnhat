@@ -31,6 +31,7 @@ public final class Gs1Pane extends BorderPane {
     private final AtomicInteger tasks=new AtomicInteger();
     private final ListView<Gs1Repository.Request> requests=new ListView<>();
     private final VBox conversation=new VBox(12);
+    private final ScrollPane conversationScroll=new ScrollPane(conversation);
     private final Label summary=new Label();
     private final Label detail=new Label();
     private final Label status=new Label();
@@ -46,7 +47,7 @@ public final class Gs1Pane extends BorderPane {
     private record Application(NationalCatalogGs1Client.Session session,JsonObject form,Map<String,List<NationalCatalogGs1Client.Choice>> dictionaries){}
     public Gs1Pane(){
         setPadding(new Insets(20));getStyleClass().add("gs1-workspace");
-        requests.setCellFactory(list->new ListCell<>(){@Override protected void updateItem(Gs1Repository.Request item,boolean empty){super.updateItem(item,empty);setText(empty||item==null?null:item.subject()+"\n"+tr("gs1.state."+item.state().name())+" · "+item.createdAt().toString().substring(0,16));}});
+        requests.setCellFactory(list->new ListCell<>(){@Override protected void updateItem(Gs1Repository.Request item,boolean empty){super.updateItem(item,empty);setText(empty||item==null?null:item.subject()+"\n"+tr("gs1.state."+item.state().name())+" · "+displayTime(item.createdAt()));}});
         requests.getSelectionModel().selectedItemProperty().addListener((o,a,b)->showThread(b));
         i18n.addListener(languageListener);render();
     }
@@ -88,14 +89,14 @@ public final class Gs1Pane extends BorderPane {
         summary.setWrapText(true);summary.getStyleClass().setAll("label","h2");detail.setWrapText(true);detail.getStyleClass().setAll("label","text-muted");status.setWrapText(true);
         String assertion=membership==null?tr("gs1.status.UNKNOWN"):tr("gs1.status."+membership.status(LocalDate.now(ZoneId.of("Europe/Moscow"))).name());
         summary.setText(inn.isBlank()?tr(shop==null?"gs1.no_shop":"gs1.no_signer"):(membership==null?"INN: "+inn:membership.legalName()+" · INN: "+inn)+"\n"+assertion);
-        String facts=membership==null?tr("gs1.not_checked"):tr("gs1.expiry")+": "+(membership.expiry()==null?"—":membership.expiry())+"\n"+tr("gs1.checked_at")+": "+membership.checkedAt()+" · "+(membership.stale(Instant.now())?tr("gs1.stale"):tr("gs1.cached"))+"\n"+membership.source();
+        String facts=membership==null?tr("gs1.not_checked"):tr("gs1.expiry")+": "+(membership.expiry()==null?"—":membership.expiry())+"\n"+tr("gs1.checked_at")+": "+displayTime(membership.checkedAt())+" · "+(membership.stale(Instant.now())?tr("gs1.stale"):tr("gs1.cached"))+"\n"+tr("gs1.source_catalog");
         if(membership!=null)for(var prefix:membership.visiblePrefixes(LocalDate.now(ZoneId.of("Europe/Moscow"))))facts+="\nGCP: "+prefix.gcp()+" · "+tr("gs1.allowance")+": "+Objects.toString(prefix.gtinsLeft(),"—")+" · GLN: "+String.join(", ",prefix.glns());
         detail.setText(facts);
         Hyperlink portal=new Hyperlink(tr("gs1.official_portal"));portal.setOnAction(e->openPortal());
         VBox header=new VBox(12,title,guide,actions,summary,detail,portal,status);header.setPadding(new Insets(0,0,16,0));setTop(header);
         VBox left=new VBox(8,new Label(tr("gs1.requests")),requests);VBox.setVgrow(requests,Priority.ALWAYS);left.setMinWidth(220);left.setPrefWidth(285);
-        ScrollPane scroll=new ScrollPane(conversation);scroll.setFitToWidth(true);scroll.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
-        SplitPane split=new SplitPane(left,scroll);split.setDividerPositions(.3);setCenter(split);
+        conversationScroll.setFitToWidth(true);conversationScroll.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        SplitPane split=new SplitPane(left,conversationScroll);split.setDividerPositions(.3);setCenter(split);
         requests.refresh();if(requests.getSelectionModel().getSelectedItem()!=null)showThread(requests.getSelectionModel().getSelectedItem());
     }
     private void refreshMembership(){
@@ -112,15 +113,31 @@ public final class Gs1Pane extends BorderPane {
             query->application.session().addresses(query),
             (form,submit)->{
                 if(submit){
-                    if(!confirm("gs1.confirm_submit",tr("gs1.submit_notice")))return;
-                    var preview=new Gs1ApplicationService(repository).prepare(owner.inn(),form);
-                    var xml=ZnackSigningSession.guardXml(owner.shop().getId(),owner.fingerprint(),XmlSignatureProvider.forCertificate(owner.fingerprint(),Duration.ofSeconds(Math.max(300,owner.settings().resolvedCryptoProTimeoutSeconds()))));
-                    run(()->new Gs1ApplicationService(repository).submit(application.session(),preview.id(),form,xml::signXml),state->{status.setText(tr("gs1.state."+state.name()));reloadRequests();});
+                    if(!confirm("gs1.confirm_save",tr("gs1.prepare_document_notice")))return;
+                    run(()->new Gs1ApplicationService(repository).prepareSigning(application.session(),form),prepared->{reloadRequests();reviewSigningDocument(owner,application.session(),prepared);});
                 }else{
                     if(!confirm("gs1.confirm_save",tr("gs1.save_notice")))return;
                     run(()->{application.session().saveForm(form);return application.session().form();},saved->{status.setText(tr("gs1.saved"));reloadRequests();});
                 }
             }).show());
+    }
+    private void reviewSigningDocument(Context owner,NationalCatalogGs1Client.Session session,Gs1ApplicationService.PreparedApplication prepared){
+        Dialog<Void> dialog=dialog(tr("gs1.review_document"));dialog.getDialogPane().setPrefSize(850,650);
+        TextArea content=new TextArea(prepared.description());content.setEditable(false);content.setWrapText(true);
+        TextArea xml=new TextArea(prepared.xml());xml.setEditable(false);
+        Tab summaryTab=new Tab(tr("gs1.review"),content),xmlTab=new Tab("XML",xml);summaryTab.setClosable(false);xmlTab.setClosable(false);
+        TabPane pages=new TabPane(summaryTab,xmlTab);
+        Label notice=new Label(tr("gs1.exact_document_notice")+"\nINN: "+prepared.inn()+"\n"+tr("gs1.certificate")+": "+owner.fingerprint());notice.setWrapText(true);
+        Label feedback=new Label();feedback.textProperty().bind(status.textProperty());feedback.setWrapText(true);
+        dialog.getDialogPane().setContent(new VBox(12,notice,pages,feedback));
+        ButtonType sign=new ButtonType(tr("gs1.sign_submit"),ButtonBar.ButtonData.OK_DONE);dialog.getDialogPane().getButtonTypes().addAll(sign,ButtonType.CANCEL);
+        Button send=(Button)dialog.getDialogPane().lookupButton(sign);send.disableProperty().bind(busyState);
+        send.addEventFilter(javafx.event.ActionEvent.ACTION,event->{
+            event.consume();if(!inn.equals(owner.inn())||disposed)return;
+            var signer=ZnackSigningSession.guardXml(owner.shop().getId(),owner.fingerprint(),XmlSignatureProvider.forCertificate(owner.fingerprint(),Duration.ofSeconds(Math.max(300,owner.settings().resolvedCryptoProTimeoutSeconds()))));
+            run(()->new Gs1ApplicationService(repository).submit(session,prepared,signer::signXml),state->{dialog.close();status.setText(tr("gs1.state."+state.name()));reloadRequests();});
+        });
+        dialog.showAndWait();feedback.textProperty().unbind();
     }
     private void draft(Gs1LettersService.Kind kind){
         Context owner=context();
@@ -160,15 +177,16 @@ public final class Gs1Pane extends BorderPane {
         Context owner=context();var existing=repository.mailAccount(owner.inn());Dialog<Void> dialog=dialog(tr("gs1.mail_settings"));GridPane grid=grid();
         TextField smtp=new TextField(existing.map(Gs1MailAccount::smtpHost).orElse("")),smtpPort=new TextField(existing.map(a->Integer.toString(a.smtpPort())).orElse("465")),imap=new TextField(existing.map(Gs1MailAccount::imapHost).orElse("")),imapPort=new TextField(existing.map(a->Integer.toString(a.imapPort())).orElse("993")),username=new TextField(existing.map(Gs1MailAccount::username).orElse("")),from=new TextField(existing.map(Gs1MailAccount::from).orElse(""));PasswordField password=new PasswordField();
         row(grid,0,"SMTP TLS",smtp);row(grid,1,tr("gs1.port"),smtpPort);row(grid,2,"IMAP TLS",imap);row(grid,3,tr("gs1.port"),imapPort);row(grid,4,tr("gs1.username"),username);row(grid,5,tr("gs1.from"),from);row(grid,6,tr("gs1.password"),password);
-        Label hint=new Label(tr("gs1.mail_security"));hint.setWrapText(true);dialog.getDialogPane().setContent(new VBox(12,hint,grid));ButtonType save=new ButtonType(tr("gs1.save"),ButtonBar.ButtonData.OK_DONE);dialog.getDialogPane().getButtonTypes().addAll(save,ButtonType.CANCEL);dialog.getDialogPane().lookupButton(save).setDisable(!WindowsSecretProtector.supported());
+        Label hint=new Label(tr("gs1.mail_security"));hint.setWrapText(true);Label feedback=new Label();feedback.setWrapText(true);feedback.textProperty().bind(status.textProperty());dialog.getDialogPane().setContent(new VBox(12,hint,grid,feedback));ButtonType save=new ButtonType(tr("gs1.save"),ButtonBar.ButtonData.OK_DONE);dialog.getDialogPane().getButtonTypes().addAll(save,ButtonType.CANCEL);if(!WindowsSecretProtector.supported())dialog.getDialogPane().lookupButton(save).setDisable(true);else dialog.getDialogPane().lookupButton(save).disableProperty().bind(busyState);
         ((Button)dialog.getDialogPane().lookupButton(save)).addEventFilter(javafx.event.ActionEvent.ACTION,event->{
+            event.consume();
             try{
                 String smtpHost=smtp.getText().strip(),imapHost=imap.getText().strip(),user=username.getText().strip(),sender=from.getText().strip(),secret=password.getText();int sp=Integer.parseInt(smtpPort.getText()),ip=Integer.parseInt(imapPort.getText());
                 new Gs1MailAccount(smtpHost,sp,imapHost,ip,user,sender,"dpapi:validation");
                 if(secret.isEmpty()&&existing.isEmpty())throw new IllegalArgumentException();
-                password.clear();run(()->{String protectedValue=secret.isEmpty()?existing.orElseThrow().protectedPassword():new WindowsSecretProtector().protect(secret);repository.saveMailAccount(owner.inn(),new Gs1MailAccount(smtpHost,sp,imapHost,ip,user,sender,protectedValue));return true;},done->status.setText(tr("gs1.saved")));
+                run(()->{String protectedValue=secret.isEmpty()?existing.orElseThrow().protectedPassword():new WindowsSecretProtector().protect(secret);repository.saveMailAccount(owner.inn(),new Gs1MailAccount(smtpHost,sp,imapHost,ip,user,sender,protectedValue));return true;},done->{password.clear();dialog.close();status.setText(tr("gs1.saved"));});
             }catch(RuntimeException invalid){event.consume();showError(new IllegalStateException("gs1.invalid_fields"));}
-        });dialog.showAndWait();password.clear();
+        });dialog.showAndWait();password.clear();feedback.textProperty().unbind();
     }
     private void refreshInbox(){
         Context owner=context();var account=repository.mailAccount(owner.inn());if(account.isEmpty()){showError(new IllegalStateException("gs1.mail_not_configured"));return;}
@@ -188,21 +206,44 @@ public final class Gs1Pane extends BorderPane {
             conversation.getChildren().add(button("gs1.reconcile",()->{Context owner=context();run(()->new Gs1ApplicationService(repository).reconcile(login(owner),request.id()),result->reloadRequests());}));
         }else{
             conversation.getChildren().add(button("gs1.preview",()->previewLetter(request)));
-            Button proof=button("gs1.payment_proof",()->paymentProof(request));proof.setDisable(!repository.hasConfirmedInvoice(inn,request.id())||request.kind().startsWith("PAYMENT_PROOF:"));conversation.getChildren().add(proof);
+            Button proof=button("gs1.payment_proof",()->paymentProof(request));proof.setDisable(!letters.canPreparePaymentProof(inn,request.id()));conversation.getChildren().add(proof);
+            if(request.state()==Gs1Repository.State.SENDING||request.state()==Gs1Repository.State.RECONCILE_REQUIRED)conversation.getChildren().add(button("gs1.reconcile_mail",()->reconcileMail(request)));
         }
         List<Gs1Repository.Message> messages=repository.messages(inn,request.id());
         if(messages.isEmpty()){Label draft=new Label(request.kind().equals("JOIN")?tr("gs1.submit_notice"):request.body());draft.setWrapText(true);conversation.getChildren().add(draft);}
         for(var message:messages){
             Label text=new Label();text.setWrapText(true);String[] lines=message.body().split("\n",-1);boolean collapsed=lines.length>10||message.body().length()>1600;
             String compact=String.join("\n",Arrays.copyOf(lines,Math.min(10,lines.length)));if(compact.length()>1600)compact=compact.substring(0,1600)+"…";text.setText(collapsed?compact:message.body());
-            VBox bubble=new VBox(7,new Label((message.outgoing()?tr("gs1.you"):"GS1 RUS")+" · "+message.createdAt()),text);bubble.setPadding(new Insets(12));bubble.getStyleClass().add("dashboard-feature-card");bubble.setMaxWidth(650);
+            VBox bubble=new VBox(7,new Label((message.outgoing()?tr("gs1.you"):message.sender())+" · "+displayTime(message.createdAt())),text);bubble.setPadding(new Insets(12));bubble.getStyleClass().add("dashboard-feature-card");bubble.setMaxWidth(650);
+            if(!message.outgoing()){Label provenance=new Label(tr("gs1.mail_unverified"));provenance.setWrapText(true);provenance.getStyleClass().add("text-muted");bubble.getChildren().add(1,provenance);}
             if(collapsed){Button expand=new Button(tr("gs1.expand"));expand.setOnAction(e->{boolean full=expand.getText().equals(tr("gs1.expand"));text.setText(full?message.body():String.join("\n",Arrays.copyOf(lines,Math.min(10,lines.length))));expand.setText(tr(full?"gs1.collapse":"gs1.expand"));});bubble.getChildren().add(expand);}
             for(var attachment:repository.attachments(inn,request.id(),message.id())){Button download=new Button(attachment.name());download.setOnAction(e->downloadAttachment(attachment));bubble.getChildren().add(download);}
-            if(!message.outgoing()){Button invoice=button(message.invoice()?"gs1.invoice_confirmed":"gs1.confirm_invoice",()->{if(confirm("gs1.confirm_invoice",tr("gs1.invoice_notice"))){repository.confirmInvoice(request.inn(),request.id(),message.id());showThread(request);}});invoice.setDisable(message.invoice());bubble.getChildren().add(invoice);}
+            if(!message.outgoing()){boolean verified=repository.hasConfirmedInvoice(request.inn(),request.id());Button invoice=button(verified?"gs1.invoice_confirmed":"gs1.confirm_invoice",()->confirmPortalInvoice(request,message));invoice.setDisable(verified||request.kind().startsWith("PAYMENT_PROOF:"));bubble.getChildren().add(invoice);}
             HBox aligned=new HBox(bubble);aligned.setAlignment(message.outgoing()?Pos.TOP_RIGHT:Pos.TOP_LEFT);conversation.getChildren().add(aligned);
         }
         repository.markRead(inn,request.id());updateUnread();
-        Platform.runLater(()->{if(!disposed&&conversation.getParent() instanceof javafx.scene.control.ScrollPane scroll)scroll.setVvalue(1);});
+        long expected=generation;String threadId=request.id();
+        Platform.runLater(()->{var selected=requests.getSelectionModel().getSelectedItem();if(!disposed&&generation==expected&&selected!=null&&selected.id().equals(threadId)){conversation.applyCss();conversation.layout();conversationScroll.layout();conversationScroll.setVvalue(1);}});
+    }
+    private void confirmPortalInvoice(Gs1Repository.Request request,Gs1Repository.Message message){
+        Dialog<Void> dialog=dialog(tr("gs1.confirm_invoice"));GridPane fields=grid();
+        TextField enterprise=new TextField(),number=new TextField(),amount=new TextField();
+        row(fields,0,"INN",enterprise);row(fields,1,tr("gs1.invoice_number"),number);row(fields,2,tr("gs1.invoice_amount")+" (RUB)",amount);
+        Label notice=new Label(tr("gs1.invoice_notice"));notice.setWrapText(true);
+        Hyperlink portal=new Hyperlink(tr("gs1.official_portal"));portal.setOnAction(e->openPortal());
+        CheckBox verified=new CheckBox(tr("gs1.invoice_portal_checked"));verified.setWrapText(true);
+        dialog.getDialogPane().setContent(new VBox(12,notice,portal,fields,verified));
+        ButtonType save=new ButtonType(tr("gs1.confirm_invoice"),ButtonBar.ButtonData.OK_DONE);dialog.getDialogPane().getButtonTypes().addAll(save,ButtonType.CANCEL);
+        ((Button)dialog.getDialogPane().lookupButton(save)).addEventFilter(javafx.event.ActionEvent.ACTION,event->{
+            try{if(!verified.isSelected())throw new IllegalArgumentException();repository.confirmInvoice(request.inn(),request.id(),message.id(),new Gs1Repository.PortalInvoice(enterprise.getText().strip(),number.getText(),amount.getText().strip(),"RUB"));showThread(request);}
+            catch(RuntimeException invalid){event.consume();notice.setText(tr("gs1.invalid_fields"));}
+        });dialog.showAndWait();
+    }
+    private void reconcileMail(Gs1Repository.Request request){
+        var account=repository.mailAccount(request.inn());if(account.isEmpty()){showError(new IllegalStateException("gs1.mail_not_configured"));return;}
+        if(!confirm("gs1.reconcile_mail",tr("gs1.sent_copy_notice")))return;
+        FileChooser chooser=new FileChooser();chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Email","*.eml"));File file=chooser.showOpenDialog(getScene()==null?null:getScene().getWindow());if(file==null)return;
+        run(()->{if(Files.size(file.toPath())>15*1024*1024)throw new IOException("Mail evidence too large");return letters.reconcileSent(account.get(),request.inn(),request.id(),Files.readAllBytes(file.toPath()));},state->{status.setText(tr("gs1.sent_copy_confirmed"));reloadRequests();});
     }
     private void paymentProof(Gs1Repository.Request request){
         FileChooser chooser=new FileChooser();chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter(tr("gs1.documents"),"*.pdf","*.png","*.jpg","*.jpeg"));File file=chooser.showOpenDialog(getScene()==null?null:getScene().getWindow());if(file==null)return;
@@ -212,12 +253,13 @@ public final class Gs1Pane extends BorderPane {
         FileChooser chooser=new FileChooser();chooser.setInitialFileName(attachment.name());File file=chooser.showSaveDialog(getScene()==null?null:getScene().getWindow());if(file!=null)run(()->{Files.write(file.toPath(),attachment.bytes());return true;},done->status.setText(tr("gs1.saved")));
     }
     private <T> void run(Callable<T> work,Consumer<T> done){
+        if(busy||disposed)return;
         long expected=generation;busy=true;busyState.set(true);status.setText(tr("gs1.loading"));render();tasks.incrementAndGet();
         Task<T> task=new Task<>(){@Override protected T call()throws Exception{try{return work.call();}finally{tasks.decrementAndGet();}}};
         task.setOnSucceeded(e->{if(disposed||generation!=expected)return;busy=false;busyState.set(false);render();done.accept(task.getValue());});
         task.setOnFailed(e->{if(disposed||generation!=expected)return;busy=false;busyState.set(false);render();reloadRequests();showError(task.getException());});AppTaskExecutor.execute(task);
     }
-    private Button button(String key,Runnable action){Button button=new Button(tr(key));button.setOnAction(e->{try{action.run();}catch(RuntimeException failure){showError(failure);}});return button;}
+    private Button button(String key,Runnable action){Button button=new Button(tr(key));button.setOnAction(e->{if(busy||disposed)return;try{action.run();}catch(RuntimeException failure){showError(failure);}});return button;}
     private void updateUnread(){onUnread.accept(inn.isBlank()?0:repository.unread(inn));}
     private void showError(Throwable error){String message=error.getMessage();status.setText(tr(message!=null&&message.startsWith("gs1.")?message:"gs1.error"));}
     private boolean confirm(String title,String body){Alert alert=new Alert(Alert.AlertType.CONFIRMATION,body,ButtonType.YES,ButtonType.NO);AlertService.applyTheme(alert);if(getScene()!=null)alert.initOwner(getScene().getWindow());alert.setTitle(tr(title));alert.setHeaderText(tr(title));return alert.showAndWait().orElse(ButtonType.NO)==ButtonType.YES;}
@@ -225,6 +267,7 @@ public final class Gs1Pane extends BorderPane {
     private static GridPane grid(){GridPane grid=new GridPane();grid.setHgap(14);grid.setVgap(10);return grid;}
     private static void row(GridPane grid,int row,String label,Node input){grid.addRow(row,new Label(label),input);GridPane.setHgrow(input,Priority.ALWAYS);}
     private String tr(String key){return i18n.tr(key);}
+    private static String displayTime(Instant value){return java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm").withZone(ZoneId.systemDefault()).format(value);}
     private void openPortal(){try{java.awt.Desktop.getDesktop().browse(java.net.URI.create(NationalCatalogGs1Client.PROFILE_URL));}catch(Exception unavailable){showError(new IllegalStateException("gs1.error"));}}
     public void dispose(){disposed=true;generation++;i18n.removeListener(languageListener);}
 }

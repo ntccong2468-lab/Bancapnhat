@@ -5,6 +5,9 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.FutureTask;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeoutException;
 
 /** Current-user DPAPI. Secret input goes through stdin, never the process command or logs. */
 public final class WindowsSecretProtector {
@@ -23,7 +26,7 @@ public final class WindowsSecretProtector {
             """;
     public static boolean supported(){return System.getProperty("os.name","").toLowerCase(Locale.ROOT).startsWith("windows");}
     public String protect(String secret)throws IOException{
-        if(secret==null||secret.isEmpty()||secret.length()>8192)throw new IOException("Invalid mail password");
+        if(secret==null||secret.isEmpty()||secret.getBytes(StandardCharsets.UTF_8).length>8192)throw new IOException("Invalid mail password");
         return "dpapi:"+exchange("protect",Base64.getEncoder().encodeToString(secret.getBytes(StandardCharsets.UTF_8)));
     }
     public String reveal(String protectedValue)throws IOException{
@@ -37,10 +40,15 @@ public final class WindowsSecretProtector {
         Process process=null;
         try{
             process=new ProcessBuilder("powershell.exe","-NoLogo","-NoProfile","-NonInteractive","-Command",SCRIPT).redirectError(ProcessBuilder.Redirect.DISCARD).start();
+            var stdout=process.getInputStream();
+            var output=new FutureTask<byte[]>(()->stdout.readNBytes(32769));
+            Thread.ofVirtual().name("vncode-secret-protection-output").start(output);
             try(var stream=process.getOutputStream()){stream.write(request.toString().getBytes(StandardCharsets.UTF_8));}
             if(!process.waitFor(30,TimeUnit.SECONDS)){process.destroyForcibly();throw new IOException("Windows secret protection timed out");}
             if(process.exitValue()!=0)throw new IOException("Windows cannot read or protect this mail password");
-            byte[] response=process.getInputStream().readNBytes(32769);
+            byte[] response;
+            try{response=output.get(5,TimeUnit.SECONDS);}
+            catch(ExecutionException|TimeoutException failure){throw new IOException("Windows secret-protection output could not be read");}
             String value=new String(response,StandardCharsets.US_ASCII).strip();
             if(response.length>32768||!value.matches("[A-Za-z0-9+/]+=*"))throw new IOException("Invalid Windows secret-protection response");
             return value;

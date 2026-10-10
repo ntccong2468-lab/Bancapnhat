@@ -17,6 +17,21 @@ public final class Gs1Repository {
         @Override public String toString(){return "Gs1Request[id="+id+", state="+state+"]";}
     }
     public record Message(String id,boolean outgoing,String sender,String body,boolean unread,boolean invoice,Instant createdAt) {}
+    /** Operator verification in the official portal, independent of the email's From header. */
+    public record PortalInvoice(String inn,String number,String amount,String currency) {
+        public PortalInvoice {
+            Gs1Membership.requireInn(inn);
+            if(number==null||number.isBlank()||number.length()>100||number.chars().anyMatch(Character::isISOControl))throw new IllegalArgumentException("Enter the invoice number from the official portal");
+            number=number.strip();
+            try {
+                var value=new java.math.BigDecimal(amount);
+                if(value.signum()<=0||value.precision()>14||value.scale()>2)throw new IllegalArgumentException();
+                amount=value.stripTrailingZeros().toPlainString();
+            } catch(RuntimeException invalid){throw new IllegalArgumentException("Enter a positive invoice amount");}
+            if(!"RUB".equals(currency))throw new IllegalArgumentException("GS1 RUS invoice currency must be RUB");
+        }
+        @Override public String toString(){return "Gs1PortalInvoice[manually verified]";}
+    }
     @FunctionalInterface private interface Connections {Connection open()throws SQLException;}
     private final Connections connections;
     public Gs1Repository(){this.connections=Database::getConnection;initialize();}
@@ -30,6 +45,8 @@ public final class Gs1Repository {
             s.execute("CREATE TABLE IF NOT EXISTS gs1_messages(inn TEXT NOT NULL,request_id TEXT NOT NULL,id TEXT NOT NULL,outgoing INTEGER NOT NULL,sender TEXT NOT NULL,body TEXT NOT NULL,unread INTEGER NOT NULL,invoice INTEGER NOT NULL DEFAULT 0,created_at TEXT NOT NULL,PRIMARY KEY(inn,request_id,id))");
             s.execute("CREATE TABLE IF NOT EXISTS gs1_mail_accounts(inn TEXT PRIMARY KEY,payload TEXT NOT NULL)");
             s.execute("CREATE TABLE IF NOT EXISTS gs1_attachments(inn TEXT NOT NULL,request_id TEXT NOT NULL,message_id TEXT NOT NULL,name TEXT NOT NULL,type TEXT NOT NULL,content BLOB NOT NULL,PRIMARY KEY(inn,request_id,message_id,name))");
+            s.execute("CREATE TABLE IF NOT EXISTS gs1_invoice_verifications(inn TEXT NOT NULL,request_id TEXT NOT NULL,message_id TEXT NOT NULL,number TEXT NOT NULL,amount TEXT NOT NULL,currency TEXT NOT NULL,channel TEXT NOT NULL,verified_at TEXT NOT NULL,PRIMARY KEY(inn,request_id))");
+            s.execute("CREATE TABLE IF NOT EXISTS gs1_mail_reconciliations(inn TEXT NOT NULL,request_id TEXT NOT NULL,evidence_digest TEXT NOT NULL,channel TEXT NOT NULL,verified_at TEXT NOT NULL,PRIMARY KEY(inn,request_id))");
         }catch(SQLException error){throw storeError();}
     }
     public Request createRequest(String inn,String kind,String recipient,String subject,String body){
@@ -49,13 +66,18 @@ public final class Gs1Repository {
         return execute("""
                 UPDATE gs1_requests SET state='SENDING'
                 WHERE inn=? AND id=? AND state='DRAFT'
-                AND (kind!='JOIN' OR NOT EXISTS(
+                AND NOT EXISTS(
                   SELECT 1 FROM gs1_requests other WHERE other.inn=gs1_requests.inn
-                  AND other.kind='JOIN' AND other.id!=gs1_requests.id
-                  AND other.state IN('SENDING','SUBMITTED','RECONCILE_REQUIRED')))
+                  AND other.kind=gs1_requests.kind AND other.id!=gs1_requests.id
+                  AND (other.state IN('SENDING','SUBMITTED','RECONCILE_REQUIRED')
+                    OR (gs1_requests.kind LIKE 'PAYMENT_PROOF:%' AND other.state='SENT')))
                 """,inn,id)==1;
     }
+    public boolean hasBlockingOperation(String inn,String kind){
+        return requests(inn).stream().anyMatch(r->r.kind().equals(kind)&&(Set.of(State.SENDING,State.SUBMITTED,State.RECONCILE_REQUIRED).contains(r.state())||(kind.startsWith("PAYMENT_PROOF:")&&r.state()==State.SENT)));
+    }
     public void setState(String inn,String id,State state){request(inn,id);execute("UPDATE gs1_requests SET state=? WHERE inn=? AND id=?",state.name(),inn,id);}
+    public void releaseUnsent(String inn,String id){request(inn,id);execute("UPDATE gs1_requests SET state='DRAFT' WHERE inn=? AND id=? AND state='SENDING'",inn,id);}
     public void addMessage(String inn,String requestId,String id,boolean outgoing,String sender,String body,boolean unread){
         request(inn,requestId);
         execute("INSERT OR IGNORE INTO gs1_messages VALUES(?,?,?,?,?,?,?,0,?)",inn,requestId,id,outgoing?1:0,sender,body,unread?1:0,Instant.now().toString());
@@ -69,13 +91,29 @@ public final class Gs1Repository {
     }
     public void markRead(String inn,String id){request(inn,id);execute("UPDATE gs1_messages SET unread=0 WHERE inn=? AND request_id=?",inn,id);}
     public int unread(String inn){return requests(inn).stream().mapToInt(r->(int)messages(inn,r.id()).stream().filter(Message::unread).count()).sum();}
-    public void confirmInvoice(String inn,String requestId,String messageId){
+    public void confirmInvoice(String inn,String requestId,String messageId,PortalInvoice verified){
         request(inn,requestId);
+        if(verified==null||!inn.equals(verified.inn()))throw new SecurityException("Invoice enterprise differs from this request");
         Message message=messages(inn,requestId).stream().filter(m->m.id().equals(messageId)).findFirst().orElseThrow(()->new SecurityException("Unknown invoice message"));
         if(message.outgoing()||!officialSender(message.sender()))throw new SecurityException("Only a GS1 reply may be confirmed as an invoice");
+        var previous=verifiedInvoice(inn,requestId);
+        if(previous.isPresent()&&!previous.get().equals(verified))throw new IllegalStateException("An invoice is already bound to this request; use a new request for another invoice");
+        execute("INSERT OR IGNORE INTO gs1_invoice_verifications VALUES(?,?,?,?,?,?,?,?)",inn,requestId,messageId,verified.number(),verified.amount(),verified.currency(),"MANUAL_OFFICIAL_PORTAL",Instant.now().toString());
+        if(!verifiedInvoice(inn,requestId).orElseThrow().equals(verified))throw new IllegalStateException("Another invoice has already been bound to this request");
         execute("UPDATE gs1_messages SET invoice=1 WHERE inn=? AND request_id=? AND id=?",inn,requestId,messageId);
     }
-    public boolean hasConfirmedInvoice(String inn,String id){return messages(inn,id).stream().anyMatch(m->m.invoice()&&!m.outgoing());}
+    public Optional<PortalInvoice> verifiedInvoice(String inn,String id){
+        request(inn,id);
+        try(Connection c=connections.open();PreparedStatement p=c.prepareStatement("SELECT number,amount,currency FROM gs1_invoice_verifications WHERE inn=? AND request_id=? AND channel='MANUAL_OFFICIAL_PORTAL'")){
+            p.setString(1,inn);p.setString(2,id);try(ResultSet r=p.executeQuery()){return r.next()?Optional.of(new PortalInvoice(inn,r.getString(1),r.getString(2),r.getString(3))):Optional.empty();}
+        }catch(SQLException error){throw storeError();}
+    }
+    public boolean hasConfirmedInvoice(String inn,String id){return verifiedInvoice(inn,id).isPresent();}
+    public void recordSentCopy(String inn,String id,String digest){
+        request(inn,id);
+        if(!digest.matches("[a-f0-9]{64}"))throw new IllegalArgumentException("Invalid sent copy digest");
+        execute("INSERT OR IGNORE INTO gs1_mail_reconciliations VALUES(?,?,?,?,?)",inn,id,digest,"MANUAL_SENT_COPY",Instant.now().toString());
+    }
     public void saveMailAccount(String inn,Gs1MailAccount account){
         Gs1Membership.requireInn(inn);execute("INSERT INTO gs1_mail_accounts VALUES(?,?) ON CONFLICT(inn) DO UPDATE SET payload=excluded.payload",inn,new Gson().toJson(account));
     }

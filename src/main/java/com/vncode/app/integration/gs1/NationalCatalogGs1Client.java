@@ -31,6 +31,10 @@ public final class NationalCatalogGs1Client {
         return session;
     }
     @FunctionalInterface public interface XmlSigner { String sign(String xml) throws Exception; }
+    /** Local signing failed before any sign-form POST could be made. */
+    public static final class SigningFailedException extends IOException {
+        private SigningFailedException(){super("GS1 XML signing did not complete; no application was submitted");}
+    }
     public record Choice(String id, String text) { @Override public String toString() { return text; } }
     public record Address(String address, String fullGuid, String houseGuid, String postalCode) {
         @Override public String toString() { return address; }
@@ -139,13 +143,18 @@ public final class NationalCatalogGs1Client {
             for(String computed:List.of("isSent","errorText","expiryDate"))draft.remove(computed);
             acknowledge(call("gs1/form",draft));
         }
-        public synchronized void submit(XmlSigner signer) throws IOException {
+        public synchronized String signingDocument() throws IOException {
             JsonObject document=object(call("gs1/sign-form",null));
             String xml=text(document,"XMLForSign");
             if(xml.isBlank())throw new IOException("Catalog returned no GS1 application to sign");
+            return xml;
+        }
+        /** Signs the caller's retained, reviewed document; never fetches a replacement XML. */
+        public synchronized void submitDocument(String xml,XmlSigner signer) throws IOException {
+            if(xml==null||xml.isBlank()||xml.length()>LIMIT)throw new IOException("Invalid reviewed GS1 application");
             String signed;
-            try{signed=signer.sign(xml);}catch(Exception failure){throw new IOException("GS1 XML signing failed");}
-            if(signed==null||signed.isBlank())throw new IOException("GS1 XML signature is empty");
+            try{signed=signer.sign(xml);}catch(Exception failure){throw new SigningFailedException();}
+            if(signed==null||signed.isBlank())throw new SigningFailedException();
             JsonObject body=new JsonObject();body.addProperty("signedXML",signed);
             acknowledge(call("gs1/sign-form",body));
         }
