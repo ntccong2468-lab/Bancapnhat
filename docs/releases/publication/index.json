@@ -1,0 +1,287 @@
+{
+  "repository": "ntccong2468-lab/Bancapnhat",
+  "releases": [
+    {
+      "tag": "v1.3.0-preview.1",
+      "id": 408712192,
+      "title": "VN code 1.3.0-preview.1 — Windows",
+      "sourceCommit": "7858f9c3502980c6e1d3141bbeef719c85493d04",
+      "targetCommitish": "7858f9c3502980c6e1d3141bbeef719c85493d04",
+      "draft": false,
+      "prerelease": true,
+      "hasFeatureStatus": true,
+      "originalAssets": [
+        {
+          "id": 627185510,
+          "name": "build-info.json",
+          "size": 4243,
+          "digest": "sha256:7520faab00e347bc1a16b1b1b833cb9e1819f4b904fda1a8a1a922cf752bbc1c"
+        },
+        {
+          "id": 627185872,
+          "name": "checksums.sha256",
+          "size": 991,
+          "digest": "sha256:347ec46360095499e8edb2a43f0b2c41be2a71032d652ff866ec9f10349d3d9d"
+        },
+        {
+          "id": 627185543,
+          "name": "feature-status.json",
+          "size": 3607,
+          "digest": "sha256:b02ec77b81dcb90f0abbe82b0584fe9b27b5b28f318caf27b38f2929d39be071"
+        },
+        {
+          "id": 627185843,
+          "name": "gs1-smoke.json",
+          "size": 211,
+          "digest": "sha256:3f7e3aedeb4d5e92a6d8db1c2c324389a903ef217c142c7888e853eb329ce97f"
+        },
+        {
+          "id": 627185576,
+          "name": "native-smoke.json",
+          "size": 286,
+          "digest": "sha256:7d2413252987ba114cf4538312e2d2a3e9f8ae7e5c590abc41fcad7efd8244e9"
+        },
+        {
+          "id": 627185685,
+          "name": "release-notes.md",
+          "size": 4921,
+          "digest": "sha256:78d5564b027854967ca08888d5180ee8c05ce5fd18e0be2b25e8496ab2d3a99c"
+        },
+        {
+          "id": 627185614,
+          "name": "side-by-side-smoke.json",
+          "size": 409,
+          "digest": "sha256:e4aa51850d1a55d0ba914519b3a2545423b0632150837a3e90974ce52850bdb2"
+        },
+        {
+          "id": 627185817,
+          "name": "upgrade-current-preview-smoke.json",
+          "size": 387,
+          "digest": "sha256:7b57ba6fa3a9b2dee2fe014bc348025546791a099cec8a4c9a1f930e91d290d6"
+        },
+        {
+          "id": 627185779,
+          "name": "upgrade-latest-preview-smoke.json",
+          "size": 387,
+          "digest": "sha256:e411827e3511f9e5706faba454dbcc6763a36738fa8721c6f6b761d5afb34612"
+        },
+        {
+          "id": 627185720,
+          "name": "upgrade-preview-smoke.json",
+          "size": 387,
+          "digest": "sha256:792f0a07f7e844c2cd9ba0075393ca23e64d8a239c4e4d147c804276cd4df298"
+        },
+        {
+          "id": 627185647,
+          "name": "upgrade-smoke.json",
+          "size": 388,
+          "digest": "sha256:5bc7d0a18e3f7c0fcee5b6a7cb5cbb8cf6c526fa9003255afbbe4c5f23b00b54"
+        },
+        {
+          "id": 627185268,
+          "name": "VN-code-1.3.0-preview.1-Windows-x64.exe",
+          "size": 142088704,
+          "digest": "sha256:7b27b1ceb5d3de6c840e5cbfda8ead52898918b253b603ceaace4ef0d1e88c42"
+        }
+      ]
+    },
+    {
+      "tag": "v1.2.2-preview.1",
+      "id": 408308222,
+      "title": "VN code 1.2.2-preview.1 — Windows",
+      "sourceCommit": "d17ced942afd4231ca6821013c34e0e1ee11e11c",
+      "targetCommitish": "d17ced942afd4231ca6821013c34e0e1ee11e11c",
+      "draft": false,
+      "prerelease": true,
+      "hasFeatureStatus": true,
+      "originalAssets": [
+        {
+          "id": 626067515,
+          "name": "build-info.json",
+          "size": 3057,
+          "digest": "sha256:4c829b2ce5afdaa9d3a1b5ba3af5a127f11814c539d3cc31e598c16d1c4f6ac2"
+        },
+        {
+          "id": 626067804,
+          "name": "checksums.sha256",
+          "size": 809,
+          "digest": "sha256:61edbd9f4f47e9a9e523c976e50790b0e98208dbd2d1c96b8fcbde52f8d8460e"
+        },
+        {
+          "id": 626067550,
+          "name": "feature-status.json",
+          "size": 2238,
+          "digest": "sha256:1a3a956f55fdb704fc0a6029bceadf722601d6f0fefd169cb0556730b98e3455"
+        },
+        {
+          "id": 626067576,
+          "name": "native-smoke.json",
+          "size": 286,
+          "digest": "sha256:29d9e2184fbd46bcf8f2fe88e0d9bb31adc3303860f81ae39de3b811396b5c0f"
+        },
+        {
+          "id": 626067669,
+          "name": "release-notes.md",
+          "size": 4069,
+          "digest": "sha256:7d5b47db5da0675b4c3adfcd9871f3fe0c2c1fdcffa7b62021544573411ea26e"
+        },
+        {
+          "id": 626067604,
+          "name": "side-by-side-smoke.json",
+          "size": 409,
+          "digest": "sha256:669bd42813d34bff5f00cf607e71a5b7a0746c46322fb6e62b1d97aafe431c67"
+        },
+        {
+          "id": 626067760,
+          "name": "upgrade-latest-preview-smoke.json",
+          "size": 387,
+          "digest": "sha256:5af461adb2edfd098d501fc3cf960c31917467f946d0616e040ba4e31ab0de16"
+        },
+        {
+          "id": 626067705,
+          "name": "upgrade-preview-smoke.json",
+          "size": 387,
+          "digest": "sha256:063d347027d2c1f2c153b1d12a97a65bc9a1a576ac4a8fc4d1890c50c3155423"
+        },
+        {
+          "id": 626067649,
+          "name": "upgrade-smoke.json",
+          "size": 388,
+          "digest": "sha256:99d341c970b7817a65a597ad3f48a5d82c68ba34637c4dece7a0ad01833b9404"
+        },
+        {
+          "id": 626067376,
+          "name": "VN-code-1.2.2-preview.1-Windows-x64.exe",
+          "size": 141094400,
+          "digest": "sha256:4ef4b3881337f1414d684d0be0ced9b8543be6bf114031ec31e5c83227d93541"
+        }
+      ]
+    },
+    {
+      "tag": "v1.2.1-preview.1",
+      "id": 408280744,
+      "title": "VN code 1.2.1-preview.1 — Windows",
+      "sourceCommit": "b5034df00a1e898124210437c522c92448ead5b3",
+      "targetCommitish": "b5034df00a1e898124210437c522c92448ead5b3",
+      "draft": false,
+      "prerelease": true,
+      "hasFeatureStatus": true,
+      "originalAssets": [
+        {
+          "id": 625986606,
+          "name": "build-info.json",
+          "size": 2417,
+          "digest": "sha256:e3e94e0fdaa8c6f8fe40deb65c747a6141215c794f26617573f76dcca290195a"
+        },
+        {
+          "id": 625987098,
+          "name": "checksums.sha256",
+          "size": 709,
+          "digest": "sha256:43412f9c212890b95426c3180e383f889b4c5d7b352171472d70e98f66d9caa3"
+        },
+        {
+          "id": 625986685,
+          "name": "feature-status.json",
+          "size": 1675,
+          "digest": "sha256:050cd845bd317dc013d8c7689b0f2d745ae97068393de905510a8a2854cb90b9"
+        },
+        {
+          "id": 625986769,
+          "name": "native-smoke.json",
+          "size": 286,
+          "digest": "sha256:4553566d1e384c6690d236739fd503ec917bc4dc49cb8327e6f04c1d7841c616"
+        },
+        {
+          "id": 625986966,
+          "name": "release-notes.md",
+          "size": 3493,
+          "digest": "sha256:d8efda38a10426dd052a2e40788b153f25f772ca947746bbdee66b72467ce8f7"
+        },
+        {
+          "id": 625986825,
+          "name": "side-by-side-smoke.json",
+          "size": 409,
+          "digest": "sha256:6c4cae4137a07ba89ab51336df348947f33d58b8eda4a859bb35edfa3b68ae7a"
+        },
+        {
+          "id": 625987032,
+          "name": "upgrade-preview-smoke.json",
+          "size": 387,
+          "digest": "sha256:3f74507ab2bc7ec18d1f8212935ce35fa559f9e85551022c6c946329859bd92a"
+        },
+        {
+          "id": 625986884,
+          "name": "upgrade-smoke.json",
+          "size": 388,
+          "digest": "sha256:66da07a8ae9ee9449ad1a2a926da68f0f8caf62553d7b98f55fc0220637329e8"
+        },
+        {
+          "id": 625986239,
+          "name": "VN-code-1.2.1-preview.1-Windows-x64.exe",
+          "size": 141094400,
+          "digest": "sha256:2159133f48de2fcaaa2d39e5983157d9c713929c10479d0007f30463394d483f"
+        }
+      ]
+    },
+    {
+      "tag": "v1.2.0-preview.1",
+      "id": 407383249,
+      "title": "VN code 1.2.0-preview.1 — Windows",
+      "sourceCommit": "e7c4c9e1031f64d576cb696b9a7fa396fc7c86a3",
+      "targetCommitish": "e7c4c9e1031f64d576cb696b9a7fa396fc7c86a3",
+      "draft": false,
+      "prerelease": true,
+      "hasFeatureStatus": true,
+      "originalAssets": [
+        {
+          "id": 623439806,
+          "name": "build-info.json",
+          "size": 1806,
+          "digest": "sha256:9cd59bba0dae81e2da5d6aa9106c0269db0e3904560ecc970a04836c6820e287"
+        },
+        {
+          "id": 623440024,
+          "name": "checksums.sha256",
+          "size": 616,
+          "digest": "sha256:cbf6e3ae118a665843b1b26c21117fe7beaaa7777a4e2066f548bea3c2599f69"
+        },
+        {
+          "id": 623439830,
+          "name": "feature-status.json",
+          "size": 489,
+          "digest": "sha256:9f9a19a0c446433a7363357a3279e8f819d65e2c98ac0651ea3903a30bb700e0"
+        },
+        {
+          "id": 623439877,
+          "name": "native-smoke.json",
+          "size": 286,
+          "digest": "sha256:8ddc20d5dcb6e92b4621bfd1c446d5a8ce7b5782979f4842aeb3372191b98132"
+        },
+        {
+          "id": 623439986,
+          "name": "release-notes.md",
+          "size": 2227,
+          "digest": "sha256:5d0e8933917272ad603f88ca539c8f9325d988105710b5836a51276989d45b98"
+        },
+        {
+          "id": 623439907,
+          "name": "side-by-side-smoke.json",
+          "size": 409,
+          "digest": "sha256:5881b612c6e34a7699df9fab98ed8fd5f059d4e59ecc4118390d119e362a96f0"
+        },
+        {
+          "id": 623439958,
+          "name": "upgrade-smoke.json",
+          "size": 388,
+          "digest": "sha256:a7ea20b1d32064c9678298cc0ed8532bc4920d3a4a526e6887897961bc604096"
+        },
+        {
+          "id": 623439674,
+          "name": "VN-code-1.2.0-preview.1-Windows-x64.exe",
+          "size": 141078016,
+          "digest": "sha256:2290088fb9e1065430f4d9c5e9b47185c5581a93996b3ad692e8bbc846756ad1"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,77 @@
+{
+  "appName": "VN code",
+  "version": "1.2.2",
+  "releaseTag": "v1.2.2-preview.1",
+  "stage": "preview",
+  "complete": false,
+  "sourceCommit": "d17ced942afd4231ca6821013c34e0e1ee11e11c",
+  "repository": "ntccong2468-lab/Bancapnhat",
+  "githubRunId": 37984754861,
+  "javaTests": 607,
+  "nodeTests": 31,
+  "installer": {
+    "filename": "VN-code-1.2.2-preview.1-Windows-x64.exe",
+    "sha256": "4ef4b3881337f1414d684d0be0ced9b8543be6bf114031ec31e5c83227d93541",
+    "bytes": 141094400,
+    "architecture": "x86_64",
+    "authenticodeSigned": false
+  },
+  "liveMarketplaceMutations": false,
+  "signedUpdateManifestPublished": false,
+  "blocked": [
+    "Ozon: delivering contract found for third-party rFBS only; verify standard-FBS behavior and implement selection/label reminder",
+    "Znack: automatic GTIN reallocation is not enabled solely on a section change; verified business rule/recovery remains required",
+    "TN VED: catalog/import/search/backup core implemented; product mappings, AI provider, marking rules, Yandex and integrated restore remain incomplete",
+    "GS1 RUS membership/mail/invoices/application autofill and per-certificate signing changes have no verified public source/API contract; not implemented in this preview",
+    "FBO printing only WB-card GTIN, missing-GTIN list/column and KIZ purchase-stage error report have not been implemented or verified; existing FBO barcode behavior is retained in this preview"
+  ],
+  "nativeSmoke": {
+    "schemaMigration": "3 to 4",
+    "version": "1.2.2",
+    "windowTitle": "VN code v1.2.2",
+    "appName": "VN code",
+    "nativeLauncher": "passed",
+    "liveMarketplaceMutations": false,
+    "rollbackSnapshotVerified": true,
+    "historyPreserved": true,
+    "platform": "windows-x64"
+  },
+  "upgradeSmoke": {
+    "version": "1.2.2",
+    "singleRegistration": true,
+    "liveMarketplaceMutations": false,
+    "fingerprint": "9423a46a2de9f02a0db6da09798e6c0b4ca672be2ffda62684b559bb5a09301c",
+    "appName": "VN code",
+    "fromVersion": "1.1.34",
+    "windowTitle": "VN code v1.2.2",
+    "result": "passed",
+    "dataPreserved": true,
+    "installerUpgradeUuid": "8CBBA0E2-6E73-4F56-9101-6BC0948D3C72"
+  },
+  "previewUpgradeSmoke": {
+    "installerUpgradeUuid": "8CBBA0E2-6E73-4F56-9101-6BC0948D3C72",
+    "version": "1.2.2",
+    "windowTitle": "VN code v1.2.2",
+    "result": "passed",
+    "liveMarketplaceMutations": false,
+    "fingerprint": "0b5a010909b794ce0a0cc029331b35280630dc29a79c071e8237a98a8f4a51b5",
+    "appName": "VN code",
+    "dataPreserved": true,
+    "singleRegistration": true,
+    "fromVersion": "1.2.0"
+  },
+  "latestPreviewUpgradeSmoke": {
+    "result": "passed",
+    "version": "1.2.2",
+    "installerUpgradeUuid": "8CBBA0E2-6E73-4F56-9101-6BC0948D3C72",
+    "dataPreserved": true,
+    "fromVersion": "1.2.1",
+    "liveMarketplaceMutations": false,
+    "singleRegistration": true,
+    "windowTitle": "VN code v1.2.2",
+    "fingerprint": "9854bad22f16b7c7065c095ad965124d8f746c101cd6661a95256df7d3c0b1af",
+    "appName": "VN code"
+  },
+  "projectDeveloper": "Nguyễn Thành Công",
+  "publicationMetadataUpdatedOn": "2026-10-10"
+}

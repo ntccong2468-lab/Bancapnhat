@@ -1,0 +1,64 @@
+{
+  "appName": "VN code",
+  "version": "1.2.1",
+  "releaseTag": "v1.2.1-preview.1",
+  "stage": "preview",
+  "complete": false,
+  "sourceCommit": "b5034df00a1e898124210437c522c92448ead5b3",
+  "repository": "ntccong2468-lab/Bancapnhat",
+  "githubRunId": 37980840932,
+  "javaTests": 601,
+  "nodeTests": 29,
+  "installer": {
+    "filename": "VN-code-1.2.1-preview.1-Windows-x64.exe",
+    "sha256": "2159133f48de2fcaaa2d39e5983157d9c713929c10479d0007f30463394d483f",
+    "bytes": 141094400,
+    "architecture": "x86_64",
+    "authenticodeSigned": false
+  },
+  "liveMarketplaceMutations": false,
+  "signedUpdateManifestPublished": false,
+  "blocked": [
+    "Ozon: delivering contract found for third-party rFBS only; verify standard-FBS behavior and implement selection/label reminder",
+    "Znack: automatic GTIN reallocation is not enabled solely on a section change; verified business rule/recovery remains required",
+    "TN VED: catalog/import/search/backup core implemented; product mappings, AI provider, marking rules, Yandex and integrated restore remain incomplete",
+    "GS1 RUS membership/mail/invoices/application autofill and per-certificate signing changes have no verified public source/API contract; not implemented in this preview"
+  ],
+  "nativeSmoke": {
+    "rollbackSnapshotVerified": true,
+    "appName": "VN code",
+    "historyPreserved": true,
+    "windowTitle": "VN code v1.2.1",
+    "liveMarketplaceMutations": false,
+    "platform": "windows-x64",
+    "schemaMigration": "3 to 4",
+    "nativeLauncher": "passed",
+    "version": "1.2.1"
+  },
+  "upgradeSmoke": {
+    "appName": "VN code",
+    "version": "1.2.1",
+    "windowTitle": "VN code v1.2.1",
+    "installerUpgradeUuid": "8CBBA0E2-6E73-4F56-9101-6BC0948D3C72",
+    "dataPreserved": true,
+    "singleRegistration": true,
+    "fromVersion": "1.1.34",
+    "liveMarketplaceMutations": false,
+    "fingerprint": "2d9948e857411098f5408905fc4ccefd02b7159e05a0c430d6b2725840342dbd",
+    "result": "passed"
+  },
+  "previewUpgradeSmoke": {
+    "liveMarketplaceMutations": false,
+    "dataPreserved": true,
+    "fromVersion": "1.2.0",
+    "installerUpgradeUuid": "8CBBA0E2-6E73-4F56-9101-6BC0948D3C72",
+    "result": "passed",
+    "fingerprint": "21552b1c7ba3c1386db5c3c0e275f4bed917c76bdb23937d87741cf4ea83713c",
+    "version": "1.2.1",
+    "appName": "VN code",
+    "singleRegistration": true,
+    "windowTitle": "VN code v1.2.1"
+  },
+  "projectDeveloper": "Nguyễn Thành Công",
+  "publicationMetadataUpdatedOn": "2026-10-10"
+}
