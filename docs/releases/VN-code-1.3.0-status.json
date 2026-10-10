@@ -1,0 +1,30 @@
+{
+  "version": "1.3.0",
+  "complete": false,
+  "upstreamRelease": "1.3.2",
+  "changes": [
+    "Thêm trang GS1 RUS vào cùng VN code; trạng thái thành viên, hạn dùng, GCP/GLN và số GTIN còn lại theo INN của chứng thư.",
+    "Hồ sơ GS1 theo từ điển và địa chỉ FIAS của National Catalog; lưu nháp, xem đúng tài liệu XML rồi mới ký và gửi.",
+    "Yêu cầu gia hạn, thêm GTIN, lỗi National Catalog và chứng từ qua hộp thư riêng; hội thoại, chưa đọc và tải tài liệu.",
+    "Không gửi trùng khi kết quả không rõ; hóa đơn được đối chiếu riêng trên tài khoản chính thức, thư From chưa được coi là xác thực.",
+    "Ký CMS/XML xếp hàng theo chứng thư; logo VN trắng nền đen; bỏ menu TN VED độc lập, giữ lõi tra cứu."
+  ],
+  "implemented": [
+    "Giữ cùng ứng dụng VN code Windows, dữ liệu/shop/template, định danh bộ cài và bản cá nhân miễn phí.",
+    "Kết nối GS1 National Catalog riêng: phiên cookie/CSRF theo doanh nghiệp, trạng thái thành viên không suy từ hạn mức GTIN, hiển thị nguồn và thời điểm kiểm tra.",
+    "Soạn hồ sơ với từ điển/FIAS, giữ trường máy chủ không sửa; duyệt XML chính xác, kiểm tra INN/tên/mã OGRN và các giá trị ngân hàng trước khi ký.",
+    "Ký XML bằng Windows CryptoPro CAdESCOM; CMS và XML cùng chứng thư được xử lý tuần tự, giữ kiểm tra quyền shop.",
+    "SMTP/IMAP TLS qua tài khoản riêng; mật khẩu được bảo vệ bằng DPAPI CurrentUser; xem trước thư/tệp và xác nhận gửi, hoặc xuất .eml.",
+    "Tìm thư theo yêu cầu trên toàn hộp thư, đọc UTF-8/Windows-1251/KOI8-R, lưu lịch sử/chưa đọc và thu gọn hội thoại.",
+    "Xác nhận hóa đơn thủ công bằng INN, số hóa đơn và số tiền đã đối chiếu ở tài khoản chính thức; kiểm soát một thao tác chứng từ cho mỗi yêu cầu và đối soát thủ công bản sao thư Đã gửi.",
+    "Logo VN trắng nền đen; TN VED chạy như lõi dữ liệu nội bộ, không có trang menu riêng."
+  ],
+  "blocked": [
+    "GS1: chưa nghiệm thu đăng nhập/nộp hồ sơ với doanh nghiệp thật, chấp nhận XML bằng chứng thư CryptoPro thật và gửi/đọc SMTP/IMAP thật. Hợp đồng API được đối chiếu từ frontend chính thức, chưa có cam kết phiên bản API.",
+    "GS1: chưa có hợp đồng xác thực người gửi cho các nhà cung cấp IMAP; thư được ghi rõ chưa xác minh. Hóa đơn và bản sao thư Đã gửi dựa trên đối chiếu thủ công có lưu dấu kiểm tra.",
+    "Products WB/Ozon: chỉnh sửa hàng loạt nhãn hiệu/chất liệu/TN VED/giấy tờ và đọc lại trạng thái tài liệu của Wbcode 1.3.2 còn thuộc phần cập nhật tiếp theo.",
+    "FBO: GTIN đăng ký đúng biến thể, danh sách thiếu GTIN và các cải tiến mua KIZ của Wbcode 1.3.1/1.3.2 chưa hoàn tất trong đợt GS1 này.",
+    "TN VED: liên kết tra cứu trong mọi tác vụ cần, quy tắc đánh dấu và gợi ý có nguồn còn chưa hoàn tất; giữ lõi danh mục/import/search hiện có.",
+    "Trình thiết kế mẫu nhúng, thông tin số dư CZ trên header và những thay đổi còn lại của bản bố cục đã duyệt chưa hoàn tất; cập nhật GTIN thật WB/Ozon vẫn bị khóa chờ hợp đồng API đã xác minh."
+  ]
+}

@@ -1,8 +1,9 @@
 # VN code
 
-Repository này phát triển **bản cập nhật VN code 1.2.2 Preview** trên nhánh `update/vn-code-1.2.0`: https://github.com/ntccong2468-lab/Bancapnhat.
-Bản cập nhật giữ cùng định danh bộ cài và dữ liệu VN code đã cài; nâng cấp từ 1.1.34, 1.2.0 Preview và 1.2.1 Preview đã được kiểm tra trên Windows. Repository Vncode gốc được giữ nguyên.
-[Tải bộ cài Windows x64 1.2.2 Preview](https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.2.2-preview.1/VN-code-1.2.2-preview.1-Windows-x64.exe), [Release](https://github.com/ntccong2468-lab/Bancapnhat/releases/tag/v1.2.2-preview.1), [mô tả và ảnh giao diện](docs/releases/VN-code-1.2.2.md), [phần đã triển khai/còn thiếu](docs/releases/VN-code-1.2.2-status.json). Đây là bản thử cài thủ công, chưa hoàn tất toàn bộ chức năng Wbcode mới nhất và chưa bật tự cập nhật.
+Repository này phát triển **bản cập nhật VN code 1.3.0 Preview — GS1** trên nhánh `update/vn-code-wbcode-132`: https://github.com/ntccong2468-lab/Bancapnhat.
+Đợt mới đối chiếu Wbcode **1.3.2**, thêm module GS1 độc lập, duyệt XML trước ký, hộp thư riêng và logo VN trắng nền đen; bỏ menu TN VED riêng. Xem [hướng dẫn GS1 và ảnh giao diện](docs/releases/VN-code-1.3.0.md), [nghiên cứu nguồn/tài liệu](docs/research/2026-10-10-gs1-wbcode-132.md) và [phần đã triển khai/còn thiếu](docs/releases/VN-code-1.3.0-status.json).
+Bản cập nhật giữ cùng định danh bộ cài và dữ liệu VN code đã cài; nâng cấp từ 1.1.34, 1.2.0 / 1.2.1 / 1.2.2 Preview đã đạt trên Windows. Repository Vncode gốc được giữ nguyên.
+[Tải bộ cài Windows x64 1.3.0 Preview](https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.3.0-preview.1/VN-code-1.3.0-preview.1-Windows-x64.exe), [Release](https://github.com/ntccong2468-lab/Bancapnhat/releases/tag/v1.3.0-preview.1). Kiểm chứng Windows đạt **648 kiểm thử Java/JavaFX và 33 kiểm thử Node**, launcher, migration, DPAPI thực, cài cạnh WCode và bốn đường nâng cấp giữ dữ liệu: [CI Windows](https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/38028666240), [bằng chứng và quyết định triển khai](docs/validation/2026-10-10-vn-code-gs1.md). Đây là bản thử cài thủ công, chưa nghiệm thu GS1/CryptoPro/SMTP/IMAP thật, chưa hoàn tất toàn bộ chức năng Wbcode mới nhất và chưa bật tự cập nhật.
 
 [Mô tả bản cập nhật 1.2.0](docs/releases/VN-code-1.2.0.md), đối chiếu WCode/Wbcode 1.2.0 ngày 09/10/2026, phân biệt các phần đã triển khai và đang phát triển. Module TN VED đã có danh mục gốc, tra cứu, nhập CSV/JSON và sao lưu; các phần liên kết sản phẩm/AI/marking/Yandex đang phát triển.
 
@@ -33,9 +34,9 @@ Do Nguyễn Thành Công phát triển
 
 ## Tải bản Windows
 
-Bản mới: [VN code 1.2.2 Preview — Windows x64](https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.2.2-preview.1/VN-code-1.2.2-preview.1-Windows-x64.exe).
-Đóng VN code rồi chạy EXE để nâng cấp cùng ứng dụng. Java được đóng gói kèm; bộ cài chưa ký Authenticode. Xem [mô tả và giới hạn](docs/releases/VN-code-1.2.2.md).
-Bản trước để đối chiếu: [1.2.1 Preview](https://github.com/ntccong2468-lab/Bancapnhat/releases/tag/v1.2.1-preview.1), [1.2.0 Preview](https://github.com/ntccong2468-lab/Bancapnhat/releases/tag/v1.2.0-preview.1), [1.1.34](https://github.com/ntccong2468-lab/Vncode/releases/tag/v1.1.34).
+[VN code 1.3.0 Preview — Windows x64](https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.3.0-preview.1/VN-code-1.3.0-preview.1-Windows-x64.exe), [trang phát hành và báo cáo kiểm chứng](https://github.com/ntccong2468-lab/Bancapnhat/releases/tag/v1.3.0-preview.1).
+Đóng VN code rồi chạy EXE để nâng cấp cùng ứng dụng. Java được đóng gói kèm; bộ cài chưa ký Authenticode. Xem [mô tả và giới hạn](docs/releases/VN-code-1.3.0.md).
+Bản trước để đối chiếu: [1.2.2 Preview](https://github.com/ntccong2468-lab/Bancapnhat/releases/tag/v1.2.2-preview.1), [1.2.1 Preview](https://github.com/ntccong2468-lab/Bancapnhat/releases/tag/v1.2.1-preview.1), [1.2.0 Preview](https://github.com/ntccong2468-lab/Bancapnhat/releases/tag/v1.2.0-preview.1), [1.1.34](https://github.com/ntccong2468-lab/Vncode/releases/tag/v1.1.34).
 Cập nhật GTIN thật lên WB/Ozon trong module đồng bộ vẫn bị khóa chờ xác minh API.
 
 VN code cài ở `%LOCALAPPDATA%\VNcodeApp`, dùng dữ liệu riêng ở `%LOCALAPPDATA%\VNcodeData` và bắt đầu với danh sách shop trống. VN code là bản cá nhân miễn phí, không cần giấy phép WCode; thiết lập tài khoản shop và chứng thư riêng trong app mới. Cài hoặc gỡ VN code không thay thế WCode và không tự nhập dữ liệu WCode.
@@ -131,4 +132,4 @@ gửi mutation không chắc chắn.
 
 ## License
 
-Phần mềm thương mại © TuanDev.
+VN code dùng theo cấu hình cá nhân miễn phí, không cần giấy phép WCode. Ghi nhận tác giả của phần mã nguồn nền: © TuanDev.

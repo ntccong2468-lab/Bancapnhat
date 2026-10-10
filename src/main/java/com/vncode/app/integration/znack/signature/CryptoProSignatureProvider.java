@@ -49,6 +49,10 @@ public class CryptoProSignatureProvider implements ZnackSignatureProvider {
 
     @Override
     public CryptoProSigningResult sign(byte[] payload, ZnackSignatureContext context) throws CryptoProException {
+        return CertificateSigningQueue.run(certificateSelector, () -> signQueued(payload, context));
+    }
+
+    private CryptoProSigningResult signQueued(byte[] payload, ZnackSignatureContext context) throws CryptoProException {
         if (certificateSelector.isBlank()) {
             throw new CryptoProException(CryptoProErrorCode.TOKEN_OR_CERTIFICATE_ABSENT, "Select a CryptoPro certificate before signing.");
         }

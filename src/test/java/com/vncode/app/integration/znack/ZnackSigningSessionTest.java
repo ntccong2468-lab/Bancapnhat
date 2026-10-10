@@ -25,6 +25,34 @@ class ZnackSigningSessionTest {
     private static final int SHOP_B = 22;
     private static final long PIPELINE = 101L;
 
+    @Test void distinctFingerprintsCanSignConcurrently() throws Exception {
+        ZnackSigningSession.authorizeShop(SHOP_A);ZnackSigningSession.authorizeShop(SHOP_B);
+        var both=new CountDownLatch(2);var release=new CountDownLatch(1);
+        ZnackSignatureProvider delegate=(p,c)->{both.countDown();try{if(!release.await(5,TimeUnit.SECONDS))throw new IllegalStateException("Test timeout");}catch(InterruptedException e){Thread.currentThread().interrupt();throw new IllegalStateException(e);}return new CryptoProSigningResult(new byte[]{1},"");};
+        try(var executor=Executors.newFixedThreadPool(2)) {
+            var a=executor.submit(()->ZnackSigningSession.guard(SHOP_A,"A".repeat(40),delegate).sign(new byte[]{1},ZnackSignatureContext.TRUE_API_DOCUMENT));
+            var b=executor.submit(()->ZnackSigningSession.guard(SHOP_B,"B".repeat(40),delegate).sign(new byte[]{1},ZnackSignatureContext.TRUE_API_DOCUMENT));
+            try{assertTrue(both.await(2,TimeUnit.SECONDS),"Distinct certificates should not share a global lock");}finally{release.countDown();}
+            a.get(5,TimeUnit.SECONDS);b.get(5,TimeUnit.SECONDS);
+        }
+    }
+    @Test void sameNormalizedFingerprintSerializesCmsAndXmlAcrossShops() throws Exception {
+        ZnackSigningSession.authorizeShop(SHOP_A);ZnackSigningSession.authorizeShop(SHOP_B);
+        var entered=new CountDownLatch(1);var release=new CountDownLatch(1);var xmlEntered=new CountDownLatch(1);
+        var first=ZnackSigningSession.guard(SHOP_A,"a".repeat(40),(p,c)->{entered.countDown();try{release.await(5,TimeUnit.SECONDS);}catch(InterruptedException e){Thread.currentThread().interrupt();}return new CryptoProSigningResult(new byte[]{1},"");});
+        var second=ZnackSigningSession.guardXml(SHOP_B,"AA ".repeat(20),xml->{xmlEntered.countDown();return "signed";});
+        try(var executor=Executors.newFixedThreadPool(2)){
+            var a=executor.submit(()->first.sign(new byte[]{1},ZnackSignatureContext.TRUE_API_DOCUMENT));
+            assertTrue(entered.await(2,TimeUnit.SECONDS));var b=executor.submit(()->second.signXml("<a/>"));
+            try{assertFalse(xmlEntered.await(200,TimeUnit.MILLISECONDS));}finally{release.countDown();}
+            a.get(5,TimeUnit.SECONDS);assertEquals("signed",b.get(5,TimeUnit.SECONDS));
+        }
+    }
+    @Test void xmlCannotBypassShopAuthorization() {
+        var signer=ZnackSigningSession.guardXml(SHOP_A,"A".repeat(40),xml->{throw new AssertionError("Must not open signer");});
+        assertThrows(ZnackSigningSession.SigningDeferredException.class,()->signer.signXml("<a/>"));
+    }
+
     @AfterEach
     void resetSession() {
         ZnackSigningSession.resetForTests();

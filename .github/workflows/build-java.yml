@@ -71,6 +71,10 @@ jobs:
         shell: pwsh
         run: ./tools/windows-native-smoke.ps1 -Version $env:APP_VERSION
 
+      - name: Verify GS1 Windows DPAPI and additive local storage
+        shell: pwsh
+        run: ./tools/windows-gs1-smoke.ps1 -Version $env:APP_VERSION
+
       - name: Verify installation beside WCode, fresh data and safe uninstall
         shell: pwsh
         run: ./tools/windows-side-by-side-smoke.ps1 -Version $env:APP_VERSION
@@ -88,6 +92,13 @@ jobs:
         if: env.APP_VERSION != '1.2.0' && env.APP_VERSION != '1.2.1'
         shell: pwsh
         run: ./tools/windows-upgrade-smoke.ps1 -Version $env:APP_VERSION -FromLatestPreview
+
+      - name: Verify upgrade from VN code 1.2.2 Preview with saved data
+        if: env.APP_VERSION != '1.2.0' && env.APP_VERSION != '1.2.1' && env.APP_VERSION != '1.2.2'
+        # Test the most recently published VN code installer as an additional baseline.
+        # The hash is pinned in windows-upgrade-smoke.ps1.
+        shell: pwsh
+        run: ./tools/windows-upgrade-smoke.ps1 -Version $env:APP_VERSION -FromCurrentPreview
 
       - name: Verify and name test installer
         shell: pwsh
@@ -116,6 +127,8 @@ jobs:
             out/upgrade-smoke.json
             out/upgrade-preview-smoke.json
             out/upgrade-latest-preview-smoke.json
+            out/upgrade-current-preview-smoke.json
+            out/gs1-smoke.json
           if-no-files-found: error
           retention-days: 14
 
