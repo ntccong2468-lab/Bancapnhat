@@ -15,7 +15,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
-final class WindowsCadesSignatureProvider implements ZnackSignatureProvider {
+final class WindowsCadesSignatureProvider implements ZnackSignatureProvider, XmlSignatureProvider {
     private static final Logger LOGGER = LoggerFactory.getLogger(WindowsCadesSignatureProvider.class);
     private static final String PROBE_SCRIPT = """
             $ErrorActionPreference = 'Stop'
@@ -31,18 +31,7 @@ final class WindowsCadesSignatureProvider implements ZnackSignatureProvider {
               WScript.Quit 1
             End If
             """;
-    private static final String SIGN_SCRIPT = """
-            param(
-              [string]$InputPath,
-              [string]$Thumbprint,
-              [string]$Detached,
-              [string]$OutputPath
-            )
-            $ErrorActionPreference = 'Stop'
-            $store = $null
-            $certificate = $null
-            $stage = 'find selected certificate'
-            try {
+    private static final String FIND_CERTIFICATE_SCRIPT = """
               $normalized = ($Thumbprint -replace '\\s', '').ToUpperInvariant()
               $openedAnyStore = $false
               $storeErrors = New-Object System.Collections.Generic.List[string]
@@ -84,6 +73,20 @@ final class WindowsCadesSignatureProvider implements ZnackSignatureProvider {
                 if ($openedAnyStore) { throw "Selected certificate was not found. Store attempts: $summary" }
                 throw "Unable to open CryptoPro certificate stores. Store attempts: $summary"
               }
+            """;
+    private static final String SIGN_SCRIPT = """
+            param(
+              [string]$InputPath,
+              [string]$Thumbprint,
+              [string]$Detached,
+              [string]$OutputPath
+            )
+            $ErrorActionPreference = 'Stop'
+            $store = $null
+            $certificate = $null
+            $stage = 'find selected certificate'
+            try {
+            """ + FIND_CERTIFICATE_SCRIPT + """
               $stage = 'create signer'
               $signer = New-Object -ComObject CAdESCOM.CPSigner
               $stage = 'assign certificate to signer'
@@ -103,6 +106,42 @@ final class WindowsCadesSignatureProvider implements ZnackSignatureProvider {
               if ($null -ne $store) {
                 try { $store.Close() } catch { }
               }
+            }
+            """;
+    private static final String XML_SIGN_SCRIPT = """
+            param([string]$InputPath,[string]$Thumbprint,[string]$OutputPath)
+            $ErrorActionPreference = 'Stop'
+            $store = $null
+            $certificate = $null
+            try {
+            """ + FIND_CERTIFICATE_SCRIPT + """
+              if (-not $certificate.HasPrivateKey()) { throw 'Selected certificate has no private key.' }
+              if ($certificate.ValidToDate -lt [DateTime]::Now) { throw 'Selected certificate is expired.' }
+              $signer = New-Object -ComObject CAdESCOM.CPSigner
+              $signer.Certificate = $certificate
+              $xml = New-Object -ComObject CAdESCOM.SignedXML
+              $oid = $certificate.PublicKey().Algorithm.Value
+              switch ($oid) {
+                '1.2.643.7.1.1.1.1' {
+                  $xml.SignatureMethod = 'urn:ietf:params:xml:ns:cpxmlsec:algorithms:gostr34102012-gostr34112012-256'
+                  $xml.DigestMethod = 'urn:ietf:params:xml:ns:cpxmlsec:algorithms:gostr34112012-256'
+                }
+                '1.2.643.7.1.1.1.2' {
+                  $xml.SignatureMethod = 'urn:ietf:params:xml:ns:cpxmlsec:algorithms:gostr34102012-gostr34112012-512'
+                  $xml.DigestMethod = 'urn:ietf:params:xml:ns:cpxmlsec:algorithms:gostr34112012-512'
+                }
+                '1.2.643.2.2.19' {
+                  $xml.SignatureMethod = 'urn:ietf:params:xml:ns:cpxmlsec:algorithms:gostr34102001-gostr3411'
+                  $xml.DigestMethod = 'urn:ietf:params:xml:ns:cpxmlsec:algorithms:gostr3411'
+                }
+                default { throw 'Unsupported GS1 certificate algorithm.' }
+              }
+              $xml.Content = [IO.File]::ReadAllText($InputPath,[Text.Encoding]::UTF8)
+              $xml.SignatureType = 0
+              $signed = $xml.Sign($signer)
+              [IO.File]::WriteAllText($OutputPath,$signed,(New-Object Text.UTF8Encoding($false)))
+            } finally {
+              if ($null -ne $store) { try { $store.Close() } catch { } }
             }
             """;
     private static final String VBS_SIGN_SCRIPT = """
@@ -338,6 +377,52 @@ final class WindowsCadesSignatureProvider implements ZnackSignatureProvider {
             try { if (vbsScript != null) Files.deleteIfExists(vbsScript); } catch (Exception ignored) {}
             try { if (workDir != null) Files.deleteIfExists(workDir); } catch (Exception ignored) {}
         }
+    }
+
+    @Override
+    public String signXml(String xml) throws CryptoProException {
+        return CertificateSigningQueue.run(certificateSelector, () -> signXmlQueued(xml));
+    }
+
+    private String signXmlQueued(String xml) throws CryptoProException {
+        Path work = null;
+        try {
+            checkXml(xml, false);
+            if (certificateSelector.isBlank()) throw new CryptoProException(CryptoProErrorCode.TOKEN_OR_CERTIFICATE_ABSENT,"Select a certificate for GS1 XML signing");
+            work = Files.createTempDirectory("vncode-gs1-xml-");
+            Path input = work.resolve("application.xml"), output = work.resolve("signed.xml"), script = work.resolve("sign.ps1");
+            Files.writeString(input, xml, StandardCharsets.UTF_8);
+            Files.writeString(script, XML_SIGN_SCRIPT, StandardCharsets.UTF_8);
+            CryptoProCommandRunner.Result result = runWithPowerShellFallback(runner,"-File",new String[]{script.toString(),input.toString(),certificateSelector,output.toString()},timeout);
+            if (result.exitCode()!=0) throw new CryptoProException(CryptoProErrorCode.SIGNING_FAILED,"GS1 XML signing failed; check CryptoPro and the selected certificate");
+            if (!Files.isRegularFile(output)||Files.size(output)>2097152) throw new CryptoProException(CryptoProErrorCode.INVALID_SIGNATURE_OUTPUT,"Invalid GS1 XML signature output");
+            String signed = Files.readString(output, StandardCharsets.UTF_8);
+            checkXml(signed,true);
+            return signed;
+        } catch (CryptoProException failure) { throw failure; }
+        catch (Exception failure) { throw new CryptoProException(CryptoProErrorCode.SIGNING_FAILED,"GS1 XML signing failed"); }
+        finally {
+            if(work!=null){
+                for(String name:List.of("application.xml","signed.xml","sign.ps1"))try{Files.deleteIfExists(work.resolve(name));}catch(Exception ignored){}
+                try{Files.deleteIfExists(work);}catch(Exception ignored){}
+            }
+        }
+    }
+
+    private static void checkXml(String xml, boolean requireSignature) throws CryptoProException {
+        if(xml==null||xml.isBlank()||xml.length()>2097152)throw new CryptoProException(CryptoProErrorCode.INVALID_SIGNATURE_OUTPUT,"Invalid GS1 XML document");
+        try {
+            var factory=javax.xml.parsers.DocumentBuilderFactory.newInstance();factory.setNamespaceAware(true);
+            factory.setFeature("http://apache.org/xml/features/disallow-doctype-decl",true);
+            factory.setFeature("http://xml.org/sax/features/external-general-entities",false);
+            factory.setFeature("http://xml.org/sax/features/external-parameter-entities",false);
+            factory.setAttribute(javax.xml.XMLConstants.ACCESS_EXTERNAL_DTD,"");factory.setAttribute(javax.xml.XMLConstants.ACCESS_EXTERNAL_SCHEMA,"");
+            var builder=factory.newDocumentBuilder();builder.setErrorHandler(new org.xml.sax.helpers.DefaultHandler(){
+                @Override public void fatalError(org.xml.sax.SAXParseException error)throws org.xml.sax.SAXException{throw error;}
+            });
+            var document=builder.parse(new java.io.ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8)));
+            if(requireSignature&&document.getElementsByTagNameNS("http://www.w3.org/2000/09/xmldsig#","Signature").getLength()!=1)throw new IllegalArgumentException();
+        }catch(Exception invalid){throw new CryptoProException(CryptoProErrorCode.INVALID_SIGNATURE_OUTPUT,"Invalid GS1 XML document or signature");}
     }
 
     private CryptoProException failure(CryptoProCommandRunner.Result result) {

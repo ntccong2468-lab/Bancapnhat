@@ -3,6 +3,8 @@ package com.vncode.app.integration.znack;
 import com.vncode.app.integration.znack.signature.CryptoProErrorCode;
 import com.vncode.app.integration.znack.signature.CryptoProException;
 import com.vncode.app.integration.znack.signature.ZnackSignatureProvider;
+import com.vncode.app.integration.znack.signature.XmlSignatureProvider;
+import com.vncode.app.integration.znack.signature.CertificateSigningQueue;
 
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -17,7 +19,6 @@ import java.util.concurrent.ConcurrentHashMap;
 public final class ZnackSigningSession {
     static final String WAITING_MESSAGE = "Waiting for the user to select this shop before signing.";
 
-    private static final Object SIGNING_LOCK = new Object();
     private static final Set<Integer> AUTHORIZED_SHOPS = ConcurrentHashMap.newKeySet();
     private static final Set<Integer> BLOCKED_SHOPS = ConcurrentHashMap.newKeySet();
     private static final Set<PipelineKey> AUTHORIZED_PIPELINES = ConcurrentHashMap.newKeySet();
@@ -28,11 +29,21 @@ public final class ZnackSigningSession {
     }
 
     public static ZnackSignatureProvider guard(int shopId, ZnackSignatureProvider delegate) {
+        return guard(shopId,null,delegate);
+    }
+
+    public static ZnackSignatureProvider guard(int shopId, String fingerprint, ZnackSignatureProvider delegate) {
         if (delegate == null) throw new IllegalArgumentException("Signature provider is required.");
-        return (payload, context) -> {
-            // CryptoPro can show a native modal window. Serializing this boundary prevents two
-            // background pipelines from opening competing certificate/token dialogs.
-            synchronized (SIGNING_LOCK) {
+        return (payload,context)->guarded(shopId,fingerprint,()->delegate.sign(payload,context));
+    }
+
+    public static XmlSignatureProvider guardXml(int shopId,String fingerprint,XmlSignatureProvider delegate) {
+        if(delegate==null)throw new IllegalArgumentException("XML signer is required");
+        return xml->guarded(shopId,fingerprint,()->delegate.signXml(xml));
+    }
+
+    private static <T> T guarded(int shopId,String fingerprint,CertificateSigningQueue.Work<T> work)throws CryptoProException {
+        return CertificateSigningQueue.run(fingerprint,()->{
                 PipelineKey pipeline = CURRENT_PIPELINE.get();
                 boolean matchingPipeline = pipeline != null && pipeline.shopId() == shopId;
                 if (BLOCKED_SHOPS.contains(shopId)
@@ -43,14 +54,13 @@ public final class ZnackSigningSession {
                     throw new SigningDeferredException(WAITING_MESSAGE);
                 }
                 try {
-                    return delegate.sign(payload, context);
+                    return work.run();
                 } catch (CryptoProException error) {
                     BLOCKED_SHOPS.add(shopId);
                     if (matchingPipeline) WAITING_PIPELINES.add(pipeline);
                     throw error;
                 }
-            }
-        };
+        });
     }
 
     public static void authorizePipeline(int shopId, long pipelineId) {

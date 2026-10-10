@@ -70,7 +70,7 @@ public class ZnackPurchaseCoordinator {
                 ? ZnackSignatureProvider.unconfigured()
                 : new CryptoProSignatureProvider(settings.cryptcpPath(), settings.signerCertificate(),
                 Duration.ofSeconds(settings.resolvedCryptoProTimeoutSeconds()));
-        ZnackSignatureProvider signer = ZnackSigningSession.guard(repository.shop().shopId(), cryptoProSigner);
+        ZnackSignatureProvider signer = ZnackSigningSession.guard(repository.shop().shopId(), settings.signerCertificate(), cryptoProSigner);
         ZnackApiClient api = new ZnackApiClient();
         ZnackAuthService auth = new ZnackAuthService(api, signer);
         return new ZnackPurchaseCoordinator(repository, new ZnackKizOrderService(api, auth, signer, repository),
