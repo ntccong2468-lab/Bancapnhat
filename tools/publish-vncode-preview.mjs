@@ -76,7 +76,7 @@ async function main(runId,tag) {
   liveMarketplaceMutations:false,signedUpdateManifestPublished:false,blocked:status.blocked,nativeSmoke:native,upgradeSmoke:upgrade,previewUpgradeSmoke:previewUpgrade,latestPreviewUpgradeSmoke:latestPreviewUpgrade,currentPreviewUpgradeSmoke:currentPreviewUpgrade,gs1Smoke};
  await writeFile(path.join(directory,'build-info.json'),JSON.stringify(info,null,2)+'\n');
  await writeFile(path.join(directory,'feature-status.json'),JSON.stringify(status,null,2)+'\n');
- const notes=`# VN code ${VERSION} — bản thử nghiệm\n\nBộ cài nâng cấp cho cùng ứng dụng VN code Windows, giữ định danh và dữ liệu VN code đã cài. Đã đối chiếu ảnh WCode 1.2.0 và release Wbcode ${status.upstreamRelease??'1.3.0'}; chưa tương đương toàn bộ chức năng của các bản này.\n\n`+
+ const notes=`# VN code ${VERSION} — bản thử nghiệm\n\nBộ cài nâng cấp cho cùng ứng dụng VN code Windows, giữ định danh và dữ liệu VN code đã cài. Dự án do Nguyễn Thành Công phát triển và quản lý. Phạm vi đã triển khai và còn thiếu được ghi dưới đây.\n\n`+
   `## Thay đổi giao diện\n\n${(status.changes??[]).map(x=>`- ${x}`).join("\n")}\n\n`+
   `## Đã có trong bản này\n\n${(status.implemented??['Giữ các chức năng VN code của bản đã phát hành trước.']).map(x=>`- ${x}`).join('\n')}\n\n`+
   `## Chưa hoàn tất\n\n${status.blocked.map(x=>`- ${x}`).join('\n')}\n\n`+

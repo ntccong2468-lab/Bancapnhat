@@ -1,5 +1,7 @@
 # Báo cáo mở rộng VN code sang Ozon
 
+Tài liệu kỹ thuật lịch sử của luồng tích hợp. Các bằng chứng live kế thừa bên dưới không chứng minh đã nghiệm thu bằng tài khoản VN code hiện tại; xem trạng thái release đang dùng. Ghi nhận tác giả thành phần ở NOTICE.
+
 > Ngày nghiên cứu: 2026-08-18
 > Phạm vi: VN code desktop, Wildberries FBS hiện tại và Ozon Seller API
 > Trạng thái: Ozon FBS Standard đã có production UI JavaFX; local/mock gate và live Java-core gate đã pass qua KIZ, ship và nhãn; Seller UI, Windows native và canary vẫn chờ xác nhận riêng
@@ -567,7 +569,7 @@ Local verification của bản triển khai:
 - `git diff --check`: pass;
 - credential-pattern scan giới hạn ở source/UI/docs và loại trừ `.env`, `kiz.txt`, database/build artifacts: không phát hiện credential literal.
 
-Live acceptance gate của bản triển khai này: **đã chạy hết prepare/KIZ, ship và tải nhãn chính thức** trong app-data cô lập `/Users/rupphi/WCode-live-acceptance`. Posting đang ở `awaiting_deliver`; PDF được publish atomically và render kiểm tra ở mục 19. Chi tiết đã làm sạch nằm trong thư mục `evidence` của app-data live.
+Live acceptance gate của bản triển khai này: **đã chạy hết prepare/KIZ, ship và tải nhãn chính thức** trong app-data cô lập `[thư mục kiểm thử lịch sử]`. Posting đang ở `awaiting_deliver`; PDF được publish atomically và render kiểm tra ở mục 19. Chi tiết đã làm sạch nằm trong thư mục `evidence` của app-data live.
 
 Checklist cho lần live gate được ủy quyền:
 
@@ -586,7 +588,7 @@ Rollout chỉ được chuyển internal → canary → production sau khi check
 
 ### Phạm vi và cô lập dữ liệu
 
-- Chủ shop đã yêu cầu live test flow từ đơn mới đến tick KIZ. Test dùng Seller API thật nhưng tạo app-data riêng tại `/Users/rupphi/WCode-live-acceptance`; database production `~/WCode/database.db` không bị migrate hoặc ghi.
+- Chủ shop đã yêu cầu live test flow từ đơn mới đến tick KIZ. Test dùng Seller API thật nhưng tạo app-data riêng tại `[thư mục kiểm thử lịch sử]`; database production `~/WCode/database.db` không bị migrate hoặc ghi.
 - Credential được parser allowlist đọc từ `.env`, không `source` shell, không in hoặc ghi vào evidence. App-data live có quyền owner-only; report chỉ dùng Client ID đã mask.
 - Read-only discovery đồng bộ 102 catalog product và 351 posting trong cửa sổ ban đầu; account có 41 role, một warehouse và quyền exemplar/ship/label. Có bốn posting optional-mark quantity 1; chỉ alias `ba56657eeb22`, SKU suffix `3583` khớp mapping đã có bằng chứng với GTIN của file KIZ.
 - Runner đọc dòng 2, không sửa `kiz.txt`, không đưa raw KIZ vào log/evidence. Fingerprint rút gọn là `c5c71ccd10bf`; dòng 1 và fingerprint retired `acab07e4d777` bị chặn cứng.
@@ -612,7 +614,7 @@ Client được bổ sung telemetry chỉ giữ `code/error_code` hoặc diagnos
 | Label | `READY`; PDF Ozon 73.422 byte, hai trang compact khoảng 58x40 mm, render không cắt/mờ |
 | Seller UI | chưa xác minh vì Chrome extension chưa bắt tay được dù browser/extension/native host đều hiện diện |
 
-Evidence JSON đã redacted được ghi atomically theo phase tại `/Users/rupphi/WCode-live-acceptance/evidence`; bản mới nhất là `ozon-live-latest.json` với phase `label`. PDF chính thức nằm tại `output/pdf/OZON-ba56657eeb22.pdf`; bản copy có cùng SHA-256 với file atomic export của live app-data.
+Evidence JSON đã redacted được ghi atomically theo phase tại `[thư mục kiểm thử lịch sử]/evidence`; bản mới nhất là `ozon-live-latest.json` với phase `label`. PDF chính thức nằm tại `output/pdf/OZON-ba56657eeb22.pdf`; bản copy có cùng SHA-256 với file atomic export của live app-data.
 
 ### Ship và label sau confirmation ngày 2026-08-19
 

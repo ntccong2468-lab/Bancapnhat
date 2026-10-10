@@ -1,7 +1,7 @@
 # Bộ cài thử Windows x64 — 06/10/2026
 
 Đã tạo EXE trên runner Windows theo yêu cầu của người dùng. Bộ cài giữ tên
-và installer identity WCode hiện có, đóng gói Java runtime kèm theo.
+và installer identity ứng dụng tham chiếu hiện có, đóng gói Java runtime kèm theo.
 
 - Nhánh: `feat/windows-gtin-sync-20261006` tại `ntccong2468-lab/Vncode`.
 - Commit build: `05ff94424cb1335bceadb9390589379148cde953`.
@@ -26,7 +26,7 @@ SHA-256 của **EXE**, đã đối chiếu với checksum do runner Windows tạ
 
 ## Cài thử
 
-Tải ZIP ở link artifact, giải nén, đóng WCode đang chạy rồi mở
+Tải ZIP ở link artifact, giải nén, đóng ứng dụng tham chiếu đang chạy rồi mở
 `WCode-1.1.32-Ozon-Test.exe` trên Windows x64. Không cần cài Java riêng.
 Đây là bộ cài **chưa ký Authenticode**, chưa được coi là bản phát hành chính thức.
 

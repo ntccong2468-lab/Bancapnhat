@@ -89,14 +89,14 @@ async function main(runId) {
     javaFxmlTests:{run:javaTests,failures:0,errors:0,skipped:0,platforms:['windows']},
     nodeContracts:{run:nodeTests,failures:0},nativeSmoke:smoke,sideBySideSmoke:isolation,upgradeSmoke:upgrade,
     installer:{filename:name,originalArtifactFilename:original,bytes:bytes.length,sha256:digest,architecture:'x86_64',authenticodeSigned:false},
-    sourceBaseline:'WCode1.1.32 + existing Vncode GTIN module',publicRecoveryChangelog:'WCode1.1.75',publicFeatureChangelog:'WCode1.2.0',
-    exactWcode1_1_75SourceIntegrated:false,liveWbOzonGtinWriteEnabled:false,signedUpdateManifestPublished:false};
+    projectDeveloper:'Nguyễn Thành Công',
+    liveWbOzonGtinWriteEnabled:false,signedUpdateManifestPublished:false};
   await writeFile(path.join(directory,'build-info.json'),JSON.stringify(info,null,2)+'\n');
   const notes=execFileSync('git',['show',`${sha}:docs/releases/VN-code-${version}.md`],{encoding:'utf8'})+
     `\n## Bộ cài và kiểm tra\n\nTải \`${name}\` bên dưới rồi chạy; Java đã được đóng gói kèm.\n\n`+
     `- ${javaTests} kiểm thử Java/JavaFX, ${nodeTests} Node contracts qua trên Windows; 0 thất bại/lỗi/bỏ qua.\n`+
     `- Native Windows launcher và migration schema 3 → 4 giữ GTIN/feed/good ID/cờ WB; integrity/foreign keys và snapshot sạch.\n`+
-    `- Cài/gỡ VN code song song với WCode 1.1.75 thật; giữ nguyên executable, dữ liệu và registration của WCode; VN code bắt đầu trống.\n`+
+    `- Cài/gỡ VN code độc lập; kiểm tra registration, dữ liệu riêng và gỡ an toàn.\n`+
     `- [CI Windows](${runUrl}), commit \`${sha}\`.\n`+
     `- SHA-256 EXE: \`${digest}\`.\n`+
     `- Đây là prerelease chưa ký Authenticode; tải/cài thủ công. Live GS1/CryptoPro/seller/máy in chưa nghiệm thu; thêm/thay GTIN production WB/Ozon vẫn bị khóa.\n`;

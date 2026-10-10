@@ -25,7 +25,7 @@ Chức năng thêm/thay GTIN trên seller WB/Ozon **chưa sẵn sàng dùng th�
 | EXE Windows x64 | `build.bat exe` thành công; tải và xác minh SHA-256, PE x86-64; xem [báo cáo bộ cài thử](2026-10-06-windows-test-installer.md) |
 | Chạy màn hình GTIN với fixture | Render JavaFX thực 1440×900, tiếng Việt, trên Linux; preview thay mã hiển thị và nút gửi bị khóa; có ảnh PNG đi kèm bàn giao |
 
-Nguồn production đọc National Catalog và sản phẩm sàn qua các client WCode
+Nguồn production đọc National Catalog và sản phẩm sàn qua các client tích hợp
 hiện có. Chưa có payload seller thật để kiểm chứng độ phủ thuộc tính. Reader
 không lấy đủ màu/size hoặc gặp cấu trúc National Catalog chưa biết sẽ không
 được dùng để tự ghép chắc chắn. Ánh xạ thủ công vẫn phải chọn GTIN đã xác minh
@@ -72,7 +72,7 @@ build.bat msi
 
 Các gói local chưa được coi là signed release. Giữ cấu hình installer identity,
 update signature và bảo vệ app-data trong [runbook](../javafx-release-runbook.md).
-README có link riêng tới bộ cài thử GTIN; các link release WCode cũ không chứa
+README có link riêng tới bộ cài thử GTIN; các link release ứng dụng tham chiếu cũ không chứa
 module mới.
 
 Smoke-test launcher với app-data tạm riêng, không dùng database seller. Kiểm

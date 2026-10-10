@@ -271,7 +271,7 @@ jobs:
             if ($certificate -and (Test-Path $certificate)) { Remove-Item $certificate -Force }
           }
 
-      - name: Verify independent installation beside WCode and safe uninstall
+      - name: Verify independent installation and safe uninstall
         shell: pwsh
         run: ./tools/windows-side-by-side-smoke.ps1 -Version $env:APP_VERSION -MsiPath release/VN-code.msi
 
@@ -291,7 +291,7 @@ jobs:
               'Xuất tem KIZ 58×40 nét hơn, có DataMatrix và logo Честный ЗНАК',
               'Hướng dẫn người dùng ký điều khoản mới khi Znack trả lỗi 3055',
               'Tự dọn supply WB cũ khi WB xác nhận supply không còn tồn tại',
-              'Giữ nguyên dữ liệu người dùng khi nâng cấp từ WCode 1.1.9 trở lên'
+              'Giữ dữ liệu VN code khi nâng cấp phiên bản ứng dụng'
             )
             node tools/update-manifest.mjs release/VN-code.msi release/update-manifest.json $env:APP_VERSION
           } else {

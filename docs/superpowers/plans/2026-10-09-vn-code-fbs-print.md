@@ -1,20 +1,20 @@
-# Wbcode 1.3.1 Follow-up Implementation Plan
+# VN code FBS Print Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 
-**Goal:** Quan sát Wbcode 1.3.1 và cập nhật luồng yêu cầu in FBS đang đồng bộ cho cùng VN code.
+**Goal:** Rà soát luồng hiện có và cập nhật luồng yêu cầu in FBS đang đồng bộ cho cùng VN code.
 
 **Architecture:** Giữ JavaFX/HomeController và API hiện có. Một trạng thái yêu cầu in theo token shop/supply chỉ được tiêu thụ sau lượt tải hiện tại thành công; thất bại hoặc đổi ngữ cảnh hủy yêu cầu. Không thay thế barcode WB bằng GTIN thiếu nguồn xác minh.
 
 **Tech Stack:** Java 25, JavaFX, Maven, PowerShell Windows, Node 22.
 
-**Spec:** `docs/superpowers/specs/2026-10-09-wbcode-131-follow-up.md`
+**Spec:** `docs/superpowers/specs/2026-10-09-vn-code-fbs-print.md`
 
 ## Global Constraints
 
 - Cùng ứng dụng VN code, UUID `8CBBA0E2-6E73-4F56-9101-6BC0948D3C72`, dữ liệu VNcodeData riêng.
 - Không cập nhật lại binary/tag 1.2.1 đã phát hành; dùng 1.2.2 cho thay đổi production mới.
-- Không nhập shop/license WCode hoặc gửi marketplace mutation thật trong kiểm tra.
+- Không nhập shop/license ứng dụng tham chiếu hoặc gửi marketplace mutation thật trong kiểm tra.
 - Giữ layout đã duyệt và hỗ trợ RU/EN/VI/ZH; dùng thông báo `supply.loading_orders` hiện có khi chờ in.
 - Preview ghi rõ FBO GTIN và GS1 chưa tương đương 1.3.1; cài thủ công.
 

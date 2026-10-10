@@ -1,135 +1,47 @@
 # VN code
 
-Repository này phát triển **bản cập nhật VN code 1.3.0 Preview — GS1** trên nhánh `update/vn-code-wbcode-132`: https://github.com/ntccong2468-lab/Bancapnhat.
-Đợt mới đối chiếu Wbcode **1.3.2**, thêm module GS1 độc lập, duyệt XML trước ký, hộp thư riêng và logo VN trắng nền đen; bỏ menu TN VED riêng. Xem [hướng dẫn GS1 và ảnh giao diện](docs/releases/VN-code-1.3.0.md), [nghiên cứu nguồn/tài liệu](docs/research/2026-10-10-gs1-wbcode-132.md) và [phần đã triển khai/còn thiếu](docs/releases/VN-code-1.3.0-status.json).
-Bản cập nhật giữ cùng định danh bộ cài và dữ liệu VN code đã cài; nâng cấp từ 1.1.34, 1.2.0 / 1.2.1 / 1.2.2 Preview đã đạt trên Windows. Repository Vncode gốc được giữ nguyên.
-[Tải bộ cài Windows x64 1.3.0 Preview](https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.3.0-preview.1/VN-code-1.3.0-preview.1-Windows-x64.exe), [Release](https://github.com/ntccong2468-lab/Bancapnhat/releases/tag/v1.3.0-preview.1). Kiểm chứng Windows đạt **648 kiểm thử Java/JavaFX và 33 kiểm thử Node**, launcher, migration, DPAPI thực, cài cạnh WCode và bốn đường nâng cấp giữ dữ liệu: [CI Windows](https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/38028666240), [bằng chứng và quyết định triển khai](docs/validation/2026-10-10-vn-code-gs1.md). Đây là bản thử cài thủ công, chưa nghiệm thu GS1/CryptoPro/SMTP/IMAP thật, chưa hoàn tất toàn bộ chức năng Wbcode mới nhất và chưa bật tự cập nhật.
+**VN code là ứng dụng Windows do Nguyễn Thành Công phát triển và quản lý**, phục vụ người bán trên **Wildberries** và **Ozon**.
 
-[Mô tả bản cập nhật 1.2.0](docs/releases/VN-code-1.2.0.md), đối chiếu WCode/Wbcode 1.2.0 ngày 09/10/2026, phân biệt các phần đã triển khai và đang phát triển. Module TN VED đã có danh mục gốc, tra cứu, nhập CSV/JSON và sao lưu; các phần liên kết sản phẩm/AI/marking/Yandex đang phát triển.
+Repository này chứa các bản cập nhật của cùng ứng dụng VN code, giữ định danh bộ cài và dữ liệu đã cài.
 
-Bản **1.2.2** giữ bố cục đã duyệt, bổ sung in FBS sau khi đồng bộ thành công, chống nhấp trùng và hộp thoại của shop/lô cũ. Bộ cài chính thức Wbcode **1.3.1** đã mở thử trên Windows; mã nguồn công khai vẫn là 1.1.32. Kiểm tra đạt **607 kiểm thử Java/JavaFX và 31 kiểm thử Node**, mở launcher, migration, cài cạnh WCode và ba đường nâng cấp giữ dữ liệu: [CI Windows](https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/37984754861), [bằng chứng](docs/validation/vn-code-1.2.2/local-verification.json).
+## Tải và sử dụng
 
-VN code là ứng dụng desktop JavaFX cho người bán **Wildberries** và **Ozon FBS**.
+[Tải VN code 1.3.0 Preview — Windows x64](https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.3.0-preview.1/VN-code-1.3.0-preview.1-Windows-x64.exe) · [Bản phát hành và checksum](https://github.com/ntccong2468-lab/Bancapnhat/releases/tag/v1.3.0-preview.1)
 
-- Quản lý nhiều shop theo marketplace, không dùng nhầm credential giữa WB và Ozon.
-- Đồng bộ supply/order Wildberries và posting Ozon FBS.
-- Quản lý kho KIZ/Znack, mapping GTIN, gán và gửi KIZ lên marketplace.
-- In nhãn, barcode, trang KIZ và phiếu nhặt hàng PDF.
-- Chuẩn bị đơn, ship và tải nhãn vận chuyển chính thức cho Ozon FBS Standard.
-- Lưu lịch sử in, template và dữ liệu cục bộ trong SQLite.
+Đóng VN code rồi chạy EXE để nâng cấp. Java được đóng gói kèm. Bộ cài chưa ký Authenticode; bản Preview cài thủ công và chưa bật tự cập nhật. Bản trước: [VN code 1.1.34](https://github.com/ntccong2468-lab/Vncode/releases/tag/v1.1.34).
 
-Dự án: https://github.com/ntccong2468-lab/Vncode.
-Do Nguyễn Thành Công phát triển
+Chương trình dùng `%LOCALAPPDATA%\VNcodeApp`, dữ liệu dùng `%LOCALAPPDATA%\VNcodeData`. Bản cá nhân miễn phí; người dùng thiết lập shop, tài khoản nghiệp vụ và chứng thư của mình. Nâng cấp giữ dữ liệu, mẫu tem và lịch sử VN code.
 
-## Công nghệ
+## Chức năng
 
-| Thành phần | Công nghệ |
-|---|---|
-| Desktop UI | JavaFX 25, FXML, MaterialFX, Ikonli |
-| Core | Java 25, Maven |
-| Dữ liệu | SQLite |
-| Marketplace API | OkHttp, Gson |
-| PDF và barcode | iText 8, PDFBox, ZXing |
-| Excel | Apache POI |
+- Quản lý nhiều shop; kết nối WB và Ozon theo đúng marketplace.
+- Đồng bộ đơn/supply WB và posting Ozon FBS Standard.
+- Kho KIZ/Znack, mapping GTIN, gán mã, in barcode/Data Matrix và nhãn PDF.
+- Thiết kế mẫu tem, lịch sử in và xuất dữ liệu.
+- GS1 trong bản 1.3.0 Preview: thành viên/GCP/GLN, hồ sơ National Catalog, duyệt và ký XML CryptoPro, hộp thư riêng, hóa đơn và chứng từ.
+- TN VED giữ lõi tra cứu và dữ liệu nội bộ; phần liên kết sâu trong tác vụ còn đang phát triển.
 
-## Tải bản Windows
+## Kiểm chứng và giới hạn
 
-[VN code 1.3.0 Preview — Windows x64](https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.3.0-preview.1/VN-code-1.3.0-preview.1-Windows-x64.exe), [trang phát hành và báo cáo kiểm chứng](https://github.com/ntccong2468-lab/Bancapnhat/releases/tag/v1.3.0-preview.1).
-Đóng VN code rồi chạy EXE để nâng cấp cùng ứng dụng. Java được đóng gói kèm; bộ cài chưa ký Authenticode. Xem [mô tả và giới hạn](docs/releases/VN-code-1.3.0.md).
-Bản trước để đối chiếu: [1.2.2 Preview](https://github.com/ntccong2468-lab/Bancapnhat/releases/tag/v1.2.2-preview.1), [1.2.1 Preview](https://github.com/ntccong2468-lab/Bancapnhat/releases/tag/v1.2.1-preview.1), [1.2.0 Preview](https://github.com/ntccong2468-lab/Bancapnhat/releases/tag/v1.2.0-preview.1), [1.1.34](https://github.com/ntccong2468-lab/Vncode/releases/tag/v1.1.34).
-Cập nhật GTIN thật lên WB/Ozon trong module đồng bộ vẫn bị khóa chờ xác minh API.
+Bộ cài 1.3.0 Preview đạt **648 kiểm thử Java/JavaFX và 33 kiểm thử công cụ** trên [Windows CI](https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/38028666240). Launcher, migration, DPAPI thực, cài/gỡ độc lập và nâng cấp giữ dữ liệu từ 1.1.34 / 1.2.0 / 1.2.1 / 1.2.2 đều đã được kiểm tra.
 
-VN code cài ở `%LOCALAPPDATA%\VNcodeApp`, dùng dữ liệu riêng ở `%LOCALAPPDATA%\VNcodeData` và bắt đầu với danh sách shop trống. VN code là bản cá nhân miễn phí, không cần giấy phép WCode; thiết lập tài khoản shop và chứng thư riêng trong app mới. Cài hoặc gỡ VN code không thay thế WCode và không tự nhập dữ liệu WCode.
+Chưa nghiệm thu bằng chứng thư doanh nghiệp, SMTP/IMAP, shop hoặc máy in thật. Thêm/thay GTIN production WB/Ozon vẫn bị khóa chờ hợp đồng API đã xác minh. Chỉnh sửa sản phẩm hàng loạt, FBO GTIN/KIZ và các phần còn lại của kế hoạch cập nhật chưa hoàn tất. Xem [hướng dẫn và phạm vi bản 1.3.0](https://github.com/ntccong2468-lab/Bancapnhat/blob/HEAD/docs/releases/VN-code-1.3.0.md).
 
-VN code chỉ dùng thuộc tính `vncode.appdata.dir` và `vncode.data.profile`. Cả kênh cập nhật chính và bản thử đều nằm trong repository này.
+## Công nghệ và phát triển
 
-Bản portable có `check-portable.bat` để thu thập cấu trúc package và startup log khi cần hỗ trợ.
-
-## Phát triển
-
-Yêu cầu JDK 25. Node.js 22 chỉ cần cho các contract test của pipeline phát hành.
+Java 25, JavaFX 25/FXML, Maven, SQLite, OkHttp/Gson, CryptoPro, Jakarta Mail/Angus, iText/PDFBox, ZXing và Apache POI. Node.js 22 dùng cho kiểm thử công cụ phát hành. Mỗi nhánh giữ phiên bản và phạm vi chức năng riêng trong `pom.xml`.
 
 ```bash
-# Chạy toàn bộ Java/FXML test
-./mvnw clean verify
-
-# Chạy app JavaFX với app-data thật
+./mvnw -B clean verify
 ./mvnw javafx:run
-
-# Chạy app với dữ liệu thử cô lập
-./mvnw -Dvncode.appdata.dir=/tmp/vncode-smoke javafx:run
-
-# Kiểm tra contract build/release
 node --test tools/*.test.mjs
 ```
 
-Đóng gói local:
+Đóng gói Windows bằng `build.bat app-image`, `build.bat exe` hoặc `build.bat msi`. Dùng dữ liệu thử cô lập khi phát triển; không đưa database, khóa seller, mật khẩu hoặc KIZ thật vào GitHub.
 
-```bash
-build.bat app-image   # Windows portable
-build.bat exe         # Windows EXE chưa ký
-build.bat msi         # Windows MSI chưa ký
-./build.sh app-image  # macOS/Linux app-image
-./build.sh dmg        # macOS DMG chưa ký/notarize
-./build.sh deb        # Linux DEB
-```
+## Dự án và tác giả
 
-Bản phát hành chính thức lấy từ workflow [release.yml](.github/workflows/release.yml).
-Bộ cài thử nhánh GTIN ở trên lấy từ workflow [build-java.yml](.github/workflows/build-java.yml).
-Workflow phát hành kiểm tra cài và gỡ VN code bên cạnh WCode `1.1.75` thật trên runner Windows tạm; xác minh chương trình, dữ liệu và registration WCode giữ nguyên. VN code có installer identity riêng, không chạy migration từ dữ liệu WCode. Authenticode và signed update manifest được
-bật khi các secret tương ứng đã cấu hình đầy đủ; thiếu cả nhóm secret không chặn build, nhưng cấu
-hình dở dang sẽ bị từ chối. Version duy nhất nằm trong `pom.xml`; tag phát hành phải khớp
-`vMAJOR.MINOR.PATCH`.
-
-Xem [runbook phát hành JavaFX](docs/javafx-release-runbook.md) và
-[báo cáo triển khai Ozon](docs/ozon-marketplace-expansion-report.md).
-
-## Nhánh ứng dụng Windows với module GTIN
-
-Nhánh [feat/windows-gtin-sync-20261006](https://github.com/ntccong2468-lab/Vncode/tree/feat/windows-gtin-sync-20261006)
-bổ sung màn hình **GTIN WB / Ozon** trong ứng dụng
-JavaFX hiện có. Giữ các luồng VN code, thêm đọc GTIN đăng ký từ National Catalog,
-đối chiếu article/màu/size, ánh xạ nội bộ, xem trước thêm/thay, lịch sử CSV/XLSX
-và hàng đợi SQLite có tạm dừng, hủy dòng chưa gửi, phục hồi và đối soát.
-
-**Chưa bật cập nhật GTIN thật trên WB hoặc Ozon.** Tài liệu API chính thức bị
-HTTP 403 trong môi trường cloud, nên adapter production chặn cả thêm lẫn thay.
-Xem trước không gửi dữ liệu; nút xác nhận bị khóa khi hợp đồng API chưa được
-xác minh. Kiểm thử hàng đợi dùng adapter fixture, không chứng minh cập nhật
-thành công trên tài khoản seller. Dữ liệu thiếu thuộc tính hoặc trạng thái đăng
-ký chắc chắn không được ghép tự động.
-
-Kiểm tra ngày 06/10/2026 trên runner Windows với JDK 25: `clean verify` qua
-**518 kiểm thử**, Node qua **18 kiểm thử**, đóng gói EXE thành công.
-EXE đã tải xuống và đối chiếu SHA-256; cài đặt và chạy thử trên máy người dùng
-đang chờ nghiệm thu. Xem [báo cáo bộ cài thử](docs/validation/2026-10-06-windows-test-installer.md),
-[báo cáo chức năng](docs/validation/vn-code-feature-parity.md),
-[hướng dẫn Windows và trạng thái nghiệm thu](docs/validation/windows-gtin-acceptance.md)
-và [trở ngại hợp đồng API](docs/gtin-marketplace-api-contracts.md).
-Lượt kiểm tra trước khi đẩy mã đã sửa lỗi xóa shop làm mất tác vụ GTIN chưa có
-kết quả chắc chắn; [báo cáo kiểm tra lại](docs/validation/2026-10-06-pre-push-check.md)
-ghi rõ kiểm thử và phạm vi chưa xác minh.
-
-GTIN luôn được giữ dạng chuỗi trong SQLite và XLSX. CSV dành cho Excel có BOM
-UTF-8, escape công thức và thêm dấu nháy đơn trước giá trị toàn chữ số để giữ
-số 0 đầu; bộ đọc CSV thông thường sẽ thấy dấu nháy đơn đó. Dùng XLSX khi cần
-GTIN nguyên văn trong ô kiểu chuỗi.
-
-## An toàn dữ liệu khi nâng cấp
-
-- Trên Windows, `1.1.10` sao chép/migrate dữ liệu legacy từ `%LOCALAPPDATA%\VN code` sang thư mục
-  dữ liệu riêng `%LOCALAPPDATA%\VNcodeData`; binary nằm tại `%LOCALAPPDATA%\VNcodeApp`.
-- Migration schema chạy tăng dần và snapshot SQLite được tạo, verify trước khi ghi.
-- Binary cũ fail closed khi gặp schema mới hơn; không tự hạ schema hoặc xóa dữ liệu.
-- Marketplace của shop là bất biến; credential Ozon không bao giờ được gửi tới endpoint WB và ngược lại.
-- Không đưa database, WAL, API key hay KIZ thật vào artifact/repository.
-
-## Phạm vi Ozon hiện tại
-
-Hỗ trợ Ozon FBS Standard, một package chứa đủ các item/quantity của posting. Chưa hỗ trợ rFBS, FBO,
-partial package, multibox, price/stock và carriage/act. Các trường hợp ngoài phạm vi bị chặn thay vì
-gửi mutation không chắc chắn.
-
-## License
-
-VN code dùng theo cấu hình cá nhân miễn phí, không cần giấy phép WCode. Ghi nhận tác giả của phần mã nguồn nền: © TuanDev.
+- Phát triển và quản lý: **Nguyễn Thành Công**.
+- Mã VN code: https://github.com/ntccong2468-lab/Vncode.
+- Các bản cập nhật: https://github.com/ntccong2468-lab/Bancapnhat.
+- Ghi nhận bản quyền thành phần: [NOTICE](NOTICE.md).

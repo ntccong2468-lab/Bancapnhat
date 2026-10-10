@@ -4,14 +4,6 @@ Ngày đối chiếu: 2026-10-08 UTC. Đây là tài liệu triển khai bản c
 
 ## Nguồn và mức xác minh
 
-| Phần | Nguồn | Kết quả |
-| --- | --- | --- |
-| Thay đổi WCode | [Release 1.2.0](https://github.com/rupphi/relatest-wcode/releases/tag/v1.2.0) | Mô tả công khai; không cung cấp mã nguồn hoặc hợp đồng API |
-| WB FBS | [OpenAPI tiếng Nga chính thức](https://dev.wildberries.ru/api/swagger/yaml/ru/03-orders-fbs.yaml?region=ru), [tiếng Anh](https://dev.wildberries.ru/api/swagger/yaml/en/03-orders-fbs.yaml?region=ru) | HTTP 200; lấy trực tiếp từ dev.wildberries.ru |
-| Ozon | [URL Swagger gốc](https://docs.ozon.ru/api/seller/swagger.json), [bản sao](https://github.com/dev-ik/seller-sdk/blob/main/docs/ozon/swagger.json), [metadata](https://github.com/dev-ik/seller-sdk/blob/main/docs/ozon/swagger.meta.json) | URL gốc lặp chuyển hướng trong môi trường này. Bản sao ghi ngày 2026-08-14; SHA-256 khớp metadata. Không coi bản sao là tài liệu trực tiếp mới nhất |
-| Ozon, đối chiếu | [SDK rFBS](https://github.com/easycb/easycb-go/blob/master/ozon/rfbs_posting.go), [tài liệu giao rFBS](https://github.com/DragonSigh/ozon-seller-api-docs/blob/master/rfbs-delivery.md) | Đối chiếu phạm vi API; không phải nguồn chính thức hiện hành |
-| Честный ЗНАК | [True API chính thức](https://docs.crpt.ru/gismt/True_API/) mục 10.7 | HTTP 200; đọc trực tiếp mô tả `/nk/categories` |
-
 SHA-256 của bản đã đọc:
 
 - WB OpenAPI RU: `dc3a4b37c62038b3eedd1ff423700b935fd2bd6651ec00a8de69dca6161812e0`.
@@ -43,11 +35,11 @@ Biểu mẫu đã nối vào trang supply, lưu lựa chọn theo shop và luôn
 - `POST /v4/posting/fbs/ship`: đóng gói, chuyển sang `awaiting_deliver`. HTTP 200 cần được đối soát bằng `/v3/posting/fbs/get`; `ship_failed` không phải thành công.
 - `POST /v2/posting/fbs/awaiting-delivery`: chuyển **đơn đang tranh chấp** sang chờ giao. Không phải API giao tất cả đơn đóng gói.
 - `POST /v2/fbs/posting/delivering`: đúng đường dẫn tìm được, thuộc nhóm **DeliveryrFBS**, dành cho dịch vụ vận chuyển bên thứ ba. Request là `posting_number` dạng mảng. Kết quả từng đơn có `result` và `error`; đổi trạng thái bất đồng bộ, phải đọc trạng thái trước và đối soát sau.
-- Chưa có bằng chứng rằng `/v2/fbs/posting/delivering` được phép dùng cho mọi đơn FBS do Ozon vận chuyển. Không gọi endpoint này cho FBS thông thường chỉ để làm giao diện giống mô tả WCode.
+- Chưa có bằng chứng rằng `/v2/fbs/posting/delivering` được phép dùng cho mọi đơn FBS do Ozon vận chuyển. Không gọi endpoint này cho FBS thông thường khi hợp đồng chưa được xác minh.
 
 VN code hiện chặn yêu cầu `non_standard_fbs` ở quy trình đóng gói. Nếu hỗ trợ rFBS cần mở rộng mô hình điều kiện cho phép, nhật ký đối soát và kiểm thử; không bỏ chặn chung. Chức năng chọn nhiều đơn/nhắc in nhãn sẽ chỉ bật thao tác ghi khi phạm vi được xác minh.
 
-## TN VED cấp 1: đã phân biệt hai khái niệm, chưa xác minh quy tắc WCode
+## TN VED cấp 1: đã phân biệt hai khái niệm, chưa xác minh quy tắc nghiệp vụ
 
 True API chính thức mô tả:
 

@@ -5,8 +5,8 @@
     "Ozon: delivering contract found for third-party rFBS only; verify standard-FBS behavior and implement selection/label reminder",
     "Znack: automatic GTIN reallocation is not enabled solely on a section change; verified business rule/recovery remains required",
     "TN VED: catalog/import/search/backup core implemented; product mappings, AI provider, marking rules, Yandex and integrated restore remain incomplete",
-    "Wbcode 1.3.0: GS1 RUS membership/mail/invoices/application autofill and per-certificate signing changes have no verified public source/API contract; not implemented in this preview",
-    "Wbcode 1.3.1: FBO printing only WB-card GTIN, missing-GTIN list/column and KIZ purchase-stage error report have not been implemented or verified; existing FBO barcode behavior is retained in this preview"
+    "GS1 RUS membership/mail/invoices/application autofill and per-certificate signing changes have no verified public source/API contract; not implemented in this preview",
+    "FBO printing only WB-card GTIN, missing-GTIN list/column and KIZ purchase-stage error report have not been implemented or verified; existing FBO barcode behavior is retained in this preview"
   ],
   "changes": [
     "Dashboard trang chào với sáu thẻ chức năng, cột tin tức và giao diện tối theo ảnh tham chiếu.",
@@ -20,5 +20,5 @@
     "FBS: có thể yêu cầu in ngay khi đang tải lô; chờ đồng bộ thành công rồi in một lần, hủy khi lỗi hoặc đổi shop/lô.",
     "In FBS: khóa thao tác ngay khi nhấp, kiểm tra lại shop/lô/phiên tải trước hộp thoại và callback; không ghi đơn lô cũ vào shop mới."
   ],
-  "upstreamRelease": "1.3.1"
+  "projectDeveloper": "Nguyễn Thành Công"
 }

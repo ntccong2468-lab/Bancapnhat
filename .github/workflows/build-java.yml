@@ -75,7 +75,7 @@ jobs:
         shell: pwsh
         run: ./tools/windows-gs1-smoke.ps1 -Version $env:APP_VERSION
 
-      - name: Verify installation beside WCode, fresh data and safe uninstall
+      - name: Verify independent installation, fresh data and safe uninstall
         shell: pwsh
         run: ./tools/windows-side-by-side-smoke.ps1 -Version $env:APP_VERSION
 

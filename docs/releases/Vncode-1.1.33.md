@@ -1,52 +1,33 @@
-# Vncode 1.1.33 — phục hồi đăng ký GTIN
+# VN code 1.1.33 — Windows
 
-Bản Windows riêng của Vncode, phát triển từ mã nguồn WCode 1.1.32 và module
-GTIN đã bổ sung. Các thay đổi đăng ký dưới đây dựa trên mô tả công khai của
-[WCode 1.1.75](https://github.com/rupphi/relatest-wcode/releases/tag/v1.1.75).
-Đây không phải bản build từ mã nguồn gốc 1.1.75.
+**VN code là dự án do Nguyễn Thành Công phát triển và quản lý**, hỗ trợ công việc bán hàng trên Wildberries và Ozon.
 
-## Thay đổi trong bản này
+[Tải bộ cài Windows x64](https://github.com/ntccong2468-lab/Vncode/releases/download/v1.1.33/Vncode-1.1.33-Windows-x64.exe) · [Trang phát hành](https://github.com/ntccong2468-lab/Vncode/releases/tag/v1.1.33)
 
-- Chọn từng sản phẩm hoặc chọn nhiều sản phẩm WB để đăng ký/thử lại.
-- Hiển thị “Cần kiểm tra kết quả cấp GTIN” khi mất kết quả xin mã hoặc khi
-  khởi động lại sau yêu cầu chưa xác định được GTIN.
-- Thao tác “Xin GTIN mới” yêu cầu xác nhận. Yêu cầu trước có thể đã tiêu hao
-  hạn mức GS1; ứng dụng không tự xin lại khi kết quả chưa rõ.
-- Lưu checkpoint trước yêu cầu cấp GTIN; chặn yêu cầu đang chạy, dữ liệu cũ
-  và khôi phục tài khoản làm chạy lại một yêu cầu.
-- Giữ GTIN, mã feed, danh tính thẻ và kết quả gửi đã lưu. Thẻ đã hoàn tất
-  không bị tạo lại hoặc đổi GTIN bởi thao tác phục hồi.
+## Thay đổi trong phiên bản này
 
-- Chặn thư viện HTTP tự lặp yêu cầu cấp GTIN/gửi feed sau timeout.
-- GTIN đã giữ cho một cửa hàng được loại khỏi lựa chọn của mọi cửa hàng cục bộ.
-- Lỗi trước khi cấp GTIN có thể thử lại; lỗi mất kết quả gửi feed yêu cầu kiểm tra.
+- Chọn từng sản phẩm hoặc nhiều sản phẩm để đăng ký và phục hồi GTIN.
+- Lưu checkpoint trước cấp GTIN; giữ GTIN/feed/good ID và kết quả đã có khi tiếp tục tác vụ.
+- Hiển thị yêu cầu kiểm tra kết quả khi mất phản hồi; chặn tự cấp lại hoặc gửi trùng.
+- Migration schema 3 → 4 có snapshot và kiểm tra toàn vẹn dữ liệu.
 
-## Dữ liệu và nguồn cập nhật
+## Cài đặt và dữ liệu
 
-Vncode nâng phiên bản schema cục bộ từ 3 lên 4 để binary cũ không đọc nhầm
-các trạng thái phục hồi mới thành lỗi có thể cấp lại mã. Không xóa hoặc đổi cấu
-trúc các bảng đăng ký hiện có. Khi nâng cấp, ứng dụng tạo snapshot đã kiểm tra,
-giữ GTIN/feed/good ID/cờ cập nhật WB và lịch sử cũ. Không chạy bản cũ trực tiếp
-trên database đã nâng cấp.
+Java được đóng gói kèm. Đóng ứng dụng trước khi chạy `Vncode-1.1.33-Windows-x64.exe`. Các bản từ 1.1.34 dùng `%LOCALAPPDATA%\VNcodeApp` và `%LOCALAPPDATA%\VNcodeData`. Danh sách shop và tài khoản nghiệp vụ do người dùng thiết lập.
 
-Nguồn cập nhật mặc định chuyển sang `ntccong2468-lab/Vncode`; nguồn mặc định
-cũ được nhận diện cả khi đã lưu trong cấu hình. Các URL tùy chỉnh được giữ lại.
-Bản này là prerelease Windows chưa ký Authenticode, cài thủ công từ GitHub;
-không phát hành manifest tự cập nhật có chữ ký khi chưa có khóa tin cậy.
+## Kiểm chứng bộ cài
 
-Workflow `build-java.yml` chạy kiểm thử và kiểm tra native launcher/migration
-trên Windows, rồi lưu artifact. Pipeline nhiều nền tảng kế thừa chỉ chạy thủ
-công trên fork để tag Windows không tự tạo thêm bản macOS.
+- 553 kiểm thử Java/JavaFX và 18 kiểm thử công cụ đạt trên Windows.
+- Launcher và migration giữ lịch sử đã được kiểm tra trên runner Windows.
+- [CI Windows](https://github.com/ntccong2468-lab/Vncode/actions/runs/37677001156); mã bộ cài: `3b5c725ec8b481556cb6635859b08dcdb66ab053`.
+- SHA-256: `4214ed4a5f0f230389a69f87089404ad8ef200ba4f05dea75d4230e5eeee2731`; kích thước: 141037056 byte.
 
-## Phạm vi nghiệm thu
+## Giới hạn
 
-Mã nguồn gốc WCode 1.1.75 ở `rupphi/source-wcode` hiện chưa truy cập được;
-repository release chỉ có README. Bộ cài tham chiếu 1.1.75 và manifest đã
-được đối chiếu SHA-256. EXE tham chiếu có hash
-`509e29e167b4731e8a387e4f9309cfb3779405ba84bd75c16ba9fd1ffab42cca`.
-Hash này thuộc WCode 1.1.75 gốc, không phải bộ cài Vncode mới.
+- Chưa nghiệm thu GS1/CryptoPro, tài khoản seller và máy in thật.
+- Thêm/thay GTIN production WB/Ozon vẫn bị khóa chờ xác minh hợp đồng API chính thức.
+- Bộ cài chưa ký Authenticode; tải và cài thủ công, chưa có manifest tự cập nhật.
+- Kiểm thử fixture và Windows không thay thế nghiệm thu bằng chứng thư, hộp thư, shop hoặc máy in thật.
+- Đây là bản thử lịch sử. Dùng VN code 1.1.34 hoặc bản cập nhật mới hơn để có định danh cài đặt và dữ liệu riêng hiện tại.
 
-Kiểm thử của Vncode dùng SQLite tạm và API fixture. Live GS1, CryptoPro,
-tài khoản seller và máy in thật cần nghiệm thu riêng. Chức năng thêm/thay
-GTIN production của module **GTIN WB / Ozon** vẫn bị khóa tới khi hợp đồng
-API chính thức được xác minh.
+Ghi nhận bản quyền thành phần: [NOTICE](https://github.com/ntccong2468-lab/Vncode/blob/HEAD/NOTICE.md). Ngày 10/10/2026 chỉ cập nhật thông tin công bố; bộ cài, mã commit và kết quả kiểm thử được giữ nguyên.

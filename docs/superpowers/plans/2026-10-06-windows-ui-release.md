@@ -1,14 +1,14 @@
-# Windows WCode UI and Release Implementation Plan
+# Windows VN code UI and Release Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:executing-plans or superpowers:subagent-driven-development to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Integrate the GTIN module into an improved Windows desktop UI while retaining all WCode workflows, then validate and package the app.
+**Goal:** Integrate the GTIN module into an improved Windows desktop UI while retaining existing application workflows, then validate and package the app.
 
 **Architecture:** Reuse existing feature screens and services. Extract workspace navigation from HomeController, add a real GTIN screen wired to the core, and preserve license/update/credential boundaries. Build Windows packages through existing Maven/jpackage workflows.
 
 **Tech Stack:** Java 25, JavaFX 25/FXML, SQLite, Maven, Node contract tests, Windows jpackage.
 
-**Spec:** `docs/superpowers/specs/2026-10-06-windows-wcode-gtin-design.md`
+**Spec:** `docs/superpowers/specs/2026-10-06-windows-vn-code-gtin-design.md`
 
 ## Global Constraints
 

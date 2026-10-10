@@ -1,23 +1,32 @@
-# VN code 1.1.34 — bản thử Windows
+# VN code 1.1.34 — Windows
 
-Đổi thương hiệu ứng dụng thành **VN code** trong cửa sổ, thanh điều hướng, phần giới thiệu, thông báo RU/EN/VI/ZH và bộ cài Windows. Mã Java/FXML dùng namespace `com.vncode.app`, JAR là `VNcode-1.1.34.jar`, launcher là `VN code.exe`.
+**VN code là dự án do Nguyễn Thành Công phát triển và quản lý**, hỗ trợ công việc bán hàng trên Wildberries và Ozon.
 
-## Cài riêng và dữ liệu
+[Tải bộ cài Windows x64](https://github.com/ntccong2468-lab/Vncode/releases/download/v1.1.34/VN-code-1.1.34-Windows-x64.exe) · [Trang phát hành](https://github.com/ntccong2468-lab/Vncode/releases/tag/v1.1.34)
 
-- Đây là ứng dụng độc lập, cài song song với WCode. Tên shortcut và launcher là **VN code**.
-- Chương trình ở `%LOCALAPPDATA%\VNcodeApp`, dữ liệu ở `%LOCALAPPDATA%\VNcodeData`; danh sách shop bắt đầu trống theo lựa chọn của người dùng.
-- Có Windows installer upgrade UUID riêng. Cài/gỡ VN code không thay thế registration hoặc chương trình WCode.
-- Không tự nhập database, lịch sử, giấy phép hay bản sao lưu WCode. Cache/backup và cả hai kênh cập nhật của VN code cũng độc lập.
-- Chỉ nhận thuộc tính `vncode.appdata.dir` và `vncode.data.profile`; bỏ qua `wcode.*`. Giữ schema 4 và các chức năng phục hồi trong dữ liệu của chính VN code.
+## Thay đổi trong phiên bản này
 
-## Bản cá nhân miễn phí
+- Thống nhất tên VN code trong cửa sổ, điều hướng, thông báo và bộ cài Windows.
+- Bản cá nhân miễn phí; danh sách shop mới bắt đầu trống.
+- Định danh bộ cài riêng, chương trình VNcodeApp và dữ liệu VNcodeData.
+- Giữ chức năng WB/Ozon, in nhãn, kho KIZ, mapping GTIN và phục hồi đăng ký.
 
-Không cần giấy phép WCode, không gọi máy chủ kích hoạt hoặc gửi báo cáo lỗi về WCode. Thanh điều hướng hiển thị bản cá nhân miễn phí bằng RU/EN/VI/ZH. Chi tiết lỗi có nút sao chép để chủ app tự xem và chia sẻ. Tài khoản WB/Ozon, GS1/Chesty Znak và chứng thư CryptoPro vẫn cần thiết cho nghiệp vụ tương ứng.
+## Cài đặt và dữ liệu
 
-## Chức năng và nguồn
+Java được đóng gói kèm. Đóng ứng dụng trước khi chạy `VN-code-1.1.34-Windows-x64.exe`. Chương trình ở `%LOCALAPPDATA%\VNcodeApp`, dữ liệu ở `%LOCALAPPDATA%\VNcodeData`. Danh sách shop và tài khoản nghiệp vụ do người dùng thiết lập.
 
-Giữ chức năng WB/Ozon, KIZ, in nhãn, tài chính, đồng bộ GTIN và phục hồi đăng ký của bản trước. Nguồn nền là WCode 1.1.32 công khai do Nguyễn Anh Tuấn / TuanDev phát triển cùng module GTIN của fork. Luồng phục hồi được triển khai theo mô tả công khai WCode 1.1.75; chưa có mã nguồn chính xác của 1.1.75 để tích hợp.
+## Kiểm chứng bộ cài
 
-Bản thử chưa ký Authenticode và chưa phát hành signed update manifest: tải/cài thủ công. Ghi GTIN production WB/Ozon vẫn bị khóa chờ xác minh hợp đồng API. Chưa nghiệm thu trên tài khoản GS1/Chesty Znak thật, CryptoPro, seller thật hoặc máy in của người dùng.
+- 551 kiểm thử Java/JavaFX và 23 kiểm thử công cụ đạt trên Windows.
+- Launcher và migration giữ lịch sử đã được kiểm tra trên runner Windows.
+- [CI Windows](https://github.com/ntccong2468-lab/Vncode/actions/runs/37845191448); mã bộ cài: `bfa5a689a0329b9f770f30aeefa62f071ba9d86c`.
+- SHA-256: `d3970ee5ca88f72a810bbedb807c84cdb7201b96c0d2ef132d0a7a01cea6ac79`; kích thước: 140996096 byte.
 
-Bộ cài `VN-code-1.1.34-Windows-x64.exe` kèm Java, checksum và bằng chứng kiểm thử được đính kèm khi native Windows CI và kiểm tra cài/gỡ song song hoàn tất.
+## Giới hạn
+
+- Chưa nghiệm thu GS1/CryptoPro, tài khoản seller và máy in thật.
+- Thêm/thay GTIN production WB/Ozon vẫn bị khóa chờ xác minh hợp đồng API chính thức.
+- Bộ cài chưa ký Authenticode; tải và cài thủ công, chưa có manifest tự cập nhật.
+- Kiểm thử fixture và Windows không thay thế nghiệm thu bằng chứng thư, hộp thư, shop hoặc máy in thật.
+
+Ghi nhận bản quyền thành phần: [NOTICE](https://github.com/ntccong2468-lab/Vncode/blob/HEAD/NOTICE.md). Ngày 10/10/2026 chỉ cập nhật thông tin công bố; bộ cài, mã commit và kết quả kiểm thử được giữ nguyên.
