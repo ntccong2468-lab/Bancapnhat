@@ -28,6 +28,8 @@ Trạng thái giấy tờ: xanh khi sàn xác nhận hợp lệ, cam khi đang x
 
 Sửa hàng loạt chọn rõ trường cần sửa: thương hiệu, chất liệu, TN VED hoặc giấy tờ; không ghi đè các thuộc tính không chọn. WB dùng số/ngày và loại декларация hoặc сертификат; Ozon liên kết giấy tờ đã tải lên theo định danh của Ozon. Xác minh tên trường, quyền, enum, điều kiện và request/response từ tài liệu chính thức trước khi bật thao tác ghi.
 
+Các trường cấp thẻ phải gom theo định danh thẻ của sàn, dù bảng có nhiều dòng biến thể. Hai giá trị khác nhau cho cùng trường/cùng thẻ trong một lượt sửa phải được xử lý trước khi xác nhận, không gửi các request tự ghi đè nhau.
+
 Quy trình ghi: đọc mới dữ liệu → xem trước giá trị cũ/mới của từng sản phẩm → người dùng xác nhận → ghi checkpoint → gửi → đọc lại trạng thái để xác nhận. Hiện kết quả riêng từng dòng. Timeout hoặc kết quả mơ hồ chuyển sang cần kiểm tra trạng thái, không tự gửi lại. Đổi shop chỉ đổi màn hiển thị; tác vụ đang chạy vẫn giữ chủ sở hữu ban đầu và không cập nhật giao diện shop mới.
 
 ## 4. TN VED nội bộ và đăng ký Znack
@@ -90,6 +92,10 @@ Nút Hỗ trợ giữ quyền truy cập Hướng dẫn. Khi bổ sung kênh tra
 
 Logo vuông, nền đen `#000000`, chữ `VN` viết hoa trắng `#FFFFFF`, nét đậm sans-serif, căn giữa và có khoảng trống quanh chữ. Không thêm barcode, chữ WB, gradient, biểu tượng hoặc chữ khác. Không thay app identity hay tên hiển thị VN code.
 
+Mẫu logo xem trước cho đặc tả; asset đóng gói sẽ được tạo trong bước triển khai:
+
+![Logo VN trắng nền đen](assets/vn-logo-preview.png)
+
 Cập nhật đồng bộ PNG trong giao diện/biểu tượng cửa sổ, ICO ở resource và `app.ico` phục vụ bộ cài Windows; các kích thước ICO 16/32/48/64/128/256 phù hợp taskbar/desktop/Start Menu. Asset nền đen không trong suốt. Đồng bộ các asset biểu tượng còn được đóng gói để không còn logo cũ trong sản phẩm; bản lưu lịch sử/ảnh đối chiếu vẫn là bằng chứng phiên bản cũ.
 
 ## 10. Lưu trữ, an toàn nâng cấp và hợp đồng ngoài
@@ -137,3 +143,11 @@ flowchart TD
     TEMPLATE[Thiết kế tem trong ứng dụng] --> PRINT
     PRINT --> HISTORY[Lịch sử in]
 ```
+
+## 13. Bằng chứng kết nối đọc ngày 10/10/2026
+
+- [GS1 RUS — liên hệ](https://gs1ru.org/contacts/) trả HTTP 200; công bố địa chỉ liên hệ theo bộ phận. Không coi địa chỉ chung là đúng mọi loại yêu cầu mà bỏ qua quy trình của từng bộ phận.
+- [GS1 RUS — trình tự gia nhập](https://gs1ru.org/join/join_order/) trả HTTP 200; phân biệt nộp đơn, thanh toán và xác nhận hoàn tất gia nhập. Thư đã gửi không tự làm doanh nghiệp thành thành viên.
+- [GS1 RUS — kiểm tra chữ ký](https://gs1ru.org/join/proverka-elektronnoy-podpisi/) trả HTTP 200; trang này hướng dẫn kiểm tra chữ ký trên chứng nhận GS1, **không phải** hợp đồng API để VN code ký/gửi đơn gia nhập. Định dạng ký/nộp của từng hồ sơ vẫn phải được xác minh riêng.
+- [WB — sản phẩm](https://dev.wildberries.ru/openapi/work-with-products) vẫn trả HTTP 498 từ môi trường hiện tại. Đây là hạn chế đọc tài liệu, không phải bằng chứng API seller có lỗi hay dữ liệu đã được cập nhật.
+- [Ozon Seller API](https://docs.ozon.ru/api/seller/) trả HTTP 307 mà công cụ đọc hiện tại chưa theo được đến nội dung cuối. Chưa dùng kết quả này như bằng chứng cho request/response của giấy tờ.
