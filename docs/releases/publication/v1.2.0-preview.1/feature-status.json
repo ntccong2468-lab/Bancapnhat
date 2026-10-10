@@ -1,0 +1,10 @@
+{
+  "version": "1.2.0",
+  "complete": false,
+  "blocked": [
+    "Ozon: delivering contract found for third-party rFBS only; verify standard-FBS behavior and implement selection/label reminder",
+    "Znack: automatic GTIN reallocation is not enabled solely on a section change; verified business rule/recovery remains required",
+    "TN VED: catalog/import/search/backup core implemented; product mappings, AI provider, marking rules, Yandex and integrated restore remain incomplete"
+  ],
+  "projectDeveloper": "Nguyễn Thành Công"
+}

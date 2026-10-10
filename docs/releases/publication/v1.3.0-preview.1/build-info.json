@@ -1,0 +1,99 @@
+{
+  "appName": "VN code",
+  "version": "1.3.0",
+  "releaseTag": "v1.3.0-preview.1",
+  "stage": "preview",
+  "complete": false,
+  "sourceCommit": "7858f9c3502980c6e1d3141bbeef719c85493d04",
+  "repository": "ntccong2468-lab/Bancapnhat",
+  "githubRunId": 38028666240,
+  "javaTests": 648,
+  "nodeTests": 33,
+  "installer": {
+    "filename": "VN-code-1.3.0-preview.1-Windows-x64.exe",
+    "sha256": "7b27b1ceb5d3de6c840e5cbfda8ead52898918b253b603ceaace4ef0d1e88c42",
+    "bytes": 142088704,
+    "architecture": "x86_64",
+    "authenticodeSigned": false
+  },
+  "liveMarketplaceMutations": false,
+  "signedUpdateManifestPublished": false,
+  "blocked": [
+    "GS1: chưa nghiệm thu đăng nhập/nộp hồ sơ với doanh nghiệp thật, chấp nhận XML bằng chứng thư CryptoPro thật và gửi/đọc SMTP/IMAP thật. Hợp đồng API được đối chiếu từ frontend chính thức, chưa có cam kết phiên bản API.",
+    "GS1: chưa có hợp đồng xác thực người gửi cho các nhà cung cấp IMAP; thư được ghi rõ chưa xác minh. Hóa đơn và bản sao thư Đã gửi dựa trên đối chiếu thủ công có lưu dấu kiểm tra.",
+    "Products WB/Ozon: chỉnh sửa hàng loạt nhãn hiệu/chất liệu/TN VED/giấy tờ và đọc lại trạng thái tài liệu còn thuộc phần cập nhật tiếp theo.",
+    "FBO: GTIN đăng ký đúng biến thể, danh sách thiếu GTIN và các cải tiến mua KIZ chưa hoàn tất trong đợt GS1 này.",
+    "TN VED: liên kết tra cứu trong mọi tác vụ cần, quy tắc đánh dấu và gợi ý có nguồn còn chưa hoàn tất; giữ lõi danh mục/import/search hiện có.",
+    "Trình thiết kế mẫu nhúng, thông tin số dư CZ trên header và những thay đổi còn lại của bản bố cục đã duyệt chưa hoàn tất; cập nhật GTIN thật WB/Ozon vẫn bị khóa chờ hợp đồng API đã xác minh."
+  ],
+  "nativeSmoke": {
+    "appName": "VN code",
+    "rollbackSnapshotVerified": true,
+    "nativeLauncher": "passed",
+    "windowTitle": "VN code v1.3.0",
+    "schemaMigration": "3 to 4",
+    "liveMarketplaceMutations": false,
+    "version": "1.3.0",
+    "historyPreserved": true,
+    "platform": "windows-x64"
+  },
+  "upgradeSmoke": {
+    "fromVersion": "1.1.34",
+    "singleRegistration": true,
+    "installerUpgradeUuid": "8CBBA0E2-6E73-4F56-9101-6BC0948D3C72",
+    "windowTitle": "VN code v1.3.0",
+    "liveMarketplaceMutations": false,
+    "version": "1.3.0",
+    "fingerprint": "f20e93999fa1dc9342963981f37201c9cab2dadd041e7089543ecd2ffdafd9d3",
+    "dataPreserved": true,
+    "result": "passed",
+    "appName": "VN code"
+  },
+  "previewUpgradeSmoke": {
+    "liveMarketplaceMutations": false,
+    "installerUpgradeUuid": "8CBBA0E2-6E73-4F56-9101-6BC0948D3C72",
+    "singleRegistration": true,
+    "result": "passed",
+    "appName": "VN code",
+    "windowTitle": "VN code v1.3.0",
+    "dataPreserved": true,
+    "version": "1.3.0",
+    "fingerprint": "60b5bf129770c9905c211ceac30a18f75cda9dfc004be088adbf8892105770d9",
+    "fromVersion": "1.2.0"
+  },
+  "latestPreviewUpgradeSmoke": {
+    "singleRegistration": true,
+    "version": "1.3.0",
+    "liveMarketplaceMutations": false,
+    "fromVersion": "1.2.1",
+    "installerUpgradeUuid": "8CBBA0E2-6E73-4F56-9101-6BC0948D3C72",
+    "windowTitle": "VN code v1.3.0",
+    "fingerprint": "7fe7d0c3e83cb6260b6fa12040c171fd158ac83f098b9c96cbb1a06877e0599f",
+    "dataPreserved": true,
+    "appName": "VN code",
+    "result": "passed"
+  },
+  "currentPreviewUpgradeSmoke": {
+    "installerUpgradeUuid": "8CBBA0E2-6E73-4F56-9101-6BC0948D3C72",
+    "singleRegistration": true,
+    "version": "1.3.0",
+    "appName": "VN code",
+    "liveMarketplaceMutations": false,
+    "fromVersion": "1.2.2",
+    "dataPreserved": true,
+    "windowTitle": "VN code v1.3.0",
+    "result": "passed",
+    "fingerprint": "c0684f045d4f86f90037f23af81faadcffc1f57bc6953193548e3d8df4bf53f9"
+  },
+  "gs1Smoke": {
+    "appName": "VN code",
+    "version": "1.3.0",
+    "result": "passed",
+    "dpapiRoundTrip": true,
+    "protectedPasswordPersistence": true,
+    "unverifiedInvoiceBlocked": true,
+    "liveGS1Mutations": false
+  },
+  "projectDeveloper": "Nguyễn Thành Công",
+  "publicationMetadataUpdatedOn": "2026-10-10"
+}
