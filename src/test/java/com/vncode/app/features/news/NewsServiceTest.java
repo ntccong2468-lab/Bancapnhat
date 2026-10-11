@@ -19,6 +19,7 @@ class NewsServiceTest {
   var last=service.loadPage(first.nextCursor()); assertEquals(5,last.items().size()); assertNull(last.nextCursor());
   assertEquals(25,service.unreadCount());
  }
+ @Test void vnFeedIsNeverLabeledOfficialWb(){var service=new NewsService(List.of(new NewsItem("vn-1",Instant.EPOCH,"VN title","VN body")),new NewsRepository(root));assertTrue(service.sellerNews("vn-1").isEmpty());}
  @Test void rejectsDuplicateIdsAndUnsafeLinksNeverBecomeClickable() {
   String json="{\"items\":[{\"id\":\"1\",\"publishedAt\":\"2026-10-08T00:00:00Z\",\"title\":\"x\",\"body\":\"<script>x</script>\"},{\"id\":\"1\",\"publishedAt\":\"2026-10-08T00:00:00Z\",\"title\":\"y\",\"body\":\"x\"}]}";
   assertThrows(IllegalArgumentException.class,()->NewsService.parse(json));

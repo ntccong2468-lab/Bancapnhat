@@ -9,9 +9,12 @@ import java.util.concurrent.TimeUnit;
 public final class NewsService {
  public record Page(List<NewsItem> items,String nextCursor) {}
  private volatile List<NewsItem> items;
+ private volatile List<NewsItem> ownItems;
+ private volatile Map<String,SellerNews> official=Map.of();
+ private OfficialNewsService officialService;
  private final NewsRepository repository;
  public NewsService(List<NewsItem> rows,NewsRepository repo) {
-  repository=repo;items=rows.stream().sorted(Comparator.comparing(NewsItem::publishedAt).reversed().thenComparing(NewsItem::id)).toList();
+  repository=repo;ownItems=List.copyOf(rows);rebuild();
  }
  public static List<NewsItem> parse(String json) {
   if(json.length()>1_000_000)throw new IllegalArgumentException("News feed too large");
@@ -30,17 +33,21 @@ public final class NewsService {
    if(!response.isSuccessful()||response.body()==null)throw new IOException("NEWS_HTTP_"+response.code());
    try(var input=response.body().byteStream()) { byte[] bytes=input.readNBytes(1_000_001);if(bytes.length>1_000_000)throw new IOException("NEWS_SIZE");
     String json=new String(bytes,java.nio.charset.StandardCharsets.UTF_8);List<NewsItem> parsed=parse(json);
-    repository.cache(json); items=parsed.stream().sorted(Comparator.comparing(NewsItem::publishedAt).reversed().thenComparing(NewsItem::id)).toList(); }
+    repository.cache(json); replaceOwn(parsed); }
   } catch(IOException|RuntimeException e) {
-   try {items=parse(repository.cached()).stream().sorted(Comparator.comparing(NewsItem::publishedAt).reversed().thenComparing(NewsItem::id)).toList();}catch(IOException|RuntimeException cacheFailure){throw new IOException("NEWS_UNAVAILABLE",e);}
+   try {replaceOwn(parse(repository.cached()));}catch(IOException|RuntimeException cacheFailure){throw new IOException("NEWS_UNAVAILABLE",e);}
   }
  }
  public Page loadPage(String cursor) {
   List<NewsItem> snapshot=items;int start=cursor==null?0:Integer.parseInt(cursor);if(start<0||start>snapshot.size())throw new IllegalArgumentException("Invalid news cursor");
   int end=Math.min(start+20,snapshot.size());return new Page(List.copyOf(snapshot.subList(start,end)),end<snapshot.size()?Integer.toString(end):null);
  }
- public int unreadCount() {return (int)items.stream().filter(item->!repository.isRead(item.id())).count();}
- public boolean isRead(String id) {return repository.isRead(id);}
- public void markRead(String id)throws IOException {repository.markRead(id);}
+ public int unreadCount() {return (int)items.stream().filter(item->!isRead(item.id())).count();}
+ public boolean isRead(String id) {var item=official.get(id);return item==null?repository.isRead(id):officialService.isRead(item);}
+ public void markRead(String id)throws IOException {var item=official.get(id);if(item==null)repository.markRead(id);else officialService.markRead(item);}
+ public Optional<SellerNews> sellerNews(String id){return Optional.ofNullable(official.get(id));}
+ public synchronized void setOfficial(List<SellerNews> rows,OfficialNewsService provider){officialService=provider;var map=new LinkedHashMap<String,SellerNews>();for(var row:rows)map.put(row.displayId(),row);official=Map.copyOf(map);rebuild();}
+ private synchronized void replaceOwn(List<NewsItem> rows){ownItems=List.copyOf(rows);rebuild();}
+ private void rebuild(){var combined=new ArrayList<>(ownItems);for(var item:official.values())combined.add(new NewsItem(item.displayId(),item.publishedAt(),item.originalTitle(),item.originalBody()));items=combined.stream().sorted(Comparator.comparing(NewsItem::publishedAt).reversed().thenComparing(NewsItem::id)).toList();}
  public static boolean safeLink(String url) {try{URI uri=URI.create(url);return ("https".equalsIgnoreCase(uri.getScheme())||"http".equalsIgnoreCase(uri.getScheme()))&&uri.getHost()!=null&&uri.getUserInfo()==null;}catch(RuntimeException e){return false;}}
 }

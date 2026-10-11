@@ -1249,6 +1249,7 @@ public class HomeController implements Initializable {
         boolean sharedView = workspaceNavigator.currentRoute().equals("products") || workspaceNavigator.currentRoute().equals("gs1") || workspaceNavigator.currentRoute().equals("gtin-sync") || isPrintHistoryVisible() || isZnackAutomationVisible() || isFboSupplyOrdersVisible();
         boolean dashboardVisible = isDashboardVisible();
         state.setSelectedShop(shop);
+        if(newsPane!=null)newsPane.setShop(shop);
         shopSidebarController.setMarketplace(shop.getMarketplace());
         workspaceHeaderController.setMarketplace(shop.getMarketplace());
         if (znackAutomationController != null && isZnackAutomationVisible()) {
@@ -2208,6 +2209,7 @@ public class HomeController implements Initializable {
         if (gtinSyncController != null) gtinSyncController.dispose();
         if (gs1Pane != null) gs1Pane.dispose();
         if (productsPane != null) productsPane.dispose();
+        if (newsPane != null) newsPane.dispose();
         if (supplyDetailController != null) {
             supplyDetailController.dispose();
         }

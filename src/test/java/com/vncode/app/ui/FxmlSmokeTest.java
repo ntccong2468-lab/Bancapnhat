@@ -486,10 +486,10 @@ class FxmlSmokeTest {
         do {
             var barrier=new java.util.concurrent.FutureTask<Void>(() -> null);
             Platform.runLater(barrier);barrier.get(5,TimeUnit.SECONDS);
-            if(!com.vncode.app.shared.AppTaskExecutor.hasRunningTasks()) {
+            if(!com.vncode.app.shared.AppTaskExecutor.hasRunningTasks() && com.vncode.app.shared.ShopReadCoordinator.shared().activeCount()==0 && com.vncode.app.shared.ShopReadCoordinator.shared().pendingCount()==0 && com.vncode.app.shared.ShopReadCoordinator.images().activeCount()==0 && com.vncode.app.shared.ShopReadCoordinator.images().pendingCount()==0) {
                 var second=new java.util.concurrent.FutureTask<Void>(() -> null);
                 Platform.runLater(second);second.get(5,TimeUnit.SECONDS);
-                if(!com.vncode.app.shared.AppTaskExecutor.hasRunningTasks())return;
+                if(!com.vncode.app.shared.AppTaskExecutor.hasRunningTasks() && com.vncode.app.shared.ShopReadCoordinator.shared().activeCount()==0 && com.vncode.app.shared.ShopReadCoordinator.shared().pendingCount()==0 && com.vncode.app.shared.ShopReadCoordinator.images().activeCount()==0 && com.vncode.app.shared.ShopReadCoordinator.images().pendingCount()==0)return;
             }
             Thread.sleep(20);
         } while(System.nanoTime()<deadline);

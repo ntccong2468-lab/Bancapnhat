@@ -14,6 +14,10 @@ import java.util.regex.Pattern;
 /** News is rendered as JavaFX text, never as executable HTML. */
 public final class NewsPane extends VBox {
  private final NewsService service;
+ private final OfficialNewsService official=new OfficialNewsService();
+ private com.vncode.app.models.Shop shop;
+ private NewsScope scope;
+ private long generation;private boolean disposed;
  private final IntConsumer unread;
  private final Runnable returnToDashboard;
  private final Label title=new Label(),status=new Label();
@@ -38,12 +42,26 @@ public final class NewsPane extends VBox {
  public boolean showingDetail(){return detailShown;}
  public void loadMore(){if(ended||busy)return;var page=service.loadPage(cursor);visible.addAll(page.items());cursor=page.nextCursor();ended=cursor==null;renderList();}
  public void refreshAsync(){
-  if(busy)return;busy=true;
+  if(disposed)return;refreshOfficial(false);
+  if(busy)return;busy=true;long epoch=generation;
   Task<Void> task=new Task<>(){protected Void call()throws Exception{service.refresh();return null;}};
-  task.setOnSucceeded(e->{busy=false;visible.clear();cursor=null;ended=false;loadMore();status.setText("");renderPreview();unread.accept(service.unreadCount());});
-  task.setOnFailed(e->{busy=false;status.setText(tr("news.offline"));renderPreview();unread.accept(service.unreadCount());});
+  task.setOnSucceeded(e->{if(disposed||epoch!=generation)return;busy=false;visible.clear();cursor=null;ended=false;loadMore();status.setText("");renderPreview();unread.accept(service.unreadCount());});
+  task.setOnFailed(e->{if(disposed||epoch!=generation)return;busy=false;status.setText(tr("news.offline"));renderPreview();unread.accept(service.unreadCount());});
   AppTaskExecutor.execute(task);
  }
+ public void setShop(com.vncode.app.models.Shop selected){
+  generation++;busy=false;shop=selected;scope=selected!=null&&selected.getMarketplace()==com.vncode.app.integration.marketplace.Marketplace.WILDBERRIES?NewsScope.forShop(selected):null;opened=null;detailShown=false;scroll.setContent(list);service.setOfficial(List.of(),official);visible.clear();cursor=null;ended=false;loadMore();renderPreview();unread.accept(service.unreadCount());
+  if(scope==null)return;var owner=selected;var expected=scope;long epoch=generation;
+  ShopReadCoordinator.shared().submit(new ShopReadCoordinator.Key(owner.getId(),"news-cache",expected.ownerFingerprint()),true,()->official.cached(expected)).whenComplete((news,error)->Platform.runLater(()->{if(disposed||epoch!=generation||error!=null)return;replaceOfficial(news);refreshOfficial(false);}));
+ }
+ private void refreshOfficial(boolean force){
+  if(disposed||shop==null||scope==null)return;var owner=new com.vncode.app.models.Shop(shop.getId(),shop.getName(),shop.getMarketplace(),shop.getClientId(),shop.getApiKey());var expected=scope;long epoch=generation;
+  ShopReadCoordinator.shared().submit(new ShopReadCoordinator.Key(owner.getId(),"wb-official-news",expected.ownerFingerprint()),false,()->official.refresh(owner,expected,force)).whenComplete((news,error)->Platform.runLater(()->{
+   if(disposed||epoch!=generation)return;if(error!=null){status.setText(tr("news.wb_unavailable"));return;}replaceOfficial(news);
+  }));
+ }
+ private void replaceOfficial(List<SellerNews> news){service.setOfficial(news,official);visible.clear();cursor=null;ended=false;loadMore();renderPreview();unread.accept(service.unreadCount());}
+ public void dispose(){disposed=true;generation++;}
  public void applyTranslations(){title.setText(tr("news.title"));back.setText(tr("news.back"));more.setText(tr("news.more"));renderList();renderPreview();if(opened!=null&&detailShown)renderDetail(opened);}
  public VBox preview(){return preview;}
  public void open(NewsItem item){
@@ -60,7 +78,7 @@ public final class NewsPane extends VBox {
   String plain=item.body().replaceAll("\\[[^]]+]\\([^)]+\\)"," ").replaceAll("[#*_`>]","").replaceAll("\\s+"," ").strip();
   var summary=new Label(plain.length()>180?plain.substring(0,177)+"…":plain);summary.setWrapText(true);summary.getStyleClass().add("text-secondary");
   var date=new Label(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm").withZone(java.time.ZoneId.of("Europe/Moscow")).format(item.publishedAt()));date.getStyleClass().add("text-muted");
-  var content=new VBox(12,top,summary,date);content.setMinWidth(0);var button=new Button();button.setGraphic(content);button.setWrapText(true);button.setContentDisplay(ContentDisplay.GRAPHIC_ONLY);button.setMaxWidth(Double.MAX_VALUE);button.setMinWidth(0);button.getStyleClass().add("news-card");button.setAccessibleText(item.title());
+  var source=new Label(tr(service.sellerNews(item.id()).isPresent()?"news.source.wb":"news.source.vn"));source.getStyleClass().add("text-muted");var content=new VBox(12,top,summary,date,source);content.setMinWidth(0);var button=new Button();button.setGraphic(content);button.setWrapText(true);button.setContentDisplay(ContentDisplay.GRAPHIC_ONLY);button.setMaxWidth(Double.MAX_VALUE);button.setMinWidth(0);button.getStyleClass().add("news-card");button.setAccessibleText(item.title());
   button.setOnAction(e->{open(item);if(dashboard&&onOpenPage!=null)onOpenPage.run();});return button;
  }
  private Node row(NewsItem item){return newsCard(item,false);}
@@ -77,6 +95,8 @@ public final class NewsPane extends VBox {
  private Runnable onOpenPage;
  public void setOnOpenPage(Runnable callback){onOpenPage=callback;}
  private void renderDetail(NewsItem item){detail.getChildren().clear();Label heading=new Label(item.title());heading.setWrapText(true);heading.getStyleClass().add("h2");detail.getChildren().add(heading);
+  var metadata=service.sellerNews(item.id());detail.getChildren().add(new Label(tr(metadata.isPresent()?"news.source.wb":"news.source.vn")));
+  metadata.ifPresent(value->{var link=new Hyperlink(tr("news.original_source"));link.setOnAction(e->AppTaskExecutor.execute(new Task<Void>(){protected Void call(){try{if(java.awt.Desktop.isDesktopSupported())java.awt.Desktop.getDesktop().browse(value.sourceURL());}catch(Exception ignored){}return null;}}));detail.getChildren().add(link);});
   for(String line:item.body().split("\\R",-1)){
    boolean isHeading=line.startsWith("#");String normalized=isHeading?line.replaceFirst("^#{1,6}\\s*",""):line.replaceFirst("^[-*]\\s+","• ");
    TextFlow flow=new TextFlow();var pattern=Pattern.compile("\\[([^]\\n]+)]\\(([^)\\s]+)\\)|\\*\\*([^*]+)\\*\\*|\\*([^*]+)\\*");var matcher=pattern.matcher(normalized);int end=0;
