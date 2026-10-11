@@ -56,7 +56,7 @@ try {
         version = $Version
         platform = 'windows-x64'
         nativeLauncher = 'passed'
-        schemaMigration = '3 to 4'
+        schemaMigration = '3 to 5'
         historyPreserved = $true
         rollbackSnapshotVerified = $true
         liveMarketplaceMutations = $false

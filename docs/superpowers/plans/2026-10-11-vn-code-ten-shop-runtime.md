@@ -76,4 +76,3 @@
 Self-review: mọi mục spec có task E1/E2/E3/D2; interfaces không trùng mutation; giữ Native đã chọn, cùng ledger/nhánh và cùng preview. D1 tiếp tục theo kế hoạch đã duyệt trong khi chờ duyệt kế hoạch bổ sung.
 
 D2 evidence: 798/798 Java/JavaFX, 33/33 Node; 2 datasets × 20×10 switches, 64 PNG and local reports in `docs/validation/2026-10-11-vn-code-1.4.0.md`. Windows 2 CPU/4 GiB baseline chưa đo; không công bố đạt. Ruling: final whole-branch review runs after D3 source/metadata are ready, before native build/publication, so it includes packaging changes.
-

@@ -75,6 +75,11 @@ jobs:
         shell: pwsh
         run: ./tools/windows-gs1-smoke.ps1 -Version $env:APP_VERSION
 
+      - name: Verify ten-shop workspaces and actual Windows DPI 100 125 150
+        if: env.APP_VERSION != '1.2.0' && env.APP_VERSION != '1.2.1' && env.APP_VERSION != '1.2.2' && env.APP_VERSION != '1.3.0'
+        shell: pwsh
+        run: ./tools/windows-seller-workspace-smoke.ps1 -Version $env:APP_VERSION
+
       - name: Verify independent installation, fresh data and safe uninstall
         shell: pwsh
         run: ./tools/windows-side-by-side-smoke.ps1 -Version $env:APP_VERSION
@@ -99,6 +104,11 @@ jobs:
         # The hash is pinned in windows-upgrade-smoke.ps1.
         shell: pwsh
         run: ./tools/windows-upgrade-smoke.ps1 -Version $env:APP_VERSION -FromCurrentPreview
+
+      - name: Verify upgrade from VN code 1.3.0 Preview with saved data
+        if: env.APP_VERSION != '1.2.0' && env.APP_VERSION != '1.2.1' && env.APP_VERSION != '1.2.2' && env.APP_VERSION != '1.3.0'
+        shell: pwsh
+        run: ./tools/windows-upgrade-smoke.ps1 -Version $env:APP_VERSION -FromGs1Preview
 
       - name: Verify and name test installer
         shell: pwsh
@@ -128,7 +138,10 @@ jobs:
             out/upgrade-preview-smoke.json
             out/upgrade-latest-preview-smoke.json
             out/upgrade-current-preview-smoke.json
+            out/upgrade-gs1-preview-smoke.json
             out/gs1-smoke.json
+            out/seller-workspace-smoke.json
+            out/seller-workspace-evidence.zip
           if-no-files-found: error
           retention-days: 14
 

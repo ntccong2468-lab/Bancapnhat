@@ -6,7 +6,7 @@ Repository này chứa các bản cập nhật của cùng ứng dụng VN code,
 
 ## Tải và sử dụng
 
-[Tải VN code 1.3.0 Preview — Windows x64](https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.3.0-preview.1/VN-code-1.3.0-preview.1-Windows-x64.exe) · [Bản phát hành và checksum](https://github.com/ntccong2468-lab/Bancapnhat/releases/tag/v1.3.0-preview.1)
+[Tải VN code 1.4.0 Preview — Windows x64](https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.4.0-preview.1/VN-code-1.4.0-preview.1-Windows-x64.exe) · [Bản phát hành và checksum](https://github.com/ntccong2468-lab/Bancapnhat/releases/tag/v1.4.0-preview.1)
 
 Đóng VN code rồi chạy EXE để nâng cấp. Java được đóng gói kèm. Bộ cài chưa ký Authenticode; bản Preview cài thủ công và chưa bật tự cập nhật. Bản trước: [VN code 1.1.34](https://github.com/ntccong2468-lab/Vncode/releases/tag/v1.1.34).
 
@@ -18,14 +18,18 @@ Chương trình dùng `%LOCALAPPDATA%\VNcodeApp`, dữ liệu dùng `%LOCALAPPDA
 - Đồng bộ đơn/supply WB và posting Ozon FBS Standard.
 - Kho KIZ/Znack, mapping GTIN, gán mã, in barcode/Data Matrix và nhãn PDF.
 - Thiết kế mẫu tem, lịch sử in và xuất dữ liệu.
-- GS1 trong bản 1.3.0 Preview: thành viên/GCP/GLN, hồ sơ National Catalog, duyệt và ký XML CryptoPro, hộp thư riêng, hóa đơn và chứng từ.
-- TN VED giữ lõi tra cứu và dữ liệu nội bộ; phần liên kết sâu trong tác vụ còn đang phát triển.
+- Sản phẩm: tìm/lọc/GTIN đúng biến thể, chọn tập kết quả và sửa thương hiệu/chất liệu/TN VED/giấy tờ có preview.
+- Sao chép bài đăng WB→WB, Ozon→Ozon, WB→Ozon, Ozon→WB; ánh xạ và kiểm tra từng shop đích.
+- GS1: thành viên/GCP/GLN, hồ sơ/XML CryptoPro, thư/hóa đơn/chứng từ; hạn mức GTIN và số dư tiền Честный ЗНАК là hai nguồn riêng.
+- Tin tức chính thức WB; dịch tiếng Việt tùy cấu hình Yandex, giữ bản gốc khi dịch lỗi.
+- FBS Ozon phân trang, ba trạng thái, tìm/sắp xếp, thông tin GTIN/KIZ và xác nhận đóng gói từng đơn.
+- TN VED chạy bên trong tác vụ. 10 shop dùng chung các luồng/hàng đợi và cache ảnh, không có pool theo mỗi shop.
 
 ## Kiểm chứng và giới hạn
 
-Bộ cài 1.3.0 Preview đạt **648 kiểm thử Java/JavaFX và 33 kiểm thử công cụ** trên [Windows CI](https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/38028666240). Launcher, migration, DPAPI thực, cài/gỡ độc lập và nâng cấp giữ dữ liệu từ 1.1.34 / 1.2.0 / 1.2.1 / 1.2.2 đều đã được kiểm tra.
+Bước D2 tại cloud Linux đạt **798 kiểm thử Java/JavaFX và 33 kiểm thử công cụ**. Hai bộ dữ liệu 10 shop tạo 64 ảnh giao diện bốn ngôn ngữ/hai kích thước, có số đo render và hàng đợi. Kết quả native Windows được công bố theo đúng source commit trong tài sản release; xem [báo cáo kiểm chứng](docs/validation/2026-10-11-vn-code-1.4.0.md).
 
-Chưa nghiệm thu bằng chứng thư doanh nghiệp, SMTP/IMAP, shop hoặc máy in thật. Thêm/thay GTIN production WB/Ozon vẫn bị khóa chờ hợp đồng API đã xác minh. Chỉnh sửa sản phẩm hàng loạt, FBO GTIN/KIZ và các phần còn lại của kế hoạch cập nhật chưa hoàn tất. Xem [hướng dẫn và phạm vi bản 1.3.0](https://github.com/ntccong2468-lab/Bancapnhat/blob/HEAD/docs/releases/VN-code-1.3.0.md).
+Chưa nghiệm thu bằng chứng thư doanh nghiệp, SMTP/IMAP, shop hoặc máy in thật; chưa đo Windows 2 CPU/4 GiB. Luồng thêm/thay GTIN production độc lập còn khóa; FBO GTIN/KIZ và các phần ngoài đợt Products/Copy/10-shop chưa được công bố hoàn tất. Xem [hướng dẫn bản 1.4.0](docs/releases/VN-code-1.4.0.md) và [phạm vi còn cần nghiệm thu](docs/releases/VN-code-1.4.0-status.json).
 
 ## Công nghệ và phát triển
 

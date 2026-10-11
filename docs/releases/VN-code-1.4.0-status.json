@@ -1,0 +1,34 @@
+{
+  "version": "1.4.0",
+  "complete": false,
+  "projectDeveloper": "Nguyễn Thành Công",
+  "changes": [
+    "Trang Sản phẩm WB/Ozon: tìm kiếm, danh mục, giấy tờ, GTIN đã xác minh, chọn tập sản phẩm và chỉnh sửa hàng loạt có xem trước.",
+    "GS1 dùng chứng thư/INN đã kiểm tra trong Cấu hình Znack; thẻ hạn mức GTIN National Catalog và số dư tiền Честный ЗНАК riêng theo tài khoản/nhóm hàng.",
+    "Công cụ sao chép bài đăng cùng sàn và WB ↔ Ozon, chọn shop đích, ánh xạ danh mục/thuộc tính/size và xem trước từng đích.",
+    "Tin tức từ API chính thức WB, bản gốc tiếng Nga và dịch tiếng Việt tùy cấu hình Yandex Translate.",
+    "FBS Ozon: ba trạng thái, phân trang 100 đơn, tìm kiếm/sắp xếp trước phân trang, thông tin biến thể/GTIN/KIZ và kết quả đóng gói từng đơn.",
+    "Kiến trúc dùng chung cho 10 shop: giữ một luồng đọc dữ liệu cục bộ, giới hạn HTTP/hàng đợi/ảnh/ghi seller, tải trang khi cần và bỏ tải toàn catalog khi đổi shop.",
+    "Logo VN trắng nền đen, tông tối/tím; TN VED dùng bên trong tác vụ, không có mục sidebar riêng; giữ cùng định danh bộ cài và dữ liệu VN code."
+  ],
+  "implemented": [
+    "Giữ các chức năng VN code đã phát hành: shop, supply, KIZ/mapping, in/xuất tem, mẫu tem, lịch sử và nghiệp vụ GS1; bản cá nhân miễn phí.",
+    "Products đọc snapshot SQL có chỉ mục và trang 100 dòng. Trạng thái giấy tờ, nguyên liệu, TN VED và GTIN hiển thị theo shop/biến thể; mã chưa có chứng cứ đăng ký được ghi chưa xác minh.",
+    "Sửa thương hiệu/chất liệu/TN VED/giấy tờ theo tập sản phẩm đã chốt, đọc mới và xem giá trị trước/sau; một lần gửi và đối soát khi kết quả không rõ. Không bỏ âm thầm trường sản phẩm không sửa.",
+    "Copy bốn hướng, tối đa 100 bài nguồn và 5 shop đích/lần; tên, ảnh có thứ tự, GTIN đúng biến thể, thuộc tính, giấy tờ, size và kích thước đóng gói được ánh xạ theo API đích. Yêu cầu đủ trường bắt buộc và hiện rõ dữ liệu không thể chuyển.",
+    "National Catalog cung cấp hạn mức GTIN còn quyền dùng, không suy từ số bài đăng. Tiền Честный ЗНАК lấy tài khoản riêng qua xác thực chứng thư, giữ chính xác đơn vị kopeck; chưa truy xuất được thì hiện chưa lấy được.",
+    "Tin WB có nguồn/link/ngày/tập shop, phân trang và hạn mức gọi; dịch Yandex tùy chọn, bảo vệ khóa bằng Windows DPAPI, lỗi dịch vẫn giữ bản gốc.",
+    "FBS Ozon giữ đúng API xác nhận đóng gói, không coi /ship là upload KIZ. Kiểm tra lại marking/exemplar/KIZ trước in; tác vụ gửi vẫn giữ shop ban đầu khi chuyển màn hình và timeout không tự gửi lại.",
+    "10 shop dùng chung bộ điều phối đọc 3 worker (1 cục bộ, 2 mạng), 2 worker ảnh, HTTP seller tối đa 2; hàng đợi có giới hạn và ghi seller một worker. Danh sách tác vụ đọc summary, tài liệu chỉ tải khi chọn.",
+    "Cache ảnh gốc WB/FBO 32 MiB và thumbnail 32 MiB; ảnh gốc dùng khi in. Callback theo generation, dispose giải phóng listener và màn hình không chờ SQL/mạng trên JavaFX.",
+    "Migration schema 4 → 5 additive, snapshot kiểm tra integrity/foreign keys, giữ appdata/template/lịch sử; đóng ứng dụng cảnh báo nếu còn tác vụ đã nhận."
+  ],
+  "blocked": [
+    "Chưa nghiệm thu doanh nghiệp thật: CryptoPro/PIN, GS1 National Catalog, số dư Честный ЗНАК, SMTP/IMAP và máy in. CI không dùng chứng thư/credential seller thật và không có thao tác ghi marketplace thật.",
+    "Copy/sửa bài và giấy tờ được kiểm tra bằng hợp đồng API chính thức/fixture, chưa nghiệm thu đăng hoặc phê duyệt tài liệu trên shop thật. Nhóm thuộc tính Ozon không chứng minh được quan hệ và bài nhiều barcode cần người bán sửa/loại trường rõ ràng trước khi gửi.",
+    "Yandex Translate cần service account có quyền và tài khoản thanh toán của người dùng; khi thiếu cấu hình hoặc dịch lỗi chỉ hiển thị tin gốc. Tin tức hiện dùng nguồn WB, chưa có nguồn Ozon đã xác minh.",
+    "Chưa đo baseline/current trên máy Windows 2 CPU/4 GiB. Báo cáo cloud và Windows CI mạnh hơn không bảo đảm mọi máy hoặc request mạng/máy in đều không bị lag.",
+    "Luồng thêm/thay GTIN production độc lập đã khóa ở bản trước vẫn cần hợp đồng và fixture nghiệm thu; không mở khóa chỉ từ mã barcode. Các cải tiến FBO cấp GTIN/mua KIZ và quy tắc pháp lý TN VED chưa được công bố hoàn tất trong Preview này.",
+    "Chưa hoàn tất các phần ngoài đợt Products/Copy/10-shop: trình thiết kế mẫu nhúng mới, số dư CZ trên header, cấp key thương mại và dịch vụ tên miền/hosting. Các bản cá nhân đã phát hành vẫn giữ chế độ miễn phí."
+  ]
+}
