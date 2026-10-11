@@ -2,8 +2,8 @@ package com.vncode.app.features.products;
 
 import com.google.gson.*;
 import java.time.*;
-final class ProductJson {
-    static final Gson GSON=new GsonBuilder()
+public final class ProductJson {
+    public static final Gson GSON=new GsonBuilder()
         .registerTypeAdapter(Instant.class,new TemporalAdapter<>(Instant::parse))
         .registerTypeAdapter(LocalDate.class,new TemporalAdapter<>(LocalDate::parse)).create();
     private ProductJson(){}

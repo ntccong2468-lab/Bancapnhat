@@ -38,11 +38,11 @@ Quy ước đường dẫn: các tên dưới `features/`, `integration/`, `shar
 
 **Interfaces:** `ProductSnapshotReader.read(Shop,ProductKey):ProductSnapshot` sử dụng type A1; hai adapter cùng interface. `ListingMediaReader.fetch(URI,String expectedMime):MediaFile`, nested `MediaFile(Path temporaryFile,String sha256,long size,String mimeType)` implements AutoCloseable để xóa tệp; không có parameter source token cho media fetch.
 
-- [ ] Lưu contract read full WB card/photos/characteristics/sizes, Ozon info/attributes/media/dimensions và giấy tờ metadata/files từ nguồn chính thức. Đối chiếu current Ozon `/v3/product/info/list`, `/v4/product/info/attributes` với fixture hiện có; lấy bằng chứng riêng cho trường mới. Public docs bị chặn thì tiếp tục tìm official schema/SDK trước dùng mirror; không coi description card là full document contract.
-- [ ] Viết `snapshotKeepsAllPhotosVariantsAndPrecision`, `shopOwnerMustMatch`, `summaryCannotPretendComplete`, `documentFileMissingIsExplicit`, `redirectNeverForwardsCredential`, `oversizeOrMimeMismatchIsRejected`; assert whole image order, package decimal precision, GTIN text, incomplete documents clear. Chạy `MVN -Dtest=ProductSnapshotReaderTest,ListingMediaReaderTest test`; xác nhận red.
-- [ ] Implement adapters trả immutable full snapshot hash/revision, giữ provenance và unknown/issues; card/category/variant identity riêng. Media allowlisted HTTPS nguồn thị trường/document được chọn, hop-limit và SSRF/IP/host restrictions, timeouts; giới hạn 20 MiB mỗi ảnh, 25 MiB mỗi giấy tờ, 20 file/job (quyết định triển khai), báo cần bổ sung khi quá hạn mức; không dùng thumbnail làm ảnh upload.
-- [ ] Chạy lại command; test fields/photo order/units/no secrets, tmp cleanup khi fail/cancel và cache scope.
-- [ ] Commit `feat: read complete listing snapshots for both marketplaces`.
+- [x] Lưu contract read full WB card/photos/characteristics/sizes, Ozon info/attributes/media/dimensions và giấy tờ metadata/files từ nguồn chính thức. Đối chiếu current Ozon `/v3/product/info/list`, `/v4/product/info/attributes` với fixture hiện có; lấy bằng chứng riêng cho trường mới. Public docs bị chặn thì tiếp tục tìm official schema/SDK trước dùng mirror; không coi description card là full document contract.
+- [x] Viết `snapshotKeepsAllPhotosVariantsAndPrecision`, `shopOwnerMustMatch`, `summaryCannotPretendComplete`, `documentFileMissingIsExplicit`, `redirectNeverForwardsCredential`, `oversizeOrMimeMismatchIsRejected`; assert whole image order, package decimal precision, GTIN text, incomplete documents clear. Chạy `MVN -Dtest=ProductSnapshotReaderTest,ListingMediaReaderTest test`; xác nhận red.
+- [x] Implement adapters trả immutable full snapshot hash/revision, giữ provenance và unknown/issues; card/category/variant identity riêng. Media allowlisted HTTPS nguồn thị trường/document được chọn, hop-limit và SSRF/IP/host restrictions, timeouts; giới hạn 20 MiB mỗi ảnh, 25 MiB mỗi giấy tờ, 20 file/job (quyết định triển khai), báo cần bổ sung khi quá hạn mức; không dùng thumbnail làm ảnh upload.
+- [x] Chạy lại command; test fields/photo order/units/no secrets, tmp cleanup khi fail/cancel và cache scope.
+- [x] Commit `feat: read complete listing snapshots for both marketplaces`.
 
 ### C2: Adapter đích, mapping và validation copy/update
 
