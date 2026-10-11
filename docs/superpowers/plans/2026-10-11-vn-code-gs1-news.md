@@ -38,11 +38,11 @@ Quy ước đường dẫn: các tên dưới `features/`, `integration/`, `shar
 
 **Interfaces:** `GtinAvailability(OptionalLong available,boolean complete,int activePrefixes,int unknownPrefixes)`; `Gs1DashboardService.cached(String inn,String environment):Optional<Gs1Membership>`, `availability(Gs1Membership,LocalDate):GtinAvailability`; request coordination consumes A2 with key environment+verified INN. GS1 pane keeps existing letters/membership commands and certificate queue.
 
-- [ ] Viết `expiredPrefixesAreExcluded`, `missingLimitMakesTotalPartial`, `environmentAndInnCacheIsolation`, `openingFiveShopsDoesNotTriggerSigning`. Assert active 100 + expired 900 =100; missing active limit yields complete=false; unsupported/malformed is unknown, no PIN prompt on navigation.
-- [ ] Chạy `MVN -Dtest=Gs1DashboardServiceTest,Gs1MembershipTest,Gs1RepositoryTest test`; xác nhận red.
-- [ ] Thêm scoped cache tương thích bản cũ (cache cũ không có environment chỉ dùng khi scope được xác minh), tổng đúng GCP đủ quyền, ba summary cards, source/time/stale/unknown. Lấy chứng thư/INN từ context Znack đã kiểm tra; không thêm password GS1; reuse authorized session hoặc explicit refresh, không tự ký 5 shop.
-- [ ] Chạy lại command, 0 failures/errors; kiểm tra đổi certificate/environment làm invalid session/cache đúng scope.
-- [ ] Commit `feat: show scoped GS1 GTIN availability`.
+- [x] Viết `expiredPrefixesAreExcluded`, `missingLimitMakesTotalPartial`, `environmentAndInnCacheIsolation`, `openingFiveShopsDoesNotTriggerSigning`. Assert active 100 + expired 900 =100; missing active limit yields complete=false; unsupported/malformed is unknown, no PIN prompt on navigation.
+- [x] Chạy `MVN -Dtest=Gs1DashboardServiceTest,Gs1MembershipTest,Gs1RepositoryTest test`; xác nhận red.
+- [x] Thêm scoped cache tương thích bản cũ (cache cũ không có environment chỉ dùng khi scope được xác minh), tổng đúng GCP đủ quyền, ba summary cards, source/time/stale/unknown. Lấy chứng thư/INN từ context Znack đã kiểm tra; không thêm password GS1; reuse authorized session hoặc explicit refresh, không tự ký 5 shop.
+- [x] Chạy lại command, 0 failures/errors; kiểm tra đổi certificate/environment làm invalid session/cache đúng scope.
+- [x] Commit `feat: show scoped GS1 GTIN availability`.
 
 ### B2: Adapter số dư Честный ЗНАК chỉ đọc
 

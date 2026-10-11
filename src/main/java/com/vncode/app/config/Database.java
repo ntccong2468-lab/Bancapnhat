@@ -190,6 +190,7 @@ public class Database {
             OzonSchemaSupport.initialize(conn);
             com.vncode.app.features.gtinsync.GtinSyncSchema.initialize(conn);
             com.vncode.app.features.products.ProductSchema.ensureTables(conn);
+                com.vncode.app.features.gs1.Gs1BalanceSchema.ensureTables(conn);
             int inactiveMappings = ZnackMappingLifecycle.removeInactiveMappings(conn);
             if (inactiveMappings > 0) {
                 LOGGER.info("Đã gỡ {} mapping tham chiếu GTIN không còn hoạt động", inactiveMappings);
