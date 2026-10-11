@@ -61,8 +61,32 @@ class ProductBulkEditServiceTest {
         var p=service.preview(shop,List.of(key),edit());try(var c=Database.getConnection();var s=c.createStatement()){s.execute("INSERT INTO gtin_sync_jobs VALUES('g','hash',1,'WILDBERRIES',0,'now')");s.execute("INSERT INTO gtin_sync_items VALUES('i','g',1,'WILDBERRIES','123','1','{}','RECONCILE_REQUIRED','','now')");}
         assertThrows(IllegalStateException.class,()->service.apply(shop,p.id(),true));assertEquals(0,adapter.writes.get());
     }
+    @Test void unresolvedBulkEditKeepsShopAndJournal()throws Exception{
+        adapter.timeout=true;var p=service.preview(shop,List.of(key),edit());service.apply(shop,p.id(),true);
+        assertThrows(IllegalStateException.class,()->new com.vncode.app.features.shop.ShopRepository().delete(shop.getId()));
+        assertEquals(CopyState.RECONCILE_REQUIRED,service.result(shop,p.id()).items().getFirst().state());
+    }
+    @Test void reconciledEditRefreshesItsLocalDetails()throws Exception{
+        var old=snapshot;var current=new java.util.concurrent.atomic.AtomicReference<>(new ProductSnapshot(old.key(),old.revision(),old.title(),old.description(),old.brand(),old.vendorArticle(),old.categoryId(),old.media(),old.attributes(),old.variants(),old.dimensions(),old.documents(),old.checkedAt(),Map.of("owner",ListingIdentity.fingerprint(shop))));
+        var cache=new ProductRepository();var service=new ProductBulkEditService(repo,(s,k)->{var f=current.get();cache.saveVerifiedSnapshot(s,f);return f;},s->adapter);
+        var p=service.preview(shop,List.of(key),edit());service.apply(shop,p.id(),true);adapter.ready=true;
+        var f=current.get();current.set(new ProductSnapshot(f.key(),"live:updated",f.title(),"New details", "New",f.vendorArticle(),f.categoryId(),f.media(),f.attributes(),f.variants(),f.dimensions(),f.documents(),Instant.now(),f.metadata()));
+        assertEquals(CopyState.RECONCILED,service.reconcile(shop,p.id()).items().getFirst().state());
+        assertEquals("New details",cache.localSnapshot(key).orElseThrow().description());
+    }
+    @Test void laterCardChangedDuringFirstSendNeverUsesStalePayload()throws Exception{
+        var second=new ProductKey(1,Marketplace.WILDBERRIES,"124","2");
+        var original=snapshot;var fresh=new java.util.concurrent.atomic.AtomicReference<>(new ProductSnapshot(second,"live:original","Second","Keep description","Old","second","9",List.of(),List.of(),List.of(),original.dimensions(),List.of(),Instant.now()));
+        var service=new ProductBulkEditService(repo,(s,k)->k.equals(key)?original:fresh.get(),s->adapter);
+        var p=service.preview(shop,List.of(key,second),edit());
+        adapter.afterSend=()->{var old=fresh.get();fresh.set(new ProductSnapshot(old.key(),"live:changed-by-completed-gtin-edit",old.title(),"New description",old.brand(),old.vendorArticle(),old.categoryId(),old.media(),old.attributes(),old.variants(),old.dimensions(),old.documents(),Instant.now()));};
+        assertThrows(IllegalStateException.class,()->service.apply(shop,p.id(),true));
+        assertEquals(1,adapter.writes.get());
+        var state=service.result(shop,p.id()).items().stream().filter(i->i.key().equals(second)).findFirst().orElseThrow().state();
+        assertEquals(CopyState.NEEDS_DATA,state,"Definitely unsent changed card must be available for a fresh preview");
+    }
     class FakeAdapter implements ListingTargetAdapter {
-        AtomicInteger writes=new AtomicInteger();boolean timeout,ready;Map<String,List<String>> changes;
+        AtomicInteger writes=new AtomicInteger();boolean timeout,ready;Map<String,List<String>> changes;Runnable afterSend=()->{};
         public List<TargetCategory> categories(Shop s){return List.of();}
         public List<TargetAttribute> attributes(Shop s,String c){return List.of(new TargetAttribute("723","Состав","1",false,"",1,"","",false));}
         public CopyPreview preview(Shop s,ProductSnapshot f,CopyOptions o){throw new UnsupportedOperationException();}
@@ -70,7 +94,7 @@ class ProductBulkEditServiceTest {
             this.changes=changes;String request=ProductJson.GSON.toJson(changes),owner=ListingIdentity.fingerprint(s);var o=new CopyOptions(changes.keySet(),Set.of(),f.categoryId(),Map.of(),changes,Map.of(),null,"RUB",List.of(),null);
             return new ProductEditPreview(f.key(),f.revision(),new CopyPreview(s.getId(),s.getMarketplace(),owner,f.key(),f.revision(),CopyPreview.hash(request,"[]","[]",owner,f.revision(),"UPDATE"),request,"[]","[]",Map.of(),List.of(),List.of(f.vendorArticle()),o,"UPDATE"));
         }
-        public RemoteSubmission submitUpdate(Shop s,ProductEditPreview p)throws IOException {writes.incrementAndGet();if(timeout)throw new IOException("lost");return submit(s,p.preview());}
+        public RemoteSubmission submitUpdate(Shop s,ProductEditPreview p)throws IOException {writes.incrementAndGet();afterSend.run();if(timeout)throw new IOException("lost");return submit(s,p.preview());}
         public RemoteSubmission submit(Shop s,CopyPreview p){return new RemoteSubmission(s.getId(),s.getMarketplace(),p.owner(),p.requestHash(),null,p.articles(),p.requestJson(),p.mediaJson(),p.documentsJson(),"CARD",Map.of());}
         public RemoteResult reconcile(Shop s,RemoteSubmission r){return ready?new RemoteResult(CopyState.RECONCILED,List.of("123"),List.of(),Map.of("article","123")):RemoteResult.pending();}
         public RemoteSubmission finishAssets(Shop s,RemoteSubmission r){return r.withPhase("ASSETS_SENT",r.identities());}

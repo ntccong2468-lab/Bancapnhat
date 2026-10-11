@@ -89,5 +89,6 @@ public abstract class AbstractListingAdapter implements ListingTargetAdapter {
         if(d.validFrom()!=null)r.addProperty("startDate",d.validFrom().toString()+"T00:00:00Z");if(d.validUntil()!=null)r.addProperty("endDate",d.validUntil().toString()+"T00:00:00Z");return r;
     }
     protected static boolean expired(ProductDocument d){return d.state()==DocumentState.EXPIRED||d.validUntil()!=null&&d.validUntil().isBefore(LocalDate.now());}
+    protected static boolean validDocument(ProductDocument d){return !expired(d)&&d.state()!=DocumentState.REJECTED;}
     protected static String namedValue(ProductSnapshot s,CopyOptions o,String field,String fallback){String explicit=o.textOverrides().get(field);if(explicit!=null&&!explicit.isBlank())return explicit;return s.attributes().stream().filter(a->("@"+field).equals(o.attributeMapping().get(a.mappingKey()))).findFirst().map(a->String.join(" ",a.values())).orElse(explicit==null?fallback:explicit);}
 }

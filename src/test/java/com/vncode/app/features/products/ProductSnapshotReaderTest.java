@@ -41,6 +41,25 @@ class ProductSnapshotReaderTest {
         assertNull(snapshot.documents().getFirst().file());assertEquals("Scope",snapshot.documents().getFirst().metadata().get("productNumber"));
         assertThrows(UnsupportedOperationException.class,()->snapshot.metadata().put("secret","bad"));
     }
+    @Test void realSnapshotReadPopulatesLocalDetailsAndDocumentFilter()throws Exception{
+        try(var c=Database.getConnection();var s=c.createStatement()){s.execute("INSERT INTO wb_product_cards(shop_id,nm_id,title,synced_at) VALUES(1,123,'Full','now')");}
+        var key=new ProductKey(1,Marketplace.WILDBERRIES,"123","101");
+        new WbProductSnapshotReader(s->(p,b,m)->JsonParser.parseString(WB)).read(wb,key);
+        var repo=new ProductRepository();assertEquals("Text",repo.localSnapshot(key).orElseThrow().description());
+        assertEquals(1,repo.loadPage(new ProductQuery(1,Marketplace.WILDBERRIES,"",List.of(),DocumentState.VALID,false,null,100)).total());
+    }
+    @Test void completeReadRemovesDocumentsThatMarketplaceRemoved()throws Exception{
+        var data=new java.util.concurrent.atomic.AtomicReference<>(WB);var reader=new WbProductSnapshotReader(s->(p,b,m)->JsonParser.parseString(data.get()));
+        var key=new ProductKey(1,Marketplace.WILDBERRIES,"123","101");reader.read(wb,key);
+        assertEquals(1,new ProductRepository().localSnapshot(key).orElseThrow().documents().size());
+        var json=JsonParser.parseString(WB);json.getAsJsonObject().getAsJsonArray("cards").get(0).getAsJsonObject().getAsJsonObject("documents").add("items",new JsonArray());data.set(json.toString());
+        reader.read(wb,key);assertTrue(new ProductRepository().localSnapshot(key).orElseThrow().documents().isEmpty());
+    }
+    @Test void changedCredentialsDuringHttpCannotPopulateOldOwnerCache()throws Exception{
+        var reader=new WbProductSnapshotReader(s->(p,b,m)->{try(var c=Database.getConnection();var q=c.createStatement()){q.executeUpdate("UPDATE shops SET api_key='rotated' WHERE id=1");}catch(Exception e){throw new java.io.IOException(e);}return JsonParser.parseString(WB);});
+        assertThrows(SecurityException.class,()->reader.read(wb,new ProductKey(1,Marketplace.WILDBERRIES,"123","101")));
+        try(var c=Database.getConnection();var q=c.createStatement();var r=q.executeQuery("SELECT count(*) FROM product_snapshots")){assertTrue(r.next());assertEquals(0,r.getInt(1));}
+    }
     @Test void shopOwnerMustMatchBeforeHttp() throws Exception {
         var calls=new AtomicInteger();ListingTransport transport=(p,b,m)->{calls.incrementAndGet();return JsonParser.parseString(WB);};
         var reader=new WbProductSnapshotReader(s->transport);

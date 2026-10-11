@@ -12,7 +12,7 @@
     "Logo VN trắng nền đen, tông tối/tím; TN VED dùng bên trong tác vụ, không có mục sidebar riêng; giữ cùng định danh bộ cài và dữ liệu VN code."
   ],
   "implemented": [
-    "Giữ các chức năng VN code đã phát hành: shop, supply, KIZ/mapping, in/xuất tem, mẫu tem, lịch sử và nghiệp vụ GS1; bản cá nhân miễn phí.",
+    "Giữ các chức năng VN code đã phát hành: shop, supply, KIZ/mapping, in/xuất tem, mẫu tem, lịch sử và nghiệp vụ GS1. Các bản cá nhân đã phát hành giữ quyền miễn phí.",
     "Products đọc snapshot SQL có chỉ mục và trang 100 dòng. Trạng thái giấy tờ, nguyên liệu, TN VED và GTIN hiển thị theo shop/biến thể; mã chưa có chứng cứ đăng ký được ghi chưa xác minh.",
     "Sửa thương hiệu/chất liệu/TN VED/giấy tờ theo tập sản phẩm đã chốt, đọc mới và xem giá trị trước/sau; một lần gửi và đối soát khi kết quả không rõ. Không bỏ âm thầm trường sản phẩm không sửa.",
     "Copy bốn hướng, tối đa 100 bài nguồn và 5 shop đích/lần; tên, ảnh có thứ tự, GTIN đúng biến thể, thuộc tính, giấy tờ, size và kích thước đóng gói được ánh xạ theo API đích. Yêu cầu đủ trường bắt buộc và hiện rõ dữ liệu không thể chuyển.",
@@ -29,6 +29,15 @@
     "Yandex Translate cần service account có quyền và tài khoản thanh toán của người dùng; khi thiếu cấu hình hoặc dịch lỗi chỉ hiển thị tin gốc. Tin tức hiện dùng nguồn WB, chưa có nguồn Ozon đã xác minh.",
     "Chưa đo baseline/current trên máy Windows 2 CPU/4 GiB. Báo cáo cloud và Windows CI mạnh hơn không bảo đảm mọi máy hoặc request mạng/máy in đều không bị lag.",
     "Luồng thêm/thay GTIN production độc lập đã khóa ở bản trước vẫn cần hợp đồng và fixture nghiệm thu; không mở khóa chỉ từ mã barcode. Các cải tiến FBO cấp GTIN/mua KIZ và quy tắc pháp lý TN VED chưa được công bố hoàn tất trong Preview này.",
-    "Chưa hoàn tất các phần ngoài đợt Products/Copy/10-shop: trình thiết kế mẫu nhúng mới, số dư CZ trên header, cấp key thương mại và dịch vụ tên miền/hosting. Các bản cá nhân đã phát hành vẫn giữ chế độ miễn phí."
-  ]
+    "Chưa hoàn tất các phần ngoài đợt Products/Copy/10-shop: trình thiết kế mẫu nhúng mới, số dư CZ trên header và dịch vụ tên miền/hosting. Các bản cá nhân đã phát hành vẫn giữ chế độ miễn phí.",
+    "Giấy phép theo tài khoản website, lease offline 72 giờ và giới hạn thiết bị đã được duyệt thiết kế; mới nhận README, thiếu Worker/schema/migration/test để lập kế hoạch backend và tích hợp. Không phát hành 1.4.0 trước kiểm tra phần này."
+  ],
+  "licenseIntegration": {
+    "status": "design-approved-awaiting-backend-source",
+    "design": "docs/superpowers/specs/2026-10-12-vn-code-web-license-design.md",
+    "account": "email and password registered on vncode.id.vn",
+    "defaultDevices": 1,
+    "defaultOfflineHours": 72,
+    "implemented": false
+  }
 }

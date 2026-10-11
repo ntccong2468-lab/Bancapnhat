@@ -1,5 +1,9 @@
 # VN code 1.4.0 Preview
 
+**Chưa phát hành.** Phần giấy phép theo tài khoản website/offline/giới hạn thiết bị
+đã có thiết kế duyệt, chờ [nguồn backend](../research/2026-10-12-vn-code-license-backend-intake.md)
+để lập kế hoạch và tích hợp. Chỉ phát hành 1.4.0 sau kiểm tra phần này cùng Windows.
+
 Bản cập nhật của cùng VN code Windows do Nguyễn Thành Công phát triển và quản lý.
 Giữ `%LOCALAPPDATA%\VNcodeApp`, `%LOCALAPPDATA%\VNcodeData`, shop, mẫu tem và lịch sử;
 UpgradeCode giữ `8CBBA0E2-6E73-4F56-9101-6BC0948D3C72`. Logo VN trắng trên nền đen.
@@ -9,6 +13,9 @@ UpgradeCode giữ `8CBBA0E2-6E73-4F56-9101-6BC0948D3C72`. Logo VN trắng trên 
 - **Sản phẩm:** chọn shop, đồng bộ khi cần, tìm kiếm/lọc; chọn trang hoặc toàn bộ
   kết quả đã chốt. Sửa nhãn hiệu, chất liệu, TN VED hoặc giấy tờ bằng bảng giá trị
   trước/sau rồi xác nhận. Chuyển shop không thay chủ sở hữu của tác vụ đã gửi.
+  Nút Đồng bộ tải catalog và kiểm tra chi tiết/giấy tờ tối đa 100 dòng của trang
+  đang xem; các trang khác cần đồng bộ riêng. Cache đọc mới được kiểm tra đúng shop;
+  giấy tờ đã bị sàn gỡ được loại khỏi cache sau lần đọc đầy đủ.
 - **GS1:** kiểm tra chứng thư còn hạn và INN trong Cấu hình Znack. Hạn mức GTIN
   National Catalog và tiền Честный ЗНАК là hai nguồn riêng. Chọn đúng nhóm hàng/
   tài khoản cho tiền; số chưa lấy được hiển thị trạng thái chưa lấy được.
@@ -16,6 +23,8 @@ UpgradeCode giữ `8CBBA0E2-6E73-4F56-9101-6BC0948D3C72`. Logo VN trắng trên 
   danh mục, thuộc tính, giá, size và kích thước. Kiểm tra giấy tờ/GTIN đúng biến
   thể. Có preview từng đích, tối đa 100 bài × 5 shop/lần. Tài liệu Ozon cần tệp
   gốc trong giới hạn 10 MiB; phần không thể chuyển phải được xử lý rõ ràng.
+  Sửa giấy tờ hàng loạt tối đa 16 tài liệu, tổng tệp gốc tối đa 10 MiB; tệp dùng
+  chung được lưu một lần. Preview có ngân sách dữ liệu 64 MiB, vượt phải chia batch.
 - **Tin tức:** đồng bộ từ WB; xem link và nội dung gốc. Muốn dịch tiếng Việt,
   cấu hình service account Yandex Translate có quyền/billing; dịch là dịch vụ
   tùy chọn. Khi không dịch được, giữ nguyên nội dung gốc.
@@ -54,5 +63,6 @@ Manifest Preview là thông tin **cài thủ công**, `automaticUpdate=false`; k
 
 Xem [feature-status](VN-code-1.4.0-status.json): tài khoản/chứng thư/SMTP/IMAP/
 Yandex/máy in và thao tác đăng bài/giấy tờ thật chưa nghiệm thu. Luồng GTIN
-production độc lập còn khóa; các cải tiến FBO, trình thiết kế nhúng, quy tắc TN VED,
-key thương mại và hosting không được công bố hoàn tất trong đợt Preview này.
+production độc lập còn khóa; các cải tiến FBO, trình thiết kế nhúng, quy tắc TN VED
+và hosting chưa được công bố hoàn tất. Module tài khoản/offline/thiết bị là phần
+bổ sung bắt buộc của 1.4.0 theo thiết kế mới; cần hoàn thiện trước phát hành.

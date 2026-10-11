@@ -40,7 +40,6 @@ public final class OzonListingAdapter extends AbstractListingAdapter {
             var simple=dict.stream().filter(a->a.complexId().isBlank()||a.complexId().equals("0")).toList();item.add("attributes",mappedAttributes(shop,o.targetCategoryId(),simple,values,valueCache,issues));var complex=complexAttributes(shop,source,o,dict,values,valueCache,issues);if(!complex.isEmpty())item.add("complex_attributes",complex);items.add(item);
         }
         var docs=new JsonArray();for(var d:documents(source,o)){
-            if(expired(d)||d.state()==DocumentState.REJECTED){issue(issues,"DOCUMENT_INVALID",d.number());continue;}
             JsonObject params=certificate(shop,d,issues);if(params!=null)docs.add(params);
         }
         var request=new JsonObject();request.add("items",items);return previewRecord(shop,source,o,request,media,docs,issues,articles,"CREATE");
@@ -63,6 +62,7 @@ public final class OzonListingAdapter extends AbstractListingAdapter {
         var result=new LinkedHashMap<String,String>();String last="0";for(int page=0;page<10;page++){var b=category(cat);b.addProperty("attribute_id",new BigInteger(attribute));b.addProperty("last_value_id",new BigInteger(last));b.addProperty("limit",2000);var response=call(shop,"v1/description-category/attribute/values",b,false);var data=array(response,"result");for(var e:data){var d=object(e);String value=text(d,"value"),id=text(d,"id");if(result.containsKey(value)&&!result.get(value).equals(id))throw new IOException("Ambiguous destination dictionary value");result.put(value,id);last=id;}if(!"true".equals(text(response,"has_next")))return Map.copyOf(result);if(data.isEmpty())throw new IOException("Dictionary cursor unavailable");}throw new IOException("Dictionary pagination limit");
     }
     private JsonObject certificate(Shop shop,ProductDocument d,List<CopyIssue> issues)throws IOException{
+        if(!validDocument(d)){issue(issues,"DOCUMENT_INVALID",d.number());return null;}
         if(d.file()==null){issue(issues,"DOCUMENT_FILE_REQUIRED",d.number());return null;}if(!"file".equalsIgnoreCase(d.file().getScheme())){issue(issues,"LOCAL_DOCUMENT_FILE_REQUIRED",d.number());return null;}
         var params=new JsonObject();for(String field:List.of("certificate_type","certificate_country","accordance_type","name","number","issue_date","link_to_registry","product_type")){String value=d.metadata().get(field);if(value!=null&&!value.isBlank())params.addProperty(field,value);}
         if(!params.has("number"))params.addProperty("number",d.number());if(!params.has("issue_date")&&d.validFrom()!=null)params.addProperty("issue_date",d.validFrom()+"T00:00:00Z");
@@ -92,9 +92,20 @@ public final class OzonListingAdapter extends AbstractListingAdapter {
     }
     public ProductEditPreview previewUpdate(Shop s,ProductSnapshot fresh,Map<String,List<String>> changes,List<ProductDocument> documents)throws IOException{
         owner(s);ListingIdentity.require(s,fresh.key());if(!fresh.revision().startsWith("live:")||!ListingIdentity.fingerprint(s).equals(fresh.metadata().get("owner")))throw new SecurityException("Fresh own product required");var raw=object(JsonParser.parseString(fresh.metadata().get("source.payload")));var info=obj(raw,"info");var attr=obj(raw,"attributes");var item=new JsonObject();
-        for(String key:List.of("offer_id","name","description_category_id","type_id","depth","width","height","dimension_unit","weight","weight_unit","primary_image","images","color_image","pdf_list"))if(attr.has(key))item.add(key,attr.get(key).deepCopy());
+        for(String key:List.of("offer_id","name","description_category_id","type_id","depth","width","height","dimension_unit","weight","weight_unit","primary_image","images","color_image"))if(attr.has(key))item.add(key,attr.get(key).deepCopy());
         for(String key:List.of("price","old_price","min_price","currency_code","vat"))if(info.has(key))item.add(key,info.get(key).deepCopy());String barcode=text(attr,"barcode");if(!barcode.isBlank())item.addProperty("barcode",barcode);var attrs=array(attr,"attributes").deepCopy();var dictionary=attributes(s,fresh.categoryId());var issues=new ArrayList<CopyIssue>();var vals=new LinkedHashMap<String,List<String>>();
-        var groups=new LinkedHashMap<String,JsonArray>();var seen=new HashSet<String>();for(var e:array(attr,"complex_attributes")){var a=object(e);String group=text(a,"complex_id");if(!seen.add(group+":"+text(a,"id")))issue(issues,"COMPLEX_GROUP_PROOF_REQUIRED","attributes");groups.computeIfAbsent(group,k->new JsonArray()).add(a.deepCopy());}if(!groups.isEmpty()){var complex=new JsonArray();for(var entries:groups.values()){var group=new JsonObject();group.add("attributes",entries);complex.add(group);}item.add("complex_attributes",complex);}
+        if(attr.has("pdf_list")){
+            var pdfs=new JsonArray();int index=1;
+            for(var e:array(attr,"pdf_list")){
+                var pdf=object(e);String url=text(pdf,"file_name");
+                try{var uri=java.net.URI.create(url);if(!"https".equals(uri.getScheme())||uri.getHost()==null||uri.getUserInfo()!=null||uri.getFragment()!=null)throw new IllegalArgumentException();}
+                catch(IllegalArgumentException bad){issue(issues,"OWN_PDF_SOURCE_UNAVAILABLE","pdf_list");continue;}
+                var out=new JsonObject();out.addProperty("index",index++);out.addProperty("name",text(pdf,"name"));out.addProperty("src_url",url);pdfs.add(out);
+            }
+            item.add("pdf_list",pdfs);
+        }
+        attrs=importAttributes(attrs);
+        var groups=new LinkedHashMap<String,JsonArray>();var seen=new HashSet<String>();for(var e:array(attr,"complex_attributes")){var a=object(e);String group=text(a,"complex_id");if(!seen.add(group+":"+text(a,"id")))issue(issues,"COMPLEX_GROUP_PROOF_REQUIRED","attributes");var mapped=a.deepCopy();mapped.add("values",importValues(array(a,"values")));groups.computeIfAbsent(group,k->new JsonArray()).add(mapped);}if(!groups.isEmpty()){var complex=new JsonArray();for(var entries:groups.values()){var group=new JsonObject();group.add("attributes",entries);complex.add(group);}item.add("complex_attributes",complex);}
         var barcodes=strings(array(attr,"barcodes"));if(barcodes.size()>1)issue(issues,"OWN_BARCODE_SET_UNSUPPORTED","barcodes");else if(barcode.isBlank()&&barcodes.size()==1)item.addProperty("barcode",barcodes.getFirst());
         for(var change:changes.entrySet()){String id=change.getKey().startsWith("attribute:")?change.getKey().substring(10):change.getKey().equals("brand")?dictionary.stream().filter(a->a.name().equals("Бренд")||a.name().equals("Бренд в одежде и обуви")).map(TargetAttribute::id).findFirst().orElse(""):"";if(id.isBlank()||dictionary.stream().noneMatch(a->a.id().equals(id))){issue(issues,"FOREIGN_TARGET_ATTRIBUTE",change.getKey());continue;}for(int i=attrs.size()-1;i>=0;i--)if(text(object(attrs.get(i)),"id").equals(id))attrs.remove(i);vals.put(id,change.getValue());}
         var changed=mappedAttributes(s,fresh.categoryId(),dictionary.stream().filter(a->vals.containsKey(a.id())).toList(),vals,new HashMap<>(),issues);changed.forEach(attrs::add);item.add("attributes",attrs);if(!item.has("price"))issue(issues,"OWN_PRICE_UNAVAILABLE","price");
@@ -106,8 +117,12 @@ public final class OzonListingAdapter extends AbstractListingAdapter {
         for(String key:List.of("offer_id","name","description_category_id","type_id","depth","width","height","weight","dimension_unit","weight_unit"))if(want.has(key)&&!same(want.get(key),attrs.get(key)))return false;
         if(want.has("price")&&(decimal(info,"price")==null||new BigDecimal(text(want,"price")).compareTo(decimal(info,"price"))!=0))return false;
         if(want.has("barcode")&&!strings(array(attrs,"barcodes")).contains(text(want,"barcode"))&&!text(attrs,"barcode").equals(text(want,"barcode")))return false;
-        for(var e:array(want,"attributes")){var a=object(e);if(array(attrs,"attributes").asList().stream().noneMatch(v->text(object(v),"id").equals(text(a,"id"))&&same(a.get("values"),object(v).get("values"))))return false;}
-        if(want.has("complex_attributes")){var actual=array(attrs,"complex_attributes").asList().stream().map(ListingJson::object).toList();for(var group:array(want,"complex_attributes"))for(var e:array(object(group),"attributes")){var a=object(e);if(actual.stream().noneMatch(v->text(v,"id").equals(text(a,"id"))&&text(v,"complex_id").equals(text(a,"complex_id"))&&same(v.get("values"),a.get("values"))))return false;}}
+        for(var e:array(want,"attributes")){var a=object(e);if(array(attrs,"attributes").asList().stream().noneMatch(v->text(object(v),"id").equals(text(a,"id"))&&same(importValues(array(a,"values")),importValues(array(object(v),"values")))))return false;}
+        if(want.has("complex_attributes")){var actual=array(attrs,"complex_attributes").asList().stream().map(ListingJson::object).toList();for(var group:array(want,"complex_attributes"))for(var e:array(object(group),"attributes")){var a=object(e);if(actual.stream().noneMatch(v->text(v,"id").equals(text(a,"id"))&&text(v,"complex_id").equals(text(a,"complex_id"))&&same(importValues(array(v,"values")),importValues(array(a,"values")))))return false;}}
+        if(want.has("pdf_list")&&!same(pdfIdentities(array(want,"pdf_list")),pdfIdentities(array(attrs,"pdf_list"))))return false;
         if(want.has("images")&&array(attrs,"images").size()!=array(want,"images").size())return false;return true;
     }
+    private static JsonArray importValues(JsonArray values){var out=new JsonArray();for(var e:values){var value=object(e).deepCopy();if(value.has("dictionaryValueId")){var id=value.remove("dictionaryValueId");if(value.has("dictionary_value_id")&&!same(id,value.get("dictionary_value_id")))throw new IllegalArgumentException("Conflicting dictionary identity");value.add("dictionary_value_id",id);}out.add(value);}return out;}
+    private static JsonArray importAttributes(JsonArray attributes){var out=new JsonArray();for(var e:attributes){var attribute=object(e).deepCopy();attribute.add("values",importValues(array(attribute,"values")));out.add(attribute);}return out;}
+    private static JsonArray pdfIdentities(JsonArray pdfs){var out=new JsonArray();for(var e:pdfs){var pdf=object(e);var identity=new JsonObject();identity.addProperty("name",text(pdf,"name"));identity.addProperty("src_url",pdf.has("src_url")?text(pdf,"src_url"):text(pdf,"file_name"));out.add(identity);}return out;}
 }

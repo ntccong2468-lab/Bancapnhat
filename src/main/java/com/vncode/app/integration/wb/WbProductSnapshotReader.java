@@ -39,6 +39,6 @@ public final class WbProductSnapshotReader implements ProductSnapshotReader {
             else if(doc.has("verdict"))state=DocumentState.PENDING;
             docs.add(new ProductDocument(text(doc,"id"),text(doc,"type"),text(doc,"number"),date(text(doc,"startDate")),end,text(doc,"applicant"),text(doc,"productNumber"),null,Marketplace.WILDBERRIES,state,"https://content-api.wildberries.ru/content/v2/get/cards/list",now,metadata(doc)));
         }
-        String raw=ListingIdentity.canonical(card);return new ProductSnapshot(key,"live:"+ListingIdentity.hash(raw),text(card,"title"),text(card,"description"),text(card,"brand"),text(card,"vendorCode"),text(card,"subjectID"),media,attributes,variants,dimensions,docs,now,Map.of("source.payload",raw,"owner",ListingIdentity.fingerprint(shop)));
+        String raw=ListingIdentity.canonical(card);var snapshot=new ProductSnapshot(key,"live:"+ListingIdentity.hash(raw),text(card,"title"),text(card,"description"),text(card,"brand"),text(card,"vendorCode"),text(card,"subjectID"),media,attributes,variants,dimensions,docs,now,Map.of("source.payload",raw,"owner",ListingIdentity.fingerprint(shop)));new ProductRepository().saveVerifiedSnapshot(shop,snapshot);return snapshot;
     }
 }

@@ -28,6 +28,10 @@ public final class ListingCopyService {
     }
     public CopyJob configure(Shop destination,String id,CopyOptions options){var job=owned(destination,id);if(sent(job.state()))throw new IllegalStateException("Submitted job is frozen");if(!job.options().variantIds().containsAll(options.variantIds())||options.variantIds().isEmpty())throw new IllegalArgumentException("Cannot add unfrozen variants");var next=job.with(CopyState.DRAFT,job.source(),options,null,null,List.of());if(!repo.stage(job,next))throw new IllegalStateException("Listing draft changed");return next;}
     public CopyJob publish(Shop destination,String id,String approvedHash,boolean confirmed)throws IOException{
+        var job=owned(destination,id);
+        return com.vncode.app.features.shop.ShopOperationCoordinator.withActiveShops(List.of(job.sourceShopId(),destination.getId()),()->publishActive(destination,id,approvedHash,confirmed));
+    }
+    private CopyJob publishActive(Shop destination,String id,String approvedHash,boolean confirmed)throws IOException{
         if(!confirmed)throw new IllegalArgumentException("Explicit confirmation required");var job=owned(destination,id);if(sent(job.state()))return job;if(job.preview()==null||!job.preview().publishable()||!job.preview().requestHash().equals(approvedHash))throw new IllegalStateException("Preview changed");
         var source=sourceShop(job);var fresh=reader.read(source,job.source().key());if(!fresh.revision().equals(job.preview().sourceRevision()))throw new IllegalStateException("Source changed; preview again");var adapter=adapters.apply(destination);var current=adapter.preview(destination,fresh,job.options());if(!current.publishable()||!current.requestHash().equals(approvedHash))throw new IllegalStateException("Destination or files changed; preview again");
         if(!repo.claim(destination.getId(),id,approvedHash))return owned(destination,id);var sending=owned(destination,id);var p=job.preview();var unknown=new RemoteSubmission(destination.getId(),destination.getMarketplace(),job.destinationOwner(),p.requestHash(),null,p.articles(),p.requestJson(),p.mediaJson(),p.documentsJson(),"CARD",Map.of());
@@ -36,6 +40,10 @@ public final class ListingCopyService {
         return owned(destination,id);
     }
     public CopyJob reconcile(Shop destination,String id)throws IOException{
+        var job=owned(destination,id);
+        return com.vncode.app.features.shop.ShopOperationCoordinator.withActiveShops(List.of(job.sourceShopId(),destination.getId()),()->reconcileActive(destination,id));
+    }
+    private CopyJob reconcileActive(Shop destination,String id)throws IOException{
         var job=owned(destination,id);if(job.state()==CopyState.RECONCILED||job.state()==CopyState.FAILED)return job;if(!sent(job.state()))throw new IllegalStateException("Job was not submitted");if(job.state()==CopyState.SENDING)return job;
         var r=job.submission();if(r==null){var p=job.preview();if(p==null)throw new IllegalStateException("Recovery preview unavailable");r=new RemoteSubmission(job.destinationShopId(),job.marketplace(),job.destinationOwner(),p.requestHash(),null,p.articles(),p.requestJson(),p.mediaJson(),p.documentsJson(),"CARD",Map.of());}
         var adapter=adapters.apply(destination);var result=adapter.reconcile(destination,r);var next=job.with(result.state(),job.source(),job.options(),job.preview(),r.withPhase(r.phase(),result.identities()),result.issues());

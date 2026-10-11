@@ -201,6 +201,12 @@ class OzonSyncServiceTest {
             return result.next() ? result.getInt(1) : 0;
         }
     }
+    @Test void activeDetailsDoNotStopAtThousandOrSkipRowsAsStatusesDisappear()throws Exception{
+        var rows=new java.util.ArrayList<OzonPostingDto>();for(int i=0;i<1001;i++)rows.add(new OzonPostingDto(String.format("POST-%04d",i),"","","awaiting_packaging","","","","","","",new OzonRequirements(java.util.List.of(),java.util.List.of(),java.util.List.of()),java.util.List.of(),false,java.util.List.of()));new OzonPostingRepository().upsertPage(1,rows);
+        server.setDispatcher(new okhttp3.mockwebserver.Dispatcher(){@Override public MockResponse dispatch(okhttp3.mockwebserver.RecordedRequest request){String number=com.google.gson.JsonParser.parseString(request.getBody().readUtf8()).getAsJsonObject().get("posting_number").getAsString();return json("{\"result\":{\"posting_number\":\""+number+"\",\"status\":\"cancelled\",\"products\":[]}}");}});
+        assertEquals(1001,new OzonPostingSyncService(1,api).refreshActiveDetails());
+        assertEquals(0,count("SELECT count(*) FROM ozon_postings WHERE status='awaiting_packaging'"));
+    }
 
     private String scalar(String sql) throws Exception {
         try (Connection connection = Database.getConnection();

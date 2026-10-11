@@ -127,6 +127,25 @@ public class ShopRepository {
                     }
                 }
                 // Keep the shop, credentials and reconciliation history until every GTIN outcome is known.
+                try (PreparedStatement copy = conn.prepareStatement("""
+                            SELECT 1 FROM listing_copy_jobs
+                            WHERE (source_shop_id=? OR destination_shop_id=?)
+                              AND state IN ('SENDING','REMOTE_PROCESSING','RECONCILE_REQUIRED') LIMIT 1
+                        """)) {
+                    copy.setInt(1, id); copy.setInt(2, id);
+                    try (ResultSet result = copy.executeQuery()) {
+                        if (result.next()) throw new IllegalStateException(I18nService.getInstance().tr("copy.shop_delete_pending"));
+                    }
+                }
+                try (PreparedStatement bulk = conn.prepareStatement("""
+                            SELECT 1 FROM product_edit_items WHERE shop_id=?
+                              AND state IN ('SENDING','REMOTE_PROCESSING','RECONCILE_REQUIRED') LIMIT 1
+                        """)) {
+                    bulk.setInt(1, id);
+                    try (ResultSet result = bulk.executeQuery()) {
+                        if (result.next()) throw new IllegalStateException(I18nService.getInstance().tr("products.shop_delete_pending"));
+                    }
+                }
                 try (PreparedStatement gtin = conn.prepareStatement("""
                             SELECT 1 FROM gtin_sync_items
                             WHERE shop_id=? AND status NOT IN ('SUCCEEDED','FAILED','CANCELLED') LIMIT 1

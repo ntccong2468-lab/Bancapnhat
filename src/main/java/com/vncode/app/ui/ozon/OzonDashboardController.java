@@ -104,7 +104,9 @@ public final class OzonDashboardController {
 
     private final OzonPostingRepository postings = new OzonPostingRepository();
     private final OzonCatalogRepository catalog = new OzonCatalogRepository();
-    private final OzonSyncWorkflow syncWorkflow = new OzonSyncWorkflow();
+    private final OzonSyncWorkflow syncWorkflow;
+    public OzonDashboardController(){this(new OzonSyncWorkflow());}
+    public OzonDashboardController(OzonSyncWorkflow syncWorkflow){this.syncWorkflow=java.util.Objects.requireNonNull(syncWorkflow);}
     private final OzonShipService shipService = new OzonShipService();
     private final OzonPrintBundleService printBundleService = new OzonPrintBundleService();
     private final OzonPrintReadinessService printReadinessService = new OzonPrintReadinessService();
@@ -235,7 +237,7 @@ public final class OzonDashboardController {
             @Override protected Void call() throws Exception {
                 return ShopOperationCoordinator.withActiveShop(selected.getId(), () -> {
                     syncWorkflow.checkConnection(selected);
-                    syncWorkflow.syncCurrentPostings(selected);
+                    syncWorkflow.syncOverview(selected);
                     return null;
                 });
             }

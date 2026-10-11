@@ -4,6 +4,8 @@ import com.google.gson.JsonParser;
 import com.vncode.app.config.Database;
 import com.vncode.app.features.gtinsync.RegisteredGtinValidator;
 import com.vncode.app.integration.marketplace.Marketplace;
+import com.vncode.app.integration.listing.ListingIdentity;
+import com.vncode.app.models.Shop;
 import org.sqlite.Function;
 import java.math.BigDecimal;
 import java.net.URI;
@@ -130,7 +132,7 @@ public final class ProductRepository {
         try(var c=open()) {
             requireOwner(c,key.shopId(),key.marketplace());
             try(var p=c.prepareStatement("SELECT payload FROM product_snapshots WHERE shop_id=? AND marketplace=? AND card_id=? AND variant_id=?")) {
-                bindKey(p,key);try(var r=p.executeQuery()){if(r.next()){var snapshot=ProductJson.GSON.fromJson(r.getString(1),ProductSnapshot.class);if(!key.equals(snapshot.key()))throw new SecurityException("Product snapshot owner mismatch");return Optional.of(snapshot);}}
+                bindKey(p,key);try(var r=p.executeQuery()){if(r.next()){var snapshot=ProductJson.GSON.fromJson(r.getString(1),ProductSnapshot.class);if(!key.equals(snapshot.key()))throw new SecurityException("Product snapshot owner mismatch");String owner=snapshot.metadata().get("owner");if(owner==null||owner.equals(currentOwner(c,key)))return Optional.of(snapshot);}}
             }
             return key.marketplace()==Marketplace.WILDBERRIES?wbSnapshot(c,key):ozonSnapshot(c,key);
         }catch(SQLException error){throw storeError();}
@@ -164,17 +166,35 @@ public final class ProductRepository {
         }
     }
     public void saveSnapshot(ProductSnapshot snapshot) {
+        saveSnapshot(snapshot,false);
+    }
+    /** Only complete, current-credential marketplace reads can replace a card's document set. */
+    public void saveVerifiedSnapshot(Shop owner,ProductSnapshot snapshot){
+        com.vncode.app.features.shop.ShopOperationCoordinator.withActiveShop(owner.getId(),()->{
+            ListingIdentity.require(owner,snapshot.key());
+            if(!snapshot.revision().startsWith("live:")||!ListingIdentity.fingerprint(owner).equals(snapshot.metadata().get("owner")))throw new SecurityException("Verified product snapshot required");
+            saveSnapshot(snapshot,true);return null;
+        });
+    }
+    private void saveSnapshot(ProductSnapshot snapshot,boolean complete) {
         try(var c=open()) {
             c.setAutoCommit(false);var key=snapshot.key();requireOwner(c,key.shopId(),key.marketplace());
+            if(complete){
+                if(!snapshot.metadata().get("owner").equals(currentOwner(c,key)))throw new SecurityException("Product credentials changed");
+                for(String table:List.of("product_snapshots","product_documents"))try(var clear=c.prepareStatement("DELETE FROM "+table+" WHERE shop_id=? AND marketplace=? AND card_id=?")){clear.setInt(1,key.shopId());clear.setString(2,key.marketplace().name());clear.setString(3,key.cardId());clear.executeUpdate();}
+            }
             try(var p=c.prepareStatement("INSERT INTO product_snapshots VALUES(?,?,?,?,?,?) ON CONFLICT(shop_id,marketplace,card_id,variant_id) DO UPDATE SET payload=excluded.payload,checked_at=excluded.checked_at")) {
                 bindKey(p,key);p.setString(5,ProductJson.GSON.toJson(snapshot));p.setString(6,snapshot.checkedAt().toString());p.executeUpdate();
             }
-            // A snapshot for one variant must never erase another variant's shared documents.
+            // Partial imported caches merge documents; a verified complete card replaces its shared set.
             try(var p=c.prepareStatement("INSERT INTO product_documents VALUES(?,?,?,?,?,?,?,?,?) ON CONFLICT(shop_id,marketplace,card_id,document_id) DO UPDATE SET state=excluded.state,valid_until=excluded.valid_until,source=excluded.source,verified_at=excluded.verified_at,payload=excluded.payload")) {
                 for(var doc:snapshot.documents()){p.setInt(1,key.shopId());p.setString(2,key.marketplace().name());p.setString(3,key.cardId());p.setString(4,doc.id());p.setString(5,doc.state().name());p.setString(6,doc.validUntil()==null?null:doc.validUntil().toString());p.setString(7,doc.source());p.setString(8,doc.checkedAt()==null?null:doc.checkedAt().toString());p.setString(9,ProductJson.GSON.toJson(doc));p.addBatch();}p.executeBatch();
             }
             c.commit();
         }catch(SQLException error){throw storeError();}
+    }
+    private static String currentOwner(Connection c,ProductKey key)throws SQLException{
+        try(var q=c.prepareStatement("SELECT marketplace,client_id,api_key FROM shops WHERE id=?")){q.setInt(1,key.shopId());try(var r=q.executeQuery()){if(!r.next()||!key.marketplace().name().equals(r.getString(1)))throw new SecurityException("Product owner changed");return ListingIdentity.fingerprint(new Shop(key.shopId(),"cache",key.marketplace(),r.getString(2),r.getString(3)));}}
     }
     public static void requireOwner(Connection c,int shop,Marketplace market)throws SQLException {
         try(var p=c.prepareStatement("SELECT marketplace FROM shops WHERE id=?")){p.setInt(1,shop);try(var r=p.executeQuery()){if(!r.next()||!market.name().equals(r.getString(1)))throw new SecurityException("Product shop ownership mismatch");}}

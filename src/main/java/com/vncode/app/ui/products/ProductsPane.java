@@ -22,6 +22,7 @@ public final class ProductsPane extends BorderPane {
     private final Function<ProductQuery,ProductPage> reader;
     private final ShopReadCoordinator reads;
     private final ThumbnailLoader thumbnails=new ThumbnailLoader();
+    private final ProductRefreshService refreshService;
     private final ProductSelection selection=new ProductSelection();
     private final I18nService i18n=I18nService.getInstance();
     private final ListView<ProductRow> rows=new ListView<>();
@@ -35,10 +36,15 @@ public final class ProductsPane extends BorderPane {
     private final PauseTransition debounce=new PauseTransition(Duration.millis(300));
     private Consumer<List<ProductKey>> onCopy;
     private BiConsumer<String,List<ProductKey>> onEdit;
-    private Shop shop;private long generation;private String cursor="";private ProductQuery displayedQuery;private boolean updating,disposed;
+    private ProductRefreshService.Report lastSync;
+    private Shop shop;private long generation,syncTicket;private String cursor="",shopScope="";private ProductQuery displayedQuery;private boolean updating,disposed,syncing;
     public ProductsPane(){this(null,ShopReadCoordinator.shared());}
     public ProductsPane(Function<ProductQuery,ProductPage> reader,ShopReadCoordinator reads) {
+        this(reader,reads,new ProductRefreshService());
+    }
+    public ProductsPane(Function<ProductQuery,ProductPage> reader,ShopReadCoordinator reads,ProductRefreshService refreshService) {
         this.reader=reader==null?repository::loadPage:reader;this.reads=Objects.requireNonNull(reads);
+        this.refreshService=Objects.requireNonNull(refreshService);reload.setId("productSync");status.setId("productStatus");
         setId("productsPane");getStyleClass().add("products-workspace");setPadding(new Insets(18));
         rows.setId("productRows");rows.setFixedCellSize(142);rows.setCellFactory(list->new ProductCell());
         var heading=new HBox(12,title,count,new Pane(),reload);HBox.setHgrow(heading.getChildren().get(3),Priority.ALWAYS);
@@ -57,7 +63,7 @@ public final class ProductsPane extends BorderPane {
         }
         copy.getStyleClass().add("btn-primary");bulk.getChildren().addAll(copy,clear);copy.setDisable(true);bulk.setVisible(false);bulk.setManaged(false);
         var bottom=new VBox(10,more,bulk);bottom.setPadding(new Insets(12,0,0,0));setBottom(bottom);
-        reload.setOnAction(e->refresh());more.setOnAction(e->load(true));
+        reload.setOnAction(e->synchronize());more.setOnAction(e->load(true));
         debounce.setOnFinished(e->refresh());search.textProperty().addListener((o,a,b)->{if(!updating)debounce.playFromStart();});
         category.valueProperty().addListener((o,a,b)->{if(!updating)refresh();});document.valueProperty().addListener((o,a,b)->{if(!updating)refresh();});missing.setOnAction(e->refresh());
         pageSelection.setOnAction(e->{for(var row:rows.getItems())selection.setSelected(row.key(),pageSelection.isSelected());updateSelection();});
@@ -68,24 +74,36 @@ public final class ProductsPane extends BorderPane {
     public void setOnEdit(BiConsumer<String,List<ProductKey>> callback){onEdit=callback;for(var child:bulk.getChildren())if(child instanceof Button b&&b.getUserData()!=null)b.setDisable(callback==null);}
     public void setShop(Shop value) {
         if(disposed)return;
-        boolean changed=shop==null||value==null||shop.getId()!=value.getId()||shop.getMarketplace()!=value.getMarketplace();
+        String scope=value==null?"":com.vncode.app.integration.listing.ListingIdentity.fingerprint(value);
+        boolean changed=shop==null||value==null||!scope.equals(shopScope);
         if(!changed)return;
-        generation++;shop=value;debounce.stop();selection.switchShop(value==null?0:value.getId(),value==null?null:value.getMarketplace());
+        generation++;syncTicket++;syncing=false;lastSync=null;shopScope=scope;shop=value;debounce.stop();selection.clear();selection.switchShop(value==null?0:value.getId(),value==null?null:value.getMarketplace());
         updating=true;search.clear();category.getItems().clear();category.getItems().add(null);category.setValue(null);document.setValue(null);missing.setSelected(false);updating=false;
         rows.getItems().clear();count.setText("0");cursor="";updateSelection();refresh();
     }
     public void refresh(){if(disposed)return;generation++;cursor="";displayedQuery=null;all.setDisable(true);load(false);}
+    private void synchronize(){
+        if(disposed||shop==null||syncing)return;
+        var selected=shop;var owner=new Shop(selected.getId(),selected.getName(),selected.getMarketplace(),selected.getClientId(),selected.getApiKey());
+        var q=displayedQuery==null?query(""):displayedQuery;long ticket=++syncTicket;syncing=true;reload.setDisable(true);status.setText(tr("products.loading"));
+        reads.submit(new ShopReadCoordinator.Key(owner.getId(),"product-sync",q.toString()),true,()->refreshService.refresh(owner,q)).whenComplete((report,error)->Platform.runLater(()->{
+            if(disposed||ticket!=syncTicket||shop==null||shop.getId()!=owner.getId()||shop.getMarketplace()!=owner.getMarketplace()||!Objects.equals(shop.getApiKey(),owner.getApiKey())||!Objects.equals(shop.getClientId(),owner.getClientId()))return;
+            syncing=false;reload.setDisable(false);
+            if(error!=null){status.setText(tr("products.read_failed"));return;}
+            lastSync=report;refresh();
+        }));
+    }
     private ProductQuery query(String next){return new ProductQuery(shop.getId(),shop.getMarketplace(),search.getText(),category.getValue()==null?List.of():List.of(category.getValue()),document.getValue(),missing.isSelected(),next,100);}
     private void load(boolean append) {
         if(disposed||shop==null){reload.setDisable(false);status.setText(tr("products.select_shop"));more.setVisible(false);more.setManaged(false);return;}
         var q=query(append?cursor:"");var owner=shop;long epoch=generation,started=System.nanoTime();reload.setDisable(true);more.setDisable(true);status.setText(tr("products.loading"));
         reads.submitLocal(new ShopReadCoordinator.Key(owner.getId(),"product-page",q.toString()),()->reader.apply(q)).whenComplete((page,error)->Platform.runLater(()->{
             if(disposed||epoch!=generation||shop==null||shop.getId()!=owner.getId()||shop.getMarketplace()!=owner.getMarketplace())return;
-            reload.setDisable(false);more.setDisable(false);
+            reload.setDisable(syncing);more.setDisable(false);
             if(error!=null){status.setText(tr("products.read_failed"));return;}
             if(page.rows().stream().anyMatch(row->row.key().shopId()!=owner.getId()||row.key().marketplace()!=owner.getMarketplace())){status.setText(tr("products.read_failed"));return;}
-            if(append)rows.getItems().addAll(page.rows());else{rows.getItems().setAll(page.rows());displayedQuery=q;all.setDisable(false);}
-            cursor=page.nextCursor();count.setText(Long.toString(page.total()));more.setVisible(cursor!=null&&!cursor.isEmpty());more.setManaged(more.isVisible());status.setText("");updateSelection();
+            if(append)rows.getItems().addAll(page.rows());else{rows.getItems().setAll(page.rows());all.setDisable(false);}displayedQuery=q;
+            cursor=page.nextCursor();count.setText(Long.toString(page.total()));more.setVisible(cursor!=null&&!cursor.isEmpty());more.setManaged(more.isVisible());status.setText(syncing?tr("products.loading"):syncStatus());updateSelection();
             RuntimeDiagnostics.afterNextPulse("products-render",started);
         }));
         if(!append&&category.getItems().size()==1)reads.submitLocal(new ShopReadCoordinator.Key(owner.getId(),"product-categories",owner.getMarketplace().name()),()->repository.categories(owner.getId(),owner.getMarketplace())).whenComplete((values,error)->Platform.runLater(()->{
@@ -121,7 +139,8 @@ public final class ProductsPane extends BorderPane {
         }
     }
     private String tr(String key){return i18n.tr(key);}
+    private String syncStatus(){return lastSync==null?"":java.text.MessageFormat.format(tr("products.sync_summary"),lastSync.snapshots(),lastSync.failed());}
     private String doc(DocumentState state){return tr("products.document."+state.name().toLowerCase(Locale.ROOT));}
-    public void applyTranslations(){if(shop==null)status.setText(tr("products.select_shop"));document.setButtonCell(new ListCell<>(){@Override protected void updateItem(DocumentState item,boolean empty){super.updateItem(item,empty);setText(item==null?tr("products.documents_all"):doc(item));}});title.setText(tr("products.title"));reload.setText(tr("products.refresh"));more.setText(tr("products.more"));all.setText(tr("products.all_results"));pageSelection.setText(tr("products.select_page"));missing.setText(tr("products.missing_gtin"));search.setPromptText(tr("products.search"));copy.setText(tr("products.copy"));for(var child:bulk.getChildren())if(child instanceof Button b&&b.getUserData()!=null)b.setText(tr("products.edit_"+b.getUserData()));updateSelection();category.setButtonCell(new ListCell<>(){@Override protected void updateItem(String item,boolean empty){super.updateItem(item,empty);setText(item==null?tr("products.categories"):item);}});rows.refresh();}
-    public void dispose(){if(disposed)return;disposed=true;generation++;debounce.stop();thumbnails.close();}
+    public void applyTranslations(){if(shop==null)status.setText(tr("products.select_shop"));document.setButtonCell(new ListCell<>(){@Override protected void updateItem(DocumentState item,boolean empty){super.updateItem(item,empty);setText(item==null?tr("products.documents_all"):doc(item));}});title.setText(tr("products.title"));reload.setText(tr("products.refresh"));reload.setTooltip(new Tooltip(tr("products.sync_help")));more.setText(tr("products.more"));all.setText(tr("products.all_results"));pageSelection.setText(tr("products.select_page"));missing.setText(tr("products.missing_gtin"));search.setPromptText(tr("products.search"));copy.setText(tr("products.copy"));for(var child:bulk.getChildren())if(child instanceof Button b&&b.getUserData()!=null)b.setText(tr("products.edit_"+b.getUserData()));updateSelection();category.setButtonCell(new ListCell<>(){@Override protected void updateItem(String item,boolean empty){super.updateItem(item,empty);setText(item==null?tr("products.categories"):item);}});rows.refresh();}
+    public void dispose(){if(disposed)return;disposed=true;generation++;syncTicket++;debounce.stop();thumbnails.close();}
 }

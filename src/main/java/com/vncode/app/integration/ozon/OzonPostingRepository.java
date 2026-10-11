@@ -111,6 +111,14 @@ public final class OzonPostingRepository {
         }
     }
 
+    /** Keyset scan stays stable when detail refresh removes rows from the active queue. */
+    List<String> findActiveNumbersAfter(int shopId,String after,int limit){
+        if(shopId<=0||limit<1||limit>1000)throw new IllegalArgumentException("Invalid Ozon posting page");
+        try(var c=Database.getConnection();var p=c.prepareStatement("SELECT posting_number FROM ozon_postings WHERE shop_id=? AND status IN ('awaiting_packaging','awaiting_deliver') AND posting_number>? ORDER BY posting_number LIMIT ?")){
+            p.setInt(1,shopId);p.setString(2,after);p.setInt(3,limit);try(var r=p.executeQuery()){var values=new ArrayList<String>();while(r.next())values.add(r.getString(1));return List.copyOf(values);}
+        }catch(SQLException e){throw new IllegalStateException("Cannot read active Ozon posting page");}
+    }
+
     public List<OzonPostingDto> findPage(
             int shopId, String statusFilter, String query, int limit, int offset) {
         if (shopId <= 0 || limit < 1 || limit > 1000 || offset < 0) {

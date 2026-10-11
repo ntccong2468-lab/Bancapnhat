@@ -59,6 +59,28 @@ class ListingCopyServiceTest {
     @Test void destinationsHaveIndependentResults()throws Exception{
         var jobs=service.draft(source,List.of(snapshot.key()),List.of(dest,other),ListingCopyMappingTest.options(Marketplace.WILDBERRIES));var p=service.preview(dest,jobs.get(0).id());service.publish(dest,jobs.get(0).id(),p.requestHash(),true);assertEquals(CopyState.DRAFT,repo.find(3,jobs.get(1).id()).orElseThrow().state());assertEquals(1,writes.get());
     }
+    @Test void unresolvedCopyKeepsBothParticipatingShops()throws Exception{
+        adapter.timeout=true;var job=draft(dest);var p=service.preview(dest,job.id());
+        service.publish(dest,job.id(),p.requestHash(),true);
+        var shops=new com.vncode.app.features.shop.ShopRepository();
+        assertThrows(IllegalStateException.class,()->shops.delete(source.getId()));
+        assertThrows(IllegalStateException.class,()->shops.delete(dest.getId()));
+        assertEquals(CopyState.RECONCILE_REQUIRED,service.get(dest,job.id()).state());
+        assertNotNull(shops.findById(source.getId()));assertNotNull(shops.findById(dest.getId()));
+    }
+    @Test void deletingCopySourceWaitsForInflightCheckpoint()throws Exception{
+        var job=draft(dest);var p=service.preview(dest,job.id());var gate=new CountDownLatch(1);adapter.gate=gate;
+        try(var pool=Executors.newFixedThreadPool(2)){
+            var sending=pool.submit(()->service.publish(dest,job.id(),p.requestHash(),true));
+            long until=System.nanoTime()+TimeUnit.SECONDS.toNanos(3);while(writes.get()==0&&System.nanoTime()<until)Thread.sleep(5);
+            assertEquals(1,writes.get());var deleting=pool.submit(()->new com.vncode.app.features.shop.ShopRepository().delete(source.getId()));
+            try{assertThrows(TimeoutException.class,()->deleting.get(150,TimeUnit.MILLISECONDS));}
+            finally{gate.countDown();}
+            sending.get(3,TimeUnit.SECONDS);
+            assertInstanceOf(IllegalStateException.class,assertThrows(ExecutionException.class,()->deleting.get(3,TimeUnit.SECONDS)).getCause());
+            assertEquals(CopyState.REMOTE_PROCESSING,service.get(dest,job.id()).state());
+        }
+    }
     @Test void foreignOwnerCannotResume()throws Exception{
         var job=draft(dest);assertThrows(SecurityException.class,()->service.preview(other,job.id()));assertThrows(SecurityException.class,()->service.preview(new Shop(2,"Target","rotated"),job.id()));assertEquals(0,writes.get());
     }

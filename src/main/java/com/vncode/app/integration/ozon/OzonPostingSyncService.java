@@ -117,13 +117,14 @@ public final class OzonPostingSyncService {
      * queue discovery, but the detail response is the authority used for KIZ requirements.
      */
     public int refreshActiveDetails() throws IOException {
-        List<OzonPostingDto> active = postings.findActive(shopId, 1000, 0);
-        int refreshed = 0;
-        for (OzonPostingDto posting : active) {
-            refresh(posting.postingNumber(), false);
-            refreshed++;
+        int refreshed = 0;String cursor="";
+        for(int page=0;page<MAX_PAGES;page++){
+            List<String> active=postings.findActiveNumbersAfter(shopId,cursor,PAGE_SIZE);
+            if(active.isEmpty())return refreshed;
+            for(String number:active){if(Thread.currentThread().isInterrupted())throw new IOException("Ozon detail refresh interrupted");refresh(number,false);refreshed++;}
+            cursor=active.getLast();
         }
-        return refreshed;
+        throw new IOException("Ozon active detail pagination limit exceeded");
     }
 
     private static Instant startFor(OzonSyncState state, Instant end) {

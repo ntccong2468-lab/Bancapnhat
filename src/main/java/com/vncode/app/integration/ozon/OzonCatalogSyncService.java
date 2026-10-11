@@ -35,7 +35,12 @@ public final class OzonCatalogSyncService {
     }
 
     public int sync() throws IOException {
-        String cursor = state.find(shopId).productsLastId();
+        return sync(state.find(shopId).productsLastId());
+    }
+    /** User-requested refresh revisits already synced cards; cursor recovery remains available in sync(). */
+    public int syncFromStart()throws IOException{return sync("");}
+    private int sync(String initialCursor)throws IOException{
+        String cursor = initialCursor;
         int synced = 0;
         Map<OzonProductCardAttributeParser.CategoryKey, Map<String, String>> definitionCache = new LinkedHashMap<>();
         Map<OzonProductCardAttributeParser.CategoryKey, String> categoryNames = null;
