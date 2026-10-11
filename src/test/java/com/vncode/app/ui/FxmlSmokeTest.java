@@ -60,6 +60,12 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class FxmlSmokeTest {
+    @Test void toolsListingCopyOpensTheSharedWizard() throws Exception {
+        var task=new java.util.concurrent.FutureTask<Void>(()->{
+            var loader=FxmlViewLoader.loader(HomeController.class,"home-view.fxml");FxmlViewLoader.load(loader);var home=(HomeController)loader.getController();
+            try{var sidebar=HomeController.class.getDeclaredField("shopSidebarController");sidebar.setAccessible(true);var controller=sidebar.get(home);var button=controller.getClass().getDeclaredField("listingCopyButton");button.setAccessible(true);((Button)button.get(controller)).fire();var nav=HomeController.class.getDeclaredField("workspaceNavigator");nav.setAccessible(true);assertEquals("listing-copy",((com.vncode.app.ui.workspace.WorkspaceNavigator)nav.get(home)).currentRoute());}finally{home.dispose();}return null;
+        });Platform.runLater(task);task.get(15,TimeUnit.SECONDS);
+    }
     @Test void productsMenuAndFourLocalesAreLazy() throws Exception {
         var task=new java.util.concurrent.FutureTask<Void>(()->{
             var loader=FxmlViewLoader.loader(HomeController.class,"home-view.fxml");FxmlViewLoader.load(loader);var home=(HomeController)loader.getController();

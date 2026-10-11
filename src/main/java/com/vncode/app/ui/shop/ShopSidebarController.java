@@ -15,6 +15,10 @@ import javafx.scene.control.ToggleGroup;
 import java.util.function.Consumer;
 
 public class ShopSidebarController {
+    @FXML private Button listingCopyButton;
+    private Runnable onListingCopy;
+    public void setOnListingCopy(Runnable callback){onListingCopy=callback;}
+    @FXML private void onListingCopy(){if(onListingCopy!=null)onListingCopy.run();}
     @FXML private MenuItem translationMenuItem;
     private Runnable onTranslationSettings;
     public void setOnTranslationSettings(Runnable action){onTranslationSettings=action;}
@@ -32,7 +36,7 @@ public class ShopSidebarController {
     private Runnable onFinance;
     public void setOnFinance(Runnable action){onFinance=action;}
     @FXML private void onFinance(){if(onFinance!=null)onFinance.run();}
-    public void selectNavigation(String id){for(Button button:java.util.List.of(productsButton,dashboardButton,packingButton,fboPackingButton,templateButton,kizMappingButton,znackRegistrationButton,znackAutomationButton,btnPrintHistory,gtinSyncButton,gs1Button,fboOrdersButton,financeButton,guidesButton)){button.getStyleClass().remove("nav-selected");if(id.equals(button.getId()))button.getStyleClass().add("nav-selected");}}
+    public void selectNavigation(String id){for(Button button:java.util.List.of(listingCopyButton,productsButton,dashboardButton,packingButton,fboPackingButton,templateButton,kizMappingButton,znackRegistrationButton,znackAutomationButton,btnPrintHistory,gtinSyncButton,gs1Button,fboOrdersButton,financeButton,guidesButton)){button.getStyleClass().remove("nav-selected");if(id.equals(button.getId()))button.getStyleClass().add("nav-selected");}}
     @FXML private Button gs1Button;
     private Runnable onGs1;
     private int gs1Unread;
@@ -244,6 +248,7 @@ public class ShopSidebarController {
         financeButton.setText(i18n.tr("sidebar.finance"));toolsPane.setText(i18n.tr("sidebar.tools"));setGs1Unread(gs1Unread);
         translationMenuItem.setText(i18n.tr("news.translation_settings"));
         productsButton.setText(" "+i18n.tr("products.title"));
+        listingCopyButton.setText(i18n.tr("copy.title"));
         guidesButton.setText(i18n.tr("guides.title"));
         editionStatusLabel.setText("• " + i18n.tr("edition.personal"));
         editionStatusLabel.setStyle("-fx-text-fill: #22c55e; -fx-font-weight: 700;");

@@ -1146,3 +1146,7 @@
 
 .product-row .label { -fx-font-weight: normal; }
 .product-row .product-name { -fx-font-weight: bold; }
+
+.copy-card { -fx-background-color: -bg-secondary; -fx-background-radius: 12; -fx-padding: 14; }
+#listingCopyPane .text-danger { -fx-text-fill: #fb7185; }
+#listingCopyPane #copyJobs { -fx-background-radius: 12; }

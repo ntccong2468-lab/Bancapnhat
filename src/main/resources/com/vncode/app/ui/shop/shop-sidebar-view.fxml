@@ -87,6 +87,7 @@
                 <FontIcon iconLiteral="fth-list" iconSize="16" />
             </graphic>
         </Button>
+        <Button fx:id="listingCopyButton" onAction="#onListingCopy" text="%copy.title" alignment="CENTER_LEFT" maxWidth="1.7976931348623157E308" styleClass="button,nav-item"><graphic><FontIcon iconLiteral="fth-copy" iconSize="16" /></graphic></Button>
         <Button text="%sidebar.finance" alignment="CENTER_LEFT" onAction="#onFinance" styleClass="button,nav-item" maxWidth="1.7976931348623157E308" fx:id="financeButton" /></children></VBox></content></TitledPane></children></VBox></content></ScrollPane><MenuButton fx:id="settingsMenuButton" alignment="CENTER_LEFT" mnemonicParsing="false" prefHeight="46" prefWidth="236" text=" Settings" maxWidth="1.7976931348623157E308">
             <styleClass>
                 <String fx:value="button" />

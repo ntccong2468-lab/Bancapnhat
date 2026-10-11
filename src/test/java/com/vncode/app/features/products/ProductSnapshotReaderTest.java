@@ -10,6 +10,7 @@ import com.vncode.app.integration.ozon.OzonProductSnapshotReader;
 import java.nio.file.Path;
 import java.math.BigDecimal;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.List;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.io.TempDir;
 import static org.junit.jupiter.api.Assertions.*;
@@ -72,5 +73,13 @@ class ProductSnapshotReaderTest {
         assertEquals("Description",snapshot.description());assertEquals(2,snapshot.media().size());assertNull(snapshot.documents().getFirst().file());
         assertEquals(DocumentState.UNVERIFIED,snapshot.documents().getFirst().state());assertEquals("12:13",snapshot.categoryId());
         assertEquals(snapshot.revision(),reader.read(ozon,snapshot.key()).revision());
+    }
+    @Test void completeOzonReaderPreservesComplexValuesAndFlagsAmbiguousGrouping()throws Exception{
+        var reader=new OzonProductSnapshotReader(s->(p,b,m)->JsonParser.parseString(switch(p){
+            case "v3/product/info/list" -> "{\"items\":[{\"id\":321,\"offer_id\":\"O-1\",\"sku\":99}]}";
+            case "v4/product/info/attributes" -> "{\"result\":[{\"id\":321,\"offer_id\":\"O-1\",\"name\":\"Full\",\"description_category_id\":12,\"type_id\":13,\"dimension_unit\":\"mm\",\"weight_unit\":\"g\",\"attributes\":[],\"complex_attributes\":[{\"id\":900,\"complex_id\":50,\"values\":[{\"value\":\"Cotton\"}]},{\"id\":900,\"complex_id\":50,\"values\":[{\"value\":\"Wool\"}]}]}]}";
+            case "v1/description-category/attribute" -> "{\"result\":[{\"id\":900,\"name\":\"Material\"}]}";
+            default -> "{\"result\":{\"certificates\":[],\"page_count\":1}}";
+        }));var snapshot=reader.read(ozon,new ProductKey(2,Marketplace.OZON,"321","O-1"));assertEquals(2,snapshot.attributes().size());assertEquals("50:900",snapshot.attributes().getFirst().mappingKey());assertEquals(List.of("Wool"),snapshot.attributes().get(1).values());assertEquals("true",snapshot.metadata().get("complex.ambiguous"));
     }
 }

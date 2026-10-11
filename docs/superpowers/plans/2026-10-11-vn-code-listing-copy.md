@@ -74,8 +74,8 @@ Quy ước đường dẫn: các tên dưới `features/`, `integration/`, `shar
 
 **Interfaces:** `ListingCopyPane.open(Shop,List<ProductKey>):void`, `setShop(Shop):void`, `dispose():void`; Sidebar `setOnListingCopy(Runnable):void`. Consumes A3 onCopy frozen keys, C1 snapshot, C2 dictionaries/preview, C3 drafts/publish/reconcile; callbacks carry job owner independently of screen generation.
 
-- [ ] Viết `copyNavigationAndFourDirections`, `previewMissingDocumentsCannotPublish`, `leavingViewPreservesSentJob`, `localeAndSmallWindowLayout`; assert same/cross destinations available, frozen variant set visible, require explicit selected-field preview confirmation; no default price/stock checkbox enabled.
-- [ ] Chạy `MVN -Dtest=ListingCopyPaneTest,FxmlSmokeTest test`; xác nhận red.
-- [ ] Implement wizard source → destination(s) → fields/category/attribute/variant/file mapping → preview issues → save draft/confirmed publish → per-destination async result/reconcile. Missing credentials/files/price stay editable, no silent skip. Tools retains GTIN/FBO/finance and Products action launches same wizard. Busy read generation canceled on leave; sent job durable.
-- [ ] Chạy lại test, screenshots under fixture at 1024×600 and 1366×768; errors/progress/localized routes keep destination owner.
-- [ ] Commit `feat: add listing copy tools wizard`.
+- [x] Viết `copyNavigationAndFourDirections`, `previewMissingDocumentsCannotPublish`, `leavingViewPreservesSentJob`, `localeAndSmallWindowLayout`; assert same/cross destinations available, frozen variant set visible, require explicit selected-field preview confirmation; no default price/stock checkbox enabled.
+- [x] Chạy `MVN -Dtest=ListingCopyPaneTest,FxmlSmokeTest test`; xác nhận red.
+- [x] Implement wizard source → destination(s) → fields/category/attribute/variant/file mapping → preview issues → save draft/confirmed publish → per-destination async result/reconcile. Missing credentials/files/price stay editable, no silent skip. Tools retains GTIN/FBO/finance and Products action launches same wizard. Busy read generation canceled on leave; sent job durable.
+- [x] Chạy lại test, screenshots under fixture at 1024×600 and 1366×768; errors/progress/localized routes keep destination owner.
+- [x] Commit `feat: add listing copy tools wizard`.

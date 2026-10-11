@@ -32,8 +32,11 @@ public abstract class AbstractListingAdapter implements ListingTargetAdapter {
     protected Map<String,List<String>> mapped(ProductSnapshot s,CopyOptions o,List<TargetAttribute> dictionary,List<CopyIssue> issues){
         var ids=new HashSet<String>();dictionary.forEach(a->ids.add(a.id()));var result=new LinkedHashMap<String,List<String>>();
         if(o.fields().contains("attributes"))for(var a:s.attributes()){
+            if(a.complexId()!=null&&!a.complexId().isBlank()&&!a.complexId().equals("0")){if(market==Marketplace.WILDBERRIES)issue(issues,"COMPLEX_STRUCTURE_NOT_SUPPORTED",a.mappingKey());continue;}
             if(a.name().toLowerCase(Locale.ROOT).matches(".*(kiz|км|код маркиров).*")){issue(issues,"MARKING_CODES_NOT_TRANSFERABLE",a.id());continue;}
             String id=o.attributeMapping().get(a.id());if(id==null){issue(issues,"ATTRIBUTE_MAPPING_REQUIRED",a.id());continue;}
+            if(id.equals("@skip")){issues.add(new CopyIssue("ATTRIBUTE_EXPLICITLY_OMITTED",a.mappingKey(),false));continue;}
+            if(market==Marketplace.WILDBERRIES&&Set.of("@brand","@description","@title").contains(id)){if(!o.fields().contains(id.substring(1)))issue(issues,"TEXT_FIELD_MAPPING_REQUIRED",id);continue;}
             if(!ids.contains(id)){issue(issues,"FOREIGN_TARGET_ATTRIBUTE",id);continue;}
             if(result.putIfAbsent(id,a.values())!=null)issue(issues,"ATTRIBUTE_MAPPING_CONFLICT",id);
         }
@@ -86,4 +89,5 @@ public abstract class AbstractListingAdapter implements ListingTargetAdapter {
         if(d.validFrom()!=null)r.addProperty("startDate",d.validFrom().toString()+"T00:00:00Z");if(d.validUntil()!=null)r.addProperty("endDate",d.validUntil().toString()+"T00:00:00Z");return r;
     }
     protected static boolean expired(ProductDocument d){return d.state()==DocumentState.EXPIRED||d.validUntil()!=null&&d.validUntil().isBefore(LocalDate.now());}
+    protected static String namedValue(ProductSnapshot s,CopyOptions o,String field,String fallback){String explicit=o.textOverrides().get(field);if(explicit!=null&&!explicit.isBlank())return explicit;return s.attributes().stream().filter(a->("@"+field).equals(o.attributeMapping().get(a.mappingKey()))).findFirst().map(a->String.join(" ",a.values())).orElse(explicit==null?fallback:explicit);}
 }

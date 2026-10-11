@@ -325,10 +325,14 @@ public class HomeController implements Initializable {
         });
         workspaceNavigator.register("gtin-sync", () -> gtinSyncView);
         workspaceNavigator.register("gs1", this::gs1Pane);
-        workspaceNavigator.register("products", () -> {productsPane=new com.vncode.app.ui.products.ProductsPane();return productsPane;});
+        workspaceNavigator.register("products", () -> {productsPane=new com.vncode.app.ui.products.ProductsPane();productsPane.setOnCopy(this::showListingCopy);return productsPane;});
+        workspaceNavigator.register("listing-copy", () -> {listingCopyPane=new com.vncode.app.ui.listingcopy.ListingCopyPane();listingCopyPane.setOnChooseProducts(this::showProducts);return listingCopyPane;});
     }
 
     private com.vncode.app.ui.products.ProductsPane productsPane;
+    private com.vncode.app.ui.listingcopy.ListingCopyPane listingCopyPane;
+    public void showListingCopy(){clearKizDraft();workspaceNavigator.show("listing-copy");listingCopyPane.setShop(state.getSelectedShop());}
+    public void showListingCopy(java.util.List<com.vncode.app.features.products.ProductKey> keys){showListingCopy();listingCopyPane.open(state.getSelectedShop(),keys);}
     public void showProducts(){clearKizDraft();workspaceNavigator.show("products");productsPane.setShop(state.getSelectedShop());}
 
     private void showPrintHistory() {
@@ -526,7 +530,7 @@ public class HomeController implements Initializable {
         clearFboQuantitiesIfLeaving(view);
         stopPackingDelayIfLeaving(view);
         if(shopSidebarController!=null) {
-            String selected=view==productsPane?"productsButton":view==welcomePane?"dashboardButton":view==guidesPane?"guidesButton":view==financeDashboardView?"financeButton":view==packingView||view==ozonDashboardView||view==supplyManagementView?"packingButton":view==fboPackingView?"fboPackingButton":view==fboSupplyOrdersView?"fboOrdersButton":view==kizMappingView?"kizMappingButton":view==znackAutomationView?"znackAutomationButton":view==znackRegistrationView?"znackRegistrationButton":view==printHistoryView?"btnPrintHistory":view==gtinSyncView?"gtinSyncButton":view==gs1Pane?"gs1Button":"";
+            String selected=view==listingCopyPane?"listingCopyButton":view==productsPane?"productsButton":view==welcomePane?"dashboardButton":view==guidesPane?"guidesButton":view==financeDashboardView?"financeButton":view==packingView||view==ozonDashboardView||view==supplyManagementView?"packingButton":view==fboPackingView?"fboPackingButton":view==fboSupplyOrdersView?"fboOrdersButton":view==kizMappingView?"kizMappingButton":view==znackAutomationView?"znackAutomationButton":view==znackRegistrationView?"znackRegistrationButton":view==printHistoryView?"btnPrintHistory":view==gtinSyncView?"gtinSyncButton":view==gs1Pane?"gs1Button":"";
             shopSidebarController.selectNavigation(selected);
         }
         dynamicContentContainer.getChildren().setAll(view);
@@ -1246,7 +1250,7 @@ public class HomeController implements Initializable {
     }
 
     private void selectShop(Shop shop) {
-        boolean sharedView = workspaceNavigator.currentRoute().equals("products") || workspaceNavigator.currentRoute().equals("gs1") || workspaceNavigator.currentRoute().equals("gtin-sync") || isPrintHistoryVisible() || isZnackAutomationVisible() || isFboSupplyOrdersVisible();
+        boolean sharedView = workspaceNavigator.currentRoute().equals("listing-copy") || workspaceNavigator.currentRoute().equals("products") || workspaceNavigator.currentRoute().equals("gs1") || workspaceNavigator.currentRoute().equals("gtin-sync") || isPrintHistoryVisible() || isZnackAutomationVisible() || isFboSupplyOrdersVisible();
         boolean dashboardVisible = isDashboardVisible();
         state.setSelectedShop(shop);
         if(newsPane!=null)newsPane.setShop(shop);
@@ -1274,6 +1278,7 @@ public class HomeController implements Initializable {
         if (gtinSyncController != null) gtinSyncController.setShop(shop);
         if (gs1Pane != null && workspaceNavigator.currentRoute().equals("gs1")) gs1Pane.setShop(shop);
         if (productsPane != null && workspaceNavigator.currentRoute().equals("products")) productsPane.setShop(shop);
+        if (listingCopyPane != null && workspaceNavigator.currentRoute().equals("listing-copy")) listingCopyPane.setShop(shop);
         renderShops();
         boolean tokenValid = applySelectedShopTokenState(shop, true);
         resetLoadedSupply();
@@ -1584,6 +1589,7 @@ public class HomeController implements Initializable {
         shopSidebarController.setOnOpenSettings(() -> onSettings(new ActionEvent()));
         shopSidebarController.setOnDashboard(this::showDashboard);
         shopSidebarController.setOnProducts(this::showProducts);
+        shopSidebarController.setOnListingCopy(this::showListingCopy);
         shopSidebarController.setOnTranslationSettings(this::showTranslationSettings);
         shopSidebarController.setOnFinance(this::showFinance);
         shopSidebarController.setOnGuides(this::showGuides);
@@ -1680,6 +1686,7 @@ public class HomeController implements Initializable {
 
     private void applyTranslations() {
         if(productsPane!=null)productsPane.applyTranslations();
+        if(listingCopyPane!=null)listingCopyPane.applyTranslations();
         if(guidesPane!=null)guidesPane.applyTranslations();
         if(newsPane!=null)newsPane.applyTranslations();
         if(welcomePane!=null)welcomePane.applyTranslations();
@@ -2221,6 +2228,7 @@ public class HomeController implements Initializable {
         if (gtinSyncController != null) gtinSyncController.dispose();
         if (gs1Pane != null) gs1Pane.dispose();
         if (productsPane != null) productsPane.dispose();
+        if (listingCopyPane != null) listingCopyPane.dispose();
         if (newsPane != null) newsPane.dispose();
         if (supplyDetailController != null) {
             supplyDetailController.dispose();
