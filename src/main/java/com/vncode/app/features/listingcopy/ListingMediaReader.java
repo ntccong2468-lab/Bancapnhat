@@ -12,9 +12,10 @@ import okhttp3.*;
 /** Full-size media only. Never accepts seller credentials and cleans partial downloads. */
 public final class ListingMediaReader {
     public static final int MAX_FILES=20,IMAGE_LIMIT=20*1024*1024,DOCUMENT_LIMIT=25*1024*1024;
+    private static final OkHttpClient SHARED_HTTP=new OkHttpClient.Builder().dns(host->{var addresses=Dns.SYSTEM.lookup(host);for(var a:addresses)if(a.isAnyLocalAddress()||a.isLoopbackAddress()||a.isLinkLocalAddress()||a.isSiteLocalAddress()||a.isMulticastAddress())throw new java.net.UnknownHostException("Private media address rejected");return addresses;}).build();
     private final OkHttpClient http;private final Path directory;private final Predicate<URI> allowed;
     public record MediaFile(Path temporaryFile,String sha256,long size,String mimeType) implements AutoCloseable {public void close()throws IOException{Files.deleteIfExists(temporaryFile);}}
-    public ListingMediaReader(){this(new OkHttpClient(),Path.of(System.getProperty("java.io.tmpdir")),ListingMediaReader::allowedMarketplaceUrl);}
+    public ListingMediaReader(){this(SHARED_HTTP,Path.of(System.getProperty("java.io.tmpdir")),ListingMediaReader::allowedMarketplaceUrl);}
     public ListingMediaReader(OkHttpClient client,Path directory,Predicate<URI> allowed){
         var b=client.newBuilder().followRedirects(false).followSslRedirects(false).retryOnConnectionFailure(false).cookieJar(CookieJar.NO_COOKIES).authenticator(Authenticator.NONE).proxyAuthenticator(Authenticator.NONE).connectTimeout(10,TimeUnit.SECONDS).readTimeout(20,TimeUnit.SECONDS).callTimeout(40,TimeUnit.SECONDS);b.interceptors().clear();b.networkInterceptors().clear();http=b.build();this.directory=directory;this.allowed=allowed;
     }

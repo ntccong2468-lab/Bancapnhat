@@ -32,3 +32,5 @@ Transport never accepts a seller token. HTTPS marketplace CDN origins only, no U
 ## Acceptance limits
 
 Synthetic fixtures verify parsing, scope, mapping and checkpoint behavior. No live seller account mutation or native account signature is used to claim production acceptance. Document metadata is distinct from a transferable file and an approval. Publication results require owned destination readback, not an HTTP 200 alone.
+
+Image reconciliation checks each ordered full-size image: exact SHA-256 where unchanged, otherwise a bounded 64-bit visual signature (≤4 changed bits, aspect ratio tolerance 0.02) for marketplace recompression. A matching image count alone cannot reconcile. Import receipts and attached certificates remain distinct from marketplace approval.

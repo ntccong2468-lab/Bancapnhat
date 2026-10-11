@@ -8,7 +8,7 @@ import java.io.IOException;
 import java.time.Duration;
 import java.util.concurrent.ConcurrentHashMap;
 
-class WbContentApiRateLimiter {
+public class WbContentApiRateLimiter {
     private static final Logger LOGGER = LoggerFactory.getLogger(WbContentApiRateLimiter.class);
     private static final long MIN_INTERVAL_MS = 650L;
     private static final long DEFAULT_RATE_LIMIT_COOLDOWN_MS = Duration.ofMinutes(1).toMillis();
@@ -18,7 +18,7 @@ class WbContentApiRateLimiter {
     private WbContentApiRateLimiter() {
     }
 
-    static void awaitTurn(String apiKey) throws IOException {
+    public static void awaitTurn(String apiKey) throws IOException {
         Bucket bucket = bucketFor(apiKey);
         synchronized (bucket) {
             while (true) {
@@ -34,7 +34,7 @@ class WbContentApiRateLimiter {
         }
     }
 
-    static void registerRateLimit(String apiKey, Headers headers) {
+    public static void registerRateLimit(String apiKey, Headers headers) {
         Bucket bucket = bucketFor(apiKey);
         long cooldownMs = resolveCooldownMs(headers);
         synchronized (bucket) {

@@ -1,0 +1,80 @@
+package com.vncode.app.integration.wb;
+
+import com.google.gson.*;
+import com.vncode.app.features.listingcopy.*;
+import com.vncode.app.features.products.*;
+import com.vncode.app.integration.listing.*;
+import com.vncode.app.integration.marketplace.Marketplace;
+import com.vncode.app.models.Shop;
+import java.io.IOException;
+import java.math.BigInteger;
+import java.util.*;
+import java.util.function.Function;
+import static com.vncode.app.integration.listing.ListingJson.*;
+
+public final class WbListingAdapter extends AbstractListingAdapter {
+    public WbListingAdapter(){this(ListingHttpClient::new,ListingMediaInspector.fullSize());}
+    public WbListingAdapter(Function<Shop,ListingTransport> c,ListingMediaInspector images){super(Marketplace.WILDBERRIES,c,images);}
+    public List<TargetCategory> categories(Shop s)throws IOException{
+        var result=new ArrayList<TargetCategory>();for(int page=0;page<20;page++){var data=array(call(s,"content/v2/object/all?limit=1000&offset="+(page*1000),null,false),"data");for(var e:data){var o=object(e);result.add(new TargetCategory(text(o,"subjectID"),text(o,"parentName")+" / "+text(o,"subjectName")));}if(data.size()<1000)return List.copyOf(result);}throw new IOException("WB category pagination limit");
+    }
+    public List<TargetAttribute> attributes(Shop s,String cat)throws IOException{
+        if(!cat.matches("[1-9][0-9]{0,18}"))throw new IllegalArgumentException("Invalid destination subject");var result=new ArrayList<TargetAttribute>();
+        for(var e:array(call(s,"content/v2/object/charcs/"+cat,null,false),"data")){var a=object(e);result.add(new TargetAttribute(text(a,"charcID"),text(a,"name"),text(a,"charcType"),"true".equals(text(a,"required")),text(a,"unitName"),decimal(a,"maxCount")==null?0:decimal(a,"maxCount").intValue(),"","","true".equals(text(a,"existNamedField"))));}return List.copyOf(result);
+    }
+    public CopyPreview preview(Shop shop,ProductSnapshot source,CopyOptions o)throws IOException{
+        owner(shop);var issues=new ArrayList<CopyIssue>();var selected=selected(source,o,issues);
+        if(categories(shop).stream().noneMatch(c->c.id().equals(o.targetCategoryId())))issue(issues,"TARGET_CATEGORY_REQUIRED","category");
+        var dictionary=attributes(shop,o.targetCategoryId());var mapped=mapped(source,o,dictionary,issues);var chars=new JsonArray();
+        for(var d:dictionary){var values=mapped.getOrDefault(d.id(),List.of());if(values.isEmpty()){if(d.required()&&!d.namedField())issue(issues,"REQUIRED_ATTRIBUTE",d.id());continue;}
+            if(d.namedField()||!(d.type().equals("1")||d.type().equals("4"))){issue(issues,"ATTRIBUTE_TYPE_UNSUPPORTED",d.id());continue;}if(d.maxValues()>0&&values.size()>d.maxValues())issue(issues,"ATTRIBUTE_VALUE_LIMIT",d.id());var a=new JsonObject();a.addProperty("id",new BigInteger(d.id()));try{if(d.type().equals("4")){if(values.size()!=1)throw new NumberFormatException();a.addProperty("value",new java.math.BigDecimal(values.getFirst()));}else a.add("value",ProductJson.GSON.toJsonTree(values));chars.add(a);}catch(NumberFormatException e){issue(issues,"ATTRIBUTE_NUMBER_REQUIRED",d.id());}
+        }
+        String article=selected.isEmpty()?"":article(o,selected.getFirst(),issues);if(!article.isBlank()&&!find(shop,article).isEmpty())issue(issues,"ARTICLE_COLLISION","article");
+        var listing=new JsonObject();listing.addProperty("vendorCode",article);listing.addProperty("title",source.title());if(source.title()==null||source.title().isBlank()||source.title().length()>60)issue(issues,"TITLE_LIMIT","title");
+        if(o.fields().contains("description"))listing.addProperty("description",source.description());if(o.fields().contains("brand"))listing.addProperty("brand",source.brand());listing.add("characteristics",chars);
+        if(o.kizMarked()!=null)listing.addProperty("kizMarked",o.kizMarked());
+        if(source.key().marketplace()==Marketplace.WILDBERRIES&&"true".equals(text(object(JsonParser.parseString(source.metadata().getOrDefault("source.payload","{}"))),"needKiz"))&&!Boolean.TRUE.equals(o.kizMarked()))issue(issues,"MARKING_CONFIRMATION_REQUIRED","kizMarked");
+        var sizes=new JsonArray();for(var v:selected){var size=new JsonObject();size.addProperty("techSize",v.size()==null||v.size().isBlank()?"0":v.size());if(v.russianSize()!=null&&!v.russianSize().isBlank())size.addProperty("wbSize",v.russianSize());else if(o.fields().contains("sizes")&&v.size()!=null&&!v.size().equals("0"))issue(issues,"RUSSIAN_SIZE_REQUIRED",v.id());var skus=new JsonArray();if(o.fields().contains("gtin")){skus.add(v.gtin());if(!find(shop,v.gtin()).isEmpty())issue(issues,"GTIN_COLLISION",v.id());}size.add("skus",skus);if(o.targetPrice()!=null){try{size.addProperty("price",o.targetPrice().intValueExact());}catch(ArithmeticException e){issue(issues,"PRICE_INTEGER_REQUIRED","price");}}sizes.add(size);}listing.add("sizes",sizes);
+        listing.add("dimensions",dimensions(source.dimensions(),false,issues));var docs=new JsonArray();for(var d:documents(source,o)){
+            if(expired(d)||d.state()==DocumentState.REJECTED){issue(issues,"DOCUMENT_INVALID",d.number());continue;}
+            if(!wbType(d).matches("[1-9]")){issue(issues,"DOCUMENT_TYPE_MAPPING",d.number());continue;}
+            if(d.number()==null||d.number().isBlank()||d.validFrom()==null||(d.validUntil()==null&&!"true".equals(d.metadata().get("isEndless"))))issue(issues,"DOCUMENT_METADATA_REQUIRED",d.number());docs.add(wbDocument(d,false));
+        }if(!docs.isEmpty()){var data=new JsonObject();data.add("items",docs);data.addProperty("excludeDocuments",false);listing.add("documents",data);issues.add(new CopyIssue("DESTINATION_DOCUMENT_APPROVAL_PENDING","documents",false));}
+        var variants=new JsonArray();variants.add(listing);var group=new JsonObject();group.addProperty("subjectID",new BigInteger(o.targetCategoryId()));group.add("variants",variants);var request=new JsonArray();request.add(group);
+        return previewRecord(shop,source,o,request,media(source,o,issues),new JsonArray(),issues,List.of(article),"CREATE");
+    }
+    public RemoteSubmission submit(Shop s,CopyPreview p)throws IOException{requirePreview(s,p);if(!p.operation().equals("CREATE"))throw new SecurityException("Wrong listing operation");for(String a:p.articles())if(!find(s,a).isEmpty())throw new IOException("Destination article now exists");call(s,"content/v2/cards/upload",JsonParser.parseString(p.requestJson()),true);return submitted(p,null);}
+    public RemoteResult reconcile(Shop s,RemoteSubmission r)throws IOException{
+        owner(s,r);var ids=new LinkedHashMap<String,String>();var expected=JsonParser.parseString(r.requestJson()).getAsJsonArray();boolean update=expected.get(0).getAsJsonObject().has("nmID");var listings=update?expected:expected.get(0).getAsJsonObject().getAsJsonArray("variants");
+        for(var e:listings){var want=object(e);String article=text(want,"vendorCode");var cards=find(s,article);if(cards.isEmpty()){var cursor=new JsonObject();cursor.addProperty("limit",100);var b=new JsonObject();b.add("cursor",cursor);var errors=array(obj(call(s,"content/v2/cards/error/list",b,false),"data"),"items");if(errors.asList().stream().anyMatch(v->strings(array(object(v),"vendorCodes")).contains(article)))return new RemoteResult(CopyState.FAILED,List.of(),List.of(new CopyIssue("IMPORT_REJECTED",article,true)),Map.of());return RemoteResult.pending();}if(cards.size()!=1)throw new IOException("Ambiguous destination article");var actual=cards.getFirst();String id=text(actual,"nmID");if(!id.matches("[1-9][0-9]*")||(update&&!text(want,"nmID").equals(id)))throw new IOException("Destination identity mismatch");
+            if(!matches(want,actual))return RemoteResult.pending();ids.put(article,id);
+            if((r.phase().equals("ASSETS_SENT")||r.phase().equals("ASSETS_SENDING"))&&!urls(r.mediaJson()).isEmpty()&&!imagesMatch(r.mediaJson(),array(actual,"photos").asList().stream().map(v->text(object(v),"big")).toList()))return RemoteResult.pending();
+        }
+        boolean assets=!urls(r.mediaJson()).isEmpty()&&r.phase().equals("CARD");return new RemoteResult(assets?CopyState.REMOTE_PROCESSING:CopyState.RECONCILED,List.copyOf(ids.values()),assets?List.of(new CopyIssue("ASSETS_REQUIRED","images",false)):List.of(),ids);
+    }
+    public RemoteSubmission finishAssets(Shop s,RemoteSubmission r)throws IOException{owner(s,r);if(!r.phase().equals("ASSETS_SENDING")||r.identities().isEmpty())throw new SecurityException("Assets are not claimed");var urls=urls(r.mediaJson());if(!urls.isEmpty())for(String article:r.articles()){String id=r.identities().get(article);var cards=find(s,article);if(cards.size()!=1||!text(cards.getFirst(),"nmID").equals(id))throw new SecurityException("Destination media identity changed");var body=new JsonObject();body.addProperty("nmId",new BigInteger(id));body.add("data",urls);call(s,"content/v3/media/save",body,true);}return r.withPhase("ASSETS_SENT",r.identities());}
+    public ProductEditPreview previewUpdate(Shop s,ProductSnapshot fresh,Map<String,List<String>> changes,List<ProductDocument> docs)throws IOException{
+        owner(s);ListingIdentity.require(s,fresh.key());if(!fresh.revision().startsWith("live:")||!ListingIdentity.fingerprint(s).equals(fresh.metadata().get("owner")))throw new SecurityException("Fresh own card required");
+        var source=object(JsonParser.parseString(fresh.metadata().get("source.payload")));var request=new JsonObject();for(String field:List.of("nmID","vendorCode","kizMarked","brand","title","gtin","description","dimensions","documents","characteristics","sizes"))if(source.has(field))request.add(field,source.get(field).deepCopy());
+        var issues=new ArrayList<CopyIssue>();var dictionary=attributes(s,fresh.categoryId());
+        for(var change:changes.entrySet()){
+            if(change.getKey().equals("brand")){if(change.getValue().size()!=1)issue(issues,"VALUE_REQUIRED","brand");else request.addProperty("brand",change.getValue().getFirst());}
+            else if(change.getKey().startsWith("attribute:")){String id=change.getKey().substring(10);var d=dictionary.stream().filter(a->a.id().equals(id)&&!a.namedField()).findFirst();if(d.isEmpty()){issue(issues,"FOREIGN_TARGET_ATTRIBUTE",id);continue;}var chars=array(request,"characteristics");for(int i=chars.size()-1;i>=0;i--)if(text(object(chars.get(i)),"id").equals(id))chars.remove(i);var a=new JsonObject();a.addProperty("id",new BigInteger(id));if(d.get().type().equals("4")){try{a.addProperty("value",new java.math.BigDecimal(change.getValue().getFirst()));}catch(RuntimeException e){issue(issues,"ATTRIBUTE_NUMBER_REQUIRED",id);}}else a.add("value",ProductJson.GSON.toJsonTree(change.getValue()));chars.add(a);request.add("characteristics",chars);}
+            else issue(issues,"EDIT_FIELD_UNSUPPORTED",change.getKey());
+        }
+        if(docs!=null){var items=new JsonArray();for(var d:docs){if(expired(d)||!wbType(d).matches("[1-9]")){issue(issues,"DOCUMENT_INVALID",d.number());continue;}items.add(wbDocument(d,true));}var data=new JsonObject();data.add("items",items);data.addProperty("excludeDocuments",false);request.add("documents",data);}
+        if(request.has("dimensions"))obj(request,"dimensions").remove("isValid");if(request.has("documents")){var data=obj(request,"documents");data.remove("overallVerdict");for(var e:array(data,"items")){var d=object(e);d.remove("verdict");d.remove("createdAt");}}
+        var arr=new JsonArray();arr.add(request);var options=new CopyOptions(changes.keySet(),Set.of(),fresh.categoryId(),Map.of(),changes,Map.of(),null,"RUB",List.of(),null);var p=previewRecord(s,fresh,options,arr,new JsonArray(),new JsonArray(),issues,List.of(fresh.vendorArticle()),"UPDATE");return new ProductEditPreview(fresh.key(),fresh.revision(),p);
+    }
+    public RemoteSubmission submitUpdate(Shop s,ProductEditPreview p)throws IOException{requirePreview(s,p.preview());if(!p.preview().operation().equals("UPDATE"))throw new SecurityException("Wrong edit operation");call(s,"content/v2/cards/update",JsonParser.parseString(p.preview().requestJson()),true);return submitted(p.preview(),null);}
+    public List<JsonObject> find(Shop s,String article)throws IOException{
+        var filter=new JsonObject();filter.addProperty("textSearch",article);filter.addProperty("withPhoto",-1);var settings=new JsonObject();settings.add("filter",filter);var cursor=new JsonObject();cursor.addProperty("limit",100);settings.add("cursor",cursor);var b=new JsonObject();b.add("settings",settings);var r=call(s,"content/v2/get/cards/list",b,false);var out=new ArrayList<JsonObject>();for(var e:array(r,"cards")){var c=object(e);if(text(c,"vendorCode").equals(article)||strings(array(c,"sizes")).contains(article)||array(c,"sizes").asList().stream().anyMatch(v->strings(array(object(v),"skus")).contains(article)))out.add(c);}return out;
+    }
+    private static boolean matches(JsonObject want,JsonObject actual){
+        if(!subset(want,actual,Set.of("sizes","characteristics","documents","dimensions")))return false;
+        for(var e:array(want,"sizes")){var size=object(e);if(array(actual,"sizes").asList().stream().noneMatch(a->subset(size,object(a),Set.of("price"))))return false;}
+        for(var e:array(want,"characteristics")){var a=object(e);if(array(actual,"characteristics").asList().stream().noneMatch(v->text(object(v),"id").equals(text(a,"id"))&&same(a.get("value"),object(v).get("value"))))return false;}
+        if(want.has("dimensions")&&!subset(obj(want,"dimensions"),obj(actual,"dimensions"),Set.of("isValid")))return false;
+        for(var e:array(obj(want,"documents"),"items"))if(array(obj(actual,"documents"),"items").asList().stream().noneMatch(v->subset(object(e),object(v),Set.of())))return false;return true;
+    }
+}

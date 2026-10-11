@@ -1,0 +1,102 @@
+package com.vncode.app.integration.ozon;
+
+import com.google.gson.*;
+import com.vncode.app.features.listingcopy.*;
+import com.vncode.app.features.products.*;
+import com.vncode.app.integration.listing.*;
+import com.vncode.app.integration.marketplace.Marketplace;
+import com.vncode.app.models.Shop;
+import java.io.*;
+import java.math.*;
+import java.nio.file.*;
+import java.time.*;
+import java.util.*;
+import java.util.function.Function;
+import static com.vncode.app.integration.listing.ListingJson.*;
+
+public final class OzonListingAdapter extends AbstractListingAdapter {
+    public OzonListingAdapter(){this(ListingHttpClient::new,ListingMediaInspector.fullSize());}
+    public OzonListingAdapter(Function<Shop,ListingTransport> c,ListingMediaInspector images){super(Marketplace.OZON,c,images);}
+    public List<TargetCategory> categories(Shop s)throws IOException{var result=new ArrayList<TargetCategory>();tree(array(call(s,"v1/description-category/tree",new JsonObject(),false),"result"),"","",result,0);return List.copyOf(result);}
+    private static void tree(JsonArray children,String cat,String name,List<TargetCategory> out,int depth)throws IOException{
+        if(depth>30||out.size()>20000)throw new IOException("Category tree limit");for(var e:children){var o=object(e);String c=text(o,"description_category_id");if(c.isBlank())c=cat;String n=text(o,"category_name");if(n.isBlank())n=name;String type=text(o,"type_id");if(!type.isBlank()&&!c.isBlank()&&!"true".equals(text(o,"disabled")))out.add(new TargetCategory(c+":"+type,n+" / "+text(o,"type_name")));tree(array(o,"children"),c,n,out,depth+1);}
+    }
+    private static JsonObject category(String cat){if(cat==null||!cat.matches("[1-9][0-9]{0,18}:[1-9][0-9]{0,18}"))throw new IllegalArgumentException("Destination Ozon category/type required");var b=new JsonObject();String[] parts=cat.split(":");b.addProperty("description_category_id",new BigInteger(parts[0]));b.addProperty("type_id",new BigInteger(parts[1]));b.addProperty("language","DEFAULT");return b;}
+    public List<TargetAttribute> attributes(Shop s,String cat)throws IOException{
+        var result=new ArrayList<TargetAttribute>();for(var e:array(call(s,"v1/description-category/attribute",category(cat),false),"result")){var a=object(e);result.add(new TargetAttribute(text(a,"id"),text(a,"name"),text(a,"type"),"true".equals(text(a,"is_required")),"",decimal(a,"max_value_count")==null?1:decimal(a,"max_value_count").intValue(),text(a,"dictionary_id"),text(a,"attribute_complex_id"),false));}return List.copyOf(result);
+    }
+    public CopyPreview preview(Shop shop,ProductSnapshot source,CopyOptions o)throws IOException{
+        owner(shop);var issues=new ArrayList<CopyIssue>();var variants=selected(source,o,issues);if(categories(shop).stream().noneMatch(c->c.id().equals(o.targetCategoryId())))issue(issues,"TARGET_CATEGORY_REQUIRED","category");
+        var dict=attributes(shop,o.targetCategoryId());var mapped=mapped(source,o,dict,issues);
+        for(String field:List.of("brand","description"))if(o.fields().contains(field)){String value=field.equals("brand")?source.brand():source.description();String id=o.attributeMapping().get("@"+field);if(value!=null&&!value.isBlank()){if(id==null||dict.stream().noneMatch(a->a.id().equals(id)))issue(issues,"TEXT_FIELD_MAPPING_REQUIRED",field);else mapped.put(id,List.of(value));}}
+        if(o.targetPrice()==null)issue(issues,"TARGET_PRICE_REQUIRED","price");if(!Set.of("RUB","BYN","KZT","EUR","USD","CNY").contains(o.currency()))issue(issues,"TARGET_CURRENCY_REQUIRED","currency");
+        if(variants.size()>1&&o.fields().contains("sizes")&&variants.stream().anyMatch(v->o.variantValues().getOrDefault(v.id(),Map.of()).isEmpty()))issue(issues,"VARIANT_MAPPING_REQUIRED","sizes");
+        var media=media(source,o,issues);var items=new JsonArray();var articles=new ArrayList<String>();var used=new HashSet<String>();var valueCache=new HashMap<String,Map<String,String>>();
+        for(var v:variants){String article=article(o,v,issues);articles.add(article);if(!used.add(article))issue(issues,"ARTICLE_DUPLICATED",article);if(!article.isBlank()&&!find(shop,article).isEmpty())issue(issues,"ARTICLE_COLLISION",article);
+            var item=category(o.targetCategoryId());item.remove("language");item.addProperty("offer_id",article);item.addProperty("name",source.title());if(source.title()==null||source.title().isBlank()||source.title().length()>500)issue(issues,"TITLE_LIMIT","title");
+            if(o.targetPrice()!=null)item.addProperty("price",o.targetPrice().toPlainString());item.addProperty("currency_code",o.currency());if(o.fields().contains("gtin"))item.addProperty("barcode",v.gtin());
+            var packageData=dimensions(source.dimensions(),true,issues);packageData.entrySet().forEach(e->item.add(e.getKey(),e.getValue()));if(!media.isEmpty()){item.add("images",urls(media.toString()));item.addProperty("primary_image",text(object(media.get(0)),"url"));}
+            var values=new LinkedHashMap<>(mapped);values.putAll(o.variantValues().getOrDefault(v.id(),Map.of()));for(String id:values.keySet())if(dict.stream().noneMatch(a->a.id().equals(id)))issue(issues,"FOREIGN_TARGET_ATTRIBUTE",id);
+            item.add("attributes",mappedAttributes(shop,o.targetCategoryId(),dict,values,valueCache,issues));items.add(item);
+        }
+        var docs=new JsonArray();for(var d:documents(source,o)){
+            if(expired(d)||d.state()==DocumentState.REJECTED){issue(issues,"DOCUMENT_INVALID",d.number());continue;}
+            JsonObject params=certificate(shop,d,issues);if(params!=null)docs.add(params);
+        }
+        var request=new JsonObject();request.add("items",items);return previewRecord(shop,source,o,request,media,docs,issues,articles,"CREATE");
+    }
+    private JsonArray mappedAttributes(Shop shop,String cat,List<TargetAttribute> dict,Map<String,List<String>> values,Map<String,Map<String,String>> cache,List<CopyIssue> issues)throws IOException{
+        var out=new JsonArray();for(var a:dict){var list=values.getOrDefault(a.id(),List.of());if(list.isEmpty()){if(a.required())issue(issues,"REQUIRED_ATTRIBUTE",a.id());continue;}if(!a.complexId().isBlank()&&!a.complexId().equals("0")){issue(issues,"COMPLEX_ATTRIBUTE_MAPPING_REQUIRED",a.id());continue;}if(a.maxValues()>0&&list.size()>a.maxValues())issue(issues,"ATTRIBUTE_VALUE_LIMIT",a.id());
+            var entry=new JsonObject();entry.addProperty("id",new BigInteger(a.id()));var vals=new JsonArray();Map<String,String> dictionary=Map.of();if(!a.dictionaryId().isBlank()&&!a.dictionaryId().equals("0")){dictionary=cache.get(a.id());if(dictionary==null){dictionary=values(shop,cat,a.id());cache.put(a.id(),dictionary);}}
+            for(String value:list){var val=new JsonObject();val.addProperty("value",value);if(!dictionary.isEmpty()||(!a.dictionaryId().isBlank()&&!a.dictionaryId().equals("0"))){String id=dictionary.get(value);if(id==null)issue(issues,"DICTIONARY_VALUE_REQUIRED",a.id());else val.addProperty("dictionary_value_id",new BigInteger(id));}else if(a.type().equals("integer")||a.type().equals("decimal")){try{new BigDecimal(value);}catch(NumberFormatException e){issue(issues,"ATTRIBUTE_NUMBER_REQUIRED",a.id());}}vals.add(val);}entry.add("values",vals);out.add(entry);
+        }return out;
+    }
+    public Map<String,String> values(Shop shop,String cat,String attribute)throws IOException{
+        var result=new LinkedHashMap<String,String>();String last="0";for(int page=0;page<10;page++){var b=category(cat);b.addProperty("attribute_id",new BigInteger(attribute));b.addProperty("last_value_id",new BigInteger(last));b.addProperty("limit",2000);var response=call(shop,"v1/description-category/attribute/values",b,false);var data=array(response,"result");for(var e:data){var d=object(e);String value=text(d,"value"),id=text(d,"id");if(result.containsKey(value)&&!result.get(value).equals(id))throw new IOException("Ambiguous destination dictionary value");result.put(value,id);last=id;}if(!"true".equals(text(response,"has_next")))return Map.copyOf(result);if(data.isEmpty())throw new IOException("Dictionary cursor unavailable");}throw new IOException("Dictionary pagination limit");
+    }
+    private JsonObject certificate(Shop shop,ProductDocument d,List<CopyIssue> issues)throws IOException{
+        if(d.file()==null){issue(issues,"DOCUMENT_FILE_REQUIRED",d.number());return null;}if(!"file".equalsIgnoreCase(d.file().getScheme())){issue(issues,"LOCAL_DOCUMENT_FILE_REQUIRED",d.number());return null;}
+        var params=new JsonObject();for(String field:List.of("certificate_type","certificate_country","accordance_type","name","number","issue_date","link_to_registry","product_type")){String value=d.metadata().get(field);if(value!=null&&!value.isBlank())params.addProperty(field,value);}
+        if(!params.has("number"))params.addProperty("number",d.number());if(!params.has("issue_date")&&d.validFrom()!=null)params.addProperty("issue_date",d.validFrom()+"T00:00:00Z");
+        var expiry=new JsonObject();if(d.validUntil()!=null){var date=new JsonObject();date.addProperty("year",d.validUntil().getYear());date.addProperty("month",d.validUntil().getMonthValue());date.addProperty("day",d.validUntil().getDayOfMonth());expiry.add("date",date);}else if("true".equals(d.metadata().get("isEndless")))expiry.addProperty("infinite",true);if(!expiry.isEmpty())params.add("expired_date",expiry);
+        try{Path p=Path.of(d.file());if(Files.size(p)>10*1024*1024){issue(issues,"OZON_DOCUMENT_FILE_LIMIT",d.number());return null;}String mime=ListingMediaReader.magic(p);if(!Set.of("image/jpeg","image/png","application/pdf").contains(Objects.toString(mime,""))){issue(issues,"DOCUMENT_TYPE_MISMATCH",d.number());return null;}
+            byte[] bytes;try(var in=Files.newInputStream(p)){bytes=in.readNBytes(10*1024*1024+1);}if(bytes.length>10*1024*1024){issue(issues,"OZON_DOCUMENT_FILE_LIMIT",d.number());return null;}var f=new JsonObject();f.addProperty("name",mime.equals("application/pdf")?"certificate.pdf":mime.equals("image/png")?"certificate.png":"certificate.jpg");f.addProperty("file_content",Base64.getEncoder().encodeToString(bytes));var files=new JsonArray();files.add(f);params.add("files",files);
+        }catch(IOException|RuntimeException e){issue(issues,"DOCUMENT_READ_FAILED",d.number());return null;}
+        var options=call(shop,"v2/product/certification/options",new JsonObject(),false);if(!options.has("option")){issue(issues,"DOCUMENT_OPTIONS_UNAVAILABLE",d.number());return null;}
+        var b=new JsonObject();b.add("params",params);var required=call(shop,"v2/product/certification/params",b,false);if(!required.has("params")){issue(issues,"DOCUMENT_RULES_UNAVAILABLE",d.number());return null;}
+        for(var e:array(required,"params")){var p=object(e);String field=text(p,"name").toLowerCase(Locale.ROOT);if("true".equals(text(p,"required"))&&!field.equals("skus")&&!params.has(field))issue(issues,"DOCUMENT_METADATA_REQUIRED",field);var variants=array(p,"variants");if(params.has(field)&&!variants.isEmpty()&&variants.asList().stream().noneMatch(v->text(object(v),"value").equals(text(params,field))))issue(issues,"DOCUMENT_TYPE_MAPPING",field);}
+        return params;
+    }
+    public RemoteSubmission submit(Shop s,CopyPreview p)throws IOException{requirePreview(s,p);if(!p.operation().equals("CREATE"))throw new SecurityException("Wrong listing operation");for(String a:p.articles())if(!find(s,a).isEmpty())throw new IOException("Destination article now exists");return send(s,p);}
+    private RemoteSubmission send(Shop s,CopyPreview p)throws IOException{String task=text(obj(call(s,"v3/product/import",JsonParser.parseString(p.requestJson()),true),"result"),"task_id");if(!task.matches("[1-9][0-9]{0,18}"))throw new IOException("Import task unavailable; reconciliation required");return submitted(p,task);}
+    public RemoteResult reconcile(Shop s,RemoteSubmission r)throws IOException{
+        owner(s,r);if(r.taskId()!=null){var b=new JsonObject();b.addProperty("task_id",new BigInteger(r.taskId()));var items=array(obj(call(s,"v1/product/import/info",b,false),"result"),"items");if(items.size()!=r.articles().size())return RemoteResult.pending();for(String article:r.articles()){
+                var matches=items.asList().stream().map(ListingJson::object).filter(i->text(i,"offer_id").equals(article)).toList();if(matches.size()!=1)throw new IOException("Import owner identity mismatch");var item=matches.getFirst();if(!array(item,"errors").isEmpty())return new RemoteResult(CopyState.FAILED,List.of(),List.of(new CopyIssue("IMPORT_REJECTED",article,true)),Map.of());if(!text(item,"status").equals("imported"))return RemoteResult.pending();}}
+        var ids=new LinkedHashMap<String,String>();for(var e:array(object(JsonParser.parseString(r.requestJson())),"items")){var want=object(e);String article=text(want,"offer_id");var found=find(s,article);if(found.size()!=1)return RemoteResult.pending();var info=found.getFirst();String id=text(info,"id");if(!id.matches("[1-9][0-9]*"))throw new IOException("Destination product identity unavailable");
+            var filter=new JsonObject();var array=new JsonArray();array.add(id);filter.add("product_id",array);var b=new JsonObject();b.add("filter",filter);b.addProperty("limit",1);var attrs=array(call(s,"v4/product/info/attributes",b,false),"result");if(attrs.size()!=1||!text(object(attrs.get(0)),"id").equals(id)||!matches(want,info,object(attrs.get(0))))return RemoteResult.pending();if(!urls(r.mediaJson()).isEmpty()&&!imagesMatch(r.mediaJson(),strings(array(object(attrs.get(0)),"images"))))return RemoteResult.pending();ids.put(article,id);ids.put("sku:"+article,text(info,"sku"));
+        }
+        boolean docs=!JsonParser.parseString(r.documentsJson()).getAsJsonArray().isEmpty()&&r.phase().equals("CARD");if(r.phase().equals("ASSETS_SENT")||r.phase().equals("ASSETS_SENDING"))for(var e:JsonParser.parseString(r.documentsJson()).getAsJsonArray())for(String a:r.articles()){var b=new JsonObject();b.addProperty("offer_id",a);b.addProperty("page",1);b.addProperty("page_size",100);String number=text(object(e),"number");if(array(obj(call(s,"v1/product/certificate/list",b,false),"result"),"certificates").asList().stream().noneMatch(v->text(object(v),"certificate_number").equals(number)))return RemoteResult.pending();}
+        return new RemoteResult(docs?CopyState.REMOTE_PROCESSING:CopyState.RECONCILED,ids.entrySet().stream().filter(e->!e.getKey().startsWith("sku:")).map(Map.Entry::getValue).toList(),docs?List.of(new CopyIssue("ASSETS_REQUIRED","documents",false)):List.of(),ids);
+    }
+    public RemoteSubmission finishAssets(Shop s,RemoteSubmission r)throws IOException{
+        owner(s,r);if(!r.phase().equals("ASSETS_SENDING")||r.identities().isEmpty())throw new SecurityException("Assets are not claimed");for(var e:JsonParser.parseString(r.documentsJson()).getAsJsonArray()){var params=object(e).deepCopy();var skus=new JsonArray();for(String a:r.articles()){String sku=r.identities().get("sku:"+a);var actual=find(s,a);if(actual.size()!=1||!text(actual.getFirst(),"sku").equals(sku)||!text(actual.getFirst(),"id").equals(r.identities().get(a)))throw new SecurityException("Destination certificate owner changed");if(sku==null||!sku.matches("[1-9][0-9]*"))throw new IOException("Destination SKU unavailable");skus.add(sku);}params.add("skus",skus);var b=new JsonObject();b.add("params",params);var response=call(s,"v2/product/certificate/create",b,true);if(!text(response,"status").equals("COMPLETED")||text(response,"certificate_id").isBlank())throw new IOException("Certificate submission incomplete");}
+        return r.withPhase("ASSETS_SENT",r.identities());
+    }
+    public ProductEditPreview previewUpdate(Shop s,ProductSnapshot fresh,Map<String,List<String>> changes,List<ProductDocument> documents)throws IOException{
+        owner(s);ListingIdentity.require(s,fresh.key());if(!fresh.revision().startsWith("live:")||!ListingIdentity.fingerprint(s).equals(fresh.metadata().get("owner")))throw new SecurityException("Fresh own product required");var raw=object(JsonParser.parseString(fresh.metadata().get("source.payload")));var info=obj(raw,"info");var attr=obj(raw,"attributes");var item=new JsonObject();
+        for(String key:List.of("offer_id","name","description_category_id","type_id","depth","width","height","dimension_unit","weight","weight_unit","primary_image","images","color_image","pdf_list","complex_attributes"))if(attr.has(key))item.add(key,attr.get(key).deepCopy());
+        for(String key:List.of("price","old_price","min_price","currency_code","vat"))if(info.has(key))item.add(key,info.get(key).deepCopy());String barcode=text(attr,"barcode");if(!barcode.isBlank())item.addProperty("barcode",barcode);var attrs=array(attr,"attributes").deepCopy();var dictionary=attributes(s,fresh.categoryId());var issues=new ArrayList<CopyIssue>();var vals=new LinkedHashMap<String,List<String>>();
+        for(var change:changes.entrySet()){String id=change.getKey().startsWith("attribute:")?change.getKey().substring(10):change.getKey().equals("brand")?dictionary.stream().filter(a->a.name().equals("Бренд")||a.name().equals("Бренд в одежде и обуви")).map(TargetAttribute::id).findFirst().orElse(""):"";if(id.isBlank()||dictionary.stream().noneMatch(a->a.id().equals(id))){issue(issues,"FOREIGN_TARGET_ATTRIBUTE",change.getKey());continue;}for(int i=attrs.size()-1;i>=0;i--)if(text(object(attrs.get(i)),"id").equals(id))attrs.remove(i);vals.put(id,change.getValue());}
+        var changed=mappedAttributes(s,fresh.categoryId(),dictionary.stream().filter(a->vals.containsKey(a.id())).toList(),vals,new HashMap<>(),issues);changed.forEach(attrs::add);item.add("attributes",attrs);if(!item.has("price"))issue(issues,"OWN_PRICE_UNAVAILABLE","price");
+        var docs=new JsonArray();if(documents!=null)for(var d:documents){var params=certificate(s,d,issues);if(params!=null)docs.add(params);}var items=new JsonArray();items.add(item);var request=new JsonObject();request.add("items",items);var o=new CopyOptions(changes.keySet(),Set.of(),fresh.categoryId(),Map.of(),changes,Map.of(),null,"RUB",List.of(),null);return new ProductEditPreview(fresh.key(),fresh.revision(),previewRecord(s,fresh,o,request,new JsonArray(),docs,issues,List.of(fresh.vendorArticle()),"UPDATE"));
+    }
+    public RemoteSubmission submitUpdate(Shop s,ProductEditPreview p)throws IOException{requirePreview(s,p.preview());if(!p.preview().operation().equals("UPDATE"))throw new SecurityException("Wrong edit operation");return send(s,p.preview());}
+    public List<JsonObject> find(Shop s,String article)throws IOException{var b=new JsonObject();var ids=new JsonArray();ids.add(article);b.add("offer_id",ids);return array(call(s,"v3/product/info/list",b,false),"items").asList().stream().map(ListingJson::object).filter(o->text(o,"offer_id").equals(article)).toList();}
+    private static boolean matches(JsonObject want,JsonObject info,JsonObject attrs){
+        for(String key:List.of("offer_id","name","description_category_id","type_id","depth","width","height","weight","dimension_unit","weight_unit"))if(want.has(key)&&!same(want.get(key),attrs.get(key)))return false;
+        if(want.has("price")&&(decimal(info,"price")==null||new BigDecimal(text(want,"price")).compareTo(decimal(info,"price"))!=0))return false;
+        if(want.has("barcode")&&!strings(array(attrs,"barcodes")).contains(text(want,"barcode"))&&!text(attrs,"barcode").equals(text(want,"barcode")))return false;
+        for(var e:array(want,"attributes")){var a=object(e);if(array(attrs,"attributes").asList().stream().noneMatch(v->text(object(v),"id").equals(text(a,"id"))&&same(a.get("values"),object(v).get("values"))))return false;}
+        if(want.has("images")&&array(attrs,"images").size()!=array(want,"images").size())return false;return true;
+    }
+}
