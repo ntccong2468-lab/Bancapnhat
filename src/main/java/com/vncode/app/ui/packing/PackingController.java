@@ -112,6 +112,10 @@ public class PackingController {
     private Consumer<WbSupplySummary> onPrintSupply;
     private PauseTransition delayTransition;
     private long shopGeneration;
+    private long localGeneration;
+    private boolean disposed;
+    private final com.vncode.app.shared.ShopReadCoordinator reads=com.vncode.app.shared.ShopReadCoordinator.shared();
+    private final com.vncode.app.shared.ThumbnailLoader thumbnails=new com.vncode.app.shared.ThumbnailLoader();
 
     @FXML
     private void initialize() {
@@ -144,11 +148,7 @@ public class PackingController {
             setBoard(new PackingWorkflow.PackingBoard(List.of(), List.of(), List.of()));
             return;
         }
-        if (newOrdersTab != null && newOrdersTab.isSelected()) {
-            delayTransition.playFromStart();
-        } else {
-            refresh();
-        }
+        refresh();
     }
 
     @FXML private void onLoadMoreDispatch() {
@@ -237,24 +237,11 @@ public class PackingController {
         }
         Shop selectedShop = shop;
         long generation = shopGeneration;
-        Task<PackingWorkflow.PackingBoard> task = new Task<>() {
-            @Override
-            protected PackingWorkflow.PackingBoard call() {
-                return packingWorkflow.loadBoard(selectedShop);
-            }
-        };
-        task.setOnSucceeded(e -> {
-            if (!isCurrent(selectedShop, generation)) return;
-            setBoard(task.getValue());
-        });
-        java.util.function.Consumer<Throwable> taskFailure = rejection -> {
-            if (!isCurrent(selectedShop, generation)
-                    || ShopOperationCoordinator.isShopUnavailable(rejection)) return;
-            LOGGER.error("Не удалось загрузить упаковку для shop {}", selectedShop.getId(), rejection);
-            AlertService.showError(FriendlyErrorService.format(rejection));
-        };
-        task.setOnFailed(e -> taskFailure.accept(task.getException()));
-        AppTaskExecutor.execute(task, taskFailure);
+        long request=++localGeneration;
+        reads.submitLocal(new com.vncode.app.shared.ShopReadCoordinator.Key(selectedShop.getId(),"wb-packing-local",Long.toString(generation)),()->packingWorkflow.loadBoardData(selectedShop)).whenComplete((board,error)->javafx.application.Platform.runLater(()->{
+            if(disposed||request!=localGeneration||!isCurrent(selectedShop,generation))return;
+            if(error==null)setBoard(board);
+        }));
     }
 
     private void refreshFromWb() {
@@ -480,11 +467,8 @@ public class PackingController {
             return;
         }
         packingTabPane.getSelectionModel().selectedItemProperty().addListener((obs, oldTab, newTab) -> {
-            if (newTab == newOrdersTab && shop != null && !refreshLoading.isVisible()) {
-                delayTransition.playFromStart();
-            } else {
-                delayTransition.stop();
-            }
+            delayTransition.stop();
+            if(shop!=null&&!refreshLoading.isVisible())refresh();
         });
     }
 
@@ -602,12 +586,19 @@ public class PackingController {
 
     private TableCell<Order, byte[]> imageCell() {
         return new TableCell<>() {
+            private long imageGeneration;
             @Override
             protected void updateItem(byte[] imageBytes, boolean empty) {
                 super.updateItem(imageBytes, empty);
+                long request=++imageGeneration;
                 if (empty) {
                     setGraphic(null);
                     return;
+                }
+                var order=getTableRow()==null?null:getTableRow().getItem();
+                if(order!=null&&order.getImageUrl()!=null&&!order.getImageUrl().isBlank()){
+                    var view=new ImageView();view.setFitWidth(36);view.setFitHeight(48);view.setPreserveRatio(true);setGraphic(view);long ownerGeneration=shopGeneration;
+                    try{thumbnails.load(java.net.URI.create(order.getImageUrl()),72,96).whenComplete((image,error)->javafx.application.Platform.runLater(()->{if(!disposed&&request==imageGeneration&&ownerGeneration==shopGeneration&&getTableRow()!=null&&getTableRow().getItem()==order&&error==null)view.setImage(image);}));}catch(IllegalArgumentException invalid){}return;
                 }
                 if (imageBytes == null || imageBytes.length == 0) {
                     StackPane placeholder = new StackPane();
@@ -626,6 +617,7 @@ public class PackingController {
             }
         };
     }
+    public void dispose(){disposed=true;shopGeneration++;localGeneration++;if(delayTransition!=null)delayTransition.stop();thumbnails.close();}
 
     private TableCell<WbSupplySummary, Void> dispatchActionCell() {
         return new TableCell<>() {

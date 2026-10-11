@@ -17,6 +17,7 @@ public final class Gs1Repository {
         @Override public String toString(){return "Gs1Request[id="+id+", state="+state+"]";}
     }
     public record Message(String id,boolean outgoing,String sender,String body,boolean unread,boolean invoice,Instant createdAt) {}
+    public record AttachmentSummary(String messageId,String name,String type,long size) {}
     /** Operator verification in the official portal, independent of the email's From header. */
     public record PortalInvoice(String inn,String number,String amount,String currency) {
         public PortalInvoice {
@@ -62,7 +63,12 @@ public final class Gs1Repository {
             p.setString(1,inn);try(ResultSet r=p.executeQuery()){List<Request> values=new ArrayList<>();while(r.next())values.add(readRequest(r));return List.copyOf(values);}
         }catch(SQLException error){throw storeError();}
     }
-    public Request request(String inn,String id){return requests(inn).stream().filter(r->r.id().equals(id)).findFirst().orElseThrow(()->new SecurityException("GS1 request does not belong to this enterprise"));}
+    public Request request(String inn,String id){
+        Gs1Membership.requireInn(inn);
+        try(Connection c=connections.open();PreparedStatement p=c.prepareStatement("SELECT * FROM gs1_requests WHERE inn=? AND id=?")){
+            p.setString(1,inn);p.setString(2,id);try(ResultSet r=p.executeQuery()){if(r.next())return readRequest(r);throw new SecurityException("GS1 request does not belong to this enterprise");}
+        }catch(SQLException error){throw storeError();}
+    }
     public boolean claimSend(String inn,String id){
         request(inn,id);
         return execute("""
@@ -92,7 +98,18 @@ public final class Gs1Repository {
         }catch(SQLException error){throw storeError();}
     }
     public void markRead(String inn,String id){request(inn,id);execute("UPDATE gs1_messages SET unread=0 WHERE inn=? AND request_id=?",inn,id);}
-    public int unread(String inn){return requests(inn).stream().mapToInt(r->(int)messages(inn,r.id()).stream().filter(Message::unread).count()).sum();}
+    public int unread(String inn){
+        Gs1Membership.requireInn(inn);
+        try(Connection c=connections.open();PreparedStatement p=c.prepareStatement("SELECT COUNT(*) FROM gs1_messages m JOIN gs1_requests r ON r.inn=m.inn AND r.id=m.request_id WHERE m.inn=? AND m.unread=1")){
+            p.setString(1,inn);try(ResultSet r=p.executeQuery()){return r.next()?r.getInt(1):0;}
+        }catch(SQLException error){throw storeError();}
+    }
+    public void markReadMessages(String inn,String requestId,List<Message> shown){
+        request(inn,requestId);
+        try(Connection c=connections.open();PreparedStatement p=c.prepareStatement("UPDATE gs1_messages SET unread=0 WHERE inn=? AND request_id=? AND id=?")){
+            for(var message:shown){p.setString(1,inn);p.setString(2,requestId);p.setString(3,message.id());p.addBatch();}p.executeBatch();
+        }catch(SQLException error){throw storeError();}
+    }
     public void confirmInvoice(String inn,String requestId,String messageId,PortalInvoice verified){
         request(inn,requestId);
         if(verified==null||!inn.equals(verified.inn()))throw new SecurityException("Invoice enterprise differs from this request");
@@ -134,6 +151,18 @@ public final class Gs1Repository {
         try(Connection c=connections.open();PreparedStatement p=c.prepareStatement("SELECT name,type,content FROM gs1_attachments WHERE inn=? AND request_id=? AND message_id=?")){
             p.setString(1,inn);p.setString(2,requestId);p.setString(3,messageId);
             try(ResultSet r=p.executeQuery()){List<Gs1MailClient.Attachment> result=new ArrayList<>();while(r.next())result.add(new Gs1MailClient.Attachment(r.getString(1),r.getString(2),r.getBytes(3)));return List.copyOf(result);}
+        }catch(SQLException error){throw storeError();}
+    }
+    public List<AttachmentSummary> attachmentSummaries(String inn,String requestId){
+        request(inn,requestId);
+        try(Connection c=connections.open();PreparedStatement p=c.prepareStatement("SELECT message_id,name,type,length(content) FROM gs1_attachments WHERE inn=? AND request_id=? ORDER BY message_id,name")){
+            p.setString(1,inn);p.setString(2,requestId);try(ResultSet r=p.executeQuery()){var result=new ArrayList<AttachmentSummary>();while(r.next())result.add(new AttachmentSummary(r.getString(1),r.getString(2),r.getString(3),r.getLong(4)));return List.copyOf(result);}
+        }catch(SQLException error){throw storeError();}
+    }
+    public Gs1MailClient.Attachment attachment(String inn,String requestId,AttachmentSummary selected){
+        request(inn,requestId);
+        try(Connection c=connections.open();PreparedStatement p=c.prepareStatement("SELECT type,content FROM gs1_attachments WHERE inn=? AND request_id=? AND message_id=? AND name=?")){
+            p.setString(1,inn);p.setString(2,requestId);p.setString(3,selected.messageId());p.setString(4,selected.name());try(ResultSet r=p.executeQuery()){if(r.next())return new Gs1MailClient.Attachment(selected.name(),r.getString(1),r.getBytes(2));throw new SecurityException("Attachment does not belong to this request");}
         }catch(SQLException error){throw storeError();}
     }
     public static boolean officialSender(String sender){return sender!=null&&Set.of("mail@gs1ru.org","markirovka@gs1ru.org","server@gs1ru.org").contains(sender.toLowerCase(Locale.ROOT));}

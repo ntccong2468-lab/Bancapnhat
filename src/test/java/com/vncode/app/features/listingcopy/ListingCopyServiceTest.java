@@ -25,6 +25,19 @@ class ListingCopyServiceTest {
     }
     @AfterEach void clear(){System.clearProperty("vncode.appdata.dir");}
     CopyJob draft(Shop destination)throws Exception{return service.draft(source,List.of(snapshot.key()),List.of(destination),ListingCopyMappingTest.options(Marketplace.WILDBERRIES)).getFirst();}
+    @Test void largeDocumentHistoryLoadsSummariesOnly()throws Exception {
+        String marker="LARGE_DOCUMENT_"+"A".repeat(1024*1024);
+        for(int i=0;i<100;i++){var now=java.time.Instant.now();var p=new CopyPreview(2,dest.getMarketplace(),ListingIdentity.fingerprint(dest),snapshot.key(),snapshot.revision(),"hash","{}","[]",marker,Map.of(),List.of(),List.of("NEW-"+i),ListingCopyMappingTest.options(dest.getMarketplace()),"CREATE");repo.insert(new CopyJob("large-"+i,1,ListingIdentity.fingerprint(source),2,dest.getMarketplace(),ListingIdentity.fingerprint(dest),snapshot,p.options(),p,null,CopyState.AWAITING_CONFIRMATION,List.of(),now,now));}
+        var summaries=service.list(dest);assertEquals(100,summaries.size());assertEquals(100,service.listSource(source).size());
+        String json=ProductJson.GSON.toJson(summaries);assertFalse(json.contains("LARGE_DOCUMENT_"));assertTrue(json.getBytes(java.nio.charset.StandardCharsets.UTF_8).length<200_000);
+        assertTrue(summaries.stream().allMatch(j->j.preview()==null&&j.submission()==null&&j.options()==null&&j.source().metadata().isEmpty()));
+        assertEquals(marker,service.get(dest,"large-42").preview().documentsJson());
+    }
+    @Test void selectJobLoadsOnlyOwnedDetail()throws Exception {
+        var j=draft(dest);service.preview(dest,j.id());
+        assertNotNull(service.get(dest,j.id()).preview());assertThrows(SecurityException.class,()->service.get(other,j.id()));assertThrows(SecurityException.class,()->service.get(new Shop(2,"Rotated","new-key"),j.id()));
+        try(var c=Database.getConnection();var s=c.createStatement()){s.execute("UPDATE shops SET api_key='new-key' WHERE id=2");}assertThrows(SecurityException.class,()->service.get(dest,j.id()));
+    }
     @Test void unconfirmedOrChangedPreviewCannotSend()throws Exception{
         var job=draft(dest);var preview=service.preview(dest,job.id());assertThrows(IllegalArgumentException.class,()->service.publish(dest,job.id(),preview.requestHash(),false));assertThrows(IllegalStateException.class,()->service.publish(dest,job.id(),"changed",true));
         var s=snapshot;snapshot=new ProductSnapshot(s.key(),"live:new",s.title(),s.description(),s.brand(),s.vendorArticle(),s.categoryId(),s.media(),s.attributes(),s.variants(),s.dimensions(),s.documents(),s.checkedAt(),s.metadata());assertThrows(IllegalStateException.class,()->service.publish(dest,job.id(),preview.requestHash(),true));assertEquals(0,writes.get());

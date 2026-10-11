@@ -190,6 +190,12 @@ public class HomeController implements Initializable {
     private boolean initialZnackShopAuthorized;
     private boolean disposed;
 
+    private long supplyListEpoch,fboEpoch;
+    private int fboOwnerId;
+    private final com.vncode.app.shared.ShopReadCoordinator localReads=com.vncode.app.shared.ShopReadCoordinator.shared();
+    private static Shop frozenShop(Shop s){return new Shop(s.getId(),s.getName(),s.getMarketplace(),s.getClientId(),s.getApiKey());}
+    private boolean sameOwner(Shop s){var current=state.getSelectedShop();return current!=null&&com.vncode.app.integration.listing.ListingIdentity.fingerprint(current).equals(com.vncode.app.integration.listing.ListingIdentity.fingerprint(s));}
+
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         Database.initDatabase();
@@ -443,32 +449,23 @@ public class HomeController implements Initializable {
     }
 
     private void refreshFboView() {
-        if (fboPackingController == null) {
-            return;
-        }
-        Shop shop = state.getSelectedShop();
-        fboPackingController.setMarketplace(shop == null ? Marketplace.WILDBERRIES : shop.getMarketplace());
-        if (shop == null) {
-            fboPackingController.setSubjects(List.of());
-            fboPackingController.replaceProducts(List.of(), false);
-            return;
-        }
-        fboPackingController.setSubjects(shop.getMarketplace() == Marketplace.OZON
-                ? ozonFboProductRepository.findCategories(shop.getId())
-                : fboProductRepository.findSubjects(shop.getId()));
-        reloadFboProducts();
-    }
-
-    private void refreshKizMappingView() {
-        if (kizMappingController != null) {
-            kizMappingController.setShop(state.getSelectedShop());
-        }
+        if(fboPackingController==null)return;
+        var selected=state.getSelectedShop();long epoch=++fboEpoch;fboLoading=false;fboSearchDebounce.stop();
+        fboPackingController.setMarketplace(selected==null?Marketplace.WILDBERRIES:selected.getMarketplace());
+        if(selected==null){fboPackingController.setSubjects(List.of());fboPackingController.replaceProducts(List.of(),false);return;}
+        var owner=frozenShop(selected);
+        if(fboOwnerId!=owner.getId()){fboPackingController.clearQuantities();fboPackingController.replaceProducts(List.of(),false);fboOwnerId=owner.getId();}
+        localReads.submitLocal(new com.vncode.app.shared.ShopReadCoordinator.Key(owner.getId(),"fbo-categories",com.vncode.app.integration.listing.ListingIdentity.fingerprint(owner)),()->owner.getMarketplace()==Marketplace.OZON?ozonFboProductRepository.findCategories(owner.getId()):fboProductRepository.findSubjects(owner.getId())).whenComplete((categories,error)->javafx.application.Platform.runLater(()->{
+            if(disposed||epoch!=fboEpoch||!sameOwner(owner))return;
+            if(error==null){fboPackingController.setSubjects(categories);reloadFboProducts();}else fboPackingController.setLoading(false);
+        }));
     }
 
     private void scheduleFboReload() {
         fboSearchDebounce.setOnFinished(event -> reloadFboProducts());
         fboSearchDebounce.playFromStart();
     }
+    private void refreshKizMappingView(){if(kizMappingController!=null)kizMappingController.setShop(state.getSelectedShop());}
 
     private void reloadFboProducts() {
         loadFboProducts(false);
@@ -481,47 +478,17 @@ public class HomeController implements Initializable {
     }
 
     private void loadFboProducts(boolean append) {
-        if (fboPackingController == null || fboLoading) {
-            return;
-        }
-        Shop shop = state.getSelectedShop();
-        if (shop == null) {
-            fboPackingController.replaceProducts(List.of(), false);
-            return;
-        }
-        fboLoading = true;
-        int offset = append ? fboPackingController.rowCount() : 0;
-        Task<List<FboProductSku>> task = new Task<>() {
-            @Override
-            protected List<FboProductSku> call() {
-                FboProductSearchCriteria criteria = fboPackingController.criteria(
-                        shop.getId(), FBO_PAGE_SIZE + 1, offset);
-                return shop.getMarketplace() == Marketplace.OZON
-                        ? ozonFboProductRepository.search(criteria)
-                        : fboProductRepository.search(criteria);
-            }
-        };
-        fboPackingController.setLoading(true);
-        task.setOnSucceeded(event -> {
-            fboLoading = false;
-            fboPackingController.setLoading(false);
-            List<FboProductSku> loaded = task.getValue() == null ? List.of() : task.getValue();
-            fboHasMore = loaded.size() > FBO_PAGE_SIZE;
-            List<FboProductSku> page = fboHasMore ? loaded.subList(0, FBO_PAGE_SIZE) : loaded;
-            if (append) {
-                fboPackingController.appendProducts(page, fboHasMore);
-            } else {
-                fboPackingController.replaceProducts(page, fboHasMore);
-            }
-        });
-        java.util.function.Consumer<Throwable> taskFailure = rejection -> {
-            fboLoading = false;
-            fboPackingController.setLoading(false);
-            LOGGER.error("Không thể tải sản phẩm FBO", rejection);
-            AlertService.showError(rejection.getMessage());
-        };
-        task.setOnFailed(event -> taskFailure.accept(task.getException()));
-        AppTaskExecutor.execute(task, taskFailure);
+        if(fboPackingController==null||fboLoading||state.getSelectedShop()==null)return;
+        var owner=frozenShop(state.getSelectedShop());long epoch=++fboEpoch;int offset=append?fboPackingController.rowCount():0;
+        var criteria=fboPackingController.criteria(owner.getId(),FBO_PAGE_SIZE+1,offset);
+        fboLoading=true;fboPackingController.setLoading(true);
+        localReads.submitLocal(new com.vncode.app.shared.ShopReadCoordinator.Key(owner.getId(),"fbo-page",criteria.toString()),()->owner.getMarketplace()==Marketplace.OZON?ozonFboProductRepository.search(criteria):fboProductRepository.search(criteria)).whenComplete((loaded,error)->javafx.application.Platform.runLater(()->{
+            if(disposed||epoch!=fboEpoch||!sameOwner(owner))return;
+            fboLoading=false;fboPackingController.setLoading(false);
+            if(error!=null)return;
+            fboHasMore=loaded.size()>FBO_PAGE_SIZE;var page=fboHasMore?loaded.subList(0,FBO_PAGE_SIZE):loaded;
+            if(append)fboPackingController.appendProducts(page,fboHasMore);else fboPackingController.replaceProducts(page,fboHasMore);
+        }));
     }
 
     private void openSupplyForPrint(WbSupplySummary supply) {
@@ -704,6 +671,7 @@ public class HomeController implements Initializable {
             }
         };
         task.setOnSucceeded(e -> {
+            if(disposed)return;
             UpdateInfo info = task.getValue();
             if (info != null) {
                 showUpdateDialog(info);
@@ -1290,7 +1258,7 @@ public class HomeController implements Initializable {
         if (financeDashboardController != null && dashboardVisible) {
             financeDashboardController.setShop(shop);
         }
-        ConfigService.setLastSelectedShopId(shop.getId());
+        ConfigService.setLastSelectedShopIdAsync(shop.getId());
         if (gtinSyncController != null) gtinSyncController.setShop(shop);
         if (gs1Pane != null && workspaceNavigator.currentRoute().equals("gs1")) gs1Pane.setShop(shop);
         if (productsPane != null && workspaceNavigator.currentRoute().equals("products")) productsPane.setShop(shop);
@@ -1330,8 +1298,7 @@ public class HomeController implements Initializable {
         if (!tokenValid) {
             return;
         }
-        supplyListController.setLoading(true);
-        startShopSync(shop, false);
+        // Catalog synchronization is explicitly requested from the workspace header.
     }
 
     private void startShopSync(Shop shop, boolean manual) {
@@ -1418,31 +1385,18 @@ public class HomeController implements Initializable {
         refreshSupplyList(supplyIdToRestore, true);
     }
 
-    private void refreshSupplyList(String supplyIdToRestore, boolean notifySelection) {
-        Shop shop = state.getSelectedShop();
-        if (shop == null || shop.getMarketplace() != Marketplace.WILDBERRIES) {
-            clearSupplyViews();
+    private void refreshSupplyList(String supplyIdToRestore,boolean notifySelection) {
+        var selected=state.getSelectedShop();long epoch=++supplyListEpoch;
+        if(selected==null||selected.getMarketplace()!=Marketplace.WILDBERRIES){clearSupplyViews();updateHeaderState();return;}
+        var owner=frozenShop(selected);supplyListController.setLoading(false);
+        localReads.submitLocal(new com.vncode.app.shared.ShopReadCoordinator.Key(owner.getId(),"wb-supplies",com.vncode.app.integration.listing.ListingIdentity.fingerprint(owner)),()->wbSupplyWorkflow.getSupplies(owner.getId()).stream().filter(supply->!supply.isDone()).toList()).whenComplete((supplies,error)->javafx.application.Platform.runLater(()->{
+            if(disposed||epoch!=supplyListEpoch||!sameOwner(owner))return;
+            if(error!=null){supplyListController.setLoading(false);return;}
+            if(notifySelection)supplyListController.setSupplies(supplies);else supplyListController.refreshSupplies(supplies,supplyIdToRestore);
+            if(supplyIdToRestore!=null&&supplies.stream().anyMatch(s->supplyIdToRestore.equals(s.getSupplyId()))){if(notifySelection)supplyListController.selectSupply(supplyIdToRestore);}
+            else{resetLoadedSupply();supplyDetailController.showEmptyState("","");}
             updateHeaderState();
-            return;
-        }
-        supplyListController.setLoading(false);
-        List<WbSupplySummary> supplies = wbSupplyWorkflow.getSupplies(shop.getId()).stream()
-                .filter(supply -> !supply.isDone())
-                .toList();
-        if (notifySelection) {
-            supplyListController.setSupplies(supplies);
-        } else {
-            supplyListController.refreshSupplies(supplies, supplyIdToRestore);
-        }
-        if (supplyIdToRestore != null && supplies.stream().anyMatch(supply -> supplyIdToRestore.equals(supply.getSupplyId()))) {
-            if (notifySelection) {
-                supplyListController.selectSupply(supplyIdToRestore);
-            }
-        } else {
-            resetLoadedSupply();
-            supplyDetailController.showEmptyState("", "");
-        }
-        updateHeaderState();
+        }));
     }
 
     private void loadSupply(WbSupplySummary supply) {
@@ -2250,6 +2204,8 @@ public class HomeController implements Initializable {
             return;
         }
         disposed = true;
+        supplyListEpoch++;fboEpoch++;fboSearchDebounce.stop();
+        if(packingController!=null)packingController.dispose();
         supplyPrintRequest.cancel();
         if (gtinSyncController != null) gtinSyncController.dispose();
         if (gs1Pane != null) gs1Pane.dispose();

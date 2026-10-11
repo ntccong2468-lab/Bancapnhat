@@ -84,7 +84,7 @@ public final class NewsPane extends VBox {
  public VBox preview(){return preview;}
  public void open(NewsItem item){
   if(!detailShown)listScroll=scroll.getVvalue();
-  try{service.markRead(item.id());status.setText("");}catch(java.io.IOException e){status.setText(tr("news.save_error"));}
+  long epoch=generation;var official=service.sellerNews(item.id());SellerMutationExecutor.submit(()->{if(official.isPresent())service.markRead(official.get());else service.markRead(item.id());return true;}).whenComplete((saved,error)->Platform.runLater(()->{if(disposed||epoch!=generation)return;status.setText(error==null?"":tr("news.save_error"));renderPreview();unread.accept(service.unreadCount());}));
   opened=item;showOriginal=false;requestTranslation(item);detailShown=true;renderDetail(item);scroll.setContent(detail);scroll.setVvalue(0);more.setVisible(false);more.setManaged(false);renderPreview();unread.accept(service.unreadCount());
  }
  public void back(){detailShown=false;opened=null;scroll.setContent(list);renderList();scroll.setVvalue(listScroll);Platform.runLater(()->{if(!detailShown){scroll.applyCss();scroll.layout();scroll.setVvalue(listScroll);}}); }

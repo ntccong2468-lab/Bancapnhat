@@ -336,11 +336,7 @@ public class SupplyDetailController {
                 ? null
                 : new ZnackRepository(new ShopContext(selected.getId(), selected.getName()));
         setGtinLoading(false);
-        if (selected == null) {
-            gtinRefreshTimer.stop();
-        } else {
-            gtinRefreshTimer.play();
-        }
+        gtinRefreshTimer.stop();
         refreshGtinInventory();
     }
 
@@ -402,8 +398,7 @@ public class SupplyDetailController {
         if(shop!=null&&orders!=null&&!orders.isEmpty()) {
             int shopId=shop.getId();long generation=shopGeneration;
             var ids=orders.stream().map(Order::getNmId).filter(java.util.Objects::nonNull).distinct().toList();
-            var task=new Task<java.util.Map<Long,String>>(){protected java.util.Map<Long,String> call(){return gtinRepository.findMappings(shopId,ids);}};
-            task.setOnSucceeded(e->{if(request==mappingRequest&&generation==shopGeneration){orderMappings=java.util.Map.copyOf(task.getValue());orderTable.refresh();}});AppTaskExecutor.execute(task,error->{if(request==mappingRequest&&generation==shopGeneration)AlertService.showError(error.getMessage());});
+            com.vncode.app.shared.ShopReadCoordinator.shared().submitLocal(new com.vncode.app.shared.ShopReadCoordinator.Key(shopId,"supply-mappings",request+":"+generation),()->gtinRepository.findMappings(shopId,ids)).whenComplete((value,error)->javafx.application.Platform.runLater(()->{if(request==mappingRequest&&generation==shopGeneration){if(error==null){orderMappings=java.util.Map.copyOf(value);orderTable.refresh();}else AlertService.showError(error.getMessage());}}));
         }
         boolean hasOrders = orders != null && !orders.isEmpty();
         orderTable.setVisible(hasOrders);

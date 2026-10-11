@@ -44,6 +44,7 @@ public final class ListingCopyService {
         }else repo.checkpoint(next,Set.of(CopyState.REMOTE_PROCESSING,CopyState.RECONCILE_REQUIRED));return owned(destination,id);
     }
     public List<CopyJob> list(Shop destination){ListingIdentity.require(destination);return repo.list(destination.getId(),ListingIdentity.fingerprint(destination));}
+    public CopyJob get(Shop destination,String id){return owned(destination,id);}
     public List<CopyJob> listSource(Shop source){ListingIdentity.require(source);var owners=new HashMap<Integer,String>();new com.vncode.app.features.shop.ShopRepository().findAll().forEach(s->owners.put(s.getId(),ListingIdentity.fingerprint(s)));return repo.listSource(source.getId(),ListingIdentity.fingerprint(source)).stream().filter(j->j.destinationOwner().equals(owners.get(j.destinationShopId()))).toList();}
     public ListingTargetAdapter adapter(Shop destination){ListingIdentity.require(destination);return adapters.apply(destination);}
     public ProductSnapshot read(Shop source,ProductKey key)throws IOException{ListingIdentity.require(source,key);return reader.read(source,key);}

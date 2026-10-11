@@ -7,6 +7,15 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class Gs1RepositoryTest {
     @TempDir Path directory;
+    @Test void threadAttachmentListKeepsLargeBytesOutUntilDownload() {
+        var repository=new Gs1Repository(directory.resolve("fixture.db"));var row=repository.createRequest("7707083893","RENEWAL","mail@gs1ru.org","A","body");
+        repository.addMessage(row.inn(),row.id(),"reply",false,"mail@gs1ru.org","reply",true);
+        var pdf=new byte[1024*1024];System.arraycopy("%PDF-1.7\n".getBytes(java.nio.charset.StandardCharsets.US_ASCII),0,pdf,0,9);
+        repository.addAttachment(row.inn(),row.id(),"reply",new com.vncode.app.integration.gs1.Gs1MailClient.Attachment("large.pdf","application/pdf",pdf));
+        var summaries=repository.attachmentSummaries(row.inn(),row.id());assertEquals(1,summaries.size());assertEquals(1024*1024,summaries.getFirst().size());assertEquals("reply",summaries.getFirst().messageId());
+        assertTrue(new com.google.gson.Gson().toJson(summaries).length()<500);assertEquals(1024*1024,repository.attachment(row.inn(),row.id(),summaries.getFirst()).bytes().length);
+        assertThrows(SecurityException.class,()->repository.attachmentSummaries("7811089030",row.id()));assertEquals(1,repository.unread(row.inn()));assertEquals(0,repository.unread("7811089030"));
+    }
     @Test void repositorySeparatesEnterprises() {
         var repository=new Gs1Repository(directory.resolve("fixture.db"));
         var first=repository.createRequest("7707083893", "RENEWAL", "mail@gs1ru.org", "Subject", "Reviewed body");

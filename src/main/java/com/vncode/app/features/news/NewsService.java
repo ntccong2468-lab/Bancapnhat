@@ -11,7 +11,7 @@ public final class NewsService {
  private volatile List<NewsItem> items;
  private volatile List<NewsItem> ownItems;
  private volatile Map<String,SellerNews> official=Map.of();
- private OfficialNewsService officialService;
+ private volatile OfficialNewsService officialService;
  private final NewsRepository repository;
  public NewsService(List<NewsItem> rows,NewsRepository repo) {
   repository=repo;ownItems=List.copyOf(rows);rebuild();
@@ -43,8 +43,16 @@ public final class NewsService {
   int end=Math.min(start+20,snapshot.size());return new Page(List.copyOf(snapshot.subList(start,end)),end<snapshot.size()?Integer.toString(end):null);
  }
  public int unreadCount() {return (int)items.stream().filter(item->!isRead(item.id())).count();}
- public boolean isRead(String id) {var item=official.get(id);return item==null?repository.isRead(id):officialService.isRead(item);}
- public void markRead(String id)throws IOException {var item=official.get(id);if(item==null)repository.markRead(id);else officialService.markRead(item);}
+ public boolean isRead(String id) {var item=official.get(id);return item==null?repository.isRead(id):item.read();}
+ public void markRead(String id)throws IOException {var item=official.get(id);if(item==null)repository.markRead(id);else markRead(item);}
+ /** A queued read acknowledgement keeps the exact scope/revision captured when clicked. */
+ public void markRead(SellerNews item) {
+  officialService.markRead(item);
+  synchronized(this){
+  var current=official.get(item.displayId());
+  if(current!=null&&current.revision().equals(item.revision())){var updated=new LinkedHashMap<>(official);updated.put(item.displayId(),new SellerNews(item.source(),item.sourceId(),item.revision(),item.scope(),item.publishedAt(),item.originalTitle(),item.originalBody(),item.sourceURL(),true));official=Map.copyOf(updated);}
+  }
+ }
  public Optional<SellerNews> sellerNews(String id){return Optional.ofNullable(official.get(id));}
  public synchronized void setOfficial(List<SellerNews> rows,OfficialNewsService provider){officialService=provider;var map=new LinkedHashMap<String,SellerNews>();for(var row:rows)map.put(row.displayId(),row);official=Map.copyOf(map);rebuild();}
  private synchronized void replaceOwn(List<NewsItem> rows){ownItems=List.copyOf(rows);rebuild();}

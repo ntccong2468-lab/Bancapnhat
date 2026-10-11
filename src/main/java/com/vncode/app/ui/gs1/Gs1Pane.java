@@ -47,7 +47,8 @@ public final class Gs1Pane extends BorderPane {
     private String inn="";
     private Gs1Membership membership;
     private long generation;
-    private long requestGeneration,unreadGeneration;
+    private long requestGeneration,unreadGeneration,threadGeneration;
+    private record ThreadData(List<Gs1Repository.Message> messages,List<Gs1Repository.AttachmentSummary> attachments,boolean invoice,boolean proof){}
     private final ShopReadCoordinator reads=ShopReadCoordinator.shared();
     private record Cached(Context context,String environment,Gs1Membership membership,List<BalanceSnapshot> balances){}
     private boolean busy,disposed;
@@ -241,17 +242,28 @@ public final class Gs1Pane extends BorderPane {
         }));
     }
     private void showThread(Gs1Repository.Request request){
+        long ticket=++threadGeneration,expected=generation;String enterprise=inn;
         conversation.getChildren().clear();if(request==null||!request.inn().equals(inn))return;
+        conversation.getChildren().add(new Label(tr("gs1.loading")));
+        reads.submitLocal(new ShopReadCoordinator.Key(shop==null?0:shop.getId(),"gs1-thread",enterprise+":"+request.id()+":"+ticket),()->new ThreadData(repository.messages(enterprise,request.id()),repository.attachmentSummaries(enterprise,request.id()),repository.hasConfirmedInvoice(enterprise,request.id()),letters.canPreparePaymentProof(enterprise,request.id()))).whenComplete((data,error)->Platform.runLater(()->{
+            if(disposed||expected!=generation||ticket!=threadGeneration||!enterprise.equals(inn))return;
+            if(error!=null){conversation.getChildren().setAll(new Label(tr("gs1.invalid_fields")));return;}
+            renderThread(request,data);
+            SellerMutationExecutor.submit(()->{repository.markReadMessages(enterprise,request.id(),data.messages());return true;}).whenComplete((saved,failure)->Platform.runLater(()->{if(!disposed&&expected==generation&&enterprise.equals(inn))updateUnread();}));
+        }));
+    }
+    private void renderThread(Gs1Repository.Request request,ThreadData data){
+        conversation.getChildren().clear();
         Label heading=new Label(request.subject());heading.getStyleClass().add("h2");conversation.getChildren().add(heading);
         Label state=new Label(tr("gs1.state."+request.state().name()));state.setWrapText(true);conversation.getChildren().add(state);
         if(request.kind().equals("JOIN")){
             conversation.getChildren().add(button("gs1.reconcile",()->{Context owner=context();run(()->new Gs1ApplicationService(repository).reconcile(login(owner),request.id()),result->reloadRequests());}));
         }else{
             conversation.getChildren().add(button("gs1.preview",()->previewLetter(request)));
-            Button proof=button("gs1.payment_proof",()->paymentProof(request));proof.setDisable(!letters.canPreparePaymentProof(inn,request.id()));conversation.getChildren().add(proof);
+            Button proof=button("gs1.payment_proof",()->paymentProof(request));proof.setDisable(!data.proof());conversation.getChildren().add(proof);
             if(request.state()==Gs1Repository.State.SENDING||request.state()==Gs1Repository.State.RECONCILE_REQUIRED)conversation.getChildren().add(button("gs1.reconcile_mail",()->reconcileMail(request)));
         }
-        List<Gs1Repository.Message> messages=repository.messages(inn,request.id());
+        List<Gs1Repository.Message> messages=data.messages();
         if(messages.isEmpty()){Label draft=new Label(request.kind().equals("JOIN")?tr("gs1.submit_notice"):request.body());draft.setWrapText(true);conversation.getChildren().add(draft);}
         for(var message:messages){
             Label text=new Label();text.setWrapText(true);String[] lines=message.body().split("\n",-1);boolean collapsed=lines.length>10||message.body().length()>1600;
@@ -259,11 +271,10 @@ public final class Gs1Pane extends BorderPane {
             VBox bubble=new VBox(7,new Label((message.outgoing()?tr("gs1.you"):message.sender())+" · "+displayTime(message.createdAt())),text);bubble.setPadding(new Insets(12));bubble.getStyleClass().add("dashboard-feature-card");bubble.setMaxWidth(650);
             if(!message.outgoing()){Label provenance=new Label(tr("gs1.mail_unverified"));provenance.setWrapText(true);provenance.getStyleClass().add("text-muted");bubble.getChildren().add(1,provenance);}
             if(collapsed){Button expand=new Button(tr("gs1.expand"));expand.setOnAction(e->{boolean full=expand.getText().equals(tr("gs1.expand"));text.setText(full?message.body():String.join("\n",Arrays.copyOf(lines,Math.min(10,lines.length))));expand.setText(tr(full?"gs1.collapse":"gs1.expand"));});bubble.getChildren().add(expand);}
-            for(var attachment:repository.attachments(inn,request.id(),message.id())){Button download=new Button(attachment.name());download.setOnAction(e->downloadAttachment(attachment));bubble.getChildren().add(download);}
-            if(!message.outgoing()){boolean verified=repository.hasConfirmedInvoice(request.inn(),request.id());Button invoice=button(verified?"gs1.invoice_confirmed":"gs1.confirm_invoice",()->confirmPortalInvoice(request,message));invoice.setDisable(verified||request.kind().startsWith("PAYMENT_PROOF:"));bubble.getChildren().add(invoice);}
+            for(var attachment:data.attachments())if(attachment.messageId().equals(message.id())){Button download=new Button(attachment.name());download.setOnAction(e->downloadAttachment(request,attachment));bubble.getChildren().add(download);}
+            if(!message.outgoing()){boolean verified=data.invoice();Button invoice=button(verified?"gs1.invoice_confirmed":"gs1.confirm_invoice",()->confirmPortalInvoice(request,message));invoice.setDisable(verified||request.kind().startsWith("PAYMENT_PROOF:"));bubble.getChildren().add(invoice);}
             HBox aligned=new HBox(bubble);aligned.setAlignment(message.outgoing()?Pos.TOP_RIGHT:Pos.TOP_LEFT);conversation.getChildren().add(aligned);
         }
-        repository.markRead(inn,request.id());updateUnread();
         long expected=generation;String threadId=request.id();
         Platform.runLater(()->{var selected=requests.getSelectionModel().getSelectedItem();if(!disposed&&generation==expected&&selected!=null&&selected.id().equals(threadId)){conversation.applyCss();conversation.layout();conversationScroll.layout();conversationScroll.setVvalue(1);}});
     }
@@ -291,8 +302,8 @@ public final class Gs1Pane extends BorderPane {
         FileChooser chooser=new FileChooser();chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter(tr("gs1.documents"),"*.pdf","*.png","*.jpg","*.jpeg"));File file=chooser.showOpenDialog(getScene()==null?null:getScene().getWindow());if(file==null)return;
         run(()->{if(Files.size(file.toPath())>Gs1MailClient.MAX_ATTACHMENT)throw new IOException("Attachment too large");String extension=file.getName().toLowerCase(Locale.ROOT);String type=extension.endsWith(".pdf")?"application/pdf":extension.endsWith(".png")?"image/png":"image/jpeg";return letters.preparePaymentProof(request.inn(),request.id(),new Gs1MailClient.Attachment(file.getName(),type,Files.readAllBytes(file.toPath())));},proof->{reloadRequests();previewLetter(proof);});
     }
-    private void downloadAttachment(Gs1MailClient.Attachment attachment){
-        FileChooser chooser=new FileChooser();chooser.setInitialFileName(attachment.name());File file=chooser.showSaveDialog(getScene()==null?null:getScene().getWindow());if(file!=null)run(()->{Files.write(file.toPath(),attachment.bytes());return true;},done->status.setText(tr("gs1.saved")));
+    private void downloadAttachment(Gs1Repository.Request request,Gs1Repository.AttachmentSummary attachment){
+        FileChooser chooser=new FileChooser();chooser.setInitialFileName(attachment.name());File file=chooser.showSaveDialog(getScene()==null?null:getScene().getWindow());if(file!=null)run(()->{Files.write(file.toPath(),repository.attachment(request.inn(),request.id(),attachment).bytes());return true;},done->status.setText(tr("gs1.saved")));
     }
     private <T> void run(Callable<T> work,Consumer<T> done){
         if(busy||disposed)return;

@@ -9,6 +9,8 @@ import java.sql.*;
 public class ConfigService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ConfigService.class);
+    private static final java.util.concurrent.atomic.AtomicReference<String> PENDING_SHOP=new java.util.concurrent.atomic.AtomicReference<>();
+    private static final java.util.concurrent.atomic.AtomicBoolean SHOP_WRITE_SCHEDULED=new java.util.concurrent.atomic.AtomicBoolean();
 
     public static String getConfigValue(String key) {
         String sql = "SELECT value FROM app_config WHERE key = ?";
@@ -98,6 +100,12 @@ public class ConfigService {
 
     public static void setLastSelectedShopId(Integer shopId) {
         setConfigValue("last_selected_shop_id", shopId == null ? "" : String.valueOf(shopId));
+    }
+    public static void setLastSelectedShopIdAsync(Integer shopId){PENDING_SHOP.set(shopId==null?"":shopId.toString());scheduleShopWrite();}
+    private static void scheduleShopWrite(){
+        if(!SHOP_WRITE_SCHEDULED.compareAndSet(false,true))return;
+        var task=new javafx.concurrent.Task<Void>(){protected Void call(){try{String value;while((value=PENDING_SHOP.getAndSet(null))!=null)setConfigValue("last_selected_shop_id",value);return null;}finally{SHOP_WRITE_SCHEDULED.set(false);if(PENDING_SHOP.get()!=null)scheduleShopWrite();}}};
+        AppTaskExecutor.execute(task,rejected->{SHOP_WRITE_SCHEDULED.set(false);LOGGER.debug("Shop preference remains pending until next selection");});
     }
 
     public static String getAppLanguage() {

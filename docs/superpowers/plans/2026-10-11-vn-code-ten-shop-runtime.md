@@ -57,10 +57,10 @@
 
 **Interfaces:** Repository listing reads summary (không source.payload/preview/submission Base64), full `find` chỉ một selected job; service `get(Shop,String):CopyJob` ownership validated. UI selection asynchronously reads full job with generation. Mutation executor shared bounded ThreadPoolExecutor 1/32, accepted jobs keep owner. Existing module business signatures preserved.
 
-- [ ] Test `largeDocumentHistoryLoadsSummariesOnly` 100 jobs có payload lớn, summary bytes bounded/no Base64; `selectJobLoadsOnlyOwnedDetail`; `repeatedOpenCloseDisposesReadsAndListeners`; `switchShopReturnsBeforeSlowRepository`. Verify frozen sets/partial jobs không bị bỏ khi đổi trang/shop.
-- [ ] Run targeted; Expected RED.
-- [ ] Implement additive summary/source-owner columns, lazy detail; bound mutation queues; move discovered heavy SQL/catalog/sort/signing work off FX in listed major flows; remove tab/shop-triggered full remote sync; debounce/coalesce UI updates and dispose timers/listeners. Ghi từng điểm đã rà soát vào validation.
-- [ ] Run targeted 4 locales/two window sizes và full suite; Expected PASS. Commit `perf: load task summaries and release seller workspace resources`.
+- [x] Test `largeDocumentHistoryLoadsSummariesOnly` 100 jobs có payload lớn, summary bytes bounded/no Base64; `selectJobLoadsOnlyOwnedDetail`; `repeatedOpenCloseDisposesReadsAndListeners`; `switchShopReturnsBeforeSlowRepository`. Verify frozen sets/partial jobs không bị bỏ khi đổi trang/shop.
+- [x] Run targeted; Expected RED.
+- [x] Implement additive summary/source-owner columns, lazy detail; bound mutation queues; move discovered heavy SQL/catalog/sort/signing work off FX in listed major flows; remove tab/shop-triggered full remote sync; debounce/coalesce UI updates and dispose timers/listeners. Ghi từng điểm đã rà soát vào validation.
+- [x] Run targeted 4 locales/two window sizes và full suite; Expected PASS. Commit `perf: load task summaries and release seller workspace resources`.
 
 ### D2 bổ sung: 10 shop và nghiệm thu cuối nhánh
 
