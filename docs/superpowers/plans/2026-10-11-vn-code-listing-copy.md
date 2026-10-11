@@ -62,11 +62,11 @@ Quy ước đường dẫn: các tên dưới `features/`, `integration/`, `shar
 
 **Interfaces:** `CopyState`: DRAFT, VALIDATED, AWAITING_CONFIRMATION, SENDING, REMOTE_PROCESSING, RECONCILED, NEEDS_DATA, FAILED, RECONCILE_REQUIRED. `ListingCopyService.draft(Shop source,List<ProductKey>,List<Shop> destinations,CopyOptions):List<CopyJob>`, `preview(Shop destination,String jobId):CopyPreview`, `publish(Shop destination,String jobId,String approvedRequestHash,boolean confirmed):CopyJob`, `reconcile(Shop destination,String jobId):CopyJob`; repository `find(int destinationShopId,String jobId):Optional<CopyJob>`, `claim(int destinationShopId,String jobId,String approvedHash):boolean`; schema helper ensureTables(Connection).
 
-- [ ] Viết `unconfirmedOrChangedPreviewCannotSend`, `doubleClickClaimsOnlyOnce`, `lostResponseRequiresReconciliation`, `restartCannotRepeatSubmittedJob`, `destinationsHaveIndependentResults`, `foreignOwnerCannotResume`. Assert 0 writes unconfirmed/stale; concurrency same job 1 write; timeout remains RECONCILE_REQUIRED across repository restart, source unchanged.
-- [ ] Chạy `MVN -Dtest=ListingCopyServiceTest test`; xác nhận red.
-- [ ] Implement additive durable per-destination checkpoints/source hash/frozen variant/fields/mapping; atomic compare-and-set claim before send. Batch progress reports success/error/pending separately. Definite unsent failures may release draft; sent/unknown cannot automatically reset. Before retry query task/status/readback; require identity match before RECONCILED.
-- [ ] Chạy lại command; race/restart/task-ID absence tests pass, no job reassignment when selected shop changes.
-- [ ] Commit `feat: persist listing copy jobs and reconciliation`.
+- [x] Viết `unconfirmedOrChangedPreviewCannotSend`, `doubleClickClaimsOnlyOnce`, `lostResponseRequiresReconciliation`, `restartCannotRepeatSubmittedJob`, `destinationsHaveIndependentResults`, `foreignOwnerCannotResume`. Assert 0 writes unconfirmed/stale; concurrency same job 1 write; timeout remains RECONCILE_REQUIRED across repository restart, source unchanged.
+- [x] Chạy `MVN -Dtest=ListingCopyServiceTest test`; xác nhận red.
+- [x] Implement additive durable per-destination checkpoints/source hash/frozen variant/fields/mapping; atomic compare-and-set claim before send. Batch progress reports success/error/pending separately. Definite unsent failures may release draft; sent/unknown cannot automatically reset. Before retry query task/status/readback; require identity match before RECONCILED.
+- [x] Chạy lại command; race/restart/task-ID absence tests pass, no job reassignment when selected shop changes.
+- [x] Commit `feat: persist listing copy jobs and reconciliation`.
 
 ### C4: Wizard trong Công cụ và preview đa đích
 
