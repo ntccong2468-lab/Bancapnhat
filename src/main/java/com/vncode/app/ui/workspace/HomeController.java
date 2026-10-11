@@ -1584,6 +1584,7 @@ public class HomeController implements Initializable {
         shopSidebarController.setOnOpenSettings(() -> onSettings(new ActionEvent()));
         shopSidebarController.setOnDashboard(this::showDashboard);
         shopSidebarController.setOnProducts(this::showProducts);
+        shopSidebarController.setOnTranslationSettings(this::showTranslationSettings);
         shopSidebarController.setOnFinance(this::showFinance);
         shopSidebarController.setOnGuides(this::showGuides);
         shopSidebarController.setOnGs1(this::showGs1);
@@ -1604,6 +1605,17 @@ public class HomeController implements Initializable {
         shopSidebarController.setSelectedTheme(ThemeService.getCurrentTheme().getKey());
         shopSidebarController.applyTranslations();
         sidebarContainer.getChildren().setAll(root);
+    }
+
+    private void showTranslationSettings(){
+        var dialog=new Dialog<Void>();dialog.setTitle(i18nService.tr("news.translation_settings"));var password=new PasswordField();password.setPromptText("Yandex API key");password.setId("translationApiKey");var notice=new Label(i18nService.tr("news.translation_security"));notice.setWrapText(true);var feedback=new Label();feedback.setWrapText(true);dialog.getDialogPane().setContent(new VBox(12,notice,password,feedback));
+        var save=new ButtonType(i18nService.tr("gs1.save"),ButtonBar.ButtonData.OK_DONE);var remove=new ButtonType(i18nService.tr("news.translation_remove"),ButtonBar.ButtonData.OTHER);dialog.getDialogPane().getButtonTypes().addAll(save,remove,ButtonType.CANCEL);
+        var saveButton=(javafx.scene.control.Button)dialog.getDialogPane().lookupButton(save);saveButton.setDisable(!com.vncode.app.shared.WindowsSecretProtector.supported());
+        saveButton.addEventFilter(ActionEvent.ACTION,event->{event.consume();String key=password.getText();if(key.isBlank()){feedback.setText(i18nService.tr("news.translation_invalid"));return;}saveButton.setDisable(true);
+            Task<Void> task=new Task<>(){protected Void call()throws Exception{new com.vncode.app.integration.translation.TranslationSettingsRepository().save(com.vncode.app.integration.translation.YandexNewsTranslator.ENDPOINT,"",key);return null;}};
+            task.setOnSucceeded(e->{password.clear();dialog.close();if(!disposed&&newsPane!=null)newsPane.translationSettingsChanged();});task.setOnFailed(e->{saveButton.setDisable(false);feedback.setText(i18nService.tr("news.translation_invalid"));});AppTaskExecutor.execute(task);
+        });
+        dialog.getDialogPane().lookupButton(remove).addEventFilter(ActionEvent.ACTION,event->{new com.vncode.app.integration.translation.TranslationSettingsRepository().clear();if(newsPane!=null)newsPane.translationSettingsChanged();});dialog.setOnHidden(e->password.clear());dialog.show();
     }
 
     private void initializeHeader() {

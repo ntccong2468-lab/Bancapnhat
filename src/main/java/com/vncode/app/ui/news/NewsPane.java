@@ -17,7 +17,11 @@ public final class NewsPane extends VBox {
  private final OfficialNewsService official=new OfficialNewsService();
  private com.vncode.app.models.Shop shop;
  private NewsScope scope;
- private long generation;private boolean disposed;
+ private volatile long generation;private volatile boolean disposed;private boolean showOriginal;
+ private final Map<String,NewsTranslationService.TranslatedNews> translated=new LinkedHashMap<>();
+ private final Set<String> translating=new HashSet<>();
+ private volatile NewsTranslationService translationService;
+ private final javafx.animation.PauseTransition translationRedraw=new javafx.animation.PauseTransition(javafx.util.Duration.millis(80));
  private final IntConsumer unread;
  private final Runnable returnToDashboard;
  private final Label title=new Label(),status=new Label();
@@ -35,6 +39,8 @@ public final class NewsPane extends VBox {
   scroll.setFitToWidth(true);VBox.setVgrow(scroll,Priority.ALWAYS);
   scroll.vvalueProperty().addListener((o,a,b)->{if(b.doubleValue()>=0.95&&!detailShown)loadMore();});
   more.setOnAction(e->loadMore());back.setOnAction(e->{if(detailShown)back();else returnToDashboard.run();});
+  translationRedraw.setOnFinished(e->{if(!disposed){renderList();renderPreview();if(opened!=null&&detailShown)renderDetail(opened);}});
+  sceneProperty().addListener((o,a,b)->{if(b!=null&&!disposed)renderList();});
   applyTranslations();loadMore();renderPreview();
  }
  public String pageTitle(){return title.getText();}
@@ -50,9 +56,9 @@ public final class NewsPane extends VBox {
   AppTaskExecutor.execute(task);
  }
  public void setShop(com.vncode.app.models.Shop selected){
-  generation++;busy=false;shop=selected;scope=selected!=null&&selected.getMarketplace()==com.vncode.app.integration.marketplace.Marketplace.WILDBERRIES?NewsScope.forShop(selected):null;opened=null;detailShown=false;scroll.setContent(list);service.setOfficial(List.of(),official);visible.clear();cursor=null;ended=false;loadMore();renderPreview();unread.accept(service.unreadCount());
+  generation++;translated.clear();translating.clear();busy=false;shop=selected;scope=selected!=null&&selected.getMarketplace()==com.vncode.app.integration.marketplace.Marketplace.WILDBERRIES?NewsScope.forShop(selected):null;opened=null;detailShown=false;scroll.setContent(list);service.setOfficial(List.of(),official);visible.clear();cursor=null;ended=false;loadMore();renderPreview();unread.accept(service.unreadCount());
   if(scope==null)return;var owner=selected;var expected=scope;long epoch=generation;
-  ShopReadCoordinator.shared().submit(new ShopReadCoordinator.Key(owner.getId(),"news-cache",expected.ownerFingerprint()),true,()->official.cached(expected)).whenComplete((news,error)->Platform.runLater(()->{if(disposed||epoch!=generation||error!=null)return;replaceOfficial(news);refreshOfficial(false);}));
+  ShopReadCoordinator.shared().submit(new ShopReadCoordinator.Key(owner.getId(),"news-cache",expected.ownerFingerprint()),true,()->official.cached(expected)).whenComplete((news,error)->Platform.runLater(()->{if(disposed||epoch!=generation||error!=null)return;replaceOfficial(news);if(getScene()!=null||preview.getScene()!=null)refreshOfficial(false);}));
  }
  private void refreshOfficial(boolean force){
   if(disposed||shop==null||scope==null)return;var owner=new com.vncode.app.models.Shop(shop.getId(),shop.getName(),shop.getMarketplace(),shop.getClientId(),shop.getApiKey());var expected=scope;long epoch=generation;
@@ -61,24 +67,36 @@ public final class NewsPane extends VBox {
   }));
  }
  private void replaceOfficial(List<SellerNews> news){service.setOfficial(news,official);visible.clear();cursor=null;ended=false;loadMore();renderPreview();unread.accept(service.unreadCount());}
- public void dispose(){disposed=true;generation++;}
+ public void dispose(){disposed=true;generation++;translationRedraw.stop();translated.clear();translating.clear();if(translationService!=null)translationService.close();translationService=null;}
+ public void translationSettingsChanged(){generation++;if(translationService!=null)translationService.close();translationService=null;translated.clear();translating.clear();renderList();renderPreview();}
+ private synchronized NewsTranslationService translator(){if(disposed)throw new java.util.concurrent.CancellationException();if(translationService==null){long epoch=generation;com.vncode.app.integration.translation.NewsTranslator provider=null;try{var settings=new com.vncode.app.integration.translation.TranslationSettingsRepository().load();if(settings.isPresent())provider=new com.vncode.app.integration.translation.YandexNewsTranslator(settings.get());}catch(java.io.IOException|RuntimeException unavailable){}if(disposed||epoch!=generation){if(provider!=null)provider.close();throw new java.util.concurrent.CancellationException();}translationService=new NewsTranslationService(provider);}return translationService;}
+ private void requestTranslation(NewsItem item){
+  var metadata=service.sellerNews(item.id());if(metadata.isEmpty())return;var news=metadata.get();String key=item.id()+":"+news.revision();if(translated.containsKey(key)||!translating.add(key))return;long epoch=generation;
+  ShopReadCoordinator.shared().submit(new ShopReadCoordinator.Key(news.scope().shopId(),"news-translation",key+":"+epoch),false,()->translator().translate(news,"vi")).whenComplete((result,error)->Platform.runLater(()->{
+   if(disposed||epoch!=generation)return;translating.remove(key);if(error!=null)return;translated.put(key,result);while(translated.size()>128)translated.remove(translated.keySet().iterator().next());translationRedraw.playFromStart();
+  }));
+ }
+ private NewsTranslationService.TranslatedNews translation(NewsItem item){return service.sellerNews(item.id()).map(news->translated.get(item.id()+":"+news.revision())).orElse(null);}
+ private NewsItem display(NewsItem item){var result=translation(item);return result!=null&&result.state()==NewsTranslationService.State.TRANSLATED?new NewsItem(item.id(),item.publishedAt(),result.translatedTitle(),result.translatedBody()):item;}
+
  public void applyTranslations(){title.setText(tr("news.title"));back.setText(tr("news.back"));more.setText(tr("news.more"));renderList();renderPreview();if(opened!=null&&detailShown)renderDetail(opened);}
  public VBox preview(){return preview;}
  public void open(NewsItem item){
   if(!detailShown)listScroll=scroll.getVvalue();
   try{service.markRead(item.id());status.setText("");}catch(java.io.IOException e){status.setText(tr("news.save_error"));}
-  opened=item;detailShown=true;renderDetail(item);scroll.setContent(detail);scroll.setVvalue(0);more.setVisible(false);more.setManaged(false);renderPreview();unread.accept(service.unreadCount());
+  opened=item;showOriginal=false;requestTranslation(item);detailShown=true;renderDetail(item);scroll.setContent(detail);scroll.setVvalue(0);more.setVisible(false);more.setManaged(false);renderPreview();unread.accept(service.unreadCount());
  }
  public void back(){detailShown=false;opened=null;scroll.setContent(list);renderList();scroll.setVvalue(listScroll);Platform.runLater(()->{if(!detailShown){scroll.applyCss();scroll.layout();scroll.setVvalue(listScroll);}}); }
  private void renderList(){list.getChildren().clear();for(var item:visible)list.getChildren().add(row(item));if(visible.isEmpty())list.getChildren().add(new Label(tr("news.empty")));more.setVisible(!ended&&!detailShown);more.setManaged(!ended&&!detailShown);}
  private Button newsCard(NewsItem item,boolean dashboard) {
-  var heading=new Label(item.title());heading.setWrapText(true);heading.setMinWidth(0);heading.setMaxWidth(Double.MAX_VALUE);heading.getStyleClass().add("news-card-title");
+  if(dashboard||getScene()!=null)requestTranslation(item);var shown=display(item);
+  var heading=new Label(shown.title());heading.setWrapText(true);heading.setMinWidth(0);heading.setMaxWidth(Double.MAX_VALUE);heading.getStyleClass().add("news-card-title");
   var badge=new Label(tr("news.new"));badge.getStyleClass().add("unread-badge");badge.setVisible(!service.isRead(item.id()));badge.setManaged(badge.isVisible());badge.setMinWidth(Region.USE_PREF_SIZE);
   var top=new HBox(10,heading,badge);HBox.setHgrow(heading,Priority.ALWAYS);
-  String plain=item.body().replaceAll("\\[[^]]+]\\([^)]+\\)"," ").replaceAll("[#*_`>]","").replaceAll("\\s+"," ").strip();
+  String plain=shown.body().replaceAll("\\[[^]]+]\\([^)]+\\)"," ").replaceAll("[#*_`>]","").replaceAll("\\s+"," ").strip();
   var summary=new Label(plain.length()>180?plain.substring(0,177)+"…":plain);summary.setWrapText(true);summary.getStyleClass().add("text-secondary");
   var date=new Label(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm").withZone(java.time.ZoneId.of("Europe/Moscow")).format(item.publishedAt()));date.getStyleClass().add("text-muted");
-  var source=new Label(tr(service.sellerNews(item.id()).isPresent()?"news.source.wb":"news.source.vn"));source.getStyleClass().add("text-muted");var content=new VBox(12,top,summary,date,source);content.setMinWidth(0);var button=new Button();button.setGraphic(content);button.setWrapText(true);button.setContentDisplay(ContentDisplay.GRAPHIC_ONLY);button.setMaxWidth(Double.MAX_VALUE);button.setMinWidth(0);button.getStyleClass().add("news-card");button.setAccessibleText(item.title());
+  var source=new Label(tr(service.sellerNews(item.id()).isPresent()?"news.source.wb":"news.source.vn")+(service.sellerNews(item.id()).isPresent()?" · "+tr(translation(item)!=null&&translation(item).state()==NewsTranslationService.State.TRANSLATED?"news.translated":"news.translation_missing"):""));source.getStyleClass().add("text-muted");var content=new VBox(12,top,summary,date,source);content.setMinWidth(0);var button=new Button();button.setGraphic(content);button.setWrapText(true);button.setContentDisplay(ContentDisplay.GRAPHIC_ONLY);button.setMaxWidth(Double.MAX_VALUE);button.setMinWidth(0);button.getStyleClass().add("news-card");button.setAccessibleText(item.title());
   button.setOnAction(e->{open(item);if(dashboard&&onOpenPage!=null)onOpenPage.run();});return button;
  }
  private Node row(NewsItem item){return newsCard(item,false);}
@@ -94,10 +112,11 @@ public final class NewsPane extends VBox {
  }
  private Runnable onOpenPage;
  public void setOnOpenPage(Runnable callback){onOpenPage=callback;}
- private void renderDetail(NewsItem item){detail.getChildren().clear();Label heading=new Label(item.title());heading.setWrapText(true);heading.getStyleClass().add("h2");detail.getChildren().add(heading);
+ private void renderDetail(NewsItem item){detail.getChildren().clear();var shown=showOriginal?item:display(item);Label heading=new Label(shown.title());heading.setWrapText(true);heading.getStyleClass().add("h2");detail.getChildren().add(heading);
   var metadata=service.sellerNews(item.id());detail.getChildren().add(new Label(tr(metadata.isPresent()?"news.source.wb":"news.source.vn")));
   metadata.ifPresent(value->{var link=new Hyperlink(tr("news.original_source"));link.setOnAction(e->AppTaskExecutor.execute(new Task<Void>(){protected Void call(){try{if(java.awt.Desktop.isDesktopSupported())java.awt.Desktop.getDesktop().browse(value.sourceURL());}catch(Exception ignored){}return null;}}));detail.getChildren().add(link);});
-  for(String line:item.body().split("\\R",-1)){
+  if(metadata.isPresent()){var state=translation(item);detail.getChildren().add(new Label(tr(state!=null&&state.state()==NewsTranslationService.State.TRANSLATED?"news.translated":"news.translation_missing")));var toggle=new Button(tr(showOriginal?"news.view_translation":"news.view_original"));toggle.setOnAction(e->{showOriginal=!showOriginal;renderDetail(item);});toggle.setDisable(state==null||state.state()!=NewsTranslationService.State.TRANSLATED);detail.getChildren().add(toggle);}
+  for(String line:shown.body().split("\\R",-1)){
    boolean isHeading=line.startsWith("#");String normalized=isHeading?line.replaceFirst("^#{1,6}\\s*",""):line.replaceFirst("^[-*]\\s+","• ");
    TextFlow flow=new TextFlow();var pattern=Pattern.compile("\\[([^]\\n]+)]\\(([^)\\s]+)\\)|\\*\\*([^*]+)\\*\\*|\\*([^*]+)\\*");var matcher=pattern.matcher(normalized);int end=0;
    while(matcher.find()){addText(flow,normalized.substring(end,matcher.start()),isHeading,false);

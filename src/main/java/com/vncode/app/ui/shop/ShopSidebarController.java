@@ -15,6 +15,10 @@ import javafx.scene.control.ToggleGroup;
 import java.util.function.Consumer;
 
 public class ShopSidebarController {
+    @FXML private MenuItem translationMenuItem;
+    private Runnable onTranslationSettings;
+    public void setOnTranslationSettings(Runnable action){onTranslationSettings=action;}
+    @FXML private void onTranslationSettings(){if(onTranslationSettings!=null)onTranslationSettings.run();}
     @FXML private Button productsButton;
     private Runnable onProducts;
     public void setOnProducts(Runnable action){onProducts=action;}
@@ -238,6 +242,7 @@ public class ShopSidebarController {
         aboutMenuItem.setText(i18n.tr("settings.about"));
         applyMarketplaceTexts();
         financeButton.setText(i18n.tr("sidebar.finance"));toolsPane.setText(i18n.tr("sidebar.tools"));setGs1Unread(gs1Unread);
+        translationMenuItem.setText(i18n.tr("news.translation_settings"));
         productsButton.setText(" "+i18n.tr("products.title"));
         guidesButton.setText(i18n.tr("guides.title"));
         editionStatusLabel.setText("• " + i18n.tr("edition.personal"));

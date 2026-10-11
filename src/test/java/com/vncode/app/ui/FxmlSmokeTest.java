@@ -122,6 +122,13 @@ class FxmlSmokeTest {
     @Test void openingFiveShopsDoesNotTriggerSigning() throws Exception {
         var task=new java.util.concurrent.FutureTask<Void>(()->{var pane=new com.vncode.app.ui.gs1.Gs1Pane();try{for(int i=1;i<=5;i++){pane.setShop(new Shop(i,"Fixture "+i,"fixture"));assertEquals(0,pane.activeTaskCount());}}finally{pane.dispose();}return null;});Platform.runLater(task);task.get(10,TimeUnit.SECONDS);
     }
+    @Test void translationSettingsNeverPrefillsKeyAndNeedsWindowsDpapi() throws Exception {
+        var task=new java.util.concurrent.FutureTask<Void>(()->{var loader=FxmlViewLoader.loader(HomeController.class,"home-view.fxml");FxmlViewLoader.load(loader);var home=(HomeController)loader.getController();try{
+            var method=HomeController.class.getDeclaredMethod("showTranslationSettings");method.setAccessible(true);method.invoke(home);
+            var windows=new java.util.ArrayList<javafx.stage.Window>(javafx.stage.Window.getWindows());for(var window:windows)if(window.getScene()!=null){var key=window.getScene().lookup("#translationApiKey");if(key instanceof PasswordField password){assertTrue(password.getText().isEmpty());var pane=(javafx.scene.control.DialogPane)window.getScene().getRoot();var save=pane.getButtonTypes().stream().filter(type->type.getButtonData()==javafx.scene.control.ButtonBar.ButtonData.OK_DONE).findFirst().orElseThrow();assertEquals(!com.vncode.app.shared.WindowsSecretProtector.supported(),pane.lookupButton(save).isDisabled());window.hide();return null;}}
+            org.junit.jupiter.api.Assertions.fail("Translation settings dialog missing");
+        }finally{home.dispose();}return null;});Platform.runLater(task);task.get(10,TimeUnit.SECONDS);
+    }
     @Test void gs1DoesNotStartTwoOperationsInTheSameShopGeneration() throws Exception {
         var release=new CountDownLatch(1);var holder=new java.util.concurrent.atomic.AtomicReference<com.vncode.app.ui.gs1.Gs1Pane>();
         var work=new java.util.concurrent.Callable<String>(){public String call()throws Exception{release.await(10,TimeUnit.SECONDS);return "fixture";}};

@@ -1,6 +1,6 @@
 # VN code — GS1 Balance and Official News Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** Hiển thị GTIN còn lại, tiền Честный ЗНАК và tin WB gốc/bản dịch có nguồn đúng.
 
@@ -62,11 +62,11 @@ Quy ước đường dẫn: các tên dưới `features/`, `integration/`, `shar
 
 **Interfaces:** `NewsScope(int shopId,Marketplace marketplace,String ownerFingerprint)`; `SellerNews` source/id/revision/scope/publishedAt/originalTitle/originalBody/sourceURL; `OfficialNewsService.refresh(Shop,NewsScope,boolean force):List<SellerNews>`, `cached(NewsScope):List<SellerNews>`; `WbNewsClient.readSince(Shop,Instant from,String fromId):NewsBatch`, nested `NewsBatch(List<SellerNews> items,String nextFromId)`; `SellerNewsRepository.markRead(NewsScope,String sourceId,String revision):void`; schema helper ensureTables(Connection).
 
-- [ ] Đối chiếu `/api/communications/v2/news` hiện có từ mirror 2025 với official schema/frontend/document; lưu nguồn và version. Endpoint/from/fromID inclusive/page 100/rate limit chỉ trở thành live contract sau xác minh; fixture offline không tự chứng minh hợp đồng mới.
-- [ ] Viết `sameIdNewRevisionBecomesUnread`, `inclusiveCursorDoesNotRepeatNews`, `scopeDoesNotExposeOtherShopCache`, `backgroundRefreshHonorsThirtyMinutes`, `rateLimitHonorsRetryAfter`, `vnFeedIsNeverLabeledOfficialWb`. Assert min TTL 30 phút, Ozon credentials tạo 0 WB requests, update revision invalidate translation/read. Chạy `MVN -Dtest=OfficialNewsServiceTest,WbNewsClientTest,NewsServiceTest test`; xác nhận red.
-- [ ] Implement scoped source adapter/cache, bounded parse/plain text/safe sourceURL, publish-time sorting, coalesced refresh A2 và rate-limit per rights scope. Giữ VN feed có nhãn VN code riêng và tương thích read/cache cũ. No-WB-shop/rights-error hiện valid own-scope cache hoặc hướng dẫn; không publish authenticated seller feed lên GitHub.
-- [ ] Chạy lại command; ownership, stale generations, pagination và failure fallback đúng.
-- [ ] Commit `feat: add official WB seller news with provenance`.
+- [x] Đối chiếu `/api/communications/v2/news` hiện có từ mirror 2025 với official schema/frontend/document; lưu nguồn và version. Endpoint/from/fromID inclusive/page 100/rate limit chỉ trở thành live contract sau xác minh; fixture offline không tự chứng minh hợp đồng mới.
+- [x] Viết `sameIdNewRevisionBecomesUnread`, `inclusiveCursorDoesNotRepeatNews`, `scopeDoesNotExposeOtherShopCache`, `backgroundRefreshHonorsThirtyMinutes`, `rateLimitHonorsRetryAfter`, `vnFeedIsNeverLabeledOfficialWb`. Assert min TTL 30 phút, Ozon credentials tạo 0 WB requests, update revision invalidate translation/read. Chạy `MVN -Dtest=OfficialNewsServiceTest,WbNewsClientTest,NewsServiceTest test`; xác nhận red.
+- [x] Implement scoped source adapter/cache, bounded parse/plain text/safe sourceURL, publish-time sorting, coalesced refresh A2 và rate-limit per rights scope. Giữ VN feed có nhãn VN code riêng và tương thích read/cache cũ. No-WB-shop/rights-error hiện valid own-scope cache hoặc hướng dẫn; không publish authenticated seller feed lên GitHub.
+- [x] Chạy lại command; ownership, stale generations, pagination và failure fallback đúng.
+- [x] Commit `feat: add official WB seller news with provenance`.
 
 ### B4: Dịch tiếng Việt và cấu hình Yandex an toàn
 
@@ -74,7 +74,7 @@ Quy ước đường dẫn: các tên dưới `features/`, `integration/`, `shar
 
 **Interfaces:** `NewsTranslator.translate(List<String> texts,String sourceLanguage,String targetLanguage):List<String>`, `version():String`; `NewsTranslationService.translate(SellerNews,String targetLanguage):TranslatedNews`, nested `TranslatedNews` original+translatedTitle/body+providerVersion/hash/state. `TranslationSettingsRepository.save(URI endpoint,String folderId,String apiKey):void`, `load():Optional<Settings>`; stored key protected by existing WindowsSecretProtector CurrentUser, transient Settings redacted; no plaintext fallback.
 
-- [ ] Viết `splitsTenThousandCharactersWithoutBreakingUnicode`, `revisionInvalidatesCache`, `missingKeyOrQuotaKeepsOriginal`, `numbersDatesAndGtinPreserved`, `credentialNeverAppearsInRequestTextOrErrors`, `providerKeyUsesDpapi`. Assert mỗi request tổng<=10000 ký tự; output không hợp lệ/mất protected literal bị từ chối; repeated hash+vi+version chỉ dịch một lần. Chạy `MVN -Dtest=YandexNewsTranslatorTest,NewsTranslationServiceTest test`; xác nhận red.
-- [ ] Implement theo official proto `/translate/v2/translate`, xác minh host/auth bằng Yandex cloud SDK/doc chính thức; source ru/target vi, text chunks, cache by hash/language/provider, deadline/quota/backoff. UI setting dùng key seller nhập qua cấu hình an toàn; user-initiated validation, không tự mua dịch vụ hoặc nhúng owner key. Tin có nhãn “Dịch tự động”, xem bản gốc/source; unconfigured/error “Chưa có bản dịch tiếng Việt”.
-- [ ] Chạy tests và `MVN -Dtest=FxmlSmokeTest test`; native Windows DPAPI test thực hiện ở D3. Không khẳng định đã dịch live nếu chưa có account/quota thật.
-- [ ] Commit `feat: translate WB news with cached Vietnamese fallback`.
+- [x] Viết `splitsTenThousandCharactersWithoutBreakingUnicode`, `revisionInvalidatesCache`, `missingKeyOrQuotaKeepsOriginal`, `numbersDatesAndGtinPreserved`, `credentialNeverAppearsInRequestTextOrErrors`, `providerKeyUsesDpapi`. Assert mỗi request tổng<=10000 ký tự; output không hợp lệ/mất protected literal bị từ chối; repeated hash+vi+version chỉ dịch một lần. Chạy `MVN -Dtest=YandexNewsTranslatorTest,NewsTranslationServiceTest test`; xác nhận red.
+- [x] Implement theo official proto `/translate/v2/translate`, xác minh host/auth bằng Yandex cloud SDK/doc chính thức; source ru/target vi, text chunks, cache by hash/language/provider, deadline/quota/backoff. UI setting dùng key seller nhập qua cấu hình an toàn; user-initiated validation, không tự mua dịch vụ hoặc nhúng owner key. Tin có nhãn “Dịch tự động”, xem bản gốc/source; unconfigured/error “Chưa có bản dịch tiếng Việt”.
+- [x] Chạy tests và `MVN -Dtest=FxmlSmokeTest test`; native Windows DPAPI test thực hiện ở D3. Không khẳng định đã dịch live nếu chưa có account/quota thật.
+- [x] Commit `feat: translate WB news with cached Vietnamese fallback`.
