@@ -628,7 +628,7 @@ public final class OzonDashboardController {
 
                 String requestedUrl = productImageUrl(item);
                 if (!requestedUrl.isBlank()) {
-                    imageService.loadImage(requestedUrl).whenComplete((bytes, error) -> Platform.runLater(() -> {
+                    imageService.loadThumbnailBytes(requestedUrl).whenComplete((bytes, error) -> Platform.runLater(() -> {
                         if (!Objects.equals(currentPostingNumber, postingNumber)
                                 || !images.getChildren().contains(container)
                                 || bytes == null || bytes.length == 0) return;

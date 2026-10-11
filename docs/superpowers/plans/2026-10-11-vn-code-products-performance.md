@@ -38,11 +38,11 @@ Quy ước đường dẫn: các tên dưới `features/`, `integration/`, `shar
 
 **Interfaces:** Các type theo bản đồ trong [kế hoạch điều phối](2026-10-11-vn-code-products-copy-update.md). `ProductSchema.ensureTables(Connection):void`; `ProductRepository.loadPage(ProductQuery):ProductPage`, `localSnapshot(ProductKey):Optional<ProductSnapshot>`, `saveSnapshot(ProductSnapshot):void`, `freezeKeys(ProductQuery):List<ProductKey>`. Snapshot đọc mới từ C1, không coi cache là readback mutation.
 
-- [ ] Viết test `searchAndPagingAreShopScoped`, `unicodeSearchAndLiteralWildcards`, `cardWithoutVariantsRemainsVisible`, `gtinPreservesLeadingZero`, `documentsRequireVerifiedSource`, `migration4To5PreservesRows`: assertion `assertEquals(100, page.rows().size())`, total đúng 251, cursor hết không lặp, không đọc shop B, số `046...` giữ nguyên, giấy đã upload là UNVERIFIED.
-- [ ] Chạy `MVN -Dtest=ProductRepositoryTest,DatabaseMigrationCompatibilityTest test`; xác nhận red của hành vi mới.
-- [ ] Triển khai SQL prepared/batch, count cùng predicate/snapshot với page, cursor ổn định (sort key + card/variant), bộ search normalize Unicode có index riêng nếu SQLite lower không đủ; expose cả thẻ chưa có size. Additive product snapshots/documents/search index; schema 5, bảo toàn logic lock/snapshot/fail-closed hiện hữu.
-- [ ] Chạy lại command trên; mong đợi 0 failures/errors. Kiểm tra EXPLAIN QUERY PLAN với 50.000 sản phẩm không có truy vấn mỗi cell/row để dựng metadata.
-- [ ] Commit files A1 với `feat: add shop scoped product read model`.
+- [x] Viết test `searchAndPagingAreShopScoped`, `unicodeSearchAndLiteralWildcards`, `cardWithoutVariantsRemainsVisible`, `gtinPreservesLeadingZero`, `documentsRequireVerifiedSource`, `migration4To5PreservesRows`: assertion `assertEquals(100, page.rows().size())`, total đúng 251, cursor hết không lặp, không đọc shop B, số `046...` giữ nguyên, giấy đã upload là UNVERIFIED.
+- [x] Chạy `MVN -Dtest=ProductRepositoryTest,DatabaseMigrationCompatibilityTest test`; xác nhận red của hành vi mới.
+- [x] Triển khai SQL prepared/batch, count cùng predicate/snapshot với page, cursor ổn định (sort key + card/variant), bộ search normalize Unicode có index riêng nếu SQLite lower không đủ; expose cả thẻ chưa có size. Additive product snapshots/documents/search index; schema 5, bảo toàn logic lock/snapshot/fail-closed hiện hữu.
+- [x] Chạy lại command trên; mong đợi 0 failures/errors. Kiểm tra EXPLAIN QUERY PLAN với 50.000 sản phẩm không có truy vấn mỗi cell/row để dựng metadata.
+- [x] Commit files A1 với `feat: add shop scoped product read model`.
 
 ### A2: Điều phối đọc và thumbnail cache giới hạn
 

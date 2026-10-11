@@ -289,7 +289,7 @@ public class FboPackingController {
                     return;
                 }
                 String requestedUrl = currentUrl;
-                imageService.loadImage(requestedUrl).whenComplete((imageBytes, error) ->
+                imageService.loadThumbnailBytes(requestedUrl).whenComplete((imageBytes, error) ->
                         Platform.runLater(() -> updateImage(requestedUrl, imageBytes))
                 );
             }

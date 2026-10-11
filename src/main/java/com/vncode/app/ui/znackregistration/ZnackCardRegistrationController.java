@@ -452,7 +452,7 @@ public final class ZnackCardRegistrationController {
                 setGraphic(pane);
                 if (currentUrl.isBlank()) return;
                 String requestedUrl = currentUrl;
-                imageService.loadImage(requestedUrl).whenComplete((bytes, error) -> Platform.runLater(() -> {
+                imageService.loadThumbnailBytes(requestedUrl).whenComplete((bytes, error) -> Platform.runLater(() -> {
                     if (!Objects.equals(currentUrl, requestedUrl) || bytes == null || bytes.length == 0) return;
                     imageView.setImage(new Image(new ByteArrayInputStream(bytes)));
                     imageView.setVisible(true);
