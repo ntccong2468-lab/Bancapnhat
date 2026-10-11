@@ -29,7 +29,7 @@ public final class ListingHttpClient implements ListingTransport {
         if(body==null)b.get();else b.post(RequestBody.create(MediaType.get("application/json"),body.toString()));
         if(origin.host().equals("content-api.wildberries.ru"))com.vncode.app.integration.wb.WbContentApiRateLimiter.awaitTurn(shop.getApiKey());
         if(origin.host().equals("api-seller.ozon.ru"))try{OZON_LIMITER.awaitTurn(shop.getId(),"catalog");}catch(InterruptedException e){Thread.currentThread().interrupt();throw new InterruptedIOException("Listing request cancelled");}
-        try(var r=http.newCall(b.build()).execute()){
+        try(var slot=com.vncode.app.shared.MarketplaceRequestBudget.acquire(); var r=http.newCall(b.build()).execute()){
             if(r.code()==429&&origin.host().equals("content-api.wildberries.ru"))com.vncode.app.integration.wb.WbContentApiRateLimiter.registerRateLimit(shop.getApiKey(),r.headers());
             if(!r.isSuccessful())throw new IOException("Listing API HTTP "+r.code());
             if(r.body()==null||r.body().contentLength()>LIMIT)throw new IOException("Listing response unavailable or too large");

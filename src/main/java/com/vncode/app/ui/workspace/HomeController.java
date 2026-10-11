@@ -514,13 +514,14 @@ public class HomeController implements Initializable {
                 fboPackingController.replaceProducts(page, fboHasMore);
             }
         });
-        task.setOnFailed(event -> {
+        java.util.function.Consumer<Throwable> taskFailure = rejection -> {
             fboLoading = false;
             fboPackingController.setLoading(false);
-            LOGGER.error("Không thể tải sản phẩm FBO", task.getException());
-            AlertService.showError(task.getException().getMessage());
-        });
-        AppTaskExecutor.execute(task);
+            LOGGER.error("Không thể tải sản phẩm FBO", rejection);
+            AlertService.showError(rejection.getMessage());
+        };
+        task.setOnFailed(event -> taskFailure.accept(task.getException()));
+        AppTaskExecutor.execute(task, taskFailure);
     }
 
     private void openSupplyForPrint(WbSupplySummary supply) {
@@ -589,18 +590,19 @@ public class HomeController implements Initializable {
             }
         };
         task.setOnRunning(e -> markShopRunning(shop.getId(), true));
-        task.setOnFailed(e -> {
+        java.util.function.Consumer<Throwable> taskFailure = rejection -> {
             markShopRunning(shop.getId(), false);
-            LOGGER.error("In lại thất bại cho lịch sử in {}", job.id(), task.getException());
-            AlertService.showError(task.getException().getMessage());
-        });
+            LOGGER.error("In lại thất bại cho lịch sử in {}", job.id(), rejection);
+            AlertService.showError(rejection.getMessage());
+        };
+        task.setOnFailed(e -> taskFailure.accept(task.getException()));
         task.setOnSucceeded(e -> {
             markShopRunning(shop.getId(), false);
             tryOpenFile(orderDetailsFile);
             tryOpenFile(file);
             refreshPrintHistory();
         });
-        AppTaskExecutor.execute(task);
+        AppTaskExecutor.execute(task, taskFailure);
     }
 
     private void printFboBarcodes(List<FboBarcodePrintItem> items) {
@@ -628,16 +630,17 @@ public class HomeController implements Initializable {
                 });
             }
         };
-        task.setOnFailed(event -> {
-            if (ShopOperationCoordinator.isShopUnavailable(task.getException())) return;
-            LOGGER.error("Không thể in barcode FBO", task.getException());
-            AlertService.showError(task.getException().getMessage());
-        });
+        java.util.function.Consumer<Throwable> taskFailure = rejection -> {
+            if (ShopOperationCoordinator.isShopUnavailable(rejection)) return;
+            LOGGER.error("Không thể in barcode FBO", rejection);
+            AlertService.showError(rejection.getMessage());
+        };
+        task.setOnFailed(event -> taskFailure.accept(task.getException()));
         task.setOnSucceeded(event -> {
             fboPackingController.clearQuantities();
             tryOpenFile(file);
         });
-        AppTaskExecutor.execute(task);
+        AppTaskExecutor.execute(task, taskFailure);
     }
 
     private void printSingleFboBarcode(FboProductSku product) {
@@ -666,15 +669,16 @@ public class HomeController implements Initializable {
                 });
             }
         };
-        task.setOnFailed(event -> {
-            if (ShopOperationCoordinator.isShopUnavailable(task.getException())) return;
-            LOGGER.error("Không thể in nhanh barcode FBO", task.getException());
-            AlertService.showError(task.getException().getMessage());
-        });
+        java.util.function.Consumer<Throwable> taskFailure = rejection -> {
+            if (ShopOperationCoordinator.isShopUnavailable(rejection)) return;
+            LOGGER.error("Không thể in nhanh barcode FBO", rejection);
+            AlertService.showError(rejection.getMessage());
+        };
+        task.setOnFailed(event -> taskFailure.accept(task.getException()));
         task.setOnSucceeded(event -> {
             tryOpenFile(file);
         });
-        AppTaskExecutor.execute(task);
+        AppTaskExecutor.execute(task, taskFailure);
     }
 
     private void exportFboPlan(int shopId, FboPrintPlan plan, File file) throws IOException {
@@ -705,10 +709,11 @@ public class HomeController implements Initializable {
                 showUpdateDialog(info);
             }
         });
-        task.setOnFailed(e ->
-            LOGGER.warn("Update check failed", task.getException())
-        );
-        AppTaskExecutor.execute(task);
+        java.util.function.Consumer<Throwable> taskFailure = rejection ->
+            LOGGER.warn("Update check failed", rejection)
+        ;
+        task.setOnFailed(e -> taskFailure.accept(task.getException()));
+        AppTaskExecutor.execute(task, taskFailure);
     }
 
     private void checkVersionManually() {
@@ -730,11 +735,12 @@ public class HomeController implements Initializable {
                 );
             }
         });
-        task.setOnFailed(e -> {
-            LOGGER.warn("Manual update check failed", task.getException());
+        java.util.function.Consumer<Throwable> taskFailure = rejection -> {
+            LOGGER.warn("Manual update check failed", rejection);
             AlertService.showError(i18nService.tr("version.check_failed"));
-        });
-        AppTaskExecutor.execute(task);
+        };
+        task.setOnFailed(e -> taskFailure.accept(task.getException()));
+        AppTaskExecutor.execute(task, taskFailure);
     }
 
     private void showPersonalEdition() {
@@ -803,13 +809,14 @@ public class HomeController implements Initializable {
             }
         };
         var progressDialog = dialogService.showDownloadProgressDialog(info, task);
-        task.setOnFailed(e -> {
+        java.util.function.Consumer<Throwable> taskFailure = rejection -> {
             progressDialog.close();
-            LOGGER.error("Không thể tải bản cập nhật {}", info.getVersion(), task.getException());
+            LOGGER.error("Không thể tải bản cập nhật {}", info.getVersion(), rejection);
             AlertService.showDetailedError(
                     i18nService.tr("update.error.download_generic"),
-                    com.vncode.app.integration.znack.ZnackErrorDetails.format(task.getException()));
-        });
+                    com.vncode.app.integration.znack.ZnackErrorDetails.format(rejection));
+        };
+        task.setOnFailed(e -> taskFailure.accept(task.getException()));
         task.setOnSucceeded(e -> {
             progressDialog.close();
             try {
@@ -823,7 +830,7 @@ public class HomeController implements Initializable {
             }
         });
         progressDialog.show();
-        AppTaskExecutor.execute(task);
+        AppTaskExecutor.execute(task, taskFailure);
     }
 
     private String formatBytes(long bytes) {
@@ -871,8 +878,9 @@ public class HomeController implements Initializable {
                             });
                     updateHeaderState();
                 });
-                refreshTask.setOnFailed(e -> AlertService.showError(refreshTask.getException().getMessage()));
-                AppTaskExecutor.execute(refreshTask);
+                java.util.function.Consumer<Throwable> refreshTaskFailure = rejection -> AlertService.showError(rejection.getMessage());
+        refreshTask.setOnFailed(e -> refreshTaskFailure.accept(refreshTask.getException()));
+                AppTaskExecutor.execute(refreshTask, refreshTaskFailure);
             }
         });
     }
@@ -923,16 +931,17 @@ public class HomeController implements Initializable {
                 supplyDetailController.setStickerLoading(true, i18nService.tr("supply.loading_orders"));
             }
         });
-        checkTask.setOnFailed(e -> {
+        java.util.function.Consumer<Throwable> checkTaskFailure = rejection -> {
             markShopRunning(shop.getId(), false);
             if (!isCurrentExportRequest(shop.getId(), supplyId, exportRequestToken)) return;
             if (supplyDetailController != null) {
                 supplyDetailController.setStickerLoading(false);
             }
-            Throwable ex = checkTask.getException();
+            Throwable ex = rejection;
             LOGGER.error("Verify KIZ thất bại cho shop {}", shop.getId(), ex);
             AlertService.showError(ex.getMessage());
-        });
+        };
+        checkTask.setOnFailed(e -> checkTaskFailure.accept(checkTask.getException()));
         checkTask.setOnSucceeded(e -> {
             if (!isCurrentExportRequest(shop.getId(), supplyId, exportRequestToken)) {
                 markShopRunning(shop.getId(), false);
@@ -982,16 +991,17 @@ public class HomeController implements Initializable {
                             supplyDetailController.setStickerLoading(true, i18nService.tr("supply.preparing_pdf"));
                         }
                     });
-                    exportTask.setOnFailed(ev -> {
+                    java.util.function.Consumer<Throwable> exportTaskFailure = rejection -> {
                         markShopRunning(shop.getId(), false);
                         if (!isCurrentExportRequest(shop.getId(), supplyId, exportRequestToken)) return;
                         if (supplyDetailController != null) {
                             supplyDetailController.setStickerLoading(false);
                         }
-                        Throwable ex = exportTask.getException();
+                        Throwable ex = rejection;
                         LOGGER.error("Export thất bại cho shop {}", shop.getId(), ex);
                         AlertService.showError(ex.getMessage());
-                    });
+                    };
+        exportTask.setOnFailed(ev -> exportTaskFailure.accept(exportTask.getException()));
                     exportTask.setOnSucceeded(ev -> {
                         markShopRunning(shop.getId(), false);
                         OrderExportWorkflow.ExportResult result = exportTask.getValue();
@@ -1013,8 +1023,7 @@ public class HomeController implements Initializable {
                             refreshPackingView();
                         }
                     });
-                    AppTaskExecutor.execute(exportTask);
-                    exportStarted = true;
+                    exportStarted = AppTaskExecutor.execute(exportTask, exportTaskFailure);
                 } finally {
                     if (!exportStarted) markShopRunning(shop.getId(), false);
                 }
@@ -1022,7 +1031,7 @@ public class HomeController implements Initializable {
         });
         markShopRunning(shop.getId(), true);
         try {
-            AppTaskExecutor.execute(checkTask);
+            AppTaskExecutor.execute(checkTask, checkTaskFailure);
         } catch (RuntimeException error) {
             markShopRunning(shop.getId(), false);
             throw error;
@@ -1086,12 +1095,13 @@ public class HomeController implements Initializable {
             }
         };
         task.setOnRunning(e -> markShopRunning(shopId, true));
-        task.setOnFailed(e -> {
-            Throwable ex = task.getException();
+        java.util.function.Consumer<Throwable> taskFailure = rejection -> {
+            Throwable ex = rejection;
             LOGGER.error("Xóa cửa hàng thất bại cho shop {}", shopId, ex);
             markShopRunning(shopId, false);
             AlertService.showError(ex.getMessage());
-        });
+        };
+        task.setOnFailed(e -> taskFailure.accept(task.getException()));
         task.setOnSucceeded(e -> {
             WbSupplyWorkflow.clearImageCache();
             activityTracker.clear(shopId);
@@ -1106,7 +1116,7 @@ public class HomeController implements Initializable {
                 selectShop(fallback);
             }
         });
-        AppTaskExecutor.execute(task);
+        AppTaskExecutor.execute(task, taskFailure);
     }
 
     public void onSyncWildberries(ActionEvent actionEvent) {
@@ -1162,8 +1172,9 @@ public class HomeController implements Initializable {
                 resumeAllPersistedZnackPipelines();
             }
         });
-        task.setOnFailed(e -> AlertService.showError(task.getException().getMessage()));
-        AppTaskExecutor.execute(task);
+        java.util.function.Consumer<Throwable> taskFailure = rejection -> AlertService.showError(rejection.getMessage());
+        task.setOnFailed(e -> taskFailure.accept(task.getException()));
+        AppTaskExecutor.execute(task, taskFailure);
     }
 
     private void selectShopById(int shopId) {
@@ -1198,10 +1209,11 @@ public class HomeController implements Initializable {
                 return null;
             }
         };
-        resume.setOnFailed(event -> LOGGER.warn(
+        java.util.function.Consumer<Throwable> resumeFailure = rejection -> LOGGER.warn(
                 "Could not resume Znack pipelines after explicit shop selection. shopId={}",
-                shop.getId(), resume.getException()));
-        AppTaskExecutor.execute(resume);
+                shop.getId(), rejection);
+        resume.setOnFailed(event -> resumeFailure.accept(resume.getException()));
+        AppTaskExecutor.execute(resume, resumeFailure);
     }
 
     boolean authorizeInitialZnackShop(Shop shop) {
@@ -1229,10 +1241,11 @@ public class HomeController implements Initializable {
                 return null;
             }
         };
-        resume.setOnFailed(event -> LOGGER.warn(
+        java.util.function.Consumer<Throwable> resumeFailure = rejection -> LOGGER.warn(
                 "Could not resume persisted Znack pipelines after selecting the initial shop.",
-                resume.getException()));
-        AppTaskExecutor.execute(resume);
+                rejection);
+        resume.setOnFailed(event -> resumeFailure.accept(resume.getException()));
+        AppTaskExecutor.execute(resume, resumeFailure);
     }
 
     private static void syncGtinsForWaitingIntroductions(
@@ -1363,17 +1376,18 @@ public class HomeController implements Initializable {
                 supplyListController.setLoading(true);
             }
         });
-        task.setOnFailed(e -> {
+        java.util.function.Consumer<Throwable> taskFailure = rejection -> {
             markShopRunning(shop.getId(), false);
             markProductKizSyncing(shop.getId(), false);
-            Throwable ex = task.getException();
+            Throwable ex = rejection;
             if (ShopOperationCoordinator.isShopUnavailable(ex)) return;
             LOGGER.error("Đồng bộ WB thất bại cho shop {}", shop.getId(), ex);
             refreshSupplyListIfCurrent(shop.getId());
             if (manual && isCurrentShop(shop.getId())) {
                 AlertService.showError(ex.getMessage());
             }
-        });
+        };
+        task.setOnFailed(e -> taskFailure.accept(task.getException()));
         task.setOnSucceeded(e -> {
             markShopRunning(shop.getId(), false);
             markProductKizSyncing(shop.getId(), false);
@@ -1393,7 +1407,7 @@ public class HomeController implements Initializable {
                 refreshKizMappingView();
             }
         });
-        AppTaskExecutor.execute(task);
+        AppTaskExecutor.execute(task, taskFailure);
     }
 
     private void refreshSupplyList() {
@@ -1456,16 +1470,17 @@ public class HomeController implements Initializable {
                 return supplyLoadWorkflow.loadLocal(shop, supply.getSupplyId());
             }
         };
-        localTask.setOnFailed(e -> {
+        java.util.function.Consumer<Throwable> localTaskFailure = rejection -> {
             if (!isCurrentSupplyRequest(shop.getId(), supply.getSupplyId(), requestToken)) {
                 return;
             }
             supplyDetailController.setLoading(false);
             finishSupplyPrintRequest(shop.getId(), supply.getSupplyId(), requestToken, false);
-            LOGGER.error("Không thể mở supply {}", supply.getSupplyId(), localTask.getException());
+            LOGGER.error("Không thể mở supply {}", supply.getSupplyId(), rejection);
             supplyDetailController.showEmptyState("", "");
-            AlertService.showError(localTask.getException().getMessage());
-        });
+            AlertService.showError(rejection.getMessage());
+        };
+        localTask.setOnFailed(e -> localTaskFailure.accept(localTask.getException()));
         localTask.setOnSucceeded(e -> {
             if (!isCurrentSupplyRequest(shop.getId(), supply.getSupplyId(), requestToken)) {
                 return;
@@ -1474,7 +1489,7 @@ public class HomeController implements Initializable {
             supplyDetailController.setSupplyInfo(formatSupplyTitle(supply), "");
             startSupplyRefresh(shop, supply, requestToken);
         });
-        AppTaskExecutor.execute(localTask);
+        AppTaskExecutor.execute(localTask, localTaskFailure);
     }
 
     private void startSupplyRefresh(Shop shop, WbSupplySummary supply, long requestToken) {
@@ -1495,7 +1510,7 @@ public class HomeController implements Initializable {
                 supplyDetailController.setLoading(true, newMessage);
             }
         });
-        refreshTask.setOnFailed(e -> {
+        java.util.function.Consumer<Throwable> refreshTaskFailure = rejection -> {
             if (!isCurrentSupplyRequest(shop.getId(), supply.getSupplyId(), requestToken)) {
                 return;
             }
@@ -1504,8 +1519,8 @@ public class HomeController implements Initializable {
             applySortAndDisplayOrders();
             updateExportAvailability();
             refreshCurrentKizAttachmentProgress();
-            LOGGER.warn("Không thể refresh supply {} ở nền", supply.getSupplyId(), refreshTask.getException());
-            String message = refreshTask.getException() == null ? "" : refreshTask.getException().getMessage();
+            LOGGER.warn("Không thể refresh supply {} ở nền", supply.getSupplyId(), rejection);
+            String message = rejection == null ? "" : rejection.getMessage();
             if (message != null && message.startsWith("Sản phẩm không tồn tại trên WB:")) {
                 AlertService.showWarning(
                         i18nService.tr("workspace.product_not_found.title"),
@@ -1513,7 +1528,8 @@ public class HomeController implements Initializable {
                         message
                 );
             }
-        });
+        };
+        refreshTask.setOnFailed(e -> refreshTaskFailure.accept(refreshTask.getException()));
         refreshTask.setOnSucceeded(e -> {
             if (!isCurrentSupplyRequest(shop.getId(), supply.getSupplyId(), requestToken)) {
                 return;
@@ -1536,7 +1552,7 @@ public class HomeController implements Initializable {
             finishSupplyPrintRequest(shop.getId(), supply.getSupplyId(), requestToken, true);
             startSilentImageWarmup(shop, supply, requestToken);
         });
-        AppTaskExecutor.execute(refreshTask);
+        AppTaskExecutor.execute(refreshTask, refreshTaskFailure);
     }
 
     private void finishSupplyPrintRequest(int shopId, String supplyId, long requestToken, boolean success) {
@@ -1559,19 +1575,20 @@ public class HomeController implements Initializable {
                 return null;
             }
         };
-        imageTask.setOnFailed(e -> {
+        java.util.function.Consumer<Throwable> imageTaskFailure = rejection -> {
             if (!isCurrentSupplyRequest(shop.getId(), supply.getSupplyId(), requestToken)) {
                 return;
             }
-            LOGGER.debug("Không thể nạp ảnh nền cho supply {}", supply.getSupplyId(), imageTask.getException());
-        });
+            LOGGER.debug("Không thể nạp ảnh nền cho supply {}", supply.getSupplyId(), rejection);
+        };
+        imageTask.setOnFailed(e -> imageTaskFailure.accept(imageTask.getException()));
         imageTask.setOnSucceeded(e -> {
             if (!isCurrentSupplyRequest(shop.getId(), supply.getSupplyId(), requestToken)) {
                 return;
             }
             supplyDetailController.refreshOrders();
         });
-        AppTaskExecutor.execute(imageTask);
+        AppTaskExecutor.execute(imageTask, imageTaskFailure);
     }
 
     private void applySortAndDisplayOrders() {
@@ -1623,7 +1640,8 @@ public class HomeController implements Initializable {
         var saveButton=(javafx.scene.control.Button)dialog.getDialogPane().lookupButton(save);saveButton.setDisable(!com.vncode.app.shared.WindowsSecretProtector.supported());
         saveButton.addEventFilter(ActionEvent.ACTION,event->{event.consume();String key=password.getText();if(key.isBlank()){feedback.setText(i18nService.tr("news.translation_invalid"));return;}saveButton.setDisable(true);
             Task<Void> task=new Task<>(){protected Void call()throws Exception{new com.vncode.app.integration.translation.TranslationSettingsRepository().save(com.vncode.app.integration.translation.YandexNewsTranslator.ENDPOINT,"",key);return null;}};
-            task.setOnSucceeded(e->{password.clear();dialog.close();if(!disposed&&newsPane!=null)newsPane.translationSettingsChanged();});task.setOnFailed(e->{saveButton.setDisable(false);feedback.setText(i18nService.tr("news.translation_invalid"));});AppTaskExecutor.execute(task);
+            task.setOnSucceeded(e->{password.clear();dialog.close();if(!disposed&&newsPane!=null)newsPane.translationSettingsChanged();});java.util.function.Consumer<Throwable> taskFailure = rejection ->{saveButton.setDisable(false);feedback.setText(i18nService.tr("news.translation_invalid"));};
+        task.setOnFailed(e -> taskFailure.accept(task.getException()));AppTaskExecutor.execute(task, taskFailure);
         });
         dialog.getDialogPane().lookupButton(remove).addEventFilter(ActionEvent.ACTION,event->{new com.vncode.app.integration.translation.TranslationSettingsRepository().clear();if(newsPane!=null)newsPane.translationSettingsChanged();});dialog.setOnHidden(e->password.clear());dialog.show();
     }
@@ -1867,9 +1885,9 @@ public class HomeController implements Initializable {
                 if (isPackingVisible()) refreshPackingView();
             }
         });
-        task.setOnFailed(event -> {
+        java.util.function.Consumer<Throwable> taskFailure = rejection -> {
             markShopRunning(shop.getId(), false);
-            Throwable failure = task.getException();
+            Throwable failure = rejection;
             LOGGER.error("Không thể xoá supply rỗng {}", supply.getSupplyId(), failure);
             if (isCurrentShop(shop.getId())) {
                 refreshSupplyList(supply.getSupplyId());
@@ -1877,8 +1895,9 @@ public class HomeController implements Initializable {
                         ? i18nService.tr("supply_list.delete.not_empty")
                         : i18nService.tr("supply_list.delete.failed"));
             }
-        });
-        AppTaskExecutor.execute(task);
+        };
+        task.setOnFailed(event -> taskFailure.accept(task.getException()));
+        AppTaskExecutor.execute(task, taskFailure);
     }
 
     private void startSupplyListRefetch(Shop shop) {
@@ -1901,15 +1920,16 @@ public class HomeController implements Initializable {
                 return wbSyncWorkflow.refetchSupplies(shop);
             }
         };
-        task.setOnFailed(e -> {
+        java.util.function.Consumer<Throwable> taskFailure = rejection -> {
             markShopRunning(shop.getId(), false);
-            Throwable ex = task.getException();
+            Throwable ex = rejection;
             LOGGER.error("Refetch supply thất bại cho shop {}", shop.getId(), ex);
             if (isCurrentShop(shop.getId())) {
                 refreshSupplyList(selectedSupplyId);
                 AlertService.showError(ex.getMessage());
             }
-        });
+        };
+        task.setOnFailed(e -> taskFailure.accept(task.getException()));
         task.setOnSucceeded(e -> {
             markShopRunning(shop.getId(), false);
             if (isCurrentShop(shop.getId())) {
@@ -1919,7 +1939,7 @@ public class HomeController implements Initializable {
                 }
             }
         });
-        AppTaskExecutor.execute(task);
+        AppTaskExecutor.execute(task, taskFailure);
     }
 
     private boolean isCurrentShop(int shopId) {
@@ -2199,17 +2219,18 @@ public class HomeController implements Initializable {
             }
         };
         task.setOnRunning(e -> markShopRunning(shop.getId(), true));
-        task.setOnFailed(e -> {
+        java.util.function.Consumer<Throwable> taskFailure = rejection -> {
             markShopRunning(shop.getId(), false);
-            LOGGER.error("Không thể chuyển supply {} sang giao hàng", supply.getSupplyId(), task.getException());
-            AlertService.showError(task.getException().getMessage());
-        });
+            LOGGER.error("Không thể chuyển supply {} sang giao hàng", supply.getSupplyId(), rejection);
+            AlertService.showError(rejection.getMessage());
+        };
+        task.setOnFailed(e -> taskFailure.accept(task.getException()));
         task.setOnSucceeded(e -> {
             markShopRunning(shop.getId(), false);
             refreshSupplyList();
             showPacking();
         });
-        AppTaskExecutor.execute(task);
+        AppTaskExecutor.execute(task, taskFailure);
     }
 
     private String formatSupplyTitle(WbSupplySummary supply) {

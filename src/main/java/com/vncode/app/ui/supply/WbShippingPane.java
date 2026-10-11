@@ -58,7 +58,7 @@ public final class WbShippingPane extends VBox {
             }
             @Override protected void succeeded(){if(request!=epoch)return;var saved=getValue();country.setValue(saved.country());method.setValue(saved.shippingType());city.setText(Objects.toString(saved.city(),""));cargo.setValue(supplyCargo);restorePoint=saved.pointId();if("RU".equals(saved.country())&&saved.city()!=null&&supplyCargo!=null)loadPoints();}
             @Override protected void failed(){if(request==epoch)status.setText(FriendlyErrorService.format(getException()));}
-        };AppTaskExecutor.execute(task);
+        };AppTaskExecutor.execute(task,error->{if(request==epoch)status.setText(FriendlyErrorService.format(error));});
     }
     private void updateCountry(){boolean ru="RU".equals(country.getValue());fields.setVisible(ru);fields.setManaged(ru);}
     private void invalidatePoints(){points=List.of();loadedCity=null;loadedCargo=null;point.getItems().clear();point.setValue(null);more.setDisable(true);}
@@ -67,7 +67,8 @@ public final class WbShippingPane extends VBox {
         Shop selected=shop;String selectedCity=city.getText().strip();Integer selectedCargo=cargo.getValue();long request=epoch;load.setDisable(true);
         var task=new Task<List<WbShippingContract.Point>>(){@Override protected List<WbShippingContract.Point> call()throws Exception{return api.getShippingPoints(selected.getApiKey(),selectedCity,selectedCargo);}};
         task.setOnSucceeded(e->{if(request!=epoch)return;if(!selectedCity.equals(city.getText().strip())||!selectedCargo.equals(cargo.getValue())){load.setDisable(false);return;}points=task.getValue();loadedCity=selectedCity;loadedCargo=selectedCargo;load.setDisable(false);showPoints(false);status.setText(points.isEmpty()?"Không có điểm nhận phù hợp.":"");});
-        task.setOnFailed(e->{if(request==epoch){load.setDisable(false);status.setText(FriendlyErrorService.format(task.getException()));}});AppTaskExecutor.execute(task);
+        java.util.function.Consumer<Throwable> taskFailure = rejection ->{if(request==epoch){load.setDisable(false);status.setText(FriendlyErrorService.format(rejection));}};
+        task.setOnFailed(e -> taskFailure.accept(task.getException()));AppTaskExecutor.execute(task, taskFailure);
     }
     private void showPoints(boolean append) {
         var chosen=point.getValue();int offset=append?point.getItems().size():0;if(!append)point.getItems().clear();

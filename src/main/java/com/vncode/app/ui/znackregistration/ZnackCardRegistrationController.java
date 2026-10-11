@@ -237,8 +237,9 @@ public final class ZnackCardRegistrationController {
             @Override protected List<String> call() { return repository.findSubjects(owner.getId()); }
         };
         task.setOnSucceeded(event -> {if(isCurrent(owner,epoch))buildSubjectMenu(task.getValue());});
-        task.setOnFailed(event -> {if(isCurrent(owner,epoch))showError(task.getException());});
-        AppTaskExecutor.execute(task);
+        java.util.function.Consumer<Throwable> taskFailure = rejection -> {if(isCurrent(owner,epoch))showError(rejection);};
+        task.setOnFailed(event -> taskFailure.accept(task.getException()));
+        AppTaskExecutor.execute(task, taskFailure);
     }
 
     private void buildSubjectMenu(List<String> subjects) {
@@ -288,13 +289,14 @@ public final class ZnackCardRegistrationController {
             updateEmpty();
             resumePending(task.getValue());
         });
-        task.setOnFailed(event -> {
+        java.util.function.Consumer<Throwable> taskFailure = rejection -> {
             if(sequence!=loadSequence || !isCurrent(owner,epoch))return;
             loading = false;
             setLoading(false);
-            showError(task.getException());
-        });
-        AppTaskExecutor.execute(task);
+            showError(rejection);
+        };
+        task.setOnFailed(event -> taskFailure.accept(task.getException()));
+        AppTaskExecutor.execute(task, taskFailure);
     }
 
     private void createCard(Sku sku) {
@@ -364,13 +366,14 @@ public final class ZnackCardRegistrationController {
             startWorkflow(owner,epoch,sku,result.draft(),fresh);
             completed.run();
         });
-        task.setOnFailed(event -> {
+        java.util.function.Consumer<Throwable> taskFailure = rejection -> {
             if(!isCurrent(owner,epoch))return;
             setLoading(false);
-            showError(task.getException());
+            showError(rejection);
             completed.run();
-        });
-        AppTaskExecutor.execute(task);
+        };
+        task.setOnFailed(event -> taskFailure.accept(task.getException()));
+        AppTaskExecutor.execute(task, taskFailure);
     }
 
     private void startWorkflow(Shop owner,long epoch,Sku sku,Draft draft,boolean fresh) {

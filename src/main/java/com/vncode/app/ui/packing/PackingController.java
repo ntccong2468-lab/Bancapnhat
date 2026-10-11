@@ -160,8 +160,9 @@ public class PackingController {
         task.setOnSucceeded(e->{if(!isCurrent(owner,generation)||epoch!=dispatchEpoch||offset!=dispatchOffset)return;dispatchLoading=false;
             dispatchTable.getItems().addAll(task.getValue().items());dispatchOffset+=task.getValue().items().size();
             dispatchMoreButton.setDisable(dispatchOffset>=task.getValue().totalItems());});
-        task.setOnFailed(e->{if(!isCurrent(owner,generation)||epoch!=dispatchEpoch||offset!=dispatchOffset)return;dispatchLoading=false;dispatchMoreButton.setDisable(false);AlertService.showError(FriendlyErrorService.format(task.getException()));});
-        AppTaskExecutor.execute(task);
+        java.util.function.Consumer<Throwable> taskFailure = rejection ->{if(!isCurrent(owner,generation)||epoch!=dispatchEpoch||offset!=dispatchOffset)return;dispatchLoading=false;dispatchMoreButton.setDisable(false);AlertService.showError(FriendlyErrorService.format(rejection));};
+        task.setOnFailed(e -> taskFailure.accept(task.getException()));
+        AppTaskExecutor.execute(task, taskFailure);
     }
 
     @FXML
@@ -246,13 +247,14 @@ public class PackingController {
             if (!isCurrent(selectedShop, generation)) return;
             setBoard(task.getValue());
         });
-        task.setOnFailed(e -> {
+        java.util.function.Consumer<Throwable> taskFailure = rejection -> {
             if (!isCurrent(selectedShop, generation)
-                    || ShopOperationCoordinator.isShopUnavailable(task.getException())) return;
-            LOGGER.error("Не удалось загрузить упаковку для shop {}", selectedShop.getId(), task.getException());
-            AlertService.showError(FriendlyErrorService.format(task.getException()));
-        });
-        AppTaskExecutor.execute(task);
+                    || ShopOperationCoordinator.isShopUnavailable(rejection)) return;
+            LOGGER.error("Не удалось загрузить упаковку для shop {}", selectedShop.getId(), rejection);
+            AlertService.showError(FriendlyErrorService.format(rejection));
+        };
+        task.setOnFailed(e -> taskFailure.accept(task.getException()));
+        AppTaskExecutor.execute(task, taskFailure);
     }
 
     private void refreshFromWb() {
@@ -276,10 +278,10 @@ public class PackingController {
             setLoading(false);
             setBoard(task.getValue());
         });
-        task.setOnFailed(e -> {
+        java.util.function.Consumer<Throwable> taskFailure = rejection -> {
             if (!isCurrent(selectedShop, generation)) return;
             setLoading(false);
-            Throwable failure = task.getException();
+            Throwable failure = rejection;
             if (ShopOperationCoordinator.isShopUnavailable(failure)) return;
             LOGGER.error("Не удалось обновить упаковку для shop {}", selectedShop.getId(), failure);
             if (isTimeoutFailure(failure)) {
@@ -287,8 +289,9 @@ public class PackingController {
                 return;
             }
             AlertService.showError(FriendlyErrorService.format(failure));
-        });
-        AppTaskExecutor.execute(task);
+        };
+        task.setOnFailed(e -> taskFailure.accept(task.getException()));
+        AppTaskExecutor.execute(task, taskFailure);
     }
 
     private boolean isTimeoutFailure(Throwable failure) {
@@ -325,14 +328,15 @@ public class PackingController {
             selectedOrderIds.clear();
             refreshFromWb();
         });
-        task.setOnFailed(e -> {
+        java.util.function.Consumer<Throwable> taskFailure = rejection -> {
             if (!isCurrent(selectedShop, generation)) return;
             setLoading(false);
-            if (ShopOperationCoordinator.isShopUnavailable(task.getException())) return;
-            LOGGER.error("WB write action failed", task.getException());
-            AlertService.showError(FriendlyErrorService.format(task.getException()));
-        });
-        AppTaskExecutor.execute(task);
+            if (ShopOperationCoordinator.isShopUnavailable(rejection)) return;
+            LOGGER.error("WB write action failed", rejection);
+            AlertService.showError(FriendlyErrorService.format(rejection));
+        };
+        task.setOnFailed(e -> taskFailure.accept(task.getException()));
+        AppTaskExecutor.execute(task, taskFailure);
     }
 
     private void setBoard(PackingWorkflow.PackingBoard board) {
@@ -685,12 +689,13 @@ public class PackingController {
                 AlertService.showError(ex.getMessage());
             }
         });
-        task.setOnFailed(e -> {
+        java.util.function.Consumer<Throwable> taskFailure = rejection -> {
             if (!isCurrent(selectedShop, generation)
-                    || ShopOperationCoordinator.isShopUnavailable(task.getException())) return;
-            AlertService.showError(FriendlyErrorService.format(task.getException()));
-        });
-        AppTaskExecutor.execute(task);
+                    || ShopOperationCoordinator.isShopUnavailable(rejection)) return;
+            AlertService.showError(FriendlyErrorService.format(rejection));
+        };
+        task.setOnFailed(e -> taskFailure.accept(task.getException()));
+        AppTaskExecutor.execute(task, taskFailure);
     }
 
     private boolean isCurrent(Shop expectedShop, long generation) {

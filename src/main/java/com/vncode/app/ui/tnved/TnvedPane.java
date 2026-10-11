@@ -93,7 +93,8 @@ public final class TnvedPane extends BorderPane {
     }
     private void backup(){if(writing)return;busy(true);background(catalog::snapshot,path->{busy(false);status.setText("Đã sao lưu: "+path.getFileName());});}
     private void busy(boolean value){writing=value;importButton.setDisable(value);backupButton.setDisable(value);}
-    private <T> void background(Callable<T> work,Consumer<T> success){var task=new Task<T>(){@Override protected T call()throws Exception{return work.call();}};task.setOnSucceeded(e->success.accept(task.getValue()));task.setOnFailed(e->{busy(false);status.setText(FriendlyErrorService.format(task.getException()));});AppTaskExecutor.execute(task);}
+    private <T> void background(Callable<T> work,Consumer<T> success){var task=new Task<T>(){@Override protected T call()throws Exception{return work.call();}};task.setOnSucceeded(e->success.accept(task.getValue()));java.util.function.Consumer<Throwable> taskFailure = rejection ->{busy(false);status.setText(FriendlyErrorService.format(rejection));};
+        task.setOnFailed(e -> taskFailure.accept(task.getException()));AppTaskExecutor.execute(task, taskFailure);}
     public int rootCount(){return tree.getRoot()==null?0:tree.getRoot().getChildren().size();}
     public String emptyBranchText(){return "Chưa tải dữ liệu";}
 }

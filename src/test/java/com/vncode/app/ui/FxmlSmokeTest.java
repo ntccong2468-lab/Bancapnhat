@@ -60,6 +60,21 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class FxmlSmokeTest {
+    @Test void rejectedGs1ActionKeepsUnsentWorkAndClearsBusy() throws Exception {
+        var started=new CountDownLatch(2);var release=new CountDownLatch(1);var writes=new AtomicInteger();
+        try {
+            for(int i=0;i<2;i++)assertTrue(com.vncode.app.shared.AppTaskExecutor.execute(new javafx.concurrent.Task<Void>(){protected Void call()throws Exception{started.countDown();release.await(10,TimeUnit.SECONDS);return null;}}));
+            assertTrue(started.await(5,TimeUnit.SECONDS));
+            for(int i=0;i<64;i++)assertTrue(com.vncode.app.shared.AppTaskExecutor.execute(new javafx.concurrent.Task<Void>(){protected Void call(){return null;}}));
+            var check=new java.util.concurrent.FutureTask<Void>(()->{
+                var pane=new com.vncode.app.ui.gs1.Gs1Pane();try{
+                    var run=pane.getClass().getDeclaredMethod("run",java.util.concurrent.Callable.class,java.util.function.Consumer.class);run.setAccessible(true);
+                    run.invoke(pane,(java.util.concurrent.Callable<Boolean>)()->{writes.incrementAndGet();return true;},(java.util.function.Consumer<Boolean>)v->{});
+                    var busy=pane.getClass().getDeclaredField("busy");busy.setAccessible(true);assertFalse(busy.getBoolean(pane));assertEquals(0,pane.activeTaskCount());assertEquals(0,writes.get());
+                } finally{pane.dispose();}return null;
+            });Platform.runLater(check);check.get(5,TimeUnit.SECONDS);
+        } finally{release.countDown();awaitBackgroundTasksBeforeFixtureCleanup();}
+    }
     @Test void gs1ShopSwitchDoesNotWaitForLockedLocalSettings() throws Exception {
         var holder=new java.util.concurrent.atomic.AtomicReference<com.vncode.app.ui.gs1.Gs1Pane>();
         var setup=new java.util.concurrent.FutureTask<Void>(()->{holder.set(new com.vncode.app.ui.gs1.Gs1Pane());return null;});Platform.runLater(setup);setup.get(5,TimeUnit.SECONDS);

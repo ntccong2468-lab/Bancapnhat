@@ -83,8 +83,9 @@ public final class ZnackKizInventoryActionService {
         };
         busy.accept(true);
         task.setOnSucceeded(event -> finish(key, busy, changed));
-        task.setOnFailed(event -> finishFailed(key, busy, failed, task.getException()));
-        AppTaskExecutor.execute(task);
+        java.util.function.Consumer<Throwable> taskFailure = rejection -> finishFailed(key, busy, failed, rejection);
+        task.setOnFailed(event -> taskFailure.accept(task.getException()));
+        AppTaskExecutor.execute(task, taskFailure);
     }
 
     private void runExport(Shop shop, ZnackGtinInventorySummary summary, int quantity, File target,
@@ -101,8 +102,9 @@ public final class ZnackKizInventoryActionService {
             finish(key, busy, changed);
             openExport(task.getValue().file());
         });
-        task.setOnFailed(event -> finishFailed(key, busy, failed, task.getException()));
-        AppTaskExecutor.execute(task);
+        java.util.function.Consumer<Throwable> taskFailure = rejection -> finishFailed(key, busy, failed, rejection);
+        task.setOnFailed(event -> taskFailure.accept(task.getException()));
+        AppTaskExecutor.execute(task, taskFailure);
     }
 
     private void finish(String key, Consumer<Boolean> busy, Runnable changed) {

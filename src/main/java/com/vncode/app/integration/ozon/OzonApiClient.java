@@ -29,6 +29,7 @@ public final class OzonApiClient {
     private static final long MAX_DOCUMENT_BYTES = 100L * 1024 * 1024;
     private static final long MAX_ERROR_BYTES = 256L * 1024;
     private static final Gson GSON = new Gson();
+    private static final OkHttpClient SHARED_HTTP=new OkHttpClient.Builder().connectTimeout(10,TimeUnit.SECONDS).readTimeout(25,TimeUnit.SECONDS).writeTimeout(25,TimeUnit.SECONDS).callTimeout(40,TimeUnit.SECONDS).retryOnConnectionFailure(false).followRedirects(false).followSslRedirects(false).build();
     private static final OzonApiRateLimiter SHARED_LIMITER = new OzonApiRateLimiter();
 
     private final int shopId;
@@ -43,13 +44,7 @@ public final class OzonApiClient {
                 shopId,
                 credentials,
                 Objects.requireNonNull(HttpUrl.parse(DEFAULT_BASE_URL)),
-                new OkHttpClient.Builder()
-                        .connectTimeout(10, TimeUnit.SECONDS)
-                        .readTimeout(25, TimeUnit.SECONDS)
-                        .writeTimeout(25, TimeUnit.SECONDS)
-                        .callTimeout(40, TimeUnit.SECONDS)
-                        .retryOnConnectionFailure(false)
-                        .build(),
+                SHARED_HTTP,
                 SHARED_LIMITER,
                 new OzonRetryPolicy());
     }
@@ -390,7 +385,7 @@ public final class OzonApiClient {
                 .header("Content-Type", "application/json")
                 .post(RequestBody.create(JSON, GSON.toJson(body == null ? new JsonObject() : body)))
                 .build();
-        try (Response response = http.newCall(request).execute()) {
+        try (var slot=com.vncode.app.shared.MarketplaceRequestBudget.acquire(); Response response = http.newCall(request).execute()) {
             int status = response.code();
             if (!response.isSuccessful()) {
                 boolean retryable = retryPolicy.isRetryableStatus(status);
@@ -408,7 +403,8 @@ public final class OzonApiClient {
             if (length > maxBytes) {
                 throw new OzonApiException("response_too_large", status, false, mutation, null);
             }
-            byte[] bytes = responseBody.bytes();
+            byte[] bytes;
+            try(var stream=responseBody.byteStream()){bytes=stream.readNBytes((int)maxBytes+1);}
             if (bytes.length > maxBytes) {
                 throw new OzonApiException("response_too_large", status, false, mutation, null);
             }

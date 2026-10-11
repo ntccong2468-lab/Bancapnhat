@@ -67,11 +67,11 @@ public class WbFinanceApiClient {
                 .header("Accept", "application/json")
                 .post(RequestBody.create(payload.toString(), JSON))
                 .build();
-        try (Response response = client.newCall(request).execute()) {
+        try (var slot=com.vncode.app.shared.MarketplaceRequestBudget.acquire(); Response response = client.newCall(request).execute()) {
             if (response.code() == 204) {
                 return new WbFinancePage(List.of(), cursor, true);
             }
-            String body = response.body() == null ? "" : response.body().string();
+            String body = com.vncode.app.shared.BoundedHttpBody.utf8(response.body(),20*1024*1024);
             if (!response.isSuccessful()) {
                 throw apiError(response, body, "WB Finance");
             }

@@ -247,8 +247,9 @@ public final class OzonDashboardController {
             statusLabel.setText(I18nService.getInstance().tr("ozon.dashboard.sync_done"));
             loadLocal();
         });
-        task.setOnFailed(event -> finishFailure(token, selected, task.getException()));
-        AppTaskExecutor.execute(task);
+        java.util.function.Consumer<Throwable> taskFailure = rejection -> finishFailure(token, selected, rejection);
+        task.setOnFailed(event -> taskFailure.accept(task.getException()));
+        AppTaskExecutor.execute(task, taskFailure);
     }
 
     public void setOnBusy(BiConsumer<Integer, Boolean> onBusy) {
@@ -276,8 +277,9 @@ public final class OzonDashboardController {
             setBusy(false);
             loadLocal();
         });
-        task.setOnFailed(event -> finishFailure(token, selected, task.getException()));
-        AppTaskExecutor.execute(task);
+        java.util.function.Consumer<Throwable> taskFailure = rejection -> finishFailure(token, selected, rejection);
+        task.setOnFailed(event -> taskFailure.accept(task.getException()));
+        AppTaskExecutor.execute(task, taskFailure);
     }
 
     public void applyTranslations() {
@@ -370,8 +372,9 @@ public final class OzonDashboardController {
             loadLocal();
             if (!result.completed().isEmpty()) orderStatusTabs.getSelectionModel().select(packingOrdersTab);
         });
-        task.setOnFailed(event -> finishFailure(token, selected, task.getException()));
-        AppTaskExecutor.execute(task);
+        java.util.function.Consumer<Throwable> taskFailure = rejection -> finishFailure(token, selected, rejection);
+        task.setOnFailed(event -> taskFailure.accept(task.getException()));
+        AppTaskExecutor.execute(task, taskFailure);
     }
 
     @FXML private void onPrintAll() {
@@ -403,8 +406,9 @@ public final class OzonDashboardController {
             }
             chooseBatchTargetAndExport(selected, postingNumbers);
         });
-        task.setOnFailed(event -> finishFailure(token, selected, task.getException()));
-        AppTaskExecutor.execute(task);
+        java.util.function.Consumer<Throwable> taskFailure = rejection -> finishFailure(token, selected, rejection);
+        task.setOnFailed(event -> taskFailure.accept(task.getException()));
+        AppTaskExecutor.execute(task, taskFailure);
     }
 
     private void downloadLabel(OzonPostingDto posting) {
@@ -432,8 +436,9 @@ public final class OzonDashboardController {
             }
             chooseSingleTargetAndExport(selected, posting);
         });
-        task.setOnFailed(event -> finishFailure(token, selected, task.getException()));
-        AppTaskExecutor.execute(task);
+        java.util.function.Consumer<Throwable> taskFailure = rejection -> finishFailure(token, selected, rejection);
+        task.setOnFailed(event -> taskFailure.accept(task.getException()));
+        AppTaskExecutor.execute(task, taskFailure);
     }
 
     private void chooseSingleTargetAndExport(Shop selected, OzonPostingDto posting) {
@@ -494,8 +499,9 @@ public final class OzonDashboardController {
                         exception.getMessage());
             }
         });
-        task.setOnFailed(event -> finishFailure(token, selected, task.getException()));
-        AppTaskExecutor.execute(task);
+        java.util.function.Consumer<Throwable> taskFailure = rejection -> finishFailure(token, selected, rejection);
+        task.setOnFailed(event -> taskFailure.accept(task.getException()));
+        AppTaskExecutor.execute(task, taskFailure);
     }
 
     private void finishFailure(long token, Shop selected, Throwable failure) {
@@ -873,13 +879,14 @@ public final class OzonDashboardController {
             setGtinSyncing(false);
             refreshGtinInventory();
         });
-        task.setOnFailed(event -> {
+        java.util.function.Consumer<Throwable> taskFailure = rejection -> {
             if (generation != shopGeneration) return;
             setGtinSyncing(false);
-            if (showErrors) AlertService.showError(friendlyError(task.getException()));
+            if (showErrors) AlertService.showError(friendlyError(rejection));
             refreshGtinInventory();
-        });
-        AppTaskExecutor.execute(task);
+        };
+        task.setOnFailed(event -> taskFailure.accept(task.getException()));
+        AppTaskExecutor.execute(task, taskFailure);
     }
 
     private void refreshGtinInventory() {
@@ -909,13 +916,14 @@ public final class OzonDashboardController {
             ZnackSuzAuthDialogService.promptIfNeeded(currentRepository, task.getValue());
             ZnackMissingDocumentsDialogService.promptIfNeeded(currentRepository, task.getValue());
         });
-        task.setOnFailed(event -> {
+        java.util.function.Consumer<Throwable> taskFailure = rejection -> {
             if (generation != shopGeneration) return;
             setGtinLoading(false);
-            AlertService.showError(friendlyError(task.getException()));
+            AlertService.showError(friendlyError(rejection));
             startPendingGtinSync();
-        });
-        AppTaskExecutor.execute(task);
+        };
+        task.setOnFailed(event -> taskFailure.accept(task.getException()));
+        AppTaskExecutor.execute(task, taskFailure);
     }
 
     private void renderGtinSummaries(List<ZnackGtinInventorySummary> summaries) {
@@ -1056,8 +1064,9 @@ public final class OzonDashboardController {
             }
         };
         task.setOnSucceeded(event -> finishPurchaseStart(generation, gtin, null));
-        task.setOnFailed(event -> finishPurchaseStart(generation, gtin, task.getException()));
-        AppTaskExecutor.execute(task);
+        java.util.function.Consumer<Throwable> taskFailure = rejection -> finishPurchaseStart(generation, gtin, rejection);
+        task.setOnFailed(event -> taskFailure.accept(task.getException()));
+        AppTaskExecutor.execute(task, taskFailure);
     }
 
     private void startRetryIntroduction(String gtin) {
@@ -1074,8 +1083,9 @@ public final class OzonDashboardController {
             }
         };
         task.setOnSucceeded(event -> finishPurchaseStart(generation, gtin, null));
-        task.setOnFailed(event -> finishPurchaseStart(generation, gtin, task.getException()));
-        AppTaskExecutor.execute(task);
+        java.util.function.Consumer<Throwable> taskFailure = rejection -> finishPurchaseStart(generation, gtin, rejection);
+        task.setOnFailed(event -> taskFailure.accept(task.getException()));
+        AppTaskExecutor.execute(task, taskFailure);
     }
 
     private void finishPurchaseStart(long generation, String gtin, Throwable error) {

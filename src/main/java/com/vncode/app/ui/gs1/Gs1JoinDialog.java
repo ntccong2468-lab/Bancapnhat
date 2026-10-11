@@ -68,7 +68,8 @@ final class Gs1JoinDialog {
         Button lookup=new Button(tr("gs1.find_address"));Label result=new Label();result.setWrapText(true);
         lookup.setOnAction(e->{String query=location.getText().strip();if(query.length()<3){result.setText(tr("gs1.invalid_fields"));return;}lookup.setDisable(true);Task<List<NationalCatalogGs1Client.Address>> task=new Task<>(){@Override protected List<NationalCatalogGs1Client.Address> call()throws Exception{return addresses.search(query);}};
             task.setOnSucceeded(done->{lookup.setDisable(false);if(!dialog.isShowing())return;ChoiceDialog<NationalCatalogGs1Client.Address> choice=new ChoiceDialog<>(null,task.getValue());AlertService.applyTheme(choice);choice.initOwner(dialog.getDialogPane().getScene().getWindow());choice.setTitle(tr("gs1.find_address"));choice.showAndWait().ifPresent(value->{location.setText(value.address());data.addProperty("fullGuid",value.fullGuid());data.addProperty("houseGuid",value.houseGuid());data.addProperty("postalCode",value.postalCode());result.setText(value.address());});});
-            task.setOnFailed(done->{lookup.setDisable(false);result.setText(tr("gs1.error"));});AppTaskExecutor.execute(task);
+            java.util.function.Consumer<Throwable> taskFailure = rejection ->{lookup.setDisable(false);result.setText(tr("gs1.error"));};
+        task.setOnFailed(done -> taskFailure.accept(task.getException()));AppTaskExecutor.execute(task, taskFailure);
         });box.getChildren().addAll(labeled("gs1.field.fullAddress",location),lookup,result);return box;
     }
     private Node text(JsonObject data,String key,boolean mandatory){TextField input=new TextField(text(data,key));if(mandatory)required.add(input);input.textProperty().addListener((o,a,b)->data.addProperty(key,b.strip()));return labeled("gs1.field."+key,input);}

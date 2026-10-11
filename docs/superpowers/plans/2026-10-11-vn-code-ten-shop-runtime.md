@@ -46,10 +46,10 @@
 
 **Interfaces:** `AppTaskExecutor.execute(Task<?>):boolean` chấp nhận vào pool hữu hạn hoặc trả false/cancel trước gửi; giữ bộ đếm hasRunningTasks/getRunningTaskCount. `MarketplaceRequestBudget.acquire():AutoCloseable` semaphore công bằng 2, interruptible, release trong finally quanh thực thi HTTP/đọc body. Hai worker legacy, queue 64; outgoing merchant mutations dùng nhật ký/queue riêng 32, không ngắt tác vụ đã gửi.
 
-- [ ] Test `fullQueueRejectsBeforeActionAndDoesNotLeaveBusy`, `tenShopRequestsNeverExceedTwoInFlight`, `interruptedWaitReleasesNoForeignPermit`, `timeoutReleasesSlotForNextShop`; assert 0 writes cho rejected task và permit phục hồi.
-- [ ] Run targeted; Expected RED.
-- [ ] Implement limits; audit mọi callsite AppTaskExecutor để xử lý false và bỏ busy, giữ thông báo/selection/unsent job. Không giữ slot khi sleep Retry-After hoặc chờ ký số/PIN; giới hạn quanh HTTP từng request, không quanh toàn workflow. Không retry mutation tự động.
-- [ ] Run targeted HTTP/ownership/ship/signature và full suite; Expected PASS. Commit `perf: bound task queues and marketplace request concurrency`.
+- [x] Test `fullQueueRejectsBeforeActionAndDoesNotLeaveBusy`, `tenShopRequestsNeverExceedTwoInFlight`, `interruptedWaitReleasesNoForeignPermit`, `timeoutReleasesSlotForNextShop`; assert 0 writes cho rejected task và permit phục hồi.
+- [x] Run targeted; Expected RED.
+- [x] Implement limits; audit mọi callsite AppTaskExecutor để xử lý false và bỏ busy, giữ thông báo/selection/unsent job. Không giữ slot khi sleep Retry-After hoặc chờ ký số/PIN; giới hạn quanh HTTP từng request, không quanh toàn workflow. Không retry mutation tự động.
+- [x] Run targeted HTTP/ownership/ship/signature và full suite; Expected PASS. Commit `perf: bound task queues and marketplace request concurrency`.
 
 ### E3: Payload nhẹ và vòng đời UI toàn luồng
 

@@ -319,16 +319,17 @@ public class ZnackAutomationController {
             certificateDiscoveryRunning = false;
             applyDiscoveredCertificates(task.getValue(), Instant.now());
         });
-        task.setOnFailed(event -> {
+        java.util.function.Consumer<Throwable> taskFailure = rejection -> {
             if (generation != certificateDiscoveryGeneration) return;
             certificateDiscoveryRunning = false;
             updateSignatureSummary();
             updateSaveState();
-            Throwable failure = task.getException();
+            Throwable failure = rejection;
             AlertService.showError(failure instanceof CryptoProException error
                     ? signatureError(error) : value(failure == null ? null : failure.getMessage()));
-        });
-        AppTaskExecutor.execute(task);
+        };
+        task.setOnFailed(event -> taskFailure.accept(task.getException()));
+        AppTaskExecutor.execute(task, taskFailure);
     }
 
     private void applyDiscoveredCertificates(List<CryptoProCertificateInfo> discovered, Instant now) {
@@ -445,10 +446,10 @@ public class ZnackAutomationController {
                 requestProductSync(verification.api(), verification.auth());
             }
         });
-        task.setOnFailed(event -> {
+        java.util.function.Consumer<Throwable> taskFailure = rejection -> {
             setSignatureTestBusy(false);
             if (generation != shopGeneration || currentRepository != repository) return;
-            Throwable failure = task.getException();
+            Throwable failure = rejection;
             if (failure instanceof ZnackRepository.SignerChangeBlockedException) {
                 signerTestedAt = null;
                 currentRepository.log("SIGNATURE_TEST", null, "WARN", failure.getMessage(), null);
@@ -473,8 +474,9 @@ public class ZnackAutomationController {
             updateSignatureSummary();
             updateSaveState();
             AlertService.showError(signatureError(error));
-        });
-        AppTaskExecutor.execute(task);
+        };
+        task.setOnFailed(event -> taskFailure.accept(task.getException()));
+        AppTaskExecutor.execute(task, taskFailure);
     }
 
     /** Loading state for the signature test: disable the button/combo and show a "loading" label. */
@@ -571,13 +573,14 @@ public class ZnackAutomationController {
             loadDeletedProducts();
             logsTable.getItems().setAll(currentRepository.findLogs());
         });
-        task.setOnFailed(event -> {
+        java.util.function.Consumer<Throwable> taskFailure = rejection -> {
             setProductsBusy(false);
             if (generation != shopGeneration || currentRepository != repository) return;
-            Throwable failure = task.getException();
+            Throwable failure = rejection;
             AlertService.showError(value(failure == null ? null : failure.getMessage()));
-        });
-        AppTaskExecutor.execute(task);
+        };
+        task.setOnFailed(event -> taskFailure.accept(task.getException()));
+        AppTaskExecutor.execute(task, taskFailure);
     }
 
     /** Hiện/ẩn loading khi xoá GTIN: spinner + khoá nút xoá + con trỏ chờ trên bảng. */
@@ -610,7 +613,7 @@ public class ZnackAutomationController {
             deletedCategoryFilter.rebuild(allDeletedProducts.stream().map(Product::category).toList());
             applyDeletedFilter();
         });
-        AppTaskExecutor.execute(task);
+        AppTaskExecutor.execute(task,error->{if(generation==shopGeneration&&currentRepository==repository)AlertService.showError(error.getMessage());});
     }
 
     private void applyDeletedFilter() {
@@ -644,12 +647,13 @@ public class ZnackAutomationController {
             loadDeletedProducts();
             logsTable.getItems().setAll(currentRepository.findLogs());
         });
-        task.setOnFailed(event -> {
+        java.util.function.Consumer<Throwable> taskFailure = rejection -> {
             if (generation != shopGeneration || currentRepository != repository) return;
-            Throwable failure = task.getException();
+            Throwable failure = rejection;
             AlertService.showError(value(failure == null ? null : failure.getMessage()));
-        });
-        AppTaskExecutor.execute(task);
+        };
+        task.setOnFailed(event -> taskFailure.accept(task.getException()));
+        AppTaskExecutor.execute(task, taskFailure);
     }
 
     private void purgeProduct(Product product) {
@@ -675,12 +679,13 @@ public class ZnackAutomationController {
             ordersTable.getItems().setAll(currentRepository.findOrders());
             logsTable.getItems().setAll(currentRepository.findLogs());
         });
-        task.setOnFailed(event -> {
+        java.util.function.Consumer<Throwable> taskFailure = rejection -> {
             if (generation != shopGeneration || currentRepository != repository) return;
-            Throwable failure = task.getException();
+            Throwable failure = rejection;
             AlertService.showError(value(failure == null ? null : failure.getMessage()));
-        });
-        AppTaskExecutor.execute(task);
+        };
+        task.setOnFailed(event -> taskFailure.accept(task.getException()));
+        AppTaskExecutor.execute(task, taskFailure);
     }
 
     private Button iconButton(String icon, String tooltip) {
@@ -795,7 +800,7 @@ public class ZnackAutomationController {
                 authStatusLabel.setText(tr("znack.signature.catalog_refreshed"));
             }
         });
-        task.setOnFailed(event -> {
+        java.util.function.Consumer<Throwable> taskFailure = rejection -> {
             if (generation != shopGeneration || currentRepository != repository) return;
             productSyncRunning = false;
             updateSaveState();
@@ -805,8 +810,9 @@ public class ZnackAutomationController {
                 signerChangeSyncPending = false;
                 authStatusLabel.setText(tr("znack.signature.catalog_refresh_failed"));
             }
-        });
-        AppTaskExecutor.execute(task);
+        };
+        task.setOnFailed(event -> taskFailure.accept(task.getException()));
+        AppTaskExecutor.execute(task, taskFailure);
     }
 
     private boolean hasVerifiedSignature(Settings settings) {
@@ -1025,7 +1031,7 @@ public class ZnackAutomationController {
                 return null;
             }
         };
-        AppTaskExecutor.execute(task);
+        AppTaskExecutor.execute(task,error->{if(currentRepository==repository)AlertService.showError(error.getMessage());});
     }
 
     private String signatureError(CryptoProException error) {

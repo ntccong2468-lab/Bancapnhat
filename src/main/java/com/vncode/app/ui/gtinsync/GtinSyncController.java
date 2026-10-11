@@ -153,8 +153,9 @@ public final class GtinSyncController {
         task.valueProperty().addListener((o,a,b)->{if(b!=null&&!disposed&&model.token().equals(token))showHistory(b);});
         Runnable finish=()->{runningQueues.remove(scope);if(!disposed)updateButtons();};
         task.setOnSucceeded(e->finish.run());
-        task.setOnFailed(e->{if(!disposed&&model.token().equals(token))statusLabel.setText(tr("gtinsync.error"));finish.run();});
-        task.setOnCancelled(e->finish.run());AppTaskExecutor.execute(task);
+        java.util.function.Consumer<Throwable> taskFailure = rejection ->{if(!disposed&&model.token().equals(token))statusLabel.setText(tr("gtinsync.error"));finish.run();};
+        task.setOnFailed(e -> taskFailure.accept(task.getException()));
+        task.setOnCancelled(e->finish.run());AppTaskExecutor.execute(task, taskFailure);
     }
     private void jobAction(Consumer<UUID> action) {
         var item=historyTable.getSelectionModel().getSelectedItem();if(item==null)return;var token=model.token();
@@ -195,7 +196,8 @@ public final class GtinSyncController {
         if(cancellable)reads.add(task);
         Runnable finish=()->{reads.remove(task);if(!disposed&&model.token().equals(token)){if(blocking)busy=false;updateButtons();}};
         task.setOnSucceeded(e->{try{if(!disposed&&model.token().equals(token))done.accept(task.getValue());}finally{finish.run();}});
-        task.setOnFailed(e->{if(!disposed&&model.token().equals(token))statusLabel.setText(tr("gtinsync.error"));finish.run();});
-        task.setOnCancelled(e->finish.run());AppTaskExecutor.execute(task);
+        java.util.function.Consumer<Throwable> taskFailure = rejection ->{if(!disposed&&model.token().equals(token))statusLabel.setText(tr("gtinsync.error"));finish.run();};
+        task.setOnFailed(e -> taskFailure.accept(task.getException()));
+        task.setOnCancelled(e->finish.run());AppTaskExecutor.execute(task, taskFailure);
     }
 }

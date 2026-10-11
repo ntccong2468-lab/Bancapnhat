@@ -99,16 +99,17 @@ public class DashboardController {
             hasLoadedData = true;
             setData(task.getValue());
         });
-        task.setOnFailed(event -> {
+        java.util.function.Consumer<Throwable> taskFailure = rejection -> {
             if (token != requestToken) {
                 return;
             }
             setLoading(false);
-            LOGGER.error("Khong the tai dashboard cho shop {}", currentShop.getId(), task.getException());
+            LOGGER.error("Khong the tai dashboard cho shop {}", currentShop.getId(), rejection);
             clear();
             statusLabel.setText(I18nService.getInstance().tr("dashboard.load_error"));
-        });
-        AppTaskExecutor.execute(task);
+        };
+        task.setOnFailed(event -> taskFailure.accept(task.getException()));
+        AppTaskExecutor.execute(task, taskFailure);
     }
 
     private void setData(DashboardKpis kpis) {

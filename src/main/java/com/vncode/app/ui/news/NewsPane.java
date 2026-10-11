@@ -52,8 +52,9 @@ public final class NewsPane extends VBox {
   if(busy)return;busy=true;long epoch=generation;
   Task<Void> task=new Task<>(){protected Void call()throws Exception{service.refresh();return null;}};
   task.setOnSucceeded(e->{if(disposed||epoch!=generation)return;busy=false;visible.clear();cursor=null;ended=false;loadMore();status.setText("");renderPreview();unread.accept(service.unreadCount());});
-  task.setOnFailed(e->{if(disposed||epoch!=generation)return;busy=false;status.setText(tr("news.offline"));renderPreview();unread.accept(service.unreadCount());});
-  AppTaskExecutor.execute(task);
+  java.util.function.Consumer<Throwable> taskFailure = rejection ->{if(disposed||epoch!=generation)return;busy=false;status.setText(tr("news.offline"));renderPreview();unread.accept(service.unreadCount());};
+        task.setOnFailed(e -> taskFailure.accept(task.getException()));
+  AppTaskExecutor.execute(task, taskFailure);
  }
  public void setShop(com.vncode.app.models.Shop selected){
   generation++;translated.clear();translating.clear();busy=false;shop=selected;scope=selected!=null&&selected.getMarketplace()==com.vncode.app.integration.marketplace.Marketplace.WILDBERRIES?NewsScope.forShop(selected):null;opened=null;detailShown=false;scroll.setContent(list);service.setOfficial(List.of(),official);visible.clear();cursor=null;ended=false;loadMore();renderPreview();unread.accept(service.unreadCount());
@@ -114,13 +115,13 @@ public final class NewsPane extends VBox {
  public void setOnOpenPage(Runnable callback){onOpenPage=callback;}
  private void renderDetail(NewsItem item){detail.getChildren().clear();var shown=showOriginal?item:display(item);Label heading=new Label(shown.title());heading.setWrapText(true);heading.getStyleClass().add("h2");detail.getChildren().add(heading);
   var metadata=service.sellerNews(item.id());detail.getChildren().add(new Label(tr(metadata.isPresent()?"news.source.wb":"news.source.vn")));
-  metadata.ifPresent(value->{var link=new Hyperlink(tr("news.original_source"));link.setOnAction(e->AppTaskExecutor.execute(new Task<Void>(){protected Void call(){try{if(java.awt.Desktop.isDesktopSupported())java.awt.Desktop.getDesktop().browse(value.sourceURL());}catch(Exception ignored){}return null;}}));detail.getChildren().add(link);});
+  metadata.ifPresent(value->{var link=new Hyperlink(tr("news.original_source"));link.setOnAction(e->AppTaskExecutor.execute(new Task<Void>(){protected Void call(){try{if(java.awt.Desktop.isDesktopSupported())java.awt.Desktop.getDesktop().browse(value.sourceURL());}catch(Exception ignored){}return null;}},rejection->status.setText(tr("runtime.queue_full"))));detail.getChildren().add(link);});
   if(metadata.isPresent()){var state=translation(item);detail.getChildren().add(new Label(tr(state!=null&&state.state()==NewsTranslationService.State.TRANSLATED?"news.translated":"news.translation_missing")));var toggle=new Button(tr(showOriginal?"news.view_translation":"news.view_original"));toggle.setOnAction(e->{showOriginal=!showOriginal;renderDetail(item);});toggle.setDisable(state==null||state.state()!=NewsTranslationService.State.TRANSLATED);detail.getChildren().add(toggle);}
   for(String line:shown.body().split("\\R",-1)){
    boolean isHeading=line.startsWith("#");String normalized=isHeading?line.replaceFirst("^#{1,6}\\s*",""):line.replaceFirst("^[-*]\\s+","• ");
    TextFlow flow=new TextFlow();var pattern=Pattern.compile("\\[([^]\\n]+)]\\(([^)\\s]+)\\)|\\*\\*([^*]+)\\*\\*|\\*([^*]+)\\*");var matcher=pattern.matcher(normalized);int end=0;
    while(matcher.find()){addText(flow,normalized.substring(end,matcher.start()),isHeading,false);
-    if(matcher.group(1)!=null&&NewsService.safeLink(matcher.group(2))){String url=matcher.group(2);Hyperlink link=new Hyperlink(matcher.group(1));link.setOnAction(e->AppTaskExecutor.execute(new Task<Void>(){protected Void call(){try{if(java.awt.Desktop.isDesktopSupported())java.awt.Desktop.getDesktop().browse(java.net.URI.create(url));}catch(Exception ignored){}return null;}}));flow.getChildren().add(link);}
+    if(matcher.group(1)!=null&&NewsService.safeLink(matcher.group(2))){String url=matcher.group(2);Hyperlink link=new Hyperlink(matcher.group(1));link.setOnAction(e->AppTaskExecutor.execute(new Task<Void>(){protected Void call(){try{if(java.awt.Desktop.isDesktopSupported())java.awt.Desktop.getDesktop().browse(java.net.URI.create(url));}catch(Exception ignored){}return null;}},rejection->status.setText(tr("runtime.queue_full"))));flow.getChildren().add(link);}
     else if(matcher.group(3)!=null)addText(flow,matcher.group(3),true,false);
     else if(matcher.group(4)!=null)addText(flow,matcher.group(4),false,true);
     else addText(flow,matcher.group(),isHeading,false);end=matcher.end();

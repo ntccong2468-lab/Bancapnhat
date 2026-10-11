@@ -299,7 +299,8 @@ public final class Gs1Pane extends BorderPane {
         long expected=generation;busy=true;busyState.set(true);status.setText(tr("gs1.loading"));render();tasks.incrementAndGet();
         Task<T> task=new Task<>(){@Override protected T call()throws Exception{try{return work.call();}finally{tasks.decrementAndGet();}}};
         task.setOnSucceeded(e->{if(disposed||generation!=expected)return;busy=false;busyState.set(false);render();done.accept(task.getValue());});
-        task.setOnFailed(e->{if(disposed||generation!=expected)return;busy=false;busyState.set(false);render();reloadRequests();showError(task.getException());});AppTaskExecutor.execute(task);
+        java.util.function.Consumer<Throwable> taskFailure = rejection ->{if(rejection instanceof java.util.concurrent.RejectedExecutionException)tasks.decrementAndGet();if(disposed||generation!=expected)return;busy=false;busyState.set(false);render();reloadRequests();showError(rejection);};
+        task.setOnFailed(e -> taskFailure.accept(task.getException()));AppTaskExecutor.execute(task, taskFailure);
     }
     private Button button(String key,Runnable action){Button button=new Button(tr(key));button.setOnAction(e->{if(busy||disposed)return;try{action.run();}catch(RuntimeException failure){showError(failure);}});return button;}
     private void updateUnread(){

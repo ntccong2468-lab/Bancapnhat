@@ -25,7 +25,7 @@ public final class WbNewsClient implements OfficialNewsService.Reader {
   var endpoint=Objects.requireNonNull(HttpUrl.parse(root.resolve("/api/communications/v2/news").toString())).newBuilder();
   if(fromId==null||fromId.isBlank())endpoint.addQueryParameter("from",Objects.requireNonNull(from).atZone(ZoneId.of("Europe/Moscow")).toLocalDate().toString());else endpoint.addQueryParameter("fromID",fromId);
   var request=new Request.Builder().url(endpoint.build()).header("Authorization",token).header("Accept","application/json").get().build();
-  try(var response=http.newCall(request).execute()) {
+  try(var slot=com.vncode.app.shared.MarketplaceRequestBudget.acquire(); var response=http.newCall(request).execute()) {
    if(response.code()==429){long delay=3600;try{delay=Long.parseLong(Objects.toString(response.header("Retry-After"),"3600"));}catch(NumberFormatException ignored){}throw new RateLimitedException(Duration.ofSeconds(Math.max(60,Math.min(86400,delay))));}
    if(!response.isSuccessful()||response.body()==null||response.body().contentLength()>2*1024*1024)throw new IOException("WB news unavailable");
    byte[] data=response.body().byteStream().readNBytes(2*1024*1024+1);if(data.length>2*1024*1024)throw new IOException("WB news response exceeds limit");

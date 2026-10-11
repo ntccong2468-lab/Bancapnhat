@@ -45,11 +45,12 @@ public final class OzonKizPolicyEditor {
             host.busy(false);
             if (host.isCurrent()) openDialog(shopId, task.getValue(), host);
         });
-        task.setOnFailed(event -> {
+        java.util.function.Consumer<Throwable> taskFailure = rejection -> {
             host.busy(false);
-            host.error(task.getException());
-        });
-        AppTaskExecutor.execute(task);
+            host.error(rejection);
+        };
+        task.setOnFailed(event -> taskFailure.accept(task.getException()));
+        AppTaskExecutor.execute(task, taskFailure);
     }
 
     private void openDialog(int shopId, Data data, KizGtinMappingEditor.Host host) {
@@ -154,11 +155,12 @@ public final class OzonKizPolicyEditor {
             host.busy(false);
             host.saved();
         });
-        task.setOnFailed(event -> {
+        java.util.function.Consumer<Throwable> taskFailure = rejection -> {
             host.busy(false);
-            host.error(task.getException());
-        });
-        AppTaskExecutor.execute(task);
+            host.error(rejection);
+        };
+        task.setOnFailed(event -> taskFailure.accept(task.getException()));
+        AppTaskExecutor.execute(task, taskFailure);
     }
 
     private static boolean matches(OzonProductDto product, String query) {

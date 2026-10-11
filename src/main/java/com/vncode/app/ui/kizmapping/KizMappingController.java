@@ -192,14 +192,15 @@ public class KizMappingController {
             ZnackSuzAuthDialogService.promptIfNeeded(current, summaries);
             ZnackMissingDocumentsDialogService.promptIfNeeded(current, summaries);
         });
-        task.setOnFailed(event -> {
+        java.util.function.Consumer<Throwable> taskFailure = rejection -> {
             if (generation != shopGeneration) return;
             syncing = false;
             setLoadingState();
-            if (showErrors) AlertService.showError(friendlyError(task.getException()));
+            if (showErrors) AlertService.showError(friendlyError(rejection));
             refresh();
-        });
-        AppTaskExecutor.execute(task);
+        };
+        task.setOnFailed(event -> taskFailure.accept(task.getException()));
+        AppTaskExecutor.execute(task, taskFailure);
     }
 
     public void refresh() {
@@ -231,13 +232,14 @@ public class KizMappingController {
                 ZnackMissingDocumentsDialogService.promptIfNeeded(currentRepository, summaries);
             }
         });
-        task.setOnFailed(e -> {
+        java.util.function.Consumer<Throwable> taskFailure = rejection -> {
             if (generation == shopGeneration) {
                 setLoading(false);
-                AlertService.showError(task.getException().getMessage());
+                AlertService.showError(rejection.getMessage());
             }
-        });
-        AppTaskExecutor.execute(task);
+        };
+        task.setOnFailed(e -> taskFailure.accept(task.getException()));
+        AppTaskExecutor.execute(task, taskFailure);
     }
 
     private void showMapping(ZnackGtinInventorySummary summary) {
@@ -333,13 +335,14 @@ public class KizMappingController {
             setLoading(false);
             refresh();
         });
-        task.setOnFailed(e -> {
+        java.util.function.Consumer<Throwable> taskFailure = rejection -> {
             if (generation != shopGeneration) return;
             setLoading(false);
-            AlertService.showError(friendlyError(task.getException()));
+            AlertService.showError(friendlyError(rejection));
             refresh();
-        });
-        AppTaskExecutor.execute(task);
+        };
+        task.setOnFailed(e -> taskFailure.accept(task.getException()));
+        AppTaskExecutor.execute(task, taskFailure);
     }
 
     private void runBackground(Runnable action) {
@@ -350,7 +353,7 @@ public class KizMappingController {
         task.setOnSucceeded(e -> {
             if (generation == shopGeneration) refresh();
         });
-        AppTaskExecutor.execute(task);
+        AppTaskExecutor.execute(task,error->{if(generation==shopGeneration)AlertService.showError(friendlyError(error));});
     }
 
     private void setLoading(boolean loading) {

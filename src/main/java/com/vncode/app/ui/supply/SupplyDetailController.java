@@ -308,17 +308,18 @@ public class SupplyDetailController {
             setGtinSyncing(false);
             refreshGtinInventory();
         });
-        task.setOnFailed(event -> {
+        java.util.function.Consumer<Throwable> taskFailure = rejection -> {
             if (generation != shopGeneration) {
                 return;
             }
             setGtinSyncing(false);
             if (showErrors) {
-                AlertService.showError(friendlyError(task.getException()));
+                AlertService.showError(friendlyError(rejection));
             }
             refreshGtinInventory();
-        });
-        AppTaskExecutor.execute(task);
+        };
+        task.setOnFailed(event -> taskFailure.accept(task.getException()));
+        AppTaskExecutor.execute(task, taskFailure);
     }
 
     public void setShop(Shop selected) {
@@ -375,15 +376,16 @@ public class SupplyDetailController {
             ZnackSuzAuthDialogService.promptIfNeeded(currentRepository, task.getValue());
             ZnackMissingDocumentsDialogService.promptIfNeeded(currentRepository, task.getValue());
         });
-        task.setOnFailed(event -> {
+        java.util.function.Consumer<Throwable> taskFailure = rejection -> {
             if (generation != shopGeneration) {
                 return;
             }
             setGtinLoading(false);
-            AlertService.showError(friendlyError(task.getException()));
+            AlertService.showError(friendlyError(rejection));
             startPendingGtinSync();
-        });
-        AppTaskExecutor.execute(task);
+        };
+        task.setOnFailed(event -> taskFailure.accept(task.getException()));
+        AppTaskExecutor.execute(task, taskFailure);
     }
 
     public void setSupplyInfo(String title, String meta) {
@@ -401,7 +403,7 @@ public class SupplyDetailController {
             int shopId=shop.getId();long generation=shopGeneration;
             var ids=orders.stream().map(Order::getNmId).filter(java.util.Objects::nonNull).distinct().toList();
             var task=new Task<java.util.Map<Long,String>>(){protected java.util.Map<Long,String> call(){return gtinRepository.findMappings(shopId,ids);}};
-            task.setOnSucceeded(e->{if(request==mappingRequest&&generation==shopGeneration){orderMappings=java.util.Map.copyOf(task.getValue());orderTable.refresh();}});AppTaskExecutor.execute(task);
+            task.setOnSucceeded(e->{if(request==mappingRequest&&generation==shopGeneration){orderMappings=java.util.Map.copyOf(task.getValue());orderTable.refresh();}});AppTaskExecutor.execute(task,error->{if(request==mappingRequest&&generation==shopGeneration)AlertService.showError(error.getMessage());});
         }
         boolean hasOrders = orders != null && !orders.isEmpty();
         orderTable.setVisible(hasOrders);
@@ -816,15 +818,16 @@ public class SupplyDetailController {
             purchasesStarting.remove(gtin);
             refreshGtinInventory();
         });
-        task.setOnFailed(event -> {
+        java.util.function.Consumer<Throwable> taskFailure = rejection -> {
             if (generation != shopGeneration) {
                 return;
             }
             purchasesStarting.remove(gtin);
-            AlertService.showError(friendlyError(task.getException()));
+            AlertService.showError(friendlyError(rejection));
             refreshGtinInventory();
-        });
-        AppTaskExecutor.execute(task);
+        };
+        task.setOnFailed(event -> taskFailure.accept(task.getException()));
+        AppTaskExecutor.execute(task, taskFailure);
     }
 
     private void startRetryIntroduction(String gtin) {
@@ -850,15 +853,16 @@ public class SupplyDetailController {
             purchasesStarting.remove(gtin);
             refreshGtinInventory();
         });
-        task.setOnFailed(event -> {
+        java.util.function.Consumer<Throwable> taskFailure = rejection -> {
             if (generation != shopGeneration) {
                 return;
             }
             purchasesStarting.remove(gtin);
-            AlertService.showError(friendlyError(task.getException()));
+            AlertService.showError(friendlyError(rejection));
             refreshGtinInventory();
-        });
-        AppTaskExecutor.execute(task);
+        };
+        task.setOnFailed(event -> taskFailure.accept(task.getException()));
+        AppTaskExecutor.execute(task, taskFailure);
     }
 
     private void setGtinLoading(boolean loading) {
