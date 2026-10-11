@@ -191,6 +191,7 @@ public class Database {
             com.vncode.app.features.gtinsync.GtinSyncSchema.initialize(conn);
             com.vncode.app.features.products.ProductSchema.ensureTables(conn);
             com.vncode.app.features.listingcopy.ListingCopySchema.ensureTables(conn);
+            com.vncode.app.features.products.ProductEditRepository.ensureTables(conn);
                 com.vncode.app.features.gs1.Gs1BalanceSchema.ensureTables(conn);
                 com.vncode.app.features.news.SellerNewsSchema.ensureTables(conn);
                 com.vncode.app.features.news.NewsTranslationService.ensureTables(conn);

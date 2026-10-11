@@ -135,6 +135,11 @@ public final class GtinSyncRepository {
                 guard=" AND EXISTS(SELECT 1 FROM gtin_sync_jobs j WHERE j.id=gtin_sync_items.job_id AND j.paused=0)";
             if(next==Status.VALIDATING)
                 guard+=" AND NOT EXISTS(SELECT 1 FROM gtin_sync_items other WHERE other.id<>gtin_sync_items.id AND other.shop_id=gtin_sync_items.shop_id AND other.marketplace=gtin_sync_items.marketplace AND other.product_id=gtin_sync_items.product_id AND other.status IN ('VALIDATING','SENDING','AWAITING_VERIFICATION','RECONCILE_REQUIRED'))";
+            if(next==Status.VALIDATING || next==Status.SENDING) {
+                try(var schema=c.prepareStatement("SELECT 1 FROM sqlite_master WHERE name='product_edit_items'");var rs=schema.executeQuery()) {
+                    if(rs.next())guard+=" AND NOT EXISTS(SELECT 1 FROM product_edit_items e WHERE e.shop_id=gtin_sync_items.shop_id AND e.marketplace=gtin_sync_items.marketplace AND e.card_id=gtin_sync_items.product_id AND e.state IN ('SENDING','REMOTE_PROCESSING','RECONCILE_REQUIRED'))";
+                }
+            }
             try(var p=c.prepareStatement("UPDATE gtin_sync_items SET status=?,remote_task_id=?,updated_at=? WHERE id=? AND status=?"+guard)) {
                 p.setString(1,next.name());p.setString(2,remoteTaskId==null?item.remoteTaskId():remoteTaskId);p.setString(3,Instant.now().toString());p.setString(4,itemId.toString());p.setString(5,expected.name());
                 if(p.executeUpdate()!=1) return false;

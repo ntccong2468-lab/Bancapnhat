@@ -74,8 +74,8 @@ Quy ước đường dẫn: các tên dưới `features/`, `integration/`, `shar
 
 **Interfaces:** `ProductBulkEditService.preview(Shop,List<ProductKey>,ProductBulkEdit):ProductEditPreview`, `apply(Shop,String previewId,boolean confirmed):ProductEditResult`, `reconcile(Shop,String jobId):ProductEditResult`. Nested immutable preview/result records ở service; preview binds sorted/frozen keys, snapshot hashes and selected field values; checkpoint repository owns SQL transaction and owner checks. Adapter C2 supplies `previewUpdate(Shop,ProductSnapshot,ProductBulkEdit):ProductEditPreview`, `submitUpdate(Shop,ProductEditPreview):RemoteSubmission`, `reconcile(Shop,RemoteSubmission):RemoteResult`.
 
-- [ ] Viết `cardLevelConflictingSizesCannotSubmit`, `previewRequiresFreshMatchingRevision`, `confirmationRequired`, `documentUploadDoesNotImplyValid`, `timeoutNeverResends`, `shopChangeDoesNotReassignJob`; assert conflicting values 0 HTTP writes, unconfirmed 0 writes, timeout 1 write and RECONCILE_REQUIRED, unrelated fields preserved.
-- [ ] Chạy `MVN -Dtest=ProductBulkEditServiceTest test`; xác nhận red.
-- [ ] Gom card-level edits, đọc mới bằng C1 trước preview, xác nhận tập/old-new, atomic claim job trước send, ledger per card, adapter chỉ ghi field chọn và đọc lại; TN VED gọi module lookup hiện có trong dialog. Giấy tờ cần file/metadata/permissions theo contract C2; incomplete contract giữ action disabled với lý do cụ thể, không nhận thành công giả.
-- [ ] Chạy lại test và targeted GTIN/mutation ownership tests liên quan; mong đợi không gửi trùng sau restart/timeout.
-- [ ] Commit `feat: add confirmed product bulk edits with reconciliation`.
+- [x] Viết `cardLevelConflictingSizesCannotSubmit`, `previewRequiresFreshMatchingRevision`, `confirmationRequired`, `documentUploadDoesNotImplyValid`, `timeoutNeverResends`, `shopChangeDoesNotReassignJob`; assert conflicting values 0 HTTP writes, unconfirmed 0 writes, timeout 1 write and RECONCILE_REQUIRED, unrelated fields preserved.
+- [x] Chạy `MVN -Dtest=ProductBulkEditServiceTest test`; xác nhận red.
+- [x] Gom card-level edits, đọc mới bằng C1 trước preview, xác nhận tập/old-new, atomic claim job trước send, ledger per card, adapter chỉ ghi field chọn và đọc lại; TN VED gọi module lookup hiện có trong dialog. Giấy tờ cần file/metadata/permissions theo contract C2; incomplete contract giữ action disabled với lý do cụ thể, không nhận thành công giả.
+- [x] Chạy lại test và targeted GTIN/mutation ownership tests liên quan; mong đợi không gửi trùng sau restart/timeout.
+- [x] Commit `feat: add confirmed product bulk edits with reconciliation`.

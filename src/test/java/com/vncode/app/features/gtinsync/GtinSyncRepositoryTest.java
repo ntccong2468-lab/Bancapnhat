@@ -78,6 +78,11 @@ class GtinSyncRepositoryTest {
         assertThrows(IllegalArgumentException.class,()->repo.createJob(List.of(preview(1,Marketplace.WILDBERRIES),preview(2,Marketplace.OZON))));
         assertTrue(repo.pending(1,Marketplace.WILDBERRIES).isEmpty());
     }
+    @Test void productEditClaimBlocksGtinForAllSizes()throws Exception {
+        var p=preview(1,Marketplace.WILDBERRIES);repo.createJob(List.of(p));var item=repo.pending(1,Marketplace.WILDBERRIES).getFirst();
+        try(var c=Database.getConnection();var s=c.createStatement()){s.execute("INSERT INTO product_edit_jobs VALUES('edit',1,'owner','{}','now')");s.execute("INSERT INTO product_edit_items(job_id,shop_id,marketplace,card_id,state,payload) VALUES('edit',1,'WILDBERRIES','101','RECONCILE_REQUIRED','{}')");}
+        assertFalse(repo.transition(item.id(),Status.QUEUED,Status.VALIDATING,""));assertEquals(Status.QUEUED,repo.item(item.id()).status());
+    }
     @Test void savesInternalMappingWithoutRemoteJob() {
         var key=preview(1,Marketplace.WILDBERRIES).before().key();
         repo.saveMapping(key,"00000000000017");
