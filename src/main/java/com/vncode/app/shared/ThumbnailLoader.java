@@ -13,6 +13,7 @@ import java.util.function.Predicate;
 public final class ThumbnailLoader implements AutoCloseable {
     private static final ShopReadCoordinator READS=ShopReadCoordinator.images();
     private static final ThumbnailCache<Image> CACHE=new ThumbnailCache<>(32L*1024*1024,i->(long)Math.ceil(i.getWidth())*(long)Math.ceil(i.getHeight())*4);
+    private static final Map<byte[],Long> BYTE_KEYS=new WeakHashMap<>();private static long byteSequence;
     private static final OkHttpClient HTTP=new OkHttpClient.Builder().connectTimeout(Duration.ofSeconds(8)).readTimeout(Duration.ofSeconds(12)).callTimeout(Duration.ofSeconds(20)).build();
     private final OkHttpClient client;private final Predicate<URI> policy;private final ShopReadCoordinator reads;private final ThumbnailCache<Image> cache;private final Clock clock;
     private final LinkedHashMap<String,Instant> failures=new LinkedHashMap<>();private volatile boolean closed;
@@ -32,6 +33,13 @@ public final class ThumbnailLoader implements AutoCloseable {
         });
     }
     public static long memoryBudget(){return CACHE.budgetBytes();}
+    public CompletableFuture<Image> loadBytes(byte[] bytes,int width,int height){
+        if(closed||bytes==null||bytes.length==0||bytes.length>MarketplaceMedia.MAX_BYTES||width<1||height<1||width>2048||height>2048)return CompletableFuture.failedFuture(new IOException("Thumbnail source unavailable"));
+        long id;synchronized(BYTE_KEYS){var prior=BYTE_KEYS.get(bytes);if(prior==null){if(BYTE_KEYS.size()>=512)BYTE_KEYS.remove(BYTE_KEYS.keySet().iterator().next());prior=++byteSequence;BYTE_KEYS.put(bytes,prior);}id=prior;}
+        String key="bytes-"+id+":"+width+"x"+height;var existing=cache.get(key);if(existing!=null)return CompletableFuture.completedFuture(existing);
+        return reads.submit(new ShopReadCoordinator.Key(1,"thumbnail-bytes",key),true,()->{var png=MarketplaceMedia.png(bytes,width,height);var image=new Image(new ByteArrayInputStream(png));if(image.isError())throw new IOException("Thumbnail unavailable");cache.put(key,image);return image;});
+    }
+    public static long sharedRetainedBytes(){return CACHE.retainedBytes();}
     public long retainedBytes(){return cache.retainedBytes();}
     public void close(){closed=true;synchronized(failures){failures.clear();}}
 }

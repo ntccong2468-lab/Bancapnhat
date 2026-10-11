@@ -516,7 +516,7 @@ public final class OzonDashboardController {
 
     private void loadLocal() {
         Shop selected=shop;if(disposed||selected==null){newOrdersTable.getItems().clear();packingOrdersTable.getItems().clear();deliveringOrdersTable.getItems().clear();updateTabTitles();updatePaging();return;}
-        long epoch=++pageGeneration;String text=postingSearch.getText();String sort=sortFields();var frozenOffsets=Map.copyOf(offsets);
+        long epoch=++pageGeneration,started=System.nanoTime();String text=postingSearch.getText();String sort=sortFields();var frozenOffsets=Map.copyOf(offsets);
         var owner=selected;String scope=com.vncode.app.integration.listing.ListingIdentity.fingerprint(owner)+"|"+text+"|"+sort+"|"+frozenOffsets;
         reads.submitLocal(new com.vncode.app.shared.ShopReadCoordinator.Key(selected.getId(),"ozon-fbs-page",scope),()->{
             var pages=new java.util.LinkedHashMap<String,com.vncode.app.features.ozon.OzonFbsPage>();
@@ -531,6 +531,7 @@ public final class OzonDashboardController {
             newOrdersTable.getItems().setAll(pages.get("awaiting_packaging").postings());packingOrdersRaw=pages.get("awaiting_deliver").postings();packingOrdersTable.getItems().setAll(packingOrdersRaw);deliveringOrdersTable.getItems().setAll(pages.get("delivering").postings());
             pages.forEach((status,page)->totals.put(status,page.total()));selectPosting(newOrdersTable,newSelection);selectPosting(packingOrdersTable,packingSelection);selectPosting(deliveringOrdersTable,deliveringSelection);
             updateEmptyStates();updateSelectionState();updatePrintAllState();updateTabTitles();updatePaging();
+            com.vncode.app.shared.RuntimeDiagnostics.afterNextPulse("ozon-fbs-render",started);
         }));
     }
     private String sortFields(){var fields=new ArrayList<String>();var options=getSortOptions();if(options.bySubject())fields.add("product");if(options.byArticle())fields.add("article");if(options.byColor())fields.add("color");if(options.bySize())fields.add("size");return String.join(",",fields);}
@@ -1228,7 +1229,7 @@ public final class OzonDashboardController {
 
     static double orderRowHeight(OzonPostingDto posting) {
         int itemRows = posting == null ? 0 : posting.items().size();
-        return 144.0 + Math.max(0, itemRows - 1) * 128.0;
+        return 184.0 + Math.max(0, itemRows - 1) * 180.0;
     }
 
     private static String itemText(OzonPostingItemDto item) {
@@ -1339,7 +1340,7 @@ public final class OzonDashboardController {
             OzonProductVariant variant = OzonProductVariant.from(item, findCatalogProduct(item));
             Label title = new Label(item.name().isBlank() ? "SKU " + item.sku() : item.name());
             title.getStyleClass().add("text-bold");
-            title.setWrapText(true);
+            title.setWrapText(false);title.setTooltip(new Tooltip(title.getText()));
             Label quantityBadge = new Label("× " + item.quantity());
             quantityBadge.getStyleClass().addAll("badge", "badge-warning");
             HBox titleRow = new HBox(8, title, quantityBadge);
@@ -1355,7 +1356,7 @@ public final class OzonDashboardController {
             variants.getStyleClass().add("text-muted");
             variants.setVisible(!details.isEmpty());
             variants.setManaged(!details.isEmpty());
-            var gtin=new Label("GTIN: "+verifiedGtinsBySku.getOrDefault(item.sku(),tr("products.unverified")));gtin.getStyleClass().add("text-muted");var card=findCatalogProduct(item);var barcode=new Label("SKU: "+item.sku()+" · "+(card==null?"":String.join(", ",card.barcodes())));barcode.getStyleClass().add("text-muted");barcode.setWrapText(true);
+            var gtin=new Label("GTIN: "+verifiedGtinsBySku.getOrDefault(item.sku(),tr("products.unverified")));gtin.getStyleClass().add("text-muted");var card=findCatalogProduct(item);var barcode=new Label("SKU: "+item.sku()+" · "+(card==null?"":String.join(", ",card.barcodes())));barcode.getStyleClass().add("text-muted");barcode.setTooltip(new Tooltip(barcode.getText()));
             var price=new Label(tr("ozon.fbs.price")+": "+item.price()+" "+item.currencyCode());price.getStyleClass().add("text-muted");
             var marking=new Label(tr("ozon.fbs.kiz")+": "+(posting.requirements().mandatoryMarkProductIds().contains(item.productId())?tr("ozon.fbs.required"):tr("ozon.fbs.check_before_print")));marking.getStyleClass().add("text-muted");
             VBox itemBox = new VBox(3, titleRow, metadata, variants,gtin,barcode,price,marking);

@@ -78,7 +78,7 @@ public final class ProductsPane extends BorderPane {
     private ProductQuery query(String next){return new ProductQuery(shop.getId(),shop.getMarketplace(),search.getText(),category.getValue()==null?List.of():List.of(category.getValue()),document.getValue(),missing.isSelected(),next,100);}
     private void load(boolean append) {
         if(disposed||shop==null){reload.setDisable(false);status.setText(tr("products.select_shop"));more.setVisible(false);more.setManaged(false);return;}
-        var q=query(append?cursor:"");var owner=shop;long epoch=generation;reload.setDisable(true);more.setDisable(true);status.setText(tr("products.loading"));
+        var q=query(append?cursor:"");var owner=shop;long epoch=generation,started=System.nanoTime();reload.setDisable(true);more.setDisable(true);status.setText(tr("products.loading"));
         reads.submitLocal(new ShopReadCoordinator.Key(owner.getId(),"product-page",q.toString()),()->reader.apply(q)).whenComplete((page,error)->Platform.runLater(()->{
             if(disposed||epoch!=generation||shop==null||shop.getId()!=owner.getId()||shop.getMarketplace()!=owner.getMarketplace())return;
             reload.setDisable(false);more.setDisable(false);
@@ -86,6 +86,7 @@ public final class ProductsPane extends BorderPane {
             if(page.rows().stream().anyMatch(row->row.key().shopId()!=owner.getId()||row.key().marketplace()!=owner.getMarketplace())){status.setText(tr("products.read_failed"));return;}
             if(append)rows.getItems().addAll(page.rows());else{rows.getItems().setAll(page.rows());displayedQuery=q;all.setDisable(false);}
             cursor=page.nextCursor();count.setText(Long.toString(page.total()));more.setVisible(cursor!=null&&!cursor.isEmpty());more.setManaged(more.isVisible());status.setText("");updateSelection();
+            RuntimeDiagnostics.afterNextPulse("products-render",started);
         }));
         if(!append&&category.getItems().size()==1)reads.submitLocal(new ShopReadCoordinator.Key(owner.getId(),"product-categories",owner.getMarketplace().name()),()->repository.categories(owner.getId(),owner.getMarketplace())).whenComplete((values,error)->Platform.runLater(()->{
             if(disposed||epoch!=generation||error!=null)return;updating=true;category.getItems().setAll((String)null);category.getItems().addAll(values);updating=false;

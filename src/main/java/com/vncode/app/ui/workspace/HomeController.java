@@ -1400,10 +1400,11 @@ public class HomeController implements Initializable {
     }
 
     private void loadSupply(WbSupplySummary supply) {
-        Shop shop = requireSelectedShop();
-        if (shop == null || shop.getMarketplace() != Marketplace.WILDBERRIES || supply == null) {
+        Shop selected = requireSelectedShop();
+        if (selected == null || selected.getMarketplace() != Marketplace.WILDBERRIES || supply == null) {
             return;
         }
+        Shop shop=frozenShop(selected);
         resetLoadedSupply();
         clearKizDraft();
         loadedSupplySummary = supply;
@@ -1418,12 +1419,6 @@ public class HomeController implements Initializable {
         supplyDetailController.setSupplyInfo(formatSupplyTitle(supply), "");
         supplyDetailController.syncGtinInventoryOnSupplyOpen();
 
-        Task<List<Order>> localTask = new Task<>() {
-            @Override
-            protected List<Order> call() throws Exception {
-                return supplyLoadWorkflow.loadLocal(shop, supply.getSupplyId());
-            }
-        };
         java.util.function.Consumer<Throwable> localTaskFailure = rejection -> {
             if (!isCurrentSupplyRequest(shop.getId(), supply.getSupplyId(), requestToken)) {
                 return;
@@ -1434,16 +1429,15 @@ public class HomeController implements Initializable {
             supplyDetailController.showEmptyState("", "");
             AlertService.showError(rejection.getMessage());
         };
-        localTask.setOnFailed(e -> localTaskFailure.accept(localTask.getException()));
-        localTask.setOnSucceeded(e -> {
-            if (!isCurrentSupplyRequest(shop.getId(), supply.getSupplyId(), requestToken)) {
-                return;
-            }
-            state.setLoadedOrdersRaw(localTask.getValue());
-            supplyDetailController.setSupplyInfo(formatSupplyTitle(supply), "");
-            startSupplyRefresh(shop, supply, requestToken);
-        });
-        AppTaskExecutor.execute(localTask, localTaskFailure);
+        localReads.submitLocal(new com.vncode.app.shared.ShopReadCoordinator.Key(shop.getId(),"wb-supply-local",supply.getSupplyId()+":"+requestToken+":"+com.vncode.app.integration.listing.ListingIdentity.fingerprint(shop)),()->supplyLoadWorkflow.loadLocal(shop,supply.getSupplyId())).whenComplete((orders,error)->javafx.application.Platform.runLater(()->{
+            if(disposed||!sameOwner(shop)||!isCurrentSupplyRequest(shop.getId(),supply.getSupplyId(),requestToken))return;
+            if(error!=null){localTaskFailure.accept(error);return;}
+            state.setLoadedOrdersRaw(orders);
+            applySortAndDisplayOrders();
+            supplyDetailController.setLoading(false);
+            supplyDetailController.setSupplyInfo(formatSupplyTitle(supply),"");
+            startSupplyRefresh(shop,supply,requestToken);
+        }));
     }
 
     private void startSupplyRefresh(Shop shop, WbSupplySummary supply, long requestToken) {
@@ -1504,7 +1498,7 @@ public class HomeController implements Initializable {
                 ));
             }
             finishSupplyPrintRequest(shop.getId(), supply.getSupplyId(), requestToken, true);
-            startSilentImageWarmup(shop, supply, requestToken);
+
         });
         AppTaskExecutor.execute(refreshTask, refreshTaskFailure);
     }

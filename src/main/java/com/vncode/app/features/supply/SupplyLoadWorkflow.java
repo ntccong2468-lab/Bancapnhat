@@ -15,13 +15,13 @@ public class SupplyLoadWorkflow {
 
     public List<Order> loadLocal(Shop shop, String supplyId) {
         MarketplaceGuard.requireWildberries(shop);
-        return wbSupplyWorkflow.loadOrdersForSupplyLocal(shop, supplyId);
+        return wbSupplyWorkflow.loadOrdersForSupplyData(shop, supplyId);
     }
 
     public List<Order> refreshSupplyData(Shop shop, String supplyId) throws IOException {
         MarketplaceGuard.requireWildberries(shop);
         wbSyncWorkflow.syncSupplyOrdersAndStatuses(shop, supplyId);
-        return wbSupplyWorkflow.loadOrdersForSupply(shop, supplyId);
+        return wbSupplyWorkflow.loadOrdersForSupplyDisplay(shop, supplyId);
     }
 
     public boolean hasMissingProducts(Shop shop, String supplyId) {

@@ -68,9 +68,12 @@
 
 **Interfaces:** `SellerWorkspaceFixture.create(Path,int ozonShops):void` luôn 10 shop, ozonShops=4 hoặc10; mỗi shop 10.000 sản phẩm/1.000 đơn. Benchmark nhận dataset/build/hardware IDs; median/p95/heap/FX stalls/queues/cache cùng điều kiện cho baseline/current.
 
-- [ ] Add 20×10 switch test, bounded queue/cache, 100.000 products/10.000 orders, slow HTTP fixture; schema4 migration/data preserve. Run targeted RED trước fixture/instrumentation.
-- [ ] Implement opt-in counters + reproducible fixture/harness; benchmark 6WB/4Ozon và10Ozon. Windows2core/4GB chưa có phải ghi chưa đo; tiếp tục native CI tương ứng.
-- [ ] `MVN clean verify`, `node --test tools/*.test.mjs`, actual four-locale/two-size UI; Expected 0 failure/error/skipped. One fresh most-capable reviewer for original + supplemental plans; fix important bugs RED→GREEN/full suite.
-- [ ] Commit validation sau số đo thật; D3 build và publish exact successful Windows commit như kế hoạch gốc. Không phát hành “không bao giờ lag” khi chưa có bằng chứng.
+- [x] Add 20×10 switch test, bounded queue/cache, 100.000 products/10.000 orders, slow HTTP fixture; schema4 migration/data preserve. Run targeted RED trước fixture/instrumentation.
+- [x] Implement opt-in counters + reproducible fixture/harness; benchmark 6WB/4Ozon và10Ozon. Windows2core/4GB chưa có phải ghi chưa đo; tiếp tục native CI tương ứng.
+- [x] `MVN clean verify`, `node --test tools/*.test.mjs`, actual four-locale/two-size UI; Expected 0 failure/error/skipped. One fresh most-capable reviewer for original + supplemental plans; fix important bugs RED→GREEN/full suite.
+- [x] Commit validation sau số đo thật; D3 build và publish exact successful Windows commit như kế hoạch gốc. Không phát hành “không bao giờ lag” khi chưa có bằng chứng.
 
 Self-review: mọi mục spec có task E1/E2/E3/D2; interfaces không trùng mutation; giữ Native đã chọn, cùng ledger/nhánh và cùng preview. D1 tiếp tục theo kế hoạch đã duyệt trong khi chờ duyệt kế hoạch bổ sung.
+
+D2 evidence: 798/798 Java/JavaFX, 33/33 Node; 2 datasets × 20×10 switches, 64 PNG and local reports in `docs/validation/2026-10-11-vn-code-1.4.0.md`. Windows 2 CPU/4 GiB baseline chưa đo; không công bố đạt. Ruling: final whole-branch review runs after D3 source/metadata are ready, before native build/publication, so it includes packaging changes.
+

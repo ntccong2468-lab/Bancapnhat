@@ -21,6 +21,26 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class DatabaseMigrationCompatibilityTest {
     @TempDir Path temp;
+    @Test void schema4To5KeepsShopTemplatesAndHistory()throws Exception {
+        System.setProperty("vncode.appdata.dir",temp.toString());Database.initDatabase();
+        try(var c=Database.getConnection();var s=c.createStatement()){
+            s.execute("INSERT INTO shops(id,name,marketplace,client_id,api_key) VALUES(41,'Synthetic WB','WILDBERRIES',NULL,'fixture'),(42,'Synthetic Ozon','OZON','42','fixture')");
+            s.execute("INSERT INTO print_templates(id,name,layout_json,created_at,updated_at) VALUES(41,'Synthetic template','{}','fixture','fixture')");
+            s.execute("INSERT INTO print_jobs(id,shop_id,shop_name,printed_at,item_count,template_id,template_layout_json,status) VALUES(91,41,'Synthetic WB','fixture',1,41,'{}','COMPLETED')");
+            for(String table:List.of("listing_copy_events","listing_copy_articles","listing_copy_jobs","product_documents","product_snapshots"))s.execute("DROP TABLE "+table);
+            s.execute("PRAGMA user_version=4");
+        }
+        try(var ignored=LocalDataMigrationGate.prepare(temp,"1.4.0","javafx")){
+            assertEquals(5,scalarInt("PRAGMA user_version"));assertEquals(2,scalarInt("SELECT count(*) FROM shops"));assertEquals("fixture",scalarText("SELECT api_key FROM shops WHERE id=42"));
+            assertEquals("Synthetic template",scalarText("SELECT name FROM print_templates WHERE id=41"));assertEquals(41,scalarInt("SELECT template_id FROM print_jobs WHERE id=91"));
+            assertTrue(tableExists("product_snapshots"));assertTrue(columnExists("listing_copy_jobs","summary"));assertTrue(columnExists("listing_copy_jobs","source_owner"));assertEquals("ok",scalarText("PRAGMA integrity_check"));assertEquals(0,resultRowCount("PRAGMA foreign_key_check"));
+        }
+        try(var files=java.nio.file.Files.walk(temp.resolve("snapshots"))){var snapshot=files.filter(p->p.getFileName().toString().equals("database.db")).findFirst().orElseThrow();try(var c=java.sql.DriverManager.getConnection("jdbc:sqlite:"+snapshot);var s=c.createStatement();var r=s.executeQuery("PRAGMA user_version")){assertTrue(r.next());assertEquals(4,r.getInt(1));}}
+    }
+    @Test void newerSchemaFailsClosed()throws Exception {
+        System.setProperty("vncode.appdata.dir",temp.toString());Database.initDatabase();try(var c=Database.getConnection();var s=c.createStatement()){s.execute("INSERT INTO shops(id,name,api_key) VALUES(41,'Synthetic sentinel','fixture')");s.execute("PRAGMA user_version=6");}
+        org.junit.jupiter.api.Assertions.assertThrows(java.io.IOException.class,()->LocalDataMigrationGate.prepare(temp,"1.4.0","javafx"));assertEquals(6,scalarInt("PRAGMA user_version"));assertEquals(1,scalarInt("SELECT count(*) FROM shops"));assertFalse(java.nio.file.Files.exists(temp.resolve("writer-state/javafx-1.4.0.ready")));
+    }
 
     @AfterEach void clear() {
         System.clearProperty("vncode.appdata.dir");

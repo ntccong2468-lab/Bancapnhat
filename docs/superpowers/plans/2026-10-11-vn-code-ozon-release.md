@@ -50,11 +50,14 @@ Quy ước đường dẫn: các tên dưới `features/`, `integration/`, `shar
 
 **Interfaces:** `SellerWorkspaceFixture.create(Path appdata):void` seeds exactly 5 shops (3 WB, 2 Ozon), 10.000 products/shop, 1.000 active orders/shop; benchmark accepts `-AppImage`, `-FixtureRoot`, `-OutputDirectory`, reports hardware/data/build IDs/median/p95/heap/FX stalls/queue/cache/listener stats. Instrumentation must be opt-in, no credentials or PII logged.
 
-- [ ] Viết `schema4To5KeepsShopTemplatesAndHistory`, `newerSchemaFailsClosed`, `consistentSnapshotRestoresForeignKeys`, `twentyShopCyclesReleaseReadsAndStayWithinCacheBudget`. Assert integrity_check=ok, foreign_key_check empty; after20×5 switches pending drains, cache<=67108864, no retained view/listener growth. Chạy targeted migration/UI/performance fixture tests; xác nhận red cho paths mới.
-- [ ] Implement synthetic seed, opt-in timing/read/thumbnail diagnostics và reproducible benchmark instructions. JavaFX tests verify routes/lazy behavior/4 locales at 1024×600/1366×768 and DPI simulation; actual Windows DPI verification remains D3. Do not change JVM heap blindly; record measured allocation/heap before recommending flags.
-- [ ] Chạy `MVN clean verify` dưới Xvfb đầy đủ; `node --test tools/*.test.mjs`; không bỏ test do feature chưa đúng. Record fresh test counts/log locations/remaining external contract gates. Làm reviewer độc lập cuối nhánh theo execution skill đã chọn, sửa issues và chạy lại checks liên quan.
-- [ ] Đo baseline commit `62e7e32` vs new build trên cùng Windows 2 CPU/4GB dataset; mục tiêu cached click/tab/shop p95<=300 ms, first page<=1s, phân tích FX stalls>500 ms; network/PIN/printer separate. Không suy % cải thiện hoặc Windows pass từ Linux tests. Nếu thiếu Windows capacity, lưu script/fixture và ghi native benchmark chưa chạy, tiếp tục checks có sẵn.
-- [ ] Commit validation/fixture sau khi kết quả phản ánh đúng thực tế, không đánh dấu performance target đạt từ plan.
+- [x] Viết `schema4To5KeepsShopTemplatesAndHistory`, `newerSchemaFailsClosed`, `consistentSnapshotRestoresForeignKeys`, `twentyShopCyclesReleaseReadsAndStayWithinCacheBudget`. Assert integrity_check=ok, foreign_key_check empty; after20×5 switches pending drains, cache<=67108864, no retained view/listener growth. Chạy targeted migration/UI/performance fixture tests; xác nhận red cho paths mới.
+- [x] Implement synthetic seed, opt-in timing/read/thumbnail diagnostics và reproducible benchmark instructions. JavaFX tests verify routes/lazy behavior/4 locales at 1024×600/1366×768 and DPI simulation; actual Windows DPI verification remains D3. Do not change JVM heap blindly; record measured allocation/heap before recommending flags.
+- [x] Chạy `MVN clean verify` dưới Xvfb đầy đủ; `node --test tools/*.test.mjs`; không bỏ test do feature chưa đúng. Record fresh test counts/log locations/remaining external contract gates. Làm reviewer độc lập cuối nhánh theo execution skill đã chọn, sửa issues và chạy lại checks liên quan.
+- [x] Đo baseline commit `62e7e32` vs new build trên cùng Windows 2 CPU/4GB dataset; mục tiêu cached click/tab/shop p95<=300 ms, first page<=1s, phân tích FX stalls>500 ms; network/PIN/printer separate. Không suy % cải thiện hoặc Windows pass từ Linux tests. Nếu thiếu Windows capacity, lưu script/fixture và ghi native benchmark chưa chạy, tiếp tục checks có sẵn.
+- [x] Commit validation/fixture sau khi kết quả phản ánh đúng thực tế, không đánh dấu performance target đạt từ plan.
+
+
+D2 evidence: 798/798 Java/JavaFX, 33/33 Node; 2 datasets × 20×10 switches, 64 PNG and local reports in `docs/validation/2026-10-11-vn-code-1.4.0.md`. Windows 2 CPU/4 GiB baseline chưa đo; không công bố đạt. Ruling: final whole-branch review runs after D3 source/metadata are ready, before native build/publication, so it includes packaging changes.
 
 ### D3: Bản nâng cấp VN code 1.4.0 Preview
 

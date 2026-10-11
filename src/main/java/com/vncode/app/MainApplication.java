@@ -48,10 +48,12 @@ public class MainApplication extends Application {
 
         stage.setScene(scene);
         stage.show();
+        com.vncode.app.shared.RuntimeDiagnostics.startPulseMonitor();
     }
 
     @Override
     public void stop() {
+        com.vncode.app.shared.RuntimeDiagnostics.stopPulseMonitor();
         if (homeController != null) {
             homeController.dispose();
         }

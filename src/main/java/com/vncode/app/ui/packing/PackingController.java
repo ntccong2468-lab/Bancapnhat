@@ -590,14 +590,14 @@ public class PackingController {
             @Override
             protected void updateItem(byte[] imageBytes, boolean empty) {
                 super.updateItem(imageBytes, empty);
-                long request=++imageGeneration;
+                long request=++imageGeneration,ownerGeneration=shopGeneration;
                 if (empty) {
                     setGraphic(null);
                     return;
                 }
                 var order=getTableRow()==null?null:getTableRow().getItem();
                 if(order!=null&&order.getImageUrl()!=null&&!order.getImageUrl().isBlank()){
-                    var view=new ImageView();view.setFitWidth(36);view.setFitHeight(48);view.setPreserveRatio(true);setGraphic(view);long ownerGeneration=shopGeneration;
+                    var view=new ImageView();view.setFitWidth(36);view.setFitHeight(48);view.setPreserveRatio(true);setGraphic(view);
                     try{thumbnails.load(java.net.URI.create(order.getImageUrl()),72,96).whenComplete((image,error)->javafx.application.Platform.runLater(()->{if(!disposed&&request==imageGeneration&&ownerGeneration==shopGeneration&&getTableRow()!=null&&getTableRow().getItem()==order&&error==null)view.setImage(image);}));}catch(IllegalArgumentException invalid){}return;
                 }
                 if (imageBytes == null || imageBytes.length == 0) {
@@ -609,11 +609,12 @@ public class PackingController {
                     setGraphic(placeholder);
                     return;
                 }
-                ImageView imageView = new ImageView(new Image(new ByteArrayInputStream(imageBytes)));
+                ImageView imageView = new ImageView();
                 imageView.setFitWidth(36);
                 imageView.setFitHeight(48);
                 imageView.setPreserveRatio(true);
                 setGraphic(imageView);
+                thumbnails.loadBytes(imageBytes,72,96).whenComplete((loaded,error)->javafx.application.Platform.runLater(()->{if(!disposed&&ownerGeneration==shopGeneration&&request==imageGeneration&&getTableRow()!=null&&getTableRow().getItem()==order&&error==null)imageView.setImage(loaded);}));
             }
         };
     }

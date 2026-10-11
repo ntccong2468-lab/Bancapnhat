@@ -16,13 +16,14 @@ import java.util.function.Predicate;
 public class FboProductImageService {
     private static final OkHttpClient HTTP=new OkHttpClient.Builder().connectTimeout(Duration.ofSeconds(8)).readTimeout(Duration.ofSeconds(12)).callTimeout(Duration.ofSeconds(20)).build();
     private static final ShopReadCoordinator IMAGES=ShopReadCoordinator.images();
-    private static final ThumbnailCache<byte[]> MEMORY=new ThumbnailCache<>(32L*1024*1024,bytes->bytes.length);
+    private static final ThumbnailCache<byte[]> MEMORY=com.vncode.app.shared.EncodedImageCache.shared();
     private static final LinkedHashMap<String,Instant> FAILED=new LinkedHashMap<>();
     private final ImageCacheRepository repository=new ImageCacheRepository();
     private final OkHttpClient client;private final Predicate<URI> policy;private final Clock clock;
     public FboProductImageService(){this(HTTP,MarketplaceMedia::allowed,Clock.systemUTC());}
     public FboProductImageService(OkHttpClient client,Predicate<URI> policy,Clock clock){this.client=MarketplaceMedia.credentialFree(client);this.policy=Objects.requireNonNull(policy);this.clock=Objects.requireNonNull(clock);}
     public static long memoryBudget(){return MEMORY.budgetBytes();}
+    public static long retainedBytes(){return MEMORY.retainedBytes();}
     public CompletableFuture<byte[]> loadImage(String url){return load(url,false);}
     public CompletableFuture<byte[]> loadThumbnailBytes(String url){return load(url,true);}
     private CompletableFuture<byte[]> load(String url,boolean thumbnail) {

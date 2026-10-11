@@ -137,6 +137,8 @@ public class SupplyDetailController {
     @FXML private Button inventoryToggleButton;
     private java.util.Map<Long,String> orderMappings=java.util.Map.of();
     private long mappingRequest;
+    private boolean disposed;
+    private final com.vncode.app.shared.ThumbnailLoader thumbnails=new com.vncode.app.shared.ThumbnailLoader();
     @FXML private void onToggleInventory(){boolean open=!gtinInventoryPane.isManaged();gtinInventoryPane.setManaged(open);gtinInventoryPane.setVisible(open);updateTableResizePolicy();}
     private void updateTableResizePolicy(){double minimum=orderTable.getColumns().stream().mapToDouble(javafx.scene.control.TableColumnBase::getMinWidth).sum()+20;var policy=gtinInventoryPane.isManaged()||orderTable.getWidth()<minimum?TableView.UNCONSTRAINED_RESIZE_POLICY:TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN;if(orderTable.getColumnResizePolicy()!=policy)orderTable.setColumnResizePolicy(policy);}
     @FXML
@@ -575,6 +577,7 @@ public class SupplyDetailController {
         imageTC.setCellFactory(column -> new TableCell<>() {
             private final ImageView imageView = new ImageView();
             private final StackPane placeholder = new StackPane();
+            private long imageRequest;
 
             {
                 imageView.setFitWidth(45);
@@ -590,24 +593,19 @@ public class SupplyDetailController {
             @Override
             protected void updateItem(byte[] item, boolean empty) {
                 super.updateItem(item, empty);
+                long ticket=++imageRequest,generation=shopGeneration;imageView.setImage(null);
                 if (empty) {
                     setGraphic(null);
                     setText(null);
                     return;
                 }
-                if (item == null || item.length == 0) {
-                    setGraphic(placeholder);
-                    setText(null);
-                    return;
-                }
+                setGraphic(placeholder);setText(null);var row=getTableRow()==null?null:getTableRow().getItem();
                 try {
-                    imageView.setImage(new Image(new ByteArrayInputStream(item)));
-                    setGraphic(imageView);
-                    setText(null);
-                } catch (Exception ex) {
-                    setGraphic(placeholder);
-                    setText(null);
-                }
+                    java.util.concurrent.CompletableFuture<Image> future;
+                    if(row!=null&&row.getImageUrl()!=null&&!row.getImageUrl().isBlank())future=thumbnails.load(java.net.URI.create(row.getImageUrl()),90,120);
+                    else if(item!=null&&item.length>0)future=thumbnails.loadBytes(item,90,120);else return;
+                    future.whenComplete((loaded,error)->javafx.application.Platform.runLater(()->{if(!disposed&&generation==shopGeneration&&ticket==imageRequest&&getTableRow()!=null&&getTableRow().getItem()==row&&error==null){imageView.setImage(loaded);setGraphic(imageView);}}));
+                }catch(IllegalArgumentException ignored){}
             }
         });
     }
@@ -947,6 +945,7 @@ public class SupplyDetailController {
     }
 
     public void dispose() {
+        disposed=true;thumbnails.close();
         shopGeneration++;
         if (gtinRefreshTimer != null) {
             gtinRefreshTimer.stop();

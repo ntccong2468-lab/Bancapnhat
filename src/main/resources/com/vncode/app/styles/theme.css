@@ -1,3 +1,13 @@
+/* Rich Ozon posting details need computed height, including multi-item packages. */
+.ozon-fbs-workspace #newOrdersTable .table-row-cell,
+.ozon-fbs-workspace #packingOrdersTable .table-row-cell,
+.ozon-fbs-workspace #deliveringOrdersTable .table-row-cell {
+    -fx-cell-size: -1;
+    -fx-min-height: 174;
+}
+.ozon-fbs-workspace .titled-pane > .title { -fx-background-color: -bg-secondary; -fx-background-radius: 10; }
+.ozon-fbs-workspace .titled-pane > .title > .text { -fx-fill: -text-primary; }
+.ozon-fbs-workspace .titled-pane > .content { -fx-background-color: -bg-primary; -fx-border-color: -border-color; }
 /* CSS Variables & Theme Definitions */
 .root {
     /* DEFAULT (DARK) THEME VARIABLES */

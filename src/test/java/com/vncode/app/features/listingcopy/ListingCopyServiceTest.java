@@ -25,6 +25,11 @@ class ListingCopyServiceTest {
     }
     @AfterEach void clear(){System.clearProperty("vncode.appdata.dir");}
     CopyJob draft(Shop destination)throws Exception{return service.draft(source,List.of(snapshot.key()),List.of(destination),ListingCopyMappingTest.options(Marketplace.WILDBERRIES)).getFirst();}
+    @Test void legacyNineColumnJobGetsSmallSummaryWithoutChangingInflightState()throws Exception {
+        var job=draft(dest);service.preview(dest,job.id());assertTrue(repo.claim(dest.getId(),job.id(),service.get(dest,job.id()).preview().requestHash()));
+        try(var c=Database.getConnection();var s=c.createStatement()){s.execute("DROP INDEX listing_copy_source");s.execute("ALTER TABLE listing_copy_jobs DROP COLUMN summary");s.execute("ALTER TABLE listing_copy_jobs DROP COLUMN source_owner");ListingCopySchema.ensureTables(c);}
+        var summary=service.list(dest).getFirst();assertEquals(CopyState.SENDING,summary.state());assertNull(summary.preview());assertNotNull(service.get(dest,job.id()).preview());assertEquals(CopyState.SENDING,service.get(dest,job.id()).state());assertEquals(1,service.listSource(source).size());assertEquals(0,writes.get());
+    }
     @Test void largeDocumentHistoryLoadsSummariesOnly()throws Exception {
         String marker="LARGE_DOCUMENT_"+"A".repeat(1024*1024);
         for(int i=0;i<100;i++){var now=java.time.Instant.now();var p=new CopyPreview(2,dest.getMarketplace(),ListingIdentity.fingerprint(dest),snapshot.key(),snapshot.revision(),"hash","{}","[]",marker,Map.of(),List.of(),List.of("NEW-"+i),ListingCopyMappingTest.options(dest.getMarketplace()),"CREATE");repo.insert(new CopyJob("large-"+i,1,ListingIdentity.fingerprint(source),2,dest.getMarketplace(),ListingIdentity.fingerprint(dest),snapshot,p.options(),p,null,CopyState.AWAITING_CONFIRMATION,List.of(),now,now));}

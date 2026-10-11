@@ -49,7 +49,7 @@ public final class AppTaskExecutor {
     public static int pendingCount(){return EXECUTOR.getQueue().size();}
 
     public static boolean hasRunningTasks() {
-        return ACTIVE_TASK_COUNT.get() > 0;
+        return ACTIVE_TASK_COUNT.get() > 0 || SellerMutationExecutor.activeCount() > 0 || SellerMutationExecutor.pendingCount() > 0;
     }
 
     public static int getRunningTaskCount() {

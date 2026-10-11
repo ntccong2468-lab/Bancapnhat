@@ -12,6 +12,15 @@ import java.util.concurrent.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 class ThumbnailLoaderTest {
+    @Test void cachedBytesDecodeOnImageWorkersAtThumbnailSize()throws Exception {
+        var entered=new CountDownLatch(2);var release=new CountDownLatch(1);
+        try(var reads=new ShopReadCoordinator(2,64);var loader=loader(reads,new TestClock())){
+            var blockers=new java.util.ArrayList<CompletableFuture<Boolean>>();for(int i=0;i<2;i++){int id=i+1;blockers.add(reads.submit(new ShopReadCoordinator.Key(id,"test-block","1"),true,()->{entered.countDown();release.await(5,TimeUnit.SECONDS);return true;}));}assertTrue(entered.await(3,TimeUnit.SECONDS));
+            var out=new ByteArrayOutputStream();ImageIO.write(new BufferedImage(1200,1600,BufferedImage.TYPE_INT_RGB),"png",out);var future=loader.loadBytes(out.toByteArray(),96,128);
+            try{assertFalse(future.isDone(),"Decode must wait for image workers, never run on the caller thread");}finally{release.countDown();for(var blocker:blockers)blocker.get(3,TimeUnit.SECONDS);}
+            var image=future.get(5,TimeUnit.SECONDS);assertTrue(image.getWidth()<=96);assertTrue(image.getHeight()<=128);assertFalse(image.isError());
+        }finally{release.countDown();}
+    }
     static final class TestClock extends Clock {
         Instant now=Instant.parse("2026-10-11T00:00:00Z");public java.time.ZoneId getZone(){return ZoneOffset.UTC;}public Clock withZone(java.time.ZoneId zone){return this;}public Instant instant(){return now;}
     }
