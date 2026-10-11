@@ -60,6 +60,20 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class FxmlSmokeTest {
+    @Test void gs1ShopSwitchDoesNotWaitForLockedLocalSettings() throws Exception {
+        var holder=new java.util.concurrent.atomic.AtomicReference<com.vncode.app.ui.gs1.Gs1Pane>();
+        var setup=new java.util.concurrent.FutureTask<Void>(()->{holder.set(new com.vncode.app.ui.gs1.Gs1Pane());return null;});Platform.runLater(setup);setup.get(5,TimeUnit.SECONDS);
+        try(var connection=Database.getConnection();var lock=connection.createStatement()) {
+            lock.execute("PRAGMA journal_mode=DELETE");lock.execute("BEGIN EXCLUSIVE");
+            try {
+                var switchShop=new java.util.concurrent.FutureTask<Void>(()->{holder.get().setShop(new Shop(1,"GS1 fixture","fixture"));return null;});
+                Platform.runLater(switchShop);switchShop.get(300,TimeUnit.MILLISECONDS);
+                assertEquals(0,holder.get().activeTaskCount(),"Shop switch must not start signing or remote refresh");
+            } finally {lock.execute("ROLLBACK");lock.execute("PRAGMA journal_mode=WAL");}
+        } finally {
+            var close=new java.util.concurrent.FutureTask<Void>(()->{holder.get().dispose();return null;});Platform.runLater(close);close.get(5,TimeUnit.SECONDS);awaitBackgroundTasksBeforeFixtureCleanup();
+        }
+    }
     @Test void toolsListingCopyOpensTheSharedWizard() throws Exception {
         var task=new java.util.concurrent.FutureTask<Void>(()->{
             var loader=FxmlViewLoader.loader(HomeController.class,"home-view.fxml");FxmlViewLoader.load(loader);var home=(HomeController)loader.getController();

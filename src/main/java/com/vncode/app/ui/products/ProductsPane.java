@@ -79,7 +79,7 @@ public final class ProductsPane extends BorderPane {
     private void load(boolean append) {
         if(disposed||shop==null){reload.setDisable(false);status.setText(tr("products.select_shop"));more.setVisible(false);more.setManaged(false);return;}
         var q=query(append?cursor:"");var owner=shop;long epoch=generation;reload.setDisable(true);more.setDisable(true);status.setText(tr("products.loading"));
-        reads.submit(new ShopReadCoordinator.Key(owner.getId(),"product-page",q.toString()),true,()->reader.apply(q)).whenComplete((page,error)->Platform.runLater(()->{
+        reads.submitLocal(new ShopReadCoordinator.Key(owner.getId(),"product-page",q.toString()),()->reader.apply(q)).whenComplete((page,error)->Platform.runLater(()->{
             if(disposed||epoch!=generation||shop==null||shop.getId()!=owner.getId()||shop.getMarketplace()!=owner.getMarketplace())return;
             reload.setDisable(false);more.setDisable(false);
             if(error!=null){status.setText(tr("products.read_failed"));return;}
@@ -87,19 +87,19 @@ public final class ProductsPane extends BorderPane {
             if(append)rows.getItems().addAll(page.rows());else{rows.getItems().setAll(page.rows());displayedQuery=q;all.setDisable(false);}
             cursor=page.nextCursor();count.setText(Long.toString(page.total()));more.setVisible(cursor!=null&&!cursor.isEmpty());more.setManaged(more.isVisible());status.setText("");updateSelection();
         }));
-        if(!append&&category.getItems().size()==1)reads.submit(new ShopReadCoordinator.Key(owner.getId(),"product-categories",owner.getMarketplace().name()),true,()->repository.categories(owner.getId(),owner.getMarketplace())).whenComplete((values,error)->Platform.runLater(()->{
+        if(!append&&category.getItems().size()==1)reads.submitLocal(new ShopReadCoordinator.Key(owner.getId(),"product-categories",owner.getMarketplace().name()),()->repository.categories(owner.getId(),owner.getMarketplace())).whenComplete((values,error)->Platform.runLater(()->{
             if(disposed||epoch!=generation||error!=null)return;updating=true;category.getItems().setAll((String)null);category.getItems().addAll(values);updating=false;
         }));
     }
     private void selectAllResults() {
         if(shop==null||displayedQuery==null)return;var q=displayedQuery;long epoch=generation;
-        reads.submit(new ShopReadCoordinator.Key(q.shopId(),"product-selection",q.toString()),true,()->repository.freezeKeys(q)).whenComplete((keys,error)->Platform.runLater(()->{
+        reads.submitLocal(new ShopReadCoordinator.Key(q.shopId(),"product-selection",q.toString()),()->repository.freezeKeys(q)).whenComplete((keys,error)->Platform.runLater(()->{
             if(disposed||epoch!=generation)return;if(error!=null){status.setText(tr("products.read_failed"));return;}selection.selectPage(keys);updateSelection();
         }));
     }
     private void updateSelection(){int n=selection.freeze().size();selected.setText(tr("products.selected")+": "+n);bulk.setVisible(n>0);bulk.setManaged(n>0);pageSelection.setSelected(!rows.getItems().isEmpty()&&rows.getItems().stream().allMatch(row->selection.contains(row.key())));rows.refresh();}
     private void details(ProductRow row) {
-        var key=row.key();long epoch=generation;reads.submit(new ShopReadCoordinator.Key(key.shopId(),"product-detail",key.cardId()+":"+key.variantId()),true,()->repository.localSnapshot(key)).whenComplete((snapshot,error)->Platform.runLater(()->{
+        var key=row.key();long epoch=generation;reads.submitLocal(new ShopReadCoordinator.Key(key.shopId(),"product-detail",key.cardId()+":"+key.variantId()),()->repository.localSnapshot(key)).whenComplete((snapshot,error)->Platform.runLater(()->{
             if(disposed||epoch!=generation)return;if(error!=null||snapshot.isEmpty()){status.setText(tr("products.read_failed"));return;}
             var p=snapshot.get();var text=new StringBuilder(p.title()).append("\n\n").append(p.description()).append("\n\n");
             for(var a:p.attributes())text.append(a.name()).append(": ").append(String.join(", ",a.values())).append(' ').append(a.unit()).append('\n');

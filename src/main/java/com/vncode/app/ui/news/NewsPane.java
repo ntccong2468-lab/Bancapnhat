@@ -58,7 +58,7 @@ public final class NewsPane extends VBox {
  public void setShop(com.vncode.app.models.Shop selected){
   generation++;translated.clear();translating.clear();busy=false;shop=selected;scope=selected!=null&&selected.getMarketplace()==com.vncode.app.integration.marketplace.Marketplace.WILDBERRIES?NewsScope.forShop(selected):null;opened=null;detailShown=false;scroll.setContent(list);service.setOfficial(List.of(),official);visible.clear();cursor=null;ended=false;loadMore();renderPreview();unread.accept(service.unreadCount());
   if(scope==null)return;var owner=selected;var expected=scope;long epoch=generation;
-  ShopReadCoordinator.shared().submit(new ShopReadCoordinator.Key(owner.getId(),"news-cache",expected.ownerFingerprint()),true,()->official.cached(expected)).whenComplete((news,error)->Platform.runLater(()->{if(disposed||epoch!=generation||error!=null)return;replaceOfficial(news);if(getScene()!=null||preview.getScene()!=null)refreshOfficial(false);}));
+  ShopReadCoordinator.shared().submitLocal(new ShopReadCoordinator.Key(owner.getId(),"news-cache",expected.ownerFingerprint()),()->official.cached(expected)).whenComplete((news,error)->Platform.runLater(()->{if(disposed||epoch!=generation||error!=null)return;replaceOfficial(news);if(getScene()!=null||preview.getScene()!=null)refreshOfficial(false);}));
  }
  private void refreshOfficial(boolean force){
   if(disposed||shop==null||scope==null)return;var owner=new com.vncode.app.models.Shop(shop.getId(),shop.getName(),shop.getMarketplace(),shop.getClientId(),shop.getApiKey());var expected=scope;long epoch=generation;

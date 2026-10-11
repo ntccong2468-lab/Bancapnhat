@@ -35,10 +35,10 @@
 
 **Interfaces:** Add `ShopReadCoordinator(int workers,int capacity,int localWorkers)`, `submitLocal(Key,Callable<T>):CompletableFuture<T>`; giữ `submit(Key,boolean,Callable<T>)`, cancellation/active/pending. Shared = (3,64,1); images = (2,64,0). Fair background selection theo shop, tương tác ưu tiên; không đổi API mutation.
 
-- [ ] Test `slowNetworkCannotBlockLocalPage` giữ hai network requests bằng latch và assert local future <300 ms; `tenShopsShareBoundedWorkersAndFairTurns` assert global workers=3, queue≤64, shop đang tương tác không bị mười background lượt liên tiếp; `cancelOldShopLeavesOtherOwnerRead` và coalescing/close.
-- [ ] Run `MVN -Dtest=ShopReadCoordinatorTest test`; Expected RED cho API/độ trễ mới.
-- [ ] Implement lanes trong cùng coordinator; chuyển truy vấn page/category/cache SQLite sang submitLocal, mạng sang submit. Không đồng bộ dữ liệu vendor trong local callable.
-- [ ] Run targeted và Maven suite; Expected PASS, không tăng cache/worker theo shop. Commit `perf: reserve local reads and schedule shop work fairly`.
+- [x] Test `slowNetworkCannotBlockLocalPage` giữ hai network requests bằng latch và assert local future <300 ms; `tenShopsShareBoundedWorkersAndFairTurns` assert global workers=3, queue≤64, shop đang tương tác không bị mười background lượt liên tiếp; `cancelOldShopLeavesOtherOwnerRead` và coalescing/close.
+- [x] Run `MVN -Dtest=ShopReadCoordinatorTest test`; Expected RED cho API/độ trễ mới.
+- [x] Implement lanes trong cùng coordinator; chuyển truy vấn page/category/cache SQLite sang submitLocal, mạng sang submit. Không đồng bộ dữ liệu vendor trong local callable.
+- [x] Run targeted và Maven suite; Expected PASS, không tăng cache/worker theo shop. Commit `perf: reserve local reads and schedule shop work fairly`.
 
 ### E2: Hàng đợi tác vụ và ngân sách HTTP dùng chung
 

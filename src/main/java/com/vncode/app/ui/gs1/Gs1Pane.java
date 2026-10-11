@@ -47,6 +47,9 @@ public final class Gs1Pane extends BorderPane {
     private String inn="";
     private Gs1Membership membership;
     private long generation;
+    private long requestGeneration,unreadGeneration;
+    private final ShopReadCoordinator reads=ShopReadCoordinator.shared();
+    private record Cached(Context context,String environment,Gs1Membership membership,List<BalanceSnapshot> balances){}
     private boolean busy,disposed;
     private final javafx.beans.property.BooleanProperty busyState=new javafx.beans.property.SimpleBooleanProperty(false);
     javafx.beans.property.ReadOnlyBooleanProperty busyProperty(){return busyState;}
@@ -63,12 +66,21 @@ public final class Gs1Pane extends BorderPane {
     public int activeTaskCount(){return tasks.get();}
     public void setShop(Shop selected){
         generation++;shop=selected;busy=false;busyState.set(false);inn="";membership=null;environment="unsupported";balanceSnapshots=List.of();selectedBalance=null;balanceSession=null;balanceFingerprint="";
-        if(shop!=null)try{var owner=context();inn=owner.inn();environment=Gs1DashboardService.environment(owner.settings().trueApiBaseUrl());membership=dashboard.cached(inn,environment).orElse(null);balanceSnapshots=balances.list(inn,environment);if(balanceSnapshots.size()==1)selectedBalance=balanceSnapshots.getFirst();}catch(RuntimeException unconfigured){/* The user can configure the signer in Znack settings. */}
-        status.setText("");render();reloadRequests();
+        requests.getItems().clear();conversation.getChildren().clear();onUnread.accept(0);status.setText("");render();
+        if(selected==null||disposed)return;
+        long expected=generation;
+        reads.submitLocal(new ShopReadCoordinator.Key(selected.getId(),"gs1-context",Long.toString(expected)),()->{
+            try {var owner=context(selected);var env=Gs1DashboardService.environment(owner.settings().trueApiBaseUrl());return new Cached(owner,env,dashboard.cached(owner.inn(),env).orElse(null),balances.list(owner.inn(),env));}
+            catch(RuntimeException unconfigured){return null;}
+        }).whenComplete((cached,error)->Platform.runLater(()->{
+            if(disposed||generation!=expected||cached==null||error!=null)return;
+            inn=cached.context().inn();environment=cached.environment();membership=cached.membership();balanceSnapshots=cached.balances();if(balanceSnapshots.size()==1)selectedBalance=balanceSnapshots.getFirst();render();reloadRequests();
+        }));
     }
-    private Context context(){
-        if(shop==null)throw new IllegalStateException("gs1.no_shop");
-        var settings=new ZnackRepository(new ZnackModels.ShopContext(shop.getId(),shop.getName())).getSettings();
+    private Context context(){return context(shop);}
+    private Context context(Shop selected){
+        if(selected==null)throw new IllegalStateException("gs1.no_shop");
+        var settings=new ZnackRepository(new ZnackModels.ShopContext(selected.getId(),selected.getName())).getSettings();
         if(settings.signerTestedAt()==null||settings.signerCertificate()==null||settings.signerCertificate().isBlank())throw new IllegalStateException("gs1.no_signer");
         try{
             JsonObject certificate=JsonParser.parseString(settings.certificateMetadataJson()).getAsJsonObject();
@@ -80,7 +92,7 @@ public final class Gs1Pane extends BorderPane {
             if(!certificate.has("validFrom")||!certificate.has("validTo")||Instant.parse(certificate.get("validFrom").getAsString()).isAfter(now)||!Instant.parse(certificate.get("validTo").getAsString()).isAfter(now))throw new IllegalArgumentException();
             Gs1Membership.requireInn(owner);
             if(settings.participantInn()!=null&&!settings.participantInn().isBlank()&&!owner.equals(settings.participantInn()))throw new IllegalArgumentException();
-            return new Context(shop,settings,owner,fingerprint);
+            return new Context(selected,settings,owner,fingerprint);
         }catch(RuntimeException invalid){throw new IllegalStateException("gs1.no_signer");}
     }
     private NationalCatalogGs1Client.Session login(Context context)throws IOException{
@@ -220,9 +232,13 @@ public final class Gs1Pane extends BorderPane {
     }
     private void reloadRequests(){
         String selected=requests.getSelectionModel().getSelectedItem()==null?null:requests.getSelectionModel().getSelectedItem().id();
-        requests.getItems().setAll(inn.isBlank()?List.of():repository.requests(inn));
-        requests.getItems().stream().filter(r->r.id().equals(selected)).findFirst().ifPresent(r->requests.getSelectionModel().select(r));updateUnread();
-        if(requests.getItems().isEmpty()){conversation.getChildren().setAll(new Label(tr("gs1.empty_letters")));}
+        var owner=shop;String enterprise=inn;long expected=generation,request=++requestGeneration;
+        if(owner==null||enterprise.isBlank()){requests.getItems().clear();onUnread.accept(0);return;}
+        reads.submitLocal(new ShopReadCoordinator.Key(owner.getId(),"gs1-requests",enterprise+":"+request),()->repository.requests(enterprise)).whenComplete((items,error)->Platform.runLater(()->{
+            if(disposed||expected!=generation||request!=requestGeneration||!enterprise.equals(inn)||error!=null)return;
+            requests.getItems().setAll(items);requests.getItems().stream().filter(r->r.id().equals(selected)).findFirst().ifPresent(r->requests.getSelectionModel().select(r));updateUnread();
+            if(items.isEmpty())conversation.getChildren().setAll(new Label(tr("gs1.empty_letters")));
+        }));
     }
     private void showThread(Gs1Repository.Request request){
         conversation.getChildren().clear();if(request==null||!request.inn().equals(inn))return;
@@ -286,7 +302,11 @@ public final class Gs1Pane extends BorderPane {
         task.setOnFailed(e->{if(disposed||generation!=expected)return;busy=false;busyState.set(false);render();reloadRequests();showError(task.getException());});AppTaskExecutor.execute(task);
     }
     private Button button(String key,Runnable action){Button button=new Button(tr(key));button.setOnAction(e->{if(busy||disposed)return;try{action.run();}catch(RuntimeException failure){showError(failure);}});return button;}
-    private void updateUnread(){onUnread.accept(inn.isBlank()?0:repository.unread(inn));}
+    private void updateUnread(){
+        var owner=shop;String enterprise=inn;long expected=generation,request=++unreadGeneration;
+        if(owner==null||enterprise.isBlank()){onUnread.accept(0);return;}
+        reads.submitLocal(new ShopReadCoordinator.Key(owner.getId(),"gs1-unread",enterprise+":"+request),()->repository.unread(enterprise)).whenComplete((count,error)->Platform.runLater(()->{if(!disposed&&expected==generation&&request==unreadGeneration&&enterprise.equals(inn)&&error==null)onUnread.accept(count);}));
+    }
     private void showError(Throwable error){String message=error.getMessage();status.setText(tr(message!=null&&message.startsWith("gs1.")?message:"gs1.error"));}
     private boolean confirm(String title,String body){Alert alert=new Alert(Alert.AlertType.CONFIRMATION,body,ButtonType.YES,ButtonType.NO);AlertService.applyTheme(alert);if(getScene()!=null)alert.initOwner(getScene().getWindow());alert.setTitle(tr(title));alert.setHeaderText(tr(title));return alert.showAndWait().orElse(ButtonType.NO)==ButtonType.YES;}
     private <T> Dialog<T> dialog(String title){Dialog<T> dialog=new Dialog<>();AlertService.applyTheme(dialog);if(getScene()!=null)dialog.initOwner(getScene().getWindow());dialog.setTitle(title);dialog.getDialogPane().setPrefWidth(650);return dialog;}

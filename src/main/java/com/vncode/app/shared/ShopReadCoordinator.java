@@ -9,50 +9,66 @@ public final class ShopReadCoordinator implements AutoCloseable {
         public Key {if(shopId<=0)throw new IllegalArgumentException("Read owner required");Objects.requireNonNull(workload);Objects.requireNonNull(scope);}
         @Override public String toString(){return "ReadKey[shop="+shopId+", workload="+workload+"]";}
     }
-    private static final class Shared {static final ShopReadCoordinator INSTANCE=new ShopReadCoordinator(2,64);static final ShopReadCoordinator IMAGES=new ShopReadCoordinator(2,64);}
+    private static final class Shared {static final ShopReadCoordinator INSTANCE=new ShopReadCoordinator(3,64,1);static final ShopReadCoordinator IMAGES=new ShopReadCoordinator(2,64,0);}
     public static ShopReadCoordinator shared(){return Shared.INSTANCE;}
     public static ShopReadCoordinator images(){return Shared.IMAGES;}
     public int workerLimit(){return workers.size();}
     private static final class Work<T> {
         final Key key;final Callable<T> callable;final CompletableFuture<T> result=new CompletableFuture<>();
-        boolean interactive;Thread thread;
-        Work(Key key,boolean interactive,Callable<T> callable){this.key=key;this.interactive=interactive;this.callable=callable;}
+        final boolean local;boolean interactive;Thread thread;
+        Work(Key key,boolean interactive,boolean local,Callable<T> callable){this.key=key;this.interactive=interactive;this.local=local;this.callable=callable;}
     }
     private final Object monitor=new Object();
     private final Deque<Work<?>> pending=new ArrayDeque<>();
     private final Map<Key,Work<?>> inflight=new HashMap<>();
     private final List<Thread> workers=new ArrayList<>();
-    private final int capacity;private boolean closed;private int active;
+    private final int capacity,localWorkers;private boolean closed;private int active;
+    private int lastLocalShop=-1,lastNetworkShop=-1;
     public ShopReadCoordinator(){this(2,64);}
-    public ShopReadCoordinator(int threads,int capacity) {
-        if(threads<1||threads>8||capacity<1)throw new IllegalArgumentException("Invalid read limits");this.capacity=capacity;
-        for(int i=0;i<threads;i++){var worker=new Thread(this::worker,"vncode-read-"+(i+1));worker.setDaemon(true);workers.add(worker);worker.start();}
+    public ShopReadCoordinator(int threads,int capacity) {this(threads,capacity,0);}
+    public ShopReadCoordinator(int threads,int capacity,int localWorkers) {
+        if(threads<1||threads>8||capacity<1||localWorkers<0||localWorkers>=threads)throw new IllegalArgumentException("Invalid read limits");this.capacity=capacity;this.localWorkers=localWorkers;
+        for(int i=0;i<threads;i++){boolean local=i<localWorkers;var worker=new Thread(()->worker(local),"vncode-read-"+(local?"local-":"network-")+(i+1));worker.setDaemon(true);workers.add(worker);worker.start();}
     }
+    public <T> CompletableFuture<T> submitLocal(Key key,Callable<T> callable){return enqueue(key,true,true,callable);}
+    public <T> CompletableFuture<T> submit(Key key,boolean interactive,Callable<T> callable){return enqueue(key,interactive,false,callable);}
     @SuppressWarnings("unchecked")
-    public <T> CompletableFuture<T> submit(Key key,boolean interactive,Callable<T> callable) {
+    private <T> CompletableFuture<T> enqueue(Key key,boolean interactive,boolean local,Callable<T> callable) {
         Objects.requireNonNull(key);Objects.requireNonNull(callable);Work<?> evicted=null;Work<T> work;
         synchronized(monitor) {
             if(closed)return CompletableFuture.failedFuture(new RejectedExecutionException("Read coordinator closed"));
             var existing=inflight.get(key);
-            if(existing!=null){if(interactive&&pending.remove(existing)){existing.interactive=true;pending.addFirst(existing);}return (CompletableFuture<T>)existing.result;}
+            if(existing!=null){if(existing.local!=local)return CompletableFuture.failedFuture(new IllegalArgumentException("Read key belongs to another lane"));if(interactive&&pending.remove(existing)){existing.interactive=true;pending.addFirst(existing);}return (CompletableFuture<T>)existing.result;}
             if(pending.size()>=capacity) {
                 if(!interactive)return CompletableFuture.failedFuture(new RejectedExecutionException("Read queue full"));
                 for(var queued:pending)if(!queued.interactive){evicted=queued;break;}
                 if(evicted==null)evicted=pending.peekLast();
                 pending.remove(evicted);inflight.remove(evicted.key,evicted);
             }
-            work=new Work<>(key,interactive,callable);inflight.put(key,work);
+            work=new Work<>(key,interactive,local,callable);inflight.put(key,work);
             if(interactive)pending.addFirst(work);else pending.addLast(work);monitor.notifyAll();
         }
         if(evicted!=null)evicted.result.cancel(false);
         return work.result;
     }
-    private void worker() {
+    private Work<?> next(boolean local) {
+        Work<?> first=null,other=null;int last=local?lastLocalShop:lastNetworkShop;
+        for(var work:pending) {
+            if(localWorkers>0&&work.local!=local)continue;
+            if(work.interactive){pending.remove(work);return work;}
+            if(first==null)first=work;
+            if(other==null&&work.key.shopId()!=last)other=work;
+        }
+        var selected=other==null?first:other;
+        if(selected!=null){pending.remove(selected);if(local)lastLocalShop=selected.key.shopId();else lastNetworkShop=selected.key.shopId();}
+        return selected;
+    }
+    private void worker(boolean local) {
         while(true) {
-            Work<?> work;
+            Work<?> work=null;
             synchronized(monitor) {
-                while(!closed&&pending.isEmpty())try{monitor.wait();}catch(InterruptedException interrupted){if(closed)return;}
-                if(closed)return;work=pending.removeFirst();work.thread=Thread.currentThread();active++;
+                while(!closed&&(work=next(local))==null)try{monitor.wait();}catch(InterruptedException interrupted){if(closed)return;}
+                if(closed)return;work.thread=Thread.currentThread();active++;
             }
             execute(work);
         }

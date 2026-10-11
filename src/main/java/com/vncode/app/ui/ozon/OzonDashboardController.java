@@ -512,7 +512,7 @@ public final class OzonDashboardController {
         Shop selected=shop;if(disposed||selected==null){newOrdersTable.getItems().clear();packingOrdersTable.getItems().clear();deliveringOrdersTable.getItems().clear();updateTabTitles();updatePaging();return;}
         long epoch=++pageGeneration;String text=postingSearch.getText();String sort=sortFields();var frozenOffsets=Map.copyOf(offsets);
         var owner=selected;String scope=com.vncode.app.integration.listing.ListingIdentity.fingerprint(owner)+"|"+text+"|"+sort+"|"+frozenOffsets;
-        reads.submit(new com.vncode.app.shared.ShopReadCoordinator.Key(selected.getId(),"ozon-fbs-page",scope),true,()->{
+        reads.submitLocal(new com.vncode.app.shared.ShopReadCoordinator.Key(selected.getId(),"ozon-fbs-page",scope),()->{
             var pages=new java.util.LinkedHashMap<String,com.vncode.app.features.ozon.OzonFbsPage>();
             for(String status:List.of("awaiting_packaging","awaiting_deliver","delivering"))pages.put(status,fbsReader.apply(new com.vncode.app.features.ozon.OzonFbsQuery(owner.getId(),status,text,sort,frozenOffsets.getOrDefault(status,0),100)));
             return pages;
