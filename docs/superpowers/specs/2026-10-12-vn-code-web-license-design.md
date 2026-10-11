@@ -1,69 +1,115 @@
-# VN code — thiết kế đề xuất kết nối website cấp key
+# VN code — tài khoản website, quyền offline và giới hạn thiết bị
 
-**Trạng thái: đề xuất để người sở hữu duyệt; chưa triển khai.** Phần này bổ sung vào bản cập nhật VN code 1.4.0 hiện tại. Các thiết kế Products/Copy/GS1/FBS và 10 shop đã duyệt tiếp tục giữ hiệu lực. [Bằng chứng API](../../research/2026-10-12-vn-code-license-api.md) phân biệt tài liệu với kiểm tra thực tế.
+**Trạng thái: thiết kế B đề xuất để duyệt, chưa triển khai.** Ngày 12/10/2026. Bổ sung vào cùng bản cập nhật VN code 1.4.0. Người sở hữu đã yêu cầu đổi phương án online đơn thuần sang offline + giới hạn máy, đồng thời xác nhận dùng tài khoản Gmail đã đăng ký trên website; admin có quyền duyệt, gia hạn và khóa tài khoản.
 
-## Mục tiêu và phạm vi
+[Bằng chứng API hiện có](../../research/2026-10-12-vn-code-license-api.md) chỉ là README và kiểm tra GET không đăng nhập. Chưa có mã Worker/schema/test backend trong tệp đã nhận. Các endpoint ký quyền và quản lý thiết bị bên dưới là **đề xuất mới**, chưa tồn tại theo bằng chứng hiện có.
 
-Người sở hữu quản lý tài khoản, mã và thời hạn trên `vncode.id.vn/admin`. Seller dùng cùng VN code Windows, đăng nhập bằng tài khoản website và nhận quyền theo server. Không tạo ứng dụng seller thứ hai, không sửa bộ cài/tag đã phát hành, không đổi thư mục dữ liệu hoặc UpgradeCode `8CBBA0E2-6E73-4F56-9101-6BC0948D3C72`.
+## Mục tiêu và tương thích
 
-Áp dụng kiểm tra quyền từ bản cập nhật mới. Các bản cá nhân đã phát hành vẫn giữ hành vi hiện tại; việc hạ cấp vẫn tuân theo kiểm tra schema để bảo vệ dữ liệu. Chính sách thương mại này không được trình bày như cách vô hiệu hóa các bản cũ.
+Gmail đã đăng ký là tên đăng nhập VN code; mật khẩu là mật khẩu đã tạo trên website. Thiết kế không cần truy cập hộp thư Gmail hoặc tích hợp Google OAuth. Website là nguồn quyết định duyệt, thời hạn và khóa; không dùng role hiển thị trên app làm quyền. Mã VNC đang có trên website có thể tiếp tục gia hạn tài khoản theo backend hiện có; khách không cần nhập mã riêng vào desktop.
 
-## Hai phương án
+Giữ cùng Java 25/JavaFX Windows app, AppData, dữ liệu, template, lịch sử và UpgradeCode `8CBBA0E2-6E73-4F56-9101-6BC0948D3C72`. Áp dụng từ bản cập nhật mới; không sửa bộ cài/tag hay quyền miễn phí của các bản đã phát hành. Không tạo một seller app khác.
 
-| Phương án | Được gì | Chi phí và điều kiện |
+Mục tiêu hiệu năng 10 shop đã duyệt giữ nguyên. Giới hạn thiết bị và hiệu năng cửa hàng là hai chính sách khác nhau; không tự tạo bảng giá hoặc hạn mức shop thương mại.
+
+## Hai phương án và lựa chọn
+
+| Phương án | Khả năng | Điều kiện |
 |---|---|---|
-| **A. API tài khoản hiện có — đề xuất** | Dùng `/api/client/login` và `/api/client/me`, gia hạn/thu hồi qua website, không thêm cơ sở dữ liệu cấp key | Cần mạng khi xác minh quyền; chưa có giới hạn máy hoặc lease offline đã xác minh |
-| B. Bổ sung lease ký số và quản lý thiết bị | Có thể cấp quyền tạm khi license server mất kết nối, quản lý số máy | Cần mã backend, migration, khóa ký riêng của người sở hữu và chính sách thiết bị; lớn hơn yêu cầu liên kết hiện tại |
+| A. Chỉ dùng login/me | Duyệt/gia hạn/khóa tài khoản online | Không có chứng cứ quyền offline hoặc giới hạn thiết bị; người sở hữu đã yêu cầu thay đổi |
+| **B. Tài khoản + lease ký số + thiết bị — đề xuất** | Đăng nhập bằng email website, hạn quyền do admin quản lý, offline có thời hạn, giới hạn máy trên server | Cần thêm API/schema backend và khóa ký riêng của người sở hữu; client chỉ giữ public key |
 
-Thiết kế bên dưới chọn A. Số cửa hàng phục vụ mục tiêu hiệu năng 10 shop; không tự biến thành hạn mức bán hàng. IP không là định danh license vì NAT, VPN và địa chỉ thay đổi. Quản lý thiết bị/lease ký số cần thiết kế bổ sung khi có backend, không hứa hỗ trợ trong A.
+Chọn B. Dùng Ed25519 tiêu chuẩn với JDK/Web Crypto, không thuê SDK cấp phép thương mại. Khóa ký này là riêng của VN code; không dùng key hoặc dịch vụ cấp phép của bên khác. IP không dùng làm định danh máy vì NAT, VPN và địa chỉ thay đổi.
 
-## Luồng sử dụng
+## Luồng tài khoản
 
 ```mermaid
 flowchart LR
-    O[Chủ phần mềm] --> A[Admin: cấp mã / gia hạn / thu hồi]
-    A --> D[(D1: tài khoản và quyền)]
-    S[Seller] --> W[Website: đăng ký và nhập mã]
+    O[Chủ VN code] --> A[Admin: duyệt / gia hạn / khóa / số máy]
+    A --> D[(D1: tài khoản, thời hạn, thiết bị)]
+    S[Seller] --> W[Website: đăng ký bằng Gmail]
     W --> D
-    S --> V[VN code Windows: đăng nhập]
-    V --> L[POST /api/client/login]
+    S --> V[VN code: email + mật khẩu website]
+    V --> L[API đăng nhập: Bearer token]
     L --> D
-    L --> T[Bearer token: DPAPI Windows]
-    T --> M[GET /api/client/me]
-    M --> D
-    M --> R{Quyền active được xác minh?}
-    R -->|Có| F[Tác vụ VN code theo shop ban đầu]
-    R -->|Chưa / hết hạn / lỗi mạng| Q[Xem dữ liệu cục bộ, sao lưu, đăng nhập / gia hạn]
+    V --> K[Khóa thiết bị riêng: DPAPI]
+    K --> C[Challenge: chứng minh thiết bị]
+    L --> C
+    C --> Q{Được duyệt, còn hạn và còn slot máy?}
+    Q -->|Có| P[Server ký lease Ed25519]
+    Q -->|Không| R[Xem dữ liệu, sao lưu và chờ duyệt / gia hạn]
+    P --> E[App kiểm tra chữ ký, tài khoản, thiết bị, hạn]
+    E --> F[Tác vụ VN code theo shop ban đầu]
+    E --> B[Gia hạn lease nền khi có mạng]
+    A --> N[Khóa: ngừng cấp lease mới]
 ```
 
-Seller nhập mã trên dashboard website. Màn Cài đặt → Tài khoản VN code có email, trạng thái, ngày hết hạn, Đăng nhập, Kiểm tra lại, Mở trang nhập mã/gia hạn và Đăng xuất. Không lưu hoặc hiển thị mật khẩu sau đăng nhập. Logo VN trắng nền đen và bố cục hiện tại giữ nguyên. Text đồng bộ VI/RU/EN/ZH.
+Đăng ký/xác minh email và quản lý mã giữ trên website. App đăng nhập, kích hoạt thiết bị, kiểm tra quyền và mở dashboard khi khách cần gia hạn. Pending/suspended/expired không được nhận lease sử dụng mới.
 
-## Thành phần và quyền
+## Chính sách đề xuất để duyệt
 
-- Một `LicenseApiClient` cho origin HTTPS cố định `vncode.id.vn`. Không redirect mang token, không chuyển mật khẩu/token sang host khác, response giới hạn 64 KiB. Timeout mạng hữu hạn; không log body upstream, email, token hoặc mật khẩu.
-- Một `LicenseSession` toàn ứng dụng, snapshot trạng thái bất biến, đồng gộp yêu cầu đang chạy; không tạo session/timer theo shop. Đăng xuất/đăng nhập mới tăng generation để response cũ không khôi phục tài khoản trước.
-- Kho token dùng `WindowsSecretProtector`/DPAPI current-user hiện có. Không lưu plaintext khi DPAPI lỗi hoặc chạy trên OS không hỗ trợ. Token bị hỏng/hết phiên đưa về đăng nhập; không xóa dữ liệu shop, mẫu hoặc lịch sử.
-- Quyền nghiệp vụ được kiểm tra tại service, không chỉ disable nút. Server phải trả `user.active` là boolean `true`; `role=admin`, trạng thái UI hoặc token còn hạn không tự chứng minh quyền.
-- Khi khởi động, ứng dụng vẫn mở dữ liệu cục bộ rồi xác minh nền. Trước tác vụ mới cần quyền — đồng bộ API, thêm/sửa shop, đăng ký GTIN/KIZ, copy/sửa bài, đóng gói, tạo/in tem mới — lấy kết quả server cho hành động đó. Các yêu cầu đồng thời dùng cùng request đang chạy, không dùng cache đã lưu để mở khóa offline. Nếu tác vụ chờ lâu trong hàng đợi, xác minh lại trước lần ghi đầu tiên.
-- Xem dữ liệu đã lưu, lịch sử, xem trước bản in đã lưu, xuất dữ liệu/sao lưu, cấu hình đăng nhập và mở website vẫn dùng được khi quyền chưa xác minh/hết hạn. Đối soát tác vụ đã gửi tiếp tục đọc trạng thái theo owner/checkpoint; không tự gửi lại hay nhận tác vụ ghi mới.
-- Thu hồi/hết hạn không cắt request đang gửi hoặc xóa journal. Hoàn tất checkpoint của kết quả đã nhận, không bắt đầu card chưa gửi trong một batch sau khi biết quyền không còn hiệu lực. Các bước hoàn thiện tác vụ đã được sàn nhận chỉ chạy theo checkpoint và chính sách xác nhận hiện có.
+- **Mặc định một máy/tài khoản**, admin chỉnh 1–10 máy theo từng tài khoản; có màn danh sách máy, lần kiểm tra gần nhất và thu hồi máy. Tài khoản mới không tự được trial chỉ nhờ đăng ký.
+- **Mặc định tối đa 72 giờ khi không liên lạc được license server**, admin có thể chọn 6–168 giờ. Lease không vượt hạn sử dụng tài khoản. Lần đăng nhập/kích hoạt đầu tiên bắt buộc online; không tự cấp lease từ cache.
+- App thử xác thực khi khởi động, làm mới nền mỗi 6 giờ có jitter và cho phép Kiểm tra lại. Khi license server trả khóa/thu hồi/hết hạn rõ ràng, app ngừng mở tác vụ mới ngay khi nhận kết quả, không quay về lease cũ.
+- Khi server mất kết nối, chỉ dùng lease chữ ký hợp lệ còn thời hạn và đúng máy. Máy chưa biết tài khoản đã bị khóa có thể dùng đến khi lease offline hết hạn, tối đa 72 giờ theo mặc định. Không hứa khóa tức thì một máy đang offline.
+- Giải phóng slot do admin thu hồi cho phép máy mới đăng ký, nhưng lease cũ chưa kết nối vẫn có thể còn hạn offline; giao diện admin phải chỉ rõ độ trễ này. Thời lượng offline ký trong lease đã cấp không thể rút ngắn khi máy không kết nối.
+- Hết quyền vẫn xem dữ liệu đã lưu, lịch sử, xem trước bản in cũ, xuất dữ liệu/sao lưu, đăng nhập/gia hạn và đối soát tác vụ đã gửi. Không xóa shop, template hoặc journal.
 
-## Thời hạn và lỗi
+Các mặc định là đề xuất của thiết kế, chưa được công bố là cấu hình backend hiện tại. Admin quản lý quyền tài khoản của chính mình theo cùng dữ liệu server; app không có mật khẩu/key chủ ẩn để bỏ kiểm tra.
 
-`expires_at` chuyển từ Unix giây sang UTC; màn hình hiển thị giờ địa phương. Hạn Bearer 7 ngày và hạn license xử lý riêng. Mọi quyết định mở quyền xuất phát từ response server; dữ liệu hiển thị còn lại trong cache không là chứng cứ cấp quyền.
+## Thiết bị và lease
 
-HTTP 401 yêu cầu đăng nhập lại. `active=false` hiển thị quyền chưa có/hết hạn/khóa theo dữ liệu được server trả, không đoán lý do chưa xác minh. HTTP 429 hiện cần chờ và tôn trọng `Retry-After` có giới hạn; 5xx/timeout báo chưa kiểm tra được, không báo thu hồi. Response thiếu trường/sai kiểu/timestamp vô lý không mở quyền. Kiểm tra mạng và DPAPI chạy ngoài JavaFX; UI luôn có phản hồi, một yêu cầu pending không làm đơ mười shop.
+Mỗi cài đặt tạo cặp khóa Ed25519 thiết bị. Private key lưu bằng DPAPI current-user; device ID là hash public key. Server đăng ký public key và yêu cầu chữ ký challenge một lần khi activate/renew/deactivate. Có account ID, device ID, mục đích, hạn challenge và nonce trong dữ liệu chứng minh; không dùng chữ ký chung cho nhiều tác vụ. Không gửi MachineGuid, địa chỉ MAC hoặc thông tin hộp thư thô lên website.
 
-Đăng xuất trước mắt xóa token cục bộ. README chưa mô tả endpoint logout desktop; không công bố thu hồi token server khi chưa có hợp đồng. Admin thu hồi chỉ được nghiệm thu sau khi xác minh server từ chối token cũ. Không khẳng định thu hồi tức thì trong lúc app không có kết nối.
+Giới hạn máy được thực thi bằng giao dịch server: hai activate đồng thời không được nhận cùng slot cuối; re-activate đúng public key không tăng số máy. Nonce chỉ dùng một lần và quota kiểm tra lại trong cùng thao tác nguyên tử. D1/schema hiện có phải được đọc trước khi chọn SQL/migration cụ thể; không giả dùng transaction API không được Workers hỗ trợ.
 
-## Kiểm thử và nghiệm thu
+Lease gồm `formatVersion`, `product=vncode`, `accountId`, `devicePublicKeyHash`, `licenseRevision`, `issuedAt`, `notBefore`, `expiresAt`, `subscriptionExpiresAt`, `maxDevices`, `offlineHours` và danh sách quyền. Thời gian là Unix giây UTC. `expiresAt` không vượt `subscriptionExpiresAt` hoặc `issuedAt + offlineHours`. Bearer token 7 ngày theo README không tự tạo bảy ngày sử dụng.
 
-Mock HTTP kiểm tra đúng endpoint/headers, `active` đúng kiểu, expired/401/403/429/5xx/timeout, epoch giây, giới hạn body, redirect không lộ token và response cũ sau đăng xuất. Test service chứng minh không có tác vụ mới khi quyền chưa xác minh, không hủy request đã gửi và không mất journal. Test mười shop chứng minh một session, pending có giới hạn và FX vẫn xử lý thao tác.
+Envelope gồm `keyId`, `payload` Base64URL và `signature` Base64URL. Server ký chính xác byte payload UTF-8, app xác minh các byte đó trước parse; không ký lại JSON bằng thứ tự trường khác nhau. Public key tin cậy pin trong bản dựng, không chấp nhận public key tùy ý đi kèm response. Nếu cần xoay khóa, danh sách public key mới phải được root đã tin cậy ký hoặc đi qua bản cập nhật đã kiểm tra.
 
-Windows CI kiểm tra lưu/đọc token bằng DPAPI không có plaintext và giữ schema/dữ liệu/identity khi nâng cấp. Kiểm thử web thực tế do người sở hữu dùng tài khoản thử riêng: đăng nhập có quyền, nhập mã/gia hạn, hết hạn và thu hồi token cũ. Không dùng tài khoản hoặc key seller thật trong CI.
+App giải mã private key thiết bị để chứng minh đúng máy; lease sao chép sang Windows user/máy khác không đủ mở quyền. DPAPI và chữ ký bảo vệ luồng thông thường; không quảng cáo khả năng chống mọi can thiệp vào binary hoặc clone toàn bộ hệ điều hành.
 
-Chưa có mã backend hoặc response đăng nhập đã xác minh. Vì vậy có thể duyệt thiết kế A và lập kế hoạch client theo hợp đồng tài liệu, nhưng chưa công bố liên kết production hoàn tất, chống chia sẻ thiết bị, bảo mật redeem hay thu hồi phiên. Nếu backend không trả hợp đồng này, sửa adapter/hợp đồng đã xác minh; không thêm fallback cho phép dùng app chỉ từ cache.
+## Hợp đồng API và phạm vi backend
 
-## Ranh giới phát hành
+Giữ `POST /api/client/login` và `GET /api/client/me` tương thích. Hợp đồng bổ sung đề xuất:
 
-License client phải qua kiểm tra riêng trước khi đưa vào installer 1.4.0; kết quả review Products/10-shop trước đó không bao phủ license. Chỉ build/publish installer sau khi các phần được thêm vào cùng bản cập nhật đã qua cổng kiểm tra tương ứng. Không triển khai Worker, tạo/sửa tài khoản, phát hành mã hoặc sửa D1 thật chỉ bằng thao tác viết mã client.
+| Endpoint mới | Nội dung |
+|---|---|
+| `POST /api/client/device/challenge` | Bearer, public key/hash, mục đích; trả challenge ID, nonce, thời hạn và thời gian server |
+| `POST /api/client/device/activate` | Bearer, public key, challenge ID, chữ ký; đăng ký slot nguyên tử và trả lease |
+| `POST /api/client/license/renew` | Bearer, device ID, challenge ID, chữ ký; kiểm tra lại tài khoản/thiết bị rồi cấp lease |
+| `GET /api/client/devices` | Chỉ danh sách thiết bị của tài khoản đang xác thực |
+| `POST /api/client/device/deactivate` | Proof của chính thiết bị và xác nhận giải phóng slot; server thu hồi thiết bị đó |
+| `POST /api/admin/users/:id/license-policy` | Admin sửa `max_devices`/`offline_hours`, có audit |
+| `GET /api/admin/users/:id/devices` | Admin xem thiết bị, lần kiểm tra gần nhất và hạn offline đã cấp |
+| `POST /api/admin/users/:id/devices/:deviceId/revoke` | Admin thu hồi đúng thiết bị, có audit |
+
+Response quyền có lease ký số và metadata hiển thị. Response lỗi dùng mã phân biệt pending, suspended, expired, device limit, bad proof, expired session và retryable server/network error. Endpoint đề xuất không được coi là đang tồn tại. Sau khi đọc Worker, nếu đã có hợp đồng tương đương thì adapter dùng hợp đồng đó và cập nhật tài liệu trước triển khai; không tạo endpoint cạnh tranh cho cùng quyền.
+
+Admin dùng cơ chế auth hiện có, thêm `maxDevices`/`offlineHours` và quản lý thiết bị. Duyệt/gia hạn/khóa tăng `licenseRevision`; thu hồi phải vô hiệu hóa phiên/challenge phù hợp và từ chối cấp lease mới cho quyền/thiết bị bị khóa. Không chặn kiểm tra đọc trạng thái chỉ vì account không active: client cần biết lý do và hiển thị cách xử lý.
+
+Migration additive, giữ users, thời hạn, mã VNC và lịch sử cũ. Signing private key nằm trong Worker secret; desktop/repository chỉ có public key. Không yêu cầu người sở hữu gửi admin password, Cloudflare token hoặc private key trong chat. Không deploy Worker hoặc chạy migration D1 thật chỉ để viết/test client.
+
+## Tổ chức trong app và hiệu năng
+
+Một `LicenseService`/session toàn ứng dụng; snapshot trạng thái bất biến, một timer, hàng đợi giới hạn và đồng gộp renew đang chạy. Không nhân session/request/timer theo mười shop. Token và khóa thiết bị/lease lưu qua DPAPI; nếu DPAPI lỗi thì không fallback plaintext. Đăng xuất tăng generation và xóa phiên cục bộ, response cũ không khôi phục quyền. Việc giải phóng slot máy phải có xác nhận và gọi server; mất mạng không báo đã giải phóng.
+
+HTTPS origin cố định `vncode.id.vn`, response tối đa 64 KiB, timeout hữu hạn và không redirect chứa token. Chạy mạng, mật mã và file ngoài JavaFX. Không log token, mật khẩu, PII, body upstream hoặc private key. Một request license treo không chiếm luồng đọc SQLite hoặc khóa điều hướng shop.
+
+Gate đặt tại service trước tác vụ mới cần quyền: đồng bộ API, thêm/sửa shop, đăng ký GTIN/KIZ, copy/sửa bài, đóng gói và tạo/in tem mới. Lease kiểm tra lại ngay khi tác vụ rời hàng đợi; chỉ disable nút là chưa đủ. Tác vụ giữ owner của shop gốc. Request đã gửi tiếp tục ghi checkpoint; không hủy kết quả hoặc tự gửi lại. Card chưa gửi trong batch dừng khi đã biết quyền hết hạn/thu hồi. Đối soát và các bước hoàn thiện request đã được sàn nhận tuân theo checkpoint, không nhận job mới.
+
+## Đồng hồ, trạng thái và UI
+
+Ghi mốc giờ server/giờ đã quan sát được cùng trạng thái bảo vệ; chạy trong process dùng thời gian monotonic để không kéo dài quyền bằng chỉnh giờ. Sau restart, phát hiện đồng hồ lùi bất thường thì yêu cầu xác minh online. Cho dung sai 5 phút; không dùng đồng hồ cục bộ làm chứng cứ gia hạn. Khi dữ liệu bảo vệ bị xóa/hỏng, không tự tạo quyền offline mới. Chống quay lại toàn bộ snapshot máy vẫn có giới hạn của desktop offline và phải nói đúng khi nghiệm thu.
+
+Cài đặt → Tài khoản VN code: email website, trạng thái, hạn tài khoản, hạn offline, số máy đang dùng/hạn mức; Đăng nhập, Kiểm tra lại, Gia hạn trên website, Quản lý thiết bị và Đăng xuất. Hiển thị Pending/Đang chờ duyệt, Active, Offline còn hạn, Expired, Suspended, Device limit, và Chưa kiểm tra được riêng nhau. Không còn yêu cầu nhập mã của dịch vụ khác; không gọi việc mất mạng là bị khóa. Đồng bộ copy VI/RU/EN/ZH, logo VN trắng nền đen và layout hiện tại giữ nguyên.
+
+## Kiểm thử và cổng phát hành
+
+Client: response auth/missing fields/epoch giây; lease đúng và chữ ký/payload/account/device/product/key ID bị sửa; lease chưa có hiệu lực/hết hạn, rollback giờ, dữ liệu hỏng; active/admin không thay chữ ký; đăng xuất trong request; timeout/401/429/5xx; redirect/body quá lớn; mười shop dùng một session, UI phản hồi và queue hữu hạn. Test service chứng minh ngăn tác vụ mới nhưng giữ journal/owner/checkpoint của request đã gửi.
+
+Backend: giữ dữ liệu migration, bearer/cookie scope, admin authorization, activate cạnh tranh slot cuối, challenge replay/expiry, cùng thiết bị activate lại, account pending/suspended/expired, gia hạn/thu hồi revision, thu hồi token cũ, giới hạn máy, thời hạn lease đúng policy và key lưu server-only. Dùng SQLite/D1 runtime test phù hợp; Node mocks không thay nghiệm thu Workers.
+
+Windows CI: DPAPI current-user, lease/khóa không plaintext, nâng cấp cùng identity và dữ liệu, bốn locale/DPI. Người sở hữu dùng tài khoản thử riêng để nghiệm thu website đã deploy: duyệt → đăng nhập → hết hạn/gia hạn → khóa → hết offline → thu hồi máy. Không dùng key/account seller thật trong CI.
+
+Phần nghiên cứu có thể hoàn thành từ README, nhưng tích hợp offline/giới hạn máy production cần Worker/schema/migration/test thực tế và public signing key do chủ phần mềm thiết lập. Không phát hành installer với public key thử hoặc cho phép tự chọn server để bỏ kiểm tra. Review Products/10-shop đã có không bao phủ phần license mới. Bản 1.4.0 chỉ đóng gói/publish sau các cổng kiểm tra của mọi phần đã được đưa vào.
