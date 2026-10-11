@@ -9,9 +9,11 @@
 <?import javafx.scene.control.SplitPane?>
 <?import javafx.scene.control.Tab?>
 <?import javafx.scene.control.TabPane?>
+<?import javafx.scene.control.TitledPane?>
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
 <?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.TextArea?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Pane?>
 <?import javafx.scene.layout.Priority?>
@@ -36,9 +38,11 @@
                 <Button fx:id="refreshButton" mnemonicParsing="false" onAction="#onRefresh" text="Refresh" />
             </children>
         </HBox>
-        <SplitPane dividerPositions="0.72" VBox.vgrow="ALWAYS">
-            <items>
-                <VBox spacing="8.0">
+        <Label fx:id="workflowLabel" styleClass="text-muted" wrapText="true" />
+        <HBox spacing="10.0" alignment="CENTER_LEFT"><children><TextField fx:id="postingSearch" HBox.hgrow="ALWAYS" /><Button fx:id="previousPageButton" onAction="#onPreviousPage" text="Previous" /><Label fx:id="pageStatusLabel" /><Button fx:id="nextPageButton" onAction="#onNextPage" text="Next" /></children></HBox>
+        <VBox spacing="8.0" VBox.vgrow="ALWAYS">
+            <children>
+                <VBox spacing="8.0" VBox.vgrow="ALWAYS">
                     <children>
                         <TabPane fx:id="orderStatusTabs" styleClass="packing-tabs" tabClosingPolicy="UNAVAILABLE" VBox.vgrow="ALWAYS">
                             <tabs>
@@ -118,7 +122,7 @@
                         </TabPane>
                     </children>
                 </VBox>
-                <VBox fx:id="gtinInventoryPane" maxWidth="520.0" minWidth="360.0" prefWidth="420.0" spacing="10.0" styleClass="surface, gtin-inventory-pane">
+                <TitledPane fx:id="gtinInventoryPanel" expanded="false" animated="false" text="GTIN / KIZ"><content>                <VBox prefHeight="240.0" fx:id="gtinInventoryPane" minWidth="360.0" prefWidth="420.0" spacing="10.0" styleClass="surface, gtin-inventory-pane">
                     <children>
                         <HBox alignment="CENTER_LEFT" spacing="8.0">
                             <children>
@@ -144,8 +148,9 @@
                         </StackPane>
                     </children>
                     <padding><Insets bottom="12.0" left="12.0" right="12.0" top="12.0" /></padding>
-                </VBox>
-            </items>
-        </SplitPane>
+                </VBox></content></TitledPane>
+            </children>
+        </VBox>
+        <TitledPane fx:id="batchResultsPanel" text="Results" visible="false" managed="false" expanded="false" animated="false"><content><TextArea fx:id="batchResultsArea" editable="false" wrapText="true" prefRowCount="4" /></content></TitledPane>
     </children>
 </VBox>

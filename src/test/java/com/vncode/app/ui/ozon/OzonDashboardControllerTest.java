@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class OzonDashboardControllerTest {
+    @Test void uncertainShipIsShownAsPendingRatherThanFailed(){org.junit.jupiter.api.Assertions.assertTrue(OzonDashboardController.reconciliationRequired(new com.vncode.app.integration.ozon.OzonApiException("reconcile_required",0,false,true,null)));org.junit.jupiter.api.Assertions.assertFalse(OzonDashboardController.reconciliationRequired(new IllegalArgumentException("invalid")));}
     @Test
     void itemTextShowsEveryProductInAMultiProductPosting() {
         OzonPostingDto posting = posting(List.of(
@@ -24,7 +25,7 @@ class OzonDashboardControllerTest {
         OzonPostingDto posting = posting(List.of(item(0, "SKU-1", "Product", 2)));
 
         assertEquals("Product × 2", OzonDashboardController.itemsText(posting));
-        assertEquals(76.0, OzonDashboardController.orderRowHeight(posting));
+        assertEquals(144.0, OzonDashboardController.orderRowHeight(posting));
     }
 
     @Test
@@ -33,7 +34,7 @@ class OzonDashboardControllerTest {
                 item(0, "SKU-1", "First product", 1),
                 item(1, "SKU-2", "Second product", 1)));
 
-        assertEquals(140.0, OzonDashboardController.orderRowHeight(posting));
+        assertEquals(272.0, OzonDashboardController.orderRowHeight(posting));
     }
 
     private static OzonPostingDto posting(List<OzonPostingItemDto> items) {

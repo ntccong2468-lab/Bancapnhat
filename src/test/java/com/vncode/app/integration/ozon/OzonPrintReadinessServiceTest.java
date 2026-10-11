@@ -89,6 +89,10 @@ class OzonPrintReadinessServiceTest {
         assertEquals(new OzonPrintReadiness.GtinAvailability(GTIN, 2, 1),
                 result.gtinAvailability().getFirst());
     }
+    @Test void latestKizRulesAreRequired() {
+        var repo=new OzonPostingRepository();repo.upsertDetail(1,unmarkedPosting());new OzonProductKizPolicyRepository().setRequired(1,"SKU-1",false);
+        var service=new OzonPrintReadinessService();assertTrue(service.inspect(shop,"POST-1").ready());repo.upsertDetail(1,posting());assertFalse(service.inspect(shop,"POST-1").ready());assertEquals(List.of("SKU-1"),service.inspect(shop,"POST-1").missingSkus());
+    }
 
     @Test
     void allowsSaveDialogOnlyWhenEveryRequiredKizIsAvailable() throws Exception {

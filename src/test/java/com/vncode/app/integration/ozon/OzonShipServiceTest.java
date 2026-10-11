@@ -74,7 +74,7 @@ class OzonShipServiceTest {
     }
 
     @Test
-    void timeoutAfterShipUsesPostingReadbackAndNeverSubmitsShipTwice() throws Exception {
+    void shipTimeoutIsNotRetried() throws Exception {
         server.enqueue(json(posting("awaiting_packaging", true)));
         server.enqueue(new MockResponse().setSocketPolicy(SocketPolicy.DISCONNECT_AT_START));
         server.enqueue(json(posting("awaiting_deliver", false)));

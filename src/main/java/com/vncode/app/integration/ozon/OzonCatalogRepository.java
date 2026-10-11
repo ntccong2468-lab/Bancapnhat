@@ -12,6 +12,14 @@ import java.util.List;
 public final class OzonCatalogRepository {
     private final OzonSyncStateRepository syncState;
 
+    public java.util.Map<String,OzonProductDto> findBySkus(int shop,java.util.Collection<String> skus){try(var c=Database.getConnection()){return findBySkus(c,shop,skus);}catch(SQLException e){throw new IllegalStateException("Cannot load page products");}}
+    public java.util.Map<String,OzonProductDto> findBySkus(Connection c,int shop,java.util.Collection<String> skus)throws SQLException{
+        var keys=skus.stream().filter(s->s!=null&&!s.isBlank()).distinct().toList();if(keys.size()>10000)throw new IllegalArgumentException("Too many page SKUs");var out=new java.util.LinkedHashMap<String,OzonProductDto>();
+        for(int start=0;start<keys.size();start+=500){var batch=keys.subList(start,Math.min(start+500,keys.size()));String marks=String.join(",",java.util.Collections.nCopies(batch.size(),"?"));
+            try(var p=c.prepareStatement("SELECT p.*,coalesce((SELECT json_group_array(b.barcode) FROM ozon_product_barcodes b WHERE b.shop_id=p.shop_id AND b.product_id=p.product_id),'[]') AS barcodes FROM ozon_products p WHERE p.shop_id=? AND p.sku IN ("+marks+") ORDER BY p.product_id")){p.setInt(1,shop);int n=2;for(String key:batch)p.setString(n++,key);try(var r=p.executeQuery()){while(r.next()){var barcodes=com.google.gson.JsonParser.parseString(r.getString("barcodes")).getAsJsonArray().asList().stream().map(com.google.gson.JsonElement::getAsString).sorted().toList();var value=new OzonProductDto(r.getString("product_id"),r.getString("offer_id"),r.getString("sku"),r.getString("name"),r.getString("primary_image_url"),r.getString("article"),r.getString("color"),r.getString("size"),r.getString("category"),r.getString("gender"),r.getBoolean("archived"),r.getString("updated_at"),barcodes);if(out.putIfAbsent(value.sku(),value)!=null)throw new IllegalStateException("Ambiguous Ozon SKU");}}}
+        }return java.util.Map.copyOf(out);
+    }
+
     public OzonCatalogRepository() {
         this(new OzonSyncStateRepository());
     }

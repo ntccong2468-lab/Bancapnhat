@@ -44,7 +44,7 @@ final class OzonPickingListPdfExporter {
                 Document document = new Document(pdf, PageSize.A4)) {
             document.setMargins(24, 24, 24, 24);
             document.setFont(GenerateBarcode.getArialFont());
-            List<OzonProductDto> products = catalog.findAll(shop.getId());
+            var products = catalog.findBySkus(shop.getId(),safePostings.stream().flatMap(p->p.items().stream()).map(OzonPostingItemDto::sku).distinct().toList());
             float[] widths = new float[]{32, 76, 270, 118, 48};
             Table table = new Table(widths);
             table.setWidth(UnitValue.createPercentValue(100));
@@ -56,7 +56,7 @@ final class OzonPickingListPdfExporter {
             int rowNumber = 0;
             for (OzonPostingDto posting : safePostings) {
                 for (OzonPostingItemDto item : posting.items()) {
-                    OzonProductDto product = findProduct(products, item);
+                    OzonProductDto product = products.get(item.sku());
                     table.addCell(cell(String.valueOf(++rowNumber), TextAlignment.CENTER));
                     table.addCell(imageCell(imageBytes(product)));
                     table.addCell(cell(first(item.name(), product == null ? "" : product.name()), TextAlignment.LEFT));

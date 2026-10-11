@@ -2232,6 +2232,7 @@ public class HomeController implements Initializable {
         supplyPrintRequest.cancel();
         if (gtinSyncController != null) gtinSyncController.dispose();
         if (gs1Pane != null) gs1Pane.dispose();
+        if (ozonDashboardController != null) ozonDashboardController.dispose();
         if (productsPane != null) productsPane.dispose();
         if (productEditPane != null) productEditPane.dispose();
         if (listingCopyPane != null) listingCopyPane.dispose();

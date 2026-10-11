@@ -14,6 +14,25 @@ import java.util.List;
 public final class OzonPostingRepository {
     private static final Gson GSON = new Gson();
 
+    public long countFiltered(int shop,String status,String text){try(var c=Database.getConnection()){return countFiltered(c,shop,status,text);}catch(SQLException e){throw new IllegalStateException("Cannot count Ozon postings");}}
+    public long countFiltered(Connection c,int shop,String status,String text)throws SQLException{
+        var q=new com.vncode.app.features.ozon.OzonFbsQuery(shop,status,text,"",0,100);registerSearch(c);
+        try(var p=c.prepareStatement("SELECT COUNT(*) FROM ozon_postings p WHERE "+filter(q))){bindFilter(p,q);try(var r=p.executeQuery()){return r.getLong(1);}}
+    }
+    public List<OzonPostingDto> findSortedPage(com.vncode.app.features.ozon.OzonFbsQuery q){try(var c=Database.getConnection()){return findSortedPage(c,q);}catch(SQLException e){throw new IllegalStateException("Cannot page Ozon postings");}}
+    public List<OzonPostingDto> findSortedPage(Connection c,com.vncode.app.features.ozon.OzonFbsQuery q)throws SQLException{
+        registerSearch(c);org.sqlite.Collation.create(c,"VN_NATURAL",new org.sqlite.Collation(){protected int xCompare(String a,String b){return com.vncode.app.shared.NaturalOrderComparator.compareIgnoreCase(a,b);}});
+        var sort=new ArrayList<String>();if(!q.sort().isBlank())for(String field:q.sort().split(",")){String expression=switch(field){case "product"->"coalesce(nullif(pr.name,''),nullif(i.name,''),i.sku)";case "article"->"coalesce(nullif(pr.article,''),nullif(i.offer_id,''),i.sku)";case "color"->"pr.color";default->"pr.size";};sort.add("CASE WHEN "+expression+" IS NULL OR "+expression+"='' THEN 1 ELSE 0 END");sort.add(expression+" COLLATE VN_NATURAL");}sort.add("p.posting_number COLLATE VN_NATURAL");
+        String sql="SELECT p.* FROM ozon_postings p LEFT JOIN ozon_posting_items i ON i.shop_id=p.shop_id AND i.posting_number=p.posting_number AND i.item_index=0 LEFT JOIN ozon_products pr ON pr.shop_id=i.shop_id AND pr.product_id=coalesce((SELECT own.product_id FROM ozon_products own WHERE own.shop_id=i.shop_id AND own.product_id=i.product_id),(SELECT own.product_id FROM ozon_products own WHERE own.shop_id=i.shop_id AND own.sku=i.sku ORDER BY own.product_id LIMIT 1)) WHERE "+filter(q)+" ORDER BY "+String.join(",",sort)+" LIMIT ? OFFSET ?";
+        var rows=new ArrayList<OzonPostingDto>();try(var p=c.prepareStatement(sql)){int n=bindFilter(p,q);p.setInt(n++,q.limit());p.setInt(n,q.offset());try(var r=p.executeQuery()){while(r.next())rows.add(readPosting(c,q.shopId(),r,List.of()));}}
+        if(rows.isEmpty())return List.of();var items=new java.util.HashMap<String,List<OzonPostingItemDto>>();String marks=String.join(",",java.util.Collections.nCopies(rows.size(),"?"));
+        try(var p=c.prepareStatement("SELECT posting_number,item_index,product_id,sku,offer_id,name,quantity,currency_code,price FROM ozon_posting_items WHERE shop_id=? AND posting_number IN ("+marks+") ORDER BY posting_number,item_index")){p.setInt(1,q.shopId());int n=2;for(var row:rows)p.setString(n++,row.postingNumber());try(var r=p.executeQuery()){while(r.next())items.computeIfAbsent(r.getString(1),k->new ArrayList<>()).add(new OzonPostingItemDto(r.getInt(2),r.getString(3),r.getString(4),r.getString(5),r.getString(6),r.getInt(7),r.getString(8),r.getString(9)));}}
+        return rows.stream().map(p->new OzonPostingDto(p.postingNumber(),p.orderId(),p.orderNumber(),p.status(),p.substatus(),p.warehouseId(),p.shipmentAt(),p.inProcessAt(),p.lowerBarcode(),p.upperBarcode(),p.requirements(),p.availableActions(),p.shipAvailable(),items.getOrDefault(p.postingNumber(),List.of()))).toList();
+    }
+    private static void registerSearch(Connection c)throws SQLException{org.sqlite.Function.create(c,"vn_fold",new org.sqlite.Function(){protected void xFunc()throws SQLException{String v=value_text(0);result(v==null?"":java.text.Normalizer.normalize(v,java.text.Normalizer.Form.NFKC).toLowerCase(java.util.Locale.ROOT));}});}
+    private static String filter(com.vncode.app.features.ozon.OzonFbsQuery q){return "p.shop_id=?"+(q.status().isBlank()?"":" AND p.status=?")+(q.text().isBlank()?"":" AND (vn_fold(p.posting_number) LIKE ? ESCAPE '\\' OR vn_fold(p.order_id) LIKE ? ESCAPE '\\' OR vn_fold(p.order_number) LIKE ? ESCAPE '\\' OR EXISTS(SELECT 1 FROM ozon_posting_items x WHERE x.shop_id=p.shop_id AND x.posting_number=p.posting_number AND (vn_fold(x.sku) LIKE ? ESCAPE '\\' OR vn_fold(x.offer_id) LIKE ? ESCAPE '\\' OR vn_fold(x.name) LIKE ? ESCAPE '\\')))");}
+    private static int bindFilter(PreparedStatement p,com.vncode.app.features.ozon.OzonFbsQuery q)throws SQLException{int n=1;p.setInt(n++,q.shopId());if(!q.status().isBlank())p.setString(n++,q.status());if(!q.text().isBlank()){String s="%"+java.text.Normalizer.normalize(q.text(),java.text.Normalizer.Form.NFKC).toLowerCase(java.util.Locale.ROOT).replace("\\","\\\\").replace("%","\\%").replace("_","\\_")+"%";for(int i=0;i<6;i++)p.setString(n++,s);}return n;}
+
     public int upsertPage(int shopId, List<OzonPostingDto> postings) {
         try (Connection connection = Database.getConnection()) {
             connection.setAutoCommit(false);
@@ -241,6 +260,9 @@ public final class OzonPostingRepository {
     }
 
     private static OzonPostingDto readPosting(Connection connection, int shopId, ResultSet result) throws SQLException {
+        return readPosting(connection,shopId,result,readItems(connection,shopId,result.getString("posting_number")));
+    }
+    private static OzonPostingDto readPosting(Connection connection,int shopId,ResultSet result,List<OzonPostingItemDto> items)throws SQLException {
         String postingNumber = result.getString("posting_number");
         OzonRequirements requirements = new OzonRequirements(
                 jsonStrings(result.getString("mandatory_mark_product_ids")),
@@ -260,7 +282,7 @@ public final class OzonPostingRepository {
                 requirements,
                 jsonStrings(result.getString("available_actions")),
                 result.getBoolean("ship_available"),
-                readItems(connection, shopId, postingNumber));
+                items);
     }
 
     private static List<OzonPostingItemDto> readItems(Connection connection, int shopId, String postingNumber)
