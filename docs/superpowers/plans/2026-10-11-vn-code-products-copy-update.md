@@ -70,7 +70,7 @@ Các DTO có collection defensive copy, validation key/ownership và `toString()
 - [x] Kế hoạch ánh xạ đủ mục 1–11 của spec, gồm bulk documents, copy bốn hướng, tiền/GTIN riêng, tin chính thức/dịch, Ozon và hiệu năng.
 - [x] Kiểm tra type/path/dependency giữa A/B/C/D; mỗi Review Focus có task/test sở hữu.
 - [x] Baseline hiện tại: 21 targeted tests, 0 failures/errors/skipped; chỉ là baseline 1.3.0.
-- [ ] Người dùng xem bộ kế hoạch và chọn cách thực thi.
+- [x] Người dùng duyệt bộ kế hoạch và chọn triển khai trực tiếp (Native), ngày 11/10/2026.
 - [ ] Hoàn tất A1–A4, B1–B4, C1–C4, D1–D3; ghi kết quả thực tế vào validation.
 
 Đề xuất **Native**: một implementer xử lý trong phiên này, một reviewer độc lập cuối nhánh. Các task liên quan nhiều đến snapshot/ownership/checkpoint chung; cách này giữ giao diện thống nhất và giảm chi phí khởi tạo context. Sau khi người dùng duyệt kế hoạch, dùng `superpowers:executing-plans`; reviewer cuối nhánh theo kỹ năng đó. Không sửa mã sản phẩm trong giai đoạn lập kế hoạch.

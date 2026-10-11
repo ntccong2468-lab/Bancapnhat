@@ -81,7 +81,7 @@ class ZnackCardRegistrationRepositoryTest {
         try(var c=Database.getConnection();var s=c.createStatement()){s.execute("PRAGMA user_version=3");}
         try(var session=com.vncode.app.shared.LocalDataMigrationGate.prepare(temp,"1.1.33","javafx")) {
             try(var c=Database.getConnection();var s=c.createStatement()) {
-                var version=s.executeQuery("PRAGMA user_version");assertEquals(4,version.getInt(1));version.close();
+                var version=s.executeQuery("PRAGMA user_version");assertEquals(Database.currentSchemaVersion(),version.getInt(1));version.close();
                 var integrity=s.executeQuery("PRAGMA integrity_check");assertEquals("ok",integrity.getString(1));integrity.close();
                 assertFalse(s.executeQuery("PRAGMA foreign_key_check").next());
             }

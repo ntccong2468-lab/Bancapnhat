@@ -23,7 +23,7 @@ import com.vncode.app.integration.znack.registration.ZnackCardRegistrationSchema
 public class Database {
     private static final Logger LOGGER = LoggerFactory.getLogger(Database.class);
     private static final String DB_NAME = "database.db";
-    private static final int CURRENT_SCHEMA_VERSION = 4;
+    private static final int CURRENT_SCHEMA_VERSION = 5;
 
     public static int currentSchemaVersion() {
         return CURRENT_SCHEMA_VERSION;
@@ -189,6 +189,7 @@ public class Database {
             ZnackCardRegistrationSchema.initialize(conn);
             OzonSchemaSupport.initialize(conn);
             com.vncode.app.features.gtinsync.GtinSyncSchema.initialize(conn);
+            com.vncode.app.features.products.ProductSchema.ensureTables(conn);
             int inactiveMappings = ZnackMappingLifecycle.removeInactiveMappings(conn);
             if (inactiveMappings > 0) {
                 LOGGER.info("Đã gỡ {} mapping tham chiếu GTIN không còn hoạt động", inactiveMappings);
