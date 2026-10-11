@@ -25,6 +25,8 @@ import java.util.function.*;
 /** GS1 uses the VN code shop context; construction and shop selection never contact an upstream. */
 public final class Gs1Pane extends BorderPane {
     private final Gs1Repository repository=new Gs1Repository();
+    private final Gs1DashboardService dashboard=new Gs1DashboardService(repository);
+    private String environment="unsupported";
     private final Gs1LettersService letters=new Gs1LettersService(repository);
     private final I18nService i18n=I18nService.getInstance();
     private final Consumer<AppLanguage> languageListener=language->Platform.runLater(()->{if(!this.disposed)render();});
@@ -54,8 +56,8 @@ public final class Gs1Pane extends BorderPane {
     public void setOnUnreadChanged(IntConsumer callback){onUnread=Objects.requireNonNull(callback);updateUnread();}
     public int activeTaskCount(){return tasks.get();}
     public void setShop(Shop selected){
-        generation++;shop=selected;busy=false;busyState.set(false);inn="";membership=null;
-        if(shop!=null)try{inn=context().inn();membership=repository.membership(inn).orElse(null);}catch(RuntimeException unconfigured){/* The user can configure the signer in Znack settings. */}
+        generation++;shop=selected;busy=false;busyState.set(false);inn="";membership=null;environment="unsupported";
+        if(shop!=null)try{var owner=context();inn=owner.inn();environment=Gs1DashboardService.environment(owner.settings().trueApiBaseUrl());membership=dashboard.cached(inn,environment).orElse(null);}catch(RuntimeException unconfigured){/* The user can configure the signer in Znack settings. */}
         status.setText("");render();reloadRequests();
     }
     private Context context(){
@@ -76,6 +78,7 @@ public final class Gs1Pane extends BorderPane {
         }catch(RuntimeException invalid){throw new IllegalStateException("gs1.no_signer");}
     }
     private NationalCatalogGs1Client.Session login(Context context)throws IOException{
+        if(!"production".equals(Gs1DashboardService.environment(context.settings().trueApiBaseUrl())))throw new IOException("gs1.environment_unsupported");
         ZnackSigningSession.authorizeShop(context.shop().getId());
         var provider=new CryptoProSignatureProvider(context.settings().cryptcpPath(),context.fingerprint(),Duration.ofSeconds(context.settings().resolvedCryptoProTimeoutSeconds()));
         return new NationalCatalogGs1Client().login(context.inn(),context.fingerprint(),ZnackSigningSession.guard(context.shop().getId(),context.fingerprint(),provider));
@@ -93,15 +96,19 @@ public final class Gs1Pane extends BorderPane {
         if(membership!=null)for(var prefix:membership.visiblePrefixes(LocalDate.now(ZoneId.of("Europe/Moscow"))))facts+="\nGCP: "+prefix.gcp()+" · "+tr("gs1.allowance")+": "+Objects.toString(prefix.gtinsLeft(),"—")+" · GLN: "+String.join(", ",prefix.glns());
         detail.setText(facts);
         Hyperlink portal=new Hyperlink(tr("gs1.official_portal"));portal.setOnAction(e->openPortal());
-        VBox header=new VBox(12,title,guide,actions,summary,detail,portal,status);header.setPadding(new Insets(0,0,16,0));setTop(header);
+        var availability=dashboard.availability(membership,LocalDate.now(ZoneId.of("Europe/Moscow")));
+        String remaining=availability.available().isPresent()?Long.toString(availability.available().getAsLong())+(availability.complete()?"":" · "+tr("gs1.partial")):tr("gs1.unknown_value");
+        var cards=new FlowPane(12,8,summaryCard("gs1.gtin_left",remaining,tr("gs1.source_catalog")),summaryCard("gs1.cash_balance",tr("gs1.unknown_value"),tr("gs1.cash_source")),summaryCard("gs1.member_prefix",assertion,availability.activePrefixes()+" GCP"));
+        VBox header=new VBox(12,title,guide,cards,actions,summary,detail,portal,status);header.setPadding(new Insets(0,0,16,0));setTop(header);
         VBox left=new VBox(8,new Label(tr("gs1.requests")),requests);VBox.setVgrow(requests,Priority.ALWAYS);left.setMinWidth(220);left.setPrefWidth(285);
         conversationScroll.setFitToWidth(true);conversationScroll.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
         SplitPane split=new SplitPane(left,conversationScroll);split.setDividerPositions(.3);setCenter(split);
         requests.refresh();if(requests.getSelectionModel().getSelectedItem()!=null)showThread(requests.getSelectionModel().getSelectedItem());
     }
+    private VBox summaryCard(String title,String value,String source){var heading=new Label(tr(title));var amount=new Label(value);amount.getStyleClass().add("h2");var note=new Label(source);note.getStyleClass().add("text-muted");note.setWrapText(true);var card=new VBox(6,heading,amount,note);card.setPrefWidth(230);card.getStyleClass().add("feature-card");card.setPadding(new Insets(12));return card;}
     private void refreshMembership(){
         Context owner;try{owner=context();}catch(RuntimeException error){showError(error);return;}
-        run(()->{var snapshot=login(owner).membership();repository.saveMembership(snapshot);return snapshot;},snapshot->{membership=snapshot;status.setText(tr("gs1.refreshed"));render();});
+        run(()->{var snapshot=login(owner).membership();repository.saveMembership(snapshot,Gs1DashboardService.environment(owner.settings().trueApiBaseUrl()));return snapshot;},snapshot->{membership=snapshot;status.setText(tr("gs1.refreshed"));render();});
     }
     private void join(){
         Context owner=context();

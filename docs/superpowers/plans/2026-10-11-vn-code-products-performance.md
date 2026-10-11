@@ -62,11 +62,11 @@ Quy ước đường dẫn: các tên dưới `features/`, `integration/`, `shar
 
 **Interfaces:** `ProductsPane.setShop(Shop):void`, `dispose():void`, `setOnCopy(Consumer<List<ProductKey>>):void`; consumes A1 repository/A2 readers. `ProductSelection.selectPage(List<ProductKey>):void`, `freeze():List<ProductKey>`, `switchShop(int,Marketplace):void`; riêng explicit all-results dùng A1.freezeKeys, không cập nhật tập frozen sau sync. Sidebar `setOnProducts(Runnable):void`; Home `showProducts():void`, C4 đăng ký callback copy.
 
-- [ ] Viết `selectionSurvivesFilterButClearsOnShopChange`, `explicitAllResultsIsFrozen`, `staleSnapshotCannotUpdateCurrentShop`, `productsMenuAndFourLocales`. Assert page-select chỉ chọn 100 đã tải, explicit-all là 251, sản phẩm thêm sau freeze không gia nhập; generation A không vẽ vào B; không có TN VED sidebar.
-- [ ] Chạy `MVN -Dtest=ProductSelectionTest,FxmlSmokeTest test` dưới Xvfb nếu cần; xác nhận red liên quan UI/selection.
-- [ ] Implement ListView/TableView ảo, debounce 300 ms, page 100/count/load-more, category/document/missing-GTIN filters, chi tiết snapshot và bottom bulk bar như ảnh đã duyệt. Lazy initialize Home views khi mở; tránh setShop gây full Ozon sync hoặc init các view chưa mở; dispose listener/read theo vòng đời. Responsive 1024×600/1366×768, DPI 100–150%, vùng phụ collapsible.
-- [ ] Chạy lại test, thêm screenshot fixture hai kích thước qua UI smoke không credential; xác nhận menu/product count/unknown document đúng cả bốn locale.
-- [ ] Commit `feat: add products workspace and lazy navigation`.
+- [x] Viết `selectionSurvivesFilterButClearsOnShopChange`, `explicitAllResultsIsFrozen`, `staleSnapshotCannotUpdateCurrentShop`, `productsMenuAndFourLocales`. Assert page-select chỉ chọn 100 đã tải, explicit-all là 251, sản phẩm thêm sau freeze không gia nhập; generation A không vẽ vào B; không có TN VED sidebar.
+- [x] Chạy `MVN -Dtest=ProductSelectionTest,FxmlSmokeTest test` dưới Xvfb nếu cần; xác nhận red liên quan UI/selection.
+- [x] Implement ListView/TableView ảo, debounce 300 ms, page 100/count/load-more, category/document/missing-GTIN filters, chi tiết snapshot và bottom bulk bar như ảnh đã duyệt. Lazy initialize Home views khi mở; tránh setShop gây full Ozon sync hoặc init các view chưa mở; dispose listener/read theo vòng đời. Responsive 1024×600/1366×768, DPI 100–150%, vùng phụ collapsible.
+- [x] Chạy lại test, thêm screenshot fixture hai kích thước qua UI smoke không credential; xác nhận menu/product count/unknown document đúng cả bốn locale.
+- [x] Commit `feat: add products workspace and lazy navigation`.
 
 ### A4: Bulk edit brand/material/TN VED/documents
 

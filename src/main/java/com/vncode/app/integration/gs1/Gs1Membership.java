@@ -15,7 +15,8 @@ public record Gs1Membership(String inn, String legalName, Boolean member, boolea
         Objects.requireNonNull(checkedAt);
         Objects.requireNonNull(source);
     }
-    public record Prefix(String gcp, Integer gtinsLeft, List<String> glns) {
+    public record Prefix(String gcp, Integer gtinsLeft, List<String> glns, LocalDate expiry, boolean excluded) {
+        public Prefix(String gcp,Integer gtinsLeft,List<String> glns){this(gcp,gtinsLeft,glns,null,false);}
         public Prefix {
             if (gcp == null || !gcp.matches("[0-9]{4,12}")) throw new IllegalArgumentException("Invalid GCP");
             if (gtinsLeft != null && gtinsLeft < 0) throw new IllegalArgumentException("Invalid allowance");
@@ -32,7 +33,7 @@ public record Gs1Membership(String inn, String legalName, Boolean member, boolea
     }
     public List<Prefix> visiblePrefixes(LocalDate date) {
         Status status = status(date);
-        return status == Status.ACTIVE || status == Status.EXPIRING ? prefixes : List.of();
+        return status == Status.ACTIVE || status == Status.EXPIRING ? prefixes.stream().filter(p->!p.excluded()&&(p.expiry()==null||!p.expiry().isBefore(date))).toList() : List.of();
     }
     public boolean stale(Instant now) { return checkedAt.plus(Duration.ofHours(24)).isBefore(now); }
     public static String requireInn(String inn) {

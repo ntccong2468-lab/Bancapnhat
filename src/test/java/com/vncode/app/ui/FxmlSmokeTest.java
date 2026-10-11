@@ -119,6 +119,9 @@ class FxmlSmokeTest {
             } finally {pane.dispose();stage.close();i18n.setLanguage(original);}return null;
         });Platform.runLater(task);task.get(20,TimeUnit.SECONDS);
     }
+    @Test void openingFiveShopsDoesNotTriggerSigning() throws Exception {
+        var task=new java.util.concurrent.FutureTask<Void>(()->{var pane=new com.vncode.app.ui.gs1.Gs1Pane();try{for(int i=1;i<=5;i++){pane.setShop(new Shop(i,"Fixture "+i,"fixture"));assertEquals(0,pane.activeTaskCount());}}finally{pane.dispose();}return null;});Platform.runLater(task);task.get(10,TimeUnit.SECONDS);
+    }
     @Test void gs1DoesNotStartTwoOperationsInTheSameShopGeneration() throws Exception {
         var release=new CountDownLatch(1);var holder=new java.util.concurrent.atomic.AtomicReference<com.vncode.app.ui.gs1.Gs1Pane>();
         var work=new java.util.concurrent.Callable<String>(){public String call()throws Exception{release.await(10,TimeUnit.SECONDS);return "fixture";}};

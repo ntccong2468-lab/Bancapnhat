@@ -33,6 +33,7 @@ public final class Gs1Repository {
         @Override public String toString(){return "Gs1PortalInvoice[manually verified]";}
     }
     @FunctionalInterface private interface Connections {Connection open()throws SQLException;}
+    private static final Gson PREFIX_JSON=new GsonBuilder().registerTypeAdapter(LocalDate.class,(JsonSerializer<LocalDate>)(value,type,context)->new JsonPrimitive(value.toString())).registerTypeAdapter(LocalDate.class,(JsonDeserializer<LocalDate>)(json,type,context)->LocalDate.parse(json.getAsString())).create();
     private final Connections connections;
     public Gs1Repository(){this.connections=Database::getConnection;initialize();}
     public Gs1Repository(Path file){this.connections=()->DriverManager.getConnection("jdbc:sqlite:"+file);initialize();}
@@ -40,6 +41,7 @@ public final class Gs1Repository {
         try(Connection c=connections.open();Statement s=c.createStatement()){
             s.execute("PRAGMA busy_timeout=5000");
             s.execute("CREATE TABLE IF NOT EXISTS gs1_membership(inn TEXT PRIMARY KEY,payload TEXT NOT NULL)");
+            s.execute("CREATE TABLE IF NOT EXISTS gs1_membership_scoped(inn TEXT NOT NULL,environment TEXT NOT NULL,payload TEXT NOT NULL,PRIMARY KEY(inn,environment))");
             s.execute("CREATE TABLE IF NOT EXISTS gs1_requests(id TEXT PRIMARY KEY,inn TEXT NOT NULL,kind TEXT NOT NULL,recipient TEXT NOT NULL,subject TEXT NOT NULL,body TEXT NOT NULL,state TEXT NOT NULL,created_at TEXT NOT NULL)");
             s.execute("CREATE INDEX IF NOT EXISTS idx_gs1_requests_inn ON gs1_requests(inn,created_at)");
             s.execute("CREATE TABLE IF NOT EXISTS gs1_messages(inn TEXT NOT NULL,request_id TEXT NOT NULL,id TEXT NOT NULL,outgoing INTEGER NOT NULL,sender TEXT NOT NULL,body TEXT NOT NULL,unread INTEGER NOT NULL,invoice INTEGER NOT NULL DEFAULT 0,created_at TEXT NOT NULL,PRIMARY KEY(inn,request_id,id))");
@@ -135,16 +137,22 @@ public final class Gs1Repository {
         }catch(SQLException error){throw storeError();}
     }
     public static boolean officialSender(String sender){return sender!=null&&Set.of("mail@gs1ru.org","markirovka@gs1ru.org","server@gs1ru.org").contains(sender.toLowerCase(Locale.ROOT));}
-    public void saveMembership(Gs1Membership value){
-        JsonObject json=new JsonObject();json.addProperty("inn",value.inn());json.addProperty("name",value.legalName());json.addProperty("member",value.member());json.addProperty("excluded",value.excluded());json.addProperty("expiry",value.expiry()==null?null:value.expiry().toString());json.addProperty("checkedAt",value.checkedAt().toString());json.addProperty("source",value.source());json.add("prefixes",new Gson().toJsonTree(value.prefixes()));
-        execute("INSERT INTO gs1_membership VALUES(?,?) ON CONFLICT(inn) DO UPDATE SET payload=excluded.payload",value.inn(),json.toString());
+    private static String membershipJson(Gs1Membership value){
+        JsonObject json=new JsonObject();json.addProperty("inn",value.inn());json.addProperty("name",value.legalName());json.addProperty("member",value.member());json.addProperty("excluded",value.excluded());json.addProperty("expiry",value.expiry()==null?null:value.expiry().toString());json.addProperty("checkedAt",value.checkedAt().toString());json.addProperty("source",value.source());json.add("prefixes",PREFIX_JSON.toJsonTree(value.prefixes()));return json.toString();
     }
-    public Optional<Gs1Membership> membership(String inn){
+    public void saveMembership(Gs1Membership value){execute("INSERT INTO gs1_membership VALUES(?,?) ON CONFLICT(inn) DO UPDATE SET payload=excluded.payload",value.inn(),membershipJson(value));}
+    public void saveMembership(Gs1Membership value,String environment){requireEnvironment(environment);execute("INSERT INTO gs1_membership_scoped VALUES(?,?,?) ON CONFLICT(inn,environment) DO UPDATE SET payload=excluded.payload",value.inn(),environment,membershipJson(value));}
+    public Optional<Gs1Membership> membership(String inn){return membershipQuery(inn,null);}
+    public Optional<Gs1Membership> membership(String inn,String environment){requireEnvironment(environment);return membershipQuery(inn,environment);}
+    private static void requireEnvironment(String environment){if(!Set.of("production","sandbox","unsupported").contains(environment))throw new IllegalArgumentException("Invalid service environment");}
+    private Optional<Gs1Membership> membershipQuery(String inn,String environment){
         Gs1Membership.requireInn(inn);
-        try(Connection c=connections.open();PreparedStatement p=c.prepareStatement("SELECT payload FROM gs1_membership WHERE inn=?")){
-            p.setString(1,inn);try(ResultSet r=p.executeQuery()){
+        String sql=environment==null?"SELECT payload FROM gs1_membership WHERE inn=?":"SELECT payload FROM gs1_membership_scoped WHERE inn=? AND environment=?";
+        try(Connection c=connections.open();PreparedStatement p=c.prepareStatement(sql)){
+            p.setString(1,inn);if(environment!=null)p.setString(2,environment);try(ResultSet r=p.executeQuery()){
                 if(!r.next())return Optional.empty();JsonObject j=JsonParser.parseString(r.getString(1)).getAsJsonObject();
-                List<Gs1Membership.Prefix> prefixes=List.of(new Gson().fromJson(j.get("prefixes"),Gs1Membership.Prefix[].class));
+                if(!inn.equals(j.get("inn").getAsString()))return Optional.empty();
+                List<Gs1Membership.Prefix> prefixes=List.of(PREFIX_JSON.fromJson(j.get("prefixes"),Gs1Membership.Prefix[].class));
                 return Optional.of(new Gs1Membership(inn,j.get("name").getAsString(),j.get("member").isJsonNull()?null:j.get("member").getAsBoolean(),j.get("excluded").getAsBoolean(),j.get("expiry").isJsonNull()?null:LocalDate.parse(j.get("expiry").getAsString()),prefixes,Instant.parse(j.get("checkedAt").getAsString()),j.get("source").getAsString()));
             }
         }catch(SQLException error){throw storeError();}catch(RuntimeException corrupt){return Optional.empty();}
