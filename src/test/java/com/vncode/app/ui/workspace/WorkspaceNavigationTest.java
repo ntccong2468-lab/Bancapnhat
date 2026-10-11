@@ -5,6 +5,13 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 class WorkspaceNavigationTest {
+    @Test void showingKnownViewDoesNotConstructUnopenedRoutes() {
+        var navigator=new WorkspaceNavigator(n->{});var builds=new AtomicInteger();
+        var known=new Group();navigator.register("known",()->known);navigator.show("known");
+        navigator.register("heavy",()->{builds.incrementAndGet();return new Group();});
+        navigator.showView(known);assertEquals(0,builds.get());
+        assertThrows(IllegalArgumentException.class,()->navigator.showView(new Group()));assertEquals(0,builds.get());
+    }
     @Test void keepsAllRoutesAndReusesViews() {
         var displayed=new AtomicReference<javafx.scene.Node>();var builds=new AtomicInteger();
         var navigator=new WorkspaceNavigator(displayed::set);

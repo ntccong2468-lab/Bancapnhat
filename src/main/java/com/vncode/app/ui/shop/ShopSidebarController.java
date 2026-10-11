@@ -15,6 +15,10 @@ import javafx.scene.control.ToggleGroup;
 import java.util.function.Consumer;
 
 public class ShopSidebarController {
+    @FXML private Button productsButton;
+    private Runnable onProducts;
+    public void setOnProducts(Runnable action){onProducts=action;}
+    @FXML private void onProducts(){if(onProducts!=null)onProducts.run();}
     @FXML private Button guidesButton;
     private Runnable onGuides;
     public void setOnGuides(Runnable action){onGuides=action;}
@@ -24,7 +28,7 @@ public class ShopSidebarController {
     private Runnable onFinance;
     public void setOnFinance(Runnable action){onFinance=action;}
     @FXML private void onFinance(){if(onFinance!=null)onFinance.run();}
-    public void selectNavigation(String id){for(Button button:java.util.List.of(dashboardButton,packingButton,fboPackingButton,templateButton,kizMappingButton,znackRegistrationButton,znackAutomationButton,btnPrintHistory,gtinSyncButton,gs1Button,fboOrdersButton,financeButton,guidesButton)){button.getStyleClass().remove("nav-selected");if(id.equals(button.getId()))button.getStyleClass().add("nav-selected");}}
+    public void selectNavigation(String id){for(Button button:java.util.List.of(productsButton,dashboardButton,packingButton,fboPackingButton,templateButton,kizMappingButton,znackRegistrationButton,znackAutomationButton,btnPrintHistory,gtinSyncButton,gs1Button,fboOrdersButton,financeButton,guidesButton)){button.getStyleClass().remove("nav-selected");if(id.equals(button.getId()))button.getStyleClass().add("nav-selected");}}
     @FXML private Button gs1Button;
     private Runnable onGs1;
     private int gs1Unread;
@@ -234,6 +238,7 @@ public class ShopSidebarController {
         aboutMenuItem.setText(i18n.tr("settings.about"));
         applyMarketplaceTexts();
         financeButton.setText(i18n.tr("sidebar.finance"));toolsPane.setText(i18n.tr("sidebar.tools"));setGs1Unread(gs1Unread);
+        productsButton.setText(" "+i18n.tr("products.title"));
         guidesButton.setText(i18n.tr("guides.title"));
         editionStatusLabel.setText("• " + i18n.tr("edition.personal"));
         editionStatusLabel.setStyle("-fx-text-fill: #22c55e; -fx-font-weight: 700;");

@@ -50,11 +50,11 @@ Quy ước đường dẫn: các tên dưới `features/`, `integration/`, `shar
 
 **Interfaces:** `ShopReadCoordinator.Key(int shopId,String workload,String scope)`; `submit(Key,boolean interactive,Callable<T>):CompletableFuture<T>`, `cancelReads(int shopId):void`, `close():void`, `activeCount():int`, `pendingCount():int`. `ThumbnailLoader.load(URI,int width,int height):CompletableFuture<Image>`, `close():void`; `ThumbnailCache.retainedBytes():long`. Cả hai nhận clock/executor/budget trong constructor để test; live defaults low-end: 2 workers, 64 pending; thumbnail budget `64L*1024*1024`.
 
-- [ ] Viết `duplicatesShareOneRead`, `boundedQueueRejectsOrEvictsOnlyReads`, `twoWorkerLimit`, `lruNeverExceeds64MiB`, `oversizedImageRejectedBeforeDecode`, `failureExpiresAndCanRecover`. Assert trùng key chỉ chạy callable 1 lần; active<=2, pending<=64, retained<=67108864; image lỗi retry sau TTL; callback không block FX.
-- [ ] Chạy `MVN -Dtest=ShopReadCoordinatorTest,ThumbnailCacheTest,ThumbnailLoaderTest test`; xác nhận red.
-- [ ] Implement bounded priority read queues, completion/error rõ ràng, cancellation không ảnh hưởng mutation. Thumbnail downsample trước decode, giới hạn input 8 MiB/40 megapixels (quyết định triển khai), failure TTL 5 phút, HTTPS allowed source/redirect policy không chuyển credential. Giữ ảnh in/full media pipeline riêng; không dùng thumbnail tạo PDF/barcode.
-- [ ] Chạy lại command; kiểm tra các test PDF/image hiện có qua `MVN -Dtest=FboBarcodePdfExporterTest,ThumbnailLoaderTest test`, 0 failures/errors.
-- [ ] Commit `perf: bound shop reads and thumbnail memory`.
+- [x] Viết `duplicatesShareOneRead`, `boundedQueueRejectsOrEvictsOnlyReads`, `twoWorkerLimit`, `lruNeverExceeds64MiB`, `oversizedImageRejectedBeforeDecode`, `failureExpiresAndCanRecover`. Assert trùng key chỉ chạy callable 1 lần; active<=2, pending<=64, retained<=67108864; image lỗi retry sau TTL; callback không block FX.
+- [x] Chạy `MVN -Dtest=ShopReadCoordinatorTest,ThumbnailCacheTest,ThumbnailLoaderTest test`; xác nhận red.
+- [x] Implement bounded priority read queues, completion/error rõ ràng, cancellation không ảnh hưởng mutation. Thumbnail downsample trước decode, giới hạn input 8 MiB/40 megapixels (quyết định triển khai), failure TTL 5 phút, HTTPS allowed source/redirect policy không chuyển credential. Giữ ảnh in/full media pipeline riêng; không dùng thumbnail tạo PDF/barcode.
+- [x] Chạy lại command; kiểm tra các test PDF/image hiện có qua `MVN -Dtest=FboBarcodePdfExporterTest,ThumbnailLoaderTest test`, 0 failures/errors.
+- [x] Commit `perf: bound shop reads and thumbnail memory`.
 
 ### A3: Màn Sản phẩm, selection và điều hướng lazy
 

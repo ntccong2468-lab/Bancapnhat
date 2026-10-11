@@ -60,6 +60,65 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class FxmlSmokeTest {
+    @Test void productsMenuAndFourLocalesAreLazy() throws Exception {
+        var task=new java.util.concurrent.FutureTask<Void>(()->{
+            var loader=FxmlViewLoader.loader(HomeController.class,"home-view.fxml");FxmlViewLoader.load(loader);var home=(HomeController)loader.getController();
+            try {
+                for(String heavy:java.util.List.of("financeDashboardController","ozonDashboardController","znackAutomationController","fboPackingController")) {
+                    var field=HomeController.class.getDeclaredField(heavy);field.setAccessible(true);assertEquals(null,field.get(home),heavy);
+                }
+                var sidebar=HomeController.class.getDeclaredField("shopSidebarController");sidebar.setAccessible(true);var controller=sidebar.get(home);
+                var button=controller.getClass().getDeclaredField("productsButton");button.setAccessible(true);
+                ((Button)button.get(controller)).fire();
+                var nav=HomeController.class.getDeclaredField("workspaceNavigator");nav.setAccessible(true);assertEquals("products",((com.vncode.app.ui.workspace.WorkspaceNavigator)nav.get(home)).currentRoute());
+                for(var language:com.vncode.app.shared.AppLanguage.values()) {
+                    var bundle=java.util.ResourceBundle.getBundle("com.vncode.app.i18n.messages",language.toLocale());
+                    assertFalse(bundle.getString("products.title").isBlank());assertFalse(bundle.getString("products.all_results").isBlank());
+                }
+            } finally {home.dispose();}return null;
+        });Platform.runLater(task);task.get(15,TimeUnit.SECONDS);
+    }
+    @Test void staleProductSnapshotCannotUpdateCurrentShop() throws Exception {
+        var entered=new CountDownLatch(1);var release=new CountDownLatch(1);var bReady=new CountDownLatch(1);
+        var reads=new com.vncode.app.shared.ShopReadCoordinator(2,8);var holder=new java.util.concurrent.atomic.AtomicReference<com.vncode.app.ui.products.ProductsPane>();
+        var setup=new java.util.concurrent.FutureTask<Void>(()->{
+            var pane=new com.vncode.app.ui.products.ProductsPane(query->{
+                if(query.shopId()==1){entered.countDown();try{release.await(10,TimeUnit.SECONDS);}catch(InterruptedException e){Thread.currentThread().interrupt();}}
+                if(query.shopId()==2)bReady.countDown();
+                var row=new com.vncode.app.features.products.ProductRow(new com.vncode.app.features.products.ProductKey(query.shopId(),query.marketplace(),"1",""),"Shop "+query.shopId(),"","","","","","",java.util.List.of(),"","","","",com.vncode.app.features.products.DocumentState.MISSING);
+                return new com.vncode.app.features.products.ProductPage(java.util.List.of(row),1,"");
+            },reads);holder.set(pane);pane.setShop(new Shop(1,"A","fixture"));return null;
+        });
+        try{
+            Platform.runLater(setup);setup.get(10,TimeUnit.SECONDS);assertTrue(entered.await(5,TimeUnit.SECONDS));
+            var change=new java.util.concurrent.FutureTask<Void>(()->{holder.get().setShop(new Shop(2,"B","fixture"));return null;});Platform.runLater(change);change.get(5,TimeUnit.SECONDS);
+            assertTrue(bReady.await(5,TimeUnit.SECONDS));release.countDown();
+            for(int i=0;i<100&&(reads.activeCount()>0||reads.pendingCount()>0);i++)Thread.sleep(20);
+            var check=new java.util.concurrent.FutureTask<Void>(()->{
+                var field=holder.get().getClass().getDeclaredField("rows");field.setAccessible(true);var list=(javafx.scene.control.ListView<com.vncode.app.features.products.ProductRow>)field.get(holder.get());
+                assertEquals(2,list.getItems().getFirst().key().shopId());assertEquals("Shop 2",list.getItems().getFirst().title());return null;
+            });Platform.runLater(check);check.get(5,TimeUnit.SECONDS);
+        }finally{release.countDown();reads.close();var close=new java.util.concurrent.FutureTask<Void>(()->{if(holder.get()!=null)holder.get().dispose();return null;});Platform.runLater(close);close.get(5,TimeUnit.SECONDS);}
+    }
+    @Test void productLayoutFitsFourLocalesAtTwoSizes() throws Exception {
+        var task=new java.util.concurrent.FutureTask<Void>(()->{
+            var pane=new com.vncode.app.ui.products.ProductsPane();var stage=new javafx.stage.Stage();var i18n=I18nService.getInstance();var original=i18n.getCurrentLanguage();
+            try {
+                var scene=new javafx.scene.Scene(pane,1024,600);scene.getStylesheets().add(getClass().getResource("/com/vncode/app/styles/theme.css").toExternalForm());stage.setScene(scene);stage.show();
+                var field=pane.getClass().getDeclaredField("rows");field.setAccessible(true);var list=(javafx.scene.control.ListView<com.vncode.app.features.products.ProductRow>)field.get(pane);
+                var row=new com.vncode.app.features.products.ProductRow(new com.vncode.app.features.products.ProductKey(1,com.vncode.app.integration.marketplace.Marketplace.WILDBERRIES,"1825972297","1"),"Мужские утепленные спортивные брюки джоггеры","QA-3soc-xinhi","1825972297","Брюки спортивные","VN fashion","Синий","2XL",java.util.List.of("2047861508465"),"","","80% хлопок, 20% синтетическое волокно","6103420001",com.vncode.app.features.products.DocumentState.UNVERIFIED);
+                list.getItems().setAll(row);
+                for(var language:com.vncode.app.shared.AppLanguage.values())for(int[] size:java.util.List.of(new int[]{1024,600},new int[]{1366,768})) {
+                    i18n.setLanguage(language);pane.applyTranslations();stage.setWidth(size[0]);stage.setHeight(size[1]);pane.applyCss();pane.layout();
+                    var statusField=pane.getClass().getDeclaredField("status");statusField.setAccessible(true);assertEquals(i18n.tr("products.select_shop"),((Label)statusField.get(pane)).getText());
+                    assertTrue(list.getHeight()>180);assertTrue(pane.getTop().getBoundsInParent().getMaxX()<=pane.getWidth()+1);
+                    var image=pane.snapshot(null,null);var buffered=new java.awt.image.BufferedImage((int)image.getWidth(),(int)image.getHeight(),java.awt.image.BufferedImage.TYPE_INT_ARGB);
+                    for(int y=0;y<buffered.getHeight();y++)for(int x=0;x<buffered.getWidth();x++)buffered.setRGB(x,y,image.getPixelReader().getArgb(x,y));
+                    var path=java.nio.file.Path.of("target/ui-screenshots/products-"+language.code()+"-"+size[0]+".png");java.nio.file.Files.createDirectories(path.getParent());javax.imageio.ImageIO.write(buffered,"PNG",path.toFile());
+                }
+            } finally {pane.dispose();stage.close();i18n.setLanguage(original);}return null;
+        });Platform.runLater(task);task.get(20,TimeUnit.SECONDS);
+    }
     @Test void gs1DoesNotStartTwoOperationsInTheSameShopGeneration() throws Exception {
         var release=new CountDownLatch(1);var holder=new java.util.concurrent.atomic.AtomicReference<com.vncode.app.ui.gs1.Gs1Pane>();
         var work=new java.util.concurrent.Callable<String>(){public String call()throws Exception{release.await(10,TimeUnit.SECONDS);return "fixture";}};

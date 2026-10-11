@@ -1137,3 +1137,12 @@
 .supply-detail .button { -fx-background-radius: 16; -fx-font-size: 15; }
 .supply-detail .check-box { -fx-font-size: 16; }
 .supply-detail .badge { -fx-padding: 6 10; -fx-font-size: 13; -fx-background-radius: 10; }
+
+.products-workspace { -fx-background-color: -bg-primary; }
+.product-row { -fx-border-color: #33303f; -fx-border-width: 0 0 1 0; }
+.product-name { -fx-font-weight: bold; -fx-font-size: 15px; }
+.products-bulk { -fx-background-color: #24222f; -fx-padding: 14; -fx-background-radius: 14; }
+.document-valid { -fx-text-fill: #22c55e; }
+
+.product-row .label { -fx-font-weight: normal; }
+.product-row .product-name { -fx-font-weight: bold; }

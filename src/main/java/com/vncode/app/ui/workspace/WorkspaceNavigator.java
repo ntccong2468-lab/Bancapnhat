@@ -26,7 +26,6 @@ public final class WorkspaceNavigator {
         Objects.requireNonNull(view);
         for(var route:routes.entrySet()) {
             if(cache.get(route.getKey())==view){show(route.getKey());return;}
-            if(!cache.containsKey(route.getKey()) && route.getValue().get()==view){cache.put(route.getKey(),view);show(route.getKey());return;}
         }
         throw new IllegalArgumentException("unregistered_view");
     }

@@ -45,6 +45,7 @@
                 <FontIcon iconLiteral="fth-grid" iconSize="16" />
             </graphic>
         </Button>
+        <Button fx:id="productsButton" onAction="#onProducts" text="%products.title" alignment="CENTER_LEFT" minHeight="48" maxWidth="1.7976931348623157E308" styleClass="button,nav-item"><graphic><FontIcon iconLiteral="fth-shopping-bag" iconSize="16" /></graphic></Button>
         <Button fx:id="packingButton" alignment="CENTER_LEFT" mnemonicParsing="false" onAction="#onPacking" prefHeight="48" prefWidth="190.0" text=" Упаковка WB" maxWidth="1.7976931348623157E308" minHeight="48" styleClass="button,nav-item">
             <graphic>
                 <FontIcon iconLiteral="fth-truck" iconSize="16" />
