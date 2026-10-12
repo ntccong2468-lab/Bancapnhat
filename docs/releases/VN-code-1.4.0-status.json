@@ -30,11 +30,13 @@
     "Chưa đo baseline/current trên máy Windows 2 CPU/4 GiB. Báo cáo cloud và Windows CI mạnh hơn không bảo đảm mọi máy hoặc request mạng/máy in đều không bị lag.",
     "Luồng thêm/thay GTIN production độc lập đã khóa ở bản trước vẫn cần hợp đồng và fixture nghiệm thu; không mở khóa chỉ từ mã barcode. Các cải tiến FBO cấp GTIN/mua KIZ và quy tắc pháp lý TN VED chưa được công bố hoàn tất trong Preview này.",
     "Chưa hoàn tất các phần ngoài đợt Products/Copy/10-shop: trình thiết kế mẫu nhúng mới, số dư CZ trên header và dịch vụ tên miền/hosting. Các bản cá nhân đã phát hành vẫn giữ chế độ miễn phí.",
-    "Giấy phép theo tài khoản website, lease offline 72 giờ và giới hạn thiết bị đã được duyệt thiết kế; mới nhận README, thiếu Worker/schema/migration/test để lập kế hoạch backend và tích hợp. Không phát hành 1.4.0 trước kiểm tra phần này."
+    "Giấy phép theo tài khoản website, lease offline 72 giờ và giới hạn thiết bị đã được duyệt thiết kế; kế hoạch client Windows và hợp đồng API bổ sung đã viết để rà soát. Mới nhận README, thiếu Worker/schema/migration/test để lập kế hoạch backend và xác minh tích hợp thật. Không phát hành 1.4.0 trước kiểm tra phần này."
   ],
   "licenseIntegration": {
-    "status": "design-approved-awaiting-backend-source",
+    "status": "client-plan-awaiting-review-and-backend-source",
     "design": "docs/superpowers/specs/2026-10-12-vn-code-web-license-design.md",
+    "clientPlan": "docs/superpowers/plans/2026-10-12-vn-code-account-license-client.md",
+    "proposedContract": "docs/research/2026-10-12-vn-code-account-license-contract.md",
     "account": "email and password registered on vncode.id.vn",
     "defaultDevices": 1,
     "defaultOfflineHours": 72,

@@ -1,6 +1,6 @@
 # VN code — tài khoản website, quyền offline và giới hạn thiết bị
 
-**Trạng thái: thiết kế B đề xuất để duyệt, chưa triển khai.** Ngày 12/10/2026. Bổ sung vào cùng bản cập nhật VN code 1.4.0. Người sở hữu đã yêu cầu đổi phương án online đơn thuần sang offline + giới hạn máy, đồng thời xác nhận dùng tài khoản Gmail đã đăng ký trên website; admin có quyền duyệt, gia hạn và khóa tài khoản.
+**Trạng thái: thiết kế B đã được người sở hữu duyệt, chưa triển khai.** Ngày 12/10/2026. Bổ sung vào cùng bản cập nhật VN code 1.4.0. Người sở hữu đã yêu cầu đổi phương án online đơn thuần sang offline + giới hạn máy, đồng thời xác nhận dùng tài khoản Gmail đã đăng ký trên website; admin có quyền duyệt, gia hạn và khóa tài khoản. [Kế hoạch client đang chờ rà soát](../plans/2026-10-12-vn-code-account-license-client.md); [hợp đồng API bổ sung đề xuất](../../research/2026-10-12-vn-code-account-license-contract.md).
 
 [Bằng chứng API hiện có](../../research/2026-10-12-vn-code-license-api.md) chỉ là README và kiểm tra GET không đăng nhập. Chưa có mã Worker/schema/test backend trong tệp đã nhận. Các endpoint ký quyền và quản lý thiết bị bên dưới là **đề xuất mới**, chưa tồn tại theo bằng chứng hiện có.
 
@@ -17,7 +17,7 @@ Mục tiêu hiệu năng 10 shop đã duyệt giữ nguyên. Giới hạn thiế
 | Phương án | Khả năng | Điều kiện |
 |---|---|---|
 | A. Chỉ dùng login/me | Duyệt/gia hạn/khóa tài khoản online | Không có chứng cứ quyền offline hoặc giới hạn thiết bị; người sở hữu đã yêu cầu thay đổi |
-| **B. Tài khoản + lease ký số + thiết bị — đề xuất** | Đăng nhập bằng email website, hạn quyền do admin quản lý, offline có thời hạn, giới hạn máy trên server | Cần thêm API/schema backend và khóa ký riêng của người sở hữu; client chỉ giữ public key |
+| **B. Tài khoản + lease ký số + thiết bị — đã duyệt** | Đăng nhập bằng email website, hạn quyền do admin quản lý, offline có thời hạn, giới hạn máy trên server | Cần thêm API/schema backend và khóa ký riêng của người sở hữu; client chỉ giữ public key |
 
 Chọn B. Dùng Ed25519 tiêu chuẩn với JDK/Web Crypto, không thuê SDK cấp phép thương mại. Khóa ký này là riêng của VN code; không dùng key hoặc dịch vụ cấp phép của bên khác. IP không dùng làm định danh máy vì NAT, VPN và địa chỉ thay đổi.
 
@@ -46,7 +46,7 @@ flowchart LR
 
 Đăng ký/xác minh email và quản lý mã giữ trên website. App đăng nhập, kích hoạt thiết bị, kiểm tra quyền và mở dashboard khi khách cần gia hạn. Pending/suspended/expired không được nhận lease sử dụng mới.
 
-## Chính sách đề xuất để duyệt
+## Chính sách đã được duyệt
 
 - **Mặc định một máy/tài khoản**, admin chỉnh 1–10 máy theo từng tài khoản; có màn danh sách máy, lần kiểm tra gần nhất và thu hồi máy. Tài khoản mới không tự được trial chỉ nhờ đăng ký.
 - **Mặc định tối đa 72 giờ khi không liên lạc được license server**, admin có thể chọn 6–168 giờ. Lease không vượt hạn sử dụng tài khoản. Lần đăng nhập/kích hoạt đầu tiên bắt buộc online; không tự cấp lease từ cache.
@@ -55,7 +55,7 @@ flowchart LR
 - Giải phóng slot do admin thu hồi cho phép máy mới đăng ký, nhưng lease cũ chưa kết nối vẫn có thể còn hạn offline; giao diện admin phải chỉ rõ độ trễ này. Thời lượng offline ký trong lease đã cấp không thể rút ngắn khi máy không kết nối.
 - Hết quyền vẫn xem dữ liệu đã lưu, lịch sử, xem trước bản in cũ, xuất dữ liệu/sao lưu, đăng nhập/gia hạn và đối soát tác vụ đã gửi. Không xóa shop, template hoặc journal.
 
-Các mặc định là đề xuất của thiết kế, chưa được công bố là cấu hình backend hiện tại. Admin quản lý quyền tài khoản của chính mình theo cùng dữ liệu server; app không có mật khẩu/key chủ ẩn để bỏ kiểm tra.
+Các mặc định đã được duyệt cho bản cập nhật, chưa được công bố là cấu hình backend hiện tại. Admin quản lý quyền tài khoản của chính mình theo cùng dữ liệu server; app không có mật khẩu/key chủ ẩn để bỏ kiểm tra.
 
 ## Thiết bị và lease
 

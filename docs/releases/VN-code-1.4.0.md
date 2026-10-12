@@ -1,8 +1,9 @@
 # VN code 1.4.0 Preview
 
 **Chưa phát hành.** Phần giấy phép theo tài khoản website/offline/giới hạn thiết bị
-đã có thiết kế duyệt, chờ [nguồn backend](../research/2026-10-12-vn-code-license-backend-intake.md)
-để lập kế hoạch và tích hợp. Chỉ phát hành 1.4.0 sau kiểm tra phần này cùng Windows.
+đã có thiết kế duyệt và [kế hoạch client Windows để rà soát](../superpowers/plans/2026-10-12-vn-code-account-license-client.md).
+Vẫn chờ [nguồn backend](../research/2026-10-12-vn-code-license-backend-intake.md)
+để lập kế hoạch backend và xác minh tích hợp thật. Chỉ phát hành 1.4.0 sau kiểm tra phần này cùng Windows.
 
 Bản cập nhật của cùng VN code Windows do Nguyễn Thành Công phát triển và quản lý.
 Giữ `%LOCALAPPDATA%\VNcodeApp`, `%LOCALAPPDATA%\VNcodeData`, shop, mẫu tem và lịch sử;

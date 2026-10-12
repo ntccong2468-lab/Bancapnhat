@@ -6,7 +6,7 @@ Repository này chứa các bản cập nhật của cùng ứng dụng VN code,
 
 ## Tải và sử dụng
 
-**VN code 1.4.0 đang phát triển, chưa phát hành bộ cài.** [Thiết kế tài khoản/offline/thiết bị đã duyệt](docs/superpowers/specs/2026-10-12-vn-code-web-license-design.md) và [đầu vào backend còn thiếu](docs/research/2026-10-12-vn-code-license-backend-intake.md).
+**VN code 1.4.0 đang phát triển, chưa phát hành bộ cài.** [Thiết kế tài khoản/offline/thiết bị đã duyệt](docs/superpowers/specs/2026-10-12-vn-code-web-license-design.md), [kế hoạch tích hợp Windows để rà soát](docs/superpowers/plans/2026-10-12-vn-code-account-license-client.md) và [đầu vào backend còn thiếu](docs/research/2026-10-12-vn-code-license-backend-intake.md).
 
 Địa chỉ dự kiến khi hoàn tất kiểm tra: [VN code 1.4.0 Preview — Windows x64](https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.4.0-preview.1/VN-code-1.4.0-preview.1-Windows-x64.exe) · [release dự kiến](https://github.com/ntccong2468-lab/Bancapnhat/releases/tag/v1.4.0-preview.1).
 

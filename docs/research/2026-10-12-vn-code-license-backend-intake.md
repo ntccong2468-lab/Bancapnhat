@@ -7,6 +7,7 @@ Ngày 12/10/2026. Người sở hữu đã duyệt [thiết kế B](../superpowe
 - Website `vncode.id.vn` đang trả lời; API health trả 200 và client/me không có xác thực trả 401.
 - README mô tả `/api/client/login`, `/api/client/me`, Bearer 7 ngày và Cloudflare Workers/D1.
 - Thiết kế quyền, luồng dữ liệu, chữ ký, thiết bị, chính sách lỗi và tương thích đã được duyệt. Chưa thêm code giấy phép vào app.
+- [Kế hoạch client Windows](../superpowers/plans/2026-10-12-vn-code-account-license-client.md) và [hợp đồng API bổ sung đề xuất](2026-10-12-vn-code-account-license-contract.md) đã viết để người sở hữu rà soát; client có thể triển khai/test fixture độc lập sau review kế hoạch, không cần đoán schema website.
 
 ## Cần nhận mã nguồn
 
@@ -29,7 +30,7 @@ Repository `ntccong2468-lab/vncodeidvn` tìm thấy theo thông tin công khai h
 4. Vị trí gắn API thiết bị/lease và giao diện admin vào router hiện có; không tạo lớp xác thực thứ hai trái với website.
 5. Runtime Workers/Web Crypto/D1 được kiểm thử; public signing key và byte format của lease phải khớp verifier Windows.
 
-Đây là đầu vào cho kế hoạch, không phải một kế hoạch triển khai backend đã hoàn chỉnh. Khi có nguồn, lập kế hoạch với tên file/hàm/migration thật để người sở hữu duyệt theo cách triển khai trực tiếp đã chọn. Không công bố offline, giới hạn máy hoặc thu hồi key production hoạt động chỉ từ README/fixture.
+Đây là đầu vào cho kế hoạch backend, không phải một kế hoạch triển khai backend đã hoàn chỉnh. Khi có nguồn, lập kế hoạch với tên file/hàm/migration thật để người sở hữu duyệt theo cách triển khai trực tiếp đã chọn. Kế hoạch client hiện tại không thay cổng này. Không công bố offline, giới hạn máy hoặc thu hồi key production hoạt động chỉ từ README/fixture.
 
 ## Tình trạng bản cập nhật
 
