@@ -78,5 +78,5 @@ bổ sung; Cron mỗi phút chỉ dọn tối đa 500 dòng hết hạn mỗi b�
 license, thiết bị và audit. Mã website nằm tại `website/license-portal`.
 
 Kiểm thử cloud/SQLite giả không thay cho nghiệm thu Windows, máy in, seller thật
-hoặc năng lực Cloudflare/D1 production. Worker và migration production chưa deploy;
-public pin client hiện vẫn rỗng, không tạo pin giả để mở quyền.
+hoặc năng lực Cloudflare/D1 production. Chủ website đã báo triển khai Portal và đăng nhập admin được;
+public pin client đã nhận từ chủ website với key ID `vncode-1`; còn chờ xác minh chữ ký server và nghiệm thu thực tế.

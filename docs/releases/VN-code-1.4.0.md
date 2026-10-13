@@ -1,6 +1,6 @@
 # VN code 1.4.0 Preview
 
-**Chưa phát hành.** Client đăng ký Gmail/OTP và nhập khóa license đã được viết theo Portal 0.3.1. [Hợp đồng và các điểm cần nghiệm thu](../research/2026-10-13-vn-code-desktop-license-contract.md). Trusted-keys production hiện rỗng, chưa deploy/nghiệm thu website và Windows. Không phát hành khi chưa hoàn thành các cổng này.
+**Chưa phát hành.** Client đăng ký Gmail/OTP và nhập khóa license đã được viết theo Portal 0.3.1. [Hợp đồng và các điểm cần nghiệm thu](../research/2026-10-13-vn-code-desktop-license-contract.md). Đã pin public key `vncode-1` do chủ website cung cấp; chưa xác minh server ký bằng khóa tương ứng hoặc nghiệm thu website/Windows. Không phát hành khi chưa hoàn thành các cổng này.
 
 Bản cập nhật của cùng VN code Windows do Nguyễn Thành Công phát triển và quản lý.
 Giữ `%LOCALAPPDATA%\VNcodeApp`, `%LOCALAPPDATA%\VNcodeData`, shop, mẫu tem và lịch sử;
@@ -89,7 +89,7 @@ KIZ WB xử lý luân phiên theo shop, reservation theo lô và checkpoint bề
 lịch sử in có đối soát read-only. Ozon chọn/in toàn bộ theo bộ lọc, đọc SQL theo
 nhóm và ghép PDF tuần tự. Hai tác vụ không cùng ghi một tệp đầu ra.
 Mỗi khách chạy VNCode trên máy riêng; chỉ dùng chung website đăng ký/license.
-Source website Portal 0.3.1 tại `website/license-portal`, chưa deploy production.
+Source website Portal 0.3.1 tại `website/license-portal`; chủ website đã báo triển khai và đăng nhập admin được, còn chờ nghiệm thu license thật.
 
 [Số đo và kiểm chứng bổ sung](../validation/2026-10-14-vn-code-140-scaling.md).
 [Kiến trúc](../architecture/vncode-140-multi-client.md).
@@ -114,4 +114,4 @@ Manifest Preview là thông tin **cài thủ công**, `automaticUpdate=false`; k
 Xem [feature-status](VN-code-1.4.0-status.json): tài khoản/chứng thư/SMTP/IMAP/
 Yandex/máy in và thao tác đăng bài/giấy tờ thật chưa nghiệm thu. Luồng ADD GTIN WB/Ozon có hợp đồng và fixture, chưa nghiệm thu seller thật;
 thay/xóa barcode sàn chưa mở; các cải tiến FBO, trình thiết kế nhúng, quy tắc TN VED
-và hosting chưa được công bố hoàn tất. Module Gmail/OTP/license đã có client và kiểm thử fixture; public pin thật, backend/email và Windows native vẫn là điều kiện trước phát hành.
+và hosting chưa được công bố hoàn tất. Module Gmail/OTP/license đã có client và kiểm thử fixture; xác minh chữ ký server, backend/email và Windows native vẫn là điều kiện trước phát hành.

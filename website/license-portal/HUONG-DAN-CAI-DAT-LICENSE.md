@@ -56,11 +56,20 @@ không dùng email routing chỉ gửi được tới các địa chỉ đã xá
 Trên máy tin cậy, tạo một thư mục MỚI bên ngoài project:
 
 ```sh
-node tools/create-signing-key.mjs ../vncode-signing-private
+node tools/create-signing-key.mjs /absolute/path/outside-checkout/vncode-signing-private
 npx wrangler secret put LICENSE_SIGNING_KEY
 ```
 
-Ở prompt secret, nhập nội dung file LICENSE_SIGNING_KEY.txt qua terminal riêng.
+Trên Windows PowerShell, dùng thư mục nằm ngoài checkout:
+
+```powershell
+$keyDirectory = Join-Path $env:USERPROFILE "VNCode-License-Keys-20261014"
+node tools/create-signing-key.mjs $keyDirectory
+npx.cmd wrangler secret put LICENSE_SIGNING_KEY
+```
+
+Không chạy cả hai ví dụ tạo khóa; giữ cặp khóa đã tạo. Ở prompt secret, nhập
+nội dung file LICENSE_SIGNING_KEY.txt qua terminal riêng.
 Private key là PKCS8 DER Base64URL; không phải license VNC gửi cho khách.
 Đặt LICENSE_KEY_ID trong vars (mặc định vncode-1). Giữ backup khóa ký an toàn.
 Chỉ public key raw 32 byte trong LICENSE_PUBLIC_KEY.txt được pin vào build

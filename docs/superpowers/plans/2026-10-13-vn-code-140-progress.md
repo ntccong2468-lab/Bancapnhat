@@ -21,7 +21,7 @@ Nguồn nền: `854b65fc3d0a9853718a3219001e4d5f3b5486e6`.
 
 1. Triển khai Portal 0.3.1 và migration trên database hiện có sau sao lưu.
 2. Cấu hình email thật, private signing key trên server; nhận và đối chiếu public
-   key để pin vào client. Resource hiện rỗng; không tự tạo pin production giả.
+   key để pin vào client. Đã nhận/pin public key `vncode-1`; chữ ký server và nghiệp vụ thật còn chờ kiểm tra.
 3. Nghiệm thu Gmail/OTP, approval/key, quota đồng thời, retry, gia hạn/khóa,
    Windows DPAPI/identity khác và offline. Khóa tài khoản hoặc thu hồi máy offline
    chỉ có hiệu lực sau kiểm tra online hoặc hạn quyền đã ký.
@@ -93,7 +93,7 @@ Ngày 13/10/2026 đã kiểm tra release công khai mới nhất
 - Bulk KIZ/SQL, hàng đợi công bằng 10 shop, cửa sổ chuẩn bị Ozon hai đơn,
   PDF tuần tự, đối soát KIZ từ lịch sử in và chặn trùng tệp đầu ra.
 - Mỗi khách dùng VNCode/dữ liệu riêng trên máy riêng, website license chung.
-  Portal 0.3.1 có source reviewable tại website/license-portal, chưa deploy.
+  Portal 0.3.1 có source tại website/license-portal; chủ website báo đã deploy và đăng nhập admin được, còn chờ kiểm tra nghiệp vụ license thật.
 
 Nguồn Catalog hiện gồm nhóm may mặc và thẻ đúng chủ do VNCode biết; không công
 bố đã lấy mọi nhóm bên ngoài. Quy tắc pháp lý TN VED, FBO mới, mẫu nhúng và

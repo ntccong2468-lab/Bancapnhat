@@ -1,7 +1,7 @@
 # VNCode Portal 0.3.1 — đăng ký Gmail, cấp license và phục vụ nhiều khách hàng
 
 Bản cập nhật từ Portal 0.3.0, giữ các tài khoản và trang quản trị hiện có.
-Mã đã chuẩn bị và kiểm thử cục bộ; chưa triển khai lên vncode.id.vn.
+Mã đã kiểm thử cục bộ. Chủ website đã báo triển khai lên vncode.id.vn và đăng nhập admin được; chưa có bằng chứng độc lập cho luồng OTP/kích hoạt/thu hồi trên production.
 
 ## Nâng cấp 0.3.1
 

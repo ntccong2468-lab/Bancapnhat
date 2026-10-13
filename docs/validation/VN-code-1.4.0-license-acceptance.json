@@ -2,8 +2,8 @@
   "version": "1.4.0",
   "result": "blocked",
   "sourceCommit": null,
-  "keyId": null,
-  "publicKey": null,
+  "keyId": "vncode-1",
+  "publicKey": "Gg7F92gqXnCLGdMbI130qHcBJ2hiI6KseZBgWkNCTeI",
   "backendSourceSha256": null,
   "windowsDpapiPassed": false,
   "foreignWindowsIdentityRejected": false,
@@ -13,5 +13,8 @@
   "signedOfflinePassed": false,
   "revocationPassed": false,
   "readonlyDataPreserved": false,
-  "note": "Local fixture tests do not supply production Windows or backend acceptance."
+  "publicKeySource": "Provided by the website owner in this session; canonical Base64URL and 32-byte format validated",
+  "serverSigningKeyMatch": "unverified",
+  "note": "Owner public key is pinned and built. Admin screenshot shows email configured but license signing not configured. Add the existing matching private key to the serving Worker as LICENSE_SIGNING_KEY; production server signature and native/backend acceptance remain pending.",
+  "serverSigningConfiguration": "missing-in-owner-admin-screenshot"
 }

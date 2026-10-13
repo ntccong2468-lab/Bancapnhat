@@ -62,8 +62,8 @@ offline fallback và tick định kỳ. Đối chiếu native Windows/disk fault
 
 ## Cổng phát hành
 
-Resource production hiện là `{}`: chưa nhận public pin của chủ phần mềm và
-không chèn khóa test. Vì vậy binary hiện không thể kích hoạt production.
+Resource production đã pin public key `vncode-1` do chủ website cung cấp.
+Định dạng đã kiểm tra; chưa quan sát chữ ký server hoặc nghiệm thu kích hoạt thật.
 `tools/license-release-gate.mjs` chặn publish 1.4.0 khi thiếu pin, source-matched
 Windows/DPAPI/second-user proof, backend Gmail/quota/retry/offline/revoke acceptance.
 Private signing key chỉ trên website; không đưa vào repo hoặc app.
@@ -85,3 +85,6 @@ làm tròn theo timer. Có jitter khởi đầu và backoff lỗi, thao tác th�
 tra ngay. Kiểm thử nhiều khách cục bộ không chứng minh năng lực D1 production.
 [Kiến trúc](../architecture/vncode-140-multi-client.md) và
 [kiểm chứng](../validation/2026-10-14-vn-code-140-scaling.md).
+
+
+Ngày 14/10/2026 chủ website cung cấp public key `vncode-1` và báo đã deploy/đăng nhập admin được. Public key đã được pin trong resource client; bước quan sát chữ ký server và nghiệm thu OTP/kích hoạt/thu hồi/Windows vẫn chưa thực hiện.

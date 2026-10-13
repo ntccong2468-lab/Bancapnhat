@@ -22,13 +22,13 @@ GTIN ADD WB/Ozon có hợp đồng/fixture, chưa nghiệm thu seller thật.
 
 ## Tải và sử dụng
 
-**VN code 1.4.0 đang phát triển, chưa phát hành bộ cài.** Đã viết client đăng ký Gmail/OTP và kích hoạt bằng khóa VNC, giao diện bốn ngôn ngữ và kiểm tra quyền tại service. [Hợp đồng license và giới hạn](docs/research/2026-10-13-vn-code-desktop-license-contract.md). Còn cần public pin thật, deploy/nghiệm thu website và Windows; publisher chặn khi thiếu bằng chứng.
+**VN code 1.4.0 đang phát triển, chưa phát hành bộ cài.** Đã viết client đăng ký Gmail/OTP và kích hoạt bằng khóa VNC, giao diện bốn ngôn ngữ và kiểm tra quyền tại service. [Hợp đồng license và giới hạn](docs/research/2026-10-13-vn-code-desktop-license-contract.md). Đã pin public key do chủ website cung cấp; còn cần xác minh chữ ký server và nghiệm thu website/Windows; publisher chặn khi thiếu bằng chứng.
 
 Bản đã phát hành gần nhất: [VN code 1.3.0 Preview](https://github.com/ntccong2468-lab/Bancapnhat/releases/tag/v1.3.0-preview.1).
 
 Đóng VN code rồi chạy EXE để nâng cấp. Java được đóng gói kèm. Bộ cài chưa ký Authenticode; bản Preview cài thủ công và chưa bật tự cập nhật. Bản trước: [VN code 1.1.34](https://github.com/ntccong2468-lab/Vncode/releases/tag/v1.1.34).
 
-Chương trình dùng `%LOCALAPPDATA%\VNcodeApp`, dữ liệu dùng `%LOCALAPPDATA%\VNcodeData`. Các bản cá nhân đã phát hành giữ quyền miễn phí. Bản 1.4.0 dùng Gmail đăng ký trong ứng dụng, chủ phần mềm duyệt và cấp khóa; tích hợp production còn chờ public pin, triển khai Portal và nghiệm thu. Người dùng thiết lập shop, tài khoản nghiệp vụ và chứng thư của mình. Nâng cấp giữ dữ liệu, mẫu tem và lịch sử VN code.
+Chương trình dùng `%LOCALAPPDATA%\VNcodeApp`, dữ liệu dùng `%LOCALAPPDATA%\VNcodeData`. Các bản cá nhân đã phát hành giữ quyền miễn phí. Bản 1.4.0 dùng Gmail đăng ký trong ứng dụng, chủ phần mềm duyệt và cấp khóa; đã pin khóa công khai, tích hợp production còn chờ xác minh server, triển khai Portal và nghiệm thu. Người dùng thiết lập shop, tài khoản nghiệp vụ và chứng thư của mình. Nâng cấp giữ dữ liệu, mẫu tem và lịch sử VN code.
 
 ## Chức năng
 
@@ -53,7 +53,7 @@ Chưa nghiệm thu bằng chứng thư doanh nghiệp, SMTP/IMAP, shop hoặc m�
 
 Đợt client license mới: **920/921 kiểm thử Java/JavaFX đạt** (1 kiểm thử DPAPI chưa chạy trên Linux), **42 kiểm thử công cụ đạt**. [Bằng chứng và cổng production còn thiếu](docs/validation/2026-10-13-vn-code-license-client.md). Các con số ở trên là kết quả các đợt cũ, không chứng minh nghiệm thu license thật.
 
-Source website đăng ký/license Portal 0.3.1 nằm tại [website/license-portal](website/license-portal/README.md); chưa triển khai production.
+Source website đăng ký/license Portal 0.3.1 nằm tại [website/license-portal](website/license-portal/README.md). Chủ website đã báo triển khai và đăng nhập admin được; kiểm tra nghiệp vụ license thật còn chờ.
 
 Đợt Znack/Ozon và nhiều máy khách: **1.174/1.175 Java/JavaFX đạt** (1 DPAPI chỉ chạy Windows), **42/42 công cụ**, **28/28 website**; JAR Linux khởi động được. [Bằng chứng và số đo](docs/validation/2026-10-14-vn-code-140-scaling.md).
 
