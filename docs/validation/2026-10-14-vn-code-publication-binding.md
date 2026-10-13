@@ -1,0 +1,9 @@
+# Bind post-build license acceptance to the actual Windows source
+
+The original preview workflow checked out the build commit and read acceptance from that same commit, while the license gate required acceptance.sourceCommit to equal HEAD. Recording results after a build could therefore never satisfy the gate without rebuilding and invalidating the recorded commit again.
+
+The publication workflow now checks out its selected publication revision with complete Git history and passes the exact build source commit separately. The publisher requires that source to be an ancestor and rejects every tracked difference except documentation and the explicitly listed publication tooling/workflow. Changes to application code, public keys, tests, packaging, native probes or the build workflow require a fresh verified Windows build. Artifact run SHA, native workspace reports and license acceptance still bind to the exact original build source. All existing real license-acceptance requirements remain enforced; no acceptance flag was promoted.
+
+Windows test totals now report passed and skipped counts separately. Only one GS1 POSIX-permission case can be skipped on NTFS; missing summary, failed tests, incomplete suites and other skips (including DPAPI/junction cases) are rejected. The release notes no longer claim zero skips when the platform legitimately lacks POSIX permissions.
+
+Validation: 46 Node contract tests passed. New Git fixtures prove that post-build acceptance metadata is allowed, changed application/native probe inputs are blocked, and a rename from docs into runtime sources cannot bypass binding. Java summary fixtures reject failures and unexpected/missing skips. Only publication tooling changed after Windows build source 517191dd7477a1fd4c6283c01d9bce654ade9779; these changes do not replace or claim completion of the running native build.

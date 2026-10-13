@@ -1,4 +1,5 @@
 import {validateLicenseReadiness} from './license-release-gate.mjs';
+import {validatePublicationSource,validateJavaTestSummary} from './preview-source-guard.mjs';
 import assert from 'node:assert/strict';
 import {execFileSync} from 'node:child_process';
 import {createHash} from 'node:crypto';
@@ -82,12 +83,13 @@ export function validatePreviewUpgrades(version,previous,latest,current,gs1) {
  if(newerThan122(version))validateUpgradeSmoke(current,version,'1.2.2');
  if(productsRelease(version))validateUpgradeSmoke(gs1,version,'1.3.0');
 }
-async function main(runId,tag) {
+async function main(runId,tag,buildSha) {
  assert.match(runId??'',/^[1-9][0-9]{0,15}$/);
  const {version:VERSION}=await resolveReleaseVersion({root:process.cwd()});
  const status=json(await readFile(`docs/releases/VN-code-${VERSION}-status.json`));validatePreview(status,tag);assert.equal(status.version,VERSION);
  assert.equal(execFileSync('git',['status','--porcelain'],{encoding:'utf8'}).trim(),'','Require a clean checkout.');
- const sha=execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim();
+ const sha=buildSha??execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim();
+ validatePublicationSource(sha);
  if(productsRelease(VERSION))validateLicenseReadiness(status,json(await readFile('src/main/resources/com/vncode/app/license/trusted-keys.json')),json(await readFile(`docs/validation/VN-code-${VERSION}-license-acceptance.json`)),VERSION,sha);
  const run=api(`actions/runs/${runId}`),workflow=api('actions/workflows/build-java.yml');validateBuild(run,sha,workflow.id);
  const artifactName=`VN-code-${VERSION}-Windows-x64`;
@@ -111,12 +113,12 @@ async function main(runId,tag) {
  if(gs1Smoke)validateGs1Smoke(gs1Smoke,VERSION);
  if(workspaceSmoke){validateWorkspaceSmoke(workspaceSmoke,VERSION,sha);assert.ok((await readFile(path.join(directory,'seller-workspace-evidence.zip'))).length>1024);}
  const log=gh(['run','view',runId,'--repo',REPO,'--log']).replace(/\x1b\[[0-9;]*m/g,'');
- const javaTests=Math.max(0,...[...log.matchAll(/Tests run: (\d+), Failures: 0, Errors: 0, Skipped: 0/g)].map(x=>Number(x[1])));
+ const javaTestSummary=validateJavaTestSummary(log),javaTests=javaTestSummary.passed;
  const nodeTests=Number(log.match(/(?:#|ℹ)\s*tests\s+(\d+)/)?.[1]??0);
  assert.ok(javaTests>=585);assert.ok(nodeTests>=27);
  await copyFile(path.join(directory,original),path.join(directory,filename));
  const info={appName:'VN code',version:VERSION,releaseTag:tag,stage:'preview',complete:false,
-  sourceCommit:sha,repository:REPO,githubRunId:Number(runId),javaTests,nodeTests,
+  sourceCommit:sha,repository:REPO,githubRunId:Number(runId),javaTests,javaTestSummary,nodeTests,
   installer:{filename,sha256:digest,bytes:bytes.length,architecture:'x86_64',authenticodeSigned:false},
   liveMarketplaceMutations:false,signedUpdateManifestPublished:false,manualPreviewManifestPublished:productsRelease(VERSION),blocked:status.blocked,nativeSmoke:native,upgradeSmoke:upgrade,previewUpgradeSmoke:previewUpgrade,latestPreviewUpgradeSmoke:latestPreviewUpgrade,currentPreviewUpgradeSmoke:currentPreviewUpgrade,gs1PreviewUpgradeSmoke:gs1PreviewUpgrade,gs1Smoke,workspaceSmoke};
  await writeFile(path.join(directory,'build-info.json'),JSON.stringify(info,null,2)+'\n');
@@ -127,7 +129,7 @@ async function main(runId,tag) {
   `## Đã có trong bản này\n\n${(status.implemented??['Giữ các chức năng VN code của bản đã phát hành trước.']).map(x=>`- ${x}`).join('\n')}\n\n`+
   `## Chưa hoàn tất\n\n${status.blocked.map(x=>`- ${x}`).join('\n')}\n\n`+
   `## Cài đặt và kiểm tra\n\nĐóng VN code rồi chạy **${filename}** bên dưới; Java đã được đóng gói. Bộ cài chưa ký Authenticode. ${productsRelease(VERSION)?'update-manifest.json ghi thông tin tải thủ công, checksum, source commit và build ID; automaticUpdate=false.':'Không phát hành manifest.'} Bản thử không được đưa vào cập nhật tự động. Bản hoàn thiện tiếp theo sẽ dùng số phiên bản Windows cao hơn để tiếp tục nâng cấp cùng ứng dụng.\n\n`+
-  `- ${javaTests} kiểm thử Java/JavaFX và ${nodeTests} kiểm thử Node đạt trên Windows; 0 lỗi hoặc bỏ qua.\n- Launcher, kiểm tra cài song song và nâng cấp VN code 1.1.34 giữ dữ liệu đã đạt.${previewUpgrade?" Nâng cấp từ VN code 1.2.0 Preview cũng đã đạt.":""}${latestPreviewUpgrade?" Nâng cấp từ VN code 1.2.1 Preview cũng đã đạt.":""}${currentPreviewUpgrade?" Nâng cấp từ VN code 1.2.2 Preview cũng đã đạt.":""}${gs1PreviewUpgrade?" Nâng cấp từ VN code 1.3.0 Preview (schema 4 → 5) cũng đã đạt.":""}\n${workspaceSmoke?'- Hai dataset 10 shop × 20 vòng, Products/GS1/Copy/Ozon và DPI 100/125/150% có JSON/phần cứng/ảnh chụp trong seller-workspace-evidence.zip. Chưa đo Windows 2 CPU/4 GiB.\n':''}- Chưa nghiệm thu với credential shop thật, GS1/CryptoPro/chứng thư và SMTP/IMAP thật hoặc máy in thật; không có thao tác ghi marketplace/GS1 thật trong CI.\n- [CI](https://github.com/${REPO}/actions/runs/${runId}); commit ${sha}.\n- SHA-256: ${digest}.\n`;
+  `- ${javaTests} kiểm thử Java/JavaFX và ${nodeTests} kiểm thử Node đạt trên Windows; 0 lỗi, ${javaTestSummary.skipped} kiểm thử bỏ qua${javaTestSummary.skipped?' (quyền POSIX không có trên NTFS)':''}.\n- Launcher, kiểm tra cài song song và nâng cấp VN code 1.1.34 giữ dữ liệu đã đạt.${previewUpgrade?" Nâng cấp từ VN code 1.2.0 Preview cũng đã đạt.":""}${latestPreviewUpgrade?" Nâng cấp từ VN code 1.2.1 Preview cũng đã đạt.":""}${currentPreviewUpgrade?" Nâng cấp từ VN code 1.2.2 Preview cũng đã đạt.":""}${gs1PreviewUpgrade?" Nâng cấp từ VN code 1.3.0 Preview (schema 4 → 5) cũng đã đạt.":""}\n${workspaceSmoke?'- Hai dataset 10 shop × 20 vòng, Products/GS1/Copy/Ozon và DPI 100/125/150% có JSON/phần cứng/ảnh chụp trong seller-workspace-evidence.zip. Chưa đo Windows 2 CPU/4 GiB.\n':''}- Chưa nghiệm thu với credential shop thật, GS1/CryptoPro/chứng thư và SMTP/IMAP thật hoặc máy in thật; không có thao tác ghi marketplace/GS1 thật trong CI.\n- [CI](https://github.com/${REPO}/actions/runs/${runId}); commit ${sha}.\n- SHA-256: ${digest}.\n`;
  await writeFile(path.join(directory,'release-notes.md'),notes);
  const assets=[filename,'build-info.json','feature-status.json','native-smoke.json','side-by-side-smoke.json','upgrade-smoke.json','release-notes.md'];
  if(previewUpgrade)assets.push('upgrade-preview-smoke.json');
@@ -155,4 +157,4 @@ async function main(runId,tag) {
  gh(['release','edit',tag,'--repo',REPO,'--draft=false','--prerelease','--latest=false','--notes-file',path.join(directory,'release-notes.md')]);
  console.log(JSON.stringify({url:`https://github.com/${REPO}/releases/tag/${tag}`,installer:`https://github.com/${REPO}/releases/download/${tag}/${filename}`,sha256:digest,sourceCommit:sha}));
 }
-if(process.argv[1]&&path.resolve(process.argv[1])===fileURLToPath(import.meta.url))main(process.argv[2],process.argv[3]).catch(error=>{console.error(error.message);process.exitCode=1;});
+if(process.argv[1]&&path.resolve(process.argv[1])===fileURLToPath(import.meta.url))main(process.argv[2],process.argv[3],process.argv[4]).catch(error=>{console.error(error.message);process.exitCode=1;});
