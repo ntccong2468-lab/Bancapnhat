@@ -181,6 +181,8 @@
     "ntfsCanonicalPathAndJunctionGuard": true,
     "mockServerOriginPoliciesPlatformIndependent": true,
     "boundedOzonDatabaseLifetime": true,
-    "nativeWindowsRebuild": "pending"
+    "nativeWindowsRebuild": "first repeat completed; three fixture cleanup errors corrected; fresh build pending",
+    "nativeEvidence": "docs/validation/evidence/2026-10-14-windows-compat-native-first.json",
+    "uiFixtureCleanupAwaitsSqliteReads": true
   }
 }

@@ -41,6 +41,9 @@ test('Windows test evidence reports the POSIX-only skip accurately',()=>{
  const log='Tests run: 9, Failures: 0, Errors: 0, Skipped: 1, Time elapsed: 0.1 s -- in com.vncode.app.features.gs1.Gs1PrefixTemplateStoreTest\nTests run: 1177, Failures: 0, Errors: 0, Skipped: 1';
  assert.deepEqual(validateJavaTestSummary(log),{tests:1177,failures:0,errors:0,skipped:1,passed:1176});
  assert.equal(validateJavaTestSummary('Tests run: 1177, Failures: 0, Errors: 0, Skipped: 0').passed,1177);
+ const windowsLog=log.replace('Tests run: 1177, Failures: 0, Errors: 0, Skipped: 1',
+  'Tests run: 3, Failures: 0, Errors: 0, Skipped: 1, Time elapsed: 0.1 s -- in com.vncode.app.shared.WindowsSecretProtectorTest\nTests run: 1177, Failures: 0, Errors: 0, Skipped: 2');
+ assert.equal(validateJavaTestSummary(windowsLog).passed,1175);
  for(const invalid of [log.replace('Skipped: 1','Skipped: 2'),log.replace('Gs1PrefixTemplateStoreTest','OtherTest'),log.replace('Tests run: 1177, Failures: 0','Tests run: 1177, Failures: 1'),log.replace('Errors: 0','Errors: 1'),'Tests run: 10, Failures: 0, Errors: 0, Skipped: 0','']){
   assert.throws(()=>validateJavaTestSummary(invalid));
  }

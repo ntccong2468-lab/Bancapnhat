@@ -27,11 +27,13 @@ export function validateJavaTestSummary(log) {
  const summary=rows.reduce((a,b)=>a.tests>=b.tests?a:b);
  assert.equal(summary.failures,0);assert.equal(summary.errors,0);
  const skipped=[...log.matchAll(/Tests run: \d+, Failures: 0, Errors: 0, Skipped: ([1-9]\d*), Time elapsed: .*? -- in ([\w.]+)/g)];
- // NTFS has no POSIX permission view. Other skipped cases, including DPAPI/junction tests,
- // are not accepted as a successful native Windows build.
- assert.ok(skipped.every(row=>row[2]==='com.vncode.app.features.gs1.Gs1PrefixTemplateStoreTest'&&Number(row[1])===1));
+ // NTFS lacks POSIX permissions; the off-Windows DPAPI-refusal case is disabled on Windows.
+ // Each class has exactly one such case. Extra skips in either class or any other class fail.
+ const platformCases=new Set(['com.vncode.app.features.gs1.Gs1PrefixTemplateStoreTest',
+  'com.vncode.app.shared.WindowsSecretProtectorTest']);
+ assert.ok(skipped.every(row=>platformCases.has(row[2])&&Number(row[1])===1));
  assert.equal(summary.skipped,skipped.reduce((sum,row)=>sum+Number(row[1]),0));
- assert.ok(summary.skipped<=1);
+ assert.ok(summary.skipped<=2);
  assert.ok(summary.tests-summary.skipped>=585,'Require the complete passing Java suite');
  return {...summary,passed:summary.tests-summary.skipped};
 }

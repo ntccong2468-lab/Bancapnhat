@@ -16,6 +16,7 @@ import javafx.scene.control.*;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.io.TempDir;
 import static org.junit.jupiter.api.Assertions.*;
+import static com.vncode.app.testsupport.ShopReadTestCleanup.closeAndAwait;
 
 class ProductRefreshUiTest {
     @TempDir Path root;
@@ -27,7 +28,7 @@ class ProductRefreshUiTest {
             var pane=fx(()->{var p=new ProductsPane(q->{calls.incrementAndGet();return new ProductPage(List.of(),0,null);},reads);new Scene(p,1024,600);p.setShop(new Shop(1,"First","fixture"));return p;});
             try{long end=System.nanoTime()+TimeUnit.SECONDS.toNanos(3);while(calls.get()<1&&System.nanoTime()<end)Thread.sleep(10);assertEquals(1,calls.get());
                 fx(()->{pane.setShop(new Shop(1,"First","rotated"));return null;});end=System.nanoTime()+TimeUnit.SECONDS.toNanos(2);while(calls.get()<2&&System.nanoTime()<end)Thread.sleep(10);assertEquals(2,calls.get());
-            }finally{fx(()->{pane.dispose();return null;});}
+            }finally{fx(()->{pane.dispose();return null;});closeAndAwait(reads);}
         }finally{System.clearProperty("vncode.appdata.dir");}
     }
     @Test void syncButtonUsesBackgroundRefreshAndOldOwnerCompletionDoesNotReplaceNewShop()throws Exception{
@@ -43,7 +44,7 @@ class ProductRefreshUiTest {
                 end=System.nanoTime()+TimeUnit.SECONDS.toNanos(5);while((reads.activeCount()>0||reads.pendingCount()>0)&&System.nanoTime()<end)Thread.sleep(10);
                 fx(()->{assertTrue(((ListView<?>)pane.lookup("#productRows")).getItems().isEmpty());assertEquals("",((Label)pane.lookup("#productStatus")).getText());return null;});
                 assertEquals(1,calls.get());assertEquals(1,new ProductRepository().loadPage(new ProductQuery(1,Marketplace.WILDBERRIES,"",List.of(),DocumentState.VALID,false,null,100)).total());
-            }finally{release.countDown();fx(()->{pane.dispose();return null;});}
+            }finally{release.countDown();fx(()->{pane.dispose();return null;});closeAndAwait(reads);}
         }finally{System.clearProperty("vncode.appdata.dir");}
     }
 }
