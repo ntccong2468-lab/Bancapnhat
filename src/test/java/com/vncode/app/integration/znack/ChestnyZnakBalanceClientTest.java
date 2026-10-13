@@ -1,4 +1,6 @@
 package com.vncode.app.integration.znack;
+
+import static com.vncode.app.testsupport.MockServerOrigins.allow;
 import okhttp3.*;
 import okhttp3.mockwebserver.*;
 import org.junit.jupiter.api.*;
@@ -8,7 +10,7 @@ import java.time.*;
 import static org.junit.jupiter.api.Assertions.*;
 class ChestnyZnakBalanceClientTest {
     private MockWebServer server;private ChestnyZnakBalanceClient client;
-    @BeforeEach void setup()throws Exception{server=new MockWebServer();server.start();client=new ChestnyZnakBalanceClient(new OkHttpClient(),server.url("/").uri(),uri->uri.getHost().equals("localhost"));}
+    @BeforeEach void setup()throws Exception{server=new MockWebServer();server.start();client=new ChestnyZnakBalanceClient(new OkHttpClient(),server.url("/").uri(),allow(server));}
     @AfterEach void close()throws Exception{server.shutdown();}
     private ChestnyZnakBalanceClient.ServiceSession session(){return new ChestnyZnakBalanceClient.ServiceSession("ELK",server.url("/").uri(),"7707083893","production","secret-fixture-token",Instant.now().plusSeconds(1200));}
     private void body(String value){server.enqueue(new MockResponse().setHeader("Content-Type","application/json").setBody(value));}

@@ -1,0 +1,15 @@
+{
+  "source": "website-owner-provided authenticated /api/admin/desktop/settings response",
+  "date": "2026-10-14",
+  "timezone": "Asia/Ho_Chi_Minh",
+  "independentlyAuthenticatedByCloudAgent": false,
+  "settings": {
+    "mail_ready": true,
+    "signing_ready": true,
+    "key_id": "vncode-1",
+    "default_max_devices": 1,
+    "default_max_shops": 1,
+    "default_offline_hours": 72
+  },
+  "provesProductionSignatureOrActivation": false
+}

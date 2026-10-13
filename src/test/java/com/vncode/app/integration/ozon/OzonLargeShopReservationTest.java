@@ -50,17 +50,21 @@ class OzonLargeShopReservationTest {
         }
         assertEquals(40, statements.get(), "Four SELECTs per 1,000-order shop, not 1,001 per shop");
         for (int shop = 1; shop <= 10; shop++) {
-            for (String number : numbers) {
-                var reserved = jobs.stageLocalForPrint(shop, plan(number), () -> { });
-                assertTrue(reserved.ready());
-                assertEquals(OzonExemplarJobStage.VALIDATED, reserved.job().stage());
+            try (var databaseSession = Database.openBatchSession()) {
+                for (String number : numbers) {
+                    var reserved = jobs.stageLocalForPrint(shop, plan(number), () -> { });
+                    assertTrue(reserved.ready());
+                    assertEquals(OzonExemplarJobStage.VALIDATED, reserved.job().stage());
+                }
             }
         }
         assertEquals(10_000, scalar("SELECT COUNT(*) FROM ozon_exemplars WHERE kiz_id IS NOT NULL"));
         assertEquals(10_000, scalar("SELECT COUNT(DISTINCT kiz_id) FROM ozon_exemplars"));
         assertEquals(0, scalar("SELECT COUNT(*) FROM ozon_exemplars e JOIN kiz_codes k ON k.id=e.kiz_id WHERE e.shop_id<>k.shop_id"));
         // Repeating a 1,000-order selection reuses exactly its existing reservations.
-        for (String number : numbers) assertTrue(jobs.stageLocalForPrint(1, plan(number), () -> { }).ready());
+        try (var databaseSession = Database.openBatchSession()) {
+            for (String number : numbers) assertTrue(jobs.stageLocalForPrint(1, plan(number), () -> { }).ready());
+        }
         assertEquals(10_000, scalar("SELECT COUNT(*) FROM kiz_codes WHERE status='RESERVED'"));
         Map<String, OzonExemplarJob> selected = jobs.findMany(1, numbers);
         assertEquals(1000, selected.size());
@@ -79,7 +83,9 @@ class OzonLargeShopReservationTest {
         seed(1, 1000);
         OzonExemplarJobRepository jobs = new OzonExemplarJobRepository();
         List<String> numbers = IntStream.range(0, 1000).mapToObj(OzonLargeShopReservationTest::number).toList();
-        for (String number : numbers) jobs.stageLocalForPrint(1, plan(number), () -> { });
+        try (var databaseSession = Database.openBatchSession()) {
+            for (String number : numbers) jobs.stageLocalForPrint(1, plan(number), () -> { });
+        }
         try (Connection connection = Database.getConnection(); Statement statement = connection.createStatement()) {
             statement.executeUpdate("UPDATE kiz_codes SET status='AVAILABLE',reservation_token=NULL WHERE id=800");
         }

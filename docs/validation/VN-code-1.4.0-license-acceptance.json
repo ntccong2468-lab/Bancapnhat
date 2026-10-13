@@ -15,6 +15,6 @@
   "readonlyDataPreserved": false,
   "publicKeySource": "Provided by the website owner in this session; canonical Base64URL and 32-byte format validated",
   "serverSigningKeyMatch": "unverified",
-  "note": "Owner public key is pinned and built. Admin screenshot shows email configured but license signing not configured. Add the existing matching private key to the serving Worker as LICENSE_SIGNING_KEY; production server signature and native/backend acceptance remain pending.",
-  "serverSigningConfiguration": "missing-in-owner-admin-screenshot"
+  "note": "Owner public key is pinned. Authenticated admin settings supplied by the website owner report mail_ready=true, signing_ready=true and key_id=vncode-1. These flags confirm configuration presence; production signature/key-pair match and native/backend activation acceptance remain pending.",
+  "serverSigningConfiguration": "owner-provided-authenticated-settings-signing-ready"
 }

@@ -1,0 +1,13 @@
+# VN code 1.4.0 — Windows compatibility and bounded SQLite batch lifetime
+
+The cancelled Windows run [38481420963](https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/38481420963) used source `91596e46a5bd18f524647c339741d286528a1352`. Tests were progressing when cancelled; it did not produce an installer. Its log reports 18 errors across the GS1 template store and four HTTP fixture test classes. Reservation tests for ten shops × 1,000 orders took 638.5 seconds.
+
+GS1 storage now compares canonical paths with and without following links rather than comparing a canonical NTFS path with an unexpanded 8.3 path. Every ancestor is still checked, symlink/junction paths rejected, and replacement remains atomic. A Windows NTFS junction regression test also verifies no writes reach the linked directory. The HTTP tests trust only their own MockWebServer scheme, hostname and ephemeral port; production endpoint policies are unchanged.
+
+Ozon batch preparation and PDF export now keep a database connection open only for the bounded operation. The connection has no active transaction. Repository transactions, authorization before commit, unique scoped KIZ reservation and durable per-order checkpoints remain independent. The session prevents teardown/recreation of WAL files between orders; it does not change synchronous settings or retain a process-wide connection. A regression test verifies concurrent read/write access, independent commit/rollback visibility, unchanged durability and exclusive maintenance after closing the session. The existing 10,000-order ownership/idempotency test now uses the same bounded session as production.
+
+Targeted Linux validation: 26 HTTP/store tests passed before the junction case was added; the subsequent database/Ozon/store suite ran 34 tests with zero failures/errors and one Windows-only junction case skipped. Node release contracts: 42 passed. These runs do not prove native Windows compatibility or production marketplace/printing throughput.
+
+Website configuration: the owner supplied authenticated admin settings reporting mail_ready=true, signing_ready=true and key_id=vncode-1. The pinned public key remains unchanged. Configuration presence does not prove a matching server signature or successful activation; license acceptance flags remain false.
+
+Full Linux clean verify: 1,177 tests, 1,175 passed, zero failures/errors; two Windows-only cases skipped (DPAPI and NTFS junction). The built JAR starts an isolated JavaFX window and passes database integrity/foreign-key checks. JAR SHA-256: `0f0307abcdbac6dcc1adf7a745c0be19d55b1f0563ff53b497af24954a2fc539`. These checks used a 768 MiB heap. Native Windows rebuild is pending.

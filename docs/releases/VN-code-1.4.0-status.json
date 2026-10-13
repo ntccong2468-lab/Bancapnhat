@@ -41,7 +41,7 @@
     "Chưa đo baseline/current trên máy Windows 2 CPU/4 GiB. Báo cáo cloud và Windows CI mạnh hơn không bảo đảm mọi máy hoặc request mạng/máy in đều không bị lag.",
     "Luồng thêm GTIN WB/Ozon có hợp đồng chính thức và fixture; chưa nghiệm thu ghi shop thật. Thay/xóa barcode sàn chưa mở. True API đọc nhóm may mặc và các thẻ ngoài nhóm do VNCode biết; chưa xác minh nguồn mọi nhóm/thẻ tạo bên ngoài VNCode. Các cải tiến FBO cấp GTIN/mua KIZ và quy tắc pháp lý TN VED chưa được công bố hoàn tất trong Preview này.",
     "Chưa hoàn tất các phần ngoài đợt Products/Copy/10-shop: trình thiết kế mẫu nhúng mới, số dư CZ trên header và dịch vụ tên miền/hosting. Các bản cá nhân đã phát hành vẫn giữ chế độ miễn phí.",
-    "Client license đã viết và có kiểm thử fixture; public key do chủ website cung cấp đã được pin; ảnh admin cho thấy Worker chưa cấu hình LICENSE_SIGNING_KEY; còn chờ xác minh chữ ký server và nghiệm thu Portal 0.3.1/email thật, DPAPI/đổi Windows user, khóa/thiết bị/offline thật. Publisher tiếp tục chặn phát hành 1.4.0 cho đến khi bằng chứng này đạt.",
+    "Client license đã viết và có kiểm thử fixture; public key do chủ website cung cấp đã được pin; JSON settings do chủ website cung cấp xác nhận mail_ready=true, signing_ready=true và key_id=vncode-1; còn chờ xác minh chữ ký server và nghiệm thu Portal 0.3.1/email thật, DPAPI/đổi Windows user, khóa/thiết bị/offline thật. Publisher tiếp tục chặn phát hành 1.4.0 cho đến khi bằng chứng này đạt.",
     "Mẫu Word cá nhân đã gửi đọc/điền được nhưng không đóng gói hay được xác minh là mẫu tải chính thức. Chuyển PDF hỗ trợ đơn một trang với đoạn văn đơn giản; mẫu phức tạp dùng PDF/ảnh đã ký. Ngày Catalog chưa rõ không chứng minh đã đóng phí vô thời hạn; thiếu hạn thành viên vẫn chặn gửi. Chưa có hợp đồng API kiểm tra/ký thỏa thuận CZ trong app; hồ sơ chưa mở và lỗi máy chủ trên tài khoản thật chưa nghiệm thu."
   ],
   "wbcodeReferenceAudit": {
@@ -61,7 +61,7 @@
     "allCatalogGroupsOutsideVncodeVerified": false
   },
   "licenseIntegration": {
-    "status": "owner-public-key-pinned-server-signing-secret-missing",
+    "status": "owner-public-key-pinned-server-configured-live-acceptance-pending",
     "account": "Gmail OTP registered in VNCode; admin approves and issues account-bound VNC key; no website password in desktop",
     "contract": "docs/research/2026-10-13-vn-code-desktop-license-contract.md",
     "backend": "VNCode Portal 0.3.1; owner reports deployed and admin login working; independent live acceptance pending",
@@ -88,7 +88,8 @@
     "serverSigningKeyMatch": "unverified",
     "backendDeployment": "owner-reported-deployed-and-read-only-health-observed",
     "backendLiveEndpointChecks": "health/config/unauthenticated registration route passed",
-    "serverSigningConfiguration": "missing-in-owner-admin-screenshot"
+    "serverSigningConfiguration": "owner-provided-authenticated-settings-signing-ready",
+    "backendConfigurationEvidence": "docs/validation/evidence/2026-10-14-license-admin-settings.json"
   },
   "gs1Upgrade": {
     "status": "implemented-local-validation-live-acceptance-pending",
@@ -173,5 +174,13 @@
     "jarSha256": "075823c392c2c5485c7bc163730b80124b2988d448e6388ac6bf9d16afa21e31",
     "liveProductionAcceptance": false,
     "report": "docs/validation/2026-10-14-vn-code-140-scaling.md"
+  },
+  "windowsCompatibilityFix": {
+    "report": "docs/validation/2026-10-14-vn-code-windows-compatibility.md",
+    "cancelledBuildRun": 38481420963,
+    "ntfsCanonicalPathAndJunctionGuard": true,
+    "mockServerOriginPoliciesPlatformIndependent": true,
+    "boundedOzonDatabaseLifetime": true,
+    "nativeWindowsRebuild": "pending"
   }
 }

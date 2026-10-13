@@ -1,0 +1,13 @@
+{
+  "synthetic": true,
+  "os": "Linux",
+  "liveSellerCalls": false,
+  "appdataIsolated": true,
+  "javaHeapMiB": 768,
+  "jarSha256": "0f0307abcdbac6dcc1adf7a745c0be19d55b1f0563ff53b497af24954a2fc539",
+  "windowShown": true,
+  "aliveAfterStartup": true,
+  "databaseIntegrity": "ok",
+  "foreignKeyErrors": 0,
+  "result": "passed"
+}

@@ -12,6 +12,8 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.api.condition.EnabledOnOs;
+import org.junit.jupiter.api.condition.OS;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
@@ -137,6 +139,32 @@ class Gs1PrefixTemplateStoreTest {
         assertThrows(IOException.class, () -> nested.load(INN, "production"));
         assertThrows(IOException.class, () -> nested.save(INN, "production", template("Fixture")));
         try (var files = Files.list(external)) { assertEquals(0, files.count()); }
+    }
+
+    @Test @EnabledOnOs(OS.WINDOWS)
+    void refusesNtfsJunctionDirectoryAndAncestors() throws Exception {
+        Path external = Files.createDirectory(directory.resolve("junction-target"));
+        Path junction = directory.resolve("gs1-prefix-templates");
+        createJunction(junction, external);
+        try {
+            var store = new Gs1PrefixTemplateStore(directory);
+            assertThrows(IOException.class, () -> store.load(INN, "production"));
+            assertThrows(IOException.class, () -> store.save(INN, "production", template("Fixture")));
+            var nested = new Gs1PrefixTemplateStore(junction.resolve("nested"));
+            assertThrows(IOException.class, () -> nested.save(INN, "production", template("Fixture")));
+            try (var files = Files.list(external)) { assertEquals(0, files.count()); }
+        } finally {
+            Files.delete(junction);
+        }
+    }
+
+    private static void createJunction(Path link, Path target) throws Exception {
+        Process process = new ProcessBuilder("cmd.exe", "/d", "/c", "mklink", "/J",
+                link.toString(), target.toString()).redirectErrorStream(true).start();
+        try {
+            assertTrue(process.waitFor(10, java.util.concurrent.TimeUnit.SECONDS), "Junction creation timed out");
+            assertEquals(0, process.exitValue(), "NTFS fixture junction must be created on Windows");
+        } finally { if (process.isAlive()) process.destroyForcibly(); }
     }
 
     private Path onlyStoredFile() throws IOException {

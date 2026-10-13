@@ -29,6 +29,33 @@ public class Database {
         return CURRENT_SCHEMA_VERSION;
     }
 
+    /**
+     * Keep SQLite open for a bounded batch without holding a transaction or a read lock.
+     * Each repository still owns and commits its own transaction. In WAL mode this prevents
+     * closing the last connection (and checkpointing/deleting/recreating WAL files) per order.
+     * No connection is retained globally, and synchronous/durability settings are unchanged.
+     */
+    public static BatchSession openBatchSession() {
+        Connection connection = getConnection();
+        try (Statement statement = connection.createStatement();
+             ResultSet schema = statement.executeQuery("PRAGMA schema_version")) {
+            if (!schema.next()) throw new SQLException("Cannot open database batch session");
+            return new BatchSession(connection);
+        } catch (SQLException | RuntimeException failure) {
+            try { connection.close(); } catch (SQLException closeFailure) { failure.addSuppressed(closeFailure); }
+            throw new IllegalStateException("Cannot open database batch session", failure);
+        }
+    }
+
+    public static final class BatchSession implements AutoCloseable {
+        private final Connection connection;
+        private BatchSession(Connection connection) { this.connection = connection; }
+        @Override public void close() {
+            try { connection.close(); }
+            catch (SQLException failure) { throw new IllegalStateException("Cannot close database batch session", failure); }
+        }
+    }
+
     public static Connection getConnection() {
         try {
             Path dir = AppPaths.appDataDir();

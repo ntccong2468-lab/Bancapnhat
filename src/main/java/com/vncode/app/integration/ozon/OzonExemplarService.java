@@ -2,6 +2,7 @@ package com.vncode.app.integration.ozon;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import com.vncode.app.config.Database;
 import com.vncode.app.features.kiz.KizService;
 import com.vncode.app.features.license.LicenseGate.LicenseDeniedException;
 import com.vncode.app.features.license.LicenseModels.Permission;
@@ -129,33 +130,35 @@ public final class OzonExemplarService {
         List<OzonPreparationResult> prepared = new ArrayList<>();
         Map<String, String> failures = new LinkedHashMap<>();
         int done = 0;
-        for (int start = 0; start < selected.size(); start += READ_AHEAD) {
-            requireNotInterrupted();
-            List<String> window = selected.subList(start, Math.min(start + READ_AHEAD, selected.size()));
-            List<Future<OzonPostingDto>> reads = new ArrayList<>();
-            try {
-                for (String number : window) {
-                    reads.add(DETAIL_READERS.submit(() -> batch.readDetail(number)));
-                }
-                for (int index = 0; index < window.size(); index++) {
-                    requireNotInterrupted();
-                    try {
-                        OzonPostingDto detail = await(reads.get(index));
-                        prepared.add(executeForPrint(batch.shop, window.get(index), batch, detail));
-                    } catch (LicenseDeniedException denied) {
-                        throw denied;
-                    } catch (ShopOperationCoordinator.ShopUnavailableException changed) {
-                        throw changed;
-                    } catch (IOException | IllegalStateException failure) {
-                        requireNotInterrupted();
-                        failures.put(window.get(index), safePreparationFailure(failure));
+        try (var databaseSession = Database.openBatchSession()) {
+            for (int start = 0; start < selected.size(); start += READ_AHEAD) {
+                requireNotInterrupted();
+                List<String> window = selected.subList(start, Math.min(start + READ_AHEAD, selected.size()));
+                List<Future<OzonPostingDto>> reads = new ArrayList<>();
+                try {
+                    for (String number : window) {
+                        reads.add(DETAIL_READERS.submit(() -> batch.readDetail(number)));
                     }
-                    if (completed != null) completed.accept(++done);
+                    for (int index = 0; index < window.size(); index++) {
+                        requireNotInterrupted();
+                        try {
+                            OzonPostingDto detail = await(reads.get(index));
+                            prepared.add(executeForPrint(batch.shop, window.get(index), batch, detail));
+                        } catch (LicenseDeniedException denied) {
+                            throw denied;
+                        } catch (ShopOperationCoordinator.ShopUnavailableException changed) {
+                            throw changed;
+                        } catch (IOException | IllegalStateException failure) {
+                            requireNotInterrupted();
+                            failures.put(window.get(index), safePreparationFailure(failure));
+                        }
+                        if (completed != null) completed.accept(++done);
+                    }
+                } catch (RejectedExecutionException full) {
+                    throw new IOException("Ozon detail workers are busy; retry the durable selection.", full);
+                } finally {
+                    for (Future<OzonPostingDto> read : reads) if (!read.isDone()) read.cancel(true);
                 }
-            } catch (RejectedExecutionException full) {
-                throw new IOException("Ozon detail workers are busy; retry the durable selection.", full);
-            } finally {
-                for (Future<OzonPostingDto> read : reads) if (!read.isDone()) read.cancel(true);
             }
         }
         return new BatchPreparationResult(List.copyOf(prepared), java.util.Collections.unmodifiableMap(failures));

@@ -118,7 +118,9 @@ public final class Gs1PrefixTemplateStore {
                 } catch (FileAlreadyExistsException race) { /* Check the concurrently created component below. */ }
             }
             if (Files.isSymbolicLink(current) || !Files.isDirectory(current, LinkOption.NOFOLLOW_LINKS)
-                    || !current.toRealPath().equals(current)) throw invalid();
+                    // NTFS can expand a legitimate 8.3 name when resolving a real path. Compare
+                    // both canonical forms so aliases work while links/junctions remain rejected.
+                    || !current.toRealPath().equals(current.toRealPath(LinkOption.NOFOLLOW_LINKS))) throw invalid();
         }
         if (create && Files.getFileAttributeView(directory, PosixFileAttributeView.class, LinkOption.NOFOLLOW_LINKS) != null) {
             Files.setPosixFilePermissions(directory, DIRECTORY_PERMISSIONS);
@@ -142,7 +144,7 @@ public final class Gs1PrefixTemplateStore {
     private void requireRegularFile(Path file) throws IOException {
         if (!file.toAbsolutePath().normalize().getParent().equals(directory)
                 || Files.isSymbolicLink(file) || !Files.isRegularFile(file, LinkOption.NOFOLLOW_LINKS)
-                || !file.toRealPath().getParent().equals(directory)) throw invalid();
+                || !file.toRealPath().getParent().equals(directory.toRealPath(LinkOption.NOFOLLOW_LINKS))) throw invalid();
     }
 
     private void validate(byte[] bytes) throws IOException {

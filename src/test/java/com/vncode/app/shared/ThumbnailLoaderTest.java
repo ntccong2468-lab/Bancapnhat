@@ -1,5 +1,7 @@
 package com.vncode.app.shared;
 
+import static com.vncode.app.testsupport.MockServerOrigins.allow;
+
 import javafx.scene.image.Image;
 import okhttp3.*;
 import okhttp3.mockwebserver.*;
@@ -24,11 +26,11 @@ class ThumbnailLoaderTest {
     static final class TestClock extends Clock {
         Instant now=Instant.parse("2026-10-11T00:00:00Z");public java.time.ZoneId getZone(){return ZoneOffset.UTC;}public Clock withZone(java.time.ZoneId zone){return this;}public Instant instant(){return now;}
     }
-    ThumbnailLoader loader(ShopReadCoordinator reads,TestClock clock) {
-        return new ThumbnailLoader(new OkHttpClient.Builder().followRedirects(false).build(),uri->uri.getHost().equals("localhost"),reads,new ThumbnailCache<Image>(64L*1024*1024,image->(long)image.getWidth()*(long)image.getHeight()*4),clock);
+    ThumbnailLoader loader(ShopReadCoordinator reads,TestClock clock,MockWebServer... servers) {
+        return new ThumbnailLoader(new OkHttpClient.Builder().followRedirects(false).build(),allow(servers),reads,new ThumbnailCache<Image>(64L*1024*1024,image->(long)image.getWidth()*(long)image.getHeight()*4),clock);
     }
     @Test void oversizedImageRejectedBeforeDecode() throws Exception {
-        try(var server=new MockWebServer();var reads=new ShopReadCoordinator(2,64);var loader=loader(reads,new TestClock())) {
+        try(var server=new MockWebServer();var reads=new ShopReadCoordinator(2,64);var loader=loader(reads,new TestClock(),server)) {
             server.enqueue(new MockResponse().setHeader("Content-Length",9*1024*1024));
             assertThrows(ExecutionException.class,()->loader.load(server.url("/large").uri(),96,128).get(5,TimeUnit.SECONDS));
             assertEquals(1,server.getRequestCount());
@@ -36,7 +38,7 @@ class ThumbnailLoaderTest {
     }
     @Test void failureExpiresAndCanRecover() throws Exception {
         var clock=new TestClock();
-        try(var server=new MockWebServer();var reads=new ShopReadCoordinator(2,64);var loader=loader(reads,clock)) {
+        try(var server=new MockWebServer();var reads=new ShopReadCoordinator(2,64);var loader=loader(reads,clock,server)) {
             server.enqueue(new MockResponse().setResponseCode(503));var uri=server.url("/image").uri();
             assertThrows(ExecutionException.class,()->loader.load(uri,96,128).get(5,TimeUnit.SECONDS));
             assertThrows(ExecutionException.class,()->loader.load(uri,96,128).get(5,TimeUnit.SECONDS));assertEquals(1,server.getRequestCount());
@@ -46,7 +48,7 @@ class ThumbnailLoaderTest {
         }
     }
     @Test void deniedHostNeverGetsARequestAndErrorsAreSanitized() throws Exception {
-        try(var server=new MockWebServer();var reads=new ShopReadCoordinator(2,64);var loader=loader(reads,new TestClock())) {
+        try(var server=new MockWebServer();var reads=new ShopReadCoordinator(2,64);var loader=loader(reads,new TestClock(),server)) {
             var error=assertThrows(ExecutionException.class,()->loader.load(java.net.URI.create("https://invalid.example/private?token=secret"),96,128).get(5,TimeUnit.SECONDS));
             assertFalse(error.getMessage().contains("secret"));assertEquals(0,server.getRequestCount());
         }

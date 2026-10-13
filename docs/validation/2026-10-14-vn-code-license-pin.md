@@ -19,7 +19,7 @@ kích hoạt, quota thiết bị, retry, thu hồi và offline production còn c
 nghiệm thu vẫn giữ false; resource có public key không tự mở quyền sử dụng.
 Bộ cài Windows có pin cần được tạo để thử luồng thực tế trước phát hành.
 
-Ảnh admin do chủ website cung cấp hiển thị Gửi email: Đã cấu hình và Ký license: Chưa cấu hình. Worker cần secret LICENSE_SIGNING_KEY là private key cùng cặp với public key đã pin; giữ LICENSE_KEY_ID=vncode-1. Không tạo lại cặp khóa hoặc đưa private key vào repo.
+Ảnh admin ban đầu báo ký license chưa cấu hình. JSON settings mới nhất do chủ website cung cấp xác nhận mail_ready=true, signing_ready=true và key_id=vncode-1; mặc định 1 máy, 1 cửa hàng và offline 72 giờ. [Bằng chứng do chủ website cung cấp](evidence/2026-10-14-license-admin-settings.json). Các cờ này phản ánh có cấu hình, chưa chứng minh chữ ký bằng private key tương ứng hoặc kích hoạt thực tế. Không tạo lại cặp khóa hoặc đưa private key vào repo.
 
 Kiểm chứng bản có pin: Maven clean verify 1.175 kiểm thử, 1.174 đạt, 0 failure, 0 error, 1 DPAPI chỉ chạy Windows bỏ qua trên Linux; 42/42 Node đạt. JAR chứa chính xác public key do chủ website cung cấp, không chứa fixture authority. Khởi động JAR trên Linux/Xorg với appdata riêng thành công, integrity_check=ok và không lỗi khóa ngoại.
 

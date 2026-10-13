@@ -1,5 +1,7 @@
 package com.vncode.app.features.fbo;
 
+import static com.vncode.app.testsupport.MockServerOrigins.allow;
+
 import com.vncode.app.config.Database;
 import okhttp3.OkHttpClient;
 import okhttp3.mockwebserver.*;
@@ -27,7 +29,7 @@ class FboProductImageServiceTest {
         try(var server=new MockWebServer()) {
             var body=new ByteArrayOutputStream();ImageIO.write(new BufferedImage(600,900,BufferedImage.TYPE_INT_RGB),"png",body);
             for(int i=0;i<2;i++)server.enqueue(new MockResponse().setBody(new okio.Buffer().write(body.toByteArray())).setHeader("Content-Type","image/png"));
-            var service=new FboProductImageService(new OkHttpClient(),uri->uri.getHost().equals("localhost"),Clock.systemUTC());var url=server.url("/photo").toString();
+            var service=new FboProductImageService(new OkHttpClient(),allow(server),Clock.systemUTC());var url=server.url("/photo").toString();
             var thumb=ImageIO.read(new ByteArrayInputStream(service.loadThumbnailBytes(url).get(5,TimeUnit.SECONDS)));
             var full=ImageIO.read(new ByteArrayInputStream(service.loadImage(url).get(5,TimeUnit.SECONDS)));
             assertTrue(thumb.getWidth()<=96);assertTrue(thumb.getHeight()<=128);assertEquals(600,full.getWidth());assertEquals(900,full.getHeight());

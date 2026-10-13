@@ -3,6 +3,7 @@ package com.vncode.app.integration.ozon;
 import com.itextpdf.kernel.pdf.PdfDocument;
 import com.itextpdf.kernel.pdf.PdfReader;
 import com.itextpdf.kernel.pdf.PdfWriter;
+import com.vncode.app.config.Database;
 import com.vncode.app.features.license.LicenseModels.Permission;
 import com.vncode.app.features.license.LicenseRuntime;
 import com.vncode.app.integration.marketplace.MarketplaceGuard;
@@ -259,7 +260,7 @@ public final class OzonPrintBundleService {
         File pickingStaging = null;
         int totalPages = 0;
         int kizPages = 0;
-        try {
+        try (var databaseSession = Database.openBatchSession()) {
             labelStaging = AtomicFilePublisher.stagingFile(labelTarget, ".batch.pdf");
             pickingStaging = AtomicFilePublisher.stagingFile(pickingTarget, ".batch-picking.pdf");
             try (PdfDocument destination = new PdfDocument(new PdfWriter(labelStaging))) {
