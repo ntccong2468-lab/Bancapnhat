@@ -1,5 +1,7 @@
 package com.vncode.app.features.news;
 import com.vncode.app.models.Shop;
+import com.vncode.app.features.license.LicenseRuntime;
+import static com.vncode.app.features.license.LicenseModels.Permission.SELLER_API;
 import com.vncode.app.integration.marketplace.Marketplace;
 import com.vncode.app.integration.wb.WbNewsClient;
 import java.io.IOException;
@@ -19,9 +21,11 @@ public final class OfficialNewsService {
    var now=clock.instant();if(repository.retryAt(scope).filter(value->value.isAfter(now)).isPresent())throw new WbNewsClient.RateLimitedException(Duration.between(now,repository.retryAt(scope).orElseThrow()));
    var last=repository.checkedAt(scope);var minimum=reader.minimumInterval();var interval=force?minimum:minimum.compareTo(Duration.ofMinutes(30))>0?minimum:Duration.ofMinutes(30);
    if(last.filter(value->value.plus(interval).isAfter(now)).isPresent())return cached(scope);
+   LicenseRuntime.require(SELLER_API);
    var old=cached(scope);Instant from=old.isEmpty()?now.minus(Duration.ofDays(30)):old.getFirst().publishedAt().minus(Duration.ofDays(1));String id=repository.cursor(scope);var merged=new LinkedHashMap<String,SellerNews>();
    try {
     for(int page=0;page<10;page++) {
+     LicenseRuntime.require(SELLER_API);
      var batch=reader.readSince(owner,from,id);for(var item:batch.items()){if(!scope.equals(item.scope()))throw new SecurityException("News result owner mismatch");merged.put(item.sourceId(),item);}
      String next=batch.nextFromId();boolean more=batch.items().size()==100&&next!=null&&!next.isBlank()&&!next.equals(id);
      if(more&&new java.math.BigInteger(next).compareTo(new java.math.BigInteger(id.isBlank()?"0":id))<=0)throw new IOException("WB news cursor did not advance");

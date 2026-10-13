@@ -22,6 +22,7 @@ class Gs1ApplicationServiceTest {
         return new NationalCatalogGs1Client(new OkHttpClient.Builder().callTimeout(Duration.ofMillis(500)).build(),server.url("/rest/")).login("7707083893","A".repeat(40),(p,c)->new CryptoProSigningResult(new byte[]{1},""));
     }
     private void preparation(MockWebServer server,String xml){
+        server.enqueue(new MockResponse().setBody(form().toString()));
         server.enqueue(new MockResponse().setBody("{}"));server.enqueue(new MockResponse().setBody(form().toString()));
         var response=new JsonObject();response.addProperty("XMLForSign",xml);server.enqueue(new MockResponse().setBody(response.toString()));
     }
@@ -62,7 +63,7 @@ class Gs1ApplicationServiceTest {
             var preview=service.prepareSigning(session,form());server.enqueue(new MockResponse().setBody(form().toString()));server.enqueue(new MockResponse().setSocketPolicy(SocketPolicy.NO_RESPONSE));
             assertThrows(java.io.IOException.class,()->service.submit(session,preview,xml->"signed"));
             assertEquals(Gs1Repository.State.RECONCILE_REQUIRED,repo.request(session.inn(),preview.requestId()).state());
-            assertThrows(IllegalStateException.class,()->service.prepareSigning(session,form()));assertEquals(7,server.getRequestCount());
+            assertThrows(IllegalStateException.class,()->service.prepareSigning(session,form()));assertEquals(8,server.getRequestCount());
         }
     }
     @Test void xmlCannotHideForeignOwnerBesideExpectedValues()throws Exception{
@@ -78,10 +79,38 @@ class Gs1ApplicationServiceTest {
             var repo=new Gs1Repository(directory.resolve("fixture.db"));var service=new Gs1ApplicationService(repo);var preview=service.prepareSigning(session,form());
             server.enqueue(new MockResponse().setBody(form().toString()));
             assertThrows(java.io.IOException.class,()->service.submit(session,preview,xml->{throw new Exception("User cancelled signing");}));
-            assertEquals(Gs1Repository.State.DRAFT,repo.request(session.inn(),preview.requestId()).state());assertEquals(6,server.getRequestCount());
+            assertEquals(Gs1Repository.State.DRAFT,repo.request(session.inn(),preview.requestId()).state());assertEquals(7,server.getRequestCount());
             server.enqueue(new MockResponse().setBody(form().toString()));server.enqueue(new MockResponse().setBody("{}"));
             var after=form();after.addProperty("isSent",true);server.enqueue(new MockResponse().setBody(after.toString()));
             assertEquals(Gs1Repository.State.SUBMITTED,service.submit(session,preview,xml->"<signed/>"));
+        }
+    }
+    @Test void remotelySubmittedApplicationBlocksStaleEditorBeforeAnyDraftWrite() throws Exception {
+        for(boolean saveOnly:java.util.List.of(false,true))for(boolean malformedError:java.util.List.of(false,true))try(var server=new MockWebServer()){
+            var session=session(server);var repo=new Gs1Repository(directory.resolve("stale.db"));var service=new Gs1ApplicationService(repo);
+            var submitted=form();submitted.addProperty("isSent",true);if(malformedError)submitted.addProperty("errorText",false);server.enqueue(new MockResponse().setBody(submitted.toString()));
+            assertThrows(IllegalStateException.class,()->{if(saveOnly)service.saveReviewedDraft(session,form());else service.prepareSigning(session,form());});
+            assertTrue(repo.requests(session.inn()).isEmpty());assertEquals(3,server.getRequestCount());
+            for(int i=0;i<3;i++){var request=server.takeRequest();assertFalse(request.getMethod().equals("POST")&&request.getPath().endsWith("gs1/form"));}
+        }
+    }
+    @Test void rejectedRemoteSentFlagAllowsReviewedCorrectionAndExactXmlSubmission() throws Exception {
+        try(var server=new MockWebServer()){
+            var session=session(server);var repo=new Gs1Repository(directory.resolve("rejected.db"));var service=new Gs1ApplicationService(repo);
+            var rejected=form();rejected.addProperty("isSent",true);rejected.addProperty("errorText","fixture correction required");
+            server.enqueue(new MockResponse().setBody(rejected.toString()));
+            server.enqueue(new MockResponse().setBody("{}"));server.enqueue(new MockResponse().setBody(form().toString()));
+            var document=new JsonObject();document.addProperty("XMLForSign",XML);server.enqueue(new MockResponse().setBody(document.toString()));
+            var reviewed=service.prepareSigning(session,form());
+            // Official frontend resets isSent when errorText is nonempty; preserve the same precedence.
+            server.enqueue(new MockResponse().setBody(rejected.toString()));server.enqueue(new MockResponse().setBody("{}"));
+            var accepted=form();accepted.addProperty("isSent",true);server.enqueue(new MockResponse().setBody(accepted.toString()));
+            var signs=new AtomicInteger();
+            assertEquals(Gs1Repository.State.SUBMITTED,service.submit(session,reviewed,xml->{assertEquals(XML,xml);signs.incrementAndGet();return "<signed/>";}));
+            assertEquals(1,signs.get());
+            int signPosts=0;int count=server.getRequestCount();
+            for(int i=0;i<count;i++){var request=server.takeRequest();if(request.getMethod().equals("POST")&&request.getPath().endsWith("gs1/sign-form"))signPosts++;}
+            assertEquals(1,signPosts);
         }
     }
 }

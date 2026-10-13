@@ -87,11 +87,54 @@ class ZnackCardRegistrationControllerTest {
         for(String language:new String[]{"vi","en","ru","zh"}) {
             var bundle=java.util.ResourceBundle.getBundle("com.vncode.app.i18n.messages",java.util.Locale.forLanguageTag(language));
             for(String key:new String[]{"znack.registration.new_gtin","znack.registration.confirm_new_gtin",
-                    "znack.registration.status.gtin_review_required","znack.registration.register_selected"}) {
+                    "znack.registration.status.gtin_review_required","znack.registration.register_selected",
+                    "znack.registration.sign_approved","znack.registration.sync_znack","znack.registration.page_count",
+                    "znack.registration.catalog_summary","znack.registration.confirm_replacement"}) {
                 assertTrue(bundle.containsKey(key),language+": "+key);
                 assertFalse(bundle.getString(key).isBlank());
             }
         }
+    }
+    @Test void loadsBeyondFiveHundredAndFreezesAllFilteredWithoutExpandingFxRows() throws Exception {
+        try(var c=Database.getConnection()) {
+            c.setAutoCommit(false);
+            try(var card=c.prepareStatement("INSERT INTO wb_product_cards(shop_id,nm_id,vendor_code,title,synced_at) VALUES(1,?,'bulk','Fixture','fixture')");
+                var size=c.prepareStatement("INSERT INTO wb_product_sizes(shop_id,chrt_id,nm_id,tech_size) VALUES(1,?,?,'XL')")) {
+                for(int id=4;id<=1_003;id++){card.setInt(1,100+id);card.addBatch();size.setInt(1,id);size.setInt(2,100+id);size.addBatch();}
+                card.executeBatch();size.executeBatch();
+            }
+            c.commit();
+        }
+        fx(()->{button("refreshButton").fire();return null;});awaitTasks();
+        fx(()->{assertEquals(300,table().getItems().size());assertTrue(button("loadMoreButton").isVisible());button("selectAllButton").fire();return null;});awaitTasks();
+        fx(()->{
+            assertEquals(300,table().getItems().size(),"All-filtered selection must not create every FX row");
+            Label selected=(Label)loader.getNamespace().get("selectionLabel");
+            assertEquals(java.text.MessageFormat.format(I18nService.getInstance().tr("znack.registration.selection_count"),1_002),selected.getText());
+            assertFalse(button("registerSelectedButton").isDisable());button("clearSelectionButton").fire();
+            assertTrue(button("registerSelectedButton").isDisable());button("loadMoreButton").fire();return null;
+        });awaitTasks();
+        fx(()->{assertEquals(600,table().getItems().size());button("loadMoreButton").fire();return null;});awaitTasks();
+        fx(()->{assertEquals(900,table().getItems().size());button("loadMoreButton").fire();return null;});awaitTasks();
+        fx(()->{assertEquals(1_003,table().getItems().size());assertFalse(button("loadMoreButton").isVisible());
+            assertEquals(1_003,table().getItems().stream().map(Sku::chrtId).distinct().count());return null;});
+    }
+    @Test void sourceActionsExistAndOpeningOrRefreshingDoesNotResumeRemoteRegistration() throws Exception {
+        fx(()->{for(String id:new String[]{"configButton","signApprovedButton","updateWbButton","syncZnackButton"})assertNotNull(button(id));
+            assertNotNull(loader.getNamespace().get("genderColumn"));button("refreshButton").fire();return null;});awaitTasks();
+        try(var c=Database.getConnection();var s=c.createStatement();var r=s.executeQuery("SELECT status,updated_at FROM znack_card_registrations WHERE shop_id=1 AND chrt_id=2")) {
+            assertTrue(r.next());assertEquals("CHECKING",r.getString(1));assertEquals("fixture",r.getString(2));
+        }
+    }
+    @Test void dispatchesOzonToItsOwnHostAndClearsWbSelection() throws Exception {
+        fx(()->{
+            ZnackCardRegistrationController controller=loader.getController();
+            controller.setOzonRegistrationFactory(owner->new Label("Ozon fixture "+owner.getId()));
+            controller.setShop(new Shop(9,"Ozon fixture",com.vncode.app.integration.marketplace.Marketplace.OZON,"fixture-client","fixture"));
+            assertTrue(((javafx.scene.layout.StackPane)loader.getNamespace().get("ozonRegistrationHost")).isVisible());
+            assertFalse(((javafx.scene.layout.VBox)loader.getNamespace().get("wbRegistrationContent")).isManaged());
+            assertTrue(table().getItems().isEmpty());assertTrue(button("registerSelectedButton").isDisable());return null;
+        });
     }
     @SuppressWarnings("unchecked") TableView<Sku> table(){return (TableView<Sku>)loader.getNamespace().get("productTable");}
     Button button(String id){var b=(Button)loader.getNamespace().get(id);assertNotNull(b,id);return b;}

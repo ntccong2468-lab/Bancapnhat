@@ -114,8 +114,13 @@ public final class ProductRepository {
     private static String filter(ProductQuery q,List<Object> args) {
         var clauses=new ArrayList<String>();clauses.add("1=1");
         if(!q.text().isBlank()) {
-            clauses.add("vn_casefold(title||' '||article||' '||market_article||' '||barcodes||' '||verified_gtin) LIKE ? ESCAPE '\\'");
-            args.add("%"+fold(q.text()).replace("\\","\\\\").replace("%","\\%").replace("_","\\_")+"%");
+            String match="%"+fold(q.text()).replace("\\","\\\\").replace("%","\\%").replace("_","\\_")+"%";
+            if(q.marketplace()==Marketplace.OZON) {
+                clauses.add("(vn_casefold(title||' '||article||' '||market_article||' '||barcodes||' '||verified_gtin) LIKE ? ESCAPE '\\' OR EXISTS (SELECT 1 FROM ozon_card_registrations registration WHERE registration.shop_id=? AND registration.product_id=card_id AND registration.offer_id=variant_id AND (registration.gtin LIKE ? ESCAPE '\\' OR registration.active_gtin LIKE ? ESCAPE '\\'))) ");
+                args.add(match);args.add(q.shopId());args.add(match);args.add(match);
+            } else {
+                clauses.add("vn_casefold(title||' '||article||' '||market_article||' '||barcodes||' '||verified_gtin) LIKE ? ESCAPE '\\'");args.add(match);
+            }
         }
         if(!q.categoryIds().isEmpty()){clauses.add("(category_id IN ("+String.join(",",Collections.nCopies(q.categoryIds().size(),"?"))+") OR category IN ("+String.join(",",Collections.nCopies(q.categoryIds().size(),"?"))+"))");args.addAll(q.categoryIds());args.addAll(q.categoryIds());}
         if(q.documentState()!=null){clauses.add("document_state=?");args.add(q.documentState().name());}

@@ -9,6 +9,7 @@ import java.util.concurrent.ConcurrentMap;
 public final class OzonApiRateLimiter {
     private static final long MAX_COOLDOWN_NANOS = Duration.ofMinutes(10).toNanos();
     private final ConcurrentMap<Key, Long> nextAllowedNanos = new ConcurrentHashMap<>();
+    private final ConcurrentMap<Key, Long> cooldownUntilNanos = new ConcurrentHashMap<>();
     private final long spacingNanos;
     private final long fboSpacingNanos;
 
@@ -35,20 +36,25 @@ public final class OzonApiRateLimiter {
         }
         Key key = new Key(shopId, family);
         long effectiveSpacing = "fbo-supplies".equals(family) ? fboSpacingNanos : spacingNanos;
+        long now = System.nanoTime();
+        long reserved = nextAllowedNanos.compute(key, (ignored, existing) -> {
+            long start = existing == null ? now : Math.max(now, existing);
+            return start + effectiveSpacing;
+        }) - effectiveSpacing;
         while (true) {
-            long now = System.nanoTime();
-            long reserved = nextAllowedNanos.compute(key, (ignored, existing) -> {
-                long start = existing == null ? now : Math.max(now, existing);
-                return start + effectiveSpacing;
-            }) - effectiveSpacing;
-            long wait = reserved - now;
-            if (wait <= 0) {
-                return;
+            long currentTime = System.nanoTime();
+            Long cooldown = cooldownUntilNanos.get(key);
+            if (cooldown != null && cooldown > reserved && cooldown > currentTime) {
+                // A 429 may arrive while this caller sleeps on an older slot. Reserve again
+                // after that cooldown, preserving spacing among all waiting callers.
+                long afterCooldown = Math.max(currentTime, cooldown);
+                reserved = nextAllowedNanos.compute(key, (ignored, existing) ->
+                        Math.max(afterCooldown, existing == null ? afterCooldown : existing) + effectiveSpacing)
+                        - effectiveSpacing;
             }
-            long millis = wait / 1_000_000L;
-            int nanos = (int) (wait % 1_000_000L);
-            Thread.sleep(millis, nanos);
-            return;
+            long wait = reserved - currentTime;
+            if (wait <= 0) return;
+            Thread.sleep(wait / 1_000_000L, (int) (wait % 1_000_000L));
         }
     }
 
@@ -60,6 +66,7 @@ public final class OzonApiRateLimiter {
                 ? MAX_COOLDOWN_NANOS : safe.toNanos();
         Key key = new Key(shopId, family);
         long until = System.nanoTime() + cooldown;
+        cooldownUntilNanos.compute(key, (ignored, existing) -> existing == null ? until : Math.max(existing, until));
         nextAllowedNanos.compute(key, (ignored, existing) -> existing == null ? until : Math.max(existing, until));
     }
 

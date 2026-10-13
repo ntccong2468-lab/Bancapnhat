@@ -5,6 +5,9 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.vncode.app.config.Database;
+import com.vncode.app.features.license.LicenseDomainFixture;
+import com.vncode.app.features.license.LicenseGate;
+import com.vncode.app.features.license.LicenseRuntime;
 import com.vncode.app.integration.marketplace.Marketplace;
 import com.vncode.app.models.Shop;
 import java.nio.file.Path;
@@ -39,6 +42,20 @@ class WbSupplyWorkflowTest {
     }
 
     @Test
+    void deniedDeleteMakesNoRemoteCallsAndKeepsLocalSupply() throws Exception {
+        var api = new FakeWbApiClient(List.of());
+        var prior = LicenseRuntime.service();
+        try (var denied = LicenseDomainFixture.denied(temporaryDirectory.resolve("denied"))) {
+            LicenseRuntime.install(denied);
+            assertThrows(LicenseGate.LicenseDeniedException.class,
+                    () -> new WbSupplyWorkflow(api).deleteEmptySupply(shop, "WB-GI-100"));
+            assertEquals(0, api.readCalls);
+            assertEquals(0, api.deleteCalls);
+            assertNotNull(new WbSupplyRepository().findSupplySummary(1, "WB-GI-100"));
+        } finally { LicenseRuntime.install(prior); }
+    }
+
+    @Test
     void deletesLocalSupplyOnlyAfterWildberriesConfirmsItIsStillEmpty() throws Exception {
         FakeWbApiClient api = new FakeWbApiClient(List.of());
         WbSupplyWorkflow workflow = new WbSupplyWorkflow(api);
@@ -63,6 +80,7 @@ class WbSupplyWorkflowTest {
     private static final class FakeWbApiClient extends WbApiClient {
         private final List<Long> remoteOrderIds;
         private int deleteCalls;
+        private int readCalls;
 
         private FakeWbApiClient(List<Long> remoteOrderIds) {
             this.remoteOrderIds = remoteOrderIds;
@@ -70,6 +88,7 @@ class WbSupplyWorkflowTest {
 
         @Override
         public WbSupplyOrderIdsResponse getSupplyOrderIds(String apiKey, String supplyId) {
+            readCalls++;
             return new WbSupplyOrderIdsResponse() {
                 @Override
                 public List<Long> getOrderIds() {

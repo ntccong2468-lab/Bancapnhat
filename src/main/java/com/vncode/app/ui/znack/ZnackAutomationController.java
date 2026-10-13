@@ -9,6 +9,12 @@ import com.vncode.app.integration.znack.ZnackGtinAutoSync;
 import com.vncode.app.integration.znack.ZnackProductService;
 import com.vncode.app.integration.znack.ZnackRepository;
 import com.vncode.app.integration.znack.ZnackSanitizer;
+import com.vncode.app.integration.znack.BalanceSnapshot;
+import com.vncode.app.integration.znack.ChestnyZnakBalanceClient;
+import com.vncode.app.integration.znack.ZnackAccountInfo;
+import com.vncode.app.features.gs1.Gs1BalanceRepository;
+import com.vncode.app.features.license.LicenseModels.Permission;
+import com.vncode.app.features.license.LicenseRuntime;
 import com.vncode.app.integration.znack.signature.*;
 import com.vncode.app.models.Shop;
 import com.vncode.app.shared.AlertService;
@@ -24,6 +30,8 @@ import javafx.scene.input.KeyCode;
 import javafx.util.StringConverter;
 
 import java.text.MessageFormat;
+import java.text.NumberFormat;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
@@ -40,7 +48,14 @@ public class ZnackAutomationController {
     @FXML private Label omsHelpTitleLabel, omsHelpDescriptionLabel, omsHelpStepsTitleLabel, omsHelpStepsLabel;
     @FXML private Label omsHelpRecognizeTitleLabel, omsHelpRecognizeLabel, omsHelpWarningLabel;
     @FXML private Label signatureTitleLabel;
-    @FXML private Tab settingsTab, productsTab, deletedTab, ordersTab, logsTab;
+    @FXML private Tab informationTab, settingsTab, productsTab, deletedTab, ordersTab, logsTab;
+    @FXML private Label accountOwnerTitleLabel, accountOwnerLabel, accountInnLabel, accountStatusLabel;
+    @FXML private Label accountBalanceTitleLabel, accountBalanceLabel, accountBalanceUpdatedLabel;
+    @FXML private Label accountCertificateTitleLabel, accountCertificateLabel, accountCertificateDaysLabel, accountEvidenceLabel;
+    @FXML private Button refreshAccountButton, accountSettingsButton;
+    @FXML private ProgressIndicator accountBusyIndicator;
+    @FXML private ComboBox<BalanceSnapshot> accountBalanceCombo;
+    public void openSettings(){settingsTab.getTabPane().getSelectionModel().select(settingsTab);}
     @FXML private TextField omsIdField, omsConnectionField;
     @FXML private TextField productSearchField, deletedSearchField;
     @FXML private ComboBox<CryptoProCertificateInfo> signatureCertificateCombo;
@@ -72,8 +87,8 @@ public class ZnackAutomationController {
     private CategoryFilterMenu deletedCategoryFilter;
     private List<Product> allProducts = List.of();
     private List<Product> allDeletedProducts = List.of();
-    private ZnackRepository repository;
-    private Settings loaded = Settings.empty();
+    private volatile ZnackRepository repository;
+    private volatile Settings loaded = Settings.empty();
     private String signerCertificate = "";
     private String certificateMetadata = "";
     private Instant signerTestedAt;
@@ -88,10 +103,44 @@ public class ZnackAutomationController {
     private boolean signerChangeSyncPending;
     private boolean signatureTestRunning;
     private long certificateDiscoveryGeneration;
-    private long shopGeneration;
+    private volatile long shopGeneration;
+    private boolean accountRefreshRunning;
+    private long accountRefreshGeneration;
+    private Instant accountAuthenticatedAt;
+    private ChestnyZnakBalanceClient.ServiceSession accountBalanceSession;
+    private List<BalanceSnapshot> accountBalances = List.of();
+    private boolean accountBalancesFromCurrentCheck;
+    private boolean updatingBalanceChoice;
+    private AccountReader accountReader = this::readAccount;
+
+    @FunctionalInterface
+    interface AccountReader {
+        AccountRefresh read(Settings expected, ZnackRepository owner,
+                            ChestnyZnakBalanceClient.ServiceSession existing,
+                            java.util.function.BooleanSupplier active) throws Exception;
+    }
+    record AccountRefresh(ChestnyZnakBalanceClient.ServiceSession session, List<BalanceSnapshot> balances) {
+        AccountRefresh { balances = List.copyOf(balances); }
+        @Override public String toString() { return "AccountRefresh[scoped balance evidence]"; }
+    }
+    void accountReader(AccountReader reader) { accountReader = Objects.requireNonNull(reader); }
 
     @FXML
     private void initialize() {
+        informationTab.selectedProperty().addListener((ignored, old, selected) -> {
+            if (selected) updateAccountInfo();
+        });
+        accountBalanceCombo.setConverter(new StringConverter<>() {
+            @Override public String toString(BalanceSnapshot balance) {
+                return balance == null ? tr("znack.account.choose_balance")
+                        : tr("gs1.balance_group") + " " + balance.scope().productGroup()
+                          + " · " + tr("gs1.balance_account") + " " + balance.scope().accountId();
+            }
+            @Override public BalanceSnapshot fromString(String value) { return null; }
+        });
+        accountBalanceCombo.valueProperty().addListener((ignored, old, selected) -> {
+            if (!updatingBalanceChoice) updateAccountInfo();
+        });
         productGtinColumn.setCellValueFactory(v -> text(v.getValue().gtin()));
         productNameColumn.setCellValueFactory(v -> text(v.getValue().productName()));
         productCategoryColumn.setCellValueFactory(v -> text(v.getValue().category()));
@@ -179,6 +228,8 @@ public class ZnackAutomationController {
 
     public void setShop(Shop shop) {
         shopGeneration++;
+        resetAccountSession();
+        setSignatureTestBusy(false);
         productSyncRunning = false;
         signerChangeSyncPending = false;
         invalidateCertificateDiscovery();
@@ -199,10 +250,11 @@ public class ZnackAutomationController {
 
     public void applyTranslations() {
         titleLabel.setText(tr("znack.title"));
+        informationTab.setText(tr("znack.tab.information"));
         settingsTab.setText(tr("znack.tab.settings"));
         productsTab.setText(tr("znack.tab.products"));
         deletedTab.setText(tr("znack.tab.deleted"));
-        ordersTab.setText(tr("znack.tab.orders"));
+        ordersTab.setText(tr("znack.tab.kiz_history"));
         logsTab.setText(tr("znack.tab.logs"));
         productSearchField.setPromptText(tr("kiz_mapping.search_gtin"));
         deletedSearchField.setPromptText(tr("kiz_mapping.search_gtin"));
@@ -241,9 +293,16 @@ public class ZnackAutomationController {
         logEntityColumn.setText(tr("znack.field.entity"));
         logSeverityColumn.setText(tr("znack.field.severity"));
         logResultColumn.setText(tr("znack.field.result"));
+        accountOwnerTitleLabel.setText(tr("znack.account.owner"));
+        accountBalanceTitleLabel.setText(tr("znack.account.balance"));
+        accountCertificateTitleLabel.setText(tr("znack.account.certificate"));
+        refreshAccountButton.setText(tr("znack.account.refresh"));
+        accountSettingsButton.setText(tr("znack.account.open_settings"));
+        accountBalanceCombo.setPromptText(tr("znack.account.choose_balance"));
         if (currentHelpTopic != null) showOmsHelp(currentHelpTopic);
         signatureCertificateCombo.setButtonCell(certificateCell(false));
         updateSignatureSummary();
+        updateAccountInfo();
     }
 
     @FXML
@@ -290,6 +349,7 @@ public class ZnackAutomationController {
             repository.saveSettings(settings);
             repository.log("SETTINGS_SAVE", null, "INFO", "SAVED", null);
             loaded = settings;
+            resetAccountSession();
             savedFingerprint = fingerprint();
             authStatusLabel.setText(tr("znack.status.saved"));
             updateSaveState();
@@ -298,6 +358,208 @@ public class ZnackAutomationController {
         } catch (IllegalArgumentException e) {
             AlertService.showError(e.getMessage());
         }
+    }
+
+    @FXML
+    private void showAccountSettings() { openSettings(); }
+
+    @FXML
+    private void refreshAccountInfo() {
+        Settings expected = loaded;
+        var identity = ZnackAccountInfo.identity(expected, Instant.now()).orElse(null);
+        if (repository == null || accountRefreshRunning || signatureTestRunning || productSyncRunning
+                || !Objects.equals(savedFingerprint, fingerprint()) || identity == null
+                || !identity.networkUsable(Instant.now())) return;
+        long generation = shopGeneration;
+        long refreshGeneration = ++accountRefreshGeneration;
+        ZnackRepository owner = repository;
+        String expectedUi = fingerprint();
+        var existing = accountBalanceSession;
+        AccountReader reader = accountReader;
+        accountRefreshRunning = true;
+        updateAccountInfo();
+        updateSaveState();
+        Task<AccountRefresh> task = new Task<>() {
+            @Override protected AccountRefresh call() throws Exception {
+                LicenseRuntime.require(Permission.GS1);
+                var result = reader.read(expected, owner, existing,
+                        () -> generation == shopGeneration && owner == repository && loaded.equals(expected));
+                requireAccountScope(expected, owner,
+                        () -> generation == shopGeneration && owner == repository && loaded.equals(expected));
+                var scoped = ZnackAccountInfo.scopedBalances(identity, result.balances());
+                if (scoped.size() != result.balances().size() || result.session() == null
+                        || !"ELK".equals(result.session().authKind())
+                        || !identity.inn().equals(result.session().verifiedInn())
+                        || !identity.environment().equals(result.session().environment())
+                        || !ChestnyZnakBalanceClient.PRODUCTION.equals(result.session().base())
+                        || !result.session().expiresAt().isAfter(Instant.now()))
+                    throw new IllegalStateException("Account balance scope could not be verified.");
+                for (var balance : scoped) {
+                    requireAccountScope(expected, owner,
+                            () -> generation == shopGeneration && owner == repository && loaded.equals(expected));
+                    new Gs1BalanceRepository().save(balance);
+                }
+                return result;
+            }
+        };
+        task.setOnSucceeded(event -> {
+            if (generation != shopGeneration || refreshGeneration != accountRefreshGeneration || owner != repository) return;
+            accountRefreshRunning = false;
+            if (!expected.equals(loaded) || !expectedUi.equals(fingerprint())) {
+                accountBalanceSession = null;
+                accountBalancesFromCurrentCheck = false;
+                updateAccountInfo();
+                updateSaveState();
+                return;
+            }
+            AccountRefresh result = task.getValue();
+            accountBalanceSession = result.session();
+            accountBalancesFromCurrentCheck = true;
+            applyAccountBalances(result.balances());
+            authStatusLabel.setText(tr("znack.account.refreshed"));
+            updateSaveState();
+        });
+        java.util.function.Consumer<Throwable> failure = ignored -> {
+            if (generation != shopGeneration || refreshGeneration != accountRefreshGeneration || owner != repository) return;
+            accountRefreshRunning = false;
+            accountBalanceSession = null;
+            accountBalancesFromCurrentCheck = false;
+            authStatusLabel.setText(tr("znack.account.refresh_failed"));
+            updateAccountInfo();
+            updateSaveState();
+        };
+        task.setOnFailed(event -> failure.accept(task.getException()));
+        AppTaskExecutor.execute(task, failure);
+    }
+
+    private AccountRefresh readAccount(Settings expected, ZnackRepository owner,
+                                       ChestnyZnakBalanceClient.ServiceSession existing,
+                                       java.util.function.BooleanSupplier active) throws Exception {
+        requireAccountScope(expected, owner, active);
+        var identity = ZnackAccountInfo.identity(expected, Instant.now()).orElseThrow();
+        var client = new ChestnyZnakBalanceClient();
+        var session = existing;
+        if (session == null || !"ELK".equals(session.authKind())
+                || !identity.inn().equals(session.verifiedInn()) || !identity.environment().equals(session.environment())
+                || !ChestnyZnakBalanceClient.PRODUCTION.equals(session.base())
+                || !session.expiresAt().isAfter(Instant.now())) {
+            var provider = new CryptoProSignatureProvider(expected.cryptcpPath(), expected.signerCertificate(),
+                    Duration.ofSeconds(expected.resolvedCryptoProTimeoutSeconds()));
+            ZnackSignatureProvider signer = (payload, context) -> {
+                requireAccountScope(expected, owner, active);
+                var signed = provider.sign(payload, context);
+                var actual = CryptoProSignedCertificateReader.read(signed, expected.signerCertificate());
+                recoverCertificateSettings(expected, actual, Instant.now());
+                requireAccountScope(expected, owner, active);
+                return signed;
+            };
+            session = client.authenticate(identity.inn(), identity.fingerprint(), signer);
+        }
+        requireAccountScope(expected, owner, active);
+        var balances = client.readAccounts(session);
+        requireAccountScope(expected, owner, active);
+        return new AccountRefresh(session, balances);
+    }
+
+    private static void requireAccountScope(Settings expected, ZnackRepository owner,
+                                             java.util.function.BooleanSupplier active) {
+        LicenseRuntime.require(Permission.GS1);
+        var identity = ZnackAccountInfo.identity(expected, Instant.now()).orElse(null);
+        if (!active.getAsBoolean() || identity == null || !identity.networkUsable(Instant.now())
+                || !expected.equals(owner.getSettings()))
+            throw new IllegalStateException("Account configuration changed or its certificate is unavailable.");
+    }
+
+    private void resetAccountSession() {
+        accountRefreshGeneration++;
+        accountRefreshRunning = false;
+        accountAuthenticatedAt = null;
+        accountBalanceSession = null;
+        accountBalancesFromCurrentCheck = false;
+        accountBalances = List.of();
+        if (accountBalanceCombo != null) applyAccountBalances(List.of());
+    }
+
+    private void loadCachedAccountBalances() {
+        var identity = ZnackAccountInfo.identity(loaded, Instant.now()).orElse(null);
+        if (repository == null || identity == null) { applyAccountBalances(List.of()); return; }
+        long generation = shopGeneration;
+        long refreshGeneration = accountRefreshGeneration;
+        Settings expected = loaded;
+        Task<List<BalanceSnapshot>> task = new Task<>() {
+            @Override protected List<BalanceSnapshot> call() {
+                return new Gs1BalanceRepository().list(identity.inn(), identity.environment());
+            }
+        };
+        task.setOnSucceeded(event -> {
+            if (generation != shopGeneration || refreshGeneration != accountRefreshGeneration
+                    || !expected.equals(loaded) || accountRefreshRunning || accountBalancesFromCurrentCheck) return;
+            applyAccountBalances(task.getValue());
+        });
+        // A cache miss does not imply failed remote authentication or trigger a signing prompt.
+        AppTaskExecutor.execute(task, ignored -> {});
+    }
+
+    private void applyAccountBalances(List<BalanceSnapshot> values) {
+        var identity = ZnackAccountInfo.identity(loaded, Instant.now()).orElse(null);
+        var previous = accountBalanceCombo.getValue();
+        accountBalances = ZnackAccountInfo.scopedBalances(identity, values);
+        updatingBalanceChoice = true;
+        try {
+            accountBalanceCombo.getItems().setAll(accountBalances);
+            accountBalanceCombo.setValue(previous == null ? (accountBalances.size() == 1 ? accountBalances.getFirst() : null)
+                    : accountBalances.stream().filter(value -> value.scope().equals(previous.scope())).findFirst()
+                        .orElse(accountBalances.size() == 1 ? accountBalances.getFirst() : null));
+        } finally { updatingBalanceChoice = false; }
+        updateAccountInfo();
+    }
+
+    private void updateAccountInfo() {
+        if (accountOwnerLabel == null) return;
+        Instant now = Instant.now();
+        var identity = ZnackAccountInfo.identity(loaded, now).orElse(null);
+        boolean savedConfiguration = Objects.equals(savedFingerprint, fingerprint());
+        boolean valid = identity != null && identity.networkUsable(now);
+        accountOwnerLabel.setText(identity == null ? tr("znack.account.owner_unknown") : identity.ownerName());
+        accountInnLabel.setText(identity == null ? tr("znack.account.inn_unknown") : "INN " + identity.inn());
+        boolean liveTrueApi = savedConfiguration && ZnackAccountInfo.currentLogin(identity, accountAuthenticatedAt, now);
+        accountStatusLabel.setText(tr(!savedConfiguration ? "znack.account.unsaved"
+                : identity == null ? "znack.account.unverified"
+                : !"production".equals(identity.environment()) ? "znack.account.unsupported"
+                : !valid ? identity.certificate().validFrom().isAfter(now)
+                    ? "gs1.readiness.signature.not_yet_valid" : "znack.account.expired"
+                : liveTrueApi ? "znack.account.authenticated" : "znack.account.not_checked"));
+        accountStatusLabel.getStyleClass().removeAll("activation-active", "activation-warning");
+        accountStatusLabel.getStyleClass().add(liveTrueApi ? "activation-active" : "activation-warning");
+        accountCertificateLabel.setText(identity == null ? tr("znack.account.unknown")
+                : CERTIFICATE_DATE.format(identity.validToDate()));
+        accountCertificateDaysLabel.setText(identity == null ? tr("znack.account.unverified")
+                : identity.certificate().validFrom().isAfter(now) ? tr("gs1.readiness.signature.not_yet_valid")
+                : !identity.certificate().validTo().isAfter(now) ? tr("znack.account.expired")
+                : MessageFormat.format(tr("znack.account.days_left"), identity.remainingDays(now)));
+        accountEvidenceLabel.setText(identity == null ? tr("znack.account.certificate_source")
+                : MessageFormat.format(tr("znack.account.tested_at"), CERTIFICATE_DATE.withZone(java.time.ZoneId.systemDefault()).format(identity.testedAt())));
+        var balance = accountBalanceCombo.getValue();
+        boolean scoped = balance != null && accountBalances.contains(balance);
+        boolean fresh = scoped && ZnackAccountInfo.freshBalance(balance, now);
+        var amountFormat = NumberFormat.getNumberInstance(I18nService.getInstance().getCurrentLanguage().toLocale());
+        amountFormat.setMinimumFractionDigits(2);
+        amountFormat.setMaximumFractionDigits(2);
+        accountBalanceLabel.setText(!scoped ? tr("znack.account.unknown") : amountFormat.format(balance.amount()) + " ₽");
+        boolean currentBalance = savedConfiguration && accountBalancesFromCurrentCheck && fresh
+                && accountBalanceSession != null && accountBalanceSession.expiresAt().isAfter(now);
+        accountBalanceUpdatedLabel.setText(!scoped ? tr(accountBalances.isEmpty() ? "znack.account.balance_unknown" : "znack.account.choose_balance")
+                : MessageFormat.format(tr(!fresh ? "znack.account.balance_stale" : currentBalance
+                        ? "znack.account.balance_updated" : "znack.account.balance_cached"),
+                        DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm").withZone(java.time.ZoneId.systemDefault()).format(balance.checkedAt())));
+        accountBalanceCombo.setVisible(accountBalances.size() > 1);
+        accountBalanceCombo.setManaged(accountBalances.size() > 1);
+        accountBalanceCombo.setDisable(accountRefreshRunning || accountBalances.isEmpty());
+        accountBusyIndicator.setVisible(accountRefreshRunning);
+        accountBusyIndicator.setManaged(accountRefreshRunning);
+        refreshAccountButton.setDisable(repository == null || !savedConfiguration || !valid
+                || accountRefreshRunning || signatureTestRunning || productSyncRunning);
+        accountSettingsButton.setDisable(repository == null);
     }
 
     private void loadCertificates() {
@@ -333,6 +595,7 @@ public class ZnackAutomationController {
     }
 
     private void applyDiscoveredCertificates(List<CryptoProCertificateInfo> discovered, Instant now) {
+        discovered = discovered.stream().map(certificate -> preserveVerifiedCertificateMetadata(certificate, loaded)).toList();
         boolean resizeOpenPopup = signatureCertificateCombo.isShowing();
         String previousSelector = selectedCertificate();
         CryptoProCertificateInfo current = signatureCertificateCombo.getValue();
@@ -396,7 +659,7 @@ public class ZnackAutomationController {
             AlertService.showError(tr("znack.signature.error.expired"));
             return;
         }
-        if (signatureTestRunning) return;
+        if (signatureTestRunning || accountRefreshRunning) return;
         // Signing shells out to CryptoPro (csptest/cryptcp) and may show a token PIN dialog — never on
         // the FX thread, or the UI freezes with no feedback. Run it as a background Task.
         String cryptcpPath = loaded.cryptcpPath();
@@ -415,40 +678,72 @@ public class ZnackAutomationController {
         Task<SignatureVerification> task = new Task<>() {
             @Override protected SignatureVerification call() throws Exception {
                 Instant verifiedAt = Instant.now();
-                Settings verifiedSettings = withSignerTestedAt(candidateSettings, verifiedAt);
+                var provider = new CryptoProSignatureProvider(cryptcpPath, selector, signTimeout);
+                // certmgr can omit INN, validity or the private-key link. Obtain the identity from
+                // a real local signature before constructing an authentication request for its owner.
+                var identityProof = provider.sign(("VN code certificate identity check " + java.util.UUID.randomUUID())
+                        .getBytes(StandardCharsets.UTF_8), ZnackSignatureContext.SIGNATURE_TEST);
+                var actualCertificate = CryptoProSignedCertificateReader.read(identityProof, selector);
+                Settings verifiedSettings = recoverCertificateSettings(candidateSettings, actualCertificate, verifiedAt);
                 ZnackApiClient api = new ZnackApiClient();
-                ZnackAuthService auth = new ZnackAuthService(api,
-                        new CryptoProSignatureProvider(cryptcpPath, selector, signTimeout));
+                ZnackSignatureProvider verifiedProvider = (payload, context) -> {
+                    var signature = provider.sign(payload, context);
+                    var currentCertificate = CryptoProSignedCertificateReader.read(signature, selector);
+                    // Reject an inconsistent identity before any signed challenge is posted.
+                    recoverCertificateSettings(verifiedSettings, currentCertificate, Instant.now());
+                    return signature;
+                };
+                ZnackAuthService auth = new ZnackAuthService(api, verifiedProvider);
                 // Verify the selected certificate against Znack itself before retiring any local catalog.
                 auth.trueApiToken(verifiedSettings);
+                String authenticatedInn = auth.authenticatedParticipantInn();
+                if (!blank(authenticatedInn) && !actualCertificate.inn().equals(authenticatedInn))
+                    throw new CryptoProException(CryptoProErrorCode.INVALID_SIGNATURE_OUTPUT,
+                            "The authenticated account does not match the selected signing certificate.");
                 ZnackRepository.CertificateVerificationResult result =
                         currentRepository.saveVerifiedCertificate(expectedSettings, verifiedSettings);
-                return new SignatureVerification(verifiedSettings, result, api, auth);
+                return new SignatureVerification(verifiedSettings, result, api, auth, actualCertificate);
             }
         };
         task.setOnSucceeded(event -> {
-            setSignatureTestBusy(false);
             if (generation != shopGeneration || currentRepository != repository) return;
+            setSignatureTestBusy(false);
             SignatureVerification verification = task.getValue();
             loaded = verification.settings();
+            signerCertificate = loaded.signerCertificate();
+            certificateMetadata = loaded.certificateMetadataJson();
+            var actual = verification.certificate();
+            var selectedActual = new CryptoProCertificateInfo(signerCertificate, actual.thumbprint(), actual.subject(),
+                    actual.issuer(), actual.inn(), actual.validFrom(), actual.validTo(), true, actual.provider(), "");
+            updatingCertificateSelection = true;
+            try {
+                signatureCertificateCombo.getItems().removeIf(certificate -> sameCertificate(certificate.selector(), signerCertificate));
+                signatureCertificateCombo.getItems().add(selectedActual);
+                signatureCertificateCombo.setValue(selectedActual);
+            } finally { updatingCertificateSelection = false; }
             signerTestedAt = loaded.signerTestedAt();
+            accountAuthenticatedAt = Instant.now();
+            accountBalanceSession = null;
+            accountBalancesFromCurrentCheck = false;
             testedConfigurationKey = configKey;
             savedFingerprint = fingerprint(loaded);
             logsTable.getItems().setAll(currentRepository.findLogs());
             updateSignatureSummary();
             updateSaveState();
             if (verification.result().signerChanged()) {
+                applyAccountBalances(List.of());
                 selectedProductGtins.clear();
                 loadProductsFromDatabase();
                 loadDeletedProducts();
                 authStatusLabel.setText(tr("znack.signature.catalog_refreshing"));
                 signerChangeSyncPending = true;
                 requestProductSync(verification.api(), verification.auth());
-            }
+            } else loadCachedAccountBalances();
         });
         java.util.function.Consumer<Throwable> taskFailure = rejection -> {
-            setSignatureTestBusy(false);
             if (generation != shopGeneration || currentRepository != repository) return;
+            setSignatureTestBusy(false);
+            accountAuthenticatedAt = null;
             Throwable failure = rejection;
             if (failure instanceof ZnackRepository.SignerChangeBlockedException) {
                 signerTestedAt = null;
@@ -487,6 +782,7 @@ public class ZnackAutomationController {
     }
 
     private void load() {
+        resetAccountSession();
         loading = true;
         loaded = repository.getSettings();
         signerCertificate = value(loaded.signerCertificate());
@@ -510,6 +806,7 @@ public class ZnackAutomationController {
         authStatusLabel.setText("");
         updateSignatureSummary();
         updateSaveState();
+        loadCachedAccountBalances();
     }
 
     private void loadProductsFromDatabase() {
@@ -833,18 +1130,33 @@ public class ZnackAutomationController {
                 loaded.resolvedCryptoProTimeoutSeconds(), loaded.documentExpiryDate(), loaded.documentType());
     }
 
-    private Settings withSignerTestedAt(Settings settings, Instant testedAt) {
+    /** Pure preparation: persistence only follows successful remote authentication and owner check. */
+    static Settings recoverCertificateSettings(Settings settings, CryptoProCertificateInfo actual, Instant testedAt)
+            throws CryptoProException {
+        String selected = value(settings.signerCertificate()).replaceAll("\\s+", "");
+        if (actual == null || testedAt == null || !selected.matches("[A-Fa-f0-9]{40}")
+                || !selected.equalsIgnoreCase(value(actual.thumbprint()).replaceAll("\\s+", ""))
+                || !value(actual.inn()).matches("[0-9]{10}|[0-9]{12}") || !actual.hasPrivateKey()
+                || actual.validFrom() == null || actual.validTo() == null
+                || actual.validFrom().isAfter(testedAt) || !actual.validTo().isAfter(testedAt))
+            throw new CryptoProException(CryptoProErrorCode.INVALID_SIGNATURE_OUTPUT,
+                    "Cannot verify the identity and validity of the selected signing certificate.");
+        String expectedInn = value(settings.participantInn()).trim();
+        if (!expectedInn.isEmpty() && !expectedInn.equals(actual.inn()))
+            throw new CryptoProException(CryptoProErrorCode.INVALID_SIGNATURE_OUTPUT,
+                    "The configured account does not match the selected signing certificate.");
         return new Settings(settings.trueApiBaseUrl(), settings.suzBaseUrl(), settings.omsId(),
-                settings.omsConnection(), settings.participantInn(), settings.producerInn(), settings.ownerInn(),
+                settings.omsConnection(), actual.inn(), settings.producerInn(), settings.ownerInn(),
                 settings.signerExecutable(), settings.signerCertificate(), settings.signerArgumentsJson(),
                 settings.documentNumber(), settings.documentDate(), settings.pdfFolder(), settings.autoIntroduction(),
                 settings.certificateListExecutable(), settings.certificateListArgumentsJson(),
-                settings.certificateMetadataJson(), testedAt, settings.certmgrPath(), settings.cryptcpPath(),
+                metadata(actual), testedAt, settings.certmgrPath(), settings.cryptcpPath(),
                 settings.csptestPath(), settings.resolvedCryptoProTimeoutSeconds(), settings.documentExpiryDate(),
                 settings.documentType());
     }
 
     private void clear() {
+        resetAccountSession();
         loading = true;
         loaded = Settings.empty();
         for (TextField field : List.of(omsIdField, omsConnectionField)) field.clear();
@@ -877,11 +1189,13 @@ public class ZnackAutomationController {
         boolean verificationRequired = (!blank(selectedCertificate()) && signerTestedAt == null)
                 || (!blank(loaded.signerCertificate()) && blank(selectedCertificate()));
         saveButton.setDisable(repository == null || loading || verificationRequired
+                || accountRefreshRunning
                 || Objects.equals(savedFingerprint, fingerprint()));
-        signatureCertificateCombo.setDisable(repository == null || signatureTestRunning || productSyncRunning);
+        signatureCertificateCombo.setDisable(repository == null || signatureTestRunning || productSyncRunning || accountRefreshRunning);
         testSignatureButton.setDisable(repository == null || certificateDiscoveryRunning
-                || signatureTestRunning || productSyncRunning || blank(selectedCertificate())
+                || signatureTestRunning || productSyncRunning || accountRefreshRunning || blank(selectedCertificate())
                 || selectedCertificateExpired());
+        updateAccountInfo();
     }
 
     private void updateSignatureSummary() {
@@ -911,7 +1225,8 @@ public class ZnackAutomationController {
 
     private record SignatureVerification(Settings settings,
                                          ZnackRepository.CertificateVerificationResult result,
-                                         ZnackApiClient api, ZnackAuthService auth) {
+                                         ZnackApiClient api, ZnackAuthService auth,
+                                         CryptoProCertificateInfo certificate) {
     }
 
     private String selectedCertificate() {
@@ -923,7 +1238,7 @@ public class ZnackAutomationController {
         return String.join("\u001f", selectedCertificate(), value(loaded.cryptcpPath()), value(loaded.csptestPath()));
     }
 
-    private String metadata(CryptoProCertificateInfo certificate) {
+    private static String metadata(CryptoProCertificateInfo certificate) {
         JsonObject json = new JsonObject();
         json.addProperty("selector", certificate.selector());
         json.addProperty("thumbprint", certificate.thumbprint());
@@ -938,6 +1253,10 @@ public class ZnackAutomationController {
     }
 
     private CryptoProCertificateInfo storedCertificate() {
+        return storedCertificate(certificateMetadata, signerCertificate);
+    }
+
+    private static CryptoProCertificateInfo storedCertificate(String certificateMetadata, String signerCertificate) {
         try {
             JsonObject json = com.google.gson.JsonParser.parseString(certificateMetadata).getAsJsonObject();
             return new CryptoProCertificateInfo(
@@ -984,6 +1303,20 @@ public class ZnackAutomationController {
 
     static boolean certificateSelectable(CryptoProCertificateInfo certificate, Instant now) {
         return certificate != null && !certificate.expired(now);
+    }
+
+    /** A later sparse certmgr listing cannot erase identity established by a successful CMS/CZ test. */
+    static CryptoProCertificateInfo preserveVerifiedCertificateMetadata(CryptoProCertificateInfo discovered, Settings configured) {
+        if (configured == null || configured.signerTestedAt() == null) return discovered;
+        var actual = storedCertificate(configured.certificateMetadataJson(), configured.signerCertificate());
+        if (!"CryptoPro CMS signer".equals(actual.provider()) || !actual.hasPrivateKey()
+                || actual.validFrom() == null || actual.validTo() == null
+                || !value(actual.thumbprint()).matches("[A-Fa-f0-9]{40}")
+                || !actual.thumbprint().equalsIgnoreCase(value(configured.signerCertificate()).replaceAll("\\s+", ""))
+                || !actual.thumbprint().equalsIgnoreCase(value(discovered.thumbprint()).replaceAll("\\s+", "")))
+            return discovered;
+        return new CryptoProCertificateInfo(configured.signerCertificate(), actual.thumbprint(), actual.subject(), actual.issuer(),
+                actual.inn(), actual.validFrom(), actual.validTo(), true, actual.provider(), "");
     }
 
     private static CryptoProCertificateInfo findCertificate(List<CryptoProCertificateInfo> certificates, String selector) {

@@ -28,7 +28,7 @@ final class Gs1JoinDialog {
     private final TextArea review=new TextArea();
     Gs1JoinDialog(Gs1Pane owner,String inn,JsonObject original,Map<String,List<NationalCatalogGs1Client.Choice>> dictionaries,AddressSearch addresses,BiConsumer<JsonObject,Boolean> save){
         this.owner=owner;this.inn=inn;this.form=original.deepCopy();this.dictionaries=dictionaries;this.addresses=addresses;this.save=save;
-        AlertService.applyTheme(dialog);if(owner.getScene()!=null)dialog.initOwner(owner.getScene().getWindow());dialog.setTitle(tr("gs1.join"));dialog.getDialogPane().setPrefSize(850,640);
+        AlertService.applyTheme(dialog);if(owner.getScene()!=null)dialog.initOwner(owner.getScene().getWindow());Gs1Dialogs.centerOnOwner(dialog);dialog.setTitle(tr("gs1.join"));dialog.getDialogPane().setPrefSize(850,640);
         JsonObject applicant=section(form,"applicant");applicant.addProperty("inn",inn);
         VBox enterprise=new VBox(10);enterprise.getChildren().add(new Label(tr("gs1.form_notice")));
         for(String field:List.of("companyName","companyNameShort","countryId","firstName","lastName","email","phone","ogrn","kpp","okved2","companyNameEN"))enterprise.getChildren().add(text(applicant,field,!Set.of("companyNameEN","kpp").contains(field)));

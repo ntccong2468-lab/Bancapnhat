@@ -50,6 +50,7 @@
                             <content>
                                 <VBox spacing="8.0">
                                     <children>
+                                        <HBox alignment="CENTER_LEFT" spacing="10.0"><Button fx:id="selectFilteredButton" onAction="#onSelectFiltered" text="Select all filtered"/><Button fx:id="clearBatchSelectionButton" onAction="#onClearBatchSelection" text="Clear selection"/></HBox>
                                         <HBox fx:id="selectionActionBar" alignment="CENTER_LEFT" managed="false" spacing="10.0" styleClass="surface selection-action-bar" visible="false">
                                             <children>
                                                 <Label fx:id="selectedCountLabel" styleClass="text-secondary text-bold" text="0 selected" />

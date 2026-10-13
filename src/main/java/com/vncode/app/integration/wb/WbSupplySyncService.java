@@ -1,6 +1,9 @@
 package com.vncode.app.integration.wb;
 
 import com.vncode.app.models.Shop;
+import com.vncode.app.features.license.LicenseRuntime;
+import com.vncode.app.features.license.LicenseGate.LicenseDeniedException;
+import static com.vncode.app.features.license.LicenseModels.Permission.SELLER_API;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,6 +42,7 @@ public class WbSupplySyncService {
     }
 
     public int syncUntilOpenSuppliesFound(Shop shop) throws IOException {
+        LicenseRuntime.require(SELLER_API);
         WbShopSyncState state = syncStateRepository.getShopSyncState(shop.getId());
         long runId = syncRunRepository.startSyncRun(shop.getId(), "supplies_bootstrap");
         int read = 0;
@@ -47,6 +51,7 @@ public class WbSupplySyncService {
         boolean foundOpenSupplies = supplyRepository.countOpenSupplies(shop.getId()) > 0;
         try {
             for (int page = 0; page < INITIAL_OPEN_SUPPLY_SCAN_PAGES; page++) {
+                LicenseRuntime.require(SELLER_API);
                 WbSuppliesResponse response = apiClient.getSupplies(shop.getApiKey(), next, PAGE_LIMIT);
                 if (response == null || response.getSupplies() == null || response.getSupplies().isEmpty()) {
                     syncStateRepository.updateSuppliesCursor(shop.getId(), next, Instant.now().toString());
@@ -75,6 +80,8 @@ public class WbSupplySyncService {
             }
             syncRunRepository.finishSyncRun(runId, true, read, written, null, null);
             return written;
+        } catch (LicenseDeniedException paused) {
+            syncRunRepository.finishSyncRun(runId,false,read,written,"license_required",paused.getMessage());throw paused;
         } catch (IOException | RuntimeException ex) {
             LOGGER.error("Bootstrap sync supplies thất bại cho shop {}", shop.getId(), ex);
             syncStateRepository.saveSyncError(shop.getId(), ex.getMessage());
@@ -84,6 +91,7 @@ public class WbSupplySyncService {
     }
 
     private int sync(Shop shop, boolean singlePageOnly) throws IOException {
+        LicenseRuntime.require(SELLER_API);
         WbShopSyncState state = syncStateRepository.getShopSyncState(shop.getId());
         long runId = syncRunRepository.startSyncRun(shop.getId(), "supplies");
         int read = 0;
@@ -91,6 +99,7 @@ public class WbSupplySyncService {
         long next = Math.max(0L, state.suppliesNext());
         try {
             while (true) {
+                LicenseRuntime.require(SELLER_API);
                 WbSuppliesResponse response = apiClient.getSupplies(shop.getApiKey(), next, PAGE_LIMIT);
                 if (response == null || response.getSupplies() == null || response.getSupplies().isEmpty()) {
                     syncStateRepository.updateSuppliesCursor(shop.getId(), next, Instant.now().toString());
@@ -110,6 +119,8 @@ public class WbSupplySyncService {
                     return written;
                 }
             }
+        } catch (LicenseDeniedException paused) {
+            syncRunRepository.finishSyncRun(runId,false,read,written,"license_required",paused.getMessage());throw paused;
         } catch (IOException | RuntimeException ex) {
             LOGGER.error("Sync supplies thất bại cho shop {}", shop.getId(), ex);
             syncStateRepository.saveSyncError(shop.getId(), ex.getMessage());
@@ -119,21 +130,25 @@ public class WbSupplySyncService {
     }
 
     public int syncRecentSupplyDetails(Shop shop) throws IOException {
+        LicenseRuntime.require(SELLER_API);
         List<String> supplyIds = supplyRepository.getRecentSupplyIds(shop.getId(), RECENT_SUPPLY_DETAIL_LIMIT);
         return syncSupplyDetails(shop, supplyIds);
     }
 
     public int syncOpenSupplyDetails(Shop shop) throws IOException {
+        LicenseRuntime.require(SELLER_API);
         List<String> supplyIds = supplyRepository.getOpenSupplyIds(shop.getId(), OPEN_SUPPLY_DETAIL_LIMIT);
         return syncSupplyDetails(shop, supplyIds);
     }
 
     public int syncOpenSupplyCounts(Shop shop) throws IOException {
+        LicenseRuntime.require(SELLER_API);
         List<String> supplyIds = supplyRepository.getOpenSupplyIds(shop.getId(), OPEN_SUPPLY_DETAIL_LIMIT);
         return syncSupplyCounts(shop, supplyIds);
     }
 
     public int refreshOpenSuppliesFromStart(Shop shop) throws IOException {
+        LicenseRuntime.require(SELLER_API);
         long runId = syncRunRepository.startSyncRun(shop.getId(), "supplies_refetch");
         int read = 0;
         int written = 0;
@@ -141,6 +156,7 @@ public class WbSupplySyncService {
         try {
             boolean foundOpenSupplies = supplyRepository.countOpenSupplies(shop.getId()) > 0;
             for (int page = 0; page < INITIAL_OPEN_SUPPLY_SCAN_PAGES; page++) {
+                LicenseRuntime.require(SELLER_API);
                 WbSuppliesResponse response = apiClient.getSupplies(shop.getApiKey(), next, PAGE_LIMIT);
                 if (response == null || response.getSupplies() == null || response.getSupplies().isEmpty()) {
                     syncRunRepository.finishSyncRun(runId, true, read, written, null, null);
@@ -161,6 +177,8 @@ public class WbSupplySyncService {
             }
             syncRunRepository.finishSyncRun(runId, true, read, written, null, null);
             return written;
+        } catch (LicenseDeniedException paused) {
+            syncRunRepository.finishSyncRun(runId,false,read,written,"license_required",paused.getMessage());throw paused;
         } catch (IOException | RuntimeException ex) {
             LOGGER.error("Refetch supplies thất bại cho shop {}", shop.getId(), ex);
             syncStateRepository.saveSyncError(shop.getId(), ex.getMessage());
@@ -176,6 +194,7 @@ public class WbSupplySyncService {
         int written = 0;
         IOException firstError = null;
         for (String supplyId : supplyIds) {
+            LicenseRuntime.require(SELLER_API);
             try {
                 WbSupplyDto detail = apiClient.getSupplyDetail(shop.getApiKey(), supplyId);
                 if (detail != null) {
@@ -211,6 +230,7 @@ public class WbSupplySyncService {
         int written = 0;
         IOException firstError = null;
         for (String supplyId : supplyIds) {
+            LicenseRuntime.require(SELLER_API);
             try {
                 WbSupplyOrderIdsResponse response = apiClient.getSupplyOrderIds(shop.getApiKey(), supplyId);
                 int count = response == null || response.getOrderIds() == null ? 0 : response.getOrderIds().size();

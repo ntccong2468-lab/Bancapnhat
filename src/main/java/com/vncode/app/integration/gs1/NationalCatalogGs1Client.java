@@ -39,6 +39,11 @@ public final class NationalCatalogGs1Client {
     public record Address(String address, String fullGuid, String houseGuid, String postalCode) {
         @Override public String toString() { return address; }
     }
+    public record AccountSnapshot(Gs1Membership membership, JsonObject form, boolean newApplication) {
+        public AccountSnapshot { Objects.requireNonNull(membership); form = form.deepCopy(); }
+        @Override public JsonObject form() { return form.deepCopy(); }
+        @Override public String toString() { return "Gs1AccountSnapshot[redacted]"; }
+    }
     public final class Session {
         private final String inn;
         private final String fingerprint;
@@ -80,10 +85,21 @@ public final class NationalCatalogGs1Client {
             member = bool(result, "gs1Member"); excluded = Boolean.TRUE.equals(bool(result, "gs1Excluded"));
         }
         public synchronized Gs1Membership membership() throws IOException {
+            return accountSnapshot().membership();
+        }
+        /** Membership and application status from the same authenticated enterprise session. */
+        public synchronized AccountSnapshot accountSnapshot() throws IOException {
             JsonObject result = object(call("gs1/gcp-gln", null));
             JsonObject form = form();
             JsonObject applicant = form.has("applicant") && form.get("applicant").isJsonObject() ? form.getAsJsonObject("applicant") : new JsonObject();
-            if (!inn.equals(text(applicant, "inn"))) throw new IOException("Catalog enterprise identity could not be verified");
+            String applicantInn = text(applicant, "inn");
+            boolean unopened = form.entrySet().isEmpty() && Boolean.FALSE.equals(member) && !excluded
+                    && result.has("gcps") && result.get("gcps").isJsonArray() && result.getAsJsonArray("gcps").isEmpty();
+            if (!inn.equals(applicantInn) && !unopened) throw new IOException("Catalog enterprise identity could not be verified");
+            if (unopened) {
+                applicant.addProperty("inn", inn);
+                form.add("applicant", applicant);
+            }
             List<Gs1Membership.Prefix> prefixes = new ArrayList<>();
             if (result.has("gcps") && result.get("gcps").isJsonArray()) {
                 try {
@@ -107,7 +123,8 @@ public final class NationalCatalogGs1Client {
             }
             String name = text(applicant, "companyName");
             if (name.isBlank()) name = text(applicant, "companyNameShort");
-            return new Gs1Membership(inn, name, member, excluded, date(text(result,"expiryDate")), prefixes, Instant.now(), Gs1Membership.CATALOG_SOURCE);
+            var membership = new Gs1Membership(inn, name, member, excluded, date(text(result,"expiryDate")), prefixes, Instant.now(), Gs1Membership.CATALOG_SOURCE);
+            return new AccountSnapshot(membership, form, unopened);
         }
         public synchronized JsonObject form() throws IOException {
             JsonObject value=object(call("gs1/form",null));
@@ -118,6 +135,7 @@ public final class NationalCatalogGs1Client {
             return value;
         }
         public synchronized List<Choice> dictionary(String name) throws IOException {
+            com.vncode.app.features.license.LicenseRuntime.require(com.vncode.app.features.license.LicenseModels.Permission.GS1);
             if (!Set.of("opf","positions","profiles-organization","enterprise-sector","main-products","documents","provider","participation","selling-ways","distribution-channels").contains(name)) throw new IllegalArgumentException("Unknown GS1 dictionary");
             List<Choice> result=new ArrayList<>();
             for(JsonElement entry:array(call("dictionaries/gs1/"+name,null))) {
@@ -127,6 +145,7 @@ public final class NationalCatalogGs1Client {
             return List.copyOf(result);
         }
         public synchronized List<Address> addresses(String query) throws IOException {
+            com.vncode.app.features.license.LicenseRuntime.require(com.vncode.app.features.license.LicenseModels.Permission.GS1);
             if(query==null||query.strip().length()<3)return List.of();
             HttpUrl url=Objects.requireNonNull(root.resolve("gs1/fias-address")).newBuilder().addQueryParameter("address",query.strip()).build();
             List<Address> result=new ArrayList<>();
@@ -138,12 +157,14 @@ public final class NationalCatalogGs1Client {
             return List.copyOf(result);
         }
         public synchronized void saveForm(JsonObject form) throws IOException {
+            com.vncode.app.features.license.LicenseRuntime.require(com.vncode.app.features.license.LicenseModels.Permission.GS1);
             if(!form.has("applicant")||!form.get("applicant").isJsonObject()||!inn.equals(text(form.getAsJsonObject("applicant"),"inn")))throw new IOException("Application owner differs from certificate enterprise");
             JsonObject draft=form.deepCopy();
             for(String computed:List.of("isSent","errorText","expiryDate"))draft.remove(computed);
             acknowledge(call("gs1/form",draft));
         }
         public synchronized String signingDocument() throws IOException {
+            com.vncode.app.features.license.LicenseRuntime.require(com.vncode.app.features.license.LicenseModels.Permission.GS1);
             JsonObject document=object(call("gs1/sign-form",null));
             String xml=text(document,"XMLForSign");
             if(xml.isBlank())throw new IOException("Catalog returned no GS1 application to sign");
@@ -151,11 +172,13 @@ public final class NationalCatalogGs1Client {
         }
         /** Signs the caller's retained, reviewed document; never fetches a replacement XML. */
         public synchronized void submitDocument(String xml,XmlSigner signer) throws IOException {
+            com.vncode.app.features.license.LicenseRuntime.require(com.vncode.app.features.license.LicenseModels.Permission.GS1);
             if(xml==null||xml.isBlank()||xml.length()>LIMIT)throw new IOException("Invalid reviewed GS1 application");
             String signed;
             try{signed=signer.sign(xml);}catch(Exception failure){throw new SigningFailedException();}
             if(signed==null||signed.isBlank())throw new SigningFailedException();
             JsonObject body=new JsonObject();body.addProperty("signedXML",signed);
+            com.vncode.app.features.license.LicenseRuntime.require(com.vncode.app.features.license.LicenseModels.Permission.GS1);
             acknowledge(call("gs1/sign-form",body));
         }
         private String call(String path,JsonObject body)throws IOException {

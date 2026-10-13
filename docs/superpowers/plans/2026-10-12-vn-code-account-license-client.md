@@ -1,5 +1,7 @@
 # VN code Account License Client Implementation Plan
 
+> Cập nhật 13/10: phần mật khẩu và hợp đồng thiết bị trong tài liệu này là kế hoạch lịch sử. Luồng đã chốt chuyển sang Gmail/OTP trong ứng dụng và khóa VNC từ Portal 0.3.0. Đã có mã backend chuẩn bị và client; xem [hợp đồng hiện tại](../../research/2026-10-13-vn-code-desktop-license-contract.md) nếu đọc từ plans, hoặc `2026-10-13-vn-code-desktop-license-contract.md` trong research. Production vẫn chờ pin/deploy/nghiệm thu.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking. Người sở hữu đã chọn triển khai trực tiếp trong phiên; giữ lựa chọn đó, không hỏi lại cách thực hiện.
 
 **Goal:** Thêm đăng nhập tài khoản website, quyền offline ký số và giới hạn thiết bị vào cùng VN code 1.4.0, giữ dữ liệu và các bản đã phát hành.

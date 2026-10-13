@@ -2,6 +2,8 @@ package com.vncode.app.integration.znack.registration;
 
 import com.google.gson.*;
 import com.vncode.app.features.gtinsync.*;
+import com.vncode.app.features.license.LicenseModels.Permission;
+import com.vncode.app.features.license.LicenseRuntime;
 import com.vncode.app.integration.znack.*;
 import com.vncode.app.models.Shop;
 import java.io.IOException;
@@ -13,19 +15,42 @@ import static com.vncode.app.features.gtinsync.GtinSyncModels.*;
 public final class NationalCatalogGtinSource implements RegisteredGtinSource {
     @FunctionalInterface public interface PageReader {JsonElement read(int page) throws Exception;}
     @FunctionalInterface public interface CardReader {JsonElement read(String gtin) throws Exception;}
+    @FunctionalInterface public interface AdditionalGtinReader {List<String> read() throws Exception;}
     private final int shopId;
     private final PageReader pages;
     private final CardReader cards;
-    public NationalCatalogGtinSource(int shopId,PageReader pages,CardReader cards){this.shopId=shopId;this.pages=pages;this.cards=cards;}
-    public static RegisteredGtinSource forShop(Shop shop) {
+    private final String source;
+    private final AdditionalGtinReader additional;
+    public NationalCatalogGtinSource(int shopId,PageReader pages,CardReader cards){this(shopId,pages,cards,"National Catalog");}
+    public NationalCatalogGtinSource(int shopId,PageReader pages,CardReader cards,String source){this(shopId,pages,cards,source,List::of);}
+    public NationalCatalogGtinSource(int shopId,PageReader pages,CardReader cards,String source,AdditionalGtinReader additional){this.shopId=shopId;this.pages=pages;this.cards=cards;this.source=Objects.requireNonNull(source);this.additional=Objects.requireNonNull(additional);}
+    public static RegisteredGtinSource forShop(Shop selected) {
+        Shop shop=new Shop(selected.getId(),selected.getName(),selected.getMarketplace(),selected.getClientId(),selected.getApiKey());
         int id=shop.getId();String name=shop.getName();
         return requested -> {
             if(requested!=id) throw new IllegalArgumentException("shop_mismatch");
+            LicenseRuntime.require(Permission.SELLER_API);
             var settings=new ZnackRepository(new ZnackModels.ShopContext(id,name)).getSettings();
+            var owner=RegisteredGtinProof.scope(shop,settings,Instant.now());
             var api=new ZnackApiClient();
-            var signer=new com.vncode.app.integration.znack.signature.CryptoProSignatureProvider(settings.cryptcpPath(),settings.signerCertificate(),java.time.Duration.ofSeconds(settings.resolvedCryptoProTimeoutSeconds()));
-            var token=new ZnackAuthService(api,signer).trueApiToken(settings);
-            return new NationalCatalogGtinSource(id,p->api.products(settings.resolvedTrueApiBaseUrl(),token,p,10_000),g->api.productCards(settings.resolvedTrueApiBaseUrl(),token,g)).read(id);
+            var provider=new com.vncode.app.integration.znack.signature.CryptoProSignatureProvider(settings.cryptcpPath(),owner.fingerprint(),java.time.Duration.ofSeconds(settings.resolvedCryptoProTimeoutSeconds()));
+            com.vncode.app.integration.znack.signature.ZnackSignatureProvider signer=(payload,context)->{
+                requireOwner(shop,owner.source());
+                var signed=provider.sign(payload,context);
+                var certificate=com.vncode.app.integration.znack.signature.CryptoProSignedCertificateReader.read(signed,owner.fingerprint());
+                if(!owner.inn().equals(certificate.inn())||certificate.validFrom().isAfter(Instant.now())||!certificate.validTo().isAfter(Instant.now()))
+                    throw new IllegalStateException("unverified_catalog_owner");
+                return signed;
+            };
+            var auth=new ZnackAuthService(api,signer);
+            var token=auth.trueApiToken(settings);
+            if(auth.authenticatedParticipantInn()!=null&&!owner.inn().equals(auth.authenticatedParticipantInn()))throw new IllegalStateException("unverified_catalog_owner");
+            var registeredScope=ZnackRegistrationScope.fromSettings(settings);
+            var result=new NationalCatalogGtinSource(id,p->{requireOwner(shop,owner.source());return api.products(settings.resolvedTrueApiBaseUrl(),token,p,10_000);},g->{requireOwner(shop,owner.source());return api.productCards(settings.resolvedTrueApiBaseUrl(),token,g);},owner.source(),()->{
+                requireOwner(shop,owner.source());return ownedPublishedGtins(shop,registeredScope);
+            }).read(id);
+            requireOwner(shop,owner.source());
+            return result;
         };
     }
     @Override public List<RegisteredGtin> read(int requestedShop) throws Exception {
@@ -33,6 +58,7 @@ public final class NationalCatalogGtinSource implements RegisteredGtinSource {
         var gtins=new LinkedHashSet<String>();int received=0;Integer total=null;
         boolean complete=false;
         for(int page=0;page<100;page++) {
+            LicenseRuntime.require(Permission.SELLER_API);
             JsonElement response=pages.read(page);JsonArray rows;
             if(response!=null && response.isJsonArray()) rows=response.getAsJsonArray();
             else if(response!=null && response.isJsonObject() && response.getAsJsonObject().has("results") && response.getAsJsonObject().get("results").isJsonArray()) {
@@ -51,8 +77,15 @@ public final class NationalCatalogGtinSource implements RegisteredGtinSource {
             if(total==null && rows.size()<10_000){complete=true;break;}
         }
         if(!complete)throw new IOException("catalog_page_limit");
+        // The existing group-limited listing can omit an app-registered card from another
+        // category. Its local checkpoint is only an identity to query, never publication proof.
+        for(String gtin:additional.read()) {
+            if(!RegisteredGtinValidator.isValid(gtin))throw new IOException("invalid_registered_catalog_gtin");
+            gtins.add(gtin);
+        }
         var result=new ArrayList<RegisteredGtin>();var now=Instant.now();
         for(String gtin:gtins) {
+            LicenseRuntime.require(Permission.SELLER_API);
             var response=cards.read(gtin);
             if(response==null || !response.isJsonObject() || !response.getAsJsonObject().has("result") || !response.getAsJsonObject().get("result").isJsonArray())throw new IOException("invalid_catalog_card");
             JsonObject selected=null;boolean unit=false;
@@ -70,8 +103,46 @@ public final class NationalCatalogGtinSource implements RegisteredGtinSource {
             String article=attribute(selected,"article","артикул","артикул товара");
             String color=attribute(selected,"color","цвет");String size=attribute(selected,"size","размер");
             boolean published="published".equalsIgnoreCase(text(selected,"good_status","goodStatus","cardStatus"));
-            result.add(new RegisteredGtin(gtin,article,color,size,unit,published,"National Catalog",now));
+            result.add(new RegisteredGtin(gtin,article,color,size,unit,published,source,now));
         }
+        return List.copyOf(result);
+    }
+    private static void requireOwner(Shop shop,String source){if(!source.equals(RegisteredGtinProof.source(shop)))throw new IllegalStateException("catalog_owner_changed");}
+    static List<String> ownedPublishedGtins(Shop shop,ZnackRegistrationScope scope)throws Exception {
+        com.vncode.app.integration.listing.ListingIdentity.require(shop);scope.assertCurrent(shop);
+        String owner=com.vncode.app.integration.listing.ListingIdentity.fingerprint(shop);
+        var result=new LinkedHashSet<String>();
+        try(var c=com.vncode.app.config.Database.getConnection()){
+            var scopedJson=new Gson().toJson(scope);
+            if(shop.getMarketplace()==com.vncode.app.integration.marketplace.Marketplace.OZON)try(var p=c.prepareStatement("""
+              SELECT r.gtin FROM ozon_card_registrations r WHERE r.shop_id=? AND r.status='PUBLISHED'
+                AND r.owner=? AND r.scope_json=? AND r.gtin<>''
+              UNION SELECT r.active_gtin FROM ozon_card_registrations r
+                JOIN ozon_card_registration_history h ON h.shop_id=r.shop_id AND h.product_id=r.product_id
+                  AND h.offer_id=r.offer_id AND h.gtin=r.active_gtin
+                WHERE r.shop_id=? AND r.owner=? AND r.scope_json=? AND r.active_gtin<>''
+              """)){
+                p.setInt(1,shop.getId());p.setString(2,owner);p.setString(3,scopedJson);p.setInt(4,shop.getId());p.setString(5,owner);p.setString(6,scopedJson);
+                try(var r=p.executeQuery()){while(r.next())result.add(r.getString(1));}
+            }
+            boolean ownerColumn=false;
+            try(var s=c.createStatement();var r=s.executeQuery("PRAGMA table_info(znack_card_registration_scopes)")){while(r.next())if("owner_hash".equals(r.getString("name")))ownerColumn=true;}
+            // Legacy WB rows have no marketplace credential stamp and are not silently rebound.
+            if(ownerColumn&&shop.getMarketplace()==com.vncode.app.integration.marketplace.Marketplace.WILDBERRIES)try(var p=c.prepareStatement("""
+              SELECT r.gtin FROM znack_card_registrations r JOIN znack_card_registration_scopes s
+              ON s.shop_id=r.shop_id AND s.chrt_id=r.chrt_id WHERE r.shop_id=? AND r.status='PUBLISHED'
+              AND s.participant_inn=? AND s.environment=? AND s.fingerprint=? AND s.owner_hash=? AND r.gtin<>''
+              UNION SELECT x.active_gtin FROM znack_card_registration_replacements x
+                JOIN znack_card_registration_scopes s ON s.shop_id=x.shop_id AND s.chrt_id=x.chrt_id
+                WHERE x.shop_id=? AND s.participant_inn=? AND s.environment=? AND s.fingerprint=?
+                  AND s.owner_hash=? AND x.active_gtin<>'' AND x.state='CANDIDATE'
+              """)){
+                p.setInt(1,shop.getId());p.setString(2,scope.inn());p.setString(3,scope.environment());p.setString(4,scope.fingerprint());p.setString(5,owner);
+                p.setInt(6,shop.getId());p.setString(7,scope.inn());p.setString(8,scope.environment());p.setString(9,scope.fingerprint());p.setString(10,owner);
+                try(var r=p.executeQuery()){while(r.next())result.add(r.getString(1));}
+            }
+        }
+        com.vncode.app.integration.listing.ListingIdentity.require(shop);scope.assertCurrent(shop);
         return List.copyOf(result);
     }
     private static String attribute(JsonObject card,String...names) {

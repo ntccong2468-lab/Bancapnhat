@@ -6,6 +6,9 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.vncode.app.config.Database;
+import com.vncode.app.features.license.LicenseDomainFixture;
+import com.vncode.app.features.license.LicenseGate;
+import com.vncode.app.features.license.LicenseRuntime;
 import com.vncode.app.integration.marketplace.Marketplace;
 import com.vncode.app.models.Shop;
 import java.nio.file.Path;
@@ -50,6 +53,31 @@ class OzonShipServiceTest {
     void tearDown() throws Exception {
         System.clearProperty("vncode.appdata.dir");
         server.shutdown();
+    }
+
+    @Test
+    void deniedNewShipDoesNotReadRemotePostingOrCreatePendingClaim() throws Exception {
+        var prior = LicenseRuntime.service();
+        try (var denied = LicenseDomainFixture.denied(temporaryDirectory.resolve("denied"))) {
+            LicenseRuntime.install(denied);
+            assertThrows(LicenseGate.LicenseDeniedException.class, () -> service().ship(shop, "POST-1", true));
+            assertEquals(0, server.getRequestCount());
+            assertEquals(0, count("SELECT COUNT(*) FROM ozon_action_log WHERE action_type='ship'"));
+        } finally { LicenseRuntime.install(prior); }
+    }
+
+    @Test
+    void deniedLicenseCanReadBackPreviouslyPendingShipWithoutSendingAgain() throws Exception {
+        new OzonExemplarJobRepository().logAction(1, "ship", "POST-1", "pending", null, "a".repeat(64));
+        server.enqueue(json(posting("awaiting_deliver", false)));
+        var prior = LicenseRuntime.service();
+        try (var denied = LicenseDomainFixture.denied(temporaryDirectory.resolve("denied"))) {
+            LicenseRuntime.install(denied);
+            assertTrue(service().ship(shop, "POST-1", true).reconciledAfterAmbiguousResponse());
+            assertEquals(1, server.getRequestCount());
+            assertEquals("/v3/posting/fbs/get", server.takeRequest(1, TimeUnit.SECONDS).getPath());
+            assertEquals(1, count("SELECT COUNT(*) FROM ozon_action_log WHERE action_type='ship' AND status='reconciled'"));
+        } finally { LicenseRuntime.install(prior); }
     }
 
     @Test

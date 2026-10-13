@@ -9,7 +9,6 @@ import java.util.regex.Pattern;
 
 public class CryptoProCertificateDiscoveryService {
     private static final Pattern FIELD = Pattern.compile("^\\s*([^:=]+?)\\s*[:=]\\s*(.*)$");
-    private static final Pattern INN = Pattern.compile("(?:ИНН|INN)\\s*[=:]?\\s*(\\d{12}|\\d{10})", Pattern.CASE_INSENSITIVE);
     private final CryptoProCommandRunner runner;
 
     public CryptoProCertificateDiscoveryService() {
@@ -81,9 +80,7 @@ public class CryptoProCertificateDiscoveryService {
         String selector = field(fields, "selector", "идентификатор", "id");
         if (selector.isBlank()) selector = thumbprint.replace(" ", "");
         String subject = field(fields, "subject", "субъект");
-        String inn = "";
-        Matcher innMatcher = INN.matcher(subject);
-        if (innMatcher.find()) inn = innMatcher.group(1);
+        String inn = CryptoProCertificateInfo.enterpriseInn(subject);
         return new CryptoProCertificateInfo(selector, thumbprint.replace(" ", ""), subject,
                 field(fields, "issuer", "издатель"), inn,
                 date(field(fields, "not valid before", "valid from", "действителен с", "выдан")),
@@ -140,7 +137,7 @@ public class CryptoProCertificateDiscoveryService {
     }
 
     private static boolean isDnAttribute(String key) {
-        return Set.of("cn", "o", "ou", "sn", "g", "gn", "inn", "инн", "e", "email", "emailaddress",
+        return key.matches("(?:oid\\.)?[0-9]+(?:\\.[0-9]+)+") || Set.of("cn", "o", "ou", "sn", "g", "gn", "inn", "инн", "innle", "инн юл", "иннюл", "e", "email", "emailaddress",
                 "c", "s", "st", "l", "street", "t", "ogrn", "огрн", "snils", "снилс").contains(key);
     }
 

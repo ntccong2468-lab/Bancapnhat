@@ -76,6 +76,43 @@ class NationalCatalogGs1ClientTest {
             assertEquals(Gs1Membership.Status.UNKNOWN,client(server).login(INN,FINGERPRINT,(p,c)->new CryptoProSigningResult(new byte[]{1},"")).membership().status(LocalDate.of(2026,10,10)));
         }
     }
+    @Test void unopenedNonMemberFormCanBeEditedWithoutCreatingOrSubmittingAnApplication() throws Exception {
+        try (var server = new MockWebServer()) {
+            server.enqueue(new MockResponse().setBody("{\"data\":\"YWJj\"}"));
+            server.enqueue(new MockResponse().setBody("{\"csrfToken\":\"fixture\",\"gs1Member\":false}"));
+            server.enqueue(new MockResponse().setBody("{\"gcps\":[]}"));
+            server.enqueue(new MockResponse().setBody("{}"));
+            var account = client(server).login(INN,FINGERPRINT,(p,c)->new CryptoProSigningResult(new byte[]{1},"")).accountSnapshot();
+            assertTrue(account.newApplication());
+            assertEquals(Gs1Membership.Status.NON_MEMBER, account.membership().status(LocalDate.now()));
+            assertEquals(INN, account.form().getAsJsonObject("applicant").get("inn").getAsString());
+            assertFalse(account.form().has("isSent"), "Missing submission state must not be fabricated");
+            account.form().getAsJsonObject("applicant").addProperty("inn", "7811089030");
+            assertEquals(INN, account.form().getAsJsonObject("applicant").get("inn").getAsString());
+            assertEquals(4, server.getRequestCount());
+            for (int i=0;i<4;i++) assertEquals(i==1?"POST":"GET", server.takeRequest().getMethod());
+        }
+    }
+    @Test void emptyFormDoesNotHideAnExistingMemberOrAQuotaOwner() throws Exception {
+        for (String response : java.util.List.of("{\"gs1Member\":true}", "{\"gs1Member\":false,\"gs1Excluded\":true}", "{}")) {
+            try (var server = new MockWebServer()) {
+                server.enqueue(new MockResponse().setBody("{\"data\":\"YWJj\"}"));
+                server.enqueue(new MockResponse().setBody(response));
+                server.enqueue(new MockResponse().setBody("{\"gcps\":[]}"));
+                server.enqueue(new MockResponse().setBody("{}"));
+                var session = client(server).login(INN,FINGERPRINT,(p,c)->new CryptoProSigningResult(new byte[]{1},""));
+                assertThrows(IOException.class, session::accountSnapshot);
+            }
+        }
+        try (var server = new MockWebServer()) {
+            server.enqueue(new MockResponse().setBody("{\"data\":\"YWJj\"}"));
+            server.enqueue(new MockResponse().setBody("{\"gs1Member\":false}"));
+            server.enqueue(new MockResponse().setBody("{\"gcps\":[{\"gcp\":\"4601234\",\"gtinsLeft\":10,\"glns\":[]}]}"));
+            server.enqueue(new MockResponse().setBody("{}"));
+            var session = client(server).login(INN,FINGERPRINT,(p,c)->new CryptoProSigningResult(new byte[]{1},""));
+            assertThrows(IOException.class, session::accountSnapshot);
+        }
+    }
     @Test void upstreamSensitiveErrorsAreNotReturned() throws Exception {
         try(var server=new MockWebServer()) {
             server.enqueue(new MockResponse().setResponseCode(400).setBody("{\"error\":\"token=secret company=private\"}"));

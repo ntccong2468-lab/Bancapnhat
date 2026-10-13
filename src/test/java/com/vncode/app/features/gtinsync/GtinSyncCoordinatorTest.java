@@ -2,6 +2,9 @@ package com.vncode.app.features.gtinsync;
 
 import com.vncode.app.config.Database;
 import com.vncode.app.integration.marketplace.Marketplace;
+import com.vncode.app.features.license.LicenseDomainFixture;
+import com.vncode.app.features.license.LicenseGate.LicenseDeniedException;
+import com.vncode.app.features.license.LicenseRuntime;
 import java.nio.file.Path;
 import java.time.*;
 import java.util.List;
@@ -22,6 +25,48 @@ class GtinSyncCoordinatorTest {
     }
     @AfterEach void clear(){System.clearProperty("vncode.appdata.dir");}
     Preview preview()throws Exception{return new GtinPreviewService(repo,k->adapter).create(adapter.product.key(),Operation.REPLACE,"old","00000000000017");}
+    @Test void deniedConfirmationCreatesNoNewJob()throws Exception {
+        var selection=List.of(preview());var prior=LicenseRuntime.service();
+        try(var denied=LicenseDomainFixture.denied(temp.resolve("denied-license"))) {
+            LicenseRuntime.install(denied);
+            try {
+                assertThrows(LicenseDeniedException.class,()->runner.confirm(selection));
+                assertTrue(repo.history(1,Marketplace.WILDBERRIES).isEmpty());assertEquals(0,adapter.sends);
+            }finally{LicenseRuntime.install(prior);}
+        }
+    }
+    @Test void expiryAfterSendClaimPausesKnownUnsentInsteadOfCreatingAmbiguity()throws Exception {
+        var job=runner.confirm(List.of(preview()));var prior=LicenseRuntime.service();
+        try(var denied=LicenseDomainFixture.denied(temp.resolve("denied-license"))) {
+            try {
+                runner.runPending(1,Marketplace.WILDBERRIES,item->{if(item.status()==Status.SENDING)LicenseRuntime.install(denied);});
+                var item=repo.jobItems(job).getFirst();
+                assertEquals(Status.QUEUED,item.status());assertTrue(repo.paused(job));assertEquals(0,adapter.sends);
+                assertThrows(LicenseDeniedException.class,()->runner.resume(job));
+                LicenseRuntime.install(prior);repo.recoverInterrupted();runner.runPending(1,Marketplace.WILDBERRIES);
+                assertEquals(0,adapter.sends,"Restoring rights/restarting does not confirm the paused job");
+                runner.resume(job);runner.runPending(1,Marketplace.WILDBERRIES);
+                assertEquals(Status.SUCCEEDED,repo.jobItems(job).getFirst().status());assertEquals(1,adapter.sends);
+            }finally{LicenseRuntime.install(prior);}
+        }
+    }
+    @Test void revocationInsideAcceptedSubmissionStillStoresAndReconcilesResult()throws Exception {
+        var prior=LicenseRuntime.service();
+        try(var denied=LicenseDomainFixture.denied(temp.resolve("denied-license"))) {
+            var accepting=new GtinPreviewServiceTest.Adapter(){
+                @Override public Submission submit(Preview p)throws java.io.IOException {
+                    var response=super.submit(p);LicenseRuntime.install(denied);return response;
+                }
+            };
+            var coordinator=new GtinSyncCoordinator(repo,k->accepting,Clock.systemUTC(),1,Duration.ZERO);
+            var job=coordinator.confirm(List.of(preview()));
+            try {
+                coordinator.runPending(1,Marketplace.WILDBERRIES);
+                assertEquals(Status.SUCCEEDED,repo.jobItems(job).getFirst().status());assertEquals(1,accepting.sends);
+                coordinator.runPending(1,Marketplace.WILDBERRIES);assertEquals(1,accepting.sends);
+            }finally{LicenseRuntime.install(prior);}
+        }
+    }
     @Test void duplicateConfirmCreatesOneJobAndOneMutation()throws Exception {
         var p=preview();var id=runner.confirm(List.of(p));assertEquals(id,runner.confirm(List.of(p)));
         runner.runPending(1,Marketplace.WILDBERRIES);runner.runPending(1,Marketplace.WILDBERRIES);

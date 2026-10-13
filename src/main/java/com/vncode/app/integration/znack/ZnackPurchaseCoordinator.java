@@ -7,6 +7,9 @@ import com.vncode.app.integration.znack.ZnackModels.PurchaseStage;
 import com.vncode.app.integration.znack.ZnackModels.Settings;
 import com.vncode.app.integration.znack.signature.CryptoProSignatureProvider;
 import com.vncode.app.integration.znack.signature.ZnackSignatureProvider;
+import com.vncode.app.features.license.LicenseGate.LicenseDeniedException;
+import com.vncode.app.features.license.LicenseModels.Permission;
+import com.vncode.app.features.license.LicenseRuntime;
 import com.vncode.app.features.shop.ShopRepository;
 import com.vncode.app.models.Shop;
 import org.slf4j.Logger;
@@ -106,17 +109,21 @@ public class ZnackPurchaseCoordinator {
     public long start(Settings settings, String gtin, int quantity, String requestKey) throws Exception {
         ZnackPurchasePipelineState replay = replay(requestKey, gtin, quantity);
         if (replay != null) {
+            requireUnsentReplay(replay);
             ZnackSigningSession.authorizePipeline(repository.shop().shopId(), replay.id());
             return replay.id();
         }
+        LicenseRuntime.require(Permission.KIZ);
         validatePrerequisites(settings, gtin, quantity);
         long pipelineId;
         synchronized (CREATE_LOCK) {
             replay = replay(requestKey, gtin, quantity);
             if (replay != null) {
+                requireUnsentReplay(replay);
                 ZnackSigningSession.authorizePipeline(repository.shop().shopId(), replay.id());
                 return replay.id();
             }
+            LicenseRuntime.require(Permission.KIZ);
             pipelineId = repository.enqueuePipeline(gtin, quantity, requestKey);
         }
         ZnackSigningSession.authorizePipeline(repository.shop().shopId(), pipelineId);
@@ -131,17 +138,21 @@ public class ZnackPurchaseCoordinator {
         requireRequestKey(requestKey);
         ZnackPurchasePipelineState replay = replay(requestKey, gtin, quantity);
         if (replay != null) {
+            requireUnsentReplay(replay);
             ZnackSigningSession.authorizePipeline(repository.shop().shopId(), replay.id());
             return replay.id();
         }
+        LicenseRuntime.require(Permission.KIZ);
         validatePrerequisites(settings, gtin, quantity);
         long pipelineId;
         synchronized (CREATE_LOCK) {
             replay = replay(requestKey, gtin, quantity);
             if (replay != null) {
+                requireUnsentReplay(replay);
                 ZnackSigningSession.authorizePipeline(repository.shop().shopId(), replay.id());
                 return replay.id();
             }
+            LicenseRuntime.require(Permission.KIZ);
             pipelineId = repository.enqueuePipeline(gtin, quantity, requestKey);
         }
         ZnackSigningSession.authorizePipeline(repository.shop().shopId(), pipelineId);
@@ -157,6 +168,7 @@ public class ZnackPurchaseCoordinator {
             latestCoordinator.advance(latest, pipelineId);
         } catch (Exception error) {
             ZnackPurchasePipelineState current = repository.findPipeline(pipelineId).orElse(null);
+            if(error instanceof LicenseDeniedException)return;
             if (current != null && current.stage() == PurchaseStage.VALIDATING) {
                 repository.updatePipeline(pipelineId, null, PurchaseStage.FAILED, error.getMessage());
                 repository.log("PURCHASE_PIPELINE", current.gtin(), "ERROR", error.getMessage(), httpStatus(error));
@@ -204,8 +216,10 @@ public class ZnackPurchaseCoordinator {
         if (pipeline.orderId() == null || repository.findCodes(pipeline.orderId()).isEmpty()) {
             throw new IllegalStateException("The failed introduction has no downloaded codes to retry.");
         }
+        LicenseRuntime.require(Permission.KIZ);
         ZnackSigningSession.authorizePipeline(repository.shop().shopId(), pipeline.id());
         synchronized (CREATE_LOCK) {
+            LicenseRuntime.require(Permission.KIZ);
             repository.updatePipeline(pipeline.id(), pipeline.orderId(),
                     PurchaseStage.WAITING_INTRODUCTION_READINESS, null);
         }
@@ -230,6 +244,7 @@ public class ZnackPurchaseCoordinator {
                     .filter(candidate -> ZnackErrorMessages.isInsufficientFunds(candidate.errorMessage()))
                     .orElseThrow(() -> new IllegalStateException(
                             "No insufficient-funds purchase to retry for pipeline " + pipelineId));
+            LicenseRuntime.require(Permission.KIZ);
             repository.updatePipeline(pipeline.id(), pipeline.orderId(), PurchaseStage.QUEUED, null);
         }
         ZnackSigningSession.authorizePipeline(repository.shop().shopId(), pipeline.id());
@@ -250,10 +265,11 @@ public class ZnackPurchaseCoordinator {
 
     public void resume(Settings settings) {
         for (ZnackPurchasePipelineState pipeline : repository.findActivePipelines()) {
+            if(licensePaused(pipeline))continue;
             try {
                 advance(settings, pipeline.id());
             } catch (Exception e) {
-                if (!(e instanceof ZnackSigningSession.SigningDeferredException)) {
+                if (!(e instanceof ZnackSigningSession.SigningDeferredException) && !(e instanceof LicenseDeniedException)) {
                     repository.log("PURCHASE_PIPELINE_RESUME", pipeline.gtin(), "ERROR", e.getMessage(), null);
                 }
             } finally {
@@ -264,11 +280,13 @@ public class ZnackPurchaseCoordinator {
 
     public void resumeAsync(Settings settings) {
         for (ZnackPurchasePipelineState pipeline : repository.findActivePipelines()) {
+            if(licensePaused(pipeline))continue;
             ZnackPipelineQueueExecutor.submit(repository.shop().shopId(), pipeline.gtin(), () -> {
+                if(repository.findPipeline(pipeline.id()).map(ZnackPurchaseCoordinator::licensePaused).orElse(true))return;
                 try {
                     advance(settings, pipeline.id());
                 } catch (Exception e) {
-                    if (!(e instanceof ZnackSigningSession.SigningDeferredException)) {
+                    if (!(e instanceof ZnackSigningSession.SigningDeferredException) && !(e instanceof LicenseDeniedException)) {
                         repository.log("PURCHASE_PIPELINE_RESUME", pipeline.gtin(), "ERROR", e.getMessage(), null);
                     }
                 } finally {
@@ -301,6 +319,8 @@ public class ZnackPurchaseCoordinator {
                 continue;
             }
             synchronized (CREATE_LOCK) {
+                try{LicenseRuntime.require(Permission.KIZ);}
+                catch(LicenseDeniedException denied){continue;}
                 repository.updatePipeline(pipeline.id(), pipeline.orderId(), PurchaseStage.WAITING_INTRODUCTION_READINESS, null);
             }
             try {
@@ -312,7 +332,7 @@ public class ZnackPurchaseCoordinator {
                         && repository.findLatestDocument(pipeline.orderId()).isEmpty()) {
                     repository.updatePipeline(pipeline.id(), pipeline.orderId(), pipeline.stage(), e.getMessage());
                 }
-                if (!(e instanceof ZnackSigningSession.SigningDeferredException)) {
+                if (!(e instanceof ZnackSigningSession.SigningDeferredException) && !(e instanceof LicenseDeniedException)) {
                     repository.log("INTRODUCTION_RESUME", pipeline.gtin(), "ERROR", e.getMessage(), null);
                 }
             } finally {
@@ -345,6 +365,8 @@ public class ZnackPurchaseCoordinator {
             }
             ZnackPipelineQueueExecutor.submit(repository.shop().shopId(), pipeline.gtin(), () -> {
                 synchronized (CREATE_LOCK) {
+                    try{LicenseRuntime.require(Permission.KIZ);}
+                    catch(LicenseDeniedException denied){return;}
                     repository.updatePipeline(pipeline.id(), pipeline.orderId(), PurchaseStage.WAITING_INTRODUCTION_READINESS, null);
                 }
                 try {
@@ -356,7 +378,7 @@ public class ZnackPurchaseCoordinator {
                             && repository.findLatestDocument(pipeline.orderId()).isEmpty()) {
                         repository.updatePipeline(pipeline.id(), pipeline.orderId(), pipeline.stage(), e.getMessage());
                     }
-                    if (!(e instanceof ZnackSigningSession.SigningDeferredException)) {
+                    if (!(e instanceof ZnackSigningSession.SigningDeferredException) && !(e instanceof LicenseDeniedException)) {
                         repository.log("INTRODUCTION_RESUME", pipeline.gtin(), "ERROR", e.getMessage(), null);
                     }
                 } finally {
@@ -375,12 +397,18 @@ public class ZnackPurchaseCoordinator {
             ZnackPurchasePipelineState pipeline = repository.findPipeline(pipelineId).orElseThrow();
             gtin = pipeline.gtin();
             try {
+                if(licensePaused(pipeline)) {
+                    LicenseRuntime.require(Permission.KIZ);
+                    repository.updatePipeline(pipelineId,pipeline.orderId(),pipeline.stage(),null);
+                }
                 switch (pipeline.stage()) {
                     case QUEUED -> {
+                        LicenseRuntime.require(Permission.KIZ);
                         // Activation is handled in finally after checking that no purchase mutation
                         // is currently active for this GTIN.
                     }
                     case VALIDATING -> {
+                        LicenseRuntime.require(Permission.KIZ);
                         validatePrerequisites(settings, pipeline.gtin(), pipeline.quantity());
                         createOrder(settings, pipeline);
                     }
@@ -404,7 +432,14 @@ public class ZnackPurchaseCoordinator {
             } catch (Exception e) {
                 PurchaseStage current = repository.findPipeline(pipelineId).map(ZnackPurchasePipelineState::stage)
                         .orElse(PurchaseStage.FAILED);
-                if (e instanceof ZnackSigningSession.SigningDeferredException) {
+                if(e instanceof LicenseDeniedException) {
+                    // No new order/document was sent at this boundary. Retain bought codes and the
+                    // accepted remote checkpoints, and require an explicit retry after rights return.
+                    PurchaseStage paused=current==PurchaseStage.CREATING_ORDER?PurchaseStage.VALIDATING
+                            :current==PurchaseStage.SUBMITTING_INTRODUCTION?PurchaseStage.WAITING_INTRODUCTION_READINESS:current;
+                    repository.updatePipeline(pipelineId,null,paused,"LICENSE_REQUIRED");
+                    throw e;
+                } else if (e instanceof ZnackSigningSession.SigningDeferredException) {
                     repository.updatePipeline(pipelineId, null, current, ZnackSigningSession.WAITING_MESSAGE);
                     LOGGER.info("Znack signing deferred until explicit shop selection. shopId={}, pipelineId={}, stage={}",
                             repository.shop().shopId(), pipelineId, current);
@@ -480,6 +515,7 @@ public class ZnackPurchaseCoordinator {
     }
 
     private void createOrder(Settings settings, ZnackPurchasePipelineState pipeline) throws Exception {
+        LicenseRuntime.require(Permission.KIZ);
         Instant attemptStarted = Instant.now();
         repository.updatePipeline(pipeline.id(), null, PurchaseStage.CREATING_ORDER, null);
         try {
@@ -651,6 +687,7 @@ public class ZnackPurchaseCoordinator {
         if (result.message() != null && !result.message().isBlank()) {
             repository.log("INTRODUCTION_READINESS", pipeline.gtin(), "WARN", result.message(), null);
         }
+        LicenseRuntime.require(Permission.KIZ);
         repository.updatePipeline(pipeline.id(), orderId, PurchaseStage.SUBMITTING_INTRODUCTION, null);
         submitIntroduction(settings, repository.findPipeline(pipeline.id()).orElseThrow());
     }
@@ -660,7 +697,8 @@ public class ZnackPurchaseCoordinator {
         Product product = product(pipeline.gtin());
         ZnackModels.Document existing = repository.findLatestDocument(order.id()).orElse(null);
         if (existing != null
-                && ("CHECKED_NOT_OK".equals(existing.status()) || "REJECTED".equals(existing.status()))) {
+                && ("CHECKED_NOT_OK".equals(existing.status()) || "REJECTED".equals(existing.status())
+                || "NOT_SUBMITTED".equals(existing.status()))) {
             // CHECKED_NOT_OK: Znack definitively processed the previous document with errors.
             // REJECTED: the True API answered the submission with an HTTP error, so no document
             // was created. Either way a fresh submission cannot double-introduce the codes.
@@ -698,6 +736,7 @@ public class ZnackPurchaseCoordinator {
             repository.updatePipeline(pipeline.id(), order.id(), PurchaseStage.WAITING_INTRODUCTION_DOCUMENTS, message);
             return;
         }
+        LicenseRuntime.require(Permission.KIZ);
         introduction.submit(settings, order, product, repository.findCodes(order.id()));
         repository.updatePipeline(pipeline.id(), order.id(), PurchaseStage.POLLING_INTRODUCTION, null);
     }
@@ -736,6 +775,7 @@ public class ZnackPurchaseCoordinator {
     void schedule(long pipelineId) {
         ZnackPurchasePipelineState pipeline = repository.findPipeline(pipelineId).orElse(null);
         if (pipeline == null || !pipeline.active() || pipeline.stage() == PurchaseStage.CREATING_ORDER) return;
+        if(licensePaused(pipeline))return;
         if (ZnackSigningSession.isWaitingForSignature(repository.shop().shopId(), pipelineId)) return;
         String key = pipelineKey(pipelineId);
         if (!SCHEDULED.add(key)) return;
@@ -759,11 +799,29 @@ public class ZnackPurchaseCoordinator {
 
     private void activateNextQueued(String gtin) {
         try {
+            // A paused unsent request keeps its place; restoring a lease alone does not confirm it.
+            if(repository.findActivePipelines().stream().anyMatch(p->p.gtin().equals(gtin) && licensePaused(p)))return;
+            try{LicenseRuntime.require(Permission.KIZ);}
+            catch(LicenseDeniedException denied){
+                for(var pending:repository.findActivePipelines())if(pending.gtin().equals(gtin) && pending.stage()==PurchaseStage.QUEUED)
+                    repository.updatePipeline(pending.id(),pending.orderId(),PurchaseStage.QUEUED,"LICENSE_REQUIRED");
+                return;
+            }
             repository.activateNextQueuedPipeline(gtin).ifPresent(next -> schedule(next.id()));
         } catch (RuntimeException error) {
             LOGGER.error("Could not activate the next queued KIZ purchase. shopId={}, gtin={}",
                     repository.shop().shopId(), gtin, error);
         }
+    }
+
+    private static boolean licensePaused(ZnackPurchasePipelineState pipeline) {
+        return "LICENSE_REQUIRED".equals(pipeline.errorMessage());
+    }
+
+    private static void requireUnsentReplay(ZnackPurchasePipelineState pipeline) {
+        if(pipeline.stage()==PurchaseStage.QUEUED || pipeline.stage()==PurchaseStage.VALIDATING
+                || pipeline.stage()==PurchaseStage.WAITING_INTRODUCTION_READINESS
+                || pipeline.stage()==PurchaseStage.SUBMITTING_INTRODUCTION)LicenseRuntime.require(Permission.KIZ);
     }
 
     /**

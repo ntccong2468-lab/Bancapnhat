@@ -8,6 +8,8 @@ import com.vncode.app.integration.ozon.OzonApiClient;
 import com.vncode.app.integration.ozon.OzonCredentials;
 import com.vncode.app.integration.wb.fbw.WbFbwApiClient;
 import com.vncode.app.models.Shop;
+import com.vncode.app.features.license.LicenseRuntime;
+import static com.vncode.app.features.license.LicenseModels.Permission.SELLER_API;
 
 import java.io.IOException;
 import java.time.Duration;
@@ -43,6 +45,7 @@ public final class FboSupplySyncService {
 
     public List<FboSupplyOrder> syncOrders(Shop shop) throws IOException {
         requireShop(shop);
+        LicenseRuntime.require(SELLER_API);
         if (shop.getMarketplace() == Marketplace.WILDBERRIES) {
             JsonArray summaries = new WbFbwApiClient(shop.getId(), shop.getApiKey()).listSupplies(1000, 0);
             repository.upsertWbSummaries(shop.getId(), summaries);
@@ -68,6 +71,7 @@ public final class FboSupplySyncService {
         String cursor = storedCursor == null || storedCursor.isBlank() ? nextNewest : storedCursor;
         String checkpoint = cursor;
         for (int page = 1; page < OZON_MAX_LIST_PAGES; page++) {
+            LicenseRuntime.require(SELLER_API);
             JsonObject listed = client.listFboSupplyOrders(OZON_STATES, cursor, OZON_PAGE_LIMIT);
             JsonArray ids = persistOzonPage(shop.getId(), client, listed);
             String next = string(listed, "last_id");
@@ -89,6 +93,7 @@ public final class FboSupplySyncService {
             }
         }
         for (int from = 0; from < orderIds.size(); from += 50) {
+            LicenseRuntime.require(SELLER_API);
             List<String> batch = orderIds.subList(from, Math.min(orderIds.size(), from + 50));
             repository.upsertOzonDetails(shopId, client.getFboSupplyOrders(batch));
         }
@@ -104,6 +109,7 @@ public final class FboSupplySyncService {
         if (order == null || order.shopId() != shop.getId()) {
             throw new IllegalArgumentException("A current FBO supply order is required");
         }
+        LicenseRuntime.require(SELLER_API);
         if (shop.getMarketplace() == Marketplace.WILDBERRIES) {
             syncWbItems(shop, order);
         } else {
@@ -119,6 +125,7 @@ public final class FboSupplySyncService {
         JsonObject detail = client.getSupply(lookupId, usePreorderId);
         JsonArray allGoods = new JsonArray();
         for (int offset = 0, page = 0; page < 10; page++, offset += 1000) {
+            LicenseRuntime.require(SELLER_API);
             JsonArray goods = client.getGoods(lookupId, usePreorderId, 1000, offset);
             goods.forEach(allGoods::add);
             if (goods.size() < 1000) break;
@@ -134,6 +141,7 @@ public final class FboSupplySyncService {
             JsonArray allItems = new JsonArray();
             String cursor = "";
             for (int page = 0; page < 100; page++) {
+                LicenseRuntime.require(SELLER_API);
                 JsonObject response = client.getFboSupplyBundle(List.of(supply.bundleId()), cursor, 100);
                 JsonArray items = array(response, "items");
                 items.forEach(allItems::add);

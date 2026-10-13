@@ -1,6 +1,8 @@
 package com.vncode.app.features.fbo;
 
 import com.vncode.app.features.print.GenerateBarcode;
+import com.vncode.app.features.license.LicenseModels.Permission;
+import com.vncode.app.features.license.LicenseRuntime;
 import com.vncode.app.features.print.PrintTemplate;
 import com.vncode.app.models.Order;
 import com.vncode.app.shared.AtomicFilePublisher;
@@ -50,10 +52,12 @@ public class FboBarcodePdfExporter {
     }
 
     private void exportPages(List<FboPrintPage> pages, File outputFile, Runnable beforePublish) throws IOException {
+        LicenseRuntime.require(Permission.PRINT_NEW);
         File staging = AtomicFilePublisher.stagingFile(outputFile, ".pdf");
         try {
             PrintTemplate template = templateService.getDefaultTemplate();
             GenerateBarcode.exportTemplatePages(template, toOrders(pages), staging);
+            LicenseRuntime.require(Permission.PRINT_NEW);
             if (beforePublish != null) {
                 beforePublish.run();
             }

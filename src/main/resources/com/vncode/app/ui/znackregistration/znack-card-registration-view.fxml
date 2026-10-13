@@ -6,16 +6,26 @@
 
 <VBox spacing="12" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="com.vncode.app.ui.znackregistration.ZnackCardRegistrationController">
+    <StackPane fx:id="ozonRegistrationHost" VBox.vgrow="ALWAYS" visible="false" managed="false"/>
+    <VBox fx:id="wbRegistrationContent" spacing="12" VBox.vgrow="ALWAYS">
     <padding><Insets top="16" right="16" bottom="16" left="16"/></padding>
     <HBox alignment="CENTER_LEFT" spacing="10">
         <Label fx:id="titleLabel" text="Đăng ký Znack" styleClass="h2"/>
         <Pane HBox.hgrow="ALWAYS"/>
         <Label fx:id="loadingLabel" text="Đang tải..." visible="false" managed="false" styleClass="text-muted"/>
-        <Button fx:id="configButton" text="Cấu hình" onAction="#onConfig" styleClass="btn-secondary"/>
-        <Button fx:id="refreshButton" text="Làm mới" onAction="#onRefresh" styleClass="btn-secondary"/>
     </HBox>
+    <FlowPane hgap="10" vgap="8">
+        <Button fx:id="configButton" text="Cấu hình giấy tờ" onAction="#onConfig" styleClass="btn-secondary"/>
+        <Button fx:id="signApprovedButton" text="Ký thẻ đã duyệt" onAction="#onSignApproved" styleClass="btn-secondary"/>
+        <Button fx:id="updateWbButton" text="Cập nhật GTIN lên WB" onAction="#onUpdateWb" styleClass="btn-secondary"/>
+        <Button fx:id="syncZnackButton" text="Đồng bộ Znack" onAction="#onSyncZnack" styleClass="btn-secondary"/>
+        <Button fx:id="refreshButton" text="Làm mới" onAction="#onRefresh" styleClass="btn-secondary"/>
+    </FlowPane>
+    <Label fx:id="summaryLabel" wrapText="true" styleClass="text-muted"/>
     <HBox alignment="CENTER_LEFT" spacing="8">
         <Button fx:id="selectAllButton" text="Chọn tất cả" onAction="#onSelectAll"/>
+        <Button fx:id="clearSelectionButton" text="Bỏ chọn" onAction="#onClearSelection"/>
+        <Label fx:id="selectionLabel" styleClass="text-muted"/>
         <Button fx:id="registerSelectedButton" text="Đăng ký sản phẩm đã chọn" onAction="#onRegisterSelected" styleClass="btn-primary"/>
     </HBox>
     <HBox alignment="CENTER_LEFT" spacing="8">
@@ -30,6 +40,7 @@
                 <TableColumn fx:id="imageColumn" text="Ảnh" prefWidth="72" maxWidth="82"/>
                 <TableColumn fx:id="nameColumn" text="Sản phẩm" prefWidth="230"/>
                 <TableColumn fx:id="articleColumn" text="Article" prefWidth="130"/>
+                <TableColumn fx:id="genderColumn" text="Giới tính" prefWidth="90"/>
                 <TableColumn fx:id="colorColumn" text="Màu" prefWidth="100"/>
                 <TableColumn fx:id="sizeColumn" text="Size" prefWidth="70"/>
                 <TableColumn fx:id="barcodeColumn" text="Barcode WB / GTIN" prefWidth="180"/>
@@ -39,4 +50,9 @@
         </TableView>
         <Label fx:id="emptyLabel" text="Không có SKU" visible="false" managed="false" styleClass="text-muted"/>
     </StackPane>
+    <HBox alignment="CENTER_LEFT" spacing="10">
+        <Label fx:id="paginationLabel" styleClass="text-muted"/>
+        <Button fx:id="loadMoreButton" text="Tải thêm" onAction="#onLoadMore" styleClass="btn-secondary"/>
+    </HBox>
+    </VBox>
 </VBox>

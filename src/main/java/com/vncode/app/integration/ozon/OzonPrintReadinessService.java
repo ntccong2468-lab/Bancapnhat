@@ -50,6 +50,14 @@ public final class OzonPrintReadinessService {
         MarketplaceGuard.requireOzon(shop);
         String safePosting = OzonApiClient.requireExternalId(postingNumber, "posting number");
         OzonPostingDto posting = postings.find(shop.getId(), safePosting);
+        OzonExemplarJob job = posting == null ? null : jobs.find(shop.getId(), safePosting);
+        return inspect(shop,safePosting,posting,job,job==null?0:jobs.bindings(job.id()).size(),
+                mappings.findResolvedBySku(shop.getId()),policies.findExemptSkus(shop.getId()),new java.util.HashMap<>());
+    }
+
+    private OzonPrintReadiness inspect(Shop shop,String safePosting,OzonPostingDto posting,OzonExemplarJob job,
+                                      int bindingCount,Map<String,String> skuMappings,Set<String> exemptSkus,
+                                      Map<String,Integer> availableCounts) {
         if (posting == null) {
             return result(safePosting, false, false, 0, List.of(), List.of(), List.of(), "");
         }
@@ -59,14 +67,10 @@ public final class OzonPrintReadinessService {
             return result(safePosting, false, true, 0, List.of(), List.of(), unsupported, "");
         }
 
-        OzonExemplarJob job = jobs.find(shop.getId(), safePosting);
         if (job != null && job.stage() == OzonExemplarJobStage.ACCEPTED) {
-            int accepted = jobs.bindings(job.id()).size();
-            return result(safePosting, true, true, accepted, List.of(), List.of(), List.of(), job.stage().name());
+            return result(safePosting, true, true, bindingCount, List.of(), List.of(), List.of(), job.stage().name());
         }
 
-        Map<String, String> skuMappings = mappings.findResolvedBySku(shop.getId());
-        Set<String> exemptSkus = policies.findExemptSkus(shop.getId());
         Set<String> mandatory = Set.copyOf(posting.requirements().mandatoryMarkProductIds());
         Set<String> coveredMandatory = new LinkedHashSet<>();
         List<String> missingSkus = new ArrayList<>();
@@ -96,11 +100,11 @@ public final class OzonPrintReadinessService {
         boolean alreadySecured = job != null
                 && job.stage() != OzonExemplarJobStage.CREATED
                 && job.stage() != OzonExemplarJobStage.REJECTED
-                && jobs.bindings(job.id()).size() == requiredKiz;
+                && bindingCount == requiredKiz;
         List<OzonPrintReadiness.GtinAvailability> availability = requiredByGtin.entrySet().stream()
                 .map(entry -> new OzonPrintReadiness.GtinAvailability(
                         entry.getKey(), entry.getValue(), alreadySecured
-                                ? entry.getValue() : inventory.availableCount(shop.getId(), entry.getKey())))
+                                ? entry.getValue() : availableCounts.computeIfAbsent(entry.getKey(),gtin->inventory.availableCount(shop.getId(),gtin))))
                 .toList();
         boolean ready = availability.stream().allMatch(OzonPrintReadiness.GtinAvailability::sufficient);
         return result(safePosting, ready, true, requiredKiz, availability, List.of(), List.of(), stage);
@@ -115,15 +119,24 @@ public final class OzonPrintReadinessService {
                 .toList();
         List<OzonPrintReadiness> results = new ArrayList<>();
         Map<String, Integer> unsecuredByGtin = new LinkedHashMap<>();
+        // A shipment reads its catalog mapping once, rather than scanning every product for every order.
+        Map<String,String> skuMappings=mappings.findResolvedBySku(shop.getId());
+        Set<String> exemptSkus=policies.findExemptSkus(shop.getId());
+        Map<String,OzonPostingDto> postingSnapshot=postings.findMany(shop.getId(),safePostings);
+        Map<String,OzonExemplarJob> jobSnapshot=jobs.findMany(shop.getId(),safePostings);
+        Map<Long,Integer> bindingCounts=jobs.bindingCounts(shop.getId(),jobSnapshot.values().stream().map(OzonExemplarJob::id).toList());
+        Map<String,Integer> availableCounts=new java.util.HashMap<>();
         for (String postingNumber : safePostings) {
-            OzonPrintReadiness readiness = inspect(shop, postingNumber);
+            OzonExemplarJob job=jobSnapshot.get(postingNumber);
+            int bindingCount=job==null?0:bindingCounts.getOrDefault(job.id(),0);
+            OzonPrintReadiness readiness = inspect(shop,postingNumber,postingSnapshot.get(postingNumber),job,
+                    bindingCount,skuMappings,exemptSkus,availableCounts);
             results.add(readiness);
             if (!readiness.ready() || readiness.requiredKiz() == 0) continue;
-            OzonExemplarJob job = jobs.find(shop.getId(), postingNumber);
             boolean secured = job != null
                     && job.stage() != OzonExemplarJobStage.CREATED
                     && job.stage() != OzonExemplarJobStage.REJECTED
-                    && jobs.bindings(job.id()).size() == readiness.requiredKiz();
+                    && bindingCount == readiness.requiredKiz();
             if (secured) continue;
             for (OzonPrintReadiness.GtinAvailability value : readiness.gtinAvailability()) {
                 unsecuredByGtin.merge(value.gtin(), value.required(), Integer::sum);
@@ -131,7 +144,7 @@ public final class OzonPrintReadinessService {
         }
         List<OzonPrintReadiness.GtinAvailability> totals = unsecuredByGtin.entrySet().stream()
                 .map(entry -> new OzonPrintReadiness.GtinAvailability(
-                        entry.getKey(), entry.getValue(), inventory.availableCount(shop.getId(), entry.getKey())))
+                        entry.getKey(), entry.getValue(), availableCounts.computeIfAbsent(entry.getKey(),gtin->inventory.availableCount(shop.getId(),gtin))))
                 .toList();
         boolean ready = !safePostings.isEmpty()
                 && results.stream().allMatch(OzonPrintReadiness::ready)

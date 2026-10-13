@@ -38,6 +38,7 @@ public final class OzonApiClient {
     private final OkHttpClient http;
     private final OzonApiRateLimiter limiter;
     private final OzonRetryPolicy retryPolicy;
+    private final BeforeSend beforeMutation;
 
     public OzonApiClient(int shopId, OzonCredentials credentials) {
         this(
@@ -46,7 +47,7 @@ public final class OzonApiClient {
                 Objects.requireNonNull(HttpUrl.parse(DEFAULT_BASE_URL)),
                 SHARED_HTTP,
                 SHARED_LIMITER,
-                new OzonRetryPolicy());
+                new OzonRetryPolicy(), productionGuard(shopId, credentials));
     }
 
     public OzonApiClient(
@@ -56,6 +57,13 @@ public final class OzonApiClient {
             OkHttpClient http,
             OzonApiRateLimiter limiter,
             OzonRetryPolicy retryPolicy) {
+        this(shopId, credentials, baseUrl, http, limiter, retryPolicy, null);
+    }
+
+    /** Injected transport fixtures can opt in to the same final ownership/send guard. */
+    public OzonApiClient(
+            int shopId, OzonCredentials credentials, HttpUrl baseUrl, OkHttpClient http,
+            OzonApiRateLimiter limiter, OzonRetryPolicy retryPolicy, BeforeSend beforeMutation) {
         if (shopId <= 0) {
             throw new IllegalArgumentException("shopId must be positive");
         }
@@ -65,6 +73,29 @@ public final class OzonApiClient {
         this.http = Objects.requireNonNull(http, "http");
         this.limiter = Objects.requireNonNull(limiter, "limiter");
         this.retryPolicy = Objects.requireNonNull(retryPolicy, "retryPolicy");
+        this.beforeMutation = beforeMutation;
+    }
+
+    public static BeforeSend productionGuard(int shopId, OzonCredentials credentials) {
+        com.vncode.app.models.Shop owner = new com.vncode.app.models.Shop(shopId, "",
+                com.vncode.app.integration.marketplace.Marketplace.OZON, credentials.clientId(), credentials.apiKey());
+        return (path, family) -> {
+            try {
+                com.vncode.app.integration.listing.ListingIdentity.require(owner);
+            } catch (SecurityException | IllegalStateException changed) {
+                throw new OzonApiException("identity_changed", 0, false, false, null);
+            }
+            var permission = switch (family) {
+                case "labels" -> com.vncode.app.features.license.LicenseModels.Permission.PRINT_NEW;
+                case "ship", "exemplars" -> com.vncode.app.features.license.LicenseModels.Permission.PACKING;
+                default -> com.vncode.app.features.license.LicenseModels.Permission.SELLER_API;
+            };
+            com.vncode.app.features.license.LicenseRuntime.require(permission);
+        };
+    }
+
+    @FunctionalInterface public interface BeforeSend {
+        void check(String path, String family) throws IOException;
     }
 
     public OzonConnectionCheck checkConnection() throws IOException {
@@ -344,7 +375,7 @@ public final class OzonApiClient {
             }
             try {
                 limiter.awaitTurn(shopId, safeFamily);
-                return executeOnce(safePath, body, mutation, maxBytes, attempt, attempts);
+                return executeOnce(safePath, body, safeFamily, mutation, maxBytes, attempt, attempts);
             } catch (InterruptedException exception) {
                 Thread.currentThread().interrupt();
                 throw new OzonApiException("cancelled", 0, false, mutation, exception);
@@ -375,7 +406,7 @@ public final class OzonApiClient {
     }
 
     private byte[] executeOnce(
-            String path, JsonObject body, boolean mutation, long maxBytes, int attempt, int attempts)
+            String path, JsonObject body, String family, boolean mutation, long maxBytes, int attempt, int attempts)
             throws IOException {
         HttpUrl url = Objects.requireNonNull(baseUrl.resolve(path));
         Request request = new Request.Builder()
@@ -385,7 +416,22 @@ public final class OzonApiClient {
                 .header("Content-Type", "application/json")
                 .post(RequestBody.create(JSON, GSON.toJson(body == null ? new JsonObject() : body)))
                 .build();
-        try (var slot=com.vncode.app.shared.MarketplaceRequestBudget.acquire(); Response response = http.newCall(request).execute()) {
+        try (var slot = com.vncode.app.shared.MarketplaceRequestBudget.acquire()) {
+            if (!mutation || beforeMutation == null) return executeRequest(request, mutation, maxBytes);
+            try {
+                return com.vncode.app.features.shop.ShopOperationCoordinator.withActiveShop(shopId, () -> {
+                    beforeMutation.check(path, family);
+                    return executeRequest(request, true, maxBytes);
+                });
+            } catch (com.vncode.app.features.shop.ShopOperationCoordinator.ShopUnavailableException deleted) {
+                throw new OzonApiException("identity_changed", 0, false, false, null);
+            }
+        }
+    }
+
+    private byte[] executeRequest(Request request, boolean mutation, long maxBytes) throws IOException {
+        try (Response response = http.newCall(request).execute()) {
+
             int status = response.code();
             if (!response.isSuccessful()) {
                 boolean retryable = retryPolicy.isRetryableStatus(status);

@@ -35,4 +35,11 @@ class RegisteredGtinSourceTest {
         var source=new NationalCatalogGtinSource(1,p->JsonParser.parseString("{\"results\":[{\"gtin\":\"00000000000017\"}],\"total\":1}"),g->JsonParser.parseString("{\"result\":[{\"gtin\":\"00000000000017\"}]}"));
         var row=source.read(1).getFirst();assertFalse(row.published());assertFalse(row.tradeUnit());
     }
+    @Test void appRegisteredCardOutsideListedGroupIsFreshlyReadAndNeverMergedFromCachedStatus()throws Exception {
+        var reads=new AtomicInteger();
+        var source=new NationalCatalogGtinSource(1,p->JsonParser.parseString("{\"results\":[],\"total\":0}"),g->{reads.incrementAndGet();return JsonParser.parseString("{\"result\":[{\"gtin\":\"00000000000017\",\"good_status\":\"published\",\"identified_by\":[{\"type\":\"gtin\",\"value\":\"00000000000017\",\"level\":\"trade-unit\"}]}]}");},"National Catalog@fixture",()->java.util.List.of("00000000000017"));
+        var rows=source.read(1);assertEquals(1,reads.get());assertEquals(1,rows.size());assertTrue(rows.getFirst().published());assertTrue(rows.getFirst().tradeUnit());
+        var unpublished=new NationalCatalogGtinSource(1,p->JsonParser.parseString("{\"results\":[],\"total\":0}"),g->JsonParser.parseString("{\"result\":[{\"gtin\":\"00000000000017\",\"good_status\":\"draft\"}]}"),"National Catalog@fixture",()->java.util.List.of("00000000000017"));
+        assertFalse(unpublished.read(1).getFirst().published());assertFalse(unpublished.read(1).getFirst().tradeUnit());
+    }
 }

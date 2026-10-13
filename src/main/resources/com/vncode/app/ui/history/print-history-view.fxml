@@ -20,7 +20,7 @@
                 <TableColumn fx:id="supplyIdTC" prefWidth="150.0" text="ID поставки" />
                 <TableColumn fx:id="itemCountTC" prefWidth="110.0" text="Кол-во товаров" />
                 <TableColumn fx:id="statusTC" prefWidth="100.0" text="Статус" />
-                <TableColumn fx:id="actionTC" prefWidth="72.0" text="" />
+                <TableColumn fx:id="actionTC" minWidth="160.0" prefWidth="180.0" text="" />
             </columns>
         </TableView>
     </children>

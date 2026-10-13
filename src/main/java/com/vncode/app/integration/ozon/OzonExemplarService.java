@@ -3,8 +3,13 @@ package com.vncode.app.integration.ozon;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.vncode.app.features.kiz.KizService;
+import com.vncode.app.features.license.LicenseGate.LicenseDeniedException;
+import com.vncode.app.features.license.LicenseModels.Permission;
+import com.vncode.app.features.license.LicenseRuntime;
 import com.vncode.app.integration.marketplace.MarketplaceGuard;
 import com.vncode.app.models.Shop;
+import com.vncode.app.features.shop.ShopOperationCoordinator;
+import com.vncode.app.integration.listing.ListingIdentity;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -13,17 +18,34 @@ import java.math.BigInteger;
 import java.time.Duration;
 import java.util.HexFormat;
 import java.util.List;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.Set;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.function.BiFunction;
+import java.util.function.IntConsumer;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.RejectedExecutionException;
 
 /** Durable prepare-order orchestration. Duplicate calls resume the same persisted job. */
 public final class OzonExemplarService {
     private static final int MAX_STATUS_POLLS = 8;
     private static final Duration POLL_DELAY = Duration.ofMillis(250);
     private static final ConcurrentMap<String, PostingLock> POSTING_LOCKS = new ConcurrentHashMap<>();
+    private static final int READ_AHEAD = 2;
+    private static final ThreadPoolExecutor DETAIL_READERS = new ThreadPoolExecutor(
+            4, 4, 30, TimeUnit.SECONDS, new ArrayBlockingQueue<>(32), runnable -> {
+                Thread thread = new Thread(runnable, "vncode-ozon-detail-read");
+                thread.setDaemon(true);
+                return thread;
+            }, new ThreadPoolExecutor.AbortPolicy());
 
     private final OzonPostingRepository postings;
     private final OzonProductGtinMappingRepository mappings;
@@ -77,7 +99,134 @@ public final class OzonExemplarService {
         return executeForPrint(shop, postingNumber);
     }
 
+    /** A short-lived shop-owned operation snapshot, never a process-wide catalog cache. */
+    public PrintBatch openPrintBatch(Shop shop) {
+        MarketplaceGuard.requireOzon(shop);
+        Shop frozenShop = new Shop(shop.getId(), shop.getName(), shop.getMarketplace(),
+                shop.getClientId(), shop.getApiKey());
+        return new PrintBatch(frozenShop,
+                mappings.findResolvedBySku(shop.getId()), policies.findExemptSkus(shop.getId()),
+                apiClients.apply(shop.getId(), new OzonCredentials(shop.getClientId(), shop.getApiKey())));
+    }
+
+    /**
+     * At most two fresh read-only details are outstanding for one selection, four for the process.
+     * Reservations commit in selection order. A failed posting is isolated; no remote KIZ POST occurs.
+     */
+    public BatchPreparationResult stageForPrintBatch(
+            Shop shop, List<String> postingNumbers, IntConsumer completed) throws IOException {
+        return stageForPrintBatch(openPrintBatch(shop), postingNumbers, completed);
+    }
+
+    private BatchPreparationResult stageForPrintBatch(
+            PrintBatch batch, List<String> postingNumbers, IntConsumer completed) throws IOException {
+        if (postingNumbers == null || postingNumbers.size() > 10_000) {
+            throw new IllegalArgumentException("Invalid Ozon print selection.");
+        }
+        List<String> selected = postingNumbers.stream()
+                .map(value -> OzonApiClient.requireExternalId(value, "posting number")).distinct().toList();
+        if (selected.isEmpty()) throw new IllegalArgumentException("At least one Ozon posting is required.");
+        List<OzonPreparationResult> prepared = new ArrayList<>();
+        Map<String, String> failures = new LinkedHashMap<>();
+        int done = 0;
+        for (int start = 0; start < selected.size(); start += READ_AHEAD) {
+            requireNotInterrupted();
+            List<String> window = selected.subList(start, Math.min(start + READ_AHEAD, selected.size()));
+            List<Future<OzonPostingDto>> reads = new ArrayList<>();
+            try {
+                for (String number : window) {
+                    reads.add(DETAIL_READERS.submit(() -> batch.readDetail(number)));
+                }
+                for (int index = 0; index < window.size(); index++) {
+                    requireNotInterrupted();
+                    try {
+                        OzonPostingDto detail = await(reads.get(index));
+                        prepared.add(executeForPrint(batch.shop, window.get(index), batch, detail));
+                    } catch (LicenseDeniedException denied) {
+                        throw denied;
+                    } catch (ShopOperationCoordinator.ShopUnavailableException changed) {
+                        throw changed;
+                    } catch (IOException | IllegalStateException failure) {
+                        requireNotInterrupted();
+                        failures.put(window.get(index), safePreparationFailure(failure));
+                    }
+                    if (completed != null) completed.accept(++done);
+                }
+            } catch (RejectedExecutionException full) {
+                throw new IOException("Ozon detail workers are busy; retry the durable selection.", full);
+            } finally {
+                for (Future<OzonPostingDto> read : reads) if (!read.isDone()) read.cancel(true);
+            }
+        }
+        return new BatchPreparationResult(List.copyOf(prepared), java.util.Collections.unmodifiableMap(failures));
+    }
+
+    private static OzonPostingDto await(Future<OzonPostingDto> read) throws IOException {
+        try {
+            return read.get();
+        } catch (InterruptedException interrupted) {
+            Thread.currentThread().interrupt();
+            throw new IOException("Ozon print preparation was interrupted.", interrupted);
+        } catch (ExecutionException failed) {
+            Throwable cause = failed.getCause();
+            if (cause instanceof IOException io) throw io;
+            if (cause instanceof RuntimeException runtime) throw runtime;
+            throw new IOException("Ozon posting detail could not be read.");
+        }
+    }
+
+    private static void requireNotInterrupted() throws IOException {
+        if (Thread.currentThread().isInterrupted()) throw new IOException("Ozon print preparation was interrupted.");
+    }
+
+    private static String safePreparationFailure(Exception failure) {
+        if (failure instanceof OzonRequirementGuard.MissingMappingException) return "mapping_missing";
+        if (failure instanceof OzonRequirementGuard.UnsupportedRequirementException) return "requirement_unsupported";
+        if (failure instanceof OzonApiException api) return api.kind();
+        return failure instanceof IOException ? "detail_unavailable" : "preparation_failed";
+    }
+
+    public final class PrintBatch {
+        private final Shop shop;
+        private final Map<String, String> skuMappings;
+        private final Set<String> exemptions;
+        private final OzonApiClient api;
+
+        private PrintBatch(Shop shop, Map<String, String> skuMappings, Set<String> exemptions, OzonApiClient api) {
+            this.shop = shop;
+            this.skuMappings = Map.copyOf(skuMappings);
+            this.exemptions = Set.copyOf(exemptions);
+            this.api = api;
+        }
+
+        public OzonPreparationResult stageForPrint(String postingNumber) throws IOException {
+            return executeForPrint(shop, postingNumber, this, null);
+        }
+
+        public BatchPreparationResult stageForPrintBatch(List<String> postingNumbers) throws IOException {
+            return OzonExemplarService.this.stageForPrintBatch(this, postingNumbers, null);
+        }
+
+        private OzonPostingDto readDetail(String number) throws IOException {
+            ListingIdentity.require(shop);
+            OzonPostingDto posting = OzonJson.parsePostingDetail(api.getPosting(number, true));
+            if (!number.equals(posting.postingNumber())) {
+                throw new IOException("Ozon returned a different posting from the confirmed selection.");
+            }
+            return posting;
+        }
+    }
+
+    public record BatchPreparationResult(List<OzonPreparationResult> results, Map<String, String> failed) {
+        public int completedCount() { return results.size() + failed.size(); }
+    }
+
     private OzonPreparationResult executeForPrint(Shop shop, String postingNumber) throws IOException {
+        return executeForPrint(shop, postingNumber, null, null);
+    }
+
+    private OzonPreparationResult executeForPrint(
+            Shop shop, String postingNumber, PrintBatch batch, OzonPostingDto prefetched) throws IOException {
         MarketplaceGuard.requireOzon(shop);
         String safePosting = OzonApiClient.requireExternalId(postingNumber, "posting number");
         String key = shop.getId() + ":" + safePosting;
@@ -88,7 +237,32 @@ public final class OzonExemplarService {
         });
         synchronized (lock.monitor) {
             try {
-                return prepareForPrintLocked(shop, safePosting);
+                requireNotInterrupted();
+                OzonExemplarJob priorJob = jobs.find(shop.getId(), safePosting);
+                if (priorJob == null || priorJob.stage() != OzonExemplarJobStage.ACCEPTED) {
+                    LicenseRuntime.require(Permission.PRINT_NEW);
+                }
+                PrintBatch operation = batch == null ? openPrintBatch(shop) : batch;
+                OzonPostingDto posting = prefetched == null ? operation.readDetail(safePosting) : prefetched;
+                return ShopOperationCoordinator.withActiveShop(shop.getId(), () -> {
+                    ListingIdentity.require(shop);
+                    postings.upsertDetail(shop.getId(), posting);
+                    OzonRequirementGuard.PreparationPlan plan = OzonRequirementGuard.plan(
+                            posting, operation.skuMappings, operation.exemptions);
+                    if (plan.exemplarCount() == 0) {
+                        if (priorJob != null && priorJob.stage() != OzonExemplarJobStage.ACCEPTED
+                                && jobs.bindingCounts(shop.getId(), List.of(priorJob.id())).getOrDefault(priorJob.id(), 0) > 0) {
+                            throw new IOException("Refreshed Ozon requirements differ from an existing KIZ reservation; reconciliation is required.");
+                        }
+                        return new OzonPreparationResult(safePosting, "NOT_REQUIRED", 0, true, false, "");
+                    }
+                    OzonExemplarJobRepository.LocalPrintReservation reservation = jobs.stageLocalForPrint(
+                            shop.getId(), plan, () -> {
+                                LicenseRuntime.require(Permission.PRINT_NEW);
+                                ListingIdentity.require(shop);
+                            });
+                    return result(reservation.job(), plan.exemplarCount(), reservation.ready());
+                });
             } finally {
                 POSTING_LOCKS.computeIfPresent(key, (ignored, current) -> {
                     if (current != lock) return current;
@@ -97,52 +271,6 @@ public final class OzonExemplarService {
                 });
             }
         }
-    }
-
-    private OzonPreparationResult prepareForPrintLocked(Shop shop, String postingNumber) throws IOException {
-        OzonApiClient api = apiClients.apply(
-                shop.getId(), new OzonCredentials(shop.getClientId(), shop.getApiKey()));
-        OzonPostingDto posting = OzonJson.parsePostingDetail(api.getPosting(postingNumber, true));
-        postings.upsertDetail(shop.getId(), posting);
-        OzonRequirementGuard.PreparationPlan plan = OzonRequirementGuard.plan(
-                posting, mappings.findResolvedBySku(shop.getId()), policies.findExemptSkus(shop.getId()));
-        if (plan.exemplarCount() == 0) {
-            return new OzonPreparationResult(postingNumber, "NOT_REQUIRED", 0,
-                    true, false, "");
-        }
-
-        OzonExemplarJob job = jobs.findOrCreate(shop.getId(), postingNumber);
-        if (job.stage() == OzonExemplarJobStage.ACCEPTED) {
-            return result(job, plan.exemplarCount(), true);
-        }
-        if (job.stage() == OzonExemplarJobStage.REJECTED) {
-            job = jobs.reopenRejectedForPrint(job);
-        }
-
-        List<OzonExemplarJobRepository.KizBinding> bindings = jobs.bindings(job.id());
-        if (bindings.size() == plan.exemplarCount()) {
-            job = jobs.markPrintReady(job);
-            return result(job, plan.exemplarCount(), true);
-        }
-        if (!bindings.isEmpty()) {
-            throw new IOException("The existing Ozon KIZ print reservation is incomplete.");
-        }
-        if (job.stage() != OzonExemplarJobStage.CREATED
-                && job.stage() != OzonExemplarJobStage.RECONCILE_REQUIRED) {
-            throw new IOException("The existing Ozon KIZ print reservation cannot be resumed safely.");
-        }
-
-        jobs.persistLocalPrintSlots(job, plan);
-        try {
-            jobs.reserveAndLink(job, plan);
-        } catch (OzonExemplarJobRepository.InsufficientKizException exception) {
-            job = jobs.transition(job, job.stage(), null, "kiz_unavailable", false);
-            return result(job, plan.exemplarCount(), false);
-        }
-        job = requireJob(shop.getId(), postingNumber);
-        job = jobs.markPrintReady(job);
-        jobs.logAction(shop.getId(), "kiz_print_reserve", postingNumber, "success", null, null);
-        return result(job, plan.exemplarCount(), true);
     }
 
     /** Legacy remote workflow retained only for migration/reference; production entry points no longer call it. */
@@ -160,7 +288,11 @@ public final class OzonExemplarService {
                     posting.shipAvailable(), false, "");
         }
 
-        OzonExemplarJob job = jobs.findOrCreate(shop.getId(), postingNumber);
+        OzonExemplarJob job = jobs.find(shop.getId(), postingNumber);
+        if (job == null) {
+            LicenseRuntime.require(Permission.PACKING);
+            job = jobs.findOrCreate(shop.getId(), postingNumber);
+        }
         if (job.stage() == OzonExemplarJobStage.ACCEPTED) return result(job, plan.exemplarCount(), true);
         if (job.stage() == OzonExemplarJobStage.REJECTED) return result(job, plan.exemplarCount(), false);
 
@@ -168,6 +300,7 @@ public final class OzonExemplarService {
         // ambiguous response, use it to recover remote IDs, then reserve exactly once locally.
         if (job.stage() == OzonExemplarJobStage.RECONCILE_REQUIRED
                 && jobs.bindings(job.id()).size() < plan.exemplarCount()) {
+            LicenseRuntime.require(Permission.PACKING);
             try {
                 List<String> exemplarIds = remoteExemplarIds(
                         api.createOrGetExemplars(createRequest(posting)), plan);
@@ -183,6 +316,7 @@ public final class OzonExemplarService {
         }
 
         if (job.stage() == OzonExemplarJobStage.CREATED) {
+            LicenseRuntime.require(Permission.PACKING);
             try {
                 List<String> exemplarIds = remoteExemplarIds(
                         api.createOrGetExemplars(createRequest(posting)), plan);
@@ -214,6 +348,7 @@ public final class OzonExemplarService {
 
         if (job.stage() == OzonExemplarJobStage.RESERVED) {
             List<OzonExemplarJobRepository.KizBinding> bindings = jobs.bindings(job.id());
+            LicenseRuntime.require(Permission.PACKING);
             try {
                 OzonExemplarRemoteStatus validation = OzonExemplarJson.validation(
                         api.validateExemplars(exemplarPayload(postingNumber, bindings, false)), bindings.size());
@@ -248,11 +383,18 @@ public final class OzonExemplarService {
             List<OzonExemplarJobRepository.KizBinding> bindings = jobs.bindings(job.id());
             JsonObject payload = exemplarPayload(postingNumber, bindings, true);
             String fingerprint = fingerprint(payload);
+            LicenseRuntime.require(Permission.PACKING);
             job = jobs.transition(job, OzonExemplarJobStage.SET_PENDING, fingerprint, null, true);
             try {
+                LicenseRuntime.require(Permission.PACKING);
                 api.setExemplars(payload);
                 job = jobs.transition(job, OzonExemplarJobStage.VERIFYING, fingerprint, null, false);
                 jobs.logAction(shop.getId(), "exemplar_set", postingNumber, "submitted", null, fingerprint);
+            } catch (LicenseDeniedException denied) {
+                // This check precedes setExemplars: no remote mark was submitted by this claim.
+                jobs.transition(job, OzonExemplarJobStage.VALIDATED, fingerprint, "LICENSE_REQUIRED", false);
+                jobs.logAction(shop.getId(), "exemplar_set", postingNumber, "rejected", "LICENSE_REQUIRED", fingerprint);
+                throw denied;
             } catch (OzonApiException exception) {
                 job = jobs.transition(job, OzonExemplarJobStage.RECONCILE_REQUIRED,
                         fingerprint, exception.safeErrorCode(), false);

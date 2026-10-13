@@ -6,6 +6,8 @@ import com.vncode.app.integration.marketplace.Marketplace;
 import com.vncode.app.integration.ozon.*;
 import com.vncode.app.integration.wb.*;
 import com.vncode.app.models.Shop;
+import com.vncode.app.features.license.LicenseRuntime;
+import static com.vncode.app.features.license.LicenseModels.Permission.SELLER_API;
 import java.io.IOException;
 import java.util.*;
 
@@ -19,6 +21,7 @@ public final class ProductRefreshService {
     public Report refresh(Shop shop,ProductQuery query)throws IOException{
         ListingIdentity.require(shop);if(query.shopId()!=shop.getId()||query.marketplace()!=shop.getMarketplace())throw new SecurityException("Foreign product refresh");
         return ShopOperationCoordinator.withActiveShop(shop.getId(),()->{
+            LicenseRuntime.require(SELLER_API);
             int products=catalog.refresh(shop);ListingIdentity.require(shop);
             var page=repository.loadPage(query);var cards=new LinkedHashMap<String,ProductKey>();for(var row:page.rows())cards.putIfAbsent(row.key().cardId(),row.key());
             int complete=0,failed=0;
@@ -30,6 +33,6 @@ public final class ProductRefreshService {
         });
     }
     public ProductSnapshot refreshCard(Shop shop,ProductKey key)throws IOException{
-        ListingIdentity.require(shop,key);var snapshot=reader.read(shop,key);repository.saveVerifiedSnapshot(shop,snapshot);return snapshot;
+        ListingIdentity.require(shop,key);LicenseRuntime.require(SELLER_API);var snapshot=reader.read(shop,key);repository.saveVerifiedSnapshot(shop,snapshot);return snapshot;
     }
 }

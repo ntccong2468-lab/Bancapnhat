@@ -209,12 +209,14 @@ test("tagged releases publish native macOS packages for Intel and Apple Silicon"
   }
 });
 
-// A personal fork must not package the original vendor entitlement/report clients.
-test("the personal app has no original license server dependency", async () => {
-  assert.equal(await exists("src/main/java/com/vncode/app/integration/license"), false);
-  assert.equal(await exists("src/main/java/com/vncode/app/ui/license"), false);
+// VN code licenses belong to its own portal; the original vendor clients stay absent.
+test("VN code uses its own license portal and has no original vendor server dependency", async () => {
+  const client = await readFile(new URL("src/main/java/com/vncode/app/integration/license/WebLicenseApi.java", root), "utf8");
+  assert.match(client, /https:\/\/vncode\.id\.vn/);
+  assert.match(client, /followRedirects\(false\)/);
+  assert.match(await readFile(new URL("src/main/java/com/vncode/app/MainApplication.java", root), "utf8"), /LicenseRuntime\.bootstrap\(\)/);
   for (const file of await textFiles("src/main")) {
     const content = await readFile(new URL(file, root), "utf8");
-    assert.doesNotMatch(content, /wcode\.online|LicenseDialogService|LicenseService/, file);
+    assert.doesNotMatch(content, /wcode\.online|LicenseDialogService/, file);
   }
 });

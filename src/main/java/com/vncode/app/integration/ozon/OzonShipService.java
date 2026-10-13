@@ -1,6 +1,9 @@
 package com.vncode.app.integration.ozon;
 
 import com.google.gson.JsonObject;
+import com.vncode.app.features.license.LicenseGate.LicenseDeniedException;
+import com.vncode.app.features.license.LicenseModels.Permission;
+import com.vncode.app.features.license.LicenseRuntime;
 import com.vncode.app.integration.marketplace.MarketplaceGuard;
 import com.vncode.app.models.Shop;
 import java.io.IOException;
@@ -53,6 +56,8 @@ public final class OzonShipService {
         if (!confirmed) {
             throw new IllegalArgumentException("Explicit confirmation is required before shipping an Ozon posting.");
         }
+        String priorCheckpoint = jobs.latestActionStatus(shop.getId(), "ship", postingNumber);
+        if (!blocksShipRetry(priorCheckpoint)) LicenseRuntime.require(Permission.PACKING);
         OzonApiClient api = apiClients.apply(
                 shop.getId(), new OzonCredentials(shop.getClientId(), shop.getApiKey()));
         OzonPostingDto posting = OzonJson.parsePostingDetail(api.getPosting(postingNumber, true));
@@ -73,11 +78,17 @@ public final class OzonShipService {
 
         JsonObject request = OzonPackageBuilder.singleCompletePackage(posting);
         String fingerprint = fingerprint(request);
+        LicenseRuntime.require(Permission.PACKING);
         if (!jobs.tryBeginAction(shop.getId(), "ship", posting.postingNumber(), fingerprint)) {
             throw new OzonApiException("reconcile_required", 0, false, true, null);
         }
         try {
+            LicenseRuntime.require(Permission.PACKING);
             api.ship(request);
+        } catch (LicenseDeniedException denied) {
+            jobs.logAction(shop.getId(), "ship", posting.postingNumber(), "rejected",
+                    "LICENSE_REQUIRED", fingerprint);
+            throw denied;
         } catch (OzonApiException exception) {
             if (!exception.ambiguousMutation()) {
                 jobs.logAction(shop.getId(), "ship", posting.postingNumber(), "rejected",

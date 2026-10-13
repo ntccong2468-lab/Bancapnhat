@@ -1,0 +1,16 @@
+{
+  "name": "vncode-web-cloudflare",
+  "version": "0.3.1",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "check": "node --check src/index.js && node --check src/desktop.js && node --check public/app.js && node --check public/desktop-admin.js && node --check src/mail.js && node --check src/worker.js && node --check src/signing-key.js && node --check src/maintenance.js",
+    "test": "node --test test/*.test.js"
+  },
+  "devDependencies": {
+    "linkedom": "^0.18.13",
+    "wrangler": "^4.0.0"
+  }
+}

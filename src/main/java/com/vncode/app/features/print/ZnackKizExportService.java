@@ -1,6 +1,8 @@
 package com.vncode.app.features.print;
 
 import com.vncode.app.features.kizmapping.KizMappingRepository;
+import com.vncode.app.features.license.LicenseModels.Permission;
+import com.vncode.app.features.license.LicenseRuntime;
 import com.vncode.app.features.kizmapping.ZnackKizLabelMetadata;
 import com.vncode.app.integration.znack.GtinNormalizer;
 import com.vncode.app.integration.znack.ZnackGtinInventoryService;
@@ -27,6 +29,7 @@ public class ZnackKizExportService {
     }
 
     public ExportResult export(int shopId, String gtin, int quantity, File target) throws IOException {
+        LicenseRuntime.require(Permission.PRINT_NEW);
         if (shopId <= 0 || quantity <= 0 || target == null) {
             throw new IllegalArgumentException("Shop, quantity and target file are required.");
         }
@@ -35,10 +38,12 @@ public class ZnackKizExportService {
         File staging = null;
         boolean consumed = false;
         try {
+            LicenseRuntime.require(Permission.PRINT_NEW);
             reserved = inventory.reserveAvailable(shopId, normalized, quantity);
             ZnackKizLabelMetadata metadata = mappings.findLabelMetadata(shopId, normalized);
             staging = AtomicFilePublisher.stagingFile(target, ".pdf");
             exporter.write(reserved, metadata, staging);
+            LicenseRuntime.require(Permission.PRINT_NEW);
             inventory.consume(shopId, reserved);
             consumed = true;
             AtomicFilePublisher.publish(staging, target);

@@ -6,7 +6,12 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.vncode.app.models.Kiz;
+import com.vncode.app.features.license.LicenseModels.Permission;
+import com.vncode.app.features.license.LicenseRuntime;
 import com.vncode.app.integration.znack.ZnackGtinInventoryService;
+import com.vncode.app.shared.MarketplaceRequestBudget;
+import com.vncode.app.config.Database;
+import com.vncode.app.features.shop.ShopOperationCoordinator;
 import okhttp3.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,19 +20,21 @@ import java.io.InterruptedIOException;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.function.BooleanSupplier;
 
 public class KizService {
     private static final Logger LOGGER = LoggerFactory.getLogger(KizService.class);
     private static final char GS = 0x1D;
     private static final int METADATA_BATCH_SIZE = 100;
-    private static final int MAX_ATTACH_ATTEMPTS = 4;
-    private static final long ATTACH_BASE_RETRY_DELAY_MS = 400L;
     private static final long ATTACH_REQUEST_SPACING_MS = 150L;
     private static final OkHttpClient client = new OkHttpClient.Builder()
             .connectTimeout(10, TimeUnit.SECONDS)
             .readTimeout(20, TimeUnit.SECONDS)
             .writeTimeout(20, TimeUnit.SECONDS)
             .callTimeout(30, TimeUnit.SECONDS)
+            .retryOnConnectionFailure(false)
+            .followRedirects(false)
+            .followSslRedirects(false)
             .build();
     private static final Gson gson = new Gson();
 
@@ -48,85 +55,33 @@ public class KizService {
     }
 
     public static AttachCodeResult addDataMatrixCodeToOrder(String apiKey, Long orderId, String code) throws IOException {
-        AttachCodeResult lastResult = null;
-        IOException lastException = null;
-        for (int attempt = 1; attempt <= MAX_ATTACH_ATTEMPTS; attempt++) {
-            if (attempt > 1) {
-                sleepQuietly(retryDelayForAttempt(attempt));
-            }
-
-            try {
-                AttachCodeResult result = sendAttachCodeRequest(apiKey, orderId, code);
-                lastResult = result;
-                if (result.success()) {
-                    sleepQuietly(ATTACH_REQUEST_SPACING_MS);
-                    return result;
-                }
-                if (!isRetryableStatus(result.statusCode())) {
-                    sleepQuietly(ATTACH_REQUEST_SPACING_MS);
-                    return result;
-                }
-                LOGGER.warn("WB attach KIZ retrying for order {} after status {} on attempt {}/{}",
-                        orderId, result.statusCode(), attempt, MAX_ATTACH_ATTEMPTS);
-            } catch (IOException ex) {
-                lastException = ex;
-                if (attempt >= MAX_ATTACH_ATTEMPTS) {
-                    throw ex;
-                }
-                LOGGER.warn("WB attach KIZ retrying for order {} after IO error on attempt {}/{}",
-                        orderId, attempt, MAX_ATTACH_ATTEMPTS, ex);
-            }
-        }
-
-        if (lastResult != null) {
-            sleepQuietly(ATTACH_REQUEST_SPACING_MS);
-            return lastResult;
-        }
-        if (lastException != null) {
-            throw lastException;
-        }
-        return new AttachCodeResult(false, 0, "WB attach KIZ failed");
+        LicenseRuntime.require(Permission.KIZ);
+        return addDataMatrixCodeToOrder(resolveShopId(apiKey),apiKey,orderId,code);
+    }
+    public static AttachCodeResult addDataMatrixCodeToOrder(int shopId,String apiKey,Long orderId,String code)throws IOException {
+        return addDataMatrixCodeToOrder(shopId,apiKey,orderId,code,()->false);
+    }
+    public static AttachCodeResult addDataMatrixCodeToOrder(int shopId,String apiKey,Long orderId,String code,BooleanSupplier cancelled)throws IOException {
+        LicenseRuntime.require(Permission.KIZ);
+        requireCurrentShop(shopId,apiKey);
+        if(orderId==null||orderId<=0||code==null||scannerSafeCode(code).isBlank())throw new IOException("KIZ_REQUEST_INVALID");
+        // A timeout/5xx may have applied the write. The coordinator checkpoints and reconciles;
+        // neither this layer nor OkHttp automatically replays destructive requests.
+        return sendAttachCodeRequest(shopId,apiKey, orderId, code,cancelled);
     }
 
     public static RemoveMetaResult removeSgtinFromOrder(String apiKey, Long orderId) throws IOException {
-        RemoveMetaResult lastResult = null;
-        IOException lastException = null;
-        for (int attempt = 1; attempt <= MAX_ATTACH_ATTEMPTS; attempt++) {
-            if (attempt > 1) {
-                sleepQuietly(retryDelayForAttempt(attempt));
-            }
-
-            try {
-                RemoveMetaResult result = sendRemoveSgtinRequest(apiKey, orderId);
-                lastResult = result;
-                if (result.success()) {
-                    sleepQuietly(ATTACH_REQUEST_SPACING_MS);
-                    return result;
-                }
-                if (!isRetryableStatus(result.statusCode())) {
-                    sleepQuietly(ATTACH_REQUEST_SPACING_MS);
-                    return result;
-                }
-                LOGGER.warn("WB remove KIZ retrying for order {} after status {} on attempt {}/{}",
-                        orderId, result.statusCode(), attempt, MAX_ATTACH_ATTEMPTS);
-            } catch (IOException ex) {
-                lastException = ex;
-                if (attempt >= MAX_ATTACH_ATTEMPTS) {
-                    throw ex;
-                }
-                LOGGER.warn("WB remove KIZ retrying for order {} after IO error on attempt {}/{}",
-                        orderId, attempt, MAX_ATTACH_ATTEMPTS, ex);
-            }
-        }
-
-        if (lastResult != null) {
-            sleepQuietly(ATTACH_REQUEST_SPACING_MS);
-            return lastResult;
-        }
-        if (lastException != null) {
-            throw lastException;
-        }
-        return new RemoveMetaResult(false, 0, "WB remove KIZ failed");
+        LicenseRuntime.require(Permission.KIZ);
+        return removeSgtinFromOrder(resolveShopId(apiKey),apiKey,orderId);
+    }
+    public static RemoveMetaResult removeSgtinFromOrder(int shopId,String apiKey,Long orderId)throws IOException {
+        return removeSgtinFromOrder(shopId,apiKey,orderId,()->false);
+    }
+    public static RemoveMetaResult removeSgtinFromOrder(int shopId,String apiKey,Long orderId,BooleanSupplier cancelled)throws IOException {
+        LicenseRuntime.require(Permission.KIZ);
+        requireCurrentShop(shopId,apiKey);
+        if(orderId==null||orderId<=0)throw new IOException("KIZ_REQUEST_INVALID");
+        return sendRemoveSgtinRequest(shopId,apiKey,orderId,cancelled);
     }
 
     public static String scannerSafeCode(String code) {
@@ -141,13 +96,19 @@ public class KizService {
     }
 
     public static Map<Long, SgtinMetadata> getSgtinMetadata(String apiKey, List<Long> orderIds) throws IOException {
+        return getSgtinMetadata(orderIds,batch->requestSgtinMetadataBatch(apiKey,batch));
+    }
+
+    static Map<Long,SgtinMetadata> getSgtinMetadata(List<Long> orderIds,MetadataReader reader)throws IOException {
         if (orderIds == null || orderIds.isEmpty()) {
             return Map.of();
         }
+        List<Long> ids=orderIds.stream().filter(id->id!=null&&id>0).distinct().toList();
         Map<Long, SgtinMetadata> metadataByOrderId = new HashMap<>();
-        for (int start = 0; start < orderIds.size(); start += METADATA_BATCH_SIZE) {
-            List<Long> batch = orderIds.subList(start, Math.min(start + METADATA_BATCH_SIZE, orderIds.size()));
-            metadataByOrderId.putAll(requestSgtinMetadataBatch(apiKey, batch));
+        for (int start = 0; start < ids.size(); start += METADATA_BATCH_SIZE) {
+            List<Long> batch = ids.subList(start, Math.min(start + METADATA_BATCH_SIZE, ids.size()));
+            Map<Long,SgtinMetadata> response=reader.read(List.copyOf(batch));
+            for(Long id:batch)if(response.containsKey(id))metadataByOrderId.put(id,response.get(id));
         }
         return metadataByOrderId;
     }
@@ -165,15 +126,14 @@ public class KizService {
                 .build();
 
         WbLabelIdentifierRateLimiter.awaitTurn(apiKey);
-        try (Response response = client.newCall(request).execute()) {
-            String responseBody = response.body() == null ? "" : response.body().string();
+        try (var slot=MarketplaceRequestBudget.acquire(); Response response = client.newCall(request).execute()) {
+            String responseBody = boundedBody(response);
             WbLabelIdentifierRateLimiter.registerResponse(apiKey, response.code(), response.headers());
             if (!response.isSuccessful()) {
-                LOGGER.warn("WB metadata request failed for {} orders with status {} and body {}",
-                        orderIds.size(), response.code(), responseBody);
-                throw new IOException("WB metadata request failed: HTTP " + response.code() + " " + responseBody);
+                LOGGER.warn("WB metadata request failed for {} orders with status {}", orderIds.size(), response.code());
+                throw new IOException("WB_METADATA_HTTP_" + response.code());
             }
-            return parseSgtinMetadata(responseBody);
+            try{return parseSgtinMetadata(responseBody);}catch(RuntimeException malformed){throw new IOException("WB_METADATA_INVALID");}
         } catch (InterruptedIOException ex) {
             throw new IOException("Wildberries system response timed out. Please try again.", ex);
         }
@@ -251,7 +211,7 @@ public class KizService {
         return value.getAsString();
     }
 
-    private static AttachCodeResult sendAttachCodeRequest(String apiKey, Long orderId, String code) throws IOException {
+    private static AttachCodeResult sendAttachCodeRequest(int shopId,String apiKey, Long orderId, String code,BooleanSupplier cancelled) throws IOException {
         String url = "https://marketplace-api.wildberries.ru/api/v3/orders/" + orderId + "/meta/sgtin";
 
         Map<String, Object> bodyMap = new HashMap<>();
@@ -265,24 +225,29 @@ public class KizService {
                 .put(body)
                 .build();
 
+        sleepBeforeWrite();
         WbLabelIdentifierRateLimiter.awaitTurn(apiKey);
-        try (Response response = client.newCall(request).execute()) {
-            String responseBody = response.body() == null ? "" : response.body().string();
+        try (var slot=MarketplaceRequestBudget.acquire()) {
+        return withWriteScope(shopId,apiKey,cancelled,()->{
+        try(Response response = client.newCall(request).execute()) {
+            String responseBody = boundedBody(response);
             WbLabelIdentifierRateLimiter.registerResponse(apiKey, response.code(), response.headers());
             if (!response.isSuccessful()) {
                 if (response.code() == 409 && responseBody.contains("FailedToUpdateMeta")) {
-                    LOGGER.info("WB skipped KIZ attach for order {} because it is not in Processing status: {}", orderId, responseBody);
+                    LOGGER.info("WB skipped KIZ attach for order {} because it is not in Processing status", orderId);
                 } else {
-                    LOGGER.warn("WB attach KIZ failed for order {} with status {} and body {}", orderId, response.code(), responseBody);
+                    LOGGER.warn("WB attach KIZ failed for order {} with status {}", orderId, response.code());
                 }
             }
             return new AttachCodeResult(response.isSuccessful(), response.code(), responseBody);
+        }
+        });
         } catch (InterruptedIOException ex) {
             throw new IOException("Wildberries system response timed out. Please try again.", ex);
         }
     }
 
-    private static RemoveMetaResult sendRemoveSgtinRequest(String apiKey, Long orderId) throws IOException {
+    private static RemoveMetaResult sendRemoveSgtinRequest(int shopId,String apiKey, Long orderId,BooleanSupplier cancelled) throws IOException {
         HttpUrl url = Objects.requireNonNull(HttpUrl.parse("https://marketplace-api.wildberries.ru/api/v3/orders/" + orderId + "/meta"))
                 .newBuilder()
                 .addQueryParameter("key", "sgtin")
@@ -294,46 +259,72 @@ public class KizService {
                 .delete()
                 .build();
 
+        sleepBeforeWrite();
         WbLabelIdentifierRateLimiter.awaitTurn(apiKey);
-        try (Response response = client.newCall(request).execute()) {
-            String responseBody = response.body() == null ? "" : response.body().string();
+        try (var slot=MarketplaceRequestBudget.acquire()) {
+        return withWriteScope(shopId,apiKey,cancelled,()->{
+        try(Response response = client.newCall(request).execute()) {
+            String responseBody = boundedBody(response);
             WbLabelIdentifierRateLimiter.registerResponse(apiKey, response.code(), response.headers());
             if (!response.isSuccessful()) {
-                LOGGER.warn("WB remove KIZ failed for order {} with status {} and body {}", orderId, response.code(), responseBody);
+                LOGGER.warn("WB remove KIZ failed for order {} with status {}", orderId, response.code());
             }
             return new RemoveMetaResult(response.isSuccessful(), response.code(), responseBody);
+        }
+        });
         } catch (InterruptedIOException ex) {
             throw new IOException("Wildberries system response timed out. Please try again.", ex);
         }
     }
 
-    private static boolean isRetryableStatus(int statusCode) {
-        return statusCode == 429 || statusCode >= 500;
-    }
-
-    private static long retryDelayForAttempt(int attempt) {
-        long multiplier = 1L << Math.max(0, attempt - 2);
-        return ATTACH_BASE_RETRY_DELAY_MS * multiplier;
-    }
-
-    private static void sleepQuietly(long millis) {
-        if (millis <= 0) {
-            return;
-        }
+    private static void sleepBeforeWrite()throws IOException {
         try {
-            Thread.sleep(millis);
+            Thread.sleep(ATTACH_REQUEST_SPACING_MS);
         } catch (InterruptedException ex) {
             Thread.currentThread().interrupt();
+            throw new InterruptedIOException("KIZ_REQUEST_CANCELLED");
         }
+        LicenseRuntime.require(Permission.KIZ);
     }
+    private static String boundedBody(Response response)throws IOException {
+        if(response.body()==null)return "";
+        if(response.body().contentLength()>1024*1024)throw new IOException("WB_METADATA_BODY_TOO_LARGE");
+        byte[] bytes=response.body().byteStream().readNBytes(1024*1024+1);
+        if(bytes.length>1024*1024)throw new IOException("WB_METADATA_BODY_TOO_LARGE");
+        return new String(bytes,java.nio.charset.StandardCharsets.UTF_8);
+    }
+    interface MetadataReader {Map<Long,SgtinMetadata> read(List<Long> ids)throws IOException;}
+    /** Exact persisted shop/token ownership, with no secret values in failure messages. */
+    public static void requireCurrentShop(int shopId,String apiKey)throws IOException {
+        if(shopId<=0||apiKey==null||apiKey.isBlank())throw new IOException("SHOP_CREDENTIALS_CHANGED");
+        try(var c=Database.getConnection();var ps=c.prepareStatement("SELECT 1 FROM shops WHERE id=? AND marketplace='WILDBERRIES' AND api_key=?")){
+            ps.setInt(1,shopId);ps.setString(2,apiKey);
+            try(var rs=ps.executeQuery()){if(!rs.next())throw new IOException("SHOP_CREDENTIALS_CHANGED");}
+        }catch(java.sql.SQLException|RuntimeException unavailable){throw new IOException("SHOP_CREDENTIALS_UNAVAILABLE");}
+    }
+    private static int resolveShopId(String apiKey)throws IOException {
+        try(var c=Database.getConnection();var ps=c.prepareStatement("SELECT id FROM shops WHERE marketplace='WILDBERRIES' AND api_key=? LIMIT 2")){
+            ps.setString(1,apiKey);try(var rs=ps.executeQuery()){if(!rs.next())throw new IOException("SHOP_CREDENTIALS_CHANGED");int id=rs.getInt(1);if(rs.next())throw new IOException("SHOP_CREDENTIALS_AMBIGUOUS");return id;}
+        }catch(java.sql.SQLException|RuntimeException unavailable){throw new IOException("SHOP_CREDENTIALS_UNAVAILABLE");}
+    }
+    static <T> T withWriteScope(int shopId,String apiKey,WriteAttempt<T> attempt)throws IOException {
+        return withWriteScope(shopId,apiKey,()->false,attempt);
+    }
+    static <T> T withWriteScope(int shopId,String apiKey,BooleanSupplier cancelled,WriteAttempt<T> attempt)throws IOException {
+        return ShopOperationCoordinator.withActiveShop(shopId,()->{requireCurrentShop(shopId,apiKey);LicenseRuntime.require(Permission.KIZ);if(cancelled.getAsBoolean()||Thread.currentThread().isInterrupted())throw new IOException("KIZ_REQUEST_CANCELLED");return attempt.execute();});
+    }
+    interface WriteAttempt<T>{T execute()throws IOException;}
 
     public record AttachCodeResult(boolean success, int statusCode, String responseBody) {
+        @Override public String toString(){return "AttachCodeResult[success="+success+", statusCode="+statusCode+"]";}
     }
 
     public record RemoveMetaResult(boolean success, int statusCode, String responseBody) {
+        @Override public String toString(){return "RemoveMetaResult[success="+success+", statusCode="+statusCode+"]";}
     }
 
     public record SgtinMetadata(boolean available, String appliedValue) {
+        @Override public String toString(){return "SgtinMetadata[available="+available+"]";}
         public boolean hasAppliedValue() {
             return appliedValue != null && !appliedValue.isBlank();
         }

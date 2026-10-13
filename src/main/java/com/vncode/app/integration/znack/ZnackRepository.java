@@ -146,10 +146,22 @@ public final class ZnackRepository {
                                     'INTRODUCTION_SKIPPED_MISSING_METADATA')
                 UNION ALL
                 SELECT 1 FROM kiz_codes WHERE shop_id=? AND status='RESERVED'
+                UNION ALL
+                SELECT 1 FROM znack_card_registrations WHERE shop_id=?
+                  AND status NOT IN ('PUBLISHED','NOT_CREATED','PREFLIGHT_ERROR')
+                UNION ALL
+                SELECT 1 FROM znack_card_registration_replacements WHERE shop_id=? AND state='CANDIDATE'
+                UNION ALL
+                SELECT 1 FROM ozon_card_registrations WHERE shop_id=?
+                  AND (status NOT IN ('PUBLISHED','NOT_CREATED','PREFLIGHT_ERROR')
+                       OR (gtin<>'' AND active_gtin<>gtin))
                 LIMIT 1
                 """)) {
             statement.setInt(1, shop.shopId());
             statement.setInt(2, shop.shopId());
+            statement.setInt(3, shop.shopId());
+            statement.setInt(4, shop.shopId());
+            statement.setInt(5, shop.shopId());
             try (ResultSet result = statement.executeQuery()) {
                 return result.next();
             }

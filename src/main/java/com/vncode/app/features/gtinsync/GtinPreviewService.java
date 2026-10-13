@@ -1,5 +1,7 @@
 package com.vncode.app.features.gtinsync;
 
+import com.vncode.app.features.license.LicenseModels.Permission;
+import com.vncode.app.features.license.LicenseRuntime;
 import java.time.*;
 import java.util.function.Function;
 import static com.vncode.app.features.gtinsync.GtinSyncModels.*;
@@ -19,12 +21,15 @@ public final class GtinPreviewService {
                 .anyMatch(g -> g.gtin().equals(newGtin) && g.published() && g.tradeUnit()
                         && !g.syncedAt().isBefore(now.minus(Duration.ofHours(24))) && !g.syncedAt().isAfter(now.plusSeconds(300)));
         if(!registered)throw new IllegalArgumentException("unverified_catalog_gtin");
+        adapter.validateRegistration(newGtin);
+        LicenseRuntime.require(Permission.SELLER_API);
         var product=adapter.read(key);
         if(!product.key().equals(key))throw new IllegalArgumentException("product_mismatch");
         if(product.barcodes().contains(newGtin))throw new IllegalArgumentException("already_present");
         if(operation==Operation.REPLACE && (oldGtin==null || oldGtin.isBlank() || oldGtin.equals(newGtin) || !product.barcodes().contains(oldGtin)))
             throw new IllegalArgumentException("old_gtin_not_found");
         if(operation==Operation.ADD && oldGtin!=null && !oldGtin.isBlank())throw new IllegalArgumentException("unexpected_old_gtin");
+        LicenseRuntime.require(Permission.SELLER_API);
         if(adapter.conflicts(key,newGtin))throw new IllegalArgumentException("gtin_on_another_product");
         return new Preview(product,operation,oldGtin,newGtin,capability);
     }

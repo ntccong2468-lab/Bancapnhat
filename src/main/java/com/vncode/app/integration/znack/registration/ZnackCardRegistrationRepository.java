@@ -29,6 +29,8 @@ public class ZnackCardRegistrationRepository {
             case REGISTER -> sku.canRegister();
             case REQUEST_NEW_GTIN -> sku.needsGtinReview();
             case RESUME -> sku.canResume();
+            case SIGN_APPROVED -> sku.canSignApproved();
+            case REGISTER_NEW -> false; // Replacement claims require the preserved active record transaction.
         };
         if (!allowed) return false;
         boolean newRow = action == RegistrationAction.REGISTER && sku.status() == Status.NOT_CREATED
@@ -68,6 +70,145 @@ public class ZnackCardRegistrationRepository {
             statement.setInt(index++,sku.wbUpdated()?1:0); statement.setString(index,sku.registrationRevision());
             return statement.executeUpdate()==1;
         } catch(SQLException error) { throw new RuntimeException(error); }
+    }
+
+    public ZnackRegistrationScope scope(int shopId,long chrtId) {
+        try(var c=Database.getConnection();var s=c.prepareStatement("SELECT participant_inn,environment,fingerprint FROM znack_card_registration_scopes WHERE shop_id=? AND chrt_id=?")) {
+            s.setInt(1,shopId);s.setLong(2,chrtId);
+            try(var r=s.executeQuery()){return r.next()?new ZnackRegistrationScope(r.getString(1),r.getString(2),r.getString(3)):null;}
+        }catch(SQLException error){throw new RuntimeException(error);}
+    }
+
+    /** Binding is insert-only; a historical request can never silently become another owner's. */
+    public void bindScope(int shopId,long chrtId,ZnackRegistrationScope scope) {
+        try(var c=Database.getConnection();var s=c.prepareStatement("INSERT OR IGNORE INTO znack_card_registration_scopes(shop_id,chrt_id,participant_inn,environment,fingerprint,created_at) VALUES(?,?,?,?,?,?)")) {
+            s.setInt(1,shopId);s.setLong(2,chrtId);s.setString(3,scope.inn());s.setString(4,scope.environment());s.setString(5,scope.fingerprint());s.setString(6,Instant.now().toString());s.executeUpdate();
+        }catch(SQLException error){throw new RuntimeException(error);}
+        if(!scope.equals(scope(shopId,chrtId)))throw new ZnackRegistrationScope.ScopeChangedException();
+    }
+
+    public boolean hasPendingReplacement(int shopId,long chrtId) {
+        try(var c=Database.getConnection();var s=c.prepareStatement("SELECT 1 FROM znack_card_registration_replacements WHERE shop_id=? AND chrt_id=? AND state='CANDIDATE'")) {
+            s.setInt(1,shopId);s.setLong(2,chrtId);try(var r=s.executeQuery()){return r.next();}
+        }catch(SQLException error){throw new RuntimeException(error);}
+    }
+    public String ownerHash(int shopId,long chrtId) {
+        try(var c=Database.getConnection();var p=c.prepareStatement("SELECT owner_hash FROM znack_card_registration_scopes WHERE shop_id=? AND chrt_id=?")){
+            p.setInt(1,shopId);p.setLong(2,chrtId);try(var r=p.executeQuery()){return r.next()?r.getString(1):"";}
+        }catch(SQLException unavailable){throw new IllegalStateException("Cannot check registration owner");}
+    }
+    public void bindScope(com.vncode.app.models.Shop shop,long chrtId,ZnackRegistrationScope scope) {
+        com.vncode.app.integration.listing.ListingIdentity.require(shop);
+        String owner=com.vncode.app.integration.listing.ListingIdentity.fingerprint(shop);
+        try(var c=Database.getConnection();var p=c.prepareStatement("INSERT OR IGNORE INTO znack_card_registration_scopes(shop_id,chrt_id,participant_inn,environment,fingerprint,created_at,owner_hash) VALUES(?,?,?,?,?,?,?)")){
+            p.setInt(1,shop.getId());p.setLong(2,chrtId);p.setString(3,scope.inn());p.setString(4,scope.environment());p.setString(5,scope.fingerprint());p.setString(6,java.time.Instant.now().toString());p.setString(7,owner);p.executeUpdate();
+        }catch(SQLException unavailable){throw new IllegalStateException("Cannot bind registration owner");}
+        if(!scope.equals(scope(shop.getId(),chrtId))||!owner.equals(ownerHash(shop.getId(),chrtId)))throw new ZnackRegistrationScope.ScopeChangedException();
+    }
+    public boolean matchesPublished(int shopId,Sku sku) {
+        try(var c=Database.getConnection();var s=c.prepareStatement("SELECT 1 FROM znack_card_registrations WHERE shop_id=? AND chrt_id=? AND nm_id=? AND status='PUBLISHED' AND gtin=? AND updated_at=?")) {
+            s.setInt(1,shopId);s.setLong(2,sku.chrtId());s.setLong(3,sku.nmId());s.setString(4,sku.gtin());s.setString(5,sku.registrationRevision());
+            try(var r=s.executeQuery()){return r.next();}
+        }catch(SQLException error){throw new RuntimeException(error);}
+    }
+
+    /** Explicit new-card review preserves the old card and all inventory/mappings. */
+    public boolean claimReplacement(int shopId,Sku sku) {
+        if(sku==null || !sku.canRegisterNew())return false;
+        try(var c=Database.getConnection();var transaction=c.createStatement()) {
+            transaction.execute("BEGIN IMMEDIATE");
+            try {
+                String now=Instant.now().toString();
+                try(var s=c.prepareStatement("""
+                    INSERT INTO znack_card_registration_replacements(shop_id,chrt_id,active_gtin,active_good_id,active_feed_id,active_payload_json,active_wb_updated,state,created_at,updated_at)
+                    SELECT shop_id,chrt_id,gtin,good_id,feed_id,payload_json,wb_updated,'CANDIDATE',?,?
+                    FROM znack_card_registrations WHERE shop_id=? AND chrt_id=? AND nm_id=? AND status='PUBLISHED'
+                      AND gtin=? AND updated_at=?
+                    ON CONFLICT(shop_id,chrt_id) DO UPDATE SET active_gtin=excluded.active_gtin,active_good_id=excluded.active_good_id,
+                      active_feed_id=excluded.active_feed_id,active_payload_json=excluded.active_payload_json,
+                      active_wb_updated=excluded.active_wb_updated,state='CANDIDATE',updated_at=excluded.updated_at
+                    WHERE znack_card_registration_replacements.state='ACTIVE'
+                    """)) {
+                    s.setString(1,now);s.setString(2,now);s.setInt(3,shopId);s.setLong(4,sku.chrtId());s.setLong(5,sku.nmId());s.setString(6,sku.gtin());s.setString(7,sku.registrationRevision());
+                    if(s.executeUpdate()!=1){transaction.execute("ROLLBACK");return false;}
+                }
+                try(var s=c.prepareStatement("UPDATE znack_card_registrations SET gtin=NULL,good_id=NULL,feed_id=NULL,payload_json=NULL,status='CHECKING',wb_updated=0,error_message=NULL,updated_at=? WHERE shop_id=? AND chrt_id=?")) {
+                    s.setString(1,now);s.setInt(2,shopId);s.setLong(3,sku.chrtId());s.executeUpdate();
+                }
+                try(var s=c.prepareStatement("DELETE FROM znack_card_registration_signatures WHERE shop_id=? AND chrt_id=?")){s.setInt(1,shopId);s.setLong(2,sku.chrtId());s.executeUpdate();}
+                transaction.execute("COMMIT");return true;
+            }catch(SQLException|RuntimeException error){transaction.execute("ROLLBACK");throw error;}
+        }catch(SQLException error){throw new RuntimeException(error);}
+    }
+
+    public String activeGtin(int shopId,long chrtId) {
+        try(var c=Database.getConnection();var s=c.prepareStatement("""
+            SELECT CASE WHEN p.state='CANDIDATE' THEN p.active_gtin WHEN r.status='PUBLISHED' THEN r.gtin ELSE '' END
+            FROM znack_card_registrations r LEFT JOIN znack_card_registration_replacements p
+              ON p.shop_id=r.shop_id AND p.chrt_id=r.chrt_id WHERE r.shop_id=? AND r.chrt_id=?
+            """)) {
+            s.setInt(1,shopId);s.setLong(2,chrtId);try(var r=s.executeQuery()){return r.next()?value(r.getString(1)):"";}
+        }catch(SQLException error){throw new RuntimeException(error);}
+    }
+
+    /** One scoped read for large WB shipments; ambiguous aliases are excluded, never guessed. */
+    public java.util.Map<String,String> activeGtinsByBarcode(int shopId) {
+        try(var c=Database.getConnection();var s=c.prepareStatement("""
+            SELECT b.sku,CASE WHEN p.state='CANDIDATE' THEN p.active_gtin
+                             WHEN r.status='PUBLISHED' THEN r.gtin ELSE '' END AS active_gtin
+            FROM wb_product_size_skus b JOIN shops sh ON sh.id=b.shop_id AND sh.marketplace='WILDBERRIES'
+            JOIN znack_card_registrations r ON r.shop_id=b.shop_id AND r.chrt_id=b.chrt_id
+            LEFT JOIN znack_card_registration_replacements p ON p.shop_id=r.shop_id AND p.chrt_id=r.chrt_id
+            WHERE b.shop_id=?
+            """)) {
+            s.setInt(1,shopId);var result=new java.util.LinkedHashMap<String,String>();var ambiguous=new java.util.HashSet<String>();
+            try(var r=s.executeQuery()) {
+                while(r.next()) {
+                    String barcode=value(r.getString(1)),gtin=value(r.getString(2));if(barcode.isBlank() || gtin.isBlank())continue;
+                    String prior=result.putIfAbsent(barcode,gtin);if(prior!=null && !prior.equals(gtin))ambiguous.add(barcode);
+                }
+            }
+            ambiguous.forEach(result::remove);return java.util.Map.copyOf(result);
+        }catch(SQLException error){throw new RuntimeException(error);}
+    }
+
+    /** Call only after a fresh remote marketplace read proves the signed candidate is present. */
+    public boolean completeReplacement(int shopId,long chrtId,String candidateGtin) {
+        try(var c=Database.getConnection();var s=c.prepareStatement("""
+            UPDATE znack_card_registration_replacements SET state='ACTIVE',updated_at=?
+            WHERE shop_id=? AND chrt_id=? AND state='CANDIDATE'
+              AND EXISTS(SELECT 1 FROM znack_card_registrations r WHERE r.shop_id=? AND r.chrt_id=? AND r.status='PUBLISHED' AND r.gtin=?)
+            """)) {
+            s.setString(1,Instant.now().toString());s.setInt(2,shopId);s.setLong(3,chrtId);s.setInt(4,shopId);s.setLong(5,chrtId);s.setString(6,candidateGtin);return s.executeUpdate()==1;
+        }catch(SQLException error){throw new RuntimeException(error);}
+    }
+
+    public record SigningCheckpoint(String gtin, ZnackNationalCatalogService.SigningDocument document,String state) {}
+    public SigningCheckpoint signingCheckpoint(int shopId,long chrtId) {
+        try(var c=Database.getConnection();var s=c.prepareStatement("SELECT gtin,good_id,document_xml,document_sha256,state FROM znack_card_registration_signatures WHERE shop_id=? AND chrt_id=?")) {
+            s.setInt(1,shopId);s.setLong(2,chrtId);try(var r=s.executeQuery()){return r.next()?new SigningCheckpoint(r.getString(1),new ZnackNationalCatalogService.SigningDocument(r.getLong(2),r.getBytes(3),r.getString(4)),r.getString(5)):null;}
+        }catch(SQLException error){throw new RuntimeException(error);}
+    }
+    public void prepareSignature(int shopId,long chrtId,String gtin,ZnackNationalCatalogService.SigningDocument document) {
+        try(var c=Database.getConnection();var s=c.prepareStatement("""
+            INSERT INTO znack_card_registration_signatures(shop_id,chrt_id,gtin,good_id,document_xml,document_sha256,state,created_at,updated_at)
+            SELECT ?,?,?,?,?,?,'PREPARED',?,? WHERE EXISTS(SELECT 1 FROM znack_card_registrations WHERE shop_id=? AND chrt_id=? AND gtin=? AND status='READY_TO_SIGN' AND (good_id IS NULL OR good_id=?))
+            ON CONFLICT(shop_id,chrt_id) DO NOTHING
+            """)) {
+            String now=Instant.now().toString();s.setInt(1,shopId);s.setLong(2,chrtId);s.setString(3,gtin);s.setLong(4,document.goodId());s.setBytes(5,document.xml());s.setString(6,document.sha256());s.setString(7,now);s.setString(8,now);s.setInt(9,shopId);s.setLong(10,chrtId);s.setString(11,gtin);s.setLong(12,document.goodId());s.executeUpdate();
+        }catch(SQLException error){throw new RuntimeException(error);}
+        var stored=signingCheckpoint(shopId,chrtId);
+        if(stored==null || !stored.gtin().equals(gtin) || !stored.document().sha256().equals(document.sha256())) throw new IllegalStateException("Signing review changed. Refresh the card before continuing.");
+    }
+    public boolean claimSignatureSend(int shopId,long chrtId,String sha256) {
+        try(var c=Database.getConnection();var s=c.prepareStatement("UPDATE znack_card_registration_signatures SET state='SENDING',updated_at=? WHERE shop_id=? AND chrt_id=? AND document_sha256=? AND state='PREPARED'")) {
+            s.setString(1,Instant.now().toString());s.setInt(2,shopId);s.setLong(3,chrtId);s.setString(4,sha256);return s.executeUpdate()==1;
+        }catch(SQLException error){throw new RuntimeException(error);}
+    }
+    public void finishSignature(int shopId,long chrtId,boolean confirmed) {
+        try(var c=Database.getConnection();var s=c.prepareStatement("UPDATE znack_card_registration_signatures SET state=?,updated_at=? WHERE shop_id=? AND chrt_id=? AND (state='SENDING' OR (?=1 AND state='RECONCILE_REQUIRED'))")) {
+            s.setString(1,confirmed?"CONFIRMED":"RECONCILE_REQUIRED");s.setString(2,Instant.now().toString());s.setInt(3,shopId);s.setLong(4,chrtId);s.setInt(5,confirmed?1:0);s.executeUpdate();
+        }catch(SQLException error){throw new RuntimeException(error);}
     }
 
     public Status checkpointStatus(int shopId,long chrtId) {
@@ -204,8 +345,10 @@ public class ZnackCardRegistrationRepository {
     public Set<String> claimedGtins() {
         try (Connection connection = Database.getConnection();
              PreparedStatement statement = connection.prepareStatement("""
-                     SELECT DISTINCT gtin FROM znack_card_registrations
-                     WHERE TRIM(COALESCE(gtin, ''))<>''
+                     SELECT DISTINCT gtin FROM znack_card_registrations WHERE TRIM(COALESCE(gtin, ''))<>''
+                     UNION SELECT active_gtin FROM znack_card_registration_replacements
+                     UNION SELECT gtin FROM ozon_card_registrations WHERE gtin<>''
+                     UNION SELECT active_gtin FROM ozon_card_registrations WHERE active_gtin<>''
                      """)) {
             try (ResultSet result = statement.executeQuery()) {
                 Set<String> values = new LinkedHashSet<>();

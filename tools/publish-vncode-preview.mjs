@@ -1,3 +1,4 @@
+import {validateLicenseReadiness} from './license-release-gate.mjs';
 import assert from 'node:assert/strict';
 import {execFileSync} from 'node:child_process';
 import {createHash} from 'node:crypto';
@@ -87,6 +88,7 @@ async function main(runId,tag) {
  const status=json(await readFile(`docs/releases/VN-code-${VERSION}-status.json`));validatePreview(status,tag);assert.equal(status.version,VERSION);
  assert.equal(execFileSync('git',['status','--porcelain'],{encoding:'utf8'}).trim(),'','Require a clean checkout.');
  const sha=execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim();
+ if(productsRelease(VERSION))validateLicenseReadiness(status,json(await readFile('src/main/resources/com/vncode/app/license/trusted-keys.json')),json(await readFile(`docs/validation/VN-code-${VERSION}-license-acceptance.json`)),VERSION,sha);
  const run=api(`actions/runs/${runId}`),workflow=api('actions/workflows/build-java.yml');validateBuild(run,sha,workflow.id);
  const artifactName=`VN-code-${VERSION}-Windows-x64`;
  const artifacts=api(`actions/runs/${runId}/artifacts?per_page=100`).artifacts.filter(a=>a.name===artifactName&&!a.expired);

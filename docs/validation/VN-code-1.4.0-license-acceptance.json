@@ -1,0 +1,17 @@
+{
+  "version": "1.4.0",
+  "result": "blocked",
+  "sourceCommit": null,
+  "keyId": null,
+  "publicKey": null,
+  "backendSourceSha256": null,
+  "windowsDpapiPassed": false,
+  "foreignWindowsIdentityRejected": false,
+  "backendGmailApprovalPassed": false,
+  "deviceLimitConcurrencyPassed": false,
+  "activationRetryPassed": false,
+  "signedOfflinePassed": false,
+  "revocationPassed": false,
+  "readonlyDataPreserved": false,
+  "note": "Local fixture tests do not supply production Windows or backend acceptance."
+}

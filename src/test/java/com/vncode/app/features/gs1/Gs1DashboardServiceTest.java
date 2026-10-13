@@ -14,4 +14,14 @@ class Gs1DashboardServiceTest {
     @Test void environmentAndInnCacheIsolation(){var repo=new Gs1Repository(directory.resolve("gs1.db"));repo.saveMembership(member(List.of()),"production");var service=new Gs1DashboardService(repo);assertTrue(service.cached("7707083893","production").isPresent());assertTrue(service.cached("7707083893","sandbox").isEmpty());assertTrue(service.cached("7811089030","production").isEmpty());}
     @Test void legacyUnscopedMembershipIsNotTrustedAsScoped(){var repo=new Gs1Repository(directory.resolve("gs1.db"));repo.saveMembership(member(List.of()));assertTrue(new Gs1DashboardService(repo).cached("7707083893","production").isEmpty());}
     @Test void duplicatePrefixesDoNotInflateAllowance(){var service=new Gs1DashboardService(new Gs1Repository(directory.resolve("gs1.db")));var result=service.availability(member(List.of(new Gs1Membership.Prefix("4601234",100,List.of()),new Gs1Membership.Prefix("4601234",100,List.of()))),today);assertEquals(100,result.available().orElseThrow());}
+    @Test void deniedFreshMembershipStopsBeforeLoginAndLeavesCacheAvailable()throws Exception {
+        var repository=new Gs1Repository(directory.resolve("gs1.db"));repository.saveMembership(member(List.of()),"production");var dashboard=new Gs1DashboardService(repository);
+        var previous=com.vncode.app.features.license.LicenseRuntime.service();var calls=new java.util.concurrent.atomic.AtomicInteger();
+        try(var denied=com.vncode.app.features.license.LicenseDomainFixture.denied(directory.resolve("license"))){
+            com.vncode.app.features.license.LicenseRuntime.install(denied);
+            assertThrows(com.vncode.app.features.license.LicenseGate.LicenseDeniedException.class,()->dashboard.readFresh(()->{calls.incrementAndGet();return member(List.of());}));
+            assertEquals(0,calls.get());assertTrue(dashboard.cached("7707083893","production").isPresent());
+        }finally{com.vncode.app.features.license.LicenseRuntime.install(previous);}
+    }
+
 }

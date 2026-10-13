@@ -10,6 +10,9 @@ import java.sql.Connection;
 import java.sql.Statement;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 class KizServiceTest {
     private static final char GS = 0x1D;
@@ -37,6 +40,13 @@ class KizServiceTest {
         assertEquals(raw, KizService.scannerSafeCode(raw));
         assertEquals("", KizService.scannerSafeCode(""));
         assertNull(KizService.scannerSafeCode(null));
+    }
+
+    @Test void thousandMetadataOrdersUseTenBoundedBatchesAndRejectCrossBatchScope()throws Exception{
+        List<Long> ids=new ArrayList<>();for(long id=1;id<=1000;id++)ids.add(id);ids.add(1L);ids.add(null);ids.add(-1L);
+        var calls=new AtomicInteger();Set<Long> queried=new HashSet<>();
+        var result=KizService.getSgtinMetadata(ids,batch->{calls.incrementAndGet();assertTrue(batch.size()<=100);Map<Long,KizService.SgtinMetadata> response=new HashMap<>();for(Long id:batch){assertTrue(queried.add(id));response.put(id,new KizService.SgtinMetadata(true,"fixture-value"));}response.put(9999L,new KizService.SgtinMetadata(true,"other-shop-value"));return response;});
+        assertEquals(10,calls.get());assertEquals(1000,result.size());assertNull(result.get(9999L));
     }
 
 }

@@ -1,0 +1,28 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "vncode-portal",
+  "main": "./src/worker.js",
+  "compatibility_date": "2026-10-10",
+  "triggers": {"crons": ["* * * * *"]},
+  "assets": {
+    "directory": "./public",
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application",
+    "run_worker_first": [
+      "/api/*"
+    ]
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "vncode-accounts",
+      "database_id": "de89deb3-808d-42ff-b389-3c07d6b69bf1"
+    }
+  ],
+  "vars": {
+    "REQUIRE_EMAIL_VERIFICATION": "0",
+    "EMAIL_FROM": "no-reply@vncode.id.vn",
+    "PUBLIC_BASE_URL": "https://vncode.id.vn",
+    "LICENSE_KEY_ID": "vncode-1"
+  }
+}

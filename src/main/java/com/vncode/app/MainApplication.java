@@ -20,9 +20,11 @@ import java.io.IOException;
 
 public class MainApplication extends Application {
     private HomeController homeController;
+    private final com.vncode.app.features.gs1.Gs1AutoReminderScheduler gs1Reminders=new com.vncode.app.features.gs1.Gs1AutoReminderScheduler();
 
     @Override
     public void start(Stage stage) throws IOException {
+        com.vncode.app.features.license.LicenseRuntime.bootstrap();
         FXMLLoader fxmlLoader = new FXMLLoader(MainApplication.class.getResource("/com/vncode/app/ui/workspace/home-view.fxml"));
         Scene scene = new Scene(fxmlLoader.load());
         homeController = fxmlLoader.getController();
@@ -34,7 +36,11 @@ public class MainApplication extends Application {
         Image appIcon = new Image(MainApplication.class.getResourceAsStream("/com/vncode/app/assets/images/logo.png"));
         stage.getIcons().add(appIcon);
         stage.setOnCloseRequest(event -> {
-            boolean hasBackgroundWork = AppTaskExecutor.hasRunningTasks() || KizAttachmentCoordinator.getInstance().hasActiveJobs();
+            boolean hasBackgroundWork = AppTaskExecutor.hasRunningTasks() || com.vncode.app.shared.ShopBatchRegistry.hasWork() || KizAttachmentCoordinator.getInstance().hasActiveJobs()
+                    || com.vncode.app.features.license.LicenseRuntime.hasPendingTasks()
+                    || com.vncode.app.integration.znack.registration.ZnackCardRegistrationWorkflow.hasActiveJobs()
+                    || com.vncode.app.integration.znack.registration.OzonCardRegistrationWorkflow.hasActiveJobs();
+            if(!hasBackgroundWork&&!gs1Reminders.tryStop())hasBackgroundWork=true;
             if (hasBackgroundWork) {
                 event.consume();
                 I18nService i18n = I18nService.getInstance();
@@ -48,11 +54,13 @@ public class MainApplication extends Application {
 
         stage.setScene(scene);
         stage.show();
+        gs1Reminders.start();
         com.vncode.app.shared.RuntimeDiagnostics.startPulseMonitor();
     }
 
     @Override
     public void stop() {
+        gs1Reminders.close();
         com.vncode.app.shared.RuntimeDiagnostics.stopPulseMonitor();
         if (homeController != null) {
             homeController.dispose();
@@ -60,5 +68,6 @@ public class MainApplication extends Application {
         WbSupplyWorkflow.shutdownImageLoader();
         AppTaskExecutor.shutdown();
         FinanceExecutor.shutdown();
+        com.vncode.app.features.license.LicenseRuntime.close();
     }
 }

@@ -29,6 +29,21 @@ public final class ListingCopyRepository {
         try(var p=c.prepareStatement("UPDATE listing_copy_jobs SET state=?,payload=?,updated_at=?,summary=? WHERE destination_shop_id=? AND id=? AND state=?")){p.setString(1,job.state().name());p.setString(2,ProductJson.GSON.toJson(job));p.setString(3,job.updatedAt().toString());p.setString(4,ProductJson.GSON.toJson(job.summary()));p.setInt(5,job.destinationShopId());p.setString(6,job.id());p.setString(7,existing.get().state().name());if(p.executeUpdate()!=1){c.rollback();return false;}}
         event(c,job,job.submission()==null?"CARD":job.submission().phase());if(job.state()==CopyState.RECONCILED||job.state()==CopyState.FAILED)try(var p=c.prepareStatement("DELETE FROM listing_copy_articles WHERE job_id=?")){p.setString(1,job.id());p.executeUpdate();}c.commit();return true;
     }catch(SQLException e){throw new IllegalStateException("Cannot checkpoint listing job");}}
+    /** Releases only this owner's claimed CARD request when no HTTP submission has started. */
+    public boolean releaseUnsent(CopyJob sending,String hash){
+        if(sending.state()!=CopyState.SENDING||sending.submission()!=null||sending.preview()==null||!sending.preview().requestHash().equals(hash))return false;
+        var next=sending.with(CopyState.AWAITING_CONFIRMATION,sending.source(),sending.options(),sending.preview(),null,sending.issues());
+        try(var c=Database.getConnection()){
+            c.setAutoCommit(false);
+            try(var p=c.prepareStatement("""
+              UPDATE listing_copy_jobs SET state='AWAITING_CONFIRMATION',payload=?,updated_at=?,summary=?
+              WHERE destination_shop_id=? AND id=? AND owner=? AND source_owner=? AND state='SENDING' AND approved_hash=?
+                AND json_extract(payload,'$.submission') IS NULL
+              """)){p.setString(1,ProductJson.GSON.toJson(next));p.setString(2,next.updatedAt().toString());p.setString(3,ProductJson.GSON.toJson(next.summary()));p.setInt(4,next.destinationShopId());p.setString(5,next.id());p.setString(6,next.destinationOwner());p.setString(7,next.sourceOwner());p.setString(8,hash);if(p.executeUpdate()!=1){c.rollback();return false;}}
+            try(var p=c.prepareStatement("DELETE FROM listing_copy_articles WHERE job_id=?")){p.setString(1,next.id());p.executeUpdate();}
+            event(c,next,"CARD");c.commit();return true;
+        }catch(SQLException e){throw new IllegalStateException("Cannot release unsent listing copy");}
+    }
     public boolean claimAssets(CopyJob prior,RemoteSubmission submission){
         if(prior.submission()!=null&&!prior.submission().phase().equals("CARD"))return false;var next=prior.with(CopyState.SENDING,prior.source(),prior.options(),prior.preview(),submission,List.of());
         try(var c=Database.getConnection()){

@@ -1,6 +1,8 @@
 package com.vncode.app.features.gtinsync;
 import com.vncode.app.integration.marketplace.Marketplace;
 import com.vncode.app.features.shop.ShopRepository;
+import com.vncode.app.features.license.LicenseModels.Permission;
+import com.vncode.app.features.license.LicenseRuntime;
 public final class RegisteredGtinSyncService {
     private final RegisteredGtinSource source;
     private final GtinSyncRepository repository;
@@ -8,6 +10,7 @@ public final class RegisteredGtinSyncService {
     public void refresh(int shopId,Marketplace marketplace) throws Exception {
         var shop=new ShopRepository().findById(shopId);
         if(shop==null || shop.getMarketplace()!=marketplace) throw new IllegalArgumentException("shop_mismatch");
+        LicenseRuntime.require(Permission.SELLER_API);
         var complete=source.read(shopId);
         repository.saveCatalog(shopId,marketplace,complete);
     }

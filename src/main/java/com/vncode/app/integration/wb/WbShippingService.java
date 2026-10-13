@@ -1,6 +1,8 @@
 package com.vncode.app.integration.wb;
 
 import com.vncode.app.integration.marketplace.MarketplaceGuard;
+import com.vncode.app.features.license.LicenseModels.Permission;
+import com.vncode.app.features.license.LicenseRuntime;
 import com.vncode.app.models.Shop;
 import java.io.IOException;
 import java.time.Clock;
@@ -38,8 +40,15 @@ public final class WbShippingService {
                 record(shop,original,"reconciled",previous.requestJson(),null);
             }
             if(matches(before,parameters)){record(shop,parameters,"reconciled",request,null);return;}
+            LicenseRuntime.require(Permission.PACKING);
             record(shop,parameters,"pending",request,null);
-            try {api.setSupplyShipping(shop.getApiKey(),parameters,clock);}
+            try {
+                try {LicenseRuntime.require(Permission.PACKING);}
+                catch(com.vncode.app.features.license.LicenseGate.LicenseDeniedException denied){
+                    record(shop,parameters,"rejected",request,"LICENSE_REQUIRED");throw denied;
+                }
+                api.setSupplyShipping(shop.getApiKey(),parameters,clock);
+            }
             catch(IOException error) {
                 if(error instanceof WbApiException wb&&wb.getStatusCode()>=400&&wb.getStatusCode()<500&&wb.getStatusCode()!=408) {
                     record(shop,parameters,"rejected",request,"WB_HTTP_"+wb.getStatusCode());throw error;

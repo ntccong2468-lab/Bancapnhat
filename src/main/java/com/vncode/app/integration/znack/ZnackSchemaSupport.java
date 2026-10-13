@@ -30,6 +30,9 @@ public final class ZnackSchemaSupport {
         migrateInventoryStatuses(connection);
         enforceGlobalCodeUniqueness(connection);
         normalizeGtins(connection);
+        try(Statement statement=connection.createStatement()){
+            statement.execute("CREATE INDEX IF NOT EXISTS idx_kiz_codes_available_circulation ON kiz_codes(shop_id,gtin,id) WHERE status='AVAILABLE' AND legal_status='IN_CIRCULATION'");
+        }
     }
 
     private static void migrateLegacy(Connection c) throws SQLException {

@@ -1,5 +1,8 @@
 package com.vncode.app.integration.ozon;
 
+import com.vncode.app.features.license.LicenseRuntime;
+import com.vncode.app.features.license.LicenseGate.LicenseDeniedException;
+import static com.vncode.app.features.license.LicenseModels.Permission.SELLER_API;
 import java.io.IOException;
 import java.time.Duration;
 import java.time.Instant;
@@ -38,6 +41,7 @@ public final class OzonPostingSyncService {
     }
 
     public OzonSyncReport sync() throws IOException {
+        LicenseRuntime.require(SELLER_API);
         Instant end = Instant.now();
         Instant start = startFor(state.find(shopId), end);
         int postingCount = 0;
@@ -45,6 +49,7 @@ public final class OzonPostingSyncService {
         String cursor = "";
         try {
             for (int pageNumber = 0; pageNumber < MAX_PAGES; pageNumber++) {
+                LicenseRuntime.require(SELLER_API);
                 OzonJson.PostingPage page = OzonJson.parsePostingPage(
                         api.listPostings(start.toString(), end.toString(), cursor, PAGE_SIZE));
                 postings.upsertPage(shopId, page.postings());
@@ -60,6 +65,8 @@ public final class OzonPostingSyncService {
                 cursor = page.cursor();
             }
             throw new IOException("Ozon postings exceeded the safe pagination bound.");
+        } catch (LicenseDeniedException paused) {
+            throw paused;
         } catch (OzonApiException exception) {
             state.recordSafeError(shopId, exception.kind());
             throw exception;
@@ -74,6 +81,7 @@ public final class OzonPostingSyncService {
 
     /** Refreshes Ozon's current actionable FBS queue, including changes made outside VN code. */
     public int syncUnfulfilled() throws IOException {
+        LicenseRuntime.require(SELLER_API);
         Instant now = Instant.now();
         String cutoffFrom = now.minus(ACTIVE_CUTOFF_PAST).toString();
         String cutoffTo = now.plus(ACTIVE_CUTOFF_FUTURE).toString();
@@ -81,6 +89,7 @@ public final class OzonPostingSyncService {
         String cursor = "";
         try {
             for (int pageNumber = 0; pageNumber < MAX_PAGES; pageNumber++) {
+                LicenseRuntime.require(SELLER_API);
                 OzonJson.PostingPage page = OzonJson.parsePostingPage(api.listUnfulfilledPostings(
                         cutoffFrom, cutoffTo, cursor, PAGE_SIZE));
                 postings.upsertPage(shopId, page.postings());
@@ -94,6 +103,8 @@ public final class OzonPostingSyncService {
                 cursor = page.cursor();
             }
             throw new IOException("Ozon unfulfilled postings exceeded the safe pagination bound.");
+        } catch (LicenseDeniedException paused) {
+            throw paused;
         } catch (OzonApiException exception) {
             state.recordSafeError(shopId, exception.kind());
             throw exception;
@@ -117,11 +128,12 @@ public final class OzonPostingSyncService {
      * queue discovery, but the detail response is the authority used for KIZ requirements.
      */
     public int refreshActiveDetails() throws IOException {
+        LicenseRuntime.require(SELLER_API);
         int refreshed = 0;String cursor="";
         for(int page=0;page<MAX_PAGES;page++){
             List<String> active=postings.findActiveNumbersAfter(shopId,cursor,PAGE_SIZE);
             if(active.isEmpty())return refreshed;
-            for(String number:active){if(Thread.currentThread().isInterrupted())throw new IOException("Ozon detail refresh interrupted");refresh(number,false);refreshed++;}
+            for(String number:active){if(Thread.currentThread().isInterrupted())throw new IOException("Ozon detail refresh interrupted");LicenseRuntime.require(SELLER_API);refresh(number,false);refreshed++;}
             cursor=active.getLast();
         }
         throw new IOException("Ozon active detail pagination limit exceeded");

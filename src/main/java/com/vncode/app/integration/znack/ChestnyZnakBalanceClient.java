@@ -24,6 +24,7 @@ public final class ChestnyZnakBalanceClient {
  public ChestnyZnakBalanceClient(){this(new OkHttpClient(),PRODUCTION,uri->"https".equals(uri.getScheme())&&"markirovka.crpt.ru".equals(uri.getHost())&&(uri.getPort()==-1||uri.getPort()==443));}
  public ChestnyZnakBalanceClient(OkHttpClient http,URI root,Predicate<URI> allowed){this.root=Objects.requireNonNull(root);this.allowed=Objects.requireNonNull(allowed);var builder=http.newBuilder().connectTimeout(Duration.ofSeconds(10)).readTimeout(Duration.ofSeconds(20)).callTimeout(Duration.ofSeconds(30)).followRedirects(false).followSslRedirects(false).retryOnConnectionFailure(false).cookieJar(CookieJar.NO_COOKIES).authenticator(Authenticator.NONE).proxyAuthenticator(Authenticator.NONE);builder.interceptors().clear();builder.networkInterceptors().clear();this.http=builder.build();if(!safe(root))throw new IllegalArgumentException("Unverified ELK origin");}
  public ServiceSession authenticate(String inn,String fingerprint,ZnackSignatureProvider signer)throws IOException {
+  com.vncode.app.features.license.LicenseRuntime.require(com.vncode.app.features.license.LicenseModels.Permission.GS1);
   Gs1Membership.requireInn(inn);if(fingerprint==null||!fingerprint.matches("[A-Fa-f0-9]{40}"))throw unavailable();
   JsonObject login=loginChallenge(inn,false,signer);
   if(login.has("organisations")) {
@@ -43,6 +44,7 @@ public final class ChestnyZnakBalanceClient {
   return readAccounts(session).stream().filter(value->value.scope().equals(scope)).findFirst().orElseThrow(ChestnyZnakBalanceClient::unavailable);
  }
  public List<BalanceSnapshot> readAccounts(ServiceSession session)throws IOException {
+  com.vncode.app.features.license.LicenseRuntime.require(com.vncode.app.features.license.LicenseModels.Permission.GS1);
   verifyProfile(session);JsonElement response=call(BALANCE,session.token(),null);try{
    if(!response.isJsonArray()||response.getAsJsonArray().size()>1000)throw unavailable();var result=new ArrayList<BalanceSnapshot>();var seen=new HashSet<BalanceScope>();
    for(var entry:response.getAsJsonArray()) {

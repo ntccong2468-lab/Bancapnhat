@@ -2,6 +2,8 @@ package com.vncode.app.integration.wb;
 
 import com.vncode.app.features.print.history.ImageCacheRepository;
 import com.vncode.app.features.print.history.PrintHistoryService;
+import com.vncode.app.features.license.LicenseModels.Permission;
+import com.vncode.app.features.license.LicenseRuntime;
 import com.vncode.app.integration.marketplace.MarketplaceGuard;
 import com.vncode.app.models.Order;
 import com.vncode.app.models.Shop;
@@ -43,6 +45,7 @@ public class WbSupplyWorkflow {
 
     public void deleteEmptySupply(Shop shop, String supplyId) throws IOException {
         MarketplaceGuard.requireWildberries(shop);
+        LicenseRuntime.require(Permission.PACKING);
         if (supplyId == null || !supplyId.matches("[A-Za-z0-9-]{1,128}")) {
             throw new IllegalArgumentException("Invalid Wildberries supply ID");
         }
@@ -54,6 +57,7 @@ public class WbSupplyWorkflow {
         if (!remoteOrderIds.isEmpty()) {
             throw new WbSupplyNotEmptyException();
         }
+        LicenseRuntime.require(Permission.PACKING);
         api.deleteSupply(shop.getApiKey(), supplyId);
         supplyRepository.deleteSupply(shop.getId(), supplyId);
     }

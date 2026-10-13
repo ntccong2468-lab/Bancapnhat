@@ -15,6 +15,7 @@ import com.vncode.app.features.print.PrintTemplateService;
 import com.vncode.app.models.Shop;
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 /** Appends one 58 x 40 mm physical DataMatrix label for each accepted Ozon exemplar. */
 final class OzonKizLabelAppender {
@@ -28,11 +29,18 @@ final class OzonKizLabelAppender {
             Shop shop,
             OzonPostingDto posting,
             List<OzonExemplarJobRepository.KizBinding> bindings) throws IOException {
-        List<OzonProductDto> products = catalog.findAll(shop.getId());
+        return append(document, shop, posting, bindings, catalog.findBySkus(shop.getId(),
+                posting.items().stream().map(OzonPostingItemDto::sku).distinct().toList()));
+    }
+
+    int append(
+            PdfDocument document, Shop shop, OzonPostingDto posting,
+            List<OzonExemplarJobRepository.KizBinding> bindings, Map<String, OzonProductDto> products)
+            throws IOException {
         int appended = 0;
         for (OzonExemplarJobRepository.KizBinding binding : bindings) {
             OzonPostingItemDto item = item(posting, binding.itemIndex());
-            OzonProductDto product = findProduct(products, item);
+            OzonProductDto product = products.get(item.sku());
             String code = KizService.scannerSafeCode(binding.rawCode());
             if (code == null || code.isBlank()) {
                 throw new IOException("An accepted Ozon exemplar has no printable KIZ.");
@@ -58,14 +66,6 @@ final class OzonKizLabelAppender {
             canvas.add(text(compact(name, 56), 72, 62, WIDTH - 78, 8, true));
             canvas.add(text("Article: " + compact(article, 30), 72, 38, WIDTH - 78, 7, true));
         }
-    }
-
-    private static OzonProductDto findProduct(List<OzonProductDto> products, OzonPostingItemDto item) {
-        return products.stream().filter(product ->
-                (!item.productId().isBlank() && item.productId().equals(product.productId()))
-                        || (!item.sku().isBlank() && item.sku().equals(product.sku()))
-                        || (!item.offerId().isBlank() && item.offerId().equals(product.offerId())))
-                .findFirst().orElse(null);
     }
 
     private static Paragraph text(

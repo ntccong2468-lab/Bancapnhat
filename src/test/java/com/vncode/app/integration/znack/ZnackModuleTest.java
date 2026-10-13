@@ -322,7 +322,10 @@ class ZnackModuleTest {
                 """).getFirst();
         assertEquals("abc",certificate.selector());
         assertTrue(certificate.hasPrivateKey());
-        assertEquals("ООО Example / INN 7701234567 / 01.01.2027", certificate.displayName());
+        assertEquals("Example",certificate.organizationName());
+        assertEquals("7701234567",certificate.inn());
+        assertEquals("Example / INN 7701234567 / 01.01.2027", certificate.displayName(),
+                "A company account displays O rather than a potentially personal CN");
         assertEquals(ZnackSafety.UNVERIFIED_SIGNATURE,
                 assertThrows(IllegalStateException.class,()->ZnackSafety.requireSigned(
                         new Settings("","","","connection","","","","signer","cert","[]","","","",false),true)).getMessage());

@@ -156,6 +156,21 @@ public final class GtinSyncRepository {
             return null;
         });
     }
+    /** Called only before submit: a denied lease is known-unsent, never a remote ambiguity. */
+    void pauseKnownUnsent(UUID itemId) {
+        transaction(c -> {
+            var item=itemFor(c,itemId);var key=item.preview().before().key();requireShop(c,key.shopId(),key.marketplace());
+            if(item.status()!=Status.VALIDATING && item.status()!=Status.SENDING)return null;
+            if(item.remoteTaskId()!=null && !item.remoteTaskId().isBlank())throw new IllegalStateException("already_submitted");
+            try(var p=c.prepareStatement("UPDATE gtin_sync_items SET status='QUEUED',updated_at=? WHERE id=? AND status=? AND COALESCE(remote_task_id,'')=''")) {
+                p.setString(1,Instant.now().toString());p.setString(2,itemId.toString());p.setString(3,item.status().name());
+                if(p.executeUpdate()!=1)return null;
+            }
+            event(c,itemId,Status.QUEUED);
+            try(var p=c.prepareStatement("UPDATE gtin_sync_jobs SET paused=1 WHERE id=?")) {p.setString(1,item.jobId().toString());p.executeUpdate();}
+            return null;
+        });
+    }
     public void pause(UUID jobId, boolean paused) {
         transaction(c -> { requireJob(c,jobId);try(var p=c.prepareStatement("UPDATE gtin_sync_jobs SET paused=? WHERE id=?")) {p.setInt(1,paused?1:0);p.setString(2,jobId.toString());p.executeUpdate();}return null; });
     }

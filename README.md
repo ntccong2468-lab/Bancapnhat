@@ -4,15 +4,31 @@
 
 Repository này chứa các bản cập nhật của cùng ứng dụng VN code, giữ định danh bộ cài và dữ liệu đã cài.
 
+
+GS1 1.4.0 đã bổ sung bảng kiểm tra/cảnh báo, danh tính chứng thư CMS thực,
+phí gia nhập/phục hồi và bảo vệ đơn đã gửi; hồ sơ tự lấy từ National Catalog,
+đơn Word do seller cung cấp tự điền/tải/ký thành PDF hoặc đính kèm PDF/ảnh giấy.
+Xin tiền tố 999/99.999 mã kiểm tra mọi hạn mức trước gửi; tự nhắc một lần sau
+7 ngày có duyệt. Xem
+[phạm vi GS1 và điều kiện còn thiếu](docs/releases/VN-code-1.4.0.md).
+Mẫu Word cá nhân không đóng gói; ký thỏa thuận CZ trong app và nghiệm thu thật
+chưa hoàn tất; chưa phát hành EXE 1.4.0.
+
+Đã đối chiếu thêm [Wbcode 1.3.8 và hai màn hình Cấu hình/Đăng ký Znack](docs/research/2026-10-13-vn-code-wbcode-138-znack-audit.md):
+đã bổ sung thông tin tài khoản, scope đăng ký, giấy tờ sản phẩm và thẻ mới giữ GTIN cũ.
+GTIN ADD WB/Ozon có hợp đồng/fixture, chưa nghiệm thu seller thật.
+[Báo cáo hiệu năng mới](docs/validation/2026-10-14-vn-code-140-scaling.md) và
+[kiến trúc mỗi khách một máy](docs/architecture/vncode-140-multi-client.md).
+
 ## Tải và sử dụng
 
-**VN code 1.4.0 đang phát triển, chưa phát hành bộ cài.** [Thiết kế tài khoản/offline/thiết bị đã duyệt](docs/superpowers/specs/2026-10-12-vn-code-web-license-design.md), [kế hoạch tích hợp Windows để rà soát](docs/superpowers/plans/2026-10-12-vn-code-account-license-client.md) và [đầu vào backend còn thiếu](docs/research/2026-10-12-vn-code-license-backend-intake.md).
+**VN code 1.4.0 đang phát triển, chưa phát hành bộ cài.** Đã viết client đăng ký Gmail/OTP và kích hoạt bằng khóa VNC, giao diện bốn ngôn ngữ và kiểm tra quyền tại service. [Hợp đồng license và giới hạn](docs/research/2026-10-13-vn-code-desktop-license-contract.md). Còn cần public pin thật, deploy/nghiệm thu website và Windows; publisher chặn khi thiếu bằng chứng.
 
-Địa chỉ dự kiến khi hoàn tất kiểm tra: [VN code 1.4.0 Preview — Windows x64](https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.4.0-preview.1/VN-code-1.4.0-preview.1-Windows-x64.exe) · [release dự kiến](https://github.com/ntccong2468-lab/Bancapnhat/releases/tag/v1.4.0-preview.1).
+Bản đã phát hành gần nhất: [VN code 1.3.0 Preview](https://github.com/ntccong2468-lab/Bancapnhat/releases/tag/v1.3.0-preview.1).
 
 Đóng VN code rồi chạy EXE để nâng cấp. Java được đóng gói kèm. Bộ cài chưa ký Authenticode; bản Preview cài thủ công và chưa bật tự cập nhật. Bản trước: [VN code 1.1.34](https://github.com/ntccong2468-lab/Vncode/releases/tag/v1.1.34).
 
-Chương trình dùng `%LOCALAPPDATA%\VNcodeApp`, dữ liệu dùng `%LOCALAPPDATA%\VNcodeData`. Các bản cá nhân đã phát hành giữ quyền miễn phí. Bản 1.4.0 dự kiến dùng tài khoản website và quyền do chủ phần mềm duyệt/gia hạn/khóa; phần này chờ mã backend để tích hợp. Người dùng thiết lập shop, tài khoản nghiệp vụ và chứng thư của mình. Nâng cấp giữ dữ liệu, mẫu tem và lịch sử VN code.
+Chương trình dùng `%LOCALAPPDATA%\VNcodeApp`, dữ liệu dùng `%LOCALAPPDATA%\VNcodeData`. Các bản cá nhân đã phát hành giữ quyền miễn phí. Bản 1.4.0 dùng Gmail đăng ký trong ứng dụng, chủ phần mềm duyệt và cấp khóa; tích hợp production còn chờ public pin, triển khai Portal và nghiệm thu. Người dùng thiết lập shop, tài khoản nghiệp vụ và chứng thư của mình. Nâng cấp giữ dữ liệu, mẫu tem và lịch sử VN code.
 
 ## Chức năng
 
@@ -33,7 +49,13 @@ Bước D2 tại cloud Linux đạt **798 kiểm thử Java/JavaFX và 33 kiểm
 
 Sau sửa lỗi review ngày 12/10/2026, `clean verify` đạt **822 kiểm thử Java/JavaFX**, bộ công cụ đạt **39 kiểm thử**, không lỗi hoặc bỏ qua. Xem [bằng chứng và giới hạn](docs/validation/2026-10-12-vn-code-review-corrections.md).
 
-Chưa nghiệm thu bằng chứng thư doanh nghiệp, SMTP/IMAP, shop hoặc máy in thật; chưa đo Windows 2 CPU/4 GiB. Luồng thêm/thay GTIN production độc lập còn khóa; FBO GTIN/KIZ và các phần ngoài đợt Products/Copy/10-shop chưa được công bố hoàn tất. Xem [hướng dẫn bản 1.4.0](docs/releases/VN-code-1.4.0.md) và [phạm vi còn cần nghiệm thu](docs/releases/VN-code-1.4.0-status.json).
+Chưa nghiệm thu bằng chứng thư doanh nghiệp, SMTP/IMAP, shop hoặc máy in thật; chưa đo Windows 2 CPU/4 GiB. GTIN ADD WB/Ozon chưa nghiệm thu trên shop thật, thay/xóa barcode sàn chưa mở; FBO GTIN/KIZ và các phần ngoài đợt Products/Copy/10-shop chưa được công bố hoàn tất. Xem [hướng dẫn bản 1.4.0](docs/releases/VN-code-1.4.0.md) và [phạm vi còn cần nghiệm thu](docs/releases/VN-code-1.4.0-status.json).
+
+Đợt client license mới: **920/921 kiểm thử Java/JavaFX đạt** (1 kiểm thử DPAPI chưa chạy trên Linux), **42 kiểm thử công cụ đạt**. [Bằng chứng và cổng production còn thiếu](docs/validation/2026-10-13-vn-code-license-client.md). Các con số ở trên là kết quả các đợt cũ, không chứng minh nghiệm thu license thật.
+
+Source website đăng ký/license Portal 0.3.1 nằm tại [website/license-portal](website/license-portal/README.md); chưa triển khai production.
+
+Đợt Znack/Ozon và nhiều máy khách: **1.174/1.175 Java/JavaFX đạt** (1 DPAPI chỉ chạy Windows), **42/42 công cụ**, **28/28 website**; JAR Linux khởi động được. [Bằng chứng và số đo](docs/validation/2026-10-14-vn-code-140-scaling.md).
 
 ## Công nghệ và phát triển
 

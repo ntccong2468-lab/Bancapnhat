@@ -187,6 +187,7 @@ public class Database {
             WbSchemaSupport.initialize(conn);
             ZnackSchemaSupport.initialize(conn);
             ZnackCardRegistrationSchema.initialize(conn);
+            com.vncode.app.integration.znack.registration.OzonCardRegistrationRepository.initialize(conn);
             OzonSchemaSupport.initialize(conn);
             com.vncode.app.features.gtinsync.GtinSyncSchema.initialize(conn);
             com.vncode.app.features.products.ProductSchema.ensureTables(conn);

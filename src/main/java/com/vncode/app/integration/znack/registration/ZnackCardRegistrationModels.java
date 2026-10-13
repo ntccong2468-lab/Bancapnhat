@@ -26,7 +26,7 @@ public final class ZnackCardRegistrationModels {
         ERROR
     }
 
-    public enum RegistrationAction { REGISTER, REQUEST_NEW_GTIN, RESUME }
+    public enum RegistrationAction { REGISTER, REQUEST_NEW_GTIN, RESUME, REGISTER_NEW, SIGN_APPROVED }
 
     public record Sku(long nmId, long chrtId, int subjectId, String vendorCode, String subjectName, String brand,
                       String title, String color, String size, List<String> barcodes, String imageUrl,
@@ -52,6 +52,13 @@ public final class ZnackCardRegistrationModels {
         }
 
         public boolean hasGtin() { return gtin != null && !gtin.isBlank(); }
+
+        public boolean canRegisterNew() { return status == Status.PUBLISHED && hasGtin(); }
+
+        public boolean canSignApproved() {
+            return hasGtin() && hasFeed() && (status == Status.READY_TO_SIGN || status == Status.SIGNING
+                    || status == Status.PROCESSING || status == Status.FEED_SUBMITTED);
+        }
 
         public boolean needsGtinReview() {
             return !hasIdentity() && (status == Status.CHECKING || status == Status.ALLOCATING_GTIN

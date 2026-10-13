@@ -1,5 +1,8 @@
 package com.vncode.app.features.gtinsync;
 
+import com.vncode.app.features.license.LicenseGate.LicenseDeniedException;
+import com.vncode.app.features.license.LicenseModels.Permission;
+import com.vncode.app.features.license.LicenseRuntime;
 import java.time.*;
 import java.util.*;
 import java.util.function.Function;
@@ -21,7 +24,9 @@ public final class GtinSyncCoordinator {
     }
     public UUID confirm(List<Preview> selection) throws Exception {
         if(selection.isEmpty())throw new IllegalArgumentException("empty_selection");
+        LicenseRuntime.require(Permission.GTIN);
         for(var p:selection) validate(p);
+        LicenseRuntime.require(Permission.GTIN);
         return repository.createJob(selection);
     }
     private void validate(Preview p) throws Exception {
@@ -37,18 +42,30 @@ public final class GtinSyncCoordinator {
             if(Thread.currentThread().isInterrupted())return;
             if(item.status()==Status.AWAITING_VERIFICATION || item.status()==Status.RECONCILE_REQUIRED){reconcile(item.id());publish(progress,item.id());continue;}
             if(item.status()!=Status.QUEUED || repository.paused(item.jobId()))continue;
+            try{LicenseRuntime.require(Permission.GTIN);}
+            catch(LicenseDeniedException denied){repository.pause(item.jobId(),true);publish(progress,item.id());continue;}
             if(!repository.transition(item.id(),Status.QUEUED,Status.VALIDATING,null))continue;
             try{validate(item.preview());}
+            catch(LicenseDeniedException denied){repository.pauseKnownUnsent(item.id());publish(progress,item.id());continue;}
             catch(Exception e){repository.transition(item.id(),Status.VALIDATING,Status.FAILED,null);publish(progress,item.id());continue;}
             if(repository.paused(item.jobId())){repository.transition(item.id(),Status.VALIDATING,Status.QUEUED,null);publish(progress,item.id());continue;}
+            try{LicenseRuntime.require(Permission.GTIN);}
+            catch(LicenseDeniedException denied){repository.pauseKnownUnsent(item.id());publish(progress,item.id());continue;}
             if(!repository.transition(item.id(),Status.VALIDATING,Status.SENDING,null)) {
                 // A pause may win after the check above. Requeue only if cancellation has not won.
                 repository.transition(item.id(),Status.VALIDATING,Status.QUEUED,null);continue;
             }
             publish(progress,item.id());
+            // This check follows the observer/queue boundary and stays outside the ambiguous-send catch.
+            try{LicenseRuntime.require(Permission.GTIN);}
+            catch(LicenseDeniedException denied){repository.pauseKnownUnsent(item.id());publish(progress,item.id());continue;}
             try {
                 var submission=adapters.apply(item.preview().before().key()).submit(item.preview());
                 repository.transition(item.id(),Status.SENDING,Status.AWAITING_VERIFICATION,submission.remoteTaskId());
+            }catch(GtinKnownUnsentException knownUnsent){
+                repository.pauseKnownUnsent(item.id());publish(progress,item.id());
+                if(Thread.currentThread().isInterrupted())return;
+                continue;
             }catch(Exception e){
                 repository.transition(item.id(),Status.SENDING,Status.RECONCILE_REQUIRED,null);
                 if(e instanceof InterruptedException){Thread.currentThread().interrupt();publish(progress,item.id());return;}
@@ -62,7 +79,12 @@ public final class GtinSyncCoordinator {
         catch(RuntimeException ignored){/* Display callbacks never decide mutation outcomes; persisted history is authoritative. */}
     }
     public void pause(UUID jobId){repository.pause(jobId,true);}
-    public void resume(UUID jobId){repository.pause(jobId,false);}
+    public void resume(UUID jobId){
+        var items=jobItems(jobId);
+        if(items.stream().anyMatch(item->item.status()==Status.QUEUED || item.status()==Status.VALIDATING))
+            LicenseRuntime.require(Permission.GTIN);
+        repository.pause(jobId,false);
+    }
     public void cancelQueued(UUID jobId) {
         repository.pause(jobId,true);
         // A concurrent transition to SENDING wins over cancellation; already-sent work is untouched.

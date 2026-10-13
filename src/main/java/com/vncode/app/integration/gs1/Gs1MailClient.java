@@ -1,6 +1,9 @@
 package com.vncode.app.integration.gs1;
 
 import com.vncode.app.features.gs1.Gs1Repository;
+import com.vncode.app.features.license.LicenseGate.LicenseDeniedException;
+import com.vncode.app.features.license.LicenseModels.Permission;
+import com.vncode.app.features.license.LicenseRuntime;
 import com.vncode.app.shared.WindowsSecretProtector;
 import jakarta.mail.*;
 import jakarta.mail.internet.*;
@@ -39,17 +42,27 @@ public final class Gs1MailClient {
     public static final class NotSentException extends IOException {
         public NotSentException(){super("GS1 mail was not sent; check TLS account settings");}
     }
+    @FunctionalInterface public interface BeforeSend {void check()throws IOException;}
     public void send(Gs1MailAccount account,Letter letter)throws IOException{
+        send(account,letter,()->{});
+    }
+    public void send(Gs1MailAccount account,Letter letter,BeforeSend beforeSend)throws IOException{
+        Objects.requireNonNull(beforeSend);
+        LicenseRuntime.require(Permission.GS1);
         boolean started=false,accepted=false;
         try{
             Session session=Session.getInstance(properties());
             MimeMessage message=message(session,account.from(),letter);
             try(Transport transport=session.getTransport("smtps")){
                 transport.connect(account.smtpHost(),account.smtpPort(),account.username(),new WindowsSecretProtector().reveal(account.protectedPassword()));
+                LicenseRuntime.require(Permission.GS1);
+                beforeSend.check();
                 started=true;
                 transport.sendMessage(message,message.getAllRecipients());
                 accepted=true;
             }
+        }catch(LicenseDeniedException denial){
+            throw denial;
         }catch(MessagingException|IOException|RuntimeException error){
             if(accepted)return; // A disconnect failure cannot undo the SMTP acceptance already received.
             if(!started)throw new NotSentException();

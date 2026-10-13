@@ -46,13 +46,15 @@ final class OzonPickingListPdfExporter {
             document.setFont(GenerateBarcode.getArialFont());
             var products = catalog.findBySkus(shop.getId(),safePostings.stream().flatMap(p->p.items().stream()).map(OzonPostingItemDto::sku).distinct().toList());
             float[] widths = new float[]{32, 76, 270, 118, 48};
-            Table table = new Table(widths);
+            Table table = new Table(widths, true);
             table.setWidth(UnitValue.createPercentValue(100));
             header(table, tr("ozon.picking.column.index"));
             header(table, tr("ozon.dashboard.col.image"));
             header(table, tr("ozon.picking.column.name"));
             header(table, tr("ozon.dashboard.item.article"));
             header(table, tr("fbo.column.quantity"));
+            // Large-table mode flushes completed rows/pages instead of retaining every renderer.
+            document.add(table);
             int rowNumber = 0;
             for (OzonPostingDto posting : safePostings) {
                 for (OzonPostingItemDto item : posting.items()) {
@@ -63,9 +65,10 @@ final class OzonPickingListPdfExporter {
                     table.addCell(cell(first(
                             product == null ? "" : product.article(), item.offerId()), TextAlignment.LEFT));
                     table.addCell(cell(String.valueOf(item.quantity()), TextAlignment.CENTER, true));
+                    if (rowNumber % 32 == 0) table.flush();
                 }
             }
-            document.add(table);
+            table.complete();
         }
     }
 
@@ -77,16 +80,6 @@ final class OzonPickingListPdfExporter {
         } catch (RuntimeException exception) {
             return null;
         }
-    }
-
-    private static OzonProductDto findProduct(List<OzonProductDto> products, OzonPostingItemDto item) {
-        return products.stream().filter(product -> matches(product, item)).findFirst().orElse(null);
-    }
-
-    private static boolean matches(OzonProductDto product, OzonPostingItemDto item) {
-        return (!item.productId().isBlank() && item.productId().equals(product.productId()))
-                || (!item.sku().isBlank() && item.sku().equals(product.sku()))
-                || (!item.offerId().isBlank() && item.offerId().equals(product.offerId()));
     }
 
     private static Cell imageCell(byte[] imageBytes) {

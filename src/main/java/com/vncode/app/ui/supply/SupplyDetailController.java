@@ -1040,7 +1040,7 @@ public class SupplyDetailController {
 
             if (order.isRequiresKiz()) {
                 String kizCode = order.getKiz();
-                String error = com.vncode.app.features.print.KizAttachmentCoordinator.getInstance().getAttachmentError(order.getId()==null?-1:order.getId());
+                String error = shop==null?null:com.vncode.app.features.print.KizAttachmentCoordinator.getInstance().getAttachmentError(shop.getId(),order.getId()==null?-1:order.getId());
 
                 if (error == null && kizCode != null && !kizCode.isBlank()) {
                     statusLabel.setText(I18nService.getInstance().tr("supply.status.kiz_assigned"));

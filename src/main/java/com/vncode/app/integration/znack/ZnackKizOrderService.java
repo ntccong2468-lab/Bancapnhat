@@ -1,6 +1,8 @@
 package com.vncode.app.integration.znack;
 
 import com.google.gson.*;
+import com.vncode.app.features.license.LicenseModels.Permission;
+import com.vncode.app.features.license.LicenseRuntime;
 import com.vncode.app.integration.znack.ZnackModels.*;
 import com.vncode.app.integration.znack.signature.ZnackSignatureContext;
 import com.vncode.app.integration.znack.signature.ZnackSignatureProvider;
@@ -18,7 +20,9 @@ public class ZnackKizOrderService {
     public ZnackKizOrderService(ZnackApiClient api,ZnackAuthService auth,ZnackSignatureProvider signer,ZnackRepository repository){this.api=api;this.auth=auth;this.signer=signer;this.repository=repository;}
     public KizOrder buy(Settings s,String gtin,int quantity)throws Exception{
         ZnackSafety.requireSigned(s,true);
-        if(quantity<=0)throw new IllegalArgumentException("Quantity must be positive.");gtin=GtinNormalizer.requireProductionOrderable(gtin);long id=repository.createDraft(gtin,quantity);
+        if(quantity<=0)throw new IllegalArgumentException("Quantity must be positive.");gtin=GtinNormalizer.requireProductionOrderable(gtin);
+        LicenseRuntime.require(Permission.KIZ);
+        long id=repository.createDraft(gtin,quantity);
         try{
             String cisType=resolveCisType(s,gtin);
             JsonObject product=new JsonObject();product.addProperty("gtin",gtin);product.addProperty("quantity",quantity);
@@ -27,8 +31,11 @@ public class ZnackKizOrderService {
             JsonObject order=new JsonObject();order.addProperty("productGroup","lp");order.add("attributes",attributes);
             JsonArray products=new JsonArray();products.add(product);order.add("products",products);
             byte[] body=order.toString().getBytes(StandardCharsets.UTF_8);
+            LicenseRuntime.require(Permission.KIZ);
             String signature=signer.sign(body, ZnackSignatureContext.SUZ_POST_BODY).base64();
             String token=auth.suzToken(s);
+            // A denied lease here proves no POST occurred; keep it outside the ambiguous-send catch.
+            LicenseRuntime.require(Permission.KIZ);
             try {
                 JsonObject response=api.createOrder(s.resolvedSuzBaseUrl(),token,s.omsId(),body,signature);String external=required(text(response,"orderId","id"),"Znack order response did not contain an order ID.");
                 repository.updateOrder(id,external,"CREATED",OrderStatus.SUBMITTED,null);

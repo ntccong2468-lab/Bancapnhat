@@ -17,6 +17,9 @@ import com.itextpdf.kernel.pdf.PdfDocument;
 import com.itextpdf.kernel.pdf.PdfWriter;
 import com.vncode.app.config.Database;
 import com.vncode.app.features.kiz.KizService;
+import com.vncode.app.features.license.LicenseDomainFixture;
+import com.vncode.app.features.license.LicenseGate;
+import com.vncode.app.features.license.LicenseRuntime;
 import com.vncode.app.features.print.history.ImageCacheRepository;
 import com.vncode.app.features.print.history.PrintHistoryService;
 import com.vncode.app.integration.marketplace.Marketplace;
@@ -86,6 +89,70 @@ class OzonPrintBundleServiceTest {
     @AfterEach
     void tearDown() {
         System.clearProperty("vncode.appdata.dir");
+    }
+
+    @Test
+    void deniedNewPrintDoesNotConsumeReservedKizOrCreatePdf() throws Exception {
+        seedPosting(1);
+        seedValidatedExemplar(RAW_KIZ);
+        var prior = LicenseRuntime.service();
+        Path target = temporaryDirectory.resolve("denied-labels.pdf");
+        try (var denied = LicenseDomainFixture.denied(temporaryDirectory.resolve("denied"))) {
+            LicenseRuntime.install(denied);
+            AtomicBoolean prepared = new AtomicBoolean(false);
+            assertThrows(LicenseGate.LicenseDeniedException.class, () -> service(prepared).export(
+                    shop, "POST-1", target.toFile(), temporaryDirectory.resolve("denied-picking.pdf").toFile()));
+            assertFalse(prepared.get());
+            assertFalse(Files.exists(target));
+            assertEquals("RESERVED", scalar("SELECT status FROM kiz_codes WHERE id=100"));
+            assertEquals("VALIDATED", scalar("SELECT stage FROM ozon_exemplar_jobs WHERE id=51"));
+        } finally {
+            LicenseRuntime.install(prior);
+        }
+    }
+
+    @Test
+    void rightsLostDuringOfficialDownloadDoNotConsumeKizOrPublishNewPrint() throws Exception {
+        seedPosting(1);
+        seedValidatedExemplar(RAW_KIZ);
+        var prior = LicenseRuntime.service();
+        Path target = temporaryDirectory.resolve("expired-during-download.pdf");
+        try (var denied = LicenseDomainFixture.denied(temporaryDirectory.resolve("denied"))) {
+            var service = new OzonPrintBundleService(
+                    new OzonPostingRepository(), new OzonExemplarJobRepository(),
+                    (selectedShop, postingNumber) -> { throw new AssertionError("Existing VALIDATED job must be reused"); },
+                    (selectedShop, postingNumber, officialTarget) -> {
+                        Files.copy(officialPdf, officialTarget.toPath(), StandardCopyOption.REPLACE_EXISTING);
+                        LicenseRuntime.install(denied);
+                        return officialTarget;
+                    });
+            assertThrows(LicenseGate.LicenseDeniedException.class, () -> service.export(
+                    shop, "POST-1", target.toFile(), temporaryDirectory.resolve("expired-picking.pdf").toFile()));
+            assertFalse(Files.exists(target));
+            assertEquals("RESERVED", scalar("SELECT status FROM kiz_codes WHERE id=100"));
+            assertEquals("VALIDATED", scalar("SELECT stage FROM ozon_exemplar_jobs WHERE id=51"));
+        } finally {
+            LicenseRuntime.install(prior);
+        }
+    }
+
+    @Test
+    void frozenPreviouslyPrintedKizCanBeReprintedWithDeniedLicense() throws Exception {
+        seedPosting(1);
+        seedAcceptedExemplars(List.of(RAW_KIZ));
+        var prior = LicenseRuntime.service();
+        try (var denied = LicenseDomainFixture.denied(temporaryDirectory.resolve("denied"))) {
+            LicenseRuntime.install(denied);
+            AtomicBoolean prepared = new AtomicBoolean(false);
+            var result = service(prepared).export(shop, "POST-1",
+                    temporaryDirectory.resolve("old-labels.pdf").toFile(),
+                    temporaryDirectory.resolve("old-picking.pdf").toFile());
+            assertFalse(prepared.get());
+            assertEquals(1, result.kizPages());
+            assertEquals("ACCEPTED", scalar("SELECT stage FROM ozon_exemplar_jobs WHERE id=51"));
+        } finally {
+            LicenseRuntime.install(prior);
+        }
     }
 
     @Test
@@ -315,6 +382,107 @@ class OzonPrintBundleServiceTest {
                 assertPageMillimeters(document, page, 210, 297);
             }
         }
+    }
+
+    @Test
+    void thousandOrderBatchStreamsAllPagesAndReportsOrderedProgress() throws Exception {
+        List<String> numbers = java.util.stream.IntStream.range(0, 1000)
+                .mapToObj(index -> "BATCH-" + index).toList();
+        List<OzonPostingDto> selected = numbers.stream().map(number -> new OzonPostingDto(
+                number, number, number, "awaiting_deliver", "", "", "", "", "", "",
+                new OzonRequirements(List.of(), List.of(), List.of()), List.of(), false,
+                List.of(new OzonPostingItemDto(0, "BATCH-PRODUCT", "BATCH-SKU", "article-batch",
+                        "Product " + number, 1, "RUB", "1")))).toList();
+        new OzonPostingRepository().upsertPage(1, selected);
+        new OzonProductKizPolicyRepository().setRequired(1, "BATCH-SKU", false);
+        java.util.concurrent.atomic.AtomicInteger preparations = new java.util.concurrent.atomic.AtomicInteger();
+        java.util.concurrent.atomic.AtomicInteger operations = new java.util.concurrent.atomic.AtomicInteger();
+        List<Integer> progress = new java.util.ArrayList<>();
+        var preparation = new OzonPrintBundleService.Preparation() {
+            @Override public OzonPreparationResult prepare(Shop selectedShop, String number) {
+                assertEquals(1, selectedShop.getId());
+                preparations.incrementAndGet();
+                return new OzonPreparationResult(number, "NOT_REQUIRED", 0, true, false, "");
+            }
+            @Override public boolean refreshEveryNewPrint() { return true; }
+            @Override public OzonPrintBundleService.Preparation forBatch(Shop selectedShop) {
+                operations.incrementAndGet();
+                return this;
+            }
+        };
+        var exporter = new OzonPrintBundleService(new OzonPostingRepository(), new OzonExemplarJobRepository(),
+                preparation, (selectedShop, number, target) -> {
+                    Files.copy(officialPdf, target.toPath(), StandardCopyOption.REPLACE_EXISTING);
+                    return target;
+                });
+        Path labels = temporaryDirectory.resolve("thousand-labels.pdf");
+        Path picking = temporaryDirectory.resolve("thousand-picking.pdf");
+        var result = exporter.exportAll(shop, numbers, labels.toFile(), picking.toFile(), progress::add);
+        assertEquals(1000, result.postingCount());
+        assertEquals(2000, result.totalPages());
+        assertEquals(1000, preparations.get(), "Every new print requires refreshed requirements, even cached exemptions");
+        assertEquals(1, operations.get(), "One operation-scoped mapping/credential snapshot");
+        assertEquals(java.util.stream.IntStream.rangeClosed(1, 1000).boxed().toList(), progress);
+        try (PDDocument document = Loader.loadPDF(labels.toFile())) {
+            assertEquals(2000, document.getNumberOfPages());
+            assertPageMillimeters(document, 1999, 58, 40);
+        }
+        try (PDDocument document = Loader.loadPDF(picking.toFile())) {
+            assertTrue(document.getNumberOfPages() > 10);
+            String text = new PDFTextStripper().getText(document);
+            assertTrue(text.contains("Product BATCH-999"));
+            assertTrue(text.contains("article-batch"));
+            assertPickingColumnOrder(text);
+        }
+    }
+
+    @Test
+    void refreshedMandatoryRequirementBlocksStaleCachedNonKizPrint() throws Exception {
+        seedUnmarkedPosting("POST-1", "SKU-1", "article");
+        new OzonProductKizPolicyRepository().setRequired(1, "SKU-1", false);
+        var preparation = new OzonPrintBundleService.Preparation() {
+            @Override public boolean refreshEveryNewPrint() { return true; }
+            @Override public OzonPreparationResult prepare(Shop selectedShop, String number) {
+                OzonPostingDto old = new OzonPostingRepository().find(1, number);
+                new OzonPostingRepository().upsertDetail(1, new OzonPostingDto(old.postingNumber(), old.orderId(),
+                        old.orderNumber(), old.status(), old.substatus(), old.warehouseId(), old.shipmentAt(),
+                        old.inProcessAt(), old.lowerBarcode(), old.upperBarcode(),
+                        new OzonRequirements(List.of("POST-1-PRODUCT"), List.of(), List.of()),
+                        old.availableActions(), old.shipAvailable(), old.items()));
+                return new OzonPreparationResult(number, "NOT_REQUIRED", 0, true, false, "");
+            }
+        };
+        var exporter = new OzonPrintBundleService(new OzonPostingRepository(), new OzonExemplarJobRepository(),
+                preparation, (selectedShop, number, target) -> { throw new AssertionError("Fresh mandatory requirement must block download"); });
+        Path labels = temporaryDirectory.resolve("blocked-fresh.pdf");
+        IOException failure = assertThrows(IOException.class, () -> exporter.exportAll(shop, List.of("POST-1"),
+                labels.toFile(), temporaryDirectory.resolve("blocked-fresh-picking.pdf").toFile()));
+        assertTrue(failure.getMessage().contains("requiring KIZ"));
+        assertFalse(Files.exists(labels));
+    }
+
+    @Test
+    void everyNewPrintRefreshesEvenAnExistingValidatedReservation() throws Exception {
+        seedPosting(1);
+        seedValidatedExemplar(RAW_KIZ);
+        java.util.concurrent.atomic.AtomicInteger refreshes = new java.util.concurrent.atomic.AtomicInteger();
+        var preparation = new OzonPrintBundleService.Preparation() {
+            @Override public boolean refreshEveryNewPrint() { return true; }
+            @Override public OzonPreparationResult prepare(Shop selectedShop, String number) {
+                refreshes.incrementAndGet();
+                return new OzonPreparationResult(number, "VALIDATED", 1, true, false, "");
+            }
+        };
+        var exporter = new OzonPrintBundleService(new OzonPostingRepository(), new OzonExemplarJobRepository(),
+                preparation, (selectedShop, number, target) -> {
+                    Files.copy(officialPdf, target.toPath(), StandardCopyOption.REPLACE_EXISTING);
+                    return target;
+                });
+        exporter.exportAll(shop, List.of("POST-1"), temporaryDirectory.resolve("validated-fresh.pdf").toFile(),
+                temporaryDirectory.resolve("validated-fresh-picking.pdf").toFile());
+        assertEquals(1, refreshes.get());
+        assertEquals("CONSUMED", scalar("SELECT status FROM kiz_codes WHERE id=100"));
+        assertEquals("ACCEPTED", scalar("SELECT stage FROM ozon_exemplar_jobs WHERE id=51"));
     }
 
     private OzonPrintBundleService service(AtomicBoolean prepared) {

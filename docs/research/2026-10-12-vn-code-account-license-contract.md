@@ -1,5 +1,7 @@
 # VN code — hợp đồng đề xuất cho tài khoản, thiết bị và quyền offline
 
+> Cập nhật 13/10: phần mật khẩu và hợp đồng thiết bị trong tài liệu này là kế hoạch lịch sử. Luồng đã chốt chuyển sang Gmail/OTP trong ứng dụng và khóa VNC từ Portal 0.3.0. Đã có mã backend chuẩn bị và client; xem [hợp đồng hiện tại](2026-10-13-vn-code-desktop-license-contract.md) nếu đọc từ plans, hoặc `2026-10-13-vn-code-desktop-license-contract.md` trong research. Production vẫn chờ pin/deploy/nghiệm thu.
+
 Ngày 12/10/2026. Thực hiện [thiết kế B đã được người sở hữu duyệt](../superpowers/specs/2026-10-12-vn-code-web-license-design.md). **Đây là hợp đồng đề xuất để phát triển client và kiểm thử bằng fixture, chưa phải API đã triển khai trên website.** Mã Worker, schema và test backend chưa được cung cấp. Kiểm tra lại repository ứng viên `ntccong2468-lab/vncodeidvn` bằng `git ls-remote` vẫn không trả ref; chỉ có README đã nhận.
 
 ## API đang được README mô tả

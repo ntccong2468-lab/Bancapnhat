@@ -1,6 +1,8 @@
 package com.vncode.app.features.fbo;
 
 import com.vncode.app.features.kizmapping.KizMappingRepository;
+import com.vncode.app.features.license.LicenseModels.Permission;
+import com.vncode.app.features.license.LicenseRuntime;
 import com.vncode.app.integration.znack.ZnackGtinInventoryService;
 import com.vncode.app.models.Kiz;
 
@@ -24,6 +26,7 @@ public class FboKizPrintPlanner {
     }
 
     public FboPrintPlan plan(int shopId, List<FboBarcodePrintItem> items) {
+        LicenseRuntime.require(Permission.PRINT_NEW);
         List<FboBarcodePrintItem> safeItems = items == null ? List.of() : items.stream()
                 .filter(item -> item != null && item.product() != null && item.quantity() > 0).toList();
         if (safeItems.isEmpty()) return new FboPrintPlan(List.of(), List.of());
@@ -48,6 +51,7 @@ public class FboKizPrintPlanner {
         List<Kiz> allReserved = new ArrayList<>();
         try {
             for (Map.Entry<String, Integer> entry : neededByGtin.entrySet()) {
+                LicenseRuntime.require(Permission.PRINT_NEW);
                 List<Kiz> reserved = inventoryService.reserveAvailable(shopId, entry.getKey(), entry.getValue());
                 reservedByGtin.put(entry.getKey(), reserved);
                 allReserved.addAll(reserved);
@@ -60,22 +64,29 @@ public class FboKizPrintPlanner {
         Map<String, Integer> nextIndex = new HashMap<>();
         List<FboPrintPage> pages = new ArrayList<>();
         int pairNumber = 1;
-        for (FboBarcodePrintItem item : safeItems) {
-            for (int i = 0; i < item.quantity(); i++) {
-                String code = null;
-                if (item.product().requiresKiz()) {
-                    String gtin = mappings.get(item.product().nmId());
-                    code = reservedByGtin.get(gtin).get(nextIndex.merge(gtin, 1, Integer::sum) - 1).getCode();
+        try {
+            for (FboBarcodePrintItem item : safeItems) {
+                LicenseRuntime.require(Permission.PRINT_NEW);
+                for (int i = 0; i < item.quantity(); i++) {
+                    String code = null;
+                    if (item.product().requiresKiz()) {
+                        String gtin = mappings.get(item.product().nmId());
+                        code = reservedByGtin.get(gtin).get(nextIndex.merge(gtin, 1, Integer::sum) - 1).getCode();
+                    }
+                    pages.add(FboPrintPage.barcode(item.product(), pairNumber));
+                    pages.add(FboPrintPage.barcode(item.product(), pairNumber));
+                    if (code != null && !code.isBlank()) {
+                        pages.add(FboPrintPage.kiz(item.product(), code, pairNumber));
+                    }
+                    pairNumber++;
                 }
-                pages.add(FboPrintPage.barcode(item.product(), pairNumber));
-                pages.add(FboPrintPage.barcode(item.product(), pairNumber));
-                if (code != null && !code.isBlank()) {
-                    pages.add(FboPrintPage.kiz(item.product(), code, pairNumber));
-                }
-                pairNumber++;
             }
+            LicenseRuntime.require(Permission.PRINT_NEW);
+            return new FboPrintPlan(List.copyOf(pages), List.copyOf(allReserved));
+        } catch (RuntimeException error) {
+            inventoryService.release(shopId, allReserved);
+            throw error;
         }
-        return new FboPrintPlan(List.copyOf(pages), List.copyOf(allReserved));
     }
 
     private String safe(String value) {

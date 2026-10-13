@@ -3,6 +3,8 @@ package com.vncode.app.integration.znack.registration;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.vncode.app.features.license.LicenseModels.Permission;
+import com.vncode.app.features.license.LicenseRuntime;
 import com.vncode.app.integration.znack.ZnackApiClient;
 import com.vncode.app.integration.znack.ZnackAuthService;
 import com.vncode.app.integration.znack.ZnackModels;
@@ -50,7 +52,9 @@ public final class ZnackNationalCatalogService {
         if (normalized.length() < 4 || normalized.length() > 10) {
             throw new IllegalArgumentException("TN VED must contain 4 to 10 digits.");
         }
+        LicenseRuntime.require(Permission.SELLER_API);
         String token = auth.trueApiToken(settings);
+        LicenseRuntime.require(Permission.SELLER_API);
         Gs1Status gs1 = parseGs1(api.generatedGtins(settings.resolvedTrueApiBaseUrl(), token));
         if (gs1.quotaKnown() && !gs1.canGenerate() && gs1.existingDrafts() == 0) {
             throw new IllegalStateException("GS1/GTIN quota is unavailable or exhausted (" + gs1.usage()
@@ -59,6 +63,7 @@ public final class ZnackNationalCatalogService {
         List<Category> categories = List.of();
         String categoryTnved = normalized;
         for (String lookupTnved : categoryLookupCodes(normalized)) {
+            LicenseRuntime.require(Permission.SELLER_API);
             categories = parseCategories(api.nationalCatalogCategories(
                     settings.resolvedTrueApiBaseUrl(), token, lookupTnved));
             if (!categories.isEmpty()) {
@@ -75,6 +80,7 @@ public final class ZnackNationalCatalogService {
     }
 
     public List<Attribute> requiredAttributes(long categoryId, String token) throws Exception {
+        LicenseRuntime.require(Permission.SELLER_API);
         List<Attribute> attributes = parseAttributes(api.nationalCatalogAttributes(
                 settings.resolvedTrueApiBaseUrl(), token, categoryId));
         if (attributes.isEmpty()) {
@@ -104,8 +110,10 @@ public final class ZnackNationalCatalogService {
     }
 
     private String allocate(String token, Set<String> claimedGtins, boolean reuseExisting) throws Exception {
+        LicenseRuntime.require(Permission.GTIN);
         Set<String> claimed = normalizedGtins(claimedGtins);
         synchronized (GTIN_ALLOCATION_LOCK) {
+            LicenseRuntime.require(Permission.GTIN);
             JsonElement beforeResponse = api.generatedGtins(settings.resolvedTrueApiBaseUrl(), token);
             List<String> before = draftGtins(beforeResponse);
             String reusable = firstUnclaimed(before, claimed);
@@ -114,6 +122,7 @@ public final class ZnackNationalCatalogService {
                 return reusable;
             }
 
+            LicenseRuntime.require(Permission.GTIN);
             JsonElement generatedResponse = api.generateGtins(
                     settings.resolvedTrueApiBaseUrl(), token, 1);
             Set<String> previous = new LinkedHashSet<>(before);
@@ -151,6 +160,7 @@ public final class ZnackNationalCatalogService {
     }
 
     public String submit(String token, JsonObject payload) throws Exception {
+        LicenseRuntime.require(Permission.GTIN);
         JsonObject result = resultObject(api.submitNationalCatalogFeed(
                 settings.resolvedTrueApiBaseUrl(), token, payload));
         String feedId = string(result, "feed_id");
@@ -164,17 +174,24 @@ public final class ZnackNationalCatalogService {
         String status = string(result, "status");
         List<String> errors = new ArrayList<>();
         Long goodId = null;
+        int exactIdentities=0;
         for (JsonElement element : array(result.get("item"))) {
             if (!element.isJsonObject()) continue;
             JsonObject item = element.getAsJsonObject();
             String itemGtin = string(item, "gtin");
-            if (!itemGtin.isBlank() && !itemGtin.equals(gtin)) continue;
+            if (!itemGtin.isBlank() && !com.vncode.app.integration.znack.GtinNormalizer.normalize(itemGtin)
+                    .equals(com.vncode.app.integration.znack.GtinNormalizer.normalize(gtin))) continue;
+            if(!itemGtin.isBlank())exactIdentities++;
             if (item.has("good_id") && !item.get("good_id").isJsonNull()) goodId = item.get("good_id").getAsLong();
             String message = first(string(item, "message"), string(item, "status_message"));
             int code = item.has("status_code") && !item.get("status_code").isJsonNull()
                     ? item.get("status_code").getAsInt() : 0;
             if (code != 0 && !message.isBlank()) errors.add(message);
         }
+        if(("Signed".equalsIgnoreCase(status) || "Moderated".equalsIgnoreCase(status)) && exactIdentities!=1)
+            throw new IllegalStateException("Catalog feed readback did not confirm the requested GTIN.");
+        if("Signed".equalsIgnoreCase(status) && (goodId==null || goodId<=0))
+            throw new IllegalStateException("Catalog feed readback did not confirm the signed card identity.");
         JsonObject details = object(result.get("error_details"));
         for (JsonElement element : array(details.get("items"))) {
             if (!element.isJsonObject()) continue;
@@ -189,35 +206,57 @@ public final class ZnackNationalCatalogService {
         return new FeedProgress(status, goodId, List.copyOf(errors));
     }
 
-    public long sign(String token, String gtin) throws Exception {
+    public record SigningDocument(long goodId, byte[] xml, String sha256) {
+        public SigningDocument {
+            if (goodId <= 0 || xml == null || xml.length == 0 || xml.length > 4 * 1024 * 1024)
+                throw new IllegalArgumentException("Invalid Catalog signing document.");
+            xml = xml.clone();
+            String actual = digest(xml);
+            if (sha256 == null || !actual.equals(sha256)) throw new IllegalArgumentException("Catalog signing document changed.");
+        }
+        public SigningDocument(long goodId,byte[] xml){this(goodId,xml,digest(xml));}
+        @Override public byte[] xml(){return xml.clone();}
+        @Override public String toString(){return "SigningDocument[redacted]";}
+    }
+    @FunctionalInterface public interface BeforeSigningSend { void check() throws Exception; }
+
+    /** Read only. The caller freezes this exact document in its durable review before signing. */
+    public SigningDocument reviewSigning(String token,String gtin) throws Exception {
+        LicenseRuntime.require(Permission.GTIN);
         JsonObject request = new JsonObject();
-        JsonArray gtins = new JsonArray();
-        gtins.add(gtin);
-        request.add("gtins", gtins);
+        JsonArray gtins = new JsonArray(); gtins.add(gtin); request.add("gtins", gtins);
         request.addProperty("publicationAgreement", true);
         JsonObject document = resultObject(api.nationalCatalogSigningDocument(
                 settings.resolvedTrueApiBaseUrl(), token, request));
         JsonArray xmls = array(document.get("xmls"));
-        if (xmls.isEmpty()) {
-            String error = firstError(document);
-            throw new IllegalStateException(error.isBlank() ? "The card is not ready for signing." : error);
+        if (xmls.size() != 1 || !xmls.get(0).isJsonObject()) {
+            throw new IllegalStateException("The card is not ready for signing.");
         }
-        JsonObject xmlItem = xmls.get(0).getAsJsonObject();
-        long goodId = xmlItem.get("goodId").getAsLong();
-        String xml = string(xmlItem, "xml");
-        byte[] xmlBytes = xml.getBytes(StandardCharsets.UTF_8);
-        byte[] signature = signer.sign(xmlBytes, ZnackSignatureContext.TRUE_API_DOCUMENT).cms();
-        JsonObject signed = new JsonObject();
-        signed.addProperty("goodId", goodId);
-        signed.addProperty("base64Xml", Base64.getEncoder().encodeToString(xmlBytes));
-        signed.addProperty("signature", Base64.getEncoder().encodeToString(signature));
-        JsonArray batch = new JsonArray();
-        batch.add(signed);
-        JsonObject response = resultObject(api.signNationalCatalogProduct(
-                settings.resolvedTrueApiBaseUrl(), token, batch));
-        for (JsonElement id : array(response.get("signed"))) if (id.getAsLong() == goodId) return goodId;
-        String error = firstError(response);
-        throw new IllegalStateException(error.isBlank() ? "National Catalog did not confirm the signature." : error);
+        JsonObject item=xmls.get(0).getAsJsonObject();
+        return new SigningDocument(item.get("goodId").getAsLong(),string(item,"xml").getBytes(StandardCharsets.UTF_8));
+    }
+
+    /** Exactly one reviewed POST. The durable caller must reconcile an uncertain result. */
+    public long sendReviewedSigning(String token,SigningDocument document,BeforeSigningSend beforeSend) throws Exception {
+        LicenseRuntime.require(Permission.GTIN);
+        byte[] xmlBytes=document.xml();
+        byte[] signature=signer.sign(xmlBytes,ZnackSignatureContext.TRUE_API_DOCUMENT).cms();
+        JsonObject signed = new JsonObject(); signed.addProperty("goodId",document.goodId());
+        signed.addProperty("base64Xml",Base64.getEncoder().encodeToString(xmlBytes));
+        signed.addProperty("signature",Base64.getEncoder().encodeToString(signature));
+        JsonArray batch=new JsonArray();batch.add(signed);
+        LicenseRuntime.require(Permission.GTIN);
+        if(beforeSend!=null)beforeSend.check();
+        JsonObject response=resultObject(api.signNationalCatalogProduct(settings.resolvedTrueApiBaseUrl(),token,batch));
+        for(JsonElement id:array(response.get("signed")))if(id.getAsLong()==document.goodId())return document.goodId();
+        throw new IllegalStateException("National Catalog did not confirm the signature. Refresh to reconcile before continuing.");
+    }
+    public long sign(String token,String gtin)throws Exception {
+        return sendReviewedSigning(token,reviewSigning(token,gtin),null);
+    }
+    private static String digest(byte[] value) {
+        try{return java.util.HexFormat.of().formatHex(java.security.MessageDigest.getInstance("SHA-256").digest(value));}
+        catch(java.security.NoSuchAlgorithmException error){throw new IllegalStateException(error);}
     }
 
     public static JsonObject buildPayload(String gtin, Draft draft, String imageUrl) {

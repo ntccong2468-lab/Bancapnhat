@@ -6,6 +6,9 @@ import com.vncode.app.integration.marketplace.Marketplace;
 import com.vncode.app.integration.wb.*;
 import com.vncode.app.integration.ozon.*;
 import com.vncode.app.models.Shop;
+import com.vncode.app.features.license.LicenseGate;
+import com.vncode.app.features.license.LicenseRuntime;
+import static com.vncode.app.features.license.LicenseModels.Permission.*;
 import java.io.IOException;
 import java.text.Normalizer;
 import java.util.*;
@@ -29,9 +32,11 @@ public final class ProductBulkEditService {
         ListingIdentity.require(shop);var frozen=keys.stream().distinct().sorted(Comparator.comparing(ProductKey::cardId).thenComparing(ProductKey::variantId)).toList();if(frozen.isEmpty())throw new IllegalArgumentException("Select products");
         var groups=new LinkedHashMap<String,List<ProductKey>>();for(var key:frozen){ListingIdentity.require(shop,key);groups.computeIfAbsent(key.cardId(),k->new ArrayList<>()).add(key);}if(groups.size()>100)throw new IllegalArgumentException("Product edit limit is 100 cards");
         documentBudget(shop,edit.documents());
+        LicenseRuntime.require(SELLER_API);
         var items=new ArrayList<EditItem>();var adapter=adapters.apply(shop);var sharedDocuments=new HashMap<String,String>();long retained=0;
         for(var group:groups.values()){
             var values=edit.perKeyValues().getOrDefault(group.getFirst(),edit.values());if(group.stream().anyMatch(k->!values.equals(edit.perKeyValues().getOrDefault(k,edit.values()))))throw new IllegalArgumentException("Conflicting values for sizes of one card");
+            LicenseRuntime.require(SELLER_API);
             var fresh=reader.read(shop,group.getFirst());requireFresh(shop,group.getFirst(),fresh);Map<String,List<String>> changes;
             if(edit.field().equals("documents"))changes=Map.of();else if(edit.field().equals("brand"))changes=Map.of("brand",values);else{
                 var candidates=adapter.attributes(shop,fresh.categoryId()).stream().filter(a->matches(edit.field(),a.name())&&!a.namedField()&&(a.complexId().isBlank()||a.complexId().equals("0"))).toList();if(candidates.size()!=1)throw new IllegalStateException("Field dictionary is missing or ambiguous");changes=Map.of("attribute:"+candidates.getFirst().id(),values);
@@ -54,8 +59,10 @@ public final class ProductBulkEditService {
     private ProductEditResult applyActive(Shop shop,String id,boolean confirmed)throws IOException {
         if(!confirmed)throw new IllegalArgumentException("Explicit confirmation required");var approved=owned(shop,id);if(!approved.publishable())throw new IllegalStateException("Edit needs data");var items=repo.items(id);var adapter=adapters.apply(shop);
         // Validate the complete batch before its first write. Submitted cards remain frozen.
-        for(var i:items)if(i.state()==CopyState.AWAITING_CONFIRMATION){var fresh=reader.read(shop,i.key());requireFresh(shop,i.key(),fresh);if(!fresh.revision().equals(i.preview().sourceRevision()))throw new IllegalStateException("Product changed; preview again");var current=adapter.previewUpdate(shop,fresh,i.changes(),i.documents());if(!current.preview().publishable()||!current.preview().requestHash().equals(i.preview().preview().requestHash()))throw new IllegalStateException("Fields or documents changed; preview again");}
+        for(var i:items)if(i.state()==CopyState.AWAITING_CONFIRMATION){LicenseRuntime.require(LISTING_WRITE);LicenseRuntime.require(SELLER_API);var fresh=reader.read(shop,i.key());requireFresh(shop,i.key(),fresh);if(!fresh.revision().equals(i.preview().sourceRevision()))throw new IllegalStateException("Product changed; preview again");var current=adapter.previewUpdate(shop,fresh,i.changes(),i.documents());if(!current.preview().publishable()||!current.preview().requestHash().equals(i.preview().preview().requestHash()))throw new IllegalStateException("Fields or documents changed; preview again");}
         for(var i:items)if(i.state()==CopyState.AWAITING_CONFIRMATION){
+            LicenseRuntime.require(LISTING_WRITE);
+            LicenseRuntime.require(SELLER_API);
             if(!repo.claim(id,i))throw new IllegalStateException("Card has another pending mutation");
             // A preceding card can take minutes. Re-read under this card's durable claim before any write.
             try {
@@ -63,6 +70,10 @@ public final class ProductBulkEditService {
                 if(!fresh.revision().equals(i.preview().sourceRevision()))throw new IllegalStateException("Product changed; preview again");
                 var current=adapter.previewUpdate(shop,fresh,i.changes(),i.documents());
                 if(!current.preview().publishable()||!current.preview().requestHash().equals(i.preview().preview().requestHash()))throw new IllegalStateException("Fields or documents changed; preview again");
+                LicenseRuntime.require(LISTING_WRITE);
+            } catch(LicenseGate.LicenseDeniedException denied) {
+                if(!repo.releaseUnsent(id,approved.owner(),i))throw new IllegalStateException("Cannot release unsent product edit",denied);
+                throw denied;
             } catch(IOException|RuntimeException unsent) {
                 repo.checkpoint(id,i.with(CopyState.NEEDS_DATA,null,List.of(new CopyIssue("PRODUCT_CHANGED","preview",true))),Set.of(CopyState.SENDING));
                 throw unsent;

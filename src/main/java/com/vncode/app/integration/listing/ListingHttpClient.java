@@ -19,21 +19,32 @@ public final class ListingHttpClient implements ListingTransport {
     public ListingHttpClient(Shop s,OkHttpClient client,HttpUrl origin){
         shop=new Shop(s.getId(),s.getName(),s.getMarketplace(),s.getClientId(),s.getApiKey());this.origin=origin;
         var b=client.newBuilder().retryOnConnectionFailure(false).followRedirects(false).followSslRedirects(false).cookieJar(CookieJar.NO_COOKIES).authenticator(Authenticator.NONE).proxyAuthenticator(Authenticator.NONE).connectTimeout(10,TimeUnit.SECONDS).readTimeout(30,TimeUnit.SECONDS).callTimeout(40,TimeUnit.SECONDS);
-        b.interceptors().clear();b.networkInterceptors().clear();http=b.build();
+        b.interceptors().clear();b.networkInterceptors().clear();
+        b.addNetworkInterceptor(chain->{
+            NetworkAttempt attempt=chain.call().request().tag(NetworkAttempt.class);
+            if(attempt!=null&&!attempt.sent.compareAndSet(false,true))throw new IOException("Automatic mutation replay is blocked; read back the result");
+            return chain.proceed(chain.request());
+        });http=b.build();
     }
-    public JsonElement call(String path,JsonElement body,boolean mutation)throws IOException{
+    public JsonElement call(String path,JsonElement body,boolean mutation)throws IOException{return call(path,body,mutation,()->{});}
+    public JsonElement call(String path,JsonElement body,boolean mutation,Runnable beforeSend)throws IOException{
         ListingIdentity.require(shop);if(path==null||!path.matches("[a-zA-Z0-9/_?=&%.,:-]{1,2048}"))throw new IllegalArgumentException("Invalid listing endpoint");
         HttpUrl url=origin.resolve(path);if(url==null||!url.host().equals(origin.host()))throw new IOException("Invalid listing origin");
         var b=new Request.Builder().url(url).header("Accept","application/json");
+        if(mutation)b.tag(NetworkAttempt.class,new NetworkAttempt());
         if(shop.getMarketplace()==Marketplace.OZON)b.header("Client-Id",shop.getClientId()).header("Api-Key",shop.getApiKey());else b.header("Authorization",shop.getApiKey());
         if(body==null)b.get();else b.post(RequestBody.create(MediaType.get("application/json"),body.toString()));
         if(origin.host().equals("content-api.wildberries.ru"))com.vncode.app.integration.wb.WbContentApiRateLimiter.awaitTurn(shop.getApiKey());
         if(origin.host().equals("api-seller.ozon.ru"))try{OZON_LIMITER.awaitTurn(shop.getId(),"catalog");}catch(InterruptedException e){Thread.currentThread().interrupt();throw new InterruptedIOException("Listing request cancelled");}
-        try(var slot=com.vncode.app.shared.MarketplaceRequestBudget.acquire(); var r=http.newCall(b.build()).execute()){
+        try(var slot=com.vncode.app.shared.MarketplaceRequestBudget.acquire()){
+            ListingIdentity.require(shop);beforeSend.run();
+            try(var r=http.newCall(b.build()).execute()){
             if(r.code()==429&&origin.host().equals("content-api.wildberries.ru"))com.vncode.app.integration.wb.WbContentApiRateLimiter.registerRateLimit(shop.getApiKey(),r.headers());
             if(!r.isSuccessful())throw new IOException("Listing API HTTP "+r.code());
             if(r.body()==null||r.body().contentLength()>LIMIT)throw new IOException("Listing response unavailable or too large");
             try(var in=r.body().byteStream()){var bytes=in.readNBytes(LIMIT+1);if(bytes.length>LIMIT)throw new IOException("Listing response too large");return JsonParser.parseString(new String(bytes,StandardCharsets.UTF_8));}
+            }
         }catch(JsonParseException e){throw new IOException("Invalid listing response");}
     }
+    private static final class NetworkAttempt{private final java.util.concurrent.atomic.AtomicBoolean sent=new java.util.concurrent.atomic.AtomicBoolean();}
 }

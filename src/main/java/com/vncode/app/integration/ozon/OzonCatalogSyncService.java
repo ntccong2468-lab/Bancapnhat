@@ -1,6 +1,9 @@
 package com.vncode.app.integration.ozon;
 
 import com.google.gson.JsonObject;
+import com.vncode.app.features.license.LicenseRuntime;
+import com.vncode.app.features.license.LicenseGate.LicenseDeniedException;
+import static com.vncode.app.features.license.LicenseModels.Permission.SELLER_API;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -35,17 +38,20 @@ public final class OzonCatalogSyncService {
     }
 
     public int sync() throws IOException {
+        LicenseRuntime.require(SELLER_API);
         return sync(state.find(shopId).productsLastId());
     }
     /** User-requested refresh revisits already synced cards; cursor recovery remains available in sync(). */
     public int syncFromStart()throws IOException{return sync("");}
     private int sync(String initialCursor)throws IOException{
+        LicenseRuntime.require(SELLER_API);
         String cursor = initialCursor;
         int synced = 0;
         Map<OzonProductCardAttributeParser.CategoryKey, Map<String, String>> definitionCache = new LinkedHashMap<>();
         Map<OzonProductCardAttributeParser.CategoryKey, String> categoryNames = null;
         try {
             for (int pageNumber = 0; pageNumber < MAX_PAGES; pageNumber++) {
+                LicenseRuntime.require(SELLER_API);
                 JsonObject response = api.listProducts(cursor, PAGE_SIZE);
                 OzonJson.ProductPage page = OzonJson.parseProductPage(response);
                 if (page.items().isEmpty()) {
@@ -57,6 +63,7 @@ public final class OzonCatalogSyncService {
                     throw new IOException("Ozon returned an invalid product cursor.");
                 }
                 List<String> ids = page.items().stream().map(OzonJson.ProductReference::productId).toList();
+                LicenseRuntime.require(SELLER_API);
                 List<OzonProductDto> detailed = OzonJson.parseProductInfo(api.productInfo(ids));
                 List<OzonProductCardAttributeParser.Card> cards =
                         OzonProductCardAttributeParser.parseCards(api.productAttributes(ids));
@@ -65,6 +72,7 @@ public final class OzonCatalogSyncService {
                 }
                 for (OzonProductCardAttributeParser.Card card : cards) {
                     if (definitionCache.containsKey(card.category())) continue;
+                    LicenseRuntime.require(SELLER_API);
                     JsonObject definitions = api.descriptionCategoryAttributes(
                             card.category().descriptionCategoryId(), card.category().typeId());
                     definitionCache.put(card.category(),
@@ -96,6 +104,8 @@ public final class OzonCatalogSyncService {
                 cursor = next;
             }
             throw new IOException("Ozon catalog exceeded the safe pagination bound.");
+        } catch (LicenseDeniedException paused) {
+            throw paused;
         } catch (OzonApiException exception) {
             state.recordSafeError(shopId, exception.kind());
             throw exception;

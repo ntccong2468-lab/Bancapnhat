@@ -113,11 +113,11 @@
                 </Menu>
                 <MenuItem fx:id="translationMenuItem" onAction="#onTranslationSettings" text="%news.translation_settings" />
                 <MenuItem fx:id="checkVersionMenuItem" onAction="#onCheckVersion" text="Check version" />
-                <MenuItem fx:id="personalEditionMenuItem" onAction="#onPersonalEdition" text="Free personal edition" />
+                <MenuItem fx:id="personalEditionMenuItem" onAction="#onPersonalEdition" text="%license.account.title" />
                 <MenuItem fx:id="aboutMenuItem" onAction="#onAbout" text="About" />
             </items>
         </MenuButton>
-        <Label fx:id="editionStatusLabel" maxWidth="1.7976931348623157E308" text="•" />
+        <Label fx:id="editionStatusLabel" wrapText="true" maxWidth="1.7976931348623157E308" text="•" />
     </children><padding>
         <Insets bottom="8.0" left="8.0" right="8.0" top="8.0" />
     </padding>

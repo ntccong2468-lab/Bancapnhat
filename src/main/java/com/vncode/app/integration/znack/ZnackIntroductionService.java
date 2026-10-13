@@ -1,6 +1,9 @@
 package com.vncode.app.integration.znack;
 
 import com.google.gson.*;
+import com.vncode.app.features.license.LicenseGate.LicenseDeniedException;
+import com.vncode.app.features.license.LicenseModels.Permission;
+import com.vncode.app.features.license.LicenseRuntime;
 import com.vncode.app.integration.znack.ZnackModels.*;
 import com.vncode.app.integration.znack.signature.ZnackSignatureContext;
 import com.vncode.app.integration.znack.signature.ZnackSignatureProvider;
@@ -15,6 +18,7 @@ public class ZnackIntroductionService {
     public long submit(Settings s,KizOrder order,Product product,List<KizCode> codes)throws Exception{
         ZnackSafety.requireSigned(s,true);
         if(product.tnVed()==null||product.tnVed().isBlank())throw new IllegalStateException("TN VED is required before introduction.");
+        LicenseRuntime.require(Permission.KIZ);
         String participant=required(auth.resolvedParticipantInn(s),"Participant INN is required for introduction.");
         String producer=valueOr(s.producerInn(),participant),owner=valueOr(s.ownerInn(),participant);
         String registryOwner=s.ownerInn()==null?"":s.ownerInn().trim();
@@ -42,9 +46,14 @@ public class ZnackIntroductionService {
             JsonArray certificates=new JsonArray();for(GoodsDocument goodsDocument:goodsDocuments){JsonObject certificate=new JsonObject();certificate.addProperty("certificate_type",goodsDocument.type().trim());certificate.addProperty("certificate_number",goodsDocument.number().trim());certificate.addProperty("certificate_date",goodsDocument.date().trim());certificates.add(certificate);}
             item.add("certificate_document_data",certificates);items.add(item);}
         payload.add("products",items);byte[] documentBytes=payload.toString().getBytes(StandardCharsets.UTF_8);
+        LicenseRuntime.require(Permission.KIZ);
         byte[] sig=signer.sign(documentBytes, ZnackSignatureContext.TRUE_API_DOCUMENT).cms();
         JsonObject request=new JsonObject();request.addProperty("document_format","MANUAL");request.addProperty("type","LP_INTRODUCE_GOODS");request.addProperty("product_document",Base64.getEncoder().encodeToString(documentBytes));request.addProperty("signature",Base64.getEncoder().encodeToString(sig));
+        // Finish preflight/signature waits before claiming a new, not-yet-sent introduction.
+        LicenseRuntime.require(Permission.KIZ);
         long documentId=repository.createDocument(order.id(),payload.toString());
+        try{LicenseRuntime.require(Permission.KIZ);}
+        catch(LicenseDeniedException denied){repository.updateDocument(documentId,null,"NOT_SUBMITTED",denied.getMessage());throw denied;}
         try{String external=required(api.createDocument(s.resolvedTrueApiBaseUrl(),token,request),"Znack document response did not contain a document ID.");
             repository.updateDocument(documentId,external,"SUBMITTED",null);repository.markCodes(order.id(),KizLegalStatus.INTRO_SENT,null,documentId);repository.updateOrder(order.id(),null,null,OrderStatus.INTRO_SENT,null);return documentId;
         }catch(Exception e){repository.updateDocument(documentId,null,e instanceof ZnackApiClient.ZnackApiException?"REJECTED":"FAILED",e.getMessage());throw e;}

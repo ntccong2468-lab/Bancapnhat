@@ -1,6 +1,8 @@
 package com.vncode.app.integration.znack;
 
 import com.google.gson.*;
+import com.vncode.app.features.license.LicenseModels.Permission;
+import com.vncode.app.features.license.LicenseRuntime;
 import com.vncode.app.integration.znack.ZnackModels.GoodsDocument;
 import com.vncode.app.integration.znack.ZnackModels.Product;
 import com.vncode.app.features.kizmapping.ZnackKizLabelMetadata;
@@ -21,8 +23,10 @@ public class ZnackProductService {
     public ZnackProductService(ZnackApiClient api,ZnackAuthService auth,ZnackRepository repository){this.api=api;this.auth=auth;this.repository=repository;}
     public List<Product> sync(ZnackModels.Settings settings)throws Exception{
         ZnackSafety.requireSigned(settings,false);
+        LicenseRuntime.require(Permission.SELLER_API);
         String token=auth.trueApiToken(settings);Map<String,Product> byGtin=new LinkedHashMap<>();int page=0,fetched=0,technical=0;Integer total=null;
         do{
+            LicenseRuntime.require(Permission.SELLER_API);
             JsonElement response=page==0?api.products(settings.resolvedTrueApiBaseUrl(),token):
                     api.products(settings.resolvedTrueApiBaseUrl(),token,page,PAGE_SIZE);
             JsonArray array=response.isJsonArray()?response.getAsJsonArray():response.getAsJsonObject().getAsJsonArray("results");
@@ -122,6 +126,7 @@ public class ZnackProductService {
                 .forEach(waitingGtins::add);
         int failed=0;
         for(String gtin:waitingGtins){
+            LicenseRuntime.require(Permission.SELLER_API);
             try{
                 JsonElement response=api.permitDocuments(settings.resolvedTrueApiBaseUrl(),token,gtin,
                         settings.ownerInn()==null?"":settings.ownerInn().trim());
@@ -159,6 +164,7 @@ public class ZnackProductService {
                 try{Thread.sleep(200);}
                 catch(InterruptedException e){Thread.currentThread().interrupt();}
             }
+            LicenseRuntime.require(Permission.SELLER_API);
             try{
                 JsonElement response=api.productCards(settings.resolvedTrueApiBaseUrl(),token,String.join(";",batch));
                 JsonArray cards=array(response,"result");

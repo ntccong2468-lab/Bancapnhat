@@ -23,11 +23,11 @@ class Gs1LettersServiceTest {
     }
     @Test void smtpSuccessDoesNotMeanGs1Approval() throws Exception {
         var repo=new Gs1Repository(directory.resolve("fixture.db"));var service=new Gs1LettersService(repo,(a,l)->{});
-        var request=service.draft("7707083893","Fixture",Gs1LettersService.Kind.MORE_CODES,1000,"");
+        var request=service.draft("7707083893","Fixture",Gs1LettersService.Kind.RENEWAL,null,"");
         service.send(account(),request.inn(),request.id());
         assertEquals(Gs1Repository.State.SENT,repo.request(request.inn(),request.id()).state());
         assertTrue(repo.membership(request.inn()).isEmpty());
-        assertEquals("markirovka@gs1ru.org",request.recipient());
+        assertEquals("mail@gs1ru.org",request.recipient());
         assertEquals(1,repo.messages(request.inn(),request.id()).size());
     }
     @Test void paymentProofIsGatedByAnInvoiceInTheSameRequest() {
@@ -73,5 +73,41 @@ class Gs1LettersServiceTest {
         assertEquals(Gs1Repository.State.DRAFT,repo.request(request.inn(),request.id()).state());
         service.send(account(),request.inn(),request.id());assertEquals(Gs1Repository.State.SENT,repo.request(request.inn(),request.id()).state());
         assertEquals(2,calls.get());
+    }
+    @Test void joiningInvoiceAndRestorationUseMembershipMailboxAndBlockDuplicateSuccessfulSend() throws Exception {
+        for(var kind:java.util.List.of(Gs1LettersService.Kind.JOINING_INVOICE,Gs1LettersService.Kind.RESTORE_MEMBERSHIP)){
+            var repo=new Gs1Repository(directory.resolve(kind.name()+".db"));var calls=new AtomicInteger();
+            var service=new Gs1LettersService(repo,(a,l)->calls.incrementAndGet());
+            // Historic joining submission must not block a separate restoration request.
+            var join=repo.createRequest("7707083893","JOIN","","Fixture","Fixture");repo.setState(join.inn(),join.id(),Gs1Repository.State.SUBMITTED);
+            var first=service.draft(join.inn(),"Fixture",kind,null,"");var second=service.draft(join.inn(),"Fixture",kind,null,"");
+            assertEquals("mail@gs1ru.org",first.recipient());
+            service.send(account(),first.inn(),first.id());
+            assertThrows(IllegalStateException.class,()->service.send(account(),second.inn(),second.id()));
+            assertThrows(IllegalStateException.class,()->service.draft(first.inn(),"Fixture",kind,null,""));
+            assertEquals(1,calls.get());assertTrue(repo.membership(first.inn()).isEmpty());
+        }
+    }
+    @Test void prefixReminderIsSingleCorrelatedDraftAndStopsWhenReplyArrives() throws Exception {
+        var repo=new Gs1Repository(directory.resolve("reminder.db"));var calls=new AtomicInteger();
+        var service=new Gs1LettersService(repo,(a,l)->calls.incrementAndGet());
+        var original=repo.createRequest("7707083893","MORE_CODES","mail@gs1ru.org","Fixture","Accepted original");
+        repo.setState(original.inn(),original.id(),Gs1Repository.State.SENT);repo.addMessage(original.inn(),original.id(),"sent",true,account().from(),original.body(),false);
+        var later=java.time.Instant.now().plus(java.time.Duration.ofDays(8));
+        assertThrows(IllegalStateException.class,()->service.prepareReminder(original.inn(),original.id(),later,false));
+        var reminder=service.prepareReminder(original.inn(),original.id(),later,true);
+        assertEquals("REMINDER:"+original.id(),reminder.kind());assertEquals(original.recipient(),reminder.recipient());
+        assertTrue(service.letter(reminder).threadId().equals(original.id()));
+        assertThrows(IllegalStateException.class,()->service.prepareReminder(original.inn(),original.id(),later,true));
+        assertThrows(SecurityException.class,()->service.prepareReminder("7811089030",original.id(),later,true));
+        repo.addMessage(original.inn(),original.id(),"reply",false,"mail@gs1ru.org","Received",true);
+        assertThrows(IllegalStateException.class,()->service.send(account(),reminder.inn(),reminder.id()));
+        assertEquals(0,calls.get(),"A reply stops the reminder before SMTP");
+    }
+    @Test void genericPrefixHistorySendRequiresItsDedicatedLivePreflightService(){
+        var repo=new Gs1Repository(directory.resolve("prefix-gate.db"));var calls=new AtomicInteger();var service=new Gs1LettersService(repo,(a,l)->calls.incrementAndGet());
+        var request=service.draft("7707083893","Fixture",Gs1LettersService.Kind.MORE_CODES,999,"");assertEquals("mail@gs1ru.org",request.recipient());
+        assertThrows(IllegalStateException.class,()->service.send(account(),request.inn(),request.id()));assertEquals(0,calls.get());assertEquals(Gs1Repository.State.DRAFT,repo.request(request.inn(),request.id()).state());
+        assertThrows(IllegalArgumentException.class,()->service.draft(request.inn(),"Fixture",Gs1LettersService.Kind.MORE_CODES,1000,""));
     }
 }

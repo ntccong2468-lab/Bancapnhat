@@ -47,6 +47,7 @@ public final class FriendlyErrorService {
         if (error instanceof CryptoProException crypto) {
             return formatCryptoPro(crypto);
         }
+        if (error instanceof com.vncode.app.features.license.LicenseGate.LicenseDeniedException) return I18nService.getInstance().tr(error.getMessage().equals("LICENSE_SHOP_LIMIT")?"license.account.shop_limit":"license.account.required");
         String message = error.getMessage() == null ? "" : error.getMessage().trim();
         if (message.isBlank()) {
             return I18nService.getInstance().tr("znack.signature.error.failed");

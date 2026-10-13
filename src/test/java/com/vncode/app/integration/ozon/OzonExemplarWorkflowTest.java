@@ -150,6 +150,81 @@ class OzonExemplarWorkflowTest {
         assertEquals(0, count("SELECT COUNT(*) FROM kiz_codes WHERE status='CONSUMED'"));
     }
 
+    @Test
+    void hundredPostingBatchUsesOneClientBoundedFreshReadsAndOrderedExactReservations() throws Exception {
+        try (Connection connection = Database.getConnection();
+                var insert = connection.prepareStatement("""
+                        INSERT INTO kiz_codes(id,shop_id,order_id,raw_code,display_code,gtin,status,legal_status,created_at,updated_at)
+                        VALUES(?,1,1,?,?,'04600000000001','AVAILABLE','IN_CIRCULATION',?,?)
+                        """)) {
+            for (int index = 2; index <= 100; index++) {
+                insert.setInt(1, index);
+                insert.setString(2, "010460000000000121OFFLINE-" + index);
+                insert.setString(3, "OFFLINE-" + index);
+                insert.setString(4, "2026-10-13T00:00:00Z");
+                insert.setString(5, "2026-10-13T00:00:00Z");
+                insert.addBatch();
+            }
+            insert.executeBatch();
+        }
+        java.util.concurrent.atomic.AtomicInteger active = new java.util.concurrent.atomic.AtomicInteger();
+        java.util.concurrent.atomic.AtomicInteger peak = new java.util.concurrent.atomic.AtomicInteger();
+        java.util.concurrent.atomic.AtomicInteger clients = new java.util.concurrent.atomic.AtomicInteger();
+        CountDownLatch firstReads = new CountDownLatch(2);
+        server.setDispatcher(new okhttp3.mockwebserver.Dispatcher() {
+            @Override public MockResponse dispatch(RecordedRequest request) throws InterruptedException {
+                assertEquals("/v3/posting/fbs/get", request.getPath());
+                peak.accumulateAndGet(active.incrementAndGet(), Math::max);
+                try {
+                    firstReads.countDown();
+                    assertTrue(firstReads.await(3, TimeUnit.SECONDS));
+                    String number = com.google.gson.JsonParser.parseString(request.getBody().readUtf8())
+                            .getAsJsonObject().get("posting_number").getAsString();
+                    return json(posting().replace("POST-1", number));
+                } finally { active.decrementAndGet(); }
+            }
+        });
+        var service = new OzonExemplarService(new OzonPostingRepository(), new OzonProductGtinMappingRepository(),
+                new OzonExemplarJobRepository(), (shopId, credentials) -> {
+                    clients.incrementAndGet();
+                    return new OzonApiClient(shopId, credentials, server.url("/"),
+                            new OkHttpClient.Builder().callTimeout(5, TimeUnit.SECONDS).build(),
+                            new OzonApiRateLimiter(Duration.ZERO),
+                            new OzonRetryPolicy(1, Duration.ofMillis(1), Duration.ofMillis(1)));
+                });
+        java.util.List<String> numbers = java.util.stream.IntStream.range(0, 100)
+                .mapToObj(index -> "BATCH-" + index).toList();
+        java.util.List<Integer> progress = new java.util.ArrayList<>();
+        var result = service.stageForPrintBatch(shop, numbers, progress::add);
+        assertEquals(100, result.completedCount());
+        assertEquals(100, result.results().size());
+        assertTrue(result.failed().isEmpty());
+        assertEquals(numbers, result.results().stream().map(OzonPreparationResult::postingNumber).toList());
+        assertEquals(java.util.stream.IntStream.rangeClosed(1, 100).boxed().toList(), progress);
+        assertEquals(1, clients.get());
+        assertEquals(2, peak.get(), "Two read-only details, with no 100-thread or unbounded queue fan-out");
+        assertEquals(100, server.getRequestCount());
+        assertEquals(100, count("SELECT COUNT(DISTINCT kiz_id) FROM ozon_exemplars"));
+        assertEquals(100, count("SELECT COUNT(*) FROM kiz_codes WHERE status='RESERVED'"));
+        assertEquals("1", scalar("SELECT e.kiz_id FROM ozon_exemplars e JOIN ozon_exemplar_jobs j ON j.id=e.job_id WHERE j.posting_number='BATCH-0'"));
+        assertEquals("100", scalar("SELECT e.kiz_id FROM ozon_exemplars e JOIN ozon_exemplar_jobs j ON j.id=e.job_id WHERE j.posting_number='BATCH-99'"));
+        var resumed = service.stageForPrintBatch(shop, numbers, null);
+        assertEquals(100, resumed.results().size());
+        assertEquals(200, server.getRequestCount(), "Retry rechecks fresh details, never sends any KIZ/exemplar mutation");
+        assertEquals(100, count("SELECT COUNT(*) FROM ozon_exemplars"));
+        assertEquals(100, count("SELECT COUNT(*) FROM kiz_codes WHERE status='RESERVED'"));
+        // The production PDF preparation boundary uses the same bounded two-detail window.
+        var printOperation=OzonPrintBundleService.defaultPreparation(service).forBatch(shop);
+        printOperation.prefetch(shop,numbers.subList(0,2));
+        assertEquals(202,server.getRequestCount());
+        assertEquals(numbers.getFirst(),printOperation.prepare(shop,numbers.getFirst()).postingNumber());
+        assertEquals(numbers.get(1),printOperation.prepare(shop,numbers.get(1)).postingNumber());
+        assertEquals(202,server.getRequestCount(),"PDF composition must consume the prepared window without duplicate detail reads");
+        printOperation.prefetch(shop,numbers.subList(2,4));
+        printOperation.prepare(shop,numbers.get(2));printOperation.prepare(shop,numbers.get(3));
+        assertEquals(204,server.getRequestCount());
+    }
+
     private OzonExemplarService service() {
         return new OzonExemplarService(
                 new OzonPostingRepository(),

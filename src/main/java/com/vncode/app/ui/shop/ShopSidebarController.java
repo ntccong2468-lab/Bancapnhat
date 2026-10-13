@@ -40,8 +40,10 @@ public class ShopSidebarController {
     @FXML private Button gs1Button;
     private Runnable onGs1;
     private int gs1Unread;
+    private boolean gs1Attention;
     public void setOnGs1(Runnable action){onGs1=action;}
-    public void setGs1Unread(int count){gs1Unread=Math.max(0,count);if(gs1Button!=null)gs1Button.setText(" "+I18nService.getInstance().tr("gs1.title")+(gs1Unread>0?" ("+gs1Unread+")":""));}
+    public void setGs1Unread(int count){gs1Unread=Math.max(0,count);if(gs1Button!=null)gs1Button.setText(" "+I18nService.getInstance().tr("gs1.title")+(gs1Attention?" !":"")+(gs1Unread>0?" ("+gs1Unread+")":""));}
+    public void setGs1Attention(boolean required){gs1Attention=required;setGs1Unread(gs1Unread);}
     @FXML private void onGs1(){if(onGs1!=null)onGs1.run();}
     @FXML private Button gtinSyncButton;
     private Runnable onGtinSync;
@@ -110,6 +112,25 @@ public class ShopSidebarController {
     private Consumer<AppLanguage> onLanguageChanged;
     private Consumer<String> onThemeChanged;
     private Marketplace marketplace = Marketplace.WILDBERRIES;
+    private com.vncode.app.features.license.LicenseModels.Status licenseStatus =
+            com.vncode.app.features.license.LicenseModels.Status.UNREGISTERED;
+
+    public void setLicenseStatus(com.vncode.app.features.license.LicenseModels.Status status) {
+        licenseStatus = status == null ? com.vncode.app.features.license.LicenseModels.Status.UNREGISTERED : status;
+        renderLicenseStatus();
+    }
+
+    private void renderLicenseStatus() {
+        if (editionStatusLabel == null) return;
+        editionStatusLabel.setText(com.vncode.app.ui.license.LicensePane.statusText(licenseStatus));
+        editionStatusLabel.setWrapText(true);
+        editionStatusLabel.getStyleClass().removeAll("text-danger", "text-secondary");
+        switch (licenseStatus) {
+            case EXPIRED, DENIED, UNVERIFIED -> editionStatusLabel.getStyleClass().add("text-danger");
+            default -> editionStatusLabel.getStyleClass().add("text-secondary");
+        }
+        editionStatusLabel.setStyle("");
+    }
 
     @FXML
     private void initialize() {
@@ -242,7 +263,7 @@ public class ShopSidebarController {
         themeDarkMenuItem.setText(i18n.tr("settings.theme.dark"));
         themeLightMenuItem.setText(i18n.tr("settings.theme.light"));
         checkVersionMenuItem.setText(i18n.tr("settings.check_version"));
-        personalEditionMenuItem.setText(i18n.tr("edition.personal"));
+        personalEditionMenuItem.setText(i18n.tr("license.account.title"));
         aboutMenuItem.setText(i18n.tr("settings.about"));
         applyMarketplaceTexts();
         financeButton.setText(i18n.tr("sidebar.finance"));toolsPane.setText(i18n.tr("sidebar.tools"));setGs1Unread(gs1Unread);
@@ -250,8 +271,7 @@ public class ShopSidebarController {
         productsButton.setText(" "+i18n.tr("products.title"));
         listingCopyButton.setText(i18n.tr("copy.title"));
         guidesButton.setText(i18n.tr("guides.title"));
-        editionStatusLabel.setText("• " + i18n.tr("edition.personal"));
-        editionStatusLabel.setStyle("-fx-text-fill: #22c55e; -fx-font-weight: 700;");
+        renderLicenseStatus();
     }
 
     private void applyMarketplaceTexts() {

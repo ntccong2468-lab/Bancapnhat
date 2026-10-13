@@ -7,6 +7,8 @@ public final class Gs1DashboardService {
     private final Gs1Repository repository;
     public Gs1DashboardService(){this(new Gs1Repository());}
     public Gs1DashboardService(Gs1Repository repository){this.repository=Objects.requireNonNull(repository);}
+    @FunctionalInterface public interface FreshRead<T>{T read()throws java.io.IOException;}
+    public <T> T readFresh(FreshRead<T> read)throws java.io.IOException {com.vncode.app.features.license.LicenseRuntime.require(com.vncode.app.features.license.LicenseModels.Permission.GS1);return read.read();}
     public Optional<Gs1Membership> cached(String inn,String environment){return repository.membership(inn,environment);}
     public GtinAvailability availability(Gs1Membership membership,LocalDate date) {
         if(membership==null)return new GtinAvailability(OptionalLong.empty(),false,0,0);

@@ -10,6 +10,10 @@ import java.sql.SQLException;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.LinkedHashMap;
+import java.util.Collection;
+import java.util.Objects;
 
 public final class OzonPostingRepository {
     private static final Gson GSON = new Gson();
@@ -25,10 +29,68 @@ public final class OzonPostingRepository {
         var sort=new ArrayList<String>();if(!q.sort().isBlank())for(String field:q.sort().split(",")){String expression=switch(field){case "product"->"coalesce(nullif(pr.name,''),nullif(i.name,''),i.sku)";case "article"->"coalesce(nullif(pr.article,''),nullif(i.offer_id,''),i.sku)";case "color"->"pr.color";default->"pr.size";};sort.add("CASE WHEN "+expression+" IS NULL OR "+expression+"='' THEN 1 ELSE 0 END");sort.add(expression+" COLLATE VN_NATURAL");}sort.add("p.posting_number COLLATE VN_NATURAL");
         String sql="SELECT p.* FROM ozon_postings p LEFT JOIN ozon_posting_items i ON i.shop_id=p.shop_id AND i.posting_number=p.posting_number AND i.item_index=0 LEFT JOIN ozon_products pr ON pr.shop_id=i.shop_id AND pr.product_id=coalesce((SELECT own.product_id FROM ozon_products own WHERE own.shop_id=i.shop_id AND own.product_id=i.product_id),(SELECT own.product_id FROM ozon_products own WHERE own.shop_id=i.shop_id AND own.sku=i.sku ORDER BY own.product_id LIMIT 1)) WHERE "+filter(q)+" ORDER BY "+String.join(",",sort)+" LIMIT ? OFFSET ?";
         var rows=new ArrayList<OzonPostingDto>();try(var p=c.prepareStatement(sql)){int n=bindFilter(p,q);p.setInt(n++,q.limit());p.setInt(n,q.offset());try(var r=p.executeQuery()){while(r.next())rows.add(readPosting(c,q.shopId(),r,List.of()));}}
-        if(rows.isEmpty())return List.of();var items=new java.util.HashMap<String,List<OzonPostingItemDto>>();String marks=String.join(",",java.util.Collections.nCopies(rows.size(),"?"));
-        try(var p=c.prepareStatement("SELECT posting_number,item_index,product_id,sku,offer_id,name,quantity,currency_code,price FROM ozon_posting_items WHERE shop_id=? AND posting_number IN ("+marks+") ORDER BY posting_number,item_index")){p.setInt(1,q.shopId());int n=2;for(var row:rows)p.setString(n++,row.postingNumber());try(var r=p.executeQuery()){while(r.next())items.computeIfAbsent(r.getString(1),k->new ArrayList<>()).add(new OzonPostingItemDto(r.getInt(2),r.getString(3),r.getString(4),r.getString(5),r.getString(6),r.getInt(7),r.getString(8),r.getString(9)));}}
-        return rows.stream().map(p->new OzonPostingDto(p.postingNumber(),p.orderId(),p.orderNumber(),p.status(),p.substatus(),p.warehouseId(),p.shipmentAt(),p.inProcessAt(),p.lowerBarcode(),p.upperBarcode(),p.requirements(),p.availableActions(),p.shipAvailable(),items.getOrDefault(p.postingNumber(),List.of()))).toList();
+        return withItems(c, q.shopId(), rows);
     }
+    /** Freezes all matching IDs in one read transaction before confirmation/export, never just the UI page. */
+    public List<String> freezeFilteredNumbers(com.vncode.app.features.ozon.OzonFbsQuery query, int maximum) {
+        if (query == null || maximum < 1 || maximum > 10_000) {
+            throw new IllegalArgumentException("Invalid Ozon selection limit");
+        }
+        try (Connection connection = Database.getConnection()) {
+            connection.setAutoCommit(false);
+            try {
+                registerSearch(connection);
+                org.sqlite.Collation.create(connection, "VN_NATURAL", new org.sqlite.Collation() {
+                    @Override protected int xCompare(String a, String b) {
+                        return com.vncode.app.shared.NaturalOrderComparator.compareIgnoreCase(a, b);
+                    }
+                });
+                List<String> order = new ArrayList<>();
+                if (!query.sort().isBlank()) {
+                    for (String field : query.sort().split(",")) {
+                        String expression = switch (field) {
+                            case "product" -> "coalesce(nullif(pr.name,''),nullif(i.name,''),i.sku)";
+                            case "article" -> "coalesce(nullif(pr.article,''),nullif(i.offer_id,''),i.sku)";
+                            case "color" -> "pr.color";
+                            default -> "pr.size";
+                        };
+                        order.add("CASE WHEN " + expression + " IS NULL OR " + expression + "='' THEN 1 ELSE 0 END");
+                        order.add(expression + " COLLATE VN_NATURAL");
+                    }
+                }
+                order.add("p.posting_number COLLATE VN_NATURAL");
+                String sql = """
+                        SELECT p.posting_number FROM ozon_postings p
+                        LEFT JOIN ozon_posting_items i ON i.shop_id=p.shop_id
+                            AND i.posting_number=p.posting_number AND i.item_index=0
+                        LEFT JOIN ozon_products pr ON pr.shop_id=i.shop_id AND pr.product_id=coalesce(
+                            (SELECT own.product_id FROM ozon_products own
+                             WHERE own.shop_id=i.shop_id AND own.product_id=i.product_id),
+                            (SELECT own.product_id FROM ozon_products own
+                             WHERE own.shop_id=i.shop_id AND own.sku=i.sku ORDER BY own.product_id LIMIT 1))
+                        WHERE
+                        """ + filter(query) + " ORDER BY " + String.join(",", order) + " LIMIT ?";
+                List<String> numbers = new ArrayList<>();
+                try (PreparedStatement statement = connection.prepareStatement(sql)) {
+                    statement.setInt(bindFilter(statement, query), maximum + 1);
+                    try (ResultSet result = statement.executeQuery()) {
+                        while (result.next()) numbers.add(result.getString(1));
+                    }
+                }
+                if (numbers.size() > maximum) throw new IllegalArgumentException("Too many selected Ozon postings");
+                connection.commit();
+                return List.copyOf(numbers);
+            } catch (RuntimeException | SQLException exception) {
+                connection.rollback();
+                throw exception;
+            } finally {
+                connection.setAutoCommit(true);
+            }
+        } catch (SQLException exception) {
+            throw new IllegalStateException("Cannot freeze the selected Ozon postings", exception);
+        }
+    }
+
     private static void registerSearch(Connection c)throws SQLException{org.sqlite.Function.create(c,"vn_fold",new org.sqlite.Function(){protected void xFunc()throws SQLException{String v=value_text(0);result(v==null?"":java.text.Normalizer.normalize(v,java.text.Normalizer.Form.NFKC).toLowerCase(java.util.Locale.ROOT));}});}
     private static String filter(com.vncode.app.features.ozon.OzonFbsQuery q){return "p.shop_id=?"+(q.status().isBlank()?"":" AND p.status=?")+(q.text().isBlank()?"":" AND (vn_fold(p.posting_number) LIKE ? ESCAPE '\\' OR vn_fold(p.order_id) LIKE ? ESCAPE '\\' OR vn_fold(p.order_number) LIKE ? ESCAPE '\\' OR EXISTS(SELECT 1 FROM ozon_posting_items x WHERE x.shop_id=p.shop_id AND x.posting_number=p.posting_number AND (vn_fold(x.sku) LIKE ? ESCAPE '\\' OR vn_fold(x.offer_id) LIKE ? ESCAPE '\\' OR vn_fold(x.name) LIKE ? ESCAPE '\\')))");}
     private static int bindFilter(PreparedStatement p,com.vncode.app.features.ozon.OzonFbsQuery q)throws SQLException{int n=1;p.setInt(n++,q.shopId());if(!q.status().isBlank())p.setString(n++,q.status());if(!q.text().isBlank()){String s="%"+java.text.Normalizer.normalize(q.text(),java.text.Normalizer.Form.NFKC).toLowerCase(java.util.Locale.ROOT).replace("\\","\\\\").replace("%","\\%").replace("_","\\_")+"%";for(int i=0;i<6;i++)p.setString(n++,s);}return n;}
@@ -75,8 +137,8 @@ public final class OzonPostingRepository {
             statement.setInt(parameter, offset);
             try (ResultSet result = statement.executeQuery()) {
                 List<OzonPostingDto> postings = new ArrayList<>();
-                while (result.next()) postings.add(readPosting(connection, shopId, result));
-                return List.copyOf(postings);
+                while (result.next()) postings.add(readPosting(connection, shopId, result, List.of()));
+                return withItems(connection, shopId, postings);
             }
         } catch (SQLException exception) {
             throw new RuntimeException(exception);
@@ -103,8 +165,8 @@ public final class OzonPostingRepository {
             statement.setInt(3, offset);
             try (ResultSet result = statement.executeQuery()) {
                 List<OzonPostingDto> values = new ArrayList<>();
-                while (result.next()) values.add(readPosting(connection, shopId, result));
-                return List.copyOf(values);
+                while (result.next()) values.add(readPosting(connection, shopId, result, List.of()));
+                return withItems(connection, shopId, values);
             }
         } catch (SQLException exception) {
             throw new RuntimeException(exception);
@@ -165,8 +227,8 @@ public final class OzonPostingRepository {
             statement.setInt(parameter, offset);
             try (ResultSet result = statement.executeQuery()) {
                 List<OzonPostingDto> values = new ArrayList<>();
-                while (result.next()) values.add(readPosting(connection, shopId, result));
-                return List.copyOf(values);
+                while (result.next()) values.add(readPosting(connection, shopId, result, List.of()));
+                return withItems(connection, shopId, values);
             }
         } catch (SQLException exception) {
             throw new RuntimeException(exception);
@@ -189,6 +251,91 @@ public final class OzonPostingRepository {
         } catch (SQLException exception) {
             throw new RuntimeException(exception);
         }
+    }
+
+    /** Reads a bounded, shop-owned selection in the caller's order, without one query per order. */
+    public Map<String, OzonPostingDto> findByNumbers(int shopId, Collection<String> postingNumbers) {
+        return findMany(shopId, postingNumbers);
+    }
+
+    public Map<String, OzonPostingDto> findMany(int shopId, Collection<String> postingNumbers) {
+        try (Connection connection = Database.getConnection()) {
+            connection.setAutoCommit(false);
+            try {
+                Map<String, OzonPostingDto> selected = findMany(connection, shopId, postingNumbers);
+                connection.commit();
+                return selected;
+            } catch (SQLException | RuntimeException exception) {
+                connection.rollback();
+                throw exception;
+            } finally { connection.setAutoCommit(true); }
+        } catch (SQLException exception) {
+            throw new IllegalStateException("Cannot load selected Ozon postings", exception);
+        }
+    }
+
+    public Map<String, OzonPostingDto> findMany(
+            Connection connection, int shopId, Collection<String> postingNumbers) throws SQLException {
+        if (shopId <= 0 || postingNumbers == null || postingNumbers.size() > 10_000) {
+            throw new IllegalArgumentException("Invalid Ozon posting selection");
+        }
+        List<String> keys = postingNumbers.stream()
+                .map(value -> OzonApiClient.requireExternalId(value, "posting number"))
+                .distinct().toList();
+        Map<String, OzonPostingDto> rows = new LinkedHashMap<>();
+        for (int start = 0; start < keys.size(); start += 500) {
+            List<String> chunk = keys.subList(start, Math.min(start + 500, keys.size()));
+            String placeholders = String.join(",", java.util.Collections.nCopies(chunk.size(), "?"));
+            try (PreparedStatement statement = connection.prepareStatement(
+                    "SELECT * FROM ozon_postings WHERE shop_id=? AND posting_number IN (" + placeholders + ")")) {
+                statement.setInt(1, shopId);
+                for (int index = 0; index < chunk.size(); index++) statement.setString(index + 2, chunk.get(index));
+                try (ResultSet result = statement.executeQuery()) {
+                    while (result.next()) {
+                        OzonPostingDto value = readPosting(connection, shopId, result, List.of());
+                        rows.put(value.postingNumber(), value);
+                    }
+                }
+            }
+        }
+        List<OzonPostingDto> ordered = keys.stream().map(rows::get).filter(Objects::nonNull).toList();
+        Map<String, OzonPostingDto> selected = new LinkedHashMap<>();
+        for (OzonPostingDto value : withItems(connection, shopId, ordered)) {
+            selected.put(value.postingNumber(), value);
+        }
+        return java.util.Collections.unmodifiableMap(selected);
+    }
+
+    private static List<OzonPostingDto> withItems(
+            Connection connection, int shopId, List<OzonPostingDto> rows) throws SQLException {
+        if (rows.isEmpty()) return List.of();
+        Map<String, List<OzonPostingItemDto>> items = new LinkedHashMap<>();
+        for (int start = 0; start < rows.size(); start += 500) {
+            List<OzonPostingDto> chunk = rows.subList(start, Math.min(start + 500, rows.size()));
+            String placeholders = String.join(",", java.util.Collections.nCopies(chunk.size(), "?"));
+            try (PreparedStatement statement = connection.prepareStatement("""
+                    SELECT posting_number,item_index,product_id,sku,offer_id,name,quantity,currency_code,price
+                    FROM ozon_posting_items WHERE shop_id=? AND posting_number IN (
+                    """ + placeholders + ") ORDER BY posting_number,item_index")) {
+                statement.setInt(1, shopId);
+                for (int index = 0; index < chunk.size(); index++) {
+                    statement.setString(index + 2, chunk.get(index).postingNumber());
+                }
+                try (ResultSet result = statement.executeQuery()) {
+                    while (result.next()) {
+                        items.computeIfAbsent(result.getString(1), ignored -> new ArrayList<>()).add(
+                                new OzonPostingItemDto(result.getInt(2), result.getString(3), result.getString(4),
+                                        result.getString(5), result.getString(6), result.getInt(7),
+                                        result.getString(8), result.getString(9)));
+                    }
+                }
+            }
+        }
+        return rows.stream().map(value -> new OzonPostingDto(
+                value.postingNumber(), value.orderId(), value.orderNumber(), value.status(), value.substatus(),
+                value.warehouseId(), value.shipmentAt(), value.inProcessAt(), value.lowerBarcode(),
+                value.upperBarcode(), value.requirements(), value.availableActions(), value.shipAvailable(),
+                List.copyOf(items.getOrDefault(value.postingNumber(), List.of())))).toList();
     }
 
     private static void upsert(Connection connection, int shopId, OzonPostingDto posting) throws SQLException {

@@ -610,7 +610,7 @@ class FxmlSmokeTest {
     }
 
     @Test
-    void personalEditionShowsFreeStatusWithoutActivationInEveryLanguage() throws Exception {
+    void sidebarShowsActualLicenseStatusInEveryLanguage() throws Exception {
         var task = new java.util.concurrent.FutureTask<Void>(() -> {
             var i18n = I18nService.getInstance();
             var previous = i18n.getCurrentLanguage();
@@ -619,15 +619,20 @@ class FxmlSmokeTest {
                 FxmlViewLoader.load(loader);
                 ShopSidebarController controller = loader.getController();
                 Label status = (Label) loader.getNamespace().get("editionStatusLabel");
-                assertNotNull(status, "The personal app must show its own free edition status");
+                assertNotNull(status, "The sidebar must show the current VNCode license status");
                 for (var language : com.vncode.app.shared.AppLanguage.values()) {
                     i18n.setLanguage(language);
                     controller.applyTranslations();
-                    assertEquals("• " + i18n.tr("edition.personal"), status.getText());
+                    controller.setLicenseStatus(com.vncode.app.features.license.LicenseModels.Status.PENDING);
+                    assertEquals(i18n.tr("license.account.status.pending"), status.getText());
                     assertTrue(status.isVisible());
                     var settings = (javafx.scene.control.MenuButton) loader.getNamespace().get("settingsMenuButton");
-                    assertTrue(settings.getItems().stream().noneMatch(item ->
-                            item.getText().equals(i18n.tr("license.menu"))), "No WCode activation entry");
+                    assertTrue(settings.getItems().stream().anyMatch(item ->
+                            item.getText().equals(i18n.tr("license.account.title"))), "VNCode license entry");
+                    controller.setLicenseStatus(com.vncode.app.features.license.LicenseModels.Status.EXPIRED);
+                    assertEquals(i18n.tr("license.account.status.expired"), status.getText());
+                    assertTrue(status.getStyleClass().contains("text-danger"));
+                    assertFalse(status.getStyle().contains("#22c55e"));
                 }
             } finally {
                 i18n.setLanguage(previous);
@@ -1093,25 +1098,34 @@ class FxmlSmokeTest {
 
     @Test
     void newsPagePaginatesAndRendersSafeRichTextInAllLanguages() throws Exception {
+        var newsRoot = java.nio.file.Files.createTempDirectory(appDataDir, "news-pane-");
+        var serviceRef = new java.util.concurrent.atomic.AtomicReference<com.vncode.app.features.news.NewsService>();
+        var paneRef = new java.util.concurrent.atomic.AtomicReference<com.vncode.app.ui.news.NewsPane>();
         var task = new java.util.concurrent.FutureTask<Void>(() -> {
             var i18n=I18nService.getInstance();var previous=i18n.getCurrentLanguage();
             try {
                 var rows=java.util.stream.IntStream.range(0,25).mapToObj(n ->
                     new com.vncode.app.features.news.NewsItem("id"+n,java.time.Instant.EPOCH.plusSeconds(n),"Title "+n,"# Header\n**Bold** *italic*\n- item\n<script>plain text</script>")).toList();
                 var service=new com.vncode.app.features.news.NewsService(rows,
-                    new com.vncode.app.features.news.NewsRepository(appDataDir));
+                    new com.vncode.app.features.news.NewsRepository(newsRoot));
+                serviceRef.set(service);
                 var pane=new com.vncode.app.ui.news.NewsPane(service,() -> {},count -> {});
+                paneRef.set(pane);
                 for(var language:com.vncode.app.shared.AppLanguage.values()) {
                     i18n.setLanguage(language);pane.applyTranslations();
                     assertEquals(i18n.tr("news.title"),pane.pageTitle());
                 }
                 assertEquals(20,pane.visibleItems());pane.loadMore();assertEquals(25,pane.visibleItems());
                 ScrollPane newsScroll=(ScrollPane)pane.getChildren().get(2);newsScroll.setVvalue(0.65);
-                pane.open(rows.getFirst());assertTrue(service.isRead("id0"));
+                pane.open(rows.getFirst());
                 assertTrue(pane.showingDetail());pane.back();assertFalse(pane.showingDetail());assertEquals(0.65,newsScroll.getVvalue(),0.001);
-            } finally {i18n.setLanguage(previous);}return null;
+            } finally {if(paneRef.get()!=null)paneRef.get().dispose();i18n.setLanguage(previous);}return null;
         });
         Platform.runLater(task);task.get(10,TimeUnit.SECONDS);
+        long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(5);
+        while (!serviceRef.get().isRead("id0") && System.nanoTime() < deadline) Thread.sleep(10);
+        assertTrue(serviceRef.get().isRead("id0"), "Background read acknowledgement must complete");
+        assertTrue(new com.vncode.app.features.news.NewsRepository(newsRoot).isRead("id0"), "Read state must persist");
     }
 
     @Test

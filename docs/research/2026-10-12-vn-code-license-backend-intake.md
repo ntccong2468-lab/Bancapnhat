@@ -1,5 +1,7 @@
 # VN code — đầu vào cần để lập kế hoạch và tích hợp backend giấy phép
 
+> Cập nhật 13/10: phần mật khẩu và hợp đồng thiết bị trong tài liệu này là kế hoạch lịch sử. Luồng đã chốt chuyển sang Gmail/OTP trong ứng dụng và khóa VNC từ Portal 0.3.0. Đã có mã backend chuẩn bị và client; xem [hợp đồng hiện tại](2026-10-13-vn-code-desktop-license-contract.md) nếu đọc từ plans, hoặc `2026-10-13-vn-code-desktop-license-contract.md` trong research. Production vẫn chờ pin/deploy/nghiệm thu.
+
 Ngày 12/10/2026. Người sở hữu đã duyệt [thiết kế B](../superpowers/specs/2026-10-12-vn-code-web-license-design.md): email Gmail đăng ký trên website và mật khẩu website; admin duyệt, gia hạn, khóa; mặc định 1 máy và offline 72 giờ, có cấu hình hạn mức.
 
 ## Đã có

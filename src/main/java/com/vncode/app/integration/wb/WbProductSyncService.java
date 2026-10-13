@@ -1,6 +1,9 @@
 package com.vncode.app.integration.wb;
 
 import com.vncode.app.models.Shop;
+import com.vncode.app.features.license.LicenseRuntime;
+import com.vncode.app.features.license.LicenseGate.LicenseDeniedException;
+import static com.vncode.app.features.license.LicenseModels.Permission.SELLER_API;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,6 +34,7 @@ public class WbProductSyncService {
     }
 
     public int sync(Shop shop) throws IOException {
+        LicenseRuntime.require(SELLER_API);
         WbShopSyncState state = syncStateRepository.getShopSyncState(shop.getId());
         long runId = syncRunRepository.startSyncRun(shop.getId(), "products");
         int read = 0;
@@ -39,6 +43,7 @@ public class WbProductSyncService {
         Long cursorNmId = state.productsCursorNmId();
         try {
             while (true) {
+                LicenseRuntime.require(SELLER_API);
                 WbProductCardsResponse response = apiClient.getProductCards(shop.getApiKey(), "ru", cursorUpdatedAt, cursorNmId, PAGE_LIMIT);
                 if (response == null || response.getCards() == null || response.getCards().isEmpty()) {
                     syncStateRepository.updateProductsCursor(shop.getId(), cursorUpdatedAt, cursorNmId, Instant.now().toString());
@@ -62,6 +67,8 @@ public class WbProductSyncService {
                     return written;
                 }
             }
+        } catch (LicenseDeniedException paused) {
+            syncRunRepository.finishSyncRun(runId,false,read,written,"license_required",paused.getMessage());throw paused;
         } catch (IOException | RuntimeException ex) {
             if (ex instanceof WbApiException wb && wb.isRateLimited()) {
                 LOGGER.warn("Sync products bị WB rate limit cho shop {}: {}", shop.getId(), wb.getMessage());
@@ -75,6 +82,7 @@ public class WbProductSyncService {
     }
 
     public int recoverProductsByNmIds(Shop shop, List<Long> nmIds) throws IOException {
+        LicenseRuntime.require(SELLER_API);
         Set<Long> remaining = new LinkedHashSet<>();
         if (nmIds != null) {
             for (Long nmId : nmIds) {
@@ -94,6 +102,7 @@ public class WbProductSyncService {
         Long cursorNmId = null;
         try {
             while (true) {
+                LicenseRuntime.require(SELLER_API);
                 WbProductCardsResponse response = apiClient.getProductCards(shop.getApiKey(), "ru", cursorUpdatedAt, cursorNmId, PAGE_LIMIT);
                 if (response == null || response.getCards() == null || response.getCards().isEmpty()) {
                     break;
@@ -129,6 +138,8 @@ public class WbProductSyncService {
             String message = "Sản phẩm không tồn tại trên WB: nmId " + missing + ". Vui lòng kiểm tra lại thùng rác.";
             syncRunRepository.finishSyncRun(runId, false, read, written, "not_found", message);
             throw new IOException(message);
+        } catch (LicenseDeniedException paused) {
+            syncRunRepository.finishSyncRun(runId,false,read,written,"license_required",paused.getMessage());throw paused;
         } catch (IOException | RuntimeException ex) {
             if (ex instanceof WbApiException wb && wb.isRateLimited()) {
                 LOGGER.warn("Recover products bị WB rate limit cho shop {}: {}", shop.getId(), wb.getMessage());

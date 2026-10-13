@@ -14,6 +14,10 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.Map;
+import java.util.LinkedHashMap;
+import java.util.HashSet;
+import java.util.Collections;
 
 public class ZnackGtinInventoryService {
     private static final Logger LOGGER = LoggerFactory.getLogger(ZnackGtinInventoryService.class);
@@ -23,36 +27,58 @@ public class ZnackGtinInventoryService {
     }
 
     public List<Kiz> reserveAvailable(int shopId, String gtin, int quantity, String reservationToken) {
-        if (quantity <= 0) throw new IllegalArgumentException("Quantity must be positive.");
-        String normalized = GtinNormalizer.normalize(gtin);
+        return reserveAvailableBulk(shopId, Map.of(gtin, quantity), reservationToken).get(GtinNormalizer.normalize(gtin));
+    }
+
+    /** One scoped transaction for the entire print plan; shortages never leave partial reservations. */
+    public Map<String, List<Kiz>> reserveAvailableBulk(int shopId, Map<String, Integer> quantities) {
+        return reserveAvailableBulk(shopId, quantities, UUID.randomUUID().toString());
+    }
+
+    public Map<String, List<Kiz>> reserveAvailableBulk(int shopId, Map<String, Integer> quantities, String reservationToken) {
+        if (shopId <= 0 || quantities == null || quantities.isEmpty() || quantities.size() > 10000) throw new IllegalArgumentException("Invalid KIZ reservation plan.");
+        Map<String,Integer> requested = new LinkedHashMap<>();
+        for (var entry : quantities.entrySet()) {
+            if (entry.getValue() == null || entry.getValue() <= 0 || entry.getValue() > 100000) throw new IllegalArgumentException("Quantity must be positive and bounded.");
+            requested.merge(GtinNormalizer.normalize(entry.getKey()), entry.getValue(), Math::addExact);
+        }
         String token = reservationToken == null || reservationToken.isBlank()
                 ? UUID.randomUUID().toString() : reservationToken;
         try (Connection c = Database.getConnection(); Statement tx = c.createStatement()) {
             tx.execute("BEGIN IMMEDIATE");
             try {
-                List<Kiz> selected = selectAvailable(c, shopId, normalized, quantity);
-                if (selected.size() != quantity) {
-                    throw new IllegalStateException("Not enough available KIZ for GTIN " + normalized
-                            + ": required " + quantity + ", available " + selected.size());
+                Map<String,List<Kiz>> selected = selectAvailableBulk(c, shopId, requested);
+                for(var entry:requested.entrySet()) {
+                    int available = selected.getOrDefault(entry.getKey(), List.of()).size();
+                    if (available != entry.getValue()) {
+                        throw new IllegalStateException("KIZ_INVENTORY_SHORTAGE: GTIN " + entry.getKey()
+                                + "; required=" + entry.getValue() + "; available=" + available);
+                    }
                 }
-                String placeholders = String.join(",", java.util.Collections.nCopies(selected.size(), "?"));
+                List<Kiz> all=selected.values().stream().flatMap(List::stream).toList();
+                String now=Instant.now().toString();
+                for(int offset=0;offset<all.size();offset+=900) {
+                List<Kiz> batch=all.subList(offset,Math.min(offset+900,all.size()));
+                String placeholders = String.join(",", Collections.nCopies(batch.size(), "?"));
                 try (PreparedStatement ps = c.prepareStatement("""
                         UPDATE kiz_codes SET status='RESERVED',reservation_token=?,reserved_at=?,
                         reservation_recoverable=1,updated_at=?
                         WHERE shop_id=? AND status='AVAILABLE' AND legal_status='IN_CIRCULATION' AND id IN (
                         """ + placeholders + ")")) {
-                    String now = Instant.now().toString();
                     ps.setString(1, token);
                     ps.setString(2, now);
                     ps.setString(3, now);
                     ps.setInt(4, shopId);
-                    for (int i = 0; i < selected.size(); i++) ps.setInt(i + 5, selected.get(i).getId());
-                    if (ps.executeUpdate() != selected.size()) {
+                    for (int i = 0; i < batch.size(); i++) ps.setInt(i + 5, batch.get(i).getId());
+                    if (ps.executeUpdate() != batch.size()) {
                         throw new IllegalStateException("KIZ inventory changed while reserving codes.");
                     }
                 }
+                }
                 tx.execute("COMMIT");
-                return selected.stream().map(kiz -> new Kiz(kiz.getId(), kiz.getCode(), token)).toList();
+                Map<String,List<Kiz>> result=new LinkedHashMap<>();
+                selected.forEach((gtin,codes)->result.put(gtin,codes.stream().map(kiz->new Kiz(kiz.getId(),kiz.getCode(),token)).toList()));
+                return Collections.unmodifiableMap(result);
             } catch (Exception e) {
                 tx.execute("ROLLBACK");
                 throw e;
@@ -72,7 +98,7 @@ public class ZnackGtinInventoryService {
 
     public int availableCount(int shopId, String gtin) {
         try (Connection c = Database.getConnection(); PreparedStatement ps = c.prepareStatement(
-                "SELECT COUNT(*) FROM kiz_codes WHERE shop_id=? AND gtin=? "
+                "SELECT COUNT(*) FROM kiz_codes INDEXED BY idx_kiz_codes_available_circulation WHERE shop_id=? AND gtin=? "
                         + "AND status='AVAILABLE' AND legal_status='IN_CIRCULATION'")) {
             ps.setInt(1, shopId);
             ps.setString(2, GtinNormalizer.normalize(gtin));
@@ -175,47 +201,53 @@ public class ZnackGtinInventoryService {
         }
     }
 
-    private List<Kiz> selectAvailable(Connection c, int shopId, String gtin, int quantity) throws SQLException {
-        try (PreparedStatement ps = c.prepareStatement("""
-                SELECT id,raw_code FROM kiz_codes
-                WHERE shop_id=? AND gtin=? AND status='AVAILABLE' AND legal_status='IN_CIRCULATION'
-                ORDER BY id LIMIT ?
-                """)) {
-            ps.setInt(1, shopId);
-            ps.setString(2, gtin);
-            ps.setInt(3, quantity);
-            try (ResultSet rs = ps.executeQuery()) {
-                List<Kiz> result = new ArrayList<>();
-                while (rs.next()) result.add(new Kiz(rs.getInt(1), rs.getString(2)));
-                return result;
+    private Map<String,List<Kiz>> selectAvailableBulk(Connection c,int shopId,Map<String,Integer> requested)throws SQLException {
+        Map<String,List<Kiz>> result=new LinkedHashMap<>();
+        List<Map.Entry<String,Integer>> entries=new ArrayList<>(requested.entrySet());
+        for(int start=0;start<entries.size();start+=400) {
+            var batch=entries.subList(start,Math.min(start+400,entries.size()));
+            String values=String.join(",",Collections.nCopies(batch.size(),"(?,?)"));
+            String sql="WITH wanted(gtin,quantity) AS (VALUES "+values+")"+"""
+                    , ranked AS (SELECT code.id,code.raw_code,code.gtin,wanted.quantity,
+                      ROW_NUMBER() OVER(PARTITION BY code.gtin ORDER BY code.id) AS position
+                      FROM kiz_codes code INDEXED BY idx_kiz_codes_available_circulation JOIN wanted ON wanted.gtin=code.gtin
+                      WHERE code.shop_id=? AND code.status='AVAILABLE' AND code.legal_status='IN_CIRCULATION')
+                    SELECT id,raw_code,gtin FROM ranked WHERE position<=quantity ORDER BY gtin,id
+                    """;
+            try(PreparedStatement ps=c.prepareStatement(sql)) {
+                int index=1;for(var entry:batch){ps.setString(index++,entry.getKey());ps.setInt(index++,entry.getValue());}ps.setInt(index,shopId);
+                try(ResultSet rs=ps.executeQuery()){while(rs.next())result.computeIfAbsent(rs.getString(3),ignored->new ArrayList<>()).add(new Kiz(rs.getInt(1),rs.getString(2)));}
             }
         }
+        return result;
     }
 
     private int updateCodes(int shopId, List<Kiz> codes, String target, boolean consumed, boolean requireAll) {
         if (codes == null || codes.isEmpty()) return 0;
-        String sql = """
+        var ids=new HashSet<Integer>();
+        for(Kiz code:codes)if(code==null||code.getReservationToken()==null||code.getReservationToken().isBlank()||!ids.add(code.getId()))throw new IllegalStateException("KIZ reservation ownership is invalid.");
+        String update = """
                 UPDATE kiz_codes SET status=?,reservation_token=NULL,reserved_at=NULL,
                 reservation_recoverable=NULL,consumed_at=?,updated_at=?
-                WHERE id=? AND status='RESERVED' AND reservation_token=? AND shop_id=?
+                WHERE status='RESERVED' AND shop_id=? AND id IN (SELECT id FROM requested) AND EXISTS (
+                  SELECT 1 FROM requested WHERE requested.id=kiz_codes.id AND requested.token=kiz_codes.reservation_token)
                 """;
-        try (Connection c = Database.getConnection(); PreparedStatement ps = c.prepareStatement(sql)) {
+        try (Connection c = Database.getConnection()) {
             c.setAutoCommit(false);
             try {
                 int updated = 0;
                 String now = Instant.now().toString();
-                for (Kiz code : codes) {
-                    if (code == null || code.getReservationToken() == null || code.getReservationToken().isBlank()) {
-                        if (requireAll) throw new IllegalStateException("KIZ reservation token is missing.");
-                        continue;
-                    }
-                    ps.setString(1, target);
-                    ps.setString(2, consumed ? now : null);
-                    ps.setString(3, now);
-                    ps.setInt(4, code.getId());
-                    ps.setString(5, code.getReservationToken());
-                    ps.setInt(6, shopId);
+                for (int start=0;start<codes.size();start+=400) {
+                    var batch=codes.subList(start,Math.min(start+400,codes.size()));
+                    String values=String.join(",",Collections.nCopies(batch.size(),"(?,?)"));
+                    try(PreparedStatement ps=c.prepareStatement("WITH requested(id,token) AS (VALUES "+values+") "+update)) {
+                    int index=1;for(Kiz code:batch){ps.setInt(index++,code.getId());ps.setString(index++,code.getReservationToken());}
+                    ps.setString(index++, target);
+                    ps.setString(index++, consumed ? now : null);
+                    ps.setString(index++, now);
+                    ps.setInt(index, shopId);
                     updated += ps.executeUpdate();
+                    }
                 }
                 if (requireAll && updated != codes.size()) {
                     throw new IllegalStateException("One or more KIZ reservations are no longer owned by this workflow.");

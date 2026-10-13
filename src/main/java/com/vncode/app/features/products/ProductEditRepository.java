@@ -36,6 +36,18 @@ public final class ProductEditRepository {
     public boolean claimAssets(String id,ProductBulkEditService.EditItem item,RemoteSubmission submission){var next=item.with(CopyState.SENDING,submission,List.of());try(var c=Database.getConnection()){
         c.setAutoCommit(false);var stored=new ProductEditAssets(c,id).store(next);try(var q=c.prepareStatement("UPDATE product_edit_items SET state='SENDING',phase='ASSETS_SENDING',payload=? WHERE job_id=? AND card_id=? AND phase='CARD' AND state IN ('REMOTE_PROCESSING','RECONCILE_REQUIRED')")){q.setString(1,ProductJson.GSON.toJson(stored));q.setString(2,id);q.setString(3,item.key().cardId());if(q.executeUpdate()!=1){c.rollback();return false;}}event(c,id,next);c.commit();return true;
     }catch(SQLException e){throw new IllegalStateException("Cannot claim product documents");}}
+    /** A denied pre-send check is a known-unsent outcome, never an ambiguous remote submission. */
+    public boolean releaseUnsent(String id,String owner,ProductBulkEditService.EditItem item){try(var c=Database.getConnection()){
+        c.setAutoCommit(false);
+        try(var q=c.prepareStatement("""
+          UPDATE product_edit_items SET state='AWAITING_CONFIRMATION'
+          WHERE job_id=? AND card_id=? AND state='SENDING' AND phase='CARD'
+            AND json_extract(payload,'$.submission') IS NULL
+            AND json_extract(payload,'$.preview.preview.requestHash')=?
+            AND EXISTS(SELECT 1 FROM product_edit_jobs j WHERE j.id=product_edit_items.job_id AND j.owner=?)
+          """)){q.setString(1,id);q.setString(2,item.key().cardId());q.setString(3,item.preview().preview().requestHash());q.setString(4,owner);if(q.executeUpdate()!=1){c.rollback();return false;}}
+        event(c,id,item.with(CopyState.AWAITING_CONFIRMATION,null,item.issues()));c.commit();return true;
+    }catch(SQLException e){throw new IllegalStateException("Cannot release unsent product edit");}}
     public boolean checkpoint(String id,ProductBulkEditService.EditItem item,Set<CopyState> expected){try(var c=Database.getConnection()){
         c.setAutoCommit(false);var stored=new ProductEditAssets(c,id).store(item);String marks=String.join(",",Collections.nCopies(expected.size(),"?"));String phase=item.submission()==null?"CARD":item.submission().phase();try(var q=c.prepareStatement("UPDATE product_edit_items SET state=?,payload=?,phase=? WHERE job_id=? AND card_id=? AND state IN ("+marks+") AND (phase='CARD' OR ?<>'CARD')")){q.setString(1,item.state().name());q.setString(2,ProductJson.GSON.toJson(stored));q.setString(3,phase);q.setString(4,id);q.setString(5,item.key().cardId());int n=6;for(var s:expected)q.setString(n++,s.name());q.setString(n,phase);if(q.executeUpdate()!=1){c.rollback();return false;}}event(c,id,item);c.commit();return true;
     }catch(SQLException e){throw new IllegalStateException("Cannot checkpoint product edit");}}

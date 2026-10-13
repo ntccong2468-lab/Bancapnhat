@@ -3,6 +3,8 @@ package com.vncode.app.features.print;
 import com.vncode.app.integration.marketplace.MarketplaceGuard;
 import com.google.zxing.WriterException;
 import com.vncode.app.features.kiz.KizService;
+import com.vncode.app.features.license.LicenseModels.Permission;
+import com.vncode.app.features.license.LicenseRuntime;
 import com.vncode.app.features.kizmapping.KizMappingRepository;
 import com.vncode.app.features.print.history.PrintHistoryService;
 import com.vncode.app.integration.wb.WbSupplyWorkflow;
@@ -21,6 +23,10 @@ import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.Map;
+import com.vncode.app.integration.znack.GtinNormalizer;
+import com.vncode.app.integration.znack.registration.ZnackCardRegistrationRepository;
+import com.vncode.app.features.shop.ShopOperationCoordinator;
 
 public class OrderExportWorkflow {
     private static final Logger LOGGER = LoggerFactory.getLogger(OrderExportWorkflow.class);
@@ -31,9 +37,32 @@ public class OrderExportWorkflow {
     private final PrintHistoryService printHistoryService = new PrintHistoryService();
     private final KizMappingRepository kizMappingRepository = new KizMappingRepository();
     private final ZnackGtinInventoryService inventoryService = new ZnackGtinInventoryService();
+    private final KizPlanningData planning;
+
+    public OrderExportWorkflow() { this(null); }
+    OrderExportWorkflow(KizPlanningData planning) {
+        this.planning=planning==null?new KizPlanningData(){
+            public Map<Long,KizService.SgtinMetadata> metadata(Shop shop,List<Long> ids)throws IOException{return KizService.getSgtinMetadata(shop.getApiKey(),ids);}
+            public Map<Long,String> mappings(int shopId,List<Long> ids){return kizMappingRepository.findMappings(shopId,ids);}
+            public Set<Long> required(int shopId,List<Long> ids){return kizMappingRepository.findKizRequiredNmIds(shopId,ids);}
+            public Map<String,String> activeGtinsByBarcode(int shopId){return new ZnackCardRegistrationRepository().activeGtinsByBarcode(shopId);}
+            public Map<String,List<Kiz>> reserve(int shopId,Map<String,Integer> quantities){return inventoryService.reserveAvailableBulk(shopId,quantities);}
+            public void release(int shopId,List<Kiz> codes){inventoryService.release(shopId,codes);}
+            public void validate(Shop shop)throws IOException{KizService.requireCurrentShop(shop.getId(),shop.getApiKey());}
+            public void requireNoPending(int shopId,List<Long> ids)throws IOException{new KizAttachmentCheckpointRepository().requireNoPending(shopId,ids);}
+        }:planning;
+    }
 
     public ExportResult export(ExportRequest request) throws IOException, WriterException {
         MarketplaceGuard.requireWildberries(request.shop());
+        LicenseRuntime.require(Permission.PRINT_NEW);
+        try{return ShopOperationCoordinator.withActiveShop(request.shop().getId(),()->exportCurrent(request));}
+        catch(IOException|WriterException|RuntimeException failure){throw failure;}
+        catch(Exception unexpected){throw new IOException("WB_EXPORT_FAILED");}
+    }
+
+    private ExportResult exportCurrent(ExportRequest request)throws IOException,WriterException {
+        planning.validate(request.shop());
         List<Order> workingOrders = copyOrders(request.orders());
         List<Kiz> usedKizs = List.of();
         Set<Long> replaceExistingOrderIds = Set.of();
@@ -51,8 +80,11 @@ public class OrderExportWorkflow {
             wbSupplyWorkflow.ensureOrderImages(workingOrders);
             barcodeStaging = AtomicFilePublisher.stagingFile(request.outputFile(), ".pdf");
             detailsStaging = AtomicFilePublisher.stagingFile(request.detailsFile(), ".pdf");
+            LicenseRuntime.require(Permission.PRINT_NEW);
             exportPdfFiles(template, barcodeStaging, detailsStaging, request.shop(), request.supplyId(),
                     request.supplyName(), printedAt, workingOrders, request.printOptions());
+            LicenseRuntime.require(Permission.PRINT_NEW);
+            planning.validate(request.shop());
             inventoryService.consume(request.shop().getId(), usedKizs);
             inventoryConsumed = true;
             AtomicFilePublisher.publish(barcodeStaging, request.outputFile());
@@ -85,8 +117,8 @@ public class OrderExportWorkflow {
 
     public void verifyKizAvailability(List<Order> orders, Shop shop) throws IOException, IllegalStateException {
         MarketplaceGuard.requireWildberries(shop);
-        KizAssignmentResult result = assignKizCodes(copyOrders(orders), shop);
-        inventoryService.release(shop.getId(), result.usedKizs());
+        LicenseRuntime.require(Permission.PRINT_NEW);
+        ShopOperationCoordinator.withActiveShop(shop.getId(),()->{KizAssignmentResult result=assignKizCodes(copyOrders(orders),shop);inventoryService.release(shop.getId(),result.usedKizs());return null;});
     }
 
     private static List<Order> copyOrders(List<Order> orders) {
@@ -119,8 +151,11 @@ public class OrderExportWorkflow {
         return copies;
     }
 
-    private KizAssignmentResult assignKizCodes(List<Order> orders, Shop shop) throws IOException {
+    KizAssignmentResult assignKizCodes(List<Order> orders, Shop shop) throws IOException {
+        planning.validate(shop);
+        Set<Long> uniqueOrders=new java.util.HashSet<>();
         for (Order order : orders) {
+            if(order==null||order.getId()!=null&&order.getId()>0&&!uniqueOrders.add(order.getId()))throw new IllegalArgumentException("DUPLICATE_KIZ_ORDER");
             order.setKiz(null);
         }
 
@@ -131,19 +166,22 @@ public class OrderExportWorkflow {
                 .filter(value -> value != null && value > 0)
                 .distinct()
                 .toList();
-        java.util.Map<Long, KizService.SgtinMetadata> metadataByOrderId = KizService.getSgtinMetadata(shop.getApiKey(), orderIds);
+        planning.requireNoPending(shop.getId(),orderIds);
+        java.util.Map<Long, KizService.SgtinMetadata> metadataByOrderId = planning.metadata(shop, orderIds);
         List<Long> nmIds = orders.stream()
                 .map(Order::getNmId)
                 .filter(value -> value != null && value > 0)
                 .distinct()
                 .toList();
-        java.util.Map<Long, String> mappingByNmId = kizMappingRepository.findMappings(shop.getId(), nmIds);
-        Set<Long> kizRequiredNmIds = kizMappingRepository.findKizRequiredNmIds(shop.getId(), nmIds);
+        java.util.Map<Long, String> mappingByNmId = planning.mappings(shop.getId(), nmIds);
+        Set<Long> kizRequiredNmIds = planning.required(shop.getId(), nmIds);
+        Map<String,String> activeGtinsByBarcode=planning.activeGtinsByBarcode(shop.getId());
         java.util.Map<String, List<Order>> ordersByGtin = new java.util.LinkedHashMap<>();
         for (int i = 0; i < orders.size(); i++) {
             Order order = orders.get(i);
             KizService.SgtinMetadata sgtinMetadata = order.getId() == null ? null : metadataByOrderId.get(order.getId());
-            String gtin = order.getNmId() == null ? null : mappingByNmId.get(order.getNmId());
+            String gtin = order.getBarcode()==null?null:activeGtinsByBarcode.get(order.getBarcode().strip());
+            if(gtin==null)gtin=order.getNmId() == null ? null : mappingByNmId.get(order.getNmId());
             boolean requiresKiz = order.isRequiresKiz() || isProductKizRequired(order, kizRequiredNmIds)
                     || (sgtinMetadata != null && sgtinMetadata.available());
             if (sgtinMetadata != null && sgtinMetadata.available()) {
@@ -160,24 +198,35 @@ public class OrderExportWorkflow {
             if (!requiresKiz) {
                 continue;
             }
+            order.setRequiresKiz(true);
             if (gtin == null) {
                 throw new IllegalStateException("Order thứ " + (i + 1) + " cần KIZ nhưng nmId chưa được map: " + order.getNmId());
             }
-            ordersByGtin.computeIfAbsent(gtin, key -> new ArrayList<>()).add(order);
+            ordersByGtin.computeIfAbsent(GtinNormalizer.normalize(gtin), key -> new ArrayList<>()).add(order);
         }
 
         try {
+            Map<String,Integer> quantities=new java.util.LinkedHashMap<>();
+            ordersByGtin.forEach((gtin,gtinOrders)->quantities.put(gtin,gtinOrders.size()));
+            if(!quantities.isEmpty()) {
+                LicenseRuntime.require(Permission.PRINT_NEW);
+                planning.validate(shop);
+                var reserved=planning.reserve(shop.getId(),quantities);
+                usedKizs.addAll(reserved.values().stream().flatMap(List::stream).toList());
+                var uniqueCodes=new java.util.HashSet<String>();
+                for(Kiz code:usedKizs)if(code==null||code.getCode()==null||!uniqueCodes.add(KizService.scannerSafeCode(code.getCode())))throw new IllegalStateException("DUPLICATE_KIZ_RESERVATION");
             for (java.util.Map.Entry<String, List<Order>> entry : ordersByGtin.entrySet()) {
                 List<Order> gtinOrders = entry.getValue();
-                List<Kiz> kizList = inventoryService.reserveAvailable(shop.getId(), entry.getKey(), gtinOrders.size());
-                usedKizs.addAll(kizList);
+                List<Kiz> kizList = reserved.get(entry.getKey());
+                if(kizList==null||kizList.size()!=gtinOrders.size())throw new IllegalStateException("KIZ_INVENTORY_SHORTAGE");
                 for (int i = 0; i < gtinOrders.size(); i++) {
                 Kiz kiz = kizList.get(i);
                     gtinOrders.get(i).setKiz(kiz.getCode());
                 }
             }
+            }
         } catch (RuntimeException e) {
-            inventoryService.release(shop.getId(), usedKizs);
+            planning.release(shop.getId(), usedKizs);
             throw e;
         }
 
@@ -257,8 +306,20 @@ public class OrderExportWorkflow {
     }
 
     public record KizAttachmentAssignment(Long orderId, String kizCode, Kiz sourceKiz, boolean replaceExisting) {
+        @Override public String toString(){return "KizAttachmentAssignment[orderId="+orderId+", replaceExisting="+replaceExisting+"]";}
     }
 
-    private record KizAssignmentResult(List<Kiz> usedKizs, Set<Long> replaceExistingOrderIds) {
+    interface KizPlanningData {
+        Map<Long,KizService.SgtinMetadata> metadata(Shop shop,List<Long> ids)throws IOException;
+        Map<Long,String> mappings(int shopId,List<Long> ids);
+        Set<Long> required(int shopId,List<Long> ids);
+        default Map<String,String> activeGtinsByBarcode(int shopId){return Map.of();}
+        default void validate(Shop shop)throws IOException{}
+        default void requireNoPending(int shopId,List<Long> ids)throws IOException{}
+        Map<String,List<Kiz>> reserve(int shopId,Map<String,Integer> quantities);
+        void release(int shopId,List<Kiz> codes);
+    }
+
+    record KizAssignmentResult(List<Kiz> usedKizs, Set<Long> replaceExistingOrderIds) {
     }
 }
