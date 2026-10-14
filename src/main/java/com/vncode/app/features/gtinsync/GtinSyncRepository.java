@@ -17,11 +17,14 @@ public final class GtinSyncRepository {
             try(var d=c.prepareStatement("DELETE FROM gtin_sync_catalog WHERE shop_id=? AND marketplace=?")) {
                 d.setInt(1,shopId);d.setString(2,marketplace.name());d.executeUpdate();
             }
+            String owner=com.vncode.app.integration.listing.ListingIdentity.fingerprint(c,shopId,marketplace);
             try(var p=c.prepareStatement("INSERT INTO gtin_sync_catalog VALUES(?,?,?,?)")) {
                 for(var row:rows) {
                     if(!RegisteredGtinValidator.isValid(row.gtin())) throw new IllegalArgumentException("invalid_gtin");
                     p.setInt(1,shopId);p.setString(2,marketplace.name());p.setString(3,row.gtin());
-                    p.setString(4,GtinJson.GSON.toJson(row));p.addBatch();
+                    var data=GtinJson.GSON.toJsonTree(row).getAsJsonObject();
+                    data.addProperty("owner",owner);
+                    p.setString(4,GtinJson.GSON.toJson(data));p.addBatch();
                 }
                 p.executeBatch();
             }

@@ -13,6 +13,8 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Locale;
 import java.util.Map;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Set;
 
 public final class OzonProductGtinMappingRepository {
@@ -180,11 +182,22 @@ public final class OzonProductGtinMappingRepository {
             legacy.forEach(resolved::putIfAbsent);
             // A reviewed native candidate switches exactly one SKU. A broad article rule must
             // not override that completed choice or alter sibling sizes using the same article.
+            verifiedBarcodeMappings(connection,shopId).forEach(resolved::put);
             activeNativeMappings(connection,shopId).forEach(resolved::put);
             return Map.copyOf(resolved);
         } catch (SQLException exception) {
             throw new RuntimeException(exception);
         }
+    }
+
+    private static Map<String,String> verifiedBarcodeMappings(Connection connection,int shopId)throws SQLException {
+        var candidates=new HashMap<String,Set<String>>();
+        try(var p=connection.prepareStatement("""
+          SELECT p.sku,g.gtin FROM ozon_products p JOIN ozon_product_barcodes b ON b.shop_id=p.shop_id AND b.product_id=p.product_id
+          JOIN gtin_sync_catalog g ON g.shop_id=p.shop_id AND g.marketplace='OZON' AND g.gtin IN (b.barcode,substr('00000000000000'||b.barcode,-14),substr('00000000000000'||b.barcode,-13),substr('00000000000000'||b.barcode,-12),substr('00000000000000'||b.barcode,-8)) AND length(b.barcode) IN (8,12,13,14) AND b.barcode NOT GLOB '*[^0-9]*' AND ltrim(g.gtin,'0')=ltrim(b.barcode,'0')
+          WHERE p.shop_id=? AND p.archived=0 AND json_extract(g.data_json,'$.owner')=? AND json_extract(g.data_json,'$.published')=1 AND json_extract(g.data_json,'$.tradeUnit')=1
+          """)){p.setInt(1,shopId);p.setString(2,com.vncode.app.integration.listing.ListingIdentity.fingerprint(connection,shopId,com.vncode.app.integration.marketplace.Marketplace.OZON));try(var r=p.executeQuery()){while(r.next()){String g=r.getString(2);if(com.vncode.app.features.gtinsync.RegisteredGtinValidator.isValid(g)&&!GtinNormalizer.isTechnicalRange(g))candidates.computeIfAbsent(r.getString(1),k->new HashSet<>()).add(GtinNormalizer.normalize(g));}}}
+        var verified=new HashMap<String,String>();candidates.forEach((sku,gtins)->{if(gtins.size()==1)verified.put(sku,gtins.iterator().next());});return Map.copyOf(verified);
     }
 
     private static Map<String,String> activeNativeMappings(Connection connection,int shopId)throws SQLException {

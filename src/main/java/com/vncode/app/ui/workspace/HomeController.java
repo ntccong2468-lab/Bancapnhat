@@ -204,6 +204,7 @@ public class HomeController implements Initializable {
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         Database.initDatabase();
+        new com.vncode.app.features.print.history.PrintHistoryRepository().recoverInterruptedFboJobs();
         new ZnackGtinInventoryService().releaseRecoverableReservations();
         printTemplateService.ensureDefaultTemplateExists();
 
@@ -228,7 +229,12 @@ public class HomeController implements Initializable {
         checkForUpdates();
     }
 
+    private javafx.scene.Scene sidebarScene;
+    private final javafx.beans.value.ChangeListener<Number> sidebarWidthListener=(o,a,b)->{if(shopSidebarController!=null)shopSidebarController.setViewportWidth(b.doubleValue());};
+    private void watchSidebarWidth(){dynamicContentContainer.sceneProperty().addListener((o,a,b)->{if(a!=null)a.widthProperty().removeListener(sidebarWidthListener);sidebarScene=b;if(b!=null){b.widthProperty().addListener(sidebarWidthListener);if(shopSidebarController!=null)shopSidebarController.setViewportWidth(b.getWidth());}});}
+
     private void loadDynamicViews() {
+        watchSidebarWidth();
         if(newsPane==null) {
             var service=new com.vncode.app.features.news.NewsService(java.util.List.of(),
                 new com.vncode.app.features.news.NewsRepository(com.vncode.app.shared.AppPaths.appDataDir()));
@@ -260,6 +266,7 @@ public class HomeController implements Initializable {
                     com.vncode.app.features.license.LicenseRuntime.service());
             return licensePane;
         });
+        workspaceNavigator.register("designer", () -> {if(designerView==null)designerView=printTemplateDesignerService.createEmbedded();return designerView;});
         workspaceNavigator.register("guides", () -> {if(guidesPane==null)guidesPane=new com.vncode.app.ui.guides.GuidesPane();return guidesPane;});
         workspaceNavigator.register("news", () -> newsPane);
         workspaceNavigator.register("finance", () -> {
@@ -374,7 +381,8 @@ public class HomeController implements Initializable {
         clearKizDraft();workspaceNavigator.show("finance");financeDashboardController.setShop(state.getSelectedShop());
     }
     private com.vncode.app.ui.guides.GuidesPane guidesPane;
-    private void showGuides(){clearKizDraft();workspaceNavigator.show("guides");}
+    private javafx.scene.Parent designerView;
+    private void showGuides(){clearKizDraft();workspaceNavigator.show("guides");guidesPane.applyTranslations();}
 
     private void showOzonDashboard(boolean syncRemote) {
         clearKizDraft();
@@ -508,7 +516,7 @@ public class HomeController implements Initializable {
         var owner=frozenShop(state.getSelectedShop());long epoch=++fboEpoch;int offset=append?fboPackingController.rowCount():0;
         var criteria=fboPackingController.criteria(owner.getId(),FBO_PAGE_SIZE+1,offset);
         fboLoading=true;fboPackingController.setLoading(true);
-        localReads.submitLocal(new com.vncode.app.shared.ShopReadCoordinator.Key(owner.getId(),"fbo-page",criteria.toString()),()->owner.getMarketplace()==Marketplace.OZON?ozonFboProductRepository.search(criteria):fboProductRepository.search(criteria)).whenComplete((loaded,error)->javafx.application.Platform.runLater(()->{
+        localReads.submitLocal(new com.vncode.app.shared.ShopReadCoordinator.Key(owner.getId(),"fbo-page",criteria.toString()),()->{var page=owner.getMarketplace()==Marketplace.OZON?ozonFboProductRepository.search(criteria):fboProductRepository.search(criteria);var verified=new com.vncode.app.features.fbo.FboVerifiedGtinRepository().resolve(owner.getId(),owner.getMarketplace(),page);return page.stream().map(p->p.withVerifiedGtin(verified.getOrDefault(p,""))).toList();}).whenComplete((loaded,error)->javafx.application.Platform.runLater(()->{
             if(disposed||epoch!=fboEpoch||!sameOwner(owner))return;
             fboLoading=false;fboPackingController.setLoading(false);
             if(error!=null)return;
@@ -527,9 +535,10 @@ public class HomeController implements Initializable {
         clearFboQuantitiesIfLeaving(view);
         stopPackingDelayIfLeaving(view);
         if(shopSidebarController!=null) {
-            String selected=view==listingCopyPane?"listingCopyButton":view==productsPane?"productsButton":view==welcomePane?"dashboardButton":view==guidesPane?"guidesButton":view==financeDashboardView?"financeButton":view==packingView||view==ozonDashboardView||view==supplyManagementView?"packingButton":view==fboPackingView?"fboPackingButton":view==fboSupplyOrdersView?"fboOrdersButton":view==kizMappingView?"kizMappingButton":view==znackAutomationView?"znackAutomationButton":view==znackRegistrationView?"znackRegistrationButton":view==printHistoryView?"btnPrintHistory":view==gtinSyncView?"gtinSyncButton":view==gs1Pane?"gs1Button":"";
+            String selected=view==designerView?"templateButton":view==listingCopyPane?"listingCopyButton":view==productsPane?"productsButton":view==welcomePane?"dashboardButton":view==guidesPane?"guidesButton":view==financeDashboardView?"financeButton":view==packingView||view==ozonDashboardView||view==supplyManagementView?"packingButton":view==fboPackingView?"fboPackingButton":view==fboSupplyOrdersView?"fboOrdersButton":view==kizMappingView?"kizMappingButton":view==znackAutomationView?"znackAutomationButton":view==znackRegistrationView?"znackRegistrationButton":view==printHistoryView?"btnPrintHistory":view==gtinSyncView?"gtinSyncButton":view==gs1Pane?"gs1Button":"";
             shopSidebarController.selectNavigation(selected);
         }
+        if(guidesPane!=null&&view!=guidesPane)guidesPane.stopMedia();
         dynamicContentContainer.getChildren().setAll(view);
         view.setOpacity(0.0);
         FadeTransition fade = new FadeTransition(javafx.util.Duration.millis(120), view);
@@ -567,7 +576,7 @@ public class HomeController implements Initializable {
     private void reconcileHistoryKiz(PrintHistoryJobSummary job) {
         Shop selected=state.getSelectedShop();
         if(selected==null||job==null||!job.canReprint()||job.shopId()!=selected.getId()
-                ||selected.getMarketplace()!=Marketplace.WILDBERRIES||isShopBusy(selected.getId()))return;
+                ||selected.getMarketplace()!=Marketplace.WILDBERRIES||job.isFbo()||isShopBusy(selected.getId()))return;
         Shop owner=frozenShop(selected);
         var confirm=new Alert(Alert.AlertType.CONFIRMATION,i18nService.tr("history.reconcile_confirm"),ButtonType.OK,ButtonType.CANCEL);
         AlertService.applyTheme(confirm);confirm.setHeaderText(owner.getName()+" · "+job.supplyId());
@@ -631,18 +640,43 @@ public class HomeController implements Initializable {
     }
 
     private void printFboBarcodes(List<FboBarcodePrintItem> items) {
+        if(items==null||items.isEmpty())return;Shop selected=state.getSelectedShop();if(selected==null)return;
+        Shop owner=new Shop(selected.getId(),selected.getName(),selected.getMarketplace(),selected.getClientId(),selected.getApiKey());
+        localReads.submitLocal(new com.vncode.app.shared.ShopReadCoordinator.Key(owner.getId(),"fbo-preflight",java.util.UUID.randomUUID().toString()),()->new com.vncode.app.features.fbo.FboPreflightService().inspect(owner,List.copyOf(items)))
+          .whenComplete((result,error)->javafx.application.Platform.runLater(()->{
+            if(disposed||!sameOwner(owner))return;
+            if(error!=null){AlertService.showError(com.vncode.app.shared.FriendlyErrorService.format(error));return;}
+            var approved=com.vncode.app.ui.fbo.FboPreflightDialog.review(result,fboPackingView==null||fboPackingView.getScene()==null?null:fboPackingView.getScene().getWindow(),this::showZnackRegistration,r->buyFboMissing(owner,List.copyOf(items),r));
+            if(!approved.isEmpty()&&sameOwner(owner))printApprovedFboBarcodes(approved);
+          }));
+    }
+
+    private void buyFboMissing(Shop owner,List<FboBarcodePrintItem> items,com.vncode.app.features.fbo.FboPreflightService.Result approved) {
+        if(disposed||!sameOwner(owner))return;
+        com.vncode.app.shared.SellerMutationExecutor.submit(()->{new com.vncode.app.features.fbo.FboPurchaseService().enqueue(owner,items,approved,true);return true;})
+          .whenComplete((done,error)->javafx.application.Platform.runLater(()->{
+            if(disposed||!sameOwner(owner))return;
+            if(error!=null)AlertService.showError(com.vncode.app.shared.FriendlyErrorService.format(error));
+            else AlertService.showInfo(i18nService.tr("fbo.preflight.title"),"",i18nService.tr("fbo.preflight.purchase_queued"));
+          }));
+    }
+
+    private void printApprovedFboBarcodes(List<FboBarcodePrintItem> items) {
         if (items == null || items.isEmpty()) {
             return;
         }
-        Shop shop = state.getSelectedShop();
+        Shop selected = state.getSelectedShop();
+        Shop shop=selected==null?null:frozenShop(selected);
         if (shop == null) {
             return;
         }
         preparePdfSaveChooser();
         File file = fileChooser.showSaveDialog(null);
-        if (file == null) {
+        if (file == null||disposed||!sameOwner(shop)) {
             return;
         }
+        var lease=com.vncode.app.shared.ShopBatchRegistry.claim(shop,"fbo-print",List.of(file.toPath())).orElse(null);
+        if(lease==null){AlertService.showError(i18nService.tr("ozon.batch.target_busy"));return;}markShopRunning(shop.getId(),true);
         Task<Void> task = new Task<>() {
             @Override
             protected Void call() throws Exception {
@@ -656,67 +690,39 @@ public class HomeController implements Initializable {
             }
         };
         java.util.function.Consumer<Throwable> taskFailure = rejection -> {
+            lease.close();markShopRunning(shop.getId(),false);
             if (ShopOperationCoordinator.isShopUnavailable(rejection)) return;
             LOGGER.error("Không thể in barcode FBO", rejection);
             AlertService.showError(rejection.getMessage());
         };
         task.setOnFailed(event -> taskFailure.accept(task.getException()));
         task.setOnSucceeded(event -> {
-            fboPackingController.clearQuantities();
-            tryOpenFile(file);
+            lease.close();markShopRunning(shop.getId(),false);
+            if(!disposed&&sameOwner(shop))fboPackingController.clearQuantities();
+            if(!disposed)tryOpenFile(file);
         });
         AppTaskExecutor.execute(task, taskFailure);
     }
 
     private void printSingleFboBarcode(FboProductSku product) {
-        if (product == null) {
-            return;
-        }
-        Shop shop = state.getSelectedShop();
-        if (shop == null) {
-            return;
-        }
-        preparePdfSaveChooser();
-        File file = fileChooser.showSaveDialog(null);
-        if (file == null) {
-            return;
-        }
-        Task<Void> task = new Task<>() {
-            @Override
-            protected Void call() throws Exception {
-                return ShopOperationCoordinator.withActiveShop(shop.getId(), () -> {
-                    List<FboBarcodePrintItem> items = List.of(new FboBarcodePrintItem(product, 1));
-                    FboPrintPlan plan = shop.getMarketplace() == Marketplace.OZON
-                            ? ozonFboKizPrintPlanner.plan(shop.getId(), items)
-                            : fboKizPrintPlanner.plan(shop.getId(), items);
-                    exportFboPlan(shop.getId(), plan, file);
-                    return null;
-                });
-            }
-        };
-        java.util.function.Consumer<Throwable> taskFailure = rejection -> {
-            if (ShopOperationCoordinator.isShopUnavailable(rejection)) return;
-            LOGGER.error("Không thể in nhanh barcode FBO", rejection);
-            AlertService.showError(rejection.getMessage());
-        };
-        task.setOnFailed(event -> taskFailure.accept(task.getException()));
-        task.setOnSucceeded(event -> {
-            tryOpenFile(file);
-        });
-        AppTaskExecutor.execute(task, taskFailure);
+        if(product!=null)printFboBarcodes(List.of(new FboBarcodePrintItem(product,1)));
     }
 
-    private void exportFboPlan(int shopId, FboPrintPlan plan, File file) throws IOException {
-        boolean[] inventoryConsumed = {false};
+    private void exportFboPlan(int shopId,FboPrintPlan plan,File file)throws IOException {
+        var owner=new com.vncode.app.features.shop.ShopRepository().findById(shopId);if(owner==null)throw new IllegalStateException("Shop unavailable");
+        var template=new com.vncode.app.features.fbo.FboPrintTemplateService().getDefaultTemplate();
+        long[] journal={0};
+        boolean[] consumed={false};var history=new com.vncode.app.features.print.history.PrintHistoryRepository();
         try {
-            fboBarcodePdfExporter.exportPlan(plan, file, () -> {
-                KizService.deleteKizs(shopId, plan.usedKizs());
-                inventoryConsumed[0] = true;
+            journal[0]=printHistoryService.recordPreparedFboJob(owner,template,fboBarcodePdfExporter.toOrders(plan.pages()));
+            fboBarcodePdfExporter.exportPlan(plan,file,()->{
+                com.vncode.app.integration.listing.ListingIdentity.require(owner);
+                new com.vncode.app.integration.znack.ZnackGtinInventoryService().consumeForFboPrint(shopId,plan.usedKizs(),journal[0]);consumed[0]=true;
             });
-        } catch (IOException | RuntimeException error) {
-            if (!inventoryConsumed[0]) {
-                KizService.releaseKizs(shopId, plan.usedKizs());
-            }
+            history.finishFboJob(shopId,journal[0],"pdf_ready","success");
+        }catch(IOException|RuntimeException error) {
+            if(!consumed[0]){KizService.releaseKizs(shopId,plan.usedKizs());if(journal[0]>0)history.finishFboJob(shopId,journal[0],"prepared","failed");}
+            // Once consumed, pdf_ready retains exact frozen labels for explicit recovery/reprint.
             throw error;
         }
     }
@@ -1073,7 +1079,7 @@ public class HomeController implements Initializable {
     }
 
     public void onSettings(ActionEvent event) {
-        printTemplateDesignerService.showDialog();
+        clearKizDraft();workspaceNavigator.show("designer");
     }
 
     public void onUpdateShop(ActionEvent actionEvent) {
@@ -1673,11 +1679,26 @@ public class HomeController implements Initializable {
         dialog.getDialogPane().lookupButton(remove).addEventFilter(ActionEvent.ACTION,event->{new com.vncode.app.integration.translation.TranslationSettingsRepository().clear();if(newsPane!=null)newsPane.translationSettingsChanged();});dialog.setOnHidden(e->password.clear());dialog.show();
     }
 
+    private void openJob(com.vncode.app.features.jobs.JobCenterRepository.Row row) {
+        var owner=state.getShops().stream().filter(shop->shop.getId()==row.shopId()).findFirst().orElse(null);
+        if(owner==null)return;
+        if(state.getSelectedShop()==null||state.getSelectedShop().getId()!=owner.getId())selectShop(owner);
+        switch(row.kind()) {
+            case "registration"->showZnackRegistration();
+            case "purchase"->showZnackAutomation();
+            case "gtin"->workspaceNavigator.show("gtin-sync");
+            case "edit"->showProducts();
+            case "print"->{workspaceNavigator.show("print-history");refreshPrintHistory();}
+            default->showPacking();
+        }
+    }
+
     private void initializeHeader() {
         FXMLLoader loader = FxmlViewLoader.loader(WorkspaceHeaderController.class, "workspace-header-view.fxml");
-        HBox root = FxmlViewLoader.load(loader);
+        javafx.scene.layout.Region root = FxmlViewLoader.load(loader);
         workspaceHeaderController = loader.getController();
         workspaceHeaderController.setOnSupport(this::showGuides);
+        workspaceHeaderController.setOnJobOpen(this::openJob);
         workspaceHeaderController.setOnSync(() -> onSyncWildberries(new ActionEvent()));
         workspaceHeaderController.setOnEditShop(() -> onUpdateShop(new ActionEvent()));
         workspaceHeaderController.setOnDeleteShop(() -> onDeleteShop(new ActionEvent()));
@@ -1742,6 +1763,7 @@ public class HomeController implements Initializable {
         if(productEditPane!=null)productEditPane.applyTranslations();
         if(listingCopyPane!=null)listingCopyPane.applyTranslations();
         if(guidesPane!=null)guidesPane.applyTranslations();
+        printTemplateDesignerService.applyEmbeddedTranslations();
         if(newsPane!=null)newsPane.applyTranslations();
         if(welcomePane!=null)welcomePane.applyTranslations();
         if (disposed) {
@@ -2288,6 +2310,9 @@ public class HomeController implements Initializable {
         }
         disposed = true;
         if (licensePane != null) licensePane.dispose();
+        if(guidesPane!=null)guidesPane.dispose();
+        if(workspaceHeaderController!=null)workspaceHeaderController.dispose();
+        if(sidebarScene!=null)sidebarScene.widthProperty().removeListener(sidebarWidthListener);
         if (licenseSubscription != null) {
             try { licenseSubscription.close(); } catch (Exception ignored) { }
             licenseSubscription = null;

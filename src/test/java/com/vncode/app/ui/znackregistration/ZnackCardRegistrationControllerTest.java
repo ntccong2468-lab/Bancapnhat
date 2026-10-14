@@ -40,13 +40,14 @@ class ZnackCardRegistrationControllerTest {
         awaitTasks();
     }
     @AfterEach void cleanup() throws Exception {awaitTasks();com.vncode.app.testsupport.ShopReadTestCleanup.awaitSharedIdle();System.clearProperty("vncode.appdata.dir");}
-    @Test void selectAllChoosesOnlyEligibleRowsAndUsesMultipleSelection() throws Exception {
+    @Test void selectAllIncludesPublishedRowsForTheSeparateNewCardAction() throws Exception {
         fx(()->{
             assertEquals(SelectionMode.MULTIPLE,table().getSelectionModel().getSelectionMode());
             assertTrue(button("registerSelectedButton").isDisable());
             button("selectAllButton").fire();
-            assertEquals(2,table().getSelectionModel().getSelectedItems().size());
-            assertTrue(table().getSelectionModel().getSelectedItems().stream().noneMatch(s->s.status()==Status.PUBLISHED));
+            assertEquals(3,table().getSelectionModel().getSelectedItems().size());
+            assertEquals(1,table().getSelectionModel().getSelectedItems().stream().filter(s->s.status()==Status.PUBLISHED).count());
+            assertFalse(button("newCardsSelectedButton").isDisable());
             assertFalse(button("registerSelectedButton").isDisable());return null;
         });
     }
@@ -110,7 +111,7 @@ class ZnackCardRegistrationControllerTest {
         fx(()->{
             assertEquals(300,table().getItems().size(),"All-filtered selection must not create every FX row");
             Label selected=(Label)loader.getNamespace().get("selectionLabel");
-            assertEquals(java.text.MessageFormat.format(I18nService.getInstance().tr("znack.registration.selection_count"),1_002),selected.getText());
+            assertEquals(java.text.MessageFormat.format(I18nService.getInstance().tr("znack.registration.selection_count"),1_003),selected.getText());
             assertFalse(button("registerSelectedButton").isDisable());button("clearSelectionButton").fire();
             assertTrue(button("registerSelectedButton").isDisable());button("loadMoreButton").fire();return null;
         });awaitTasks();

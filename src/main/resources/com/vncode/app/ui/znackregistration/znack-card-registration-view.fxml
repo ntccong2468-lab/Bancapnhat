@@ -27,6 +27,7 @@
         <Button fx:id="clearSelectionButton" text="Bỏ chọn" onAction="#onClearSelection"/>
         <Label fx:id="selectionLabel" styleClass="text-muted"/>
         <Button fx:id="registerSelectedButton" text="Đăng ký sản phẩm đã chọn" onAction="#onRegisterSelected" styleClass="btn-primary"/>
+        <Button fx:id="newCardsSelectedButton" text="Tạo thẻ mới cho tập đã chọn" onAction="#onNewCardsSelected" styleClass="btn-secondary"/>
     </HBox>
     <HBox alignment="CENTER_LEFT" spacing="8">
         <TextField fx:id="searchField" promptText="Tìm theo tên, article, SKU..." prefWidth="300"/>

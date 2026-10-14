@@ -33,6 +33,14 @@ public class WorkspaceHeaderController {
 
     @FXML private Button newsButton,supportButton;
     @FXML private Label newsBadge;
+    @FXML private ComboBox<com.vncode.app.integration.znack.BalanceSnapshot> balanceAccount;
+    @FXML private Label balanceLabel;
+    @FXML private Button jobsButton;
+    private final javafx.animation.Timeline statusMonitor=new javafx.animation.Timeline();
+    private long balanceEpoch;private boolean disposed;private int balanceWarningRub=500;
+    private Consumer<com.vncode.app.features.jobs.JobCenterRepository.Row> onJobOpen;
+    public void setOnJobOpen(Consumer<com.vncode.app.features.jobs.JobCenterRepository.Row> callback){onJobOpen=callback;}
+    @FXML private void onJobs(){JobCenterDialog.show(jobsButton.getScene()==null?null:jobsButton.getScene().getWindow(),row->{shopComboBox.getItems().stream().filter(s->s.getId()==row.shopId()).findFirst().ifPresent(s->shopComboBox.setValue(s));if(onJobOpen!=null)onJobOpen.accept(row);});}
     private Runnable onSupport;
     public void setOnSupport(Runnable callback){onSupport=callback;}
     @FXML private void onSupport(){if(onSupport!=null)onSupport.run();}
@@ -46,6 +54,12 @@ public class WorkspaceHeaderController {
 
     @FXML
     public void initialize() {
+        balanceAccount.setConverter(new javafx.util.StringConverter<>(){public String toString(com.vncode.app.integration.znack.BalanceSnapshot value){return value==null?I18nService.getInstance().tr("header.balance_choose"):value.scope().productGroup()+" · "+value.scope().accountId();}public com.vncode.app.integration.znack.BalanceSnapshot fromString(String text){return null;}});
+        balanceAccount.valueProperty().addListener((o,a,b)->renderBalance());
+        var threshold=new javafx.scene.control.MenuItem(I18nService.getInstance().tr("header.balance_threshold"));
+        threshold.setOnAction(e->{var dialog=new javafx.scene.control.TextInputDialog(Integer.toString(balanceWarningRub));dialog.setTitle(I18nService.getInstance().tr("header.balance_threshold"));dialog.setHeaderText(I18nService.getInstance().tr("header.balance_threshold_hint"));dialog.showAndWait().ifPresent(text->{try{int number=Integer.parseInt(text.strip());if(number<0||number>100000)throw new IllegalArgumentException();com.vncode.app.shared.ConfigService.setConfigValue("cz_balance_warning_rub",Integer.toString(number));balanceWarningRub=number;renderBalance();}catch(RuntimeException invalid){com.vncode.app.shared.AlertService.showError(I18nService.getInstance().tr("header.balance_threshold_hint"));}});});
+        balanceLabel.setContextMenu(new javafx.scene.control.ContextMenu(threshold));
+        statusMonitor.getKeyFrames().setAll(new javafx.animation.KeyFrame(javafx.util.Duration.seconds(10),e->{renderBalance();jobsButton.setText(I18nService.getInstance().tr("jobs.title")+" · "+(com.vncode.app.shared.SellerMutationExecutor.activeCount()+com.vncode.app.shared.AppTaskExecutor.getRunningTaskCount())+" / "+(com.vncode.app.shared.SellerMutationExecutor.pendingCount()+com.vncode.app.shared.AppTaskExecutor.pendingCount()));}));statusMonitor.setCycleCount(javafx.animation.Animation.INDEFINITE);
         shopComboBox.setCellFactory(lv -> new ListCell<>() {
             @Override
             protected void updateItem(Shop item, boolean empty) {
@@ -61,6 +75,7 @@ public class WorkspaceHeaderController {
         shopComboBox.setButtonCell(buttonCell);
         shopComboBox.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
             if (!updatingShops && newVal != null && onShopSelected != null) {
+                refreshBalance(newVal);
                 onShopSelected.accept(newVal);
             }
         });
@@ -120,7 +135,26 @@ public class WorkspaceHeaderController {
         } finally {
             updatingShops = false;
         }
+        refreshBalance(shopComboBox.getValue());if(!disposed)statusMonitor.play();
     }
+    private void refreshBalance(Shop selected) {
+        long epoch=++balanceEpoch;balanceAccount.getItems().clear();balanceAccount.setValue(null);balanceAccount.setDisable(true);renderBalance();
+        if(selected==null||disposed)return;
+        var owner=new Shop(selected.getId(),selected.getName(),selected.getMarketplace(),selected.getClientId(),selected.getApiKey());
+        com.vncode.app.shared.ShopReadCoordinator.shared().submitLocal(new com.vncode.app.shared.ShopReadCoordinator.Key(owner.getId(),"header-balance",com.vncode.app.integration.listing.ListingIdentity.fingerprint(owner)),()->{String saved=com.vncode.app.shared.ConfigService.getConfigValue("cz_balance_warning_rub");int threshold=500;try{threshold=Integer.parseInt(saved);if(threshold<0||threshold>100000)threshold=500;}catch(RuntimeException ignored){}return new HeaderBalanceUpdate(new com.vncode.app.features.gs1.HeaderBalanceService().cached(owner),threshold);})
+          .whenComplete((values,error)->javafx.application.Platform.runLater(()->{if(disposed||epoch!=balanceEpoch)return;if(error!=null){renderBalance();return;}balanceWarningRub=values.threshold();balanceAccount.getItems().setAll(values.balances());balanceAccount.setDisable(values.balances().size()<2);if(values.balances().size()==1)balanceAccount.setValue(values.balances().getFirst());renderBalance();}));
+    }
+    private record HeaderBalanceUpdate(List<com.vncode.app.integration.znack.BalanceSnapshot> balances,int threshold){}
+    private void renderBalance() {
+        if(balanceLabel==null)return;var value=balanceAccount.getValue();var i18n=I18nService.getInstance();
+        balanceLabel.getStyleClass().remove("text-danger");balanceAccount.setPromptText(i18n.tr("header.balance_choose"));
+        if(value==null){balanceLabel.setText(i18n.tr("header.balance_unknown"));return;}
+        boolean fresh=com.vncode.app.integration.znack.ZnackAccountInfo.freshBalance(value,java.time.Instant.now());
+        balanceLabel.setText("CZ: "+value.amount().toPlainString()+" ₽"+(fresh?"":" · "+i18n.tr("header.balance_cached")));
+        balanceLabel.setTooltip(new javafx.scene.control.Tooltip(value.scope().productGroup()+" · "+value.scope().accountId()+" · "+value.checkedAt()));
+        if(fresh&&value.amount().compareTo(java.math.BigDecimal.valueOf(balanceWarningRub))<0)balanceLabel.getStyleClass().add("text-danger");
+    }
+    public void dispose(){disposed=true;++balanceEpoch;statusMonitor.stop();}
 
     public void setBusy(boolean busy) {
         // Header loading removed. Keep local loading indicators near the active content instead.
@@ -145,6 +179,7 @@ public class WorkspaceHeaderController {
     }
 
     public void applyTranslations() {
+        renderBalance();jobsButton.setText(I18nService.getInstance().tr("jobs.title"));
         I18nService i18n = I18nService.getInstance();
         supportButton.setText(i18n.tr("header.support"));
         newsButton.setTooltip(new javafx.scene.control.Tooltip(i18n.tr("news.title")));

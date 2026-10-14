@@ -449,9 +449,14 @@ public final class Gs1Pane extends BorderPane {
         FileChooser chooser=new FileChooser();chooser.setInitialFileName("GS1-"+request.id()+".eml");chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Email","*.eml"));File file=chooser.showSaveDialog(getScene()==null?null:getScene().getWindow());
         if(file!=null)run(()->{Files.write(file.toPath(),new Gs1MailClient().export(from,letters.letter(request)));return true;},done->status.setText(tr("gs1.exported")));
     }
+    private String profileEmail() {
+        if(applicationForm==null||!applicationForm.has("applicant")||!applicationForm.get("applicant").isJsonObject())return "";
+        var applicant=applicationForm.getAsJsonObject("applicant");if(!inn.equals(NationalCatalogGs1Client.text(applicant,"inn")))return "";
+        String email=NationalCatalogGs1Client.text(applicant,"email").strip();return email.matches("[^\\s@]+@[^\\s@]+\\.[^\\s@]+")?email:"";
+    }
     private void mailSettings(){
         Context owner=context();var existing=repository.mailAccount(owner.inn());Dialog<Void> dialog=dialog(tr("gs1.mail_settings"));GridPane grid=grid();
-        TextField smtp=new TextField(existing.map(Gs1MailAccount::smtpHost).orElse("")),smtpPort=new TextField(existing.map(a->Integer.toString(a.smtpPort())).orElse("465")),imap=new TextField(existing.map(Gs1MailAccount::imapHost).orElse("")),imapPort=new TextField(existing.map(a->Integer.toString(a.imapPort())).orElse("993")),username=new TextField(existing.map(Gs1MailAccount::username).orElse("")),from=new TextField(existing.map(Gs1MailAccount::from).orElse(""));PasswordField password=new PasswordField();
+        TextField smtp=new TextField(existing.map(Gs1MailAccount::smtpHost).orElse("")),smtpPort=new TextField(existing.map(a->Integer.toString(a.smtpPort())).orElse("465")),imap=new TextField(existing.map(Gs1MailAccount::imapHost).orElse("")),imapPort=new TextField(existing.map(a->Integer.toString(a.imapPort())).orElse("993")),username=new TextField(existing.map(Gs1MailAccount::username).orElse(profileEmail())),from=new TextField(existing.map(Gs1MailAccount::from).orElse(profileEmail()));PasswordField password=new PasswordField();
         row(grid,0,"SMTP TLS",smtp);row(grid,1,tr("gs1.port"),smtpPort);row(grid,2,"IMAP TLS",imap);row(grid,3,tr("gs1.port"),imapPort);row(grid,4,tr("gs1.username"),username);row(grid,5,tr("gs1.from"),from);row(grid,6,tr("gs1.password"),password);
         Label hint=new Label(tr("gs1.mail_security"));hint.setWrapText(true);Label feedback=new Label();feedback.setWrapText(true);feedback.textProperty().bind(status.textProperty());dialog.getDialogPane().setContent(new VBox(12,hint,grid,feedback));ButtonType save=new ButtonType(tr("gs1.save"),ButtonBar.ButtonData.OK_DONE);dialog.getDialogPane().getButtonTypes().addAll(save,ButtonType.CANCEL);if(!WindowsSecretProtector.supported())dialog.getDialogPane().lookupButton(save).setDisable(true);else dialog.getDialogPane().lookupButton(save).disableProperty().bind(busyState);
         ((Button)dialog.getDialogPane().lookupButton(save)).addEventFilter(javafx.event.ActionEvent.ACTION,event->{

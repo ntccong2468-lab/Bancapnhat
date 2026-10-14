@@ -26,21 +26,21 @@
                 <Insets bottom="12.0" left="16.0" right="16.0" top="16.0" />
             </padding>
             <HBox alignment="CENTER_LEFT" spacing="10.0">
-                <Label styleClass="h3" text="%template.title" />
+                <Label styleClass="h3" text="%template.title" userData="i18n:template.title"/>
                 <Label fx:id="templateMetaLabel" styleClass="text-muted" text="58x40 mm" />
             </HBox>
             <FlowPane hgap="8.0" vgap="8.0">
                 <children>
-                    <Label text="%template.type" />
+                    <Label text="%template.type" userData="i18n:template.type"/>
                     <ComboBox fx:id="templateTypeComboBox" prefWidth="120.0" />
                     <ComboBox fx:id="templateComboBox" prefWidth="250.0" />
-                    <Button mnemonicParsing="false" onAction="#onCreateTemplate" text="%template.create" />
-                    <Button mnemonicParsing="false" onAction="#onDuplicateTemplate" text="%template.duplicate" />
-                    <Button mnemonicParsing="false" onAction="#onRenameTemplate" text="%template.rename" />
-                    <Button mnemonicParsing="false" onAction="#onDeleteTemplate" text="%template.delete" />
-                    <Button mnemonicParsing="false" onAction="#onSetDefaultTemplate" text="%template.set_default" />
-                    <Button mnemonicParsing="false" onAction="#onResetTemplate" text="%template.reset" />
-                    <Button mnemonicParsing="false" onAction="#onSaveTemplate" styleClass="btn-primary" text="%template.save" />
+                    <Button mnemonicParsing="false" onAction="#onCreateTemplate" text="%template.create" userData="i18n:template.create"/>
+                    <Button mnemonicParsing="false" onAction="#onDuplicateTemplate" text="%template.duplicate" userData="i18n:template.duplicate"/>
+                    <Button mnemonicParsing="false" onAction="#onRenameTemplate" text="%template.rename" userData="i18n:template.rename"/>
+                    <Button mnemonicParsing="false" onAction="#onDeleteTemplate" text="%template.delete" userData="i18n:template.delete"/>
+                    <Button mnemonicParsing="false" onAction="#onSetDefaultTemplate" text="%template.set_default" userData="i18n:template.set_default"/>
+                    <Button mnemonicParsing="false" onAction="#onResetTemplate" text="%template.reset" userData="i18n:template.reset"/>
+                    <Button mnemonicParsing="false" onAction="#onSaveTemplate" styleClass="btn-primary" text="%template.save" userData="i18n:template.save"/>
                 </children>
             </FlowPane>
         </VBox>
@@ -52,15 +52,15 @@
                     <padding>
                         <Insets bottom="16.0" left="16.0" right="12.0" top="6.0" />
                     </padding>
-                    <Label styleClass="text-bold" text="%template.elements" />
-                    <ComboBox fx:id="addElementComboBox" prefWidth="220.0" promptText="%template.add_element_prompt" />
+                    <Label styleClass="text-bold" text="%template.elements" userData="i18n:template.elements"/>
+                    <ComboBox fx:id="addElementComboBox" prefWidth="220.0" promptText="%template.add_element_prompt" userData="i18n:template.add_element_prompt"/>
                     <ListView fx:id="elementListView" prefHeight="560.0" />
                 </VBox>
                 <VBox alignment="TOP_CENTER" spacing="12.0">
                     <padding>
                         <Insets bottom="16.0" left="12.0" right="12.0" top="6.0" />
                     </padding>
-                    <Label styleClass="text-bold" text="%template.preview" />
+                    <Label styleClass="text-bold" text="%template.preview" userData="i18n:template.preview"/>
                     <HBox alignment="CENTER_LEFT" spacing="8.0">
                         <VBox alignment="TOP_CENTER" spacing="0.0">
                             <children>
@@ -91,42 +91,42 @@
                             <padding>
                                 <Insets bottom="16.0" left="12.0" right="16.0" top="6.0" />
                             </padding>
-                            <Label styleClass="text-bold" text="%template.properties" />
+                            <Label styleClass="text-bold" text="%template.properties" userData="i18n:template.properties"/>
                             <GridPane hgap="10.0" vgap="10.0">
                                 <children>
-                                    <Label text="%template.field.label" GridPane.columnIndex="0" GridPane.rowIndex="0" />
+                                    <Label text="%template.field.label" GridPane.columnIndex="0" GridPane.rowIndex="0" userData="i18n:template.field.label"/>
                                     <TextField fx:id="labelField" GridPane.columnIndex="1" GridPane.rowIndex="0" />
-                                    <Label text="%template.field.prefix" GridPane.columnIndex="0" GridPane.rowIndex="1" />
-                                    <TextField fx:id="prefixField" promptText="%template.field.prefix_prompt" GridPane.columnIndex="1" GridPane.rowIndex="1" />
-                                    <Label fx:id="contentLabel" managed="false" text="%template.field.content" visible="false" GridPane.columnIndex="0" GridPane.rowIndex="2" />
-                                    <TextField fx:id="contentField" managed="false" promptText="%template.field.content_prompt" visible="false" GridPane.columnIndex="1" GridPane.rowIndex="2" />
-                                    <Label text="%template.field.x" GridPane.columnIndex="0" GridPane.rowIndex="3" />
+                                    <Label text="%template.field.prefix" GridPane.columnIndex="0" GridPane.rowIndex="1" userData="i18n:template.field.prefix"/>
+                                    <TextField fx:id="prefixField" promptText="%template.field.prefix_prompt" GridPane.columnIndex="1" GridPane.rowIndex="1" userData="i18n:template.field.prefix_prompt"/>
+                                    <Label fx:id="contentLabel" managed="false" text="%template.field.content" visible="false" GridPane.columnIndex="0" GridPane.rowIndex="2" userData="i18n:template.field.content"/>
+                                    <TextField fx:id="contentField" managed="false" promptText="%template.field.content_prompt" visible="false" GridPane.columnIndex="1" GridPane.rowIndex="2" userData="i18n:template.field.content_prompt"/>
+                                    <Label text="%template.field.x" GridPane.columnIndex="0" GridPane.rowIndex="3" userData="i18n:template.field.x"/>
                                     <TextField fx:id="xField" GridPane.columnIndex="1" GridPane.rowIndex="3" />
-                                    <Label text="%template.field.y" GridPane.columnIndex="0" GridPane.rowIndex="4" />
+                                    <Label text="%template.field.y" GridPane.columnIndex="0" GridPane.rowIndex="4" userData="i18n:template.field.y"/>
                                     <TextField fx:id="yField" GridPane.columnIndex="1" GridPane.rowIndex="4" />
-                                    <Label text="%template.field.width" GridPane.columnIndex="0" GridPane.rowIndex="5" />
+                                    <Label text="%template.field.width" GridPane.columnIndex="0" GridPane.rowIndex="5" userData="i18n:template.field.width"/>
                                     <TextField fx:id="widthField" GridPane.columnIndex="1" GridPane.rowIndex="5" />
-                                    <Label text="%template.field.height" GridPane.columnIndex="0" GridPane.rowIndex="6" />
+                                    <Label text="%template.field.height" GridPane.columnIndex="0" GridPane.rowIndex="6" userData="i18n:template.field.height"/>
                                     <TextField fx:id="heightField" GridPane.columnIndex="1" GridPane.rowIndex="6" />
-                                    <Label text="%template.field.font" GridPane.columnIndex="0" GridPane.rowIndex="7" />
+                                    <Label text="%template.field.font" GridPane.columnIndex="0" GridPane.rowIndex="7" userData="i18n:template.field.font"/>
                                     <TextField fx:id="fontSizeField" GridPane.columnIndex="1" GridPane.rowIndex="7" />
-                                    <Label text="%template.field.align" GridPane.columnIndex="0" GridPane.rowIndex="8" />
+                                    <Label text="%template.field.align" GridPane.columnIndex="0" GridPane.rowIndex="8" userData="i18n:template.field.align"/>
                                     <ComboBox fx:id="alignComboBox" prefWidth="160.0" GridPane.columnIndex="1" GridPane.rowIndex="8" />
                                 </children>
                             </GridPane>
                             <Label fx:id="fieldValidationLabel" managed="false" styleClass="text-danger" text="" visible="false" />
-                            <CheckBox fx:id="snapToGridCheckBox" mnemonicParsing="false" selected="true" text="%template.snap_grid" />
-                            <CheckBox fx:id="visibleCheckBox" mnemonicParsing="false" text="%template.visible" />
-                            <CheckBox fx:id="boldCheckBox" mnemonicParsing="false" text="%template.bold" />
-                            <CheckBox fx:id="humanReadableCheckBox" mnemonicParsing="false" text="%template.human_readable" />
+                            <CheckBox fx:id="snapToGridCheckBox" mnemonicParsing="false" selected="true" text="%template.snap_grid" userData="i18n:template.snap_grid"/>
+                            <CheckBox fx:id="visibleCheckBox" mnemonicParsing="false" text="%template.visible" userData="i18n:template.visible"/>
+                            <CheckBox fx:id="boldCheckBox" mnemonicParsing="false" text="%template.bold" userData="i18n:template.bold"/>
+                            <CheckBox fx:id="humanReadableCheckBox" mnemonicParsing="false" text="%template.human_readable" userData="i18n:template.human_readable"/>
                             <Separator />
                             <HBox spacing="8.0">
                                 <children>
-                                    <Button fx:id="copyElementButton" mnemonicParsing="false" onAction="#onCopyElement" text="%template.copy" />
-                                    <Button fx:id="pasteElementButton" mnemonicParsing="false" onAction="#onPasteElement" text="%template.paste" />
+                                    <Button fx:id="copyElementButton" mnemonicParsing="false" onAction="#onCopyElement" text="%template.copy" userData="i18n:template.copy"/>
+                                    <Button fx:id="pasteElementButton" mnemonicParsing="false" onAction="#onPasteElement" text="%template.paste" userData="i18n:template.paste"/>
                                 </children>
                             </HBox>
-                            <Button fx:id="deleteElementButton" mnemonicParsing="false" onAction="#onDeleteElement" styleClass="btn-danger" text="%template.delete_selected" />
+                            <Button fx:id="deleteElementButton" mnemonicParsing="false" onAction="#onDeleteElement" styleClass="btn-danger" text="%template.delete_selected" userData="i18n:template.delete_selected"/>
                         </VBox>
                     </content>
                 </ScrollPane>

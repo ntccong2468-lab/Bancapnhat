@@ -64,15 +64,17 @@ public final class ZnackRegistrationQueryRepository {
     }
 
     /** Freeze exact owned revisions off the FX thread. Repository claims recheck each before mutation. */
-    public List<Sku> allEligible(SearchCriteria criteria) {return all(criteria,false);}
-    public List<Sku> allSignable(SearchCriteria criteria) {return all(criteria,true);}
-    private List<Sku> all(SearchCriteria criteria,boolean signable) {
+    public List<Sku> allEligible(SearchCriteria criteria) {return all(criteria,0);}
+    public List<Sku> allSignable(SearchCriteria criteria) {return all(criteria,1);}
+    public List<Sku> allSelectable(SearchCriteria criteria){return all(criteria,2);}
+    public List<Sku> allReplaceable(SearchCriteria criteria){return all(criteria,3);}
+    private List<Sku> all(SearchCriteria criteria,int mode) {
         Query query=filter(criteria);var rows=new ArrayList<Sku>();
         try(var c=Database.getConnection()) {
             c.setAutoCommit(false);requireOwner(c,criteria.shopId());
             if(count(c,query)>MAX_SELECTION)throw new IllegalArgumentException("registration_selection_limit");
             try(var p=prepare(c,SELECT+query.where()+" ORDER BY c.vendor_code COLLATE NOCASE,s.tech_size COLLATE NOCASE,c.nm_id,s.chrt_id",query.parameters());var r=p.executeQuery()) {
-                while(r.next()) {Sku row=map(r);if(signable?row.canSignApproved():row.canRegister()||row.needsGtinReview())rows.add(row);}
+                while(r.next()) {Sku row=map(r);boolean register=row.canRegister()||row.needsGtinReview();boolean replace=row.canRegisterNew()&&!r.getBoolean("pending_replacement");if(switch(mode){case 1->row.canSignApproved();case 2->register||replace;case 3->replace;default->register;})rows.add(row);}
             }
             c.commit();return List.copyOf(rows);
         }catch(SQLException error){throw new IllegalStateException("registration_read_error",error);}

@@ -95,6 +95,7 @@ public final class ZnackCardRegistrationController {
     @FXML private Button clearSelectionButton;
     @FXML private Button selectAllButton;
     @FXML private Button registerSelectedButton;
+    @FXML private Button newCardsSelectedButton;
     @FXML private TableView<Sku> productTable;
     @FXML private TableColumn<Sku, Sku> imageColumn;
     @FXML private TableColumn<Sku, String> nameColumn;
@@ -164,7 +165,7 @@ public final class ZnackCardRegistrationController {
         genderColumn.setText(i18n.tr("znack.registration.gender"));
         clearFiltersButton.setText(i18n.tr("znack.registration.clear"));
         selectAllButton.setText(i18n.tr("znack.registration.select_all"));
-        registerSelectedButton.setText(i18n.tr("znack.registration.register_selected"));
+        registerSelectedButton.setText(i18n.tr("znack.registration.register_selected"));newCardsSelectedButton.setText(i18n.tr("znack.registration.batch_new_cards"));
         loadingLabel.setText(i18n.tr("znack.registration.loading"));
         emptyLabel.setText(i18n.tr("znack.registration.empty"));
         imageColumn.setText(i18n.tr("fbo.column.image"));
@@ -188,18 +189,18 @@ public final class ZnackCardRegistrationController {
         try {
             productTable.getSelectionModel().clearSelection();
             for(int index=0;index<productTable.getItems().size();index++)
-                if(eligible(productTable.getItems().get(index)))productTable.getSelectionModel().select(index);
+                if(selectable(productTable.getItems().get(index)))productTable.getSelectionModel().select(index);
         } finally {selectingProgrammatically=false;}
         if(filteredCount<=productTable.getItems().size()) {
-            frozenSelection=productTable.getSelectionModel().getSelectedItems().stream().filter(this::eligible).toList();
+            frozenSelection=productTable.getSelectionModel().getSelectedItems().stream().filter(this::selectable).toList();
             updateActionState();return;
         }
         Shop owner=shop;long epoch=shopEpoch;long sequence=loadSequence;
         SearchCriteria criteria=criteria(0);loading=true;setLoading(true);
-        Task<List<Sku>> task=new Task<>() {@Override protected List<Sku> call(){return queries.allEligible(criteria);}};
+        Task<List<Sku>> task=new Task<>() {@Override protected List<Sku> call(){return queries.allSelectable(criteria);}};
         task.setOnSucceeded(event->{
             if(!isCurrent(owner,epoch)||sequence!=loadSequence)return;
-            loading=false;frozenSelection=task.getValue().stream().filter(this::eligible).toList();setLoading(false);
+            loading=false;frozenSelection=task.getValue().stream().filter(this::selectable).toList();setLoading(false);
         });
         java.util.function.Consumer<Throwable> failure=error->{
             if(!isCurrent(owner,epoch)||sequence!=loadSequence)return;
@@ -289,6 +290,25 @@ public final class ZnackCardRegistrationController {
         preparing=true;updateActionState();
         prepareNext(selected,0,owner,epoch);
     }
+
+    @FXML private void onNewCardsSelected() {
+        if(shop==null||loading||preparing)return;var ids=selectedRows().stream().map(Sku::chrtId).collect(java.util.stream.Collectors.toSet());if(ids.isEmpty())return;
+        Shop owner=shop;long epoch=shopEpoch;var criteria=criteria(0);loading=true;setLoading(true);
+        Task<List<Sku>> task=new Task<>(){protected List<Sku> call(){return queries.allReplaceable(criteria).stream().filter(s->ids.contains(s.chrtId())).toList();}};
+        task.setOnSucceeded(e->{if(!isCurrent(owner,epoch))return;loading=false;setLoading(false);var selected=task.getValue();if(selected.isEmpty())return;
+            if(selected.size()>1000){showInfo(tr("znack.registration.batch_limit"));return;}
+            if(!confirm(java.text.MessageFormat.format(tr("znack.registration.batch_confirm"),selected.size(),ids.size())))return;
+            selected.forEach(s->bulkCards.add(s.chrtId()));preparing=true;updateActionState();prepareReplacementNext(selected,0,owner,epoch);
+        });
+        java.util.function.Consumer<Throwable> failed=error->{if(isCurrent(owner,epoch)){loading=false;setLoading(false);showError(error);}};task.setOnFailed(e->failed.accept(task.getException()));AppTaskExecutor.execute(task,failed);
+    }
+    private void prepareReplacementNext(List<Sku> selected,int index,Shop owner,long epoch) {
+        if(!isCurrent(owner,epoch))return;
+        if(index>=selected.size()){preparing=false;updateActionState();reload();return;}
+        summaryLabel.setText(java.text.MessageFormat.format(tr("znack.registration.batch_progress"),index,selected.size()));
+        prepareCard(owner,epoch,selected.get(index),false,true,()->prepareReplacementNext(selected,index+1,owner,epoch));
+    }
+    private boolean selectable(Sku sku){return eligible(sku)||(sku!=null&&sku.canRegisterNew()&&!rowDetails.getOrDefault(sku.chrtId(),new ZnackRegistrationQueryRepository.Details("","")).pendingReplacement()&&!workflow.isRunning(shop,sku));}
 
     private void prepareNext(List<Sku> selected,int index,Shop owner,long epoch) {
         if(!isCurrent(owner,epoch))return;
@@ -746,7 +766,7 @@ public final class ZnackCardRegistrationController {
     }
     private void updateActionState() {
         boolean disabled=shop==null||preparing||loading;
-        selectAllButton.setDisable(disabled);registerSelectedButton.setDisable(disabled||selectedRows().stream().noneMatch(this::eligible));
+        selectAllButton.setDisable(disabled);registerSelectedButton.setDisable(disabled||selectedRows().stream().noneMatch(this::eligible));newCardsSelectedButton.setDisable(disabled||selectedRows().stream().noneMatch(Sku::canRegisterNew));
         configButton.setDisable(disabled);signApprovedButton.setDisable(disabled);updateWbButton.setDisable(disabled);syncZnackButton.setDisable(disabled);
         loadMoreButton.setDisable(disabled||productTable.getItems().size()>=filteredCount);
         clearSelectionButton.setDisable(disabled||selectedRows().isEmpty());updateCounts();productTable.refresh();

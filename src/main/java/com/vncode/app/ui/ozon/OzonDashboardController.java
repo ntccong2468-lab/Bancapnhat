@@ -68,6 +68,8 @@ import java.util.function.BiConsumer;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.application.Platform;
+import javafx.scene.control.Alert;
+import javafx.scene.control.ButtonType;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.concurrent.Task;
@@ -427,7 +429,15 @@ public final class OzonDashboardController {
     private void checkBatchReadinessAndExport(Shop selected,List<String> postingNumbers){
         long token=++requestToken;Task<OzonBatchPrintReadiness> task=new Task<>(){@Override protected OzonBatchPrintReadiness call(){return printReadinessService.inspectAll(selected,postingNumbers);}};
         setBusy(true);task.setOnSucceeded(e->{if(token!=requestToken||!isCurrent(selected))return;setBusy(false);var readiness=task.getValue();
-            if(!readiness.ready()){statusLabel.setText(tr("ozon.dashboard.readiness.blocked"));AlertService.showWarning(tr("ozon.dashboard.readiness.title"),tr("ozon.dashboard.readiness.blocked"),batchReadinessBlockedText(readiness));return;}
+            if(!readiness.ready()) {
+                statusLabel.setText(tr("ozon.dashboard.readiness.blocked"));
+                if(readiness.readyPostingNumbers().isEmpty()){AlertService.showWarning(tr("ozon.dashboard.readiness.title"),tr("ozon.dashboard.readiness.blocked"),batchReadinessBlockedText(readiness));return;}
+                var consent=new Alert(Alert.AlertType.CONFIRMATION,MessageFormat.format(tr("ozon.batch.confirm_ready_subset"),readiness.readyPostingNumbers().size(),postingNumbers.size())+"\n\n"+batchReadinessBlockedText(readiness),ButtonType.YES,ButtonType.NO);
+                AlertService.applyTheme(consent);consent.setHeaderText(selected.getName());
+                if(consent.showAndWait().orElse(ButtonType.NO)!=ButtonType.YES)return;
+                if(disposed||!isCurrent(selected)||busy||token!=requestToken)return;
+                chooseBatchTargetAndExport(selected,readiness.readyPostingNumbers());return;
+            }
             chooseBatchTargetAndExport(selected,postingNumbers);});
         java.util.function.Consumer<Throwable> failed=error->finishFailure(token,selected,error);task.setOnFailed(e->failed.accept(task.getException()));AppTaskExecutor.execute(task,failed);
     }

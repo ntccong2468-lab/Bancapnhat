@@ -60,6 +60,14 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class FxmlSmokeTest {
+    @Test void openingJobSelectsItsShopBeforeShowingHistory()throws Exception {
+        try(var c=Database.getConnection();var s=c.createStatement()){s.execute("INSERT OR IGNORE INTO shops(id,name,marketplace,client_id,api_key) VALUES(2,'Job owner','OZON','22','fixture')");}
+        var holder=new java.util.concurrent.atomic.AtomicReference<HomeController>();
+        var setup=new java.util.concurrent.FutureTask<Void>(()->{var loader=FxmlViewLoader.loader(HomeController.class,"home-view.fxml");FxmlViewLoader.load(loader);holder.set(loader.getController());return null;});Platform.runLater(setup);setup.get(10,TimeUnit.SECONDS);awaitBackgroundTasksBeforeFixtureCleanup();
+        try {
+            var open=new java.util.concurrent.FutureTask<Void>(()->{var method=HomeController.class.getDeclaredMethod("openJob",com.vncode.app.features.jobs.JobCenterRepository.Row.class);method.setAccessible(true);method.invoke(holder.get(),new com.vncode.app.features.jobs.JobCenterRepository.Row(2,"Job owner","print","review",1));var state=HomeController.class.getDeclaredField("state");state.setAccessible(true);var model=state.get(holder.get());var selected=model.getClass().getDeclaredMethod("getSelectedShop");selected.setAccessible(true);assertEquals(2,((Shop)selected.invoke(model)).getId());return null;});Platform.runLater(open);open.get(10,TimeUnit.SECONDS);
+        }finally{var close=new java.util.concurrent.FutureTask<Void>(()->{holder.get().dispose();return null;});Platform.runLater(close);close.get(5,TimeUnit.SECONDS);awaitBackgroundTasksBeforeFixtureCleanup();}
+    }
     @Test void cachedSupplyRowsAppearWhileLegacyNetworkWorkersAreBusy()throws Exception {
         try(var c=Database.getConnection();var s=c.createStatement()){s.execute("UPDATE shops SET api_key='fixture.e30.fixture' WHERE id=1");s.execute("INSERT INTO wb_supplies(shop_id,supply_id,done,name,synced_at) VALUES(1,'fixture-local',0,'Fixture','2026-10-11T00:00:00Z')");s.execute("INSERT INTO wb_orders(shop_id,order_id,supply_id,article,supplier_status,wb_status,synced_at) VALUES(1,98765,'fixture-local','fixture','confirm','waiting','2026-10-11T00:00:00Z')");s.execute("INSERT INTO wb_supply_orders VALUES(1,'fixture-local',98765)");}
         var holder=new java.util.concurrent.atomic.AtomicReference<HomeController>();var setup=new java.util.concurrent.FutureTask<Void>(()->{var loader=FxmlViewLoader.loader(HomeController.class,"home-view.fxml");FxmlViewLoader.load(loader);holder.set(loader.getController());return null;});Platform.runLater(setup);setup.get(10,TimeUnit.SECONDS);awaitBackgroundTasksBeforeFixtureCleanup();
@@ -483,7 +491,7 @@ class FxmlSmokeTest {
             var tree=(javafx.scene.control.TreeView<com.vncode.app.features.tnved.TnvedModels.Node>)treeField.get(pane);
             tree.getSelectionModel().select(tree.getRoot().getChildren().get(1));
             var right=(VBox)((javafx.scene.control.SplitPane)pane.getCenter()).getItems().get(2);
-            ((Button)right.getChildren().get(2)).fire();assertEquals("II",javafx.scene.input.Clipboard.getSystemClipboard().getString());return null;
+            ((Button)((javafx.scene.layout.FlowPane)right.getChildren().get(2)).getChildren().get(0)).fire();assertEquals("II",javafx.scene.input.Clipboard.getSystemClipboard().getString());return null;
         });Platform.runLater(task);task.get(10,TimeUnit.SECONDS);
     }
     @Test void tnvedLoadMoreKeepsTheSubmittedQueryWhenTheInputHasBeenEdited() throws Exception {

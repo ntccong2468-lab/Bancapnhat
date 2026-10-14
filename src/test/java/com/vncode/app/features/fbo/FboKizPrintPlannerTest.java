@@ -17,7 +17,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 
 class FboKizPrintPlannerTest {
-    private static final String GTIN = "04601234567890";
+    private static final String GTIN = "04610689132457";
     @TempDir Path temp;
 
     @AfterEach void clear() {
@@ -59,6 +59,38 @@ class FboKizPrintPlannerTest {
         assertTrue(plan.pages().stream().allMatch(page -> page.kind() == FboPrintPage.Kind.BARCODE));
         assertTrue(plan.pages().stream().allMatch(page -> page.kizCode() == null));
     }
+    @Test void preflightAllocatesTheSharedPoolOnceAndDoesNotReserveBeforeConsent()throws Exception {
+        fixture(true,2);var items=List.of(new FboBarcodePrintItem(product(true),3),new FboBarcodePrintItem(product(true),1));
+        var result=new FboPreflightService().inspect(new com.vncode.app.models.Shop(1,"Shop","token"),items);
+        assertEquals(1,result.ready().size());assertEquals(1,result.ready().getFirst().quantity());assertEquals(2,result.toBuy().get(GTIN));
+        try(var c=Database.getConnection();var s=c.createStatement();var r=s.executeQuery("SELECT count(*) FROM kiz_codes WHERE status='RESERVED'")){assertEquals(0,r.getInt(1));}
+    }
+    @Test void anotherSizeCannotInheritTheNmIdCategoryMapping()throws Exception {
+        fixture(true,2);
+        try(var c=Database.getConnection();var s=c.createStatement()) {
+            s.execute("INSERT INTO wb_product_sizes(shop_id,chrt_id,nm_id,tech_size) VALUES(1,2,1001,'44')");
+            s.execute("INSERT INTO wb_product_size_skus(shop_id,chrt_id,sku) VALUES(1,2,'SKU-44')");
+        }
+        var other=new FboProductSku(1001,"ART","Shoes","Brand","Product","Black","44","44","SKU-44","",true);
+        var result=new FboPreflightService().inspect(new com.vncode.app.models.Shop(1,"Shop","token"),List.of(new FboBarcodePrintItem(product(true),1),new FboBarcodePrintItem(other,1)));
+        assertEquals(1,result.ready().size());assertEquals(FboPreflightService.State.GTIN_UNVERIFIED,result.rows().getLast().state());
+        assertThrows(IllegalStateException.class,()->new FboKizPrintPlanner().plan(1,List.of(new FboBarcodePrintItem(other,1))));
+    }
+    @Test void consumedFboMarksRemainRecoverableFromHistoryWhenFilePublicationFails()throws Exception {
+        fixture(true,1);var plan=new FboKizPrintPlanner().plan(1,List.of(new FboBarcodePrintItem(product(true),1)));
+        var shop=new com.vncode.app.models.Shop(1,"Shop","token");var exporter=new FboBarcodePdfExporter();var service=new com.vncode.app.features.print.history.PrintHistoryService();
+        var template=new FboPrintTemplateService().getDefaultTemplate();
+        long id=service.recordPreparedFboJob(shop,template,exporter.toOrders(plan.pages()));
+        var impossible=java.nio.file.Files.createDirectory(temp.resolve("target-is-directory"));java.nio.file.Files.writeString(impossible.resolve("keep.txt"),"fixture");
+        assertThrows(java.io.IOException.class,()->exporter.exportPlan(plan,impossible.toFile(),()->new com.vncode.app.integration.znack.ZnackGtinInventoryService().consumeForFboPrint(1,plan.usedKizs(),id)));
+        var journal=service.getJobs(1).getFirst();assertEquals("pdf_ready",journal.status());assertTrue(journal.canReprint());
+        assertFalse(service.getItems(id).toString().contains("KIZ-1"));
+        new com.vncode.app.integration.znack.ZnackGtinInventoryService().releaseRecoverableReservations();
+        assertEquals(0,new com.vncode.app.integration.znack.ZnackGtinInventoryService().availableCount(1,GTIN));
+        var recovered=temp.resolve("recovered.pdf");service.reprint(journal,recovered.toFile(),temp.resolve("details.pdf").toFile());
+        try(var pdf=org.apache.pdfbox.Loader.loadPDF(recovered.toFile())){assertEquals(3,pdf.getNumberOfPages());}
+        assertEquals(0,new com.vncode.app.integration.znack.ZnackGtinInventoryService().availableCount(1,GTIN));
+    }
 
     private void fixture(boolean mapping, int codeCount) throws Exception {
         System.setProperty("vncode.appdata.dir", temp.toString());
@@ -66,6 +98,9 @@ class FboKizPrintPlannerTest {
         try (Connection c = Database.getConnection(); Statement st = c.createStatement()) {
             st.execute("INSERT INTO shops(id,name,api_key) VALUES(1,'Shop','token')");
             st.execute("INSERT INTO wb_product_cards(shop_id,nm_id,vendor_code,subject_name,need_kiz,synced_at) VALUES(1,1001,'ART','Shoes',1,'now')");
+            st.execute("INSERT INTO wb_product_sizes(shop_id,chrt_id,nm_id,tech_size) VALUES(1,1,1001,'42')");
+            st.execute("INSERT INTO wb_product_size_skus(shop_id,chrt_id,sku) VALUES(1,1,'SKU'),(1,1,'"+GTIN+"')");
+            if(mapping){st.execute("INSERT INTO gtin_sync_catalog VALUES(1,'WILDBERRIES','"+GTIN+"','{\"published\":true,\"tradeUnit\":true,\"owner\":\""+com.vncode.app.integration.listing.ListingIdentity.fingerprint(new com.vncode.app.models.Shop(1,"Shop","token"))+"\"}')");}
         }
         ZnackRepository repository = new ZnackRepository(new ShopContext(1, "Shop"));
         repository.upsertProducts(List.of(new Product(GTIN, "Shoes GTIN", null, null, null, null, null)));

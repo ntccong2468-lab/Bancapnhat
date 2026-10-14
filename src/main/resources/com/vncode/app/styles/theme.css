@@ -1110,7 +1110,7 @@
 .menu-item .check-box { -fx-padding: 6 10 6 8; -fx-min-height: 30; }
 
 /* Screenshot reference: quiet navigation, spacious cards and supply rows. */
-.root { -fx-font-family: "Segoe UI", "System"; }
+.root { -fx-font-family: "Inter", "System"; }
 .header { -fx-background-color: -bg-secondary; -fx-padding: 14 20; }
 .sidebar { -fx-background-color: derive(-bg-primary, 7%); -fx-padding: 14 12 10 12; }
 .sidebar .button, .sidebar .menu-button { -fx-background-color: transparent; -fx-border-color: transparent; -fx-text-fill: -text-secondary; -fx-alignment: CENTER_LEFT; -fx-padding: 12 14; -fx-background-radius: 16; -fx-font-size: 16; }
@@ -1160,3 +1160,5 @@
 .copy-card { -fx-background-color: -bg-secondary; -fx-background-radius: 12; -fx-padding: 14; }
 #listingCopyPane .text-danger { -fx-text-fill: #fb7185; }
 #listingCopyPane #copyJobs { -fx-background-radius: 12; }
+
+.text-input:error { -fx-border-color: #dc5d69; -fx-border-radius: 8; }

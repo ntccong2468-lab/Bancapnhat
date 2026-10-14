@@ -29,6 +29,7 @@ public final class OzonCardRegistrationWorkflow {
     private static final ExecutorService WORKERS=new ThreadPoolExecutor(4,4,0,TimeUnit.MILLISECONDS,new ArrayBlockingQueue<>(64),task->{var t=new Thread(task,"ozon-catalog-registration");t.setDaemon(true);return t;},new ThreadPoolExecutor.AbortPolicy());
     // One accepted work item per shop prevents a large shop from filling the shared queue.
     private static final Set<String> RUNNING=ConcurrentHashMap.newKeySet();
+    private static final Map<String,CompletableFuture<Void>> COMPLETIONS=new ConcurrentHashMap<>();
     private final OzonCardRegistrationRepository repository;private final CatalogFactory catalogs;
     private final SnapshotSource snapshots;private final Executor executor;private final MarketplaceCompletion completion;
     public OzonCardRegistrationWorkflow(){this(new OzonCardRegistrationRepository());}
@@ -48,6 +49,9 @@ public final class OzonCardRegistrationWorkflow {
     }
     public Preparation prepare(Shop shop,ProductKey key)throws Exception{return prepare(shop,key,null);}
     public Preparation prepare(Shop selected,ProductKey key,String suppliedTnved)throws Exception {
+        return prepare(selected,key,suppliedTnved,null);
+    }
+    private Preparation prepare(Shop selected,ProductKey key,String suppliedTnved,CatalogSession sharedSession)throws Exception {
         Shop shop=capture(selected);
         require(shop,key);LicenseRuntime.require(Permission.SELLER_API);
         var snapshot=snapshots.read(shop,key);if(!snapshot.key().equals(key))throw new IllegalStateException("product_mismatch");
@@ -56,11 +60,81 @@ public final class OzonCardRegistrationWorkflow {
         String owner=ListingIdentity.fingerprint(shop);
         if(tnved.isBlank())return new Preparation(snapshot,"",null,0,List.of(),docs,Map.of(),null,owner);
         if(!tnved.matches("[0-9]{4,10}"))throw new IllegalArgumentException("invalid_tnved");
-        var scope=ZnackRegistrationScope.fromSettings(settings);scope.assertCurrent(shop);var session=catalogs.open(shop);checkSession(shop,scope,session);
+        var scope=ZnackRegistrationScope.fromSettings(settings);scope.assertCurrent(shop);var session=sharedSession==null?catalogs.open(shop):sharedSession;checkSession(shop,scope,session);
         var checked=session.catalog().preflight(tnved);checkSession(shop,scope,session);
         var metadata=new PreflightMetadata(checked.tnved(),checked.categoryTnved(),checked.gs1(),checked.categories());
         var result=new Preparation(snapshot,tnved,metadata,0,List.of(),docs,Map.of(),session,owner);
         return checked.categories().size()==1?withCategory(shop,result,checked.categories().getFirst().id()):result;
+    }
+    public record BatchItem(ProductKey key,Preparation preparation,Draft draft,String issue) {
+        public boolean ready(){return preparation!=null&&draft!=null&&issue.isBlank();}
+        public boolean needsDocumentConsent(){return preparation!=null&&draft!=null&&"znack.registration.batch_document_review".equals(issue);}
+        @Override public String toString(){return "BatchItem[key="+key+", ready="+ready()+"]";}
+    }
+    public record BatchReview(java.util.List<BatchItem> items,boolean newCard) {
+        public BatchReview{items=java.util.List.copyOf(items);}
+        public java.util.List<BatchItem> ready(){return items.stream().filter(BatchItem::ready).toList();}
+    }
+    /** No seller writes. Reuses a bound Catalog session, never infers ambiguous values. */
+    public BatchReview prepareBatch(Shop shop,java.util.List<ProductKey> keys,boolean newCard,java.util.function.IntConsumer progress)throws Exception {
+        if(keys==null||keys.isEmpty()||keys.size()>1000)throw new IllegalArgumentException("Registration batch limit is 1000");
+        require(shop,keys.getFirst());var items=new java.util.ArrayList<BatchItem>();var checkpoints=repository.findMany(keys);CatalogSession shared=null;long retained=0;long quota=Long.MAX_VALUE;
+        for(var key:keys.stream().distinct().toList()) {
+            if(Thread.currentThread().isInterrupted())throw new InterruptedException("Registration preview cancelled");
+            require(shop,key);
+            var current=checkpoints.get(key);
+            boolean eligible=newCard?current!=null&&current.status()==Status.PUBLISHED&&java.util.Objects.equals(current.gtin(),current.activeGtin())
+                    :current==null||java.util.Set.of(Status.NOT_CREATED,Status.PREFLIGHT_ERROR,Status.PRE_SUBMIT_ERROR).contains(current.status());
+            if(!eligible){items.add(new BatchItem(key,null,null,"znack.registration.batch_not_eligible"));progress.accept(items.size());continue;}
+            try {
+                var p=prepare(shop,key,null,shared);if(p.session!=null)shared=p.session;
+                retained+=(long)com.vncode.app.features.products.ProductJson.GSON.toJson(p.snapshot()).length()*2;
+                if(retained>64L*1024*1024)throw new IllegalArgumentException("Registration preview exceeds 64 MiB; select a smaller batch");
+                var draft=suggestedDraft(p);String issue=draft.isPresent()?(p.documents().automatic()==null?"znack.registration.batch_document_review":""):"znack.registration.batch_needs_review";
+                if(p.preflight()!=null) {
+                    quota=Math.min(quota,p.preflight().gs1().remaining());
+                    if(!p.preflight().gs1().quotaKnown()||quota==0){draft=java.util.Optional.empty();issue="znack.registration.batch_quota";}
+                }
+                if(draft.isPresent())quota--;
+                items.add(new BatchItem(key,p,draft.orElse(null),issue));
+            }catch(java.io.IOException|IllegalStateException unavailable){items.add(new BatchItem(key,null,null,"znack.registration.batch_read_failed"));}
+            progress.accept(items.size());
+        }
+        return new BatchReview(items,newCard);
+    }
+    public static java.util.Optional<Draft> suggestedDraft(Preparation p) {
+        if(p.preflight()==null||p.categoryId()==0||p.snapshot().title().isBlank()||p.snapshot().brand().isBlank()||p.documents().candidates().size()!=1)return java.util.Optional.empty();
+        var values=new java.util.LinkedHashMap<Long,String>();var types=new java.util.LinkedHashMap<Long,String>();
+        values.put(2478L,p.snapshot().title());values.put(2504L,p.snapshot().brand());
+        for(var a:p.required()) {
+            if(java.util.Set.of(2478L,2504L,3959L,ZnackNationalCatalogService.DECLARATION_ATTRIBUTE_ID,ZnackNationalCatalogService.CERTIFICATE_ATTRIBUTE_ID).contains(a.id()))continue;
+            if(a.id()==13933L&&p.preflight().categoryTnved().length()==10)continue;
+            String value=p.suggestions().getOrDefault(a.id(),a.id()==13933L?p.tnved():"");
+            if(value.isBlank()||(a.presetOnly()&&!a.presets().contains(value))||a.valueTypes().size()>1)return java.util.Optional.empty();
+            values.put(a.id(),value);if(a.valueTypes().size()==1)types.put(a.id(),a.valueTypes().getFirst());
+        }
+        var document=p.documents().candidates().getFirst();long id=document.type().toUpperCase(java.util.Locale.ROOT).contains("CERTIFICATE")?ZnackNationalCatalogService.CERTIFICATE_ATTRIBUTE_ID:ZnackNationalCatalogService.DECLARATION_ATTRIBUTE_ID;
+        values.put(id,document.number()+":::"+document.date());
+        return java.util.Optional.of(new Draft(p.tnved(),p.preflight().categoryTnved(),p.categoryId(),p.snapshot().title(),p.snapshot().brand(),values,types));
+    }
+    /** Chain one accepted job per shop; queueing a whole batch must not discard all but its first SKU. */
+    public CompletableFuture<Integer> submitBatchReviewed(Shop shop,List<BatchItem> approved,boolean newCard,boolean confirmed,BiConsumer<Status,String> callback) {
+        return submitBatchReviewed(shop,approved,newCard,confirmed,callback,()->false);
+    }
+    public CompletableFuture<Integer> submitBatchReviewed(Shop shop,List<BatchItem> approved,boolean newCard,boolean confirmed,BiConsumer<Status,String> callback,java.util.function.BooleanSupplier cancelled) {
+        if(!confirmed||approved==null||approved.isEmpty()||approved.size()>1000)throw new IllegalArgumentException("Reviewed batch confirmation required");
+        var chain=CompletableFuture.completedFuture(0);
+        for(var item:List.copyOf(approved)) {
+            if(!item.ready())throw new IllegalArgumentException("Batch item needs review");
+            chain=chain.thenComposeAsync(count->{
+                if(cancelled.getAsBoolean())return CompletableFuture.completedFuture(count);
+                boolean accepted=registerReviewed(shop,item.preparation(),item.draft(),true,newCard,callback);
+                if(!accepted){notify(callback,Status.ERROR,"registration_already_running");return CompletableFuture.completedFuture(count);}
+                var completion=COMPLETIONS.get(namespace(shop));
+                return (completion==null?CompletableFuture.<Void>completedFuture(null):completion).thenApply(done->count+1);
+            },executor);
+        }
+        return chain;
     }
     public Preparation withCategory(Shop shop,Preparation preparation,long categoryId)throws Exception {
         require(shop,preparation.snapshot().key());
@@ -191,8 +265,9 @@ public final class OzonCardRegistrationWorkflow {
     @FunctionalInterface private interface Action {void run()throws Exception;}
     private boolean schedule(Shop shop,Action action,ProductKey key,BiConsumer<Status,String> callback) {
         String namespace=namespace(shop);if(!RUNNING.add(namespace))return false;
-        try {executor.execute(()->{try{action.run();}catch(Exception failure){if(failure instanceof InterruptedException)Thread.currentThread().interrupt();fail(key,callback);}finally{RUNNING.remove(namespace);}});return true;}
-        catch(RejectedExecutionException full){RUNNING.remove(namespace);return false;}
+        var completion=new CompletableFuture<Void>();COMPLETIONS.put(namespace,completion);
+        try {executor.execute(()->{try{action.run();}catch(Exception failure){if(failure instanceof InterruptedException)Thread.currentThread().interrupt();fail(key,callback);}finally{RUNNING.remove(namespace);completion.complete(null);COMPLETIONS.remove(namespace,completion);}});return true;}
+        catch(RejectedExecutionException full){RUNNING.remove(namespace);COMPLETIONS.remove(namespace,completion);completion.complete(null);return false;}
     }
     private void fail(ProductKey key,BiConsumer<Status,String> callback) {
         if(key==null){notify(callback,Status.ERROR,"registration_failed");return;}var row=repository.find(key);if(row==null){notify(callback,Status.PREFLIGHT_ERROR,"registration_failed");return;}

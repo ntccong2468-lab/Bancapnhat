@@ -112,6 +112,13 @@ public class PrintTemplateDesignerController implements Initializable {
     private PrintTemplateElement clipboardElement;
     private boolean updatingFields;
 
+    public void applyTranslations(javafx.scene.Parent root){translateNodes(root);elementListView.refresh();}
+    private void translateNodes(javafx.scene.Parent root){for(var node:root.getChildrenUnmodifiable()){
+        if(node.getUserData() instanceof String key&&key.startsWith("i18n:")){String text=i18n.tr(key.substring(5));if(node instanceof javafx.scene.control.Labeled label)label.setText(text);else if(node instanceof javafx.scene.control.ComboBoxBase<?> combo)combo.setPromptText(text);else if(node instanceof javafx.scene.control.TextInputControl input)input.setPromptText(text);}
+        if(node instanceof javafx.scene.Parent parent)translateNodes(parent);
+        if(node instanceof javafx.scene.control.ScrollPane scroll&&scroll.getContent() instanceof javafx.scene.Parent content)translateNodes(content);
+    }}
+
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         previewPane.setPrefSize(

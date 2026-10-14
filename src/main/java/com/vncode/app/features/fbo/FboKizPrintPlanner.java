@@ -1,6 +1,7 @@
 package com.vncode.app.features.fbo;
 
-import com.vncode.app.features.kizmapping.KizMappingRepository;
+import com.vncode.app.integration.marketplace.Marketplace;
+import com.vncode.app.integration.znack.GtinNormalizer;
 import com.vncode.app.features.license.LicenseModels.Permission;
 import com.vncode.app.features.license.LicenseRuntime;
 import com.vncode.app.integration.znack.ZnackGtinInventoryService;
@@ -13,32 +14,33 @@ import java.util.List;
 import java.util.Map;
 
 public class FboKizPrintPlanner {
-    private final KizMappingRepository mappingRepository;
+    private final FboVerifiedGtinRepository mappingRepository;
     private final ZnackGtinInventoryService inventoryService;
 
     public FboKizPrintPlanner() {
-        this(new KizMappingRepository(), new ZnackGtinInventoryService());
+        this(new FboVerifiedGtinRepository(), new ZnackGtinInventoryService());
     }
 
-    FboKizPrintPlanner(KizMappingRepository mappingRepository, ZnackGtinInventoryService inventoryService) {
+    FboKizPrintPlanner(FboVerifiedGtinRepository mappingRepository, ZnackGtinInventoryService inventoryService) {
         this.mappingRepository = mappingRepository;
         this.inventoryService = inventoryService;
     }
 
-    public FboPrintPlan plan(int shopId, List<FboBarcodePrintItem> items) {
+    public FboPrintPlan plan(int shopId,List<FboBarcodePrintItem> items){return plan(shopId,Marketplace.WILDBERRIES,items);}
+
+    public FboPrintPlan plan(int shopId,Marketplace market,List<FboBarcodePrintItem> items) {
         LicenseRuntime.require(Permission.PRINT_NEW);
         List<FboBarcodePrintItem> safeItems = items == null ? List.of() : items.stream()
                 .filter(item -> item != null && item.product() != null && item.quantity() > 0).toList();
         if (safeItems.isEmpty()) return new FboPrintPlan(List.of(), List.of());
 
-        Map<Long, String> mappings = mappingRepository.findMappings(shopId, safeItems.stream()
-                .map(FboBarcodePrintItem::product).filter(FboProductSku::requiresKiz)
-                .map(FboProductSku::nmId).distinct().toList());
+        if(safeItems.size()>10000||safeItems.stream().mapToLong(FboBarcodePrintItem::quantity).sum()>100000)throw new IllegalArgumentException("FBO batch is too large");
+        Map<FboProductSku,String> mappings=mappingRepository.resolve(shopId,market,safeItems.stream().map(FboBarcodePrintItem::product).filter(FboProductSku::requiresKiz).distinct().toList());
         Map<String, Integer> neededByGtin = new LinkedHashMap<>();
         List<String> missing = new ArrayList<>();
         for (FboBarcodePrintItem item : safeItems) {
             if (!item.product().requiresKiz()) continue;
-            String gtin = mappings.get(item.product().nmId());
+            String gtin = mappings.get(item.product());
             if (gtin == null) {
                 missing.add("nmId " + item.product().nmId() + " | article " + safe(item.product().vendorCode()));
             } else {
@@ -50,11 +52,10 @@ public class FboKizPrintPlanner {
         Map<String, List<Kiz>> reservedByGtin = new HashMap<>();
         List<Kiz> allReserved = new ArrayList<>();
         try {
-            for (Map.Entry<String, Integer> entry : neededByGtin.entrySet()) {
+            if(!neededByGtin.isEmpty()) {
                 LicenseRuntime.require(Permission.PRINT_NEW);
-                List<Kiz> reserved = inventoryService.reserveAvailable(shopId, entry.getKey(), entry.getValue());
-                reservedByGtin.put(entry.getKey(), reserved);
-                allReserved.addAll(reserved);
+                reservedByGtin.putAll(inventoryService.reserveAvailableBulk(shopId,neededByGtin));
+                reservedByGtin.values().forEach(allReserved::addAll);
             }
         } catch (RuntimeException e) {
             inventoryService.release(shopId, allReserved);
@@ -70,13 +71,14 @@ public class FboKizPrintPlanner {
                 for (int i = 0; i < item.quantity(); i++) {
                     String code = null;
                     if (item.product().requiresKiz()) {
-                        String gtin = mappings.get(item.product().nmId());
+                        String gtin = GtinNormalizer.normalize(mappings.get(item.product()));
                         code = reservedByGtin.get(gtin).get(nextIndex.merge(gtin, 1, Integer::sum) - 1).getCode();
                     }
-                    pages.add(FboPrintPage.barcode(item.product(), pairNumber));
-                    pages.add(FboPrintPage.barcode(item.product(), pairNumber));
+                    FboProductSku verified=item.product().requiresKiz()?item.product().withVerifiedGtin(mappings.get(item.product())):item.product();
+                    pages.add(FboPrintPage.barcode(verified, pairNumber));
+                    pages.add(FboPrintPage.barcode(verified, pairNumber));
                     if (code != null && !code.isBlank()) {
-                        pages.add(FboPrintPage.kiz(item.product(), code, pairNumber));
+                        pages.add(FboPrintPage.kiz(verified, code, pairNumber));
                     }
                     pairNumber++;
                 }

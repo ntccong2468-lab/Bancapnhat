@@ -119,7 +119,7 @@ public final class OzonFboProductRepository {
                 numericId(productId), article, safe(result.getString("category")), "", name,
                 safe(result.getString("color")), size, size, barcode,
                 safe(result.getString("primary_image_url")), result.getBoolean("requires_kiz"),
-                safe(result.getString("catalog_sku")));
+                safe(result.getString("catalog_sku")),safe(result.getString("offer_id")),"",productId);
     }
 
     private static long numericId(String value) {

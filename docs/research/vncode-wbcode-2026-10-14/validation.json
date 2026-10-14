@@ -1,0 +1,22 @@
+{
+  "source_version": "1.4.1",
+  "release_published": false,
+  "local_full_verify": {
+    "tests": 1192,
+    "failures": 0,
+    "errors": 0,
+    "skipped_windows_only": 2,
+    "note": "Full clean verify before final job navigation regression; exact source verification is running."
+  },
+  "node_contracts": {
+    "tests": 48,
+    "passed": 48
+  },
+  "job_schema_regression": {
+    "tests": 1,
+    "passed": 1
+  },
+  "workspace_probe_file": "approved-workspace-probe.json",
+  "windows_native_ci": "pending",
+  "real_account_acceptance": "not_run"
+}

@@ -49,6 +49,7 @@ public class ThemeService {
 
     public static void applyTheme(Scene scene) {
         if (scene == null) return;
+        UiFonts.install();
         Parent root = scene.getRoot();
         if (root != null) {
             root.getStyleClass().removeAll("theme-light", "theme-dark");
@@ -63,6 +64,7 @@ public class ThemeService {
 
     public static void applyTheme(DialogPane pane) {
         if (pane == null) return;
+        UiFonts.install();
         pane.getStyleClass().removeAll("theme-light", "theme-dark");
         Theme current = getCurrentTheme();
         if (current == Theme.LIGHT) {

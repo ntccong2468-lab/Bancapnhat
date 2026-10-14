@@ -30,7 +30,7 @@ class FboBarcodePdfExporterTest {
         Database.initDatabase();
         FboProductSku product = new FboProductSku(
                 101, "ART-42", "Jacket", "Brand", "Jacket black", "Black", "42", "42",
-                "4601234567890", "", true, "OZON-SKU-42");
+                "4601234567890", "", true, "OZON-SKU-42").withVerifiedGtin("04610689132457");
         FboPrintPlan plan = new FboPrintPlan(List.of(
                 FboPrintPage.barcode(product, 1),
                 FboPrintPage.barcode(product, 1),
@@ -48,8 +48,9 @@ class FboBarcodePdfExporterTest {
             String first = pageText(document, 1);
             String second = pageText(document, 2);
             String third = pageText(document, 3);
-            assertTrue(first.contains("4601234567890"));
-            assertTrue(second.contains("4601234567890"));
+            assertTrue(first.contains("04610689132457"));
+            assertFalse(first.contains("4601234567890"));
+            assertTrue(second.contains("04610689132457"));
             assertFalse(third.contains("4601234567890"));
             assertTrue(third.contains("ART-42"));
             assertTrue(third.contains("Jacket"));

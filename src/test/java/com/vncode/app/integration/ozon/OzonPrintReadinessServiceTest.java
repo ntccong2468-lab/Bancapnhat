@@ -127,6 +127,7 @@ class OzonPrintReadinessServiceTest {
         assertTrue(service.inspect(shop, "POST-2").ready());
 
         OzonBatchPrintReadiness batch = service.inspectAll(shop, List.of("POST-1", "POST-2"));
+        assertEquals(List.of("POST-1"),batch.readyPostingNumbers(),"Only one two-unit order fits the three available marks");
 
         assertFalse(batch.ready());
         assertEquals(new OzonPrintReadiness.GtinAvailability(GTIN, 4, 3),

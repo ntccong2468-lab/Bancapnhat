@@ -21,6 +21,9 @@ public final class ListingIdentity {
     }
     public static void require(Shop shop,ProductKey key){require(shop);if(key.shopId()!=shop.getId()||key.marketplace()!=shop.getMarketplace())throw new SecurityException("Foreign listing owner");}
     public static String fingerprint(Shop shop){return hash(shop.getId()+"\n"+shop.getMarketplace()+"\n"+Objects.toString(shop.getClientId(),"")+"\n"+shop.getApiKey());}
+    public static String fingerprint(java.sql.Connection c,int shopId,com.vncode.app.integration.marketplace.Marketplace market)throws java.sql.SQLException {
+        try(var p=c.prepareStatement("SELECT marketplace,name,client_id,api_key FROM shops WHERE id=?")){p.setInt(1,shopId);try(var r=p.executeQuery()){if(!r.next()||!market.name().equals(r.getString(1)))throw new SecurityException("Listing owner changed");return fingerprint(new Shop(shopId,r.getString(2),market,r.getString(3),r.getString(4)));}}
+    }
     public static String hash(String value){try{return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(value.getBytes(StandardCharsets.UTF_8)));}catch(Exception e){throw new IllegalStateException(e);}}
     public static String canonical(com.google.gson.JsonElement value){
         if(value.isJsonObject()){var o=new com.google.gson.JsonObject();value.getAsJsonObject().entrySet().stream().sorted(Map.Entry.comparingByKey()).forEach(e->o.add(e.getKey(),com.google.gson.JsonParser.parseString(canonical(e.getValue()))));return o.toString();}

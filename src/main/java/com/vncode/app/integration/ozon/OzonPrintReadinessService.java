@@ -125,7 +125,8 @@ public final class OzonPrintReadinessService {
         Map<String,OzonPostingDto> postingSnapshot=postings.findMany(shop.getId(),safePostings);
         Map<String,OzonExemplarJob> jobSnapshot=jobs.findMany(shop.getId(),safePostings);
         Map<Long,Integer> bindingCounts=jobs.bindingCounts(shop.getId(),jobSnapshot.values().stream().map(OzonExemplarJob::id).toList());
-        Map<String,Integer> availableCounts=new java.util.HashMap<>();
+        var requestedGtins=postingSnapshot.values().stream().flatMap(p->p.items().stream()).map(i->skuMappings.get(i.sku())).filter(java.util.Objects::nonNull).distinct().toList();
+        Map<String,Integer> availableCounts=new java.util.HashMap<>(inventory.availableCounts(shop.getId(),requestedGtins));
         for (String postingNumber : safePostings) {
             OzonExemplarJob job=jobSnapshot.get(postingNumber);
             int bindingCount=job==null?0:bindingCounts.getOrDefault(job.id(),0);
@@ -149,7 +150,19 @@ public final class OzonPrintReadinessService {
         boolean ready = !safePostings.isEmpty()
                 && results.stream().allMatch(OzonPrintReadiness::ready)
                 && totals.stream().allMatch(OzonPrintReadiness.GtinAvailability::sufficient);
-        return new OzonBatchPrintReadiness(ready, results, totals);
+        var remaining=new java.util.HashMap<>(availableCounts);var eligible=new ArrayList<String>();
+        for(var value:results) {
+            if(!value.ready())continue;
+            var job=jobSnapshot.get(value.postingNumber());
+            boolean secured=job!=null&&job.stage()!=OzonExemplarJobStage.CREATED&&job.stage()!=OzonExemplarJobStage.REJECTED
+                    && bindingCounts.getOrDefault(job.id(),0)==value.requiredKiz();
+            if(secured||value.requiredKiz()==0){eligible.add(value.postingNumber());continue;}
+            if(value.gtinAvailability().stream().allMatch(g->remaining.getOrDefault(g.gtin(),0)>=g.required())) {
+                value.gtinAvailability().forEach(g->remaining.compute(g.gtin(),(key,count)->count-g.required()));
+                eligible.add(value.postingNumber());
+            }
+        }
+        return new OzonBatchPrintReadiness(ready, results, totals,eligible);
     }
 
     private static OzonPrintReadiness result(

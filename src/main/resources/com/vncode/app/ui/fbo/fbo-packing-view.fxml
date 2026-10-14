@@ -61,6 +61,7 @@
                 <TableColumn fx:id="colorColumn" editable="false" prefWidth="120.0" sortable="false" text="Color" />
                 <TableColumn fx:id="sizeColumn" editable="false" prefWidth="90.0" sortable="false" text="Size" />
                 <TableColumn fx:id="catalogSkuColumn" editable="false" prefWidth="145.0" sortable="false" text="SKU" visible="false" />
+                <TableColumn fx:id="gtinColumn" editable="false" prefWidth="160" sortable="false" text="GTIN" />
                 <TableColumn fx:id="skuColumn" editable="false" prefWidth="180.0" sortable="false" text="Barcode" />
                 <TableColumn fx:id="quantityColumn" prefWidth="74.0" sortable="false" text="Qty" />
                 <TableColumn fx:id="quickPrintColumn" editable="false" prefWidth="76.0" sortable="false" text="In" />

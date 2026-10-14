@@ -109,6 +109,20 @@ public class ZnackGtinInventoryService {
             throw new RuntimeException(e);
         }
     }
+    /** Bounded reads for whole shipments/FBO plans; no connection per GTIN. */
+    public Map<String,Integer> availableCounts(int shopId,java.util.Collection<String> gtins) {
+        if(shopId<=0||gtins==null||gtins.size()>10000)throw new IllegalArgumentException("Invalid inventory scope");
+        var normalized=gtins.stream().map(GtinNormalizer::normalize).distinct().toList();
+        var counts=new LinkedHashMap<String,Integer>();normalized.forEach(g->counts.put(g,0));
+        try(var c=Database.getConnection()) {
+            for(int offset=0;offset<normalized.size();offset+=750) {
+                var batch=normalized.subList(offset,Math.min(offset+750,normalized.size()));
+                String sql="SELECT gtin,count(*) FROM kiz_codes INDEXED BY idx_kiz_codes_available_circulation WHERE shop_id=? AND status='AVAILABLE' AND legal_status='IN_CIRCULATION' AND gtin IN ("+String.join(",",Collections.nCopies(batch.size(),"?"))+") GROUP BY gtin";
+                try(var p=c.prepareStatement(sql)){p.setInt(1,shopId);int i=2;for(var g:batch)p.setString(i++,g);try(var r=p.executeQuery()){while(r.next())counts.put(r.getString(1),r.getInt(2));}}
+            }
+            return Map.copyOf(counts);
+        }catch(SQLException failure){throw new IllegalStateException("Unable to read inventory counts");}
+    }
 
     public int discardableCount(int shopId, String gtin) {
         try (Connection c = Database.getConnection(); PreparedStatement ps = c.prepareStatement("""
@@ -223,7 +237,17 @@ public class ZnackGtinInventoryService {
     }
 
     private int updateCodes(int shopId, List<Kiz> codes, String target, boolean consumed, boolean requireAll) {
-        if (codes == null || codes.isEmpty()) return 0;
+        return updateCodes(shopId,codes,target,consumed,requireAll,c->{});
+    }
+    @FunctionalInterface private interface Checkpoint {void save(Connection c)throws SQLException;}
+    /** Inventory consumption and the recoverable print snapshot advance in one transaction. */
+    public int consumeForFboPrint(int shopId,List<Kiz> codes,long jobId) {
+        return updateCodes(shopId,codes==null?List.of():codes,"CONSUMED",true,true,c->{
+            try(var p=c.prepareStatement("UPDATE print_jobs SET status='pdf_ready' WHERE id=? AND shop_id=? AND status='prepared' AND supply_id LIKE 'FBO/%'")){p.setLong(1,jobId);p.setInt(2,shopId);if(p.executeUpdate()!=1)throw new IllegalStateException("FBO print checkpoint changed");}
+        });
+    }
+    private int updateCodes(int shopId,List<Kiz> codes,String target,boolean consumed,boolean requireAll,Checkpoint checkpoint) {
+        if(codes==null)throw new IllegalArgumentException("Invalid reservation list");
         var ids=new HashSet<Integer>();
         for(Kiz code:codes)if(code==null||code.getReservationToken()==null||code.getReservationToken().isBlank()||!ids.add(code.getId()))throw new IllegalStateException("KIZ reservation ownership is invalid.");
         String update = """
@@ -252,6 +276,7 @@ public class ZnackGtinInventoryService {
                 if (requireAll && updated != codes.size()) {
                     throw new IllegalStateException("One or more KIZ reservations are no longer owned by this workflow.");
                 }
+                checkpoint.save(c);
                 c.commit();
                 return updated;
             } catch (Exception e) {

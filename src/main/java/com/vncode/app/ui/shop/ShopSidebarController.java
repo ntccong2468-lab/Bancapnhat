@@ -15,6 +15,19 @@ import javafx.scene.control.ToggleGroup;
 import java.util.function.Consumer;
 
 public class ShopSidebarController {
+    @FXML private javafx.scene.layout.VBox sidebarRoot;
+    @FXML private Label sidebarTitle;
+    private boolean compact;
+    private final java.util.Map<javafx.scene.control.ButtonBase,String> fullLabels=new java.util.HashMap<>();
+    public void setViewportWidth(double width){compact=width>0&&width<1180;applyCompact();}
+    private void applyCompact(){if(sidebarRoot==null)return;double width=compact?72:260;sidebarRoot.setMinWidth(width);sidebarRoot.setMaxWidth(width);sidebarRoot.setPrefWidth(width);sidebarTitle.setVisible(!compact);sidebarTitle.setManaged(!compact);compactButtons(sidebarRoot);}
+    private void compactButtons(javafx.scene.Parent parent){for(var n:parent.getChildrenUnmodifiable()){
+        if(n instanceof javafx.scene.control.ButtonBase button){if(!button.getText().isBlank())fullLabels.put(button,button.getText());button.setTooltip(new javafx.scene.control.Tooltip(fullLabels.getOrDefault(button,"")));button.setMinWidth(0);button.setText(compact?"":fullLabels.getOrDefault(button,button.getText()));}
+        if(n instanceof javafx.scene.Parent child)compactButtons(child);
+        if(n instanceof javafx.scene.control.ScrollPane scroll&&scroll.getContent() instanceof javafx.scene.Parent content)compactButtons(content);
+        if(n instanceof javafx.scene.control.TitledPane titled&&titled.getContent() instanceof javafx.scene.Parent content)compactButtons(content);
+    }}
+
     @FXML private Button listingCopyButton;
     private Runnable onListingCopy;
     public void setOnListingCopy(Runnable callback){onListingCopy=callback;}
@@ -272,6 +285,7 @@ public class ShopSidebarController {
         listingCopyButton.setText(i18n.tr("copy.title"));
         guidesButton.setText(i18n.tr("guides.title"));
         renderLicenseStatus();
+        applyCompact();
     }
 
     private void applyMarketplaceTexts() {

@@ -25,7 +25,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class OzonFboWorkflowTest {
-    private static final String GTIN = "04601234567890";
+    private static final String GTIN = "04610689132457";
     @TempDir Path appData;
 
     @BeforeEach
@@ -50,6 +50,10 @@ class OzonFboWorkflowTest {
             statement.execute("UPDATE kiz_codes SET legal_status='IN_CIRCULATION' WHERE shop_id=1");
         }
         new OzonProductGtinMappingRepository().put(1, "SKU-42", GTIN);
+        try(var c=Database.getConnection();var st=c.createStatement()) {
+            st.execute("INSERT INTO gtin_sync_catalog VALUES(1,'OZON','"+GTIN+"','{\"published\":true,\"tradeUnit\":true,\"owner\":\""+com.vncode.app.integration.listing.ListingIdentity.fingerprint(new com.vncode.app.models.Shop(1,"Ozon",com.vncode.app.integration.marketplace.Marketplace.OZON,"client","secret"))+"\"}')");
+            st.execute("INSERT INTO ozon_product_barcodes(shop_id,product_id,barcode) SELECT shop_id,product_id,'"+GTIN+"' FROM ozon_products WHERE sku='SKU-42'");
+        }
     }
 
     @AfterEach
@@ -66,7 +70,7 @@ class OzonFboWorkflowTest {
         FboProductSku size42 = products.stream().filter(product -> "42".equals(product.size())).findFirst().orElseThrow();
         FboProductSku size44 = products.stream().filter(product -> "44".equals(product.size())).findFirst().orElseThrow();
         assertEquals("SKU-42", size42.catalogSku());
-        assertEquals("BARCODE-42", size42.sku());
+        assertEquals(GTIN, size42.sku());
         assertEquals("ART-42", size42.vendorCode());
         assertTrue(size42.requiresKiz());
         assertFalse(size44.requiresKiz());

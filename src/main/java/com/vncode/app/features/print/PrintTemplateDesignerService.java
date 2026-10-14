@@ -10,6 +10,15 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 
 public class PrintTemplateDesignerService {
+    private PrintTemplateDesignerController embeddedController;
+    private javafx.scene.Parent embeddedView;
+    public void applyEmbeddedTranslations(){if(embeddedController!=null)embeddedController.applyTranslations(embeddedView);}
+    public javafx.scene.Parent createEmbedded() {
+        FXMLLoader loader=FxmlViewLoader.loader(PrintTemplateDesignerController.class,"print-template-designer-view.fxml");
+        javafx.scene.Parent view=FxmlViewLoader.load(loader);embeddedController=loader.getController();embeddedView=view;
+        if(view instanceof javafx.scene.layout.Region region)region.setMinSize(0,0);
+        return view;
+    }
     public void showDialog() {
         FXMLLoader loader = FxmlViewLoader.loader(PrintTemplateDesignerController.class, "print-template-designer-view.fxml");
         Scene scene = new Scene(FxmlViewLoader.load(loader));

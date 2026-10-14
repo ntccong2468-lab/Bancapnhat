@@ -30,7 +30,7 @@ public final class ProductBulkEditService {
     public ProductBulkEditService(ProductEditRepository repo,ProductSnapshotReader reader,Function<Shop,ListingTargetAdapter> adapters){this.repo=repo;this.reader=reader;this.adapters=adapters;repo.recoverIncomplete();}
     public ProductEditPreview preview(Shop shop,List<ProductKey> keys,ProductBulkEdit edit)throws IOException {
         ListingIdentity.require(shop);var frozen=keys.stream().distinct().sorted(Comparator.comparing(ProductKey::cardId).thenComparing(ProductKey::variantId)).toList();if(frozen.isEmpty())throw new IllegalArgumentException("Select products");
-        var groups=new LinkedHashMap<String,List<ProductKey>>();for(var key:frozen){ListingIdentity.require(shop,key);groups.computeIfAbsent(key.cardId(),k->new ArrayList<>()).add(key);}if(groups.size()>100)throw new IllegalArgumentException("Product edit limit is 100 cards");
+        var groups=new LinkedHashMap<String,List<ProductKey>>();for(var key:frozen){ListingIdentity.require(shop,key);groups.computeIfAbsent(key.cardId(),k->new ArrayList<>()).add(key);}if(groups.size()>1000)throw new IllegalArgumentException("Product edit limit is 1000 cards");
         documentBudget(shop,edit.documents());
         LicenseRuntime.require(SELLER_API);
         var items=new ArrayList<EditItem>();var adapter=adapters.apply(shop);var sharedDocuments=new HashMap<String,String>();long retained=0;
@@ -96,7 +96,7 @@ public final class ProductBulkEditService {
     private ProductEditPreview owned(Shop s,String id){ListingIdentity.require(s);return repo.find(s.getId(),ListingIdentity.fingerprint(s),id);}
     private static RemoteSubmission unknown(Shop s,EditItem i){var p=i.preview().preview();return new RemoteSubmission(s.getId(),s.getMarketplace(),p.owner(),p.requestHash(),null,p.articles(),p.requestJson(),p.mediaJson(),p.documentsJson(),"CARD",Map.of());}
     private static void requireFresh(Shop s,ProductKey key,ProductSnapshot f){ListingIdentity.require(s,f.key());if(!f.key().cardId().equals(key.cardId())||!f.revision().startsWith("live:"))throw new SecurityException("Fresh own product required");}
-    private static boolean matches(String field,String name){String n=Normalizer.normalize(name,Normalizer.Form.NFKC).toLowerCase(Locale.ROOT).replaceAll("[^\\p{L}\\p{N}]","");return field.equals("material")?Set.of("состав","материал","основнойматериал","материализделия").contains(n):Set.of("тнвэд","кодтнвэд","tnved").contains(n);}
+    private static boolean matches(String field,String name){return ProductFieldNames.matches(field,name);}
     private static void documentBudget(Shop shop,List<ProductDocument> documents)throws IOException{
         if(documents==null)return;
         if(documents.size()>16)throw new IllegalArgumentException("At most 16 documents per product edit");

@@ -74,6 +74,30 @@ class ProductRepositoryTest {
         var uploaded=new ProductDocument("id","declaration","number",null,null,"owner","scope",null,Marketplace.WILDBERRIES,DocumentState.UNVERIFIED,"",null);
         assertEquals(DocumentState.UNVERIFIED,uploaded.state());
     }
+    @Test void ozonVerifiedSnapshotProjectsAttributesButCredentialRotationHidesIt()throws Exception {
+        try(var c=Database.getConnection();var s=c.createStatement()) {
+            s.execute("INSERT INTO ozon_products(shop_id,product_id,offer_id,sku,name,archived,synced_at) VALUES(2,'21','O-1','SKU-1','Ozon product',0,'now')");
+        }
+        var shop=new com.vncode.app.models.Shop(2,"Ozon",Marketplace.OZON,"fixture","fixture");
+        var key=new ProductKey(2,Marketplace.OZON,"21","O-1");var repo=new ProductRepository();
+        var q=new ProductQuery(2,Marketplace.OZON,"",List.of(),null,false,null,100);
+        assertFalse(repo.loadPage(q).rows().getFirst().attributesLoaded());
+        assertEquals(1,repo.loadPage(q).issueCounts().get(ProductIssueFilter.ATTRIBUTES_UNLOADED));
+        repo.saveVerifiedSnapshot(shop,new ProductSnapshot(key,"live:readback","Ozon product","","Brand","O-1","9:1",List.of(),
+            List.of(new ProductAttribute("7","Состав",List.of("Cotton"),null),new ProductAttribute("8","ТН ВЭД",List.of("6109100000"),null),new ProductAttribute("9","Пол",List.of("Мужской"),null),
+                new ProductAttribute("17","Состав",List.of("Wrong complex attribute"),null,"8",0)),
+            List.of(),null,List.of(),java.time.Instant.now(),Map.of("owner",com.vncode.app.integration.listing.ListingIdentity.fingerprint(shop))));
+        var row=repo.loadPage(q).rows().getFirst();assertTrue(row.attributesLoaded());assertEquals("Brand",row.brand());assertEquals("Cotton",row.material());assertEquals("6109100000",row.tnved());assertEquals("Мужской",row.gender());
+        assertEquals(0,repo.loadPage(q).issueCounts().get(ProductIssueFilter.INVALID_TNVED));
+        try(var c=Database.getConnection();var s=c.createStatement()){s.execute("UPDATE shops SET api_key='rotated' WHERE id=2");}
+        row=repo.loadPage(q).rows().getFirst();assertFalse(row.attributesLoaded());assertEquals("",row.brand());assertEquals("",row.material());
+    }
+    @Test void issueFilterAndFrozenSelectionAgreeAndCannotReuseAnotherCursor()throws Exception {
+        card(1,1,"Missing",null);card(1,2,"Other",null);
+        var q=new ProductQuery(1,Marketplace.WILDBERRIES,"",List.of(),null,false,null,1,ProductIssueFilter.MISSING_BRAND);
+        var repo=new ProductRepository();var page=repo.loadPage(q);assertEquals(2,page.total());assertEquals(2,repo.freezeKeys(q).size());
+        assertThrows(IllegalArgumentException.class,()->repo.loadPage(new ProductQuery(1,Marketplace.WILDBERRIES,"",List.of(),null,false,page.nextCursor(),1,ProductIssueFilter.INVALID_TNVED)));
+    }
     @Test void wrongAssignedBarcodeIsStillMissingVerifiedGtin() throws Exception {
         card(1,1,"Wrong association","OTHER-BARCODE");
         try(var c=Database.getConnection();var p=c.prepareStatement("INSERT INTO gtin_sync_catalog VALUES(1,'WILDBERRIES','04610689132457',?)")) {
