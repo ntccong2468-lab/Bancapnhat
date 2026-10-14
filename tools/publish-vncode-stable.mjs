@@ -17,10 +17,16 @@ const json=bytes=>JSON.parse(bytes.toString('utf8').replace(/^\uFEFF/,''));
 const gh=args=>execFileSync('gh',args,{encoding:'utf8',maxBuffer:64*1024*1024});
 const api=endpoint=>JSON.parse(gh(['api',`repos/${REPO}/${endpoint}`]));
 
-export function validateStableAsset(asset,version,digest,size) {
+export function validateStableAsset(asset,version,digest,size,draft=false) {
     assert.equal(asset.name,`VN-code-${version}-Windows-x64.exe`);
     assert.equal(asset.state,'uploaded');assert.equal(asset.digest,`sha256:${digest}`);assert.equal(asset.size,size);
-    assert.equal(asset.browser_download_url,`https://github.com/${REPO}/releases/download/v${version}/${asset.name}`);
+    const base=`https://github.com/${REPO}/releases/download/`;
+    if(draft) {
+        assert.ok(asset.browser_download_url.startsWith(base));
+        const segments=asset.browser_download_url.slice(base.length).split('/');
+        assert.equal(segments.length,2);assert.equal(segments[1],asset.name);
+        assert.ok(segments[0]===`v${version}`||/^untagged-[a-f0-9]+$/.test(segments[0]));
+    } else assert.equal(asset.browser_download_url,`${base}v${version}/${asset.name}`);
 }
 export function validatePublishedStable(release,version) {
     assert.equal(release.tag_name,`v${version}`);assert.equal(release.draft,false);assert.equal(release.prerelease,false);
@@ -54,6 +60,10 @@ async function main(runId,sha,mode='prepare') {
     for(const [file,from] of [['upgrade-preview-smoke.json','1.2.0'],['upgrade-latest-preview-smoke.json','1.2.1'],
             ['upgrade-current-preview-smoke.json','1.2.2'],['upgrade-gs1-preview-smoke.json','1.3.0'],['upgrade-license-test-smoke.json','1.4.0']]) {
         validateUpgradeSmoke(json(await readFile(path.join(directory,file))),version,from);proofFiles.push(file);
+    }
+    if(version.localeCompare('1.4.6','en',{numeric:true})>0) {
+        validateUpgradeSmoke(json(await readFile(path.join(directory,'upgrade-stable-146-smoke.json'))),version,'1.4.6');
+        proofFiles.push('upgrade-stable-146-smoke.json');
     }
     const workspace=json(await readFile(path.join(directory,'seller-workspace-smoke.json')));validateWorkspaceSmoke(workspace,version,sha);
     const ui=json(await readFile(path.join(directory,'ui-layout.json')));
@@ -94,11 +104,12 @@ async function main(runId,sha,mode='prepare') {
     }
     gh(['release','edit',tag,'--repo',REPO,'--title',`VNCode ${version}`,'--notes-file',path.join(directory,'release-notes.md')]);
     const ready=api(`releases/${release.id}`);validateReleaseAssets(ready.assets,names,true);
-    validateStableAsset(ready.assets.find(a=>a.name===name),version,digest,bytes.length);
+    validateStableAsset(ready.assets.find(a=>a.name===name),version,digest,bytes.length,ready.draft);
     if(mode==='publish') {
         const request=path.join(directory,'publish.json');await writeFile(request,JSON.stringify({draft:false,prerelease:false,make_latest:'true'}));
         gh(['api','-X','PATCH',`repos/${REPO}/releases/${release.id}`,'--input',request]);
         validatePublishedStable(api('releases/latest'),version);
+        validateStableAsset(api(`releases/${release.id}`).assets.find(a=>a.name===name),version,digest,bytes.length);
     }
     console.log(JSON.stringify({version,mode,url:ready.html_url,sourceCommit:sha,sha256:digest,published:mode==='publish'}));
 }

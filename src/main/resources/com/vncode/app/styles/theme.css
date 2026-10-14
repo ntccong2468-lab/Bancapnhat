@@ -3,7 +3,7 @@
 .ozon-fbs-workspace #packingOrdersTable .table-row-cell,
 .ozon-fbs-workspace #deliveringOrdersTable .table-row-cell {
     -fx-cell-size: -1;
-    -fx-min-height: 174;
+    -fx-min-height: 124;
 }
 .ozon-fbs-workspace .titled-pane > .title { -fx-background-color: -bg-secondary; -fx-background-radius: 10; }
 .ozon-fbs-workspace .titled-pane > .title > .text { -fx-fill: -text-primary; }

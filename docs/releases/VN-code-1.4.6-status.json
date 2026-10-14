@@ -2,7 +2,7 @@
   "version": "1.4.6",
   "baseVersion": "1.4.5",
   "complete": false,
-  "officialReleasePublished": false,
+  "officialReleasePublished": true,
   "licenseIntegration": {
     "implemented": true,
     "productionReady": false,
@@ -16,7 +16,21 @@
     "Published stable GitHub Releases feed, release draft preparation and verified publication workflow"
   ],
   "validation": {
-    "windowsFullBuild": "pending",
+    "windowsFullBuild": {
+      "runId": 38629908512,
+      "sourceCommit": "1174273ddf9a5a45ff376d156cb5af4bde3f45b1",
+      "result": "passed",
+      "javaTests": 1235,
+      "javaPassed": 1233,
+      "javaSkippedPlatformSpecific": 2,
+      "nativeInstallAndUpgrade": "passed",
+      "uiLayouts": 272,
+      "workspaceDpi": [
+        100,
+        125,
+        150
+      ]
+    },
     "uiLayoutMatrix": {
       "platform": "linux-javafx",
       "screens": 17,
@@ -36,8 +50,12 @@
   "releaseChannel": {
     "repository": "ntccong2468-lab/Bancapnhat",
     "tag": "v1.4.6",
-    "draftPreparation": "pending",
+    "draftPreparation": "passed",
     "appAutomaticFeed": "/releases/latest",
-    "draftsAndPrereleasesHiddenFromSellers": true
+    "draftsAndPrereleasesHiddenFromSellers": true,
+    "publishedAt": "2026-10-14T20:43:40Z",
+    "url": "https://github.com/ntccong2468-lab/Bancapnhat/releases/tag/v1.4.6",
+    "installerSha256": "5e988021965acdb8cb1ff8857c15a2989ea156e86f0082f28b9869012da0dea2",
+    "publicationAuthorization": "Owner explicitly requested Published/Latest after draft status was explained; published with outstanding production acceptance disclosed. Unrun acceptance flags remain false."
   }
 }

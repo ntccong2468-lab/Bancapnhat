@@ -17,6 +17,15 @@ test('stable publication rejects the wrong repository, diagnostic filename, byte
         {browser_download_url:asset.browser_download_url.replace('/Bancapnhat/','/Vncode/')}])
         assert.throws(()=>validateStableAsset({...asset,...patch},version,digest,size));
 });
+test('only a draft may use GitHub temporary untagged download URLs',()=>{
+    const draftAsset={...asset,browser_download_url:asset.browser_download_url.replace('/v1.4.6/','/untagged-91cab40497ec860f7175/')};
+    validateStableAsset(draftAsset,version,digest,size,true);
+    assert.throws(()=>validateStableAsset(draftAsset,version,digest,size));
+    for(const url of [draftAsset.browser_download_url.replace('/Bancapnhat/','/other/'),
+            draftAsset.browser_download_url.replace('untagged-91cab40497ec860f7175','untagged-../../evil'),
+            draftAsset.browser_download_url+'?redirect=evil'])
+        assert.throws(()=>validateStableAsset({...draftAsset,browser_download_url:url},version,digest,size,true));
+});
 test('draft preparation retains production acceptance gate and publish promotes GitHub latest',()=>{
     const source=readFileSync(new URL('./publish-vncode-stable.mjs',import.meta.url),'utf8');
     assert.match(source,/if\(mode==='publish'\)\s*\{[\s\S]*?validateLicenseReadiness/);

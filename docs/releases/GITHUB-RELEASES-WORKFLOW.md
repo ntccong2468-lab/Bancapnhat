@@ -47,3 +47,11 @@ Nghiệm thu còn thiếu được giữ trong file acceptance tương ứng; kh
 cờ chưa chạy thành `true` để vượt bước publish. Draft không hiện với seller.
 Sau khi publish, kiểm tra `/releases/latest` trả đúng tag, notes và digest EXE,
 rồi thử bằng VNCode phiên bản trước với **Kiểm tra phiên bản**.
+
+Bản 1.4.6 đã Published/Latest theo yêu cầu trực tiếp của chủ repo, sau khi
+kiểm chứng build Windows, bộ cài và các asset. Các mục nghiệm thu production
+chưa chạy vẫn giữ `false`; việc xuất bản không được ghi nhận thành kết quả
+kiểm thử. API công khai và liên kết EXE đã kiểm tra không cần đăng nhập.
+Từ 1.4.7, kiểm tra thêm nâng cấp giữ dữ liệu từ bộ cài Published 1.4.6
+có checksum cố định. GitHub dùng URL `untagged-*` cho asset draft; chỉ kiểm tra
+URL `vX.Y.Z` chính thức sau khi Published.

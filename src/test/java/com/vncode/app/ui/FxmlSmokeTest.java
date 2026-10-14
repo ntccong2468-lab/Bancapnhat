@@ -1011,15 +1011,18 @@ class FxmlSmokeTest {
                         && moveToPacking != null
                         && !moveToPacking.isDisabled()
                         && moveToPacking.isVisible()
-                        && ((javafx.scene.layout.HBox) loader.getNamespace().get("selectionActionBar")).isVisible()
+                        && ((javafx.scene.layout.Pane) loader.getNamespace().get("selectionActionBar")).isVisible()
                         && packingOrders != null
                         && loader.getNamespace().get("packingOrderImageTC") != null
                         && loader.getNamespace().get("packingLabelTC") != null
                         && loader.getNamespace().get("deliveringOrdersTable") != null
                         && loader.getNamespace().get("deliveringOrderImageTC") != null
-                        && loader.getNamespace().get("newOrderShipmentTC") == null
-                        && loader.getNamespace().get("packingOrderShipmentTC") == null
-                        && loader.getNamespace().get("deliveringOrderShipmentTC") == null
+                        && loader.getNamespace().get("newOrderShipmentTC") != null
+                        && loader.getNamespace().get("newOrderPriceTC") != null
+                        && loader.getNamespace().get("packingOrderShipmentTC") != null
+                        && loader.getNamespace().get("packingOrderPriceTC") != null
+                        && loader.getNamespace().get("deliveringOrderShipmentTC") != null
+                        && loader.getNamespace().get("deliveringOrderPriceTC") != null
                         && loader.getNamespace().get("accountLabel") == null
                         && newOrderNumber.getPrefWidth() == 100.0
                         && packingOrderNumber.getPrefWidth() == 100.0

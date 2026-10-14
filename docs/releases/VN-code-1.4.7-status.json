@@ -1,0 +1,29 @@
+{
+  "version": "1.4.7",
+  "baseVersion": "1.4.6",
+  "complete": false,
+  "officialReleasePublished": false,
+  "licenseIntegration": {
+    "implemented": true,
+    "productionReady": false,
+    "activeKeyId": "vncode-2",
+    "serverSigningKeyMatch": "owner-confirmed-Portal035-vncode2",
+    "ownerReportedActivationVersion": "1.4.4"
+  },
+  "scope": [
+    "WB-style Ozon FBS layout with shipment date, image, product and price columns",
+    "Compact multi-item rows, wrapping batch controls and footer pagination",
+    "Published stable GitHub update feed"
+  ],
+  "validation": {
+    "windowsFullBuild": "pending",
+    "liveOzonMutations": "not-performed",
+    "productionMultiDeviceOfflineRevocation": "not-verified"
+  },
+  "releaseChannel": {
+    "repository": "ntccong2468-lab/Bancapnhat",
+    "tag": "v1.4.7",
+    "appAutomaticFeed": "/releases/latest",
+    "publicationAuthorization": "Owner requested Published/Latest updates and Ozon FBS alignment; outstanding production acceptance remains disclosed."
+  }
+}
