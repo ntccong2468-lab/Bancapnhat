@@ -57,6 +57,14 @@ async function main(runId,sha,mode='prepare') {
     await writeFile(path.join(directory,'release-notes.md'),notes+'\n');
     const names=[name,`VN-code-${version}-Windows-x64.sha256`,'build-info.json','release-notes.md'];
     const digests={};for(const file of names)digests[file]=hash(await readFile(path.join(directory,file)));
+    const refs=api(`git/matching-refs/tags/${tag}`).filter(item=>item.ref===`refs/tags/${tag}`);
+    assert.ok(refs.length<=1);
+    if(refs.length) {
+        assert.equal(refs[0].object.type,'commit');assert.equal(refs[0].object.sha,sha,'Never move an existing release tag');
+    } else {
+        const request=path.join(directory,'tag-ref.json');await writeFile(request,JSON.stringify({ref:`refs/tags/${tag}`,sha}));
+        gh(['api','-X','POST',`repos/${REPO}/git/refs`,'--input',request]);
+    }
     let release=api('releases?per_page=100').find(r=>r.tag_name===tag);
     if(!release) {
         gh(['release','create',tag,'--repo',REPO,'--target',sha,'--draft','--title',`VNCode ${version}`,'--notes-file',path.join(directory,'release-notes.md')]);
