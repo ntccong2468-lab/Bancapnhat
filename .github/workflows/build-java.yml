@@ -64,6 +64,17 @@ jobs:
         shell: pwsh
         run: .\mvnw.cmd -B clean verify
 
+      - name: Preserve verified Windows Java inputs
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: VN-code-${{ env.APP_VERSION }}-Windows-verified-java
+          path: |
+            target/VNcode-${{ env.APP_VERSION }}.jar
+            target/lib/**
+            target/surefire-reports/TEST-*.xml
+          if-no-files-found: error
+          retention-days: 14
+
       - name: Preserve failed Windows test reports
         if: failure()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
@@ -157,6 +168,21 @@ jobs:
             out/seller-workspace-evidence.zip
           if-no-files-found: error
           retention-days: 14
+
+      - name: Preserve native diagnostics and candidate after packaging failure
+        if: failure()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: VN-code-${{ env.APP_VERSION }}-Windows-native-diagnostics-${{ github.run_id }}
+          path: |
+            out/*.exe
+            out/*.sha256
+            out/*.json
+            out/*.zip
+            out/*.log
+            target/jpackage-temp/msi/*.msi
+          if-no-files-found: ignore
+          retention-days: 7
 
   build-macos-test:
     if: ${{ github.event_name != 'workflow_dispatch' || !inputs.windows_only }}

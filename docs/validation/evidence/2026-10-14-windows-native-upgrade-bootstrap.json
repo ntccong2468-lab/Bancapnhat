@@ -1,0 +1,22 @@
+{
+  "sourceCommit": "304c38fea659d100743eb0ed2611ec19b4b8f084",
+  "githubRunId": 38489231936,
+  "runConclusion": "failure",
+  "javaFullSuite": {
+    "tests": 1177,
+    "passed": 1175,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 2
+  },
+  "fastUiCleanupCheck": "passed",
+  "nodePassed": 46,
+  "exePackaging": "passed",
+  "nativeLauncherAndSchemaMigration": "passed",
+  "gs1DpapiStorage": "passed",
+  "tenShopWorkspaceAndThreeDpiScales": "passed",
+  "coinstallationAndUninstall": "passed",
+  "upgradeFrom1134": "failed at native launcher before window; baseline fixture still contained newer schema",
+  "previewUpgradeChecks": "unrun",
+  "downloadableInstallerPreserved": false
+}

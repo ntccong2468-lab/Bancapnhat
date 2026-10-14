@@ -27,6 +27,11 @@ if($previewMode){
 }else{
     & java --enable-native-access=ALL-UNNAMED -cp $probeClasspath WindowsDataProbe fresh $data
     if ($LASTEXITCODE -ne 0) { throw 'Previous CI data is not the expected empty fixture.' }
+    # Coexistence just launched the new version and left its newer, empty schema behind.
+    # Preserve that verified fixture before starting an older binary, which correctly refuses
+    # newer schemas. The old launcher must create its own baseline database for this upgrade.
+    Move-Item -LiteralPath $data -Destination (Join-Path $root 'preserved-new-version-fresh-fixture')
+    if (Test-Path $data) { throw 'The older baseline requires a fresh data directory.' }
 }
 $fromVersion=if($FromGs1Preview){'1.3.0'}elseif($FromCurrentPreview){'1.2.2'}elseif($FromLatestPreview){'1.2.1'}elseif($FromPreview){'1.2.0'}else{'1.1.34'}
 $oldExe=Join-Path $root "VN-code-$fromVersion.exe";$oldMsi=Join-Path $root "VN-code-$fromVersion.msi"
@@ -52,7 +57,8 @@ $app=$null;$installed=$false;$activeMsi=$oldMsi
 try{
     Msi '/i' $oldMsi;$installed=$true
     $launcher=Join-Path $program 'VN code.exe'
-    $app=Start-Process $launcher -PassThru
+    Write-Host "Launching preserved-data baseline VN code $fromVersion with its own fresh schema."
+    $app=Start-Process $launcher -PassThru -RedirectStandardOutput "out\upgrade-$fromVersion-baseline-stdout.log" -RedirectStandardError "out\upgrade-$fromVersion-baseline-stderr.log"
     [void](Wait-VncodeWindow -Process $app -Version $fromVersion)
     Stop-Process -Id $app.Id -Force;$app.WaitForExit();$app=$null
     & java --enable-native-access=ALL-UNNAMED -cp $probeClasspath WindowsDataProbe fresh $data 4
@@ -65,7 +71,8 @@ try{
     Msi '/i' $newMsi;$activeMsi=$newMsi
     $registrations=Registrations
     if($registrations.Count -ne 1 -or $registrations[0].DisplayVersion -cne $Version){throw 'Upgrade created a second VN code registration or retained the old version.'}
-    $app=Start-Process $launcher -PassThru
+    Write-Host "Launching upgraded VN code $Version over the seeded $fromVersion fixture."
+    $app=Start-Process $launcher -PassThru -RedirectStandardOutput "out\upgrade-$fromVersion-current-stdout.log" -RedirectStandardError "out\upgrade-$fromVersion-current-stderr.log"
     $window=Wait-VncodeWindow -Process $app -Version $Version
     Stop-Process -Id $app.Id -Force;$app.WaitForExit();$app=$null
     $after=& java --enable-native-access=ALL-UNNAMED -cp $probeClasspath WindowsUpgradeDataProbe fingerprint $data
