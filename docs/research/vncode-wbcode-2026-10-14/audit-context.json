@@ -1,0 +1,23 @@
+{
+  "date": "2026-10-14",
+  "referenceRelease": "v1.3.8",
+  "referenceInstallerSha256": "e44ee1f994acc362603c4d3bf23134a4762a8d0c83b3c8630b90d2f587ba7a84",
+  "vncodeVersion": "1.4.1",
+  "applicationSourceRevision": "3b9759d8c154b025fb7f4b113ff586061ea455bf",
+  "auditedJarSha256": "c305a264e157ab531d242d240d7c731da99a5a0c7ea8626ba3a338f8b700bec0",
+  "desktopRuns": [
+    38513311835,
+    38513761332,
+    38514036757
+  ],
+  "nativeVncodeBuild": {
+    "runId": 38510879592,
+    "conclusion": "success",
+    "published": false
+  },
+  "probe": "evidence/vncode-workspace-probe.json",
+  "authenticatedWbcodeWorkflowsObserved": false,
+  "liveMarketplaceMutations": false,
+  "applicationCodeModified": false,
+  "releasePaused": true
+}

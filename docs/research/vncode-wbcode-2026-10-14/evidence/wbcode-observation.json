@@ -1,0 +1,19 @@
+{
+  "scope": "Fresh first-run pixels and accessibility; authenticated seller/CryptoPro workflows untested",
+  "licenseActivated": false,
+  "screenHeight": 768,
+  "installerSha256": "e44ee1f994acc362603c4d3bf23134a4762a8d0c83b3c8630b90d2f587ba7a84",
+  "screenshot": "official-wbcode-1.3.8-first-run.png",
+  "release": "v1.3.8",
+  "visibleTitles": [
+    "Требуется действие",
+    "Wbcode v1.3.8"
+  ],
+  "nativeLaunch": "passed",
+  "freshRunner": true,
+  "source": "official release installer",
+  "liveMarketplaceMutations": false,
+  "shopCredentialsEntered": false,
+  "screenWidth": 1024,
+  "windowMaximized": true
+}
