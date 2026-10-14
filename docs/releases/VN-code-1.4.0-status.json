@@ -90,7 +90,17 @@
     "backendLiveEndpointChecks": "health/config/unauthenticated registration route passed",
     "serverSigningConfiguration": "owner-provided-authenticated-settings-signing-ready",
     "backendConfigurationEvidence": "docs/validation/evidence/2026-10-14-license-admin-settings.json",
-    "testInstallerBuild": "passed"
+    "testInstallerBuild": "passed",
+    "testInstallerDelivery": {
+      "stage": "draft",
+      "tag": "v1.4.0-license-test.1",
+      "url": "https://github.com/ntccong2468-lab/Bancapnhat/releases/tag/untagged-fba41945e21453e7c37e",
+      "filename": "VN-code-1.4.0-Windows-x64.exe",
+      "sha256": "c54f547819112f2fa10a80d73805e086b4f17af39b1cca5b28715706c50a4110",
+      "buildSourceCommit": "379197531ac1869e0a645e04f5c8ab9e8418be2c",
+      "buildRunId": 38492821195,
+      "uploadRunId": 38495962520
+    }
   },
   "gs1Upgrade": {
     "status": "implemented-local-validation-live-acceptance-pending",

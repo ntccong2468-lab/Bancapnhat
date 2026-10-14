@@ -1,0 +1,16 @@
+{
+  "stage": "draft-license-activation-candidate",
+  "draft": true,
+  "publicRelease": false,
+  "tag": "v1.4.0-license-test.1",
+  "releaseUrl": "https://github.com/ntccong2468-lab/Bancapnhat/releases/tag/untagged-fba41945e21453e7c37e",
+  "installerUrl": "https://github.com/ntccong2468-lab/Bancapnhat/releases/download/untagged-fba41945e21453e7c37e/VN-code-1.4.0-Windows-x64.exe",
+  "filename": "VN-code-1.4.0-Windows-x64.exe",
+  "bytes": 142998016,
+  "sha256": "c54f547819112f2fa10a80d73805e086b4f17af39b1cca5b28715706c50a4110",
+  "buildSourceCommit": "379197531ac1869e0a645e04f5c8ab9e8418be2c",
+  "buildRunId": 38492821195,
+  "uploadRunId": 38495962520,
+  "uploadRunUrl": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/38495962520",
+  "licenseProductionAcceptance": "pending user Windows activation and remaining native/backend checks"
+}
