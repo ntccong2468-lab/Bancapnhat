@@ -1,5 +1,6 @@
 import {mailReady} from './mail.js';
 import {signingKey} from './signing-key.js';
+import {licenseDiagnostics} from './license-diagnostics.js';
 // Passwordless desktop registration; device proof and signed, bounded offline grants.
 const utf8 = new TextEncoder();
 const now = () => Math.floor(Date.now()/1000);
@@ -203,6 +204,7 @@ export async function desktopApi(request,env,h,admin=null) {
 
 async function adminApi(request,env,h,admin) {
  const path=new URL(request.url).pathname,method=request.method;
+ if(method==='GET'&&path==='/api/admin/desktop/diagnostics')return reply(await licenseDiagnostics(env));
  if(method==='GET'&&path==='/api/admin/desktop/requests') {
   const url=new URL(request.url),page=Math.min(1000,Math.max(0,Math.trunc(Number(url.searchParams.get('page'))||0))),status=url.searchParams.get('status')||'',search=(url.searchParams.get('search')||'').slice(0,254);
   if(status&&!['pending','approved','suspended'].includes(status))return error('INVALID_STATUS');
@@ -212,7 +214,10 @@ async function adminApi(request,env,h,admin) {
   const count=await env.DB.prepare(`SELECT COUNT(*) n FROM users u WHERE ${where}`).bind(status,status,search).first();
   return reply({users:rows,total:count.n,page});
  }
- if(method==='GET'&&path==='/api/admin/desktop/settings')return reply({mail_ready:mailReady(env),signing_ready:!!env.LICENSE_SIGNING_KEY,key_id:env.LICENSE_KEY_ID||null,registration_mode:'gmail_admin',registration_requires_otp:false,default_max_devices:1,default_max_shops:1,default_offline_hours:72});
+ if(method==='GET'&&path==='/api/admin/desktop/settings'){
+  let signing_ready=false;try{await signingKey(env);signing_ready=true;}catch{}
+  return reply({mail_ready:mailReady(env),signing_ready,signing_key_present:!!env.LICENSE_SIGNING_KEY,key_id:env.LICENSE_KEY_ID||null,registration_mode:'gmail_admin',registration_requires_otp:false,default_max_devices:1,default_max_shops:1,default_offline_hours:72});
+ }
  const match=path.match(/^\/api\/admin\/desktop\/users\/([a-f0-9-]{36})\/(approve-issue|policy|devices)$/);
  if(match) {
   const id=match[1],action=match[2],user=await env.DB.prepare('SELECT * FROM users WHERE id=?').bind(id).first();

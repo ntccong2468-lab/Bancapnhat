@@ -57,6 +57,7 @@
                 <FontIcon iconLiteral="fth-refresh-cw" iconSize="16"/>
             </graphic>
         </Button>
+        <Button fx:id="updateButton" id="availableUpdateButton" onAction="#onUpdate" visible="false" managed="false" styleClass="button,btn-primary" text="%update.notification" />
         <StackPane>
             <Button fx:id="newsButton" onAction="#onNews" prefHeight="46" prefWidth="46" styleClass="btn-icon"><graphic><FontIcon iconLiteral="fth-bell" iconSize="20"/></graphic></Button>
             <Label fx:id="newsBadge" text="0" visible="false" managed="false" mouseTransparent="true" styleClass="unread-badge" StackPane.alignment="TOP_RIGHT"/>

@@ -1,0 +1,41 @@
+{
+  "version": "1.4.3",
+  "baseVersion": "1.4.2",
+  "complete": false,
+  "officialReleasePublished": false,
+  "changes": [
+    "Thông báo cập nhật khi mở app và kiểm tra mỗi 45–60 phút; giữ nút thông báo sau khi chọn Để sau.",
+    "Nội dung cập nhật, tải riêng và tải/cài đặt; kiểm tra thủ công bỏ qua lựa chọn bỏ qua bản.",
+    "Xác minh SHA-256 và dung lượng, ngăn bộ cài sai nền tảng; chờ app thoát và tạo snapshot SQLite trước cài.",
+    "Hỗ trợ manifest Ed25519 nếu build đã pin khóa cập nhật riêng.",
+    "Portal 0.3.4 kiểm tra khóa ký thật so với pin VNCode; đọc PKCS8 Base64URL/Base64/PEM."
+  ],
+  "validation": {
+    "focusedJavaTests": 86,
+    "focusedJavaFailures": 0,
+    "portalTests": 54,
+    "portalFailures": 0,
+    "releaseContractTests": 48,
+    "releaseContractFailures": 0,
+    "windowsNative": "pending",
+    "portalDryRun": "passed",
+    "productionActivation": "blocked-SIGNING_NOT_CONFIGURED",
+    "productionGmailRegistration": "owner-confirmed-separate-prior-live-test",
+    "portalDeployment": "not-deployed",
+    "fullApplicationMatrix": "not-run-for-1.4.3"
+  },
+  "licenseIntegration": {
+    "productionReady": false,
+    "productionKeyId": "vncode-1",
+    "signingKeyMatch": "unverified",
+    "originalPrivateKeyFiles": "owner-reports-lost",
+    "action": "Deploy Portal 0.3.4 and validate existing Secret; rotate only if unusable, with coordinated new client/diagnostic pins"
+  },
+  "updateIntegration": {
+    "stablePublicReleaseAvailable": false,
+    "diagnosticArtifactsAreUpdates": false,
+    "checksumVerification": true,
+    "manifestSignatureVerification": "enforced-only-when-update-public-key-pinned-at-build",
+    "keysDistinctFromLicense": true
+  }
+}

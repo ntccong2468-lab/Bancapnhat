@@ -23,6 +23,7 @@ final class WorkspaceActivityTracker {
     boolean isRunning(int shopId) {
         return runningByShopId.getOrDefault(shopId, false);
     }
+    boolean hasRunningWork(){return runningByShopId.values().stream().anyMatch(Boolean.TRUE::equals);}
 
     boolean isSyncing(int shopId) {
         return syncingShopIds.contains(shopId);

@@ -17,6 +17,9 @@ import java.net.URI;
 public class UpdateDialogService {
 
     public UpdateChoice showDialog(UpdateInfo info) {
+        return createDialog(info).showAndWait().orElse(UpdateChoice.LATER);
+    }
+    public Dialog<UpdateChoice> createDialog(UpdateInfo info) {
         I18nService i18n = I18nService.getInstance();
         Dialog<UpdateChoice> dialog = new Dialog<>();
         AlertService.applyTheme(dialog);
@@ -40,6 +43,8 @@ public class UpdateDialogService {
         Label dataNote = new Label(i18n.tr("update.dialog.data_note"));
         dataNote.setWrapText(true);
         dataNote.getStyleClass().addAll("info-banner", "update-data-note");
+        boolean verified=new UpdateInstallerService().supportsInAppInstall(info);
+        Label verification=new Label(i18n.tr(verified?"update.verified":"update.unverified"));verification.setWrapText(true);
 
         Label changelogHeader = new Label(i18n.tr("update.dialog.changelog"));
         changelogHeader.getStyleClass().add("section-title");
@@ -55,26 +60,28 @@ public class UpdateDialogService {
         sourceLabel.setWrapText(true);
         sourceLabel.getStyleClass().add("muted-label");
 
-        content.getChildren().addAll(versionLabel, dateLabel, dataNote, changelogHeader, changelogArea, sourceLabel);
+        content.getChildren().addAll(versionLabel, dateLabel, dataNote,verification,changelogHeader,changelogArea, sourceLabel);
         dialog.getDialogPane().setContent(content);
 
-        ButtonType downloadBtn = new ButtonType(i18n.tr("update.dialog.download"), ButtonBar.ButtonData.OK_DONE);
+        ButtonType downloadBtn = new ButtonType(i18n.tr(verified?"update.dialog.download":"update.open_download_page"), ButtonBar.ButtonData.OK_DONE);
+        ButtonType downloadOnlyBtn = new ButtonType(i18n.tr("update.download_only"), ButtonBar.ButtonData.OTHER);
         ButtonType skipBtn = new ButtonType(i18n.tr("update.dialog.skip"), ButtonBar.ButtonData.OTHER);
         ButtonType laterBtn = new ButtonType(i18n.tr("update.dialog.later"), ButtonBar.ButtonData.CANCEL_CLOSE);
 
         if (info.isMandatory()) {
-            dialog.getDialogPane().getButtonTypes().setAll(downloadBtn);
+            dialog.getDialogPane().getButtonTypes().setAll(downloadBtn,downloadOnlyBtn,laterBtn);
         } else {
-            dialog.getDialogPane().getButtonTypes().setAll(downloadBtn, skipBtn, laterBtn);
+            dialog.getDialogPane().getButtonTypes().setAll(downloadBtn,downloadOnlyBtn,skipBtn,laterBtn);
         }
 
         dialog.setResultConverter(button -> {
             if (button == downloadBtn) return UpdateChoice.DOWNLOAD;
+            if (button == downloadOnlyBtn) return UpdateChoice.DOWNLOAD_ONLY;
             if (button == skipBtn) return UpdateChoice.SKIP;
             return UpdateChoice.LATER;
         });
 
-        return dialog.showAndWait().orElse(UpdateChoice.LATER);
+        return dialog;
     }
 
     public Dialog<Void> showDownloadProgressDialog(UpdateInfo info, Task<?> task) {
@@ -87,11 +94,7 @@ public class UpdateDialogService {
         dialog.getDialogPane().getButtonTypes().setAll(ButtonType.CANCEL);
 
         Node cancelButton = dialog.getDialogPane().lookupButton(ButtonType.CANCEL);
-        if (cancelButton != null) {
-            cancelButton.setDisable(true);
-            cancelButton.setVisible(false);
-            cancelButton.setManaged(false);
-        }
+        if(cancelButton!=null)cancelButton.setDisable(false);
 
         ProgressBar progressBar = new ProgressBar();
         progressBar.setMaxWidth(Double.MAX_VALUE);
@@ -124,12 +127,13 @@ public class UpdateDialogService {
         content.getStyleClass().add("dialog-content");
         content.setPadding(new Insets(4, 0, 4, 0));
         dialog.getDialogPane().setContent(content);
-        dialog.setOnCloseRequest(event -> event.consume());
+        dialog.setOnCloseRequest(event -> {if(task.isRunning())task.cancel(true);});
         return dialog;
     }
 
     public enum UpdateChoice {
         DOWNLOAD,
+        DOWNLOAD_ONLY,
         SKIP,
         LATER
     }
@@ -138,7 +142,9 @@ public class UpdateDialogService {
         String url = info.getBestDownloadUrl();
         if (url != null && Desktop.isDesktopSupported()) {
             try {
-                Desktop.getDesktop().browse(new URI(url));
+                URI uri=new URI(url);
+                if(!"https".equalsIgnoreCase(uri.getScheme())||uri.getHost()==null||uri.getUserInfo()!=null)throw new IllegalArgumentException("UPDATE_URL_INVALID");
+                Desktop.getDesktop().browse(uri);
             } catch (Exception e) {
                 AlertService.showError(I18nService.getInstance().tr("update.dialog.open_browser_failed") + " " + url);
             }

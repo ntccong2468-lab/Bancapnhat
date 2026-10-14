@@ -1,8 +1,15 @@
-# VNCode Portal 0.3.3 — xóa license đã hủy và đăng ký lại Gmail
+# VNCode Portal 0.3.4 — kiểm tra khóa ký license
 
 Bản cập nhật từ Portal 0.3.2, giữ các tài khoản và trang quản trị hiện có.
 Website thật hiện được xác nhận chạy 0.3.2 và nhận đăng ký Gmail vào admin.
-0.3.3 cần deploy Worker và assets; chưa deploy lên production.
+0.3.4 cần deploy Worker và assets; chưa deploy lên production.
+
+## Chẩn đoán license 0.3.4
+
+- Nút **Kiểm tra cấu hình license** ký một thông điệp thử và xác minh bằng public key của VNCode, thay vì chỉ kiểm tra Secret có tồn tại. Chỉ admin truy cập API chẩn đoán.
+- Báo riêng khóa không hợp lệ, key ID sai, cặp khóa không khớp và bảng/cột D1 còn thiếu; không trả private key hoặc dữ liệu khách.
+- Đọc khóa Ed25519 PKCS8 ở dạng Base64URL, Base64, PEM PRIVATE KEY; xử lý khoảng trắng và chuỗi JSON được đặt trong dấu nháy. Không chấp nhận public key thay cho private key.
+- Giữ các chức năng 0.3.3 bên dưới. Xem [hướng dẫn deploy và xử lý mất tệp khóa](HUONG-DAN-CAP-NHAT-034.md).
 
 ## Quản trị 0.3.3
 

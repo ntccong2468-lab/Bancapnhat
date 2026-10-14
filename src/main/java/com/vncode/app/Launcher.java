@@ -13,10 +13,12 @@ import java.nio.file.Path;
 import java.time.LocalDateTime;
 
 public class Launcher {
+    private static volatile LocalDataMigrationGate.Session dataSession;
     public static void main(String[] args) {
         configureStartupEnvironment();
-        try (LocalDataMigrationGate.Session ignored = LocalDataMigrationGate.prepare(
+        try (LocalDataMigrationGate.Session session = LocalDataMigrationGate.prepare(
                 AppPaths.appDataDir(), BuildConfig.getAppVersion(), "javafx")) {
+            dataSession=session;
             Application.launch(MainApplication.class, args);
         } catch (AppDataLock.AlreadyRunningException exception) {
             System.err.println("VN code is already running for this app-data directory.");
@@ -26,7 +28,13 @@ public class Launcher {
         } catch (Exception exception) {
             writeStartupLog("main", exception);
             System.err.println("VN code could not acquire its app-data directory.");
-        }
+        }finally{dataSession=null;}
+    }
+    public static void prepareUpdateSnapshot()throws java.io.IOException {
+        var session=dataSession;
+        if(session==null)throw new java.io.IOException("UPDATE_BACKUP_UNAVAILABLE");
+        try{session.createSignedUpdateSnapshot();}
+        catch(Exception failed){throw new java.io.IOException("UPDATE_BACKUP_FAILED");}
     }
 
     private static void configureStartupEnvironment() {

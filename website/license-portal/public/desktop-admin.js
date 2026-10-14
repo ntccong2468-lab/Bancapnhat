@@ -4,8 +4,20 @@ export async function mountDesktopAdmin(root,{call,post,escapeHtml:esc,humanDate
  area.innerHTML=`<h2>Đăng ký từ VNCode & thiết bị</h2><p>Khách nhập Gmail và bấm Đăng ký trong ứng dụng, chờ bạn duyệt và cấp khóa rồi nhập khóa license. Không cần OTP hoặc tài khoản website. Cấp khóa không tự kích hoạt.</p><p id="desktop-settings"></p><form id="desktop-filter" class="row"><input class="input" name="search" placeholder="Tìm Gmail" maxlength="254"><select class="input" name="status"><option value="pending">Chờ duyệt</option><option value="approved">Đã duyệt</option><option value="suspended">Bị khóa</option><option value="">Tất cả</option></select><button class="btn">Tìm / Làm mới</button></form><div id="desktop-users" class="admin-list"></div><div class="row"><button class="btn" id="desktop-prev">← Trước</button><span id="desktop-page"></span><button class="btn" id="desktop-next">Tiếp →</button></div><div id="desktop-devices"></div><div id="desktop-key" role="status"></div><details><summary>Nhật ký quản trị</summary><button class="btn" id="desktop-audit-refresh" type="button">Tải nhật ký</button><div id="desktop-audit"></div></details>`;
  root.insertBefore(area,root.children[1]);let page=0,total=0;
  const select=s=>area.querySelector(s);
+ const diagnose=document.createElement('button');diagnose.type='button';diagnose.className='btn';diagnose.id='desktop-license-diagnose';diagnose.textContent='Kiểm tra cấu hình license';
+ const diagnostic=document.createElement('div');diagnostic.id='desktop-license-diagnostics';diagnostic.setAttribute('role','status');
+ select('#desktop-settings').after(diagnose,diagnostic);
+ diagnose.onclick=async()=>{
+  diagnose.disabled=true;
+  try {
+   const d=await call('/api/admin/desktop/diagnostics');
+   const missing=d.schema.filter(row=>!row.ready).map(row=>row.table).join(', ');
+   diagnostic.textContent=`Khóa ký hợp lệ: ${d.signing_key_valid?'Có':'Không'} · Khớp khóa công khai VNCode: ${d.signature_matches_client&&d.key_id_matches?'Có':'Không'} · Database: ${d.database_ready?'Sẵn sàng':'Thiếu bảng/cột: '+missing}. ${d.activation_configuration_ready?'Cấu hình API sẵn sàng; vẫn cần thử kích hoạt license thật.':'Chưa đủ cấu hình để kích hoạt. Giữ nguyên khóa ký; kiểm tra key ID, secret và migration.'}`;
+  }catch(error){diagnostic.textContent='Không kiểm tra được cấu hình license: '+error.message;}
+  finally{diagnose.disabled=false;}
+ };
  const texts={GMAIL_REQUIRED:'VNCode desktop cần địa chỉ @gmail.com hợp lệ.',EMAIL_NOT_VERIFIED:'Gmail chưa được xác minh.',ACCOUNT_SUSPENDED:'Tài khoản đang bị khóa.',REVOKE_DEVICES_BEFORE_REDUCING_LIMIT:'Thu hồi bớt thiết bị trước khi giảm giới hạn.',INVALID_POLICY:'Giới hạn không hợp lệ.'};
- async function settings(){const s=await call('/api/admin/desktop/settings');select('#desktop-settings').textContent=`Gửi email: ${s.mail_ready?'Đã cấu hình':'Chưa cấu hình'} · Ký license: ${s.signing_ready?'Có cấu hình — cần kiểm tra kích hoạt':'Chưa cấu hình'} · Mặc định 1 máy, 1 cửa hàng, offline 72 giờ.`;}
+ async function settings(){const s=await call('/api/admin/desktop/settings');select('#desktop-settings').textContent=`Gửi email: ${s.mail_ready?'Đã cấu hình':'Chưa cấu hình'} · Ký license: ${s.signing_ready?'Đọc được khóa — cần đối chiếu VNCode':s.signing_key_present?'Có Secret nhưng khóa không hợp lệ':'Chưa cấu hình'} · Mặc định 1 máy, 1 cửa hàng, offline 72 giờ.`;}
  async function refresh(){
   const f=new FormData(select('#desktop-filter')),d=await call('/api/admin/desktop/requests?'+new URLSearchParams({page:String(page),status:f.get('status'),search:f.get('search')}));total=d.total;
   select('#desktop-page').textContent=`${total} khách · Trang ${page+1}`;select('#desktop-prev').disabled=page===0;select('#desktop-next').disabled=(page+1)*50>=total;

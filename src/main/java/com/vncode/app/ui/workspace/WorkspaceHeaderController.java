@@ -32,6 +32,16 @@ public class WorkspaceHeaderController {
     private Label syncLoadingLabel;
 
     @FXML private Button newsButton,supportButton;
+    @FXML private Button updateButton;
+    private String updateVersion;
+    private Runnable onUpdate;
+    @FXML private void onUpdate(){if(onUpdate!=null)onUpdate.run();}
+    public void setOnUpdate(Runnable callback){onUpdate=callback;}
+    public void setAvailableUpdate(String version){
+        updateVersion=version;boolean visible=version!=null&&!version.isBlank();
+        updateButton.setVisible(visible);updateButton.setManaged(visible);
+        updateButton.setText(I18nService.getInstance().tr("update.notification")+(visible?" "+version:""));
+    }
     @FXML private Label newsBadge;
     @FXML private ComboBox<com.vncode.app.integration.znack.BalanceSnapshot> balanceAccount;
     @FXML private Label balanceLabel;
@@ -179,6 +189,7 @@ public class WorkspaceHeaderController {
     }
 
     public void applyTranslations() {
+        setAvailableUpdate(updateVersion);
         renderBalance();jobsButton.setText(I18nService.getInstance().tr("jobs.title"));
         I18nService i18n = I18nService.getInstance();
         supportButton.setText(i18n.tr("header.support"));

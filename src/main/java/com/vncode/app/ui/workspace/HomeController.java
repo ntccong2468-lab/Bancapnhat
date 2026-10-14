@@ -729,52 +729,72 @@ public class HomeController implements Initializable {
         }
     }
 
-    private void checkForUpdates() {
-        javafx.concurrent.Task<UpdateInfo> task = new javafx.concurrent.Task<>() {
-            @Override
-            protected UpdateInfo call() {
-                return updateService.checkForUpdate();
-            }
-        };
-        task.setOnSucceeded(e -> {
-            if(disposed)return;
-            UpdateInfo info = task.getValue();
-            if (info != null) {
-                showUpdateDialog(info);
-            }
-        });
-        java.util.function.Consumer<Throwable> taskFailure = rejection ->
-            LOGGER.warn("Update check failed", rejection)
-        ;
-        task.setOnFailed(e -> taskFailure.accept(task.getException()));
-        AppTaskExecutor.execute(task, taskFailure);
+    private final javafx.animation.Timeline updatePolling=new javafx.animation.Timeline();
+    private boolean checkingUpdate,pendingManualCheck,updateDownloadRunning;
+    private UpdateInfo availableUpdate;
+    private String automaticallyShownUpdate="";
+    private Task<?> updateCheckTask,updateDownloadTask;
+    private final java.util.concurrent.ThreadPoolExecutor updateExecutor=new java.util.concurrent.ThreadPoolExecutor(
+            1,1,0,java.util.concurrent.TimeUnit.MILLISECONDS,new java.util.concurrent.ArrayBlockingQueue<>(2),
+            action->{Thread thread=new Thread(action,"vncode-updater");thread.setDaemon(true);return thread;},
+            new java.util.concurrent.ThreadPoolExecutor.AbortPolicy());
+    private void executeUpdateTask(Task<?> task,java.util.function.Consumer<Throwable> failure) {
+        try{updateExecutor.execute(task);}
+        catch(java.util.concurrent.RejectedExecutionException rejected){task.cancel(false);failure.accept(rejected);}
     }
 
-    private void checkVersionManually() {
-        Task<UpdateInfo> task = new Task<>() {
-            @Override
-            protected UpdateInfo call() {
-                return updateService.checkForUpdate();
-            }
+    private void checkForUpdates() {
+        requestUpdateCheck(false);
+        updatePolling.getKeyFrames().setAll(new javafx.animation.KeyFrame(
+                javafx.util.Duration.minutes(45+java.util.concurrent.ThreadLocalRandom.current().nextInt(16)),
+                event->requestUpdateCheck(false)));
+        updatePolling.setCycleCount(javafx.animation.Animation.INDEFINITE);updatePolling.play();
+    }
+    private void checkVersionManually() { requestUpdateCheck(true); }
+    private void requestUpdateCheck(boolean manual) {
+        if(disposed)return;
+        if(updateDownloadRunning){if(manual)AlertService.showError(i18nService.tr("update.busy"));return;}
+        if(checkingUpdate){pendingManualCheck|=manual;return;}
+        checkingUpdate=true;pendingManualCheck=manual;
+        Task<UpdateService.CheckResult> task=new Task<>() {
+            protected UpdateService.CheckResult call(){return updateService.check(manual);}
         };
-        task.setOnSucceeded(e -> {
-            UpdateInfo info = task.getValue();
-            if (info != null) {
-                showUpdateDialog(info);
+        updateCheckTask=task;
+        java.util.function.Consumer<Throwable> failed=error->{
+            checkingUpdate=false;if(disposed)return;
+            if(pendingManualCheck)AlertService.showError(i18nService.tr("version.check_failed"));pendingManualCheck=false;
+        };
+        task.setOnFailed(event->failed.accept(task.getException()));
+        task.setOnSucceeded(event->{
+            checkingUpdate=false;if(disposed)return;
+            boolean userRequested=pendingManualCheck;pendingManualCheck=false;
+            var result=task.getValue();
+            if(result.status()==UpdateService.Status.AVAILABLE
+                    ||userRequested&&result.status()==UpdateService.Status.SKIPPED) {
+                availableUpdate=result.info();workspaceHeaderController.setAvailableUpdate(availableUpdate.getVersion());
+                if(userRequested||!availableUpdate.getVersion().equals(automaticallyShownUpdate)&&!hasUpdateBlockingWork()) {
+                    automaticallyShownUpdate=availableUpdate.getVersion();showUpdateDialog(availableUpdate);
+                }
+            } else if(result.status()==UpdateService.Status.FAILED) {
+                if(userRequested)AlertService.showError(i18nService.tr("version.check_failed")+" ["+result.errorCode()+"]");
             } else {
-                AlertService.showInfo(
-                        i18nService.tr("version.current.title"),
-                        i18nService.tr("version.current.header"),
-                        MessageFormat.format(i18nService.tr("version.current.content"), BuildConfig.getAppVersion())
-                );
+                availableUpdate=null;workspaceHeaderController.setAvailableUpdate(null);
+                if(userRequested) {
+                    String message=result.status()==UpdateService.Status.NO_RELEASE
+                            ?i18nService.tr("update.no_published_release")
+                            :MessageFormat.format(i18nService.tr("version.current.content"),BuildConfig.getAppVersion());
+                    AlertService.showInfo(i18nService.tr("version.current.title"),i18nService.tr("version.current.header"),message);
+                }
             }
         });
-        java.util.function.Consumer<Throwable> taskFailure = rejection -> {
-            LOGGER.warn("Manual update check failed", rejection);
-            AlertService.showError(i18nService.tr("version.check_failed"));
-        };
-        task.setOnFailed(e -> taskFailure.accept(task.getException()));
-        AppTaskExecutor.execute(task, taskFailure);
+        executeUpdateTask(task,failed);
+    }
+    private boolean hasUpdateBlockingWork() {
+        return com.vncode.app.shared.SellerMutationExecutor.activeCount()>0
+                ||AppTaskExecutor.getRunningTaskCount()>0||AppTaskExecutor.pendingCount()>0
+                ||com.vncode.app.shared.SellerMutationExecutor.pendingCount()>0
+                ||kizAttachmentCoordinator.hasActiveJobs()||activityTracker.hasRunningWork()
+                ||com.vncode.app.features.license.LicenseRuntime.hasPendingTasks();
     }
 
     private void showPersonalEdition() {
@@ -803,32 +823,41 @@ public class HomeController implements Initializable {
     }
 
     private void showUpdateDialog(UpdateInfo info) {
+        if(disposed||updateDownloadRunning)return;
         UpdateDialogService dialogService = new UpdateDialogService();
         UpdateDialogService.UpdateChoice choice = dialogService.showDialog(info);
         switch (choice) {
             case DOWNLOAD:
                 if (updateInstallerService.supportsInAppInstall(info)) {
-                    startInstallerUpdate(info);
+                    startInstallerUpdate(info,false);
                 } else {
                     UpdateDialogService.openDownloadUrl(info);
                 }
                 break;
+            case DOWNLOAD_ONLY:
+                if(updateInstallerService.supportsInAppInstall(info))startInstallerUpdate(info,true);
+                else UpdateDialogService.openDownloadUrl(info);
+                break;
             case SKIP:
                 ConfigService.setSkippedVersion(info.getVersion());
+                availableUpdate=null;workspaceHeaderController.setAvailableUpdate(null);
                 break;
             case LATER:
                 break;
         }
     }
 
-    private void startInstallerUpdate(UpdateInfo info) {
+    private void startInstallerUpdate(UpdateInfo info,boolean downloadOnly) {
+        if(disposed||updateDownloadRunning)return;
+        if(!downloadOnly&&hasUpdateBlockingWork()){AlertService.showError(i18nService.tr("update.busy"));return;}
+        updateDownloadRunning=true;
         UpdateDialogService dialogService = new UpdateDialogService();
         Task<java.nio.file.Path> task = new Task<>() {
             @Override
             protected java.nio.file.Path call() throws Exception {
                 updateMessage(i18nService.tr("update.progress.connecting"));
                 updateProgress(-1, 1);
-                return updateInstallerService.downloadInstaller(info, (downloadedBytes, totalBytes) -> {
+                var file=updateInstallerService.downloadInstaller(info, (downloadedBytes, totalBytes) -> {
                     if (totalBytes > 0) {
                         updateProgress(downloadedBytes, totalBytes);
                         updateMessage(String.format(i18nService.tr("update.progress.downloaded"),
@@ -839,10 +868,14 @@ public class HomeController implements Initializable {
                         updateMessage(i18nService.tr("update.progress.downloading"));
                     }
                 });
+                return downloadOnly?updateInstallerService.saveDownloadedInstaller(info,file):file;
             }
         };
+        updateDownloadTask=task;
         var progressDialog = dialogService.showDownloadProgressDialog(info, task);
         java.util.function.Consumer<Throwable> taskFailure = rejection -> {
+            updateDownloadRunning=false;if(disposed)return;
+            contentPane.setDisable(false);sidebarContainer.setDisable(false);
             progressDialog.close();
             LOGGER.error("Không thể tải bản cập nhật {}", info.getVersion(), rejection);
             AlertService.showDetailedError(
@@ -850,20 +883,20 @@ public class HomeController implements Initializable {
                     com.vncode.app.integration.znack.ZnackErrorDetails.format(rejection));
         };
         task.setOnFailed(e -> taskFailure.accept(task.getException()));
+        task.setOnCancelled(event->{updateDownloadRunning=false;progressDialog.close();});
         task.setOnSucceeded(e -> {
             progressDialog.close();
-            try {
-                updateInstallerService.launchInstallerAfterExit(task.getValue());
-                Platform.exit();
-            } catch (IOException ex) {
-                LOGGER.error("Không thể khởi chạy installer cập nhật {}", info.getVersion(), ex);
-                AlertService.showDetailedError(
-                        i18nService.tr("update.error.launch_failed"),
-                        com.vncode.app.integration.znack.ZnackErrorDetails.format(ex));
-            }
+            if(disposed)return;
+            if(downloadOnly){updateDownloadRunning=false;AlertService.showInfo(i18nService.tr("update.saved"),info.getVersion(),task.getValue().toAbsolutePath().toString());return;}
+            if(hasUpdateBlockingWork()){updateDownloadRunning=false;AlertService.showError(i18nService.tr("update.busy"));return;}
+            contentPane.setDisable(true);sidebarContainer.setDisable(true);
+            Task<Void> prepare=new Task<>(){protected Void call()throws Exception{updateInstallerService.launchInstallerAfterExit(task.getValue());return null;}};
+            updateDownloadTask=prepare;
+            prepare.setOnSucceeded(event->{updateDownloadRunning=false;if(!disposed)Platform.exit();});
+            prepare.setOnFailed(event->taskFailure.accept(prepare.getException()));executeUpdateTask(prepare,taskFailure);
         });
         progressDialog.show();
-        AppTaskExecutor.execute(task, taskFailure);
+        executeUpdateTask(task, taskFailure);
     }
 
     private String formatBytes(long bytes) {
@@ -1700,6 +1733,7 @@ public class HomeController implements Initializable {
         javafx.scene.layout.Region root = FxmlViewLoader.load(loader);
         workspaceHeaderController = loader.getController();
         workspaceHeaderController.setOnSupport(this::showGuides);
+        workspaceHeaderController.setOnUpdate(()->{if(availableUpdate!=null)showUpdateDialog(availableUpdate);else checkVersionManually();});
         workspaceHeaderController.setOnJobOpen(this::openJob);
         workspaceHeaderController.setOnSync(() -> onSyncWildberries(new ActionEvent()));
         workspaceHeaderController.setOnEditShop(() -> onUpdateShop(new ActionEvent()));
@@ -2311,6 +2345,10 @@ public class HomeController implements Initializable {
             return;
         }
         disposed = true;
+        updatePolling.stop();
+        if(updateCheckTask!=null)updateCheckTask.cancel(true);
+        if(updateDownloadTask!=null)updateDownloadTask.cancel(true);
+        updateExecutor.shutdownNow();
         if (licensePane != null) licensePane.dispose();
         if(guidesPane!=null)guidesPane.dispose();
         if(workspaceHeaderController!=null)workspaceHeaderController.dispose();
