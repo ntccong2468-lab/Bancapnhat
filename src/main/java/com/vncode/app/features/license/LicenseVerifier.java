@@ -11,6 +11,7 @@ import java.util.*;
 import static com.vncode.app.features.license.LicenseModels.*;
 
 public final class LicenseVerifier {
+    static final long CLOCK_SKEW_SECONDS=300;
     private final Map<String, PublicKey> trusted;
     public LicenseVerifier(Map<String, PublicKey> trusted) { this.trusted = Map.copyOf(trusted); }
     public boolean configured() { return !trusted.isEmpty(); }
@@ -31,7 +32,11 @@ public final class LicenseVerifier {
         if(account.isBlank() || device.isBlank() || !account.equals(accountId) || !hash.matches("[a-f0-9]{64}") || !hash.equals(deviceHash)) throw LicenseJson.invalid();
         long revision=LicenseJson.number(o,"licenseRevision"),issued=LicenseJson.number(o,"issuedAt"),notBefore=LicenseJson.number(o,"notBefore"),expires=LicenseJson.number(o,"expiresAt"),subscription=LicenseJson.number(o,"subscriptionExpiresAt");
         long devices=LicenseJson.number(o,"maxDevices"),shops=LicenseJson.number(o,"maxShops"),hours=LicenseJson.number(o,"offlineHours");
-        if(revision<1 || revision<minRevision || devices<1 || devices>10 || shops<1 || shops>100 || hours<0 || hours>168 || notBefore<=0 || notBefore>issued || issued>expires || expires>subscription || subscription>253402300799L || issued>now+300 || now<notBefore) throw LicenseJson.invalid();
+        if(revision<1 || revision<minRevision || devices<1 || devices>10 || shops<1 || shops>100 || hours<0 || hours>168 || notBefore<=0 || notBefore>issued || issued>expires || expires>subscription || subscription>253402300799L) throw LicenseJson.invalid();
+        // Both timestamps come from the verified issuer. Use the same bounded
+        // tolerance for issuedAt and notBefore; ordinary NTP drift must not reject
+        // a newly redeemed grant. Expiry and subscription deadlines remain exact.
+        if(issued>now+CLOCK_SKEW_SECONDS || notBefore>now+CLOCK_SKEW_SECONDS)throw new IOException("LICENSE_CLOCK_SKEW");
         if(expires>issued+hours*3600 || (online ? now>=subscription : now>=expires)) throw new IOException("LICENSE_EXPIRED");
         var permissions=EnumSet.noneOf(Permission.class);
         JsonElement array=o.get("permissions");if(array==null || !array.isJsonArray())throw LicenseJson.invalid();

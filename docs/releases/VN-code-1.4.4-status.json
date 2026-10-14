@@ -12,7 +12,7 @@
   "licenseIntegration": {
     "implemented": true,
     "productionReady": false,
-    "status": "awaiting-owner-new-secret-deployment-and-activation",
+    "status": "owner-reports-activation-after-clock-change",
     "trustedProductionKeys": 2,
     "pinnedKeyIds": [
       "vncode-1",
@@ -20,10 +20,11 @@
     ],
     "activeKeyId": "vncode-2",
     "publicKey": "SPtRxTUJ78fqt5YMJ4DJ_PZwB2cMYegs-J7nY62ADMQ",
-    "serverSigningKeyMatch": "unverified-new-owner-key-not-installed",
+    "serverSigningKeyMatch": "owner-diagnostics-confirmed-vncode-2",
     "oldServerSigningKey": "owner-diagnostics-invalid",
     "database": "owner-diagnostics-ready",
-    "privateKeyReceivedByAgent": false
+    "privateKeyReceivedByAgent": false,
+    "ownerReportedActivation": true
   },
   "validation": {
     "focusedJavaTests": 88,
@@ -35,8 +36,8 @@
     "portalDryRun": "passed",
     "windowsNative": "passed",
     "fullApplicationMatrix": "not-run-for-1.4.4",
-    "portalDeployment": "not-deployed-0.3.5",
-    "productionActivation": "not-verified",
+    "portalDeployment": "owner-deployed-0.3.5",
+    "productionActivation": "owner-reported-success-after-clock-change",
     "focusedWindowsTests": 88,
     "focusedWindowsFailures": 0,
     "windowsDiagnosticRun": 38615048269,

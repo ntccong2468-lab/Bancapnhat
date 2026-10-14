@@ -130,8 +130,9 @@ public final class LicenseService implements AutoCloseable {
     }
     public int maxShops(){return lease==null?0:lease.maxShops();}
     private void validateChallenge(LicenseApi.Challenge challenge,String action)throws IOException {
-        long now=clock.now();if(challenge.id()==null||challenge.id().isBlank()||challenge.message()==null||challenge.message().length()>4096||challenge.expiresAt()<=now||challenge.expiresAt()>now+300)throw LicenseJson.invalid();
+        long now=clock.now();if(challenge.id()==null||challenge.id().isBlank()||challenge.message()==null||challenge.message().length()>4096)throw LicenseJson.invalid();
         String[] parts=challenge.message().split("\n",-1);if(parts.length!=4||!parts[0].equals("vncode-device-v1")||!parts[1].equals(action)||!parts[2].equals(challenge.id())||!parts[3].matches("[A-Za-z0-9_-]{16,256}"))throw LicenseJson.invalid();
+        if(challenge.expiresAt()<=now||challenge.expiresAt()>now+LicenseVerifier.CLOCK_SKEW_SECONDS)throw new IOException("LICENSE_CLOCK_SKEW");
     }
     private void accept(LicenseApi.Grant grant,boolean activating)throws IOException {
         ensureCurrent();
@@ -139,7 +140,8 @@ public final class LicenseService implements AutoCloseable {
         if(!activating&&(!grant.account().id().equals(state.account().id())))throw LicenseJson.invalid();
         long min=activating&& !grant.account().id().equals(state.account().id())?0:state.minRevision();
         Lease verified=verifier.verify(grant.envelope(),grant.account().id(),keys.hash(),min,clock.now(),true);
-        if(grant.account().expiresAt()!=verified.subscriptionExpiresAt()||grant.onlineValidUntil()<=clock.now()||grant.onlineValidUntil()>Math.min(verified.subscriptionExpiresAt(),verified.issuedAt()+300))throw LicenseJson.invalid();
+        if(grant.account().expiresAt()!=verified.subscriptionExpiresAt()||grant.onlineValidUntil()>Math.min(verified.subscriptionExpiresAt(),verified.issuedAt()+300))throw LicenseJson.invalid();
+        if(grant.onlineValidUntil()<=clock.now())throw new IOException("LICENSE_CLOCK_SKEW");
         if(clock.rollbackDetected())throw new IOException("LICENSE_CLOCK_ROLLBACK");
         String token=activating?grant.accessToken():state.accessToken();if(blank(token))throw LicenseJson.invalid();
         state=new State(keys.publicKey(),keys.privateKey(),state.registrationToken(),token,grant.account(),grant.envelope(),clock.now(),verified.revision(),"");
@@ -205,7 +207,7 @@ public final class LicenseService implements AutoCloseable {
             if(allows(Permission.SELLER_API)){try{persist();publish(Status.OFFLINE,code);return;}catch(IOException unavailable){code="LICENSE_STORE_INVALID";}}
         }
         boolean denied=failure instanceof LicenseApi.Failure f&&(f.status()==401||f.status()==403);
-        if(denied || code.equals("LICENSE_PROTOCOL_INVALID") || code.equals("LICENSE_CLOCK_ROLLBACK") || code.equals("SIGNING_NOT_CONFIGURED") || code.equals("LICENSE_TRUST_NOT_CONFIGURED")) {
+        if(denied || code.equals("LICENSE_PROTOCOL_INVALID") || code.equals("LICENSE_CLOCK_ROLLBACK") || code.equals("LICENSE_CLOCK_SKEW") || code.equals("SIGNING_NOT_CONFIGURED") || code.equals("LICENSE_TRUST_NOT_CONFIGURED")) {
             lease=null;onlineDeadline=0;
             if(state!=null){State s=state;state=new State(s.publicKey(),s.privateKey(),s.registrationToken(),s.accessToken(),s.account(),s.envelope(),clock==null?s.maxObservedEpoch():clock.now(),s.minRevision(),code);try{persist();}catch(IOException ignored){try{store.blockCachedRights();}catch(IOException blocked){/* Disk failure remains a visible readiness blocker. */}code="LICENSE_STORE_INVALID";}}
         }

@@ -138,6 +138,11 @@ class LicenseServiceTest {
         var api=new Api();try(var s=service(api,true)){active(s,api);api.failure=new LicenseApi.Failure("SIGNING_NOT_CONFIGURED",503);s.refresh().get();assertFalse(s.allows(Permission.SELLER_API));}
         try(var restarted=service(api,true)){assertFalse(restarted.allows(Permission.SELLER_API));assertEquals(Status.DENIED,restarted.snapshot().status());}
     }
+    @Test void clockSkewNeverFallsBackToCachedRightsAndRequiresOnlineProofAfterRestart()throws Exception {
+        var api=new Api();
+        try(var s=service(api,true)){active(s,api);api.failure=new LicenseApi.Failure("LICENSE_CLOCK_SKEW",0);s.refresh().get();assertEquals("LICENSE_CLOCK_SKEW",s.snapshot().errorCode());assertFalse(s.allows(Permission.PRINT_NEW));}
+        try(var restarted=service(api,true)){assertFalse(restarted.allows(Permission.PRINT_NEW));assertEquals("LICENSE_CLOCK_SKEW",restarted.snapshot().errorCode());}
+    }
     @Test void challengeForDifferentPurposeIsNeverSignedOrActivated()throws Exception {
         var api=new Api();api.accountStatus="approved";try(var s=service(api,true)){register(s);api.challengeActionOverride="renew";s.activate(LicenseDomainFixture.CODE).get();assertEquals(0,api.activations);assertEquals("LICENSE_PROTOCOL_INVALID",s.snapshot().errorCode());assertFalse(s.allows(Permission.GTIN));}
     }

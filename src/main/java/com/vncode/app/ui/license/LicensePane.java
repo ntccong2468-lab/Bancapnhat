@@ -237,6 +237,7 @@ public final class LicensePane extends ScrollPane {
             case "LICENSE_EXPIRED" -> "subscription_inactive";
             case "LICENSE_TRUST_NOT_CONFIGURED" -> "trust_not_configured";
             case "LICENSE_CLOCK_ROLLBACK" -> "clock";
+            case "LICENSE_CLOCK_SKEW" -> "clock_skew";
             case "LICENSE_STORE_INVALID", "LICENSE_DEVICE_KEY_INVALID" -> "saved_registration";
             case "LICENSE_PROTOCOL_INVALID" -> "verification";
             default -> code.toLowerCase(Locale.ROOT);

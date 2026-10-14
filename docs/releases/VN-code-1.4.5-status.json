@@ -1,0 +1,44 @@
+{
+  "version": "1.4.5",
+  "baseVersion": "1.4.4",
+  "complete": false,
+  "officialReleasePublished": false,
+  "changes": [
+    "Sửa lỗi từ chối quyền vừa ký khi Windows chậm hơn máy chủ vài giây: dùng cùng dung sai 300 giây cho issuedAt/notBefore.",
+    "Giữ nguyên hạn hết hiệu lực, chữ ký, quota và chống rollback; sai giờ lớn báo LICENSE_CLOCK_SKEW với hướng dẫn đồng bộ Windows.",
+    "Kiểm thử liên thông Portal thật trong môi trường fixture qua HTTP vào client Java; thử lại mã đã dùng không cộng ngày/thiết bị.",
+    "Chẩn đoán unverified_catalog_owner theo chứng thư, INN tài khoản/chủ hàng, khóa riêng, hạn và thời điểm kiểm tra; giữ kiểm tra sở hữu GTIN."
+  ],
+  "licenseIntegration": {
+    "implemented": true,
+    "productionReady": false,
+    "trustedProductionKeys": 2,
+    "pinnedKeyIds": [
+      "vncode-1",
+      "vncode-2"
+    ],
+    "activeKeyId": "vncode-2",
+    "serverSigningKeyMatch": "owner-diagnostics-confirmed-vncode-2",
+    "ownerReportedActivationIn144": true,
+    "status": "clock-fix-tested-production-145-not-verified"
+  },
+  "validation": {
+    "focusedJavaTests": 94,
+    "catalogJavaTests": 21,
+    "javaFailures": 0,
+    "portalTests": 56,
+    "portalFailures": 0,
+    "releaseContractTests": 49,
+    "releaseContractFailures": 0,
+    "crossRuntimeTests": 4,
+    "windowsNative": "pending",
+    "fullApplicationMatrix": "not-run-for-1.4.5",
+    "portalRuntimeCodeChanged": false,
+    "productionActivation145": "not-verified",
+    "productionCatalogSync": "owner-reports-unverified_catalog_owner-despite-successful-sign-in"
+  },
+  "limitations": [
+    "Chưa xác định điều kiện sở hữu nào sai trên máy khách; cần mã lý do cụ thể từ bản mới.",
+    "Chưa chạy đầy đủ workspace/upgrade matrix hoặc kiểm thử production nhiều máy/offline/thu hồi."
+  ]
+}

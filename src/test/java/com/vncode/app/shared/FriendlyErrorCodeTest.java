@@ -25,4 +25,16 @@ class FriendlyErrorCodeTest {
   var error=new RuntimeException("Cannot load supply",new com.vncode.app.integration.wb.WbApiException("upstream",503,"private raw body"));
   String text=FriendlyErrorService.format(error);assertTrue(text.contains("[WB_HTTP_503]"));assertFalse(text.contains("private raw body"));
  }
+ @Test void catalogOwnerFailuresShowSpecificLocalizedAdviceForWrappedErrors() {
+  var i18n=I18nService.getInstance();var previous=i18n.getCurrentLanguage();
+  try{for(var language:AppLanguage.values()){
+   i18n.setLanguage(language);
+   for(var reason:com.vncode.app.features.gtinsync.RegisteredGtinProof.OwnerFailure.values()) {
+    var owner=new com.vncode.app.features.gtinsync.RegisteredGtinProof.UnverifiedOwnerException(reason);
+    String text=FriendlyErrorService.format(new RuntimeException("private account token",owner));
+    assertTrue(text.contains("[CATALOG_OWNER_"+reason.name()+"]"));assertFalse(text.contains("private account token"));assertFalse(text.contains("error.catalog_owner"));
+   }
+   assertFalse(FriendlyErrorService.format(new IllegalStateException("unverified_catalog_owner")).contains("unverified_catalog_owner"));
+  }}finally{i18n.setLanguage(previous);}
+ }
 }

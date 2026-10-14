@@ -32,6 +32,7 @@ public final class FriendlyErrorService {
         String code="VN_LOCAL";
         Throwable cause=error;
         for(int depth=0;cause!=null&&depth<8;depth++,cause=cause.getCause()) {
+            if(cause instanceof com.vncode.app.features.gtinsync.RegisteredGtinProof.UnverifiedOwnerException owner){code="CATALOG_OWNER_"+owner.reason().name();break;}
             if(cause instanceof com.vncode.app.integration.wb.WbApiException wb){code="WB_HTTP_"+wb.getStatusCode();break;}
             if(cause instanceof com.vncode.app.integration.ozon.OzonApiException ozon){code="OZON_HTTP_"+ozon.statusCode();break;}
             if(cause instanceof CryptoProException crypto){code="CRYPTOPRO_"+crypto.code().name();break;}
@@ -44,6 +45,13 @@ public final class FriendlyErrorService {
 
     private static String formatDetail(Throwable error) {
         if (error == null) return I18nService.getInstance().tr("znack.signature.error.failed");
+        Throwable cause=error;
+        for(int depth=0;cause!=null&&depth<8;depth++,cause=cause.getCause()) {
+            if(cause instanceof com.vncode.app.features.gtinsync.RegisteredGtinProof.UnverifiedOwnerException owner)
+                return I18nService.getInstance().tr("error.catalog_owner_unverified")+"\n"+I18nService.getInstance().tr("error.catalog_owner."+owner.reason().name().toLowerCase(java.util.Locale.ROOT));
+            if("unverified_catalog_owner".equals(cause.getMessage())||"catalog_owner_changed".equals(cause.getMessage()))
+                return I18nService.getInstance().tr("error.catalog_owner_unverified");
+        }
         if (error instanceof CryptoProException crypto) {
             return formatCryptoPro(crypto);
         }
