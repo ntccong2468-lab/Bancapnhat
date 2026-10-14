@@ -1,0 +1,45 @@
+{
+  "version": "1.4.4",
+  "baseVersion": "1.4.3",
+  "complete": false,
+  "officialReleasePublished": false,
+  "changes": [
+    "Thêm public pin vncode-2, giữ vncode-1 cho quyền cũ còn hạn.",
+    "Portal 0.3.5 đồng bộ key ID mặc định và pin chẩn đoán với VNCode 1.4.4.",
+    "Công cụ kiểm tra tệp private key cục bộ trước khi nhập Cloudflare Secret; không in khóa riêng.",
+    "Kiểm thử xoay khóa vẫn giữ Gmail, mã VNC, thiết bị và hạn license."
+  ],
+  "licenseIntegration": {
+    "implemented": true,
+    "productionReady": false,
+    "status": "awaiting-owner-new-secret-deployment-and-activation",
+    "trustedProductionKeys": 2,
+    "pinnedKeyIds": [
+      "vncode-1",
+      "vncode-2"
+    ],
+    "activeKeyId": "vncode-2",
+    "publicKey": "SPtRxTUJ78fqt5YMJ4DJ_PZwB2cMYegs-J7nY62ADMQ",
+    "serverSigningKeyMatch": "unverified-new-owner-key-not-installed",
+    "oldServerSigningKey": "owner-diagnostics-invalid",
+    "database": "owner-diagnostics-ready",
+    "privateKeyReceivedByAgent": false
+  },
+  "validation": {
+    "focusedJavaTests": 88,
+    "focusedJavaFailures": 0,
+    "portalTests": 56,
+    "portalFailures": 0,
+    "releaseContractTests": 49,
+    "releaseContractFailures": 0,
+    "portalDryRun": "passed",
+    "windowsNative": "pending",
+    "fullApplicationMatrix": "not-run-for-1.4.4",
+    "portalDeployment": "not-deployed-0.3.5",
+    "productionActivation": "not-verified"
+  },
+  "updateIntegration": {
+    "stablePublicReleaseAvailable": false,
+    "diagnosticArtifactsAreUpdates": false
+  }
+}

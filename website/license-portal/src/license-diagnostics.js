@@ -1,7 +1,7 @@
 import {signingKey} from './signing-key.js';
 import {mailReady} from './mail.js';
 // Public desktop trust pin. A secret's presence alone does not prove this pair matches.
-export const DESKTOP_PIN=Object.freeze({keyId:'vncode-1',publicKey:'Gg7F92gqXnCLGdMbI130qHcBJ2hiI6KseZBgWkNCTeI'});
+export const DESKTOP_PIN=Object.freeze({keyId:'vncode-2',publicKey:'SPtRxTUJ78fqt5YMJ4DJ_PZwB2cMYegs-J7nY62ADMQ'});
 export async function licenseDiagnostics(env,pin=DESKTOP_PIN) {
  const checks={
   users:'id,email,role,status,license_expires_at',
@@ -28,8 +28,8 @@ export async function licenseDiagnostics(env,pin=DESKTOP_PIN) {
   signature_matches_client=await crypto.subtle.verify('Ed25519',publicKey,signature,challenge);
  }catch{/* Only readiness flags are public to the authenticated admin; no secret/error body. */}
  const database_ready=schema.every(check=>check.ready),key_id_matches=env.LICENSE_KEY_ID===pin.keyId;
- return {portal_version:'0.3.4',registration_mode:'gmail_admin',mail_ready:mailReady(env),
-  client_key_id:pin.keyId,client_public_key:pin.publicKey,key_id:env.LICENSE_KEY_ID||null,
+ return {portal_version:'0.3.5',registration_mode:'gmail_admin',mail_ready:mailReady(env),
+  client_key_id:pin.keyId,client_public_key:pin.publicKey,minimum_client_version:'1.4.4',key_id:env.LICENSE_KEY_ID||null,
   signing_key_present:!!env.LICENSE_SIGNING_KEY,signing_key_valid,signature_matches_client,key_id_matches,
   database_ready,schema,activation_configuration_ready:database_ready&&signing_key_valid&&signature_matches_client&&key_id_matches,
   production_activation_verified:false};

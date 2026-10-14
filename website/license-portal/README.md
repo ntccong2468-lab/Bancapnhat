@@ -1,8 +1,17 @@
-# VNCode Portal 0.3.4 — kiểm tra khóa ký license
+# VNCode Portal 0.3.5 — khóa license vncode-2
 
-Bản cập nhật từ Portal 0.3.2, giữ các tài khoản và trang quản trị hiện có.
-Website thật hiện được xác nhận chạy 0.3.2 và nhận đăng ký Gmail vào admin.
-0.3.4 cần deploy Worker và assets; chưa deploy lên production.
+Bản cập nhật từ Portal 0.3.4, giữ các tài khoản và trang quản trị hiện có.
+Website thật đã chạy 0.3.4; chủ website xác nhận Secret cũ không đọc được và D1 sẵn sàng.
+0.3.5 chưa deploy lên production.
+
+## Xoay khóa 0.3.5
+
+- Pin chẩn đoán và LICENSE_KEY_ID trong wrangler.jsonc chuyển sang vncode-2.
+- Public key: `SPtRxTUJ78fqt5YMJ4DJ_PZwB2cMYegs-J7nY62ADMQ`. Chỉ khóa công khai nằm trong mã nguồn.
+- Cần VNCode 1.4.4 trở lên để nhận quyền mới; app vẫn giữ pin vncode-1 cho quyền offline cũ đến hạn.
+- Không đổi D1/schema, Gmail, mã VNC, số ngày, quota hoặc thiết bị khi xoay khóa.
+- Công cụ `tools/check-signing-key.mjs` xác minh tệp riêng trên máy chủ phần mềm khớp public pin trước khi đổi Secret; không in private key.
+- Xem [thứ tự cài app, deploy Portal và đổi Secret](HUONG-DAN-CAP-NHAT-035.md).
 
 ## Chẩn đoán license 0.3.4
 

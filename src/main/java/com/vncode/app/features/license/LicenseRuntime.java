@@ -21,11 +21,15 @@ public final class LicenseRuntime {
     public static void requireShopCapacity(int currentCount){LicenseService s=current;if(s==null)throw new LicenseGate.LicenseDeniedException();new LicenseGate(s).requireShopCapacity(currentCount);}
     public static boolean hasPendingTasks(){LicenseService s=current;return s!=null&&s.hasPendingTasks();}
     public static synchronized void close(){if(current!=null){current.close();current=null;observedShopCount=-1;}}
-    private static LicenseService create(){
+    static Map<String,java.security.PublicKey> trustedKeys(){
         Map<String,java.security.PublicKey> keys=new HashMap<>();
         try(var stream=LicenseRuntime.class.getResourceAsStream("/com/vncode/app/license/trusted-keys.json")){
             if(stream!=null){var object=LicenseJson.object(new String(stream.readNBytes(32769),StandardCharsets.UTF_8));for(var e:object.entrySet())keys.put(e.getKey(),LicenseDeviceKeys.publicKey(e.getValue().getAsString()));}
         }catch(IOException|RuntimeException invalid){keys.clear();}
+        return Map.copyOf(keys);
+    }
+    private static LicenseService create(){
+        var keys=trustedKeys();
         var protector=new WindowsSecretProtector("VN code account license",65536);
         var store=new LicenseStore(AppPaths.appDataDir().resolve("license"),new LicenseStore.SecretCodec(){public String protect(String v)throws IOException{return protector.protect(v);}public String reveal(String v)throws IOException{return protector.reveal(v);}});
         return new LicenseService(new WebLicenseApi(),new LicenseVerifier(keys),store,Clock.systemUTC(),System::nanoTime);

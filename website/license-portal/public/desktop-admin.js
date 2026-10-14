@@ -12,7 +12,12 @@ export async function mountDesktopAdmin(root,{call,post,escapeHtml:esc,humanDate
   try {
    const d=await call('/api/admin/desktop/diagnostics');
    const missing=d.schema.filter(row=>!row.ready).map(row=>row.table).join(', ');
-   diagnostic.textContent=`Khóa ký hợp lệ: ${d.signing_key_valid?'Có':'Không'} · Khớp khóa công khai VNCode: ${d.signature_matches_client&&d.key_id_matches?'Có':'Không'} · Database: ${d.database_ready?'Sẵn sàng':'Thiếu bảng/cột: '+missing}. ${d.activation_configuration_ready?'Cấu hình API sẵn sàng; vẫn cần thử kích hoạt license thật.':'Chưa đủ cấu hình để kích hoạt. Giữ nguyên khóa ký; kiểm tra key ID, secret và migration.'}`;
+   const next=d.activation_configuration_ready?'Cấu hình API sẵn sàng; vẫn cần thử kích hoạt license thật.':
+    !d.key_id_matches?`Chưa đủ cấu hình: Key ID Worker cần là ${d.client_key_id||'ID của bản app mới'}.`:
+    !d.signing_key_valid?`Chưa đủ cấu hình: Secret LICENSE_SIGNING_KEY cần chứa khóa riêng Ed25519 PKCS8 tương ứng ${d.client_key_id||'public key trong app'}.`:
+    !d.signature_matches_client?'Chưa đủ cấu hình: Secret không khớp public key trong VNCode; đối chiếu cặp khóa đã tạo.':
+    'Chưa đủ cấu hình: kiểm tra migration của các bảng/cột còn thiếu.';
+   diagnostic.textContent=`Key ID Worker: ${d.key_id||'Chưa cấu hình'} · Key ID VNCode: ${d.client_key_id||'Chưa rõ'}${d.minimum_client_version?' · Cần VNCode '+d.minimum_client_version+' trở lên':''}. Khóa ký hợp lệ: ${d.signing_key_valid?'Có':'Không'} · Khớp khóa công khai VNCode: ${d.signature_matches_client&&d.key_id_matches?'Có':'Không'} · Database: ${d.database_ready?'Sẵn sàng':'Thiếu bảng/cột: '+missing}. ${next}`;
   }catch(error){diagnostic.textContent='Không kiểm tra được cấu hình license: '+error.message;}
   finally{diagnose.disabled=false;}
  };
