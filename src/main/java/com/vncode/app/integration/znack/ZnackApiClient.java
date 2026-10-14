@@ -23,6 +23,48 @@ public class ZnackApiClient {
     private final OkHttpClient nonRepeatingClient;
     private final Sleeper sleeper;
     private final Gson gson = new Gson();
+    private String catalogKey = "";
+
+    public static ZnackApiClient forCatalogKey(String key, Runnable guard) throws IOException {
+        return forCatalogKey(defaultClient(), key, guard);
+    }
+    static ZnackApiClient forCatalogKey(OkHttpClient transport, String key, Runnable guard) throws IOException {
+        String normalized = CatalogCredentialRepository.normalize(key);
+        OkHttpClient.Builder scopedBuilder = transport.newBuilder().followRedirects(false).followSslRedirects(false);
+        scopedBuilder.interceptors().add(0, chain -> {
+                    Request request = chain.request();
+                    String host = request.url().host();
+                    boolean catalog = host.equals(HttpUrl.get(ZnackModels.PRODUCTION_NATIONAL_CATALOG).host())
+                            || host.equals(HttpUrl.get(ZnackModels.SANDBOX_NATIONAL_CATALOG).host());
+                    if (catalog) {
+                        guard.run();
+                        if (!request.url().isHttps() || request.url().port() != 443)
+                            throw new IOException("CATALOG_KEY_ENDPOINT_INVALID");
+                        request = request.newBuilder().removeHeader("Authorization")
+                                .url(request.url().newBuilder().setQueryParameter("apikey", normalized).build()).build();
+                    }
+                    try { return chain.proceed(request); }
+                    catch (IOException failure) {
+                        if (catalog) throw new IOException("Catalog connection failed; retry the connection check.");
+                        throw failure;
+                    }
+                });
+        OkHttpClient scoped = scopedBuilder.build();
+        ZnackApiClient result = new ZnackApiClient(scoped);
+        result.catalogKey = normalized;
+        return result;
+    }
+    private String safeDiagnostic(String text) {
+        return ZnackSanitizer.diagnostic(catalogKey.isEmpty() || text == null ? text : text.replace(catalogKey, "[REDACTED]"));
+    }
+    public void checkCatalogConnection(String base) throws IOException {
+        JsonElement response = get(nationalCatalogBase(base), "/v4/product-list?limit=1&offset=0", null);
+        try {
+            JsonObject result = response.getAsJsonObject().getAsJsonObject("result");
+            if (response.getAsJsonObject().has("errors") || result == null || !result.get("goods").isJsonArray()
+                    || result.get("total").getAsInt() < 0) throw new IllegalArgumentException();
+        } catch (RuntimeException invalid) { throw new IOException("CATALOG_KEY_RESPONSE_INVALID"); }
+    }
 
     public ZnackApiClient() {
         this(defaultClient(), Thread::sleep);
@@ -69,6 +111,7 @@ public class ZnackApiClient {
         return post(trueApiBase(base,4),"/product/info",token,body);
     }
     public JsonElement productCards(String base, String token, String gtins) throws IOException {
+        if (!catalogKey.isEmpty()) return get(nationalCatalogBase(base), "/v3/feed-product?gtins=" + url(gtins), null);
         return get(trueApiBase(base, 3), "/nk/feed-product?gtins=" + url(gtins), token);
     }
     public JsonElement permitDocuments(String base,String token,String gtin,String inn)throws IOException{
@@ -90,6 +133,7 @@ public class ZnackApiClient {
         return getWithoutRetry(nationalCatalogBase(base), "/v3/generate-gtins?quantity=" + quantity, token);
     }
     public JsonElement nationalCatalogCategories(String base, String token, String tnved) throws IOException {
+        if (!catalogKey.isEmpty()) return getEmptyOnNotFound(nationalCatalogBase(base), "/v3/categories?tnved=" + url(tnved), null);
         // Use the National Catalog gateway exposed by True API. The bearer token is issued by
         // this same GIS MT environment, and the official True API documentation publishes the
         // lookup as /nk/categories. Calling the standalone production host directly can return
@@ -97,6 +141,7 @@ public class ZnackApiClient {
         return getEmptyOnNotFound(trueApiBase(base, 3), "/nk/categories?tnved=" + url(tnved), token);
     }
     public JsonElement nationalCatalogAttributes(String base, String token, long categoryId) throws IOException {
+        if (!catalogKey.isEmpty()) return getEmptyOnNotFound(nationalCatalogBase(base), "/v3/attributes?cat_id=" + categoryId + "&attr_type=m", null);
         return getEmptyOnNotFound(trueApiBase(base, 3),
                 "/nk/attributes?cat_id=" + categoryId + "&attr_type=m", token);
     }
@@ -184,6 +229,8 @@ public class ZnackApiClient {
             Request attemptRequest=repeatable?request:request.newBuilder()
                     .tag(NetworkAttempt.class,new NetworkAttempt()).build();
             try(Response response=transport.newCall(attemptRequest).execute()){
+                if (!catalogKey.isEmpty() && response.body()!=null && response.peekBody(4_194_305L).bytes().length>4_194_304)
+                    throw new IOException("Catalog response exceeds size limit");
                 String body=response.body()==null?"":response.body().string();
                 if(emptyOnNotFound&&response.code()==404){
                     LOGGER.info("Znack API returned no existing resource; continuing with an empty result. method={}, url={}",
@@ -210,8 +257,8 @@ public class ZnackApiClient {
                     }
                     LOGGER.error("Znack API request failed. method={}, url={}, httpStatus={}, contentType={}, responseBody={}",
                             request.method(),request.url(),response.code(),response.header("Content-Type",""),
-                            ZnackSanitizer.diagnostic(body));
-                    throw new ZnackApiException("Znack API request failed",response.code(),body,
+                            safeDiagnostic(body));
+                    throw new ZnackApiException("Znack API request failed",response.code(),safeDiagnostic(body),
                             request.method(),request.url().toString());
                 }
                 if(body.isBlank())return JsonNull.INSTANCE;
@@ -220,9 +267,9 @@ public class ZnackApiClient {
                 }catch(JsonParseException e){
                     LOGGER.error("Znack API returned invalid JSON. method={}, url={}, httpStatus={}, contentType={}, responseBody={}",
                             request.method(),request.url(),response.code(),response.header("Content-Type",""),
-                            ZnackSanitizer.diagnostic(body),e);
+                            safeDiagnostic(body));
                     throw new IOException("Znack API returned invalid JSON (HTTP "+response.code()+"): "
-                            +ZnackSanitizer.message(body),e);
+                            +ZnackSanitizer.message(safeDiagnostic(body)));
                 }
             }
         }

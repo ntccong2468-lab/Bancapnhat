@@ -57,6 +57,12 @@ public class ZnackAutomationController {
     @FXML private ComboBox<BalanceSnapshot> accountBalanceCombo;
     public void openSettings(){settingsTab.getTabPane().getSelectionModel().select(settingsTab);}
     @FXML private TextField omsIdField, omsConnectionField;
+    @FXML private PasswordField catalogKeyField;
+    @FXML private Label catalogTitleLabel, catalogHelpLabel, catalogStatusLabel;
+    @FXML private Button checkCatalogButton, removeCatalogButton;
+    private Shop catalogShop;
+    private boolean catalogCheckRunning;
+    private String catalogStatusKey = "znack.catalog.not_saved";
     @FXML private TextField productSearchField, deletedSearchField;
     @FXML private ComboBox<CryptoProCertificateInfo> signatureCertificateCombo;
     @FXML private CheckBox autoIntroductionCheck;
@@ -127,6 +133,12 @@ public class ZnackAutomationController {
 
     @FXML
     private void initialize() {
+        catalogKeyField.textProperty().addListener((ignored, old, text) -> {
+            if (!loading) {
+                catalogStatusKey = "znack.catalog.unchecked";
+                catalogStatusLabel.setText(tr(catalogStatusKey));
+            }
+        });
         informationTab.selectedProperty().addListener((ignored, old, selected) -> {
             if (selected) updateAccountInfo();
         });
@@ -228,6 +240,8 @@ public class ZnackAutomationController {
 
     public void setShop(Shop shop) {
         shopGeneration++;
+        catalogCheckRunning = false;
+        catalogShop = shop == null ? null : new Shop(shop.getId(), shop.getName(), shop.getMarketplace(), shop.getClientId(), shop.getApiKey());
         resetAccountSession();
         setSignatureTestBusy(false);
         productSyncRunning = false;
@@ -249,6 +263,12 @@ public class ZnackAutomationController {
     }
 
     public void applyTranslations() {
+        catalogTitleLabel.setText(tr("znack.catalog.title"));
+        catalogHelpLabel.setText(tr("znack.catalog.help"));
+        catalogKeyField.setPromptText(tr("znack.catalog.key_prompt"));
+        checkCatalogButton.setText(tr("znack.catalog.check"));
+        removeCatalogButton.setText(tr("znack.catalog.remove"));
+        catalogStatusLabel.setText(tr(catalogStatusKey));
         titleLabel.setText(tr("znack.title"));
         informationTab.setText(tr("znack.tab.information"));
         settingsTab.setText(tr("znack.tab.settings"));
@@ -785,6 +805,10 @@ public class ZnackAutomationController {
         resetAccountSession();
         loading = true;
         loaded = repository.getSettings();
+        catalogKeyField.clear();
+        catalogStatusKey = new com.vncode.app.integration.znack.CatalogCredentialRepository().hasSaved(repository.shop().shopId())
+                ? "znack.catalog.saved" : "znack.catalog.not_saved";
+        catalogStatusLabel.setText(tr(catalogStatusKey));
         signerCertificate = value(loaded.signerCertificate());
         certificateMetadata = value(loaded.certificateMetadataJson());
         signerTestedAt = loaded.signerTestedAt();
@@ -1158,6 +1182,9 @@ public class ZnackAutomationController {
     private void clear() {
         resetAccountSession();
         loading = true;
+        catalogKeyField.clear();
+        catalogStatusKey = "znack.catalog.not_saved";
+        catalogStatusLabel.setText(tr(catalogStatusKey));
         loaded = Settings.empty();
         for (TextField field : List.of(omsIdField, omsConnectionField)) field.clear();
         signatureCertificateCombo.getItems().clear();
@@ -1186,16 +1213,68 @@ public class ZnackAutomationController {
     }
 
     private void updateSaveState() {
+        boolean catalogBusy = repository == null || loading || catalogCheckRunning || signatureTestRunning || productSyncRunning || accountRefreshRunning;
+        catalogKeyField.setDisable(catalogBusy);
+        checkCatalogButton.setDisable(catalogBusy || !Objects.equals(savedFingerprint, fingerprint()));
+        removeCatalogButton.setDisable(catalogBusy);
         boolean verificationRequired = (!blank(selectedCertificate()) && signerTestedAt == null)
                 || (!blank(loaded.signerCertificate()) && blank(selectedCertificate()));
         saveButton.setDisable(repository == null || loading || verificationRequired
-                || accountRefreshRunning
+                || accountRefreshRunning || catalogCheckRunning
                 || Objects.equals(savedFingerprint, fingerprint()));
-        signatureCertificateCombo.setDisable(repository == null || signatureTestRunning || productSyncRunning || accountRefreshRunning);
+        signatureCertificateCombo.setDisable(repository == null || signatureTestRunning || productSyncRunning || accountRefreshRunning || catalogCheckRunning);
         testSignatureButton.setDisable(repository == null || certificateDiscoveryRunning
-                || signatureTestRunning || productSyncRunning || accountRefreshRunning || blank(selectedCertificate())
+                || signatureTestRunning || productSyncRunning || accountRefreshRunning || catalogCheckRunning || blank(selectedCertificate())
                 || selectedCertificateExpired());
         updateAccountInfo();
+    }
+
+    @FXML private void checkCatalogConnection() {
+        if (repository == null || catalogCheckRunning || !Objects.equals(savedFingerprint, fingerprint())) return;
+        Shop owner = catalogShop; long generation = shopGeneration;
+        String input = catalogKeyField.getText();
+        catalogCheckRunning = true;
+        catalogStatusKey = "znack.catalog.checking";
+        catalogStatusLabel.setText(tr(catalogStatusKey));
+        updateSaveState();
+        Task<Void> task = new Task<>() {
+            @Override protected Void call() throws Exception {
+                new com.vncode.app.integration.znack.CatalogConnectionService().checkAndSave(owner, input,
+                        () -> generation == shopGeneration);
+                return null;
+            }
+        };
+        task.setOnSucceeded(event -> {
+            if (generation != shopGeneration) return;
+            catalogCheckRunning = false;
+            loading = true; catalogKeyField.clear(); loading = false;
+            catalogStatusKey = "znack.catalog.connected";
+            catalogStatusLabel.setText(tr(catalogStatusKey));
+            updateSaveState();
+        });
+        java.util.function.Consumer<Throwable> failure = error -> {
+            if (generation != shopGeneration) return;
+            catalogCheckRunning = false;
+            catalogStatusKey = "znack.catalog.failed";
+            String code = error == null ? "" : Objects.toString(error.getMessage(), "");
+            String detail = code.startsWith("CATALOG_KEY_")
+                    ? I18nService.getInstance().tr("znack.catalog.error." + code, tr("znack.catalog.failed"))
+                    : com.vncode.app.shared.FriendlyErrorService.format(error);
+            catalogStatusLabel.setText(tr(catalogStatusKey) + " " + detail);
+            updateSaveState();
+        };
+        task.setOnFailed(event -> failure.accept(task.getException()));
+        AppTaskExecutor.execute(task, failure);
+    }
+    @FXML private void removeCatalogKey() {
+        if (catalogShop == null || catalogCheckRunning) return;
+        try {
+            new com.vncode.app.integration.znack.CatalogCredentialRepository().remove(catalogShop);
+            loading = true; catalogKeyField.clear(); loading = false;
+            catalogStatusKey = "znack.catalog.not_saved";
+            catalogStatusLabel.setText(tr(catalogStatusKey));
+        } catch (RuntimeException failure) { AlertService.showError(tr("znack.catalog.failed")); }
+        updateSaveState();
     }
 
     private void updateSignatureSummary() {

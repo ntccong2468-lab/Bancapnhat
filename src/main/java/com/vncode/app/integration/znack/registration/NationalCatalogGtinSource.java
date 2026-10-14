@@ -32,7 +32,7 @@ public final class NationalCatalogGtinSource implements RegisteredGtinSource {
             LicenseRuntime.require(Permission.SELLER_API);
             var settings=new ZnackRepository(new ZnackModels.ShopContext(id,name)).getSettings();
             var owner=RegisteredGtinProof.scope(shop,settings,Instant.now());
-            var api=new ZnackApiClient();
+            var api=com.vncode.app.integration.znack.CatalogConnectionService.apiForShop(shop,settings);
             var provider=new com.vncode.app.integration.znack.signature.CryptoProSignatureProvider(settings.cryptcpPath(),owner.fingerprint(),java.time.Duration.ofSeconds(settings.resolvedCryptoProTimeoutSeconds()));
             com.vncode.app.integration.znack.signature.ZnackSignatureProvider signer=(payload,context)->{
                 requireOwner(shop,owner.source());

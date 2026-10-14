@@ -7,7 +7,9 @@
     "Sửa lỗi từ chối quyền vừa ký khi Windows chậm hơn máy chủ vài giây: dùng cùng dung sai 300 giây cho issuedAt/notBefore.",
     "Giữ nguyên hạn hết hiệu lực, chữ ký, quota và chống rollback; sai giờ lớn báo LICENSE_CLOCK_SKEW với hướng dẫn đồng bộ Windows.",
     "Kiểm thử liên thông Portal thật trong môi trường fixture qua HTTP vào client Java; thử lại mã đã dùng không cộng ngày/thiết bị.",
-    "Chẩn đoán unverified_catalog_owner theo chứng thư, INN tài khoản/chủ hàng, khóa riêng, hạn và thời điểm kiểm tra; giữ kiểm tra sở hữu GTIN."
+    "Chẩn đoán unverified_catalog_owner theo chứng thư, INN tài khoản/chủ hàng, khóa riêng, hạn và thời điểm kiểm tra; giữ kiểm tra sở hữu GTIN.",
+    "Thêm API KEY National Catalog được bảo vệ Windows DPAPI theo cửa hàng/chứng thư/INN/môi trường; xác minh với phiên CryptoPro và thử API chỉ đọc trước khi lưu.",
+    "Nối API KEY vào tạo thẻ WB/Ozon, tạo GTIN và đọc thẻ khi đồng bộ; True API và OMS/SUZ giữ xác thực riêng."
   ],
   "licenseIntegration": {
     "implemented": true,
@@ -35,7 +37,10 @@
     "fullApplicationMatrix": "not-run-for-1.4.5",
     "portalRuntimeCodeChanged": false,
     "productionActivation145": "not-verified",
-    "productionCatalogSync": "owner-reports-unverified_catalog_owner-despite-successful-sign-in"
+    "productionCatalogSync": "owner-reports-unverified_catalog_owner-despite-successful-sign-in",
+    "catalogConfigurationTests": 56,
+    "catalogConfigurationFailures": 0,
+    "catalogConfigurationProduction": "not-verified"
   },
   "limitations": [
     "Chưa xác định điều kiện sở hữu nào sai trên máy khách; cần mã lý do cụ thể từ bản mới.",

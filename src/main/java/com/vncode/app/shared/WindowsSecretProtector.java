@@ -13,13 +13,14 @@ import java.util.concurrent.TimeoutException;
 public final class WindowsSecretProtector {
     private static final String MAIL_PURPOSE = "VN code GS1 mail";
     private static final String LICENSE_PURPOSE = "VN code account license";
+    public static final String CATALOG_PURPOSE = "VN code National Catalog API";
     private final String purpose;
     private final int maxBytes;
     private final int maxCipherBytes;
 
     public WindowsSecretProtector() { this(MAIL_PURPOSE, 8192); }
     public WindowsSecretProtector(String purpose, int maxBytes) {
-        int allowed = MAIL_PURPOSE.equals(purpose) ? 8192 : LICENSE_PURPOSE.equals(purpose) ? 65536 : 0;
+        int allowed = MAIL_PURPOSE.equals(purpose) || CATALOG_PURPOSE.equals(purpose) ? 8192 : LICENSE_PURPOSE.equals(purpose) ? 65536 : 0;
         if (allowed == 0 || maxBytes < 1 || maxBytes > allowed) throw new IllegalArgumentException("Invalid secret protection purpose or size");
         this.purpose = purpose;
         this.maxBytes = maxBytes;

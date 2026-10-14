@@ -513,7 +513,7 @@ public final class ZnackCardRegistrationController {
                 if(documents.candidates().isEmpty())throw new RegistrationInputException(tr("znack.registration.missing_product_document"));
                 var scope=ZnackRegistrationScope.fromSettings(current);
                 ZnackSignatureProvider signer=scope.verifyingSigner(owner,signer(current));
-                ZnackApiClient api=new ZnackApiClient();ZnackAuthService auth=new ZnackAuthService(api,signer);
+                ZnackApiClient api=com.vncode.app.integration.znack.CatalogConnectionService.apiForShop(owner,current);ZnackAuthService auth=new ZnackAuthService(api,signer);
                 var service=new ZnackNationalCatalogService(api,auth,signer,current);
                 scope.assertCurrent(owner);var preflight=service.preflight(tnved);scope.assertCurrent(owner);
                 return new RegistrationInputs(characteristics,scope,documents,service,preflight);

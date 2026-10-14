@@ -253,7 +253,7 @@ public final class ZnackCardRegistrationWorkflow {
         ZnackRegistrationScope scope=ZnackRegistrationScope.fromSettings(settings);
         ZnackSignatureProvider signer = scope.verifyingSigner(shop,new CryptoProSignatureProvider(settings.cryptcpPath(),
                 settings.signerCertificate(), Duration.ofSeconds(settings.resolvedCryptoProTimeoutSeconds())));
-        ZnackApiClient api = new ZnackApiClient();
+        ZnackApiClient api = com.vncode.app.integration.znack.CatalogConnectionService.apiForShop(shop, settings);
         ZnackAuthService auth = new ZnackAuthService(api, signer);
         ZnackNationalCatalogService catalog = new ZnackNationalCatalogService(api, auth, signer, settings);
         String token=auth.trueApiToken(settings);

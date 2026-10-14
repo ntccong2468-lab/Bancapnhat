@@ -134,6 +134,17 @@ public final class NationalCatalogGs1Client {
             }
             return value;
         }
+        /** Compare with the API key of this CryptoPro-authenticated enterprise, never a public card. */
+        public synchronized void requireApiKey(String supplied) throws IOException {
+            JsonObject bootstrap = object(call("bootstrap", null));
+            try {
+                JsonObject api = bootstrap.getAsJsonObject("account").getAsJsonObject("api");
+                if (!Boolean.TRUE.equals(bool(api, "enabled")) || text(api, "apikey").isBlank()
+                        || !java.security.MessageDigest.isEqual(text(api, "apikey").getBytes(java.nio.charset.StandardCharsets.UTF_8),
+                            supplied.getBytes(java.nio.charset.StandardCharsets.UTF_8)))
+                    throw new IOException("CATALOG_KEY_OWNER_MISMATCH");
+            } catch (RuntimeException invalid) { throw new IOException("CATALOG_KEY_IDENTITY_UNAVAILABLE"); }
+        }
         public synchronized List<Choice> dictionary(String name) throws IOException {
             com.vncode.app.features.license.LicenseRuntime.require(com.vncode.app.features.license.LicenseModels.Permission.GS1);
             if (!Set.of("opf","positions","profiles-organization","enterprise-sector","main-products","documents","provider","participation","selling-ways","distribution-channels").contains(name)) throw new IllegalArgumentException("Unknown GS1 dictionary");
