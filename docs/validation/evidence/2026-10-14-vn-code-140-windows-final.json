@@ -1,0 +1,554 @@
+{
+  "appName": "VN code",
+  "version": "1.4.0",
+  "sourceCommit": "379197531ac1869e0a645e04f5c8ab9e8418be2c",
+  "githubRunId": 38492821195,
+  "githubRunUrl": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/38492821195",
+  "javaTestSummary": {
+    "tests": 1177,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 2,
+    "passed": 1175
+  },
+  "nodePassed": 46,
+  "installer": {
+    "filename": "VN-code-1.4.0-Windows-x64.exe",
+    "sha256": "c54f547819112f2fa10a80d73805e086b4f17af39b1cca5b28715706c50a4110",
+    "bytes": 142998016,
+    "architecture": "x86_64",
+    "authenticodeSigned": false
+  },
+  "nativeSmoke": {
+    "liveMarketplaceMutations": false,
+    "rollbackSnapshotVerified": true,
+    "platform": "windows-x64",
+    "version": "1.4.0",
+    "appName": "VN code",
+    "windowTitle": "VN code v1.4.0",
+    "historyPreserved": true,
+    "nativeLauncher": "passed",
+    "schemaMigration": "3 to 5"
+  },
+  "coexistenceSmoke": {
+    "installerUpgradeUuid": "8CBBA0E2-6E73-4F56-9101-6BC0948D3C72",
+    "liveMarketplaceMutations": false,
+    "platform": "windows-x64",
+    "independentRegistrations": true,
+    "appName": "VN code",
+    "version": "1.4.0",
+    "wcodeFilesUnchanged": true,
+    "result": "passed",
+    "windowTitle": "VN code v1.4.0",
+    "freshVncodeData": true,
+    "uninstallPreservesWcode": true,
+    "wcodeVersion": "1.1.75"
+  },
+  "upgradeSmoke": [
+    {
+      "liveMarketplaceMutations": false,
+      "dataPreserved": true,
+      "fromVersion": "1.1.34",
+      "result": "passed",
+      "fingerprint": "32cfd55e0243c25d8163f972f7e4f23d10bba94cfc0e063a147e39a912afa04b",
+      "appName": "VN code",
+      "singleRegistration": true,
+      "installerUpgradeUuid": "8CBBA0E2-6E73-4F56-9101-6BC0948D3C72",
+      "windowTitle": "VN code v1.4.0",
+      "version": "1.4.0"
+    },
+    {
+      "appName": "VN code",
+      "liveMarketplaceMutations": false,
+      "windowTitle": "VN code v1.4.0",
+      "version": "1.4.0",
+      "result": "passed",
+      "singleRegistration": true,
+      "fromVersion": "1.2.0",
+      "dataPreserved": true,
+      "installerUpgradeUuid": "8CBBA0E2-6E73-4F56-9101-6BC0948D3C72",
+      "fingerprint": "fa89e91dba50bcb420926f873ab01d110923f2bc260da0a05e95619f8c971cea"
+    },
+    {
+      "singleRegistration": true,
+      "windowTitle": "VN code v1.4.0",
+      "installerUpgradeUuid": "8CBBA0E2-6E73-4F56-9101-6BC0948D3C72",
+      "liveMarketplaceMutations": false,
+      "fromVersion": "1.2.1",
+      "fingerprint": "8d5f1f39294cf82f0aad51b0f6e35a0673bd74359aca61a0f9a9e11dbd1a59d4",
+      "dataPreserved": true,
+      "version": "1.4.0",
+      "appName": "VN code",
+      "result": "passed"
+    },
+    {
+      "result": "passed",
+      "appName": "VN code",
+      "version": "1.4.0",
+      "fromVersion": "1.2.2",
+      "dataPreserved": true,
+      "liveMarketplaceMutations": false,
+      "fingerprint": "503c385b1784840503671906a8186ea14030f6780ea74d60051b31f772f79b7d",
+      "singleRegistration": true,
+      "windowTitle": "VN code v1.4.0",
+      "installerUpgradeUuid": "8CBBA0E2-6E73-4F56-9101-6BC0948D3C72"
+    },
+    {
+      "installerUpgradeUuid": "8CBBA0E2-6E73-4F56-9101-6BC0948D3C72",
+      "windowTitle": "VN code v1.4.0",
+      "appName": "VN code",
+      "liveMarketplaceMutations": false,
+      "version": "1.4.0",
+      "result": "passed",
+      "fingerprint": "93fa022b4515d2b51ea80a47a3e7644106609d9c53d3466e9bf359ec569426ad",
+      "singleRegistration": true,
+      "fromVersion": "1.3.0",
+      "dataPreserved": true
+    }
+  ],
+  "gs1Smoke": {
+    "appName": "VN code",
+    "version": "1.4.0",
+    "result": "passed",
+    "dpapiRoundTrip": true,
+    "protectedPasswordPersistence": true,
+    "unverifiedInvoiceBlocked": true,
+    "liveGS1Mutations": false
+  },
+  "workspaceSmoke": {
+    "result": "passed",
+    "liveMarketplaceMutations": false,
+    "datasets": [
+      "6wb4ozon",
+      "10ozon"
+    ],
+    "targetWindowsLowEndMeasured": false,
+    "runs": [
+      {
+        "inputJarSha256": "75714a29bfbb2a9f78c0a161cc8f95faa64290dd2fe0eba8f83c04e55b692377",
+        "report": {
+          "products-render": {
+            "medianMs": 70.7706,
+            "p95Ms": 106.7661,
+            "samples": 201
+          },
+          "cached-shop-to-pulse": {
+            "medianMs": 81.2499,
+            "p95Ms": 129.9739,
+            "samples": 200
+          },
+          "ozon-fbs-render": {
+            "medianMs": 96.2278,
+            "p95Ms": 221.4065,
+            "samples": 88
+          },
+          "cached-fbs-to-pulse": {
+            "medianMs": 106.5122,
+            "p95Ms": 240.8457,
+            "samples": 80
+          },
+          "fxStallsOver500ms": 0,
+          "maxFxPulseGapMs": 363.115,
+          "heapUsedBytes": 76202848,
+          "maxHeapBytes": 4294967296,
+          "logicalProcessors": 4,
+          "readWorkers": 3,
+          "readActive": 0,
+          "readPending": 0,
+          "imageWorkers": 2,
+          "imagePending": 0,
+          "legacyTasks": 0,
+          "mutationActive": 0,
+          "mutationPending": 0,
+          "sellerHttpActive": 0,
+          "screenCacheBytes": 0,
+          "screenCacheBudgetBytes": 67108864,
+          "result": "passed",
+          "appName": "VN code",
+          "version": "1.4.0",
+          "dataset": {
+            "dataset": "6wb4ozon",
+            "shops": 10,
+            "products": 100000,
+            "orders": 10000,
+            "synthetic": true
+          },
+          "cycles": 20,
+          "liveMarketplaceMutations": false,
+          "targetWindowsLowEndMeasured": false,
+          "outputScale": 1,
+          "listenersBefore": 0,
+          "listenersAfter": 0
+        },
+        "requestedScale": "1.0",
+        "appName": "VN code",
+        "fixtureSha256": "d1e35fc8c7fbffba4f599dcf4c76f01ad947f37a66aa98c04b549091b2fbafec",
+        "datasetId": "6wb4ozon",
+        "physicalMemoryBytes": 17174360064,
+        "targetWindowsLowEndMeasured": false,
+        "logicalProcessors": 4,
+        "osVersion": "10.0.26100",
+        "hardwareId": "Microsoft Corporation/Virtual Machine",
+        "buildId": "379197531ac1869e0a645e04f5c8ab9e8418be2c",
+        "cycles": 20
+      },
+      {
+        "inputJarSha256": "75714a29bfbb2a9f78c0a161cc8f95faa64290dd2fe0eba8f83c04e55b692377",
+        "report": {
+          "products-render": {
+            "p95Ms": 123.1689,
+            "samples": 201,
+            "medianMs": 79.4512
+          },
+          "cached-shop-to-pulse": {
+            "p95Ms": 156.4027,
+            "samples": 200,
+            "medianMs": 93.8413
+          },
+          "ozon-fbs-render": {
+            "p95Ms": 239.2608,
+            "samples": 88,
+            "medianMs": 111.5241
+          },
+          "cached-fbs-to-pulse": {
+            "p95Ms": 239.0162,
+            "samples": 80,
+            "medianMs": 125.9153
+          },
+          "fxStallsOver500ms": 0,
+          "maxFxPulseGapMs": 380.9537,
+          "heapUsedBytes": 105350520,
+          "maxHeapBytes": 4294967296,
+          "logicalProcessors": 4,
+          "readWorkers": 3,
+          "readActive": 0,
+          "readPending": 0,
+          "imageWorkers": 2,
+          "imagePending": 0,
+          "legacyTasks": 0,
+          "mutationActive": 0,
+          "mutationPending": 0,
+          "sellerHttpActive": 0,
+          "screenCacheBytes": 0,
+          "screenCacheBudgetBytes": 67108864,
+          "result": "passed",
+          "appName": "VN code",
+          "version": "1.4.0",
+          "dataset": {
+            "dataset": "6wb4ozon",
+            "shops": 10,
+            "products": 100000,
+            "orders": 10000,
+            "synthetic": true
+          },
+          "cycles": 20,
+          "liveMarketplaceMutations": false,
+          "targetWindowsLowEndMeasured": false,
+          "outputScale": 1.25,
+          "listenersBefore": 0,
+          "listenersAfter": 0
+        },
+        "requestedScale": "1.25",
+        "appName": "VN code",
+        "fixtureSha256": "d1e35fc8c7fbffba4f599dcf4c76f01ad947f37a66aa98c04b549091b2fbafec",
+        "datasetId": "6wb4ozon",
+        "physicalMemoryBytes": 17174360064,
+        "targetWindowsLowEndMeasured": false,
+        "logicalProcessors": 4,
+        "osVersion": "10.0.26100",
+        "hardwareId": "Microsoft Corporation/Virtual Machine",
+        "buildId": "379197531ac1869e0a645e04f5c8ab9e8418be2c",
+        "cycles": 20
+      },
+      {
+        "inputJarSha256": "75714a29bfbb2a9f78c0a161cc8f95faa64290dd2fe0eba8f83c04e55b692377",
+        "report": {
+          "products-render": {
+            "samples": 201,
+            "medianMs": 91.0353,
+            "p95Ms": 126.0954
+          },
+          "cached-shop-to-pulse": {
+            "samples": 200,
+            "medianMs": 108.0974,
+            "p95Ms": 168.8049
+          },
+          "ozon-fbs-render": {
+            "samples": 88,
+            "medianMs": 118.338,
+            "p95Ms": 229.5253
+          },
+          "cached-fbs-to-pulse": {
+            "samples": 80,
+            "medianMs": 131.9292,
+            "p95Ms": 254.9814
+          },
+          "fxStallsOver500ms": 0,
+          "maxFxPulseGapMs": 379.6963,
+          "heapUsedBytes": 83704376,
+          "maxHeapBytes": 4294967296,
+          "logicalProcessors": 4,
+          "readWorkers": 3,
+          "readActive": 0,
+          "readPending": 0,
+          "imageWorkers": 2,
+          "imagePending": 0,
+          "legacyTasks": 0,
+          "mutationActive": 0,
+          "mutationPending": 0,
+          "sellerHttpActive": 0,
+          "screenCacheBytes": 0,
+          "screenCacheBudgetBytes": 67108864,
+          "result": "passed",
+          "appName": "VN code",
+          "version": "1.4.0",
+          "dataset": {
+            "dataset": "6wb4ozon",
+            "shops": 10,
+            "products": 100000,
+            "orders": 10000,
+            "synthetic": true
+          },
+          "cycles": 20,
+          "liveMarketplaceMutations": false,
+          "targetWindowsLowEndMeasured": false,
+          "outputScale": 1.5,
+          "listenersBefore": 0,
+          "listenersAfter": 0
+        },
+        "requestedScale": "1.5",
+        "appName": "VN code",
+        "fixtureSha256": "d1e35fc8c7fbffba4f599dcf4c76f01ad947f37a66aa98c04b549091b2fbafec",
+        "datasetId": "6wb4ozon",
+        "physicalMemoryBytes": 17174360064,
+        "targetWindowsLowEndMeasured": false,
+        "logicalProcessors": 4,
+        "osVersion": "10.0.26100",
+        "hardwareId": "Microsoft Corporation/Virtual Machine",
+        "buildId": "379197531ac1869e0a645e04f5c8ab9e8418be2c",
+        "cycles": 20
+      },
+      {
+        "inputJarSha256": "75714a29bfbb2a9f78c0a161cc8f95faa64290dd2fe0eba8f83c04e55b692377",
+        "report": {
+          "products-render": {
+            "samples": 201,
+            "p95Ms": 91.5834,
+            "medianMs": 66.4354
+          },
+          "cached-shop-to-pulse": {
+            "samples": 200,
+            "p95Ms": 125.6401,
+            "medianMs": 79.6285
+          },
+          "ozon-fbs-render": {
+            "samples": 208,
+            "p95Ms": 177.5562,
+            "medianMs": 86.1894
+          },
+          "cached-fbs-to-pulse": {
+            "samples": 200,
+            "p95Ms": 197.6825,
+            "medianMs": 96.3206
+          },
+          "fxStallsOver500ms": 0,
+          "maxFxPulseGapMs": 409.2899,
+          "heapUsedBytes": 105381888,
+          "maxHeapBytes": 4294967296,
+          "logicalProcessors": 4,
+          "readWorkers": 3,
+          "readActive": 0,
+          "readPending": 0,
+          "imageWorkers": 2,
+          "imagePending": 0,
+          "legacyTasks": 0,
+          "mutationActive": 0,
+          "mutationPending": 0,
+          "sellerHttpActive": 0,
+          "screenCacheBytes": 0,
+          "screenCacheBudgetBytes": 67108864,
+          "result": "passed",
+          "appName": "VN code",
+          "version": "1.4.0",
+          "dataset": {
+            "dataset": "10ozon",
+            "shops": 10,
+            "products": 100000,
+            "orders": 10000,
+            "synthetic": true
+          },
+          "cycles": 20,
+          "liveMarketplaceMutations": false,
+          "targetWindowsLowEndMeasured": false,
+          "outputScale": 1,
+          "listenersBefore": 0,
+          "listenersAfter": 0
+        },
+        "requestedScale": "1.0",
+        "appName": "VN code",
+        "fixtureSha256": "47d7155b645c3a7d9c2c19240128ad0a9b806b28ff994698768526a775730a4d",
+        "datasetId": "10ozon",
+        "physicalMemoryBytes": 17174360064,
+        "targetWindowsLowEndMeasured": false,
+        "logicalProcessors": 4,
+        "osVersion": "10.0.26100",
+        "hardwareId": "Microsoft Corporation/Virtual Machine",
+        "buildId": "379197531ac1869e0a645e04f5c8ab9e8418be2c",
+        "cycles": 20
+      },
+      {
+        "inputJarSha256": "75714a29bfbb2a9f78c0a161cc8f95faa64290dd2fe0eba8f83c04e55b692377",
+        "report": {
+          "products-render": {
+            "samples": 201,
+            "p95Ms": 100.3704,
+            "medianMs": 73.2209
+          },
+          "cached-shop-to-pulse": {
+            "samples": 200,
+            "p95Ms": 129.6256,
+            "medianMs": 91.2018
+          },
+          "ozon-fbs-render": {
+            "samples": 208,
+            "p95Ms": 190.0232,
+            "medianMs": 97.503
+          },
+          "cached-fbs-to-pulse": {
+            "samples": 200,
+            "p95Ms": 207.5983,
+            "medianMs": 111.6457
+          },
+          "fxStallsOver500ms": 0,
+          "maxFxPulseGapMs": 368.155,
+          "heapUsedBytes": 74530424,
+          "maxHeapBytes": 4294967296,
+          "logicalProcessors": 4,
+          "readWorkers": 3,
+          "readActive": 0,
+          "readPending": 0,
+          "imageWorkers": 2,
+          "imagePending": 0,
+          "legacyTasks": 0,
+          "mutationActive": 0,
+          "mutationPending": 0,
+          "sellerHttpActive": 0,
+          "screenCacheBytes": 0,
+          "screenCacheBudgetBytes": 67108864,
+          "result": "passed",
+          "appName": "VN code",
+          "version": "1.4.0",
+          "dataset": {
+            "dataset": "10ozon",
+            "shops": 10,
+            "products": 100000,
+            "orders": 10000,
+            "synthetic": true
+          },
+          "cycles": 20,
+          "liveMarketplaceMutations": false,
+          "targetWindowsLowEndMeasured": false,
+          "outputScale": 1.25,
+          "listenersBefore": 0,
+          "listenersAfter": 0
+        },
+        "requestedScale": "1.25",
+        "appName": "VN code",
+        "fixtureSha256": "47d7155b645c3a7d9c2c19240128ad0a9b806b28ff994698768526a775730a4d",
+        "datasetId": "10ozon",
+        "physicalMemoryBytes": 17174360064,
+        "targetWindowsLowEndMeasured": false,
+        "logicalProcessors": 4,
+        "osVersion": "10.0.26100",
+        "hardwareId": "Microsoft Corporation/Virtual Machine",
+        "buildId": "379197531ac1869e0a645e04f5c8ab9e8418be2c",
+        "cycles": 20
+      },
+      {
+        "inputJarSha256": "75714a29bfbb2a9f78c0a161cc8f95faa64290dd2fe0eba8f83c04e55b692377",
+        "report": {
+          "products-render": {
+            "samples": 201,
+            "p95Ms": 123.1417,
+            "medianMs": 84.0202
+          },
+          "cached-shop-to-pulse": {
+            "samples": 200,
+            "p95Ms": 157.2835,
+            "medianMs": 110.0679
+          },
+          "ozon-fbs-render": {
+            "samples": 208,
+            "p95Ms": 213.7111,
+            "medianMs": 116.5789
+          },
+          "cached-fbs-to-pulse": {
+            "samples": 200,
+            "p95Ms": 235.5906,
+            "medianMs": 131.2105
+          },
+          "fxStallsOver500ms": 0,
+          "maxFxPulseGapMs": 391.8117,
+          "heapUsedBytes": 115444872,
+          "maxHeapBytes": 4294967296,
+          "logicalProcessors": 4,
+          "readWorkers": 3,
+          "readActive": 0,
+          "readPending": 0,
+          "imageWorkers": 2,
+          "imagePending": 0,
+          "legacyTasks": 0,
+          "mutationActive": 0,
+          "mutationPending": 0,
+          "sellerHttpActive": 0,
+          "screenCacheBytes": 0,
+          "screenCacheBudgetBytes": 67108864,
+          "result": "passed",
+          "appName": "VN code",
+          "version": "1.4.0",
+          "dataset": {
+            "dataset": "10ozon",
+            "shops": 10,
+            "products": 100000,
+            "orders": 10000,
+            "synthetic": true
+          },
+          "cycles": 20,
+          "liveMarketplaceMutations": false,
+          "targetWindowsLowEndMeasured": false,
+          "outputScale": 1.5,
+          "listenersBefore": 0,
+          "listenersAfter": 0
+        },
+        "requestedScale": "1.5",
+        "appName": "VN code",
+        "fixtureSha256": "47d7155b645c3a7d9c2c19240128ad0a9b806b28ff994698768526a775730a4d",
+        "datasetId": "10ozon",
+        "physicalMemoryBytes": 17174360064,
+        "targetWindowsLowEndMeasured": false,
+        "logicalProcessors": 4,
+        "osVersion": "10.0.26100",
+        "hardwareId": "Microsoft Corporation/Virtual Machine",
+        "buildId": "379197531ac1869e0a645e04f5c8ab9e8418be2c",
+        "cycles": 20
+      }
+    ],
+    "scales": [
+      "1.0",
+      "1.25",
+      "1.5"
+    ],
+    "sourceRevision": "379197531ac1869e0a645e04f5c8ab9e8418be2c",
+    "appName": "VN code",
+    "version": "1.4.0"
+  },
+  "license": {
+    "keyId": "vncode-1",
+    "publicKeyPinVerified": true,
+    "serverConfigurationOwnerReportedReady": true,
+    "productionSignatureAndActivation": "unrun",
+    "productionReady": false
+  },
+  "stage": "license-activation-test-candidate",
+  "publicRelease": false
+}

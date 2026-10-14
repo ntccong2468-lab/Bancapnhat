@@ -5,7 +5,10 @@ const publicationFiles=new Set([
  'tools/publish-vncode-preview.mjs',
  'tools/preview-source-guard.mjs',
  'tools/preview-source-guard.test.mjs',
- '.github/workflows/publish-vncode-preview.yml'
+ '.github/workflows/publish-vncode-preview.yml',
+ 'tools/publish-vncode-license-candidate.mjs',
+ 'tools/publish-vncode-license-candidate.test.mjs',
+ '.github/workflows/publish-vncode-license-candidate.yml'
 ]);
 
 // Acceptance is recorded after the tested build. Only publication metadata/tooling may differ;

@@ -71,7 +71,7 @@
     "implemented": true,
     "productionReady": false,
     "trustedProductionKeys": 1,
-    "windowsNativeAcceptance": "unrun",
+    "windowsNativeAcceptance": "DPAPI primitive and packaging/upgrade passed; actual activation/foreign user acceptance pending",
     "backendLiveAcceptance": "unrun",
     "usageModel": "Independent desktop on each customer PC; shared registration/license website",
     "backendSource": "website/license-portal",
@@ -89,7 +89,8 @@
     "backendDeployment": "owner-reported-deployed-and-read-only-health-observed",
     "backendLiveEndpointChecks": "health/config/unauthenticated registration route passed",
     "serverSigningConfiguration": "owner-provided-authenticated-settings-signing-ready",
-    "backendConfigurationEvidence": "docs/validation/evidence/2026-10-14-license-admin-settings.json"
+    "backendConfigurationEvidence": "docs/validation/evidence/2026-10-14-license-admin-settings.json",
+    "testInstallerBuild": "passed"
   },
   "gs1Upgrade": {
     "status": "implemented-local-validation-live-acceptance-pending",
@@ -176,13 +177,19 @@
     "report": "docs/validation/2026-10-14-vn-code-140-scaling.md"
   },
   "windowsCompatibilityFix": {
-    "report": "docs/validation/2026-10-14-vn-code-windows-compatibility.md",
+    "report": "docs/validation/2026-10-14-vn-code-140-windows-final.md",
     "cancelledBuildRun": 38481420963,
     "ntfsCanonicalPathAndJunctionGuard": true,
     "mockServerOriginPoliciesPlatformIndependent": true,
     "boundedOzonDatabaseLifetime": true,
-    "nativeWindowsRebuild": "first repeat completed; three fixture cleanup errors corrected; fresh build pending",
+    "nativeWindowsRebuild": "passed",
     "nativeEvidence": "docs/validation/evidence/2026-10-14-windows-compat-native-first.json",
-    "uiFixtureCleanupAwaitsSqliteReads": true
+    "uiFixtureCleanupAwaitsSqliteReads": true,
+    "buildSourceCommit": "379197531ac1869e0a645e04f5c8ab9e8418be2c",
+    "buildRunId": 38492821195,
+    "javaPassed": 1175,
+    "javaSkipped": 2,
+    "nativeDpiAndTenShopChecks": "passed",
+    "allFiveUpgradeBaselines": "passed"
   }
 }

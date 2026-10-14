@@ -1,0 +1,13 @@
+# VNCode 1.4.0 Windows installer — verified candidate
+
+[Build 38492821195](https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/38492821195) succeeded from source `379197531ac1869e0a645e04f5c8ab9e8418be2c`. Windows full suite: 1,177 total, 1,175 passed, zero failures/errors and two platform skips (POSIX permissions unavailable on NTFS; the off-Windows DPAPI refusal case). Native Windows DPAPI/entropy and NTFS junction cases executed successfully. Node build contracts: 46 passed. [Java/JAR evidence](evidence/2026-10-14-vn-code-140-windows-java.json).
+
+The actual Windows JAR contains the owner's public key vncode-1 and no test authority/helper classes. EXE packaging, native launcher/schema 3→5 snapshot/history preservation, GS1 DPAPI/local storage, ten-shop datasets at DPI 100/125/150, independent coexistence/uninstall and all five upgrade baselines (1.1.34, 1.2.0, 1.2.1, 1.2.2, 1.3.0) passed. [Installer/native/upgrade evidence](evidence/2026-10-14-vn-code-140-windows-final.json).
+
+Installer: `VN-code-1.4.0-Windows-x64.exe`, 142,998,016 bytes. SHA-256: `c54f547819112f2fa10a80d73805e086b4f17af39b1cca5b28715706c50a4110`. It is not Authenticode signed. Ozon's offline reservation suite (including ten shops × 1,000 orders) took 152.2 seconds in this run, versus 638.5 in the earlier cancelled run; these are separate CI runs with synthetic data and are not production throughput or printer measurements. Windows 2 CPU/4 GiB remains unmeasured.
+
+Linux regression at unchanged application source also passed: 1,177 total/1,175 passed, zero errors/failures, two Windows-only cases skipped. [Linux evidence](evidence/2026-10-14-vn-code-140-linux-final.json). Publication-only contract checks subsequently passed 47 Node tests; they do not replace the build's 46-test record.
+
+Website owner settings report mail_ready=true, signing_ready=true and key_id=vncode-1. Actual production signature/OTP/activation, device concurrency, foreign Windows identity, revocation and offline acceptance are still pending. License productionReady and overall complete stay false. The verified installer is a draft license-test candidate for the owner; public-release gating remains enforced.
+
+Cloud GitHub API authentication created draft v1.4.0-license-test.1 but asset upload returned HTTP 401 on uploads.github.com. No user token was requested or used. A repository workflow with its own GitHub Actions token validates the exact successful build, immutable artifact checksum and all native evidence, then attaches the EXE/checksum/build-info/notes while enforcing draft=true. It never publishes or enables automatic updates.
