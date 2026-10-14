@@ -54,6 +54,30 @@ try {
   }
  }catch{ 'UI Automation provider unavailable; use captured pixels.' | Set-Content (Join-Path $out 'accessibility-unavailable.txt') }
  $observed|ConvertTo-Json -Depth 4|Set-Content (Join-Path $out 'visible-controls.json') -Encoding utf8
+ # Targets are the named sidebar buttons seen in the first capture. Opening
+ # screens is read-only; no form submission, shop creation or key activation.
+ $routes=@(
+  @{name='Товары';file='products'},@{name='Упаковка FBS';file='fbs'},
+  @{name='FBO упаковка';file='fbo'},@{name='KIZ Mapping';file='mapping'},
+  @{name='Регистрация в ЧЗ';file='registration'},@{name='Настройка Znack';file='znack'},
+  @{name='ГС1 РУС';file='gs1'},@{name='История печати';file='history'},
+  @{name='Дизайн шаблона';file='designer'},@{name='Инструкции';file='guides'},
+  @{name='ТН ВЭД';file='tnved'},@{name='Настройки';file='settings'}
+ )
+ foreach($route in $routes){
+  $condition=New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::NameProperty,$route.name)
+  $button=$element.FindAll([System.Windows.Automation.TreeScope]::Descendants,$condition) | Where-Object {$_.Current.ControlType -eq [System.Windows.Automation.ControlType]::Button -and $_.Current.IsEnabled} | Select-Object -First 1
+  if(-not $button){continue}
+  $r=$button.Current.BoundingRectangle
+  if([double]::IsInfinity($r.X) -or $r.Width -le 0){continue}
+  [WCodeObservationWindow]::SetCursorPos([int]($r.X+$r.Width/2),[int]($r.Y+$r.Height/2))|Out-Null
+  [WCodeObservationWindow]::mouse_event(2,0,0,0,[UIntPtr]::Zero);[WCodeObservationWindow]::mouse_event(4,0,0,0,[UIntPtr]::Zero)
+  Start-Sleep -Seconds 3
+  Save-ObservationImage ('official-wbcode-1.3.8-'+$route.file+'.png')
+  $labels=@();$controls=$element.FindAll([System.Windows.Automation.TreeScope]::Descendants,[System.Windows.Automation.Condition]::TrueCondition)
+  for($i=0;$i -lt [Math]::Min($controls.Count,2000);$i++){$c=$controls.Item($i).Current;if(-not $c.IsOffscreen -and $c.Name){$labels+=@{name=$c.Name;type=$c.ControlType.ProgrammaticName;enabled=$c.IsEnabled}}}
+  $labels|ConvertTo-Json -Depth 3|Set-Content (Join-Path $out ($route.file+'-labels.json')) -Encoding utf8
+ }
  $windows=@($ids|ForEach-Object {[VNcode.Smoke.VisibleWindows]::Titles($_)})
  @{source='official release installer';release='v1.3.8';installerSha256=$hash;nativeLaunch='passed';visibleTitles=$windows;windowMaximized=($handle -ne [IntPtr]::Zero);screenWidth=$bounds.Width;screenHeight=$bounds.Height;freshRunner=$true;shopCredentialsEntered=$false;liveMarketplaceMutations=$false;licenseActivated=$false;scope='Fresh first-run pixels and accessibility; authenticated seller/CryptoPro workflows untested';screenshot='official-wbcode-1.3.8-first-run.png'}|ConvertTo-Json|Set-Content (Join-Path $out 'observation.json') -Encoding utf8
 }finally{if($app -and -not $app.HasExited){Stop-Process -Id $app.Id -Force;$app.WaitForExit()};if($installed){$p=Start-Process msiexec.exe -ArgumentList @('/x',"`"$msi`"",'/qn','/norestart') -Wait -PassThru;if($p.ExitCode -notin @(0,3010)){throw 'Official app uninstall failed.'}}}
