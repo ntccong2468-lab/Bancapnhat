@@ -16,7 +16,7 @@ public class PrintTemplateDesignerService {
     public javafx.scene.Parent createEmbedded() {
         FXMLLoader loader=FxmlViewLoader.loader(PrintTemplateDesignerController.class,"print-template-designer-view.fxml");
         javafx.scene.Parent view=FxmlViewLoader.load(loader);embeddedController=loader.getController();embeddedView=view;
-        if(view instanceof javafx.scene.layout.Region region)region.setMinSize(0,0);
+        if(view instanceof javafx.scene.layout.Region region){region.setMinSize(0,0);var actions=view.lookup("#designerActions");if(actions instanceof javafx.scene.layout.FlowPane flow)flow.prefWrapLengthProperty().bind(region.widthProperty().subtract(32));}
         return view;
     }
     public void showDialog() {

@@ -2,11 +2,12 @@
   "source_version": "1.4.1",
   "release_published": false,
   "local_full_verify": {
-    "tests": 1192,
+    "tests": 1194,
     "failures": 0,
     "errors": 0,
     "skipped_windows_only": 2,
-    "note": "Full clean verify before final job navigation regression; exact source verification is running."
+    "source_commit": "e171b2e6513830ade8617e41eb60f35d4255505b",
+    "note": "Core and onboarding verified; final layout verification is running."
   },
   "node_contracts": {
     "tests": 48,
@@ -18,5 +19,10 @@
   },
   "workspace_probe_file": "approved-workspace-probe.json",
   "windows_native_ci": "pending",
-  "real_account_acceptance": "not_run"
+  "real_account_acceptance": "not_run",
+  "layout_regression": {
+    "tests": 55,
+    "failures": 0,
+    "errors": 0
+  }
 }
