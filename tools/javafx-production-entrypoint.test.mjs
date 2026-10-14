@@ -142,7 +142,7 @@ test("manual Windows installer builds can skip the macOS jobs", async () => {
   assert.match(workflow, /windows_only:[\s\S]*?type:\s*boolean\s*\n\s*default:\s*true/);
   assert.match(workflow, /build-macos-test:\s*\n\s*if:\s*\$\{\{\s*github\.event_name != 'workflow_dispatch' \|\| \(!inputs\.windows_only && !inputs\.portal_only\)\s*\}\}/);
   assert.match(workflow, /portal_only:[\s\S]*?type:\s*boolean\s*\n\s*default:\s*false/);
-  assert.match(workflow, /build-and-test:\s*\n\s*if:\s*\$\{\{\s*!inputs\.msi_inspection_only && !inputs\.portal_only\s*\}\}/);
+  assert.match(workflow, /build-and-test:\s*\n\s*if:\s*\$\{\{\s*!inputs\.msi_inspection_only && !inputs\.portal_only && !inputs\.license_diagnostics_only\s*\}\}/);
 });
 
 test("Znack registration test EXE is isolated, has its own update channel, and cannot update WB", async () => {

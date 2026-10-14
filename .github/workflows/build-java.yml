@@ -11,6 +11,10 @@ on:
         description: Validate and package Portal sources without desktop builds
         type: boolean
         default: false
+      license_diagnostics_only:
+        description: Build a license diagnostic candidate with focused tests and native startup checks
+        type: boolean
+        default: false
       msi_inspection_only:
         description: Read-only inspection of the original MSI, no install/build/publication
         type: boolean
@@ -68,7 +72,7 @@ jobs:
         run: ./tools/windows-side-by-side-smoke.ps1 -Version (node tools/release-version.mjs) -InspectOnly
 
   build-and-test:
-    if: ${{ !inputs.msi_inspection_only && !inputs.portal_only }}
+    if: ${{ !inputs.msi_inspection_only && !inputs.portal_only && !inputs.license_diagnostics_only }}
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -227,6 +231,66 @@ jobs:
             target/jpackage-temp/msi/*.msi
           if-no-files-found: ignore
           retention-days: 7
+
+  build-license-diagnostics:
+    if: ${{ inputs.license_diagnostics_only && !inputs.portal_only && !inputs.msi_inspection_only }}
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-java@03ad4de0992f5dab5e18fcb136590ce7c4a0ac95
+        with:
+          java-version: "25"
+          distribution: oracle
+          cache: maven
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: "22"
+      - name: Resolve diagnostic version
+        shell: pwsh
+        run: '"APP_VERSION=$(node tools/release-version.mjs)" >> $env:GITHUB_ENV'
+      - name: Verify packaging contracts
+        run: node --test tools/*.test.mjs
+      - name: Verify license transport, verification, storage and UI on Windows
+        shell: pwsh
+        run: .\mvnw.cmd -B "-Dtest=LicensePaneTest,WebLicenseApiTest,LicenseServiceTest,LicenseVerifierTest,LicenseStoreTest,LicenseDeviceKeysTest,LicenseClockTest,LicenseRefreshCadenceTest" package
+      - name: Package diagnostic installer from focused verified inputs
+        shell: cmd
+        env:
+          VNCODE_REUSE_VERIFIED_BUILD: "true"
+        run: build.bat exe
+      - name: Verify native launcher and preserved history
+        shell: pwsh
+        run: ./tools/windows-native-smoke.ps1 -Version $env:APP_VERSION
+      - name: Verify Windows secret protection
+        shell: pwsh
+        run: ./tools/windows-gs1-smoke.ps1 -Version $env:APP_VERSION
+      - name: Name and checksum diagnostic candidate
+        shell: pwsh
+        run: |
+          $installers = @(Get-ChildItem out -Filter 'VN code*.exe' -File)
+          if ($installers.Count -ne 1 -or $installers[0].Length -lt 1MB) { throw 'Missing diagnostic installer.' }
+          $file = "VN-code-$env:APP_VERSION-License-Diagnostics-Windows-x64.exe"
+          Copy-Item -LiteralPath $installers[0].FullName -Destination (Join-Path out $file)
+          $hash = (Get-FileHash (Join-Path out $file) -Algorithm SHA256).Hash.ToLowerInvariant()
+          "$hash  $file" | Set-Content "out\$file.sha256" -Encoding ascii
+          @'
+          VNCode license diagnostic candidate: focused license tests, native launcher/history and Windows secret-protection checks.
+          This candidate has not completed the full application, shop-workspace and installer-upgrade matrix. It is not an official release.
+          Close VNCode before installing. Open License, retry activation and send the displayed error code; do not send your license key.
+          No server signing key or license permissions are bypassed. Portal updates are separate from installing this desktop candidate.
+          '@ | Set-Content out\LICENSE-DIAGNOSTICS-README.txt -Encoding utf8
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: VN-code-${{ env.APP_VERSION }}-License-Diagnostics-Windows-x64
+          path: |
+            out/VN-code-${{ env.APP_VERSION }}-License-Diagnostics-Windows-x64.exe
+            out/VN-code-${{ env.APP_VERSION }}-License-Diagnostics-Windows-x64.exe.sha256
+            out/LICENSE-DIAGNOSTICS-README.txt
+            out/native-smoke.json
+            out/gs1-smoke.json
+            target/surefire-reports/TEST-*.xml
+          if-no-files-found: error
+          retention-days: 14
 
   build-macos-test:
     if: ${{ github.event_name != 'workflow_dispatch' || (!inputs.windows_only && !inputs.portal_only) }}
