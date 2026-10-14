@@ -11,9 +11,14 @@ on:
         required: true
         type: string
       preview_tag:
-        description: Preview tag matching pom.xml, for example v1.4.0-preview.1
+        description: Preview tag or license-test draft tag matching pom.xml
         required: true
         type: string
+      license_candidate_draft:
+        description: Attach only a license-test draft; never publish it
+        required: false
+        type: boolean
+        default: false
 permissions:
   contents: write
   actions: read
@@ -32,9 +37,18 @@ jobs:
       - name: Verify release tool contracts
         run: node --test tools/*.test.mjs
       - name: Publish exact verified preview with checksums and smoke evidence
+        if: ${{ !inputs.license_candidate_draft }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           BUILD_RUN_ID: ${{ inputs.build_run_id }}
           PREVIEW_TAG: ${{ inputs.preview_tag }}
           BUILD_SOURCE_COMMIT: ${{ inputs.source_commit }}
         run: node tools/publish-vncode-preview.mjs "$BUILD_RUN_ID" "$PREVIEW_TAG" "$BUILD_SOURCE_COMMIT"
+      - name: Attach verified installer to license-test draft
+        if: ${{ inputs.license_candidate_draft }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BUILD_RUN_ID: ${{ inputs.build_run_id }}
+          BUILD_SOURCE_COMMIT: ${{ inputs.source_commit }}
+          CANDIDATE_TAG: ${{ inputs.preview_tag }}
+        run: node tools/publish-vncode-license-candidate.mjs "$BUILD_RUN_ID" "$BUILD_SOURCE_COMMIT" "$CANDIDATE_TAG"
