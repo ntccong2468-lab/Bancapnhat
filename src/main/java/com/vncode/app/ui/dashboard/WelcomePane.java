@@ -9,8 +9,8 @@ import java.util.List;
 /** Landing page reuses the existing actions and news view. */
 public final class WelcomePane extends ScrollPane {
     private final Label title=new Label(),description=new Label(),features=new Label();
-    private final VBox introduction=new VBox(18),body=new VBox(24);
-    private final HBox wide=new HBox(40);
+    private final VBox introduction=new VBox(12),body=new VBox(16);
+    private final HBox wide=new HBox(24);
     private final GridPane cards=new GridPane();
     private final VBox news;
     private final List<Button> buttons=new java.util.ArrayList<>();
@@ -27,7 +27,7 @@ public final class WelcomePane extends ScrollPane {
         if(actions.size()!=6)throw new IllegalArgumentException("Six existing feature actions required");
         this.news=news;setFitToWidth(true);setHbarPolicy(ScrollBarPolicy.NEVER);getStyleClass().add("welcome-scroll");
         body.getStyleClass().add("welcome-body");title.getStyleClass().add("welcome-title");description.getStyleClass().add("welcome-description");
-        description.setWrapText(true);features.getStyleClass().add("h2");cards.setHgap(18);cards.setVgap(18);
+        description.setWrapText(true);features.getStyleClass().add("h2");cards.setHgap(12);cards.setVgap(12);
         onboardingTitle.setWrapText(true);onboardingTitle.getStyleClass().add("h3");onboarding.getChildren().setAll(onboardingTitle,onboardingActions);onboarding.setVisible(false);onboarding.setManaged(false);
         introduction.setMinWidth(0);introduction.getChildren().setAll(title,description,onboarding,features,cards);
         for(int i=0;i<6;i++) {

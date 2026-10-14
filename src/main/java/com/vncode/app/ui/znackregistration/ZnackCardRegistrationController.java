@@ -168,6 +168,9 @@ public final class ZnackCardRegistrationController {
         registerSelectedButton.setText(i18n.tr("znack.registration.register_selected"));newCardsSelectedButton.setText(i18n.tr("znack.registration.batch_new_cards"));
         loadingLabel.setText(i18n.tr("znack.registration.loading"));
         emptyLabel.setText(i18n.tr("znack.registration.empty"));
+        productTable.setPlaceholder(new Label(i18n.tr("znack.registration.empty")));
+        statusFilter.setButtonCell(statusFilterCell());
+        statusFilter.setCellFactory(ignored->statusFilterCell());
         imageColumn.setText(i18n.tr("fbo.column.image"));
         nameColumn.setText(i18n.tr("fbo.column.name"));
         articleColumn.setText("Article");
@@ -179,6 +182,13 @@ public final class ZnackCardRegistrationController {
         updateCategoryText();
         updateCounts();
         productTable.refresh();
+    }
+    private ListCell<StatusFilter> statusFilterCell() {
+        return new ListCell<>() {
+            @Override protected void updateItem(StatusFilter item,boolean empty) {
+                super.updateItem(item,empty);setText(empty||item==null?"":item.toString());
+            }
+        };
     }
 
     @FXML private void onRefresh() { reload(); }

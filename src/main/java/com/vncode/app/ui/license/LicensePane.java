@@ -98,8 +98,8 @@ public final class LicensePane extends ScrollPane {
         VBox account = card(registeredEmail, status, expiry, offlineExpiry, limits,
                 new FlowPane(10, 10, check, refresh, reset));
         VBox activation = card(activationTitle, activationHelp, license, activate);
-        VBox body = new VBox(18, title, description, registration, account, activation, progress, feedback);
-        body.setPadding(new Insets(24));
+        VBox body = new VBox(12, title, description, registration, account, activation, progress, feedback);
+        body.setPadding(new Insets(16));
         body.setMinWidth(0);
         setContent(body);
 

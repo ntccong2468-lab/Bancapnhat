@@ -401,7 +401,11 @@ class FxmlSmokeTest {
                 stage.show();
                 for(String theme:java.util.List.of("theme-dark","theme-light")) {
                     pane.getStyleClass().removeAll("theme-dark","theme-light");pane.getStyleClass().add(theme);pane.applyCss();pane.layout();
-                    for(var node:pane.lookupAll(".feature-card"))assertTrue(node.getBoundsInParent().getHeight()>=140&&node.getBoundsInParent().getHeight()<260,"Feature card must fit a normal dashboard row: "+node.getBoundsInParent().getHeight());
+                    for(var node:pane.lookupAll(".feature-card")) {
+                        assertTrue(node.getBoundsInParent().getHeight()>=110&&node.getBoundsInParent().getHeight()<220,"Compact feature card must retain usable content height: "+node.getBoundsInParent().getHeight());
+                        for(var child:((javafx.scene.Parent)node).getChildrenUnmodifiable())if(child.isManaged()&&child.isVisible())
+                            assertTrue(child.getBoundsInParent().getMaxY()<=node.getLayoutBounds().getHeight()+1,"Compact dashboard card clips content");
+                    }
                     for(var node:pane.lookupAll(".news-card"))assertTrue(node.getBoundsInParent().getHeight()<350,"News preview must not force a huge scroll area");
                     assertTrue(pane.lookup(".welcome-title").localToScene(pane.lookup(".welcome-title").getBoundsInLocal()).getMinY()>=0,"Welcome title must be visible on first open");
                 }
@@ -837,6 +841,23 @@ class FxmlSmokeTest {
         });
         assertTrue(latch.await(5, TimeUnit.SECONDS));
         assertTrue(valid.get(), "The shop form must scroll while dialog buttons remain outside the content");
+    }
+
+    @Test void compactSidebarKeepsNavigationGraphicsInsideTheViewport() throws Exception {
+        var task=new java.util.concurrent.FutureTask<Void>(() -> {
+            var loader=FxmlViewLoader.loader(ShopSidebarController.class,"shop-sidebar-view.fxml");
+            Parent root=FxmlViewLoader.load(loader);ShopSidebarController controller=loader.getController();controller.setViewportWidth(1024);
+            var scene=new javafx.scene.Scene(root,64,850);scene.getStylesheets().add(getClass().getResource("/com/vncode/app/styles/theme.css").toExternalForm());root.applyCss();root.layout();
+            for(String id:java.util.List.of("dashboardButton","productsButton","packingButton","gs1Button","znackRegistrationButton")) {
+                var button=(Button)loader.getNamespace().get(id);assertNotNull(button.getGraphic());
+                var bounds=button.getGraphic().localToScene(button.getGraphic().getBoundsInLocal());
+                assertTrue(bounds.getMinX()>=0&&bounds.getMaxX()<=64,"Compact navigation graphic is clipped: "+id+" "+bounds);
+                assertFalse(button.getAccessibleText().isBlank());
+            }
+            controller.setViewportWidth(1366);root.applyCss();root.layout();
+            assertFalse(((Button)loader.getNamespace().get("productsButton")).getText().isBlank());
+            return null;
+        });Platform.runLater(task);task.get(10,TimeUnit.SECONDS);
     }
 
     @Test

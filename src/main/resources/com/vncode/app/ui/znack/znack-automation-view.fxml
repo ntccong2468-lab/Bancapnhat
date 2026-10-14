@@ -74,7 +74,7 @@
     </Tab>
    <Tab fx:id="settingsTab" closable="false" text="%znack.tab.settings">
     <ScrollPane fitToWidth="true" styleClass="edge-to-edge">
-     <VBox fx:id="basicSettingsCard" spacing="16" styleClass="card">
+     <VBox fx:id="basicSettingsCard" spacing="12" styleClass="card">
       <Label fx:id="settingsTitleLabel" styleClass="h3" text="%znack.settings.basic"/>
       <GridPane hgap="12" vgap="9">
        <Label fx:id="omsIdLabel" text="%znack.oms_id" GridPane.rowIndex="0"/>
@@ -89,16 +89,6 @@
        </Button>
        <columnConstraints><ColumnConstraints minWidth="170"/><ColumnConstraints hgrow="ALWAYS"/><ColumnConstraints/></columnConstraints>
       </GridPane>
-      <VBox spacing="8" styleClass="surface">
-       <Label fx:id="catalogTitleLabel" text="%znack.catalog.title" styleClass="h3"/>
-       <Label fx:id="catalogHelpLabel" text="%znack.catalog.help" wrapText="true" styleClass="text-muted"/>
-       <PasswordField fx:id="catalogKeyField" promptText="%znack.catalog.key_prompt"/>
-       <HBox spacing="8">
-        <Button fx:id="checkCatalogButton" onAction="#checkCatalogConnection" text="%znack.catalog.check" styleClass="btn-primary"/>
-        <Button fx:id="removeCatalogButton" onAction="#removeCatalogKey" text="%znack.catalog.remove"/>
-       </HBox>
-       <Label fx:id="catalogStatusLabel" wrapText="true" styleClass="text-muted"/>
-      </VBox>
       <VBox fx:id="omsHelpPane" managed="false" spacing="8" styleClass="surface, help-pane" visible="false">
        <HBox alignment="CENTER_LEFT" spacing="8">
         <Label fx:id="omsHelpTitleLabel" styleClass="h3" HBox.hgrow="ALWAYS"/>
@@ -111,9 +101,20 @@
        <Label fx:id="omsHelpRecognizeLabel" styleClass="text-muted" wrapText="true"/>
        <Label fx:id="omsHelpWarningLabel" styleClass="help-warning" wrapText="true"/>
       </VBox>
-      <VBox spacing="8" styleClass="surface">
+      <GridPane fx:id="connectionPanels" hgap="12" vgap="10">
+      <VBox fx:id="catalogPanel" spacing="8" styleClass="surface" minWidth="0">
+       <Label fx:id="catalogTitleLabel" text="%znack.catalog.title" styleClass="h3"/>
+       <Label fx:id="catalogHelpLabel" text="%znack.catalog.help" wrapText="true" styleClass="text-muted"/>
+       <PasswordField fx:id="catalogKeyField" promptText="%znack.catalog.key_prompt"/>
+       <FlowPane hgap="8" vgap="6">
+        <Button fx:id="checkCatalogButton" onAction="#checkCatalogConnection" text="%znack.catalog.check" styleClass="btn-primary"/>
+        <Button fx:id="removeCatalogButton" onAction="#removeCatalogKey" text="%znack.catalog.remove"/>
+       </FlowPane>
+       <Label fx:id="catalogStatusLabel" wrapText="true" styleClass="text-muted"/>
+      </VBox>
+      <VBox fx:id="signaturePanel" spacing="8" styleClass="surface" minWidth="0">
        <Label fx:id="signatureTitleLabel" styleClass="h3" text="%znack.digital_signature"/>
-       <ComboBox fx:id="signatureCertificateCombo" maxWidth="Infinity"/>
+       <ComboBox fx:id="signatureCertificateCombo" minWidth="0" maxWidth="Infinity"/>
        <HBox spacing="8">
         <Button fx:id="testSignatureButton" onAction="#testSignature" styleClass="btn-primary" text="%znack.signature.test">
          <tooltip><Tooltip text="%znack.signature.help"/></tooltip>
@@ -121,6 +122,7 @@
        </HBox>
        <Label fx:id="signatureSummaryLabel" styleClass="text-muted"/>
       </VBox>
+      </GridPane>
       <VBox spacing="9" styleClass="surface">
        <CheckBox fx:id="autoIntroductionCheck" text="%znack.auto_introduction"/>
       </VBox>

@@ -1,0 +1,43 @@
+{
+  "version": "1.4.6",
+  "baseVersion": "1.4.5",
+  "complete": false,
+  "officialReleasePublished": false,
+  "licenseIntegration": {
+    "implemented": true,
+    "productionReady": false,
+    "activeKeyId": "vncode-2",
+    "serverSigningKeyMatch": "owner-confirmed-Portal035-vncode2",
+    "ownerReportedActivationVersion": "1.4.4"
+  },
+  "scope": [
+    "Compact shared desktop layout and immediate page navigation",
+    "National Catalog key settings with responsive panels",
+    "Published stable GitHub Releases feed, release draft preparation and verified publication workflow"
+  ],
+  "validation": {
+    "windowsFullBuild": "pending",
+    "uiLayoutMatrix": {
+      "platform": "linux-javafx",
+      "screens": 17,
+      "languages": 4,
+      "themes": 2,
+      "sizes": [
+        "1024x600",
+        "1366x768"
+      ],
+      "layouts": 272,
+      "horizontalButtonOverflow": 0,
+      "liveSellerMutations": false
+    },
+    "liveCatalogConnection": "not-verified",
+    "productionMultiDeviceOfflineRevocation": "not-verified"
+  },
+  "releaseChannel": {
+    "repository": "ntccong2468-lab/Bancapnhat",
+    "tag": "v1.4.6",
+    "draftPreparation": "pending",
+    "appAutomaticFeed": "/releases/latest",
+    "draftsAndPrereleasesHiddenFromSellers": true
+  }
+}

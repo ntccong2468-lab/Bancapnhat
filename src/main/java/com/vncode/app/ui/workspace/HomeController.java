@@ -74,7 +74,6 @@ import com.vncode.app.ui.supply.SupplyManagementController;
 import com.vncode.app.ui.znack.ZnackAutomationController;
 import com.vncode.app.ui.znackregistration.ZnackCardRegistrationController;
 import javafx.concurrent.Task;
-import javafx.animation.FadeTransition;
 import javafx.animation.PauseTransition;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXMLLoader;
@@ -542,11 +541,7 @@ public class HomeController implements Initializable {
         }
         if(guidesPane!=null&&view!=guidesPane)guidesPane.stopMedia();
         dynamicContentContainer.getChildren().setAll(view);
-        view.setOpacity(0.0);
-        FadeTransition fade = new FadeTransition(javafx.util.Duration.millis(120), view);
-        fade.setFromValue(0.0);
-        fade.setToValue(1.0);
-        fade.play();
+        view.setOpacity(1.0);
     }
 
     private void clearFboQuantitiesIfLeaving(Node nextView) {

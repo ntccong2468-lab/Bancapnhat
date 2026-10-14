@@ -71,6 +71,9 @@ public class ZnackAutomationController {
     @FXML private MenuButton productCategoryFilterButton, deletedCategoryFilterButton;
     @FXML private Button omsIdHelpButton, omsConnectionHelpButton, closeOmsHelpButton;
     @FXML private javafx.scene.layout.VBox omsHelpPane;
+    @FXML private javafx.scene.layout.GridPane connectionPanels;
+    @FXML private javafx.scene.layout.VBox catalogPanel, signaturePanel;
+    private int connectionColumns;
     @FXML private TableView<Product> productsTable;
     @FXML private TableColumn<Product,String> productGtinColumn, productNameColumn, productCategoryColumn, productTnVedColumn;
     @FXML private TableColumn<Product,Product> productSelectColumn, productActionsColumn;
@@ -133,6 +136,8 @@ public class ZnackAutomationController {
 
     @FXML
     private void initialize() {
+        connectionPanels.widthProperty().addListener((ignored,old,width)->arrangeConnectionPanels(width.doubleValue()));
+        arrangeConnectionPanels(0);
         catalogKeyField.textProperty().addListener((ignored, old, text) -> {
             if (!loading) {
                 catalogStatusKey = "znack.catalog.unchecked";
@@ -238,6 +243,24 @@ public class ZnackAutomationController {
         clear();
     }
 
+    private void arrangeConnectionPanels(double width) {
+        int columns=width>=780?2:1;
+        if(columns==connectionColumns)return;
+        connectionColumns=columns;
+        connectionPanels.getColumnConstraints().clear();
+        for(int column=0;column<columns;column++) {
+            var constraint=new javafx.scene.layout.ColumnConstraints();
+            constraint.setPercentWidth(100.0/columns);constraint.setMinWidth(0);
+            constraint.setHgrow(javafx.scene.layout.Priority.ALWAYS);connectionPanels.getColumnConstraints().add(constraint);
+        }
+        javafx.scene.layout.GridPane.setColumnIndex(catalogPanel,0);
+        javafx.scene.layout.GridPane.setRowIndex(catalogPanel,0);
+        javafx.scene.layout.GridPane.setColumnIndex(signaturePanel,columns==2?1:0);
+        javafx.scene.layout.GridPane.setRowIndex(signaturePanel,columns==2?0:1);
+        javafx.scene.layout.GridPane.setValignment(catalogPanel,javafx.geometry.VPos.TOP);
+        javafx.scene.layout.GridPane.setValignment(signaturePanel,javafx.geometry.VPos.TOP);
+    }
+
     public void setShop(Shop shop) {
         shopGeneration++;
         catalogCheckRunning = false;
@@ -263,6 +286,8 @@ public class ZnackAutomationController {
     }
 
     public void applyTranslations() {
+        omsConnectionField.setPromptText(tr("znack.oms_connection_prompt"));
+        if(repository==null)authStatusLabel.setText(tr("znack.error.select_shop"));
         catalogTitleLabel.setText(tr("znack.catalog.title"));
         catalogHelpLabel.setText(tr("znack.catalog.help"));
         catalogKeyField.setPromptText(tr("znack.catalog.key_prompt"));

@@ -20,10 +20,10 @@
 
 
 <?import javafx.scene.control.TitledPane?>
-<VBox xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" alignment="TOP_CENTER" prefHeight="600.0" prefWidth="260" spacing="10" styleClass="sidebar" fx:controller="com.vncode.app.ui.shop.ShopSidebarController" fx:id="sidebarRoot" minWidth="260" maxWidth="260">
+<VBox xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" alignment="TOP_CENTER" prefHeight="600.0" prefWidth="224" spacing="8" styleClass="sidebar" fx:controller="com.vncode.app.ui.shop.ShopSidebarController" fx:id="sidebarRoot" minWidth="224" maxWidth="224">
     <children><HBox alignment="CENTER" spacing="10.0">
             <children>
-                <ImageView fitHeight="40.0" fitWidth="40.0" pickOnBounds="true" preserveRatio="true">
+                <ImageView fitHeight="32.0" fitWidth="32.0" pickOnBounds="true" preserveRatio="true">
                     <image>
                         <Image url="@/com/vncode/app/assets/images/logo.png" />
                     </image>
@@ -35,51 +35,51 @@
                 </Label>
             </children>
         </HBox>
-        <Button fx:id="addShopButton" alignment="CENTER_LEFT" mnemonicParsing="false" onAction="#onAddShop" prefHeight="50" prefWidth="190.0" text=" Добавить магазин" maxWidth="1.7976931348623157E308" styleClass="button,add-shop">
+        <Button fx:id="addShopButton" alignment="CENTER_LEFT" mnemonicParsing="false" onAction="#onAddShop" prefHeight="40" prefWidth="190.0" text=" Добавить магазин" maxWidth="1.7976931348623157E308" styleClass="button,add-shop">
             <graphic>
                 <FontIcon iconLiteral="fth-plus" iconSize="16" />
             </graphic>
         </Button>
-        <ScrollPane fitToWidth="true" hbarPolicy="NEVER" styleClass="sidebar-scroll" VBox.vgrow="ALWAYS"><content><VBox spacing="8"><children><Button fx:id="dashboardButton" alignment="CENTER_LEFT" mnemonicParsing="false" onAction="#onDashboard" prefHeight="48" prefWidth="190.0" text=" Dashboard" maxWidth="1.7976931348623157E308" minHeight="48" styleClass="button,nav-item">
+        <ScrollPane fitToWidth="true" hbarPolicy="NEVER" styleClass="sidebar-scroll" VBox.vgrow="ALWAYS"><content><VBox spacing="8" minWidth="0"><children><Button fx:id="dashboardButton" alignment="CENTER_LEFT" mnemonicParsing="false" onAction="#onDashboard" prefHeight="40" prefWidth="190.0" text=" Dashboard" maxWidth="1.7976931348623157E308" minHeight="40" styleClass="button,nav-item">
             <graphic>
                 <FontIcon iconLiteral="fth-grid" iconSize="16" />
             </graphic>
         </Button>
-        <Button fx:id="productsButton" onAction="#onProducts" text="%products.title" alignment="CENTER_LEFT" minHeight="48" maxWidth="1.7976931348623157E308" styleClass="button,nav-item"><graphic><FontIcon iconLiteral="fth-shopping-bag" iconSize="16" /></graphic></Button>
-        <Button fx:id="packingButton" alignment="CENTER_LEFT" mnemonicParsing="false" onAction="#onPacking" prefHeight="48" prefWidth="190.0" text=" Упаковка WB" maxWidth="1.7976931348623157E308" minHeight="48" styleClass="button,nav-item">
+        <Button fx:id="productsButton" onAction="#onProducts" text="%products.title" alignment="CENTER_LEFT" minHeight="40" maxWidth="1.7976931348623157E308" styleClass="button,nav-item"><graphic><FontIcon iconLiteral="fth-shopping-bag" iconSize="16" /></graphic></Button>
+        <Button fx:id="packingButton" alignment="CENTER_LEFT" mnemonicParsing="false" onAction="#onPacking" prefHeight="40" prefWidth="190.0" text=" Упаковка WB" maxWidth="1.7976931348623157E308" minHeight="40" styleClass="button,nav-item">
             <graphic>
                 <FontIcon iconLiteral="fth-truck" iconSize="16" />
             </graphic>
         </Button>
-        <Button fx:id="fboPackingButton" alignment="CENTER_LEFT" mnemonicParsing="false" onAction="#onFboPacking" prefHeight="48" prefWidth="190.0" text=" Đóng hàng FBO" maxWidth="1.7976931348623157E308" minHeight="48" styleClass="button,nav-item">
+        <Button fx:id="fboPackingButton" alignment="CENTER_LEFT" mnemonicParsing="false" onAction="#onFboPacking" prefHeight="40" prefWidth="190.0" text=" Đóng hàng FBO" maxWidth="1.7976931348623157E308" minHeight="40" styleClass="button,nav-item">
             <graphic>
                 <FontIcon iconLiteral="fth-package" iconSize="16" />
             </graphic>
         </Button>
-        <Button fx:id="kizMappingButton" alignment="CENTER_LEFT" mnemonicParsing="false" onAction="#onKizMapping" prefHeight="48" prefWidth="190.0" text=" KIZ Mapping" maxWidth="1.7976931348623157E308" minHeight="48" styleClass="button,nav-item">
+        <Button fx:id="kizMappingButton" alignment="CENTER_LEFT" mnemonicParsing="false" onAction="#onKizMapping" prefHeight="40" prefWidth="190.0" text=" KIZ Mapping" maxWidth="1.7976931348623157E308" minHeight="40" styleClass="button,nav-item">
             <graphic>
                 <FontIcon iconLiteral="fth-link" iconSize="16" />
             </graphic>
         </Button>
-        <Button fx:id="znackRegistrationButton" alignment="CENTER_LEFT" mnemonicParsing="false" onAction="#onZnackRegistration" prefHeight="48" prefWidth="190.0" text=" Đăng ký Znack" maxWidth="1.7976931348623157E308" minHeight="48" styleClass="button,nav-item">
+        <Button fx:id="znackRegistrationButton" alignment="CENTER_LEFT" mnemonicParsing="false" onAction="#onZnackRegistration" prefHeight="40" prefWidth="190.0" text=" Đăng ký Znack" maxWidth="1.7976931348623157E308" minHeight="40" styleClass="button,nav-item">
             <graphic><FontIcon iconLiteral="fth-file-plus" iconSize="16" /></graphic>
         </Button>
-        <Button fx:id="gs1Button" alignment="CENTER_LEFT" onAction="#onGs1" prefHeight="48" minHeight="48" maxWidth="1.7976931348623157E308" text="%gs1.title" styleClass="button,nav-item"><graphic><FontIcon iconLiteral="fth-mail" iconSize="16" /></graphic></Button>
-        <Button fx:id="znackAutomationButton" alignment="CENTER_LEFT" mnemonicParsing="false" onAction="#onZnackAutomation" prefHeight="48" prefWidth="190.0" text=" Znack Automation" maxWidth="1.7976931348623157E308" minHeight="48" styleClass="button,nav-item">
+        <Button fx:id="gs1Button" alignment="CENTER_LEFT" onAction="#onGs1" prefHeight="40" minHeight="40" maxWidth="1.7976931348623157E308" text="%gs1.title" styleClass="button,nav-item"><graphic><FontIcon iconLiteral="fth-mail" iconSize="16" /></graphic></Button>
+        <Button fx:id="znackAutomationButton" alignment="CENTER_LEFT" mnemonicParsing="false" onAction="#onZnackAutomation" prefHeight="40" prefWidth="190.0" text=" Znack Automation" maxWidth="1.7976931348623157E308" minHeight="40" styleClass="button,nav-item">
             <graphic><FontIcon iconLiteral="fth-tag" iconSize="16" /></graphic>
         </Button>
-        <Button fx:id="btnPrintHistory" alignment="CENTER_LEFT" mnemonicParsing="false" onAction="#onPrintHistory" prefHeight="48" prefWidth="190.0" text=" История печати" maxWidth="1.7976931348623157E308" minHeight="48" styleClass="button,nav-item">
+        <Button fx:id="btnPrintHistory" alignment="CENTER_LEFT" mnemonicParsing="false" onAction="#onPrintHistory" prefHeight="40" prefWidth="190.0" text=" История печати" maxWidth="1.7976931348623157E308" minHeight="40" styleClass="button,nav-item">
             <graphic>
                 <FontIcon iconLiteral="fth-clock" iconSize="16" />
             </graphic>
         </Button>
-        <Button fx:id="templateButton" alignment="CENTER_LEFT" mnemonicParsing="false" onAction="#onSettings" prefHeight="48" prefWidth="190.0" text=" Дизайн шаблона" maxWidth="1.7976931348623157E308" minHeight="48" styleClass="button,nav-item">
+        <Button fx:id="templateButton" alignment="CENTER_LEFT" mnemonicParsing="false" onAction="#onSettings" prefHeight="40" prefWidth="190.0" text=" Дизайн шаблона" maxWidth="1.7976931348623157E308" minHeight="40" styleClass="button,nav-item">
             <graphic>
                 <FontIcon iconLiteral="fth-edit" iconSize="16" />
             </graphic>
         </Button>
-        <Button fx:id="guidesButton" onAction="#onGuides" text="%guides.title" alignment="CENTER_LEFT" prefHeight="48" minHeight="48" maxWidth="1.7976931348623157E308" styleClass="button,nav-item"><graphic><FontIcon iconLiteral="fth-book-open" iconSize="16" /></graphic></Button>
-        <TitledPane text="%sidebar.tools" expanded="false" animated="false" styleClass="sidebar-tools" fx:id="toolsPane"><content><VBox spacing="4"><children><Button fx:id="gtinSyncButton" alignment="CENTER_LEFT" onAction="#onGtinSync" prefHeight="30.0" prefWidth="220" text="GTIN WB / Ozon" maxWidth="1.7976931348623157E308" styleClass="button,nav-item">
+        <Button fx:id="guidesButton" onAction="#onGuides" text="%guides.title" alignment="CENTER_LEFT" prefHeight="40" minHeight="40" maxWidth="1.7976931348623157E308" styleClass="button,nav-item"><graphic><FontIcon iconLiteral="fth-book-open" iconSize="16" /></graphic></Button>
+        <TitledPane text="%sidebar.tools" expanded="false" animated="false" styleClass="sidebar-tools" fx:id="toolsPane"><content><VBox spacing="4" minWidth="0"><children><Button fx:id="gtinSyncButton" alignment="CENTER_LEFT" onAction="#onGtinSync" prefHeight="30.0" prefWidth="220" text="GTIN WB / Ozon" maxWidth="1.7976931348623157E308" styleClass="button,nav-item">
             <graphic><FontIcon iconLiteral="fth-refresh-cw" iconSize="16" /></graphic>
         </Button>
         <Button fx:id="fboOrdersButton" alignment="CENTER_LEFT" mnemonicParsing="false" onAction="#onFboOrders" prefHeight="30.0" prefWidth="220" text=" Đơn hàng FBO" maxWidth="1.7976931348623157E308" styleClass="button,nav-item">
@@ -88,7 +88,7 @@
             </graphic>
         </Button>
         <Button fx:id="listingCopyButton" onAction="#onListingCopy" text="%copy.title" alignment="CENTER_LEFT" maxWidth="1.7976931348623157E308" styleClass="button,nav-item"><graphic><FontIcon iconLiteral="fth-copy" iconSize="16" /></graphic></Button>
-        <Button text="%sidebar.finance" alignment="CENTER_LEFT" onAction="#onFinance" styleClass="button,nav-item" maxWidth="1.7976931348623157E308" fx:id="financeButton" /></children></VBox></content></TitledPane></children></VBox></content></ScrollPane><MenuButton fx:id="settingsMenuButton" alignment="CENTER_LEFT" mnemonicParsing="false" prefHeight="46" prefWidth="236" text=" Settings" maxWidth="1.7976931348623157E308">
+        <Button text="%sidebar.finance" alignment="CENTER_LEFT" onAction="#onFinance" styleClass="button,nav-item" maxWidth="1.7976931348623157E308" fx:id="financeButton"><graphic><FontIcon iconLiteral="fth-bar-chart-2" iconSize="16"/></graphic></Button></children></VBox></content></TitledPane></children></VBox></content></ScrollPane><MenuButton fx:id="settingsMenuButton" alignment="CENTER_LEFT" mnemonicParsing="false" prefHeight="46" prefWidth="236" text=" Settings" maxWidth="1.7976931348623157E308">
             <styleClass>
                 <String fx:value="button" />
                 <String fx:value="btn-secondary" />

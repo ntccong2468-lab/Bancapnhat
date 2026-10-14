@@ -45,7 +45,7 @@ public final class OzonRegistrationPane extends VBox {
     public OzonRegistrationPane(Shop shop,Runnable openGtin) {
         if(shop==null||shop.getMarketplace()!=Marketplace.OZON)throw new IllegalArgumentException("shop_mismatch");
         this.owner=new Shop(shop.getId(),shop.getName(),shop.getMarketplace(),shop.getClientId(),shop.getApiKey());this.openGtin=Objects.requireNonNull(openGtin);
-        setId("ozonRegistrationPane");setSpacing(12);setPadding(new Insets(16));
+        setId("ozonRegistrationPane");setSpacing(8);setPadding(new Insets(12));
         title.getStyleClass().add("h2");status.setWrapText(true);status.getStyleClass().add("text-muted");
         var actions=new FlowPane(10,8,documents,refresh,sync,sign,gtin,stopBatch);var filters=new FlowPane(8,8,search,all,clear,register,newCards);search.setPrefWidth(300);
         HBox.setHgrow(search,Priority.ALWAYS);getChildren().setAll(title,actions,status,filters,table,new HBox(10,count,selection,more));VBox.setVgrow(table,Priority.ALWAYS);

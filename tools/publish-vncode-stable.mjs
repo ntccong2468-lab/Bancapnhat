@@ -1,0 +1,82 @@
+import assert from 'node:assert/strict';
+import {execFileSync} from 'node:child_process';
+import {createHash} from 'node:crypto';
+import {mkdtemp,readFile,writeFile} from 'node:fs/promises';
+import {tmpdir} from 'node:os';
+import path from 'node:path';
+import {fileURLToPath} from 'node:url';
+import {resolveReleaseVersion} from './release-version.mjs';
+import {validatePublicationSource,validateJavaTestSummary} from './preview-source-guard.mjs';
+import {validateBuild,validateNativeSmoke,validateSideBySideSmoke,validateUpgradeSmoke,validateReleaseAssets} from './publish-vncode-windows.mjs';
+import {validateLicenseReadiness} from './license-release-gate.mjs';
+
+const REPO='ntccong2468-lab/Bancapnhat';
+const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
+const json=bytes=>JSON.parse(bytes.toString('utf8').replace(/^\uFEFF/,''));
+const gh=args=>execFileSync('gh',args,{encoding:'utf8',maxBuffer:64*1024*1024});
+const api=endpoint=>JSON.parse(gh(['api',`repos/${REPO}/${endpoint}`]));
+
+export function validateStableAsset(asset,version,digest,size) {
+    assert.equal(asset.name,`VN-code-${version}-Windows-x64.exe`);
+    assert.equal(asset.state,'uploaded');assert.equal(asset.digest,`sha256:${digest}`);assert.equal(asset.size,size);
+    assert.equal(asset.browser_download_url,`https://github.com/${REPO}/releases/download/v${version}/${asset.name}`);
+}
+export function validatePublishedStable(release,version) {
+    assert.equal(release.tag_name,`v${version}`);assert.equal(release.draft,false);assert.equal(release.prerelease,false);
+    assert.ok(release.body?.trim(),'Update notes are required');
+    assert.ok(release.assets.some(asset=>asset.name===`VN-code-${version}-Windows-x64.exe`));
+}
+
+async function main(runId,sha,mode='prepare') {
+    assert.match(runId??'',/^[1-9][0-9]{0,15}$/);assert.match(sha??'',/^[a-f0-9]{40}$/);
+    assert.ok(['prepare','publish'].includes(mode));
+    const {version}=await resolveReleaseVersion({root:process.cwd()});const tag=`v${version}`;
+    validatePublicationSource(sha);
+    const run=api(`actions/runs/${runId}`);validateBuild(run,sha,api('actions/workflows/build-java.yml').id);
+    const status=json(await readFile(`docs/releases/VN-code-${version}-status.json`));
+    if(mode==='publish') {
+        assert.equal(status.complete,true,'Release functionality acceptance is incomplete');
+        validateLicenseReadiness(status,json(await readFile('src/main/resources/com/vncode/app/license/trusted-keys.json')),
+            json(await readFile(`docs/validation/VN-code-${version}-license-acceptance.json`)),version,sha);
+    }
+    const artifactName=`VN-code-${version}-Windows-x64`;
+    assert.equal(api(`actions/runs/${runId}/artifacts?per_page=100`).artifacts.filter(a=>a.name===artifactName&&!a.expired).length,1);
+    const directory=await mkdtemp(path.join(tmpdir(),'vncode-stable-'));
+    gh(['run','download',runId,'--repo',REPO,'--name',artifactName,'--dir',directory]);
+    const name=`VN-code-${version}-Windows-x64.exe`;const bytes=await readFile(path.join(directory,name));
+    const digest=hash(bytes);assert.equal(digest,(await readFile(path.join(directory,`VN-code-${version}-Windows-x64.sha256`),'utf8')).trim().split(/\s+/)[0]);
+    assert.ok(bytes.length>1024*1024);assert.equal(bytes.subarray(0,2).toString(),'MZ');const pe=bytes.readUInt32LE(0x3c);assert.equal(bytes.subarray(pe,pe+4).toString(),'PE\0\0');
+    const native=json(await readFile(path.join(directory,'native-smoke.json')));validateNativeSmoke(native,version);
+    validateSideBySideSmoke(json(await readFile(path.join(directory,'side-by-side-smoke.json'))),version);
+    validateUpgradeSmoke(json(await readFile(path.join(directory,'upgrade-smoke.json'))),version);
+    const java=validateJavaTestSummary(gh(['run','view',runId,'--repo',REPO,'--log']));
+    const notes=(await readFile(`docs/releases/VN-code-${version}.md`,'utf8')).trim();assert.ok(notes.length>50);
+    const info={version,sourceCommit:sha,runId:Number(runId),java,installer:{filename:name,bytes:bytes.length,sha256:digest},
+        licenseProductionAcceptance:status.licenseIntegration.productionReady,native,channel:'stable-after-publication',authenticodeSigned:false};
+    await writeFile(path.join(directory,'build-info.json'),JSON.stringify(info,null,2)+'\n');
+    await writeFile(path.join(directory,'release-notes.md'),notes+'\n');
+    const names=[name,`VN-code-${version}-Windows-x64.sha256`,'build-info.json','release-notes.md'];
+    const digests={};for(const file of names)digests[file]=hash(await readFile(path.join(directory,file)));
+    let release=api('releases?per_page=100').find(r=>r.tag_name===tag);
+    if(!release) {
+        gh(['release','create',tag,'--repo',REPO,'--target',sha,'--draft','--title',`VNCode ${version}`,'--notes-file',path.join(directory,'release-notes.md')]);
+        release=api('releases?per_page=100').find(r=>r.tag_name===tag);
+    }
+    assert.equal(release.draft,true,'Never overwrite an already published version');assert.equal(release.prerelease,false);
+    assert.equal(api(`git/ref/tags/${tag}`).object.sha,sha);validateReleaseAssets(release.assets,names);
+    for(const file of names) {
+        const present=release.assets.find(a=>a.name===file);
+        if(present){assert.equal(present.digest,`sha256:${digests[file]}`);assert.equal(present.state,'uploaded');}
+        else gh(['release','upload',tag,path.join(directory,file),'--repo',REPO]);
+    }
+    gh(['release','edit',tag,'--repo',REPO,'--title',`VNCode ${version}`,'--notes-file',path.join(directory,'release-notes.md')]);
+    const ready=api(`releases/${release.id}`);validateReleaseAssets(ready.assets,names,true);
+    validateStableAsset(ready.assets.find(a=>a.name===name),version,digest,bytes.length);
+    if(mode==='publish') {
+        const request=path.join(directory,'publish.json');await writeFile(request,JSON.stringify({draft:false,prerelease:false,make_latest:'true'}));
+        gh(['api','-X','PATCH',`repos/${REPO}/releases/${release.id}`,'--input',request]);
+        validatePublishedStable(api('releases/latest'),version);
+    }
+    console.log(JSON.stringify({version,mode,url:ready.html_url,sourceCommit:sha,sha256:digest,published:mode==='publish'}));
+}
+if(process.argv[1]&&path.resolve(process.argv[1])===fileURLToPath(import.meta.url))await main(...process.argv.slice(2));

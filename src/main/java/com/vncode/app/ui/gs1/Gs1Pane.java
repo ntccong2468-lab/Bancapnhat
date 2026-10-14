@@ -231,9 +231,9 @@ public final class Gs1Pane extends BorderPane {
     private void render(){
         Label title=new Label(tr("gs1.title"));title.getStyleClass().add("h1");
         Label guide=new Label(tr("gs1.guide"));guide.setWrapText(true);guide.getStyleClass().add("text-muted");
-        var heading=new VBox(5,title,guide);heading.setPadding(new Insets(0,0,14,0));setTop(heading);
+        var heading=new VBox(5,title,guide);heading.setPadding(new Insets(0,0,10,0));setTop(heading);
         summary.setWrapText(true);summary.getStyleClass().setAll("label","h2");detail.setWrapText(true);detail.getStyleClass().setAll("label","text-muted");status.setWrapText(true);
-        var left=new VBox(14,membershipCard(),readinessCard(),prefixCard());left.setId("gs1AccountPanel");left.setPadding(new Insets(0,12,8,0));left.setMinWidth(0);
+        var left=new VBox(10,membershipCard(),readinessCard(),prefixCard());left.setId("gs1AccountPanel");left.setPadding(new Insets(0,12,8,0));left.setMinWidth(0);
         headerScroll.setId("gs1AccountScroll");headerScroll.setFitToWidth(true);headerScroll.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);headerScroll.setMinWidth(0);headerScroll.setMinHeight(0);headerScroll.setMaxHeight(Double.MAX_VALUE);headerScroll.setContent(left);
         var inboxActions=new FlowPane(8,8,button("gs1.mail_settings",this::mailSettings),button("gs1.inbox_refresh",this::refreshInbox));inboxActions.setDisable(busy||inn.isBlank());
         requests.setId("gs1Requests");requests.setPlaceholder(new Label(tr("gs1.requests_empty")));requests.setMinHeight(80);requests.setPrefHeight(145);requests.setMaxHeight(190);
@@ -241,7 +241,7 @@ public final class Gs1Pane extends BorderPane {
         conversationScroll.setId("gs1Conversation");conversationScroll.setMinHeight(100);conversation.setPadding(new Insets(8));
         if(conversation.getChildren().isEmpty()){var empty=new Label(tr("gs1.inbox_empty"));empty.setWrapText(true);empty.getStyleClass().add("text-muted");conversation.getChildren().add(empty);}
         var inboxTitle=new Label(tr("gs1.inbox_title"));inboxTitle.getStyleClass().add("h2");inboxTitle.setWrapText(true);
-        var inbox=new VBox(10,inboxTitle,inboxActions,new Label(tr("gs1.requests")),requests,conversationScroll);inbox.setId("gs1InboxPanel");inbox.setPadding(new Insets(14));inbox.setMinWidth(0);inbox.setMinHeight(0);inbox.getStyleClass().add("feature-card");VBox.setVgrow(conversationScroll,Priority.ALWAYS);
+        var inbox=new VBox(10,inboxTitle,inboxActions,new Label(tr("gs1.requests")),requests,conversationScroll);inbox.setId("gs1InboxPanel");inbox.setPadding(new Insets(12));inbox.setMinWidth(0);inbox.setMinHeight(0);inbox.getStyleClass().add("feature-card");VBox.setVgrow(conversationScroll,Priority.ALWAYS);
         SplitPane split=new SplitPane(headerScroll,inbox);split.setId("gs1WorkspaceSplit");split.setDividerPositions(.64);split.widthProperty().addListener((o,a,b)->adaptWorkspace(split,b.doubleValue()));setCenter(split);adaptWorkspace(split,getWidth()-getPadding().getLeft()-getPadding().getRight());
         setBottom(status);BorderPane.setMargin(status,new Insets(8,0,0,0));
         requests.refresh();if(requests.getSelectionModel().getSelectedItem()!=null)showThread(requests.getSelectionModel().getSelectedItem());

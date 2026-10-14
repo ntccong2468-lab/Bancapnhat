@@ -11,18 +11,18 @@
 /* CSS Variables & Theme Definitions */
 .root {
     /* DEFAULT (DARK) THEME VARIABLES */
-    -bg-primary: #121119;        /* Deep slate navy */
-    -bg-secondary: #1F1E29;      /* Medium slate card background */
-    -bg-tertiary: #1F1E29;       /* Lighter slate panel background */
-    -bg-odd-row: #1F1E29;        /* Contrasted odd row background */
-    -border-color: #302E3F;      /* Slate border */
-    -border-color-hover: #454257;
+    -bg-primary: #111419;        /* Deep slate navy */
+    -bg-secondary: #191D24;      /* Medium slate card background */
+    -bg-tertiary: #191D24;       /* Lighter slate panel background */
+    -bg-odd-row: #191D24;        /* Contrasted odd row background */
+    -border-color: #2C323C;      /* Slate border */
+    -border-color-hover: #454E5D;
 
-    -text-primary: #F1EFF7;      /* Slate 50 text */
-    -text-secondary: #BAB7C8;    /* Slate 300 text */
-    -text-muted: #8F8AA3;        /* Slate 500 text */
+    -text-primary: #F1F3F6;      /* Slate 50 text */
+    -text-secondary: #C0C6D1;    /* Slate 300 text */
+    -text-muted: #969DAB;        /* Slate 500 text */
 
-    -accent: #B55CF5;            /* Soft Violet/Purple accent for dark mode readability */
+    -accent: #9660EE;            /* Soft Violet/Purple accent for dark mode readability */
     -accent-hover: #C071FA;
     -accent-active: #9F45E3;
     -accent-transparent: rgba(167, 139, 250, 0.15);
@@ -39,28 +39,28 @@
     -warning-hover: #D97706;
 
     /* Button specific dark variables */
-    -btn-bg: #1F1E29;
-    -btn-bg-hover: #302E3F;
-    -btn-bg-pressed: #121119;
-    -btn-text-color: #F1EFF7;
+    -btn-bg: #191D24;
+    -btn-bg-hover: #2C323C;
+    -btn-bg-pressed: #111419;
+    -btn-text-color: #F1F3F6;
     
     -fx-font-family: "Inter", "Segoe UI", sans-serif;
-    -fx-font-size: 14px;
+    -fx-font-size: 13px;
 }
 
 .root.theme-dark {
-    -bg-primary: #121119;
-    -bg-secondary: #1F1E29;
-    -bg-tertiary: #1F1E29;
-    -bg-odd-row: #1F1E29;
-    -border-color: #302E3F;
-    -border-color-hover: #454257;
+    -bg-primary: #111419;
+    -bg-secondary: #191D24;
+    -bg-tertiary: #191D24;
+    -bg-odd-row: #191D24;
+    -border-color: #2C323C;
+    -border-color-hover: #454E5D;
 
-    -text-primary: #F1EFF7;
-    -text-secondary: #BAB7C8;
-    -text-muted: #8F8AA3;
+    -text-primary: #F1F3F6;
+    -text-secondary: #C0C6D1;
+    -text-muted: #969DAB;
 
-    -accent: #B55CF5;
+    -accent: #9660EE;
     -accent-hover: #C071FA;
     -accent-active: #9F45E3;
     -accent-transparent: rgba(167, 139, 250, 0.15);
@@ -76,14 +76,14 @@
     -warning: #F59E0B;
     -warning-hover: #D97706;
 
-    -btn-bg: #1F1E29;
-    -btn-bg-hover: #302E3F;
-    -btn-bg-pressed: #121119;
-    -btn-text-color: #F1EFF7;
+    -btn-bg: #191D24;
+    -btn-bg-hover: #2C323C;
+    -btn-bg-pressed: #111419;
+    -btn-text-color: #F1F3F6;
 }
 
 .root.theme-light {
-    -bg-primary: #F7F5FA;      /* Soft light grey background */
+    -bg-primary: #F5F6FA;      /* Soft light grey background */
     -bg-secondary: #FFFFFF;    /* Pure white cards/tables (matches Wildberries) */
     -bg-tertiary: #FFFFFF;     /* White/light panel background */
     -bg-odd-row: #F9FAFB;      /* Light grey alternating row (matches Wildberries) */
@@ -153,9 +153,9 @@
     -fx-font-weight: bold;
 }
 
-.h1 { -fx-font-size: 24px; -fx-font-weight: bold; }
-.h2 { -fx-font-size: 20px; -fx-font-weight: bold; }
-.h3 { -fx-font-size: 16px; -fx-font-weight: bold; }
+.h1 { -fx-font-size: 22px; -fx-font-weight: bold; }
+.h2 { -fx-font-size: 18px; -fx-font-weight: bold; }
+.h3 { -fx-font-size: 14px; -fx-font-weight: bold; }
 
 /* Panels & Containers */
 .sidebar {
@@ -793,7 +793,7 @@
 }
 .table-view .column-header, .table-view .filler {
     -fx-background-color: transparent;
-    -fx-size: 44px;
+    -fx-size: 36px;
     -fx-border-width: 0;
 }
 .table-view .column-header .label {
@@ -815,7 +815,7 @@
     -fx-background-color: -bg-secondary;
     -fx-border-color: transparent;
     -fx-table-cell-border-color: transparent;
-    -fx-cell-size: 52px; /* Fallback size */
+    -fx-cell-size: 44px; /* Simple rows; rich order rows have specific computed-height rules. */
 }
 .table-view .table-row-cell:odd {
     -fx-background-color: -bg-odd-row;
@@ -1079,10 +1079,10 @@
 
 .theme-light .badge-gray {
     -fx-background-color: #E2E8F0;
-    -fx-text-fill: #454257;
+    -fx-text-fill: #454E5D;
 }
 .theme-dark .badge-gray {
-    -fx-background-color: #302E3F;
+    -fx-background-color: #2C323C;
     -fx-text-fill: #94A3B8;
 }
 
@@ -1111,9 +1111,9 @@
 
 /* Screenshot reference: quiet navigation, spacious cards and supply rows. */
 .root { -fx-font-family: "Inter", "System"; }
-.header { -fx-background-color: -bg-secondary; -fx-padding: 14 20; }
-.sidebar { -fx-background-color: derive(-bg-primary, 7%); -fx-padding: 14 12 10 12; }
-.sidebar .button, .sidebar .menu-button { -fx-background-color: transparent; -fx-border-color: transparent; -fx-text-fill: -text-secondary; -fx-alignment: CENTER_LEFT; -fx-padding: 12 14; -fx-background-radius: 16; -fx-font-size: 16; }
+.header { -fx-background-color: -bg-secondary; -fx-padding: 8 12; }
+.sidebar { -fx-background-color: derive(-bg-primary, 7%); -fx-padding: 10 8 8 8; }
+.sidebar .button, .sidebar .menu-button { -fx-background-color: transparent; -fx-border-color: transparent; -fx-text-fill: -text-secondary; -fx-alignment: CENTER_LEFT; -fx-padding: 8 10; -fx-background-radius: 8; -fx-font-size: 13; }
 .sidebar .button .ikonli-font-icon { -fx-icon-color: -text-secondary; }
 .sidebar .button:hover { -fx-background-color: -accent-transparent; }
 .sidebar .button.nav-selected { -fx-background-color: -accent-transparent; -fx-text-fill: -accent; }
@@ -1121,21 +1121,21 @@
 .sidebar .button.add-shop { -fx-background-color: -accent; -fx-text-fill: white; -fx-font-weight: bold; }
 .sidebar .button.add-shop .ikonli-font-icon { -fx-icon-color: white; }
 .sidebar-scroll, .sidebar-scroll > .viewport, .welcome-scroll, .welcome-scroll > .viewport { -fx-background-color: transparent; }
-.sidebar-tools > .title { -fx-background-color: transparent; -fx-padding: 12; }
+.sidebar-tools > .title { -fx-background-color: transparent; -fx-padding: 8; }
 .sidebar-tools > .content { -fx-background-color: transparent; -fx-border-color: transparent; }
-.welcome-body { -fx-padding: 24 24 28 24; }
-.welcome-title { -fx-font-size: 32; -fx-font-weight: bold; }
-.welcome-description { -fx-font-size: 16; -fx-text-fill: -text-secondary; }
-.feature-card, .news-card { -fx-background-color: -bg-secondary; -fx-border-color: -border-color; -fx-border-width: 1; -fx-background-radius: 20; -fx-border-radius: 20; -fx-padding: 20; -fx-alignment: TOP_LEFT; }
-.feature-card { -fx-min-height: 145; }
+.welcome-body { -fx-padding: 16; }
+.welcome-title { -fx-font-size: 24; -fx-font-weight: bold; }
+.welcome-description { -fx-font-size: 13; -fx-text-fill: -text-secondary; }
+.feature-card, .news-card { -fx-background-color: -bg-secondary; -fx-border-color: -border-color; -fx-border-width: 1; -fx-background-radius: 10; -fx-border-radius: 10; -fx-padding: 14; -fx-alignment: TOP_LEFT; }
+.feature-card { -fx-min-height: 110; }
 .feature-card:hover, .news-card:hover { -fx-border-color: -accent; }
-.feature-title, .news-card-title { -fx-font-weight: bold; -fx-font-size: 16; }
+.feature-title, .news-card-title { -fx-font-weight: bold; -fx-font-size: 14; }
 .feature-card .feature-icon { -fx-icon-color: -accent; }
 .feature-card .text-secondary, .news-card .text-secondary, .news-card .text-muted { -fx-font-weight: normal; }
 .sidebar-tools > .title > .text { -fx-fill: -text-secondary; }
-.guide-section { -fx-background-color: -bg-secondary; -fx-border-color: -border-color; -fx-background-radius: 16; -fx-border-radius: 16; -fx-padding: 20; }
+.guide-section { -fx-background-color: -bg-secondary; -fx-border-color: -border-color; -fx-background-radius: 10; -fx-border-radius: 10; -fx-padding: 14; }
 .news-preview { -fx-spacing: 16; }
-.news-card { -fx-padding: 24; -fx-min-height: 210; }
+.news-card { -fx-padding: 16; -fx-min-height: 160; }
 .unread-badge { -fx-background-color: #FF6276; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 3 9; -fx-background-radius: 12; }
 .supply-detail { -fx-background-radius: 20; -fx-border-radius: 20; -fx-padding: 20; }
 .supply-detail #orderTable .table-row-cell { -fx-cell-size: 136; -fx-border-color: transparent transparent -border-color transparent; -fx-border-width: 0 0 1 0; }
@@ -1165,3 +1165,27 @@
 
 /* Keep both barcode and GTIN visible within compact product rows. */
 #productRows .list-cell { -fx-padding: 5px 14px; }
+
+/* Shared compact desktop rhythm; detailed order rows retain computed heights. */
+.card { -fx-padding: 12; -fx-background-radius: 10; -fx-border-radius: 10; }
+.surface { -fx-padding: 10; -fx-background-radius: 8; -fx-border-radius: 8; }
+.sidebar.sidebar-compact .button, .sidebar.sidebar-compact .menu-button { -fx-alignment: CENTER; -fx-padding: 8; }
+.sidebar.sidebar-compact .menu-button > .arrow-button { -fx-padding: 0; }
+.sidebar.sidebar-compact .menu-button > .arrow-button > .arrow { -fx-shape: null; -fx-padding: 0; }
+.text-field, .password-field, .combo-box-base, .date-picker { -fx-padding: 6 9; -fx-background-radius: 6; -fx-border-radius: 6; }
+.tab-pane > .tab-header-area > .headers-region > .tab { -fx-padding: 8 12; }
+.table-view .column-header .label { -fx-padding: 8 10; }
+.table-cell { -fx-padding: 5 10; }
+.product-name { -fx-font-size: 14; }
+.products-bulk { -fx-background-color: -bg-secondary; -fx-padding: 10; -fx-background-radius: 8; }
+.product-row { -fx-border-color: -border-color; }
+.supply-detail { -fx-padding: 12; -fx-background-radius: 10; -fx-border-radius: 10; }
+.supply-detail #orderTable .column-header { -fx-pref-height: 38; }
+.supply-detail #orderTable .table-cell { -fx-padding: 10 12; -fx-font-size: 13; }
+.supply-detail .button { -fx-background-radius: 8; -fx-font-size: 13; }
+.supply-detail .check-box { -fx-font-size: 13; }
+
+.combo-box > .list-cell { -fx-padding: 4 6; }
+.combo-box > .arrow-button { -fx-padding: 0 7; }
+
+.sidebar-tools .ikonli-font-icon { -fx-icon-color: -text-secondary; -fx-icon-size: 16; }

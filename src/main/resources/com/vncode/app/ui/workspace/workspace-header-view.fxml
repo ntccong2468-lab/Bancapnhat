@@ -17,14 +17,14 @@
 <?import javafx.scene.text.Font?>
 <?import org.kordamp.ikonli.javafx.FontIcon?>
 
-<FlowPane alignment="CENTER_LEFT" prefWidth="738.0" hgap="10.0" vgap="8.0" styleClass="header" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.vncode.app.ui.workspace.WorkspaceHeaderController">
+<FlowPane alignment="CENTER_LEFT" prefWidth="738.0" hgap="8.0" vgap="6.0" styleClass="header" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.vncode.app.ui.workspace.WorkspaceHeaderController">
     <children>
         <VBox alignment="CENTER_LEFT" prefWidth="300.0" spacing="2.0">
             <children>
                 <HBox alignment="CENTER_LEFT" minHeight="32.0" spacing="8.0">
                     <children>
-                        <ComboBox fx:id="shopComboBox" prefHeight="44.0" prefWidth="274.0" promptText="Выберите магазин..." styleClass="combo-box" />
-                        <Button fx:id="editShopButton" alignment="CENTER" mnemonicParsing="false" onAction="#onEditShop" prefHeight="44.0" prefWidth="42.0">
+                        <ComboBox fx:id="shopComboBox" prefHeight="36.0" prefWidth="220.0" promptText="Выберите магазин..." styleClass="combo-box" />
+                        <Button fx:id="editShopButton" alignment="CENTER" mnemonicParsing="false" onAction="#onEditShop" prefHeight="36.0" prefWidth="34.0">
                             <styleClass>
                                 <String fx:value="btn-icon" />
                             </styleClass>
@@ -32,7 +32,7 @@
                                 <FontIcon iconLiteral="fth-edit-2" iconSize="16"/>
                             </graphic>
                         </Button>
-                        <Button fx:id="deleteShopButton" alignment="CENTER" mnemonicParsing="false" onAction="#onDeleteShop" prefHeight="44.0" prefWidth="42.0">
+                        <Button fx:id="deleteShopButton" alignment="CENTER" mnemonicParsing="false" onAction="#onDeleteShop" prefHeight="36.0" prefWidth="34.0">
                             <styleClass>
                                 <String fx:value="btn-icon" />
                             </styleClass>
@@ -44,11 +44,11 @@
                 </HBox>
             </children>
         </VBox>
-        <VBox spacing="4"><Label fx:id="balanceLabel" text="%header.balance_unknown" styleClass="text-muted"/><ComboBox fx:id="balanceAccount" prefWidth="180" promptText="%header.balance_choose"/></VBox>
-        <Button fx:id="jobsButton" onAction="#onJobs" text="%jobs.title" prefHeight="46"/>
+        <VBox spacing="4"><Label fx:id="balanceLabel" text="%header.balance_unknown" styleClass="text-muted"/><ComboBox fx:id="balanceAccount" prefWidth="160" promptText="%header.balance_choose"/></VBox>
+        <Button fx:id="jobsButton" onAction="#onJobs" text="%jobs.title" prefHeight="36"/>
         <ProgressIndicator fx:id="syncLoadingIndicator" managed="false" maxHeight="18.0" maxWidth="18.0" prefHeight="18.0" prefWidth="18.0" visible="false" />
         <Label fx:id="syncLoadingLabel" managed="false" styleClass="text-muted" text="%header.sync_products_kiz" visible="false" />
-        <Button fx:id="syncButton" mnemonicParsing="false" onAction="#onSync" prefHeight="46.0" text=" Синхронизировать WB">
+        <Button fx:id="syncButton" mnemonicParsing="false" onAction="#onSync" prefHeight="36.0" text=" Синхронизировать WB">
             <styleClass>
                 <String fx:value="button" />
                 <String fx:value="btn-primary" />
@@ -59,10 +59,10 @@
         </Button>
         <Button fx:id="updateButton" id="availableUpdateButton" onAction="#onUpdate" visible="false" managed="false" styleClass="button,btn-primary" text="%update.notification" />
         <StackPane>
-            <Button fx:id="newsButton" onAction="#onNews" prefHeight="46" prefWidth="46" styleClass="btn-icon"><graphic><FontIcon iconLiteral="fth-bell" iconSize="20"/></graphic></Button>
+            <Button fx:id="newsButton" onAction="#onNews" prefHeight="36" prefWidth="36" styleClass="btn-icon"><graphic><FontIcon iconLiteral="fth-bell" iconSize="20"/></graphic></Button>
             <Label fx:id="newsBadge" text="0" visible="false" managed="false" mouseTransparent="true" styleClass="unread-badge" StackPane.alignment="TOP_RIGHT"/>
         </StackPane>
-        <Button fx:id="supportButton" onAction="#onSupport" text="%header.support" prefHeight="46"><graphic><FontIcon iconLiteral="fth-message-circle" iconSize="18"/></graphic></Button>
+        <Button fx:id="supportButton" onAction="#onSupport" text="%header.support" prefHeight="36"><graphic><FontIcon iconLiteral="fth-message-circle" iconSize="18"/></graphic></Button>
     </children>
     <padding>
         <Insets left="16.0" right="16.0" />
