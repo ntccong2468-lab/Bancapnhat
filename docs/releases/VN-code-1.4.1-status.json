@@ -13,7 +13,7 @@
     "productionReady": false,
     "status": "direct-gmail-and-code-enrollment-local-verified-production-deployment-pending",
     "account": "Gmail entry -> admin approval -> account-bound VNC key; new machines can enter the issued key directly",
-    "backend": "VNCode Portal 0.3.2, not yet deployed",
+    "backend": "VNCode Portal 0.3.2 observed on production: config and exact admin asset match; positive activation pending",
     "backendSource": "website/license-portal",
     "registrationRequiresOtp": false,
     "defaultDevices": 1,
@@ -25,7 +25,9 @@
       "vncode-1"
     ],
     "serverSigningKeyMatch": "unverified",
-    "usageModel": "Independent desktops sharing registration/license website"
+    "usageModel": "Independent desktops sharing registration/license website",
+    "backendDeployment": "observed-production-config-gmail_admin-and-admin-assets-match",
+    "backendLiveEndpointChecks": "new register and code-enrollment routes return expected errors for empty input without writes"
   },
   "validation": {
     "linuxJavaTests": {
