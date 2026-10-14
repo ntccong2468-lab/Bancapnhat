@@ -2,7 +2,7 @@
   "version": "1.4.7",
   "baseVersion": "1.4.6",
   "complete": false,
-  "officialReleasePublished": false,
+  "officialReleasePublished": true,
   "licenseIntegration": {
     "implemented": true,
     "productionReady": false,
@@ -19,7 +19,7 @@
     "windowsFullBuild": {
       "runId": 38635358816,
       "sourceCommit": "68fc1b85ef2f838e3cd7bb269c298ce396e3b277",
-      "result": "native-workspace-and-upgrades-in-progress",
+      "result": "passed",
       "javaSuites": 216,
       "javaTests": 1237,
       "javaPassed": 1235,
@@ -27,7 +27,30 @@
       "javaErrors": 0,
       "javaSkippedPlatformSpecific": 2,
       "nativeLauncher": "passed",
-      "gs1AndCatalogDpapi": "passed"
+      "gs1AndCatalogDpapi": "passed",
+      "installerArtifactId": 11928898353,
+      "nativeInstallAndUpgrade": "passed",
+      "upgradeFromVersions": [
+        "1.1.34",
+        "1.2.0",
+        "1.2.1",
+        "1.2.2",
+        "1.3.0",
+        "1.4.0",
+        "1.4.6"
+      ],
+      "desktopLayouts": 272,
+      "horizontalButtonOverflow": 0,
+      "workspaceDpi": [
+        100,
+        125,
+        150
+      ],
+      "workspaceDatasets": [
+        "6wb4ozon",
+        "10ozon"
+      ],
+      "windowsLowEndHardwareMeasured": false
     },
     "liveOzonMutations": "not-performed",
     "productionMultiDeviceOfflineRevocation": "not-verified",
@@ -53,6 +76,17 @@
     "repository": "ntccong2468-lab/Bancapnhat",
     "tag": "v1.4.7",
     "appAutomaticFeed": "/releases/latest",
-    "publicationAuthorization": "Owner requested Published/Latest updates and Ozon FBS alignment; outstanding production acceptance remains disclosed."
+    "publicationAuthorization": "Owner requested Published/Latest updates and Ozon FBS alignment; outstanding production acceptance remains disclosed.",
+    "installerSha256": "63208a73138ef31393c3237d19af6edb2362ea557295baa4ba90d3692a648d9a",
+    "installerBytes": 144735232,
+    "prepareRunId": 38639318921,
+    "draftPreparation": "passed",
+    "publishedAt": "2026-10-14T21:20:26Z",
+    "releaseId": 413193348,
+    "url": "https://github.com/ntccong2468-lab/Bancapnhat/releases/tag/v1.4.7",
+    "publicLatestVerified": true,
+    "publicInstallerDownloadedAndSha256Verified": true,
+    "desktop146UpdaterDiscovery": "AVAILABLE; Windows install action supported",
+    "desktop146UpdaterDownload": "passed on Linux using session HTTPS proxy and trusted CA; exact public EXE byte size and SHA-256 verified; installer execution verified separately on Windows CI"
   }
 }
