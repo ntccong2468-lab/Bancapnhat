@@ -33,10 +33,18 @@
     "releaseContractTests": 49,
     "releaseContractFailures": 0,
     "portalDryRun": "passed",
-    "windowsNative": "pending",
+    "windowsNative": "passed",
     "fullApplicationMatrix": "not-run-for-1.4.4",
     "portalDeployment": "not-deployed-0.3.5",
-    "productionActivation": "not-verified"
+    "productionActivation": "not-verified",
+    "focusedWindowsTests": 88,
+    "focusedWindowsFailures": 0,
+    "windowsDiagnosticRun": 38615048269,
+    "windowsDiagnosticArtifact": 11920585481,
+    "windowsDiagnosticSourceCommit": "07c085aab3472e730669acb3ba97073d64155cf6",
+    "windowsDiagnosticSha256": "c73a6998e551859ebc66be06d5fd0d574087963363b2a986a027ffa47c5bc2bb",
+    "portalSourceArtifact": 11920515061,
+    "portalSourceSha256": "b47122a7c8563dfdcf86f0600e4cc0a4c76326784ccfb003e9383eae438b58e3"
   },
   "updateIntegration": {
     "stablePublicReleaseAvailable": false,
