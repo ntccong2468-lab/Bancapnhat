@@ -5,7 +5,7 @@ import java.util.Set;
 public final class LicenseModels {
     private LicenseModels() {}
     public enum Permission { SELLER_API, SHOP_MANAGE, GTIN, KIZ, LISTING_WRITE, PACKING, PRINT_NEW, GS1 }
-    public enum Status { UNREGISTERED, VERIFYING_EMAIL, PENDING, APPROVED, CHECKING, ACTIVE, OFFLINE, EXPIRED, DENIED, UNVERIFIED }
+    public enum Status { UNREGISTERED, REGISTERING, VERIFYING_EMAIL, PENDING, APPROVED, CHECKING, ACTIVE, OFFLINE, EXPIRED, DENIED, UNVERIFIED }
     public record Envelope(String keyId, String payload, String signature) {
         @Override public String toString() { return "Envelope[redacted]"; }
     }

@@ -81,11 +81,36 @@ public final class WebLicenseApi implements LicenseApi {
     public Registration start(String email) throws IOException {
         JsonObject request = new JsonObject();
         request.addProperty("email", gmail(email));
-        JsonObject response = exchange("registration/start", null, request, 201);
+        JsonObject response;
+        try { response = exchange("registration/register", null, request, 201); }
+        catch (Failure failure) {
+            if (failure.status() == 404 || failure.status() == 401 && failure.code().equals("AUTH_REQUIRED")) throw new Failure("REGISTRATION_UPDATE_REQUIRED", 404);
+            throw failure;
+        }
         uuid(response, "registration_id");
         long expires = number(response, "expires_in");
-        if (expires < 1 || expires > 600) throw protocol();
-        return new Registration(responseToken(string(response, "registration_token", 43)));
+        if (expires < 1 || expires > 30L * 86400) throw protocol();
+        RegistrationStatus registered = registrationStatus(response);
+        if (!registered.email().equals(gmail(email))) throw protocol();
+        return new Registration(responseToken(string(response, "registration_token", 43)), registered.email(), registered.status());
+    }
+
+    @Override
+    public Registration enroll(String code) throws IOException {
+        if (code == null || !code.strip().matches("(?i)VNC(?:-[A-F0-9]{4}){8}")) throw input();
+        JsonObject request = new JsonObject();
+        request.addProperty("code", code.strip().toUpperCase(Locale.ROOT));
+        JsonObject response;
+        try { response = exchange("registration/license", null, request, 201); }
+        catch (Failure failure) {
+            if (failure.status() == 404 || failure.status() == 401 && failure.code().equals("AUTH_REQUIRED")) throw new Failure("REGISTRATION_UPDATE_REQUIRED", 404);
+            throw failure;
+        }
+        uuid(response, "registration_id");
+        long expires = number(response, "expires_in");
+        RegistrationStatus registered = registrationStatus(response);
+        if (expires < 1 || expires > 30L * 86400 || !registered.status().equals("approved")) throw protocol();
+        return new Registration(responseToken(string(response, "registration_token", 43)), registered.email(), registered.status());
     }
 
     @Override
@@ -188,7 +213,7 @@ public final class WebLicenseApi implements LicenseApi {
     }
 
     private JsonObject exchange(String path, String token, JsonObject body, int expectedStatus) throws IOException {
-        if (token == null && !path.equals("registration/start")) throw input();
+        if (token == null && !Set.of("registration/register", "registration/license").contains(path)) throw input();
         Request.Builder request = new Request.Builder().url(origin.resolve("api/client/" + path))
                 .header("Accept", "application/json")
                 .header("Cache-Control", "no-store");

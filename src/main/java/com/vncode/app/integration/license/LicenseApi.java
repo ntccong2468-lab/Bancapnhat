@@ -4,11 +4,12 @@ import java.io.IOException;
 import static com.vncode.app.features.license.LicenseModels.*;
 
 public interface LicenseApi {
-    record Registration(String token) { @Override public String toString(){return "Registration[redacted]";} }
+    record Registration(String token,String email,String status) { @Override public String toString(){return "Registration[redacted]";} }
     record RegistrationStatus(String email,String status) { @Override public String toString(){return "RegistrationStatus[redacted]";} }
     record Challenge(String id,String message,long expiresAt) { @Override public String toString(){return "Challenge[redacted]";} }
     record Grant(String accessToken,Account account,Envelope envelope,long onlineValidUntil) { @Override public String toString(){return "Grant[redacted]";} }
     Registration start(String email) throws IOException;
+    Registration enroll(String code) throws IOException;
     RegistrationStatus verify(String token,String otp) throws IOException;
     RegistrationStatus status(String token) throws IOException;
     Challenge challenge(String token,String publicKey,String action) throws IOException;

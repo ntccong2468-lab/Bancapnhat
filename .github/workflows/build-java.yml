@@ -22,6 +22,37 @@ permissions:
   contents: read
 
 jobs:
+  license-portal:
+    if: ${{ !inputs.msi_inspection_only }}
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: website/license-portal
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: '22'
+      - name: Verify Gmail registration, manual approval and shared-key activation
+        run: |
+          npm ci
+          npm run check
+          npm test
+          npx wrangler deploy --dry-run --outdir "$RUNNER_TEMP/portal-worker"
+      - name: Package tracked Portal sources without credentials
+        run: |
+          git ls-files -z . | xargs -0 zip -X "$RUNNER_TEMP/VNCode-Portal-0.3.2-Gmail-Direct.zip"
+          cd "$RUNNER_TEMP"
+          sha256sum VNCode-Portal-0.3.2-Gmail-Direct.zip > VNCode-Portal-0.3.2-Gmail-Direct.sha256
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: VNCode-Portal-0.3.2-Gmail-Direct
+          path: |
+            ${{ runner.temp }}/VNCode-Portal-0.3.2-Gmail-Direct.zip
+            ${{ runner.temp }}/VNCode-Portal-0.3.2-Gmail-Direct.sha256
+          if-no-files-found: error
+          retention-days: 14
+
   inspect-msi:
     if: ${{ inputs.msi_inspection_only }}
     runs-on: windows-latest
@@ -134,6 +165,13 @@ jobs:
         shell: pwsh
         run: ./tools/windows-upgrade-smoke.ps1 -Version $env:APP_VERSION -FromGs1Preview
 
+      - name: Verify upgrade from VN code 1.4.0 license-test with saved data
+        if: env.APP_VERSION == '1.4.1'
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: ./tools/windows-upgrade-smoke.ps1 -Version $env:APP_VERSION -FromLicenseTest
+
       - name: Verify and name test installer
         shell: pwsh
         run: |
@@ -163,6 +201,7 @@ jobs:
             out/upgrade-latest-preview-smoke.json
             out/upgrade-current-preview-smoke.json
             out/upgrade-gs1-preview-smoke.json
+            out/upgrade-license-test-smoke.json
             out/gs1-smoke.json
             out/seller-workspace-smoke.json
             out/seller-workspace-evidence.zip

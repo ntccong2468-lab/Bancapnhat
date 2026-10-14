@@ -26,7 +26,8 @@ class LicenseServiceTest {
         final KeyPair server=KeyPairGenerator.getInstance("Ed25519").generateKeyPair();
         int activations,renewals;int hours=72;boolean advanceServerClock;String accountStatus="pending";Failure failure;String challengeActionOverride;CountDownLatch entered,release;
         Api()throws Exception{}
-        public Registration start(String email){return new Registration(LicenseDomainFixture.TOKEN);}
+        public Registration start(String email){return new Registration(LicenseDomainFixture.TOKEN,email,accountStatus);}
+        public Registration enroll(String code){return new Registration(LicenseDomainFixture.TOKEN,"client@gmail.com","approved");}
         public RegistrationStatus verify(String token,String otp){return new RegistrationStatus("client@gmail.com",accountStatus);}
         public RegistrationStatus status(String token){return new RegistrationStatus("client@gmail.com",accountStatus);}
         public Challenge challenge(String token,String publicKey,String action)throws IOException {
@@ -51,8 +52,25 @@ class LicenseServiceTest {
     LicenseService service(Api api,boolean trusted)throws Exception {
         var service=new LicenseService(api,new LicenseVerifier(trusted?Map.of("test-fixture-v1",api.server.getPublic()):Map.of()),LicenseDomainFixture.store(directory),Clock.fixed(Instant.ofEpochSecond(epoch),ZoneOffset.UTC),nano::get);service.initialize().get(5,TimeUnit.SECONDS);return service;
     }
-    void register(LicenseService s)throws Exception{s.startRegistration("client@gmail.com").get(5,TimeUnit.SECONDS);s.verifyEmail("123456").get(5,TimeUnit.SECONDS);}
+    void register(LicenseService s)throws Exception{s.startRegistration("client@gmail.com").get(5,TimeUnit.SECONDS);}
     void active(LicenseService s,Api api)throws Exception{api.accountStatus="approved";register(s);s.activate(LicenseDomainFixture.CODE).get(5,TimeUnit.SECONDS);assertTrue(s.allows(Permission.GTIN));}
+    @Test void registrationIsPendingImmediatelyAndRestartPreservesItWithoutOtp()throws Exception {
+        var api=new Api();try(var s=service(api,true)){
+            s.startRegistration("  Client@Gmail.com  ").get();
+            assertEquals(Status.PENDING,s.snapshot().status());
+            assertEquals("client@gmail.com",s.snapshot().email());
+            assertFalse(s.allows(Permission.SELLER_API));
+        }
+        try(var restarted=service(api,true)){assertEquals(Status.PENDING,restarted.snapshot().status());assertFalse(restarted.allows(Permission.GTIN));}
+    }
+    @Test void newMachineCanActivateWithoutPriorGmailEntry()throws Exception {
+        var api=new Api();try(var s=service(api,true)){
+            assertEquals(Status.UNREGISTERED,s.snapshot().status());
+            s.activate(LicenseDomainFixture.CODE).get();
+            assertEquals(Status.ACTIVE,s.snapshot().status());assertEquals("client@gmail.com",s.snapshot().email());
+            assertTrue(s.allows(Permission.PRINT_NEW));assertNotNull(LicenseDomainFixture.store(directory).load().orElseThrow().accessToken());
+        }
+    }
     @Test void automaticChecksAreSpacedButManualRefreshRemainsImmediate()throws Exception {
         var api=new Api();api.advanceServerClock=true;try(var s=service(api,true)){
             active(s,api);var tick=LicenseService.class.getDeclaredMethod("tick");tick.setAccessible(true);

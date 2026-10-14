@@ -40,6 +40,7 @@ public final class LicenseDomainFixture {
     public static class UnusedApi implements LicenseApi {
         private IOException unused(){return new IOException("TEST_NETWORK_FORBIDDEN");}
         public Registration start(String email)throws IOException{throw unused();}
+        public Registration enroll(String code)throws IOException{throw unused();}
         public RegistrationStatus verify(String token,String otp)throws IOException{throw unused();}
         public RegistrationStatus status(String token)throws IOException{throw unused();}
         public Challenge challenge(String token,String key,String action)throws IOException{throw unused();}

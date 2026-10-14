@@ -69,9 +69,12 @@ public final class LicenseService implements AutoCloseable {
         String email=gmail==null?"":gmail.strip().toLowerCase(Locale.ROOT);
         if(!email.matches("[a-z0-9.!#$%&'*+/=?^_`{|}~-]+@gmail\\.com")||email.length()>254)return failed("GMAIL_REQUIRED");
         return transition(email,()->{
-            requireKeys();state=new State(keys.publicKey(),keys.privateKey(),null,null,new Account("",email,"verifying",0),null,clock.now(),0,"");persist();var result=api.start(email);ensureCurrent();
-            state=new State(keys.publicKey(),keys.privateKey(),result.token(),null,new Account("",email,"verifying",0),null,clock.now(),0,"");
-            persist();publish(Status.VERIFYING_EMAIL,"");return snapshot;
+            requireKeys();persist();var result=api.start(email);ensureCurrent();
+            if(!email.equals(result.email())||blank(result.token()))throw LicenseJson.invalid();
+            Status registered=registrationStatus(result.status());
+            if(registered==Status.VERIFYING_EMAIL)throw LicenseJson.invalid();
+            state=new State(keys.publicKey(),keys.privateKey(),result.token(),null,new Account("",email,result.status(),0),null,clock.now(),0,"");
+            persist();publish(registered,"");return snapshot;
         });
     }
     public CompletableFuture<Snapshot> verifyEmail(String otp) {
@@ -89,7 +92,15 @@ public final class LicenseService implements AutoCloseable {
         if(code==null||!code.strip().matches("(?i)VNC(?:-[A-F0-9]{4}){8}"))return failed("INVALID_LICENSE");
         String normalized=code.strip().toUpperCase(Locale.ROOT);
         return submit(()->{
-            requireRegistration();if(!verifier.configured())throw new IOException("LICENSE_TRUST_NOT_CONFIGURED");
+            requireKeys();if(!verifier.configured())throw new IOException("LICENSE_TRUST_NOT_CONFIGURED");
+            if(blank(state.registrationToken())||state.account()==null||state.account().status().equals("verifying")||"REGISTRATION_EXPIRED".equals(state.denialCode())||"AUTH_REQUIRED".equals(state.denialCode())) {
+                var registered=api.enroll(normalized);ensureCurrent();
+                if(!"approved".equals(registered.status())||blank(registered.token())||registered.email()==null
+                        ||!registered.email().matches("[a-z0-9.!#$%&'*+/=?^_`{|}~-]+@gmail\\.com"))throw LicenseJson.invalid();
+                state=new State(keys.publicKey(),keys.privateKey(),registered.token(),null,new Account("",registered.email(),"approved",0),null,clock.now(),0,"");
+                lease=null;onlineDeadline=0;persist();publish(Status.APPROVED,"");
+            }
+            requireRegistration();
             var challenge=api.challenge(state.registrationToken(),keys.publicKey(),"activate");validateChallenge(challenge,"activate");
             accept(api.activate(state.registrationToken(),challenge,keys.publicKey(),keys.sign(challenge.message()),normalized),true);
             return snapshot;
@@ -158,7 +169,7 @@ public final class LicenseService implements AutoCloseable {
             generation.incrementAndGet();lease=null;onlineDeadline=0;startupCheckPending=false;
             refreshCadence.reset();
             if(keys!=null&&clock!=null)state=new State(keys.publicKey(),keys.privateKey(),null,null,email==null?null:new Account("",email,"verifying",0),null,clock.now(),0,"");
-            refreshing=null;publish(email==null?Status.UNREGISTERED:Status.VERIFYING_EMAIL,"");
+            refreshing=null;publish(email==null?Status.UNREGISTERED:Status.REGISTERING,"");
             Runnable queued;while((queued=worker.getQueue().poll())!=null)if(queued instanceof Request request)request.future.complete(snapshot);
             return submit(task);
         }

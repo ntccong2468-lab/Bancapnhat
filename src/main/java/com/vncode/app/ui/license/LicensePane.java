@@ -35,7 +35,6 @@ public final class LicensePane extends ScrollPane {
         Snapshot snapshot();
         AutoCloseable subscribe(Consumer<Snapshot> listener);
         CompletableFuture<Snapshot> startRegistration(String email);
-        CompletableFuture<Snapshot> verifyEmail(String otp);
         CompletableFuture<Snapshot> checkStatus();
         CompletableFuture<Snapshot> activate(String code);
         CompletableFuture<Snapshot> refresh();
@@ -50,10 +49,6 @@ public final class LicensePane extends ScrollPane {
     private final Label gmailLabel = label("licenseGmailLabel", "text-secondary");
     private final TextField gmail = new TextField();
     private final Button register = button("licenseRegister", true);
-    private final Label otpLabel = label("licenseOtpLabel", "text-secondary");
-    private final TextField otp = new TextField();
-    private final Button verify = button("licenseVerify", true);
-    private final VBox verification = new VBox(10, otpLabel, otp, verify);
     private final Label registeredEmail = label("licenseRegisteredEmail", "text-secondary");
     private final Label status = label("licenseAccountStatus", "h3");
     private final Label expiry = label("licenseExpiry", "text-secondary");
@@ -79,7 +74,6 @@ public final class LicensePane extends ScrollPane {
             public Snapshot snapshot() { return service.snapshot(); }
             public AutoCloseable subscribe(Consumer<Snapshot> listener) { return service.subscribe(listener); }
             public CompletableFuture<Snapshot> startRegistration(String email) { return service.startRegistration(email); }
-            public CompletableFuture<Snapshot> verifyEmail(String value) { return service.verifyEmail(value); }
             public CompletableFuture<Snapshot> checkStatus() { return service.checkStatus(); }
             public CompletableFuture<Snapshot> activate(String value) { return service.activate(value); }
             public CompletableFuture<Snapshot> refresh() { return service.refresh(); }
@@ -94,15 +88,13 @@ public final class LicensePane extends ScrollPane {
         setHbarPolicy(ScrollBarPolicy.NEVER);
         gmail.setId("licenseGmail");
         gmail.setMaxWidth(560);
-        otp.setId("licenseOtp");
-        otp.setMaxWidth(240);
         license.setId("licenseKey");
         license.setMaxWidth(560);
         progress.setId("licenseProgress");
         progress.setPrefSize(24, 24);
         progress.setMaxSize(24, 24);
 
-        VBox registration = card(registrationTitle, gmailLabel, gmail, register, verification);
+        VBox registration = card(registrationTitle, gmailLabel, gmail, register);
         VBox account = card(registeredEmail, status, expiry, offlineExpiry, limits,
                 new FlowPane(10, 10, check, refresh, reset));
         VBox activation = card(activationTitle, activationHelp, license, activate);
@@ -112,14 +104,8 @@ public final class LicensePane extends ScrollPane {
         setContent(body);
 
         gmail.textProperty().addListener((observable, oldValue, newValue) -> updateAvailability(actions.snapshot()));
-        otp.textProperty().addListener((observable, oldValue, newValue) -> updateAvailability(actions.snapshot()));
         license.textProperty().addListener((observable, oldValue, newValue) -> updateAvailability(actions.snapshot()));
         register.setOnAction(event -> run(() -> actions.startRegistration(gmail.getText().trim())));
-        verify.setOnAction(event -> {
-            String value = otp.getText().trim();
-            otp.clear();
-            run(() -> actions.verifyEmail(value));
-        });
         activate.setOnAction(event -> {
             String value = license.getText().trim();
             license.clear();
@@ -140,9 +126,6 @@ public final class LicensePane extends ScrollPane {
         gmailLabel.setText(tr("gmail"));
         gmail.setPromptText(tr("gmail.prompt"));
         register.setText(tr("register"));
-        otpLabel.setText(tr("otp"));
-        otp.setPromptText(tr("otp.prompt"));
-        verify.setText(tr("verify"));
         activationTitle.setText(tr("activation"));
         activationHelp.setText(tr("activation.help"));
         license.setPromptText(tr("key.prompt"));
@@ -167,7 +150,6 @@ public final class LicensePane extends ScrollPane {
         visible(offlineExpiry, snapshot.status() == Status.OFFLINE && snapshot.offlineExpiresAt() > 0);
         limits.setText(format("limits", snapshot.maxDevices(), snapshot.maxShops()));
         visible(limits, snapshot.maxDevices() > 0 && snapshot.maxShops() > 0);
-        visible(verification, snapshot.status() == Status.VERIFYING_EMAIL);
         String code = localError != null ? localError : snapshot.errorCode();
         feedback.setText(errorText(code));
         visible(feedback, code != null && !code.isBlank());
@@ -176,16 +158,16 @@ public final class LicensePane extends ScrollPane {
 
     private void updateAvailability(Snapshot snapshot) {
         boolean busy = disposed || requestInFlight || snapshot.busy();
-        boolean registering = snapshot.status() == Status.UNREGISTERED || snapshot.status() == Status.VERIFYING_EMAIL
-                || snapshot.status() == Status.UNVERIFIED && (snapshot.email() == null || snapshot.email().isBlank());
+        boolean registering = snapshot.status() == Status.UNREGISTERED || snapshot.status() == Status.REGISTERING
+                || snapshot.status() == Status.VERIFYING_EMAIL
+                || snapshot.status() == Status.UNVERIFIED && snapshot.expiresAt() == 0
+                || "REGISTRATION_EXPIRED".equals(snapshot.errorCode());
         boolean registered = !registering && snapshot.email() != null && !snapshot.email().isBlank();
         gmail.setEditable(registering && !busy);
         gmail.setDisable(busy);
         register.setDisable(busy || !registering || gmail.getText().trim().isEmpty());
-        otp.setDisable(busy);
-        verify.setDisable(busy || snapshot.status() != Status.VERIFYING_EMAIL || !otp.getText().trim().matches("[0-9]{6}"));
-        license.setDisable(busy || !registered);
-        activate.setDisable(busy || !registered || license.getText().trim().isEmpty());
+        license.setDisable(busy);
+        activate.setDisable(busy || license.getText().trim().isEmpty());
         boolean hasLease = snapshot.expiresAt() > 0 || snapshot.status() == Status.ACTIVE || snapshot.status() == Status.OFFLINE;
         check.setDisable(busy || !registered || hasLease);
         refresh.setDisable(busy || !hasLease);
@@ -234,7 +216,6 @@ public final class LicensePane extends ScrollPane {
         if (disposed) return;
         disposed = true;
         generation++;
-        otp.clear();
         license.clear();
         try { subscription.close(); } catch (Exception ignored) { }
     }

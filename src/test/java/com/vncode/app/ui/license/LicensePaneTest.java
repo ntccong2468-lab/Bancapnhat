@@ -56,25 +56,35 @@ class LicensePaneTest {
         com.vncode.app.testsupport.ShopReadTestCleanup.awaitSharedIdle();System.clearProperty("vncode.appdata.dir");
     }
 
-    @Test void registrationIsAsyncAndOtpIsClearedBeforeVerification() throws Exception {
+    @Test void registrationIsAsyncAndGoesDirectlyToOwnerApproval() throws Exception {
         fx(() -> {
             text("licenseGmail").setText("client@gmail.com");
             button("licenseRegister").fire();
             assertEquals("client@gmail.com", actions.email);
             assertTrue(button("licenseRegister").isDisabled());
             assertFalse(button("licenseRegister").getText().isBlank());
-            actions.complete(snapshot(Status.VERIFYING_EMAIL));
-            assertTrue(text("licenseOtp").isVisible());
-            text("licenseOtp").setText("12345");
-            assertTrue(button("licenseVerify").isDisabled());
-            text("licenseOtp").setText("123456");
-            button("licenseVerify").fire();
-            assertEquals("123456", actions.otp);
-            assertEquals("", text("licenseOtp").getText());
+            assertNull(pane.lookup("#licenseOtp"));
+            assertNull(pane.lookup("#licenseVerify"));
             actions.complete(snapshot(Status.PENDING));
             assertEquals(I18nService.getInstance().tr("license.account.status.pending"), label("licenseAccountStatus").getText());
             assertFalse(text("licenseGmail").isEditable());
             assertTrue(button("licenseRefresh").isDisabled());
+            return null;
+        });
+    }
+
+    @Test void newMachineCanActivateAKeyWithoutGmailRegistration() throws Exception {
+        fx(() -> {
+            assertEquals(Status.UNREGISTERED, actions.snapshot().status());
+            PasswordField key = (PasswordField) pane.lookup("#licenseKey");
+            assertFalse(key.isDisabled());
+            key.setText("VNC" + "-1234".repeat(8));
+            assertFalse(button("licenseActivate").isDisabled());
+            button("licenseActivate").fire();
+            assertEquals("VNC" + "-1234".repeat(8), actions.code);
+            assertNull(actions.email);
+            assertTrue(key.getText().isEmpty());
+            actions.complete(snapshot(Status.ACTIVE));
             return null;
         });
     }
@@ -153,7 +163,7 @@ class LicensePaneTest {
         Snapshot current = LicensePaneTest.snapshot(Status.UNREGISTERED);
         List<Consumer<Snapshot>> listeners = new ArrayList<>();
         CompletableFuture<Snapshot> pending;
-        String email, otp, code;
+        String email, code;
         boolean logoutCalled;
         public Snapshot snapshot() { return current; }
         public AutoCloseable subscribe(Consumer<Snapshot> listener) {
@@ -165,7 +175,6 @@ class LicensePaneTest {
         void complete(Snapshot value) { emit(value); pending.complete(value); }
         private CompletableFuture<Snapshot> begin() { pending = new CompletableFuture<>(); return pending; }
         public CompletableFuture<Snapshot> startRegistration(String value) { email = value; return begin(); }
-        public CompletableFuture<Snapshot> verifyEmail(String value) { otp = value; return begin(); }
         public CompletableFuture<Snapshot> activate(String value) { code = value; return begin(); }
         public CompletableFuture<Snapshot> checkStatus() { return begin(); }
         public CompletableFuture<Snapshot> refresh() { return begin(); }

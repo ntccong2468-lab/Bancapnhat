@@ -1,0 +1,44 @@
+{
+  "version": "1.4.1",
+  "baseVersion": "1.4.0",
+  "complete": false,
+  "changes": [
+    "Đăng ký Gmail trực tiếp trong app, xuất hiện trên admin ngay và chờ duyệt; không cần OTP hoặc mật khẩu website.",
+    "Ô nhập license luôn mở; máy mới nhập cùng mã để kích hoạt, tự nhận tài khoản từ khóa được cấp.",
+    "Một khóa dùng nhiều máy theo max_devices do admin đặt; mỗi máy có key/session riêng, không cộng ngày khi kích hoạt lại.",
+    "Portal 0.3.2 bỏ điều kiện email_verified cho cấp quyền desktop, giữ trạng thái xác minh email thật và tài khoản cũ."
+  ],
+  "licenseIntegration": {
+    "implemented": true,
+    "productionReady": false,
+    "status": "direct-gmail-and-code-enrollment-local-verified-production-deployment-pending",
+    "account": "Gmail entry -> admin approval -> account-bound VNC key; new machines can enter the issued key directly",
+    "backend": "VNCode Portal 0.3.2, not yet deployed",
+    "backendSource": "website/license-portal",
+    "registrationRequiresOtp": false,
+    "defaultDevices": 1,
+    "maximumDevices": 10,
+    "defaultShops": 1,
+    "defaultOfflineHours": 72,
+    "trustedProductionKeys": 1,
+    "pinnedKeyIds": [
+      "vncode-1"
+    ],
+    "serverSigningKeyMatch": "unverified",
+    "usageModel": "Independent desktops sharing registration/license website"
+  },
+  "validation": {
+    "linuxJavaTests": {
+      "tests": 1182,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 2
+    },
+    "portalTests": 33,
+    "nodeTests": 48,
+    "wranglerDryRun": "passed",
+    "windowsInstaller": "pending",
+    "productionActivation": "unrun"
+  },
+  "deploymentGuide": "website/license-portal/HUONG-DAN-CAP-NHAT-032.md"
+}

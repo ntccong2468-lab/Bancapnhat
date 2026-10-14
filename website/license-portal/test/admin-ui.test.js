@@ -12,7 +12,7 @@ test('Admin renders pending Gmail, issues a key, exposes delivery failure and re
  try {
   const call=async path=>{
    if(path.endsWith('/settings'))return {mail_ready:true,signing_ready:true};
-   if(path.includes('/requests?'))return {users:[{id,email:'client@gmail.com',status:'pending',email_verified:1,license_expires_at:null,max_devices:1,max_shops:2,offline_hours:72,device_count:0}],total:1};
+   if(path.includes('/requests?'))return {users:[{id,email:'client@gmail.com',status:'pending',email_verified:0,license_expires_at:null,max_devices:1,max_shops:2,offline_hours:72,device_count:0}],total:1};
    if(path.endsWith('/devices'))return {devices:[{id:deviceId,name:'<img src=x onerror=alert(1)>',revoked,last_seen_at:1,last_lease_expires_at:2}]};
    throw new Error('Unexpected request');
   };
@@ -21,6 +21,7 @@ test('Admin renders pending Gmail, issues a key, exposes delivery failure and re
   await mountDesktopAdmin(document.querySelector('main'),{call,post,escapeHtml:esc,humanDate:String,notice:()=>{}});
   assert.ok(document.querySelector('#desktop-users').textContent.includes('client@gmail.com'));
   const form=document.querySelector('[data-user]'),button=form.querySelector('[value="approve-issue"]');form.querySelector('[name="send_email"]').setAttribute('checked','');
+  assert.equal(button.hasAttribute('disabled'),false,'Owner can approve Gmail without OTP');
   const event=new Event('submit',{bubbles:true,cancelable:true});event.submitter=button;form.dispatchEvent(event);await flush();
   assert.equal(posts[0].path,`/api/admin/desktop/users/${id}/approve-issue`);assert.equal(posts[0].body.send_email,true);assert.equal(document.querySelector('#desktop-key input').value,'VNC-TEST');assert.ok(document.querySelector('#desktop-key').textContent.includes('chưa thành công'));
   await document.querySelector('[data-devices]').onclick();assert.equal(document.querySelector('#desktop-devices img'),null);

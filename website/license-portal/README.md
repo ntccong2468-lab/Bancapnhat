@@ -1,7 +1,19 @@
-# VNCode Portal 0.3.1 — đăng ký Gmail, cấp license và phục vụ nhiều khách hàng
+# VNCode Portal 0.3.2 — đăng ký Gmail trực tiếp và kích hoạt nhiều máy
 
-Bản cập nhật từ Portal 0.3.0, giữ các tài khoản và trang quản trị hiện có.
-Mã đã kiểm thử cục bộ. Chủ website đã báo triển khai lên vncode.id.vn và đăng nhập admin được; chưa có bằng chứng độc lập cho luồng OTP/kích hoạt/thu hồi trên production.
+Bản cập nhật từ Portal 0.3.1, giữ các tài khoản và trang quản trị hiện có.
+Chủ website đã xác nhận bản đang chạy có cấu hình gửi mail và ký license với
+vncode-1. Bản sửa 0.3.2 cần deploy Worker và assets; chưa deploy lên production.
+
+## Sửa đăng ký và license 0.3.2
+
+- Khách nhập Gmail, bấm Đăng ký: xuất hiện ngay trên admin để duyệt, không có OTP.
+- Không cần dịch vụ gửi mail để đăng ký, duyệt hoặc kích hoạt; gửi khóa là tùy chọn.
+- Máy mới có thể nhập khóa trực tiếp; không phải đăng ký Gmail lại trên từng máy.
+- Cùng khóa dùng được trên nhiều máy theo giới hạn Số máy admin cấp (1–10).
+  Mỗi máy có private key/session riêng; kích hoạt lại không cộng ngày lần nữa.
+- Giữ nguyên khóa VNC đã cấp, public key vncode-1, mật khẩu và dữ liệu hiện có.
+- Không có migration mới nếu đã ở 0.3.1. App VNCode 1.4.1 dùng API mới;
+  client OTP cũ còn được hỗ trợ bằng các route cũ.
 
 ## Nâng cấp 0.3.1
 
@@ -25,14 +37,15 @@ chính sách mặc định 1 cửa hàng của khách hiện tại.
 
 ## Luồng sử dụng
 
-1. Khách nhập Gmail trong VNCode, nhận mã xác minh 6 số rồi nhập lại trong app.
+1. Khách nhập Gmail trong VNCode rồi bấm Đăng ký.
 2. Server lưu khách ở trạng thái Chờ duyệt; app nhận registration token riêng,
    không phải mật khẩu hoặc quyền sử dụng. Khách không cần đăng ký website trước.
 3. Admin mở `/admin`, phần **Đăng ký từ VNCode & thiết bị**, lọc/tìm Gmail.
 4. Chọn số ngày, máy, cửa hàng, thời gian offline; bấm **Duyệt & cấp khóa**.
    Có thể gửi khóa qua email, hoặc sao chép một lần để chuyển riêng cho khách.
-5. Khách nhập khóa trong app. Server xác minh Gmail, khóa, chữ ký thiết bị,
-   giới hạn máy và trạng thái duyệt; cấp quyền có chữ ký Ed25519.
+5. Khách nhập khóa trong app. Máy mới có thể nhập khóa trực tiếp, không cần Gmail.
+   Server kiểm tra khóa đúng tài khoản, chữ ký thiết bị, giới hạn máy và trạng thái
+   duyệt; cấp quyền có chữ ký Ed25519. Nhập Gmail không xác minh hộp thư.
 6. App kiểm tra lại quyền; admin có thể gia hạn, khóa tài khoản hoặc thu hồi máy.
 
 Ngày license bắt đầu khi khóa được kích hoạt. Khóa đã đổi không cộng thời gian
@@ -80,8 +93,8 @@ CPU/đọc/ghi trên D1 production. Xem `docs/VALIDATION-031.md`.
 
 ## Triển khai
 
-Đọc **HUONG-DAN-CAI-DAT-LICENSE.md**. Cần migration, dịch vụ email đã xác minh
-sender domain, secret ký và public key tương ứng trong bản VNCode Windows.
+Đọc **HUONG-DAN-CAP-NHAT-032.md**. Cần secret ký và public key tương ứng
+trong VNCode Windows; email chỉ cần khi chọn gửi khóa qua Gmail.
 Không có secret/private key trong bộ mã. Không deploy trước khi sao lưu dữ liệu.
 
 Resend adapter gửi email tới khách Gmail. Nếu giữ binding EMAIL từ bản cũ,

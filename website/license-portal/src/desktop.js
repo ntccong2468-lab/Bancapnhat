@@ -31,7 +31,7 @@ async function lease(env,device,authority) {
   p.max_devices,p.max_shops,p.offline_hours,p.revision,d.id device_id,d.key_hash,d.revoked
   FROM license_devices d JOIN users u ON u.id=d.user_id JOIN license_policy p ON p.user_id=u.id
   WHERE d.id=? AND d.user_id=?`).bind(device.id,device.user_id).first();
- if(!current||current.role!=='user'||current.status!=='approved'||!current.email_verified||!current.license_expires_at||current.license_expires_at<=now())return error('SUBSCRIPTION_INACTIVE',403);
+ if(!current||current.role!=='user'||current.status!=='approved'||!current.license_expires_at||current.license_expires_at<=now())return error('SUBSCRIPTION_INACTIVE',403);
  if(current.revoked||current.key_hash!==device.key_hash)return error('DEVICE_REVOKED',403);
  const issuedAt=now(),expiresAt=Math.min(current.license_expires_at,issuedAt+(current.offline_hours||0)*3600);
  const payload={formatVersion:1,product:'vncode',accountId:current.account_id,deviceId:current.device_id,devicePublicKeyHash:current.key_hash,licenseRevision:current.revision,issuedAt,notBefore:issuedAt,expiresAt,subscriptionExpiresAt:current.license_expires_at,maxDevices:current.max_devices,maxShops:current.max_shops,offlineHours:current.offline_hours,permissions:['seller_api','shop_manage','gtin','kiz','listing_write','packing','print_new','gs1']};
@@ -42,7 +42,7 @@ async function lease(env,device,authority) {
  const saved=await env.DB.prepare(`UPDATE license_devices SET last_seen_at=?,last_lease_expires_at=MAX(COALESCE(last_lease_expires_at,0),?)
   WHERE id=? AND user_id=? AND key_hash=? AND revoked=0 AND EXISTS(
    SELECT 1 FROM users u JOIN license_policy p ON p.user_id=u.id
-   WHERE u.id=? AND u.role='user' AND u.status='approved' AND u.email_verified=1
+   WHERE u.id=? AND u.role='user' AND u.status='approved'
    AND u.license_expires_at=? AND u.license_expires_at>? AND p.revision=?)`)
   .bind(issuedAt,expiresAt,current.device_id,current.account_id,current.key_hash,current.account_id,current.license_expires_at,now(),current.revision).run();
  if(!saved.meta?.changes)return error('LICENSE_CHANGED',403);
@@ -57,6 +57,41 @@ export async function desktopApi(request,env,h,admin=null) {
   return await adminApi(request,env,h,admin);
  }
  const credential=bearer(request);
+ if(method==='POST'&&path==='/api/client/registration/license') {
+  const b=await h.bodyJson(request),code=h.normalizeLicenseCode(b.code);
+  if(!code)return error('INVALID_LICENSE');
+  if(!await h.rateLimit(env,'desktop-code-ip:'+h.clientIp(request),20,3600)||!await h.rateLimit(env,'desktop-code:'+await sha(code),20,3600))return error('RATE_LIMIT',429);
+  const user=await env.DB.prepare(`SELECT u.id,u.email,u.status FROM license_codes c JOIN users u ON u.id=c.assigned_user_id
+   WHERE c.code_hash=? AND u.role='user' AND u.status='approved' AND
+   (c.state='unused' OR (c.state='redeemed' AND c.redeemed_by=u.id AND u.license_expires_at>?))`).bind(await sha(code),now()).first();
+  if(!user)return error('INVALID_LICENSE',403);
+  const id=crypto.randomUUID(),registration_token=token(),time=now();
+  // Knowing the issued key identifies its account, but allocates no device or rights.
+  // Activation still requires device proof and atomic capacity/code checks below.
+  await env.DB.prepare(`INSERT INTO desktop_registrations(id,email,otp_hash,token_hash,verified,user_id,expires_at,created_at)
+   VALUES(?,?,'',?,1,?,?,?)`).bind(id,user.email,await sha(registration_token),user.id,time+30*86400,time).run();
+  return reply({registration_id:id,registration_token,email:user.email,status:user.status,expires_in:30*86400},201);
+ }
+ if(method==='POST'&&path==='/api/client/registration/register') {
+  const b=await h.bodyJson(request),email=typeof b.email==='string'?b.email.trim().toLowerCase():'';
+  if(!/^[a-z0-9.!#$%&'*+/=?^_`{|}~-]+@gmail\.com$/.test(email)||email.length>254)return error('GMAIL_REQUIRED');
+  if(!await h.rateLimit(env,'desktop-register-ip:'+h.clientIp(request),7,3600)||!await h.rateLimit(env,'desktop-register-email:'+await sha(email),3,3600))return error('RATE_LIMIT',429);
+  const id=crypto.randomUUID(),userId=crypto.randomUUID(),registration_token=token(),time=now();
+  // This credential can only read registration status and redeem an assigned key.
+  // It cannot log into the website or renew a device. Gmail entry is NOT proof of
+  // mailbox ownership: existing passwords, verification, approval and rights stay intact.
+  await env.DB.batch([
+   env.DB.prepare(`INSERT OR IGNORE INTO users(id,email,password_salt,password_hash,role,status,email_verified,created_at,updated_at) VALUES(?,?,?,?,'user','pending',0,?,?)`).bind(userId,email,token(),token(),time,time),
+   env.DB.prepare(`INSERT INTO desktop_registrations(id,email,otp_hash,token_hash,verified,user_id,expires_at,created_at)
+    SELECT ?,?,'',?,1,u.id,?,? FROM users u WHERE u.email=? AND u.role='user'`).bind(id,email,await sha(registration_token),time+30*86400,time,email),
+   env.DB.prepare("INSERT OR IGNORE INTO license_policy(user_id) SELECT id FROM users WHERE email=? AND role='user'").bind(email)
+  ]);
+  const reg=await registration(env,registration_token);
+  if(!reg)return error('ACCOUNT_NOT_APPROVED',403);
+  const user=await env.DB.prepare('SELECT status FROM users WHERE id=?').bind(reg.user_id).first();
+  await h.audit(env,null,reg.user_id,'desktop_registration_requested');
+  return reply({registration_id:id,registration_token,email,status:user.status,expires_in:30*86400},201);
+ }
  if(method==='POST'&&path==='/api/client/registration/start') {
   if(!mailReady(env))return error('EMAIL_NOT_CONFIGURED',503);
   const b=await h.bodyJson(request),email=typeof b.email==='string'?b.email.trim().toLowerCase():'';
@@ -128,7 +163,7 @@ export async function desktopApi(request,env,h,admin=null) {
   }
   const reg=await registration(env,credential);if(!reg)return error('REGISTRATION_EXPIRED',401);
   const user=await env.DB.prepare('SELECT * FROM users WHERE id=?').bind(reg.user_id).first();
-  if(user.role!=='user'||user.status!=='approved'||!user.email_verified)return error('ACCOUNT_NOT_APPROVED',403);
+  if(user.role!=='user'||user.status!=='approved')return error('ACCOUNT_NOT_APPROVED',403);
   const code=h.normalizeLicenseCode(b.code);if(!code)return error('INVALID_LICENSE');
   const license=await env.DB.prepare('SELECT * FROM license_codes WHERE code_hash=? AND assigned_user_id=?').bind(await sha(code),user.id).first();
   if(!license||license.state==='void')return error('INVALID_LICENSE',403);
@@ -144,10 +179,10 @@ export async function desktopApi(request,env,h,admin=null) {
    env.DB.prepare('INSERT OR IGNORE INTO license_policy(user_id) VALUES(?)').bind(user.id),
    env.DB.prepare(`INSERT OR IGNORE INTO license_devices(id,user_id,public_key,key_hash,name,created_at,last_seen_at)
     SELECT ?,?,?,?,?,?,? FROM users u JOIN license_codes c ON c.assigned_user_id=u.id JOIN license_policy p ON p.user_id=u.id
-    WHERE u.id=? AND u.status='approved' AND u.email_verified=1 AND c.id=? AND (c.state='unused' OR (c.state='redeemed' AND u.license_expires_at>?))
+    WHERE u.id=? AND u.status='approved' AND c.id=? AND (c.state='unused' OR (c.state='redeemed' AND u.license_expires_at>?))
     AND (SELECT COUNT(*) FROM license_devices WHERE user_id=u.id AND revoked=0)<p.max_devices`).bind(deviceId,user.id,b.public_key,keyHash,String(b.device_name||'VNCode Windows').slice(0,80),time,time,user.id,license.id,time),
    env.DB.prepare(`INSERT OR IGNORE INTO license_redemptions(id,code_id,user_id,claimed_at) SELECT ?,c.id,?,? FROM license_codes c JOIN users u ON u.id=c.assigned_user_id
-    WHERE c.id=? AND c.state='unused' AND u.status='approved' AND u.email_verified=1 AND EXISTS(SELECT 1 FROM license_devices WHERE id=? AND user_id=u.id AND revoked=0)`).bind(redemption,user.id,time,license.id,deviceId),
+    WHERE c.id=? AND c.state='unused' AND u.status='approved' AND EXISTS(SELECT 1 FROM license_devices WHERE id=? AND user_id=u.id AND revoked=0)`).bind(redemption,user.id,time,license.id,deviceId),
    env.DB.prepare(`UPDATE users SET license_expires_at=MAX(COALESCE(license_expires_at,0),?)+(SELECT days*86400 FROM license_codes WHERE id=?),updated_at=?
     WHERE id=? AND status='approved' AND EXISTS(SELECT 1 FROM license_redemptions WHERE id=?)`).bind(time,license.id,time,user.id,redemption),
    env.DB.prepare(`UPDATE license_codes SET state='redeemed',redeemed_by=?,redeemed_at=?,updated_at=? WHERE id=? AND EXISTS(SELECT 1 FROM license_redemptions WHERE id=?)`).bind(user.id,time,time,license.id,redemption),
@@ -177,7 +212,7 @@ async function adminApi(request,env,h,admin) {
   const count=await env.DB.prepare(`SELECT COUNT(*) n FROM users u WHERE ${where}`).bind(status,status,search).first();
   return reply({users:rows,total:count.n,page});
  }
- if(method==='GET'&&path==='/api/admin/desktop/settings')return reply({mail_ready:mailReady(env),signing_ready:!!env.LICENSE_SIGNING_KEY,key_id:env.LICENSE_KEY_ID||null,default_max_devices:1,default_max_shops:1,default_offline_hours:72});
+ if(method==='GET'&&path==='/api/admin/desktop/settings')return reply({mail_ready:mailReady(env),signing_ready:!!env.LICENSE_SIGNING_KEY,key_id:env.LICENSE_KEY_ID||null,registration_mode:'gmail_admin',registration_requires_otp:false,default_max_devices:1,default_max_shops:1,default_offline_hours:72});
  const match=path.match(/^\/api\/admin\/desktop\/users\/([a-f0-9-]{36})\/(approve-issue|policy|devices)$/);
  if(match) {
   const id=match[1],action=match[2],user=await env.DB.prepare('SELECT * FROM users WHERE id=?').bind(id).first();
@@ -186,7 +221,6 @@ async function adminApi(request,env,h,admin) {
   if(method!=='POST')return error('NOT_FOUND',404);
   const b=await h.bodyJson(request),values=policyValues(b);
   if(user.status==='suspended')return error('ACCOUNT_SUSPENDED',403);
-  if(action==='approve-issue'&&!user.email_verified)return error('EMAIL_NOT_VERIFIED',403);
   if(action==='approve-issue'&&(!Number.isInteger(b.days)||b.days<1||b.days>3650))return error('INVALID_DAYS');
   const active=await env.DB.prepare('SELECT COUNT(*) n FROM license_devices WHERE user_id=? AND revoked=0').bind(id).first();
   if(values[0]<active.n)return error('REVOKE_DEVICES_BEFORE_REDUCING_LIMIT',409);

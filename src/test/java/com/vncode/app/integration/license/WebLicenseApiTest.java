@@ -43,9 +43,9 @@ class WebLicenseApiTest {
     @Test
     void sendsPasswordlessRegistrationAndDeviceProofUsingPortalContract() throws Exception {
         enqueue("{\"registration_id\":\"" + ID + "\",\"registration_token\":\"" + TOKEN
-                + "\",\"expires_in\":600}", 201);
+                + "\",\"expires_in\":2592000,\"email\":\"" + EMAIL + "\",\"status\":\"pending\"}", 201);
         assertEquals(TOKEN, api.start("  Customer.Name+Shop@Gmail.com  ").token());
-        var start = request("POST", "/api/client/registration/start", false);
+        var start = request("POST", "/api/client/registration/register", false);
         assertEquals(EMAIL, json(start).get("email").getAsString());
 
         enqueue("{\"email\":\"" + EMAIL + "\",\"status\":\"pending\",\"registration_expires_in\":2592000}");
@@ -89,6 +89,25 @@ class WebLicenseApiTest {
         var renewed = api.renew(TOKEN, challenge, KEY, SIGNATURE);
         assertNull(renewed.accessToken(), "Renewal must preserve the existing device credential");
         assertFalse(json(request("POST", "/api/client/license/renew", true)).has("code"));
+    }
+
+    @Test
+    void enrollsANewMachineUsingOnlyTheIssuedCode() throws Exception {
+        enqueue("{\"registration_id\":\"" + ID + "\",\"registration_token\":\"" + TOKEN
+                + "\",\"expires_in\":2592000,\"email\":\"" + EMAIL + "\",\"status\":\"approved\"}",201);
+        var enrolled=api.enroll(CODE.toLowerCase());
+        assertEquals(EMAIL,enrolled.email());assertEquals("approved",enrolled.status());
+        var sent=json(request("POST","/api/client/registration/license",false));
+        assertEquals(CODE,sent.get("code").getAsString());assertFalse(sent.has("email"));
+    }
+
+    @Test
+    void outdatedPortalGetsAnActionableErrorWithoutSendingOtp() throws Exception {
+        enqueue("{\"error\":\"NOT_FOUND\"}",404);
+        assertEquals("REGISTRATION_UPDATE_REQUIRED",assertThrows(LicenseApi.Failure.class,()->api.start(EMAIL)).code());
+        enqueue("{\"error\":\"AUTH_REQUIRED\"}",401);
+        assertEquals("REGISTRATION_UPDATE_REQUIRED",assertThrows(LicenseApi.Failure.class,()->api.enroll(CODE)).code());
+        assertEquals(2,server.getRequestCount());
     }
 
     @Test

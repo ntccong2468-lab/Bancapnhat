@@ -1,4 +1,4 @@
-# Hợp đồng desktop Portal 0.3.0
+# Hợp đồng desktop Portal 0.3.2
 
 Origin cố định https://vncode.id.vn. JSON UTF-8, tối đa 12000 ký tự/request;
 TLS bắt buộc, không redirect mật khẩu/token. Thời gian Unix giây UTC.
@@ -7,15 +7,28 @@ Không cần mật khẩu website. Mọi token/private key phía Windows lưu b�
 
 ## Đăng ký
 
-1. POST `/api/client/registration/start`, `{email:"customer@gmail.com"}`.
-   Trả 201 `{registration_id,registration_token,expires_in:600}`. OTP gửi qua Gmail,
-   không trả trong JSON. Địa chỉ Gmail lowercase/trim; không xóa dấu chấm/dấu +.
-2. POST `/api/client/registration/verify`, Bearer registration_token, `{code:"123456"}`.
-   OTP 10 phút, tối đa 5 lần thử; mỗi token chỉ xác minh một lần. Trả email/status.
-   Token đã xác minh dùng 30 ngày để xem trạng thái và kích hoạt. Hết hạn hoặc
-   mất token cần xác minh Gmail lại; không đổi trạng thái hay mật khẩu tài khoản cũ.
-3. GET `/api/client/registration/status`, cùng Bearer. Trả email/status/expires_at.
+1. POST `/api/client/registration/register`, `{email:"customer@gmail.com"}`.
+   Trả 201 `{registration_id,registration_token,email,status,expires_in:2592000}`.
+   Khách xuất hiện ngay trong admin, mặc định pending. Không cần OTP, email service,
+   mật khẩu hoặc tài khoản website trước. Gmail lowercase/trim; giữ dấu chấm/dấu +.
+   Đăng ký lại giữ tài khoản, mật khẩu, email_verified, trạng thái duyệt và hạn cũ.
+   Nhập Gmail KHÔNG chứng minh quyền sở hữu hộp thư và không tự cấp quyền.
+2. Máy đã có khóa có thể POST `/api/client/registration/license`, `{code:"VNC-..."}`
+   mà không nhập Gmail. Server xác định tài khoản từ khóa đã được admin cấp,
+   trả cùng registration response với status approved. Khóa sai/void/tài khoản
+   suspended/khóa đã dùng và hết hạn trả INVALID_LICENSE; không cấp device/lease.
+   Cùng mã có thể kích hoạt nhiều máy, giới hạn bởi max_devices do admin đặt.
+3. GET `/api/client/registration/status`, Bearer registration_token. Trả email/status/expires_at.
    Không cấp quyền chỉ vì approved: phải kích hoạt license và kiểm tra thiết bị.
+
+Registration token chỉ được xem trạng thái và kích hoạt bằng mã được cấp; không
+đăng nhập website, quản trị hoặc renew. Token hết hạn thì đăng ký lại cùng Gmail
+hoặc nhập khóa để tạo credential mới. Cột desktop_registrations.verified=1 biểu
+thị credential được phép dùng; users.email_verified chỉ thay đổi khi có xác minh
+hộp thư thật. Không cần migration mới từ 0.3.1.
+
+`/registration/start` và `/registration/verify` giữ lại cho client OTP cũ. App mới
+chỉ dùng `/register` hoặc `/license`; Portal cũ cần cập nhật thay vì fallback OTP.
 
 ## Chứng minh thiết bị
 
@@ -33,13 +46,13 @@ Challenge chỉ dùng một lần trong 120 giây, ràng buộc credential, key 
 POST `/api/client/license/activate`, Bearer registration_token:
 `{challenge_id,public_key,signature,code:"VNC-...",device_name:"Máy đóng hàng"}`.
 
-Server yêu cầu Gmail verified, user approved, khóa đúng account và giới hạn máy.
+Server yêu cầu user approved, khóa đúng account và giới hạn máy, không bắt OTP.
 DB batch cấp slot máy và redeem/extend nguyên tử. Khóa chưa dùng cộng days;
 khóa đã redeem đúng account không cộng thời gian lần nữa. Retry cần challenge mới.
 Máy đã thu hồi không được hồi sinh bằng khóa cũ. Máy khác chỉ nhận slot khi có chỗ.
 
 Trả `{access_token,expires_in:2592000,user,device_id,lease,online_valid_until}`.
-Access token thiết bị 30 ngày; hết hạn cần xác minh Gmail và kích hoạt lại cùng
+Access token thiết bị 30 ngày; hết hạn cần đăng ký lại hoặc nhập khóa và kích hoạt lại cùng
 khóa/device. Token đăng ký không dùng để renew. Khóa không được lưu/log plaintext.
 
 ## Kiểm tra lại
@@ -79,7 +92,8 @@ snapshot cũ hoặc coi đó là lỗi mạng. Lần kiểm tra mới cần chal
 - GET `/api/admin/desktop/settings`: metadata cấu hình, không có secret.
 - POST `/api/admin/desktop/users/:id/approve-issue`:
   `{days:30,max_devices:1,max_shops:1,offline_hours:72,send_email:true}`.
-  Duyệt verified user và tạo key trong batch; trả key chỉ một lần và email_sent.
+  Duyệt user và tạo key trong batch; trả key chỉ một lần và email_sent. Email là
+  tùy chọn để gửi khóa, không phải điều kiện duyệt hoặc kích hoạt.
   Ngày license bắt đầu lúc khách redeem. Nếu đã có hạn, cộng từ max(now,hạn cũ).
 - POST `/api/admin/desktop/users/:id/policy`: cùng giới hạn, không cần days.
 - GET `/api/admin/desktop/users/:id/devices`.

@@ -10,13 +10,18 @@ async function setup(){
  const owner={email:'owner@example.test',password:'A_Strong_Password_12345',confirm:'A_Strong_Password_12345'};
  await req(env,'/api/register','POST',owner);env.sqlite.prepare("UPDATE users SET role='admin',status='approved' WHERE email=?").run(owner.email);
  const login=await req(env,'/api/login','POST',owner);
- return {env,mail,keys,cookie:login.cookie.split(';')[0]};
+ mail.length=0;return {env,mail,keys,cookie:login.cookie.split(';')[0]};
 }
-async function register(ctx,email='client@gmail.com'){
+async function registerLegacy(ctx,email='client@gmail.com'){
  const r=await req(ctx.env,'/api/client/registration/start','POST',{email});assert.equal(r.status,201,JSON.stringify(r.data));
  const otp=ctx.mail.at(-1).text.match(/\b\d{6}\b/)[0],auth={authorization:'Bearer '+r.data.registration_token};
  const v=await req(ctx.env,'/api/client/registration/verify','POST',{code:otp},'',auth);assert.equal(v.status,200,JSON.stringify(v.data));
  return {auth,email,id:ctx.env.sqlite.prepare('SELECT id FROM users WHERE email=?').get(email).id,token:r.data.registration_token};
+}
+async function register(ctx,email='client@gmail.com'){
+ const r=await req(ctx.env,'/api/client/registration/register','POST',{email});assert.equal(r.status,201,JSON.stringify(r.data));
+ assert.equal(r.data.email,email);assert.equal(r.data.expires_in,30*86400);
+ return {auth:{authorization:'Bearer '+r.data.registration_token},email,id:ctx.env.sqlite.prepare('SELECT id FROM users WHERE email=?').get(email).id,token:r.data.registration_token};
 }
 async function approve(ctx,reg,opts={}){
  const r=await req(ctx.env,`/api/admin/desktop/users/${reg.id}/approve-issue`,'POST',{days:30,max_devices:1,max_shops:2,offline_hours:72,...opts},ctx.cookie);
@@ -29,8 +34,12 @@ async function proof(ctx,auth,d,action){
 }
 async function activate(ctx,reg,d,code){return req(ctx.env,'/api/client/license/activate','POST',{...await proof(ctx,reg.auth,d,'activate'),code,device_name:'Test Windows'},'',reg.auth);}
 
-test('desktop Gmail verification, owner approval, one-use key, signed lease and renewal',async()=>{
+test('direct Gmail registration, owner approval, one-use key, signed lease and renewal',async()=>{
  const ctx=await setup(),reg=await register(ctx),d=await device();
+ assert.equal(ctx.mail.length,0,'Registration must not send OTP');
+ assert.equal(ctx.env.sqlite.prepare('SELECT email_verified FROM users WHERE id=?').get(reg.id).email_verified,0,'Entering Gmail is not mailbox verification');
+ const pending=await req(ctx.env,'/api/admin/desktop/requests?status=pending','GET',null,ctx.cookie);
+ assert.ok(pending.data.users.some(u=>u.id===reg.id&&u.email===reg.email));
  const status=await req(ctx.env,'/api/client/registration/status','GET',null,'',reg.auth);assert.equal(status.data.status,'pending');
  assert.equal((await activate(ctx,reg,d,'VNC-0000-0000-0000-0000-0000-0000-0000-0000')).status,403);
  const code=await approve(ctx,reg,{send_email:true});assert.ok(ctx.mail.at(-1).text.includes(code));
@@ -98,7 +107,7 @@ test('additive desktop migration preserves old users and can run twice',()=>{
 
 test('registration does not reset existing web password, approval, or license; OTP cannot replay',async()=>{
  const ctx=await setup();const c={email:'existing@gmail.com',password:'A_Strong_Password_12345',confirm:'A_Strong_Password_12345'};await req(ctx.env,'/api/register','POST',c);
- const before=ctx.env.sqlite.prepare('SELECT * FROM users WHERE email=?').get(c.email),reg=await register(ctx,c.email);
+ const before=ctx.env.sqlite.prepare('SELECT * FROM users WHERE email=?').get(c.email),reg=await registerLegacy(ctx,c.email);
  const after=ctx.env.sqlite.prepare('SELECT * FROM users WHERE email=?').get(c.email);assert.equal(after.id,before.id);assert.equal(after.password_hash,before.password_hash);assert.equal(after.status,'pending');
  assert.equal((await req(ctx.env,'/api/client/registration/verify','POST',{code:ctx.mail.at(-1).text.match(/\b\d{6}\b/)[0]},'',reg.auth)).status,401);
  const user=await req(ctx.env,'/api/login','POST',c);assert.equal(user.status,200);ctx.env.sqlite.close();
@@ -121,4 +130,78 @@ test('policy limits validated; email delivery failure leaves no pending verifica
  ctx.env.EMAIL={send:async()=>{throw new Error('simulated failure');}};
  assert.equal((await req(ctx.env,'/api/client/registration/start','POST',{email:'failed@gmail.com'})).status,503);
  assert.equal(ctx.env.sqlite.prepare("SELECT COUNT(*) n FROM desktop_registrations WHERE email='failed@gmail.com'").get().n,0);ctx.env.sqlite.close();
+});
+
+
+test('direct registration works without mail or signing config and requires Gmail',async()=>{
+ const ctx=await setup();delete ctx.env.EMAIL;delete ctx.env.LICENSE_SIGNING_KEY;ctx.env.REQUIRE_EMAIL_VERIFICATION='1';
+ for(const email of ['a@example.com','',null,42])assert.equal((await req(ctx.env,'/api/client/registration/register','POST',{email})).status,400);
+ const r=await req(ctx.env,'/api/client/registration/register','POST',{email:'  Client.Name+Shop@Gmail.com  '});
+ assert.equal(r.status,201);assert.equal(r.data.email,'client.name+shop@gmail.com');assert.equal(r.data.status,'pending');assert.equal(ctx.mail.length,0);
+ assert.equal((await req(ctx.env,'/api/admin/desktop/settings','GET',null,ctx.cookie)).data.registration_requires_otp,false);
+ assert.equal((await req(ctx.env,'/api/client/registration/register','POST',{email:'a@gmail.com'},'',{origin:'https://evil.example'})).status,403);
+ ctx.env.sqlite.close();
+});
+
+test('repeat Gmail registration preserves approval, sessions and verification without granting rights',async()=>{
+ const ctx=await setup(),reg=await register(ctx),d=await device(),code=await approve(ctx,reg);
+ const first=await activate(ctx,reg,d,code);assert.equal(first.status,200);
+ const before=ctx.env.sqlite.prepare('SELECT * FROM users WHERE id=?').get(reg.id);
+ const again=await register(ctx);assert.equal(again.id,reg.id);assert.notEqual(again.token,reg.token);
+ assert.deepEqual(ctx.env.sqlite.prepare('SELECT * FROM users WHERE id=?').get(reg.id),before,'Anonymous registration must not modify an existing account');
+ assert.equal((await req(ctx.env,'/api/client/license/challenge','POST',{action:'renew',public_key:d.public_key},'',again.auth)).status,401);
+ assert.equal((await req(ctx.env,'/api/me','GET',null,'',again.auth)).status,401);
+ assert.equal((await req(ctx.env,'/api/admin/desktop/requests','GET',null,'',again.auth)).status,403);
+ assert.equal((await activate(ctx,again,await device(),'VNC'+'-0000'.repeat(8))).status,403);
+ const auth={authorization:'Bearer '+first.data.access_token};
+ assert.equal((await req(ctx.env,'/api/client/license/renew','POST',await proof(ctx,auth,d,'renew'),'',auth)).status,200);
+ const retry=await activate(ctx,again,d,code);assert.equal(retry.status,200);assert.equal(retry.data.user.expires_at,first.data.user.expires_at);
+ assert.equal(ctx.env.sqlite.prepare('SELECT COUNT(*) n FROM users WHERE email=?').get(reg.email).n,1);
+ assert.equal((await req(ctx.env,'/api/client/registration/verify','POST',{code:'123456'},'',again.auth)).status,401);
+ ctx.env.sqlite.prepare('UPDATE desktop_registrations SET expires_at=1').run();
+ assert.equal((await req(ctx.env,'/api/client/registration/status','GET',null,'',again.auth)).status,401);ctx.env.sqlite.close();
+});
+
+test('direct registration never changes an existing web password or verified flag',async()=>{
+ const ctx=await setup(),web={email:'web@gmail.com',password:'A_Strong_Password_12345',confirm:'A_Strong_Password_12345'};
+ await req(ctx.env,'/api/register','POST',web);const before=ctx.env.sqlite.prepare('SELECT * FROM users WHERE email=?').get(web.email);
+ await register(ctx,web.email);assert.deepEqual(ctx.env.sqlite.prepare('SELECT * FROM users WHERE email=?').get(web.email),before);
+ assert.equal((await req(ctx.env,'/api/login','POST',web)).status,200);ctx.env.sqlite.close();
+});
+
+
+test('one license activates multiple independent machines up to the owner limit without Gmail entry',async()=>{
+ const ctx=await setup(),reg=await register(ctx),code=await approve(ctx,reg,{max_devices:2,max_shops:10});
+ const enroll=async()=>{
+  const r=await req(ctx.env,'/api/client/registration/license','POST',{code});assert.equal(r.status,201,JSON.stringify(r.data));
+  assert.equal(r.data.email,reg.email);assert.equal(r.data.status,'approved');
+  return {auth:{authorization:'Bearer '+r.data.registration_token}};
+ };
+ const d1=await device(),d2=await device(),d3=await device();
+ const first=await activate(ctx,await enroll(),d1,code),second=await activate(ctx,await enroll(),d2,code);
+ assert.equal(first.status,200);assert.equal(second.status,200);assert.notEqual(first.data.device_id,second.data.device_id);
+ assert.equal(second.data.user.expires_at,first.data.user.expires_at,'A shared key must not extend time twice');
+ assert.equal(JSON.parse(Buffer.from(second.data.lease.payload,'base64url')).maxShops,10);
+ assert.equal((await activate(ctx,await enroll(),d3,code)).status,409);
+ assert.equal(ctx.env.sqlite.prepare('SELECT COUNT(*) n FROM license_redemptions').get().n,1);
+ assert.equal(ctx.env.sqlite.prepare('SELECT COUNT(*) n FROM license_devices WHERE revoked=0').get().n,2);
+ assert.equal(ctx.mail.length,0);ctx.env.sqlite.close();
+});
+
+test('code enrollment rejects invalid, void, suspended or expired keys and never grants session rights',async()=>{
+ const ctx=await setup(),reg=await register(ctx),code=await approve(ctx,reg);
+ assert.equal((await req(ctx.env,'/api/client/registration/license','POST',{code:'VNC'+'-0000'.repeat(8)})).status,403);
+ const r=await req(ctx.env,'/api/client/registration/license','POST',{code});assert.equal(r.status,201);
+ assert.equal(ctx.env.sqlite.prepare('SELECT COUNT(*) n FROM license_devices').get().n,0);
+ assert.equal(ctx.env.sqlite.prepare("SELECT COUNT(*) n FROM license_codes WHERE state='unused'").get().n,1);
+ const auth={authorization:'Bearer '+r.data.registration_token};
+ assert.equal((await req(ctx.env,'/api/client/license/challenge','POST',{action:'renew',public_key:(await device()).public_key},'',auth)).status,401);
+ ctx.env.sqlite.prepare("UPDATE users SET status='suspended' WHERE id=?").run(reg.id);
+ assert.equal((await req(ctx.env,'/api/client/registration/license','POST',{code})).status,403);
+ ctx.env.sqlite.prepare("UPDATE users SET status='approved' WHERE id=?").run(reg.id);
+ ctx.env.sqlite.prepare("UPDATE license_codes SET state='void'").run();
+ assert.equal((await req(ctx.env,'/api/client/registration/license','POST',{code})).status,403);
+ ctx.env.sqlite.prepare("UPDATE license_codes SET state='redeemed',redeemed_by=?").run(reg.id);
+ ctx.env.sqlite.prepare('UPDATE users SET license_expires_at=1 WHERE id=?').run(reg.id);
+ assert.equal((await req(ctx.env,'/api/client/registration/license','POST',{code})).status,403);ctx.env.sqlite.close();
 });
