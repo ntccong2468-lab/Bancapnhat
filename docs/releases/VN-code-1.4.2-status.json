@@ -24,6 +24,14 @@
     "focusedLicenseJavaFailures": 0,
     "nodeReleaseContractTests": 48,
     "productionActivation": "failed-owner-report-root-cause-unconfirmed",
-    "windowsInstaller": "pending"
+    "windowsInstaller": "focused-license-diagnostic-candidate-verified",
+    "focusedWindowsLicenseTests": 63,
+    "focusedWindowsLicenseFailures": 0,
+    "diagnosticSourceCommit": "6e71fe8e5170dad2bd318aa0cdd9a67960fd46ee",
+    "diagnosticBuildRun": 38552502757,
+    "diagnosticArtifact": 11887267816,
+    "portalTests": 50,
+    "portalDeployment": "not-deployed",
+    "fullWindowsMatrix": "running-separately-38551260158"
   }
 }
