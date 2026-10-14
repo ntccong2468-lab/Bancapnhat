@@ -1162,3 +1162,6 @@
 #listingCopyPane #copyJobs { -fx-background-radius: 12; }
 
 .text-input:error { -fx-border-color: #dc5d69; -fx-border-radius: 8; }
+
+/* Keep both barcode and GTIN visible within compact product rows. */
+#productRows .list-cell { -fx-padding: 5px 14px; }
