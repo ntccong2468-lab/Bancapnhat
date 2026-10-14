@@ -60,7 +60,11 @@ async function main(runId,sha,tag) {
   const proof=await json(name);validateUpgradeSmoke(proof,version,from);upgrades.push(proof);
  }
  if(version==='1.4.1'){const proof=await json('upgrade-license-test-smoke.json');validateUpgradeSmoke(proof,version,'1.4.0');upgrades.push(proof);}
- const log=gh(['run','view',runId,'--repo',REPO,'--log']);
+ const windowsJobs=api(`actions/runs/${runId}/jobs?per_page=100`).jobs.filter(job=>job.name==='build-and-test');
+ assert.equal(windowsJobs.length,1);assert.equal(windowsJobs[0].conclusion,'success');
+ // The run also contains Portal tests; only the Windows build log establishes
+ // the Java/native packaging inputs and the release-tool test count.
+ const log=gh(['run','view',runId,'--repo',REPO,'--job',String(windowsJobs[0].id),'--log']);
  const javaTestSummary=validateJavaTestSummary(log),nodePassed=Number(log.match(/(?:#|ℹ)\s*tests\s+(\d+)/)?.[1]);
  assert.ok(nodePassed>=46);
  const info={appName:'VN code',version,sourceCommit:sha,githubRunId:Number(runId),githubRunUrl:run.html_url,
