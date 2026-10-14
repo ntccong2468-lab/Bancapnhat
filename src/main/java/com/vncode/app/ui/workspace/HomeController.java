@@ -711,13 +711,13 @@ public class HomeController implements Initializable {
     }
 
     private void exportFboPlan(int shopId,FboPrintPlan plan,File file)throws IOException {
-        var owner=new com.vncode.app.features.shop.ShopRepository().findById(shopId);if(owner==null)throw new IllegalStateException("Shop unavailable");
-        var template=new com.vncode.app.features.fbo.FboPrintTemplateService().getDefaultTemplate();
         long[] journal={0};
         boolean[] consumed={false};var history=new com.vncode.app.features.print.history.PrintHistoryRepository();
         try {
+            var owner=new com.vncode.app.features.shop.ShopRepository().findById(shopId);if(owner==null)throw new IllegalStateException("Shop unavailable");
+            var template=new com.vncode.app.features.fbo.FboPrintTemplateService().getDefaultTemplate();
             journal[0]=printHistoryService.recordPreparedFboJob(owner,template,fboBarcodePdfExporter.toOrders(plan.pages()));
-            fboBarcodePdfExporter.exportPlan(plan,file,()->{
+            fboBarcodePdfExporter.exportPlan(plan,template,file,()->{
                 com.vncode.app.integration.listing.ListingIdentity.require(owner);
                 new com.vncode.app.integration.znack.ZnackGtinInventoryService().consumeForFboPrint(shopId,plan.usedKizs(),journal[0]);consumed[0]=true;
             });
