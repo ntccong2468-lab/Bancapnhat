@@ -9,6 +9,7 @@ import {resolveReleaseVersion} from './release-version.mjs';
 import {validatePublicationSource,validateJavaTestSummary} from './preview-source-guard.mjs';
 import {validateBuild,validateNativeSmoke,validateSideBySideSmoke,validateUpgradeSmoke,validateReleaseAssets} from './publish-vncode-windows.mjs';
 import {validateLicenseReadiness} from './license-release-gate.mjs';
+import {validateWorkspaceSmoke} from './publish-vncode-preview.mjs';
 
 const REPO='ntccong2468-lab/Bancapnhat';
 const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
@@ -49,13 +50,26 @@ async function main(runId,sha,mode='prepare') {
     const native=json(await readFile(path.join(directory,'native-smoke.json')));validateNativeSmoke(native,version);
     validateSideBySideSmoke(json(await readFile(path.join(directory,'side-by-side-smoke.json'))),version);
     validateUpgradeSmoke(json(await readFile(path.join(directory,'upgrade-smoke.json'))),version);
+    const proofFiles=['native-smoke.json','side-by-side-smoke.json','upgrade-smoke.json'];
+    for(const [file,from] of [['upgrade-preview-smoke.json','1.2.0'],['upgrade-latest-preview-smoke.json','1.2.1'],
+            ['upgrade-current-preview-smoke.json','1.2.2'],['upgrade-gs1-preview-smoke.json','1.3.0'],['upgrade-license-test-smoke.json','1.4.0']]) {
+        validateUpgradeSmoke(json(await readFile(path.join(directory,file))),version,from);proofFiles.push(file);
+    }
+    const workspace=json(await readFile(path.join(directory,'seller-workspace-smoke.json')));validateWorkspaceSmoke(workspace,version,sha);
+    const ui=json(await readFile(path.join(directory,'ui-layout.json')));
+    assert.equal(ui.version,version);assert.equal(ui.liveSellerMutations,false);assert.equal(ui.layouts.length,272);
+    assert.ok(ui.layouts.every(layout=>layout.horizontalButtonOverflow.length===0),'UI contains clipped actions');
+    const gs1=json(await readFile(path.join(directory,'gs1-smoke.json')));
+    assert.equal(gs1.result,'passed');assert.equal(gs1.version,version);assert.equal(gs1.liveGS1Mutations,false);
+    assert.equal(gs1.catalogKeyDpapiRoundTrip,true);assert.equal(gs1.catalogKeyPurposeIsolated,true);
+    proofFiles.push('seller-workspace-smoke.json','ui-layout.json','gs1-smoke.json');
     const java=validateJavaTestSummary(gh(['run','view',runId,'--repo',REPO,'--log']));
     const notes=(await readFile(`docs/releases/VN-code-${version}.md`,'utf8')).trim();assert.ok(notes.length>50);
     const info={version,sourceCommit:sha,runId:Number(runId),java,installer:{filename:name,bytes:bytes.length,sha256:digest},
         licenseProductionAcceptance:status.licenseIntegration.productionReady,native,channel:'stable-after-publication',authenticodeSigned:false};
     await writeFile(path.join(directory,'build-info.json'),JSON.stringify(info,null,2)+'\n');
     await writeFile(path.join(directory,'release-notes.md'),notes+'\n');
-    const names=[name,`VN-code-${version}-Windows-x64.sha256`,'build-info.json','release-notes.md'];
+    const names=[name,`VN-code-${version}-Windows-x64.sha256`,'build-info.json','release-notes.md',...proofFiles];
     const digests={};for(const file of names)digests[file]=hash(await readFile(path.join(directory,file)));
     const refs=api(`git/matching-refs/tags/${tag}`).filter(item=>item.ref===`refs/tags/${tag}`);
     assert.ok(refs.length<=1);
