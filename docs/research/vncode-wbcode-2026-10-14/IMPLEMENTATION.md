@@ -22,7 +22,7 @@ flowchart TD
 | ID | Mục | Trạng thái và kết quả |
 |---|---|---|
 | 01 | License và tài khoản | **Nền đã có; chờ nghiệm thu thật**. Gmail đăng ký trực tiếp, nhập key luôn mở; nhiều máy theo max_devices. Hướng dẫn đã đồng bộ. Chưa dùng tài khoản thật để kiểm chứng duyệt/kích hoạt hai máy. |
-| 02 | Thêm cửa hàng và mở ứng dụng | **Một phần**. Giữ onboarding và trạng thái license/shop có sẵn; thêm hướng dẫn theo bước, sidebar thu gọn và header wrap. Chưa bổ sung wizard mở app riêng. |
+| 02 | Thêm cửa hàng và mở ứng dụng | **Đã triển khai**. Trang đầu có bốn nút theo bước: đăng ký Gmail/nhập key → thêm shop → cấu hình Znack → kiểm tra sản phẩm; sidebar thu gọn/header wrap; giữ trạng thái license/shop hiện có. |
 | 03 | Dữ liệu sản phẩm Ozon | **Đã triển khai**. Đọc brand/material/TN VED/gender từ snapshot Ozon của đúng owner; tách chưa tải và thiếu thuộc tính, bỏ nhóm thuộc tính phức hợp không tương ứng. |
 | 04 | Bảng sản phẩm và giới tính | **Đã triển khai**. Dòng sản phẩm gọn, ảnh giữ tỉ lệ, giới tính hiển thị và sửa hàng loạt theo dictionary của từng sàn. |
 | 05 | Bộ lọc lỗi sản phẩm | **Đã triển khai**. Bộ lọc chưa tải/thiếu thương hiệu/thiếu chất liệu/TN VED không hợp lệ; đếm trên cùng snapshot và phạm vi lọc. |

@@ -15,8 +15,8 @@
       "id": "02",
       "module": "Thêm cửa hàng và mở ứng dụng",
       "priority": "P1",
-      "status": "Một phần",
-      "implementation": "Giữ onboarding và trạng thái license/shop có sẵn; thêm hướng dẫn theo bước, sidebar thu gọn và header wrap. Chưa bổ sung wizard mở app riêng."
+      "status": "Đã triển khai",
+      "implementation": "Trang đầu có bốn nút theo bước: đăng ký Gmail/nhập key → thêm shop → cấu hình Znack → kiểm tra sản phẩm; sidebar thu gọn/header wrap; giữ trạng thái license/shop hiện có."
     },
     {
       "id": "03",

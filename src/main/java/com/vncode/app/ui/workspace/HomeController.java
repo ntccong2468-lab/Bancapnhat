@@ -244,6 +244,8 @@ public class HomeController implements Initializable {
             welcomePane=new com.vncode.app.ui.dashboard.WelcomePane(newsPane.preview(),java.util.List.of(
                 this::showPacking,this::showZnackAutomation,this::showZnackRegistration,this::showFboPacking,
                 () -> onSettings(new ActionEvent()),this::showPrintHistory));
+            welcomePane.setOnboardingActions(java.util.List.of(
+                ()->workspaceNavigator.show("license"),()->onAddShop(new ActionEvent()),this::showZnackAutomation,this::showProducts));
             welcomePane.sceneProperty().addListener((observable,oldScene,newScene) -> {
                 if(newScene==null)return;
                 if(newScene.getWindow()!=null&&newScene.getWindow().isShowing())javafx.application.Platform.runLater(newsPane::refreshAsync);
