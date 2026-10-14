@@ -183,6 +183,15 @@ class WebLicenseApiTest {
     }
 
     @Test
+    void concurrentAuthorityChangeKeepsItsKnownCodeWithoutUpstreamDetails() throws Exception {
+        enqueue("{\"error\":\"LICENSE_CHANGED\",\"detail\":\"" + EMAIL + "\"}", 403);
+        var failure = assertThrows(LicenseApi.Failure.class, () -> api.status(TOKEN));
+        assertEquals("LICENSE_CHANGED", failure.code());
+        assertFalse(failure.transientFailure());
+        assertFalse(failure.toString().contains(EMAIL));
+    }
+
+    @Test
     void redirectNeverForwardsCredentialsOrRetries() throws Exception {
         try (var destination = new MockWebServer()) {
             destination.start();

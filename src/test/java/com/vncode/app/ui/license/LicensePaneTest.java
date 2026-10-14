@@ -147,6 +147,29 @@ class LicensePaneTest {
         } finally { fx(() -> { i18n.setLanguage(previous); return null; }); }
     }
 
+    @Test void transportFailuresShowTranslatedAdviceAndSafeDiagnosticCodesInEveryLanguage() throws Exception {
+        I18nService i18n = I18nService.getInstance();
+        AppLanguage previous = i18n.getCurrentLanguage();
+        try {
+            for (AppLanguage language : AppLanguage.values()) fx(() -> {
+                i18n.setLanguage(language);
+                for (String code : List.of("LICENSE_NETWORK", "LICENSE_HTTP_ERROR", "LICENSE_UNAVAILABLE",
+                        "LICENSE_REDIRECT_REJECTED", "LICENSE_BUSY", "LICENSE_CHANGED")) {
+                    actions.emit(new Snapshot(Status.APPROVED, "client@gmail.com", 0, 0, 0, 0, code, false));
+                    String message = label("licenseFeedback").getText();
+                    assertTrue(label("licenseFeedback").isVisible());
+                    assertTrue(message.endsWith("[" + code + "]"), language + ": " + message);
+                    assertFalse(message.startsWith("license.account."));
+                    assertFalse(message.contains(i18n.tr("license.account.error.unexpected")));
+                }
+                actions.emit(new Snapshot(Status.APPROVED, "client@gmail.com", 0, 0, 0, 0,
+                        "token=secret client@gmail.com", false));
+                assertEquals(i18n.tr("license.account.error.unexpected"), label("licenseFeedback").getText());
+                return null;
+            });
+        } finally { fx(() -> { i18n.setLanguage(previous); return null; }); }
+    }
+
     private static Snapshot snapshot(Status status) {
         return new Snapshot(status, status == Status.UNREGISTERED ? "" : "client@gmail.com", 0, 0, 0, 0, "", false);
     }

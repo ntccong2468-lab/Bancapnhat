@@ -227,6 +227,13 @@ public final class LicensePane extends ScrollPane {
     private String errorText(String code) {
         if (code == null || code.isBlank()) return "";
         String normalized = switch (code.toUpperCase(Locale.ROOT)) {
+            case "LICENSE_NETWORK" -> "network";
+            case "LICENSE_UNAVAILABLE" -> "unavailable";
+            case "LICENSE_HTTP_ERROR" -> "http_error";
+            case "LICENSE_REDIRECT_REJECTED" -> "redirect_rejected";
+            case "LICENSE_BUSY" -> "busy";
+            case "LICENSE_RECHECK_REQUIRED" -> "saved_registration";
+            case "LICENSE_CHANGED" -> "device_limit_or_license_changed";
             case "LICENSE_EXPIRED" -> "subscription_inactive";
             case "LICENSE_TRUST_NOT_CONFIGURED" -> "trust_not_configured";
             case "LICENSE_CLOCK_ROLLBACK" -> "clock";
@@ -234,7 +241,12 @@ public final class LicensePane extends ScrollPane {
             case "LICENSE_PROTOCOL_INVALID" -> "verification";
             default -> code.toLowerCase(Locale.ROOT);
         };
-        return i18n.tr("license.account.error." + normalized, tr("error.unexpected"));
+        String translated = i18n.tr("license.account.error." + normalized, "");
+        // Show only recognized protocol codes, never upstream messages or credentials.
+        if (translated.isBlank()) return tr("error.unexpected");
+        String diagnostic = code.toUpperCase(Locale.ROOT);
+        return diagnostic.matches("[A-Z][A-Z0-9_]{1,80}")
+                ? translated + " [" + diagnostic + "]" : tr("error.unexpected");
     }
 
     private String date(long epochSeconds) {
