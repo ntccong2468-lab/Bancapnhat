@@ -2,6 +2,11 @@ name: Prepare or publish VNCode GitHub Release
 on:
   workflow_dispatch:
     inputs:
+      release_source_ref:
+        description: Branch with verified application and current acceptance records
+        required: true
+        default: update/vncode-approved-upgrades
+        type: string
       build_run_id:
         description: Successful full Windows build run ID
         required: true
@@ -30,6 +35,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           fetch-depth: 0
+          ref: ${{ inputs.release_source_ref }}
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
         with:
           node-version: '22'

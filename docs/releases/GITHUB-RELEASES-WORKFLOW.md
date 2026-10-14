@@ -19,7 +19,9 @@ flowchart TD
     J --> K[Cài và mở lại VNCode]
 ```
 
-Workflow **Prepare or publish VNCode GitHub Release** nhận run ID của build
+Workflow **Prepare or publish VNCode GitHub Release** có trên nhánh mặc định;
+`release_source_ref` chọn nhánh chứa mã mới và bản ghi nghiệm thu (hiện là
+`update/vncode-approved-upgrades`). Workflow nhận run ID của build
 Windows đầy đủ và SHA nguồn chính xác. Chế độ `prepare` tạo draft tag `vX.Y.Z`,
 đính kèm EXE Windows, SHA-256, build-info và release notes sau khi kiểm tra
 nguồn/build/bộ cài. Chế độ `publish` kiểm tra trạng thái hoàn tất và nghiệm thu
