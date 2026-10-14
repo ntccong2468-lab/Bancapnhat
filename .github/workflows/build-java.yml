@@ -42,15 +42,15 @@ jobs:
           npx wrangler deploy --dry-run --outdir "$RUNNER_TEMP/portal-worker"
       - name: Package tracked Portal sources without credentials
         run: |
-          git ls-files -z . | xargs -0 zip -X "$RUNNER_TEMP/VNCode-Portal-0.3.2-Gmail-Direct.zip"
+          git ls-files -z . | xargs -0 zip -X "$RUNNER_TEMP/VNCode-Portal-0.3.3-Admin-Cleanup.zip"
           cd "$RUNNER_TEMP"
-          sha256sum VNCode-Portal-0.3.2-Gmail-Direct.zip > VNCode-Portal-0.3.2-Gmail-Direct.sha256
+          sha256sum VNCode-Portal-0.3.3-Admin-Cleanup.zip > VNCode-Portal-0.3.3-Admin-Cleanup.sha256
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
-          name: VNCode-Portal-0.3.2-Gmail-Direct
+          name: VNCode-Portal-0.3.3-Admin-Cleanup
           path: |
-            ${{ runner.temp }}/VNCode-Portal-0.3.2-Gmail-Direct.zip
-            ${{ runner.temp }}/VNCode-Portal-0.3.2-Gmail-Direct.sha256
+            ${{ runner.temp }}/VNCode-Portal-0.3.3-Admin-Cleanup.zip
+            ${{ runner.temp }}/VNCode-Portal-0.3.3-Admin-Cleanup.sha256
           if-no-files-found: error
           retention-days: 14
 
@@ -167,7 +167,7 @@ jobs:
         run: ./tools/windows-upgrade-smoke.ps1 -Version $env:APP_VERSION -FromGs1Preview
 
       - name: Verify upgrade from VN code 1.4.0 license-test with saved data
-        if: env.APP_VERSION == '1.4.1'
+        if: env.APP_VERSION == '1.4.1' || env.APP_VERSION == '1.4.2'
         shell: pwsh
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

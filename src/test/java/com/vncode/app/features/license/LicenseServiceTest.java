@@ -98,6 +98,18 @@ class LicenseServiceTest {
         var api=new Api();try(var s=service(api,true)){active(s,api);api.failure=new LicenseApi.Failure("DEVICE_REVOKED",403);s.refresh().get();assertFalse(s.allows(Permission.GTIN));api.failure=new LicenseApi.Failure("LICENSE_NETWORK",0);s.refresh().get();assertFalse(s.allows(Permission.GTIN));}
         try(var restarted=service(api,true)){assertEquals(Status.DENIED,restarted.snapshot().status());assertFalse(restarted.allows(Permission.GTIN));}
     }
+    @Test void tlsDnsAndTimeoutKeepOnlyExistingSignedOfflineRights()throws Exception {
+        for(String code:List.of("LICENSE_TLS","LICENSE_DNS","LICENSE_TIMEOUT")) {
+            var api=new Api();
+            try(var s=service(api,true)) {
+                active(s,api);api.failure=new LicenseApi.Failure(code,0);s.refresh().get();
+                assertEquals(Status.OFFLINE,s.snapshot().status());assertEquals(code,s.snapshot().errorCode());
+                assertTrue(s.allows(Permission.GTIN));
+                s.logout().get();s.activate(LicenseDomainFixture.CODE).get();
+                assertEquals(code,s.snapshot().errorCode());assertFalse(s.allows(Permission.GTIN));
+            }
+        }
+    }
     @Test void zeroOfflineHoursWorksOnlyWithinFreshOnlineDeadline()throws Exception {
         var api=new Api();api.hours=0;try(var s=service(api,true)){active(s,api);nano.set(300_000_000_000L);assertFalse(s.allows(Permission.PRINT_NEW));}
         nano.set(0);api.failure=new LicenseApi.Failure("LICENSE_NETWORK",0);try(var restarted=service(api,true)){assertFalse(restarted.allows(Permission.PRINT_NEW));}

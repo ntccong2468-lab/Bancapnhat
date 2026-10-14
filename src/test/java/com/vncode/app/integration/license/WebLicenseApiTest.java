@@ -288,6 +288,33 @@ class WebLicenseApiTest {
         assertEquals(1, server.getRequestCount());
     }
 
+    @Test
+    void dnsFailureHasActionableCodeWithoutTheHostnameOrCredential() throws Exception {
+        var client = new OkHttpClient.Builder().dns(host -> {
+            throw new java.net.UnknownHostException("private-host " + TOKEN);
+        }).build();
+        var isolated = new WebLicenseApi(client, HttpUrl.get("http://localhost:" + server.getPort() + "/"));
+        var failure = assertThrows(LicenseApi.Failure.class, () -> isolated.status(TOKEN));
+        assertEquals("LICENSE_DNS", failure.code());
+        assertEquals(0, server.getRequestCount());
+        assertTrue(failure.transientFailure());
+        assertNull(failure.getCause());
+        assertFalse(failure.toString().contains(TOKEN));
+    }
+
+    @Test
+    void tlsAndTimeoutDiagnosticsNeverExposeExceptionDetails() {
+        for (IOException original : List.of(new javax.net.ssl.SSLHandshakeException("secret=" + TOKEN),
+                new java.net.SocketTimeoutException("secret=" + TOKEN))) {
+            var failure = WebLicenseApi.networkFailure(original);
+            assertEquals(original instanceof javax.net.ssl.SSLException ? "LICENSE_TLS" : "LICENSE_TIMEOUT", failure.code());
+            assertEquals(0, failure.status());
+            assertTrue(failure.transientFailure());
+            assertNull(failure.getCause());
+            assertFalse(failure.toString().contains(TOKEN));
+        }
+    }
+
     private LicenseApi.Grant activate() throws IOException {
         return api.activate(TOKEN, challenge(), KEY, SIGNATURE, CODE);
     }

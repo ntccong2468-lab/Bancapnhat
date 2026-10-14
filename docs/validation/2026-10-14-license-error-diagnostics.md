@@ -40,3 +40,22 @@ Actual Windows connectivity, the server's response to the customer's activation
 and the production key-pair match remain unverified. The existing installed EXE
 does not contain this diagnostic correction. A passing local test does not prove
 production activation works or authorize bypassing licensing checks.
+
+## Follow-up 1.4.2 diagnostic candidate
+
+The owner supplied a Windows PowerShell screenshot: curl with the application's
+existing user agent returned HTTP 200 and Portal 0.3.2 on `/api/config`. The owner
+also reports approved Gmail in the desktop. This establishes connectivity for
+curl and the displayed registration state, not a successful activation or a
+working HTTPS connection from the packaged Java runtime.
+
+1.4.2 distinguishes `LICENSE_TLS`, `LICENSE_DNS` and `LICENSE_TIMEOUT` from other
+network failures without logging exception messages, response bodies or causes.
+These are transport failures: only an existing valid signed offline lease may
+continue to supply rights. They cannot grant rights on a fresh activation.
+Certificate and hostname verification remain enabled. There is no TLS bypass,
+automatic resubmission of a real license or change to the production public key.
+
+The installer version is incremented so Windows recognizes the corrected app as
+an update. This is a diagnostic test candidate, not a confirmed activation fix or
+an official release. Production acceptance remains blocked.

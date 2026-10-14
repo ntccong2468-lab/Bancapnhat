@@ -154,7 +154,8 @@ class LicensePaneTest {
             for (AppLanguage language : AppLanguage.values()) fx(() -> {
                 i18n.setLanguage(language);
                 for (String code : List.of("LICENSE_NETWORK", "LICENSE_HTTP_ERROR", "LICENSE_UNAVAILABLE",
-                        "LICENSE_REDIRECT_REJECTED", "LICENSE_BUSY", "LICENSE_CHANGED")) {
+                        "LICENSE_REDIRECT_REJECTED", "LICENSE_BUSY", "LICENSE_CHANGED",
+                        "LICENSE_TLS", "LICENSE_DNS", "LICENSE_TIMEOUT")) {
                     actions.emit(new Snapshot(Status.APPROVED, "client@gmail.com", 0, 0, 0, 0, code, false));
                     String message = label("licenseFeedback").getText();
                     assertTrue(label("licenseFeedback").isVisible());

@@ -1,4 +1,5 @@
 import {mountDesktopAdmin} from './desktop-admin.js';
+import {wireAccountDeletion,wireVoidLicenseDeletion} from './admin-cleanup.js';
 const app = document.querySelector('#app');
 const nav = document.querySelector('#nav');
 let config={turnstile_site_key:'',email_verification_required:false,mail_ready:false};
@@ -100,14 +101,15 @@ async function admin(){
   if(!loggedIn||loggedIn.role!=='admin'){go('/login');return;}
   app.innerHTML=`<div class="dashboard-head row"><div><div class="eyebrow">VNCode License Center</div><h1>Quản lý license</h1><p class="muted">Cấp mã, gia hạn, thu hồi quyền và theo dõi lịch sử.</p></div><a class="btn" href="/dashboard" data-link>Tài khoản của tôi</a></div>
   <section class="box"><div class="row"><h2>Người dùng</h2><button class="btn" id="refresh">Làm mới</button></div><div id="flash" role="alert"></div><div id="user-list" class="admin-list"><div class="loading">Đang tải...</div></div><div class="row" style="margin-top:20px"><span class="small" id="page-label"></span><div><button class="btn" id="prev">← Trước</button> <button class="btn" id="next">Tiếp →</button></div></div></section>
-  <section class="box" style="margin-top:24px"><div class="row"><div><h2>Mã license đã phát hành</h2><p class="small">Mã đầy đủ chỉ hiển thị một lần lúc tạo. Chỉ hủy được mã chưa sử dụng.</p></div><button class="btn" id="refresh-keys">Làm mới</button></div><div id="key-list" class="admin-list"><div class="loading">Đang tải...</div></div></section>`;
-  wireLinks();await mountDesktopAdmin(app,{call,post,escapeHtml,humanDate,notice});let page=0,total=0;
+  <section class="box" style="margin-top:24px"><div class="row"><div><h2>Mã license đã phát hành</h2><p class="small">Mã đầy đủ chỉ hiển thị một lần lúc tạo. Chỉ hủy được mã chưa sử dụng.</p></div><button class="btn" id="refresh-keys">Làm mới</button></div><label>Trạng thái <select class="input" id="key-state"><option value="">Tất cả</option><option value="unused">Chưa dùng</option><option value="redeemed">Đã kích hoạt</option><option value="void">Đã hủy</option></select></label><div id="key-list" class="admin-list"><div class="loading">Đang tải...</div></div><div class="row"><button class="btn" id="key-prev">← Trước</button><span id="key-page"></span><button class="btn" id="key-next">Tiếp →</button></div></section>`;
+  wireLinks();let page=0,total=0,keyPage=0,keyTotal=0;
+  const desktop=await mountDesktopAdmin(app,{call,post,escapeHtml,humanDate,notice,onAccountDeleted:async()=>{await Promise.all([refresh(),refreshKeys()]);}});
   async function refresh(){
     try{
       const d=await call(`/api/admin/users?page=${page}`);total=d.total;
       document.querySelector('#page-label').textContent=`${total} tài khoản · Trang ${page+1}`;
       document.querySelector('#prev').disabled=page===0;document.querySelector('#next').disabled=(page+1)*50>=total;
-      document.querySelector('#user-list').innerHTML=d.users.length?d.users.map(u=>`<article class="user-card"><div class="row"><div><div class="user-email">${escapeHtml(u.email)}</div><div class="small">Đăng ký: ${humanDate(u.created_at)} · Vai trò: ${escapeHtml(u.role)}</div></div><span class="chip ${statusClass(u.status)}">${escapeHtml(statusName(u.status))}</span></div><div class="small" style="margin-top:10px">Email: ${u.email_verified?'Đã xác minh':'Chưa xác minh'} · Hạn: ${humanDate(u.expires_at)} · ${u.active?'Có quyền':'Chưa có quyền'}</div>${u.role==='admin'?'':`<div class="user-actions"><button data-id="${u.id}" data-action="approve" class="btn">Duyệt</button><button data-id="${u.id}" data-action="suspend" class="btn btn-danger">Khóa tài khoản</button><button data-id="${u.id}" data-action="verify" class="btn">Xác minh email</button><button data-id="${u.id}" data-action="grant" class="btn">Gia hạn</button><button data-id="${u.id}" data-action="issue" class="btn btn-primary">Tạo mã license</button><button data-id="${u.id}" data-action="revoke" class="btn btn-danger">Thu hồi quyền</button></div>`}</article>`).join(''):'<p class="muted">Chưa có tài khoản.</p>';
+      document.querySelector('#user-list').innerHTML=d.users.length?d.users.map(u=>`<article class="user-card"><div class="row"><div><div class="user-email">${escapeHtml(u.email)}</div><div class="small">Đăng ký: ${humanDate(u.created_at)} · Vai trò: ${escapeHtml(u.role)}</div></div><span class="chip ${statusClass(u.status)}">${escapeHtml(statusName(u.status))}</span></div><div class="small" style="margin-top:10px">Email: ${u.email_verified?'Đã xác minh':'Chưa xác minh'} · Hạn: ${humanDate(u.expires_at)} · ${u.active?'Có quyền':'Chưa có quyền'}</div>${u.role==='admin'?`<div class="user-actions"><button class="btn btn-primary" data-admin-desktop-license="${escapeHtml(u.id)}" data-email="${escapeHtml(u.email)}">Cấp license VNCode</button><span class="small">Quyền admin website được giữ nguyên.</span></div>`:`<div class="user-actions"><button data-id="${u.id}" data-action="approve" class="btn">Duyệt</button><button data-id="${u.id}" data-action="suspend" class="btn btn-danger">Khóa tài khoản</button><button data-id="${u.id}" data-action="verify" class="btn">Xác minh email</button><button data-id="${u.id}" data-action="grant" class="btn">Gia hạn</button><button data-id="${u.id}" data-action="issue" class="btn btn-primary">Tạo mã license</button><button data-id="${u.id}" data-action="revoke" class="btn btn-danger">Thu hồi quyền</button><button data-delete-user="${escapeHtml(u.id)}" data-email="${escapeHtml(u.email)}" class="btn btn-danger">Xóa Gmail</button></div>`}</article>`).join(''):'<p class="muted">Chưa có tài khoản.</p>';
       document.querySelectorAll('[data-action]').forEach(b=>b.addEventListener('click',async()=>{
         const id=b.dataset.id,action=b.dataset.action;b.disabled=true;
         try{
@@ -126,18 +128,32 @@ async function admin(){
           notice('Cập nhật thành công');await Promise.all([refresh(),refreshKeys()]);
         }catch(e){notice(e.message,true);}finally{b.disabled=false;}
       }));
+      wireAccountDeletion(document.querySelector('#user-list'),{post,notice,onDeleted:async()=>{
+        if(page>0&&d.users.length===1)page--;
+        document.querySelector('#desktop-key').replaceChildren();document.querySelector('#desktop-devices').replaceChildren();
+        await Promise.all([refresh(),refreshKeys(),desktop.refresh()]);
+      }});
+      document.querySelectorAll('[data-admin-desktop-license]').forEach(button=>button.onclick=()=>desktop.focusAccount(button.dataset.email).catch(error=>notice(error.message,true)));
     }catch(e){notice(e.message,true);}
   }
   async function refreshKeys(){
     const list=document.querySelector('#key-list');
     try{
-      const d=await call('/api/admin/license-codes');
-      list.innerHTML=d.codes.length?d.codes.map(k=>`<article class="user-card"><div class="row"><div><strong>•••• ${escapeHtml(k.code_last4)}</strong> · ${Number(k.days)} ngày<div class="small">${escapeHtml(k.assigned_email)} · Tạo: ${humanDate(k.created_at)}</div></div><span class="chip ${k.state==='redeemed'?'good':k.state==='void'?'bad':'warn'}">${({unused:'Chưa dùng',redeemed:'Đã kích hoạt',void:'Đã hủy'})[k.state]||escapeHtml(k.state)}</span></div>${k.redeemed_at?`<p class="small">Kích hoạt: ${humanDate(k.redeemed_at)}</p>`:''}${k.state==='unused'?`<div class="user-actions"><button class="btn btn-danger" data-void="${k.id}">Hủy mã chưa dùng</button></div>`:''}</article>`).join(''):'<p class="small">Chưa phát hành mã license nào.</p>';
+      const state=document.querySelector('#key-state').value||'';
+      const d=await call('/api/admin/license-codes?'+new URLSearchParams({page:String(keyPage),state}));keyTotal=d.total;
+      if(keyPage>0&&!d.codes.length){keyPage--;return refreshKeys();}
+      document.querySelector('#key-page').textContent=`${keyTotal} license · Trang ${keyPage+1}`;
+      document.querySelector('#key-prev').disabled=keyPage===0;document.querySelector('#key-next').disabled=(keyPage+1)*50>=keyTotal;
+      list.innerHTML=d.codes.length?d.codes.map(k=>`<article class="user-card"><div class="row"><div><strong>•••• ${escapeHtml(k.code_last4)}</strong> · ${Number(k.days)} ngày<div class="small">${escapeHtml(k.assigned_email)} · Tạo: ${humanDate(k.created_at)}</div></div><span class="chip ${k.state==='redeemed'?'good':k.state==='void'?'bad':'warn'}">${({unused:'Chưa dùng',redeemed:'Đã kích hoạt',void:'Đã hủy'})[k.state]||escapeHtml(k.state)}</span></div>${k.redeemed_at?`<p class="small">Kích hoạt: ${humanDate(k.redeemed_at)}</p>`:''}${k.state==='unused'?`<div class="user-actions"><button class="btn btn-danger" data-void="${k.id}">Hủy mã chưa dùng</button></div>`:k.state==='void'?`<div class="user-actions"><button class="btn btn-danger" data-delete-license="${escapeHtml(k.id)}">Xóa license đã hủy</button></div>`:''}</article>`).join(''):'<p class="small">Chưa phát hành mã license nào.</p>';
       list.querySelectorAll('[data-void]').forEach(b=>b.addEventListener('click',async()=>{if(!confirm('Hủy mã chưa dùng? Không thể hoàn tác.'))return;b.disabled=true;try{await post(`/api/admin/license-codes/${b.dataset.void}/void`,{});await refreshKeys();}catch(e){notice(e.message,true);b.disabled=false;}}));
+      wireVoidLicenseDeletion(list,{post,notice,onDeleted:refreshKeys});
     }catch(e){list.textContent=e.message;}
   }
   document.querySelector('#refresh').addEventListener('click',refresh);
   document.querySelector('#refresh-keys').addEventListener('click',refreshKeys);
+  document.querySelector('#key-state').addEventListener('change',()=>{keyPage=0;refreshKeys();});
+  document.querySelector('#key-prev').addEventListener('click',()=>{keyPage=Math.max(0,keyPage-1);refreshKeys();});
+  document.querySelector('#key-next').addEventListener('click',()=>{if((keyPage+1)*50<keyTotal){keyPage++;refreshKeys();}});
   document.querySelector('#prev').addEventListener('click',()=>{page=Math.max(0,page-1);refresh();});
   document.querySelector('#next').addEventListener('click',()=>{if((page+1)*50<total){page++;refresh();}});
   await Promise.all([refresh(),refreshKeys()]);

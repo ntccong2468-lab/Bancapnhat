@@ -1,0 +1,18 @@
+{
+  "version": "1.4.2",
+  "result": "blocked",
+  "sourceCommit": null,
+  "keyId": "vncode-1",
+  "publicKey": "Gg7F92gqXnCLGdMbI130qHcBJ2hiI6KseZBgWkNCTeI",
+  "backendSourceSha256": null,
+  "windowsDpapiPassed": false,
+  "foreignWindowsIdentityRejected": false,
+  "backendGmailApprovalPassed": false,
+  "deviceLimitConcurrencyPassed": false,
+  "activationRetryPassed": false,
+  "signedOfflinePassed": false,
+  "revocationPassed": false,
+  "readonlyDataPreserved": false,
+  "serverSigningKeyMatch": "unverified",
+  "note": "The owner reports approved Gmail, an unused code and generic activation failure on Windows 1.4.1. Windows curl /api/config returned 200 / Portal 0.3.2. 1.4.2 provides safe transport diagnostics; successful production activation and production signature acceptance remain unverified."
+}

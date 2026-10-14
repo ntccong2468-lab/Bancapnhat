@@ -1,0 +1,29 @@
+{
+  "version": "1.4.2",
+  "baseVersion": "1.4.1",
+  "complete": false,
+  "changes": [
+    "Hiển thị đúng lỗi kết nối khi kích hoạt thay vì thông báo chung.",
+    "Phân biệt DNS, HTTPS, quá thời gian chờ và mã lỗi HTTP; chỉ hiển thị mã lỗi an toàn.",
+    "Portal 0.3.3 cho Gmail admin dùng license desktop riêng; thêm xóa Gmail và xóa license đã hủy.",
+    "Giữ nguyên kiểm tra chữ ký, duyệt Gmail, giới hạn thiết bị và quyền offline có chữ ký."
+  ],
+  "licenseIntegration": {
+    "implemented": true,
+    "productionReady": false,
+    "status": "customer-activation-failure-under-investigation",
+    "backend": "Portal 0.3.2; owner Windows curl /api/config returned 200",
+    "customerRegistrationStatus": "owner-reports-approved-in-desktop",
+    "customerCodeState": "owner-reports-unused-after-failed-activation",
+    "trustedProductionKeys": 1,
+    "pinnedKeyIds": ["vncode-1"],
+    "serverSigningKeyMatch": "unverified"
+  },
+  "validation": {
+    "focusedLicenseJavaTests": 50,
+    "focusedLicenseJavaFailures": 0,
+    "nodeReleaseContractTests": 48,
+    "productionActivation": "failed-owner-report-root-cause-unconfirmed",
+    "windowsInstaller": "pending"
+  }
+}

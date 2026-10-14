@@ -1,6 +1,6 @@
-VNCode Portal 0.3.1
+VNCode Portal 0.3.3
 
-Đọc README.md và HUONG-DAN-CAI-DAT-LICENSE.md trước khi deploy.
+Đọc README.md và HUONG-DAN-CAP-NHAT-033.md trước khi deploy.
 Đây là mã cập nhật website, chưa được triển khai. Cần VNCode Windows tương thích
-với desktop API và khóa public đã pin. Chạy migration 0001, 0002 rồi 0003.
+với desktop API và khóa public đã pin. Nếu đang chạy 0.3.2 thì không cần migration mới.
 Không nhập file backup SQL cũ đè dữ liệu thật.

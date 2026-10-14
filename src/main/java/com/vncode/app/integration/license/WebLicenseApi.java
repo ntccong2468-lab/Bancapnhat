@@ -226,7 +226,7 @@ public final class WebLicenseApi implements LicenseApi {
         }
         Response response;
         try { response = http.newCall(request.build()).execute(); }
-        catch (IOException failure) { throw new Failure("LICENSE_NETWORK", 0); }
+        catch (IOException failure) { throw networkFailure(failure); }
         try (response) {
             if (response.code() >= 300 && response.code() < 400) {
                 throw new Failure("LICENSE_REDIRECT_REJECTED", response.code());
@@ -242,7 +242,7 @@ public final class WebLicenseApi implements LicenseApi {
                 String decoded;
                 try { decoded = utf8(responseBody); }
                 catch (Failure failure) { throw failure; }
-                catch (IOException transport) { throw new Failure("LICENSE_NETWORK", 0); }
+                catch (IOException transport) { throw networkFailure(transport); }
                 try { parsed = LicenseJson.object(decoded); }
                 catch (IOException | RuntimeException malformed) { throw protocol(); }
             } catch (Failure failure) { throw failure; }
@@ -256,6 +256,15 @@ public final class WebLicenseApi implements LicenseApi {
             }
             return parsed;
         }
+    }
+
+    static Failure networkFailure(IOException failure) {
+        String code = failure instanceof javax.net.ssl.SSLException ? "LICENSE_TLS"
+                : failure instanceof java.net.UnknownHostException ? "LICENSE_DNS"
+                : failure instanceof java.io.InterruptedIOException ? "LICENSE_TIMEOUT"
+                : "LICENSE_NETWORK";
+        // No exception cause/message: these may contain addresses or credentials.
+        return new Failure(code, 0);
     }
 
     private static String utf8(ResponseBody body) throws IOException {

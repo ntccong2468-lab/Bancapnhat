@@ -1,8 +1,27 @@
-# VNCode Portal 0.3.2 — đăng ký Gmail trực tiếp và kích hoạt nhiều máy
+# VNCode Portal 0.3.3 — xóa license đã hủy và đăng ký lại Gmail
 
-Bản cập nhật từ Portal 0.3.1, giữ các tài khoản và trang quản trị hiện có.
-Chủ website đã xác nhận bản đang chạy có cấu hình gửi mail và ký license với
-vncode-1. Bản sửa 0.3.2 cần deploy Worker và assets; chưa deploy lên production.
+Bản cập nhật từ Portal 0.3.2, giữ các tài khoản và trang quản trị hiện có.
+Website thật hiện được xác nhận chạy 0.3.2 và nhận đăng ký Gmail vào admin.
+0.3.3 cần deploy Worker và assets; chưa deploy lên production.
+
+## Quản trị 0.3.3
+
+- Gmail có vai trò admin cũng nhận được license desktop riêng. Trong mục Người
+  dùng, bấm **Cấp license VNCode** ở tài khoản admin để mở đúng Gmail và đặt số
+  ngày/máy/cửa hàng. Mã desktop không đổi vai trò hoặc mật khẩu website; quyền
+  admin website không tự thay thế khóa, giới hạn máy hoặc thời hạn desktop.
+- Nút **Xóa license đã hủy** chỉ hiện cho mã đã hủy. API từ chối xóa mã chưa
+  dùng, mã đã kích hoạt hoặc mã có lịch sử đổi license.
+- Nút **Xóa Gmail** nằm trong cả danh sách desktop và danh sách người dùng.
+  Admin nhập lại chính xác Gmail trước khi xóa tài khoản, khóa, thiết bị và phiên
+  liên quan trong một giao dịch. Không cho xóa admin hoặc lịch sử license của
+  khách khác. Nhật ký thao tác quản trị được giữ lại.
+- Cùng Gmail có thể đăng ký lại; tài khoản mới chờ duyệt, không nhận lại quyền,
+  mật khẩu, hạn hoặc mã cũ. Giới hạn đăng ký theo Gmail được đặt lại; giới hạn
+  chung theo IP giữ nguyên. Trong app, nhấn **Kiểm tra trạng thái** rồi đăng ký
+  lại hoặc **Xóa đăng ký trên máy này** để bỏ phiên cũ trước khi đăng ký.
+- Phiên online cũ hết quyền; quyền offline đã ký vẫn còn đến hạn đã cấp.
+- Không cần migration mới từ 0.3.2. Xem [hướng dẫn cập nhật Windows](HUONG-DAN-CAP-NHAT-033.md).
 
 ## Sửa đăng ký và license 0.3.2
 

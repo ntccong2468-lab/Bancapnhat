@@ -1,4 +1,4 @@
-# Hợp đồng desktop Portal 0.3.2
+# Hợp đồng desktop Portal 0.3.3
 
 Origin cố định https://vncode.id.vn. JSON UTF-8, tối đa 12000 ký tự/request;
 TLS bắt buộc, không redirect mật khẩu/token. Thời gian Unix giây UTC.
@@ -95,9 +95,22 @@ snapshot cũ hoặc coi đó là lỗi mạng. Lần kiểm tra mới cần chal
   Duyệt user và tạo key trong batch; trả key chỉ một lần và email_sent. Email là
   tùy chọn để gửi khóa, không phải điều kiện duyệt hoặc kích hoạt.
   Ngày license bắt đầu lúc khách redeem. Nếu đã có hạn, cộng từ max(now,hạn cũ).
+  Tài khoản có role=admin cũng được cấp license desktop. Đăng ký, cấp mã, đổi mã
+  và gia hạn không đổi role/password hoặc biến registration/device token thành
+  quyền quản trị website. Desktop vẫn yêu cầu mã đúng tài khoản, hạn còn hiệu lực,
+  proof thiết bị và quota; role=admin không miễn các kiểm tra này.
 - POST `/api/admin/desktop/users/:id/policy`: cùng giới hạn, không cần days.
 - GET `/api/admin/desktop/users/:id/devices`.
 - POST `/api/admin/desktop/devices/:deviceId/revoke`.
+- POST `/api/admin/license-codes/:id/delete`, `{confirm:true}`: chỉ xóa mã
+  state=void chưa từng đổi license; giữ audit, không đổi quyền của khách khác.
+- POST `/api/admin/users/:id/delete`, `{confirm_email:"customer@gmail.com"}`:
+  chỉ admin xóa user thường. Trong một D1 batch, xóa challenge/credential/thiết
+  bị/policy/license/redemption liên quan, các phiên website, action token và tài
+  khoản. Giữ audit theo UUID cũ; không ghi lại Gmail vào audit xóa. Trả
+  `{ok:true,registration_reset:true,last_offline_expires_at}`. Đăng ký tiếp theo
+  tạo account ID mới / pending, không khôi phục quyền hoặc khóa cũ. Chỉ đặt lại
+  quota của tài khoản/email/token liên quan; giữ quota chung theo IP.
 - API cũ `/api/admin/users/:id/grant`, `/status`, `/license/revoke` vẫn dùng;
   khóa tài khoản xóa phiên desktop, thu hồi license thu hồi tất cả thiết bị.
 
