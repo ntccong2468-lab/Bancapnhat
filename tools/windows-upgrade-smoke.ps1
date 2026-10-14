@@ -38,8 +38,12 @@ $oldExe=Join-Path $root "VN-code-$fromVersion.exe";$oldMsi=Join-Path $root "VN-c
 $baselineUrl=if($FromGs1Preview){'https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.3.0-preview.1/VN-code-1.3.0-preview.1-Windows-x64.exe'}elseif($FromCurrentPreview){'https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.2.2-preview.1/VN-code-1.2.2-preview.1-Windows-x64.exe'}elseif($FromLatestPreview){'https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.2.1-preview.1/VN-code-1.2.1-preview.1-Windows-x64.exe'}elseif($FromPreview){'https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.2.0-preview.1/VN-code-1.2.0-preview.1-Windows-x64.exe'}else{'https://github.com/ntccong2468-lab/Vncode/releases/download/v1.1.34/VN-code-1.1.34-Windows-x64.exe'}
 $baselineHash=if($FromLicenseTest){'c54f547819112f2fa10a80d73805e086b4f17af39b1cca5b28715706c50a4110'}elseif($FromGs1Preview){'7b27b1ceb5d3de6c840e5cbfda8ead52898918b253b603ceaace4ef0d1e88c42'}elseif($FromCurrentPreview){'4ef4b3881337f1414d684d0be0ced9b8543be6bf114031ec31e5c83227d93541'}elseif($FromLatestPreview){'2159133f48de2fcaaa2d39e5983157d9c713929c10479d0007f30463394d483f'}elseif($FromPreview){'2290088fb9e1065430f4d9c5e9b47185c5581a93996b3ad692e8bbc846756ad1'}else{'d3970ee5ca88f72a810bbedb807c84cdb7201b96c0d2ef132d0a7a01cea6ac79'}
 if($FromLicenseTest){
-    if(-not $env:GH_TOKEN){throw 'Draft baseline download requires repository-scoped GitHub authentication.'}
-    & gh release download v1.4.0-license-test.1 --repo ntccong2468-lab/Bancapnhat --pattern VN-code-1.4.0-Windows-x64.exe --dir $root
+    if(-not $env:GH_TOKEN){throw 'Verified baseline download requires read-only Actions authentication.'}
+    # Draft releases are invisible to read-only tokens. Retrieve the same immutable
+    # installer from its successful build instead; do not grant repository write access.
+    $baselineRun = (& gh api repos/ntccong2468-lab/Bancapnhat/actions/runs/38492821195) | ConvertFrom-Json
+    if($LASTEXITCODE -ne 0 -or $baselineRun.conclusion -cne 'success' -or $baselineRun.head_sha -cne '379197531ac1869e0a645e04f5c8ab9e8418be2c' -or $baselineRun.workflow_id -ne 379116841){throw 'Unverified 1.4.0 baseline source or build.'}
+    & gh run download 38492821195 --repo ntccong2468-lab/Bancapnhat --name VN-code-1.4.0-Windows-x64 --dir $root
     if($LASTEXITCODE -ne 0){throw 'Cannot retrieve the immutable 1.4.0 license-test baseline.'}
     Move-Item -LiteralPath (Join-Path $root 'VN-code-1.4.0-Windows-x64.exe') -Destination $oldExe
 }else{Invoke-WebRequest -Uri $baselineUrl -OutFile $oldExe}
