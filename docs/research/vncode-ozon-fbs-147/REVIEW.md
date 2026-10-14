@@ -23,3 +23,5 @@ Kiểm tra local JavaFX: ba tab × bốn ngôn ngữ × hai theme × hai kích t
 ![Đang đóng gói](ozon-packingOrdersTab.png)
 
 ![Đang giao](ozon-deliveringOrdersTab.png)
+
+Bổ sung: mở rộng kho GTIN/KIZ trong workspace 824×600 trên Linux vẫn giữ các nút trong vùng hiển thị. Toàn bộ Java/FXML Windows ở run 38635358816 đã đạt 1.235/1.237 kiểm thử, không failures/errors; hai trường hợp POSIX/off-Windows không áp dụng. Nghiệm thu nhiều máy/offline/thu hồi trên production vẫn chưa chạy.

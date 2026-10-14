@@ -16,9 +16,38 @@
     "Published stable GitHub update feed"
   ],
   "validation": {
-    "windowsFullBuild": "pending",
+    "windowsFullBuild": {
+      "runId": 38635358816,
+      "sourceCommit": "68fc1b85ef2f838e3cd7bb269c298ce396e3b277",
+      "result": "native-workspace-and-upgrades-in-progress",
+      "javaSuites": 216,
+      "javaTests": 1237,
+      "javaPassed": 1235,
+      "javaFailures": 0,
+      "javaErrors": 0,
+      "javaSkippedPlatformSpecific": 2,
+      "nativeLauncher": "passed",
+      "gs1AndCatalogDpapi": "passed"
+    },
     "liveOzonMutations": "not-performed",
-    "productionMultiDeviceOfflineRevocation": "not-verified"
+    "productionMultiDeviceOfflineRevocation": "not-verified",
+    "ozonUiLayout": {
+      "platforms": [
+        "linux-javafx",
+        "windows-javafx"
+      ],
+      "tabs": 3,
+      "languages": 4,
+      "themes": 2,
+      "windowSizes": [
+        "824x600",
+        "1140x768"
+      ],
+      "combinations": 48,
+      "actionsClipped": 0,
+      "expandedInventoryOnLinux": "passed-824x600",
+      "liveSellerMutations": false
+    }
   },
   "releaseChannel": {
     "repository": "ntccong2468-lab/Bancapnhat",
