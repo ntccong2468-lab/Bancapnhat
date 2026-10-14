@@ -64,10 +64,15 @@ test('complete admin page exposes admin desktop licensing and canceled-license f
  const {window,document}=parseHTML('<html><body><nav id="nav"></nav><main id="app"></main></body></html>');
  const prior=Object.fromEntries(['document','window','location','fetch','FormData','confirm'].map(key=>[key,globalThis[key]]));
  const wait=async condition=>{for(let i=0;i<300;i++){if(condition())return;await new Promise(resolve=>setTimeout(resolve,5));}assert.fail('Admin page did not complete the expected update');};
+ let releaseFilter=null,oldFilterReturned=false;
  Object.assign(globalThis,{document,window,location:{href:'https://vncode.example/admin'},confirm:()=>true,
   FormData:class {constructor(form){this.values=new Map([...form.querySelectorAll('[name]')].map(e=>[e.name,e.value||'']));}get(key){return this.values.get(key)||'';}has(key){return this.values.has(key);}},
   fetch:async(path,options={})=>{
    const r=await req(env,path,options.method||'GET',options.body?JSON.parse(options.body):null,cookie);
+   const url=new URL(path,'https://vncode.example');
+   if(url.pathname==='/api/admin/license-codes'&&url.searchParams.get('state')==='void'&&url.searchParams.get('page')==='0') {
+    await new Promise(resolve=>{releaseFilter=resolve;});oldFilterReturned=true;
+   }
    return new Response(JSON.stringify(r.data),{status:r.status,headers:{'content-type':'application/json'}});
   }
  });
@@ -76,14 +81,17 @@ test('complete admin page exposes admin desktop licensing and canceled-license f
   await wait(()=>document.querySelector('#key-page')?.textContent.includes('55 license'));
   assert.ok(document.querySelector('[data-admin-desktop-license]'));
   const select=document.querySelector('#key-state');select.querySelector('[value="void"]').setAttribute('selected','');
-  select.dispatchEvent(new window.Event('change'));await wait(()=>document.querySelector('#key-list').querySelectorAll('[data-delete-license]').length===50);
+  select.dispatchEvent(new window.Event('change'));await wait(()=>releaseFilter!==null);
   assert.equal(document.querySelector('#key-next').disabled,false);
   document.querySelector('#key-next').click();await wait(()=>document.querySelector('#key-page').textContent.includes('Trang 2'));
   assert.equal(document.querySelector('#key-list').querySelectorAll('[data-delete-license]').length,5);
+  releaseFilter();await wait(()=>oldFilterReturned);await new Promise(resolve=>setTimeout(resolve,0));
+  assert.ok(document.querySelector('#key-page').textContent.includes('Trang 2'));
+  assert.equal(document.querySelector('#key-list').querySelectorAll('[data-delete-license]').length,5,'Late filter response must not replace the newer page');
   await document.querySelector('#key-list [data-delete-license]').onclick();
   assert.equal(document.querySelector('#key-list').querySelectorAll('[data-delete-license]').length,4);
   assert.ok(document.querySelector('#key-page').textContent.includes('54 license'));
   assert.equal(document.querySelector('#user-list [data-delete-user]').dataset.email,'customer@gmail.com');
   assert.equal(document.querySelector('#user-list [data-delete-user][data-email="owner@gmail.com"]'),null);
- }finally{Object.assign(globalThis,prior);env.sqlite.close();}
+ }finally{releaseFilter?.();Object.assign(globalThis,prior);env.sqlite.close();}
 });

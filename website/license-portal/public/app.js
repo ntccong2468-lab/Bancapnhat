@@ -102,7 +102,7 @@ async function admin(){
   app.innerHTML=`<div class="dashboard-head row"><div><div class="eyebrow">VNCode License Center</div><h1>Quản lý license</h1><p class="muted">Cấp mã, gia hạn, thu hồi quyền và theo dõi lịch sử.</p></div><a class="btn" href="/dashboard" data-link>Tài khoản của tôi</a></div>
   <section class="box"><div class="row"><h2>Người dùng</h2><button class="btn" id="refresh">Làm mới</button></div><div id="flash" role="alert"></div><div id="user-list" class="admin-list"><div class="loading">Đang tải...</div></div><div class="row" style="margin-top:20px"><span class="small" id="page-label"></span><div><button class="btn" id="prev">← Trước</button> <button class="btn" id="next">Tiếp →</button></div></div></section>
   <section class="box" style="margin-top:24px"><div class="row"><div><h2>Mã license đã phát hành</h2><p class="small">Mã đầy đủ chỉ hiển thị một lần lúc tạo. Chỉ hủy được mã chưa sử dụng.</p></div><button class="btn" id="refresh-keys">Làm mới</button></div><label>Trạng thái <select class="input" id="key-state"><option value="">Tất cả</option><option value="unused">Chưa dùng</option><option value="redeemed">Đã kích hoạt</option><option value="void">Đã hủy</option></select></label><div id="key-list" class="admin-list"><div class="loading">Đang tải...</div></div><div class="row"><button class="btn" id="key-prev">← Trước</button><span id="key-page"></span><button class="btn" id="key-next">Tiếp →</button></div></section>`;
-  wireLinks();let page=0,total=0,keyPage=0,keyTotal=0;
+  wireLinks();let page=0,total=0,keyPage=0,keyTotal=0,keyRequest=0;
   const desktop=await mountDesktopAdmin(app,{call,post,escapeHtml,humanDate,notice,onAccountDeleted:async()=>{await Promise.all([refresh(),refreshKeys()]);}});
   async function refresh(){
     try{
@@ -138,16 +138,19 @@ async function admin(){
   }
   async function refreshKeys(){
     const list=document.querySelector('#key-list');
+    const request=++keyRequest,requestedPage=keyPage;
     try{
       const state=document.querySelector('#key-state').value||'';
-      const d=await call('/api/admin/license-codes?'+new URLSearchParams({page:String(keyPage),state}));keyTotal=d.total;
+      const d=await call('/api/admin/license-codes?'+new URLSearchParams({page:String(requestedPage),state}));
+      if(request!==keyRequest)return;
+      keyTotal=d.total;
       if(keyPage>0&&!d.codes.length){keyPage--;return refreshKeys();}
-      document.querySelector('#key-page').textContent=`${keyTotal} license · Trang ${keyPage+1}`;
+      document.querySelector('#key-page').textContent=`${keyTotal} license · Trang ${requestedPage+1}`;
       document.querySelector('#key-prev').disabled=keyPage===0;document.querySelector('#key-next').disabled=(keyPage+1)*50>=keyTotal;
       list.innerHTML=d.codes.length?d.codes.map(k=>`<article class="user-card"><div class="row"><div><strong>•••• ${escapeHtml(k.code_last4)}</strong> · ${Number(k.days)} ngày<div class="small">${escapeHtml(k.assigned_email)} · Tạo: ${humanDate(k.created_at)}</div></div><span class="chip ${k.state==='redeemed'?'good':k.state==='void'?'bad':'warn'}">${({unused:'Chưa dùng',redeemed:'Đã kích hoạt',void:'Đã hủy'})[k.state]||escapeHtml(k.state)}</span></div>${k.redeemed_at?`<p class="small">Kích hoạt: ${humanDate(k.redeemed_at)}</p>`:''}${k.state==='unused'?`<div class="user-actions"><button class="btn btn-danger" data-void="${k.id}">Hủy mã chưa dùng</button></div>`:k.state==='void'?`<div class="user-actions"><button class="btn btn-danger" data-delete-license="${escapeHtml(k.id)}">Xóa license đã hủy</button></div>`:''}</article>`).join(''):'<p class="small">Chưa phát hành mã license nào.</p>';
       list.querySelectorAll('[data-void]').forEach(b=>b.addEventListener('click',async()=>{if(!confirm('Hủy mã chưa dùng? Không thể hoàn tác.'))return;b.disabled=true;try{await post(`/api/admin/license-codes/${b.dataset.void}/void`,{});await refreshKeys();}catch(e){notice(e.message,true);b.disabled=false;}}));
       wireVoidLicenseDeletion(list,{post,notice,onDeleted:refreshKeys});
-    }catch(e){list.textContent=e.message;}
+    }catch(e){if(request===keyRequest)list.textContent=e.message;}
   }
   document.querySelector('#refresh').addEventListener('click',refresh);
   document.querySelector('#refresh-keys').addEventListener('click',refreshKeys);

@@ -7,6 +7,10 @@ on:
         description: Build only the Windows test installer
         type: boolean
         default: true
+      portal_only:
+        description: Validate and package Portal sources without desktop builds
+        type: boolean
+        default: false
       msi_inspection_only:
         description: Read-only inspection of the original MSI, no install/build/publication
         type: boolean
@@ -64,7 +68,7 @@ jobs:
         run: ./tools/windows-side-by-side-smoke.ps1 -Version (node tools/release-version.mjs) -InspectOnly
 
   build-and-test:
-    if: ${{ !inputs.msi_inspection_only }}
+    if: ${{ !inputs.msi_inspection_only && !inputs.portal_only }}
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -225,7 +229,7 @@ jobs:
           retention-days: 7
 
   build-macos-test:
-    if: ${{ github.event_name != 'workflow_dispatch' || !inputs.windows_only }}
+    if: ${{ github.event_name != 'workflow_dispatch' || (!inputs.windows_only && !inputs.portal_only) }}
     name: Build macOS ${{ matrix.architecture }} test package
     runs-on: ${{ matrix.runner }}
     strategy:
