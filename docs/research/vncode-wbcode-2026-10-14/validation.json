@@ -1,28 +1,128 @@
 {
   "source_version": "1.4.1",
+  "source_commit": "68d2862a48f9ed43b90d13c6a83e0be945c1e8ec",
   "release_published": false,
+  "website_deployed_by_this_change": false,
   "local_full_verify": {
-    "tests": 1194,
+    "tests": 1195,
     "failures": 0,
     "errors": 0,
-    "skipped_windows_only": 2,
-    "source_commit": "e171b2e6513830ade8617e41eb60f35d4255505b",
-    "note": "Core and onboarding verified; final layout verification is running."
+    "skipped": 2,
+    "conditional_skips": [
+      {
+        "test": "com.vncode.app.features.gs1.Gs1PrefixTemplateStoreTest.refusesNtfsJunctionDirectoryAndAncestors",
+        "reason": "Disabled on operating system: Linux"
+      },
+      {
+        "test": "com.vncode.app.shared.WindowsSecretProtectorTest.separatesLicenseAndExistingMailEntropyOnWindows",
+        "reason": "Disabled on operating system: Linux"
+      }
+    ]
+  },
+  "windows_full_verify": {
+    "tests": 1195,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 2,
+    "conditional_skips": [
+      {
+        "test": "com.vncode.app.shared.WindowsSecretProtectorTest.neverFallsBackToPlaintextOffWindows",
+        "reason": "Disabled on operating system: Windows Server 2025"
+      },
+      {
+        "test": "com.vncode.app.features.gs1.Gs1PrefixTemplateStoreTest.privatePermissionsAreAppliedWhereSupported",
+        "reason": ""
+      }
+    ]
   },
   "node_contracts": {
     "tests": 48,
     "passed": 48
   },
-  "job_schema_regression": {
-    "tests": 1,
-    "passed": 1
+  "windows_native_ci": {
+    "run_id": 38532545791,
+    "url": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/38532545791",
+    "conclusion": "success",
+    "jobs": [
+      {
+        "name": "build-and-test",
+        "conclusion": "success",
+        "successful_steps": [
+          "Set up job",
+          "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "Set up JDK 25",
+          "Run actions/setup-node@820762786026740c76f36085b0efc47a31fe5020",
+          "Resolve application version",
+          "Verify JavaFX production and release contracts",
+          "Verify Windows asynchronous UI fixture cleanup",
+          "Run Java and FXML test suite",
+          "Preserve verified Windows Java inputs",
+          "Build unsigned JavaFX EXE installer",
+          "Verify native Windows launcher and schema-3 history migration",
+          "Verify GS1 Windows DPAPI and additive local storage",
+          "Verify ten-shop workspaces and actual Windows DPI 100 125 150",
+          "Verify independent installation, fresh data and safe uninstall",
+          "Verify in-place upgrade from VN code 1.1.34 with saved data",
+          "Verify upgrade from VN code 1.2.0 Preview with saved data",
+          "Verify upgrade from VN code 1.2.1 Preview with saved data",
+          "Verify upgrade from VN code 1.2.2 Preview with saved data",
+          "Verify upgrade from VN code 1.3.0 Preview with saved data",
+          "Verify upgrade from VN code 1.4.0 license-test with saved data",
+          "Verify and name test installer",
+          "Preserve Windows test installer",
+          "Post Run actions/setup-node@820762786026740c76f36085b0efc47a31fe5020",
+          "Post Set up JDK 25",
+          "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "Complete job"
+        ]
+      },
+      {
+        "name": "license-portal",
+        "conclusion": "success",
+        "successful_steps": [
+          "Set up job",
+          "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "Run actions/setup-node@820762786026740c76f36085b0efc47a31fe5020",
+          "Verify Gmail registration, manual approval and shared-key activation",
+          "Package tracked Portal sources without credentials",
+          "Run actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a",
+          "Post Run actions/setup-node@820762786026740c76f36085b0efc47a31fe5020",
+          "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "Complete job"
+        ]
+      },
+      {
+        "name": "Build macOS ${{ matrix.architecture }} test package",
+        "conclusion": "skipped",
+        "successful_steps": []
+      },
+      {
+        "name": "inspect-msi",
+        "conclusion": "skipped",
+        "successful_steps": []
+      }
+    ],
+    "installer_artifact_id": 11879438245,
+    "verified_java_artifact_id": 11879900630,
+    "installer_sha256": "56a98c590e3b09a6f83c0b58967cc24061d0c7dcb27c94e8a77c378126463638",
+    "installer_signed": false
   },
-  "workspace_probe_file": "approved-workspace-probe.json",
-  "windows_native_ci": "pending",
+  "workspace_probe_files": [
+    "approved-workspace-probe.json",
+    "approved-workspace-phase-probe.json",
+    "approved-windows-workspace.json"
+  ],
+  "performance_limitations": [
+    "Dữ liệu giả lập: 10 shop, 100000 sản phẩm, 10000 đơn; không gọi API sàn hoặc máy in thật.",
+    "Probe Linux toàn luồng ghi nhận một nhịp FX 807 ms; lượt tách 200 lần chuyển shop không tái hiện nhịp >500 ms. Chưa xác định nguyên nhân nhịp riêng lẻ.",
+    "Sáu lượt Windows ở DPI 100/125/150%: p95 chuyển shop tối đa 202.05 ms, Ozon FBS tối đa 367.79 ms; một nhịp 514.34 ms ở 10 Ozon/DPI125%.",
+    "Chưa đo PC mục tiêu 2CPU/4GiB; chưa cam kết loại bỏ mọi nhịp chậm."
+  ],
   "real_account_acceptance": "not_run",
-  "layout_regression": {
-    "tests": 55,
-    "failures": 0,
-    "errors": 0
-  }
+  "external_contracts_remaining": [
+    "API toàn bộ Catalog ngoài app/mọi nhóm hàng",
+    "API trạng thái thỏa thuận CZ đã xác minh",
+    "Nguồn quy tắc phân loại pháp lý TN VED/giày",
+    "Nguồn tin Ozon chính thức"
+  ]
 }

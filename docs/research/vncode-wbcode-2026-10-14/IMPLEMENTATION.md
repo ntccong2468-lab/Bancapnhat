@@ -58,4 +58,18 @@ flowchart TD
 
 ## Kiểm chứng
 
-Kết quả đo và CI được ghi trong validation.json cùng thư mục. Synthetic/UI probe không thay thế nghiệm thu license hai máy, CryptoPro, mail GS1, API sàn và máy in thật. Những mục thiếu hợp đồng API/nguồn quy tắc được giữ rõ là một phần.
+Mã chức năng `68d2862` đã qua full clean verify: 1195 kiểm thử trên Linux và Windows, 0 lỗi; mỗi hệ điều hành có 2 kiểm thử bị bỏ qua theo điều kiện nền tảng. 48 Node contracts và CI Portal đều qua.
+
+[CI Windows 38532545791](https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/38532545791) đã kiểm tra EXE, khởi chạy native, DPAPI, cài/gỡ độc lập, nâng cấp dữ liệu từ 1.1.34 đến 1.4.0 và 6 lượt workspace ở DPI 100/125/150%. Bộ cài unsigned là artifact kiểm thử, chưa phải GitHub Release.
+
+Windows dùng hai tập dữ liệu 6WB+4Ozon và 10Ozon, mỗi tập 100000 sản phẩm/10000 đơn. p95 chuyển shop tối đa 202 ms, hiển thị Ozon FBS tối đa 368 ms. Có một nhịp FX 514 ms; probe Linux toàn luồng có một nhịp 807 ms không tái hiện trong lượt đo riêng 200 lần chuyển shop. Chưa xác định nguyên nhân các nhịp riêng lẻ và chưa đo PC 2CPU/4GiB.
+
+Kết quả chi tiết và giới hạn được ghi trong [validation.json](validation.json), [probe Linux](approved-workspace-probe.json), [probe theo giai đoạn](approved-workspace-phase-probe.json) và [probe Windows](approved-windows-workspace.json). Synthetic/UI probe không thay thế nghiệm thu license hai máy, CryptoPro, mail GS1, API sàn và máy in thật. Những mục thiếu hợp đồng API/nguồn quy tắc được giữ rõ là một phần.
+
+## Ảnh chạy thực tế sau nâng cấp
+
+![Sản phẩm ở 1024×600](evidence/approved-products-vi-1024x600.png)
+
+![Designer nhúng ở 1024×600](evidence/approved-designer-vi-1024x600.png)
+
+![Hướng dẫn có tìm kiếm](evidence/approved-guides-vi-1024x600.png)
