@@ -78,6 +78,19 @@ try {
   for($i=0;$i -lt [Math]::Min($controls.Count,2000);$i++){$c=$controls.Item($i).Current;if(-not $c.IsOffscreen -and $c.Name){$labels+=@{name=$c.Name;type=$c.ControlType.ProgrammaticName;enabled=$c.IsEnabled}}}
   $labels|ConvertTo-Json -Depth 3|Set-Content (Join-Path $out ($route.file+'-labels.json')) -Encoding utf8
  }
+ # Settings popup position was inspected in the preceding Windows capture.
+ # Open the license screen only; do not enter account details or activate.
+ [WCodeObservationWindow]::SetCursorPos(75,626)|Out-Null
+ [WCodeObservationWindow]::mouse_event(2,0,0,0,[UIntPtr]::Zero);[WCodeObservationWindow]::mouse_event(4,0,0,0,[UIntPtr]::Zero)
+ Start-Sleep -Seconds 3
+ Save-ObservationImage 'official-wbcode-1.3.8-license.png'
+ [Windows.Forms.SendKeys]::SendWait('{ESC}')
+ Start-Sleep -Seconds 1
+ # Add-shop opens an empty local configuration dialog. Never click Save.
+ [WCodeObservationWindow]::SetCursorPos(36,97)|Out-Null
+ [WCodeObservationWindow]::mouse_event(2,0,0,0,[UIntPtr]::Zero);[WCodeObservationWindow]::mouse_event(4,0,0,0,[UIntPtr]::Zero)
+ Start-Sleep -Seconds 2
+ Save-ObservationImage 'official-wbcode-1.3.8-add-shop.png'
  $windows=@($ids|ForEach-Object {[VNcode.Smoke.VisibleWindows]::Titles($_)})
  @{source='official release installer';release='v1.3.8';installerSha256=$hash;nativeLaunch='passed';visibleTitles=$windows;windowMaximized=($handle -ne [IntPtr]::Zero);screenWidth=$bounds.Width;screenHeight=$bounds.Height;freshRunner=$true;shopCredentialsEntered=$false;liveMarketplaceMutations=$false;licenseActivated=$false;scope='Fresh first-run pixels and accessibility; authenticated seller/CryptoPro workflows untested';screenshot='official-wbcode-1.3.8-first-run.png'}|ConvertTo-Json|Set-Content (Join-Path $out 'observation.json') -Encoding utf8
 }finally{if($app -and -not $app.HasExited){Stop-Process -Id $app.Id -Force;$app.WaitForExit()};if($installed){$p=Start-Process msiexec.exe -ArgumentList @('/x',"`"$msi`"",'/qn','/norestart') -Wait -PassThru;if($p.ExitCode -notin @(0,3010)){throw 'Official app uninstall failed.'}}}
