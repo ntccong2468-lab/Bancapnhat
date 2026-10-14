@@ -33,17 +33,27 @@
     "releaseContractTests": 49,
     "releaseContractFailures": 0,
     "crossRuntimeTests": 4,
-    "windowsNative": "pending",
+    "windowsNative": "passed-1.4.5-launcher-history-schema3-to5-rollback",
     "fullApplicationMatrix": "not-run-for-1.4.5",
     "portalRuntimeCodeChanged": false,
     "productionActivation145": "not-verified",
     "productionCatalogSync": "owner-reports-unverified_catalog_owner-despite-successful-sign-in",
     "catalogConfigurationTests": 56,
     "catalogConfigurationFailures": 0,
-    "catalogConfigurationProduction": "not-verified"
+    "catalogConfigurationProduction": "not-verified",
+    "windowsJavaTests": 159,
+    "windowsJavaSkipped": 0,
+    "windowsCatalogKeyDpapi": "passed-purpose-isolation"
   },
   "limitations": [
     "Chưa xác định điều kiện sở hữu nào sai trên máy khách; cần mã lý do cụ thể từ bản mới.",
     "Chưa chạy đầy đủ workspace/upgrade matrix hoặc kiểm thử production nhiều máy/offline/thu hồi."
-  ]
+  ],
+  "sourceCommit": "7b90774f8a8575850c9b72c1fb8a801fb82eedae",
+  "windowsArtifact": {
+    "runId": 38625269821,
+    "artifactId": 11923647521,
+    "sha256": "be5343d8104973fe7e22882e5f5474a055434ebefcb9742d2b66b15f94efd625",
+    "url": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/38625269821/artifacts/11923647521"
+  }
 }
