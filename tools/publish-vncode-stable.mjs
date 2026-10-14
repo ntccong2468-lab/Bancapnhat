@@ -81,8 +81,9 @@ async function main(runId,sha,mode='prepare') {
     }
     let release=api('releases?per_page=100').find(r=>r.tag_name===tag);
     if(!release) {
-        gh(['release','create',tag,'--repo',REPO,'--target',sha,'--draft','--title',`VNCode ${version}`,'--notes-file',path.join(directory,'release-notes.md')]);
-        release=api('releases?per_page=100').find(r=>r.tag_name===tag);
+        const request=path.join(directory,'create-release.json');
+        await writeFile(request,JSON.stringify({tag_name:tag,target_commitish:sha,draft:true,prerelease:false,name:`VNCode ${version}`,body:notes}));
+        release=JSON.parse(gh(['api','-X','POST',`repos/${REPO}/releases`,'--input',request]));
     }
     assert.equal(release.draft,true,'Never overwrite an already published version');assert.equal(release.prerelease,false);
     assert.equal(api(`git/ref/tags/${tag}`).object.sha,sha);validateReleaseAssets(release.assets,names);
