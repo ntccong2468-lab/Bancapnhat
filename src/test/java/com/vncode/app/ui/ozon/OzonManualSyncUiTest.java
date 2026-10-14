@@ -52,6 +52,6 @@ class OzonManualSyncUiTest {
                 }
                 assertEquals(List.of("",""),starts,"An explicit refresh must revisit products from the first page");
             }finally{fx(()->{controller.dispose();return null;});}
-        }finally{while(AppTaskExecutor.hasRunningTasks()||ShopReadCoordinator.shared().activeCount()>0)Thread.sleep(10);System.clearProperty("vncode.appdata.dir");}
+        }finally{while(AppTaskExecutor.hasRunningTasks()||ShopReadCoordinator.shared().activeCount()>0)Thread.sleep(10);com.vncode.app.testsupport.ShopReadTestCleanup.awaitSharedIdle();System.clearProperty("vncode.appdata.dir");}
     }
 }

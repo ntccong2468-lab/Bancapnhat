@@ -53,7 +53,7 @@ class LicensePaneTest {
 
     @AfterEach void tearDown() throws Exception {
         fx(() -> { pane.dispose(); return null; });
-        System.clearProperty("vncode.appdata.dir");
+        com.vncode.app.testsupport.ShopReadTestCleanup.awaitSharedIdle();System.clearProperty("vncode.appdata.dir");
     }
 
     @Test void registrationIsAsyncAndOtpIsClearedBeforeVerification() throws Exception {

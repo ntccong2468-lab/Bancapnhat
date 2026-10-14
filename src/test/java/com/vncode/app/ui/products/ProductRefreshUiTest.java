@@ -29,7 +29,7 @@ class ProductRefreshUiTest {
             try{long end=System.nanoTime()+TimeUnit.SECONDS.toNanos(3);while(calls.get()<1&&System.nanoTime()<end)Thread.sleep(10);assertEquals(1,calls.get());
                 fx(()->{pane.setShop(new Shop(1,"First","rotated"));return null;});end=System.nanoTime()+TimeUnit.SECONDS.toNanos(2);while(calls.get()<2&&System.nanoTime()<end)Thread.sleep(10);assertEquals(2,calls.get());
             }finally{fx(()->{pane.dispose();return null;});closeAndAwait(reads);}
-        }finally{System.clearProperty("vncode.appdata.dir");}
+        }finally{com.vncode.app.testsupport.ShopReadTestCleanup.awaitSharedIdle();System.clearProperty("vncode.appdata.dir");}
     }
     @Test void syncButtonUsesBackgroundRefreshAndOldOwnerCompletionDoesNotReplaceNewShop()throws Exception{
         System.setProperty("vncode.appdata.dir",root.toString());Database.initDatabase();try(var c=Database.getConnection();var s=c.createStatement()){s.execute("INSERT INTO shops(id,name,marketplace,api_key) VALUES(1,'First','WILDBERRIES','fixture'),(2,'Second','WILDBERRIES','fixture')");s.execute("INSERT INTO wb_product_cards(shop_id,nm_id,title,synced_at) VALUES(1,123,'Title','now')");}
@@ -45,6 +45,6 @@ class ProductRefreshUiTest {
                 fx(()->{assertTrue(((ListView<?>)pane.lookup("#productRows")).getItems().isEmpty());assertEquals("",((Label)pane.lookup("#productStatus")).getText());return null;});
                 assertEquals(1,calls.get());assertEquals(1,new ProductRepository().loadPage(new ProductQuery(1,Marketplace.WILDBERRIES,"",List.of(),DocumentState.VALID,false,null,100)).total());
             }finally{release.countDown();fx(()->{pane.dispose();return null;});closeAndAwait(reads);}
-        }finally{System.clearProperty("vncode.appdata.dir");}
+        }finally{com.vncode.app.testsupport.ShopReadTestCleanup.awaitSharedIdle();System.clearProperty("vncode.appdata.dir");}
     }
 }

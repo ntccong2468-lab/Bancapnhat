@@ -39,7 +39,7 @@ class ZnackCardRegistrationControllerTest {
         });
         awaitTasks();
     }
-    @AfterEach void cleanup() throws Exception {awaitTasks();System.clearProperty("vncode.appdata.dir");}
+    @AfterEach void cleanup() throws Exception {awaitTasks();com.vncode.app.testsupport.ShopReadTestCleanup.awaitSharedIdle();System.clearProperty("vncode.appdata.dir");}
     @Test void selectAllChoosesOnlyEligibleRowsAndUsesMultipleSelection() throws Exception {
         fx(()->{
             assertEquals(SelectionMode.MULTIPLE,table().getSelectionModel().getSelectionMode());

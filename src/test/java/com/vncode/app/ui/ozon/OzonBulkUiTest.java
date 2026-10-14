@@ -68,7 +68,7 @@ class OzonBulkUiTest {
         awaitWorkers();
         assertEquals(0, remoteCalls.get());
         assertEquals(0, ShopBatchRegistry.activeCount());
-        System.clearProperty("vncode.appdata.dir");
+        com.vncode.app.testsupport.ShopReadTestCleanup.awaitSharedIdle();System.clearProperty("vncode.appdata.dir");
     }
 
     @Test void fullFilteredSelectionIncludes1000OrdersAndSurvivesPagingWithoutRenderingThemAll() throws Exception {

@@ -37,7 +37,7 @@ class OzonRegistrationPaneTest {
         fx(()->{pane.dispose();return null;});
         long end=System.nanoTime()+TimeUnit.SECONDS.toNanos(5);
         while(AppTaskExecutor.hasRunningTasks()&&System.nanoTime()<end)Thread.sleep(10);
-        System.clearProperty("vncode.appdata.dir");
+        com.vncode.app.testsupport.ShopReadTestCleanup.awaitSharedIdle();System.clearProperty("vncode.appdata.dir");
     }
     @Test void openingNativeOzonRegistrationPagesLocallyWithoutAllocatingOrSigningAnything()throws Exception {
         fx(()->{for(var row:table().getItems()){assertEquals(1,row.key().shopId());assertEquals(Marketplace.OZON,row.key().marketplace());assertEquals("offer-"+row.key().cardId(),row.key().variantId());}return null;});

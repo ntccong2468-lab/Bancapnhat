@@ -66,7 +66,7 @@ class ZnackAutomationInformationTest {
     @AfterEach void close() throws Exception {
         awaitWorkers();
         fx(() -> { controller.setShop(null); i18n.setLanguage(previousLanguage); return null; });
-        System.clearProperty("vncode.appdata.dir");
+        com.vncode.app.testsupport.ShopReadTestCleanup.awaitSharedIdle();System.clearProperty("vncode.appdata.dir");
     }
 
     @Test void informationIsFirstAndSavedProofNeverMakesTheLiveStatusGreenInAnyLanguage() throws Exception {

@@ -577,7 +577,8 @@ class FxmlSmokeTest {
     }
 
     @AfterAll
-    static void clearAppDataOverride() {
+    static void clearAppDataOverride() throws Exception {
+        com.vncode.app.testsupport.ShopReadTestCleanup.awaitSharedIdle();
         System.clearProperty("vncode.appdata.dir");
     }
 

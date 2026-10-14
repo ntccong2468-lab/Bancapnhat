@@ -23,7 +23,7 @@ class ListingCopyPaneTest {
     ShopReadCoordinator reads;ListingCopyPane pane;ListingCopyService service;FakeAdapter adapter;
     @BeforeAll static void start(){try{Platform.startup(()->Platform.setImplicitExit(false));}catch(IllegalStateException started){}}
     @BeforeEach void init()throws Exception{System.setProperty("vncode.appdata.dir",root.toString());Database.initDatabase();try(var c=Database.getConnection();var s=c.createStatement()){s.execute("INSERT INTO shops(id,name,marketplace,client_id,api_key) VALUES(1,'VN fashion','WILDBERRIES',NULL,'fixture'),(2,'VN Ozon','OZON','22','fixture')");}reads=new ShopReadCoordinator(2,64);adapter=new FakeAdapter();service=new ListingCopyService(new ListingCopyRepository(),(s,k)->source(k),s->adapter);fx(()->{pane=new ListingCopyPane(service,reads);new Scene(pane,1024,600);pane.applyCss();pane.layout();return null;});}
-    @AfterEach void clear()throws Exception{fx(()->{pane.dispose();return null;});reads.close();System.clearProperty("vncode.appdata.dir");}
+    @AfterEach void clear()throws Exception{fx(()->{pane.dispose();return null;});com.vncode.app.testsupport.ShopReadTestCleanup.closeAndAwait(reads);com.vncode.app.testsupport.ShopReadTestCleanup.awaitSharedIdle();System.clearProperty("vncode.appdata.dir");}
     static <T>T fx(Callable<T> f)throws Exception{var t=new FutureTask<>(f);Platform.runLater(t);return t.get(10,TimeUnit.SECONDS);}
     void idle()throws Exception{int stable=0;for(int i=0;i<500&&stable<2;i++){Thread.sleep(10);fx(()->null);stable=reads.activeCount()==0&&reads.pendingCount()==0?stable+1:0;}}
     @Test void copyNavigationAndFourDirections()throws Exception{

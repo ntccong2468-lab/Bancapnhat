@@ -96,7 +96,7 @@ class Gs1PrefixRequestDialogTest {
             }
             I18nService.getInstance().setLanguage(previousLanguage); return null;
         });
-        System.clearProperty("vncode.appdata.dir");
+        com.vncode.app.testsupport.ShopReadTestCleanup.awaitSharedIdle();System.clearProperty("vncode.appdata.dir");
     }
 
     @Test void sourcedContactFieldsAndEveryGcpAppearWithoutUploadingProfileScreenshots() throws Exception {

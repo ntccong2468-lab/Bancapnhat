@@ -42,7 +42,7 @@ class GtinSyncControllerTest {
         releaseSend.countDown();
         if(controller!=null)fx(()->{controller.dispose();return null;});
         await(()->!com.vncode.app.shared.AppTaskExecutor.hasRunningTasks());
-        System.clearProperty("vncode.appdata.dir");
+        com.vncode.app.testsupport.ShopReadTestCleanup.awaitSharedIdle();System.clearProperty("vncode.appdata.dir");
     }
     @Test void previewUsesEditedOperationTargetAndOldBarcodeWithoutSavingMapping()throws Exception {
         load(null,List.of());

@@ -40,7 +40,7 @@ class Gs1PaneTest {
         System.setProperty("vncode.appdata.dir",root.toString());Database.initDatabase();
         fx(()->{pane=new Gs1Pane();new Scene(pane,1000,850);field("shop",new Shop(1,"Fixture","fixture"));field("inn","7707083893");field("environment","production");return null;});
     }
-    @AfterEach void tearDown()throws Exception{fx(()->{pane.dispose();return null;});System.clearProperty("vncode.appdata.dir");}
+    @AfterEach void tearDown()throws Exception{fx(()->{pane.dispose();return null;});com.vncode.app.testsupport.ShopReadTestCleanup.awaitSharedIdle();System.clearProperty("vncode.appdata.dir");}
     @Test void anotherPrefixPreventsFalseShortageAndRenewalOnlyAppearsWhenDue()throws Exception{
         fx(()->{
             var date=LocalDate.now(ZoneId.of("Europe/Moscow"));
