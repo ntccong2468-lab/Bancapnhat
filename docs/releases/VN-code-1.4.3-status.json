@@ -17,12 +17,20 @@
     "portalFailures": 0,
     "releaseContractTests": 48,
     "releaseContractFailures": 0,
-    "windowsNative": "pending",
+    "windowsNative": "passed",
     "portalDryRun": "passed",
     "productionActivation": "blocked-SIGNING_NOT_CONFIGURED",
     "productionGmailRegistration": "owner-confirmed-separate-prior-live-test",
     "portalDeployment": "not-deployed",
-    "fullApplicationMatrix": "not-run-for-1.4.3"
+    "fullApplicationMatrix": "not-run-for-1.4.3",
+    "focusedWindowsTests": 86,
+    "focusedWindowsFailures": 0,
+    "windowsDiagnosticRun": 38560360144,
+    "windowsDiagnosticArtifact": 11892310257,
+    "windowsDiagnosticSourceCommit": "f070581bafd1af06b7d31af7e2aa0b40c45543a9",
+    "windowsDiagnosticSha256": "c64ab113da8697b33cf9f6e41f362d3424d1476116d9448d3d578cee364fc0a0",
+    "portalSourceArtifact": 11890734415,
+    "portalSourceSha256": "0296ffaf22303cdf860c7eea7e3bdaa04bffc1125e3b75a7321a089cdd0875f2"
   },
   "licenseIntegration": {
     "productionReady": false,

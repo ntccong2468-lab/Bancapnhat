@@ -19,7 +19,7 @@ were independently checked against the artifact checksum:
 
 This is an unsigned diagnostic candidate, not an official release or a claim of
 successful production activation. The full application/workspace/installer
-upgrade matrix continues separately in [build 38551260158](https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/38551260158).
+upgrade matrix passed separately at source `3b864ca` in [build 38551260158](https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/38551260158).
 The server key-pair match and actual customer activation remain unverified.
 No real key was activated by these tests.
 
