@@ -18,7 +18,10 @@
     "logSha256": "6d89c62e7c183b1d8eb992079c0fda18fbdb875d2a85388d9fe528fc5e554626"
   },
   "liveSellerMutations": false,
-  "nativeWindows": "pending",
+  "nativeWindows": {
+    "result": "passed",
+    "report": "docs/validation/VN-code-1.4.12-Windows-build.json"
+  },
   "sourceSizeCurrency": {
     "result": "passed",
     "tests": 48,

@@ -7,7 +7,7 @@
   ],
   "complete": false,
   "officialReleasePublished": false,
-  "phase": "windows-candidate-verified-awaiting-production-license-acceptance",
+  "phase": "verified-windows-draft-ready-awaiting-production-license-acceptance",
   "scope": [
     "Application-scoped scheduling with reserved FBS workers, persisted checkpoints and bounded shop fairness",
     "Published National Catalog cards automatically chain to verified GTIN updates and per-item reports",
@@ -123,7 +123,12 @@
     "published": false,
     "latestChanged": false,
     "productionAcceptanceRequiredByReleaseGate": true,
-    "candidateArtifactUrl": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/38776235230/artifacts/11994844404"
+    "candidateArtifactUrl": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/38776235230/artifacts/11994844404",
+    "draftPrepared": true,
+    "draftReleaseId": 414102966,
+    "draftReleaseUrl": "https://github.com/ntccong2468-lab/Bancapnhat/releases/tag/untagged-624cbb26b2590222e0f6",
+    "prepareRunId": 38780513750,
+    "buildSourceCommit": "fdce2e185d17afaf2a72643700b8ddf233f1d525"
   },
   "pendingOwnerChanges": [],
   "installer": {

@@ -17,7 +17,7 @@ Ngày làm việc: 15/10/2026, theo múi giờ Moscow. Nền nguồn rà soát b
 ## Bằng chứng kiểm thử
 
 - Lượt tập trung trước hoàn thiện: **100 bài, không lỗi/không bỏ qua**, gồm GS1 phiên HTTP, điều phối 10 cửa hàng, SQLite bận, pipeline WB/Ozon, lô 1.205 trạng thái WB, nội dung shipment 105 đơn và 54 bài FXML. Đây không phải thử tải seller 10 cửa hàng thật.
-- Lượt Java đầy đủ sau kho KIZ và sao chép: **1.386 bài, 1.384 qua, 2 bỏ qua theo nền tảng, không lỗi**. Sau guard cuối kiểm tra lại INN của reservation nhập kho và hoàn thiện từ ngữ giao diện, **59 bài tập trung qua**, gồm allocator, mua đúng biến thể, WB/Ozon/FBO, reader giá và giao diện thực. Lượt xác thực/GS1/CryptoPro trước đó có 69 bài qua. Windows vẫn phải chạy trên đúng commit cuối.
+- Lượt Java đầy đủ sau kho KIZ và sao chép: **1.386 bài, 1.384 qua, 2 bỏ qua theo nền tảng, không lỗi**. Sau guard cuối kiểm tra lại INN của reservation nhập kho và hoàn thiện từ ngữ giao diện, **59 bài tập trung qua**, gồm allocator, mua đúng biến thể, WB/Ozon/FBO, reader giá và giao diện thực. Lượt xác thực/GS1/CryptoPro trước đó có 69 bài qua. Windows sau đó đã chạy lại trên nguồn ứng dụng cuối, như kết quả bộ cài bên dưới.
 - Hợp đồng công cụ phát hành: **53/53 qua** trên thay đổi hiện tại. Bổ sung yêu cầu kiểm tra nâng cấp bộ cài từ Published 1.4.10 và 1.4.11.
 - Hai lỗi timeout mock đã được xử lý ở các lượt phát triển: transport kiểm thử hợp đồng 500 ms và fixture đọc 1.001 chi tiết có read timeout 200 ms. Chỉ tăng timeout của fixture lên mức phù hợp; không đổi timeout production, không thêm retry mutation. Lượt hồi quy cuối đã qua, vẫn đọc đủ 1.001 đơn khi chúng rời trạng thái ban đầu.
 
@@ -25,7 +25,7 @@ Ngày làm việc: 15/10/2026, theo múi giờ Moscow. Nền nguồn rà soát b
 
 Chưa có phiên seller để thử API production, CryptoPro/PIN thật, đơn GS1, GTIN, gán KIZ hoặc mua mã thật. Không gửi email, không mua mã và không dùng dữ liệu KIZ thật trong kiểm thử này. Bằng chứng WBCode là release 1.3.8 và UI/mã WCode công khai; không tuyên bố đã chạy WBCode mới nhất với tài khoản seller.
 
-Windows cần chạy workflow hiện có để kiểm tra launcher, DPAPI, bố cục/DPI, dữ liệu 10 cửa hàng và nâng cấp từ các bộ cài cũ. Kết quả Linux JavaFX không thay thế các kiểm tra Windows. Bản mới chưa được gắn Published/Latest trong lúc đang kiểm tra; điều kiện phát hành license thật vẫn được giữ trong công cụ phát hành.
+Windows workflow đã kiểm tra launcher, DPAPI, bố cục/DPI, dữ liệu 10 cửa hàng và nâng cấp từ các bộ cài cũ trên đúng nguồn ứng dụng. Kết quả Linux JavaFX được bổ sung bằng kiểm tra Windows thực. Bản mới chưa được gắn Published/Latest; điều kiện nghiệm thu license thật vẫn được giữ trong công cụ phát hành.
 
 ## Đối chiếu và sơ đồ bổ sung
 
@@ -33,7 +33,7 @@ Windows cần chạy workflow hiện có để kiểm tra launcher, DPAPI, bố 
 
 Đã mở giao diện JavaFX với dữ liệu tổng hợp cho kho và màn sao chép đã điền dữ liệu, ngoài các bài kiểm thử giao diện. Không dùng file KIZ thật của seller. Hợp đồng đọc giá WB/Ozon được tải lại từ tài liệu chính thức, lưu URL/checksum trong `docs/research/vncode-1412-listing-price-contracts.json`.
 
-Bổ sung sau lượt hồi quy: reader Ozon lấy size Nga từ thuộc tính có tên tương ứng, mapping chuyển size/size Nga sang cấu trúc biến thể của sàn đích thay vì bắt nhập lại như thuộc tính card. Giá nguồn ngoại tệ không được tự hiểu là RUB khi gửi giá WB. **48 bài sao chép/reader/giao diện qua** sau bổ sung này; Windows chạy lại toàn bộ trên commit cuối.
+Bổ sung sau lượt hồi quy: reader Ozon lấy size Nga từ thuộc tính có tên tương ứng, mapping chuyển size/size Nga sang cấu trúc biến thể của sàn đích thay vì bắt nhập lại như thuộc tính card. Giá nguồn ngoại tệ không được tự hiểu là RUB khi gửi giá WB. **48 bài sao chép/reader/giao diện qua** sau bổ sung này; Windows đã chạy lại toàn bộ trên nguồn ứng dụng cuối như kết quả bên dưới.
 
 ## Bộ cài Windows đã kiểm tra
 
@@ -45,3 +45,5 @@ Workflow [38776235230](https://github.com/ntccong2468-lab/Bancapnhat/actions/run
 - Đã tải lại artifact, kiểm tra định dạng Windows PE và checksum: `VN-code-1.4.12-Windows-x64.exe`, **145.091.584 byte**, SHA-256 `66b34a542bca66b812a5c7f8685596196f0de0d9e6d0fc3d2b8d67178d15b8a1`.
 
 Bằng chứng máy đọc được: `VN-code-1.4.12-Windows-build.json`. Bộ cài chưa có chữ ký Authenticode. Các kiểm tra trên dùng dữ liệu tổng hợp; không thay thế kích hoạt license thật hoặc gán/mua KIZ thật. Nguồn ứng dụng/kiểm thử/build không đổi sau build; commit ghi nhận kết quả chỉ cập nhật tài liệu, theo `validatePublicationSource`.
+
+Draft Releases đã được tạo bởi workflow [38780513750](https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/38780513750), ID `414102966`, gồm 20 tệp; EXE trên GitHub có cùng byte và SHA-256 đã kiểm tra. Draft cần đăng nhập tài khoản có quyền repo để tải; chưa phát hành Published/Latest. Điều kiện còn thiếu để xuất bản là hồ sơ nghiệm thu license production của đúng nguồn/bộ cài, không phải yêu cầu chạy lại kiểm thử đơn vị.
