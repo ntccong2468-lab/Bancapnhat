@@ -25,15 +25,17 @@ class LicenseNetworkDiagnosticsTest {
         }
     }
     @Test void realTlsNegotiationUsesHttp2AutomaticallyAndHttp11InCompatibleModeWithoutCredentials() throws Exception {
-        var cert=new HeldCertificate.Builder().commonName("localhost").addSubjectAlternativeName("localhost").build();
+        var cert=new HeldCertificate.Builder().commonName("localhost").addSubjectAlternativeName("localhost")
+                .addSubjectAlternativeName("127.0.0.1").build();
         var serverTls=new HandshakeCertificates.Builder().heldCertificate(cert).build();
         var clientTls=new HandshakeCertificates.Builder().addTrustedCertificate(cert.certificate()).build();
         try(var server=new MockWebServer()) {
             server.useHttps(serverTls.sslSocketFactory(),false);
-            server.start();probes(server);
+            server.start(InetAddress.getByName("127.0.0.1"),0);probes(server);
             var client=new OkHttpClient.Builder().proxy(java.net.Proxy.NO_PROXY)
                     .sslSocketFactory(clientTls.sslSocketFactory(),clientTls.trustManager()).build();
-            var api=new WebLicenseApi(client,server.url("/"),root.resolve("mode.txt"));
+            var origin=HttpUrl.get("https://127.0.0.1:"+server.getPort()+"/");
+            var api=new WebLicenseApi(client,origin,root.resolve("mode.txt"));
             var report=api.checkConnection();assertEquals(4,report.probes().size());
             assertTrue(report.probes().stream().allMatch(NetworkProbe::reachable), report.toString());
             assertEquals(List.of("h2","h2","http/1.1","http/1.1"),report.probes().stream().map(NetworkProbe::protocol).toList());
@@ -55,7 +57,7 @@ class LicenseNetworkDiagnosticsTest {
             var enrolled=server.takeRequest(1,TimeUnit.SECONDS);assertNotNull(enrolled);
             assertEquals("POST",enrolled.getMethod());assertEquals("/api/client/registration/license",enrolled.getPath());
             assertEquals("{\"code\":\"VNC"+"-1234".repeat(8)+"\"}",enrolled.getBody().readUtf8());
-            assertEquals(NetworkMode.COMPATIBLE,new WebLicenseApi(client,server.url("/"),root.resolve("mode.txt")).networkMode());
+            assertEquals(NetworkMode.COMPATIBLE,new WebLicenseApi(client,origin,root.resolve("mode.txt")).networkMode());
             assertEquals("COMPATIBLE",Files.readString(root.resolve("mode.txt")));
         }
     }
