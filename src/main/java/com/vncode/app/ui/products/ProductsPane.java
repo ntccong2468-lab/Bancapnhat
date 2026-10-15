@@ -37,6 +37,9 @@ public final class ProductsPane extends BorderPane {
     private final FlowPane bulk=new FlowPane(8,8);
     private final PauseTransition debounce=new PauseTransition(Duration.millis(300));
     private Consumer<List<ProductKey>> onCopy;
+    private boolean pickerMode;
+    public List<ProductKey> selectedKeys(){return selection.freeze();}
+    public void useAsPicker(){pickerMode=true;copy.setVisible(false);copy.setManaged(false);updateSelection();}
     private BiConsumer<String,List<ProductKey>> onEdit;
     private ProductRefreshService.Report lastSync;
     private Shop shop;private long generation,syncTicket;private String cursor="",shopScope="";private ProductQuery displayedQuery;private boolean updating,disposed,syncing,loading,selecting;
@@ -122,7 +125,7 @@ public final class ProductsPane extends BorderPane {
             if(disposed||epoch!=generation)return;selecting=false;updateButtons();if(error!=null){status.setText(tr("products.read_failed"));return;}selection.selectPage(keys);updateSelection();
         }));
     }
-    private void updateSelection(){int n=selection.freeze().size();selected.setText(tr("products.selected")+": "+n);bulk.setVisible(n>0);bulk.setManaged(n>0);pageSelection.setSelected(!rows.getItems().isEmpty()&&rows.getItems().stream().allMatch(row->selection.contains(row.key())));updateButtons();rows.refresh();}
+    private void updateSelection(){int n=selection.freeze().size();selected.setText(tr("products.selected")+": "+n);bulk.setVisible(n>0&&!pickerMode);bulk.setManaged(n>0&&!pickerMode);pageSelection.setSelected(!rows.getItems().isEmpty()&&rows.getItems().stream().allMatch(row->selection.contains(row.key())));updateButtons();rows.refresh();}
     private void updateButtons(){boolean blocked=shop==null||loading||syncing||selecting;boolean empty=selection.freeze().isEmpty();copy.setDisable(blocked||empty||onCopy==null);pageSelection.setDisable(blocked);all.setDisable(blocked||displayedQuery==null);for(var n:bulk.getChildren())if(n instanceof Button b&&b.getUserData()!=null)b.setDisable(blocked||empty||onEdit==null);}
     private void details(ProductRow row) {
         var key=row.key();long epoch=generation;reads.submitLocal(new ShopReadCoordinator.Key(key.shopId(),"product-detail",key.cardId()+":"+key.variantId()),()->repository.localSnapshot(key)).whenComplete((snapshot,error)->Platform.runLater(()->{

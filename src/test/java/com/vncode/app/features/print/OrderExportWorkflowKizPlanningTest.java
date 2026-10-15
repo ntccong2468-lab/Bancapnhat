@@ -14,6 +14,38 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class OrderExportWorkflowKizPlanningTest {
     @TempDir Path directory;
+    @Test void categoryStockCanFillAnOrderWithoutAGtinMapping()throws Exception{
+        var data=new PlanningData(7){
+            public Map<Long,String> mappings(int shop,List<Long> ids){return Map.of();}
+            public Map<Long,String> stockCategories(int shop,List<Long> ids){return Map.of(1L,"trousers");}
+            public Map<Long,List<Kiz>> reserveCategoryStock(int shop,Map<Long,Integer> quantities){assertEquals(Map.of(1L,1),quantities);return Map.of(1L,List.of(new Kiz(901,"0104645588781154210000000000001","category-fixture")));}
+        };
+        var orders=orders(1);var result=new OrderExportWorkflow(data).assignKizCodes(orders,new Shop(7,"Main","fixture-token"));
+        assertEquals(1,result.usedKizs().size());assertTrue(orders.getFirst().getKiz().startsWith("0104645588781154"));assertEquals(0,data.reserveCalls);
+    }
+    @Test void categoryStockIsUsedFirstAndOnlyRemainingUnitsReachExactGtinReservation()throws Exception{
+        var data=new PlanningData(7){
+            public Map<Long,String> stockCategories(int shop,List<Long> ids){return Map.of(1L,"trousers",2L,"trousers");}
+            public Map<Long,List<Kiz>> reserveCategoryStock(int shop,Map<Long,Integer> quantities){return Map.of(1L,List.of(new Kiz(901,"0104645588781154210000000000001","category-fixture")));}
+        };
+        var orders=orders(2);var result=new OrderExportWorkflow(data).assignKizCodes(orders,new Shop(7,"Main","fixture-token"));
+        assertEquals(2,result.usedKizs().size());assertEquals(Map.of(data.gtin(2),1),data.quantities);assertEquals(1,data.reserveCalls);
+    }
+    @Test void missingPurchaseGtinReleasesPreviouslyHeldCategoryStock()throws Exception{
+        var data=new PlanningData(7){
+            public Map<Long,String> mappings(int shop,List<Long> ids){return Map.of();}
+            public Map<Long,String> stockCategories(int shop,List<Long> ids){return Map.of(1L,"trousers",2L,"trousers");}
+            public Map<Long,List<Kiz>> reserveCategoryStock(int shop,Map<Long,Integer> quantities){return Map.of(1L,List.of(new Kiz(901,"0104645588781154210000000000001","category-fixture")));}
+        };
+        assertThrows(com.vncode.app.features.kiz.KizAssignmentException.class,()->new OrderExportWorkflow(data).assignKizCodes(orders(2),new Shop(7,"Main","fixture-token")));
+        assertEquals(1,data.released);assertEquals(0,data.reserveCalls);
+    }
+    @Test void existingCategoryMarkIsNotReplacedJustBecauseTheProductPurchaseGtinDiffers()throws Exception{
+        var data=new PlanningData(7){public Map<Long,String> stockCategories(int shop,List<Long> ids){return Map.of(1L,"trousers");}};
+        String mark="0104645588781154210000000000001";data.metadata=Map.of(1L,new KizService.SgtinMetadata(true,mark));
+        var orders=orders(1);var result=new OrderExportWorkflow(data).assignKizCodes(orders,new Shop(7,"Main","fixture-token"));
+        assertEquals(mark,orders.getFirst().getKiz());assertTrue(result.usedKizs().isEmpty());assertTrue(result.replaceExistingOrderIds().isEmpty());assertEquals(0,data.reserveCalls);
+    }
     @Test void thousandDistinctProductsReserveOnceWithOneCodePerUnitAndExactShop()throws Exception{
         var data=new PlanningData(7);var workflow=new OrderExportWorkflow(data);List<Order> orders=orders(1000);
         var result=workflow.assignKizCodes(orders,new Shop(7,"Main","fixture-token"));

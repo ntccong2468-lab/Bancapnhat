@@ -10,7 +10,9 @@ import java.util.*;
 
 /** Imports remain quarantined until True API proves each individual code and owner. */
 public final class KizWarehouseRepository {
-    public record Summary(String gtin,int total,int ready,int held,int consumed,int unverified){}
+    public record Summary(String gtin,int total,int ready,int held,int consumed,int unverified,String category){
+        public Summary(String gtin,int total,int ready,int held,int consumed,int unverified){this(gtin,total,ready,held,consumed,unverified,"");}
+    }
     public record Pending(long id,String raw,String cis,String gtin){@Override public String toString(){return "PendingKiz[redacted]";}}
     public record Verdict(boolean ready,String reason){public Verdict{if(!reason.matches("KIZ_[A-Z_]{1,70}"))throw new IllegalArgumentException("Invalid verification reason");}}
     public record Imported(String batch,int inserted,int duplicates){}
@@ -90,11 +92,14 @@ public final class KizWarehouseRepository {
     public List<Summary> summaries(Shop shop){
         try(var c=Database.getConnection();var p=c.prepareStatement("""
             SELECT k.gtin,count(*),sum(k.status='AVAILABLE' AND k.legal_status='IN_CIRCULATION'),
-              sum(k.status='RESERVED'),sum(k.status='CONSUMED'),sum(k.status='AVAILABLE' AND COALESCE(k.legal_status,'')<>'IN_CIRCULATION')
+              sum(k.status='RESERVED'),sum(k.status='CONSUMED'),sum(k.status='AVAILABLE' AND COALESCE(k.legal_status,'')<>'IN_CIRCULATION'),
+              COALESCE(group_concat(DISTINCT category.name),'')
             FROM kiz_codes k JOIN kiz_import_entries i ON i.code_id=k.id JOIN kiz_import_batches b ON b.id=i.batch_id
+            LEFT JOIN kiz_stock_classifications classification ON classification.code_id=k.id
+            LEFT JOIN kiz_stock_categories category ON category.id=classification.category_id AND category.owner=b.owner
             WHERE k.shop_id=? AND b.owner=? GROUP BY k.gtin ORDER BY k.gtin LIMIT 10001
             """)){
-            requireOwner(c,shop,ListingIdentity.fingerprint(shop));p.setInt(1,shop.getId());p.setString(2,ListingIdentity.fingerprint(shop));var out=new ArrayList<Summary>();try(var r=p.executeQuery()){while(r.next())out.add(new Summary(r.getString(1),r.getInt(2),r.getInt(3),r.getInt(4),r.getInt(5),r.getInt(6)));}return List.copyOf(out);
+            requireOwner(c,shop,ListingIdentity.fingerprint(shop));p.setInt(1,shop.getId());p.setString(2,ListingIdentity.fingerprint(shop));var out=new ArrayList<Summary>();try(var r=p.executeQuery()){while(r.next())out.add(new Summary(r.getString(1),r.getInt(2),r.getInt(3),r.getInt(4),r.getInt(5),r.getInt(6),r.getString(7)));}return List.copyOf(out);
         }catch(SQLException failed){throw new IllegalStateException("KIZ_IMPORT_STORAGE_FAILED");}
     }
     public Map<String,Integer> issues(Shop shop){
@@ -129,6 +134,8 @@ public final class KizWarehouseRepository {
         try(var p=c.prepareStatement("SELECT name,marketplace,client_id,api_key FROM shops WHERE id=?")){p.setInt(1,shopId);try(var r=p.executeQuery()){if(!r.next())throw new SecurityException("SHOP_CREDENTIALS_UNAVAILABLE");return ListingIdentity.fingerprint(new Shop(shopId,r.getString(1),com.vncode.app.integration.marketplace.Marketplace.valueOf(r.getString(2)),r.getString(3),r.getString(4)));}}
     }
     public static String eligible(String alias){return "NOT EXISTS(SELECT 1 FROM kiz_import_entries ownership JOIN kiz_import_batches batch ON batch.id=ownership.batch_id LEFT JOIN znack_settings config ON config.shop_id=batch.shop_id WHERE ownership.code_id="+alias+".id AND (batch.owner<>? OR batch.inn<>COALESCE(NULLIF(config.owner_inn,''),NULLIF(config.participant_inn,''),CASE WHEN json_valid(config.certificate_metadata_json) THEN json_extract(config.certificate_metadata_json,'$.inn') END,'')))";}
+    /** Category stock belongs to its explicit product pool, never to another product's exact-GTIN fallback. */
+    public static String eligibleExact(String alias){return eligible(alias)+" AND NOT EXISTS(SELECT 1 FROM kiz_stock_classifications classification JOIN kiz_stock_categories category ON category.id=classification.category_id JOIN kiz_import_entries imported ON imported.code_id=classification.code_id JOIN kiz_import_batches batch ON batch.id=imported.batch_id WHERE classification.code_id="+alias+".id AND category.shop_id="+alias+".shop_id AND category.owner=batch.owner)";}
     /** Explicit re-verification may rebind a rotated credential, but first quarantines every available imported code. */
     public void prepareVerification(Shop shop,String source,String inn){
         try(var c=Database.getConnection()){

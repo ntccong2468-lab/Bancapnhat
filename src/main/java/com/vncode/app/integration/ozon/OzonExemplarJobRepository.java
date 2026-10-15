@@ -357,6 +357,8 @@ public final class OzonExemplarJobRepository {
         for (OzonRequirementGuard.RequiredItem item : plan.items()) {
             if (items.put(item.itemIndex(), item) != null) throw new IllegalStateException("Duplicate Ozon print item.");
         }
+        String owner=com.vncode.app.features.kiz.KizWarehouseRepository.currentOwner(connection,job.shopId());
+        var nativeProducts=OzonCategoryStock.nativeProducts(connection,job.shopId(),plan.items().stream().map(OzonRequirementGuard.RequiredItem::sku).toList());
         int count = 0;
         try (PreparedStatement statement = connection.prepareStatement("""
                 SELECT e.item_index,e.product_id,e.exemplar_index,e.kiz_id,k.shop_id,k.gtin,k.status,k.reservation_token
@@ -370,7 +372,7 @@ public final class OzonExemplarJobRepository {
                     if (expected == null || !expected.productId().equals(rows.getString(2))
                             || rows.getInt(3) < 0 || rows.getInt(3) >= expected.quantity()
                             || rows.getObject(4) == null || rows.getInt(5) != job.shopId()
-                            || !expected.gtin().equals(rows.getString(6))
+                            || (!expected.gtin().equals(rows.getString(6)) && !com.vncode.app.features.kiz.KizCategoryAllocator.hasProof(connection,job.shopId(),owner,rows.getLong(4),rows.getString(8),OzonCategoryStock.key(plan.postingNumber(),expected.itemIndex()),nativeProducts.get(expected.sku())))
                             || !"RESERVED".equals(rows.getString(7))
                             || !("ozon:" + job.id()).equals(rows.getString(8))) {
                         throw new IllegalStateException("Existing Ozon KIZ links differ from the refreshed posting; reconciliation is required.");
@@ -405,6 +407,13 @@ public final class OzonExemplarJobRepository {
         String reservationToken = "ozon:" + job.id();
         String inventoryOwner=com.vncode.app.features.kiz.KizWarehouseRepository.currentOwner(connection,job.shopId());
         String now = Instant.now().toString();
+        var products=OzonCategoryStock.nativeProducts(connection,job.shopId(),plan.items().stream().map(OzonRequirementGuard.RequiredItem::sku).toList());
+        var demands=plan.items().stream().filter(i->products.containsKey(i.sku())).map(i->new com.vncode.app.features.kiz.KizCategoryAllocator.Demand(OzonCategoryStock.key(plan.postingNumber(),i.itemIndex()),products.get(i.sku()),i.quantity())).toList();
+        var categoryCodes=new java.util.HashMap<Integer,com.vncode.app.features.kiz.KizCategoryAllocator.Selection>();
+        var byKey=new java.util.HashMap<String,List<Long>>();
+        for(var selected:com.vncode.app.features.kiz.KizCategoryAllocator.select(connection,job.shopId(),com.vncode.app.integration.marketplace.Marketplace.OZON,inventoryOwner,demands)){
+            categoryCodes.put(selected.code().getId(),selected);byKey.computeIfAbsent(selected.key(),k->new ArrayList<>()).add((long)selected.code().getId());
+        }
         // Reuse both prepared updates for the entire posting, including quantities above 1,000.
         try (PreparedStatement reserve = connection.prepareStatement("""
                 UPDATE kiz_codes SET status='RESERVED',reservation_token=?,reserved_at=?,
@@ -418,7 +427,12 @@ public final class OzonExemplarJobRepository {
                 if (exemplarRows.size() != required.quantity()) {
                     throw new IllegalStateException("Ozon exemplar rows are incomplete for this posting.");
                 }
-                List<Long> available = availableKiz(connection, job.shopId(), required.gtin(), required.quantity(),inventoryOwner);
+                List<Long> available = new ArrayList<>(byKey.getOrDefault(OzonCategoryStock.key(plan.postingNumber(),required.itemIndex()),List.of()));
+                int shortage=required.quantity()-available.size();
+                if(shortage>0){
+                    if(required.gtin()==null||required.gtin().isBlank())throw new OzonRequirementGuard.MissingMappingException(required.sku());
+                    available.addAll(availableKiz(connection,job.shopId(),required.gtin(),shortage,inventoryOwner));
+                }
                 if (available.size() != required.quantity()) throw new InsufficientKizException();
                 for (int index = 0; index < available.size(); index++) {
                     reserve.setString(1, reservationToken);
@@ -429,6 +443,8 @@ public final class OzonExemplarJobRepository {
                     if (reserve.executeUpdate() != 1) {
                         throw new IllegalStateException("KIZ inventory changed while reserving Ozon marks.");
                     }
+                    var selection=categoryCodes.get(available.get(index).intValue());
+                    if(selection!=null)com.vncode.app.features.kiz.KizCategoryAllocator.recordProof(connection,job.shopId(),inventoryOwner,reservationToken,selection);
                     link.setLong(1, available.get(index));
                     link.setString(2, now);
                     link.setLong(3, exemplarRows.get(index));
@@ -882,7 +898,7 @@ public final class OzonExemplarJobRepository {
                 SELECT id FROM kiz_codes INDEXED BY idx_kiz_codes_priority_circulation
                 WHERE shop_id=? AND gtin=? AND status='AVAILABLE' AND legal_status='IN_CIRCULATION' AND %s
                 ORDER BY source_priority,id LIMIT ?
-                """.formatted(com.vncode.app.features.kiz.KizWarehouseRepository.eligible("kiz_codes")))) {
+                """.formatted(com.vncode.app.features.kiz.KizWarehouseRepository.eligibleExact("kiz_codes")))) {
             statement.setInt(1, shopId);
             statement.setString(2, gtin);
             statement.setString(3,owner);

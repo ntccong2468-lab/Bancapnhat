@@ -43,9 +43,22 @@ public final class OzonProductSnapshotReader implements ProductSnapshotReader {
                 docs.add(new ProductDocument(text(doc,"certificate_id"),text(doc,"type_code"),text(doc,"certificate_number"),date(text(doc,"issue_date")),end,"","",null,Marketplace.OZON,state,"https://api-seller.ozon.ru/v1/product/certificate/list",now,metadata(doc)));
             }
         }
+        var inherited=new LinkedHashMap<String,String>();
+        try{
+            var amount=price(info);String priceCurrency=info.has("price")&&info.get("price").isJsonObject()?text(obj(info,"price"),"currency_code"):text(info,"currency_code");
+            if(amount==null||amount.signum()<=0){var pricingFilter=new JsonObject();pricingFilter.add("product_id",ids);pricingFilter.addProperty("visibility","ALL");var pricingRequest=new JsonObject();pricingRequest.add("filter",pricingFilter);pricingRequest.addProperty("limit",1);pricingRequest.addProperty("cursor","");
+                var pricing=object(client.call("v5/product/info/prices",pricingRequest,false));
+                var matches=array(pricing,"items").asList().stream().map(com.vncode.app.integration.listing.ListingJson::object).filter(item->text(item,"product_id").equals(key.cardId())&&(text(item,"offer_id").isBlank()||text(item,"offer_id").equals(text(attr,"offer_id")))).toList();
+                if(matches.size()>1)throw new IOException("Ambiguous Ozon source price");
+                if(matches.size()==1){amount=price(matches.getFirst());priceCurrency=text(obj(matches.getFirst(),"price"),"currency_code");}
+            }
+            if(amount!=null&&amount.signum()>0){inherited.put("source.price",amount.toPlainString());inherited.put("source.currency",priceCurrency.isBlank()?"RUB":priceCurrency);}
+        }catch(IOException unavailable){inherited.put("source.price.unavailable","true");}
         var raw=new JsonObject();raw.add("info",info);raw.add("attributes",attr);raw.add("documents",ProductJson.GSON.toJsonTree(docs.stream().map(ProductDocument::metadata).toList()));String payload=ListingIdentity.canonical(raw);
-        var snapshot=new ProductSnapshot(key,"live:"+ListingIdentity.hash(payload),text(attr,"name"),description,brand,text(attr,"offer_id"),text(attr,"description_category_id")+":"+text(attr,"type_id"),media,attributes,variants,dimensions,docs,now,Map.of("source.payload",payload,"owner",ListingIdentity.fingerprint(shop),"sku",text(info,"sku"),"complex.ambiguous",Boolean.toString(groups.values().stream().anyMatch(v->v>1))));new ProductRepository().saveVerifiedSnapshot(shop,snapshot);return snapshot;
+        inherited.putAll(Map.of("source.payload",payload,"owner",ListingIdentity.fingerprint(shop),"sku",text(info,"sku"),"complex.ambiguous",Boolean.toString(groups.values().stream().anyMatch(v->v>1))));
+        var snapshot=new ProductSnapshot(key,"live:"+ListingIdentity.hash(payload+ListingIdentity.canonical(ProductJson.GSON.toJsonTree(inherited))),text(attr,"name"),description,brand,text(attr,"offer_id"),text(attr,"description_category_id")+":"+text(attr,"type_id"),media,attributes,variants,dimensions,docs,now,inherited);new ProductRepository().saveVerifiedSnapshot(shop,snapshot);return snapshot;
     }
+    private static BigDecimal price(JsonObject item){var value=item.get("price");if(value==null||value.isJsonNull())return null;try{return value.isJsonObject()?decimal(value.getAsJsonObject(),"price"):value.getAsBigDecimal();}catch(RuntimeException invalid){return null;}}
     private static JsonObject find(JsonArray a,String id)throws IOException{JsonObject found=null;for(var e:a){var o=object(e);if(text(o,"id").equals(id)){if(found!=null)throw new IOException("Ambiguous Ozon identity");found=o;}}return found;}
     private static BigDecimal cm(JsonObject o,String key)throws IOException{var v=decimal(o,key);if(v==null)return null;return switch(text(o,"dimension_unit")){case "mm"->v.movePointLeft(1);case "cm"->v;case "in"->v.multiply(new BigDecimal("2.54"));default->throw new IOException("Unknown Ozon dimension unit");};}
     private static BigDecimal kg(JsonObject o)throws IOException{var v=decimal(o,"weight");if(v==null)return null;return switch(text(o,"weight_unit")){case "g"->v.movePointLeft(3);case "kg"->v;default->throw new IOException("Unknown Ozon weight unit");};}

@@ -98,8 +98,8 @@ public class FboBarcodePdfExporter {
         order.setColor(product.color());
         order.setSize(product.size());
         order.setRuSize(product.ruSize());
-        if(page.kind()==FboPrintPage.Kind.BARCODE&&product.requiresKiz()&&!com.vncode.app.features.gtinsync.RegisteredGtinValidator.isValid(product.verifiedGtin()))throw new IllegalStateException("FBO_GTIN_UNVERIFIED");
-        order.setBarcode(page.kind()==FboPrintPage.Kind.BARCODE?(product.requiresKiz()?product.verifiedGtin():product.sku()):null);
+        if(page.kind()==FboPrintPage.Kind.BARCODE&&product.requiresKiz()&&!page.categoryStock()&&!com.vncode.app.features.gtinsync.RegisteredGtinValidator.isValid(product.verifiedGtin()))throw new IllegalStateException("FBO_GTIN_UNVERIFIED");
+        order.setBarcode(page.kind()==FboPrintPage.Kind.BARCODE?(product.requiresKiz()&&!page.categoryStock()?product.verifiedGtin():product.sku()):null);
         order.setKiz(page.kind() == FboPrintPage.Kind.KIZ ? page.kizCode() : null);
         order.setStickerTail(String.valueOf(Math.max(1, page.pairNumber())));
         order.setImageUrl(product.imageUrl());

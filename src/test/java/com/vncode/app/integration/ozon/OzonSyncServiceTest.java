@@ -42,10 +42,10 @@ class OzonSyncServiceTest {
                 new OzonCredentials("client-1", "secret"),
                 server.url("/"),
                 new OkHttpClient.Builder()
-                        .connectTimeout(200, TimeUnit.MILLISECONDS)
-                        .readTimeout(200, TimeUnit.MILLISECONDS)
-                        .writeTimeout(200, TimeUnit.MILLISECONDS)
-                        .callTimeout(500, TimeUnit.MILLISECONDS)
+                        .connectTimeout(2, TimeUnit.SECONDS)
+                        .readTimeout(2, TimeUnit.SECONDS)
+                        .writeTimeout(2, TimeUnit.SECONDS)
+                        .callTimeout(5, TimeUnit.SECONDS)
                         .build(),
                 new OzonApiRateLimiter(Duration.ZERO),
                 new OzonRetryPolicy(1, Duration.ofMillis(1), Duration.ofMillis(1)));

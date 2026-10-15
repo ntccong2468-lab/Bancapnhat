@@ -93,6 +93,15 @@ class OzonExemplarWorkflowTest {
         assertEquals(1, count("SELECT COUNT(*) FROM ozon_exemplars"));
         assertEquals(1, count("SELECT COUNT(*) FROM kiz_codes WHERE status='RESERVED'"));
     }
+    @Test void productionPrintFlowUsesCategoryStockWithDifferentGtinAndReusesItsDurableProof()throws Exception{
+        new OzonCatalogRepository().upsertPage(1,java.util.List.of(new OzonProductDto("9001","offer-1","101","Synthetic","",false,"",java.util.List.of())),"");
+        try(var c=Database.getConnection();var s=c.createStatement()){s.execute("DELETE FROM ozon_product_gtin_mappings");}
+        com.vncode.app.testsupport.CategoryStockFixture.add(shop,"9001",temporaryDirectory,1);
+        server.enqueue(json(posting()));server.enqueue(json(posting()));var service=service();
+        assertTrue(service.stageForPrint(shop,"POST-1").shipReady());assertTrue(service.stageForPrint(shop,"POST-1").shipReady());
+        assertEquals(com.vncode.app.testsupport.CategoryStockFixture.GTIN,scalar("SELECT k.gtin FROM ozon_exemplars e JOIN kiz_codes k ON k.id=e.kiz_id"));
+        assertEquals(1,count("SELECT count(*) FROM kiz_stock_category_reservations"));assertEquals(2,server.getRequestCount());
+    }
 
     @Test
     void receivedKizIsSkippedInFavorOfAnInCirculationCode() throws Exception {

@@ -27,6 +27,32 @@ public final class KizWarehouseSchema {
                   shop_id INTEGER PRIMARY KEY REFERENCES shops(id) ON DELETE CASCADE,
                   owner TEXT NOT NULL,auto_purchase INTEGER NOT NULL DEFAULT 0)
                 """);
+            s.execute("""
+                CREATE TABLE IF NOT EXISTS kiz_stock_categories(
+                  id TEXT PRIMARY KEY,shop_id INTEGER NOT NULL REFERENCES shops(id) ON DELETE CASCADE,
+                  owner TEXT NOT NULL,name TEXT NOT NULL,created_at TEXT NOT NULL,
+                  UNIQUE(shop_id,owner,name))
+                """);
+            s.execute("""
+                CREATE TABLE IF NOT EXISTS kiz_stock_classifications(
+                  code_id INTEGER PRIMARY KEY REFERENCES kiz_import_entries(code_id) ON DELETE CASCADE,
+                  category_id TEXT NOT NULL REFERENCES kiz_stock_categories(id) ON DELETE CASCADE,assigned_at TEXT NOT NULL)
+                """);
+            s.execute("CREATE INDEX IF NOT EXISTS kiz_stock_classification_category ON kiz_stock_classifications(category_id,code_id)");
+            s.execute("""
+                CREATE TABLE IF NOT EXISTS kiz_stock_product_categories(
+                  shop_id INTEGER NOT NULL REFERENCES shops(id) ON DELETE CASCADE,marketplace TEXT NOT NULL,
+                  product_id TEXT NOT NULL,owner TEXT NOT NULL,
+                  category_id TEXT NOT NULL REFERENCES kiz_stock_categories(id) ON DELETE CASCADE,updated_at TEXT NOT NULL,
+                  PRIMARY KEY(shop_id,marketplace,product_id))
+                """);
+            s.execute("""
+                CREATE TABLE IF NOT EXISTS kiz_stock_category_reservations(
+                  code_id INTEGER NOT NULL REFERENCES kiz_codes(id) ON DELETE CASCADE,token TEXT NOT NULL,
+                  category_id TEXT NOT NULL REFERENCES kiz_stock_categories(id) ON DELETE CASCADE,product_id TEXT NOT NULL,allocation_key TEXT NOT NULL,
+                  shop_id INTEGER NOT NULL REFERENCES shops(id) ON DELETE CASCADE,owner TEXT NOT NULL,created_at TEXT NOT NULL,
+                  PRIMARY KEY(code_id,token))
+                """);
         }
     }
 }

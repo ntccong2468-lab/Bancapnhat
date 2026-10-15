@@ -7,13 +7,15 @@
   ],
   "complete": false,
   "officialReleasePublished": false,
-  "phase": "gs1-and-unified-sync-implemented-additional-owner-changes-in-progress",
+  "phase": "implemented-local-regression-passed-awaiting-windows-and-production-acceptance",
   "scope": [
     "Application-scoped scheduling with reserved FBS workers, persisted checkpoints and bounded shop fairness",
     "Published National Catalog cards automatically chain to verified GTIN updates and per-item reports",
     "Ozon product/offer/SKU and variant checks before marketplace GTIN writes",
     "GS1 certificate authentication using Znack settings without browser sign-in",
-    "Compact GS1 UI and unified per-job details with CSV/JSON export"
+    "Compact GS1 UI and unified per-job details with CSV/JSON export",
+    "Imported KIZ allocated FIFO by seller category for WB/Ozon FBS and FBO; new paid purchases require exact product/variant GTIN proof",
+    "Listing copies inherit original data, dictionary mappings, variants and source prices where available, including per-product defaults in batches"
   ],
   "licenseIntegration": {
     "implemented": true,
@@ -28,12 +30,12 @@
     "gs1Architecture": "docs/architecture/2026-10-15-gs1-automatic-sync.md",
     "localFullJava": {
       "result": "passed",
-      "tests": 1359,
-      "passed": 1357,
+      "tests": 1386,
+      "passed": 1384,
       "failures": 0,
       "errors": 0,
       "platformSpecificSkipped": 2,
-      "coverageNote": "Before final authentication-only guard and barcode cache refinement; affected paths additionally verified by focused tests and the final Windows full build is still required."
+      "coverageNote": "Full regression after category KIZ, purchase proof and listing inheritance changes; final INN reservation guard and wording additionally covered by focused checks. Exact-source Windows regression remains required."
     },
     "finalAuthenticationFocusedJava": {
       "result": "passed",
@@ -71,15 +73,23 @@
       "failures": 0,
       "errors": 0,
       "skipped": 0
-    }
+    },
+    "categoryCopyFocusedJava": {
+      "result": "passed",
+      "tests": 59,
+      "passed": 59,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "sourceComparison": "docs/research/2026-10-15-vncode-1412-category-copy.md",
+    "categoryCopyArchitecture": "docs/architecture/2026-10-15-category-kiz-and-listing-copy.md",
+    "latestPublicWbcodeReviewed": "1.3.9 (release notes; internal source and live seller acceptance unavailable)"
   },
   "publication": {
     "published": false,
     "latestChanged": false,
     "productionAcceptanceRequiredByReleaseGate": true
   },
-  "pendingOwnerChanges": [
-    "Category-based imported KIZ stock allocation following legacy WCode, with exact-GTIN purchase fallback",
-    "Listing copy inherits original source values instead of requiring redundant manual entry"
-  ]
+  "pendingOwnerChanges": []
 }

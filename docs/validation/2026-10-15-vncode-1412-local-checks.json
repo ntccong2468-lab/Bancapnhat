@@ -1,0 +1,22 @@
+{
+  "fullJava": {
+    "result": "passed",
+    "tests": 1386,
+    "skipped": 2,
+    "logSha256": "1fbddf9016526d73e68a525a63ef4d17bbd40e3eea96336f3663d8a6a8ca4224"
+  },
+  "finalCategoryCopy": {
+    "result": "passed",
+    "tests": 59,
+    "skipped": 0,
+    "logSha256": "4bcb4636ca5b4734b111b26cecd374338eff38ec429285e58c2c16c8cf1f6502"
+  },
+  "releaseContracts": {
+    "result": "passed",
+    "tests": 53,
+    "skipped": 0,
+    "logSha256": "6d89c62e7c183b1d8eb992079c0fda18fbdb875d2a85388d9fe528fc5e554626"
+  },
+  "liveSellerMutations": false,
+  "nativeWindows": "pending"
+}

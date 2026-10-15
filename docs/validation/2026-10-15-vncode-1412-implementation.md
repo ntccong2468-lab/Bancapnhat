@@ -10,17 +10,25 @@ Ngày làm việc: 15/10/2026, theo múi giờ Moscow. Nền nguồn rà soát b
 - `Gs1AutomaticSyncService`: đọc trực tiếp qua xác thực chứng thư từ Cấu hình Znack; không cần trình duyệt. Có cache riêng theo chủ/chứng thư, phiên riêng Catalog/ELK và một lượt xác thực lại khi phiên bị từ chối. Lưu trạng thái đơn GS1 đã gửi để giao diện không đề nghị gửi lặp chỉ vì vừa đọc cache.
 - `SyncRunRepository` và báo cáo: ID tác vụ, dòng sản phẩm, tiến độ, mã lỗi an toàn, timeline, CSV/JSON có phân trang. Giao diện bỏ công cụ GTIN riêng và mở đối chiếu trong luồng Znack.
 - Cơ sở dữ liệu bổ sung bảng, không xóa journal cũ; khóa chờ SQLite không giữ monitor của các lệnh chọn cửa hàng/làm mới. `SyncDataScope` chặn phản hồi cũ mở database khác khi môi trường dữ liệu thay đổi.
+- Kho KIZ bổ sung nhóm seller tự tạo và liên kết sản phẩm; WB, Ozon và FBO lấy mã nhập FIFO trong nhóm mà không đối chiếu GTIN sản phẩm. Mã vẫn phải đúng chủ/INN và đã lưu thông. Giữ reservation/journal; phần mua thiếu có kiểm tra đúng native product, barcode/SKU và GTIN Catalog trước khi tạo mua có phí.
+- Sao chép bài đăng tự kế thừa dữ liệu nguồn, ánh xạ dictionary tương ứng, size/RU size, article và giá API trả về. Batch không bắt mở lại từng bài để nhập dữ liệu đã có; không lấy nội dung chỉnh tay của bài đầu áp vào bài khác. Không tạo Catalog proof từ barcode sao chép.
 - FBO giữ hợp đồng phân trang/cursor đang dùng của dịch vụ hiện có và nhận lịch nền chung. Tải chi tiết mặt hàng FBO vẫn theo lựa chọn của người dùng. Catalog nguồn và một số lượt lên kế hoạch vẫn có thể đọc nhiều trang trong một lượt nền; chưa chuyển toàn bộ thành một request mỗi lượt như mục tiêu dài hạn.
 
 ## Bằng chứng kiểm thử
 
 - Lượt tập trung trước hoàn thiện: **100 bài, không lỗi/không bỏ qua**, gồm GS1 phiên HTTP, điều phối 10 cửa hàng, SQLite bận, pipeline WB/Ozon, lô 1.205 trạng thái WB, nội dung shipment 105 đơn và 54 bài FXML. Đây không phải thử tải seller 10 cửa hàng thật.
-- Lượt Java đầy đủ: **1.359 bài, 1.357 qua, 2 bỏ qua theo nền tảng, không lỗi**. Sau đó hoàn thiện guard chỉ ký thử thách xác thực và kiểm tra giữ cache đúng barcode; lượt tập trung xác thực/GS1/CryptoPro/cooldown/hiển thị có **69 bài qua**. Windows sẽ chạy lại toàn bộ trên đúng commit cuối để xác nhận thay đổi sau lượt đầy đủ này.
+- Lượt Java đầy đủ sau kho KIZ và sao chép: **1.386 bài, 1.384 qua, 2 bỏ qua theo nền tảng, không lỗi**. Sau guard cuối kiểm tra lại INN của reservation nhập kho và hoàn thiện từ ngữ giao diện, **59 bài tập trung qua**, gồm allocator, mua đúng biến thể, WB/Ozon/FBO, reader giá và giao diện thực. Lượt xác thực/GS1/CryptoPro trước đó có 69 bài qua. Windows vẫn phải chạy trên đúng commit cuối.
 - Hợp đồng công cụ phát hành: **53/53 qua** trên thay đổi hiện tại. Bổ sung yêu cầu kiểm tra nâng cấp bộ cài từ Published 1.4.10 và 1.4.11.
-- Một lượt đầy đủ trước đó có 1 lỗi timeout của mock HTTP Ozon với deadline 500 ms. Đã điều chỉnh timeout của transport kiểm thử hợp đồng (không thay timeout production), giữ kiểm tra không gửi lại mutation mơ hồ; bài đó đã qua trong lượt tập trung.
+- Hai lỗi timeout mock đã được xử lý ở các lượt phát triển: transport kiểm thử hợp đồng 500 ms và fixture đọc 1.001 chi tiết có read timeout 200 ms. Chỉ tăng timeout của fixture lên mức phù hợp; không đổi timeout production, không thêm retry mutation. Lượt hồi quy cuối đã qua, vẫn đọc đủ 1.001 đơn khi chúng rời trạng thái ban đầu.
 
 ## Chưa được chứng minh
 
 Chưa có phiên seller để thử API production, CryptoPro/PIN thật, đơn GS1, GTIN, gán KIZ hoặc mua mã thật. Không gửi email, không mua mã và không dùng dữ liệu KIZ thật trong kiểm thử này. Bằng chứng WBCode là release 1.3.8 và UI/mã WCode công khai; không tuyên bố đã chạy WBCode mới nhất với tài khoản seller.
 
 Windows cần chạy workflow hiện có để kiểm tra launcher, DPAPI, bố cục/DPI, dữ liệu 10 cửa hàng và nâng cấp từ các bộ cài cũ. Kết quả Linux JavaFX không thay thế các kiểm tra Windows. Bản mới chưa được gắn Published/Latest trong lúc đang kiểm tra; điều kiện phát hành license thật vẫn được giữ trong công cụ phát hành.
+
+## Đối chiếu và sơ đồ bổ sung
+
+Đã đọc lại trực tiếp bảy tệp WCode 1.0.27 theo commit cố định; manifest checksum đi cùng [bảng đối chiếu](../research/2026-10-15-vncode-1412-category-copy.md). WBCode 1.3.9 xuất hiện trong lúc làm việc và đã bổ sung ghi chú công khai; chưa có source nội bộ hay nghiệm thu seller để khẳng định tương đương mọi hành vi. [Sơ đồ kho KIZ và sao chép](../architecture/2026-10-15-category-kiz-and-listing-copy.md) mô tả hành vi mới.
+
+Đã mở giao diện JavaFX với dữ liệu tổng hợp cho kho và màn sao chép đã điền dữ liệu, ngoài các bài kiểm thử giao diện. Không dùng file KIZ thật của seller. Hợp đồng đọc giá WB/Ozon được tải lại từ tài liệu chính thức, lưu URL/checksum trong `docs/research/vncode-1412-listing-price-contracts.json`.

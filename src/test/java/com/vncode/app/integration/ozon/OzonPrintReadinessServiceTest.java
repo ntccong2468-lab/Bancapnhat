@@ -133,6 +133,12 @@ class OzonPrintReadinessServiceTest {
         assertEquals(new OzonPrintReadiness.GtinAvailability(GTIN, 4, 3),
                 batch.gtinAvailability().getFirst());
     }
+    @Test void categoryStockCoversUnmappedSkuAndIsNotCountedTwiceAcrossPostings()throws Exception{
+        com.vncode.app.testsupport.CategoryStockFixture.add(shop,"101",appData,2);
+        var service=new OzonPrintReadinessService();assertTrue(service.inspect(shop,"POST-1").ready());
+        var first=posting();new OzonPostingRepository().upsertDetail(1,new OzonPostingDto("POST-2","ORDER-2","ORDER-2",first.status(),"","","","","","",first.requirements(),List.of(),false,first.items()));
+        var batch=service.inspectAll(shop,List.of("POST-1","POST-2"));assertFalse(batch.ready());assertEquals(List.of("POST-1"),batch.readyPostingNumbers());assertEquals(List.of("SKU-1"),batch.postings().getLast().missingSkus());
+    }
 
     private void insertKiz(int id) throws Exception {
         try (Connection connection = Database.getConnection(); Statement statement = connection.createStatement()) {

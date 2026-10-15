@@ -57,10 +57,26 @@ class ListingCopyPaneTest {
         fx(()->{((ComboBox<TargetCategory>)pane.lookup("#copyCategory")).getSelectionModel().selectFirst();((TextField)pane.lookup("#copyPrice")).setText("202");return null;});idle();
         fx(()->{((Button)pane.lookup("#copyPrepare")).fire();return null;});idle();var saved=service.list(oz).stream().map(j->service.get(oz,j.id())).toList();assertEquals(2,saved.size());assertEquals(Set.of(new java.math.BigDecimal("101"),new java.math.BigDecimal("202")),new HashSet<>(saved.stream().map(j->j.options().targetPrice()).toList()));assertEquals(Set.of("123","124"),new HashSet<>(saved.stream().map(j->j.source().key().cardId()).toList()));
     }
+    @Test void copyEditorPrefillsOriginalArticleMappingsAndAttributeValues()throws Exception{
+        fx(()->{pane.open(wb,List.of(new ProductKey(1,Marketplace.WILDBERRIES,"123","v1")));return null;});idle();
+        fx(()->{((CheckBox)pane.lookup("#copyDestination_2")).setSelected(true);return null;});idle();
+        fx(()->{((ComboBox<TargetCategory>)pane.lookup("#copyCategory")).getSelectionModel().selectFirst();return null;});idle();
+        fx(()->{assertEquals("OLD",((TextField)pane.lookup("#copyArticle")).getText());
+            var mapping=(ComboBox<TargetAttribute>)pane.lookup("#copyMapping_444");assertEquals("777",mapping.getValue().id());
+            assertTrue(pane.lookupAll(".text-field").stream().filter(n->n instanceof TextField).anyMatch(n->"Cotton".equals(((TextField)n).getText())));return null;});
+    }
+    @Test void batchUsesEachUnvisitedProductsSourceDataInsteadOfRequiringReentry()throws Exception{
+        var keys=List.of(new ProductKey(1,Marketplace.WILDBERRIES,"123","v1"),new ProductKey(1,Marketplace.WILDBERRIES,"124","v2"));
+        fx(()->{pane.open(wb,keys);return null;});idle();fx(()->{((CheckBox)pane.lookup("#copyDestination_2")).setSelected(true);return null;});idle();
+        fx(()->{((ComboBox<TargetCategory>)pane.lookup("#copyCategory")).getSelectionModel().selectFirst();return null;});idle();
+        fx(()->{((Button)pane.lookup("#copyPrepare")).fire();return null;});idle();
+        var saved=service.list(oz).stream().map(j->service.get(oz,j.id())).toList();assertEquals(2,saved.size());
+        var inherited=saved.stream().filter(j->j.source().key().cardId().equals("124")).findFirst().orElseThrow();assertEquals(Set.of("v2"),inherited.options().variantIds());assertTrue(inherited.options().textOverrides().isEmpty());
+    }
     static ProductSnapshot source(ProductKey key){var s=ListingCopyMappingTest.source(key.marketplace());return new ProductSnapshot(key,s.revision(),s.title(),s.description(),s.brand(),s.vendorArticle(),s.categoryId(),s.media(),s.attributes(),s.variants(),s.dimensions(),s.documents(),s.checkedAt(),s.metadata());}
     static class FakeAdapter implements ListingTargetAdapter {
         CountDownLatch gate,entered;volatile int sentOwner;
-        public List<TargetCategory> categories(Shop s){return List.of(new TargetCategory("99","Clothing"));}public List<TargetAttribute> attributes(Shop s,String c){return List.of();}
+        public List<TargetCategory> categories(Shop s){return List.of(new TargetCategory("99","Clothing"));}public List<TargetAttribute> attributes(Shop s,String c){return List.of(new TargetAttribute("777","Material","string",false,"",3,"","",false),new TargetAttribute("888","Size","string",false,"",1,"","",false));}
         public CopyPreview preview(Shop s,ProductSnapshot source,CopyOptions o){String owner=com.vncode.app.integration.listing.ListingIdentity.fingerprint(s),r="{}";var issues=o.documents().stream().anyMatch(d->d.file()==null)?List.of(new CopyIssue("DOCUMENT_FILE_REQUIRED","documents",true)):List.<CopyIssue>of();return new CopyPreview(s.getId(),s.getMarketplace(),owner,source.key(),source.revision(),CopyPreview.hash(r,"[]","[]",owner,source.revision(),"CREATE"),r,"[]","[]",Map.of("source",source.title()),issues,List.of("NEW"),o,"CREATE");}
         public RemoteSubmission submit(Shop s,CopyPreview p)throws java.io.IOException{sentOwner=s.getId();if(entered!=null)entered.countDown();if(gate!=null)try{gate.await(10,TimeUnit.SECONDS);}catch(InterruptedException e){throw new java.io.IOException();}return new RemoteSubmission(s.getId(),s.getMarketplace(),p.owner(),p.requestHash(),null,p.articles(),p.requestJson(),p.mediaJson(),p.documentsJson(),"CARD",Map.of());}
         public RemoteResult reconcile(Shop s,RemoteSubmission r){return RemoteResult.pending();}public RemoteSubmission finishAssets(Shop s,RemoteSubmission r){return r;}

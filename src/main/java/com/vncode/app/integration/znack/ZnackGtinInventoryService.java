@@ -20,7 +20,7 @@ import java.util.HashSet;
 import java.util.Collections;
 
 public class ZnackGtinInventoryService {
-    private static final class ImportedOwner {static String eligible(String alias){return com.vncode.app.features.kiz.KizWarehouseRepository.eligible(alias);}static String current(Connection c,int shopId)throws SQLException{return com.vncode.app.features.kiz.KizWarehouseRepository.currentOwner(c,shopId);}}
+    private static final class ImportedOwner {static String eligible(String alias){return com.vncode.app.features.kiz.KizWarehouseRepository.eligibleExact(alias);}static String current(Connection c,int shopId)throws SQLException{return com.vncode.app.features.kiz.KizWarehouseRepository.currentOwner(c,shopId);}}
     private static final Logger LOGGER = LoggerFactory.getLogger(ZnackGtinInventoryService.class);
 
     public List<Kiz> reserveAvailable(int shopId, String gtin, int quantity) {

@@ -251,7 +251,7 @@ public final class OzonExemplarService {
                     ListingIdentity.require(shop);
                     postings.upsertDetail(shop.getId(), posting);
                     OzonRequirementGuard.PreparationPlan plan = OzonRequirementGuard.plan(
-                            posting, operation.skuMappings, operation.exemptions);
+                            posting, operation.skuMappings, operation.exemptions, OzonCategoryStock.categorySkus(shop.getId(),posting.items().stream().map(OzonPostingItemDto::sku).toList()));
                     if (plan.exemplarCount() == 0) {
                         if (priorJob != null && priorJob.stage() != OzonExemplarJobStage.ACCEPTED
                                 && jobs.bindingCounts(shop.getId(), List.of(priorJob.id())).getOrDefault(priorJob.id(), 0) > 0) {

@@ -59,6 +59,21 @@ class FboKizPrintPlannerTest {
         assertTrue(plan.pages().stream().allMatch(page -> page.kind() == FboPrintPage.Kind.BARCODE));
         assertTrue(plan.pages().stream().allMatch(page -> page.kizCode() == null));
     }
+    @Test void categoryStockPrintsMarketplaceBarcodeWithoutInventingARegisteredProductGtin()throws Exception{
+        fixture(false,0);var shop=new com.vncode.app.models.Shop(1,"Shop","token");
+        com.vncode.app.testsupport.CategoryStockFixture.add(shop,"1001",temp,2);
+        var preflight=new FboPreflightService().inspect(shop,List.of(new FboBarcodePrintItem(product(true),2)));
+        assertEquals(1,preflight.ready().size());assertTrue(preflight.toBuy().isEmpty());
+        var plan=new FboKizPrintPlanner().plan(1,preflight.ready());assertEquals(2,plan.usedKizs().size());
+        var orders=new FboBarcodePdfExporter().toOrders(plan.pages());assertEquals("SKU",orders.getFirst().getBarcode());
+        assertTrue(plan.pages().getFirst().product().verifiedGtin().isBlank());
+    }
+    @Test void missingPurchaseMappingReleasesCategoryStockWhenFboBatchCannotBeCompleted()throws Exception{
+        fixture(false,0);var shop=new com.vncode.app.models.Shop(1,"Shop","token");
+        com.vncode.app.testsupport.CategoryStockFixture.add(shop,"1001",temp,1);
+        assertThrows(IllegalStateException.class,()->new FboKizPrintPlanner().plan(1,List.of(new FboBarcodePrintItem(product(true),2))));
+        assertEquals(1,new com.vncode.app.features.kiz.KizStockCategoryRepository().list(shop).getFirst().ready());
+    }
     @Test void preflightAllocatesTheSharedPoolOnceAndDoesNotReserveBeforeConsent()throws Exception {
         fixture(true,2);var items=List.of(new FboBarcodePrintItem(product(true),3),new FboBarcodePrintItem(product(true),1));
         var result=new FboPreflightService().inspect(new com.vncode.app.models.Shop(1,"Shop","token"),items);

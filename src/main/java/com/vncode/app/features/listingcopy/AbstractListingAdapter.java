@@ -26,7 +26,8 @@ public abstract class AbstractListingAdapter implements ListingTargetAdapter {
         if(!source.revision().startsWith("live:"))issue(issues,"FRESH_SOURCE_REQUIRED","source");
         var result=source.variants().stream().filter(v->o.variantIds().contains(v.id())).toList();
         if(result.isEmpty()||result.size()!=o.variantIds().size())issue(issues,"VARIANT_SELECTION_CHANGED","sizes");
-        if(o.fields().contains("gtin")){var gtins=new HashSet<String>();for(var v:result)if(!v.gtinVerified()||!com.vncode.app.features.gtinsync.RegisteredGtinValidator.isValid(v.gtin()))issue(issues,"GTIN_NOT_VERIFIED",v.id());else if(!gtins.add(v.gtin().replaceFirst("^0+","")))issue(issues,"DUPLICATE_VARIANT_GTIN",v.id());}
+        // Copying a fresh listing's barcode does not grant a Catalog/KIZ purchase proof.
+        if(o.fields().contains("gtin")){var codes=new HashSet<String>();for(var v:result){var inherited=CopyDefaults.barcodes(source,v);if(inherited.isEmpty())issue(issues,"GTIN_NOT_VERIFIED",v.id());for(String code:inherited)if(code.isBlank()||code.length()>100||code.codePoints().anyMatch(Character::isISOControl))issue(issues,"GTIN_NOT_VERIFIED",v.id());else if(!codes.add(code))issue(issues,"DUPLICATE_VARIANT_GTIN",v.id());}}
         return result;
     }
     protected Map<String,List<String>> mapped(ProductSnapshot s,CopyOptions o,List<TargetAttribute> dictionary,List<CopyIssue> issues){

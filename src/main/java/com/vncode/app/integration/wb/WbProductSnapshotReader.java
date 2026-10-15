@@ -13,9 +13,10 @@ import java.util.function.Function;
 import static com.vncode.app.integration.listing.ListingJson.*;
 
 public final class WbProductSnapshotReader implements ProductSnapshotReader {
-    private final Function<Shop,ListingTransport> clients;
-    public WbProductSnapshotReader(){this(ListingHttpClient::new);}
-    public WbProductSnapshotReader(Function<Shop,ListingTransport> clients){this.clients=clients;}
+    private final Function<Shop,ListingTransport> clients,prices;
+    public WbProductSnapshotReader(){this(ListingHttpClient::new,s->new ListingHttpClient(s,new okhttp3.OkHttpClient(),okhttp3.HttpUrl.parse("https://discounts-prices-api.wildberries.ru/")));}
+    public WbProductSnapshotReader(Function<Shop,ListingTransport> clients){this(clients,clients);}
+    public WbProductSnapshotReader(Function<Shop,ListingTransport> clients,Function<Shop,ListingTransport> prices){this.clients=clients;this.prices=prices;}
     public ProductSnapshot read(Shop shop,ProductKey key)throws IOException{
         ListingIdentity.require(shop,key);if(key.marketplace()!=Marketplace.WILDBERRIES)throw new SecurityException("Not a WB card");
         JsonObject filter=new JsonObject();filter.addProperty("textSearch",key.cardId());filter.addProperty("withPhoto",-1);
@@ -39,6 +40,15 @@ public final class WbProductSnapshotReader implements ProductSnapshotReader {
             else if(doc.has("verdict"))state=DocumentState.PENDING;
             docs.add(new ProductDocument(text(doc,"id"),text(doc,"type"),text(doc,"number"),date(text(doc,"startDate")),end,text(doc,"applicant"),text(doc,"productNumber"),null,Marketplace.WILDBERRIES,state,"https://content-api.wildberries.ru/content/v2/get/cards/list",now,metadata(doc)));
         }
-        String raw=ListingIdentity.canonical(card);var snapshot=new ProductSnapshot(key,"live:"+ListingIdentity.hash(raw),text(card,"title"),text(card,"description"),text(card,"brand"),text(card,"vendorCode"),text(card,"subjectID"),media,attributes,variants,dimensions,docs,now,Map.of("source.payload",raw,"owner",ListingIdentity.fingerprint(shop)));new ProductRepository().saveVerifiedSnapshot(shop,snapshot);return snapshot;
+        var inherited=new LinkedHashMap<String,String>();
+        try{
+            var pricing=object(prices.apply(shop).call("api/v2/list/goods/filter?limit=100&filterNmID="+key.cardId(),null,false));
+            var matching=array(obj(pricing,"data"),"listGoods").asList().stream().map(com.vncode.app.integration.listing.ListingJson::object).filter(g->text(g,"nmID").equals(key.cardId())).toList();
+            if(matching.size()==1){var goods=matching.getFirst();String currency=text(goods,"currencyIsoCode4217");if(!currency.isBlank())inherited.put("source.currency",currency);
+                var amounts=new HashSet<java.math.BigDecimal>();for(var e:array(goods,"sizes")){var size=object(e);var amount=decimal(size,"price");if(amount!=null&&amount.signum()>0){inherited.put("source.price."+text(size,"sizeID"),amount.toPlainString());amounts.add(amount.stripTrailingZeros());}}
+                if(amounts.size()==1)inherited.put("source.price",amounts.iterator().next().toPlainString());
+            }
+        }catch(IOException unavailable){inherited.put("source.price.unavailable","true");}
+        String raw=ListingIdentity.canonical(card);inherited.put("source.payload",raw);inherited.put("owner",ListingIdentity.fingerprint(shop));var snapshot=new ProductSnapshot(key,"live:"+ListingIdentity.hash(raw+ListingIdentity.canonical(ProductJson.GSON.toJsonTree(inherited))),text(card,"title"),text(card,"description"),text(card,"brand"),text(card,"vendorCode"),text(card,"subjectID"),media,attributes,variants,dimensions,docs,now,inherited);new ProductRepository().saveVerifiedSnapshot(shop,snapshot);return snapshot;
     }
 }

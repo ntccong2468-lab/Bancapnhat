@@ -22,6 +22,9 @@ public final class KizStockReplenisher {
     KizStockReplenisher(java.util.function.Function<Shop,Purchases> purchases){this.purchases=purchases;}
     public record Result(Map<String,Integer> missing,int enqueued,boolean waiting){public Result{missing=Map.copyOf(missing);}}
     public Result ensure(Shop shop,Map<String,Integer> quantities)throws Exception {
+        return ensure(shop,quantities,missing->{});
+    }
+    public Result ensure(Shop shop,Map<String,Integer> quantities,java.util.function.Consumer<Map<String,Integer>> purchaseProof)throws Exception {
         if(shop==null||shop.getId()<=0||quantities==null||quantities.size()>10000)throw new IllegalArgumentException("KIZ_QUANTITY_LIMIT");
         var normalized=new TreeMap<String,Integer>();long total=0;for(var entry:quantities.entrySet()){
             if(entry.getValue()==null||entry.getValue()<=0||entry.getValue()>100000)throw new IllegalArgumentException("KIZ_QUANTITY_LIMIT");
@@ -46,6 +49,7 @@ public final class KizStockReplenisher {
                 }
                 var toBuy=new TreeMap<>(missing);waiting.forEach(toBuy::remove);
                 if(toBuy.isEmpty())return new Result(missing,0,true);
+                purchaseProof.accept(Map.copyOf(toBuy));
                 var buyer=purchases.apply(shop);
                 for(var entry:toBuy.entrySet())buyer.validate(entry.getKey(),entry.getValue());
                 String request=UUID.randomUUID().toString();int enqueued=0;
