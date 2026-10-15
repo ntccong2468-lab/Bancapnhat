@@ -6,8 +6,8 @@
     "1.4.11"
   ],
   "complete": false,
-  "officialReleasePublished": false,
-  "phase": "verified-windows-draft-ready-awaiting-production-license-acceptance",
+  "officialReleasePublished": true,
+  "phase": "published-latest-owner-request-production-license-acceptance-outstanding",
   "scope": [
     "Application-scoped scheduling with reserved FBS workers, persisted checkpoints and bounded shop fairness",
     "Published National Catalog cards automatically chain to verified GTIN updates and per-item reports",
@@ -120,15 +120,29 @@
     }
   },
   "publication": {
-    "published": false,
-    "latestChanged": false,
+    "published": true,
+    "latestChanged": true,
     "productionAcceptanceRequiredByReleaseGate": true,
     "candidateArtifactUrl": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/38776235230/artifacts/11994844404",
-    "draftPrepared": true,
+    "draftPrepared": false,
     "draftReleaseId": 414102966,
     "draftReleaseUrl": "https://github.com/ntccong2468-lab/Bancapnhat/releases/tag/untagged-624cbb26b2590222e0f6",
     "prepareRunId": 38780513750,
-    "buildSourceCommit": "fdce2e185d17afaf2a72643700b8ddf233f1d525"
+    "buildSourceCommit": "fdce2e185d17afaf2a72643700b8ddf233f1d525",
+    "releaseId": 414102966,
+    "releaseUrl": "https://github.com/ntccong2468-lab/Bancapnhat/releases/tag/v1.4.12",
+    "publishedAt": "2026-10-15T17:57:27Z",
+    "method": "Owner-directed manual GitHub Release promotion after verified Windows build; the standard automated production license acceptance gate remains unchanged.",
+    "ownerDirection": {
+      "request": "đưa bộ cài và ghi chú nội dung phát hành lên bản cập nhật để thông báo về app cập nhật",
+      "priorDisclosure": "Draft was disclosed as awaiting real production license acceptance before this explicit publication request.",
+      "decision": "Publish existing verified installer and release notes as Latest; do not assert missing license acceptance."
+    },
+    "publicUpdateApi": "https://api.github.com/repos/ntccong2468-lab/Bancapnhat/releases/latest",
+    "publicInstallerUrl": "https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.4.12/VN-code-1.4.12-Windows-x64.exe",
+    "publicUpdateDiscoveryPassed": true,
+    "publicInstallerRangeGetPassed": true,
+    "publicationReport": "docs/validation/2026-10-15-vncode-1412-publication.md"
   },
   "pendingOwnerChanges": [],
   "installer": {
