@@ -29,9 +29,9 @@ class GtinSyncRepositoryTest {
         return new Preview(product,Operation.ADD,"","00000000000017",new Capability(true,false,""));
     }
     @Test void migratesVersionTwoWithSnapshotAndPreservesData() throws Exception {
-        // Schema 3 is additive: remove every new table to recreate the actual schema-2 shape.
+        // Recreate the pre-GTIN schema-2 fixture, including the newer verified-mapping table.
         try(var c=Database.getConnection();var s=c.createStatement()) {
-            for(String table:List.of("gtin_sync_events","gtin_sync_items","gtin_sync_jobs","gtin_sync_mappings","gtin_sync_catalog"))s.execute("DROP TABLE "+table);
+            for(String table:List.of("gtin_sync_events","gtin_sync_items","gtin_sync_jobs","gtin_sync_verified_mappings","gtin_sync_mappings","gtin_sync_catalog"))s.execute("DROP TABLE "+table);
             s.execute("PRAGMA user_version=2");
             assertFalse(s.executeQuery("SELECT name FROM sqlite_master WHERE name LIKE 'gtin_sync_%'").next());
         }
@@ -40,7 +40,7 @@ class GtinSyncRepositoryTest {
                 var v=s.executeQuery("PRAGMA user_version");assertTrue(v.next());assertEquals(Database.currentSchemaVersion(),v.getInt(1));v.close();
                 var integrity=s.executeQuery("PRAGMA integrity_check");assertEquals("ok",integrity.getString(1));integrity.close();
                 assertFalse(s.executeQuery("PRAGMA foreign_key_check").next());
-                var tables=s.executeQuery("SELECT count(*) FROM sqlite_master WHERE type='table' AND name LIKE 'gtin_sync_%'");assertEquals(5,tables.getInt(1));tables.close();
+                var tables=s.executeQuery("SELECT count(*) FROM sqlite_master WHERE type='table' AND name LIKE 'gtin_sync_%'");assertEquals(6,tables.getInt(1));tables.close();
             }
             Path snapshot;
             try(var files=java.nio.file.Files.walk(temp.resolve("snapshots"))) {

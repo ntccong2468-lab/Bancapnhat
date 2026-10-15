@@ -21,20 +21,25 @@ class ShopReadCoordinatorTest {
     }
     @Test void tenShopsShareBoundedWorkersAndFairTurns() throws Exception {
         try(var reads=new ShopReadCoordinator(3,64,1)) {
-            var entered=new CountDownLatch(2);var release=new CountDownLatch(1);
+            var entered=new CountDownLatch(2);var releaseFirst=new CountDownLatch(1);var releaseSecond=new CountDownLatch(1);
             var order=java.util.Collections.synchronizedList(new java.util.ArrayList<Integer>());
             var futures=new java.util.ArrayList<CompletableFuture<Integer>>();
             try {
-                for(int shop=90;shop<=91;shop++)reads.submit(new ShopReadCoordinator.Key(shop,"blocked",""),false,()->{entered.countDown();release.await(5,TimeUnit.SECONDS);return 0;});
+                for(int shop=90;shop<=91;shop++) {
+                    var gate=shop==90?releaseFirst:releaseSecond;
+                    reads.submit(new ShopReadCoordinator.Key(shop,"blocked",""),false,()->{entered.countDown();gate.await();return 0;});
+                }
                 assertTrue(entered.await(5,TimeUnit.SECONDS));
                 for(int n=0;n<10;n++)futures.add(reads.submit(new ShopReadCoordinator.Key(1,"background",String.valueOf(n)),false,()->{order.add(1);return 1;}));
                 for(int shop=2;shop<=10;shop++){int owner=shop;futures.add(reads.submit(new ShopReadCoordinator.Key(shop,"background",""),false,()->{order.add(owner);return owner;}));}
                 futures.add(reads.submit(new ShopReadCoordinator.Key(10,"interactive",""),true,()->{order.add(100);return 100;}));
                 assertEquals(20,reads.pendingCount());assertEquals(3,reads.workerLimit());
-                release.countDown();CompletableFuture.allOf(futures.toArray(CompletableFuture[]::new)).get(5,TimeUnit.SECONDS);
-                assertTrue(order.indexOf(100)<3,"Interactive shop must get an early turn");
+                // Hold one network worker so callable start order observes dispatch order,
+                // rather than depending on OS scheduling between two released threads.
+                releaseFirst.countDown();CompletableFuture.allOf(futures.toArray(CompletableFuture[]::new)).get(5,TimeUnit.SECONDS);
+                assertEquals(100,order.getFirst(),"Interactive shop must get the first queued turn");
                 assertTrue(order.indexOf(2)<5,"Another shop must not wait for ten reads from shop 1");
-            } finally {release.countDown();}
+            } finally {releaseFirst.countDown();releaseSecond.countDown();}
         }
     }
     @Test void cancelOldShopLeavesOtherOwnerRead() throws Exception {
