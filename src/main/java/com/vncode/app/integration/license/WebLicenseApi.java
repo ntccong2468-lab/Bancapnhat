@@ -62,13 +62,15 @@ public final class WebLicenseApi implements LicenseApi {
         }
         this.origin = origin;
         var builder = client.newBuilder()
-                .connectTimeout(Duration.ofSeconds(10))
-                .readTimeout(Duration.ofSeconds(20))
+                .connectTimeout(Duration.ofSeconds(8))
+                .readTimeout(Duration.ofSeconds(30))
                 .writeTimeout(Duration.ofSeconds(20))
-                .callTimeout(Duration.ofSeconds(30))
+                .callTimeout(Duration.ofSeconds(45))
                 .followRedirects(false)
                 .followSslRedirects(false)
-                .retryOnConnectionFailure(false)
+                // Try alternate DNS routes / stale pooled connections after a network switch.
+                // POST bodies below are one-shot: never replay a sent activation/proof.
+                .retryOnConnectionFailure(true)
                 .cookieJar(CookieJar.NO_COOKIES)
                 .authenticator(Authenticator.NONE)
                 .proxyAuthenticator(Authenticator.NONE);
@@ -222,12 +224,17 @@ public final class WebLicenseApi implements LicenseApi {
         else {
             String json = body.toString();
             if (json.length() > 12000) throw input();
-            request.post(RequestBody.create(json, JSON));
+            request.post(oneShotJson(json));
         }
         Response response;
         try { response = http.newCall(request.build()).execute(); }
         catch (IOException failure) { throw networkFailure(failure); }
         try (response) {
+            // An edge challenge is not a signed/account-level denial from the Portal.
+            // Desktop clients cannot solve browser challenges, including on mobile CGNAT.
+            if ("challenge".equalsIgnoreCase(response.header("cf-mitigated"))) {
+                throw new Failure("LICENSE_EDGE_CHALLENGE", 0);
+            }
             if (response.code() >= 300 && response.code() < 400) {
                 throw new Failure("LICENSE_REDIRECT_REJECTED", response.code());
             }
@@ -256,6 +263,16 @@ public final class WebLicenseApi implements LicenseApi {
             }
             return parsed;
         }
+    }
+
+    private static RequestBody oneShotJson(String json) {
+        byte[] bytes = json.getBytes(StandardCharsets.UTF_8);
+        return new RequestBody() {
+            @Override public MediaType contentType() { return JSON; }
+            @Override public long contentLength() { return bytes.length; }
+            @Override public boolean isOneShot() { return true; }
+            @Override public void writeTo(okio.BufferedSink sink) throws IOException { sink.write(bytes); }
+        };
     }
 
     static Failure networkFailure(IOException failure) {

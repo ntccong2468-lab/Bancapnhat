@@ -19,6 +19,6 @@ public interface LicenseApi {
         private final String code;private final int status;
         public Failure(String code,int status){super(code);this.code=code;this.status=status;}
         public String code(){return code;}public int status(){return status;}
-        public boolean transientFailure(){return status==0&&java.util.Set.of("LICENSE_NETWORK","LICENSE_TLS","LICENSE_DNS","LICENSE_TIMEOUT").contains(code)||status==429||status>=500&&!code.equals("SIGNING_NOT_CONFIGURED")&&!code.equals("LICENSE_PROTOCOL_INVALID");}
+        public boolean transientFailure(){return status==0&&java.util.Set.of("LICENSE_NETWORK","LICENSE_TLS","LICENSE_DNS","LICENSE_TIMEOUT","LICENSE_EDGE_CHALLENGE").contains(code)||status==429||status>=500&&!code.equals("SIGNING_NOT_CONFIGURED")&&!code.equals("LICENSE_PROTOCOL_INVALID");}
     }
 }

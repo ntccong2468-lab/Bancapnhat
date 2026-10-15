@@ -1,0 +1,30 @@
+{
+  "version": "1.4.9",
+  "baseVersion": "1.4.8",
+  "complete": false,
+  "officialReleasePublished": false,
+  "licenseIntegration": {
+    "implemented": true,
+    "productionReady": false,
+    "activeKeyId": "vncode-2",
+    "serverSigningKeyMatch": "owner-confirmed-Portal035-vncode2",
+    "ownerReportedActivationVersion": "1.4.4"
+  },
+  "scope": [
+    "License route recovery and larger bounded timeout budget for hotspot/international networks",
+    "One-shot activation POSTs and explicit Cloudflare challenge diagnostics",
+    "Regression coverage for device continuity across VN/RU and IPv4/IPv6 network metadata"
+  ],
+  "validation": {
+    "windowsFullBuild": "pending",
+    "realVietnamRussiaWifiMobileNetworks": "owner-testing-required",
+    "productionCloudflareZoneRules": "not-inspected-or-modified",
+    "productionMultiDeviceOfflineRevocation": "not-verified"
+  },
+  "releaseChannel": {
+    "repository": "ntccong2468-lab/Bancapnhat",
+    "tag": "v1.4.9",
+    "appAutomaticFeed": "/releases/latest",
+    "publicationAuthorization": "Owner requested all future updates as Published/Latest and requested license connectivity improvements for Wi-Fi, mobile hotspots and VN/RU networks. Unverified production/carrier acceptance remains disclosed."
+  }
+}

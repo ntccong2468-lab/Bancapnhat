@@ -98,8 +98,8 @@ class LicenseServiceTest {
         var api=new Api();try(var s=service(api,true)){active(s,api);api.failure=new LicenseApi.Failure("DEVICE_REVOKED",403);s.refresh().get();assertFalse(s.allows(Permission.GTIN));api.failure=new LicenseApi.Failure("LICENSE_NETWORK",0);s.refresh().get();assertFalse(s.allows(Permission.GTIN));}
         try(var restarted=service(api,true)){assertEquals(Status.DENIED,restarted.snapshot().status());assertFalse(restarted.allows(Permission.GTIN));}
     }
-    @Test void tlsDnsAndTimeoutKeepOnlyExistingSignedOfflineRights()throws Exception {
-        for(String code:List.of("LICENSE_TLS","LICENSE_DNS","LICENSE_TIMEOUT")) {
+    @Test void transportAndEdgeFailuresKeepOnlyExistingSignedOfflineRights()throws Exception {
+        for(String code:List.of("LICENSE_TLS","LICENSE_DNS","LICENSE_TIMEOUT","LICENSE_EDGE_CHALLENGE")) {
             var api=new Api();
             try(var s=service(api,true)) {
                 active(s,api);api.failure=new LicenseApi.Failure(code,0);s.refresh().get();

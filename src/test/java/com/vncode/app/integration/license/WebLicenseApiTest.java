@@ -279,12 +279,104 @@ class WebLicenseApiTest {
     }
 
     @Test
-    void connectionFailureDoesNotRetryAndContainsNoUpstreamDetails() throws Exception {
+    void sentPostIsNeverReplayedAfterResponseLossAndContainsNoUpstreamDetails() throws Exception {
         server.enqueue(new MockResponse().setSocketPolicy(SocketPolicy.DISCONNECT_AFTER_REQUEST));
-        var failure = assertThrows(LicenseApi.Failure.class, () -> api.status(TOKEN));
+        enqueue(grant(true).toString());
+        var failure = assertThrows(LicenseApi.Failure.class, this::activate);
         assertEquals("LICENSE_NETWORK", failure.code());
         assertEquals(0, failure.status());
         assertNull(failure.getCause());
+        assertEquals(1, server.getRequestCount());
+    }
+
+    @Test
+    void activationTriesAnotherDnsRouteBeforeSendingItsOneShotProof() throws Exception {
+        var client = new OkHttpClient.Builder().proxy(java.net.Proxy.NO_PROXY)
+                .dns(host -> List.of(java.net.InetAddress.getByName("127.0.0.2"),
+                        java.net.InetAddress.getByName("127.0.0.1"))).build();
+        // Server is bound only to 127.0.0.1; the first route refuses the connection.
+        try (var reachable = new MockWebServer()) {
+            reachable.start(java.net.InetAddress.getByName("127.0.0.1"), 0);
+            reachable.enqueue(new MockResponse().addHeader("Content-Type", "application/json")
+                    .setBody(grant(true).toString()));
+            var routes = new WebLicenseApi(client, HttpUrl.get("http://localhost:" + reachable.getPort() + "/"));
+            assertEquals(TOKEN, routes.activate(TOKEN, challenge(), KEY, SIGNATURE, CODE).accessToken());
+            assertEquals(1, reachable.getRequestCount());
+            var sent = reachable.takeRequest(1, TimeUnit.SECONDS);
+            assertNotNull(sent);
+            assertEquals(CODE, json(sent).get("code").getAsString());
+            assertEquals("Bearer " + TOKEN, sent.getHeader("Authorization"));
+        }
+    }
+
+    @Test
+    void timedOutRouteFallsBackWithoutSendingTheActivationTwice() throws Exception {
+        var attempts = new java.util.concurrent.atomic.AtomicInteger();
+        var delegate = javax.net.SocketFactory.getDefault();
+        var sockets = new javax.net.SocketFactory() {
+            @Override public java.net.Socket createSocket() {
+                return new java.net.Socket() {
+                    @Override public void connect(java.net.SocketAddress address, int timeout) throws IOException {
+                        attempts.incrementAndGet();
+                        if (((java.net.InetSocketAddress) address).getAddress().getHostAddress().equals("127.0.0.2"))
+                            throw new java.net.SocketTimeoutException("fixture route timeout");
+                        super.connect(address, timeout);
+                    }
+                };
+            }
+            @Override public java.net.Socket createSocket(String h,int p) throws IOException { return delegate.createSocket(h,p); }
+            @Override public java.net.Socket createSocket(String h,int p,java.net.InetAddress l,int lp) throws IOException { return delegate.createSocket(h,p,l,lp); }
+            @Override public java.net.Socket createSocket(java.net.InetAddress h,int p) throws IOException { return delegate.createSocket(h,p); }
+            @Override public java.net.Socket createSocket(java.net.InetAddress h,int p,java.net.InetAddress l,int lp) throws IOException { return delegate.createSocket(h,p,l,lp); }
+        };
+        try (var reachable = new MockWebServer()) {
+            reachable.start(java.net.InetAddress.getByName("127.0.0.1"), 0);
+            reachable.enqueue(new MockResponse().addHeader("Content-Type", "application/json")
+                    .setBody(grant(true).toString()));
+            var client = new OkHttpClient.Builder().socketFactory(sockets).proxy(java.net.Proxy.NO_PROXY)
+                    .dns(host -> List.of(java.net.InetAddress.getByName("127.0.0.2"),java.net.InetAddress.getByName("127.0.0.1"))).build();
+            var routes = new WebLicenseApi(client,HttpUrl.get("http://localhost:"+reachable.getPort()+"/"));
+            assertEquals(TOKEN,routes.activate(TOKEN,challenge(),KEY,SIGNATURE,CODE).accessToken());
+            assertEquals(2,attempts.get());assertEquals(1,reachable.getRequestCount());
+        }
+    }
+
+    @Test
+    void cloudflareBrowserChallengeIsDistinctFromPortalRevocation() throws Exception {
+        server.enqueue(new MockResponse().setResponseCode(403).addHeader("cf-mitigated", "challenge")
+                .addHeader("Content-Type", "text/html").setBody("<html>" + TOKEN + "</html>"));
+        var failure = assertThrows(LicenseApi.Failure.class, () -> api.status(TOKEN));
+        assertEquals("LICENSE_EDGE_CHALLENGE", failure.code());
+        assertTrue(failure.transientFailure());
+        assertEquals(0, failure.status());
+        assertNull(failure.getCause());
+        assertFalse(failure.toString().contains(TOKEN));
+        enqueue("{\"error\":\"DEVICE_REVOKED\"}", 403);
+        var revoked = assertThrows(LicenseApi.Failure.class, () -> api.status(TOKEN));
+        assertEquals("DEVICE_REVOKED", revoked.code());
+        assertFalse(revoked.transientFailure());
+    }
+
+    @Test
+    void readOnlyStatusCanRecoverFromAConnectionLostDuringNetworkSwitch() throws Exception {
+        enqueue(status("pending"));
+        assertEquals("pending", api.status(TOKEN).status());
+        request("GET", "/api/client/registration/status", true);
+        server.enqueue(new MockResponse().setSocketPolicy(SocketPolicy.DISCONNECT_AFTER_REQUEST));
+        enqueue(status("approved"));
+        assertEquals("approved", api.status(TOKEN).status());
+        assertEquals(3, server.getRequestCount());
+        request("GET", "/api/client/registration/status", true);
+        request("GET", "/api/client/registration/status", true);
+    }
+
+    @Test
+    void postIsNotReplayedAfterAnHttpRetryInstruction() throws Exception {
+        server.enqueue(new MockResponse().setResponseCode(503).addHeader("Retry-After", "0")
+                .addHeader("Content-Type", "application/json").setBody("{\"error\":\"RATE_LIMIT\"}"));
+        enqueue(grant(true).toString());
+        var failure = assertThrows(LicenseApi.Failure.class, this::activate);
+        assertEquals("RATE_LIMIT", failure.code());
         assertEquals(1, server.getRequestCount());
     }
 

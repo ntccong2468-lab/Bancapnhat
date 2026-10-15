@@ -6,6 +6,14 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 class LicenseClockTest {
+    @Test void vietnamAndRussiaTimeZonesUseTheSameLicenseInstant() {
+        var instant=Instant.parse("2026-10-15T00:00:00Z");
+        for(String zone:new String[]{"Asia/Ho_Chi_Minh","Europe/Moscow"}) {
+            var clock=new LicenseClock(Clock.fixed(instant,ZoneId.of(zone)),()->0,instant.getEpochSecond());
+            assertEquals(instant.getEpochSecond(),clock.now());
+            assertFalse(clock.rollbackDetected());
+        }
+    }
     @Test void usesPersistedHighWaterAndDetectsClockRollbackAfterRestart() {
         var wall=new MutableClock(1000);var nanos=new AtomicLong();var clock=new LicenseClock(wall,nanos::get,1400);
         assertEquals(1400,clock.now());assertTrue(clock.rollbackDetected());
