@@ -20,8 +20,8 @@
   "validation": {
     "sourceComparison": "docs/research/2026-10-15-catalog-kiz-comparison.md",
     "windowsFullBuild": {
-      "runId": 38727071234,
-      "sourceCommit": "6a468b972bde02e368cc95623f79f464da2bc0ac",
+      "runId": 38731269718,
+      "sourceCommit": "793850d5d29964164a46e774befe1fa6b991af00",
       "result": "in-progress"
     },
     "sellerSampleParse": {
@@ -33,7 +33,8 @@
       "issues": 0,
       "preservedEveryOriginalLine": true,
       "liveApiVerification": false,
-      "evidence": "docs/validation/2026-10-15-kiz-import-sample.json"
+      "evidence": "docs/validation/2026-10-15-kiz-import-sample.json",
+      "shippedJavaEvidence": "docs/validation/2026-10-15-vncode-1411-shipped-parser.json"
     },
     "liveMarketplaceWriteAcceptance": false,
     "liveKizAssignmentAcceptance": false,
@@ -52,6 +53,38 @@
       "focusedFailures": 0,
       "focusedErrors": 0,
       "focusedResult": "passed"
+    },
+    "previousWindowsBuilds": [
+      {
+        "runId": 38727071234,
+        "sourceCommit": "6a468b972bde02e368cc95623f79f464da2bc0ac",
+        "result": "failed-native-upgrade-probe",
+        "javaSuites": 228,
+        "javaTests": 1318,
+        "javaPassed": 1316,
+        "javaFailures": 0,
+        "javaErrors": 0,
+        "javaSkippedPlatformSpecific": 2,
+        "verifiedJavaArtifactId": 11969397778,
+        "nativeLauncher": "passed",
+        "gs1AndCatalogDpapi": "passed",
+        "desktopLayouts": 272,
+        "tenShopWorkspaceAndDpi": "passed",
+        "independentInstallAndUninstall": "passed",
+        "nativeUpgradeFailure": "Fingerprint compared a newly added source_priority column with a schema lacking that column; fixed in the probe with a separate required default-priority assertion"
+      }
+    ],
+    "nativeUpgradeProbeRegression": {
+      "tests": 2,
+      "result": "passed",
+      "fullFocusedTests": 16,
+      "focusedFailures": 0,
+      "preservationCoverage": [
+        "All legacy stock columns still participate in the fingerprint",
+        "Paid marking and saved-template mutations still change the fingerprint",
+        "Missing or incorrect default legacy stock priority is rejected"
+      ],
+      "fixedInput": "tools/WindowsUpgradeDataProbe.java and tools/windows-upgrade-smoke.ps1"
     }
   },
   "limitations": [
