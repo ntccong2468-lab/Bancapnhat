@@ -26,3 +26,5 @@ Published per the owner's explicit request. Fixture tests are not live Ozon/Cata
 ## Update handoff erratum — 2026-10-15
 
 Owner report confirmed that the UI installer handoff still read a JavaFX Task property on its worker. Earlier library download/hash checks and separate native MSI installation did not exercise that handoff. Use download-only/direct EXE and install manually for the one-time bootstrap. The 1.4.8 controller-level regression reproduces the old failure and verifies the corrected handoff.
+
+[1.4.8 is now Published/Latest](VN-code-1.4.8-download.md), with successful Windows regression/native checks and a verified public download. Install its EXE once manually from an affected version.

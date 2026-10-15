@@ -9,3 +9,5 @@ Fix: capture the completed Path within `onSucceeded` on FX; the next worker capt
 Local validation: expected pre-fix failure (1 test), then 23/23 focused update tests passed, including both handoff cases; 53/53 Node release-contract tests passed. Full Windows results and release bindings are recorded in the 1.4.8 status/download record after CI. The cloud display was restored with a locally unpacked Xvfb package verified through Debian's signed APT metadata.
 
 Old installed code cannot use this fix before being replaced: 1.4.4–1.4.7 users need the download-only button or direct public EXE, then close VNCode and install once manually. No app-data deletion or fresh license issuance is requested.
+
+Full Windows run [38680028079](https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/38680028079) passed, including both new controller cases and the native installation/upgrade checks. Published/Latest 1.4.8 and the public installer digest were verified after publication. Exact source, artifact IDs, test counts and limits are recorded in [the download record](../releases/VN-code-1.4.8-download.md).
