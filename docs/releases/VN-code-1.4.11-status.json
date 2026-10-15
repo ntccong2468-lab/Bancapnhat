@@ -20,7 +20,9 @@
   "validation": {
     "sourceComparison": "docs/research/2026-10-15-catalog-kiz-comparison.md",
     "windowsFullBuild": {
-      "result": "pending"
+      "runId": 38727071234,
+      "sourceCommit": "6a468b972bde02e368cc95623f79f464da2bc0ac",
+      "result": "in-progress"
     },
     "sellerSampleParse": {
       "result": "passed",
@@ -40,6 +42,16 @@
       "tests": 53,
       "passed": 53,
       "failed": 0
+    },
+    "windowsBuildRegressionFixes": {
+      "previousRunId": 38713519391,
+      "previousResult": "failed: 2 assertions in 1318 tests",
+      "migrationFixture": "drop and assert all six GTIN tables, including the new verified mapping table",
+      "readFairnessFixture": "hold one of two network workers to assert scheduler dispatch order without OS call-start races",
+      "focusedTests": 14,
+      "focusedFailures": 0,
+      "focusedErrors": 0,
+      "focusedResult": "passed"
     }
   },
   "limitations": [
@@ -48,5 +60,12 @@
     "Short CIS does not contain a complete cryptographic DataMatrix tail; the application never fabricates it",
     "No production seller GTIN write, KIZ assignment or paid purchase was performed during implementation",
     "The existing license fallback still needs Portal 0.3.6/gateway deployment and acceptance on the affected second-machine network"
-  ]
+  ],
+  "releaseChannel": {
+    "repository": "ntccong2468-lab/Bancapnhat",
+    "tag": "v1.4.11",
+    "appAutomaticFeed": "/releases/latest",
+    "publicationAuthorization": "Owner cancelled separate trial/repository and explicitly requested publication of the seller update on 2026-10-15. Live seller/API and affected second-machine carrier acceptance remain unverified.",
+    "publicLatestVerified": false
+  }
 }

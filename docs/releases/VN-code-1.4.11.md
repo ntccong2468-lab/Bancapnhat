@@ -13,6 +13,6 @@ Hỗ trợ CIS/SGTIN ngắn 31 ký tự và DataMatrix đầy đủ. Không tự
 
 Kho được lưu riêng trên từng máy: chia các dải mã riêng cho các máy để tránh dùng lại cùng KIZ. Việc đọc tệp thành công không đồng nghĩa mã đã được xác minh đúng chủ sở hữu và đủ trạng thái lưu thông trên Znack.
 
-Xem [bảng đối chiếu WBCode/WCode và sơ đồ luồng](../research/2026-10-15-catalog-kiz-comparison.md). Chưa dùng mã thật của seller để gán đơn hoặc mua KIZ trong quá trình kiểm thử.
+Xem [bảng đối chiếu WBCode/WCode và sơ đồ luồng](https://github.com/ntccong2468-lab/Bancapnhat/blob/v1.4.11/docs/research/2026-10-15-catalog-kiz-comparison.md). Chưa dùng mã thật của seller để gán đơn hoặc mua KIZ trong quá trình kiểm thử.
 
 Nếu dùng VNCode 1.4.4–1.4.7, tải EXE, đóng ứng dụng và cài thủ công một lần để thay updater cũ. Các phiên bản mới hơn có thể cập nhật qua ứng dụng.
