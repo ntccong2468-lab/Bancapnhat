@@ -1,6 +1,14 @@
-VNCode Portal 0.3.3
+VNCode Portal 0.3.6 — license và API dự phòng
 
-Đọc README.md và HUONG-DAN-CAP-NHAT-033.md trước khi deploy.
-Đây là mã cập nhật website, chưa được triển khai. Cần VNCode Windows tương thích
-với desktop API và khóa public đã pin. Nếu đang chạy 0.3.2 thì không cần migration mới.
-Không nhập file backup SQL cũ đè dữ liệu thật.
+ĐỌC DEPLOY-LICENSE-NETWORK-VI.md trước khi triển khai.
+Mở PowerShell tại thư mục chứa package.json:
+1. npm ci
+2. npx wrangler login
+3. npm run deploy
+4. npm run deploy:gateway
+
+Đăng nhập đúng tài khoản Cloudflare đang có vncode-portal và vncode.id.vn.
+Giữ nguyên database, tài khoản/license, Secret và khóa ký vncode-2 hiện có.
+Không tạo khóa mới, không chạy lại schema hoặc nhập backup SQL đè dữ liệu thật.
+Gateway dùng Service Binding; không cần sao chép private key.
+Cần VNCode 1.4.10 để tự chọn kết nối và dùng API dự phòng đã xác minh.

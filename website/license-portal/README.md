@@ -1,8 +1,12 @@
-# VNCode Portal 0.3.5 — khóa license vncode-2
+# VNCode Portal 0.3.6 — API license dự phòng
 
-Bản cập nhật từ Portal 0.3.4, giữ các tài khoản và trang quản trị hiện có.
-Website thật đã chạy 0.3.4; chủ website xác nhận Secret cũ không đọc được và D1 sẵn sàng.
-0.3.5 chưa deploy lên production.
+Cập nhật Portal hiện có và thêm Worker gateway riêng cho VNCode 1.4.10. Giữ D1, tài khoản, license và khóa ký `vncode-2` hiện có. Không cần migration mới từ 0.3.5, không tạo hoặc đổi khóa ký.
+
+**Bắt đầu bằng [hướng dẫn triển khai Portal 0.3.6 và API dự phòng](DEPLOY-LICENSE-NETWORK-VI.md).** Deploy Portal trước, sau đó chạy `npm run deploy:gateway` để thêm `license.vncode.id.vn`. Gói này chưa tự triển khai lên tài khoản Cloudflare của bạn.
+
+Gateway dùng Service Binding tới `vncode-portal`, chỉ cho API client và dùng chung quyền/dữ liệu với website. App xác minh chữ ký issuer cùng nonce và hostname trước khi gửi thông tin license tới backup. Hai đường vẫn cùng thuộc Cloudflare.
+
+Các mục dưới là lịch sử tính năng và hướng dẫn tham khảo cho bản cũ; không xoay lại khóa khi nâng cấp từ 0.3.5.
 
 ## Xoay khóa 0.3.5
 
