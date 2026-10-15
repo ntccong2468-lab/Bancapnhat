@@ -11,15 +11,19 @@
     "ownerReportedActivationVersion": "1.4.4"
   },
   "scope": [
-    "Persistent per-machine HTTP/1.1 and IPv4-preferred compatible license profile",
-    "Credential-free in-app Java GET/POST diagnostics with sanitized phase/protocol/timing report",
-    "Support operations preserve existing device keys and signed license state"
+    "Automatic credential-free connection selection, HTTP/1.1 and IPv4-preferred fallback retaining IPv6",
+    "Fixed backup hostname with fresh Ed25519 issuer/nonce/origin proof before credentials",
+    "One bounded workflow recovery with fresh device challenge, preserving device identity",
+    "Separate Cloudflare gateway via service binding to Portal 0.3.6; same DB and signing authority",
+    "Sanitized in-app Java network diagnostics; support operations preserve signed license state"
   ],
   "validation": {
     "windowsFullBuild": "pending",
     "secondMachineHotspotActivation": "not-verified; owner reports 1.4.9 timeout despite two-device allowance",
     "productionMultiDeviceOfflineRevocation": "not-verified",
-    "productionCloudflareRulesModified": false
+    "productionCloudflareRulesModified": false,
+    "backupWorkerDeployed": false,
+    "cloudflareGateway": "deployment package prepared; owner deployment required"
   },
   "releaseChannel": {
     "repository": "ntccong2468-lab/Bancapnhat",

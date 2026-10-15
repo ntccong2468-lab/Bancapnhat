@@ -80,6 +80,17 @@ async function main(runId,sha,mode='prepare') {
     await writeFile(path.join(directory,'build-info.json'),JSON.stringify(info,null,2)+'\n');
     await writeFile(path.join(directory,'release-notes.md'),notes+'\n');
     const names=[name,`VN-code-${version}-Windows-x64.sha256`,'build-info.json','release-notes.md',...proofFiles];
+    // Ship the matching gateway deployment package with this desktop build.
+    const portalVersion=json(await readFile('website/license-portal/package.json')).version;
+    assert.match(portalVersion,/^\d+\.\d+\.\d+$/);
+    const portalName=`VNCode-Portal-${portalVersion}-License-Network`;
+    const artifacts=api(`actions/runs/${runId}/artifacts?per_page=100`).artifacts;
+    assert.equal(artifacts.filter(a=>a.name===portalName&&!a.expired).length,1);
+    gh(['run','download',runId,'--repo',REPO,'--name',portalName,'--dir',directory]);
+    const portalBytes=await readFile(path.join(directory,portalName+'.zip'));
+    assert.equal(portalBytes.subarray(0,2).toString(),'PK');assert.ok(portalBytes.length>1000&&portalBytes.length<10*1024*1024);
+    assert.equal(hash(portalBytes),(await readFile(path.join(directory,portalName+'.sha256'),'utf8')).trim().split(/\s+/)[0]);
+    names.push(portalName+'.zip',portalName+'.sha256');
     const digests={};for(const file of names)digests[file]=hash(await readFile(path.join(directory,file)));
     const refs=api(`git/matching-refs/tags/${tag}`).filter(item=>item.ref===`refs/tags/${tag}`);
     assert.ok(refs.length<=1);

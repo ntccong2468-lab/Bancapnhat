@@ -46,6 +46,7 @@ public final class WebLicenseApi implements LicenseApi {
     private final OkHttpClient http;
     private final OkHttpClient compatibleHttp;
     private final LicenseNetworkPreferences networkPreferences;
+    private final LicenseConnectionRouter router;
     private volatile NetworkMode networkMode;
 
     public WebLicenseApi() {
@@ -65,7 +66,15 @@ public final class WebLicenseApi implements LicenseApi {
         this(client, localOrigin, true, preferences);
     }
 
+    WebLicenseApi(OkHttpClient client, HttpUrl origin, HttpUrl backup, java.util.Map<String, java.security.PublicKey> keys) {
+        this(client, origin, true, null, backup, keys);
+    }
     private WebLicenseApi(OkHttpClient client, HttpUrl origin, boolean localTest, Path preferences) {
+        this(client,origin,localTest,preferences,localTest?null:HttpUrl.get("https://license.vncode.id.vn/"),
+                com.vncode.app.features.license.LicenseTrustKeys.load());
+    }
+    private WebLicenseApi(OkHttpClient client, HttpUrl origin, boolean localTest, Path preferences,
+                          HttpUrl backup, java.util.Map<String, java.security.PublicKey> keys) {
         boolean local = origin != null && Set.of("localhost", "127.0.0.1", "::1").contains(origin.host());
         if (origin == null || (!PRODUCTION.equals(origin) && !(localTest && local))
                 || !origin.username().isEmpty() || !origin.password().isEmpty()
@@ -94,6 +103,9 @@ public final class WebLicenseApi implements LicenseApi {
                 .dns(host -> preferIpv4(client.dns().lookup(host))).build();
         this.networkPreferences = new LicenseNetworkPreferences(preferences);
         this.networkMode = networkPreferences.load();
+        if(backup!=null && !(localTest && Set.of("localhost","127.0.0.1","::1").contains(backup.host()))
+                && !backup.equals(HttpUrl.get("https://license.vncode.id.vn/")))throw new IllegalArgumentException("LICENSE_ORIGIN_INVALID");
+        this.router = backup==null ? null : new LicenseConnectionRouter(origin,backup,http,compatibleHttp,keys);
     }
 
     static java.util.List<java.net.InetAddress> preferIpv4(java.util.List<java.net.InetAddress> addresses) {
@@ -106,9 +118,20 @@ public final class WebLicenseApi implements LicenseApi {
         if (mode == null) throw new IOException("LICENSE_NETWORK_SETTINGS_FAILED");
         networkPreferences.save(mode);
         networkMode = mode;
+        if(router!=null)router.reset();
     }
     @Override public NetworkReport checkConnection() {
-        return LicenseNetworkDiagnostics.check(origin, http, compatibleHttp);
+        var report=LicenseNetworkDiagnostics.check(origin, http, compatibleHttp);
+        if(router==null)return report;
+        var probes=new java.util.ArrayList<>(report.probes());
+        probes.add(router.backupProbe(NetworkMode.AUTOMATIC));
+        probes.add(router.backupProbe(NetworkMode.COMPATIBLE));
+        return new NetworkReport(probes);
+    }
+
+    @Override public boolean recoverConnection() {
+        if(router==null)return false;
+        router.recover();return true;
     }
 
     @Override
@@ -248,7 +271,9 @@ public final class WebLicenseApi implements LicenseApi {
 
     private JsonObject exchange(String path, String token, JsonObject body, int expectedStatus) throws IOException {
         if (token == null && !Set.of("registration/register", "registration/license").contains(path)) throw input();
-        Request.Builder request = new Request.Builder().url(origin.resolve("api/client/" + path))
+        var route=router==null?new LicenseConnectionRouter.Route(origin,
+                networkMode==NetworkMode.COMPATIBLE?compatibleHttp:http,networkMode):router.select(networkMode);
+        Request.Builder request = new Request.Builder().url(route.origin().resolve("api/client/" + path))
                 .header("Accept", "application/json")
                 .header("Cache-Control", "no-store");
         if (token != null) request.header("Authorization", "Bearer " + token(token));
@@ -259,7 +284,7 @@ public final class WebLicenseApi implements LicenseApi {
             request.post(oneShotJson(json));
         }
         Response response;
-        try { response = (networkMode == NetworkMode.COMPATIBLE ? compatibleHttp : http).newCall(request.build()).execute(); }
+        try { response = route.client().newCall(request.build()).execute(); }
         catch (IOException failure) { throw networkFailure(failure); }
         try (response) {
             // An edge challenge is not a signed/account-level denial from the Portal.
@@ -274,6 +299,9 @@ public final class WebLicenseApi implements LicenseApi {
             try {
                 ResponseBody responseBody = response.body();
                 MediaType contentType = responseBody == null ? null : responseBody.contentType();
+                if(Set.of(502,503,504).contains(response.code()) && (contentType==null
+                        ||!contentType.type().equals("application")||!contentType.subtype().equals("json")))
+                    throw new Failure("LICENSE_HTTP_ERROR",response.code());
                 if (contentType == null || !contentType.type().equals("application")
                         || !contentType.subtype().equals("json")
                         || (contentType.parameter("charset") != null

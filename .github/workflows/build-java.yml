@@ -48,17 +48,18 @@ jobs:
           npm run check
           npm test
           npx wrangler deploy --dry-run --outdir "$RUNNER_TEMP/portal-worker"
+          npx wrangler deploy --config wrangler.license-gateway.jsonc --dry-run --outdir "$RUNNER_TEMP/license-gateway"
       - name: Package tracked Portal sources without credentials
         run: |
-          git ls-files -z . | xargs -0 zip -X "$RUNNER_TEMP/VNCode-Portal-0.3.5-Key-Rotation.zip"
+          git ls-files -z . | xargs -0 zip -X "$RUNNER_TEMP/VNCode-Portal-0.3.6-License-Network.zip"
           cd "$RUNNER_TEMP"
-          sha256sum VNCode-Portal-0.3.5-Key-Rotation.zip > VNCode-Portal-0.3.5-Key-Rotation.sha256
+          sha256sum VNCode-Portal-0.3.6-License-Network.zip > VNCode-Portal-0.3.6-License-Network.sha256
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
-          name: VNCode-Portal-0.3.5-Key-Rotation
+          name: VNCode-Portal-0.3.6-License-Network
           path: |
-            ${{ runner.temp }}/VNCode-Portal-0.3.5-Key-Rotation.zip
-            ${{ runner.temp }}/VNCode-Portal-0.3.5-Key-Rotation.sha256
+            ${{ runner.temp }}/VNCode-Portal-0.3.6-License-Network.zip
+            ${{ runner.temp }}/VNCode-Portal-0.3.6-License-Network.sha256
           if-no-files-found: error
           retention-days: 14
 
@@ -268,7 +269,7 @@ jobs:
         run: node --test tools/*.test.mjs
       - name: Verify license and updater transport, verification, storage and UI on Windows
         shell: pwsh
-        run: .\mvnw.cmd -B "-Dtest=LicensePaneTest,WebLicenseApiTest,LicenseNetworkDiagnosticsTest,LicenseServiceTest,LicenseVerifierTest,LicenseStoreTest,LicenseDeviceKeysTest,LicenseClockTest,LicenseRefreshCadenceTest,LicenseTrustRotationTest,PortalClientContractTest,RegisteredGtinProofTest,RegisteredCatalogOwnershipTest,RegisteredGtinSourceTest,FriendlyErrorCodeTest,ZnackAutomationControllerTest,ZnackAutomationInformationTest,CatalogApiAuthorizationTest,CatalogCredentialRepositoryTest,NationalCatalogGs1ClientTest,ZnackNationalCatalogServiceTest,ZnackMutationTransportTest,UpdateApiClientTest,UpdateSourceIsolationTest,UpdateServiceTest,UpdateInstallerServiceTest,UpdateDownloadVerificationTest,SignedUpdateManifestTest,UpdatePresentationTest,UpdateTransportTest" package
+        run: .\mvnw.cmd -B "-Dtest=LicensePaneTest,WebLicenseApiTest,LicenseNetworkDiagnosticsTest,LicenseConnectionRouterTest,LicenseServiceTest,LicenseVerifierTest,LicenseStoreTest,LicenseDeviceKeysTest,LicenseClockTest,LicenseRefreshCadenceTest,LicenseTrustRotationTest,PortalClientContractTest,RegisteredGtinProofTest,RegisteredCatalogOwnershipTest,RegisteredGtinSourceTest,FriendlyErrorCodeTest,ZnackAutomationControllerTest,ZnackAutomationInformationTest,CatalogApiAuthorizationTest,CatalogCredentialRepositoryTest,NationalCatalogGs1ClientTest,ZnackNationalCatalogServiceTest,ZnackMutationTransportTest,UpdateApiClientTest,UpdateSourceIsolationTest,UpdateServiceTest,UpdateInstallerServiceTest,UpdateDownloadVerificationTest,SignedUpdateManifestTest,UpdatePresentationTest,UpdateTransportTest" package
       - name: Package diagnostic installer from focused verified inputs
         shell: cmd
         env:

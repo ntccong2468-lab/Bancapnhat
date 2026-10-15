@@ -57,6 +57,16 @@ export async function desktopApi(request,env,h,admin=null) {
   if(!admin || admin.role!=='admin')return error('ADMIN_REQUIRED',403);
   return await adminApi(request,env,h,admin);
  }
+ if(method==='POST'&&path==='/api/client/license/endpoint-proof') {
+  const b=await h.bodyJson(request);
+  if(typeof b.nonce!=='string'||! /^[A-Za-z0-9_-]{43}$/.test(b.nonce))return error('INVALID_PROOF');
+  decode(b.nonce,32);
+  if(!await h.rateLimit(env,'desktop-endpoint:'+h.clientIp(request),240,60))return error('RATE_LIMIT',429);
+  const authority=await signingKey(env),issuedAt=now();
+  const payload=utf8.encode(JSON.stringify({formatVersion:1,product:'vncode',purpose:'license-endpoint',
+   nonce:b.nonce,origin:new URL(request.url).origin+'/',issuedAt,expiresAt:issuedAt+120}));
+  return reply({key_id:authority.keyId,payload:b64(payload),signature:b64(await crypto.subtle.sign('Ed25519',authority.key,payload))});
+ }
  const credential=bearer(request);
  if(method==='POST'&&path==='/api/client/registration/license') {
   const b=await h.bodyJson(request),code=h.normalizeLicenseCode(b.code);

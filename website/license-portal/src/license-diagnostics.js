@@ -28,7 +28,7 @@ export async function licenseDiagnostics(env,pin=DESKTOP_PIN) {
   signature_matches_client=await crypto.subtle.verify('Ed25519',publicKey,signature,challenge);
  }catch{/* Only readiness flags are public to the authenticated admin; no secret/error body. */}
  const database_ready=schema.every(check=>check.ready),key_id_matches=env.LICENSE_KEY_ID===pin.keyId;
- return {portal_version:'0.3.5',registration_mode:'gmail_admin',mail_ready:mailReady(env),
+ return {portal_version:'0.3.6',registration_mode:'gmail_admin',mail_ready:mailReady(env),
   client_key_id:pin.keyId,client_public_key:pin.publicKey,minimum_client_version:'1.4.4',key_id:env.LICENSE_KEY_ID||null,
   signing_key_present:!!env.LICENSE_SIGNING_KEY,signing_key_valid,signature_matches_client,key_id_matches,
   database_ready,schema,activation_configuration_ready:database_ready&&signing_key_valid&&signature_matches_client&&key_id_matches,

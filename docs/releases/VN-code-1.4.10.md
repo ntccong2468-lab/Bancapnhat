@@ -1,14 +1,15 @@
 # VNCode 1.4.10
 
-Thêm kiểm tra kết nối ngay trong app và lựa chọn kết nối tương thích cho máy bị `LICENSE_TIMEOUT` qua điểm phát di động.
+Cải thiện kích hoạt license trên máy thứ hai, Wi-Fi và điểm phát di động bằng cơ chế tự chọn kết nối.
 
-- Trong mục **License**, bật **Kết nối tương thích (HTTP/1.1, ưu tiên IPv4)** rồi thử lại khóa hiện tại. IPv6 vẫn được giữ làm dự phòng. Lựa chọn được lưu riêng trên từng máy; không thay chính sách số máy hay cấp lại khóa.
-- **Kiểm tra kết nối** dùng chính Java/HTTP client của VNCode, so sánh chế độ tự động và tương thích. Kiểm tra cả GET cấu hình và POST tới API kích hoạt mà không gửi token, Gmail, khóa hay chữ ký thiết bị. HTTP 401 tại bước POST này là phản hồi đúng.
-- **Sao chép kết quả** cung cấp giao thức HTTP, giai đoạn DNS/TCP/TLS/gửi/chờ phản hồi và thời gian chờ. Không đưa nội dung máy chủ, địa chỉ proxy, IP hay thông tin license vào báo cáo.
-- Kiểm tra mạng và thay lựa chọn kết nối không xóa/đổi license, không cộng ngày và không chiếm thêm thiết bị. Yêu cầu kích hoạt đã gửi vẫn không tự lặp khi mất phản hồi.
+- Tự kiểm tra API bằng yêu cầu rỗng trước khi gửi thông tin tài khoản; nếu cần, chuyển HTTP/1.1 và ưu tiên IPv4, vẫn giữ IPv6.
+- Hỗ trợ API dự phòng `license.vncode.id.vn`. App xác minh chữ ký issuer, nonce, hostname và thời hạn trước khi gửi thông tin license. Quản trị viên cần triển khai Portal 0.3.6 và Worker gateway kèm theo để bật đường này.
+- Khi mất phản hồi kích hoạt/kiểm tra license, thử lại tối đa một lần bằng challenge và chữ ký thiết bị mới. Giữ cùng danh tính máy; máy chủ không cộng lại ngày hoặc chiếm thêm thiết bị khi lần trước đã thành công.
+- Thêm **Kiểm tra kết nối** và **Sao chép kết quả** trong mục License. Báo cáo dùng HTTP client của app, thể hiện giao thức, giai đoạn và thời gian chờ; không chứa Gmail, khóa, token, IP hoặc dữ liệu proxy.
+- Có thể chọn ưu tiên kết nối tương thích và lưu riêng trên từng máy. Kiểm tra mạng không xóa license hoặc tạo lại danh tính máy.
 
-Giữ HTTPS, kiểm tra chứng chỉ, chữ ký Ed25519, giới hạn thiết bị và thời gian offline. Portal 0.3.5/key ID vncode-2 giữ nguyên; không cần triển khai lại website.
+Giữ HTTPS, chữ ký Ed25519, giới hạn thiết bị và offline đã cấp. Không gắn license theo IP hoặc quốc gia. API dự phòng dùng chung dữ liệu và khóa ký `vncode-2` với website.
 
-Đây là lựa chọn tương thích và công cụ xác định lỗi cụ thể. Chưa xác nhận kích hoạt thật trên chính máy thứ hai/nhà mạng của người dùng. Nếu cả hai chế độ cùng lỗi, gửi kết quả kiểm tra từ app để xác định bước tiếp theo; không gửi khóa license. Chạy curl thành công chưa chứng minh Java trong app kết nối được.
+Chưa xác nhận kích hoạt thật trên chính máy thứ hai/nhà mạng của người dùng. Hai API cùng thuộc Cloudflare, nên vẫn phụ thuộc khả năng nhà mạng truy cập Cloudflare. Xem hướng dẫn trong gói Portal 0.3.6 để triển khai và kiểm tra.
 
-Nếu đang dùng 1.4.4–1.4.7, tải EXE, đóng VNCode rồi cài thủ công một lần để thay bản updater cũ. Giữ dữ liệu và khóa hiện có.
+Nếu đang dùng 1.4.4–1.4.7, tải EXE, đóng VNCode rồi cài thủ công một lần để thay updater cũ; giữ dữ liệu và license hiện có.

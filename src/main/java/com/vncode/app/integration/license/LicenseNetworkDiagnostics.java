@@ -19,17 +19,20 @@ final class LicenseNetworkDiagnostics {
         List<NetworkProbe> probes = new ArrayList<>();
         for (NetworkMode mode : NetworkMode.values()) {
             OkHttpClient client = mode == NetworkMode.COMPATIBLE ? compatible : automatic;
-            for (ProbeEndpoint endpoint : ProbeEndpoint.values()) probes.add(probe(origin, client, mode, endpoint));
+            for (ProbeEndpoint endpoint : List.of(ProbeEndpoint.CONFIG, ProbeEndpoint.ACTIVATION)) probes.add(probe(origin, client, mode, endpoint));
         }
         return new NetworkReport(probes);
     }
 
-    private static NetworkProbe probe(HttpUrl origin, OkHttpClient client, NetworkMode mode, ProbeEndpoint endpoint) {
+    static NetworkProbe probe(HttpUrl origin, OkHttpClient client, NetworkMode mode, ProbeEndpoint endpoint) {
+        return probe(origin, client, mode, endpoint, 10);
+    }
+    static NetworkProbe probe(HttpUrl origin, OkHttpClient client, NetworkMode mode, ProbeEndpoint endpoint, int seconds) {
         long started = System.nanoTime();
         Phase phase = new Phase();
-        var probeClient = client.newBuilder().connectTimeout(Duration.ofSeconds(4))
-                .readTimeout(Duration.ofSeconds(6)).writeTimeout(Duration.ofSeconds(6))
-                .callTimeout(Duration.ofSeconds(10)).eventListener(phase).build();
+        var probeClient = client.newBuilder().connectTimeout(Duration.ofSeconds(Math.min(4, seconds)))
+                .readTimeout(Duration.ofSeconds(Math.min(6, seconds))).writeTimeout(Duration.ofSeconds(Math.min(6, seconds)))
+                .callTimeout(Duration.ofSeconds(seconds)).eventListener(phase).build();
         Request.Builder request = new Request.Builder().url(origin.resolve(endpoint == ProbeEndpoint.CONFIG
                         ? "api/config" : "api/client/license/activate"))
                 .header("Accept", "application/json").header("Cache-Control", "no-store");
@@ -69,7 +72,7 @@ final class LicenseNetworkDiagnostics {
                 Math.max(0, TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - started)));
     }
 
-    private static final class Phase extends EventListener {
+    static final class Phase extends EventListener {
         volatile String value = "START";
         @Override public void proxySelectStart(Call call, HttpUrl url) { value = "PROXY"; }
         @Override public void dnsStart(Call call, String domainName) { value = "DNS"; }

@@ -14,5 +14,5 @@
   "revocationPassed": false,
   "readonlyDataPreserved": false,
   "serverSigningKeyMatch": "unverified",
-  "note": "Owner reports 1.4.9 still times out on a second machine using a mobile hotspot despite a two-device allowance. 1.4.10 adds compatible transport and credential-free diagnostics. Tests are fixtures; actual affected-machine activation and production multi-device/offline/revocation acceptance remain outstanding."
+  "note": "Owner reports 1.4.9 timeout on second-machine hotspot despite two-device entitlement. 1.4.10 adds automatic compatible routing, same-issuer verified backup API and one fresh-challenge workflow recovery. Cloudflare-only gateway deployment is prepared, not deployed. Fixture tests do not establish affected-carrier activation or production multi-device/offline/revocation acceptance."
 }

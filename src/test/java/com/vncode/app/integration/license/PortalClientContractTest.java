@@ -34,9 +34,10 @@ class PortalClientContractTest {
         service=createService("test-state",Clock.systemUTC());
         service.initialize().get(15,TimeUnit.SECONDS);
     }
-    private LicenseService createService(String directory,Clock clock) {
+    private LicenseService createService(String directory,Clock clock) {return createService(directory,clock,false);}
+    private LicenseService createService(String directory,Clock clock,boolean routing) {
         var codec=new LicenseStore.SecretCodec(){public String protect(String value){return value;}public String reveal(String value){return value;}};
-        return new LicenseService(new WebLicenseApi(new OkHttpClient(),origin),verifier,new LicenseStore(root.resolve(directory),codec),clock,System::nanoTime);
+        return new LicenseService(routing?new WebLicenseApi(new OkHttpClient(),origin,origin,Map.of()):new WebLicenseApi(new OkHttpClient(),origin),verifier,new LicenseStore(root.resolve(directory),codec),clock,System::nanoTime);
     }
     @AfterEach void stop()throws Exception {
         if(service!=null)service.close();
@@ -82,6 +83,15 @@ class PortalClientContractTest {
         var before=fixture("metrics");assertEquals("redeemed",before.get("state").getAsString());
         var retried=service.activate(code).get(15,TimeUnit.SECONDS);assertEquals(Status.ACTIVE,retried.status(),retried.errorCode());
         var after=fixture("metrics");assertEquals(before.get("expires"),after.get("expires"));assertEquals(1,after.get("devices").getAsInt());assertEquals(1,after.get("redemptions").getAsInt());
+    }
+    @Test void responseLostAfterRealPortalRedemptionRecoversAutomaticallyWithFreshProofAndOneDevice()throws Exception {
+        service.close();service=createService("automatic-recovery",Clock.systemUTC(),true);service.initialize().get(15,TimeUnit.SECONDS);
+        String code=registerAndApprove();fixture("drop-next");
+        var activated=service.activate(code).get(20,TimeUnit.SECONDS);assertEquals(Status.ACTIVE,activated.status(),activated.errorCode());
+        var metrics=fixture("metrics");assertEquals(1,metrics.get("devices").getAsInt());assertEquals(1,metrics.get("redemptions").getAsInt());
+        assertEquals(2,metrics.get("usedChallenges").getAsInt(),"Both attempts must obtain and consume distinct proofs");
+        assertEquals(Status.ACTIVE,service.refresh().get(15,TimeUnit.SECONDS).status());
+        var after=fixture("metrics");assertEquals(metrics.get("expires"),after.get("expires"));assertEquals(1,after.get("devices").getAsInt());
     }
     @Test void compatibleSecondMachineActivatesTheSameKeyWhileThirdMachineStillHitsTwoDeviceLimit()throws Exception {
         String code=registerAndApprove();assertEquals(Status.ACTIVE,service.activate(code).get(15,TimeUnit.SECONDS).status());

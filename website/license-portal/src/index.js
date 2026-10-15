@@ -124,7 +124,7 @@ async function api(request,env) {
   const desktop=await desktopApi(request,env,{bodyJson,rateLimit,clientIp,sendMail,constantTimeEqual,audit,normalizeLicenseCode,newLicenseCode},path.startsWith('/api/admin/desktop/')?await auth(request,env):null);
   if(desktop)return desktop;
   if (method==='GET' && path==='/api/health') return json({ok:true,service:'VNCode Accounts'});
-  if (method==='GET' && path==='/api/config') return json({turnstile_site_key:env.TURNSTILE_SITE_KEY||'',email_verification_required:env.REQUIRE_EMAIL_VERIFICATION==='1',mail_ready:mailReady(env),desktop_registration_mode:'gmail_admin',portal_version:'0.3.5'});
+  if (method==='GET' && path==='/api/config') return json({turnstile_site_key:env.TURNSTILE_SITE_KEY||'',email_verification_required:env.REQUIRE_EMAIL_VERIFICATION==='1',mail_ready:mailReady(env),desktop_registration_mode:'gmail_admin',portal_version:'0.3.6'});
 
   if(method==='POST' && path==='/api/register'){
     if(!await rateLimit(env,'register:'+clientIp(request),7,3600)) return fail('Thử lại sau',429);

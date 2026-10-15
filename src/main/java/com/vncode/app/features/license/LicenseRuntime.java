@@ -3,7 +3,6 @@ package com.vncode.app.features.license;
 import com.vncode.app.integration.license.WebLicenseApi;
 import com.vncode.app.shared.*;
 import java.io.*;
-import java.nio.charset.StandardCharsets;
 import java.time.Clock;
 import java.util.*;
 import static com.vncode.app.features.license.LicenseModels.*;
@@ -22,11 +21,7 @@ public final class LicenseRuntime {
     public static boolean hasPendingTasks(){LicenseService s=current;return s!=null&&s.hasPendingTasks();}
     public static synchronized void close(){if(current!=null){current.close();current=null;observedShopCount=-1;}}
     static Map<String,java.security.PublicKey> trustedKeys(){
-        Map<String,java.security.PublicKey> keys=new HashMap<>();
-        try(var stream=LicenseRuntime.class.getResourceAsStream("/com/vncode/app/license/trusted-keys.json")){
-            if(stream!=null){var object=LicenseJson.object(new String(stream.readNBytes(32769),StandardCharsets.UTF_8));for(var e:object.entrySet())keys.put(e.getKey(),LicenseDeviceKeys.publicKey(e.getValue().getAsString()));}
-        }catch(IOException|RuntimeException invalid){keys.clear();}
-        return Map.copyOf(keys);
+        return LicenseTrustKeys.load();
     }
     private static LicenseService create(){
         var keys=trustedKeys();

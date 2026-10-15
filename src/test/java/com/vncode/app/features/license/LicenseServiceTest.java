@@ -71,6 +71,42 @@ class LicenseServiceTest {
             assertTrue(s.allows(Permission.PRINT_NEW));assertNotNull(LicenseDomainFixture.store(directory).load().orElseThrow().accessToken());
         }
     }
+    @Test void lostActivationResponseRetriesWithFreshChallengeAndSameDeviceIdentity()throws Exception {
+        var seen=new java.util.ArrayList<String>();var identities=new java.util.HashSet<String>();var recovered=new java.util.concurrent.atomic.AtomicInteger();
+        var api=new Api(){
+            int challenges;
+            @Override public Challenge challenge(String token,String publicKey,String action)throws IOException {
+                var base=super.challenge(token,publicKey,action);String id="challenge-"+(++challenges);
+                return new Challenge(id,"vncode-device-v1\n"+action+"\n"+id+"\n"+"N".repeat(43),base.expiresAt());
+            }
+            @Override public Grant activate(String token,Challenge c,String pub,String signature,String code)throws IOException {
+                seen.add(c.id());identities.add(pub);var grant=super.activate(token,c,pub,signature,code);
+                if(seen.size()==1)throw new Failure("LICENSE_TIMEOUT",0);return grant;
+            }
+            @Override public boolean recoverConnection(){recovered.incrementAndGet();return true;}
+        };
+        try(var s=service(api,true)) {
+            s.activate(LicenseDomainFixture.CODE).get(5,TimeUnit.SECONDS);
+            assertEquals(Status.ACTIVE,s.snapshot().status());assertEquals(2,seen.size());assertNotEquals(seen.get(0),seen.get(1));
+            assertEquals(1,identities.size());assertEquals(1,recovered.get());assertTrue(s.allows(Permission.SELLER_API));
+        }
+    }
+    @Test void recoveryIsBoundedAndNeverRetriesAccountDenial()throws Exception {
+        var attempts=new java.util.concurrent.atomic.AtomicInteger();var recoveries=new java.util.concurrent.atomic.AtomicInteger();
+        var api=new Api(){
+            @Override public Challenge challenge(String token,String key,String action)throws IOException {
+                attempts.incrementAndGet();throw failure;
+            }
+            @Override public boolean recoverConnection(){recoveries.incrementAndGet();return true;}
+        };
+        try(var s=service(api,true)) {
+            api.failure=new LicenseApi.Failure("LICENSE_TIMEOUT",0);s.activate(LicenseDomainFixture.CODE).get();
+            assertEquals(2,attempts.get());assertEquals(1,recoveries.get());assertFalse(s.allows(Permission.SELLER_API));
+            attempts.set(0);recoveries.set(0);api.failure=new LicenseApi.Failure("ACCOUNT_NOT_APPROVED",403);
+            s.activate(LicenseDomainFixture.CODE).get();assertEquals(1,attempts.get());assertEquals(0,recoveries.get());
+            assertFalse(s.allows(Permission.SELLER_API));
+        }
+    }
     @Test void automaticChecksAreSpacedButManualRefreshRemainsImmediate()throws Exception {
         var api=new Api();api.advanceServerClock=true;try(var s=service(api,true)){
             active(s,api);var tick=LicenseService.class.getDeclaredMethod("tick");tick.setAccessible(true);

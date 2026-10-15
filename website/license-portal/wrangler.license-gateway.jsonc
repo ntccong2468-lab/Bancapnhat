@@ -1,0 +1,9 @@
+{
+ "$schema":"./node_modules/wrangler/config-schema.json",
+ "name":"vncode-license-gateway",
+ "main":"./src/license-gateway.js",
+ "compatibility_date":"2026-10-10",
+ "workers_dev":true,
+ "routes":[{"pattern":"license.vncode.id.vn","custom_domain":true}],
+ "services":[{"binding":"BACKEND","service":"vncode-portal"}]
+}
