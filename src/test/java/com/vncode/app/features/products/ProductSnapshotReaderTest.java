@@ -112,11 +112,11 @@ class ProductSnapshotReaderTest {
     @Test void ozonSourcePriceUsesTheNativeProductAndKeepsItsCurrency()throws Exception{
         var reader=new OzonProductSnapshotReader(s->(p,b,m)->JsonParser.parseString(switch(p){
             case "v3/product/info/list" -> "{\"items\":[{\"id\":321,\"offer_id\":\"O-1\",\"sku\":99}]}";
-            case "v4/product/info/attributes" -> "{\"result\":[{\"id\":321,\"offer_id\":\"O-1\",\"name\":\"Full\",\"description_category_id\":12,\"type_id\":13,\"dimension_unit\":\"mm\",\"weight_unit\":\"g\",\"attributes\":[]}]}";
-            case "v1/description-category/attribute" -> "{\"result\":[]}";
+            case "v4/product/info/attributes" -> "{\"result\":[{\"id\":321,\"offer_id\":\"O-1\",\"name\":\"Full\",\"description_category_id\":12,\"type_id\":13,\"dimension_unit\":\"mm\",\"weight_unit\":\"g\",\"attributes\":[{\"id\":1001,\"values\":[{\"value\":\"M\"}]},{\"id\":1002,\"values\":[{\"value\":\"46\"}]}]}]}";
+            case "v1/description-category/attribute" -> "{\"result\":[{\"id\":1001,\"name\":\"Размер производителя\"},{\"id\":1002,\"name\":\"Российский размер\"}]}";
             case "v5/product/info/prices" -> {assertFalse(m);assertEquals("321",b.getAsJsonObject().getAsJsonObject("filter").getAsJsonArray("product_id").get(0).getAsString());yield "{\"items\":[{\"product_id\":999,\"price\":{\"price\":1,\"currency_code\":\"RUB\"}},{\"product_id\":321,\"offer_id\":\"O-1\",\"price\":{\"price\":2500.50,\"currency_code\":\"CNY\"}}]}";}
             default -> "{\"result\":{\"certificates\":[],\"page_count\":1}}";
         }));
-        var source=reader.read(ozon,new ProductKey(2,Marketplace.OZON,"321","O-1"));assertEquals("2500.50",source.metadata().get("source.price"));assertEquals("CNY",source.metadata().get("source.currency"));
+        var source=reader.read(ozon,new ProductKey(2,Marketplace.OZON,"321","O-1"));assertEquals("2500.50",source.metadata().get("source.price"));assertEquals("CNY",source.metadata().get("source.currency"));assertEquals("M",source.variants().getFirst().size());assertEquals("46",source.variants().getFirst().russianSize());
     }
 }

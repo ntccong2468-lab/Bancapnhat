@@ -37,6 +37,7 @@ public abstract class AbstractListingAdapter implements ListingTargetAdapter {
             if(a.name().toLowerCase(Locale.ROOT).matches(".*(kiz|км|код маркиров).*")){issue(issues,"MARKING_CODES_NOT_TRANSFERABLE",a.id());continue;}
             String id=o.attributeMapping().get(a.id());if(id==null){issue(issues,"ATTRIBUTE_MAPPING_REQUIRED",a.id());continue;}
             if(id.equals("@skip")){issues.add(new CopyIssue("ATTRIBUTE_EXPLICITLY_OMITTED",a.mappingKey(),false));continue;}
+            if(market==Marketplace.WILDBERRIES&&Set.of("@size","@russianSize").contains(id)){if(!o.fields().contains("sizes"))issue(issues,"VARIANT_MAPPING_REQUIRED",a.mappingKey());continue;}
             if(market==Marketplace.WILDBERRIES&&Set.of("@brand","@description","@title").contains(id)){if(!o.fields().contains(id.substring(1)))issue(issues,"TEXT_FIELD_MAPPING_REQUIRED",id);continue;}
             if(!ids.contains(id)){issue(issues,"FOREIGN_TARGET_ATTRIBUTE",id);continue;}
             if(result.putIfAbsent(id,a.values())!=null)issue(issues,"ATTRIBUTE_MAPPING_CONFLICT",id);

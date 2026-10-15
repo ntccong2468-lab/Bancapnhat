@@ -32,3 +32,5 @@ Windows cần chạy workflow hiện có để kiểm tra launcher, DPAPI, bố 
 Đã đọc lại trực tiếp bảy tệp WCode 1.0.27 theo commit cố định; manifest checksum đi cùng [bảng đối chiếu](../research/2026-10-15-vncode-1412-category-copy.md). WBCode 1.3.9 xuất hiện trong lúc làm việc và đã bổ sung ghi chú công khai; chưa có source nội bộ hay nghiệm thu seller để khẳng định tương đương mọi hành vi. [Sơ đồ kho KIZ và sao chép](../architecture/2026-10-15-category-kiz-and-listing-copy.md) mô tả hành vi mới.
 
 Đã mở giao diện JavaFX với dữ liệu tổng hợp cho kho và màn sao chép đã điền dữ liệu, ngoài các bài kiểm thử giao diện. Không dùng file KIZ thật của seller. Hợp đồng đọc giá WB/Ozon được tải lại từ tài liệu chính thức, lưu URL/checksum trong `docs/research/vncode-1412-listing-price-contracts.json`.
+
+Bổ sung sau lượt hồi quy: reader Ozon lấy size Nga từ thuộc tính có tên tương ứng, mapping chuyển size/size Nga sang cấu trúc biến thể của sàn đích thay vì bắt nhập lại như thuộc tính card. Giá nguồn ngoại tệ không được tự hiểu là RUB khi gửi giá WB. **48 bài sao chép/reader/giao diện qua** sau bổ sung này; Windows chạy lại toàn bộ trên commit cuối.

@@ -49,4 +49,17 @@ class CopyDefaultsTest {
         assertEquals("Changed title",listing.get("title").getAsString());assertEquals("MY-ARTICLE",listing.get("vendorCode").getAsString());assertTrue(listing.toString().contains("Wool"));
         assertEquals(100,listing.getAsJsonArray("sizes").get(0).getAsJsonObject().get("price").getAsInt());assertEquals(200,listing.getAsJsonArray("sizes").get(1).getAsJsonObject().get("price").getAsInt());
     }
+    @Test void manufacturerAndRussianSizesMapToVariantFieldsInBothDirections(){
+        var original=source(Marketplace.OZON,"12:13",Map.of());
+        var source=new ProductSnapshot(original.key(),original.revision(),original.title(),original.description(),original.brand(),original.vendorArticle(),original.categoryId(),original.media(),List.of(new ProductAttribute("1001","Размер производителя",List.of("M"),""),new ProductAttribute("1002","Российский размер",List.of("46"),"")),List.of(original.variants().getFirst()),original.dimensions(),original.documents(),original.checkedAt(),original.metadata());
+        var maps=CopyDefaults.mappings(source,Marketplace.WILDBERRIES,"99",List.of());assertEquals("@size",maps.get("1001"));assertEquals("@russianSize",maps.get("1002"));
+        var dictionary=List.of(new TargetAttribute("1001","Размер производителя","string",true,"",1,"","",false),new TargetAttribute("1002","Российский размер","string",true,"",1,"","",false));
+        var wb=source(Marketplace.WILDBERRIES,"99",Map.of());var options=CopyDefaults.complete(wb,ListingCopyMappingTest.target(Marketplace.OZON),CopyDefaults.initial(wb,ListingCopyMappingTest.target(Marketplace.OZON),Set.of("v1","v2"),"99:88"),dictionary);
+        assertEquals(List.of("46"),options.variantValues().get("v1").get("1002"));assertEquals(List.of("48"),options.variantValues().get("v2").get("1002"));
+    }
+    @Test void foreignCurrencyIsNotSilentlyReinterpretedAsWbRubles()throws Exception{
+        var source=source(Marketplace.OZON,"12:13",Map.of("source.price","100","source.currency","CNY"));var old=ListingCopyMappingTest.options(Marketplace.WILDBERRIES);
+        var options=new CopyOptions(old.fields(),old.variantIds(),"99",old.attributeMapping(),old.attributeValues(),old.newArticles(),null,"RUB",List.of(),false,old.variantValues());
+        var preview=adapter(Marketplace.WILDBERRIES).preview(ListingCopyMappingTest.target(Marketplace.WILDBERRIES),source,options);assertFalse(preview.publishable());assertTrue(preview.issues().stream().anyMatch(i->i.code().equals("WB_PRICE_CURRENCY_UNVERIFIED")));
+    }
 }

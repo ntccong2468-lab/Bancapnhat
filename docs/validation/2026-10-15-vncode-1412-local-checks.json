@@ -18,5 +18,11 @@
     "logSha256": "6d89c62e7c183b1d8eb992079c0fda18fbdb875d2a85388d9fe528fc5e554626"
   },
   "liveSellerMutations": false,
-  "nativeWindows": "pending"
+  "nativeWindows": "pending",
+  "sourceSizeCurrency": {
+    "result": "passed",
+    "tests": 48,
+    "skipped": 0,
+    "logSha256": "63874c5bdd78b41f9f52033fed262398146637577abb05b181f5841b19010935"
+  }
 }

@@ -35,7 +35,7 @@
       "failures": 0,
       "errors": 0,
       "platformSpecificSkipped": 2,
-      "coverageNote": "Full regression after category KIZ, purchase proof and listing inheritance changes; final INN reservation guard and wording additionally covered by focused checks. Exact-source Windows regression remains required."
+      "coverageNote": "Full regression after category KIZ and listing inheritance; final INN reservation guard/wording and source RU size/currency handling additionally verified by focused 59- and 48-test runs. Exact-source Windows regression remains required."
     },
     "finalAuthenticationFocusedJava": {
       "result": "passed",
@@ -84,7 +84,15 @@
     },
     "sourceComparison": "docs/research/2026-10-15-vncode-1412-category-copy.md",
     "categoryCopyArchitecture": "docs/architecture/2026-10-15-category-kiz-and-listing-copy.md",
-    "latestPublicWbcodeReviewed": "1.3.9 (release notes; internal source and live seller acceptance unavailable)"
+    "latestPublicWbcodeReviewed": "1.3.9 (release notes; internal source and live seller acceptance unavailable)",
+    "copySizeCurrencyFocusedJava": {
+      "result": "passed",
+      "tests": 48,
+      "passed": 48,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    }
   },
   "publication": {
     "published": false,

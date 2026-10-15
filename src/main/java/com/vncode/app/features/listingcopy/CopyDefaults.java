@@ -31,7 +31,7 @@ public final class CopyDefaults {
             case "description","описание","аннотация","môtả"->"description";
             case "size","размерпроизводителя","размеризделия","kíchthước"->"size";
             case "color","цвет","цветтовара","màusắc"->"color";
-            default -> ProductFieldNames.matches("material",name)?"material":ProductFieldNames.matches("tnved",name)?"tnved":ProductFieldNames.matches("gender",name)?"gender":n;
+            default -> ProductFieldNames.matches("material",name)?"material":ProductFieldNames.matches("tnved",name)?"tnved":ProductFieldNames.matches("gender",name)?"gender":ProductFieldNames.matches("russianSize",name)?"russianSize":n;
         };
     }
     public static TargetAttribute match(String name,List<TargetAttribute> dictionary){
@@ -42,6 +42,9 @@ public final class CopyDefaults {
     public static Map<String,String> mappings(ProductSnapshot source,Marketplace target,String category,List<TargetAttribute> dictionary){
         var result=new LinkedHashMap<String,String>();boolean same=source.key().marketplace()==target&&source.categoryId().equals(category);
         for(var attribute:source.attributes()){
+            String field=semantic(attribute.name());
+            if(target==Marketplace.WILDBERRIES&&field.equals("size")&&source.variants().stream().allMatch(v->v.size()!=null&&!v.size().isBlank())){result.put(attribute.mappingKey(),"@size");continue;}
+            if(target==Marketplace.WILDBERRIES&&field.equals("russianSize")&&source.variants().stream().allMatch(v->v.russianSize()!=null&&!v.russianSize().isBlank())){result.put(attribute.mappingKey(),"@russianSize");continue;}
             boolean complex=attribute.complexId()!=null&&!attribute.complexId().isBlank()&&!attribute.complexId().equals("0");
             var shape=dictionary.stream().filter(a->complex==(!a.complexId().isBlank()&&!a.complexId().equals("0")))
                 .filter(a->attribute.unit()==null||attribute.unit().isBlank()||Objects.toString(a.unit(),"").isBlank()||attribute.unit().equalsIgnoreCase(a.unit())).toList();
@@ -58,9 +61,11 @@ public final class CopyDefaults {
         source.variants().forEach(v->articles.put(v.id(),article(source,target,v)));articles.putAll(options.newArticles());
         var values=new LinkedHashMap<String,Map<String,List<String>>>();
         var size=match("size",dictionary);
+        var russianSize=match("russianSize",dictionary);
         for(var variant:source.variants()){
             var inherited=new LinkedHashMap<String,List<String>>();
             if(target.getMarketplace()==Marketplace.OZON&&size!=null&&variant.size()!=null&&!variant.size().isBlank())inherited.put(size.id(),List.of(variant.size()));
+            if(target.getMarketplace()==Marketplace.OZON&&russianSize!=null&&variant.russianSize()!=null&&!variant.russianSize().isBlank())inherited.put(russianSize.id(),List.of(variant.russianSize()));
             inherited.putAll(options.variantValues().getOrDefault(variant.id(),Map.of()));values.put(variant.id(),Map.copyOf(inherited));
         }
         BigDecimal price=options.targetPrice()==null?price(source):options.targetPrice();

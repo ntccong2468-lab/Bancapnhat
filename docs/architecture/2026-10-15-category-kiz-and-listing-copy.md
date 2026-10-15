@@ -52,7 +52,7 @@ flowchart TD
 
 Trên cùng sàn và cùng danh mục, ID thuộc tính được giữ nếu có trong từ điển đích. Khác sàn/danh mục chỉ tự ghép khi tên/ngữ nghĩa tương ứng duy nhất và cấu trúc/đơn vị phù hợp. ID từ điển giá trị vẫn tra lại ở sàn đích. Không chuyển raw KIZ, nmID/chrtID/product ID nguồn thành ID của bài đích.
 
-Article gốc được điền sẵn khi sang cửa hàng khác; sao chép trong cùng cửa hàng có hậu tố tránh dùng ngay article đang tồn tại. Xung đột thật vẫn được báo để sửa. Giá nguồn đọc từ API giá WB/Ozon khi tài khoản có quyền; WB giữ giá khác nhau theo size. Không tự quy đổi tiền tệ, không suy đoán giá khi API không trả. Không chép tồn kho hoặc chỉ số vận hành giữa cửa hàng.
+Article gốc được điền sẵn khi sang cửa hàng khác; sao chép trong cùng cửa hàng có hậu tố tránh dùng ngay article đang tồn tại. Xung đột thật vẫn được báo để sửa. Giá nguồn đọc từ API giá WB/Ozon khi tài khoản có quyền; WB giữ giá khác nhau theo size. Không tự quy đổi tiền tệ, không suy đoán giá khi API không trả. Nhánh giá WB hiện dùng RUB; nguồn có tiền tệ khác phải được sửa/xác nhận giá phù hợp trước khi gửi, không dùng nguyên số tiền ngoại tệ thành RUB. Size Nga có sẵn trong thuộc tính Ozon được đưa về biến thể và chuyển đúng cấu trúc size của WB/Ozon, không yêu cầu nhập lại như một thuộc tính chưa ánh xạ. Không chép tồn kho hoặc chỉ số vận hành giữa cửa hàng.
 
 Barcode gốc được sao chép như dữ liệu bài đăng mới đọc; điều này không cấp chứng cứ Catalog/KIZ để mua mã. Cùng một bài WB giữ danh sách barcode theo từng size. Giấy tờ giữ metadata; API chỉ trả metadata mà không trả tệp gốc thì không thể tự tạo tệp PDF/ảnh thay thế. Những trường hợp đó được báo cụ thể trong xem trước. Nhóm thuộc tính phức hợp có thứ tự không rõ vẫn cần xử lý riêng.
 

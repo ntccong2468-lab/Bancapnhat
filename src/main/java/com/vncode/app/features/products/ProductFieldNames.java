@@ -14,6 +14,7 @@ public final class ProductFieldNames {
             case "material" -> Set.of("состав", "материал", "основнойматериал", "материализделия", "material").contains(normalized);
             case "tnved" -> Set.of("тнвэд", "кодтнвэд", "tnved").contains(normalized);
             case "gender" -> Set.of("пол", "полребенка", "gender", "giớitính").contains(normalized);
+            case "russianSize" -> Set.of("российскийразмер", "размерроссийский", "russiansize", "rusize", "sizenga").contains(normalized);
             default -> false;
         };
     }
