@@ -2,7 +2,7 @@
   "version": "1.4.11",
   "baseVersion": "1.4.10",
   "complete": false,
-  "officialReleasePublished": false,
+  "officialReleasePublished": true,
   "scope": [
     "Durable National Catalog attributes and product documents to WB/Ozon with explicit preview and readback before adding GTIN",
     "Verified variant GTIN handoff to KIZ planning and explicit WB assignment failures",
@@ -22,14 +22,29 @@
     "windowsFullBuild": {
       "runId": 38731269718,
       "sourceCommit": "793850d5d29964164a46e774befe1fa6b991af00",
-      "result": "in-progress",
+      "result": "passed",
       "javaSuites": 229,
       "javaTests": 1320,
       "javaPassed": 1318,
       "javaFailures": 0,
       "javaErrors": 0,
       "javaSkippedPlatformSpecific": 2,
-      "verifiedJavaArtifactId": 11971493403
+      "verifiedJavaArtifactId": 11971493403,
+      "nativeLauncher": "passed",
+      "gs1AndCatalogDpapi": "passed",
+      "desktopLayouts": 272,
+      "tenShopWorkspaceAndDpi": "passed",
+      "independentInstallAndUninstall": "passed",
+      "upgradeBaselines": [
+        "1.1.34",
+        "1.2.0",
+        "1.2.1",
+        "1.2.2",
+        "1.3.0",
+        "1.4.0",
+        "1.4.6"
+      ],
+      "windowsInstallerArtifactId": 11973605166
     },
     "sellerSampleParse": {
       "result": "passed",
@@ -92,6 +107,18 @@
         "Missing or incorrect default legacy stock priority is rejected"
       ],
       "fixedInput": "tools/WindowsUpgradeDataProbe.java and tools/windows-upgrade-smoke.ps1"
+    },
+    "directUpgradeFrom1410": {
+      "runId": 38735538493,
+      "verificationSourceCommit": "2bf3b0e09a528a5fbdc6b42e35aeaa31a78adf2a",
+      "appSourceCommit": "793850d5d29964164a46e774befe1fa6b991af00",
+      "result": "passed",
+      "baselineVersion": "1.4.10",
+      "baselineSha256": "e6017013c999455c85adce4c371e1bf1b3da65ab80c222136327bdc096cea587",
+      "installerSha256": "983d481a0b320a57bbb7606d790161120aae1d454bee82f77086480c7d9479bd",
+      "dataPreserved": true,
+      "singleRegistration": true,
+      "evidence": "docs/validation/2026-10-15-vncode-1411-upgrade-from-1410.json"
     }
   },
   "limitations": [
@@ -106,6 +133,20 @@
     "tag": "v1.4.11",
     "appAutomaticFeed": "/releases/latest",
     "publicationAuthorization": "Owner cancelled separate trial/repository and explicitly requested publication of the seller update on 2026-10-15. Live seller/API and affected second-machine carrier acceptance remain unverified.",
-    "publicLatestVerified": false
+    "publicLatestVerified": true,
+    "draftReleaseId": 413770759,
+    "prepareRunId": 38735175477,
+    "prepareResult": "passed",
+    "sourceDescendsFromPublished1410": true,
+    "releaseId": 413770759,
+    "publishedAt": "2026-10-15T12:36:09Z",
+    "releaseUrl": "https://github.com/ntccong2468-lab/Bancapnhat/releases/tag/v1.4.11",
+    "installerUrl": "https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.4.11/VN-code-1.4.11-Windows-x64.exe",
+    "installerBytes": 144919552,
+    "installerSha256": "983d481a0b320a57bbb7606d790161120aae1d454bee82f77086480c7d9479bd",
+    "publicUpdaterEvidence": "docs/validation/2026-10-15-vncode-1411-public-updater.json",
+    "publicAssetCount": 18,
+    "publicAssetDownloadsVerified": 18,
+    "publicAssetEvidence": "docs/validation/2026-10-15-vncode-1411-public-assets.json"
   }
 }

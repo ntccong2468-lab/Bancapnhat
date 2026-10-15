@@ -1,0 +1,119 @@
+{
+  "releaseId": 413770759,
+  "tag": "v1.4.11",
+  "publishedAt": "2026-10-15T12:36:09Z",
+  "latest": true,
+  "unauthenticatedApiVerified": true,
+  "assetCount": 18,
+  "nonInstallerAssetsVerified": [
+    {
+      "name": "build-info.json",
+      "bytes": 820,
+      "sha256": "1a2962eb053575b203f4f3e661e914c0609fca2d37f0b9dac9df4f59b08252cc",
+      "publicDownloadVerified": true
+    },
+    {
+      "name": "gs1-smoke.json",
+      "bytes": 287,
+      "sha256": "4cfdf2587f3ea7270bc8820cf35bce031bda4d0fca0a375e272c82dff8cb7dd6",
+      "publicDownloadVerified": true
+    },
+    {
+      "name": "native-smoke.json",
+      "bytes": 288,
+      "sha256": "74e305a3ed69119c5734e5a123ce69ea2237d92864f3465b627d7a42455a1949",
+      "publicDownloadVerified": true
+    },
+    {
+      "name": "release-notes.md",
+      "bytes": 3198,
+      "sha256": "6848464a910618dade65c7a5585d37340b4921e3d378f998a91e063258738f7a",
+      "publicDownloadVerified": true
+    },
+    {
+      "name": "seller-workspace-smoke.json",
+      "bytes": 13149,
+      "sha256": "1192998058313a9b52339d1b3c4ff338b7c5b755c727ac01ec1800245413ccbd",
+      "publicDownloadVerified": true
+    },
+    {
+      "name": "side-by-side-smoke.json",
+      "bytes": 411,
+      "sha256": "ac36c9e9dae958c8f278fe1ec8fe29bd45b22f57020ee4cae1b9efe9358d19df",
+      "publicDownloadVerified": true
+    },
+    {
+      "name": "ui-layout.json",
+      "bytes": 31427,
+      "sha256": "f4dc69fa3036897ea8f67eebd081a41a57903fff24dc73074704d4fa699e1823",
+      "publicDownloadVerified": true
+    },
+    {
+      "name": "upgrade-current-preview-smoke.json",
+      "bytes": 389,
+      "sha256": "7b78f6b22db5d051154b9a7993e893c3bd845c0e3c704d08e04caf466d7a96b5",
+      "publicDownloadVerified": true
+    },
+    {
+      "name": "upgrade-gs1-preview-smoke.json",
+      "bytes": 389,
+      "sha256": "b0e97e90e4f41be9bc42e4e6b01d7315d102ed58df4dfe84a5dc59971f5c9507",
+      "publicDownloadVerified": true
+    },
+    {
+      "name": "upgrade-latest-preview-smoke.json",
+      "bytes": 389,
+      "sha256": "bbb4bebcd06b44bb80ffd6827fbf1a22b2a5fb951c43363c2f6832d1f1900b63",
+      "publicDownloadVerified": true
+    },
+    {
+      "name": "upgrade-license-test-smoke.json",
+      "bytes": 389,
+      "sha256": "6ea45b4a9c9a7c6d55f85bf5fbd4d35fa331fd3f2ee76fd24f616d8ca6103afb",
+      "publicDownloadVerified": true
+    },
+    {
+      "name": "upgrade-preview-smoke.json",
+      "bytes": 389,
+      "sha256": "1a1e0ec89335d10822a2ee0f7563ef153acaa1f0058859481b18789c7404ac89",
+      "publicDownloadVerified": true
+    },
+    {
+      "name": "upgrade-smoke.json",
+      "bytes": 390,
+      "sha256": "e575378c4e21bd1b8a866e5e6ef6ccb51f9b13c0e77209eec272bc58da393810",
+      "publicDownloadVerified": true
+    },
+    {
+      "name": "upgrade-stable-146-smoke.json",
+      "bytes": 389,
+      "sha256": "7eb1bcbe9cf4a5580074966c82506698edd3991b5756054b4eb2d5ded8e2ee46",
+      "publicDownloadVerified": true
+    },
+    {
+      "name": "VN-code-1.4.11-Windows-x64.sha256",
+      "bytes": 98,
+      "sha256": "b00f11cf67477bbeb5ec136d807d7e1dc9f02b0f6597806c7ea6e4e3a8680300",
+      "publicDownloadVerified": true
+    },
+    {
+      "name": "VNCode-Portal-0.3.6-License-Network.sha256",
+      "bytes": 106,
+      "sha256": "d88d06cc172859a36d9a6f38ef5889a71f5a2552cbdb882d2649a10e868d78d3",
+      "publicDownloadVerified": true
+    },
+    {
+      "name": "VNCode-Portal-0.3.6-License-Network.zip",
+      "bytes": 111443,
+      "sha256": "9cae1caac8878ef97ff53961d47c5653ab08e33ddca85e572f4e70bb6da9418d",
+      "publicDownloadVerified": true
+    }
+  ],
+  "installer": {
+    "name": "VN-code-1.4.11-Windows-x64.exe",
+    "bytes": 144919552,
+    "sha256": "983d481a0b320a57bbb7606d790161120aae1d454bee82f77086480c7d9479bd",
+    "publicDownloadVerified": true,
+    "verifier": "Shipped UpdateInstallerService"
+  }
+}

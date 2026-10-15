@@ -1,0 +1,16 @@
+{
+  "buildRunId": 38731269718,
+  "version": "1.4.11",
+  "liveMarketplaceMutations": false,
+  "baselineSha256": "e6017013c999455c85adce4c371e1bf1b3da65ab80c222136327bdc096cea587",
+  "fromVersion": "1.4.10",
+  "windowTitle": "VN code v1.4.11",
+  "installerSha256": "983d481a0b320a57bbb7606d790161120aae1d454bee82f77086480c7d9479bd",
+  "appName": "VN code",
+  "installerUpgradeUuid": "8CBBA0E2-6E73-4F56-9101-6BC0948D3C72",
+  "result": "passed",
+  "sourceCommit": "793850d5d29964164a46e774befe1fa6b991af00",
+  "fingerprint": "829f466d4a70d6a12565035b11ab5f9a1e7efc036fbef3cda3b8ba623f33e442",
+  "singleRegistration": true,
+  "dataPreserved": true
+}
