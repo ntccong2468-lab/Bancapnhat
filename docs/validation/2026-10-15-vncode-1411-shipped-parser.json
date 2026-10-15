@@ -10,9 +10,9 @@
   "preservedEveryOriginalLine": true,
   "liveApiVerification": false,
   "realCodesIncludedInReport": false,
-  "sourceCommit": "6a468b972bde02e368cc95623f79f464da2bc0ac",
-  "verifiedWindowsBuildRunId": 38727071234,
-  "verifiedJavaArtifactId": 11969397778,
+  "sourceCommit": "793850d5d29964164a46e774befe1fa6b991af00",
+  "verifiedWindowsBuildRunId": 38731269718,
+  "verifiedJavaArtifactId": 11971493403,
   "probeExecutionPlatform": "Linux against shipped Windows-target Java inputs",
   "inputDescription": "Seller-supplied quan.txt; paid marking codes kept outside Git",
   "originalCodesIncludedInRepository": false
