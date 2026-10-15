@@ -83,4 +83,20 @@ class PortalClientContractTest {
         var retried=service.activate(code).get(15,TimeUnit.SECONDS);assertEquals(Status.ACTIVE,retried.status(),retried.errorCode());
         var after=fixture("metrics");assertEquals(before.get("expires"),after.get("expires"));assertEquals(1,after.get("devices").getAsInt());assertEquals(1,after.get("redemptions").getAsInt());
     }
+    @Test void compatibleSecondMachineActivatesTheSameKeyWhileThirdMachineStillHitsTwoDeviceLimit()throws Exception {
+        String code=registerAndApprove();assertEquals(Status.ACTIVE,service.activate(code).get(15,TimeUnit.SECONDS).status());
+        var first=fixture("metrics");
+        try(var second=createService("second-machine",Clock.systemUTC());var third=createService("third-machine",Clock.systemUTC())) {
+            second.initialize().get(15,TimeUnit.SECONDS);
+            assertEquals(LicenseApi.NetworkMode.COMPATIBLE,second.setNetworkMode(LicenseApi.NetworkMode.COMPATIBLE).get(5,TimeUnit.SECONDS));
+            assertEquals(Status.ACTIVE,second.activate(code).get(15,TimeUnit.SECONDS).status());
+            assertTrue(second.allows(Permission.PRINT_NEW));assertEquals(2,second.snapshot().maxDevices());
+            assertEquals(Status.ACTIVE,second.refresh().get(15,TimeUnit.SECONDS).status());
+            var two=fixture("metrics");assertEquals(first.get("expires"),two.get("expires"));
+            assertEquals(2,two.get("devices").getAsInt());assertEquals(1,two.get("redemptions").getAsInt());
+            third.initialize().get(15,TimeUnit.SECONDS);third.setNetworkMode(LicenseApi.NetworkMode.COMPATIBLE).get(5,TimeUnit.SECONDS);
+            assertEquals("DEVICE_LIMIT_OR_LICENSE_CHANGED",third.activate(code).get(15,TimeUnit.SECONDS).errorCode());
+            assertFalse(third.allows(Permission.PRINT_NEW));assertEquals(2,fixture("metrics").get("devices").getAsInt());
+        }
+    }
 }

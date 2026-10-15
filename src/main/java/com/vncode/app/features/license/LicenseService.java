@@ -65,6 +65,24 @@ public final class LicenseService implements AutoCloseable {
     public AutoCloseable subscribe(Consumer<Snapshot> listener){listeners.add(listener);listener.accept(snapshot);return ()->listeners.remove(listener);}
     public int listenerCount(){return listeners.size();}
     public boolean hasPendingTasks(){return worker.getActiveCount()>0||!worker.getQueue().isEmpty();}
+    public boolean supportsNetworkDiagnostics(){return api.supportsNetworkDiagnostics();}
+    public LicenseApi.NetworkMode networkMode(){return api.networkMode();}
+    public CompletableFuture<LicenseApi.NetworkReport> checkConnection(){return support(api::checkConnection);}
+    public CompletableFuture<LicenseApi.NetworkMode> setNetworkMode(LicenseApi.NetworkMode mode){
+        return support(()->{api.setNetworkMode(mode);return api.networkMode();});
+    }
+    // Support operations share the bounded worker, but never invalidate or replace a lease.
+    private <T> CompletableFuture<T> support(Callable<T> operation){
+        var result=new CompletableFuture<T>();
+        submit(()->{
+            try{result.complete(operation.call());}
+            catch(Exception failure){result.completeExceptionally(new IOException(safeCode(failure)));}
+            return snapshot;
+        }).whenComplete((snapshot,failure)->{
+            if(!result.isDone())result.completeExceptionally(new IOException("LICENSE_OPERATION_CANCELLED"));
+        });
+        return result;
+    }
     public CompletableFuture<Snapshot> startRegistration(String gmail) {
         String email=gmail==null?"":gmail.strip().toLowerCase(Locale.ROOT);
         if(!email.matches("[a-z0-9.!#$%&'*+/=?^_`{|}~-]+@gmail\\.com")||email.length()>254)return failed("GMAIL_REQUIRED");

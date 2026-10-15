@@ -94,6 +94,30 @@ class LicenseServiceTest {
     @Test void networkFailureUsesSignedOfflineButProtocolFailureNeverDoes()throws Exception {
         var api=new Api();try(var s=service(api,true)){active(s,api);api.failure=new LicenseApi.Failure("LICENSE_NETWORK",0);s.refresh().get();assertEquals(Status.OFFLINE,s.snapshot().status());assertTrue(s.allows(Permission.SELLER_API));api.failure=new LicenseApi.Failure("LICENSE_PROTOCOL_INVALID",0);s.refresh().get();assertFalse(s.allows(Permission.SELLER_API));assertEquals(Status.UNVERIFIED,s.snapshot().status());}
     }
+    @Test void supportChecksAndFailedModeChangesNeverInvalidateOrReplaceAnActiveLease()throws Exception {
+        var api=new Api(){
+            @Override public boolean supportsNetworkDiagnostics(){return true;}
+            @Override public NetworkReport checkConnection(){return new NetworkReport(List.of(new NetworkProbe(NetworkMode.AUTOMATIC,ProbeEndpoint.CONFIG,false,0,"LICENSE_TIMEOUT","TLS","",6000)));}
+            @Override public void setNetworkMode(NetworkMode mode)throws IOException{throw new IOException("LICENSE_NETWORK_SETTINGS_FAILED");}
+        };
+        try(var s=service(api,true)) {
+            active(s,api);var before=LicenseDomainFixture.store(directory).load().orElseThrow();
+            assertTrue(s.supportsNetworkDiagnostics());assertEquals("TLS",s.checkConnection().get(5,TimeUnit.SECONDS).probes().getFirst().phase());
+            assertThrows(ExecutionException.class,()->s.setNetworkMode(LicenseApi.NetworkMode.COMPATIBLE).get(5,TimeUnit.SECONDS));
+            assertEquals(Status.ACTIVE,s.snapshot().status());assertTrue(s.allows(Permission.KIZ));
+            var after=LicenseDomainFixture.store(directory).load().orElseThrow();
+            assertEquals(before.publicKey(),after.publicKey());assertEquals(before.privateKey(),after.privateKey());
+            assertEquals(before.envelope(),after.envelope());assertEquals(before.accessToken(),after.accessToken());
+        }
+    }
+    @Test void closingServiceCompletesAQueuedDiagnosticInsteadOfLeavingTheUiWaiting()throws Exception {
+        var api=new Api();try(var s=service(api,true)) {
+            active(s,api);api.entered=new CountDownLatch(1);api.release=new CountDownLatch(1);
+            s.refresh();assertTrue(api.entered.await(2,TimeUnit.SECONDS));
+            var queued=s.checkConnection();s.close();
+            assertThrows(ExecutionException.class,()->queued.get(2,TimeUnit.SECONDS));
+        }
+    }
     @Test void explicitDenialSurvivesRestartAndLaterNetworkError()throws Exception {
         var api=new Api();try(var s=service(api,true)){active(s,api);api.failure=new LicenseApi.Failure("DEVICE_REVOKED",403);s.refresh().get();assertFalse(s.allows(Permission.GTIN));api.failure=new LicenseApi.Failure("LICENSE_NETWORK",0);s.refresh().get();assertFalse(s.allows(Permission.GTIN));}
         try(var restarted=service(api,true)){assertEquals(Status.DENIED,restarted.snapshot().status());assertFalse(restarted.allows(Permission.GTIN));}

@@ -3,6 +3,9 @@ package com.vncode.app.ui.license;
 import com.vncode.app.config.Database;
 import com.vncode.app.features.license.LicenseModels.Snapshot;
 import com.vncode.app.features.license.LicenseModels.Status;
+import com.vncode.app.integration.license.LicenseApi;
+import javafx.scene.control.CheckBox;
+import javafx.scene.control.TextArea;
 import com.vncode.app.shared.AppLanguage;
 import com.vncode.app.shared.I18nService;
 import javafx.application.Platform;
@@ -155,7 +158,8 @@ class LicensePaneTest {
                 i18n.setLanguage(language);
                 for (String code : List.of("LICENSE_NETWORK", "LICENSE_HTTP_ERROR", "LICENSE_UNAVAILABLE",
                         "LICENSE_REDIRECT_REJECTED", "LICENSE_BUSY", "LICENSE_CHANGED",
-                        "LICENSE_TLS", "LICENSE_DNS", "LICENSE_TIMEOUT", "LICENSE_CLOCK_SKEW", "LICENSE_EDGE_CHALLENGE")) {
+                        "LICENSE_TLS", "LICENSE_DNS", "LICENSE_TIMEOUT", "LICENSE_CLOCK_SKEW", "LICENSE_EDGE_CHALLENGE",
+                        "LICENSE_NETWORK_CHECK_FAILED", "LICENSE_NETWORK_SETTINGS_FAILED")) {
                     actions.emit(new Snapshot(Status.APPROVED, "client@gmail.com", 0, 0, 0, 0, code, false));
                     String message = label("licenseFeedback").getText();
                     assertTrue(label("licenseFeedback").isVisible());
@@ -169,6 +173,32 @@ class LicensePaneTest {
                 return null;
             });
         } finally { fx(() -> { i18n.setLanguage(previous); return null; }); }
+    }
+
+    @Test void connectionCheckWorksBeforeRegistrationWithoutSendingTheEnteredKeyAndCompatibleChoiceSurvivesRender() throws Exception {
+        fx(()->{
+            ((PasswordField)pane.lookup("#licenseKey")).setText("key-not-for-network-report");
+            button("licenseNetworkCheck").fire();
+            assertTrue(button("licenseNetworkCheck").isDisabled());assertNull(actions.email);assertNull(actions.code);
+            actions.networkPending.complete(new LicenseApi.NetworkReport(List.of(new LicenseApi.NetworkProbe(
+                    LicenseApi.NetworkMode.AUTOMATIC,LicenseApi.ProbeEndpoint.ACTIVATION,false,0,"LICENSE_TIMEOUT","TLS","",10000))));
+            var report=(TextArea)pane.lookup("#licenseNetworkReport");assertTrue(report.isVisible());
+            assertTrue(report.getText().contains("LICENSE_TIMEOUT"));assertFalse(report.getText().contains("key-not-for-network-report"));
+            assertFalse(button("licenseNetworkCopy").isDisabled());
+            button("licenseNetworkCopy").fire();assertEquals(report.getText(),javafx.scene.input.Clipboard.getSystemClipboard().getString());
+            var compatible=(CheckBox)pane.lookup("#licenseCompatibleConnection");compatible.fire();
+            assertEquals(LicenseApi.NetworkMode.COMPATIBLE,actions.mode);assertTrue(compatible.isSelected());
+            pane.applyTranslations();assertTrue(compatible.isSelected());
+            return null;
+        });
+    }
+
+    @Test void lateDiagnosticResultCannotUpdateDisposedView() throws Exception {
+        fx(()->{
+            button("licenseNetworkCheck").fire();pane.dispose();
+            actions.networkPending.complete(new LicenseApi.NetworkReport(List.of()));
+            assertFalse(pane.lookup("#licenseNetworkReport").isVisible());return null;
+        });
     }
 
     private static Snapshot snapshot(Status status) {
@@ -189,6 +219,12 @@ class LicensePaneTest {
         CompletableFuture<Snapshot> pending;
         String email, code;
         boolean logoutCalled;
+        LicenseApi.NetworkMode mode=LicenseApi.NetworkMode.AUTOMATIC;
+        CompletableFuture<LicenseApi.NetworkReport> networkPending;
+        public boolean supportsNetworkDiagnostics(){return true;}
+        public LicenseApi.NetworkMode networkMode(){return mode;}
+        public CompletableFuture<LicenseApi.NetworkReport> checkConnection(){networkPending=new CompletableFuture<>();return networkPending;}
+        public CompletableFuture<LicenseApi.NetworkMode> setNetworkMode(LicenseApi.NetworkMode value){mode=value;return CompletableFuture.completedFuture(value);}
         public Snapshot snapshot() { return current; }
         public AutoCloseable subscribe(Consumer<Snapshot> listener) {
             listeners.add(listener);

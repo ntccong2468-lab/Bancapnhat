@@ -32,6 +32,6 @@ public final class LicenseRuntime {
         var keys=trustedKeys();
         var protector=new WindowsSecretProtector("VN code account license",65536);
         var store=new LicenseStore(AppPaths.appDataDir().resolve("license"),new LicenseStore.SecretCodec(){public String protect(String v)throws IOException{return protector.protect(v);}public String reveal(String v)throws IOException{return protector.reveal(v);}});
-        return new LicenseService(new WebLicenseApi(),new LicenseVerifier(keys),store,Clock.systemUTC(),System::nanoTime);
+        return new LicenseService(new WebLicenseApi(AppPaths.appDataDir().resolve("license-network-mode.txt")),new LicenseVerifier(keys),store,Clock.systemUTC(),System::nanoTime);
     }
 }

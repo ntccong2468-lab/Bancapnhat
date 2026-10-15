@@ -1,0 +1,18 @@
+{
+  "version": "1.4.10",
+  "result": "blocked",
+  "sourceCommit": null,
+  "keyId": "vncode-2",
+  "publicKey": "SPtRxTUJ78fqt5YMJ4DJ_PZwB2cMYegs-J7nY62ADMQ",
+  "backendSourceSha256": null,
+  "windowsDpapiPassed": false,
+  "foreignWindowsIdentityRejected": false,
+  "backendGmailApprovalPassed": false,
+  "deviceLimitConcurrencyPassed": false,
+  "activationRetryPassed": false,
+  "signedOfflinePassed": false,
+  "revocationPassed": false,
+  "readonlyDataPreserved": false,
+  "serverSigningKeyMatch": "unverified",
+  "note": "Owner reports 1.4.9 still times out on a second machine using a mobile hotspot despite a two-device allowance. 1.4.10 adds compatible transport and credential-free diagnostics. Tests are fixtures; actual affected-machine activation and production multi-device/offline/revocation acceptance remain outstanding."
+}

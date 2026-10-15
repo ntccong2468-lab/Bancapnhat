@@ -22,6 +22,7 @@ import java.time.Duration;
 import java.util.Locale;
 import java.util.Set;
 import java.util.UUID;
+import java.nio.file.Path;
 
 import static com.vncode.app.features.license.LicenseModels.Account;
 import static com.vncode.app.features.license.LicenseModels.Envelope;
@@ -43,17 +44,28 @@ public final class WebLicenseApi implements LicenseApi {
 
     private final HttpUrl origin;
     private final OkHttpClient http;
+    private final OkHttpClient compatibleHttp;
+    private final LicenseNetworkPreferences networkPreferences;
+    private volatile NetworkMode networkMode;
 
     public WebLicenseApi() {
-        this(new OkHttpClient(), PRODUCTION, false);
+        this(new OkHttpClient(), PRODUCTION, false, null);
+    }
+
+    public WebLicenseApi(Path networkPreferenceFile) {
+        this(new OkHttpClient(), PRODUCTION, false, networkPreferenceFile);
     }
 
     /** Local HTTP is intentionally accessible only to tests in this package. */
     WebLicenseApi(OkHttpClient client, HttpUrl localOrigin) {
-        this(client, localOrigin, true);
+        this(client, localOrigin, true, null);
     }
 
-    private WebLicenseApi(OkHttpClient client, HttpUrl origin, boolean localTest) {
+    WebLicenseApi(OkHttpClient client, HttpUrl localOrigin, Path preferences) {
+        this(client, localOrigin, true, preferences);
+    }
+
+    private WebLicenseApi(OkHttpClient client, HttpUrl origin, boolean localTest, Path preferences) {
         boolean local = origin != null && Set.of("localhost", "127.0.0.1", "::1").contains(origin.host());
         if (origin == null || (!PRODUCTION.equals(origin) && !(localTest && local))
                 || !origin.username().isEmpty() || !origin.password().isEmpty()
@@ -77,6 +89,26 @@ public final class WebLicenseApi implements LicenseApi {
         builder.interceptors().clear();
         builder.networkInterceptors().clear();
         this.http = builder.build();
+        this.compatibleHttp = builder.protocols(java.util.List.of(okhttp3.Protocol.HTTP_1_1))
+                .connectionPool(new okhttp3.ConnectionPool())
+                .dns(host -> preferIpv4(client.dns().lookup(host))).build();
+        this.networkPreferences = new LicenseNetworkPreferences(preferences);
+        this.networkMode = networkPreferences.load();
+    }
+
+    static java.util.List<java.net.InetAddress> preferIpv4(java.util.List<java.net.InetAddress> addresses) {
+        return addresses.stream().sorted(java.util.Comparator.comparingInt(a -> a instanceof java.net.Inet4Address ? 0 : 1)).toList();
+    }
+
+    @Override public boolean supportsNetworkDiagnostics() { return true; }
+    @Override public NetworkMode networkMode() { return networkMode; }
+    @Override public synchronized void setNetworkMode(NetworkMode mode) throws IOException {
+        if (mode == null) throw new IOException("LICENSE_NETWORK_SETTINGS_FAILED");
+        networkPreferences.save(mode);
+        networkMode = mode;
+    }
+    @Override public NetworkReport checkConnection() {
+        return LicenseNetworkDiagnostics.check(origin, http, compatibleHttp);
     }
 
     @Override
@@ -227,7 +259,7 @@ public final class WebLicenseApi implements LicenseApi {
             request.post(oneShotJson(json));
         }
         Response response;
-        try { response = http.newCall(request.build()).execute(); }
+        try { response = (networkMode == NetworkMode.COMPATIBLE ? compatibleHttp : http).newCall(request.build()).execute(); }
         catch (IOException failure) { throw networkFailure(failure); }
         try (response) {
             // An edge challenge is not a signed/account-level denial from the Portal.
@@ -265,7 +297,7 @@ public final class WebLicenseApi implements LicenseApi {
         }
     }
 
-    private static RequestBody oneShotJson(String json) {
+    static RequestBody oneShotJson(String json) {
         byte[] bytes = json.getBytes(StandardCharsets.UTF_8);
         return new RequestBody() {
             @Override public MediaType contentType() { return JSON; }
@@ -284,7 +316,7 @@ public final class WebLicenseApi implements LicenseApi {
         return new Failure(code, 0);
     }
 
-    private static String utf8(ResponseBody body) throws IOException {
+    static String utf8(ResponseBody body) throws IOException {
         if (body == null || body.contentLength() > MAX_BODY_BYTES) throw protocol();
         byte[] bytes;
         try (var stream = body.byteStream()) {
