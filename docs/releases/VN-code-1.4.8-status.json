@@ -1,0 +1,33 @@
+{
+  "version": "1.4.8",
+  "baseVersion": "1.4.7",
+  "complete": false,
+  "officialReleasePublished": false,
+  "licenseIntegration": {
+    "implemented": true,
+    "productionReady": false,
+    "activeKeyId": "vncode-2",
+    "serverSigningKeyMatch": "owner-confirmed-Portal035-vncode2",
+    "ownerReportedActivationVersion": "1.4.4"
+  },
+  "scope": [
+    "Fix JavaFX Task value access during post-download installer handoff",
+    "Report preparation failures separately and preserve snapshot failure cause"
+  ],
+  "validation": {
+    "updateHandoffRegression": {
+      "beforeFix": "failed with the exact reported FX Application Thread error",
+      "afterFix": "23 focused update tests passed, including both JavaFX handoff cases; 53 release-contract tests passed",
+      "installerLaunchInUiTests": "mocked; does not execute EXE or quit test JVM"
+    },
+    "windowsFullBuild": "pending",
+    "productionMultiDeviceOfflineRevocation": "not-verified"
+  },
+  "releaseChannel": {
+    "repository": "ntccong2468-lab/Bancapnhat",
+    "tag": "v1.4.8",
+    "appAutomaticFeed": "/releases/latest",
+    "publicationAuthorization": "Owner requested Published/Latest updates and correction of reported 100%-download failure. Outstanding production acceptance remains disclosed.",
+    "requiresManualBootstrapFromBrokenVersions": true
+  }
+}

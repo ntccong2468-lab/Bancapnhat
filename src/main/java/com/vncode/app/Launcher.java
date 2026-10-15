@@ -34,7 +34,7 @@ public class Launcher {
         var session=dataSession;
         if(session==null)throw new java.io.IOException("UPDATE_BACKUP_UNAVAILABLE");
         try{session.createSignedUpdateSnapshot();}
-        catch(Exception failed){throw new java.io.IOException("UPDATE_BACKUP_FAILED");}
+        catch(Exception failed){throw new java.io.IOException("UPDATE_BACKUP_FAILED", failed);}
     }
 
     private static void configureStartupEnvironment() {

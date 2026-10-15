@@ -137,8 +137,18 @@ public class HomeController implements Initializable {
     private final WorkspaceState state = new WorkspaceState();
     private final WorkspaceActivityTracker activityTracker = new WorkspaceActivityTracker();
     private final UpdateService updateService = new UpdateService();
-    private final UpdateInstallerService updateInstallerService = new UpdateInstallerService();
+    private final UpdateInstallerService updateInstallerService;
+    private final Runnable exitAfterUpdate;
     private final I18nService i18nService = I18nService.getInstance();
+
+    public HomeController() {
+        this(new UpdateInstallerService(), Platform::exit);
+    }
+
+    HomeController(UpdateInstallerService installerService, Runnable exitAfterUpdate) {
+        this.updateInstallerService = java.util.Objects.requireNonNull(installerService);
+        this.exitAfterUpdate = java.util.Objects.requireNonNull(exitAfterUpdate);
+    }
 
     public StackPane sidebarContainer;
     public StackPane headerContainer;
@@ -868,27 +878,33 @@ public class HomeController implements Initializable {
         };
         updateDownloadTask=task;
         var progressDialog = dialogService.showDownloadProgressDialog(info, task);
-        java.util.function.Consumer<Throwable> taskFailure = rejection -> {
+        java.util.function.BiConsumer<String, Throwable> updateFailure = (summaryKey, rejection) -> {
             updateDownloadRunning=false;if(disposed)return;
             contentPane.setDisable(false);sidebarContainer.setDisable(false);
             progressDialog.close();
-            LOGGER.error("Không thể tải bản cập nhật {}", info.getVersion(), rejection);
+            LOGGER.error("Update {} failed at {}", info.getVersion(), summaryKey, rejection);
             AlertService.showDetailedError(
-                    i18nService.tr("update.error.download_generic"),
+                    i18nService.tr(summaryKey),
                     com.vncode.app.integration.znack.ZnackErrorDetails.format(rejection));
         };
+        java.util.function.Consumer<Throwable> taskFailure = rejection ->
+                updateFailure.accept("update.error.download_generic", rejection);
         task.setOnFailed(e -> taskFailure.accept(task.getException()));
         task.setOnCancelled(event->{updateDownloadRunning=false;progressDialog.close();});
         task.setOnSucceeded(e -> {
             progressDialog.close();
             if(disposed)return;
-            if(downloadOnly){updateDownloadRunning=false;AlertService.showInfo(i18nService.tr("update.saved"),info.getVersion(),task.getValue().toAbsolutePath().toString());return;}
+            // Task properties belong to FX; pass the completed value to the worker, not the Task.
+            final java.nio.file.Path installerFile = task.getValue();
+            if(downloadOnly){updateDownloadRunning=false;AlertService.showInfo(i18nService.tr("update.saved"),info.getVersion(),installerFile.toAbsolutePath().toString());return;}
             if(hasUpdateBlockingWork()){updateDownloadRunning=false;AlertService.showError(i18nService.tr("update.busy"));return;}
             contentPane.setDisable(true);sidebarContainer.setDisable(true);
-            Task<Void> prepare=new Task<>(){protected Void call()throws Exception{updateInstallerService.launchInstallerAfterExit(task.getValue());return null;}};
+            Task<Void> prepare=new Task<>(){protected Void call()throws Exception{updateInstallerService.launchInstallerAfterExit(installerFile);return null;}};
             updateDownloadTask=prepare;
-            prepare.setOnSucceeded(event->{updateDownloadRunning=false;if(!disposed)Platform.exit();});
-            prepare.setOnFailed(event->taskFailure.accept(prepare.getException()));executeUpdateTask(prepare,taskFailure);
+            prepare.setOnSucceeded(event->{updateDownloadRunning=false;if(!disposed)exitAfterUpdate.run();});
+            java.util.function.Consumer<Throwable> preparationFailure = rejection ->
+                    updateFailure.accept("update.error.launch_failed", rejection);
+            prepare.setOnFailed(event->preparationFailure.accept(prepare.getException()));executeUpdateTask(prepare,preparationFailure);
         });
         progressDialog.show();
         executeUpdateTask(task, taskFailure);
