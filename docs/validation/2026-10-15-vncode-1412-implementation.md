@@ -34,3 +34,14 @@ Windows cần chạy workflow hiện có để kiểm tra launcher, DPAPI, bố 
 Đã mở giao diện JavaFX với dữ liệu tổng hợp cho kho và màn sao chép đã điền dữ liệu, ngoài các bài kiểm thử giao diện. Không dùng file KIZ thật của seller. Hợp đồng đọc giá WB/Ozon được tải lại từ tài liệu chính thức, lưu URL/checksum trong `docs/research/vncode-1412-listing-price-contracts.json`.
 
 Bổ sung sau lượt hồi quy: reader Ozon lấy size Nga từ thuộc tính có tên tương ứng, mapping chuyển size/size Nga sang cấu trúc biến thể của sàn đích thay vì bắt nhập lại như thuộc tính card. Giá nguồn ngoại tệ không được tự hiểu là RUB khi gửi giá WB. **48 bài sao chép/reader/giao diện qua** sau bổ sung này; Windows chạy lại toàn bộ trên commit cuối.
+
+## Bộ cài Windows đã kiểm tra
+
+Workflow [38776235230](https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/38776235230) hoàn tất thành công trên đúng nguồn ứng dụng `fdce2e185d17afaf2a72643700b8ddf233f1d525`.
+
+- Java/FXML: **1.388 bài, 1.386 qua, 2 bỏ qua theo nền tảng, không lỗi**; 53 kiểm thử công cụ phát hành qua.
+- Native launcher, bảo vệ DPAPI/GS1, dữ liệu 10 cửa hàng ở DPI 100/125/150, 272 bố cục, cài mới/gỡ cài đặt: qua.
+- Nâng cấp giữ dữ liệu từ 1.1.34, 1.2.0, 1.2.1, 1.2.2, 1.3.0, 1.4.0, 1.4.6, **1.4.10 và 1.4.11**: qua.
+- Đã tải lại artifact, kiểm tra định dạng Windows PE và checksum: `VN-code-1.4.12-Windows-x64.exe`, **145.091.584 byte**, SHA-256 `66b34a542bca66b812a5c7f8685596196f0de0d9e6d0fc3d2b8d67178d15b8a1`.
+
+Bằng chứng máy đọc được: `VN-code-1.4.12-Windows-build.json`. Bộ cài chưa có chữ ký Authenticode. Các kiểm tra trên dùng dữ liệu tổng hợp; không thay thế kích hoạt license thật hoặc gán/mua KIZ thật. Nguồn ứng dụng/kiểm thử/build không đổi sau build; commit ghi nhận kết quả chỉ cập nhật tài liệu, theo `validatePublicationSource`.
