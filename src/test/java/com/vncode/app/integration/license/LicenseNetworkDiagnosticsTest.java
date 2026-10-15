@@ -35,7 +35,7 @@ class LicenseNetworkDiagnosticsTest {
                     .sslSocketFactory(clientTls.sslSocketFactory(),clientTls.trustManager()).build();
             var api=new WebLicenseApi(client,server.url("/"),root.resolve("mode.txt"));
             var report=api.checkConnection();assertEquals(4,report.probes().size());
-            assertTrue(report.probes().stream().allMatch(NetworkProbe::reachable));
+            assertTrue(report.probes().stream().allMatch(NetworkProbe::reachable), report.toString());
             assertEquals(List.of("h2","h2","http/1.1","http/1.1"),report.probes().stream().map(NetworkProbe::protocol).toList());
             for(int i=0;i<4;i++) {
                 var request=server.takeRequest(1,TimeUnit.SECONDS);assertNotNull(request);
