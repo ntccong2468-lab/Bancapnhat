@@ -20,6 +20,9 @@ public final class ChestnyZnakBalanceClient {
   public ServiceSession {Gs1Membership.requireInn(verifiedInn);Objects.requireNonNull(base);Objects.requireNonNull(expiresAt);if(authKind==null||environment==null||token==null||token.isBlank()||token.length()>16384||token.chars().anyMatch(Character::isISOControl))throw new IllegalArgumentException("Invalid service session");}
   @Override public String toString(){return "ServiceSession[redacted]";}
  }
+ public static final class AuthenticationException extends IOException {
+  public AuthenticationException(){super("GS1_ELK_AUTH_REQUIRED");}
+ }
  private final OkHttpClient http;private final URI root;private final Predicate<URI> allowed;
  public ChestnyZnakBalanceClient(){this(new OkHttpClient(),PRODUCTION,uri->"https".equals(uri.getScheme())&&"markirovka.crpt.ru".equals(uri.getHost())&&(uri.getPort()==-1||uri.getPort()==443));}
  public ChestnyZnakBalanceClient(OkHttpClient http,URI root,Predicate<URI> allowed){this.root=Objects.requireNonNull(root);this.allowed=Objects.requireNonNull(allowed);var builder=http.newBuilder().connectTimeout(Duration.ofSeconds(10)).readTimeout(Duration.ofSeconds(20)).callTimeout(Duration.ofSeconds(30)).followRedirects(false).followSslRedirects(false).retryOnConnectionFailure(false).cookieJar(CookieJar.NO_COOKIES).authenticator(Authenticator.NONE).proxyAuthenticator(Authenticator.NONE);builder.interceptors().clear();builder.networkInterceptors().clear();this.http=builder.build();if(!safe(root))throw new IllegalArgumentException("Unverified ELK origin");}
@@ -63,8 +66,11 @@ public final class ChestnyZnakBalanceClient {
   URI endpoint=root.resolve(path);if(!safe(endpoint))throw unavailable();var request=new Request.Builder().url(endpoint.toString()).header("Accept","application/json");if(token!=null)request.header("Authorization","Bearer "+token);
   if(payload!=null)request.post(RequestBody.create(payload.toString(),MediaType.get("application/json; charset=utf-8")));
   try(Response response=http.newCall(request.build()).execute()){
+   if(response.code()==401||response.code()==403)throw new AuthenticationException();
    if(!response.isSuccessful()||response.body()==null||response.body().contentLength()>MAX_BYTES)throw unavailable();byte[] bytes=response.body().byteStream().readNBytes(MAX_BYTES+1);if(bytes.length>MAX_BYTES)throw unavailable();return JsonParser.parseString(new String(bytes,StandardCharsets.UTF_8));
-  }catch(IOException|RuntimeException failure){throw unavailable();}
+  }catch(AuthenticationException failure){throw failure;}
+  catch(IOException failure){var safe=unavailable();safe.initCause(failure);throw safe;}
+  catch(RuntimeException failure){throw unavailable();}
  }
  private static String text(JsonObject json,String key){try{return json.has(key)&&!json.get(key).isJsonNull()?json.get(key).getAsString():"";}catch(RuntimeException malformed){return "";}}
  private static String integerId(JsonObject json,String key)throws IOException {String value=text(json,key);if(!value.matches("[0-9]{1,30}"))throw unavailable();return value;}

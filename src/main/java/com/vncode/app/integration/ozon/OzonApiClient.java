@@ -33,6 +33,7 @@ public final class OzonApiClient {
     private static final OzonApiRateLimiter SHARED_LIMITER = new OzonApiRateLimiter();
 
     private final int shopId;
+    private final String quotaScope;
     private final OzonCredentials credentials;
     private final HttpUrl baseUrl;
     private final OkHttpClient http;
@@ -70,6 +71,7 @@ public final class OzonApiClient {
         this.shopId = shopId;
         this.credentials = Objects.requireNonNull(credentials, "credentials");
         this.baseUrl = Objects.requireNonNull(baseUrl, "baseUrl");
+        this.quotaScope=com.vncode.app.integration.listing.ListingIdentity.hash(this.baseUrl+"\n"+credentials.clientId()+"\n"+credentials.apiKey());
         this.http = Objects.requireNonNull(http, "http");
         this.limiter = Objects.requireNonNull(limiter, "limiter");
         this.retryPolicy = Objects.requireNonNull(retryPolicy, "retryPolicy");
@@ -365,7 +367,7 @@ public final class OzonApiClient {
             throws IOException {
         String safePath = requirePath(path);
         String safeFamily = requireFamily(family);
-        int attempts = mutation || "fbo-supplies".equals(safeFamily) ? 1 : retryPolicy.maximumAttempts();
+        int attempts = mutation || com.vncode.app.shared.RateLimitDeferral.active() || "fbo-supplies".equals(safeFamily) ? 1 : retryPolicy.maximumAttempts();
         IOException lastFailure = null;
         Duration retryAfter = null;
         for (int attempt = 1; attempt <= attempts; attempt++) {
@@ -374,7 +376,7 @@ public final class OzonApiClient {
                 retryAfter = null;
             }
             try {
-                limiter.awaitTurn(shopId, safeFamily);
+                limiter.awaitTurn(quotaScope, safeFamily);
                 return executeOnce(safePath, body, safeFamily, mutation, maxBytes, attempt, attempts);
             } catch (InterruptedException exception) {
                 Thread.currentThread().interrupt();
@@ -383,7 +385,7 @@ public final class OzonApiClient {
                 lastFailure = exception;
                 retryAfter = exception.retryAfter();
                 if ("rate_limited".equals(exception.kind())) {
-                    limiter.registerRateLimit(shopId, safeFamily, retryAfter);
+                    limiter.registerRateLimit(quotaScope, safeFamily, retryAfter);
                 }
                 if (mutation || !exception.retryable() || attempt >= attempts) {
                     throw exception;

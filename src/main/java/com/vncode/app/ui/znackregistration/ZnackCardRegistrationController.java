@@ -158,7 +158,7 @@ public final class ZnackCardRegistrationController {
         refreshButton.setText(i18n.tr("znack.registration.refresh"));
         configButton.setText(i18n.tr("znack.registration.documents"));
         signApprovedButton.setText(i18n.tr("znack.registration.sign_approved"));
-        updateWbButton.setText(i18n.tr("znack.registration.update_wb"));
+        updateWbButton.setText(i18n.tr("jobs.report"));
         syncZnackButton.setText(i18n.tr("znack.registration.sync_znack"));
         loadMoreButton.setText(i18n.tr("znack.registration.load_more"));
         clearSelectionButton.setText(i18n.tr("znack.registration.clear_selection"));
@@ -257,21 +257,12 @@ public final class ZnackCardRegistrationController {
         task.setOnFailed(event->failure.accept(task.getException()));AppTaskExecutor.execute(task,failure);
     }
 
-    @FXML private void onUpdateWb() {
-        if(shop==null||preparing||loading)return;
-        try {
-            var loader=new javafx.fxml.FXMLLoader(com.vncode.app.ui.gtinsync.GtinSyncController.class.getResource("gtin-sync-view.fxml"));
-            javafx.scene.Parent view=loader.load();
-            com.vncode.app.ui.gtinsync.GtinSyncController controller=loader.getController();controller.setShop(shop);
-            var stage=new javafx.stage.Stage();
-            if(productTable.getScene()!=null&&productTable.getScene().getWindow()!=null)stage.initOwner(productTable.getScene().getWindow());
-            stage.setTitle(tr("znack.registration.update_wb"));stage.setScene(new javafx.scene.Scene(view,1100,740));
-            if(productTable.getScene()!=null)stage.getScene().getStylesheets().setAll(productTable.getScene().getStylesheets());
-            stage.setOnHidden(event->controller.dispose());stage.show();
-        }catch(java.io.IOException error){showError(error);}
+    @FXML private void onUpdateWb(){
+        com.vncode.app.ui.workspace.JobCenterDialog.show(productTable.getScene()==null?null:productTable.getScene().getWindow(),row->{});
     }
 
     @FXML private void onSyncZnack() {
+        if(shop!=null&&com.vncode.app.features.sync.SyncRuntime.requestIfRunning(shop,com.vncode.app.features.sync.SyncCoordinator.Stream.ZNACK)){summaryLabel.setText(tr("znack.registration.auto_sync_queued"));return;}
         if(shop==null||preparing||loading)return;
         Shop owner=shop;long epoch=shopEpoch;loading=true;setLoading(true);
         Task<Boolean> task=new Task<>() {
@@ -445,6 +436,7 @@ public final class ZnackCardRegistrationController {
         return new SearchCriteria(shop.getId(),searchField.getText(),List.copyOf(selectedSubjects),filter.code,PAGE_SIZE,offset);
     }
 
+    public void refreshLocal(){reload();}
     private void reload() {
         debounce.stop();++loadSequence;frozenSelection=List.of();rowDetails.clear();filteredCount=0;
         if(shop==null) {

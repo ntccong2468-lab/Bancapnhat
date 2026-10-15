@@ -57,6 +57,7 @@ public class Database {
     }
 
     public static Connection getConnection() {
+        com.vncode.app.features.sync.SyncDataScope.requireCurrent();
         try {
             Path dir = AppPaths.appDataDir();
 
@@ -230,6 +231,7 @@ public class Database {
             }
             dropLegacyKizTables(conn);
             ShopCredentialSchema.initialize(conn);
+            com.vncode.app.features.sync.SyncSchema.initialize(conn);
             st.execute("PRAGMA user_version = " + CURRENT_SCHEMA_VERSION);
         } catch (SQLException e) {
             throw new RuntimeException(e);

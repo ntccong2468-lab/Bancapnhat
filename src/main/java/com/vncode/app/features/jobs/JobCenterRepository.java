@@ -31,7 +31,7 @@ public final class JobCenterRepository {
     }
     private static String state(String source) {
         if(source==null)return null;source=source.toUpperCase(java.util.Locale.ROOT);
-        if(Set.of("SUCCESS","ACCEPTED","PUBLISHED","RECONCILED","READY","COMPLETED","DONE","CANCELLED","NOT_CREATED","INTRODUCED").contains(source))return null;
+        if(Set.of("SUCCESS","SUCCEEDED","PRINTED","ACCEPTED","PUBLISHED","RECONCILED","READY","COMPLETED","DONE","CANCELLED","NOT_CREATED","INTRODUCED").contains(source))return null;
         if(source.equals("PDF_READY"))return "review";
         if(source.contains("RECONCILE")||source.contains("REVIEW")||source.contains("UNKNOWN")||source.contains("UNCONFIRMED"))return "review";
         if(source.contains("ERROR")||source.contains("FAIL")||source.contains("REJECT"))return "blocked";

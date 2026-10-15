@@ -127,6 +127,7 @@ public final class OzonCardRegistrationRepository {
               INSERT INTO znack_products(shop_id,gtin,product_name,tn_ved,card_status,synced_at)
               VALUES(?,?,?,?,'published',?) ON CONFLICT(shop_id,gtin) DO UPDATE SET product_name=excluded.product_name,tn_ved=excluded.tn_ved,card_status=excluded.card_status,synced_at=excluded.synced_at
               """)){p.setInt(1,key.shopId());p.setString(2,row.gtin());p.setString(3,safeText(payload,"good_name"));p.setString(4,safeText(payload,"tnved"));p.setString(5,Instant.now().toString());p.executeUpdate();}
+            com.vncode.app.features.sync.SyncStreamStore.request(c,shop.getId(),"ZNACK");
             return null;
         });
     }

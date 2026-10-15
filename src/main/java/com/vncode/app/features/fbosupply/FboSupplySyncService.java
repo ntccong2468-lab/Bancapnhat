@@ -46,8 +46,10 @@ public final class FboSupplySyncService {
     public List<FboSupplyOrder> syncOrders(Shop shop) throws IOException {
         requireShop(shop);
         LicenseRuntime.require(SELLER_API);
+        com.vncode.app.integration.listing.ListingIdentity.require(shop);
         if (shop.getMarketplace() == Marketplace.WILDBERRIES) {
             JsonArray summaries = new WbFbwApiClient(shop.getId(), shop.getApiKey()).listSupplies(1000, 0);
+            com.vncode.app.integration.listing.ListingIdentity.require(shop);
             repository.upsertWbSummaries(shop.getId(), summaries);
             repository.markSyncSuccess(shop.getId(), Marketplace.WILDBERRIES, null);
         } else {
@@ -60,7 +62,7 @@ public final class FboSupplySyncService {
         OzonApiClient client = new OzonApiClient(
                 shop.getId(), new OzonCredentials(shop.getClientId(), shop.getApiKey()));
         JsonObject newest = client.listFboSupplyOrders(OZON_STATES, "", OZON_PAGE_LIMIT);
-        JsonArray newestIds = persistOzonPage(shop.getId(), client, newest);
+        JsonArray newestIds = persistOzonPage(shop, client, newest);
         String nextNewest = string(newest, "last_id");
         if (pageEnded(newestIds, "", nextNewest)) {
             repository.markSyncSuccess(shop.getId(), Marketplace.OZON, "");
@@ -73,7 +75,7 @@ public final class FboSupplySyncService {
         for (int page = 1; page < OZON_MAX_LIST_PAGES; page++) {
             LicenseRuntime.require(SELLER_API);
             JsonObject listed = client.listFboSupplyOrders(OZON_STATES, cursor, OZON_PAGE_LIMIT);
-            JsonArray ids = persistOzonPage(shop.getId(), client, listed);
+            JsonArray ids = persistOzonPage(shop, client, listed);
             String next = string(listed, "last_id");
             checkpoint = pageEnded(ids, cursor, next) ? "" : next;
             repository.saveOzonCursor(shop.getId(), checkpoint);
@@ -83,7 +85,9 @@ public final class FboSupplySyncService {
         repository.markSyncSuccess(shop.getId(), Marketplace.OZON, checkpoint);
     }
 
-    private JsonArray persistOzonPage(int shopId, OzonApiClient client, JsonObject listed) throws IOException {
+    private JsonArray persistOzonPage(Shop shop, OzonApiClient client, JsonObject listed) throws IOException {
+        com.vncode.app.integration.listing.ListingIdentity.require(shop);
+        if(!listed.has("order_ids")||!listed.get("order_ids").isJsonArray())throw new IOException("FBO_INVALID_RESPONSE");
         JsonArray ids = array(listed, "order_ids");
         List<String> orderIds = new ArrayList<>();
         for (JsonElement element : ids) {
@@ -95,7 +99,9 @@ public final class FboSupplySyncService {
         for (int from = 0; from < orderIds.size(); from += 50) {
             LicenseRuntime.require(SELLER_API);
             List<String> batch = orderIds.subList(from, Math.min(orderIds.size(), from + 50));
-            repository.upsertOzonDetails(shopId, client.getFboSupplyOrders(batch));
+            JsonObject details=client.getFboSupplyOrders(batch);
+            com.vncode.app.integration.listing.ListingIdentity.require(shop);
+            repository.upsertOzonDetails(shop.getId(), details);
         }
         return ids;
     }
@@ -110,6 +116,7 @@ public final class FboSupplySyncService {
             throw new IllegalArgumentException("A current FBO supply order is required");
         }
         LicenseRuntime.require(SELLER_API);
+        com.vncode.app.integration.listing.ListingIdentity.require(shop);
         if (shop.getMarketplace() == Marketplace.WILDBERRIES) {
             syncWbItems(shop, order);
         } else {
@@ -130,6 +137,7 @@ public final class FboSupplySyncService {
             goods.forEach(allGoods::add);
             if (goods.size() < 1000) break;
         }
+        com.vncode.app.integration.listing.ListingIdentity.require(shop);
         repository.upsertWbDetail(shop.getId(), order.orderId(), detail, allGoods);
     }
 
@@ -150,6 +158,7 @@ public final class FboSupplySyncService {
                 if (!hasNext || next == null || next.isBlank() || next.equals(cursor)) break;
                 cursor = next;
             }
+            com.vncode.app.integration.listing.ListingIdentity.require(shop);
             repository.replaceOzonItems(shop.getId(), order.orderId(), supply.supplyId(), allItems);
         }
     }

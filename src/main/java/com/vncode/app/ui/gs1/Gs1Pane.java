@@ -62,13 +62,36 @@ public final class Gs1Pane extends BorderPane {
     private long requestGeneration,unreadGeneration,threadGeneration;
     private record ThreadData(List<Gs1Repository.Message> messages,List<Gs1Repository.AttachmentSummary> attachments,boolean invoice,boolean proof,Gs1ReminderPolicy.Result reminder,Gs1AutoReminderService.Status automatic,Gs1MailAccount account,Gs1MailClient.Letter reminderPreview){}
     private final ShopReadCoordinator reads=ShopReadCoordinator.shared();
-    private record Cached(Context context,String environment,Gs1Membership membership,List<BalanceSnapshot> balances){}
+    private record Cached(Context context,String environment,Gs1Membership membership,List<BalanceSnapshot> balances,Gs1AutomaticSyncService.Cached sync){}
     private boolean busy,disposed;
     private final javafx.beans.property.BooleanProperty busyState=new javafx.beans.property.SimpleBooleanProperty(false);
     javafx.beans.property.ReadOnlyBooleanProperty busyProperty(){return busyState;}
     private IntConsumer onUnread=count->{};
     private Consumer<Boolean> onAttention=attention->{};
     private Runnable configureSignature=()->{};
+    private Runnable syncRequested;
+    private String profileEmail="";
+    private Instant automaticAuthChecked;
+    public void setOnSyncRequested(Runnable action){syncRequested=Objects.requireNonNull(action);}
+    public void refreshFromCache(){
+        if(shop==null||disposed)return;long expected=generation;Shop selected=shop;
+        reads.submitLocal(new ShopReadCoordinator.Key(selected.getId(),"gs1-live-cache",Long.toString(expected)),()->{var owner=context(selected);return new Cached(owner,Gs1DashboardService.environment(owner.settings().trueApiBaseUrl()),dashboard.cached(owner.inn(),Gs1DashboardService.environment(owner.settings().trueApiBaseUrl())).orElse(null),balances.list(owner.inn(),Gs1DashboardService.environment(owner.settings().trueApiBaseUrl())),new Gs1AutomaticSyncService().cached(selected).orElse(null));})
+          .whenComplete((cached,error)->Platform.runLater(()->{if(disposed||generation!=expected||error!=null||cached==null)return;applySyncStatus(cached.sync());currentContext=cached.context();inn=cached.context().inn();environment=cached.environment();membership=cached.membership();balanceSnapshots=cached.balances();selectFreshBalance();render();reloadRequests();}));
+    }
+    private void applySyncStatus(Gs1AutomaticSyncService.Cached value){
+        profileEmail=value==null?"":value.email();
+        automaticAuthChecked=value!=null&&value.balanceError().isBlank()?value.checkedAt():null;
+        if(value==null)return;
+        applicationForm=new JsonObject();var applicant=new JsonObject();applicant.addProperty("inn",value.inn());applicationForm.add("applicant",applicant);
+        if(value.applicationSent()!=null)applicationForm.addProperty("isSent",value.applicationSent());
+        newApplication=value.newApplication();
+        var errors=java.util.stream.Stream.of(value.catalogError(),value.balanceError()).filter(code->!code.isBlank()).distinct().toList();
+        status.setText(errors.isEmpty()?tr("gs1.refreshed"):tr("gs1.check_partial")+" · "+String.join(" · ",errors));
+    }
+    private void selectFreshBalance(){
+        var prior=selectedBalance;
+        selectedBalance=prior==null?(balanceSnapshots.size()==1?balanceSnapshots.getFirst():null):balanceSnapshots.stream().filter(value->value.scope().equals(prior.scope())).findFirst().orElse(null);
+    }
     private record Context(Shop shop,ZnackModels.Settings settings,String inn,String fingerprint,CryptoProCertificateInfo certificate){}
     private record Application(NationalCatalogGs1Client.Session session,NationalCatalogGs1Client.AccountSnapshot snapshot,Map<String,List<NationalCatalogGs1Client.Choice>> dictionaries,CryptoProCertificateInfo certificate,Gs1ActionPolicy.Decision decision){}
     public Gs1Pane(){
@@ -82,16 +105,16 @@ public final class Gs1Pane extends BorderPane {
     public void setOnConfigureSignature(Runnable callback){configureSignature=Objects.requireNonNull(callback);}
     public int activeTaskCount(){return tasks.get();}
     public void setShop(Shop selected){
-        generation++;shop=selected;busy=false;busyState.set(false);inn="";membership=null;environment="unsupported";balanceSnapshots=List.of();selectedBalance=null;balanceSession=null;balanceFingerprint="";currentContext=null;signedCertificate=null;applicationForm=null;newApplication=false;czAuthenticated=null;
+        generation++;profileEmail="";automaticAuthChecked=null;shop=selected;busy=false;busyState.set(false);inn="";membership=null;environment="unsupported";balanceSnapshots=List.of();selectedBalance=null;balanceSession=null;balanceFingerprint="";currentContext=null;signedCertificate=null;applicationForm=null;newApplication=false;czAuthenticated=null;
         requests.getItems().clear();conversation.getChildren().clear();onUnread.accept(0);status.setText("");render();
         if(selected==null||disposed)return;
         long expected=generation;
         reads.submitLocal(new ShopReadCoordinator.Key(selected.getId(),"gs1-context",Long.toString(expected)),()->{
-            try {var owner=context(selected);var env=Gs1DashboardService.environment(owner.settings().trueApiBaseUrl());return new Cached(owner,env,dashboard.cached(owner.inn(),env).orElse(null),balances.list(owner.inn(),env));}
+            try {var owner=context(selected);var env=Gs1DashboardService.environment(owner.settings().trueApiBaseUrl());return new Cached(owner,env,dashboard.cached(owner.inn(),env).orElse(null),balances.list(owner.inn(),env),new Gs1AutomaticSyncService().cached(selected).orElse(null));}
             catch(RuntimeException unconfigured){return null;}
         }).whenComplete((cached,error)->Platform.runLater(()->{
             if(disposed||generation!=expected||cached==null||error!=null)return;
-            currentContext=cached.context();inn=cached.context().inn();environment=cached.environment();membership=cached.membership();balanceSnapshots=cached.balances();if(balanceSnapshots.size()==1)selectedBalance=balanceSnapshots.getFirst();render();reloadRequests();
+            applySyncStatus(cached.sync());currentContext=cached.context();inn=cached.context().inn();environment=cached.environment();membership=cached.membership();balanceSnapshots=cached.balances();selectFreshBalance();render();reloadRequests();
         }));
     }
     private Context context(){
@@ -161,7 +184,7 @@ public final class Gs1Pane extends BorderPane {
     private Gs1ReadinessService.Snapshot readiness(){
         var owner=currentContext;
         var scope=new Gs1ReadinessService.Scope(inn,environment,owner==null?"":owner.fingerprint(),selectedBalance==null?null:selectedBalance.scope());
-        Boolean authenticated=Boolean.FALSE.equals(czAuthenticated)?Boolean.FALSE:balanceSession!=null&&balanceSession.expiresAt().isAfter(Instant.now())?czAuthenticated:null;
+        Boolean authenticated=Boolean.FALSE.equals(czAuthenticated)?Boolean.FALSE:balanceSession!=null&&balanceSession.expiresAt().isAfter(Instant.now())?czAuthenticated:automaticAuthChecked!=null&&automaticAuthChecked.plusSeconds(60).isAfter(Instant.now())?Boolean.TRUE:null;
         return readinessService.evaluate(new Gs1ReadinessService.Input(scope,signedCertificate!=null?signedCertificate:owner==null?null:owner.certificate(),owner==null?null:owner.settings().signerTestedAt(),authenticated,null,selectedBalance,membership),Instant.now());
     }
     private void publishAttention(){onAttention.accept(shop!=null&&readiness().hasActionRequired());}
@@ -195,9 +218,9 @@ public final class Gs1Pane extends BorderPane {
             }
             if(check.kind()==Gs1ReadinessService.Kind.BALANCE){
                 if(snapshot.balanceAmount()!=null)cell.getChildren().add(new Label(snapshot.balanceAmount().toPlainString()+" RUB"));
-                cell.getChildren().add(balanceAccountChoice());
+                if(balanceSnapshots.size()>1)cell.getChildren().add(balanceAccountChoice());
             }
-            if(check.action()!=Gs1ReadinessService.Action.NONE){
+            if(check.action()!=Gs1ReadinessService.Action.NONE&&check.state()!=Gs1ReadinessService.State.READY&&!(check.action()==Gs1ReadinessService.Action.OPEN_CZ_PORTAL&&check.state()==Gs1ReadinessService.State.UNKNOWN)){
                 String key=check.action()==Gs1ReadinessService.Action.JOIN_GS1?joinKey(decision()):"gs1.readiness.action."+check.action().name();
                 var action=button(key,()->readinessAction(check.action()));action.setWrapText(true);action.setDisable(actionDisabled(check.action()));cell.getChildren().add(action);
             }
@@ -219,9 +242,8 @@ public final class Gs1Pane extends BorderPane {
     private HBox cardHeading(String key,Node action){var title=new Label(tr(key));title.setWrapText(true);title.getStyleClass().add("h2");title.setMinWidth(0);title.setMaxWidth(Double.MAX_VALUE);HBox.setHgrow(title,Priority.ALWAYS);var row=new HBox(12,title,action);row.setAlignment(Pos.CENTER_LEFT);return row;}
     private void readinessAction(Gs1ReadinessService.Action action){switch(action){
         case CONFIGURE_SIGNATURE,TEST_SIGNATURE->configureSignature.run();
-        case LOGIN,REFRESH_BALANCE->refreshCashBalance();
+        case LOGIN,REFRESH_BALANCE,REFRESH_MEMBERSHIP->checkAll();
         case OPEN_CZ_PORTAL,TOP_UP_BALANCE->openCzPortal();
-        case REFRESH_MEMBERSHIP->refreshMembership();
         case JOIN_GS1->join();
         case RENEW_MEMBERSHIP->draft(Gs1LettersService.Kind.RENEWAL);
         case RESTORE_MEMBERSHIP->draft(Gs1LettersService.Kind.RESTORE_MEMBERSHIP);
@@ -251,17 +273,17 @@ public final class Gs1Pane extends BorderPane {
         if(split.getOrientation()!=orientation){split.setOrientation(orientation);split.setDividerPositions(orientation==Orientation.HORIZONTAL?.64:.56);}
     }
     private VBox membershipCard(){
-        var checkAgain=button("gs1.check_again",this::refreshMembership);checkAgain.setId("gs1CheckMembership");checkAgain.setDisable(busy||inn.isBlank());
-        var card=new VBox(9,cardHeading("gs1.account_title",checkAgain),summary,detail);card.setId("gs1MembershipCard");card.getStyleClass().add("feature-card");card.setPadding(new Insets(16));
+        var card=new VBox(9,cardHeading("gs1.account_title",new Region()),summary,detail);card.setId("gs1MembershipCard");card.getStyleClass().add("feature-card");card.setPadding(new Insets(16));
         var snapshot=readiness();var assertion=snapshot.check(Gs1ReadinessService.Kind.MEMBERSHIP).state()==Gs1ReadinessService.State.UNKNOWN?Gs1Membership.Status.UNKNOWN:membership.status(LocalDate.now(ZoneId.of("Europe/Moscow")));
         var certificate=signedCertificate!=null?signedCertificate:currentContext==null?null:currentContext.certificate();
         String name=membership!=null&&!membership.legalName().isBlank()?membership.legalName():certificate==null?"":certificate.ownerName();
         summary.setText(inn.isBlank()?tr(shop==null?"gs1.no_shop":"gs1.no_signer"):name+" · INN: "+inn+"\n"+tr("gs1.status."+assertion.name()));
         String facts=membership==null?tr("gs1.not_checked"):tr("gs1.expiry")+": "+Objects.toString(membership.expiry(),tr("gs1.unknown_value"))+" · "+tr("gs1.checked_at")+": "+displayTime(membership.checkedAt())+"\n"+(membership.stale(Instant.now())?tr("gs1.stale"):tr("gs1.cached"))+" · "+tr("gs1.source_catalog");
-        if(certificate!=null&&inn.equals(certificate.inn()))facts+="\n"+tr("gs1.signed_account")+": "+certificate.ownerName();detail.setText(facts);
+        if(certificate!=null&&inn.equals(certificate.inn())&&!certificate.ownerName().equals(name)&&!certificate.ownerName().matches("[A-Fa-f0-9]{40}"))facts+="\n"+tr("gs1.signed_account")+": "+certificate.ownerName();if(!profileEmail.isBlank())facts+="\nEmail: "+profileEmail;detail.setText(facts);
         var policy=decision();var join=button(joinKey(policy),this::join);join.setId("gs1Join");join.setDisable(busy||inn.isBlank()||joinDisabled(policy));var renewal=button("gs1.renew",()->draft(Gs1LettersService.Kind.RENEWAL));renewal.setId("gs1Renew");renewal.setDisable(busy||inn.isBlank()||!policy.renewal());var actions=new FlowPane(8,8,join,renewal);
         if(policy.joiningInvoice()){var invoice=button("gs1.joining_invoice",()->draft(Gs1LettersService.Kind.JOINING_INVOICE));invoice.setDisable(busy||inn.isBlank());actions.getChildren().add(invoice);}
-        Hyperlink portal=new Hyperlink(tr("gs1.official_portal"));portal.setOnAction(e->openPortal());actions.getChildren().add(portal);card.getChildren().add(actions);return card;
+        boolean showActions=policy.joinAction()!=Gs1ActionPolicy.JoinAction.ALREADY_MEMBER||policy.renewal()||policy.joiningInvoice();
+        actions.setVisible(showActions);actions.setManaged(showActions);card.getChildren().add(actions);return card;
     }
     private VBox prefixCard(){
         var more=button("gs1.more_codes",()->draft(Gs1LettersService.Kind.MORE_CODES));more.setId("gs1MoreCodes");more.setDisable(busy||inn.isBlank()||!Gs1ActionPolicy.canOpenPrefixRequest(membership,Instant.now(),LocalDate.now(ZoneId.of("Europe/Moscow"))));
@@ -276,6 +298,7 @@ public final class Gs1Pane extends BorderPane {
     }
     static LocalDate prefixValidUntil(Gs1Membership.Prefix prefix,Gs1Membership member){return prefix.expiry()!=null?prefix.expiry():member==null?null:member.expiry();}
     private void checkAll(){
+        if(syncRequested!=null){syncRequested.run();status.setText(tr("gs1.auto_sync_queued"));return;}
         Context owner;try{owner=context();if(!"production".equals(Gs1DashboardService.environment(owner.settings().trueApiBaseUrl())))throw new IllegalStateException("gs1.environment_unsupported");}catch(RuntimeException invalid){showError(invalid);return;}
         var existing=balanceSession;String priorFingerprint=balanceFingerprint;var priorSigned=signedCertificate;
         run(()->{

@@ -405,6 +405,7 @@ public class ZnackCardRegistrationRepository {
                          good_id=COALESCE(?,good_id),error_message=?,
                          wb_updated=COALESCE(?,wb_updated),updated_at=? WHERE shop_id=? AND chrt_id=? AND status<>'PUBLISHED'
                      """)) {
+            connection.setAutoCommit(false);
             statement.setString(1, status.name());
             statement.setString(2, feedId);
             if (goodId == null) statement.setNull(3, java.sql.Types.BIGINT); else statement.setLong(3, goodId);
@@ -413,7 +414,9 @@ public class ZnackCardRegistrationRepository {
             statement.setString(6, Instant.now().toString());
             statement.setInt(7, shopId);
             statement.setLong(8, chrtId);
-            statement.executeUpdate();
+            int changed=statement.executeUpdate();
+            if(changed>0&&status==Status.PUBLISHED)com.vncode.app.features.sync.SyncStreamStore.request(connection,shopId,"ZNACK");
+            connection.commit();
         } catch (SQLException error) {
             throw new RuntimeException(error);
         }

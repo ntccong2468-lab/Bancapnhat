@@ -30,6 +30,9 @@ public final class NationalCatalogGs1Client {
         session.authenticate();
         return session;
     }
+    public static final class AuthenticationException extends IOException {
+        public AuthenticationException(){super("GS1_AUTH_REQUIRED");}
+    }
     @FunctionalInterface public interface XmlSigner { String sign(String xml) throws Exception; }
     /** Local signing failed before any sign-form POST could be made. */
     public static final class SigningFailedException extends IOException {
@@ -76,7 +79,7 @@ public final class NationalCatalogGs1Client {
             catch (IllegalArgumentException error) { throw new IOException("Invalid Catalog signing challenge"); }
             if (bytes.length == 0) throw new IOException("Empty Catalog signing challenge");
             String signature;
-            try { signature = signer.sign(bytes, ZnackSignatureContext.TRUE_API_DOCUMENT).base64(); }
+            try { signature = signer.sign(bytes, ZnackSignatureContext.CATALOG_AUTH_CHALLENGE).base64(); }
             catch (CryptoProException error) { throw new IOException("Catalog certificate signing failed (" + error.code() + ")"); }
             JsonObject credentials = new JsonObject();
             credentials.addProperty("inn", inn); credentials.addProperty("fingerprint", fingerprint); credentials.addProperty("signature", signature);
@@ -200,6 +203,7 @@ public final class NationalCatalogGs1Client {
             if(csrf!=null&&!csrf.isBlank())request.header("X-Csrf-Token",csrf);
             if(body!=null)request.post(RequestBody.create(body.toString(),JSON));
             try(Response response=http.newCall(request.build()).execute()) {
+                if(response.code()==401||response.code()==403)throw new AuthenticationException();
                 if(!response.isSuccessful()||response.body()==null)throw new IOException("Catalog GS1 request failed (HTTP "+response.code()+")");
                 byte[] bytes=response.peekBody(LIMIT+1L).bytes();
                 if(bytes.length>LIMIT)throw new IOException("Catalog GS1 response exceeds size limit");

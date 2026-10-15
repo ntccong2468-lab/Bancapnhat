@@ -46,6 +46,10 @@ public class WorkspaceHeaderController {
     @FXML private ComboBox<com.vncode.app.integration.znack.BalanceSnapshot> balanceAccount;
     @FXML private Label balanceLabel;
     @FXML private Button jobsButton;
+    @FXML private Label syncHealthLabel;
+    private com.vncode.app.features.sync.SyncCoordinator.Health syncHealth;
+    public void setSyncHealth(com.vncode.app.features.sync.SyncCoordinator.Health health){if(health.stream()!=com.vncode.app.features.sync.SyncCoordinator.Stream.FBS_QUEUE)return;syncHealth=health;renderSyncHealth();}
+    private void renderSyncHealth(){if(syncHealthLabel==null)return;var tr=I18nService.getInstance();if(syncHealth==null){syncHealthLabel.setText(tr.tr("sync.health.starting"));return;}long seconds=syncHealth.success()==null?-1:Math.max(0,java.time.Duration.between(syncHealth.success(),java.time.Instant.now()).getSeconds());syncHealthLabel.setText(tr.tr(syncHealth.error().isBlank()?"sync.health.live":"sync.health.delayed")+(seconds<0?"":" · "+seconds+" s")+(syncHealth.error().isBlank()?"":" · "+syncHealth.error()));}
     private final javafx.animation.Timeline statusMonitor=new javafx.animation.Timeline();
     private long balanceEpoch;private boolean disposed;private int balanceWarningRub=500;
     private Consumer<com.vncode.app.features.jobs.JobCenterRepository.Row> onJobOpen;
@@ -69,7 +73,7 @@ public class WorkspaceHeaderController {
         var threshold=new javafx.scene.control.MenuItem(I18nService.getInstance().tr("header.balance_threshold"));
         threshold.setOnAction(e->{var dialog=new javafx.scene.control.TextInputDialog(Integer.toString(balanceWarningRub));dialog.setTitle(I18nService.getInstance().tr("header.balance_threshold"));dialog.setHeaderText(I18nService.getInstance().tr("header.balance_threshold_hint"));dialog.showAndWait().ifPresent(text->{try{int number=Integer.parseInt(text.strip());if(number<0||number>100000)throw new IllegalArgumentException();com.vncode.app.shared.ConfigService.setConfigValue("cz_balance_warning_rub",Integer.toString(number));balanceWarningRub=number;renderBalance();}catch(RuntimeException invalid){com.vncode.app.shared.AlertService.showError(I18nService.getInstance().tr("header.balance_threshold_hint"));}});});
         balanceLabel.setContextMenu(new javafx.scene.control.ContextMenu(threshold));
-        statusMonitor.getKeyFrames().setAll(new javafx.animation.KeyFrame(javafx.util.Duration.seconds(10),e->{renderBalance();jobsButton.setText(I18nService.getInstance().tr("jobs.title")+" · "+(com.vncode.app.shared.SellerMutationExecutor.activeCount()+com.vncode.app.shared.AppTaskExecutor.getRunningTaskCount())+" / "+(com.vncode.app.shared.SellerMutationExecutor.pendingCount()+com.vncode.app.shared.AppTaskExecutor.pendingCount()));}));statusMonitor.setCycleCount(javafx.animation.Animation.INDEFINITE);
+        statusMonitor.getKeyFrames().setAll(new javafx.animation.KeyFrame(javafx.util.Duration.seconds(10),e->{renderBalance();renderSyncHealth();jobsButton.setText(I18nService.getInstance().tr("jobs.title")+" · "+(com.vncode.app.shared.SellerMutationExecutor.activeCount()+com.vncode.app.shared.AppTaskExecutor.getRunningTaskCount())+" / "+(com.vncode.app.shared.SellerMutationExecutor.pendingCount()+com.vncode.app.shared.AppTaskExecutor.pendingCount()));}));statusMonitor.setCycleCount(javafx.animation.Animation.INDEFINITE);
         shopComboBox.setCellFactory(lv -> new ListCell<>() {
             @Override
             protected void updateItem(Shop item, boolean empty) {
@@ -85,7 +89,7 @@ public class WorkspaceHeaderController {
         shopComboBox.setButtonCell(buttonCell);
         shopComboBox.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
             if (!updatingShops && newVal != null && onShopSelected != null) {
-                refreshBalance(newVal);
+                syncHealth=null;renderSyncHealth();refreshBalance(newVal);
                 onShopSelected.accept(newVal);
             }
         });
@@ -145,7 +149,8 @@ public class WorkspaceHeaderController {
         } finally {
             updatingShops = false;
         }
-        refreshBalance(shopComboBox.getValue());if(!disposed)statusMonitor.play();
+        var selected=shopComboBox.getValue();if(syncHealth!=null&&(selected==null||syncHealth.shopId()!=selected.getId())){syncHealth=null;renderSyncHealth();}
+        refreshBalance(selected);if(!disposed)statusMonitor.play();
     }
     private void refreshBalance(Shop selected) {
         long epoch=++balanceEpoch;balanceAccount.getItems().clear();balanceAccount.setValue(null);balanceAccount.setDisable(true);renderBalance();
@@ -184,6 +189,7 @@ public class WorkspaceHeaderController {
     }
 
     public void setMarketplace(Marketplace marketplace) {
+        syncHealth=null;renderSyncHealth();
         this.marketplace = marketplace == null ? Marketplace.WILDBERRIES : marketplace;
         applyTranslations();
     }

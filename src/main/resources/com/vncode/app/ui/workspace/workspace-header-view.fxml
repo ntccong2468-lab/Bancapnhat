@@ -45,6 +45,7 @@
             </children>
         </VBox>
         <VBox spacing="4"><Label fx:id="balanceLabel" text="%header.balance_unknown" styleClass="text-muted"/><ComboBox fx:id="balanceAccount" prefWidth="160" promptText="%header.balance_choose"/></VBox>
+        <Label fx:id="syncHealthLabel" text="%sync.health.starting" wrapText="true" maxWidth="260" styleClass="text-muted"/>
         <Button fx:id="jobsButton" onAction="#onJobs" text="%jobs.title" prefHeight="36"/>
         <ProgressIndicator fx:id="syncLoadingIndicator" managed="false" maxHeight="18.0" maxWidth="18.0" prefHeight="18.0" prefWidth="18.0" visible="false" />
         <Label fx:id="syncLoadingLabel" managed="false" styleClass="text-muted" text="%header.sync_products_kiz" visible="false" />

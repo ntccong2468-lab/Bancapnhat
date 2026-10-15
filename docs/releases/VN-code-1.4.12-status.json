@@ -1,0 +1,85 @@
+{
+  "version": "1.4.12",
+  "baseVersion": "1.4.11",
+  "upgradeBaselinesInclude": [
+    "1.4.10",
+    "1.4.11"
+  ],
+  "complete": false,
+  "officialReleasePublished": false,
+  "phase": "gs1-and-unified-sync-implemented-additional-owner-changes-in-progress",
+  "scope": [
+    "Application-scoped scheduling with reserved FBS workers, persisted checkpoints and bounded shop fairness",
+    "Published National Catalog cards automatically chain to verified GTIN updates and per-item reports",
+    "Ozon product/offer/SKU and variant checks before marketplace GTIN writes",
+    "GS1 certificate authentication using Znack settings without browser sign-in",
+    "Compact GS1 UI and unified per-job details with CSV/JSON export"
+  ],
+  "licenseIntegration": {
+    "implemented": true,
+    "productionReady": false,
+    "activeKeyId": "vncode-2",
+    "serverSigningKeyMatch": "owner-confirmed-Portal035-vncode2",
+    "ownerReportedActivationVersion": "1.4.4",
+    "newDesktopLicenseProductionAcceptance": false
+  },
+  "validation": {
+    "implementationReport": "docs/validation/2026-10-15-vncode-1412-implementation.md",
+    "gs1Architecture": "docs/architecture/2026-10-15-gs1-automatic-sync.md",
+    "localFullJava": {
+      "result": "passed",
+      "tests": 1359,
+      "passed": 1357,
+      "failures": 0,
+      "errors": 0,
+      "platformSpecificSkipped": 2,
+      "coverageNote": "Before final authentication-only guard and barcode cache refinement; affected paths additionally verified by focused tests and the final Windows full build is still required."
+    },
+    "finalAuthenticationFocusedJava": {
+      "result": "passed",
+      "tests": 69,
+      "passed": 69,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "releaseContractTests": {
+      "tests": 53,
+      "passed": 53,
+      "failed": 0
+    },
+    "windowsFullBuild": {
+      "result": "pending"
+    },
+    "liveMarketplaceWriteAcceptance": false,
+    "liveGs1Acceptance": false,
+    "liveKizAssignmentAcceptance": false,
+    "livePurchasePerformed": false,
+    "liveEmailSent": false,
+    "finalGuardFocusedJava": {
+      "result": "passed",
+      "tests": 11,
+      "passed": 11,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "compactGs1Ui": {
+      "result": "passed",
+      "tests": 10,
+      "passed": 10,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  },
+  "publication": {
+    "published": false,
+    "latestChanged": false,
+    "productionAcceptanceRequiredByReleaseGate": true
+  },
+  "pendingOwnerChanges": [
+    "Category-based imported KIZ stock allocation following legacy WCode, with exact-GTIN purchase fallback",
+    "Listing copy inherits original source values instead of requiring redundant manual entry"
+  ]
+}

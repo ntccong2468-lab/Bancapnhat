@@ -25,6 +25,8 @@ public final class CatalogSyncPane extends BorderPane {
     private final TableView<Row> products=new TableView<>();private final TableView<Diff> differences=new TableView<>();
     private final ComboBox<String> history=new ComboBox<>();private final Supplier<CatalogSyncService> factory;
     private CatalogSyncService service;private Shop shop;private List<Selection> selection=List.of();private Job job;private boolean busy,disposed;private long generation;
+    private BiConsumer<Shop,Job> onMutationResult=(owner,result)->{};
+    public void setOnMutationResult(BiConsumer<Shop,Job> callback){onMutationResult=Objects.requireNonNull(callback);}
     public CatalogSyncPane(){this(CatalogSyncService::new);}
     CatalogSyncPane(Supplier<CatalogSyncService> factory){
         this.factory=factory;products.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);differences.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);products.setFixedCellSize(38);differences.setFixedCellSize(38);products.setPlaceholder(new Label(tr("catalogsync.empty")));differences.setPlaceholder(new Label(tr("catalogsync.empty")));history.setPromptText(tr("catalogsync.history"));preview.getStyleClass().add("btn-primary");apply.getStyleClass().add("btn-primary");setId("catalogSyncPane");setPadding(new Insets(12));
@@ -51,11 +53,11 @@ public final class CatalogSyncPane extends BorderPane {
     private synchronized CatalogSyncService service(){if(service==null)service=factory.get();return service;}
     private void preview(){if(shop==null||busy||selection.isEmpty())return;var owner=shop;var selected=selection;var chosen=new LinkedHashSet<Field>();fields.forEach((field,box)->{if(box.isSelected())chosen.add(field);});if(chosen.isEmpty()){status.setText(tr("catalogsync.select_fields"));return;}var request=new Options(chosen,documents,values);read(()->service().preview(owner,selected,request),this::render);}
     private void run(boolean approve){if(job==null||busy||approve&&!confirmed.isSelected())return;var owner=shop;String id=job.id();mutate(()->service().run(owner,id,approve));}
-    private void mutate(Callable<Job> work){start(work,this::render,true);}
+    private void mutate(Callable<Job> work){var owner=shop;var observer=onMutationResult;start(()->{var result=work.call();observer.accept(owner,result);return result;},this::render,true);}
     private <T>void read(Callable<T> work,Consumer<T> accept){start(work,accept,false);}
     private <T>void start(Callable<T> work,Consumer<T> accept,boolean mutation){
         long epoch=generation;busy=true;buttons();CompletableFuture<T> result;
-        try{result=mutation?SellerMutationExecutor.submit(work):ShopReadCoordinator.shared().submit(new ShopReadCoordinator.Key(shop.getId(),"catalog-sync",UUID.randomUUID().toString()),true,work);}
+        try{result=mutation?SellerMutationExecutor.submit(shop,work):ShopReadCoordinator.shared().submit(new ShopReadCoordinator.Key(shop.getId(),"catalog-sync",UUID.randomUUID().toString()),true,work);}
         catch(RejectedExecutionException full){busy=false;status.setText(tr("runtime.queue_full"));buttons();return;}
         result.whenComplete((value,error)->Platform.runLater(()->{if(disposed||epoch!=generation)return;busy=false;if(error!=null)status.setText(tr("catalogsync.failed")+" · "+safe(error));else accept.accept(value);buttons();}));
     }

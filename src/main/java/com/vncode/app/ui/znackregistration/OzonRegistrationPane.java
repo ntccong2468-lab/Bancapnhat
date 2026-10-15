@@ -51,7 +51,7 @@ public final class OzonRegistrationPane extends VBox {
         HBox.setHgrow(search,Priority.ALWAYS);getChildren().setAll(title,actions,status,filters,table,new HBox(10,count,selection,more));VBox.setVgrow(table,Priority.ALWAYS);
         table.setId("ozonRegistrationTable");table.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
         table.getSelectionModel().getSelectedItems().addListener((javafx.collections.ListChangeListener<ProductRow>)change->{if(!programmaticSelection){frozen=List.of();buttons();}});
-        documents.setOnAction(e->configureDocuments());refresh.setOnAction(e->reload());sync.setOnAction(e->syncCatalog());sign.setOnAction(e->signApproved());gtin.setOnAction(e->openGtin.run());
+        documents.setOnAction(e->configureDocuments());refresh.setOnAction(e->reload());sync.setOnAction(e->syncCatalog());sign.setOnAction(e->signApproved());gtin.setOnAction(e->com.vncode.app.ui.workspace.JobCenterDialog.show(getScene()==null?null:getScene().getWindow(),row->{}));
         stopBatch.setOnAction(e->{cancelBatch.set(true);stopBatch.setDisable(true);status.setText(tr("znack.registration.batch_stopping"));});all.setOnAction(e->selectAll());clear.setOnAction(e->{frozen=List.of();table.getSelectionModel().clearSelection();buttons();});
         register.setOnAction(e->registerSelection());newCards.setOnAction(e->registerBatch(true));more.setOnAction(e->load(true));
         debounce.setOnFinished(e->reload());refreshDebounce.setOnFinished(e->reload());search.textProperty().addListener((o,a,b)->debounce.playFromStart());
@@ -62,7 +62,7 @@ public final class OzonRegistrationPane extends VBox {
     public void applyTranslations() {
         title.setText(tr("znack.registration.title")+" · Ozon · "+owner.getName());
         documents.setText(tr("znack.registration.documents"));refresh.setText(tr("znack.registration.refresh"));sync.setText(tr("znack.registration.sync_znack"));sign.setText(tr("znack.registration.sign_approved"));
-        gtin.setText(tr("znack.registration.update_marketplace"));all.setText(tr("znack.registration.select_all"));clear.setText(tr("znack.registration.clear_selection"));
+        gtin.setText(tr("jobs.report"));all.setText(tr("znack.registration.select_all"));clear.setText(tr("znack.registration.clear_selection"));
         register.setText(tr("znack.registration.register_selected"));newCards.setText(tr("znack.registration.batch_new_cards"));stopBatch.setText(tr("znack.registration.batch_stop"));more.setText(tr("znack.registration.load_more"));search.setPromptText(tr("products.search"));
         table.getColumns().clear();column("Product ID / offer_id",row->row.key().cardId()+" / "+row.key().variantId());column(tr("fbo.column.name"),ProductRow::title);
         column(tr("products.article"),ProductRow::vendorArticle);column(tr("fbo.column.color"),ProductRow::color);column(tr("fbo.column.size"),ProductRow::size);
@@ -168,7 +168,7 @@ public final class OzonRegistrationPane extends VBox {
             background(()->{com.vncode.app.integration.listing.ListingIdentity.require(owner);var target=new com.vncode.app.integration.znack.ZnackRepository(new ZnackModels.ShopContext(owner.getId(),owner.getName()));target.saveSettings(target.getSettings().withDefaultGoodsDocument(document.type(),document.number(),document.date()));return true;},saved->status.setText(tr("znack.registration.config_saved")));
         });
     }
-    private void syncCatalog(){if(busy)return;background(()->{new com.vncode.app.features.gtinsync.RegisteredGtinSyncService(NationalCatalogGtinSource.forShop(owner),new com.vncode.app.features.gtinsync.GtinSyncRepository()).refresh(owner.getId(),Marketplace.OZON);return true;},done->reload());}
+    private void syncCatalog(){if(busy)return;if(com.vncode.app.features.sync.SyncRuntime.requestIfRunning(owner,com.vncode.app.features.sync.SyncCoordinator.Stream.ZNACK)){status.setText(tr("znack.registration.auto_sync_queued"));return;}background(()->{new com.vncode.app.features.gtinsync.RegisteredGtinSyncService(NationalCatalogGtinSource.forShop(owner),new com.vncode.app.features.gtinsync.GtinSyncRepository()).refresh(owner.getId(),Marketplace.OZON);return true;},done->reload());}
     private java.util.function.BiConsumer<Status,String> listener(){return (state,detail)->{
         if(detail!=null&&!detail.isBlank())reviewPending.set(true);
         if(progressQueued.compareAndSet(false,true))Platform.runLater(()->{

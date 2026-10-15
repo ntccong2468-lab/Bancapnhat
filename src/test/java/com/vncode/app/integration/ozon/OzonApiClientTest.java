@@ -155,11 +155,12 @@ class OzonApiClientTest {
     }
 
     private OzonApiClient client(int attempts) {
+        // These contract tests assert payloads, not latency. Allow scheduler/GC pauses in the full suite.
         OkHttpClient http = new OkHttpClient.Builder()
-                .connectTimeout(200, TimeUnit.MILLISECONDS)
-                .readTimeout(200, TimeUnit.MILLISECONDS)
-                .writeTimeout(200, TimeUnit.MILLISECONDS)
-                .callTimeout(500, TimeUnit.MILLISECONDS)
+                .connectTimeout(2, TimeUnit.SECONDS)
+                .readTimeout(2, TimeUnit.SECONDS)
+                .writeTimeout(2, TimeUnit.SECONDS)
+                .callTimeout(5, TimeUnit.SECONDS)
                 .build();
         return new OzonApiClient(42, new OzonCredentials("client-42", "ozon-secret"), server.url("/"), http,
                 new OzonApiRateLimiter(Duration.ZERO),

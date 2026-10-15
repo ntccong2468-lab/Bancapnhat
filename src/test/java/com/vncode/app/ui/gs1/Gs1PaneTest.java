@@ -71,6 +71,17 @@ class Gs1PaneTest {
             assertEquals(Orientation.VERTICAL,split.getOrientation());assertTrue(pane.lookup("#gs1AccountScroll").isVisible());assertTrue(pane.lookup("#gs1InboxPanel").isVisible());assertTrue(pane.lookup("#gs1InboxPanel").getBoundsInLocal().getHeight()>100);return null;
         });
     }
+    @Test void syncButtonQueuesConfiguredBackgroundReadWithoutOpeningBrowserOrDuplicatingMembershipButton()throws Exception{
+        var requests=new java.util.concurrent.atomic.AtomicInteger();
+        fx(()->{
+            pane.setOnSyncRequested(requests::incrementAndGet);render();
+            button("gs1CheckAllButton").fire();
+            assertEquals(1,requests.get());assertEquals(0,pane.activeTaskCount());
+            assertNull(pane.lookup("#gs1CheckMembership"));
+            var statusField=Gs1Pane.class.getDeclaredField("status");statusField.setAccessible(true);var status=(Label)statusField.get(pane);assertEquals(I18nService.getInstance().tr("gs1.auto_sync_queued"),status.getText());
+            return null;
+        });
+    }
     @Test void prefixTableUsesSourcedDatesAndNeverTreatsUnknownAsUnlimitedOrPaid()throws Exception{
         fx(()->{
             var date=LocalDate.now(ZoneId.of("Europe/Moscow"));var explicit=new Gs1Membership.Prefix("4601234",20,List.of(),date.plusMonths(3),false);var inherited=new Gs1Membership.Prefix("4601235",null,List.of());var data=member(true,date.plusYears(1),List.of(explicit,inherited));

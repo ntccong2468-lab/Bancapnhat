@@ -202,6 +202,33 @@ public class HomeController implements Initializable {
     private final Set<Integer> productKizSyncingShopIds = ConcurrentHashMap.newKeySet();
     private boolean initialZnackShopAuthorized;
     private boolean disposed;
+    private com.vncode.app.features.sync.SyncRuntime syncRuntime;
+    private final javafx.animation.PauseTransition syncUiDebounce=new javafx.animation.PauseTransition(javafx.util.Duration.millis(400));
+    private final java.util.EnumSet<com.vncode.app.features.sync.SyncCoordinator.Stream> pendingSyncViews=java.util.EnumSet.noneOf(com.vncode.app.features.sync.SyncCoordinator.Stream.class);
+    private void applySyncChange(com.vncode.app.features.sync.SyncCoordinator.Health health){
+        if(disposed||!isCurrentShop(health.shopId()))return;
+        if(workspaceHeaderController!=null)workspaceHeaderController.setSyncHealth(health);
+        if(health.running())return;
+        pendingSyncViews.add(health.stream());int shopId=health.shopId();
+        syncUiDebounce.setOnFinished(e->{
+            var changes=java.util.EnumSet.copyOf(pendingSyncViews);pendingSyncViews.clear();
+            if(disposed||!isCurrentShop(shopId))return;
+            if(changes.contains(com.vncode.app.features.sync.SyncCoordinator.Stream.FBO)&&fboSupplyOrdersController!=null&&isFboSupplyOrdersVisible())fboSupplyOrdersController.refreshLocalData();
+            if(changes.contains(com.vncode.app.features.sync.SyncCoordinator.Stream.GS1)&&gs1Pane!=null)gs1Pane.refreshFromCache();
+            if(changes.contains(com.vncode.app.features.sync.SyncCoordinator.Stream.ZNACK)&&znackRegistrationController!=null&&isZnackRegistrationVisible())znackRegistrationController.refreshLocal();
+            if(changes.stream().anyMatch(v->v.ordinal()<=com.vncode.app.features.sync.SyncCoordinator.Stream.HISTORY.ordinal())){
+                if(isOzonDashboardVisible()&&ozonDashboardController!=null)ozonDashboardController.refreshLocalData();
+                else if(state.getSelectedShop()!=null&&state.getSelectedShop().getMarketplace()==Marketplace.WILDBERRIES){refreshSupplyList(state.getLoadedSupplyId(),false);if(isPackingVisible()&&packingController!=null)packingController.refreshLocalData();if(state.getLoadedSupplyId()!=null&&supplyDetailController!=null)refreshLoadedSupplyLocally();}
+            }
+        });syncUiDebounce.playFromStart();
+    }
+    private void refreshLoadedSupplyLocally(){
+        Shop selected=state.getSelectedShop();String supply=state.getLoadedSupplyId();if(selected==null||supply==null||selected.getMarketplace()!=Marketplace.WILDBERRIES||isShopBusy(selected.getId())||supplyPrintRequest.isLoading())return;
+        if(syncRuntime!=null)syncRuntime.selectSupply(selected.getId(),supply);
+        var owner=frozenShop(selected);localReads.submitLocal(new com.vncode.app.shared.ShopReadCoordinator.Key(owner.getId(),"live-supply",supply),()->supplyLoadWorkflow.loadLocal(owner,supply)).whenComplete((orders,error)->Platform.runLater(()->{if(!disposed&&error==null&&sameOwner(owner)&&java.util.Objects.equals(supply,state.getLoadedSupplyId())&&!isShopBusy(owner.getId())&&!supplyPrintRequest.isLoading()){
+            com.vncode.app.features.supply.SupplyLoadWorkflow.preserveDisplayCache(state.getLoadedOrdersRaw(),orders);
+            state.setLoadedOrdersRaw(orders);applySortAndDisplayOrders();}}));
+    }
     private long gs1SidebarEpoch;
 
     private long supplyListEpoch,fboEpoch;
@@ -236,6 +263,7 @@ public class HomeController implements Initializable {
         showDashboard();
         updateHeaderState();
         updateExportAvailability();
+        syncRuntime=new com.vncode.app.features.sync.SyncRuntime(health->Platform.runLater(()->applySyncChange(health)));
         loadShops();
         checkForUpdates();
     }
@@ -365,7 +393,6 @@ public class HomeController implements Initializable {
 
             return printHistoryView;
         });
-        workspaceNavigator.register("gtin-sync", () -> gtinSyncView);
         workspaceNavigator.register("gs1", this::gs1Pane);
         workspaceNavigator.register("products", () -> {productsPane=new com.vncode.app.ui.products.ProductsPane();productsPane.setOnCopy(this::showListingCopy);productsPane.setOnEdit(this::showProductEdit);return productsPane;});
         workspaceNavigator.register("listing-copy", () -> {listingCopyPane=new com.vncode.app.ui.listingcopy.ListingCopyPane();listingCopyPane.setOnChooseProducts(this::showProducts);return listingCopyPane;});
@@ -447,16 +474,7 @@ public class HomeController implements Initializable {
         znackRegistrationController.setShop(state.getSelectedShop());
     }
 
-    private void showGtinSync() {
-        clearKizDraft();
-        if (gtinSyncView == null) {
-            FXMLLoader loader = FxmlViewLoader.loader(com.vncode.app.ui.gtinsync.GtinSyncController.class, "gtin-sync-view.fxml");
-            gtinSyncView = FxmlViewLoader.load(loader);
-            gtinSyncController = loader.getController();
-        }
-        gtinSyncController.setShop(state.getSelectedShop());
-        workspaceNavigator.show("gtin-sync");
-    }
+    private void showGtinSync(){showZnackRegistration();}
 
     private void refreshPrintHistory() {
         if (printHistoryController == null) {
@@ -661,7 +679,7 @@ public class HomeController implements Initializable {
 
     private void buyFboMissing(Shop owner,List<FboBarcodePrintItem> items,com.vncode.app.features.fbo.FboPreflightService.Result approved) {
         if(disposed||!sameOwner(owner))return;
-        com.vncode.app.shared.SellerMutationExecutor.submit(()->{new com.vncode.app.features.fbo.FboPurchaseService().enqueue(owner,items,approved,true);return true;})
+        com.vncode.app.shared.SellerMutationExecutor.submit(owner,()->{new com.vncode.app.features.fbo.FboPurchaseService().enqueue(owner,items,approved,true);return true;})
           .whenComplete((done,error)->javafx.application.Platform.runLater(()->{
             if(disposed||!sameOwner(owner))return;
             if(error!=null)AlertService.showError(com.vncode.app.shared.FriendlyErrorService.format(error));
@@ -1230,7 +1248,8 @@ public class HomeController implements Initializable {
         };
         task.setOnSucceeded(e -> {
             state.setShops(task.getValue());
-            FinanceSyncScheduler.getInstance().updateShops(task.getValue());
+            FinanceSyncScheduler.getInstance().updateShops(task.getValue(),false);
+            if(syncRuntime!=null)syncRuntime.updateShops(task.getValue());
             renderShops();
             if (state.getShops().isEmpty()) {
                 state.clearWorkspace();
@@ -1350,7 +1369,9 @@ public class HomeController implements Initializable {
     private void selectShop(Shop shop) {
         boolean sharedView = workspaceNavigator.currentRoute().equals("product-edit") || workspaceNavigator.currentRoute().equals("listing-copy") || workspaceNavigator.currentRoute().equals("products") || workspaceNavigator.currentRoute().equals("gs1") || workspaceNavigator.currentRoute().equals("gtin-sync") || isPrintHistoryVisible() || isZnackAutomationVisible() || isFboSupplyOrdersVisible();
         boolean dashboardVisible = isDashboardVisible();
+        pendingSyncViews.clear();syncUiDebounce.stop();
         state.setSelectedShop(shop);
+        if(syncRuntime!=null)syncRuntime.selectShop(shop.getId());
         if(newsPane!=null)newsPane.setShop(shop);
         shopSidebarController.setMarketplace(shop.getMarketplace());
         workspaceHeaderController.setMarketplace(shop.getMarketplace());
@@ -1423,6 +1444,7 @@ public class HomeController implements Initializable {
     }
 
     private void startShopSync(Shop shop, boolean manual) {
+        if(syncRuntime!=null&&shop!=null){syncRuntime.refreshShop(shop);return;}
         if (shop == null) {
             return;
         }
@@ -1688,7 +1710,6 @@ public class HomeController implements Initializable {
         shopSidebarController.setOnFboPacking(this::showFboPacking);
         shopSidebarController.setOnFboOrders(this::showFboSupplyOrders);
         shopSidebarController.setOnKizMapping(this::showKizMapping);
-        shopSidebarController.setOnGtinSync(this::showGtinSync);
         shopSidebarController.setOnZnackAutomation(this::showZnackAutomation);
         shopSidebarController.setOnZnackRegistration(this::showZnackRegistration);
         shopSidebarController.setOnPrintHistory(this::showPrintHistory);
@@ -1731,9 +1752,10 @@ public class HomeController implements Initializable {
         if(owner==null)return;
         if(state.getSelectedShop()==null||state.getSelectedShop().getId()!=owner.getId())selectShop(owner);
         switch(row.kind()) {
-            case "registration"->showZnackRegistration();
+            case "registration","znack_marketplace"->showZnackRegistration();
+            case "gs1"->showGs1();
             case "purchase"->showZnackAutomation();
-            case "gtin"->workspaceNavigator.show("gtin-sync");
+            case "gtin"->showZnackRegistration();
             case "edit"->showProducts();
             case "print"->{workspaceNavigator.show("print-history");refreshPrintHistory();}
             default->showPacking();
@@ -1767,7 +1789,7 @@ public class HomeController implements Initializable {
         }
         return gs1Pane;
     }
-    private void showGs1(){clearKizDraft();gs1Pane().setShop(state.getSelectedShop());workspaceNavigator.show("gs1");}
+    private void showGs1(){clearKizDraft();var pane=gs1Pane();pane.setShop(state.getSelectedShop());pane.setOnSyncRequested(()->{var shop=state.getSelectedShop();if(shop!=null&&syncRuntime!=null)syncRuntime.request(shop,com.vncode.app.features.sync.SyncCoordinator.Stream.GS1);});workspaceNavigator.show("gs1");if(state.getSelectedShop()!=null&&syncRuntime!=null)syncRuntime.request(state.getSelectedShop(),com.vncode.app.features.sync.SyncCoordinator.Stream.GS1);}
 
     private void initializeSupplyViews() {
         FXMLLoader supplyListLoader = FxmlViewLoader.loader(SupplyListController.class, "supply-list-view.fxml");
@@ -1801,6 +1823,7 @@ public class HomeController implements Initializable {
     }
 
     private void renderShops() {
+        if(syncRuntime!=null)syncRuntime.updateShops(state.getShops());
         workspaceHeaderController.setShops(state.getShops(), state.getSelectedShop());
     }
 
@@ -2358,6 +2381,7 @@ public class HomeController implements Initializable {
         }
         disposed = true;
         updatePolling.stop();
+        syncUiDebounce.stop();if(syncRuntime!=null)syncRuntime.close();
         if(updateCheckTask!=null)updateCheckTask.cancel(true);
         if(updateDownloadTask!=null)updateDownloadTask.cancel(true);
         updateExecutor.shutdownNow();

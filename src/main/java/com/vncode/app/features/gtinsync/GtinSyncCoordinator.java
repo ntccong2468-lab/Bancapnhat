@@ -52,7 +52,7 @@ public final class GtinSyncCoordinator {
             if(!repository.transition(item.id(),Status.QUEUED,Status.VALIDATING,null))continue;
             try{validate(item.preview());}
             catch(LicenseDeniedException denied){repository.pauseKnownUnsent(item.id());publish(progress,item.id());continue;}
-            catch(Exception e){repository.transition(item.id(),Status.VALIDATING,Status.FAILED,null);publish(progress,item.id());continue;}
+            catch(Exception e){repository.issue(item.id(),com.vncode.app.features.sync.SyncFailure.of(e,0).code());repository.transition(item.id(),Status.VALIDATING,Status.FAILED,null);publish(progress,item.id());continue;}
             if(repository.paused(item.jobId())){repository.transition(item.id(),Status.VALIDATING,Status.QUEUED,null);publish(progress,item.id());continue;}
             try{LicenseRuntime.require(Permission.GTIN);}
             catch(LicenseDeniedException denied){repository.pauseKnownUnsent(item.id());publish(progress,item.id());continue;}
@@ -68,10 +68,12 @@ public final class GtinSyncCoordinator {
                 var submission=adapters.apply(item.preview().before().key()).submit(item.preview());
                 repository.transition(item.id(),Status.SENDING,Status.AWAITING_VERIFICATION,submission.remoteTaskId());
             }catch(GtinKnownUnsentException knownUnsent){
+                repository.issue(item.id(),knownUnsent.code());
                 repository.pauseKnownUnsent(item.id());publish(progress,item.id());
                 if(Thread.currentThread().isInterrupted())return;
                 continue;
             }catch(Exception e){
+                repository.issue(item.id(),com.vncode.app.features.sync.SyncFailure.of(e,0).code());
                 repository.transition(item.id(),Status.SENDING,Status.RECONCILE_REQUIRED,null);
                 if(e instanceof InterruptedException){Thread.currentThread().interrupt();publish(progress,item.id());return;}
             }
@@ -106,8 +108,9 @@ public final class GtinSyncCoordinator {
         for(int poll=0;poll<maxPolls && !clock.instant().isAfter(deadline);poll++) {
             Verification outcome;
             try{outcome=adapter.verify(item.preview(),new Submission(item.remoteTaskId()));}
-            catch(Exception e){outcome=Verification.UNKNOWN;if(e instanceof InterruptedException)Thread.currentThread().interrupt();}
+            catch(Exception e){repository.issue(itemId,com.vncode.app.features.sync.SyncFailure.of(e,0).code());outcome=Verification.UNKNOWN;if(e instanceof InterruptedException)Thread.currentThread().interrupt();}
             if(outcome==Verification.APPLIED || outcome==Verification.REJECTED) {
+                repository.issue(itemId,outcome==Verification.APPLIED?"":"GTIN_REJECTED");
                 repository.transition(itemId,item.status(),outcome==Verification.APPLIED?Status.SUCCEEDED:Status.FAILED,null);return;
             }
             if(outcome==Verification.UNKNOWN || Thread.currentThread().isInterrupted())break;

@@ -11,6 +11,8 @@ import static com.vncode.app.features.gtinsync.GtinSyncModels.*;
 
 /** Persists only normalized, credential-free data. Every public scoped read verifies ownership. */
 public final class GtinSyncRepository {
+    public void issue(UUID item,String code){transaction(c->{itemFor(c,item);try(var p=c.prepareStatement("INSERT INTO sync_gtin_issues VALUES(?,?,?) ON CONFLICT(item_id) DO UPDATE SET code=excluded.code,updated_at=excluded.updated_at")){p.setString(1,item.toString());p.setString(2,com.vncode.app.features.sync.SyncRunRepository.code(code));p.setString(3,Instant.now().toString());p.executeUpdate();}return null;});}
+    public String issue(UUID item){return transaction(c->{itemFor(c,item);try(var p=c.prepareStatement("SELECT code FROM sync_gtin_issues WHERE item_id=?")){p.setString(1,item.toString());try(var r=p.executeQuery()){return r.next()?r.getString(1):"";}}});}
     public void saveCatalog(int shopId, Marketplace marketplace, List<RegisteredGtin> rows) {
         transaction(c -> {
             requireShop(c,shopId,marketplace);

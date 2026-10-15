@@ -77,7 +77,7 @@ public final class WbGtinAdapter implements GtinMarketplaceAdapter {
         if(response.get("error").getAsBoolean())return new Submission("wb-rejected");
         return new Submission("");
         }catch(IOException|RuntimeException failure){
-            if(!dispatched.get())throw new GtinKnownUnsentException();
+            if(!dispatched.get())throw new GtinKnownUnsentException(com.vncode.app.features.sync.SyncFailure.of(failure,0).code());
             throw failure;
         }
     }

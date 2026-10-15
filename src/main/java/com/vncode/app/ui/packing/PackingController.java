@@ -231,6 +231,8 @@ public class PackingController {
         });
     }
 
+    public void refreshLocalData(){refresh();}
+
     private void refresh() {
         if (shop == null) {
             return;
@@ -327,7 +329,7 @@ public class PackingController {
     }
 
     private void setBoard(PackingWorkflow.PackingBoard board) {
-        selectedOrderIds.clear();
+        var retained=new java.util.HashSet<Long>();if(board.newOrders()!=null)for(var row:board.newOrders())if(row.getId()!=null)retained.add(row.getId());selectedOrderIds.retainAll(retained);
         allNewOrders = board.newOrders() == null ? List.of() : List.copyOf(board.newOrders());
         updateCategoryFilterOptions();
         applyNewOrderFilters();

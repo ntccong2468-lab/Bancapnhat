@@ -49,7 +49,7 @@ public class ShopSidebarController {
     private Runnable onFinance;
     public void setOnFinance(Runnable action){onFinance=action;}
     @FXML private void onFinance(){if(onFinance!=null)onFinance.run();}
-    public void selectNavigation(String id){for(Button button:java.util.List.of(listingCopyButton,productsButton,dashboardButton,packingButton,fboPackingButton,templateButton,kizMappingButton,znackRegistrationButton,znackAutomationButton,btnPrintHistory,gtinSyncButton,gs1Button,fboOrdersButton,financeButton,guidesButton)){button.getStyleClass().remove("nav-selected");if(id.equals(button.getId()))button.getStyleClass().add("nav-selected");}}
+    public void selectNavigation(String id){for(Button button:java.util.List.of(listingCopyButton,productsButton,dashboardButton,packingButton,fboPackingButton,templateButton,kizMappingButton,znackRegistrationButton,znackAutomationButton,btnPrintHistory,gs1Button,fboOrdersButton,financeButton,guidesButton)){button.getStyleClass().remove("nav-selected");if(id.equals(button.getId()))button.getStyleClass().add("nav-selected");}}
     @FXML private Button gs1Button;
     private Runnable onGs1;
     private int gs1Unread;
@@ -58,10 +58,6 @@ public class ShopSidebarController {
     public void setGs1Unread(int count){gs1Unread=Math.max(0,count);if(gs1Button!=null)gs1Button.setText(" "+I18nService.getInstance().tr("gs1.title")+(gs1Attention?" !":"")+(gs1Unread>0?" ("+gs1Unread+")":""));}
     public void setGs1Attention(boolean required){gs1Attention=required;setGs1Unread(gs1Unread);}
     @FXML private void onGs1(){if(onGs1!=null)onGs1.run();}
-    @FXML private Button gtinSyncButton;
-    private Runnable onGtinSync;
-    public void setOnGtinSync(Runnable action) { onGtinSync = action; }
-    @FXML private void onGtinSync() { if (onGtinSync != null) onGtinSync.run(); }
     @FXML
     private Button dashboardButton;
     @FXML
@@ -267,7 +263,6 @@ public class ShopSidebarController {
         fboPackingButton.setText(" " + i18n.tr("sidebar.fbo_packing"));
         fboOrdersButton.setText(" " + i18n.tr("sidebar.fbo_orders"));
         kizMappingButton.setText(" " + i18n.tr("sidebar.kiz_mapping"));
-        gtinSyncButton.setText(" " + i18n.tr("gtinsync.sidebar"));
         znackAutomationButton.setText(" " + i18n.tr("sidebar.znack_automation"));
         znackRegistrationButton.setText(" " + i18n.tr("sidebar.znack_registration"));
         settingsMenuButton.setText(" " + i18n.tr("settings.menu"));

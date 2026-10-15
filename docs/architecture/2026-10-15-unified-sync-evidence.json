@@ -1,0 +1,74 @@
+{
+  "reviewDateMoscow": "2026-10-15",
+  "vncodeReviewedHead": "2d4eeacee9195c005226dcd5fd8696f79013f60f",
+  "publishedAppSource": "793850d5d29964164a46e774befe1fa6b991af00",
+  "wbcode": {
+    "tag": "v1.3.8",
+    "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.3.8",
+    "publishedAtUtc": "2026-10-12T21:14:49Z",
+    "newAuthenticatedDesktopRunPerformed": false,
+    "latestInternalSourceInspected": false,
+    "evidenceLimit": "Latest release notes and existing unauthenticated UI observation; public WCode source is a separate older baseline."
+  },
+  "wcode": {
+    "publicHead": "8f7c3d1ac8598158029b8d037e2d3c128e240727",
+    "url": "https://github.com/rupphi/test-wcode/commit/8f7c3d1ac8598158029b8d037e2d3c128e240727",
+    "filesRead": [
+      {
+        "path": "integration/wb/WbSyncWorkflow.java",
+        "url": "https://raw.githubusercontent.com/rupphi/test-wcode/8f7c3d1ac8598158029b8d037e2d3c128e240727/src/main/java/com/tuandev/fbsbarcode/integration/wb/WbSyncWorkflow.java",
+        "bytes": 4433,
+        "sha256": "a407f36284652006ac9423c20e6cf5f927f2e1d28f598b3138e330318a3384cc"
+      },
+      {
+        "path": "integration/ozon/OzonSyncWorkflow.java",
+        "url": "https://raw.githubusercontent.com/rupphi/test-wcode/8f7c3d1ac8598158029b8d037e2d3c128e240727/src/main/java/com/tuandev/fbsbarcode/integration/ozon/OzonSyncWorkflow.java",
+        "bytes": 1779,
+        "sha256": "2d5e516f5fd0ecb50c5d98a1902de534defef51767fc13fca831b816f6619906"
+      },
+      {
+        "path": "integration/ozon/OzonPostingSyncService.java",
+        "url": "https://raw.githubusercontent.com/rupphi/test-wcode/8f7c3d1ac8598158029b8d037e2d3c128e240727/src/main/java/com/tuandev/fbsbarcode/integration/ozon/OzonPostingSyncService.java",
+        "bytes": 6324,
+        "sha256": "f3ab6f675be62c04982114dfda3fff968fe1d958a11d6985b30f426742f6f64a"
+      },
+      {
+        "path": "features/packing/PackingWorkflow.java",
+        "url": "https://raw.githubusercontent.com/rupphi/test-wcode/8f7c3d1ac8598158029b8d037e2d3c128e240727/src/main/java/com/tuandev/fbsbarcode/features/packing/PackingWorkflow.java",
+        "bytes": 13771,
+        "sha256": "9f5532d21dcea70ebc9c2cb366adba0e897f3cfa178ee8c66ddf7019c23ac1eb"
+      },
+      {
+        "path": "features/print/KizAttachmentCoordinator.java",
+        "url": "https://raw.githubusercontent.com/rupphi/test-wcode/8f7c3d1ac8598158029b8d037e2d3c128e240727/src/main/java/com/tuandev/fbsbarcode/features/print/KizAttachmentCoordinator.java",
+        "bytes": 13864,
+        "sha256": "1bb083cc3b39163f540da285fac87c932e51af3c24d3681087ed4f57739bd636"
+      },
+      {
+        "path": "features/print/OrderExportWorkflow.java",
+        "url": "https://raw.githubusercontent.com/rupphi/test-wcode/8f7c3d1ac8598158029b8d037e2d3c128e240727/src/main/java/com/tuandev/fbsbarcode/features/print/OrderExportWorkflow.java",
+        "bytes": 12518,
+        "sha256": "0e0c9358f8dca20947e4b9ad2c38eab6b4067949dfc174b6905485f4df3d3461"
+      },
+      {
+        "path": "features/shop/ShopOperationCoordinator.java",
+        "url": "https://raw.githubusercontent.com/rupphi/test-wcode/8f7c3d1ac8598158029b8d037e2d3c128e240727/src/main/java/com/tuandev/fbsbarcode/features/shop/ShopOperationCoordinator.java",
+        "bytes": 2734,
+        "sha256": "da51a52a8dbfc7cba9cf18b29d6d21a5523d064c4fe4f27ce4ac93a8335e744c"
+      },
+      {
+        "path": "ui/ozon/OzonDashboardController.java",
+        "url": "https://raw.githubusercontent.com/rupphi/test-wcode/8f7c3d1ac8598158029b8d037e2d3c128e240727/src/main/java/com/tuandev/fbsbarcode/ui/ozon/OzonDashboardController.java",
+        "bytes": 67008,
+        "sha256": "683ffc25b836b5e711c6793a406ec61323d29f4419a493b1819c68e8d35752cc"
+      }
+    ]
+  },
+  "status": "approved-implementation-in-progress",
+  "productionCodeChanged": true,
+  "newArchitectureTestsRun": true,
+  "liveMarketplaceCallsPerformed": false,
+  "publishedReleaseModified": false,
+  "implementationVersion": "1.4.12",
+  "validationReport": "docs/validation/2026-10-15-vncode-1412-implementation.md"
+}

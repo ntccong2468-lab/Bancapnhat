@@ -40,7 +40,14 @@ public final class UiLayoutProbe {
         Platform.setImplicitExit(false);
         var authority=LicenseDomainFixture.active(out.resolve("synthetic-license"));LicenseRuntime.install(authority);
         var loader=FxmlViewLoader.loader(HomeController.class,"home-view.fxml");
-        Parent root=fx(()->FxmlViewLoader.load(loader));HomeController home=loader.getController();
+        Parent root=fx(()->{
+            Parent loaded=FxmlViewLoader.load(loader);
+            // Geometry probes install a synthetic license. Stop the real background runtime
+            // before queued shop-loading callbacks can populate it; network behavior is covered
+            // separately by the deterministic coordinator/transport tests.
+            ((AutoCloseable)field(loader.getController(),"syncRuntime")).close();
+            return loaded;
+        });HomeController home=loader.getController();
         WorkspaceNavigator navigator=(WorkspaceNavigator)field(home,"workspaceNavigator");
         // Keep fixture marketplace identities unselected: this probe is geometry, not live integration.
         fx(()->{((javafx.scene.control.ComboBox<?>)field(field(home,"workspaceHeaderController"),"shopComboBox")).getSelectionModel().clearSelection();return null;});
@@ -81,7 +88,7 @@ public final class UiLayoutProbe {
                     results.add(Map.of("route",route,"language",language.code(),"theme",theme,"width",size[0],"height",size[1],"horizontalButtonOverflow",overflow));
                 }
             }
-            var report=Map.of("version",com.vncode.app.BuildConfig.getAppVersion(),"liveSellerMutations",false,"shopContext","synthetic fixture; no mutation actions invoked","layouts",results);
+            var report=Map.of("version",com.vncode.app.BuildConfig.getAppVersion(),"liveSellerMutations",false,"shopContext","synthetic fixture; background sync disabled for geometry; no mutation actions invoked","backgroundSynchronizationDisabledForGeometry",true,"layouts",results);
             Files.writeString(out.resolve("ui-layout.json"),new Gson().toJson(report));
             if(results.stream().anyMatch(row->!((List<?>)row.get("horizontalButtonOverflow")).isEmpty()))throw new IllegalStateException("UI buttons overflow; inspect ui-layout.json");
         } finally {

@@ -195,6 +195,20 @@ jobs:
             ./tools/windows-upgrade-smoke.ps1 -Version $env:APP_VERSION -FromStable146
           }
 
+      - name: Verify data-preserving upgrade from Published VN code 1.4.10
+        shell: pwsh
+        run: |
+          if ([version]$env:APP_VERSION -gt [version]"1.4.10") {
+            ./tools/windows-upgrade-smoke.ps1 -Version $env:APP_VERSION -FromStable1410
+          }
+
+      - name: Verify data-preserving upgrade from Published VN code 1.4.11
+        shell: pwsh
+        run: |
+          if ([version]$env:APP_VERSION -gt [version]"1.4.11") {
+            ./tools/windows-upgrade-smoke.ps1 -Version $env:APP_VERSION -FromStable1411
+          }
+
       - name: Verify and name test installer
         shell: pwsh
         run: |
@@ -226,6 +240,8 @@ jobs:
             out/upgrade-gs1-preview-smoke.json
             out/upgrade-license-test-smoke.json
             out/upgrade-stable-146-smoke.json
+            out/upgrade-stable-1410-smoke.json
+            out/upgrade-stable-1411-smoke.json
             out/gs1-smoke.json
             out/seller-workspace-smoke.json
             out/seller-workspace-evidence.zip

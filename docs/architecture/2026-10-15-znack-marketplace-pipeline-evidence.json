@@ -1,0 +1,40 @@
+{
+  "sourceCommit": "8f7c3d1ac8598158029b8d037e2d3c128e240727",
+  "files": [
+    {
+      "path": "integration/ozon/OzonProductGtinMappingRepository.java",
+      "url": "https://raw.githubusercontent.com/rupphi/test-wcode/8f7c3d1ac8598158029b8d037e2d3c128e240727/src/main/java/com/tuandev/fbsbarcode/integration/ozon/OzonProductGtinMappingRepository.java",
+      "sha256": "15ae295a622533143320eafd1ee9ea4fa03db1f5843a7b82941c3bbae996c875"
+    },
+    {
+      "path": "integration/znack/ZnackProductService.java",
+      "url": "https://raw.githubusercontent.com/rupphi/test-wcode/8f7c3d1ac8598158029b8d037e2d3c128e240727/src/main/java/com/tuandev/fbsbarcode/integration/znack/ZnackProductService.java",
+      "sha256": "591daf260f75e6db69969be597f3dc432f33f2e7fca35aee21895a2f7adc2df7"
+    },
+    {
+      "path": "integration/znack/registration/ZnackCardRegistrationWorkflow.java",
+      "url": "https://raw.githubusercontent.com/rupphi/test-wcode/8f7c3d1ac8598158029b8d037e2d3c128e240727/src/main/java/com/tuandev/fbsbarcode/integration/znack/registration/ZnackCardRegistrationWorkflow.java",
+      "sha256": "933abb283a8ef975dbd6c4631589c4acec9d0ad0115823c9763d3d75784322cc"
+    }
+  ],
+  "status": "approved-implementation-in-progress",
+  "vncodeVersion": "1.4.11",
+  "productionCodeChanged": true,
+  "liveSellerApiCallsPerformed": false,
+  "newPipelineTestsRun": true,
+  "jobStateProbe": {
+    "execution": "Java 25 against shipped VNcode-1.4.11.jar",
+    "observations": {
+      "QUEUED": "queued",
+      "SENDING": "running",
+      "SUCCEEDED": "running",
+      "FAILED": "blocked",
+      "RECONCILE_REQUIRED": "review",
+      "PRINTED": "running",
+      "CANCELLED": null
+    },
+    "finding": "Completed SUCCEEDED and PRINTED are incorrectly shown as running; summaries omit per-job identity and error detail."
+  },
+  "implementationVersion": "1.4.12",
+  "validationReport": "docs/validation/2026-10-15-vncode-1412-implementation.md"
+}

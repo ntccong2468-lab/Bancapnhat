@@ -243,6 +243,9 @@ public final class OzonDashboardController {
     }
 
     public void sync() {
+        if(shop!=null&&com.vncode.app.features.sync.SyncRuntime.requestIfRunning(shop,com.vncode.app.features.sync.SyncCoordinator.Stream.FBS_QUEUE)){
+            com.vncode.app.features.sync.SyncRuntime.requestIfRunning(shop,com.vncode.app.features.sync.SyncCoordinator.Stream.CATALOG);loadLocal();return;
+        }
         Shop selected = shop;
         if (selected == null || busy) return;
         long token = ++requestToken;
@@ -277,6 +280,7 @@ public final class OzonDashboardController {
     }
 
     private void refreshPostings() {
+        if(shop!=null&&com.vncode.app.features.sync.SyncRuntime.requestIfRunning(shop,com.vncode.app.features.sync.SyncCoordinator.Stream.FBS_QUEUE)){loadLocal();return;}
         Shop selected = shop;
         if (selected == null || busy) return;
         long token = ++requestToken;
@@ -577,6 +581,7 @@ public final class OzonDashboardController {
         refreshGtinInventory();
     }
 
+    public void refreshLocalData(){if(!disposed&&!busy)loadLocal();}
     private void loadLocal() {
         Shop selected=shop;if(disposed||selected==null){newOrdersTable.getItems().clear();packingOrdersTable.getItems().clear();deliveringOrdersTable.getItems().clear();updateTabTitles();updatePaging();return;}
         long epoch=++pageGeneration,started=System.nanoTime();String text=postingSearch.getText();String sort=sortFields();var frozenOffsets=Map.copyOf(offsets);

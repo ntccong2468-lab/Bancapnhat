@@ -140,10 +140,15 @@ public final class CatalogSyncService {
                     var preview=new GtinPreviewService(gtins,adapters).create(row.key(),GtinSyncModels.Operation.ADD,"",row.catalog().gtin());
                     UUID child=queue.confirm(List.of(preview));row=row.next(State.GTIN_PENDING,child.toString(),"");plans.update(shop,id,row);
                 }
-                queue.runJob(UUID.fromString(row.gtinJob()));
+                var childId=UUID.fromString(row.gtinJob());
+                var childIssues=gtins.jobItems(childId).stream().map(i->gtins.issue(i.id())).filter(x->!x.isBlank()).toList();
+                if(gtins.paused(childId)&&childIssues.stream().allMatch(x->x.startsWith("NETWORK_")||x.equals("GTIN_KNOWN_UNSENT")||x.endsWith("RATE_LIMIT")))queue.resume(childId);
+                queue.runJob(childId);
                 var statuses=gtins.jobItems(UUID.fromString(row.gtinJob()));
                 State status=statuses.stream().allMatch(i->i.status()==GtinSyncModels.Status.SUCCEEDED)?State.SUCCEEDED:statuses.stream().anyMatch(i->i.status()==GtinSyncModels.Status.FAILED||i.status()==GtinSyncModels.Status.CANCELLED)?State.BLOCKED:State.GTIN_PENDING;
-                plans.update(shop,id,row.next(status,row.gtinJob(),status==State.BLOCKED?"GTIN_REJECTED":""));
+                String childIssue=statuses.stream().map(i->gtins.issue(i.id())).filter(x->!x.isBlank()).findFirst().orElse("");
+                if(gtins.paused(childId)&&!childIssue.isBlank()&&!childIssue.startsWith("NETWORK_")&&!childIssue.endsWith("RATE_LIMIT"))status=State.BLOCKED;
+                plans.update(shop,id,row.next(status,row.gtinJob(),childIssue.isBlank()&&status==State.BLOCKED?"GTIN_REJECTED":childIssue));
             } catch(com.vncode.app.features.license.LicenseGate.LicenseDeniedException denied){plans.pause(shop,id,true);throw denied;}
             catch(Exception failed){
                 String code=failed.getMessage();if(code==null||!code.matches("[A-Z][A-Z0-9_]{1,79}"))code="READBACK_REQUIRED";

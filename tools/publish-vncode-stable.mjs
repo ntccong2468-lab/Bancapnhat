@@ -65,6 +65,9 @@ async function main(runId,sha,mode='prepare') {
         validateUpgradeSmoke(json(await readFile(path.join(directory,'upgrade-stable-146-smoke.json'))),version,'1.4.6');
         proofFiles.push('upgrade-stable-146-smoke.json');
     }
+    for(const [from,file] of [['1.4.10','upgrade-stable-1410-smoke.json'],['1.4.11','upgrade-stable-1411-smoke.json']]) {
+        if(version.localeCompare(from,'en',{numeric:true})>0){validateUpgradeSmoke(json(await readFile(path.join(directory,file))),version,from);proofFiles.push(file);}
+    }
     const workspace=json(await readFile(path.join(directory,'seller-workspace-smoke.json')));validateWorkspaceSmoke(workspace,version,sha);
     const ui=json(await readFile(path.join(directory,'ui-layout.json')));
     assert.equal(ui.version,version);assert.equal(ui.liveSellerMutations,false);assert.equal(ui.layouts.length,272);
