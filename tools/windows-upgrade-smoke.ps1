@@ -86,6 +86,8 @@ try{
     Stop-Process -Id $app.Id -Force;$app.WaitForExit();$app=$null
     $after=& java --enable-native-access=ALL-UNNAMED -cp $probeClasspath WindowsUpgradeDataProbe fingerprint $data
     if($LASTEXITCODE -ne 0 -or $after -cne $before){throw 'Existing VN code data or saved templates changed during upgrade.'}
+    & java --enable-native-access=ALL-UNNAMED -cp $probeClasspath WindowsUpgradeDataProbe verify-kiz-priority $data
+    if($LASTEXITCODE -ne 0){throw 'Legacy KIZ stock did not retain its required default priority.'}
     Msi '/x' $newMsi;$installed=$false
     if(@(Registrations).Count -ne 0 -or -not(Test-Path (Join-Path $data 'database.db'))){throw 'Uninstall did not preserve upgrade data.'}
     @{appName='VN code';fromVersion=$fromVersion;version=$Version;result='passed';installerUpgradeUuid=$upgrade;singleRegistration=$true;dataPreserved=$true;windowTitle=$window;liveMarketplaceMutations=$false;fingerprint=$after} | ConvertTo-Json | Set-Content $(if($FromStable146){'out\upgrade-stable-146-smoke.json'}elseif($FromLicenseTest){'out\upgrade-license-test-smoke.json'}elseif($FromGs1Preview){'out\upgrade-gs1-preview-smoke.json'}elseif($FromCurrentPreview){'out\upgrade-current-preview-smoke.json'}elseif($FromLatestPreview){'out\upgrade-latest-preview-smoke.json'}elseif($FromPreview){'out\upgrade-preview-smoke.json'}else{'out\upgrade-smoke.json'}) -Encoding utf8
