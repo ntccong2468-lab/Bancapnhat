@@ -39,10 +39,14 @@ final class LicenseConnectionRouter {
                 }
             }
         }
-        String code=last==null?"LICENSE_NETWORK":last.code();
-        // No reachable, authenticated endpoint is a transport outage, not an account denial.
-        if(!Set.of("LICENSE_NETWORK","LICENSE_DNS","LICENSE_TIMEOUT","LICENSE_TLS","LICENSE_EDGE_CHALLENGE").contains(code))code="LICENSE_NETWORK";
-        throw new Failure(code,0);
+        // A short anonymous probe is an optimisation, never a new activation requirement.
+        // Slow/filtered probes may fail while a real request to the trusted primary works.
+        NetworkMode fallback=preferred;
+        if(failed!=null&&failed.origin().equals(primary)&&failed.mode()==fallback&&now<failedUntil)
+            fallback=fallback==NetworkMode.AUTOMATIC?NetworkMode.COMPATIBLE:NetworkMode.AUTOMATIC;
+        selected=new Route(primary,fallback==NetworkMode.COMPATIBLE?compatible:automatic,fallback);
+        validUntil=System.nanoTime()+TimeUnit.SECONDS.toNanos(60);
+        return selected;
     }
     synchronized void recover() {
         failed=selected;failedUntil=System.nanoTime()+TimeUnit.SECONDS.toNanos(60);selected=null;validUntil=0;

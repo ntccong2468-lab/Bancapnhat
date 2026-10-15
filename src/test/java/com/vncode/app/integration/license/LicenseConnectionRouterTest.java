@@ -37,13 +37,15 @@ class LicenseConnectionRouterTest {
             assertEquals(0,backup.getRequestCount());
         }
     }
-    @Test void onlyNonceIsSentToUnverifiedBackupAndNoCredentialsFollowInvalidProof()throws Exception {
+    @Test void failedFastProbesStillAllowTrustedPrimaryAndNeverSendCredentialsToUnverifiedBackup()throws Exception {
         try(var primary=new MockWebServer();var backup=new MockWebServer()) {
             primary.start();backup.start();
             for(int i=0;i<2;i++){primary.enqueue(json("{}",503));backup.enqueue(json("{}",200));}
+            primary.enqueue(json(STATUS,200));
             var api=new WebLicenseApi(new OkHttpClient(),primary.url("/"),backup.url("/"),Map.of());
-            var error=assertThrows(Failure.class,()->api.status("A".repeat(43)));
-            assertEquals("LICENSE_NETWORK",error.code());
+            assertEquals("approved",api.status("A".repeat(43)).status(),"Fast probes must not veto a real trusted-primary request");
+            primary.takeRequest();primary.takeRequest();
+            assertEquals("Bearer "+"A".repeat(43),primary.takeRequest().getHeader("Authorization"));
             for(int i=0;i<2;i++){
                 var request=backup.takeRequest(1,TimeUnit.SECONDS);assertNotNull(request);assertNull(request.getHeader("Authorization"));
                 assertEquals("/api/client/license/endpoint-proof",request.getPath());

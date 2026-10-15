@@ -2,7 +2,7 @@
 
 Cải thiện kích hoạt license trên máy thứ hai, Wi-Fi và điểm phát di động bằng cơ chế tự chọn kết nối.
 
-- Tự kiểm tra API bằng yêu cầu rỗng trước khi gửi thông tin tài khoản; nếu cần, chuyển HTTP/1.1 và ưu tiên IPv4, vẫn giữ IPv6.
+- Tự kiểm tra API bằng yêu cầu rỗng trước khi gửi thông tin tài khoản; nếu cần, chuyển HTTP/1.1 và ưu tiên IPv4, vẫn giữ IPv6. Nếu phép thử nhanh không nhận phản hồi, app vẫn thử API chính với thời gian chờ đầy đủ.
 - Hỗ trợ API dự phòng `license.vncode.id.vn`. App xác minh chữ ký issuer, nonce, hostname và thời hạn trước khi gửi thông tin license. Quản trị viên cần triển khai Portal 0.3.6 và Worker gateway kèm theo để bật đường này.
 - Khi mất phản hồi kích hoạt/kiểm tra license, thử lại tối đa một lần bằng challenge và chữ ký thiết bị mới. Giữ cùng danh tính máy; máy chủ không cộng lại ngày hoặc chiếm thêm thiết bị khi lần trước đã thành công.
 - Thêm **Kiểm tra kết nối** và **Sao chép kết quả** trong mục License. Báo cáo dùng HTTP client của app, thể hiện giao thức, giai đoạn và thời gian chờ; không chứa Gmail, khóa, token, IP hoặc dữ liệu proxy.
