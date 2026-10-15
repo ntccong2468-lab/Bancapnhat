@@ -1,0 +1,52 @@
+{
+  "version": "1.4.11",
+  "baseVersion": "1.4.10",
+  "complete": false,
+  "officialReleasePublished": false,
+  "scope": [
+    "Durable National Catalog attributes and product documents to WB/Ozon with explicit preview and readback before adding GTIN",
+    "Verified variant GTIN handoff to KIZ planning and explicit WB assignment failures",
+    "Scoped imported KIZ stock, identity deduplication, True API owner/circulation verification and atomic stock-first allocation",
+    "User-enabled shortage replenishment through the existing durable Znack purchase pipeline",
+    "Multi-format CIS/DataMatrix imports including Notepad text and source-comparison evidence"
+  ],
+  "licenseIntegration": {
+    "implemented": true,
+    "productionReady": false,
+    "activeKeyId": "vncode-2",
+    "serverSigningKeyMatch": "owner-confirmed-Portal035-vncode2",
+    "ownerReportedActivationVersion": "1.4.4"
+  },
+  "validation": {
+    "sourceComparison": "docs/research/2026-10-15-catalog-kiz-comparison.md",
+    "windowsFullBuild": {
+      "result": "pending"
+    },
+    "sellerSampleParse": {
+      "result": "passed",
+      "marks": 600,
+      "shortCis": 600,
+      "fullDataMatrix": 0,
+      "duplicates": 0,
+      "issues": 0,
+      "preservedEveryOriginalLine": true,
+      "liveApiVerification": false,
+      "evidence": "docs/validation/2026-10-15-kiz-import-sample.json"
+    },
+    "liveMarketplaceWriteAcceptance": false,
+    "liveKizAssignmentAcceptance": false,
+    "livePurchasePerformed": false,
+    "releaseContractTests": {
+      "tests": 53,
+      "passed": 53,
+      "failed": 0
+    }
+  },
+  "limitations": [
+    "WBCode 1.3.8 internals are not public; release notes and prior native UI evidence are distinguished from WCode public source",
+    "Imported stock is local to one computer; independent computers must use disjoint code inventories",
+    "Short CIS does not contain a complete cryptographic DataMatrix tail; the application never fabricates it",
+    "No production seller GTIN write, KIZ assignment or paid purchase was performed during implementation",
+    "The existing license fallback still needs Portal 0.3.6/gateway deployment and acceptance on the affected second-machine network"
+  ]
+}

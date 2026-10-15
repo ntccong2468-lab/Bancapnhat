@@ -1037,6 +1037,7 @@ public class SupplyDetailController {
             statusLabel.getStyleClass().removeAll("badge-green", "badge-red");
             statusLabel.setVisible(false);
             statusLabel.setManaged(false);
+            statusLabel.setTooltip(null);
 
             if (order.isRequiresKiz()) {
                 String kizCode = order.getKiz();
@@ -1049,6 +1050,7 @@ public class SupplyDetailController {
                     statusLabel.setManaged(true);
                 } else if (error != null) {
                     statusLabel.setText(I18nService.getInstance().tr("supply.status.kiz_error"));
+                    statusLabel.setTooltip(new Tooltip(com.vncode.app.features.kiz.KizErrorMessages.message(error)));
                     statusLabel.getStyleClass().add("badge-red");
                     statusLabel.setVisible(true);
                     statusLabel.setManaged(true);

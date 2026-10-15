@@ -92,7 +92,7 @@ class ZnackAutomationInformationTest {
             controller.accountReader((settings, owner, existing, active) -> { remoteCalls.incrementAndGet(); throw new AssertionError("No automatic login"); });
             var information = node("informationTab", Tab.class);
             assertSame(information, information.getTabPane().getSelectionModel().getSelectedItem());
-            assertEquals(List.of("informationTab", "ordersTab", "deletedTab", "settingsTab", "productsTab", "logsTab"),
+            assertEquals(List.of("informationTab", "ordersTab", "deletedTab", "settingsTab", "productsTab", "logsTab", "warehouseTab"),
                     information.getTabPane().getTabs().stream().map(Tab::getId).toList());
             for (var language : AppLanguage.values()) {
                 i18n.setLanguage(language); controller.applyTranslations();

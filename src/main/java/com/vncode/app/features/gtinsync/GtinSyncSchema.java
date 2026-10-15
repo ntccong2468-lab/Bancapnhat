@@ -20,6 +20,13 @@ public final class GtinSyncSchema {
                   PRIMARY KEY(shop_id,marketplace,product_id,variant_id))
                 """);
             s.execute("""
+                CREATE TABLE IF NOT EXISTS gtin_sync_verified_mappings(
+                  shop_id INTEGER NOT NULL REFERENCES shops(id) ON DELETE CASCADE,
+                  marketplace TEXT NOT NULL,product_id TEXT NOT NULL,variant_id TEXT NOT NULL,
+                  gtin TEXT NOT NULL,owner TEXT NOT NULL,source TEXT NOT NULL,verified_at TEXT NOT NULL,
+                  PRIMARY KEY(shop_id,marketplace,product_id,variant_id))
+                """);
+            s.execute("""
                 CREATE TABLE IF NOT EXISTS gtin_sync_jobs(
                   id TEXT PRIMARY KEY, dedup_key TEXT NOT NULL UNIQUE,
                   shop_id INTEGER NOT NULL REFERENCES shops(id) ON DELETE CASCADE,

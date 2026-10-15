@@ -1,0 +1,17 @@
+{
+  "valid": true,
+  "marks": 600,
+  "shortCis": 600,
+  "fullDataMatrix": 0,
+  "gtinCount": 1,
+  "duplicates": 0,
+  "issues": 0,
+  "preservedEveryOriginalLine": true,
+  "version": "1.4.11",
+  "inputDescription": "Seller-supplied plain-text CIS sample; paid codes kept outside Git",
+  "bytes": 19200,
+  "gtinCheckDigitsValid": 600,
+  "liveApiVerification": false,
+  "liveMarketplaceAssignment": false,
+  "originalCodesIncludedInRepository": false
+}

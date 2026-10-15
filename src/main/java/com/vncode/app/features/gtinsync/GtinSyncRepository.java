@@ -41,6 +41,22 @@ public final class GtinSyncRepository {
             return List.copyOf(result);
         });
     }
+    /** Merge a fully completed selected-card observation; untouched GTINs retain their cache. */
+    public void mergeCatalog(int shopId,Marketplace marketplace,List<RegisteredGtin> rows){
+        transaction(c->{requireShop(c,shopId,marketplace);String owner=com.vncode.app.integration.listing.ListingIdentity.fingerprint(c,shopId,marketplace);
+            try(var p=c.prepareStatement("INSERT INTO gtin_sync_catalog VALUES(?,?,?,?) ON CONFLICT(shop_id,marketplace,gtin) DO UPDATE SET data_json=excluded.data_json")){
+                var seen=new HashSet<String>();for(var row:rows){if(!RegisteredGtinValidator.isValid(row.gtin())||!seen.add(row.gtin()))throw new IllegalArgumentException("invalid_gtin");var data=GtinJson.GSON.toJsonTree(row).getAsJsonObject();data.addProperty("owner",owner);p.setInt(1,shopId);p.setString(2,marketplace.name());p.setString(3,row.gtin());p.setString(4,GtinJson.GSON.toJson(data));p.addBatch();}p.executeBatch();
+            }return null;
+        });
+    }
+    public RegisteredGtin catalogItem(int shopId,Marketplace marketplace,String gtin) {
+        return transaction(c->{requireShop(c,shopId,marketplace);
+            try(var p=c.prepareStatement("SELECT data_json FROM gtin_sync_catalog WHERE shop_id=? AND marketplace=? AND gtin=?")){
+                p.setInt(1,shopId);p.setString(2,marketplace.name());p.setString(3,gtin);
+                try(var r=p.executeQuery()){if(!r.next())throw new IllegalArgumentException("unverified_catalog_gtin");return GtinJson.GSON.fromJson(r.getString(1),RegisteredGtin.class);}
+            }
+        });
+    }
     public void saveMapping(ProductKey key, String gtin) {
         if(!RegisteredGtinValidator.isValid(gtin)) throw new IllegalArgumentException("invalid_gtin");
         transaction(c -> {
@@ -58,6 +74,22 @@ public final class GtinSyncRepository {
                 bindKey(p,key);try(var r=p.executeQuery()) {return r.next()?r.getString(1):"";}
             }
         });
+    }
+    /** A completed remote readback, never a proposed matching rule, authorizes KIZ resolution. */
+    public void recordVerifiedMapping(ProductKey key,String gtin){transaction(c->{requireShop(c,key.shopId(),key.marketplace());saveVerified(c,key,gtin);return null;});}
+    private static void saveVerified(Connection c,ProductKey key,String gtin)throws SQLException {
+        String owner=com.vncode.app.integration.listing.ListingIdentity.fingerprint(c,key.shopId(),key.marketplace()),source;
+        try(var p=c.prepareStatement("SELECT data_json FROM gtin_sync_catalog WHERE shop_id=? AND marketplace=? AND gtin=?")){
+            p.setInt(1,key.shopId());p.setString(2,key.marketplace().name());p.setString(3,gtin);
+            try(var r=p.executeQuery()){
+                if(!r.next())return;var data=com.google.gson.JsonParser.parseString(r.getString(1)).getAsJsonObject();
+                if(!data.has("owner")||!owner.equals(data.get("owner").getAsString())||!data.get("published").getAsBoolean()||!data.get("tradeUnit").getAsBoolean()||!RegisteredGtinValidator.isValid(gtin))return;
+                source=data.get("source").getAsString();if(!source.startsWith("National Catalog@"))return;
+            }
+        }
+        try(var p=c.prepareStatement("INSERT INTO gtin_sync_verified_mappings VALUES(?,?,?,?,?,?,?,?) ON CONFLICT(shop_id,marketplace,product_id,variant_id) DO UPDATE SET gtin=excluded.gtin,owner=excluded.owner,source=excluded.source,verified_at=excluded.verified_at")){
+            bindKey(p,key);p.setString(5,gtin);p.setString(6,owner);p.setString(7,source);p.setString(8,Instant.now().toString());p.executeUpdate();
+        }
     }
     public UUID createJob(List<Preview> previews) {
         if(previews.isEmpty() || previews.size()>1000) throw new IllegalArgumentException("invalid_selection");
@@ -146,6 +178,7 @@ public final class GtinSyncRepository {
             try(var p=c.prepareStatement("UPDATE gtin_sync_items SET status=?,remote_task_id=?,updated_at=? WHERE id=? AND status=?"+guard)) {
                 p.setString(1,next.name());p.setString(2,remoteTaskId==null?item.remoteTaskId():remoteTaskId);p.setString(3,Instant.now().toString());p.setString(4,itemId.toString());p.setString(5,expected.name());
                 if(p.executeUpdate()!=1) return false;
+                if(next==Status.SUCCEEDED)saveVerified(c,key,item.preview().newGtin());
                 event(c,itemId,next);return true;
             }
         });

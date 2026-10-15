@@ -443,7 +443,7 @@ public final class OzonDashboardController {
     }
 
     private void checkBatchReadinessAndExport(Shop selected,List<String> postingNumbers){
-        long token=++requestToken;Task<OzonBatchPrintReadiness> task=new Task<>(){@Override protected OzonBatchPrintReadiness call(){return printReadinessService.inspectAll(selected,postingNumbers);}};
+        long token=++requestToken;Task<OzonBatchPrintReadiness> task=new Task<>(){@Override protected OzonBatchPrintReadiness call()throws Exception{new com.vncode.app.integration.ozon.OzonStockReplenishment().forPrint(selected,postingNumbers);return printReadinessService.inspectAll(selected,postingNumbers);}};
         setBusy(true);task.setOnSucceeded(e->{if(token!=requestToken||!isCurrent(selected))return;setBusy(false);var readiness=task.getValue();
             if(!readiness.ready()) {
                 statusLabel.setText(tr("ozon.dashboard.readiness.blocked"));
@@ -471,6 +471,7 @@ public final class OzonDashboardController {
         Task<OzonPrintReadiness> task = new Task<>() {
             @Override protected OzonPrintReadiness call() throws Exception {
                 syncWorkflow.refreshPosting(selected, posting.postingNumber());
+                new com.vncode.app.integration.ozon.OzonStockReplenishment().forPrint(selected,List.of(posting.postingNumber()));
                 return printReadinessService.inspect(selected, posting.postingNumber());
             }
         };

@@ -72,9 +72,11 @@ public final class RegisteredGtinProof {
         var now = Instant.now();
         var scope=current(shop);requireProduction(scope);
         var source = scope.source();
-        boolean found = new GtinSyncRepository().catalog(shop.getId(), shop.getMarketplace()).stream()
-                .anyMatch(row -> row.gtin().equals(gtin) && row.source().equals(source) && row.published() && row.tradeUnit()
-                        && !row.syncedAt().isBefore(now.minus(Duration.ofHours(24))) && !row.syncedAt().isAfter(now.plusSeconds(300)));
+        com.vncode.app.features.gtinsync.GtinSyncModels.RegisteredGtin row;
+        try{row=new GtinSyncRepository().catalogItem(shop.getId(),shop.getMarketplace(),gtin);}
+        catch(IllegalArgumentException missing){throw new IllegalArgumentException("unverified_catalog_gtin");}
+        boolean found=row.source().equals(source)&&row.published()&&row.tradeUnit()
+                &&!row.syncedAt().isBefore(now.minus(Duration.ofHours(24)))&&!row.syncedAt().isAfter(now.plusSeconds(300));
         if (!RegisteredGtinValidator.isValid(gtin) || !found) throw new IllegalArgumentException("unverified_catalog_gtin");
     }
     /** Production seller endpoints cannot consume a sandbox or arbitrary registry observation. */

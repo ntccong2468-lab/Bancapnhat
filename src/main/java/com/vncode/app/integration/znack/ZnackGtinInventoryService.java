@@ -20,6 +20,7 @@ import java.util.HashSet;
 import java.util.Collections;
 
 public class ZnackGtinInventoryService {
+    private static final class ImportedOwner {static String eligible(String alias){return com.vncode.app.features.kiz.KizWarehouseRepository.eligible(alias);}static String current(Connection c,int shopId)throws SQLException{return com.vncode.app.features.kiz.KizWarehouseRepository.currentOwner(c,shopId);}}
     private static final Logger LOGGER = LoggerFactory.getLogger(ZnackGtinInventoryService.class);
 
     public List<Kiz> reserveAvailable(int shopId, String gtin, int quantity) {
@@ -99,9 +100,10 @@ public class ZnackGtinInventoryService {
     public int availableCount(int shopId, String gtin) {
         try (Connection c = Database.getConnection(); PreparedStatement ps = c.prepareStatement(
                 "SELECT COUNT(*) FROM kiz_codes INDEXED BY idx_kiz_codes_available_circulation WHERE shop_id=? AND gtin=? "
-                        + "AND status='AVAILABLE' AND legal_status='IN_CIRCULATION'")) {
+                        + "AND status='AVAILABLE' AND legal_status='IN_CIRCULATION' AND "+ImportedOwner.eligible("kiz_codes"))) {
             ps.setInt(1, shopId);
             ps.setString(2, GtinNormalizer.normalize(gtin));
+            ps.setString(3,ImportedOwner.current(c,shopId));
             try (ResultSet rs = ps.executeQuery()) {
                 return rs.next() ? rs.getInt(1) : 0;
             }
@@ -115,10 +117,11 @@ public class ZnackGtinInventoryService {
         var normalized=gtins.stream().map(GtinNormalizer::normalize).distinct().toList();
         var counts=new LinkedHashMap<String,Integer>();normalized.forEach(g->counts.put(g,0));
         try(var c=Database.getConnection()) {
+            String owner=ImportedOwner.current(c,shopId);
             for(int offset=0;offset<normalized.size();offset+=750) {
                 var batch=normalized.subList(offset,Math.min(offset+750,normalized.size()));
-                String sql="SELECT gtin,count(*) FROM kiz_codes INDEXED BY idx_kiz_codes_available_circulation WHERE shop_id=? AND status='AVAILABLE' AND legal_status='IN_CIRCULATION' AND gtin IN ("+String.join(",",Collections.nCopies(batch.size(),"?"))+") GROUP BY gtin";
-                try(var p=c.prepareStatement(sql)){p.setInt(1,shopId);int i=2;for(var g:batch)p.setString(i++,g);try(var r=p.executeQuery()){while(r.next())counts.put(r.getString(1),r.getInt(2));}}
+                String sql="SELECT gtin,count(*) FROM kiz_codes INDEXED BY idx_kiz_codes_available_circulation WHERE shop_id=? AND status='AVAILABLE' AND legal_status='IN_CIRCULATION' AND gtin IN ("+String.join(",",Collections.nCopies(batch.size(),"?"))+") AND "+ImportedOwner.eligible("kiz_codes")+" GROUP BY gtin";
+                try(var p=c.prepareStatement(sql)){p.setInt(1,shopId);int i=2;for(var g:batch)p.setString(i++,g);p.setString(i,owner);try(var r=p.executeQuery()){while(r.next())counts.put(r.getString(1),r.getInt(2));}}
             }
             return Map.copyOf(counts);
         }catch(SQLException failure){throw new IllegalStateException("Unable to read inventory counts");}
@@ -218,18 +221,19 @@ public class ZnackGtinInventoryService {
     private Map<String,List<Kiz>> selectAvailableBulk(Connection c,int shopId,Map<String,Integer> requested)throws SQLException {
         Map<String,List<Kiz>> result=new LinkedHashMap<>();
         List<Map.Entry<String,Integer>> entries=new ArrayList<>(requested.entrySet());
+        String owner=ImportedOwner.current(c,shopId);
         for(int start=0;start<entries.size();start+=400) {
             var batch=entries.subList(start,Math.min(start+400,entries.size()));
             String values=String.join(",",Collections.nCopies(batch.size(),"(?,?)"));
             String sql="WITH wanted(gtin,quantity) AS (VALUES "+values+")"+"""
                     , ranked AS (SELECT code.id,code.raw_code,code.gtin,wanted.quantity,
-                      ROW_NUMBER() OVER(PARTITION BY code.gtin ORDER BY code.id) AS position
-                      FROM kiz_codes code INDEXED BY idx_kiz_codes_available_circulation JOIN wanted ON wanted.gtin=code.gtin
-                      WHERE code.shop_id=? AND code.status='AVAILABLE' AND code.legal_status='IN_CIRCULATION')
-                    SELECT id,raw_code,gtin FROM ranked WHERE position<=quantity ORDER BY gtin,id
-                    """;
+                      ROW_NUMBER() OVER(PARTITION BY code.gtin ORDER BY code.source_priority,code.id) AS position
+                      FROM kiz_codes code INDEXED BY idx_kiz_codes_priority_circulation JOIN wanted ON wanted.gtin=code.gtin
+                      WHERE code.shop_id=? AND code.status='AVAILABLE' AND code.legal_status='IN_CIRCULATION' AND %s)
+                    SELECT id,raw_code,gtin FROM ranked WHERE position<=quantity ORDER BY gtin,position
+                    """.formatted(ImportedOwner.eligible("code"));
             try(PreparedStatement ps=c.prepareStatement(sql)) {
-                int index=1;for(var entry:batch){ps.setString(index++,entry.getKey());ps.setInt(index++,entry.getValue());}ps.setInt(index,shopId);
+                int index=1;for(var entry:batch){ps.setString(index++,entry.getKey());ps.setInt(index++,entry.getValue());}ps.setInt(index++,shopId);ps.setString(index,owner);
                 try(ResultSet rs=ps.executeQuery()){while(rs.next())result.computeIfAbsent(rs.getString(3),ignored->new ArrayList<>()).add(new Kiz(rs.getInt(1),rs.getString(2)));}
             }
         }

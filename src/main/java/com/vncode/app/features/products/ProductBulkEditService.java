@@ -17,7 +17,7 @@ import java.nio.file.*;
 
 public final class ProductBulkEditService {
     public record EditItem(ProductKey key,Map<String,List<String>> changes,List<ProductDocument> documents,ListingTargetAdapter.ProductEditPreview preview,RemoteSubmission submission,CopyState state,List<CopyIssue> issues,List<String> before){
-        public EditItem {changes=Map.copyOf(changes);documents=documents==null?null:List.copyOf(documents);issues=List.copyOf(issues);before=List.copyOf(before);}
+        public EditItem {changes=Collections.unmodifiableMap(new TreeMap<>(changes));documents=documents==null?null:List.copyOf(documents);issues=List.copyOf(issues);before=List.copyOf(before);}
         public EditItem with(CopyState s,RemoteSubmission r,List<CopyIssue> i){return new EditItem(key,changes,documents,preview,r,s,i,before);}
     }
     public record ProductEditPreview(String id,int shopId,String owner,List<ProductKey> keys,ProductBulkEdit edit,List<EditItem> items){
@@ -27,7 +27,7 @@ public final class ProductBulkEditService {
     public record ProductEditResult(String id,List<EditItem> items,boolean documentsVerified){public ProductEditResult{items=List.copyOf(items);}}
     private final ProductEditRepository repo;private final ProductSnapshotReader reader;private final Function<Shop,ListingTargetAdapter> adapters;
     public ProductBulkEditService(){this(new ProductEditRepository(),(s,k)->s.getMarketplace()==Marketplace.OZON?new OzonProductSnapshotReader().read(s,k):new WbProductSnapshotReader().read(s,k),s->s.getMarketplace()==Marketplace.OZON?new OzonListingAdapter():new WbListingAdapter());}
-    public ProductBulkEditService(ProductEditRepository repo,ProductSnapshotReader reader,Function<Shop,ListingTargetAdapter> adapters){this.repo=repo;this.reader=reader;this.adapters=adapters;repo.recoverIncomplete();}
+    public ProductBulkEditService(ProductEditRepository repo,ProductSnapshotReader reader,Function<Shop,ListingTargetAdapter> adapters){this.repo=repo;this.reader=reader;this.adapters=adapters;}
     public ProductEditPreview preview(Shop shop,List<ProductKey> keys,ProductBulkEdit edit)throws IOException {
         ListingIdentity.require(shop);var frozen=keys.stream().distinct().sorted(Comparator.comparing(ProductKey::cardId).thenComparing(ProductKey::variantId)).toList();if(frozen.isEmpty())throw new IllegalArgumentException("Select products");
         var groups=new LinkedHashMap<String,List<ProductKey>>();for(var key:frozen){ListingIdentity.require(shop,key);groups.computeIfAbsent(key.cardId(),k->new ArrayList<>()).add(key);}if(groups.size()>1000)throw new IllegalArgumentException("Product edit limit is 1000 cards");
@@ -53,6 +53,33 @@ public final class ProductBulkEditService {
         }
         var p=new ProductEditPreview(UUID.randomUUID().toString(),shop.getId(),ListingIdentity.fingerprint(shop),frozen,edit,items);repo.insert(p);return p;
     }
+    /** A complete, already resolved multi-field card patch for the Catalog sync workflow. */
+    public ProductEditPreview previewPatch(Shop shop,ProductSnapshot fresh,Map<String,List<String>> changes,List<ProductDocument> documents)throws IOException {
+        ListingIdentity.require(shop);LicenseRuntime.require(SELLER_API);requireFresh(shop,fresh.key(),fresh);
+        if(changes.isEmpty()&&documents==null)throw new IllegalArgumentException("Empty product patch");
+        changes=Collections.unmodifiableMap(new TreeMap<>(changes));
+        documentBudget(shop,documents);
+        if(documents!=null){
+            for(var d:documents)if(d.marketplace()!=shop.getMarketplace())throw new IllegalArgumentException("Foreign document");
+            if(shop.getMarketplace()==Marketplace.WILDBERRIES){
+                var merged=new ArrayList<>(fresh.documents());
+                for(var d:documents){
+                    var existing=merged.stream().filter(old->Objects.equals(old.number(),d.number())&&documentType(old.type()).equals(documentType(d.type()))).findFirst();
+                    merged.removeIf(old->Objects.equals(old.number(),d.number())&&documentType(old.type()).equals(documentType(d.type())));
+                    merged.add(existing.isPresent()?new ProductDocument(existing.get().id(),d.type(),d.number(),d.validFrom(),d.validUntil(),d.owner(),d.scope(),d.file(),d.marketplace(),d.state(),d.source(),d.checkedAt(),d.metadata()):d);
+                }
+                documents=List.copyOf(merged);
+            }
+        }
+        var p=adapters.apply(shop).previewUpdate(shop,fresh,changes,documents);
+        long bytes=((long)p.preview().requestJson().length()+p.preview().documentsJson().length())*2;
+        if(bytes>64L*1024*1024)throw new IllegalArgumentException("Product preview payload exceeds 64 MiB");
+        var patchChanges=changes;
+        var before=fresh.attributes().stream().filter(a->patchChanges.containsKey("attribute:"+a.id())).flatMap(a->a.values().stream()).toList();
+        var item=new EditItem(fresh.key(),changes,documents,p,null,p.preview().publishable()?CopyState.AWAITING_CONFIRMATION:CopyState.NEEDS_DATA,p.preview().issues(),before);
+        var result=new ProductEditPreview(UUID.randomUUID().toString(),shop.getId(),ListingIdentity.fingerprint(shop),List.of(fresh.key()),null,List.of(item));repo.insert(result);return result;
+    }
+    private static String documentType(String type){return switch(type){case "1","certificate","CERTIFICATE_OF_CONFORMITY"->"1";case "2","declaration","DECLARATION"->"2";case "3","CERTIFICATE_OF_REGISTRATION"->"3";default->type;};}
     public ProductEditResult apply(Shop shop,String id,boolean confirmed)throws IOException {
         return com.vncode.app.features.shop.ShopOperationCoordinator.withActiveShop(shop.getId(),()->applyActive(shop,id,confirmed));
     }

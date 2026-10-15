@@ -46,7 +46,14 @@ public class OrderExportWorkflow {
             public Map<Long,String> mappings(int shopId,List<Long> ids){return kizMappingRepository.findMappings(shopId,ids);}
             public Set<Long> required(int shopId,List<Long> ids){return kizMappingRepository.findKizRequiredNmIds(shopId,ids);}
             public Map<String,String> activeGtinsByBarcode(int shopId){return new ZnackCardRegistrationRepository().activeGtinsByBarcode(shopId);}
-            public Map<String,List<Kiz>> reserve(int shopId,Map<String,Integer> quantities){return inventoryService.reserveAvailableBulk(shopId,quantities);}
+            public Map<String,List<Kiz>> reserve(int shopId,Map<String,Integer> quantities){
+                try{
+                    var current=new com.vncode.app.features.shop.ShopRepository().findById(shopId);
+                    var result=new com.vncode.app.features.kiz.KizStockReplenisher().ensure(current,quantities);
+                    if(result.waiting())throw new com.vncode.app.features.kiz.KizAssignmentException("KIZ_PURCHASE_PENDING","","");
+                    return inventoryService.reserveAvailableBulk(shopId,quantities);
+                }catch(RuntimeException failed){throw failed;}catch(Exception failed){throw new IllegalStateException("KIZ_REPLENISH_FAILED",failed);}
+            }
             public void release(int shopId,List<Kiz> codes){inventoryService.release(shopId,codes);}
             public void validate(Shop shop)throws IOException{KizService.requireCurrentShop(shop.getId(),shop.getApiKey());}
             public void requireNoPending(int shopId,List<Long> ids)throws IOException{new KizAttachmentCheckpointRepository().requireNoPending(shopId,ids);}
@@ -188,7 +195,7 @@ public class OrderExportWorkflow {
                 order.setRequiresKiz(true);
                 if (sgtinMetadata.hasAppliedValue()) {
                     String appliedGtin = KizService.extractGtin(sgtinMetadata.appliedValue());
-                    if (gtin == null || gtin.equals(appliedGtin)) {
+                    if (gtin == null || com.vncode.app.features.gtinsync.RegisteredGtinProof.sameCode(gtin,appliedGtin)) {
                         order.setKiz(sgtinMetadata.appliedValue());
                         continue;
                     }
@@ -200,7 +207,7 @@ public class OrderExportWorkflow {
             }
             order.setRequiresKiz(true);
             if (gtin == null) {
-                throw new IllegalStateException("Order thứ " + (i + 1) + " cần KIZ nhưng nmId chưa được map: " + order.getNmId());
+                throw new com.vncode.app.features.kiz.KizAssignmentException("KIZ_GTIN_MAPPING_MISSING",String.valueOf(order.getId()),String.valueOf(order.getNmId()));
             }
             ordersByGtin.computeIfAbsent(GtinNormalizer.normalize(gtin), key -> new ArrayList<>()).add(order);
         }

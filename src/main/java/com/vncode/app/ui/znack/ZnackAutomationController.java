@@ -48,6 +48,8 @@ public class ZnackAutomationController {
     @FXML private Label omsHelpTitleLabel, omsHelpDescriptionLabel, omsHelpStepsTitleLabel, omsHelpStepsLabel;
     @FXML private Label omsHelpRecognizeTitleLabel, omsHelpRecognizeLabel, omsHelpWarningLabel;
     @FXML private Label signatureTitleLabel;
+    private final com.vncode.app.ui.kiz.KizWarehousePane warehousePane=new com.vncode.app.ui.kiz.KizWarehousePane();
+    private final Tab warehouseTab=new Tab();
     @FXML private Tab informationTab, settingsTab, productsTab, deletedTab, ordersTab, logsTab;
     @FXML private Label accountOwnerTitleLabel, accountOwnerLabel, accountInnLabel, accountStatusLabel;
     @FXML private Label accountBalanceTitleLabel, accountBalanceLabel, accountBalanceUpdatedLabel;
@@ -136,6 +138,8 @@ public class ZnackAutomationController {
 
     @FXML
     private void initialize() {
+        warehouseTab.setId("warehouseTab");warehouseTab.setClosable(false);warehouseTab.setContent(warehousePane);informationTab.getTabPane().getTabs().add(warehouseTab);
+        warehouseTab.selectedProperty().addListener((o,a,b)->{if(b)warehousePane.reload();});
         connectionPanels.widthProperty().addListener((ignored,old,width)->arrangeConnectionPanels(width.doubleValue()));
         arrangeConnectionPanels(0);
         catalogKeyField.textProperty().addListener((ignored, old, text) -> {
@@ -262,6 +266,8 @@ public class ZnackAutomationController {
     }
 
     public void setShop(Shop shop) {
+        warehousePane.setShop(shop);
+        if(warehouseTab.isSelected())warehousePane.reload();
         shopGeneration++;
         catalogCheckRunning = false;
         catalogShop = shop == null ? null : new Shop(shop.getId(), shop.getName(), shop.getMarketplace(), shop.getClientId(), shop.getApiKey());
@@ -286,6 +292,7 @@ public class ZnackAutomationController {
     }
 
     public void applyTranslations() {
+        warehouseTab.setText(I18nService.getInstance().tr("kiz.warehouse.title"));warehousePane.applyTranslations();
         omsConnectionField.setPromptText(tr("znack.oms_connection_prompt"));
         if(repository==null)authStatusLabel.setText(tr("znack.error.select_shop"));
         catalogTitleLabel.setText(tr("znack.catalog.title"));

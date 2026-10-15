@@ -16,7 +16,7 @@ import static com.vncode.app.features.gtinsync.GtinSyncModels.*;
 
 public final class GtinSyncController {
     @FXML private Label titleLabel,scopeLabel,statusLabel,capabilityLabel;
-    @FXML private Button syncButton,loadButton,selectButton,clearButton,mappingButton,previewButton,confirmButton,pauseButton,resumeButton,cancelButton,reconcileButton,csvButton,xlsxButton;
+    @FXML private Button syncButton,loadButton,selectButton,clearButton,mappingButton,previewButton,fullSyncButton,confirmButton,pauseButton,resumeButton,cancelButton,reconcileButton,csvButton,xlsxButton;
     @FXML private TextField searchField;
     @FXML private ComboBox<RegisteredGtin> gtinBox;
     @FXML private ComboBox<Operation> operationBox;
@@ -72,6 +72,7 @@ public final class GtinSyncController {
         var buttons=List.of(syncButton,loadButton,selectButton,clearButton,mappingButton,previewButton,confirmButton,pauseButton,resumeButton,cancelButton,reconcileButton,csvButton,xlsxButton);
         var keys=List.of("sync","load","select_exact","clear","mapping","preview","confirm","pause","resume","cancel","reconcile","csv","xlsx");
         for(int i=0;i<keys.size();i++)buttons.get(i).setText(tr("gtinsync."+keys.get(i)));
+        fullSyncButton.setText(tr("catalogsync.title"));
         searchField.setPromptText(tr("gtinsync.search"));gtinBox.setPromptText(tr("gtinsync.target"));oldBarcodeBox.setPromptText(tr("gtinsync.old"));
         productTable.getColumns().clear();
         column(productTable,"product",r->r.product().key().productId()+" / "+r.product().key().variantId());
@@ -125,6 +126,14 @@ public final class GtinSyncController {
             }
             return List.copyOf(results);
         },results->{preview=results;previewArea.setText(results.stream().map(p->p.before().key().productId()+" / "+p.before().key().variantId()+" · "+tr("gtinsync.op."+p.operation())+" · "+p.oldGtin()+" → "+p.newGtin()+"\n"+tr("gtinsync.barcodes")+": "+String.join(", ",p.before().barcodes())).collect(java.util.stream.Collectors.joining("\n\n")));statusLabel.setText(results.stream().allMatch(p->p.capability().supports(p.operation()))?tr("gtinsync.confirm_hint"):tr("gtinsync.contract_unverified"));},true);
+    }
+    @FXML private void onFullSync(){
+        var selected=List.copyOf(productTable.getSelectionModel().getSelectedItems());if(selected.isEmpty()||busy)return;
+        var requests=new ArrayList<com.vncode.app.features.catalogsync.CatalogSyncModels.Selection>();
+        for(var row:selected){String gtin=selected.size()==1&&gtinBox.getValue()!=null?gtinBox.getValue().gtin():row.gtin();if(gtin.isBlank()){statusLabel.setText(tr("gtinsync.invalid_selection"));return;}requests.add(new com.vncode.app.features.catalogsync.CatalogSyncModels.Selection(row.product().key(),gtin));}
+        var token=model.token();var shop=workspace.require(token.shopId(),token.marketplace());
+        var pane=new com.vncode.app.ui.catalogsync.CatalogSyncPane();pane.open(shop,requests);
+        var dialog=new Dialog<Void>();com.vncode.app.shared.AlertService.applyTheme(dialog);dialog.setTitle(tr("catalogsync.title"));dialog.initOwner(productTable.getScene().getWindow());dialog.setResizable(true);dialog.getDialogPane().setContent(pane);dialog.getDialogPane().setPrefSize(1060,700);dialog.getDialogPane().getButtonTypes().add(ButtonType.CLOSE);dialog.setOnHidden(e->pane.dispose());dialog.show();
     }
     @FXML private void onConfirm() {
         if(preview.isEmpty()||busy||runningQueues.contains(scope(model.token()))||preview.stream().anyMatch(p->!p.capability().supports(p.operation())))return;
@@ -182,7 +191,7 @@ public final class GtinSyncController {
         boolean noShop=model.token().shopId()==0;boolean selected=productTable.getSelectionModel().getSelectedItem()!=null;boolean job=historyTable.getSelectionModel().getSelectedItem()!=null;
         boolean single=productTable.getSelectionModel().getSelectedItems().size()==1;boolean executing=runningQueues.contains(scope(model.token()));
         gtinBox.setDisable(busy||!single);operationBox.setDisable(busy||!single);oldBarcodeBox.setDisable(busy||!single);
-        syncButton.setDisable(busy||noShop);loadButton.setDisable(busy||noShop);mappingButton.setDisable(busy||!single);previewButton.setDisable(busy||!selected);
+        syncButton.setDisable(busy||noShop);loadButton.setDisable(busy||noShop);mappingButton.setDisable(busy||!single);fullSyncButton.setDisable(busy||!selected);previewButton.setDisable(busy||!selected);
         selectButton.setDisable(busy||productTable.getItems().isEmpty());clearButton.setDisable(busy||!selected);
         confirmButton.setDisable(busy||executing||preview.isEmpty()||preview.stream().anyMatch(p->!p.capability().supports(p.operation())));
         pauseButton.setDisable(busy||!job);resumeButton.setDisable(busy||executing||!job);cancelButton.setDisable(busy||!job);reconcileButton.setDisable(busy||executing||!job);csvButton.setDisable(busy||history.isEmpty());xlsxButton.setDisable(busy||history.isEmpty());

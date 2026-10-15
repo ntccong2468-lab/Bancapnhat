@@ -17,10 +17,8 @@ public final class GtinPreviewService {
         if(!capability.supports(operation))throw new IllegalArgumentException("unsupported_operation");
         if(!RegisteredGtinValidator.isValid(newGtin))throw new IllegalArgumentException("invalid_gtin");
         var now=clock.instant();
-        boolean registered=repository.catalog(key.shopId(),key.marketplace()).stream()
-                .anyMatch(g -> g.gtin().equals(newGtin) && g.published() && g.tradeUnit()
-                        && !g.syncedAt().isBefore(now.minus(Duration.ofHours(24))) && !g.syncedAt().isAfter(now.plusSeconds(300)));
-        if(!registered)throw new IllegalArgumentException("unverified_catalog_gtin");
+        var observed=repository.catalogItem(key.shopId(),key.marketplace(),newGtin);
+        if(!observed.published()||!observed.tradeUnit()||observed.syncedAt().isBefore(now.minus(Duration.ofHours(24)))||observed.syncedAt().isAfter(now.plusSeconds(300)))throw new IllegalArgumentException("unverified_catalog_gtin");
         adapter.validateRegistration(newGtin);
         LicenseRuntime.require(Permission.SELLER_API);
         var product=adapter.read(key);

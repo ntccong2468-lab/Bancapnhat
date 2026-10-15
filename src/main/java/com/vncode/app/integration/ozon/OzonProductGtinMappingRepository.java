@@ -183,6 +183,7 @@ public final class OzonProductGtinMappingRepository {
             // A reviewed native candidate switches exactly one SKU. A broad article rule must
             // not override that completed choice or alter sibling sizes using the same article.
             verifiedBarcodeMappings(connection,shopId).forEach(resolved::put);
+            com.vncode.app.features.kizmapping.VerifiedKizMappings.read(connection,shopId,com.vncode.app.integration.marketplace.Marketplace.OZON).forEach(resolved::put);
             activeNativeMappings(connection,shopId).forEach(resolved::put);
             return Map.copyOf(resolved);
         } catch (SQLException exception) {

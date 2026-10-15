@@ -403,6 +403,7 @@ public final class OzonExemplarJobRepository {
     private static void reserveAndLink(
             Connection connection, OzonExemplarJob job, OzonRequirementGuard.PreparationPlan plan) throws SQLException {
         String reservationToken = "ozon:" + job.id();
+        String inventoryOwner=com.vncode.app.features.kiz.KizWarehouseRepository.currentOwner(connection,job.shopId());
         String now = Instant.now().toString();
         // Reuse both prepared updates for the entire posting, including quantities above 1,000.
         try (PreparedStatement reserve = connection.prepareStatement("""
@@ -417,7 +418,7 @@ public final class OzonExemplarJobRepository {
                 if (exemplarRows.size() != required.quantity()) {
                     throw new IllegalStateException("Ozon exemplar rows are incomplete for this posting.");
                 }
-                List<Long> available = availableKiz(connection, job.shopId(), required.gtin(), required.quantity());
+                List<Long> available = availableKiz(connection, job.shopId(), required.gtin(), required.quantity(),inventoryOwner);
                 if (available.size() != required.quantity()) throw new InsufficientKizException();
                 for (int index = 0; index < available.size(); index++) {
                     reserve.setString(1, reservationToken);
@@ -875,16 +876,17 @@ public final class OzonExemplarJobRepository {
         }
     }
 
-    private static List<Long> availableKiz(Connection connection, int shopId, String gtin, int quantity)
+    private static List<Long> availableKiz(Connection connection, int shopId, String gtin, int quantity,String owner)
             throws SQLException {
         try (PreparedStatement statement = connection.prepareStatement("""
-                SELECT id FROM kiz_codes INDEXED BY idx_kiz_codes_available_circulation
-                WHERE shop_id=? AND gtin=? AND status='AVAILABLE' AND legal_status='IN_CIRCULATION'
-                ORDER BY id LIMIT ?
-                """)) {
+                SELECT id FROM kiz_codes INDEXED BY idx_kiz_codes_priority_circulation
+                WHERE shop_id=? AND gtin=? AND status='AVAILABLE' AND legal_status='IN_CIRCULATION' AND %s
+                ORDER BY source_priority,id LIMIT ?
+                """.formatted(com.vncode.app.features.kiz.KizWarehouseRepository.eligible("kiz_codes")))) {
             statement.setInt(1, shopId);
             statement.setString(2, gtin);
-            statement.setInt(3, quantity);
+            statement.setString(3,owner);
+            statement.setInt(4, quantity);
             try (ResultSet result = statement.executeQuery()) {
                 List<Long> ids = new ArrayList<>();
                 while (result.next()) ids.add(result.getLong(1));

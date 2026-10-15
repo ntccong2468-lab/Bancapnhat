@@ -168,6 +168,7 @@ public class ZnackCardRegistrationRepository {
                     String prior=result.putIfAbsent(barcode,gtin);if(prior!=null && !prior.equals(gtin))ambiguous.add(barcode);
                 }
             }
+            com.vncode.app.features.kizmapping.VerifiedKizMappings.read(c,shopId,com.vncode.app.integration.marketplace.Marketplace.WILDBERRIES).forEach(result::putIfAbsent);
             ambiguous.forEach(result::remove);return java.util.Map.copyOf(result);
         }catch(SQLException error){throw new RuntimeException(error);}
     }

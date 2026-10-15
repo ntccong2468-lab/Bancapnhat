@@ -213,6 +213,15 @@ class KizAttachmentCoordinatorTest {
         } finally {release.countDown();executor.shutdownNow();}
     }
 
+    @Test void processingStatusRejectionIsAVisibleOrderErrorRatherThanASuccessfulSkip(){
+        var last=new AtomicReference<KizAttachmentCoordinator.KizAttachmentProgress>();
+        var coordinator=new KizAttachmentCoordinator(Runnable::run,new KizAttachmentCoordinator.AttachmentClient(){
+            public KizService.RemoveMetaResult remove(String token,long id){throw new AssertionError();}
+            public KizService.AttachCodeResult attach(String token,long id,String code){return new KizService.AttachCodeResult(false,409,"FailedToUpdateMeta: Processing status "+SECRET);}
+        });
+        coordinator.addListener(last::set);coordinator.enqueue(new Shop(7,"Main","token"),"SUP","Supply",assignments(7,1));
+        assertEquals("KIZ_ORDER_STATUS",coordinator.getAttachmentError(7,1));assertEquals(0,last.get().completed());assertFalse(last.get().failures().isEmpty());assertFalse(last.get().failures().toString().contains(SECRET));
+    }
     @Test void errorsWithSameOrderIdCannotLeakOrClearAcrossShopsAndRateLimitStopsJob() {
         var coordinator=new KizAttachmentCoordinator(Runnable::run,new KizAttachmentCoordinator.AttachmentClient(){
             public KizService.RemoveMetaResult remove(String token,long id){throw new AssertionError();}

@@ -21,6 +21,7 @@
     <ComboBox fx:id="oldBarcodeBox" prefWidth="190"/>
     <Button fx:id="mappingButton" onAction="#onMapping"/>
     <Button fx:id="previewButton" onAction="#onPreview"/>
+    <Button fx:id="fullSyncButton" onAction="#onFullSync"/>
     <Button fx:id="confirmButton" onAction="#onConfirm" disable="true"/>
   </FlowPane>
   <TextArea fx:id="previewArea" editable="false" wrapText="true" prefRowCount="3" maxHeight="100"/>

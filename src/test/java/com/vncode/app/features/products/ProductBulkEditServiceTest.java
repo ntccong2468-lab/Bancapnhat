@@ -39,6 +39,12 @@ class ProductBulkEditServiceTest {
     @Test void confirmationRequired()throws Exception {
         var p=service.preview(shop,List.of(key),edit());assertThrows(IllegalArgumentException.class,()->service.apply(shop,p.id(),false));assertEquals(0,adapter.writes.get());
     }
+    @Test void openingAnotherServiceDoesNotRecoverAnActiveSendingClaim()throws Exception {
+        var p=service.preview(shop,List.of(key),edit());var item=p.items().getFirst();assertTrue(repo.claim(p.id(),item));
+        new ProductBulkEditService(repo,(s,k)->snapshot,s->adapter);
+        assertEquals(CopyState.SENDING,repo.items(p.id()).getFirst().state());
+        repo.recoverIncomplete();assertEquals(CopyState.RECONCILE_REQUIRED,repo.items(p.id()).getFirst().state());
+    }
     @Test void documentUploadDoesNotImplyValid()throws Exception {
         var p=service.preview(shop,List.of(key),new ProductBulkEdit("documents",List.of(),List.of(),Map.of()));
         var r=service.apply(shop,p.id(),true);assertFalse(r.documentsVerified());adapter.ready=true;assertFalse(service.reconcile(shop,p.id()).documentsVerified());

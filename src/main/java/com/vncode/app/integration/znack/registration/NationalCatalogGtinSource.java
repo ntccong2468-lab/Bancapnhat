@@ -14,17 +14,29 @@ import static com.vncode.app.features.gtinsync.GtinSyncModels.*;
 /** Complete, read-only catalog refresh. Unknown publication/packaging metadata stays ineligible. */
 public final class NationalCatalogGtinSource implements RegisteredGtinSource {
     @FunctionalInterface public interface PageReader {JsonElement read(int page) throws Exception;}
-    @FunctionalInterface public interface CardReader {JsonElement read(String gtin) throws Exception;}
+    @FunctionalInterface public interface CardReader {JsonElement read(String gtin) throws Exception;default void prepare(Collection<String> gtins){}}
     @FunctionalInterface public interface AdditionalGtinReader {List<String> read() throws Exception;}
     private final int shopId;
     private final PageReader pages;
     private final CardReader cards;
     private final String source;
     private final AdditionalGtinReader additional;
+    private final CardReader documents;
+    /** Same 25-GTIN, semicolon-delimited contract as ZnackProductService. Cache only one batch. */
+    static final class BatchedCards implements CardReader {
+        private final CardReader remote;private final Map<String,String> groups=new LinkedHashMap<>();private String cachedGroup;private JsonElement cached;
+        BatchedCards(CardReader remote){this.remote=remote;}
+        public void prepare(Collection<String> gtins){groups.clear();cachedGroup=null;cached=null;var ordered=List.copyOf(gtins);for(int i=0;i<ordered.size();i+=25){var batch=ordered.subList(i,Math.min(i+25,ordered.size()));String group=String.join(";",batch);batch.forEach(gtin->groups.put(gtin,group));}}
+        public JsonElement read(String gtin)throws Exception{String group=groups.get(gtin);if(group==null)throw new IllegalArgumentException("unknown_catalog_batch_gtin");if(!group.equals(cachedGroup)){var response=remote.read(group);cached=response;cachedGroup=group;}return cached;}
+    }
     public NationalCatalogGtinSource(int shopId,PageReader pages,CardReader cards){this(shopId,pages,cards,"National Catalog");}
     public NationalCatalogGtinSource(int shopId,PageReader pages,CardReader cards,String source){this(shopId,pages,cards,source,List::of);}
-    public NationalCatalogGtinSource(int shopId,PageReader pages,CardReader cards,String source,AdditionalGtinReader additional){this.shopId=shopId;this.pages=pages;this.cards=cards;this.source=Objects.requireNonNull(source);this.additional=Objects.requireNonNull(additional);}
-    public static RegisteredGtinSource forShop(Shop selected) {
+    public NationalCatalogGtinSource(int shopId,PageReader pages,CardReader cards,String source,AdditionalGtinReader additional){this(shopId,pages,cards,source,additional,null);}
+    public NationalCatalogGtinSource(int shopId,PageReader pages,CardReader cards,String source,AdditionalGtinReader additional,CardReader documents){this.shopId=shopId;this.pages=pages;this.cards=cards;this.source=Objects.requireNonNull(source);this.additional=Objects.requireNonNull(additional);this.documents=documents;}
+    public static RegisteredGtinSource forShop(Shop selected) {return forScope(selected,null,false);}
+    /** Explicit selected-card refresh avoids registry calls across an entire large shop. */
+    public static RegisteredGtinSource forSelection(Shop selected,Set<String> selectedGtins,boolean includeDocuments){return forScope(selected,Set.copyOf(selectedGtins),includeDocuments);}
+    private static RegisteredGtinSource forScope(Shop selected,Set<String> selectedGtins,boolean includeDocuments) {
         Shop shop=new Shop(selected.getId(),selected.getName(),selected.getMarketplace(),selected.getClientId(),selected.getApiKey());
         int id=shop.getId();String name=shop.getName();
         return requested -> {
@@ -46,9 +58,9 @@ public final class NationalCatalogGtinSource implements RegisteredGtinSource {
             var token=auth.trueApiToken(settings);
             if(auth.authenticatedParticipantInn()!=null&&!owner.inn().equals(auth.authenticatedParticipantInn()))throw new IllegalStateException("unverified_catalog_owner");
             var registeredScope=ZnackRegistrationScope.fromSettings(settings);
-            var result=new NationalCatalogGtinSource(id,p->{requireOwner(shop,owner.source());return api.products(settings.resolvedTrueApiBaseUrl(),token,p,10_000);},g->{requireOwner(shop,owner.source());return api.productCards(settings.resolvedTrueApiBaseUrl(),token,g);},owner.source(),()->{
-                requireOwner(shop,owner.source());return ownedPublishedGtins(shop,registeredScope);
-            }).read(id);
+            var result=new NationalCatalogGtinSource(id,p->{requireOwner(shop,owner.source());return selectedGtins==null?api.products(settings.resolvedTrueApiBaseUrl(),token,p,10_000):com.google.gson.JsonParser.parseString("{\"results\":[],\"total\":0}");},new BatchedCards(g->{requireOwner(shop,owner.source());var response=api.productCards(settings.resolvedTrueApiBaseUrl(),token,g);requireOwner(shop,owner.source());return response;}),owner.source(),()->{
+                requireOwner(shop,owner.source());return selectedGtins==null?ownedPublishedGtins(shop,registeredScope):List.copyOf(selectedGtins);
+            },includeDocuments?g->{requireOwner(shop,owner.source());return api.permitDocuments(settings.resolvedTrueApiBaseUrl(),token,g,owner.inn());}:null).read(id);
             requireOwner(shop,owner.source());
             return result;
         };
@@ -84,26 +96,31 @@ public final class NationalCatalogGtinSource implements RegisteredGtinSource {
             gtins.add(gtin);
         }
         var result=new ArrayList<RegisteredGtin>();var now=Instant.now();
+        cards.prepare(gtins);
         for(String gtin:gtins) {
             LicenseRuntime.require(Permission.SELLER_API);
             var response=cards.read(gtin);
             if(response==null || !response.isJsonObject() || !response.getAsJsonObject().has("result") || !response.getAsJsonObject().get("result").isJsonArray())throw new IOException("invalid_catalog_card");
             JsonObject selected=null;boolean unit=false;
             for(var e:response.getAsJsonObject().getAsJsonArray("result")) {
-                if(!e.isJsonObject())continue;var card=e.getAsJsonObject();boolean belongs=gtin.equals(text(card,"gtin","productGtin"));boolean thisUnit=false;
+                if(!e.isJsonObject())continue;var card=e.getAsJsonObject();boolean belongs=RegisteredGtinProof.sameCode(gtin,text(card,"gtin","productGtin"));boolean thisUnit=false;
                 if(card.has("identified_by") && card.get("identified_by").isJsonArray())for(var id:card.getAsJsonArray("identified_by")) {
                     if(!id.isJsonObject())continue;var identifier=id.getAsJsonObject();
-                    if("gtin".equalsIgnoreCase(text(identifier,"type")) && gtin.equals(text(identifier,"value","gtin"))) {
+                    if("gtin".equalsIgnoreCase(text(identifier,"type")) && RegisteredGtinProof.sameCode(gtin,text(identifier,"value","gtin"))) {
                         belongs=true;thisUnit="trade-unit".equalsIgnoreCase(text(identifier,"level"));
                     }
                 }
                 if(belongs){if(selected!=null)throw new IOException("ambiguous_catalog_card");selected=card;unit=thisUnit;}
             }
             if(selected==null)throw new IOException("missing_catalog_card");
-            String article=attribute(selected,"article","артикул","артикул товара");
-            String color=attribute(selected,"color","цвет");String size=attribute(selected,"size","размер");
+            var details=CatalogProductDataParser.parse(selected);
+            if(documents!=null){
+                try{details=CatalogProductDataParser.withRegistry(details,documents.read(gtin));}
+                catch(Exception unavailable){if(unavailable instanceof InterruptedException interrupted){Thread.currentThread().interrupt();throw interrupted;}details=CatalogProductDataParser.registryUnavailable(details);}
+            }
+            String article=details.single("article"),color=details.single("color"),size=details.single("size");
             boolean published="published".equalsIgnoreCase(text(selected,"good_status","goodStatus","cardStatus"));
-            result.add(new RegisteredGtin(gtin,article,color,size,unit,published,source,now));
+            result.add(new RegisteredGtin(gtin,article,color,size,unit,published,source,now,details));
         }
         return List.copyOf(result);
     }

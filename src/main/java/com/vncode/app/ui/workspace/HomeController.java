@@ -213,6 +213,8 @@ public class HomeController implements Initializable {
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         Database.initDatabase();
+        new com.vncode.app.features.products.ProductEditRepository().recoverIncomplete();
+        new com.vncode.app.features.gtinsync.GtinSyncRepository().recoverInterrupted();
         new com.vncode.app.features.print.history.PrintHistoryRepository().recoverInterruptedFboJobs();
         new ZnackGtinInventoryService().releaseRecoverableReservations();
         printTemplateService.ensureDefaultTemplateExists();
@@ -451,7 +453,6 @@ public class HomeController implements Initializable {
             FXMLLoader loader = FxmlViewLoader.loader(com.vncode.app.ui.gtinsync.GtinSyncController.class, "gtin-sync-view.fxml");
             gtinSyncView = FxmlViewLoader.load(loader);
             gtinSyncController = loader.getController();
-            new com.vncode.app.features.gtinsync.GtinSyncRepository().recoverInterrupted();
         }
         gtinSyncController.setShop(state.getSelectedShop());
         workspaceNavigator.show("gtin-sync");
@@ -1016,7 +1017,7 @@ public class HomeController implements Initializable {
             }
             Throwable ex = rejection;
             LOGGER.error("Verify KIZ thất bại cho shop {}", shop.getId(), ex);
-            AlertService.showError(ex.getMessage());
+            AlertService.showError(com.vncode.app.shared.FriendlyErrorService.format(ex));
         };
         checkTask.setOnFailed(e -> checkTaskFailure.accept(checkTask.getException()));
         checkTask.setOnSucceeded(e -> {
@@ -1079,7 +1080,7 @@ public class HomeController implements Initializable {
                         }
                         Throwable ex = rejection;
                         LOGGER.error("Export thất bại cho shop {}", shop.getId(), ex);
-                        AlertService.showError(ex.getMessage());
+                        AlertService.showError(com.vncode.app.shared.FriendlyErrorService.format(ex));
                     };
         exportTask.setOnFailed(ev -> exportTaskFailure.accept(exportTask.getException()));
                     exportTask.setOnSucceeded(ev -> {
@@ -2215,7 +2216,7 @@ public class HomeController implements Initializable {
                 AlertService.showWarning(
                         i18nService.tr("workspace.kiz_incomplete.title"),
                         progress.message(),
-                        String.join(System.lineSeparator(), progress.failures())
+                        progress.failures().stream().distinct().map(com.vncode.app.features.kiz.KizErrorMessages::message).collect(java.util.stream.Collectors.joining(System.lineSeparator()))
                 );
             }
             if (isCurrentShop(progress.shopId())) {

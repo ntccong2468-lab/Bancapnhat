@@ -38,7 +38,12 @@ public final class GtinSyncCoordinator {
         runPending(shopId,marketplace,item->{});
     }
     public void runPending(int shopId,com.vncode.app.integration.marketplace.Marketplace marketplace,Consumer<JobItem> progress) {
-        for(var item:repository.pending(shopId,marketplace)) {
+        runItems(repository.pending(shopId,marketplace),progress);
+    }
+    /** Only the child job explicitly approved by the Catalog plan may be advanced here. */
+    public void runJob(UUID jobId){runItems(repository.jobItems(jobId),item->{});}
+    private void runItems(List<JobItem> items,Consumer<JobItem> progress) {
+        for(var item:items) {
             if(Thread.currentThread().isInterrupted())return;
             if(item.status()==Status.AWAITING_VERIFICATION || item.status()==Status.RECONCILE_REQUIRED){reconcile(item.id());publish(progress,item.id());continue;}
             if(item.status()!=Status.QUEUED || repository.paused(item.jobId()))continue;
