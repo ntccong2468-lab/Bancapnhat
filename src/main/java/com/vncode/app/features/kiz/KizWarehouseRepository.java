@@ -22,8 +22,8 @@ public final class KizWarehouseRepository {
         try(var c=Database.getConnection();var tx=c.createStatement()){
             tx.execute("BEGIN IMMEDIATE");try{
                 requireOwner(c,shop,owner);
-                try(var p=c.prepareStatement("SELECT id FROM kiz_import_batches WHERE shop_id=? AND owner=? AND file_hash=?")){
-                    p.setInt(1,shop.getId());p.setString(2,owner);p.setString(3,preview.sha256());try(var r=p.executeQuery()){if(r.next()){String id=r.getString(1);tx.execute("COMMIT");return new Imported(id,0,marks.size());}}
+                try(var p=c.prepareStatement("SELECT id FROM kiz_import_batches WHERE shop_id=? AND file_hash=? ORDER BY created_at LIMIT 1")){
+                    p.setInt(1,shop.getId());p.setString(2,preview.sha256());try(var r=p.executeQuery()){if(r.next()){String id=r.getString(1);tx.execute("COMMIT");return new Imported(id,0,marks.size());}}
                 }
                 // One bounded inventory scan prevents importing a consumed/reserved code under another shop.
                 var existing=new HashSet<String>();try(var s=c.createStatement();var r=s.executeQuery("SELECT raw_code FROM kiz_codes")){

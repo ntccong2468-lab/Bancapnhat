@@ -107,7 +107,7 @@ class KizWarehouseTest {
         commit(preview(2,"marks.txt"));verifyAll();var stock=new ZnackGtinInventoryService();assertEquals(2,stock.availableCount(1,GTIN));
         try(var c=Database.getConnection();var s=c.createStatement()){s.execute("UPDATE shops SET api_key='rotated' WHERE id=1");}
         assertEquals(0,stock.availableCount(1,GTIN));
-        var rotated=new Shop(1,"WB","rotated");repository.prepareVerification(rotated,"National Catalog@new",INN);assertEquals(0,stock.availableCount(1,GTIN));assertEquals(2,repository.pending(rotated,"National Catalog@new",1000,0).size());
+        var rotated=new Shop(1,"WB","rotated");assertEquals(0,repository.commit(rotated,new RegisteredGtinProof.Scope("National Catalog@new",INN,"fixture","production"),preview(2,"marks.txt")).inserted());repository.prepareVerification(rotated,"National Catalog@new",INN);assertEquals(0,stock.availableCount(1,GTIN));assertEquals(2,repository.pending(rotated,"National Catalog@new",1000,0).size());
     }
     @Test void onlyUnusedUnverifiedImportsCanBeArchivedAndRestoringCannotSkipVerification()throws Exception{
         commit(preview(2,"marks.txt"));assertEquals(2,repository.changeArchive(shop,GTIN,false));assertEquals(0,new ZnackGtinInventoryService().availableCount(1,GTIN));
