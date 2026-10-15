@@ -22,3 +22,7 @@ Windows: 1.235/1.237 Java/FXML tests passed, zero failures/errors; two POSIX/off
 Public Latest API and EXE download were checked without a GitHub login. The actual shipped 1.4.6 updater classes recognized 1.4.7 as AVAILABLE, supported the Windows install action, and downloaded/verified the public EXE byte size and SHA-256. This library probe ran on Linux with the cloud session's HTTPS proxy and trusted CA; it did not execute the Windows EXE. Native Windows installation/upgrade evidence is from the separate full Windows run above.
 
 Published per the owner's explicit request. Fixture tests are not live Ozon/Catalog mutations or production multi-device/offline/revocation acceptance. Those unrun production flags remain false in the status/acceptance records; no application signature or licensing checks were disabled.
+
+## Update handoff erratum — 2026-10-15
+
+Owner report confirmed that the UI installer handoff still read a JavaFX Task property on its worker. Earlier library download/hash checks and separate native MSI installation did not exercise that handoff. Use download-only/direct EXE and install manually for the one-time bootstrap. The 1.4.8 controller-level regression reproduces the old failure and verifies the corrected handoff.
