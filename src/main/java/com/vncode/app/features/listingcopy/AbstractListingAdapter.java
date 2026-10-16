@@ -65,9 +65,16 @@ public abstract class AbstractListingAdapter implements ListingTargetAdapter {
     }
     protected List<ProductDocument> documents(ProductSnapshot s,CopyOptions o){return !o.documents().isEmpty()?o.documents():o.fields().contains("documents")?s.documents():List.of();}
     protected CopyPreview previewRecord(Shop s,ProductSnapshot source,CopyOptions o,JsonElement request,JsonArray media,JsonArray docs,List<CopyIssue> issues,List<String> articles,String operation){
+        if(operation.equals("CREATE"))issues.addAll(CopySourceCoverage.unsupported(source));
         String r=ListingIdentity.canonical(request),m=ListingIdentity.canonical(media),d=ListingIdentity.canonical(docs),owner=ListingIdentity.fingerprint(s);
         var diff=new LinkedHashMap<String,String>();diff.put("source",source.title());diff.put("target",s.getName()+" · "+market);diff.put("category",o.targetCategoryId());diff.put("articles",String.join(", ",articles));diff.put("fields",String.join(", ",new TreeSet<>(o.fields())));
         return new CopyPreview(s.getId(),market,owner,source.key(),source.revision(),CopyPreview.hash(r,m,d,owner,source.revision(),operation),r,m,d,diff,issues,articles,o,operation);
+    }
+    protected static CopyPreview withLabels(CopyPreview preview,List<TargetCategory> categories,List<TargetAttribute> dictionary){
+        var labels=new LinkedHashMap<>(preview.diff());
+        categories.stream().filter(c->c.id().equals(preview.options().targetCategoryId())).findFirst().ifPresent(c->labels.put("category_name",c.name()));
+        dictionary.forEach(attribute->labels.put("attribute."+attribute.id(),attribute.name()));
+        return new CopyPreview(preview.shopId(),preview.marketplace(),preview.owner(),preview.sourceKey(),preview.sourceRevision(),preview.requestHash(),preview.requestJson(),preview.mediaJson(),preview.documentsJson(),labels,preview.issues(),preview.articles(),preview.options(),preview.operation());
     }
     protected void requirePreview(Shop s,CopyPreview p){owner(s);if(p.shopId()!=s.getId()||p.marketplace()!=market||!p.owner().equals(ListingIdentity.fingerprint(s))||!p.publishable())throw new SecurityException("Listing preview is not publishable");}
     protected RemoteSubmission submitted(CopyPreview p,String task){return new RemoteSubmission(p.shopId(),p.marketplace(),p.owner(),p.requestHash(),task,p.articles(),p.requestJson(),p.mediaJson(),p.documentsJson(),"CARD",Map.of());}
@@ -92,5 +99,5 @@ public abstract class AbstractListingAdapter implements ListingTargetAdapter {
     }
     protected static boolean expired(ProductDocument d){return d.state()==DocumentState.EXPIRED||d.validUntil()!=null&&d.validUntil().isBefore(LocalDate.now());}
     protected static boolean validDocument(ProductDocument d){return !expired(d)&&d.state()!=DocumentState.REJECTED;}
-    protected static String namedValue(ProductSnapshot s,CopyOptions o,String field,String fallback){String explicit=o.textOverrides().get(field);if(explicit!=null&&!explicit.isBlank())return explicit;return s.attributes().stream().filter(a->("@"+field).equals(o.attributeMapping().get(a.mappingKey()))).findFirst().map(a->String.join(" ",a.values())).orElse(explicit==null?fallback:explicit);}
+    protected static String namedValue(ProductSnapshot s,CopyOptions o,String field,String fallback){String explicit=o.textOverrides().get(field);if(explicit!=null)return explicit;return s.attributes().stream().filter(a->("@"+field).equals(o.attributeMapping().get(a.mappingKey()))).findFirst().map(a->String.join(" ",a.values())).orElse(explicit==null?fallback:explicit);}
 }

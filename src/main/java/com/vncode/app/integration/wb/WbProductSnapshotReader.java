@@ -42,7 +42,7 @@ public final class WbProductSnapshotReader implements ProductSnapshotReader {
             else if(doc.has("verdict"))state=DocumentState.PENDING;
             docs.add(new ProductDocument(text(doc,"id"),text(doc,"type"),text(doc,"number"),date(text(doc,"startDate")),end,text(doc,"applicant"),text(doc,"productNumber"),null,Marketplace.WILDBERRIES,state,"https://content-api.wildberries.ru/content/v2/get/cards/list",now,metadata(doc)));
         }
-        var inherited=new LinkedHashMap<String,String>();
+        var inherited=new LinkedHashMap<String,String>();inherited.put("source.category.name",text(card,"subjectName"));
         if(includePrices)try{
             var pricing=object(prices.apply(shop).call("api/v2/list/goods/filter?limit=100&filterNmID="+key.cardId(),null,false));
             var matching=array(obj(pricing,"data"),"listGoods").asList().stream().map(com.vncode.app.integration.listing.ListingJson::object).filter(g->text(g,"nmID").equals(key.cardId())).toList();

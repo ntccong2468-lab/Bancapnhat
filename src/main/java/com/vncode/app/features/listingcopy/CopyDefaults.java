@@ -16,13 +16,15 @@ public final class CopyDefaults {
         return new CopyOptions(Set.of("title","description","brand","attributes","images","gtin","sizes","dimensions","documents"),variants,targetCategory,Map.of(),Map.of(),Map.of(),null,source.metadata().getOrDefault("source.currency","RUB"),source.documents(),marked(source));
     }
     public static TargetCategory category(ProductSnapshot source,Marketplace target,List<TargetCategory> categories){
-        if(source.key().marketplace()!=target)return null;
-        return categories.stream().filter(c->c.id().equals(source.categoryId())).findFirst().orElse(null);
+        if(source.key().marketplace()==target){var exact=categories.stream().filter(c->c.id().equals(source.categoryId())).findFirst();if(exact.isPresent())return exact.get();}
+        String name=semantic(source.metadata().get("source.category.name"));if(name.isBlank())return null;
+        var matches=categories.stream().filter(c->{String label=c.name();int separator=label.lastIndexOf(" / ");return semantic(separator<0?label:label.substring(separator+3)).equals(name);}).toList();
+        return matches.size()==1?matches.getFirst():null;
     }
     public static CopyOptions withCategory(ProductSnapshot source,Shop target,CopyOptions options,List<TargetCategory> categories){
         if(options.targetCategoryId()!=null&&!options.targetCategoryId().isBlank())return options;
         var category=category(source,target.getMarketplace(),categories);if(category==null)return options;
-        return new CopyOptions(options.fields(),options.variantIds(),category.id(),options.attributeMapping(),options.attributeValues(),options.newArticles(),options.targetPrice(),options.currency(),options.documents(),options.kizMarked(),options.variantValues(),options.textOverrides());
+        return new CopyOptions(options.fields(),options.variantIds(),category.id(),options.attributeMapping(),options.attributeValues(),options.newArticles(),options.targetPrice(),options.currency(),options.documents(),options.kizMarked(),options.variantValues(),options.textOverrides(),options.variantPrices());
     }
     public static String semantic(String name){
         String n=Normalizer.normalize(Objects.toString(name,""),Normalizer.Form.NFKC).toLowerCase(Locale.ROOT).replaceAll("[^\\p{L}\\p{N}]","");
@@ -68,9 +70,7 @@ public final class CopyDefaults {
             if(target.getMarketplace()==Marketplace.OZON&&russianSize!=null&&variant.russianSize()!=null&&!variant.russianSize().isBlank())inherited.put(russianSize.id(),List.of(variant.russianSize()));
             inherited.putAll(options.variantValues().getOrDefault(variant.id(),Map.of()));values.put(variant.id(),Map.copyOf(inherited));
         }
-        BigDecimal price=options.targetPrice()==null?price(source):options.targetPrice();
-        String currency=options.targetPrice()==null&&price!=null?source.metadata().getOrDefault("source.currency",options.currency()):options.currency();
-        return new CopyOptions(options.fields(),options.variantIds(),options.targetCategoryId(),maps,options.attributeValues(),articles,price,currency,options.documents(),options.kizMarked()==null?marked(source):options.kizMarked(),values,options.textOverrides());
+        return new CopyOptions(options.fields(),options.variantIds(),options.targetCategoryId(),maps,options.attributeValues(),articles,options.targetPrice(),options.currency(),options.documents(),options.kizMarked()==null?marked(source):options.kizMarked(),values,options.textOverrides(),options.variantPrices());
     }
     public static String article(ProductSnapshot source,Shop target,ProductVariant variant){
         String value=variant!=null&&variant.sellerArticle()!=null&&!variant.sellerArticle().isBlank()?variant.sellerArticle():source.vendorArticle();
@@ -89,9 +89,21 @@ public final class CopyDefaults {
     public static BigDecimal variantPrice(ProductSnapshot source,ProductVariant variant){
         try{String v=source.metadata().get("source.price."+variant.id());return v==null?price(source):new BigDecimal(v);}catch(NumberFormatException invalid){return null;}
     }
+    /** Only explicit seller overrides outrank a variant's own inherited source price. */
+    public static BigDecimal targetPrice(ProductSnapshot source,CopyOptions options,ProductVariant variant){
+        if(options.variantPrices().containsKey(variant.id()))return options.variantPrices().get(variant.id());
+        return options.targetPrice()!=null?options.targetPrice():variantPrice(source,variant);
+    }
+    public static boolean inheritedCurrencyChanged(ProductSnapshot source,CopyOptions options,ProductVariant variant){
+        return options.targetPrice()==null&&!options.variantPrices().containsKey(variant.id())&&targetPrice(source,options,variant)!=null
+            &&!source.metadata().getOrDefault("source.currency",options.currency()).equals(options.currency());
+    }
     public static List<String> barcodes(ProductSnapshot source,ProductVariant variant){
         if(source.key().marketplace()==Marketplace.WILDBERRIES){
             for(var e:array(payload(source),"sizes")){var size=object(e);if(text(size,"chrtID").equals(variant.id()))return strings(array(size,"skus"));}
+        }
+        if(source.key().marketplace()==Marketplace.OZON){
+            var product=object(payload(source).get("attributes"));var codes=new LinkedHashSet<String>();String primary=text(product,"barcode");if(!primary.isBlank())codes.add(primary);codes.addAll(strings(array(product,"barcodes")));if(!codes.isEmpty())return List.copyOf(codes);
         }
         return variant.gtin()==null||variant.gtin().isBlank()?List.of():List.of(variant.gtin());
     }

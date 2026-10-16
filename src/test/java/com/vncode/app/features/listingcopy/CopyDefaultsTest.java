@@ -62,4 +62,47 @@ class CopyDefaultsTest {
         var options=new CopyOptions(old.fields(),old.variantIds(),"99",old.attributeMapping(),old.attributeValues(),old.newArticles(),null,"RUB",List.of(),false,old.variantValues());
         var preview=adapter(Marketplace.WILDBERRIES).preview(ListingCopyMappingTest.target(Marketplace.WILDBERRIES),source,options);assertFalse(preview.publishable());assertTrue(preview.issues().stream().anyMatch(i->i.code().equals("WB_PRICE_CURRENCY_UNVERIFIED")));
     }
+    @Test void ozonKeepsDifferentSourceSizePricesAndOnlyOverridesTheEditedVariant()throws Exception{
+        var source=source(Marketplace.WILDBERRIES,"12",Map.of("source.price.v1","100","source.price.v2","200","source.currency","RUB"));
+        var old=CopyDefaults.initial(source,ListingCopyMappingTest.target(Marketplace.OZON),Set.of("v1","v2"),"99:88");
+        var fields=new HashSet<>(old.fields());fields.remove("images");
+        var options=new CopyOptions(fields,old.variantIds(),old.targetCategoryId(),Map.of(),Map.of(),Map.of(),null,"RUB",List.of(),false,Map.of(),Map.of(),Map.of());
+        var preview=adapter(Marketplace.OZON).preview(ListingCopyMappingTest.target(Marketplace.OZON),source,options);assertTrue(preview.publishable(),preview.issues().toString());
+        var items=JsonParser.parseString(preview.requestJson()).getAsJsonObject().getAsJsonArray("items");assertEquals("100",items.get(0).getAsJsonObject().get("price").getAsString());assertEquals("200",items.get(1).getAsJsonObject().get("price").getAsString());assertNull(preview.options().targetPrice());
+        var edited=new CopyOptions(fields,old.variantIds(),old.targetCategoryId(),Map.of(),Map.of(),Map.of(),null,"RUB",List.of(),false,Map.of(),Map.of(),Map.of("v1",new BigDecimal("150")));
+        var next=adapter(Marketplace.OZON).preview(ListingCopyMappingTest.target(Marketplace.OZON),source,edited);assertTrue(next.publishable());items=JsonParser.parseString(next.requestJson()).getAsJsonObject().getAsJsonArray("items");assertEquals("150",items.get(0).getAsJsonObject().get("price").getAsString());assertEquals("200",items.get(1).getAsJsonObject().get("price").getAsString());
+    }
+    @Test void inheritedPricesCannotChangeCurrencyWithoutExplicitNewPrices()throws Exception{
+        var source=source(Marketplace.WILDBERRIES,"12",Map.of("source.price.v1","100","source.price.v2","200","source.currency","CNY"));var old=ListingCopyMappingTest.options(Marketplace.OZON);
+        var options=new CopyOptions(old.fields(),old.variantIds(),old.targetCategoryId(),old.attributeMapping(),Map.of(),old.newArticles(),null,"RUB",List.of(),false,old.variantValues());
+        var preview=adapter(Marketplace.OZON).preview(ListingCopyMappingTest.target(Marketplace.OZON),source,options);assertFalse(preview.publishable());assertTrue(preview.issues().stream().anyMatch(i->i.code().equals("SOURCE_PRICE_CURRENCY_MISMATCH")));
+    }
+    @Test void categoryNameMatchMustBeUniqueAndDoesNotReuseForeignIds(){
+        var source=source(Marketplace.WILDBERRIES,"12",Map.of("source.category.name","Trousers"));
+        assertEquals("99:88",CopyDefaults.category(source,Marketplace.OZON,List.of(new TargetCategory("99:88","Clothing / Trousers"))).id());
+        assertNull(CopyDefaults.category(source,Marketplace.OZON,List.of(new TargetCategory("99:88","Clothing / Trousers"),new TargetCategory("11:22","Other / Trousers"))));
+        assertNull(CopyDefaults.category(source,Marketplace.OZON,List.of(new TargetCategory("12","Unrelated"))));
+    }
+    @Test void legacyDraftsWithoutVariantPricesRemainReadableAndExplicitPricesSurviveScoping(){
+        var old=ListingCopyMappingTest.options(Marketplace.OZON);var json=ProductJson.GSON.toJsonTree(old).getAsJsonObject();json.remove("variantPrices");
+        assertTrue(ProductJson.GSON.fromJson(json,CopyOptions.class).variantPrices().isEmpty());
+        var next=new CopyOptions(old.fields(),old.variantIds(),old.targetCategoryId(),old.attributeMapping(),old.attributeValues(),old.newArticles(),null,"RUB",List.of(),false,old.variantValues(),old.textOverrides(),Map.of("v1",new BigDecimal("123")));
+        assertEquals(new BigDecimal("123"),ListingCopyService.options(next,Set.of("v1")).variantPrices().get("v1"));
+    }
+    @Test void unsupportedSourceContentIsReportedInsteadOfSilentlyDiscarded()throws Exception{
+        var source=source(Marketplace.WILDBERRIES,"12",Map.of("source.payload","{\"video\":\"https://example.invalid/product.mp4\",\"rich_content\":{\"blocks\":[1]}}"));
+        var preview=adapter(Marketplace.OZON).preview(ListingCopyMappingTest.target(Marketplace.OZON),source,ListingCopyMappingTest.options(Marketplace.OZON));
+        assertTrue(preview.issues().stream().anyMatch(i->i.code().equals("SOURCE_FIELD_UNSUPPORTED")&&i.field().equals("video")));assertTrue(preview.issues().stream().anyMatch(i->i.code().equals("SOURCE_FIELD_UNSUPPORTED")&&i.field().equals("rich_content")));assertFalse(preview.requestJson().contains("product.mp4"));
+    }
+    @Test void explicitClearingOfANamedFieldDoesNotRestoreTheSourceAttribute(){
+        var source=source(Marketplace.OZON,"12:13",Map.of());var old=ListingCopyMappingTest.options(Marketplace.WILDBERRIES);
+        var options=new CopyOptions(old.fields(),old.variantIds(),old.targetCategoryId(),Map.of("444","@brand"),Map.of(),old.newArticles(),null,"RUB",List.of(),false,Map.of(),Map.of("brand",""));
+        assertEquals("",AbstractListingAdapter.namedValue(source,options,"brand","Original brand"));
+    }
+    @Test void allOriginalOzonBarcodesRemainAvailableAndUnsupportedTransferIsExplicit()throws Exception{
+        var source=source(Marketplace.OZON,"12:13",Map.of("source.payload","{\"attributes\":{\"barcode\":\"000123\",\"barcodes\":[\"000123\",\"000456\"]}}"));
+        assertEquals(List.of("000123","000456"),CopyDefaults.barcodes(source,source.variants().getFirst()));
+        var old=ListingCopyMappingTest.options(Marketplace.OZON);var options=ListingCopyService.options(old,Set.of("v1"));
+        var preview=adapter(Marketplace.OZON).preview(ListingCopyMappingTest.target(Marketplace.OZON),source,options);assertFalse(preview.publishable());assertTrue(preview.issues().stream().anyMatch(i->i.code().equals("OWN_BARCODE_SET_UNSUPPORTED")));
+    }
 }

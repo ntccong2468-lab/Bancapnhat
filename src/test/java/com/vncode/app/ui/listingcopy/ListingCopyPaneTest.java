@@ -73,12 +73,93 @@ class ListingCopyPaneTest {
         var saved=service.list(oz).stream().map(j->service.get(oz,j.id())).toList();assertEquals(2,saved.size());
         var inherited=saved.stream().filter(j->j.source().key().cardId().equals("124")).findFirst().orElseThrow();assertEquals(Set.of("v2"),inherited.options().variantIds());assertTrue(inherited.options().textOverrides().isEmpty());
     }
+    private void openTarget()throws Exception{
+        fx(()->{pane.open(wb,List.of(new ProductKey(1,Marketplace.WILDBERRIES,"123","v1")));return null;});idle();
+        fx(()->{((CheckBox)pane.lookup("#copyDestination_2")).setSelected(true);return null;});idle();
+    }
+    private void expandEditor()throws Exception{fx(()->{((TitledPane)pane.lookup("#copyDetails")).setExpanded(true);pane.applyCss();pane.layout();for(String id:List.of("copyGeneralDetails","copyVariantDetails","copyAttributeDetails","copyDocumentDetails"))((TitledPane)pane.lookup("#"+id)).setExpanded(true);pane.applyCss();pane.layout();return null;});}
+    @Test void previewCanStartWithoutAChosenCategoryAndOnlyOpensTheMissingDetails()throws Exception{
+        openTarget();fx(()->{assertFalse(((TitledPane)pane.lookup("#copyDetails")).isExpanded());assertFalse(((Button)pane.lookup("#copyPrepare")).isDisabled());((Button)pane.lookup("#copyPrepare")).fire();return null;});idle();
+        assertEquals(0,adapter.sends.get());assertEquals(CopyState.NEEDS_DATA,service.list(oz).getFirst().state());
+        fx(()->{assertTrue(((TitledPane)pane.lookup("#copyDetails")).isExpanded());assertFalse(((CheckBox)pane.lookup("#copyConfirm")).isSelected());assertTrue(((Button)pane.lookup("#copyPublish")).isDisabled());return null;});
+    }
+    @Test void untouchedInheritedValuesAreNotSavedAsManualOverrides()throws Exception{
+        openTarget();expandEditor();fx(()->{((ComboBox<TargetCategory>)pane.lookup("#copyCategory")).getSelectionModel().selectFirst();return null;});idle();
+        fx(()->{((Button)pane.lookup("#copyPrepare")).fire();return null;});idle();var options=service.get(oz,service.list(oz).getFirst().id()).options();
+        assertNull(options.targetPrice());assertTrue(options.variantPrices().isEmpty());assertTrue(options.textOverrides().isEmpty());assertTrue(options.attributeValues().isEmpty());assertEquals(0,adapter.sends.get());
+    }
+    @Test void editedAttributesSurviveDictionaryReloadAndSwitchingDestinationStores()throws Exception{
+        openTarget();expandEditor();fx(()->{((ComboBox<TargetCategory>)pane.lookup("#copyCategory")).getSelectionModel().selectFirst();return null;});idle();
+        fx(()->{((TextField)pane.lookup("#copyAttributeValue_777")).setText("Wool");var method=ListingCopyPane.class.getDeclaredMethod("loadAttributes",String.class);method.setAccessible(true);method.invoke(pane,"99");return null;});idle();
+        fx(()->{assertEquals("Wool",((TextField)pane.lookup("#copyAttributeValue_777")).getText());((CheckBox)pane.lookup("#copyDestination_1")).setSelected(true);((ComboBox<Shop>)pane.lookup("#copyDestinationEditor")).getSelectionModel().selectFirst();return null;});idle();
+        fx(()->{var editor=(ComboBox<Shop>)pane.lookup("#copyDestinationEditor");editor.setValue(editor.getItems().stream().filter(s->s.getId()==1).findFirst().orElseThrow());return null;});idle();
+        fx(()->{var editor=(ComboBox<Shop>)pane.lookup("#copyDestinationEditor");editor.setValue(editor.getItems().stream().filter(s->s.getId()==2).findFirst().orElseThrow());return null;});idle();expandEditor();
+        fx(()->{assertEquals("Wool",((TextField)pane.lookup("#copyAttributeValue_777")).getText());return null;});
+    }
+    @Test void aVariantPriceEditIsStoredSeparatelyFromTheCommonPrice()throws Exception{
+        openTarget();expandEditor();fx(()->{((ComboBox<TargetCategory>)pane.lookup("#copyCategory")).getSelectionModel().selectFirst();return null;});idle();
+        fx(()->{((TextField)pane.lookup("#copyVariantPrice_v1")).setText("123");((Button)pane.lookup("#copyPrepare")).fire();return null;});idle();
+        var options=service.get(oz,service.list(oz).getFirst().id()).options();assertNull(options.targetPrice());assertEquals(new java.math.BigDecimal("123"),options.variantPrices().get("v1"));
+    }
+    @Test void aManuallySelectedSizeAttributeAndValueSurviveReopeningTheDestination()throws Exception{
+        openTarget();expandEditor();fx(()->{((ComboBox<TargetCategory>)pane.lookup("#copyCategory")).getSelectionModel().selectFirst();return null;});idle();
+        fx(()->{var target=(ComboBox<TargetAttribute>)pane.lookup("#copySizeAttribute_v1");target.setValue(target.getItems().stream().filter(a->a.id().equals("889")).findFirst().orElseThrow());((TextField)pane.lookup("#copyVariantSize_v1")).setText("XL");((CheckBox)pane.lookup("#copyDestination_1")).setSelected(true);var editor=(ComboBox<Shop>)pane.lookup("#copyDestinationEditor");editor.setValue(editor.getItems().stream().filter(s->s.getId()==1).findFirst().orElseThrow());return null;});idle();
+        fx(()->{var editor=(ComboBox<Shop>)pane.lookup("#copyDestinationEditor");editor.setValue(editor.getItems().stream().filter(s->s.getId()==2).findFirst().orElseThrow());return null;});idle();expandEditor();
+        fx(()->{assertEquals("889",((ComboBox<TargetAttribute>)pane.lookup("#copySizeAttribute_v1")).getValue().id());assertEquals("XL",((TextField)pane.lookup("#copyVariantSize_v1")).getText());return null;});
+    }
+    @Test void oneFailedPreviewDoesNotDiscardTheOtherProductsResult()throws Exception{
+        adapter.failFirstProduct=true;fx(()->{pane.open(wb,List.of(new ProductKey(1,Marketplace.WILDBERRIES,"123","v1"),new ProductKey(1,Marketplace.WILDBERRIES,"124","v2")));return null;});idle();
+        fx(()->{((CheckBox)pane.lookup("#copyDestination_2")).setSelected(true);return null;});idle();expandEditor();fx(()->{((ComboBox<TargetCategory>)pane.lookup("#copyCategory")).getSelectionModel().selectFirst();return null;});idle();fx(()->{((Button)pane.lookup("#copyPrepare")).fire();return null;});idle();
+        assertEquals(2,service.list(oz).size());assertTrue(service.list(oz).stream().anyMatch(j->j.source().key().cardId().equals("124")&&j.state()==CopyState.AWAITING_CONFIRMATION));
+        fx(()->{assertEquals(1,((javafx.scene.layout.VBox)pane.lookup("#copyBatchErrors")).getChildren().size());return null;});assertEquals(0,adapter.sends.get());
+    }
+    @Test void pendingOldJobDetailsCannotRestorePublishAfterTheSellerEditsData()throws Exception{
+        openTarget();expandEditor();fx(()->{((ComboBox<TargetCategory>)pane.lookup("#copyCategory")).getSelectionModel().selectFirst();return null;});idle();
+        fx(()->{((Button)pane.lookup("#copyPrepare")).fire();return null;});idle();var job=service.get(oz,service.list(oz).getFirst().id());
+        fx(()->{var method=ListingCopyPane.class.getDeclaredMethod("loadJob",CopyJob.class);method.setAccessible(true);method.invoke(pane,job.summary());((TextField)pane.lookup("#copyProductTitle")).setText("A new seller edit");return null;});idle();
+        fx(()->{((CheckBox)pane.lookup("#copyConfirm")).setSelected(true);assertTrue(((Button)pane.lookup("#copyPublish")).isDisabled());return null;});assertEquals(0,adapter.sends.get());
+    }
+    @Test void aSlowOldStoresDictionaryCannotOverwriteTheNewStoreEditor()throws Exception{
+        openTarget();expandEditor();adapter.attributeGate=new CountDownLatch(1);adapter.attributeEntered=new CountDownLatch(1);
+        try{
+            fx(()->{((ComboBox<TargetCategory>)pane.lookup("#copyCategory")).getSelectionModel().selectFirst();return null;});assertTrue(adapter.attributeEntered.await(3,TimeUnit.SECONDS));
+            fx(()->{((CheckBox)pane.lookup("#copyDestination_1")).setSelected(true);var editor=(ComboBox<Shop>)pane.lookup("#copyDestinationEditor");editor.setValue(editor.getItems().stream().filter(s->s.getId()==1).findFirst().orElseThrow());return null;});
+            for(int i=0;i<100;i++){if(fx(()->!((ComboBox<TargetCategory>)pane.lookup("#copyCategory")).getItems().isEmpty()))break;Thread.sleep(10);}
+            fx(()->{((ComboBox<TargetCategory>)pane.lookup("#copyCategory")).getSelectionModel().selectFirst();return null;});
+            for(int i=0;i<100;i++){if(fx(()->pane.lookup("#copyAttributeValue_111")!=null))break;Thread.sleep(10);}
+            fx(()->{assertNotNull(pane.lookup("#copyAttributeValue_111"));return null;});adapter.attributeGate.countDown();idle();
+            fx(()->{assertNotNull(pane.lookup("#copyAttributeValue_111"));assertNull(pane.lookup("#copyAttributeValue_777"));return null;});
+        }finally{adapter.attributeGate.countDown();idle();}
+    }
+    @Test void realDestinationPreviewShowsDistinctVariantPricesInTheCompactLayout()throws Exception{
+        fx(()->{pane.dispose();return null;});
+        service=new ListingCopyService(new ListingCopyRepository(),(shop,key)->{var original=source(key);return new ProductSnapshot(original.key(),original.revision(),original.title(),original.description(),original.brand(),original.vendorArticle(),original.categoryId(),original.media(),original.attributes(),original.variants(),original.dimensions(),original.documents(),original.checkedAt(),Map.of("source.category.name","Trousers","source.price.v1","100","source.price.v2","200","source.currency","RUB"));},shop->shop.getMarketplace()==Marketplace.OZON?new com.vncode.app.integration.ozon.OzonListingAdapter(owner->ListingCopyMappingTest.fixture("99:88"),image->{throw new java.io.IOException();}):new com.vncode.app.integration.wb.WbListingAdapter(owner->ListingCopyMappingTest.fixture("99"),image->{throw new java.io.IOException();}));
+        fx(()->{pane=new ListingCopyPane(service,reads);new Scene(pane,1366,768);pane.applyCss();pane.layout();pane.open(wb,List.of(new ProductKey(1,Marketplace.WILDBERRIES,"123","")));return null;});idle();
+        fx(()->{((CheckBox)pane.lookup("#copyDestination_2")).setSelected(true);return null;});idle();expandEditor();
+        fx(()->{assertEquals("99:88",((ComboBox<TargetCategory>)pane.lookup("#copyCategory")).getValue().id());((CheckBox)pane.lookup("#copyField_images")).setSelected(false);((Button)pane.lookup("#copyPrepare")).fire();return null;});idle();
+        var job=service.get(oz,service.list(oz).getFirst().id());assertEquals(CopyState.AWAITING_CONFIRMATION,job.state());assertTrue(job.preview().requestJson().contains("\"price\":\"100\""));assertTrue(job.preview().requestJson().contains("\"price\":\"200\""));
+        fx(()->{((TitledPane)pane.lookup("#copyDetails")).setExpanded(false);pane.applyCss();pane.layout();assertEquals(2,((TableView<?>)pane.lookup("#copyPreviewVariants")).getItems().size());assertFalse(((CheckBox)pane.lookup("#copyConfirm")).isSelected());capturePreparedLayout();return null;});
+    }
+    private void capturePreparedLayout()throws Exception{
+        String directory=System.getProperty("vncode.item6.capture.dir");if(directory==null)return;
+        var i18n=I18nService.getInstance();var previous=i18n.getCurrentLanguage();i18n.setLanguage(AppLanguage.VI);pane.applyTranslations();
+        var stage=new Stage();stage.setScene(pane.getScene());pane.getScene().getStylesheets().add(getClass().getResource("/com/vncode/app/styles/theme.css").toExternalForm());
+        try{stage.show();for(int width:new int[]{1366,1024}){
+            pane.setPrefSize(width,width==1366?768:600);stage.setWidth(width);stage.setHeight(width==1366?768:600);pane.resize(width,width==1366?768:600);pane.applyCss();pane.layout();var image=pane.snapshot(null,null);
+            var png=new java.awt.image.BufferedImage((int)image.getWidth(),(int)image.getHeight(),java.awt.image.BufferedImage.TYPE_INT_ARGB);for(int y=0;y<png.getHeight();y++)for(int x=0;x<png.getWidth();x++)png.setRGB(x,y,image.getPixelReader().getArgb(x,y));
+            Files.createDirectories(Path.of(directory));javax.imageio.ImageIO.write(png,"png",Path.of(directory,"copy-ready-"+width+".png").toFile());
+        }}finally{stage.close();i18n.setLanguage(previous);pane.applyTranslations();}
+    }
     static ProductSnapshot source(ProductKey key){var s=ListingCopyMappingTest.source(key.marketplace());return new ProductSnapshot(key,s.revision(),s.title(),s.description(),s.brand(),s.vendorArticle(),s.categoryId(),s.media(),s.attributes(),s.variants(),s.dimensions(),s.documents(),s.checkedAt(),s.metadata());}
     static class FakeAdapter implements ListingTargetAdapter {
-        CountDownLatch gate,entered;volatile int sentOwner;
-        public List<TargetCategory> categories(Shop s){return List.of(new TargetCategory("99","Clothing"));}public List<TargetAttribute> attributes(Shop s,String c){return List.of(new TargetAttribute("777","Material","string",false,"",3,"","",false),new TargetAttribute("888","Size","string",false,"",1,"","",false));}
-        public CopyPreview preview(Shop s,ProductSnapshot source,CopyOptions o){String owner=com.vncode.app.integration.listing.ListingIdentity.fingerprint(s),r="{}";var issues=o.documents().stream().anyMatch(d->d.file()==null)?List.of(new CopyIssue("DOCUMENT_FILE_REQUIRED","documents",true)):List.<CopyIssue>of();return new CopyPreview(s.getId(),s.getMarketplace(),owner,source.key(),source.revision(),CopyPreview.hash(r,"[]","[]",owner,source.revision(),"CREATE"),r,"[]","[]",Map.of("source",source.title()),issues,List.of("NEW"),o,"CREATE");}
-        public RemoteSubmission submit(Shop s,CopyPreview p)throws java.io.IOException{sentOwner=s.getId();if(entered!=null)entered.countDown();if(gate!=null)try{gate.await(10,TimeUnit.SECONDS);}catch(InterruptedException e){throw new java.io.IOException();}return new RemoteSubmission(s.getId(),s.getMarketplace(),p.owner(),p.requestHash(),null,p.articles(),p.requestJson(),p.mediaJson(),p.documentsJson(),"CARD",Map.of());}
+        CountDownLatch gate,entered,attributeGate,attributeEntered;volatile int sentOwner;boolean failFirstProduct;java.util.concurrent.atomic.AtomicInteger sends=new java.util.concurrent.atomic.AtomicInteger();
+        public List<TargetCategory> categories(Shop s){return List.of(new TargetCategory("99","Clothing"));}
+        public List<TargetAttribute> attributes(Shop s,String c)throws java.io.IOException{
+            if(attributeGate!=null&&s.getMarketplace()==Marketplace.OZON){attributeEntered.countDown();try{attributeGate.await(10,TimeUnit.SECONDS);}catch(InterruptedException error){Thread.currentThread().interrupt();throw new java.io.IOException(error);}}
+            return List.of(new TargetAttribute(s.getMarketplace()==Marketplace.OZON?"777":"111","Material","string",false,"",3,"","",false),new TargetAttribute("888","Size","string",false,"",1,"","",false),new TargetAttribute("889","Custom size","string",false,"",1,"","",false));
+        }
+        public CopyPreview preview(Shop s,ProductSnapshot source,CopyOptions o)throws java.io.IOException{if(failFirstProduct&&source.key().cardId().equals("123"))throw new java.io.IOException("Synthetic read failure");String owner=com.vncode.app.integration.listing.ListingIdentity.fingerprint(s),r="{}";var issues=o.documents().stream().anyMatch(d->d.file()==null)?List.of(new CopyIssue("DOCUMENT_FILE_REQUIRED","documents",true)):o.targetCategoryId().isBlank()?List.of(new CopyIssue("TARGET_CATEGORY_REQUIRED","category",true)):List.<CopyIssue>of();return new CopyPreview(s.getId(),s.getMarketplace(),owner,source.key(),source.revision(),CopyPreview.hash(r,"[]","[]",owner,source.revision(),"CREATE"),r,"[]","[]",Map.of("source",source.title()),issues,List.of("NEW"),o,"CREATE");}
+        public RemoteSubmission submit(Shop s,CopyPreview p)throws java.io.IOException{sends.incrementAndGet();sentOwner=s.getId();if(entered!=null)entered.countDown();if(gate!=null)try{gate.await(10,TimeUnit.SECONDS);}catch(InterruptedException e){throw new java.io.IOException();}return new RemoteSubmission(s.getId(),s.getMarketplace(),p.owner(),p.requestHash(),null,p.articles(),p.requestJson(),p.mediaJson(),p.documentsJson(),"CARD",Map.of());}
         public RemoteResult reconcile(Shop s,RemoteSubmission r){return RemoteResult.pending();}public RemoteSubmission finishAssets(Shop s,RemoteSubmission r){return r;}
         public ProductEditPreview previewUpdate(Shop s,ProductSnapshot f,Map<String,List<String>> c,List<ProductDocument>d){throw new UnsupportedOperationException();}public RemoteSubmission submitUpdate(Shop s,ProductEditPreview p){throw new UnsupportedOperationException();}
     }

@@ -13,8 +13,10 @@ import java.util.function.Function;
 import static com.vncode.app.integration.listing.ListingJson.*;
 
 public final class WbListingAdapter extends AbstractListingAdapter {
-    public WbListingAdapter(){this(ListingHttpClient::new,ListingMediaInspector.fullSize());}
-    public WbListingAdapter(Function<Shop,ListingTransport> c,ListingMediaInspector images){super(Marketplace.WILDBERRIES,c,images);}
+    private final Function<Shop,ListingTransport> priceClients;
+    public WbListingAdapter(){this(ListingHttpClient::new,ListingMediaInspector.fullSize(),s->new ListingHttpClient(s,new okhttp3.OkHttpClient(),okhttp3.HttpUrl.parse("https://discounts-prices-api.wildberries.ru/")));}
+    public WbListingAdapter(Function<Shop,ListingTransport> c,ListingMediaInspector images){this(c,images,c);}
+    public WbListingAdapter(Function<Shop,ListingTransport> c,ListingMediaInspector images,Function<Shop,ListingTransport> prices){super(Marketplace.WILDBERRIES,c,images);priceClients=Objects.requireNonNull(prices);}
     public List<TargetCategory> categories(Shop s)throws IOException{
         var result=new ArrayList<TargetCategory>();for(int page=0;page<20;page++){var data=array(call(s,"content/v2/object/all?limit=1000&offset="+(page*1000),null,false),"data");for(var e:data){var o=object(e);result.add(new TargetCategory(text(o,"subjectID"),text(o,"parentName")+" / "+text(o,"subjectName")));}if(data.size()<1000)return List.copyOf(result);}throw new IOException("WB category pagination limit");
     }
@@ -26,7 +28,8 @@ public final class WbListingAdapter extends AbstractListingAdapter {
         owner(shop);var issues=new ArrayList<CopyIssue>();var categories=categories(shop);var base=CopyDefaults.withCategory(source,shop,requested,categories);
         if(base.targetCategoryId()==null||!base.targetCategoryId().matches("[1-9][0-9]{0,18}")||categories.stream().noneMatch(c->c.id().equals(base.targetCategoryId()))){issue(issues,"TARGET_CATEGORY_REQUIRED","category");return previewRecord(shop,source,base,new JsonArray(),new JsonArray(),new JsonArray(),issues,List.of(),"CREATE");}
         var dictionary=attributes(shop,base.targetCategoryId());var o=CopyDefaults.complete(source,shop,base,dictionary);var selected=selected(source,o,issues);var mapped=mapped(source,o,dictionary,issues);var chars=new JsonArray();
-        if(!"RUB".equals(o.currency())&&(o.targetPrice()!=null||selected.stream().anyMatch(v->CopyDefaults.variantPrice(source,v)!=null)))issue(issues,"WB_PRICE_CURRENCY_UNVERIFIED","currency");
+        if(selected.stream().anyMatch(v->CopyDefaults.inheritedCurrencyChanged(source,o,v)))issue(issues,"WB_PRICE_CURRENCY_UNVERIFIED","currency");
+        if(!"RUB".equals(o.currency())&&(selected.stream().anyMatch(v->CopyDefaults.targetPrice(source,o,v)!=null)))issue(issues,"WB_PRICE_CURRENCY_UNVERIFIED","currency");
         for(var d:dictionary){var values=mapped.getOrDefault(d.id(),List.of());if(values.isEmpty()){if(d.required()&&!d.namedField())issue(issues,"REQUIRED_ATTRIBUTE",d.id());continue;}
             if(d.namedField()||!(d.type().equals("1")||d.type().equals("4"))){issue(issues,"ATTRIBUTE_TYPE_UNSUPPORTED",d.id());continue;}if(d.maxValues()>0&&values.size()>d.maxValues())issue(issues,"ATTRIBUTE_VALUE_LIMIT",d.id());var a=new JsonObject();a.addProperty("id",new BigInteger(d.id()));try{if(d.type().equals("4")){if(values.size()!=1)throw new NumberFormatException();a.addProperty("value",new java.math.BigDecimal(values.getFirst()));}else a.add("value",ProductJson.GSON.toJsonTree(values));chars.add(a);}catch(NumberFormatException e){issue(issues,"ATTRIBUTE_NUMBER_REQUIRED",d.id());}
         }
@@ -35,20 +38,21 @@ public final class WbListingAdapter extends AbstractListingAdapter {
         if(o.fields().contains("description"))listing.addProperty("description",namedValue(source,o,"description",source.description()));if(o.fields().contains("brand"))listing.addProperty("brand",namedValue(source,o,"brand",source.brand()));listing.add("characteristics",chars);
         if(o.kizMarked()!=null)listing.addProperty("kizMarked",o.kizMarked());
         if(source.key().marketplace()==Marketplace.WILDBERRIES&&"true".equals(text(object(JsonParser.parseString(source.metadata().getOrDefault("source.payload","{}"))),"needKiz"))&&!Boolean.TRUE.equals(o.kizMarked()))issue(issues,"MARKING_CONFIRMATION_REQUIRED","kizMarked");
-        var sizes=new JsonArray();for(var v:selected){var overrides=o.variantValues().getOrDefault(v.id(),Map.of());String tech=overrides.getOrDefault("@size",List.of(Objects.toString(v.size(),""))).getFirst(),ru=overrides.getOrDefault("@russianSize",List.of(Objects.toString(v.russianSize(),""))).getFirst();var size=new JsonObject();size.addProperty("techSize",tech.isBlank()?"0":tech);if(!ru.isBlank())size.addProperty("wbSize",ru);else if(o.fields().contains("sizes")&&!tech.isBlank()&&!tech.equals("0"))issue(issues,"RUSSIAN_SIZE_REQUIRED",v.id());var skus=new JsonArray();if(o.fields().contains("gtin")){for(String barcode:CopyDefaults.barcodes(source,v)){skus.add(barcode);if(!find(shop,barcode).isEmpty())issue(issues,"GTIN_COLLISION",v.id());}}size.add("skus",skus);var inheritedPrice=o.targetPrice()!=null?o.targetPrice():CopyDefaults.variantPrice(source,v);if(inheritedPrice!=null){try{size.addProperty("price",inheritedPrice.intValueExact());}catch(ArithmeticException e){issue(issues,"PRICE_INTEGER_REQUIRED","price");}}sizes.add(size);}listing.add("sizes",sizes);
+        var sizes=new JsonArray();for(var v:selected){var overrides=o.variantValues().getOrDefault(v.id(),Map.of());String tech=overrides.getOrDefault("@size",List.of(Objects.toString(v.size(),""))).getFirst(),ru=overrides.getOrDefault("@russianSize",List.of(Objects.toString(v.russianSize(),""))).getFirst();var size=new JsonObject();size.addProperty("techSize",tech.isBlank()?"0":tech);if(!ru.isBlank())size.addProperty("wbSize",ru);else if(o.fields().contains("sizes")&&!tech.isBlank()&&!tech.equals("0"))issue(issues,"RUSSIAN_SIZE_REQUIRED",v.id());var skus=new JsonArray();if(o.fields().contains("gtin")){for(String barcode:CopyDefaults.barcodes(source,v)){skus.add(barcode);if(!find(shop,barcode).isEmpty())issue(issues,"GTIN_COLLISION",v.id());}}size.add("skus",skus);var inheritedPrice=CopyDefaults.targetPrice(source,o,v);if(inheritedPrice!=null){try{size.addProperty("price",inheritedPrice.intValueExact());}catch(ArithmeticException e){issue(issues,"PRICE_INTEGER_REQUIRED","price");}}sizes.add(size);}listing.add("sizes",sizes);
         listing.add("dimensions",dimensions(source.dimensions(),false,issues));var docs=new JsonArray();for(var d:documents(source,o)){
             if(!validDocument(d)){issue(issues,"DOCUMENT_INVALID",d.number());continue;}
             if(!wbType(d).matches("[1-9]")){issue(issues,"DOCUMENT_TYPE_MAPPING",d.number());continue;}
             if(d.number()==null||d.number().isBlank()||d.validFrom()==null||(d.validUntil()==null&&!"true".equals(d.metadata().get("isEndless"))))issue(issues,"DOCUMENT_METADATA_REQUIRED",d.number());docs.add(wbDocument(d,false));
         }if(!docs.isEmpty()){var data=new JsonObject();data.add("items",docs);data.addProperty("excludeDocuments",false);listing.add("documents",data);issues.add(new CopyIssue("DESTINATION_DOCUMENT_APPROVAL_PENDING","documents",false));}
         var variants=new JsonArray();variants.add(listing);var group=new JsonObject();group.addProperty("subjectID",new BigInteger(o.targetCategoryId()));group.add("variants",variants);var request=new JsonArray();request.add(group);
-        return previewRecord(shop,source,o,request,media(source,o,issues),new JsonArray(),issues,List.of(article),"CREATE");
+        return withLabels(previewRecord(shop,source,o,request,media(source,o,issues),new JsonArray(),issues,List.of(article),"CREATE"),categories,dictionary);
     }
     public RemoteSubmission submit(Shop s,CopyPreview p)throws IOException{requirePreview(s,p);if(!p.operation().equals("CREATE"))throw new SecurityException("Wrong listing operation");for(String a:p.articles())if(!find(s,a).isEmpty())throw new IOException("Destination article now exists");call(s,"content/v2/cards/upload",JsonParser.parseString(p.requestJson()),true);return submitted(p,null);}
     public RemoteResult reconcile(Shop s,RemoteSubmission r)throws IOException{
         owner(s,r);var ids=new LinkedHashMap<String,String>();var expected=JsonParser.parseString(r.requestJson()).getAsJsonArray();boolean update=expected.get(0).getAsJsonObject().has("nmID");var listings=update?expected:expected.get(0).getAsJsonObject().getAsJsonArray("variants");
         for(var e:listings){var want=object(e);String article=text(want,"vendorCode");var cards=find(s,article);if(cards.isEmpty()){var cursor=new JsonObject();cursor.addProperty("limit",100);var b=new JsonObject();b.add("cursor",cursor);var errors=array(obj(call(s,"content/v2/cards/error/list",b,false),"data"),"items");if(errors.asList().stream().anyMatch(v->strings(array(object(v),"vendorCodes")).contains(article)))return new RemoteResult(CopyState.FAILED,List.of(),List.of(new CopyIssue("IMPORT_REJECTED",article,true)),Map.of());return RemoteResult.pending();}if(cards.size()!=1)throw new IOException("Ambiguous destination article");var actual=cards.getFirst();String id=text(actual,"nmID");if(!id.matches("[1-9][0-9]*")||(update&&!text(want,"nmID").equals(id)))throw new IOException("Destination identity mismatch");
             if(!matches(want,actual))return RemoteResult.pending();ids.put(article,id);
+            if(!pricesMatch(s,want,actual))return new RemoteResult(CopyState.REMOTE_PROCESSING,List.copyOf(ids.values()),List.of(new CopyIssue("PRICE_READBACK_PENDING",article,false)),ids);
             if((r.phase().equals("ASSETS_SENT")||r.phase().equals("ASSETS_SENDING"))&&!urls(r.mediaJson()).isEmpty()&&!imagesMatch(r.mediaJson(),array(actual,"photos").asList().stream().map(v->text(object(v),"big")).toList()))return RemoteResult.pending();
         }
         boolean assets=!urls(r.mediaJson()).isEmpty()&&r.phase().equals("CARD");return new RemoteResult(assets?CopyState.REMOTE_PROCESSING:CopyState.RECONCILED,List.copyOf(ids.values()),assets?List.of(new CopyIssue("ASSETS_REQUIRED","images",false)):List.of(),ids);
@@ -78,5 +82,16 @@ public final class WbListingAdapter extends AbstractListingAdapter {
         for(var e:array(want,"characteristics")){var a=object(e);if(array(actual,"characteristics").asList().stream().noneMatch(v->text(object(v),"id").equals(text(a,"id"))&&same(a.get("value"),object(v).get("value"))))return false;}
         if(want.has("dimensions")&&!subset(obj(want,"dimensions"),obj(actual,"dimensions"),Set.of("isValid")))return false;
         for(var e:array(obj(want,"documents"),"items"))if(array(obj(actual,"documents"),"items").asList().stream().noneMatch(v->subset(object(e),object(v),Set.of())))return false;return true;
+    }
+    private boolean pricesMatch(Shop shop,JsonObject expected,JsonObject actual)throws IOException{
+        var wanted=array(expected,"sizes").asList().stream().map(ListingJson::object).filter(size->size.has("price")).toList();if(wanted.isEmpty())return true;
+        var response=object(priceClients.apply(shop).call("api/v2/list/goods/filter?limit=100&filterNmID="+text(actual,"nmID"),null,false));
+        var goods=array(obj(response,"data"),"listGoods").asList().stream().map(ListingJson::object).filter(item->text(item,"nmID").equals(text(actual,"nmID"))).toList();if(goods.size()!=1)return false;
+        for(var size:wanted){
+            var matches=array(actual,"sizes").asList().stream().map(ListingJson::object).filter(value->subset(size,value,Set.of("price"))).toList();if(matches.size()!=1||text(matches.getFirst(),"chrtID").isBlank())return false;
+            var prices=array(goods.getFirst(),"sizes").asList().stream().map(ListingJson::object).filter(value->text(value,"sizeID").equals(text(matches.getFirst(),"chrtID"))).toList();
+            if(prices.size()!=1||decimal(prices.getFirst(),"price")==null||decimal(size,"price").compareTo(decimal(prices.getFirst(),"price"))!=0)return false;
+        }
+        return true;
     }
 }

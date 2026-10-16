@@ -42,4 +42,12 @@ class WbListingAdapterTest {
         var shop=target(Marketplace.WILDBERRIES);var s=source(Marketplace.WILDBERRIES);var own=new ProductSnapshot(new ProductKey(1,Marketplace.WILDBERRIES,"123","1234"),"live:source",s.title(),s.description(),s.brand(),"OLD","99",s.media(),s.attributes(),s.variants(),s.dimensions(),s.documents(),s.checkedAt(),Map.of("source.payload",raw,"owner",ListingIdentity.fingerprint(shop)));
         var adapter=new WbListingAdapter(x->fixture("99"),i->{throw new java.io.IOException();});var preview=adapter.previewUpdate(shop,own,Map.of("brand",List.of("VN")),null).preview();assertTrue(preview.publishable());var body=JsonParser.parseString(preview.requestJson()).getAsJsonArray().get(0).getAsJsonObject();assertEquals("VN",body.get("brand").getAsString());assertTrue(body.get("kizMarked").getAsBoolean());assertEquals(1234,body.getAsJsonArray("sizes").get(0).getAsJsonObject().get("chrtID").getAsInt());assertEquals("owned-doc",body.getAsJsonObject("documents").getAsJsonArray("items").get(0).getAsJsonObject().get("id").getAsString());assertFalse(preview.requestJson().contains("verdict"));assertFalse(preview.requestJson().contains("isValid"));
     }
+    @Test void cardReadbackWithoutTheCorrectNativeSizePriceCannotClaimSuccess()throws Exception{
+        var price=new java.util.concurrent.atomic.AtomicReference<>("99");var shop=target(Marketplace.WILDBERRIES);
+        var adapter=new WbListingAdapter(s->(path,body,mutation)->JsonParser.parseString("{\"cards\":[{\"nmID\":321,\"vendorCode\":\"NEW\",\"title\":\"VN\",\"sizes\":[{\"chrtID\":55,\"techSize\":\"M\",\"skus\":[\"001\"]}]}]}"),i->{throw new java.io.IOException();},s->(path,body,mutation)->{assertFalse(mutation);assertTrue(path.endsWith("filterNmID=321"));return JsonParser.parseString("{\"data\":{\"listGoods\":[{\"nmID\":321,\"sizes\":[{\"sizeID\":55,\"price\":"+price.get()+"}]}]}}");});
+        String request="[{\"subjectID\":99,\"variants\":[{\"vendorCode\":\"NEW\",\"title\":\"VN\",\"sizes\":[{\"techSize\":\"M\",\"skus\":[\"001\"],\"price\":100}]}]}]";
+        var submission=new RemoteSubmission(1,Marketplace.WILDBERRIES,ListingIdentity.fingerprint(shop),"hash",null,List.of("NEW"),request,"[]","[]","CARD",Map.of());
+        var pending=adapter.reconcile(shop,submission);assertEquals(CopyState.REMOTE_PROCESSING,pending.state());assertEquals("PRICE_READBACK_PENDING",pending.issues().getFirst().code());
+        price.set("100");assertEquals(CopyState.RECONCILED,adapter.reconcile(shop,submission).state());
+    }
 }

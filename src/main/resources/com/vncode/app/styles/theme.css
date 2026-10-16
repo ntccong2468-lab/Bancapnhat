@@ -1189,3 +1189,10 @@
 .combo-box > .arrow-button { -fx-padding: 0 7; }
 
 .sidebar-tools .ikonli-font-icon { -fx-icon-color: -text-secondary; -fx-icon-size: 16; }
+
+/* Listing-copy details stay within the dark workspace at both supported widths. */
+.listing-copy-workspace .titled-pane > .title { -fx-background-color: -bg-secondary; -fx-background-radius: 8; -fx-padding: 10; }
+.listing-copy-workspace .titled-pane > .title > .text { -fx-fill: -text-primary; }
+.listing-copy-workspace .titled-pane > .content { -fx-background-color: -bg-primary; -fx-border-color: -border-color; }
+.listing-copy-workspace .label { -fx-font-weight: normal; }
+.listing-copy-workspace .h2 { -fx-font-weight: bold; }
