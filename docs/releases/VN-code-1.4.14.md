@@ -4,8 +4,10 @@ Bản nâng cấp từ 1.4.13, tập trung sửa đồng bộ Znack, thao tác s
 
 - Sửa lỗi SQLite `SYNC_STORAGE` / `database is locked` khi nhiều tác vụ cùng ghi dữ liệu. Giữ nguyên nguyên nhân lỗi đồng bộ để báo cáo; các giao dịch chỉ ghi dữ liệu cục bộ được chờ và thử lại có giới hạn.
 - Sửa lỗi WB trả thuộc tính theo thứ tự khác nhau khiến VNCode tưởng sản phẩm đã đổi và chặn lưu. Vẫn kiểm tra các thay đổi thực sự của sản phẩm và thứ tự ảnh.
+- Sửa cả dấu vết bản xem trước GTIN WB khi API đảo thứ tự thuộc tính. Article có khoảng trắng đầu/cuối được báo rõ trước khi gửi; lỗi thẻ mới trả sau ACK được ghi nhận dứt điểm theo đúng sản phẩm, không chờ mãi hoặc gửi lặp.
 - Màn Sản phẩm WB hiển thị một dòng cho mỗi bài đăng, giữ đầy đủ các size khi chọn sửa/sao chép. Bổ sung bộ lọc lỗi có số lượng và thanh sửa hàng loạt; bố cục rộng tách giấy tờ/chất liệu khỏi giới tính/TN VED.
 - Thêm gợi ý thương hiệu, giới tính và TN VED từ sàn; Ozon nhận diện đúng trường `ТН ВЭД коды ЕАЭС`, tìm giá trị đã chọn trong các từ điển lớn.
+- Ozon nhận mã TN VED từ nhãn từ điển có kèm mô tả; giữ riêng size Nga và size nhà sản xuất. Đối chiếu GTIN dùng đúng hệ size của thẻ Catalog và giá trị sàn thực sự trả về, không đoán quy đổi size. Cache cũ được đọc lại để bổ sung trường mới, giữ nguyên sản phẩm và barcode.
 - Sửa sản phẩm có xem trước giá trị cũ/mới, xác nhận và nút **Lưu thay đổi lên sàn**. Sau gửi tự đọc lại có giới hạn; kết quả chưa xác nhận hiển thị đang chờ, có Đối soát. Thay đổi giá trị khi đang đọc bản xem trước sẽ yêu cầu xem trước lại.
 - Sửa lỗi lưu bản xem trước có mã TN VED riêng từng sản phẩm (lỗi đọc dữ liệu tác vụ từ JSON); giữ đúng giá trị cho từng bài và mở lại tác vụ không gửi lặp.
 - Sửa danh sách WB còn hiện cache cũ sau khi đã lưu và đọc lại thành công; mở sửa giấy tờ mới xóa hết thông tin của lần nhập trước.
@@ -21,6 +23,6 @@ Bản nâng cấp từ 1.4.13, tập trung sửa đồng bộ Znack, thao tác s
 - Thương hiệu WB hiện thương hiệu của shop trước, tải thêm từ điển ở nền và cho cuộn toàn bộ kết quả. Nút dùng mã TN VED gợi ý theo từng sản phẩm nằm ngay bên trái Áp dụng; hộp duyệt Ozon được co gọn và xuống dòng.
 - Kiểm thử lại GS1 ký trực tiếp trên app, điền đơn 01.04.01, tạo PDF và đính kèm ảnh đơn đã ký JPG/PNG có xử lý hướng EXIF. Nét ký không lưu thành hồ sơ chữ ký; tệp đã ký vẫn có bước xem và xác nhận gửi.
 
-API thật đã đọc sản phẩm, thuộc tính và gợi ý của WB/Ozon. Phép thử gửi lại giá trị hiện có trên một sản phẩm WB đã được đọc lại khớp; Ozon đã nhận yêu cầu thử nhưng chưa xác nhận hoàn tất trong cửa sổ kiểm tra. Đây không phải nghiệm thu tạo GTIN mới, ký CryptoPro hoặc mua/gán KIZ thật. Việc kiểm tra Catalog mới cần Secret Catalog trong môi trường; các ảnh GS1/Znack được dùng làm chuẩn đối chiếu giao diện.
+Đã kiểm tra API thật: đọc toàn bộ 388 bài/1.982 biến thể WB, 175 sản phẩm Ozon và đủ 1.962 thẻ Znack sau thử đăng ký. Đã cấp đúng một GTIN và đọc lại được thẻ mới dạng nháp, đang kiểm duyệt, chưa ký. Phép thử thêm GTIN WB bị sàn từ chối vì khoảng trắng cuối article; Ozon chưa có cặp biến thể khớp đủ điều kiện để thử ghi. Chưa nghiệm thu thành công thao tác ghi GTIN mới lên hai sàn, ký CryptoPro trên Windows hoặc mua/gán KIZ thật. Xem [báo cáo kiểm tra thật](../validation/2026-10-17-vncode-1414-live-acceptance.md) để phân biệt các kết quả này.
 
 Bộ cài Windows chưa có chữ ký Authenticode.

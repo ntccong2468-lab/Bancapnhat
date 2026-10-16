@@ -2,9 +2,9 @@
   "version": "1.4.14",
   "baseVersion": "1.4.13",
   "complete": false,
-  "developmentComplete": false,
+  "developmentComplete": true,
   "officialReleasePublished": false,
-  "phase": "code-complete-full-regression-and-live-acceptance-pending",
+  "phase": "code-complete-live-acceptance-partial",
   "licenseIntegration": {
     "implemented": true,
     "productionReady": false,
@@ -24,11 +24,30 @@
     "Catalog article normalization without deleting model separators",
     "Infinite virtualized Znack lists and progressively loaded WB shop/marketplace brands",
     "GS1 signed PDF/photo regression and compact owner-bounded dialogs",
-    "Structured per-product edit keys survive persisted preview/save/reopen"
+    "Structured per-product edit keys survive persisted preview/save/reopen",
+    "Explicit Catalog size systems and separate Ozon manufacturer/Russian size persistence",
+    "Native WB GTIN fingerprint stability and product-bound asynchronous rejection reporting"
   ],
   "validation": {
     "fullJavaRegression": {
-      "result": "pending"
+      "source": "ece7aa48a98caad78cc58da14923bd19c8b75c93",
+      "result": "passed",
+      "tests": 1607,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 2,
+      "logSha256": "4c9c139c8800ddbdd3729047ee244e9d08cad90ea227ca081a535e0355a205b8",
+      "finishedAt": "2026-10-16T23:38:54Z",
+      "platformSkips": [
+        {
+          "suite": "com.vncode.app.features.gs1.Gs1PrefixTemplateStoreTest",
+          "skipped": 1
+        },
+        {
+          "suite": "com.vncode.app.shared.WindowsSecretProtectorTest",
+          "skipped": 1
+        }
+      ]
     },
     "windowsNativeBuildThisVersion": false,
     "liveMarketplaceRead": true,
@@ -37,7 +56,7 @@
     "liveNewGtinWrite": false,
     "livePurchase": false,
     "liveKizAssignment": false,
-    "liveCatalogThisVersion": false,
+    "liveCatalogThisVersion": true,
     "productionLicenseVerified": false,
     "uploadedKizSample": {
       "valid": true,
@@ -49,11 +68,12 @@
     },
     "targetedRegression": {
       "result": "passed",
-      "log": "/tmp/vncode-1414-final-focused-registry.log",
-      "tests": 99,
+      "source": "ece7aa48a98caad78cc58da14923bd19c8b75c93",
+      "tests": 70,
       "failures": 0,
       "errors": 0,
-      "skipped": 0
+      "skipped": 0,
+      "log": "/tmp/vncode-1414-ui-fixture-final-focused.log"
     },
     "visualProductEdit": {
       "dataset": "synthetic native WB transport; signed test-only license",
@@ -63,6 +83,37 @@
       "nativeUpdates": 12,
       "readbackVerified": true,
       "productionLicenseVerified": false
+    },
+    "liveNewCatalogRegistration": "one_draft_created_under_moderation",
+    "liveWbGtinWrite": "rejected_article_edge_whitespace",
+    "liveOzonGtinWrite": "not_attempted_no_confirmed_pair",
+    "fullLiveCatalogCounts": {
+      "before": 1961,
+      "after": 1962,
+      "details": 1962,
+      "published": 1873,
+      "draft": 89
+    },
+    "liveMarketplaceCounts": {
+      "wbCards": 388,
+      "wbVariants": 1982,
+      "ozonProducts": 175
+    },
+    "nativeWindowsRun": {
+      "source": "ece7aa48a98caad78cc58da14923bd19c8b75c93",
+      "run": 38982243667,
+      "url": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/38982243667",
+      "result": "running",
+      "coexistenceGuardRetained": true
+    },
+    "acceptanceReport": "docs/validation/2026-10-17-vncode-1414-live-acceptance.json",
+    "nodeRegression": {
+      "source": "ece7aa48a98caad78cc58da14923bd19c8b75c93",
+      "tests": 60,
+      "passed": 60,
+      "failed": 0,
+      "skipped": 0,
+      "logSha256": "1e99153f7fc3cdfc42398aefc165592b7c4df23343239b11aeecfe0faad3a042"
     }
   },
   "publication": {
@@ -71,5 +122,6 @@
     "currentSellerLatest": "1.4.13",
     "ownerRequestedPublication": true
   },
-  "inheritedImplementation": "docs/releases/VN-code-1.4.13-status.json"
+  "inheritedImplementation": "docs/releases/VN-code-1.4.13-status.json",
+  "sourceCommit": "ece7aa48a98caad78cc58da14923bd19c8b75c93"
 }
