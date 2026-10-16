@@ -71,7 +71,7 @@ class WbGtinAdapterTest {
     }
     @Test void oldUnscopedRegistryCacheCannotAuthorizePreview()throws Exception {
         new GtinSyncRepository().saveCatalog(1,Marketplace.WILDBERRIES,List.of(new RegisteredGtin(GTIN,"Fixture","","",true,true,"National Catalog",Instant.now())));
-        assertThrows(IllegalArgumentException.class,this::preview);assertEquals(0,transport.writes.get());
+        assertEquals("unverified_catalog_gtin",assertThrows(IllegalArgumentException.class,this::preview).getMessage());assertEquals(0,transport.writes.get());
     }
     @Test void ownerChangedAfterTransportWaitIsKnownUnsentAndPaused()throws Exception {
         var repo=new GtinSyncRepository();var p=preview();
@@ -88,6 +88,22 @@ class WbGtinAdapterTest {
         var p=preview();transport.apply=false;transport.reject=true;var submitted=adapter.submit(p);
         assertEquals(Verification.REJECTED,adapter.verify(p,submitted));assertEquals(1,transport.writes.get());
     }
+    @Test void legacyOuterWhitespaceIsActionableBeforeAnyWriteAndIsNeverSilentlyRenamed()throws Exception {
+        transport.card.addProperty("vendorCode","Fixture ");assertEquals("WB_ARTICLE_EDGE_WHITESPACE",adapter.capability(key).reason());assertFalse(adapter.capability(key).add());
+        assertEquals("Fixture",adapter.read(key).article());assertEquals("Fixture ",transport.card.get("vendorCode").getAsString());
+        assertEquals("WB_ARTICLE_EDGE_WHITESPACE",assertThrows(IllegalArgumentException.class,this::preview).getMessage());assertEquals(0,transport.writes.get());
+    }
+    @Test void aFreshNativeProductErrorEndsTheAcknowledgedJobWithoutReplayingIt()throws Exception {
+        var repo=new GtinSyncRepository();var runner=new GtinSyncCoordinator(repo,k->adapter,Clock.systemUTC(),1,Duration.ZERO);var job=runner.confirm(List.of(preview()));transport.apply=false;
+        transport.errors=errorList("Fixture",Instant.now().plusSeconds(1));runner.runJob(job);repo.recoverInterrupted();runner.runJob(job);
+        var item=repo.jobItems(job).getFirst();assertEquals(Status.FAILED,item.status());assertEquals("WB_GTIN_CARD_REJECTED",repo.issue(item.id()));assertEquals(1,transport.writes.get());
+    }
+    @Test void staleOrAnotherArticlesErrorsCannotRejectTheCurrentGtinWrite()throws Exception {
+        var p=preview();transport.apply=false;var sent=adapter.submit(p);
+        transport.errors=errorList("Fixture",p.before().fetchedAt().minusSeconds(60));assertEquals(Verification.PENDING,adapter.verify(p,sent));
+        transport.errors=errorList("Foreign",Instant.now().plusSeconds(1));assertEquals(Verification.PENDING,adapter.verify(p,sent));assertEquals(1,transport.writes.get());
+    }
+    private static JsonElement errorList(String article,Instant at){var item=new JsonObject();var codes=new JsonArray();codes.add(article);item.add("vendorCodes",codes);item.addProperty("updatedAt",at.toString());var errors=new JsonObject();var messages=new JsonArray();messages.add("Invalid fixture attributes");errors.add(article,messages);item.add("errors",errors);var items=new JsonArray();items.add(item);var data=new JsonObject();data.add("items",items);var root=new JsonObject();root.add("data",data);return root;}
     static final class Fixture implements ListingTransport {
         JsonObject card=JsonParser.parseString("""
           {"nmID":101,"subjectID":77,"vendorCode":"Fixture","title":"Keep title","description":"Keep description","brand":"Keep brand","kizMarked":true,
@@ -96,9 +112,10 @@ class WbGtinAdapterTest {
           "sizes":[{"chrtID":11,"techSize":"XL","wbSize":"50","skus":["legacy"]},{"chrtID":12,"techSize":"L","wbSize":"48","skus":["other-size"]}],
           "documents":{"items":[{"id":"owned-document","type":2,"number":"D","applicant":"Fixture","verdict":{"verified":true,"status":1}}],"overallVerdict":{"verified":true}},"photos":[{"big":"https://example.invalid/fixture.jpg"}]}
           """).getAsJsonObject();
-        JsonObject conflict;JsonArray sent;AtomicInteger writes=new AtomicInteger();boolean apply=true,loseResponse,reject;Runnable beforeSend=()->{};
+        JsonObject conflict;JsonArray sent;JsonElement errors=JsonParser.parseString("{\"data\":{\"items\":[],\"cursor\":{\"next\":false}}}");AtomicInteger writes=new AtomicInteger();boolean apply=true,loseResponse,reject;Runnable beforeSend=()->{};
         public JsonElement call(String path,JsonElement body,boolean mutation)throws IOException {
             if(mutation){assertEquals("content/v2/cards/update",path);writes.incrementAndGet();sent=body.getAsJsonArray().deepCopy();if(apply)card=sent.get(0).getAsJsonObject().deepCopy();if(loseResponse)throw new IOException("fixture timeout");return JsonParser.parseString(reject?"{\"error\":true}":"{\"error\":false}");}
+            if(path.equals("content/v2/cards/error/list"))return errors.deepCopy();
             assertEquals("content/v2/get/cards/list",path);String search=body.getAsJsonObject().getAsJsonObject("settings").getAsJsonObject("filter").get("textSearch").getAsString();
             var cards=new JsonArray();if(search.equals("101"))cards.add(card.deepCopy());else if(conflict!=null)cards.add(conflict.deepCopy());var out=new JsonObject();out.add("cards",cards);return out;
         }

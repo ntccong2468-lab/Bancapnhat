@@ -239,7 +239,7 @@ public final class OzonRegistrationPane extends VBox {
             var checkpoints=registrations.findMany(page.rows().stream().map(ProductRow::key).toList());
             for(var row:page.rows())if(wanted.contains(row.key())){
                 var nativeRow=checkpoints.get(row.key());Status state=nativeRow==null?Status.NOT_CREATED:nativeRow.status();
-                var view=index.view(state,nativeRow==null?"":nativeRow.gtin(),row.barcodes(),row.vendorArticle(),row.color(),row.size(),nativeRow==null||index.ownsOzon(nativeRow.owner(),nativeRow.scopeJson()));
+                var view=index.view(state,nativeRow==null?"":nativeRow.gtin(),row.barcodes(),row.vendorArticle(),row.color(),com.vncode.app.features.gtinsync.GtinVariantIdentity.primarySize(row),row.russianSize(),nativeRow==null||index.ownsOzon(nativeRow.owner(),nativeRow.scopeJson()));
                 boolean changed=nativeRow!=null&&com.vncode.app.integration.znack.registration.TnvedGroupChange.replaceable(state)&&com.vncode.app.integration.znack.registration.TnvedGroupChange.changed(com.vncode.app.integration.znack.registration.TnvedGroupChange.payloadCode(nativeRow.payload()),row.tnved());
                 boolean eligible=replacement?state==Status.PUBLISHED&&view.published():changed||!view.published()&&!(state==Status.NOT_CREATED&&view.exists())&&Set.of(Status.NOT_CREATED,Status.PREFLIGHT_ERROR,Status.PRE_SUBMIT_ERROR).contains(state);
                 if(!view.blocked()&&eligible)allowed.add(row.key());
@@ -253,7 +253,7 @@ public final class OzonRegistrationPane extends VBox {
     private RegistrationCardIndex.View view(ProductRow row){
         var checkpoint=states.get(row.key());
         return cardIndex==null?new RegistrationCardIndex.View("source.unverified","","SOURCE_SYNC_REQUIRED",false,false,true)
-            :cardIndex.view(state(row.key()),checkpoint==null?"":checkpoint.gtin(),row.barcodes(),row.vendorArticle(),row.color(),row.size(),checkpoint==null||cardIndex.ownsOzon(checkpoint.owner(),checkpoint.scopeJson()));
+            :cardIndex.view(state(row.key()),checkpoint==null?"":checkpoint.gtin(),row.barcodes(),row.vendorArticle(),row.color(),com.vncode.app.features.gtinsync.GtinVariantIdentity.primarySize(row),row.russianSize(),checkpoint==null||cardIndex.ownsOzon(checkpoint.owner(),checkpoint.scopeJson()));
     }
     private Status state(ProductKey key){var row=states.get(key);return row==null?Status.NOT_CREATED:row.status();}
     private String candidateText(ProductKey key){var row=states.get(key);return row==null||safe(row.activeGtin()).isBlank()||safe(row.activeGtin()).equals(safe(row.gtin()))?"":"\n"+tr("znack.registration.active_gtin")+": "+row.activeGtin();}

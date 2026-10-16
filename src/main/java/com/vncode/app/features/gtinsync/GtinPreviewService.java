@@ -14,7 +14,7 @@ public final class GtinPreviewService {
     public GtinPreviewService(GtinSyncRepository repository,Function<ProductKey,GtinMarketplaceAdapter> adapters,Clock clock){this.repository=repository;this.adapters=adapters;this.clock=clock;}
     public Preview create(ProductKey key,Operation operation,String oldGtin,String newGtin) throws Exception {
         var adapter=adapters.apply(key);var capability=adapter.capability(key);
-        if(!capability.supports(operation))throw new IllegalArgumentException("unsupported_operation");
+        if(!capability.supports(operation))throw new IllegalArgumentException(capability.reason().matches("[A-Z][A-Z0-9_]{2,100}")?capability.reason():"unsupported_operation");
         if(!RegisteredGtinValidator.isValid(newGtin))throw new IllegalArgumentException("invalid_gtin");
         var now=clock.instant();
         var observed=repository.catalogItem(key.shopId(),key.marketplace(),newGtin);

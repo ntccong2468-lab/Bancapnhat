@@ -30,7 +30,7 @@ public final class WbGtinAdapter implements GtinMarketplaceAdapter {
         this.shop=new Shop(shop.getId(),shop.getName(),shop.getMarketplace(),shop.getClientId(),shop.getApiKey());
         this.client=Objects.requireNonNull(client);
     }
-    public Capability capability(ProductKey key){requireKey(key);return CAPABILITY;}
+    public Capability capability(ProductKey key)throws IOException{requireKey(key);var article=text(ownCard(key),"vendorCode");return article.equals(article.strip())?CAPABILITY:new Capability(false,false,"WB_ARTICLE_EDGE_WHITESPACE");}
     public void validateRegistration(String gtin){RegisteredGtinProof.requireCurrent(shop,gtin);}
     public ProductSnapshot read(ProductKey key)throws IOException{return snapshot(key,ownCard(key));}
     public boolean conflicts(ProductKey key,String gtin)throws IOException {
@@ -60,6 +60,7 @@ public final class WbGtinAdapter implements GtinMarketplaceAdapter {
         if(preview.operation()!=Operation.ADD||!preview.oldGtin().isBlank()||!CAPABILITY.equals(preview.capability()))throw new IllegalArgumentException("unsupported_operation");
         requireWrite(preview);
         var card=ownCard(key);var fresh=snapshot(key,card);
+        if(!text(card,"vendorCode").equals(text(card,"vendorCode").strip()))throw new IllegalArgumentException("WB_ARTICLE_EDGE_WHITESPACE");
         if(!fresh.fingerprint().equals(preview.before().fingerprint()))throw new IllegalArgumentException("product_changed");
         if(RegisteredGtinProof.contains(fresh.barcodes(),preview.newGtin()))throw new IllegalArgumentException("already_present");
         if(conflicts(key,preview.newGtin()))throw new IllegalArgumentException("gtin_on_another_product");
@@ -83,11 +84,35 @@ public final class WbGtinAdapter implements GtinMarketplaceAdapter {
     }
     public Verification verify(Preview preview,Submission submission)throws IOException {
         requireKey(preview.before().key());
-        var actual=read(preview.before().key());
+        var card=ownCard(preview.before().key());var actual=snapshot(preview.before().key(),card);
         if(RegisteredGtinProof.contains(actual.barcodes(),preview.newGtin()))
             return preview.before().barcodes().stream().allMatch(code->RegisteredGtinProof.contains(actual.barcodes(),code))?Verification.APPLIED:Verification.UNKNOWN;
         if("wb-rejected".equals(submission.remoteTaskId()))return Verification.REJECTED;
+        String rejection=recentRejection(preview,text(card,"vendorCode"));if(!rejection.isBlank())throw new GtinRejectedException(rejection);
         return Verification.PENDING;
+    }
+    private String recentRejection(Preview preview,String article)throws IOException {
+        var cursor=new JsonObject();cursor.addProperty("limit",100);var seen=new HashSet<String>();
+        for(int page=0;page<10;page++){
+            var body=new JsonObject();body.add("cursor",cursor);
+            var response=object(client.call("content/v2/cards/error/list",body,false));
+            if("true".equals(text(response,"error")))throw new IOException("WB_ERROR_LIST_UNAVAILABLE");
+            var data=obj(response,"data");
+            for(var entry:strictArray(data,"items")){
+                var item=object(entry);Instant updated;
+                try{updated=Instant.parse(text(item,"updatedAt"));}catch(RuntimeException invalid){continue;}
+                if(updated.isBefore(preview.before().fetchedAt())||updated.isAfter(Instant.now().plusSeconds(300)))continue;
+                if(!strings(array(item,"vendorCodes")).contains(article))continue;
+                var errors=obj(item,"errors").get(article);if(errors==null||!errors.isJsonArray()||errors.getAsJsonArray().isEmpty())continue;
+                boolean whitespace=errors.getAsJsonArray().asList().stream().filter(JsonElement::isJsonPrimitive).map(JsonElement::getAsString).anyMatch(value->value.toLowerCase(Locale.ROOT).contains("пробел"));
+                return whitespace&&!article.equals(article.strip())?"WB_ARTICLE_EDGE_WHITESPACE":"WB_GTIN_CARD_REJECTED";
+            }
+            var next=obj(data,"cursor");if(!"true".equals(text(next,"next")))return "";
+            String updated=text(next,"updatedAt"),batch=text(next,"batchUUID");
+            if(updated.isBlank()||!batch.matches("[a-fA-F0-9-]{36}")||!seen.add(updated+"/"+batch))throw new IOException("WB_ERROR_CURSOR_INVALID");
+            cursor=new JsonObject();cursor.addProperty("limit",100);cursor.addProperty("updatedAt",updated);cursor.addProperty("batchUUID",batch);
+        }
+        throw new IOException("WB_ERROR_PAGE_LIMIT");
     }
     private void requireWrite(Preview preview){
         requireKey(preview.before().key());

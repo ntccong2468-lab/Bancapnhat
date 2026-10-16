@@ -102,7 +102,7 @@ public final class OzonCatalogSyncService {
                     if (attributes != null) {
                         product = product.withCardAttributes(
                                 attributes.article(), attributes.color(), attributes.size(),
-                                attributes.category(), attributes.gender());
+                                attributes.category(), attributes.gender(),attributes.manufacturerSize(),attributes.russianSize());
                     }
                     var nativeCard=cards.stream().filter(card->card.productId().equals(reference.productId())).findFirst();
                     if(nativeCard.isPresent())product=product.withCategoryIdentity(nativeCard.get().category().descriptionCategoryId(),nativeCard.get().category().typeId());

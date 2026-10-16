@@ -108,6 +108,7 @@ public final class GtinSyncCoordinator {
         for(int poll=0;poll<maxPolls && !clock.instant().isAfter(deadline);poll++) {
             Verification outcome;
             try{outcome=adapter.verify(item.preview(),new Submission(item.remoteTaskId()));}
+            catch(GtinRejectedException rejected){repository.issue(itemId,rejected.code());repository.transition(itemId,item.status(),Status.FAILED,null);return;}
             catch(Exception e){repository.issue(itemId,com.vncode.app.features.sync.SyncFailure.of(e,0).code());outcome=Verification.UNKNOWN;if(e instanceof InterruptedException)Thread.currentThread().interrupt();}
             if(outcome==Verification.APPLIED || outcome==Verification.REJECTED) {
                 repository.issue(itemId,outcome==Verification.APPLIED?"":"GTIN_REJECTED");

@@ -94,6 +94,14 @@ class ZnackAutoSyncServiceTest {
         var review=new ZnackGtinReviewService(s->{},service,(s,k)->snapshot);
         assertEquals("GTIN_VARIANT_CONFLICT",assertThrows(IllegalArgumentException.class,()->review.select(shop,run.id(),reports.items(run.id(),0,10))).getMessage());assertEquals(0,writes);
     }
+    @Test void ozonInternationalCatalogCardUsesManufacturerSizeWhileTheVisibleCatalogKeepsRussianSize()throws Exception{
+        init(Marketplace.OZON);
+        try(var c=Database.getConnection();var s=c.createStatement()){s.execute("UPDATE ozon_products SET size='52',russian_size='52',manufacturer_size='M' WHERE shop_id=2");}
+        observation=new GtinSyncModels.RegisteredGtin(observation.gtin(),"Fixture","Blue","M",true,true,observation.source(),Instant.now(),new CatalogProductData(Map.of("@size_type",List.of("МЕЖДУНАРОДНЫЙ")),List.of(),List.of()));
+        snapshot=new ProductSnapshot(snapshot.key(),snapshot.revision(),snapshot.title(),snapshot.description(),snapshot.brand(),snapshot.vendorArticle(),snapshot.categoryId(),snapshot.media(),snapshot.attributes(),List.of(new ProductVariant(key.variantId(),"Fixture","Blue","M","",false,"52")),null,List.of(),Instant.now(),snapshot.metadata());
+        service.step(shop,"");approve();for(int turn=0;turn<4;turn++)if(service.step(shop,"").complete())break;
+        assertEquals(1,writes);assertEquals("SUCCEEDED",new SyncRunRepository().list(shop.getId(),0,10).getFirst().state());
+    }
     @Test void wrongSizeDoesNotFallBackToArticleAndDoesNotWrite()throws Exception{
         init(Marketplace.OZON);observation=new GtinSyncModels.RegisteredGtin(observation.gtin(),"Fixture","Blue","XL",true,true,observation.source(),Instant.now());
         service.step(shop,"");service.step(shop,"");assertEquals(0,writes);

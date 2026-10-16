@@ -106,7 +106,7 @@ class ProductRepositoryTest {
         assertFalse(repo.loadPage(q).rows().getFirst().attributesLoaded());
         assertEquals(1,repo.loadPage(q).issueCounts().get(ProductIssueFilter.ATTRIBUTES_UNLOADED));
         repo.saveVerifiedSnapshot(shop,new ProductSnapshot(key,"live:readback","Ozon product","","Brand","O-1","9:1",List.of(),
-            List.of(new ProductAttribute("7","Состав",List.of("Cotton"),null),new ProductAttribute("8","ТН ВЭД",List.of("6109100000"),null),new ProductAttribute("9","Пол",List.of("Мужской"),null),
+            List.of(new ProductAttribute("7","Состав",List.of("Cotton"),null),new ProductAttribute("8","ТН ВЭД коды ЕАЭС",List.of("6109100000 - Майки и футболки из хлопчатобумажной пряжи"),null),new ProductAttribute("9","Пол",List.of("Мужской"),null),
                 new ProductAttribute("17","Состав",List.of("Wrong complex attribute"),null,"8",0)),
             List.of(),null,List.of(),java.time.Instant.now(),Map.of("owner",com.vncode.app.integration.listing.ListingIdentity.fingerprint(shop))));
         var row=repo.loadPage(q).rows().getFirst();assertTrue(row.attributesLoaded());assertEquals("Brand",row.brand());assertEquals("Cotton",row.material());assertEquals("6109100000",row.tnved());assertEquals("Мужской",row.gender());

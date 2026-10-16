@@ -41,6 +41,7 @@ class OzonProductCardAttributeParserTest {
         assertEquals("seller-article", result.article());
         assertEquals("глубокий черный", result.color());
         assertEquals("176", result.size());
+        assertEquals("176",result.russianSize());assertEquals("XXL",result.manufacturerSize());
         assertEquals("Sportswear", result.category());
         assertEquals("Женский", result.gender());
     }
@@ -61,6 +62,7 @@ class OzonProductCardAttributeParserTest {
                 card, Map.of("4508", "Размер на модели", "9533", "Размер производителя"));
 
         assertEquals("L", result.size());
+        assertEquals("L",result.manufacturerSize());assertEquals("",result.russianSize());
         assertEquals("article-102", result.article());
     }
 

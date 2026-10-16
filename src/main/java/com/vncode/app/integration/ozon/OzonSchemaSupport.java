@@ -42,7 +42,7 @@ public final class OzonSchemaSupport {
                         FOREIGN KEY(shop_id) REFERENCES shops(id) ON DELETE CASCADE
                     )
                     """);
-            for(String column:java.util.List.of("description_category_id","type_id"))if(!columnExists(connection,"ozon_products",column)){
+            for(String column:java.util.List.of("description_category_id","type_id","manufacturer_size","russian_size"))if(!columnExists(connection,"ozon_products",column)){
                 statement.execute("UPDATE ozon_sync_state SET products_last_id=NULL,products_last_synced_at=NULL");
                 statement.execute("ALTER TABLE ozon_products ADD COLUMN "+column+" TEXT NOT NULL DEFAULT ''");
             }

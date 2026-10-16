@@ -71,6 +71,16 @@ class OzonSyncServiceTest {
         assertEquals(0,count("SELECT count(*) FROM ozon_products"));assertEquals("",new OzonSyncStateRepository().find(1).productsLastId());
     }
     private static void failSnapshot(){throw new AssertionError("Partial details cannot emit a completed page");}
+    @Test void explicitSizeMigrationPreservesOldProductsAndBarcodesWithoutGuessingTheirSizeSystem()throws Exception{
+        var product=new OzonProductDto("101","A-52","501","Synthetic","",false,"",java.util.List.of("legacy-code")).withCardAttributes("A","Blue","52","Clothing","Male","L","52");
+        new OzonCatalogRepository().upsertPage(1,java.util.List.of(product),"old-cursor");
+        try(var c=Database.getConnection();var s=c.createStatement()){
+            s.execute("ALTER TABLE ozon_products DROP COLUMN manufacturer_size");s.execute("ALTER TABLE ozon_products DROP COLUMN russian_size");
+            OzonSchemaSupport.initialize(c);OzonSchemaSupport.initialize(c);
+        }
+        var restored=new OzonCatalogRepository().findAll(1).getFirst();assertEquals("52",restored.size());assertEquals("",restored.manufacturerSize());assertEquals("",restored.russianSize());
+        assertEquals(java.util.List.of("legacy-code"),restored.barcodes());assertEquals("501",restored.sku());assertEquals("",new OzonSyncStateRepository().find(1).productsLastId());
+    }
     @Test
     void catalogDoesNotAdvanceCursorWhenDetailFetchFails() throws Exception {
         server.enqueue(json("{\"result\":{\"items\":[{\"product_id\":\"90071992547409931234\","
@@ -164,7 +174,7 @@ class OzonSyncServiceTest {
                 + "\",\"offer_id\":\"offer-card\",\"description_category_id\":\"17000001\","
                 + "\"type_id\":\"90001\",\"attributes\":["
                 + "{\"id\":10096,\"values\":[{\"value\":\"deep black\"}]},"
-                + "{\"id\":4295,\"values\":[{\"value\":\"176\"}]},"
+                + "{\"id\":4295,\"values\":[{\"value\":\"176\"}]},{\"id\":9533,\"values\":[{\"value\":\"XXL\"}]},"
                 + "{\"id\":9163,\"values\":[{\"value\":\"Women\"}]},"
                 + "{\"id\":9024,\"values\":[{\"value\":\"seller-article\"}]}]}]}"));
         server.enqueue(json("{\"result\":[{\"description_category_id\":17000001,"
@@ -172,7 +182,7 @@ class OzonSyncServiceTest {
                 + "\"type_name\":\"Sportswear\",\"children\":[]}]}]}"));
         server.enqueue(json("{\"result\":["
                 + "{\"id\":10096,\"name\":\"Цвет товара\"},"
-                + "{\"id\":4295,\"name\":\"Российский размер\"},"
+                + "{\"id\":4295,\"name\":\"Российский размер\"},{\"id\":9533,\"name\":\"Размер производителя\"},"
                 + "{\"id\":9163,\"name\":\"Пол\"},"
                 + "{\"id\":9024,\"name\":\"Код продавца\"}]}"));
 
@@ -183,6 +193,8 @@ class OzonSyncServiceTest {
         assertEquals("seller-article", scalar("SELECT article FROM ozon_products"));
         assertEquals("deep black", scalar("SELECT color FROM ozon_products"));
         assertEquals("176", scalar("SELECT size FROM ozon_products"));
+        assertEquals("176",scalar("SELECT russian_size FROM ozon_products"));assertEquals("XXL",scalar("SELECT manufacturer_size FROM ozon_products"));
+        assertEquals("176",new OzonCatalogRepository().findAll(1).getFirst().russianSize());assertEquals("XXL",new OzonCatalogRepository().findAll(1).getFirst().manufacturerSize());
         assertEquals("Sportswear", scalar("SELECT category FROM ozon_products"));
         assertEquals("Women", scalar("SELECT gender FROM ozon_products"));
         assertEquals("cursor-2", new OzonSyncStateRepository().find(1).productsLastId());
