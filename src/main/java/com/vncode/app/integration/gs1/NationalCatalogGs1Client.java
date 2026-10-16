@@ -22,11 +22,13 @@ public final class NationalCatalogGs1Client {
         this.transport = transport.newBuilder().retryOnConnectionFailure(false).followRedirects(false).followSslRedirects(false).build();
         this.root = Objects.requireNonNull(root);
     }
-    public Session login(String inn, String fingerprint, ZnackSignatureProvider signer) throws IOException {
+    public Session login(String inn, String fingerprint, ZnackSignatureProvider signer) throws IOException {return login(inn,fingerprint,signer,()->{});}
+    public Session login(String inn, String fingerprint, ZnackSignatureProvider signer,Runnable guard) throws IOException {
         Gs1Membership.requireInn(inn);
         String normalized = fingerprint == null ? "" : fingerprint.replaceAll("\\s", "").toUpperCase(Locale.ROOT);
         if (!normalized.matches("[A-F0-9]{40}")) throw new IllegalArgumentException("A resolved certificate fingerprint is required");
         Session session = new Session(inn, normalized, Objects.requireNonNull(signer));
+        session.guard=Objects.requireNonNull(guard);
         session.authenticate();
         return session;
     }
@@ -52,6 +54,7 @@ public final class NationalCatalogGs1Client {
         private final String fingerprint;
         private final ZnackSignatureProvider signer;
         private final OkHttpClient http;
+        private Runnable guard=()->{};
         private String csrf;
         private Boolean member;
         private boolean excluded;
@@ -204,14 +207,17 @@ public final class NationalCatalogGs1Client {
             return exchange(Objects.requireNonNull(root.resolve(path)),body);
         }
         private String exchange(HttpUrl url,JsonObject body)throws IOException {
+            guard.run();
             Request.Builder request=new Request.Builder().url(url).header("Accept","application/json");
             if(csrf!=null&&!csrf.isBlank())request.header("X-Csrf-Token",csrf);
             if(body!=null)request.post(RequestBody.create(body.toString(),JSON));
             try(Response response=http.newCall(request.build()).execute()) {
+                guard.run();
                 if(response.code()==401||response.code()==403)throw new AuthenticationException();
                 if(!response.isSuccessful()||response.body()==null)throw new IOException("Catalog GS1 request failed (HTTP "+response.code()+")");
                 byte[] bytes=response.peekBody(LIMIT+1L).bytes();
                 if(bytes.length>LIMIT)throw new IOException("Catalog GS1 response exceeds size limit");
+                guard.run();
                 return new String(bytes,java.nio.charset.StandardCharsets.UTF_8);
             }
         }

@@ -17,7 +17,7 @@ public final class SyncRuntime implements AutoCloseable {
     private static volatile SyncRuntime current;
     private final SyncCoordinator coordinator;
     private final FbsSyncService fbs=new FbsSyncService();
-    private final Gs1AutomaticSyncService gs1=new Gs1AutomaticSyncService();
+    private final com.vncode.app.features.gs1.Gs1SyncService gs1=new com.vncode.app.features.gs1.Gs1SyncService();
     private ZnackAutoSyncService znack;
     public SyncRuntime(Consumer<SyncCoordinator.Health> listener){
         coordinator=new SyncCoordinator(this::run);coordinator.listen(listener);current=this;
@@ -50,9 +50,8 @@ public final class SyncRuntime implements AutoCloseable {
                 return registrations.pending()&&page.warning()==null?new SyncCoordinator.Page(page.checkpoint(),page.complete(),page.changed(),new SyncFailure("READBACK_PENDING",java.time.Duration.ofSeconds(15),false)):page;
             }
             case GS1:{
-                var reports=new SyncRunRepository();String id=reports.begin(shop,"gs1","AUTHENTICATING");
-                try{var result=gs1.refresh(shop);reports.stage(shop,id,result.complete()?"SUCCEEDED":result.membership()==null?"FAILED":"PARTIAL","REPORT",!result.catalogError().isBlank()?result.catalogError():result.balanceError());return new SyncCoordinator.Page("",true,result.membership()==null?0:1,result.complete()?null:new SyncFailure("GS1_SYNC_PARTIAL",java.time.Duration.ofMinutes(1),false));}
-                catch(Exception e){reports.stage(shop,id,"FAILED","AUTHENTICATING",SyncFailure.of(e,0).code());throw e;}
+                var result=gs1.sync(shop);
+                return new SyncCoordinator.Page("",true,result.membership()==null?0:1,result.complete()?null:new SyncFailure("GS1_SYNC_PARTIAL",java.time.Duration.ofMinutes(1),false));
             }
             case FBO:{return SyncCoordinator.Page.complete(new com.vncode.app.features.fbosupply.FboSupplySyncService().syncOrders(shop).size());}
             case FINANCE:{com.vncode.app.features.finance.FinanceSyncScheduler.getInstance().runCoordinatedStep();return SyncCoordinator.Page.complete(0);}

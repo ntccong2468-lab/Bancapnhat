@@ -22,6 +22,8 @@ class Gs1AutomaticSessionTest {
     @TempDir Path root;
     Shop shop;MockWebServer server;Gs1AutomaticSyncService service;
     final AtomicInteger catalogLogins=new AtomicInteger(),cashLogins=new AtomicInteger(),signatures=new AtomicInteger();
+    final AtomicBoolean holdCatalog=new AtomicBoolean();
+    final java.util.concurrent.CountDownLatch held=new java.util.concurrent.CountDownLatch(1),release=new java.util.concurrent.CountDownLatch(1);
     final AtomicBoolean expireCatalog=new AtomicBoolean(),expireCash=new AtomicBoolean(),denyCatalog=new AtomicBoolean();
     final AtomicReference<Instant> now=new AtomicReference<>(Instant.now());
     @BeforeEach void init()throws Exception{
@@ -33,6 +35,7 @@ class Gs1AutomaticSessionTest {
                     case "/catalog/signed-data"->json("{\"data\":\"YWJj\"}");
                     case "/catalog/certlogin"->{catalogLogins.incrementAndGet();yield json("{\"csrfToken\":\"fixture-csrf\",\"gs1Member\":true}").setHeader("Set-Cookie","catalog=fixture; Path=/catalog; HttpOnly");}
                     case "/catalog/gs1/gcp-gln"->{
+                        if(holdCatalog.compareAndSet(true,false)){held.countDown();try{release.await(5,java.util.concurrent.TimeUnit.SECONDS);}catch(InterruptedException e){Thread.currentThread().interrupt();}}
                         assertEquals("catalog=fixture",request.getHeader("Cookie"));assertEquals("fixture-csrf",request.getHeader("X-Csrf-Token"));assertNull(request.getHeader("Authorization"));
                         yield denyCatalog.get()||expireCatalog.getAndSet(false)?new MockResponse().setResponseCode(401):json("{\"gcps\":[{\"gcp\":\"4601234\",\"gtinsLeft\":50,\"glns\":[]}],\"expiryDate\":\"2027-10-01\"}");
                     }
@@ -51,11 +54,35 @@ class Gs1AutomaticSessionTest {
         var http=new OkHttpClient.Builder().callTimeout(Duration.ofSeconds(3)).build();
         var clock=new Clock(){public ZoneId getZone(){return ZoneOffset.UTC;}public Clock withZone(ZoneId zone){return this;}public Instant instant(){return now.get();}};
         var remote=new Gs1AutomaticSyncService.Remote(new NationalCatalogGs1Client(http,server.url("/catalog/")),new ChestnyZnakBalanceClient(http,server.url("/").uri(),allow(server)),
-            (selected,settings,scope)->(payload,context)->{assertEquals(shop.getId(),selected.getId());assertEquals(GtinWriteTestFixture.CERTIFICATE,scope.fingerprint());signatures.incrementAndGet();return new CryptoProSigningResult(new byte[]{1,2,3},"");},clock);
+            (selected,settings,scope)->(payload,context)->{assertTrue(java.util.Set.of(1,2).contains(selected.getId()));assertEquals(GtinWriteTestFixture.CERTIFICATE,scope.fingerprint());signatures.incrementAndGet();return new CryptoProSigningResult(new byte[]{1,2,3},"");},clock);
         service=new Gs1AutomaticSyncService(remote);
     }
     @AfterEach void clear()throws Exception{try{server.shutdown();}finally{System.clearProperty("vncode.appdata.dir");}}
     private static MockResponse json(String value){return new MockResponse().setHeader("Content-Type","application/json").setBody(value);}
+    @Test void slowResponsesEndAtTheReadBudgetAndDoNotContinueIntoAnotherSource()throws Exception{
+        var http=new OkHttpClient.Builder().callTimeout(Duration.ofSeconds(3)).build();
+        var shortRemote=new Gs1AutomaticSyncService.Remote(new NationalCatalogGs1Client(http,server.url("/catalog/")),new ChestnyZnakBalanceClient(http,server.url("/").uri(),allow(server)),
+            (selected,settings,scope)->(payload,context)->new CryptoProSigningResult(new byte[]{1,2,3},""),Clock.systemUTC(),Duration.ofMillis(500));
+        holdCatalog.set(true);var pool=java.util.concurrent.Executors.newSingleThreadExecutor();
+        try{
+            var future=pool.submit(()->new Gs1AutomaticSyncService(shortRemote).refresh(shop));assertTrue(held.await(2,java.util.concurrent.TimeUnit.SECONDS));Thread.sleep(600);release.countDown();
+            var result=future.get(2,java.util.concurrent.TimeUnit.SECONDS);assertEquals("GS1_SYNC_TIMEOUT",result.catalogError());assertEquals("GS1_SYNC_TIMEOUT",result.balanceError());assertEquals(0,cashLogins.get());
+        }finally{release.countDown();pool.shutdownNow();}
+    }
+    @Test void foregroundGs1ActionsReuseTheVerifiedBackgroundCatalogSession()throws Exception{
+        service.refresh(shop);var session=service.catalogSession(shop);assertEquals("7700000000",session.inn());session.form();assertEquals(1,catalogLogins.get());assertEquals(1,cashLogins.get());assertEquals(2,signatures.get());
+    }
+    @Test void aSlowStoreDoesNotHoldTheOtherStoresSessionLock()throws Exception{
+        var second=GtinWriteTestFixture.shop(Marketplace.OZON);holdCatalog.set(true);var pool=java.util.concurrent.Executors.newFixedThreadPool(2);
+        try{
+            var first=pool.submit(()->service.refresh(shop));assertTrue(held.await(2,java.util.concurrent.TimeUnit.SECONDS));var other=pool.submit(()->service.refresh(second));
+            assertTrue(other.get(2,java.util.concurrent.TimeUnit.SECONDS).complete());assertFalse(first.isDone(),"The other store must complete before the blocked read is released");release.countDown();assertTrue(first.get(3,java.util.concurrent.TimeUnit.SECONDS).complete());
+        }finally{release.countDown();pool.shutdownNow();}
+    }
+    @Test void aReturnedSessionCannotMakeRequestsAfterTheShopCredentialsChange()throws Exception{
+        var session=service.catalogSession(shop);int before=server.getRequestCount();try(var c=Database.getConnection();var sql=c.createStatement()){sql.execute("UPDATE shops SET api_key='different-fixture' WHERE id=1");}
+        assertThrows(SecurityException.class,session::form);assertEquals(before,server.getRequestCount());
+    }
     @Test void configuredLoginReadsProfileAndReusesSeparateServiceSessions()throws Exception{
         assertTrue(service.refresh(shop).complete());assertTrue(service.refresh(shop).complete());
         assertEquals(1,catalogLogins.get());assertEquals(1,cashLogins.get());assertEquals(2,signatures.get());
