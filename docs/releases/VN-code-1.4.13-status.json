@@ -56,20 +56,19 @@
       "report": "docs/validation/2026-10-16-vncode-1413-local-checks.json"
     },
     "fullJavaRegression": {
-      "tests": 1439,
-      "passed": 1437,
+      "tests": 1471,
+      "passed": 1469,
       "failures": 0,
       "errors": 0,
       "skipped": 2,
       "result": "passed",
-      "finishedAt": "2026-10-16T13:30:37Z",
-      "logSha256": "aca8a3f97e7adc944f7eff2189f672b60c7f4e0b4c4d2ea5a361367281c97835",
+      "finishedAt": "2026-10-16T14:56:39Z",
+      "logSha256": "8eb8bbbdd804bb3be76a1633e032fa174c81ad5223ae496215796fc203c09ca0",
+      "sourceCommit": "4a02d2b54d5d2b8cfeb8d6aac01f68a8e6a27573",
       "platformSkips": [
         "Gs1PrefixTemplateStoreTest",
         "WindowsSecretProtectorTest"
-      ],
-      "sourceCommit": "453c7bf7ffbc1cc671d6514e52d176b05bb1adc9",
-      "report": "docs/validation/2026-10-16-item-2-wb-shipment-kiz-checks.json"
+      ]
     },
     "sharedReadFocusedTests": {
       "result": "passed",
@@ -100,7 +99,7 @@
     ],
     "windowsFullBuild": {
       "result": "not_run_for_current_source",
-      "sourceCommit": "453c7bf7ffbc1cc671d6514e52d176b05bb1adc9"
+      "sourceCommit": "54dff46b684dc41ac8807a9a394148d460e0625b"
     },
     "baselineFullJavaRegression": {
       "tests": 1411,
@@ -177,15 +176,44 @@
       "result": "passed",
       "logSha256": "a3e698702a988f3059c146a2d2ec3197bcb68ee69102c8bd0b3e155eda9c36b5"
     },
-    "item2PurchasePipelinePreserved": true
+    "item2PurchasePipelinePreserved": true,
+    "previousItem2FullJavaRegression": {
+      "tests": 1439,
+      "passed": 1437,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 2,
+      "result": "passed",
+      "finishedAt": "2026-10-16T13:30:37Z",
+      "logSha256": "aca8a3f97e7adc944f7eff2189f672b60c7f4e0b4c4d2ea5a361367281c97835",
+      "platformSkips": [
+        "Gs1PrefixTemplateStoreTest",
+        "WindowsSecretProtectorTest"
+      ],
+      "sourceCommit": "453c7bf7ffbc1cc671d6514e52d176b05bb1adc9",
+      "report": "docs/validation/2026-10-16-item-2-wb-shipment-kiz-checks.json"
+    },
+    "finalItem4UiVerification": {
+      "tests": 75,
+      "passed": 75,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "result": "passed",
+      "finishedAt": "2026-10-16T14:58:34Z",
+      "logSha256": "c49f071c60768d0a27a46a58bae4f6a206e6236588e11f21aca497e668ce8ce7",
+      "sourceCommit": "54dff46b684dc41ac8807a9a394148d460e0625b",
+      "note": "After the full regression, only Ozon title, action width and wrapping of status explanations changed; FXML, WB/Ozon registration, queries and report tests reran."
+    },
+    "item4PurchasePipelinePreserved": true
   },
   "publication": {
     "published": false,
     "latestChanged": false,
     "currentSellerLatest": "1.4.12"
   },
-  "report": "docs/validation/2026-10-16-item-2-wb-shipment-kiz.md",
-  "applicationCommit": "453c7bf7ffbc1cc671d6514e52d176b05bb1adc9",
+  "report": "docs/validation/2026-10-16-item-4-znack-registration.md",
+  "applicationCommit": "54dff46b684dc41ac8807a9a394148d460e0625b",
   "approvedWork": {
     "item1": {
       "diagramApproved": true,
@@ -203,6 +231,26 @@
       "purchasePipelinePreserved": true,
       "report": "docs/validation/2026-10-16-item-2-wb-shipment-kiz.md"
     },
-    "items3To7": "awaiting_separate_flow_approval"
-  }
+    "item3": {
+      "diagramApproved": false,
+      "codeImplementedThisTurn": false,
+      "status": "pending_separate_diagram_approval"
+    },
+    "item4": {
+      "diagramApproved": true,
+      "codeImplemented": true,
+      "sourceCommit": "54dff46b684dc41ac8807a9a394148d460e0625b",
+      "fullRegressionSource": "4a02d2b54d5d2b8cfeb8d6aac01f68a8e6a27573",
+      "localValidation": "passed_full_regression_plus_final_ui_verification",
+      "liveAcceptance": "pending_seller_machine_and_confirmed_write",
+      "purchasePipelinePreserved": true,
+      "report": "docs/validation/2026-10-16-item-4-znack-registration.md"
+    },
+    "items5To7": "awaiting_separate_flow_approval"
+  },
+  "item4Changes": [
+    "Paired source receipt and current product membership; failed/partial/stale reads remain blocked",
+    "Current Catalog publication status and suitable registration actions",
+    "WB/Ozon reviewed GTIN and bounded per-product reports"
+  ]
 }

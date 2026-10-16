@@ -1,0 +1,78 @@
+{
+  "item": 4,
+  "diagramApproved": true,
+  "applicationCommit": "54dff46b684dc41ac8807a9a394148d460e0625b",
+  "fullJavaRegression": {
+    "tests": 1471,
+    "passed": 1469,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 2,
+    "result": "passed",
+    "finishedAt": "2026-10-16T14:56:39Z",
+    "logSha256": "8eb8bbbdd804bb3be76a1633e032fa174c81ad5223ae496215796fc203c09ca0",
+    "sourceCommit": "4a02d2b54d5d2b8cfeb8d6aac01f68a8e6a27573",
+    "platformSkips": [
+      "Gs1PrefixTemplateStoreTest",
+      "WindowsSecretProtectorTest"
+    ]
+  },
+  "finalUiVerification": {
+    "tests": 75,
+    "passed": 75,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "result": "passed",
+    "finishedAt": "2026-10-16T14:58:34Z",
+    "logSha256": "c49f071c60768d0a27a46a58bae4f6a206e6236588e11f21aca497e668ce8ce7",
+    "sourceCommit": "54dff46b684dc41ac8807a9a394148d460e0625b",
+    "note": "After the full regression, only Ozon title, action width and wrapping of status explanations changed; FXML, WB/Ozon registration, queries and report tests reran."
+  },
+  "comparison": {
+    "latestWbcode": "v1.3.9",
+    "publishedAt": "2026-10-15T16:56:43Z",
+    "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.3.9",
+    "internalSourceAvailable": false,
+    "basis": "public release notes, saved official screenshots and previously inspected public older WCode source"
+  },
+  "purchasePipelinePreserved": {
+    "ZnackPurchaseCoordinator": {
+      "unchanged": true,
+      "sha256": "541b6b7a95322a334620bc0d2e6a66b79a7cb400f8a321ccfb8bfa0a418c548c"
+    },
+    "ZnackKizOrderService": {
+      "unchanged": true,
+      "sha256": "f2df13878035bd5cdd46ae7e09dd7f9d3fe86ce57e88fbd9b5679456404d1881"
+    },
+    "ZnackKizCodeService": {
+      "unchanged": true,
+      "sha256": "193b08fd5453159cc32e833f07726fbbcbabe9faec04434c0696320496b4f767"
+    }
+  },
+  "screenshots": [
+    {
+      "file": "docs/validation/images/2026-10-16-item4-wb-registration.png",
+      "sha256": "2eeaeec47728c7c614abcb3089d5cc8f8b50bb28162aa488d1efaa712603153b",
+      "data": "synthetic only"
+    },
+    {
+      "file": "docs/validation/images/2026-10-16-item4-ozon-registration.png",
+      "sha256": "3d0594e1671e4b18d87c373e10e2d2aec7bb4632034380e5a98c5bff384ca69e",
+      "data": "synthetic only"
+    },
+    {
+      "file": "docs/validation/images/2026-10-16-item4-registration-report.png",
+      "sha256": "d516e62a70bdd8c45131fc144857c6f73c4fb2a0651d9cbf0bc69b5ee2ef4cf9",
+      "data": "synthetic only"
+    }
+  ],
+  "liveMarketplaceWrites": false,
+  "liveCardRegistration": false,
+  "liveCryptoProSigning": false,
+  "nativeWindowsVerified": false,
+  "sellerSecondMachineVerified": false,
+  "newReleasePublished": false,
+  "latestChanged": false,
+  "report": "docs/validation/2026-10-16-item-4-znack-registration.md"
+}
