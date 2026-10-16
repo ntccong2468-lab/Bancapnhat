@@ -95,8 +95,10 @@ class Gs1AutomaticSessionTest {
     }
     @Test void persistentAuthenticationFailureStopsAfterOneReauthenticationAndKeepsOtherServiceData()throws Exception{
         service.refresh(shop);denyCatalog.set(true);
-        var result=service.refresh(shop);assertFalse(result.complete());assertNull(result.membership());assertEquals(1,result.balances().size());
+        var phases=new java.util.ArrayList<Gs1AutomaticSyncService.Progress>();
+        var result=service.refresh(shop,phases::add);assertFalse(result.complete());assertNull(result.membership());assertEquals(1,result.balances().size());
         assertEquals("GS1_AUTH_REQUIRED",result.catalogError());assertEquals(2,catalogLogins.get());assertEquals(1,cashLogins.get());
+        assertTrue(phases.stream().anyMatch(value->value.source().equals("CATALOG")&&value.state().equals("FAILED")&&value.step().equals("REAUTHENTICATING_CATALOG")),"The report must identify the failed reauthentication step");
         assertEquals("source@example.invalid",service.cached(shop).orElseThrow().email());assertEquals(Boolean.TRUE,service.cached(shop).orElseThrow().applicationSent());
     }
     @Test void cacheExpiryRequiresFreshAuthentication()throws Exception{

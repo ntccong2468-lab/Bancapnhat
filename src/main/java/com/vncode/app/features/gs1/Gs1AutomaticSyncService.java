@@ -203,23 +203,25 @@ public final class Gs1AutomaticSyncService {
         @Override public Result read(Shop shop,ZnackModels.Settings settings,RegisteredGtinProof.Scope scope)throws Exception{return read(shop,settings,scope,p->{});}
         Result read(Shop shop,ZnackModels.Settings settings,RegisteredGtinProof.Scope scope,java.util.function.Consumer<Progress> progress)throws Exception {
             Session entry=acquire(scope.source());boolean locked=false;Long previous=DEADLINE.get();DEADLINE.set(System.nanoTime()+budget.toNanos());
+            var phases=new HashMap<String,String>();
+            java.util.function.Consumer<Progress> tracked=value->{phases.put(value.source(),value.step());progress.accept(value);};
             try{lock(entry);locked=true;resetExpired(entry);
                 Gs1Membership member=null;String email="",catalogError="",balanceError="";Boolean applicationSent=null;boolean newApplication=false;
                 try{
-                    var snapshot=account(entry,shop,settings,scope,progress);guard(shop,scope);
+                    var snapshot=account(entry,shop,settings,scope,tracked);guard(shop,scope);
                     member=snapshot.membership();email=profileEmail(snapshot.form());newApplication=snapshot.newApplication();
                     var sent=snapshot.form().get("isSent");applicationSent=sent!=null&&sent.isJsonPrimitive()&&sent.getAsJsonPrimitive().isBoolean()?sent.getAsBoolean():null;
-                    progress.accept(new Progress("CATALOG","CATALOG_COMPLETE","SUCCEEDED",""));
-                }catch(Exception unavailable){interrupted(unavailable);entry.catalog=null;catalogError=com.vncode.app.features.sync.SyncFailure.of(unavailable,0).code();progress.accept(new Progress("CATALOG","READING_CATALOG","FAILED",catalogError));}
+                    tracked.accept(new Progress("CATALOG","CATALOG_COMPLETE","SUCCEEDED",""));
+                }catch(Exception unavailable){interrupted(unavailable);entry.catalog=null;catalogError=com.vncode.app.features.sync.SyncFailure.of(unavailable,0).code();tracked.accept(new Progress("CATALOG",phases.getOrDefault("CATALOG","CHECKING_SETTINGS"),"FAILED",catalogError));}
                 try{
                     guard(shop,scope);var signer=signerFactory.create(shop,settings,scope);
-                    if(entry.cash==null||!entry.cash.expiresAt().isAfter(clock.instant())){progress.accept(new Progress("BALANCE","AUTHENTICATING_BALANCE","RUNNING",""));entry.cash=cashClient.authenticate(scope.inn(),scope.fingerprint(),signer);}
-                    progress.accept(new Progress("BALANCE","READING_BALANCE","RUNNING",""));
+                    if(entry.cash==null||!entry.cash.expiresAt().isAfter(clock.instant())){tracked.accept(new Progress("BALANCE","AUTHENTICATING_BALANCE","RUNNING",""));entry.cash=cashClient.authenticate(scope.inn(),scope.fingerprint(),signer);}
+                    tracked.accept(new Progress("BALANCE","READING_BALANCE","RUNNING",""));
                     List<BalanceSnapshot> values;
                     try{values=cashClient.readAccounts(entry.cash);}
-                    catch(ChestnyZnakBalanceClient.AuthenticationException expired){progress.accept(new Progress("BALANCE","REAUTHENTICATING_BALANCE","RUNNING",""));entry.cash=cashClient.authenticate(scope.inn(),scope.fingerprint(),signer);values=cashClient.readAccounts(entry.cash);}
-                    guard(shop,scope);progress.accept(new Progress("BALANCE","BALANCE_COMPLETE","SUCCEEDED",""));return new Result(member,email,values,catalogError,"",applicationSent,newApplication);
-                }catch(Exception unavailable){interrupted(unavailable);entry.cash=null;balanceError=com.vncode.app.features.sync.SyncFailure.of(unavailable,0).code();progress.accept(new Progress("BALANCE","READING_BALANCE","FAILED",balanceError));}
+                    catch(ChestnyZnakBalanceClient.AuthenticationException expired){tracked.accept(new Progress("BALANCE","REAUTHENTICATING_BALANCE","RUNNING",""));entry.cash=cashClient.authenticate(scope.inn(),scope.fingerprint(),signer);values=cashClient.readAccounts(entry.cash);}
+                    guard(shop,scope);tracked.accept(new Progress("BALANCE","BALANCE_COMPLETE","SUCCEEDED",""));return new Result(member,email,values,catalogError,"",applicationSent,newApplication);
+                }catch(Exception unavailable){interrupted(unavailable);entry.cash=null;balanceError=com.vncode.app.features.sync.SyncFailure.of(unavailable,0).code();tracked.accept(new Progress("BALANCE",phases.getOrDefault("BALANCE","CHECKING_SETTINGS"),"FAILED",balanceError));}
                 return new Result(member,email,List.of(),catalogError,balanceError,applicationSent,newApplication);
             }finally{if(locked)entry.lock.unlock();release(entry);if(previous==null)DEADLINE.remove();else DEADLINE.set(previous);}
         }

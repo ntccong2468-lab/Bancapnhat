@@ -210,22 +210,24 @@ class FxmlSmokeTest {
         }finally{home.dispose();}return null;});Platform.runLater(task);task.get(10,TimeUnit.SECONDS);
     }
     @Test void gs1DoesNotStartTwoOperationsInTheSameShopGeneration() throws Exception {
-        var release=new CountDownLatch(1);var holder=new java.util.concurrent.atomic.AtomicReference<com.vncode.app.ui.gs1.Gs1Pane>();
-        var work=new java.util.concurrent.Callable<String>(){public String call()throws Exception{release.await(10,TimeUnit.SECONDS);return "fixture";}};
+        var owner=syntheticGs1Shop(801,"7707083893");
+        var entered=new CountDownLatch(1);var release=new CountDownLatch(1);var holder=new java.util.concurrent.atomic.AtomicReference<com.vncode.app.ui.gs1.Gs1Pane>();
+        var work=new java.util.concurrent.Callable<String>(){public String call()throws Exception{entered.countDown();release.await(10,TimeUnit.SECONDS);return "fixture";}};
         var setup=new java.util.concurrent.FutureTask<Void>(()->{
-            var pane=new com.vncode.app.ui.gs1.Gs1Pane();holder.set(pane);
+            var pane=new com.vncode.app.ui.gs1.Gs1Pane();holder.set(pane);pane.setShop(owner);
             var method=pane.getClass().getDeclaredMethod("run",java.util.concurrent.Callable.class,java.util.function.Consumer.class);method.setAccessible(true);
             method.invoke(pane,work,(java.util.function.Consumer<String>)ignored->{});
             method.invoke(pane,work,(java.util.function.Consumer<String>)ignored->{});
             assertEquals(1,pane.activeTaskCount(),"Thread actions must not start another operation while busy");return null;
         });
-        try{Platform.runLater(setup);setup.get(10,TimeUnit.SECONDS);}
+        try{Platform.runLater(setup);setup.get(10,TimeUnit.SECONDS);assertTrue(entered.await(5,TimeUnit.SECONDS),"The first operation must pass owner validation and actually start");}
         finally{release.countDown();awaitBackgroundTasksBeforeFixtureCleanup();var close=new java.util.concurrent.FutureTask<Void>(()->{if(holder.get()!=null)holder.get().dispose();return null;});Platform.runLater(close);close.get(5,TimeUnit.SECONDS);}
     }
     @Test void gs1LongConversationScrollsToNewestAfterTheSkinIsInstalled() throws Exception {
+        var owner=syntheticGs1Shop(802,"7707083893");
         var holder=new java.util.concurrent.atomic.AtomicReference<com.vncode.app.ui.gs1.Gs1Pane>();var window=new java.util.concurrent.atomic.AtomicReference<javafx.stage.Stage>();
         var setup=new java.util.concurrent.FutureTask<Void>(()->{
-            var pane=new com.vncode.app.ui.gs1.Gs1Pane();holder.set(pane);pane.setShop(new Shop(1,"GS1 UI fixture","fixture"));
+            var pane=new com.vncode.app.ui.gs1.Gs1Pane();holder.set(pane);pane.setShop(owner);
             var inn=pane.getClass().getDeclaredField("inn");inn.setAccessible(true);inn.set(pane,"7707083893");
             var repository=pane.getClass().getDeclaredField("repository");repository.setAccessible(true);var repo=(com.vncode.app.features.gs1.Gs1Repository)repository.get(pane);
             var request=repo.createRequest("7707083893","RENEWAL","mail@gs1ru.org","Scroll fixture","Draft");
@@ -243,15 +245,16 @@ class FxmlSmokeTest {
         }finally{var close=new java.util.concurrent.FutureTask<Void>(()->{if(holder.get()!=null)holder.get().dispose();if(window.get()!=null)window.get().close();return null;});Platform.runLater(close);close.get(5,TimeUnit.SECONDS);}
     }
     @Test void gs1StartsWithoutNetworkAndDiscardsOldShopCallbacks() throws Exception {
+        var first=syntheticGs1Shop(803,"7707083893");var second=syntheticGs1Shop(804,"7707083893");
         var entered=new CountDownLatch(1);var release=new CountDownLatch(1);var applied=new AtomicInteger();
         var holder=new java.util.concurrent.atomic.AtomicReference<com.vncode.app.ui.gs1.Gs1Pane>();
         var setup=new java.util.concurrent.FutureTask<Void>(() -> {
             var pane=new com.vncode.app.ui.gs1.Gs1Pane();holder.set(pane);
-            pane.setShop(new Shop(1,"Fixture A","fixture"));
+            pane.setShop(first);
             assertEquals(0,pane.activeTaskCount());
             var method=pane.getClass().getDeclaredMethod("run",java.util.concurrent.Callable.class,java.util.function.Consumer.class);method.setAccessible(true);
             method.invoke(pane,(java.util.concurrent.Callable<String>)()->{entered.countDown();release.await(5,TimeUnit.SECONDS);return "old shop";},(java.util.function.Consumer<String>)ignored->applied.incrementAndGet());
-            pane.setShop(new Shop(2,"Fixture B","fixture"));return null;
+            pane.setShop(second);return null;
         });
         try{
             Platform.runLater(setup);setup.get(10,TimeUnit.SECONDS);assertTrue(entered.await(5,TimeUnit.SECONDS));release.countDown();
@@ -259,6 +262,17 @@ class FxmlSmokeTest {
         }finally{
             release.countDown();var close=new java.util.concurrent.FutureTask<Void>(() -> {if(holder.get()!=null)holder.get().dispose();return null;});Platform.runLater(close);close.get(5,TimeUnit.SECONDS);
         }
+    }
+    /** Owned, synthetic identities: these fixtures never contact Catalog or sign a document. */
+    private static Shop syntheticGs1Shop(int id,String inn)throws Exception {
+        try(var c=Database.getConnection();var p=c.prepareStatement("INSERT INTO shops(id,name,marketplace,client_id,api_key) VALUES(?,'GS1 fixture','WILDBERRIES',NULL,'fixture')")){
+            p.setInt(1,id);p.executeUpdate();
+        }
+        var shop=new Shop(id,"GS1 fixture","fixture");var fingerprint="A".repeat(40);var now=java.time.Instant.now();
+        String metadata="{\"selector\":\""+fingerprint+"\",\"thumbprint\":\""+fingerprint+"\",\"inn\":\""+inn+"\",\"hasPrivateKey\":true,\"validFrom\":\""+now.minusSeconds(86400)+"\",\"validTo\":\""+now.plusSeconds(86400)+"\"}";
+        var settings=new com.vncode.app.integration.znack.ZnackModels.Settings(com.vncode.app.integration.znack.ZnackModels.PRODUCTION_TRUE_API,"","","",inn,"","","",fingerprint,"[]","","","",false,"","[]",metadata,now,"","","",60);
+        new com.vncode.app.integration.znack.ZnackRepository(new com.vncode.app.integration.znack.ZnackModels.ShopContext(id,shop.getName())).saveSettings(settings);
+        return shop;
     }
     @Test void printPreflightClaimsActivityImmediately() throws Exception { assertPrintPreflightContext(true); }
     @Test void printPreflightCannotOpenDialogsForAnotherShop() throws Exception { assertPrintPreflightContext(false); }
