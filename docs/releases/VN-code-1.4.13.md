@@ -13,6 +13,16 @@ Chưa phát hành. Phần mục 1 được người dùng duyệt và bổ sung:
 [Báo cáo mục 1 và giới hạn nghiệm thu thật](../validation/2026-10-16-approved-item-1-znack-gtin.md).
 [Báo cáo kiểm tra API thật sau sửa](../validation/2026-10-16-item-1-live-api-report.md).
 
+Mục 2 đã được duyệt và triển khai cho shipment FBS của WB:
+
+- Thêm hai nguồn trong «Kho KIZ / Znack»: KIZ do seller nhập và Mua KIZ; lưu lựa chọn riêng theo shipment.
+- Hiển thị danh mục đã đồng bộ, nút tải tệp từng dòng và số lượng còn/đang giữ/đã dùng. Nhập mã theo danh mục không cần kiểm tra Znack hoặc trùng GTIN của sản phẩm.
+- Chỉ kho nhập thì thiếu mã sẽ báo đơn/danh mục và không mua. Chọn cả hai thì kho nhập trước, chỉ chuyển phần thiếu sang pipeline mua hiện tại; nguồn mua loại toàn bộ mã nhập khỏi tồn và giữ kiểm tra GTIN.
+- Giữ nguyên pipeline đặt mua, ký, tải mã, đưa vào lưu thông và đối soát. Danh sách thẻ GTIN của kho mua chỉ dựng các dòng đang nhìn thấy.
+- Nhập lại tệp không chuyển mã sang nhóm khác; danh mục trống mới phát hiện không buộc hàng không đánh dấu phải có KIZ. Nguồn của tác vụ được chốt trước khi chạy, đổi cửa hàng không nhận kết quả cũ.
+
+[Báo cáo mục 2 và giới hạn kiểm thử](../validation/2026-10-16-item-2-wb-shipment-kiz.md).
+
 - UI và tác vụ nền cùng nhận kết quả của một lượt đọc Catalog đang chạy, tránh việc màn hình bị bỏ lại danh sách trống khi đồng bộ lúc khởi động.
 - Dùng chung nguồn Catalog cho các màn hình; đọc theo tài khoản đã xác thực và phân trang, không chỉ danh sách nhóm `lp` hoặc cache đăng ký local.
 - Máy mới có thể lấy API key Catalog qua chứng thư CryptoPro đã cấu hình; bản sao lưu chứa key DPAPI của Windows khác sẽ xác thực lại và lưu key riêng trên máy hiện tại. Không cần đăng nhập trình duyệt; mỗi máy vẫn cần chứng thư/khóa riêng hoạt động.
