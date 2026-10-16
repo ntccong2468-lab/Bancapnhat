@@ -3,7 +3,7 @@
   "baseVersion": "1.4.12",
   "complete": false,
   "officialReleasePublished": false,
-  "phase": "approved-items-1-2-4-5-implemented-live-native-acceptance-pending",
+  "phase": "approved-items-1-2-4-5-6-implemented-live-native-acceptance-pending",
   "licenseIntegration": {
     "implemented": true,
     "productionReady": false,
@@ -30,7 +30,12 @@
     "Shop/certificate-scoped membership and balance cache, independent success timestamps, explicit partial/whole failure persistence",
     "Reported and coalesced GS1 synchronization with per-source phases, bounded waits and observer lifecycle",
     "Compact membership/six checks/prefix/inbox UI with Znack configuration and read-only source report actions",
-    "Catalog profile email reused as a mailbox configuration hint; reviewed API forms and seller-configured SMTP/IMAP retained"
+    "Catalog profile email reused as a mailbox configuration hint; reviewed API forms and seller-configured SMTP/IMAP retained",
+    "Compact copy wizard with optional detail sections and actionable per-field preview errors",
+    "Source values remain inherited; separate explicit edits and per-variant prices persist in backwards-compatible drafts",
+    "Real prepared destination data, dictionary labels and variant prices displayed before publication",
+    "Primary image and full source barcode coverage checked; unsupported source fields reported explicitly",
+    "Bounded selected-job reconciliation, durable no-duplicate writes and native WB size-price readback"
   ],
   "validation": {
     "focusedGuards": {
@@ -61,15 +66,15 @@
       "report": "docs/validation/2026-10-16-vncode-1413-local-checks.json"
     },
     "fullJavaRegression": {
-      "tests": 1493,
-      "passed": 1491,
+      "tests": 1514,
+      "passed": 1512,
       "failures": 0,
       "errors": 0,
       "skipped": 2,
       "result": "passed",
-      "finishedAt": "2026-10-16T15:51:40Z",
-      "logSha256": "619d53c9269b8ab8cd0ae9bb34d61198b0f3c7b6205bbf4138a94c444cfed841",
-      "sourceCommit": "cffacc55de7aff7f8fd13a3df0caa388cacf9ae4",
+      "finishedAt": "2026-10-16T18:59:27Z",
+      "logSha256": "b637ec2789d5971bfb4727c09a667ba19a7cfabaa2f7eae7155e11118e3d2489",
+      "sourceCommit": "5cc986b99f18bac53aa265c25146e852c90d54f9",
       "platformSkips": [
         {
           "className": "com.vncode.app.features.gs1.Gs1PrefixTemplateStoreTest",
@@ -110,7 +115,7 @@
     ],
     "windowsFullBuild": {
       "result": "not_run_for_current_source",
-      "sourceCommit": "cffacc55de7aff7f8fd13a3df0caa388cacf9ae4"
+      "sourceCommit": "5cc986b99f18bac53aa265c25146e852c90d54f9"
     },
     "baselineFullJavaRegression": {
       "tests": 1411,
@@ -252,15 +257,47 @@
       "finishedAt": "2026-10-16T15:46:40Z",
       "logSha256": "6d20a31b6283f4bfdafdb32d81c813356522df9a887992b0f9d634248b541480"
     },
-    "item5PurchasePipelinePreserved": true
+    "item5PurchasePipelinePreserved": true,
+    "previousItem5FullJavaRegression": {
+      "tests": 1493,
+      "passed": 1491,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 2,
+      "result": "passed",
+      "finishedAt": "2026-10-16T15:51:40Z",
+      "logSha256": "619d53c9269b8ab8cd0ae9bb34d61198b0f3c7b6205bbf4138a94c444cfed841",
+      "sourceCommit": "cffacc55de7aff7f8fd13a3df0caa388cacf9ae4",
+      "platformSkips": [
+        {
+          "className": "com.vncode.app.features.gs1.Gs1PrefixTemplateStoreTest",
+          "test": "refusesNtfsJunctionDirectoryAndAncestors"
+        },
+        {
+          "className": "com.vncode.app.shared.WindowsSecretProtectorTest",
+          "test": "separatesLicenseAndExistingMailEntropyOnWindows"
+        }
+      ]
+    },
+    "item6FocusedVerification": {
+      "tests": 71,
+      "passed": 71,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "result": "passed",
+      "finishedAt": "2026-10-16T18:54:56Z",
+      "logSha256": "a4be6ea6683b3db6e528793b2181e7fcf38982382bfc66777d3e50554b8199eb"
+    },
+    "item6PurchasePipelinePreserved": true
   },
   "publication": {
     "published": false,
     "latestChanged": false,
     "currentSellerLatest": "1.4.12"
   },
-  "report": "docs/validation/2026-10-16-item-5-gs1.md",
-  "applicationCommit": "cffacc55de7aff7f8fd13a3df0caa388cacf9ae4",
+  "report": "docs/validation/2026-10-16-item-6-listing-copy.md",
+  "applicationCommit": "5cc986b99f18bac53aa265c25146e852c90d54f9",
   "approvedWork": {
     "item1": {
       "diagramApproved": true,
@@ -302,7 +339,20 @@
       "purchasePipelinePreserved": true,
       "report": "docs/validation/2026-10-16-item-5-gs1.md"
     },
-    "items6To7": "awaiting_separate_flow_approval"
+    "item6": {
+      "diagramApproved": true,
+      "codeImplemented": true,
+      "sourceCommit": "5cc986b99f18bac53aa265c25146e852c90d54f9",
+      "localValidation": "passed_full_java_regression_and_actual_adapter_mock_workflows",
+      "liveAcceptance": "pending_native_windows_and_confirmed_seller_publication",
+      "purchasePipelinePreserved": true,
+      "report": "docs/validation/2026-10-16-item-6-listing-copy.md"
+    },
+    "item7": {
+      "diagramApproved": false,
+      "codeImplementedThisTurn": false,
+      "status": "pending_separate_diagram_approval"
+    }
   },
   "item4Changes": [
     "Paired source receipt and current product membership; failed/partial/stale reads remain blocked",
@@ -315,5 +365,12 @@
     "Reported and coalesced GS1 synchronization with per-source phases, bounded waits and observer lifecycle",
     "Compact membership/six checks/prefix/inbox UI with Znack configuration and read-only source report actions",
     "Catalog profile email reused as a mailbox configuration hint; reviewed API forms and seller-configured SMTP/IMAP retained"
+  ],
+  "item6Changes": [
+    "Compact copy wizard with optional detail sections and actionable per-field preview errors",
+    "Source values remain inherited; separate explicit edits and per-variant prices persist in backwards-compatible drafts",
+    "Real prepared destination data, dictionary labels and variant prices displayed before publication",
+    "Primary image and full source barcode coverage checked; unsupported source fields reported explicitly",
+    "Bounded selected-job reconciliation, durable no-duplicate writes and native WB size-price readback"
   ]
 }
