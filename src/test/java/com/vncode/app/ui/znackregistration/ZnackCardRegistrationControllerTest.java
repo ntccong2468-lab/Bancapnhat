@@ -124,7 +124,7 @@ class ZnackCardRegistrationControllerTest {
             for(String key:new String[]{"znack.registration.new_gtin","znack.registration.confirm_new_gtin",
                     "znack.registration.status.gtin_review_required","znack.registration.register_selected",
                     "znack.registration.sign_approved","znack.registration.sync_znack","znack.registration.page_count",
-                    "znack.registration.catalog_summary","znack.registration.confirm_replacement"}) {
+                    "znack.registration.catalog_summary","znack.registration.confirm_replacement","znack.registration.title_ozon"}) {
                 assertTrue(bundle.containsKey(key),language+": "+key);
                 assertFalse(bundle.getString(key).isBlank());
             }

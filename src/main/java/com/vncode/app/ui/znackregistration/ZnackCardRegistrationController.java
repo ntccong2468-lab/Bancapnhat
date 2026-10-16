@@ -724,6 +724,7 @@ public final class ZnackCardRegistrationController {
                 rowDetails.getOrDefault(cell.getValue().chrtId(),new ZnackRegistrationQueryRepository.Details("","")).gender()));
         sizeColumn.setCellValueFactory(cell -> new ReadOnlyStringWrapper(cell.getValue().size()));
         barcodeColumn.setCellValueFactory(cell -> new ReadOnlyStringWrapper(barcodes(cell.getValue())));
+        RegistrationTextCells.wrap(detailColumn);
         detailColumn.setCellValueFactory(cell->new ReadOnlyStringWrapper(reason(view(cell.getValue()).detail())
                 +(value(cell.getValue().errorMessage()).isBlank()?"":" · "+SyncRunRepository.code(cell.getValue().errorMessage()))));
         statusColumn.setCellValueFactory(cell -> new ReadOnlyStringWrapper(tr("znack.registration."+view(cell.getValue()).status())));
