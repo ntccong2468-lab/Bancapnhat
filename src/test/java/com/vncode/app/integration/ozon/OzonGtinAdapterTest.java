@@ -54,6 +54,11 @@ class OzonGtinAdapterTest {
         var p=preview();var replaced=new JsonArray();replaced.add(GTIN);transport.card.add("barcodes",replaced);
         assertEquals(Verification.UNKNOWN,adapter.verify(p,new Submission("")));
     }
+    @Test void changedProductNamePreventsSendingAndCannotVerifyAnOldPreview()throws Exception {
+        transport.card.addProperty("name","Original product");var p=preview();transport.card.addProperty("name","Different product");
+        assertThrows(GtinKnownUnsentException.class,()->adapter.submit(p));assertEquals(0,transport.writes.get());
+        transport.card.getAsJsonArray("barcodes").add(GTIN);assertEquals(Verification.UNKNOWN,adapter.verify(p,new Submission("")));
+    }
     @Test void limitOf100CurrentBarcodesStopsBeforeMutation()throws Exception {
         var codes=new JsonArray();for(int i=0;i<100;i++)codes.add("legacy-"+i);transport.card.add("barcodes",codes);
         var p=preview();assertThrows(GtinKnownUnsentException.class,()->adapter.submit(p));assertEquals(0,transport.writes.get());

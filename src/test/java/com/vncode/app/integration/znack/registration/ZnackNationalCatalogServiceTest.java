@@ -19,6 +19,14 @@ import java.util.concurrent.atomic.AtomicInteger;
 import static org.junit.jupiter.api.Assertions.*;
 
 class ZnackNationalCatalogServiceTest {
+    @Test void signedFeedWithItemFailureCannotCountAsPublishedEvenWithoutAnErrorMessage()throws Exception {
+        var api=new ZnackApiClient(){@Override public JsonElement nationalCatalogFeedStatus(String base,String token,String feed){return JsonParser.parseString("{\"result\":{\"status\":\"Signed\",\"item\":[{\"gtin\":\"04631993764370\",\"good_id\":91,\"status_code\":400}]}}");}};
+        var result=service(api).progress("fixture-token","fixture-feed","04631993764370");assertTrue(result.failed());assertFalse(result.signed());
+    }
+    @Test void signedFeedWithForeignGtinDoesNotProveTheRequestedRegistration() {
+        var api=new ZnackApiClient(){@Override public JsonElement nationalCatalogFeedStatus(String base,String token,String feed){return JsonParser.parseString("{\"result\":{\"status\":\"Signed\",\"item\":[{\"gtin\":\"04631993764363\",\"good_id\":91}]}}");}};
+        assertThrows(IllegalStateException.class,()->service(api).progress("fixture-token","fixture-feed","04631993764370"));
+    }
     @Test void explicitFreshAllocationSkipsExistingUnclaimedDrafts() throws Exception {
         AtomicInteger allocations=new AtomicInteger();
         ZnackApiClient api=new ZnackApiClient() {

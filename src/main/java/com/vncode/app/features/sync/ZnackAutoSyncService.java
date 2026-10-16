@@ -24,19 +24,34 @@ public final class ZnackAutoSyncService {
     private final CatalogSyncService catalog;
     private final Source source;
     private final ProductSnapshotReader reader;
-    public ZnackAutoSyncService(){this((shop,issues)->{var result=new ZnackCatalogSyncService().refresh(shop,false,p->{});result.issues().forEach(issues);return result.cards();},
+    public ZnackAutoSyncService(){this(false);}
+    ZnackAutoSyncService(boolean force){this((shop,issues)->{var result=new ZnackCatalogSyncService().refresh(shop,force,p->{});result.issues().forEach(issues);return result.cards();},
         (shop,key)->shop.getMarketplace()==Marketplace.OZON?new OzonProductSnapshotReader().readForSynchronization(shop,key):new WbProductSnapshotReader().readForSynchronization(shop,key),new CatalogSyncService());}
     ZnackAutoSyncService(Source source,ProductSnapshotReader reader,CatalogSyncService catalog){this.source=Objects.requireNonNull(source);this.reader=Objects.requireNonNull(reader);this.catalog=Objects.requireNonNull(catalog);}
+    /** Prepare a fresh, read-only report for an explicit marketplace GTIN review. */
+    public String review(Shop shop)throws Exception {
+        var page=prepare(shop,null);
+        if(page.checkpoint().isBlank())throw new IllegalStateException("PRODUCT_CATALOG_EMPTY");
+        runs.stage(shop,page.checkpoint(),"AWAITING_CONFIRMATION","REVIEW","GTIN_CONFIRMATION_REQUIRED");
+        return page.checkpoint();
+    }
     public SyncCoordinator.Page step(Shop shop,String checkpoint)throws Exception {
         var active=runs.active(shop,"znack_marketplace");
         if(active.isEmpty())return prepare(shop,null);
         if(runs.find(active.get()).orElseThrow().state().equals("PAUSED"))return SyncCoordinator.Page.complete(0);
         if(runs.step(active.get()).equals("ZNACK_SOURCE"))return prepare(shop,active.get());
-        String id=active.get();int processed=0;boolean waiting=false,blocked=false;SyncFailure retry=null;
+        String id=active.get();int processed=0;boolean waiting=false,blocked=false,review=false;SyncFailure retry=null;
         for(int offset=0;;offset+=1000){var items=runs.items(id,offset,1000);if(items.isEmpty())break;
             for(var item:items){
                 if(Set.of("SUCCEEDED","UNCHANGED","CANCELLED").contains(item.state()))continue;
                 if(Set.of("NEEDS_ACTION","FAILED").contains(item.state())){blocked=true;continue;}
+                if(item.state().equals("AWAITING_CONFIRMATION")){review=true;continue;}
+                // Reading/synchronizing Znack never approves a marketplace mutation. Old queued
+                // rows without a confirmed child also return to review after an app upgrade.
+                if(item.childJob().isBlank()||!catalog.read(shop,item.childJob()).confirmed()){
+                    runs.update(shop,item,"AWAITING_CONFIRMATION","REVIEW","GTIN_CONFIRMATION_REQUIRED",null);
+                    review=true;continue;
+                }
                 if(processed>=3){waiting=true;continue;}
                 processed++;
                 try{advance(shop,item);}catch(Exception e){
@@ -50,7 +65,7 @@ public final class ZnackAutoSyncService {
             if(items.size()<1000)break;
         }
         if(waiting){runs.stage(shop,id,"WAITING_REMOTE","READBACK",retry==null?"":retry.code());return new SyncCoordinator.Page(id,false,processed,retry==null?new SyncFailure("READBACK_PENDING",Duration.ofSeconds(5),false):retry);}
-        runs.stage(shop,id,blocked?"PARTIAL":"SUCCEEDED","REPORT",blocked?"ITEMS_NEED_ACTION":"");
+        runs.stage(shop,id,review?"AWAITING_CONFIRMATION":blocked?"PARTIAL":"SUCCEEDED","REPORT",review?"GTIN_CONFIRMATION_REQUIRED":blocked?"ITEMS_NEED_ACTION":"");
         return SyncCoordinator.Page.complete(processed);
     }
     private SyncCoordinator.Page prepare(Shop shop,String existing)throws Exception {
@@ -60,20 +75,23 @@ public final class ZnackAutoSyncService {
             var source=this.source.read(shop,issues::add);
             ListingIdentity.require(shop);gtins.mergeCatalog(shop.getId(),shop.getMarketplace(),source);
             project(shop,source);
-            for(var issue:issues)runs.add(shop,id,"catalog:"+issue.gtin(),"catalog","","","","",issue.gtin(),"NEEDS_ACTION",issue.code(),"{}");
+            var buffered=new ArrayList<SyncRunRepository.Item>();
+            for(var issue:issues){buffered.add(reportItem(id,"catalog:"+issue.gtin(),"catalog","","","","",issue.gtin(),"NEEDS_ACTION",issue.code(),"{}"));if(buffered.size()==1000){runs.addBatch(shop,id,buffered);buffered.clear();}}
             var index=new GtinCatalogIndex(source);
             String cursor=null;int productCount=0;
             do{
+                if(Thread.currentThread().isInterrupted())throw new java.io.InterruptedIOException("ZNACK_SYNC_CANCELLED");
                 var page=products.loadPage(new ProductQuery(shop.getId(),shop.getMarketplace(),"",List.of(),null,false,cursor,300));
                 for(var row:page.rows()){
                     productCount++;
                     List<RegisteredGtin> candidates;
-                    try{candidates=match(shop,row,index);}catch(IllegalArgumentException changed){runs.add(shop,id,row.key().cardId(),row.key().variantId(),"",row.vendorArticle(),row.color(),row.size(),"","NEEDS_ACTION",SyncFailure.of(changed,0).code(),"{}");continue;}
+                    try{candidates=match(shop,row,index);}catch(IllegalArgumentException changed){buffered.add(reportItem(id,row.key().cardId(),row.key().variantId(),"",row.vendorArticle(),row.color(),row.size(),"","NEEDS_ACTION",SyncFailure.of(changed,0).code(),"{}"));continue;}
                     String error=candidates.size()>1?"GTIN_AMBIGUOUS":candidates.isEmpty()?"ZNACK_MAPPING_UNVERIFIED":"";
                     String sku=sku(shop,row.key());String gtin=candidates.size()==1?candidates.getFirst().gtin():"";
-                    var evidence=new com.google.gson.JsonObject();evidence.addProperty("source",candidates.size()==1?candidates.getFirst().source():"");evidence.addProperty("published",candidates.size()==1&&candidates.getFirst().published());
-                    runs.add(shop,id,row.key().cardId(),row.key().variantId(),sku,row.vendorArticle(),row.color(),row.size(),gtin,error.isBlank()?"QUEUED":"NEEDS_ACTION",error,evidence.toString());
+                    var evidence=new com.google.gson.JsonObject();evidence.addProperty("source",candidates.size()==1?candidates.getFirst().source():"");evidence.addProperty("published",candidates.size()==1&&candidates.getFirst().published());evidence.addProperty("title",row.title());
+                    buffered.add(reportItem(id,row.key().cardId(),row.key().variantId(),sku,row.vendorArticle(),row.color(),row.size(),gtin,error.isBlank()?"AWAITING_CONFIRMATION":"NEEDS_ACTION",error.isBlank()?"GTIN_CONFIRMATION_REQUIRED":error,evidence.toString()));
                 }
+                if(!buffered.isEmpty()){runs.addBatch(shop,id,buffered);buffered.clear();}
                 cursor=page.nextCursor();
             }while(cursor!=null);
             if(productCount==0){runs.stage(shop,id,"PARTIAL","REPORT","PRODUCT_CATALOG_EMPTY");return new SyncCoordinator.Page("",true,source.size(),new SyncFailure("PRODUCT_CATALOG_EMPTY",Duration.ofMinutes(1),true));}
@@ -81,6 +99,7 @@ public final class ZnackAutoSyncService {
             return new SyncCoordinator.Page(id,false,source.size());
         }catch(Exception failure){runs.stage(shop,id,"FAILED","ZNACK_SOURCE",SyncFailure.of(failure,0).code());throw failure;}
     }
+    private static SyncRunRepository.Item reportItem(String run,String product,String variant,String sku,String article,String color,String size,String gtin,String state,String error,String evidence){return new SyncRunRepository.Item(UUID.randomUUID().toString(),run,product,variant,sku,article,color,size,gtin,state,"MATCHING",error,"",evidence);}
     private List<RegisteredGtin> match(Shop shop,ProductRow product,GtinCatalogIndex index)throws Exception {
         String nativeGtin=registrationGtin(shop,product.key());
         if(!nativeGtin.isBlank()){
@@ -95,7 +114,12 @@ public final class ZnackAutoSyncService {
         var key=new ProductKey(shop.getId(),shop.getMarketplace(),item.productId(),item.variantId());
         RegisteredGtinProof.requireCurrent(shop,item.gtin());
         if(!item.childJob().isBlank()){
-            var result=catalog.run(shop,item.childJob(),true);
+            if(!catalog.read(shop,item.childJob()).confirmed())throw new IllegalArgumentException("GTIN_CONFIRMATION_REQUIRED");
+            var fresh=reader.read(shop,key);
+            if(shop.getMarketplace()==Marketplace.OZON&&(!item.sku().equals(fresh.metadata().get("sku"))||item.sku().isBlank()))throw new IllegalArgumentException("OZON_SKU_CHANGED");
+            var variant=fresh.variants().stream().filter(v->v.id().equals(item.variantId())).findFirst().orElseThrow(()->new IllegalArgumentException("VARIANT_NOT_FOUND"));
+            if(!compatible(variant.color(),item.color())||!compatible(variant.size(),item.size()))throw new IllegalArgumentException("PRODUCT_CHANGED");
+            var result=catalog.run(shop,item.childJob(),false);
             if(result.rows().stream().allMatch(r->r.state()==CatalogSyncModels.State.SUCCEEDED)){
                 completeRegistration(shop,key,item.gtin());runs.update(shop,item,"SUCCEEDED","VERIFIED","",null);
             }else if(result.rows().stream().anyMatch(r->r.state()==CatalogSyncModels.State.BLOCKED)){
@@ -107,19 +131,7 @@ public final class ZnackAutoSyncService {
             }
             return;
         }
-        // Fresh detail, not an article-level rule, proves Ozon SKU/size/color before planning.
-        var fresh=reader.read(shop,key);
-        if(shop.getMarketplace()==Marketplace.OZON&&(!item.sku().equals(fresh.metadata().get("sku"))||item.sku().isBlank()))throw new IllegalArgumentException("OZON_SKU_CHANGED");
-        var variant=fresh.variants().stream().filter(v->v.id().equals(item.variantId())).findFirst().orElseThrow(()->new IllegalArgumentException("VARIANT_NOT_FOUND"));
-        var source=gtins.catalogItem(shop.getId(),shop.getMarketplace(),item.gtin());
-        if(!compatible(variant.color(),source.color())||!compatible(variant.size(),source.size()))throw new IllegalArgumentException("GTIN_VARIANT_CONFLICT");
-        if(!compatible(variant.color(),item.color())||!compatible(variant.size(),item.size()))throw new IllegalArgumentException("PRODUCT_CHANGED");
-        var targetKey=new GtinSyncModels.ProductKey(shop.getId(),shop.getMarketplace(),item.productId(),item.variantId());
-        var options=new CatalogSyncModels.Options(Set.of(CatalogSyncModels.Field.GTIN),Map.of());
-        var plan=catalog.preview(shop,List.of(new CatalogSyncModels.Selection(targetKey,item.gtin())),options);
-        if(plan.readyCount()==0){String issue=plan.rows().stream().flatMap(r->r.differences().stream()).filter(CatalogSyncModels.Diff::blocking).map(CatalogSyncModels.Diff::code).findFirst().orElse("GTIN_PLAN_BLOCKED");runs.update(shop,item,"NEEDS_ACTION","VALIDATING",issue,plan.id());return;}
-        runs.update(shop,item,"RUNNING","PLANNED","",plan.id()); // Persist child identity before any write.
-        catalog.run(shop,plan.id(),true);
+        throw new IllegalArgumentException("GTIN_CONFIRMATION_REQUIRED");
     }
     private static boolean compatible(String a,String b){return a==null||b==null||a.isBlank()||b.isBlank()||GtinMatchingService.normalize(a).equals(GtinMatchingService.normalize(b));}
     static String sku(Shop shop,ProductKey key)throws Exception{

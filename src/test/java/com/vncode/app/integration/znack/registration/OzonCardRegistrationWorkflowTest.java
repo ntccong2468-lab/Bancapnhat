@@ -47,6 +47,19 @@ class OzonCardRegistrationWorkflowTest {
     OzonCardRegistrationRepository.Row row(){return repository.find(key);}
     void ready(){assertTrue(workflow.register(shop,key,draft,true,false,null));assertEquals(Status.READY_TO_SIGN,row().status());}
     void published(){ready();assertTrue(workflow.signApproved(shop,List.of(key),true,null));assertEquals(Status.PUBLISHED,row().status());}
+    @Test void registeredSignedCardFlowsThroughCatalogAndRealOzonBarcodeAdapterToNativeActivation()throws Exception {
+        published();var completed=PublishedCardGtinFixture.synchronize(shop,row().gtin(),key.cardId(),key.variantId(),"9001");
+        var finisher=new OzonCardRegistrationWorkflow(repository,s->session(),(s,k)->snapshot,Runnable::run,
+                (s,k,sku,gtin)->((com.vncode.app.integration.ozon.OzonGtinAdapter)completed.adapter()).hasBarcode(completed.key(),sku,gtin));
+        assertTrue(finisher.complete(shop,key,true,null));assertEquals(row().gtin(),row().activeGtin());
+        assertEquals(1,api.allocations.get());assertEquals(1,api.submissions.get());assertEquals(1,api.signatures.get());
+    }
+    @Test void backgroundMonitorReadsTheNativeOzonFeedWithoutAnyNewWrite()throws Exception {
+        ready();var monitor=new ZnackRegistrationMonitor(null,workflow);var waiting=monitor.poll(shop,3);
+        assertEquals(1,waiting.checked());assertFalse(waiting.pending());assertEquals(0,api.signatures.get());
+        api.accepted=true;var done=monitor.poll(shop,3);assertEquals(1,done.published());assertEquals(Status.PUBLISHED,row().status());assertEquals("",row().activeGtin());
+        assertEquals(0,api.signatures.get());assertEquals(1,api.allocations.get());assertEquals(1,api.submissions.get());
+    }
     @Test void preparationFetchesNativeIdentityAndReusesOneSessionForCategorySelection()throws Exception {
         api.multipleCategories=true;var prepared=workflow.prepare(shop,key);
         assertEquals("6204",prepared.tnved());assertEquals(0,prepared.categoryId());assertEquals(2,prepared.preflight().categories().size());assertTrue(prepared.required().isEmpty());

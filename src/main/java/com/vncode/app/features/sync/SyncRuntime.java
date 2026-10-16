@@ -41,7 +41,13 @@ public final class SyncRuntime implements AutoCloseable {
             case ZNACK:{
                 var settings=new ZnackRepository(new ZnackModels.ShopContext(shop.getId(),shop.getName())).getSettings();
                 if(settings.signerTestedAt()==null)return SyncCoordinator.Page.complete(0);
-                if(znack==null)znack=new ZnackAutoSyncService();return znack.step(shop,checkpoint);
+                var registrations=new com.vncode.app.integration.znack.registration.ZnackRegistrationMonitor().poll(shop,3);
+                if(registrations.published()>0)new ZnackCatalogSyncService().refresh(shop,true,p->{});
+                // Moderation polling must not rebuild an entire 17k-product review each tick.
+                // Confirmed GTIN children still advance while other cards await moderation.
+                if(registrations.pending()&&registrations.published()==0&&new SyncRunRepository().active(shop,"znack_marketplace").isEmpty())return new SyncCoordinator.Page("",true,0,new SyncFailure("READBACK_PENDING",java.time.Duration.ofSeconds(15),false));
+                if(znack==null)znack=new ZnackAutoSyncService();var page=znack.step(shop,checkpoint);
+                return registrations.pending()&&page.warning()==null?new SyncCoordinator.Page(page.checkpoint(),page.complete(),page.changed(),new SyncFailure("READBACK_PENDING",java.time.Duration.ofSeconds(15),false)):page;
             }
             case GS1:{
                 var reports=new SyncRunRepository();String id=reports.begin(shop,"gs1","AUTHENTICATING");

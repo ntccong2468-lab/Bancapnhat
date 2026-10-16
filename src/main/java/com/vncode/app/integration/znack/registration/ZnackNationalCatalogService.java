@@ -186,7 +186,7 @@ public final class ZnackNationalCatalogService {
             String message = first(string(item, "message"), string(item, "status_message"));
             int code = item.has("status_code") && !item.get("status_code").isJsonNull()
                     ? item.get("status_code").getAsInt() : 0;
-            if (code != 0 && !message.isBlank()) errors.add(message);
+            if (code != 0) errors.add(message.isBlank()?"Catalog item status code "+code:message);
         }
         if(("Signed".equalsIgnoreCase(status) || "Moderated".equalsIgnoreCase(status)) && exactIdentities!=1)
             throw new IllegalStateException("Catalog feed readback did not confirm the requested GTIN.");
@@ -529,7 +529,7 @@ public final class ZnackNationalCatalogService {
     public record FeedProgress(String status, Long goodId, List<String> errors) {
         public boolean failed() { return "Rejected".equalsIgnoreCase(status) || !errors.isEmpty(); }
         public boolean readyToSign() { return "Moderated".equalsIgnoreCase(status) && errors.isEmpty(); }
-        public boolean signed() { return "Signed".equalsIgnoreCase(status); }
+        public boolean signed() { return "Signed".equalsIgnoreCase(status) && errors.isEmpty(); }
         public String errorMessage() { return String.join("; ", errors); }
     }
 }

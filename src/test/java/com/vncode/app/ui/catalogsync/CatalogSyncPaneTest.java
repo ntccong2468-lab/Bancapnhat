@@ -40,4 +40,9 @@ class CatalogSyncPaneTest {
         assertTrue(entered.await(5,TimeUnit.SECONDS));fx(()->{pane.dispose();return null;});release.countDown();com.vncode.app.testsupport.ShopReadTestCleanup.awaitSharedIdle();
         fx(()->{assertTrue(((ComboBox<?>)pane.lookup("#catalogSyncHistory")).getItems().isEmpty());return null;});
     }
+    @Test void registrationGtinReviewDoesNotSelectMetadataChangesOrConfirmAnything()throws Exception {
+        fx(()->{pane=new CatalogSyncPane();new Scene(pane,1060,700);pane.openGtin(null,List.of());
+            for(var field:Field.values())assertEquals(field==Field.GTIN,((CheckBox)pane.lookup("#catalogSync"+field)).isSelected());
+            assertFalse(((CheckBox)pane.lookup("#catalogSyncConfirm")).isSelected());assertTrue(((Button)pane.lookup("#catalogSyncApply")).isDisabled());return null;});
+    }
 }

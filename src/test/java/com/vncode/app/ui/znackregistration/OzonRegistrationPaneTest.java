@@ -17,6 +17,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class OzonRegistrationPaneTest {
     @TempDir Path directory;
     private OzonRegistrationPane pane;
+    private final java.util.concurrent.atomic.AtomicInteger gtinOpens=new java.util.concurrent.atomic.AtomicInteger();
     @BeforeAll static void toolkit() throws Exception {
         try{Platform.startup(()->Platform.setImplicitExit(false));}catch(IllegalStateException started){}
     }
@@ -30,7 +31,7 @@ class OzonRegistrationPaneTest {
             }c.commit();
             s.execute("INSERT INTO ozon_products(shop_id,product_id,offer_id,sku,name,synced_at) VALUES(2,'1','offer-1','10001','Foreign','2026-10-14T00:00:00Z')");
         }
-        pane=fx(()->new OzonRegistrationPane(new Shop(1,"Ozon fixture",Marketplace.OZON,"fixture","synthetic"),()->{}));
+        pane=fx(()->new OzonRegistrationPane(new Shop(1,"Ozon fixture",Marketplace.OZON,"fixture","synthetic"),gtinOpens::incrementAndGet));
         awaitRows(300);
     }
     @AfterEach void cleanup()throws Exception {
@@ -49,6 +50,9 @@ class OzonRegistrationPaneTest {
     @Test void loadMoreUsesTheNativeCursorAndReachesAllThousandRowsWithoutDuplicateKeys()throws Exception {
         for(int count:new int[]{600,900,1000}){fx(()->{button("more").fire();return null;});awaitRows(count);}
         fx(()->{assertEquals(1000,table().getItems().stream().map(ProductRow::key).distinct().count());assertFalse(button("more").isVisible());return null;});
+    }
+    @Test void gtinActionOpensTheReviewedWorkflowInsteadOfTheReportBrowser()throws Exception {
+        fx(()->{var action=button("gtin");assertEquals(com.vncode.app.shared.I18nService.getInstance().tr("znack.registration.update_ozon"),action.getText());action.fire();assertEquals(1,gtinOpens.get());return null;});
     }
     @SuppressWarnings("unchecked") private TableView<ProductRow> table(){return (TableView<ProductRow>)pane.lookup("#ozonRegistrationTable");}
     private Button button(String name)throws Exception{var field=OzonRegistrationPane.class.getDeclaredField(name);field.setAccessible(true);return (Button)field.get(pane);}

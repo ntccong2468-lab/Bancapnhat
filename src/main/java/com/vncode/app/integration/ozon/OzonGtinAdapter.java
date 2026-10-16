@@ -109,7 +109,7 @@ public final class OzonGtinAdapter implements GtinMarketplaceAdapter {
     private ProductSnapshot snapshot(ProductKey key,JsonObject product,List<String> override)throws IOException {
         var codes=override==null?strings(strictArray(product,"barcodes")):override;
         String article=text(product,"offer_id");
-        String fingerprint=ListingIdentity.hash(ListingIdentity.canonical(new Gson().toJsonTree(List.of(key,ListingIdentity.fingerprint(shop),text(product,"sku"),article,codes.stream().distinct().sorted().toList()))));
+        String fingerprint=ListingIdentity.hash(ListingIdentity.canonical(new Gson().toJsonTree(List.of(key,ListingIdentity.fingerprint(shop),text(product,"sku"),article,text(product,"name"),codes.stream().distinct().sorted().toList()))));
         return new ProductSnapshot(key,article,"","",codes,fingerprint,Instant.now());
     }
     private void requireWrite(Preview preview){requireKey(preview.before().key());LicenseRuntime.require(Permission.GTIN);LicenseRuntime.require(Permission.SELLER_API);RegisteredGtinProof.requireCurrent(shop,preview.newGtin());}

@@ -158,7 +158,7 @@ public final class ZnackCardRegistrationController {
         refreshButton.setText(i18n.tr("znack.registration.refresh"));
         configButton.setText(i18n.tr("znack.registration.documents"));
         signApprovedButton.setText(i18n.tr("znack.registration.sign_approved"));
-        updateWbButton.setText(i18n.tr("jobs.report"));
+        updateWbButton.setText(i18n.tr("znack.registration.update_wb"));
         syncZnackButton.setText(i18n.tr("znack.registration.sync_znack"));
         loadMoreButton.setText(i18n.tr("znack.registration.load_more"));
         clearSelectionButton.setText(i18n.tr("znack.registration.clear_selection"));
@@ -258,24 +258,22 @@ public final class ZnackCardRegistrationController {
     }
 
     @FXML private void onUpdateWb(){
-        com.vncode.app.ui.workspace.JobCenterDialog.show(productTable.getScene()==null?null:productTable.getScene().getWindow(),row->{});
+        if(shop==null||loading||preparing)return;
+        ZnackGtinReviewDialog.show(productTable.getScene()==null?null:productTable.getScene().getWindow(),shop);
     }
 
     @FXML private void onSyncZnack() {
-        if(shop!=null&&com.vncode.app.features.sync.SyncRuntime.requestIfRunning(shop,com.vncode.app.features.sync.SyncCoordinator.Stream.ZNACK)){summaryLabel.setText(tr("znack.registration.auto_sync_queued"));return;}
         if(shop==null||preparing||loading)return;
         Shop owner=shop;long epoch=shopEpoch;loading=true;setLoading(true);
         Task<Boolean> task=new Task<>() {
             @Override protected Boolean call() throws Exception {
-                new com.vncode.app.features.gtinsync.RegisteredGtinSyncService(
-                        com.vncode.app.integration.znack.registration.NationalCatalogGtinSource.forShop(owner),
-                        new com.vncode.app.features.gtinsync.GtinSyncRepository()).refresh(owner.getId(),owner.getMarketplace());
+                new com.vncode.app.features.sync.ZnackCatalogSyncService().refresh(owner,true,p->{});
                 return true;
             }
         };
         task.setOnSucceeded(event->{if(isCurrent(owner,epoch)){loading=false;reload();}});
         java.util.function.Consumer<Throwable> failure=error->{if(isCurrent(owner,epoch)){loading=false;setLoading(false);showError(error);}};
-        task.setOnFailed(event->failure.accept(task.getException()));AppTaskExecutor.execute(task,failure);
+        task.setOnFailed(event->failure.accept(task.getException()));task.setOnCancelled(event->failure.accept(new java.net.SocketTimeoutException("ZNACK_SYNC_TIMEOUT")));AppTaskExecutor.executeCatalog(task,failure);
     }
 
     @FXML private void onRegisterSelected() {

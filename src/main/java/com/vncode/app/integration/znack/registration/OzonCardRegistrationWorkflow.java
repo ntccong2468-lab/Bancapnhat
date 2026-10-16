@@ -219,6 +219,15 @@ public final class OzonCardRegistrationWorkflow {
             if(!repository.complete(shop,key,scope,row.gtin()))throw new IllegalStateException("registration_changed");notify(callback,Status.PUBLISHED,"");
         },key,callback);
     }
+    /** Background status reads never take the resume path that can submit a prepared feed. */
+    public boolean refreshStatus(Shop selected,ProductKey key)throws Exception {
+        Shop shop=capture(selected);require(shop,key);String operation=namespace(shop);if(!RUNNING.add(operation))return false;
+        try {
+        var row=repository.find(key);if(row==null||row.feedId().isBlank()||!Set.of(Status.FEED_SUBMITTED,Status.PROCESSING,Status.READY_TO_SIGN,Status.SIGNING).contains(row.status()))return false;
+        var expected=scope(row);repository.guard(shop,key,expected);var session=catalogs.open(shop);checkSession(shop,expected,session);
+        poll(shop,key,session,false,null);return repository.find(key).status()==Status.PUBLISHED;
+        }finally{RUNNING.remove(operation);}
+    }
     private void submitPrepared(Shop shop,ProductKey key,CatalogSession session,BiConsumer<Status,String> callback)throws Exception {
         repository.guard(shop,key,session.scope());LicenseRuntime.require(Permission.GTIN);var row=repository.find(key);
         if(row.status()!=Status.READY_TO_SUBMIT||!row.feedId().isBlank())return;
@@ -230,10 +239,12 @@ public final class OzonCardRegistrationWorkflow {
         try{feed=session.catalog().submit(session.token(),JsonParser.parseString(row.payload()).getAsJsonObject());}
         catch(com.vncode.app.features.license.LicenseGate.LicenseDeniedException denied){repository.transition(key,Status.FEED_SUBMITTING,Status.READY_TO_SUBMIT);throw denied;}
         repository.submitted(key,feed);notify(callback,Status.FEED_SUBMITTED,"");
+        new com.vncode.app.features.sync.SyncStreamStore().request(shop,"ZNACK");
     }
     private void poll(Shop shop,ProductKey key,CatalogSession session,boolean sign,BiConsumer<Status,String> callback)throws Exception {
         repository.guard(shop,key,session.scope());var row=repository.find(key);if(row.feedId().isBlank())return;
         var progress=session.catalog().progress(session.token(),row.feedId(),row.gtin());repository.guard(shop,key,session.scope());
+        if(row.goodId()!=null&&progress.goodId()!=null&&!row.goodId().equals(progress.goodId()))throw new IllegalStateException("CATALOG_IDENTITY_CHANGED");
         if(progress.signed()){publish(shop,key,session,progress.goodId(),callback);return;}
         if(row.status()==Status.SIGNING||Set.of("SENDING","RECONCILE_REQUIRED").contains(row.signatureState())){notify(callback,Status.SIGNING,"readback_required");return;}
         if(progress.failed()){repository.progress(key,Status.ERROR,progress.goodId());notify(callback,Status.ERROR,"catalog_rejected");return;}

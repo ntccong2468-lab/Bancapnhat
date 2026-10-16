@@ -40,6 +40,13 @@ class ZnackCardRegistrationWorkflowTest {
     }
     @AfterEach void cleanup(){System.clearProperty("vncode.appdata.dir");}
     Sku current(){return repository.search(new SearchCriteria(1,"",List.of(),"ALL",20,0)).getFirst();}
+    @Test void registeredSignedCardFlowsThroughCatalogAndRealWbCardUpdateWithReadback()throws Exception {
+        com.vncode.app.features.gtinsync.GtinWriteTestFixture.saveSettings(shop,"A".repeat(40),ZnackModels.PRODUCTION_TRUE_API);
+        api.moderated=true;assertTrue(workflow.start(shop,current(),draft,null));assertEquals(Status.READY_TO_SIGN,current().status());
+        assertTrue(workflow.signApproved(shop,List.of(current()),true,null));assertEquals(Status.PUBLISHED,current().status());
+        PublishedCardGtinFixture.synchronize(shop,current().gtin(),"101","11","");
+        assertEquals(1,api.allocations.get());assertEquals(1,api.submissions.get());assertEquals(1,api.signatures.get());
+    }
     @Test void deniedRegistrationCannotClaimOrAllocate()throws Exception {
         var prior=LicenseRuntime.service();
         try(var denied=LicenseDomainFixture.denied(temp.resolve("denied-license"))) {
@@ -265,6 +272,32 @@ class ZnackCardRegistrationWorkflowTest {
         assertEquals(Status.PUBLISHED,current().status());assertEquals(1,api.signatures.get());
         assertEquals("CONFIRMED",repository.signingCheckpoint(1,11).state());
     }
+    @Test void acceptedSignatureRemainsPendingUntilIndependentExactReadback() {
+        repository.saveGenerated(1,current(),"04631993764370","6204",1,"Fixture",ZnackNationalCatalogService.buildPayload("04631993764370",draft,"").toString());
+        repository.updateProgress(1,11,Status.READY_TO_SIGN,"feed-existing",91L,null,false);
+        api.moderated=true;api.delayPublication=true;
+        assertTrue(workflow.signApproved(shop,List.of(current()),true,null));
+        assertEquals(1,api.signatures.get());assertEquals(Status.SIGNING,current().status());
+        assertEquals("RECONCILE_REQUIRED",repository.signingCheckpoint(1,11).state());
+        assertTrue(workflow.signApproved(shop,List.of(current()),true,null));assertEquals(1,api.signatures.get());
+        api.signatureAccepted=true;
+        assertTrue(workflow.signApproved(shop,List.of(current()),true,null));assertEquals(Status.PUBLISHED,current().status());
+        assertEquals("CONFIRMED",repository.signingCheckpoint(1,11).state());assertEquals(1,api.signatures.get());
+    }
+    @Test void moderatedCardReleasesWorkerAndWaitsForExplicitSigning() {
+        api.moderated=true;
+        assertTrue(workflow.start(shop,current(),draft,null));
+        assertEquals(Status.READY_TO_SIGN,current().status());assertEquals(0,api.signatures.get());
+        assertTrue(workflow.signApproved(shop,List.of(current()),true,null));
+        assertEquals(1,api.signatures.get());assertEquals(Status.PUBLISHED,current().status());
+    }
+    @Test void backgroundMonitorReadsExistingFeedWithoutAllocatingSubmittingOrSigningAgain()throws Exception {
+        api.moderated=true;assertTrue(workflow.start(shop,current(),draft,null));
+        var monitor=new ZnackRegistrationMonitor(workflow,null);var waiting=monitor.poll(shop,3);
+        assertEquals(1,waiting.checked());assertEquals(0,waiting.published());assertFalse(waiting.pending());assertEquals(0,api.signatures.get());
+        api.signatureAccepted=true;var done=monitor.poll(shop,3);assertEquals(1,done.published());assertEquals(Status.PUBLISHED,current().status());
+        assertEquals(0,api.signatures.get());assertEquals(1,api.allocations.get());assertEquals(1,api.submissions.get());
+    }
     @Test void signingFrozenXmlRequiresFreshRemoteEligibilityAndExactDocument() {
         repository.saveGenerated(1,current(),"04631993764370","6204",1,"Fixture",ZnackNationalCatalogService.buildPayload("04631993764370",draft,"").toString());
         repository.updateProgress(1,11,Status.READY_TO_SIGN,"feed-existing",91L,null,false);
@@ -317,7 +350,7 @@ class ZnackCardRegistrationWorkflowTest {
     class FixtureApi extends ZnackApiClient {
         AtomicInteger allocations=new AtomicInteger(),submissions=new AtomicInteger(),signatures=new AtomicInteger(),documents=new AtomicInteger();
         boolean allocationTimeout,feedTimeout,existingDraft,rejectExistingFeed,readRejected;
-        boolean moderated,signTimeout,signatureAccepted,changeSigningDocument;
+        boolean moderated,signTimeout,signatureAccepted,changeSigningDocument,delayPublication;
         Map<String,String> bulkGtins=new HashMap<>();
         String existingFeedStatus="Rejected";
         @Override public JsonElement generatedGtins(String base,String token) {
@@ -356,7 +389,7 @@ class ZnackCardRegistrationWorkflowTest {
         @Override public JsonElement signNationalCatalogProduct(String base,String token,JsonArray body)throws IOException {
             assertEquals(Status.SIGNING,current().status());assertEquals("SENDING",repository.signingCheckpoint(1,11).state());
             String xml=new String(Base64.getDecoder().decode(body.get(0).getAsJsonObject().get("base64Xml").getAsString()),java.nio.charset.StandardCharsets.UTF_8);
-            assertEquals("<good>frozen</good>",xml);signatures.incrementAndGet();if(signTimeout)throw new IOException("fixture signature result lost");signatureAccepted=true;
+            assertEquals("<good>frozen</good>",xml);signatures.incrementAndGet();if(signTimeout)throw new IOException("fixture signature result lost");if(!delayPublication)signatureAccepted=true;
             return json("{\"result\":{\"signed\":[91]}}");
         }
         JsonElement json(String value){return JsonParser.parseString(value);}

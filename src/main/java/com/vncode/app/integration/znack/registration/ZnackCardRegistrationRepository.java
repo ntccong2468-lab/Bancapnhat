@@ -323,6 +323,11 @@ public class ZnackCardRegistrationRepository {
             throw new RuntimeException(error);
         }
     }
+    public List<Sku> pendingStatus(int shopId,int limit){
+        if(limit<1||limit>100)throw new IllegalArgumentException("REGISTRY_POLL_LIMIT");
+        String sql=SELECT+" AND r.status IN ('FEED_SUBMITTED','PROCESSING','READY_TO_SIGN','SIGNING') AND NULLIF(r.feed_id,'') IS NOT NULL GROUP BY c.shop_id,c.nm_id,s.chrt_id ORDER BY CASE r.status WHEN 'READY_TO_SIGN' THEN 1 ELSE 0 END,r.updated_at LIMIT ?";
+        try(var c=Database.getConnection();var p=c.prepareStatement(sql)){p.setInt(1,shopId);p.setInt(2,limit);var rows=new ArrayList<Sku>();try(var r=p.executeQuery()){while(r.next())rows.add(map(r));}return List.copyOf(rows);}catch(SQLException e){throw new IllegalStateException("REGISTRY_READ_FAILED",e);}
+    }
 
     public List<WbCharacteristic> characteristics(int shopId, long nmId) {
         try (Connection connection = Database.getConnection();

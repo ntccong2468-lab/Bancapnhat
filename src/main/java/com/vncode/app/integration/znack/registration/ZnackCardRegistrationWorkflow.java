@@ -29,13 +29,13 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.BiConsumer;
 import java.util.concurrent.Executor;
 
 /** Durable, one-SKU-at-a-time test workflow. A checkpoint is written before every remote transition. */
 public final class ZnackCardRegistrationWorkflow {
-    private static final int POLL_ATTEMPTS = 40;
-    private static final long POLL_DELAY_MS = 15_000L;
+    private static final int POLL_ATTEMPTS = 3;
     private static final Object GTIN_CHECKPOINT_LOCK = CatalogAllocationLock.MONITOR;
     private static final ExecutorService EXECUTOR = new ThreadPoolExecutor(4,4,0L,TimeUnit.MILLISECONDS,new ArrayBlockingQueue<>(256), runnable -> {
         Thread thread = new Thread(runnable, "znack-card-registration");
@@ -227,6 +227,22 @@ public final class ZnackCardRegistrationWorkflow {
         if(strictScope && prior!=null && !prior.equals(session.scope()))throw new ZnackRegistrationScope.ScopeChangedException();
         return session.catalog().progress(session.token(),sku.feedId(),sku.gtin());
     }
+    /** Reconcile one saved feed without allocating, submitting or signing anything. */
+    public boolean refreshStatus(Shop requestedShop,Sku sku)throws Exception {
+        Shop shop=freezeShop(requestedShop);String operation=operationKey(shop,sku);
+        if(!RUNNING.add(operation))return false;
+        try {
+        guard(shop,sku);var progress=readOnlyProgress(shop,sku);guard(shop,sku);
+        if(progress.goodId()!=null&&sku.goodId()!=null&&!progress.goodId().equals(sku.goodId()))throw new IllegalStateException("CATALOG_IDENTITY_CHANGED");
+        Status status;
+        var signature=registrations.signingCheckpoint(shop.getId(),sku.chrtId());
+        if(progress.signed()){status=Status.PUBLISHED;registrations.finishSignature(shop.getId(),sku.chrtId(),true);}
+        else if(sku.status()==Status.SIGNING||signature!=null&&Set.of("SENDING","RECONCILE_REQUIRED").contains(signature.state()))status=Status.SIGNING;
+        else status=progress.failed()?Status.ERROR:progress.readyToSign()?Status.READY_TO_SIGN:Status.PROCESSING;
+        registrations.updateProgress(shop.getId(),sku.chrtId(),status,sku.feedId(),progress.goodId(),progress.failed()?"CATALOG_REJECTED":null,null);
+        return status==Status.PUBLISHED;
+        }finally{RUNNING.remove(operation);}
+    }
 
     static Draft draftFromPayload(JsonObject payload) {
         var categoryValue = payload.getAsJsonArray("categories").get(0);
@@ -253,7 +269,7 @@ public final class ZnackCardRegistrationWorkflow {
         ZnackRegistrationScope scope=ZnackRegistrationScope.fromSettings(settings);
         ZnackSignatureProvider signer = scope.verifyingSigner(shop,new CryptoProSignatureProvider(settings.cryptcpPath(),
                 settings.signerCertificate(), Duration.ofSeconds(settings.resolvedCryptoProTimeoutSeconds())));
-        ZnackApiClient api = com.vncode.app.integration.znack.CatalogConnectionService.apiForShop(shop, settings);
+        ZnackApiClient api = com.vncode.app.integration.znack.CatalogConnectionService.apiForRead(shop, settings);
         ZnackAuthService auth = new ZnackAuthService(api, signer);
         ZnackNationalCatalogService catalog = new ZnackNationalCatalogService(api, auth, signer, settings);
         String token=auth.trueApiToken(settings);
@@ -326,6 +342,7 @@ public final class ZnackCardRegistrationWorkflow {
             registrations.updateProgress(shop.getId(), sku.chrtId(), Status.FEED_SUBMITTED, feedId,
                     null, null, null);
             notify(listener, Status.FEED_SUBMITTED, feedId);
+            new com.vncode.app.features.sync.SyncStreamStore().request(shop,"ZNACK");
         }
 
         Long goodId = sku.goodId();
@@ -335,6 +352,7 @@ public final class ZnackCardRegistrationWorkflow {
         for (int attempt = 0; !published && attempt < POLL_ATTEMPTS; attempt++) {
             guard(shop,sku);
             ZnackNationalCatalogService.FeedProgress progress = catalog.progress(token, feedId, gtin);
+            if(goodId!=null&&progress.goodId()!=null&&!goodId.equals(progress.goodId()))throw new IllegalStateException("CATALOG_IDENTITY_CHANGED");
             if (progress.goodId() != null) goodId = progress.goodId();
             if (progress.failed()) {
                 boolean rejected="Rejected".equalsIgnoreCase(progress.status());
@@ -367,12 +385,12 @@ public final class ZnackCardRegistrationWorkflow {
             }
             if (progress.readyToSign()) {
                 update(shop, sku, Status.READY_TO_SIGN, feedId, goodId, listener);
-                goodId=signOnce(shop,sku,session,gtin,feedId,listener);
-                if(goodId!=null){update(shop,sku,Status.PUBLISHED,feedId,goodId,listener);published=true;}
-                break;
+                // Signing is the explicit reviewed action used for Ozon as well. A pending
+                // moderation response releases this worker instead of sleeping for ten minutes.
+                return;
             }
             update(shop, sku, Status.PROCESSING, feedId, goodId, listener);
-            Thread.sleep(POLL_DELAY_MS);
+            break;
         }
 
         if (!published) {
@@ -388,6 +406,7 @@ public final class ZnackCardRegistrationWorkflow {
     private void signApprovedOne(Shop shop,Sku sku,CatalogSession session,BiConsumer<Status,String> listener)throws Exception {
         guard(shop,sku);
         var progress=session.catalog().progress(session.token(),sku.feedId(),sku.gtin());
+        if(sku.goodId()!=null&&progress.goodId()!=null&&!sku.goodId().equals(progress.goodId()))throw new IllegalStateException("CATALOG_IDENTITY_CHANGED");
         if(progress.signed()) {
             registrations.finishSignature(shop.getId(),sku.chrtId(),true);
             update(shop,sku,Status.PUBLISHED,sku.feedId(),progress.goodId(),listener);
@@ -418,7 +437,7 @@ public final class ZnackCardRegistrationWorkflow {
         if(!registrations.claimSignatureSend(shop.getId(),sku.chrtId(),document.sha256()))return null;
         update(shop,sku,Status.SIGNING,feedId,document.goodId(),listener);
         try {
-            long id=session.catalog().sendReviewedSigning(session.token(),document,()->{
+            session.catalog().sendReviewedSigning(session.token(),document,()->{
                 guard(shop,sku);LicenseRuntime.require(Permission.GTIN);
                 var current=session.catalog().progress(session.token(),feedId,gtin);
                 if(!current.readyToSign() || current.failed())throw new IllegalStateException("Catalog signing eligibility changed. Refresh the card.");
@@ -426,14 +445,26 @@ public final class ZnackCardRegistrationWorkflow {
                 if(fresh.goodId()!=document.goodId() || !fresh.sha256().equals(document.sha256()))throw new IllegalStateException("Catalog signing document changed. Review the card again.");
                 guard(shop,sku);LicenseRuntime.require(Permission.GTIN);
             });
-            registrations.finishSignature(shop.getId(),sku.chrtId(),true);return id;
+            // The signing POST only acknowledges receipt. Publication needs an independent
+            // read of the exact feed/GTIN/card, just as in the native Ozon workflow.
+            guard(shop,sku);
+            var after=session.catalog().progress(session.token(),feedId,gtin);
+            if(after.signed() && Objects.equals(after.goodId(),document.goodId())) {
+                registrations.finishSignature(shop.getId(),sku.chrtId(),true);return after.goodId();
+            }
+            registrations.finishSignature(shop.getId(),sku.chrtId(),false);
+            update(shop,sku,Status.SIGNING,feedId,document.goodId(),listener);
+            notify(listener,Status.SIGNING,"The signature was received; publication still needs readback.");
+            return null;
         }catch(Exception error) {
             registrations.finishSignature(shop.getId(),sku.chrtId(),false);
             // Do not replay POST after timeout. A single readback may prove the original was accepted.
             try {
                 guard(shop,sku);
                 var progress=session.catalog().progress(session.token(),feedId,gtin);
-                if(progress.signed())return progress.goodId()==null?document.goodId():progress.goodId();
+                if(progress.signed() && Objects.equals(progress.goodId(),document.goodId())) {
+                    registrations.finishSignature(shop.getId(),sku.chrtId(),true);return progress.goodId();
+                }
             }catch(Exception unavailable){/* Preserve the durable uncertainty. */}
             update(shop,sku,Status.SIGNING,feedId,document.goodId(),listener);
             notify(listener,Status.SIGNING,"The signing result is uncertain. Refresh to reconcile; the POST will not be repeated.");

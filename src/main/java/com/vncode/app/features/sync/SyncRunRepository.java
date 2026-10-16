@@ -18,6 +18,7 @@ public final class SyncRunRepository {
             p.setString(1,id);p.setInt(2,shop.getId());p.setString(3,shop.getMarketplace().name());p.setString(4,ListingIdentity.fingerprint(shop));p.setString(5,kind);p.setString(6,step);p.setString(7,now);p.setString(8,now);p.executeUpdate();
         }catch(SQLException e){throw storage(e);}return id;
     }
+    public void assertOwner(Shop shop,String run){try(var c=Database.getConnection()){require(c,shop,run);}catch(SQLException e){throw storage(e);}}
     public void stage(Shop shop,String id,String state,String step,String error){
         try(var c=Database.getConnection()){
             c.setAutoCommit(false);require(c,shop,id);
@@ -64,12 +65,14 @@ public final class SyncRunRepository {
         }catch(SQLException e){throw storage(e);}
     }
     public void linkReviewed(Shop shop,String run,com.vncode.app.features.catalogsync.CatalogSyncModels.Job child){
-        if(!child.confirmed()||child.shopId()!=shop.getId()||!child.owner().equals(ListingIdentity.fingerprint(shop)))throw new SecurityException("SYNC_REVIEW_OWNER_CHANGED");
+        if(!child.confirmed()||!child.fields().contains(com.vncode.app.features.catalogsync.CatalogSyncModels.Field.GTIN)||child.shopId()!=shop.getId()||!child.owner().equals(ListingIdentity.fingerprint(shop)))throw new SecurityException("SYNC_REVIEW_OWNER_CHANGED");
         try(var c=Database.getConnection()){
             c.setAutoCommit(false);require(c,shop,run);
             for(var row:child.rows()){
                 try(var p=c.prepareStatement("UPDATE sync_run_items SET gtin=?,child_job=?,state=?,step='READBACK',error_code=?,updated_at=? WHERE run_id=? AND product_id=? AND variant_id=? AND state NOT IN ('SUCCEEDED','UNCHANGED')")){
-                    p.setString(1,row.catalog().gtin());p.setString(2,child.id());p.setString(3,row.state()==com.vncode.app.features.catalogsync.CatalogSyncModels.State.SUCCEEDED?"SUCCEEDED":"WAITING_REMOTE");p.setString(4,code(row.issue()));p.setString(5,Instant.now().toString());p.setString(6,run);p.setString(7,row.key().productId());p.setString(8,row.key().variantId());p.executeUpdate();
+                    // Let the sync worker activate the native registration candidate after
+                    // the confirmed child has verified the target. UI callbacks cannot skip it.
+                    p.setString(1,row.catalog().gtin());p.setString(2,child.id());p.setString(3,row.state()==com.vncode.app.features.catalogsync.CatalogSyncModels.State.BLOCKED?"NEEDS_ACTION":"WAITING_REMOTE");p.setString(4,code(row.issue()));p.setString(5,Instant.now().toString());p.setString(6,run);p.setString(7,row.key().productId());p.setString(8,row.key().variantId());p.executeUpdate();
                 }
             }
             try(var p=c.prepareStatement("UPDATE sync_runs SET state='RUNNING',step='READBACK',finished_at=NULL,updated_at=? WHERE id=?")){p.setString(1,Instant.now().toString());p.setString(2,run);p.executeUpdate();}

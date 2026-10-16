@@ -50,6 +50,8 @@ public final class CatalogSyncPane extends BorderPane {
         history.setOnAction(e->{String id=history.getValue();if(id!=null&&shop!=null&&!busy){var owner=shop;read(()->service().read(owner,id),this::render);}});buttons();
     }
     public void open(Shop owner,List<Selection> selected){generation++;shop=owner==null?null:new Shop(owner.getId(),owner.getName(),owner.getMarketplace(),owner.getClientId(),owner.getApiKey());selection=List.copyOf(selected);job=null;documents.clear();values.clear();products.getItems().clear();differences.getItems().clear();confirmed.setSelected(false);scope.setText(shop==null?"":shop.getName()+" · "+shop.getMarketplace().badge()+" · "+selection.size());buttons();if(shop!=null){var captured=shop;read(()->service().list(captured),ids->history.getItems().setAll(ids));}}
+    /** Registration's GTIN action must not silently change documents or other card fields. */
+    public void openGtin(Shop owner,List<Selection> selected){fields.forEach((field,box)->box.setSelected(field==Field.GTIN));open(owner,selected);}
     private synchronized CatalogSyncService service(){if(service==null)service=factory.get();return service;}
     private void preview(){if(shop==null||busy||selection.isEmpty())return;var owner=shop;var selected=selection;var chosen=new LinkedHashSet<Field>();fields.forEach((field,box)->{if(box.isSelected())chosen.add(field);});if(chosen.isEmpty()){status.setText(tr("catalogsync.select_fields"));return;}var request=new Options(chosen,documents,values);read(()->service().preview(owner,selected,request),this::render);}
     private void run(boolean approve){if(job==null||busy||approve&&!confirmed.isSelected())return;var owner=shop;String id=job.id();mutate(()->service().run(owner,id,approve));}
