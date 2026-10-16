@@ -3,7 +3,7 @@
   "baseVersion": "1.4.12",
   "complete": false,
   "officialReleasePublished": false,
-  "phase": "final-shared-read-regression-and-windows-validation",
+  "phase": "final-fx-deadline-regression-and-windows-validation",
   "licenseIntegration": {
     "implemented": true,
     "productionReady": false,
@@ -48,7 +48,7 @@
       "result": "passed",
       "report": "docs/validation/2026-10-16-vncode-1413-local-checks.json"
     },
-    "fullJavaRegression": "running",
+    "fullJavaRegression": "running-after-FX-cancellation-race-fix",
     "sharedReadFocusedTests": {
       "result": "passed",
       "tests": 28,
@@ -56,11 +56,26 @@
       "errors": 0,
       "skipped": 0
     },
-    "supersededWindowsRun": {
-      "runId": 38891383274,
-      "result": "cancelled",
-      "reason": "Added shared UI/background result delivery before final Windows build."
-    }
+    "fxDeadlineFocusedTests": {
+      "result": "passed",
+      "tests": 31,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "deadlineTestRepetitions": 3
+    },
+    "supersededWindowsRuns": [
+      {
+        "runId": 38891383274,
+        "result": "cancelled",
+        "reason": "Added shared UI/background result delivery before final Windows build."
+      },
+      {
+        "runId": 38892305238,
+        "result": "cancelled",
+        "reason": "Found and fixed JavaFX cancellation/FAILED event race in full local regression."
+      }
+    ]
   },
   "publication": {
     "published": false,
@@ -68,5 +83,5 @@
     "currentSellerLatest": "1.4.12"
   },
   "report": "docs/validation/2026-10-16-vncode-1413-sync-report.md",
-  "applicationCommit": "a605a49684bc9328662b9c3e0225ce10a11d0eae"
+  "applicationCommit": "90063a7238bf06b68efb2b91f4220b311830359d"
 }

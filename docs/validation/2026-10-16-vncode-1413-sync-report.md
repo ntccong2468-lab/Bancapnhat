@@ -1,6 +1,6 @@
 # VNCode 1.4.13 — báo cáo các đầu mục được giao ngày 16/10/2026
 
-Bản sửa kế tiếp 1.4.12. Mã ứng dụng cố định tại `a605a49684bc9328662b9c3e0225ce10a11d0eae`; kết quả kiểm thử cuối và bộ cài được cập nhật ở cuối báo cáo. Chưa dùng tài khoản seller để gửi dữ liệu thật.
+Bản sửa kế tiếp 1.4.12. Mã ứng dụng cố định tại `90063a7238bf06b68efb2b91f4220b311830359d`; kết quả kiểm thử cuối và bộ cài được cập nhật ở cuối báo cáo. Chưa dùng tài khoản seller để gửi dữ liệu thật.
 
 ## 1. Đối chiếu WBCode mới nhất và WCode cũ
 
@@ -103,3 +103,6 @@ Lượt hồi quy trước bổ sung nhận chung kết quả đã đạt: **140
 
 
 Đã thêm kiểm thử UI và tác vụ nền cùng chờ một snapshot, và hủy một subscriber không hủy nguồn đọc. Tập kiểm tra liên quan đạt 28/28. Đang chạy lại lượt cuối với thay đổi này. Workflow Windows 38891383274 được hủy để bộ cài cuối chứa đúng sửa lỗi đồng thời này.
+
+
+Kiểm thử hồi quy phát hiện race giữa ngắt worker và sự kiện FAILED/CANCELLED của JavaFX 25. Đã chuyển hủy deadline về FX thread để sự kiện hủy và cleanup được xếp đúng thứ tự. Tập kiểm tra liên quan đạt 31/31, trong đó bài deadline lặp 3 lần. Đang chạy lại toàn bộ trên commit ứng dụng nêu ở đầu báo cáo.
