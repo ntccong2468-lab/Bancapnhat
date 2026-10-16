@@ -97,12 +97,13 @@ Nguồn Catalog ghi từng GTIN thành công, bỏ qua/thẻ chưa đủ điều
 
 ## 6. Kiểm thử và trạng thái phát hành
 
-Lượt hồi quy trước bổ sung nhận chung kết quả đã đạt: **1408 trường hợp**, **1406 đạt**, **0 thất bại**, **0 lỗi**, **2 bỏ qua theo nền tảng**. Release contracts Node: **53/53 đạt**. Các kiểm thử deadline tác vụ Catalog thực sự giữ worker bận rồi kiểm tra luồng khác vẫn chạy, và hủy một tác vụ đang chờ để xác minh cleanup trên FX thread. [Bằng chứng local](2026-10-16-vncode-1413-local-checks.json).
+- Hồi quy local cuối đúng mã ứng dụng ở đầu báo cáo: **1411 trường hợp; 1409 đạt, 0 thất bại, 0 lỗi, 2 bỏ qua theo nền tảng**.
+- Release contracts Node: **53/53 đạt**.
+- Tập kiểm tra đồng bộ/worker/cấu hình thiết bị sau sửa deadline: **31/31 đạt**; kiểm thử deadline lặp **3 lần**. Xác minh UI + tác vụ nền dùng cùng lượt HTTP; hủy một view chờ không hủy nguồn đọc.
+- Race JavaFX 25 giữa interrupt worker và sự kiện FAILED/CANCELLED được sửa bằng hủy trên FX thread. Không nới assertion hoặc bỏ kiểm thử lỗi để làm bộ kiểm thử đạt.
+- [Bằng chứng local](2026-10-16-vncode-1413-local-checks.json).
+- [Workflow Windows cuối](https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/38893594183), source `1940c0b299171054ae23cc5d38d06933881cbcdf`: đang kiểm thử/đóng gói. Đã thêm probe nâng cấp giữ dữ liệu từ 1.4.12, pin đúng SHA-256 bộ cài đã phát hành. Chưa ghi nhận kết quả native cuối.
 
-Đã thêm kiểm tra nâng cấp Windows giữ dữ liệu từ 1.4.12, pin đúng SHA-256 bộ cài đã phát hành. Đang chuẩn bị workflow Windows; chưa có kết quả native cho bản này. Không có thao tác mua KIZ, gán mã thật, gửi GTIN thật hay gửi email GS1 trong lần kiểm thử này. Published/Latest của seller vẫn là 1.4.12; mã 1.4.13 không tự trở thành cập nhật công khai chỉ vì đã commit hoặc tạo artifact kiểm thử.
+Không có thao tác mua KIZ, gán mã thật, gửi GTIN thật hay gửi email GS1 trong lần kiểm thử này. Chưa nghiệm thu trên máy thứ hai thực tế của seller hoặc license production đúng bản 1.4.13.
 
-
-Đã thêm kiểm thử UI và tác vụ nền cùng chờ một snapshot, và hủy một subscriber không hủy nguồn đọc. Tập kiểm tra liên quan đạt 28/28. Đang chạy lại lượt cuối với thay đổi này. Workflow Windows 38891383274 được hủy để bộ cài cuối chứa đúng sửa lỗi đồng thời này.
-
-
-Kiểm thử hồi quy phát hiện race giữa ngắt worker và sự kiện FAILED/CANCELLED của JavaFX 25. Đã chuyển hủy deadline về FX thread để sự kiện hủy và cleanup được xếp đúng thứ tự. Tập kiểm tra liên quan đạt 31/31, trong đó bài deadline lặp 3 lần. Đang chạy lại toàn bộ trên commit ứng dụng nêu ở đầu báo cáo.
+Published/Latest của seller vẫn là 1.4.12. Mã 1.4.13 không tự trở thành cập nhật công khai chỉ vì đã commit hoặc tạo artifact kiểm thử.

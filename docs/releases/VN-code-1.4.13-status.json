@@ -3,7 +3,7 @@
   "baseVersion": "1.4.12",
   "complete": false,
   "officialReleasePublished": false,
-  "phase": "final-fx-deadline-regression-and-windows-validation",
+  "phase": "local-verified-windows-native-validation-running",
   "licenseIntegration": {
     "implemented": true,
     "productionReady": false,
@@ -48,7 +48,16 @@
       "result": "passed",
       "report": "docs/validation/2026-10-16-vncode-1413-local-checks.json"
     },
-    "fullJavaRegression": "running-after-FX-cancellation-race-fix",
+    "fullJavaRegression": {
+      "tests": 1411,
+      "passed": 1409,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 2,
+      "result": "passed",
+      "applicationCommit": "90063a7238bf06b68efb2b91f4220b311830359d",
+      "report": "docs/validation/2026-10-16-vncode-1413-local-checks.json"
+    },
     "sharedReadFocusedTests": {
       "result": "passed",
       "tests": 28,
@@ -75,7 +84,13 @@
         "result": "cancelled",
         "reason": "Found and fixed JavaFX cancellation/FAILED event race in full local regression."
       }
-    ]
+    ],
+    "windowsFullBuild": {
+      "result": "in_progress",
+      "runId": 38893594183,
+      "buildSourceCommit": "1940c0b299171054ae23cc5d38d06933881cbcdf",
+      "url": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/38893594183"
+    }
   },
   "publication": {
     "published": false,
