@@ -3,7 +3,7 @@
   "baseVersion": "1.4.12",
   "complete": false,
   "officialReleasePublished": false,
-  "phase": "approved-items-1-and-2-implemented-live-write-acceptance-pending",
+  "phase": "approved-items-1-2-4-5-implemented-live-native-acceptance-pending",
   "licenseIntegration": {
     "implemented": true,
     "productionReady": false,
@@ -25,7 +25,12 @@
     "National Catalog product-list date interval fixed after live reproduction: 0 records before, 1961 after",
     "Reviewed WB shipment KIZ sources saved per shipment; seller imports by synced native category without Znack or matching product GTIN",
     "Paid source excludes imported codes and uses existing purchase/introduction pipeline for only the deficit",
-    "Virtualized WB shipment paid GTIN inventory; 2000 synthetic rows remain scrollable without constructing all cards"
+    "Virtualized WB shipment paid GTIN inventory; 2000 synthetic rows remain scrollable without constructing all cards",
+    "Shared read-authenticated Catalog and ELK sessions for GS1 UI and background worker, with independent expiry/recovery and per-account locking",
+    "Shop/certificate-scoped membership and balance cache, independent success timestamps, explicit partial/whole failure persistence",
+    "Reported and coalesced GS1 synchronization with per-source phases, bounded waits and observer lifecycle",
+    "Compact membership/six checks/prefix/inbox UI with Znack configuration and read-only source report actions",
+    "Catalog profile email reused as a mailbox configuration hint; reviewed API forms and seller-configured SMTP/IMAP retained"
   ],
   "validation": {
     "focusedGuards": {
@@ -56,18 +61,24 @@
       "report": "docs/validation/2026-10-16-vncode-1413-local-checks.json"
     },
     "fullJavaRegression": {
-      "tests": 1471,
-      "passed": 1469,
+      "tests": 1493,
+      "passed": 1491,
       "failures": 0,
       "errors": 0,
       "skipped": 2,
       "result": "passed",
-      "finishedAt": "2026-10-16T14:56:39Z",
-      "logSha256": "8eb8bbbdd804bb3be76a1633e032fa174c81ad5223ae496215796fc203c09ca0",
-      "sourceCommit": "4a02d2b54d5d2b8cfeb8d6aac01f68a8e6a27573",
+      "finishedAt": "2026-10-16T15:51:40Z",
+      "logSha256": "619d53c9269b8ab8cd0ae9bb34d61198b0f3c7b6205bbf4138a94c444cfed841",
+      "sourceCommit": "cffacc55de7aff7f8fd13a3df0caa388cacf9ae4",
       "platformSkips": [
-        "Gs1PrefixTemplateStoreTest",
-        "WindowsSecretProtectorTest"
+        {
+          "className": "com.vncode.app.features.gs1.Gs1PrefixTemplateStoreTest",
+          "test": "refusesNtfsJunctionDirectoryAndAncestors"
+        },
+        {
+          "className": "com.vncode.app.shared.WindowsSecretProtectorTest",
+          "test": "separatesLicenseAndExistingMailEntropyOnWindows"
+        }
       ]
     },
     "sharedReadFocusedTests": {
@@ -99,7 +110,7 @@
     ],
     "windowsFullBuild": {
       "result": "not_run_for_current_source",
-      "sourceCommit": "54dff46b684dc41ac8807a9a394148d460e0625b"
+      "sourceCommit": "cffacc55de7aff7f8fd13a3df0caa388cacf9ae4"
     },
     "baselineFullJavaRegression": {
       "tests": 1411,
@@ -205,15 +216,51 @@
       "sourceCommit": "54dff46b684dc41ac8807a9a394148d460e0625b",
       "note": "After the full regression, only Ozon title, action width and wrapping of status explanations changed; FXML, WB/Ozon registration, queries and report tests reran."
     },
-    "item4PurchasePipelinePreserved": true
+    "item4PurchasePipelinePreserved": true,
+    "previousItem4FullJavaRegression": {
+      "tests": 1471,
+      "passed": 1469,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 2,
+      "result": "passed",
+      "finishedAt": "2026-10-16T14:56:39Z",
+      "logSha256": "8eb8bbbdd804bb3be76a1633e032fa174c81ad5223ae496215796fc203c09ca0",
+      "sourceCommit": "4a02d2b54d5d2b8cfeb8d6aac01f68a8e6a27573",
+      "platformSkips": [
+        "Gs1PrefixTemplateStoreTest",
+        "WindowsSecretProtectorTest"
+      ]
+    },
+    "item5PhaseVerification": {
+      "tests": 16,
+      "passed": 16,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "result": "passed",
+      "finishedAt": "2026-10-16T15:47:50Z",
+      "logSha256": "6dc38cad0e95e8a736e06644234bdbb83cfe61ed2732a47fc6e1c57225b5204f"
+    },
+    "item5UiFixtureVerification": {
+      "tests": 83,
+      "passed": 83,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "result": "passed",
+      "finishedAt": "2026-10-16T15:46:40Z",
+      "logSha256": "6d20a31b6283f4bfdafdb32d81c813356522df9a887992b0f9d634248b541480"
+    },
+    "item5PurchasePipelinePreserved": true
   },
   "publication": {
     "published": false,
     "latestChanged": false,
     "currentSellerLatest": "1.4.12"
   },
-  "report": "docs/validation/2026-10-16-item-4-znack-registration.md",
-  "applicationCommit": "54dff46b684dc41ac8807a9a394148d460e0625b",
+  "report": "docs/validation/2026-10-16-item-5-gs1.md",
+  "applicationCommit": "cffacc55de7aff7f8fd13a3df0caa388cacf9ae4",
   "approvedWork": {
     "item1": {
       "diagramApproved": true,
@@ -246,11 +293,27 @@
       "purchasePipelinePreserved": true,
       "report": "docs/validation/2026-10-16-item-4-znack-registration.md"
     },
-    "items5To7": "awaiting_separate_flow_approval"
+    "item5": {
+      "diagramApproved": true,
+      "codeImplemented": true,
+      "sourceCommit": "cffacc55de7aff7f8fd13a3df0caa388cacf9ae4",
+      "localValidation": "passed_full_java_regression",
+      "liveAcceptance": "pending_native_windows_cryptopro_and_production_gs1",
+      "purchasePipelinePreserved": true,
+      "report": "docs/validation/2026-10-16-item-5-gs1.md"
+    },
+    "items6To7": "awaiting_separate_flow_approval"
   },
   "item4Changes": [
     "Paired source receipt and current product membership; failed/partial/stale reads remain blocked",
     "Current Catalog publication status and suitable registration actions",
     "WB/Ozon reviewed GTIN and bounded per-product reports"
+  ],
+  "item5Changes": [
+    "Shared read-authenticated Catalog and ELK sessions for GS1 UI and background worker, with independent expiry/recovery and per-account locking",
+    "Shop/certificate-scoped membership and balance cache, independent success timestamps, explicit partial/whole failure persistence",
+    "Reported and coalesced GS1 synchronization with per-source phases, bounded waits and observer lifecycle",
+    "Compact membership/six checks/prefix/inbox UI with Znack configuration and read-only source report actions",
+    "Catalog profile email reused as a mailbox configuration hint; reviewed API forms and seller-configured SMTP/IMAP retained"
   ]
 }
