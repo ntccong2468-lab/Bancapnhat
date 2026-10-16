@@ -318,7 +318,8 @@
     "item3": {
       "diagramApproved": false,
       "codeImplementedThisTurn": false,
-      "status": "pending_separate_diagram_approval"
+      "status": "next_in_requested_order_pending_specific_flow_approval",
+      "proposal": "docs/architecture/2026-10-16-item-3-ozon-fbs-proposed-flow.md"
     },
     "item4": {
       "diagramApproved": true,
@@ -349,9 +350,11 @@
       "report": "docs/validation/2026-10-16-item-6-listing-copy.md"
     },
     "item7": {
-      "diagramApproved": false,
+      "diagramApproved": true,
       "codeImplementedThisTurn": false,
-      "status": "pending_separate_diagram_approval"
+      "status": "approved_waiting_for_item3_completion",
+      "proposal": "docs/architecture/2026-10-16-item-7-workspace-ui-proposed-flow.md",
+      "approvalEvidence": "duyệt làm nốt mục 3 trước rồi đến mục 7"
     }
   },
   "item4Changes": [
