@@ -24,7 +24,7 @@ public final class ProductRepository {
         SELECT CAST(c.nm_id AS TEXT) card_id,COALESCE(CAST(v.chrt_id AS TEXT),'') variant_id,
           COALESCE(json_extract(ps.payload,'$.title'),c.title,'') title,COALESCE(c.vendor_code,'') article,CAST(c.nm_id AS TEXT) market_article,
           COALESCE(CAST(c.subject_id AS TEXT),c.subject_name,'') category_id,COALESCE(c.subject_name,'') category,
-          COALESCE(json_extract(ps.payload,'$.brand'),c.brand,'') brand,COALESCE(v.tech_size,'') size,
+          COALESCE(json_extract(ps.payload,'$.brand'),c.brand,'') brand,COALESCE(v.tech_size,'') size,COALESCE(v.wb_size,'') russian_size,
           COALESCE((SELECT group_concat(b.sku,char(31)) FROM wb_product_size_skus b
                     WHERE b.shop_id=c.shop_id AND b.chrt_id=v.chrt_id),'') barcodes,
           COALESCE((SELECT COALESCE(p.c246x328_url,p.square_url,p.big_url,p.hq_url) FROM wb_product_photos p
@@ -46,7 +46,7 @@ public final class ProductRepository {
         SELECT p.product_id card_id,COALESCE(p.offer_id,'') variant_id,COALESCE(p.name,'') title,
           COALESCE(p.article,p.offer_id,'') article,COALESCE(p.sku,p.product_id) market_article,
           COALESCE(p.category,'') category_id,COALESCE(p.category,'') category,
-          COALESCE(json_extract(ps.payload,'$.brand'),'') brand,COALESCE(p.size,'') size,
+          COALESCE(json_extract(ps.payload,'$.brand'),'') brand,COALESCE(p.size,'') size,'' russian_size,
           COALESCE((SELECT group_concat(b.barcode,char(31)) FROM ozon_product_barcodes b
                     WHERE b.shop_id=p.shop_id AND b.product_id=p.product_id),'') barcodes,
           COALESCE(p.primary_image_url,'') image,COALESCE(p.color,'') color,
@@ -149,7 +149,7 @@ public final class ProductRepository {
         if(!cardView||q.marketplace()!=Marketplace.WILDBERRIES)return sql;
         return """
             SELECT card_id,'' variant_id,title,article,market_article,category_id,category,brand,
-              COALESCE(group_concat(NULLIF(size,''),', '),'') size,COALESCE(group_concat(NULLIF(barcodes,''),char(31)),'') barcodes,
+              COALESCE(group_concat(NULLIF(size,''),', '),'') size,COALESCE(group_concat(NULLIF(russian_size,''),', '),'') russian_size,COALESCE(group_concat(NULLIF(barcodes,''),char(31)),'') barcodes,
               image,color,material,tnved,gender,min(attributes_loaded) attributes_loaded,
               CASE WHEN min(CASE WHEN verified_gtin<>'' THEN 1 ELSE 0 END)=1 THEN min(verified_gtin) ELSE '' END verified_gtin,
               document_state,sort_title FROM (
@@ -186,7 +186,7 @@ public final class ProductRepository {
     private static ProductRow row(ProductQuery q,ResultSet r)throws SQLException {
         List<String> codes=r.getString("barcodes").isBlank()?List.of():Arrays.stream(r.getString("barcodes").split("\u001f")).distinct().sorted().toList();
         String candidate=r.getString("verified_gtin");String verified=RegisteredGtinValidator.isValid(candidate)&&codes.stream().anyMatch(x->padGtin(x).equals(padGtin(candidate)))?candidate:"";
-        return new ProductRow(new ProductKey(q.shopId(),q.marketplace(),r.getString("card_id"),r.getString("variant_id")),r.getString("title"),r.getString("article"),r.getString("market_article"),r.getString("category"),r.getString("brand"),r.getString("color"),r.getString("size"),codes,verified,r.getString("image"),r.getString("material"),r.getString("tnved"),DocumentState.valueOf(r.getString("document_state")),r.getString("gender"),r.getInt("attributes_loaded")==1);
+        return new ProductRow(new ProductKey(q.shopId(),q.marketplace(),r.getString("card_id"),r.getString("variant_id")),r.getString("title"),r.getString("article"),r.getString("market_article"),r.getString("category"),r.getString("brand"),r.getString("color"),r.getString("size"),codes,verified,r.getString("image"),r.getString("material"),r.getString("tnved"),DocumentState.valueOf(r.getString("document_state")),r.getString("gender"),r.getInt("attributes_loaded")==1,r.getString("russian_size"));
     }
     private static String padGtin(String value){return value.matches("[0-9]{8,14}")?"0".repeat(14-value.length())+value:value;}
     public Optional<ProductSnapshot> localSnapshot(ProductKey key) {

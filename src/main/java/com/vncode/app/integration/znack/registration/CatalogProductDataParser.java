@@ -24,6 +24,7 @@ public final class CatalogProductDataParser {
         var attrs=new ArrayList<CatalogProductData.Attribute>();var docs=new LinkedHashMap<String,CatalogProductData.Document>();
         for(var a:ZnackProductCardAttributes.from(card)) {
             String id=ZnackProductCardAttributes.id(a),name=ZnackProductCardAttributes.name(a);
+            if("35".equals(id))add(fields,"@size_type",values(a.get("attr_value_type")));
             if(Set.of("23557","23561","23765").contains(id)) {
                 var shown=object(a,"showValue");String number=text(shown,"number"),from=text(shown,"dateFrom","date_from"),until=text(shown,"dateTo","date_to");
                 if(number.isBlank())number=text(a,"certificate_number","certificateNumber");

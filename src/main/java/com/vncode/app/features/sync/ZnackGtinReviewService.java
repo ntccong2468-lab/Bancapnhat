@@ -45,7 +45,7 @@ public final class ZnackGtinReviewService {
                 var fresh=products.read(shop,key);
                 if(!key.equals(fresh.key()))throw new SecurityException("PRODUCT_MISMATCH");
                 var variant=fresh.variants().stream().filter(v->v.id().equals(key.variantId())).findFirst().orElseThrow(()->new IllegalArgumentException("VARIANT_NOT_FOUND"));
-                if(!same(row.color(),variant.color())||!same(row.size(),variant.size()))throw new IllegalArgumentException("GTIN_VARIANT_CONFLICT");
+                if(!same(row.color(),variant.color())||!same(row.size(),GtinVariantIdentity.size(shop.getMarketplace(),variant)))throw new IllegalArgumentException("GTIN_VARIANT_CONFLICT");
                 if(shop.getMarketplace()==Marketplace.OZON){
                     if(row.sku().isBlank()||!row.sku().equals(fresh.metadata().get("sku")))throw new IllegalArgumentException("OZON_SKU_CHANGED");
                     String title=com.google.gson.JsonParser.parseString(row.evidence()).getAsJsonObject().get("title").getAsString();

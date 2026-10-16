@@ -107,11 +107,11 @@ public final class ZnackAutoSyncService {
         String nativeGtin=registrationGtin(shop,product.key());
         if(!nativeGtin.isBlank()){
             var exact=index.code(nativeGtin);
-            if(exact.size()==1&&compatible(product.color(),exact.getFirst().color())&&compatible(product.size(),exact.getFirst().size()))return exact;
+            if(exact.size()==1&&compatible(product.color(),exact.getFirst().color())&&GtinVariantIdentity.sizeMatches(exact.getFirst(),product.size(),product.russianSize()))return exact;
             return List.of();
         }
-        var present=index.codes(product.barcodes());if(!present.isEmpty())return present;
-        return index.attributes(product.vendorArticle(),product.color(),product.size());
+        var present=index.codes(product.barcodes());if(!present.isEmpty())return present.stream().filter(row->compatible(product.color(),row.color())&&GtinVariantIdentity.sizeMatches(row,product.size(),product.russianSize())).toList();
+        return index.attributes(product.vendorArticle(),product.color(),product.size(),product.russianSize());
     }
     private void advance(Shop shop,SyncRunRepository.Item item)throws Exception {
         var key=new ProductKey(shop.getId(),shop.getMarketplace(),item.productId(),item.variantId());
@@ -121,7 +121,7 @@ public final class ZnackAutoSyncService {
             var fresh=reader.read(shop,key);
             if(shop.getMarketplace()==Marketplace.OZON&&(!item.sku().equals(fresh.metadata().get("sku"))||item.sku().isBlank()))throw new IllegalArgumentException("OZON_SKU_CHANGED");
             var variant=fresh.variants().stream().filter(v->v.id().equals(item.variantId())).findFirst().orElseThrow(()->new IllegalArgumentException("VARIANT_NOT_FOUND"));
-            if(!compatible(variant.color(),item.color())||!compatible(variant.size(),item.size()))throw new IllegalArgumentException("PRODUCT_CHANGED");
+            if(!compatible(variant.color(),item.color())||!compatible(GtinVariantIdentity.size(shop.getMarketplace(),variant),item.size()))throw new IllegalArgumentException("PRODUCT_CHANGED");
             var result=catalog.run(shop,item.childJob(),false);
             if(result.rows().stream().allMatch(r->r.state()==CatalogSyncModels.State.SUCCEEDED)){
                 completeRegistration(shop,key,item.gtin());runs.update(shop,item,"SUCCEEDED","VERIFIED","",null);

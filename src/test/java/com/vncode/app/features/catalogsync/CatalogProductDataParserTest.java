@@ -7,6 +7,10 @@ import static org.junit.jupiter.api.Assertions.*;
 import java.util.List;
 
 class CatalogProductDataParserTest {
+    @Test void explicitCatalogSizeSystemIsPreservedWithoutConvertingTheSize(){
+        var data=CatalogProductDataParser.parse(JsonParser.parseString("{\"good_attrs\":[{\"attr_id\":35,\"attr_value\":\"54\",\"attr_value_type\":\"РОССИЯ\"}]}").getAsJsonObject());
+        assertEquals("54",data.single("size"));assertEquals("РОССИЯ",data.single("@size_type"));
+    }
     @Test void documentedNumericIdsRestoreArticleMaterialAndFullCustomsCodeWithoutLosingConflicts(){
         var data=CatalogProductDataParser.parse(JsonParser.parseString("""
           {"tnved":"6103","good_name":"Suit","good_attrs":[

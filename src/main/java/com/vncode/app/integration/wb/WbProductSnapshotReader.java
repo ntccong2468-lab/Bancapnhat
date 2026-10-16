@@ -37,9 +37,11 @@ public final class WbProductSnapshotReader implements ProductSnapshotReader {
         var stableCharacteristics=new JsonArray();ordered.values().forEach(stableCharacteristics::add);card.add("characteristics",stableCharacteristics);
         var media=new ArrayList<ProductMedia>();for(var e:array(card,"photos")){String url=text(object(e),"big");if(!url.isBlank())media.add(new ProductMedia(URI.create(url),null,null,null,null));}
         var attributes=new ArrayList<ProductAttribute>();for(var e:array(card,"characteristics")){var a=object(e);var v=a.get("value");attributes.add(new ProductAttribute(text(a,"id"),text(a,"name"),v!=null&&v.isJsonArray()?strings(v.getAsJsonArray()):v==null?List.of():List.of(v.getAsString()),null));}
+        var colors=attributes.stream().filter(a->ProductFieldNames.matches("color",a.name())).flatMap(a->a.values().stream()).filter(v->v!=null&&!v.isBlank()).distinct().toList();
+        String variantColor=colors.size()==1?colors.getFirst():"";
         var variants=new ArrayList<ProductVariant>();for(var e:array(card,"sizes")){
             var v=object(e);String id=text(v,"chrtID");var skus=strings(array(v,"skus"));String proof=ListingIdentity.verifiedGtin(new ProductKey(shop.getId(),shop.getMarketplace(),key.cardId(),id),skus);
-            variants.add(new ProductVariant(id,text(card,"vendorCode"),"",text(v,"techSize"),proof.isBlank()?(skus.isEmpty()?"":skus.getFirst()):proof,!proof.isBlank(),text(v,"wbSize")));
+            variants.add(new ProductVariant(id,text(card,"vendorCode"),variantColor,text(v,"techSize"),proof.isBlank()?(skus.isEmpty()?"":skus.getFirst()):proof,!proof.isBlank(),text(v,"wbSize")));
         }
         if(!key.variantId().isBlank()&&variants.stream().noneMatch(v->v.id().equals(key.variantId())))throw new IOException("WB variant identity changed");
         var d=obj(card,"dimensions");var dimensions=new PackageDimensions(decimal(d,"length"),decimal(d,"width"),decimal(d,"height"),decimal(d,"weightBrutto"));

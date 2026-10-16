@@ -35,7 +35,7 @@ class ProductSnapshotReaderTest {
         var reader=new WbProductSnapshotReader(s->(path,body,mutation)->JsonParser.parseString(WB));
         var snapshot=reader.read(wb,new ProductKey(1,Marketplace.WILDBERRIES,"123","101"));
         assertTrue(snapshot.revision().startsWith("live:"));assertEquals(2,snapshot.media().size());assertTrue(snapshot.media().get(1).uri().toString().endsWith("2.jpg"));
-        assertEquals(2,snapshot.variants().size());assertEquals("46",snapshot.variants().getFirst().russianSize());
+        assertEquals(2,snapshot.variants().size());assertEquals("46",snapshot.variants().getFirst().russianSize());assertEquals("Black",snapshot.variants().getFirst().color());
         assertEquals(new BigDecimal("0.123"),snapshot.dimensions().weightKg());assertEquals("04610689132457",snapshot.variants().getFirst().gtin());
         assertFalse(snapshot.variants().getFirst().gtinVerified());assertEquals(DocumentState.VALID,snapshot.documents().getFirst().state());
         assertNull(snapshot.documents().getFirst().file());assertEquals("Scope",snapshot.documents().getFirst().metadata().get("productNumber"));

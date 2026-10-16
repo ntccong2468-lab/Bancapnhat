@@ -115,7 +115,7 @@ public final class ZnackRegistrationQueryRepository {
         return new Query(sql.toString(),List.copyOf(params));
     }
 
-    private com.vncode.app.features.sync.RegistrationCardIndex.View view(Sku row){return observations.view(row.status(),row.gtin(),row.barcodes(),row.vendorCode(),row.color(),row.size(),observations.ownsWb(row.chrtId()));}
+    private com.vncode.app.features.sync.RegistrationCardIndex.View view(Sku row){return observations.view(row.status(),row.gtin(),row.barcodes(),row.vendorCode(),row.color(),row.size(),row.wbSize(),observations.ownsWb(row.chrtId()));}
     private boolean matches(SearchCriteria criteria,Sku row){
         if(observations==null)return true;var state=view(row);
         return switch(safe(criteria.status())){

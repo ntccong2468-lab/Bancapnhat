@@ -82,6 +82,12 @@ class OzonCardRegistrationWorkflowTest {
         var base=snapshot;snapshot=new ProductSnapshot(base.key(),base.revision(),base.title(),base.description(),base.brand(),base.vendorArticle(),base.categoryId(),base.media(),List.of(new ProductAttribute("22232","ТН ВЭД коды ЕАЭС",List.of("6204"),null)),base.variants(),base.dimensions(),base.documents(),base.checkedAt(),base.metadata());
         assertEquals("6204",workflow.prepare(shop,key).tnved());
     }
+    @Test void preparationExtractsTheRealOzonDictionaryCodeWithoutConcatenatingDescriptionDigits()throws Exception {
+        var base=snapshot;snapshot=new ProductSnapshot(base.key(),base.revision(),base.title(),base.description(),base.brand(),base.vendorArticle(),base.categoryId(),base.media(),List.of(new ProductAttribute("22232","ТН ВЭД коды ЕАЭС",List.of("6103420001 - Брюки и бриджи, мужские или для мальчиков, из хлопчатобумажной пряжи."),null)),base.variants(),base.dimensions(),base.documents(),base.checkedAt(),base.metadata());
+        assertEquals("6103420001",workflow.prepare(shop,key).tnved());assertEquals(0,api.allocations.get());assertEquals(0,api.submissions.get());
+        assertEquals("",ProductFieldNames.tnvedCode("6103420001 / 6103430001"));
+        assertEquals("",ProductFieldNames.tnvedCode("6103420001 - код 6103430001"));
+    }
     @Test void preparationFetchesNativeIdentityAndReusesOneSessionForCategorySelection()throws Exception {
         api.multipleCategories=true;var prepared=workflow.prepare(shop,key);
         assertEquals("6204",prepared.tnved());assertEquals(0,prepared.categoryId());assertEquals(2,prepared.preflight().categories().size());assertTrue(prepared.required().isEmpty());

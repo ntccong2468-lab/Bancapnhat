@@ -36,4 +36,11 @@ class RegistrationCardIndexTest {
     }
     @Test void aForeignNativeCheckpointCannotEnableResumeOrSign(){assertTrue(index(card(GtinWriteTestFixture.GTIN,true)).view(Status.READY_TO_SIGN,GtinWriteTestFixture.GTIN,List.of(),"A","Blue","M",false).blocked());}
     @Test void scopedOldCatalogRowsCannotAuthorizeStatus(){var old=new RegisteredGtin(GtinWriteTestFixture.GTIN,"A","Blue","M",true,true,"National Catalog@foreign",Instant.now());assertFalse(index(old).view(Status.NOT_CREATED,"",List.of(),"A","Blue","M",true).exists());}
+    @Test void wbPublishedRussianSizeUsesItsObservedWbSizeAndCannotGuessAConversion(){
+        var base=card(GtinWriteTestFixture.GTIN,true);var russian=new RegisteredGtin(base.gtin(),"A","Blue","54",true,true,base.source(),base.syncedAt(),new com.vncode.app.features.catalogsync.CatalogProductData(Map.of("@size_type",List.of("РОССИЯ")),List.of(),List.of()));
+        var cards=index(russian);assertTrue(cards.view(Status.NOT_CREATED,"",List.of(base.gtin()),"A","Blue","3XL","54",true).published());
+        assertTrue(cards.view(Status.NOT_CREATED,"",List.of(),"A","Blue","3XL","54",true).published());
+        assertTrue(cards.view(Status.NOT_CREATED,"",List.of(base.gtin()),"A","Blue","3XL","52",true).blocked());
+        assertTrue(cards.view(Status.NOT_CREATED,"",List.of(base.gtin()),"A","Blue","3XL",true).blocked());
+    }
 }

@@ -663,7 +663,7 @@ public final class ZnackCardRegistrationController {
     private boolean ready(){return readiness!=null&&readiness.ready();}
     private ZnackRegistrationQueryRepository readyQueries(Shop owner){return new ZnackRegistrationQueryRepository(sources.require(owner).run(),new RegistrationCardIndex(owner));}
     private RegistrationCardIndex.View view(Sku row){return cardIndex==null?new RegistrationCardIndex.View("source.unverified",value(row.gtin()),"SOURCE_SYNC_REQUIRED",false,false,true)
-            :cardIndex.view(row.status(),row.gtin(),row.barcodes(),row.vendorCode(),row.color(),row.size(),cardIndex.ownsWb(row.chrtId()));}
+            :cardIndex.view(row.status(),row.gtin(),row.barcodes(),row.vendorCode(),row.color(),row.size(),row.wbSize(),cardIndex.ownsWb(row.chrtId()));}
     private boolean replaceable(Sku row){return row!=null&&row.canRegisterNew()&&!view(row).blocked()&&view(row).published();}
     @FXML private void onReport(){if(shop!=null)RegistrationSyncReportDialog.show(productTable.getScene()==null?null:productTable.getScene().getWindow(),shop,readiness==null?"":readiness.run());}
 

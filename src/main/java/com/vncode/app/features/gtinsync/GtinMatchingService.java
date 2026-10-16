@@ -15,6 +15,6 @@ public final class GtinMatchingService {
         return new MatchResult(product.key(), candidates, candidates.size() == 1 ? "" : candidates.isEmpty() ? "no_match" : "ambiguous");
     }
     /** Only remove characters known to be dropped by Catalog; keep model punctuation and size boundaries. */
-    public static String normalizeArticle(String value) {return normalize(com.vncode.app.integration.znack.registration.CatalogArticleValue.stored(value));}
+    public static String normalizeArticle(String value) {return normalize(com.vncode.app.integration.znack.registration.CatalogArticleValue.stored(java.text.Normalizer.normalize(value==null?"":value,java.text.Normalizer.Form.NFKC)));}
     public static String normalize(String value) { return java.text.Normalizer.normalize(value==null?"":value,java.text.Normalizer.Form.NFKC).strip().replaceAll("[\\p{Z}\\s]+"," ").toUpperCase(Locale.ROOT); }
 }
