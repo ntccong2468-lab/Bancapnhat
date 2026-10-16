@@ -322,7 +322,7 @@ class ZnackCardRegistrationWorkflowTest {
                 long nm=1000+i,chrt=2000+i;String gtin=String.format("0463199376%04d",i),feed="bulk-"+i;
                 s.execute("INSERT INTO wb_product_cards(shop_id,nm_id,vendor_code,title,synced_at) VALUES(1,"+nm+",'Fixture','Fixture','fixture')");
                 s.execute("INSERT INTO wb_product_sizes(shop_id,chrt_id,nm_id,tech_size) VALUES(1,"+chrt+","+nm+",'XL')");
-                api.bulkGtins.put(feed,gtin);
+                api.bulkGtins.put(feed,gtin);api.bulkGoodIds.put(feed,nm);
                 try(var insert=c.prepareStatement("INSERT INTO znack_card_registrations(shop_id,chrt_id,nm_id,gtin,good_id,feed_id,payload_json,status,created_at,updated_at) VALUES(1,?,?,?,?,?,?,'READY_TO_SIGN','fixture','fixture')")) {
                     insert.setLong(1,chrt);insert.setLong(2,nm);insert.setString(3,gtin);insert.setLong(4,nm);insert.setString(5,feed);insert.setString(6,ZnackNationalCatalogService.buildPayload(gtin,draft,"").toString());insert.executeUpdate();
                 }
@@ -352,6 +352,7 @@ class ZnackCardRegistrationWorkflowTest {
         boolean allocationTimeout,feedTimeout,existingDraft,rejectExistingFeed,readRejected;
         boolean moderated,signTimeout,signatureAccepted,changeSigningDocument,delayPublication;
         Map<String,String> bulkGtins=new HashMap<>();
+        Map<String,Long> bulkGoodIds=new HashMap<>();
         String existingFeedStatus="Rejected";
         @Override public JsonElement generatedGtins(String base,String token) {
             return json(existingDraft?"{\"result\":{\"drafts\":[{\"gtin\":\"04631993764363\"}]}}":"{\"result\":{\"drafts\":[]}}");
@@ -376,7 +377,7 @@ class ZnackCardRegistrationWorkflowTest {
             return json("{\"result\":{\"feed_id\":\"feed-new\"}}");
         }
         @Override public JsonElement nationalCatalogFeedStatus(String base,String token,String feed) {
-            if(bulkGtins.containsKey(feed))return json("{\"result\":{\"status\":\"Signed\",\"item\":[{\"gtin\":\""+bulkGtins.get(feed)+"\",\"good_id\":91}]}}");
+            if(bulkGtins.containsKey(feed))return json("{\"result\":{\"status\":\"Signed\",\"item\":[{\"gtin\":\""+bulkGtins.get(feed)+"\",\"good_id\":"+bulkGoodIds.get(feed)+"}]}}");
             if(rejectExistingFeed && feed.equals("feed-existing")) {
                 readRejected=true;
                 return json("{\"result\":{\"status\":\""+existingFeedStatus+"\",\"item\":[{\"gtin\":\"04631993764370\",\"status_code\":400,\"message\":\"required attribute missing\"}]}}");
