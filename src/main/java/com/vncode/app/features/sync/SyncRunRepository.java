@@ -64,6 +64,16 @@ public final class SyncRunRepository {
             try(var p=c.prepareStatement("UPDATE sync_runs SET step=?,updated_at=? WHERE id=?")){p.setString(1,step);p.setString(2,Instant.now().toString());p.setString(3,item.runId());p.executeUpdate();}c.commit();
         }catch(SQLException e){throw storage(e);}
     }
+    /** Bounded progress write for a large FBS batch, with one owner check and transaction. */
+    public void updateBatch(Shop shop,String run,List<Item> items){
+        if(items.size()>10000||items.stream().anyMatch(i->!run.equals(i.runId())))throw new IllegalArgumentException("SYNC_REPORT_LIMIT");
+        try(var c=Database.getConnection()){
+            c.setAutoCommit(false);require(c,shop,run);
+            try(var p=c.prepareStatement("UPDATE sync_run_items SET state=?,step=?,error_code=?,evidence_json=?,updated_at=? WHERE run_id=? AND id=?")){
+                for(var item:items){p.setString(1,item.state());p.setString(2,item.step());p.setString(3,code(item.error()));p.setString(4,item.evidence());p.setString(5,Instant.now().toString());p.setString(6,run);p.setString(7,item.id());p.addBatch();}p.executeBatch();
+            }c.commit();
+        }catch(SQLException e){throw storage(e);}
+    }
     public void linkReviewed(Shop shop,String run,com.vncode.app.features.catalogsync.CatalogSyncModels.Job child){
         if(!child.confirmed()||!child.fields().contains(com.vncode.app.features.catalogsync.CatalogSyncModels.Field.GTIN)||child.shopId()!=shop.getId()||!child.owner().equals(ListingIdentity.fingerprint(shop)))throw new SecurityException("SYNC_REVIEW_OWNER_CHANGED");
         try(var c=Database.getConnection()){

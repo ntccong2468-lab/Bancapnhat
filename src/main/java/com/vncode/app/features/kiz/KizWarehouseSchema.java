@@ -53,6 +53,13 @@ public final class KizWarehouseSchema {
                   shop_id INTEGER NOT NULL REFERENCES shops(id) ON DELETE CASCADE,owner TEXT NOT NULL,created_at TEXT NOT NULL,
                   PRIMARY KEY(code_id,token))
                 """);
+            s.execute("""
+                CREATE TABLE IF NOT EXISTS kiz_ozon_category_sources(
+                  shop_id INTEGER NOT NULL REFERENCES shops(id) ON DELETE CASCADE,owner TEXT NOT NULL,
+                  description_category_id TEXT NOT NULL,type_id TEXT NOT NULL,
+                  category_id TEXT NOT NULL REFERENCES kiz_stock_categories(id) ON DELETE CASCADE,
+                  PRIMARY KEY(shop_id,owner,description_category_id,type_id),UNIQUE(category_id))
+                """);
             s.execute("CREATE INDEX IF NOT EXISTS kiz_stock_product_category ON kiz_stock_product_categories(category_id,shop_id,owner)");
             s.execute("""
                 CREATE TABLE IF NOT EXISTS kiz_wb_category_sources(

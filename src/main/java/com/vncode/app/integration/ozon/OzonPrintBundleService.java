@@ -9,6 +9,7 @@ import com.vncode.app.features.license.LicenseRuntime;
 import com.vncode.app.integration.marketplace.MarketplaceGuard;
 import com.vncode.app.models.Shop;
 import com.vncode.app.shared.AtomicFilePublisher;
+import com.vncode.app.features.kiz.KizSourceSelection;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -43,19 +44,23 @@ public final class OzonPrintBundleService {
                 new OzonLabelService()::downloadOfficialPdf);
     }
 
+    public OzonPrintBundleService(KizSourceSelection sources){
+        this(new OzonPostingRepository(),new OzonExemplarJobRepository(),defaultPreparation(new OzonExemplarService(),Objects.requireNonNull(sources)),new OzonLabelService()::downloadOfficialPdf);
+    }
     private static Preparation defaultPreparation() {
         return defaultPreparation(new OzonExemplarService());
     }
 
-    static Preparation defaultPreparation(OzonExemplarService service) {
+    static Preparation defaultPreparation(OzonExemplarService service) {return defaultPreparation(service,null);}
+    static Preparation defaultPreparation(OzonExemplarService service,KizSourceSelection sources) {
         return new Preparation() {
             @Override public OzonPreparationResult prepare(Shop shop, String postingNumber) throws IOException {
-                return service.stageForPrint(shop, postingNumber);
+                return service.openPrintBatch(shop,sources).stageForPrint(postingNumber);
             }
             @Override public boolean refreshEveryNewPrint() { return true; }
             @Override public boolean validateShopOwner() { return true; }
             @Override public Preparation forBatch(Shop shop) {
-                OzonExemplarService.PrintBatch batch = service.openPrintBatch(shop);
+                OzonExemplarService.PrintBatch batch = service.openPrintBatch(shop,sources);
                 return new Preparation() {
                     private final Map<String,OzonPreparationResult> prepared=new LinkedHashMap<>();
                     @Override public OzonPreparationResult prepare(Shop selected, String number) throws IOException {

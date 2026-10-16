@@ -20,6 +20,13 @@ final class OzonCategoryStock {
         }
         var result=new HashMap<String,String>();candidates.forEach((sku,products)->{if(products.size()==1)result.put(sku,products.iterator().next());});return Map.copyOf(result);
     }
+    static Map<String,String> verifiedProducts(Connection c,int shop,List<OzonPostingItemDto> items)throws SQLException{
+        var catalog=new OzonCatalogRepository().findBySkus(c,shop,items.stream().map(OzonPostingItemDto::sku).toList());
+        var result=new HashMap<String,String>();
+        for(var item:items){var product=catalog.get(item.sku());if(product!=null&&(item.offerId().isBlank()||item.offerId().equals(product.offerId())))result.put(item.sku(),product.productId());}
+        for(var item:items){var product=catalog.get(item.sku());if(product==null||!item.offerId().isBlank()&&!item.offerId().equals(product.offerId()))result.remove(item.sku());}
+        return Map.copyOf(result);
+    }
     static Set<String> categorySkus(int shop,Collection<String> skus){
         try(var c=Database.getConnection()){
             var nativeIds=nativeProducts(c,shop,skus);String owner=KizWarehouseRepository.currentOwner(c,shop);
@@ -31,7 +38,7 @@ final class OzonCategoryStock {
     static Map<String,Integer> coverage(int shop,List<OzonPostingDto> postings,Set<String> exempt){
         if(postings.isEmpty())return Map.of();
         try(var c=Database.getConnection()){
-            c.setAutoCommit(false);var products=nativeProducts(c,shop,postings.stream().flatMap(p->p.items().stream()).map(OzonPostingItemDto::sku).toList());
+            c.setAutoCommit(false);var products=verifiedProducts(c,shop,postings.stream().flatMap(p->p.items().stream()).toList());
             var demands=new ArrayList<KizCategoryAllocator.Demand>();
             for(var posting:postings){
                 if(posting.requirements().blocksPreparation()||!posting.isSinglePackageSupported())continue;

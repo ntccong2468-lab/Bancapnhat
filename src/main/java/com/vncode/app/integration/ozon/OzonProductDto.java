@@ -15,7 +15,7 @@ public record OzonProductDto(
         String gender,
         boolean archived,
         String updatedAt,
-        List<String> barcodes) {
+        List<String> barcodes, String descriptionCategoryId, String typeId) {
     public OzonProductDto {
         productId = OzonApiClient.requireExternalId(productId, "product id");
         offerId = safe(offerId);
@@ -26,6 +26,7 @@ public record OzonProductDto(
         color = safe(color);
         size = safe(size);
         category = safe(category);
+        descriptionCategoryId = safe(descriptionCategoryId);typeId = safe(typeId);
         gender = safe(gender);
         updatedAt = bounded(updatedAt, 80);
         barcodes = barcodes == null ? List.of() : barcodes.stream()
@@ -34,6 +35,13 @@ public record OzonProductDto(
                 .distinct()
                 .limit(100)
                 .toList();
+    }
+
+    public OzonProductDto(String productId,String offerId,String sku,String name,String image,String article,String color,String size,String category,String gender,boolean archived,String updatedAt,List<String> barcodes){
+        this(productId,offerId,sku,name,image,article,color,size,category,gender,archived,updatedAt,barcodes,"","");
+    }
+    public OzonProductDto withCategoryIdentity(String categoryId,String nativeTypeId){
+        return new OzonProductDto(productId,offerId,sku,name,primaryImageUrl,article,color,size,category,gender,archived,updatedAt,barcodes,categoryId,nativeTypeId);
     }
 
     public OzonProductDto(
@@ -71,7 +79,7 @@ public record OzonProductDto(
         return new OzonProductDto(
                 productId, offerId, sku, name, primaryImageUrl,
                 article == null || article.isBlank() ? offerId : article,
-                color, size, category, gender, archived, updatedAt, barcodes);
+                color, size, category, gender, archived, updatedAt, barcodes, descriptionCategoryId, typeId);
     }
 
     private static String safe(String value) {

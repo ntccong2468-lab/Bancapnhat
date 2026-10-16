@@ -6,9 +6,11 @@ import java.util.*;
 
 /** Called only from a seller's print action, never from background readiness rendering. */
 public final class OzonStockReplenishment {
-    public void forPrint(Shop shop,List<String> numbers)throws Exception {
-        var warehouse=new KizWarehouseRepository();if(!warehouse.autoPurchase(shop))return;
-        var readiness=new OzonPrintReadinessService().inspectAll(shop,numbers);
+    public void forPrint(Shop shop,List<String> numbers)throws Exception {forPrint(shop,numbers,null);}
+    public void forPrint(Shop shop,List<String> numbers,KizSourceSelection sources)throws Exception {
+        if(sources!=null&&!sources.purchased())return;
+        var warehouse=new KizWarehouseRepository();if(sources==null&&!warehouse.autoPurchase(shop))return;
+        var readiness=new OzonPrintReadinessService().inspectAll(shop,numbers,sources);
         if(readiness.postings().stream().anyMatch(r->!r.postingAvailable()||!r.unsupportedRequirements().isEmpty()||!r.missingSkus().isEmpty()))return;
         var jobs=new OzonExemplarJobRepository();var existing=jobs.findMany(shop.getId(),numbers);
         var counts=jobs.bindingCounts(shop.getId(),existing.values().stream().map(OzonExemplarJob::id).toList());
@@ -21,14 +23,16 @@ public final class OzonStockReplenishment {
         var postingSnapshot=new OzonPostingRepository().findMany(shop.getId(),numbers);var skuMappings=new OzonProductGtinMappingRepository().findResolvedBySku(shop.getId());
         var candidates=new ArrayList<KizPurchaseMappingProof.Product>();
         try(var c=com.vncode.app.config.Database.getConnection()){
-            var products=OzonCategoryStock.nativeProducts(c,shop.getId(),postingSnapshot.values().stream().flatMap(p->p.items().stream()).map(OzonPostingItemDto::sku).toList());
+            var products=OzonCategoryStock.verifiedProducts(c,shop.getId(),postingSnapshot.values().stream().flatMap(p->p.items().stream()).toList());
             for(var row:readiness.postings()){
                 var posting=postingSnapshot.get(row.postingNumber());if(posting==null)continue;
                 var needed=row.gtinAvailability().stream().map(OzonPrintReadiness.GtinAvailability::gtin).collect(java.util.stream.Collectors.toSet());
                 for(var item:posting.items()){String gtin=skuMappings.get(item.sku());if(gtin!=null&&needed.contains(gtin))candidates.add(new KizPurchaseMappingProof.Product(products.get(item.sku()),item.sku(),gtin));}
             }
         }
-        var result=new KizStockReplenisher().ensure(shop,required,missing->KizPurchaseMappingProof.require(shop,candidates,missing.keySet()));
+        var replenisher=new KizStockReplenisher();
+        java.util.function.Consumer<Map<String,Integer>> proof=missing->KizPurchaseMappingProof.require(shop,candidates,missing.keySet());
+        var result=sources==null?replenisher.ensure(shop,required,proof):replenisher.ensurePurchased(shop,required,proof);
         if(result.waiting())throw new KizAssignmentException("KIZ_PURCHASE_PENDING","","");
     }
 }

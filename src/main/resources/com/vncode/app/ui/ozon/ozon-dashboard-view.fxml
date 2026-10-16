@@ -4,6 +4,7 @@
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.CheckBox?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
 <?import javafx.scene.control.ProgressIndicator?>
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.SplitPane?>
@@ -127,15 +128,9 @@
                                 </VBox>
                             </content>
                         </Tab>
-                            </tabs>
-                        </TabPane>
-                    </children>
-                </VBox>
-                <HBox spacing="8.0" alignment="CENTER_RIGHT" styleClass="ozon-page-footer">
-                    <Label fx:id="pageStatusLabel" styleClass="text-muted" />
-                    <Button fx:id="previousPageButton" onAction="#onPreviousPage" text="Previous" />
-                    <Button fx:id="nextPageButton" onAction="#onNextPage" text="Next" />
-                </HBox>
+                        <Tab fx:id="shipmentKizTab" text="KIZ stock / Znack"><content>
+                            <ScrollPane fitToWidth="true" hbarPolicy="NEVER"><content><VBox spacing="8.0">
+                                <VBox fx:id="shipmentKizHost" />
                 <TitledPane fx:id="gtinInventoryPanel" expanded="false" animated="false" text="GTIN / KIZ"><content>                <VBox prefHeight="240.0" fx:id="gtinInventoryPane" minWidth="360.0" prefWidth="420.0" spacing="10.0" styleClass="surface, gtin-inventory-pane">
                     <children>
                         <HBox alignment="CENTER_LEFT" spacing="8.0">
@@ -154,15 +149,25 @@
                         <TextField fx:id="gtinSearchField" promptText="Search GTIN" />
                         <StackPane VBox.vgrow="ALWAYS">
                             <children>
-                                <ScrollPane fitToWidth="true" hbarPolicy="NEVER">
-                                    <content><VBox fx:id="gtinInventoryList" spacing="8.0" /></content>
-                                </ScrollPane>
+                                <ListView fx:id="gtinInventoryList" />
                                 <Label fx:id="gtinInventoryEmptyLabel" managed="false" maxWidth="240.0" styleClass="text-muted" text="No GTIN" textAlignment="CENTER" visible="false" wrapText="true" />
                             </children>
                         </StackPane>
                     </children>
                     <padding><Insets bottom="12.0" left="12.0" right="12.0" top="12.0" /></padding>
                 </VBox></content></TitledPane>
+                            </VBox></content></ScrollPane>
+                        </content></Tab>
+                            </tabs>
+                        </TabPane>
+                    </children>
+                </VBox>
+                <HBox spacing="8.0" alignment="CENTER_RIGHT" styleClass="ozon-page-footer">
+                    <Label fx:id="pageStatusLabel" styleClass="text-muted" />
+                    <Button fx:id="previousPageButton" onAction="#onPreviousPage" text="Previous" />
+                    <Button fx:id="nextPageButton" onAction="#onNextPage" text="Next" />
+                </HBox>
+
             </children>
         </VBox>
         <TitledPane fx:id="batchResultsPanel" text="Results" visible="false" managed="false" expanded="false" animated="false"><content><TextArea fx:id="batchResultsArea" editable="false" wrapText="true" prefRowCount="4" /></content></TitledPane>

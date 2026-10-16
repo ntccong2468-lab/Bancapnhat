@@ -3,6 +3,7 @@ package com.vncode.app.integration.ozon;
 import com.vncode.app.integration.marketplace.MarketplaceGuard;
 import com.vncode.app.integration.znack.ZnackGtinInventoryService;
 import com.vncode.app.models.Shop;
+import com.vncode.app.features.kiz.KizSourceSelection;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -52,7 +53,7 @@ public final class OzonPrintReadinessService {
 
     private OzonPrintReadiness inspect(Shop shop,String safePosting,OzonPostingDto posting,OzonExemplarJob job,
                                       int bindingCount,Map<String,String> skuMappings,Set<String> exemptSkus,
-                                      Map<String,Integer> availableCounts,Map<String,Integer> categoryCoverage) {
+                                      Map<String,Integer> availableCounts,Map<String,Integer> categoryCoverage,KizSourceSelection sources) {
         if (posting == null) {
             return result(safePosting, false, false, 0, List.of(), List.of(), List.of(), "");
         }
@@ -76,6 +77,10 @@ public final class OzonPrintReadinessService {
             boolean mandatoryMark = mandatory.contains(item.productId());
             if (mandatoryMark) coveredMandatory.add(item.productId());
             if (!mandatoryMark && !item.sku().isBlank() && exemptSkus.contains(item.sku())) continue;
+            if(sources!=null&&!sources.purchased()){
+                if(categoryCoverage.getOrDefault(OzonCategoryStock.key(safePosting,item.itemIndex()),0)<item.quantity())missingSkus.add("KIZ_CATEGORY_STOCK: "+item.sku());
+                continue;
+            }
             String gtin = skuMappings.get(item.sku());
             if ((gtin == null || gtin.isBlank()) && categoryCoverage.getOrDefault(OzonCategoryStock.key(safePosting,item.itemIndex()),0)<item.quantity()) missingSkus.add(item.sku().isBlank() ? item.productId() : item.sku());
         }
@@ -111,6 +116,11 @@ public final class OzonPrintReadinessService {
 
     /** Checks the full queue as one allocation so two orders cannot both count the same KIZ. */
     public OzonBatchPrintReadiness inspectAll(Shop shop, List<String> postingNumbers) {
+        return inspectAll(shop,postingNumbers,null);
+    }
+    public OzonPrintReadiness inspect(Shop shop,String number,KizSourceSelection sources){return inspectAll(shop,List.of(number),sources).postings().getFirst();}
+    public OzonBatchPrintReadiness inspectAll(Shop shop,List<String> postingNumbers,KizSourceSelection sources){
+        if(sources!=null&&!sources.anySelected())throw new IllegalStateException("KIZ_SOURCE_REQUIRED");
         MarketplaceGuard.requireOzon(shop);
         List<String> safePostings = postingNumbers == null ? List.of() : postingNumbers.stream()
                 .map(value -> OzonApiClient.requireExternalId(value, "posting number"))
@@ -119,7 +129,7 @@ public final class OzonPrintReadinessService {
         List<OzonPrintReadiness> results = new ArrayList<>();
         Map<String, Integer> unsecuredByGtin = new LinkedHashMap<>();
         // A shipment reads its catalog mapping once, rather than scanning every product for every order.
-        Map<String,String> skuMappings=mappings.findResolvedBySku(shop.getId());
+        Map<String,String> skuMappings=sources!=null&&!sources.purchased()?Map.of():mappings.findResolvedBySku(shop.getId());
         Set<String> exemptSkus=policies.findExemptSkus(shop.getId());
         Map<String,OzonPostingDto> postingSnapshot=postings.findMany(shop.getId(),safePostings);
         Map<String,OzonExemplarJob> jobSnapshot=jobs.findMany(shop.getId(),safePostings);
@@ -131,14 +141,14 @@ public final class OzonPrintReadinessService {
                 && bindingCounts.getOrDefault(job.id(),0)==posting.items().stream().filter(i->posting.requirements().mandatoryMarkProductIds().contains(i.productId())||!exemptSkus.contains(i.sku())).mapToInt(OzonPostingItemDto::quantity).sum();
             if(!secured)unsecuredPostings.add(posting);
         }
-        var categoryCoverage=OzonCategoryStock.coverage(shop.getId(),unsecuredPostings,exemptSkus);
+        var categoryCoverage=sources!=null&&!sources.sellerImported()?Map.<String,Integer>of():OzonCategoryStock.coverage(shop.getId(),unsecuredPostings,exemptSkus);
         var requestedGtins=postingSnapshot.values().stream().flatMap(p->p.items().stream()).map(i->skuMappings.get(i.sku())).filter(java.util.Objects::nonNull).distinct().toList();
-        Map<String,Integer> availableCounts=new java.util.HashMap<>(inventory.availableCounts(shop.getId(),requestedGtins));
+        Map<String,Integer> availableCounts=new java.util.HashMap<>(sources==null?inventory.availableCounts(shop.getId(),requestedGtins):sources.purchased()?inventory.purchasedAvailableCounts(shop.getId(),requestedGtins):Map.<String,Integer>of());
         for (String postingNumber : safePostings) {
             OzonExemplarJob job=jobSnapshot.get(postingNumber);
             int bindingCount=job==null?0:bindingCounts.getOrDefault(job.id(),0);
             OzonPrintReadiness readiness = inspect(shop,postingNumber,postingSnapshot.get(postingNumber),job,
-                    bindingCount,skuMappings,exemptSkus,availableCounts,categoryCoverage);
+                    bindingCount,skuMappings,exemptSkus,availableCounts,categoryCoverage,sources);
             results.add(readiness);
             if (!readiness.ready() || readiness.requiredKiz() == 0) continue;
             boolean secured = job != null

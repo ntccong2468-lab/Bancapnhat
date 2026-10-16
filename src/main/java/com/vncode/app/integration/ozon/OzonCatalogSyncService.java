@@ -104,6 +104,8 @@ public final class OzonCatalogSyncService {
                                 attributes.article(), attributes.color(), attributes.size(),
                                 attributes.category(), attributes.gender());
                     }
+                    var nativeCard=cards.stream().filter(card->card.productId().equals(reference.productId())).findFirst();
+                    if(nativeCard.isPresent())product=product.withCategoryIdentity(nativeCard.get().category().descriptionCategoryId(),nativeCard.get().category().typeId());
                     complete.add(product);
                 }
                 synced += products.upsertPage(shopId, complete, next);

@@ -94,13 +94,50 @@ class OzonExemplarWorkflowTest {
         assertEquals(1, count("SELECT COUNT(*) FROM kiz_codes WHERE status='RESERVED'"));
     }
     @Test void productionPrintFlowUsesCategoryStockWithDifferentGtinAndReusesItsDurableProof()throws Exception{
-        new OzonCatalogRepository().upsertPage(1,java.util.List.of(new OzonProductDto("9001","offer-1","101","Synthetic","",false,"",java.util.List.of())),"");
+        new OzonCatalogRepository().upsertPage(1,java.util.List.of(new OzonProductDto("9001","sku-a","101","Synthetic","",false,"",java.util.List.of())),"");
         try(var c=Database.getConnection();var s=c.createStatement()){s.execute("DELETE FROM ozon_product_gtin_mappings");}
         com.vncode.app.testsupport.CategoryStockFixture.add(shop,"9001",temporaryDirectory,1);
         server.enqueue(json(posting()));server.enqueue(json(posting()));var service=service();
         assertTrue(service.stageForPrint(shop,"POST-1").shipReady());assertTrue(service.stageForPrint(shop,"POST-1").shipReady());
         assertEquals(com.vncode.app.testsupport.CategoryStockFixture.GTIN,scalar("SELECT k.gtin FROM ozon_exemplars e JOIN kiz_codes k ON k.id=e.kiz_id"));
         assertEquals(1,count("SELECT count(*) FROM kiz_stock_category_reservations"));assertEquals(2,server.getRequestCount());
+    }
+
+    @Test void explicitSellerSourceSkipsCatalogAndNeverUsesPaidStock()throws Exception{
+        new OzonCatalogRepository().upsertPage(1,java.util.List.of(new OzonProductDto("9001","sku-a","101","Synthetic","",false,"",java.util.List.of())),"");
+        try(var c=Database.getConnection();var st=c.createStatement()){st.execute("DELETE FROM ozon_product_gtin_mappings");}
+        com.vncode.app.testsupport.CategoryStockFixture.add(shop,"9001",temporaryDirectory,1);
+        new OzonPostingRepository().upsertDetail(1,OzonJson.parsePostingDetail(com.google.gson.JsonParser.parseString(posting()).getAsJsonObject()));
+        var source=com.vncode.app.features.kiz.KizSourceSelection.SELLER_ONLY;
+        assertTrue(new OzonPrintReadinessService().inspect(shop,"POST-1",source).ready());
+        server.enqueue(json(posting()));server.enqueue(json(posting()));
+        assertTrue(service().openPrintBatch(shop,source).stageForPrint("POST-1").shipReady());
+        assertTrue(service().openPrintBatch(shop,source).stageForPrint("POST-1").shipReady());
+        assertEquals("AVAILABLE",scalar("SELECT status FROM kiz_codes WHERE id=1"));
+        assertEquals(com.vncode.app.testsupport.CategoryStockFixture.GTIN,scalar("SELECT k.gtin FROM ozon_exemplars e JOIN kiz_codes k ON k.id=e.kiz_id"));
+        assertEquals(2,server.getRequestCount());
+    }
+    @Test void explicitPurchasedSourceExcludesImportsAndMixedUsesImportFirst()throws Exception{
+        for(boolean includeImports:java.util.List.of(false,true)){
+            String number=includeImports?"POST-2":"POST-1";
+            new OzonCatalogRepository().upsertPage(1,java.util.List.of(new OzonProductDto("9001","sku-a","101","Synthetic","",false,"",java.util.List.of())),"");
+            if(!includeImports)com.vncode.app.testsupport.CategoryStockFixture.add(shop,"9001",temporaryDirectory,1);
+            var source=new com.vncode.app.features.kiz.KizSourceSelection(includeImports,true);
+            server.enqueue(json(posting().replace("POST-1",number)));
+            assertTrue(service().openPrintBatch(shop,source).stageForPrint(number).shipReady());
+            assertEquals(includeImports?com.vncode.app.testsupport.CategoryStockFixture.GTIN:"04600000000001",scalar("SELECT k.gtin FROM ozon_exemplars e JOIN ozon_exemplar_jobs j ON j.id=e.job_id JOIN kiz_codes k ON k.id=e.kiz_id WHERE j.posting_number='"+number+"'"));
+        }
+    }
+    @Test void sellerOnlyShortageRollsBackAndCannotFallBackToAvailablePaidCode()throws Exception{
+        var source=com.vncode.app.features.kiz.KizSourceSelection.SELLER_ONLY;
+        new OzonCatalogRepository().upsertPage(1,java.util.List.of(new OzonProductDto("9001","sku-a","101","Synthetic","",false,"",java.util.List.of())),"");
+        com.vncode.app.testsupport.CategoryStockFixture.add(shop,"9001",temporaryDirectory,1);
+        server.enqueue(json(posting().replace("\"quantity\":1","\"quantity\":2")));
+        var result=service().openPrintBatch(shop,source).stageForPrint("POST-1");
+        org.junit.jupiter.api.Assertions.assertFalse(result.shipReady());
+        assertEquals(0,count("SELECT count(*) FROM kiz_codes WHERE status='RESERVED'"));
+        assertEquals(0,count("SELECT count(*) FROM ozon_exemplars WHERE kiz_id IS NOT NULL"));
+        assertEquals(1,server.getRequestCount());
     }
 
     @Test

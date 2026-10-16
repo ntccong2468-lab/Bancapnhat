@@ -3,7 +3,7 @@
   "baseVersion": "1.4.12",
   "complete": false,
   "officialReleasePublished": false,
-  "phase": "approved-items-1-2-4-5-6-implemented-live-native-acceptance-pending",
+  "phase": "approved-items-1-through-6-implemented-item7-next-live-native-acceptance-pending",
   "licenseIntegration": {
     "implemented": true,
     "productionReady": false,
@@ -35,7 +35,10 @@
     "Source values remain inherited; separate explicit edits and per-variant prices persist in backwards-compatible drafts",
     "Real prepared destination data, dictionary labels and variant prices displayed before publication",
     "Primary image and full source barcode coverage checked; unsupported source fields reported explicitly",
-    "Bounded selected-job reconciliation, durable no-duplicate writes and native WB size-price readback"
+    "Bounded selected-job reconciliation, durable no-duplicate writes and native WB size-price readback",
+    "Ozon FBS shares shipment KIZ source UI, native category/type stock and frozen source selection from readiness to local print allocation",
+    "Ozon primary image handles string/array/object, excludes ambiguous SKU and checks posting offer identity",
+    "Durable per-posting FBS print report separates local KIZ, PDF and remote acceptance"
   ],
   "validation": {
     "focusedGuards": {
@@ -316,10 +319,13 @@
       "report": "docs/validation/2026-10-16-item-2-wb-shipment-kiz.md"
     },
     "item3": {
-      "diagramApproved": false,
-      "codeImplementedThisTurn": false,
-      "status": "next_in_requested_order_pending_specific_flow_approval",
-      "proposal": "docs/architecture/2026-10-16-item-3-ozon-fbs-proposed-flow.md"
+      "diagramApproved": true,
+      "codeImplemented": true,
+      "status": "implemented_focused_and_scale_checks_passed",
+      "liveKizAssignment": false,
+      "livePurchase": false,
+      "purchasePipelinePreserved": true,
+      "report": "docs/validation/2026-10-16-item-3-ozon-fbs.md"
     },
     "item4": {
       "diagramApproved": true,

@@ -1,9 +1,9 @@
 # Mục 3 — FBS Ozon, nguồn KIZ và ảnh sản phẩm
 
-Trạng thái: **đang trình sơ đồ riêng của mục 3** theo yêu cầu duyệt từng
-công việc. Người dùng yêu cầu làm mục 3 trước mục 7; sơ đồ mục 7 đã được
-duyệt. Chưa thay mã nghiệp vụ trong lượt rà soát này. Nền mã:
-`19479388f50ab8e97c3bfba2ad726ab5e8523e46`.
+Trạng thái: **đã được duyệt và triển khai, kiểm thử cục bộ đã qua**.
+Phê duyệt: “Duyệt mục 3, triển khai rồi làm mục 7”. Mục 7 thực hiện tiếp
+sau mục 3. Báo cáo: [kiểm thử mục 3](../validation/2026-10-16-item-3-ozon-fbs.md).
+Nền trước thay đổi: `19479388f50ab8e97c3bfba2ad726ab5e8523e46`.
 
 ## Căn cứ và lỗi còn thiếu trong mã hiện tại
 
@@ -147,4 +147,4 @@ flowchart LR
   không thay cho giao dịch mua/gán thật.
 
 Sau khi xong và báo cáo mục 3, tiếp tục mục 7 đã duyệt. Chưa tạo bộ cài,
-đổi Latest hoặc phát hành seller trong bước trình sơ đồ này.
+đổi Latest hoặc phát hành seller trong bước kiểm thử cục bộ này.

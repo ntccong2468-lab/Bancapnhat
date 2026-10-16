@@ -42,11 +42,8 @@ public final class OzonJson {
             if (productId.isBlank()) productId = text(item, "product_id");
             if (productId.isBlank()) continue;
             List<String> barcodes = strings(item.get("barcodes"));
-            String primaryImage = text(item, "primary_image");
-            if (primaryImage.isBlank()) {
-                List<String> images = strings(item.get("images"));
-                primaryImage = images.isEmpty() ? "" : images.getFirst();
-            }
+            var orderedImages=OzonListingImages.ordered(item,new JsonObject());
+            String primaryImage=orderedImages.isEmpty()?"":orderedImages.getFirst();
             String sku = text(item, "sku");
             if (sku.isBlank()) sku = text(item, "fbo_sku");
             result.add(new OzonProductDto(
