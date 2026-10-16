@@ -26,7 +26,8 @@ public final class AppTaskExecutor {
     static boolean executeCatalog(Task<?> task,java.time.Duration deadline,Consumer<Throwable> rejected){
         if(deadline==null||deadline.isNegative()||deadline.isZero()||deadline.toMillis()>600000)throw new IllegalArgumentException("Catalog deadline is invalid");
         Objects.requireNonNull(task);ACTIVE_TASK_COUNT.incrementAndGet();
-        var timeout=CATALOG_TIMEOUT.schedule(()->task.cancel(true),Math.max(1,deadline.toMillis()),TimeUnit.MILLISECONDS);
+        // Set CANCELLED on FX before an interrupted worker can enqueue its FAILED event.
+        var timeout=CATALOG_TIMEOUT.schedule(()->javafx.application.Platform.runLater(()->task.cancel(true)),Math.max(1,deadline.toMillis()),TimeUnit.MILLISECONDS);
         try{CATALOG_EXECUTOR.execute(()->{try{task.run();}finally{timeout.cancel(false);ACTIVE_TASK_COUNT.decrementAndGet();}});return true;}
         catch(RejectedExecutionException full){timeout.cancel(false);ACTIVE_TASK_COUNT.decrementAndGet();task.cancel(false);rejected.accept(full);return false;}
     }

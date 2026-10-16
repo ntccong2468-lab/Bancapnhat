@@ -17,11 +17,14 @@ class CatalogTaskExecutorTest {
    assertTrue(AppTaskExecutor.executeCatalog(catalog,e->fail(e)));assertTrue(ran.await(5,TimeUnit.SECONDS));catalog.get(5,TimeUnit.SECONDS);
   }finally{release.countDown();for(var task:blockers)task.get(10,TimeUnit.SECONDS);}
  }
- @Test void deadlineInterruptsAStuckReadAndDeliversFxCancellationCleanup()throws Exception{
+ @RepeatedTest(3) void deadlineInterruptsAStuckReadAndDeliversFxCancellationCleanup()throws Exception{
   var started=new CountDownLatch(1);var cancelled=new CountDownLatch(1);var exited=new CountDownLatch(1);var writes=new AtomicInteger();
   var task=new Task<Void>(){protected Void call()throws Exception{started.countDown();try{new CountDownLatch(1).await(10,TimeUnit.SECONDS);writes.incrementAndGet();return null;}finally{exited.countDown();}}};
   var setup=new FutureTask<Void>(()->{task.setOnCancelled(e->{assertTrue(Platform.isFxApplicationThread());cancelled.countDown();});return null;});Platform.runLater(setup);setup.get(5,TimeUnit.SECONDS);
   assertTrue(AppTaskExecutor.executeCatalog(task,Duration.ofMillis(500),e->fail(e)));assertTrue(started.await(5,TimeUnit.SECONDS));
-  assertTrue(cancelled.await(5,TimeUnit.SECONDS));assertTrue(exited.await(5,TimeUnit.SECONDS));assertTrue(task.isCancelled());assertEquals(0,writes.get());
+  boolean observed=cancelled.await(5,TimeUnit.SECONDS);
+  String outcome="pending";if(task.isDone())try{task.get();outcome="succeeded";}catch(Exception ended){outcome=ended.toString()+" cause="+ended.getCause();}
+  assertTrue(observed,"FX cancellation missing; done="+task.isDone()+" cancelled="+task.isCancelled()+" exited="+exited.getCount()+" outcome="+outcome);
+  assertTrue(exited.await(5,TimeUnit.SECONDS),"Canceled read must exit its worker");assertTrue(task.isCancelled());assertEquals(0,writes.get());
  }
 }
