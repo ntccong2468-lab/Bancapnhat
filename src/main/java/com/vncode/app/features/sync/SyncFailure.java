@@ -9,6 +9,8 @@ import java.util.Locale;
 /** Never persist arbitrary upstream messages, URLs, tokens or payloads. */
 public record SyncFailure(String code,Duration delay,boolean actionRequired) {
     public static SyncFailure of(Throwable failure,int attempt) {
+        if(com.vncode.app.config.SqliteWriteTransaction.isBusy(failure))
+            return new SyncFailure("SYNC_STORAGE_BUSY",backoff(attempt),false);
         for(Throwable e=failure;e!=null;e=e.getCause()) {
             if(e instanceof com.vncode.app.shared.RateLimitDeferral.Deferred deferred)return new SyncFailure("API_COOLDOWN",deferred.delay(),false);
             if(e instanceof LicenseDeniedException)return new SyncFailure("LICENSE_REQUIRED",Duration.ofMinutes(1),true);

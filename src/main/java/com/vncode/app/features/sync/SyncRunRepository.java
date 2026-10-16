@@ -1,6 +1,7 @@
 package com.vncode.app.features.sync;
 
 import com.vncode.app.config.Database;
+import com.vncode.app.config.SqliteWriteTransaction;
 import com.vncode.app.integration.listing.ListingIdentity;
 import com.vncode.app.models.Shop;
 import java.sql.*;
@@ -14,36 +15,36 @@ public final class SyncRunRepository {
     public record Event(String step,String state,String error,String time) {}
     public String begin(Shop shop,String kind,String step){
         ListingIdentity.require(shop);String id=UUID.randomUUID().toString(),now=Instant.now().toString();
-        try(var c=Database.getConnection();var p=c.prepareStatement("INSERT INTO sync_runs(id,shop_id,marketplace,owner,kind,state,step,created_at,updated_at) VALUES(?,?,?,?,?,'RUNNING',?,?,?)")){
+        try { SqliteWriteTransaction.run(c->{ListingIdentity.require(shop);try(var p=c.prepareStatement("INSERT INTO sync_runs(id,shop_id,marketplace,owner,kind,state,step,created_at,updated_at) VALUES(?,?,?,?,?,'RUNNING',?,?,?)")){
             p.setString(1,id);p.setInt(2,shop.getId());p.setString(3,shop.getMarketplace().name());p.setString(4,ListingIdentity.fingerprint(shop));p.setString(5,kind);p.setString(6,step);p.setString(7,now);p.setString(8,now);p.executeUpdate();
-        }catch(SQLException e){throw storage(e);}return id;
+        }return null;}); }catch(SQLException e){throw storage(e);}return id;
     }
     public void assertOwner(Shop shop,String run){try(var c=Database.getConnection()){require(c,shop,run);}catch(SQLException e){throw storage(e);}}
     public void stage(Shop shop,String id,String state,String step,String error){
-        try(var c=Database.getConnection()){
-            c.setAutoCommit(false);require(c,shop,id);
+        try { SqliteWriteTransaction.run(c->{
+            require(c,shop,id);
             try(var p=c.prepareStatement("UPDATE sync_runs SET state=?,step=?,error_code=?,updated_at=?,finished_at=CASE WHEN ? IN ('SUCCEEDED','FAILED','PARTIAL','CANCELLED') THEN ? ELSE NULL END WHERE id=?")){
                 String now=Instant.now().toString();p.setString(1,state);p.setString(2,step);p.setString(3,code(error));p.setString(4,now);p.setString(5,state);p.setString(6,now);p.setString(7,id);p.executeUpdate();event(c,id,null,step,state,error);
-            }c.commit();
-        }catch(SQLException e){throw storage(e);}
+            }return null;
+        }); }catch(SQLException e){throw storage(e);}
     }
     public Item add(Shop shop,String run,String product,String variant,String sku,String article,String color,String size,String gtin,String state,String error,String evidence){
         String id=UUID.randomUUID().toString();
-        try(var c=Database.getConnection()){
-            c.setAutoCommit(false);require(c,shop,run);
+        try { SqliteWriteTransaction.run(c->{
+            require(c,shop,run);
             try(var p=c.prepareStatement("INSERT INTO sync_run_items(id,run_id,product_id,variant_id,sku,article,color,size,gtin,state,step,error_code,evidence_json,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,'MATCHING',?,?,?) ON CONFLICT(run_id,product_id,variant_id) DO NOTHING")){
                 String[] values={id,run,product,variant,sku,article,color,size,gtin,state,code(error),evidence,Instant.now().toString()};for(int i=0;i<values.length;i++)p.setString(i+1,values[i]);p.executeUpdate();
             }
             try(var p=c.prepareStatement("UPDATE sync_runs SET total=(SELECT count(*) FROM sync_run_items WHERE run_id=?),updated_at=? WHERE id=?")){p.setString(1,run);p.setString(2,Instant.now().toString());p.setString(3,run);p.executeUpdate();}
-            c.commit();
-        }catch(SQLException e){throw storage(e);}
+            return null;
+        }); }catch(SQLException e){throw storage(e);}
         try(var c=Database.getConnection();var p=c.prepareStatement("SELECT id,child_job FROM sync_run_items WHERE run_id=? AND product_id=? AND variant_id=?")){p.setString(1,run);p.setString(2,product);p.setString(3,variant);try(var r=p.executeQuery()){if(!r.next())throw new SQLException("Missing item");return new Item(r.getString(1),run,product,variant,sku,article,color,size,gtin,state,"MATCHING",code(error),r.getString(2),evidence);}}catch(SQLException e){throw storage(e);}
     }
     /** Persist a Catalog snapshot report in one bounded transaction, not a connection per GTIN. */
     public void addBatch(Shop shop,String run,List<Item> items){
         if(items.size()>100000)throw new IllegalArgumentException("SYNC_REPORT_LIMIT");
-        try(var c=Database.getConnection()){
-            c.setAutoCommit(false);require(c,shop,run);
+        try { SqliteWriteTransaction.run(c->{
+            require(c,shop,run);
             try(var p=c.prepareStatement("INSERT INTO sync_run_items(id,run_id,product_id,variant_id,sku,article,color,size,gtin,state,step,error_code,child_job,evidence_json,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) ON CONFLICT(run_id,product_id,variant_id) DO NOTHING")){
                 for(var item:items){if(!run.equals(item.runId()))throw new SecurityException("SYNC_OWNER_CHANGED");
                     String[] values={item.id(),run,item.productId(),item.variantId(),item.sku(),item.article(),item.color(),item.size(),item.gtin(),item.state(),item.step(),code(item.error()),item.childJob(),item.evidence(),Instant.now().toString()};
@@ -51,33 +52,33 @@ public final class SyncRunRepository {
                 }p.executeBatch();
             }
             try(var p=c.prepareStatement("UPDATE sync_runs SET total=(SELECT count(*) FROM sync_run_items WHERE run_id=?),updated_at=? WHERE id=?")){p.setString(1,run);p.setString(2,Instant.now().toString());p.setString(3,run);p.executeUpdate();}
-            c.commit();
-        }catch(SQLException e){throw storage(e);}
+            return null;
+        }); }catch(SQLException e){throw storage(e);}
     }
     public void update(Shop shop,Item item,String state,String step,String error,String child){
-        try(var c=Database.getConnection()){
-            c.setAutoCommit(false);require(c,shop,item.runId());
+        try { SqliteWriteTransaction.run(c->{
+            require(c,shop,item.runId());
             try(var p=c.prepareStatement("UPDATE sync_run_items SET state=?,step=?,error_code=?,child_job=?,updated_at=? WHERE id=? AND run_id=?")){
                 p.setString(1,state);p.setString(2,step);p.setString(3,code(error));p.setString(4,child==null?item.childJob():child);p.setString(5,Instant.now().toString());p.setString(6,item.id());p.setString(7,item.runId());p.executeUpdate();
             }
             event(c,item.runId(),item.id(),step,state,error);
-            try(var p=c.prepareStatement("UPDATE sync_runs SET step=?,updated_at=? WHERE id=?")){p.setString(1,step);p.setString(2,Instant.now().toString());p.setString(3,item.runId());p.executeUpdate();}c.commit();
-        }catch(SQLException e){throw storage(e);}
+            try(var p=c.prepareStatement("UPDATE sync_runs SET step=?,updated_at=? WHERE id=?")){p.setString(1,step);p.setString(2,Instant.now().toString());p.setString(3,item.runId());p.executeUpdate();}return null;
+        }); }catch(SQLException e){throw storage(e);}
     }
     /** Bounded progress write for a large FBS batch, with one owner check and transaction. */
     public void updateBatch(Shop shop,String run,List<Item> items){
         if(items.size()>10000||items.stream().anyMatch(i->!run.equals(i.runId())))throw new IllegalArgumentException("SYNC_REPORT_LIMIT");
-        try(var c=Database.getConnection()){
-            c.setAutoCommit(false);require(c,shop,run);
+        try { SqliteWriteTransaction.run(c->{
+            require(c,shop,run);
             try(var p=c.prepareStatement("UPDATE sync_run_items SET state=?,step=?,error_code=?,evidence_json=?,updated_at=? WHERE run_id=? AND id=?")){
                 for(var item:items){p.setString(1,item.state());p.setString(2,item.step());p.setString(3,code(item.error()));p.setString(4,item.evidence());p.setString(5,Instant.now().toString());p.setString(6,run);p.setString(7,item.id());p.addBatch();}p.executeBatch();
-            }c.commit();
-        }catch(SQLException e){throw storage(e);}
+            }return null;
+        }); }catch(SQLException e){throw storage(e);}
     }
     public void linkReviewed(Shop shop,String run,com.vncode.app.features.catalogsync.CatalogSyncModels.Job child){
         if(!child.confirmed()||!child.fields().contains(com.vncode.app.features.catalogsync.CatalogSyncModels.Field.GTIN)||child.shopId()!=shop.getId()||!child.owner().equals(ListingIdentity.fingerprint(shop)))throw new SecurityException("SYNC_REVIEW_OWNER_CHANGED");
-        try(var c=Database.getConnection()){
-            c.setAutoCommit(false);require(c,shop,run);
+        try { SqliteWriteTransaction.run(c->{
+            require(c,shop,run);
             for(var row:child.rows()){
                 try(var p=c.prepareStatement("UPDATE sync_run_items SET gtin=?,child_job=?,state=?,step='READBACK',error_code=?,updated_at=? WHERE run_id=? AND product_id=? AND variant_id=? AND state NOT IN ('SUCCEEDED','UNCHANGED')")){
                     // Let the sync worker activate the native registration candidate after
@@ -86,8 +87,8 @@ public final class SyncRunRepository {
                 }
             }
             try(var p=c.prepareStatement("UPDATE sync_runs SET state='RUNNING',step='READBACK',finished_at=NULL,updated_at=? WHERE id=?")){p.setString(1,Instant.now().toString());p.setString(2,run);p.executeUpdate();}
-            SyncStreamStore.request(c,shop.getId(),"ZNACK");c.commit();
-        }catch(SQLException e){throw storage(e);}
+            SyncStreamStore.request(c,shop.getId(),"ZNACK");return null;
+        }); }catch(SQLException e){throw storage(e);}
     }
     public Optional<String> active(Shop shop,String kind){
         try(var c=Database.getConnection();var p=c.prepareStatement("SELECT id FROM sync_runs WHERE shop_id=? AND owner=? AND kind=? AND state IN ('QUEUED','RUNNING','WAITING_REMOTE','RECONCILING','PAUSED') ORDER BY created_at LIMIT 1")){

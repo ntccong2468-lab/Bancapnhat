@@ -31,6 +31,8 @@ public final class FriendlyErrorService {
     }
 
     public static String format(Throwable error) {
+        if(com.vncode.app.config.SqliteWriteTransaction.isBusy(error))
+            return I18nService.getInstance().tr("error.database_busy")+"\n[SYNC_STORAGE_BUSY]";
         String code="VN_LOCAL";
         Throwable cause=error;
         for(int depth=0;cause!=null&&depth<8;depth++,cause=cause.getCause()) {
@@ -40,10 +42,12 @@ public final class FriendlyErrorService {
             if(cause instanceof com.vncode.app.features.kiz.KizAssignmentException kiz){code=kiz.code();break;}
             if(cause.getMessage()!=null&&cause.getMessage().matches("KIZ_[A-Z0-9_]{1,70}")){code=cause.getMessage();break;}
             if(cause instanceof CryptoProException crypto){code="CRYPTOPRO_"+crypto.code().name();break;}
+            if("SYNC_STORAGE".equals(cause.getMessage()))code="SYNC_STORAGE";
             if(cause instanceof java.net.UnknownHostException || cause instanceof java.net.ConnectException
                     || cause instanceof java.net.SocketException || cause instanceof java.net.SocketTimeoutException){code="VN_NETWORK";break;}
         }
-        String detail="VN_NETWORK".equals(code)?I18nService.getInstance().tr("error.network"):formatDetail(error);
+        String detail="VN_NETWORK".equals(code)?I18nService.getInstance().tr("error.network"):
+                "SYNC_STORAGE".equals(code)?I18nService.getInstance().tr("error.database_storage"):formatDetail(error);
         return detail+"\n["+code+"]";
     }
 

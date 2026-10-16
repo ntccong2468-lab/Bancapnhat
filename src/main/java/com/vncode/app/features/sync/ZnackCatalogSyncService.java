@@ -63,7 +63,12 @@ public final class ZnackCatalogSyncService {
             reports.stage(shop,id,issues.isEmpty()?"SUCCEEDED":"PARTIAL","SOURCE_COMPLETE",issues.isEmpty()?"":"CATALOG_PARTIAL");
             var result=new Result(rows,issues,id);synchronized(CACHE){CACHE.put(key,new Cached(result,Instant.now()));while(CACHE.size()>30)CACHE.remove(CACHE.keySet().iterator().next());}
             ZnackGtinAutoSync.markAutoSynced(shop.getId());flight.result.complete(result);return result;
-        }catch(Exception failed){flight.result.completeExceptionally(failed);ZnackGtinAutoSync.retryAfterFailure(shop.getId());if(!run.isBlank())reports.stage(shop,run,"FAILED","SOURCE_READ",SyncFailure.of(failed,0).code());throw failed;}
+        }catch(Exception failed){
+            ZnackGtinAutoSync.retryAfterFailure(shop.getId());
+            if(!run.isBlank())try{reports.stage(shop,run,"FAILED","SOURCE_READ",SyncFailure.of(failed,0).code());}
+            catch(RuntimeException reportingFailure){failed.addSuppressed(reportingFailure);}
+            flight.result.completeExceptionally(failed);throw failed;
+        }
         catch(Error failed){flight.result.completeExceptionally(failed);throw failed;}
         finally{IN_FLIGHT.remove(key,flight);flight.listeners.clear();}
     }

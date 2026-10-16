@@ -43,6 +43,20 @@ class ZnackCatalogSyncServiceTest {
   var run=new SyncRunRepository().list(shop.getId(),0,10).getFirst();assertEquals("FAILED",run.state());assertEquals("NETWORK_TIMEOUT",run.error());
   assertEquals(1,new GtinSyncRepository().catalog(shop.getId(),shop.getMarketplace()).size());
  }
+ @Test void aFailureWhileSavingTheFailureReportNeverReplacesTheOriginalSourceError()throws Exception{
+  new GtinSyncRepository().saveCatalog(shop.getId(),shop.getMarketplace(),List.of(row(shop)));
+  var original=new java.io.IOException("synthetic source failure");
+  var service=new ZnackCatalogSyncService((s,i,p)->{
+   try(var c=Database.getConnection();var sql=c.createStatement()){
+    sql.execute("CREATE TRIGGER reject_failure_report BEFORE UPDATE ON sync_runs WHEN NEW.state='FAILED' BEGIN SELECT RAISE(ABORT,'synthetic audit failure'); END");
+   }
+   throw original;
+  });
+  var thrown=assertThrows(java.io.IOException.class,()->service.refresh(shop,true,p->{}));
+  assertSame(original,thrown);assertEquals(1,thrown.getSuppressed().length);
+  assertEquals("SYNC_STORAGE",thrown.getSuppressed()[0].getMessage());
+  assertEquals(1,new GtinSyncRepository().catalog(shop.getId(),shop.getMarketplace()).size());
+ }
  @Test void partialReadsAreReportedAndNotReusedAsACompleteSnapshot()throws Exception{
   var calls=new AtomicInteger();var service=new ZnackCatalogSyncService((s,issues,p)->{calls.incrementAndGet();issues.accept(new NationalCatalogGtinSource.CardIssue("00000000000024","INVALID_CATALOG_CARD"));return List.of(row(s));});
   var first=service.refresh(shop,false,p->{});assertEquals("PARTIAL",new SyncRunRepository().find(first.runId()).orElseThrow().state());
