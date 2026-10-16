@@ -2,7 +2,8 @@
 
 Đã triển khai theo [sơ đồ được duyệt](../architecture/2026-10-16-item-7-workspace-ui-proposed-flow.md),
 sau khi hoàn tất mục 3 tại `0d0b41b`. Chưa phát hành bộ cài/Latest.
-Hồi quy toàn bộ được chốt riêng sau commit mã nguồn mục này.
+Hồi quy toàn bộ và đóng gói Java đã qua tại `040172d`; xem
+[bằng chứng cuối](2026-10-16-items-3-7-final-checks.json).
 
 ## Thay đổi
 
@@ -21,8 +22,8 @@ Hồi quy toàn bộ được chốt riêng sau commit mã nguồn mục này.
   ảnh chụp giá trị đã render để phát hiện cả model bị sửa tại chỗ; Ozon
   theo dõi cả thay đổi dữ liệu sản phẩm/GTIN dù bản thân đơn không đổi.
 - Callback ảnh Ozon kiểm tra chủ shop, ô ảnh và đơn hiện tại; không bỏ ảnh
-  đang tải chỉ vì một lượt đồng bộ không đổi đã xảy ra. Số lượng 1 không
-  lặp thêm badge trên ảnh. Nguồn mua/nhập và điều kiện API không thay đổi.
+  đang tải chỉ vì một lượt đồng bộ không đổi đã xảy ra. Nguồn mua/nhập và
+  điều kiện API không thay đổi.
 - Trạng thái FBS tách đang chạy, mới xong một phần, đã hoàn tất, quá hạn
   kiểm tra và lỗi; tooltip có nguồn, lần hoàn tất, lần kiểm tra tiếp và mã
   lỗi. Không dùng một request thành công làm bằng chứng cả luồng xong.
@@ -72,6 +73,30 @@ khai; không tuyên bố sao chép hoặc chạy phần đó.
 Các lỗi test ban đầu được xử lý bằng sửa đúng nguyên nhân: kỳ vọng Ozon
 cũ chỉ có ba tab, fixture dialog thiếu thư mục dữ liệu, và thư GS1 đặt vị trí
 cuộn trước khi skin ổn định. Không tắt assertion hay bỏ bài kiểm thử.
+
+## Hồi quy cuối trên toàn bộ mã nguồn
+
+`mvn verify` tại `040172d66b1a40978bef9a5e7f7e8147b401ec1b`
+hoàn tất lúc 23:22:25 ngày 16.10.2026, giờ Moscow: **BUILD SUCCESS**.
+Tổng 1.535 bài trong 266 suite: 1.533 qua, 0 failure/error, 2 skip dành
+riêng cho NTFS junction và Windows DPAPI. JAR được đóng gói thành công;
+đây chưa phải bộ cài Windows.
+
+Lượt toàn bộ trước đó phát hiện ba lỗi mở màn GTIN bằng `FXMLLoader`
+không có ResourceBundle. Đã sửa tiêu đề có giá trị mặc định trong FXML,
+dịch bằng controller; giữ nguyên đường mở và assertion kiểm thử cũ.
+Lượt riêng 4/4 qua trước khi chạy lại toàn bộ thành công.
+
+Trong chính lượt cuối, ma trận bố cục 960 + 864 control qua, không bị cắt.
+Phép đo tổng hợp FBS có p95 ghi cục bộ → hiển thị **89,1 ms**, p95 đợi
+JavaFX **1,4 ms**, không ghi nhận khoảng pulse đứng trên 500 ms; khoảng
+trống pulse lớn nhất 55,3 ms. Đây vẫn là 20 mẫu trên máy cloud, không bao
+gồm mạng/quota hoặc dữ liệu ảnh thật. Không dùng số này để bảo đảm tốc độ
+trên mọi máy seller.
+
+Bộ kiểm tra hợp đồng phát hành 60/60 và kiểm thử Portal 60/60 qua;
+kiểm tra cú pháp Portal qua. Không thay mã hoặc triển khai website ở mục
+3/7. Hash log, commit và danh sách bài Windows bị skip có trong JSON trên.
 
 ## Giới hạn
 

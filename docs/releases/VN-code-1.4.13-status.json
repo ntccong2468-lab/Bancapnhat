@@ -3,7 +3,7 @@
   "baseVersion": "1.4.12",
   "complete": false,
   "officialReleasePublished": false,
-  "phase": "all-seven-approved-items-implemented-final-regression-pending",
+  "phase": "all-approved-items-implemented-local-verify-passed-native-live-acceptance-pending",
   "licenseIntegration": {
     "implemented": true,
     "productionReady": false,
@@ -59,9 +59,12 @@
     "livePurchase": false,
     "windowsNativeBuildThisVersion": false,
     "releaseContractTests": {
-      "tests": 53,
-      "passed": 53,
-      "failed": 0
+      "result": "passed",
+      "tests": 60,
+      "passed": 60,
+      "failed": 0,
+      "skipped": 0,
+      "logSha256": "a80c8f788b1eef2156d2576f4db27136825399ea1d467e9289ae9af980d3442d"
     },
     "previousFullJavaRegression": {
       "tests": 1408,
@@ -73,15 +76,19 @@
       "report": "docs/validation/2026-10-16-vncode-1413-local-checks.json"
     },
     "fullJavaRegression": {
-      "tests": 1514,
-      "passed": 1512,
+      "result": "passed",
+      "goal": "verify",
+      "buildResult": "BUILD SUCCESS",
+      "tests": 1535,
+      "passed": 1533,
       "failures": 0,
       "errors": 0,
       "skipped": 2,
-      "result": "passed",
-      "finishedAt": "2026-10-16T18:59:27Z",
-      "logSha256": "b637ec2789d5971bfb4727c09a667ba19a7cfabaa2f7eae7155e11118e3d2489",
-      "sourceCommit": "5cc986b99f18bac53aa265c25146e852c90d54f9",
+      "testSuites": 266,
+      "finishedAt": "2026-10-16T20:22:25Z",
+      "sourceCommit": "040172d66b1a40978bef9a5e7f7e8147b401ec1b",
+      "logSha256": "9bc690d90fe00da6bc0c572861e296b1641f199c6268ba8f7bf2e3d77c94b8f1",
+      "log": "/tmp/vncode-1413-items3-7-final-verify.log",
       "platformSkips": [
         {
           "className": "com.vncode.app.features.gs1.Gs1PrefixTemplateStoreTest",
@@ -91,7 +98,8 @@
           "className": "com.vncode.app.shared.WindowsSecretProtectorTest",
           "test": "separatesLicenseAndExistingMailEntropyOnWindows"
         }
-      ]
+      ],
+      "report": "docs/validation/2026-10-16-items-3-7-final-checks.json"
     },
     "sharedReadFocusedTests": {
       "result": "passed",
@@ -122,7 +130,7 @@
     ],
     "windowsFullBuild": {
       "result": "not_run_for_current_source",
-      "sourceCommit": "5cc986b99f18bac53aa265c25146e852c90d54f9"
+      "sourceCommit": "040172d66b1a40978bef9a5e7f7e8147b401ec1b"
     },
     "baselineFullJavaRegression": {
       "tests": 1411,
@@ -296,15 +304,67 @@
       "finishedAt": "2026-10-16T18:54:56Z",
       "logSha256": "a4be6ea6683b3db6e528793b2181e7fcf38982382bfc66777d3e50554b8199eb"
     },
-    "item6PurchasePipelinePreserved": true
+    "item6PurchasePipelinePreserved": true,
+    "previousItem6FullJavaRegression": {
+      "tests": 1514,
+      "passed": 1512,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 2,
+      "result": "passed",
+      "finishedAt": "2026-10-16T18:59:27Z",
+      "logSha256": "b637ec2789d5971bfb4727c09a667ba19a7cfabaa2f7eae7155e11118e3d2489",
+      "sourceCommit": "5cc986b99f18bac53aa265c25146e852c90d54f9",
+      "platformSkips": [
+        {
+          "className": "com.vncode.app.features.gs1.Gs1PrefixTemplateStoreTest",
+          "test": "refusesNtfsJunctionDirectoryAndAncestors"
+        },
+        {
+          "className": "com.vncode.app.shared.WindowsSecretProtectorTest",
+          "test": "separatesLicenseAndExistingMailEntropyOnWindows"
+        }
+      ]
+    },
+    "portalSyntaxCheck": "passed",
+    "portalTests": {
+      "result": "passed",
+      "tests": 60,
+      "passed": 60,
+      "failed": 0,
+      "skipped": 0,
+      "logSha256": "6a76679a9bff48ed546902c2f73056a3de7c55e843a12c356e65c81dd1e6620f"
+    },
+    "items3And7FinalVerification": {
+      "result": "passed",
+      "sourceCommit": "040172d66b1a40978bef9a5e7f7e8147b401ec1b",
+      "report": "docs/validation/2026-10-16-items-3-7-final-checks.json",
+      "syntheticFbsUi": {
+        "shops": 10,
+        "ordersPerShop": 1000,
+        "products": 100000,
+        "visiblePageOrders": 100,
+        "changedDatabaseRowsPerSample": 9001,
+        "samples": 20,
+        "commitToDisplayedPulseP95Ms": 89.092907,
+        "fxDispatchP95Ms": 1.387508,
+        "fxStallsOver500ms": 0,
+        "maxFxPulseGapMs": 55.308145,
+        "logicalProcessors": 4,
+        "rendering": "JavaFX software rendering under Xvfb on Linux",
+        "nativeWindows": false,
+        "includesMarketplaceNetworkTime": false
+      },
+      "purchasePipelinePreserved": true
+    }
   },
   "publication": {
     "published": false,
     "latestChanged": false,
     "currentSellerLatest": "1.4.12"
   },
-  "report": "docs/validation/2026-10-16-item-6-listing-copy.md",
-  "applicationCommit": "5cc986b99f18bac53aa265c25146e852c90d54f9",
+  "report": "docs/validation/2026-10-16-items-3-7-final-checks.json",
+  "applicationCommit": "040172d66b1a40978bef9a5e7f7e8147b401ec1b",
   "approvedWork": {
     "item1": {
       "diagramApproved": true,
@@ -325,11 +385,13 @@
     "item3": {
       "diagramApproved": true,
       "codeImplemented": true,
-      "status": "implemented_focused_and_scale_checks_passed",
+      "status": "implemented_full_local_verify_passed",
       "liveKizAssignment": false,
       "livePurchase": false,
       "purchasePipelinePreserved": true,
-      "report": "docs/validation/2026-10-16-item-3-ozon-fbs.md"
+      "report": "docs/validation/2026-10-16-item-3-ozon-fbs.md",
+      "sourceCommit": "0d0b41b9ef9bbebe57229a3e2402f6d3ade2edb8",
+      "localValidation": "passed_full_java_verify_and_focused_scale_checks"
     },
     "item4": {
       "diagramApproved": true,
@@ -362,10 +424,13 @@
     "item7": {
       "diagramApproved": true,
       "codeImplemented": true,
-      "status": "implemented_final_regression_pending",
+      "status": "implemented_full_local_verify_passed",
       "liveAcceptance": "pending_native_windows_dpi_and_seller_api",
       "architectureReplaced": false,
-      "report": "docs/validation/2026-10-16-item-7-workspace-ui.md"
+      "report": "docs/validation/2026-10-16-item-7-workspace-ui.md",
+      "sourceCommit": "c5cb5fb6e88c212608007a63ac6897872a82c497",
+      "finalSourceCommit": "040172d66b1a40978bef9a5e7f7e8147b401ec1b",
+      "localValidation": "passed_full_java_verify_layout_matrix_and_synthetic_ui_latency"
     }
   },
   "item4Changes": [
@@ -386,5 +451,6 @@
     "Real prepared destination data, dictionary labels and variant prices displayed before publication",
     "Primary image and full source barcode coverage checked; unsupported source fields reported explicitly",
     "Bounded selected-job reconciliation, durable no-duplicate writes and native WB size-price readback"
-  ]
+  ],
+  "developmentComplete": true
 }

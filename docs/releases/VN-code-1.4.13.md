@@ -2,7 +2,22 @@
 
 Bản sửa đồng bộ sản phẩm, Znack/GTIN và kho KIZ seller nhập, kế tiếp 1.4.12.
 
-Chưa phát hành. Phần mục 1 được người dùng duyệt và bổ sung:
+Chưa phát hành. Cả bảy mục đã được duyệt và triển khai; mục 3 được làm xong
+trước mục 7 theo thứ tự người dùng yêu cầu. Kiểm chứng API/Windows thật
+được tách riêng với kiểm thử cục bộ, không dùng kết quả giả lập để xác nhận
+mua hoặc gán mã thật.
+
+| Mục | Phần đã triển khai | Báo cáo |
+| --- | --- | --- |
+| 1 | Đọc nguồn, tạo/đăng ký thẻ, duyệt/ký/xuất bản và đối chiếu GTIN WB/Ozon | [Mục 1](../validation/2026-10-16-approved-item-1-znack-gtin.md) |
+| 2 | Nguồn kho seller/mua theo shipment WB, nhập theo danh mục | [Mục 2](../validation/2026-10-16-item-2-wb-shipment-kiz.md) |
+| 3 | Nguồn kho/mua và danh mục Ozon, ảnh chính, báo cáo in FBS | [Mục 3](../validation/2026-10-16-item-3-ozon-fbs.md) |
+| 4 | Danh sách đăng ký Znack, trạng thái/thao tác rõ và nút đồng bộ GTIN có đối chiếu | [Mục 4](../validation/2026-10-16-item-4-znack-registration.md) |
+| 5 | GS1 dùng cấu hình Znack/CryptoPro, thông tin từng nguồn và báo cáo đồng bộ | [Mục 5](../validation/2026-10-16-item-5-gs1.md) |
+| 6 | Sao chép kế thừa dữ liệu gốc, giá biến thể, xem trước và báo cáo | [Mục 6](../validation/2026-10-16-item-6-listing-copy.md) |
+| 7 | Khung giao diện chung, menu gọn, cập nhật dòng FBS và đo tải | [Mục 7](../validation/2026-10-16-item-7-workspace-ui.md) |
+
+Mục 1 được duyệt và bổ sung:
 
 - Luồng đầy đủ từ tạo/đăng ký thẻ, theo dõi duyệt, ký CryptoPro đến đọc lại đúng thẻ. Chữ ký được nhận chưa đủ để báo xuất bản.
 - Nút đồng bộ GTIN ở đăng ký Znack mở đối chiếu và xem trước của đúng cửa hàng WB/Ozon. Seller xác nhận trước khi ghi; đọc Znack nền không tự phê duyệt ghi GTIN.
@@ -22,6 +37,31 @@ Mục 2 đã được duyệt và triển khai cho shipment FBS của WB:
 - Nhập lại tệp không chuyển mã sang nhóm khác; danh mục trống mới phát hiện không buộc hàng không đánh dấu phải có KIZ. Nguồn của tác vụ được chốt trước khi chạy, đổi cửa hàng không nhận kết quả cũ.
 
 [Báo cáo mục 2 và giới hạn kiểm thử](../validation/2026-10-16-item-2-wb-shipment-kiz.md).
+
+Mục 3 bổ sung cho Ozon:
+
+- Tab Kho KIZ / Znack với nguồn seller/mua; giữ cùng lựa chọn từ kiểm tra trước in tới giữ mã và xuất PDF.
+- Category/type ID gốc phân biệt nhóm trùng tên; tải tệp và số còn/giữ/đã dùng theo nhóm.
+- Ảnh chính hỗ trợ các dạng phản hồi của Ozon, không lấy ảnh tùy tiện khi SKU mơ hồ; kiểm tra offer của đơn.
+- Báo cáo từng posting phân biệt giữ mã cục bộ, PDF hoàn tất và kết quả từ sàn. Giữ hợp đồng in cục bộ hiện tại, không bật lại endpoint exemplar legacy.
+
+Mục 7 thống nhất toàn ứng dụng:
+
+- Sidebar tự động hoặc chủ động thu gọn; header chuyển các thao tác phụ vào menu và giữ cửa hàng/đồng bộ/tác vụ/cập nhật dễ tiếp cận.
+- Cùng kiểu chữ, khoảng cách, bảng, thẻ, nút, tab và trạng thái ở các route; dialog vừa cửa sổ chủ, các bảng dài cuộn riêng.
+- Bảng FBS và sản phẩm giữ dòng không đổi, lựa chọn/bộ lọc/cuộn; dữ liệu sản phẩm và ảnh vẫn cập nhật đúng khi metadata đổi hoặc ảnh về muộn.
+- Giữ runtime đồng bộ nền, hàng đợi và quota hiện có. Trạng thái phân biệt đang chạy, hoàn tất một phần, dữ liệu cũ và lỗi; không gọi polling là push tức thời.
+- Tên bước/tác vụ và thời gian báo cáo dễ đọc; timestamp báo cáo theo Moscow.
+
+Kiểm thử cuối trên mã nguồn `040172d`: `mvn verify` và đóng gói JAR qua,
+1.533 bài thành công, 2 bài dành riêng cho Windows được skip, không có
+failure/error. Hợp đồng phát hành 60/60, Portal 60/60 và kiểm tra cú pháp
+qua. Ma trận giao diện không có control bị cắt; phép đo tổng hợp 10 shop
+× 1.000 đơn có p95 từ ghi cục bộ đến hiển thị 89 ms. Số này không bao gồm
+mạng/quota và không phải kết quả đo Windows seller.
+[Bằng chứng kiểm thử cuối, commit và giới hạn](../validation/2026-10-16-items-3-7-final-checks.json).
+
+Các thay đổi đồng bộ và kho KIZ dùng chung từ đầu bản 1.4.13:
 
 - UI và tác vụ nền cùng nhận kết quả của một lượt đọc Catalog đang chạy, tránh việc màn hình bị bỏ lại danh sách trống khi đồng bộ lúc khởi động.
 - Dùng chung nguồn Catalog cho các màn hình; đọc theo tài khoản đã xác thực và phân trang, không chỉ danh sách nhóm `lp` hoặc cache đăng ký local.

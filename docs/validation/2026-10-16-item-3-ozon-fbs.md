@@ -44,8 +44,11 @@ liệu thử và chạy lại thành công, không tắt khóa ngoại. Màn hì
 khởi động lại trước lượt UI, không bỏ qua kiểm thử giao diện.
 
 Ba file mua `ZnackPurchaseCoordinator`, `ZnackKizOrderService`,
-`ZnackKizCodeService` giữ nguyên hash như mục 2. Hồi quy toàn bộ sẽ chạy
-sau mục 7, các lượt tập trung này không thay cho lần chạy đó.
+`ZnackKizCodeService` giữ nguyên hash như mục 2. Sau mục 7, hồi quy toàn bộ
+và đóng gói Java tại `040172d` đã qua: 1.535 bài, 0 failure/error, 2 skip
+dành riêng cho Windows. Xem [bằng chứng cuối](2026-10-16-items-3-7-final-checks.json).
+Các số đo giữ mã trong chính lượt cuối là 300 / 1.536 / 3.086 ms cho
+100 / 500 / 1.000 đơn; vẫn là tác vụ SQLite tổng hợp, không gọi API sàn.
 
 [Bằng chứng JSON](2026-10-16-item-3-ozon-fbs-checks.json).
 
