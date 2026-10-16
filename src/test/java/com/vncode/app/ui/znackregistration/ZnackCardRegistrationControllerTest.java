@@ -33,13 +33,47 @@ class ZnackCardRegistrationControllerTest {
             s.execute("INSERT INTO znack_card_registrations(shop_id,chrt_id,nm_id,status,created_at,updated_at) VALUES(1,2,102,'CHECKING','fixture','fixture')");
             s.execute("INSERT INTO znack_card_registrations(shop_id,chrt_id,nm_id,gtin,status,created_at,updated_at) VALUES(1,3,103,'04631993764370','PUBLISHED','fixture','fixture')");
         }
+        var owner=new Shop(1,"Fixture","fixture");
+        com.vncode.app.testsupport.RegistrationSourceFixture.ready(owner);
+        var scope=com.vncode.app.integration.znack.registration.ZnackRegistrationScope.fromSettings(new com.vncode.app.integration.znack.ZnackRepository(new com.vncode.app.integration.znack.ZnackModels.ShopContext(1,"Fixture")).getSettings());
+        var nativeRows=new com.vncode.app.integration.znack.registration.ZnackCardRegistrationRepository();
+        nativeRows.bindScope(owner,2,scope);nativeRows.bindScope(owner,3,scope);
+        new com.vncode.app.features.gtinsync.GtinSyncRepository().saveCatalog(1,com.vncode.app.integration.marketplace.Marketplace.WILDBERRIES,java.util.List.of(
+            new com.vncode.app.features.gtinsync.GtinSyncModels.RegisteredGtin("04631993764370","SKU-3","","XL",true,true,com.vncode.app.features.gtinsync.RegisteredGtinProof.source(owner),java.time.Instant.now())));
         fx(()->{
             loader=new FXMLLoader(ZnackCardRegistrationController.class.getResource("znack-card-registration-view.fxml"));
             loader.load();((ZnackCardRegistrationController)loader.getController()).setShop(new Shop(1,"Fixture","fixture"));return null;
         });
         awaitTasks();
     }
-    @AfterEach void cleanup() throws Exception {awaitTasks();com.vncode.app.testsupport.ShopReadTestCleanup.awaitSharedIdle();System.clearProperty("vncode.appdata.dir");}
+    @AfterEach void cleanup() throws Exception {fx(()->{((ZnackCardRegistrationController)loader.getController()).dispose();return null;});awaitTasks();com.vncode.app.testsupport.ShopReadTestCleanup.awaitSharedIdle();System.clearProperty("vncode.appdata.dir");}
+    @Test void failedOrMissingPairHidesCachedRowsButKeepsConfigurationAndSyncAvailable()throws Exception {
+        try(var c=Database.getConnection();var statement=c.createStatement()){statement.execute("UPDATE sync_runs SET state='FAILED',error_code='NETWORK_TIMEOUT' WHERE kind='registration_sources'");}
+        fx(()->{button("refreshButton").fire();return null;});awaitTasks();
+        fx(()->{assertTrue(table().getItems().isEmpty());for(String action:new String[]{"updateWbButton","signApprovedButton","registerSelectedButton","selectAllButton"})assertTrue(button(action).isDisabled(),action);
+            assertFalse(button("syncZnackButton").isDisabled());assertFalse(button("configButton").isDisabled());assertTrue(((Label)loader.getNamespace().get("readinessLabel")).getText().contains("NETWORK_TIMEOUT"));return null;});
+    }
+    @Test void completedSourceMembershipExcludesCachedProductsThatWereNotObserved()throws Exception {
+        try(var c=Database.getConnection();var statement=c.createStatement()){
+            statement.execute("INSERT INTO wb_product_cards(shop_id,nm_id,vendor_code,title,synced_at) VALUES(1,999,'OLD','Not on source','old')");
+            statement.execute("INSERT INTO wb_product_sizes(shop_id,chrt_id,nm_id,tech_size) VALUES(1,999,999,'XL')");
+        }
+        fx(()->{button("refreshButton").fire();return null;});awaitTasks();fx(()->{assertEquals(3,table().getItems().size());assertTrue(table().getItems().stream().noneMatch(row->row.chrtId()==999));return null;});
+    }
+    @Test void publishedCatalogCardWithoutLocalRegistrationIsVisibleAndEffectiveFiltersAgree()throws Exception {
+        var owner=new Shop(1,"Fixture","fixture");
+        var catalog=new com.vncode.app.features.gtinsync.GtinSyncRepository();var cards=new java.util.ArrayList<>(catalog.catalog(1,com.vncode.app.integration.marketplace.Marketplace.WILDBERRIES));
+        cards.add(new com.vncode.app.features.gtinsync.GtinSyncModels.RegisteredGtin(com.vncode.app.features.gtinsync.GtinWriteTestFixture.GTIN,"SKU-1","Blue","XL",true,true,com.vncode.app.features.gtinsync.RegisteredGtinProof.source(owner),java.time.Instant.now()));catalog.saveCatalog(1,com.vncode.app.integration.marketplace.Marketplace.WILDBERRIES,cards);
+        try(var c=Database.getConnection();var statement=c.createStatement()){statement.execute("INSERT INTO wb_product_size_skus(shop_id,chrt_id,sku) VALUES(1,1,'00000000000017')");}
+        fx(()->{button("refreshButton").fire();return null;});awaitTasks();
+        fx(()->{
+            @SuppressWarnings("unchecked") var column=(javafx.scene.control.TableColumn<Sku,String>)loader.getNamespace().get("statusColumn");
+            assertEquals(I18nService.getInstance().tr("znack.registration.status.published"),column.getCellData(table().getItems().stream().filter(row->row.chrtId()==1).findFirst().orElseThrow()));
+            assertTrue(((Label)loader.getNamespace().get("summaryLabel")).getText().contains("2"));
+            RegistrationScreenshot.capture(loader.getRoot(),"wb-registration");
+            ((javafx.scene.control.ComboBox<?>)loader.getNamespace().get("statusFilter")).getSelectionModel().select(5);return null;
+        });awaitTasks();fx(()->{assertEquals(2,table().getItems().size());assertEquals(java.util.Set.of(1L,3L),table().getItems().stream().map(Sku::chrtId).collect(java.util.stream.Collectors.toSet()));return null;});
+    }
     @Test void selectAllIncludesPublishedRowsForTheSeparateNewCardAction() throws Exception {
         fx(()->{
             assertEquals(SelectionMode.MULTIPLE,table().getSelectionModel().getSelectionMode());
@@ -106,6 +140,7 @@ class ZnackCardRegistrationControllerTest {
             }
             c.commit();
         }
+        com.vncode.app.testsupport.RegistrationSourceFixture.ready(new Shop(1,"Fixture","fixture"));
         fx(()->{button("refreshButton").fire();return null;});awaitTasks();
         fx(()->{assertEquals(300,table().getItems().size());assertTrue(button("loadMoreButton").isVisible());button("selectAllButton").fire();return null;});awaitTasks();
         fx(()->{

@@ -19,14 +19,14 @@ public final class ZnackGtinReviewService {
     private final ProductSnapshotReader products;
     private final SyncRunRepository reports=new SyncRunRepository();
     public ZnackGtinReviewService(){this(shop->{
-        if(shop.getMarketplace()==Marketplace.OZON)new OzonCatalogSyncService(shop.getId(),new OzonApiClient(shop.getId(),new OzonCredentials(shop.getClientId(),shop.getApiKey()))).syncFromStart();
-        else new WbProductSyncService().sync(shop);
-    },new ZnackAutoSyncService(true),(shop,key)->shop.getMarketplace()==Marketplace.OZON?new OzonProductSnapshotReader().readForSynchronization(shop,key):new WbProductSnapshotReader().readForSynchronization(shop,key));}
+        var ready=new RegistrationSources().refresh(shop,step->{});
+        if(!ready.ready())throw new IllegalStateException(ready.reason());
+    },new ZnackAutoSyncService(false),(shop,key)->shop.getMarketplace()==Marketplace.OZON?new OzonProductSnapshotReader().readForSynchronization(shop,key):new WbProductSnapshotReader().readForSynchronization(shop,key));}
     ZnackGtinReviewService(MarketplaceRefresh marketplace,ZnackAutoSyncService source,ProductSnapshotReader products){this.marketplace=marketplace;this.source=source;this.products=products;}
     public String prepare(Shop shop)throws Exception {
         return ShopOperationCoordinator.withActiveShop(shop.getId(),()->{
             ListingIdentity.require(shop);marketplace.refresh(shop);ListingIdentity.require(shop);
-            return source.review(shop);
+            return source.review(shop,new RegistrationSources().require(shop).run());
         });
     }
     public List<SyncRunRepository.Item> page(Shop shop,String run,int offset){require(shop,run);return reports.items(run,offset,300);}
@@ -39,6 +39,7 @@ public final class ZnackGtinReviewService {
             var result=new ArrayList<Selection>();
             for(var row:rows){
                 if(!row.equals(known.get(row.id()))||!eligible(row))throw new IllegalArgumentException("GTIN_REVIEW_CHANGED");
+                new RegistrationSources().requireMember(shop,row.productId(),row.variantId());
                 RegisteredGtinProof.requireCurrent(shop,row.gtin());
                 var key=new ProductKey(shop.getId(),shop.getMarketplace(),row.productId(),row.variantId());
                 var fresh=products.read(shop,key);
@@ -60,7 +61,7 @@ public final class ZnackGtinReviewService {
         ListingIdentity.require(shop);var report=reports.find(run).orElseThrow(()->new IllegalArgumentException("SYNC_JOB_NOT_FOUND"));
         if(report.shopId()!=shop.getId()||!report.marketplace().equals(shop.getMarketplace().name())||!report.kind().equals("znack_marketplace"))throw new SecurityException("SYNC_OWNER_CHANGED");
         // Repository methods also check the captured credential fingerprint, not just the ID.
-        reports.assertOwner(shop,run);
+        reports.assertOwner(shop,run);new RegistrationSources().require(shop);
     }
     private static boolean same(String left,String right){return GtinMatchingService.normalize(left).equals(GtinMatchingService.normalize(right));}
 }

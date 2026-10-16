@@ -20,7 +20,9 @@
         <Button fx:id="updateWbButton" text="Cập nhật GTIN lên WB" onAction="#onUpdateWb" styleClass="btn-secondary"/>
         <Button fx:id="syncZnackButton" text="Đồng bộ Znack" onAction="#onSyncZnack" styleClass="btn-secondary"/>
         <Button fx:id="refreshButton" text="Làm mới" onAction="#onRefresh" styleClass="btn-secondary"/>
+        <Button fx:id="reportButton" text="Báo cáo đồng bộ" onAction="#onReport"/>
     </FlowPane>
+    <Label fx:id="readinessLabel" wrapText="true" styleClass="text-muted"/>
     <Label fx:id="summaryLabel" wrapText="true" styleClass="text-muted"/>
     <FlowPane alignment="CENTER_LEFT" hgap="8" vgap="6">
         <Button fx:id="selectAllButton" text="Chọn tất cả" onAction="#onSelectAll"/>
@@ -46,6 +48,7 @@
                 <TableColumn fx:id="sizeColumn" text="Size" prefWidth="70"/>
                 <TableColumn fx:id="barcodeColumn" text="Barcode WB / GTIN" prefWidth="180"/>
                 <TableColumn fx:id="statusColumn" text="Trạng thái" prefWidth="135"/>
+                <TableColumn fx:id="detailColumn" text="Chi tiết" prefWidth="180"/>
                 <TableColumn fx:id="actionColumn" text="Thao tác" prefWidth="170" maxWidth="210"/>
             </columns>
         </TableView>

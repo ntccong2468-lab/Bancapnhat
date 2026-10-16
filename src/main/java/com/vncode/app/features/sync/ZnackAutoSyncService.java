@@ -29,8 +29,10 @@ public final class ZnackAutoSyncService {
         (shop,key)->shop.getMarketplace()==Marketplace.OZON?new OzonProductSnapshotReader().readForSynchronization(shop,key):new WbProductSnapshotReader().readForSynchronization(shop,key),new CatalogSyncService());}
     ZnackAutoSyncService(Source source,ProductSnapshotReader reader,CatalogSyncService catalog){this.source=Objects.requireNonNull(source);this.reader=Objects.requireNonNull(reader);this.catalog=Objects.requireNonNull(catalog);}
     /** Prepare a fresh, read-only report for an explicit marketplace GTIN review. */
-    public String review(Shop shop)throws Exception {
-        var page=prepare(shop,null);
+    public String review(Shop shop)throws Exception {return review(shop,"");}
+    public String review(Shop shop,String receipt)throws Exception {
+        if(!receipt.isBlank()&&!receipt.equals(new RegistrationSources().require(shop).run()))throw new IllegalStateException("SOURCE_CONFIGURATION_CHANGED");
+        var page=prepare(shop,null,receipt);
         if(page.checkpoint().isBlank())throw new IllegalStateException("PRODUCT_CATALOG_EMPTY");
         runs.stage(shop,page.checkpoint(),"AWAITING_CONFIRMATION","REVIEW","GTIN_CONFIRMATION_REQUIRED");
         return page.checkpoint();
@@ -68,7 +70,8 @@ public final class ZnackAutoSyncService {
         runs.stage(shop,id,review?"AWAITING_CONFIRMATION":blocked?"PARTIAL":"SUCCEEDED","REPORT",review?"GTIN_CONFIRMATION_REQUIRED":blocked?"ITEMS_NEED_ACTION":"");
         return SyncCoordinator.Page.complete(processed);
     }
-    private SyncCoordinator.Page prepare(Shop shop,String existing)throws Exception {
+    private SyncCoordinator.Page prepare(Shop shop,String existing)throws Exception {return prepare(shop,existing,"");}
+    private SyncCoordinator.Page prepare(Shop shop,String existing,String receipt)throws Exception {
         String id=existing==null?runs.begin(shop,"znack_marketplace","ZNACK_SOURCE"):existing;
         try{
             var issues=new ArrayList<NationalCatalogGtinSource.CardIssue>();
@@ -81,7 +84,7 @@ public final class ZnackAutoSyncService {
             String cursor=null;int productCount=0;
             do{
                 if(Thread.currentThread().isInterrupted())throw new java.io.InterruptedIOException("ZNACK_SYNC_CANCELLED");
-                var page=products.loadPage(new ProductQuery(shop.getId(),shop.getMarketplace(),"",List.of(),null,false,cursor,300));
+                var page=products.loadPage(new ProductQuery(shop.getId(),shop.getMarketplace(),"",List.of(),null,false,cursor,300),receipt);
                 for(var row:page.rows()){
                     productCount++;
                     List<RegisteredGtin> candidates;

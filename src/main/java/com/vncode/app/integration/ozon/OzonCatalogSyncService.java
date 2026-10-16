@@ -43,7 +43,9 @@ public final class OzonCatalogSyncService {
     }
     /** User-requested refresh revisits already synced cards; cursor recovery remains available in sync(). */
     public int syncFromStart()throws IOException{return sync("");}
-    private int sync(String initialCursor)throws IOException{
+    public int syncForRegistration(java.util.function.Consumer<List<OzonProductDto>> page)throws IOException {return sync("",true,page);}
+    private int sync(String initialCursor)throws IOException{return sync(initialCursor,false,page->{});}
+    private int sync(String initialCursor,boolean strict,java.util.function.Consumer<List<OzonProductDto>> observer)throws IOException{
         LicenseRuntime.require(SELLER_API);
         String cursor = initialCursor;
         int synced = 0;
@@ -51,9 +53,12 @@ public final class OzonCatalogSyncService {
         Map<OzonProductCardAttributeParser.CategoryKey, String> categoryNames = null;
         try {
             for (int pageNumber = 0; pageNumber < MAX_PAGES; pageNumber++) {
+                if(Thread.currentThread().isInterrupted())throw new java.io.InterruptedIOException("OZON_SYNC_CANCELLED");
                 LicenseRuntime.require(SELLER_API);
                 JsonObject response = api.listProducts(cursor, PAGE_SIZE);
+                if(strict && (response==null || !response.has("result") || !response.get("result").isJsonObject() || !response.getAsJsonObject("result").has("items") || !response.getAsJsonObject("result").get("items").isJsonArray()))throw new IOException("OZON_INCOMPLETE_PRODUCT_PAGE");
                 OzonJson.ProductPage page = OzonJson.parseProductPage(response);
+                if(strict && (page.items().size()!=response.getAsJsonObject("result").getAsJsonArray("items").size() || page.items().size()>PAGE_SIZE || page.items().stream().map(OzonJson.ProductReference::productId).distinct().count()!=page.items().size()))throw new IOException("OZON_INCOMPLETE_PRODUCT_PAGE");
                 if (page.items().isEmpty()) {
                     products.upsertPage(shopId, List.of(), cursor);
                     return synced;
@@ -87,10 +92,12 @@ public final class OzonCatalogSyncService {
                 }
                 Map<String, OzonProductDto> byId = new LinkedHashMap<>();
                 for (OzonProductDto product : detailed) byId.put(product.productId(), product);
+                if(strict && (byId.size()!=ids.size() || !byId.keySet().containsAll(ids) || !attributesById.keySet().containsAll(ids)))throw new IOException("OZON_INCOMPLETE_PRODUCT_PAGE");
                 List<OzonProductDto> complete = new ArrayList<>();
                 for (OzonJson.ProductReference reference : page.items()) {
                     OzonProductDto product = byId.getOrDefault(reference.productId(), new OzonProductDto(
                             reference.productId(), reference.offerId(), "", "", "", false, "", List.of()));
+                    if(strict && (!reference.offerId().equals(product.offerId()) || product.name().isBlank()))throw new IOException("OZON_PRODUCT_IDENTITY_INCOMPLETE");
                     OzonProductCardAttributeParser.Resolved attributes = attributesById.get(reference.productId());
                     if (attributes != null) {
                         product = product.withCardAttributes(
@@ -100,6 +107,7 @@ public final class OzonCatalogSyncService {
                     complete.add(product);
                 }
                 synced += products.upsertPage(shopId, complete, next);
+                observer.accept(List.copyOf(complete));
                 if (page.items().size() < PAGE_SIZE) return synced;
                 cursor = next;
             }

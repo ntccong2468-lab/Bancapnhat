@@ -67,12 +67,13 @@ public final class ProductRepository {
         WHERE p.shop_id=? AND p.archived=0
         """;
 
-    public ProductPage loadPage(ProductQuery query) {
+    public ProductPage loadPage(ProductQuery query) {return loadPage(query,"");}
+    public ProductPage loadPage(ProductQuery query,String receipt) {
         try(var c=open()) {
             c.setAutoCommit(false);requireOwner(c,query.shopId(),query.marketplace());
             var parameters=new ArrayList<Object>();String projection=projection(query,parameters,c);
-            String predicate=filter(query,parameters);String scope=scope(query);
-            var counts=countIssues(c,query);
+            String predicate=filter(query,parameters)+receiptFilter(query,receipt,parameters);String scope=scope(query)+receipt;
+            var counts=countIssues(c,query,receipt);
             long total=counts.get(query.issue());
             String cursorPredicate="";
             if(query.cursor()!=null&&!query.cursor().isBlank()) {
@@ -91,9 +92,9 @@ public final class ProductRepository {
             c.commit();return new ProductPage(rows,total,next,counts);
         }catch(SQLException error){throw storeError();}
     }
-    private static Map<ProductIssueFilter,Long> countIssues(Connection c,ProductQuery q)throws SQLException {
+    private static Map<ProductIssueFilter,Long> countIssues(Connection c,ProductQuery q,String receipt)throws SQLException {
         var base=new ProductQuery(q.shopId(),q.marketplace(),q.text(),q.categoryIds(),q.documentState(),q.missingGtin(),null,q.limit());
-        var args=new ArrayList<Object>();var projection=projection(base,args,c);var predicate=filter(base,args);
+        var args=new ArrayList<Object>();var projection=projection(base,args,c);var predicate=filter(base,args)+receiptFilter(q,receipt,args);
         var result=new EnumMap<ProductIssueFilter,Long>(ProductIssueFilter.class);
         String sql="""
             SELECT count(*),COALESCE(sum(attributes_loaded=0),0),
@@ -105,9 +106,10 @@ public final class ProductRepository {
         try(var p=c.prepareStatement(sql)){bind(p,args);try(var r=p.executeQuery()){r.next();int i=1;for(var issue:ProductIssueFilter.values())result.put(issue,r.getLong(i++));}}
         return Map.copyOf(result);
     }
-    public List<ProductKey> freezeKeys(ProductQuery query) {
+    public List<ProductKey> freezeKeys(ProductQuery query) {return freezeKeys(query,"");}
+    public List<ProductKey> freezeKeys(ProductQuery query,String receipt) {
         try(var c=open()) {
-            c.setAutoCommit(false);requireOwner(c,query.shopId(),query.marketplace());var args=new ArrayList<Object>();String projection=projection(query,args,c);String predicate=filter(query,args);
+            c.setAutoCommit(false);requireOwner(c,query.shopId(),query.marketplace());var args=new ArrayList<Object>();String projection=projection(query,args,c);String predicate=filter(query,args)+receiptFilter(query,receipt,args);
             var keys=new ArrayList<ProductKey>();
             try(var p=c.prepareStatement("SELECT card_id,variant_id FROM ("+projection+") x WHERE "+predicate+" ORDER BY sort_title,card_id,variant_id LIMIT 100001")) {
                 bind(p,args);try(var r=p.executeQuery()){while(r.next())keys.add(new ProductKey(query.shopId(),query.marketplace(),r.getString(1),r.getString(2)));}
@@ -141,6 +143,11 @@ public final class ProductRepository {
                 WHERE d.shop_id=? AND d.marketplace=? AND d.card_id=b.card_id),'MISSING') document_state
             FROM (
             """+(q.marketplace()==Marketplace.OZON?OZON:WB)+") b";
+    }
+    private static String receiptFilter(ProductQuery query,String receipt,List<Object> args) {
+        if(receipt==null||receipt.isBlank())return "";
+        args.add(receipt);args.add(query.shopId());args.add(query.marketplace().name());
+        return " AND EXISTS(SELECT 1 FROM sync_run_items member JOIN sync_runs source ON source.id=member.run_id WHERE source.id=? AND source.shop_id=? AND source.marketplace=? AND source.kind='registration_sources' AND source.state='SUCCEEDED' AND member.product_id=x.card_id AND member.variant_id=x.variant_id)";
     }
     private static String filter(ProductQuery q,List<Object> args) {
         var clauses=new ArrayList<String>();clauses.add("1=1");

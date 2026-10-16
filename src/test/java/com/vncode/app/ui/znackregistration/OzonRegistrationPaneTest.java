@@ -31,6 +31,7 @@ class OzonRegistrationPaneTest {
             }c.commit();
             s.execute("INSERT INTO ozon_products(shop_id,product_id,offer_id,sku,name,synced_at) VALUES(2,'1','offer-1','10001','Foreign','2026-10-14T00:00:00Z')");
         }
+        com.vncode.app.testsupport.RegistrationSourceFixture.ready(new Shop(1,"Ozon fixture",Marketplace.OZON,"fixture","synthetic"));
         pane=fx(()->new OzonRegistrationPane(new Shop(1,"Ozon fixture",Marketplace.OZON,"fixture","synthetic"),gtinOpens::incrementAndGet));
         awaitRows(300);
     }
@@ -40,8 +41,18 @@ class OzonRegistrationPaneTest {
         while(AppTaskExecutor.hasRunningTasks()&&System.nanoTime()<end)Thread.sleep(10);
         com.vncode.app.testsupport.ShopReadTestCleanup.awaitSharedIdle();System.clearProperty("vncode.appdata.dir");
     }
+    @Test void aFailedPairCannotExposeCachedProductsOrGtinActions()throws Exception {
+        try(var c=Database.getConnection();var statement=c.createStatement()){statement.execute("UPDATE sync_runs SET state='PARTIAL',error_code='SOURCE_CATALOG_PARTIAL' WHERE kind='registration_sources'");}
+        fx(()->{button("refresh").fire();return null;});awaitIdle();fx(()->{assertTrue(table().getItems().isEmpty());for(String action:new String[]{"gtin","sign","register","all"})assertTrue(button(action).isDisabled(),action);assertFalse(button("sync").isDisabled());assertFalse(button("documents").isDisabled());return null;});
+    }
+    @Test void receiptMembershipExcludesCachedProductNotReturnedByTheCurrentMarketplaceRead()throws Exception {
+        try(var c=Database.getConnection();var statement=c.createStatement()){statement.execute("INSERT INTO ozon_products(shop_id,product_id,offer_id,sku,name,synced_at) VALUES(1,'2000','old','20000','Old product','old')");}
+        fx(()->{button("refresh").fire();return null;});awaitRows(300);
+        fx(()->{for(String name:new String[]{"all","gtin"})assertFalse(button(name).isDisabled());assertTrue(table().getItems().stream().noneMatch(row->row.key().cardId().equals("2000")));return null;});
+    }
+    private void awaitIdle()throws Exception{long end=System.nanoTime()+TimeUnit.SECONDS.toNanos(5);while(AppTaskExecutor.hasRunningTasks()&&System.nanoTime()<end)Thread.sleep(10);fx(()->null);assertFalse(AppTaskExecutor.hasRunningTasks());}
     @Test void openingNativeOzonRegistrationPagesLocallyWithoutAllocatingOrSigningAnything()throws Exception {
-        fx(()->{for(var row:table().getItems()){assertEquals(1,row.key().shopId());assertEquals(Marketplace.OZON,row.key().marketplace());assertEquals("offer-"+row.key().cardId(),row.key().variantId());}return null;});
+        fx(()->{for(var row:table().getItems()){assertEquals(1,row.key().shopId());assertEquals(Marketplace.OZON,row.key().marketplace());assertEquals("offer-"+row.key().cardId(),row.key().variantId());}RegistrationScreenshot.capture(pane,"ozon-registration");return null;});
         try(var c=Database.getConnection();var s=c.createStatement()) {
             try(var r=s.executeQuery("SELECT COUNT(*) FROM ozon_card_registrations")){assertEquals(0,r.getInt(1));}
             try(var r=s.executeQuery("SELECT COUNT(*) FROM znack_card_registrations")){assertEquals(0,r.getInt(1));}

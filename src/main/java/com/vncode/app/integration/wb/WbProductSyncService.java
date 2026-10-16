@@ -33,25 +33,37 @@ public class WbProductSyncService {
         this.syncRunRepository = syncRunRepository;
     }
 
-    public int sync(Shop shop) throws IOException {
+    public int sync(Shop shop) throws IOException { return sync(shop,false,cards->{}); }
+
+    /** A registration snapshot must revisit every page, including existing cards. */
+    public int syncFromStart(Shop shop,java.util.function.Consumer<List<WbProductCard>> page) throws IOException {
+        return sync(shop,true,page);
+    }
+    private int sync(Shop shop,boolean complete,java.util.function.Consumer<List<WbProductCard>> page) throws IOException {
         LicenseRuntime.require(SELLER_API);
         WbShopSyncState state = syncStateRepository.getShopSyncState(shop.getId());
         long runId = syncRunRepository.startSyncRun(shop.getId(), "products");
         int read = 0;
         int written = 0;
-        String cursorUpdatedAt = state.productsCursorUpdatedAt();
-        Long cursorNmId = state.productsCursorNmId();
+        String cursorUpdatedAt = complete?null:state.productsCursorUpdatedAt();
+        Long cursorNmId = complete?null:state.productsCursorNmId();
+        var cursors=new java.util.HashSet<String>();
+        int pages=0;
         try {
             while (true) {
+                if(complete && (++pages>20000 || Thread.currentThread().isInterrupted()))throw new IOException("WB_SNAPSHOT_INTERRUPTED_OR_LIMIT");
                 LicenseRuntime.require(SELLER_API);
                 WbProductCardsResponse response = apiClient.getProductCards(shop.getApiKey(), "ru", cursorUpdatedAt, cursorNmId, PAGE_LIMIT);
+                if(complete && (response==null || response.getCards()==null || response.getCards().size()>PAGE_LIMIT))throw new IOException("WB_INCOMPLETE_PRODUCT_PAGE");
                 if (response == null || response.getCards() == null || response.getCards().isEmpty()) {
                     syncStateRepository.updateProductsCursor(shop.getId(), cursorUpdatedAt, cursorNmId, Instant.now().toString());
                     syncRunRepository.finishSyncRun(runId, true, read, written, null, null);
                     return written;
                 }
 
+                if(complete && (response.getCursor()==null || response.getCursor().getTotal()==null))throw new IOException("WB_INCOMPLETE_PRODUCT_CURSOR");
                 productRepository.saveProductBatch(shop.getId(), response.getCards());
+                page.accept(List.copyOf(response.getCards()));
                 read += response.getCards().size();
                 written += response.getCards().size();
 
@@ -62,6 +74,7 @@ public class WbProductSyncService {
 
                 syncStateRepository.updateProductsCursor(shop.getId(), cursorUpdatedAt, cursorNmId, Instant.now().toString());
                 Integer total = response.getCursor() == null ? null : response.getCursor().getTotal();
+                if(complete && total>=PAGE_LIMIT && (cursorUpdatedAt==null || cursorNmId==null || !cursors.add(cursorUpdatedAt+"/"+cursorNmId)))throw new IOException("WB_REPEATED_PRODUCT_CURSOR");
                 if (total == null || total < PAGE_LIMIT) {
                     syncRunRepository.finishSyncRun(runId, true, read, written, null, null);
                     return written;

@@ -41,6 +41,7 @@ class ZnackAutoSyncServiceTest {
         };
         var target=new ReadOnlyListing();var repository=new GtinSyncRepository();
         catalog=new CatalogSyncService(new CatalogSyncRepository(),repository,new ProductBulkEditService(new ProductEditRepository(),(s,k)->snapshot,s->target),(s,k)->snapshot,s->target,k->adapter,RegisteredGtinProof::requireCurrent);
+        com.vncode.app.testsupport.RegistrationSourceFixture.ready(shop);
         service=new ZnackAutoSyncService((s,issues)->{sourceReads++;return List.of(observation);},(s,k)->snapshot,catalog);
     }
     @AfterEach void clear(){System.clearProperty("vncode.appdata.dir");}
@@ -77,7 +78,7 @@ class ZnackAutoSyncServiceTest {
     }
     @Test void pausedRunCannotStartOrAdvanceWrites()throws Exception{
         init(Marketplace.WILDBERRIES);service.step(shop,"");var reports=new SyncRunRepository();var id=reports.list(shop.getId(),0,10).getFirst().id();
-        reports.stage(shop,id,"PAUSED","MATCHING","");assertTrue(service.step(shop,"").complete());assertEquals(0,writes);assertEquals(1,sourceReads);assertEquals(1,reports.list(shop.getId(),0,10).size());assertEquals("PAUSED",reports.find(id).orElseThrow().state());
+        reports.stage(shop,id,"PAUSED","MATCHING","");assertTrue(service.step(shop,"").complete());assertEquals(0,writes);assertEquals(1,sourceReads);assertEquals(1,reports.list(shop.getId(),0,10).stream().filter(r->r.kind().equals("znack_marketplace")).count());assertEquals("PAUSED",reports.find(id).orElseThrow().state());
     }
     @Test void repeatedNetworkFailureEndsInAnActionableReportInsteadOfSynchronizingForever()throws Exception{
         init(Marketplace.OZON);service.step(shop,"");

@@ -57,6 +57,20 @@ class OzonSyncServiceTest {
         server.shutdown();
     }
 
+    @Test void registrationSnapshotRejectsMalformedOrSilentlySkippedProductLists() throws Exception {
+        for(String payload:java.util.List.of("{}","{\"result\":{\"items\":[{}]}}")) {
+            server.enqueue(json(payload));
+            assertThrows(IOException.class,()->new OzonCatalogSyncService(1,api).syncForRegistration(p->{}));
+        }
+        assertEquals(0,count("SELECT count(*) FROM ozon_products"));
+    }
+    @Test void registrationSnapshotCannotTurnMissingDetailsIntoAPlaceholderProduct() throws Exception {
+        server.enqueue(json("{\"result\":{\"items\":[{\"product_id\":\"101\",\"offer_id\":\"A\"}],\"last_id\":\"next\"}}"));
+        server.enqueue(json("{\"items\":[]}"));server.enqueue(json("{\"result\":[]} "));
+        assertEquals("OZON_INCOMPLETE_PRODUCT_PAGE",assertThrows(IOException.class,()->new OzonCatalogSyncService(1,api).syncForRegistration(p->failSnapshot())).getMessage());
+        assertEquals(0,count("SELECT count(*) FROM ozon_products"));assertEquals("",new OzonSyncStateRepository().find(1).productsLastId());
+    }
+    private static void failSnapshot(){throw new AssertionError("Partial details cannot emit a completed page");}
     @Test
     void catalogDoesNotAdvanceCursorWhenDetailFetchFails() throws Exception {
         server.enqueue(json("{\"result\":{\"items\":[{\"product_id\":\"90071992547409931234\","
