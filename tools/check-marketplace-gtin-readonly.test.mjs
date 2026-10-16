@@ -30,7 +30,7 @@ test('HTTP errors cannot expose upstream bodies or credential values', async () 
   assert.equal(report.services[0].code, 'HTTP_401'); assert.ok(!JSON.stringify(report).includes('private-fixture'));
 });
 test('Catalog list alone is explicitly insufficient publication evidence', async () => {
-  const report = await checkMarketplaceAccess({ env: { VNCODE_CATALOG_TEST_API_KEY: 'fixture-key' }, fetcher: async url => { assert.equal(url.searchParams.get('apikey'), 'fixture-key'); return response({ result: { goods: [{ gtin: '00000000000017', good_status: 'published' }] } }); } });
+  const report = await checkMarketplaceAccess({ env: { VNCODE_CATALOG_TEST_API_KEY: 'fixture-key' }, fetcher: async url => { assert.equal(url.searchParams.get('apikey'), 'fixture-key');assert.equal(url.searchParams.get('from_date'),'2000-01-01 00:00:00');assert.match(url.searchParams.get('to_date'),/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/); return response({ result: { goods: [{ gtin: '00000000000017', good_status: 'published' }] } }); } });
   assert.equal(report.services[2].publicationVerified, false); assert.ok(!JSON.stringify(report).includes('fixture-key'));
 });
 test('the requested sets category returns clothing sets and does not select an unrelated product', async () => {

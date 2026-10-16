@@ -24,6 +24,14 @@ public class ZnackApiClient {
     private final Sleeper sleeper;
     private final Gson gson = new Gson();
     private String catalogKey = "";
+    // /v4/product-list silently returns an empty list without its date interval.
+    // Freeze the upper bound for this client so every page sees the same snapshot.
+    private final String catalogReadUntil=java.time.ZonedDateTime.now(java.time.ZoneId.of("Europe/Moscow"))
+            .format(java.time.format.DateTimeFormatter.ofPattern("uuuu-MM-dd HH:mm:ss"));
+
+    private String catalogListPath(int limit,int offset){
+        return "/v4/product-list?from_date="+url("2000-01-01 00:00:00")+"&to_date="+url(catalogReadUntil)+"&limit="+limit+"&offset="+offset;
+    }
 
     public static ZnackApiClient forCatalogKey(String key, Runnable guard) throws IOException {
         return forCatalogKey(defaultClient(), key, guard);
@@ -58,7 +66,7 @@ public class ZnackApiClient {
         return ZnackSanitizer.diagnostic(catalogKey.isEmpty() || text == null ? text : text.replace(catalogKey, "[REDACTED]"));
     }
     public void checkCatalogConnection(String base) throws IOException {
-        JsonElement response = get(nationalCatalogBase(base), "/v4/product-list?limit=1&offset=0", null);
+        JsonElement response = get(nationalCatalogBase(base), catalogListPath(1,0), null);
         try {
             JsonObject result = response.getAsJsonObject().getAsJsonObject("result");
             if (response.getAsJsonObject().has("errors") || result == null || !result.get("goods").isJsonArray()
@@ -108,7 +116,7 @@ public class ZnackApiClient {
         if(page<0||page>=100||limit<1||limit>10_000)throw new IllegalArgumentException("CATALOG_PAGE_INVALID");
         if(hasCatalogKey()){
             int size=Math.min(limit,1000);
-            var response=get(nationalCatalogBase(base),"/v4/product-list?limit="+size+"&offset="+Math.multiplyExact(page,size),null);
+            var response=get(nationalCatalogBase(base),catalogListPath(size,Math.multiplyExact(page,size)),null);
             try{
                 var result=response.getAsJsonObject().getAsJsonObject("result");
                 if(response.getAsJsonObject().has("errors"))throw new IllegalArgumentException();

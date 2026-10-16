@@ -47,6 +47,21 @@ class CatalogApiAuthorizationTest {
         assertEquals(2300,response.get("total").getAsInt());assertEquals(1,response.getAsJsonArray("results").size());
         var request=seen.getFirst();assertEquals("1000",request.url().queryParameter("limit"));assertEquals("2000",request.url().queryParameter("offset"));assertNull(request.url().queryParameter("pg"));assertNull(request.header("Authorization"));assertEquals(KEY,request.url().queryParameter("apikey"));
     }
+    @Test void catalogListAlwaysIncludesOneStableDateIntervalAcrossConnectionCheckAndAllPages()throws Exception {
+        var seen=new ArrayList<Request>();
+        var transport=new OkHttpClient.Builder().addInterceptor(chain->{
+            var request=chain.request();seen.add(request);
+            boolean interval=request.url().queryParameter("from_date")!=null&&request.url().queryParameter("to_date")!=null;
+            // Real API observation: missing interval returns a valid, misleading empty result.
+            return response(request,200,interval?"{\"result\":{\"goods\":[{\"gtin\":\"04645588781154\"}],\"total\":1961}}":"{\"result\":{\"goods\":[],\"total\":0}}");
+        }).build();
+        var api=ZnackApiClient.forCatalogKey(transport,KEY,()->{});api.checkCatalogConnection(BASE);
+        for(int page=0;page<2;page++)assertEquals(1961,api.products(BASE,null,page,1000).getAsJsonObject().get("total").getAsInt());
+        String upper=seen.getFirst().url().queryParameter("to_date");
+        assertNotNull(upper);assertDoesNotThrow(()->java.time.LocalDateTime.parse(upper,java.time.format.DateTimeFormatter.ofPattern("uuuu-MM-dd HH:mm:ss")));
+        for(var request:seen){assertEquals("2000-01-01 00:00:00",request.url().queryParameter("from_date"));assertEquals(upper,request.url().queryParameter("to_date"));}
+        assertEquals("1000",seen.get(2).url().queryParameter("offset"));assertEquals(3,seen.size());
+    }
     @Test void changingScopeStopsRequestsAndConnectionCheckIsReadOnly() throws Exception {
         var seen = new ArrayList<Request>();
         var transport = new OkHttpClient.Builder().addInterceptor(chain -> {

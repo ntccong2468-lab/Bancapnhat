@@ -59,6 +59,8 @@ export async function checkMarketplaceAccess({ env = process.env, fetcher = fetc
   await check('NationalCatalog', ['VNCODE_CATALOG_TEST_API_KEY'], async () => {
     const path = new URL('/v4/product-list', 'https://xn--80aqu.xn----7sbabas4ajkhfocclk9d3cvfsa.xn--p1ai');
     path.searchParams.set('apikey', env.VNCODE_CATALOG_TEST_API_KEY); path.searchParams.set('limit', '10'); path.searchParams.set('offset', '0');
+    path.searchParams.set('from_date', '2000-01-01 00:00:00');
+    path.searchParams.set('to_date', new Intl.DateTimeFormat('sv-SE', { timeZone: 'Europe/Moscow', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hourCycle: 'h23' }).format(new Date()));
     const data = await request(path.origin, path.pathname + path.search, {});
     if (!Array.isArray(data.result?.goods)) throw new Error('INVALID_SCHEMA');
     return { sample: data.result.goods.map(item => ({ gtin: id(item.gtin), title: title(item.good_name), status: title(item.good_status) })), completeCatalogRead: false, publicationVerified: false };
