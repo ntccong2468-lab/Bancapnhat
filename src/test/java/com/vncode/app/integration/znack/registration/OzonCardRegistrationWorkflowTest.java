@@ -54,11 +54,33 @@ class OzonCardRegistrationWorkflowTest {
         assertTrue(finisher.complete(shop,key,true,null));assertEquals(row().gtin(),row().activeGtin());
         assertEquals(1,api.allocations.get());assertEquals(1,api.submissions.get());assertEquals(1,api.signatures.get());
     }
+    @Test void registeringTheSamePendingCardResumesItsFeedWithoutAllocatingOrSubmittingAgain() {
+        ready();String gtin=row().gtin(),feed=row().feedId();assertTrue(workflow.register(shop,key,draft,true,false,null));assertEquals(gtin,row().gtin());assertEquals(feed,row().feedId());assertEquals(Status.READY_TO_SIGN,row().status());assertEquals(1,api.allocations.get());assertEquals(1,api.submissions.get());assertEquals(0,api.signatures.get());
+    }
+    @Test void changedTnvedGroupCreatesOneNewGtinAndArchivesTheOldPendingCard()throws Exception {
+        ready();String old=row().gtin();var changed=new Draft("6104",1,"Fixture","Brand",draft.attributes());
+        assertTrue(workflow.register(shop,key,changed,true,false,null));assertEquals("00000000000024",row().gtin());assertEquals(Status.READY_TO_SIGN,row().status());assertEquals(2,api.allocations.get());assertEquals(2,api.submissions.get());assertEquals("",row().activeGtin());assertTrue(repository.claimedGtins().contains(old));
+        try(var c=Database.getConnection();var st=c.createStatement();var r=st.executeQuery("SELECT gtin,feed_id,payload_json FROM ozon_card_registration_history")){assertTrue(r.next());assertEquals(old,r.getString(1));assertEquals("feed-1",r.getString(2));assertTrue(r.getString(3).contains("6204"));}
+    }
+    @Test void rejectionReasonSurvivesMonitoringAndSecretsAreNotCopiedIntoTheReport()throws Exception {
+        ready();api.rejected=true;new ZnackRegistrationMonitor(null,workflow).poll(shop,3);assertEquals(Status.ERROR,row().status());assertTrue(row().error().contains("required attribute missing"));assertFalse(row().error().contains("fixture-secret"));assertEquals(1,api.submissions.get());
+    }
+    @Test void automaticSigningConsentSurvivesReopeningAndDoesNotRepeatTheSignature()throws Exception {
+        api.pendingModeration=true;assertTrue(workflow.register(shop,key,draft.withAutoSign(true),true,false,null));assertEquals(Status.PROCESSING,row().status());assertEquals(0,api.signatures.get());
+        api.pendingModeration=false;var reopened=workflow(Runnable::run);var monitor=new ZnackRegistrationMonitor(null,reopened);assertEquals(1,monitor.poll(shop,3).published());assertEquals(Status.PUBLISHED,row().status());assertEquals(1,api.signatures.get());monitor.poll(shop,3);assertEquals(1,api.signatures.get());assertEquals(1,api.allocations.get());assertEquals(1,api.submissions.get());
+    }
+    @Test void automaticSigningTimeoutNeverReplaysTheSignatureInTheBackground()throws Exception {
+        api.pendingModeration=true;workflow.register(shop,key,draft.withAutoSign(true),true,false,null);api.pendingModeration=false;api.signTimeout=true;var monitor=new ZnackRegistrationMonitor(null,workflow(Runnable::run));monitor.poll(shop,3);assertEquals(Status.SIGNING,row().status());assertEquals(1,api.signatures.get());monitor.poll(shop,3);assertEquals(1,api.signatures.get());api.accepted=true;assertEquals(1,monitor.poll(shop,3).published());assertEquals(1,api.signatures.get());
+    }
     @Test void backgroundMonitorReadsTheNativeOzonFeedWithoutAnyNewWrite()throws Exception {
         ready();var monitor=new ZnackRegistrationMonitor(null,workflow);var waiting=monitor.poll(shop,3);
         assertEquals(1,waiting.checked());assertFalse(waiting.pending());assertEquals(0,api.signatures.get());
         api.accepted=true;var done=monitor.poll(shop,3);assertEquals(1,done.published());assertEquals(Status.PUBLISHED,row().status());assertEquals("",row().activeGtin());
         assertEquals(0,api.signatures.get());assertEquals(1,api.allocations.get());assertEquals(1,api.submissions.get());
+    }
+    @Test void preparationRecognizesTheRealOzonEaeuTnvedAttributeName()throws Exception {
+        var base=snapshot;snapshot=new ProductSnapshot(base.key(),base.revision(),base.title(),base.description(),base.brand(),base.vendorArticle(),base.categoryId(),base.media(),List.of(new ProductAttribute("22232","ТН ВЭД коды ЕАЭС",List.of("6204"),null)),base.variants(),base.dimensions(),base.documents(),base.checkedAt(),base.metadata());
+        assertEquals("6204",workflow.prepare(shop,key).tnved());
     }
     @Test void preparationFetchesNativeIdentityAndReusesOneSessionForCategorySelection()throws Exception {
         api.multipleCategories=true;var prepared=workflow.prepare(shop,key);
@@ -174,14 +196,14 @@ class OzonCardRegistrationWorkflowTest {
     final class FixtureApi extends ZnackApiClient {
         AtomicInteger allocations=new AtomicInteger(),submissions=new AtomicInteger(),signatures=new AtomicInteger(),documents=new AtomicInteger();
         ProductKey activeKey=key;boolean knownQuota;
-        boolean multipleCategories,allocationTimeout,feedTimeout,signTimeout,changeSigningDocument,accepted;
+        boolean multipleCategories,allocationTimeout,feedTimeout,signTimeout,changeSigningDocument,accepted,rejected,pendingModeration;
         String currentGtin=GtinWriteTestFixture.GTIN;
         public JsonElement generatedGtins(String base,String token){return json(knownQuota?"{\"result\":{\"drafts\":[],\"monthly-limit\":{\"limit\":100,\"usage\":0}}}":"{\"result\":{\"drafts\":[]}}");}
         public JsonElement generateGtins(String base,String token,int quantity)throws IOException{assertEquals(Status.ALLOCATING_GTIN,repository.find(activeKey).status());int count=allocations.incrementAndGet();if(allocationTimeout)throw new IOException("fixture allocation timeout");currentGtin=count==1?GtinWriteTestFixture.GTIN:"00000000000024";return json("{\"result\":{\"drafts\":[{\"gtin\":\""+currentGtin+"\"}]}}");}
         public JsonElement nationalCatalogCategories(String base,String token,String tnved){return json(multipleCategories?"{\"result\":[{\"cat_id\":1,\"cat_name\":\"Fixture\",\"category_active\":true},{\"cat_id\":2,\"cat_name\":\"Fixture 2\",\"category_active\":true}]}":"{\"result\":[{\"cat_id\":1,\"cat_name\":\"Fixture\",\"category_active\":true}]}");}
         public JsonElement nationalCatalogAttributes(String base,String token,long category){return json("{\"result\":[{\"attr_id\":1,\"attr_name\":\"Fixture\",\"attr_field_type\":\"text\"},{\"attr_id\":23557,\"attr_name\":\"Declaration\",\"attr_field_type\":\"text\"},{\"attr_id\":23561,\"attr_name\":\"Certificate\",\"attr_field_type\":\"text\"}]}");}
         public JsonElement submitNationalCatalogFeed(String base,String token,JsonElement body)throws IOException{assertEquals(Status.FEED_SUBMITTING,repository.find(activeKey).status());submissions.incrementAndGet();if(feedTimeout)throw new IOException("fixture feed timeout");return json("{\"result\":{\"feed_id\":\"feed-"+submissions.get()+"\"}}");}
-        public JsonElement nationalCatalogFeedStatus(String base,String token,String feed){return json("{\"result\":{\"status\":\""+(accepted?"Signed":"Moderated")+"\",\"item\":[{\"gtin\":\""+currentGtin+"\",\"good_id\":91}]}}");}
+        public JsonElement nationalCatalogFeedStatus(String base,String token,String feed){if(rejected)return json("{\"result\":{\"status\":\"Rejected\",\"item\":[{\"gtin\":\""+currentGtin+"\",\"status_code\":400,\"message\":\"required attribute missing; token=fixture-secret\"}]}}");return json("{\"result\":{\"status\":\""+(pendingModeration?"Processing":accepted?"Signed":"Moderated")+"\",\"item\":[{\"gtin\":\""+currentGtin+"\",\"good_id\":91}]}}");}
         public JsonElement nationalCatalogSigningDocument(String base,String token,JsonObject body){int count=documents.incrementAndGet();return json("{\"result\":{\"xmls\":[{\"goodId\":91,\"xml\":\"<good>"+(changeSigningDocument&&count>1?"changed":"reviewed")+"</good>\"}]}}");}
         public JsonElement signNationalCatalogProduct(String base,String token,JsonArray body)throws IOException{assertEquals(Status.SIGNING,repository.find(activeKey).status());assertEquals("SENDING",repository.find(activeKey).signatureState());assertEquals("<good>reviewed</good>",new String(Base64.getDecoder().decode(body.get(0).getAsJsonObject().get("base64Xml").getAsString()),java.nio.charset.StandardCharsets.UTF_8));signatures.incrementAndGet();if(signTimeout)throw new IOException("fixture signing timeout");accepted=true;return json("{\"result\":{\"signed\":[91]}}");}
         JsonElement json(String value){return JsonParser.parseString(value);}

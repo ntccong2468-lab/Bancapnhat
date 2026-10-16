@@ -11,8 +11,9 @@ import java.util.*;
 public final class ZnackRegistrationQueryRepository {
     public static final int PAGE_SIZE = 300;
     public static final int MAX_SELECTION = 100_000;
-    public record Details(String gender,String tnved,boolean pendingReplacement) {
-        public Details(String gender,String tnved){this(gender,tnved,false);}
+    public record Details(String gender,String tnved,boolean pendingReplacement,boolean groupChanged) {
+        public Details(String gender,String tnved){this(gender,tnved,false,false);}
+        public Details(String gender,String tnved,boolean pending){this(gender,tnved,pending,false);}
     }
     public record Summary(long total,long published,long errors,long readyToSign,long waiting,
                           long catalog,long catalogPublished,long catalogUnlinked,Instant syncedAt) {}
@@ -39,9 +40,13 @@ public final class ZnackRegistrationQueryRepository {
                      FROM wb_product_photos p WHERE p.shop_id=c.shop_id AND p.nm_id=c.nm_id AND p.photo_index=0) image_url,
                    (SELECT ch.value_json FROM wb_product_characteristics ch
                     WHERE ch.shop_id=c.shop_id AND ch.nm_id=c.nm_id
-                      AND ch.characteristic_id IN (14177449,204557)
+                      AND ch.name IN ('Цвет','цвет','Цвет товара','цвет товара','Color','color','Màu sắc','màu sắc')
                     ORDER BY CASE ch.characteristic_id WHEN 14177449 THEN 0 ELSE 1 END LIMIT 1) color_json,
                    r.tnved tnved_json,
+                   (SELECT own.payload FROM product_snapshots own WHERE own.shop_id=c.shop_id AND own.marketplace='WILDBERRIES' AND own.card_id=CAST(c.nm_id AS TEXT)
+                     AND json_extract(own.payload,'$.revision') LIKE 'live:%' AND json_extract(own.payload,'$.metadata.owner')=(SELECT scope.owner_hash FROM znack_card_registration_scopes scope WHERE scope.shop_id=s.shop_id AND scope.chrt_id=s.chrt_id)
+                     ORDER BY own.checked_at DESC LIMIT 1) current_snapshot,
+                   (SELECT ch.value_json FROM wb_product_characteristics ch WHERE ch.shop_id=c.shop_id AND ch.nm_id=c.nm_id AND (LOWER(ch.name) LIKE '%tnved%' OR REPLACE(ch.name,' ','') LIKE '%ТНВЭД%' OR REPLACE(ch.name,' ','') LIKE '%Тнвэд%') ORDER BY ch.characteristic_id LIMIT 1) current_tnved_json,
                    r.gtin,r.good_id,r.feed_id,r.status,r.error_message,COALESCE(r.wb_updated,0) wb_updated,
                    r.updated_at registration_revision,
                    EXISTS(SELECT 1 FROM znack_card_registration_replacements replacement
@@ -60,7 +65,7 @@ public final class ZnackRegistrationQueryRepository {
                 var r=p.executeQuery()) {
                 while(r.next()) {
                     Sku row=map(r);rows.add(row);
-                    details.put(row.chrtId(),new Details("",jsonText(r.getString("tnved_json")),r.getBoolean("pending_replacement")));
+                    details.put(row.chrtId(),new Details("",currentTnved(r),r.getBoolean("pending_replacement"),groupChanged(r)));
                 }
             }
             loadDetails(c,criteria.shopId(),rows,details);
@@ -80,8 +85,8 @@ public final class ZnackRegistrationQueryRepository {
             c.setAutoCommit(false);requireOwner(c,criteria.shopId());
             if(count(c,query)>MAX_SELECTION)throw new IllegalArgumentException("registration_selection_limit");
             try(var p=prepare(c,SELECT+query.where()+" ORDER BY c.vendor_code COLLATE NOCASE,s.tech_size COLLATE NOCASE,c.nm_id,s.chrt_id",query.parameters());var r=p.executeQuery()) {
-                while(r.next()) {Sku row=map(r);if(!matches(criteria,row))continue;var view=observations==null?null:view(row);boolean register=row.canRegister()||row.needsGtinReview();boolean replace=row.canRegisterNew()&&!r.getBoolean("pending_replacement");
-                    if(view!=null){register=register&&!view.blocked()&&!view.published();replace=replace&&!view.blocked()&&view.published();}if(switch(mode){case 1->row.canSignApproved()&&(view==null||(!view.blocked()&&!view.published()));case 2->register||replace;case 3->replace;default->register;})rows.add(row);}
+                while(r.next()) {Sku row=map(r);if(!matches(criteria,row))continue;var view=observations==null?null:view(row);boolean change=groupChanged(r);boolean register=row.canRegister()||row.needsGtinReview()||change;boolean replace=row.canRegisterNew()&&!r.getBoolean("pending_replacement");
+                    if(view!=null){register=register&&!view.blocked()&&(!view.published()||change);replace=replace&&!view.blocked()&&view.published();}if(switch(mode){case 1->row.canSignApproved()&&(view==null||(!view.blocked()&&!view.published()));case 2->register||replace;case 3->replace;default->register;})rows.add(row);}
             }
             c.commit();return List.copyOf(rows);
         }catch(SQLException error){throw new IllegalStateException("registration_read_error",error);}
@@ -133,7 +138,7 @@ public final class ZnackRegistrationQueryRepository {
                 while(result.next()){
                     if(++scanned>MAX_SELECTION)throw new IllegalArgumentException("registration_selection_limit");
                     Sku row=map(result);if(!matches(criteria,row))continue;
-                    if(total++>=Math.max(0,criteria.offset())&&rows.size()<Math.min(PAGE_SIZE,Math.max(1,criteria.limit()))){rows.add(row);details.put(row.chrtId(),new Details("",jsonText(result.getString("tnved_json")),result.getBoolean("pending_replacement")));}
+                    if(total++>=Math.max(0,criteria.offset())&&rows.size()<Math.min(PAGE_SIZE,Math.max(1,criteria.limit()))){rows.add(row);details.put(row.chrtId(),new Details("",currentTnved(result),result.getBoolean("pending_replacement"),groupChanged(result)));}
                 }
             }
             loadDetails(c,criteria.shopId(),rows,details);var summary=summary(c,criteria.shopId());c.commit();return new Page(List.copyOf(rows),Map.copyOf(details),total,summary);
@@ -155,7 +160,7 @@ public final class ZnackRegistrationQueryRepository {
             }
         }
         for(Sku row:rows) {var fetched=byProduct.getOrDefault(row.nmId(),new Details("",""));var saved=target.get(row.chrtId());
-            target.put(row.chrtId(),new Details(fetched.gender(),saved.tnved().isBlank()?fetched.tnved():saved.tnved(),saved.pendingReplacement()));
+            target.put(row.chrtId(),new Details(fetched.gender(),saved.tnved().isBlank()?fetched.tnved():saved.tnved(),saved.pendingReplacement(),saved.groupChanged()));
         }
     }
 
@@ -209,13 +214,21 @@ public final class ZnackRegistrationQueryRepository {
     private static PreparedStatement prepare(Connection c,String sql,List<?> parameters)throws SQLException {
         var p=c.prepareStatement(sql);for(int i=0;i<parameters.size();i++)p.setObject(i+1,parameters.get(i));return p;
     }
+    private static String currentTnved(ResultSet row)throws SQLException {
+        String snapshot=com.vncode.app.integration.znack.registration.TnvedGroupChange.snapshotCode(row.getString("current_snapshot"));
+        if(!snapshot.isBlank())return snapshot;String nativeValue=jsonText(row.getString("current_tnved_json"));return nativeValue.isBlank()?jsonText(row.getString("tnved_json")):nativeValue;
+    }
+    private static boolean groupChanged(ResultSet row)throws SQLException {
+        Status status;try{status=Status.valueOf(safe(row.getString("status")));}catch(RuntimeException invalid){return false;}
+        return com.vncode.app.integration.znack.registration.TnvedGroupChange.replaceable(status)&&!safe(row.getString("feed_id")).isBlank()&&com.vncode.app.integration.znack.registration.TnvedGroupChange.changed(jsonText(row.getString("tnved_json")),currentTnved(row));
+    }
     private static Sku map(ResultSet r)throws SQLException {
         String technical=safe(r.getString("tech_size"));String size=technical.isBlank()||"0".equals(technical)?safe(r.getString("wb_size")):technical;
         long goodId=r.getLong("good_id");Long good=r.wasNull()?null:goodId;Status status;
         try{status=Status.valueOf(safe(r.getString("status")));}catch(IllegalArgumentException ignored){status=r.getString("status")==null?Status.NOT_CREATED:Status.ERROR;}
         String barcodes=safe(r.getString("barcodes"));
         return new Sku(r.getLong("nm_id"),r.getLong("chrt_id"),r.getInt("subject_id"),r.getString("vendor_code"),r.getString("subject_name"),r.getString("brand"),r.getString("title"),jsonText(r.getString("color_json")),size,
-                barcodes.isBlank()?List.of():List.of(barcodes.split(String.valueOf((char)31))),r.getString("image_url"),r.getBoolean("need_kiz"),r.getString("gtin"),good,r.getString("feed_id"),status,r.getString("error_message"),r.getBoolean("wb_updated"),r.getString("wb_size"),r.getString("registration_revision"));
+                barcodes.isBlank()?List.of():List.of(barcodes.split(String.valueOf((char)31))),r.getString("image_url"),r.getBoolean("need_kiz"),r.getString("gtin"),good,r.getString("feed_id"),status,r.getString("error_message"),r.getBoolean("wb_updated"),r.getString("wb_size"),r.getString("registration_revision"),groupChanged(r));
     }
     private static String jsonText(String text) {
         if(text==null)return "";

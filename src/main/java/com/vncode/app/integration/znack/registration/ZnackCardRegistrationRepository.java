@@ -141,6 +141,40 @@ public class ZnackCardRegistrationRepository {
         }catch(SQLException error){throw new RuntimeException(error);}
     }
 
+    /** Keep every old card; only a reviewed new group can clear a known submitted checkpoint. */
+    public boolean claimGroupReplacement(int shopId,Sku sku,String tnved) {
+        if(sku==null||!sku.hasGtin()||!sku.hasFeed()||!TnvedGroupChange.replaceable(sku.status()))return false;
+        try {return com.vncode.app.config.SqliteWriteTransaction.run(c->{
+            try(var p=c.prepareStatement("SELECT owner_hash FROM znack_card_registration_scopes WHERE shop_id=? AND chrt_id=?")) {
+                p.setInt(1,shopId);p.setLong(2,sku.chrtId());try(var r=p.executeQuery()){if(r.next()&&!value(r.getString(1)).isBlank()&&!r.getString(1).equals(com.vncode.app.integration.listing.ListingIdentity.fingerprint(c,shopId,com.vncode.app.integration.marketplace.Marketplace.WILDBERRIES)))throw new SecurityException("SHOP_CREDENTIALS_CHANGED");}
+            }
+            String oldCode="";
+            try(var p=c.prepareStatement("SELECT tnved,payload_json FROM znack_card_registrations WHERE shop_id=? AND chrt_id=? AND nm_id=? AND gtin=? AND status=? AND updated_at=?")) {
+                p.setInt(1,shopId);p.setLong(2,sku.chrtId());p.setLong(3,sku.nmId());p.setString(4,sku.gtin());p.setString(5,sku.status().name());p.setString(6,sku.registrationRevision());
+                try(var r=p.executeQuery()){if(!r.next())return false;oldCode=value(r.getString(1));if(oldCode.isBlank())oldCode=TnvedGroupChange.payloadCode(r.getString(2));}
+            }
+            if(!TnvedGroupChange.changed(oldCode,tnved))return false;
+            try(var p=c.prepareStatement("SELECT 1 FROM znack_card_registration_signatures WHERE shop_id=? AND chrt_id=? AND state IN ('SENDING','RECONCILE_REQUIRED')")) {
+                p.setInt(1,shopId);p.setLong(2,sku.chrtId());try(var r=p.executeQuery()){if(r.next())return false;}
+            }
+            String now=Instant.now().toString();
+            try(var p=c.prepareStatement("INSERT OR IGNORE INTO znack_card_registration_history SELECT shop_id,chrt_id,nm_id,gtin,good_id,feed_id,payload_json,tnved,status,error_message,? FROM znack_card_registrations WHERE shop_id=? AND chrt_id=?")) {
+                p.setString(1,now);p.setInt(2,shopId);p.setLong(3,sku.chrtId());p.executeUpdate();
+            }
+            if(sku.status()==Status.PUBLISHED)try(var p=c.prepareStatement("""
+                INSERT INTO znack_card_registration_replacements(shop_id,chrt_id,active_gtin,active_good_id,active_feed_id,active_payload_json,active_wb_updated,state,created_at,updated_at)
+                SELECT shop_id,chrt_id,gtin,good_id,feed_id,payload_json,wb_updated,'CANDIDATE',?,? FROM znack_card_registrations WHERE shop_id=? AND chrt_id=?
+                ON CONFLICT(shop_id,chrt_id) DO UPDATE SET active_gtin=excluded.active_gtin,active_good_id=excluded.active_good_id,active_feed_id=excluded.active_feed_id,active_payload_json=excluded.active_payload_json,active_wb_updated=excluded.active_wb_updated,state='CANDIDATE',updated_at=excluded.updated_at
+                WHERE znack_card_registration_replacements.state='ACTIVE'
+                """)) {p.setString(1,now);p.setString(2,now);p.setInt(3,shopId);p.setLong(4,sku.chrtId());p.executeUpdate();}
+            try(var p=c.prepareStatement("UPDATE znack_card_registrations SET gtin=NULL,good_id=NULL,feed_id=NULL,payload_json=NULL,status='CHECKING',wb_updated=0,error_message=NULL,updated_at=? WHERE shop_id=? AND chrt_id=?")) {
+                p.setString(1,now);p.setInt(2,shopId);p.setLong(3,sku.chrtId());p.executeUpdate();
+            }
+            try(var p=c.prepareStatement("DELETE FROM znack_card_registration_signatures WHERE shop_id=? AND chrt_id=?")){p.setInt(1,shopId);p.setLong(2,sku.chrtId());p.executeUpdate();}
+            return true;
+        });}catch(SQLException failed){throw new IllegalStateException("REGISTRATION_STORAGE",failed);}
+    }
+
     public String activeGtin(int shopId,long chrtId) {
         try(var c=Database.getConnection();var s=c.prepareStatement("""
             SELECT CASE WHEN p.state='CANDIDATE' THEN p.active_gtin WHEN r.status='PUBLISHED' THEN r.gtin ELSE '' END
@@ -238,7 +272,7 @@ public class ZnackCardRegistrationRepository {
                    (SELECT COALESCE(json_extract(ch.value_json, '$[0]'), json_extract(ch.value_json, '$'))
                     FROM wb_product_characteristics ch
                     WHERE ch.shop_id=c.shop_id AND ch.nm_id=c.nm_id
-                      AND ch.characteristic_id IN (14177449, 204557)
+                      AND ch.name IN ('Цвет','цвет','Цвет товара','цвет товара','Color','color','Màu sắc','màu sắc')
                     ORDER BY CASE ch.characteristic_id WHEN 14177449 THEN 0 ELSE 1 END LIMIT 1) AS color_value,
                    r.gtin, r.good_id, r.feed_id, r.status, r.error_message,
                    r.updated_at AS registration_revision, COALESCE(r.wb_updated, 0) AS wb_updated
@@ -323,9 +357,14 @@ public class ZnackCardRegistrationRepository {
             throw new RuntimeException(error);
         }
     }
+    public Sku find(int shopId,long chrtId) {
+        try(var c=Database.getConnection();var p=c.prepareStatement(SELECT+" AND s.chrt_id=? GROUP BY c.shop_id,c.nm_id,s.chrt_id")) {
+            p.setInt(1,shopId);p.setLong(2,chrtId);try(var r=p.executeQuery()){return r.next()?map(r):null;}
+        }catch(SQLException e){throw new IllegalStateException("REGISTRY_READ_FAILED",e);}
+    }
     public List<Sku> pendingStatus(int shopId,int limit){
         if(limit<1||limit>100)throw new IllegalArgumentException("REGISTRY_POLL_LIMIT");
-        String sql=SELECT+" AND r.status IN ('FEED_SUBMITTED','PROCESSING','READY_TO_SIGN','SIGNING') AND NULLIF(r.feed_id,'') IS NOT NULL GROUP BY c.shop_id,c.nm_id,s.chrt_id ORDER BY CASE r.status WHEN 'READY_TO_SIGN' THEN 1 ELSE 0 END,r.updated_at LIMIT ?";
+        String sql=SELECT+" AND (r.status IN ('FEED_SUBMITTED','PROCESSING','READY_TO_SIGN','SIGNING') OR r.status='ERROR' AND LOWER(TRIM(COALESCE(r.error_message,''))) IN ('registration interrupted','registration_interrupted')) AND NULLIF(r.feed_id,'') IS NOT NULL GROUP BY c.shop_id,c.nm_id,s.chrt_id ORDER BY CASE r.status WHEN 'READY_TO_SIGN' THEN 1 ELSE 0 END,r.updated_at LIMIT ?";
         try(var c=Database.getConnection();var p=c.prepareStatement(sql)){p.setInt(1,shopId);p.setInt(2,limit);var rows=new ArrayList<Sku>();try(var r=p.executeQuery()){while(r.next())rows.add(map(r));}return List.copyOf(rows);}catch(SQLException e){throw new IllegalStateException("REGISTRY_READ_FAILED",e);}
     }
 
@@ -355,6 +394,8 @@ public class ZnackCardRegistrationRepository {
                      UNION SELECT active_gtin FROM znack_card_registration_replacements
                      UNION SELECT gtin FROM ozon_card_registrations WHERE gtin<>''
                      UNION SELECT active_gtin FROM ozon_card_registrations WHERE active_gtin<>''
+                     UNION SELECT gtin FROM znack_card_registration_history WHERE gtin<>''
+                     UNION SELECT gtin FROM ozon_card_registration_history WHERE gtin<>''
                      """)) {
             try (ResultSet result = statement.executeQuery()) {
                 Set<String> values = new LinkedHashSet<>();

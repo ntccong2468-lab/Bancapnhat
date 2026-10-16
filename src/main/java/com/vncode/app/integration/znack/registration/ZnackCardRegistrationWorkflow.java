@@ -177,6 +177,7 @@ public final class ZnackCardRegistrationWorkflow {
         if(shop==null || sku==null || draft==null || shop.getMarketplace()!=Marketplace.WILDBERRIES) return false;
         // A submitted feed may still be read back after expiry. An unsent claim needs current rights.
         if(action!=RegistrationAction.RESUME || !sku.hasFeed())LicenseRuntime.require(Permission.GTIN);
+        boolean groupChange=action==RegistrationAction.REGISTER&&sku.hasGtin()&&sku.hasFeed()&&TnvedGroupChange.replaceable(sku.status())&&TnvedGroupChange.changed(TnvedGroupChange.payloadCode(registrations.payload(shop.getId(),sku.chrtId())),draft.tnved());
         String key=operationKey(shop,sku);
         if(!RUNNING.add(key))return false;
         try {
@@ -189,12 +190,12 @@ public final class ZnackCardRegistrationWorkflow {
                 if(prior==null && sku.hasIdentity() && action!=RegistrationAction.REGISTER_NEW)
                     throw new ZnackRegistrationScope.ScopeChangedException();
             }
-            boolean claimed=action==RegistrationAction.REGISTER_NEW?registrations.claimReplacement(shop.getId(),sku):registrations.claim(shop.getId(),sku,action);
+            boolean claimed=groupChange?registrations.claimGroupReplacement(shop.getId(),sku,draft.tnved()):action==RegistrationAction.REGISTER_NEW?registrations.claimReplacement(shop.getId(),sku):registrations.claim(shop.getId(),sku,action);
             if(!claimed){RUNNING.remove(key);return false;}
             if(bound!=null)registrations.bindScope(shop,sku.chrtId(),bound);
             try {
                 executor.execute(()->{
-                    try{execute(shop,action==RegistrationAction.REGISTER_NEW?freshCandidate(sku):sku,draft,action==RegistrationAction.REQUEST_NEW_GTIN || action==RegistrationAction.REGISTER_NEW,action==RegistrationAction.SIGN_APPROVED,listener);}
+                    try{execute(shop,groupChange||action==RegistrationAction.REGISTER_NEW?freshCandidate(sku):sku,draft,groupChange||action==RegistrationAction.REQUEST_NEW_GTIN || action==RegistrationAction.REGISTER_NEW,action==RegistrationAction.SIGN_APPROVED,action!=RegistrationAction.RESUME&&action!=RegistrationAction.SIGN_APPROVED,listener);}
                     catch(LicenseDeniedException denied){pauseKnownUnsent(shop,sku,denied,listener);}
                     catch(Exception error){fail(shop,sku,error,listener);}
                     finally{RUNNING.remove(key);}
@@ -209,11 +210,13 @@ public final class ZnackCardRegistrationWorkflow {
         }catch(RuntimeException error){RUNNING.remove(key);throw error;}
     }
 
-    public boolean resume(Shop shop, Sku sku, BiConsumer<Status, String> listener) {
+    public boolean resume(Shop shop,Sku sku,BiConsumer<Status,String> listener){return resume(shop,sku,null,listener);}
+    public boolean resume(Shop shop, Sku sku,Boolean automaticSigning, BiConsumer<Status, String> listener) {
         if (shop == null || sku == null || !sku.canResume()) return false;
         String stored = registrations.payload(shop.getId(), sku.chrtId());
         if (stored.isBlank()) return false;
         JsonObject payload = JsonParser.parseString(stored).getAsJsonObject();
+        if(automaticSigning!=null){if(automaticSigning)LicenseRuntime.require(Permission.GTIN);guard(shop,sku);RegistrationSigningConsent.set(shop,new com.vncode.app.features.products.ProductKey(shop.getId(),shop.getMarketplace(),Long.toString(sku.nmId()),Long.toString(sku.chrtId())),sku.gtin(),automaticSigning);}
         return schedule(shop, sku, draftFromPayload(payload), RegistrationAction.RESUME, listener);
     }
 
@@ -227,19 +230,28 @@ public final class ZnackCardRegistrationWorkflow {
         if(strictScope && prior!=null && !prior.equals(session.scope()))throw new ZnackRegistrationScope.ScopeChangedException();
         return session.catalog().progress(session.token(),sku.feedId(),sku.gtin());
     }
-    /** Reconcile one saved feed without allocating, submitting or signing anything. */
+    /** Reconcile a saved feed; signing is allowed only by an existing exact-card consent. */
     public boolean refreshStatus(Shop requestedShop,Sku sku)throws Exception {
         Shop shop=freezeShop(requestedShop);String operation=operationKey(shop,sku);
         if(!RUNNING.add(operation))return false;
         try {
-        guard(shop,sku);var progress=readOnlyProgress(shop,sku);guard(shop,sku);
+        guard(shop,sku);var session=catalogFactory.open(shop);guard(shop,sku);if(strictScope&&!registrations.scope(shop.getId(),sku.chrtId()).equals(session.scope()))throw new ZnackRegistrationScope.ScopeChangedException();
+        var progress=session.catalog().progress(session.token(),sku.feedId(),sku.gtin());guard(shop,sku);
         if(progress.goodId()!=null&&sku.goodId()!=null&&!progress.goodId().equals(sku.goodId()))throw new IllegalStateException("CATALOG_IDENTITY_CHANGED");
         Status status;
         var signature=registrations.signingCheckpoint(shop.getId(),sku.chrtId());
         if(progress.signed()){status=Status.PUBLISHED;registrations.finishSignature(shop.getId(),sku.chrtId(),true);}
         else if(sku.status()==Status.SIGNING||signature!=null&&Set.of("SENDING","RECONCILE_REQUIRED").contains(signature.state()))status=Status.SIGNING;
         else status=progress.failed()?Status.ERROR:progress.readyToSign()?Status.READY_TO_SIGN:Status.PROCESSING;
-        registrations.updateProgress(shop.getId(),sku.chrtId(),status,sku.feedId(),progress.goodId(),progress.failed()?"CATALOG_REJECTED":null,null);
+        registrations.updateProgress(shop.getId(),sku.chrtId(),status,sku.feedId(),progress.goodId(),progress.failed()?CatalogFeedback.rejection(progress):null,null);
+        if(status==Status.READY_TO_SIGN) {
+            var nativeKey=new com.vncode.app.features.products.ProductKey(shop.getId(),shop.getMarketplace(),Long.toString(sku.nmId()),Long.toString(sku.chrtId()));
+            if(RegistrationSigningConsent.allowed(shop,nativeKey,sku.gtin())) {
+                try{LicenseRuntime.require(Permission.GTIN);}catch(LicenseDeniedException paused){return false;}
+                signApprovedOne(shop,registrations.find(shop.getId(),sku.chrtId()),session,null);
+                return registrations.checkpointStatus(shop.getId(),sku.chrtId())==Status.PUBLISHED;
+            }
+        }
         return status==Status.PUBLISHED;
         }finally{RUNNING.remove(operation);}
     }
@@ -282,7 +294,7 @@ public final class ZnackCardRegistrationWorkflow {
     private static Sku freshCandidate(Sku sku) {
         return new Sku(sku.nmId(),sku.chrtId(),sku.subjectId(),sku.vendorCode(),sku.subjectName(),sku.brand(),sku.title(),sku.color(),sku.size(),sku.barcodes(),sku.imageUrl(),sku.needKiz(),null,null,null,Status.CHECKING,null,false,sku.wbSize(),sku.registrationRevision());
     }
-    private void execute(Shop shop, Sku sku, Draft draft, boolean requestFresh,boolean signingOnly,
+    private void execute(Shop shop, Sku sku, Draft draft, boolean requestFresh,boolean signingOnly,boolean recordConsent,
                          BiConsumer<Status, String> listener) throws Exception {
         if(!sku.hasFeed())LicenseRuntime.require(Permission.GTIN);
         guard(shop,sku);
@@ -296,7 +308,7 @@ public final class ZnackCardRegistrationWorkflow {
         String gtin = sku.gtin();
         String feedId = sku.feedId();
         String stored = registrations.payload(shop.getId(), sku.chrtId());
-        boolean rebuildPayload = gtin == null || gtin.isBlank() || sku.status() == Status.ERROR
+        boolean rebuildPayload = gtin == null || gtin.isBlank() || (sku.status() == Status.ERROR&&!CatalogFeedback.interrupted(sku.errorMessage()))
                 || sku.status() == Status.GTIN_GENERATED || feedId == null || feedId.isBlank() || stored.isBlank();
         if (rebuildPayload) {
             draft = withSchemaTypes(draft, catalog.requiredAttributes(draft.categoryId(), token), sku.wbSize());
@@ -332,6 +344,8 @@ public final class ZnackCardRegistrationWorkflow {
             }
         }
 
+        var nativeKey=new com.vncode.app.features.products.ProductKey(shop.getId(),shop.getMarketplace(),Long.toString(sku.nmId()),Long.toString(sku.chrtId()));
+        if(recordConsent)RegistrationSigningConsent.set(shop,nativeKey,gtin,draft.autoSign());
         if (feedId == null || feedId.isBlank()) {
             LicenseRuntime.require(Permission.GTIN);
             update(shop,sku,Status.READY_TO_SUBMIT,null,null,listener);
@@ -385,8 +399,7 @@ public final class ZnackCardRegistrationWorkflow {
             }
             if (progress.readyToSign()) {
                 update(shop, sku, Status.READY_TO_SIGN, feedId, goodId, listener);
-                // Signing is the explicit reviewed action used for Ozon as well. A pending
-                // moderation response releases this worker instead of sleeping for ten minutes.
+                if(RegistrationSigningConsent.allowed(shop,nativeKey,gtin))signApprovedOne(shop,registrations.find(shop.getId(),sku.chrtId()),session,listener);
                 return;
             }
             update(shop, sku, Status.PROCESSING, feedId, goodId, listener);
@@ -475,6 +488,7 @@ public final class ZnackCardRegistrationWorkflow {
     private void update(Shop shop, Sku sku, Status status, String feedId, Long goodId,
                         BiConsumer<Status, String> listener) {
         registrations.updateProgress(shop.getId(), sku.chrtId(), status, feedId, goodId, null, null);
+        if(status==Status.PUBLISHED)new com.vncode.app.features.sync.SyncStreamStore().request(shop,"ZNACK");
         notify(listener, status, "");
     }
 
@@ -496,7 +510,7 @@ public final class ZnackCardRegistrationWorkflow {
             types.put(attribute.id(), type);
         }
         return new Draft(draft.tnved(), draft.feedTnved(), draft.categoryId(), draft.goodName(),
-                draft.brand(), draft.attributes(), types);
+                draft.brand(), draft.attributes(), types,draft.autoSign());
     }
 
     // Photos are optional in /v3/feed. A WB CDN URL rejected by the catalog must not

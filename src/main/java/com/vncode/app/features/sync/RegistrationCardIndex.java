@@ -43,7 +43,7 @@ public final class RegistrationCardIndex {
         if(!safe(gtin).isBlank())matches.addAll(codes.getOrDefault(normal(gtin),List.of()));
         else {
             for(var barcode:barcodes)matches.addAll(codes.getOrDefault(normal(barcode),List.of()));
-            if(matches.isEmpty()&&!safe(article).isBlank()&&!safe(color).isBlank()&&!safe(size).isBlank())matches.addAll(attributes.getOrDefault(key(article,color,size),List.of()));
+            if(matches.isEmpty()&&!GtinMatchingService.normalizeArticle(article).isBlank()&&!safe(color).isBlank()&&!safe(size).isBlank())matches.addAll(attributes.getOrDefault(key(article,color,size),List.of()));
         }
         if(matches.size()>1)return new View("source.ambiguous","","GTIN_AMBIGUOUS_MATCH",true,false,true);
         if(matches.size()==1) {
@@ -57,7 +57,7 @@ public final class RegistrationCardIndex {
         return new View("status."+status.name().toLowerCase(Locale.ROOT),safe(gtin),nativeExists?"SOURCE_NATIVE_CHECKPOINT":"SOURCE_CARD_NOT_CREATED",nativeExists,false,false);
     }
     private static boolean conflict(String a,String b){return !safe(a).isBlank()&&!safe(b).isBlank()&&!GtinMatchingService.normalize(a).equals(GtinMatchingService.normalize(b));}
-    private static String key(String a,String c,String s){return GtinMatchingService.normalize(a)+"\u001f"+GtinMatchingService.normalize(c)+"\u001f"+GtinMatchingService.normalize(s);}
+    private static String key(String a,String c,String s){return GtinMatchingService.normalizeArticle(a)+"\u001f"+GtinMatchingService.normalize(c)+"\u001f"+GtinMatchingService.normalize(s);}
     private static String normal(String code){return code!=null&&code.matches("[0-9]{8,14}")?"0".repeat(14-code.length())+code:safe(code);}
     private static String safe(String value){return value==null?"":value;}
 }

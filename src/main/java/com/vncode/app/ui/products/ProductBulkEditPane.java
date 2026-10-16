@@ -123,9 +123,13 @@ public final class ProductBulkEditPane extends BorderPane {
         if(disposed||shop==null||keys.isEmpty()||field.equals("documents"))return;
         var owner=shop;var selected=keys;String editedField=field,text=value.getText();String q=text.substring(text.lastIndexOf('|')+1).strip();long epoch=generation,ticket=++suggestionTicket;
         suggestionStatus.setText(tr("edit.suggestions_loading"));
-        reads.submit(new ShopReadCoordinator.Key(owner.getId(),"product-edit-values",UUID.randomUUID().toString()),true,()->suggestionsService.suggest(owner,selected,editedField,q)).whenComplete((found,error)->Platform.runLater(()->{
+        reads.submit(new ShopReadCoordinator.Key(owner.getId(),"product-edit-values",UUID.randomUUID().toString()),true,()->suggestionsService.suggest(owner,selected,editedField,q,partial->Platform.runLater(()->{
             if(disposed||epoch!=generation||ticket!=suggestionTicket)return;
-            suggestions.getItems().setAll(error==null?found.values():List.of());
+            suggestions.getItems().setAll(partial.values());
+            suggestionStatus.setText(tr(partial.marketplaceValues()?"edit.suggestions_loading_more":"edit.suggestions_own"));
+        }))).whenComplete((found,error)->Platform.runLater(()->{
+            if(disposed||epoch!=generation||ticket!=suggestionTicket)return;
+            if(error==null)suggestions.getItems().setAll(found.values());
             suggestionStatus.setText(error!=null?tr("edit.suggestions_failed"):tr(found.marketplaceValues()?"edit.suggestions_marketplace":"edit.suggestions_common")+" · "+found.category()+"\n"+tr("edit.suggestions_scope"));
             if(error==null&&found.values().isEmpty())suggestionStatus.setText(suggestionStatus.getText()+"\n"+tr("edit.suggestions_empty"));
         }));

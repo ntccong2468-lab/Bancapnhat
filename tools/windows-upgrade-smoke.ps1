@@ -55,6 +55,14 @@ function Property([string]$Package,[string]$Name){
     $view=$database.OpenView("SELECT ``Value`` FROM ``Property`` WHERE ``Property`` = '$Name'")
     try{[void]$view.Execute();$row=$view.Fetch();if(-not $row){throw 'Missing MSI property'};return $row.StringData(1)}finally{[void]$view.Close()}
 }
+function VerifyShortcutDefinitions([string]$Package){
+    $installer=New-Object -ComObject WindowsInstaller.Installer;$database=$installer.OpenDatabase($Package,0)
+    $view=$database.OpenView('SELECT `Directory_`,`Name` FROM `Shortcut`');$entries=@()
+    try{[void]$view.Execute();while($row=$view.Fetch()){$entries+=@{directory=$row.StringData(1);name=($row.StringData(2) -split '\|')[-1]}}}finally{[void]$view.Close()}
+    if($entries.Count -ne 2 -or @($entries | Group-Object directory | Where-Object Count -ne 1).Count -ne 0 -or @($entries | Where-Object name -CNE 'VN code').Count -ne 0){throw 'The installer must define one VN code shortcut per Desktop/Start destination.'}
+    return $true
+}
+$singleShortcutPerLocation=VerifyShortcutDefinitions $newMsi
 $upgrade='8CBBA0E2-6E73-4F56-9101-6BC0948D3C72'
 foreach($package in @($oldMsi,$newMsi)){
     if((Property $package 'UpgradeCode').Trim('{}').ToUpperInvariant() -cne $upgrade -or (Property $package 'ProductName') -cne 'VN code'){throw 'Installer identity changed.'}
@@ -90,5 +98,5 @@ try{
     if($LASTEXITCODE -ne 0){throw 'Legacy KIZ stock did not retain its required default priority.'}
     Msi '/x' $newMsi;$installed=$false
     if(@(Registrations).Count -ne 0 -or -not(Test-Path (Join-Path $data 'database.db'))){throw 'Uninstall did not preserve upgrade data.'}
-    @{appName='VN code';fromVersion=$fromVersion;version=$Version;result='passed';installerUpgradeUuid=$upgrade;singleRegistration=$true;dataPreserved=$true;windowTitle=$window;liveMarketplaceMutations=$false;fingerprint=$after} | ConvertTo-Json | Set-Content $(if($FromStable1413){'out\upgrade-stable-1413-smoke.json'}elseif($FromStable1412){'out\upgrade-stable-1412-smoke.json'}elseif($FromStable1411){'out\upgrade-stable-1411-smoke.json'}elseif($FromStable1410){'out\upgrade-stable-1410-smoke.json'}elseif($FromStable146){'out\upgrade-stable-146-smoke.json'}elseif($FromLicenseTest){'out\upgrade-license-test-smoke.json'}elseif($FromGs1Preview){'out\upgrade-gs1-preview-smoke.json'}elseif($FromCurrentPreview){'out\upgrade-current-preview-smoke.json'}elseif($FromLatestPreview){'out\upgrade-latest-preview-smoke.json'}elseif($FromPreview){'out\upgrade-preview-smoke.json'}else{'out\upgrade-smoke.json'}) -Encoding utf8
+    @{appName='VN code';fromVersion=$fromVersion;version=$Version;result='passed';installerUpgradeUuid=$upgrade;singleRegistration=$true;singleShortcutPerLocation=$singleShortcutPerLocation;dataPreserved=$true;windowTitle=$window;liveMarketplaceMutations=$false;fingerprint=$after} | ConvertTo-Json | Set-Content $(if($FromStable1413){'out\upgrade-stable-1413-smoke.json'}elseif($FromStable1412){'out\upgrade-stable-1412-smoke.json'}elseif($FromStable1411){'out\upgrade-stable-1411-smoke.json'}elseif($FromStable1410){'out\upgrade-stable-1410-smoke.json'}elseif($FromStable146){'out\upgrade-stable-146-smoke.json'}elseif($FromLicenseTest){'out\upgrade-license-test-smoke.json'}elseif($FromGs1Preview){'out\upgrade-gs1-preview-smoke.json'}elseif($FromCurrentPreview){'out\upgrade-current-preview-smoke.json'}elseif($FromLatestPreview){'out\upgrade-latest-preview-smoke.json'}elseif($FromPreview){'out\upgrade-preview-smoke.json'}else{'out\upgrade-smoke.json'}) -Encoding utf8
 }finally{if($app -and -not $app.HasExited){Stop-Process -Id $app.Id -Force};if($installed){Msi '/x' $activeMsi}}

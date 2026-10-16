@@ -4,7 +4,7 @@
   "complete": false,
   "developmentComplete": false,
   "officialReleasePublished": false,
-  "phase": "implementation-complete-verification-in-progress",
+  "phase": "code-complete-full-regression-and-live-acceptance-pending",
   "licenseIntegration": {
     "implemented": true,
     "productionReady": false,
@@ -17,7 +17,14 @@
     "Marketplace-backed product value suggestions and explicit save/readback UI",
     "WB card-level product view and verified readback projection",
     "Fashion TN VED reference, filtered browser and per-product proposal review",
-    "Stable paged task reports and distinct marketplace/local KIZ statuses"
+    "Stable paged task reports and distinct marketplace/local KIZ statuses",
+    "Category KIZ reimport recovery with state-aware counts and explicit free-stock relocation",
+    "Znack TN VED group replacement with archived cards and one fresh GTIN per approved replacement",
+    "Per-card automatic signing consent with restart and uncertain-send reconciliation",
+    "Catalog article normalization without deleting model separators",
+    "Infinite virtualized Znack lists and progressively loaded WB shop/marketplace brands",
+    "GS1 signed PDF/photo regression and compact owner-bounded dialogs",
+    "Structured per-product edit keys survive persisted preview/save/reopen"
   ],
   "validation": {
     "fullJavaRegression": {
@@ -31,7 +38,32 @@
     "livePurchase": false,
     "liveKizAssignment": false,
     "liveCatalogThisVersion": false,
-    "productionLicenseVerified": false
+    "productionLicenseVerified": false,
+    "uploadedKizSample": {
+      "valid": true,
+      "uniqueCodes": 600,
+      "shortCis": 600,
+      "duplicatesInFile": 0,
+      "issues": 0,
+      "remoteRequests": 0
+    },
+    "targetedRegression": {
+      "result": "passed",
+      "log": "/tmp/vncode-1414-final-focused-registry.log",
+      "tests": 99,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "visualProductEdit": {
+      "dataset": "synthetic native WB transport; signed test-only license",
+      "cards": 12,
+      "variants": 24,
+      "distinctTnvedCodes": 2,
+      "nativeUpdates": 12,
+      "readbackVerified": true,
+      "productionLicenseVerified": false
+    }
   },
   "publication": {
     "published": false,

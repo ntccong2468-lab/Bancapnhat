@@ -25,6 +25,9 @@ public final class WbListingAdapter extends AbstractListingAdapter {
         for(var e:array(call(s,"content/v2/object/charcs/"+cat,null,false),"data")){var a=object(e);result.add(new TargetAttribute(text(a,"charcID"),text(a,"name"),text(a,"charcType"),"true".equals(text(a,"required")),text(a,"unitName"),decimal(a,"maxCount")==null?0:decimal(a,"maxCount").intValue(),"","","true".equals(text(a,"existNamedField"))));}return List.copyOf(result);
     }
     @Override public List<String> suggestValues(Shop shop,String cat,String field,String query)throws IOException {
+        return suggestValues(shop,cat,field,query,values->{});
+    }
+    @Override public List<String> suggestValues(Shop shop,String cat,String field,String query,java.util.function.Consumer<List<String>> partial)throws IOException {
         owner(shop);
         if(!cat.matches("[1-9][0-9]{0,18}"))throw new IllegalArgumentException("Invalid destination subject");
         var values=new LinkedHashSet<String>();
@@ -34,6 +37,7 @@ public final class WbListingAdapter extends AbstractListingAdapter {
                 var response=call(shop,"api/content/v1/brands?subjectId="+cat+(next.isBlank()?"":"&next="+next),null,false);
                 if(!response.has("brands")||!response.get("brands").isJsonArray())throw new IOException("Brand dictionary unavailable");
                 for(var v:array(response,"brands")){String name=text(object(v),"name");if(!name.isBlank())values.add(name);}
+                partial.accept(List.copyOf(values));
                 String cursor=text(response,"next");
                 if(cursor.isBlank()||cursor.equals("0"))return List.copyOf(values);
                 if(!cursor.matches("[1-9][0-9]{0,18}")||!cursors.add(cursor))throw new IOException("Brand dictionary cursor unavailable");

@@ -58,6 +58,13 @@ class ProductRepositoryTest {
         assertThrows(IllegalArgumentException.class,()->repo.loadPage(new ProductQuery(1,Marketplace.WILDBERRIES,"",List.of(),null,false,cursor,1)));
         assertEquals(1,repo.loadProductPage(query("sku-two",null)).total());
     }
+    @Test void groupedCardsWithoutBarcodesOrSizesStillDisplayAndRemainEditable()throws Exception {
+        card(1,100,"Incomplete card",null);
+        try(var c=Database.getConnection();var s=c.createStatement()){s.execute("UPDATE wb_product_sizes SET tech_size='' WHERE shop_id=1");}
+        var page=new ProductRepository().loadProductPage(query("",null));assertEquals(1,page.total());assertEquals(1,page.rows().size());
+        var row=page.rows().getFirst();assertEquals("",row.key().variantId());assertEquals("",row.size());assertTrue(row.barcodes().isEmpty());assertEquals("",row.verifiedGtin());
+        assertEquals(1,new ProductRepository().freezeProductKeys(query("Incomplete",null)).size());
+    }
     @Test void unicodeSearchAndLiteralWildcards() throws Exception {
         card(1,1,"БРЮКИ thể thao 100%_VN",null);card(1,2,"Other 100abcdVN",null);
         var repo=new ProductRepository();

@@ -29,6 +29,7 @@
         <Button fx:id="clearSelectionButton" text="Bỏ chọn" onAction="#onClearSelection"/>
         <Label fx:id="selectionLabel" styleClass="text-muted"/>
         <Button fx:id="registerSelectedButton" text="Đăng ký sản phẩm đã chọn" onAction="#onRegisterSelected" styleClass="btn-primary"/>
+        <CheckBox fx:id="autoSignCheckBox" selected="true" wrapText="true" text="Tự ký khi thẻ được duyệt"/>
         <Button fx:id="newCardsSelectedButton" text="Tạo thẻ mới cho tập đã chọn" onAction="#onNewCardsSelected" styleClass="btn-secondary"/>
     </FlowPane>
     <FlowPane alignment="CENTER_LEFT" hgap="8" vgap="6">

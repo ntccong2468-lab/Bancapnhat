@@ -9,6 +9,9 @@ public interface ListingTargetAdapter {
     List<TargetAttribute> attributes(Shop shop,String categoryId)throws IOException;
     /** Read-only value suggestions. The preview still validates every selected card. */
     default List<String> suggestValues(Shop shop,String categoryId,String field,String query)throws IOException{return List.of();}
+    default List<String> suggestValues(Shop shop,String categoryId,String field,String query,java.util.function.Consumer<List<String>> partial)throws IOException {
+        var values=suggestValues(shop,categoryId,field,query);partial.accept(values);return values;
+    }
     CopyPreview preview(Shop shop,ProductSnapshot snapshot,CopyOptions options)throws IOException;
     RemoteSubmission submit(Shop shop,CopyPreview preview)throws IOException;
     RemoteResult reconcile(Shop shop,RemoteSubmission submission)throws IOException;

@@ -31,7 +31,7 @@ public final class ZnackCardRegistrationModels {
     public record Sku(long nmId, long chrtId, int subjectId, String vendorCode, String subjectName, String brand,
                       String title, String color, String size, List<String> barcodes, String imageUrl,
                       boolean needKiz, String gtin, Long goodId, String feedId, Status status,
-                      String errorMessage, boolean wbUpdated, String wbSize, String registrationRevision) {
+                      String errorMessage, boolean wbUpdated, String wbSize, String registrationRevision,boolean tnvedGroupChanged) {
         public Sku {
             barcodes = barcodes == null ? List.of() : List.copyOf(barcodes);
             status = status == null ? Status.NOT_CREATED : status;
@@ -39,6 +39,9 @@ public final class ZnackCardRegistrationModels {
             registrationRevision = registrationRevision == null ? "" : registrationRevision;
         }
 
+        public Sku(long nmId,long chrtId,int subjectId,String vendorCode,String subjectName,String brand,String title,String color,String size,List<String> barcodes,String imageUrl,boolean needKiz,String gtin,Long goodId,String feedId,Status status,String errorMessage,boolean wbUpdated,String wbSize,String registrationRevision) {
+            this(nmId,chrtId,subjectId,vendorCode,subjectName,brand,title,color,size,barcodes,imageUrl,needKiz,gtin,goodId,feedId,status,errorMessage,wbUpdated,wbSize,registrationRevision,false);
+        }
         public Sku(long nmId, long chrtId, int subjectId, String vendorCode, String subjectName, String brand,
                    String title, String color, String size, List<String> barcodes, String imageUrl,
                    boolean needKiz, String gtin, Long goodId, String feedId, Status status,
@@ -81,7 +84,7 @@ public final class ZnackCardRegistrationModels {
 
         public boolean canResume() {
             return hasGtin() && (hasFeed() || status==Status.READY_TO_SUBMIT)
-                    && status != Status.PUBLISHED && status != Status.ERROR
+                    && status != Status.PUBLISHED && (status != Status.ERROR || CatalogFeedback.interrupted(errorMessage))
                     && status != Status.NOT_CREATED && status != Status.GTIN_REVIEW_REQUIRED
                     && status != Status.FEED_SUBMITTING && status != Status.FEED_REVIEW_REQUIRED;
         }
@@ -140,13 +143,17 @@ public final class ZnackCardRegistrationModels {
     }
 
     public record Draft(String tnved, String feedTnved, long categoryId, String goodName, String brand,
-                        Map<Long, String> attributes, Map<Long, String> attributeTypes) {
+                        Map<Long, String> attributes, Map<Long, String> attributeTypes,boolean autoSign) {
         public Draft {
             feedTnved = feedTnved == null || feedTnved.isBlank() ? tnved : feedTnved;
             attributes = attributes == null ? Map.of() : Map.copyOf(attributes);
             attributeTypes = attributeTypes == null ? Map.of() : Map.copyOf(attributeTypes);
         }
 
+        public Draft(String tnved,String feedTnved,long categoryId,String goodName,String brand,Map<Long,String> attributes,Map<Long,String> types) {
+            this(tnved,feedTnved,categoryId,goodName,brand,attributes,types,false);
+        }
+        public Draft withAutoSign(boolean enabled){return new Draft(tnved,feedTnved,categoryId,goodName,brand,attributes,attributeTypes,enabled);}
         public Draft(String tnved, String feedTnved, long categoryId, String goodName, String brand,
                      Map<Long, String> attributes) {
             this(tnved, feedTnved, categoryId, goodName, brand, attributes, Map.of());

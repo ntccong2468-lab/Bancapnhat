@@ -38,6 +38,11 @@ class ZnackRegistrationQueryRepositoryTest {
     @AfterEach void cleanup(){System.clearProperty("vncode.appdata.dir");}
     SearchCriteria criteria(String query,int offset){return new SearchCriteria(1,query,List.of(),"ALL",10_000,offset);}
 
+    @Test void changedGroupIsDetectedForBothLoadedRowsAndFrozenBackgroundSelection()throws Exception {
+        try(var c=Database.getConnection();var st=c.createStatement()){st.execute("UPDATE znack_card_registrations SET tnved='6204',feed_id='old-feed' WHERE shop_id=1 AND chrt_id=1");}
+        var query=new SearchCriteria(1,"",List.of(),"ALL",300,0);var page=repository.page(query);var old=page.rows().stream().filter(r->r.chrtId()==1).findFirst().orElseThrow();assertTrue(old.tnvedGroupChanged());assertTrue(page.details().get(1L).groupChanged());assertEquals("6103220000",page.details().get(1L).tnved());
+        assertTrue(repository.allEligible(query).stream().anyMatch(r->r.chrtId()==1&&r.tnvedGroupChanged()));
+    }
     @Test void stableBoundedPagesReachEveryVariantBeyondFiveHundred() {
         var seen=new LinkedHashSet<Long>();
         for(int offset=0;offset<1_230;offset+=ZnackRegistrationQueryRepository.PAGE_SIZE) {

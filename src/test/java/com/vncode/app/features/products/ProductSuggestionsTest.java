@@ -30,6 +30,17 @@ class ProductSuggestionsTest {
         try(var c=Database.getConnection();var s=c.createStatement()){s.execute("UPDATE shops SET api_key='rotated' WHERE id=1");}
         service.suggest(new Shop(1,"WB","rotated"),List.of(key),"brand","Brand");assertEquals(4,calls.get());
     }
+    @Test void ownBrandsArriveBeforeAnyNetworkReadAndAllRemoteResultsRemainScrollable()throws Exception {
+        try(var c=Database.getConnection();var s=c.createStatement()){s.execute("INSERT INTO wb_product_cards(shop_id,nm_id,title,brand,synced_at) VALUES(1,123,'Fixture','Own shop brand','fixture')");}
+        var events=new ArrayList<ProductSuggestionService.Suggestions>();
+        var adapter=new WbListingAdapter(s->(path,b,m)->{
+            assertFalse(events.isEmpty(),"Own brands must be delivered before waiting for the network");assertEquals(List.of("Own shop brand"),events.getFirst().values());
+            var brands=new JsonArray();int start=path.contains("next=1")?120:0;for(int i=start;i<start+120;i++){var item=new JsonObject();item.addProperty("name","Brand "+i);brands.add(item);}
+            var response=new JsonObject();response.add("brands",brands);response.addProperty("next",start==0?1:0);return response;
+        },i->{throw new java.io.IOException();});
+        var service=new ProductSuggestionService((s,k)->snapshot(s,k),s->adapter,k->Optional.of(snapshot(wb,k)));var key=new ProductKey(1,Marketplace.WILDBERRIES,"123","1");
+        var result=service.suggest(wb,List.of(key),"brand","",events::add);assertEquals(241,result.values().size());assertEquals(3,events.size());assertEquals(121,events.get(1).values().size());assertEquals(241,events.getLast().values().size());
+    }
     ProductSnapshot snapshot(Shop s,ProductKey key){return new ProductSnapshot(key,"live:own","Title","","Brand","own","9",List.of(),List.of(),List.of(),new PackageDimensions(null,null,null,null),List.of(),Instant.now(),Map.of("owner",ListingIdentity.fingerprint(s)));}
     @Test void foreignSelectionIsRejectedBeforeAnyLookup()throws Exception{
         var service=new ProductSuggestionService((s,k)->{fail("Must not read foreign card");return null;},s->{fail("Must not call seller");return null;},k->{fail("Must not read foreign cache");return Optional.empty();});

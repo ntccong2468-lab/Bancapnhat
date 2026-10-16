@@ -17,10 +17,13 @@ import static com.vncode.app.features.kiz.KizWarehouseRepository.*;
 public final class KizWarehouseService {
     private final KizWarehouseRepository repository=new KizWarehouseRepository();
     public Imported importFile(Shop shop,KizImportReader.Preview preview,boolean confirmed,String category)throws Exception {
+        return importFile(shop,preview,confirmed,category,false);
+    }
+    public Imported importFile(Shop shop,KizImportReader.Preview preview,boolean confirmed,String category,boolean moveAvailable)throws Exception {
         if(!confirmed)throw new IllegalArgumentException("KIZ_IMPORT_CONFIRMATION_REQUIRED");
         return ShopOperationCoordinator.withActiveShop(shop.getId(),()->{
             LicenseRuntime.require(Permission.KIZ);ListingIdentity.require(shop);
-            return repository.commitToCategory(shop,preview,category);
+            return repository.commitToCategory(shop,preview,category,moveAvailable);
         });
     }
     public Imported importFile(Shop shop,KizImportReader.Preview preview,boolean confirmed)throws Exception {

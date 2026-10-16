@@ -82,15 +82,15 @@ public class ShipmentKizPane extends VBox {
         chooser.getExtensionFilters().addAll(new FileChooser.ExtensionFilter("KIZ","*.txt","*.csv","*.tsv","*.json","*.xml","*.xlsx","*.xls","*.docx","*.rtf","*.md","*.html","*.htm","*.pdf","*.png","*.jpg","*.jpeg","*.bmp","*.gif","*.tif","*.tiff","*.zip"),new FileChooser.ExtensionFilter("All files","*.*"));
         var file=chooser.showOpenDialog(getScene()==null?null:getScene().getWindow());if(file==null)return;
         Shop owner=shop;long epoch=generation;
-        run(()->KizImportReader.read(file.toPath()),preview->{
+        run(()->{var preview=KizImportReader.read(file.toPath());return new ImportPreview(preview,preview.valid()?new KizWarehouseRepository().review(owner,preview,category.id()):null);},data->{
+            var preview=data.preview();
             if(!preview.valid()){
                 status.setText(tr("invalid_file")+"\n"+preview.issues().stream().limit(20).map(issue->issue.row()+": "+KizErrorMessages.message(issue.code())).collect(java.util.stream.Collectors.joining("\n")));return;
             }
-            var confirm=new Alert(Alert.AlertType.CONFIRMATION,MessageFormat.format(tr("confirm_import"),preview.marks().size(),preview.duplicates()),ButtonType.YES,ButtonType.NO);
-            confirm.setHeaderText(owner.getName()+" · "+category.name());AlertService.applyTheme(confirm);if(getScene()!=null)confirm.initOwner(getScene().getWindow());
-            if(confirm.showAndWait().orElse(ButtonType.NO)!=ButtonType.YES||shop!=owner||generation!=epoch)return;
-            run(()->new KizWarehouseService().importFile(owner,preview,true,category.id()),result->{
-                status.setText(MessageFormat.format(tr("imported_result"),result.inserted(),result.duplicates()));reload();
+            var choice=KizImportDialog.confirm(getScene()==null?null:getScene().getWindow(),owner.getName()+" · "+category.name(),preview,data.review());
+            if(choice.isEmpty()||shop!=owner||generation!=epoch)return;
+            run(()->new KizWarehouseService().importFile(owner,preview,true,category.id(),choice.get().moveAvailable()),result->{
+                status.setText(KizImportDialog.resultText(result));reload();
             });
         });
     }
@@ -111,6 +111,7 @@ public class ShipmentKizPane extends VBox {
         table.setPlaceholder(new Label(tr("empty")));table.getColumns().forEach(column->column.setText(tr(String.valueOf(column.getUserData()))));table.refresh();
     }
     private static String tr(String key){return I18nService.getInstance().tr("kiz.shipment."+key);}
+    private record ImportPreview(KizImportReader.Preview preview,KizWarehouseRepository.ImportReview review){}
     private record Snapshot(KizSourceSelection selection,List<ShipmentKizRepository.CategoryStock> categories){}
     @FunctionalInterface private interface Work<T>{T run()throws Exception;}
 }

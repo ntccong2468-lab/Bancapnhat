@@ -149,7 +149,7 @@ public final class ProductRepository {
         if(!cardView||q.marketplace()!=Marketplace.WILDBERRIES)return sql;
         return """
             SELECT card_id,'' variant_id,title,article,market_article,category_id,category,brand,
-              group_concat(NULLIF(size,''),', ') size,group_concat(NULLIF(barcodes,''),char(31)) barcodes,
+              COALESCE(group_concat(NULLIF(size,''),', '),'') size,COALESCE(group_concat(NULLIF(barcodes,''),char(31)),'') barcodes,
               image,color,material,tnved,gender,min(attributes_loaded) attributes_loaded,
               CASE WHEN min(CASE WHEN verified_gtin<>'' THEN 1 ELSE 0 END)=1 THEN min(verified_gtin) ELSE '' END verified_gtin,
               document_state,sort_title FROM (

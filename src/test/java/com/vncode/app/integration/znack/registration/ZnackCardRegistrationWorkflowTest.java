@@ -291,6 +291,34 @@ class ZnackCardRegistrationWorkflowTest {
         assertTrue(workflow.signApproved(shop,List.of(current()),true,null));
         assertEquals(1,api.signatures.get());assertEquals(Status.PUBLISHED,current().status());
     }
+    @Test void changingTnvedGroupViaNormalRegisterArchivesOldCardAndUsesExactlyOneFreshGtin()throws Exception {
+        var oldDraft=new Draft("6104",1,"Fixture","Brand",Map.of());
+        repository.saveGenerated(1,current(),"04631993764363","6104",1,"Fixture",ZnackNationalCatalogService.buildPayload("04631993764363",oldDraft,"").toString());
+        repository.updateProgress(1,11,Status.PUBLISHED,"old-feed",90L,null,true);var old=current();
+        assertTrue(workflow.start(shop,old,draft,null));assertEquals(Status.PUBLISHED,current().status());assertEquals("04631993764370",current().gtin());assertEquals(1,api.allocations.get());assertEquals(1,api.submissions.get());
+        assertEquals("04631993764363",repository.activeGtin(1,11));assertTrue(repository.claimedGtins().contains("04631993764363"));
+        try(var c=Database.getConnection();var st=c.createStatement();var r=st.executeQuery("SELECT gtin,feed_id,payload_json FROM znack_card_registration_history")){assertTrue(r.next());assertEquals("04631993764363",r.getString(1));assertEquals("old-feed",r.getString(2));assertTrue(r.getString(3).contains("6104"));}
+        assertFalse(workflow.start(shop,old,draft,null),"Stale review cannot allocate another GTIN");assertEquals(1,api.allocations.get());
+    }
+    @Test void changingGroupOfRejectedCardRetainsTheOldCheckpointWithoutActivatingIt()throws Exception {
+        var oldDraft=new Draft("6104",1,"Fixture","Brand",Map.of());
+        repository.saveGenerated(1,current(),"04631993764363","6104",1,"Fixture",ZnackNationalCatalogService.buildPayload("04631993764363",oldDraft,"").toString());repository.updateProgress(1,11,Status.ERROR,"old-feed",90L,"Rejected",false);
+        api.moderated=true;assertTrue(workflow.start(shop,current(),draft,null));assertEquals(Status.READY_TO_SIGN,current().status());assertEquals(1,api.allocations.get());assertEquals("",repository.activeGtin(1,11));
+        assertTrue(repository.claimedGtins().contains("04631993764363"));assertEquals(0,api.signatures.get());
+    }
+    @Test void interruptedSavedFeedIsRecoveredByReadOnlyMonitorWithoutRepeatingRegistration()throws Exception {
+        repository.saveGenerated(1,current(),"04631993764370","6204",1,"Fixture",ZnackNationalCatalogService.buildPayload("04631993764370",draft,"").toString());repository.updateProgress(1,11,Status.ERROR,"feed-existing",91L,"Registration interrupted",false);
+        assertTrue(current().canResume());var result=new ZnackRegistrationMonitor(workflow,null).poll(shop,3);assertEquals(1,result.checked());assertEquals(1,result.published());assertEquals(Status.PUBLISHED,current().status());assertEquals(0,api.allocations.get());assertEquals(0,api.submissions.get());assertEquals(0,api.signatures.get());
+    }
+    @Test void confirmedAutomaticSigningSurvivesReopeningAndOnlySignsItsExactCardOnce()throws Exception {
+        api.pendingModeration=true;assertTrue(workflow.start(shop,current(),draft.withAutoSign(true),null));assertEquals(Status.PROCESSING,current().status());assertEquals(0,api.signatures.get());
+        api.pendingModeration=false;api.moderated=true;var reopened=new ZnackCardRegistrationWorkflow(repository,ignored->fixtureSession(),Runnable::run);var monitor=new ZnackRegistrationMonitor(reopened,null);
+        assertEquals(1,monitor.poll(shop,3).published());assertEquals(1,api.signatures.get());assertEquals(Status.PUBLISHED,current().status());monitor.poll(shop,3);assertEquals(1,api.signatures.get());assertEquals(1,api.allocations.get());assertEquals(1,api.submissions.get());
+    }
+    @Test void automaticSigningTimeoutIsReadBackAfterRestartWithoutSendingTheSignatureAgain()throws Exception {
+        api.pendingModeration=true;workflow.start(shop,current(),draft.withAutoSign(true),null);api.pendingModeration=false;api.moderated=true;api.signTimeout=true;
+        var monitor=new ZnackRegistrationMonitor(new ZnackCardRegistrationWorkflow(repository,ignored->fixtureSession(),Runnable::run),null);monitor.poll(shop,3);assertEquals(Status.SIGNING,current().status());assertEquals(1,api.signatures.get());monitor.poll(shop,3);assertEquals(1,api.signatures.get());api.signatureAccepted=true;assertEquals(1,monitor.poll(shop,3).published());assertEquals(1,api.signatures.get());
+    }
     @Test void backgroundMonitorReadsExistingFeedWithoutAllocatingSubmittingOrSigningAgain()throws Exception {
         api.moderated=true;assertTrue(workflow.start(shop,current(),draft,null));
         var monitor=new ZnackRegistrationMonitor(workflow,null);var waiting=monitor.poll(shop,3);
@@ -350,7 +378,7 @@ class ZnackCardRegistrationWorkflowTest {
     class FixtureApi extends ZnackApiClient {
         AtomicInteger allocations=new AtomicInteger(),submissions=new AtomicInteger(),signatures=new AtomicInteger(),documents=new AtomicInteger();
         boolean allocationTimeout,feedTimeout,existingDraft,rejectExistingFeed,readRejected;
-        boolean moderated,signTimeout,signatureAccepted,changeSigningDocument,delayPublication;
+        boolean pendingModeration,moderated,signTimeout,signatureAccepted,changeSigningDocument,delayPublication;
         Map<String,String> bulkGtins=new HashMap<>();
         Map<String,Long> bulkGoodIds=new HashMap<>();
         String existingFeedStatus="Rejected";
@@ -382,7 +410,7 @@ class ZnackCardRegistrationWorkflowTest {
                 readRejected=true;
                 return json("{\"result\":{\"status\":\""+existingFeedStatus+"\",\"item\":[{\"gtin\":\"04631993764370\",\"status_code\":400,\"message\":\"required attribute missing\"}]}}");
             }
-            return json("{\"result\":{\"status\":\""+(moderated && !signatureAccepted?"Moderated":"Signed")+"\",\"item\":[{\"gtin\":\"04631993764370\",\"good_id\":91}]}}");
+            return json("{\"result\":{\"status\":\""+(pendingModeration?"Processing":moderated && !signatureAccepted?"Moderated":"Signed")+"\",\"item\":[{\"gtin\":\"04631993764370\",\"good_id\":91}]}}");
         }
         @Override public JsonElement nationalCatalogSigningDocument(String base,String token,JsonObject body) {
             int count=documents.incrementAndGet();return json("{\"result\":{\"xmls\":[{\"goodId\":91,\"xml\":\"<good>"+(changeSigningDocument && count>1?"changed":"frozen")+"</good>\"}]}}");

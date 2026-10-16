@@ -142,7 +142,7 @@ class ZnackCardRegistrationControllerTest {
         }
         com.vncode.app.testsupport.RegistrationSourceFixture.ready(new Shop(1,"Fixture","fixture"));
         fx(()->{button("refreshButton").fire();return null;});awaitTasks();
-        fx(()->{assertEquals(300,table().getItems().size());assertTrue(button("loadMoreButton").isVisible());button("selectAllButton").fire();return null;});awaitTasks();
+        fx(()->{assertEquals(300,table().getItems().size());assertFalse(button("loadMoreButton").isVisible(),"Scrolling loads more rows without a pagination control");button("selectAllButton").fire();return null;});awaitTasks();
         fx(()->{
             assertEquals(300,table().getItems().size(),"All-filtered selection must not create every FX row");
             Label selected=(Label)loader.getNamespace().get("selectionLabel");

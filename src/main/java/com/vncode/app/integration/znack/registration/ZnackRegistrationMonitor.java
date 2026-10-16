@@ -7,7 +7,7 @@ import com.vncode.app.integration.marketplace.Marketplace;
 import com.vncode.app.models.Shop;
 import java.util.*;
 
-/** Bounded read-only polling in the existing Znack sync worker; no additional scheduler. */
+/** Bounded saved-feed polling in the existing worker. Signing requires exact-card seller consent. */
 public final class ZnackRegistrationMonitor {
     public record Result(int checked,int published,boolean pending){}
     private final ZnackCardRegistrationRepository wb=new ZnackCardRegistrationRepository();

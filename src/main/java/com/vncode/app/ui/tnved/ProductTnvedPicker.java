@@ -34,7 +34,8 @@ public final class ProductTnvedPicker {
         });table.getColumns().add(proposalColumn);
         column(table,tr("znack.registration.status"),p->tr("tnved.proposal_reason."+p.reason()),180);
         var proposals=new TitledPane(tr("tnved.proposal_title"),table);proposals.setExpanded(false);
-        var body=new VBox(8,hint,progress,applyEach,proposals,browser);body.setMinSize(0,0);VBox.setVgrow(browser,Priority.ALWAYS);dialog.getDialogPane().setContent(body);dialog.getDialogPane().setPrefSize(1120,750);dialog.getDialogPane().getButtonTypes().add(ButtonType.CANCEL);DialogLayout.install(dialog.getDialogPane());
+        var body=new VBox(8,hint,progress,proposals,browser);body.setMinSize(0,0);VBox.setVgrow(browser,Priority.ALWAYS);dialog.getDialogPane().setContent(body);dialog.getDialogPane().setPrefSize(1120,750);dialog.getDialogPane().getButtonTypes().add(ButtonType.CANCEL);DialogLayout.install(dialog.getDialogPane());
+        browser.setPickerLeadingAction(applyEach);AlertService.applyTheme(dialog);
         browser.setOnSelect(entry->{onSelect.accept(new Choice(entry.code(),Map.of()));dialog.close();});boolean[] closed={false};dialog.setOnHidden(e->closed[0]=true);
         var frozen=List.copyOf(selected);Shop captured=new Shop(shop.getId(),shop.getName(),shop.getMarketplace(),shop.getClientId(),shop.getApiKey());
         ShopReadCoordinator.shared().submitLocal(new ShopReadCoordinator.Key(shop.getId(),"tnved-proposals",UUID.randomUUID().toString()),()->new ProductTnvedReviewService().review(captured,frozen)).whenComplete((review,error)->Platform.runLater(()->{
