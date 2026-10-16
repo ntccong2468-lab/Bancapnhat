@@ -8,5 +8,13 @@
   "latestInternalSourceAvailable": false,
   "publicSourceReference": "rupphi/test-wcode@8f7c3d1ac8598158029b8d037e2d3c128e240727",
   "publicLegacyKizReference": "rupphi/test-wcode@457a6113301978454f244248956962ab1fcdeb7e",
-  "liveSellerAccountUsed": false
+  "liveSellerAccountUsed": false,
+  "latestTagTree": {
+    "paths": [
+      "README.md"
+    ],
+    "sha": "98b4f47c53bcfaeb6f84ef454def6a2c9cb29322",
+    "truncated": false
+  },
+  "latestTagContainsJavaSource": false
 }

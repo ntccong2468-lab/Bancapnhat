@@ -2,6 +2,7 @@
 
 Bản sửa đồng bộ sản phẩm, Znack/GTIN và kho KIZ seller nhập, kế tiếp 1.4.12.
 
+- UI và tác vụ nền cùng nhận kết quả của một lượt đọc Catalog đang chạy, tránh việc màn hình bị bỏ lại danh sách trống khi đồng bộ lúc khởi động.
 - Dùng chung nguồn Catalog cho các màn hình; đọc theo tài khoản đã xác thực và phân trang, không chỉ danh sách nhóm `lp` hoặc cache đăng ký local.
 - Máy mới có thể lấy API key Catalog qua chứng thư CryptoPro đã cấu hình; bản sao lưu chứa key DPAPI của Windows khác sẽ xác thực lại và lưu key riêng trên máy hiện tại. Không cần đăng nhập trình duyệt; mỗi máy vẫn cần chứng thư/khóa riêng hoạt động.
 - Thẻ đã xuất bản không bị ẩn khỏi nguồn GTIN chỉ vì thiếu metadata giấy tờ. Kiểm tra giấy tờ cho mua/đưa mã vào lưu thông vẫn được giữ đúng bước.

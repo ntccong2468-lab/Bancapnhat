@@ -1,6 +1,6 @@
 # VNCode 1.4.13 — báo cáo các đầu mục được giao ngày 16/10/2026
 
-Bản sửa kế tiếp 1.4.12. Mã ứng dụng cố định tại `c25e971d6babd0e87e6a0acf045d045754b30462`; kết quả kiểm thử cuối và bộ cài được cập nhật ở cuối báo cáo. Chưa dùng tài khoản seller để gửi dữ liệu thật.
+Bản sửa kế tiếp 1.4.12. Mã ứng dụng cố định tại `a605a49684bc9328662b9c3e0225ce10a11d0eae`; kết quả kiểm thử cuối và bộ cài được cập nhật ở cuối báo cáo. Chưa dùng tài khoản seller để gửi dữ liệu thật.
 
 ## 1. Đối chiếu WBCode mới nhất và WCode cũ
 
@@ -54,6 +54,7 @@ Các nguyên nhân cụ thể tìm thấy trong mã và đã sửa:
 
 | Nguyên nhân | Thay đổi |
 |---|---|
+| UI và tác vụ nền cùng yêu cầu đọc một shop | Cùng nhận snapshot và tiến độ từ một lượt đọc đang chạy; không tạo HTTP trùng và không để UI dừng ở danh sách trống vì bị báo bận. Hủy view chờ không hủy tác vụ nền. |
 | Nhiều luồng dùng chung một worker nền | Tách 2 registry workers cho Znack/GS1 khỏi catalog/finance/FBO; giữ riêng 2 worker FBS. Không để hai GS1 cùng giữ hết registry workers. |
 | UI chỉ chờ tác vụ, không có bước chạy hoặc cleanup rõ | Tách 2 worker đọc Catalog khỏi pool tác vụ UI; hiển thị xác thực → danh sách → chi tiết, số đã đọc/tổng, hoàn tất/một phần/lỗi. |
 | Một lô Catalog lỗi bị gọi lại cho từng mã | Ghi nhớ lỗi lô trong snapshot hiện tại, không lặp 25 yêu cầu lỗi giống nhau. |
@@ -96,6 +97,9 @@ Nguồn Catalog ghi từng GTIN thành công, bỏ qua/thẻ chưa đủ điều
 
 ## 6. Kiểm thử và trạng thái phát hành
 
-Kiểm thử local cuối đã đạt: **1408 trường hợp**, **1406 đạt**, **0 thất bại**, **0 lỗi**, **2 bỏ qua theo nền tảng**. Release contracts Node: **53/53 đạt**. Các kiểm thử deadline tác vụ Catalog thực sự giữ worker bận rồi kiểm tra luồng khác vẫn chạy, và hủy một tác vụ đang chờ để xác minh cleanup trên FX thread. [Bằng chứng local](2026-10-16-vncode-1413-local-checks.json).
+Lượt hồi quy trước bổ sung nhận chung kết quả đã đạt: **1408 trường hợp**, **1406 đạt**, **0 thất bại**, **0 lỗi**, **2 bỏ qua theo nền tảng**. Release contracts Node: **53/53 đạt**. Các kiểm thử deadline tác vụ Catalog thực sự giữ worker bận rồi kiểm tra luồng khác vẫn chạy, và hủy một tác vụ đang chờ để xác minh cleanup trên FX thread. [Bằng chứng local](2026-10-16-vncode-1413-local-checks.json).
 
 Đã thêm kiểm tra nâng cấp Windows giữ dữ liệu từ 1.4.12, pin đúng SHA-256 bộ cài đã phát hành. Đang chuẩn bị workflow Windows; chưa có kết quả native cho bản này. Không có thao tác mua KIZ, gán mã thật, gửi GTIN thật hay gửi email GS1 trong lần kiểm thử này. Published/Latest của seller vẫn là 1.4.12; mã 1.4.13 không tự trở thành cập nhật công khai chỉ vì đã commit hoặc tạo artifact kiểm thử.
+
+
+Đã thêm kiểm thử UI và tác vụ nền cùng chờ một snapshot, và hủy một subscriber không hủy nguồn đọc. Tập kiểm tra liên quan đạt 28/28. Đang chạy lại lượt cuối với thay đổi này. Workflow Windows 38891383274 được hủy để bộ cài cuối chứa đúng sửa lỗi đồng thời này.

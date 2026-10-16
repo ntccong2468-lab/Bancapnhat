@@ -3,7 +3,7 @@
   "baseVersion": "1.4.12",
   "complete": false,
   "officialReleasePublished": false,
-  "phase": "implementation-validated-awaiting-windows-build",
+  "phase": "final-shared-read-regression-and-windows-validation",
   "licenseIntegration": {
     "implemented": true,
     "productionReady": false,
@@ -29,15 +29,6 @@
       "skipped": 0,
       "note": "Before final task-deadline tests; final regression results are recorded separately."
     },
-    "fullJavaRegression": {
-      "tests": 1408,
-      "passed": 1406,
-      "failures": 0,
-      "errors": 0,
-      "skipped": 2,
-      "result": "passed",
-      "report": "docs/validation/2026-10-16-vncode-1413-local-checks.json"
-    },
     "liveSecondSellerMachine": false,
     "liveMarketplaceWrite": false,
     "liveKizAssignment": false,
@@ -47,6 +38,28 @@
       "tests": 53,
       "passed": 53,
       "failed": 0
+    },
+    "previousFullJavaRegression": {
+      "tests": 1408,
+      "passed": 1406,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 2,
+      "result": "passed",
+      "report": "docs/validation/2026-10-16-vncode-1413-local-checks.json"
+    },
+    "fullJavaRegression": "running",
+    "sharedReadFocusedTests": {
+      "result": "passed",
+      "tests": 28,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "supersededWindowsRun": {
+      "runId": 38891383274,
+      "result": "cancelled",
+      "reason": "Added shared UI/background result delivery before final Windows build."
     }
   },
   "publication": {
@@ -55,5 +68,5 @@
     "currentSellerLatest": "1.4.12"
   },
   "report": "docs/validation/2026-10-16-vncode-1413-sync-report.md",
-  "applicationCommit": "c25e971d6babd0e87e6a0acf045d045754b30462"
+  "applicationCommit": "a605a49684bc9328662b9c3e0225ce10a11d0eae"
 }
