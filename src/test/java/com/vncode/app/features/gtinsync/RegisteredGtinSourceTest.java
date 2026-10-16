@@ -27,7 +27,7 @@ class RegisteredGtinSourceTest {
     }
     @Test void zeroPaddingDoesNotLoseThePublishedTradeUnitProof()throws Exception{
         var source=new NationalCatalogGtinSource(1,p->JsonParser.parseString("{\"results\":[{\"gtin\":\"4645588781154\"}],\"total\":1}"),g->JsonParser.parseString("{\"result\":[{\"gtin\":\"04645588781154\",\"good_status\":\"published\",\"identified_by\":[{\"type\":\"gtin\",\"value\":\"04645588781154\",\"level\":\"trade-unit\"}]}]}"));
-        var row=source.read(1).getFirst();assertEquals("4645588781154",row.gtin());assertTrue(row.tradeUnit());assertTrue(row.published());
+        var row=source.read(1).getFirst();assertEquals("04645588781154",row.gtin());assertTrue(row.tradeUnit());assertTrue(row.published());
     }
     @Test void rejectsTruncatedPagesAndUnknownResponses() {
         var truncated=new NationalCatalogGtinSource(1,p->JsonParser.parseString("{\"results\":[],\"total\":4}"),g->null);

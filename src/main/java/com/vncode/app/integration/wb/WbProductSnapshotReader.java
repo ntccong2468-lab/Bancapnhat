@@ -17,7 +17,9 @@ public final class WbProductSnapshotReader implements ProductSnapshotReader {
     public WbProductSnapshotReader(){this(ListingHttpClient::new,s->new ListingHttpClient(s,new okhttp3.OkHttpClient(),okhttp3.HttpUrl.parse("https://discounts-prices-api.wildberries.ru/")));}
     public WbProductSnapshotReader(Function<Shop,ListingTransport> clients){this(clients,clients);}
     public WbProductSnapshotReader(Function<Shop,ListingTransport> clients,Function<Shop,ListingTransport> prices){this.clients=clients;this.prices=prices;}
-    public ProductSnapshot read(Shop shop,ProductKey key)throws IOException{
+    public ProductSnapshot read(Shop shop,ProductKey key)throws IOException{return read(shop,key,true);}
+    public ProductSnapshot readForSynchronization(Shop shop,ProductKey key)throws IOException{return read(shop,key,false);}
+    private ProductSnapshot read(Shop shop,ProductKey key,boolean includePrices)throws IOException{
         ListingIdentity.require(shop,key);if(key.marketplace()!=Marketplace.WILDBERRIES)throw new SecurityException("Not a WB card");
         JsonObject filter=new JsonObject();filter.addProperty("textSearch",key.cardId());filter.addProperty("withPhoto",-1);
         JsonObject cursor=new JsonObject();cursor.addProperty("limit",100);JsonObject settings=new JsonObject();settings.add("filter",filter);settings.add("cursor",cursor);
@@ -41,7 +43,7 @@ public final class WbProductSnapshotReader implements ProductSnapshotReader {
             docs.add(new ProductDocument(text(doc,"id"),text(doc,"type"),text(doc,"number"),date(text(doc,"startDate")),end,text(doc,"applicant"),text(doc,"productNumber"),null,Marketplace.WILDBERRIES,state,"https://content-api.wildberries.ru/content/v2/get/cards/list",now,metadata(doc)));
         }
         var inherited=new LinkedHashMap<String,String>();
-        try{
+        if(includePrices)try{
             var pricing=object(prices.apply(shop).call("api/v2/list/goods/filter?limit=100&filterNmID="+key.cardId(),null,false));
             var matching=array(obj(pricing,"data"),"listGoods").asList().stream().map(com.vncode.app.integration.listing.ListingJson::object).filter(g->text(g,"nmID").equals(key.cardId())).toList();
             if(matching.size()==1){var goods=matching.getFirst();String currency=text(goods,"currencyIsoCode4217");if(!currency.isBlank())inherited.put("source.currency",currency);

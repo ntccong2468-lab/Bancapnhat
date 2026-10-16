@@ -35,6 +35,7 @@ public final class SyncRuntime implements AutoCloseable {
             case FBS_QUEUE,FBS_STATUS,SUPPLIES,SUPPLY_CONTENT,HISTORY:return fbs.step(shop,stream,checkpoint);
             case CATALOG:{
                 int count=shop.getMarketplace()==Marketplace.OZON?new OzonSyncWorkflow().syncCatalog(shop):new WbSyncWorkflow().syncProducts(shop);
+                coordinator.request(shop.getId(),SyncCoordinator.Stream.ZNACK);
                 return SyncCoordinator.Page.complete(count);
             }
             case ZNACK:{

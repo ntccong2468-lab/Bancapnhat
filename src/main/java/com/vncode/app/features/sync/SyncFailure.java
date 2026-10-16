@@ -22,6 +22,12 @@ public record SyncFailure(String code,Duration delay,boolean actionRequired) {
                 if(w.getStatusCode()==429)return new SyncFailure("WB_RATE_LIMIT",Duration.ofMinutes(1),false);
                 return new SyncFailure("WB_HTTP_"+w.getStatusCode(),backoff(attempt),false);
             }
+            if(e instanceof com.vncode.app.integration.znack.ZnackApiClient.ZnackApiException z){
+                if(z.statusCode()==401||z.statusCode()==403)return new SyncFailure("ZNACK_AUTH_REQUIRED",Duration.ofMinutes(1),true);
+                if(z.statusCode()==429)return new SyncFailure("ZNACK_RATE_LIMIT",Duration.ofMinutes(1),false);
+                return new SyncFailure("ZNACK_HTTP_"+z.statusCode(),backoff(attempt),z.statusCode()>=400&&z.statusCode()<500);
+            }
+            if(e instanceof java.io.InterruptedIOException&&!(e instanceof java.net.SocketTimeoutException))return new SyncFailure("ZNACK_SYNC_CANCELLED",backoff(attempt),false);
             if(e instanceof java.net.SocketTimeoutException||e instanceof java.net.http.HttpTimeoutException)return new SyncFailure("NETWORK_TIMEOUT",backoff(attempt),false);
             if(e instanceof java.net.UnknownHostException)return new SyncFailure("NETWORK_DNS",backoff(attempt),false);
             if(e instanceof com.vncode.app.features.gtinsync.RegisteredGtinProof.UnverifiedOwnerException u)return new SyncFailure("CATALOG_"+u.reason().name(),Duration.ofMinutes(5),true);

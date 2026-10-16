@@ -103,7 +103,20 @@ public class ZnackApiClient {
         return post(authBase(base), "/auth/simpleSignIn" + (connection == null || connection.isBlank() ? "" : "/" + connection), null, body).getAsJsonObject();
     }
     public JsonElement products(String base, String token) throws IOException { return products(base, token, 0, 10_000); }
+    public boolean hasCatalogKey(){return !catalogKey.isEmpty();}
     public JsonElement products(String base, String token, int page, int limit) throws IOException {
+        if(page<0||page>=100||limit<1||limit>10_000)throw new IllegalArgumentException("CATALOG_PAGE_INVALID");
+        if(hasCatalogKey()){
+            int size=Math.min(limit,1000);
+            var response=get(nationalCatalogBase(base),"/v4/product-list?limit="+size+"&offset="+Math.multiplyExact(page,size),null);
+            try{
+                var result=response.getAsJsonObject().getAsJsonObject("result");
+                if(response.getAsJsonObject().has("errors"))throw new IllegalArgumentException();
+                var goods=result.getAsJsonArray("goods");int total=result.get("total").getAsBigDecimal().intValueExact();
+                if(total<0||goods==null||goods.size()>size)throw new IllegalArgumentException();
+                var normalized=new JsonObject();normalized.add("results",goods);normalized.addProperty("total",total);return normalized;
+            }catch(RuntimeException invalid){throw new IOException("CATALOG_LIST_RESPONSE_INVALID");}
+        }
         return get(trueApiBase(base, 4), "/product/gtin?includeSubaccount=false&limit=" + limit + "&page=" + page + "&pg=lp", token);
     }
     public JsonElement productInfo(String base,String token,String gtin)throws IOException{
@@ -284,6 +297,7 @@ public class ZnackApiClient {
         return RATE_LIMIT_FALLBACK_DELAY_MS<<(attempt-1);
     }
     private void sleepRateLimit(long delay)throws IOException{
+        com.vncode.app.shared.RateLimitDeferral.waiting(java.util.concurrent.TimeUnit.MILLISECONDS.toNanos(delay));
         try{sleeper.sleep(delay);}
         catch(InterruptedException e){Thread.currentThread().interrupt();throw new IOException("Interrupted while waiting for the Znack rate limit.",e);}
     }

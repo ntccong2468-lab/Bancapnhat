@@ -16,6 +16,7 @@ public final class KizErrorMessages {
             case "KIZ_INVENTORY_SHORTAGE"->"shortage";
             case "KIZ_PURCHASE_PENDING"->"purchase_pending";
             case "KIZ_NOT_VERIFIED"->"not_verified";
+            case "KIZ_CATEGORY_REQUIRED"->"category_required";
             case "KIZ_NOT_IN_CIRCULATION"->"not_circulating";
             case "KIZ_OWNER_MISMATCH","KIZ_OWNER_CHANGED"->"owner";
             case "KIZ_GTIN_MISMATCH","KIZ_GTIN_INVALID"->"gtin";

@@ -15,7 +15,7 @@ public final class JobReportRepository {
         for(var run:new SyncRunRepository().list(0,0,500))out.add(new Report(run.id(),run.shopId(),names.getOrDefault(run.shopId(),""),run.marketplace(),run.kind(),run.state(),run.step(),run.total(),run.updated(),run.error(),true));
         try(var c=Database.getConnection();var p=c.prepareStatement("SELECT j.*,s.name,s.marketplace FROM sync_streams j JOIN shops s ON s.id=j.shop_id WHERE j.last_attempt IS NOT NULL");var r=p.executeQuery()){
             while(r.next()){
-                String code=r.getString("error_code"),state=!code.isBlank()?(code.startsWith("NETWORK_")||code.endsWith("COOLDOWN")||code.endsWith("RATE_LIMIT")||code.equals("GS1_SYNC_PARTIAL")?"WAITING_REMOTE":"NEEDS_ACTION"):r.getString("last_success")==null||r.getString("last_attempt").compareTo(r.getString("last_success"))>0?"RUNNING":r.getString("checkpoint").isBlank()?"SUCCEEDED":"RUNNING";
+                String code=r.getString("error_code"),state=!code.isBlank()?(code.startsWith("NETWORK_")||code.endsWith("COOLDOWN")||code.endsWith("RATE_LIMIT")||code.equals("GS1_SYNC_PARTIAL")||code.equals("READBACK_PENDING")||code.equals("ZNACK_SYNC_ALREADY_RUNNING")?"WAITING_REMOTE":"NEEDS_ACTION"):r.getString("last_success")==null||r.getString("last_attempt").compareTo(r.getString("last_success"))>0?"RUNNING":r.getString("checkpoint").isBlank()?"SUCCEEDED":"RUNNING";
                 out.add(new Report("stream:"+r.getInt("shop_id")+":"+r.getString("stream"),r.getInt("shop_id"),r.getString("name"),r.getString("marketplace"),"sync",state,r.getString("stream"),0,r.getString("last_attempt"),code,false));
             }
         }catch(SQLException e){throw new IllegalStateException("JOBS_READ_FAILED",e);}

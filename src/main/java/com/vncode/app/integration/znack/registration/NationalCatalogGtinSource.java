@@ -17,6 +17,15 @@ public final class NationalCatalogGtinSource implements RegisteredGtinSource {
     @FunctionalInterface public interface CardReader {JsonElement read(String gtin) throws Exception;default void prepare(Collection<String> gtins){}}
     @FunctionalInterface public interface AdditionalGtinReader {List<String> read() throws Exception;}
     public record CardIssue(String gtin,String code) {}
+    public record Progress(String phase,int completed,int total) {}
+    private java.util.function.Consumer<Progress> progress=p->{};
+    public NationalCatalogGtinSource progress(java.util.function.Consumer<Progress> listener){progress=Objects.requireNonNull(listener);return this;}
+    private long deadline;
+    private void checkpoint(String phase,int completed,int total)throws IOException {
+        if(Thread.currentThread().isInterrupted())throw new java.io.InterruptedIOException("ZNACK_SYNC_CANCELLED");
+        if(System.nanoTime()>deadline)throw new java.net.SocketTimeoutException("ZNACK_SYNC_TIMEOUT");
+        progress.accept(new Progress(phase,completed,total));
+    }
     private java.util.function.Consumer<CardIssue> issues;
     private NationalCatalogGtinSource tolerate(java.util.function.Consumer<CardIssue> consumer){issues=consumer;return this;}
     private final int shopId;
@@ -27,10 +36,10 @@ public final class NationalCatalogGtinSource implements RegisteredGtinSource {
     private final CardReader documents;
     /** Same 25-GTIN, semicolon-delimited contract as ZnackProductService. Cache only one batch. */
     static final class BatchedCards implements CardReader {
-        private final CardReader remote;private final Map<String,String> groups=new LinkedHashMap<>();private String cachedGroup;private JsonElement cached;
+        private final CardReader remote;private final Map<String,String> groups=new LinkedHashMap<>();private String cachedGroup;private JsonElement cached;private Exception cachedFailure;
         BatchedCards(CardReader remote){this.remote=remote;}
-        public void prepare(Collection<String> gtins){groups.clear();cachedGroup=null;cached=null;var ordered=List.copyOf(gtins);for(int i=0;i<ordered.size();i+=25){var batch=ordered.subList(i,Math.min(i+25,ordered.size()));String group=String.join(";",batch);batch.forEach(gtin->groups.put(gtin,group));}}
-        public JsonElement read(String gtin)throws Exception{String group=groups.get(gtin);if(group==null)throw new IllegalArgumentException("unknown_catalog_batch_gtin");if(!group.equals(cachedGroup)){var response=remote.read(group);cached=response;cachedGroup=group;}return cached;}
+        public void prepare(Collection<String> gtins){groups.clear();cachedGroup=null;cached=null;cachedFailure=null;var ordered=List.copyOf(gtins);for(int i=0;i<ordered.size();i+=25){var batch=ordered.subList(i,Math.min(i+25,ordered.size()));String group=String.join(";",batch);batch.forEach(gtin->groups.put(gtin,group));}}
+        public JsonElement read(String gtin)throws Exception{String group=groups.get(gtin);if(group==null)throw new IllegalArgumentException("unknown_catalog_batch_gtin");if(!group.equals(cachedGroup)){cachedGroup=group;cached=null;cachedFailure=null;try{cached=remote.read(group);}catch(Exception failed){cachedFailure=failed;}}if(cachedFailure!=null)throw cachedFailure;return cached;}
     }
     public NationalCatalogGtinSource(int shopId,PageReader pages,CardReader cards){this(shopId,pages,cards,"National Catalog");}
     public NationalCatalogGtinSource(int shopId,PageReader pages,CardReader cards,String source){this(shopId,pages,cards,source,List::of);}
@@ -40,8 +49,10 @@ public final class NationalCatalogGtinSource implements RegisteredGtinSource {
     /** Explicit selected-card refresh avoids registry calls across an entire large shop. */
     public static RegisteredGtinSource forSelection(Shop selected,Set<String> selectedGtins,boolean includeDocuments){return forScope(selected,Set.copyOf(selectedGtins),includeDocuments);}
     public static RegisteredGtinSource forShopPartial(Shop shop,java.util.function.Consumer<CardIssue> issues){return forScope(shop,null,false,Objects.requireNonNull(issues));}
+    public static RegisteredGtinSource forShopPartial(Shop shop,java.util.function.Consumer<CardIssue> issues,java.util.function.Consumer<Progress> progress){return forScope(shop,null,false,Objects.requireNonNull(issues),progress);}
     private static RegisteredGtinSource forScope(Shop selected,Set<String> selectedGtins,boolean includeDocuments){return forScope(selected,selectedGtins,includeDocuments,null);}
-    private static RegisteredGtinSource forScope(Shop selected,Set<String> selectedGtins,boolean includeDocuments,java.util.function.Consumer<CardIssue> issues) {
+    private static RegisteredGtinSource forScope(Shop selected,Set<String> selectedGtins,boolean includeDocuments,java.util.function.Consumer<CardIssue> issues){return forScope(selected,selectedGtins,includeDocuments,issues,p->{});}
+    private static RegisteredGtinSource forScope(Shop selected,Set<String> selectedGtins,boolean includeDocuments,java.util.function.Consumer<CardIssue> issues,java.util.function.Consumer<Progress> progress) {
         Shop shop=new Shop(selected.getId(),selected.getName(),selected.getMarketplace(),selected.getClientId(),selected.getApiKey());
         int id=shop.getId();String name=shop.getName();
         return requested -> {
@@ -49,7 +60,8 @@ public final class NationalCatalogGtinSource implements RegisteredGtinSource {
             LicenseRuntime.require(Permission.SELLER_API);
             var settings=new ZnackRepository(new ZnackModels.ShopContext(id,name)).getSettings();
             var owner=RegisteredGtinProof.scope(shop,settings,Instant.now());
-            var api=com.vncode.app.integration.znack.CatalogConnectionService.apiForShop(shop,settings);
+            progress.accept(new Progress("AUTHENTICATING",0,0));
+            var api=com.vncode.app.integration.znack.CatalogConnectionService.apiForRead(shop,settings);
             var provider=new com.vncode.app.integration.znack.signature.CryptoProSignatureProvider(settings.cryptcpPath(),owner.fingerprint(),java.time.Duration.ofSeconds(settings.resolvedCryptoProTimeoutSeconds()));
             com.vncode.app.integration.znack.signature.ZnackSignatureProvider signer=(payload,context)->{
                 requireOwner(shop,owner.source());
@@ -60,35 +72,39 @@ public final class NationalCatalogGtinSource implements RegisteredGtinSource {
                 return signed;
             };
             var auth=new ZnackAuthService(api,signer);
-            var token=auth.trueApiToken(settings);
+            var token=api.hasCatalogKey()?null:auth.trueApiToken(settings);
             if(auth.authenticatedParticipantInn()!=null&&!owner.inn().equals(auth.authenticatedParticipantInn()))throw new IllegalStateException("unverified_catalog_owner");
             var registeredScope=ZnackRegistrationScope.fromSettings(settings);
             var result=new NationalCatalogGtinSource(id,p->{requireOwner(shop,owner.source());return selectedGtins==null?api.products(settings.resolvedTrueApiBaseUrl(),token,p,10_000):com.google.gson.JsonParser.parseString("{\"results\":[],\"total\":0}");},new BatchedCards(g->{requireOwner(shop,owner.source());var response=api.productCards(settings.resolvedTrueApiBaseUrl(),token,g);requireOwner(shop,owner.source());return response;}),owner.source(),()->{
                 requireOwner(shop,owner.source());return selectedGtins==null?ownedPublishedGtins(shop,registeredScope):List.copyOf(selectedGtins);
-            },includeDocuments?g->{requireOwner(shop,owner.source());return api.permitDocuments(settings.resolvedTrueApiBaseUrl(),token,g,owner.inn());}:null).tolerate(issues).read(id);
+            },includeDocuments?g->{requireOwner(shop,owner.source());return api.permitDocuments(settings.resolvedTrueApiBaseUrl(),token,g,owner.inn());}:null).tolerate(issues).progress(progress).read(id);
             requireOwner(shop,owner.source());
             return result;
         };
     }
     @Override public List<RegisteredGtin> read(int requestedShop) throws Exception {
         if(requestedShop!=shopId) throw new IllegalArgumentException("shop_mismatch");
+        deadline=System.nanoTime()+java.time.Duration.ofMinutes(3).toNanos();
         var gtins=new LinkedHashSet<String>();int received=0;Integer total=null;
         boolean complete=false;
         for(int page=0;page<100;page++) {
             LicenseRuntime.require(Permission.SELLER_API);
+            checkpoint("READING_LIST",received,total==null?0:total);
             JsonElement response=pages.read(page);JsonArray rows;
             if(response!=null && response.isJsonArray()) rows=response.getAsJsonArray();
             else if(response!=null && response.isJsonObject() && response.getAsJsonObject().has("results") && response.getAsJsonObject().get("results").isJsonArray()) {
                 var object=response.getAsJsonObject();rows=object.getAsJsonArray("results");
-                if(object.has("total")) total=object.get("total").getAsInt();
+                if(object.has("total")){int observed;try{observed=object.get("total").getAsBigDecimal().intValueExact();}catch(RuntimeException invalid){throw new IOException("invalid_catalog_total");}if(observed<0||(total!=null&&total!=observed))throw new IOException("catalog_changed_during_read");total=observed;}
             } else throw new IOException("invalid_catalog_page");
             for(var e:rows) {
                 if(!e.isJsonObject())throw new IOException("invalid_catalog_product");
                 String gtin=text(e.getAsJsonObject(),"gtin","productGtin");
                 if(!RegisteredGtinValidator.isValid(gtin))throw new IOException("invalid_catalog_gtin");
+                gtin=GtinNormalizer.normalize(gtin);
                 if(!gtins.add(gtin))throw new IOException("repeated_catalog_product");
             }
             received+=rows.size();
+            if(total!=null&&received>total)throw new IOException("invalid_catalog_total");
             if(total!=null && received>=total){complete=true;break;}
             if(rows.isEmpty() && total!=null && received<total)throw new IOException("incomplete_catalog");
             if(total==null && rows.size()<10_000){complete=true;break;}
@@ -98,18 +114,21 @@ public final class NationalCatalogGtinSource implements RegisteredGtinSource {
         // category. Its local checkpoint is only an identity to query, never publication proof.
         for(String gtin:additional.read()) {
             if(!RegisteredGtinValidator.isValid(gtin))throw new IOException("invalid_registered_catalog_gtin");
-            gtins.add(gtin);
+            gtins.add(GtinNormalizer.normalize(gtin));
         }
         var result=new ArrayList<RegisteredGtin>();var now=Instant.now();
         cards.prepare(gtins);
+        int checked=0;
         for(String gtin:gtins) {
             LicenseRuntime.require(Permission.SELLER_API);
+            checkpoint("READING_CARDS",checked++,gtins.size());
             try{result.add(readCard(gtin,now));}
             catch(Exception failure){
-                if(issues==null||failure instanceof InterruptedException||failure instanceof SecurityException||failure instanceof com.vncode.app.features.license.LicenseGate.LicenseDeniedException||failure instanceof IllegalStateException)throw failure;
+                if(issues==null||failure instanceof InterruptedException||failure instanceof SecurityException||failure instanceof com.vncode.app.features.license.LicenseGate.LicenseDeniedException||failure instanceof IllegalStateException||failure instanceof java.io.InterruptedIOException||failure instanceof com.vncode.app.shared.RateLimitDeferral.Deferred)throw failure;
                 issues.accept(new CardIssue(gtin,com.vncode.app.features.sync.SyncFailure.of(failure,0).code()));
             }
         }
+        checkpoint("SOURCE_COMPLETE",checked,gtins.size());
         return List.copyOf(result);
     }
     private RegisteredGtin readCard(String gtin,Instant now)throws Exception {

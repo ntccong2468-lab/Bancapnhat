@@ -19,10 +19,9 @@ public final class KizWarehouseService {
     public Imported importFile(Shop shop,KizImportReader.Preview preview,boolean confirmed)throws Exception {
         if(!confirmed)throw new IllegalArgumentException("KIZ_IMPORT_CONFIRMATION_REQUIRED");
         return ShopOperationCoordinator.withActiveShop(shop.getId(),()->{
-            LicenseRuntime.require(Permission.KIZ);ListingIdentity.require(shop);var scope=RegisteredGtinProof.current(shop);
-            RegisteredGtinProof.requireProduction(scope);
-            for(String gtin:preview.counts().keySet())GtinNormalizer.requireProductionOrderable(gtin);
-            return repository.commit(shop,scope,preview);
+            LicenseRuntime.require(Permission.KIZ);ListingIdentity.require(shop);
+            // A seller-provided category pool is local stock, not a Catalog observation.
+            return repository.commit(shop,preview);
         });
     }
     /** Read-only True API verification, not introduction, order creation, or code purchase. */

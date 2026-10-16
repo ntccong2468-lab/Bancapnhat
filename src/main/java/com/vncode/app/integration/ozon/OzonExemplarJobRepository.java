@@ -418,8 +418,8 @@ public final class OzonExemplarJobRepository {
         try (PreparedStatement reserve = connection.prepareStatement("""
                 UPDATE kiz_codes SET status='RESERVED',reservation_token=?,reserved_at=?,
                     reservation_recoverable=0,updated_at=?
-                WHERE id=? AND shop_id=? AND status='AVAILABLE' AND legal_status='IN_CIRCULATION'
-                """); PreparedStatement link = connection.prepareStatement("""
+                WHERE id=? AND shop_id=? AND status='AVAILABLE' AND (legal_status='IN_CIRCULATION' OR %s)
+                """.formatted(com.vncode.app.features.kiz.KizWarehouseRepository.categoryStock("kiz_codes"))); PreparedStatement link = connection.prepareStatement("""
                 UPDATE ozon_exemplars SET kiz_id=?,updated_at=? WHERE id=? AND job_id=? AND kiz_id IS NULL
                 """)) {
             for (OzonRequirementGuard.RequiredItem required : plan.items()) {

@@ -70,9 +70,17 @@ class ZnackAutoSyncServiceTest {
         init(Marketplace.WILDBERRIES);service.step(shop,"");var reports=new SyncRunRepository();var id=reports.list(shop.getId(),0,10).getFirst().id();
         reports.stage(shop,id,"PAUSED","MATCHING","");assertTrue(service.step(shop,"").complete());assertEquals(0,writes);assertEquals(1,sourceReads);assertEquals(1,reports.list(shop.getId(),0,10).size());assertEquals("PAUSED",reports.find(id).orElseThrow().state());
     }
+    @Test void repeatedNetworkFailureEndsInAnActionableReportInsteadOfSynchronizingForever()throws Exception{
+        init(Marketplace.OZON);service.step(shop,"");
+        // The live detail no longer contains the selected variant; transport can also fail independently.
+        var failed=new ZnackAutoSyncService((s,i)->List.of(observation),(s,k)->{throw new java.net.SocketTimeoutException("fixture only");},new CatalogSyncService());
+        for(int attempt=0;attempt<4;attempt++)failed.step(shop,"");
+        var reports=new SyncRunRepository();var run=reports.list(shop.getId(),0,10).getFirst();assertEquals("PARTIAL",run.state());
+        var item=reports.items(run.id(),0,10).getFirst();assertEquals("NEEDS_ACTION",item.state());assertEquals("NETWORK_TIMEOUT",item.error());assertEquals(0,writes);
+    }
     static final class ReadOnlyListing implements ListingTargetAdapter {
         public List<TargetCategory> categories(Shop s){return List.of();}
-        public List<TargetAttribute> attributes(Shop s,String id){return List.of();}
+        public List<TargetAttribute> attributes(Shop s,String id){throw new AssertionError("GTIN-only sync does not need metadata dictionaries");}
         public CopyPreview preview(Shop s,ProductSnapshot f,CopyOptions o){throw new AssertionError("No product copy");}
         public ProductEditPreview previewUpdate(Shop s,ProductSnapshot f,Map<String,List<String>> changes,List<ProductDocument> docs){throw new AssertionError("GTIN-only task cannot alter metadata");}
         public RemoteSubmission submit(Shop s,CopyPreview p){throw new AssertionError("No product copy");}

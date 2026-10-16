@@ -33,11 +33,11 @@ class KizCategoryAllocatorTest {
         assertEquals(2,result.get("order-product").size());assertEquals(KizWarehouseTest.GTIN,KizMark.parse(result.get("order-product").getFirst().getCode()).gtin());assertNotEquals(GtinWriteTestFixture.GTIN,KizWarehouseTest.GTIN);
         var codes=result.get("order-product");assertEquals(2,new ZnackGtinInventoryService().release(shop.getId(),codes));assertEquals(2,categories.list(shop).getFirst().ready());
     }
-    @Test void categoriesDoNotCrossAndPartialShortageDoesNotUseUnverifiedCodes()throws Exception{
+    @Test void categoriesDoNotCrossAndSellerStockNeedsNoRemoteVerification()throws Exception{
         var trousers=categories.create(shop,"Quần");var shirts=categories.create(shop,"Áo");categories.assignProducts(shop,trousers.id(),List.of(product(101)));categories.assignProducts(shop,shirts.id(),List.of(product(102)));
         stock(1,1,trousers.id(),true);stock(2,2,shirts.id(),false);
         var result=new KizCategoryAllocator().reservePartial(shop,List.of(new KizCategoryAllocator.Demand("a","101",3),new KizCategoryAllocator.Demand("b","102",2)));
-        assertEquals(1,result.get("a").size());assertFalse(result.containsKey("b"));assertEquals(KizWarehouseTest.mark(1),result.get("a").getFirst().getCode());
+        assertEquals(1,result.get("a").size());assertEquals(2,result.get("b").size());assertEquals(KizWarehouseTest.mark(1),result.get("a").getFirst().getCode());
     }
     @Test void exactGtinFallbackCannotTakeStockClassifiedForAnotherProduct()throws Exception{
         var category=categories.create(shop,"Quần");categories.assignProducts(shop,category.id(),List.of(product(101)));stock(1,2,category.id(),true);
@@ -55,8 +55,26 @@ class KizCategoryAllocatorTest {
             var mark=reserved.get("a").getFirst();assertTrue(KizCategoryAllocator.hasProof(c,1,com.vncode.app.integration.listing.ListingIdentity.fingerprint(shop),mark.getId(),mark.getReservationToken(),"a","101"));
             assertFalse(KizCategoryAllocator.hasProof(c,1,com.vncode.app.integration.listing.ListingIdentity.fingerprint(shop),mark.getId(),mark.getReservationToken(),"a","102"));
             try(var statement=c.createStatement()){statement.execute("UPDATE znack_settings SET owner_inn='7711111111' WHERE shop_id=1");}
-            assertFalse(KizCategoryAllocator.hasProof(c,1,com.vncode.app.integration.listing.ListingIdentity.fingerprint(shop),mark.getId(),mark.getReservationToken(),"a","101"),"Changing the company must not authorize the previous company's imported reservation");
+            assertTrue(KizCategoryAllocator.hasProof(c,1,com.vncode.app.integration.listing.ListingIdentity.fingerprint(shop),mark.getId(),mark.getReservationToken(),"a","101"),"Seller category allocation must not depend on Znack company settings");
         }
+    }
+    @Test void localImportAndReservationWorkWithoutAnyZnackCertificateOrConfiguration()throws Exception{
+        var group=categories.create(shop,"Quần");categories.assignProducts(shop,group.id(),List.of(product(101)));
+        try(var c=Database.getConnection();var statement=c.createStatement()){statement.execute("DELETE FROM znack_settings");}
+        var file=root.resolve("offline-seller-stock.txt");Files.writeString(file,KizWarehouseTest.mark(1));
+        var imported=new KizWarehouseService().importFile(shop,KizImportReader.read(file),true);categories.classifyBatch(shop,group.id(),imported.batch());
+        var reserved=new KizCategoryAllocator().reservePartial(shop,List.of(new KizCategoryAllocator.Demand("order","101",1))).get("order");
+        assertEquals(1,reserved.size());assertEquals(1,new ZnackGtinInventoryService().consume(shop.getId(),reserved));
+        try(var c=Database.getConnection();var statement=c.createStatement();var rows=statement.executeQuery("SELECT legal_status FROM kiz_codes")){assertTrue(rows.next());assertEquals("RECEIVED",rows.getString(1),"Local allocation must not fabricate circulation verification");}
+        assertTrue(new GtinSyncRepository().catalog(shop.getId(),shop.getMarketplace()).stream().noneMatch(row->row.gtin().equals(KizWarehouseTest.GTIN)));
+    }
+    @Test void previouslyHiddenCatalogProductCannotBlockLocalSellerImport()throws Exception{
+        var group=categories.create(shop,"Quần");categories.assignProducts(shop,group.id(),List.of(product(101)));
+        try(var c=Database.getConnection();var statement=c.createStatement()){statement.execute("INSERT INTO znack_products(shop_id,gtin,deleted_at,synced_at) VALUES(1,'"+KizWarehouseTest.GTIN+"','fixture-hidden','fixture')");statement.execute("DELETE FROM znack_settings");}
+        var file=root.resolve("hidden-product.txt");Files.writeString(file,KizWarehouseTest.mark(1));
+        var imported=new KizWarehouseService().importFile(shop,KizImportReader.read(file),true);categories.classifyBatch(shop,group.id(),imported.batch());
+        assertEquals(1,new KizCategoryAllocator().reservePartial(shop,List.of(new KizCategoryAllocator.Demand("order","101",1))).get("order").size());
+        try(var c=Database.getConnection();var statement=c.createStatement();var rows=statement.executeQuery("SELECT deleted_at FROM znack_products WHERE gtin='"+KizWarehouseTest.GTIN+"'")){assertTrue(rows.next());assertEquals("fixture-hidden",rows.getString(1));}
     }
     @Test void concurrentThousandItemRequestsNeverClaimTheSameCode()throws Exception{
         var group=categories.create(shop,"Quần");categories.assignProducts(shop,group.id(),List.of(product(101)));stock(1,1000,group.id(),true);

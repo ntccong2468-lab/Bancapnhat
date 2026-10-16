@@ -17,7 +17,9 @@ public final class OzonProductSnapshotReader implements ProductSnapshotReader {
     private final Function<Shop,ListingTransport> clients;
     public OzonProductSnapshotReader(){this(ListingHttpClient::new);}
     public OzonProductSnapshotReader(Function<Shop,ListingTransport> clients){this.clients=clients;}
-    public ProductSnapshot read(Shop shop,ProductKey key)throws IOException{
+    public ProductSnapshot read(Shop shop,ProductKey key)throws IOException{return read(shop,key,true);}
+    public ProductSnapshot readForSynchronization(Shop shop,ProductKey key)throws IOException{return read(shop,key,false);}
+    private ProductSnapshot read(Shop shop,ProductKey key,boolean includePrices)throws IOException{
         ListingIdentity.require(shop,key);if(key.marketplace()!=Marketplace.OZON)throw new SecurityException("Not an Ozon card");var client=clients.apply(shop);
         var ids=new JsonArray();ids.add(key.cardId());var b=new JsonObject();b.add("product_id",ids);
         var info=find(array(object(client.call("v3/product/info/list",b,false)),"items"),key.cardId());
@@ -45,7 +47,7 @@ public final class OzonProductSnapshotReader implements ProductSnapshotReader {
             }
         }
         var inherited=new LinkedHashMap<String,String>();
-        try{
+        if(includePrices)try{
             var amount=price(info);String priceCurrency=info.has("price")&&info.get("price").isJsonObject()?text(obj(info,"price"),"currency_code"):text(info,"currency_code");
             if(amount==null||amount.signum()<=0){var pricingFilter=new JsonObject();pricingFilter.add("product_id",ids);pricingFilter.addProperty("visibility","ALL");var pricingRequest=new JsonObject();pricingRequest.add("filter",pricingFilter);pricingRequest.addProperty("limit",1);pricingRequest.addProperty("cursor","");
                 var pricing=object(client.call("v5/product/info/prices",pricingRequest,false));

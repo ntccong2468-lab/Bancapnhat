@@ -111,6 +111,7 @@ public class ZnackAutomationController {
     private boolean updatingCertificateSelection;
     private boolean reopeningCertificatePopup;
     private boolean productSyncRunning;
+    private Task<List<Product>> productSyncTask;
     private boolean signerChangeSyncPending;
     private boolean signatureTestRunning;
     private long certificateDiscoveryGeneration;
@@ -269,6 +270,7 @@ public class ZnackAutomationController {
         warehousePane.setShop(shop);
         if(warehouseTab.isSelected())warehousePane.reload();
         shopGeneration++;
+        if(productSyncTask!=null){productSyncTask.cancel(true);productSyncTask=null;}
         catalogCheckRunning = false;
         catalogShop = shop == null ? null : new Shop(shop.getId(), shop.getName(), shop.getMarketplace(), shop.getClientId(), shop.getApiKey());
         resetAccountSession();
@@ -1119,30 +1121,35 @@ public class ZnackAutomationController {
         long generation = shopGeneration;
         ZnackRepository currentRepository = repository;
         Settings currentSettings = loaded;
+        Shop sourceShop=catalogShop;
+        var partialCards=new java.util.concurrent.atomic.AtomicInteger();
         Task<List<Product>> task = new Task<>() {
             @Override protected List<Product> call() throws Exception {
                 try {
-                    ZnackApiClient api = verifiedApi == null ? new ZnackApiClient() : verifiedApi;
-                    ZnackAuthService auth = verifiedAuth;
-                    if (auth == null) {
-                        ZnackSignatureProvider signer = new CryptoProSignatureProvider(currentSettings.cryptcpPath(),
-                                currentSettings.signerCertificate(), Duration.ofSeconds(currentSettings.resolvedCryptoProTimeoutSeconds()));
-                        auth = new ZnackAuthService(api, signer);
-                    }
-                    return new ZnackProductService(api, auth, currentRepository).sync(currentSettings);
+                    if(sourceShop==null||sourceShop.getId()!=currentRepository.shop().shopId())throw new IllegalStateException("SHOP_CREDENTIALS_CHANGED");
+                    var result=new com.vncode.app.features.sync.ZnackCatalogSyncService().refresh(sourceShop,true,p->updateMessage(java.text.MessageFormat.format(tr("znack.catalog.read_progress"),tr("znack.catalog.phase."+p.phase()),p.completed(),p.total())));
+                    partialCards.set(result.issues().size());
+                    if(!result.issues().isEmpty())updateMessage(java.text.MessageFormat.format(tr("znack.catalog.partial"),result.issues().size()));
+                    return currentRepository.findProducts();
                 } catch (Exception error) {
                     currentRepository.log("GTIN_SYNC", null, "ERROR", error.getMessage(), null);
                     throw error;
                 }
             }
         };
+        productSyncTask=task;
+        task.messageProperty().addListener((o,before,message)->{if(generation==shopGeneration&&currentRepository==repository&&!message.isBlank())authStatusLabel.setText(message);});
         productSyncRunning = true;
+        authStatusLabel.setText(tr("znack.catalog.queued"));
         updateSaveState();
         task.setOnSucceeded(event -> {
             if (generation != shopGeneration || currentRepository != repository) return;
             productSyncRunning = false;
             updateSaveState();
             allProducts = task.getValue();
+            catalogStatusKey="znack.catalog.connected";catalogStatusLabel.setText(tr(catalogStatusKey));
+            authStatusLabel.setText(partialCards.get()==0?tr("znack.result.sync_completed"):java.text.MessageFormat.format(tr("znack.catalog.partial"),partialCards.get()));
+            if(catalogShop!=null)com.vncode.app.features.sync.SyncRuntime.requestIfRunning(catalogShop,com.vncode.app.features.sync.SyncCoordinator.Stream.ZNACK);
             productCategoryFilter.rebuild(allProducts.stream().map(Product::category).toList());
             applyProductFilter();
             ordersTable.getItems().setAll(currentRepository.findOrders());
@@ -1150,12 +1157,13 @@ public class ZnackAutomationController {
             resumeEligibleIntroductions(currentSettings);
             if (signerChangeSyncPending) {
                 signerChangeSyncPending = false;
-                authStatusLabel.setText(tr("znack.signature.catalog_refreshed"));
+                if(partialCards.get()==0)authStatusLabel.setText(tr("znack.signature.catalog_refreshed"));
             }
         });
         java.util.function.Consumer<Throwable> taskFailure = rejection -> {
             if (generation != shopGeneration || currentRepository != repository) return;
             productSyncRunning = false;
+            authStatusLabel.setText(tr("znack.catalog.failed")+" ["+com.vncode.app.features.sync.SyncFailure.of(rejection,0).code()+"]");
             updateSaveState();
             loadProductsFromDatabase();
             logsTable.getItems().setAll(currentRepository.findLogs());
@@ -1165,7 +1173,8 @@ public class ZnackAutomationController {
             }
         };
         task.setOnFailed(event -> taskFailure.accept(task.getException()));
-        AppTaskExecutor.execute(task, taskFailure);
+        task.setOnCancelled(event->taskFailure.accept(new java.net.SocketTimeoutException("ZNACK_SYNC_TIMEOUT")));
+        AppTaskExecutor.executeCatalog(task, taskFailure);
     }
 
     private boolean hasVerifiedSignature(Settings settings) {

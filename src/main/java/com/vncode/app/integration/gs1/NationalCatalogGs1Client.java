@@ -139,14 +139,19 @@ public final class NationalCatalogGs1Client {
         }
         /** Compare with the API key of this CryptoPro-authenticated enterprise, never a public card. */
         public synchronized void requireApiKey(String supplied) throws IOException {
+            String key=apiKey();
+            if(supplied==null||!java.security.MessageDigest.isEqual(key.getBytes(java.nio.charset.StandardCharsets.UTF_8),supplied.getBytes(java.nio.charset.StandardCharsets.UTF_8)))throw new IOException("CATALOG_KEY_OWNER_MISMATCH");
+        }
+        /** Read the key of the certificate-authenticated enterprise; never share a device's DPAPI blob. */
+        public synchronized String apiKey() throws IOException {
             JsonObject bootstrap = object(call("bootstrap", null));
             try {
-                JsonObject api = bootstrap.getAsJsonObject("account").getAsJsonObject("api");
-                if (!Boolean.TRUE.equals(bool(api, "enabled")) || text(api, "apikey").isBlank()
-                        || !java.security.MessageDigest.isEqual(text(api, "apikey").getBytes(java.nio.charset.StandardCharsets.UTF_8),
-                            supplied.getBytes(java.nio.charset.StandardCharsets.UTF_8)))
-                    throw new IOException("CATALOG_KEY_OWNER_MISMATCH");
-            } catch (RuntimeException invalid) { throw new IOException("CATALOG_KEY_IDENTITY_UNAVAILABLE"); }
+                JsonObject account=bootstrap.getAsJsonObject("account"),api=account.getAsJsonObject("api");
+                String accountInn=text(account,"inn");
+                if(!accountInn.isBlank()&&!inn.equals(accountInn))throw new IOException("CATALOG_KEY_OWNER_MISMATCH");
+                if(!Boolean.TRUE.equals(bool(api,"enabled")))throw new IOException("CATALOG_KEY_REQUIRED");
+                return com.vncode.app.integration.znack.CatalogCredentialRepository.normalize(text(api,"apikey"));
+            }catch(RuntimeException invalid){throw new IOException("CATALOG_KEY_IDENTITY_UNAVAILABLE");}
         }
         public synchronized List<Choice> dictionary(String name) throws IOException {
             com.vncode.app.features.license.LicenseRuntime.require(com.vncode.app.features.license.LicenseModels.Permission.GS1);

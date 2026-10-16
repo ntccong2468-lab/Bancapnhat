@@ -40,6 +40,16 @@ class NationalCatalogGs1ClientTest {
             assertEquals("session=fixture",read.getHeader("Cookie"));assertEquals(0,read.getBodySize());
         }
     }
+    @Test void freshDeviceCanReadItsOwnKeyButAForeignEnterpriseCannotSupplyOne()throws Exception{
+        try(var server=new MockWebServer()){
+            loginResponses(server);
+            server.enqueue(new MockResponse().setBody("{\"account\":{\"inn\":\"7707083893\",\"api\":{\"enabled\":true,\"apikey\":\"synthetic-new-device-key\"}}}"));
+            server.enqueue(new MockResponse().setBody("{\"account\":{\"inn\":\"7700000000\",\"api\":{\"enabled\":true,\"apikey\":\"foreign-fixture\"}}}"));
+            var session=client(server).login(INN,FINGERPRINT,(p,c)->new CryptoProSigningResult(new byte[]{1},""));
+            assertEquals("synthetic-new-device-key",session.apiKey());
+            var error=assertThrows(IOException.class,session::apiKey);assertEquals("CATALOG_KEY_OWNER_MISMATCH",error.getMessage());assertFalse(error.toString().contains("foreign-fixture"));
+        }
+    }
     @Test void sessionIsolationAndCsrf() throws Exception {
         try (var server = new MockWebServer()) {
             loginResponses(server);

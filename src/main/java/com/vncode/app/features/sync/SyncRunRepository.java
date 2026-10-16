@@ -38,6 +38,21 @@ public final class SyncRunRepository {
         }catch(SQLException e){throw storage(e);}
         try(var c=Database.getConnection();var p=c.prepareStatement("SELECT id,child_job FROM sync_run_items WHERE run_id=? AND product_id=? AND variant_id=?")){p.setString(1,run);p.setString(2,product);p.setString(3,variant);try(var r=p.executeQuery()){if(!r.next())throw new SQLException("Missing item");return new Item(r.getString(1),run,product,variant,sku,article,color,size,gtin,state,"MATCHING",code(error),r.getString(2),evidence);}}catch(SQLException e){throw storage(e);}
     }
+    /** Persist a Catalog snapshot report in one bounded transaction, not a connection per GTIN. */
+    public void addBatch(Shop shop,String run,List<Item> items){
+        if(items.size()>100000)throw new IllegalArgumentException("SYNC_REPORT_LIMIT");
+        try(var c=Database.getConnection()){
+            c.setAutoCommit(false);require(c,shop,run);
+            try(var p=c.prepareStatement("INSERT INTO sync_run_items(id,run_id,product_id,variant_id,sku,article,color,size,gtin,state,step,error_code,child_job,evidence_json,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) ON CONFLICT(run_id,product_id,variant_id) DO NOTHING")){
+                for(var item:items){if(!run.equals(item.runId()))throw new SecurityException("SYNC_OWNER_CHANGED");
+                    String[] values={item.id(),run,item.productId(),item.variantId(),item.sku(),item.article(),item.color(),item.size(),item.gtin(),item.state(),item.step(),code(item.error()),item.childJob(),item.evidence(),Instant.now().toString()};
+                    for(int i=0;i<values.length;i++)p.setString(i+1,values[i]);p.addBatch();
+                }p.executeBatch();
+            }
+            try(var p=c.prepareStatement("UPDATE sync_runs SET total=(SELECT count(*) FROM sync_run_items WHERE run_id=?),updated_at=? WHERE id=?")){p.setString(1,run);p.setString(2,Instant.now().toString());p.setString(3,run);p.executeUpdate();}
+            c.commit();
+        }catch(SQLException e){throw storage(e);}
+    }
     public void update(Shop shop,Item item,String state,String step,String error,String child){
         try(var c=Database.getConnection()){
             c.setAutoCommit(false);require(c,shop,item.runId());

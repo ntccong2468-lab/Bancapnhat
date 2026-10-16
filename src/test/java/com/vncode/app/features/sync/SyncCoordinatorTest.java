@@ -25,6 +25,15 @@ class SyncCoordinatorTest {
         coordinator.tick();assertEquals(2,fast.size());assertEquals(1,background.size());coordinator.tick();assertEquals(2,fast.size());assertEquals(1,background.size());
         fast.remove().run();assertEquals(List.of(SyncCoordinator.Stream.FBS_QUEUE),calls);assertNotNull(new SyncStreamStore().ensure(shop,"FBS_QUEUE",Instant.now()).lastComplete());
     }
+    @Test void catalogAndFinanceCannotOccupyTheRegistryWorkers(){
+        var registry=new ArrayDeque<Runnable>();var calls=new ArrayList<SyncCoordinator.Stream>();
+        coordinator=new SyncCoordinator(new SyncStreamStore(),(s,stream,cursor)->{calls.add(stream);return SyncCoordinator.Page.complete(0);},clock,nanos::get,fast::add,background::add,registry::add,null);
+        coordinator.updateShops(List.of(shop));coordinator.tick();
+        assertEquals(2,registry.size());assertEquals(2,fast.size());assertEquals(1,background.size());
+        while(!registry.isEmpty())registry.remove().run();
+        assertTrue(calls.contains(SyncCoordinator.Stream.ZNACK));assertTrue(calls.contains(SyncCoordinator.Stream.GS1));
+        assertEquals(1,background.size(),"Catalog worker is still occupied while registry requests can finish independently");
+    }
     @Test void requestArrivingDuringReadIsNotLostByCompletion(){
         create((s,stream,cursor)->{if(stream==SyncCoordinator.Stream.FBS_QUEUE)new SyncStreamStore().request(shop,stream.name());return SyncCoordinator.Page.complete(0);});
         coordinator.tick();fast.remove().run();assertTrue(new SyncStreamStore().ensure(shop,"FBS_QUEUE",Instant.now()).requested());

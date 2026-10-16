@@ -27,7 +27,7 @@ public final class KizCategoryAllocator {
             tx.execute("BEGIN IMMEDIATE");
             try{
                 var selections=select(c,shop.getId(),shop.getMarketplace(),owner,demands);
-                try(var p=c.prepareStatement("UPDATE kiz_codes SET status='RESERVED',reservation_token=?,reserved_at=?,reservation_recoverable=1,updated_at=? WHERE id=? AND shop_id=? AND status='AVAILABLE' AND legal_status='IN_CIRCULATION'")){
+                try(var p=c.prepareStatement("UPDATE kiz_codes SET status='RESERVED',reservation_token=?,reserved_at=?,reservation_recoverable=1,updated_at=? WHERE id=? AND shop_id=? AND status='AVAILABLE'")){
                     for(var selection:selections){
                         String now=Instant.now().toString();p.setString(1,token);p.setString(2,now);p.setString(3,now);p.setInt(4,selection.code().getId());p.setInt(5,shop.getId());
                         if(p.executeUpdate()!=1)throw new IllegalStateException("KIZ_CATEGORY_STOCK_CHANGED");
@@ -54,9 +54,9 @@ public final class KizCategoryAllocator {
                 JOIN kiz_stock_categories category ON category.id=classification.category_id
                 JOIN kiz_codes k ON k.id=classification.code_id
                 WHERE classification.category_id=? AND category.shop_id=? AND category.owner=? AND k.shop_id=?
-                  AND k.status='AVAILABLE' AND k.legal_status='IN_CIRCULATION' AND %s
+                  AND k.status='AVAILABLE' AND %s
                 ORDER BY k.id LIMIT ?
-                """.formatted(KizWarehouseRepository.eligible("k")))){
+                """.formatted(KizWarehouseRepository.eligibleCategory("k")))){
                 p.setString(1,group.getKey());p.setInt(2,shop);p.setString(3,owner);p.setInt(4,shop);p.setString(5,owner);p.setInt(6,quantity);
                 try(var r=p.executeQuery()){while(r.next())codes.add(new Kiz(r.getInt(1),r.getString(2)));}
             }
@@ -78,7 +78,7 @@ public final class KizCategoryAllocator {
             WHERE proof.code_id=? AND proof.token=? AND proof.allocation_key=? AND proof.product_id=?
               AND proof.shop_id=? AND proof.owner=? AND category.shop_id=proof.shop_id AND category.owner=proof.owner
               AND %s
-            """.formatted(KizWarehouseRepository.eligible("k")))){
+            """.formatted(KizWarehouseRepository.eligibleCategory("k")))){
             p.setLong(1,code);p.setString(2,token);p.setString(3,key);p.setString(4,product);p.setInt(5,shop);p.setString(6,owner);p.setString(7,owner);try(var r=p.executeQuery()){return r.next();}
         }
     }

@@ -26,11 +26,11 @@ public final class KizStockCategoryRepository {
             SELECT category.id,category.name,
               (SELECT count(*) FROM kiz_stock_classifications cl JOIN kiz_codes k ON k.id=cl.code_id
                 WHERE cl.category_id=category.id AND k.shop_id=category.shop_id AND k.status='AVAILABLE'
-                AND k.legal_status='IN_CIRCULATION' AND %s),
+                AND %s),
               (SELECT count(*) FROM kiz_stock_product_categories product WHERE product.category_id=category.id
                 AND product.shop_id=category.shop_id AND product.owner=category.owner)
             FROM kiz_stock_categories category WHERE category.shop_id=? AND category.owner=? ORDER BY category.name,category.id
-            """.formatted(KizWarehouseRepository.eligible("k")))){
+            """.formatted(KizWarehouseRepository.eligibleCategory("k")))){
             String owner=ListingIdentity.fingerprint(shop);p.setString(1,owner);p.setInt(2,shop.getId());p.setString(3,owner);
             var out=new ArrayList<Category>();try(var r=p.executeQuery()){while(r.next())out.add(new Category(r.getString(1),r.getString(2),r.getInt(3),r.getInt(4)));}return List.copyOf(out);
         }catch(SQLException e){throw storage(e);}

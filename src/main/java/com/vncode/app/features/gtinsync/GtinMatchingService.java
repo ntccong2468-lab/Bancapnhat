@@ -14,5 +14,5 @@ public final class GtinMatchingService {
                 .filter(g -> normalize(g.size()).equals(normalize(product.size()))).distinct().toList();
         return new MatchResult(product.key(), candidates, candidates.size() == 1 ? "" : candidates.isEmpty() ? "no_match" : "ambiguous");
     }
-    private static String normalize(String value) { return value.strip().toUpperCase(Locale.ROOT); }
+    public static String normalize(String value) { return java.text.Normalizer.normalize(value==null?"":value,java.text.Normalizer.Form.NFKC).strip().replaceAll("[\\p{Z}\\s]+"," ").toUpperCase(Locale.ROOT); }
 }

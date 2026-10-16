@@ -109,10 +109,10 @@ class KizWarehouseTest {
         assertEquals(0,stock.availableCount(1,GTIN));
         var rotated=new Shop(1,"WB","rotated");assertEquals(0,repository.commit(rotated,new RegisteredGtinProof.Scope("National Catalog@new",INN,"fixture","production"),preview(2,"marks.txt")).inserted());repository.prepareVerification(rotated,"National Catalog@new",INN);assertEquals(0,stock.availableCount(1,GTIN));assertEquals(2,repository.pending(rotated,"National Catalog@new",1000,0).size());
     }
-    @Test void onlyUnusedUnverifiedImportsCanBeArchivedAndRestoringCannotSkipVerification()throws Exception{
+    @Test void onlyUnusedImportsCanBeArchivedAndReservedOrConsumedMarksArePreserved()throws Exception{
         commit(preview(2,"marks.txt"));assertEquals(2,repository.changeArchive(shop,GTIN,false));assertEquals(0,new ZnackGtinInventoryService().availableCount(1,GTIN));
         assertEquals(2,repository.changeArchive(shop,GTIN,true));assertEquals(0,new ZnackGtinInventoryService().availableCount(1,GTIN));
-        verifyAll();assertEquals(0,repository.changeArchive(shop,GTIN,false));var held=new ZnackGtinInventoryService().reserveAvailable(1,GTIN,1);assertEquals(0,repository.changeArchive(shop,GTIN,false));assertEquals(1,new ZnackGtinInventoryService().consume(1,held));
+        verifyAll();var held=new ZnackGtinInventoryService().reserveAvailable(1,GTIN,1);assertEquals(1,repository.changeArchive(shop,GTIN,false));assertEquals(0,repository.changeArchive(shop,GTIN,false));assertEquals(1,new ZnackGtinInventoryService().consume(1,held));
     }
     @Test void shortagePurchaseValidationCannotUseASoftDeletedGtin()throws Exception{
         var znack=new ZnackRepository(new ZnackModels.ShopContext(1,"WB"));

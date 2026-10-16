@@ -27,20 +27,23 @@ public final class SyncCoordinator implements AutoCloseable {
     private final Handler handler;
     private final Clock clock;
     private final LongSupplier nanos;
-    private final Executor fast,background;
+    private final Executor fast,background,registry;
     private final ScheduledExecutorService timer;
     private final Map<Key,Entry> entries=new LinkedHashMap<>();
     private final Set<Key> requested=ConcurrentHashMap.newKeySet();
     private final Map<Key,Health> health=new ConcurrentHashMap<>();
     private final List<Consumer<Health>> listeners=new CopyOnWriteArrayList<>();
-    private volatile boolean closed;private volatile int selected;private int lastShop;private int fastRunning,backgroundRunning;
+    private volatile boolean closed;private volatile int selected;private int lastShop;private int fastRunning,backgroundRunning,registryRunning;
     public SyncCoordinator(Handler handler){
         this(new SyncStreamStore(),handler,Clock.systemUTC(),System::nanoTime,
-            Executors.newFixedThreadPool(2,factory("vncode-fbs-sync")),Executors.newFixedThreadPool(1,factory("vncode-background-sync")),
+            Executors.newFixedThreadPool(2,factory("vncode-fbs-sync")),Executors.newFixedThreadPool(1,factory("vncode-background-sync")),Executors.newFixedThreadPool(2,factory("vncode-registry-sync")),
             Executors.newSingleThreadScheduledExecutor(factory("vncode-sync-clock")));
     }
     SyncCoordinator(SyncStreamStore store,Handler handler,Clock clock,LongSupplier nanos,Executor fast,Executor background,ScheduledExecutorService timer){
-        this.store=store;this.handler=handler;this.clock=clock;this.nanos=nanos;this.fast=fast;this.background=background;this.timer=timer;
+        this(store,handler,clock,nanos,fast,background,background,timer);
+    }
+    SyncCoordinator(SyncStreamStore store,Handler handler,Clock clock,LongSupplier nanos,Executor fast,Executor background,Executor registry,ScheduledExecutorService timer){
+        this.store=store;this.handler=handler;this.clock=clock;this.nanos=nanos;this.fast=fast;this.background=background;this.registry=registry;this.timer=timer;
         if(timer!=null)timer.scheduleWithFixedDelay(this::safeTick,1,1,TimeUnit.SECONDS);
     }
     private static ThreadFactory factory(String name){return r->{var t=new Thread(r,name);t.setDaemon(true);return t;};}
@@ -79,7 +82,9 @@ public final class SyncCoordinator implements AutoCloseable {
             .thenComparingInt(e->e.getKey().stream().ordinal()));
         for(var pair:ordered){var key=pair.getKey();var entry=pair.getValue();if(entry.running)continue;
             boolean interactive=key.stream()==Stream.FBS_QUEUE||key.stream()==Stream.FBS_STATUS||key.stream()==Stream.SUPPLIES||key.stream()==Stream.SUPPLY_CONTENT;
-            synchronized(this){if(closed||entries.get(key)!=entry||(interactive?fastRunning>=2:backgroundRunning>=1))continue;}
+            boolean registryTask=registry!=background&&(key.stream()==Stream.ZNACK||key.stream()==Stream.GS1);
+            if(registryTask&&key.stream()==Stream.GS1&&running(Stream.GS1))continue;
+            synchronized(this){if(closed||entries.get(key)!=entry||(interactive?fastRunning>=2:registryTask?registryRunning>=2:backgroundRunning>=1))continue;}
             // Finance retains its per-family planner but receives only one global slot.
             if(key.stream()==Stream.FINANCE&&key.shopId()!=firstShop)continue;
             var now=clock.instant();var state=store.ensure(entry.shop,key.stream().name(),now);
@@ -89,16 +94,16 @@ public final class SyncCoordinator implements AutoCloseable {
             entry.revision=state.revision();
             if(nanos.getAsLong()<entry.dueNanos)continue;
             synchronized(this){
-                if(closed||entries.get(key)!=entry||entry.running||(interactive?fastRunning>=2:backgroundRunning>=1))continue;
-                entry.running=true;if(interactive)fastRunning++;else backgroundRunning++;lastShop=key.shopId();
+                if(closed||entries.get(key)!=entry||entry.running||(interactive?fastRunning>=2:registryTask?registryRunning>=2:backgroundRunning>=1))continue;
+                entry.running=true;if(interactive)fastRunning++;else if(registryTask)registryRunning++;else backgroundRunning++;lastShop=key.shopId();
             }
             try{
                 store.attempt(entry.shop,key.stream().name(),state,now);
                 publish(new Health(key.shopId(),key.stream(),true,state.lastSuccess(),state.lastComplete(),state.next(),state.error()));
                 var captured=state;
-                (interactive?fast:background).execute(()->execute(key,entry,captured,interactive));
+                (interactive?fast:registryTask?registry:background).execute(()->execute(key,entry,captured,interactive));
             }catch(RuntimeException failed){
-                synchronized(this){entry.running=false;if(interactive)fastRunning--;else backgroundRunning--;}
+                synchronized(this){entry.running=false;if(interactive)fastRunning--;else if(registry!=background&&(key.stream()==Stream.ZNACK||key.stream()==Stream.GS1))registryRunning--;else backgroundRunning--;}
                 entry.dueNanos=nanos.getAsLong()+TimeUnit.SECONDS.toNanos(2);
                 if(!(failed instanceof RejectedExecutionException))throw failed;
             }
@@ -124,7 +129,7 @@ public final class SyncCoordinator implements AutoCloseable {
             synchronized(this){if(closed||entries.get(key)!=entry)return;}
             publish(new Health(key.shopId(),key.stream(),false,before.lastSuccess(),before.lastComplete(),clock.instant().plusSeconds(30),"SYNC_STORAGE"));
         }
-        finally{synchronized(this){entry.running=false;if(interactive)fastRunning--;else backgroundRunning--;}}
+        finally{synchronized(this){entry.running=false;if(interactive)fastRunning--;else if(registry!=background&&(key.stream()==Stream.ZNACK||key.stream()==Stream.GS1))registryRunning--;else backgroundRunning--;}}
     }
     private Duration interval(Key key){return switch(key.stream()){
         case FBS_QUEUE->Duration.ofSeconds(key.shopId()==selected?10:45);
@@ -134,5 +139,5 @@ public final class SyncCoordinator implements AutoCloseable {
         case HISTORY->Duration.ofMinutes(5);case CATALOG,ZNACK,GS1,FBO->Duration.ofMinutes(15);case FINANCE->Duration.ofSeconds(5);
     };}
     private void publish(Health update){health.put(new Key(update.shopId(),update.stream()),update);for(var listener:listeners)try{listener.accept(update);}catch(RuntimeException ignored){}}
-    @Override public synchronized void close(){closed=true;if(timer!=null)timer.shutdownNow();if(fast instanceof ExecutorService e)e.shutdown();if(background instanceof ExecutorService e)e.shutdown();listeners.clear();}
+    @Override public synchronized void close(){closed=true;if(timer!=null)timer.shutdownNow();if(fast instanceof ExecutorService e)e.shutdown();if(background instanceof ExecutorService e)e.shutdown();if(registry!=background&&registry instanceof ExecutorService e)e.shutdown();listeners.clear();}
 }

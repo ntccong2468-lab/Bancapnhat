@@ -18,9 +18,10 @@ class CatalogApiAuthorizationTest {
     @Test void catalogKeyIsOnlySentToCatalogAndTrueApiStillUsesBearer() throws Exception {
         var seen = new ArrayList<Request>(); var checks = new AtomicInteger();
         var transport = new OkHttpClient.Builder().addInterceptor(chain -> {
-            seen.add(chain.request()); return response(chain.request(), 200, "{}");
+            seen.add(chain.request()); return response(chain.request(), 200, "{\"result\":{\"goods\":[],\"total\":0}}");
         }).build();
         var api = ZnackApiClient.forCatalogKey(transport, KEY, checks::incrementAndGet);
+        api.productInfo(BASE,"true-api-token","00000000000017");
         api.products(BASE, "true-api-token");
         api.productCards(BASE, "true-api-token", "00000000000017;00000000000024");
         api.generatedGtins(BASE, "true-api-token");
@@ -29,14 +30,22 @@ class CatalogApiAuthorizationTest {
         api.submitNationalCatalogFeed(BASE, "true-api-token", new JsonObject());
         assertNull(seen.getFirst().url().queryParameter("apikey"));
         assertEquals("Bearer true-api-token", seen.getFirst().header("Authorization"));
-        assertEquals("/api/v4/true-api/product/gtin", seen.getFirst().url().encodedPath());
-        assertEquals("00000000000017;00000000000024", seen.get(1).url().queryParameter("gtins"));
+        assertEquals("/api/v4/true-api/product/info", seen.getFirst().url().encodedPath());
+        assertEquals("/v4/product-list",seen.get(1).url().encodedPath());
+        assertEquals("00000000000017;00000000000024", seen.get(2).url().queryParameter("gtins"));
         for (Request request : seen.subList(1, seen.size())) {
             assertEquals(HttpUrl.get(ZnackModels.PRODUCTION_NATIONAL_CATALOG).host(), request.url().host());
             assertEquals(KEY, request.url().queryParameter("apikey"));
             assertNull(request.header("Authorization"));
         }
-        assertEquals(5, checks.get());
+        assertEquals(6, checks.get());
+    }
+    @Test void catalogProductListIsNotRestrictedToTheTrueApiLpGroupAndPaginatesByOffset()throws Exception{
+        var seen=new ArrayList<Request>();
+        var transport=new OkHttpClient.Builder().addInterceptor(chain->{seen.add(chain.request());return response(chain.request(),200,"{\"result\":{\"goods\":[{\"gtin\":\"04645588781154\"}],\"total\":2300}}");}).build();
+        var response=ZnackApiClient.forCatalogKey(transport,KEY,()->{}).products(BASE,null,2,10_000).getAsJsonObject();
+        assertEquals(2300,response.get("total").getAsInt());assertEquals(1,response.getAsJsonArray("results").size());
+        var request=seen.getFirst();assertEquals("1000",request.url().queryParameter("limit"));assertEquals("2000",request.url().queryParameter("offset"));assertNull(request.url().queryParameter("pg"));assertNull(request.header("Authorization"));assertEquals(KEY,request.url().queryParameter("apikey"));
     }
     @Test void changingScopeStopsRequestsAndConnectionCheckIsReadOnly() throws Exception {
         var seen = new ArrayList<Request>();

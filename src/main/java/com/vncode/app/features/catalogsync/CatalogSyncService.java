@@ -32,7 +32,7 @@ public final class CatalogSyncService {
     private final SourceRefresh refresh;
     public CatalogSyncService(){
         this(new CatalogSyncRepository(),new GtinSyncRepository(),new ProductBulkEditService(),
-            (s,k)->s.getMarketplace()==Marketplace.OZON?new OzonProductSnapshotReader().read(s,k):new WbProductSnapshotReader().read(s,k),
+            (s,k)->s.getMarketplace()==Marketplace.OZON?new OzonProductSnapshotReader().readForSynchronization(s,k):new WbProductSnapshotReader().readForSynchronization(s,k),
             s->s.getMarketplace()==Marketplace.OZON?new OzonListingAdapter():new WbListingAdapter(),
             k->{var s=new com.vncode.app.features.shop.ShopRepository().findById(k.shopId());if(s==null||s.getMarketplace()!=k.marketplace())throw new SecurityException("shop_mismatch");return k.marketplace()==Marketplace.OZON?new OzonGtinAdapter(s):new WbGtinAdapter(s);},
             RegisteredGtinProof::requireCurrent,(shop,selected)->{
@@ -64,7 +64,7 @@ public final class CatalogSyncService {
         var dictionaries=new HashMap<String,List<TargetAttribute>>();var rows=new ArrayList<Row>();long bytes=0;
         for(var group:groups.values()) {
             var first=group.getFirst();var productKey=productKey(first.key());var fresh=reader.read(shop,productKey);
-            var dictionary=dictionaries.get(fresh.categoryId());if(dictionary==null){dictionary=List.copyOf(targets.apply(shop).attributes(shop,fresh.categoryId()));dictionaries.put(fresh.categoryId(),dictionary);}
+            var dictionary=dictionaries.get(fresh.categoryId());if(dictionary==null){dictionary=options.fields().equals(Set.of(Field.GTIN))?List.of():List.copyOf(targets.apply(shop).attributes(shop,fresh.categoryId()));dictionaries.put(fresh.categoryId(),dictionary);}
             var patches=new LinkedHashMap<Selection,CatalogSyncMapper.Patch>();var sources=new LinkedHashMap<Selection,GtinSyncModels.RegisteredGtin>();
             for(var item:group){
                 var source=current(shop,item.gtin());sources.put(item,source);
@@ -125,7 +125,7 @@ public final class CatalogSyncService {
                     }
                 }
                 if(row.editJob().isBlank()){
-                    var fresh=reader.read(shop,productKey(row.key()));var patch=new CatalogSyncMapper().map(fresh,withValues(row.catalog(),row.values()),job.fields(),targets.apply(shop).attributes(shop,fresh.categoryId()),row.selectedDocuments());
+                    var fresh=reader.read(shop,productKey(row.key()));var patch=new CatalogSyncMapper().map(fresh,withValues(row.catalog(),row.values()),job.fields(),job.fields().equals(Set.of(Field.GTIN))?List.of():targets.apply(shop).attributes(shop,fresh.categoryId()),row.selectedDocuments());
                     if(patch.blocked()||patch.changed())throw new IllegalStateException("TARGET_CHANGED");
                 }
                 if(plans.paused(shop,id))continue;

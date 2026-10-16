@@ -1362,7 +1362,9 @@ public class HomeController implements Initializable {
                 settings.cryptcpPath(), settings.signerCertificate(),
                 Duration.ofSeconds(settings.resolvedCryptoProTimeoutSeconds()));
         ZnackApiClient api = new ZnackApiClient();
-        new ZnackProductService(api, new ZnackAuthService(api, signer), repository).sync(settings);
+        var sourceShop=new com.vncode.app.features.shop.ShopRepository().findById(repository.shop().shopId());
+        if(sourceShop==null)throw new IllegalStateException("SHOP_CREDENTIALS_UNAVAILABLE");
+        new com.vncode.app.features.sync.ZnackCatalogSyncService().refresh(sourceShop,false,p->{});
         ZnackGtinAutoSync.markAutoSynced(repository.shop().shopId());
     }
 
