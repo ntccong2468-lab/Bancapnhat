@@ -20,6 +20,13 @@ public final class KizWarehouseRepository {
         return commit(shop,new RegisteredGtinProof.Scope("Seller import@"+ListingIdentity.fingerprint(shop),"","",""),preview);
     }
     public Imported commit(Shop shop,RegisteredGtinProof.Scope scope,KizImportReader.Preview preview)throws Exception {
+        return commit(shop,scope,preview,null);
+    }
+    public Imported commitToCategory(Shop shop,KizImportReader.Preview preview,String category)throws Exception {
+        Objects.requireNonNull(category);
+        return commit(shop,new RegisteredGtinProof.Scope("Seller import@"+ListingIdentity.fingerprint(shop),"","",""),preview,category);
+    }
+    private Imported commit(Shop shop,RegisteredGtinProof.Scope scope,KizImportReader.Preview preview,String category)throws Exception {
         ListingIdentity.require(shop);if(!preview.valid()||!preview.sha256().matches("[a-f0-9]{64}"))throw new IllegalArgumentException("KIZ_IMPORT_PREVIEW_INVALID");
         var marks=preview.marks();if(marks.size()>100000)throw new IllegalArgumentException("KIZ_CODE_COUNT_LIMIT");
         var identities=new HashSet<String>();for(var mark:marks)if(!mark.equals(KizMark.parse(mark.raw()))||!identities.add(mark.cis()))throw new IllegalArgumentException("KIZ_IMPORT_PREVIEW_INVALID");
@@ -27,8 +34,9 @@ public final class KizWarehouseRepository {
         try(var c=Database.getConnection();var tx=c.createStatement()){
             tx.execute("BEGIN IMMEDIATE");try{
                 requireOwner(c,shop,owner);
+                if(category!=null)KizStockCategoryRepository.require(c,shop,category);
                 try(var p=c.prepareStatement("SELECT id FROM kiz_import_batches WHERE shop_id=? AND file_hash=? ORDER BY created_at LIMIT 1")){
-                    p.setInt(1,shop.getId());p.setString(2,preview.sha256());try(var r=p.executeQuery()){if(r.next()){String id=r.getString(1);tx.execute("COMMIT");return new Imported(id,0,marks.size());}}
+                    p.setInt(1,shop.getId());p.setString(2,preview.sha256());try(var r=p.executeQuery()){if(r.next()){String id=r.getString(1);tx.execute("COMMIT");return new Imported(id,0,marks.size()+preview.duplicates());}}
                 }
                 // One bounded inventory scan prevents importing a consumed/reserved code under another shop.
                 var existing=new HashSet<String>();try(var s=c.createStatement();var r=s.executeQuery("SELECT raw_code FROM kiz_codes")){
@@ -55,6 +63,7 @@ public final class KizWarehouseRepository {
                         p.setInt(1,shop.getId());p.setLong(2,order);p.setString(3,mark.raw());p.setString(4,mark.cis());p.setString(5,mark.gtin());p.setString(6,now);p.setString(7,now);p.executeUpdate();try(var r=p.getGeneratedKeys()){if(!r.next())throw new SQLException();id=r.getLong(1);}
                     }
                     try(var p=c.prepareStatement("INSERT INTO kiz_import_entries(code_id,batch_id,cis) VALUES(?,?,?)")){p.setLong(1,id);p.setString(2,batch);p.setString(3,mark.cis());p.executeUpdate();}
+                    if(category!=null)try(var p=c.prepareStatement("INSERT INTO kiz_stock_classifications VALUES(?,?,?)")){p.setLong(1,id);p.setString(2,category);p.setString(3,now);p.executeUpdate();}
                     existing.add(mark.cis());inserted++;
                 }
                 for(var order:orders.values())try(var p=c.prepareStatement("UPDATE kiz_orders SET quantity=(SELECT count(*) FROM kiz_codes WHERE order_id=?) WHERE id=? AND shop_id=?")){p.setLong(1,order);p.setLong(2,order);p.setInt(3,shop.getId());p.executeUpdate();}

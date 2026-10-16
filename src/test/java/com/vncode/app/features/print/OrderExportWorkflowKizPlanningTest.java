@@ -14,6 +14,47 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class OrderExportWorkflowKizPlanningTest {
     @TempDir Path directory;
+    @Test void sellerOnlyNeverReadsPurchaseMappingsAndReportsEveryMissingOrder()throws Exception{
+        var data=new PlanningData(7){
+            public Map<Long,String> mappings(int shop,List<Long> ids){fail("Seller stock must not read Catalog mappings");return Map.of();}
+            public Map<String,String> activeGtinsByBarcode(int shop){fail("Seller stock must not require registered GTINs");return Map.of();}
+            public Map<Long,String> stockCategories(int shop,List<Long> ids){return Map.of(1L,"trousers",2L,"trousers",3L,"trousers");}
+            public Map<Long,List<Kiz>> reserveCategoryStock(int shop,Map<Long,Integer> quantities){return Map.of(1L,List.of(new Kiz(901,"0104645588781154210000000000001","category-fixture")));}
+        };
+        var error=assertThrows(com.vncode.app.features.kiz.KizStockShortageException.class,()->new OrderExportWorkflow(data).assignKizCodes(orders(3),new Shop(7,"Main","fixture-token"),com.vncode.app.features.kiz.KizSourceSelection.SELLER_ONLY));
+        assertEquals(List.of("2","3"),error.missing().stream().map(com.vncode.app.features.kiz.KizStockShortageException.Missing::order).toList());
+        assertEquals(1,data.released);assertEquals(0,data.reserveCalls);
+    }
+    @Test void sellerOnlyUsesCategoryStockWithNoZnackOrGtinPrerequisite()throws Exception{
+        var data=new PlanningData(7){
+            public Map<Long,String> mappings(int shop,List<Long> ids){throw new AssertionError("Unexpected GTIN read");}
+            public Map<Long,String> stockCategories(int shop,List<Long> ids){return Map.of(1L,"trousers");}
+            public Map<Long,List<Kiz>> reserveCategoryStock(int shop,Map<Long,Integer> quantities){return Map.of(1L,List.of(new Kiz(901,"0104645588781154210000000000001","category-fixture")));}
+        };
+        var result=new OrderExportWorkflow(data).assignKizCodes(orders(1),new Shop(7,"Main","fixture-token"),com.vncode.app.features.kiz.KizSourceSelection.SELLER_ONLY);
+        assertEquals(1,result.usedKizs().size());assertEquals(0,data.reserveCalls);assertEquals(0,data.activeCalls);
+    }
+    @Test void purchaseOnlyCannotReserveImportedStockAndBothSourcesPassOnlyTheDeficit()throws Exception{
+        var calls=new java.util.concurrent.atomic.AtomicInteger();
+        var data=new PlanningData(7){
+            public Map<Long,String> stockCategories(int shop,List<Long> ids){return Map.of(1L,"trousers",2L,"trousers");}
+            public Map<Long,List<Kiz>> reserveCategoryStock(int shop,Map<Long,Integer> quantities){calls.incrementAndGet();return Map.of(1L,List.of(new Kiz(901,"0104645588781154210000000000001","category-fixture")));}
+            public Map<String,List<Kiz>> reserveForOrders(Shop shop,Map<String,Integer> quantities,Map<Order,String> orders,com.vncode.app.features.kiz.KizSourceSelection sources){assertTrue(sources.purchased());return reserve(shop.getId(),quantities);}
+        };
+        var workflow=new OrderExportWorkflow(data);var shop=new Shop(7,"Main","fixture-token");
+        workflow.assignKizCodes(orders(2),shop,new com.vncode.app.features.kiz.KizSourceSelection(false,true));
+        assertEquals(0,calls.get());assertEquals(2,data.quantities.values().stream().mapToInt(Integer::intValue).sum());
+        workflow.assignKizCodes(orders(2),shop,new com.vncode.app.features.kiz.KizSourceSelection(true,true));
+        assertEquals(1,calls.get());assertEquals(Map.of(data.gtin(2),1),data.quantities);
+    }
+    @Test void noSourceStopsBeforeNetworkAndExplicitSelectionNeverReplacesAnAlreadyAttachedMark()throws Exception{
+        var data=new PlanningData(7);var shop=new Shop(7,"Main","fixture-token");var workflow=new OrderExportWorkflow(data);
+        assertEquals("KIZ_SOURCE_REQUIRED",assertThrows(IllegalStateException.class,()->workflow.assignKizCodes(orders(1),shop,new com.vncode.app.features.kiz.KizSourceSelection(false,false))).getMessage());
+        assertEquals(0,data.metadataCalls);assertEquals(0,data.reserveCalls);
+        String existing="0104645588781154210000000000001";data.metadata=Map.of(1L,new KizService.SgtinMetadata(true,existing));var orders=orders(1);
+        var result=workflow.assignKizCodes(orders,shop,new com.vncode.app.features.kiz.KizSourceSelection(false,true));
+        assertEquals(existing,orders.getFirst().getKiz());assertTrue(result.usedKizs().isEmpty());assertTrue(result.replaceExistingOrderIds().isEmpty());
+    }
     @Test void categoryStockCanFillAnOrderWithoutAGtinMapping()throws Exception{
         var data=new PlanningData(7){
             public Map<Long,String> mappings(int shop,List<Long> ids){return Map.of();}

@@ -135,11 +135,16 @@ public class SupplyDetailController {
     @FXML private TableColumn<Order,String> barcodeTC;
     @FXML private VBox gtinInventoryPane;
     @FXML private Button inventoryToggleButton;
+    @FXML private VBox shipmentKizHost,paidInventoryPane;
+    private final com.vncode.app.ui.kiz.WbShipmentKizPane shipmentKizPane=new com.vncode.app.ui.kiz.WbShipmentKizPane();
     private java.util.Map<Long,String> orderMappings=java.util.Map.of();
     private long mappingRequest;
     private boolean disposed;
     private final com.vncode.app.shared.ThumbnailLoader thumbnails=new com.vncode.app.shared.ThumbnailLoader();
-    @FXML private void onToggleInventory(){boolean open=!gtinInventoryPane.isManaged();gtinInventoryPane.setManaged(open);gtinInventoryPane.setVisible(open);updateTableResizePolicy();}
+    @FXML private void onToggleInventory(){boolean open=!gtinInventoryPane.isManaged();gtinInventoryPane.setManaged(open);gtinInventoryPane.setVisible(open);if(open)shipmentKizPane.reload();updateTableResizePolicy();}
+    public void setKizShipmentContext(Shop selected,String shipmentId){shipmentKizPane.setContext(selected,shipmentId);}
+    public com.vncode.app.features.kiz.KizSourceSelection kizSources(){return shipmentKizPane.snapshot();}
+    public void setKizJobRunning(boolean running){shipmentKizPane.setLocked(running);}
     private void updateTableResizePolicy(){double minimum=orderTable.getColumns().stream().mapToDouble(javafx.scene.control.TableColumnBase::getMinWidth).sum()+20;var policy=gtinInventoryPane.isManaged()||orderTable.getWidth()<minimum?TableView.UNCONSTRAINED_RESIZE_POLICY:TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN;if(orderTable.getColumnResizePolicy()!=policy)orderTable.setColumnResizePolicy(policy);}
     @FXML
     private TableColumn<Order, String> priceTC;
@@ -182,7 +187,7 @@ public class SupplyDetailController {
     private TextField gtinSearchField;
 
     @FXML
-    private VBox gtinInventoryList;
+    private javafx.scene.control.ListView<ZnackGtinInventorySummary> gtinInventoryList;
 
     private Consumer<OrderSortOptions> onSortOptionsChanged;
     private Runnable onPrint;
@@ -191,6 +196,16 @@ public class SupplyDetailController {
 
     @FXML
     private void initialize() {
+        shipmentKizHost.getChildren().setAll(shipmentKizPane);
+        gtinInventoryList.setCellFactory(list->new javafx.scene.control.ListCell<>(){
+            @Override protected void updateItem(ZnackGtinInventorySummary summary,boolean empty){
+                super.updateItem(summary,empty);setText(null);
+                if(getGraphic() instanceof Region prior)prior.prefWidthProperty().unbind();
+                if(empty||summary==null){setGraphic(null);return;}
+                var card=createGtinCard(summary);card.setMinWidth(0);card.prefWidthProperty().bind(list.widthProperty().subtract(28));setGraphic(card);
+            }
+        });
+        shipmentKizPane.setOnSelectionChanged(sources->{paidInventoryPane.setManaged(sources.purchased());paidInventoryPane.setVisible(sources.purchased());if(sources.purchased()&&znackRepository!=null)refreshGtinInventory();else if(!sources.purchased()){gtinSyncPending=false;pendingSyncShowsErrors=false;if(gtinRefreshTimer!=null)gtinRefreshTimer.stop();}});
         if (gtinInventoryRefreshButton.getGraphic() != null) {
             gtinRefreshSpin = new javafx.animation.RotateTransition(
                     javafx.util.Duration.millis(800), gtinInventoryRefreshButton.getGraphic());
@@ -264,6 +279,7 @@ public class SupplyDetailController {
     }
 
     public void syncGtinInventoryOnSupplyOpen() {
+        if(!shipmentKizPane.purchaseSelected())return;
         refreshGtinInventory();
         if (shop == null || znackRepository == null || !hasVerifiedSignature(znackRepository.getSettings())) {
             return;
@@ -276,6 +292,7 @@ public class SupplyDetailController {
     }
 
     private void requestGtinSync(boolean showErrors) {
+        if(!shipmentKizPane.purchaseSelected())return;
         if (znackRepository == null) {
             return;
         }
@@ -325,6 +342,7 @@ public class SupplyDetailController {
     }
 
     public void setShop(Shop selected) {
+        shipmentKizPane.setContext(null,null);
         shopGeneration++;mappingRequest++;orderMappings=java.util.Map.of();
         orderTable.refresh();
         shop = selected;
@@ -343,6 +361,7 @@ public class SupplyDetailController {
     }
 
     public void refreshGtinInventory() {
+        if(!shipmentKizPane.purchaseSelected())return;
         if (gtinLoading) {
             return;
         }
@@ -357,7 +376,7 @@ public class SupplyDetailController {
         Task<List<ZnackGtinInventorySummary>> task = new Task<>() {
             @Override
             protected List<ZnackGtinInventorySummary> call() {
-                return gtinRepository.findGtinSummaries(shopId);
+                return gtinRepository.findPurchasedGtinSummaries(shopId);
             }
         };
         setGtinLoading(true);
@@ -365,6 +384,7 @@ public class SupplyDetailController {
             if (generation != shopGeneration || shop == null || shop.getId() != shopId) {
                 return;
             }
+            if(!shipmentKizPane.purchaseSelected()){setGtinLoading(false);return;}
             renderGtinSummaries(task.getValue());
             setGtinLoading(false);
             startPendingGtinSync();
@@ -379,6 +399,7 @@ public class SupplyDetailController {
                 return;
             }
             setGtinLoading(false);
+            if(!shipmentKizPane.purchaseSelected())return;
             AlertService.showError(friendlyError(rejection));
             startPendingGtinSync();
         };
@@ -481,6 +502,7 @@ public class SupplyDetailController {
     }
 
     public void applyTranslations() {
+        shipmentKizPane.applyTranslations();
         I18nService i18n = I18nService.getInstance();
         printButton.setText(i18n.tr("supply.print"));
         deliverButton.setText(i18n.tr("supply.deliver"));
@@ -493,7 +515,7 @@ public class SupplyDetailController {
         imageTC.setText(i18n.tr("supply.col.photo"));
         nameTC.setText(i18n.tr("supply.col.details"));
         priceTC.setText(i18n.tr("supply.col.price"));
-        barcodeTC.setText(i18n.tr("supply.col.barcodes"));inventoryToggleButton.setText(i18n.tr("supply.inventory_toggle"));
+        barcodeTC.setText(i18n.tr("supply.col.barcodes"));inventoryToggleButton.setText(i18n.tr("kiz.shipment.title"));
         orderTable.refresh();
         if (orderLoadingLabel != null) {
             orderLoadingLabel.setText(i18n.tr("supply.loading_orders"));
@@ -501,7 +523,7 @@ public class SupplyDetailController {
         if (stickerLoadingLabel != null && !stickerLoadingBox.isVisible()) {
             stickerLoadingLabel.setText(i18n.tr("supply.loading_stickers"));
         }
-        gtinInventoryTitleLabel.setText(i18n.tr("supply.gtin_inventory.title"));
+        gtinInventoryTitleLabel.setText(i18n.tr("kiz.shipment.purchase_inventory"));
         gtinInventoryEmptyLabel.setText(i18n.tr("supply.gtin_inventory.empty"));
         gtinInventoryRefreshButton.setTooltip(new Tooltip(i18n.tr("supply.gtin_inventory.refresh")));
         gtinSearchField.setPromptText(i18n.tr("kiz_mapping.search_gtin"));
@@ -612,14 +634,9 @@ public class SupplyDetailController {
 
     private void renderGtinSummaries(List<ZnackGtinInventorySummary> summaries) {
         gtinSummaries = summaries == null ? List.of() : List.copyOf(summaries);
-        gtinInventoryList.getChildren().clear();
         String query = gtinSearchField.getText() == null
                 ? "" : gtinSearchField.getText().trim().toLowerCase(Locale.ROOT);
-        for (ZnackGtinInventorySummary summary : gtinSummaries) {
-            if (query.isEmpty() || summary.matchesSearch(query)) {
-                gtinInventoryList.getChildren().add(createGtinCard(summary));
-            }
-        }
+        gtinInventoryList.getItems().setAll(gtinSummaries.stream().filter(summary->query.isEmpty()||summary.matchesSearch(query)).toList());
         updateGtinEmpty();
     }
 
@@ -889,7 +906,7 @@ public class SupplyDetailController {
     }
 
     private void updateGtinEmpty() {
-        boolean empty = !gtinLoading && !gtinSyncing && gtinInventoryList.getChildren().isEmpty();
+        boolean empty = !gtinLoading && !gtinSyncing && gtinInventoryList.getItems().isEmpty();
         gtinInventoryEmptyLabel.setVisible(empty);
         gtinInventoryEmptyLabel.setManaged(empty);
     }
@@ -947,6 +964,7 @@ public class SupplyDetailController {
     }
 
     public void dispose() {
+        shipmentKizPane.dispose();
         disposed=true;thumbnails.close();
         shopGeneration++;
         if (gtinRefreshTimer != null) {

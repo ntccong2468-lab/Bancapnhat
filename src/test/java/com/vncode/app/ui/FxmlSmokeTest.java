@@ -263,6 +263,7 @@ class FxmlSmokeTest {
     @Test void printPreflightClaimsActivityImmediately() throws Exception { assertPrintPreflightContext(true); }
     @Test void printPreflightCannotOpenDialogsForAnotherShop() throws Exception { assertPrintPreflightContext(false); }
     private void assertPrintPreflightContext(boolean checkImmediateActivity) throws Exception {
+        try(var c=Database.getConnection();var statement=c.createStatement()){statement.execute("UPDATE shops SET name='Fixture A',api_key='fixture-only',marketplace='WILDBERRIES',client_id=NULL WHERE id=1");}
         var release = new CountDownLatch(1);
         var checked = new CountDownLatch(1);
         var dialogs = new AtomicInteger();
@@ -277,9 +278,11 @@ class FxmlSmokeTest {
             var supply = state.getClass().getDeclaredMethod("setLoadedSupplyId", String.class); supply.setAccessible(true); supply.invoke(state, "WB-A");
             var order = new com.vncode.app.models.Order(); order.setId(123L);
             var orders = state.getClass().getDeclaredMethod("setDisplayedOrders", java.util.List.class); orders.setAccessible(true); orders.invoke(state, java.util.List.of(order));
+            var detail=HomeController.class.getDeclaredField("supplyDetailController");detail.setAccessible(true);((SupplyDetailController)detail.get(home)).setKizShipmentContext(new Shop(1,"Fixture A","fixture-only"),"WB-A");
             var workflow = HomeController.class.getDeclaredField("orderExportWorkflow"); workflow.setAccessible(true);
             workflow.set(home, new com.vncode.app.features.print.OrderExportWorkflow() {
-                @Override public void verifyKizAvailability(java.util.List<com.vncode.app.models.Order> ignored, Shop shop) {
+                @Override public void verifyKizAvailability(java.util.List<com.vncode.app.models.Order> ignored, Shop shop, com.vncode.app.features.kiz.KizSourceSelection sources) {
+                    assertEquals(com.vncode.app.features.kiz.KizSourceSelection.SELLER_ONLY,sources);
                     verifications.incrementAndGet();
                     try { assertTrue(release.await(10, TimeUnit.SECONDS)); }
                     catch (InterruptedException ex) { Thread.currentThread().interrupt(); throw new IllegalStateException(ex); }
@@ -292,19 +295,30 @@ class FxmlSmokeTest {
                     dialogs.incrementAndGet(); return java.util.Optional.empty();
                 }
             });
-            home.onExport(new javafx.event.ActionEvent());
-            var busy = HomeController.class.getDeclaredMethod("isShopBusy", int.class); busy.setAccessible(true);
-            if (checkImmediateActivity) {
-                assertTrue((boolean) busy.invoke(home, 1), "The print handoff must claim activity before its asynchronous task starts");
-                home.onExport(new javafx.event.ActionEvent());
-            }
-            select.invoke(state, new Shop(2, "Fixture B", "fixture-only"));
-            var clear = state.getClass().getDeclaredMethod("clearLoadedSupply"); clear.setAccessible(true); clear.invoke(state);
-            supply.invoke(state, "WB-B");
             return null;
         });
         try {
-            Platform.runLater(setup); setup.get(15, TimeUnit.SECONDS); release.countDown();
+            Platform.runLater(setup); setup.get(15, TimeUnit.SECONDS); awaitBackgroundTasksBeforeFixtureCleanup();
+            var context=new java.util.concurrent.FutureTask<Void>(()->{var detail=HomeController.class.getDeclaredField("supplyDetailController");detail.setAccessible(true);((SupplyDetailController)detail.get(holder.get())).setKizShipmentContext(new Shop(1,"Fixture A","fixture-only"),"WB-A");return null;});
+            Platform.runLater(context);context.get(5,TimeUnit.SECONDS);awaitBackgroundTasksBeforeFixtureCleanup();
+            var trigger=new java.util.concurrent.FutureTask<Void>(()->{
+                var home=holder.get();var sf=HomeController.class.getDeclaredField("state");sf.setAccessible(true);var state=sf.get(home);
+                var select=state.getClass().getDeclaredMethod("setSelectedShop",Shop.class);select.setAccessible(true);
+                var supply=state.getClass().getDeclaredMethod("setLoadedSupplyId",String.class);supply.setAccessible(true);
+                select.invoke(state,new Shop(1,"Fixture A","fixture-only"));supply.invoke(state,"WB-A");
+                var valid=state.getClass().getDeclaredMethod("setSelectedShopTokenValid",boolean.class);valid.setAccessible(true);valid.invoke(state,true);
+                var order=new com.vncode.app.models.Order();order.setId(123L);var rows=state.getClass().getDeclaredMethod("setDisplayedOrders",java.util.List.class);rows.setAccessible(true);rows.invoke(state,java.util.List.of(order));
+                home.onExport(new javafx.event.ActionEvent());
+                var busy = HomeController.class.getDeclaredMethod("isShopBusy", int.class); busy.setAccessible(true);
+                if (checkImmediateActivity) {
+                    assertTrue((boolean) busy.invoke(home, 1), "The print handoff must claim activity before its asynchronous task starts");
+                    home.onExport(new javafx.event.ActionEvent());
+                }
+                select.invoke(state, new Shop(2, "Fixture B", "fixture-only"));
+                var clear = state.getClass().getDeclaredMethod("clearLoadedSupply"); clear.setAccessible(true); clear.invoke(state);
+                supply.invoke(state, "WB-B");
+                return null;
+            });Platform.runLater(trigger);trigger.get(10,TimeUnit.SECONDS);release.countDown();
             assertTrue(checked.await(10, TimeUnit.SECONDS));
             awaitBackgroundTasksBeforeFixtureCleanup();
             var verify = new java.util.concurrent.FutureTask<Void>(() -> {

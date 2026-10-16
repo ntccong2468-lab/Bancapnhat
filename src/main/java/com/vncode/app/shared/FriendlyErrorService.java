@@ -51,6 +51,10 @@ public final class FriendlyErrorService {
         if (error == null) return I18nService.getInstance().tr("znack.signature.error.failed");
         Throwable cause=error;
         for(int depth=0;cause!=null&&depth<8;depth++,cause=cause.getCause()) {
+            if(cause instanceof com.vncode.app.features.kiz.KizStockShortageException shortage)
+                return com.vncode.app.features.kiz.KizErrorMessages.message(shortage.getMessage())+"\n"+shortage.missing().stream()
+                    .map(row->MessageFormat.format(I18nService.getInstance().tr("kiz.shipment.missing_order"),row.order(),row.product(),row.category().isBlank()?"—":row.category()))
+                    .collect(java.util.stream.Collectors.joining("\n"))+"\n"+MessageFormat.format(I18nService.getInstance().tr("kiz.shipment.missing_count"),shortage.missing().size());
             if(cause instanceof com.vncode.app.features.kiz.KizAssignmentException kiz)
                 return com.vncode.app.features.kiz.KizErrorMessages.message(kiz.code())+"\n"+java.text.MessageFormat.format(I18nService.getInstance().tr("kiz.error.order_product"),kiz.order(),kiz.product());
             if(cause.getMessage()!=null&&cause.getMessage().matches("KIZ_[A-Z0-9_]{1,70}"))return com.vncode.app.features.kiz.KizErrorMessages.message(cause.getMessage());

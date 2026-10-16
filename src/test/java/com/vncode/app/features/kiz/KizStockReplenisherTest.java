@@ -16,13 +16,29 @@ class KizStockReplenisherTest {
         System.setProperty("vncode.appdata.dir",path.toString());Database.initDatabase();
         try(var c=Database.getConnection();var s=c.createStatement()){
             s.execute("INSERT INTO shops(id,name,api_key) VALUES(1,'WB','fixture')");
-            s.execute("INSERT INTO znack_products(shop_id,gtin,synced_at) VALUES(1,'"+KizWarehouseTest.GTIN+"','fixture')");
+            s.execute("INSERT INTO znack_products(shop_id,gtin,synced_at) VALUES(1,'"+KizWarehouseTest.GTIN+"','2026-01-01T00:00:00Z')");
             s.execute("INSERT INTO kiz_orders(id,shop_id,gtin,quantity,local_status,created_at,updated_at) VALUES(1,1,'"+KizWarehouseTest.GTIN+"',3,'READY','fixture','fixture')");
             s.execute("INSERT INTO kiz_codes(shop_id,order_id,gtin,raw_code,display_code,status,legal_status,created_at,updated_at) VALUES(1,1,'"+KizWarehouseTest.GTIN+"','fixture-1','fixture','AVAILABLE','IN_CIRCULATION','fixture','fixture'),(1,1,'"+KizWarehouseTest.GTIN+"','fixture-2','fixture','AVAILABLE','IN_CIRCULATION','fixture','fixture')");
         }
         shop=new Shop(1,"WB","fixture");buyer=new Buyer();stock=new KizStockReplenisher(s->buyer);
     }
     @AfterEach void clear(){System.clearProperty("vncode.appdata.dir");}
+    @Test void explicitPurchaseSourceIgnoresImportedStockAndItsPendingVerification()throws Exception {
+        var file=path.resolve("imported.txt");java.nio.file.Files.writeString(file,KizWarehouseTest.mark(1));
+        var imported=new KizWarehouseRepository().commit(shop,KizImportReader.read(file));assertEquals(1,imported.inserted());
+        // Its RECEIVED state must not block the paid-source deficit or make it seem available.
+        var result=stock.ensurePurchased(shop,Map.of(KizWarehouseTest.GTIN,3),missing->assertEquals(Map.of(KizWarehouseTest.GTIN,1),missing));
+        assertEquals(1,result.enqueued());assertEquals(1,buyer.bought);assertFalse(new KizWarehouseRepository().autoPurchase(shop));
+        var inventory=new ZnackGtinInventoryService();assertEquals(2,inventory.purchasedAvailableCounts(1,List.of(KizWarehouseTest.GTIN)).get(KizWarehouseTest.GTIN));
+        var paid=inventory.reservePurchasedBulk(1,Map.of(KizWarehouseTest.GTIN,2)).get(KizWarehouseTest.GTIN);assertEquals(2,paid.size());assertTrue(paid.stream().allMatch(code->code.getCode().startsWith("fixture-")));
+        inventory.release(1,paid);
+        try(var c=Database.getConnection();var s=c.createStatement()){s.execute("UPDATE kiz_codes SET legal_status='IN_CIRCULATION' WHERE source_priority=0");}
+        assertEquals(3,inventory.availableCounts(1,List.of(KizWarehouseTest.GTIN)).get(KizWarehouseTest.GTIN));
+        assertEquals(2,inventory.purchasedAvailableCounts(1,List.of(KizWarehouseTest.GTIN)).get(KizWarehouseTest.GTIN));
+        var mappings=new com.vncode.app.features.kizmapping.KizMappingRepository();
+        assertEquals(3,mappings.findGtinSummaries(1).getFirst().available());
+        assertEquals(2,mappings.findPurchasedGtinSummaries(1).getFirst().available());
+    }
     @Test void noPurchaseWithoutSellerSettingOrWhenStockIsSufficient()throws Exception {
         assertFalse(stock.ensure(shop,Map.of(KizWarehouseTest.GTIN,5)).waiting());assertEquals(0,buyer.bought);
         new KizWarehouseRepository().autoPurchase(shop,true);assertTrue(stock.ensure(shop,Map.of(KizWarehouseTest.GTIN,2)).missing().isEmpty());assertEquals(0,buyer.bought);

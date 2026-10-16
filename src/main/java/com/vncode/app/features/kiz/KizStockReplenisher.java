@@ -25,6 +25,13 @@ public final class KizStockReplenisher {
         return ensure(shop,quantities,missing->{});
     }
     public Result ensure(Shop shop,Map<String,Integer> quantities,java.util.function.Consumer<Map<String,Integer>> purchaseProof)throws Exception {
+        return ensure(shop,quantities,purchaseProof,false);
+    }
+    /** Called only after the shipment's explicit purchase checkbox has been captured. */
+    public Result ensurePurchased(Shop shop,Map<String,Integer> quantities,java.util.function.Consumer<Map<String,Integer>> purchaseProof)throws Exception {
+        return ensure(shop,quantities,purchaseProof,true);
+    }
+    private Result ensure(Shop shop,Map<String,Integer> quantities,java.util.function.Consumer<Map<String,Integer>> purchaseProof,boolean purchasedOnly)throws Exception {
         if(shop==null||shop.getId()<=0||quantities==null||quantities.size()>10000)throw new IllegalArgumentException("KIZ_QUANTITY_LIMIT");
         var normalized=new TreeMap<String,Integer>();long total=0;for(var entry:quantities.entrySet()){
             if(entry.getValue()==null||entry.getValue()<=0||entry.getValue()>100000)throw new IllegalArgumentException("KIZ_QUANTITY_LIMIT");
@@ -33,9 +40,10 @@ public final class KizStockReplenisher {
         synchronized(LOCKS[shop.getId()%LOCKS.length]){
             return ShopOperationCoordinator.withActiveShop(shop.getId(),()->{
                 ListingIdentity.require(shop);var warehouse=new KizWarehouseRepository();
-                var counts=new ZnackGtinInventoryService().availableCounts(shop.getId(),normalized.keySet());
+                var inventory=new ZnackGtinInventoryService();
+                var counts=purchasedOnly?inventory.purchasedAvailableCounts(shop.getId(),normalized.keySet()):inventory.availableCounts(shop.getId(),normalized.keySet());
                 var missing=new TreeMap<String,Integer>();normalized.forEach((g,n)->{int shortage=n-counts.getOrDefault(g,0);if(shortage>0)missing.put(g,shortage);});
-                if(missing.isEmpty()||!warehouse.autoPurchase(shop))return new Result(missing,0,false);
+                if(missing.isEmpty()||!purchasedOnly&&!warehouse.autoPurchase(shop))return new Result(missing,0,false);
                 LicenseRuntime.require(Permission.KIZ);
                 var waiting=new HashSet<String>();
                 // Do not buy over an unresolved purchase, introduction or unverified imported stock.
@@ -44,7 +52,7 @@ public final class KizStockReplenisher {
                       AND stage NOT IN ('INTRODUCED','COMPLETED','FAILED','INTRODUCTION_FAILED')
                     UNION SELECT DISTINCT gtin FROM kiz_codes WHERE shop_id=? AND status='AVAILABLE'
                       AND COALESCE(legal_status,'')<>'IN_CIRCULATION'
-                    """)){
+                    """+(purchasedOnly?" AND NOT EXISTS(SELECT 1 FROM kiz_import_entries imported WHERE imported.code_id=kiz_codes.id)":""))){
                     p.setInt(1,shop.getId());p.setInt(2,shop.getId());try(var r=p.executeQuery()){while(r.next())waiting.add(r.getString(1));}
                 }
                 var toBuy=new TreeMap<>(missing);waiting.forEach(toBuy::remove);

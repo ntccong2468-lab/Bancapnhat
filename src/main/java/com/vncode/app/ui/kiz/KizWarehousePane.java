@@ -58,7 +58,7 @@ public final class KizWarehousePane extends BorderPane {
             String counts=MessageFormat.format(tr("formats"),shortCodes,preview.marks().size()-shortCodes)+"\n"+preview.counts().entrySet().stream().limit(100).map(e->e.getKey()+": "+e.getValue()).collect(java.util.stream.Collectors.joining("\n"));
             var confirm=new Alert(Alert.AlertType.CONFIRMATION,MessageFormat.format(tr("confirm"),preview.marks().size(),preview.duplicates())+"\n\n"+counts,ButtonType.YES,ButtonType.NO);AlertService.applyTheme(confirm);confirm.setHeaderText(owner.getName());if(getScene()!=null)confirm.initOwner(getScene().getWindow());
             if(confirm.showAndWait().orElse(ButtonType.NO)!=ButtonType.YES||shop!=owner)return;
-            run(()->{var imported=new KizWarehouseService().importFile(owner,preview,true);if(chosenCategory!=null)categoryRepository.classifyBatch(owner,chosenCategory.id(),imported.batch());return imported;},result->{status.setText(MessageFormat.format(tr("imported"),result.inserted(),result.duplicates()));reload();});
+            run(()->new KizWarehouseService().importFile(owner,preview,true,chosenCategory.id()),result->{status.setText(MessageFormat.format(tr("imported"),result.inserted(),result.duplicates()));reload();});
         });
     }
     private void createCategory(){

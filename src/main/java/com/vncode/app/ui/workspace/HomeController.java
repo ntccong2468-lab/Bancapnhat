@@ -1012,11 +1012,15 @@ public class HomeController implements Initializable {
         String supplyId = state.getLoadedSupplyId();
         String supplyName = state.getLoadedSupplyName();
         long exportRequestToken = state.getSupplyRequestToken();
+        final com.vncode.app.features.kiz.KizSourceSelection kizSources;
+        try{kizSources=supplyDetailController.kizSources();}
+        catch(IllegalStateException unavailable){AlertService.showError(com.vncode.app.shared.FriendlyErrorService.format(unavailable));return;}
+        if(!kizSources.anySelected()){AlertService.showError(com.vncode.app.features.kiz.KizErrorMessages.message("KIZ_SOURCE_REQUIRED"));return;}
 
         Task<Void> checkTask = new Task<>() {
             @Override
             protected Void call() throws Exception {
-                orderExportWorkflow.verifyKizAvailability(exportOrders, shop);
+                orderExportWorkflow.verifyKizAvailability(exportOrders, shop,kizSources);
                 return null;
             }
         };
@@ -1077,7 +1081,8 @@ public class HomeController implements Initializable {
                                             ordersWithStickers,
                                             printOptions.get(),
                                             file,
-                                            orderDetailsFile
+                                            orderDetailsFile,
+                                            kizSources
                                     )
                             );
                         }
@@ -1556,6 +1561,7 @@ public class HomeController implements Initializable {
         long requestToken = state.nextSupplyRequestToken();
         state.setLoadedSupplyId(supply.getSupplyId());
         state.setLoadedSupplyName(supply.getName());
+        supplyDetailController.setKizShipmentContext(shop,supply.getSupplyId());
         supplyPrintRequest.begin(shop.getId(), supply.getSupplyId(), requestToken);
         updateExportAvailability();
         if(wbShippingPane!=null)wbShippingPane.setContext(shop,supply.getSupplyId());
@@ -2151,6 +2157,7 @@ public class HomeController implements Initializable {
     private void markShopRunning(int shopId, boolean running) {
         activityTracker.markRunning(shopId, running);
         if (isCurrentShop(shopId)) {
+            if(supplyDetailController!=null)supplyDetailController.setKizJobRunning(isShopBusy(shopId));
             updateHeaderState();
         }
     }
