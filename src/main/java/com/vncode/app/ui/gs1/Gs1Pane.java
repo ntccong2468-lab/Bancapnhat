@@ -51,6 +51,7 @@ public final class Gs1Pane extends BorderPane {
     private final AtomicInteger tasks=new AtomicInteger();
     private final ListView<Gs1Repository.Request> requests=new ListView<>();
     private final VBox conversation=new VBox(12);
+    private javafx.animation.AnimationTimer conversationTail;
     private final ScrollPane conversationScroll=new ScrollPane(conversation);
     private final ScrollPane headerScroll=new ScrollPane();
     private final Label summary=new Label();
@@ -537,7 +538,16 @@ public final class Gs1Pane extends BorderPane {
             HBox aligned=new HBox(bubble);aligned.setAlignment(message.outgoing()?Pos.TOP_RIGHT:Pos.TOP_LEFT);conversation.getChildren().add(aligned);
         }
         long expected=generation;String threadId=request.id();
-        Platform.runLater(()->{var selected=requests.getSelectionModel().getSelectedItem();if(!disposed&&generation==expected&&selected!=null&&selected.id().equals(threadId)){conversation.applyCss();conversation.layout();conversationScroll.layout();conversationScroll.setVvalue(1);}});
+        if(conversationTail!=null)conversationTail.stop();
+        Platform.runLater(()->{var selected=requests.getSelectionModel().getSelectedItem();if(!disposed&&generation==expected&&selected!=null&&selected.id().equals(threadId)){
+            conversation.applyCss();conversation.layout();conversationScroll.layout();conversationScroll.setVvalue(1);
+            // The installed ScrollPane skin may reset its range on the following layout pulse.
+            conversationTail=new javafx.animation.AnimationTimer(){int frames;public void handle(long now){
+                var current=requests.getSelectionModel().getSelectedItem();
+                if(disposed||generation!=expected||current==null||!current.id().equals(threadId)){stop();return;}
+                conversationScroll.setVvalue(1);if(++frames>=2){stop();conversationTail=null;}
+            }};conversationTail.start();
+        }});
     }
     private void confirmPortalInvoice(Gs1Repository.Request request,Gs1Repository.Message message){
         Dialog<Void> dialog=dialog(tr("gs1.confirm_invoice"));GridPane fields=grid();
@@ -611,5 +621,5 @@ public final class Gs1Pane extends BorderPane {
     private static String displayTime(Instant value){return java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm").withZone(ZoneId.systemDefault()).format(value);}
     private void openInvoicePortal(){try{java.awt.Desktop.getDesktop().browse(java.net.URI.create(NationalCatalogGs1Client.PROFILE_URL));}catch(Exception unavailable){showError(new IllegalStateException("gs1.error"));}}
     private void openCzPortal(){try{java.awt.Desktop.getDesktop().browse(ChestnyZnakBalanceClient.PRODUCTION);}catch(Exception unavailable){showError(new IllegalStateException("gs1.error"));}}
-    public void dispose(){stopObserving();disposed=true;generation++;i18n.removeListener(languageListener);}
+    public void dispose(){if(conversationTail!=null){conversationTail.stop();conversationTail=null;}stopObserving();disposed=true;generation++;i18n.removeListener(languageListener);}
 }

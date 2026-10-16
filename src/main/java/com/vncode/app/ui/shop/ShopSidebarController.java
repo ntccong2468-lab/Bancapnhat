@@ -17,12 +17,19 @@ import java.util.function.Consumer;
 public class ShopSidebarController {
     @FXML private javafx.scene.layout.VBox sidebarRoot;
     @FXML private Label sidebarTitle;
-    private boolean compact;
+    private boolean compact;private Boolean compactOverride;private double viewportWidth;
+    @FXML private Button sidebarToggleButton;
+    private MenuItem automaticLayoutItem;
+    @FXML private void onToggleSidebar(){compactOverride=!compact;setViewportWidth(viewportWidth);}
+    public void resetSidebarLayout(){compactOverride=null;setViewportWidth(viewportWidth);}
+
     private final java.util.Map<javafx.scene.control.ButtonBase,String> fullLabels=new java.util.HashMap<>();
-    public void setViewportWidth(double width){compact=width>0&&width<1240;applyCompact();}
-    private void applyCompact(){if(sidebarRoot==null)return;double width=compact?64:224;sidebarRoot.setMinWidth(width);sidebarRoot.setMaxWidth(width);sidebarRoot.setPrefWidth(width);if(compact&&!sidebarRoot.getStyleClass().contains("sidebar-compact"))sidebarRoot.getStyleClass().add("sidebar-compact");else if(!compact)sidebarRoot.getStyleClass().remove("sidebar-compact");sidebarTitle.setVisible(!compact);sidebarTitle.setManaged(!compact);if(toolsPane!=null){toolsPane.setMinWidth(0);toolsPane.setText(compact?"":I18nService.getInstance().tr("sidebar.tools"));toolsPane.setAccessibleText(I18nService.getInstance().tr("sidebar.tools"));toolsPane.setGraphic(compact?new org.kordamp.ikonli.javafx.FontIcon("fth-more-horizontal"):null);}compactButtons(sidebarRoot);}
+    public void setViewportWidth(double width){viewportWidth=width;compact=compactOverride!=null?compactOverride:width>0&&width<1240;applyCompact();}
+    private void applyCompact(){if(sidebarRoot==null)return;double width=compact?64:224;sidebarRoot.setMinWidth(width);sidebarRoot.setMaxWidth(width);sidebarRoot.setPrefWidth(width);if(compact&&!sidebarRoot.getStyleClass().contains("sidebar-compact"))sidebarRoot.getStyleClass().add("sidebar-compact");else if(!compact)sidebarRoot.getStyleClass().remove("sidebar-compact");sidebarTitle.setVisible(!compact);sidebarTitle.setManaged(!compact);if(toolsPane!=null){toolsPane.setMinWidth(0);toolsPane.setText(compact?"":I18nService.getInstance().tr("sidebar.tools"));toolsPane.setAccessibleText(I18nService.getInstance().tr("sidebar.tools"));toolsPane.setGraphic(compact?new org.kordamp.ikonli.javafx.FontIcon("fth-more-horizontal"):null);}compactButtons(sidebarRoot);editionStatusLabel.setVisible(!compact);editionStatusLabel.setManaged(!compact);
+        if(sidebarToggleButton!=null){String text=I18nService.getInstance().tr(compact?"sidebar.expand":"sidebar.collapse");sidebarToggleButton.setTooltip(new javafx.scene.control.Tooltip(text));sidebarToggleButton.setAccessibleText(text);((org.kordamp.ikonli.javafx.FontIcon)sidebarToggleButton.getGraphic()).setIconLiteral(compact?"fth-chevrons-right":"fth-chevrons-left");}
+    }
     private void compactButtons(javafx.scene.Parent parent){for(var n:parent.getChildrenUnmodifiable()){
-        if(n instanceof javafx.scene.control.ButtonBase button){if(!button.getText().isBlank())fullLabels.put(button,button.getText());button.setTooltip(new javafx.scene.control.Tooltip(fullLabels.getOrDefault(button,"")));button.setAccessibleText(fullLabels.getOrDefault(button,""));button.setMinWidth(0);button.setPrefWidth(javafx.scene.layout.Region.USE_COMPUTED_SIZE);button.setContentDisplay(compact?javafx.scene.control.ContentDisplay.GRAPHIC_ONLY:javafx.scene.control.ContentDisplay.LEFT);button.setText(compact?"":fullLabels.getOrDefault(button,button.getText()));}
+        if(n instanceof javafx.scene.control.ButtonBase button&&button!=sidebarToggleButton){if(!button.getText().isBlank())fullLabels.put(button,button.getText());button.setTooltip(new javafx.scene.control.Tooltip(fullLabels.getOrDefault(button,"")));button.setAccessibleText(fullLabels.getOrDefault(button,""));button.setMinWidth(0);button.setPrefWidth(javafx.scene.layout.Region.USE_COMPUTED_SIZE);button.setContentDisplay(compact?javafx.scene.control.ContentDisplay.GRAPHIC_ONLY:javafx.scene.control.ContentDisplay.LEFT);button.setText(compact?"":fullLabels.getOrDefault(button,button.getText()));}
         if(n instanceof javafx.scene.Parent child)compactButtons(child);
         if(n instanceof javafx.scene.control.ScrollPane scroll&&scroll.getContent() instanceof javafx.scene.Parent content)compactButtons(content);
         if(n instanceof javafx.scene.control.TitledPane titled&&titled.getContent() instanceof javafx.scene.Parent content)compactButtons(content);
@@ -55,7 +62,7 @@ public class ShopSidebarController {
     private int gs1Unread;
     private boolean gs1Attention;
     public void setOnGs1(Runnable action){onGs1=action;}
-    public void setGs1Unread(int count){gs1Unread=Math.max(0,count);if(gs1Button!=null)gs1Button.setText(" "+I18nService.getInstance().tr("gs1.title")+(gs1Attention?" !":"")+(gs1Unread>0?" ("+gs1Unread+")":""));}
+    public void setGs1Unread(int count){gs1Unread=Math.max(0,count);if(gs1Button!=null)gs1Button.setText(" "+I18nService.getInstance().tr("gs1.title")+(gs1Attention?" !":"")+(gs1Unread>0?" ("+gs1Unread+")":""));if(sidebarRoot!=null)applyCompact();}
     public void setGs1Attention(boolean required){gs1Attention=required;setGs1Unread(gs1Unread);}
     @FXML private void onGs1(){if(onGs1!=null)onGs1.run();}
     @FXML
@@ -143,6 +150,7 @@ public class ShopSidebarController {
 
     @FXML
     private void initialize() {
+        automaticLayoutItem=new MenuItem();automaticLayoutItem.setOnAction(e->resetSidebarLayout());sidebarToggleButton.setContextMenu(new javafx.scene.control.ContextMenu(automaticLayoutItem));
         ToggleGroup languageGroup = new ToggleGroup();
         languageRuMenuItem.setToggleGroup(languageGroup);
         languageEnMenuItem.setToggleGroup(languageGroup);
@@ -254,6 +262,7 @@ public class ShopSidebarController {
     }
 
     public void applyTranslations() {
+        if(automaticLayoutItem!=null)automaticLayoutItem.setText(I18nService.getInstance().tr("sidebar.automatic"));
         I18nService i18n = I18nService.getInstance();
         templateButton.setText(" " + i18n.tr("sidebar.template"));
         addShopButton.setText(" " + i18n.tr("sidebar.add_shop"));

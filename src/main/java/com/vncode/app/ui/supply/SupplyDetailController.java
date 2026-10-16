@@ -66,6 +66,7 @@ import java.util.Set;
 import java.util.function.Consumer;
 
 public class SupplyDetailController {
+    private final com.vncode.app.shared.TableRows.Tracked<Order,Long> renderedOrders=new com.vncode.app.shared.TableRows.Tracked<>();
     private static final Set<String> ACTIVE_PURCHASE_STAGES = Set.of(
             "QUEUED", "VALIDATING", "CREATING_ORDER", "RECONCILING_ORDER", "POLLING_ORDER", "DOWNLOADING_CODES",
             "WAITING_INTRODUCTION_READINESS", "SUBMITTING_INTRODUCTION", "POLLING_INTRODUCTION"
@@ -343,7 +344,7 @@ public class SupplyDetailController {
 
     public void setShop(Shop selected) {
         shipmentKizPane.setContext(null,null);
-        shopGeneration++;mappingRequest++;orderMappings=java.util.Map.of();
+        renderedOrders.clear();shopGeneration++;mappingRequest++;orderMappings=java.util.Map.of();
         orderTable.refresh();
         shop = selected;
         purchasesStarting.clear();
@@ -416,12 +417,12 @@ public class SupplyDetailController {
     }
 
     public void setOrders(List<Order> orders) {
-        long request=++mappingRequest;orderMappings=java.util.Map.of();
-        orderTable.getItems().setAll(orders == null ? List.of() : orders);
+        long request=++mappingRequest;
+        renderedOrders.merge(orderTable.getItems(),orders == null ? List.of() : orders,Order::getId,com.vncode.app.shared.FbsRowValues::snapshot);
         if(shop!=null&&orders!=null&&!orders.isEmpty()) {
             int shopId=shop.getId();long generation=shopGeneration;
             var ids=orders.stream().map(Order::getNmId).filter(java.util.Objects::nonNull).distinct().toList();
-            com.vncode.app.shared.ShopReadCoordinator.shared().submitLocal(new com.vncode.app.shared.ShopReadCoordinator.Key(shopId,"supply-mappings",request+":"+generation),()->gtinRepository.findMappings(shopId,ids)).whenComplete((value,error)->javafx.application.Platform.runLater(()->{if(request==mappingRequest&&generation==shopGeneration){if(error==null){orderMappings=java.util.Map.copyOf(value);orderTable.refresh();}else AlertService.showError(error.getMessage());}}));
+            com.vncode.app.shared.ShopReadCoordinator.shared().submitLocal(new com.vncode.app.shared.ShopReadCoordinator.Key(shopId,"supply-mappings",request+":"+generation),()->gtinRepository.findMappings(shopId,ids)).whenComplete((value,error)->javafx.application.Platform.runLater(()->{if(request==mappingRequest&&generation==shopGeneration){if(error==null){var next=java.util.Map.copyOf(value);if(!next.equals(orderMappings)){orderMappings=next;orderTable.refresh();}}else AlertService.showError(error.getMessage());}}));
         }
         boolean hasOrders = orders != null && !orders.isEmpty();
         orderTable.setVisible(hasOrders);

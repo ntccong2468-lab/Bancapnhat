@@ -20,7 +20,7 @@
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 
-<BorderPane prefHeight="760.0" prefWidth="1180.0" styleClass="root" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.vncode.app.ui.print.PrintTemplateDesignerController">
+<BorderPane prefHeight="760.0" prefWidth="1180.0" styleClass="root,app-page" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.vncode.app.ui.print.PrintTemplateDesignerController">
     <top>
         <VBox spacing="10.0" BorderPane.alignment="CENTER">
             <padding>

@@ -1,6 +1,6 @@
 # Mục 7 — đề xuất thống nhất giao diện toàn bộ VNCode
 
-Trạng thái: **người dùng đã duyệt mục 7**, đồng thời yêu cầu **làm nốt mục 3 trước, sau đó mới triển khai mục 7**: “duyệt làm nốt mục 3 trước rồi đến mục 7”. Không cần hỏi lại việc duyệt mục 7. Người dùng yêu cầu vẽ sơ đồ và duyệt từng công việc; nếu cần nâng kiến trúc app thì phải hỏi riêng. Phạm vi đề xuất dựa trên mã đã hoàn tất mục 6 tại commit `19479388f50ab8e97c3bfba2ad726ab5e8523e46`.
+Trạng thái: **đã triển khai sau khi hoàn tất mục 3; đang chốt hồi quy toàn bộ**. Người dùng đã duyệt mục 7, đồng thời yêu cầu **làm nốt mục 3 trước, sau đó mới triển khai mục 7**: “duyệt làm nốt mục 3 trước rồi đến mục 7”. Không cần hỏi lại việc duyệt mục 7. Người dùng yêu cầu vẽ sơ đồ và duyệt từng công việc; nếu cần nâng kiến trúc app thì phải hỏi riêng. Phạm vi đề xuất dựa trên mã đã hoàn tất mục 6 tại commit `19479388f50ab8e97c3bfba2ad726ab5e8523e46`.
 
 ## Bằng chứng đối chiếu ngày 16/10/2026, giờ Moscow
 
@@ -68,7 +68,7 @@ flowchart TD
 | Khung chung | Sidebar mở/thu gọn, shop đang chọn rõ ràng, header gọn, tên màn hình và thao tác chính thống nhất; hỗ trợ 1024×600, 1366×768 và màn lớn. |
 | Tổng quan / màn đầu | Thẻ tóm tắt vừa đủ; dữ liệu thật có thời điểm cập nhật. Chưa có shop/dữ liệu thì hướng dẫn hành động tiếp theo, phân biệt đang tải, rỗng, lỗi và chưa cấu hình. |
 | Sản phẩm / sửa hàng loạt | Thanh lọc gọn; ảnh đầu, tên/article, màu/size, barcode/GTIN và giấy tờ dễ đọc; chọn theo đúng tập kết quả, giữ bộ lọc/cuộn khi cập nhật. Chi tiết dài mở riêng. |
-| Đóng đơn FBS WB/Ozon | Cùng cách bố trí tiêu đề, bộ lọc, danh sách shipment/đơn, trạng thái KIZ, tiến độ và thanh in/gán mã. Ảnh, bảng và thao tác không giãn mất kiểm soát. Trong mục 7 chỉ chuẩn hóa phần trình bày và cập nhật UI; quy tắc nghiệp vụ Ozon của mục 3 vẫn chờ phê duyệt riêng. |
+| Đóng đơn FBS WB/Ozon | Cùng cách bố trí tiêu đề, bộ lọc, danh sách shipment/đơn, trạng thái KIZ, tiến độ và thanh in/gán mã. Ảnh, bảng và thao tác không giãn mất kiểm soát. Trong mục 7 chỉ chuẩn hóa phần trình bày và cập nhật UI; quy tắc nghiệp vụ Ozon đã được duyệt và triển khai ở mục 3. |
 | FBO / lô hàng | Bố cục bảng, chọn sản phẩm, rà soát thiếu mã và kết quả nhất quán với FBS; giữ các bước xác nhận của luồng hiện có. |
 | Đăng ký Znack / GTIN | Giữ kết quả mục 1 và 4; chuẩn hóa thanh nút, bộ lọc, cột trạng thái/thao tác, chi tiết lỗi và báo cáo. Không đưa lại công cụ GTIN độc lập đã bỏ. |
 | GS1 | Giữ luồng đã duyệt ở mục 5; đồng bộ kiểu thẻ thông tin, bảng tiền tố, thư từ, cửa sổ nhỏ và trạng thái từng nguồn với giao diện chung. |

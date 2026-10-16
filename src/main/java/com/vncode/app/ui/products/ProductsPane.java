@@ -110,7 +110,7 @@ public final class ProductsPane extends BorderPane {
             loading=false;updateButtons();rows.refresh();reload.setDisable(syncing);more.setDisable(false);
             if(error!=null){status.setText(tr("products.read_failed"));return;}
             if(page.rows().stream().anyMatch(row->row.key().shopId()!=owner.getId()||row.key().marketplace()!=owner.getMarketplace())){status.setText(tr("products.read_failed"));return;}
-            if(append)rows.getItems().addAll(page.rows());else{rows.getItems().setAll(page.rows());all.setDisable(false);}displayedQuery=q;
+            if(append)rows.getItems().addAll(page.rows());else{com.vncode.app.shared.TableRows.merge(rows.getItems(),page.rows(),ProductRow::key);all.setDisable(false);}displayedQuery=q;
             issueCounts=page.issueCounts();refreshIssueCells();
             cursor=page.nextCursor();count.setText(Long.toString(page.total()));more.setVisible(cursor!=null&&!cursor.isEmpty());more.setManaged(more.isVisible());status.setText(syncing?tr("products.loading"):syncStatus());updateSelection();
             RuntimeDiagnostics.afterNextPulse("products-render",started);

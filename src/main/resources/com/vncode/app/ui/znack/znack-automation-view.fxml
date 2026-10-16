@@ -3,7 +3,7 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <?import org.kordamp.ikonli.javafx.FontIcon?>
-<VBox spacing="8" styleClass="znack-root" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.vncode.app.ui.znack.ZnackAutomationController">
+<VBox spacing="8" styleClass="znack-root,app-page" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.vncode.app.ui.znack.ZnackAutomationController">
  <padding><Insets top="8" right="8" bottom="8" left="8"/></padding>
  <Label fx:id="titleLabel" styleClass="h2" text="%znack.title"/>
  <Label fx:id="authStatusLabel" styleClass="text-muted"/>

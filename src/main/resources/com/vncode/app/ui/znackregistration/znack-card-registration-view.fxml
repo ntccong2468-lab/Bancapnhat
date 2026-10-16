@@ -5,7 +5,7 @@
 <?import javafx.scene.layout.*?>
 
 <VBox spacing="8" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="com.vncode.app.ui.znackregistration.ZnackCardRegistrationController">
+      fx:controller="com.vncode.app.ui.znackregistration.ZnackCardRegistrationController" styleClass="app-page">
     <StackPane fx:id="ozonRegistrationHost" VBox.vgrow="ALWAYS" visible="false" managed="false"/>
     <VBox fx:id="wbRegistrationContent" spacing="8" VBox.vgrow="ALWAYS">
     <padding><Insets top="12" right="12" bottom="12" left="12"/></padding>

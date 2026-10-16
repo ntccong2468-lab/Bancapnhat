@@ -239,6 +239,7 @@ class FxmlSmokeTest {
         try{
             Platform.runLater(setup);setup.get(10,TimeUnit.SECONDS);
             awaitBackgroundTasksBeforeFixtureCleanup();
+            var tailPulse=new java.util.concurrent.CompletableFuture<Void>();Platform.runLater(()->new javafx.animation.AnimationTimer(){int frames;public void handle(long now){if(++frames>=3){stop();tailPulse.complete(null);}}}.start());tailPulse.get(5,TimeUnit.SECONDS);
             var check=new java.util.concurrent.FutureTask<Void>(()->{var field=holder.get().getClass().getDeclaredField("conversationScroll");field.setAccessible(true);var scroll=(ScrollPane)field.get(holder.get());
                 assertTrue(scroll.getContent().getBoundsInLocal().getHeight()>scroll.getViewportBounds().getHeight());assertEquals(1,scroll.getVvalue(),0.001);return null;});
             Platform.runLater(check);check.get(10,TimeUnit.SECONDS);
@@ -1027,7 +1028,9 @@ class FxmlSmokeTest {
                 CheckBox selectAll = (CheckBox) selectColumn.getGraphic();
                 selectAll.fire();
                 valid.set(tabs != null
-                        && tabs.getTabs().size() == 3
+                        && tabs.getTabs().size() == 4
+                        && loader.getNamespace().get("shipmentKizTab") != null
+                        && loader.getNamespace().get("shipmentKizHost") != null
                         && tabs.getSelectionModel().getSelectedItem() == loader.getNamespace().get("newOrdersTab")
                         && newOrdersTab.getText().endsWith("(0)")
                         && packingOrdersTab.getText().endsWith("(0)")

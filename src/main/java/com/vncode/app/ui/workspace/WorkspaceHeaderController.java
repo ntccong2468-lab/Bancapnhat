@@ -13,6 +13,30 @@ import java.util.List;
 import java.util.function.Consumer;
 
 public class WorkspaceHeaderController {
+    @FXML private javafx.scene.layout.HBox headerRoot;
+    @FXML private javafx.scene.layout.FlowPane secondaryActions;
+    @FXML private javafx.scene.control.MenuButton moreButton;
+    private boolean compact,productSyncLoading;
+    private String syncCaption="",jobsCaption="";
+    private javafx.scene.control.MenuItem balanceThresholdItem;
+    private final javafx.scene.control.CustomMenuItem secondaryMenu=new javafx.scene.control.CustomMenuItem();
+    private final java.util.EnumMap<com.vncode.app.features.sync.SyncCoordinator.Stream,com.vncode.app.features.sync.SyncCoordinator.Health> fbsHealth=new java.util.EnumMap<>(com.vncode.app.features.sync.SyncCoordinator.Stream.class);
+
+    private void responsiveHeader(){
+        if(headerRoot==null)return;
+        boolean next=headerRoot.getWidth()>0&&headerRoot.getWidth()<1320;
+        if(next!=compact){
+            compact=next;
+            if(compact){headerRoot.getChildren().remove(secondaryActions);secondaryActions.setOrientation(javafx.geometry.Orientation.VERTICAL);secondaryActions.setPrefWrapLength(350);secondaryActions.setPrefWidth(240);secondaryMenu.setContent(secondaryActions);moreButton.getItems().setAll(secondaryMenu);}
+            else{moreButton.hide();secondaryMenu.setContent(null);moreButton.getItems().clear();secondaryActions.setOrientation(javafx.geometry.Orientation.HORIZONTAL);secondaryActions.setPrefWrapLength(500);secondaryActions.setPrefWidth(javafx.scene.layout.Region.USE_COMPUTED_SIZE);headerRoot.getChildren().add(headerRoot.getChildren().size()-1,secondaryActions);}
+        }
+        moreButton.setVisible(compact);moreButton.setManaged(compact);shopComboBox.setPrefWidth(compact?190:220);syncHealthLabel.setMaxWidth(compact?175:220);
+        syncButton.setText(compact?"":syncCaption);jobsButton.setText(compact?"":jobsCaption);
+        syncButton.setTooltip(new javafx.scene.control.Tooltip(syncCaption));syncButton.setAccessibleText(syncCaption);
+        jobsButton.setTooltip(new javafx.scene.control.Tooltip(jobsCaption));jobsButton.setAccessibleText(jobsCaption);
+        syncLoadingLabel.setVisible(productSyncLoading&&!compact);syncLoadingLabel.setManaged(productSyncLoading&&!compact);
+    }
+
     @FXML
     private ComboBox<Shop> shopComboBox;
 
@@ -48,8 +72,24 @@ public class WorkspaceHeaderController {
     @FXML private Button jobsButton;
     @FXML private Label syncHealthLabel;
     private com.vncode.app.features.sync.SyncCoordinator.Health syncHealth;
-    public void setSyncHealth(com.vncode.app.features.sync.SyncCoordinator.Health health){if(health.stream()!=com.vncode.app.features.sync.SyncCoordinator.Stream.FBS_QUEUE)return;syncHealth=health;renderSyncHealth();}
-    private void renderSyncHealth(){if(syncHealthLabel==null)return;var tr=I18nService.getInstance();if(syncHealth==null){syncHealthLabel.setText(tr.tr("sync.health.starting"));return;}long seconds=syncHealth.success()==null?-1:Math.max(0,java.time.Duration.between(syncHealth.success(),java.time.Instant.now()).getSeconds());syncHealthLabel.setText(tr.tr(syncHealth.error().isBlank()?"sync.health.live":"sync.health.delayed")+(seconds<0?"":" · "+seconds+" s")+(syncHealth.error().isBlank()?"":" · "+syncHealth.error()));}
+    public void setSyncHealth(com.vncode.app.features.sync.SyncCoordinator.Health health){
+        var selected=shopComboBox.getValue();if(selected!=null&&selected.getId()!=health.shopId())return;
+        if(health.stream().ordinal()>com.vncode.app.features.sync.SyncCoordinator.Stream.SUPPLY_CONTENT.ordinal())return;
+        fbsHealth.put(health.stream(),health);if(health.stream()==com.vncode.app.features.sync.SyncCoordinator.Stream.FBS_QUEUE)syncHealth=health;renderSyncHealth();
+    }
+    private void renderSyncHealth(){
+        if(syncHealthLabel==null)return;var tr=I18nService.getInstance();var now=java.time.Instant.now();
+        var failure=fbsHealth.values().stream().filter(h->h.error()!=null&&!h.error().isBlank()).findFirst().orElse(null);
+        var primary=failure!=null?failure:syncHealth;
+        String state=primary==null?"sync.health.starting":failure!=null?"sync.health.delayed":primary.running()?"sync.health.running":primary.success()!=null&&(primary.complete()==null||primary.success().isAfter(primary.complete()))?"sync.health.partial":primary.complete()==null?"sync.health.starting":primary.next()!=null&&now.isAfter(primary.next().plusSeconds(30))?"sync.health.stale":"sync.health.live";
+        long seconds=primary==null||primary.complete()==null?-1:Math.max(0,java.time.Duration.between(primary.complete(),now).getSeconds());
+        syncHealthLabel.setText(tr.tr(state)+(seconds<0?"":" · "+seconds+" s"));
+        var format=java.time.format.DateTimeFormatter.ofPattern("dd.MM HH:mm:ss").withZone(java.time.ZoneId.of("Europe/Moscow"));
+        String details=fbsHealth.values().stream().map(h->tr.tr("sync.stream."+h.stream())+" · "+tr.tr(h.running()?"sync.health.running":"sync.health.checked")+" · "+tr.tr("sync.health.last_complete")+": "+(h.complete()==null?"—":format.format(h.complete()))+" · "+tr.tr("sync.health.next")+": "+(h.next()==null?"—":format.format(h.next()))+(h.error()==null||h.error().isBlank()?"":" · "+h.error())).collect(java.util.stream.Collectors.joining("\n"));
+        syncHealthLabel.setTooltip(new javafx.scene.control.Tooltip(details.isBlank()?tr.tr(state):details));syncHealthLabel.setAccessibleText(syncHealthLabel.getText()+" "+details);
+        syncHealthLabel.getStyleClass().remove("text-danger");if(failure!=null)syncHealthLabel.getStyleClass().add("text-danger");
+    }
+
     private final javafx.animation.Timeline statusMonitor=new javafx.animation.Timeline();
     private long balanceEpoch;private boolean disposed;private int balanceWarningRub=500;
     private Consumer<com.vncode.app.features.jobs.JobCenterRepository.Row> onJobOpen;
@@ -68,12 +108,17 @@ public class WorkspaceHeaderController {
 
     @FXML
     public void initialize() {
+        secondaryMenu.setHideOnClick(false);headerRoot.widthProperty().addListener((o,a,b)->responsiveHeader());
         balanceAccount.setConverter(new javafx.util.StringConverter<>(){public String toString(com.vncode.app.integration.znack.BalanceSnapshot value){return value==null?I18nService.getInstance().tr("header.balance_choose"):value.scope().productGroup()+" · "+value.scope().accountId();}public com.vncode.app.integration.znack.BalanceSnapshot fromString(String text){return null;}});
         balanceAccount.valueProperty().addListener((o,a,b)->renderBalance());
-        var threshold=new javafx.scene.control.MenuItem(I18nService.getInstance().tr("header.balance_threshold"));
-        threshold.setOnAction(e->{var dialog=new javafx.scene.control.TextInputDialog(Integer.toString(balanceWarningRub));dialog.setTitle(I18nService.getInstance().tr("header.balance_threshold"));dialog.setHeaderText(I18nService.getInstance().tr("header.balance_threshold_hint"));dialog.showAndWait().ifPresent(text->{try{int number=Integer.parseInt(text.strip());if(number<0||number>100000)throw new IllegalArgumentException();com.vncode.app.shared.ConfigService.setConfigValue("cz_balance_warning_rub",Integer.toString(number));balanceWarningRub=number;renderBalance();}catch(RuntimeException invalid){com.vncode.app.shared.AlertService.showError(I18nService.getInstance().tr("header.balance_threshold_hint"));}});});
-        balanceLabel.setContextMenu(new javafx.scene.control.ContextMenu(threshold));
-        statusMonitor.getKeyFrames().setAll(new javafx.animation.KeyFrame(javafx.util.Duration.seconds(10),e->{renderBalance();renderSyncHealth();jobsButton.setText(I18nService.getInstance().tr("jobs.title")+" · "+(com.vncode.app.shared.SellerMutationExecutor.activeCount()+com.vncode.app.shared.AppTaskExecutor.getRunningTaskCount())+" / "+(com.vncode.app.shared.SellerMutationExecutor.pendingCount()+com.vncode.app.shared.AppTaskExecutor.pendingCount()));}));statusMonitor.setCycleCount(javafx.animation.Animation.INDEFINITE);
+        balanceThresholdItem=new javafx.scene.control.MenuItem();
+        balanceThresholdItem.setOnAction(e->{var dialog=new javafx.scene.control.TextInputDialog(Integer.toString(balanceWarningRub));dialog.setTitle(I18nService.getInstance().tr("header.balance_threshold"));dialog.setHeaderText(I18nService.getInstance().tr("header.balance_threshold_hint"));dialog.showAndWait().ifPresent(text->{try{int number=Integer.parseInt(text.strip());if(number<0||number>100000)throw new IllegalArgumentException();com.vncode.app.shared.ConfigService.setConfigValue("cz_balance_warning_rub",Integer.toString(number));balanceWarningRub=number;renderBalance();}catch(RuntimeException invalid){com.vncode.app.shared.AlertService.showError(I18nService.getInstance().tr("header.balance_threshold_hint"));}});});
+        balanceLabel.setContextMenu(new javafx.scene.control.ContextMenu(balanceThresholdItem));
+        statusMonitor.getKeyFrames().setAll(new javafx.animation.KeyFrame(javafx.util.Duration.seconds(10),e->{renderBalance();renderSyncHealth();jobsCaption=I18nService.getInstance().tr("jobs.title")+" · "+(com.vncode.app.shared.SellerMutationExecutor.activeCount()+com.vncode.app.shared.AppTaskExecutor.getRunningTaskCount())+" / "+(com.vncode.app.shared.SellerMutationExecutor.pendingCount()+com.vncode.app.shared.AppTaskExecutor.pendingCount());responsiveHeader();}));statusMonitor.setCycleCount(javafx.animation.Animation.INDEFINITE);
+        shopComboBox.setConverter(new javafx.util.StringConverter<Shop>(){
+            public String toString(Shop value){return value==null?"":"["+value.getMarketplace().badge()+"] "+value.getName();}
+            public Shop fromString(String ignored){return null;}
+        });
         shopComboBox.setCellFactory(lv -> new ListCell<>() {
             @Override
             protected void updateItem(Shop item, boolean empty) {
@@ -89,10 +134,11 @@ public class WorkspaceHeaderController {
         shopComboBox.setButtonCell(buttonCell);
         shopComboBox.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
             if (!updatingShops && newVal != null && onShopSelected != null) {
-                syncHealth=null;renderSyncHealth();refreshBalance(newVal);
+                syncHealth=null;fbsHealth.clear();renderSyncHealth();refreshBalance(newVal);
                 onShopSelected.accept(newVal);
             }
         });
+        applyTranslations();
     }
 
     @FXML
@@ -149,7 +195,7 @@ public class WorkspaceHeaderController {
         } finally {
             updatingShops = false;
         }
-        var selected=shopComboBox.getValue();if(syncHealth!=null&&(selected==null||syncHealth.shopId()!=selected.getId())){syncHealth=null;renderSyncHealth();}
+        var selected=shopComboBox.getValue();if(syncHealth!=null&&(selected==null||syncHealth.shopId()!=selected.getId())){syncHealth=null;fbsHealth.clear();renderSyncHealth();}
         refreshBalance(selected);if(!disposed)statusMonitor.play();
     }
     private void refreshBalance(Shop selected) {
@@ -178,8 +224,7 @@ public class WorkspaceHeaderController {
     public void setProductKizSyncLoading(boolean loading) {
         syncLoadingIndicator.setVisible(loading);
         syncLoadingIndicator.setManaged(loading);
-        syncLoadingLabel.setVisible(loading);
-        syncLoadingLabel.setManaged(loading);
+        productSyncLoading=loading;responsiveHeader();
     }
 
     public void setControls(boolean hasShop, boolean busy, boolean exportEnabled, boolean tokenValid) {
@@ -189,19 +234,23 @@ public class WorkspaceHeaderController {
     }
 
     public void setMarketplace(Marketplace marketplace) {
-        syncHealth=null;renderSyncHealth();
+        syncHealth=null;fbsHealth.clear();renderSyncHealth();
         this.marketplace = marketplace == null ? Marketplace.WILDBERRIES : marketplace;
         applyTranslations();
     }
 
     public void applyTranslations() {
         setAvailableUpdate(updateVersion);
-        renderBalance();jobsButton.setText(I18nService.getInstance().tr("jobs.title"));
+        renderBalance();jobsCaption=I18nService.getInstance().tr("jobs.title");
         I18nService i18n = I18nService.getInstance();
+        if(balanceThresholdItem!=null)balanceThresholdItem.setText(i18n.tr("header.balance_threshold"));
         supportButton.setText(i18n.tr("header.support"));
         newsButton.setTooltip(new javafx.scene.control.Tooltip(i18n.tr("news.title")));
         shopComboBox.setPromptText(i18n.tr("header.shop_prompt"));
-        syncButton.setText(" " + i18n.tr(marketplace == Marketplace.OZON ? "ozon.dashboard.refresh" : "header.sync"));
+        syncCaption=i18n.tr(marketplace == Marketplace.OZON ? "ozon.dashboard.refresh" : "header.sync");
         syncLoadingLabel.setText(i18n.tr("header.sync_products_kiz"));
+        moreButton.setTooltip(new javafx.scene.control.Tooltip(i18n.tr("header.more")));moreButton.setAccessibleText(i18n.tr("header.more"));
+        editShopButton.setTooltip(new javafx.scene.control.Tooltip(i18n.tr("header.edit_shop")));deleteShopButton.setTooltip(new javafx.scene.control.Tooltip(i18n.tr("header.delete_shop")));
+        responsiveHeader();renderSyncHealth();
     }
 }

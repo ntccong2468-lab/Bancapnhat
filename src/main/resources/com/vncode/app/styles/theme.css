@@ -1196,3 +1196,36 @@
 .listing-copy-workspace .titled-pane > .content { -fx-background-color: -bg-primary; -fx-border-color: -border-color; }
 .listing-copy-workspace .label { -fx-font-weight: normal; }
 .listing-copy-workspace .h2 { -fx-font-weight: bold; }
+
+/* Shared workspace rhythm. Status color is drawn from the selected theme. */
+.app-page { -fx-background-color: -bg-primary; -fx-font-size: 13px; -fx-font-weight: normal; -fx-min-width: 0; -fx-min-height: 0; }
+.app-page .label, .app-dialog-pane .label { -fx-font-weight: normal; }
+.app-page .h1 { -fx-font-size: 22px; -fx-font-weight: bold; }
+.app-page .h2 { -fx-font-size: 18px; -fx-font-weight: bold; }
+.app-page .h3, .app-page .text-bold, .app-page .product-name { -fx-font-weight: bold; }
+.app-page .button, .app-page .menu-button, .header .button, .header .menu-button {
+    -fx-font-size: 13px; -fx-font-weight: normal; -fx-padding: 7 11; -fx-background-radius: 7; -fx-border-radius: 7;
+}
+.app-page .btn-primary, .header .btn-primary { -fx-font-weight: bold; }
+.app-page .surface, .app-page .card { -fx-padding: 10; -fx-background-radius: 10; -fx-border-radius: 10; }
+.app-page .filter-bar, .app-page .selection-action-bar { -fx-padding: 8; }
+.app-page .text-field, .app-page .combo-box-base { -fx-font-size: 13px; }
+.app-page .table-view .column-header .label { -fx-font-size: 12px; -fx-font-weight: bold; -fx-padding: 7 8; }
+.app-page .table-cell { -fx-padding: 5 8; -fx-font-size: 13px; }
+.app-page .tab-pane > .tab-header-area > .headers-region > .tab { -fx-padding: 8 10; }
+.app-page .tab .tab-label { -fx-font-size: 13px; -fx-font-weight: normal; }
+.app-page .tab:selected .tab-label { -fx-font-weight: bold; }
+.app-page .product-row { -fx-border-color: transparent transparent -border-color transparent; }
+.app-page .products-bulk { -fx-background-color: -bg-secondary; -fx-padding: 10; -fx-background-radius: 10; }
+.app-page .supply-detail, .supply-detail.app-page { -fx-padding: 12; -fx-background-radius: 10; -fx-border-radius: 10; }
+.app-page .supply-detail #orderTable .table-row-cell, .supply-detail.app-page #orderTable .table-row-cell { -fx-cell-size: -1; -fx-min-height: 112; }
+.app-page .supply-detail #orderTable .table-cell, .supply-detail.app-page #orderTable .table-cell { -fx-padding: 7 10; -fx-font-size: 13px; }
+.app-page .supply-detail .button, .supply-detail.app-page .button { -fx-font-size: 13px; -fx-background-radius: 7; }
+.app-page .supply-detail .check-box, .supply-detail.app-page .check-box { -fx-font-size: 13px; }
+.header { -fx-padding: 8 10; -fx-min-height: 50; }
+.header .btn-icon { -fx-padding: 7; }
+.header .menu-button > .arrow-button { -fx-padding: 0; }
+.header .menu-button > .arrow-button > .arrow { -fx-shape: null; -fx-padding: 0; }
+.sidebar .button, .sidebar .menu-button { -fx-font-weight: normal; }
+.app-dialog-pane { -fx-padding: 12; }
+.app-dialog-pane .button { -fx-font-size: 13px; -fx-padding: 7 12; }

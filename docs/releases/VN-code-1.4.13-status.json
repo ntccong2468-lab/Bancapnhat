@@ -3,7 +3,7 @@
   "baseVersion": "1.4.12",
   "complete": false,
   "officialReleasePublished": false,
-  "phase": "approved-items-1-through-6-implemented-item7-next-live-native-acceptance-pending",
+  "phase": "all-seven-approved-items-implemented-final-regression-pending",
   "licenseIntegration": {
     "implemented": true,
     "productionReady": false,
@@ -38,7 +38,11 @@
     "Bounded selected-job reconciliation, durable no-duplicate writes and native WB size-price readback",
     "Ozon FBS shares shipment KIZ source UI, native category/type stock and frozen source selection from readiness to local print allocation",
     "Ozon primary image handles string/array/object, excludes ambiguous SKU and checks posting offer identity",
-    "Durable per-posting FBS print report separates local KIZ, PDF and remote acceptance"
+    "Durable per-posting FBS print report separates local KIZ, PDF and remote acceptance",
+    "Shared compact styling for all workspace FXML and Java pages, responsive header overflow and manually collapsible navigation",
+    "Keyed FBS and product row updates preserve unchanged rows, selections and scroll position, including mutable WB values and changed Ozon product enrichment",
+    "Owner-scoped image callbacks survive unchanged FBS refreshes, with bounded two-pulse GS1 conversation scrolling",
+    "Dialogs respect owner size, task states and print phases are localized, report timestamps use Moscow time"
   ],
   "validation": {
     "focusedGuards": {
@@ -357,10 +361,11 @@
     },
     "item7": {
       "diagramApproved": true,
-      "codeImplementedThisTurn": false,
-      "status": "approved_waiting_for_item3_completion",
-      "proposal": "docs/architecture/2026-10-16-item-7-workspace-ui-proposed-flow.md",
-      "approvalEvidence": "duyệt làm nốt mục 3 trước rồi đến mục 7"
+      "codeImplemented": true,
+      "status": "implemented_final_regression_pending",
+      "liveAcceptance": "pending_native_windows_dpi_and_seller_api",
+      "architectureReplaced": false,
+      "report": "docs/validation/2026-10-16-item-7-workspace-ui.md"
     }
   },
   "item4Changes": [

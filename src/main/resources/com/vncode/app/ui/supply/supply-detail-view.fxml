@@ -18,7 +18,7 @@
 <?import javafx.scene.text.Font?>
 <?import org.kordamp.ikonli.javafx.FontIcon?>
 
-<VBox minWidth="0" spacing="8.0" styleClass="card,supply-detail" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.vncode.app.ui.supply.SupplyDetailController">
+<VBox minWidth="0" spacing="8.0" styleClass="card,supply-detail,app-page" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.vncode.app.ui.supply.SupplyDetailController">
     <children>
         <HBox minWidth="0" alignment="CENTER_LEFT" spacing="8.0">
             <children>

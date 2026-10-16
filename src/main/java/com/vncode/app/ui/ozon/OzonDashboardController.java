@@ -119,7 +119,7 @@ public final class OzonDashboardController {
     @FXML private VBox shipmentKizHost;
     @FXML private Tab shipmentKizTab;
     private final OzonPrintReadinessService printReadinessService = new OzonPrintReadinessService();
-    private final FboProductImageService imageService = new FboProductImageService();
+    private FboProductImageService imageService = new FboProductImageService();
     private final OzonPostingSortingService sortingService = new OzonPostingSortingService();
     private final OrderSortPreferenceService sortPreferences = new OrderSortPreferenceService();
     private final KizMappingRepository gtinRepository = new KizMappingRepository();
@@ -186,13 +186,13 @@ public final class OzonDashboardController {
     private final javafx.animation.PauseTransition postingDebounce=new javafx.animation.PauseTransition(javafx.util.Duration.millis(300));
     private Map<String,OzonProductDto> productsBySku=Map.of();private Map<String,String> verifiedGtinsBySku=Map.of();
     private long pageGeneration;private boolean disposed;
+    void setImageService(FboProductImageService images){imageService=java.util.Objects.requireNonNull(images);}
     public void setFbsReader(java.util.function.Function<com.vncode.app.features.ozon.OzonFbsQuery,com.vncode.app.features.ozon.OzonFbsPage> reader){this.fbsReader=Objects.requireNonNull(reader);}
     public int currentPageLimit(){return 100;}
     private Shop shop;
     private boolean busy;
     private Integer busyShopId;
     private long requestToken;
-    private Map<String, String> productImageUrls = Map.of();
     private List<OzonProductDto> catalogProducts = List.of();
     private List<OzonPostingDto> packingOrdersRaw = List.of();
     private boolean updatingSortControls;
@@ -235,7 +235,7 @@ public final class OzonDashboardController {
             requestToken++;
             setBusy(false);
             selectedPostingNumbers.clear();offsets.clear();totals.clear();pageGeneration++;
-            productsBySku=Map.of();verifiedGtinsBySku=Map.of();catalogProducts=List.of();productImageUrls=Map.of();
+            productsBySku=Map.of();verifiedGtinsBySku=Map.of();catalogProducts=List.of();
             newOrdersTable.getItems().clear();packingOrdersTable.getItems().clear();deliveringOrdersTable.getItems().clear();
         }
         this.shop = selected;
@@ -609,10 +609,13 @@ public final class OzonDashboardController {
         }).whenComplete((pages,error)->Platform.runLater(()->{
             if(disposed||epoch!=pageGeneration||!isCurrent(owner))return;
             if(error!=null){statusLabel.setText(tr("products.read_failed"));return;}
+            var previousProducts=productsBySku;var previousGtins=verifiedGtinsBySku;
             var products=new java.util.HashMap<String,OzonProductDto>();pages.values().forEach(page->products.putAll(page.productsBySku()));var gtins=new java.util.HashMap<String,String>();pages.values().forEach(page->gtins.putAll(page.verifiedGtinsBySku()));verifiedGtinsBySku=Map.copyOf(gtins);productsBySku=Map.copyOf(products);catalogProducts=List.copyOf(products.values());
-            productImageUrls=products.values().stream().filter(p->!p.sku().isBlank()&&!p.primaryImageUrl().isBlank()).collect(java.util.stream.Collectors.toUnmodifiableMap(OzonProductDto::sku,OzonProductDto::primaryImageUrl,(a,b)->a));
+            var enrichedSkus=new java.util.HashSet<String>();enrichedSkus.addAll(previousProducts.keySet());enrichedSkus.addAll(productsBySku.keySet());enrichedSkus.addAll(previousGtins.keySet());enrichedSkus.addAll(verifiedGtinsBySku.keySet());
+            enrichedSkus.removeIf(sku->java.util.Objects.equals(previousProducts.get(sku),productsBySku.get(sku))&&java.util.Objects.equals(previousGtins.get(sku),verifiedGtinsBySku.get(sku)));
+            java.util.function.BiPredicate<OzonPostingDto,OzonPostingDto> unchanged=(old,value)->old.equals(value)&&value.items().stream().noneMatch(item->enrichedSkus.contains(item.sku()));
             var newSelection=selectedPostingNumber(newOrdersTable);var packingSelection=selectedPostingNumber(packingOrdersTable);var deliveringSelection=selectedPostingNumber(deliveringOrdersTable);
-            newOrdersTable.getItems().setAll(pages.get("awaiting_packaging").postings());packingOrdersRaw=pages.get("awaiting_deliver").postings();packingOrdersTable.getItems().setAll(packingOrdersRaw);deliveringOrdersTable.getItems().setAll(pages.get("delivering").postings());
+            com.vncode.app.shared.TableRows.merge(newOrdersTable.getItems(),pages.get("awaiting_packaging").postings(),OzonPostingDto::postingNumber,unchanged);packingOrdersRaw=pages.get("awaiting_deliver").postings();com.vncode.app.shared.TableRows.merge(packingOrdersTable.getItems(),packingOrdersRaw,OzonPostingDto::postingNumber,unchanged);com.vncode.app.shared.TableRows.merge(deliveringOrdersTable.getItems(),pages.get("delivering").postings(),OzonPostingDto::postingNumber,unchanged);
             pages.forEach((status,page)->totals.put(status,page.total()));selectPosting(newOrdersTable,newSelection);selectPosting(packingOrdersTable,packingSelection);selectPosting(deliveringOrdersTable,deliveringSelection);
             updateEmptyStates();updateSelectionState();updatePrintAllState();updateTabTitles();updatePaging();
             com.vncode.app.shared.RuntimeDiagnostics.afterNextPulse("ozon-fbs-render",started);
@@ -623,7 +626,7 @@ public final class OzonDashboardController {
     @FXML private void onPreviousPage(){String status=activeStatus();offsets.put(status,Math.max(0,offsets.getOrDefault(status,0)-100));loadLocal();}
     @FXML private void onNextPage(){String status=activeStatus();if(offsets.getOrDefault(status,0)+100<totals.getOrDefault(status,0L)){offsets.put(status,offsets.getOrDefault(status,0)+100);loadLocal();}}
     private void updatePaging(){if(pageStatusLabel==null)return;String status=activeStatus();long total=totals.getOrDefault(status,0L);int offset=offsets.getOrDefault(status,0);pageStatusLabel.setText((total==0?0:offset+1)+"–"+Math.min(offset+100,total)+" / "+total);previousPageButton.setDisable(shop==null||offset==0);nextPageButton.setDisable(shop==null||offset+100>=total);}
-    public void dispose(){shipmentKizPane.dispose();disposed=true;pageGeneration++;requestToken++;shopGeneration++;postingDebounce.stop();if(gtinRefreshTimer!=null)gtinRefreshTimer.stop();if(gtinRefreshSpin!=null)gtinRefreshSpin.stop();productsBySku=Map.of();verifiedGtinsBySku=Map.of();catalogProducts=List.of();productImageUrls=Map.of();}
+    public void dispose(){shipmentKizPane.dispose();disposed=true;pageGeneration++;requestToken++;shopGeneration++;postingDebounce.stop();if(gtinRefreshTimer!=null)gtinRefreshTimer.stop();if(gtinRefreshSpin!=null)gtinRefreshSpin.stop();productsBySku=Map.of();verifiedGtinsBySku=Map.of();catalogProducts=List.of();}
 
     private void updateTabTitles() {
         I18nService i18n = I18nService.getInstance();
@@ -732,10 +735,10 @@ public final class OzonDashboardController {
                 container.setMaxSize(46, ITEM_HEIGHT);
                 container.setAlignment(Pos.TOP_CENTER);
 
-                long imageEpoch=pageGeneration;int imageOwner=shop==null?0:shop.getId();String requestedUrl = productImageUrl(item);
+                long imageEpoch=shopGeneration;int imageOwner=shop==null?0:shop.getId();String requestedUrl = productImageUrl(item);
                 if (!requestedUrl.isBlank()) {
                     imageService.loadThumbnailBytes(requestedUrl).whenComplete((bytes, error) -> Platform.runLater(() -> {
-                        if (disposed||imageEpoch!=pageGeneration||shop==null||shop.getId()!=imageOwner||!Objects.equals(currentPostingNumber, postingNumber)
+                        if (disposed||imageEpoch!=shopGeneration||shop==null||shop.getId()!=imageOwner||!Objects.equals(currentPostingNumber, postingNumber)
                                 || !images.getChildren().contains(container)
                                 || bytes == null || bytes.length == 0) return;
                         imageView.setImage(new Image(new ByteArrayInputStream(bytes)));
@@ -881,7 +884,6 @@ public final class OzonDashboardController {
 
     private void clear() {
         selectedPostingNumbers.clear();
-        productImageUrls = Map.of();
         catalogProducts = List.of();productsBySku=Map.of();verifiedGtinsBySku=Map.of();totals.clear();offsets.clear();
         packingOrdersRaw = List.of();
         newOrdersTable.getItems().clear();

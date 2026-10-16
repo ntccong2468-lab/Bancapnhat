@@ -46,6 +46,7 @@ public final class OzonSchemaSupport {
                 statement.execute("UPDATE ozon_sync_state SET products_last_id=NULL,products_last_synced_at=NULL");
                 statement.execute("ALTER TABLE ozon_products ADD COLUMN "+column+" TEXT NOT NULL DEFAULT ''");
             }
+            statement.execute("CREATE INDEX IF NOT EXISTS idx_ozon_products_native_category ON ozon_products(shop_id,archived,description_category_id,type_id)");
             boolean hasArticle = columnExists(connection, "ozon_products", "article");
             boolean hasColor = columnExists(connection, "ozon_products", "color");
             boolean hasSize = columnExists(connection, "ozon_products", "size");
