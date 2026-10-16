@@ -460,14 +460,14 @@ class FxmlSmokeTest {
             }finally {home.dispose();}return null;
         });Platform.runLater(task);task.get(15,TimeUnit.SECONDS);
     }
-    @Test void gs1NavigationWorksAndTnvedIsInternalOnly() throws Exception {
+    @Test void gs1AndTnvedReferenceNavigationWork() throws Exception {
         var task=new java.util.concurrent.FutureTask<Void>(() -> {
             var loader=FxmlViewLoader.loader(HomeController.class,"home-view.fxml");FxmlViewLoader.load(loader);var home=(HomeController)loader.getController();
             try {
                 var field=HomeController.class.getDeclaredField("workspaceNavigator");field.setAccessible(true);var navigator=(com.vncode.app.ui.workspace.WorkspaceNavigator)field.get(home);
                 navigator.show("news");assertEquals("news",navigator.currentRoute());
                 navigator.show("gs1");assertEquals("gs1",navigator.currentRoute());
-                assertThrows(IllegalArgumentException.class,()->navigator.show("tnved"));
+                navigator.show("tnved");assertEquals("tnved",navigator.currentRoute());
                 var sidebar=HomeController.class.getDeclaredField("shopSidebarController");sidebar.setAccessible(true);
                 var button=sidebar.get(home).getClass().getDeclaredField("gs1Button");button.setAccessible(true);
                 ((Button)button.get(sidebar.get(home))).fire();assertEquals("gs1",navigator.currentRoute());
@@ -523,7 +523,8 @@ class FxmlSmokeTest {
             var treeField=pane.getClass().getDeclaredField("tree");treeField.setAccessible(true);
             var tree=(javafx.scene.control.TreeView<com.vncode.app.features.tnved.TnvedModels.Node>)treeField.get(pane);
             tree.getSelectionModel().select(tree.getRoot().getChildren().get(1));
-            var right=(VBox)((javafx.scene.control.SplitPane)pane.getCenter()).getItems().get(2);
+            var tabs=(javafx.scene.control.TabPane)pane.getCenter();tabs.getSelectionModel().select(1);
+            var right=(VBox)((javafx.scene.control.SplitPane)tabs.getSelectionModel().getSelectedItem().getContent()).getItems().get(2);
             ((Button)((javafx.scene.layout.FlowPane)right.getChildren().get(2)).getChildren().get(0)).fire();assertEquals("II",javafx.scene.input.Clipboard.getSystemClipboard().getString());return null;
         });Platform.runLater(task);task.get(10,TimeUnit.SECONDS);
     }
@@ -564,13 +565,13 @@ class FxmlSmokeTest {
             assertEquals(21,pane.rootCount());return null;
         });Platform.runLater(verify);verify.get(10,TimeUnit.SECONDS);
     }
-    @Test void tnvedCatalogRemainsAvailableWithoutStandaloneNavigation() throws Exception {
+    @Test void tnvedReferenceNavigationAndImportedCatalogRemainAvailable() throws Exception {
         var catalog=new com.vncode.app.features.tnved.TnvedCatalog(appDataDir.resolve("tnved-ui-fixture.sqlite"));
         catalog.initialize();var roots=catalog.children(null);
         var task=new java.util.concurrent.FutureTask<Void>(() -> {
             FXMLLoader loader=FxmlViewLoader.loader(ShopSidebarController.class,"shop-sidebar-view.fxml");
             FxmlViewLoader.load(loader);var controller=(ShopSidebarController)loader.getController();
-            assertFalse(loader.getNamespace().containsKey("tnvedButton"));
+            assertNotNull(loader.getNamespace().get("tnvedButton"));var opened=new java.util.concurrent.atomic.AtomicBoolean();controller.setOnTnved(()->opened.set(true));((Button)loader.getNamespace().get("tnvedButton")).fire();assertTrue(opened.get());
             assertNotNull(loader.getNamespace().get("gs1Button"));
             var pane=new com.vncode.app.ui.tnved.TnvedPane(catalog);pane.setRoots(roots);
             assertEquals(21,pane.rootCount());assertEquals("Chưa tải dữ liệu",pane.emptyBranchText());

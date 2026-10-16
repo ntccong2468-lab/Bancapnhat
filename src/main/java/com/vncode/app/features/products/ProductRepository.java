@@ -67,12 +67,14 @@ public final class ProductRepository {
         """;
 
     public ProductPage loadPage(ProductQuery query) {return loadPage(query,"");}
-    public ProductPage loadPage(ProductQuery query,String receipt) {
+    public ProductPage loadPage(ProductQuery query,String receipt) {return loadPage(query,receipt,false);}
+    public ProductPage loadProductPage(ProductQuery query){return loadPage(query,"",true);}
+    private ProductPage loadPage(ProductQuery query,String receipt,boolean cardView) {
         try(var c=open()) {
             c.setAutoCommit(false);requireOwner(c,query.shopId(),query.marketplace());
-            var parameters=new ArrayList<Object>();String projection=projection(query,parameters,c);
-            String predicate=filter(query,parameters)+receiptFilter(query,receipt,parameters);String scope=scope(query)+receipt;
-            var counts=countIssues(c,query,receipt);
+            var parameters=new ArrayList<Object>();String projection=projection(query,parameters,c,cardView);
+            String predicate=filter(query,parameters)+receiptFilter(query,receipt,parameters);String scope=scope(query)+receipt+(cardView?":cards":"");
+            var counts=countIssues(c,query,receipt,cardView);
             long total=counts.get(query.issue());
             String cursorPredicate="";
             if(query.cursor()!=null&&!query.cursor().isBlank()) {
@@ -91,9 +93,9 @@ public final class ProductRepository {
             c.commit();return new ProductPage(rows,total,next,counts);
         }catch(SQLException error){throw storeError();}
     }
-    private static Map<ProductIssueFilter,Long> countIssues(Connection c,ProductQuery q,String receipt)throws SQLException {
+    private static Map<ProductIssueFilter,Long> countIssues(Connection c,ProductQuery q,String receipt,boolean cardView)throws SQLException {
         var base=new ProductQuery(q.shopId(),q.marketplace(),q.text(),q.categoryIds(),q.documentState(),q.missingGtin(),null,q.limit());
-        var args=new ArrayList<Object>();var projection=projection(base,args,c);var predicate=filter(base,args)+receiptFilter(q,receipt,args);
+        var args=new ArrayList<Object>();var projection=projection(base,args,c,cardView);var predicate=filter(base,args)+receiptFilter(q,receipt,args);
         var result=new EnumMap<ProductIssueFilter,Long>(ProductIssueFilter.class);
         String sql="""
             SELECT count(*),COALESCE(sum(attributes_loaded=0),0),
@@ -106,9 +108,11 @@ public final class ProductRepository {
         return Map.copyOf(result);
     }
     public List<ProductKey> freezeKeys(ProductQuery query) {return freezeKeys(query,"");}
-    public List<ProductKey> freezeKeys(ProductQuery query,String receipt) {
+    public List<ProductKey> freezeKeys(ProductQuery query,String receipt) {return freezeKeys(query,receipt,false);}
+    public List<ProductKey> freezeProductKeys(ProductQuery query){return freezeKeys(query,"",true);}
+    private List<ProductKey> freezeKeys(ProductQuery query,String receipt,boolean cardView) {
         try(var c=open()) {
-            c.setAutoCommit(false);requireOwner(c,query.shopId(),query.marketplace());var args=new ArrayList<Object>();String projection=projection(query,args,c);String predicate=filter(query,args)+receiptFilter(query,receipt,args);
+            c.setAutoCommit(false);requireOwner(c,query.shopId(),query.marketplace());var args=new ArrayList<Object>();String projection=projection(query,args,c,cardView);String predicate=filter(query,args)+receiptFilter(query,receipt,args);
             var keys=new ArrayList<ProductKey>();
             try(var p=c.prepareStatement("SELECT card_id,variant_id FROM ("+projection+") x WHERE "+predicate+" ORDER BY sort_title,card_id,variant_id LIMIT 100001")) {
                 bind(p,args);try(var r=p.executeQuery()){while(r.next())keys.add(new ProductKey(query.shopId(),query.marketplace(),r.getString(1),r.getString(2)));}
@@ -122,11 +126,11 @@ public final class ProductRepository {
             try(var p=c.prepareStatement(sql)){p.setInt(1,shop);try(var r=p.executeQuery()){var values=new ArrayList<String>();while(r.next())if(r.getString(1)!=null&&!r.getString(1).isBlank())values.add(r.getString(1));return List.copyOf(values);}}
         }catch(SQLException error){throw storeError();}
     }
-    private static String projection(ProductQuery q,List<Object> args,Connection c)throws SQLException {
+    private static String projection(ProductQuery q,List<Object> args,Connection c,boolean cardView)throws SQLException {
         args.add(q.shopId());args.add(q.marketplace().name());args.add(q.shopId());args.add(q.marketplace().name());
         args.add(currentOwner(c,new ProductKey(q.shopId(),q.marketplace(),"scope","scope")));
         args.add(q.shopId());
-        return """
+        String sql="""
             SELECT b.*,vn_casefold(b.title) sort_title,
               COALESCE((SELECT vn_verified_gtin(b.barcodes,m.gtin) FROM gtin_sync_mappings m JOIN gtin_sync_catalog g
                 ON g.shop_id=m.shop_id AND g.marketplace=m.marketplace AND g.gtin=m.gtin
@@ -142,6 +146,14 @@ public final class ProductRepository {
                 WHERE d.shop_id=? AND d.marketplace=? AND d.card_id=b.card_id),'MISSING') document_state
             FROM (
             """+(q.marketplace()==Marketplace.OZON?OZON:WB)+") b";
+        if(!cardView||q.marketplace()!=Marketplace.WILDBERRIES)return sql;
+        return """
+            SELECT card_id,'' variant_id,title,article,market_article,category_id,category,brand,
+              group_concat(NULLIF(size,''),', ') size,group_concat(NULLIF(barcodes,''),char(31)) barcodes,
+              image,color,material,tnved,gender,min(attributes_loaded) attributes_loaded,
+              CASE WHEN min(CASE WHEN verified_gtin<>'' THEN 1 ELSE 0 END)=1 THEN min(verified_gtin) ELSE '' END verified_gtin,
+              document_state,sort_title FROM (
+            """+sql+") GROUP BY card_id";
     }
     private static String receiptFilter(ProductQuery query,String receipt,List<Object> args) {
         if(receipt==null||receipt.isBlank())return "";

@@ -43,6 +43,21 @@ class ProductRepositoryTest {
         assertEquals(251,keys.size());assertEquals(251,repo.freezeKeys(query("",null)).size());
         assertThrows(SecurityException.class,()->repo.loadPage(new ProductQuery(2,Marketplace.WILDBERRIES,"",List.of(),null,false,null,100)));
     }
+    @Test void productViewGroupsWbSizesButVariantSourcesRemainUnchanged()throws Exception {
+        card(1,100,"One card","sku-one");card(1,200,"Other card","sku-other");
+        try(var c=Database.getConnection();var st=c.createStatement()){
+            st.execute("INSERT INTO wb_product_sizes(shop_id,chrt_id,nm_id,tech_size) VALUES(1,101,100,'L')");
+            st.execute("INSERT INTO wb_product_size_skus(shop_id,chrt_id,sku) VALUES(1,101,'sku-two')");
+        }
+        var repo=new ProductRepository();assertEquals(3,repo.loadPage(query("",null)).total());
+        var cards=repo.loadProductPage(query("",null));assertEquals(2,cards.total());
+        var first=cards.rows().stream().filter(r->r.key().cardId().equals("100")).findFirst().orElseThrow();assertEquals("",first.key().variantId());assertTrue(first.size().contains("M"));assertTrue(first.size().contains("L"));assertTrue(first.barcodes().containsAll(List.of("sku-one","sku-two")));
+        assertEquals(2,repo.freezeProductKeys(query("",null)).size());assertTrue(repo.freezeProductKeys(query("",null)).stream().allMatch(k->k.variantId().isBlank()));
+        var q=new ProductQuery(1,Marketplace.WILDBERRIES,"",List.of(),null,false,null,1);String cursor=repo.loadProductPage(q).nextCursor();assertNotNull(cursor);
+        assertEquals(1,repo.loadProductPage(new ProductQuery(1,Marketplace.WILDBERRIES,"",List.of(),null,false,cursor,1)).rows().size());
+        assertThrows(IllegalArgumentException.class,()->repo.loadPage(new ProductQuery(1,Marketplace.WILDBERRIES,"",List.of(),null,false,cursor,1)));
+        assertEquals(1,repo.loadProductPage(query("sku-two",null)).total());
+    }
     @Test void unicodeSearchAndLiteralWildcards() throws Exception {
         card(1,1,"БРЮКИ thể thao 100%_VN",null);card(1,2,"Other 100abcdVN",null);
         var repo=new ProductRepository();

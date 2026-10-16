@@ -394,11 +394,14 @@ public class HomeController implements Initializable {
             return printHistoryView;
         });
         workspaceNavigator.register("gs1", this::gs1Pane);
+        workspaceNavigator.register("tnved",()->{tnvedReferencePane=new com.vncode.app.ui.tnved.FashionTnvedBrowser();return tnvedReferencePane;});
         workspaceNavigator.register("products", () -> {productsPane=new com.vncode.app.ui.products.ProductsPane();productsPane.setOnCopy(this::showListingCopy);productsPane.setOnEdit(this::showProductEdit);return productsPane;});
         workspaceNavigator.register("listing-copy", () -> {listingCopyPane=new com.vncode.app.ui.listingcopy.ListingCopyPane();listingCopyPane.setOnChooseProducts(this::showProducts);return listingCopyPane;});
         workspaceNavigator.register("product-edit", () -> {productEditPane=new com.vncode.app.ui.products.ProductBulkEditPane();productEditPane.setOnBack(this::showProducts);productEditPane.setOnSaved(()->{if(productsPane!=null)productsPane.refresh();});return productEditPane;});
     }
 
+    private com.vncode.app.ui.tnved.FashionTnvedBrowser tnvedReferencePane;
+    private void showTnved(){clearKizDraft();workspaceNavigator.show("tnved");}
     private com.vncode.app.ui.products.ProductsPane productsPane;
     private com.vncode.app.ui.listingcopy.ListingCopyPane listingCopyPane;
     private com.vncode.app.ui.products.ProductBulkEditPane productEditPane;
@@ -565,7 +568,7 @@ public class HomeController implements Initializable {
         clearFboQuantitiesIfLeaving(view);
         stopPackingDelayIfLeaving(view);
         if(shopSidebarController!=null) {
-            String selected=view==designerView?"templateButton":view==listingCopyPane?"listingCopyButton":view==productsPane?"productsButton":view==welcomePane?"dashboardButton":view==guidesPane?"guidesButton":view==financeDashboardView?"financeButton":view==packingView||view==ozonDashboardView||view==supplyManagementView?"packingButton":view==fboPackingView?"fboPackingButton":view==fboSupplyOrdersView?"fboOrdersButton":view==kizMappingView?"kizMappingButton":view==znackAutomationView?"znackAutomationButton":view==znackRegistrationView?"znackRegistrationButton":view==printHistoryView?"btnPrintHistory":view==gtinSyncView?"gtinSyncButton":view==gs1Pane?"gs1Button":"";
+            String selected=view==designerView?"templateButton":view==listingCopyPane?"listingCopyButton":view==productsPane?"productsButton":view==welcomePane?"dashboardButton":view==guidesPane?"guidesButton":view==financeDashboardView?"financeButton":view==packingView||view==ozonDashboardView||view==supplyManagementView?"packingButton":view==fboPackingView?"fboPackingButton":view==fboSupplyOrdersView?"fboOrdersButton":view==kizMappingView?"kizMappingButton":view==znackAutomationView?"znackAutomationButton":view==znackRegistrationView?"znackRegistrationButton":view==printHistoryView?"btnPrintHistory":view==gtinSyncView?"gtinSyncButton":view==gs1Pane?"gs1Button":view==tnvedReferencePane?"tnvedButton":"";
             shopSidebarController.selectNavigation(selected);
         }
         if(guidesPane!=null&&view!=guidesPane)guidesPane.stopMedia();
@@ -1714,6 +1717,7 @@ public class HomeController implements Initializable {
         shopSidebarController.setOnFinance(this::showFinance);
         shopSidebarController.setOnGuides(this::showGuides);
         shopSidebarController.setOnGs1(this::showGs1);
+        shopSidebarController.setOnTnved(this::showTnved);
         shopSidebarController.setOnPacking(this::showPacking);
         shopSidebarController.setOnFboPacking(this::showFboPacking);
         shopSidebarController.setOnFboOrders(this::showFboSupplyOrders);

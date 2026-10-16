@@ -57,7 +57,7 @@ public final class UiLayoutProbe {
             window.setScene(scene);window.show();return window;
         });
         var results=new ArrayList<Map<String,Object>>();
-        var routes=List.of("welcome","products","packing","fbo-packing","fbo-orders","ozon","kiz-mapping","znack","znack-registration","gs1","print-history","designer","guides","finance","gtin-sync","listing-copy","license");
+        var routes=List.of("welcome","products","packing","fbo-packing","fbo-orders","ozon","kiz-mapping","znack","znack-registration","gs1","print-history","designer","guides","finance","gtin-sync","listing-copy","license","tnved");
         try {
             for(AppLanguage language:AppLanguage.values())for(String theme:List.of("theme-dark","theme-light"))for(int[] size:new int[][]{{1024,600},{1366,768}}) {
                 fx(()->{I18nService.getInstance().setLanguage(language);stage.setWidth(size[0]);stage.setHeight(size[1]);root.getStyleClass().removeAll("theme-dark","theme-light");root.getStyleClass().add(theme);return null;});

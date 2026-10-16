@@ -1,0 +1,43 @@
+{
+  "version": "1.4.14",
+  "baseVersion": "1.4.13",
+  "complete": false,
+  "developmentComplete": false,
+  "officialReleasePublished": false,
+  "phase": "implementation-complete-verification-in-progress",
+  "licenseIntegration": {
+    "implemented": true,
+    "productionReady": false,
+    "activeKeyId": "vncode-2",
+    "changedInThisVersion": false
+  },
+  "scope": [
+    "Bounded local SQLite write transactions and original sync failure preservation",
+    "WB characteristic order stability during fresh read/preview/confirmed save",
+    "Marketplace-backed product value suggestions and explicit save/readback UI",
+    "WB card-level product view and verified readback projection",
+    "Fashion TN VED reference, filtered browser and per-product proposal review",
+    "Stable paged task reports and distinct marketplace/local KIZ statuses"
+  ],
+  "validation": {
+    "fullJavaRegression": {
+      "result": "pending"
+    },
+    "windowsNativeBuildThisVersion": false,
+    "liveMarketplaceRead": true,
+    "liveWbSameValueWriteReadback": "RECONCILED",
+    "liveOzonSameValueWrite": "acknowledged_readback_pending",
+    "liveNewGtinWrite": false,
+    "livePurchase": false,
+    "liveKizAssignment": false,
+    "liveCatalogThisVersion": false,
+    "productionLicenseVerified": false
+  },
+  "publication": {
+    "published": false,
+    "latestChanged": false,
+    "currentSellerLatest": "1.4.13",
+    "ownerRequestedPublication": true
+  },
+  "inheritedImplementation": "docs/releases/VN-code-1.4.13-status.json"
+}

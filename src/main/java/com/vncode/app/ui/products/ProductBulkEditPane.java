@@ -37,6 +37,7 @@ public final class ProductBulkEditPane extends BorderPane {
     private final PauseTransition suggestionDelay=new PauseTransition(Duration.millis(350)),readbackDelay=new PauseTransition(Duration.seconds(2));
     private Shop shop;
     private List<ProductKey> keys=List.of();
+    private Map<ProductKey,List<String>> perProductTnved=Map.of();
     private String field="brand",jobId;
     private Path file;
     private long generation,revision,suggestionTicket,previewRevision=-1;
@@ -99,7 +100,7 @@ public final class ProductBulkEditPane extends BorderPane {
     public void setOnSaved(Runnable callback){onSaved=callback;}
     public List<ProductKey> frozenKeys(){return keys;}
     public void setShop(Shop owner){
-        generation++;suggestionTicket++;suggestionDelay.stop();readbackDelay.stop();shop=owner;keys=List.of();jobId=null;notifiedJob=null;
+        generation++;suggestionTicket++;suggestionDelay.stop();readbackDelay.stop();shop=owner;keys=List.of();perProductTnved=Map.of();jobId=null;notifiedJob=null;
         busy=false;ready=false;previewRevision=-1;confirm.setSelected(false);results.getItems().clear();detail.clear();technical.clear();status.setText("");
         suggestions.getItems().clear();suggestionStatus.setText("");history.getItems().clear();
         if(owner!=null){long epoch=generation;reads.submitLocal(new ShopReadCoordinator.Key(owner.getId(),"product-edit-history",UUID.randomUUID().toString()),()->service.list(owner)).whenComplete((ids,error)->Platform.runLater(()->{if(!disposed&&epoch==generation&&error==null)history.getItems().setAll(ids);}));}
@@ -113,7 +114,7 @@ public final class ProductBulkEditPane extends BorderPane {
         lookup.setVisible(field.equals("tnved"));lookup.setManaged(lookup.isVisible());applyTranslations();status.setText(tr("edit.enter_value"));buttons();
         if(!field.equals("documents"))suggestionDelay.playFromStart();
     }
-    private void invalidate(){if(resetting)return;revision++;jobId=null;ready=false;previewRevision=-1;confirm.setSelected(false);readbackDelay.stop();status.setText(tr("edit.preview_required"));buttons();}
+    private void invalidate(){if(resetting)return;perProductTnved=Map.of();revision++;jobId=null;ready=false;previewRevision=-1;confirm.setSelected(false);readbackDelay.stop();status.setText(tr("edit.preview_required"));buttons();}
     private void useSelected(){
         String selected=suggestions.getSelectionModel().getSelectedItem();if(selected==null||busy)return;
         String text=value.getText();int separator=text.lastIndexOf('|');value.setText(separator<0?selected:text.substring(0,separator+1)+selected);value.requestFocus();
@@ -130,7 +131,7 @@ public final class ProductBulkEditPane extends BorderPane {
         }));
     }
     private ProductBulkEdit edit(){
-        if(!field.equals("documents"))return new ProductBulkEdit(field,Arrays.stream(value.getText().split("\\|",-1)).map(String::strip).toList(),null,Map.of());
+        if(!field.equals("documents"))return new ProductBulkEdit(field,Arrays.stream(value.getText().split("\\|",-1)).map(String::strip).toList(),null,field.equals("tnved")?perProductTnved:Map.of());
         DocumentDateInput.commit(from);if(!endless.isSelected())DocumentDateInput.commit(until);
         if(number.getText().isBlank()||type.getText().isBlank()||from.getValue()==null||(!endless.isSelected()&&until.getValue()==null))throw new IllegalArgumentException("Document metadata missing");
         var metadata=new HashMap<String,String>();metadata.put("isEndless",Boolean.toString(endless.isSelected()));metadata.put("certificate_type",type.getText().strip());metadata.put("certificate_country",country.getText().strip());metadata.put("accordance_type",accordance.getText().strip());metadata.put("name",name.getText().strip());metadata.put("product_type",productType.getText().strip());metadata.put("link_to_registry",registry.getText().strip());metadata.put("type",type.getText().strip());
@@ -206,10 +207,12 @@ public final class ProductBulkEditPane extends BorderPane {
         boolean sending=busy&&jobId!=null;values.setDisable(sending);documents.setDisable(sending);
     }
     private void lookup(){
-        var catalog=new com.vncode.app.features.tnved.TnvedCatalog(AppPaths.appDataDir().resolve("tnved-catalog.db"));var dialog=new Dialog<Void>();dialog.setTitle(tr("edit.lookup"));
-        if(getScene()!=null)dialog.initOwner(getScene().getWindow());var picker=new com.vncode.app.ui.tnved.TnvedPane(catalog);
-        picker.setOnSelect(node->{value.setText(node.code());dialog.close();});dialog.getDialogPane().setContent(picker);dialog.getDialogPane().setPrefSize(960,560);
-        dialog.getDialogPane().getButtonTypes().add(new ButtonType(tr("edit.back"),ButtonBar.ButtonData.CANCEL_CLOSE));DialogLayout.install(dialog.getDialogPane());dialog.show();
+        if(shop==null||keys.isEmpty()||busy)return;
+        com.vncode.app.ui.tnved.ProductTnvedPicker.show(getScene()==null?null:getScene().getWindow(),shop,keys,choice->{
+            invalidate();
+            if(choice.perProduct().isEmpty())value.setText(choice.globalCode());
+            else{value.setText(choice.perProduct().values().iterator().next().getFirst());perProductTnved=choice.perProduct();status.setText(tr("tnved.per_product_selected")+" "+perProductTnved.size()+" · "+tr("edit.preview_required"));}
+        });
     }
     public void applyTranslations(){
         labels.forEach((w,k)->w.setText(tr(k)));title.setText(tr("products.edit_"+field)+" · "+keys.size());notice.setText(tr("edit.notice")+(shop==null?"":"\n"+shop.getName()+" · "+shop.getMarketplace()));

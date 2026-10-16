@@ -27,6 +27,14 @@ public final class WbProductSnapshotReader implements ProductSnapshotReader {
         JsonObject response=object(clients.apply(shop).call("content/v2/get/cards/list",body,false));
         JsonObject card=null;for(var e:array(response,"cards")){var c=object(e);if(text(c,"nmID").equals(key.cardId())){if(card!=null)throw new IOException("Ambiguous WB identity");card=c;}}
         if(card==null||!card.has("sizes")||!card.has("characteristics")||!card.has("dimensions")||!card.has("subjectID"))throw new IOException("Complete WB card unavailable");
+        // WB can reorder characteristics on every read. Their identity is charcID,
+        // whereas photo and value ordering can carry meaning and must be retained.
+        var ordered=new java.util.TreeMap<java.math.BigInteger,JsonElement>();
+        for(var entry:array(card,"characteristics")){
+            String id=text(object(entry),"id");
+            if(!id.matches("[1-9][0-9]{0,18}")||ordered.put(new java.math.BigInteger(id),entry)!=null)throw new IOException("Ambiguous WB characteristic identity");
+        }
+        var stableCharacteristics=new JsonArray();ordered.values().forEach(stableCharacteristics::add);card.add("characteristics",stableCharacteristics);
         var media=new ArrayList<ProductMedia>();for(var e:array(card,"photos")){String url=text(object(e),"big");if(!url.isBlank())media.add(new ProductMedia(URI.create(url),null,null,null,null));}
         var attributes=new ArrayList<ProductAttribute>();for(var e:array(card,"characteristics")){var a=object(e);var v=a.get("value");attributes.add(new ProductAttribute(text(a,"id"),text(a,"name"),v!=null&&v.isJsonArray()?strings(v.getAsJsonArray()):v==null?List.of():List.of(v.getAsString()),null));}
         var variants=new ArrayList<ProductVariant>();for(var e:array(card,"sizes")){

@@ -59,7 +59,10 @@ public final class TnvedPane extends BorderPane {
         var copy=new Button(tr("tnved.copy"));copy.setOnAction(e->{if(displayedNode!=null){var content=new ClipboardContent();content.putString(displayedNode.code());Clipboard.getSystemClipboard().setContent(content);}});
         useSelected.setText(tr("tnved.use_selected"));useSelected.setOnAction(e->{if(onSelect!=null&&!useSelected.isDisabled())onSelect.accept(displayedNode);});updateSelectionButton();
         var right=new VBox(10,new Label(tr("tnved.detail_hint")),detail,new FlowPane(8,8,copy,useSelected));VBox.setVgrow(detail,Priority.ALWAYS);
-        var split=new SplitPane(tree,center,right);split.setDividerPositions(.23,.70);setCenter(split);
+        var split=new SplitPane(tree,center,right);split.setDividerPositions(.23,.70);
+        var reference=new Tab(tr("tnved.reference_tab"),new FashionTnvedBrowser());var imported=new Tab(tr("tnved.imported_tab"),split);var tabs=new TabPane(reference,imported);tabs.setTabClosingPolicy(TabPane.TabClosingPolicy.UNAVAILABLE);setCenter(tabs);
+        Runnable controls=()->{boolean advanced=tabs.getSelectionModel().getSelectedItem()==imported;for(var node:List.of(importButton,backupButton,status)){node.setVisible(advanced);node.setManaged(advanced);}};
+        tabs.getSelectionModel().selectedItemProperty().addListener((o,a,b)->controls.run());controls.run();
         widthProperty().addListener((o,a,b)->split.setOrientation(b.doubleValue()>0&&b.doubleValue()<850?javafx.geometry.Orientation.VERTICAL:javafx.geometry.Orientation.HORIZONTAL));
         more.setOnAction(e->search(false));importButton.setOnAction(e->chooseImport());backupButton.setOnAction(e->backup());refresh();
     }

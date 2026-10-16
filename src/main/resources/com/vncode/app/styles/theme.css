@@ -1229,3 +1229,6 @@
 .sidebar .button, .sidebar .menu-button { -fx-font-weight: normal; }
 .app-dialog-pane { -fx-padding: 12; }
 .app-dialog-pane .button { -fx-font-size: 13px; -fx-padding: 7 12; }
+
+.product-issue-chip { -fx-text-fill: #c99218; -fx-border-color: #7d5b17; -fx-border-radius: 16; -fx-background-radius: 16; }
+.product-issue-chip:selected { -fx-background-color: #d79b11; -fx-text-fill: #151515; }

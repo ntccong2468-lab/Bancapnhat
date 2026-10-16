@@ -13,7 +13,7 @@ try {
     & java --enable-native-access=ALL-UNNAMED -cp "$classes;$classpath" UiLayoutProbe (Join-Path $root 'data') $evidence
     if($LASTEXITCODE -ne 0){throw 'UI layout overflow or failed screen capture.'}
     $report=Get-Content -Raw (Join-Path $evidence 'ui-layout.json')|ConvertFrom-Json
-    if($report.version -cne $Version -or $report.liveSellerMutations -or $report.layouts.Count -ne 272){throw 'Incomplete UI layout coverage.'}
+    if($report.version -cne $Version -or $report.liveSellerMutations -or $report.layouts.Count -ne 288){throw 'Incomplete UI layout coverage.'}
     Copy-Item (Join-Path $evidence 'ui-layout.json') out\ui-layout.json
     # Include screenshots and geometry only, never the synthetic license key directory.
     Compress-Archive -Path (Join-Path $evidence '*.png'),(Join-Path $evidence 'ui-layout.json') -DestinationPath out\ui-layout-evidence.zip -Force

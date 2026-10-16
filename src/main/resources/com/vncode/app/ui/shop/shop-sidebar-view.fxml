@@ -80,6 +80,7 @@
             </graphic>
         </Button>
         <Button fx:id="guidesButton" onAction="#onGuides" text="%guides.title" alignment="CENTER_LEFT" prefHeight="40" minHeight="40" maxWidth="1.7976931348623157E308" styleClass="button,nav-item"><graphic><FontIcon iconLiteral="fth-book-open" iconSize="16" /></graphic></Button>
+        <Button fx:id="tnvedButton" onAction="#onTnved" text="%tnved.title" alignment="CENTER_LEFT" prefHeight="40" minHeight="40" maxWidth="1.7976931348623157E308" styleClass="button,nav-item"><graphic><FontIcon iconLiteral="fth-hash" iconSize="16" /></graphic></Button>
         <TitledPane text="%sidebar.tools" expanded="false" animated="false" styleClass="sidebar-tools" fx:id="toolsPane"><content><VBox spacing="4" minWidth="0"><children>
         <Button fx:id="fboOrdersButton" alignment="CENTER_LEFT" mnemonicParsing="false" onAction="#onFboOrders" prefHeight="30.0" prefWidth="220" text=" Đơn hàng FBO" maxWidth="1.7976931348623157E308" styleClass="button,nav-item">
             <graphic>
