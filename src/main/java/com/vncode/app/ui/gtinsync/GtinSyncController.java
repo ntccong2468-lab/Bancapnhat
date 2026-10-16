@@ -24,6 +24,7 @@ public final class GtinSyncController {
     @FXML private TableView<GtinSyncViewModel.Row> productTable;
     @FXML private TableView<JobItem> historyTable;
     @FXML private TextArea previewArea;
+    @FXML private TitledPane reportDetailsPane;
     private final GtinSyncViewModel model=new GtinSyncViewModel();
     private final GtinSyncWorkspace workspace;
     private List<Preview> preview=List.of();
@@ -67,6 +68,7 @@ public final class GtinSyncController {
     }
     public void dispose(){disposed=true;model.load(null);for(var task:List.copyOf(reads))task.cancel();reads.clear();}
     public void applyTranslations() {
+        reportDetailsPane.setText(tr("jobs.report"));
         titleLabel.setText(tr("gtinsync.title"));scopeLabel.setText(shopName.isBlank()?tr("gtinsync.no_shop"):shopName+" · "+model.token().marketplace().badge());
         capabilityLabel.setText(tr("gtinsync.contract_unverified"));
         var buttons=List.of(syncButton,loadButton,selectButton,clearButton,mappingButton,previewButton,confirmButton,pauseButton,resumeButton,cancelButton,reconcileButton,csvButton,xlsxButton);
