@@ -2,6 +2,12 @@
 
 Ngày thực hiện: 16/10/2026 (giờ Moskva).
 
+**Cập nhật sau khi môi trường được Publish:** đã đọc API thật, tái hiện và
+sửa lỗi thiếu khoảng thời gian ở Catalog (0 → 1.961 thẻ). Kết quả WB/Ozon,
+giới hạn chưa ghi mới và kiểm thử hiện tại nằm trong
+[báo cáo API thật](2026-10-16-item-1-live-api-report.md). Các số liệu/điểm chờ
+API phía dưới ghi lại giai đoạn kiểm thử trước khi có cấu hình thật.
+
 ## Phạm vi được duyệt
 
 Người dùng duyệt sơ đồ đã bổ sung nhánh tạo/đăng ký thẻ: đồng bộ sản phẩm sàn

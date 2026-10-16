@@ -1,0 +1,86 @@
+{
+  "checkedAt": "2026-10-16T12:36:35.055848667Z",
+  "writesPerformed": false,
+  "nativeCryptoProVerified": false,
+  "productionLicenseVerified": false,
+  "catalogListed": 1961,
+  "catalogReportedTotal": 1961,
+  "catalogCompleteList": true,
+  "catalogPages": 2,
+  "catalogStates": {
+    "draft": 88,
+    "published": 1873
+  },
+  "catalogCardsParsedByApp": 20,
+  "publishedTradeUnits": 20,
+  "status": "read_checks_completed",
+  "sourceCommit": "370142d4cf419c8f2f3c53b20f2bef704b538882",
+  "catalogListWithoutDates": {
+    "total": 0,
+    "source": "live API call before correction"
+  },
+  "sourceCorrection": {
+    "endpoint": "/v4/product-list",
+    "fieldsAdded": [
+      "from_date",
+      "to_date"
+    ],
+    "consistentPaginationWindow": true,
+    "timezone": "Europe/Moscow"
+  },
+  "marketplaces": [
+    {
+      "service": "WB",
+      "liveProductsParsedByApp": 20,
+      "withPublishedCatalogGtinAlreadyOnMarketplace": 20
+    },
+    {
+      "service": "Ozon",
+      "liveProductsParsedByApp": 20,
+      "withPublishedCatalogGtinAlreadyOnMarketplace": 0
+    }
+  ],
+  "privateRawEvidenceSha256": "70b77fc0556f0493cf4c8052722e84a20682e67fe721529548022f0ae0d171c0",
+  "testCategory": "clothing_sets",
+  "gtinWriteAttempted": false,
+  "cardCreationAttempted": false,
+  "cryptoProSigningAttempted": false,
+  "wholeCatalogCardDetailsHydrated": false,
+  "independentLiveReadChecks": {
+    "categoryGroup6103Count": 33,
+    "existingDraftGtinCount": 12,
+    "newGtinAllocations": 0
+  },
+  "catalogApiKeyPersisted": false,
+  "result": "live_read_verified_new_write_and_native_signing_pending",
+  "directCardSignedCount": 20,
+  "catalogChecksumValid": 1961,
+  "catalogCanonicalDuplicates": 0,
+  "fullJavaRegression": {
+    "result": "passed",
+    "tests": 1426,
+    "passed": 1424,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 2,
+    "finishedAt": "2026-10-16T12:48:10Z",
+    "logSha256": "09e11810c62afd2605e85bc71c06dd21775205f3d6fbe3cd2dd236378f3e189a",
+    "platformSkips": [
+      "Gs1PrefixTemplateStoreTest",
+      "WindowsSecretProtectorTest"
+    ],
+    "sourceCommit": "370142d4cf419c8f2f3c53b20f2bef704b538882"
+  },
+  "readonlyProbeTests": {
+    "tests": 7,
+    "passed": 7,
+    "failed": 0
+  },
+  "focusedDateAndGtinTests": {
+    "tests": 77,
+    "passed": 77,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  }
+}

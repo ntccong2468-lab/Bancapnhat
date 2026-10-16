@@ -3,7 +3,7 @@
   "baseVersion": "1.4.12",
   "complete": false,
   "officialReleasePublished": false,
-  "phase": "approved-item-1-local-verified-live-credentials-pending",
+  "phase": "approved-item-1-live-catalog-read-verified-new-write-pending",
   "licenseIntegration": {
     "implemented": true,
     "productionReady": false,
@@ -21,7 +21,8 @@
     "Seller-imported KIZ category allocation without Znack checks or matching product GTINs; paid purchases remain verified",
     "Explicit card creation/moderation/signing and independent exact publication readback",
     "Reviewed WB/Ozon GTIN actions; source reads do not approve writes; Ozon name and SKU guards",
-    "Bounded read-only moderation monitor in the existing Znack sync worker"
+    "Bounded read-only moderation monitor in the existing Znack sync worker",
+    "National Catalog product-list date interval fixed after live reproduction: 0 records before, 1961 after"
   ],
   "validation": {
     "focusedGuards": {
@@ -53,19 +54,20 @@
     },
     "fullJavaRegression": {
       "result": "passed",
-      "tests": 1425,
-      "passed": 1423,
+      "tests": 1426,
+      "passed": 1424,
       "failures": 0,
       "errors": 0,
       "skipped": 2,
-      "finishedAt": "2026-10-16T12:06:57Z",
-      "logSha256": "9daa2d2d3506d8f83767fb79d7d2e5fb332f87a980a0b7355a80b41b7f822700",
+      "finishedAt": "2026-10-16T12:48:10Z",
+      "logSha256": "09e11810c62afd2605e85bc71c06dd21775205f3d6fbe3cd2dd236378f3e189a",
       "platformSkips": [
         "Gs1PrefixTemplateStoreTest",
         "WindowsSecretProtectorTest"
       ],
-      "sourceRevision": "bf6fa35f4eefcd2687fd24b32f730fc4eda70e76",
-      "report": "docs/validation/2026-10-16-approved-item-1-checks.json"
+      "sourceCommit": "370142d4cf419c8f2f3c53b20f2bef704b538882",
+      "log": "/tmp/vncode-item1-live-fix-verified-regression.log",
+      "report": "docs/validation/2026-10-16-item-1-live-api-checks.json"
     },
     "sharedReadFocusedTests": {
       "result": "passed",
@@ -95,8 +97,8 @@
       }
     ],
     "windowsFullBuild": {
-      "result": "not_run_for_approved_item_1",
-      "sourceRevision": "bf6fa35f4eefcd2687fd24b32f730fc4eda70e76"
+      "result": "not_run_for_current_source",
+      "sourceCommit": "370142d4cf419c8f2f3c53b20f2bef704b538882"
     },
     "baselineFullJavaRegression": {
       "tests": 1411,
@@ -121,16 +123,31 @@
       "failed": 0
     },
     "liveProbeReadiness": {
-      "result": "blocked_missing_configuration",
-      "processExit": 2,
-      "category": "sets",
-      "writesPerformed": false,
-      "missingVariables": [
-        "VNCODE_WB_TEST_API_KEY",
-        "VNCODE_OZON_TEST_CLIENT_ID",
-        "VNCODE_OZON_TEST_API_KEY",
-        "VNCODE_CATALOG_TEST_API_KEY"
-      ]
+      "result": "WB_Ozon_and_Catalog_read_verified",
+      "catalogCredentialSource": "user-supplied-for-read-only-check",
+      "writesPerformed": false
+    },
+    "liveMarketplaceRead": true,
+    "liveApiChecks": {
+      "result": "live_read_verified_new_write_and_native_signing_pending",
+      "report": "docs/validation/2026-10-16-item-1-live-api-checks.json",
+      "sourceCommit": "370142d4cf419c8f2f3c53b20f2bef704b538882"
+    },
+    "previousApprovedItem1FullJavaRegression": {
+      "result": "passed",
+      "tests": 1425,
+      "passed": 1423,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 2,
+      "finishedAt": "2026-10-16T12:06:57Z",
+      "logSha256": "9daa2d2d3506d8f83767fb79d7d2e5fb332f87a980a0b7355a80b41b7f822700",
+      "platformSkips": [
+        "Gs1PrefixTemplateStoreTest",
+        "WindowsSecretProtectorTest"
+      ],
+      "sourceRevision": "bf6fa35f4eefcd2687fd24b32f730fc4eda70e76",
+      "report": "docs/validation/2026-10-16-approved-item-1-checks.json"
     }
   },
   "publication": {
@@ -138,13 +155,13 @@
     "latestChanged": false,
     "currentSellerLatest": "1.4.12"
   },
-  "report": "docs/validation/2026-10-16-approved-item-1-znack-gtin.md",
-  "applicationCommit": "9c48480077c72c881d51e2e18c60c5de8c48989c",
+  "report": "docs/validation/2026-10-16-item-1-live-api-report.md",
+  "applicationCommit": "370142d4cf419c8f2f3c53b20f2bef704b538882",
   "approvedWork": {
     "item1": {
       "diagramApproved": true,
       "codeImplemented": true,
-      "liveAcceptance": "blocked_missing_secure_credentials_and_native_CryptoPro",
+      "liveAcceptance": "partial_live_reads_verified_native_signing_and_new_write_pending",
       "testCategory": "clothing_sets"
     },
     "items2To7": "awaiting_separate_flow_approval"
