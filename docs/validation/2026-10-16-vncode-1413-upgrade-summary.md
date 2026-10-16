@@ -2,10 +2,19 @@
 
 Bản sửa đồng bộ sản phẩm, Znack/GTIN và kho KIZ seller nhập, kế tiếp 1.4.12.
 
-Chưa phát hành. Cả bảy mục đã được duyệt và triển khai; mục 3 được làm xong
+Đã phát hành [VNCode 1.4.13 Latest](https://github.com/ntccong2468-lab/Bancapnhat/releases/tag/v1.4.13)
+theo yêu cầu người dùng. Cả bảy mục đã được duyệt và triển khai; mục 3 được làm xong
 trước mục 7 theo thứ tự người dùng yêu cầu. Kiểm chứng API/Windows thật
 được tách riêng với kiểm thử cục bộ, không dùng kết quả giả lập để xác nhận
 mua hoặc gán mã thật.
+
+Windows build `38962251398` đã qua toàn bộ kiểm thử, launcher, DPAPI,
+DPI/bố cục và nâng cấp giữ dữ liệu đến 1.4.12. Đường tải EXE công khai đã
+được tải lại, đối chiếu hash và đọc bằng parser updater của JAR Windows.
+[Bằng chứng Windows/phát hành](2026-10-16-vncode-1413-windows-release-checks.json).
+`complete` và `licenseIntegration.productionReady` vẫn là `false` trong
+trạng thái kỹ thuật vì nghiệm thu API seller/license production chưa hoàn
+tất; việc Published/Latest được ghi riêng theo yêu cầu phát hành trực tiếp.
 
 | Mục | Phần đã triển khai | Báo cáo |
 | --- | --- | --- |

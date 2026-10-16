@@ -1,7 +1,8 @@
 # Mục 7 — giao diện chung và cập nhật FBS
 
 Đã triển khai theo [sơ đồ được duyệt](../architecture/2026-10-16-item-7-workspace-ui-proposed-flow.md),
-sau khi hoàn tất mục 3 tại `0d0b41b`. Chưa phát hành bộ cài/Latest.
+sau khi hoàn tất mục 3 tại `0d0b41b`. Đã phát hành bộ cài/Latest 1.4.13
+theo yêu cầu người dùng; [bằng chứng Windows và phát hành](2026-10-16-vncode-1413-windows-release-checks.json).
 Hồi quy toàn bộ và đóng gói Java đã qua tại `040172d`; xem
 [bằng chứng cuối](2026-10-16-items-3-7-final-checks.json).
 
@@ -100,9 +101,15 @@ kiểm tra cú pháp Portal qua. Không thay mã hoặc triển khai website ở
 
 ## Giới hạn
 
-Chưa thử DPI/driver/in trên Windows, CryptoPro native, API mua/gán KIZ thật
-hoặc seller đồng thời trên máy riêng. Các phần đó cần kiểm chứng khi có
-môi trường thật. Mô hình vẫn là mỗi seller chạy VNCode trên máy của mình;
+Windows build `38962251398` đã qua cùng 1.535 bài (1.533 qua, 2 bài không
+áp dụng cho Windows được skip), khởi động native, DPAPI, 6 lượt kiểm tra
+workspace/DPI và 272 bố cục không cắt nút. Nâng cấp giữ dữ liệu từ 1.4.10,
+1.4.11 và 1.4.12 đã qua. EXE đã được tải lại từ đường công khai, khớp hash
+và kích thước; parser updater trong chính JAR Windows đọc đúng Latest,
+ghi chú và EXE. Chưa quan sát popup cập nhật trên máy seller thực tế.
+
+Chưa thử driver/in trên máy seller, CryptoPro thật, API mua/gán KIZ thật
+hoặc seller đồng thời trên máy riêng. Mô hình vẫn là mỗi seller chạy VNCode trên máy của mình;
 website dùng chung cho đăng ký/license. Không triển khai dịch vụ cloud mới.
 
 ![Cửa sổ 1366; dữ liệu tổng hợp](images/2026-10-16-item7-workspace-1366.png)

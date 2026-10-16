@@ -2,8 +2,8 @@
   "version": "1.4.13",
   "baseVersion": "1.4.12",
   "complete": false,
-  "officialReleasePublished": false,
-  "phase": "all-approved-items-implemented-local-verify-passed-native-live-acceptance-pending",
+  "officialReleasePublished": true,
+  "phase": "latest-published-native-verified-live-production-acceptance-pending",
   "licenseIntegration": {
     "implemented": true,
     "productionReady": false,
@@ -57,7 +57,7 @@
     "liveMarketplaceWrite": false,
     "liveKizAssignment": false,
     "livePurchase": false,
-    "windowsNativeBuildThisVersion": false,
+    "windowsNativeBuildThisVersion": true,
     "releaseContractTests": {
       "result": "passed",
       "tests": 60,
@@ -129,8 +129,12 @@
       }
     ],
     "windowsFullBuild": {
-      "result": "not_run_for_current_source",
-      "sourceCommit": "040172d66b1a40978bef9a5e7f7e8147b401ec1b"
+      "result": "success",
+      "runId": 38962251398,
+      "sourceCommit": "eb25ecb5f9cee5cde32a283e57067642be836bc5",
+      "url": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/38962251398",
+      "finishedAt": "2026-10-16T20:52:41Z",
+      "report": "docs/validation/2026-10-16-vncode-1413-windows-release-checks.json"
     },
     "baselineFullJavaRegression": {
       "tests": 1411,
@@ -356,15 +360,52 @@
         "includesMarketplaceNetworkTime": false
       },
       "purchasePipelinePreserved": true
-    }
+    },
+    "fullWindowsJavaRegression": {
+      "tests": 1535,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 2,
+      "passed": 1533,
+      "result": "passed",
+      "sourceCommit": "eb25ecb5f9cee5cde32a283e57067642be836bc5",
+      "platformSkips": [
+        {
+          "className": "com.vncode.app.shared.WindowsSecretProtectorTest",
+          "test": "neverFallsBackToPlaintextOffWindows"
+        },
+        {
+          "className": "com.vncode.app.features.gs1.Gs1PrefixTemplateStoreTest",
+          "test": "privatePermissionsAreAppliedWhereSupported"
+        }
+      ],
+      "report": "docs/validation/2026-10-16-vncode-1413-windows-release-checks.json"
+    },
+    "publicInstallerDownload": {
+      "result": "passed",
+      "bytes": 145292288,
+      "sha256": "e547fcb7cbfd7f4b2d55816a88eaf45c4c8503e1e41cae5d4eaedd94a0d0ac82",
+      "report": "docs/validation/2026-10-16-vncode-1413-windows-release-checks.json"
+    },
+    "publishedUpdaterMetadata": "passed_actual_windows_jar_parser"
   },
   "publication": {
-    "published": false,
-    "latestChanged": false,
-    "currentSellerLatest": "1.4.12"
+    "published": true,
+    "latestChanged": true,
+    "currentSellerLatest": "1.4.13",
+    "releaseId": 415370557,
+    "tag": "v1.4.13",
+    "publishedAt": "2026-10-16T20:54:57Z",
+    "url": "https://github.com/ntccong2468-lab/Bancapnhat/releases/tag/v1.4.13",
+    "installerUrl": "https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.4.13/VN-code-1.4.13-Windows-x64.exe",
+    "buildRunId": 38962251398,
+    "buildSourceCommit": "eb25ecb5f9cee5cde32a283e57067642be836bc5",
+    "uploadWorkflowRunId": 38965498967,
+    "ownerRequestedPublication": true,
+    "liveProductionAcceptanceIncomplete": true
   },
-  "report": "docs/validation/2026-10-16-items-3-7-final-checks.json",
-  "applicationCommit": "040172d66b1a40978bef9a5e7f7e8147b401ec1b",
+  "report": "docs/validation/2026-10-16-vncode-1413-windows-release-checks.json",
+  "applicationCommit": "eb25ecb5f9cee5cde32a283e57067642be836bc5",
   "approvedWork": {
     "item1": {
       "diagramApproved": true,
@@ -391,7 +432,8 @@
       "purchasePipelinePreserved": true,
       "report": "docs/validation/2026-10-16-item-3-ozon-fbs.md",
       "sourceCommit": "0d0b41b9ef9bbebe57229a3e2402f6d3ade2edb8",
-      "localValidation": "passed_full_java_verify_and_focused_scale_checks"
+      "localValidation": "passed_full_java_verify_and_focused_scale_checks",
+      "nativeWindowsFixtureValidation": "passed"
     },
     "item4": {
       "diagramApproved": true,
@@ -425,12 +467,13 @@
       "diagramApproved": true,
       "codeImplemented": true,
       "status": "implemented_full_local_verify_passed",
-      "liveAcceptance": "pending_native_windows_dpi_and_seller_api",
+      "liveAcceptance": "native_windows_dpi_and_layouts_passed_live_seller_api_pending",
       "architectureReplaced": false,
       "report": "docs/validation/2026-10-16-item-7-workspace-ui.md",
       "sourceCommit": "c5cb5fb6e88c212608007a63ac6897872a82c497",
       "finalSourceCommit": "040172d66b1a40978bef9a5e7f7e8147b401ec1b",
-      "localValidation": "passed_full_java_verify_layout_matrix_and_synthetic_ui_latency"
+      "localValidation": "passed_full_java_verify_layout_matrix_and_synthetic_ui_latency",
+      "nativeWindowsFixtureValidation": "passed"
     }
   },
   "item4Changes": [

@@ -1,0 +1,314 @@
+{
+  "version": "1.4.13",
+  "sourceCommit": "eb25ecb5f9cee5cde32a283e57067642be836bc5",
+  "windowsBuild": {
+    "runId": 38962251398,
+    "url": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/38962251398",
+    "result": "success",
+    "completedAt": "2026-10-16T20:52:41Z"
+  },
+  "java": {
+    "sourceCommit": "eb25ecb5f9cee5cde32a283e57067642be836bc5",
+    "runId": 38962251398,
+    "tests": {
+      "tests": 1535,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 2
+    },
+    "suites": 266,
+    "platformSkips": [
+      {
+        "className": "com.vncode.app.shared.WindowsSecretProtectorTest",
+        "test": "neverFallsBackToPlaintextOffWindows"
+      },
+      {
+        "className": "com.vncode.app.features.gs1.Gs1PrefixTemplateStoreTest",
+        "test": "privatePermissionsAreAppliedWhereSupported"
+      }
+    ],
+    "metrics": [
+      "WORKSPACE_LAYOUT pages=16 locales=4 themes=2 content_sizes=2 fixed_action_checks=960 clipped={}",
+      "WORKSPACE_JAVA_LAYOUT pages=9 locales=4 themes=2 sizes=2 fixed_action_checks=864 clipped=0",
+      "SYNTHETIC_LOCAL_READ 6wb4ozon samples=200 median_ms=20.8759 p95_ms=26.5849 actualWindowsLowEnd=false",
+      "SYNTHETIC_LOCAL_READ 10ozon samples=200 median_ms=18.8547 p95_ms=28.3157 actualWindowsLowEnd=false",
+      "FBS_UI_LATENCY synthetic=true shops=10 orders_per_shop=1000 products=100000 samples=20 visible_page=100 commit_to_pulse_p95_ms=60.0063 fx_dispatch_p95_ms=0.1968 nativeWindows=false",
+      "FBS_UI_DIAGNOSTICS {ozon-fbs-render={medianMs=48.3888, p95Ms=59.6298, samples=20}, fxStallsOver500ms=0, maxFxPulseGapMs=43.3881, heapUsedBytes=163511736, maxHeapBytes=4294967296, logicalProcessors=4, readWorkers=3, readActive=0, readPending=0, imageWorkers=2, imagePending=0, legacyTasks=0, mutationActive=0, mutationPending=0, sellerHttpActive=0, screenCacheBytes=0, screenCacheBudgetBytes=67108864}",
+      "OZON_FBS_SOURCE_BATCH synthetic=true orders=100 local_reservation_ms=1058.8691 remote_api=false",
+      "OZON_FBS_SOURCE_BATCH synthetic=true orders=500 local_reservation_ms=6254.9632 remote_api=false",
+      "OZON_FBS_SOURCE_BATCH synthetic=true orders=1000 local_reservation_ms=9490.5483 remote_api=false"
+    ],
+    "jarSha256": "ac3186ed091597204bf834369b2ec8d962d5f7401613b9ffe572a7de0351ef0b"
+  },
+  "installer": {
+    "filename": "VN-code-1.4.13-Windows-x64.exe",
+    "bytes": 145292288,
+    "sha256": "e547fcb7cbfd7f4b2d55816a88eaf45c4c8503e1e41cae5d4eaedd94a0d0ac82"
+  },
+  "native": {
+    "version": "1.4.13",
+    "historyPreserved": true,
+    "nativeLauncher": "passed",
+    "rollbackSnapshotVerified": true,
+    "windowTitle": "VN code v1.4.13",
+    "liveMarketplaceMutations": false,
+    "platform": "windows-x64",
+    "schemaMigration": "3 to 5",
+    "appName": "VN code"
+  },
+  "gs1WindowsStorage": {
+    "appName": "VN code",
+    "version": "1.4.13",
+    "result": "passed",
+    "dpapiRoundTrip": true,
+    "protectedPasswordPersistence": true,
+    "unverifiedInvoiceBlocked": true,
+    "liveGS1Mutations": false,
+    "catalogKeyDpapiRoundTrip": true,
+    "catalogKeyPurposeIsolated": true
+  },
+  "independentInstallation": {
+    "version": "1.4.13",
+    "uninstallPreservesWcode": true,
+    "platform": "windows-x64",
+    "liveMarketplaceMutations": false,
+    "appName": "VN code",
+    "windowTitle": "VN code v1.4.13",
+    "wcodeFilesUnchanged": true,
+    "independentRegistrations": true,
+    "freshVncodeData": true,
+    "installerUpgradeUuid": "8CBBA0E2-6E73-4F56-9101-6BC0948D3C72",
+    "result": "passed",
+    "wcodeVersion": "1.1.75"
+  },
+  "upgrades": [
+    {
+      "dataPreserved": true,
+      "liveMarketplaceMutations": false,
+      "fromVersion": "1.1.34",
+      "result": "passed",
+      "fingerprint": "0046bd481b61e6f721c24e966f1e1864b2f81389959bb0defdc897dbba009369",
+      "installerUpgradeUuid": "8CBBA0E2-6E73-4F56-9101-6BC0948D3C72",
+      "windowTitle": "VN code v1.4.13",
+      "version": "1.4.13",
+      "appName": "VN code",
+      "singleRegistration": true
+    },
+    {
+      "version": "1.4.13",
+      "installerUpgradeUuid": "8CBBA0E2-6E73-4F56-9101-6BC0948D3C72",
+      "dataPreserved": true,
+      "liveMarketplaceMutations": false,
+      "windowTitle": "VN code v1.4.13",
+      "result": "passed",
+      "singleRegistration": true,
+      "fromVersion": "1.2.0",
+      "fingerprint": "3863f18cfffbd63dee366da7c0e02bdf39ee3a8a5b1f381baebce6155ffc0c0c",
+      "appName": "VN code"
+    },
+    {
+      "windowTitle": "VN code v1.4.13",
+      "version": "1.4.13",
+      "appName": "VN code",
+      "fingerprint": "90290890ac961e7d01b7761b4d35bf2f161715d409da86f431da32047837657c",
+      "installerUpgradeUuid": "8CBBA0E2-6E73-4F56-9101-6BC0948D3C72",
+      "fromVersion": "1.2.1",
+      "singleRegistration": true,
+      "liveMarketplaceMutations": false,
+      "dataPreserved": true,
+      "result": "passed"
+    },
+    {
+      "version": "1.4.13",
+      "appName": "VN code",
+      "fromVersion": "1.2.2",
+      "dataPreserved": true,
+      "liveMarketplaceMutations": false,
+      "windowTitle": "VN code v1.4.13",
+      "result": "passed",
+      "installerUpgradeUuid": "8CBBA0E2-6E73-4F56-9101-6BC0948D3C72",
+      "singleRegistration": true,
+      "fingerprint": "0d9d4a1dd716a910e5d4dfaaf6c19373f7c0a461d7880a2a440b207d65ebaa09"
+    },
+    {
+      "fingerprint": "28852b0db02e207b2c3e4177b999615b04433cb19498564a77e0ea2c26b35d33",
+      "liveMarketplaceMutations": false,
+      "singleRegistration": true,
+      "version": "1.4.13",
+      "dataPreserved": true,
+      "result": "passed",
+      "fromVersion": "1.3.0",
+      "windowTitle": "VN code v1.4.13",
+      "installerUpgradeUuid": "8CBBA0E2-6E73-4F56-9101-6BC0948D3C72",
+      "appName": "VN code"
+    },
+    {
+      "windowTitle": "VN code v1.4.13",
+      "result": "passed",
+      "dataPreserved": true,
+      "fingerprint": "6ade8e4542e9702f1cd76a12dd7b4fccbc9a58dbf94e887f26795de111766096",
+      "installerUpgradeUuid": "8CBBA0E2-6E73-4F56-9101-6BC0948D3C72",
+      "version": "1.4.13",
+      "fromVersion": "1.4.0",
+      "appName": "VN code",
+      "liveMarketplaceMutations": false,
+      "singleRegistration": true
+    },
+    {
+      "fingerprint": "6978cf225d6217f4ac118f50f9201ee4ab5c6a44de16f8837a244344ff838568",
+      "singleRegistration": true,
+      "dataPreserved": true,
+      "fromVersion": "1.4.6",
+      "version": "1.4.13",
+      "appName": "VN code",
+      "windowTitle": "VN code v1.4.13",
+      "installerUpgradeUuid": "8CBBA0E2-6E73-4F56-9101-6BC0948D3C72",
+      "liveMarketplaceMutations": false,
+      "result": "passed"
+    },
+    {
+      "liveMarketplaceMutations": false,
+      "version": "1.4.13",
+      "appName": "VN code",
+      "result": "passed",
+      "installerUpgradeUuid": "8CBBA0E2-6E73-4F56-9101-6BC0948D3C72",
+      "windowTitle": "VN code v1.4.13",
+      "fingerprint": "d3bb69e6eb6395f0b4e7cad16854ed4aaf80347b878fe4acd260dc74161d7416",
+      "singleRegistration": true,
+      "dataPreserved": true,
+      "fromVersion": "1.4.10"
+    },
+    {
+      "appName": "VN code",
+      "dataPreserved": true,
+      "version": "1.4.13",
+      "fingerprint": "47ea63f22d9311d5ac82faccdb9fce7d91021c0cbc065fe7fccfdaffd564bff4",
+      "singleRegistration": true,
+      "result": "passed",
+      "fromVersion": "1.4.11",
+      "installerUpgradeUuid": "8CBBA0E2-6E73-4F56-9101-6BC0948D3C72",
+      "windowTitle": "VN code v1.4.13",
+      "liveMarketplaceMutations": false
+    },
+    {
+      "result": "passed",
+      "appName": "VN code",
+      "windowTitle": "VN code v1.4.13",
+      "version": "1.4.13",
+      "dataPreserved": true,
+      "liveMarketplaceMutations": false,
+      "installerUpgradeUuid": "8CBBA0E2-6E73-4F56-9101-6BC0948D3C72",
+      "singleRegistration": true,
+      "fromVersion": "1.4.12",
+      "fingerprint": "ff1382b73c7c4566cc6ea218d55b959511887c42098c1c996094d42091251c80"
+    }
+  ],
+  "workspace": {
+    "result": "passed",
+    "sourceRevision": "eb25ecb5f9cee5cde32a283e57067642be836bc5",
+    "scales": [
+      "1.0",
+      "1.25",
+      "1.5"
+    ],
+    "datasets": [
+      "6wb4ozon",
+      "10ozon"
+    ],
+    "runs": 6,
+    "liveMarketplaceMutations": false,
+    "targetWindowsLowEndMeasured": false
+  },
+  "ui": {
+    "layouts": 272,
+    "clippedActions": 0,
+    "liveSellerMutations": false
+  },
+  "scopeNotes": [
+    "Windows JUnit metrics use synthetic data; the nativeWindows=false string is hardcoded in that test and does not describe the runner OS.",
+    "Native packaged launcher, DPI, DPAPI and installer upgrades were tested by separate Windows probes.",
+    "No live seller purchase, KIZ assignment, new marketplace write or production license acceptance was performed by these probes."
+  ],
+  "authenticodeSigned": false,
+  "licenseProductionAcceptance": false,
+  "ownerRequestedPublication": true,
+  "publicationRequest": "phát hành latest và bộ cài đưa lên github",
+  "files": [
+    {
+      "name": "build-info.json",
+      "sha256": "bbc4fa76019fb56d7b269095ed11b29d35ad9dd35ad2bbb37f9706962476140e"
+    },
+    {
+      "name": "native-smoke.json",
+      "sha256": "ffd74fb8704142b8c294e21ec869d2dab50ab5b2854c1f03ec66d6bb1c9e1969"
+    },
+    {
+      "name": "side-by-side-smoke.json",
+      "sha256": "935cce0d38bcfdd4fcecbcf20196c14006b252d6e9a5c91cfbd728e37a3338dc"
+    },
+    {
+      "name": "gs1-smoke.json",
+      "sha256": "7617370197088236e6f063606c1552c653eacaa1572c58c91faa57e3b0d2047c"
+    },
+    {
+      "name": "seller-workspace-smoke.json",
+      "sha256": "876459158baf80245a07dfc0caa0c056ae44527c45eedbe6da4dc7448b021466"
+    },
+    {
+      "name": "ui-layout.json",
+      "sha256": "355d608d9c0489ccad4ae79c973a4f5f22f573f09ffd5df884f51ab247d1674e"
+    },
+    {
+      "name": "upgrade-stable-1410-smoke.json",
+      "sha256": "b7ae50bfe96156f1f2d76c83328ae56f0b0d809035329b251d322a55fbce2fc5"
+    },
+    {
+      "name": "upgrade-stable-1411-smoke.json",
+      "sha256": "79ed6e97a823a18772c679cae783e64c54989ee37a00bb6eb47605c0b3adcac4"
+    },
+    {
+      "name": "upgrade-stable-1412-smoke.json",
+      "sha256": "6b7259c1c0ce7106d39561edd599aaec8a91edd87f236b8b02cd56c3ff171384"
+    }
+  ],
+  "publication": {
+    "published": true,
+    "latestChanged": true,
+    "currentSellerLatest": "1.4.13",
+    "releaseId": 415370557,
+    "tag": "v1.4.13",
+    "publishedAt": "2026-10-16T20:54:57Z",
+    "url": "https://github.com/ntccong2468-lab/Bancapnhat/releases/tag/v1.4.13",
+    "installerUrl": "https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.4.13/VN-code-1.4.13-Windows-x64.exe",
+    "buildRunId": 38962251398,
+    "buildSourceCommit": "eb25ecb5f9cee5cde32a283e57067642be836bc5",
+    "uploadWorkflowRunId": 38965498967,
+    "ownerRequestedPublication": true,
+    "liveProductionAcceptanceIncomplete": true
+  },
+  "downloadVerification": {
+    "result": "passed",
+    "bytes": 145292288,
+    "sha256": "e547fcb7cbfd7f4b2d55816a88eaf45c4c8503e1e41cae5d4eaedd94a0d0ac82",
+    "downloadedUsingPublicBrowserUrl": true,
+    "matchesSuccessfulBuildArtifact": true,
+    "matchesGitHubAssetDigest": true,
+    "windowsPeSignature": true
+  },
+  "updaterReadback": {
+    "result": "passed",
+    "source": "actual verified Windows JAR from build 38962251398",
+    "api": "https://api.github.com/repos/ntccong2468-lab/Bancapnhat/releases/latest",
+    "checks": [
+      "published stable version 1.4.13",
+      "Windows EXE URL",
+      "SHA256",
+      "size",
+      "nonempty changelog"
+    ],
+    "parserJarSha256": "ac3186ed091597204bf834369b2ec8d962d5f7401613b9ffe572a7de0351ef0b",
+    "logSha256": "799c18a9964f24a132b4409b5fa8761a6f8163209356fa9347e561266fbefd41",
+    "sellerMachinePopupObserved": false,
+    "executedOn": "Linux cloud with verified Windows JAR; metadata parser only"
+  }
+}

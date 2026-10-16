@@ -1,8 +1,9 @@
 # Mục 3 — FBS Ozon và nguồn KIZ
 
 Đã triển khai theo [sơ đồ được duyệt](../architecture/2026-10-16-item-3-ozon-fbs-proposed-flow.md).
-Mục 7 được duyệt riêng và thực hiện sau mục này. Đây là kiểm thử cục bộ;
-chưa đổi Latest hoặc phát hành bộ cài.
+Mục 7 được duyệt riêng và thực hiện sau mục này. Kiểm thử dùng dữ liệu
+tổng hợp; chưa mua/gán KIZ thật. Bộ cài/Latest 1.4.13 đã phát hành theo yêu
+cầu người dùng; [bằng chứng Windows và phát hành](2026-10-16-vncode-1413-windows-release-checks.json).
 
 | Phần | Kết quả |
 | --- | --- |
