@@ -1,0 +1,32 @@
+{
+  "version": "1.4.13",
+  "testedApplicationCommit": "c25e971d6babd0e87e6a0acf045d045754b30462",
+  "result": "passed",
+  "java": {
+    "tests": 1408,
+    "passed": 1406,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 2
+  },
+  "releaseContracts": {
+    "tests": 53,
+    "passed": 53,
+    "failed": 0
+  },
+  "platform": "Linux + Xvfb JavaFX, Java 25.0.4.1",
+  "liveSellerActions": false,
+  "finishedAtUtc": "2026-10-16T11:03:39Z",
+  "userTimezone": "Europe/Moscow",
+  "keyChecks": [
+    "Independent fresh-device Catalog data without local registration checkpoints",
+    "Foreign-device encrypted key requires authenticated local discovery",
+    "Wrong owner/scope and failed discovery cannot reuse or overwrite credentials",
+    "Category KIZ import/reservation/consumption without Znack configuration",
+    "WB/Ozon FBS and FBO category stock uses local unverified seller imports",
+    "No price or dictionary calls for GTIN-only tasks",
+    "Finite error retries preserve original error and child job identity",
+    "Catalog task proceeds while UI workers are blocked and cleans up on deadline",
+    "Full JavaFX FXML/interface/legacy regression"
+  ]
+}

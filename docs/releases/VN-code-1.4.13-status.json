@@ -1,0 +1,59 @@
+{
+  "version": "1.4.13",
+  "baseVersion": "1.4.12",
+  "complete": false,
+  "officialReleasePublished": false,
+  "phase": "implementation-validated-awaiting-windows-build",
+  "licenseIntegration": {
+    "implemented": true,
+    "productionReady": false,
+    "activeKeyId": "vncode-2",
+    "changedInThisVersion": false
+  },
+  "scope": [
+    "Shared owner-scoped Catalog product/GTIN reader for all production screens and automatic WB/Ozon pipeline",
+    "Own Catalog key discovery on fresh Windows device and authenticated recovery after foreign DPAPI ciphertext",
+    "Catalog listing across product groups, normalized GTINs, batched card reads and explicit per-card reports",
+    "Published products no longer hidden for missing permit metadata",
+    "Dedicated registry and UI Catalog workers, cancellable deadlines and bounded readback retries",
+    "Indexed exact GTIN/article/color/size matching and exact Ozon product/offer/SKU guards",
+    "GTIN-only sync no longer depends on prices or metadata dictionaries",
+    "Seller-imported KIZ category allocation without Znack checks or matching product GTINs; paid purchases remain verified"
+  ],
+  "validation": {
+    "focusedGuards": {
+      "result": "passed",
+      "tests": 102,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "note": "Before final task-deadline tests; final regression results are recorded separately."
+    },
+    "fullJavaRegression": {
+      "tests": 1408,
+      "passed": 1406,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 2,
+      "result": "passed",
+      "report": "docs/validation/2026-10-16-vncode-1413-local-checks.json"
+    },
+    "liveSecondSellerMachine": false,
+    "liveMarketplaceWrite": false,
+    "liveKizAssignment": false,
+    "livePurchase": false,
+    "windowsNativeBuildThisVersion": false,
+    "releaseContractTests": {
+      "tests": 53,
+      "passed": 53,
+      "failed": 0
+    }
+  },
+  "publication": {
+    "published": false,
+    "latestChanged": false,
+    "currentSellerLatest": "1.4.12"
+  },
+  "report": "docs/validation/2026-10-16-vncode-1413-sync-report.md",
+  "applicationCommit": "c25e971d6babd0e87e6a0acf045d045754b30462"
+}
