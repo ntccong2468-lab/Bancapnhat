@@ -49,14 +49,25 @@ class ZnackCatalogSyncServiceTest {
   assertTrue(new SyncRunRepository().items(first.runId(),0,10).stream().anyMatch(i->i.state().equals("NEEDS_ACTION")&&i.error().equals("INVALID_CATALOG_CARD")));
   service.refresh(shop,false,p->{});assertEquals(2,calls.get());
  }
- @Test void concurrentSameShopReadsDoNotStartADuplicateNetworkRequest()throws Exception{
-  var entered=new CountDownLatch(1);var release=new CountDownLatch(1);
-  var service=new ZnackCatalogSyncService((s,i,p)->{entered.countDown();assertTrue(release.await(10,TimeUnit.SECONDS));return List.of(row(s));});
-  try(var executor=Executors.newSingleThreadExecutor()){
+ @Test void uiAndBackgroundSubscribersReceiveTheSameResultFromOneRemoteRead()throws Exception{
+  var entered=new CountDownLatch(1);var release=new CountDownLatch(1);var joined=new CountDownLatch(1);var calls=new AtomicInteger();
+  var service=new ZnackCatalogSyncService((s,i,p)->{calls.incrementAndGet();entered.countDown();assertTrue(release.await(10,TimeUnit.SECONDS));return List.of(row(s));});
+  try(var executor=Executors.newFixedThreadPool(2)){
    var first=executor.submit(()->service.refresh(shop,true,p->{}));assertTrue(entered.await(5,TimeUnit.SECONDS));
-   try{assertEquals("ZNACK_SYNC_ALREADY_RUNNING",assertThrows(IllegalStateException.class,()->service.refresh(shop,true,p->{})).getMessage());}
-   finally{release.countDown();}
-   assertEquals(1,first.get(10,TimeUnit.SECONDS).cards().size());
+   var second=executor.submit(()->service.refresh(shop,true,p->{if(p.phase().equals("WAITING_SOURCE"))joined.countDown();}));
+   try{assertTrue(joined.await(5,TimeUnit.SECONDS));assertFalse(second.isDone());}finally{release.countDown();}
+   var a=first.get(10,TimeUnit.SECONDS);var b=second.get(10,TimeUnit.SECONDS);assertEquals(a.runId(),b.runId());assertEquals(a.cards(),b.cards());assertEquals(1,calls.get());
+   assertEquals(1,new SyncRunRepository().list(shop.getId(),0,10).size());
+  }
+ }
+ @Test void cancellingOneSubscriberDoesNotCancelTheBackgroundRead()throws Exception{
+  var entered=new CountDownLatch(1);var release=new CountDownLatch(1);var joined=new CountDownLatch(1);var calls=new AtomicInteger();
+  var service=new ZnackCatalogSyncService((s,i,p)->{calls.incrementAndGet();entered.countDown();assertTrue(release.await(10,TimeUnit.SECONDS));return List.of(row(s));});
+  try(var executor=Executors.newFixedThreadPool(2)){
+   var first=executor.submit(()->service.refresh(shop,true,p->{}));assertTrue(entered.await(5,TimeUnit.SECONDS));
+   var second=executor.submit(()->service.refresh(shop,true,p->{if(p.phase().equals("WAITING_SOURCE"))joined.countDown();}));
+   try{assertTrue(joined.await(5,TimeUnit.SECONDS));assertTrue(second.cancel(true));}finally{release.countDown();}
+   assertEquals(1,first.get(10,TimeUnit.SECONDS).cards().size());assertEquals(1,calls.get());
   }
  }
  @Test void foreignObservationCannotBecomeMarketplaceWriteAuthority()throws Exception{

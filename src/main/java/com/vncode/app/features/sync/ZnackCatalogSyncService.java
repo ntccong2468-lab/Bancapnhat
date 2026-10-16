@@ -10,7 +10,6 @@ import com.vncode.app.models.Shop;
 import java.time.*;
 import java.util.*;
 import java.util.concurrent.*;
-import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
 import static com.vncode.app.features.gtinsync.GtinSyncModels.RegisteredGtin;
 
@@ -20,7 +19,13 @@ public final class ZnackCatalogSyncService {
     public record Result(List<RegisteredGtin> cards,List<NationalCatalogGtinSource.CardIssue> issues,String runId){public Result{cards=List.copyOf(cards);issues=List.copyOf(issues);}}
     private record Key(String directory,int shop,String source){}
     private record Cached(Result result,Instant at){}
-    private static final ConcurrentMap<Key,ReentrantLock> LOCKS=new ConcurrentHashMap<>();
+    private static final class Flight {
+        final CompletableFuture<Result> result=new CompletableFuture<>();
+        final java.util.concurrent.CopyOnWriteArrayList<Consumer<NationalCatalogGtinSource.Progress>> listeners=new java.util.concurrent.CopyOnWriteArrayList<>();
+        volatile NationalCatalogGtinSource.Progress last;
+        void progress(NationalCatalogGtinSource.Progress value){last=value;for(var listener:listeners)try{listener.accept(value);}catch(RuntimeException disposedView){/* A detached view cannot abort another subscriber's read. */}}
+    }
+    private static final ConcurrentMap<Key,Flight> IN_FLIGHT=new ConcurrentHashMap<>();
     private static final Map<Key,Cached> CACHE=Collections.synchronizedMap(new LinkedHashMap<>());
     private final Source source;
     public ZnackCatalogSyncService(){this((shop,issues,progress)->NationalCatalogGtinSource.forShopPartial(shop,issues,progress).read(shop.getId()));}
@@ -29,16 +34,17 @@ public final class ZnackCatalogSyncService {
         LicenseRuntime.require(Permission.SELLER_API);ListingIdentity.require(shop);
         var scope=RegisteredGtinProof.current(shop);RegisteredGtinProof.requireProduction(scope);
         var key=new Key(com.vncode.app.shared.AppPaths.appDataDir().toAbsolutePath().normalize().toString(),shop.getId(),scope.source());
-        var lock=LOCKS.computeIfAbsent(key,k->new ReentrantLock());
-        if(!lock.tryLock())throw new IllegalStateException("ZNACK_SYNC_ALREADY_RUNNING");
+        var flight=new Flight();flight.listeners.add(progress);
+        var existing=IN_FLIGHT.putIfAbsent(key,flight);
+        if(existing!=null)return join(shop,scope,existing,progress);
         var reports=new SyncRunRepository();String run="";
         try {
             var cached=CACHE.get(key);
-            if(!force&&cached!=null&&cached.result().issues().isEmpty()&&cached.at().isAfter(Instant.now().minusSeconds(120))){progress.accept(new NationalCatalogGtinSource.Progress("SOURCE_COMPLETE",cached.result().cards().size(),cached.result().cards().size()));return cached.result();}
+            if(!force&&cached!=null&&cached.result().issues().isEmpty()&&cached.at().isAfter(Instant.now().minusSeconds(120))){flight.progress(new NationalCatalogGtinSource.Progress("SOURCE_COMPLETE",cached.result().cards().size(),cached.result().cards().size()));flight.result.complete(cached.result());return cached.result();}
             run=reports.begin(shop,"znack_catalog_read","AUTHENTICATING");final String id=run;
             String[] phase={""};int[] last={-25};
             Consumer<NationalCatalogGtinSource.Progress> observer=p->{
-                progress.accept(p);
+                flight.progress(p);
                 if(!phase[0].equals(p.phase())||p.completed()-last[0]>=25){reports.stage(shop,id,"RUNNING",p.phase(),"");phase[0]=p.phase();last[0]=p.completed();}
             };
             var issues=new ArrayList<NationalCatalogGtinSource.CardIssue>();
@@ -56,9 +62,24 @@ public final class ZnackCatalogSyncService {
             reports.addBatch(shop,id,reportItems);
             reports.stage(shop,id,issues.isEmpty()?"SUCCEEDED":"PARTIAL","SOURCE_COMPLETE",issues.isEmpty()?"":"CATALOG_PARTIAL");
             var result=new Result(rows,issues,id);synchronized(CACHE){CACHE.put(key,new Cached(result,Instant.now()));while(CACHE.size()>30)CACHE.remove(CACHE.keySet().iterator().next());}
-            ZnackGtinAutoSync.markAutoSynced(shop.getId());return result;
-        }catch(Exception failed){ZnackGtinAutoSync.retryAfterFailure(shop.getId());if(!run.isBlank())reports.stage(shop,run,"FAILED","SOURCE_READ",SyncFailure.of(failed,0).code());throw failed;}
-        finally{lock.unlock();}
+            ZnackGtinAutoSync.markAutoSynced(shop.getId());flight.result.complete(result);return result;
+        }catch(Exception failed){flight.result.completeExceptionally(failed);ZnackGtinAutoSync.retryAfterFailure(shop.getId());if(!run.isBlank())reports.stage(shop,run,"FAILED","SOURCE_READ",SyncFailure.of(failed,0).code());throw failed;}
+        catch(Error failed){flight.result.completeExceptionally(failed);throw failed;}
+        finally{IN_FLIGHT.remove(key,flight);flight.listeners.clear();}
+    }
+    /** A UI subscriber waits off FX and receives the same persisted result, never a second HTTP refresh. */
+    private static Result join(Shop shop,RegisteredGtinProof.Scope scope,Flight flight,Consumer<NationalCatalogGtinSource.Progress> progress)throws Exception{
+        flight.listeners.add(progress);
+        try{
+            progress.accept(new NationalCatalogGtinSource.Progress("WAITING_SOURCE",0,0));
+            var last=flight.last;if(last!=null)progress.accept(last);
+            var result=flight.result.get(180,TimeUnit.SECONDS);
+            ListingIdentity.require(shop);if(!scope.source().equals(RegisteredGtinProof.current(shop).source()))throw new IllegalStateException("CATALOG_OWNER_CHANGED");
+            return result;
+        }catch(InterruptedException interrupted){Thread.currentThread().interrupt();throw new java.io.InterruptedIOException("ZNACK_SYNC_CANCELLED");}
+        catch(TimeoutException expired){throw new java.net.SocketTimeoutException("ZNACK_SYNC_TIMEOUT");}
+        catch(ExecutionException failed){if(failed.getCause() instanceof Exception exception)throw exception;if(failed.getCause() instanceof Error error)throw error;throw new IllegalStateException("ZNACK_SYNC_FAILED");}
+        finally{flight.listeners.remove(progress);}
     }
     public static void project(Shop shop,List<RegisteredGtin> rows){
         ListingIdentity.require(shop);var repository=new ZnackRepository(new ZnackModels.ShopContext(shop.getId(),shop.getName()));

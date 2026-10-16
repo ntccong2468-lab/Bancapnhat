@@ -1138,7 +1138,7 @@ public class ZnackAutomationController {
             }
         };
         productSyncTask=task;
-        task.messageProperty().addListener((o,before,message)->{if(generation==shopGeneration&&currentRepository==repository&&!message.isBlank())authStatusLabel.setText(message);});
+        task.messageProperty().addListener((o,before,message)->{if(generation==shopGeneration&&currentRepository==repository&&productSyncTask==task&&productSyncRunning&&!task.isCancelled()&&!message.isBlank())authStatusLabel.setText(message);});
         productSyncRunning = true;
         authStatusLabel.setText(tr("znack.catalog.queued"));
         updateSaveState();
