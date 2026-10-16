@@ -2,6 +2,11 @@
 
 Bản sửa kế tiếp 1.4.12. Mã ứng dụng cố định tại `90063a7238bf06b68efb2b91f4220b311830359d`; kết quả kiểm thử cuối và bộ cài được cập nhật ở cuối báo cáo. Chưa dùng tài khoản seller để gửi dữ liệu thật.
 
+**Phạm vi lịch sử:** báo cáo này ghi snapshot trước yêu cầu mới gồm 7 mục.
+Sau đó người dùng đã duyệt luồng tạo/đăng ký thẻ và xác nhận ghi GTIN;
+thay đổi tiếp theo nằm trong [báo cáo mục 1](2026-10-16-approved-item-1-znack-gtin.md).
+Kết quả build/kiểm thử snapshot cũ không thay thế nghiệm thu mã mục 1.
+
 ## 1. Đối chiếu WBCode mới nhất và WCode cũ
 
 Đã kiểm tra lại GitHub: [WBCode Latest 1.3.9](https://github.com/rupphi/relatest-wcode/releases/tag/v1.3.9). Repo này công khai bộ cài và ghi chú; không có mã nguồn nội bộ 1.3.9. Không khẳng định đã sao chép hoặc chạy nghiệm thu luồng có đăng nhập của bản này.

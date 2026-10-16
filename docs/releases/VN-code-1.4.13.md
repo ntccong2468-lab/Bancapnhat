@@ -2,6 +2,15 @@
 
 Bản sửa đồng bộ sản phẩm, Znack/GTIN và kho KIZ seller nhập, kế tiếp 1.4.12.
 
+Chưa phát hành. Phần mục 1 được người dùng duyệt và bổ sung:
+
+- Luồng đầy đủ từ tạo/đăng ký thẻ, theo dõi duyệt, ký CryptoPro đến đọc lại đúng thẻ. Chữ ký được nhận chưa đủ để báo xuất bản.
+- Nút đồng bộ GTIN ở đăng ký Znack mở đối chiếu và xem trước của đúng cửa hàng WB/Ozon. Seller xác nhận trước khi ghi; đọc Znack nền không tự phê duyệt ghi GTIN.
+- Theo dõi thẻ chờ xử lý bằng worker Znack hiện có, không giữ worker ngủ nhiều phút. Chỉ tiếp tục tác vụ ghi đã được xác nhận và đối soát khi kết quả chưa rõ.
+- Ozon kiểm tra lại SKU/tên/biến thể; tên sản phẩm cũng nằm trong fingerprint trước gửi và khi đọc lại.
+
+[Báo cáo mục 1 và giới hạn nghiệm thu thật](../validation/2026-10-16-approved-item-1-znack-gtin.md).
+
 - UI và tác vụ nền cùng nhận kết quả của một lượt đọc Catalog đang chạy, tránh việc màn hình bị bỏ lại danh sách trống khi đồng bộ lúc khởi động.
 - Dùng chung nguồn Catalog cho các màn hình; đọc theo tài khoản đã xác thực và phân trang, không chỉ danh sách nhóm `lp` hoặc cache đăng ký local.
 - Máy mới có thể lấy API key Catalog qua chứng thư CryptoPro đã cấu hình; bản sao lưu chứa key DPAPI của Windows khác sẽ xác thực lại và lưu key riêng trên máy hiện tại. Không cần đăng nhập trình duyệt; mỗi máy vẫn cần chứng thư/khóa riêng hoạt động.

@@ -3,7 +3,7 @@
   "baseVersion": "1.4.12",
   "complete": false,
   "officialReleasePublished": false,
-  "phase": "local-verified-windows-native-validation-running",
+  "phase": "approved-item-1-local-verified-live-credentials-pending",
   "licenseIntegration": {
     "implemented": true,
     "productionReady": false,
@@ -18,7 +18,10 @@
     "Dedicated registry and UI Catalog workers, cancellable deadlines and bounded readback retries",
     "Indexed exact GTIN/article/color/size matching and exact Ozon product/offer/SKU guards",
     "GTIN-only sync no longer depends on prices or metadata dictionaries",
-    "Seller-imported KIZ category allocation without Znack checks or matching product GTINs; paid purchases remain verified"
+    "Seller-imported KIZ category allocation without Znack checks or matching product GTINs; paid purchases remain verified",
+    "Explicit card creation/moderation/signing and independent exact publication readback",
+    "Reviewed WB/Ozon GTIN actions; source reads do not approve writes; Ozon name and SKU guards",
+    "Bounded read-only moderation monitor in the existing Znack sync worker"
   ],
   "validation": {
     "focusedGuards": {
@@ -49,14 +52,20 @@
       "report": "docs/validation/2026-10-16-vncode-1413-local-checks.json"
     },
     "fullJavaRegression": {
-      "tests": 1411,
-      "passed": 1409,
+      "result": "passed",
+      "tests": 1425,
+      "passed": 1423,
       "failures": 0,
       "errors": 0,
       "skipped": 2,
-      "result": "passed",
-      "applicationCommit": "90063a7238bf06b68efb2b91f4220b311830359d",
-      "report": "docs/validation/2026-10-16-vncode-1413-local-checks.json"
+      "finishedAt": "2026-10-16T12:06:57Z",
+      "logSha256": "9daa2d2d3506d8f83767fb79d7d2e5fb332f87a980a0b7355a80b41b7f822700",
+      "platformSkips": [
+        "Gs1PrefixTemplateStoreTest",
+        "WindowsSecretProtectorTest"
+      ],
+      "sourceRevision": "bf6fa35f4eefcd2687fd24b32f730fc4eda70e76",
+      "report": "docs/validation/2026-10-16-approved-item-1-checks.json"
     },
     "sharedReadFocusedTests": {
       "result": "passed",
@@ -86,10 +95,42 @@
       }
     ],
     "windowsFullBuild": {
-      "result": "in_progress",
+      "result": "not_run_for_approved_item_1",
+      "sourceRevision": "bf6fa35f4eefcd2687fd24b32f730fc4eda70e76"
+    },
+    "baselineFullJavaRegression": {
+      "tests": 1411,
+      "passed": 1409,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 2,
+      "result": "passed",
+      "applicationCommit": "90063a7238bf06b68efb2b91f4220b311830359d",
+      "report": "docs/validation/2026-10-16-vncode-1413-local-checks.json"
+    },
+    "baselineWindowsFullBuild": {
+      "result": "success",
       "runId": 38893594183,
       "buildSourceCommit": "1940c0b299171054ae23cc5d38d06933881cbcdf",
-      "url": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/38893594183"
+      "url": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/38893594183",
+      "validForCurrentApprovedItem1": false
+    },
+    "readonlyProbeTests": {
+      "tests": 7,
+      "passed": 7,
+      "failed": 0
+    },
+    "liveProbeReadiness": {
+      "result": "blocked_missing_configuration",
+      "processExit": 2,
+      "category": "sets",
+      "writesPerformed": false,
+      "missingVariables": [
+        "VNCODE_WB_TEST_API_KEY",
+        "VNCODE_OZON_TEST_CLIENT_ID",
+        "VNCODE_OZON_TEST_API_KEY",
+        "VNCODE_CATALOG_TEST_API_KEY"
+      ]
     }
   },
   "publication": {
@@ -97,6 +138,15 @@
     "latestChanged": false,
     "currentSellerLatest": "1.4.12"
   },
-  "report": "docs/validation/2026-10-16-vncode-1413-sync-report.md",
-  "applicationCommit": "90063a7238bf06b68efb2b91f4220b311830359d"
+  "report": "docs/validation/2026-10-16-approved-item-1-znack-gtin.md",
+  "applicationCommit": "9c48480077c72c881d51e2e18c60c5de8c48989c",
+  "approvedWork": {
+    "item1": {
+      "diagramApproved": true,
+      "codeImplemented": true,
+      "liveAcceptance": "blocked_missing_secure_credentials_and_native_CryptoPro",
+      "testCategory": "clothing_sets"
+    },
+    "items2To7": "awaiting_separate_flow_approval"
+  }
 }

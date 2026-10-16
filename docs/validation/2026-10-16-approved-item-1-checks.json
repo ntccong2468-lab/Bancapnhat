@@ -1,0 +1,48 @@
+{
+  "scope": "approved-item-1",
+  "sourceRevision": "bf6fa35f4eefcd2687fd24b32f730fc4eda70e76",
+  "applicationCommit": "9c48480077c72c881d51e2e18c60c5de8c48989c",
+  "java": {
+    "result": "passed",
+    "tests": 1425,
+    "passed": 1423,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 2,
+    "finishedAt": "2026-10-16T12:06:57Z",
+    "logSha256": "9daa2d2d3506d8f83767fb79d7d2e5fb332f87a980a0b7355a80b41b7f822700",
+    "platformSkips": [
+      "Gs1PrefixTemplateStoreTest",
+      "WindowsSecretProtectorTest"
+    ]
+  },
+  "readonlyProbeTests": {
+    "tests": 7,
+    "passed": 7,
+    "failed": 0
+  },
+  "liveMarketplaceRead": false,
+  "liveMarketplaceWrite": false,
+  "nativeCryptoPro": false,
+  "realSecondSellerMachine": false,
+  "currentWindowsNativeBuild": false,
+  "baselineWindowsBuild": {
+    "runId": 38893594183,
+    "result": "success",
+    "buildSource": "1940c0b299171054ae23cc5d38d06933881cbcdf",
+    "validForCurrentApprovedItem1": false
+  },
+  "liveProbeReadiness": {
+    "result": "blocked_missing_configuration",
+    "processExit": 2,
+    "category": "sets",
+    "writesPerformed": false,
+    "missingVariables": [
+      "VNCODE_WB_TEST_API_KEY",
+      "VNCODE_OZON_TEST_CLIENT_ID",
+      "VNCODE_OZON_TEST_API_KEY",
+      "VNCODE_CATALOG_TEST_API_KEY"
+    ]
+  },
+  "published": false
+}
