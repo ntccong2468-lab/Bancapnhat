@@ -30,7 +30,8 @@ public final class WbGtinAdapter implements GtinMarketplaceAdapter {
         this.shop=new Shop(shop.getId(),shop.getName(),shop.getMarketplace(),shop.getClientId(),shop.getApiKey());
         this.client=Objects.requireNonNull(client);
     }
-    public Capability capability(ProductKey key)throws IOException{requireKey(key);var article=text(ownCard(key),"vendorCode");return article.equals(article.strip())?CAPABILITY:new Capability(false,false,"WB_ARTICLE_EDGE_WHITESPACE");}
+    public Capability capability(ProductKey key){requireKey(key);return CAPABILITY;}
+    public void validateProduct(ProductKey key)throws IOException{var article=text(ownCard(key),"vendorCode");if(!article.equals(article.strip()))throw new IllegalArgumentException("WB_ARTICLE_EDGE_WHITESPACE");}
     public void validateRegistration(String gtin){RegisteredGtinProof.requireCurrent(shop,gtin);}
     public ProductSnapshot read(ProductKey key)throws IOException{return snapshot(key,ownCard(key));}
     public boolean conflicts(ProductKey key,String gtin)throws IOException {

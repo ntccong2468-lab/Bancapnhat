@@ -5,6 +5,7 @@ public interface GtinMarketplaceAdapter {
     ProductSnapshot read(ProductKey key) throws Exception;
     boolean conflicts(ProductKey key,String gtin) throws Exception;
     default void validateRegistration(String gtin) throws Exception {}
+    default void validateProduct(ProductKey key) throws Exception {}
     Submission submit(Preview preview) throws Exception;
     Verification verify(Preview preview,Submission submission) throws Exception;
 }

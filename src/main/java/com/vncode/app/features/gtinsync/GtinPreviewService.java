@@ -23,6 +23,7 @@ public final class GtinPreviewService {
         LicenseRuntime.require(Permission.SELLER_API);
         var product=adapter.read(key);
         if(!product.key().equals(key))throw new IllegalArgumentException("product_mismatch");
+        adapter.validateProduct(key);
         if(product.barcodes().contains(newGtin))throw new IllegalArgumentException("already_present");
         if(operation==Operation.REPLACE && (oldGtin==null || oldGtin.isBlank() || oldGtin.equals(newGtin) || !product.barcodes().contains(oldGtin)))
             throw new IllegalArgumentException("old_gtin_not_found");

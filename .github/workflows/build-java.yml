@@ -99,10 +99,14 @@ jobs:
 
       - name: Verify Windows asynchronous UI fixture cleanup
         shell: pwsh
+        env:
+          LOCALAPPDATA: ${{ runner.temp }}\vncode-java-fixture-cleanup-${{ github.run_id }}
         run: .\mvnw.cmd -B "-Dtest=Gs1PaneTest,ListingCopyPaneTest,ProductBulkEditPaneTest,ProductRefreshUiTest,CatalogSyncPaneTest,KizWarehousePaneTest" test
 
       - name: Run Java and FXML test suite
         shell: pwsh
+        env:
+          LOCALAPPDATA: ${{ runner.temp }}\vncode-java-fixtures-${{ github.run_id }}
         run: .\mvnw.cmd -B clean verify
 
       - name: Preserve verified Windows Java inputs

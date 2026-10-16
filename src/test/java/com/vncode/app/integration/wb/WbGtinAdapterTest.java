@@ -89,7 +89,7 @@ class WbGtinAdapterTest {
         assertEquals(Verification.REJECTED,adapter.verify(p,submitted));assertEquals(1,transport.writes.get());
     }
     @Test void legacyOuterWhitespaceIsActionableBeforeAnyWriteAndIsNeverSilentlyRenamed()throws Exception {
-        transport.card.addProperty("vendorCode","Fixture ");assertEquals("WB_ARTICLE_EDGE_WHITESPACE",adapter.capability(key).reason());assertFalse(adapter.capability(key).add());
+        transport.card.addProperty("vendorCode","Fixture ");assertTrue(adapter.capability(key).add(),"Capability discovery must not perform product reads");
         assertEquals("Fixture",adapter.read(key).article());assertEquals("Fixture ",transport.card.get("vendorCode").getAsString());
         assertEquals("WB_ARTICLE_EDGE_WHITESPACE",assertThrows(IllegalArgumentException.class,this::preview).getMessage());assertEquals(0,transport.writes.get());
     }
