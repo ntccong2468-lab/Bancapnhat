@@ -56,6 +56,14 @@ class WbGtinAdapterTest {
         var p=preview();transport.card.addProperty("description","Changed outside app");
         assertThrows(GtinKnownUnsentException.class,()->adapter.submit(p));assertEquals(0,transport.writes.get());
     }
+    @Test void nativeCharacteristicReorderingDoesNotInvalidateAnOtherwiseUnchangedGtinPreview()throws Exception {
+        var first=transport.card.getAsJsonArray("characteristics").get(0);var second=JsonParser.parseString("{\"id\":88,\"name\":\"Composition\",\"value\":[\"Cotton\",\"Polyester\"]}");
+        transport.card.getAsJsonArray("characteristics").add(second);var p=preview();
+        var reordered=new JsonArray();reordered.add(second);reordered.add(first);transport.card.add("characteristics",reordered);
+        assertEquals(p.before().fingerprint(),adapter.read(key).fingerprint());var submitted=adapter.submit(p);
+        assertEquals(1,transport.writes.get());assertEquals(Verification.APPLIED,adapter.verify(p,submitted));
+        assertEquals(List.of("Cotton","Polyester"),transport.sent.get(0).getAsJsonObject().getAsJsonArray("characteristics").get(0).getAsJsonObject().getAsJsonArray("value").asList().stream().map(JsonElement::getAsString).toList());
+    }
     @Test void sameGtinOnAnotherSizeIsAConflict()throws Exception {
         var foreign=transport.card.deepCopy();var codes=new JsonArray();codes.add("00000017");foreign.getAsJsonArray("sizes").get(1).getAsJsonObject().add("skus",codes);
         transport.conflict=foreign;

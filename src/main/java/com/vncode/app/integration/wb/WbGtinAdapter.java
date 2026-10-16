@@ -126,7 +126,9 @@ public final class WbGtinAdapter implements GtinMarketplaceAdapter {
         if(!numeric(text(card,"nmID"))||text(card,"vendorCode").isBlank()||!card.has("dimensions")||!card.get("dimensions").isJsonObject())throw new IOException("incomplete_wb_card");
         var request=new JsonObject();copy(card,request,CARD_FIELDS);
         var dimensions=new JsonObject();copy(obj(card,"dimensions"),dimensions,List.of("length","width","height","weightBrutto"));request.add("dimensions",dimensions);
-        var characteristics=new JsonArray();for(var e:strictArray(card,"characteristics")){var a=object(e);if(!numeric(text(a,"id"))||!a.has("value"))throw new IOException("incomplete_wb_characteristic");var out=new JsonObject();copy(a,out,List.of("id","value"));characteristics.add(out);}request.add("characteristics",characteristics);
+        var orderedCharacteristics=new TreeMap<java.math.BigInteger,JsonObject>();
+        for(var e:strictArray(card,"characteristics")){var a=object(e);if(!numeric(text(a,"id"))||!a.has("value"))throw new IOException("incomplete_wb_characteristic");var out=new JsonObject();copy(a,out,List.of("id","value"));if(orderedCharacteristics.put(new java.math.BigInteger(text(a,"id")),out)!=null)throw new IOException("ambiguous_wb_characteristic");}
+        var characteristics=new JsonArray();orderedCharacteristics.values().forEach(characteristics::add);request.add("characteristics",characteristics);
         var sizes=new JsonArray();var ids=new HashSet<String>();for(var e:strictArray(card,"sizes")){
             var size=object(e);if(!numeric(text(size,"chrtID"))||!ids.add(text(size,"chrtID")))throw new IOException("incomplete_wb_size");
             var codes=strictArray(size,"skus");if(codes.asList().stream().anyMatch(v->!v.isJsonPrimitive()||!v.getAsJsonPrimitive().isString()))throw new IOException("invalid_wb_barcode");
