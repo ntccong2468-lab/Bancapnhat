@@ -396,7 +396,7 @@ public class HomeController implements Initializable {
         workspaceNavigator.register("gs1", this::gs1Pane);
         workspaceNavigator.register("products", () -> {productsPane=new com.vncode.app.ui.products.ProductsPane();productsPane.setOnCopy(this::showListingCopy);productsPane.setOnEdit(this::showProductEdit);return productsPane;});
         workspaceNavigator.register("listing-copy", () -> {listingCopyPane=new com.vncode.app.ui.listingcopy.ListingCopyPane();listingCopyPane.setOnChooseProducts(this::showProducts);return listingCopyPane;});
-        workspaceNavigator.register("product-edit", () -> {productEditPane=new com.vncode.app.ui.products.ProductBulkEditPane();productEditPane.setOnBack(this::showProducts);return productEditPane;});
+        workspaceNavigator.register("product-edit", () -> {productEditPane=new com.vncode.app.ui.products.ProductBulkEditPane();productEditPane.setOnBack(this::showProducts);productEditPane.setOnSaved(()->{if(productsPane!=null)productsPane.refresh();});return productEditPane;});
     }
 
     private com.vncode.app.ui.products.ProductsPane productsPane;

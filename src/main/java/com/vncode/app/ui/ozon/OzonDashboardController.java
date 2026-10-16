@@ -663,6 +663,9 @@ public final class OzonDashboardController {
         configureOrderColumns(deliveringOrderNumberTC, deliveringOrderItemsTC);
         deliveringOrderStatusTC.setCellValueFactory(data ->
                 new SimpleStringProperty(statusText(data.getValue().status())));
+        deliveringOrderStatusTC.setCellFactory(column->new TableCell<>(){
+            protected void updateItem(String text,boolean empty){super.updateItem(text,empty);setText(empty?null:text);var posting=getTableRow()==null?null:getTableRow().getItem();setTooltip(empty||posting==null?null:new Tooltip(text+"\n"+posting.status()));}
+        });
         packingLabelTC.setCellFactory(column -> labelCell());
         for (TableView<OzonPostingDto> table : List.of(newOrdersTable, packingOrdersTable, deliveringOrdersTable)) {
             table.setSortPolicy(ignored -> false);

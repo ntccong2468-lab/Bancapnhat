@@ -92,6 +92,22 @@ class ProductRepositoryTest {
         try(var c=Database.getConnection();var s=c.createStatement()){s.execute("UPDATE shops SET api_key='rotated' WHERE id=2");}
         row=repo.loadPage(q).rows().getFirst();assertFalse(row.attributesLoaded());assertEquals("",row.brand());assertEquals("",row.material());
     }
+    @Test void verifiedWbReadbackUpdatesEverySizeAndSurvivesStaleBackgroundCards()throws Exception {
+        card(1,100,"Old title","barcode");
+        try(var c=Database.getConnection();var st=c.createStatement()){
+            st.execute("INSERT INTO wb_product_sizes(shop_id,chrt_id,nm_id,tech_size) VALUES(1,101,100,'L')");
+            st.execute("INSERT INTO wb_product_characteristics(shop_id,nm_id,characteristic_id,name,value_json) VALUES(1,100,204557,'Пол','[\"Мужской\"]')");
+        }
+        var shop=new com.vncode.app.models.Shop(1,"WB","fixture");var repo=new ProductRepository();
+        var snapshot=new ProductSnapshot(new ProductKey(1,Marketplace.WILDBERRIES,"100","100"),"live:readback","New title","","New brand","own","9",List.of(),
+            List.of(new ProductAttribute("44","Состав",List.of("Cotton"),null),new ProductAttribute("45","ТНВЭД",List.of("6103220000"),null)),List.of(),null,List.of(),java.time.Instant.now(),Map.of("owner",com.vncode.app.integration.listing.ListingIdentity.fingerprint(shop)));
+        repo.saveVerifiedSnapshot(shop,snapshot);
+        var page=repo.loadPage(query("",null));assertEquals(2,page.total());
+        for(var row:page.rows()){assertEquals("New brand",row.brand());assertEquals("New title",row.title());assertEquals("Cotton",row.material());assertEquals("6103220000",row.tnved());assertEquals("",row.gender(),"Verified absent field must not fall back to stale values");assertEquals("",row.color(),"Gender is not a color");}
+        assertEquals(2,repo.loadPage(query("New title",null)).total());
+        try(var c=Database.getConnection();var st=c.createStatement()){st.execute("UPDATE shops SET api_key='rotated' WHERE id=1");}
+        assertEquals("Old title",repo.loadPage(query("",null)).rows().getFirst().title());
+    }
     @Test void issueFilterAndFrozenSelectionAgreeAndCannotReuseAnotherCursor()throws Exception {
         card(1,1,"Missing",null);card(1,2,"Other",null);
         var q=new ProductQuery(1,Marketplace.WILDBERRIES,"",List.of(),null,false,null,1,ProductIssueFilter.MISSING_BRAND);

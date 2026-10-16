@@ -7,6 +7,8 @@ import java.util.*;
 public interface ListingTargetAdapter {
     List<TargetCategory> categories(Shop shop)throws IOException;
     List<TargetAttribute> attributes(Shop shop,String categoryId)throws IOException;
+    /** Read-only value suggestions. The preview still validates every selected card. */
+    default List<String> suggestValues(Shop shop,String categoryId,String field,String query)throws IOException{return List.of();}
     CopyPreview preview(Shop shop,ProductSnapshot snapshot,CopyOptions options)throws IOException;
     RemoteSubmission submit(Shop shop,CopyPreview preview)throws IOException;
     RemoteResult reconcile(Shop shop,RemoteSubmission submission)throws IOException;

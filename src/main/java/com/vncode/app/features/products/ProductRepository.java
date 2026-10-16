@@ -2,6 +2,7 @@ package com.vncode.app.features.products;
 
 import com.google.gson.JsonParser;
 import com.vncode.app.config.Database;
+import com.vncode.app.config.SqliteWriteTransaction;
 import com.vncode.app.features.gtinsync.RegisteredGtinValidator;
 import com.vncode.app.integration.marketplace.Marketplace;
 import com.vncode.app.integration.listing.ListingIdentity;
@@ -21,26 +22,24 @@ public final class ProductRepository {
     private record Cursor(String scope,String title,String card,String variant) {}
     private static final String WB = """
         SELECT CAST(c.nm_id AS TEXT) card_id,COALESCE(CAST(v.chrt_id AS TEXT),'') variant_id,
-          COALESCE(c.title,'') title,COALESCE(c.vendor_code,'') article,CAST(c.nm_id AS TEXT) market_article,
+          COALESCE(json_extract(ps.payload,'$.title'),c.title,'') title,COALESCE(c.vendor_code,'') article,CAST(c.nm_id AS TEXT) market_article,
           COALESCE(CAST(c.subject_id AS TEXT),c.subject_name,'') category_id,COALESCE(c.subject_name,'') category,
-          COALESCE(c.brand,'') brand,COALESCE(v.tech_size,'') size,
+          COALESCE(json_extract(ps.payload,'$.brand'),c.brand,'') brand,COALESCE(v.tech_size,'') size,
           COALESCE((SELECT group_concat(b.sku,char(31)) FROM wb_product_size_skus b
                     WHERE b.shop_id=c.shop_id AND b.chrt_id=v.chrt_id),'') barcodes,
           COALESCE((SELECT COALESCE(p.c246x328_url,p.square_url,p.big_url,p.hq_url) FROM wb_product_photos p
                     WHERE p.shop_id=c.shop_id AND p.nm_id=c.nm_id ORDER BY p.photo_index LIMIT 1),'') image,
           COALESCE((SELECT json_extract(ch.value_json,'$[0]') FROM wb_product_characteristics ch
-                    WHERE ch.shop_id=c.shop_id AND ch.nm_id=c.nm_id AND ch.characteristic_id IN (14177449,204557)
+                    WHERE ch.shop_id=c.shop_id AND ch.nm_id=c.nm_id AND vn_field_match('color',ch.name)=1
                     ORDER BY ch.characteristic_id DESC LIMIT 1),'') color,
-          COALESCE((SELECT COALESCE(json_extract(ch.value_json,'$[0]'),json_extract(ch.value_json,'$'))
-                    FROM wb_product_characteristics ch WHERE ch.shop_id=c.shop_id AND ch.nm_id=c.nm_id
-                    AND vn_casefold(ch.name) IN ('состав','материал','chất liệu','material') LIMIT 1),'') material,
-          COALESCE((SELECT COALESCE(json_extract(ch.value_json,'$[0]'),json_extract(ch.value_json,'$'))
-                    FROM wb_product_characteristics ch WHERE ch.shop_id=c.shop_id AND ch.nm_id=c.nm_id
-                    AND vn_casefold(ch.name) IN ('тнвэд','тн вэд','tn ved') LIMIT 1),'') tnved,
-          COALESCE((SELECT COALESCE(json_extract(ch.value_json,'$[0]'),json_extract(ch.value_json,'$'))
-                    FROM wb_product_characteristics ch WHERE ch.shop_id=c.shop_id AND ch.nm_id=c.nm_id
-                    AND vn_field_match('gender',ch.name)=1 LIMIT 1),'') gender,1 attributes_loaded
+          CASE WHEN ps.payload IS NULL THEN COALESCE((SELECT COALESCE(json_extract(ch.value_json,'$[0]'),json_extract(ch.value_json,'$')) FROM wb_product_characteristics ch WHERE ch.shop_id=c.shop_id AND ch.nm_id=c.nm_id AND vn_field_match('material',ch.name)=1 LIMIT 1),'') ELSE COALESCE((SELECT group_concat(v.value,', ') FROM json_each(ps.payload,'$.attributes') a JOIN json_each(a.value,'$.values') v WHERE vn_field_match('material',json_extract(a.value,'$.name'))=1 AND COALESCE(json_extract(a.value,'$.complexId'),'0') IN ('','0')),'') END material,
+          CASE WHEN ps.payload IS NULL THEN COALESCE((SELECT COALESCE(json_extract(ch.value_json,'$[0]'),json_extract(ch.value_json,'$')) FROM wb_product_characteristics ch WHERE ch.shop_id=c.shop_id AND ch.nm_id=c.nm_id AND vn_field_match('tnved',ch.name)=1 LIMIT 1),'') ELSE COALESCE((SELECT group_concat(v.value,', ') FROM json_each(ps.payload,'$.attributes') a JOIN json_each(a.value,'$.values') v WHERE vn_field_match('tnved',json_extract(a.value,'$.name'))=1 AND COALESCE(json_extract(a.value,'$.complexId'),'0') IN ('','0')),'') END tnved,
+          CASE WHEN ps.payload IS NULL THEN COALESCE((SELECT COALESCE(json_extract(ch.value_json,'$[0]'),json_extract(ch.value_json,'$')) FROM wb_product_characteristics ch WHERE ch.shop_id=c.shop_id AND ch.nm_id=c.nm_id AND vn_field_match('gender',ch.name)=1 LIMIT 1),'') ELSE COALESCE((SELECT group_concat(v.value,', ') FROM json_each(ps.payload,'$.attributes') a JOIN json_each(a.value,'$.values') v WHERE vn_field_match('gender',json_extract(a.value,'$.name'))=1 AND COALESCE(json_extract(a.value,'$.complexId'),'0') IN ('','0')),'') END gender,1 attributes_loaded
         FROM wb_product_cards c LEFT JOIN wb_product_sizes v ON v.shop_id=c.shop_id AND v.nm_id=c.nm_id
+        LEFT JOIN product_snapshots ps ON ps.rowid=(SELECT own.rowid FROM product_snapshots own
+          WHERE own.shop_id=c.shop_id AND own.marketplace='WILDBERRIES' AND own.card_id=CAST(c.nm_id AS TEXT)
+            AND json_extract(own.payload,'$.metadata.owner')=? AND json_extract(own.payload,'$.revision') LIKE 'live:%'
+          ORDER BY own.checked_at DESC LIMIT 1)
         WHERE c.shop_id=?
         """;
     private static final String OZON = """
@@ -125,7 +124,7 @@ public final class ProductRepository {
     }
     private static String projection(ProductQuery q,List<Object> args,Connection c)throws SQLException {
         args.add(q.shopId());args.add(q.marketplace().name());args.add(q.shopId());args.add(q.marketplace().name());
-        if(q.marketplace()==Marketplace.OZON)args.add(currentOwner(c,new ProductKey(q.shopId(),q.marketplace(),"scope","scope")));
+        args.add(currentOwner(c,new ProductKey(q.shopId(),q.marketplace(),"scope","scope")));
         args.add(q.shopId());
         return """
             SELECT b.*,vn_casefold(b.title) sort_title,
@@ -227,8 +226,7 @@ public final class ProductRepository {
         });
     }
     private void saveSnapshot(ProductSnapshot snapshot,boolean complete) {
-        try(var c=open()) {
-            c.setAutoCommit(false);var key=snapshot.key();requireOwner(c,key.shopId(),key.marketplace());
+        try{SqliteWriteTransaction.run(c->{var key=snapshot.key();requireOwner(c,key.shopId(),key.marketplace());
             if(complete){
                 if(!snapshot.metadata().get("owner").equals(currentOwner(c,key)))throw new SecurityException("Product credentials changed");
                 for(String table:List.of("product_snapshots","product_documents"))try(var clear=c.prepareStatement("DELETE FROM "+table+" WHERE shop_id=? AND marketplace=? AND card_id=?")){clear.setInt(1,key.shopId());clear.setString(2,key.marketplace().name());clear.setString(3,key.cardId());clear.executeUpdate();}
@@ -240,8 +238,8 @@ public final class ProductRepository {
             try(var p=c.prepareStatement("INSERT INTO product_documents VALUES(?,?,?,?,?,?,?,?,?) ON CONFLICT(shop_id,marketplace,card_id,document_id) DO UPDATE SET state=excluded.state,valid_until=excluded.valid_until,source=excluded.source,verified_at=excluded.verified_at,payload=excluded.payload")) {
                 for(var doc:snapshot.documents()){p.setInt(1,key.shopId());p.setString(2,key.marketplace().name());p.setString(3,key.cardId());p.setString(4,doc.id());p.setString(5,doc.state().name());p.setString(6,doc.validUntil()==null?null:doc.validUntil().toString());p.setString(7,doc.source());p.setString(8,doc.checkedAt()==null?null:doc.checkedAt().toString());p.setString(9,ProductJson.GSON.toJson(doc));p.addBatch();}p.executeBatch();
             }
-            c.commit();
-        }catch(SQLException error){throw storeError();}
+            return null;
+        });}catch(SQLException error){throw new IllegalStateException("SYNC_STORAGE",error);}
     }
     private static String currentOwner(Connection c,ProductKey key)throws SQLException{
         try(var q=c.prepareStatement("SELECT marketplace,client_id,api_key FROM shops WHERE id=?")){q.setInt(1,key.shopId());try(var r=q.executeQuery()){if(!r.next()||!key.marketplace().name().equals(r.getString(1)))throw new SecurityException("Product owner changed");return ListingIdentity.fingerprint(new Shop(key.shopId(),"cache",key.marketplace(),r.getString(2),r.getString(3)));}}

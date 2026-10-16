@@ -1007,13 +1007,15 @@ public class SupplyDetailController {
         private final Label metaLabel = new Label();
         private final Label subjectLabel = new Label();
         private final Label statusLabel = new Label();
+        private final Label marketplaceStatus = new Label();
 
         OrderDetailsCell() {
             titleLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 13px; -fx-text-fill: -text-primary;");
             metaLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 11px; -fx-text-fill: -text-muted;");
             subjectLabel.setStyle("-fx-font-size: 11px; -fx-text-fill: -text-muted;");
             statusLabel.getStyleClass().add("badge");
-            vbox.getChildren().addAll(titleLabel, metaLabel, subjectLabel, statusLabel);
+            marketplaceStatus.getStyleClass().add("text-muted");marketplaceStatus.setMaxWidth(Double.MAX_VALUE);
+            vbox.getChildren().addAll(titleLabel, metaLabel, subjectLabel, marketplaceStatus, statusLabel);
             vbox.setAlignment(Pos.CENTER_LEFT);
             vbox.setPadding(new javafx.geometry.Insets(4, 0, 4, 0));
         }
@@ -1055,6 +1057,7 @@ public class SupplyDetailController {
             subjectLabel.setVisible(!subject.isEmpty());
             subjectLabel.setManaged(!subject.isEmpty());
 
+            marketplaceStatus.setText(SupplyOrderPresentation.status(order));marketplaceStatus.setTooltip(new Tooltip(marketplaceStatus.getText()));marketplaceStatus.setVisible(!marketplaceStatus.getText().isBlank());marketplaceStatus.setManaged(marketplaceStatus.isVisible());
             statusLabel.getStyleClass().removeAll("badge-green", "badge-red");
             statusLabel.setVisible(false);
             statusLabel.setManaged(false);

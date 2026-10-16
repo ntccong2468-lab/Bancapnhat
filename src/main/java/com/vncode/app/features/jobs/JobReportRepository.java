@@ -33,11 +33,11 @@ public final class JobReportRepository {
             var columns=new HashSet<String>();try(var s=c.createStatement();var r=s.executeQuery("PRAGMA table_info("+table+")")){while(r.next())columns.add(r.getString("name"));}
             if(columns.isEmpty())return;
             String updated=columns.contains("updated_at")?"j.updated_at":columns.contains("printed_at")?"j.printed_at":columns.contains("created_at")?"j.created_at":"''";
-            String error=columns.contains(issue)?"j."+issue:"''";
+            String error=kind.equals("edit")?"COALESCE((SELECT json_extract(v.value,'$.code') FROM json_each(j.payload,'$.issues') v LIMIT 1),'')":columns.contains(issue)?"j."+issue:"''";
             String sql="SELECT CAST(j.rowid AS TEXT),j.shop_id,s.name,s.marketplace,j."+state+","+updated+","+error+" FROM "+table+" j JOIN shops s ON s.id=j.shop_id ORDER BY "+updated+" DESC LIMIT 200";
             try(var p=c.prepareStatement(sql);var r=p.executeQuery()){while(r.next()){
                 String raw=r.getString(5);if(raw==null||raw.equals("NOT_CREATED"))continue;
-                String code=SyncRunRepository.code(r.getString(7));if(kind.equals("gtin")||kind.equals("edit"))code=""; // A task ID or phase is not an error.
+                String code=SyncRunRepository.code(r.getString(7));if(kind.equals("gtin"))code=""; // A task ID or phase is not an error.
                 out.add(new Report(table+":"+r.getString(1),r.getInt(2),r.getString(3),r.getString(4),kind,normalized(raw),raw,1,Objects.toString(r.getString(6),""),code,false));
             }}
         }catch(SQLException e){throw new IllegalStateException("JOBS_READ_FAILED",e);}
@@ -68,6 +68,8 @@ public final class JobReportRepository {
     public static String normalized(String source){
         String state=source.toUpperCase(Locale.ROOT);
         if(Set.of("SUCCESS","SUCCEEDED","PRINTED","ACCEPTED","PUBLISHED","RECONCILED","INTRODUCED","COMPLETED","DONE").contains(state))return "SUCCEEDED";
+        if(state.equals("AWAITING_CONFIRMATION"))return "AWAITING_CONFIRMATION";
+        if(state.equals("REMOTE_PROCESSING"))return "WAITING_REMOTE";
         if(state.equals("CANCELLED"))return "CANCELLED";
         if(state.contains("RECONCIL")||state.contains("UNKNOWN")||state.contains("UNCONFIRMED"))return "RECONCILING";
         if(state.contains("ERROR")||state.contains("FAIL")||state.contains("REJECT"))return "FAILED";

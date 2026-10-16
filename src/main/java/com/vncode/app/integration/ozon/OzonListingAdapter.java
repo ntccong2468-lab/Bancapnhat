@@ -25,6 +25,23 @@ public final class OzonListingAdapter extends AbstractListingAdapter {
     public List<TargetAttribute> attributes(Shop s,String cat)throws IOException{
         var result=new ArrayList<TargetAttribute>();for(var e:array(call(s,"v1/description-category/attribute",category(cat),false),"result")){var a=object(e);result.add(new TargetAttribute(text(a,"id"),text(a,"name"),text(a,"type"),"true".equals(text(a,"is_required")),"",decimal(a,"max_value_count")==null?1:decimal(a,"max_value_count").intValue(),text(a,"dictionary_id"),text(a,"attribute_complex_id"),false));}return List.copyOf(result);
     }
+    @Override public List<String> suggestValues(Shop shop,String cat,String field,String query)throws IOException {
+        owner(shop);
+        var candidates=attributes(shop,cat).stream().filter(a->field.equals("brand")?
+                Set.of("Бренд","Бренд в одежде и обуви").contains(a.name()):ProductFieldNames.matches(field,a.name()))
+                .filter(a->!a.namedField()&&(a.complexId().isBlank()||a.complexId().equals("0"))).toList();
+        if(candidates.size()!=1)throw new IOException("Field dictionary is missing or ambiguous");
+        var attr=candidates.getFirst();
+        if(attr.dictionaryId().isBlank()||attr.dictionaryId().equals("0"))return List.of();
+        var b=category(cat);b.addProperty("attribute_id",new BigInteger(attr.id()));
+        String value=query.strip();
+        String path="v1/description-category/attribute/values";
+        if(value.length()>=2){b.addProperty("value",value);b.addProperty("limit",100);path+="/search";}
+        else{b.addProperty("last_value_id",0);b.addProperty("limit",100);}
+        var response=call(shop,path,b,false);
+        if(!response.has("result")||!response.get("result").isJsonArray())throw new IOException("Attribute suggestions unavailable");
+        return array(response,"result").asList().stream().map(e->text(object(e),"value")).filter(v->!v.isBlank()).distinct().toList();
+    }
     public CopyPreview preview(Shop shop,ProductSnapshot source,CopyOptions requested)throws IOException{
         owner(shop);var issues=new ArrayList<CopyIssue>();var categories=categories(shop);var base=CopyDefaults.withCategory(source,shop,requested,categories);if(base.targetCategoryId()==null||!base.targetCategoryId().matches("[1-9][0-9]{0,18}:[1-9][0-9]{0,18}")||categories.stream().noneMatch(c->c.id().equals(base.targetCategoryId()))){issue(issues,"TARGET_CATEGORY_REQUIRED","category");return previewRecord(shop,source,base,new JsonObject(),new JsonArray(),new JsonArray(),issues,List.of(),"CREATE");}
         var dict=attributes(shop,base.targetCategoryId());var o=CopyDefaults.complete(source,shop,base,dict);var variants=selected(source,o,issues);var mapped=mapped(source,o,dict,issues);
@@ -48,7 +65,9 @@ public final class OzonListingAdapter extends AbstractListingAdapter {
     }
     private JsonArray mappedAttributes(Shop shop,String cat,List<TargetAttribute> dict,Map<String,List<String>> values,Map<String,Map<String,String>> cache,List<CopyIssue> issues)throws IOException{
         var out=new JsonArray();for(var a:dict){var list=values.getOrDefault(a.id(),List.of());if(list.isEmpty()){if(a.required())issue(issues,"REQUIRED_ATTRIBUTE",a.id());continue;}if(a.maxValues()>0&&list.size()>a.maxValues())issue(issues,"ATTRIBUTE_VALUE_LIMIT",a.id());
-            var entry=new JsonObject();entry.addProperty("id",new BigInteger(a.id()));if(!a.complexId().isBlank()&&!a.complexId().equals("0"))entry.addProperty("complex_id",new BigInteger(a.complexId()));var vals=new JsonArray();Map<String,String> dictionary=Map.of();if(!a.dictionaryId().isBlank()&&!a.dictionaryId().equals("0")){dictionary=cache.get(a.id());if(dictionary==null){dictionary=values(shop,cat,a.id());cache.put(a.id(),dictionary);}}
+            var entry=new JsonObject();entry.addProperty("id",new BigInteger(a.id()));if(!a.complexId().isBlank()&&!a.complexId().equals("0"))entry.addProperty("complex_id",new BigInteger(a.complexId()));var vals=new JsonArray();Map<String,String> dictionary=Map.of();if(!a.dictionaryId().isBlank()&&!a.dictionaryId().equals("0")){dictionary=cache.get(a.id());boolean large=Set.of("Бренд","Бренд в одежде и обуви").contains(a.name())||ProductFieldNames.matches("tnved",a.name());
+                if(large){var known=new LinkedHashMap<String,String>(dictionary==null?Map.of():dictionary);var missing=list.stream().filter(v->!known.containsKey(v)).toList();if(!missing.isEmpty())known.putAll(exactValues(shop,cat,a.id(),missing));dictionary=Map.copyOf(known);cache.put(a.id(),dictionary);}
+                else if(dictionary==null){dictionary=values(shop,cat,a.id());cache.put(a.id(),dictionary);}}
             for(String value:list){var val=new JsonObject();val.addProperty("value",value);if(!dictionary.isEmpty()||(!a.dictionaryId().isBlank()&&!a.dictionaryId().equals("0"))){String id=dictionary.get(value);if(id==null)issue(issues,"DICTIONARY_VALUE_REQUIRED",a.id());else val.addProperty("dictionary_value_id",new BigInteger(id));}else if(a.type().equals("integer")||a.type().equals("decimal")){try{new BigDecimal(value);}catch(NumberFormatException e){issue(issues,"ATTRIBUTE_NUMBER_REQUIRED",a.id());}}vals.add(val);}entry.add("values",vals);out.add(entry);
         }return out;
     }
@@ -59,6 +78,22 @@ public final class OzonListingAdapter extends AbstractListingAdapter {
         }
         for(var a:dict)if(!a.complexId().isBlank()&&!a.complexId().equals("0")&&overrides.containsKey(a.id())){boolean placed=false;for(var g:grouped.entrySet())if(g.getKey().endsWith(":"+a.complexId())){g.getValue().put(a.id(),overrides.get(a.id()));placed=true;}if(!placed)grouped.computeIfAbsent("manual:0:"+a.complexId(),k->new LinkedHashMap<>()).put(a.id(),overrides.get(a.id()));}
         var result=new JsonArray();for(var group:grouped.entrySet()){String targetComplex=group.getKey().substring(group.getKey().lastIndexOf(':')+1);var fields=dict.stream().filter(a->a.complexId().equals(targetComplex)).toList();var data=new JsonObject();data.add("attributes",mappedAttributes(s,o.targetCategoryId(),fields,group.getValue(),cache,issues));result.add(data);}if(result.isEmpty()&&dict.stream().anyMatch(a->a.required()&&!a.complexId().isBlank()&&!a.complexId().equals("0")))issue(issues,"COMPLEX_ATTRIBUTE_MAPPING_REQUIRED","attributes");return result;
+    }
+    /** Resolve only the selected terms in large brand/TN VED dictionaries. */
+    private Map<String,String> exactValues(Shop shop,String cat,String attribute,List<String> selected)throws IOException {
+        var result=new LinkedHashMap<String,String>();
+        for(String value:selected){
+            if(value.strip().length()<2){result.putAll(values(shop,cat,attribute));continue;}
+            var b=category(cat);b.addProperty("attribute_id",new BigInteger(attribute));b.addProperty("value",value);b.addProperty("limit",100);
+            var response=call(shop,"v1/description-category/attribute/values/search",b,false);
+            if(!response.has("result")||!response.get("result").isJsonArray())throw new IOException("Dictionary search unavailable");
+            for(var e:array(response,"result")){var found=object(e);String term=text(found,"value"),id=text(found,"id");
+                if(!term.equals(value))continue;
+                if(!id.matches("[1-9][0-9]{0,18}")||(result.containsKey(term)&&!result.get(term).equals(id)))throw new IOException("Ambiguous destination dictionary value");
+                result.put(term,id);
+            }
+        }
+        return Map.copyOf(result);
     }
     public Map<String,String> values(Shop shop,String cat,String attribute)throws IOException{
         var result=new LinkedHashMap<String,String>();String last="0";for(int page=0;page<10;page++){var b=category(cat);b.addProperty("attribute_id",new BigInteger(attribute));b.addProperty("last_value_id",new BigInteger(last));b.addProperty("limit",2000);var response=call(shop,"v1/description-category/attribute/values",b,false);var data=array(response,"result");for(var e:data){var d=object(e);String value=text(d,"value"),id=text(d,"id");if(result.containsKey(value)&&!result.get(value).equals(id))throw new IOException("Ambiguous destination dictionary value");result.put(value,id);last=id;}if(!"true".equals(text(response,"has_next")))return Map.copyOf(result);if(data.isEmpty())throw new IOException("Dictionary cursor unavailable");}throw new IOException("Dictionary pagination limit");

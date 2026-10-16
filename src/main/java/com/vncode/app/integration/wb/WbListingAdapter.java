@@ -24,6 +24,30 @@ public final class WbListingAdapter extends AbstractListingAdapter {
         if(!cat.matches("[1-9][0-9]{0,18}"))throw new IllegalArgumentException("Invalid destination subject");var result=new ArrayList<TargetAttribute>();
         for(var e:array(call(s,"content/v2/object/charcs/"+cat,null,false),"data")){var a=object(e);result.add(new TargetAttribute(text(a,"charcID"),text(a,"name"),text(a,"charcType"),"true".equals(text(a,"required")),text(a,"unitName"),decimal(a,"maxCount")==null?0:decimal(a,"maxCount").intValue(),"","","true".equals(text(a,"existNamedField"))));}return List.copyOf(result);
     }
+    @Override public List<String> suggestValues(Shop shop,String cat,String field,String query)throws IOException {
+        owner(shop);
+        if(!cat.matches("[1-9][0-9]{0,18}"))throw new IllegalArgumentException("Invalid destination subject");
+        var values=new LinkedHashSet<String>();
+        if(field.equals("brand")){
+            String next="";var cursors=new HashSet<String>();
+            for(int page=0;page<20;page++){
+                var response=call(shop,"api/content/v1/brands?subjectId="+cat+(next.isBlank()?"":"&next="+next),null,false);
+                if(!response.has("brands")||!response.get("brands").isJsonArray())throw new IOException("Brand dictionary unavailable");
+                for(var v:array(response,"brands")){String name=text(object(v),"name");if(!name.isBlank())values.add(name);}
+                String cursor=text(response,"next");
+                if(cursor.isBlank()||cursor.equals("0"))return List.copyOf(values);
+                if(!cursor.matches("[1-9][0-9]{0,18}")||!cursors.add(cursor))throw new IOException("Brand dictionary cursor unavailable");
+                next=cursor;
+            }
+            throw new IOException("Brand dictionary pagination limit");
+        }
+        if(field.equals("gender"))for(var v:array(call(shop,"content/v2/directory/kinds",null,false),"data"))values.add(v.getAsString());
+        if(field.equals("tnved")){
+            String search=query.strip();if(!search.matches("[0-9]{0,10}"))return List.of();
+            for(var v:array(call(shop,"content/v2/directory/tnved?subjectID="+cat+"&search="+search,null,false),"data"))values.add(text(object(v),"tnved"));
+        }
+        return List.copyOf(values);
+    }
     public CopyPreview preview(Shop shop,ProductSnapshot source,CopyOptions requested)throws IOException{
         owner(shop);var issues=new ArrayList<CopyIssue>();var categories=categories(shop);var base=CopyDefaults.withCategory(source,shop,requested,categories);
         if(base.targetCategoryId()==null||!base.targetCategoryId().matches("[1-9][0-9]{0,18}")||categories.stream().noneMatch(c->c.id().equals(base.targetCategoryId()))){issue(issues,"TARGET_CATEGORY_REQUIRED","category");return previewRecord(shop,source,base,new JsonArray(),new JsonArray(),new JsonArray(),issues,List.of(),"CREATE");}

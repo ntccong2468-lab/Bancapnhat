@@ -12,7 +12,8 @@ public final class ProductFieldNames {
                 .toLowerCase(Locale.ROOT).replaceAll("[^\\p{L}\\p{N}]", "");
         return switch (field) {
             case "material" -> Set.of("состав", "материал", "основнойматериал", "материализделия", "material").contains(normalized);
-            case "tnved" -> Set.of("тнвэд", "кодтнвэд", "tnved").contains(normalized);
+            case "tnved" -> Set.of("тнвэд", "кодтнвэд", "тнвэдкодыеаэс", "кодтнвэдеаэс", "tnved").contains(normalized);
+            case "color" -> Set.of("цвет", "цветтовара", "color", "màusắc").contains(normalized);
             case "gender" -> Set.of("пол", "полребенка", "gender", "giớitính").contains(normalized);
             case "russianSize" -> Set.of("российскийразмер", "размерроссийский", "russiansize", "rusize", "sizenga").contains(normalized);
             default -> false;

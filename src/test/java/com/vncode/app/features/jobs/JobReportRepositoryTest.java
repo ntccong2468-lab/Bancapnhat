@@ -24,7 +24,7 @@ class JobReportRepositoryTest {
         Path target=root.resolve("report.json");JobReportExporter.export(report,target);String json=Files.readString(target);assertTrue(json.contains("OZON_SKU_CHANGED"));assertFalse(json.contains("SENSITIVE-PAYLOAD"));
     }
     @Test void completedAndUnknownStatesCannotRemainRunningForever(){
-        assertEquals("SUCCEEDED",JobReportRepository.normalized("SUCCEEDED"));assertEquals("SUCCEEDED",JobReportRepository.normalized("printed"));assertEquals("NEEDS_ACTION",JobReportRepository.normalized("unrecognized_future_status"));assertEquals("RECONCILING",JobReportRepository.normalized("RECONCILE_REQUIRED"));
+        assertEquals("AWAITING_CONFIRMATION",JobReportRepository.normalized("AWAITING_CONFIRMATION"));assertEquals("WAITING_REMOTE",JobReportRepository.normalized("REMOTE_PROCESSING"));assertEquals("SUCCEEDED",JobReportRepository.normalized("SUCCEEDED"));assertEquals("SUCCEEDED",JobReportRepository.normalized("printed"));assertEquals("NEEDS_ACTION",JobReportRepository.normalized("unrecognized_future_status"));assertEquals("RECONCILING",JobReportRepository.normalized("RECONCILE_REQUIRED"));
     }
     @Test void legacyJobsRetainHistoryButNeverExportRawErrorOrKizPayload()throws Exception{
         try(var c=Database.getConnection();var s=c.createStatement()){s.execute("INSERT INTO print_jobs(shop_id,printed_at,item_count,template_layout_json,status,error_message) VALUES(1,'now',1,'{\"kiz\":\"PAID-CODE-MUST-NOT-EXPORT\"}','printed','SUPERSECRETTOKEN')");}
