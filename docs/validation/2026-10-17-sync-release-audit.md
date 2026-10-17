@@ -16,7 +16,7 @@ Trạng thái: đang hoàn tất kiểm chứng trên đúng mã nguồn sửa l
 | Znack → GTIN | Giữ lỗi API gốc khi ghi báo cáo cũng lỗi. Tác vụ đã xác nhận không bị báo cáo tạm dừng cũ che khuất. Giữ bước xem trước, xác nhận, đọc lại và không phát lại lệnh ghi chưa rõ kết quả. |
 | GS1 | Lỗi cấu hình vẫn hiện đúng khi ghi báo cáo thất bại. Các lượt đọc dùng chung nhận được lỗi kết thúc thay vì chờ treo; giữ trạng thái partial theo từng nguồn. |
 
-Trước sửa, nhóm kiểm thử đầu có 6 lỗi và nhóm “Làm mới WB” có 7/7 bài thất bại. Sau sửa, nhóm 145 bài tập trung và 42 bài kiểm tra owner đã đạt. Tái hiện thêm lỗi backlog FBS bằng scheduler thật trên dữ liệu giả lập; sau sửa cả 11 bài điều phối đạt, gồm kiểm tra các shop khác vẫn nhận lượt và cooldown không bị bỏ qua. Bộ kiểm thử đầy đủ trên source cuối và Windows đang được chạy tiếp; run Windows cũ được hủy vì đã có thay đổi ưu tiên FBS. Chi tiết kết quả cuối được ghi trong JSON đi kèm.
+Trước sửa, nhóm kiểm thử đầu có 6 lỗi và nhóm “Làm mới WB” có 7/7 bài thất bại. Sau sửa, nhóm 145 bài tập trung và 42 bài kiểm tra owner đã đạt. Tái hiện thêm lỗi backlog FBS bằng scheduler thật trên dữ liệu giả lập; sau sửa cả 11 bài điều phối đạt, gồm kiểm tra các shop khác vẫn nhận lượt và cooldown không bị bỏ qua. Lượt `verify` đầy đủ trên source cuối `e2b6471467212429b66ed095a23510cd30807ffe` đạt **1.660 bài, 0 failures, 0 errors, 2 platform skips**, mất 9 phút 38 giây. Công cụ phát hành đạt 60/60 và Portal đạt 60/60. Windows vẫn đang được chạy tiếp; run Windows cũ được hủy vì đã có thay đổi ưu tiên FBS. Chi tiết kết quả cuối được ghi trong JSON đi kèm.
 
 ## Phạm vi rà soát
 

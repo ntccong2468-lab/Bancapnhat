@@ -4,7 +4,7 @@
   "complete": false,
   "developmentComplete": true,
   "officialReleasePublished": false,
-  "phase": "sync-audit-native-verification-in-progress",
+  "phase": "final-sync-regression-passed-native-windows-running",
   "licenseIntegration": {
     "implemented": true,
     "productionReady": false,
@@ -40,14 +40,15 @@
   ],
   "validation": {
     "fullJavaRegression": {
-      "tests": 1621,
+      "tests": 1660,
       "failures": 0,
       "errors": 0,
       "skipped": 2,
-      "source": "8a51b72b1563940d6481706de23260e8ddae7eef",
+      "source": "e2b6471467212429b66ed095a23510cd30807ffe",
       "result": "passed",
-      "logSha256": "ca167d72bca57391a34047bac192f025d9c5552340e32ea4e491c4e7d1439311",
-      "elapsed": "10:46",
+      "logSha256": "cdfaf3e746ea420d79f3bea49ddf6af509182698ac843c79fc1b41d047e866a3",
+      "elapsed": "09:38",
+      "finishedAt": "2026-10-17T06:49:25Z",
       "platformSkips": [
         {
           "suite": "com.vncode.app.features.gs1.Gs1PrefixTemplateStoreTest",
@@ -57,8 +58,7 @@
           "suite": "com.vncode.app.shared.WindowsSecretProtectorTest",
           "skipped": 1
         }
-      ],
-      "finishedAt": "2026-10-17T05:44:40Z"
+      ]
     },
     "windowsNativeBuildThisVersion": false,
     "liveMarketplaceRead": true,
@@ -178,7 +178,7 @@
       "source": "e2b6471467212429b66ed095a23510cd30807ffe",
       "focusedPassed": 145,
       "ownerChecksPassed": 42,
-      "fullRegression": "running",
+      "fullRegression": "passed",
       "nativeWindowsRun": 39010518703,
       "nativeWindowsResult": "in_progress",
       "liveOzonFbsPostings": 244,
@@ -186,7 +186,29 @@
       "liveWbFbs": "HTTP_401_waiting_for_environment_token",
       "remoteMutations": 0,
       "visibleFbsSchedulerChecks": 11,
-      "priorNativeRunSuperseded": 39010074435
+      "priorNativeRunSuperseded": 39010074435,
+      "fullRegressionTests": 1660
+    },
+    "previousFullJavaRegression": {
+      "tests": 1621,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 2,
+      "source": "8a51b72b1563940d6481706de23260e8ddae7eef",
+      "result": "passed",
+      "logSha256": "ca167d72bca57391a34047bac192f025d9c5552340e32ea4e491c4e7d1439311",
+      "elapsed": "10:46",
+      "platformSkips": [
+        {
+          "suite": "com.vncode.app.features.gs1.Gs1PrefixTemplateStoreTest",
+          "skipped": 1
+        },
+        {
+          "suite": "com.vncode.app.shared.WindowsSecretProtectorTest",
+          "skipped": 1
+        }
+      ],
+      "finishedAt": "2026-10-17T05:44:40Z"
     }
   },
   "publication": {

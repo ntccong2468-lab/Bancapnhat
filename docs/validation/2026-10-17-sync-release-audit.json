@@ -3,7 +3,7 @@
   "baseVersion": "1.4.13",
   "reviewedBaseSource": "2554b7a46d6d39a74dfbc7adbbafd40d9ed3f27f",
   "sourceCommit": "e2b6471467212429b66ed095a23510cd30807ffe",
-  "phase": "visible-fbs-priority-fixed-final-validation-running",
+  "phase": "final-full-regression-passed-native-windows-running",
   "latestPublished": "1.4.13",
   "officialReleasePublished": false,
   "remoteMutationsThisAudit": 0,
@@ -79,6 +79,27 @@
       "logSha256": "302fb9ff27fd978a109f9dd3715365ac8f07b8c11151b946cbde008d66fbc817",
       "elapsed": "10:01",
       "supersededByVisibleFbsPrioritySource": "e2b6471467212429b66ed095a23510cd30807ffe"
+    },
+    "finalFullRegression": {
+      "tests": 1660,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 2,
+      "source": "e2b6471467212429b66ed095a23510cd30807ffe",
+      "result": "passed",
+      "logSha256": "cdfaf3e746ea420d79f3bea49ddf6af509182698ac843c79fc1b41d047e866a3",
+      "elapsed": "09:38",
+      "finishedAt": "2026-10-17T06:49:25Z",
+      "platformSkips": [
+        {
+          "suite": "com.vncode.app.features.gs1.Gs1PrefixTemplateStoreTest",
+          "skipped": 1
+        },
+        {
+          "suite": "com.vncode.app.shared.WindowsSecretProtectorTest",
+          "skipped": 1
+        }
+      ]
     }
   },
   "node": {
