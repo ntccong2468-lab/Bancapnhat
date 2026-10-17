@@ -2,8 +2,8 @@
   "version": "1.4.14",
   "baseVersion": "1.4.13",
   "reviewedBaseSource": "2554b7a46d6d39a74dfbc7adbbafd40d9ed3f27f",
-  "sourceCommit": "e2b6471467212429b66ed095a23510cd30807ffe",
-  "phase": "final-full-regression-passed-native-windows-running",
+  "sourceCommit": "6ba183cd5fb4420e37df13035581fee08c2d2155",
+  "phase": "atomic-batch-fixes-passed-final-full-and-windows-running",
   "latestPublished": "1.4.13",
   "officialReleasePublished": false,
   "remoteMutationsThisAudit": 0,
@@ -80,7 +80,7 @@
       "elapsed": "10:01",
       "supersededByVisibleFbsPrioritySource": "e2b6471467212429b66ed095a23510cd30807ffe"
     },
-    "finalFullRegression": {
+    "fullRegressionBeforeBatchFix": {
       "tests": 1660,
       "failures": 0,
       "errors": 0,
@@ -100,6 +100,41 @@
           "skipped": 1
         }
       ]
+    },
+    "finalFullRegression": {
+      "source": "6ba183cd5fb4420e37df13035581fee08c2d2155",
+      "result": "running"
+    },
+    "wbStatusBatchBefore": {
+      "summary": {
+        "tests": 1,
+        "failures": 1,
+        "errors": 0,
+        "skipped": 0
+      },
+      "success": false,
+      "logSha256": "4a3d5c716dc4558fac977263b1c8cbe2fecc06705d76e2693b1d98eb9697e034"
+    },
+    "znackMetadataBefore": {
+      "summary": {
+        "tests": 10,
+        "failures": 1,
+        "errors": 0,
+        "skipped": 0
+      },
+      "success": false,
+      "logSha256": "72d8a078628299dce75cac554ddc8dc2207b6fcd1f18987ed4b077737d89c3ae"
+    },
+    "finalBatchFocused": {
+      "summary": {
+        "tests": 116,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "success": true,
+      "logSha256": "f899283104b59bfbe9b05ae035edf6d1a3526a772e95e370aa9e382e3a78433a",
+      "source": "6ba183cd5fb4420e37df13035581fee08c2d2155"
     }
   },
   "node": {
@@ -231,16 +266,31 @@
     "failedTest": "SyncRunRepositoryConcurrencyTest.tenShopsCanPersistConcurrentProgressAndItemsWithoutLosingHistory",
     "failureType": "TimeoutException",
     "timeoutSecondsUnchanged": 30,
-    "newRun": 39010518703,
-    "newSource": "e2b6471467212429b66ed095a23510cd30807ffe",
+    "newRun": 39012628654,
+    "newSource": "6ba183cd5fb4420e37df13035581fee08c2d2155",
     "newResult": "in_progress",
-    "url": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/39010518703",
+    "url": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/39012628654",
     "supersededRuns": [
       {
         "run": 39010074435,
         "source": "f02761bbe5b31ca025926addbdd95935b76ef743",
         "result": "cancelled",
         "reason": "Superseded by the visible FBS overdue-backlog fix"
+      },
+      {
+        "run": 39010518703,
+        "source": "e2b6471467212429b66ed095a23510cd30807ffe",
+        "result": "cancelled_after_java_success",
+        "java": {
+          "tests": 1660,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 2
+        },
+        "concurrentReportSuiteSeconds": 5.23,
+        "logSha256": "a2124f90c3b4c4dc73903beedfffc47ee106fb0715c4d51e19e5581d3dd1cdc6",
+        "reason": "Superseded after reproducing WB status and Znack metadata partial-commit defects",
+        "installerAccepted": false
       }
     ]
   },
@@ -294,6 +344,10 @@
       "sha256": "6593ce56e49f83afa7747c846b14f1bcecd21fa8757fb0d981b5992a75e1e667"
     },
     {
+      "path": "src/main/java/com/vncode/app/features/sync/ZnackCatalogSyncService.java",
+      "sha256": "a2648f2d7ca0a0593b80be82693377e2799a6505e42b9a105e7aa71f912ff032"
+    },
+    {
       "path": "src/main/java/com/vncode/app/integration/ozon/OzonApiClient.java",
       "sha256": "8af6f5d06cae01aa4dbf835ebeb6dfc14d40ea97df542610e1dff8e13d01318e"
     },
@@ -322,6 +376,10 @@
       "sha256": "b53544005972beab0d9db703239668043417f7b8cb8e9af557830369c7d0afe8"
     },
     {
+      "path": "src/main/java/com/vncode/app/integration/wb/WbOrderRepository.java",
+      "sha256": "b5bfa2ac608ae8a1b2128f819343665514c76e56a17f622d69dc3360ce45ab5b"
+    },
+    {
       "path": "src/main/java/com/vncode/app/integration/wb/WbOrderSyncService.java",
       "sha256": "769171eb13706a73368890df8540177166b3b4e99ce1f1cf41a1b58f8c1952d2"
     },
@@ -340,6 +398,10 @@
     {
       "path": "src/main/java/com/vncode/app/integration/wb/fbw/WbFbwRateLimiter.java",
       "sha256": "75bbb07e0ce08d46679f85e4d25f1d4a6e920ed32c9266e0903bd43f7ccfbe2d"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/znack/ZnackRepository.java",
+      "sha256": "a99439d05e7e4bd808d301d6994786743bc3c9d1fe779aa99859ca31c7718cea"
     },
     {
       "path": "src/main/java/com/vncode/app/shared/AppTaskExecutor.java",
@@ -374,6 +436,10 @@
       "sha256": "b04105f2ada01a0b8eb36b6e97fc40187b60107b0e32dde6e426eda172560772"
     },
     {
+      "path": "src/test/java/com/vncode/app/features/sync/ZnackCatalogSyncServiceTest.java",
+      "sha256": "7dd2b32df1540b7bfa1631370427c0f8d53804db1faa373352fec1529806791b"
+    },
+    {
       "path": "src/test/java/com/vncode/app/integration/ozon/OzonShipServiceTest.java",
       "sha256": "e97e566a562d38af97c06b220d50b7f75f5bb65c3d828c90f95d0d914d4bdfba"
     },
@@ -390,6 +456,10 @@
       "sha256": "ca7aca36a65d0da5010518341b583683b0081e44e5243ddc3555041c6ddb5ac2"
     },
     {
+      "path": "src/test/java/com/vncode/app/integration/wb/WbStatusBatchIntegrityTest.java",
+      "sha256": "52409747d2d5ca0e278c5ab24e9acaacdd8a4f5940c69c4f6a88680a3cf45d12"
+    },
+    {
       "path": "src/test/java/com/vncode/app/integration/wb/fbw/WbFbwApiClientTest.java",
       "sha256": "f6c69dfc45e44e171e05436fadbbc86e1471a735a1371d1a464fbd2179cfe393"
     },
@@ -397,5 +467,47 @@
       "path": "src/test/java/com/vncode/app/shared/MarketplaceRequestBudgetTest.java",
       "sha256": "eba19dd448c61df0bb01a39bfa60e2c6fe9c415b76ef2eb237faf5c3674663b5"
     }
-  ]
+  ],
+  "syntheticFbsUiLatency": {
+    "synthetic": true,
+    "source": "e2b6471467212429b66ed095a23510cd30807ffe",
+    "platform": "cloud Linux",
+    "actualWindowsLowEnd": false,
+    "shops": 10,
+    "ordersPerShop": 1000,
+    "products": 100000,
+    "samples": 20,
+    "visiblePage": 100,
+    "commitToPulseP95Millis": 363.611667,
+    "fxDispatchP95Millis": 16.818399,
+    "fxStallsOver500Millis": 0
+  },
+  "batchCommitAudit": {
+    "beforeSource": "e2b6471467212429b66ed095a23510cd30807ffe",
+    "afterSource": "6ba183cd5fb4420e37df13035581fee08c2d2155",
+    "samples": [
+      {
+        "wbStatusCommits": 1000,
+        "remoteCalls": 0,
+        "catalogRows": 204,
+        "allRowsApplied": true,
+        "catalogProjectionCommits": 410,
+        "variant": "before",
+        "synthetic": true,
+        "wbStatuses": 1000
+      },
+      {
+        "synthetic": true,
+        "variant": "after",
+        "catalogProjectionCommits": 5,
+        "allRowsApplied": true,
+        "catalogRows": 204,
+        "remoteCalls": 0,
+        "wbStatusCommits": 1,
+        "wbStatuses": 1000
+      }
+    ],
+    "logSha256": "cf23d3cbab045d393ef4038353dab10fd00e34ac6aba4fa920a37c139930927a",
+    "scope": "Synthetic local database and actual repository entry points, JDBC commit listener; no seller API calls"
+  }
 }

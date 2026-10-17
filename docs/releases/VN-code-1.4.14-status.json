@@ -4,7 +4,7 @@
   "complete": false,
   "developmentComplete": true,
   "officialReleasePublished": false,
-  "phase": "final-sync-regression-passed-native-windows-running",
+  "phase": "atomic-sync-batch-fix-final-verification-running",
   "licenseIntegration": {
     "implemented": true,
     "productionReady": false,
@@ -36,29 +36,13 @@
     "Unified WB automatic/manual FBS response validation and completed history watermark protection",
     "Strict Ozon posting identity, product quantity and current-credential validation",
     "Complete FBO pagination with non-destructive failure handling and resumable Ozon history",
-    "GS1 source error propagation and coalesced-reader completion"
+    "GS1 source error propagation and coalesced-reader completion",
+    "Atomic WB status pages and bounded 100-card Catalog metadata writes prevent partial commits and reduce SQLite contention"
   ],
   "validation": {
     "fullJavaRegression": {
-      "tests": 1660,
-      "failures": 0,
-      "errors": 0,
-      "skipped": 2,
-      "source": "e2b6471467212429b66ed095a23510cd30807ffe",
-      "result": "passed",
-      "logSha256": "cdfaf3e746ea420d79f3bea49ddf6af509182698ac843c79fc1b41d047e866a3",
-      "elapsed": "09:38",
-      "finishedAt": "2026-10-17T06:49:25Z",
-      "platformSkips": [
-        {
-          "suite": "com.vncode.app.features.gs1.Gs1PrefixTemplateStoreTest",
-          "skipped": 1
-        },
-        {
-          "suite": "com.vncode.app.shared.WindowsSecretProtectorTest",
-          "skipped": 1
-        }
-      ]
+      "source": "6ba183cd5fb4420e37df13035581fee08c2d2155",
+      "result": "running"
     },
     "windowsNativeBuildThisVersion": false,
     "liveMarketplaceRead": true,
@@ -175,11 +159,11 @@
     },
     "syncAudit": {
       "report": "docs/validation/2026-10-17-sync-release-audit.json",
-      "source": "e2b6471467212429b66ed095a23510cd30807ffe",
+      "source": "6ba183cd5fb4420e37df13035581fee08c2d2155",
       "focusedPassed": 145,
       "ownerChecksPassed": 42,
-      "fullRegression": "passed",
-      "nativeWindowsRun": 39010518703,
+      "fullRegression": "running",
+      "nativeWindowsRun": 39012628654,
       "nativeWindowsResult": "in_progress",
       "liveOzonFbsPostings": 244,
       "liveOzonFbsPages": 3,
@@ -187,17 +171,24 @@
       "remoteMutations": 0,
       "visibleFbsSchedulerChecks": 11,
       "priorNativeRunSuperseded": 39010074435,
-      "fullRegressionTests": 1660
+      "fullRegressionTests": null,
+      "batchFocusedPassed": 116,
+      "priorWindowsJavaPassed": 1660,
+      "wbBatchCommitsBefore": 1000,
+      "wbBatchCommitsAfter": 1,
+      "catalogBatchCommitsBefore": 410,
+      "catalogBatchCommitsAfter": 5
     },
     "previousFullJavaRegression": {
-      "tests": 1621,
+      "tests": 1660,
       "failures": 0,
       "errors": 0,
       "skipped": 2,
-      "source": "8a51b72b1563940d6481706de23260e8ddae7eef",
+      "source": "e2b6471467212429b66ed095a23510cd30807ffe",
       "result": "passed",
-      "logSha256": "ca167d72bca57391a34047bac192f025d9c5552340e32ea4e491c4e7d1439311",
-      "elapsed": "10:46",
+      "logSha256": "cdfaf3e746ea420d79f3bea49ddf6af509182698ac843c79fc1b41d047e866a3",
+      "elapsed": "09:38",
+      "finishedAt": "2026-10-17T06:49:25Z",
       "platformSkips": [
         {
           "suite": "com.vncode.app.features.gs1.Gs1PrefixTemplateStoreTest",
@@ -207,8 +198,7 @@
           "suite": "com.vncode.app.shared.WindowsSecretProtectorTest",
           "skipped": 1
         }
-      ],
-      "finishedAt": "2026-10-17T05:44:40Z"
+      ]
     }
   },
   "publication": {
@@ -219,5 +209,5 @@
   },
   "inheritedImplementation": "docs/releases/VN-code-1.4.13-status.json",
   "sourceCommit": "788267089291ad2adff023cfd60a4575147d12dd",
-  "applicationSource": "e2b6471467212429b66ed095a23510cd30807ffe"
+  "applicationSource": "6ba183cd5fb4420e37df13035581fee08c2d2155"
 }

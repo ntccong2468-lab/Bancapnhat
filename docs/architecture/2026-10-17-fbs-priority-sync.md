@@ -24,6 +24,7 @@ flowchart TD
 - Các lượt đã tới hạn của shop đang mở được ưu tiên theo thứ tự: đơn mới → trạng thái → nội dung shipment → danh sách shipment. Backlog quá hạn của shop khác không được đẩy đơn mới đang xem xuống cuối hàng; thời gian chờ / cooldown vẫn được giữ và các shop khác vẫn nhận lượt còn lại.
 - Worker điều phối và tác vụ đọc Catalog từ giao diện dùng giới hạn kết nối nền riêng, để việc đọc nền không chiếm cả hai lượt HTTP của sàn. Giới hạn tổng vẫn là hai yêu cầu HTTP cùng lúc.
 - Những callback ghi SQLite không được gọi HTTP, CryptoPro hoặc máy in. Hàng đợi có thời gian chờ hữu hạn; connection chỉ được tái sử dụng giữa các caller đang chờ, đóng khi hết việc. Không giữ connection toàn cục sau lượt ghi.
+- Một trang trạng thái WB dùng một giao dịch thay cho commit từng dòng. Metadata giấy tờ/giới tính/size của Catalog ghi theo nhóm tối đa 100 thẻ, trả lượt ghi giữa các nhóm để FBS không phải chờ cả kho. Lỗi giữa nhóm rollback toàn bộ giấy tờ và nhãn trong nhóm; thay chứng thư giữa chừng chặn metadata cũ.
 - Giữ nguyên WAL, foreign keys, `synchronous=FULL` của các connection ghi, commit/rollback và cơ chế không phát lại giao dịch đã commit. Lỗi constraint, owner hoặc thao tác bên ngoài không được tự phát lại.
 - Dữ liệu trả thiếu, cursor lặp, sai posting hoặc thiếu quantity là lỗi; không được dùng chúng để xóa cache hoặc ghi mốc hoàn tất. Việc đọc dữ liệu cũ và gọi API diễn ra ngoài lượt ghi.
 

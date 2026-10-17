@@ -15,8 +15,11 @@ Trạng thái: đang hoàn tất kiểm chứng trên đúng mã nguồn sửa l
 | FBO WB/Ozon | WB đọc tiếp sau 1.000 dòng. Ozon giữ checkpoint nếu lượt đọc có giới hạn chưa tải hết lịch sử. Bundle thiếu trường hoặc cursor lặp không được thay cache bằng dữ liệu rỗng / một phần. Chờ 429 dài trả lượt worker về điều phối. |
 | Znack → GTIN | Giữ lỗi API gốc khi ghi báo cáo cũng lỗi. Tác vụ đã xác nhận không bị báo cáo tạm dừng cũ che khuất. Giữ bước xem trước, xác nhận, đọc lại và không phát lại lệnh ghi chưa rõ kết quả. |
 | GS1 | Lỗi cấu hình vẫn hiện đúng khi ghi báo cáo thất bại. Các lượt đọc dùng chung nhận được lỗi kết thúc thay vì chờ treo; giữ trạng thái partial theo từng nguồn. |
+| Ghi batch FBS / metadata Catalog | Tái hiện lỗi mới: lỗi giữa batch để lại trạng thái đơn hoặc giấy tờ/nhãn đã lưu dở. WB cập nhật 1.000 trạng thái từ 1.000 commit xuống 1; projection 204 thẻ Catalog từ 410 xuống 5 commit, đủ mọi dòng. Ghi metadata theo nhóm tối đa 100 thẻ, có rollback và kiểm tra chứng thư. |
 
-Trước sửa, nhóm kiểm thử đầu có 6 lỗi và nhóm “Làm mới WB” có 7/7 bài thất bại. Sau sửa, nhóm 145 bài tập trung và 42 bài kiểm tra owner đã đạt. Tái hiện thêm lỗi backlog FBS bằng scheduler thật trên dữ liệu giả lập; sau sửa cả 11 bài điều phối đạt, gồm kiểm tra các shop khác vẫn nhận lượt và cooldown không bị bỏ qua. Lượt `verify` đầy đủ trên source cuối `e2b6471467212429b66ed095a23510cd30807ffe` đạt **1.660 bài, 0 failures, 0 errors, 2 platform skips**, mất 9 phút 38 giây. Công cụ phát hành đạt 60/60 và Portal đạt 60/60. Windows vẫn đang được chạy tiếp; run Windows cũ được hủy vì đã có thay đổi ưu tiên FBS. Chi tiết kết quả cuối được ghi trong JSON đi kèm.
+Nhóm đầu có 6 lỗi; nhóm “Làm mới WB” có 7/7 bài thất bại. Sau sửa, 145 bài tập trung, 42 bài kiểm tra owner và 11 bài điều phối đã đạt. Source `e2b6471` đạt 1.660 bài trên cả Linux và Windows, gồm bài SQLite đồng thời từng thất bại (suite Windows 5,230 giây). Bản này tiếp tục được thay sau khi tái hiện thêm lỗi ghi dở giữa batch; bộ cài của nó không dùng để phát hành.
+
+Source cuối hiện tại là `6ba183cd5fb4420e37df13035581fee08c2d2155`, bổ sung giao dịch batch trạng thái WB và metadata Catalog. Nhóm 116 bài liên quan đã đạt, gồm rollback, giữ giấy tờ cũ khi Catalog không cung cấp metadata và từ chối metadata của chứng thư cũ. Đo commit dùng database giả lập và các repository thật, không gọi API seller. Bộ `verify` đầy đủ và Windows đang chạy lại trên source này. Công cụ phát hành và Portal từng đạt 60/60 mỗi bộ; CI tiếp tục kiểm tra lại. Chi tiết cuối được ghi trong JSON đi kèm.
 
 ## Phạm vi rà soát
 
