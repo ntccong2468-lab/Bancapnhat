@@ -4,7 +4,7 @@
   "complete": false,
   "developmentComplete": true,
   "officialReleasePublished": false,
-  "phase": "final-modal-verified-exact-source-regression-running",
+  "phase": "final-exact-source-regression-and-native-windows-running",
   "licenseIntegration": {
     "implemented": true,
     "productionReady": false,
@@ -15,9 +15,9 @@
     "productionLicenseVerified": false,
     "windowsNativeBuildThisVersion": false,
     "fullJavaRegression": {
-      "source": "2d3abfd32f3fa326695174c6c3730c9aac168581",
+      "source": "a7e236efefd80945b8395e072538046b78ef4647",
       "result": "running",
-      "expectedTests": 1685
+      "expectedTests": 1686
     },
     "node": {
       "tests": 60,
@@ -33,10 +33,10 @@
       "logSha256": "3707e204de53cce94c33aa728da54ba6d5ac97c24033592ee4014bd9a745008c"
     },
     "nativeWindowsRun": {
-      "run": 39058310504,
-      "source": "2d3abfd32f3fa326695174c6c3730c9aac168581",
+      "run": 39059171881,
+      "source": "a7e236efefd80945b8395e072538046b78ef4647",
       "status": "running",
-      "url": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/39058310504"
+      "url": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/39059171881"
     },
     "finalReport": "docs/validation/2026-10-17-vncode-1416-final-acceptance.json",
     "liveReadReport": "docs/validation/2026-10-17-vncode-1416-live-read.json",
@@ -62,6 +62,6 @@
     "Clear-water Liquid Glass and contrast",
     "One-click listing copy with progress"
   ],
-  "applicationSource": "2d3abfd32f3fa326695174c6c3730c9aac168581",
-  "sourceCommit": "2d3abfd32f3fa326695174c6c3730c9aac168581"
+  "applicationSource": "a7e236efefd80945b8395e072538046b78ef4647",
+  "sourceCommit": "a7e236efefd80945b8395e072538046b78ef4647"
 }

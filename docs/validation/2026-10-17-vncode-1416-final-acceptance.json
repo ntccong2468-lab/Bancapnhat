@@ -1,12 +1,12 @@
 {
   "version": "1.4.16",
   "baseVersion": "1.4.15",
-  "sourceCommit": "2d3abfd32f3fa326695174c6c3730c9aac168581",
-  "checkedAt": "2026-10-17T18:14:11.398884+00:00",
+  "sourceCommit": "a7e236efefd80945b8395e072538046b78ef4647",
+  "checkedAt": "2026-10-17T18:41:31.337226+00:00",
   "linux": {
-    "source": "2d3abfd32f3fa326695174c6c3730c9aac168581",
+    "source": "a7e236efefd80945b8395e072538046b78ef4647",
     "status": "running",
-    "expectedTests": 1685
+    "expectedTests": 1686
   },
   "node": {
     "tests": 60,
@@ -22,10 +22,10 @@
     "logSha256": "3707e204de53cce94c33aa728da54ba6d5ac97c24033592ee4014bd9a745008c"
   },
   "windows": {
-    "run": 39058310504,
-    "source": "2d3abfd32f3fa326695174c6c3730c9aac168581",
+    "run": 39059171881,
+    "source": "a7e236efefd80945b8395e072538046b78ef4647",
     "status": "running",
-    "url": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/39058310504"
+    "url": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/39059171881"
   },
   "liveReads": "docs/validation/2026-10-17-vncode-1416-live-read.json",
   "liveMutationAcceptance": {
@@ -49,7 +49,7 @@
     },
     {
       "item": 2,
-      "change": "Compact bulk brand/material/gender/document/TNVED dialogs; one Apply with fresh validation and readback; retain existing certificate identity and metadata",
+      "change": "Compact bulk brand/material/gender/document/TNVED dialogs; one Apply with fresh validation and readback; documents from the entire current shop, retaining certificate identity, native type, metadata and no-expiry setting",
       "implemented": true,
       "tests": [
         "ProductBulkDialogTest",
@@ -258,7 +258,8 @@
       "Unified localized Apply/Cancel action row",
       "No stale preview instructions",
       "Actual modal Apply writes every selected fixture card",
-      "Existing certificate metadata and native type retained"
+      "Existing certificate metadata and native type retained",
+      "Existing documents from unselected cards in the same shop; foreign shop documents excluded"
     ],
     "tests": [
       "ProductBulkDialogTest",

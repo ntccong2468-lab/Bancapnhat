@@ -1,6 +1,6 @@
 # Nghiệm thu VNCode 1.4.16
 
-Mã ứng dụng cuối: `2d3abfd32f3fa326695174c6c3730c9aac168581`. Nâng cấp từ 1.4.15. Hồ sơ chi tiết và bảy yêu cầu nằm trong [JSON nghiệm thu](2026-10-17-vncode-1416-final-acceptance.json).
+Mã ứng dụng cuối: `a7e236efefd80945b8395e072538046b78ef4647`. Nâng cấp từ 1.4.15. Hồ sơ chi tiết và bảy yêu cầu nằm trong [JSON nghiệm thu](2026-10-17-vncode-1416-final-acceptance.json).
 
 - Lượt Linux trước khi tinh chỉnh hàng nút/hướng dẫn hộp thoại, nguồn `f413860`: 1.684 kiểm thử, 1.682 đạt, 0 thất bại, 0 lỗi, 2 ca phụ thuộc hệ điều hành được bỏ qua theo thiết kế. Hoàn tất 18:12:17 UTC ngày 17/10/2026, thời gian 5 phút 32 giây.
 - 52 kiểm thử trọng tâm đã đạt trước lượt hồi quy toàn bộ; lượt toàn bộ có thêm kiểm thử ngoài phạm vi sửa mới. Bộ đóng gói Node 60/60; Portal 60/60, mã Portal không thay đổi.
@@ -9,6 +9,6 @@ Mã ứng dụng cuối: `2d3abfd32f3fa326695174c6c3730c9aac168581`. Nâng cấp
 - Catalog thật đọc đủ 1.276 thẻ qua hai trang và 19 danh mục đang hoạt động cho nhóm TN VED mẫu. Probe Java chọn đúng bộ thể thao `30733`, quần `30683`, váy `30685`, áo khoác thể thao `30735`; fixture chỉ chứa danh mục công khai, không chứa dữ liệu thẻ của seller.
 - API Ozon đọc được 175 sản phẩm. API sản phẩm WB trả 200 trong miền đã cấu hình. Hai miền FBS/tin tức WB trả 401 khi Secret chỉ được chuyển tới miền Content API; cần sửa phạm vi miền của Secret hiện có rồi Publish môi trường. Công cụ báo xung đột yêu cầu Secret, không lưu thay đổi và không tạo Secret trùng. Xem [báo cáo đọc API](2026-10-17-vncode-1416-live-read.json).
 
-Bản cuối đang chạy lại toàn bộ 1.685 kiểm thử Linux sau khi kiểm tra trực tiếp bốn hộp thoại và thao tác Áp dụng thực tế trên fixture. Bộ cài Windows đang được kiểm chứng trong [run 39058310504](https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/39058310504), gồm toàn bộ kiểm thử Java, launcher, DPAPI, DPI, bố cục và nâng cấp giữ dữ liệu từ 1.4.15 cùng các bản nền cũ. Chưa dùng trạng thái đang chạy này làm bằng chứng bộ cài đã đạt.
+Bản cuối đang chạy lại toàn bộ 1.686 kiểm thử Linux sau khi kiểm tra trực tiếp bốn hộp thoại và thao tác Áp dụng thực tế trên fixture. Bộ cài Windows đang được kiểm chứng trong [run 39059171881](https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/39059171881), gồm toàn bộ kiểm thử Java, launcher, DPAPI, DPI, bố cục và nâng cấp giữ dữ liệu từ 1.4.15 cùng các bản nền cũ. Chưa dùng trạng thái đang chạy này làm bằng chứng bộ cài đã đạt.
 
 Không thực hiện kích hoạt license sản xuất, cấp/ký thẻ thật bằng CryptoPro của doanh nghiệp, mua KIZ hoặc gán mã vào đơn thật trong lượt nghiệm thu này. Giao thức license và khóa tin cậy không thay đổi. Các phép ghi giả lập và số liệu tổng hợp được ghi riêng với các phép đọc API thật.
