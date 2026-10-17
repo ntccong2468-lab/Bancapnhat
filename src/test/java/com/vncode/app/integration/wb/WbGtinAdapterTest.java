@@ -88,10 +88,17 @@ class WbGtinAdapterTest {
         var p=preview();transport.apply=false;transport.reject=true;var submitted=adapter.submit(p);
         assertEquals(Verification.REJECTED,adapter.verify(p,submitted));assertEquals(1,transport.writes.get());
     }
-    @Test void legacyOuterWhitespaceIsActionableBeforeAnyWriteAndIsNeverSilentlyRenamed()throws Exception {
-        transport.card.addProperty("vendorCode","Fixture ");assertTrue(adapter.capability(key).add(),"Capability discovery must not perform product reads");
-        assertEquals("Fixture",adapter.read(key).article());assertEquals("Fixture ",transport.card.get("vendorCode").getAsString());
-        assertEquals("WB_ARTICLE_EDGE_WHITESPACE",assertThrows(IllegalArgumentException.class,this::preview).getMessage());assertEquals(0,transport.writes.get());
+    @Test void confirmedGtinAdditionTrimsOnlyArticleEdgesAndRequiresReadback()throws Exception {
+        transport.card.addProperty("vendorCode","\u00a0  Fixture - model  \u202f");assertTrue(adapter.capability(key).add());
+        var p=preview();assertEquals(0,transport.writes.get());
+        var sent=adapter.submit(p);assertEquals(1,transport.writes.get());
+        assertEquals("Fixture - model",transport.sent.get(0).getAsJsonObject().get("vendorCode").getAsString());
+        assertEquals(Verification.APPLIED,adapter.verify(p,sent));
+        transport.card.addProperty("vendorCode"," Fixture - model ");assertEquals(Verification.PENDING,adapter.verify(p,sent));
+    }
+    @Test void articleTrimCannotTakeAnotherCardsArticle()throws Exception {
+        transport.card.addProperty("vendorCode"," Fixture ");transport.conflict=transport.card.deepCopy();transport.conflict.addProperty("nmID",102);transport.conflict.addProperty("vendorCode","Fixture");
+        assertEquals("WB_ARTICLE_TRIM_COLLISION",assertThrows(IllegalArgumentException.class,this::preview).getMessage());assertEquals(0,transport.writes.get());
     }
     @Test void aFreshNativeProductErrorEndsTheAcknowledgedJobWithoutReplayingIt()throws Exception {
         var repo=new GtinSyncRepository();var runner=new GtinSyncCoordinator(repo,k->adapter,Clock.systemUTC(),1,Duration.ZERO);var job=runner.confirm(List.of(preview()));transport.apply=false;

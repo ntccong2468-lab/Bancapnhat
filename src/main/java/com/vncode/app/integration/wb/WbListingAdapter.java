@@ -89,6 +89,7 @@ public final class WbListingAdapter extends AbstractListingAdapter {
     public ProductEditPreview previewUpdate(Shop s,ProductSnapshot fresh,Map<String,List<String>> changes,List<ProductDocument> docs)throws IOException{
         owner(s);ListingIdentity.require(s,fresh.key());if(!fresh.revision().startsWith("live:")||!ListingIdentity.fingerprint(s).equals(fresh.metadata().get("owner")))throw new SecurityException("Fresh own card required");
         var source=object(JsonParser.parseString(fresh.metadata().get("source.payload")));var request=new JsonObject();for(String field:List.of("nmID","vendorCode","kizMarked","brand","title","gtin","description","dimensions","documents","characteristics","sizes"))if(source.has(field))request.add(field,source.get(field).deepCopy());
+        String trimmedArticle=WbArticlePolicy.checked(source,clients.apply(s));request.addProperty("vendorCode",trimmedArticle);
         var issues=new ArrayList<CopyIssue>();var dictionary=attributes(s,fresh.categoryId());
         for(var change:changes.entrySet()){
             if(change.getKey().equals("title")){if(change.getValue().size()!=1||change.getValue().getFirst().isBlank()||change.getValue().getFirst().length()>60)issue(issues,"TITLE_LIMIT","title");else request.addProperty("title",change.getValue().getFirst());}
@@ -98,7 +99,7 @@ public final class WbListingAdapter extends AbstractListingAdapter {
         }
         if(docs!=null){var items=new JsonArray();for(var d:docs){if(!validDocument(d)||!wbType(d).matches("[1-9]")){issue(issues,"DOCUMENT_INVALID",d.number());continue;}items.add(wbDocument(d,true));}var data=new JsonObject();data.add("items",items);data.addProperty("excludeDocuments",false);request.add("documents",data);}
         if(request.has("dimensions"))obj(request,"dimensions").remove("isValid");if(request.has("documents")){var data=obj(request,"documents");data.remove("overallVerdict");for(var e:array(data,"items")){var d=object(e);d.remove("verdict");d.remove("createdAt");}}
-        var arr=new JsonArray();arr.add(request);var options=new CopyOptions(changes.keySet(),Set.of(),fresh.categoryId(),Map.of(),changes,Map.of(),null,"RUB",List.of(),null);var p=previewRecord(s,fresh,options,arr,new JsonArray(),new JsonArray(),issues,List.of(fresh.vendorArticle()),"UPDATE");return new ProductEditPreview(fresh.key(),fresh.revision(),p);
+        var arr=new JsonArray();arr.add(request);var options=new CopyOptions(changes.keySet(),Set.of(),fresh.categoryId(),Map.of(),changes,Map.of(),null,"RUB",List.of(),null);var p=previewRecord(s,fresh,options,arr,new JsonArray(),new JsonArray(),issues,List.of(trimmedArticle),"UPDATE");return new ProductEditPreview(fresh.key(),fresh.revision(),p);
     }
     public RemoteSubmission submitUpdate(Shop s,ProductEditPreview p)throws IOException{requirePreview(s,p.preview());if(!p.preview().operation().equals("UPDATE"))throw new SecurityException("Wrong edit operation");call(s,"content/v2/cards/update",JsonParser.parseString(p.preview().requestJson()),true);return submitted(p.preview(),null);}
     public List<JsonObject> find(Shop s,String article)throws IOException{

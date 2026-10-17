@@ -102,6 +102,7 @@ class WbShipmentKizPaneTest {
             boolean lastVisible=false;long until=System.nanoTime()+TimeUnit.SECONDS.toNanos(5);
             do{lastVisible=fx(()->loaded.view().lookupAll(".gtin-code").stream().filter(node->node instanceof Label).map(node->((Label)node).getText()).anyMatch("00000000002000"::equals));if(!lastVisible)Thread.sleep(20);}while(!lastVisible&&System.nanoTime()<until);
             assertTrue(lastVisible,"The final GTIN must become visible after scrolling");
+            fx(()->{loaded.controller().refreshGtinInventory();return null;});awaitTasks();
             fx(()->{
                 var view=loaded.view();view.applyCss();view.layout();
                 assertTrue(view.lookupAll(".gtin-code").stream().filter(node->node instanceof Label).map(node->((Label)node).getText()).anyMatch("00000000002000"::equals));

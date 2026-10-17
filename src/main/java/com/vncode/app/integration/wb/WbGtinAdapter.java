@@ -31,7 +31,7 @@ public final class WbGtinAdapter implements GtinMarketplaceAdapter {
         this.client=Objects.requireNonNull(client);
     }
     public Capability capability(ProductKey key){requireKey(key);return CAPABILITY;}
-    public void validateProduct(ProductKey key)throws IOException{var article=text(ownCard(key),"vendorCode");if(!article.equals(article.strip()))throw new IllegalArgumentException("WB_ARTICLE_EDGE_WHITESPACE");}
+    public void validateProduct(ProductKey key)throws IOException{WbArticlePolicy.checked(ownCard(key),client);}
     public void validateRegistration(String gtin){RegisteredGtinProof.requireCurrent(shop,gtin);}
     public ProductSnapshot read(ProductKey key)throws IOException{return snapshot(key,ownCard(key));}
     public boolean conflicts(ProductKey key,String gtin)throws IOException {
@@ -61,11 +61,12 @@ public final class WbGtinAdapter implements GtinMarketplaceAdapter {
         if(preview.operation()!=Operation.ADD||!preview.oldGtin().isBlank()||!CAPABILITY.equals(preview.capability()))throw new IllegalArgumentException("unsupported_operation");
         requireWrite(preview);
         var card=ownCard(key);var fresh=snapshot(key,card);
-        if(!text(card,"vendorCode").equals(text(card,"vendorCode").strip()))throw new IllegalArgumentException("WB_ARTICLE_EDGE_WHITESPACE");
+        String trimmedArticle=WbArticlePolicy.checked(card,client);
         if(!fresh.fingerprint().equals(preview.before().fingerprint()))throw new IllegalArgumentException("product_changed");
         if(RegisteredGtinProof.contains(fresh.barcodes(),preview.newGtin()))throw new IllegalArgumentException("already_present");
         if(conflicts(key,preview.newGtin()))throw new IllegalArgumentException("gtin_on_another_product");
         var update=payload(card);
+        update.addProperty("vendorCode",trimmedArticle);
         boolean found=false;
         for(var e:strictArray(update,"sizes")) {
             var size=object(e);
@@ -86,10 +87,10 @@ public final class WbGtinAdapter implements GtinMarketplaceAdapter {
     public Verification verify(Preview preview,Submission submission)throws IOException {
         requireKey(preview.before().key());
         var card=ownCard(preview.before().key());var actual=snapshot(preview.before().key(),card);
-        if(RegisteredGtinProof.contains(actual.barcodes(),preview.newGtin()))
+        if(RegisteredGtinProof.contains(actual.barcodes(),preview.newGtin()) && text(card,"vendorCode").equals(com.vncode.app.shared.SellerArticle.trim(preview.before().article())))
             return preview.before().barcodes().stream().allMatch(code->RegisteredGtinProof.contains(actual.barcodes(),code))?Verification.APPLIED:Verification.UNKNOWN;
         if("wb-rejected".equals(submission.remoteTaskId()))return Verification.REJECTED;
-        String rejection=recentRejection(preview,text(card,"vendorCode"));if(!rejection.isBlank())throw new GtinRejectedException(rejection);
+        String rejection=recentRejection(preview,com.vncode.app.shared.SellerArticle.trim(preview.before().article()));if(!rejection.isBlank())throw new GtinRejectedException(rejection);
         return Verification.PENDING;
     }
     private String recentRejection(Preview preview,String article)throws IOException {

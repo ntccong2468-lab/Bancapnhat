@@ -92,6 +92,7 @@ public final class ZnackAutoSyncService {
                     String error=candidates.size()>1?"GTIN_AMBIGUOUS":candidates.isEmpty()?"ZNACK_MAPPING_UNVERIFIED":"";
                     String sku=sku(shop,row.key());String gtin=candidates.size()==1?candidates.getFirst().gtin():"";
                     var evidence=new com.google.gson.JsonObject();evidence.addProperty("source",candidates.size()==1?candidates.getFirst().source():"");evidence.addProperty("published",candidates.size()==1&&candidates.getFirst().published());evidence.addProperty("title",row.title());
+                    if(shop.getMarketplace()==Marketplace.OZON&&candidates.size()==1&&index.attributes(row.vendorArticle(),row.color(),GtinVariantIdentity.primarySize(row),row.russianSize()).isEmpty()&&index.ozon(row).contains(candidates.getFirst()))evidence.addProperty("matchRule","OZON_SELLER_SKU_MODEL_SIZE");
                     buffered.add(reportItem(id,row.key().cardId(),row.key().variantId(),sku,row.vendorArticle(),row.color(),row.size(),gtin,error.isBlank()?"AWAITING_CONFIRMATION":"NEEDS_ACTION",error.isBlank()?"GTIN_CONFIRMATION_REQUIRED":error,evidence.toString()));
                 }
                 if(!buffered.isEmpty()){runs.addBatch(shop,id,buffered);buffered.clear();}
@@ -111,7 +112,7 @@ public final class ZnackAutoSyncService {
             return List.of();
         }
         var present=index.codes(product.barcodes());if(!present.isEmpty())return present.stream().filter(row->compatible(product.color(),row.color())&&GtinVariantIdentity.sizeMatches(row,GtinVariantIdentity.primarySize(product),product.russianSize())).toList();
-        return index.attributes(product.vendorArticle(),product.color(),GtinVariantIdentity.primarySize(product),product.russianSize());
+        return shop.getMarketplace()==Marketplace.OZON?index.ozon(product):index.attributes(product.vendorArticle(),product.color(),GtinVariantIdentity.primarySize(product),product.russianSize());
     }
     private void advance(Shop shop,SyncRunRepository.Item item)throws Exception {
         var key=new ProductKey(shop.getId(),shop.getMarketplace(),item.productId(),item.variantId());
@@ -119,6 +120,7 @@ public final class ZnackAutoSyncService {
         if(!item.childJob().isBlank()){
             if(!catalog.read(shop,item.childJob()).confirmed())throw new IllegalArgumentException("GTIN_CONFIRMATION_REQUIRED");
             var fresh=reader.read(shop,key);
+            requireSkuMatch(shop,item,fresh);
             if(shop.getMarketplace()==Marketplace.OZON&&(!item.sku().equals(fresh.metadata().get("sku"))||item.sku().isBlank()))throw new IllegalArgumentException("OZON_SKU_CHANGED");
             var variant=fresh.variants().stream().filter(v->v.id().equals(item.variantId())).findFirst().orElseThrow(()->new IllegalArgumentException("VARIANT_NOT_FOUND"));
             if(!compatible(variant.color(),item.color())||!compatible(GtinVariantIdentity.size(shop.getMarketplace(),variant),item.size()))throw new IllegalArgumentException("PRODUCT_CHANGED");
@@ -137,6 +139,14 @@ public final class ZnackAutoSyncService {
         throw new IllegalArgumentException("GTIN_CONFIRMATION_REQUIRED");
     }
     private static boolean compatible(String a,String b){return a==null||b==null||a.isBlank()||b.isBlank()||GtinMatchingService.normalize(a).equals(GtinMatchingService.normalize(b));}
+    static void requireSkuMatch(Shop shop,SyncRunRepository.Item item,ProductSnapshot fresh){
+        if(shop.getMarketplace()!=Marketplace.OZON)return;
+        var evidence=com.google.gson.JsonParser.parseString(item.evidence()).getAsJsonObject();
+        if(!evidence.has("matchRule")||!"OZON_SELLER_SKU_MODEL_SIZE".equals(evidence.get("matchRule").getAsString()))return;
+        var source=new GtinSyncRepository().catalogItem(shop.getId(),Marketplace.OZON,item.gtin());
+        var variant=fresh.variants().stream().filter(v->v.id().equals(item.variantId())).findFirst().orElseThrow(()->new IllegalArgumentException("VARIANT_NOT_FOUND"));
+        if(new OzonSkuGtinMatcher(List.of(source)).candidates(item.variantId(),fresh.vendorArticle(),variant.color(),variant.size(),variant.russianSize(),fresh.title(),fresh.categoryId(),fresh.brand()).size()!=1)throw new IllegalArgumentException("OZON_SKU_GTIN_MISMATCH");
+    }
     static String sku(Shop shop,ProductKey key)throws Exception{
         ListingIdentity.require(shop,key);
         if(shop.getMarketplace()!=Marketplace.OZON)return "";

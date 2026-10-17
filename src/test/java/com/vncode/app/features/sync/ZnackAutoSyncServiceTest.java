@@ -47,6 +47,19 @@ class ZnackAutoSyncServiceTest {
     @AfterEach void clear(){System.clearProperty("vncode.appdata.dir");}
     @Test void wbSourceRequiresReviewThenChainsToSingleVerifiedGtinWriteAndDurableReport()throws Exception{pipeline(Marketplace.WILDBERRIES);}
     @Test void ozonSourceRequiresReviewWithAlphanumericOfferAndExactSku()throws Exception{pipeline(Marketplace.OZON);}
+    @Test void ozonSkuProposalIsPersistedAndRechecksFreshBrandBeforeConfirmation()throws Exception{
+        init(Marketplace.OZON);
+        try(var c=Database.getConnection();var s=c.createStatement()){s.execute("UPDATE ozon_products SET offer_id='152DASH-52',article='152DASH-52',name='Костюм',color='Brown',size='52',manufacturer_size='XL',russian_size='52' WHERE shop_id=2");}
+        key=new ProductKey(shop.getId(),Marketplace.OZON,"101","152DASH-52");
+        observation=new GtinSyncModels.RegisteredGtin(observation.gtin(),"152DASHOA","Brown","52",true,true,observation.source(),Instant.now(),new CatalogProductData(Map.of("@size_type",List.of("РОССИЯ"),"brand",List.of("DASHOA"),"title",List.of("Костюм")),List.of(),List.of()));
+        snapshot=new ProductSnapshot(key,"live:fixture","Костюм","","DASHOA","152DASH-52","1",List.of(),List.of(),List.of(new ProductVariant(key.variantId(),key.variantId(),"Brown","XL","",false,"52")),null,List.of(),Instant.now(),Map.of("sku","501","owner",ListingIdentity.fingerprint(shop)));
+        com.vncode.app.testsupport.RegistrationSourceFixture.ready(shop);service.step(shop,"");
+        var reports=new SyncRunRepository();var run=reports.list(shop.getId(),0,10).getFirst();var items=reports.items(run.id(),0,10);
+        assertEquals(1,items.size());assertTrue(items.getFirst().evidence().contains("OZON_SELLER_SKU_MODEL_SIZE"));
+        var review=new ZnackGtinReviewService(s->{},service,(s,k)->snapshot);assertEquals(1,review.select(shop,run.id(),items).size());
+        snapshot=new ProductSnapshot(snapshot.key(),snapshot.revision(),snapshot.title(),snapshot.description(),"OTHER",snapshot.vendorArticle(),snapshot.categoryId(),snapshot.media(),snapshot.attributes(),snapshot.variants(),snapshot.dimensions(),snapshot.documents(),snapshot.checkedAt(),snapshot.metadata());
+        assertEquals("OZON_SKU_GTIN_MISMATCH",assertThrows(IllegalArgumentException.class,()->review.select(shop,run.id(),items)).getMessage());assertEquals(0,writes);
+    }
     private void pipeline(Marketplace market)throws Exception{
         init(market);assertFalse(service.step(shop,"").complete());assertEquals(0,writes);assertEquals(1,sourceReads);
         assertTrue(service.step(shop,"").complete());assertEquals(0,writes,"A source refresh must never approve a write");

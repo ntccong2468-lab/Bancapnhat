@@ -61,6 +61,7 @@ import java.io.ByteArrayInputStream;
 import java.time.Duration;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Locale;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -637,7 +638,13 @@ public class SupplyDetailController {
         gtinSummaries = summaries == null ? List.of() : List.copyOf(summaries);
         String query = gtinSearchField.getText() == null
                 ? "" : gtinSearchField.getText().trim().toLowerCase(Locale.ROOT);
-        gtinInventoryList.getItems().setAll(gtinSummaries.stream().filter(summary->query.isEmpty()||summary.matchesSearch(query)).toList());
+        var filtered=gtinSummaries.stream().filter(summary->query.isEmpty()||summary.matchesSearch(query)).toList();
+        var displayed=gtinInventoryList.getItems();
+        boolean sameKeys=displayed.size()==filtered.size();
+        for(int i=0;sameKeys&&i<filtered.size();i++)sameKeys=Objects.equals(displayed.get(i).gtin(),filtered.get(i).gtin());
+        // Replacing the list every refresh resets VirtualFlow's scroll position, even for identical data.
+        if(sameKeys){for(int i=0;i<filtered.size();i++)if(!displayed.get(i).equals(filtered.get(i)))displayed.set(i,filtered.get(i));}
+        else displayed.setAll(filtered);
         updateGtinEmpty();
     }
 

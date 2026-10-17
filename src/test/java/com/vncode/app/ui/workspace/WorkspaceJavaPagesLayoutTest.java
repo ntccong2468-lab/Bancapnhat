@@ -30,7 +30,7 @@ class WorkspaceJavaPagesLayoutTest {
     for(var lang:AppLanguage.values())for(var entry:pages.entrySet()){
      Parent view=fx(()->{I18nService.getInstance().setLanguage(lang);Parent pane=entry.getValue().get();pane.getStyleClass().add("app-page");var scene=new Scene(pane,940,510);scene.getStylesheets().add(com.vncode.app.MainApplication.class.getResource("/com/vncode/app/styles/theme.css").toExternalForm());stage.setScene(scene);stage.show();return pane;});
      try{for(String theme:List.of("theme-dark","theme-light"))for(int width:List.of(940,1120)){
-      fx(()->{view.getStyleClass().removeAll("theme-dark","theme-light");view.getStyleClass().add(theme);stage.setWidth(width);stage.setHeight(width==940?510:650);return null;});pulse();fx(()->{check(stage.getScene(),entry.getKey()+" "+lang+" "+width,findings,checked);return null;});
+      fx(()->{ThemeService.switchTheme(theme.substring("theme-".length()));ThemeService.applyTheme(stage.getScene());stage.setWidth(width);stage.setHeight(width==940?510:650);return null;});pulse();fx(()->{check(stage.getScene(),entry.getKey()+" "+lang+" "+width,findings,checked);return null;});
      }}finally{fx(()->{try{view.getClass().getMethod("dispose").invoke(view);}catch(NoSuchMethodException none){}return null;});com.vncode.app.testsupport.ShopReadTestCleanup.awaitSharedIdle();}
     }
     for(var lang:AppLanguage.values()){

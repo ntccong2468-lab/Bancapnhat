@@ -111,6 +111,7 @@
                         <RadioMenuItem fx:id="themeLightMenuItem" onAction="#onThemeLight" text="Light" />
                     </items>
                 </Menu>
+                <MenuItem fx:id="glassSettingsMenuItem" onAction="#onGlassSettings" text="%settings.glass.title" />
                 <MenuItem fx:id="translationMenuItem" onAction="#onTranslationSettings" text="%news.translation_settings" />
                 <MenuItem fx:id="checkVersionMenuItem" onAction="#onCheckVersion" text="Check version" />
                 <MenuItem fx:id="personalEditionMenuItem" onAction="#onPersonalEdition" text="%license.account.title" />
