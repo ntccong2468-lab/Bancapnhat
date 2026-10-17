@@ -40,6 +40,25 @@
       "failures": 0,
       "errors": 0,
       "skipped": 0
+    },
+    "missingCardIdRegression": {
+      "tests": 90,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "marketplaceFullRead": {
+      "WB": {
+        "cards": 388,
+        "variants": 1982,
+        "pages": 4
+      },
+      "Ozon": {
+        "products": 175,
+        "details": 175,
+        "attributes": 175
+      },
+      "writes": 0
     }
   },
   "comparison": {

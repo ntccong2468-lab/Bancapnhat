@@ -55,6 +55,23 @@ class ZnackNationalCatalogServiceTest {
                 .progress("fixture-token","feed","04631993764370");
         assertTrue(progress.signed());assertEquals(91L,progress.goodId());
     }
+    @Test void approvedFeedWithoutGoodIdReadsTheExactCardBeforeSigning()throws Exception{
+        for(String state:List.of("draft","published")){
+            var api=new ZnackApiClient(){
+                @Override public JsonElement nationalCatalogFeedStatus(String base,String token,String feed){return JsonParser.parseString("{\"result\":{\"status\":\"Moderated\",\"item\":[{\"gtin\":\"04631993764370\"}]}}");}
+                @Override public JsonElement productCards(String base,String token,String gtin){return JsonParser.parseString("{\"result\":[{\"good_id\":91,\"good_status\":\""+state+"\",\"identified_by\":[{\"type\":\"gtin\",\"value\":\"04631993764370\"}]}]}");}
+            };
+            var progress=service(api).progress("fixture","feed","04631993764370");assertEquals(91L,progress.goodId());
+            assertEquals(state.equals("published"),progress.signed());assertEquals(state.equals("draft"),progress.readyToSign());
+        }
+    }
+    @Test void missingApprovedCardIdCannotBeBorrowedFromAnotherGtin(){
+        var api=new ZnackApiClient(){
+            @Override public JsonElement nationalCatalogFeedStatus(String base,String token,String feed){return JsonParser.parseString("{\"result\":{\"status\":\"Moderated\",\"item\":[{\"gtin\":\"04631993764370\"}]}}");}
+            @Override public JsonElement productCards(String base,String token,String gtin){return JsonParser.parseString("{\"result\":[{\"gtin\":\"04631993764363\",\"good_id\":91,\"good_status\":\"published\"}]}");}
+        };
+        assertThrows(IllegalStateException.class,()->service(api).progress("fixture","feed","04631993764370"));
+    }
     @Test void completedFeedWithoutACardDoesNotWaitForeverOrCountAsRegistrationSuccess()throws Exception {
         for(String status:List.of("Processed","Done","Completed")){
             var api=new ZnackApiClient(){

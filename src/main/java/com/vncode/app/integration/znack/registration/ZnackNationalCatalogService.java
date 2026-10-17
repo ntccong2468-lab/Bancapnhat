@@ -204,6 +204,15 @@ public final class ZnackNationalCatalogService {
             }
         }
         boolean publicationVerified=false;
+        if("Moderated".equalsIgnoreCase(status)&&errors.isEmpty()&&(goodId==null||goodId<=0)){
+            // Catalog may omit good_id from the feed while the exact approved card exists.
+            // Resolve its identity from the GTIN readback before asking for a signing document.
+            var card=readCard(token,gtin,null);
+            if(card!=null){
+                goodId=number(card,"good_id");if(goodId==0)goodId=number(card,"goodId");
+                if(isPublished(card)){status="Signed";publicationVerified=true;}
+            }
+        }
         if(Set.of("processed","done","completed").contains(status.toLowerCase(Locale.ROOT))&&errors.isEmpty()){
             if(array(result.get("item")).size()>0&&exactIdentities!=1)throw new IllegalStateException("CATALOG_FEED_IDENTITY_NOT_CONFIRMED");
             var card=readCard(token,gtin,goodId);
