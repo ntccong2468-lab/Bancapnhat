@@ -1245,6 +1245,7 @@ public class HomeController implements Initializable {
     }
 
     private void loadShops() {
+        if (disposed) return;
         Task<List<Shop>> task = new Task<>() {
             @Override
             protected List<Shop> call() throws Exception {
@@ -1252,6 +1253,7 @@ public class HomeController implements Initializable {
             }
         };
         task.setOnSucceeded(e -> {
+            if (disposed) return;
             state.setShops(task.getValue());
             FinanceSyncScheduler.getInstance().updateShops(task.getValue(),false);
             if(syncRuntime!=null)syncRuntime.updateShops(task.getValue());
@@ -1278,7 +1280,7 @@ public class HomeController implements Initializable {
                 resumeAllPersistedZnackPipelines();
             }
         });
-        java.util.function.Consumer<Throwable> taskFailure = rejection -> AlertService.showError(rejection.getMessage());
+        java.util.function.Consumer<Throwable> taskFailure = rejection -> { if (!disposed) AlertService.showError(rejection.getMessage()); };
         task.setOnFailed(e -> taskFailure.accept(task.getException()));
         AppTaskExecutor.execute(task, taskFailure);
     }

@@ -162,7 +162,7 @@ class FxmlSmokeTest {
         });Platform.runLater(task);task.get(15,TimeUnit.SECONDS);
     }
     @Test void staleProductSnapshotCannotUpdateCurrentShop() throws Exception {
-        var entered=new CountDownLatch(1);var release=new CountDownLatch(1);var bReady=new CountDownLatch(1);
+        var entered=new CountDownLatch(1);var release=new CountDownLatch(1);var bReady=new CountDownLatch(1);var bVisible=new CountDownLatch(1);
         var reads=new com.vncode.app.shared.ShopReadCoordinator(2,8);var holder=new java.util.concurrent.atomic.AtomicReference<com.vncode.app.ui.products.ProductsPane>();
         var setup=new java.util.concurrent.FutureTask<Void>(()->{
             var pane=new com.vncode.app.ui.products.ProductsPane(query->{
@@ -170,13 +170,18 @@ class FxmlSmokeTest {
                 if(query.shopId()==2)bReady.countDown();
                 var row=new com.vncode.app.features.products.ProductRow(new com.vncode.app.features.products.ProductKey(query.shopId(),query.marketplace(),"1",""),"Shop "+query.shopId(),"","","","","","",java.util.List.of(),"","","","",com.vncode.app.features.products.DocumentState.MISSING);
                 return new com.vncode.app.features.products.ProductPage(java.util.List.of(row),1,"");
-            },reads);holder.set(pane);pane.setShop(new Shop(1,"A","fixture"));return null;
+            },reads);holder.set(pane);
+            var field=pane.getClass().getDeclaredField("rows");field.setAccessible(true);
+            var list=(javafx.scene.control.ListView<com.vncode.app.features.products.ProductRow>)field.get(pane);
+            list.getItems().addListener((javafx.collections.ListChangeListener<com.vncode.app.features.products.ProductRow>)change->{if(list.getItems().stream().anyMatch(row->row.key().shopId()==2))bVisible.countDown();});
+            pane.setShop(new Shop(1,"A","fixture"));return null;
         });
         try{
             Platform.runLater(setup);setup.get(10,TimeUnit.SECONDS);assertTrue(entered.await(5,TimeUnit.SECONDS));
             var change=new java.util.concurrent.FutureTask<Void>(()->{holder.get().setShop(new Shop(2,"B","fixture"));return null;});Platform.runLater(change);change.get(5,TimeUnit.SECONDS);
             assertTrue(bReady.await(5,TimeUnit.SECONDS));release.countDown();
             for(int i=0;i<100&&(reads.activeCount()>0||reads.pendingCount()>0);i++)Thread.sleep(20);
+            assertTrue(bVisible.await(5,TimeUnit.SECONDS),"Wait for the current shop's FX result, not just an idle read worker");
             var check=new java.util.concurrent.FutureTask<Void>(()->{
                 var field=holder.get().getClass().getDeclaredField("rows");field.setAccessible(true);var list=(javafx.scene.control.ListView<com.vncode.app.features.products.ProductRow>)field.get(holder.get());
                 assertEquals(2,list.getItems().getFirst().key().shopId());assertEquals("Shop 2",list.getItems().getFirst().title());return null;
@@ -633,6 +638,20 @@ class FxmlSmokeTest {
         assertLoads(HomeController.class,"home-view.fxml");
         assertEquals(before,((java.util.List<?>)listeners.get(I18nService.getInstance())).size(),
                 "A smoke-loaded Home must not receive later fixture language changes or launch database tasks after cleanup");
+    }
+
+    @Test void disposedHomeDoesNotApplyItsInitialShopLoad() throws Exception {
+        var holder=new java.util.concurrent.atomic.AtomicReference<HomeController>();
+        var setup=new java.util.concurrent.FutureTask<Void>(()->{
+            var loader=FxmlViewLoader.loader(HomeController.class,"home-view.fxml");FxmlViewLoader.load(loader);
+            var home=(HomeController)loader.getController();holder.set(home);home.dispose();return null;
+        });Platform.runLater(setup);setup.get(10,TimeUnit.SECONDS);awaitBackgroundTasksBeforeFixtureCleanup();
+        var check=new java.util.concurrent.FutureTask<Void>(()->{
+            var field=HomeController.class.getDeclaredField("state");field.setAccessible(true);var state=field.get(holder.get());
+            var shops=state.getClass().getDeclaredMethod("getShops");shops.setAccessible(true);
+            assertTrue(((java.util.List<?>)shops.invoke(state)).isEmpty(),"A disposed workspace must ignore a late shop result and must not restart schedulers or token dialogs");
+            return null;
+        });Platform.runLater(check);check.get(5,TimeUnit.SECONDS);
     }
 
     @Test
