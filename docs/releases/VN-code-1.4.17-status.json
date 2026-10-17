@@ -105,8 +105,8 @@
       "networkMutations": 0
     },
     "windowsBuild": {
-      "runId": 39074687332,
-      "sourceCommit": "e64d6b862afc47221debc537c9874e67dd64e137",
+      "runId": 39075980471,
+      "sourceCommit": "c09bc0d52eeae70f95dd8d9da065c4d309849c6d",
       "state": "in_progress"
     },
     "emptyKizRefill": {
@@ -150,7 +150,23 @@
       ],
       "data": "synthetic",
       "path": "docs/research/2026-10-17-wbcode-1170-latest/ui-proof"
-    }
+    },
+    "missingProductDocuments": {
+      "sourceCommit": "c09bc0d52eeae70f95dd8d9da065c4d309849c6d",
+      "focusedTests": 102,
+      "failures": 0,
+      "errors": 0,
+      "directPickerFromMissingRow": true,
+      "requiresReadbackBeforeContinuation": true,
+      "acceptsNativeTypeCodes": true,
+      "liveSellerMutations": false
+    },
+    "supersededWindowsBuilds": [
+      {
+        "runId": 39074687332,
+        "state": "cancelled-before-packaging-to-include-missing-document-ui"
+      }
+    ]
   },
   "comparison": {
     "from": "Wbcode 1.1.70",
@@ -169,7 +185,7 @@
   "remainingComparisonDifferences": [
     "GS1 signature/PDF workflow uses a seller-imported company form rather than an unverified bundled form"
   ],
-  "sourceCommit": "6396af05ee753b62276c473b4ca76be1cd640727",
+  "sourceCommit": "c09bc0d52eeae70f95dd8d9da065c4d309849c6d",
   "decisions": {
     "support": "Keep existing Support/Guides as explicitly requested; no new conversation/image backend",
     "kizRefill": "Allow new KIZ batches when empty, including the same filename; do not restore previously used codes"
