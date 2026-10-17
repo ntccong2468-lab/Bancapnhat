@@ -79,7 +79,7 @@ public final class ZnackWbAttributeMapper {
     }
 
     /** Return the literal type from the catalog schema, never the attr_field_type. */
-    static String resolveValueType(Attribute attribute, String value, String wbSize) {
+    public static String resolveValueType(Attribute attribute, String value, String wbSize) {
         List<String> types = attribute.valueTypes();
         if (types.isEmpty()) return "";
         if (attribute.id() == MODEL) {

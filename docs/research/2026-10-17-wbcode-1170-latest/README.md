@@ -2,7 +2,7 @@
 
 Đã đọc 18 bản phát hành chính thức, đối chiếu 159 đầu mục. Nguồn nguyên văn và SHA-256 ở `release-notes.json`; từng đầu mục có mã nguồn, kiểm thử, cách áp dụng và phần khác biệt ở `comparison.json`. Những kết quả live test riêng của Wbcode không được dùng làm bằng chứng cho VNCode.
 
-Repo mã nguồn nội bộ mới `rupphi/source-wcode` trả HTTP 404 với quyền hiện tại. Mã công khai `rupphi/test-wcode` ở commit `8f7c3d1ac8598158029b8d037e2d3c128e240727` là nguồn cũ, không phải toàn bộ mã 1.3.9. Đối chiếu này không tuyên bố sao chép được mã nội bộ mới nhất.
+Repo mã nguồn nội bộ mới `rupphi/source-wcode` trả HTTP 404 với quyền hiện tại. Mã công khai `rupphi/test-wcode` ở commit `8f7c3d1ac8598158029b8d037e2d3c128e240727` là nguồn cũ, không phải toàn bộ mã 1.3.9. Đối chiếu này không tuyên bố truy cập được repo nội bộ mới nhất. Đã tải bộ cài chính thức Wbcode 1.3.9, xác minh SHA-256 với checksum của bản phát hành, giải nén và đọc các phương thức Java đóng gói liên quan (không chạy ứng dụng của hãng); bằng chứng ở `wbcode-139-packaged-reference.json`. Đã đối chiếu thêm cờ bộ/комплект, ngoại lệ TN VED 6112120000 và xử lý cờ khi Catalog từ chối chắc chắn.
 
 ## Sửa trong lượt này
 
@@ -30,3 +30,5 @@ Theo xác nhận mới của người dùng, giữ Hỗ trợ/Hướng dẫn hi�
 Giữ yêu cầu riêng đã duyệt: thương hiệu VNCode, license do admin cấp, kho KIZ seller theo danh mục không buộc GTIN/Znack, Liquid Glass và luồng FBS ưu tiên liên tục.
 
 Bộ đọc sản xuất của VNCode xử lý đủ 1.276 thẻ từ snapshot API thật, 1.237 published, không lỗi. Ozon FBS đọc trực tiếp API v4 đủ 883 đơn trong 30 ngày và 255 đơn chưa hoàn tất; bộ đọc sản xuất không bỏ sót dòng hàng. File KIZ riêng của seller nhận đủ 600 mã; tiêu thụ cục bộ một mã còn 599 và nhập lại vẫn 599. Các probe dùng dữ liệu tách riêng, không chứa mã KIZ/khóa thật trong repo, không gọi ghi sàn/Catalog; license của probe là fixture, không phải nghiệm thu license production.
+
+Bổ sung theo ảnh và yêu cầu mới: thẻ tin Liquid Glass dùng góc 18 px riêng, không kế thừa góc 999 của nút; bảng thiếu thuộc tính cho phép chọn/nhập tại dòng và Áp dụng ở chân bảng. Bổ sung trường sàn dùng một patch mỗi bài, đọc lại trước đăng ký; các trường Catalog còn thiếu chỉ bổ sung vào yêu cầu đúng SKU trước cấp GTIN. Ozon giữ nguyên lô đã chọn và cho bổ sung dòng thiếu dữ liệu trong bảng duyệt lô. Kiểm thử tập trung mới 85/85 qua; số hồi quy đầy đủ ở trên là nguồn trước đợt bổ sung này cho tới khi chạy lại.

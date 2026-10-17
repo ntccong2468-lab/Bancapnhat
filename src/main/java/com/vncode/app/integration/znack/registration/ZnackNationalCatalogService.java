@@ -314,6 +314,7 @@ public final class ZnackNationalCatalogService {
 
     /* Payload construction lives in the versioned default template shared by WB and Ozon. */
     static JsonObject fillTemplate(JsonObject payload,String gtin,Draft draft,String imageUrl) {
+        if(draft.isKit())payload.addProperty("is_kit",true);
         if (imageUrl != null && !imageUrl.isBlank()) {
             JsonObject image = new JsonObject();
             image.addProperty("photo_type", "default");
@@ -331,7 +332,8 @@ public final class ZnackNationalCatalogService {
             JsonObject attribute = new JsonObject();
             attribute.addProperty("attr_id", entry.getKey());
             attribute.addProperty("attr_value", RegistrationTemplate.clean(entry.getValue()));
-            attribute.addProperty("attr_value_type", RegistrationTemplate.clean(draft.attributeTypes().getOrDefault(entry.getKey(), "")));
+            String type=RegistrationTemplate.clean(draft.attributeTypes().getOrDefault(entry.getKey(), ""));
+            attribute.addProperty("attr_value_type",Set.of("---","...").contains(type)?"":type);
             attributes.add(attribute);
         });
         payload.add("good_attrs", attributes);

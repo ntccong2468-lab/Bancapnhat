@@ -251,6 +251,11 @@ class ZnackCardRegistrationWorkflowTest {
         assertEquals("feed-new",current().feedId());
         assertEquals("04631993764370",current().gtin());
     }
+    @Test void catalogKitCorrectionUsesTheSameGtinAndIsCheckpointedBeforeItsSingleRetry(){
+        api.firstRejection="Карточка должна быть создана с типом Комплект";
+        assertTrue(workflow.start(shop,current(),draft,null));assertEquals(Status.PUBLISHED,current().status());assertEquals(1,api.allocations.get());assertEquals(2,api.submissions.get());
+        assertTrue(JsonParser.parseString(repository.payload(1,11)).getAsJsonObject().get("is_kit").getAsBoolean());assertTrue(api.lastPayload.get("is_kit").getAsBoolean());
+    }
     @Test void observerFailuresDoNotTurnSuccessfulRemoteWorkIntoAnError() {
         assertTrue(workflow.start(shop,current(),draft,(status,detail)->{throw new IllegalStateException("fixture observer");}));
         assertEquals(Status.PUBLISHED,current().status());
@@ -459,6 +464,7 @@ class ZnackCardRegistrationWorkflowTest {
         Map<String,String> bulkGtins=new HashMap<>();
         Map<String,Long> bulkGoodIds=new HashMap<>();
         String existingFeedStatus="Rejected";
+        String firstRejection;JsonObject lastPayload;
         @Override public JsonElement generatedGtins(String base,String token) {
             return json(existingDraft?"{\"result\":{\"drafts\":[{\"gtin\":\"04631993764363\"}]}}":"{\"result\":{\"drafts\":[]}}");
         }
@@ -477,13 +483,14 @@ class ZnackCardRegistrationWorkflowTest {
         @Override public JsonElement submitNationalCatalogFeed(String base,String token,JsonElement payload) throws IOException {
             assertEquals(Status.FEED_SUBMITTING,current().status(),"Checkpoint must precede feed submission");
             if(rejectExistingFeed)assertTrue(readRejected,"The old feed must be confirmed rejected before resubmitting");
-            submissions.incrementAndGet();
+            lastPayload=payload.getAsJsonObject().deepCopy();submissions.incrementAndGet();
             if(feedTimeout)throw new IOException("fixture feed result lost");
             return json("{\"result\":{\"feed_id\":\"feed-new\"}}");
         }
         @Override public JsonElement nationalCatalogFeedStatus(String base,String token,String feed)throws IOException {
             if(statusReadFailure==-1)throw new java.net.SocketTimeoutException("fixture readback timeout");
             if(statusReadFailure>0)throw new ZnackApiClient.ZnackApiException("fixture",statusReadFailure,"fixture status read unavailable");
+            if(firstRejection!=null&&submissions.get()==1)return json("{\"result\":{\"status\":\"Rejected\",\"item\":[{\"gtin\":\"04631993764370\",\"status_code\":400,\"message\":\""+firstRejection+"\"}]}}");
             if(completedWithoutCard&&submissions.get()==1)return json("{\"result\":{\"status\":\"Done\",\"item\":[{\"gtin\":\"04631993764370\"}]}}");
             if(bulkGtins.containsKey(feed))return json("{\"result\":{\"status\":\"Signed\",\"item\":[{\"gtin\":\""+bulkGtins.get(feed)+"\",\"good_id\":"+bulkGoodIds.get(feed)+"}]}}");
             if(rejectExistingFeed && feed.equals("feed-existing")) {

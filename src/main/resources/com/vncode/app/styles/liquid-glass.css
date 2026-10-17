@@ -95,6 +95,13 @@
 .liquid-glass .button:focused, .liquid-glass .text-input:focused, .liquid-glass .combo-box:focused {
     -fx-border-color: -accent;
 }
+/* News cards are content panels, not capsule-shaped action buttons. */
+.liquid-glass .button.news-card {
+    -fx-background-radius: 18;
+    -fx-border-radius: 18;
+    -fx-padding: 16;
+    -fx-alignment: TOP_LEFT;
+}
 .liquid-glass .text-input, .liquid-glass .combo-box, .liquid-glass .choice-box,
 .liquid-glass .date-picker, .liquid-glass .spinner {
     -fx-background-color: -glass-elevated;

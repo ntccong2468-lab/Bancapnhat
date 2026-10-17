@@ -143,7 +143,7 @@ public final class ZnackCardRegistrationModels {
     }
 
     public record Draft(String tnved, String feedTnved, long categoryId, String goodName, String brand,
-                        Map<Long, String> attributes, Map<Long, String> attributeTypes,boolean autoSign) {
+                        Map<Long, String> attributes, Map<Long, String> attributeTypes,boolean autoSign,boolean isKit) {
         public Draft {
             feedTnved = feedTnved == null || feedTnved.isBlank() ? tnved : feedTnved;
             attributes = attributes == null ? Map.of() : Map.copyOf(attributes);
@@ -153,7 +153,18 @@ public final class ZnackCardRegistrationModels {
         public Draft(String tnved,String feedTnved,long categoryId,String goodName,String brand,Map<Long,String> attributes,Map<Long,String> types) {
             this(tnved,feedTnved,categoryId,goodName,brand,attributes,types,false);
         }
-        public Draft withAutoSign(boolean enabled){return new Draft(tnved,feedTnved,categoryId,goodName,brand,attributes,attributeTypes,enabled);}
+        public Draft(String tnved,String feedTnved,long categoryId,String goodName,String brand,Map<Long,String> attributes,Map<Long,String> types,boolean autoSign){
+            this(tnved,feedTnved,categoryId,goodName,brand,attributes,types,autoSign,false);
+        }
+        public Draft withAutoSign(boolean enabled){return new Draft(tnved,feedTnved,categoryId,goodName,brand,attributes,attributeTypes,enabled,isKit);}
+        public Draft withKit(boolean enabled){return new Draft(tnved,feedTnved,categoryId,goodName,brand,attributes,attributeTypes,autoSign,enabled);}
+        public Draft withProductCategory(String category){
+            String leaf=java.util.Arrays.stream((category==null?"":category).split("[>/→]")).reduce((a,b)->b).orElse("").strip().toLowerCase(java.util.Locale.ROOT);
+            boolean sport=java.util.Set.of("костюмы спортивные","спортивный костюм","спортивные костюмы").contains(leaf);
+            boolean kit=!(sport&&"6112120000".equals(tnved==null?"":tnved.replaceAll("\\D","")))
+                    &&(isKit||sport||java.util.Set.of("костюмы","костюм").contains(leaf));
+            return new Draft(tnved,feedTnved,categoryId,goodName,brand,attributes,attributeTypes,autoSign,kit);
+        }
         public Draft(String tnved, String feedTnved, long categoryId, String goodName, String brand,
                      Map<Long, String> attributes) {
             this(tnved, feedTnved, categoryId, goodName, brand, attributes, Map.of());

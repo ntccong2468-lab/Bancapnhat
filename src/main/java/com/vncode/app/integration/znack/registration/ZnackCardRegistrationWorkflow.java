@@ -302,7 +302,8 @@ public final class ZnackCardRegistrationWorkflow {
         });
         String feedTnved = payload.get("tnved").getAsString();
         return new Draft(attributes.getOrDefault(13933L, feedTnved), feedTnved, categoryId,
-                payload.get("good_name").getAsString(), payload.get("brand").getAsString(), attributes, types);
+                payload.get("good_name").getAsString(), payload.get("brand").getAsString(), attributes, types,false,
+                payload.has("is_kit")&&payload.get("is_kit").getAsBoolean());
     }
 
     public static CatalogSession productionCatalog(Shop shop) throws Exception {
@@ -341,6 +342,7 @@ public final class ZnackCardRegistrationWorkflow {
         boolean rebuildPayload = gtin == null || gtin.isBlank() || (sku.status() == Status.ERROR&&!CatalogFeedback.interrupted(sku.errorMessage()))
                 || sku.status() == Status.GTIN_GENERATED || feedId == null || feedId.isBlank() || stored.isBlank();
         if (rebuildPayload) {
+            draft=draft.withProductCategory(sku.subjectName());
             draft = withSchemaTypes(draft, catalog.requiredAttributes(draft.categoryId(), token), sku.wbSize());
         }
         String imageUrl = retryImageUrl(sku.imageUrl(), sku.errorMessage());
@@ -393,18 +395,21 @@ public final class ZnackCardRegistrationWorkflow {
         boolean published = sku.status() == Status.PUBLISHED;
         boolean retriedWithoutImage = false;
         boolean retriedRejectedFeed = false;
+        boolean retriedPacking = false;
         for (int attempt = 0; !published && attempt < POLL_ATTEMPTS; attempt++) {
             guard(shop,sku);
             ZnackNationalCatalogService.FeedProgress progress = catalog.progress(token, feedId, gtin);
             if(goodId!=null&&progress.goodId()!=null&&!goodId.equals(progress.goodId()))throw new IllegalStateException("CATALOG_IDENTITY_CHANGED");
             if (progress.goodId() != null) goodId = progress.goodId();
             if (progress.failed()) {
-                boolean rejected="Rejected".equalsIgnoreCase(progress.status());
+                boolean rejected=CatalogFeedback.confirmedRejection(progress);
                 boolean removeImage=rejected && !retriedWithoutImage && payload.has("good_images") && onlyImageErrors(progress.errors());
                 boolean repairRejected=rejected && sku.status()==Status.ERROR && !retriedRejectedFeed;
-                if (removeImage || repairRejected) {
+                Boolean packing=retriedPacking?null:CatalogPackingPolicy.correction(progress,payload.has("is_kit")&&payload.get("is_kit").getAsBoolean());
+                if (removeImage || repairRejected || packing!=null) {
                     LicenseRuntime.require(Permission.GTIN);
                     if(removeImage){retriedWithoutImage=true;payload.remove("good_images");}
+                    if(packing!=null){retriedPacking=true;draft=draft.withKit(packing);if(packing)payload.addProperty("is_kit",true);else payload.remove("is_kit");}
                     retriedRejectedFeed=true;
                     registrations.saveGenerated(shop.getId(), sku, gtin, draft.tnved(), draft.categoryId(),
                             draft.goodName(), payload.toString());
@@ -540,7 +545,7 @@ public final class ZnackCardRegistrationWorkflow {
             types.put(attribute.id(), type);
         }
         return new Draft(draft.tnved(), draft.feedTnved(), draft.categoryId(), draft.goodName(),
-                draft.brand(), draft.attributes(), types,draft.autoSign());
+                draft.brand(), draft.attributes(), types,draft.autoSign(),draft.isKit());
     }
 
     // Photos are optional in /v3/feed. A WB CDN URL rejected by the catalog must not

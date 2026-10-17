@@ -47,7 +47,7 @@ final class OzonRegistrationReviewDialog {
         Label error=new Label();error.setWrapText(true);grid.add(error,0,row,3,1);
         for(var child:grid.getChildren()){if(child instanceof Label label){label.setWrapText(true);label.setMinWidth(0);}if(child instanceof Control control)control.setMaxWidth(Double.MAX_VALUE);}
         var scroll=new ScrollPane(grid);scroll.setFitToWidth(true);scroll.setMinWidth(0);scroll.setPrefViewportHeight(420);dialog.getDialogPane().setContent(scroll);dialog.getDialogPane().setPrefSize(760,570);DialogLayout.install(dialog.getDialogPane());AlertService.applyTheme(dialog);
-        ButtonType save=new ButtonType(tr("znack.registration.register_selected"),ButtonBar.ButtonData.OK_DONE);dialog.getDialogPane().getButtonTypes().setAll(save,ButtonType.CANCEL);
+        ButtonType save=new ButtonType(tr("common.apply"),ButtonBar.ButtonData.OK_DONE);dialog.getDialogPane().getButtonTypes().setAll(save,ButtonType.CANCEL);
         dialog.getDialogPane().lookupButton(save).addEventFilter(javafx.event.ActionEvent.ACTION,event->{
             boolean invalid=name.getText().isBlank()||brand.getText().isBlank()||permit.getValue()==null;
             for(var input:inputs) {
@@ -65,7 +65,7 @@ final class OzonRegistrationReviewDialog {
             }
             GoodsDocument document=permit.getValue();long id=document.type().toUpperCase(Locale.ROOT).contains("CERTIFICATE")?ZnackNationalCatalogService.CERTIFICATE_ATTRIBUTE_ID:ZnackNationalCatalogService.DECLARATION_ATTRIBUTE_ID;
             values.put(id,document.number()+":::"+document.date());
-            return new Draft(prepared.tnved(),prepared.preflight().categoryTnved(),prepared.categoryId(),name.getText().strip(),brand.getText().strip(),values,types);
+            return new Draft(prepared.tnved(),prepared.preflight().categoryTnved(),prepared.categoryId(),name.getText().strip(),brand.getText().strip(),values,types).withProductCategory(prepared.snapshot().metadata().get("source.category.name"));
         });
         return dialog.showAndWait().orElse(null);
     }

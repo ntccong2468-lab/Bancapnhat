@@ -141,13 +141,23 @@ public final class OzonRegistrationPane extends VBox {
     private List<ProductKey> selected(){return frozen.isEmpty()?table.getSelectionModel().getSelectedItems().stream().map(ProductRow::key).toList():frozen;}
     private boolean groupReplacement(ProductRow product){var row=states.get(product.key());return row!=null&&com.vncode.app.integration.znack.registration.TnvedGroupChange.replaceable(row.status())&&!row.feedId().isBlank()&&com.vncode.app.integration.znack.registration.TnvedGroupChange.changed(com.vncode.app.integration.znack.registration.TnvedGroupChange.payloadCode(row.payload()),product.tnved());}
     private boolean groupReplacement(ProductKey key){return table.getItems().stream().filter(p->p.key().equals(key)).anyMatch(this::groupReplacement);}
-    private void registerSelection(){var selected=selected();if(selected.isEmpty()||busy||!ready())return;if(selected.size()>1){registerBatch(false);return;}
+    private void registerSelection(){var frozen=List.copyOf(selected());if(frozen.isEmpty()||busy||!ready())return;
+        background(()->RegistrationBatchPreflight.read(owner,frozen),review->{
+            batchReviewing=true;buttons();boolean applied;
+            try{applied=RegistrationBatchPreflight.show(getScene()==null?null:getScene().getWindow(),owner,review);}finally{batchReviewing=false;buttons();}
+            if(applied&&!disposed)registerPreparedSelection(frozen);
+        });
+    }
+    private void registerPreparedSelection(List<ProductKey> selected){if(selected.isEmpty()||busy||!ready())return;if(selected.size()>1){registerBatch(false,selected);return;}
         var key=selected.getFirst();var row=states.get(key);
         if(row!=null&&!groupReplacement(key)&&!safe(row.feedId()).isBlank()&&!Set.of(Status.PUBLISHED,Status.FEED_REVIEW_REQUIRED,Status.GTIN_REVIEW_REQUIRED,Status.FEED_SUBMITTING).contains(row.status()))resume(key);
         else prepare(key,false);
     }
     private void registerBatch(boolean newCard) {
-        var keys=List.copyOf(selected());if(keys.isEmpty()||busy||!ready()||keys.size()>1000){status.setText(tr("znack.registration.batch_limit"));return;}
+        registerBatch(newCard,List.copyOf(selected()));
+    }
+    private void registerBatch(boolean newCard,List<ProductKey> selection) {
+        var keys=List.copyOf(selection);if(keys.isEmpty()||busy||!ready()||keys.size()>1000){status.setText(tr("znack.registration.batch_limit"));return;}
         cancelBatch.set(false);batchReviewing=true;buttons();
         background(()->{var allowed=allowedKeys(keys,newCard,false);var review=allowed.isEmpty()?new OzonCardRegistrationWorkflow.BatchReview(List.of(),newCard):workflow.prepareBatch(owner,allowed,newCard,n->{long now=System.nanoTime();if(n==keys.size()||now-lastBatchProgress>=java.util.concurrent.TimeUnit.MILLISECONDS.toNanos(250)){lastBatchProgress=now;Platform.runLater(()->{if(!disposed&&batchReviewing)status.setText(java.text.MessageFormat.format(tr("znack.registration.batch_progress"),n,keys.size()));});}});
             var items=new ArrayList<>(review.items());for(var key:keys)if(!allowed.contains(key))items.add(new OzonCardRegistrationWorkflow.BatchItem(key,null,null,"znack.registration.batch_not_eligible"));

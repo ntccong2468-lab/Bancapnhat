@@ -7,6 +7,15 @@ import java.util.Map;
 import static org.junit.jupiter.api.Assertions.*;
 
 class RegistrationTemplateTest {
+    @Test void setsMatchTheCurrentWbcodePackagingRuleAndSurviveStoredPayloadRecovery(){
+        var draft=new Draft("6112110000","6112",321,"Synthetic suit","Fixture",Map.of(35L,"52"),Map.of(35L,"---")).withProductCategory("Костюмы спортивные").withAutoSign(true);
+        var payload=ZnackNationalCatalogService.buildPayload("00000000000017",draft,"");assertTrue(payload.get("is_kit").getAsBoolean());
+        assertEquals("",payload.getAsJsonArray("good_attrs").get(0).getAsJsonObject().get("attr_value_type").getAsString());
+        assertTrue(ZnackCardRegistrationWorkflow.draftFromPayload(payload).isKit());assertTrue(draft.withAutoSign(false).isKit());
+        var exception=new Draft("6112120000","6112",321,"Synthetic suit","Fixture",Map.of(),Map.of()).withProductCategory("Костюмы спортивные");
+        assertFalse(exception.isKit());assertFalse(ZnackNationalCatalogService.buildPayload("00000000000017",exception,"").has("is_kit"));
+        assertFalse(new Draft("6109100000",321,"T-shirt","Fixture",Map.of()).withProductCategory("Футболки").isKit());
+    }
     @Test void sharedDefaultUsesEachSelectedProductsValuesAndSchemaWithoutCopyingTheExample(){
         var template=RegistrationTemplate.defaults();assertFalse(template.prompt().isBlank());
         var draft=new Draft("6112110000","6112",321,"\u00a0 Bộ nâu 52 \u200b","  DASHOA\u00a0",

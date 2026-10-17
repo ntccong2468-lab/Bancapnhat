@@ -99,14 +99,18 @@ public final class OzonCardRegistrationRepository {
     }
     /** Explicit retry only, after the server proves that the old feed was rejected. */
     public boolean retryRejected(Shop shop,ProductKey key,Row expected,ZnackRegistrationScope scope){
+        return retryRejected(shop,key,expected,scope,null);
+    }
+    public boolean retryRejected(Shop shop,ProductKey key,Row expected,ZnackRegistrationScope scope,Boolean isKit){
         requireShop(shop,key);
         return transaction(c->{
             requireCurrentOwner(c,shop,key,scope);var current=row(c,key);
             if(current==null||expected==null||current.status()!=Status.ERROR||!current.gtin().equals(expected.gtin())||!current.feedId().equals(expected.feedId())
                     ||!current.payload().equals(expected.payload())||Set.of("SENDING","RECONCILE_REQUIRED").contains(current.signatureState()))return false;
             requireOwner(current,ListingIdentity.fingerprint(shop),scope);archive(c,current);
-            try(var p=c.prepareStatement("UPDATE ozon_card_registrations SET feed_id='',good_id=NULL,status='READY_TO_SUBMIT',error='',signature_xml=NULL,signature_sha256='',signature_state='',updated_at=? WHERE shop_id=? AND product_id=? AND offer_id=?")){
-                p.setString(1,Instant.now().toString());bindKey(p,2,key);return p.executeUpdate()==1;
+            String payload=current.payload();if(isKit!=null){var json=com.google.gson.JsonParser.parseString(payload).getAsJsonObject();if(isKit)json.addProperty("is_kit",true);else json.remove("is_kit");payload=json.toString();}
+            try(var p=c.prepareStatement("UPDATE ozon_card_registrations SET feed_id='',good_id=NULL,status='READY_TO_SUBMIT',error='',signature_xml=NULL,signature_sha256='',signature_state='',payload_json=?,updated_at=? WHERE shop_id=? AND product_id=? AND offer_id=?")){
+                p.setString(1,payload);p.setString(2,Instant.now().toString());bindKey(p,3,key);return p.executeUpdate()==1;
             }
         });
     }

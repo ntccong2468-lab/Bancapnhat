@@ -116,7 +116,7 @@ public final class OzonCardRegistrationWorkflow {
         }
         var document=p.documents().candidates().getFirst();long id=document.type().toUpperCase(java.util.Locale.ROOT).contains("CERTIFICATE")?ZnackNationalCatalogService.CERTIFICATE_ATTRIBUTE_ID:ZnackNationalCatalogService.DECLARATION_ATTRIBUTE_ID;
         values.put(id,document.number()+":::"+document.date());
-        return java.util.Optional.of(new Draft(p.tnved(),p.preflight().categoryTnved(),p.categoryId(),p.snapshot().title(),p.snapshot().brand(),values,types));
+        return java.util.Optional.of(new Draft(p.tnved(),p.preflight().categoryTnved(),p.categoryId(),p.snapshot().title(),p.snapshot().brand(),values,types).withProductCategory(p.snapshot().metadata().get("source.category.name")));
     }
     /** Chain one accepted job per shop; queueing a whole batch must not discard all but its first SKU. */
     public CompletableFuture<Integer> submitBatchReviewed(Shop shop,List<BatchItem> approved,boolean newCard,boolean confirmed,BiConsumer<Status,String> callback) {
@@ -166,7 +166,7 @@ public final class OzonCardRegistrationWorkflow {
             var preflight=session.catalog().preflight(draft.tnved());
             if(preflight.categories().stream().noneMatch(c->c.id()==draft.categoryId())||!preflight.categoryTnved().equals(draft.feedTnved()))throw new IllegalArgumentException("foreign_category");
             var documents=ZnackRegistrationDocuments.select(snapshot,settings(shop),LocalDate.now());
-            Draft reviewed=validateDraft(draft,session.catalog().requiredAttributes(draft.categoryId(),session.token()),documents);
+            Draft reviewed=validateDraft(draft.withProductCategory(snapshot.metadata().get("source.category.name")),session.catalog().requiredAttributes(draft.categoryId(),session.token()),documents);
             checkSession(shop,scope,session);LicenseRuntime.require(Permission.GTIN);
             var previous=repository.find(key);
             if(newCard&&previous!=null&&previous.status()==Status.ERROR){
@@ -204,7 +204,9 @@ public final class OzonCardRegistrationWorkflow {
             var scope=scope(row);repository.guard(shop,key,scope);var session=catalogs.open(shop);checkSession(shop,scope,session);
             if(row.status()==Status.ERROR&&!row.feedId().isBlank()&&!Set.of("SENDING","RECONCILE_REQUIRED").contains(row.signatureState())){
                 var rejected=session.catalog().progress(session.token(),row.feedId(),row.gtin());
-                if(rejected.failed()&&repository.retryRejected(shop,key,row,scope))submitPrepared(shop,key,session,callback);
+                var payload=com.google.gson.JsonParser.parseString(row.payload()).getAsJsonObject();
+                var packing=CatalogPackingPolicy.correction(rejected,payload.has("is_kit")&&payload.get("is_kit").getAsBoolean());
+                if(CatalogFeedback.confirmedRejection(rejected)&&repository.retryRejected(shop,key,row,scope,packing))submitPrepared(shop,key,session,callback);
             }else if(row.feedId().isBlank())submitPrepared(shop,key,session,callback);
             if(automaticSigning!=null)RegistrationSigningConsent.set(shop,key,row.gtin(),automaticSigning);
             poll(shop,key,session,RegistrationSigningConsent.allowed(shop,key,row.gtin()),callback);
@@ -345,7 +347,7 @@ public final class OzonCardRegistrationWorkflow {
             String type=types.get(attribute.id());if(type==null){if(attribute.valueTypes().size()==1)type=attribute.valueTypes().getFirst();else if(attribute.valueTypes().isEmpty())type="";else throw new IllegalArgumentException("attribute_type_required");}
             if(!attribute.valueTypes().isEmpty()&&!attribute.valueTypes().contains(type))throw new IllegalArgumentException("invalid_attribute_type");types.put(attribute.id(),type);
         }
-        return new Draft(draft.tnved(),draft.feedTnved(),draft.categoryId(),draft.goodName(),draft.brand(),draft.attributes(),types,draft.autoSign());
+        return new Draft(draft.tnved(),draft.feedTnved(),draft.categoryId(),draft.goodName(),draft.brand(),draft.attributes(),types,draft.autoSign(),draft.isKit());
     }
     private static String normalize(String value){return value==null?"":value.strip().toLowerCase(Locale.ROOT).replaceAll("\\s+"," ");}
     private static boolean candidatePresent(Shop shop,ProductKey key,String sku,String gtin)throws Exception{var adapter=new OzonGtinAdapter(shop);var source=new com.vncode.app.features.gtinsync.GtinSyncModels.ProductKey(shop.getId(),Marketplace.OZON,key.cardId(),key.variantId());return adapter.hasBarcode(source,sku,gtin);}

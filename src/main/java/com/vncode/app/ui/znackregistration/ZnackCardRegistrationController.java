@@ -324,14 +324,8 @@ public final class ZnackCardRegistrationController {
         Task<RegistrationBatchPreflight.Review> task=new Task<>(){protected RegistrationBatchPreflight.Review call(){sources.require(owner);return RegistrationBatchPreflight.read(owner,keys);}};
         task.setOnSucceeded(e->{
             if(!isCurrent(owner,epoch))return;
-            var review=task.getValue();String choice=RegistrationBatchPreflight.show(productTable.getScene()==null?null:productTable.getScene().getWindow(),review);
-            if(choice==null){preparing=false;updateActionState();return;}
-            if(!choice.isBlank()){
-                preparing=false;updateActionState();
-                var affected=review.keys(choice).stream().map(com.vncode.app.features.products.ProductKey::cardId).collect(java.util.stream.Collectors.toSet());
-                var corrections=keys.stream().filter(key->affected.contains(key.cardId())).toList();
-                com.vncode.app.ui.products.ProductBulkEditPane.showDialog(productTable.getScene()==null?null:productTable.getScene().getWindow(),owner,choice,corrections,()->{if(isCurrent(owner,epoch))reviewBeforeRegistration(owner,epoch,selected);});return;
-            }
+            var review=task.getValue();boolean applied=RegistrationBatchPreflight.show(productTable.getScene()==null?null:productTable.getScene().getWindow(),owner,review);
+            if(!applied||!isCurrent(owner,epoch)){preparing=false;updateActionState();return;}
             if(selected.size()>1)selected.forEach(row->bulkCards.add(row.chrtId()));
             reviewedDocuments.clear();registrationReports=new RegistrationAttemptReports(owner,selected);prepareNext(selected,0,owner,epoch);
         });
@@ -646,20 +640,16 @@ public final class ZnackCardRegistrationController {
                 var mapped=new ZnackWbAttributeMapper().map(inputs.sku(),inputs.characteristics(),required,
                         inputs.preflight().tnved(),inputs.preflight().categoryTnved(),document);
                 var draft=new Draft(inputs.preflight().tnved(),inputs.preflight().categoryTnved(),category.id(),
-                        mapped.goodName(),mapped.brand(),mapped.attributes(),mapped.attributeTypes());
-                if(!mapped.missingFields().isEmpty())inputs.attempt().blocked("ZNACK_REQUIRED_ATTRIBUTES_MISSING");
-                return new AutomaticDraft(draft,mapped.missingFields());
+                        mapped.goodName(),mapped.brand(),mapped.attributes(),mapped.attributeTypes()).withProductCategory(inputs.sku().subjectName());
+                return new AutomaticDraft(draft,required);
                 }catch(Exception error){inputs.attempt().failed(error);throw error;}
             }
         };
         task.setOnSucceeded(event->{
             if(!isCurrent(owner,epoch))return;setLoading(false);var result=task.getValue();
-            if(!result.missingFields().isEmpty()) {
-                String message=java.text.MessageFormat.format(tr("znack.registration.missing_wb_fields"),sku.vendorCode(),String.join("\n• ",result.missingFields()));
-                if(bulkCards.contains(sku.chrtId()))operationLabel.setText(message);else showWarning(message);
-                completed.run();return;
-            }
-            startWorkflow(owner,epoch,sku,result.draft(),fresh,replacement,inputs.attempt(),completed);
+            var draft=RegistrationDraftCompletionDialog.show(productTable.getScene()==null?null:productTable.getScene().getWindow(),result.draft(),result.required(),inputs.sku().wbSize());
+            if(draft==null||!isCurrent(owner,epoch)){recordBlocked(inputs.attempt(),"ZNACK_REQUIRED_ATTRIBUTES_MISSING");completed.run();return;}
+            startWorkflow(owner,epoch,sku,draft,fresh,replacement,inputs.attempt(),completed);
         });
         java.util.function.Consumer<Throwable> failure=error->{if(isCurrent(owner,epoch)){setLoading(false);showError(error);completed.run();}};
         task.setOnFailed(event->failure.accept(task.getException()));AppTaskExecutor.execute(task,failure);
@@ -998,5 +988,5 @@ public final class ZnackCardRegistrationController {
             ZnackRegistrationDocuments.Selection documents,ZnackNationalCatalogService service,ZnackNationalCatalogService.Preflight preflight,RegistrationAttemptReports.Attempt attempt) {
         @Override public String toString(){return "RegistrationInputs[redacted]";}
     }
-    private record AutomaticDraft(Draft draft, List<String> missingFields) { }
+    private record AutomaticDraft(Draft draft, List<Attribute> required) { }
 }
