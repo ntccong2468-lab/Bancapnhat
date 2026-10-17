@@ -12,6 +12,6 @@ Bản nâng cấp từ 1.4.15, tập trung sửa thao tác hàng loạt, đồng
 - **Liquid Glass:** mức 0% là lớp kính trong nhất, tăng dần đến kính phủ đặc ở 100%. Nền nút và viền phản chiếu theo vật liệu kính; chữ giữ màu tương phản đã đo trên cả nền sáng/tối. Cài đặt được lưu khi mở lại app. Hiệu ứng kính áp dụng trong giao diện VNCode.
 - **Sao chép bài đăng:** chọn sản phẩm nguồn và shop đích rồi bấm **Đăng bài**, không còn bước bản xem trước/xác nhận riêng. Giữ dữ liệu gốc và tùy chỉnh nếu cần; có thanh tiến độ, trạng thái từng tác vụ và đọc lại sau gửi. Dữ liệu thiếu được báo đúng trường, không bắt nhập lại các giá trị gốc đã có.
 
-Giữ các sửa lỗi SQLite và ưu tiên đồng bộ FBS liên tục của 1.4.15. Bộ cài Windows được kiểm tra nâng cấp giữ dữ liệu từ 1.4.15 cùng các bản nền trước.
+Chặn callback tải cửa hàng mở lại cảnh báo sau khi màn hình đã đóng. Giữ các sửa lỗi SQLite và ưu tiên đồng bộ FBS liên tục của 1.4.15. Bộ cài Windows được kiểm tra nâng cấp giữ dữ liệu từ 1.4.15 cùng các bản nền trước.
 
 Đối chiếu mã công khai WCode 1.0.27, nhánh công khai mới nhất `8f7c3d1`, WBCode Latest 1.3.9 và ảnh giao diện do chủ ứng dụng cung cấp. Không có mã nguồn nội bộ đầy đủ của WBCode 1.3.9. Kiểm thử tự động không thay thế việc ký CryptoPro, mua/gán KIZ và tạo thẻ thật trên tài khoản doanh nghiệp; đợt sửa giao diện này không tự thực hiện các thao tác sản xuất đó.

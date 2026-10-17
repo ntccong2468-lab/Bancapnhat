@@ -4,7 +4,7 @@
   "complete": false,
   "developmentComplete": true,
   "officialReleasePublished": false,
-  "phase": "linux-accepted-native-windows-running",
+  "phase": "late-workspace-guard-added-final-platform-regression-running",
   "licenseIntegration": {
     "implemented": true,
     "productionReady": false,
@@ -15,110 +15,9 @@
     "productionLicenseVerified": false,
     "windowsNativeBuildThisVersion": false,
     "fullJavaRegression": {
-      "version": "1.4.16",
-      "source": "a7e236efefd80945b8395e072538046b78ef4647",
-      "result": "passed",
-      "tests": 1686,
-      "failures": 0,
-      "errors": 0,
-      "skipped": 2,
-      "passed": 1684,
-      "skips": [
-        {
-          "suite": "com.vncode.app.features.gs1.Gs1PrefixTemplateStoreTest",
-          "skipped": 1
-        },
-        {
-          "suite": "com.vncode.app.shared.WindowsSecretProtectorTest",
-          "skipped": 1
-        }
-      ],
-      "focus": {
-        "com.vncode.app.ui.products.ProductBulkDialogTest": {
-          "tests": 7,
-          "failures": 0,
-          "errors": 0,
-          "skipped": 0,
-          "seconds": 1.466
-        },
-        "com.vncode.app.integration.translation.AutomaticNewsTranslatorTest": {
-          "tests": 3,
-          "failures": 0,
-          "errors": 0,
-          "skipped": 0,
-          "seconds": 0.423
-        },
-        "com.vncode.app.shared.ThemeServiceTest": {
-          "tests": 6,
-          "failures": 0,
-          "errors": 0,
-          "skipped": 0,
-          "seconds": 0.619
-        },
-        "com.vncode.app.ui.news.NewsPaneLayoutTest": {
-          "tests": 1,
-          "failures": 0,
-          "errors": 0,
-          "skipped": 0,
-          "seconds": 0.234
-        },
-        "com.vncode.app.ui.znackregistration.GtinBackgroundStatusTest": {
-          "tests": 1,
-          "failures": 0,
-          "errors": 0,
-          "skipped": 0,
-          "seconds": 0.015
-        },
-        "com.vncode.app.ui.listingcopy.ListingCopyPaneTest": {
-          "tests": 16,
-          "failures": 0,
-          "errors": 0,
-          "skipped": 0,
-          "seconds": 4.637
-        },
-        "com.vncode.app.ui.znackregistration.OzonRegistrationPaneTest": {
-          "tests": 5,
-          "failures": 0,
-          "errors": 0,
-          "skipped": 0,
-          "seconds": 0.932
-        },
-        "com.vncode.app.features.sync.ZnackGtinBackgroundServiceTest": {
-          "tests": 4,
-          "failures": 0,
-          "errors": 0,
-          "skipped": 0,
-          "seconds": 0.007
-        },
-        "com.vncode.app.integration.znack.registration.ZnackCategoryResolverTest": {
-          "tests": 4,
-          "failures": 0,
-          "errors": 0,
-          "skipped": 0,
-          "seconds": 0.006
-        },
-        "com.vncode.app.ui.kiz.WbShipmentKizPaneTest": {
-          "tests": 7,
-          "failures": 0,
-          "errors": 0,
-          "skipped": 0,
-          "seconds": 1.36
-        }
-      },
-      "logSha256": "c0107d278b97e76474ed80d245ff5e444df893c2831418d65caa66d873debfeb",
-      "elapsed": "05:31 min",
-      "finishedAt": "2026-10-17T18:46:29Z",
-      "fbsLatencyLines": [
-        "FBS_UI_LATENCY synthetic=true shops=10 orders_per_shop=1000 products=100000 samples=20 visible_page=100 commit_to_pulse_p95_ms=70.561585 fx_dispatch_p95_ms=2.174376 nativeWindows=false",
-        "FBS_UI_DIAGNOSTICS {ozon-fbs-render={medianMs=48.381023, samples=20, p95Ms=63.777936}, fxStallsOver500ms=0, maxFxPulseGapMs=35.494924, heapUsedBytes=740802528, maxHeapBytes=8589934592, logicalProcessors=4, readWorkers=3, readActive=0, readPending=0, imageWorkers=2, imagePending=0, legacyTasks=0, mutationActive=0, mutationPending=0, sellerHttpActive=0, screenCacheBytes=2266, screenCacheBudgetBytes=67108864}"
-      ],
-      "privateKizSample": {
-        "name": "quan.txt",
-        "bytes": 19200,
-        "validUniqueCodes": 600,
-        "importedCategoryAvailableCount": 600,
-        "productionOrdersMutated": false
-      }
+      "source": "536567835f6a044626d00be273b2217bb1c4fc7c",
+      "result": "running",
+      "expectedTests": 1687
     },
     "node": {
       "tests": 60,
@@ -134,10 +33,10 @@
       "logSha256": "3707e204de53cce94c33aa728da54ba6d5ac97c24033592ee4014bd9a745008c"
     },
     "nativeWindowsRun": {
-      "run": 39059171881,
-      "source": "a7e236efefd80945b8395e072538046b78ef4647",
+      "run": 39061440469,
+      "source": "536567835f6a044626d00be273b2217bb1c4fc7c",
       "status": "running",
-      "url": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/39059171881"
+      "url": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/39061440469"
     },
     "finalReport": "docs/validation/2026-10-17-vncode-1416-final-acceptance.json",
     "liveReadReport": "docs/validation/2026-10-17-vncode-1416-live-read.json",
@@ -163,6 +62,6 @@
     "Clear-water Liquid Glass and contrast",
     "One-click listing copy with progress"
   ],
-  "applicationSource": "a7e236efefd80945b8395e072538046b78ef4647",
-  "sourceCommit": "a7e236efefd80945b8395e072538046b78ef4647"
+  "applicationSource": "536567835f6a044626d00be273b2217bb1c4fc7c",
+  "sourceCommit": "536567835f6a044626d00be273b2217bb1c4fc7c"
 }
