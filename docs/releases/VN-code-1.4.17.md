@@ -7,6 +7,7 @@
 - Sau khi thẻ mới được xác minh xuất bản, GTIN được đưa vào hàng đợi cho đúng biến thể đã đăng ký; Ozon kiểm tra thêm SKU, tên, màu và size. Chỉ đổi thẻ đang dùng sau khi đọc lại sàn thành công. Danh sách hiển thị ngay barcode/GTIN vừa xác minh và tách trạng thái chờ cập nhật lên sàn khỏi thẻ đã hoàn tất.
 - Màn đăng ký Znack có bốn nút chính trên cùng hàng theo ảnh đã duyệt. Nút Đăng ký và chọn tất cả nằm dưới bảng; cập nhật GTIN chạy nền với viên thuốc trạng thái ở giữa phía dưới bảng.
 - Sửa hàng loạt sản phẩm chạy nền sau Áp dụng, hiện tiến độ và kết quả đọc lại. Sao chép TN VED kiểm tra clipboard và hiện xác nhận.
+- Kho KIZ hết mã vẫn nhận lô mới trong cùng danh mục, kể cả file trùng tên; số lượng cập nhật ngay, không khôi phục lại mã đã gán.
 - Bổ sung bộ lọc chất liệu TN VED, thanh gợi ý cuộn ngang, placeholder tải nhẹ; giữ phần ngân sách HTTP cho luồng FBS liên tục. Hướng dẫn có khung ảnh/video ổn định, âm lượng và mở bài trong trình duyệt.
 
 Bản đang được chuẩn bị. Kiểm thử tự động và đọc dữ liệu thật được ghi riêng với kiểm thử ghi/ký thật trên máy seller; không coi chúng là kết quả nghiệm thu CryptoPro hoặc license production.

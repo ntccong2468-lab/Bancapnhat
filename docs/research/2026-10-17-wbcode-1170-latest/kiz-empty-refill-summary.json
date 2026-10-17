@@ -1,0 +1,20 @@
+{
+  "sourceCommit": "a6e9a8684e8f3fd595ce395186c32f29811c8dd9",
+  "syntheticLicense": true,
+  "liveApiMutations": false,
+  "sameFilenameAccepted": true,
+  "markets": {
+    "WILDBERRIES": {
+      "emptyReady": 0,
+      "newCodesImported": 3,
+      "readyAfterImport": 3,
+      "usedCodesReactivated": 0
+    },
+    "OZON": {
+      "emptyReady": 0,
+      "newCodesImported": 3,
+      "readyAfterImport": 3,
+      "usedCodesReactivated": 0
+    }
+  }
+}
