@@ -44,3 +44,5 @@ Bộ cài Windows chưa có chữ ký Authenticode.
 Lượt kiểm tra bằng token WB mới đọc được 4 đơn mới, 293 shipment, đủ 1.547 đơn trong lịch sử 30 ngày và 4 lô FBO. Trạng thái đơn cùng chi tiết/thành phần shipment đã vượt parser và validator của VNCode; 3 lượt đọc đơn mới liên tiếp đều trả 200. Ozon đọc đủ 244 đơn FBS qua 3 trang. Không mua mã, gán KIZ hoặc đóng đơn thật trong lượt rà soát. Xem [báo cáo đồng bộ](https://github.com/ntccong2468-lab/Bancapnhat/blob/update/vncode-approved-upgrades/docs/validation/2026-10-17-sync-release-audit.md) để biết kết quả kiểm thử và phần còn cần kiểm tra.
 
 Lượt kiểm tra trực tiếp kích hoạt license sản xuất cho đúng phiên bản này và ký CryptoPro bằng chứng thư doanh nghiệp trên máy seller chưa được thực hiện. Cơ chế license và khóa công khai sản xuất được giữ nguyên; không coi các bài kiểm thử giả lập là nghiệm thu kích hoạt thực tế.
+
+Kiểm thử trước phát hành: 1.662 bài Java đạt và 2 bài bỏ qua theo nền tảng, 0 thất bại/lỗi trên cả Linux và Windows; Node và Portal đều 60/60. Bộ cài vượt kiểm tra 288 bố cục và 11 đường nâng cấp giữ dữ liệu, gồm 1.4.13 → 1.4.15.

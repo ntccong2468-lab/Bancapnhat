@@ -2,7 +2,7 @@
   "version": "1.4.15",
   "baseVersion": "1.4.13",
   "sourceCommit": "16f7b43047f50057df88f4bda70939da4b634a38",
-  "phase": "linux-full-regression-passed-native-windows-running",
+  "phase": "all-checks-passed-stable-draft-preparing",
   "ownerRequestedLatestAfterFullRecheck": true,
   "inheritedApplicationSource": "6ba183cd5fb4420e37df13035581fee08c2d2155",
   "applicationChangesAfterInheritedSource": [
@@ -113,8 +113,51 @@
   "nativeWindows": {
     "run": 39016087535,
     "source": "16f7b43047f50057df88f4bda70939da4b634a38",
-    "result": "in_progress",
-    "url": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/39016087535"
+    "result": "success",
+    "url": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/39016087535",
+    "java": {
+      "tests": 1664,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 2
+    },
+    "focused": {
+      "com.vncode.app.ui.znackregistration.ZnackCardRegistrationControllerTest": {
+        "tests": 9,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "seconds": 6.866
+      },
+      "com.vncode.app.ui.workspace.JobCenterDialogTest": {
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "seconds": 27.457
+      },
+      "com.vncode.app.features.sync.SyncRunRepositoryConcurrencyTest": {
+        "tests": 4,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "seconds": 6.45
+      }
+    },
+    "verifiedWindowsJarSha256": "59b866f7997340da4f0ac7e841b478f896c49a29e651d9115b634890c210111e",
+    "javaCompletedAt": "2026-10-17T08:28:45Z",
+    "installerBuildCompletedAt": "2026-10-17T08:29:43Z",
+    "installerSmokeResult": "passed",
+    "completedAt": "2026-10-17T08:43:53Z",
+    "installer": {
+      "filename": "VN-code-1.4.15-Windows-x64.exe",
+      "bytes": 145456128,
+      "sha256": "fc3ecc9be0eefa37bb241d9a86f6b6715bb5ad75f51ed178ce10230e51205c16"
+    },
+    "proofReport": "docs/validation/2026-10-17-vncode-1415-windows-release-checks.json",
+    "workflowLogSha256": "e7e214d56e8aea95055ee5dad3bd4dad68ec6dae06b1b61c8c3e7b934cc3ced2",
+    "uiLayouts": 288,
+    "upgradesPassed": 11
   },
   "publication": {
     "published": false,
@@ -557,5 +600,17 @@
       "skipped": 0,
       "suites": 4
     }
-  }
+  },
+  "previousSellerUpdaterInputs": [
+    {
+      "jarVersion": "1.4.13",
+      "jarSha256": "ac3186ed091597204bf834369b2ec8d962d5f7401613b9ffe572a7de0351ef0b",
+      "compiled": true
+    },
+    {
+      "jarVersion": "1.4.15",
+      "jarSha256": "59b866f7997340da4f0ac7e841b478f896c49a29e651d9115b634890c210111e",
+      "compiled": true
+    }
+  ]
 }

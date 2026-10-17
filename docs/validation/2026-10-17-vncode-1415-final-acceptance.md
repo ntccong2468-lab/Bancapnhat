@@ -6,7 +6,7 @@ Bản nâng cấp trực tiếp từ 1.4.13. Bản nháp 1.4.14 giữ nguyên ta
 
 - Bài Znack giữ thời hạn 10 giây, toàn bộ kiểm tra 300/600/900/1.003 dòng và lựa chọn toàn bộ vẫn giữ nguyên. Chờ callback FX và công việc nối tiếp ổn định thay vì kiểm tra một lần sau khi bộ đếm worker về 0.
 - Fixture hộp báo cáo bấm nút Đóng của chính Dialog để chạy handler dừng timer, rồi đợi các lượt đọc dùng chung kết thúc trước khi đổi thư mục database.
-- Ba lượt tập trung đều đạt 11/11 bài. Source cuối `16f7b43047f50057df88f4bda70939da4b634a38` đã đạt `clean verify`: 1.664 bài, 1.662 passed, 0 failures/errors, 2 platform skips; Node và Portal đạt 60/60 mỗi bộ. Native Windows đang chạy đúng source này. Không dùng lượt kiểm tra có failure để phát hành.
+- Ba lượt tập trung đều đạt 11/11 bài. Source cuối `16f7b43047f50057df88f4bda70939da4b634a38` đã đạt `clean verify`: 1.664 bài, 1.662 passed, 0 failures/errors, 2 platform skips; Node và Portal đạt 60/60 mỗi bộ. Native Windows `39016087535` trên đúng source này cũng đạt 1.664 bài, 0 failures/errors, 2 platform skips; launcher, GS1/DPAPI, nhiều shop/DPI, 288 bố cục và 11 đường nâng cấp giữ dữ liệu đều đạt. Không dùng lượt kiểm tra có failure để phát hành.
 
 ## Các đầu mục đã rà soát
 
@@ -36,3 +36,10 @@ Các lượt API cuối chỉ đọc dữ liệu. Không mua/gán KIZ, không đ
 Chủ ứng dụng tiếp tục yêu cầu kiểm tra lại, build và phát hành Latest sau khi phần nghiệm thu license còn thiếu đã được công bố trong phiên làm việc. Nếu phát hành thủ công theo chỉ dẫn đó, các cờ `complete` / `productionReady` và gate publisher vẫn giữ đúng kết quả; không tạo bằng chứng kích hoạt giả.
 
 Kiểm tra lại parser của bản 1.4.15 trên phản hồi API thật đã lưu tiếp tục đạt: WB 4 đơn mới / 293 shipment, 6 ID thuộc shipment mở; Ozon 244 đơn / 245 dòng qua 3 trang; Catalog 1.276 thẻ và 10 cặp Ozon duy nhất / 0 cặp mơ hồ. Đây là kiểm tra lại phản hồi đã lưu của lượt API cuối, không phải thao tác ghi mới.
+
+## Bộ cài đã kiểm chứng
+
+- [Lượt Windows thành công](https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/39016087535).
+- `VN-code-1.4.15-Windows-x64.exe`: 145.456.128 byte; SHA-256 `fc3ecc9be0eefa37bb241d9a86f6b6715bb5ad75f51ed178ce10230e51205c16`. Tệp tải từ đúng lượt build, kiểm tra PE/MZ và checksum đạt.
+- [Bằng chứng Windows / nâng cấp / giao diện](2026-10-17-vncode-1415-windows-release-checks.json).
+- Đang chuẩn bị bản phát hành và sẽ kiểm tra link công khai, checksum và parser cập nhật của cả 1.4.13 / 1.4.15 sau khi đổi Latest.
