@@ -269,7 +269,8 @@ public final class ZnackCardRegistrationController {
 
     @FXML private void onUpdateWb(){
         if(shop==null||!ready()||loading||preparing)return;
-        ZnackGtinReviewDialog.show(productTable.getScene()==null?null:productTable.getScene().getWindow(),shop);
+        var selected=selectedRows().stream().map(row->new com.vncode.app.features.products.ProductKey(shop.getId(),shop.getMarketplace(),Long.toString(row.nmId()),Long.toString(row.chrtId()))).collect(java.util.stream.Collectors.toSet());
+        GtinBackgroundStatus.start((javafx.scene.layout.StackPane)productTable.getParent(),shop,selected,this::scheduleReload);
     }
 
     @FXML private void onSyncZnack() {
@@ -553,7 +554,7 @@ public final class ZnackCardRegistrationController {
             setLoading(false);var inputs=task.getValue();
             ZnackModels.GoodsDocument document=chooseDocument(inputs.documents());
             if(document==null||!isCurrent(owner,epoch)){completed.run();return;}
-            Category category=chooseCategory(inputs.preflight().categories());
+            Category category=chooseCategory(sku,inputs.preflight().categories());
             if(category==null||!isCurrent(owner,epoch)){completed.run();return;}
             buildAutomaticDraft(owner,epoch,sku,fresh,replacement,inputs,document,category,completed);
         });
@@ -579,12 +580,10 @@ public final class ZnackCardRegistrationController {
         return dialog.showAndWait().orElse(null);
     }
 
-    private Category chooseCategory(List<Category> categories) {
-        if(categories==null||categories.isEmpty()){showWarning(tr("znack.registration.category_missing"));return null;}
-        if(categories.size()==1)return categories.getFirst();
-        ChoiceDialog<Category> dialog=new ChoiceDialog<>(categories.getFirst(),categories);
-        dialog.setTitle(tr("znack.registration.title"));dialog.setHeaderText(tr("znack.registration.choose_category"));
-        return dialog.showAndWait().orElse(null);
+    private Category chooseCategory(Sku sku,List<Category> categories) {
+        var selected=com.vncode.app.integration.znack.registration.ZnackCategoryResolver.resolve(sku.subjectName(),sku.title(),categories);
+        if(selected.isEmpty())summaryLabel.setText(sku.vendorCode()+" · "+tr("znack.registration.category_auto_missing"));
+        return selected.orElse(null);
     }
 
     private void buildAutomaticDraft(Shop owner,long epoch,Sku sku,boolean fresh,boolean replacement,

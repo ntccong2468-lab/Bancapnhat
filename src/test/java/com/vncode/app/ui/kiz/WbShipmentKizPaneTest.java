@@ -85,6 +85,27 @@ class WbShipmentKizPaneTest {
             fx(()->{assertTrue(loaded.view().lookup("#paidInventoryPane").isManaged());assertEquals(new KizSourceSelection(true,true),loaded.controller().kizSources());return null;});
         }finally{fx(()->{loaded.controller().dispose();return null;});awaitTasks();}
     }
+    @Test void importSurvivesContinuousFbsRefreshAndImmediatelyShowsRemainingCategoryStock()throws Exception{
+        fx(()->{pane.setContext(one,"CONTINUOUS");return null;});awaitTasks();
+        var category=new ShipmentKizRepository().stocks(one).getFirst();var file=root.resolve("seller-notepad.txt");
+        java.nio.file.Files.write(file,java.util.List.of("0100000000000017210000000000001","0100000000000017210000000000002"));
+        fx(()->{pane.importFile(category,file);pane.setContext(new Shop(1,"WB renamed","fixture-1"),"CONTINUOUS");return null;});awaitTasks();
+        fx(()->{var table=(TableView<ShipmentKizRepository.CategoryStock>)pane.lookup("#shipment-kiz-categories");assertEquals(2,table.getItems().stream().filter(c->c.id().equals(category.id())).findFirst().orElseThrow().ready());assertTrue(table.getColumns().stream().noneMatch(c->"consumed".equals(c.getUserData())));return null;});
+        var selected=new KizCategoryAllocator().reservePartial(one,java.util.List.of(new KizCategoryAllocator.Demand("order-1","101",1))).get("order-1");
+        assertEquals(1,selected.size());new com.vncode.app.integration.znack.ZnackGtinInventoryService().consume(one.getId(),selected);
+        fx(()->{pane.reload();return null;});awaitTasks();
+        fx(()->{var table=(TableView<ShipmentKizRepository.CategoryStock>)pane.lookup("#shipment-kiz-categories");assertEquals(1,table.getItems().stream().filter(c->c.id().equals(category.id())).findFirst().orElseThrow().ready());return null;});
+        // Reimporting the same file cannot resurrect the consumed mark or duplicate the remaining one.
+        fx(()->{pane.importFile(category,file);return null;});awaitTasks();assertEquals(1,new ShipmentKizRepository().stocks(one).stream().filter(c->c.id().equals(category.id())).findFirst().orElseThrow().ready());
+    }
+    @Test void sixHundredCodesFromSellerTextFileAreVisibleInTheirCategory()throws Exception{
+        fx(()->{pane.setContext(one,"BULK-FILE");return null;});awaitTasks();var category=new ShipmentKizRepository().stocks(one).getFirst();
+        String sample=System.getProperty("vncode.kiz.sample.path");var file=sample==null?root.resolve("six-hundred.txt"):Path.of(sample);
+        if(sample==null){var rows=new java.util.ArrayList<String>();for(int i=0;i<600;i++)rows.add(String.format(java.util.Locale.ROOT,"010000000000001721%013d",i));java.nio.file.Files.write(file,rows);}
+        fx(()->{pane.importFile(category,file);return null;});awaitTasks();
+        fx(()->{var table=(TableView<ShipmentKizRepository.CategoryStock>)pane.lookup("#shipment-kiz-categories");assertEquals(600,table.getItems().stream().filter(c->c.id().equals(category.id())).findFirst().orElseThrow().ready());return null;});
+        assertEquals(600,KizImportReader.read(file).marks().size());
+    }
     private record ShipmentView(com.vncode.app.ui.supply.SupplyDetailController controller,javafx.scene.Parent view){}
     @Test void largePaidCatalogOnlyCreatesVisibleCardsAndCanReachTheLastGtin()throws Exception {
         try(var c=Database.getConnection();var p=c.prepareStatement("INSERT INTO znack_products(shop_id,gtin,product_name,card_status,synced_at) VALUES(1,?,?,'published','2026-01-01T00:00:00Z')")) {

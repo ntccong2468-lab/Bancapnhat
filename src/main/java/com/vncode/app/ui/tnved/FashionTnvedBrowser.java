@@ -46,6 +46,8 @@ public final class FashionTnvedBrowser extends BorderPane {
     private void filter(){rows.getItems().setAll(catalog.search(query.getText(),selectedCategories,gender.getValue(),material.getValue(),fabric.getValue()));count.setText(rows.getItems().size()+" / "+catalog.entries().size());categories.setText(tr("products.categories")+(selectedCategories.isEmpty()?"":" ("+selectedCategories.size()+")"));}
     public void setOnSelect(Consumer<Entry> action){onSelect=action;apply.setVisible(action!=null);apply.setManaged(action!=null);}
     public void setPickerLeadingAction(javafx.scene.Node action){pickerActions.getChildren().setAll(action,apply);}
+    public void setCategoryFilter(Set<String> names){selectedCategories.clear();selectedCategories.addAll(names);for(var item:categories.getItems())if(item instanceof CheckMenuItem check)check.setSelected(names.contains(check.getText()));filter();}
+    public void selectCode(String code){for(var entry:rows.getItems())if(entry.code().equals(code)){rows.getSelectionModel().select(entry);rows.scrollTo(entry);return;}}
     private void use(){var selected=rows.getSelectionModel().getSelectedItem();if(onSelect!=null&&selected!=null)onSelect.accept(selected);}
     private static String tr(String key){return I18nService.getInstance().tr(key);}
 }

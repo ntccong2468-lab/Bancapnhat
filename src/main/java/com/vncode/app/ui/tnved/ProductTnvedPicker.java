@@ -34,7 +34,7 @@ public final class ProductTnvedPicker {
         });table.getColumns().add(proposalColumn);
         column(table,tr("znack.registration.status"),p->tr("tnved.proposal_reason."+p.reason()),180);
         var proposals=new TitledPane(tr("tnved.proposal_title"),table);proposals.setExpanded(false);
-        var body=new VBox(8,hint,progress,proposals,browser);body.setMinSize(0,0);VBox.setVgrow(browser,Priority.ALWAYS);dialog.getDialogPane().setContent(body);dialog.getDialogPane().setPrefSize(1120,750);dialog.getDialogPane().getButtonTypes().add(ButtonType.CANCEL);DialogLayout.install(dialog.getDialogPane());
+        var chips=new FlowPane(8,8);chips.setId("tnvedSuggestionChips");var body=new VBox(8,hint,chips,progress,proposals,browser);body.setMinSize(0,0);VBox.setVgrow(browser,Priority.ALWAYS);dialog.getDialogPane().setContent(body);dialog.getDialogPane().setPrefSize(1120,750);dialog.getDialogPane().getButtonTypes().add(ButtonType.CANCEL);DialogLayout.install(dialog.getDialogPane());
         browser.setPickerLeadingAction(applyEach);AlertService.applyTheme(dialog);
         browser.setOnSelect(entry->{onSelect.accept(new Choice(entry.code(),Map.of()));dialog.close();});boolean[] closed={false};dialog.setOnHidden(e->closed[0]=true);
         var frozen=List.copyOf(selected);Shop captured=new Shop(shop.getId(),shop.getName(),shop.getMarketplace(),shop.getClientId(),shop.getApiKey());
@@ -42,6 +42,14 @@ public final class ProductTnvedPicker {
             if(closed[0])return;
             if(error!=null){progress.setText(tr("tnved.proposals_failed"));return;}
             for(var proposal:review.proposals())if(proposal.unique())chosen.put(proposal.key().cardId(),proposal.candidates().getFirst());
+            var categoryFilter=new LinkedHashSet<String>();var groups=new LinkedHashMap<String,java.util.List<ProductTnvedAdvisor.Proposal>>();
+            for(var proposal:review.proposals()){
+                proposal.candidates().forEach(candidate->categoryFilter.addAll(candidate.categories()));
+                if(proposal.unique())groups.computeIfAbsent(proposal.candidates().getFirst().code(),k->new ArrayList<>()).add(proposal);
+            }
+            if(!categoryFilter.isEmpty())browser.setCategoryFilter(categoryFilter);
+            for(var group:groups.entrySet()){var entry=group.getValue().getFirst().candidates().getFirst();var chip=new Button(entry.code()+" · "+(entry.name().length()>50?entry.name().substring(0,50)+"…":entry.name())+" ("+group.getValue().size()+")");chip.setTooltip(new Tooltip(entry.name()));chip.setOnAction(e->browser.selectCode(entry.code()));chips.getChildren().add(chip);}
+            applyEach.setText(tr("tnved.use_each")+" ("+review.proposals().size()+")");
             table.getItems().setAll(review.proposals());progress.setText(tr("tnved.proposal_hint"));updateApply.run();
             applyEach.setOnAction(e->{if(applyEach.isDisabled())return;var values=new LinkedHashMap<ProductKey,List<String>>();for(var key:frozen)values.put(key,List.of(chosen.get(key.cardId()).code()));onSelect.accept(new Choice("",values));dialog.close();});
         }));dialog.show();

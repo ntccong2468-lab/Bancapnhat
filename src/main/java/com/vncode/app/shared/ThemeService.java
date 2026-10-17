@@ -93,11 +93,13 @@ public final class ThemeService {
         if(!root.getStyleClass().contains(selected))root.getStyleClass().add(selected);
         root.getStyleClass().remove(theme==Theme.LIGHT?"theme-dark":"theme-light");
         root.getProperties().putIfAbsent(ORIGINAL_STYLE,root.getStyle());
-        // The light blue material retains a contrast floor even over the strongest blue in the canvas.
-        double alpha=1-amount*(theme==Theme.LIGHT?.0048:.0068);
+        // The left end is clear water; increasing the slider adds the frosted material.
+        // Keep alpha in paints, never on a parent Node (which also dims its text).
+        double alpha=.035+amount*.00965;
         String tint=theme==Theme.LIGHT?"199,226,246":"22,48,75";
         String elevated=theme==Theme.LIGHT?"226,241,252":"33,64,94";
-        String paint=String.format(Locale.ROOT,"-glass-surface:rgba(%s,%.3f);-glass-elevated:rgba(%s,%.3f);-glass-row:rgba(%s,%.3f);",tint,alpha,elevated,Math.min(1,alpha+.10),tint,Math.max(.12,alpha-.22));
+        String ink=theme==Theme.LIGHT?"0,5,12":"249,252,255";
+        String paint=String.format(Locale.ROOT,"-glass-surface:rgba(%s,%.3f);-glass-elevated:rgba(%s,%.3f);-glass-row:rgba(%s,%.3f);-glass-button:rgba(%s,%.3f);-text-primary:rgba(%s,%.3f);",tint,alpha,elevated,Math.min(1,alpha+.045),tint,alpha*.55,elevated,Math.min(1,alpha+.035),ink,.98+amount*.0002);
         root.setStyle(root.getProperties().get(ORIGINAL_STYLE)+";"+paint);
         root.getProperties().put("glass.transparency",amount);
     }

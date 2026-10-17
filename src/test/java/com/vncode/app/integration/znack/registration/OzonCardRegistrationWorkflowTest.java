@@ -90,7 +90,7 @@ class OzonCardRegistrationWorkflowTest {
     }
     @Test void preparationFetchesNativeIdentityAndReusesOneSessionForCategorySelection()throws Exception {
         api.multipleCategories=true;var prepared=workflow.prepare(shop,key);
-        assertEquals("6204",prepared.tnved());assertEquals(0,prepared.categoryId());assertEquals(2,prepared.preflight().categories().size());assertTrue(prepared.required().isEmpty());
+        assertEquals("6204",prepared.tnved());assertEquals(1,prepared.categoryId());assertEquals(2,prepared.preflight().categories().size());assertFalse(prepared.required().isEmpty());
         var selected=workflow.withCategory(shop,prepared,1);assertEquals(1,selected.categoryId());assertEquals("Fixture",selected.suggestions().get(1L));assertEquals(1,sessions.get());
         assertFalse(selected.toString().contains("fixture-token"));assertFalse(selected.preflight().toString().contains("fixture-token"));
         assertThrows(IllegalArgumentException.class,()->workflow.withCategory(shop,prepared,999));assertEquals(0,api.allocations.get());

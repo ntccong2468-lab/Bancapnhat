@@ -47,6 +47,9 @@ public final class OzonProductSnapshotReader implements ProductSnapshotReader {
             }
         }
         var inherited=new LinkedHashMap<String,String>();
+        try(var connection=com.vncode.app.config.Database.getConnection();var query=connection.prepareStatement("SELECT category FROM ozon_products WHERE shop_id=? AND product_id=?")){
+            query.setInt(1,shop.getId());query.setString(2,key.cardId());try(var result=query.executeQuery()){if(result.next())inherited.put("source.category.name",Objects.toString(result.getString(1),""));}
+        }catch(java.sql.SQLException unavailable){throw new IOException("Ozon category cache unavailable",unavailable);}
         if(includePrices)try{
             var amount=price(info);String priceCurrency=info.has("price")&&info.get("price").isJsonObject()?text(obj(info,"price"),"currency_code"):text(info,"currency_code");
             if(amount==null||amount.signum()<=0){var pricingFilter=new JsonObject();pricingFilter.add("product_id",ids);pricingFilter.addProperty("visibility","ALL");var pricingRequest=new JsonObject();pricingRequest.add("filter",pricingFilter);pricingRequest.addProperty("limit",1);pricingRequest.addProperty("cursor","");

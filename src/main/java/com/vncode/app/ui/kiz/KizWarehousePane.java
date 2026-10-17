@@ -32,7 +32,7 @@ public final class KizWarehousePane extends BorderPane {
         var grouping=new FlowPane(8,8,category,newCategory,classify,linkProducts);
         var top=new VBox(10,hint,grouping,automatic,actions,status);setTop(top);BorderPane.setMargin(top,new Insets(0,0,10,0));
         table.setFixedCellSize(36);table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);table.setPlaceholder(new Label(tr("empty")));setCenter(table);
-        column("category",KizWarehouseRepository.Summary::category);column("gtin",KizWarehouseRepository.Summary::gtin);column("total",r->r.total());column("ready",r->r.ready());column("held",r->r.held());column("consumed",r->r.consumed());column("unassigned",r->r.unverified());
+        column("category",KizWarehouseRepository.Summary::category);column("gtin",KizWarehouseRepository.Summary::gtin);column("total",r->r.total());column("ready",r->r.ready());column("held",r->r.held());column("unassigned",r->r.unverified());
         add.setId("kiz-warehouse-import");automatic.setId("kiz-warehouse-auto-purchase");table.setId("kiz-warehouse-table");
         archive.setOnAction(e->archive(false));restore.setOnAction(e->archive(true));table.getSelectionModel().selectedItemProperty().addListener((o,a,b)->buttons());
         newCategory.setOnAction(e->createCategory());classify.setOnAction(e->classifySelected());linkProducts.setOnAction(e->linkProducts());category.valueProperty().addListener((o,a,b)->buttons());

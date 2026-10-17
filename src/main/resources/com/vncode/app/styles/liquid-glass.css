@@ -183,3 +183,17 @@
 .liquid-glass .check-box:selected > .box { -fx-background-color: #2467c4; -fx-border-color: #1955ab; }
 .liquid-glass .check-box:selected > .box > .mark { -fx-background-color: white; }
 .liquid-glass .radio-button:selected > .radio > .dot { -fx-background-color: -accent; }
+
+/* Clear-water controls keep a specular edge without dimming their children. */
+.liquid-glass .button, .liquid-glass .menu-button, .liquid-glass .toggle-button {
+    -fx-background-color: -glass-button, linear-gradient(to bottom, rgba(255,255,255,.14), transparent 62%);
+    -fx-effect: dropshadow(gaussian,rgba(10,35,65,.12),8,0,0,2);
+}
+.liquid-glass .button.btn-primary, .liquid-glass .button.primary, .liquid-glass .button:default {
+    -fx-background-color: -glass-selected, linear-gradient(to bottom,rgba(255,255,255,.20),transparent);
+    -fx-text-fill: -text-primary;
+    -fx-border-color: -border-color-hover;
+}
+.liquid-glass .button.btn-primary .ikonli-font-icon, .liquid-glass .button:default .ikonli-font-icon { -fx-icon-color: -text-primary; }
+.liquid-glass .news-card { -fx-alignment: top-left; -fx-padding: 16; }
+.liquid-glass .task-status-pill { -fx-background-color: -glass-popup; -fx-background-radius: 999; -fx-border-radius: 999; -fx-border-color: -border-color-hover; -fx-padding: 10 18; }

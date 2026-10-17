@@ -64,7 +64,8 @@ public final class OzonCardRegistrationWorkflow {
         var checked=session.catalog().preflight(tnved);checkSession(shop,scope,session);
         var metadata=new PreflightMetadata(checked.tnved(),checked.categoryTnved(),checked.gs1(),checked.categories());
         var result=new Preparation(snapshot,tnved,metadata,0,List.of(),docs,Map.of(),session,owner);
-        return checked.categories().size()==1?withCategory(shop,result,checked.categories().getFirst().id()):result;
+        var selectedCategory=ZnackCategoryResolver.resolve(snapshot,checked.categories());
+        return selectedCategory.isPresent()?withCategory(shop,result,selectedCategory.get().id()):result;
     }
     public record BatchItem(ProductKey key,Preparation preparation,Draft draft,String issue) {
         public boolean ready(){return preparation!=null&&draft!=null&&issue.isBlank();}

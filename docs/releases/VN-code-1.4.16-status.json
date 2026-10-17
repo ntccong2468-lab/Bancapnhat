@@ -1,0 +1,27 @@
+{
+  "version": "1.4.16",
+  "baseVersion": "1.4.15",
+  "complete": false,
+  "developmentComplete": true,
+  "officialReleasePublished": false,
+  "phase": "regression-and-native-build",
+  "licenseIntegration": {
+    "implemented": true,
+    "productionReady": false,
+    "activeKeyId": "vncode-2",
+    "changedInThisVersion": false
+  },
+  "validation": {
+    "productionLicenseVerified": false,
+    "windowsNativeBuildThisVersion": false
+  },
+  "scope": [
+    "Vietnamese news in bounded frame",
+    "Compact product bulk dialogs",
+    "Background GTIN with bottom-centre status",
+    "Automatic Znack category selection",
+    "Immediate category KIZ totals during continuous FBS refresh",
+    "Clear-water Liquid Glass and contrast",
+    "One-click listing copy with progress"
+  ]
+}

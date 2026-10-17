@@ -31,6 +31,7 @@ public final class ListingCopyPane extends BorderPane {
     private final TitledPane details=new TitledPane();
     private final TitledPane generalDetails=new TitledPane(),variantDetails=new TitledPane(),attributeDetails=new TitledPane(),documentDetails=new TitledPane();
     private final Label inheritedSummary=new Label();
+    private final ProgressBar postingProgress=new ProgressBar(0);
     private final VBox batchErrors=new VBox(6);
     private final javafx.animation.PauseTransition following=new javafx.animation.PauseTransition(javafx.util.Duration.seconds(5));
     private final Map<String,Integer> followAttempts=new HashMap<>();
@@ -68,15 +69,15 @@ public final class ListingCopyPane extends BorderPane {
         details.setId("copyDetails");details.setContent(configuration);details.setExpanded(false);details.setAnimated(false);details.setText(tr("edit_details"));
         inheritedSummary.setId("copyInheritedSummary");inheritedSummary.setWrapText(true);batchErrors.setId("copyBatchErrors");
         sourceCard.setPrefWidth(240);editorShop.setPrefWidth(280);
-        var body=new VBox(10,new FlowPane(10,8,label("source"),sourceCard,choose),inheritedSummary,new VBox(6,label("destinations"),destinationBox),new FlowPane(10,8,label("destination_config"),editorShop),details,prepare,batchErrors,label("preview"),previewBox,label("jobs"),jobs);
+        var body=new VBox(10,new FlowPane(10,8,label("source"),sourceCard,choose),inheritedSummary,new VBox(6,label("destinations"),destinationBox),new FlowPane(10,8,label("destination_config"),editorShop),details,batchErrors,previewBox,label("jobs"),jobs);
         jobs.setId("copyJobs");jobs.setPrefHeight(180);jobs.setFixedCellSize(54);jobs.setCellFactory(v->new ListCell<>(){protected void updateItem(CopyJob j,boolean empty){super.updateItem(j,empty);setText(empty||j==null?null:shopName(j.destinationShopId())+" · "+j.source().title()+"\n"+tr("state."+j.state()));}});
         var scroll=new ScrollPane(body);scroll.setFitToWidth(true);scroll.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);body.setPadding(new Insets(12,0,12,0));setCenter(scroll);
-        confirm.setId("copyConfirm");confirm.setWrapText(true);publish.setId("copyPublish");publish.getStyleClass().add("btn-primary");var actions=new FlowPane(10,8,editJob,reconcile,publish);setBottom(new VBox(8,confirm,actions));
+        confirm.setId("copyConfirm");confirm.setWrapText(true);publish.setId("copyPublish");publish.getStyleClass().add("btn-primary");var actions=new FlowPane(10,8,editJob,reconcile,publish);postingProgress.setId("copyPostingProgress");postingProgress.setMaxWidth(Double.MAX_VALUE);setBottom(new VBox(8,postingProgress,actions));
         prepare.setId("copyPrepare");
         sourceCard.valueProperty().addListener((o,a,b)->{if(!loading&&b!=null)loadSource(b);});editorShop.valueProperty().addListener((o,a,b)->{if(!loading&&b!=null){saveEditor();loadEditor(b);}});
         category.valueProperty().addListener((o,a,b)->{if(!loading&&b!=null){invalidatePreview();loadAttributes(b.id());}});
         for(TextInputControl input:List.of(title,brand,description,price,article))input.textProperty().addListener((o,a,b)->invalidatePreview());marked.selectedProperty().addListener((o,a,b)->invalidatePreview());currency.valueProperty().addListener((o,a,b)->invalidatePreview());
-        choose.setOnAction(e->{if(onChooseProducts!=null)onChooseProducts.run();});prepare.setOnAction(e->prepare());publish.setOnAction(e->publish());reconcile.setOnAction(e->reconcile());editJob.setOnAction(e->editSelected());
+        choose.setOnAction(e->{if(onChooseProducts!=null)onChooseProducts.run();});prepare.setOnAction(e->prepare());publish.setOnAction(e->prepare());reconcile.setOnAction(e->reconcile());editJob.setOnAction(e->editSelected());
         confirm.selectedProperty().addListener((o,a,b)->updateButtons());jobs.getSelectionModel().selectedItemProperty().addListener((o,a,b)->loadJob(b));
         following.setOnFinished(e->{var job=selectedJob;if(disposed||busy||job==null)return;followAttempts.merge(job.id(),1,Integer::sum);reconcile();});
         applyTranslations();updateButtons();
@@ -245,11 +246,11 @@ public final class ListingCopyPane extends BorderPane {
             var groups=new LinkedHashMap<String,List<ProductKey>>();for(var key:frozen)groups.computeIfAbsent(key.cardId(),k->new ArrayList<>()).add(key);
             String sourceCategory=snapshot.categoryId();var hints=new HashMap<Integer,String>();configurations.forEach((id,o)->hints.put(id,o.targetCategoryId()));
             var source=copy(shop);var options=Map.copyOf(cardConfigurations);var targets=List.copyOf(owners);String editId=editingJobId;long g=generation;
-            busy=true;selectedJob=null;detailGeneration++;confirm.setSelected(false);batchErrors.getChildren().clear();setStatus("preparing","");updateButtons();
+            busy=true;selectedJob=null;detailGeneration++;confirm.setSelected(false);batchErrors.getChildren().clear();setStatus("preparing","");postingProgress.setProgress(0);updateButtons();
             var work=reads.submit(new ShopReadCoordinator.Key(source.getId(),"copy-prepare",Long.toString(g)),true,()->{
                 var result=new ArrayList<CopyJob>();var failures=new ArrayList<String>();int count=0,total=groups.size()*targets.size();
                 for(var group:groups.entrySet())for(var destination:targets){
-                    int current=++count;Platform.runLater(()->{if(!disposed&&g==generation)setStatus("preparing",current+"/"+total+" · "+shopLabel(destination)+" · "+group.getKey());});
+                    int current=++count;Platform.runLater(()->{if(!disposed&&g==generation){postingProgress.setProgress((current-1.0)/total);setStatus("sending",current+"/"+total+" · "+shopLabel(destination)+" · "+group.getKey());}});
                     CopyJob draft=null;
                     try{
                         var requested=options.getOrDefault(group.getKey(),Map.of()).get(destination.getId());
@@ -259,12 +260,22 @@ public final class ListingCopyPane extends BorderPane {
                             requested=CopyDefaults.initial(fresh,destination,selected,fresh.categoryId().equals(sourceCategory)?hints.getOrDefault(destination.getId(),""):"");
                         }
                         draft=editId==null?service.draft(source,group.getValue(),List.of(destination),requested).getFirst():service.configure(destination,editId,requested);
-                        service.preview(destination,draft.id());result.add(service.get(destination,draft.id()).summary());
+                        service.preview(destination,draft.id());
+                        var checked=service.get(destination,draft.id());
+                        if(checked.state()==CopyState.AWAITING_CONFIRMATION&&checked.preview()!=null&&checked.preview().publishable()){
+                            var accepted=checked;
+                            checked=SellerMutationExecutor.submit(destination,()->service.publish(destination,accepted.id(),accepted.preview().requestHash(),true)).get();
+                        }
+                        if(checked.state()==CopyState.REMOTE_PROCESSING||checked.state()==CopyState.RECONCILE_REQUIRED){
+                            var sent=checked;checked=SellerMutationExecutor.submit(destination,()->service.reconcile(destination,sent.id())).get();
+                        }
+                        result.add(checked.summary());
                     }catch(Exception error){
                         failures.add(shopLabel(destination)+" · "+group.getKey()+" · "+safeCode(error));
                         if(draft!=null)try{result.add(service.get(destination,draft.id()).summary());}catch(RuntimeException changedOwner){/* Report without resurrecting a stale owner. */}
                         if(Thread.currentThread().isInterrupted())throw error;
                     }
+                    int completed=current;Platform.runLater(()->{if(!disposed&&g==generation)postingProgress.setProgress((double)completed/total);});
                 }
                 return new Preparation(List.copyOf(result),List.copyOf(failures));
             });
@@ -274,7 +285,7 @@ public final class ListingCopyPane extends BorderPane {
                 else{
                     jobs.getItems().setAll(result.jobs());
                     for(String failure:result.failures()){var label=new Label(failure);label.setWrapText(true);label.getStyleClass().add("text-danger");batchErrors.getChildren().add(label);}
-                    jobs.getSelectionModel().selectFirst();setStatus(result.failures().isEmpty()?"preview_ready":"batch_partial",result.jobs().size()+"/"+(groups.size()*targets.size()));
+                    jobs.getSelectionModel().selectFirst();setStatus(result.failures().isEmpty()?"posted":"batch_partial",result.jobs().size()+"/"+(groups.size()*targets.size()));
                 }
                 updateButtons();
             }));
@@ -285,22 +296,6 @@ public final class ListingCopyPane extends BorderPane {
         following.stop();confirm.setSelected(false);previewBox.getChildren().clear();
         if(job!=null){
             var heading=new Label(shopName(job.destinationShopId())+" · "+job.source().title()+" · "+tr("state."+job.state()));heading.setWrapText(true);previewBox.getChildren().add(heading);
-            if(job.preview()!=null){
-                previewBox.getChildren().add(new ListingCopyPreviewPane(job));
-                var raw=new TextArea(job.preview().requestJson());raw.setEditable(false);raw.setWrapText(true);raw.setPrefRowCount(4);var payload=new TitledPane(tr("payload"),raw);payload.setExpanded(false);payload.setAnimated(false);previewBox.getChildren().add(payload);
-                if(job.preview().options().fields().contains("images")){
-                    var gallery=new FlowPane(10,8);long g=generation;int index=0;
-                    for(var media:job.source().media().stream().limit(20).toList()){
-                        var image=new javafx.scene.image.ImageView();image.setFitWidth(96);image.setFitHeight(128);image.setPreserveRatio(true);
-                        var tile=new VBox(4,new Label(index++==0?tr("primary_image"):Integer.toString(index)),image);gallery.getChildren().add(tile);
-                        thumbnails.load(media.uri(),96,128).whenComplete((value,error)->Platform.runLater(()->{if(!disposed&&g==generation&&selectedJob!=null&&selectedJob.id().equals(job.id())&&error==null)image.setImage(value);}));
-                    }
-                    previewBox.getChildren().add(gallery);
-                }
-                for(var document:job.preview().options().documents()){
-                    var label=new Label(document.type()+" · "+document.number()+" · "+document.validFrom()+" → "+document.validUntil()+" · "+tr(document.file()==null?"file_missing":"file_attached"));label.setWrapText(true);previewBox.getChildren().add(label);
-                }
-            }
             for(var issue:job.issues()){
                 var label=new Label(issueText(issue));label.setWrapText(true);label.getStyleClass().add(issue.blocking()?"text-danger":"text-muted");previewBox.getChildren().add(label);
                 if(issue.blocking()&&snapshot!=null&&editing!=null&&editing.getId()==job.destinationShopId()&&snapshot.key().cardId().equals(job.source().key().cardId())){
@@ -328,18 +323,15 @@ public final class ListingCopyPane extends BorderPane {
         details.setExpanded(true);loadEditor(destination);
     }
 
-    private void publish(){
-        var j=selectedJob;if(j==null||j.preview()==null||!confirm.isSelected()||!j.preview().publishable()||busy)return;var owner=available.stream().filter(s->s.getId()==j.destinationShopId()).findFirst().orElse(null);if(owner==null)return;mutate(copy(owner),j,()->service.publish(copy(owner),j.id(),j.preview().requestHash(),true));
-    }
     private void reconcile(){var j=selectedJob;if(j==null||!submitted(j.state())||busy)return;var owner=available.stream().filter(s->s.getId()==j.destinationShopId()).findFirst().orElse(null);if(owner!=null)mutate(copy(owner),j,()->service.reconcile(copy(owner),j.id()));}
     private void mutate(Shop owner,CopyJob job,Callable<CopyJob> action){long g=generation;busy=true;confirm.setSelected(false);updateButtons();setStatus("sending","");SellerMutationExecutor.submit(action).whenComplete((result,error)->Platform.runLater(()->{if(disposed||g!=generation)return;busy=false;if(error!=null){status.setText((rejected(error)?i18n.tr("runtime.queue_full"):tr("reconcile_required"))+" · "+safeCode(error));showPreview(selectedJob);}else{int index=-1;for(int i=0;i<jobs.getItems().size();i++)if(jobs.getItems().get(i).id().equals(job.id()))index=i;var brief=result.summary();if(index>=0)jobs.getItems().set(index,brief);else jobs.getItems().add(brief);jobs.getSelectionModel().select(brief);selectedJob=result;showPreview(result);setStatus("state."+result.state(),shopLabel(owner));}updateButtons();}));}
     private static boolean rejected(Throwable error){return error instanceof RejectedExecutionException||error.getCause() instanceof RejectedExecutionException;}
     private <T> void read(Shop owner,String workload,long g,Callable<T> task,Consumer<T> apply){(workload.equals("copy-shops")||workload.equals("copy-jobs")?reads.submitLocal(new ShopReadCoordinator.Key(owner.getId(),workload,Long.toString(g)),task):reads.submit(new ShopReadCoordinator.Key(owner.getId(),workload,Long.toString(g)),true,task)).whenComplete((value,error)->Platform.runLater(()->{if(disposed||g!=generation)return;if(error!=null)setStatus("read_error",safeCode(error));else apply.accept(value);updateButtons();}));}
     private void invalidatePreview(){if(loading)return;detailGeneration++;following.stop();selectedJob=null;confirm.setSelected(false);updateButtons();}
-    private void updateButtons(){sourceCard.setDisable(busy);editorShop.setDisable(busy);destinationBox.setDisable(busy);configuration.setDisable(busy||categoriesLoading||attributesLoading);details.setVisible(snapshot!=null&&editing!=null);details.setManaged(details.isVisible());configuration.setVisible(snapshot!=null&&editing!=null);configuration.setManaged(configuration.isVisible());boolean ready=selectedJob!=null&&selectedJob.state()==CopyState.AWAITING_CONFIRMATION&&selectedJob.preview()!=null&&selectedJob.preview().publishable();publish.setDisable(busy||!ready||!confirm.isSelected());reconcile.setDisable(busy||selectedJob==null||!submitted(selectedJob.state())||selectedJob.state()==CopyState.RECONCILED);editJob.setDisable(busy||selectedJob==null||submitted(selectedJob.state()));prepare.setDisable(busy||snapshot==null||editing==null||categoriesLoading||attributesLoading);choose.setDisable(shop==null||busy);}
+    private void updateButtons(){sourceCard.setDisable(busy);editorShop.setDisable(busy);destinationBox.setDisable(busy);configuration.setDisable(busy||categoriesLoading||attributesLoading);details.setVisible(snapshot!=null&&editing!=null);details.setManaged(details.isVisible());configuration.setVisible(snapshot!=null&&editing!=null);configuration.setManaged(configuration.isVisible());boolean ready=selectedJob!=null&&selectedJob.state()==CopyState.AWAITING_CONFIRMATION&&selectedJob.preview()!=null&&selectedJob.preview().publishable();publish.setDisable(busy||snapshot==null||editing==null||categoriesLoading||attributesLoading||destinations.values().stream().noneMatch(CheckBox::isSelected));reconcile.setDisable(busy||selectedJob==null||!submitted(selectedJob.state())||selectedJob.state()==CopyState.RECONCILED);editJob.setDisable(busy||selectedJob==null||submitted(selectedJob.state()));prepare.setDisable(busy||snapshot==null||editing==null||categoriesLoading||attributesLoading);choose.setDisable(shop==null||busy);}
     private void setStatus(String key,String suffix){statusKey=key;statusSuffix=suffix;status.setText(tr(key)+(suffix.isBlank()?"":" · "+suffix));}
     private void refreshInheritedSummary(){if(snapshot!=null)inheritedSummary.setText(snapshot.title()+" · "+variantControls.size()+" "+tr("source_variant")+" · "+tr("inherited_hint"));}
-    public void applyTranslations(){if(statusKey!=null)setStatus(statusKey,statusSuffix);refreshInheritedSummary();details.setText(tr("edit_details"));generalDetails.setText(tr("general_details"));variantDetails.setText(tr("variants"));attributeDetails.setText(tr("attributes"));documentDetails.setText(tr("documents"));labels.forEach((node,key)->node.setText(tr(key)));if(jobs!=null)jobs.refresh();if(selectedJob!=null)showPreview(selectedJob);}
+    public void applyTranslations(){if(statusKey!=null)setStatus(statusKey,statusSuffix);refreshInheritedSummary();details.setText(tr("edit_details"));generalDetails.setText(tr("general_details"));variantDetails.setText(tr("variants"));attributeDetails.setText(tr("attributes"));documentDetails.setText(tr("documents"));labels.forEach((node,key)->node.setText(tr(key)));publish.setText(tr("post_now"));if(jobs!=null)jobs.refresh();if(selectedJob!=null)showPreview(selectedJob);}
     public void dispose(){following.stop();disposed=true;generation++;editorGeneration++;thumbnails.close();/* Sent jobs continue on WRITES; no mutation cancellation. */}
     private Label label(String key){var l=new Label(tr(key));labels.put(l,key);return l;}private Button button(String key){var b=new Button(tr(key));labels.put(b,key);return b;}private CheckBox check(String key){var c=new CheckBox(tr(key));labels.put(c,key);return c;}private String tr(String key){return i18n.tr("copy."+key);}
     private String issueText(CopyIssue issue){String key="copy.issue."+issue.code();return i18n.tr(key,i18n.tr("copy.issue.generic"))+" · "+Objects.toString(issue.field(),"");}

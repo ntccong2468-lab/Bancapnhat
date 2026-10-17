@@ -47,11 +47,9 @@ public class ShipmentKizRepository {
 
     /** Uses native WB subject IDs, not translated names; existing seller-defined bindings survive. */
     public List<CategoryStock> refreshCategories(Shop shop) {
-        try(var c=Database.getConnection();var tx=c.createStatement()) {
-            tx.execute("BEGIN IMMEDIATE");
-            try {
+        try { return com.vncode.app.config.SqliteWriteTransaction.run(c->{
                 String owner=require(c,shop,"categories"),now=Instant.now().toString();
-                if(shop.getMarketplace()==com.vncode.app.integration.marketplace.Marketplace.OZON){var rows=refreshOzon(c,shop,owner,now);tx.execute("COMMIT");return rows;}
+                if(shop.getMarketplace()==com.vncode.app.integration.marketplace.Marketplace.OZON){return refreshOzon(c,shop,owner,now);}
                 var subjects=new LinkedHashMap<Long,String>();
                 try(var p=c.prepareStatement("SELECT subject_id,MIN(subject_name) FROM wb_product_cards WHERE shop_id=? AND subject_id>0 AND trim(COALESCE(subject_name,''))<>'' GROUP BY subject_id ORDER BY subject_id")) {
                     p.setInt(1,shop.getId());try(var r=p.executeQuery()){while(r.next())subjects.put(r.getLong(1),r.getString(2));}
@@ -89,8 +87,26 @@ public class ShipmentKizRepository {
                     """)) {
                     p.setInt(1,shop.getId());p.setString(2,owner);try(var r=p.executeQuery()){while(r.next())rows.add(new CategoryStock(r.getString(1),r.getString(2),r.getInt(3),r.getInt(4),r.getInt(5),r.getInt(6)));}
                 }
-                tx.execute("COMMIT");return List.copyOf(rows);
-            }catch(Exception failure){tx.execute("ROLLBACK");throw failure;}
+                return List.copyOf(rows);
+        });}catch(SQLException failure){throw storage(failure);}
+    }
+    /** Lightweight read for live shipment totals; never takes a write transaction. */
+    public List<CategoryStock> stocks(Shop shop){
+        try(var c=Database.getConnection()){
+            String owner=require(c,shop,"categories");var rows=new ArrayList<CategoryStock>();
+            try(var p=c.prepareStatement("""
+                SELECT category.id,category.name,
+                  (SELECT count(*) FROM kiz_stock_product_categories product WHERE product.category_id=category.id AND product.shop_id=category.shop_id AND product.owner=category.owner),
+                  COALESCE(sum(k.status='AVAILABLE'),0),COALESCE(sum(k.status='RESERVED'),0),COALESCE(sum(k.status='CONSUMED'),0)
+                FROM kiz_stock_categories category
+                LEFT JOIN kiz_stock_classifications classified ON classified.category_id=category.id
+                LEFT JOIN kiz_import_entries entry ON entry.code_id=classified.code_id
+                LEFT JOIN kiz_import_batches batch ON batch.id=entry.batch_id AND batch.owner=category.owner AND batch.shop_id=category.shop_id
+                LEFT JOIN kiz_codes k ON k.id=entry.code_id AND k.shop_id=category.shop_id AND batch.id IS NOT NULL
+                WHERE category.shop_id=? AND category.owner=? GROUP BY category.id ORDER BY category.name,category.id
+                """)){
+                p.setInt(1,shop.getId());p.setString(2,owner);try(var r=p.executeQuery()){while(r.next())rows.add(new CategoryStock(r.getString(1),r.getString(2),r.getInt(3),r.getInt(4),r.getInt(5),r.getInt(6)));}
+            }return List.copyOf(rows);
         }catch(SQLException failure){throw storage(failure);}
     }
     private static List<CategoryStock> refreshOzon(Connection c,Shop shop,String owner,String now)throws SQLException {
