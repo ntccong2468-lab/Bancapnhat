@@ -21,7 +21,7 @@ class ZnackCategoryResolverTest {
   try(var input=getClass().getResourceAsStream("/catalog-active-categories-6112.json")){
    var array=com.google.gson.JsonParser.parseString(new String(input.readAllBytes(),java.nio.charset.StandardCharsets.UTF_8)).getAsJsonArray();var categories=new ArrayList<Category>();
    for(var row:array){var object=row.getAsJsonObject();categories.add(new Category(object.get("id").getAsLong(),object.get("name").getAsString()));}
-   assertEquals(30696,ZnackCategoryResolver.resolve("Костюмы спортивные","Спортивный костюм",categories).orElseThrow().id());
+   assertEquals(30733,ZnackCategoryResolver.resolve("Костюмы спортивные","Спортивный костюм",categories).orElseThrow().id());
    assertEquals(30683,ZnackCategoryResolver.resolve("Брюки","Брюки спортивные",categories).orElseThrow().id());
    assertEquals(30683,ZnackCategoryResolver.resolve("Брюки спортивные","Брюки мужские",categories).orElseThrow().id());
    assertEquals(30685,ZnackCategoryResolver.resolve("Юбки","Юбка",categories).orElseThrow().id());

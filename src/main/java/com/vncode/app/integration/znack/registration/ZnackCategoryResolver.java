@@ -23,7 +23,8 @@ public final class ZnackCategoryResolver {
             if(!source.isBlank()&&source.equals(name))score=1000;
             else if(source.length()>4&&name.contains(source))score=800;
             else {
-                var tokens=tokens(source);var other=tokens(name);tokens.retainAll(other);score=tokens.size()*20;
+                var tokens=tokens(source);var other=tokens(name);
+                boolean equivalent=!tokens.isEmpty()&&tokens.equals(other);tokens.retainAll(other);score=equivalent?950:tokens.size()*20;
                 var overlap=new HashSet<>(family);overlap.retainAll(target);score+=overlap.size()*100;
             }
             // Prefer the primary garment over a secondary mention, e.g. trousers versus skirt-trousers.
