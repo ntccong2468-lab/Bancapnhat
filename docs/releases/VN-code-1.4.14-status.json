@@ -4,7 +4,7 @@
   "complete": false,
   "developmentComplete": true,
   "officialReleasePublished": false,
-  "phase": "final-atomic-sync-regression-passed-native-windows-running",
+  "phase": "native-windows-passed-release-draft-ready-awaiting-live-acceptance",
   "licenseIntegration": {
     "implemented": true,
     "productionReady": false,
@@ -61,7 +61,7 @@
         }
       ]
     },
-    "windowsNativeBuildThisVersion": false,
+    "windowsNativeBuildThisVersion": true,
     "liveMarketplaceRead": true,
     "liveWbSameValueWriteReadback": "RECONCILED",
     "liveOzonSameValueWrite": "acknowledged_readback_pending",
@@ -111,11 +111,18 @@
       "ozonProducts": 175
     },
     "nativeWindowsRun": {
-      "source": "788267089291ad2adff023cfd60a4575147d12dd",
-      "run": 39007018087,
-      "url": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/39007018087",
-      "result": "failure",
-      "failure": "SyncRunRepositoryConcurrencyTest timeout; assertions and timeout retained in fix"
+      "source": "6ba183cd5fb4420e37df13035581fee08c2d2155",
+      "run": 39012628654,
+      "url": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/39012628654",
+      "result": "success",
+      "java": {
+        "tests": 1664,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 2,
+        "passed": 1662
+      },
+      "releaseEvidence": "docs/validation/2026-10-17-vncode-1414-windows-release-checks.json"
     },
     "acceptanceReport": "docs/validation/2026-10-17-liquid-glass-ozon-sku.json",
     "nodeRegression": {
@@ -181,7 +188,7 @@
       "ownerChecksPassed": 42,
       "fullRegression": "passed",
       "nativeWindowsRun": 39012628654,
-      "nativeWindowsResult": "in_progress",
+      "nativeWindowsResult": "success",
       "liveOzonFbsPostings": 244,
       "liveOzonFbsPages": 3,
       "liveWbFbs": "HTTP_401_waiting_for_environment_token",
@@ -216,15 +223,41 @@
           "skipped": 1
         }
       ]
+    },
+    "priorFailedNativeWindowsRun": {
+      "source": "788267089291ad2adff023cfd60a4575147d12dd",
+      "run": 39007018087,
+      "url": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/39007018087",
+      "result": "failure",
+      "failure": "SyncRunRepositoryConcurrencyTest timeout; assertions and timeout retained in fix"
+    },
+    "nativeWindowsUiLayouts": {
+      "layouts": 288,
+      "clippedActions": 0,
+      "source": "6ba183cd5fb4420e37df13035581fee08c2d2155"
     }
   },
   "publication": {
     "published": false,
     "latestChanged": false,
     "currentSellerLatest": "1.4.13",
-    "ownerRequestedPublication": true
+    "ownerRequestedPublication": true,
+    "draftReleaseId": 415658561,
+    "uploadInProgress": false,
+    "draftUrl": "https://github.com/ntccong2468-lab/Bancapnhat/releases/tag/untagged-24b8ad394edf6e9a8fcb",
+    "draft": true,
+    "uploadWorkflowRunId": 39014660248,
+    "uploadWorkflowResult": "success",
+    "assetCount": 22,
+    "allAssetSizesAndDigestsMatch": true,
+    "ownerGitHubLoginRequired": true,
+    "blockers": [
+      "WB FBS/FBO live API returns HTTP 401 pending owner environment token update",
+      "Exact-version production license acceptance required by existing automated publisher remains outstanding"
+    ]
   },
   "inheritedImplementation": "docs/releases/VN-code-1.4.13-status.json",
-  "sourceCommit": "788267089291ad2adff023cfd60a4575147d12dd",
-  "applicationSource": "6ba183cd5fb4420e37df13035581fee08c2d2155"
+  "sourceCommit": "6ba183cd5fb4420e37df13035581fee08c2d2155",
+  "applicationSource": "6ba183cd5fb4420e37df13035581fee08c2d2155",
+  "previousApplicationSource": "788267089291ad2adff023cfd60a4575147d12dd"
 }

@@ -3,7 +3,7 @@
   "baseVersion": "1.4.13",
   "reviewedBaseSource": "2554b7a46d6d39a74dfbc7adbbafd40d9ed3f27f",
   "sourceCommit": "6ba183cd5fb4420e37df13035581fee08c2d2155",
-  "phase": "final-atomic-sync-regression-passed-native-windows-running",
+  "phase": "native-windows-passed-release-draft-ready-awaiting-live-acceptance",
   "latestPublished": "1.4.13",
   "officialReleasePublished": false,
   "remoteMutationsThisAudit": 0,
@@ -263,6 +263,12 @@
       "hasNextCursor": true,
       "total": 175,
       "remoteMutations": 0
+    },
+    "wbAuthFinalProbe": {
+      "api": "WB FBS new orders",
+      "remoteMutations": 0,
+      "at": "2026-10-17T07:38:49.494511+00:00",
+      "status": 401
     }
   },
   "wbcode": {
@@ -285,7 +291,7 @@
     "timeoutSecondsUnchanged": 30,
     "newRun": 39012628654,
     "newSource": "6ba183cd5fb4420e37df13035581fee08c2d2155",
-    "newResult": "in_progress",
+    "newResult": "success",
     "url": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/39012628654",
     "supersededRuns": [
       {
@@ -309,7 +315,18 @@
         "reason": "Superseded after reproducing WB status and Znack metadata partial-commit defects",
         "installerAccepted": false
       }
-    ]
+    ],
+    "java": {
+      "tests": 1664,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 2,
+      "passed": 1662
+    },
+    "concurrentReportSuiteSeconds": 3.147,
+    "logSha256": "af10e1a816ebbb7080255143ae3e7fd69c851418ad18b6dfa37a7d5e485000cf",
+    "completedAt": "2026-10-17T07:37:46Z",
+    "releaseEvidence": "docs/validation/2026-10-17-vncode-1414-windows-release-checks.json"
   },
   "limitations": [
     "WB FBS and FBO live endpoints returned HTTP 401; owner will update environment Secret",
@@ -526,5 +543,23 @@
     ],
     "logSha256": "cf23d3cbab045d393ef4038353dab10fd00e34ac6aba4fa920a37c139930927a",
     "scope": "Synthetic local database and actual repository entry points, JDBC commit listener; no seller API calls"
+  },
+  "publication": {
+    "draftReleaseId": 415658561,
+    "published": false,
+    "currentSellerLatest": "1.4.13",
+    "uploadInProgress": false,
+    "draftUrl": "https://github.com/ntccong2468-lab/Bancapnhat/releases/tag/untagged-24b8ad394edf6e9a8fcb",
+    "draft": true,
+    "latestChanged": false,
+    "uploadWorkflowRunId": 39014660248,
+    "uploadWorkflowResult": "success",
+    "assetCount": 22,
+    "allAssetSizesAndDigestsMatch": true,
+    "ownerGitHubLoginRequired": true,
+    "blockers": [
+      "WB FBS/FBO live API returns HTTP 401 pending owner environment token update",
+      "Exact-version production license acceptance required by existing automated publisher remains outstanding"
+    ]
   }
 }

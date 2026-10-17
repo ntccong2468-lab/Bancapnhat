@@ -1,12 +1,12 @@
 # Kiểm tra toàn bộ luồng đồng bộ trước VNCode 1.4.14
 
-Trạng thái: đang hoàn tất kiểm chứng trên đúng mã nguồn sửa lỗi; chưa phát hành Latest. Các số liệu API dưới đây là lượt đọc thật ngày 17/10/2026, không phải chứng minh mọi thao tác ghi, ký hay mua mã đã được nghiệm thu.
+Trạng thái: mã nguồn cuối đã vượt kiểm thử đầy đủ trên Linux và Windows; bản nháp 1.4.14 đã có đủ bộ cài và 22 asset được đối chiếu kích thước/SHA-256; chưa phát hành Latest. Các số liệu API dưới đây là lượt đọc thật ngày 17/10/2026, không phải chứng minh mọi thao tác ghi, ký hay mua mã đã được nghiệm thu.
 
 ## Lỗi được tái hiện và sửa
 
 | Luồng | Lỗi / thay đổi |
 | --- | --- |
-| SQLite / báo cáo Znack | Run Windows `39007018087` thất bại ở kiểm thử 10 shop ghi đồng thời. Thêm hàng đợi ghi công bằng, tái sử dụng connection khi có caller chờ; giữ timeout kiểm thử, rollback và độ bền dữ liệu. Chờ chạy lại Windows. |
+| SQLite / báo cáo Znack | Run Windows `39007018087` thất bại ở kiểm thử 10 shop ghi đồng thời. Thêm hàng đợi ghi công bằng, tái sử dụng connection khi có caller chờ; giữ timeout kiểm thử, rollback và độ bền dữ liệu. Lượt Windows cuối đã đạt: 4 bài kiểm tra ghi đồng thời, suite 3,147 giây, giữ timeout kiểm thử 30 giây. |
 | Sản phẩm WB | Cả đồng bộ tăng dần và đọc từ đầu đều kiểm tra đủ cards/cursor, chặn cursor lặp, chỉ ghi mốc thành công sau khi kết thúc trang cuối. |
 | Sản phẩm Ozon | Phản hồi thiếu danh sách/detail/attributes hoặc sai offer_id không được biến thành sản phẩm rỗng hay snapshot thành công. Kiểm tra đúng credentials trước khi lưu. |
 | FBS WB tự động và thủ công | Dùng chung kiểm tra danh sách, ID, trạng thái và thành phần shipment. Không xóa liên kết hoặc ghi số lượng về 0 vì HTTP 200 nhưng thiếu dữ liệu; không nâng mốc lịch sử khi trang sau thất bại. |
@@ -19,7 +19,7 @@ Trạng thái: đang hoàn tất kiểm chứng trên đúng mã nguồn sửa l
 
 Nhóm đầu có 6 lỗi; nhóm “Làm mới WB” có 7/7 bài thất bại. Sau sửa, 145 bài tập trung, 42 bài kiểm tra owner và 11 bài điều phối đã đạt. Source `e2b6471` đạt 1.660 bài trên cả Linux và Windows, gồm bài SQLite đồng thời từng thất bại (suite Windows 5,230 giây). Bản này tiếp tục được thay sau khi tái hiện thêm lỗi ghi dở giữa batch; bộ cài của nó không dùng để phát hành.
 
-Source cuối hiện tại là `6ba183cd5fb4420e37df13035581fee08c2d2155`, bổ sung giao dịch batch trạng thái WB và metadata Catalog. Nhóm 116 bài liên quan đã đạt, gồm rollback, giữ giấy tờ cũ khi Catalog không cung cấp metadata và từ chối metadata của chứng thư cũ. Đo commit dùng database giả lập và các repository thật, không gọi API seller. Bộ `verify` đầy đủ đạt **1.664 bài, 0 failures, 0 errors, 2 platform skips**, mất 11 phút 39 giây. Windows đang chạy lại trên source này. Công cụ phát hành và Portal từng đạt 60/60 mỗi bộ; CI tiếp tục kiểm tra lại. Chi tiết cuối được ghi trong JSON đi kèm.
+Source cuối hiện tại là `6ba183cd5fb4420e37df13035581fee08c2d2155`, bổ sung giao dịch batch trạng thái WB và metadata Catalog. Nhóm 116 bài liên quan đã đạt, gồm rollback, giữ giấy tờ cũ khi Catalog không cung cấp metadata và từ chối metadata của chứng thư cũ. Đo commit dùng database giả lập và các repository thật, không gọi API seller. Bộ `verify` đầy đủ đạt **1.664 bài, 0 failures, 0 errors, 2 platform skips**, mất 11 phút 39 giây. Windows `39012628654` trên đúng source này đã thành công: 1.662 bài đạt, 2 platform skips, 0 failures/errors; công cụ phát hành và Portal đạt 60/60 mỗi bộ. Bộ cài đã vượt kiểm tra native, 288 bố cục không cắt nút và nâng cấp từ 1.4.13 giữ dữ liệu. SHA-256 EXE: `ec9b0e71fef0edd20de106aeedec6f5ed6fa27de8df36d5ddbeedbaee2215385`. Xem [bằng chứng Windows](2026-10-17-vncode-1414-windows-release-checks.json). Chi tiết cuối được ghi trong JSON đi kèm.
 
 ## Phạm vi rà soát
 
@@ -48,4 +48,12 @@ Xem [thiết kế ưu tiên FBS](../architecture/2026-10-17-fbs-priority-sync.md
 
 ## Điều kiện phát hành
 
-Phải vượt kiểm thử toàn bộ và native Windows trên đúng source, đặc biệt bài ghi SQLite đồng thời từng thất bại. Token WB hiện chưa kiểm tra được FBS thật; chủ ứng dụng đã báo sẽ cập nhật. Không đánh dấu nghiệm thu license sản xuất hoặc ký CryptoPro chỉ bằng bài kiểm thử giả lập. Publisher tự động vẫn giữ nguyên yêu cầu bằng chứng license; việc phát hành phải ghi rõ phạm vi đã kiểm tra và phần chưa nghiệm thu.
+Kiểm thử toàn bộ và native Windows trên đúng source đã đạt, gồm bài ghi SQLite đồng thời từng thất bại. Lần kiểm tra cuối lúc 07:38 UTC ngày 17/10 vẫn nhận HTTP 401 từ API đơn mới WB; chủ ứng dụng đã báo sẽ cập nhật. Không đánh dấu nghiệm thu license sản xuất hoặc ký CryptoPro chỉ bằng bài kiểm thử giả lập. Publisher tự động vẫn giữ nguyên yêu cầu bằng chứng license; việc phát hành phải ghi rõ phạm vi đã kiểm tra và phần chưa nghiệm thu.
+
+## Bộ cài và bản nháp đã chuẩn bị
+
+- Windows build: [39012628654](https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/39012628654), source `6ba183cd5fb4420e37df13035581fee08c2d2155`.
+- Upload và kiểm tra đủ asset: [39014660248](https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/39014660248), thành công.
+- [Bản nháp 1.4.14](https://github.com/ntccong2468-lab/Bancapnhat/releases/tag/untagged-24b8ad394edf6e9a8fcb), release ID `415658561`, cần đăng nhập tài khoản GitHub có quyền vào repository; đây chưa phải link tải công khai cho seller.
+- `VN-code-1.4.14-Windows-x64.exe`: 145.456.128 byte; SHA-256 `ec9b0e71fef0edd20de106aeedec6f5ed6fa27de8df36d5ddbeedbaee2215385`. Đủ 22 asset, gồm bộ cài, checksum, ghi chú, các bằng chứng Windows và Portal 0.3.6. Tất cả digest/kích thước khớp artifact của lượt build đã đạt.
+- Latest của seller vẫn là **1.4.13**. Chưa vượt qua kiểm tra đơn WB thật do HTTP 401 và chưa có bằng chứng license sản xuất theo yêu cầu publisher hiện hữu. Không đổi các cờ nghiệm thu hoặc giả lập bằng chứng để xuất bản.
