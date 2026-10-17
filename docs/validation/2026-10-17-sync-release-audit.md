@@ -19,7 +19,7 @@ Trạng thái: đang hoàn tất kiểm chứng trên đúng mã nguồn sửa l
 
 Nhóm đầu có 6 lỗi; nhóm “Làm mới WB” có 7/7 bài thất bại. Sau sửa, 145 bài tập trung, 42 bài kiểm tra owner và 11 bài điều phối đã đạt. Source `e2b6471` đạt 1.660 bài trên cả Linux và Windows, gồm bài SQLite đồng thời từng thất bại (suite Windows 5,230 giây). Bản này tiếp tục được thay sau khi tái hiện thêm lỗi ghi dở giữa batch; bộ cài của nó không dùng để phát hành.
 
-Source cuối hiện tại là `6ba183cd5fb4420e37df13035581fee08c2d2155`, bổ sung giao dịch batch trạng thái WB và metadata Catalog. Nhóm 116 bài liên quan đã đạt, gồm rollback, giữ giấy tờ cũ khi Catalog không cung cấp metadata và từ chối metadata của chứng thư cũ. Đo commit dùng database giả lập và các repository thật, không gọi API seller. Bộ `verify` đầy đủ và Windows đang chạy lại trên source này. Công cụ phát hành và Portal từng đạt 60/60 mỗi bộ; CI tiếp tục kiểm tra lại. Chi tiết cuối được ghi trong JSON đi kèm.
+Source cuối hiện tại là `6ba183cd5fb4420e37df13035581fee08c2d2155`, bổ sung giao dịch batch trạng thái WB và metadata Catalog. Nhóm 116 bài liên quan đã đạt, gồm rollback, giữ giấy tờ cũ khi Catalog không cung cấp metadata và từ chối metadata của chứng thư cũ. Đo commit dùng database giả lập và các repository thật, không gọi API seller. Bộ `verify` đầy đủ đạt **1.664 bài, 0 failures, 0 errors, 2 platform skips**, mất 11 phút 39 giây. Windows đang chạy lại trên source này. Công cụ phát hành và Portal từng đạt 60/60 mỗi bộ; CI tiếp tục kiểm tra lại. Chi tiết cuối được ghi trong JSON đi kèm.
 
 ## Phạm vi rà soát
 

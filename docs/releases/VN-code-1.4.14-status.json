@@ -4,7 +4,7 @@
   "complete": false,
   "developmentComplete": true,
   "officialReleasePublished": false,
-  "phase": "atomic-sync-batch-fix-final-verification-running",
+  "phase": "final-atomic-sync-regression-passed-native-windows-running",
   "licenseIntegration": {
     "implemented": true,
     "productionReady": false,
@@ -41,8 +41,25 @@
   ],
   "validation": {
     "fullJavaRegression": {
+      "tests": 1664,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 2,
       "source": "6ba183cd5fb4420e37df13035581fee08c2d2155",
-      "result": "running"
+      "result": "passed",
+      "logSha256": "6847449bd0f504d64fab07c12728d98c053c338bab46af4ba471f9828388dbc7",
+      "elapsed": "11:39",
+      "finishedAt": "2026-10-17T07:21:40Z",
+      "platformSkips": [
+        {
+          "suite": "com.vncode.app.features.gs1.Gs1PrefixTemplateStoreTest",
+          "skipped": 1
+        },
+        {
+          "suite": "com.vncode.app.shared.WindowsSecretProtectorTest",
+          "skipped": 1
+        }
+      ]
     },
     "windowsNativeBuildThisVersion": false,
     "liveMarketplaceRead": true,
@@ -162,7 +179,7 @@
       "source": "6ba183cd5fb4420e37df13035581fee08c2d2155",
       "focusedPassed": 145,
       "ownerChecksPassed": 42,
-      "fullRegression": "running",
+      "fullRegression": "passed",
       "nativeWindowsRun": 39012628654,
       "nativeWindowsResult": "in_progress",
       "liveOzonFbsPostings": 244,
@@ -171,7 +188,7 @@
       "remoteMutations": 0,
       "visibleFbsSchedulerChecks": 11,
       "priorNativeRunSuperseded": 39010074435,
-      "fullRegressionTests": null,
+      "fullRegressionTests": 1664,
       "batchFocusedPassed": 116,
       "priorWindowsJavaPassed": 1660,
       "wbBatchCommitsBefore": 1000,

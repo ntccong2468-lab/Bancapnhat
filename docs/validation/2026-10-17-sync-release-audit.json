@@ -3,7 +3,7 @@
   "baseVersion": "1.4.13",
   "reviewedBaseSource": "2554b7a46d6d39a74dfbc7adbbafd40d9ed3f27f",
   "sourceCommit": "6ba183cd5fb4420e37df13035581fee08c2d2155",
-  "phase": "atomic-batch-fixes-passed-final-full-and-windows-running",
+  "phase": "final-atomic-sync-regression-passed-native-windows-running",
   "latestPublished": "1.4.13",
   "officialReleasePublished": false,
   "remoteMutationsThisAudit": 0,
@@ -102,8 +102,25 @@
       ]
     },
     "finalFullRegression": {
+      "tests": 1664,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 2,
       "source": "6ba183cd5fb4420e37df13035581fee08c2d2155",
-      "result": "running"
+      "result": "passed",
+      "logSha256": "6847449bd0f504d64fab07c12728d98c053c338bab46af4ba471f9828388dbc7",
+      "elapsed": "11:39",
+      "finishedAt": "2026-10-17T07:21:40Z",
+      "platformSkips": [
+        {
+          "suite": "com.vncode.app.features.gs1.Gs1PrefixTemplateStoreTest",
+          "skipped": 1
+        },
+        {
+          "suite": "com.vncode.app.shared.WindowsSecretProtectorTest",
+          "skipped": 1
+        }
+      ]
     },
     "wbStatusBatchBefore": {
       "summary": {
