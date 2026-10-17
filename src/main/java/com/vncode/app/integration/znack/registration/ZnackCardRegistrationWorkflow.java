@@ -341,6 +341,7 @@ public final class ZnackCardRegistrationWorkflow {
         String stored = registrations.payload(shop.getId(), sku.chrtId());
         boolean rebuildPayload = gtin == null || gtin.isBlank() || (sku.status() == Status.ERROR&&!CatalogFeedback.interrupted(sku.errorMessage()))
                 || sku.status() == Status.GTIN_GENERATED || feedId == null || feedId.isBlank() || stored.isBlank();
+        if(sku.status()==Status.READY_TO_SUBMIT&&!stored.isBlank())rebuildPayload=false;
         if (rebuildPayload) {
             draft=draft.withProductCategory(sku.subjectName());
             draft = withSchemaTypes(draft, catalog.requiredAttributes(draft.categoryId(), token), sku.wbSize());
@@ -368,9 +369,11 @@ public final class ZnackCardRegistrationWorkflow {
         } else {
             if (rebuildPayload) {
                 payload = ZnackNationalCatalogService.buildPayload(gtin, draft, imageUrl);
-                registrations.saveGenerated(shop.getId(), sku, gtin, draft.tnved(), draft.categoryId(),
-                        draft.goodName(), payload.toString());
-                notify(listener, Status.GTIN_GENERATED, gtin);
+                // A pending feed retains its original request until the server confirms rejection.
+                if(feedId==null||feedId.isBlank()){
+                    registrations.saveGenerated(shop.getId(), sku, gtin, draft.tnved(), draft.categoryId(),draft.goodName(), payload.toString());
+                    notify(listener, Status.GTIN_GENERATED, gtin);
+                }
             } else {
                 payload = JsonParser.parseString(stored).getAsJsonObject();
             }
@@ -411,8 +414,8 @@ public final class ZnackCardRegistrationWorkflow {
                     if(removeImage){retriedWithoutImage=true;payload.remove("good_images");}
                     if(packing!=null){retriedPacking=true;draft=draft.withKit(packing);if(packing)payload.addProperty("is_kit",true);else payload.remove("is_kit");}
                     retriedRejectedFeed=true;
-                    registrations.saveGenerated(shop.getId(), sku, gtin, draft.tnved(), draft.categoryId(),
-                            draft.goodName(), payload.toString());
+                    if(!registrations.prepareRejectedRetry(shop,sku,gtin,feedId,goodId,draft.tnved(),draft.categoryId(),draft.goodName(),payload.toString(),CatalogFeedback.rejection(progress)))throw new IllegalStateException("REGISTRATION_CHANGED");
+                    goodId=null;
                     update(shop,sku,Status.FEED_SUBMITTING,null,null,listener);
                     LicenseRuntime.require(Permission.GTIN);
                     guard(shop,sku);

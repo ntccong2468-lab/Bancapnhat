@@ -472,6 +472,30 @@ public class ZnackCardRegistrationRepository {
         }
     }
 
+    /** A server-confirmed rejected feed is retained before resetting its remote identity. */
+    public boolean prepareRejectedRetry(com.vncode.app.models.Shop shop,Sku sku,String gtin,String oldFeed,Long rejectedGoodId,
+            String tnved,long category,String name,String payload,String rejection){
+        if(oldFeed==null||oldFeed.isBlank()||gtin==null||gtin.isBlank()||payload.length()>2*1024*1024)return false;
+        try{return com.vncode.app.config.SqliteWriteTransaction.run(c->{
+            if(!com.vncode.app.integration.listing.ListingIdentity.fingerprint(shop).equals(com.vncode.app.integration.listing.ListingIdentity.fingerprint(c,shop.getId(),shop.getMarketplace())))throw new SecurityException("Listing owner changed");
+            try(var p=c.prepareStatement("SELECT 1 FROM znack_card_registrations WHERE shop_id=? AND chrt_id=? AND nm_id=? AND gtin=? AND feed_id=? AND status<>'PUBLISHED'")){
+                p.setInt(1,shop.getId());p.setLong(2,sku.chrtId());p.setLong(3,sku.nmId());p.setString(4,gtin);p.setString(5,oldFeed);try(var r=p.executeQuery()){if(!r.next())return false;}
+            }
+            try(var p=c.prepareStatement("SELECT 1 FROM znack_card_registration_signatures WHERE shop_id=? AND chrt_id=? AND state IN ('SENDING','RECONCILE_REQUIRED')")){
+                p.setInt(1,shop.getId());p.setLong(2,sku.chrtId());try(var r=p.executeQuery()){if(r.next())return false;}
+            }
+            String now=Instant.now().toString();
+            try(var p=c.prepareStatement("INSERT OR IGNORE INTO znack_card_registration_history SELECT shop_id,chrt_id,nm_id,gtin,COALESCE(?,good_id),feed_id,payload_json,tnved,'ERROR',?,? FROM znack_card_registrations WHERE shop_id=? AND chrt_id=?")){
+                if(rejectedGoodId==null)p.setNull(1,java.sql.Types.BIGINT);else p.setLong(1,rejectedGoodId);p.setString(2,CatalogFeedback.display(rejection));p.setString(3,now);p.setInt(4,shop.getId());p.setLong(5,sku.chrtId());p.executeUpdate();
+            }
+            try(var p=c.prepareStatement("UPDATE znack_card_registrations SET feed_id=NULL,good_id=NULL,tnved=?,category_id=?,good_name=?,payload_json=?,status='READY_TO_SUBMIT',error_message=NULL,updated_at=? WHERE shop_id=? AND chrt_id=?")){
+                p.setString(1,tnved);p.setLong(2,category);p.setString(3,name);p.setString(4,payload);p.setString(5,now);p.setInt(6,shop.getId());p.setLong(7,sku.chrtId());p.executeUpdate();
+            }
+            try(var p=c.prepareStatement("DELETE FROM znack_card_registration_signatures WHERE shop_id=? AND chrt_id=?")){p.setInt(1,shop.getId());p.setLong(2,sku.chrtId());p.executeUpdate();}
+            return true;
+        });}catch(SQLException unavailable){throw new IllegalStateException("SYNC_STORAGE",unavailable);}
+    }
+
     public void updateProgress(int shopId, long chrtId, Status status, String feedId, Long goodId,
                                String errorMessage, Boolean wbUpdated) {
         try (Connection connection = Database.getConnection();

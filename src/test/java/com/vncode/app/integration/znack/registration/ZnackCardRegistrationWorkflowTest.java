@@ -256,6 +256,22 @@ class ZnackCardRegistrationWorkflowTest {
         assertTrue(workflow.start(shop,current(),draft,null));assertEquals(Status.PUBLISHED,current().status());assertEquals(1,api.allocations.get());assertEquals(2,api.submissions.get());
         assertTrue(JsonParser.parseString(repository.payload(1,11)).getAsJsonObject().get("is_kit").getAsBoolean());assertTrue(api.lastPayload.get("is_kit").getAsBoolean());
     }
+    @Test void rejectedCardIdIsArchivedInsteadOfBlockingTheCorrectedFeedIdentity()throws Exception{
+        api.firstRejection="Карточка должна быть создана с типом Комплект";api.firstRejectedGoodId=90L;
+        assertTrue(workflow.start(shop,current(),draft,null));assertEquals(Status.PUBLISHED,current().status());assertEquals(91L,current().goodId());assertEquals(1,api.allocations.get());assertEquals(2,api.submissions.get());
+        try(var c=Database.getConnection();var s=c.createStatement();var r=s.executeQuery("SELECT good_id,payload_json FROM znack_card_registration_history")){assertTrue(r.next());assertEquals(90L,r.getLong(1));assertFalse(JsonParser.parseString(r.getString(2)).getAsJsonObject().has("is_kit"));}
+    }
+    @Test void reopeningAPreparedRetryPreservesTheReviewedServerCorrectedPayload()throws Exception{
+        try(var c=Database.getConnection();var s=c.createStatement()){s.executeUpdate("UPDATE wb_product_cards SET subject_name='Костюмы спортивные' WHERE shop_id=1");}
+        var repaired=new Draft("6112120000","6112",1,"Fixture","Fixture",draft.attributes(),Map.of(),false,true);
+        repository.saveGenerated(1,current(),"04631993764370",repaired.tnved(),1,"Fixture",ZnackNationalCatalogService.buildPayload("04631993764370",repaired,"").toString());repository.updateProgress(1,11,Status.READY_TO_SUBMIT,null,null,null,null);
+        assertTrue(workflow.resume(shop,current(),null));assertEquals(Status.PUBLISHED,current().status());assertTrue(api.lastPayload.get("is_kit").getAsBoolean());assertEquals(0,api.allocations.get());assertEquals(1,api.submissions.get());
+    }
+    @Test void rejectionDoesNotResetASignatureWhoseResultStillNeedsReadback(){
+        repository.saveGenerated(1,current(),"04631993764370","6204",1,"Fixture",ZnackNationalCatalogService.buildPayload("04631993764370",draft,"").toString());repository.updateProgress(1,11,Status.READY_TO_SIGN,"feed-existing",91L,null,false);
+        var document=new ZnackNationalCatalogService.SigningDocument(91L,new byte[]{1});repository.prepareSignature(1,11,"04631993764370",document);assertTrue(repository.claimSignatureSend(1,11,document.sha256()));repository.updateProgress(1,11,Status.ERROR,"feed-existing",91L,"temporary error",false);api.rejectExistingFeed=true;
+        assertTrue(workflow.start(shop,current(),draft,null));assertEquals(0,api.allocations.get());assertEquals(0,api.submissions.get());assertEquals("SENDING",repository.signingCheckpoint(1,11).state());assertEquals("feed-existing",current().feedId());
+    }
     @Test void observerFailuresDoNotTurnSuccessfulRemoteWorkIntoAnError() {
         assertTrue(workflow.start(shop,current(),draft,(status,detail)->{throw new IllegalStateException("fixture observer");}));
         assertEquals(Status.PUBLISHED,current().status());
@@ -464,7 +480,7 @@ class ZnackCardRegistrationWorkflowTest {
         Map<String,String> bulkGtins=new HashMap<>();
         Map<String,Long> bulkGoodIds=new HashMap<>();
         String existingFeedStatus="Rejected";
-        String firstRejection;JsonObject lastPayload;
+        String firstRejection;Long firstRejectedGoodId;JsonObject lastPayload;
         @Override public JsonElement generatedGtins(String base,String token) {
             return json(existingDraft?"{\"result\":{\"drafts\":[{\"gtin\":\"04631993764363\"}]}}":"{\"result\":{\"drafts\":[]}}");
         }
@@ -490,7 +506,7 @@ class ZnackCardRegistrationWorkflowTest {
         @Override public JsonElement nationalCatalogFeedStatus(String base,String token,String feed)throws IOException {
             if(statusReadFailure==-1)throw new java.net.SocketTimeoutException("fixture readback timeout");
             if(statusReadFailure>0)throw new ZnackApiClient.ZnackApiException("fixture",statusReadFailure,"fixture status read unavailable");
-            if(firstRejection!=null&&submissions.get()==1)return json("{\"result\":{\"status\":\"Rejected\",\"item\":[{\"gtin\":\"04631993764370\",\"status_code\":400,\"message\":\""+firstRejection+"\"}]}}");
+            if(firstRejection!=null&&submissions.get()==1)return json("{\"result\":{\"status\":\"Rejected\",\"item\":[{\"gtin\":\"04631993764370\",\"good_id\":"+firstRejectedGoodId+",\"status_code\":400,\"message\":\""+firstRejection+"\"}]}}");
             if(completedWithoutCard&&submissions.get()==1)return json("{\"result\":{\"status\":\"Done\",\"item\":[{\"gtin\":\"04631993764370\"}]}}");
             if(bulkGtins.containsKey(feed))return json("{\"result\":{\"status\":\"Signed\",\"item\":[{\"gtin\":\""+bulkGtins.get(feed)+"\",\"good_id\":"+bulkGoodIds.get(feed)+"}]}}");
             if(rejectExistingFeed && feed.equals("feed-existing")) {
