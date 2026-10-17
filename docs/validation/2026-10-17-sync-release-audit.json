@@ -2,8 +2,8 @@
   "version": "1.4.14",
   "baseVersion": "1.4.13",
   "reviewedBaseSource": "2554b7a46d6d39a74dfbc7adbbafd40d9ed3f27f",
-  "sourceCommit": "f02761bbe5b31ca025926addbdd95935b76ef743",
-  "phase": "full-regression-and-native-windows-running",
+  "sourceCommit": "e2b6471467212429b66ed095a23510cd30807ffe",
+  "phase": "visible-fbs-priority-fixed-final-validation-running",
   "latestPublished": "1.4.13",
   "officialReleasePublished": false,
   "remoteMutationsThisAudit": 0,
@@ -58,6 +58,27 @@
       "success": true,
       "logSha256": "299f9a3668e21b1e26aed9d27bcbebcb5957156e34d1eb0ba559cff51de4a65e",
       "scope": "Final owner checks; executor lane wrappers subsequently covered by full regression"
+    },
+    "visibleFbsBacklog": {
+      "before": "REPRODUCED: expected visible shop 1 FBS_QUEUE but scheduled overdue shop 3 FBS_QUEUE",
+      "after": {
+        "schedulerTests": 11,
+        "passed": 11,
+        "failed": 0
+      },
+      "method": "Compiled final SyncCoordinator and all eleven SyncCoordinatorTest methods into an isolated output directory while prior full Maven run completed; standard full-suite verification still required",
+      "logSha256": "e28ad30a1fa8b01b62348ddc1e9efbbb1397f369ddceac7532f62bf098abd142"
+    },
+    "priorFullRegression": {
+      "source": "f02761bbe5b31ca025926addbdd95935b76ef743",
+      "tests": 1659,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 2,
+      "result": "passed",
+      "logSha256": "302fb9ff27fd978a109f9dd3715365ac8f07b8c11151b946cbde008d66fbc817",
+      "elapsed": "10:01",
+      "supersededByVisibleFbsPrioritySource": "e2b6471467212429b66ed095a23510cd30807ffe"
     }
   },
   "node": {
@@ -131,27 +152,44 @@
       "finishedAt": "2026-10-17T06:20:35.182384Z"
     },
     "nativeFbs": {
-      "complete": true,
-      "remoteMutations": 0,
-      "nativeParser": "OzonJson.requirePostingPage / requirePostingDetail",
       "detailProducts": 1,
       "pages": 3,
       "postings": 244,
       "items": 245,
-      "windowsLicenseOrSigningAcceptance": false
+      "windowsLicenseOrSigningAcceptance": false,
+      "complete": true,
+      "remoteMutations": 0,
+      "nativeParser": "OzonJson.requirePostingPage / requirePostingDetail",
+      "sourceCommit": "e2b6471467212429b66ed095a23510cd30807ffe",
+      "parserClassSha256": "394d6a9f7de2876d1c913334d69a128737f2fd6f51d2aa15d6919d0c81d7d795"
     },
     "nativeMatching": {
-      "scope": "native parsers and matching over real responses; no Windows signing or production license acceptance",
-      "uniqueCandidates": 10,
-      "remoteWrites": 0,
-      "ozonProducts": 175,
-      "ambiguousCandidates": 0,
       "oldExactMatches": 0,
       "catalogStates": {
         "draft": 39,
         "published": 1237
       },
-      "catalogParsed": 1276
+      "catalogParsed": 1276,
+      "scope": "native parsers and matching over real responses; no Windows signing or production license acceptance",
+      "uniqueCandidates": 10,
+      "remoteWrites": 0,
+      "ozonProducts": 175,
+      "ambiguousCandidates": 0,
+      "sourceCommit": "e2b6471467212429b66ed095a23510cd30807ffe"
+    },
+    "wbAuthTrimProbe": {
+      "api": "WB FBS new orders",
+      "trimChanged": false,
+      "remoteMutations": 0,
+      "status": 401
+    },
+    "ozonAppPageSizeProbe": {
+      "api": "Ozon v3/product/list",
+      "limit": 500,
+      "items": 175,
+      "hasNextCursor": true,
+      "total": 175,
+      "remoteMutations": 0
     }
   },
   "wbcode": {
@@ -172,10 +210,18 @@
     "failedTest": "SyncRunRepositoryConcurrencyTest.tenShopsCanPersistConcurrentProgressAndItemsWithoutLosingHistory",
     "failureType": "TimeoutException",
     "timeoutSecondsUnchanged": 30,
-    "newRun": 39010074435,
-    "newSource": "f02761bbe5b31ca025926addbdd95935b76ef743",
+    "newRun": 39010518703,
+    "newSource": "e2b6471467212429b66ed095a23510cd30807ffe",
     "newResult": "in_progress",
-    "url": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/39010074435"
+    "url": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/39010518703",
+    "supersededRuns": [
+      {
+        "run": 39010074435,
+        "source": "f02761bbe5b31ca025926addbdd95935b76ef743",
+        "result": "cancelled",
+        "reason": "Superseded by the visible FBS overdue-backlog fix"
+      }
+    ]
   },
   "limitations": [
     "WB FBS and FBO live endpoints returned HTTP 401; owner will update environment Secret",
@@ -212,7 +258,7 @@
     },
     {
       "path": "src/main/java/com/vncode/app/features/sync/SyncCoordinator.java",
-      "sha256": "ad8d56f0f5c48efe44a65c6c67f1a5fe4672f55c0e967db6225737c02cf58469"
+      "sha256": "4bd095d6a6c4144a5b7ae1396d9c5fb2a7d49db951e7d25cd122fa93d36197f8"
     },
     {
       "path": "src/main/java/com/vncode/app/features/sync/SyncRunRepository.java",
@@ -300,7 +346,7 @@
     },
     {
       "path": "src/test/java/com/vncode/app/features/sync/SyncCoordinatorTest.java",
-      "sha256": "00c05e9f7ca2728c8aa08ed9a1eb67b9681d7792c88a411144644acbe850c028"
+      "sha256": "7b068e780e871099bfd138a13f6bc72284b8323130e1b6025018bfb9a92d5364"
     },
     {
       "path": "src/test/java/com/vncode/app/features/sync/ZnackAutoSyncServiceTest.java",

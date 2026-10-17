@@ -10,13 +10,13 @@ Trạng thái: đang hoàn tất kiểm chứng trên đúng mã nguồn sửa l
 | Sản phẩm WB | Cả đồng bộ tăng dần và đọc từ đầu đều kiểm tra đủ cards/cursor, chặn cursor lặp, chỉ ghi mốc thành công sau khi kết thúc trang cuối. |
 | Sản phẩm Ozon | Phản hồi thiếu danh sách/detail/attributes hoặc sai offer_id không được biến thành sản phẩm rỗng hay snapshot thành công. Kiểm tra đúng credentials trước khi lưu. |
 | FBS WB tự động và thủ công | Dùng chung kiểm tra danh sách, ID, trạng thái và thành phần shipment. Không xóa liên kết hoặc ghi số lượng về 0 vì HTTP 200 nhưng thiếu dữ liệu; không nâng mốc lịch sử khi trang sau thất bại. |
-| FBS đang mở | Ưu tiên đọc lại shipment đang xem trong lúc quét nền. Có worker và lượt kết nối riêng cho đồng bộ FBS; kiểm thử FBS tiếp tục polling dù Catalog/GS1 còn bận. |
+| FBS đang mở | Ưu tiên đọc lại shipment đang xem trong lúc quét nền. Có worker và lượt kết nối riêng cho đồng bộ FBS; kiểm thử FBS tiếp tục polling dù Catalog/GS1 còn bận. Sửa thêm thứ tự điều phối để backlog shop khác không chen trước lượt đơn mới đã tới hạn của shop đang mở. |
 | FBS Ozon / gán mã / đóng đơn | Kiểm tra posting đúng yêu cầu, danh sách sản phẩm và quantity nguyên dương trước khi lưu hoặc tiếp tục đóng đơn. Chặn phản hồi thuộc posting khác. |
 | FBO WB/Ozon | WB đọc tiếp sau 1.000 dòng. Ozon giữ checkpoint nếu lượt đọc có giới hạn chưa tải hết lịch sử. Bundle thiếu trường hoặc cursor lặp không được thay cache bằng dữ liệu rỗng / một phần. Chờ 429 dài trả lượt worker về điều phối. |
 | Znack → GTIN | Giữ lỗi API gốc khi ghi báo cáo cũng lỗi. Tác vụ đã xác nhận không bị báo cáo tạm dừng cũ che khuất. Giữ bước xem trước, xác nhận, đọc lại và không phát lại lệnh ghi chưa rõ kết quả. |
 | GS1 | Lỗi cấu hình vẫn hiện đúng khi ghi báo cáo thất bại. Các lượt đọc dùng chung nhận được lỗi kết thúc thay vì chờ treo; giữ trạng thái partial theo từng nguồn. |
 
-Trước sửa, nhóm kiểm thử đầu có 6 lỗi và nhóm “Làm mới WB” có 7/7 bài thất bại. Sau sửa, nhóm 145 bài tập trung đã đạt; các thay đổi kiểm tra owner cuối cùng và bộ kiểm thử đầy đủ đang được chạy tiếp. Chi tiết kết quả cuối được ghi trong JSON đi kèm.
+Trước sửa, nhóm kiểm thử đầu có 6 lỗi và nhóm “Làm mới WB” có 7/7 bài thất bại. Sau sửa, nhóm 145 bài tập trung và 42 bài kiểm tra owner đã đạt. Tái hiện thêm lỗi backlog FBS bằng scheduler thật trên dữ liệu giả lập; sau sửa cả 11 bài điều phối đạt, gồm kiểm tra các shop khác vẫn nhận lượt và cooldown không bị bỏ qua. Bộ kiểm thử đầy đủ trên source cuối và Windows đang được chạy tiếp; run Windows cũ được hủy vì đã có thay đổi ưu tiên FBS. Chi tiết kết quả cuối được ghi trong JSON đi kèm.
 
 ## Phạm vi rà soát
 
