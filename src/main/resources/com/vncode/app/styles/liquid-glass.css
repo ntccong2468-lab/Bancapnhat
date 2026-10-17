@@ -51,8 +51,8 @@
     -glass-selected: rgba(54,117,190,.20);
     -glass-canvas: linear-gradient(from 0% 0% to 100% 100%, #a6c9df 0%, #c7dce6 24%, #74a6dc 55%, #9ecbdd 79%, #b9d9e8 100%);
     -text-primary: #112b40;
-    -text-secondary: #29465e;
-    -text-muted: #34516a;
+    -text-secondary: #1c354a;
+    -text-muted: #20394e;
     -border-color: -glass-line;
     -border-color-hover: #3a639d;
     -accent: #1856a0;

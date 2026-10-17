@@ -39,6 +39,9 @@ class ThemeServiceTest {
     var fill=(Color)card.getBackground().getFills().getFirst().getFill();var blended=over(fill,background);
     assertTrue(contrast((Color)label.getTextFill(),blended)>=7,"Primary text contrast: "+theme+" "+amount);
     assertTrue(contrast((Color)muted.getTextFill(),blended)>=4.5,"Secondary text contrast: "+theme+" "+amount);
+    var strongestCanvas=theme==ThemeService.Theme.DARK?Color.web("#1b517c"):Color.web("#74a6dc");
+    assertTrue(contrast((Color)label.getTextFill(),strongestCanvas)>=4.5,"Primary text directly on canvas");
+    assertTrue(contrast((Color)muted.getTextFill(),strongestCanvas)>=4.5,"Secondary text directly on canvas");
     for(var stop:((javafx.scene.paint.LinearGradient)button.getBackground().getFills().getFirst().getFill()).getStops())assertTrue(contrast((Color)button.getTextFill(),stop.getColor())>=4.5,"Action text contrast");
     var box=(Region)selected.lookup(".box");assertTrue(contrast(Color.WHITE,(Color)box.getBackground().getFills().getFirst().getFill())>=4.5,"Selected checkbox must remain visible");
     assertTrue(root.getStyle().contains("-fx-padding:24"));
