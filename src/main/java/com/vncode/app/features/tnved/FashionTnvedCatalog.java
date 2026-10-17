@@ -15,14 +15,19 @@ public final class FashionTnvedCatalog {
     public List<Entry> entries(){return Loaded.ITEMS;}
     public List<Entry> search(String query,Set<String> categories,String gender,String material,String fabric){
         String text=normalize(query);
+        String fiber=material==null?"":switch(material){
+            case "Полиэстер","Полиамид","Акрил" -> "Синтетика";
+            case "Вискоза" -> "Искусственные нити";
+            default -> material;
+        };
         return entries().stream().filter(e->text.isBlank()||normalize(e.code()+" "+e.name()+" "+String.join(" ",e.categories())).contains(text))
                 .filter(e->categories.isEmpty()||e.categories().stream().anyMatch(categories::contains))
                 .filter(e->gender==null||gender.isBlank()||e.gender().equals(gender)||e.gender().equals("Унисекс"))
-                .filter(e->material==null||material.isBlank()||e.materials().contains(material)||(Set.of("Синтетика","Искусственные нити").contains(material)&&e.materials().contains("Химические нити")))
+                .filter(e->fiber.isBlank()||e.materials().contains(fiber)||(Set.of("Синтетика","Искусственные нити").contains(fiber)&&e.materials().contains("Химические нити")))
                 .filter(e->fabric==null||fabric.isBlank()||e.fabric().equals(fabric)).toList();
     }
     public List<String> categories(){return entries().stream().flatMap(e->e.categories().stream()).distinct().sorted().toList();}
-    public List<String> materials(){return entries().stream().flatMap(e->e.materials().stream()).distinct().sorted().toList();}
+    public List<String> materials(){return java.util.stream.Stream.concat(entries().stream().flatMap(e->e.materials().stream()),List.of("Полиэстер","Вискоза","Полиамид","Акрил").stream()).distinct().sorted().toList();}
     public List<String> genders(){return entries().stream().map(Entry::gender).distinct().sorted().toList();}
     public List<String> fabrics(){return entries().stream().map(Entry::fabric).filter(v->!v.isBlank()).distinct().sorted().toList();}
     public static String normalize(String s){return java.text.Normalizer.normalize(Objects.toString(s,""),java.text.Normalizer.Form.NFKC).toLowerCase(Locale.ROOT).replace('ё','е').strip();}

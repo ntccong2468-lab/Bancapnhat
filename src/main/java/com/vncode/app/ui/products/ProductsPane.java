@@ -26,6 +26,25 @@ public final class ProductsPane extends BorderPane {
     private final ProductSelection selection=new ProductSelection();
     private final I18nService i18n=I18nService.getInstance();
     private final ListView<ProductRow> rows=new ListView<>();
+    private final StackPane listing=new StackPane(rows);
+    private final Map<String,ProductBulkEditPane> backgroundEdits=new HashMap<>();
+    private ProductBulkEditPane currentEdit;
+    private HBox progressPill;
+    private javafx.beans.value.ChangeListener<Boolean> editListener;
+    void trackBulkEdit(ProductBulkEditPane editor){
+        backgroundEdits.put(shopScope,editor);installProgress(editor);
+    }
+    private void installProgress(ProductBulkEditPane editor){
+        if(currentEdit!=null&&editListener!=null)currentEdit.backgroundRunning().removeListener(editListener);
+        if(progressPill!=null){for(var node:progressPill.getChildren())if(node instanceof Label label)label.textProperty().unbind();listing.getChildren().remove(progressPill);}
+        currentEdit=editor;if(editor==null){updateButtons();return;}
+        var text=new Label();text.textProperty().bind(editor.progressText());text.setWrapText(true);text.setMinWidth(0);text.maxWidthProperty().bind(javafx.beans.binding.Bindings.max(160,listing.widthProperty().subtract(160)));
+        var spinner=new ProgressIndicator();spinner.setMaxSize(20,20);spinner.visibleProperty().bind(editor.backgroundRunning());spinner.managedProperty().bind(spinner.visibleProperty());
+        var details=new Button(tr("products.details"));details.setOnAction(e->editor.showBackgroundDetails());
+        progressPill=new HBox(10,spinner,text,details);progressPill.setId("productBulkProgressPill");progressPill.getStyleClass().add("task-status-pill");progressPill.setAlignment(javafx.geometry.Pos.CENTER);progressPill.setMaxSize(Region.USE_PREF_SIZE,Region.USE_PREF_SIZE);
+        StackPane.setAlignment(progressPill,javafx.geometry.Pos.BOTTOM_CENTER);StackPane.setMargin(progressPill,new Insets(12));listing.getChildren().add(progressPill);
+        editListener=(o,old,value)->updateButtons();editor.backgroundRunning().addListener(editListener);updateButtons();
+    }
     private final TextField search=new TextField();
     private final ComboBox<String> category=new ComboBox<>();
     private final ComboBox<DocumentState> document=new ComboBox<>();
@@ -69,7 +88,7 @@ public final class ProductsPane extends BorderPane {
             var chip=new ToggleButton();chip.setId("productIssue_"+kind.name());chip.getStyleClass().add("product-issue-chip");chip.setOnAction(e->issue.setValue(issue.getValue()==kind?ProductIssueFilter.ALL:kind));issueChips.put(kind,chip);issueBar.getChildren().add(chip);
         }
         Runnable adaptFilters=()->{boolean wide=getWidth()>=850;issueBar.setVisible(wide);issueBar.setManaged(wide);issue.setVisible(!wide);issue.setManaged(!wide);};widthProperty().addListener((o,a,b)->adaptFilters.run());adaptFilters.run();
-        var top=new VBox(10,heading,filters,issueBar,filterHelp,status);top.setPadding(new Insets(0,0,12,0));setTop(top);setCenter(rows);
+        var top=new VBox(10,heading,filters,issueBar,filterHelp,status);top.setPadding(new Insets(0,0,12,0));setTop(top);setCenter(listing);
         bulk.getStyleClass().add("products-bulk");bulk.getChildren().add(selected);
         for(String field:List.of("brand","material","tnved","gender","documents")) {
             var button=new Button();button.setId("productEdit_"+field);button.getStyleClass().add("btn-primary");button.setDisable(true);button.setUserData(field);
@@ -93,7 +112,7 @@ public final class ProductsPane extends BorderPane {
         if(!changed)return;
         generation++;syncTicket++;syncing=false;loading=false;selecting=false;lastSync=null;issueCounts=Map.of();shopScope=scope;shop=value;debounce.stop();selection.clear();selection.switchShop(value==null?0:value.getId(),value==null?null:value.getMarketplace());
         updating=true;search.clear();category.getItems().clear();category.getItems().add(null);category.setValue(null);document.setValue(null);issue.setValue(ProductIssueFilter.ALL);missing.setSelected(false);updating=false;
-        rows.getItems().clear();count.setText("0");cursor="";updateSelection();refresh();
+        rows.getItems().clear();count.setText("0");cursor="";installProgress(backgroundEdits.get(shopScope));updateSelection();refresh();
     }
     private void filterChanged(){selection.clear();updateSelection();refresh();}
     public void refresh(){if(disposed)return;selecting=false;generation++;cursor="";displayedQuery=null;all.setDisable(true);load(false);}
@@ -133,7 +152,7 @@ public final class ProductsPane extends BorderPane {
         }));
     }
     private void updateSelection(){int n=selection.freeze().size();selected.setText(tr("products.selected")+": "+n);bulk.setVisible(n>0&&!pickerMode);bulk.setManaged(n>0&&!pickerMode);pageSelection.setSelected(!rows.getItems().isEmpty()&&rows.getItems().stream().allMatch(row->selection.contains(row.key())));updateButtons();rows.refresh();}
-    private void updateButtons(){boolean blocked=shop==null||loading||syncing||selecting;boolean empty=selection.freeze().isEmpty();copy.setDisable(blocked||empty||onCopy==null);pageSelection.setDisable(blocked);all.setDisable(blocked||displayedQuery==null);for(var n:bulk.getChildren())if(n instanceof Button b&&b.getUserData()!=null)b.setDisable(blocked||empty||onEdit==null);}
+    private void updateButtons(){boolean blocked=shop==null||loading||syncing||selecting||currentEdit!=null&&currentEdit.backgroundRunning().get();boolean empty=selection.freeze().isEmpty();copy.setDisable(blocked||empty||onCopy==null);pageSelection.setDisable(blocked);all.setDisable(blocked||displayedQuery==null);for(var n:bulk.getChildren())if(n instanceof Button b&&b.getUserData()!=null)b.setDisable(blocked||empty||onEdit==null);}
     private void details(ProductRow row) {
         var key=row.key();long epoch=generation;reads.submitLocal(new ShopReadCoordinator.Key(key.shopId(),"product-detail",key.cardId()+":"+key.variantId()),()->repository.localSnapshot(key)).whenComplete((snapshot,error)->Platform.runLater(()->{
             if(disposed||epoch!=generation)return;if(error!=null||snapshot.isEmpty()){status.setText(tr("products.read_failed"));return;}

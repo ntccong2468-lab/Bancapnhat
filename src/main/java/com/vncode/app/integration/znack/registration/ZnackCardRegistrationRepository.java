@@ -364,8 +364,32 @@ public class ZnackCardRegistrationRepository {
     }
     public List<Sku> pendingStatus(int shopId,int limit){
         if(limit<1||limit>100)throw new IllegalArgumentException("REGISTRY_POLL_LIMIT");
-        String sql=SELECT+" AND (r.status IN ('FEED_SUBMITTED','PROCESSING','READY_TO_SIGN','SIGNING') OR r.status='ERROR' AND LOWER(TRIM(COALESCE(r.error_message,''))) IN ('registration interrupted','registration_interrupted')) AND NULLIF(r.feed_id,'') IS NOT NULL GROUP BY c.shop_id,c.nm_id,s.chrt_id ORDER BY CASE r.status WHEN 'READY_TO_SIGN' THEN 1 ELSE 0 END,r.updated_at LIMIT ?";
+        String sql=SELECT+" AND (r.status IN ('FEED_SUBMITTED','PROCESSING','READY_TO_SIGN','SIGNING') OR r.status='ERROR' AND LOWER(TRIM(COALESCE(r.error_message,''))) IN ('registration interrupted','registration_interrupted','catalog_card_not_created_after_wait')) AND NULLIF(r.feed_id,'') IS NOT NULL GROUP BY c.shop_id,c.nm_id,s.chrt_id ORDER BY CASE r.status WHEN 'READY_TO_SIGN' THEN 1 ELSE 0 END,r.updated_at LIMIT ?";
         try(var c=Database.getConnection();var p=c.prepareStatement(sql)){p.setInt(1,shopId);p.setInt(2,limit);var rows=new ArrayList<Sku>();try(var r=p.executeQuery()){while(r.next())rows.add(map(r));}return List.copyOf(rows);}catch(SQLException e){throw new IllegalStateException("REGISTRY_READ_FAILED",e);}
+    }
+    public Instant submissionStarted(int shopId,Sku sku){
+        try(var c=Database.getConnection();var p=c.prepareStatement("SELECT e.created_at FROM sync_run_events e JOIN sync_run_items i ON i.id=e.item_id JOIN sync_runs run ON run.id=i.run_id WHERE run.shop_id=? AND run.kind='znack_registration' AND i.variant_id=? AND i.gtin=? AND json_extract(i.evidence_json,'$.feedId')=? AND e.step='FEED_SUBMITTED' ORDER BY e.created_at LIMIT 1")){
+            p.setInt(1,shopId);p.setString(2,Long.toString(sku.chrtId()));p.setString(3,sku.gtin());p.setString(4,sku.feedId());try(var r=p.executeQuery()){if(r.next())return parseStart(r.getString(1));}
+            try(var old=c.prepareStatement("SELECT created_at FROM znack_card_registrations WHERE shop_id=? AND chrt_id=? AND gtin=? AND feed_id=?")){
+                old.setInt(1,shopId);old.setLong(2,sku.chrtId());old.setString(3,sku.gtin());old.setString(4,sku.feedId());try(var r=old.executeQuery()){return r.next()?parseStart(r.getString(1)):Instant.now();}
+            }
+        }catch(SQLException error){throw new IllegalStateException("SYNC_STORAGE",error);}
+    }
+    private static Instant parseStart(String text){try{return Instant.parse(text);}catch(RuntimeException unknown){return Instant.now();}}
+    /** Revisit old success labels which have no fresh, owner-bound publication observation. */
+    public List<Sku> unconfirmedPublications(com.vncode.app.models.Shop shop,int limit){
+        if(limit<1||limit>100)throw new IllegalArgumentException("REGISTRY_POLL_LIMIT");
+        String owner=com.vncode.app.integration.listing.ListingIdentity.fingerprint(shop);
+        // Shops without a historical owner-bound success need no extra Catalog authentication.
+        try(var c=Database.getConnection();var p=c.prepareStatement("SELECT 1 FROM znack_card_registrations r JOIN znack_card_registration_scopes s ON s.shop_id=r.shop_id AND s.chrt_id=r.chrt_id WHERE r.shop_id=? AND r.status='PUBLISHED' AND NULLIF(r.feed_id,'') IS NOT NULL AND s.owner_hash=? LIMIT 1")){
+            p.setInt(1,shop.getId());p.setString(2,owner);try(var r=p.executeQuery()){if(!r.next())return List.of();}
+        }catch(SQLException error){throw new IllegalStateException("REGISTRY_READ_FAILED",error);}
+        String source=com.vncode.app.features.gtinsync.RegisteredGtinProof.source(shop);
+        String sql=SELECT+" AND r.status='PUBLISHED' AND NULLIF(r.feed_id,'') IS NOT NULL AND EXISTS(SELECT 1 FROM znack_card_registration_scopes scope WHERE scope.shop_id=r.shop_id AND scope.chrt_id=r.chrt_id AND scope.owner_hash=?) AND NOT EXISTS(SELECT 1 FROM gtin_sync_catalog g WHERE g.shop_id=r.shop_id AND g.marketplace='WILDBERRIES' AND substr('00000000000000'||g.gtin,-14)=substr('00000000000000'||r.gtin,-14) AND json_extract(g.data_json,'$.published')=1 AND json_extract(g.data_json,'$.tradeUnit')=1 AND json_extract(g.data_json,'$.owner')=? AND json_extract(g.data_json,'$.source')=? AND json_extract(g.data_json,'$.syncedAt')>=?) GROUP BY c.shop_id,c.nm_id,s.chrt_id ORDER BY r.updated_at LIMIT ?";
+        try(var c=Database.getConnection();var p=c.prepareStatement(sql)){
+            p.setInt(1,shop.getId());p.setString(2,owner);p.setString(3,owner);p.setString(4,source);p.setString(5,Instant.now().minus(java.time.Duration.ofHours(24)).toString());p.setInt(6,limit);
+            var rows=new ArrayList<Sku>();try(var r=p.executeQuery()){while(r.next())rows.add(map(r));}return List.copyOf(rows);
+        }catch(SQLException error){throw new IllegalStateException("REGISTRY_READ_FAILED",error);}
     }
 
     public List<WbCharacteristic> characteristics(int shopId, long nmId) {
@@ -466,6 +490,18 @@ public class ZnackCardRegistrationRepository {
         } catch (SQLException error) {
             throw new RuntimeException(error);
         }
+    }
+    /** Correct a legacy PUBLISHED label only after an authoritative read of this exact feed.
+     * Preserve every remote identity and the signature checkpoint; never allocate another GTIN. */
+    public boolean reconcilePublication(com.vncode.app.models.Shop shop,Sku saved,Status actual,String error){
+        if(!Set.of(Status.PROCESSING,Status.READY_TO_SIGN,Status.SIGNING,Status.ERROR).contains(actual)
+                ||saved.status()!=Status.PUBLISHED||!saved.hasFeed()||!saved.hasGtin())throw new IllegalArgumentException("CATALOG_RECONCILIATION_INVALID");
+        try{return com.vncode.app.config.SqliteWriteTransaction.run(c->{
+            com.vncode.app.integration.listing.ListingIdentity.require(shop);
+            try(var p=c.prepareStatement("UPDATE znack_card_registrations SET status=?,error_message=?,updated_at=? WHERE shop_id=? AND nm_id=? AND chrt_id=? AND status='PUBLISHED' AND gtin=? AND feed_id=? AND updated_at=?")){
+                p.setString(1,actual.name());p.setString(2,error);p.setString(3,Instant.now().toString());p.setInt(4,shop.getId());p.setLong(5,saved.nmId());p.setLong(6,saved.chrtId());p.setString(7,saved.gtin());p.setString(8,saved.feedId());p.setString(9,saved.registrationRevision());return p.executeUpdate()==1;
+            }
+        });}catch(SQLException unavailable){throw new IllegalStateException("SYNC_STORAGE",unavailable);}
     }
 
     public String payload(int shopId, long chrtId) {

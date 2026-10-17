@@ -106,6 +106,11 @@ public final class OzonCardRegistrationRepository {
         if(!Set.of(Status.PROCESSING,Status.READY_TO_SIGN,Status.ERROR,Status.SIGNING).contains(status))throw new IllegalArgumentException("invalid_progress");
         update(key,"UPDATE ozon_card_registrations SET status=?,good_id=COALESCE(?,good_id),error=?,updated_at=? WHERE shop_id=? AND product_id=? AND offer_id=? AND feed_id<>''",p->{p.setString(1,status.name());if(goodId==null)p.setNull(2,Types.BIGINT);else p.setLong(2,goodId);p.setString(3,CatalogFeedback.display(error));p.setString(4,Instant.now().toString());bindKey(p,5,key);});
     }
+    public Instant submissionStarted(ProductKey key){
+        try(var c=Database.getConnection();var p=c.prepareStatement("SELECT created_at FROM ozon_card_registrations WHERE shop_id=? AND product_id=? AND offer_id=?")){
+            bindKey(p,key);try(var r=p.executeQuery()){if(r.next())try{return Instant.parse(r.getString(1));}catch(java.time.format.DateTimeParseException unknown){return Instant.now();}return Instant.now();}
+        }catch(SQLException unavailable){throw new IllegalStateException("SYNC_STORAGE",unavailable);}
+    }
     public void prepareSignature(ProductKey key,ZnackNationalCatalogService.SigningDocument document) {
         if(document.xml().length>4*1024*1024)throw new IllegalArgumentException("signing_document_too_large");
         update(key,"UPDATE ozon_card_registrations SET signature_xml=?,signature_sha256=?,signature_state='PREPARED',good_id=?,updated_at=? WHERE shop_id=? AND product_id=? AND offer_id=? AND status='READY_TO_SIGN' AND signature_state IN ('','PREPARED')",p->{p.setBytes(1,document.xml());p.setString(2,document.sha256());p.setLong(3,document.goodId());p.setString(4,Instant.now().toString());bindKey(p,5,key);});

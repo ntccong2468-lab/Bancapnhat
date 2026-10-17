@@ -25,15 +25,21 @@ public final class ProductBulkEditService {
         public boolean publishable(){return !items.isEmpty()&&items.stream().allMatch(i->i.preview().preview().publishable());}
     }
     public record ProductEditResult(String id,List<EditItem> items,boolean documentsVerified){public ProductEditResult{items=List.copyOf(items);}}
+    public record Progress(String step,int completed,int total){}
+    private static void progress(java.util.function.Consumer<Progress> listener,String step,int done,int total){
+        try{listener.accept(new Progress(step,done,total));}catch(RuntimeException ignored){/* Progress cannot change a durable mutation. */}
+    }
     private final ProductEditRepository repo;private final ProductSnapshotReader reader;private final Function<Shop,ListingTargetAdapter> adapters;
     public ProductBulkEditService(){this(new ProductEditRepository(),(s,k)->s.getMarketplace()==Marketplace.OZON?new OzonProductSnapshotReader().read(s,k):new WbProductSnapshotReader().read(s,k),s->s.getMarketplace()==Marketplace.OZON?new OzonListingAdapter():new WbListingAdapter());}
     public ProductBulkEditService(ProductEditRepository repo,ProductSnapshotReader reader,Function<Shop,ListingTargetAdapter> adapters){this.repo=repo;this.reader=reader;this.adapters=adapters;}
-    public ProductEditPreview preview(Shop shop,List<ProductKey> keys,ProductBulkEdit edit)throws IOException {
+    public ProductEditPreview preview(Shop shop,List<ProductKey> keys,ProductBulkEdit edit)throws IOException {return preview(shop,keys,edit,p->{});}
+    public ProductEditPreview preview(Shop shop,List<ProductKey> keys,ProductBulkEdit edit,java.util.function.Consumer<Progress> listener)throws IOException {
         ListingIdentity.require(shop);var frozen=keys.stream().distinct().sorted(Comparator.comparing(ProductKey::cardId).thenComparing(ProductKey::variantId)).toList();if(frozen.isEmpty())throw new IllegalArgumentException("Select products");
         var groups=new LinkedHashMap<String,List<ProductKey>>();for(var key:frozen){ListingIdentity.require(shop,key);groups.computeIfAbsent(key.cardId(),k->new ArrayList<>()).add(key);}if(groups.size()>1000)throw new IllegalArgumentException("Product edit limit is 1000 cards");
         documentBudget(shop,edit.documents());
         LicenseRuntime.require(SELLER_API);
         var items=new ArrayList<EditItem>();var adapter=adapters.apply(shop);var sharedDocuments=new HashMap<String,String>();long retained=0;
+        progress(listener,"VALIDATING",0,groups.size());
         for(var group:groups.values()){
             var values=edit.perKeyValues().getOrDefault(group.getFirst(),edit.values());if(group.stream().anyMatch(k->!values.equals(edit.perKeyValues().getOrDefault(k,edit.values()))))throw new IllegalArgumentException("Conflicting values for sizes of one card");
             LicenseRuntime.require(SELLER_API);
@@ -50,6 +56,7 @@ public final class ProductBulkEditService {
             if(retained>64L*1024*1024)throw new IllegalArgumentException("Product preview payload exceeds 64 MiB; select a smaller batch");
             p=new ListingTargetAdapter.ProductEditPreview(p.key(),p.sourceRevision(),ProductEditAssets.withDocuments(preview,shared));
             items.add(new EditItem(group.getFirst(),changes,documents,p,null,p.preview().publishable()?CopyState.AWAITING_CONFIRMATION:CopyState.NEEDS_DATA,p.preview().issues(),before));
+            progress(listener,"VALIDATING",items.size(),groups.size());
         }
         var p=new ProductEditPreview(UUID.randomUUID().toString(),shop.getId(),ListingIdentity.fingerprint(shop),frozen,edit,items);repo.insert(p);return p;
     }
@@ -80,11 +87,13 @@ public final class ProductBulkEditService {
         var result=new ProductEditPreview(UUID.randomUUID().toString(),shop.getId(),ListingIdentity.fingerprint(shop),List.of(fresh.key()),null,List.of(item));repo.insert(result);return result;
     }
     private static String documentType(String type){return switch(type){case "1","certificate","CERTIFICATE_OF_CONFORMITY"->"1";case "2","declaration","DECLARATION"->"2";case "3","CERTIFICATE_OF_REGISTRATION"->"3";default->type;};}
-    public ProductEditResult apply(Shop shop,String id,boolean confirmed)throws IOException {
-        return com.vncode.app.features.shop.ShopOperationCoordinator.withActiveShop(shop.getId(),()->applyActive(shop,id,confirmed));
+    public ProductEditResult apply(Shop shop,String id,boolean confirmed)throws IOException {return apply(shop,id,confirmed,p->{});}
+    public ProductEditResult apply(Shop shop,String id,boolean confirmed,java.util.function.Consumer<Progress> listener)throws IOException {
+        return com.vncode.app.features.shop.ShopOperationCoordinator.withActiveShop(shop.getId(),()->applyActive(shop,id,confirmed,listener));
     }
-    private ProductEditResult applyActive(Shop shop,String id,boolean confirmed)throws IOException {
+    private ProductEditResult applyActive(Shop shop,String id,boolean confirmed,java.util.function.Consumer<Progress> listener)throws IOException {
         if(!confirmed)throw new IllegalArgumentException("Explicit confirmation required");var approved=owned(shop,id);if(!approved.publishable())throw new IllegalStateException("Edit needs data");var items=repo.items(id);var adapter=adapters.apply(shop);
+        int sent=0;progress(listener,"SENDING",0,items.size());
         // Validate the complete batch before its first write. Submitted cards remain frozen.
         for(var i:items)if(i.state()==CopyState.AWAITING_CONFIRMATION){LicenseRuntime.require(LISTING_WRITE);LicenseRuntime.require(SELLER_API);var fresh=reader.read(shop,i.key());requireFresh(shop,i.key(),fresh);if(!fresh.revision().equals(i.preview().sourceRevision()))throw new IllegalStateException("Product changed; preview again");var current=adapter.previewUpdate(shop,fresh,i.changes(),i.documents());if(!current.preview().publishable()||!current.preview().requestHash().equals(i.preview().preview().requestHash()))throw new IllegalStateException("Fields or documents changed; preview again");}
         for(var i:items)if(i.state()==CopyState.AWAITING_CONFIRMATION){
@@ -106,17 +115,19 @@ public final class ProductBulkEditService {
                 throw unsent;
             }
             var unknown=unknown(shop,i);try{var r=adapter.submitUpdate(shop,i.preview());repo.checkpoint(id,i.with(CopyState.REMOTE_PROCESSING,r,List.of()),Set.of(CopyState.SENDING));}catch(IOException|RuntimeException e){repo.checkpoint(id,i.with(CopyState.RECONCILE_REQUIRED,unknown,List.of(new CopyIssue("RECONCILIATION_REQUIRED","submission",true))),Set.of(CopyState.SENDING));}
+            progress(listener,"SENDING",++sent,items.size());
         }
         return result(shop,id);
     }
-    public ProductEditResult reconcile(Shop shop,String id)throws IOException {
-        return com.vncode.app.features.shop.ShopOperationCoordinator.withActiveShop(shop.getId(),()->reconcileActive(shop,id));
+    public ProductEditResult reconcile(Shop shop,String id)throws IOException {return reconcile(shop,id,p->{});}
+    public ProductEditResult reconcile(Shop shop,String id,java.util.function.Consumer<Progress> listener)throws IOException {
+        return com.vncode.app.features.shop.ShopOperationCoordinator.withActiveShop(shop.getId(),()->reconcileActive(shop,id,listener));
     }
-    private ProductEditResult reconcileActive(Shop shop,String id)throws IOException {
-        owned(shop,id);var adapter=adapters.apply(shop);for(var i:repo.items(id))if(i.state()==CopyState.REMOTE_PROCESSING||i.state()==CopyState.RECONCILE_REQUIRED){var r=i.submission()==null?unknown(shop,i):i.submission();var actual=adapter.reconcile(shop,r);var submitted=r.withPhase(r.phase(),actual.identities());if(r.phase().equals("CARD")&&actual.issues().stream().anyMatch(v->v.code().equals("ASSETS_REQUIRED"))){var assets=submitted.withPhase("ASSETS_SENDING",actual.identities());if(!repo.claimAssets(id,i,assets))continue;try{var done=adapter.finishAssets(shop,assets);repo.checkpoint(id,i.with(CopyState.REMOTE_PROCESSING,done,List.of()),Set.of(CopyState.SENDING));}catch(IOException|RuntimeException e){repo.checkpoint(id,i.with(CopyState.RECONCILE_REQUIRED,assets,List.of(new CopyIssue("RECONCILIATION_REQUIRED","documents",true))),Set.of(CopyState.SENDING));}}else if(repo.checkpoint(id,i.with(actual.state(),submitted,actual.issues()),Set.of(CopyState.REMOTE_PROCESSING,CopyState.RECONCILE_REQUIRED))&&actual.state()==CopyState.RECONCILED){
+    private ProductEditResult reconcileActive(Shop shop,String id,java.util.function.Consumer<Progress> listener)throws IOException {
+        owned(shop,id);var adapter=adapters.apply(shop);var items=repo.items(id);int checked=(int)items.stream().filter(i->i.state()!=CopyState.REMOTE_PROCESSING&&i.state()!=CopyState.RECONCILE_REQUIRED).count();progress(listener,"READBACK",checked,items.size());for(var i:items)if(i.state()==CopyState.REMOTE_PROCESSING||i.state()==CopyState.RECONCILE_REQUIRED){var r=i.submission()==null?unknown(shop,i):i.submission();var actual=adapter.reconcile(shop,r);var submitted=r.withPhase(r.phase(),actual.identities());if(r.phase().equals("CARD")&&actual.issues().stream().anyMatch(v->v.code().equals("ASSETS_REQUIRED"))){var assets=submitted.withPhase("ASSETS_SENDING",actual.identities());if(!repo.claimAssets(id,i,assets))continue;try{var done=adapter.finishAssets(shop,assets);repo.checkpoint(id,i.with(CopyState.REMOTE_PROCESSING,done,List.of()),Set.of(CopyState.SENDING));}catch(IOException|RuntimeException e){repo.checkpoint(id,i.with(CopyState.RECONCILE_REQUIRED,assets,List.of(new CopyIssue("RECONCILIATION_REQUIRED","documents",true))),Set.of(CopyState.SENDING));}}else if(repo.checkpoint(id,i.with(actual.state(),submitted,actual.issues()),Set.of(CopyState.REMOTE_PROCESSING,CopyState.RECONCILE_REQUIRED))&&actual.state()==CopyState.RECONCILED){
             // Refresh the complete cache through the same verified reader; cache failure cannot undo a known remote outcome.
             try{reader.read(shop,i.key());}catch(IOException|RuntimeException unavailable){/* Explicit Products refresh remains available. */}
-        }}return result(shop,id);
+        }progress(listener,"READBACK",++checked,items.size());}return result(shop,id);
     }
     public ProductEditResult result(Shop shop,String id){owned(shop,id);return new ProductEditResult(id,repo.items(id),false);}
     public List<String> list(Shop shop){ListingIdentity.require(shop);return repo.list(shop.getId(),ListingIdentity.fingerprint(shop));}

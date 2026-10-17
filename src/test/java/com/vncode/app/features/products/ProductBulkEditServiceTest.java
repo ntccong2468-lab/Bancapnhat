@@ -67,6 +67,16 @@ class ProductBulkEditServiceTest {
     @Test void shopChangeDoesNotReassignJob()throws Exception {
         var p=service.preview(shop,List.of(key),edit());assertThrows(SecurityException.class,()->service.apply(other,p.id(),true));assertThrows(SecurityException.class,()->service.apply(new Shop(1,"Owner","rotated"),p.id(),true));assertEquals(0,adapter.writes.get());
     }
+    @Test void batchOverOneHundredCardsReportsEverySendAndReadback()throws Exception{
+        var keys=new java.util.ArrayList<ProductKey>();for(int n=0;n<120;n++)keys.add(new ProductKey(1,Marketplace.WILDBERRIES,Integer.toString(1000+n),"1"));
+        var base=snapshot;var bulk=new ProductBulkEditService(repo,(s,k)->new ProductSnapshot(k,base.revision(),base.title(),base.description(),base.brand(),k.cardId(),base.categoryId(),base.media(),base.attributes(),base.variants(),base.dimensions(),base.documents(),base.checkedAt(),base.metadata()),s->adapter);
+        var progress=new java.util.ArrayList<ProductBulkEditService.Progress>();
+        var preview=bulk.preview(shop,keys,edit(),progress::add);assertEquals(120,preview.items().size());
+        var sent=bulk.apply(shop,preview.id(),true,progress::add);assertEquals(120,sent.items().size());assertEquals(120,adapter.writes.get());
+        adapter.ready=true;var result=bulk.reconcile(shop,preview.id(),progress::add);assertTrue(result.items().stream().allMatch(i->i.state()==CopyState.RECONCILED));
+        for(String phase:List.of("VALIDATING","SENDING","READBACK"))assertTrue(progress.stream().anyMatch(p->p.step().equals(phase)&&p.completed()==120&&p.total()==120),phase);
+        bulk.reconcile(shop,preview.id(),p->{throw new IllegalStateException("Observer failure");});assertEquals(120,adapter.writes.get());
+    }
     @Test void separateDraftCannotOverwritePendingCard()throws Exception {
         var a=service.preview(shop,List.of(key),edit());var b=service.preview(shop,List.of(key),edit());service.apply(shop,a.id(),true);assertThrows(IllegalStateException.class,()->service.apply(shop,b.id(),true));assertEquals(1,adapter.writes.get());
     }

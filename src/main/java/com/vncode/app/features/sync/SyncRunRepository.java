@@ -65,6 +65,18 @@ public final class SyncRunRepository {
             try(var p=c.prepareStatement("UPDATE sync_runs SET step=?,updated_at=? WHERE id=?")){p.setString(1,step);p.setString(2,Instant.now().toString());p.setString(3,item.runId());p.executeUpdate();}return null;
         }); }catch(SQLException e){throw storage(e);}
     }
+    /** A registration receipt records identifiers only, never its feed payload or credentials. */
+    public void registrationProgress(Shop shop,Item item,String gtin,String state,String step,String error,String evidence){
+        try { SqliteWriteTransaction.run(c->{
+            require(c,shop,item.runId());
+            try(var p=c.prepareStatement("UPDATE sync_run_items SET gtin=?,state=?,step=?,error_code=?,evidence_json=?,updated_at=? WHERE id=? AND run_id=?")){
+                String[] values={gtin,state,step,code(error),evidence,Instant.now().toString(),item.id(),item.runId()};
+                for(int i=0;i<values.length;i++)p.setString(i+1,values[i]);
+                if(p.executeUpdate()!=1)throw new SecurityException("SYNC_OWNER_CHANGED");
+            }
+            event(c,item.runId(),item.id(),step,state,error);return null;
+        }); }catch(SQLException e){throw storage(e);}
+    }
     /** Bounded progress write for a large FBS batch, with one owner check and transaction. */
     public void updateBatch(Shop shop,String run,List<Item> items){
         if(items.size()>10000||items.stream().anyMatch(i->!run.equals(i.runId())))throw new IllegalArgumentException("SYNC_REPORT_LIMIT");

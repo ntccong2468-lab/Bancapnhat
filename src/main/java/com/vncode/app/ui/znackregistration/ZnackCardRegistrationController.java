@@ -66,6 +66,8 @@ public final class ZnackCardRegistrationController {
     private final RegistrationSources sources=new RegistrationSources();
     private RegistrationSources.Readiness readiness;
     private RegistrationCardIndex cardIndex;
+    private RegistrationAttemptReports registrationReports;
+    private volatile String lastRegistrationRun="";
     private Shop shop;
     private boolean loading;
     private boolean preparing;
@@ -151,6 +153,7 @@ public final class ZnackCardRegistrationController {
         ozonRegistrationHost.getChildren().clear();
         if(ozon&&ozonRegistrationFactory!=null)ozonRegistrationHost.getChildren().setAll(ozonRegistrationFactory.apply(shop));
         preparing=false;readiness=null;cardIndex=null;
+        registrationReports=null;lastRegistrationRun="";
         this.shop = shop != null && shop.getMarketplace() == Marketplace.WILDBERRIES ? shop : null;
         productTable.getItems().clear();
         frozenSelection=List.of();rowDetails.clear();summary=null;filteredCount=0;
@@ -299,7 +302,7 @@ public final class ZnackCardRegistrationController {
         if(!confirm(message))return;
         Shop owner=shop;long epoch=shopEpoch;
         if(selected.size()>1)selected.forEach(row->bulkCards.add(row.chrtId()));
-        preparing=true;updateActionState();
+        preparing=true;registrationReports=new RegistrationAttemptReports(owner,selected);updateActionState();
         prepareNext(selected,0,owner,epoch);
     }
 
@@ -310,7 +313,7 @@ public final class ZnackCardRegistrationController {
         task.setOnSucceeded(e->{if(!isCurrent(owner,epoch))return;loading=false;setLoading(false);var selected=task.getValue();if(selected.isEmpty())return;
             if(selected.size()>1000){showInfo(tr("znack.registration.batch_limit"));return;}
             if(!confirm(java.text.MessageFormat.format(tr("znack.registration.batch_confirm"),selected.size(),ids.size())))return;
-            selected.forEach(s->bulkCards.add(s.chrtId()));preparing=true;updateActionState();prepareReplacementNext(selected,0,owner,epoch);
+            selected.forEach(s->bulkCards.add(s.chrtId()));preparing=true;registrationReports=new RegistrationAttemptReports(owner,selected);updateActionState();prepareReplacementNext(selected,0,owner,epoch);
         });
         java.util.function.Consumer<Throwable> failed=error->{if(isCurrent(owner,epoch)){loading=false;setLoading(false);showError(error);}};task.setOnFailed(e->failed.accept(task.getException()));AppTaskExecutor.execute(task,failed);
     }
@@ -516,7 +519,7 @@ public final class ZnackCardRegistrationController {
         boolean fresh=sku.needsGtinReview();
         if(fresh && !confirm(java.text.MessageFormat.format(tr("znack.registration.confirm_new_gtin"),1)))return;
         Shop owner=shop;long epoch=shopEpoch;
-        preparing=true;updateActionState();
+        preparing=true;registrationReports=new RegistrationAttemptReports(owner);updateActionState();
         prepareCard(owner,epoch,sku,fresh,()->{preparing=false;updateActionState();reload();});
     }
 
@@ -528,8 +531,12 @@ public final class ZnackCardRegistrationController {
         if(!isCurrent(owner,epoch))return;
         if(!(replacement?sku.canRegisterNew():eligible(sku))){completed.run();return;}
         setLoading(true);
+        var batch=registrationReports==null?new RegistrationAttemptReports(owner):registrationReports;
         Task<RegistrationInputs> task=new Task<>() {
             @Override protected RegistrationInputs call()throws Exception {
+                try(var lane=com.vncode.app.shared.MarketplaceRequestBudget.lane(true)){
+                var attempt=batch.begin(sku);lastRegistrationRun=attempt.run();
+                try {
                 List<WbCharacteristic> characteristics=repository.characteristics(owner.getId(),sku.nmId());
                 String tnved=ZnackWbAttributeMapper.findTnved(characteristics);
                 ZnackModels.Settings current=settings(owner);
@@ -538,24 +545,26 @@ public final class ZnackCardRegistrationController {
                 if(snapshot==null)snapshot=new com.vncode.app.integration.wb.WbProductSnapshotReader().read(owner,key);
                 var code=snapshot.attributes().stream().filter(a->com.vncode.app.features.products.ProductFieldNames.matches("tnved",a.name())).flatMap(a->a.values().stream()).filter(v->v.matches("[0-9]{4,10}")).distinct().toList();
                 if(code.size()==1)tnved=code.getFirst();
-                if(tnved.isBlank())throw new RegistrationInputException(java.text.MessageFormat.format(tr("znack.registration.missing_tnved"),sku.vendorCode(),first(sku.sourceBarcode(),Long.toString(sku.chrtId())),sku.subjectName()));
+                if(tnved.isBlank())throw new RegistrationInputException("ZNACK_MISSING_TNVED",java.text.MessageFormat.format(tr("znack.registration.missing_tnved"),sku.vendorCode(),first(sku.sourceBarcode(),Long.toString(sku.chrtId())),sku.subjectName()));
                 var documents=ZnackRegistrationDocuments.select(snapshot,current,LocalDate.now());
-                if(documents.candidates().isEmpty())throw new RegistrationInputException(tr("znack.registration.missing_product_document"));
+                if(documents.candidates().isEmpty())throw new RegistrationInputException("ZNACK_MISSING_PRODUCT_DOCUMENT",tr("znack.registration.missing_product_document"));
                 var scope=ZnackRegistrationScope.fromSettings(current);
                 ZnackSignatureProvider signer=scope.verifyingSigner(owner,signer(current));
                 ZnackApiClient api=com.vncode.app.integration.znack.CatalogConnectionService.apiForShop(owner,current);ZnackAuthService auth=new ZnackAuthService(api,signer);
                 var service=new ZnackNationalCatalogService(api,auth,signer,current);
                 scope.assertCurrent(owner);var preflight=service.preflight(tnved);scope.assertCurrent(owner);
-                return new RegistrationInputs(characteristics,scope,documents,service,preflight);
+                return new RegistrationInputs(characteristics,scope,documents,service,preflight,attempt);
+                }catch(Exception error){if(error instanceof RegistrationInputException input)attempt.blocked(input.code);else attempt.failed(error);throw error;}
+                }
             }
         };
         task.setOnSucceeded(event->{
             if(!isCurrent(owner,epoch))return;
             setLoading(false);var inputs=task.getValue();
             ZnackModels.GoodsDocument document=chooseDocument(inputs.documents());
-            if(document==null||!isCurrent(owner,epoch)){completed.run();return;}
+            if(document==null||!isCurrent(owner,epoch)){recordBlocked(inputs.attempt(),"ZNACK_DOCUMENT_SELECTION_CANCELLED");completed.run();return;}
             Category category=chooseCategory(sku,inputs.preflight().categories());
-            if(category==null||!isCurrent(owner,epoch)){completed.run();return;}
+            if(category==null||!isCurrent(owner,epoch)){recordBlocked(inputs.attempt(),"ZNACK_CATEGORY_UNRESOLVED");completed.run();return;}
             buildAutomaticDraft(owner,epoch,sku,fresh,replacement,inputs,document,category,completed);
         });
         java.util.function.Consumer<Throwable> failure=error->{
@@ -591,6 +600,7 @@ public final class ZnackCardRegistrationController {
         setLoading(true);
         Task<AutomaticDraft> task=new Task<>() {
             @Override protected AutomaticDraft call()throws Exception {
+                try(var lane=com.vncode.app.shared.MarketplaceRequestBudget.lane(true)){
                 inputs.scope().assertCurrent(owner);
                 var required=inputs.service().requiredAttributes(category.id(),inputs.preflight().token());
                 inputs.scope().assertCurrent(owner);
@@ -598,7 +608,9 @@ public final class ZnackCardRegistrationController {
                         inputs.preflight().tnved(),inputs.preflight().categoryTnved(),document);
                 var draft=new Draft(inputs.preflight().tnved(),inputs.preflight().categoryTnved(),category.id(),
                         mapped.goodName(),mapped.brand(),mapped.attributes(),mapped.attributeTypes());
+                if(!mapped.missingFields().isEmpty())inputs.attempt().blocked("ZNACK_REQUIRED_ATTRIBUTES_MISSING");
                 return new AutomaticDraft(draft,mapped.missingFields());
+                }catch(Exception error){inputs.attempt().failed(error);throw error;}
             }
         };
         task.setOnSucceeded(event->{
@@ -607,14 +619,18 @@ public final class ZnackCardRegistrationController {
                 showWarning(java.text.MessageFormat.format(tr("znack.registration.missing_wb_fields"),sku.vendorCode(),String.join("\n• ",result.missingFields())));
                 completed.run();return;
             }
-            startWorkflow(owner,epoch,sku,result.draft(),fresh,replacement,completed);
+            startWorkflow(owner,epoch,sku,result.draft(),fresh,replacement,inputs.attempt(),completed);
         });
         java.util.function.Consumer<Throwable> failure=error->{if(isCurrent(owner,epoch)){setLoading(false);showError(error);completed.run();}};
         task.setOnFailed(event->failure.accept(task.getException()));AppTaskExecutor.execute(task,failure);
     }
 
-    private void startWorkflow(Shop owner,long epoch,Sku sku,Draft draft,boolean fresh,boolean replacement,Runnable completed) {
-        java.util.function.BiConsumer<Status,String> listener=(status,detail)->Platform.runLater(()->{
+    private void startWorkflow(Shop owner,long epoch,Sku sku,Draft draft,boolean fresh,boolean replacement,RegistrationAttemptReports.Attempt attempt,Runnable completed) {
+        java.util.function.BiConsumer<Status,String> listener=(status,detail)->{
+            try{attempt.observe(status,detail);}catch(RuntimeException reportError){
+                Platform.runLater(()->{if(isCurrent(owner,epoch))summaryLabel.setText("SYNC_STORAGE · "+tr("znack.registration.bulk_review"));});
+            }
+            Platform.runLater(()->{
             if(!isCurrent(owner,epoch))return;
             scheduleReload();
             if (status == Status.ERROR || status == Status.GTIN_REVIEW_REQUIRED
@@ -624,16 +640,27 @@ public final class ZnackCardRegistrationController {
             } else if (status == Status.PUBLISHED && !detail.isBlank() && !bulkCards.remove(sku.chrtId())) {
                 showInfo(tr("znack.registration.completed") + " " + detail);
             }
-        });
+        });};
         var authorised=draft.withAutoSign(autoSignCheckBox.isSelected());
-        submitWorkflow(owner,epoch,()->replacement?workflow.registerNew(owner,sku,authorised,true,listener)
-                :fresh?workflow.requestNewGtin(owner,sku,authorised,true,listener):workflow.start(owner,sku,authorised,listener),completed);
+        submitWorkflow(owner,epoch,()->{
+            try {
+                boolean accepted=replacement?workflow.registerNew(owner,sku,authorised,true,listener)
+                    :fresh?workflow.requestNewGtin(owner,sku,authorised,true,listener):workflow.start(owner,sku,authorised,listener);
+                if(!accepted)attempt.blocked("ZNACK_REGISTRATION_ALREADY_RUNNING");
+                return accepted;
+            }catch(Exception error){attempt.failed(error);throw error;}
+        },completed);
+    }
+
+    private void recordBlocked(RegistrationAttemptReports.Attempt attempt,String code) {
+        Task<Void> task=new Task<>(){protected Void call(){attempt.blocked(code);return null;}};
+        task.setOnFailed(e->showError(task.getException()));AppTaskExecutor.execute(task,ZnackCardRegistrationController::showError);
     }
 
     private void replaceCard(Sku sku) {
         if(shop==null||!ready()||loading||preparing||sku==null||!replaceable(sku))return;
         if(!confirm(tr("znack.registration.confirm_replacement")))return;
-        Shop owner=shop;long epoch=shopEpoch;preparing=true;updateActionState();
+        Shop owner=shop;long epoch=shopEpoch;preparing=true;registrationReports=new RegistrationAttemptReports(owner);updateActionState();
         prepareCard(owner,epoch,sku,false,true,()->{preparing=false;updateActionState();reload();});
     }
 
@@ -649,10 +676,13 @@ public final class ZnackCardRegistrationController {
     private void readStatus(Sku sku) {
         if(shop==null||loading||preparing||sku==null)return;
         Shop owner=shop;long epoch=shopEpoch;loading=true;setLoading(true);
-        Task<ZnackNationalCatalogService.FeedProgress> task=new Task<>(){@Override protected ZnackNationalCatalogService.FeedProgress call()throws Exception{return workflow.readOnlyProgress(owner,sku);}};
+        Task<ZnackNationalCatalogService.FeedProgress> task=new Task<>(){@Override protected ZnackNationalCatalogService.FeedProgress call()throws Exception{
+            if(sku.status()==Status.PUBLISHED&&repository.scope(owner.getId(),sku.chrtId())!=null)workflow.refreshStatus(owner,sku);
+            return workflow.readOnlyProgress(owner,sku);
+        }};
         task.setOnSucceeded(event->{if(isCurrent(owner,epoch)){loading=false;setLoading(false);var result=task.getValue();
-            Status status=result.signed()&&view(sku).published()?Status.PUBLISHED:result.readyToSign()?Status.READY_TO_SIGN:result.failed()?Status.ERROR:Status.PROCESSING;
-            showInfo(statusText(status)+(result.errorMessage().isBlank()?"":"\n"+result.errorMessage()));
+            Status status=result.signed()?Status.PUBLISHED:result.readyToSign()?Status.READY_TO_SIGN:result.failed()?Status.ERROR:Status.PROCESSING;
+            showInfo(statusText(status)+(result.errorMessage().isBlank()?"":"\n"+result.errorMessage()));scheduleReload();
         }});
         java.util.function.Consumer<Throwable> failure=error->{if(isCurrent(owner,epoch)){loading=false;setLoading(false);showError(error);}};
         task.setOnFailed(event->failure.accept(task.getException()));AppTaskExecutor.execute(task,failure);
@@ -664,7 +694,7 @@ public final class ZnackCardRegistrationController {
     private RegistrationCardIndex.View view(Sku row){return cardIndex==null?new RegistrationCardIndex.View("source.unverified",value(row.gtin()),"SOURCE_SYNC_REQUIRED",false,false,true)
             :cardIndex.view(row.status(),row.gtin(),row.barcodes(),row.vendorCode(),row.color(),row.size(),row.wbSize(),cardIndex.ownsWb(row.chrtId()));}
     private boolean replaceable(Sku row){return row!=null&&row.canRegisterNew()&&!view(row).blocked()&&view(row).published();}
-    @FXML private void onReport(){if(shop!=null)RegistrationSyncReportDialog.show(productTable.getScene()==null?null:productTable.getScene().getWindow(),shop,readiness==null?"":readiness.run());}
+    @FXML private void onReport(){if(shop!=null)RegistrationSyncReportDialog.show(productTable.getScene()==null?null:productTable.getScene().getWindow(),shop,lastRegistrationRun);}
 
     private void scheduleReload(){workflowRefresh.playFromStart();}
 
@@ -883,10 +913,10 @@ public final class ZnackCardRegistrationController {
         @Override public String toString() { return tr("znack.registration.filter." + name().toLowerCase(Locale.ROOT)); }
     }
 
-    private static final class RegistrationInputException extends IllegalArgumentException {RegistrationInputException(String text){super(text);}}
+    private static final class RegistrationInputException extends IllegalArgumentException {final String code;RegistrationInputException(String code,String text){super(text);this.code=code;}}
 
     private record RegistrationInputs(List<WbCharacteristic> characteristics,ZnackRegistrationScope scope,
-            ZnackRegistrationDocuments.Selection documents,ZnackNationalCatalogService service,ZnackNationalCatalogService.Preflight preflight) {
+            ZnackRegistrationDocuments.Selection documents,ZnackNationalCatalogService service,ZnackNationalCatalogService.Preflight preflight,RegistrationAttemptReports.Attempt attempt) {
         @Override public String toString(){return "RegistrationInputs[redacted]";}
     }
     private record AutomaticDraft(Draft draft, List<String> missingFields) { }

@@ -27,6 +27,44 @@ class ZnackNationalCatalogServiceTest {
         var api=new ZnackApiClient(){@Override public JsonElement nationalCatalogFeedStatus(String base,String token,String feed){return JsonParser.parseString("{\"result\":{\"status\":\"Signed\",\"item\":[{\"gtin\":\"04631993764363\",\"good_id\":91}]}}");}};
         assertThrows(IllegalStateException.class,()->service(api).progress("fixture-token","fixture-feed","04631993764370"));
     }
+    private ZnackApiClient signedFeed(String cards) {
+        return new ZnackApiClient(){
+            @Override public JsonElement nationalCatalogFeedStatus(String base,String token,String feed){
+                return JsonParser.parseString("{\"result\":{\"status\":\"Signed\",\"item\":[{\"gtin\":\"04631993764370\",\"good_id\":91}]}}");
+            }
+            @Override public JsonElement productCards(String base,String token,String gtins){
+                assertEquals("04631993764370",gtins);return JsonParser.parseString(cards);
+            }
+        };
+    }
+    @Test void acceptedSignedFeedCannotPublishAnAbsentOrDraftCard()throws Exception {
+        for(String response:List.of("{\"result\":[]}",
+                "{\"result\":[{\"gtin\":\"04631993764370\",\"good_id\":91,\"good_status\":\"draft\"}]}")) {
+            var progress=service(signedFeed(response)).progress("fixture-token","feed","04631993764370");
+            assertFalse(progress.signed());assertFalse(progress.failed());assertEquals("PublicationPending",progress.status());
+        }
+    }
+    @Test void publishedReadbackMustHaveTheExactCardIdentity() {
+        for(String response:List.of("{\"result\":[{\"gtin\":\"04631993764363\",\"good_id\":91,\"good_status\":\"published\"}]}","{\"result\":[{\"gtin\":\"04631993764370\",\"good_id\":92,\"good_status\":\"published\"}]}",
+                "{\"result\":[{\"gtin\":\"04631993764370\",\"good_status\":\"published\"}]}","{\"result\":{}}","null",
+                "{\"result\":[{\"gtin\":\"04631993764370\",\"good_id\":91},{\"gtin\":\"04631993764370\",\"good_id\":91}]}"))
+            assertThrows(IllegalStateException.class,()->service(signedFeed(response)).progress("fixture-token","feed","04631993764370"));
+    }
+    @Test void onlyThePublishedExactCardCompletesRegistration()throws Exception {
+        var progress=service(signedFeed("{\"result\":[{\"good_id\":91,\"good_status\":\"published\",\"identified_by\":[{\"type\":\"gtin\",\"value\":\"4631993764370\"}]}]}"))
+                .progress("fixture-token","feed","04631993764370");
+        assertTrue(progress.signed());assertEquals(91L,progress.goodId());
+    }
+    @Test void completedFeedWithoutACardDoesNotWaitForeverOrCountAsRegistrationSuccess()throws Exception {
+        for(String status:List.of("Processed","Done","Completed")){
+            var api=new ZnackApiClient(){
+                @Override public JsonElement nationalCatalogFeedStatus(String base,String token,String feed){return JsonParser.parseString("{\"result\":{\"status\":\""+status+"\",\"item\":[{\"gtin\":\"04631993764370\"}]}}");}
+                @Override public JsonElement productCards(String base,String token,String gtin){return JsonParser.parseString("{\"result\":[]}");}
+            };
+            var result=service(api).progress("fixture-token","feed","04631993764370");
+            assertTrue(result.failed());assertFalse(result.signed());assertEquals("CATALOG_FEED_COMPLETED_WITHOUT_CARD",result.errorMessage());
+        }
+    }
     @Test void explicitFreshAllocationSkipsExistingUnclaimedDrafts() throws Exception {
         AtomicInteger allocations=new AtomicInteger();
         ZnackApiClient api=new ZnackApiClient() {

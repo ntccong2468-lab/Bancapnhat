@@ -5,6 +5,10 @@ import java.util.Locale;
 
 public final class CatalogFeedback {
     private CatalogFeedback(){}
+    public static boolean notFound(Throwable failure){
+        for(Throwable error=failure;error!=null;error=error.getCause())if(error instanceof com.vncode.app.integration.znack.ZnackApiClient.ZnackApiException api&&api.statusCode()==404)return true;
+        return false;
+    }
     public static boolean interrupted(String message) {
         String value=message==null?"":message.strip().toLowerCase(Locale.ROOT);
         return value.equals("registration interrupted")||value.equals("registration_interrupted");

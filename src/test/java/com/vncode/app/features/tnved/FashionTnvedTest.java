@@ -8,6 +8,13 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 class FashionTnvedTest {
+    @org.junit.jupiter.api.Test void offersSpecificSyntheticAndArtificialFiberFilters(){
+        var catalog=new FashionTnvedCatalog();
+        org.junit.jupiter.api.Assertions.assertTrue(catalog.materials().containsAll(java.util.List.of("Полиэстер","Вискоза","Полиамид","Акрил")));
+        for(String material:java.util.List.of("Полиэстер","Полиамид","Акрил"))org.junit.jupiter.api.Assertions.assertEquals(catalog.search("",java.util.Set.of(),"","Синтетика",""),catalog.search("",java.util.Set.of(),"",material,""));
+        org.junit.jupiter.api.Assertions.assertEquals(catalog.search("",java.util.Set.of(),"","Искусственные нити",""),catalog.search("",java.util.Set.of(),"","Вискоза",""));
+    }
+
     ProductSnapshot product(String material,String gender,String fabric){
         return new ProductSnapshot(new ProductKey(1,Marketplace.WILDBERRIES,"10","11"),"cache:one","Костюм спортивный мужской","","Brand","own","9",List.of(),
                 List.of(new ProductAttribute("1","Состав",List.of(material),""),new ProductAttribute("2","Пол",List.of(gender),""),new ProductAttribute("3","Тип ткани",List.of(fabric),"")),List.of(),null,List.of(),Instant.now());

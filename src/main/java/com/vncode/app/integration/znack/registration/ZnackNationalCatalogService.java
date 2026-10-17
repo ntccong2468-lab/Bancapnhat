@@ -203,7 +203,47 @@ public final class ZnackNationalCatalogService {
                 }
             }
         }
+        boolean publicationVerified=false;
+        if(Set.of("processed","done","completed").contains(status.toLowerCase(Locale.ROOT))&&errors.isEmpty()){
+            if(array(result.get("item")).size()>0&&exactIdentities!=1)throw new IllegalStateException("CATALOG_FEED_IDENTITY_NOT_CONFIRMED");
+            var card=readCard(token,gtin,goodId);
+            if(card==null){status="Rejected";errors.add("CATALOG_FEED_COMPLETED_WITHOUT_CARD");}
+            else if(isPublished(card)){
+                if(exactIdentities!=1)throw new IllegalStateException("CATALOG_FEED_IDENTITY_NOT_CONFIRMED");
+                goodId=number(card,"good_id");if(goodId==0)goodId=number(card,"goodId");status="Signed";publicationVerified=true;
+            }
+        }
+        // A signed feed is an acknowledgement for the import/signing request. It is
+        // not proof that the product card is visible and published in the catalog.
+        if("Signed".equalsIgnoreCase(status) && errors.isEmpty()&&!publicationVerified
+                && !publishedCard(token,gtin,goodId))status="PublicationPending";
         return new FeedProgress(status, goodId, List.copyOf(errors));
+    }
+
+    private boolean publishedCard(String token,String gtin,Long expectedId)throws Exception {
+        var card=readCard(token,gtin,expectedId);return card!=null&&isPublished(card);
+    }
+    /** Absence is confirmed only by a successful, identity-checked Catalog response. */
+    public boolean cardExists(String token,String gtin,Long expectedId)throws Exception{return readCard(token,gtin,expectedId)!=null;}
+    private static boolean isPublished(JsonObject card){return "published".equalsIgnoreCase(first(string(card,"good_status"),string(card,"goodStatus"),string(card,"cardStatus")));}
+    private JsonObject readCard(String token,String gtin,Long expectedId)throws Exception {
+        JsonElement response=unwrap(api.productCards(settings.resolvedTrueApiBaseUrl(),token,gtin));
+        if(response==null||!response.isJsonArray())throw new IllegalStateException("CATALOG_PUBLICATION_RESPONSE_INVALID");
+        JsonObject selected=null;
+        for(var element:response.getAsJsonArray()){
+            if(!element.isJsonObject())throw new IllegalStateException("CATALOG_PUBLICATION_RESPONSE_INVALID");
+            var card=element.getAsJsonObject();
+            boolean matches=com.vncode.app.features.gtinsync.RegisteredGtinProof.sameCode(gtin,string(card,"gtin"));
+            for(var identifier:array(card.get("identified_by")))if(identifier.isJsonObject()){
+                var id=identifier.getAsJsonObject();
+                if("gtin".equalsIgnoreCase(string(id,"type"))&&com.vncode.app.features.gtinsync.RegisteredGtinProof.sameCode(gtin,string(id,"value")))matches=true;
+            }
+            if(matches){if(selected!=null)throw new IllegalStateException("CATALOG_PUBLICATION_AMBIGUOUS");selected=card;}
+        }
+        if(selected==null){if(!response.getAsJsonArray().isEmpty())throw new IllegalStateException("CATALOG_PUBLICATION_ID_CHANGED");return null;}
+        long actualId=number(selected,"good_id");if(actualId==0)actualId=number(selected,"goodId");
+        if(actualId<=0||expectedId!=null&&actualId!=expectedId)throw new IllegalStateException("CATALOG_PUBLICATION_ID_CHANGED");
+        return selected;
     }
 
     public record SigningDocument(long goodId, byte[] xml, String sha256) {

@@ -20,6 +20,7 @@ public final class ZnackGtinBackgroundService {
         void link(Shop shop,String run,Job job);
         default void blocked(Shop shop,String run,List<SyncRunRepository.Item> rows,Job job){}
         default void finish(Shop shop,String run){}
+        default void noEligible(Shop shop,String run){}
     }
     private final Operations operations;
     public ZnackGtinBackgroundService(){
@@ -45,6 +46,7 @@ public final class ZnackGtinBackgroundService {
                 boolean blocked=counts.getOrDefault("NEEDS_ACTION",0L)+counts.getOrDefault("FAILED",0L)>0;
                 reports.stage(s,r,blocked?"PARTIAL":"SUCCEEDED","REPORT",blocked?"ITEMS_NEED_ACTION":"");
             }
+            public void noEligible(Shop s,String r){reports.stage(s,r,"PARTIAL","REPORT","GTIN_NO_ELIGIBLE_PUBLISHED_CARDS");}
         };
     }
     ZnackGtinBackgroundService(Operations operations){this.operations=operations;}
@@ -54,6 +56,10 @@ public final class ZnackGtinBackgroundService {
         for(int offset=0;;offset+=300){var page=operations.page(shop,run,offset);
             for(var row:page)if(ZnackGtinReviewService.eligible(row)&&(selected.isEmpty()||selected.contains(new ProductKey(shop.getId(),shop.getMarketplace(),row.productId(),row.variantId()))))rows.add(row);
             if(page.size()<300)break;
+        }
+        if(rows.isEmpty()){
+            operations.noEligible(shop,run);
+            throw new IllegalStateException("GTIN_NO_ELIGIBLE_PUBLISHED_CARDS");
         }
         int done=0,ok=0,pending=0,blocked=0;progress.accept(new Progress(0,rows.size(),0,0,0));
         // Bound each durable child; other shops and FBS retain their own reserved workers.

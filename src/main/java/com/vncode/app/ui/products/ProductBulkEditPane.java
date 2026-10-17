@@ -47,6 +47,22 @@ public final class ProductBulkEditPane extends BorderPane {
     private Runnable onBack,onSaved;
     private VBox compactForm;
     private String notifiedJob;
+    private ProductsPane backgroundHost;
+    private boolean detached;
+    private final javafx.beans.property.BooleanProperty backgroundRunning=new javafx.beans.property.SimpleBooleanProperty(false);
+    javafx.beans.property.ReadOnlyStringProperty progressText(){return status.textProperty();}
+    javafx.beans.property.ReadOnlyBooleanProperty backgroundRunning(){return backgroundRunning;}
+    private void progress(ProductBulkEditService.Progress progress){
+        Platform.runLater(()->{if(disposed)return;status.setText(java.text.MessageFormat.format(tr("bulk.progress."+progress.step()),tr("bulk.field."+field),shop.getMarketplace()==com.vncode.app.integration.marketplace.Marketplace.WILDBERRIES?"Wildberries":"Ozon",progress.completed(),progress.total()));});
+    }
+    void showBackgroundDetails(){
+        var text=new StringBuilder(status.getText());
+        for(var item:results.getItems())text.append("\n").append(item.key().cardId()).append(" · ").append(tr("copy.state."+item.state().name())).append(" · ").append(item.issues().stream().map(i->i.code()+" · "+i.field()).collect(java.util.stream.Collectors.joining(", ")));
+        var area=new TextArea(text.toString());area.setEditable(false);area.setWrapText(true);area.setPrefSize(780,440);
+        var dialog=new Dialog<Void>();if(backgroundHost!=null&&backgroundHost.getScene()!=null)dialog.initOwner(backgroundHost.getScene().getWindow());dialog.setTitle(title.getText());dialog.getDialogPane().setContent(area);dialog.getDialogPane().getButtonTypes().add(ButtonType.CLOSE);DialogLayout.install(dialog.getDialogPane());AlertService.applyTheme(dialog);dialog.show();
+    }
+    private void detach(){detached=true;backgroundHost.trackBulkEdit(this);}
+
 
     public ProductBulkEditPane(){this(new ProductBulkEditService(),ShopReadCoordinator.shared());}
     public ProductBulkEditPane(ProductBulkEditService service,ShopReadCoordinator reads){this(service,reads,new ProductSuggestionService());}
@@ -150,38 +166,39 @@ public final class ProductBulkEditPane extends BorderPane {
         if(shop==null||keys.isEmpty()||busy)return;final ProductBulkEdit edit;
         try{edit=edit();}catch(RuntimeException invalid){status.setText(tr("date.invalid".equals(invalid.getMessage())?"date.invalid":"edit.needs_data"));return;}
         var owner=shop;var selected=keys;long epoch=generation,inputRevision=revision;busy=true;ready=false;status.setText(tr(compact?"bulk.validating":"edit.preview_loading"));buttons();
-        reads.submit(new ShopReadCoordinator.Key(owner.getId(),"product-edit-preview",UUID.randomUUID().toString()),true,()->service.preview(owner,selected,edit)).whenComplete((p,error)->Platform.runLater(()->{
+        reads.submit(new ShopReadCoordinator.Key(owner.getId(),"product-edit-preview",UUID.randomUUID().toString()),true,()->service.preview(owner,selected,edit,this::progress)).whenComplete((p,error)->Platform.runLater(()->{
             if(disposed||epoch!=generation)return;busy=false;
             if(inputRevision!=revision){status.setText(tr(compact?"bulk.choose_apply":"edit.preview_required"));buttons();return;}
-            if(error!=null){status.setText(FriendlyErrorService.format(unwrap(error)));buttons();return;}
+            if(error!=null){backgroundRunning.set(false);status.setText(FriendlyErrorService.format(unwrap(error)));buttons();return;}
             previewRevision=inputRevision;render(new ProductEditResult(p.id(),p.items(),false));
-            if(sendAfterPrepare){sendAfterPrepare=false;if(ready){confirm.setSelected(true);submit();}else status.setText(tr("edit.result_needs_action")+"\n"+p.items().stream().flatMap(i->i.issues().stream()).map(i->i.code()+" · "+i.field()).distinct().collect(java.util.stream.Collectors.joining("\n")));}
+            if(sendAfterPrepare){sendAfterPrepare=false;if(ready){confirm.setSelected(true);submit();}else {backgroundRunning.set(false);status.setText(tr("edit.result_needs_action")+"\n"+p.items().stream().flatMap(i->i.issues().stream()).map(i->i.code()+" · "+i.field()).distinct().collect(java.util.stream.Collectors.joining("\n")));}}
         }));
     }
     private void submit(){
         if(shop==null||jobId==null||busy||!ready||previewRevision!=revision||!confirm.isSelected())return;
         var owner=shop;String id=jobId;readbackRounds=0;
-        mutate(owner,id,()->{var sent=service.apply(owner,id,true);return pending(sent)?service.reconcile(owner,id):sent;},true);
+        mutate(owner,id,()->{var sent=service.apply(owner,id,true,this::progress);return pending(sent)?service.reconcile(owner,id,this::progress):sent;},true);
     }
     private void reconcile(boolean automatic){
         if(shop==null||jobId==null||busy)return;var owner=shop;String id=jobId;
         if(!automatic)readbackRounds=0;
-        mutate(owner,id,()->service.reconcile(owner,id),true);
+        mutate(owner,id,()->service.reconcile(owner,id,this::progress),true);
     }
     private void mutate(Shop owner,String id,Callable<ProductEditResult> work,boolean poll){
         long epoch=generation;busy=true;ready=false;confirm.setSelected(false);readbackDelay.stop();status.setText(tr("edit.saving"));buttons();
-        SellerMutationExecutor.submit(owner,work).whenComplete((result,error)->Platform.runLater(()->{
+        SellerMutationExecutor.submit(owner,()->{try(var lane=MarketplaceRequestBudget.lane(true)){return work.call();}}).whenComplete((result,error)->Platform.runLater(()->{
             if(disposed||epoch!=generation)return;busy=false;
             if(error!=null){previewRevision=-1;recoverResult(owner,id,epoch,FriendlyErrorService.format(unwrap(error)));return;}
             render(result);
-            if(poll&&pending(result)&&++readbackRounds<3)readbackDelay.playFromStart();
+            if(poll&&pending(result)&&++readbackRounds<60){readbackDelay.setDuration(Duration.seconds(Math.min(15,2+readbackRounds)));readbackDelay.playFromStart();}
+            else backgroundRunning.set(false);
         }));
     }
     private void recoverResult(Shop owner,String id,long epoch,String errorMessage){
         busy=true;buttons();
         reads.submitLocal(new ShopReadCoordinator.Key(owner.getId(),"product-edit-recovery",id),()->service.result(owner,id)).whenComplete((r,e)->Platform.runLater(()->{
             if(disposed||epoch!=generation)return;busy=false;if(e==null)render(r);
-            status.setText(errorMessage+"\n"+tr("edit.reconcile_hint"));buttons();
+            backgroundRunning.set(false);status.setText(errorMessage+"\n"+tr("edit.reconcile_hint"));buttons();
         }));
     }
     private void readResult(Shop owner,String id){
@@ -232,15 +249,18 @@ public final class ProductBulkEditPane extends BorderPane {
 
     /** Compact batch picker. The user applies once; fresh validation and readback stay internal. */
     public static void showDialog(javafx.stage.Window window,Shop owner,String field,List<ProductKey> selected,Runnable saved){
+        showDialog(window,owner,field,selected,saved,null);
+    }
+    public static void showDialog(javafx.stage.Window window,Shop owner,String field,List<ProductKey> selected,Runnable saved,ProductsPane host){
         if(owner==null||selected.isEmpty())return;
         if(field.equals("tnved")){
             com.vncode.app.ui.tnved.ProductTnvedPicker.show(window,owner,selected,choice->{
-                var pane=new ProductBulkEditPane();pane.open(owner,field,selected);pane.compact();
+                var pane=new ProductBulkEditPane();pane.open(owner,field,selected);pane.compact();pane.backgroundHost=host;
                 pane.value.setText(choice.globalCode().isBlank()?choice.perProduct().values().iterator().next().getFirst():choice.globalCode());pane.perProductTnved=choice.perProduct();
-                pane.showCompact(window,saved);pane.applyOnce();
+                pane.setOnSaved(saved);if(host==null)pane.showCompact(window,saved);pane.applyOnce();if(host!=null&&pane.busy)pane.detach();
             });return;
         }
-        var pane=new ProductBulkEditPane();pane.open(owner,field,selected);pane.compact();pane.showCompact(window,saved);
+        var pane=new ProductBulkEditPane();pane.open(owner,field,selected);pane.compact();pane.backgroundHost=host;pane.showCompact(window,saved);
     }
     private void showCompact(javafx.stage.Window window,Runnable saved){
         var dialog=new Dialog<Void>();if(window!=null)dialog.initOwner(window);dialog.setTitle(title.getText());
@@ -250,13 +270,13 @@ public final class ProductBulkEditPane extends BorderPane {
         var cancelType=new ButtonType(tr("common.cancel"),ButtonBar.ButtonData.CANCEL_CLOSE);
         dialog.getDialogPane().getButtonTypes().setAll(applyType,cancelType);
         var applyButton=(Button)dialog.getDialogPane().lookupButton(applyType);applyButton.setId("editApply");applyButton.getStyleClass().add("btn-primary");applyButton.disableProperty().bind(apply.disableProperty());
-        applyButton.addEventFilter(javafx.event.ActionEvent.ACTION,e->{e.consume();apply.fire();});
+        applyButton.addEventFilter(javafx.event.ActionEvent.ACTION,e->{e.consume();apply.fire();if(busy&&backgroundHost!=null){detach();dialog.hide();}});
         var indicator=new ProgressIndicator();indicator.setMaxSize(20,20);indicator.visibleProperty().bind(apply.disableProperty());indicator.managedProperty().bind(indicator.visibleProperty());
         var footer=new HBox(10,indicator,status);HBox.setHgrow(status,Priority.ALWAYS);footer.setPadding(new Insets(10,0,0,0));setBottom(footer);
         setOnSaved(()->{if(saved!=null)saved.run();});
-        dialog.setOnHidden(e->dispose());DialogLayout.install(dialog.getDialogPane());AlertService.applyTheme(dialog);dialog.show();
+        dialog.setOnHidden(e->{if(!detached)dispose();});DialogLayout.install(dialog.getDialogPane());AlertService.applyTheme(dialog);dialog.show();
     }
-    private void applyOnce(){if(busy)return;sendAfterPrepare=true;prepare();}
+    private void applyOnce(){if(busy)return;backgroundRunning.set(true);sendAfterPrepare=true;prepare();if(!busy){backgroundRunning.set(false);sendAfterPrepare=false;}}
     void compact(){
         compact=true;setPadding(new Insets(12));setTop(title);title.setWrapText(true);status.setText(tr("bulk.choose_apply"));endless.setText(tr("bulk.document_endless"));
         var form=new VBox(10);compactForm=form;form.setMinWidth(0);

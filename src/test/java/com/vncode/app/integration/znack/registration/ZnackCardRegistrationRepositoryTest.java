@@ -38,6 +38,23 @@ class ZnackCardRegistrationRepositoryTest {
             try(var r=s.executeQuery("PRAGMA foreign_key_check")){assertFalse(r.next());}
         }
     }
+    @Test void publicationRecoveryIsScopedFreshAndCannotRepeatUsingAStaleSnapshot() {
+        var shop=new com.vncode.app.models.Shop(1,"WB","fixture");
+        com.vncode.app.features.gtinsync.GtinWriteTestFixture.saveSettings(shop,"A".repeat(40),com.vncode.app.integration.znack.ZnackModels.PRODUCTION_TRUE_API);
+        var proof=com.vncode.app.features.gtinsync.RegisteredGtinProof.current(shop);
+        repository.saveGenerated(1,current(),"04631993764363","6204",1,"Fixture","{}");
+        repository.bindScope(shop,11,new ZnackRegistrationScope(proof.inn(),proof.environment(),proof.fingerprint()));
+        repository.updateProgress(1,11,Status.PUBLISHED,"feed-1",91L,null,true);var original=current();
+        assertEquals(1,repository.unconfirmedPublications(shop,3).size());
+        var gtins=new com.vncode.app.features.gtinsync.GtinSyncRepository();
+        gtins.saveCatalog(1,shop.getMarketplace(),List.of(new com.vncode.app.features.gtinsync.GtinSyncModels.RegisteredGtin("04631993764363","PANTS","","XL",true,true,proof.source(),java.time.Instant.now())));
+        assertTrue(repository.unconfirmedPublications(shop,3).isEmpty());
+        gtins.saveCatalog(1,shop.getMarketplace(),List.of(new com.vncode.app.features.gtinsync.GtinSyncModels.RegisteredGtin("04631993764363","PANTS","","XL",true,true,proof.source(),java.time.Instant.now().minus(java.time.Duration.ofDays(2)))));
+        assertEquals(1,repository.unconfirmedPublications(shop,3).size());
+        assertTrue(repository.reconcilePublication(shop,original,Status.PROCESSING,"CATALOG_PUBLICATION_NOT_CONFIRMED"));
+        assertFalse(repository.reconcilePublication(shop,original,Status.READY_TO_SIGN,""));
+        assertEquals(original.gtin(),current().gtin());assertEquals(original.feedId(),current().feedId());assertTrue(current().wbUpdated());
+    }
     @Test void refusesToReplaceAnExistingGtinAndPreservesSubmissionIdentity() {
         repository.saveGenerated(1,current(),"04631993764363","6204",1,"Fixture","{}");
         repository.updateProgress(1,11,Status.FEED_SUBMITTED,"feed-1",91L,null,false);

@@ -37,6 +37,17 @@ class RegistrationSyncReportDialogTest {
         new com.vncode.app.features.sync.SyncRunRepository().stage(shop,run,"FAILED","READING_ZNACK","NETWORK_TIMEOUT");
         fx(()->{button("refresh").fire();return null;});awaitIdle();fx(()->{assertTrue(label("summary").getText().contains("NETWORK_TIMEOUT"));assertTrue(label("events").getText().contains("READING_ZNACK"));return null;});
     }
+    @Test void sourceReceiptExplicitlyStatesThatItDidNotRegisterCards()throws Exception{
+        fx(()->{assertTrue(label("summary").getText().contains(com.vncode.app.shared.I18nService.getInstance().tr("znack.registration.report_sources_only")));return null;});
+    }
+    @Test void actualRegistrationReportIsSelectableAndKeepsItsFailure()throws Exception{
+        var repository=new com.vncode.app.features.sync.SyncRunRepository();
+        String attempt=repository.begin(shop,com.vncode.app.features.sync.RegistrationAttemptReports.KIND,"PREFLIGHT");
+        repository.add(shop,attempt,"1","offer-1","sku-1","Article","Brown","52","","NEEDS_ACTION","ZNACK_MISSING_PRODUCT_DOCUMENT","{}");
+        repository.stage(shop,attempt,"PARTIAL","PREFLIGHT","ZNACK_REGISTRATION_NEEDS_ACTION");
+        fx(()->{report.dispose();report=new RegistrationSyncReportDialog.Report(shop,attempt);return null;});awaitIdle();
+        fx(()->{assertEquals(1,table().getItems().size());assertTrue(label("summary").getText().contains("ZNACK_REGISTRATION_NEEDS_ACTION"));return null;});
+    }
     @SuppressWarnings("unchecked") TableView<?> table(){return (TableView<?>)report.lookup("#registrationSyncReportItems");}
     private Object field(String name)throws Exception{var f=RegistrationSyncReportDialog.Report.class.getDeclaredField(name);f.setAccessible(true);return f.get(report);}
     private Button button(String name)throws Exception{return (Button)field(name);}private Label label(String name)throws Exception{return (Label)field(name);}

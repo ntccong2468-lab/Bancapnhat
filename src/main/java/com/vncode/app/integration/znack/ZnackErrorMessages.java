@@ -49,6 +49,7 @@ public final class ZnackErrorMessages {
     /** Human-readable form of a stored error; falls back to the raw text when nothing better is found. */
     public static String display(String raw) {
         if (raw == null || raw.isBlank()) return "";
+        if(raw.toLowerCase(java.util.Locale.ROOT).contains("несоответствие рд к тг"))return com.vncode.app.shared.I18nService.getInstance().tr("znack.error.document_group_mismatch");
         if (isSuzAuthError(raw)) {
             return com.vncode.app.shared.I18nService.getInstance().tr("znack.error.suz_auth_invalid");
         }

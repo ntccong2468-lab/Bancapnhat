@@ -402,7 +402,7 @@ public class HomeController implements Initializable {
     private com.vncode.app.ui.products.ProductsPane productsPane;
     private com.vncode.app.ui.listingcopy.ListingCopyPane listingCopyPane;
     private com.vncode.app.ui.products.ProductBulkEditPane productEditPane;
-    private void showProductEdit(String field,java.util.List<com.vncode.app.features.products.ProductKey> keys){com.vncode.app.ui.products.ProductBulkEditPane.showDialog(productsPane==null||productsPane.getScene()==null?null:productsPane.getScene().getWindow(),state.getSelectedShop(),field,keys,()->{if(productsPane!=null)productsPane.refresh();});}
+    private void showProductEdit(String field,java.util.List<com.vncode.app.features.products.ProductKey> keys){com.vncode.app.ui.products.ProductBulkEditPane.showDialog(productsPane==null||productsPane.getScene()==null?null:productsPane.getScene().getWindow(),state.getSelectedShop(),field,keys,()->{if(productsPane!=null)productsPane.refresh();},productsPane);}
     public void showListingCopy(){clearKizDraft();workspaceNavigator.show("listing-copy");listingCopyPane.setShop(state.getSelectedShop());}
     public void showListingCopy(java.util.List<com.vncode.app.features.products.ProductKey> keys){showListingCopy();listingCopyPane.open(state.getSelectedShop(),keys);}
     public void showProducts(){clearKizDraft();workspaceNavigator.show("products");productsPane.setShop(state.getSelectedShop());}

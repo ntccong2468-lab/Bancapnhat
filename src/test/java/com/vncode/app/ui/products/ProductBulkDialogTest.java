@@ -75,6 +75,25 @@ class ProductBulkDialogTest {
    assertTrue(adapter.entered.await(5,TimeUnit.SECONDS));fx(()->{assertTrue(pane.lookup("#editValue").isDisabled());assertTrue(pane.lookup("#editApply").isDisabled());return null;});
   }finally{adapter.release.countDown();}idle();assertEquals(2,adapter.sent.size());
  }
+ @Test void applyingClosesPickerAndShowsRealProgressBelowProductList()throws Exception{
+  adapter.entered=new CountDownLatch(1);adapter.release=new CountDownLatch(1);var host=new ProductsPane[1];var stage=new javafx.stage.Stage[1];
+  try{
+   fx(()->{
+    host[0]=new ProductsPane(q->new ProductPage(List.of(),0,""),reads);host[0].setShop(shop);stage[0]=new javafx.stage.Stage();stage[0].setScene(new Scene(host[0],1000,650));stage[0].show();
+    pane.open(shop,"brand",keys);pane.compact();var field=ProductBulkEditPane.class.getDeclaredField("backgroundHost");field.setAccessible(true);field.set(pane,host[0]);
+    var show=ProductBulkEditPane.class.getDeclaredMethod("showCompact",javafx.stage.Window.class,Runnable.class);show.setAccessible(true);show.invoke(pane,stage[0],(Runnable)()->{});
+    return null;
+   });
+   fx(()->{
+    var window=javafx.stage.Window.getWindows().stream().filter(w->w.getScene()!=null&&w.getScene().getRoot() instanceof DialogPane d&&"productBulkEditDialog".equals(d.getId())).findFirst().orElseThrow();
+    var dialog=(DialogPane)window.getScene().getRoot();((TextField)dialog.lookup("#editValue")).setText("Background brand");var type=dialog.getButtonTypes().stream().filter(t->t.getButtonData()==ButtonBar.ButtonData.OK_DONE).findFirst().orElseThrow();((Button)dialog.lookupButton(type)).fire();
+    assertFalse(window.isShowing());assertNotNull(host[0].lookup("#productBulkProgressPill"));return null;
+   });
+   assertTrue(adapter.entered.await(5,TimeUnit.SECONDS));
+   fx(()->{host[0].applyCss();host[0].layout();var pill=host[0].lookup("#productBulkProgressPill");var list=host[0].lookup("#productRows");var p=pill.localToScene(pill.getBoundsInLocal());var l=list.localToScene(list.getBoundsInLocal());assertEquals(l.getCenterX(),p.getCenterX(),3);assertTrue(p.getMaxY()<=l.getMaxY());assertTrue(p.getMaxY()>l.getMinY()+l.getHeight()/2);assertTrue(pane.backgroundRunning().get());return null;});
+  }finally{adapter.release.countDown();}
+  idle();assertEquals(2,adapter.sent.size());fx(()->{assertFalse(pane.backgroundRunning().get());assertTrue(pane.progressText().get().contains(I18nService.getInstance().tr("edit.saved")));host[0].dispose();stage[0].close();return null;});
+ }
  class Adapter implements ListingTargetAdapter {
   List<String> sent=new CopyOnWriteArrayList<>();CountDownLatch entered,release;
   public List<TargetCategory> categories(Shop s){return List.of();}public List<TargetAttribute> attributes(Shop s,String c){return List.of();}

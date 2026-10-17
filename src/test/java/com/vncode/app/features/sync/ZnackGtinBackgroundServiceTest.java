@@ -20,6 +20,14 @@ class ZnackGtinBackgroundServiceTest {
   public Job execute(Shop s,String id)throws Exception{executions++;if(unknown)throw new java.io.IOException("uncertain send");return new Job(current.id(),current.shopId(),current.marketplace(),current.owner(),current.fields(),current.createdAt(),true,false,current.rows().stream().map(r->r.next(State.SUCCEEDED,"","")).toList());}
   public void link(Shop s,String run,Job j){assertTrue(j.confirmed());assertEquals(Set.of(Field.GTIN),j.fields());links++;}
  }
+ @Test void emptyOrUnmatchedSelectionNeverReportsAnUpdateAsSuccessful() {
+  var marked=new java.util.concurrent.atomic.AtomicInteger();
+  var operations=new Operations(3){public void noEligible(Shop s,String run){marked.incrementAndGet();}};
+  var wrong=new ProductKey(1,shop.getMarketplace(),"absent","absent");
+  var error=assertThrows(IllegalStateException.class,()->new ZnackGtinBackgroundService(operations).run(shop,Set.of(wrong),p->{throw new AssertionError("No successful progress is expected");}));
+  assertEquals("GTIN_NO_ELIGIBLE_PUBLISHED_CARDS",error.getMessage());assertEquals(1,marked.get());assertEquals(0,operations.executions);assertEquals(0,operations.links);
+  operations.items.clear();assertThrows(IllegalStateException.class,()->new ZnackGtinBackgroundService(operations).run(shop,Set.of(),p->{}));assertEquals(2,marked.get());
+ }
  @Test void processesEveryPageInBoundedChildrenAndReportsActualProgress()throws Exception{
   var operations=new Operations(650);var pulses=new ArrayList<ZnackGtinBackgroundService.Progress>();var result=new ZnackGtinBackgroundService(operations).run(shop,Set.of(),pulses::add);
   assertEquals(650,result.progress().total());assertEquals(650,result.progress().succeeded());assertEquals(7,operations.executions);assertEquals(7,operations.links);assertTrue(operations.batches.stream().allMatch(n->n<=100));assertEquals(650,pulses.getLast().completed());
