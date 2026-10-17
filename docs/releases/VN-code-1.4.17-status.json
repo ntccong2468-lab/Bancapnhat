@@ -4,7 +4,7 @@
   "complete": false,
   "developmentComplete": false,
   "officialReleasePublished": false,
-  "phase": "news-and-inline-registration-completion-final-regression",
+  "phase": "windows-installer-final-source-ready",
   "licenseIntegration": {
     "implemented": true,
     "productionReady": false,
@@ -71,8 +71,8 @@
       "liveSellerMutations": false
     },
     "fullJavaRegression": {
-      "sourceCommit": "a6e9a8684e8f3fd595ce395186c32f29811c8dd9",
-      "tests": 1727,
+      "sourceCommit": "3e26e11257e91cebcb693e1506bcbc4abfb4f6d5",
+      "tests": 1738,
       "failures": 0,
       "errors": 0,
       "skipped": 2,
@@ -126,9 +126,20 @@
       "focusedTests": 85,
       "failures": 0,
       "errors": 0,
-      "fullRegression": "pending",
+      "fullRegression": "passed on 3e26e11 before final rejected-card-identity correction",
       "windowsNative": "pending",
       "liveSellerMutations": false
+    },
+    "rejectedFeedIdentityCorrection": {
+      "state": "passed-clean-focused-regression",
+      "archivesRejectedPayloadAndCardId": true,
+      "preservesPreparedPayloadOnReopen": true,
+      "neverResetsUncertainSignature": true,
+      "liveSellerMutations": false,
+      "sourceCommit": "6396af05ee753b62276c473b4ca76be1cd640727",
+      "tests": 102,
+      "failures": 0,
+      "errors": 0
     }
   },
   "comparison": {
@@ -148,7 +159,7 @@
   "remainingComparisonDifferences": [
     "GS1 signature/PDF workflow uses a seller-imported company form rather than an unverified bundled form"
   ],
-  "sourceCommit": "a6e9a8684e8f3fd595ce395186c32f29811c8dd9",
+  "sourceCommit": "6396af05ee753b62276c473b4ca76be1cd640727",
   "decisions": {
     "support": "Keep existing Support/Guides as explicitly requested; no new conversation/image backend",
     "kizRefill": "Allow new KIZ batches when empty, including the same filename; do not restore previously used codes"
