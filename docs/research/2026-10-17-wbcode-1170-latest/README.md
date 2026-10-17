@@ -21,10 +21,12 @@ Repo mã nguồn nội bộ mới `rupphi/source-wcode` trả HTTP 404 với quy
 
 Đọc API thật: đủ 1.276 thẻ qua 2 trang danh sách và 52 lô chi tiết, 1.237 published + 39 draft, không lỗi/thiếu/trùng; `catalog-full-read-summary.json`. Cấu trúc thẻ approved: `catalog-approved-card-structure.json`, không chứa giá trị sản phẩm/khóa API.
 
-Linux: 1.715 kiểm thử hồi quy, 0 failure/error, 2 skip nền tảng; sau sửa preflight/bố cục cuối chạy thêm 57 kiểm thử đều qua. 90 kiểm thử sau sửa nhánh thiếu mã thẻ và 60 kiểm thử công cụ phát hành qua. Các số này không thay thế kiểm thử bộ cài Windows hoặc ký CryptoPro thật.
+Linux, mã ứng dụng `a6e9a8684e8f3fd595ce395186c32f29811c8dd9`: 1.727 kiểm thử hồi quy, 0 failure/error, 2 skip nền tảng; 153 kiểm thử tập trung và 60 kiểm thử công cụ phát hành qua. Các số này không thay thế kiểm thử bộ cài Windows hoặc ký CryptoPro thật.
 
 Có lựa chọn GTIN mới sau khi Catalog xác nhận feed cũ bị từ chối, giữ lịch sử thẻ cũ; feed đang xử lý/không rõ kết quả không được tiêu thêm quota. GTIN đã đọc lại từ sàn cập nhật ngay vào cache hiển thị, chỉ đúng biến thể; ACK không sửa cache.
 
-Còn hai nhóm khác biệt được ghi rõ: backend hội thoại hỗ trợ/ảnh riêng đang chờ duyệt kiến trúc; mẫu GS1 đóng gói sẵn (VNCode dùng mẫu doanh nghiệp nhập một lần). Không đánh dấu hoàn tất toàn bộ 159 đầu mục và không đổi các cờ nghiệm thu production thành true khi chưa có bằng chứng.
+Theo xác nhận mới của người dùng, giữ Hỗ trợ/Hướng dẫn hiện tại; không thêm backend hội thoại/ảnh. Khác biệt chức năng còn ghi rõ: mẫu GS1 đóng gói sẵn (VNCode dùng mẫu doanh nghiệp nhập một lần). Không đánh dấu hoàn tất toàn bộ 159 đầu mục và không đổi các cờ nghiệm thu production thành true khi chưa có bằng chứng.
 
 Giữ yêu cầu riêng đã duyệt: thương hiệu VNCode, license do admin cấp, kho KIZ seller theo danh mục không buộc GTIN/Znack, Liquid Glass và luồng FBS ưu tiên liên tục.
+
+Bộ đọc sản xuất của VNCode xử lý đủ 1.276 thẻ từ snapshot API thật, 1.237 published, không lỗi. Ozon FBS đọc trực tiếp API v4 đủ 883 đơn trong 30 ngày và 255 đơn chưa hoàn tất; bộ đọc sản xuất không bỏ sót dòng hàng. File KIZ riêng của seller nhận đủ 600 mã; tiêu thụ cục bộ một mã còn 599 và nhập lại vẫn 599. Các probe dùng dữ liệu tách riêng, không chứa mã KIZ/khóa thật trong repo, không gọi ghi sàn/Catalog; license của probe là fixture, không phải nghiệm thu license production.

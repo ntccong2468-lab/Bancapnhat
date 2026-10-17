@@ -1,0 +1,21 @@
+{
+  "sourceCommit": "a6e9a8684e8f3fd595ce395186c32f29811c8dd9",
+  "usesProductionParser": true,
+  "input": "API response snapshot, read earlier in this task",
+  "networkMutations": 0,
+  "errors": 0,
+  "windows": [
+    {
+      "window": "30Days",
+      "pages": 9,
+      "postings": 883,
+      "items": 888
+    },
+    {
+      "window": "unfulfilled",
+      "pages": 3,
+      "postings": 255,
+      "items": 257
+    }
+  ]
+}

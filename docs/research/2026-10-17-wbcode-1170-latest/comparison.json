@@ -1713,7 +1713,7 @@
       "line": 13,
       "requirement": "Hỗ trợ: ảnh nằm trên tin nhắn, có viền. Thư GS1 RUS dễ đọc hơn.",
       "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.3.2",
-      "status": "partial-explicit-difference",
+      "status": "adapted-to-approved-vncode-requirement",
       "code": [
         "src/main/java/com/vncode/app/ui/workspace/HomeController.java",
         "src/main/java/com/vncode/app/features/gs1/Gs1LettersService.java"
@@ -1723,9 +1723,9 @@
         "src/test/java/com/vncode/app/features/gs1/Gs1LettersServiceTest.java"
       ],
       "id": "WB-090",
-      "assessment": "GS1 có thư riêng; VNCode không tự gửi báo cáo lỗi. Hộp hội thoại hỗ trợ trực tuyến của Wbcode chưa có backend tương đương trong VNCode.",
+      "assessment": "Người dùng xác nhận giữ Hỗ trợ/Hướng dẫn hiện tại, không thêm backend hội thoại/ảnh. Thư GS1 vẫn được hiển thị và đọc qua hộp thư doanh nghiệp riêng.",
       "verification": "Native automated regression; not a live seller acceptance claim",
-      "remaining": "GS1 có thư/email riêng, nhưng nút Hỗ trợ của VNCode hiện mở hướng dẫn; chưa có backend hội thoại hỗ trợ/đính kèm ảnh như Wbcode."
+      "ownerDecision": "Giữ Hỗ trợ/Hướng dẫn hiện tại — xác nhận trong cuộc trò chuyện ngày 2026-10-17."
     },
     {
       "release": "v1.3.3",
@@ -2327,7 +2327,7 @@
       "line": 13,
       "requirement": "Hỗ trợ: app hỏi tin nhắn mới thưa hơn nhiều khi cửa sổ hỗ trợ đang đóng.",
       "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.3.5",
-      "status": "partial-explicit-difference",
+      "status": "adapted-to-approved-vncode-requirement",
       "code": [
         "src/main/java/com/vncode/app/ui/workspace/HomeController.java",
         "src/main/java/com/vncode/app/features/gs1/Gs1LettersService.java"
@@ -2337,9 +2337,9 @@
         "src/test/java/com/vncode/app/features/gs1/Gs1LettersServiceTest.java"
       ],
       "id": "WB-122",
-      "assessment": "GS1 có thư riêng; VNCode không tự gửi báo cáo lỗi. Hộp hội thoại hỗ trợ trực tuyến của Wbcode chưa có backend tương đương trong VNCode.",
+      "assessment": "Người dùng xác nhận giữ Hỗ trợ/Hướng dẫn hiện tại, không thêm backend hội thoại/ảnh. Thư GS1 vẫn được hiển thị và đọc qua hộp thư doanh nghiệp riêng.",
       "verification": "Native automated regression; not a live seller acceptance claim",
-      "remaining": "Chưa có backend hội thoại/ảnh hỗ trợ của VNCode; phương án Cloudflare riêng đang chờ duyệt kiến trúc. Nút Hỗ trợ hiện mở Hướng dẫn, không poll hộp thư hỗ trợ không tồn tại."
+      "ownerDecision": "Giữ Hỗ trợ/Hướng dẫn hiện tại — xác nhận trong cuộc trò chuyện ngày 2026-10-17."
     },
     {
       "release": "v1.3.5",
