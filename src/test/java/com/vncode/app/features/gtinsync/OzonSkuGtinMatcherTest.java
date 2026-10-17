@@ -18,6 +18,10 @@ class OzonSkuGtinMatcherTest {
         var c=card("00000000000017","152DASHOA","Коричневый","52",true);
         assertEquals(List.of(c),match(List.of(c)," 152DASH-52 ","nâu","XL","52"));
         assertEquals(List.of(c),match(List.of(c),"152DASH_52","Brown","XL","52"));
+        var named=card(c.gtin(),"152 nau dashoa","Коричневый","52",true);
+        assertEquals(List.of(named),match(List.of(named),"152DASH-52","Brown","XL","52"));
+        assertTrue(match(List.of(card(c.gtin(),"152 den dashoa","Brown","52",true)),"152DASH-52","Brown","XL","52").isEmpty());
+        assertTrue(match(List.of(card(c.gtin(),"152 nau dasnui","Brown","52",true)),"152DASH-52","Brown","XL","52").isEmpty());
         assertTrue(match(List.of(c),"152DASH-50","Brown","XL","52").isEmpty());
         assertTrue(match(List.of(c),"152DASH-52","Black","XL","52").isEmpty());
         assertTrue(match(List.of(c),"152DASH-52","Brown","XL","50").isEmpty());

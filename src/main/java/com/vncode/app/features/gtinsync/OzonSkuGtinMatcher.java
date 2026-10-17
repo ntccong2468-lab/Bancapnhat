@@ -13,7 +13,7 @@ public final class OzonSkuGtinMatcher {
     public OzonSkuGtinMatcher(List<RegisteredGtin> catalog, boolean includeDrafts) {
         for (var row : catalog) if (row.tradeUnit() && (row.published() || includeDrafts) && RegisteredGtinValidator.isValid(row.gtin())
                 && !com.vncode.app.integration.znack.GtinNormalizer.isTechnicalRange(row.gtin())) {
-            String model = model(row.article());
+            String model = catalogModel(row.article(),row.color());
             if (!model.isBlank()) models.computeIfAbsent(model, key -> new ArrayList<>()).add(row);
         }
     }
@@ -49,11 +49,22 @@ public final class OzonSkuGtinMatcher {
         if (!normalized.matches("(?=.*[0-9])(?=.*[A-Z])[A-Z0-9]+(?: [A-Z]+)?") || normalized.length() > 80) return "";
         return normalized.replace(" ", "");
     }
+    private static String catalogModel(String article,String cardColor){
+        var tokens=n(article).split(" ");
+        // Observed seller form: "152 nau dashoa". The color token may be omitted from the
+        // seller SKU only when it is a known color and agrees with the card's explicit color.
+        if(tokens.length==3&&tokens[0].matches("[0-9]{1,8}")&&tokens[2].matches("[A-Z]{2,20}")){
+            String token=color(tokens[1]);
+            if(Set.of("BROWN","BLACK","WHITE","BEIGE").contains(token)&&token.equals(color(cardColor)))return model(tokens[0]+tokens[2]);
+        }
+        return model(article);
+    }
     private static String color(String value) {
         return switch(n(value)) {
-            case "NÂU", "BROWN", "КОРИЧНЕВЫЙ" -> "BROWN";
-            case "ĐEN", "BLACK", "ЧЕРНЫЙ", "ЧЁРНЫЙ" -> "BLACK";
-            case "TRẮNG", "WHITE", "БЕЛЫЙ" -> "WHITE";
+            case "NÂU", "NAU", "BROWN", "КОРИЧНЕВЫЙ" -> "BROWN";
+            case "ĐEN", "DEN", "BLACK", "ЧЕРНЫЙ", "ЧЁРНЫЙ" -> "BLACK";
+            case "TRẮNG", "TRANG", "WHITE", "БЕЛЫЙ" -> "WHITE";
+            case "BE", "BEIGE", "БЕЖЕВЫЙ" -> "BEIGE";
             default -> n(value);
         };
     }
