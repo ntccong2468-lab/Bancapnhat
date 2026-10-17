@@ -97,9 +97,11 @@ public final class ZnackCatalogSyncService {
         // Missing permit metadata is a purchase/introduction issue, not a reason to hide a published GTIN.
         repository.upsertProducts(products,settings);
         repository.restoreProducts(products.stream().map(ZnackModels.Product::gtin).toList());
+        var metadata=new ArrayList<ZnackRepository.CatalogMetadata>(100);
         for(var row:rows)if(row.published()&&row.tradeUnit()&&!GtinNormalizer.isTechnicalRange(row.gtin())){
-            if(!row.details().documents().isEmpty())repository.updateProductDocuments(row.gtin(),documentsByGtin.get(row.gtin()));
-            repository.updateProductLabelMetadata(row.gtin(),row.details().single("gender"),row.size());
+            metadata.add(new ZnackRepository.CatalogMetadata(row.gtin(),!row.details().documents().isEmpty(),documentsByGtin.get(row.gtin()),row.details().single("gender"),row.size()));
+            if(metadata.size()==100){ListingIdentity.require(shop);repository.updateCatalogMetadata(metadata,settings);metadata.clear();}
         }
+        if(!metadata.isEmpty()){ListingIdentity.require(shop);repository.updateCatalogMetadata(metadata,settings);}
     }
 }

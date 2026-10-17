@@ -21,6 +21,47 @@ class ZnackCatalogSyncServiceTest {
  Shop device(Path path)throws Exception{Files.createDirectories(path);System.setProperty("vncode.appdata.dir",path.toString());Database.initDatabase();var s=GtinWriteTestFixture.shop(Marketplace.WILDBERRIES);new GtinSyncRepository().saveCatalog(s.getId(),s.getMarketplace(),List.of());return s;}
  @AfterEach void clear(){System.clearProperty("vncode.appdata.dir");}
  GtinSyncModels.RegisteredGtin row(Shop s){return new GtinSyncModels.RegisteredGtin(GtinWriteTestFixture.GTIN,"Synthetic article","Blue","M",true,true,RegisteredGtinProof.source(s),Instant.now());}
+ ZnackRepository seedProjection()throws Exception{
+  var repository=new ZnackRepository(new ZnackModels.ShopContext(shop.getId(),shop.getName()));
+  for(String gtin:List.of(GtinWriteTestFixture.GTIN,"00000000000024")){
+   repository.upsertProducts(List.of(new ZnackModels.Product(gtin,"Synthetic","6112110000","CONFORMITY_DECLARATION","OLD","2025-01-01",null)));
+   repository.updateProductDocuments(gtin,List.of(new ZnackModels.GoodsDocument("CONFORMITY_DECLARATION","OLD","2025-01-01")));
+   repository.updateProductLabelMetadata(gtin,"old","M");
+  }
+  return repository;
+ }
+ GtinSyncModels.RegisteredGtin metadataRow(String gtin,boolean documents){
+  var details=new com.vncode.app.features.catalogsync.CatalogProductData(Map.of("title",List.of("Synthetic"),"gender",List.of("Мужской")),List.of(),documents?List.of(new com.vncode.app.features.catalogsync.CatalogProductData.Document("DECLARATION","NEW","2026-01-01","",true,"",Map.of())):List.of());
+  return new GtinSyncModels.RegisteredGtin(gtin,"Synthetic article","Blue","52",true,true,RegisteredGtinProof.source(shop),Instant.now(),details);
+ }
+ @Test void aProjectionFailureCannotCommitHalfTheDocumentsAndLabels()throws Exception{
+  seedProjection();
+  try(var c=Database.getConnection();var s=c.createStatement()){
+   s.execute("CREATE TRIGGER reject_metadata BEFORE UPDATE OF gender ON znack_products WHEN NEW.gtin='00000000000024' BEGIN SELECT RAISE(ABORT,'synthetic metadata failure'); END");
+  }
+  var rows=List.of(metadataRow(GtinWriteTestFixture.GTIN,true),metadataRow("00000000000024",true));
+  assertThrows(RuntimeException.class,()->ZnackCatalogSyncService.project(shop,rows));
+  try(var c=Database.getConnection();var s=c.createStatement();var r=s.executeQuery("SELECT gender,size,certificate_number,permit_documents_json FROM znack_products")){
+   int count=0;while(r.next()){count++;assertEquals("old",r.getString(1));assertEquals("M",r.getString(2));assertEquals("OLD",r.getString(3));assertTrue(r.getString(4).contains("OLD"));}assertEquals(2,count);
+  }
+  try(var c=Database.getConnection();var s=c.createStatement()){s.execute("DROP TRIGGER reject_metadata");}
+  ZnackCatalogSyncService.project(shop,rows);
+  try(var c=Database.getConnection();var s=c.createStatement();var r=s.executeQuery("SELECT count(*) FROM znack_products WHERE gender='Мужской' AND size='52' AND certificate_number='NEW'")){assertEquals(2,r.getInt(1));}
+ }
+ @Test void missingPermitObservationPreservesSavedDocumentsWhileRefreshingLabels()throws Exception{
+  var repository=seedProjection();ZnackCatalogSyncService.project(shop,List.of(metadataRow(GtinWriteTestFixture.GTIN,false)));
+  assertEquals("OLD",repository.findActiveProduct(GtinWriteTestFixture.GTIN).orElseThrow().certificateNumber());
+  try(var c=Database.getConnection();var p=c.prepareStatement("SELECT gender,size,permit_documents_json FROM znack_products WHERE gtin=?")){
+   p.setString(1,GtinWriteTestFixture.GTIN);try(var r=p.executeQuery()){assertEquals("Мужской",r.getString(1));assertEquals("52",r.getString(2));assertTrue(r.getString(3).contains("OLD"));}
+  }
+ }
+ @Test void aChangedSigningIdentityCannotReceiveALateMetadataBatch()throws Exception{
+  var repository=seedProjection();var expected=repository.getSettings();
+  GtinWriteTestFixture.saveSettings(shop,"B".repeat(40),ZnackModels.PRODUCTION_TRUE_API);
+  var row=new ZnackRepository.CatalogMetadata(GtinWriteTestFixture.GTIN,true,List.of(new ZnackModels.GoodsDocument("CONFORMITY_DECLARATION","NEW","2026-01-01")),"Мужской","52");
+  assertThrows(ZnackRepository.StaleSignerException.class,()->repository.updateCatalogMetadata(List.of(row),expected));
+  assertEquals("OLD",repository.findActiveProduct(GtinWriteTestFixture.GTIN).orElseThrow().certificateNumber());
+ }
  @Test void publishedCardsWithoutPermitDocumentsStayVisibleAndSupplyTheGtinCache()throws Exception{
   var progress=new ArrayList<NationalCatalogGtinSource.Progress>();
   var service=new ZnackCatalogSyncService((s,issues,p)->{p.accept(new NationalCatalogGtinSource.Progress("READING_CARDS",1,1));return List.of(row(s));});
