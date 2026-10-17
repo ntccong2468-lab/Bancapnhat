@@ -21,6 +21,12 @@ class ZnackRegistrationDocumentsTest {
         var result=ZnackRegistrationDocuments.select(snapshot(document("a",DocumentState.VALID,TODAY.plusDays(1))),null,TODAY);
         assertNotNull(result.automatic());assertEquals(ZnackRegistrationDocuments.Source.PRODUCT,result.source());assertFalse(result.requiresReview());
     }
+    @Test void nativeMarketplaceDocumentTypeCodesRemainEligibleWithoutReplacingThePermit(){
+        for(String type:List.of("1","2","CERTIFICATE_OF_CONFORMITY","DECLARATION_OF_CONFORMITY")){
+            var original=document("a",DocumentState.VALID,TODAY.plusDays(1));var supplied=new ProductDocument(original.id(),type,original.number(),original.validFrom(),original.validUntil(),original.owner(),original.scope(),original.file(),original.marketplace(),original.state(),original.source(),original.checkedAt());
+            var selection=ZnackRegistrationDocuments.select(snapshot(supplied),null,TODAY);assertNotNull(selection.automatic());assertEquals(original.number(),selection.automatic().number());assertEquals(type.equals("1")||type.equals("CERTIFICATE_OF_CONFORMITY")?"CONFORMITY_CERTIFICATE":"CONFORMITY_DECLARATION",selection.automatic().type());
+        }
+    }
     @Test void unverifiedAndUndatedExpiryRequireReview() {
         assertNull(ZnackRegistrationDocuments.select(snapshot(document("a",DocumentState.UNVERIFIED,TODAY.plusDays(1))),null,TODAY).automatic());
         assertNull(ZnackRegistrationDocuments.select(snapshot(document("a",DocumentState.VALID,null)),null,TODAY).automatic());

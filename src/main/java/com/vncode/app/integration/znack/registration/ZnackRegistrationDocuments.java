@@ -64,8 +64,8 @@ public final class ZnackRegistrationDocuments {
     private static String type(String value) {
         String normalized=value==null?"":value.strip().toUpperCase(Locale.ROOT);
         return switch(normalized) {
-            case "CONFORMITY_DECLARATION", "DECLARATION", "ДЕКЛАРАЦИЯ", "ДЕКЛАРАЦИЯ О СООТВЕТСТВИИ" -> "CONFORMITY_DECLARATION";
-            case "CONFORMITY_CERTIFICATE", "CERTIFICATE", "СЕРТИФИКАТ", "СЕРТИФИКАТ СООТВЕТСТВИЯ" -> "CONFORMITY_CERTIFICATE";
+            case "2", "CONFORMITY_DECLARATION", "DECLARATION", "DECLARATION_OF_CONFORMITY", "ДЕКЛАРАЦИЯ", "ДЕКЛАРАЦИЯ О СООТВЕТСТВИИ" -> "CONFORMITY_DECLARATION";
+            case "1", "CONFORMITY_CERTIFICATE", "CERTIFICATE", "CERTIFICATE_OF_CONFORMITY", "СЕРТИФИКАТ", "СЕРТИФИКАТ СООТВЕТСТВИЯ" -> "CONFORMITY_CERTIFICATE";
             default -> "";
         };
     }

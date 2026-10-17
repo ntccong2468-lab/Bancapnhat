@@ -22,10 +22,12 @@ final class RegistrationBatchPreflight {
     static Review read(Shop owner,List<ProductKey> selected){
         ListingIdentity.require(owner);var findings=new ArrayList<Finding>();var repo=new ProductRepository();var advisor=new ProductTnvedAdvisor();var cards=new HashSet<String>();
         var sources=new RegistrationSources();boolean sourceReady=sources.check(owner).ready();
+        var settings=new com.vncode.app.integration.znack.ZnackRepository(new com.vncode.app.integration.znack.ZnackModels.ShopContext(owner.getId(),owner.getName())).getSettings();
         for(var key:selected){ListingIdentity.require(owner,key);if(!cards.add(key.cardId()))continue;
             var snapshot=repo.localSnapshot(key).orElse(null);if(snapshot==null)continue;
             if(!ListingIdentity.fingerprint(owner).equals(snapshot.metadata().get("owner"))){if(!sourceReady)continue;sources.requireMember(owner,key.cardId(),key.variantId());}
             if(snapshot.brand()==null||snapshot.brand().isBlank())findings.add(new Finding("brand",key,snapshot.vendorArticle(),"","",snapshot.categoryId()));
+            if(com.vncode.app.integration.znack.registration.ZnackRegistrationDocuments.select(snapshot,settings,java.time.LocalDate.now()).candidates().isEmpty())findings.add(new Finding("documents",key,snapshot.vendorArticle(),"","",snapshot.categoryId()));
             for(String field:List.of("gender","material"))if(snapshot.attributes().stream().filter(a->a.complexId().isBlank()||a.complexId().equals("0")).filter(a->ProductFieldNames.matches(field,a.name())).flatMap(a->a.values().stream()).allMatch(String::isBlank))findings.add(new Finding(field,key,snapshot.vendorArticle(),"","",snapshot.categoryId()));
             var proposal=advisor.propose(snapshot);
             if(proposal.current().isBlank()||proposal.unique()&&!ProductFieldNames.tnvedCode(proposal.current()).equals(proposal.candidates().getFirst().code()))
@@ -57,6 +59,11 @@ final class RegistrationBatchPreflight {
                 {box.setEditable(true);box.setMaxWidth(Double.MAX_VALUE);box.setId("registrationMissingValue");box.setPromptText(tr("znack.registration.complete_missing_value"));
                  box.getEditor().textProperty().addListener((o,a,b)->{if(!rendering&&active!=null)values.put(active,b);});box.valueProperty().addListener((o,a,b)->{if(!rendering&&active!=null&&b!=null)values.put(active,b);});}
                 protected void updateItem(Finding finding,boolean empty){super.updateItem(finding,empty);active=empty?null:finding;if(active==null){setGraphic(null);return;}
+                    if(active.field().equals("documents")){
+                        var target=active;var edit=new Button(tr("products.edit_documents"));edit.setId("registrationMissingDocuments");edit.setOnAction(e->completeDocuments(target));
+                        var read=new Button(tr("znack.registration.refresh"));read.setOnAction(e->verifyDocuments(target));
+                        var saved=new Label(values.getOrDefault(target,""));saved.setWrapText(true);setGraphic(new VBox(4,new HBox(8,edit,read),saved));return;
+                    }
                     rendering=true;var options=new LinkedHashSet<String>();if(!active.suggestion().isBlank())options.add(active.suggestion());options.addAll(suggestions.getOrDefault(group(active),List.of()));box.getItems().setAll(options);box.setValue(values.getOrDefault(active,""));box.getEditor().setText(values.getOrDefault(active,""));rendering=false;setGraphic(box);}
             });table.getColumns().add(input);status.setWrapText(true);status.setId("registrationMissingStatus");
             var content=new VBox(10,table,status);VBox.setVgrow(table,Priority.ALWAYS);dialog.getDialogPane().setContent(content);dialog.getDialogPane().setPrefSize(880,550);dialog.getDialogPane().setId("registrationMissingFieldsDialog");
@@ -69,16 +76,32 @@ final class RegistrationBatchPreflight {
             var groups=new LinkedHashMap<String,Finding>();review.findings().forEach(f->groups.putIfAbsent(group(f),f));
             var task=new Task<Void>(){protected Void call()throws Exception{try(var lane=MarketplaceRequestBudget.lane(true)){
                 var service=new ProductSuggestionService();for(var entry:groups.entrySet()){
-                    if(disposed)return null;try{var found=service.suggest(owner,List.of(entry.getValue().key()),entry.getValue().field(),"",partial->offer(entry.getKey(),partial.values()));offer(entry.getKey(),found.values());}catch(Exception unavailable){/* Manual input remains available. */}
+                    if(disposed)return null;if(entry.getValue().field().equals("documents"))continue;try{var found=service.suggest(owner,List.of(entry.getValue().key()),entry.getValue().field(),"",partial->offer(entry.getKey(),partial.values()));offer(entry.getKey(),found.values());}catch(Exception unavailable){/* Manual input remains available. */}
                 }return null;
             }}};AppTaskExecutor.executeCatalog(task,error->{});
         }
         void offer(String key,List<String> options){Platform.runLater(()->{if(!disposed&&!busy){suggestions.put(key,List.copyOf(options));table.refresh();}});}
+        void completeDocuments(Finding finding){
+            if(disposed||busy)return;
+            com.vncode.app.ui.products.ProductBulkEditPane.showDialog(dialog.getDialogPane().getScene().getWindow(),owner,"documents",List.of(finding.key()),()->{
+                if(!disposed)verifyDocuments(finding);
+            });
+        }
+        void verifyDocuments(Finding finding){
+            if(disposed||busy)return;values.put(finding,"");busy=true;table.setDisable(true);dialog.getDialogPane().lookupButton(applyType).setDisable(true);
+            var task=new Task<Boolean>(){protected Boolean call()throws Exception{try(var lane=MarketplaceRequestBudget.lane(true)){
+                var snapshot=owner.getMarketplace()==com.vncode.app.integration.marketplace.Marketplace.OZON?new com.vncode.app.integration.ozon.OzonProductSnapshotReader().read(owner,finding.key()):new com.vncode.app.integration.wb.WbProductSnapshotReader().read(owner,finding.key());
+                var settings=new com.vncode.app.integration.znack.ZnackRepository(new com.vncode.app.integration.znack.ZnackModels.ShopContext(owner.getId(),owner.getName())).getSettings();
+                return !com.vncode.app.integration.znack.registration.ZnackRegistrationDocuments.select(snapshot,settings,java.time.LocalDate.now()).candidates().isEmpty();
+            }}};
+            task.setOnSucceeded(e->{busy=false;if(disposed)return;table.setDisable(false);dialog.getDialogPane().lookupButton(applyType).setDisable(false);if(task.getValue())values.put(finding,tr("znack.registration.complete_missing_documents_saved"));status.setText(tr(task.getValue()?"znack.registration.complete_missing_documents_saved":"znack.registration.complete_missing_documents_pending"));table.refresh();});
+            java.util.function.Consumer<Throwable> failed=error->{busy=false;if(disposed)return;table.setDisable(false);dialog.getDialogPane().lookupButton(applyType).setDisable(false);status.setText(FriendlyErrorService.format(error));};task.setOnFailed(e->failed.accept(task.getException()));AppTaskExecutor.executeCatalog(task,failed);
+        }
         void apply(){
             if(session!=null){advance();return;}
             if(values.values().stream().anyMatch(v->v==null||v.isBlank())){status.setText(tr("znack.registration.ozon_required"));return;}
             if(review.findings().stream().anyMatch(f->f.field().equals("tnved")&&!values.get(f).strip().matches("[0-9]{10}"))){status.setText(tr("znack.registration.ozon_tnved"));return;}
-            var entered=Map.copyOf(values);work(()->{session=corrections.prepare(owner,review,entered);return session.advance(p->progress(p));});
+            var entered=Map.copyOf(values);var fields=new Review(review.findings().stream().filter(f->!f.field().equals("documents")).toList());work(()->{session=corrections.prepare(owner,fields,entered);return session.advance(p->progress(p));});
         }
         void advance(){if(!disposed&&!busy&&session!=null)work(()->session.advance(this::progress));}
         void progress(ProductBulkEditService.Progress p){Platform.runLater(()->{if(!disposed)status.setText(tr("znack.registration.complete_missing_saving")+" "+p.completed()+"/"+p.total());});}

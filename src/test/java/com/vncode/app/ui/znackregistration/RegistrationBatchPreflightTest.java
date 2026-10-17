@@ -18,8 +18,18 @@ class RegistrationBatchPreflightTest {
         var key=new ProductKey(1,Marketplace.WILDBERRIES,"101","201");
         var snapshot=new ProductSnapshot(key,"live:fixture","Костюм","","","Article","1",List.of(),List.of(),List.of(new ProductVariant("201","Article","Brown","L","",false)),null,List.of(),Instant.now(),Map.of("owner",ListingIdentity.fingerprint(shop)));
         var repository=new ProductRepository();repository.saveVerifiedSnapshot(shop,snapshot);
-        var review=RegistrationBatchPreflight.read(shop,List.of(key));assertEquals(Set.of("brand","material","gender","tnved"),review.findings().stream().map(RegistrationBatchPreflight.Finding::field).collect(java.util.stream.Collectors.toSet()));
+        var review=RegistrationBatchPreflight.read(shop,List.of(key));assertEquals(Set.of("brand","material","gender","tnved","documents"),review.findings().stream().map(RegistrationBatchPreflight.Finding::field).collect(java.util.stream.Collectors.toSet()));
         assertEquals(List.of(key),review.keys("brand"));assertEquals(snapshot,repository.localSnapshot(key).orElseThrow());
         try(var c=Database.getConnection();var s=c.createStatement();var r=s.executeQuery("SELECT COUNT(*) FROM znack_card_registrations")){assertTrue(r.next());assertEquals(0,r.getInt(1));}
+    }
+    @Test void eligibleProductDocumentOrConfiguredShopDefaultDoesNotAskForAnotherDocument()throws Exception{
+        System.setProperty("vncode.appdata.dir",directory.toString());Database.initDatabase();var shop=GtinWriteTestFixture.shop(Marketplace.WILDBERRIES);var key=new ProductKey(1,shop.getMarketplace(),"101","201");
+        var document=new ProductDocument("fixture","DECLARATION","SYNTHETIC-DOC",java.time.LocalDate.now().minusDays(1),java.time.LocalDate.now().plusYears(1),"Fixture","",null,shop.getMarketplace(),DocumentState.UNVERIFIED,"https://example.invalid",Instant.now());
+        var snapshot=new ProductSnapshot(key,"live:fixture","Костюм","","Fixture","Article","1",List.of(),List.of(),List.of(new ProductVariant("201","Article","Brown","L","",false)),null,List.of(document),Instant.now(),Map.of("owner",ListingIdentity.fingerprint(shop)));var repository=new ProductRepository();repository.saveVerifiedSnapshot(shop,snapshot);
+        assertTrue(RegistrationBatchPreflight.read(shop,List.of(key)).keys("documents").isEmpty());
+        var without=new ProductSnapshot(snapshot.key(),snapshot.revision(),snapshot.title(),snapshot.description(),snapshot.brand(),snapshot.vendorArticle(),snapshot.categoryId(),snapshot.media(),snapshot.attributes(),snapshot.variants(),snapshot.dimensions(),List.of(),snapshot.checkedAt(),snapshot.metadata());repository.saveVerifiedSnapshot(shop,without);
+        assertEquals(List.of(key),RegistrationBatchPreflight.read(shop,List.of(key)).keys("documents"));
+        var settings=new com.vncode.app.integration.znack.ZnackRepository(new com.vncode.app.integration.znack.ZnackModels.ShopContext(1,shop.getName()));settings.saveSettings(settings.getSettings().withDefaultGoodsDocument("CONFORMITY_DECLARATION","SYNTHETIC-DOC",java.time.LocalDate.now().minusDays(1).format(java.time.format.DateTimeFormatter.ofPattern("dd.MM.uuuu"))));
+        assertTrue(RegistrationBatchPreflight.read(shop,List.of(key)).keys("documents").isEmpty());
     }
 }
