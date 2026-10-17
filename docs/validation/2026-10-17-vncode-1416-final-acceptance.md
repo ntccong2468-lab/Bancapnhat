@@ -17,3 +17,9 @@ Không thực hiện kích hoạt license sản xuất, cấp/ký thẻ thật b
 Lượt Windows trước có 1 lỗi kiểm thử do đọc danh sách trước callback FX. Đã thay bằng chờ kết quả hiển thị thực, giữ nguyên kiểm tra chống dữ liệu cửa hàng cũ; đồng thời chặn callback khởi tạo cửa hàng sau khi Home bị dispose. Cả 55 kiểm thử FXML đã đạt trên Linux sau sửa. Lượt sạch toàn bộ 1.687 kiểm thử Linux trên mã nguồn mới đã đạt; Windows đang chạy.
 
 Windows: toàn bộ 1.687 kiểm thử đạt (2 ca bỏ qua theo hệ điều hành), launcher/DPAPI/DPI/288 bố cục và 11 nâng cấp đến 1.4.13 đạt. Run dừng ở probe 1.4.15 do mong đợi schema 4 thay vì schema 5. Đã sửa script theo phiên bản nền; mã ứng dụng và bộ cài không đổi. Chủ ứng dụng yêu cầu phát hành ngay, dừng chạy kiểm thử bổ sung. Ngoại lệ công bố có phạm vi duy nhất 1.4.16, bind source/run/SHA-256 và giữ nguyên publisher chuẩn. Không tạo chứng cứ nâng cấp 1.4.15 hoặc nghiệm thu sản xuất giả.
+
+## Công bố
+
+Đã công bố [VNCode 1.4.16 Latest](https://github.com/ntccong2468-lab/Bancapnhat/releases/tag/v1.4.16) lúc 19:46:25 UTC ngày 17/10/2026 qua [workflow 39063828895](https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/39063828895). 23 asset được đối chiếu trước xuất bản; không tạo proof nâng cấp 1.4.15 còn thiếu.
+
+Tải công khai không có Authorization thành công HTTP 200, đủ 145.501.184 byte; SHA-256 `9c18a6d388945358213dad0c6eaa158cdd53b4f78cacbe773fe87b6d0883dfb2`, khớp bộ cài kiểm chứng và digest asset GitHub. Parser updater trong JAR Windows đã kiểm chứng đọc đúng Latest 1.4.16, URL EXE, checksum, kích thước và ghi chú; không khẳng định đã quan sát hộp thông báo trên máy seller. Hồ sơ chi tiết: [publication JSON](2026-10-17-vncode-1416-publication.json).

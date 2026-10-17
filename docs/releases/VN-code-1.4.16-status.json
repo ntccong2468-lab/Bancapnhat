@@ -3,8 +3,8 @@
   "baseVersion": "1.4.15",
   "complete": false,
   "developmentComplete": true,
-  "officialReleasePublished": false,
-  "phase": "owner-requested-immediate-publication",
+  "officialReleasePublished": true,
+  "phase": "published-latest-owner-approved",
   "licenseIntegration": {
     "implemented": true,
     "productionReady": false,
@@ -13,7 +13,7 @@
   },
   "validation": {
     "productionLicenseVerified": false,
-    "windowsNativeBuildThisVersion": false,
+    "windowsNativeBuildThisVersion": true,
     "fullJavaRegression": {
       "version": "1.4.16",
       "source": "536567835f6a044626d00be273b2217bb1c4fc7c",
@@ -164,7 +164,7 @@
       "skipped": 2,
       "passed": 1685,
       "jarSha256": "ba5255a21646342fe697ecaf860499de037d2242f40ec3f151d737cc9f9c3470",
-      "nativeInstallerAcceptanceStillRunning": true
+      "nativeInstallerAcceptanceStillRunning": false
     },
     "nativeAcceptance": {
       "nativeLauncher": true,
@@ -178,7 +178,8 @@
       "upgradeBaselinesPassed": 11,
       "upgrade1415Retested": false,
       "failure": "Probe expected schema 4 instead of actual schema 5 for 1.4.15; probe corrected"
-    }
+    },
+    "windowsNativeAcceptanceComplete": false
   },
   "scope": [
     "Vietnamese news in bounded frame",
@@ -191,5 +192,57 @@
   ],
   "applicationSource": "536567835f6a044626d00be273b2217bb1c4fc7c",
   "sourceCommit": "536567835f6a044626d00be273b2217bb1c4fc7c",
-  "ownerPublicationInstruction": "docs/validation/2026-10-17-vncode-1416-owner-publication.json"
+  "ownerPublicationInstruction": "docs/validation/2026-10-17-vncode-1416-owner-publication.json",
+  "publication": {
+    "published": true,
+    "latestChanged": true,
+    "version": "1.4.16",
+    "releaseId": 416022169,
+    "tag": "v1.4.16",
+    "publishedAt": "2026-10-17T19:46:25Z",
+    "url": "https://github.com/ntccong2468-lab/Bancapnhat/releases/tag/v1.4.16",
+    "installerUrl": "https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.4.16/VN-code-1.4.16-Windows-x64.exe",
+    "sourceCommit": "536567835f6a044626d00be273b2217bb1c4fc7c",
+    "buildRunId": 39061440469,
+    "publicationWorkflowRunId": 39063828895,
+    "publicationWorkflowSucceeded": true,
+    "assets": 23,
+    "allAssetDigestsValidatedInPublicationWorkflow": true,
+    "ownerRequestedImmediatePublication": true,
+    "standardFullAcceptanceClaimed": false,
+    "upgrade1415Retested": false,
+    "productionLicenseAcceptance": false
+  },
+  "publicDownload": {
+    "result": "passed",
+    "releaseId": 416022169,
+    "tag": "v1.4.16",
+    "publishedAt": "2026-10-17T19:46:25Z",
+    "releaseUrl": "https://github.com/ntccong2468-lab/Bancapnhat/releases/tag/v1.4.16",
+    "api": "https://api.github.com/repos/ntccong2468-lab/Bancapnhat/releases/latest",
+    "publicLatestVerified": true,
+    "browserDownloadUrl": "https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.4.16/VN-code-1.4.16-Windows-x64.exe",
+    "downloadedWithoutAuthorizationHeader": true,
+    "httpStatus": 200,
+    "bytes": 145501184,
+    "sha256": "9c18a6d388945358213dad0c6eaa158cdd53b4f78cacbe773fe87b6d0883dfb2",
+    "matchesGitHubAssetDigest": true,
+    "windowsPeSignature": true,
+    "changelogPresent": true,
+    "verifiedAt": "2026-10-17T19:47:19.466415+00:00",
+    "matchesVerifiedWindowsInstaller": true,
+    "sourceRunCompleteSuccess": false
+  },
+  "updaterReadback": {
+    "olderVersionsDetected": true,
+    "releaseVersion": "1.4.16",
+    "downloadUrl": "https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.4.16/VN-code-1.4.16-Windows-x64.exe",
+    "changelogPresent": true,
+    "bytes": 145501184,
+    "scope": "Actual public Latest JSON parsed by verified Windows application JAR in cloud",
+    "sellerDesktopPopupObserved": false,
+    "sha256": "9c18a6d388945358213dad0c6eaa158cdd53b4f78cacbe773fe87b6d0883dfb2",
+    "verifiedJarVersion": "1.4.16",
+    "result": "passed"
+  }
 }
