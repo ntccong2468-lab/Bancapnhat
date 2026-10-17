@@ -6,7 +6,7 @@ Bản nâng cấp trực tiếp từ 1.4.13. Bản nháp 1.4.14 giữ nguyên ta
 
 - Bài Znack giữ thời hạn 10 giây, toàn bộ kiểm tra 300/600/900/1.003 dòng và lựa chọn toàn bộ vẫn giữ nguyên. Chờ callback FX và công việc nối tiếp ổn định thay vì kiểm tra một lần sau khi bộ đếm worker về 0.
 - Fixture hộp báo cáo bấm nút Đóng của chính Dialog để chạy handler dừng timer, rồi đợi các lượt đọc dùng chung kết thúc trước khi đổi thư mục database.
-- Đang chạy kiểm tra tập trung, sau đó toàn bộ `clean verify`, Node, Portal và native Windows trên source cuối. Không dùng lượt kiểm tra có failure để phát hành.
+- Ba lượt tập trung đều đạt 11/11 bài. Source cuối `16f7b43047f50057df88f4bda70939da4b634a38` đã đạt `clean verify`: 1.664 bài, 1.662 passed, 0 failures/errors, 2 platform skips; Node và Portal đạt 60/60 mỗi bộ. Native Windows đang chạy đúng source này. Không dùng lượt kiểm tra có failure để phát hành.
 
 ## Các đầu mục đã rà soát
 
@@ -34,3 +34,5 @@ Latest công khai WBCode `v1.3.9`; nguồn nội bộ bản này chưa truy cậ
 Các lượt API cuối chỉ đọc dữ liệu. Không mua/gán KIZ, không đóng đơn thật, không tạo thêm thẻ hoặc ghi GTIN thêm trong lượt này. WB mẫu danh mục bộ còn khác TN VED giữa sàn và Catalog; không sửa phân loại âm thầm để tạo kết quả đạt. Các bằng chứng ghi/đọc lại Ozon và sửa article WB ở lượt trước được giữ riêng.
 
 Chủ ứng dụng tiếp tục yêu cầu kiểm tra lại, build và phát hành Latest sau khi phần nghiệm thu license còn thiếu đã được công bố trong phiên làm việc. Nếu phát hành thủ công theo chỉ dẫn đó, các cờ `complete` / `productionReady` và gate publisher vẫn giữ đúng kết quả; không tạo bằng chứng kích hoạt giả.
+
+Kiểm tra lại parser của bản 1.4.15 trên phản hồi API thật đã lưu tiếp tục đạt: WB 4 đơn mới / 293 shipment, 6 ID thuộc shipment mở; Ozon 244 đơn / 245 dòng qua 3 trang; Catalog 1.276 thẻ và 10 cặp Ozon duy nhất / 0 cặp mơ hồ. Đây là kiểm tra lại phản hồi đã lưu của lượt API cuối, không phải thao tác ghi mới.

@@ -1,8 +1,8 @@
 {
   "version": "1.4.15",
   "baseVersion": "1.4.13",
-  "sourceCommit": null,
-  "phase": "final-clean-verification-and-new-windows-build-pending",
+  "sourceCommit": "16f7b43047f50057df88f4bda70939da4b634a38",
+  "phase": "linux-full-regression-passed-native-windows-running",
   "ownerRequestedLatestAfterFullRecheck": true,
   "inheritedApplicationSource": "6ba183cd5fb4420e37df13035581fee08c2d2155",
   "applicationChangesAfterInheritedSource": [
@@ -78,13 +78,43 @@
         "skipped": 0,
         "logSha256": "90637e16662a96879e7bcb13cd4fde80a5e14e425ff6b7751d8d6be4d9e149cb"
       }
-    ]
+    ],
+    "fullSuiteZnackController": {
+      "tests": 9,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 4.599
+    },
+    "defaultHomeDatabaseErrorsAfterCleanup": 0
   },
   "fullJava": {
-    "result": "pending"
+    "tests": 1664,
+    "passed": 1662,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 2,
+    "source": "16f7b43047f50057df88f4bda70939da4b634a38",
+    "result": "passed",
+    "logSha256": "363df134041731b77fc90dde4aff7e804fed8da3bbbc4684d59283b8f86908fc",
+    "elapsed": "10:02",
+    "finishedAt": "2026-10-17T08:16:02Z",
+    "platformSkips": [
+      {
+        "suite": "com.vncode.app.features.gs1.Gs1PrefixTemplateStoreTest",
+        "skipped": 1
+      },
+      {
+        "suite": "com.vncode.app.shared.WindowsSecretProtectorTest",
+        "skipped": 1
+      }
+    ]
   },
   "nativeWindows": {
-    "result": "pending"
+    "run": 39016087535,
+    "source": "16f7b43047f50057df88f4bda70939da4b634a38",
+    "result": "in_progress",
+    "url": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/39016087535"
   },
   "publication": {
     "published": false,
@@ -99,5 +129,433 @@
     "No additional live registration/signing, KIZ purchase/assignment, shipment mutation or marketplace GTIN write during this final recheck",
     "Prior one Ozon GTIN APPLIED and WB article trim verified by native readback remain retained separately; no replay",
     "WB set-category sample has different TN VED; pants outside the selected test category were not modified"
-  ]
+  ],
+  "node": {
+    "tests": 60,
+    "passed": 60,
+    "failed": 0,
+    "skipped": 0,
+    "source": "16f7b43047f50057df88f4bda70939da4b634a38",
+    "logSha256": "d9c7ed9f9c91675fd3babb448ec61740e9f2ade8af2878b6dbd884b2a5bb0531"
+  },
+  "portal": {
+    "tests": 60,
+    "passed": 60,
+    "failed": 0,
+    "skipped": 0,
+    "source": "16f7b43047f50057df88f4bda70939da4b634a38",
+    "logSha256": "964463ced6d749d5cd6dd3fcdd9f700a2a9fcb4aad68c5b676622695909afc92"
+  },
+  "productionParserSources": {
+    "src/main/java/com/vncode/app/integration/wb/WbFbsResponseValidator.java": "b53544005972beab0d9db703239668043417f7b8cb8e9af557830369c7d0afe8",
+    "src/main/java/com/vncode/app/integration/ozon/OzonJson.java": "bf7f8c416b4752fd17ff16831d5eb8aa6e6377d646d89209b6c01de69d1db27a",
+    "src/main/java/com/vncode/app/features/gtinsync/GtinCatalogIndex.java": "bc23110804819cef9d1726489a1520642d6708772d5478305799c7e96afd7356"
+  },
+  "syntheticFbsUi": {
+    "platform": "Linux cloud",
+    "actualWindowsLowEnd": false,
+    "shops": 10,
+    "ordersPerShop": 1000,
+    "products": 100000,
+    "samples": 20,
+    "commitToPulseP95Millis": 126.389016,
+    "fxDispatchP95Millis": 22.336187,
+    "fxStallsOver500Millis": 0
+  },
+  "nativeParserRecheckOnVersion15": {
+    "sourceCommit": "16f7b43047f50057df88f4bda70939da4b634a38",
+    "capturedLiveResponsesAt": "2026-10-17T07:51:25Z to 07:52:49Z",
+    "currentCompiledVersion": "1.4.15",
+    "wb": {
+      "scope": "Native Gson DTOs and WbFbsResponseValidator over captured live responses; not license/signing acceptance",
+      "remoteMutations": 0,
+      "activeSupplyOrderIds": 6,
+      "newOrders": 4,
+      "result": "passed",
+      "supplies": 293
+    },
+    "ozonFbs": {
+      "windowsLicenseOrSigningAcceptance": false,
+      "complete": true,
+      "remoteMutations": 0,
+      "nativeParser": "OzonJson.requirePostingPage / requirePostingDetail",
+      "detailProducts": 1,
+      "pages": 3,
+      "postings": 244,
+      "items": 245
+    },
+    "catalogAndGtin": {
+      "uniqueCandidates": 10,
+      "remoteWrites": 0,
+      "ozonProducts": 175,
+      "ambiguousCandidates": 0,
+      "oldExactMatches": 0,
+      "catalogStates": {
+        "draft": 39,
+        "published": 1237
+      },
+      "catalogParsed": 1276,
+      "scope": "native parsers and matching over real responses; no Windows signing or production license acceptance"
+    },
+    "remoteMutations": 0
+  },
+  "testGroups": {
+    "config": {
+      "tests": 15,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "suites": 3
+    },
+    "features.catalogsync": {
+      "tests": 18,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "suites": 2
+    },
+    "features.fbo": {
+      "tests": 14,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "suites": 4
+    },
+    "features.fbosupply": {
+      "tests": 16,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "suites": 3
+    },
+    "features.finance": {
+      "tests": 13,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "suites": 4
+    },
+    "features.gs1": {
+      "tests": 147,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 1,
+      "suites": 19
+    },
+    "features.gtinsync": {
+      "tests": 55,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "suites": 10
+    },
+    "features.guides": {
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "suites": 1
+    },
+    "features.jobs": {
+      "tests": 7,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "suites": 2
+    },
+    "features.kiz": {
+      "tests": 55,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "suites": 10
+    },
+    "features.kizmapping": {
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "suites": 2
+    },
+    "features.license": {
+      "tests": 72,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "suites": 10
+    },
+    "features.listingcopy": {
+      "tests": 34,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "suites": 5
+    },
+    "features.news": {
+      "tests": 17,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "suites": 3
+    },
+    "features.order": {
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "suites": 1
+    },
+    "features.ozon": {
+      "tests": 8,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "suites": 2
+    },
+    "features.print": {
+      "tests": 52,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "suites": 10
+    },
+    "features.products": {
+      "tests": 61,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "suites": 8
+    },
+    "features.shop": {
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "suites": 1
+    },
+    "features.supply": {
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "suites": 2
+    },
+    "features.sync": {
+      "tests": 69,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "suites": 8
+    },
+    "features.tnved": {
+      "tests": 16,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "suites": 4
+    },
+    "features.znack": {
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "suites": 1
+    },
+    "integration.gs1": {
+      "tests": 20,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "suites": 4
+    },
+    "integration.license": {
+      "tests": 41,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "suites": 4
+    },
+    "integration.listing": {
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "suites": 1
+    },
+    "integration.marketplace": {
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "suites": 1
+    },
+    "integration.ozon": {
+      "tests": 143,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "suites": 27
+    },
+    "integration.translation": {
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "suites": 1
+    },
+    "integration.update": {
+      "tests": 31,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "suites": 9
+    },
+    "integration.wb": {
+      "tests": 87,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "suites": 20
+    },
+    "integration.znack": {
+      "tests": 339,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "suites": 32
+    },
+    "models": {
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "suites": 1
+    },
+    "performance": {
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "suites": 2
+    },
+    "root": {
+      "tests": 6,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "suites": 2
+    },
+    "shared": {
+      "tests": 86,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 1,
+      "suites": 22
+    },
+    "ui": {
+      "tests": 56,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "suites": 2
+    },
+    "ui.catalogsync": {
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "suites": 1
+    },
+    "ui.gs1": {
+      "tests": 23,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "suites": 3
+    },
+    "ui.gtinsync": {
+      "tests": 9,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "suites": 4
+    },
+    "ui.kiz": {
+      "tests": 8,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "suites": 3
+    },
+    "ui.kizmapping": {
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "suites": 2
+    },
+    "ui.license": {
+      "tests": 8,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "suites": 1
+    },
+    "ui.listingcopy": {
+      "tests": 16,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "suites": 1
+    },
+    "ui.ozon": {
+      "tests": 15,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "suites": 6
+    },
+    "ui.products": {
+      "tests": 11,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "suites": 4
+    },
+    "ui.supply": {
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "suites": 1
+    },
+    "ui.tnved": {
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "suites": 1
+    },
+    "ui.workspace": {
+      "tests": 18,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "suites": 9
+    },
+    "ui.znack": {
+      "tests": 11,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "suites": 2
+    },
+    "ui.znackregistration": {
+      "tests": 22,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "suites": 4
+    }
+  }
 }

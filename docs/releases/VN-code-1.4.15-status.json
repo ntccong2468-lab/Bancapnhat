@@ -4,15 +4,15 @@
   "complete": false,
   "developmentComplete": true,
   "officialReleasePublished": false,
-  "phase": "final-regression-running-after-fixture-race-fix",
+  "phase": "linux-full-regression-passed-native-windows-running",
   "licenseIntegration": {
     "implemented": true,
     "productionReady": false,
     "activeKeyId": "vncode-2",
     "changedInThisVersion": false
   },
-  "applicationSource": null,
-  "sourceCommit": null,
+  "applicationSource": "16f7b43047f50057df88f4bda70939da4b634a38",
+  "sourceCommit": "16f7b43047f50057df88f4bda70939da4b634a38",
   "inheritedImplementation": "docs/releases/VN-code-1.4.14-status.json",
   "scope": [
     "Bounded local SQLite write transactions and original sync failure preservation",
@@ -46,13 +46,55 @@
   ],
   "validation": {
     "fullJavaRegression": {
-      "result": "pending"
+      "tests": 1664,
+      "passed": 1662,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 2,
+      "source": "16f7b43047f50057df88f4bda70939da4b634a38",
+      "result": "passed",
+      "logSha256": "363df134041731b77fc90dde4aff7e804fed8da3bbbc4684d59283b8f86908fc",
+      "elapsed": "10:02",
+      "finishedAt": "2026-10-17T08:16:02Z",
+      "platformSkips": [
+        {
+          "suite": "com.vncode.app.features.gs1.Gs1PrefixTemplateStoreTest",
+          "skipped": 1
+        },
+        {
+          "suite": "com.vncode.app.shared.WindowsSecretProtectorTest",
+          "skipped": 1
+        }
+      ]
     },
     "windowsNativeBuildThisVersion": false,
     "productionLicenseVerified": false,
     "liveReadReport": "docs/validation/2026-10-17-vncode-1414-final-recheck.json",
     "inheritedApplicationSource": "6ba183cd5fb4420e37df13035581fee08c2d2155",
-    "priorFixtureFailureReport": "docs/validation/2026-10-17-vncode-1414-final-recheck.json"
+    "priorFixtureFailureReport": "docs/validation/2026-10-17-vncode-1414-final-recheck.json",
+    "node": {
+      "tests": 60,
+      "passed": 60,
+      "failed": 0,
+      "skipped": 0,
+      "source": "16f7b43047f50057df88f4bda70939da4b634a38",
+      "logSha256": "d9c7ed9f9c91675fd3babb448ec61740e9f2ade8af2878b6dbd884b2a5bb0531"
+    },
+    "portal": {
+      "tests": 60,
+      "passed": 60,
+      "failed": 0,
+      "skipped": 0,
+      "source": "16f7b43047f50057df88f4bda70939da4b634a38",
+      "logSha256": "964463ced6d749d5cd6dd3fcdd9f700a2a9fcb4aad68c5b676622695909afc92"
+    },
+    "nativeWindowsRun": {
+      "run": 39016087535,
+      "source": "16f7b43047f50057df88f4bda70939da4b634a38",
+      "result": "in_progress",
+      "url": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/39016087535"
+    },
+    "finalReport": "docs/validation/2026-10-17-vncode-1415-final-acceptance.json"
   },
   "publication": {
     "published": false,
