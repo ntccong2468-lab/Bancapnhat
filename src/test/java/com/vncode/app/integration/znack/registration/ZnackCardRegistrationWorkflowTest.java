@@ -422,10 +422,23 @@ class ZnackCardRegistrationWorkflowTest {
                 VALUES(1,11,101,?,'2026-10-06T00:00:00Z','2026-10-06T00:00:00Z')
                 """)){s.setString(1,status);s.executeUpdate();}
     }
+    @Test void acceptedFeedSurvivesRateLimitWithoutAllocatingOrSubmittingAgain()throws Exception{temporaryReadback(429);}
+    @Test void acceptedFeedSurvivesNetworkTimeoutWithoutAllocatingOrSubmittingAgain()throws Exception{temporaryReadback(-1);}
+    private void temporaryReadback(int failure)throws Exception{
+        api.statusReadFailure=failure;assertTrue(workflow.start(shop,current(),draft,null));
+        assertEquals(Status.PROCESSING,current().status());assertEquals("CATALOG_READBACK_RETRY_PENDING",current().errorMessage());
+        assertEquals(1,api.allocations.get());assertEquals(1,api.submissions.get());
+        api.statusReadFailure=0;assertTrue(workflow.refreshStatus(shop,current()));assertEquals(Status.PUBLISHED,current().status());
+        assertEquals(1,api.allocations.get());assertEquals(1,api.submissions.get());assertEquals(0,api.signatures.get());
+    }
+    @Test void accessDeniedRemainsAnActionableErrorInsteadOfAnAutomaticReadRetry(){
+        api.statusReadFailure=403;assertTrue(workflow.start(shop,current(),draft,null));assertEquals(Status.ERROR,current().status());assertEquals(1,api.submissions.get());
+    }
     class FixtureApi extends ZnackApiClient {
         AtomicInteger allocations=new AtomicInteger(),submissions=new AtomicInteger(),signatures=new AtomicInteger(),documents=new AtomicInteger();
         boolean allocationTimeout,feedTimeout,existingDraft,rejectExistingFeed,readRejected;
         boolean pendingModeration,moderated,signTimeout,signatureAccepted,changeSigningDocument,delayPublication;
+        int statusReadFailure;
         boolean cardPublished=true,cardMissing,completedWithoutCard,signingDocumentMissing;
         Map<String,String> bulkGtins=new HashMap<>();
         Map<String,Long> bulkGoodIds=new HashMap<>();
@@ -452,7 +465,9 @@ class ZnackCardRegistrationWorkflowTest {
             if(feedTimeout)throw new IOException("fixture feed result lost");
             return json("{\"result\":{\"feed_id\":\"feed-new\"}}");
         }
-        @Override public JsonElement nationalCatalogFeedStatus(String base,String token,String feed) {
+        @Override public JsonElement nationalCatalogFeedStatus(String base,String token,String feed)throws IOException {
+            if(statusReadFailure==-1)throw new java.net.SocketTimeoutException("fixture readback timeout");
+            if(statusReadFailure>0)throw new ZnackApiClient.ZnackApiException("fixture",statusReadFailure,"fixture status read unavailable");
             if(completedWithoutCard&&submissions.get()==1)return json("{\"result\":{\"status\":\"Done\",\"item\":[{\"gtin\":\"04631993764370\"}]}}");
             if(bulkGtins.containsKey(feed))return json("{\"result\":{\"status\":\"Signed\",\"item\":[{\"gtin\":\""+bulkGtins.get(feed)+"\",\"good_id\":"+bulkGoodIds.get(feed)+"}]}}");
             if(rejectExistingFeed && feed.equals("feed-existing")) {

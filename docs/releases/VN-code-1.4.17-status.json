@@ -59,6 +59,12 @@
         "attributes": 175
       },
       "writes": 0
+    },
+    "transientReadbackRegression": {
+      "tests": 96,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
     }
   },
   "comparison": {

@@ -553,6 +553,12 @@ public final class ZnackCardRegistrationWorkflow {
             registrations.updateProgress(shop.getId(),sku.chrtId(),Status.PROCESSING,null,null,"CATALOG_SIGNING_DOCUMENT_PENDING",null);
             notify(listener,Status.PROCESSING,"CATALOG_SIGNING_DOCUMENT_PENDING");return;
         }
+        if(checkpoint.hasGtin()&&checkpoint.hasFeed()&&CatalogFeedback.retryableRead(error)){
+            // The feed was accepted. A temporary status-read failure must not strand it
+            // as a terminal ERROR or cause a second feed/allocation to be submitted.
+            registrations.updateProgress(shop.getId(),sku.chrtId(),Status.PROCESSING,null,null,"CATALOG_READBACK_RETRY_PENDING",null);
+            notify(listener,Status.PROCESSING,"CATALOG_READBACK_RETRY_PENDING");return;
+        }
         boolean scopeBlocked=error instanceof ZnackRegistrationScope.ScopeChangedException;
         Status failure=scopeBlocked && checkpoint.status()==Status.ALLOCATING_GTIN?Status.PREFLIGHT_ERROR
                 :scopeBlocked && checkpoint.status()==Status.FEED_SUBMITTING?Status.PRE_SUBMIT_ERROR

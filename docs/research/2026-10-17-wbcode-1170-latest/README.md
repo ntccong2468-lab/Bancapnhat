@@ -7,6 +7,7 @@ Repo mã nguồn nội bộ mới `rupphi/source-wcode` trả HTTP 404 với quy
 ## Sửa trong lượt này
 
 - Feed đã Moderated nhưng thiếu good_id được tra lại bằng đúng GTIN; không mượn ID từ thẻ khác và không coi feed là đã xuất bản.
+- Lỗi đọc trạng thái mạng/quota sau khi feed đã được nhận giữ PROCESSING để monitor đọc tiếp; 403 và đổi scope vẫn cần xử lý, không bị tự lặp.
 - Xác minh card `published` qua API sau khi feed/sign được chấp nhận. Kết thúc feed nhưng không có thẻ, hơn 5 phút chưa tạo được thẻ và tài liệu ký tạm thời 404 có trạng thái riêng, giữ GTIN/feed để đọc lại.
 - Báo cáo đăng ký thật khác báo cáo đọc nguồn; lưu ID yêu cầu, ID thẻ và kết quả xuất bản từng SKU. Thông báo lỗi không thể biến thành thành công do lỗi lưu báo cáo.
 - Giữ lô đang đăng ký khi callback làm mới bảng; lấy thuộc tính mới của sàn thay cache cũ sau sửa hàng loạt. Cùng một tập giấy tờ chỉ cần xác nhận một lần trong lô.

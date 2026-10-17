@@ -65,7 +65,7 @@ public final class RegistrationAttemptReports {
             var current=new ZnackCardRegistrationRepository().find(owner.getId(),sku.chrtId());
             if(current==null||current.nmId()!=sku.nmId())throw new SecurityException("SYNC_OWNER_CHANGED");
             String state=state(status);
-            String error=state.equals("NEEDS_ACTION")?SyncFailure.of(new IllegalStateException(detail),0).code():"";
+            String error=state.equals("NEEDS_ACTION")?SyncFailure.of(new IllegalStateException(detail),0).code():"CATALOG_READBACK_RETRY_PENDING".equals(detail)?detail:"";
             write(state,status==Status.PUBLISHED?"CARD_PUBLISHED":status.name(),error,current);
         }
         private void write(String state,String step,String error,Sku current){
