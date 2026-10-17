@@ -95,6 +95,19 @@ public final class OzonCardRegistrationRepository {
         if(!RegisteredGtinValidator.isValid(gtin)||payload.length()>2*1024*1024)throw new IllegalArgumentException("invalid_catalog_draft");
         update(key,"UPDATE ozon_card_registrations SET gtin=?,payload_json=?,status='READY_TO_SUBMIT',error='',updated_at=? WHERE shop_id=? AND product_id=? AND offer_id=? AND status='ALLOCATING_GTIN'",p->{p.setString(1,gtin);p.setString(2,payload);p.setString(3,Instant.now().toString());bindKey(p,4,key);});
     }
+    /** Explicit retry only, after the server proves that the old feed was rejected. */
+    public boolean retryRejected(Shop shop,ProductKey key,Row expected,ZnackRegistrationScope scope){
+        requireShop(shop,key);
+        return transaction(c->{
+            requireCurrentOwner(c,shop,key,scope);var current=row(c,key);
+            if(current==null||expected==null||current.status()!=Status.ERROR||!current.gtin().equals(expected.gtin())||!current.feedId().equals(expected.feedId())
+                    ||!current.payload().equals(expected.payload())||Set.of("SENDING","RECONCILE_REQUIRED").contains(current.signatureState()))return false;
+            requireOwner(current,ListingIdentity.fingerprint(shop),scope);archive(c,current);
+            try(var p=c.prepareStatement("UPDATE ozon_card_registrations SET feed_id='',good_id=NULL,status='READY_TO_SUBMIT',error='',signature_xml=NULL,signature_sha256='',signature_state='',updated_at=? WHERE shop_id=? AND product_id=? AND offer_id=?")){
+                p.setString(1,Instant.now().toString());bindKey(p,2,key);return p.executeUpdate()==1;
+            }
+        });
+    }
     public void submitted(ProductKey key,String feedId) {
         if(feedId==null||feedId.isBlank()||feedId.length()>200)throw new IllegalArgumentException("invalid_feed_id");
         update(key,"UPDATE ozon_card_registrations SET feed_id=?,status='FEED_SUBMITTED',updated_at=? WHERE shop_id=? AND product_id=? AND offer_id=? AND status='FEED_SUBMITTING'",p->{p.setString(1,feedId);p.setString(2,Instant.now().toString());bindKey(p,3,key);});
@@ -120,8 +133,9 @@ public final class OzonCardRegistrationRepository {
             p.setString(1,Instant.now().toString());bindKey(p,2,key);p.setString(5,digest);return p.executeUpdate()==1;
         }});
     }
-    public void uncertain(ProductKey key,Status status) {
-        update(key,"UPDATE ozon_card_registrations SET status=?,signature_state=CASE WHEN signature_state='SENDING' THEN 'RECONCILE_REQUIRED' ELSE signature_state END,error='readback_required',updated_at=? WHERE shop_id=? AND product_id=? AND offer_id=?",p->{p.setString(1,status.name());p.setString(2,Instant.now().toString());bindKey(p,3,key);});
+    public void uncertain(ProductKey key,Status status){uncertain(key,status,"readback_required");}
+    public void uncertain(ProductKey key,Status status,String error) {
+        update(key,"UPDATE ozon_card_registrations SET status=?,signature_state=CASE WHEN signature_state='SENDING' THEN 'RECONCILE_REQUIRED' ELSE signature_state END,error=?,updated_at=? WHERE shop_id=? AND product_id=? AND offer_id=?",p->{p.setString(1,status.name());p.setString(2,CatalogFeedback.display(error));p.setString(3,Instant.now().toString());bindKey(p,4,key);});
     }
     public void releaseSignature(ProductKey key,String digest) {
         update(key,"UPDATE ozon_card_registrations SET status='READY_TO_SIGN',signature_state='PREPARED',updated_at=? WHERE shop_id=? AND product_id=? AND offer_id=? AND signature_state='SENDING' AND signature_sha256=?",p->{p.setString(1,Instant.now().toString());bindKey(p,2,key);p.setString(5,digest);});

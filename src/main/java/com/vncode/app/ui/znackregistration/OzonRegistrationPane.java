@@ -35,7 +35,7 @@ public final class OzonRegistrationPane extends VBox {
     private final TableView<ProductRow> table=new TableView<>();
     private final Map<ProductKey,OzonCardRegistrationRepository.Row> states=new HashMap<>();
     private final TextField search=new TextField();
-    private final CheckBox autoSign=new CheckBox();
+    private final CheckBox autoSign=new CheckBox(),allFiltered=new CheckBox();
     private final Label title=new Label(),status=new Label(),count=new Label(),selection=new Label();
     private final Button report=new Button(),documents=new Button(),refresh=new Button(),sync=new Button(),sign=new Button(),gtin=new Button(),all=new Button(),clear=new Button(),register=new Button(),newCards=new Button(),stopBatch=new Button(),more=new Button();
     private final PauseTransition debounce=new PauseTransition(Duration.millis(250)),refreshDebounce=new PauseTransition(Duration.millis(400));
@@ -55,8 +55,16 @@ public final class OzonRegistrationPane extends VBox {
         this.openGtin=openGtin==null?()->GtinBackgroundStatus.start((StackPane)table.getParent(),owner,new HashSet<>(selected()),this::refreshLocal):openGtin;
         setId("ozonRegistrationPane");setSpacing(8);setPadding(new Insets(12));
         title.getStyleClass().add("h2");status.setWrapText(true);status.getStyleClass().add("text-muted");
-        var actions=new FlowPane(10,8,documents,refresh,sync,sign,gtin,report,stopBatch);var filters=new FlowPane(8,8,search,all,clear,register,newCards,autoSign);autoSign.setSelected(true);autoSign.setWrapText(true);autoSign.setId("ozonRegistrationAutoSign");search.setPrefWidth(300);
-        HBox.setHgrow(search,Priority.ALWAYS);getChildren().setAll(title,actions,status,filters,new StackPane(table),new HBox(10,count,selection,more));VBox.setVgrow(table.getParent(),Priority.ALWAYS);
+        title.setMinWidth(210);title.setPrefWidth(240);title.setMaxWidth(260);var space=new Region();HBox.setHgrow(space,Priority.ALWAYS);
+        var header=new HBox(10,title,space,documents,sign,gtin,sync);header.setId("ozonRegistrationHeader");header.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+        for(var button:List.of(documents,sign,gtin,sync)){button.setMinWidth(100);button.setPrefWidth(210);button.setWrapText(true);}
+        var options=new ContextMenu();for(var node:List.<javafx.scene.Node>of(refresh,report,newCards,autoSign,clear,stopBatch,selection))options.getItems().add(new CustomMenuItem(node,false));
+        title.setContextMenu(options);title.setFocusTraversable(true);title.setTooltip(new Tooltip(tr("znack.registration.more_actions_hint")));
+        var clearFilters=new Button(tr("znack.registration.clear"));clearFilters.setOnAction(e->{search.clear();reload();});
+        var filters=new FlowPane(8,8,search,clearFilters);autoSign.setSelected(true);autoSign.setWrapText(true);autoSign.setId("ozonRegistrationAutoSign");search.setPrefWidth(375);
+        allFiltered.setOnAction(e->{if(allFiltered.isSelected())all.fire();else clear.fire();});
+        var footer=new HBox(10,allFiltered,register,count,more);footer.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+        HBox.setHgrow(search,Priority.ALWAYS);getChildren().setAll(header,status,filters,new StackPane(table),footer);VBox.setVgrow(table.getParent(),Priority.ALWAYS);
         TableScrollLoader.install(table,()->!disposed&&!busy&&!batchReviewing&&ready()&&cursor!=null,()->load(true));
         table.setId("ozonRegistrationTable");table.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
         table.getSelectionModel().getSelectedItems().addListener((javafx.collections.ListChangeListener<ProductRow>)change->{if(!programmaticSelection){frozen=List.of();buttons();}});
@@ -71,9 +79,9 @@ public final class OzonRegistrationPane extends VBox {
     private static String tr(String key){return I18nService.getInstance().tr(key);}
     public void applyTranslations() {
         title.setText(tr("znack.registration.title_ozon")+" · "+owner.getName());
-        documents.setText(tr("znack.registration.documents"));refresh.setText(tr("znack.registration.refresh"));sync.setText(tr("znack.registration.sync_sources"));report.setText(tr("znack.registration.report"));sign.setText(tr("znack.registration.sign_approved"));
+        documents.setText(tr("znack.registration.documents"));refresh.setText(tr("znack.registration.refresh"));sync.setText(tr("znack.registration.sync_znack"));report.setText(tr("znack.registration.report"));sign.setText(tr("znack.registration.sign_approved"));
         gtin.setText(tr("znack.registration.update_ozon"));all.setText(tr("znack.registration.select_all"));clear.setText(tr("znack.registration.clear_selection"));
-        autoSign.setText(tr("znack.registration.auto_sign"));register.setText(tr("znack.registration.register_selected"));newCards.setText(tr("znack.registration.batch_new_cards"));stopBatch.setText(tr("znack.registration.batch_stop"));more.setText(tr("znack.registration.load_more"));search.setPromptText(tr("products.search"));
+        autoSign.setText(tr("znack.registration.auto_sign"));allFiltered.setText(tr("znack.registration.select_all_filtered"));register.setText(tr("znack.registration.register_short"));newCards.setText(tr("znack.registration.batch_new_cards"));stopBatch.setText(tr("znack.registration.batch_stop"));more.setText(tr("znack.registration.load_more"));search.setPromptText(tr("products.search"));
         table.getColumns().clear();
         var images=new TableColumn<ProductRow,ProductRow>(tr("fbo.column.image"));images.setPrefWidth(65);images.setMaxWidth(80);images.setCellValueFactory(cell->new ReadOnlyObjectWrapper<>(cell.getValue()));
         var imageService=new com.vncode.app.features.fbo.FboProductImageService();
@@ -219,12 +227,12 @@ public final class OzonRegistrationPane extends VBox {
         background(work,accept,false);
     }
     private <T>void background(Callable<T> work,Consumer<T> accept,boolean catalog) {
-        if(disposed)return;long current=generation;busy=true;buttons();Task<T> task=new Task<>(){@Override protected T call()throws Exception{return work.call();}};
-        task.setOnSucceeded(e->{if(disposed||current!=generation)return;busy=false;buttons();accept.accept(task.getValue());if(deferredReload&&!busy&&!batchReviewing){deferredReload=false;refreshDebounce.playFromStart();}});
-        Consumer<Throwable> failure=error->{if(disposed||current!=generation)return;busy=false;batchReviewing=false;deferredReload=false;status.setText(tr("znack.registration.sources_required")+" · "+SyncFailure.of(error,0).code());buttons();AlertService.showDetailedError(com.vncode.app.integration.znack.ZnackErrorDetails.summary(error),com.vncode.app.integration.znack.ZnackErrorDetails.format(error));};
+        if(disposed)return;long current=generation;busy=true;table.setPlaceholder(new LoadingSkeleton(tr("znack.registration.loading")));buttons();Task<T> task=new Task<>(){@Override protected T call()throws Exception{return work.call();}};
+        task.setOnSucceeded(e->{if(disposed||current!=generation)return;busy=false;table.setPlaceholder(new Label(tr("znack.registration.empty")));buttons();accept.accept(task.getValue());if(deferredReload&&!busy&&!batchReviewing){deferredReload=false;refreshDebounce.playFromStart();}});
+        Consumer<Throwable> failure=error->{if(disposed||current!=generation)return;busy=false;table.setPlaceholder(new Label(tr("znack.registration.empty")));batchReviewing=false;deferredReload=false;status.setText(tr("znack.registration.sources_required")+" · "+SyncFailure.of(error,0).code());buttons();AlertService.showDetailedError(com.vncode.app.integration.znack.ZnackErrorDetails.summary(error),com.vncode.app.integration.znack.ZnackErrorDetails.format(error));};
         task.setOnFailed(e->failure.accept(task.getException()));task.setOnCancelled(e->failure.accept(new java.net.SocketTimeoutException("ZNACK_SYNC_TIMEOUT")));if(catalog)AppTaskExecutor.executeCatalog(task,failure);else AppTaskExecutor.execute(task,failure);
     }
-    private void buttons(){autoSign.setDisable(busy||batchReviewing);stopBatch.setVisible(batchReviewing&&busy);stopBatch.setManaged(stopBatch.isVisible());stopBatch.setDisable(cancelBatch.get());for(var button:List.of(documents,refresh,sync,sign,gtin,all,clear,register,newCards,more))button.setDisable(busy||batchReviewing);register.setDisable(busy||batchReviewing||selected().isEmpty());newCards.setDisable(busy||batchReviewing||selected().isEmpty());clear.setDisable(busy||batchReviewing||selected().isEmpty());for(var button:List.of(sign,gtin,all,register,newCards,more))if(!ready())button.setDisable(true);report.setDisable(false);search.setDisable(batchReviewing);more.setVisible(false);more.setManaged(false);count.setText(java.text.MessageFormat.format(tr("znack.registration.page_count"),table.getItems().size(),total));selection.setText(java.text.MessageFormat.format(tr("znack.registration.selection_count"),selected().size()));}
+    private void buttons(){allFiltered.setDisable(busy||batchReviewing||!ready());allFiltered.setSelected(total>0&&selected().size()==total);autoSign.setDisable(busy||batchReviewing);stopBatch.setVisible(batchReviewing&&busy);stopBatch.setManaged(stopBatch.isVisible());stopBatch.setDisable(cancelBatch.get());for(var button:List.of(documents,refresh,sync,sign,gtin,all,clear,register,newCards,more))button.setDisable(busy||batchReviewing);register.setDisable(busy||batchReviewing||selected().isEmpty());newCards.setDisable(busy||batchReviewing||selected().isEmpty());clear.setDisable(busy||batchReviewing||selected().isEmpty());for(var button:List.of(sign,gtin,all,register,newCards,more))if(!ready())button.setDisable(true);report.setDisable(false);search.setDisable(batchReviewing);more.setVisible(false);more.setManaged(false);count.setText(java.text.MessageFormat.format(tr("znack.registration.page_count"),table.getItems().size(),total));selection.setText(java.text.MessageFormat.format(tr("znack.registration.selection_count"),selected().size()));}
     private List<ProductKey> allowedKeys(List<ProductKey> selected,boolean replacement)throws Exception {
         return allowedKeys(selected,replacement,true);
     }

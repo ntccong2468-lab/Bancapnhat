@@ -32,6 +32,7 @@ class OzonRegistrationPaneTest {
             s.execute("INSERT INTO ozon_products(shop_id,product_id,offer_id,sku,name,synced_at) VALUES(2,'1','offer-1','10001','Foreign','2026-10-14T00:00:00Z')");
         }
         com.vncode.app.testsupport.RegistrationSourceFixture.ready(new Shop(1,"Ozon fixture",Marketplace.OZON,"fixture","synthetic"));
+        if(System.getProperty("vncode.item4.capture.dir")!=null)fx(()->{com.vncode.app.shared.I18nService.getInstance().setLanguage(com.vncode.app.shared.AppLanguage.VI);return null;});
         pane=fx(()->new OzonRegistrationPane(new Shop(1,"Ozon fixture",Marketplace.OZON,"fixture","synthetic"),gtinOpens::incrementAndGet));
         awaitRows(300);
     }
@@ -52,7 +53,8 @@ class OzonRegistrationPaneTest {
     }
     private void awaitIdle()throws Exception{long end=System.nanoTime()+TimeUnit.SECONDS.toNanos(5);while(AppTaskExecutor.hasRunningTasks()&&System.nanoTime()<end)Thread.sleep(10);fx(()->null);assertFalse(AppTaskExecutor.hasRunningTasks());}
     @Test void openingNativeOzonRegistrationPagesLocallyWithoutAllocatingOrSigningAnything()throws Exception {
-        fx(()->{var label=(javafx.scene.control.Label)pane.getChildren().getFirst();assertEquals(com.vncode.app.shared.I18nService.getInstance().tr("znack.registration.title_ozon")+" · Ozon fixture",label.getText());assertTrue(table().getColumns().getLast().getMinWidth()>=130);for(var row:table().getItems()){assertEquals(1,row.key().shopId());assertEquals(Marketplace.OZON,row.key().marketplace());assertEquals("offer-"+row.key().cardId(),row.key().variantId());}RegistrationScreenshot.capture(pane,"ozon-registration");return null;});
+        fx(()->{var header=(javafx.scene.layout.HBox)pane.getChildren().getFirst();var label=(javafx.scene.control.Label)header.getChildren().getFirst();
+            assertEquals(java.util.List.of(button("documents"),button("sign"),button("gtin"),button("sync")),header.getChildren().stream().filter(n->n instanceof Button).toList());assertEquals(com.vncode.app.shared.I18nService.getInstance().tr("znack.registration.title_ozon")+" · Ozon fixture",label.getText());assertTrue(table().getColumns().getLast().getMinWidth()>=130);for(var row:table().getItems()){assertEquals(1,row.key().shopId());assertEquals(Marketplace.OZON,row.key().marketplace());assertEquals("offer-"+row.key().cardId(),row.key().variantId());}RegistrationScreenshot.capture(pane,"ozon-registration");return null;});
         try(var c=Database.getConnection();var s=c.createStatement()) {
             try(var r=s.executeQuery("SELECT COUNT(*) FROM ozon_card_registrations")){assertEquals(0,r.getInt(1));}
             try(var r=s.executeQuery("SELECT COUNT(*) FROM znack_card_registrations")){assertEquals(0,r.getInt(1));}

@@ -1,0 +1,3050 @@
+{
+  "latest": "v1.3.9",
+  "start": "v1.1.70",
+  "releases": 18,
+  "items": [
+    {
+      "release": "v1.1.70",
+      "line": 3,
+      "requirement": "Sửa phục hồi mua KIZ sau lỗi xác thực: giữ lịch sử lô bị từ chối, không gửi lại giao dịch chưa rõ kết quả và giới hạn số lượng trong mức đã duyệt.",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.1.70",
+      "status": "implementation-present",
+      "code": [
+        "src/main/java/com/vncode/app/integration/znack/ZnackPurchaseCoordinator.java",
+        "src/main/java/com/vncode/app/integration/znack/ZnackPurchasePipelineState.java",
+        "src/main/java/com/vncode/app/integration/znack/ZnackKizOrderService.java"
+      ],
+      "tests": [
+        "src/test/java/com/vncode/app/integration/znack/ZnackModuleTest.java",
+        "src/test/java/com/vncode/app/integration/znack/ZnackPipelineQueueExecutorTest.java"
+      ],
+      "id": "WB-000",
+      "assessment": "Giữ checkpoint giao dịch, dữ liệu cấu hình của lô và đối soát yêu cầu chưa rõ kết quả; không tự mua lặp.",
+      "verification": "Native automated regression; not a live seller acceptance claim"
+    },
+    {
+      "release": "v1.1.70",
+      "line": 4,
+      "requirement": "Giữ yêu cầu mua khi một yêu cầu khác đang chờ; đối chiếu KIZ đã lưu thông trước khi mua phần còn thiếu. Sản phẩm đã hủy không chặn các sản phẩm còn lại.",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.1.70",
+      "status": "implementation-present",
+      "code": [
+        "src/main/java/com/vncode/app/integration/znack/ZnackPurchaseCoordinator.java",
+        "src/main/java/com/vncode/app/integration/znack/ZnackPurchasePipelineState.java",
+        "src/main/java/com/vncode/app/integration/znack/ZnackKizOrderService.java"
+      ],
+      "tests": [
+        "src/test/java/com/vncode/app/integration/znack/ZnackModuleTest.java",
+        "src/test/java/com/vncode/app/integration/znack/ZnackPipelineQueueExecutorTest.java"
+      ],
+      "id": "WB-001",
+      "assessment": "Giữ checkpoint giao dịch, dữ liệu cấu hình của lô và đối soát yêu cầu chưa rõ kết quả; không tự mua lặp.",
+      "verification": "Native automated regression; not a live seller acceptance claim"
+    },
+    {
+      "release": "v1.1.70",
+      "line": 5,
+      "requirement": "Xác minh quyền sở hữu và mã hàng hóa trước khi cập nhật thẻ Znack; chặn thay đổi mã TN VED không khớp với thẻ đã đăng ký.",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.1.70",
+      "status": "implementation-present",
+      "code": [
+        "src/main/java/com/vncode/app/integration/znack/registration/ZnackCardRegistrationWorkflow.java",
+        "src/main/java/com/vncode/app/integration/znack/registration/ZnackCardRegistrationRepository.java",
+        "src/main/java/com/vncode/app/integration/znack/registration/TnvedGroupChange.java"
+      ],
+      "tests": [
+        "src/test/java/com/vncode/app/integration/znack/registration/ZnackCardRegistrationWorkflowTest.java",
+        "src/test/java/com/vncode/app/integration/znack/registration/ZnackCardRegistrationRepositoryTest.java"
+      ],
+      "id": "WB-002",
+      "assessment": "Đổi nhóm TN VED tạo ứng viên mới, giữ thẻ đang dùng và lịch sử; không ghi đè GTIN thẻ cũ.",
+      "verification": "Native automated regression; not a live seller acceptance claim"
+    },
+    {
+      "release": "v1.1.70",
+      "line": 6,
+      "requirement": "Bổ sung mã lỗi chữ ký, nguyên nhân lỗi mua KIZ và thời điểm kiểm tra tiếp theo trong báo cáo chẩn đoán.",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.1.70",
+      "status": "implementation-present",
+      "code": [
+        "src/main/java/com/vncode/app/shared/FriendlyErrorService.java",
+        "src/main/java/com/vncode/app/integration/znack/ZnackErrorMessages.java",
+        "src/main/java/com/vncode/app/features/sync/RegistrationAttemptReports.java",
+        "src/main/java/com/vncode/app/ui/znackregistration/RegistrationSyncReportDialog.java"
+      ],
+      "tests": [
+        "src/test/java/com/vncode/app/ui/znackregistration/RegistrationSyncReportDialogTest.java",
+        "src/test/java/com/vncode/app/integration/znack/ZnackErrorDetailsTest.java"
+      ],
+      "id": "WB-003",
+      "assessment": "Phân biệt đọc nguồn và đăng ký thật; thông báo lỗi theo giai đoạn, lý do từ chối, feed/card ID; lỗi ở cột trạng thái có thể mở chi tiết.",
+      "verification": "Native automated regression; not a live seller acceptance claim"
+    },
+    {
+      "release": "v1.1.70",
+      "line": 7,
+      "requirement": "Cập nhật kết nối xác minh license, hỗ trợ và gửi báo cáo.",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.1.70",
+      "status": "implementation-present",
+      "code": [
+        "src/main/java/com/vncode/app/integration/license/WebLicenseApi.java",
+        "src/main/java/com/vncode/app/features/license/LicenseVerifier.java"
+      ],
+      "tests": [
+        "src/test/java/com/vncode/app/ui/license/LicensePaneTest.java",
+        "src/test/java/com/vncode/app/integration/license/LicenseNetworkDiagnosticsTest.java"
+      ],
+      "id": "WB-004",
+      "assessment": "Áp dụng cho API/license VNCode: cơ chế thời gian, kết nối và giới hạn shop; không chuyển seller sang license Wbcode.",
+      "verification": "Native automated regression; not a live seller acceptance claim"
+    },
+    {
+      "release": "v1.1.70",
+      "line": 11,
+      "requirement": "Bộ kiểm thử Java hoàn tất trên macOS: 1.582 bài chạy thành công, một bài dành cho nền tảng khác được bỏ qua; 28 kiểm tra hợp đồng phát hành thành công.",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.1.70",
+      "status": "vendor-validation-only",
+      "code": [],
+      "tests": [],
+      "id": "WB-005",
+      "assessment": "Kết quả nghiệm thu Wbcode trên tài khoản/máy riêng; không phải chức năng và không dùng để chứng minh VNCode đã ghi/đóng đơn thật."
+    },
+    {
+      "release": "v1.1.70",
+      "line": 12,
+      "requirement": "Live test MOJAZ: hai đơn WB được chuyển sang đóng gói và xuất nhãn. Đơn thứ hai mua đúng một KIZ mới, chờ lưu thông rồi in; KIZ trên WB khớp nhãn đã xuất.",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.1.70",
+      "status": "vendor-validation-only",
+      "code": [],
+      "tests": [],
+      "id": "WB-006",
+      "assessment": "Kết quả nghiệm thu Wbcode trên tài khoản/máy riêng; không phải chức năng và không dùng để chứng minh VNCode đã ghi/đóng đơn thật."
+    },
+    {
+      "release": "v1.1.70",
+      "line": 13,
+      "requirement": "Live test GRANIA: Ozon chấp nhận KIZ, chuyển đơn sang chờ giao và xuất nhãn. DataMatrix và nhãn vận chuyển được giải mã, đối chiếu với dữ liệu đã lưu và nhãn chính thức.",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.1.70",
+      "status": "vendor-validation-only",
+      "code": [],
+      "tests": [],
+      "id": "WB-007",
+      "assessment": "Kết quả nghiệm thu Wbcode trên tài khoản/máy riêng; không phải chức năng và không dùng để chứng minh VNCode đã ghi/đóng đơn thật."
+    },
+    {
+      "release": "v1.1.70",
+      "line": 14,
+      "requirement": "Đồng bộ Znack MOJAZ gặp một phản hồi quota khi thử lại. Ứng dụng giữ tiến độ, chờ thời hạn quota, tự tiếp tục với khoảng cách request tăng từ một lên hai giây và hoàn tất; lượt tiếp tục không gặp thêm HTTP 429.",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.1.70",
+      "status": "implementation-present",
+      "code": [
+        "src/main/java/com/vncode/app/features/sync/ZnackCatalogSyncService.java",
+        "src/main/java/com/vncode/app/integration/znack/registration/NationalCatalogGtinSource.java",
+        "src/main/java/com/vncode/app/features/sync/SyncCoordinator.java"
+      ],
+      "tests": [
+        "src/test/java/com/vncode/app/features/sync/ZnackCatalogSyncServiceTest.java",
+        "src/test/java/com/vncode/app/features/sync/RegistrationSourcesTest.java",
+        "src/test/java/com/vncode/app/features/sync/SyncCoordinatorTest.java"
+      ],
+      "id": "WB-008",
+      "assessment": "Phân trang nguồn, giữ trạng thái chưa hoàn tất, kiểm tra danh tính/tổng số và lỗi quota. Đã đọc lại Catalog thật trong lượt kiểm tra này; kết quả riêng nằm trong báo cáo API.",
+      "verification": "Native automated regression; not a live seller acceptance claim"
+    },
+    {
+      "release": "v1.1.71",
+      "line": 3,
+      "requirement": "Cải thiện xác thực khi mua KIZ cho nhiều GTIN và phục hồi yêu cầu chưa tạo đơn; giữ lịch sử giao dịch, không gửi lại giao dịch chưa rõ kết quả.",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.1.71",
+      "status": "implementation-present",
+      "code": [
+        "src/main/java/com/vncode/app/integration/znack/ZnackPurchaseCoordinator.java",
+        "src/main/java/com/vncode/app/integration/znack/ZnackPurchasePipelineState.java",
+        "src/main/java/com/vncode/app/integration/znack/ZnackKizOrderService.java"
+      ],
+      "tests": [
+        "src/test/java/com/vncode/app/integration/znack/ZnackModuleTest.java",
+        "src/test/java/com/vncode/app/integration/znack/ZnackPipelineQueueExecutorTest.java"
+      ],
+      "id": "WB-009",
+      "assessment": "Giữ checkpoint giao dịch, dữ liệu cấu hình của lô và đối soát yêu cầu chưa rõ kết quả; không tự mua lặp.",
+      "verification": "Native automated regression; not a live seller acceptance claim"
+    },
+    {
+      "release": "v1.1.71",
+      "line": 4,
+      "requirement": "Sửa xuất tất cả nhãn Ozon để bao gồm cả đơn đã in; in lại dùng đúng mã KIZ đã gắn trước đó, không mua hoặc sử dụng mã mới cho đơn cũ.",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.1.71",
+      "status": "implementation-present",
+      "code": [
+        "src/main/java/com/vncode/app/features/print/KizAttachmentCoordinator.java",
+        "src/main/java/com/vncode/app/integration/ozon/OzonShipService.java"
+      ],
+      "tests": [
+        "src/test/java/com/vncode/app/features/print/KizAttachmentCoordinatorTest.java",
+        "src/test/java/com/vncode/app/integration/ozon/OzonShipServiceTest.java"
+      ],
+      "id": "WB-010",
+      "assessment": "Giữ mã đã gán khi in lại; thao tác đơn có/không cần KIZ và gán mã đúng nguồn. Kho seller theo danh mục vẫn giữ quy tắc riêng đã duyệt.",
+      "verification": "Native automated regression; not a live seller acceptance claim"
+    },
+    {
+      "release": "v1.1.71",
+      "line": 5,
+      "requirement": "Sửa hiển thị tiến trình đồng bộ Znack trong KIZ Mapping, bao gồm thời gian chờ và cập nhật mapping sau đồng bộ.",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.1.71",
+      "status": "implementation-present",
+      "code": [
+        "src/main/java/com/vncode/app/ui/kizmapping/KizMappingController.java",
+        "src/main/java/com/vncode/app/integration/znack/ZnackGtinInventoryService.java"
+      ],
+      "tests": [
+        "src/test/java/com/vncode/app/ui/kizmapping/KizMappingEditorTest.java",
+        "src/test/java/com/vncode/app/integration/znack/ZnackGtinInventoryBulkTest.java"
+      ],
+      "id": "WB-011",
+      "assessment": "Danh mục mapping và tồn kho xử lý nền, hiển thị tiến độ và giới hạn thao tác theo trạng thái dữ liệu.",
+      "verification": "Native automated regression; not a live seller acceptance claim"
+    },
+    {
+      "release": "v1.1.71",
+      "line": 6,
+      "requirement": "Thêm cấu hình thương hiệu theo cửa hàng Ozon, sử dụng khi sản phẩm chưa có thương hiệu và không ghi đè thương hiệu hiện có.",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.1.71",
+      "status": "implementation-present",
+      "code": [
+        "src/main/java/com/vncode/app/ui/products/ProductBulkEditPane.java",
+        "src/main/java/com/vncode/app/features/products/ProductSuggestionService.java",
+        "src/main/java/com/vncode/app/ui/products/ProductBulkEditPane.java"
+      ],
+      "tests": [
+        "src/test/java/com/vncode/app/features/products/ProductSuggestionsTest.java",
+        "src/test/java/com/vncode/app/ui/products/ProductBulkDialogTest.java"
+      ],
+      "id": "WB-012",
+      "assessment": "Thương hiệu của shop hiện trước, tải gợi ý sàn dần; giữ nguyên giá trị và không khóa giao diện khi đang đọc.",
+      "verification": "Native automated regression; not a live seller acceptance claim"
+    },
+    {
+      "release": "v1.1.71",
+      "line": 7,
+      "requirement": "Cải thiện thông báo khi đơn bị chặn bởi trạng thái KIZ, dữ liệu in lại hoặc quyền ghi file; bổ sung ngữ cảnh cho báo cáo chẩn đoán.",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.1.71",
+      "status": "implementation-present",
+      "code": [
+        "src/main/java/com/vncode/app/shared/FriendlyErrorService.java",
+        "src/main/java/com/vncode/app/integration/znack/ZnackErrorMessages.java",
+        "src/main/java/com/vncode/app/features/sync/RegistrationAttemptReports.java",
+        "src/main/java/com/vncode/app/ui/znackregistration/RegistrationSyncReportDialog.java"
+      ],
+      "tests": [
+        "src/test/java/com/vncode/app/ui/znackregistration/RegistrationSyncReportDialogTest.java",
+        "src/test/java/com/vncode/app/integration/znack/ZnackErrorDetailsTest.java"
+      ],
+      "id": "WB-013",
+      "assessment": "Phân biệt đọc nguồn và đăng ký thật; thông báo lỗi theo giai đoạn, lý do từ chối, feed/card ID; lỗi ở cột trạng thái có thể mở chi tiết.",
+      "verification": "Native automated regression; not a live seller acceptance claim"
+    },
+    {
+      "release": "v1.1.72",
+      "line": 3,
+      "requirement": "Tự động khôi phục KIZ gốc đã gắn trên Ozon khi dữ liệu lần in đầu trên máy bị thiếu, để tiếp tục xuất nhãn và phiếu soạn hàng.",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.1.72",
+      "status": "implementation-present",
+      "code": [
+        "src/main/java/com/vncode/app/features/print/KizAttachmentCoordinator.java",
+        "src/main/java/com/vncode/app/integration/ozon/OzonShipService.java"
+      ],
+      "tests": [
+        "src/test/java/com/vncode/app/features/print/KizAttachmentCoordinatorTest.java",
+        "src/test/java/com/vncode/app/integration/ozon/OzonShipServiceTest.java"
+      ],
+      "id": "WB-014",
+      "assessment": "Giữ mã đã gán khi in lại; thao tác đơn có/không cần KIZ và gán mã đúng nguồn. Kho seller theo danh mục vẫn giữ quy tắc riêng đã duyệt.",
+      "verification": "Native automated regression; not a live seller acceptance claim"
+    },
+    {
+      "release": "v1.1.72",
+      "line": 4,
+      "requirement": "Kiểm tra từng sản phẩm, số lượng và mã KIZ trước khi in lại; giữ nguyên mã đã gắn cho đơn và lưu dữ liệu khôi phục cho lần in sau.",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.1.72",
+      "status": "implementation-present",
+      "code": [
+        "src/main/java/com/vncode/app/features/print/KizAttachmentCoordinator.java",
+        "src/main/java/com/vncode/app/integration/ozon/OzonShipService.java"
+      ],
+      "tests": [
+        "src/test/java/com/vncode/app/features/print/KizAttachmentCoordinatorTest.java",
+        "src/test/java/com/vncode/app/integration/ozon/OzonShipServiceTest.java"
+      ],
+      "id": "WB-015",
+      "assessment": "Giữ mã đã gán khi in lại; thao tác đơn có/không cần KIZ và gán mã đúng nguồn. Kho seller theo danh mục vẫn giữ quy tắc riêng đã duyệt.",
+      "verification": "Native automated regression; not a live seller acceptance claim"
+    },
+    {
+      "release": "v1.1.72",
+      "line": 5,
+      "requirement": "Nhận diện đơn đã có KIZ trên Ozon trước bước mapping và mua KIZ; giữ các mã khôi phục thuộc về đơn gốc khi đồng bộ kho mã sau này.",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.1.72",
+      "status": "implementation-present",
+      "code": [
+        "src/main/java/com/vncode/app/features/print/KizAttachmentCoordinator.java",
+        "src/main/java/com/vncode/app/integration/ozon/OzonShipService.java"
+      ],
+      "tests": [
+        "src/test/java/com/vncode/app/features/print/KizAttachmentCoordinatorTest.java",
+        "src/test/java/com/vncode/app/integration/ozon/OzonShipServiceTest.java"
+      ],
+      "id": "WB-016",
+      "assessment": "Giữ mã đã gán khi in lại; thao tác đơn có/không cần KIZ và gán mã đúng nguồn. Kho seller theo danh mục vẫn giữ quy tắc riêng đã duyệt.",
+      "verification": "Native automated regression; not a live seller acceptance claim"
+    },
+    {
+      "release": "v1.1.72",
+      "line": 6,
+      "requirement": "Sửa xác minh lịch sử in Ozon từ các phiên bản cũ, giúp dùng lại mã KIZ đã lưu đầy đủ.",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.1.72",
+      "status": "implementation-present",
+      "code": [
+        "src/main/java/com/vncode/app/features/print/KizAttachmentCoordinator.java",
+        "src/main/java/com/vncode/app/integration/ozon/OzonShipService.java"
+      ],
+      "tests": [
+        "src/test/java/com/vncode/app/features/print/KizAttachmentCoordinatorTest.java",
+        "src/test/java/com/vncode/app/integration/ozon/OzonShipServiceTest.java"
+      ],
+      "id": "WB-017",
+      "assessment": "Giữ mã đã gán khi in lại; thao tác đơn có/không cần KIZ và gán mã đúng nguồn. Kho seller theo danh mục vẫn giữ quy tắc riêng đã duyệt.",
+      "verification": "Native automated regression; not a live seller acceptance claim"
+    },
+    {
+      "release": "v1.1.73",
+      "line": 3,
+      "requirement": "Thêm lựa chọn sản xuất tại Nga hoặc nhận ký gửi từ cá nhân cho từng cửa hàng; áp dụng cùng hình thức khi mua KIZ và lưu thông.",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.1.73",
+      "status": "implementation-present",
+      "code": [
+        "src/main/java/com/vncode/app/integration/znack/ZnackPurchaseCoordinator.java",
+        "src/main/java/com/vncode/app/integration/znack/ZnackPurchasePipelineState.java",
+        "src/main/java/com/vncode/app/integration/znack/ZnackKizOrderService.java"
+      ],
+      "tests": [
+        "src/test/java/com/vncode/app/integration/znack/ZnackModuleTest.java",
+        "src/test/java/com/vncode/app/integration/znack/ZnackPipelineQueueExecutorTest.java"
+      ],
+      "id": "WB-018",
+      "assessment": "Giữ checkpoint giao dịch, dữ liệu cấu hình của lô và đối soát yêu cầu chưa rõ kết quả; không tự mua lặp.",
+      "verification": "Native automated regression; not a live seller acceptance claim"
+    },
+    {
+      "release": "v1.1.73",
+      "line": 4,
+      "requirement": "Dùng ngày mua KIZ làm ngày nhận hàng mặc định cho hình thức ký gửi.",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.1.73",
+      "status": "implementation-present",
+      "code": [
+        "src/main/java/com/vncode/app/integration/znack/ZnackPurchaseCoordinator.java",
+        "src/main/java/com/vncode/app/integration/znack/ZnackPurchasePipelineState.java",
+        "src/main/java/com/vncode/app/integration/znack/ZnackKizOrderService.java"
+      ],
+      "tests": [
+        "src/test/java/com/vncode/app/integration/znack/ZnackModuleTest.java",
+        "src/test/java/com/vncode/app/integration/znack/ZnackPipelineQueueExecutorTest.java"
+      ],
+      "id": "WB-019",
+      "assessment": "Giữ checkpoint giao dịch, dữ liệu cấu hình của lô và đối soát yêu cầu chưa rõ kết quả; không tự mua lặp.",
+      "verification": "Native automated regression; not a live seller acceptance claim"
+    },
+    {
+      "release": "v1.1.73",
+      "line": 5,
+      "requirement": "Cho phép lưu kết nối và chữ ký khi đang đồng bộ hoặc xử lý KIZ, giữ kết nối gốc của các giao dịch đã tạo.",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.1.73",
+      "status": "implementation-present",
+      "code": [
+        "src/main/java/com/vncode/app/integration/znack/ZnackPurchaseCoordinator.java",
+        "src/main/java/com/vncode/app/integration/znack/ZnackPurchasePipelineState.java",
+        "src/main/java/com/vncode/app/integration/znack/ZnackKizOrderService.java"
+      ],
+      "tests": [
+        "src/test/java/com/vncode/app/integration/znack/ZnackModuleTest.java",
+        "src/test/java/com/vncode/app/integration/znack/ZnackPipelineQueueExecutorTest.java"
+      ],
+      "id": "WB-020",
+      "assessment": "Giữ checkpoint giao dịch, dữ liệu cấu hình của lô và đối soát yêu cầu chưa rõ kết quả; không tự mua lặp.",
+      "verification": "Native automated regression; not a live seller acceptance claim"
+    },
+    {
+      "release": "v1.1.73",
+      "line": 6,
+      "requirement": "Thêm nút ký thẻ đã duyệt cho WB và Ozon, ký theo nhóm và đối soát kết quả trước khi thử lại.",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.1.73",
+      "status": "implementation-present",
+      "code": [
+        "src/main/java/com/vncode/app/integration/znack/registration/ZnackCardRegistrationWorkflow.java",
+        "src/main/java/com/vncode/app/integration/znack/registration/OzonCardRegistrationWorkflow.java",
+        "src/main/java/com/vncode/app/integration/znack/registration/ZnackNationalCatalogService.java",
+        "src/main/java/com/vncode/app/integration/znack/registration/ZnackRegistrationMonitor.java"
+      ],
+      "tests": [
+        "src/test/java/com/vncode/app/integration/znack/registration/ZnackCardRegistrationWorkflowTest.java",
+        "src/test/java/com/vncode/app/integration/znack/registration/OzonCardRegistrationWorkflowTest.java",
+        "src/test/java/com/vncode/app/integration/znack/registration/ZnackNationalCatalogServiceTest.java"
+      ],
+      "id": "WB-021",
+      "assessment": "Đối soát thẻ thật sau ký, tiếp tục kiểm duyệt/404, lưu quyền ký từng thẻ; bảo toàn feed/GTIN và không lặp chữ ký chưa rõ kết quả.",
+      "verification": "Native automated regression; not a live seller acceptance claim"
+    },
+    {
+      "release": "v1.1.73",
+      "line": 7,
+      "requirement": "Hiện số lượng KIZ còn thiếu trước khi chuyển đơn Ozon sang đóng gói, tránh mua lại mã đang xử lý.",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.1.73",
+      "status": "implementation-present",
+      "code": [
+        "src/main/java/com/vncode/app/features/print/KizAttachmentCoordinator.java",
+        "src/main/java/com/vncode/app/integration/ozon/OzonShipService.java"
+      ],
+      "tests": [
+        "src/test/java/com/vncode/app/features/print/KizAttachmentCoordinatorTest.java",
+        "src/test/java/com/vncode/app/integration/ozon/OzonShipServiceTest.java"
+      ],
+      "id": "WB-022",
+      "assessment": "Giữ mã đã gán khi in lại; thao tác đơn có/không cần KIZ và gán mã đúng nguồn. Kho seller theo danh mục vẫn giữ quy tắc riêng đã duyệt.",
+      "verification": "Native automated regression; not a live seller acceptance claim"
+    },
+    {
+      "release": "v1.1.73",
+      "line": 8,
+      "requirement": "Sửa chuyển đơn Ozon không yêu cầu mã đánh dấu và hiển thị đầy đủ thông báo lỗi tài khoản.",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.1.73",
+      "status": "implementation-present",
+      "code": [
+        "src/main/java/com/vncode/app/features/print/KizAttachmentCoordinator.java",
+        "src/main/java/com/vncode/app/integration/ozon/OzonShipService.java"
+      ],
+      "tests": [
+        "src/test/java/com/vncode/app/features/print/KizAttachmentCoordinatorTest.java",
+        "src/test/java/com/vncode/app/integration/ozon/OzonShipServiceTest.java"
+      ],
+      "id": "WB-023",
+      "assessment": "Giữ mã đã gán khi in lại; thao tác đơn có/không cần KIZ và gán mã đúng nguồn. Kho seller theo danh mục vẫn giữ quy tắc riêng đã duyệt.",
+      "verification": "Native automated regression; not a live seller acceptance claim"
+    },
+    {
+      "release": "v1.1.73",
+      "line": 9,
+      "requirement": "Tiếp tục quét Catalog từ trang đang dở khi gặp giới hạn yêu cầu, đồng thời hiện tổng số thẻ lỗi kể cả thẻ chưa gắn với sản phẩm.",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.1.73",
+      "status": "implementation-present",
+      "code": [
+        "src/main/java/com/vncode/app/features/sync/ZnackCatalogSyncService.java",
+        "src/main/java/com/vncode/app/integration/znack/registration/NationalCatalogGtinSource.java",
+        "src/main/java/com/vncode/app/features/sync/SyncCoordinator.java"
+      ],
+      "tests": [
+        "src/test/java/com/vncode/app/features/sync/ZnackCatalogSyncServiceTest.java",
+        "src/test/java/com/vncode/app/features/sync/RegistrationSourcesTest.java",
+        "src/test/java/com/vncode/app/features/sync/SyncCoordinatorTest.java"
+      ],
+      "id": "WB-024",
+      "assessment": "Phân trang nguồn, giữ trạng thái chưa hoàn tất, kiểm tra danh tính/tổng số và lỗi quota. Đã đọc lại Catalog thật trong lượt kiểm tra này; kết quả riêng nằm trong báo cáo API.",
+      "verification": "Native automated regression; not a live seller acceptance claim"
+    },
+    {
+      "release": "v1.1.73",
+      "line": 10,
+      "requirement": "Giữ trạng thái xác minh mới khi kết quả kiểm tra chữ ký cũ trả về muộn.",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.1.73",
+      "status": "implementation-present",
+      "code": [
+        "src/main/java/com/vncode/app/integration/znack/registration/ZnackCardRegistrationWorkflow.java",
+        "src/main/java/com/vncode/app/integration/znack/registration/OzonCardRegistrationWorkflow.java",
+        "src/main/java/com/vncode/app/integration/znack/registration/ZnackNationalCatalogService.java",
+        "src/main/java/com/vncode/app/integration/znack/registration/ZnackRegistrationMonitor.java"
+      ],
+      "tests": [
+        "src/test/java/com/vncode/app/integration/znack/registration/ZnackCardRegistrationWorkflowTest.java",
+        "src/test/java/com/vncode/app/integration/znack/registration/OzonCardRegistrationWorkflowTest.java",
+        "src/test/java/com/vncode/app/integration/znack/registration/ZnackNationalCatalogServiceTest.java"
+      ],
+      "id": "WB-025",
+      "assessment": "Đối soát thẻ thật sau ký, tiếp tục kiểm duyệt/404, lưu quyền ký từng thẻ; bảo toàn feed/GTIN và không lặp chữ ký chưa rõ kết quả.",
+      "verification": "Native automated regression; not a live seller acceptance claim"
+    },
+    {
+      "release": "v1.1.74",
+      "line": 3,
+      "requirement": "Sửa lỗi 404 “Không tìm thấy dữ liệu” khi nhấn ký thẻ đã duyệt trên WB và Ozon.",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.1.74",
+      "status": "implementation-present",
+      "code": [
+        "src/main/java/com/vncode/app/integration/znack/registration/ZnackCardRegistrationWorkflow.java",
+        "src/main/java/com/vncode/app/integration/znack/registration/OzonCardRegistrationWorkflow.java",
+        "src/main/java/com/vncode/app/integration/znack/registration/ZnackNationalCatalogService.java",
+        "src/main/java/com/vncode/app/integration/znack/registration/ZnackRegistrationMonitor.java"
+      ],
+      "tests": [
+        "src/test/java/com/vncode/app/integration/znack/registration/ZnackCardRegistrationWorkflowTest.java",
+        "src/test/java/com/vncode/app/integration/znack/registration/OzonCardRegistrationWorkflowTest.java",
+        "src/test/java/com/vncode/app/integration/znack/registration/ZnackNationalCatalogServiceTest.java"
+      ],
+      "id": "WB-026",
+      "assessment": "Đối soát thẻ thật sau ký, tiếp tục kiểm duyệt/404, lưu quyền ký từng thẻ; bảo toàn feed/GTIN và không lặp chữ ký chưa rõ kết quả.",
+      "verification": "Native automated regression; not a live seller acceptance claim"
+    },
+    {
+      "release": "v1.1.74",
+      "line": 4,
+      "requirement": "Tách nhóm thẻ không tìm thấy để tiếp tục kiểm tra và ký các thẻ đủ điều kiện còn lại.",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.1.74",
+      "status": "implementation-present",
+      "code": [
+        "src/main/java/com/vncode/app/integration/znack/registration/ZnackCardRegistrationWorkflow.java",
+        "src/main/java/com/vncode/app/integration/znack/registration/OzonCardRegistrationWorkflow.java",
+        "src/main/java/com/vncode/app/integration/znack/registration/ZnackNationalCatalogService.java",
+        "src/main/java/com/vncode/app/integration/znack/registration/ZnackRegistrationMonitor.java"
+      ],
+      "tests": [
+        "src/test/java/com/vncode/app/integration/znack/registration/ZnackCardRegistrationWorkflowTest.java",
+        "src/test/java/com/vncode/app/integration/znack/registration/OzonCardRegistrationWorkflowTest.java",
+        "src/test/java/com/vncode/app/integration/znack/registration/ZnackNationalCatalogServiceTest.java"
+      ],
+      "id": "WB-027",
+      "assessment": "Đối soát thẻ thật sau ký, tiếp tục kiểm duyệt/404, lưu quyền ký từng thẻ; bảo toàn feed/GTIN và không lặp chữ ký chưa rõ kết quả.",
+      "verification": "Native automated regression; not a live seller acceptance claim"
+    },
+    {
+      "release": "v1.1.74",
+      "line": 5,
+      "requirement": "Giữ trạng thái chờ của thẻ chưa tìm thấy, bảo toàn lần gửi ký chưa xác định kết quả và dừng khi gặp giới hạn yêu cầu.",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.1.74",
+      "status": "implementation-present",
+      "code": [
+        "src/main/java/com/vncode/app/integration/znack/registration/ZnackCardRegistrationWorkflow.java",
+        "src/main/java/com/vncode/app/integration/znack/registration/OzonCardRegistrationWorkflow.java",
+        "src/main/java/com/vncode/app/integration/znack/registration/ZnackNationalCatalogService.java",
+        "src/main/java/com/vncode/app/integration/znack/registration/ZnackRegistrationMonitor.java"
+      ],
+      "tests": [
+        "src/test/java/com/vncode/app/integration/znack/registration/ZnackCardRegistrationWorkflowTest.java",
+        "src/test/java/com/vncode/app/integration/znack/registration/OzonCardRegistrationWorkflowTest.java",
+        "src/test/java/com/vncode/app/integration/znack/registration/ZnackNationalCatalogServiceTest.java"
+      ],
+      "id": "WB-028",
+      "assessment": "Đối soát thẻ thật sau ký, tiếp tục kiểm duyệt/404, lưu quyền ký từng thẻ; bảo toàn feed/GTIN và không lặp chữ ký chưa rõ kết quả.",
+      "verification": "Native automated regression; not a live seller acceptance claim"
+    },
+    {
+      "release": "v1.1.75",
+      "line": 3,
+      "requirement": "Cho phép chọn từng sản phẩm hoặc chọn hàng loạt để đăng ký lại thẻ WB đang báo “Cần kiểm tra kết quả cấp GTIN”.",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.1.75",
+      "status": "implementation-present",
+      "code": [
+        "src/main/java/com/vncode/app/integration/znack/registration/ZnackCardRegistrationWorkflow.java",
+        "src/main/java/com/vncode/app/integration/znack/registration/ZnackCardRegistrationRepository.java",
+        "src/main/java/com/vncode/app/integration/znack/registration/TnvedGroupChange.java"
+      ],
+      "tests": [
+        "src/test/java/com/vncode/app/integration/znack/registration/ZnackCardRegistrationWorkflowTest.java",
+        "src/test/java/com/vncode/app/integration/znack/registration/ZnackCardRegistrationRepositoryTest.java"
+      ],
+      "id": "WB-029",
+      "assessment": "Đổi nhóm TN VED tạo ứng viên mới, giữ thẻ đang dùng và lịch sử; không ghi đè GTIN thẻ cũ.",
+      "verification": "Native automated regression; not a live seller acceptance claim"
+    },
+    {
+      "release": "v1.1.75",
+      "line": 4,
+      "requirement": "Thêm thao tác “Xin GTIN mới” có xác nhận trước khi xin mã và tạo thẻ mới cho sản phẩm chưa xác định được GTIN từ yêu cầu trước.",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.1.75",
+      "status": "implementation-present",
+      "code": [
+        "src/main/java/com/vncode/app/integration/znack/registration/ZnackCardRegistrationWorkflow.java",
+        "src/main/java/com/vncode/app/integration/znack/registration/ZnackCardRegistrationRepository.java",
+        "src/main/java/com/vncode/app/integration/znack/registration/TnvedGroupChange.java"
+      ],
+      "tests": [
+        "src/test/java/com/vncode/app/integration/znack/registration/ZnackCardRegistrationWorkflowTest.java",
+        "src/test/java/com/vncode/app/integration/znack/registration/ZnackCardRegistrationRepositoryTest.java"
+      ],
+      "id": "WB-030",
+      "assessment": "Đổi nhóm TN VED tạo ứng viên mới, giữ thẻ đang dùng và lịch sử; không ghi đè GTIN thẻ cũ.",
+      "verification": "Native automated regression; not a live seller acceptance claim"
+    },
+    {
+      "release": "v1.1.75",
+      "line": 5,
+      "requirement": "Giữ nguyên GTIN và kết quả gửi của các thẻ đã có danh tính; ngăn yêu cầu lặp, dữ liệu cũ và thao tác khôi phục tài khoản làm chạy lại một yêu cầu đang cấp GTIN.",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.1.75",
+      "status": "implementation-present",
+      "code": [
+        "src/main/java/com/vncode/app/integration/znack/registration/ZnackCardRegistrationWorkflow.java",
+        "src/main/java/com/vncode/app/integration/znack/registration/ZnackCardRegistrationRepository.java",
+        "src/main/java/com/vncode/app/integration/znack/registration/TnvedGroupChange.java"
+      ],
+      "tests": [
+        "src/test/java/com/vncode/app/integration/znack/registration/ZnackCardRegistrationWorkflowTest.java",
+        "src/test/java/com/vncode/app/integration/znack/registration/ZnackCardRegistrationRepositoryTest.java"
+      ],
+      "id": "WB-031",
+      "assessment": "Đổi nhóm TN VED tạo ứng viên mới, giữ thẻ đang dùng và lịch sử; không ghi đè GTIN thẻ cũ.",
+      "verification": "Native automated regression; not a live seller acceptance claim"
+    },
+    {
+      "release": "v1.1.76",
+      "line": 3,
+      "requirement": "Tự động chuyển thẻ bị kẹt ở trạng thái \"Chờ xác nhận trạng thái\" (PROCESSING) quá 5 phút sang trạng thái lỗi khi National Catalog không tạo thẻ.",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.1.76",
+      "status": "implementation-present",
+      "code": [
+        "src/main/java/com/vncode/app/integration/znack/registration/ZnackCardRegistrationWorkflow.java",
+        "src/main/java/com/vncode/app/integration/znack/registration/OzonCardRegistrationWorkflow.java",
+        "src/main/java/com/vncode/app/integration/znack/registration/ZnackNationalCatalogService.java",
+        "src/main/java/com/vncode/app/integration/znack/registration/ZnackRegistrationMonitor.java"
+      ],
+      "tests": [
+        "src/test/java/com/vncode/app/integration/znack/registration/ZnackCardRegistrationWorkflowTest.java",
+        "src/test/java/com/vncode/app/integration/znack/registration/OzonCardRegistrationWorkflowTest.java",
+        "src/test/java/com/vncode/app/integration/znack/registration/ZnackNationalCatalogServiceTest.java"
+      ],
+      "id": "WB-032",
+      "assessment": "Đối soát thẻ thật sau ký, tiếp tục kiểm duyệt/404, lưu quyền ký từng thẻ; bảo toàn feed/GTIN và không lặp chữ ký chưa rõ kết quả.",
+      "verification": "Native automated regression; not a live seller acceptance claim"
+    },
+    {
+      "release": "v1.1.76",
+      "line": 4,
+      "requirement": "Xử lý dứt điểm các feed đã xử lý xong (Processed, Done) nhưng không có thẻ trong National Catalog, cho phép người dùng bấm thử lại ngay.",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.1.76",
+      "status": "implementation-present",
+      "code": [
+        "src/main/java/com/vncode/app/integration/znack/registration/ZnackCardRegistrationWorkflow.java",
+        "src/main/java/com/vncode/app/integration/znack/registration/OzonCardRegistrationWorkflow.java",
+        "src/main/java/com/vncode/app/integration/znack/registration/ZnackNationalCatalogService.java",
+        "src/main/java/com/vncode/app/integration/znack/registration/ZnackRegistrationMonitor.java"
+      ],
+      "tests": [
+        "src/test/java/com/vncode/app/integration/znack/registration/ZnackCardRegistrationWorkflowTest.java",
+        "src/test/java/com/vncode/app/integration/znack/registration/OzonCardRegistrationWorkflowTest.java",
+        "src/test/java/com/vncode/app/integration/znack/registration/ZnackNationalCatalogServiceTest.java"
+      ],
+      "id": "WB-033",
+      "assessment": "Đối soát thẻ thật sau ký, tiếp tục kiểm duyệt/404, lưu quyền ký từng thẻ; bảo toàn feed/GTIN và không lặp chữ ký chưa rõ kết quả.",
+      "verification": "Native automated regression; not a live seller acceptance claim"
+    },
+    {
+      "release": "v1.1.76",
+      "line": 5,
+      "requirement": "Mở khóa thao tác chọn và đăng ký lại cho các thẻ có GTIN nhưng bị kẹt ở trạng thái đang xử lý.",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.1.76",
+      "status": "implementation-present",
+      "code": [
+        "src/main/java/com/vncode/app/integration/znack/registration/ZnackCardRegistrationWorkflow.java",
+        "src/main/java/com/vncode/app/integration/znack/registration/OzonCardRegistrationWorkflow.java",
+        "src/main/java/com/vncode/app/integration/znack/registration/ZnackNationalCatalogService.java",
+        "src/main/java/com/vncode/app/integration/znack/registration/ZnackRegistrationMonitor.java"
+      ],
+      "tests": [
+        "src/test/java/com/vncode/app/integration/znack/registration/ZnackCardRegistrationWorkflowTest.java",
+        "src/test/java/com/vncode/app/integration/znack/registration/OzonCardRegistrationWorkflowTest.java",
+        "src/test/java/com/vncode/app/integration/znack/registration/ZnackNationalCatalogServiceTest.java"
+      ],
+      "id": "WB-034",
+      "assessment": "Đối soát thẻ thật sau ký, tiếp tục kiểm duyệt/404, lưu quyền ký từng thẻ; bảo toàn feed/GTIN và không lặp chữ ký chưa rõ kết quả.",
+      "verification": "Native automated regression; not a live seller acceptance claim"
+    },
+    {
+      "release": "v1.1.76",
+      "line": 6,
+      "requirement": "Thêm hộp thoại xác nhận khôi phục hàng loạt khi chọn nhiều sản phẩm đã có GTIN để thử lại hoặc xin GTIN mới một lần duy nhất.",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.1.76",
+      "status": "partial-explicit-difference",
+      "code": [
+        "src/main/java/com/vncode/app/integration/znack/registration/ZnackCardRegistrationWorkflow.java",
+        "src/main/java/com/vncode/app/integration/znack/registration/OzonCardRegistrationWorkflow.java",
+        "src/main/java/com/vncode/app/integration/znack/registration/OzonCardRegistrationRepository.java"
+      ],
+      "tests": [
+        "src/test/java/com/vncode/app/integration/znack/registration/ZnackCardRegistrationWorkflowTest.java",
+        "src/test/java/com/vncode/app/integration/znack/registration/OzonCardRegistrationWorkflowTest.java"
+      ],
+      "id": "WB-035",
+      "assessment": "Thử lại feed được server xác nhận từ chối bằng cùng GTIN; ghi nhận thẻ chưa tạo sau 5 phút. Quyền chọn GTIN mới khi chưa xác minh dứt điểm vẫn không được tự cấp.",
+      "verification": "Native automated regression; not a live seller acceptance claim",
+      "remaining": "Đã có retry cùng GTIN trên WB/Ozon và tạo thẻ mới sau published/đổi nhóm. Chưa thêm lựa chọn GTIN mới cho mọi lỗi feed chưa rõ kết quả; không tự tiêu quota trong nhánh này."
+    },
+    {
+      "release": "v1.1.76",
+      "line": 7,
+      "requirement": "Tự động retry khi lưu thông KIZ (introduce) thất bại do mạng/timeout, và tự động bỏ qua lô hỏng để mua lô KIZ mới nếu lô trước thất bại mà chưa có mã tải về, không làm gián đoạn luồng in đơn.",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.1.76",
+      "status": "implementation-present",
+      "code": [
+        "src/main/java/com/vncode/app/integration/znack/registration/ZnackCardRegistrationWorkflow.java",
+        "src/main/java/com/vncode/app/integration/znack/registration/OzonCardRegistrationWorkflow.java",
+        "src/main/java/com/vncode/app/integration/znack/registration/OzonCardRegistrationRepository.java"
+      ],
+      "tests": [
+        "src/test/java/com/vncode/app/integration/znack/registration/ZnackCardRegistrationWorkflowTest.java",
+        "src/test/java/com/vncode/app/integration/znack/registration/OzonCardRegistrationWorkflowTest.java"
+      ],
+      "id": "WB-036",
+      "assessment": "Thử lại feed được server xác nhận từ chối bằng cùng GTIN; ghi nhận thẻ chưa tạo sau 5 phút. Quyền chọn GTIN mới khi chưa xác minh dứt điểm vẫn không được tự cấp.",
+      "verification": "Native automated regression; not a live seller acceptance claim"
+    },
+    {
+      "release": "v1.1.76",
+      "line": 8,
+      "requirement": "Cải thiện trải nghiệm click vào thẻ Znack bị lỗi (mở ErrorReportDialog ngay cả khi thông điệp lỗi rỗng) và bổ sung dịch lỗi thân thiện cho CRPT: \"Несоответствие РД к ТГ\" (Tài liệu cho phép không phù hợp với Nhóm hàng hóa).",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.1.76",
+      "status": "implementation-present",
+      "code": [
+        "src/main/java/com/vncode/app/shared/FriendlyErrorService.java",
+        "src/main/java/com/vncode/app/integration/znack/ZnackErrorMessages.java",
+        "src/main/java/com/vncode/app/features/sync/RegistrationAttemptReports.java",
+        "src/main/java/com/vncode/app/ui/znackregistration/RegistrationSyncReportDialog.java"
+      ],
+      "tests": [
+        "src/test/java/com/vncode/app/ui/znackregistration/RegistrationSyncReportDialogTest.java",
+        "src/test/java/com/vncode/app/integration/znack/ZnackErrorDetailsTest.java"
+      ],
+      "id": "WB-037",
+      "assessment": "Phân biệt đọc nguồn và đăng ký thật; thông báo lỗi theo giai đoạn, lý do từ chối, feed/card ID; lỗi ở cột trạng thái có thể mở chi tiết.",
+      "verification": "Native automated regression; not a live seller acceptance claim"
+    },
+    {
+      "release": "v1.1.76",
+      "line": 9,
+      "requirement": "Cải thiện thông báo lỗi và chuẩn hóa đối soát publication với National Catalog.",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.1.76",
+      "status": "implementation-present",
+      "code": [
+        "src/main/java/com/vncode/app/integration/znack/registration/ZnackCardRegistrationWorkflow.java",
+        "src/main/java/com/vncode/app/integration/znack/registration/OzonCardRegistrationWorkflow.java",
+        "src/main/java/com/vncode/app/integration/znack/registration/ZnackNationalCatalogService.java",
+        "src/main/java/com/vncode/app/integration/znack/registration/ZnackRegistrationMonitor.java"
+      ],
+      "tests": [
+        "src/test/java/com/vncode/app/integration/znack/registration/ZnackCardRegistrationWorkflowTest.java",
+        "src/test/java/com/vncode/app/integration/znack/registration/OzonCardRegistrationWorkflowTest.java",
+        "src/test/java/com/vncode/app/integration/znack/registration/ZnackNationalCatalogServiceTest.java"
+      ],
+      "id": "WB-038",
+      "assessment": "Đối soát thẻ thật sau ký, tiếp tục kiểm duyệt/404, lưu quyền ký từng thẻ; bảo toàn feed/GTIN và không lặp chữ ký chưa rõ kết quả.",
+      "verification": "Native automated regression; not a live seller acceptance claim"
+    },
+    {
+      "release": "v1.2.0",
+      "line": 3,
+      "requirement": "Ứng dụng đổi tên thành Wbcode với bảng màu và các thành phần giao diện mới theo phong cách Wildberries: nền dịu mắt hơn, chữ đậm và dễ đọc hơn, nút, bảng, tab, hộp thoại và dropdown đồng bộ.",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.2.0",
+      "status": "adapted-to-approved-vncode-requirement",
+      "code": [],
+      "tests": [],
+      "id": "WB-039",
+      "assessment": "Giữ thương hiệu/license do admin VNCode cấp, Liquid Glass và GS1 dùng API theo yêu cầu riêng của seller. Không nhập giao diện thương hiệu, giá bán/gói license hoặc luồng đăng nhập trình duyệt của Wbcode."
+    },
+    {
+      "release": "v1.2.0",
+      "line": 4,
+      "requirement": "Dashboard mới giới thiệu các tính năng chính và có khung tin tức bên phải; tin mới được gắn nhãn \"New\".",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.2.0",
+      "status": "implementation-present",
+      "code": [
+        "src/main/java/com/vncode/app/ui/news/NewsPane.java",
+        "src/main/java/com/vncode/app/features/news/OfficialNewsService.java",
+        "src/main/java/com/vncode/app/features/news/NewsTranslationService.java"
+      ],
+      "tests": [
+        "src/test/java/com/vncode/app/ui/news/NewsPaneLayoutTest.java",
+        "src/test/java/com/vncode/app/integration/wb/WbNewsClientTest.java",
+        "src/test/java/com/vncode/app/integration/translation/AutomaticNewsTranslatorTest.java"
+      ],
+      "id": "WB-040",
+      "assessment": "Tin tức giới hạn trong khung, đọc cache trước, giữ vị trí và trạng thái đã đọc; nội dung WB được dịch sang tiếng Việt ở nền.",
+      "verification": "Native automated regression; not a live seller acceptance claim"
+    },
+    {
+      "release": "v1.2.0",
+      "line": 5,
+      "requirement": "Trang Tin tức riêng: danh sách tải dần khi cuộn, trang chi tiết hiển thị đúng định dạng (tiêu đề, in đậm, in nghiêng, danh sách, liên kết) và nút quay lại.",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.2.0",
+      "status": "implementation-present",
+      "code": [
+        "src/main/java/com/vncode/app/ui/news/NewsPane.java",
+        "src/main/java/com/vncode/app/features/news/OfficialNewsService.java",
+        "src/main/java/com/vncode/app/features/news/NewsTranslationService.java"
+      ],
+      "tests": [
+        "src/test/java/com/vncode/app/ui/news/NewsPaneLayoutTest.java",
+        "src/test/java/com/vncode/app/integration/wb/WbNewsClientTest.java",
+        "src/test/java/com/vncode/app/integration/translation/AutomaticNewsTranslatorTest.java"
+      ],
+      "id": "WB-041",
+      "assessment": "Tin tức giới hạn trong khung, đọc cache trước, giữ vị trí và trạng thái đã đọc; nội dung WB được dịch sang tiếng Việt ở nền.",
+      "verification": "Native automated regression; not a live seller acceptance claim"
+    },
+    {
+      "release": "v1.2.0",
+      "line": 6,
+      "requirement": "Biểu tượng chuông trên thanh tiêu đề hiển thị số tin chưa đọc; tin tức chỉ được tải sau khi Dashboard đã hiện.",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.2.0",
+      "status": "implementation-present",
+      "code": [
+        "src/main/java/com/vncode/app/ui/news/NewsPane.java",
+        "src/main/java/com/vncode/app/features/news/OfficialNewsService.java",
+        "src/main/java/com/vncode/app/features/news/NewsTranslationService.java"
+      ],
+      "tests": [
+        "src/test/java/com/vncode/app/ui/news/NewsPaneLayoutTest.java",
+        "src/test/java/com/vncode/app/integration/wb/WbNewsClientTest.java",
+        "src/test/java/com/vncode/app/integration/translation/AutomaticNewsTranslatorTest.java"
+      ],
+      "id": "WB-042",
+      "assessment": "Tin tức giới hạn trong khung, đọc cache trước, giữ vị trí và trạng thái đã đọc; nội dung WB được dịch sang tiếng Việt ở nền.",
+      "verification": "Native automated regression; not a live seller acceptance claim"
+    },
+    {
+      "release": "v1.2.0",
+      "line": 7,
+      "requirement": "WB FBS: hỗ trợ quy định mới của Wildberries từ 01/10/2026 — trước khi chuyển supply sang giao hàng, chọn cách giao, ngày giao, thành phố và điểm nhận ngay trong trang supply.",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.2.0",
+      "status": "implementation-present",
+      "code": [
+        "src/main/java/com/vncode/app/integration/wb/WbShippingService.java",
+        "src/main/java/com/vncode/app/ui/supply/WbShippingPane.java"
+      ],
+      "tests": [
+        "src/test/java/com/vncode/app/integration/wb/WbShippingServiceTest.java",
+        "src/test/java/com/vncode/app/integration/wb/WbShippingPreferenceServiceTest.java"
+      ],
+      "id": "WB-043",
+      "assessment": "Thông tin giao hàng/tìm kiếm/điểm nhận của WB có dịch vụ và kho tùy chọn riêng, giữ dữ liệu theo shop.",
+      "verification": "Native automated regression; not a live seller acceptance claim"
+    },
+    {
+      "release": "v1.2.0",
+      "line": 8,
+      "requirement": "Chọn điểm nhận WB bằng ô tìm kiếm có danh sách thả xuống: tìm theo tiếng Nga không phân biệt hoa thường và \"ё\", tải dần khi cuộn, tự chọn lại điểm đã dùng lần trước.",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.2.0",
+      "status": "implementation-present",
+      "code": [
+        "src/main/java/com/vncode/app/integration/wb/WbShippingService.java",
+        "src/main/java/com/vncode/app/ui/supply/WbShippingPane.java"
+      ],
+      "tests": [
+        "src/test/java/com/vncode/app/integration/wb/WbShippingServiceTest.java",
+        "src/test/java/com/vncode/app/integration/wb/WbShippingPreferenceServiceTest.java"
+      ],
+      "id": "WB-044",
+      "assessment": "Thông tin giao hàng/tìm kiếm/điểm nhận của WB có dịch vụ và kho tùy chọn riêng, giữ dữ liệu theo shop.",
+      "verification": "Native automated regression; not a live seller acceptance claim"
+    },
+    {
+      "release": "v1.2.0",
+      "line": 9,
+      "requirement": "WB FBS tab Đang giao: chỉ tải 20 supply mỗi lần và bỏ qua supply rỗng, giúp trang mở nhanh và không còn giật.",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.2.0",
+      "status": "implementation-present",
+      "code": [
+        "src/main/java/com/vncode/app/features/sync/FbsSyncService.java",
+        "src/main/java/com/vncode/app/features/sync/SyncCoordinator.java",
+        "src/main/java/com/vncode/app/integration/wb/WbSupplySyncService.java"
+      ],
+      "tests": [
+        "src/test/java/com/vncode/app/features/sync/FbsSyncServiceTest.java",
+        "src/test/java/com/vncode/app/integration/wb/WbSupplySyncServiceTest.java",
+        "src/test/java/com/vncode/app/features/sync/SyncCoordinatorTest.java"
+      ],
+      "id": "WB-045",
+      "assessment": "FBS có worker và phần ngân sách HTTP ưu tiên, giữ cache khi tải nguồn; nguồn Catalog/bulk không chiếm toàn bộ slot FBS.",
+      "verification": "Native automated regression; not a live seller acceptance claim"
+    },
+    {
+      "release": "v1.2.0",
+      "line": 10,
+      "requirement": "Ảnh sản phẩm trong các bảng WB FBS (đơn mới, chi tiết supply) tự tải dần và hiển thị đúng tỉ lệ 3:4 trên tất cả các bảng.",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.2.0",
+      "status": "implementation-present",
+      "code": [
+        "src/main/java/com/vncode/app/ui/fbo/FboPackingController.java",
+        "src/main/java/com/vncode/app/features/fbo/FboProductImageService.java",
+        "src/main/java/com/vncode/app/ui/fbo/FboPreflightDialog.java"
+      ],
+      "tests": [
+        "src/test/java/com/vncode/app/features/fbo/FboKizPrintPlannerTest.java",
+        "src/test/java/com/vncode/app/features/fbo/FboKizPrintPlannerTest.java"
+      ],
+      "id": "WB-046",
+      "assessment": "Ảnh giữ tỉ lệ, FBO dùng GTIN đã xác minh, có kiểm tra thiếu mã và đối soát trước xuất nhãn.",
+      "verification": "Native automated regression; not a live seller acceptance claim"
+    },
+    {
+      "release": "v1.2.0",
+      "line": 11,
+      "requirement": "Ozon tab Đang đóng gói: thêm checkbox chọn từng đơn hoặc tất cả, và nút \"Chuyển sang giao hàng\"; ứng dụng nhắc in nhãn trước khi chuyển.",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.2.0",
+      "status": "implementation-present",
+      "code": [
+        "src/main/java/com/vncode/app/features/print/KizAttachmentCoordinator.java",
+        "src/main/java/com/vncode/app/integration/ozon/OzonShipService.java"
+      ],
+      "tests": [
+        "src/test/java/com/vncode/app/features/print/KizAttachmentCoordinatorTest.java",
+        "src/test/java/com/vncode/app/integration/ozon/OzonShipServiceTest.java"
+      ],
+      "id": "WB-047",
+      "assessment": "Giữ mã đã gán khi in lại; thao tác đơn có/không cần KIZ và gán mã đúng nguồn. Kho seller theo danh mục vẫn giữ quy tắc riêng đã duyệt.",
+      "verification": "Native automated regression; not a live seller acceptance claim"
+    },
+    {
+      "release": "v1.2.0",
+      "line": 12,
+      "requirement": "FBO: nút xuất nhãn chuyển sang bên phải, ô số lượng và các nút biểu tượng hiển thị đúng màu.",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.2.0",
+      "status": "implementation-present",
+      "code": [
+        "src/main/java/com/vncode/app/ui/fbo/FboPackingController.java",
+        "src/main/java/com/vncode/app/features/fbo/FboProductImageService.java",
+        "src/main/java/com/vncode/app/ui/fbo/FboPreflightDialog.java"
+      ],
+      "tests": [
+        "src/test/java/com/vncode/app/features/fbo/FboKizPrintPlannerTest.java",
+        "src/test/java/com/vncode/app/features/fbo/FboKizPrintPlannerTest.java"
+      ],
+      "id": "WB-048",
+      "assessment": "Ảnh giữ tỉ lệ, FBO dùng GTIN đã xác minh, có kiểm tra thiếu mã và đối soát trước xuất nhãn.",
+      "verification": "Native automated regression; not a live seller acceptance claim"
+    },
+    {
+      "release": "v1.2.0",
+      "line": 13,
+      "requirement": "Mẫu tem FBS và FBO mặc định được thiết kế lại cho máy cài mới.",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.2.0",
+      "status": "implementation-present",
+      "code": [
+        "src/main/java/com/vncode/app/ui/fbo/FboPackingController.java",
+        "src/main/java/com/vncode/app/features/fbo/FboProductImageService.java",
+        "src/main/java/com/vncode/app/ui/fbo/FboPreflightDialog.java"
+      ],
+      "tests": [
+        "src/test/java/com/vncode/app/features/fbo/FboKizPrintPlannerTest.java",
+        "src/test/java/com/vncode/app/features/fbo/FboKizPrintPlannerTest.java"
+      ],
+      "id": "WB-049",
+      "assessment": "Ảnh giữ tỉ lệ, FBO dùng GTIN đã xác minh, có kiểm tra thiếu mã và đối soát trước xuất nhãn.",
+      "verification": "Native automated regression; not a live seller acceptance claim"
+    },
+    {
+      "release": "v1.2.0",
+      "line": 14,
+      "requirement": "Lịch sử in hiển thị danh sách cao hơn; checkbox trong trang đăng ký thẻ Znack không còn bị che.",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.2.0",
+      "status": "implementation-present",
+      "code": [
+        "src/main/java/com/vncode/app/ui/fbo/FboPackingController.java",
+        "src/main/java/com/vncode/app/features/fbo/FboProductImageService.java",
+        "src/main/java/com/vncode/app/ui/fbo/FboPreflightDialog.java"
+      ],
+      "tests": [
+        "src/test/java/com/vncode/app/features/fbo/FboKizPrintPlannerTest.java",
+        "src/test/java/com/vncode/app/features/fbo/FboKizPrintPlannerTest.java"
+      ],
+      "id": "WB-050",
+      "assessment": "Ảnh giữ tỉ lệ, FBO dùng GTIN đã xác minh, có kiểm tra thiếu mã và đối soát trước xuất nhãn.",
+      "verification": "Native automated regression; not a live seller acceptance claim"
+    },
+    {
+      "release": "v1.2.0",
+      "line": 15,
+      "requirement": "Bỏ chức năng tự gửi chẩn đoán lỗi về máy chủ.",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.2.0",
+      "status": "implementation-present",
+      "code": [
+        "src/main/java/com/vncode/app/shared/AlertService.java"
+      ],
+      "tests": [
+        "src/test/java/com/vncode/app/ui/FxmlSmokeTest.java"
+      ],
+      "id": "WB-051",
+      "assessment": "Báo cáo lỗi không được tự gửi cho bên hỗ trợ khi chưa có thao tác của seller.",
+      "verification": "Native automated regression; not a live seller acceptance claim"
+    },
+    {
+      "release": "v1.2.0",
+      "line": 16,
+      "requirement": "Thông báo lỗi rõ ràng hơn kèm mã lỗi; tự thử lại khi lỗi mạng hoặc máy chủ tạm thời.",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.2.0",
+      "status": "implementation-present",
+      "code": [
+        "src/main/java/com/vncode/app/shared/FriendlyErrorService.java",
+        "src/main/java/com/vncode/app/integration/znack/ZnackErrorMessages.java",
+        "src/main/java/com/vncode/app/features/sync/RegistrationAttemptReports.java",
+        "src/main/java/com/vncode/app/ui/znackregistration/RegistrationSyncReportDialog.java"
+      ],
+      "tests": [
+        "src/test/java/com/vncode/app/ui/znackregistration/RegistrationSyncReportDialogTest.java",
+        "src/test/java/com/vncode/app/integration/znack/ZnackErrorDetailsTest.java"
+      ],
+      "id": "WB-052",
+      "assessment": "Phân biệt đọc nguồn và đăng ký thật; thông báo lỗi theo giai đoạn, lý do từ chối, feed/card ID; lỗi ở cột trạng thái có thể mở chi tiết.",
+      "verification": "Native automated regression; not a live seller acceptance claim"
+    },
+    {
+      "release": "v1.2.0",
+      "line": 17,
+      "requirement": "Znack: tự cấp lại GTIN khi phân loại TN VED cấp 1 thay đổi, xử lý nhanh feed bị từ chối và giữ trạng thái ký thẻ khi chuyển trang.",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.2.0",
+      "status": "implementation-present",
+      "code": [
+        "src/main/java/com/vncode/app/integration/znack/registration/ZnackCardRegistrationWorkflow.java",
+        "src/main/java/com/vncode/app/integration/znack/registration/ZnackCardRegistrationRepository.java",
+        "src/main/java/com/vncode/app/integration/znack/registration/TnvedGroupChange.java"
+      ],
+      "tests": [
+        "src/test/java/com/vncode/app/integration/znack/registration/ZnackCardRegistrationWorkflowTest.java",
+        "src/test/java/com/vncode/app/integration/znack/registration/ZnackCardRegistrationRepositoryTest.java"
+      ],
+      "id": "WB-053",
+      "assessment": "Đổi nhóm TN VED tạo ứng viên mới, giữ thẻ đang dùng và lịch sử; không ghi đè GTIN thẻ cũ.",
+      "verification": "Native automated regression; not a live seller acceptance claim"
+    },
+    {
+      "release": "v1.3.0",
+      "line": 3,
+      "requirement": "Ứng dụng đổi tên thành Wbcode. Dữ liệu, license và cửa hàng giữ nguyên; bản cập nhật tự cài đè lên bản cũ.",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.3.0",
+      "status": "adapted-to-approved-vncode-requirement",
+      "code": [],
+      "tests": [],
+      "id": "WB-054",
+      "assessment": "Giữ thương hiệu/license do admin VNCode cấp, Liquid Glass và GS1 dùng API theo yêu cầu riêng của seller. Không nhập giao diện thương hiệu, giá bán/gói license hoặc luồng đăng nhập trình duyệt của Wbcode."
+    },
+    {
+      "release": "v1.3.0",
+      "line": 4,
+      "requirement": "Mục Hướng dẫn mới ở menu bên trái: bài hướng dẫn lấy license key và thêm cửa hàng Wildberries, Ozon, kèm ảnh và video.",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.3.0",
+      "status": "implementation-present",
+      "code": [
+        "src/main/java/com/vncode/app/ui/guides/GuidesPane.java",
+        "src/main/java/com/vncode/app/features/guides/GuideArticle.java",
+        "src/main/java/com/vncode/app/features/guides/GuideMediaRepository.java"
+      ],
+      "tests": [
+        "src/test/java/com/vncode/app/features/guides/GuideArticleTest.java",
+        "src/test/java/com/vncode/app/ui/FxmlSmokeTest.java"
+      ],
+      "id": "WB-055",
+      "assessment": "Giữ hướng dẫn VNCode, tìm không dấu; video có tua, âm lượng, thử lại/tiếp tục; ảnh/video khung 16:9. Bài hướng dẫn của VNCode mở được trong trình duyệt dưới dạng bản cục bộ.",
+      "verification": "Native automated regression; not a live seller acceptance claim"
+    },
+    {
+      "release": "v1.3.0",
+      "line": 5,
+      "requirement": "Tab GS1 RUS mới cho từng doanh nghiệp: xem trạng thái thành viên, hạn, GCP và GLN; bảng GCP tự ẩn khi doanh nghiệp đã bị loại hoặc hết hạn.",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.3.0",
+      "status": "implementation-present",
+      "code": [
+        "src/main/java/com/vncode/app/ui/gs1/Gs1Pane.java",
+        "src/main/java/com/vncode/app/features/gs1/Gs1ActionPolicy.java",
+        "src/main/java/com/vncode/app/features/gs1/Gs1ReadinessService.java",
+        "src/main/java/com/vncode/app/features/gs1/Gs1PrefixDocumentService.java",
+        "src/main/java/com/vncode/app/features/gs1/Gs1LettersService.java"
+      ],
+      "tests": [
+        "src/test/java/com/vncode/app/ui/gs1/Gs1PaneTest.java",
+        "src/test/java/com/vncode/app/features/gs1/Gs1ReadinessServiceTest.java",
+        "src/test/java/com/vncode/app/features/gs1/Gs1PrefixDocumentServiceTest.java",
+        "src/test/java/com/vncode/app/features/gs1/Gs1LettersServiceTest.java"
+      ],
+      "id": "WB-056",
+      "assessment": "Giữ GS1 dùng API từ cấu hình Znack; kiểm tra tư cách/số dư/quota, đơn/email/thư trả lời, nét ký tạm và ảnh PDF. Mẫu đơn doanh nghiệp phải nhập riêng; chưa ký/gửi đơn thật trong lượt này.",
+      "verification": "Native automated regression; not a live seller acceptance claim"
+    },
+    {
+      "release": "v1.3.0",
+      "line": 6,
+      "requirement": "Gửi yêu cầu cho GS1 RUS ngay trong ứng dụng chỉ bằng một hộp xác nhận: gia hạn thành viên, xin thêm số lượng mã GTIN, báo lỗi gửi đơn trong Национальный каталог. Thư được điền sẵn dữ liệu doanh nghiệp và gửi đúng địa chỉ của GS1 RUS.",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.3.0",
+      "status": "implementation-present",
+      "code": [
+        "src/main/java/com/vncode/app/ui/gs1/Gs1Pane.java",
+        "src/main/java/com/vncode/app/features/gs1/Gs1ActionPolicy.java",
+        "src/main/java/com/vncode/app/features/gs1/Gs1ReadinessService.java",
+        "src/main/java/com/vncode/app/features/gs1/Gs1PrefixDocumentService.java",
+        "src/main/java/com/vncode/app/features/gs1/Gs1LettersService.java"
+      ],
+      "tests": [
+        "src/test/java/com/vncode/app/ui/gs1/Gs1PaneTest.java",
+        "src/test/java/com/vncode/app/features/gs1/Gs1ReadinessServiceTest.java",
+        "src/test/java/com/vncode/app/features/gs1/Gs1PrefixDocumentServiceTest.java",
+        "src/test/java/com/vncode/app/features/gs1/Gs1LettersServiceTest.java"
+      ],
+      "id": "WB-057",
+      "assessment": "Giữ GS1 dùng API từ cấu hình Znack; kiểm tra tư cách/số dư/quota, đơn/email/thư trả lời, nét ký tạm và ảnh PDF. Mẫu đơn doanh nghiệp phải nhập riêng; chưa ký/gửi đơn thật trong lượt này.",
+      "verification": "Native automated regression; not a live seller acceptance claim"
+    },
+    {
+      "release": "v1.3.0",
+      "line": 7,
+      "requirement": "Thư trả lời của GS1 hiện ở khung bên phải với dấu chưa đọc; menu bên trái hiện số thư mới \"GS1 RUS (n)\". Mở thư để đọc toàn bộ, tải hoá đơn và gửi chứng từ thanh toán.",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.3.0",
+      "status": "implementation-present",
+      "code": [
+        "src/main/java/com/vncode/app/ui/gs1/Gs1Pane.java",
+        "src/main/java/com/vncode/app/features/gs1/Gs1ActionPolicy.java",
+        "src/main/java/com/vncode/app/features/gs1/Gs1ReadinessService.java",
+        "src/main/java/com/vncode/app/features/gs1/Gs1PrefixDocumentService.java",
+        "src/main/java/com/vncode/app/features/gs1/Gs1LettersService.java"
+      ],
+      "tests": [
+        "src/test/java/com/vncode/app/ui/gs1/Gs1PaneTest.java",
+        "src/test/java/com/vncode/app/features/gs1/Gs1ReadinessServiceTest.java",
+        "src/test/java/com/vncode/app/features/gs1/Gs1PrefixDocumentServiceTest.java",
+        "src/test/java/com/vncode/app/features/gs1/Gs1LettersServiceTest.java"
+      ],
+      "id": "WB-058",
+      "assessment": "Giữ GS1 dùng API từ cấu hình Znack; kiểm tra tư cách/số dư/quota, đơn/email/thư trả lời, nét ký tạm và ảnh PDF. Mẫu đơn doanh nghiệp phải nhập riêng; chưa ký/gửi đơn thật trong lượt này.",
+      "verification": "Native automated regression; not a live seller acceptance claim"
+    },
+    {
+      "release": "v1.3.0",
+      "line": 8,
+      "requirement": "Nút gửi chuyển sang trạng thái \"đã gửi\" và có lịch sử thao tác GS1 kèm thời gian.",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.3.0",
+      "status": "implementation-present",
+      "code": [
+        "src/main/java/com/vncode/app/ui/gs1/Gs1Pane.java",
+        "src/main/java/com/vncode/app/features/gs1/Gs1ActionPolicy.java",
+        "src/main/java/com/vncode/app/features/gs1/Gs1ReadinessService.java",
+        "src/main/java/com/vncode/app/features/gs1/Gs1PrefixDocumentService.java",
+        "src/main/java/com/vncode/app/features/gs1/Gs1LettersService.java"
+      ],
+      "tests": [
+        "src/test/java/com/vncode/app/ui/gs1/Gs1PaneTest.java",
+        "src/test/java/com/vncode/app/features/gs1/Gs1ReadinessServiceTest.java",
+        "src/test/java/com/vncode/app/features/gs1/Gs1PrefixDocumentServiceTest.java",
+        "src/test/java/com/vncode/app/features/gs1/Gs1LettersServiceTest.java"
+      ],
+      "id": "WB-059",
+      "assessment": "Giữ GS1 dùng API từ cấu hình Znack; kiểm tra tư cách/số dư/quota, đơn/email/thư trả lời, nét ký tạm và ảnh PDF. Mẫu đơn doanh nghiệp phải nhập riêng; chưa ký/gửi đơn thật trong lượt này.",
+      "verification": "Native automated regression; not a live seller acceptance claim"
+    },
+    {
+      "release": "v1.3.0",
+      "line": 9,
+      "requirement": "Đơn gia nhập GS1 RUS từng bước gọn hơn: tự điền ngân hàng, điện thoại, email và địa chỉ từ Честный знак; tìm địa chỉ bằng danh sách thả xuống; mặc định người bán hàng may mặc, OKVED 47.91, chức vụ Предприниматель cho ИП. Doanh nghiệp đã bị loại được điền lại đơn gia nhập.",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.3.0",
+      "status": "implementation-present",
+      "code": [
+        "src/main/java/com/vncode/app/ui/gs1/Gs1Pane.java",
+        "src/main/java/com/vncode/app/features/gs1/Gs1ActionPolicy.java",
+        "src/main/java/com/vncode/app/features/gs1/Gs1ReadinessService.java",
+        "src/main/java/com/vncode/app/features/gs1/Gs1PrefixDocumentService.java",
+        "src/main/java/com/vncode/app/features/gs1/Gs1LettersService.java"
+      ],
+      "tests": [
+        "src/test/java/com/vncode/app/ui/gs1/Gs1PaneTest.java",
+        "src/test/java/com/vncode/app/features/gs1/Gs1ReadinessServiceTest.java",
+        "src/test/java/com/vncode/app/features/gs1/Gs1PrefixDocumentServiceTest.java",
+        "src/test/java/com/vncode/app/features/gs1/Gs1LettersServiceTest.java"
+      ],
+      "id": "WB-060",
+      "assessment": "Giữ GS1 dùng API từ cấu hình Znack; kiểm tra tư cách/số dư/quota, đơn/email/thư trả lời, nét ký tạm và ảnh PDF. Mẫu đơn doanh nghiệp phải nhập riêng; chưa ký/gửi đơn thật trong lượt này.",
+      "verification": "Native automated regression; not a live seller acceptance claim"
+    },
+    {
+      "release": "v1.3.0",
+      "line": 10,
+      "requirement": "Trên macOS, đơn GS1 được ký bằng chữ ký số qua Yandex Browser với tiện ích CryptoPro.",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.3.0",
+      "status": "adapted-to-approved-vncode-requirement",
+      "code": [],
+      "tests": [],
+      "id": "WB-061",
+      "assessment": "Giữ thương hiệu/license do admin VNCode cấp, Liquid Glass và GS1 dùng API theo yêu cầu riêng của seller. Không nhập giao diện thương hiệu, giá bán/gói license hoặc luồng đăng nhập trình duyệt của Wbcode."
+    },
+    {
+      "release": "v1.3.0",
+      "line": 11,
+      "requirement": "Khi Национальный каталог từ chối đơn, ứng dụng đề nghị gửi thư cho GS1 RUS kèm nguyên văn lỗi và email trong đơn.",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.3.0",
+      "status": "implementation-present",
+      "code": [
+        "src/main/java/com/vncode/app/ui/gs1/Gs1Pane.java",
+        "src/main/java/com/vncode/app/features/gs1/Gs1ActionPolicy.java",
+        "src/main/java/com/vncode/app/features/gs1/Gs1ReadinessService.java",
+        "src/main/java/com/vncode/app/features/gs1/Gs1PrefixDocumentService.java",
+        "src/main/java/com/vncode/app/features/gs1/Gs1LettersService.java"
+      ],
+      "tests": [
+        "src/test/java/com/vncode/app/ui/gs1/Gs1PaneTest.java",
+        "src/test/java/com/vncode/app/features/gs1/Gs1ReadinessServiceTest.java",
+        "src/test/java/com/vncode/app/features/gs1/Gs1PrefixDocumentServiceTest.java",
+        "src/test/java/com/vncode/app/features/gs1/Gs1LettersServiceTest.java"
+      ],
+      "id": "WB-062",
+      "assessment": "Giữ GS1 dùng API từ cấu hình Znack; kiểm tra tư cách/số dư/quota, đơn/email/thư trả lời, nét ký tạm và ảnh PDF. Mẫu đơn doanh nghiệp phải nhập riêng; chưa ký/gửi đơn thật trong lượt này.",
+      "verification": "Native automated regression; not a live seller acceptance claim"
+    },
+    {
+      "release": "v1.3.0",
+      "line": 12,
+      "requirement": "Tab Thông tin của Честный знак: số dư được lưu và tự cập nhật khi mở, bỏ nút cập nhật thủ công, giao diện gọn và dễ đọc.",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.3.0",
+      "status": "implementation-present",
+      "code": [
+        "src/main/java/com/vncode/app/features/gs1/HeaderBalanceService.java",
+        "src/main/java/com/vncode/app/features/gs1/Gs1BalanceRepository.java"
+      ],
+      "tests": [
+        "src/test/java/com/vncode/app/features/gs1/Gs1BalanceRepositoryTest.java"
+      ],
+      "id": "WB-063",
+      "assessment": "Số dư lấy/lưu theo doanh nghiệp và môi trường, hiển thị cảnh báo khi thấp, không dùng số dư shop khác.",
+      "verification": "Native automated regression; not a live seller acceptance claim"
+    },
+    {
+      "release": "v1.3.0",
+      "line": 13,
+      "requirement": "Ký số ổn định hơn khi làm việc với nhiều cửa hàng và nhiều chữ ký cùng lúc: mỗi chữ ký ký lần lượt, các cửa hàng khác nhau không còn chặn nhau; lỗi ký ghi rõ tên cửa hàng.",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.3.0",
+      "status": "implementation-present",
+      "code": [
+        "src/main/java/com/vncode/app/integration/znack/ZnackSigningSession.java",
+        "src/main/java/com/vncode/app/integration/znack/ZnackPipelineQueueExecutor.java"
+      ],
+      "tests": [
+        "src/test/java/com/vncode/app/integration/znack/ZnackSigningSessionTest.java",
+        "src/test/java/com/vncode/app/integration/znack/ZnackPipelineQueueExecutorTest.java"
+      ],
+      "id": "WB-064",
+      "assessment": "Phiên ký và hàng đợi không trộn chứng thư/doanh nghiệp; không chạy lại yêu cầu mua chưa rõ kết quả.",
+      "verification": "Native automated regression; not a live seller acceptance claim"
+    },
+    {
+      "release": "v1.3.0",
+      "line": 14,
+      "requirement": "Mua license ngay trong ứng dụng khi chưa kích hoạt: chọn số tháng, số máy, số cửa hàng, xem giá rúp và đồng; thanh toán xong license tự kích hoạt và gửi key cùng hoá đơn qua email.",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.3.0",
+      "status": "adapted-to-approved-vncode-requirement",
+      "code": [],
+      "tests": [],
+      "id": "WB-065",
+      "assessment": "Giữ thương hiệu/license do admin VNCode cấp, Liquid Glass và GS1 dùng API theo yêu cầu riêng của seller. Không nhập giao diện thương hiệu, giá bán/gói license hoặc luồng đăng nhập trình duyệt của Wbcode."
+    },
+    {
+      "release": "v1.3.0",
+      "line": 15,
+      "requirement": "Hộp thoại license: hàng key có nút Sửa và Kích hoạt, gia hạn bằng thanh kéo số tháng hoặc nút chọn nhanh, nhập email nhận license ngay dưới tên khách hàng.",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.3.0",
+      "status": "adapted-to-approved-vncode-requirement",
+      "code": [],
+      "tests": [],
+      "id": "WB-066",
+      "assessment": "Giữ thương hiệu/license do admin VNCode cấp, Liquid Glass và GS1 dùng API theo yêu cầu riêng của seller. Không nhập giao diện thương hiệu, giá bán/gói license hoặc luồng đăng nhập trình duyệt của Wbcode."
+    },
+    {
+      "release": "v1.3.0",
+      "line": 16,
+      "requirement": "Tự đồng bộ đơn hàng khi mở tab đơn mới và khi đổi cửa hàng trên tab đơn hàng.",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.3.0",
+      "status": "implementation-present",
+      "code": [
+        "src/main/java/com/vncode/app/features/sync/FbsSyncService.java",
+        "src/main/java/com/vncode/app/features/sync/SyncCoordinator.java",
+        "src/main/java/com/vncode/app/integration/wb/WbSupplySyncService.java"
+      ],
+      "tests": [
+        "src/test/java/com/vncode/app/features/sync/FbsSyncServiceTest.java",
+        "src/test/java/com/vncode/app/integration/wb/WbSupplySyncServiceTest.java",
+        "src/test/java/com/vncode/app/features/sync/SyncCoordinatorTest.java"
+      ],
+      "id": "WB-067",
+      "assessment": "FBS có worker và phần ngân sách HTTP ưu tiên, giữ cache khi tải nguồn; nguồn Catalog/bulk không chiếm toàn bộ slot FBS.",
+      "verification": "Native automated regression; not a live seller acceptance claim"
+    },
+    {
+      "release": "v1.3.0",
+      "line": 17,
+      "requirement": "Sửa lỗi bố cục tab KIZ mapping và các thanh công cụ không co lại khi thu nhỏ cửa sổ; chữ ở menu bên trái đậm hơn; thanh chọn nổi có nền rõ ràng.",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.3.0",
+      "status": "implementation-present",
+      "code": [
+        "src/main/java/com/vncode/app/shared/DialogLayout.java",
+        "src/main/java/com/vncode/app/shared/LoadingSkeleton.java",
+        "src/main/java/com/vncode/app/ui/znackregistration/RegistrationTextCells.java"
+      ],
+      "tests": [
+        "src/test/java/com/vncode/app/ui/FxmlSmokeTest.java",
+        "src/test/java/com/vncode/app/ui/workspace/WorkspaceJavaPagesLayoutTest.java"
+      ],
+      "id": "WB-068",
+      "assessment": "Hộp thoại theo cửa sổ/màn hình; nội dung xuống dòng; placeholder tĩnh cho màn sản phẩm, Znack và tin tức đang trống/tải, không thêm tải animation.",
+      "verification": "Native automated regression; not a live seller acceptance claim"
+    },
+    {
+      "release": "v1.3.1",
+      "line": 3,
+      "requirement": "Sửa lỗi \"Catalog changed during scan\" khi ký thẻ Честный знак: khi danh mục thay đổi giữa chừng (thẻ mới đang được tạo hoặc công bố), ứng dụng tự quét lại từ đầu thay vì dừng lại.",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.3.1",
+      "status": "implementation-present",
+      "code": [
+        "src/main/java/com/vncode/app/features/sync/ZnackCatalogSyncService.java",
+        "src/main/java/com/vncode/app/integration/znack/registration/NationalCatalogGtinSource.java",
+        "src/main/java/com/vncode/app/features/sync/SyncCoordinator.java"
+      ],
+      "tests": [
+        "src/test/java/com/vncode/app/features/sync/ZnackCatalogSyncServiceTest.java",
+        "src/test/java/com/vncode/app/features/sync/RegistrationSourcesTest.java",
+        "src/test/java/com/vncode/app/features/sync/SyncCoordinatorTest.java"
+      ],
+      "id": "WB-069",
+      "assessment": "Phân trang nguồn, giữ trạng thái chưa hoàn tất, kiểm tra danh tính/tổng số và lỗi quota. Đã đọc lại Catalog thật trong lượt kiểm tra này; kết quả riêng nằm trong báo cáo API.",
+      "verification": "Native automated regression; not a live seller acceptance claim"
+    },
+    {
+      "release": "v1.3.1",
+      "line": 4,
+      "requirement": "Nút In nhãn ở lô hàng FBS hiện ngay khi mở lô, không phải chờ đồng bộ đơn hàng chạy nền; nếu bấm in lúc đang đồng bộ, ứng dụng chờ đồng bộ xong rồi in.",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.3.1",
+      "status": "implementation-present",
+      "code": [
+        "src/main/java/com/vncode/app/features/sync/FbsSyncService.java",
+        "src/main/java/com/vncode/app/features/sync/SyncCoordinator.java",
+        "src/main/java/com/vncode/app/integration/wb/WbSupplySyncService.java"
+      ],
+      "tests": [
+        "src/test/java/com/vncode/app/features/sync/FbsSyncServiceTest.java",
+        "src/test/java/com/vncode/app/integration/wb/WbSupplySyncServiceTest.java",
+        "src/test/java/com/vncode/app/features/sync/SyncCoordinatorTest.java"
+      ],
+      "id": "WB-070",
+      "assessment": "FBS có worker và phần ngân sách HTTP ưu tiên, giữ cache khi tải nguồn; nguồn Catalog/bulk không chiếm toàn bộ slot FBS.",
+      "verification": "Native automated regression; not a live seller acceptance claim"
+    },
+    {
+      "release": "v1.3.1",
+      "line": 5,
+      "requirement": "In FBO Wildberries chỉ in sản phẩm đã có mã GTIN trên thẻ WB; nhãn in mã GTIN thay cho barcode của WB. Sản phẩm chưa có GTIN được liệt kê kèm ảnh, tên, article, màu và size để bạn đăng ký Znack trước khi in.",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.3.1",
+      "status": "implementation-present",
+      "code": [
+        "src/main/java/com/vncode/app/ui/fbo/FboPackingController.java",
+        "src/main/java/com/vncode/app/features/fbo/FboProductImageService.java",
+        "src/main/java/com/vncode/app/ui/fbo/FboPreflightDialog.java"
+      ],
+      "tests": [
+        "src/test/java/com/vncode/app/features/fbo/FboKizPrintPlannerTest.java",
+        "src/test/java/com/vncode/app/features/fbo/FboKizPrintPlannerTest.java"
+      ],
+      "id": "WB-071",
+      "assessment": "Ảnh giữ tỉ lệ, FBO dùng GTIN đã xác minh, có kiểm tra thiếu mã và đối soát trước xuất nhãn.",
+      "verification": "Native automated regression; not a live seller acceptance claim"
+    },
+    {
+      "release": "v1.3.1",
+      "line": 6,
+      "requirement": "Bảng FBO Wildberries có cột GTIN, sản phẩm chưa có GTIN được đánh dấu \"Chưa có GTIN\".",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.3.1",
+      "status": "implementation-present",
+      "code": [
+        "src/main/java/com/vncode/app/ui/fbo/FboPackingController.java",
+        "src/main/java/com/vncode/app/features/fbo/FboProductImageService.java",
+        "src/main/java/com/vncode/app/ui/fbo/FboPreflightDialog.java"
+      ],
+      "tests": [
+        "src/test/java/com/vncode/app/features/fbo/FboKizPrintPlannerTest.java",
+        "src/test/java/com/vncode/app/features/fbo/FboKizPrintPlannerTest.java"
+      ],
+      "id": "WB-072",
+      "assessment": "Ảnh giữ tỉ lệ, FBO dùng GTIN đã xác minh, có kiểm tra thiếu mã và đối soát trước xuất nhãn.",
+      "verification": "Native automated regression; not a live seller acceptance claim"
+    },
+    {
+      "release": "v1.3.1",
+      "line": 7,
+      "requirement": "Thư từ GS1 RUS rộng hơn và dễ đọc: thư của bạn bên phải, thư của GS1 bên trái, thư dài thu gọn 10 dòng với nút Xem thêm, mở thư là cuộn tới thư mới nhất.",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.3.1",
+      "status": "implementation-present",
+      "code": [
+        "src/main/java/com/vncode/app/ui/gs1/Gs1Pane.java",
+        "src/main/java/com/vncode/app/features/gs1/Gs1ActionPolicy.java",
+        "src/main/java/com/vncode/app/features/gs1/Gs1ReadinessService.java",
+        "src/main/java/com/vncode/app/features/gs1/Gs1PrefixDocumentService.java",
+        "src/main/java/com/vncode/app/features/gs1/Gs1LettersService.java"
+      ],
+      "tests": [
+        "src/test/java/com/vncode/app/ui/gs1/Gs1PaneTest.java",
+        "src/test/java/com/vncode/app/features/gs1/Gs1ReadinessServiceTest.java",
+        "src/test/java/com/vncode/app/features/gs1/Gs1PrefixDocumentServiceTest.java",
+        "src/test/java/com/vncode/app/features/gs1/Gs1LettersServiceTest.java"
+      ],
+      "id": "WB-073",
+      "assessment": "Giữ GS1 dùng API từ cấu hình Znack; kiểm tra tư cách/số dư/quota, đơn/email/thư trả lời, nét ký tạm và ảnh PDF. Mẫu đơn doanh nghiệp phải nhập riêng; chưa ký/gửi đơn thật trong lượt này.",
+      "verification": "Native automated regression; not a live seller acceptance claim"
+    },
+    {
+      "release": "v1.3.1",
+      "line": 8,
+      "requirement": "Các bước thanh toán và ô gửi chứng từ chỉ hiện khi GS1 RUS đã gửi hoá đơn.",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.3.1",
+      "status": "implementation-present",
+      "code": [
+        "src/main/java/com/vncode/app/ui/gs1/Gs1Pane.java",
+        "src/main/java/com/vncode/app/features/gs1/Gs1ActionPolicy.java",
+        "src/main/java/com/vncode/app/features/gs1/Gs1ReadinessService.java",
+        "src/main/java/com/vncode/app/features/gs1/Gs1PrefixDocumentService.java",
+        "src/main/java/com/vncode/app/features/gs1/Gs1LettersService.java"
+      ],
+      "tests": [
+        "src/test/java/com/vncode/app/ui/gs1/Gs1PaneTest.java",
+        "src/test/java/com/vncode/app/features/gs1/Gs1ReadinessServiceTest.java",
+        "src/test/java/com/vncode/app/features/gs1/Gs1PrefixDocumentServiceTest.java",
+        "src/test/java/com/vncode/app/features/gs1/Gs1LettersServiceTest.java"
+      ],
+      "id": "WB-074",
+      "assessment": "Giữ GS1 dùng API từ cấu hình Znack; kiểm tra tư cách/số dư/quota, đơn/email/thư trả lời, nét ký tạm và ảnh PDF. Mẫu đơn doanh nghiệp phải nhập riêng; chưa ký/gửi đơn thật trong lượt này.",
+      "verification": "Native automated regression; not a live seller acceptance claim"
+    },
+    {
+      "release": "v1.3.1",
+      "line": 9,
+      "requirement": "Thư GS1 RUS kèm hướng dẫn bằng tiếng Việt: GS1 đã tiếp nhận, đã xử lý xong hay gửi hoá đơn, và bạn cần làm gì tiếp theo.",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.3.1",
+      "status": "implementation-present",
+      "code": [
+        "src/main/java/com/vncode/app/ui/gs1/Gs1Pane.java",
+        "src/main/java/com/vncode/app/features/gs1/Gs1ActionPolicy.java",
+        "src/main/java/com/vncode/app/features/gs1/Gs1ReadinessService.java",
+        "src/main/java/com/vncode/app/features/gs1/Gs1PrefixDocumentService.java",
+        "src/main/java/com/vncode/app/features/gs1/Gs1LettersService.java"
+      ],
+      "tests": [
+        "src/test/java/com/vncode/app/ui/gs1/Gs1PaneTest.java",
+        "src/test/java/com/vncode/app/features/gs1/Gs1ReadinessServiceTest.java",
+        "src/test/java/com/vncode/app/features/gs1/Gs1PrefixDocumentServiceTest.java",
+        "src/test/java/com/vncode/app/features/gs1/Gs1LettersServiceTest.java"
+      ],
+      "id": "WB-075",
+      "assessment": "Giữ GS1 dùng API từ cấu hình Znack; kiểm tra tư cách/số dư/quota, đơn/email/thư trả lời, nét ký tạm và ảnh PDF. Mẫu đơn doanh nghiệp phải nhập riêng; chưa ký/gửi đơn thật trong lượt này.",
+      "verification": "Native automated regression; not a live seller acceptance claim"
+    },
+    {
+      "release": "v1.3.1",
+      "line": 10,
+      "requirement": "Cửa sổ License khi chưa kích hoạt: ô nhập key và nút Kích hoạt nằm trên cùng; phần mua license có giá từng gói tháng và cách tính giá theo số cửa hàng.",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.3.1",
+      "status": "implementation-present",
+      "code": [
+        "src/main/java/com/vncode/app/integration/license/WebLicenseApi.java",
+        "src/main/java/com/vncode/app/features/license/LicenseVerifier.java"
+      ],
+      "tests": [
+        "src/test/java/com/vncode/app/ui/license/LicensePaneTest.java",
+        "src/test/java/com/vncode/app/integration/license/LicenseNetworkDiagnosticsTest.java"
+      ],
+      "id": "WB-076",
+      "assessment": "Áp dụng cho API/license VNCode: cơ chế thời gian, kết nối và giới hạn shop; không chuyển seller sang license Wbcode.",
+      "verification": "Native automated regression; not a live seller acceptance claim"
+    },
+    {
+      "release": "v1.3.1",
+      "line": 11,
+      "requirement": "Sửa lỗi không có nút Kích hoạt khi key đã lưu không còn hợp lệ.",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.3.1",
+      "status": "implementation-present",
+      "code": [
+        "src/main/java/com/vncode/app/integration/license/WebLicenseApi.java",
+        "src/main/java/com/vncode/app/features/license/LicenseVerifier.java"
+      ],
+      "tests": [
+        "src/test/java/com/vncode/app/ui/license/LicensePaneTest.java",
+        "src/test/java/com/vncode/app/integration/license/LicenseNetworkDiagnosticsTest.java"
+      ],
+      "id": "WB-077",
+      "assessment": "Áp dụng cho API/license VNCode: cơ chế thời gian, kết nối và giới hạn shop; không chuyển seller sang license Wbcode.",
+      "verification": "Native automated regression; not a live seller acceptance claim"
+    },
+    {
+      "release": "v1.3.1",
+      "line": 12,
+      "requirement": "Khi đồng hồ máy tính sai giờ hoặc sai múi giờ, ứng dụng báo đúng nguyên nhân và cách sửa thay vì báo key bị thu hồi.",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.3.1",
+      "status": "implementation-present",
+      "code": [
+        "src/main/java/com/vncode/app/integration/license/WebLicenseApi.java",
+        "src/main/java/com/vncode/app/features/license/LicenseVerifier.java"
+      ],
+      "tests": [
+        "src/test/java/com/vncode/app/ui/license/LicensePaneTest.java",
+        "src/test/java/com/vncode/app/integration/license/LicenseNetworkDiagnosticsTest.java"
+      ],
+      "id": "WB-078",
+      "assessment": "Áp dụng cho API/license VNCode: cơ chế thời gian, kết nối và giới hạn shop; không chuyển seller sang license Wbcode.",
+      "verification": "Native automated regression; not a live seller acceptance claim"
+    },
+    {
+      "release": "v1.3.1",
+      "line": 13,
+      "requirement": "Khi KIZ chưa kịp lưu thông lúc in, báo cáo lỗi ghi rõ đơn mua KIZ đang ở bước nào để hỗ trợ nhanh hơn.",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.3.1",
+      "status": "implementation-present",
+      "code": [
+        "src/main/java/com/vncode/app/integration/znack/ZnackPurchaseCoordinator.java",
+        "src/main/java/com/vncode/app/integration/znack/ZnackPurchasePipelineState.java",
+        "src/main/java/com/vncode/app/integration/znack/ZnackKizOrderService.java"
+      ],
+      "tests": [
+        "src/test/java/com/vncode/app/integration/znack/ZnackModuleTest.java",
+        "src/test/java/com/vncode/app/integration/znack/ZnackPipelineQueueExecutorTest.java"
+      ],
+      "id": "WB-079",
+      "assessment": "Giữ checkpoint giao dịch, dữ liệu cấu hình của lô và đối soát yêu cầu chưa rõ kết quả; không tự mua lặp.",
+      "verification": "Native automated regression; not a live seller acceptance claim"
+    },
+    {
+      "release": "v1.3.2",
+      "line": 3,
+      "requirement": "Tab **Sản phẩm** mới (dưới Dashboard): xem toàn bộ thẻ WB/Ozon với ảnh, thương hiệu, chất liệu, TN VED và biểu tượng khiên trạng thái giấy tờ (xanh: hợp lệ, cam: đang duyệt, đỏ: bị từ chối/thiếu, không có: chưa thêm). Tích từng sản phẩm hoặc tích tất cả, lọc theo danh mục và trạng thái giấy tờ, tải dần khi cuộn.",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.3.2",
+      "status": "implementation-present",
+      "code": [
+        "src/main/java/com/vncode/app/ui/products/ProductsPane.java",
+        "src/main/java/com/vncode/app/ui/products/ProductSelection.java",
+        "src/main/java/com/vncode/app/features/tnved/ProductTnvedAdvisor.java",
+        "src/main/java/com/vncode/app/ui/tnved/ProductTnvedPicker.java"
+      ],
+      "tests": [
+        "src/test/java/com/vncode/app/ui/products/ProductRefreshUiTest.java",
+        "src/test/java/com/vncode/app/ui/products/ProductSelectionTest.java",
+        "src/test/java/com/vncode/app/features/tnved/ProductTnvedReviewServiceTest.java"
+      ],
+      "id": "WB-080",
+      "assessment": "Bộ lọc/đếm chọn cùng phạm vi; đề xuất TN VED theo từng sản phẩm; kết quả nền không áp dụng cho shop/đợt tải khác.",
+      "verification": "Native automated regression; not a live seller acceptance claim"
+    },
+    {
+      "release": "v1.3.2",
+      "line": 4,
+      "requirement": "Sửa hàng loạt trong tab Sản phẩm: thương hiệu, chất liệu, TN VED và giấy tờ (WB: декларация/сертификат với số và ngày; Ozon: gắn vào декларация hoặc сертификат đã tải lên). Ứng dụng chờ sàn xác nhận rồi mới báo đã cập nhật.",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.3.2",
+      "status": "implementation-present",
+      "code": [
+        "src/main/java/com/vncode/app/features/products/ProductBulkEditService.java",
+        "src/main/java/com/vncode/app/ui/products/ProductBulkEditPane.java",
+        "src/main/java/com/vncode/app/ui/products/ProductsPane.java"
+      ],
+      "tests": [
+        "src/test/java/com/vncode/app/features/products/ProductBulkEditServiceTest.java",
+        "src/test/java/com/vncode/app/ui/products/ProductBulkDialogTest.java"
+      ],
+      "id": "WB-081",
+      "assessment": "Sửa hàng loạt đọc mới/kiểm tra trước khi ghi và đọc lại sau ghi; Áp dụng đóng hộp chọn, tiến độ viên thuốc ở giữa dưới bảng; kiểm thử lô 120 sản phẩm.",
+      "verification": "Native automated regression; not a live seller acceptance claim"
+    },
+    {
+      "release": "v1.3.2",
+      "line": 5,
+      "requirement": "Tab **TN VED** mới (dưới Thiết kế tem): tra cứu mã TN VED hàng thời trang, lọc danh mục, giới tính, chất liệu, dệt kim/dệt thoi, sao chép mã một chạm.",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.3.2",
+      "status": "implementation-present",
+      "code": [
+        "src/main/java/com/vncode/app/features/tnved/FashionTnvedCatalog.java",
+        "src/main/java/com/vncode/app/ui/tnved/FashionTnvedBrowser.java",
+        "src/main/java/com/vncode/app/ui/tnved/ProductTnvedPicker.java"
+      ],
+      "tests": [
+        "src/test/java/com/vncode/app/features/tnved/FashionTnvedTest.java",
+        "src/test/java/com/vncode/app/ui/tnved/FashionTnvedBrowserTest.java"
+      ],
+      "id": "WB-082",
+      "assessment": "526 mã tham chiếu, lọc chất liệu/giới tính, sao chép clipboard có xác minh; chip cuộn ngang, đề xuất từng sản phẩm nằm bên trái Áp dụng.",
+      "verification": "Native automated regression; not a live seller acceptance claim"
+    },
+    {
+      "release": "v1.3.2",
+      "line": 6,
+      "requirement": "Đăng ký Znack: trước khi đăng ký, ứng dụng kiểm tra mã TN VED theo danh mục, giới tính và chất liệu; nhóm thẻ có mã có thể sai được hiện kèm mã đề xuất, bạn chọn giữ nguyên hoặc cập nhật lên sàn rồi đăng ký tiếp.",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.3.2",
+      "status": "implementation-present",
+      "code": [
+        "src/main/java/com/vncode/app/integration/znack/registration/RegistrationProductInputs.java",
+        "src/main/java/com/vncode/app/integration/znack/registration/ZnackWbAttributeMapper.java",
+        "src/main/java/com/vncode/app/ui/znackregistration/ZnackCardRegistrationController.java",
+        "src/main/java/com/vncode/app/integration/znack/registration/ZnackCategoryResolver.java",
+        "src/main/java/com/vncode/app/ui/znackregistration/RegistrationBatchPreflight.java"
+      ],
+      "tests": [
+        "src/test/java/com/vncode/app/integration/znack/registration/RegistrationProductInputsTest.java",
+        "src/test/java/com/vncode/app/integration/znack/registration/ZnackWbAttributeMapperTest.java",
+        "src/test/java/com/vncode/app/integration/znack/registration/ZnackCategoryResolverTest.java",
+        "src/test/java/com/vncode/app/ui/znackregistration/RegistrationBatchPreflightTest.java"
+      ],
+      "id": "WB-083",
+      "assessment": "Kiểm tra lô trước cấp GTIN; đề xuất TN VED, sửa thương hiệu/chất liệu/giới tính hàng loạt bằng dữ liệu sàn, đọc lại trước tiếp tục. Không tự sửa theo gợi ý khi seller chưa chọn.",
+      "verification": "Native automated regression; not a live seller acceptance claim"
+    },
+    {
+      "release": "v1.3.2",
+      "line": 7,
+      "requirement": "Đăng ký Znack: thẻ thiếu thương hiệu có thể bổ sung ngay trong bảng thiếu dữ liệu (cho tất cả hoặc từng thẻ); danh mục «Выберите категорию товара» được chọn tự động theo loại hàng.",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.3.2",
+      "status": "implementation-present",
+      "code": [
+        "src/main/java/com/vncode/app/integration/znack/registration/RegistrationProductInputs.java",
+        "src/main/java/com/vncode/app/integration/znack/registration/ZnackWbAttributeMapper.java",
+        "src/main/java/com/vncode/app/ui/znackregistration/ZnackCardRegistrationController.java",
+        "src/main/java/com/vncode/app/integration/znack/registration/ZnackCategoryResolver.java",
+        "src/main/java/com/vncode/app/ui/znackregistration/RegistrationBatchPreflight.java"
+      ],
+      "tests": [
+        "src/test/java/com/vncode/app/integration/znack/registration/RegistrationProductInputsTest.java",
+        "src/test/java/com/vncode/app/integration/znack/registration/ZnackWbAttributeMapperTest.java",
+        "src/test/java/com/vncode/app/integration/znack/registration/ZnackCategoryResolverTest.java",
+        "src/test/java/com/vncode/app/ui/znackregistration/RegistrationBatchPreflightTest.java"
+      ],
+      "id": "WB-084",
+      "assessment": "Kiểm tra lô trước cấp GTIN; đề xuất TN VED, sửa thương hiệu/chất liệu/giới tính hàng loạt bằng dữ liệu sàn, đọc lại trước tiếp tục. Không tự sửa theo gợi ý khi seller chưa chọn.",
+      "verification": "Native automated regression; not a live seller acceptance claim"
+    },
+    {
+      "release": "v1.3.2",
+      "line": 8,
+      "requirement": "Đăng ký Znack: lựa chọn được giữ khi tìm kiếm khác; trạng thái «Bản nháp» đổi thành «Đã tạo thẻ».",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.3.2",
+      "status": "implementation-present",
+      "code": [
+        "src/main/java/com/vncode/app/ui/products/ProductsPane.java",
+        "src/main/java/com/vncode/app/ui/products/ProductSelection.java",
+        "src/main/java/com/vncode/app/features/tnved/ProductTnvedAdvisor.java",
+        "src/main/java/com/vncode/app/ui/tnved/ProductTnvedPicker.java"
+      ],
+      "tests": [
+        "src/test/java/com/vncode/app/ui/products/ProductRefreshUiTest.java",
+        "src/test/java/com/vncode/app/ui/products/ProductSelectionTest.java",
+        "src/test/java/com/vncode/app/features/tnved/ProductTnvedReviewServiceTest.java"
+      ],
+      "id": "WB-085",
+      "assessment": "Bộ lọc/đếm chọn cùng phạm vi; đề xuất TN VED theo từng sản phẩm; kết quả nền không áp dụng cho shop/đợt tải khác.",
+      "verification": "Native automated regression; not a live seller acceptance claim"
+    },
+    {
+      "release": "v1.3.2",
+      "line": 9,
+      "requirement": "In FBO thiếu KIZ: hiện bảng mua KIZ như FBS (cần bao nhiêu, đang có, mua bao nhiêu) và tiến trình mua.",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.3.2",
+      "status": "implementation-present",
+      "code": [
+        "src/main/java/com/vncode/app/ui/fbo/FboPackingController.java",
+        "src/main/java/com/vncode/app/features/fbo/FboProductImageService.java",
+        "src/main/java/com/vncode/app/ui/fbo/FboPreflightDialog.java"
+      ],
+      "tests": [
+        "src/test/java/com/vncode/app/features/fbo/FboKizPrintPlannerTest.java",
+        "src/test/java/com/vncode/app/features/fbo/FboKizPrintPlannerTest.java"
+      ],
+      "id": "WB-086",
+      "assessment": "Ảnh giữ tỉ lệ, FBO dùng GTIN đã xác minh, có kiểm tra thiếu mã và đối soát trước xuất nhãn.",
+      "verification": "Native automated regression; not a live seller acceptance claim"
+    },
+    {
+      "release": "v1.3.2",
+      "line": 10,
+      "requirement": "Header cảnh báo khi số dư Честный знак dưới 500 ₽.",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.3.2",
+      "status": "implementation-present",
+      "code": [
+        "src/main/java/com/vncode/app/ui/gs1/Gs1Pane.java",
+        "src/main/java/com/vncode/app/features/gs1/Gs1ActionPolicy.java",
+        "src/main/java/com/vncode/app/features/gs1/Gs1ReadinessService.java",
+        "src/main/java/com/vncode/app/features/gs1/Gs1PrefixDocumentService.java",
+        "src/main/java/com/vncode/app/features/gs1/Gs1LettersService.java"
+      ],
+      "tests": [
+        "src/test/java/com/vncode/app/ui/gs1/Gs1PaneTest.java",
+        "src/test/java/com/vncode/app/features/gs1/Gs1ReadinessServiceTest.java",
+        "src/test/java/com/vncode/app/features/gs1/Gs1PrefixDocumentServiceTest.java",
+        "src/test/java/com/vncode/app/features/gs1/Gs1LettersServiceTest.java"
+      ],
+      "id": "WB-087",
+      "assessment": "Giữ GS1 dùng API từ cấu hình Znack; kiểm tra tư cách/số dư/quota, đơn/email/thư trả lời, nét ký tạm và ảnh PDF. Mẫu đơn doanh nghiệp phải nhập riêng; chưa ký/gửi đơn thật trong lượt này.",
+      "verification": "Native automated regression; not a live seller acceptance claim"
+    },
+    {
+      "release": "v1.3.2",
+      "line": 11,
+      "requirement": "Thiết kế tem mở ngay trong ứng dụng thay cho cửa sổ riêng.",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.3.2",
+      "status": "implementation-present",
+      "code": [
+        "src/main/java/com/vncode/app/features/print/PrintTemplateDesignerService.java"
+      ],
+      "tests": [
+        "src/test/java/com/vncode/app/features/print/PrintTemplateServiceTest.java"
+      ],
+      "id": "WB-088",
+      "assessment": "Trình thiết kế mẫu in dùng trong ứng dụng, giữ cấu hình riêng của VNCode.",
+      "verification": "Native automated regression; not a live seller acceptance claim"
+    },
+    {
+      "release": "v1.3.2",
+      "line": 12,
+      "requirement": "Danh sách đang tải hiện khung xương (skeleton) thay cho vòng xoay; lô hàng FBS hiện ngay dữ liệu đã lưu trong lúc làm mới.",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.3.2",
+      "status": "implementation-present",
+      "code": [
+        "src/main/java/com/vncode/app/shared/LoadingSkeleton.java",
+        "src/main/java/com/vncode/app/ui/products/ProductsPane.java",
+        "src/main/java/com/vncode/app/features/sync/FbsSyncService.java"
+      ],
+      "tests": [
+        "src/test/java/com/vncode/app/ui/FxmlSmokeTest.java",
+        "src/test/java/com/vncode/app/features/sync/FbsSyncServiceTest.java"
+      ],
+      "id": "WB-089",
+      "assessment": "Đọc cache trước; các màn trống đang tải dùng skeleton tĩnh để hạn chế lag.",
+      "verification": "Native automated regression; not a live seller acceptance claim"
+    },
+    {
+      "release": "v1.3.2",
+      "line": 13,
+      "requirement": "Hỗ trợ: ảnh nằm trên tin nhắn, có viền. Thư GS1 RUS dễ đọc hơn.",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.3.2",
+      "status": "partial-explicit-difference",
+      "code": [
+        "src/main/java/com/vncode/app/ui/workspace/HomeController.java",
+        "src/main/java/com/vncode/app/features/gs1/Gs1LettersService.java"
+      ],
+      "tests": [
+        "src/test/java/com/vncode/app/integration/license/PortalClientContractTest.java",
+        "src/test/java/com/vncode/app/features/gs1/Gs1LettersServiceTest.java"
+      ],
+      "id": "WB-090",
+      "assessment": "GS1 có thư riêng; VNCode không tự gửi báo cáo lỗi. Hộp hội thoại hỗ trợ trực tuyến của Wbcode chưa có backend tương đương trong VNCode.",
+      "verification": "Native automated regression; not a live seller acceptance claim",
+      "remaining": "GS1 có thư/email riêng, nhưng nút Hỗ trợ của VNCode hiện mở hướng dẫn; chưa có backend hội thoại hỗ trợ/đính kèm ảnh như Wbcode."
+    },
+    {
+      "release": "v1.3.3",
+      "line": 3,
+      "requirement": "Ký thẻ Znack: danh mục Честный знак được đọc 1000 thẻ mỗi lần và chỉ mở chi tiết các thẻ chưa công bố, nên nhanh hơn nhiều. Hết lỗi «Catalog changed during scan» khi thẻ mới xuất hiện trong lúc ký, và lỗi «Превышен максимально допустимый результат 10000» với tài khoản trên 10 000 thẻ.",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.3.3",
+      "status": "implementation-present",
+      "code": [
+        "src/main/java/com/vncode/app/features/sync/ZnackCatalogSyncService.java",
+        "src/main/java/com/vncode/app/integration/znack/registration/NationalCatalogGtinSource.java",
+        "src/main/java/com/vncode/app/features/sync/SyncCoordinator.java"
+      ],
+      "tests": [
+        "src/test/java/com/vncode/app/features/sync/ZnackCatalogSyncServiceTest.java",
+        "src/test/java/com/vncode/app/features/sync/RegistrationSourcesTest.java",
+        "src/test/java/com/vncode/app/features/sync/SyncCoordinatorTest.java"
+      ],
+      "id": "WB-091",
+      "assessment": "Phân trang nguồn, giữ trạng thái chưa hoàn tất, kiểm tra danh tính/tổng số và lỗi quota. Đã đọc lại Catalog thật trong lượt kiểm tra này; kết quả riêng nằm trong báo cáo API.",
+      "verification": "Native automated regression; not a live seller acceptance claim"
+    },
+    {
+      "release": "v1.3.3",
+      "line": 4,
+      "requirement": "Sửa TN VED, thương hiệu, chất liệu, giấy tờ hàng loạt (đăng ký Znack và tab Sản phẩm): sửa nhiều thẻ nhanh hơn, mọi thẻ đều được xác nhận (trước đây quá 100 thẻ thì báo «đang áp dụng»). Thẻ WB từ chối được báo ngay kèm lý do của WB, ví dụ thương hiệu «MAY» không có trên WB (WB chỉ có «May»).",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.3.3",
+      "status": "implementation-present",
+      "code": [
+        "src/main/java/com/vncode/app/features/products/ProductBulkEditService.java",
+        "src/main/java/com/vncode/app/ui/products/ProductBulkEditPane.java",
+        "src/main/java/com/vncode/app/ui/products/ProductsPane.java"
+      ],
+      "tests": [
+        "src/test/java/com/vncode/app/features/products/ProductBulkEditServiceTest.java",
+        "src/test/java/com/vncode/app/ui/products/ProductBulkDialogTest.java"
+      ],
+      "id": "WB-092",
+      "assessment": "Sửa hàng loạt đọc mới/kiểm tra trước khi ghi và đọc lại sau ghi; Áp dụng đóng hộp chọn, tiến độ viên thuốc ở giữa dưới bảng; kiểm thử lô 120 sản phẩm.",
+      "verification": "Native automated regression; not a live seller acceptance claim"
+    },
+    {
+      "release": "v1.3.3",
+      "line": 5,
+      "requirement": "Chọn thương hiệu WB: mở ngay, tìm trong toàn bộ danh sách thương hiệu WB (trước đây chỉ 10 000 tên đầu), tự dùng đúng cách viết của WB.",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.3.3",
+      "status": "implementation-present",
+      "code": [
+        "src/main/java/com/vncode/app/ui/products/ProductBulkEditPane.java",
+        "src/main/java/com/vncode/app/features/products/ProductSuggestionService.java",
+        "src/main/java/com/vncode/app/ui/products/ProductBulkEditPane.java"
+      ],
+      "tests": [
+        "src/test/java/com/vncode/app/features/products/ProductSuggestionsTest.java",
+        "src/test/java/com/vncode/app/ui/products/ProductBulkDialogTest.java"
+      ],
+      "id": "WB-093",
+      "assessment": "Thương hiệu của shop hiện trước, tải gợi ý sàn dần; giữ nguyên giá trị và không khóa giao diện khi đang đọc.",
+      "verification": "Native automated regression; not a live seller acceptance claim"
+    },
+    {
+      "release": "v1.3.3",
+      "line": 6,
+      "requirement": "Mapping: bảng không còn tràn ngang, đủ nút thao tác, các cột thẳng hàng.",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.3.3",
+      "status": "implementation-present",
+      "code": [
+        "src/main/java/com/vncode/app/ui/kizmapping/KizMappingController.java",
+        "src/main/java/com/vncode/app/integration/znack/ZnackGtinInventoryService.java"
+      ],
+      "tests": [
+        "src/test/java/com/vncode/app/ui/kizmapping/KizMappingEditorTest.java",
+        "src/test/java/com/vncode/app/integration/znack/ZnackGtinInventoryBulkTest.java"
+      ],
+      "id": "WB-094",
+      "assessment": "Danh mục mapping và tồn kho xử lý nền, hiển thị tiến độ và giới hạn thao tác theo trạng thái dữ liệu.",
+      "verification": "Native automated regression; not a live seller acceptance claim"
+    },
+    {
+      "release": "v1.3.3",
+      "line": 7,
+      "requirement": "TN VED: thêm lọc Полиэстер, Вискоза, Полиамид, Акрил.",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.3.3",
+      "status": "implementation-present",
+      "code": [
+        "src/main/java/com/vncode/app/features/tnved/FashionTnvedCatalog.java",
+        "src/main/java/com/vncode/app/ui/tnved/FashionTnvedBrowser.java",
+        "src/main/java/com/vncode/app/ui/tnved/ProductTnvedPicker.java"
+      ],
+      "tests": [
+        "src/test/java/com/vncode/app/features/tnved/FashionTnvedTest.java",
+        "src/test/java/com/vncode/app/ui/tnved/FashionTnvedBrowserTest.java"
+      ],
+      "id": "WB-095",
+      "assessment": "526 mã tham chiếu, lọc chất liệu/giới tính, sao chép clipboard có xác minh; chip cuộn ngang, đề xuất từng sản phẩm nằm bên trái Áp dụng.",
+      "verification": "Native automated regression; not a live seller acceptance claim"
+    },
+    {
+      "release": "v1.3.3",
+      "line": 8,
+      "requirement": "Tab Sản phẩm (Ozon): danh sách không nhảy về đầu khi cập nhật trạng thái giấy tờ.",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.3.3",
+      "status": "implementation-present",
+      "code": [
+        "src/main/java/com/vncode/app/ui/products/ProductsPane.java"
+      ],
+      "tests": [
+        "src/test/java/com/vncode/app/ui/products/ProductRefreshUiTest.java"
+      ],
+      "id": "WB-096",
+      "assessment": "Sửa dữ liệu không thay shop hay bộ lọc đang mở; kết quả trả về được kiểm tra generation/owner.",
+      "verification": "Native automated regression; not a live seller acceptance claim"
+    },
+    {
+      "release": "v1.3.4",
+      "line": 3,
+      "requirement": "GS1 RUS: thẻ «Tài khoản GS1 và Честный знак» tự kiểm tra chữ ký số, đăng nhập, thoả thuận với Честный знак (ký ngay trong app), số dư, thành viên GS1 và số GTIN còn lại, kèm nút sửa cho từng mục. Sidebar báo «!» khi có việc cần làm.",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.3.4",
+      "status": "implementation-present",
+      "code": [
+        "src/main/java/com/vncode/app/ui/gs1/Gs1Pane.java",
+        "src/main/java/com/vncode/app/features/gs1/Gs1ActionPolicy.java",
+        "src/main/java/com/vncode/app/features/gs1/Gs1ReadinessService.java",
+        "src/main/java/com/vncode/app/features/gs1/Gs1PrefixDocumentService.java",
+        "src/main/java/com/vncode/app/features/gs1/Gs1LettersService.java"
+      ],
+      "tests": [
+        "src/test/java/com/vncode/app/ui/gs1/Gs1PaneTest.java",
+        "src/test/java/com/vncode/app/features/gs1/Gs1ReadinessServiceTest.java",
+        "src/test/java/com/vncode/app/features/gs1/Gs1PrefixDocumentServiceTest.java",
+        "src/test/java/com/vncode/app/features/gs1/Gs1LettersServiceTest.java"
+      ],
+      "id": "WB-097",
+      "assessment": "Giữ GS1 dùng API từ cấu hình Znack; kiểm tra tư cách/số dư/quota, đơn/email/thư trả lời, nét ký tạm và ảnh PDF. Mẫu đơn doanh nghiệp phải nhập riêng; chưa ký/gửi đơn thật trong lượt này.",
+      "verification": "Native automated regression; not a live seller acceptance claim"
+    },
+    {
+      "release": "v1.3.4",
+      "line": 4,
+      "requirement": "GS1 RUS: hết GTIN hoặc hết hạn thành viên thì gửi yêu cầu thêm prefix (theo mẫu 01.04.01) hoặc gia hạn tới GS1 RUS ngay trong app; Wbcode tự nhắc GS1 nếu chưa trả lời.",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.3.4",
+      "status": "implementation-present",
+      "code": [
+        "src/main/java/com/vncode/app/ui/gs1/Gs1Pane.java",
+        "src/main/java/com/vncode/app/features/gs1/Gs1ActionPolicy.java",
+        "src/main/java/com/vncode/app/features/gs1/Gs1ReadinessService.java",
+        "src/main/java/com/vncode/app/features/gs1/Gs1PrefixDocumentService.java",
+        "src/main/java/com/vncode/app/features/gs1/Gs1LettersService.java"
+      ],
+      "tests": [
+        "src/test/java/com/vncode/app/ui/gs1/Gs1PaneTest.java",
+        "src/test/java/com/vncode/app/features/gs1/Gs1ReadinessServiceTest.java",
+        "src/test/java/com/vncode/app/features/gs1/Gs1PrefixDocumentServiceTest.java",
+        "src/test/java/com/vncode/app/features/gs1/Gs1LettersServiceTest.java"
+      ],
+      "id": "WB-098",
+      "assessment": "Giữ GS1 dùng API từ cấu hình Znack; kiểm tra tư cách/số dư/quota, đơn/email/thư trả lời, nét ký tạm và ảnh PDF. Mẫu đơn doanh nghiệp phải nhập riêng; chưa ký/gửi đơn thật trong lượt này.",
+      "verification": "Native automated regression; not a live seller acceptance claim"
+    },
+    {
+      "release": "v1.3.4",
+      "line": 5,
+      "requirement": "Tab Sản phẩm: nút lọc nhanh «TN VED sai / thiếu thương hiệu / thiếu chất liệu» (WB và Ozon), số đếm theo bộ lọc và tìm kiếm; gợi ý mã TN VED theo loại hàng, giới tính và chất liệu của từng sản phẩm; tên sản phẩm một dòng.",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.3.4",
+      "status": "implementation-present",
+      "code": [
+        "src/main/java/com/vncode/app/ui/products/ProductsPane.java",
+        "src/main/java/com/vncode/app/ui/products/ProductSelection.java",
+        "src/main/java/com/vncode/app/features/tnved/ProductTnvedAdvisor.java",
+        "src/main/java/com/vncode/app/ui/tnved/ProductTnvedPicker.java"
+      ],
+      "tests": [
+        "src/test/java/com/vncode/app/ui/products/ProductRefreshUiTest.java",
+        "src/test/java/com/vncode/app/ui/products/ProductSelectionTest.java",
+        "src/test/java/com/vncode/app/features/tnved/ProductTnvedReviewServiceTest.java"
+      ],
+      "id": "WB-099",
+      "assessment": "Bộ lọc/đếm chọn cùng phạm vi; đề xuất TN VED theo từng sản phẩm; kết quả nền không áp dụng cho shop/đợt tải khác.",
+      "verification": "Native automated regression; not a live seller acceptance claim"
+    },
+    {
+      "release": "v1.3.4",
+      "line": 6,
+      "requirement": "Tab Sản phẩm (Ozon): tải giấy tờ mới (tờ khai, chứng nhận) lên Ozon rồi gắn cho các sản phẩm đã chọn.",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.3.4",
+      "status": "implementation-present",
+      "code": [
+        "src/main/java/com/vncode/app/integration/ozon/OzonListingAdapter.java",
+        "src/main/java/com/vncode/app/ui/catalogsync/CatalogDocumentEditor.java"
+      ],
+      "tests": [
+        "src/test/java/com/vncode/app/integration/ozon/OzonListingAdapterTest.java",
+        "src/test/java/com/vncode/app/features/catalogsync/CatalogSyncServiceTest.java"
+      ],
+      "id": "WB-100",
+      "assessment": "Giấy tờ Ozon dùng trường và endpoint sàn; bảo toàn giá trị không được API cho phép ghi.",
+      "verification": "Native automated regression; not a live seller acceptance claim"
+    },
+    {
+      "release": "v1.3.4",
+      "line": 7,
+      "requirement": "Không còn đơ khi mở trang Đăng ký Znack lúc app đang đồng bộ: các việc chạy nền lâu không còn chặn việc tải trang.",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.3.4",
+      "status": "implementation-present",
+      "code": [
+        "src/main/java/com/vncode/app/features/sync/ZnackCatalogSyncService.java",
+        "src/main/java/com/vncode/app/integration/znack/registration/NationalCatalogGtinSource.java",
+        "src/main/java/com/vncode/app/features/sync/SyncCoordinator.java"
+      ],
+      "tests": [
+        "src/test/java/com/vncode/app/features/sync/ZnackCatalogSyncServiceTest.java",
+        "src/test/java/com/vncode/app/features/sync/RegistrationSourcesTest.java",
+        "src/test/java/com/vncode/app/features/sync/SyncCoordinatorTest.java"
+      ],
+      "id": "WB-101",
+      "assessment": "Phân trang nguồn, giữ trạng thái chưa hoàn tất, kiểm tra danh tính/tổng số và lỗi quota. Đã đọc lại Catalog thật trong lượt kiểm tra này; kết quả riêng nằm trong báo cáo API.",
+      "verification": "Native automated regression; not a live seller acceptance claim"
+    },
+    {
+      "release": "v1.3.4",
+      "line": 8,
+      "requirement": "In FBO: SKU có thẻ chưa ký công bố không còn chặn cả lô — các sản phẩm khác vẫn được in, Wbcode báo SKU còn chờ ký kèm nút mở «Đăng ký Znack», và tự kiểm tra lại với Честный знак trước khi báo.",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.3.4",
+      "status": "implementation-present",
+      "code": [
+        "src/main/java/com/vncode/app/ui/fbo/FboPackingController.java",
+        "src/main/java/com/vncode/app/features/fbo/FboProductImageService.java",
+        "src/main/java/com/vncode/app/ui/fbo/FboPreflightDialog.java"
+      ],
+      "tests": [
+        "src/test/java/com/vncode/app/features/fbo/FboKizPrintPlannerTest.java",
+        "src/test/java/com/vncode/app/features/fbo/FboKizPrintPlannerTest.java"
+      ],
+      "id": "WB-102",
+      "assessment": "Ảnh giữ tỉ lệ, FBO dùng GTIN đã xác minh, có kiểm tra thiếu mã và đối soát trước xuất nhãn.",
+      "verification": "Native automated regression; not a live seller acceptance claim"
+    },
+    {
+      "release": "v1.3.4",
+      "line": 9,
+      "requirement": "In: tiếp tục chờ khi Честный знак còn đang đưa mã vào lưu thông thay vì báo lỗi.",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.3.4",
+      "status": "implementation-present",
+      "code": [
+        "src/main/java/com/vncode/app/integration/znack/ZnackPurchaseCoordinator.java",
+        "src/main/java/com/vncode/app/integration/znack/ZnackPurchasePipelineState.java",
+        "src/main/java/com/vncode/app/integration/znack/ZnackKizOrderService.java"
+      ],
+      "tests": [
+        "src/test/java/com/vncode/app/integration/znack/ZnackModuleTest.java",
+        "src/test/java/com/vncode/app/integration/znack/ZnackPipelineQueueExecutorTest.java"
+      ],
+      "id": "WB-103",
+      "assessment": "Giữ checkpoint giao dịch, dữ liệu cấu hình của lô và đối soát yêu cầu chưa rõ kết quả; không tự mua lặp.",
+      "verification": "Native automated regression; not a live seller acceptance claim"
+    },
+    {
+      "release": "v1.3.4",
+      "line": 10,
+      "requirement": "Giấy phép: cửa sổ chỉ hiện thông tin, với hai nút riêng «Gia hạn thời gian sử dụng» và «Thêm cửa hàng» (500 ₽ mỗi cửa hàng một tháng cho thời gian còn lại), thanh toán ngay trong app; ô email bắt buộc được đánh dấu *.",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.3.4",
+      "status": "adapted-to-approved-vncode-requirement",
+      "code": [],
+      "tests": [],
+      "id": "WB-104",
+      "assessment": "Giữ thương hiệu/license do admin VNCode cấp, Liquid Glass và GS1 dùng API theo yêu cầu riêng của seller. Không nhập giao diện thương hiệu, giá bán/gói license hoặc luồng đăng nhập trình duyệt của Wbcode."
+    },
+    {
+      "release": "v1.3.4",
+      "line": 11,
+      "requirement": "Khi thêm cửa hàng vượt giới hạn, Wbcode báo giấy phép cho phép bao nhiêu cửa hàng và cách thêm (Cài đặt → Giấy phép → Thêm cửa hàng).",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.3.4",
+      "status": "implementation-present",
+      "code": [
+        "src/main/java/com/vncode/app/integration/license/WebLicenseApi.java",
+        "src/main/java/com/vncode/app/features/license/LicenseVerifier.java"
+      ],
+      "tests": [
+        "src/test/java/com/vncode/app/ui/license/LicensePaneTest.java",
+        "src/test/java/com/vncode/app/integration/license/LicenseNetworkDiagnosticsTest.java"
+      ],
+      "id": "WB-105",
+      "assessment": "Áp dụng cho API/license VNCode: cơ chế thời gian, kết nối và giới hạn shop; không chuyển seller sang license Wbcode.",
+      "verification": "Native automated regression; not a live seller acceptance claim"
+    },
+    {
+      "release": "v1.3.4",
+      "line": 12,
+      "requirement": "Ozon: thẻ đã được duyệt nhưng thiếu mã thẻ được tự tìm và ký; đơn đã giao hoặc huỷ không còn bị tính là «KIZ cần kiểm tra».",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.3.4",
+      "status": "implementation-present",
+      "code": [
+        "src/main/java/com/vncode/app/integration/znack/registration/ZnackCardRegistrationWorkflow.java",
+        "src/main/java/com/vncode/app/integration/znack/registration/OzonCardRegistrationWorkflow.java",
+        "src/main/java/com/vncode/app/integration/znack/registration/ZnackNationalCatalogService.java",
+        "src/main/java/com/vncode/app/integration/znack/registration/ZnackRegistrationMonitor.java"
+      ],
+      "tests": [
+        "src/test/java/com/vncode/app/integration/znack/registration/ZnackCardRegistrationWorkflowTest.java",
+        "src/test/java/com/vncode/app/integration/znack/registration/OzonCardRegistrationWorkflowTest.java",
+        "src/test/java/com/vncode/app/integration/znack/registration/ZnackNationalCatalogServiceTest.java"
+      ],
+      "id": "WB-106",
+      "assessment": "Đối soát thẻ thật sau ký, tiếp tục kiểm duyệt/404, lưu quyền ký từng thẻ; bảo toàn feed/GTIN và không lặp chữ ký chưa rõ kết quả.",
+      "verification": "Native automated regression; not a live seller acceptance claim"
+    },
+    {
+      "release": "v1.3.4",
+      "line": 13,
+      "requirement": "Supply WB: tự đồng bộ khi mở tab; khi WB lỗi tạm thời, đơn đã lưu vẫn hiện và Wbcode tự thử lại, không bật hộp thoại.",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.3.4",
+      "status": "implementation-present",
+      "code": [
+        "src/main/java/com/vncode/app/features/sync/FbsSyncService.java",
+        "src/main/java/com/vncode/app/features/sync/SyncCoordinator.java",
+        "src/main/java/com/vncode/app/integration/wb/WbSupplySyncService.java"
+      ],
+      "tests": [
+        "src/test/java/com/vncode/app/features/sync/FbsSyncServiceTest.java",
+        "src/test/java/com/vncode/app/integration/wb/WbSupplySyncServiceTest.java",
+        "src/test/java/com/vncode/app/features/sync/SyncCoordinatorTest.java"
+      ],
+      "id": "WB-107",
+      "assessment": "FBS có worker và phần ngân sách HTTP ưu tiên, giữ cache khi tải nguồn; nguồn Catalog/bulk không chiếm toàn bộ slot FBS.",
+      "verification": "Native automated regression; not a live seller acceptance claim"
+    },
+    {
+      "release": "v1.3.4",
+      "line": 14,
+      "requirement": "Lỗi tạm thời từ máy chủ (HTTP 5xx): thông báo nêu rõ máy chủ nào đang lỗi (Wildberries, Ozon hay Честный знак) và hướng dẫn bấm lại sau 1–2 phút, thay vì hứa «Wbcode sẽ tự thử lại».",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.3.4",
+      "status": "implementation-present",
+      "code": [
+        "src/main/java/com/vncode/app/shared/FriendlyErrorService.java",
+        "src/main/java/com/vncode/app/integration/znack/ZnackErrorMessages.java",
+        "src/main/java/com/vncode/app/features/sync/RegistrationAttemptReports.java",
+        "src/main/java/com/vncode/app/ui/znackregistration/RegistrationSyncReportDialog.java"
+      ],
+      "tests": [
+        "src/test/java/com/vncode/app/ui/znackregistration/RegistrationSyncReportDialogTest.java",
+        "src/test/java/com/vncode/app/integration/znack/ZnackErrorDetailsTest.java"
+      ],
+      "id": "WB-108",
+      "assessment": "Phân biệt đọc nguồn và đăng ký thật; thông báo lỗi theo giai đoạn, lý do từ chối, feed/card ID; lỗi ở cột trạng thái có thể mở chi tiết.",
+      "verification": "Native automated regression; not a live seller acceptance claim"
+    },
+    {
+      "release": "v1.3.4",
+      "line": 15,
+      "requirement": "Đồng bộ sản phẩm WB không còn hỏng cả lượt khi WB trả trùng một thẻ.",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.3.4",
+      "status": "implementation-present",
+      "code": [
+        "src/main/java/com/vncode/app/integration/wb/WbProductRepository.java"
+      ],
+      "tests": [
+        "src/test/java/com/vncode/app/integration/wb/WbSyncRepositoryTest.java"
+      ],
+      "id": "WB-109",
+      "assessment": "Giữ khóa sản phẩm/biến thể, loại trùng khi nhập dữ liệu WB, không làm nhân đôi danh sách.",
+      "verification": "Native automated regression; not a live seller acceptance claim"
+    },
+    {
+      "release": "v1.3.4",
+      "line": 16,
+      "requirement": "Giao diện: tải bằng khung xương (đơn hàng, supply, tin tức, hướng dẫn) không làm nhảy trang; hộp thoại không cao hơn cửa sổ app; ảnh sản phẩm không còn bị kéo méo; thẻ trang chủ không còn chồng nhau; chữ không còn bị cắt; font Inter đi kèm app; giao diện tối dịu mắt hơn.",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.3.4",
+      "status": "implementation-present",
+      "code": [
+        "src/main/java/com/vncode/app/shared/DialogLayout.java",
+        "src/main/java/com/vncode/app/shared/LoadingSkeleton.java",
+        "src/main/java/com/vncode/app/ui/znackregistration/RegistrationTextCells.java"
+      ],
+      "tests": [
+        "src/test/java/com/vncode/app/ui/FxmlSmokeTest.java",
+        "src/test/java/com/vncode/app/ui/workspace/WorkspaceJavaPagesLayoutTest.java"
+      ],
+      "id": "WB-110",
+      "assessment": "Hộp thoại theo cửa sổ/màn hình; nội dung xuống dòng; placeholder tĩnh cho màn sản phẩm, Znack và tin tức đang trống/tải, không thêm tải animation.",
+      "verification": "Native automated regression; not a live seller acceptance claim"
+    },
+    {
+      "release": "v1.3.4",
+      "line": 17,
+      "requirement": "GS1: không còn cảnh báo hết mã khi các prefix khác vẫn còn mã; nút gia hạn chỉ hiện khi đến hạn.",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.3.4",
+      "status": "implementation-present",
+      "code": [
+        "src/main/java/com/vncode/app/ui/gs1/Gs1Pane.java",
+        "src/main/java/com/vncode/app/features/gs1/Gs1ActionPolicy.java",
+        "src/main/java/com/vncode/app/features/gs1/Gs1ReadinessService.java",
+        "src/main/java/com/vncode/app/features/gs1/Gs1PrefixDocumentService.java",
+        "src/main/java/com/vncode/app/features/gs1/Gs1LettersService.java"
+      ],
+      "tests": [
+        "src/test/java/com/vncode/app/ui/gs1/Gs1PaneTest.java",
+        "src/test/java/com/vncode/app/features/gs1/Gs1ReadinessServiceTest.java",
+        "src/test/java/com/vncode/app/features/gs1/Gs1PrefixDocumentServiceTest.java",
+        "src/test/java/com/vncode/app/features/gs1/Gs1LettersServiceTest.java"
+      ],
+      "id": "WB-111",
+      "assessment": "Giữ GS1 dùng API từ cấu hình Znack; kiểm tra tư cách/số dư/quota, đơn/email/thư trả lời, nét ký tạm và ảnh PDF. Mẫu đơn doanh nghiệp phải nhập riêng; chưa ký/gửi đơn thật trong lượt này.",
+      "verification": "Native automated regression; not a live seller acceptance claim"
+    },
+    {
+      "release": "v1.3.5",
+      "line": 3,
+      "requirement": "Đăng ký Znack: khi thẻ cũ trên Национальный каталог thuộc nhóm TN VED khác (4 số đầu) với mã bạn vừa sửa, Wbcode tự đăng ký lại thẻ mới với GTIN mới thay vì dừng báo lỗi. Mỗi thẻ làm lại dùng một GTIN của GS1.",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.3.5",
+      "status": "implementation-present",
+      "code": [
+        "src/main/java/com/vncode/app/integration/znack/registration/ZnackCardRegistrationWorkflow.java",
+        "src/main/java/com/vncode/app/integration/znack/registration/ZnackCardRegistrationRepository.java",
+        "src/main/java/com/vncode/app/integration/znack/registration/TnvedGroupChange.java"
+      ],
+      "tests": [
+        "src/test/java/com/vncode/app/integration/znack/registration/ZnackCardRegistrationWorkflowTest.java",
+        "src/test/java/com/vncode/app/integration/znack/registration/ZnackCardRegistrationRepositoryTest.java"
+      ],
+      "id": "WB-112",
+      "assessment": "Đổi nhóm TN VED tạo ứng viên mới, giữ thẻ đang dùng và lịch sử; không ghi đè GTIN thẻ cũ.",
+      "verification": "Native automated regression; not a live seller acceptance claim"
+    },
+    {
+      "release": "v1.3.5",
+      "line": 4,
+      "requirement": "Đăng ký Znack: article có chữ mà Национальный каталог sẽ tự bỏ được chặn trước khi gửi; bạn sửa ngay trong app, Wbcode cập nhật lên WB rồi mới đăng ký.",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.3.5",
+      "status": "superseded",
+      "code": [],
+      "tests": [],
+      "id": "WB-113",
+      "assessment": "Hướng dẫn sửa article trước đăng ký được thay bằng quy tắc chuẩn hóa Catalog ở WB-125 và tự bỏ khoảng trắng hai đầu đã được người dùng duyệt."
+    },
+    {
+      "release": "v1.3.5",
+      "line": 5,
+      "requirement": "Ozon: GTIN bạn nhập tay trên Ozon được tự khớp với thẻ Znack ngay khi bấm «Mua KIZ & đóng đơn» hoặc in, không cần chờ đồng bộ toàn bộ. Sản phẩm chưa dùng được hiện kèm lý do và cách xử lý (chưa có GTIN, không thấy thẻ, thẻ của công ty khác, chưa công bố, thiếu giấy tờ).",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.3.5",
+      "status": "implementation-present",
+      "code": [
+        "src/main/java/com/vncode/app/features/sync/ZnackAutoSyncService.java",
+        "src/main/java/com/vncode/app/integration/znack/registration/RegistrationMarketplaceConsent.java",
+        "src/main/java/com/vncode/app/integration/wb/WbGtinAdapter.java",
+        "src/main/java/com/vncode/app/integration/ozon/OzonGtinAdapter.java"
+      ],
+      "tests": [
+        "src/test/java/com/vncode/app/features/sync/ZnackAutoSyncServiceTest.java",
+        "src/test/java/com/vncode/app/integration/wb/WbGtinAdapterTest.java",
+        "src/test/java/com/vncode/app/integration/ozon/OzonGtinAdapterTest.java"
+      ],
+      "id": "WB-114",
+      "assessment": "GTIN đã xuất bản được ghép đúng biến thể; đăng ký mới có consent cho đúng thẻ. Lưu/khóa child job trước ghi, đọc lại rồi mới đổi con trỏ; Ozon kiểm tra SKU/màu/size.",
+      "verification": "Native automated regression; not a live seller acceptance claim"
+    },
+    {
+      "release": "v1.3.5",
+      "line": 6,
+      "requirement": "Ozon: danh sách đơn hiện GTIN của sản phẩm đã map theo barcode; không còn lỗi chung APP-UNEXPECTED khi thiếu mapping.",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.3.5",
+      "status": "implementation-present",
+      "code": [
+        "src/main/java/com/vncode/app/features/sync/ZnackAutoSyncService.java",
+        "src/main/java/com/vncode/app/integration/znack/registration/RegistrationMarketplaceConsent.java",
+        "src/main/java/com/vncode/app/integration/wb/WbGtinAdapter.java",
+        "src/main/java/com/vncode/app/integration/ozon/OzonGtinAdapter.java"
+      ],
+      "tests": [
+        "src/test/java/com/vncode/app/features/sync/ZnackAutoSyncServiceTest.java",
+        "src/test/java/com/vncode/app/integration/wb/WbGtinAdapterTest.java",
+        "src/test/java/com/vncode/app/integration/ozon/OzonGtinAdapterTest.java"
+      ],
+      "id": "WB-115",
+      "assessment": "GTIN đã xuất bản được ghép đúng biến thể; đăng ký mới có consent cho đúng thẻ. Lưu/khóa child job trước ghi, đọc lại rồi mới đổi con trỏ; Ozon kiểm tra SKU/màu/size.",
+      "verification": "Native automated regression; not a live seller acceptance claim"
+    },
+    {
+      "release": "v1.3.5",
+      "line": 7,
+      "requirement": "WB: GTIN nhập tay trên WB được nhận nhanh hơn nhiều ở shop có nhiều size dùng barcode thường.",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.3.5",
+      "status": "implementation-present",
+      "code": [
+        "src/main/java/com/vncode/app/features/sync/ZnackAutoSyncService.java",
+        "src/main/java/com/vncode/app/integration/znack/registration/RegistrationMarketplaceConsent.java",
+        "src/main/java/com/vncode/app/integration/wb/WbGtinAdapter.java",
+        "src/main/java/com/vncode/app/integration/ozon/OzonGtinAdapter.java"
+      ],
+      "tests": [
+        "src/test/java/com/vncode/app/features/sync/ZnackAutoSyncServiceTest.java",
+        "src/test/java/com/vncode/app/integration/wb/WbGtinAdapterTest.java",
+        "src/test/java/com/vncode/app/integration/ozon/OzonGtinAdapterTest.java"
+      ],
+      "id": "WB-116",
+      "assessment": "GTIN đã xuất bản được ghép đúng biến thể; đăng ký mới có consent cho đúng thẻ. Lưu/khóa child job trước ghi, đọc lại rồi mới đổi con trỏ; Ozon kiểm tra SKU/màu/size.",
+      "verification": "Native automated regression; not a live seller acceptance claim"
+    },
+    {
+      "release": "v1.3.5",
+      "line": 8,
+      "requirement": "WB: bấm «Cập nhật GTIN lên WB» không còn kẹt khi giấy tờ của thẻ chỉ nằm trong sổ đăng ký giấy phép của Честный знак.",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.3.5",
+      "status": "implementation-present",
+      "code": [
+        "src/main/java/com/vncode/app/features/sync/ZnackAutoSyncService.java",
+        "src/main/java/com/vncode/app/integration/znack/registration/RegistrationMarketplaceConsent.java",
+        "src/main/java/com/vncode/app/integration/wb/WbGtinAdapter.java",
+        "src/main/java/com/vncode/app/integration/ozon/OzonGtinAdapter.java"
+      ],
+      "tests": [
+        "src/test/java/com/vncode/app/features/sync/ZnackAutoSyncServiceTest.java",
+        "src/test/java/com/vncode/app/integration/wb/WbGtinAdapterTest.java",
+        "src/test/java/com/vncode/app/integration/ozon/OzonGtinAdapterTest.java"
+      ],
+      "id": "WB-117",
+      "assessment": "GTIN đã xuất bản được ghép đúng biến thể; đăng ký mới có consent cho đúng thẻ. Lưu/khóa child job trước ghi, đọc lại rồi mới đổi con trỏ; Ozon kiểm tra SKU/màu/size.",
+      "verification": "Native automated regression; not a live seller acceptance claim"
+    },
+    {
+      "release": "v1.3.5",
+      "line": 9,
+      "requirement": "Trang Đăng ký Znack (WB và Ozon): khi đang đồng bộ có ghi chú nổi trên bảng, kèm bước đang chạy.",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.3.5",
+      "status": "implementation-present",
+      "code": [
+        "src/main/java/com/vncode/app/ui/znackregistration/GtinBackgroundStatus.java",
+        "src/main/java/com/vncode/app/ui/znackregistration/ZnackCardRegistrationController.java"
+      ],
+      "tests": [
+        "src/test/java/com/vncode/app/ui/znackregistration/ZnackCardRegistrationControllerTest.java",
+        "src/test/java/com/vncode/app/features/sync/ZnackGtinBackgroundServiceTest.java"
+      ],
+      "id": "WB-118",
+      "assessment": "Cập nhật GTIN chạy nền, viên thuốc giữa phía dưới bảng; bốn nút đầu theo ảnh người dùng.",
+      "verification": "Native automated regression; not a live seller acceptance claim"
+    },
+    {
+      "release": "v1.3.5",
+      "line": 10,
+      "requirement": "Chữ ký số: tên chủ tài khoản và ИНН được đọc từ chính chứng thư trong chữ ký khi đăng nhập Честный знак, nên chứng thư mà CryptoPro liệt kê thiếu thông tin vẫn hiện đúng tên và kiểm tra được GS1. Chứng thư công ty dùng ИНН của công ty.",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.3.5",
+      "status": "implementation-present",
+      "code": [
+        "src/main/java/com/vncode/app/integration/znack/registration/ZnackCardRegistrationWorkflow.java",
+        "src/main/java/com/vncode/app/integration/znack/registration/OzonCardRegistrationWorkflow.java",
+        "src/main/java/com/vncode/app/integration/znack/registration/ZnackNationalCatalogService.java",
+        "src/main/java/com/vncode/app/integration/znack/registration/ZnackRegistrationMonitor.java"
+      ],
+      "tests": [
+        "src/test/java/com/vncode/app/integration/znack/registration/ZnackCardRegistrationWorkflowTest.java",
+        "src/test/java/com/vncode/app/integration/znack/registration/OzonCardRegistrationWorkflowTest.java",
+        "src/test/java/com/vncode/app/integration/znack/registration/ZnackNationalCatalogServiceTest.java"
+      ],
+      "id": "WB-119",
+      "assessment": "Đối soát thẻ thật sau ký, tiếp tục kiểm duyệt/404, lưu quyền ký từng thẻ; bảo toàn feed/GTIN và không lặp chữ ký chưa rõ kết quả.",
+      "verification": "Native automated regression; not a live seller acceptance claim"
+    },
+    {
+      "release": "v1.3.5",
+      "line": 11,
+      "requirement": "TN VED: gợi ý trong hộp chọn mã nằm trên một hàng trượt ngang; đồ bơi được gợi ý đúng mã đồ bơi; mã unisex khớp cả nữ và nam.",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.3.5",
+      "status": "implementation-present",
+      "code": [
+        "src/main/java/com/vncode/app/features/tnved/FashionTnvedCatalog.java",
+        "src/main/java/com/vncode/app/ui/tnved/FashionTnvedBrowser.java",
+        "src/main/java/com/vncode/app/ui/tnved/ProductTnvedPicker.java"
+      ],
+      "tests": [
+        "src/test/java/com/vncode/app/features/tnved/FashionTnvedTest.java",
+        "src/test/java/com/vncode/app/ui/tnved/FashionTnvedBrowserTest.java"
+      ],
+      "id": "WB-120",
+      "assessment": "526 mã tham chiếu, lọc chất liệu/giới tính, sao chép clipboard có xác minh; chip cuộn ngang, đề xuất từng sản phẩm nằm bên trái Áp dụng.",
+      "verification": "Native automated regression; not a live seller acceptance claim"
+    },
+    {
+      "release": "v1.3.5",
+      "line": 12,
+      "requirement": "Tab Sản phẩm: bộ lọc chỉ giữ các dấu tích của sản phẩm đang hiện, số đã chọn khớp số lỗi.",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.3.5",
+      "status": "implementation-present",
+      "code": [
+        "src/main/java/com/vncode/app/ui/products/ProductsPane.java",
+        "src/main/java/com/vncode/app/ui/products/ProductSelection.java",
+        "src/main/java/com/vncode/app/features/tnved/ProductTnvedAdvisor.java",
+        "src/main/java/com/vncode/app/ui/tnved/ProductTnvedPicker.java"
+      ],
+      "tests": [
+        "src/test/java/com/vncode/app/ui/products/ProductRefreshUiTest.java",
+        "src/test/java/com/vncode/app/ui/products/ProductSelectionTest.java",
+        "src/test/java/com/vncode/app/features/tnved/ProductTnvedReviewServiceTest.java"
+      ],
+      "id": "WB-121",
+      "assessment": "Bộ lọc/đếm chọn cùng phạm vi; đề xuất TN VED theo từng sản phẩm; kết quả nền không áp dụng cho shop/đợt tải khác.",
+      "verification": "Native automated regression; not a live seller acceptance claim"
+    },
+    {
+      "release": "v1.3.5",
+      "line": 13,
+      "requirement": "Hỗ trợ: app hỏi tin nhắn mới thưa hơn nhiều khi cửa sổ hỗ trợ đang đóng.",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.3.5",
+      "status": "implementation-present",
+      "code": [
+        "src/main/java/com/vncode/app/ui/workspace/HomeController.java",
+        "src/main/java/com/vncode/app/features/gs1/Gs1LettersService.java"
+      ],
+      "tests": [
+        "src/test/java/com/vncode/app/integration/license/PortalClientContractTest.java",
+        "src/test/java/com/vncode/app/features/gs1/Gs1LettersServiceTest.java"
+      ],
+      "id": "WB-122",
+      "assessment": "GS1 có thư riêng; VNCode không tự gửi báo cáo lỗi. Hộp hội thoại hỗ trợ trực tuyến của Wbcode chưa có backend tương đương trong VNCode.",
+      "verification": "Native automated regression; not a live seller acceptance claim"
+    },
+    {
+      "release": "v1.3.5",
+      "line": 14,
+      "requirement": "Giao diện: thanh chọn nổi không còn cắt chữ; hộp thoại mua KIZ, cấu hình giấy tờ và GS1 gọn hơn; lịch sử in hiện trạng thái bằng chữ.",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.3.5",
+      "status": "implementation-present",
+      "code": [
+        "src/main/java/com/vncode/app/shared/DialogLayout.java",
+        "src/main/java/com/vncode/app/shared/LoadingSkeleton.java",
+        "src/main/java/com/vncode/app/ui/znackregistration/RegistrationTextCells.java"
+      ],
+      "tests": [
+        "src/test/java/com/vncode/app/ui/FxmlSmokeTest.java",
+        "src/test/java/com/vncode/app/ui/workspace/WorkspaceJavaPagesLayoutTest.java"
+      ],
+      "id": "WB-123",
+      "assessment": "Hộp thoại theo cửa sổ/màn hình; nội dung xuống dòng; placeholder tĩnh cho màn sản phẩm, Znack và tin tức đang trống/tải, không thêm tải animation.",
+      "verification": "Native automated regression; not a live seller acceptance claim"
+    },
+    {
+      "release": "v1.3.6",
+      "line": 3,
+      "requirement": "Đăng ký Znack: sau khi bạn sửa TN VED sang nhóm khác (4 số đầu), bấm «Đăng ký» không còn dừng ở lỗi ZNACK-GTIN-OTHER-PRODUCT. Wbcode để nguyên thẻ cũ và đăng ký sản phẩm thành thẻ mới với GTIN mới, cả khi bấm tay lẫn khi chạy nền. Mỗi thẻ làm lại dùng một GTIN của GS1.",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.3.6",
+      "status": "implementation-present",
+      "code": [
+        "src/main/java/com/vncode/app/integration/znack/registration/ZnackCardRegistrationWorkflow.java",
+        "src/main/java/com/vncode/app/integration/znack/registration/ZnackCardRegistrationRepository.java",
+        "src/main/java/com/vncode/app/integration/znack/registration/TnvedGroupChange.java"
+      ],
+      "tests": [
+        "src/test/java/com/vncode/app/integration/znack/registration/ZnackCardRegistrationWorkflowTest.java",
+        "src/test/java/com/vncode/app/integration/znack/registration/ZnackCardRegistrationRepositoryTest.java"
+      ],
+      "id": "WB-124",
+      "assessment": "Đổi nhóm TN VED tạo ứng viên mới, giữ thẻ đang dùng và lịch sử; không ghi đè GTIN thẻ cũ.",
+      "verification": "Native automated regression; not a live seller acceptance claim"
+    },
+    {
+      "release": "v1.3.6",
+      "line": 4,
+      "requirement": "Đăng ký Znack: article chỉ khác ở những chữ mà Национальный каталог tự bỏ không còn bị coi là sản phẩm khác.",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.3.6",
+      "status": "implementation-present",
+      "code": [
+        "src/main/java/com/vncode/app/integration/znack/registration/CatalogArticleValue.java"
+      ],
+      "tests": [
+        "src/test/java/com/vncode/app/integration/znack/registration/CatalogArticleValueTest.java"
+      ],
+      "id": "WB-125",
+      "assessment": "Chuẩn hóa article theo quy tắc Catalog, giữ dấu phân cách quan trọng; không nhầm hai model khác nhau.",
+      "verification": "Native automated regression; not a live seller acceptance claim"
+    },
+    {
+      "release": "v1.3.6",
+      "line": 5,
+      "requirement": "Đăng ký Znack (WB và Ozon): danh sách không còn phân trang; cuộn xuống tới đâu, các dòng tiếp theo hiện thêm tới đó.",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.3.6",
+      "status": "implementation-present",
+      "code": [
+        "src/main/java/com/vncode/app/shared/TableScrollLoader.java",
+        "src/main/java/com/vncode/app/ui/znackregistration/ZnackRegistrationQueryRepository.java",
+        "src/main/java/com/vncode/app/ui/znackregistration/OzonRegistrationPane.java"
+      ],
+      "tests": [
+        "src/test/java/com/vncode/app/ui/znackregistration/ZnackCardRegistrationControllerTest.java",
+        "src/test/java/com/vncode/app/ui/znackregistration/OzonRegistrationPaneTest.java"
+      ],
+      "id": "WB-126",
+      "assessment": "Danh sách tải dần khi cuộn; chọn mọi kết quả lọc không tạo toàn bộ hàng JavaFX một lúc.",
+      "verification": "Native automated regression; not a live seller acceptance claim"
+    },
+    {
+      "release": "v1.3.6",
+      "line": 6,
+      "requirement": "GS1 RUS: ký đơn xin tiền tố ngay trong app. Bấm «Ký đơn», ký bằng chuột, bàn di hoặc bút; Wbcode tự điền đơn 01.04.01 (tên doanh nghiệp, ИНН, mã GS1, ngày, họ tên người ký), đặt chữ ký vào đơn và tạo PDF để gửi. Chữ ký không được lưu lại.",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.3.6",
+      "status": "partial-explicit-difference",
+      "code": [
+        "src/main/java/com/vncode/app/ui/gs1/Gs1Pane.java",
+        "src/main/java/com/vncode/app/features/gs1/Gs1ActionPolicy.java",
+        "src/main/java/com/vncode/app/features/gs1/Gs1ReadinessService.java",
+        "src/main/java/com/vncode/app/features/gs1/Gs1PrefixDocumentService.java",
+        "src/main/java/com/vncode/app/features/gs1/Gs1LettersService.java"
+      ],
+      "tests": [
+        "src/test/java/com/vncode/app/ui/gs1/Gs1PaneTest.java",
+        "src/test/java/com/vncode/app/features/gs1/Gs1ReadinessServiceTest.java",
+        "src/test/java/com/vncode/app/features/gs1/Gs1PrefixDocumentServiceTest.java",
+        "src/test/java/com/vncode/app/features/gs1/Gs1LettersServiceTest.java"
+      ],
+      "id": "WB-127",
+      "assessment": "Giữ GS1 dùng API từ cấu hình Znack; kiểm tra tư cách/số dư/quota, đơn/email/thư trả lời, nét ký tạm và ảnh PDF. Mẫu đơn doanh nghiệp phải nhập riêng; chưa ký/gửi đơn thật trong lượt này.",
+      "verification": "Native automated regression; not a live seller acceptance claim",
+      "remaining": "Có ký bằng nét vẽ, điền mẫu riêng theo INN và tạo PDF. Không đóng gói mẫu Word GS1 chưa được xác minh; seller phải nhập mẫu đúng doanh nghiệp một lần."
+    },
+    {
+      "release": "v1.3.6",
+      "line": 7,
+      "requirement": "GS1 RUS: nếu vẫn ký trên giấy, có thể đính kèm ảnh chụp tờ đơn (JPG/PNG); Wbcode tự xoay cho đúng chiều và chuyển thành PDF.",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.3.6",
+      "status": "implementation-present",
+      "code": [
+        "src/main/java/com/vncode/app/ui/gs1/Gs1Pane.java",
+        "src/main/java/com/vncode/app/features/gs1/Gs1ActionPolicy.java",
+        "src/main/java/com/vncode/app/features/gs1/Gs1ReadinessService.java",
+        "src/main/java/com/vncode/app/features/gs1/Gs1PrefixDocumentService.java",
+        "src/main/java/com/vncode/app/features/gs1/Gs1LettersService.java"
+      ],
+      "tests": [
+        "src/test/java/com/vncode/app/ui/gs1/Gs1PaneTest.java",
+        "src/test/java/com/vncode/app/features/gs1/Gs1ReadinessServiceTest.java",
+        "src/test/java/com/vncode/app/features/gs1/Gs1PrefixDocumentServiceTest.java",
+        "src/test/java/com/vncode/app/features/gs1/Gs1LettersServiceTest.java"
+      ],
+      "id": "WB-128",
+      "assessment": "Giữ GS1 dùng API từ cấu hình Znack; kiểm tra tư cách/số dư/quota, đơn/email/thư trả lời, nét ký tạm và ảnh PDF. Mẫu đơn doanh nghiệp phải nhập riêng; chưa ký/gửi đơn thật trong lượt này.",
+      "verification": "Native automated regression; not a live seller acceptance claim"
+    },
+    {
+      "release": "v1.3.6",
+      "line": 8,
+      "requirement": "Sửa thương hiệu hàng loạt (WB): hộp chọn mở ra là thấy ngay thương hiệu của shop; danh sách của WB tải dần ở nền, không còn quay mãi, và cuộn được qua toàn bộ kết quả.",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.3.6",
+      "status": "implementation-present",
+      "code": [
+        "src/main/java/com/vncode/app/ui/products/ProductBulkEditPane.java",
+        "src/main/java/com/vncode/app/features/products/ProductSuggestionService.java",
+        "src/main/java/com/vncode/app/ui/products/ProductBulkEditPane.java"
+      ],
+      "tests": [
+        "src/test/java/com/vncode/app/features/products/ProductSuggestionsTest.java",
+        "src/test/java/com/vncode/app/ui/products/ProductBulkDialogTest.java"
+      ],
+      "id": "WB-129",
+      "assessment": "Thương hiệu của shop hiện trước, tải gợi ý sàn dần; giữ nguyên giá trị và không khóa giao diện khi đang đọc.",
+      "verification": "Native automated regression; not a live seller acceptance claim"
+    },
+    {
+      "release": "v1.3.6",
+      "line": 9,
+      "requirement": "TN VED: nút «Dùng mã gợi ý cho từng sản phẩm» nằm ngay bên trái nút «Áp dụng».",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.3.6",
+      "status": "implementation-present",
+      "code": [
+        "src/main/java/com/vncode/app/features/tnved/FashionTnvedCatalog.java",
+        "src/main/java/com/vncode/app/ui/tnved/FashionTnvedBrowser.java",
+        "src/main/java/com/vncode/app/ui/tnved/ProductTnvedPicker.java"
+      ],
+      "tests": [
+        "src/test/java/com/vncode/app/features/tnved/FashionTnvedTest.java",
+        "src/test/java/com/vncode/app/ui/tnved/FashionTnvedBrowserTest.java"
+      ],
+      "id": "WB-130",
+      "assessment": "526 mã tham chiếu, lọc chất liệu/giới tính, sao chép clipboard có xác minh; chip cuộn ngang, đề xuất từng sản phẩm nằm bên trái Áp dụng.",
+      "verification": "Native automated regression; not a live seller acceptance claim"
+    },
+    {
+      "release": "v1.3.6",
+      "line": 10,
+      "requirement": "Ozon: hộp «Cấu hình thương hiệu» gọn lại, lời giải thích xuống dòng.",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.3.6",
+      "status": "implementation-present",
+      "code": [
+        "src/main/java/com/vncode/app/ui/products/ProductBulkEditPane.java",
+        "src/main/java/com/vncode/app/features/products/ProductSuggestionService.java",
+        "src/main/java/com/vncode/app/ui/products/ProductBulkEditPane.java"
+      ],
+      "tests": [
+        "src/test/java/com/vncode/app/features/products/ProductSuggestionsTest.java",
+        "src/test/java/com/vncode/app/ui/products/ProductBulkDialogTest.java"
+      ],
+      "id": "WB-131",
+      "assessment": "Thương hiệu của shop hiện trước, tải gợi ý sàn dần; giữ nguyên giá trị và không khóa giao diện khi đang đọc.",
+      "verification": "Native automated regression; not a live seller acceptance claim"
+    },
+    {
+      "release": "v1.3.7",
+      "line": 3,
+      "requirement": "Hướng dẫn: video phát ngay trong bài viết, có thanh tua, âm thanh và nút mở bài trên trang web. Video dừng khi bạn rời bài; ảnh và video có cùng khổ, bài không còn nhảy khi tải. Mục «Hướng dẫn» nằm ngay dưới «Thiết kế mẫu».",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.3.7",
+      "status": "implementation-present",
+      "code": [
+        "src/main/java/com/vncode/app/ui/guides/GuidesPane.java",
+        "src/main/java/com/vncode/app/features/guides/GuideArticle.java",
+        "src/main/java/com/vncode/app/features/guides/GuideMediaRepository.java"
+      ],
+      "tests": [
+        "src/test/java/com/vncode/app/features/guides/GuideArticleTest.java",
+        "src/test/java/com/vncode/app/ui/FxmlSmokeTest.java"
+      ],
+      "id": "WB-132",
+      "assessment": "Giữ hướng dẫn VNCode, tìm không dấu; video có tua, âm lượng, thử lại/tiếp tục; ảnh/video khung 16:9. Bài hướng dẫn của VNCode mở được trong trình duyệt dưới dạng bản cục bộ.",
+      "verification": "Native automated regression; not a live seller acceptance claim"
+    },
+    {
+      "release": "v1.3.7",
+      "line": 4,
+      "requirement": "Sản phẩm (WB và Ozon): sửa giới tính cho nhiều sản phẩm cùng lúc; thêm cột «Giới tính», mã TN VED hiện ngay bên dưới.",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.3.7",
+      "status": "implementation-present",
+      "code": [
+        "src/main/java/com/vncode/app/features/products/ProductBulkEditService.java",
+        "src/main/java/com/vncode/app/ui/products/ProductBulkEditPane.java",
+        "src/main/java/com/vncode/app/ui/products/ProductsPane.java"
+      ],
+      "tests": [
+        "src/test/java/com/vncode/app/features/products/ProductBulkEditServiceTest.java",
+        "src/test/java/com/vncode/app/ui/products/ProductBulkDialogTest.java"
+      ],
+      "id": "WB-133",
+      "assessment": "Sửa hàng loạt đọc mới/kiểm tra trước khi ghi và đọc lại sau ghi; Áp dụng đóng hộp chọn, tiến độ viên thuốc ở giữa dưới bảng; kiểm thử lô 120 sản phẩm.",
+      "verification": "Native automated regression; not a live seller acceptance claim"
+    },
+    {
+      "release": "v1.3.7",
+      "line": 5,
+      "requirement": "Sản phẩm: giao diện tiếng Nga không còn tràn chữ; danh sách không còn thanh cuộn ngang.",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.3.7",
+      "status": "implementation-present",
+      "code": [
+        "src/main/java/com/vncode/app/features/products/ProductBulkEditService.java",
+        "src/main/java/com/vncode/app/ui/products/ProductBulkEditPane.java",
+        "src/main/java/com/vncode/app/ui/products/ProductsPane.java"
+      ],
+      "tests": [
+        "src/test/java/com/vncode/app/features/products/ProductBulkEditServiceTest.java",
+        "src/test/java/com/vncode/app/ui/products/ProductBulkDialogTest.java"
+      ],
+      "id": "WB-134",
+      "assessment": "Sửa hàng loạt đọc mới/kiểm tra trước khi ghi và đọc lại sau ghi; Áp dụng đóng hộp chọn, tiến độ viên thuốc ở giữa dưới bảng; kiểm thử lô 120 sản phẩm.",
+      "verification": "Native automated regression; not a live seller acceptance claim"
+    },
+    {
+      "release": "v1.3.7",
+      "line": 6,
+      "requirement": "Ozon: bấm đồng bộ khi đang ở trang Sản phẩm hoặc Đăng ký Znack thì vẫn ở lại trang đó và danh sách tự làm mới, không còn nhảy sang trang đơn hàng.",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.3.7",
+      "status": "implementation-present",
+      "code": [
+        "src/main/java/com/vncode/app/features/products/ProductBulkEditService.java",
+        "src/main/java/com/vncode/app/ui/products/ProductBulkEditPane.java",
+        "src/main/java/com/vncode/app/ui/products/ProductsPane.java"
+      ],
+      "tests": [
+        "src/test/java/com/vncode/app/features/products/ProductBulkEditServiceTest.java",
+        "src/test/java/com/vncode/app/ui/products/ProductBulkDialogTest.java"
+      ],
+      "id": "WB-135",
+      "assessment": "Sửa hàng loạt đọc mới/kiểm tra trước khi ghi và đọc lại sau ghi; Áp dụng đóng hộp chọn, tiến độ viên thuốc ở giữa dưới bảng; kiểm thử lô 120 sản phẩm.",
+      "verification": "Native automated regression; not a live seller acceptance claim"
+    },
+    {
+      "release": "v1.3.7",
+      "line": 7,
+      "requirement": "Đăng ký Znack cho giày dép: Wbcode tự chọn đúng nhóm giày dép theo mã TN VED, không còn hỏi bạn chọn tay cho từng loại.",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.3.7",
+      "status": "implementation-present",
+      "code": [
+        "src/main/java/com/vncode/app/integration/znack/registration/ZnackCategoryResolver.java",
+        "src/main/java/com/vncode/app/integration/znack/registration/ZnackWbAttributeMapper.java",
+        "src/main/java/com/vncode/app/integration/znack/registration/ZnackRegistrationDocuments.java"
+      ],
+      "tests": [
+        "src/test/java/com/vncode/app/integration/znack/registration/ZnackCategoryResolverTest.java",
+        "src/test/java/com/vncode/app/integration/znack/registration/ZnackWbAttributeMapperTest.java",
+        "src/test/java/com/vncode/app/integration/znack/registration/ZnackRegistrationDocumentsTest.java"
+      ],
+      "id": "WB-136",
+      "assessment": "Danh mục trang phục/giày và giấy tờ theo từng sản phẩm; không thay giấy tờ của mặt hàng khác, không đoán hệ size số.",
+      "verification": "Native automated regression; not a live seller acceptance claim"
+    },
+    {
+      "release": "v1.3.7",
+      "line": 8,
+      "requirement": "Đăng ký Znack: mỗi thẻ dùng tờ khai hoặc chứng nhận ghi trên chính thẻ đó ở Wildberries khi giấy tờ còn hạn; giấy tờ mặc định của shop chỉ dùng cho thẻ chưa có. Shop bán giày theo một tờ khai và quần áo theo tờ khai khác không còn bị chặn.",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.3.7",
+      "status": "implementation-present",
+      "code": [
+        "src/main/java/com/vncode/app/integration/znack/registration/ZnackCategoryResolver.java",
+        "src/main/java/com/vncode/app/integration/znack/registration/ZnackWbAttributeMapper.java",
+        "src/main/java/com/vncode/app/integration/znack/registration/ZnackRegistrationDocuments.java"
+      ],
+      "tests": [
+        "src/test/java/com/vncode/app/integration/znack/registration/ZnackCategoryResolverTest.java",
+        "src/test/java/com/vncode/app/integration/znack/registration/ZnackWbAttributeMapperTest.java",
+        "src/test/java/com/vncode/app/integration/znack/registration/ZnackRegistrationDocumentsTest.java"
+      ],
+      "id": "WB-137",
+      "assessment": "Danh mục trang phục/giày và giấy tờ theo từng sản phẩm; không thay giấy tờ của mặt hàng khác, không đoán hệ size số.",
+      "verification": "Native automated regression; not a live seller acceptance claim"
+    },
+    {
+      "release": "v1.3.7",
+      "line": 9,
+      "requirement": "Đăng ký Znack: dép lê được nhận ở dòng «loại khác» đúng với chất liệu; cỡ giày không phải là số sẽ được hỏi lại thay vì gửi đi.",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.3.7",
+      "status": "implementation-present",
+      "code": [
+        "src/main/java/com/vncode/app/integration/znack/registration/ZnackCategoryResolver.java",
+        "src/main/java/com/vncode/app/integration/znack/registration/ZnackWbAttributeMapper.java",
+        "src/main/java/com/vncode/app/integration/znack/registration/ZnackRegistrationDocuments.java"
+      ],
+      "tests": [
+        "src/test/java/com/vncode/app/integration/znack/registration/ZnackCategoryResolverTest.java",
+        "src/test/java/com/vncode/app/integration/znack/registration/ZnackWbAttributeMapperTest.java",
+        "src/test/java/com/vncode/app/integration/znack/registration/ZnackRegistrationDocumentsTest.java"
+      ],
+      "id": "WB-138",
+      "assessment": "Danh mục trang phục/giày và giấy tờ theo từng sản phẩm; không thay giấy tờ của mặt hàng khác, không đoán hệ size số.",
+      "verification": "Native automated regression; not a live seller acceptance claim"
+    },
+    {
+      "release": "v1.3.7",
+      "line": 10,
+      "requirement": "Đăng ký Znack: lỗi «thương hiệu không có trong giấy phép» nêu rõ thương hiệu, tờ khai và việc cần làm.",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.3.7",
+      "status": "implementation-present",
+      "code": [
+        "src/main/java/com/vncode/app/integration/znack/registration/ZnackCategoryResolver.java",
+        "src/main/java/com/vncode/app/integration/znack/registration/ZnackWbAttributeMapper.java",
+        "src/main/java/com/vncode/app/integration/znack/registration/ZnackRegistrationDocuments.java"
+      ],
+      "tests": [
+        "src/test/java/com/vncode/app/integration/znack/registration/ZnackCategoryResolverTest.java",
+        "src/test/java/com/vncode/app/integration/znack/registration/ZnackWbAttributeMapperTest.java",
+        "src/test/java/com/vncode/app/integration/znack/registration/ZnackRegistrationDocumentsTest.java"
+      ],
+      "id": "WB-139",
+      "assessment": "Danh mục trang phục/giày và giấy tờ theo từng sản phẩm; không thay giấy tờ của mặt hàng khác, không đoán hệ size số.",
+      "verification": "Native automated regression; not a live seller acceptance claim"
+    },
+    {
+      "release": "v1.3.7",
+      "line": 11,
+      "requirement": "GS1 RUS: doanh nghiệp đã đăng ký nhưng chưa đóng phí gia nhập có nút «Xin hoá đơn phí gia nhập» thay cho xin thêm tiền tố.",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.3.7",
+      "status": "implementation-present",
+      "code": [
+        "src/main/java/com/vncode/app/ui/gs1/Gs1Pane.java",
+        "src/main/java/com/vncode/app/features/gs1/Gs1ActionPolicy.java",
+        "src/main/java/com/vncode/app/features/gs1/Gs1ReadinessService.java",
+        "src/main/java/com/vncode/app/features/gs1/Gs1PrefixDocumentService.java",
+        "src/main/java/com/vncode/app/features/gs1/Gs1LettersService.java"
+      ],
+      "tests": [
+        "src/test/java/com/vncode/app/ui/gs1/Gs1PaneTest.java",
+        "src/test/java/com/vncode/app/features/gs1/Gs1ReadinessServiceTest.java",
+        "src/test/java/com/vncode/app/features/gs1/Gs1PrefixDocumentServiceTest.java",
+        "src/test/java/com/vncode/app/features/gs1/Gs1LettersServiceTest.java"
+      ],
+      "id": "WB-140",
+      "assessment": "Giữ GS1 dùng API từ cấu hình Znack; kiểm tra tư cách/số dư/quota, đơn/email/thư trả lời, nét ký tạm và ảnh PDF. Mẫu đơn doanh nghiệp phải nhập riêng; chưa ký/gửi đơn thật trong lượt này.",
+      "verification": "Native automated regression; not a live seller acceptance claim"
+    },
+    {
+      "release": "v1.3.7",
+      "line": 12,
+      "requirement": "GS1 RUS: đơn đăng ký thành viên không còn báo lỗi «Некорректно сформирован запрос к сервису» khi bấm «Tiếp tục» với doanh nghiệp chưa từng mở đơn.",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.3.7",
+      "status": "implementation-present",
+      "code": [
+        "src/main/java/com/vncode/app/ui/gs1/Gs1Pane.java",
+        "src/main/java/com/vncode/app/features/gs1/Gs1ActionPolicy.java",
+        "src/main/java/com/vncode/app/features/gs1/Gs1ReadinessService.java",
+        "src/main/java/com/vncode/app/features/gs1/Gs1PrefixDocumentService.java",
+        "src/main/java/com/vncode/app/features/gs1/Gs1LettersService.java"
+      ],
+      "tests": [
+        "src/test/java/com/vncode/app/ui/gs1/Gs1PaneTest.java",
+        "src/test/java/com/vncode/app/features/gs1/Gs1ReadinessServiceTest.java",
+        "src/test/java/com/vncode/app/features/gs1/Gs1PrefixDocumentServiceTest.java",
+        "src/test/java/com/vncode/app/features/gs1/Gs1LettersServiceTest.java"
+      ],
+      "id": "WB-141",
+      "assessment": "Giữ GS1 dùng API từ cấu hình Znack; kiểm tra tư cách/số dư/quota, đơn/email/thư trả lời, nét ký tạm và ảnh PDF. Mẫu đơn doanh nghiệp phải nhập riêng; chưa ký/gửi đơn thật trong lượt này.",
+      "verification": "Native automated regression; not a live seller acceptance claim"
+    },
+    {
+      "release": "v1.3.7",
+      "line": 13,
+      "requirement": "GS1 RUS: sau khi đơn đã gửi, nút đăng ký đổi thành «Đã gửi đơn đăng ký» và không bấm lại được. Doanh nghiệp bị loại mà đơn cũ còn tính là đã gửi được dẫn thẳng tới thư xin khôi phục tư cách thành viên.",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.3.7",
+      "status": "implementation-present",
+      "code": [
+        "src/main/java/com/vncode/app/ui/gs1/Gs1Pane.java",
+        "src/main/java/com/vncode/app/features/gs1/Gs1ActionPolicy.java",
+        "src/main/java/com/vncode/app/features/gs1/Gs1ReadinessService.java",
+        "src/main/java/com/vncode/app/features/gs1/Gs1PrefixDocumentService.java",
+        "src/main/java/com/vncode/app/features/gs1/Gs1LettersService.java"
+      ],
+      "tests": [
+        "src/test/java/com/vncode/app/ui/gs1/Gs1PaneTest.java",
+        "src/test/java/com/vncode/app/features/gs1/Gs1ReadinessServiceTest.java",
+        "src/test/java/com/vncode/app/features/gs1/Gs1PrefixDocumentServiceTest.java",
+        "src/test/java/com/vncode/app/features/gs1/Gs1LettersServiceTest.java"
+      ],
+      "id": "WB-142",
+      "assessment": "Giữ GS1 dùng API từ cấu hình Znack; kiểm tra tư cách/số dư/quota, đơn/email/thư trả lời, nét ký tạm và ảnh PDF. Mẫu đơn doanh nghiệp phải nhập riêng; chưa ký/gửi đơn thật trong lượt này.",
+      "verification": "Native automated regression; not a live seller acceptance claim"
+    },
+    {
+      "release": "v1.3.7",
+      "line": 14,
+      "requirement": "Cửa sổ đơn đăng ký GS1 và các hộp thoại khác mở đúng giữa cửa sổ ứng dụng, không còn tụt xuống dưới.",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.3.7",
+      "status": "implementation-present",
+      "code": [
+        "src/main/java/com/vncode/app/ui/gs1/Gs1Pane.java",
+        "src/main/java/com/vncode/app/features/gs1/Gs1ActionPolicy.java",
+        "src/main/java/com/vncode/app/features/gs1/Gs1ReadinessService.java",
+        "src/main/java/com/vncode/app/features/gs1/Gs1PrefixDocumentService.java",
+        "src/main/java/com/vncode/app/features/gs1/Gs1LettersService.java"
+      ],
+      "tests": [
+        "src/test/java/com/vncode/app/ui/gs1/Gs1PaneTest.java",
+        "src/test/java/com/vncode/app/features/gs1/Gs1ReadinessServiceTest.java",
+        "src/test/java/com/vncode/app/features/gs1/Gs1PrefixDocumentServiceTest.java",
+        "src/test/java/com/vncode/app/features/gs1/Gs1LettersServiceTest.java"
+      ],
+      "id": "WB-143",
+      "assessment": "Giữ GS1 dùng API từ cấu hình Znack; kiểm tra tư cách/số dư/quota, đơn/email/thư trả lời, nét ký tạm và ảnh PDF. Mẫu đơn doanh nghiệp phải nhập riêng; chưa ký/gửi đơn thật trong lượt này.",
+      "verification": "Native automated regression; not a live seller acceptance claim"
+    },
+    {
+      "release": "v1.3.8",
+      "line": 3,
+      "requirement": "Đăng ký Znack (WB và Ozon): sản phẩm đã có thẻ có thêm nút «Đăng ký thẻ mới», dùng khi cần đổi giấy tờ hoặc thông tin trên thẻ. Wbcode xin GTIN mới, tạo thẻ mới, ký và đưa GTIN lên sàn như một lần đăng ký thường.",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.3.8",
+      "status": "implementation-present",
+      "code": [
+        "src/main/java/com/vncode/app/features/sync/ZnackAutoSyncService.java",
+        "src/main/java/com/vncode/app/integration/znack/registration/RegistrationMarketplaceConsent.java",
+        "src/main/java/com/vncode/app/integration/wb/WbGtinAdapter.java",
+        "src/main/java/com/vncode/app/integration/ozon/OzonGtinAdapter.java"
+      ],
+      "tests": [
+        "src/test/java/com/vncode/app/features/sync/ZnackAutoSyncServiceTest.java",
+        "src/test/java/com/vncode/app/integration/wb/WbGtinAdapterTest.java",
+        "src/test/java/com/vncode/app/integration/ozon/OzonGtinAdapterTest.java"
+      ],
+      "id": "WB-144",
+      "assessment": "GTIN đã xuất bản được ghép đúng biến thể; đăng ký mới có consent cho đúng thẻ. Lưu/khóa child job trước ghi, đọc lại rồi mới đổi con trỏ; Ozon kiểm tra SKU/màu/size.",
+      "verification": "Native automated regression; not a live seller acceptance claim"
+    },
+    {
+      "release": "v1.3.8",
+      "line": 4,
+      "requirement": "Đăng ký thẻ mới không làm gián đoạn bán hàng: thẻ cũ vẫn dùng để mua KIZ và in nhãn cho tới khi thẻ mới được ký và có trên sàn, sau đó Wbcode tự chuyển sang thẻ mới.",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.3.8",
+      "status": "implementation-present",
+      "code": [
+        "src/main/java/com/vncode/app/features/sync/ZnackAutoSyncService.java",
+        "src/main/java/com/vncode/app/integration/znack/registration/RegistrationMarketplaceConsent.java",
+        "src/main/java/com/vncode/app/integration/wb/WbGtinAdapter.java",
+        "src/main/java/com/vncode/app/integration/ozon/OzonGtinAdapter.java"
+      ],
+      "tests": [
+        "src/test/java/com/vncode/app/features/sync/ZnackAutoSyncServiceTest.java",
+        "src/test/java/com/vncode/app/integration/wb/WbGtinAdapterTest.java",
+        "src/test/java/com/vncode/app/integration/ozon/OzonGtinAdapterTest.java"
+      ],
+      "id": "WB-145",
+      "assessment": "GTIN đã xuất bản được ghép đúng biến thể; đăng ký mới có consent cho đúng thẻ. Lưu/khóa child job trước ghi, đọc lại rồi mới đổi con trỏ; Ozon kiểm tra SKU/màu/size.",
+      "verification": "Native automated regression; not a live seller acceptance claim"
+    },
+    {
+      "release": "v1.3.8",
+      "line": 5,
+      "requirement": "Đăng ký Znack: khi lọc theo thẻ đã xuất bản, «Chọn tất cả» tick được các thẻ đó để đăng ký thẻ mới hàng loạt. Trước khi gửi luôn có hộp xác nhận ghi rõ số GTIN sẽ dùng.",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.3.8",
+      "status": "implementation-present",
+      "code": [
+        "src/main/java/com/vncode/app/features/sync/ZnackAutoSyncService.java",
+        "src/main/java/com/vncode/app/integration/znack/registration/RegistrationMarketplaceConsent.java",
+        "src/main/java/com/vncode/app/integration/wb/WbGtinAdapter.java",
+        "src/main/java/com/vncode/app/integration/ozon/OzonGtinAdapter.java"
+      ],
+      "tests": [
+        "src/test/java/com/vncode/app/features/sync/ZnackAutoSyncServiceTest.java",
+        "src/test/java/com/vncode/app/integration/wb/WbGtinAdapterTest.java",
+        "src/test/java/com/vncode/app/integration/ozon/OzonGtinAdapterTest.java"
+      ],
+      "id": "WB-146",
+      "assessment": "GTIN đã xuất bản được ghép đúng biến thể; đăng ký mới có consent cho đúng thẻ. Lưu/khóa child job trước ghi, đọc lại rồi mới đổi con trỏ; Ozon kiểm tra SKU/màu/size.",
+      "verification": "Native automated regression; not a live seller acceptance claim"
+    },
+    {
+      "release": "v1.3.8",
+      "line": 6,
+      "requirement": "Hướng dẫn: thêm ô tìm kiếm. Tìm được trong tiêu đề, tóm tắt và nội dung bài, gõ không dấu vẫn ra.",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.3.8",
+      "status": "implementation-present",
+      "code": [
+        "src/main/java/com/vncode/app/ui/guides/GuidesPane.java",
+        "src/main/java/com/vncode/app/features/guides/GuideArticle.java",
+        "src/main/java/com/vncode/app/features/guides/GuideMediaRepository.java"
+      ],
+      "tests": [
+        "src/test/java/com/vncode/app/features/guides/GuideArticleTest.java",
+        "src/test/java/com/vncode/app/ui/FxmlSmokeTest.java"
+      ],
+      "id": "WB-147",
+      "assessment": "Giữ hướng dẫn VNCode, tìm không dấu; video có tua, âm lượng, thử lại/tiếp tục; ảnh/video khung 16:9. Bài hướng dẫn của VNCode mở được trong trình duyệt dưới dạng bản cục bộ.",
+      "verification": "Native automated regression; not a live seller acceptance claim"
+    },
+    {
+      "release": "v1.3.8",
+      "line": 7,
+      "requirement": "Hướng dẫn: video không còn đứng hình im lặng khi mạng chậm. Wbcode hiện vòng xoay, sau vài giây có thêm nút «Tải lại video» để xem tiếp từ chỗ đang dừng.",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.3.8",
+      "status": "implementation-present",
+      "code": [
+        "src/main/java/com/vncode/app/ui/guides/GuidesPane.java",
+        "src/main/java/com/vncode/app/features/guides/GuideArticle.java",
+        "src/main/java/com/vncode/app/features/guides/GuideMediaRepository.java"
+      ],
+      "tests": [
+        "src/test/java/com/vncode/app/features/guides/GuideArticleTest.java",
+        "src/test/java/com/vncode/app/ui/FxmlSmokeTest.java"
+      ],
+      "id": "WB-148",
+      "assessment": "Giữ hướng dẫn VNCode, tìm không dấu; video có tua, âm lượng, thử lại/tiếp tục; ảnh/video khung 16:9. Bài hướng dẫn của VNCode mở được trong trình duyệt dưới dạng bản cục bộ.",
+      "verification": "Native automated regression; not a live seller acceptance claim"
+    },
+    {
+      "release": "v1.3.8",
+      "line": 8,
+      "requirement": "Hướng dẫn: video và ảnh trong bài hiển thị lớn hơn.",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.3.8",
+      "status": "implementation-present",
+      "code": [
+        "src/main/java/com/vncode/app/ui/guides/GuidesPane.java",
+        "src/main/java/com/vncode/app/features/guides/GuideArticle.java",
+        "src/main/java/com/vncode/app/features/guides/GuideMediaRepository.java"
+      ],
+      "tests": [
+        "src/test/java/com/vncode/app/features/guides/GuideArticleTest.java",
+        "src/test/java/com/vncode/app/ui/FxmlSmokeTest.java"
+      ],
+      "id": "WB-149",
+      "assessment": "Giữ hướng dẫn VNCode, tìm không dấu; video có tua, âm lượng, thử lại/tiếp tục; ảnh/video khung 16:9. Bài hướng dẫn của VNCode mở được trong trình duyệt dưới dạng bản cục bộ.",
+      "verification": "Native automated regression; not a live seller acceptance claim"
+    },
+    {
+      "release": "v1.3.8",
+      "line": 9,
+      "requirement": "Sản phẩm: hộp «Sửa giấy tờ» nhận ngày dán vào theo kiểu ghi trên giấy tờ, ví dụ 06.05.2026, cho cả WB và Ozon.",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.3.8",
+      "status": "implementation-present",
+      "code": [
+        "src/main/java/com/vncode/app/shared/DocumentDateInput.java"
+      ],
+      "tests": [
+        "src/test/java/com/vncode/app/ui/DocumentDateInputTest.java"
+      ],
+      "id": "WB-150",
+      "assessment": "Dán ngày và commit editor trước khi ghi; báo ngày không hợp lệ.",
+      "verification": "Native automated regression; not a live seller acceptance claim"
+    },
+    {
+      "release": "v1.3.8",
+      "line": 10,
+      "requirement": "Sản phẩm: nút «Giới tính» bị khoá trong lúc trang đang tải hoặc đang lưu, giống các nút khác.",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.3.8",
+      "status": "implementation-present",
+      "code": [
+        "src/main/java/com/vncode/app/features/products/ProductBulkEditService.java",
+        "src/main/java/com/vncode/app/ui/products/ProductBulkEditPane.java",
+        "src/main/java/com/vncode/app/ui/products/ProductsPane.java"
+      ],
+      "tests": [
+        "src/test/java/com/vncode/app/features/products/ProductBulkEditServiceTest.java",
+        "src/test/java/com/vncode/app/ui/products/ProductBulkDialogTest.java"
+      ],
+      "id": "WB-151",
+      "assessment": "Sửa hàng loạt đọc mới/kiểm tra trước khi ghi và đọc lại sau ghi; Áp dụng đóng hộp chọn, tiến độ viên thuốc ở giữa dưới bảng; kiểm thử lô 120 sản phẩm.",
+      "verification": "Native automated regression; not a live seller acceptance claim"
+    },
+    {
+      "release": "v1.3.8",
+      "line": 11,
+      "requirement": "Đăng ký Znack (Ozon): nút ở cột «Thao tác» hiện đủ chữ, không còn bị cắt.",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.3.8",
+      "status": "implementation-present",
+      "code": [
+        "src/main/java/com/vncode/app/ui/znackregistration/OzonRegistrationPane.java"
+      ],
+      "tests": [
+        "src/test/java/com/vncode/app/ui/znackregistration/OzonRegistrationPaneTest.java"
+      ],
+      "id": "WB-152",
+      "assessment": "Cột thao tác Ozon có chiều rộng tối thiểu và bố cục co được.",
+      "verification": "Native automated regression; not a live seller acceptance claim"
+    },
+    {
+      "release": "v1.3.8",
+      "line": 12,
+      "requirement": "Đăng ký Znack (WB): ô lọc trạng thái đổi theo ngôn ngữ đang chọn.",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.3.8",
+      "status": "implementation-present",
+      "code": [
+        "src/main/java/com/vncode/app/ui/supply/SupplyOrderPresentation.java"
+      ],
+      "tests": [
+        "src/test/java/com/vncode/app/ui/supply/SupplyOrderPresentationTest.java"
+      ],
+      "id": "WB-153",
+      "assessment": "Trạng thái đơn WB hiển thị nhãn dịch; mã trạng thái không rõ vẫn được giữ để chẩn đoán.",
+      "verification": "Native automated regression; not a live seller acceptance claim"
+    },
+    {
+      "release": "v1.3.8",
+      "line": 13,
+      "requirement": "macOS: ứng dụng và file cài đặt có biểu tượng Wbcode.",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.3.8",
+      "status": "adapted-to-approved-vncode-requirement",
+      "code": [],
+      "tests": [],
+      "id": "WB-154",
+      "assessment": "Giữ thương hiệu/license do admin VNCode cấp, Liquid Glass và GS1 dùng API theo yêu cầu riêng của seller. Không nhập giao diện thương hiệu, giá bán/gói license hoặc luồng đăng nhập trình duyệt của Wbcode."
+    },
+    {
+      "release": "v1.3.9",
+      "line": 3,
+      "requirement": "Windows: cài mới hoặc cập nhật chỉ còn một biểu tượng Wbcode trên màn hình chính và trong menu Start, không còn biểu tượng WCode thứ hai.",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.3.9",
+      "status": "implementation-present",
+      "code": [
+        "src/main/java/com/vncode/app/shared/AppPaths.java"
+      ],
+      "tests": [
+        "src/test/java/com/vncode/app/BuildConfigTest.java"
+      ],
+      "id": "WB-155",
+      "assessment": "Windows giữ một định danh VNCode và gỡ biểu tượng cũ qua luồng nâng cấp; không tạo icon WCode/Wbcode cho VNCode.",
+      "verification": "Native automated regression; not a live seller acceptance claim"
+    },
+    {
+      "release": "v1.3.9",
+      "line": 4,
+      "requirement": "Đăng ký Znack (Ozon): bấm đăng ký lại một thẻ đang chờ kiểm duyệt với đúng dữ liệu không còn báo lỗi. Dòng đó chuyển sang «Đang kiểm duyệt», Wbcode tự ký khi thẻ được duyệt và hiện lý do nếu thẻ bị từ chối.",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.3.9",
+      "status": "implementation-present",
+      "code": [
+        "src/main/java/com/vncode/app/integration/znack/registration/ZnackCardRegistrationWorkflow.java",
+        "src/main/java/com/vncode/app/integration/znack/registration/OzonCardRegistrationWorkflow.java",
+        "src/main/java/com/vncode/app/integration/znack/registration/ZnackNationalCatalogService.java",
+        "src/main/java/com/vncode/app/integration/znack/registration/ZnackRegistrationMonitor.java"
+      ],
+      "tests": [
+        "src/test/java/com/vncode/app/integration/znack/registration/ZnackCardRegistrationWorkflowTest.java",
+        "src/test/java/com/vncode/app/integration/znack/registration/OzonCardRegistrationWorkflowTest.java",
+        "src/test/java/com/vncode/app/integration/znack/registration/ZnackNationalCatalogServiceTest.java"
+      ],
+      "id": "WB-156",
+      "assessment": "Đối soát thẻ thật sau ký, tiếp tục kiểm duyệt/404, lưu quyền ký từng thẻ; bảo toàn feed/GTIN và không lặp chữ ký chưa rõ kết quả.",
+      "verification": "Native automated regression; not a live seller acceptance claim"
+    },
+    {
+      "release": "v1.3.9",
+      "line": 5,
+      "requirement": "Đăng ký Znack (WB): thẻ đang đăng ký dở khi tắt ứng dụng tự chạy lại ở lần mở sau, không còn báo lỗi «Registration interrupted». Các thẻ đã bị báo lỗi này cũng tự chạy lại.",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.3.9",
+      "status": "implementation-present",
+      "code": [
+        "src/main/java/com/vncode/app/integration/znack/registration/ZnackCardRegistrationWorkflow.java",
+        "src/main/java/com/vncode/app/integration/znack/registration/OzonCardRegistrationWorkflow.java",
+        "src/main/java/com/vncode/app/integration/znack/registration/ZnackNationalCatalogService.java",
+        "src/main/java/com/vncode/app/integration/znack/registration/ZnackRegistrationMonitor.java"
+      ],
+      "tests": [
+        "src/test/java/com/vncode/app/integration/znack/registration/ZnackCardRegistrationWorkflowTest.java",
+        "src/test/java/com/vncode/app/integration/znack/registration/OzonCardRegistrationWorkflowTest.java",
+        "src/test/java/com/vncode/app/integration/znack/registration/ZnackNationalCatalogServiceTest.java"
+      ],
+      "id": "WB-157",
+      "assessment": "Đối soát thẻ thật sau ký, tiếp tục kiểm duyệt/404, lưu quyền ký từng thẻ; bảo toàn feed/GTIN và không lặp chữ ký chưa rõ kết quả.",
+      "verification": "Native automated regression; not a live seller acceptance claim"
+    },
+    {
+      "release": "v1.3.9",
+      "line": 6,
+      "requirement": "Hộp thoại không còn bị nhảy lên xuống liên tục khi cửa sổ ứng dụng nhỏ, ví dụ hộp gửi yêu cầu GS1.",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.3.9",
+      "status": "implementation-present",
+      "code": [
+        "src/main/java/com/vncode/app/shared/DialogLayout.java",
+        "src/main/java/com/vncode/app/shared/LoadingSkeleton.java",
+        "src/main/java/com/vncode/app/ui/znackregistration/RegistrationTextCells.java"
+      ],
+      "tests": [
+        "src/test/java/com/vncode/app/ui/FxmlSmokeTest.java",
+        "src/test/java/com/vncode/app/ui/workspace/WorkspaceJavaPagesLayoutTest.java"
+      ],
+      "id": "WB-158",
+      "assessment": "Hộp thoại theo cửa sổ/màn hình; nội dung xuống dòng; placeholder tĩnh cho màn sản phẩm, Znack và tin tức đang trống/tải, không thêm tải animation.",
+      "verification": "Native automated regression; not a live seller acceptance claim"
+    }
+  ],
+  "reviewedAt": "2026-10-17",
+  "comparisonScope": "Published release notes; accessible public historical source and current VNCode implementation/tests. Latest private Wbcode source unavailable (404).",
+  "allItemsAccountedFor": true,
+  "allFeaturesComplete": false,
+  "liveMutationAcceptance": false
+}

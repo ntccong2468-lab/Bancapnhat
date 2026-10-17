@@ -185,7 +185,7 @@ public final class OzonCardRegistrationWorkflow {
                 catch(com.vncode.app.features.license.LicenseGate.LicenseDeniedException denied){repository.transition(key,Status.ALLOCATING_GTIN,Status.PREFLIGHT_ERROR);throw denied;}
                 repository.guard(shop,key,scope);
                 // Optional photos never substitute a marketplace thumbnail for a verified full-size image.
-                var payload=ZnackNationalCatalogService.buildPayload(gtin,reviewed,"");repository.generated(key,gtin,payload.toString());RegistrationSigningConsent.set(shop,key,gtin,reviewed.autoSign());notify(callback,Status.GTIN_GENERATED,"");
+                var payload=ZnackNationalCatalogService.buildPayload(gtin,reviewed,"");repository.generated(key,gtin,payload.toString());RegistrationSigningConsent.set(shop,key,gtin,reviewed.autoSign());RegistrationMarketplaceConsent.set(shop,key,gtin,true);notify(callback,Status.GTIN_GENERATED,"");
             }
             submitPrepared(shop,key,session,callback);poll(shop,key,session,reviewed.autoSign(),callback);
         },key,callback);
@@ -198,7 +198,10 @@ public final class OzonCardRegistrationWorkflow {
         if(row.feedId().isBlank())LicenseRuntime.require(Permission.GTIN);
         return schedule(shop,()->{
             var scope=scope(row);repository.guard(shop,key,scope);var session=catalogs.open(shop);checkSession(shop,scope,session);
-            if(row.feedId().isBlank())submitPrepared(shop,key,session,callback);
+            if(row.status()==Status.ERROR&&!row.feedId().isBlank()&&!Set.of("SENDING","RECONCILE_REQUIRED").contains(row.signatureState())){
+                var rejected=session.catalog().progress(session.token(),row.feedId(),row.gtin());
+                if(rejected.failed()&&repository.retryRejected(shop,key,row,scope))submitPrepared(shop,key,session,callback);
+            }else if(row.feedId().isBlank())submitPrepared(shop,key,session,callback);
             if(automaticSigning!=null)RegistrationSigningConsent.set(shop,key,row.gtin(),automaticSigning);
             poll(shop,key,session,RegistrationSigningConsent.allowed(shop,key,row.gtin()),callback);
         },key,callback);
@@ -212,7 +215,7 @@ public final class OzonCardRegistrationWorkflow {
                 if(Thread.currentThread().isInterrupted())return;var row=repository.find(key);if(row==null||row.feedId().isBlank()||row.status()==Status.PUBLISHED)continue;
                 try{repository.guard(shop,key,scope);LicenseRuntime.require(Permission.GTIN);RegistrationSigningConsent.set(shop,key,row.gtin(),true);poll(shop,key,session,true,callback);}
                 catch(com.vncode.app.features.license.LicenseGate.LicenseDeniedException|ZnackRegistrationScope.ScopeChangedException stopped){throw stopped;}
-                catch(Exception failure){if(failure instanceof InterruptedException){Thread.currentThread().interrupt();return;}fail(key,callback);}
+                catch(Exception failure){if(failure instanceof InterruptedException){Thread.currentThread().interrupt();return;}fail(key,callback,failure);}
             }
         },null,callback);
     }
@@ -292,13 +295,21 @@ public final class OzonCardRegistrationWorkflow {
     private boolean schedule(Shop shop,Action action,ProductKey key,BiConsumer<Status,String> callback) {
         String namespace=namespace(shop);if(!RUNNING.add(namespace))return false;
         var completion=new CompletableFuture<Void>();COMPLETIONS.put(namespace,completion);
-        try {executor.execute(()->{try{action.run();}catch(Exception failure){if(failure instanceof InterruptedException)Thread.currentThread().interrupt();fail(key,callback);}finally{RUNNING.remove(namespace);completion.complete(null);COMPLETIONS.remove(namespace,completion);}});return true;}
+        try {executor.execute(()->{try{action.run();}catch(Exception failure){if(failure instanceof InterruptedException)Thread.currentThread().interrupt();fail(key,callback,failure);}finally{RUNNING.remove(namespace);completion.complete(null);COMPLETIONS.remove(namespace,completion);}});return true;}
         catch(RejectedExecutionException full){RUNNING.remove(namespace);COMPLETIONS.remove(namespace,completion);completion.complete(null);return false;}
     }
-    private void fail(ProductKey key,BiConsumer<Status,String> callback) {
-        if(key==null){notify(callback,Status.ERROR,"registration_failed");return;}var row=repository.find(key);if(row==null){notify(callback,Status.PREFLIGHT_ERROR,"registration_failed");return;}
-        Status state=switch(row.status()){case ALLOCATING_GTIN->Status.GTIN_REVIEW_REQUIRED;case FEED_SUBMITTING->Status.FEED_REVIEW_REQUIRED;case SIGNING->Status.SIGNING;case CHECKING->Status.PREFLIGHT_ERROR;case READY_TO_SUBMIT->Status.READY_TO_SUBMIT;default->row.status();};
-        repository.uncertain(key,state);notify(callback,state,"registration_failed");
+    private void fail(ProductKey key,BiConsumer<Status,String> callback,Throwable failure) {
+        String error=CatalogFeedback.display(com.vncode.app.shared.FriendlyErrorService.format(failure));
+        if(key==null){notify(callback,Status.ERROR,error);return;}
+        var row=repository.find(key);if(row==null){notify(callback,Status.PREFLIGHT_ERROR,error);return;}
+        if(row.status()==Status.PUBLISHED){notify(callback,Status.ERROR,error);return;}
+        boolean documentPending=CatalogFeedback.notFound(failure)&&!row.feedId().isBlank()
+                &&!Set.of("SENDING","RECONCILE_REQUIRED").contains(row.signatureState());
+        Status state=documentPending?Status.PROCESSING:switch(row.status()){
+            case ALLOCATING_GTIN->Status.GTIN_REVIEW_REQUIRED;case FEED_SUBMITTING->Status.FEED_REVIEW_REQUIRED;
+            case SIGNING->Status.SIGNING;case CHECKING->Status.PREFLIGHT_ERROR;default->row.status();};
+        if(documentPending)error="CATALOG_SIGNING_DOCUMENT_PENDING";
+        repository.uncertain(key,state,error);notify(callback,state,error);
     }
     public boolean isRunning(Shop shop){return shop!=null&&RUNNING.contains(namespace(shop));}
     public static boolean hasActiveJobs(){return !RUNNING.isEmpty();}

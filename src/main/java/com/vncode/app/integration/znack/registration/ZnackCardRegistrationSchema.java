@@ -10,6 +10,7 @@ public final class ZnackCardRegistrationSchema {
 
     public static void initialize(Connection connection) throws SQLException {
         RegistrationSigningConsent.initialize(connection);
+        RegistrationMarketplaceConsent.initialize(connection);
         try (Statement statement = connection.createStatement()) {
             statement.execute("""
                 CREATE TABLE IF NOT EXISTS znack_card_registration_history(

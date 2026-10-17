@@ -360,7 +360,7 @@ public final class ZnackCardRegistrationWorkflow {
         }
 
         var nativeKey=new com.vncode.app.features.products.ProductKey(shop.getId(),shop.getMarketplace(),Long.toString(sku.nmId()),Long.toString(sku.chrtId()));
-        if(recordConsent)RegistrationSigningConsent.set(shop,nativeKey,gtin,draft.autoSign());
+        if(recordConsent){RegistrationSigningConsent.set(shop,nativeKey,gtin,draft.autoSign());RegistrationMarketplaceConsent.set(shop,nativeKey,gtin,true);}
         if (feedId == null || feedId.isBlank()) {
             LicenseRuntime.require(Permission.GTIN);
             update(shop,sku,Status.READY_TO_SUBMIT,null,null,listener);

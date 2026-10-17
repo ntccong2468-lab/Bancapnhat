@@ -65,6 +65,14 @@ class OzonCardRegistrationWorkflowTest {
     @Test void rejectionReasonSurvivesMonitoringAndSecretsAreNotCopiedIntoTheReport()throws Exception {
         ready();api.rejected=true;new ZnackRegistrationMonitor(null,workflow).poll(shop,3);assertEquals(Status.ERROR,row().status());assertTrue(row().error().contains("required attribute missing"));assertFalse(row().error().contains("fixture-secret"));assertEquals(1,api.submissions.get());
     }
+    @Test void explicitRetryOfRejectedFeedKeepsItsGtinAndArchivesTheOriginalRequest()throws Exception{
+        ready();String gtin=row().gtin(),oldFeed=row().feedId();api.rejectedFeed=oldFeed;new ZnackRegistrationMonitor(null,workflow).poll(shop,3);assertEquals(Status.ERROR,row().status());
+        assertTrue(workflow.resume(shop,key,false,null));assertEquals(Status.READY_TO_SIGN,row().status());assertEquals(gtin,row().gtin());assertNotEquals(oldFeed,row().feedId());
+        assertEquals(1,api.allocations.get());assertEquals(2,api.submissions.get());
+        try(var c=Database.getConnection();var p=c.prepareStatement("SELECT feed_id,gtin FROM ozon_card_registration_history WHERE shop_id=2" );var r=p.executeQuery()){
+            assertTrue(r.next());assertEquals(oldFeed,r.getString(1));assertEquals(gtin,r.getString(2));assertFalse(r.next());
+        }
+    }
     @Test void automaticSigningConsentSurvivesReopeningAndDoesNotRepeatTheSignature()throws Exception {
         api.pendingModeration=true;assertTrue(workflow.register(shop,key,draft.withAutoSign(true),true,false,null));assertEquals(Status.PROCESSING,row().status());assertEquals(0,api.signatures.get());
         api.pendingModeration=false;var reopened=workflow(Runnable::run);var monitor=new ZnackRegistrationMonitor(null,reopened);assertEquals(1,monitor.poll(shop,3).published());assertEquals(Status.PUBLISHED,row().status());assertEquals(1,api.signatures.get());monitor.poll(shop,3);assertEquals(1,api.signatures.get());assertEquals(1,api.allocations.get());assertEquals(1,api.submissions.get());
@@ -202,6 +210,7 @@ class OzonCardRegistrationWorkflowTest {
     final class FixtureApi extends ZnackApiClient {
         AtomicInteger allocations=new AtomicInteger(),submissions=new AtomicInteger(),signatures=new AtomicInteger(),documents=new AtomicInteger();
         ProductKey activeKey=key;boolean knownQuota;
+        String rejectedFeed="";
         boolean multipleCategories,allocationTimeout,feedTimeout,signTimeout,changeSigningDocument,accepted,rejected,pendingModeration;
         String currentGtin=GtinWriteTestFixture.GTIN;
         public JsonElement generatedGtins(String base,String token){return json(knownQuota?"{\"result\":{\"drafts\":[],\"monthly-limit\":{\"limit\":100,\"usage\":0}}}":"{\"result\":{\"drafts\":[]}}");}
@@ -210,7 +219,7 @@ class OzonCardRegistrationWorkflowTest {
         public JsonElement nationalCatalogAttributes(String base,String token,long category){return json("{\"result\":[{\"attr_id\":1,\"attr_name\":\"Fixture\",\"attr_field_type\":\"text\"},{\"attr_id\":23557,\"attr_name\":\"Declaration\",\"attr_field_type\":\"text\"},{\"attr_id\":23561,\"attr_name\":\"Certificate\",\"attr_field_type\":\"text\"}]}");}
         public JsonElement submitNationalCatalogFeed(String base,String token,JsonElement body)throws IOException{assertEquals(Status.FEED_SUBMITTING,repository.find(activeKey).status());submissions.incrementAndGet();if(feedTimeout)throw new IOException("fixture feed timeout");return json("{\"result\":{\"feed_id\":\"feed-"+submissions.get()+"\"}}");}
         public JsonElement productCards(String base,String token,String gtins){return json("{\"result\":[{\"gtin\":\""+gtins+"\",\"good_id\":91,\"good_status\":\"published\"}]}");}
-        public JsonElement nationalCatalogFeedStatus(String base,String token,String feed){if(rejected)return json("{\"result\":{\"status\":\"Rejected\",\"item\":[{\"gtin\":\""+currentGtin+"\",\"status_code\":400,\"message\":\"required attribute missing; token=fixture-secret\"}]}}");return json("{\"result\":{\"status\":\""+(pendingModeration?"Processing":accepted?"Signed":"Moderated")+"\",\"item\":[{\"gtin\":\""+currentGtin+"\",\"good_id\":91}]}}");}
+        public JsonElement nationalCatalogFeedStatus(String base,String token,String feed){if(rejected||feed.equals(rejectedFeed))return json("{\"result\":{\"status\":\"Rejected\",\"item\":[{\"gtin\":\""+currentGtin+"\",\"status_code\":400,\"message\":\"required attribute missing; token=fixture-secret\"}]}}");return json("{\"result\":{\"status\":\""+(pendingModeration?"Processing":accepted?"Signed":"Moderated")+"\",\"item\":[{\"gtin\":\""+currentGtin+"\",\"good_id\":91}]}}");}
         public JsonElement nationalCatalogSigningDocument(String base,String token,JsonObject body){int count=documents.incrementAndGet();return json("{\"result\":{\"xmls\":[{\"goodId\":91,\"xml\":\"<good>"+(changeSigningDocument&&count>1?"changed":"reviewed")+"</good>\"}]}}");}
         public JsonElement signNationalCatalogProduct(String base,String token,JsonArray body)throws IOException{assertEquals(Status.SIGNING,repository.find(activeKey).status());assertEquals("SENDING",repository.find(activeKey).signatureState());assertEquals("<good>reviewed</good>",new String(Base64.getDecoder().decode(body.get(0).getAsJsonObject().get("base64Xml").getAsString()),java.nio.charset.StandardCharsets.UTF_8));signatures.incrementAndGet();if(signTimeout)throw new IOException("fixture signing timeout");accepted=true;return json("{\"result\":{\"signed\":[91]}}");}
         JsonElement json(String value){return JsonParser.parseString(value);}

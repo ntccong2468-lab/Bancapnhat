@@ -273,7 +273,7 @@ public final class ProductBulkEditPane extends BorderPane {
         applyButton.addEventFilter(javafx.event.ActionEvent.ACTION,e->{e.consume();apply.fire();if(busy&&backgroundHost!=null){detach();dialog.hide();}});
         var indicator=new ProgressIndicator();indicator.setMaxSize(20,20);indicator.visibleProperty().bind(apply.disableProperty());indicator.managedProperty().bind(indicator.visibleProperty());
         var footer=new HBox(10,indicator,status);HBox.setHgrow(status,Priority.ALWAYS);footer.setPadding(new Insets(10,0,0,0));setBottom(footer);
-        setOnSaved(()->{if(saved!=null)saved.run();});
+        setOnSaved(()->{if(backgroundHost==null)dialog.close();if(saved!=null)Platform.runLater(saved);});
         dialog.setOnHidden(e->{if(!detached)dispose();});DialogLayout.install(dialog.getDialogPane());AlertService.applyTheme(dialog);dialog.show();
     }
     private void applyOnce(){if(busy)return;backgroundRunning.set(true);sendAfterPrepare=true;prepare();if(!busy){backgroundRunning.set(false);sendAfterPrepare=false;}}

@@ -50,10 +50,10 @@ public final class NewsPane extends VBox {
  public void loadMore(){if(ended||busy)return;var page=service.loadPage(cursor);visible.addAll(page.items());cursor=page.nextCursor();ended=cursor==null;renderList();}
  public void refreshAsync(){
   if(disposed)return;refreshOfficial(false);
-  if(busy)return;busy=true;long epoch=generation;
+  if(busy)return;busy=true;renderList();long epoch=generation;
   Task<Void> task=new Task<>(){protected Void call()throws Exception{service.refresh();return null;}};
   task.setOnSucceeded(e->{if(disposed||epoch!=generation)return;busy=false;visible.clear();cursor=null;ended=false;loadMore();status.setText("");renderPreview();unread.accept(service.unreadCount());});
-  java.util.function.Consumer<Throwable> taskFailure = rejection ->{if(disposed||epoch!=generation)return;busy=false;status.setText(tr("news.offline"));renderPreview();unread.accept(service.unreadCount());};
+  java.util.function.Consumer<Throwable> taskFailure = rejection ->{if(disposed||epoch!=generation)return;busy=false;status.setText(tr("news.offline"));renderList();renderPreview();unread.accept(service.unreadCount());};
         task.setOnFailed(e -> taskFailure.accept(task.getException()));
   AppTaskExecutor.execute(task, taskFailure);
  }
@@ -93,7 +93,7 @@ public final class NewsPane extends VBox {
   opened=item;showOriginal=false;requestTranslation(item);detailShown=true;renderDetail(item);scroll.setContent(detail);scroll.setVvalue(0);more.setVisible(false);more.setManaged(false);renderPreview();unread.accept(service.unreadCount());
  }
  public void back(){detailShown=false;opened=null;scroll.setContent(list);renderList();scroll.setVvalue(listScroll);Platform.runLater(()->{if(!detailShown){scroll.applyCss();scroll.layout();scroll.setVvalue(listScroll);}}); }
- private void renderList(){list.getChildren().clear();for(var item:visible)list.getChildren().add(row(item));if(visible.isEmpty())list.getChildren().add(new Label(tr("news.empty")));more.setVisible(!ended&&!detailShown);more.setManaged(!ended&&!detailShown);}
+ private void renderList(){list.getChildren().clear();for(var item:visible)list.getChildren().add(row(item));if(visible.isEmpty())list.getChildren().add(busy?new LoadingSkeleton(tr("znack.registration.loading")):new Label(tr("news.empty")));more.setVisible(!ended&&!detailShown);more.setManaged(!ended&&!detailShown);}
  private Button newsCard(NewsItem item,boolean dashboard) {
   if(dashboard||getScene()!=null)requestTranslation(item);var shown=display(item);
   var heading=new Label(shown.title());heading.setWrapText(true);heading.setMinWidth(0);heading.setMaxWidth(Double.MAX_VALUE);heading.getStyleClass().add("news-card-title");

@@ -47,12 +47,31 @@ public final class ZnackAutoSyncService {
             for(var item:items){
                 if(Set.of("SUCCEEDED","UNCHANGED","CANCELLED").contains(item.state()))continue;
                 if(Set.of("NEEDS_ACTION","FAILED").contains(item.state())){blocked=true;continue;}
-                if(item.state().equals("AWAITING_CONFIRMATION")){review=true;continue;}
-                // Reading/synchronizing Znack never approves a marketplace mutation. Old queued
-                // rows without a confirmed child also return to review after an app upgrade.
-                if(item.childJob().isBlank()||!catalog.read(shop,item.childJob()).confirmed()){
-                    runs.update(shop,item,"AWAITING_CONFIRMATION","REVIEW","GTIN_CONFIRMATION_REQUIRED",null);
-                    review=true;continue;
+                if(item.childJob().isBlank()){
+                    var key=new ProductKey(shop.getId(),shop.getMarketplace(),item.productId(),item.variantId());
+                    if(!RegistrationMarketplaceConsent.allowed(shop,key,item.gtin())||!RegisteredGtinProof.sameCode(registrationGtin(shop,key),item.gtin())){
+                        if(!item.state().equals("AWAITING_CONFIRMATION"))runs.update(shop,item,"AWAITING_CONFIRMATION","REVIEW","GTIN_CONFIRMATION_REQUIRED",null);
+                        review=true;continue;
+                    }
+                    if(processed>=3){waiting=true;continue;}
+                    processed++;
+                    try{
+                        // The original Register action approved only this native card/GTIN.
+                        // Fresh source membership, owner, publication and exact variant checks still apply.
+                        var selections=new ZnackGtinReviewService(s->{},this,reader).select(shop,id,List.of(item));
+                        var plan=catalog.preview(shop,selections,new CatalogSyncModels.Options(Set.of(CatalogSyncModels.Field.GTIN),Map.of()));
+                        if(plan.readyCount()==0){
+                            String reason=plan.rows().stream().map(CatalogSyncModels.Row::issue).filter(x->!x.isBlank()).findFirst().orElse("GTIN_VALIDATION_BLOCKED");
+                            runs.update(shop,item,"NEEDS_ACTION","VALIDATING",reason,null);blocked=true;
+                        }else{
+                            // Link the durable confirmed child BEFORE the first marketplace write.
+                            runs.linkReviewed(shop,id,catalog.confirm(shop,plan.id()));waiting=true;
+                        }
+                    }catch(Exception error){runs.update(shop,item,"NEEDS_ACTION","VALIDATING",SyncFailure.of(error,0).code(),null);blocked=true;}
+                    continue;
+                }
+                if(!catalog.read(shop,item.childJob()).confirmed()){
+                    runs.update(shop,item,"AWAITING_CONFIRMATION","REVIEW","GTIN_CONFIRMATION_REQUIRED",null);review=true;continue;
                 }
                 if(processed>=3){waiting=true;continue;}
                 processed++;

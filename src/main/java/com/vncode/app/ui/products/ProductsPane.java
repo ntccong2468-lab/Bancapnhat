@@ -130,10 +130,10 @@ public final class ProductsPane extends BorderPane {
     private ProductQuery query(String next){return new ProductQuery(shop.getId(),shop.getMarketplace(),search.getText(),category.getValue()==null?List.of():List.of(category.getValue()),document.getValue(),missing.isSelected(),next,100,issue.getValue());}
     private void load(boolean append) {
         if(disposed||shop==null){reload.setDisable(false);status.setText(tr("products.select_shop"));more.setVisible(false);more.setManaged(false);return;}
-        var q=query(append?cursor:"");var owner=shop;long epoch=generation,started=System.nanoTime();loading=true;updateButtons();rows.refresh();reload.setDisable(true);more.setDisable(true);status.setText(tr("products.loading"));
+        var q=query(append?cursor:"");var owner=shop;long epoch=generation,started=System.nanoTime();loading=true;rows.setPlaceholder(new LoadingSkeleton(tr("products.loading")));updateButtons();rows.refresh();reload.setDisable(true);more.setDisable(true);status.setText(tr("products.loading"));
         reads.submitLocal(new ShopReadCoordinator.Key(owner.getId(),"product-page",q.toString()),()->reader.apply(q)).whenComplete((page,error)->Platform.runLater(()->{
             if(disposed||epoch!=generation||shop==null||shop.getId()!=owner.getId()||shop.getMarketplace()!=owner.getMarketplace())return;
-            loading=false;updateButtons();rows.refresh();reload.setDisable(syncing);more.setDisable(false);
+            loading=false;rows.setPlaceholder(new Label(tr("products.empty")));updateButtons();rows.refresh();reload.setDisable(syncing);more.setDisable(false);
             if(error!=null){status.setText(tr("products.read_failed"));return;}
             if(page.rows().stream().anyMatch(row->row.key().shopId()!=owner.getId()||row.key().marketplace()!=owner.getMarketplace())){status.setText(tr("products.read_failed"));return;}
             if(append)rows.getItems().addAll(page.rows());else{com.vncode.app.shared.TableRows.merge(rows.getItems(),page.rows(),ProductRow::key);all.setDisable(false);}displayedQuery=q;

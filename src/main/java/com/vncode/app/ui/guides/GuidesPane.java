@@ -39,24 +39,42 @@ public final class GuidesPane extends BorderPane {
             if(!searchKey(title+" "+text).contains(query))continue;
             var section=new VBox(12,label(title,"h3"),label(text,"text-secondary"));section.setId("guide_"+key);section.getStyleClass().add("guide-section");section.setMinWidth(0);
             for(var entry:available)if(entry.guide().equals(key)){if(entry.kind()==GuideMediaRepository.Kind.IMAGE)section.getChildren().add(image(entry));else section.getChildren().add(video(entry));}
-            var choose=new Button(tr("guides.add_media"));choose.setOnAction(e->chooseMedia(key));section.getChildren().add(choose);body.getChildren().add(section);
+            var choose=new Button(tr("guides.add_media"));choose.setOnAction(e->chooseMedia(key));
+            var article=new Button(tr("guides.open_article"));article.setOnAction(e->openArticle(key,title,text,section));
+            section.getChildren().add(new FlowPane(10,8,article,choose));body.getChildren().add(section);
         }
         if(body.getChildren().isEmpty())body.getChildren().add(label(tr("guides.no_results"),"text-muted"));
     }
+    private StackPane mediaFrame(javafx.scene.Node content){
+        var frame=new StackPane(content);frame.setId("guideMediaFrame");frame.setMinWidth(0);frame.setMaxWidth(800);
+        frame.prefHeightProperty().bind(frame.widthProperty().multiply(9.0/16));frame.minHeightProperty().bind(frame.prefHeightProperty());frame.maxHeightProperty().bind(frame.prefHeightProperty());
+        return frame;
+    }
     private javafx.scene.Node image(GuideMediaRepository.Media entry) {
-        var view=new ImageView();view.setPreserveRatio(true);view.setFitWidth(800);view.setFitHeight(450);
-        try{var img=new Image(entry.uri().toASCIIString(),800,450,true,true,true);view.setImage(img);}catch(RuntimeException unavailable){return label(tr("guides.media_failed"),"text-muted");}
-        return view;
+        var view=new ImageView();view.setPreserveRatio(true);var frame=mediaFrame(view);view.fitWidthProperty().bind(frame.widthProperty());view.fitHeightProperty().bind(frame.heightProperty());
+        var failure=label(tr("guides.media_failed"),"text-muted");failure.setVisible(false);frame.getChildren().add(failure);
+        try{var img=new Image(entry.uri().toASCIIString(),800,450,true,true,true);view.setImage(img);failure.visibleProperty().bind(img.errorProperty());}
+        catch(RuntimeException unavailable){failure.setVisible(true);}
+        return frame;
+    }
+    private void openArticle(String key,String title,String text,VBox section){
+        var task=new javafx.concurrent.Task<Void>(){protected Void call()throws Exception{
+            var file=com.vncode.app.features.guides.GuideArticle.write(com.vncode.app.shared.AppPaths.appDataDir().resolve("guide-articles"),key,title,text);
+            java.awt.Desktop.getDesktop().browse(file.toUri());return null;
+        }};
+        java.util.function.Consumer<Throwable> failed=e->{if(!disposed)section.getChildren().add(label(tr("guides.article_failed"),"text-muted"));};
+        task.setOnFailed(e->failed.accept(task.getException()));com.vncode.app.shared.AppTaskExecutor.execute(task,failed);
     }
     private javafx.scene.Node video(GuideMediaRepository.Media entry) {
         var box=new VBox(8);var status=new Label(tr("guides.video_loading"));status.setWrapText(true);
-        var view=new MediaView();view.setPreserveRatio(true);view.fitWidthProperty().bind(box.widthProperty().subtract(12));view.setFitHeight(360);
+        var view=new MediaView();view.setPreserveRatio(true);var frame=mediaFrame(view);view.fitWidthProperty().bind(frame.widthProperty());view.fitHeightProperty().bind(frame.heightProperty());
+        var volume=new Slider(0,1,1);volume.setMaxWidth(130);volume.setAccessibleText(tr("guides.volume"));
         Button play=new Button(tr("guides.play_pause")),retry=new Button(tr("guides.retry"));var seek=new Slider();seek.setMin(0);seek.setMax(1);seek.setDisable(true);
         Runnable load=()->{
             var old=view.getMediaPlayer();if(old!=null){positions.put(entry.guide(),old.getCurrentTime());var oldTimeout=timeouts.remove(old);if(oldTimeout!=null)oldTimeout.stop();old.dispose();players.remove(old);}
             status.setText(tr("guides.video_loading"));play.setDisable(true);seek.setDisable(true);retry.setVisible(false);retry.setManaged(false);
             try {
-                var player=new MediaPlayer(new Media(entry.uri().toASCIIString()));players.add(player);view.setMediaPlayer(player);
+                var player=new MediaPlayer(new Media(entry.uri().toASCIIString()));player.volumeProperty().bind(volume.valueProperty());players.add(player);view.setMediaPlayer(player);
                 var timeout=new javafx.animation.PauseTransition(Duration.seconds(20));timeouts.put(player,timeout);timeout.setOnFinished(e->{if(view.getMediaPlayer()==player&&player.getStatus()!=MediaPlayer.Status.READY&&player.getStatus()!=MediaPlayer.Status.PLAYING&&player.getStatus()!=MediaPlayer.Status.PAUSED){status.setText(tr("guides.media_failed"));retry.setVisible(true);retry.setManaged(true);}});timeout.play();
                 player.setOnReady(()->{timeout.stop();if(disposed||view.getMediaPlayer()!=player)return;status.setText("");play.setDisable(false);seek.setDisable(false);seek.setMax(Math.max(1,player.getTotalDuration().toSeconds()));var position=positions.get(entry.guide());if(position!=null&&!position.isUnknown())player.seek(position);});
                 player.setOnError(()->{timeout.stop();if(view.getMediaPlayer()!=player)return;status.setText(tr("guides.media_failed"));play.setDisable(true);retry.setVisible(true);retry.setManaged(true);});
@@ -66,7 +84,7 @@ public final class GuidesPane extends BorderPane {
                 seek.setOnKeyReleased(e->player.seek(Duration.seconds(seek.getValue())));
             }catch(RuntimeException unavailable){status.setText(tr("guides.media_failed"));retry.setVisible(true);retry.setManaged(true);}
         };
-        retry.setOnAction(e->load.run());box.getChildren().setAll(view,status,new HBox(10,play,retry),seek);load.run();return box;
+        retry.setOnAction(e->load.run());box.getChildren().setAll(frame,status,new FlowPane(10,8,play,retry,new Label(tr("guides.volume")),volume),seek);load.run();return box;
     }
     private void chooseMedia(String guide) {
         var chooser=new FileChooser();chooser.setTitle(tr("guides.add_media"));chooser.getExtensionFilters().setAll(new FileChooser.ExtensionFilter(tr("guides.media_files"),"*.mp4","*.m4v","*.png","*.jpg","*.jpeg"));

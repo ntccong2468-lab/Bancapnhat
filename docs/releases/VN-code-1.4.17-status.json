@@ -1,0 +1,64 @@
+{
+  "version": "1.4.17",
+  "baseVersion": "1.4.16",
+  "complete": false,
+  "developmentComplete": false,
+  "officialReleasePublished": false,
+  "phase": "registration-fixes-under-final-validation",
+  "licenseIntegration": {
+    "implemented": true,
+    "productionReady": false,
+    "activeKeyId": "vncode-2",
+    "changedInThisVersion": false
+  },
+  "validation": {
+    "liveNewCatalogCardCreatedThisVersion": false,
+    "liveCryptoProSigningThisVersion": false,
+    "liveMarketplaceGtinWriteThisVersion": false,
+    "productionLicenseVerified": false,
+    "windowsNativeBuildThisVersion": false,
+    "catalogFullRead": {
+      "rows": 1276,
+      "published": 1237,
+      "draft": 39,
+      "pages": 2,
+      "detailBatches": 52,
+      "errors": 0
+    },
+    "fullJavaRegressionBeforeFinalPreflightUi": {
+      "tests": 1715,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 2
+    },
+    "releaseToolTests": {
+      "tests": 60,
+      "passed": 60
+    },
+    "finalFocusedRegression": {
+      "tests": 57,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  },
+  "comparison": {
+    "from": "Wbcode 1.1.70",
+    "through": "Wbcode 1.3.9",
+    "releasesRead": 18,
+    "itemsAccountedFor": 159,
+    "allFeaturesComplete": false,
+    "report": "docs/research/2026-10-17-wbcode-1170-latest/comparison.json"
+  },
+  "remainingAcceptance": [
+    "Windows native installer and layout checks for this exact source",
+    "Real Windows CryptoPro publication/readback with seller certificate",
+    "Real marketplace GTIN write/readback for a confirmed selected variant",
+    "WB FBS live read needs the existing secret allowed destination marketplace-api.wildberries.ru"
+  ],
+  "remainingComparisonDifferences": [
+    "Explicit new GTIN choice for every failed/uncertain feed is not added; known rejected feeds reuse their GTIN safely",
+    "Online support conversation/image backend is absent; current VNCode Support opens its guides",
+    "GS1 signature/PDF workflow uses a seller-imported company form rather than an unverified bundled form"
+  ]
+}

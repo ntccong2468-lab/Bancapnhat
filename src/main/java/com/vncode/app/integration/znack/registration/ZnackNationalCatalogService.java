@@ -300,27 +300,11 @@ public final class ZnackNationalCatalogService {
     }
 
     public static JsonObject buildPayload(String gtin, Draft draft, String imageUrl) {
-        JsonObject payload = new JsonObject();
-        payload.addProperty("gtin", gtin);
-        payload.addProperty("tnved", draft.feedTnved());
-        payload.addProperty("moderation", 1);
-        payload.addProperty("brand", draft.brand());
-        payload.addProperty("good_name", draft.goodName());
+        return RegistrationTemplate.defaults().build(gtin,draft,imageUrl);
+    }
 
-        JsonObject identity = new JsonObject();
-        identity.addProperty("value", gtin);
-        identity.addProperty("type", "gtin");
-        identity.addProperty("multiplier", 1);
-        identity.addProperty("level", "trade-unit");
-        identity.addProperty("unit", "шт");
-        JsonArray identities = new JsonArray();
-        identities.add(identity);
-        payload.add("identified_by", identities);
-
-        JsonArray categories = new JsonArray();
-        categories.add(draft.categoryId());
-        payload.add("categories", categories);
-
+    /* Payload construction lives in the versioned default template shared by WB and Ozon. */
+    static JsonObject fillTemplate(JsonObject payload,String gtin,Draft draft,String imageUrl) {
         if (imageUrl != null && !imageUrl.isBlank()) {
             JsonObject image = new JsonObject();
             image.addProperty("photo_type", "default");
@@ -337,8 +321,8 @@ public final class ZnackNationalCatalogService {
             if (entry.getValue() == null || entry.getValue().isBlank()) return;
             JsonObject attribute = new JsonObject();
             attribute.addProperty("attr_id", entry.getKey());
-            attribute.addProperty("attr_value", entry.getValue().trim());
-            attribute.addProperty("attr_value_type", draft.attributeTypes().getOrDefault(entry.getKey(), ""));
+            attribute.addProperty("attr_value", RegistrationTemplate.clean(entry.getValue()));
+            attribute.addProperty("attr_value_type", RegistrationTemplate.clean(draft.attributeTypes().getOrDefault(entry.getKey(), "")));
             attributes.add(attribute);
         });
         payload.add("good_attrs", attributes);

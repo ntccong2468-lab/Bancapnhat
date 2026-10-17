@@ -98,6 +98,18 @@ public final class CatalogSyncService {
         }
         var job=new Job(UUID.randomUUID().toString(),shop.getId(),shop.getMarketplace().name(),ListingIdentity.fingerprint(shop),options.fields(),Instant.now(),false,false,rows);plans.insert(job);return job;
     }
+    /** Persist exact, validated authorization before a background worker can dispatch a write. */
+    public Job confirm(Shop shop,String id){
+        synchronized(LOCKS[(id.hashCode()&Integer.MAX_VALUE)%LOCKS.length]){
+            ListingIdentity.require(shop);LicenseRuntime.require(Permission.SELLER_API);
+            var job=plans.read(shop,id);
+            if(!job.confirmed()){
+                if(job.readyCount()==0)throw new IllegalArgumentException("GTIN_VALIDATION_BLOCKED");
+                plans.confirm(shop,id);
+            }
+            return plans.read(shop,id);
+        }
+    }
     public Job run(Shop shop,String id,boolean confirmed)throws Exception {
         synchronized(LOCKS[(id.hashCode()&Integer.MAX_VALUE)%LOCKS.length]){
             return ShopOperationCoordinator.withActiveShop(shop.getId(),()->runActive(shop,id,confirmed));

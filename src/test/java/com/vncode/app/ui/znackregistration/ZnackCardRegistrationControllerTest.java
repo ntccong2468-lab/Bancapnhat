@@ -41,6 +41,7 @@ class ZnackCardRegistrationControllerTest {
         new com.vncode.app.features.gtinsync.GtinSyncRepository().saveCatalog(1,com.vncode.app.integration.marketplace.Marketplace.WILDBERRIES,java.util.List.of(
             new com.vncode.app.features.gtinsync.GtinSyncModels.RegisteredGtin("04631993764370","SKU-3","","XL",true,true,com.vncode.app.features.gtinsync.RegisteredGtinProof.source(owner),java.time.Instant.now())));
         fx(()->{
+            if(System.getProperty("vncode.item4.capture.dir")!=null)I18nService.getInstance().setLanguage(com.vncode.app.shared.AppLanguage.VI);
             loader=new FXMLLoader(ZnackCardRegistrationController.class.getResource("znack-card-registration-view.fxml"));
             loader.load();((ZnackCardRegistrationController)loader.getController()).setShop(new Shop(1,"Fixture","fixture"));return null;
         });
@@ -171,6 +172,23 @@ class ZnackCardRegistrationControllerTest {
             assertFalse(((javafx.scene.layout.VBox)loader.getNamespace().get("wbRegistrationContent")).isManaged());
             assertTrue(table().getItems().isEmpty());assertTrue(button("registerSelectedButton").isDisable());return null;
         });
+    }
+    @Test void headerAndFooterMatchTheApprovedRegistrationLayout()throws Exception{
+        fx(()->{
+            var header=(javafx.scene.layout.HBox)loader.getNamespace().get("registrationHeader");
+            assertEquals(java.util.List.of("configButton","signApprovedButton","updateWbButton","syncZnackButton"),header.getChildren().stream().filter(n->n instanceof Button).map(javafx.scene.Node::getId).toList());
+            var footer=button("registerSelectedButton").getParent();assertSame(footer,loader.getNamespace().get("allFilteredCheckBox") instanceof javafx.scene.Node n?n.getParent():null);
+            assertSame(footer,((Label)loader.getNamespace().get("paginationLabel")).getParent());
+            assertEquals("selectionColumn",table().getColumns().getFirst().getId());
+            assertFalse(((TableColumn<?,?>)loader.getNamespace().get("detailColumn")).isVisible());
+            return null;
+        });
+    }
+    @Test void progressRefreshCannotDiscardAnActiveRegistrationBatch()throws Exception{
+        var controller=(ZnackCardRegistrationController)loader.getController();
+        fx(()->{button("selectAllButton").fire();var field=controller.getClass().getDeclaredField("preparing");field.setAccessible(true);field.setBoolean(controller,true);
+            button("refreshButton").fire();assertEquals(3,table().getItems().size());assertEquals(3,table().getSelectionModel().getSelectedItems().size());
+            field.setBoolean(controller,false);return null;});
     }
     @SuppressWarnings("unchecked") TableView<Sku> table(){return (TableView<Sku>)loader.getNamespace().get("productTable");}
     Button button(String id){var b=(Button)loader.getNamespace().get(id);assertNotNull(b,id);return b;}

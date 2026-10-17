@@ -69,7 +69,7 @@ public final class RegistrationAttemptReports {
             write(state,status==Status.PUBLISHED?"CARD_PUBLISHED":status.name(),error,current);
         }
         private void write(String state,String step,String error,Sku current){
-            var evidence=new JsonObject();
+            var evidence=new JsonObject();evidence.addProperty("template",com.vncode.app.integration.znack.registration.RegistrationTemplate.defaults().id());
             if(current!=null){
                 evidence.addProperty("feedId",current.feedId());evidence.addProperty("goodId",current.goodId());
                 evidence.addProperty("publicationVerified",state.equals("SUCCEEDED"));
