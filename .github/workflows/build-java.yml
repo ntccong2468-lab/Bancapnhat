@@ -265,17 +265,7 @@ jobs:
             out/VN-code-${{ env.APP_VERSION }}-Windows-x64.sha256
             out/native-smoke.json
             out/side-by-side-smoke.json
-            out/upgrade-smoke.json
-            out/upgrade-preview-smoke.json
-            out/upgrade-latest-preview-smoke.json
-            out/upgrade-current-preview-smoke.json
-            out/upgrade-gs1-preview-smoke.json
-            out/upgrade-license-test-smoke.json
-            out/upgrade-stable-146-smoke.json
-            out/upgrade-stable-1410-smoke.json
-            out/upgrade-stable-1411-smoke.json
-            out/upgrade-stable-1412-smoke.json
-            out/upgrade-stable-1413-smoke.json
+            out/upgrade-*.json
             out/gs1-smoke.json
             out/seller-workspace-smoke.json
             out/seller-workspace-evidence.zip
