@@ -85,7 +85,7 @@ public final class ProductBulkEditPane extends BorderPane {
         suggestionDelay.setOnFinished(e->loadSuggestions());readbackDelay.setOnFinished(e->reconcile(true));
         chooseFile.setOnAction(e->{var chooser=new FileChooser();chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("PDF / JPEG / PNG","*.pdf","*.jpg","*.jpeg","*.png"));var picked=chooser.showOpenDialog(getScene()==null?null:getScene().getWindow());if(picked!=null){file=picked.toPath();chooseFile.setText(picked.getName());invalidate();}});
         for(var inputField:List.of(value,number,type,name,country,accordance,productType,registry))inputField.textProperty().addListener((o,a,b)->invalidate());
-        value.textProperty().addListener((o,a,b)->{if(!resetting&&!field.equals("documents")){suggestionTicket++;suggestionDelay.playFromStart();}});
+        value.textProperty().addListener((o,a,b)->{if(!resetting&&!field.equals("documents")&&(!compact||field.equals("brand"))){suggestionTicket++;suggestionDelay.playFromStart();}});
         from.valueProperty().addListener((o,a,b)->invalidate());until.valueProperty().addListener((o,a,b)->invalidate());endless.selectedProperty().addListener((o,a,b)->invalidate());
         history.setOnAction(e->{if(history.getValue()!=null&&!busy){jobId=history.getValue();ready=false;previewRevision=-1;confirm.setSelected(false);var owner=shop;String id=jobId;readResult(owner,id);}});
         applyTranslations();buttons();
@@ -122,7 +122,7 @@ public final class ProductBulkEditPane extends BorderPane {
     }
     private void loadSuggestions(){
         if(disposed||shop==null||keys.isEmpty()||field.equals("documents"))return;
-        var owner=shop;var selected=keys;String editedField=field,text=value.getText();String q=text.substring(text.lastIndexOf('|')+1).strip();long epoch=generation,ticket=++suggestionTicket;
+        var owner=shop;var selected=keys;String editedField=field,text=value.getText();String q=compact&&field.equals("material")?"":text.substring(text.lastIndexOf('|')+1).strip();long epoch=generation,ticket=++suggestionTicket;
         suggestionStatus.setText(tr("edit.suggestions_loading"));
         reads.submit(new ShopReadCoordinator.Key(owner.getId(),"product-edit-values",UUID.randomUUID().toString()),true,()->suggestionsService.suggest(owner,selected,editedField,q,partial->Platform.runLater(()->{
             if(disposed||epoch!=generation||ticket!=suggestionTicket)return;

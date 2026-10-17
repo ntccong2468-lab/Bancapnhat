@@ -36,6 +36,10 @@ class ProductBulkDialogTest {
  @Test void genderAndMaterialAreBatchPickersAndDocumentsHaveVisibleCalendars()throws Exception{
   fx(()->{pane.open(shop,"gender",keys);pane.compact();pane.applyCss();pane.layout();assertEquals(5,pane.lookupAll(".radio-button").size());assertNull(pane.lookup("#editResults"));pane.open(shop,"material",keys);pane.compact();pane.applyCss();pane.layout();assertNotNull(pane.lookup("#bulkMaterialName"));assertNotNull(pane.lookup("#bulkMaterialPercent"));pane.open(shop,"documents",keys);pane.compact();pane.applyCss();pane.layout();assertNotNull(pane.lookup("#bulkExistingDocument"));assertNotNull(pane.lookup("#editDocumentFrom"));assertNotNull(pane.lookup("#editDocumentUntil"));return null;});idle();
  }
+ @Test void materialPercentagesDoNotFilterAwayTheIngredientDictionary()throws Exception{
+  fx(()->{pane.open(shop,"material",keys);pane.compact();pane.applyCss();pane.layout();var box=(ComboBox<String>)pane.lookup("#bulkMaterialName");box.getEditor().setText("хлопок");((Spinner<Integer>)pane.lookup("#bulkMaterialPercent")).getValueFactory().setValue(80);return null;});
+  Thread.sleep(450);idle();fx(()->{var box=(ComboBox<String>)pane.lookup("#bulkMaterialName");assertTrue(box.getItems().contains("полиэстер"));assertEquals("хлопок",box.getEditor().getText());return null;});
+ }
  @Test void acceptedBatchFreezesInputsUntilTheWriteCompletes()throws Exception{
   adapter.entered=new CountDownLatch(1);adapter.release=new CountDownLatch(1);
   try{
