@@ -3,7 +3,7 @@
   "baseVersion": "1.4.13",
   "reviewedBaseSource": "2554b7a46d6d39a74dfbc7adbbafd40d9ed3f27f",
   "sourceCommit": "6ba183cd5fb4420e37df13035581fee08c2d2155",
-  "phase": "native-windows-passed-release-draft-ready-awaiting-live-acceptance",
+  "phase": "owner-requested-final-regression-running",
   "latestPublished": "1.4.13",
   "officialReleasePublished": false,
   "remoteMutationsThisAudit": 0,
@@ -269,6 +269,122 @@
       "remoteMutations": 0,
       "at": "2026-10-17T07:38:49.494511+00:00",
       "status": 401
+    },
+    "ownerProvidedWbVerification": {
+      "authorization": {
+        "at": "2026-10-17T07:46:54.662165+00:00",
+        "credentialSource": "owner supplied token used in memory",
+        "remoteMutations": 0,
+        "endpoints": {
+          "new-orders": {
+            "status": 200,
+            "count": 4
+          },
+          "supplies": {
+            "status": 200,
+            "count": 293
+          }
+        },
+        "finishedAt": "2026-10-17T07:47:01.215414+00:00"
+      },
+      "fullRead": {
+        "at": "2026-10-17T07:48:11.176535+00:00",
+        "credentialSource": "owner supplied token used in memory",
+        "remoteMutations": 0,
+        "endpoints": {
+          "new-statuses": {
+            "status": 503
+          },
+          "supply-detail-0": {
+            "status": 200
+          },
+          "supply-ids-0": {
+            "status": 200
+          },
+          "supply-statuses-0": {
+            "status": 200
+          },
+          "supply-detail-1": {
+            "status": 200
+          },
+          "supply-ids-1": {
+            "status": 200
+          },
+          "supply-statuses-1": {
+            "status": 200
+          },
+          "history-0": {
+            "status": 200
+          },
+          "history-1": {
+            "status": 200
+          },
+          "fbo-list": {
+            "status": 200
+          }
+        },
+        "history": {
+          "days": 30,
+          "pages": 2,
+          "orders": 1547,
+          "complete": true
+        },
+        "supplySamples": [
+          {
+            "done": false,
+            "detailRead": true,
+            "idsRead": true,
+            "orderCount": 6
+          },
+          {
+            "done": true,
+            "detailRead": true,
+            "idsRead": true,
+            "orderCount": 12
+          }
+        ],
+        "fboCount": 4,
+        "finishedAt": "2026-10-17T07:48:34.730039+00:00"
+      },
+      "retryAndPolling": {
+        "at": "2026-10-17T07:49:11.245187+00:00",
+        "remoteMutations": 0,
+        "matchesCurrentEnvironmentSecret": false,
+        "statusAttempts": [
+          {
+            "status": 200,
+            "count": 4
+          }
+        ],
+        "queuePolls": [
+          {
+            "status": 200,
+            "count": 4
+          },
+          {
+            "status": 200,
+            "count": 4
+          },
+          {
+            "status": 200,
+            "count": 4
+          }
+        ],
+        "finishedAt": "2026-10-17T07:49:22.743269+00:00"
+      },
+      "nativeParser": {
+        "result": "passed",
+        "newOrders": 4,
+        "supplies": 293,
+        "supplySamples": 2,
+        "sampleMembershipIds": 18,
+        "historyPages": 2,
+        "historyOrders": 1547,
+        "historyComplete": true,
+        "nativeParser": "Gson DTOs and WbFbsResponseValidator from verified VNCode source 6ba183c",
+        "remoteMutations": 0,
+        "productionLicenseOrWindowsSigningAcceptance": false
+      }
     }
   },
   "wbcode": {
@@ -329,12 +445,12 @@
     "releaseEvidence": "docs/validation/2026-10-17-vncode-1414-windows-release-checks.json"
   },
   "limitations": [
-    "WB FBS and FBO live endpoints returned HTTP 401; owner will update environment Secret",
     "No production license activation/revocation test in this audit",
     "No Windows CryptoPro enterprise certificate in cloud",
     "No new Catalog registration, signing, KIZ purchase, KIZ assignment, GS1 email or marketplace mutation in this audit",
     "Prior live Ozon GTIN APPLIED and WB trim readback are separate retained evidence; never replayed",
-    "WB new GTIN sample still needs TN VED review; no classification changed silently"
+    "WB new GTIN sample still needs TN VED review; no classification changed silently",
+    "WB FBS/FBO reads now pass with the owner supplied token; injected environment Secret is still different"
   ],
   "changedApplicationInputs": [
     {
@@ -558,8 +674,9 @@
     "allAssetSizesAndDigestsMatch": true,
     "ownerGitHubLoginRequired": true,
     "blockers": [
-      "WB FBS/FBO live API returns HTTP 401 pending owner environment token update",
       "Exact-version production license acceptance required by existing automated publisher remains outstanding"
-    ]
+    ],
+    "ownerRequestedFinalRecheckAndLatest": true,
+    "repeatBuildRunId": 39015146530
   }
 }

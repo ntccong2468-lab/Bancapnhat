@@ -57,3 +57,11 @@ Kiểm thử toàn bộ và native Windows trên đúng source đã đạt, gồ
 - [Bản nháp 1.4.14](https://github.com/ntccong2468-lab/Bancapnhat/releases/tag/untagged-24b8ad394edf6e9a8fcb), release ID `415658561`, cần đăng nhập tài khoản GitHub có quyền vào repository; đây chưa phải link tải công khai cho seller.
 - `VN-code-1.4.14-Windows-x64.exe`: 145.456.128 byte; SHA-256 `ec9b0e71fef0edd20de106aeedec6f5ed6fa27de8df36d5ddbeedbaee2215385`. Đủ 22 asset, gồm bộ cài, checksum, ghi chú, các bằng chứng Windows và Portal 0.3.6. Tất cả digest/kích thước khớp artifact của lượt build đã đạt.
 - Latest của seller vẫn là **1.4.13**. Chưa vượt qua kiểm tra đơn WB thật do HTTP 401 và chưa có bằng chứng license sản xuất theo yêu cầu publisher hiện hữu. Không đổi các cờ nghiệm thu hoặc giả lập bằng chứng để xuất bản.
+
+## Kiểm tra bổ sung bằng token WB chủ ứng dụng vừa cung cấp
+
+API đơn mới và shipment đều trả 200: 4 đơn mới, 293 shipment. Lịch sử 30 ngày đọc đủ 1.547 đơn qua 2 trang; đọc được chi tiết và thành phần của 1 shipment mở / 1 shipment đã đóng, tổng 18 ID đơn trong 2 mẫu. API FBO đọc được 4 lô. Một lần đọc trạng thái trả 503, lần đọc lại trả 200 đủ 4 trạng thái; 3 lượt polling đơn mới liên tiếp đều trả 200. Parser và validator của VNCode trên source `6ba183c` xác nhận toàn bộ mẫu hợp lệ, gồm lịch sử đủ trang. Không thay đổi đơn hàng, không gán mã hoặc đóng shipment.
+
+Token mới khác Secret được inject trong tiến trình môi trường hiện tại. Chỉ dùng token mới trong bộ nhớ để kiểm tra; không ghi token vào source, báo cáo hoặc GitHub. Kết quả 401 trước đó vẫn là lịch sử của Secret cũ, không còn đại diện cho token WB mới.
+
+Theo yêu cầu tiếp theo của chủ ứng dụng, đang chạy lại `clean verify`, toàn bộ Node/Portal và Windows build `39015146530` trên đúng source `6ba183c`, sau đó kiểm tra artifact mới trước khi phát hành Latest. Xem [báo cáo lượt kiểm tra cuối](2026-10-17-vncode-1414-final-recheck.json).

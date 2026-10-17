@@ -4,7 +4,7 @@
   "complete": false,
   "developmentComplete": true,
   "officialReleasePublished": false,
-  "phase": "native-windows-passed-release-draft-ready-awaiting-live-acceptance",
+  "phase": "draft-superseded-by-1.4.15-final-fixture-stability",
   "licenseIntegration": {
     "implemented": true,
     "productionReady": false,
@@ -191,7 +191,7 @@
       "nativeWindowsResult": "success",
       "liveOzonFbsPostings": 244,
       "liveOzonFbsPages": 3,
-      "liveWbFbs": "HTTP_401_waiting_for_environment_token",
+      "liveWbFbs": "passed_with_owner_supplied_token",
       "remoteMutations": 0,
       "visibleFbsSchedulerChecks": 11,
       "priorNativeRunSuperseded": 39010074435,
@@ -201,7 +201,9 @@
       "wbBatchCommitsBefore": 1000,
       "wbBatchCommitsAfter": 1,
       "catalogBatchCommitsBefore": 410,
-      "catalogBatchCommitsAfter": 5
+      "catalogBatchCommitsAfter": 5,
+      "liveWbHistoryOrders": 1547,
+      "liveWbFboSupplies": 4
     },
     "previousFullJavaRegression": {
       "tests": 1660,
@@ -235,7 +237,8 @@
       "layouts": 288,
       "clippedActions": 0,
       "source": "6ba183cd5fb4420e37df13035581fee08c2d2155"
-    }
+    },
+    "ownerRequestedFinalRecheck": "docs/validation/2026-10-17-vncode-1414-final-recheck.json"
   },
   "publication": {
     "published": false,
@@ -252,12 +255,14 @@
     "allAssetSizesAndDigestsMatch": true,
     "ownerGitHubLoginRequired": true,
     "blockers": [
-      "WB FBS/FBO live API returns HTTP 401 pending owner environment token update",
       "Exact-version production license acceptance required by existing automated publisher remains outstanding"
-    ]
+    ],
+    "ownerRequestedFinalRecheckAndLatest": true,
+    "repeatBuildRunId": 39015146530
   },
   "inheritedImplementation": "docs/releases/VN-code-1.4.13-status.json",
   "sourceCommit": "6ba183cd5fb4420e37df13035581fee08c2d2155",
   "applicationSource": "6ba183cd5fb4420e37df13035581fee08c2d2155",
-  "previousApplicationSource": "788267089291ad2adff023cfd60a4575147d12dd"
+  "previousApplicationSource": "788267089291ad2adff023cfd60a4575147d12dd",
+  "supersededByVersion": "1.4.15"
 }

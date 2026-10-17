@@ -33,8 +33,13 @@ class JobCenterDialogTest {
     Button button(String id){return (Button)dialog.lookup("#"+id);}
     void waitFor(Callable<Boolean> condition)throws Exception{long until=System.nanoTime()+TimeUnit.SECONDS.toNanos(6);while(System.nanoTime()<until){if(fx(condition))return;Thread.sleep(25);}fail("Report did not reach expected state");}
     @AfterEach void cleanup()throws Exception{
-        fx(()->{for(var window:List.copyOf(Window.getWindows()))if(window instanceof Stage stage&&stage.getOwner()==owner)stage.close();owner.close();return null;});
-        long until=System.nanoTime()+TimeUnit.SECONDS.toNanos(5);while(com.vncode.app.shared.AppTaskExecutor.getRunningTaskCount()>0&&System.nanoTime()<until)Thread.sleep(20);
+        fx(()->{
+            // Close the Dialog itself so its onHidden handler stops periodic report reads.
+            if(dialog!=null)((Button)dialog.lookupButton(ButtonType.CLOSE)).fire();
+            for(var window:List.copyOf(Window.getWindows()))if(window instanceof Stage stage&&stage.getOwner()==owner)stage.close();
+            owner.close();return null;
+        });
+        com.vncode.app.testsupport.ShopReadTestCleanup.awaitSharedIdle();
         System.clearProperty("vncode.appdata.dir");
     }
     @Test void refreshingPreservesSelectedProductAndUpdatesItsError()throws Exception{

@@ -181,7 +181,15 @@ class ZnackCardRegistrationControllerTest {
     }
     static void awaitTasks() throws Exception {
         long end=System.nanoTime()+TimeUnit.SECONDS.toNanos(10);
-        while(AppTaskExecutor.hasRunningTasks() && System.nanoTime()<end)Thread.sleep(20);
-        fx(()->null);assertFalse(AppTaskExecutor.hasRunningTasks());
+        int idle=0;
+        while(System.nanoTime()<end) {
+            // Completion on FX may enqueue another worker after the first worker reaches zero.
+            fx(()->null);
+            idle=AppTaskExecutor.hasRunningTasks()?0:idle+1;
+            if(idle==2)return;
+            Thread.sleep(20);
+        }
+        assertFalse(AppTaskExecutor.hasRunningTasks());
+        fail("JavaFX callbacks and their follow-up tasks must settle within ten seconds");
     }
 }

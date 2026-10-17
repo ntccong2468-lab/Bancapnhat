@@ -1,0 +1,66 @@
+{
+  "version": "1.4.15",
+  "baseVersion": "1.4.13",
+  "complete": false,
+  "developmentComplete": true,
+  "officialReleasePublished": false,
+  "phase": "final-regression-running-after-fixture-race-fix",
+  "licenseIntegration": {
+    "implemented": true,
+    "productionReady": false,
+    "activeKeyId": "vncode-2",
+    "changedInThisVersion": false
+  },
+  "applicationSource": null,
+  "sourceCommit": null,
+  "inheritedImplementation": "docs/releases/VN-code-1.4.14-status.json",
+  "scope": [
+    "Bounded local SQLite write transactions and original sync failure preservation",
+    "WB characteristic order stability during fresh read/preview/confirmed save",
+    "Marketplace-backed product value suggestions and explicit save/readback UI",
+    "WB card-level product view and verified readback projection",
+    "Fashion TN VED reference, filtered browser and per-product proposal review",
+    "Stable paged task reports and distinct marketplace/local KIZ statuses",
+    "Category KIZ reimport recovery with state-aware counts and explicit free-stock relocation",
+    "Znack TN VED group replacement with archived cards and one fresh GTIN per approved replacement",
+    "Per-card automatic signing consent with restart and uncertain-send reconciliation",
+    "Catalog article normalization without deleting model separators",
+    "Infinite virtualized Znack lists and progressively loaded WB shop/marketplace brands",
+    "GS1 signed PDF/photo regression and compact owner-bounded dialogs",
+    "Structured per-product edit keys survive persisted preview/save/reopen",
+    "Explicit Catalog size systems and separate Ozon manufacturer/Russian size persistence",
+    "Native WB GTIN fingerprint stability and product-bound asynchronous rejection reporting",
+    "Shared Liquid Glass materials and persistent live-preview transparency settings",
+    "Unicode article edge cleanup with own-card collision prevention and readback",
+    "Ozon seller SKU model/color/explicit-size matching including structured supplier articles",
+    "Stable virtualized GTIN inventory scroll during periodic refresh",
+    "Fair per-database bounded SQLite writer queue with connection reuse and unchanged FULL durability",
+    "Continuous FBS has reserved workers and an HTTP slot protected from background reads",
+    "Unified WB automatic/manual FBS response validation and completed history watermark protection",
+    "Strict Ozon posting identity, product quantity and current-credential validation",
+    "Complete FBO pagination with non-destructive failure handling and resumable Ozon history",
+    "GS1 source error propagation and coalesced-reader completion",
+    "Atomic WB status pages and bounded 100-card Catalog metadata writes prevent partial commits and reduce SQLite contention",
+    "Deterministic JavaFX follow-up task waiting without increasing the ten-second test deadline",
+    "Report dialog fixture closes via its own Close action and drains shared reads before switching databases"
+  ],
+  "validation": {
+    "fullJavaRegression": {
+      "result": "pending"
+    },
+    "windowsNativeBuildThisVersion": false,
+    "productionLicenseVerified": false,
+    "liveReadReport": "docs/validation/2026-10-17-vncode-1414-final-recheck.json",
+    "inheritedApplicationSource": "6ba183cd5fb4420e37df13035581fee08c2d2155",
+    "priorFixtureFailureReport": "docs/validation/2026-10-17-vncode-1414-final-recheck.json"
+  },
+  "publication": {
+    "published": false,
+    "latestChanged": false,
+    "currentSellerLatest": "1.4.13",
+    "ownerRequestedPublication": true,
+    "ownerRequestedFullRecheckBeforePublication": true,
+    "standardProductionLicenseGateAccepted": false,
+    "manualPublicationAuthorization": "Owner reiterated full recheck, Windows rebuild and Latest publication after the existing missing production acceptance had been disclosed; acceptance flags remain truthful"
+  }
+}

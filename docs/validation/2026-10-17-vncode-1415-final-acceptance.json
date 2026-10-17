@@ -1,0 +1,103 @@
+{
+  "version": "1.4.15",
+  "baseVersion": "1.4.13",
+  "sourceCommit": null,
+  "phase": "final-clean-verification-and-new-windows-build-pending",
+  "ownerRequestedLatestAfterFullRecheck": true,
+  "inheritedApplicationSource": "6ba183cd5fb4420e37df13035581fee08c2d2155",
+  "applicationChangesAfterInheritedSource": [
+    "Version metadata only; production code unchanged while stabilizing fixture waits/cleanup"
+  ],
+  "priorFullRecheck": {
+    "source": "6ba183cd5fb4420e37df13035581fee08c2d2155",
+    "suite": "ZnackCardRegistrationControllerTest",
+    "test": "loadsBeyondFiveHundredAndFreezesAllFilteredWithoutExpandingFxRows",
+    "failure": "AppTaskExecutor.hasRunningTasks was true after FX barrier despite preceding zero-count check",
+    "assertionTimeoutSecondsUnchanged": 10,
+    "followupVersion": "1.4.15",
+    "supersededWindowsRun": 39015146530,
+    "supersededWindowsResult": "cancelled",
+    "fullJava": {
+      "tests": 1664,
+      "failures": 1,
+      "errors": 0,
+      "skipped": 2,
+      "logSha256": "3fdecf74a77d8056d68eda5aa41a2b7e908ccb06831932db2598785fca537d22"
+    }
+  },
+  "realApi": {
+    "report": "docs/validation/2026-10-17-vncode-1414-final-recheck.json",
+    "remoteMutations": 0,
+    "wbNewOrders": 4,
+    "wbSupplies": 293,
+    "wbHistory30DayOrders": 1547,
+    "wbHistoryPages": 2,
+    "wbFboSupplies": 4,
+    "wbLiveParser": "passed",
+    "ozonFbsPostings": 244,
+    "ozonFbsPages": 3,
+    "ozonFbsProductLines": 245,
+    "wbProductCards": 388,
+    "wbProductVariants": 1982,
+    "ozonProducts": 175,
+    "catalogCards": 1276,
+    "catalogPublished": 1237,
+    "catalogDraft": 39,
+    "ozonUniqueGtinMatches": 10,
+    "ozonAmbiguousMatches": 0,
+    "injectedWbSecretMatchesWorkingToken": false
+  },
+  "fixtureFix": {
+    "znackDeadlineSeconds": 10,
+    "stableFxIdleChecks": 2,
+    "originalAssertionsRetained": true,
+    "dialogClosedUsingOwnAction": true,
+    "sharedReadsDrainedBeforeScopeReset": true,
+    "focusedRuns": [
+      {
+        "run": 1,
+        "tests": 11,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "logSha256": "1505181961b51f1845c59aa5484736ef1471ab8223653d8c393576e55f68ec85"
+      },
+      {
+        "run": 2,
+        "tests": 11,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "logSha256": "e6978f48cf9adfc31f279670bc29c7b79f8745c42f4b5124550b0d96b5bd352e"
+      },
+      {
+        "run": 3,
+        "tests": 11,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "logSha256": "90637e16662a96879e7bcb13cd4fde80a5e14e425ff6b7751d8d6be4d9e149cb"
+      }
+    ]
+  },
+  "fullJava": {
+    "result": "pending"
+  },
+  "nativeWindows": {
+    "result": "pending"
+  },
+  "publication": {
+    "published": false,
+    "latestChanged": false,
+    "currentSellerLatest": "1.4.13",
+    "ownerRequestedPublication": true,
+    "standardLicenseGateAccepted": false
+  },
+  "limitations": [
+    "Production license activation/revocation for the exact build was not accepted against the real backend",
+    "Cloud does not have the enterprise Windows CryptoPro certificate",
+    "No additional live registration/signing, KIZ purchase/assignment, shipment mutation or marketplace GTIN write during this final recheck",
+    "Prior one Ozon GTIN APPLIED and WB article trim verified by native readback remain retained separately; no replay",
+    "WB set-category sample has different TN VED; pants outside the selected test category were not modified"
+  ]
+}
