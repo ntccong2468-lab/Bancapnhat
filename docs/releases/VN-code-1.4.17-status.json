@@ -71,8 +71,9 @@
       "liveSellerMutations": false
     },
     "fullJavaRegression": {
-      "sourceCommit": "3e26e11257e91cebcb693e1506bcbc4abfb4f6d5",
-      "tests": 1738,
+      "sourceCommit": "c09bc0d52eeae70f95dd8d9da065c4d309849c6d",
+      "command": "mvn verify",
+      "tests": 1744,
       "failures": 0,
       "errors": 0,
       "skipped": 2,
@@ -126,7 +127,7 @@
       "focusedTests": 85,
       "failures": 0,
       "errors": 0,
-      "fullRegression": "passed on 3e26e11 before final rejected-card-identity correction",
+      "fullRegression": "passed final source with missing-document flow",
       "windowsNative": "pending",
       "liveSellerMutations": false
     },
@@ -159,7 +160,8 @@
       "directPickerFromMissingRow": true,
       "requiresReadbackBeforeContinuation": true,
       "acceptsNativeTypeCodes": true,
-      "liveSellerMutations": false
+      "liveSellerMutations": false,
+      "fullRegression": "passed final verify"
     },
     "supersededWindowsBuilds": [
       {
