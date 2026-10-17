@@ -4,7 +4,7 @@
   "complete": false,
   "developmentComplete": true,
   "officialReleasePublished": false,
-  "phase": "windows-java-accepted-native-installer-smokes-running",
+  "phase": "owner-requested-immediate-publication",
   "licenseIntegration": {
     "implemented": true,
     "productionReady": false,
@@ -136,8 +136,9 @@
     "nativeWindowsRun": {
       "run": 39061440469,
       "source": "536567835f6a044626d00be273b2217bb1c4fc7c",
-      "status": "running",
-      "url": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/39061440469"
+      "status": "completed",
+      "url": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/39061440469",
+      "conclusion": "failure"
     },
     "finalReport": "docs/validation/2026-10-17-vncode-1416-final-acceptance.json",
     "liveReadReport": "docs/validation/2026-10-17-vncode-1416-live-read.json",
@@ -164,6 +165,19 @@
       "passed": 1685,
       "jarSha256": "ba5255a21646342fe697ecaf860499de037d2242f40ec3f151d737cc9f9c3470",
       "nativeInstallerAcceptanceStillRunning": true
+    },
+    "nativeAcceptance": {
+      "nativeLauncher": true,
+      "dpapi": true,
+      "dpi": [
+        100,
+        125,
+        150
+      ],
+      "layouts": 288,
+      "upgradeBaselinesPassed": 11,
+      "upgrade1415Retested": false,
+      "failure": "Probe expected schema 4 instead of actual schema 5 for 1.4.15; probe corrected"
     }
   },
   "scope": [
@@ -176,5 +190,6 @@
     "One-click listing copy with progress"
   ],
   "applicationSource": "536567835f6a044626d00be273b2217bb1c4fc7c",
-  "sourceCommit": "536567835f6a044626d00be273b2217bb1c4fc7c"
+  "sourceCommit": "536567835f6a044626d00be273b2217bb1c4fc7c",
+  "ownerPublicationInstruction": "docs/validation/2026-10-17-vncode-1416-owner-publication.json"
 }
