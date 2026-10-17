@@ -26,6 +26,8 @@ public final class ZnackCategoryResolver {
                 var tokens=tokens(source);var other=tokens(name);tokens.retainAll(other);score=tokens.size()*20;
                 var overlap=new HashSet<>(family);overlap.retainAll(target);score+=overlap.size()*100;
             }
+            // Prefer the primary garment over a secondary mention, e.g. trousers versus skirt-trousers.
+            if(score>0&&family.stream().anyMatch(name::startsWith))score+=50;
             if(score>best){winner=candidate;best=score;tied=false;}else if(score==best&&score>0)tied=true;
         }
         return best>=20&&!tied?Optional.of(winner):Optional.empty();
