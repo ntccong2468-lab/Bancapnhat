@@ -221,6 +221,26 @@ public final class ProductRepository {
             p.setInt(1,key.shopId());p.setString(2,key.cardId());try(var r=p.executeQuery()){if(!r.next())return Optional.empty();if(!key.variantId().equals(safe(r.getString("offer_id"))))throw new SecurityException("Unknown product variant");return Optional.of(new ProductSnapshot(key,"summary:"+hash(safe(r.getString("updated_at"))),safe(r.getString("name")),"","",safe(r.getString("article")),safe(r.getString("category")),safeMedia(r.getString("primary_image_url")).stream().toList(),List.of(),List.of(new ProductVariant(key.variantId(),safe(r.getString("offer_id")),safe(r.getString("color")),safe(r.getString("size")),"",false)),null,documents(c,key),Instant.now()));}
         }
     }
+    /** Existing documents across the current shop, including cards outside a bulk selection. */
+    public List<ProductDocument> shopDocuments(Shop shop){
+        ListingIdentity.require(shop);String owner=ListingIdentity.fingerprint(shop);
+        try(var c=open();var p=c.prepareStatement("""
+            SELECT payload FROM (
+              SELECT d.payload,d.document_id,
+                row_number() OVER(PARTITION BY json_extract(d.payload,'$.type'),json_extract(d.payload,'$.number')
+                  ORDER BY d.verified_at DESC,d.document_id) choice
+              FROM product_documents d WHERE d.shop_id=? AND d.marketplace=?
+                AND d.state NOT IN ('REJECTED','EXPIRED')
+                AND (d.valid_until IS NULL OR d.valid_until>=? OR json_extract(d.payload,'$.metadata.isEndless')='true')
+                AND EXISTS(SELECT 1 FROM product_snapshots snapshot WHERE snapshot.shop_id=d.shop_id
+                  AND snapshot.marketplace=d.marketplace AND snapshot.card_id=d.card_id
+                  AND json_extract(snapshot.payload,'$.metadata.owner')=? AND json_extract(snapshot.payload,'$.revision') LIKE 'live:%')
+            ) WHERE choice=1 ORDER BY json_extract(payload,'$.number'),document_id
+            """)){
+            p.setInt(1,shop.getId());p.setString(2,shop.getMarketplace().name());p.setString(3,java.time.LocalDate.now().toString());p.setString(4,owner);
+            var documents=new ArrayList<ProductDocument>();try(var rows=p.executeQuery()){while(rows.next())documents.add(ProductJson.GSON.fromJson(rows.getString(1),ProductDocument.class));}return List.copyOf(documents);
+        }catch(SQLException error){throw storeError();}
+    }
     private static List<ProductDocument> documents(Connection c,ProductKey key)throws SQLException {
         try(var p=c.prepareStatement("SELECT payload FROM product_documents WHERE shop_id=? AND marketplace=? AND card_id=? ORDER BY document_id")) {
             p.setInt(1,key.shopId());p.setString(2,key.marketplace().name());p.setString(3,key.cardId());try(var r=p.executeQuery()){var out=new ArrayList<ProductDocument>();while(r.next())out.add(ProductJson.GSON.fromJson(r.getString(1),ProductDocument.class));return List.copyOf(out);}
