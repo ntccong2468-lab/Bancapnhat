@@ -376,11 +376,7 @@ public class HomeController implements Initializable {
                 ZnackCardRegistrationController.class, "znack-card-registration-view.fxml");
         znackRegistrationView = FxmlViewLoader.load(znackRegistrationLoader);
         znackRegistrationController = znackRegistrationLoader.getController();
-        znackRegistrationController.setOzonRegistrationFactory(owner ->
-                new com.vncode.app.ui.znackregistration.OzonRegistrationPane(owner,()->{
-                    Shop current=state.getSelectedShop();
-                    if(current!=null&&current.getId()==owner.getId()&&current.getMarketplace()==owner.getMarketplace())com.vncode.app.ui.znackregistration.ZnackGtinReviewDialog.show(znackRegistrationView.getScene()==null?null:znackRegistrationView.getScene().getWindow(),owner);
-                }));
+        znackRegistrationController.setOzonRegistrationFactory(com.vncode.app.ui.znackregistration.OzonRegistrationPane::new);
 
             return znackRegistrationView;
         });

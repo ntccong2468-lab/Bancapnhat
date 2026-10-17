@@ -62,7 +62,7 @@ class OzonRegistrationPaneTest {
         for(int count:new int[]{600,900,1000}){fx(()->{button("more").fire();return null;});awaitRows(count);}
         fx(()->{assertEquals(1000,table().getItems().stream().map(ProductRow::key).distinct().count());assertFalse(button("more").isVisible());return null;});
     }
-    @Test void gtinActionOpensTheReviewedWorkflowInsteadOfTheReportBrowser()throws Exception {
+    @Test void gtinActionStartsTheInjectedBackgroundActionWithoutOpeningTheReportBrowser()throws Exception {
         fx(()->{var action=button("gtin");assertEquals(com.vncode.app.shared.I18nService.getInstance().tr("znack.registration.update_ozon"),action.getText());action.fire();assertEquals(1,gtinOpens.get());return null;});
     }
     @SuppressWarnings("unchecked") private TableView<ProductRow> table(){return (TableView<ProductRow>)pane.lookup("#ozonRegistrationTable");}
