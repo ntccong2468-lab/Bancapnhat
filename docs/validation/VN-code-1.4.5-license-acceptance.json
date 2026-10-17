@@ -1,0 +1,18 @@
+{
+  "version": "1.4.5",
+  "result": "blocked",
+  "sourceCommit": null,
+  "keyId": "vncode-2",
+  "publicKey": "SPtRxTUJ78fqt5YMJ4DJ_PZwB2cMYegs-J7nY62ADMQ",
+  "backendSourceSha256": null,
+  "windowsDpapiPassed": false,
+  "foreignWindowsIdentityRejected": false,
+  "backendGmailApprovalPassed": false,
+  "deviceLimitConcurrencyPassed": false,
+  "activationRetryPassed": false,
+  "signedOfflinePassed": false,
+  "revocationPassed": false,
+  "readonlyDataPreserved": false,
+  "serverSigningKeyMatch": "unverified",
+  "note": "Owner reports Portal 0.3.5 diagnostics match vncode-2 and Windows 1.4.4 activation succeeded after changing time. A 3-second slow clock reproduces redeemed-code / LICENSE_PROTOCOL_INVALID in 1.4.4 through the actual Portal Worker in a test bridge. 1.4.5 applies bounded start-time leeway and preserves exact expiry/signature/device checks. Full production acceptance for 1.4.5 remains outstanding."
+}

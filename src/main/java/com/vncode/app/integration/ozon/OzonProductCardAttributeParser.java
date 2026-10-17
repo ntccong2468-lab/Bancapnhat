@@ -63,8 +63,10 @@ final class OzonProductCardAttributeParser {
         String color = best(card, names, OzonProductCardAttributeParser::colorScore);
         String size = best(card, names, OzonProductCardAttributeParser::sizeScore);
         String gender = best(card, names, OzonProductCardAttributeParser::genderScore);
+        String manufacturer=best(card,names,name->name.equals("размер производителя")||name.equals("manufacturer size")?100:0);
+        String russian=best(card,names,name->com.vncode.app.features.products.ProductFieldNames.matches("russianSize",name)?100:0);
         return new Resolved(card.productId(), first(article, card.offerId()), color, size,
-                category == null ? "" : category.strip(), gender);
+                category == null ? "" : category.strip(), gender,manufacturer,russian);
     }
 
     private static String best(Card card, Map<String, String> names, Scorer scorer) {
@@ -147,7 +149,7 @@ final class OzonProductCardAttributeParser {
     record Card(String productId, String offerId, CategoryKey category, Map<String, List<String>> attributeValues) {
     }
 
-    record Resolved(String productId, String article, String color, String size, String category, String gender) {
+    record Resolved(String productId, String article, String color, String size, String category, String gender,String manufacturerSize,String russianSize) {
     }
 
     @FunctionalInterface

@@ -1,0 +1,55 @@
+name: Prepare or publish VNCode GitHub Release
+on:
+  workflow_dispatch:
+    inputs:
+      release_source_ref:
+        description: Branch with verified application and current acceptance records
+        required: true
+        default: update/vncode-approved-upgrades
+        type: string
+      build_run_id:
+        description: Successful full Windows build run ID
+        required: true
+        type: string
+      build_source_commit:
+        description: Exact application commit of that verified build
+        required: true
+        type: string
+      mode:
+        description: Prepare an unpublished draft or publish after production acceptance
+        required: true
+        default: prepare
+        type: choice
+        options: [prepare, publish, owner-approved-1416]
+permissions:
+  contents: write
+  actions: read
+concurrency:
+  group: vncode-stable-release
+  cancel-in-progress: false
+jobs:
+  release:
+    if: github.repository == 'ntccong2468-lab/Bancapnhat'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          fetch-depth: 0
+          ref: ${{ inputs.release_source_ref }}
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: '22'
+      - if: inputs.mode != 'owner-approved-1416'
+        run: node --test tools/*.test.mjs
+      - name: Verify build and release assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_BUILD_RUN: ${{ inputs.build_run_id }}
+          RELEASE_BUILD_SOURCE: ${{ inputs.build_source_commit }}
+          RELEASE_MODE: ${{ inputs.mode }}
+        run: |
+          if [ "$RELEASE_MODE" = "owner-approved-1416" ]; then
+            node tools/publish-owner-approved-1416.mjs
+          else
+            node tools/publish-vncode-stable.mjs "$RELEASE_BUILD_RUN" "$RELEASE_BUILD_SOURCE" "$RELEASE_MODE"
+          fi

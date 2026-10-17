@@ -22,6 +22,7 @@ import java.time.Duration;
 import java.util.Locale;
 import java.util.Set;
 import java.util.UUID;
+import java.nio.file.Path;
 
 import static com.vncode.app.features.license.LicenseModels.Account;
 import static com.vncode.app.features.license.LicenseModels.Envelope;
@@ -38,22 +39,42 @@ public final class WebLicenseApi implements LicenseApi {
             "AUTH_REQUIRED", "INVALID_CODE", "REGISTRATION_EXPIRED", "INVALID_ACTION",
             "DEVICE_REVOKED", "CHALLENGE_EXPIRED_OR_USED", "INVALID_PROOF", "SESSION_EXPIRED",
             "ACCOUNT_NOT_APPROVED", "INVALID_LICENSE", "SUBSCRIPTION_INACTIVE",
-            "DEVICE_LIMIT_OR_LICENSE_CHANGED", "SIGNING_NOT_CONFIGURED", "NOT_FOUND",
+            "DEVICE_LIMIT_OR_LICENSE_CHANGED", "LICENSE_CHANGED", "SIGNING_NOT_CONFIGURED", "NOT_FOUND",
             "INVALID_JSON", "BODY_TOO_LARGE");
 
     private final HttpUrl origin;
     private final OkHttpClient http;
+    private final OkHttpClient compatibleHttp;
+    private final LicenseNetworkPreferences networkPreferences;
+    private final LicenseConnectionRouter router;
+    private volatile NetworkMode networkMode;
 
     public WebLicenseApi() {
-        this(new OkHttpClient(), PRODUCTION, false);
+        this(new OkHttpClient(), PRODUCTION, false, null);
+    }
+
+    public WebLicenseApi(Path networkPreferenceFile) {
+        this(new OkHttpClient(), PRODUCTION, false, networkPreferenceFile);
     }
 
     /** Local HTTP is intentionally accessible only to tests in this package. */
     WebLicenseApi(OkHttpClient client, HttpUrl localOrigin) {
-        this(client, localOrigin, true);
+        this(client, localOrigin, true, null);
     }
 
-    private WebLicenseApi(OkHttpClient client, HttpUrl origin, boolean localTest) {
+    WebLicenseApi(OkHttpClient client, HttpUrl localOrigin, Path preferences) {
+        this(client, localOrigin, true, preferences);
+    }
+
+    WebLicenseApi(OkHttpClient client, HttpUrl origin, HttpUrl backup, java.util.Map<String, java.security.PublicKey> keys) {
+        this(client, origin, true, null, backup, keys);
+    }
+    private WebLicenseApi(OkHttpClient client, HttpUrl origin, boolean localTest, Path preferences) {
+        this(client,origin,localTest,preferences,localTest?null:HttpUrl.get("https://license.vncode.id.vn/"),
+                com.vncode.app.features.license.LicenseTrustKeys.load());
+    }
+    private WebLicenseApi(OkHttpClient client, HttpUrl origin, boolean localTest, Path preferences,
+                          HttpUrl backup, java.util.Map<String, java.security.PublicKey> keys) {
         boolean local = origin != null && Set.of("localhost", "127.0.0.1", "::1").contains(origin.host());
         if (origin == null || (!PRODUCTION.equals(origin) && !(localTest && local))
                 || !origin.username().isEmpty() || !origin.password().isEmpty()
@@ -62,19 +83,55 @@ public final class WebLicenseApi implements LicenseApi {
         }
         this.origin = origin;
         var builder = client.newBuilder()
-                .connectTimeout(Duration.ofSeconds(10))
-                .readTimeout(Duration.ofSeconds(20))
+                .connectTimeout(Duration.ofSeconds(8))
+                .readTimeout(Duration.ofSeconds(30))
                 .writeTimeout(Duration.ofSeconds(20))
-                .callTimeout(Duration.ofSeconds(30))
+                .callTimeout(Duration.ofSeconds(45))
                 .followRedirects(false)
                 .followSslRedirects(false)
-                .retryOnConnectionFailure(false)
+                // Try alternate DNS routes / stale pooled connections after a network switch.
+                // POST bodies below are one-shot: never replay a sent activation/proof.
+                .retryOnConnectionFailure(true)
                 .cookieJar(CookieJar.NO_COOKIES)
                 .authenticator(Authenticator.NONE)
                 .proxyAuthenticator(Authenticator.NONE);
         builder.interceptors().clear();
         builder.networkInterceptors().clear();
         this.http = builder.build();
+        this.compatibleHttp = builder.protocols(java.util.List.of(okhttp3.Protocol.HTTP_1_1))
+                .connectionPool(new okhttp3.ConnectionPool())
+                .dns(host -> preferIpv4(client.dns().lookup(host))).build();
+        this.networkPreferences = new LicenseNetworkPreferences(preferences);
+        this.networkMode = networkPreferences.load();
+        if(backup!=null && !(localTest && Set.of("localhost","127.0.0.1","::1").contains(backup.host()))
+                && !backup.equals(HttpUrl.get("https://license.vncode.id.vn/")))throw new IllegalArgumentException("LICENSE_ORIGIN_INVALID");
+        this.router = backup==null ? null : new LicenseConnectionRouter(origin,backup,http,compatibleHttp,keys);
+    }
+
+    static java.util.List<java.net.InetAddress> preferIpv4(java.util.List<java.net.InetAddress> addresses) {
+        return addresses.stream().sorted(java.util.Comparator.comparingInt(a -> a instanceof java.net.Inet4Address ? 0 : 1)).toList();
+    }
+
+    @Override public boolean supportsNetworkDiagnostics() { return true; }
+    @Override public NetworkMode networkMode() { return networkMode; }
+    @Override public synchronized void setNetworkMode(NetworkMode mode) throws IOException {
+        if (mode == null) throw new IOException("LICENSE_NETWORK_SETTINGS_FAILED");
+        networkPreferences.save(mode);
+        networkMode = mode;
+        if(router!=null)router.reset();
+    }
+    @Override public NetworkReport checkConnection() {
+        var report=LicenseNetworkDiagnostics.check(origin, http, compatibleHttp);
+        if(router==null)return report;
+        var probes=new java.util.ArrayList<>(report.probes());
+        probes.add(router.backupProbe(NetworkMode.AUTOMATIC));
+        probes.add(router.backupProbe(NetworkMode.COMPATIBLE));
+        return new NetworkReport(probes);
+    }
+
+    @Override public boolean recoverConnection() {
+        if(router==null)return false;
+        router.recover();return true;
     }
 
     @Override
@@ -214,7 +271,9 @@ public final class WebLicenseApi implements LicenseApi {
 
     private JsonObject exchange(String path, String token, JsonObject body, int expectedStatus) throws IOException {
         if (token == null && !Set.of("registration/register", "registration/license").contains(path)) throw input();
-        Request.Builder request = new Request.Builder().url(origin.resolve("api/client/" + path))
+        var route=router==null?new LicenseConnectionRouter.Route(origin,
+                networkMode==NetworkMode.COMPATIBLE?compatibleHttp:http,networkMode):router.select(networkMode);
+        Request.Builder request = new Request.Builder().url(route.origin().resolve("api/client/" + path))
                 .header("Accept", "application/json")
                 .header("Cache-Control", "no-store");
         if (token != null) request.header("Authorization", "Bearer " + token(token));
@@ -222,12 +281,17 @@ public final class WebLicenseApi implements LicenseApi {
         else {
             String json = body.toString();
             if (json.length() > 12000) throw input();
-            request.post(RequestBody.create(json, JSON));
+            request.post(oneShotJson(json));
         }
         Response response;
-        try { response = http.newCall(request.build()).execute(); }
-        catch (IOException failure) { throw new Failure("LICENSE_NETWORK", 0); }
+        try { response = route.client().newCall(request.build()).execute(); }
+        catch (IOException failure) { throw networkFailure(failure); }
         try (response) {
+            // An edge challenge is not a signed/account-level denial from the Portal.
+            // Desktop clients cannot solve browser challenges, including on mobile CGNAT.
+            if ("challenge".equalsIgnoreCase(response.header("cf-mitigated"))) {
+                throw new Failure("LICENSE_EDGE_CHALLENGE", 0);
+            }
             if (response.code() >= 300 && response.code() < 400) {
                 throw new Failure("LICENSE_REDIRECT_REJECTED", response.code());
             }
@@ -235,6 +299,9 @@ public final class WebLicenseApi implements LicenseApi {
             try {
                 ResponseBody responseBody = response.body();
                 MediaType contentType = responseBody == null ? null : responseBody.contentType();
+                if(Set.of(502,503,504).contains(response.code()) && (contentType==null
+                        ||!contentType.type().equals("application")||!contentType.subtype().equals("json")))
+                    throw new Failure("LICENSE_HTTP_ERROR",response.code());
                 if (contentType == null || !contentType.type().equals("application")
                         || !contentType.subtype().equals("json")
                         || (contentType.parameter("charset") != null
@@ -242,7 +309,7 @@ public final class WebLicenseApi implements LicenseApi {
                 String decoded;
                 try { decoded = utf8(responseBody); }
                 catch (Failure failure) { throw failure; }
-                catch (IOException transport) { throw new Failure("LICENSE_NETWORK", 0); }
+                catch (IOException transport) { throw networkFailure(transport); }
                 try { parsed = LicenseJson.object(decoded); }
                 catch (IOException | RuntimeException malformed) { throw protocol(); }
             } catch (Failure failure) { throw failure; }
@@ -258,7 +325,26 @@ public final class WebLicenseApi implements LicenseApi {
         }
     }
 
-    private static String utf8(ResponseBody body) throws IOException {
+    static RequestBody oneShotJson(String json) {
+        byte[] bytes = json.getBytes(StandardCharsets.UTF_8);
+        return new RequestBody() {
+            @Override public MediaType contentType() { return JSON; }
+            @Override public long contentLength() { return bytes.length; }
+            @Override public boolean isOneShot() { return true; }
+            @Override public void writeTo(okio.BufferedSink sink) throws IOException { sink.write(bytes); }
+        };
+    }
+
+    static Failure networkFailure(IOException failure) {
+        String code = failure instanceof javax.net.ssl.SSLException ? "LICENSE_TLS"
+                : failure instanceof java.net.UnknownHostException ? "LICENSE_DNS"
+                : failure instanceof java.io.InterruptedIOException ? "LICENSE_TIMEOUT"
+                : "LICENSE_NETWORK";
+        // No exception cause/message: these may contain addresses or credentials.
+        return new Failure(code, 0);
+    }
+
+    static String utf8(ResponseBody body) throws IOException {
         if (body == null || body.contentLength() > MAX_BODY_BYTES) throw protocol();
         byte[] bytes;
         try (var stream = body.byteStream()) {

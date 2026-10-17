@@ -1,0 +1,682 @@
+{
+  "version": "1.4.14",
+  "baseVersion": "1.4.13",
+  "reviewedBaseSource": "2554b7a46d6d39a74dfbc7adbbafd40d9ed3f27f",
+  "sourceCommit": "6ba183cd5fb4420e37df13035581fee08c2d2155",
+  "phase": "owner-requested-final-regression-running",
+  "latestPublished": "1.4.13",
+  "officialReleasePublished": false,
+  "remoteMutationsThisAudit": 0,
+  "tests": {
+    "baseline": {
+      "logSha256": "5045ac0c883a08fa9a47349637d023879fca36cb39badfb9c034bf5ab0fd1564",
+      "summary": {
+        "tests": 35,
+        "failures": 6,
+        "errors": 0,
+        "skipped": 0
+      },
+      "success": false
+    },
+    "wbManualBefore": {
+      "logSha256": "c056ad0cffff5232f9f5b5fb781fa7bfca0d51cf6c4ae9dce569b4b98eb4e52f",
+      "summary": {
+        "tests": 7,
+        "failures": 7,
+        "errors": 0,
+        "skipped": 0
+      },
+      "success": false
+    },
+    "focused": {
+      "logSha256": "7d81fe008bcec63491fc734b3a68d8cd1ccfff0bca204d31e270fa0f55b250fb",
+      "summary": {
+        "tests": 145,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "success": true
+    },
+    "writerFbo": {
+      "logSha256": "470cc43460b7c556e98349b346b92442a5a20ac3109737632c8d67883fda3ac4",
+      "summary": {
+        "tests": 34,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "success": true
+    },
+    "finalOwner": {
+      "summary": {
+        "tests": 42,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "success": true,
+      "logSha256": "299f9a3668e21b1e26aed9d27bcbebcb5957156e34d1eb0ba559cff51de4a65e",
+      "scope": "Final owner checks; executor lane wrappers subsequently covered by full regression"
+    },
+    "visibleFbsBacklog": {
+      "before": "REPRODUCED: expected visible shop 1 FBS_QUEUE but scheduled overdue shop 3 FBS_QUEUE",
+      "after": {
+        "schedulerTests": 11,
+        "passed": 11,
+        "failed": 0
+      },
+      "method": "Compiled final SyncCoordinator and all eleven SyncCoordinatorTest methods into an isolated output directory while prior full Maven run completed; standard full-suite verification still required",
+      "logSha256": "e28ad30a1fa8b01b62348ddc1e9efbbb1397f369ddceac7532f62bf098abd142"
+    },
+    "priorFullRegression": {
+      "source": "f02761bbe5b31ca025926addbdd95935b76ef743",
+      "tests": 1659,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 2,
+      "result": "passed",
+      "logSha256": "302fb9ff27fd978a109f9dd3715365ac8f07b8c11151b946cbde008d66fbc817",
+      "elapsed": "10:01",
+      "supersededByVisibleFbsPrioritySource": "e2b6471467212429b66ed095a23510cd30807ffe"
+    },
+    "fullRegressionBeforeBatchFix": {
+      "tests": 1660,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 2,
+      "source": "e2b6471467212429b66ed095a23510cd30807ffe",
+      "result": "passed",
+      "logSha256": "cdfaf3e746ea420d79f3bea49ddf6af509182698ac843c79fc1b41d047e866a3",
+      "elapsed": "09:38",
+      "finishedAt": "2026-10-17T06:49:25Z",
+      "platformSkips": [
+        {
+          "suite": "com.vncode.app.features.gs1.Gs1PrefixTemplateStoreTest",
+          "skipped": 1
+        },
+        {
+          "suite": "com.vncode.app.shared.WindowsSecretProtectorTest",
+          "skipped": 1
+        }
+      ]
+    },
+    "finalFullRegression": {
+      "tests": 1664,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 2,
+      "source": "6ba183cd5fb4420e37df13035581fee08c2d2155",
+      "result": "passed",
+      "logSha256": "6847449bd0f504d64fab07c12728d98c053c338bab46af4ba471f9828388dbc7",
+      "elapsed": "11:39",
+      "finishedAt": "2026-10-17T07:21:40Z",
+      "platformSkips": [
+        {
+          "suite": "com.vncode.app.features.gs1.Gs1PrefixTemplateStoreTest",
+          "skipped": 1
+        },
+        {
+          "suite": "com.vncode.app.shared.WindowsSecretProtectorTest",
+          "skipped": 1
+        }
+      ]
+    },
+    "wbStatusBatchBefore": {
+      "summary": {
+        "tests": 1,
+        "failures": 1,
+        "errors": 0,
+        "skipped": 0
+      },
+      "success": false,
+      "logSha256": "4a3d5c716dc4558fac977263b1c8cbe2fecc06705d76e2693b1d98eb9697e034"
+    },
+    "znackMetadataBefore": {
+      "summary": {
+        "tests": 10,
+        "failures": 1,
+        "errors": 0,
+        "skipped": 0
+      },
+      "success": false,
+      "logSha256": "72d8a078628299dce75cac554ddc8dc2207b6fcd1f18987ed4b077737d89c3ae"
+    },
+    "finalBatchFocused": {
+      "summary": {
+        "tests": 116,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "success": true,
+      "logSha256": "f899283104b59bfbe9b05ae035edf6d1a3526a772e95e370aa9e382e3a78433a",
+      "source": "6ba183cd5fb4420e37df13035581fee08c2d2155"
+    }
+  },
+  "node": {
+    "tests": 60,
+    "passed": 60,
+    "logSha256": "246f5e04cb632b084acad79bdb80e54cca4b7e5e9f95d3de6402a889f63c8211"
+  },
+  "portal": {
+    "tests": 60,
+    "passed": 60,
+    "logSha256": "450be18398e23c99e1f770409c74522d041903a09aea76abf303c08d9b2fb5ff"
+  },
+  "live": {
+    "catalogAndProducts": {
+      "startedAt": "2026-10-17T06:15:00.439540+00:00",
+      "writes": 0,
+      "wb": {
+        "cards": 388,
+        "variants": 1982
+      },
+      "ozon": {
+        "listed": 175,
+        "info": 175,
+        "attributes": 175
+      },
+      "catalog": {
+        "listed": 1276,
+        "details": 1276,
+        "total": null
+      },
+      "finishedAt": "2026-10-17T06:16:13.697795+00:00"
+    },
+    "fbsEndpoints": {
+      "startedAt": "2026-10-17T06:15:00.439526+00:00",
+      "remoteMutations": 0,
+      "endpoints": {
+        "wb-new-orders": {
+          "result": "failed",
+          "safeError": "WB HTTP 401"
+        },
+        "wb-supplies": {
+          "result": "failed",
+          "safeError": "WB HTTP 401"
+        },
+        "ozon-unfulfilled": {
+          "result": "read",
+          "rootType": "dict"
+        },
+        "ozon-posting-detail": {
+          "result": "read",
+          "rootType": "dict"
+        },
+        "wb-fbo-list": {
+          "result": "failed",
+          "safeError": "WB HTTP 401"
+        },
+        "ozon-fbo-list": {
+          "result": "read",
+          "rootType": "dict"
+        }
+      },
+      "catalogAudit": "passed",
+      "finishedAt": "2026-10-17T06:16:27.129079+00:00"
+    },
+    "ozonFullQueue": {
+      "startedAt": "2026-10-17T06:20:28.689718Z",
+      "mutations": 0,
+      "complete": true,
+      "pages": 3,
+      "postings": 244,
+      "finishedAt": "2026-10-17T06:20:35.182384Z"
+    },
+    "nativeFbs": {
+      "detailProducts": 1,
+      "pages": 3,
+      "postings": 244,
+      "items": 245,
+      "windowsLicenseOrSigningAcceptance": false,
+      "complete": true,
+      "remoteMutations": 0,
+      "nativeParser": "OzonJson.requirePostingPage / requirePostingDetail",
+      "sourceCommit": "e2b6471467212429b66ed095a23510cd30807ffe",
+      "parserClassSha256": "394d6a9f7de2876d1c913334d69a128737f2fd6f51d2aa15d6919d0c81d7d795"
+    },
+    "nativeMatching": {
+      "oldExactMatches": 0,
+      "catalogStates": {
+        "draft": 39,
+        "published": 1237
+      },
+      "catalogParsed": 1276,
+      "scope": "native parsers and matching over real responses; no Windows signing or production license acceptance",
+      "uniqueCandidates": 10,
+      "remoteWrites": 0,
+      "ozonProducts": 175,
+      "ambiguousCandidates": 0,
+      "sourceCommit": "e2b6471467212429b66ed095a23510cd30807ffe"
+    },
+    "wbAuthTrimProbe": {
+      "api": "WB FBS new orders",
+      "trimChanged": false,
+      "remoteMutations": 0,
+      "status": 401
+    },
+    "ozonAppPageSizeProbe": {
+      "api": "Ozon v3/product/list",
+      "limit": 500,
+      "items": 175,
+      "hasNextCursor": true,
+      "total": 175,
+      "remoteMutations": 0
+    },
+    "wbAuthFinalProbe": {
+      "api": "WB FBS new orders",
+      "remoteMutations": 0,
+      "at": "2026-10-17T07:38:49.494511+00:00",
+      "status": 401
+    },
+    "ownerProvidedWbVerification": {
+      "authorization": {
+        "at": "2026-10-17T07:46:54.662165+00:00",
+        "credentialSource": "owner supplied token used in memory",
+        "remoteMutations": 0,
+        "endpoints": {
+          "new-orders": {
+            "status": 200,
+            "count": 4
+          },
+          "supplies": {
+            "status": 200,
+            "count": 293
+          }
+        },
+        "finishedAt": "2026-10-17T07:47:01.215414+00:00"
+      },
+      "fullRead": {
+        "at": "2026-10-17T07:48:11.176535+00:00",
+        "credentialSource": "owner supplied token used in memory",
+        "remoteMutations": 0,
+        "endpoints": {
+          "new-statuses": {
+            "status": 503
+          },
+          "supply-detail-0": {
+            "status": 200
+          },
+          "supply-ids-0": {
+            "status": 200
+          },
+          "supply-statuses-0": {
+            "status": 200
+          },
+          "supply-detail-1": {
+            "status": 200
+          },
+          "supply-ids-1": {
+            "status": 200
+          },
+          "supply-statuses-1": {
+            "status": 200
+          },
+          "history-0": {
+            "status": 200
+          },
+          "history-1": {
+            "status": 200
+          },
+          "fbo-list": {
+            "status": 200
+          }
+        },
+        "history": {
+          "days": 30,
+          "pages": 2,
+          "orders": 1547,
+          "complete": true
+        },
+        "supplySamples": [
+          {
+            "done": false,
+            "detailRead": true,
+            "idsRead": true,
+            "orderCount": 6
+          },
+          {
+            "done": true,
+            "detailRead": true,
+            "idsRead": true,
+            "orderCount": 12
+          }
+        ],
+        "fboCount": 4,
+        "finishedAt": "2026-10-17T07:48:34.730039+00:00"
+      },
+      "retryAndPolling": {
+        "at": "2026-10-17T07:49:11.245187+00:00",
+        "remoteMutations": 0,
+        "matchesCurrentEnvironmentSecret": false,
+        "statusAttempts": [
+          {
+            "status": 200,
+            "count": 4
+          }
+        ],
+        "queuePolls": [
+          {
+            "status": 200,
+            "count": 4
+          },
+          {
+            "status": 200,
+            "count": 4
+          },
+          {
+            "status": 200,
+            "count": 4
+          }
+        ],
+        "finishedAt": "2026-10-17T07:49:22.743269+00:00"
+      },
+      "nativeParser": {
+        "result": "passed",
+        "newOrders": 4,
+        "supplies": 293,
+        "supplySamples": 2,
+        "sampleMembershipIds": 18,
+        "historyPages": 2,
+        "historyOrders": 1547,
+        "historyComplete": true,
+        "nativeParser": "Gson DTOs and WbFbsResponseValidator from verified VNCode source 6ba183c",
+        "remoteMutations": 0,
+        "productionLicenseOrWindowsSigningAcceptance": false
+      }
+    }
+  },
+  "wbcode": {
+    "notes": "# Wbcode 1.3.9\n\n- Windows: cài mới hoặc cập nhật chỉ còn một biểu tượng Wbcode trên màn hình chính và trong menu Start, không còn biểu tượng WCode thứ hai.\n- Đăng ký Znack (Ozon): bấm đăng ký lại một thẻ đang chờ kiểm duyệt với đúng dữ liệu không còn báo lỗi. Dòng đó chuyển sang «Đang kiểm duyệt», Wbcode tự ký khi thẻ được duyệt và hiện lý do nếu thẻ bị từ chối.\n- Đăng ký Znack (WB): thẻ đang đăng ký dở khi tắt ứng dụng tự chạy lại ở lần mở sau, không còn báo lỗi «Registration interrupted». Các thẻ đã bị báo lỗi này cũng tự chạy lại.\n- Hộp thoại không còn bị nhảy lên xuống liên tục khi cửa sổ ứng dụng nhỏ, ví dụ hộp gửi yêu cầu GS1.\n\n Bộ cài Windows hiện chưa có chữ ký Authenticode.\n",
+    "publishedAt": "2026-10-15T16:56:43Z",
+    "tag": "v1.3.9",
+    "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.3.9"
+  },
+  "latestInternalWbcodeSourceAvailable": false,
+  "wcodePublicHead": "8f7c3d1ac8598158029b8d037e2d3c128e240727",
+  "nativeWindows": {
+    "priorRun": 39007018087,
+    "priorSource": "788267089291ad2adff023cfd60a4575147d12dd",
+    "priorResult": "failure",
+    "priorTests": 1621,
+    "priorFailures": 0,
+    "priorErrors": 1,
+    "failedTest": "SyncRunRepositoryConcurrencyTest.tenShopsCanPersistConcurrentProgressAndItemsWithoutLosingHistory",
+    "failureType": "TimeoutException",
+    "timeoutSecondsUnchanged": 30,
+    "newRun": 39012628654,
+    "newSource": "6ba183cd5fb4420e37df13035581fee08c2d2155",
+    "newResult": "success",
+    "url": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/39012628654",
+    "supersededRuns": [
+      {
+        "run": 39010074435,
+        "source": "f02761bbe5b31ca025926addbdd95935b76ef743",
+        "result": "cancelled",
+        "reason": "Superseded by the visible FBS overdue-backlog fix"
+      },
+      {
+        "run": 39010518703,
+        "source": "e2b6471467212429b66ed095a23510cd30807ffe",
+        "result": "cancelled_after_java_success",
+        "java": {
+          "tests": 1660,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 2
+        },
+        "concurrentReportSuiteSeconds": 5.23,
+        "logSha256": "a2124f90c3b4c4dc73903beedfffc47ee106fb0715c4d51e19e5581d3dd1cdc6",
+        "reason": "Superseded after reproducing WB status and Znack metadata partial-commit defects",
+        "installerAccepted": false
+      }
+    ],
+    "java": {
+      "tests": 1664,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 2,
+      "passed": 1662
+    },
+    "concurrentReportSuiteSeconds": 3.147,
+    "logSha256": "af10e1a816ebbb7080255143ae3e7fd69c851418ad18b6dfa37a7d5e485000cf",
+    "completedAt": "2026-10-17T07:37:46Z",
+    "releaseEvidence": "docs/validation/2026-10-17-vncode-1414-windows-release-checks.json"
+  },
+  "limitations": [
+    "No production license activation/revocation test in this audit",
+    "No Windows CryptoPro enterprise certificate in cloud",
+    "No new Catalog registration, signing, KIZ purchase, KIZ assignment, GS1 email or marketplace mutation in this audit",
+    "Prior live Ozon GTIN APPLIED and WB trim readback are separate retained evidence; never replayed",
+    "WB new GTIN sample still needs TN VED review; no classification changed silently",
+    "WB FBS/FBO reads now pass with the owner supplied token; injected environment Secret is still different"
+  ],
+  "changedApplicationInputs": [
+    {
+      "path": "src/main/java/com/vncode/app/config/SqliteWriteTransaction.java",
+      "sha256": "944b0539a2b9237bc0ff84e50a680375cc3e754e25f43cff775c86afe186d4c4"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/features/fbosupply/FboSupplyExecutor.java",
+      "sha256": "50aefa0a1502db119514536e67c37898ae9094450ba7e7c05d2a712ff65997c1"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/features/fbosupply/FboSupplySyncService.java",
+      "sha256": "20060fa57ba2121bf4675786f6c6e48ba495338949168b64ea50a115558ffea6"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/features/finance/FinanceExecutor.java",
+      "sha256": "175345b8eb2bca3df9e80fce6db2537a48f10bb40212d3750b38aa1b07a9f1ef"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/features/gs1/Gs1SyncService.java",
+      "sha256": "1835f9fef01b69c4e254786ce96b23d14fc6c6b7896f8f986bdff25e7a773337"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/features/sync/FbsSyncService.java",
+      "sha256": "f2524a20fe408b03fc9897b51b1fc4b15baf515c0c11378bee3f50cd010af4b0"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/features/sync/SyncCoordinator.java",
+      "sha256": "4bd095d6a6c4144a5b7ae1396d9c5fb2a7d49db951e7d25cd122fa93d36197f8"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/features/sync/SyncRunRepository.java",
+      "sha256": "88560939e08161f6cf3a6634b4bb90e992e4a2f2e37060876d273a911f81745a"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/features/sync/SyncRuntime.java",
+      "sha256": "818e9598c242b2d2ca4cd3d0397a472948fb7cd0597735088672a8bce54613d5"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/features/sync/ZnackAutoSyncService.java",
+      "sha256": "6593ce56e49f83afa7747c846b14f1bcecd21fa8757fb0d981b5992a75e1e667"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/features/sync/ZnackCatalogSyncService.java",
+      "sha256": "a2648f2d7ca0a0593b80be82693377e2799a6505e42b9a105e7aa71f912ff032"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/ozon/OzonApiClient.java",
+      "sha256": "8af6f5d06cae01aa4dbf835ebeb6dfc14d40ea97df542610e1dff8e13d01318e"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/ozon/OzonCatalogSyncService.java",
+      "sha256": "e2540b27ec213bfc1f4555c1a4df3310446f187454c74118003a70ef8f7ad8ce"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/ozon/OzonExemplarService.java",
+      "sha256": "caa961e34d3327e2af31dfd20ea441a730ed41fb765ae74e91ccb83f9cf90644"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/ozon/OzonJson.java",
+      "sha256": "bf7f8c416b4752fd17ff16831d5eb8aa6e6377d646d89209b6c01de69d1db27a"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/ozon/OzonPostingSyncService.java",
+      "sha256": "128cd07cb59a0b2d86b3ec910283c76614a2be1a6ff6d4cddb6c3329047a000f"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/ozon/OzonShipService.java",
+      "sha256": "be5ad46920b2538e0b52fb272cbbd27427369ee976dd6f110ee7c7a56b8c3bb2"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/wb/WbFbsResponseValidator.java",
+      "sha256": "b53544005972beab0d9db703239668043417f7b8cb8e9af557830369c7d0afe8"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/wb/WbOrderRepository.java",
+      "sha256": "b5bfa2ac608ae8a1b2128f819343665514c76e56a17f622d69dc3360ce45ab5b"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/wb/WbOrderSyncService.java",
+      "sha256": "769171eb13706a73368890df8540177166b3b4e99ce1f1cf41a1b58f8c1952d2"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/wb/WbProductSyncService.java",
+      "sha256": "245f0669c8fa31f34b5c8fae4898efd03a2e6e1b8672193bda8768c9fc414d76"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/wb/WbSupplySyncService.java",
+      "sha256": "05ddffb54d90a94994d3771d9143095a1592a5983073cce6f8daaa15b5e37768"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/wb/WbSyncStateRepository.java",
+      "sha256": "6325ba1a78e68d345116b87dbdd9b4d6d96f0a8f374342616c93fbf1cf3b038e"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/wb/fbw/WbFbwRateLimiter.java",
+      "sha256": "75bbb07e0ce08d46679f85e4d25f1d4a6e920ed32c9266e0903bd43f7ccfbe2d"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/znack/ZnackRepository.java",
+      "sha256": "a99439d05e7e4bd808d301d6994786743bc3c9d1fe779aa99859ca31c7718cea"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/shared/AppTaskExecutor.java",
+      "sha256": "4c431c36e03ef63ccc277949563ebc79b36500d3a5ceef68e0c7a7ca532a7883"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/shared/MarketplaceRequestBudget.java",
+      "sha256": "06442acfb3789b20a178b0e733bcd30fe55a1df9f7b3c49b7b99c9bf91490db7"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/config/SqliteWriteTransactionTest.java",
+      "sha256": "dd4aa3d92fef862bc6eb8a9cdc6a025c7889951fd2b8634cd8e4273ffdf268c1"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/features/fbosupply/FboSupplySyncServiceTest.java",
+      "sha256": "cc330c673a5cb1f39414f67752ce2df4bdb394eef97217145e2d6573700e9c4c"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/features/gs1/Gs1SyncServiceTest.java",
+      "sha256": "6ca5d070e30f74a8a29b4b5e931817a17ec976f84b3675541980d5ceb9a9f806"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/features/sync/FbsSyncServiceTest.java",
+      "sha256": "7e8e127c4c5d97ba0a500d8ac796172b94a01265587f81abb11072a2db540de5"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/features/sync/SyncCoordinatorTest.java",
+      "sha256": "7b068e780e871099bfd138a13f6bc72284b8323130e1b6025018bfb9a92d5364"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/features/sync/ZnackAutoSyncServiceTest.java",
+      "sha256": "b04105f2ada01a0b8eb36b6e97fc40187b60107b0e32dde6e426eda172560772"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/features/sync/ZnackCatalogSyncServiceTest.java",
+      "sha256": "7dd2b32df1540b7bfa1631370427c0f8d53804db1faa373352fec1529806791b"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/integration/ozon/OzonShipServiceTest.java",
+      "sha256": "e97e566a562d38af97c06b220d50b7f75f5bb65c3d828c90f95d0d914d4bdfba"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/integration/ozon/OzonSyncServiceTest.java",
+      "sha256": "ea23ee585fad8a3b756c781624f132a584fa4162e3b4acf7f6fd587e26953430"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/integration/wb/WbManualSyncIntegrityTest.java",
+      "sha256": "672d06a8db68f170555551be9ba0299d8c743bdc052e1e8145087c0239e0bd8e"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/integration/wb/WbRegistrationSnapshotTest.java",
+      "sha256": "ca7aca36a65d0da5010518341b583683b0081e44e5243ddc3555041c6ddb5ac2"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/integration/wb/WbStatusBatchIntegrityTest.java",
+      "sha256": "52409747d2d5ca0e278c5ab24e9acaacdd8a4f5940c69c4f6a88680a3cf45d12"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/integration/wb/fbw/WbFbwApiClientTest.java",
+      "sha256": "f6c69dfc45e44e171e05436fadbbc86e1471a735a1371d1a464fbd2179cfe393"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/shared/MarketplaceRequestBudgetTest.java",
+      "sha256": "eba19dd448c61df0bb01a39bfa60e2c6fe9c415b76ef2eb237faf5c3674663b5"
+    }
+  ],
+  "syntheticFbsUiLatency": {
+    "synthetic": true,
+    "source": "e2b6471467212429b66ed095a23510cd30807ffe",
+    "platform": "cloud Linux",
+    "actualWindowsLowEnd": false,
+    "shops": 10,
+    "ordersPerShop": 1000,
+    "products": 100000,
+    "samples": 20,
+    "visiblePage": 100,
+    "commitToPulseP95Millis": 363.611667,
+    "fxDispatchP95Millis": 16.818399,
+    "fxStallsOver500Millis": 0
+  },
+  "batchCommitAudit": {
+    "beforeSource": "e2b6471467212429b66ed095a23510cd30807ffe",
+    "afterSource": "6ba183cd5fb4420e37df13035581fee08c2d2155",
+    "samples": [
+      {
+        "wbStatusCommits": 1000,
+        "remoteCalls": 0,
+        "catalogRows": 204,
+        "allRowsApplied": true,
+        "catalogProjectionCommits": 410,
+        "variant": "before",
+        "synthetic": true,
+        "wbStatuses": 1000
+      },
+      {
+        "synthetic": true,
+        "variant": "after",
+        "catalogProjectionCommits": 5,
+        "allRowsApplied": true,
+        "catalogRows": 204,
+        "remoteCalls": 0,
+        "wbStatusCommits": 1,
+        "wbStatuses": 1000
+      }
+    ],
+    "logSha256": "cf23d3cbab045d393ef4038353dab10fd00e34ac6aba4fa920a37c139930927a",
+    "scope": "Synthetic local database and actual repository entry points, JDBC commit listener; no seller API calls"
+  },
+  "publication": {
+    "draftReleaseId": 415658561,
+    "published": false,
+    "currentSellerLatest": "1.4.13",
+    "uploadInProgress": false,
+    "draftUrl": "https://github.com/ntccong2468-lab/Bancapnhat/releases/tag/untagged-24b8ad394edf6e9a8fcb",
+    "draft": true,
+    "latestChanged": false,
+    "uploadWorkflowRunId": 39014660248,
+    "uploadWorkflowResult": "success",
+    "assetCount": 22,
+    "allAssetSizesAndDigestsMatch": true,
+    "ownerGitHubLoginRequired": true,
+    "blockers": [
+      "Exact-version production license acceptance required by existing automated publisher remains outstanding"
+    ],
+    "ownerRequestedFinalRecheckAndLatest": true,
+    "repeatBuildRunId": 39015146530
+  }
+}

@@ -12,7 +12,7 @@ import java.util.Map;
 import java.util.Set;
 
 /** Parses permit documents using the National Catalog v5.62 response contract. */
-final class ZnackPermitDocumentParser {
+public final class ZnackPermitDocumentParser {
     private static final Map<String, String> TYPES = Map.of(
             "23557", "CONFORMITY_DECLARATION",
             "23561", "CONFORMITY_CERTIFICATE",
@@ -51,7 +51,7 @@ final class ZnackPermitDocumentParser {
         return List.copyOf(documents);
     }
 
-    static boolean registryLookupPending(JsonElement response) {
+    public static boolean registryLookupPending(JsonElement response) {
         if (response == null || response.isJsonNull()) return false;
         if (response.isJsonObject()) {
             JsonObject object = response.getAsJsonObject();
@@ -68,7 +68,7 @@ final class ZnackPermitDocumentParser {
         return false;
     }
 
-    static List<GoodsDocument> activeFromRegistry(JsonElement response) {
+    public static List<GoodsDocument> activeFromRegistry(JsonElement response) {
         JsonArray entries = registryDocuments(response);
         if (entries == null) return List.of();
         LinkedHashSet<GoodsDocument> documents = new LinkedHashSet<>();

@@ -24,7 +24,8 @@ public record PrintHistoryJobSummary(
     }
 
     public boolean canReprint() {
-        return "success".equalsIgnoreCase(status)
-                && "WILDBERRIES".equalsIgnoreCase(marketplace);
+        return ("success".equalsIgnoreCase(status)||isFbo()&&"pdf_ready".equalsIgnoreCase(status))
+                && ("WILDBERRIES".equalsIgnoreCase(marketplace)||isFbo());
     }
+    public boolean isFbo(){return supplyId!=null&&supplyId.startsWith("FBO/");}
 }

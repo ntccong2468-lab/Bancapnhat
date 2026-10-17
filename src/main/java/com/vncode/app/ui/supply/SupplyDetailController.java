@@ -61,11 +61,13 @@ import java.io.ByteArrayInputStream;
 import java.time.Duration;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Locale;
 import java.util.Set;
 import java.util.function.Consumer;
 
 public class SupplyDetailController {
+    private final com.vncode.app.shared.TableRows.Tracked<Order,Long> renderedOrders=new com.vncode.app.shared.TableRows.Tracked<>();
     private static final Set<String> ACTIVE_PURCHASE_STAGES = Set.of(
             "QUEUED", "VALIDATING", "CREATING_ORDER", "RECONCILING_ORDER", "POLLING_ORDER", "DOWNLOADING_CODES",
             "WAITING_INTRODUCTION_READINESS", "SUBMITTING_INTRODUCTION", "POLLING_INTRODUCTION"
@@ -135,11 +137,16 @@ public class SupplyDetailController {
     @FXML private TableColumn<Order,String> barcodeTC;
     @FXML private VBox gtinInventoryPane;
     @FXML private Button inventoryToggleButton;
+    @FXML private VBox shipmentKizHost,paidInventoryPane;
+    private final com.vncode.app.ui.kiz.WbShipmentKizPane shipmentKizPane=new com.vncode.app.ui.kiz.WbShipmentKizPane();
     private java.util.Map<Long,String> orderMappings=java.util.Map.of();
     private long mappingRequest;
     private boolean disposed;
     private final com.vncode.app.shared.ThumbnailLoader thumbnails=new com.vncode.app.shared.ThumbnailLoader();
-    @FXML private void onToggleInventory(){boolean open=!gtinInventoryPane.isManaged();gtinInventoryPane.setManaged(open);gtinInventoryPane.setVisible(open);updateTableResizePolicy();}
+    @FXML private void onToggleInventory(){boolean open=!gtinInventoryPane.isManaged();gtinInventoryPane.setManaged(open);gtinInventoryPane.setVisible(open);if(open)shipmentKizPane.reload();updateTableResizePolicy();}
+    public void setKizShipmentContext(Shop selected,String shipmentId){shipmentKizPane.setContext(selected,shipmentId);}
+    public com.vncode.app.features.kiz.KizSourceSelection kizSources(){return shipmentKizPane.snapshot();}
+    public void setKizJobRunning(boolean running){shipmentKizPane.setLocked(running);}
     private void updateTableResizePolicy(){double minimum=orderTable.getColumns().stream().mapToDouble(javafx.scene.control.TableColumnBase::getMinWidth).sum()+20;var policy=gtinInventoryPane.isManaged()||orderTable.getWidth()<minimum?TableView.UNCONSTRAINED_RESIZE_POLICY:TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN;if(orderTable.getColumnResizePolicy()!=policy)orderTable.setColumnResizePolicy(policy);}
     @FXML
     private TableColumn<Order, String> priceTC;
@@ -182,7 +189,7 @@ public class SupplyDetailController {
     private TextField gtinSearchField;
 
     @FXML
-    private VBox gtinInventoryList;
+    private javafx.scene.control.ListView<ZnackGtinInventorySummary> gtinInventoryList;
 
     private Consumer<OrderSortOptions> onSortOptionsChanged;
     private Runnable onPrint;
@@ -191,6 +198,21 @@ public class SupplyDetailController {
 
     @FXML
     private void initialize() {
+        shipmentKizHost.getChildren().setAll(shipmentKizPane);
+        gtinInventoryList.setCellFactory(list->new javafx.scene.control.ListCell<>(){
+            // Let VirtualFlow allocate the viewport width; a wrapped card must not size the viewport itself.
+            @Override protected double computePrefWidth(double height){return 0;}
+            @Override protected void updateItem(ZnackGtinInventorySummary summary,boolean empty){
+                super.updateItem(summary,empty);setText(null);
+                if(getGraphic() instanceof Region prior)prior.prefWidthProperty().unbind();
+                if(empty||summary==null){setGraphic(null);return;}
+                var card=createGtinCard(summary);card.setMinWidth(0);
+                card.prefWidthProperty().bind(javafx.beans.binding.Bindings.createDoubleBinding(
+                    ()->Math.max(0,getWidth()-snappedLeftInset()-snappedRightInset()),widthProperty(),insetsProperty()));
+                setGraphic(card);
+            }
+        });
+        shipmentKizPane.setOnSelectionChanged(sources->{paidInventoryPane.setManaged(sources.purchased());paidInventoryPane.setVisible(sources.purchased());if(sources.purchased()&&znackRepository!=null)refreshGtinInventory();else if(!sources.purchased()){gtinSyncPending=false;pendingSyncShowsErrors=false;if(gtinRefreshTimer!=null)gtinRefreshTimer.stop();}});
         if (gtinInventoryRefreshButton.getGraphic() != null) {
             gtinRefreshSpin = new javafx.animation.RotateTransition(
                     javafx.util.Duration.millis(800), gtinInventoryRefreshButton.getGraphic());
@@ -264,6 +286,7 @@ public class SupplyDetailController {
     }
 
     public void syncGtinInventoryOnSupplyOpen() {
+        if(!shipmentKizPane.purchaseSelected())return;
         refreshGtinInventory();
         if (shop == null || znackRepository == null || !hasVerifiedSignature(znackRepository.getSettings())) {
             return;
@@ -276,6 +299,7 @@ public class SupplyDetailController {
     }
 
     private void requestGtinSync(boolean showErrors) {
+        if(!shipmentKizPane.purchaseSelected())return;
         if (znackRepository == null) {
             return;
         }
@@ -325,7 +349,8 @@ public class SupplyDetailController {
     }
 
     public void setShop(Shop selected) {
-        shopGeneration++;mappingRequest++;orderMappings=java.util.Map.of();
+        shipmentKizPane.setContext(null,null);
+        renderedOrders.clear();shopGeneration++;mappingRequest++;orderMappings=java.util.Map.of();
         orderTable.refresh();
         shop = selected;
         purchasesStarting.clear();
@@ -343,6 +368,7 @@ public class SupplyDetailController {
     }
 
     public void refreshGtinInventory() {
+        if(!shipmentKizPane.purchaseSelected())return;
         if (gtinLoading) {
             return;
         }
@@ -357,7 +383,7 @@ public class SupplyDetailController {
         Task<List<ZnackGtinInventorySummary>> task = new Task<>() {
             @Override
             protected List<ZnackGtinInventorySummary> call() {
-                return gtinRepository.findGtinSummaries(shopId);
+                return gtinRepository.findPurchasedGtinSummaries(shopId);
             }
         };
         setGtinLoading(true);
@@ -365,6 +391,7 @@ public class SupplyDetailController {
             if (generation != shopGeneration || shop == null || shop.getId() != shopId) {
                 return;
             }
+            if(!shipmentKizPane.purchaseSelected()){setGtinLoading(false);return;}
             renderGtinSummaries(task.getValue());
             setGtinLoading(false);
             startPendingGtinSync();
@@ -379,6 +406,7 @@ public class SupplyDetailController {
                 return;
             }
             setGtinLoading(false);
+            if(!shipmentKizPane.purchaseSelected())return;
             AlertService.showError(friendlyError(rejection));
             startPendingGtinSync();
         };
@@ -395,12 +423,12 @@ public class SupplyDetailController {
     }
 
     public void setOrders(List<Order> orders) {
-        long request=++mappingRequest;orderMappings=java.util.Map.of();
-        orderTable.getItems().setAll(orders == null ? List.of() : orders);
+        long request=++mappingRequest;
+        renderedOrders.merge(orderTable.getItems(),orders == null ? List.of() : orders,Order::getId,com.vncode.app.shared.FbsRowValues::snapshot);
         if(shop!=null&&orders!=null&&!orders.isEmpty()) {
             int shopId=shop.getId();long generation=shopGeneration;
             var ids=orders.stream().map(Order::getNmId).filter(java.util.Objects::nonNull).distinct().toList();
-            com.vncode.app.shared.ShopReadCoordinator.shared().submitLocal(new com.vncode.app.shared.ShopReadCoordinator.Key(shopId,"supply-mappings",request+":"+generation),()->gtinRepository.findMappings(shopId,ids)).whenComplete((value,error)->javafx.application.Platform.runLater(()->{if(request==mappingRequest&&generation==shopGeneration){if(error==null){orderMappings=java.util.Map.copyOf(value);orderTable.refresh();}else AlertService.showError(error.getMessage());}}));
+            com.vncode.app.shared.ShopReadCoordinator.shared().submitLocal(new com.vncode.app.shared.ShopReadCoordinator.Key(shopId,"supply-mappings",request+":"+generation),()->gtinRepository.findMappings(shopId,ids)).whenComplete((value,error)->javafx.application.Platform.runLater(()->{if(request==mappingRequest&&generation==shopGeneration){if(error==null){var next=java.util.Map.copyOf(value);if(!next.equals(orderMappings)){orderMappings=next;orderTable.refresh();}}else AlertService.showError(error.getMessage());}}));
         }
         boolean hasOrders = orders != null && !orders.isEmpty();
         orderTable.setVisible(hasOrders);
@@ -481,6 +509,7 @@ public class SupplyDetailController {
     }
 
     public void applyTranslations() {
+        shipmentKizPane.applyTranslations();
         I18nService i18n = I18nService.getInstance();
         printButton.setText(i18n.tr("supply.print"));
         deliverButton.setText(i18n.tr("supply.deliver"));
@@ -493,7 +522,7 @@ public class SupplyDetailController {
         imageTC.setText(i18n.tr("supply.col.photo"));
         nameTC.setText(i18n.tr("supply.col.details"));
         priceTC.setText(i18n.tr("supply.col.price"));
-        barcodeTC.setText(i18n.tr("supply.col.barcodes"));inventoryToggleButton.setText(i18n.tr("supply.inventory_toggle"));
+        barcodeTC.setText(i18n.tr("supply.col.barcodes"));inventoryToggleButton.setText(i18n.tr("kiz.shipment.title"));
         orderTable.refresh();
         if (orderLoadingLabel != null) {
             orderLoadingLabel.setText(i18n.tr("supply.loading_orders"));
@@ -501,7 +530,7 @@ public class SupplyDetailController {
         if (stickerLoadingLabel != null && !stickerLoadingBox.isVisible()) {
             stickerLoadingLabel.setText(i18n.tr("supply.loading_stickers"));
         }
-        gtinInventoryTitleLabel.setText(i18n.tr("supply.gtin_inventory.title"));
+        gtinInventoryTitleLabel.setText(i18n.tr("kiz.shipment.purchase_inventory"));
         gtinInventoryEmptyLabel.setText(i18n.tr("supply.gtin_inventory.empty"));
         gtinInventoryRefreshButton.setTooltip(new Tooltip(i18n.tr("supply.gtin_inventory.refresh")));
         gtinSearchField.setPromptText(i18n.tr("kiz_mapping.search_gtin"));
@@ -612,14 +641,15 @@ public class SupplyDetailController {
 
     private void renderGtinSummaries(List<ZnackGtinInventorySummary> summaries) {
         gtinSummaries = summaries == null ? List.of() : List.copyOf(summaries);
-        gtinInventoryList.getChildren().clear();
         String query = gtinSearchField.getText() == null
                 ? "" : gtinSearchField.getText().trim().toLowerCase(Locale.ROOT);
-        for (ZnackGtinInventorySummary summary : gtinSummaries) {
-            if (query.isEmpty() || summary.matchesSearch(query)) {
-                gtinInventoryList.getChildren().add(createGtinCard(summary));
-            }
-        }
+        var filtered=gtinSummaries.stream().filter(summary->query.isEmpty()||summary.matchesSearch(query)).toList();
+        var displayed=gtinInventoryList.getItems();
+        boolean sameKeys=displayed.size()==filtered.size();
+        for(int i=0;sameKeys&&i<filtered.size();i++)sameKeys=Objects.equals(displayed.get(i).gtin(),filtered.get(i).gtin());
+        // Replacing the list every refresh resets VirtualFlow's scroll position, even for identical data.
+        if(sameKeys){for(int i=0;i<filtered.size();i++)if(!displayed.get(i).equals(filtered.get(i)))displayed.set(i,filtered.get(i));}
+        else displayed.setAll(filtered);
         updateGtinEmpty();
     }
 
@@ -889,7 +919,7 @@ public class SupplyDetailController {
     }
 
     private void updateGtinEmpty() {
-        boolean empty = !gtinLoading && !gtinSyncing && gtinInventoryList.getChildren().isEmpty();
+        boolean empty = !gtinLoading && !gtinSyncing && gtinInventoryList.getItems().isEmpty();
         gtinInventoryEmptyLabel.setVisible(empty);
         gtinInventoryEmptyLabel.setManaged(empty);
     }
@@ -935,7 +965,9 @@ public class SupplyDetailController {
                 : new CryptoProSignatureProvider(settings.cryptcpPath(), settings.signerCertificate(),
                 Duration.ofSeconds(settings.resolvedCryptoProTimeoutSeconds()));
         ZnackApiClient api = new ZnackApiClient();
-        new ZnackProductService(api, new ZnackAuthService(api, signer), repository).sync(settings);
+        var sourceShop=new com.vncode.app.features.shop.ShopRepository().findById(repository.shop().shopId());
+        if(sourceShop==null)throw new IllegalStateException("SHOP_CREDENTIALS_UNAVAILABLE");
+        new com.vncode.app.features.sync.ZnackCatalogSyncService().refresh(sourceShop,false,p->{});
         ZnackPurchaseCoordinator.create(repository).resumeEligibleIntroductionsAsync(settings);
     }
 
@@ -945,6 +977,7 @@ public class SupplyDetailController {
     }
 
     public void dispose() {
+        shipmentKizPane.dispose();
         disposed=true;thumbnails.close();
         shopGeneration++;
         if (gtinRefreshTimer != null) {
@@ -986,13 +1019,15 @@ public class SupplyDetailController {
         private final Label metaLabel = new Label();
         private final Label subjectLabel = new Label();
         private final Label statusLabel = new Label();
+        private final Label marketplaceStatus = new Label();
 
         OrderDetailsCell() {
             titleLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 13px; -fx-text-fill: -text-primary;");
             metaLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 11px; -fx-text-fill: -text-muted;");
             subjectLabel.setStyle("-fx-font-size: 11px; -fx-text-fill: -text-muted;");
             statusLabel.getStyleClass().add("badge");
-            vbox.getChildren().addAll(titleLabel, metaLabel, subjectLabel, statusLabel);
+            marketplaceStatus.getStyleClass().add("text-muted");marketplaceStatus.setMaxWidth(Double.MAX_VALUE);
+            vbox.getChildren().addAll(titleLabel, metaLabel, subjectLabel, marketplaceStatus, statusLabel);
             vbox.setAlignment(Pos.CENTER_LEFT);
             vbox.setPadding(new javafx.geometry.Insets(4, 0, 4, 0));
         }
@@ -1034,9 +1069,11 @@ public class SupplyDetailController {
             subjectLabel.setVisible(!subject.isEmpty());
             subjectLabel.setManaged(!subject.isEmpty());
 
+            marketplaceStatus.setText(SupplyOrderPresentation.status(order));marketplaceStatus.setTooltip(new Tooltip(marketplaceStatus.getText()));marketplaceStatus.setVisible(!marketplaceStatus.getText().isBlank());marketplaceStatus.setManaged(marketplaceStatus.isVisible());
             statusLabel.getStyleClass().removeAll("badge-green", "badge-red");
             statusLabel.setVisible(false);
             statusLabel.setManaged(false);
+            statusLabel.setTooltip(null);
 
             if (order.isRequiresKiz()) {
                 String kizCode = order.getKiz();
@@ -1049,6 +1086,7 @@ public class SupplyDetailController {
                     statusLabel.setManaged(true);
                 } else if (error != null) {
                     statusLabel.setText(I18nService.getInstance().tr("supply.status.kiz_error"));
+                    statusLabel.setTooltip(new Tooltip(com.vncode.app.features.kiz.KizErrorMessages.message(error)));
                     statusLabel.getStyleClass().add("badge-red");
                     statusLabel.setVisible(true);
                     statusLabel.setManaged(true);

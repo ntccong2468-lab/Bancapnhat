@@ -19,6 +19,8 @@ public final class ZnackGtinAutoSync {
         return AUTO_SYNCED_SHOPS.add(shopId);
     }
 
+    public static void retryAfterFailure(int shopId){AUTO_SYNCED_SHOPS.remove(shopId);}
+
     /** Records a successful background recovery sync so another pane does not immediately repeat it. */
     public static void markAutoSynced(int shopId) {
         AUTO_SYNCED_SHOPS.add(shopId);

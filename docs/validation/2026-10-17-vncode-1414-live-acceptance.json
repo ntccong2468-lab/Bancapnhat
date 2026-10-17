@@ -1,0 +1,281 @@
+{
+  "implementationCommit": "ece7aa48a98caad78cc58da14923bd19c8b75c93",
+  "baseVersion": "1.4.13",
+  "releaseVersion": "1.4.14",
+  "beforeRegistration": {
+    "startedAt": "2026-10-16T22:46:57.854Z",
+    "mode": "live-read-only-full-pagination",
+    "source": "17464f060b974ff37f28a02cea0a4292ea11bbb5",
+    "writesPerformed": false,
+    "services": {
+      "Ozon": {
+        "status": "complete",
+        "pages": 2,
+        "total": 175,
+        "products": 175,
+        "info": 175,
+        "attributes": 175,
+        "batches": 2,
+        "seconds": 4.6,
+        "sha256": "b60dbdfca12b73acc47177ab1d6a351352e4720c999105a513abee326f68d747"
+      },
+      "WB": {
+        "status": "complete",
+        "pages": 4,
+        "products": 388,
+        "variants": 1982,
+        "seconds": 7.915,
+        "sha256": "17dbd7715f5304ea29cc2570e9718cffe7f6644f86bf6ef3766073dd75a8e7f1"
+      },
+      "NationalCatalog": {
+        "status": "complete",
+        "pages": 2,
+        "listed": 1961,
+        "total": 1961,
+        "details": 1961,
+        "detailBatches": 79,
+        "missing": 0,
+        "ambiguous": 0,
+        "errors": 0,
+        "statuses": {
+          "published": 1873,
+          "draft": 88
+        },
+        "tradeUnits": 1961,
+        "seconds": 58.439,
+        "appThreeMinuteBudgetExceeded": false,
+        "sha256": "9cfc72366531cd68f8e2f1dce595e3bb41f671fa22972640a57ca836d4b26938"
+      }
+    },
+    "completedAt": "2026-10-16T22:47:56.369Z"
+  },
+  "afterRegistration": {
+    "startedAt": "2026-10-16T23:09:35.918Z",
+    "mode": "live-read-only-full-pagination",
+    "source": "b34bd969432b338abd425d041a41da61ec5cbdff",
+    "writesPerformed": false,
+    "services": {
+      "Ozon": {
+        "status": "complete",
+        "pages": 2,
+        "total": 175,
+        "products": 175,
+        "info": 175,
+        "attributes": 175,
+        "batches": 2,
+        "seconds": 3.895,
+        "sha256": "77c46e7e31b4a712dbcbdbaceb074becec06c9800e61f87bb80e3ab848d2f6b9"
+      },
+      "WB": {
+        "status": "complete",
+        "pages": 4,
+        "products": 388,
+        "variants": 1982,
+        "seconds": 8.146,
+        "sha256": "c411ed6d383400e66b018f21604bd2f09e58cad52d67250df2a81f3b4f7c062d"
+      },
+      "NationalCatalog": {
+        "status": "complete",
+        "pages": 2,
+        "listed": 1962,
+        "total": 1962,
+        "details": 1962,
+        "detailBatches": 79,
+        "missing": 0,
+        "ambiguous": 0,
+        "errors": 0,
+        "statuses": {
+          "published": 1873,
+          "draft": 89
+        },
+        "tradeUnits": 1962,
+        "seconds": 58.375,
+        "appThreeMinuteBudgetExceeded": false,
+        "sha256": "a9de14665dd7e260ccfee2fef6bc274608696eb64cffb88567c59b19732e1ea7"
+      }
+    },
+    "completedAt": "2026-10-16T23:10:34.378Z"
+  },
+  "nativeParsers": {
+    "catalogParsed": 1962,
+    "catalogParserErrors": 0,
+    "catalogFields": {
+      "@size_type": 1962,
+      "article": 1962,
+      "brand": 1962,
+      "color": 1962,
+      "country": 46,
+      "gender": 1962,
+      "material": 1962,
+      "size": 1962,
+      "title": 1962,
+      "tnved": 1962
+    },
+    "publishedTradeUnits": 1873,
+    "WB": {
+      "variants": 1982,
+      "existingPublishedGtin": 1757,
+      "oneAttributeMatch": 1263,
+      "ambiguousAttributeMatch": 10,
+      "noAttributeMatch": 709,
+      "oneMissingGtinCandidate": 25
+    },
+    "Ozon": {
+      "variants": 175,
+      "existingPublishedGtin": 0,
+      "oneAttributeMatch": 0,
+      "ambiguousAttributeMatch": 0,
+      "noAttributeMatch": 175,
+      "oneMissingGtinCandidate": 0
+    },
+    "scope": "actual VNCode parsers and index over full real API responses; no production license, Windows identity, signing or app end-to-end proof"
+  },
+  "nativeCache": {
+    "checkedAt": "2026-10-16T23:18:29.956118335Z",
+    "scope": "full real API response parsing, native marketplace cache writers and native local pagination in isolated database; no fabricated certificate or production license; seller Windows app session not exercised",
+    "counts": {
+      "WILDBERRIES": {
+        "products": 388,
+        "bothSizeFieldsPreserved": 1982,
+        "visibleVariants": 1982,
+        "catalogRows": 1962,
+        "pages": 7
+      },
+      "OZON": {
+        "products": 175,
+        "bothSizeFieldsPreserved": 175,
+        "visibleVariants": 175,
+        "catalogRows": 1962,
+        "pages": 1
+      }
+    },
+    "externalWrites": 0,
+    "productionLicenseVerified": false,
+    "unscopedCatalogCannotAuthorizeWrites": true
+  },
+  "registration": {
+    "startedAt": "2026-10-16T23:03:24.582Z",
+    "source": "b34bd969432b338abd425d041a41da61ec5cbdff",
+    "scope": "one real Catalog draft/feed registration using VNCode mapper and payload builder; no Windows CryptoPro signing or production license proof",
+    "allocationAttempted": true,
+    "allocatedGtins": 1,
+    "feedAttempted": true,
+    "feedAcknowledged": true,
+    "feedStatus": "Received",
+    "signatureAttempted": false,
+    "cardReadbackConfirmed": true,
+    "cardStatus": "draft",
+    "cardDetailedStatus": [
+      "moderation"
+    ],
+    "cardSigned": false,
+    "readbackCheckedAt": "2026-10-16T23:19:09.076Z",
+    "nativeParserReadback": {
+      "nativeParserFieldsVerified": {
+        "article": true,
+        "color": true,
+        "size": true,
+        "brand": true,
+        "tnved": true,
+        "sizeSystem": true,
+        "tradeUnit": true,
+        "draftNotMistakenForPublished": true,
+        "exactlyOneRegisteredCard": true
+      },
+      "allSelectedFieldsMatch": true,
+      "extraAllocations": 0,
+      "extraFeedSubmissions": 0
+    }
+  },
+  "wbGtinWrite": {
+    "source": "b34bd969432b338abd425d041a41da61ec5cbdff",
+    "posts": 1,
+    "acknowledged": true,
+    "applied": false,
+    "nativeErrorListConfirmedRejection": true,
+    "reason": "WB_ARTICLE_EDGE_WHITESPACE",
+    "errorUpdatedAt": "2026-10-16T23:01:54Z",
+    "untouchedPayloadPreserved": true,
+    "automaticReplay": false,
+    "articleChanged": false,
+    "correctiveSampleApproval": "pending"
+  },
+  "ozonGtinWrite": {
+    "attempted": false,
+    "reason": "NO_CONFIRMED_CATALOG_VARIANT_PAIR",
+    "productsExamined": 175,
+    "existingPublishedGtin": 0,
+    "uniqueAttributeMatches": 0
+  },
+  "knownScopeLimits": [
+    "No seller Windows CryptoPro certificate/private key in cloud",
+    "No end-to-end production license proof in this run",
+    "No successful new marketplace GTIN write yet",
+    "API protocol probes do not replace native licensed Windows acceptance"
+  ],
+  "regression": {
+    "focused": {
+      "source": "ece7aa48a98caad78cc58da14923bd19c8b75c93",
+      "tests": 70,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "logSha256": "3382db1bfb3fc7f967dd8e4fe729dc473ea32a0ebe01e9d6aa6614190034b6e2"
+    },
+    "java": {
+      "source": "ece7aa48a98caad78cc58da14923bd19c8b75c93",
+      "result": "passed",
+      "tests": 1607,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 2,
+      "logSha256": "4c9c139c8800ddbdd3729047ee244e9d08cad90ea227ca081a535e0355a205b8",
+      "finishedAt": "2026-10-16T23:38:54Z",
+      "platformSkips": [
+        {
+          "suite": "com.vncode.app.features.gs1.Gs1PrefixTemplateStoreTest",
+          "skipped": 1
+        },
+        {
+          "suite": "com.vncode.app.shared.WindowsSecretProtectorTest",
+          "skipped": 1
+        }
+      ]
+    },
+    "node": {
+      "source": "ece7aa48a98caad78cc58da14923bd19c8b75c93",
+      "tests": 60,
+      "passed": 60,
+      "failed": 0,
+      "skipped": 0,
+      "logSha256": "1e99153f7fc3cdfc42398aefc165592b7c4df23343239b11aeecfe0faad3a042"
+    },
+    "previousFocused": {
+      "tests": 120,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "logSha256": "92cc38b10dccfe0fccabbb7d6ba7d515b184bf639f6f8000d3710c0c5ca81843"
+    }
+  },
+  "windows": {
+    "source": "ece7aa48a98caad78cc58da14923bd19c8b75c93",
+    "run": 38982243667,
+    "url": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/38982243667",
+    "result": "running",
+    "coexistenceGuardRetained": true
+  },
+  "publication": {
+    "latestChanged": false,
+    "officialPublished": false,
+    "complete": false,
+    "previousLatest": "1.4.13"
+  },
+  "windowsPriorFailure": {
+    "source": "b34bd969432b338abd425d041a41da61ec5cbdff",
+    "run": 38979170392,
+    "reason": "Default app-data directory already existed on CI; the coexistence guard correctly refused to continue",
+    "fix": "Isolate LOCALAPPDATA for each Maven step and app-data for the native GS1 probe; no deletion of pre-existing application data; dispose the cached-view UI fixture before draining its background work",
+    "verifiedOnNewWindowsRunner": false
+  }
+}

@@ -1,0 +1,102 @@
+{
+  "item": 5,
+  "diagramApproved": true,
+  "applicationCommit": "cffacc55de7aff7f8fd13a3df0caa388cacf9ae4",
+  "fullJavaRegression": {
+    "tests": 1493,
+    "passed": 1491,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 2,
+    "result": "passed",
+    "finishedAt": "2026-10-16T15:51:40Z",
+    "logSha256": "619d53c9269b8ab8cd0ae9bb34d61198b0f3c7b6205bbf4138a94c444cfed841",
+    "sourceCommit": "cffacc55de7aff7f8fd13a3df0caa388cacf9ae4",
+    "platformSkips": [
+      {
+        "className": "com.vncode.app.features.gs1.Gs1PrefixTemplateStoreTest",
+        "test": "refusesNtfsJunctionDirectoryAndAncestors"
+      },
+      {
+        "className": "com.vncode.app.shared.WindowsSecretProtectorTest",
+        "test": "separatesLicenseAndExistingMailEntropyOnWindows"
+      }
+    ]
+  },
+  "finalPhaseVerification": {
+    "tests": 16,
+    "passed": 16,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "result": "passed",
+    "finishedAt": "2026-10-16T15:47:50Z",
+    "logSha256": "6dc38cad0e95e8a736e06644234bdbb83cfe61ed2732a47fc6e1c57225b5204f"
+  },
+  "uiFixtureVerification": {
+    "tests": 83,
+    "passed": 83,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "result": "passed",
+    "finishedAt": "2026-10-16T15:46:40Z",
+    "logSha256": "6d20a31b6283f4bfdafdb32d81c813356522df9a887992b0f9d634248b541480"
+  },
+  "initialFullRegression": {
+    "tests": 1493,
+    "failures": 1,
+    "errors": 1,
+    "skipped": 2,
+    "result": "corrected_and_rerun",
+    "reason": "Two old FXML fixtures had no matching persisted shop/certificate. Added synthetic owned identities, preserved assertions, and required the busy test to actually enter its operation."
+  },
+  "comparison": {
+    "latestWbcode": "v1.3.9",
+    "publishedAt": "2026-10-15T16:56:43Z",
+    "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.3.9",
+    "internalSourceAvailable": false,
+    "basis": "public release notes and user-supplied authenticated GS1 screenshot; saved automated v1.3.8 GS1 view was an empty shell"
+  },
+  "purchasePipelinePreserved": {
+    "ZnackPurchaseCoordinator": {
+      "unchanged": true,
+      "sha256": "541b6b7a95322a334620bc0d2e6a66b79a7cb400f8a321ccfb8bfa0a418c548c"
+    },
+    "ZnackKizOrderService": {
+      "unchanged": true,
+      "sha256": "f2df13878035bd5cdd46ae7e09dd7f9d3fe86ce57e88fbd9b5679456404d1881"
+    },
+    "ZnackKizCodeService": {
+      "unchanged": true,
+      "sha256": "193b08fd5453159cc32e833f07726fbbcbabe9faec04434c0696320496b4f767"
+    }
+  },
+  "screenshots": [
+    {
+      "file": "docs/validation/images/2026-10-16-item5-gs1-ready.png",
+      "sha256": "9d7568bbcb0ec2cd57f8f119d723875439e40cd1067774d63c0da5c0a01a36b9",
+      "data": "synthetic only"
+    },
+    {
+      "file": "docs/validation/images/2026-10-16-item5-gs1-ready-small.png",
+      "sha256": "886deb646e68b190b3f2bf45719131e30715b5d44c36fb718cc8db706016f634",
+      "data": "synthetic only"
+    },
+    {
+      "file": "docs/validation/images/2026-10-16-item5-gs1-partial.png",
+      "sha256": "db8381ffe12fa4bef55977e56e6e4df19309e41686de93d17f6ea25fac1615e1",
+      "data": "synthetic only"
+    }
+  ],
+  "liveGs1ProductionRead": false,
+  "liveGs1FormSubmission": false,
+  "liveMailSend": false,
+  "liveCryptoProSigning": false,
+  "nativeWindowsVerified": false,
+  "sellerSecondMachineVerified": false,
+  "newReleasePublished": false,
+  "latestChanged": false,
+  "currentSellerLatest": "1.4.12",
+  "report": "docs/validation/2026-10-16-item-5-gs1.md"
+}

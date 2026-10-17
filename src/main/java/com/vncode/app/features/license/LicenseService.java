@@ -65,11 +65,29 @@ public final class LicenseService implements AutoCloseable {
     public AutoCloseable subscribe(Consumer<Snapshot> listener){listeners.add(listener);listener.accept(snapshot);return ()->listeners.remove(listener);}
     public int listenerCount(){return listeners.size();}
     public boolean hasPendingTasks(){return worker.getActiveCount()>0||!worker.getQueue().isEmpty();}
+    public boolean supportsNetworkDiagnostics(){return api.supportsNetworkDiagnostics();}
+    public LicenseApi.NetworkMode networkMode(){return api.networkMode();}
+    public CompletableFuture<LicenseApi.NetworkReport> checkConnection(){return support(api::checkConnection);}
+    public CompletableFuture<LicenseApi.NetworkMode> setNetworkMode(LicenseApi.NetworkMode mode){
+        return support(()->{api.setNetworkMode(mode);return api.networkMode();});
+    }
+    // Support operations share the bounded worker, but never invalidate or replace a lease.
+    private <T> CompletableFuture<T> support(Callable<T> operation){
+        var result=new CompletableFuture<T>();
+        submit(()->{
+            try{result.complete(operation.call());}
+            catch(Exception failure){result.completeExceptionally(new IOException(safeCode(failure)));}
+            return snapshot;
+        }).whenComplete((snapshot,failure)->{
+            if(!result.isDone())result.completeExceptionally(new IOException("LICENSE_OPERATION_CANCELLED"));
+        });
+        return result;
+    }
     public CompletableFuture<Snapshot> startRegistration(String gmail) {
         String email=gmail==null?"":gmail.strip().toLowerCase(Locale.ROOT);
         if(!email.matches("[a-z0-9.!#$%&'*+/=?^_`{|}~-]+@gmail\\.com")||email.length()>254)return failed("GMAIL_REQUIRED");
         return transition(email,()->{
-            requireKeys();persist();var result=api.start(email);ensureCurrent();
+            requireKeys();persist();var result=withConnectionRecovery(()->api.start(email));ensureCurrent();
             if(!email.equals(result.email())||blank(result.token()))throw LicenseJson.invalid();
             Status registered=registrationStatus(result.status());
             if(registered==Status.VERIFYING_EMAIL)throw LicenseJson.invalid();
@@ -86,12 +104,12 @@ public final class LicenseService implements AutoCloseable {
     }
     public CompletableFuture<Snapshot> checkStatus() {
         State saved=state;if(saved!=null&&!blank(saved.accessToken()))return refresh();
-        return submit(()->{requireRegistration();updateRegistration(api.status(state.registrationToken()));persist();return snapshot;});
+        return submit(()->{requireRegistration();updateRegistration(withConnectionRecovery(()->api.status(state.registrationToken())));persist();return snapshot;});
     }
     public CompletableFuture<Snapshot> activate(String code) {
         if(code==null||!code.strip().matches("(?i)VNC(?:-[A-F0-9]{4}){8}"))return failed("INVALID_LICENSE");
         String normalized=code.strip().toUpperCase(Locale.ROOT);
-        return submit(()->{
+        return submit(()->withConnectionRecovery(()->{
             requireKeys();if(!verifier.configured())throw new IOException("LICENSE_TRUST_NOT_CONFIGURED");
             if(blank(state.registrationToken())||state.account()==null||state.account().status().equals("verifying")||"REGISTRATION_EXPIRED".equals(state.denialCode())||"AUTH_REQUIRED".equals(state.denialCode())) {
                 var registered=api.enroll(normalized);ensureCurrent();
@@ -104,7 +122,7 @@ public final class LicenseService implements AutoCloseable {
             var challenge=api.challenge(state.registrationToken(),keys.publicKey(),"activate");validateChallenge(challenge,"activate");
             accept(api.activate(state.registrationToken(),challenge,keys.publicKey(),keys.sign(challenge.message()),normalized),true);
             return snapshot;
-        });
+        }));
     }
     public synchronized CompletableFuture<Snapshot> refresh() {
         if(refreshing!=null&&!refreshing.isDone())return refreshing;
@@ -113,8 +131,10 @@ public final class LicenseService implements AutoCloseable {
             try{
                 requireKeys();if(state==null||blank(state.accessToken()))throw new IOException("SESSION_EXPIRED");
                 if(!verifier.configured())throw new IOException("LICENSE_TRUST_NOT_CONFIGURED");
-                var challenge=api.challenge(state.accessToken(),keys.publicKey(),"renew");validateChallenge(challenge,"renew");
-                accept(api.renew(state.accessToken(),challenge,keys.publicKey(),keys.sign(challenge.message())),false);successful=true;return snapshot;
+                withConnectionRecovery(()->{
+                    var challenge=api.challenge(state.accessToken(),keys.publicKey(),"renew");validateChallenge(challenge,"renew");
+                    accept(api.renew(state.accessToken(),challenge,keys.publicKey(),keys.sign(challenge.message())),false);return snapshot;
+                });successful=true;return snapshot;
             }finally{
                 Long expected=operationGeneration.get();if(expected!=null&&generation.get()==expected&&!closed)refreshCadence.completed(nanos.getAsLong(),successful);
             }
@@ -129,9 +149,20 @@ public final class LicenseService implements AutoCloseable {
         long now=time.now();return now<current.subscriptionExpiresAt() && (now<onlineDeadline||current.offlineHours()>0&&now<current.expiresAt());
     }
     public int maxShops(){return lease==null?0:lease.maxShops();}
+    // Retry the workflow, never a previously signed POST: challenge IDs are single-use.
+    private <T> T withConnectionRecovery(Callable<T> operation)throws Exception {
+        try{return operation.call();}
+        catch(LicenseApi.Failure failure){
+            boolean transport=failure.status()==0&&Set.of("LICENSE_NETWORK","LICENSE_TIMEOUT","LICENSE_DNS","LICENSE_TLS","LICENSE_EDGE_CHALLENGE").contains(failure.code())
+                    ||Set.of(502,503,504).contains(failure.status())&&failure.code().equals("LICENSE_HTTP_ERROR");
+            if(!transport||!api.recoverConnection())throw failure;
+            ensureCurrent();return operation.call();
+        }
+    }
     private void validateChallenge(LicenseApi.Challenge challenge,String action)throws IOException {
-        long now=clock.now();if(challenge.id()==null||challenge.id().isBlank()||challenge.message()==null||challenge.message().length()>4096||challenge.expiresAt()<=now||challenge.expiresAt()>now+300)throw LicenseJson.invalid();
+        long now=clock.now();if(challenge.id()==null||challenge.id().isBlank()||challenge.message()==null||challenge.message().length()>4096)throw LicenseJson.invalid();
         String[] parts=challenge.message().split("\n",-1);if(parts.length!=4||!parts[0].equals("vncode-device-v1")||!parts[1].equals(action)||!parts[2].equals(challenge.id())||!parts[3].matches("[A-Za-z0-9_-]{16,256}"))throw LicenseJson.invalid();
+        if(challenge.expiresAt()<=now||challenge.expiresAt()>now+LicenseVerifier.CLOCK_SKEW_SECONDS)throw new IOException("LICENSE_CLOCK_SKEW");
     }
     private void accept(LicenseApi.Grant grant,boolean activating)throws IOException {
         ensureCurrent();
@@ -139,7 +170,8 @@ public final class LicenseService implements AutoCloseable {
         if(!activating&&(!grant.account().id().equals(state.account().id())))throw LicenseJson.invalid();
         long min=activating&& !grant.account().id().equals(state.account().id())?0:state.minRevision();
         Lease verified=verifier.verify(grant.envelope(),grant.account().id(),keys.hash(),min,clock.now(),true);
-        if(grant.account().expiresAt()!=verified.subscriptionExpiresAt()||grant.onlineValidUntil()<=clock.now()||grant.onlineValidUntil()>Math.min(verified.subscriptionExpiresAt(),verified.issuedAt()+300))throw LicenseJson.invalid();
+        if(grant.account().expiresAt()!=verified.subscriptionExpiresAt()||grant.onlineValidUntil()>Math.min(verified.subscriptionExpiresAt(),verified.issuedAt()+300))throw LicenseJson.invalid();
+        if(grant.onlineValidUntil()<=clock.now())throw new IOException("LICENSE_CLOCK_SKEW");
         if(clock.rollbackDetected())throw new IOException("LICENSE_CLOCK_ROLLBACK");
         String token=activating?grant.accessToken():state.accessToken();if(blank(token))throw LicenseJson.invalid();
         state=new State(keys.publicKey(),keys.privateKey(),state.registrationToken(),token,grant.account(),grant.envelope(),clock.now(),verified.revision(),"");
@@ -205,7 +237,7 @@ public final class LicenseService implements AutoCloseable {
             if(allows(Permission.SELLER_API)){try{persist();publish(Status.OFFLINE,code);return;}catch(IOException unavailable){code="LICENSE_STORE_INVALID";}}
         }
         boolean denied=failure instanceof LicenseApi.Failure f&&(f.status()==401||f.status()==403);
-        if(denied || code.equals("LICENSE_PROTOCOL_INVALID") || code.equals("LICENSE_CLOCK_ROLLBACK") || code.equals("SIGNING_NOT_CONFIGURED") || code.equals("LICENSE_TRUST_NOT_CONFIGURED")) {
+        if(denied || code.equals("LICENSE_PROTOCOL_INVALID") || code.equals("LICENSE_CLOCK_ROLLBACK") || code.equals("LICENSE_CLOCK_SKEW") || code.equals("SIGNING_NOT_CONFIGURED") || code.equals("LICENSE_TRUST_NOT_CONFIGURED")) {
             lease=null;onlineDeadline=0;
             if(state!=null){State s=state;state=new State(s.publicKey(),s.privateKey(),s.registrationToken(),s.accessToken(),s.account(),s.envelope(),clock==null?s.maxObservedEpoch():clock.now(),s.minRevision(),code);try{persist();}catch(IOException ignored){try{store.blockCachedRights();}catch(IOException blocked){/* Disk failure remains a visible readiness blocker. */}code="LICENSE_STORE_INVALID";}}
         }

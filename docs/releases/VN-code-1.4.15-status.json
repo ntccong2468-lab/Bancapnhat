@@ -1,0 +1,220 @@
+{
+  "version": "1.4.15",
+  "baseVersion": "1.4.13",
+  "complete": false,
+  "developmentComplete": true,
+  "officialReleasePublished": true,
+  "phase": "published-latest-verified",
+  "licenseIntegration": {
+    "implemented": true,
+    "productionReady": false,
+    "activeKeyId": "vncode-2",
+    "changedInThisVersion": false
+  },
+  "applicationSource": "16f7b43047f50057df88f4bda70939da4b634a38",
+  "sourceCommit": "16f7b43047f50057df88f4bda70939da4b634a38",
+  "inheritedImplementation": "docs/releases/VN-code-1.4.14-status.json",
+  "scope": [
+    "Bounded local SQLite write transactions and original sync failure preservation",
+    "WB characteristic order stability during fresh read/preview/confirmed save",
+    "Marketplace-backed product value suggestions and explicit save/readback UI",
+    "WB card-level product view and verified readback projection",
+    "Fashion TN VED reference, filtered browser and per-product proposal review",
+    "Stable paged task reports and distinct marketplace/local KIZ statuses",
+    "Category KIZ reimport recovery with state-aware counts and explicit free-stock relocation",
+    "Znack TN VED group replacement with archived cards and one fresh GTIN per approved replacement",
+    "Per-card automatic signing consent with restart and uncertain-send reconciliation",
+    "Catalog article normalization without deleting model separators",
+    "Infinite virtualized Znack lists and progressively loaded WB shop/marketplace brands",
+    "GS1 signed PDF/photo regression and compact owner-bounded dialogs",
+    "Structured per-product edit keys survive persisted preview/save/reopen",
+    "Explicit Catalog size systems and separate Ozon manufacturer/Russian size persistence",
+    "Native WB GTIN fingerprint stability and product-bound asynchronous rejection reporting",
+    "Shared Liquid Glass materials and persistent live-preview transparency settings",
+    "Unicode article edge cleanup with own-card collision prevention and readback",
+    "Ozon seller SKU model/color/explicit-size matching including structured supplier articles",
+    "Stable virtualized GTIN inventory scroll during periodic refresh",
+    "Fair per-database bounded SQLite writer queue with connection reuse and unchanged FULL durability",
+    "Continuous FBS has reserved workers and an HTTP slot protected from background reads",
+    "Unified WB automatic/manual FBS response validation and completed history watermark protection",
+    "Strict Ozon posting identity, product quantity and current-credential validation",
+    "Complete FBO pagination with non-destructive failure handling and resumable Ozon history",
+    "GS1 source error propagation and coalesced-reader completion",
+    "Atomic WB status pages and bounded 100-card Catalog metadata writes prevent partial commits and reduce SQLite contention",
+    "Deterministic JavaFX follow-up task waiting without increasing the ten-second test deadline",
+    "Report dialog fixture closes via its own Close action and drains shared reads before switching databases"
+  ],
+  "validation": {
+    "fullJavaRegression": {
+      "tests": 1664,
+      "passed": 1662,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 2,
+      "source": "16f7b43047f50057df88f4bda70939da4b634a38",
+      "result": "passed",
+      "logSha256": "363df134041731b77fc90dde4aff7e804fed8da3bbbc4684d59283b8f86908fc",
+      "elapsed": "10:02",
+      "finishedAt": "2026-10-17T08:16:02Z",
+      "platformSkips": [
+        {
+          "suite": "com.vncode.app.features.gs1.Gs1PrefixTemplateStoreTest",
+          "skipped": 1
+        },
+        {
+          "suite": "com.vncode.app.shared.WindowsSecretProtectorTest",
+          "skipped": 1
+        }
+      ]
+    },
+    "windowsNativeBuildThisVersion": true,
+    "productionLicenseVerified": false,
+    "liveReadReport": "docs/validation/2026-10-17-vncode-1414-final-recheck.json",
+    "inheritedApplicationSource": "6ba183cd5fb4420e37df13035581fee08c2d2155",
+    "priorFixtureFailureReport": "docs/validation/2026-10-17-vncode-1414-final-recheck.json",
+    "node": {
+      "tests": 60,
+      "passed": 60,
+      "failed": 0,
+      "skipped": 0,
+      "source": "16f7b43047f50057df88f4bda70939da4b634a38",
+      "logSha256": "d9c7ed9f9c91675fd3babb448ec61740e9f2ade8af2878b6dbd884b2a5bb0531"
+    },
+    "portal": {
+      "tests": 60,
+      "passed": 60,
+      "failed": 0,
+      "skipped": 0,
+      "source": "16f7b43047f50057df88f4bda70939da4b634a38",
+      "logSha256": "964463ced6d749d5cd6dd3fcdd9f700a2a9fcb4aad68c5b676622695909afc92"
+    },
+    "nativeWindowsRun": {
+      "run": 39016087535,
+      "source": "16f7b43047f50057df88f4bda70939da4b634a38",
+      "result": "success",
+      "url": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/39016087535",
+      "java": {
+        "tests": 1664,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 2
+      },
+      "focused": {
+        "com.vncode.app.ui.znackregistration.ZnackCardRegistrationControllerTest": {
+          "tests": 9,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "seconds": 6.866
+        },
+        "com.vncode.app.ui.workspace.JobCenterDialogTest": {
+          "tests": 2,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "seconds": 27.457
+        },
+        "com.vncode.app.features.sync.SyncRunRepositoryConcurrencyTest": {
+          "tests": 4,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "seconds": 6.45
+        }
+      },
+      "verifiedWindowsJarSha256": "59b866f7997340da4f0ac7e841b478f896c49a29e651d9115b634890c210111e",
+      "javaCompletedAt": "2026-10-17T08:28:45Z",
+      "installerBuildCompletedAt": "2026-10-17T08:29:43Z",
+      "installerSmokeResult": "passed",
+      "completedAt": "2026-10-17T08:43:53Z",
+      "installer": {
+        "filename": "VN-code-1.4.15-Windows-x64.exe",
+        "bytes": 145456128,
+        "sha256": "fc3ecc9be0eefa37bb241d9a86f6b6715bb5ad75f51ed178ce10230e51205c16"
+      },
+      "proofReport": "docs/validation/2026-10-17-vncode-1415-windows-release-checks.json",
+      "workflowLogSha256": "e7e214d56e8aea95055ee5dad3bd4dad68ec6dae06b1b61c8c3e7b934cc3ced2",
+      "uiLayouts": 288,
+      "upgradesPassed": 11
+    },
+    "finalReport": "docs/validation/2026-10-17-vncode-1415-final-acceptance.json",
+    "installer": {
+      "filename": "VN-code-1.4.15-Windows-x64.exe",
+      "bytes": 145456128,
+      "sha256": "fc3ecc9be0eefa37bb241d9a86f6b6715bb5ad75f51ed178ce10230e51205c16"
+    },
+    "portalPackage": {
+      "name": "VNCode-Portal-0.3.6-License-Network.zip",
+      "bytes": 111443,
+      "sha256": "b07241db187c8127943bef23c98ecb67756b1b76a1c1074632724f7c26f8197f"
+    },
+    "publicDownload": {
+      "result": "passed",
+      "releaseId": 415683721,
+      "releaseUrl": "https://github.com/ntccong2468-lab/Bancapnhat/releases/tag/v1.4.15",
+      "tag": "v1.4.15",
+      "publishedAt": "2026-10-17T08:47:32Z",
+      "api": "https://api.github.com/repos/ntccong2468-lab/Bancapnhat/releases/latest",
+      "publicLatestVerified": true,
+      "browserDownloadUrl": "https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.4.15/VN-code-1.4.15-Windows-x64.exe",
+      "downloadedWithoutAuthorizationHeader": true,
+      "httpStatus": 200,
+      "bytes": 145456128,
+      "sha256": "fc3ecc9be0eefa37bb241d9a86f6b6715bb5ad75f51ed178ce10230e51205c16",
+      "matchesSuccessfulWindowsBuild": true,
+      "matchesGitHubAssetDigest": true,
+      "windowsPeSignature": true,
+      "changelogPresent": true,
+      "verifiedAt": "2026-10-17T08:47:39.031243+00:00"
+    },
+    "updaterReadback": [
+      {
+        "downloadUrl": "https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.4.15/VN-code-1.4.15-Windows-x64.exe",
+        "changelogPresent": true,
+        "bytes": 145456128,
+        "scope": "Verified Windows JAR metadata parser executed in cloud over actual public Latest API JSON",
+        "sellerDesktopPopupObserved": false,
+        "sha256": "fc3ecc9be0eefa37bb241d9a86f6b6715bb5ad75f51ed178ce10230e51205c16",
+        "verifiedJarVersion": "1.4.13",
+        "result": "passed",
+        "olderVersionsDetected": true,
+        "releaseVersion": "1.4.15"
+      },
+      {
+        "result": "passed",
+        "verifiedJarVersion": "1.4.15",
+        "sha256": "fc3ecc9be0eefa37bb241d9a86f6b6715bb5ad75f51ed178ce10230e51205c16",
+        "sellerDesktopPopupObserved": false,
+        "scope": "Verified Windows JAR metadata parser executed in cloud over actual public Latest API JSON",
+        "bytes": 145456128,
+        "changelogPresent": true,
+        "downloadUrl": "https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.4.15/VN-code-1.4.15-Windows-x64.exe",
+        "releaseVersion": "1.4.15",
+        "olderVersionsDetected": true
+      }
+    ]
+  },
+  "publication": {
+    "published": true,
+    "latestChanged": true,
+    "currentSellerLatest": "1.4.15",
+    "ownerRequestedPublication": true,
+    "ownerRequestedFullRecheckBeforePublication": true,
+    "standardProductionLicenseGateAccepted": false,
+    "manualPublicationAuthorization": "Owner reiterated full recheck, Windows rebuild and Latest publication after the existing missing production acceptance had been disclosed; acceptance flags remain truthful",
+    "releaseId": 415683721,
+    "tag": "v1.4.15",
+    "publishedAt": "2026-10-17T08:47:32Z",
+    "url": "https://github.com/ntccong2468-lab/Bancapnhat/releases/tag/v1.4.15",
+    "installerUrl": "https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.4.15/VN-code-1.4.15-Windows-x64.exe",
+    "buildRunId": 39016087535,
+    "buildSourceCommit": "16f7b43047f50057df88f4bda70939da4b634a38",
+    "uploadWorkflowRunId": 39018536804,
+    "uploadedAssets": 22,
+    "allAssetDigestsMatchVerifiedBuild": true,
+    "manualPublicationFollowingOwnerInstruction": true,
+    "licenseVerificationCodeAndReleaseGateUnchanged": true,
+    "productionAcceptanceClaimsNotElevated": true,
+    "liveProductionLicenseAcceptanceIncomplete": true
+  }
+}

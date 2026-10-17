@@ -8,6 +8,12 @@ import com.google.gson.JsonParser;
 import org.junit.jupiter.api.Test;
 
 class OzonJsonTest {
+    @Test void usesExplicitPrimaryForStringArrayAndObjectImageShapes(){
+        for(String primary:java.util.List.of("\"https://img/first\"","[\"https://img/first\"]","{\"url\":\"https://img/first\"}")){
+            var json=JsonParser.parseString("{\"items\":[{\"id\":123,\"primary_image\":"+primary+",\"images\":[\"https://img/second\"]}]}").getAsJsonObject();
+            assertEquals("https://img/first",OzonJson.parseProductInfo(json).getFirst().primaryImageUrl());
+        }
+    }
     @Test
     void parsesLargeIdsAsTextAndRecognizesMandatoryAndOptionalMarking() {
         var response = JsonParser.parseString("""

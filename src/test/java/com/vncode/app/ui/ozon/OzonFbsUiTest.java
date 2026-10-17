@@ -20,6 +20,47 @@ class OzonFbsUiTest {
     @TempDir Path root;
     @BeforeAll static void start(){try{Platform.startup(()->Platform.setImplicitExit(false));}catch(IllegalStateException started){}}
     static <T>T fx(Callable<T> f)throws Exception{var t=new FutureTask<>(f);Platform.runLater(t);return t.get(10,TimeUnit.SECONDS);}
+    @Test void allThreeTabsKeepActionsAndPagingVisibleAcrossLanguagesThemesAndSmallWindows() throws Exception {
+        System.setProperty("vncode.appdata.dir", root.toString()); Database.initDatabase();
+        var originalLanguage = I18nService.getInstance().getCurrentLanguage();
+        var stage = new javafx.stage.Stage[1];
+        var loader = fx(() -> {
+            var view = FxmlViewLoader.loader(OzonDashboardController.class, "ozon-dashboard-view.fxml");
+            var scene = new Scene(view.load(), 1024, 600);
+            scene.getStylesheets().add(com.vncode.app.MainApplication.class.getResource("/com/vncode/app/styles/theme.css").toExternalForm());
+            stage[0] = new javafx.stage.Stage(); stage[0].setScene(scene); stage[0].show(); return view;
+        });
+        OzonDashboardController controller = loader.getController();
+        try {
+            for (var language : AppLanguage.values()) for (var theme : List.of("theme-dark", "theme-light"))
+                for (var size : List.of(new int[]{824, 600}, new int[]{1140, 768}))
+                    for (var tab : List.of("newOrdersTab", "packingOrdersTab", "deliveringOrdersTab")) fx(() -> {
+                        I18nService.getInstance().setLanguage(language); controller.applyTranslations();
+                        var scene = stage[0].getScene(); var content = scene.getRoot();
+                        content.getStyleClass().removeAll("theme-dark", "theme-light"); content.getStyleClass().add(theme);
+                        stage[0].setWidth(size[0]); stage[0].setHeight(size[1]);
+                        ((TabPane) loader.getNamespace().get("orderStatusTabs")).getSelectionModel().select((Tab) loader.getNamespace().get(tab));
+                        content.applyCss(); content.layout();
+                        for (var node : content.lookupAll(".button")) {
+                            boolean visible = true;
+                            for (var parent = node; parent != null; parent = parent.getParent()) visible &= parent.isVisible();
+                            if (!visible || !node.isManaged()) continue;
+                            var bounds = node.localToScene(node.getBoundsInLocal());
+                            assertTrue(bounds.getMinX() >= -1 && bounds.getMaxX() <= scene.getWidth() + 1,
+                                    language + " " + tab + " clipped horizontally: " + node.getId());
+                            assertTrue(bounds.getMinY() >= -1 && bounds.getMaxY() <= scene.getHeight() + 1,
+                                    language + " " + tab + " clipped vertically: " + node.getId());
+                        }
+                        var paging = (Button) loader.getNamespace().get("nextPageButton");
+                        var table = (TableView<?>) loader.getNamespace().get(tab.equals("newOrdersTab") ? "newOrdersTable" : tab.equals("packingOrdersTab") ? "packingOrdersTable" : "deliveringOrdersTable");
+                        assertTrue(paging.localToScene(paging.getBoundsInLocal()).getMinY() >= table.localToScene(table.getBoundsInLocal()).getMaxY(), "Paging remains beneath the active table");
+                        return null;
+                    });
+        } finally {
+            fx(() -> { controller.dispose(); stage[0].close(); I18nService.getInstance().setLanguage(originalLanguage); return null; });
+            com.vncode.app.testsupport.ShopReadTestCleanup.awaitSharedIdle(); System.clearProperty("vncode.appdata.dir");
+        }
+    }
     @Test void allPostingItemTitlesStayInsideTheirRenderedRow()throws Exception{
         System.setProperty("vncode.appdata.dir",root.toString());Database.initDatabase();try(var c=Database.getConnection();var s=c.createStatement()){s.execute("INSERT INTO shops(id,name,marketplace,client_id,api_key) VALUES(1,'Fixture','OZON','11','fixture')");}
         var window=new java.util.concurrent.atomic.AtomicReference<javafx.stage.Stage>();FXMLLoader loader=fx(()->{var l=FxmlViewLoader.loader(OzonDashboardController.class,"ozon-dashboard-view.fxml");var scene=new Scene(l.load(),1024,600);scene.getStylesheets().add(com.vncode.app.MainApplication.class.getResource("/com/vncode/app/styles/theme.css").toExternalForm());var stage=new javafx.stage.Stage();window.set(stage);stage.setScene(scene);stage.show();return l;});OzonDashboardController controller=loader.getController();
@@ -29,6 +70,24 @@ class OzonFbsUiTest {
             var pulsed=new CompletableFuture<Void>();fx(()->{new javafx.animation.AnimationTimer(){int frames;public void handle(long now){if(++frames==2){stop();pulsed.complete(null);}}}.start();return null;});pulsed.get(5,TimeUnit.SECONDS);
             fx(()->{var table=(TableView<?>)loader.getNamespace().get("newOrdersTable");table.applyCss();table.layout();var row=table.lookupAll(".table-row-cell").stream().filter(n->n instanceof TableRow<?> r&&!r.isEmpty()).findFirst().orElseThrow();var bounds=row.localToScene(row.getBoundsInLocal());
                 var titles=row.lookupAll(".text-bold").stream().filter(n->n instanceof Label l&&l.getText().endsWith("complete product title")).toList();assertEquals(2,titles.size());for(var label:titles){var b=label.localToScene(label.getBoundsInLocal());assertTrue(b.getMinY()>=bounds.getMinY()-1&&b.getMaxY()<=bounds.getMaxY()+1,"Each title must remain visible inside its own row");}return null;});
+            String captureDir = System.getProperty("vncode.ui.capture.dir");
+            if (captureDir != null) {
+                var language = I18nService.getInstance().getCurrentLanguage();
+                try {
+                    fx(() -> { I18nService.getInstance().setLanguage(AppLanguage.VI); controller.applyTranslations(); return null; });
+                    for (var tab : List.of("newOrdersTab", "packingOrdersTab", "deliveringOrdersTab")) {
+                        fx(() -> { ((TabPane) loader.getNamespace().get("orderStatusTabs")).getSelectionModel().select((Tab) loader.getNamespace().get(tab)); return null; });
+                        fx(() -> {
+                            var scene = window.get().getScene(); scene.getRoot().applyCss(); scene.getRoot().layout();
+                            var image = scene.snapshot(null); int width = (int) image.getWidth(), height = (int) image.getHeight();
+                            var png = new java.awt.image.BufferedImage(width, height, java.awt.image.BufferedImage.TYPE_INT_ARGB);
+                            image.getPixelReader().getPixels(0, 0, width, height, javafx.scene.image.PixelFormat.getIntArgbInstance(), ((java.awt.image.DataBufferInt) png.getRaster().getDataBuffer()).getData(), 0, width);
+                            java.nio.file.Files.createDirectories(Path.of(captureDir));
+                            javax.imageio.ImageIO.write(png, "png", Path.of(captureDir, "ozon-" + tab + ".png").toFile()); return null;
+                        });
+                    }
+                } finally { fx(() -> { I18nService.getInstance().setLanguage(language); return null; }); }
+            }
         }finally{fx(()->{controller.dispose();window.get().close();return null;});com.vncode.app.testsupport.ShopReadTestCleanup.awaitSharedIdle();System.clearProperty("vncode.appdata.dir");}
     }
     @Test void oldShopResultCannotUpdateTable()throws Exception{

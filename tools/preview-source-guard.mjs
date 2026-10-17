@@ -2,6 +2,9 @@ import assert from 'node:assert/strict';
 import {execFileSync} from 'node:child_process';
 
 const publicationFiles=new Set([
+ 'tools/publish-vncode-stable.mjs',
+ 'tools/publish-vncode-stable.test.mjs',
+ '.github/workflows/publish-vncode-stable.yml',
  'tools/publish-vncode-preview.mjs',
  'tools/preview-source-guard.mjs',
  'tools/preview-source-guard.test.mjs',

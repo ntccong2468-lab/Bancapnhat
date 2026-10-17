@@ -1,0 +1,59 @@
+{
+  "version": "1.4.5",
+  "baseVersion": "1.4.4",
+  "complete": false,
+  "officialReleasePublished": false,
+  "changes": [
+    "Sửa lỗi từ chối quyền vừa ký khi Windows chậm hơn máy chủ vài giây: dùng cùng dung sai 300 giây cho issuedAt/notBefore.",
+    "Giữ nguyên hạn hết hiệu lực, chữ ký, quota và chống rollback; sai giờ lớn báo LICENSE_CLOCK_SKEW với hướng dẫn đồng bộ Windows.",
+    "Kiểm thử liên thông Portal thật trong môi trường fixture qua HTTP vào client Java; thử lại mã đã dùng không cộng ngày/thiết bị.",
+    "Chẩn đoán unverified_catalog_owner theo chứng thư, INN tài khoản/chủ hàng, khóa riêng, hạn và thời điểm kiểm tra; giữ kiểm tra sở hữu GTIN.",
+    "Thêm API KEY National Catalog được bảo vệ Windows DPAPI theo cửa hàng/chứng thư/INN/môi trường; xác minh với phiên CryptoPro và thử API chỉ đọc trước khi lưu.",
+    "Nối API KEY vào tạo thẻ WB/Ozon, tạo GTIN và đọc thẻ khi đồng bộ; True API và OMS/SUZ giữ xác thực riêng."
+  ],
+  "licenseIntegration": {
+    "implemented": true,
+    "productionReady": false,
+    "trustedProductionKeys": 2,
+    "pinnedKeyIds": [
+      "vncode-1",
+      "vncode-2"
+    ],
+    "activeKeyId": "vncode-2",
+    "serverSigningKeyMatch": "owner-diagnostics-confirmed-vncode-2",
+    "ownerReportedActivationIn144": true,
+    "status": "clock-fix-tested-production-145-not-verified"
+  },
+  "validation": {
+    "focusedJavaTests": 94,
+    "catalogJavaTests": 21,
+    "javaFailures": 0,
+    "portalTests": 56,
+    "portalFailures": 0,
+    "releaseContractTests": 49,
+    "releaseContractFailures": 0,
+    "crossRuntimeTests": 4,
+    "windowsNative": "passed-1.4.5-launcher-history-schema3-to5-rollback",
+    "fullApplicationMatrix": "not-run-for-1.4.5",
+    "portalRuntimeCodeChanged": false,
+    "productionActivation145": "not-verified",
+    "productionCatalogSync": "owner-reports-unverified_catalog_owner-despite-successful-sign-in",
+    "catalogConfigurationTests": 56,
+    "catalogConfigurationFailures": 0,
+    "catalogConfigurationProduction": "not-verified",
+    "windowsJavaTests": 159,
+    "windowsJavaSkipped": 0,
+    "windowsCatalogKeyDpapi": "passed-purpose-isolation"
+  },
+  "limitations": [
+    "Chưa xác định điều kiện sở hữu nào sai trên máy khách; cần mã lý do cụ thể từ bản mới.",
+    "Chưa chạy đầy đủ workspace/upgrade matrix hoặc kiểm thử production nhiều máy/offline/thu hồi."
+  ],
+  "sourceCommit": "7b90774f8a8575850c9b72c1fb8a801fb82eedae",
+  "windowsArtifact": {
+    "runId": 38625269821,
+    "artifactId": 11923647521,
+    "sha256": "be5343d8104973fe7e22882e5f5474a055434ebefcb9742d2b66b15f94efd625",
+    "url": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/38625269821/artifacts/11923647521"
+  }
+}

@@ -21,6 +21,35 @@ class NationalCatalogGs1ClientTest {
         server.enqueue(new MockResponse().setHeader("Set-Cookie", "session=fixture; Path=/rest; HttpOnly")
                 .setBody("{\"csrfToken\":\"fixture-csrf\",\"gs1Member\":true}"));
     }
+    @Test void catalogApiKeyMustMatchTheAuthenticatedBootstrapAndRemainOutOfErrors() throws Exception {
+        try (var server = new MockWebServer()) {
+            loginResponses(server);
+            server.enqueue(new MockResponse().setBody("{\"account\":{\"api\":{\"enabled\":true,\"apikey\":\"synthetic-key\"}}}"));
+            server.enqueue(new MockResponse().setBody("{\"account\":{\"api\":{\"enabled\":true,\"apikey\":\"synthetic-key\"}}}"));
+            server.enqueue(new MockResponse().setBody("{\"account\":{\"api\":{\"enabled\":false,\"apikey\":\"synthetic-key\"}}}"));
+            server.enqueue(new MockResponse().setBody("{}"));
+            var session = client(server).login(INN,FINGERPRINT,(p,c)->new CryptoProSigningResult(new byte[]{1},""));
+            session.requireApiKey("synthetic-key");
+            var foreign = assertThrows(IOException.class,()->session.requireApiKey("foreign-key"));
+            assertEquals("CATALOG_KEY_OWNER_MISMATCH",foreign.getMessage());
+            assertFalse(foreign.toString().contains("synthetic-key")); assertFalse(foreign.toString().contains("foreign-key"));
+            assertThrows(IOException.class,()->session.requireApiKey("synthetic-key"));
+            assertEquals("CATALOG_KEY_IDENTITY_UNAVAILABLE",assertThrows(IOException.class,()->session.requireApiKey("synthetic-key")).getMessage());
+            server.takeRequest();server.takeRequest();var read=server.takeRequest();
+            assertEquals("/rest/bootstrap",read.getPath());assertEquals("GET",read.getMethod());
+            assertEquals("session=fixture",read.getHeader("Cookie"));assertEquals(0,read.getBodySize());
+        }
+    }
+    @Test void freshDeviceCanReadItsOwnKeyButAForeignEnterpriseCannotSupplyOne()throws Exception{
+        try(var server=new MockWebServer()){
+            loginResponses(server);
+            server.enqueue(new MockResponse().setBody("{\"account\":{\"inn\":\"7707083893\",\"api\":{\"enabled\":true,\"apikey\":\"synthetic-new-device-key\"}}}"));
+            server.enqueue(new MockResponse().setBody("{\"account\":{\"inn\":\"7700000000\",\"api\":{\"enabled\":true,\"apikey\":\"foreign-fixture\"}}}"));
+            var session=client(server).login(INN,FINGERPRINT,(p,c)->new CryptoProSigningResult(new byte[]{1},""));
+            assertEquals("synthetic-new-device-key",session.apiKey());
+            var error=assertThrows(IOException.class,session::apiKey);assertEquals("CATALOG_KEY_OWNER_MISMATCH",error.getMessage());assertFalse(error.toString().contains("foreign-fixture"));
+        }
+    }
     @Test void sessionIsolationAndCsrf() throws Exception {
         try (var server = new MockWebServer()) {
             loginResponses(server);

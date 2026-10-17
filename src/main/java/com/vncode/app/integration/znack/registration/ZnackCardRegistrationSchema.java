@@ -9,7 +9,14 @@ public final class ZnackCardRegistrationSchema {
     }
 
     public static void initialize(Connection connection) throws SQLException {
+        RegistrationSigningConsent.initialize(connection);
         try (Statement statement = connection.createStatement()) {
+            statement.execute("""
+                CREATE TABLE IF NOT EXISTS znack_card_registration_history(
+                  shop_id INTEGER NOT NULL REFERENCES shops(id) ON DELETE CASCADE,chrt_id INTEGER NOT NULL,nm_id INTEGER NOT NULL,
+                  gtin TEXT NOT NULL,good_id INTEGER,feed_id TEXT,payload_json TEXT,tnved TEXT,status TEXT NOT NULL,
+                  error_message TEXT,archived_at TEXT NOT NULL,PRIMARY KEY(shop_id,chrt_id,gtin))
+                """);
             statement.execute("""
                     CREATE TABLE IF NOT EXISTS znack_card_registrations(
                         shop_id INTEGER NOT NULL,

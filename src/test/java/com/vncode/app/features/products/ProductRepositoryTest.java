@@ -43,6 +43,28 @@ class ProductRepositoryTest {
         assertEquals(251,keys.size());assertEquals(251,repo.freezeKeys(query("",null)).size());
         assertThrows(SecurityException.class,()->repo.loadPage(new ProductQuery(2,Marketplace.WILDBERRIES,"",List.of(),null,false,null,100)));
     }
+    @Test void productViewGroupsWbSizesButVariantSourcesRemainUnchanged()throws Exception {
+        card(1,100,"One card","sku-one");card(1,200,"Other card","sku-other");
+        try(var c=Database.getConnection();var st=c.createStatement()){
+            st.execute("INSERT INTO wb_product_sizes(shop_id,chrt_id,nm_id,tech_size) VALUES(1,101,100,'L')");
+            st.execute("INSERT INTO wb_product_size_skus(shop_id,chrt_id,sku) VALUES(1,101,'sku-two')");
+        }
+        var repo=new ProductRepository();assertEquals(3,repo.loadPage(query("",null)).total());
+        var cards=repo.loadProductPage(query("",null));assertEquals(2,cards.total());
+        var first=cards.rows().stream().filter(r->r.key().cardId().equals("100")).findFirst().orElseThrow();assertEquals("",first.key().variantId());assertTrue(first.size().contains("M"));assertTrue(first.size().contains("L"));assertTrue(first.barcodes().containsAll(List.of("sku-one","sku-two")));
+        assertEquals(2,repo.freezeProductKeys(query("",null)).size());assertTrue(repo.freezeProductKeys(query("",null)).stream().allMatch(k->k.variantId().isBlank()));
+        var q=new ProductQuery(1,Marketplace.WILDBERRIES,"",List.of(),null,false,null,1);String cursor=repo.loadProductPage(q).nextCursor();assertNotNull(cursor);
+        assertEquals(1,repo.loadProductPage(new ProductQuery(1,Marketplace.WILDBERRIES,"",List.of(),null,false,cursor,1)).rows().size());
+        assertThrows(IllegalArgumentException.class,()->repo.loadPage(new ProductQuery(1,Marketplace.WILDBERRIES,"",List.of(),null,false,cursor,1)));
+        assertEquals(1,repo.loadProductPage(query("sku-two",null)).total());
+    }
+    @Test void groupedCardsWithoutBarcodesOrSizesStillDisplayAndRemainEditable()throws Exception {
+        card(1,100,"Incomplete card",null);
+        try(var c=Database.getConnection();var s=c.createStatement()){s.execute("UPDATE wb_product_sizes SET tech_size='' WHERE shop_id=1");}
+        var page=new ProductRepository().loadProductPage(query("",null));assertEquals(1,page.total());assertEquals(1,page.rows().size());
+        var row=page.rows().getFirst();assertEquals("",row.key().variantId());assertEquals("",row.size());assertTrue(row.barcodes().isEmpty());assertEquals("",row.verifiedGtin());
+        assertEquals(1,new ProductRepository().freezeProductKeys(query("Incomplete",null)).size());
+    }
     @Test void unicodeSearchAndLiteralWildcards() throws Exception {
         card(1,1,"БРЮКИ thể thao 100%_VN",null);card(1,2,"Other 100abcdVN",null);
         var repo=new ProductRepository();
@@ -73,6 +95,46 @@ class ProductRepositoryTest {
         assertThrows(IllegalArgumentException.class,()->new ProductDocument("id","declaration","number",null,null,"owner","scope",null,Marketplace.WILDBERRIES,DocumentState.VALID,"",null));
         var uploaded=new ProductDocument("id","declaration","number",null,null,"owner","scope",null,Marketplace.WILDBERRIES,DocumentState.UNVERIFIED,"",null);
         assertEquals(DocumentState.UNVERIFIED,uploaded.state());
+    }
+    @Test void ozonVerifiedSnapshotProjectsAttributesButCredentialRotationHidesIt()throws Exception {
+        try(var c=Database.getConnection();var s=c.createStatement()) {
+            s.execute("INSERT INTO ozon_products(shop_id,product_id,offer_id,sku,name,archived,synced_at) VALUES(2,'21','O-1','SKU-1','Ozon product',0,'now')");
+        }
+        var shop=new com.vncode.app.models.Shop(2,"Ozon",Marketplace.OZON,"fixture","fixture");
+        var key=new ProductKey(2,Marketplace.OZON,"21","O-1");var repo=new ProductRepository();
+        var q=new ProductQuery(2,Marketplace.OZON,"",List.of(),null,false,null,100);
+        assertFalse(repo.loadPage(q).rows().getFirst().attributesLoaded());
+        assertEquals(1,repo.loadPage(q).issueCounts().get(ProductIssueFilter.ATTRIBUTES_UNLOADED));
+        repo.saveVerifiedSnapshot(shop,new ProductSnapshot(key,"live:readback","Ozon product","","Brand","O-1","9:1",List.of(),
+            List.of(new ProductAttribute("7","Состав",List.of("Cotton"),null),new ProductAttribute("8","ТН ВЭД коды ЕАЭС",List.of("6109100000 - Майки и футболки из хлопчатобумажной пряжи"),null),new ProductAttribute("9","Пол",List.of("Мужской"),null),
+                new ProductAttribute("17","Состав",List.of("Wrong complex attribute"),null,"8",0)),
+            List.of(),null,List.of(),java.time.Instant.now(),Map.of("owner",com.vncode.app.integration.listing.ListingIdentity.fingerprint(shop))));
+        var row=repo.loadPage(q).rows().getFirst();assertTrue(row.attributesLoaded());assertEquals("Brand",row.brand());assertEquals("Cotton",row.material());assertEquals("6109100000",row.tnved());assertEquals("Мужской",row.gender());
+        assertEquals(0,repo.loadPage(q).issueCounts().get(ProductIssueFilter.INVALID_TNVED));
+        try(var c=Database.getConnection();var s=c.createStatement()){s.execute("UPDATE shops SET api_key='rotated' WHERE id=2");}
+        row=repo.loadPage(q).rows().getFirst();assertFalse(row.attributesLoaded());assertEquals("",row.brand());assertEquals("",row.material());
+    }
+    @Test void verifiedWbReadbackUpdatesEverySizeAndSurvivesStaleBackgroundCards()throws Exception {
+        card(1,100,"Old title","barcode");
+        try(var c=Database.getConnection();var st=c.createStatement()){
+            st.execute("INSERT INTO wb_product_sizes(shop_id,chrt_id,nm_id,tech_size) VALUES(1,101,100,'L')");
+            st.execute("INSERT INTO wb_product_characteristics(shop_id,nm_id,characteristic_id,name,value_json) VALUES(1,100,204557,'Пол','[\"Мужской\"]')");
+        }
+        var shop=new com.vncode.app.models.Shop(1,"WB","fixture");var repo=new ProductRepository();
+        var snapshot=new ProductSnapshot(new ProductKey(1,Marketplace.WILDBERRIES,"100","100"),"live:readback","New title","","New brand","own","9",List.of(),
+            List.of(new ProductAttribute("44","Состав",List.of("Cotton"),null),new ProductAttribute("45","ТНВЭД",List.of("6103220000"),null)),List.of(),null,List.of(),java.time.Instant.now(),Map.of("owner",com.vncode.app.integration.listing.ListingIdentity.fingerprint(shop)));
+        repo.saveVerifiedSnapshot(shop,snapshot);
+        var page=repo.loadPage(query("",null));assertEquals(2,page.total());
+        for(var row:page.rows()){assertEquals("New brand",row.brand());assertEquals("New title",row.title());assertEquals("Cotton",row.material());assertEquals("6103220000",row.tnved());assertEquals("",row.gender(),"Verified absent field must not fall back to stale values");assertEquals("",row.color(),"Gender is not a color");}
+        assertEquals(2,repo.loadPage(query("New title",null)).total());
+        try(var c=Database.getConnection();var st=c.createStatement()){st.execute("UPDATE shops SET api_key='rotated' WHERE id=1");}
+        assertEquals("Old title",repo.loadPage(query("",null)).rows().getFirst().title());
+    }
+    @Test void issueFilterAndFrozenSelectionAgreeAndCannotReuseAnotherCursor()throws Exception {
+        card(1,1,"Missing",null);card(1,2,"Other",null);
+        var q=new ProductQuery(1,Marketplace.WILDBERRIES,"",List.of(),null,false,null,1,ProductIssueFilter.MISSING_BRAND);
+        var repo=new ProductRepository();var page=repo.loadPage(q);assertEquals(2,page.total());assertEquals(2,repo.freezeKeys(q).size());
+        assertThrows(IllegalArgumentException.class,()->repo.loadPage(new ProductQuery(1,Marketplace.WILDBERRIES,"",List.of(),null,false,page.nextCursor(),1,ProductIssueFilter.INVALID_TNVED)));
     }
     @Test void wrongAssignedBarcodeIsStillMissingVerifiedGtin() throws Exception {
         card(1,1,"Wrong association","OTHER-BARCODE");

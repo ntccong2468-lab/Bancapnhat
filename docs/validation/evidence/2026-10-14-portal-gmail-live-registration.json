@@ -1,0 +1,15 @@
+{
+  "checkedAtUtc": "2026-10-14T10:25:04.941971+00:00",
+  "email": "ntccong2468+vncode-test-c1e5059f@gmail.com",
+  "registrationHttpStatus": 201,
+  "registrationStatus": "pending",
+  "licenseAllocated": false,
+  "deviceAllocated": false,
+  "mailSent": false,
+  "adminListLiveVerified": true,
+  "statusHttpStatus": 200,
+  "statusEmailMatches": true,
+  "status": "pending",
+  "expiresAt": null,
+  "adminVerificationSource": "Website owner confirmed in this chat that the exact test Gmail appears in pending desktop registrations"
+}

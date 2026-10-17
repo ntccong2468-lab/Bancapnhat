@@ -1,0 +1,18 @@
+{
+  "version": "1.4.9",
+  "result": "blocked",
+  "sourceCommit": null,
+  "keyId": "vncode-2",
+  "publicKey": "SPtRxTUJ78fqt5YMJ4DJ_PZwB2cMYegs-J7nY62ADMQ",
+  "backendSourceSha256": null,
+  "windowsDpapiPassed": false,
+  "foreignWindowsIdentityRejected": false,
+  "backendGmailApprovalPassed": false,
+  "deviceLimitConcurrencyPassed": false,
+  "activationRetryPassed": false,
+  "signedOfflinePassed": false,
+  "revocationPassed": false,
+  "readonlyDataPreserved": false,
+  "serverSigningKeyMatch": "unverified",
+  "note": "Owner confirmed signing key configuration and activation on 1.4.4. Version 1.4.9 hardens transport without changing issuer trust or device allocation. Real VN/RU carrier acceptance and production multi-device/offline/revocation remain outstanding. Synthetic network metadata and fixture tests are not live acceptance."
+}

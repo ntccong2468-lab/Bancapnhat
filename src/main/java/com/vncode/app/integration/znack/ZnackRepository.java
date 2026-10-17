@@ -471,29 +471,59 @@ public final class ZnackRepository {
             ps.executeBatch();c.commit();
         }catch(SQLException e){throw new RuntimeException(e);}
     }
+    /** Point lookup for multi-GTIN purchase validation; hidden/archived products never authorize buying. */
+    public Optional<Product> findActiveProduct(String gtin){try(Connection c=Database.getConnection();PreparedStatement ps=c.prepareStatement("SELECT * FROM znack_products WHERE shop_id=? AND gtin=? AND deleted_at IS NULL AND identity_archived_at IS NULL AND COALESCE(card_status,'')<>'imported_unverified'")){ps.setInt(1,shop.shopId());ps.setString(2,GtinNormalizer.normalize(gtin));try(ResultSet r=ps.executeQuery()){return r.next()?Optional.of(product(r)):Optional.empty();}}catch(SQLException e){throw new RuntimeException(e);}}
     public Optional<Product> findProduct(String gtin){try(Connection c=Database.getConnection();PreparedStatement ps=c.prepareStatement("SELECT * FROM znack_products WHERE shop_id=? AND gtin=? AND identity_archived_at IS NULL")){ps.setInt(1,shop.shopId());ps.setString(2,GtinNormalizer.normalize(gtin));try(ResultSet r=ps.executeQuery()){return r.next()?Optional.of(product(r)):Optional.empty();}}catch(SQLException e){throw new RuntimeException(e);}}
     public void updateProductCisType(String gtin,String cisType){execute("UPDATE znack_products SET cis_type=? WHERE shop_id=? AND gtin=?",ps->{ps.setString(1,cisType);ps.setInt(2,shop.shopId());ps.setString(3,GtinNormalizer.normalize(gtin));});}
-    public void updateProductDocuments(String gtin,List<GoodsDocument> documents){
+    private static final String PRODUCT_DOCUMENTS_UPDATE="UPDATE znack_products SET permit_documents_json=?,certificate_type=?,certificate_number=?,certificate_date=? WHERE shop_id=? AND gtin=?";
+    private static final String PRODUCT_LABEL_UPDATE="UPDATE znack_products SET gender=?,size=? WHERE shop_id=? AND gtin=?";
+    public record CatalogMetadata(String gtin,boolean replaceDocuments,List<GoodsDocument> documents,String gender,String size){
+        public CatalogMetadata{documents=documents==null?List.of():List.copyOf(documents);}
+    }
+    /** One short atomic write, yielding to FBS between batches instead of committing per field/GTIN. */
+    public void updateCatalogMetadata(List<CatalogMetadata> metadata,Settings expectedSigner){
+        if(metadata.size()>100)throw new IllegalArgumentException("CATALOG_METADATA_BATCH_LIMIT");
+        var snapshot=List.copyOf(metadata);if(snapshot.isEmpty())return;
+        try{
+            com.vncode.app.config.SqliteWriteTransaction.run(connection->{
+                if(expectedSigner!=null&&!sameSigningIdentity(getSettings(connection),expectedSigner))throw new StaleSignerException();
+                try(var documents=connection.prepareStatement(PRODUCT_DOCUMENTS_UPDATE);
+                    var labels=connection.prepareStatement(PRODUCT_LABEL_UPDATE)){
+                    boolean hasDocuments=false;
+                    for(var row:snapshot){
+                        if(row.replaceDocuments()){bindProductDocuments(documents,row.gtin(),row.documents());documents.addBatch();hasDocuments=true;}
+                        bindProductLabel(labels,row.gtin(),row.gender(),row.size());labels.addBatch();
+                    }
+                    if(hasDocuments)documents.executeBatch();
+                    labels.executeBatch();
+                }
+                return null;
+            });
+        }catch(SQLException error){throw new RuntimeException(error);}
+    }
+    private void bindProductDocuments(PreparedStatement ps,String gtin,List<GoodsDocument> documents)throws SQLException{
         LinkedHashSet<GoodsDocument> distinct=new LinkedHashSet<>();
         if(documents!=null)for(GoodsDocument document:documents)if(document!=null&&document.complete())distinct.add(document);
         List<GoodsDocument> snapshot=List.copyOf(distinct);
         GoodsDocument first=snapshot.isEmpty()?null:snapshot.getFirst();
-        execute("UPDATE znack_products SET permit_documents_json=?,certificate_type=?,certificate_number=?,certificate_date=? WHERE shop_id=? AND gtin=?",ps->{
-            ps.setString(1,GSON.toJson(snapshot));
-            ps.setString(2,first==null?null:first.type());
-            ps.setString(3,first==null?null:first.number());
-            ps.setString(4,first==null?null:first.date());
-            ps.setInt(5,shop.shopId());
-            ps.setString(6,GtinNormalizer.normalize(gtin));
-        });
+        ps.setString(1,GSON.toJson(snapshot));
+        ps.setString(2,first==null?null:first.type());
+        ps.setString(3,first==null?null:first.number());
+        ps.setString(4,first==null?null:first.date());
+        ps.setInt(5,shop.shopId());
+        ps.setString(6,GtinNormalizer.normalize(gtin));
+    }
+    public void updateProductDocuments(String gtin,List<GoodsDocument> documents){
+        execute(PRODUCT_DOCUMENTS_UPDATE,ps->bindProductDocuments(ps,gtin,documents));
+    }
+    private void bindProductLabel(PreparedStatement ps,String gtin,String gender,String size)throws SQLException{
+        ps.setString(1,blankToNull(gender));
+        ps.setString(2,blankToNull(size));
+        ps.setInt(3,shop.shopId());
+        ps.setString(4,GtinNormalizer.normalize(gtin));
     }
     public void updateProductLabelMetadata(String gtin,String gender,String size){
-        execute("UPDATE znack_products SET gender=?,size=? WHERE shop_id=? AND gtin=?",ps->{
-            ps.setString(1,blankToNull(gender));
-            ps.setString(2,blankToNull(size));
-            ps.setInt(3,shop.shopId());
-            ps.setString(4,GtinNormalizer.normalize(gtin));
-        });
+        execute(PRODUCT_LABEL_UPDATE,ps->bindProductLabel(ps,gtin,gender,size));
     }
     public void updateProductMetadata(Product p){execute("UPDATE znack_products SET tn_ved=?,certificate_type=?,certificate_number=?,certificate_date=?,production_date=? WHERE shop_id=? AND gtin=?",ps->{ps.setString(1,p.tnVed());ps.setString(2,p.certificateType());ps.setString(3,p.certificateNumber());ps.setString(4,p.certificateDate());ps.setString(5,p.productionDate());ps.setInt(6,shop.shopId());ps.setString(7,GtinNormalizer.normalize(p.gtin()));});}
     public void updateProductReadiness(Product p){execute("UPDATE znack_products SET product_name=COALESCE(NULLIF(?,''),product_name),good_mark_flag=?,good_turn_flag=?,card_status=?,card_detailed_status=?,readiness_checked_at=? WHERE shop_id=? AND gtin=?",ps->{ps.setString(1,p.productName());nullableBoolean(ps,2,p.goodMarkFlag());nullableBoolean(ps,3,p.goodTurnFlag());ps.setString(4,p.cardStatus());ps.setString(5,p.cardDetailedStatus());ps.setString(6,p.readinessCheckedAt()==null?null:p.readinessCheckedAt().toString());ps.setInt(7,shop.shopId());ps.setString(8,GtinNormalizer.normalize(p.gtin()));});}
@@ -503,7 +533,24 @@ public final class ZnackRepository {
     public Optional<KizOrder> findOrder(long id){try(Connection c=Database.getConnection();PreparedStatement ps=c.prepareStatement("SELECT * FROM kiz_orders WHERE shop_id=? AND id=?")){ps.setInt(1,shop.shopId());ps.setLong(2,id);try(ResultSet r=ps.executeQuery()){return r.next()?Optional.of(order(r)):Optional.empty();}}catch(SQLException e){throw new RuntimeException(e);}}
     public List<KizOrder> findOrders(){try(Connection c=Database.getConnection();PreparedStatement ps=c.prepareStatement("SELECT * FROM kiz_orders WHERE shop_id=? ORDER BY id DESC")){ps.setInt(1,shop.shopId());try(ResultSet r=ps.executeQuery()){List<KizOrder> o=new ArrayList<>();while(r.next())o.add(order(r));return o;}}catch(SQLException e){throw new RuntimeException(e);}}
 
-    public int insertCodes(long orderId,String gtin,DownloadedCodes d){String sql="INSERT OR IGNORE INTO kiz_codes(shop_id,order_id,raw_code,display_code,gtin,block_id,status,legal_status,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?)";try(Connection c=Database.getConnection();PreparedStatement ps=c.prepareStatement(sql)){c.setAutoCommit(false);int n=0;String now=Instant.now().toString();for(String raw:d.codes()){ps.setInt(1,shop.shopId());ps.setLong(2,orderId);ps.setString(3,raw);ps.setString(4,ZnackSanitizer.displayCode(raw));ps.setString(5,GtinNormalizer.normalize(gtin));ps.setString(6,d.blockId());ps.setString(7,KizInventoryStatus.AVAILABLE.name());ps.setString(8,KizLegalStatus.RECEIVED.name());ps.setString(9,now);ps.setString(10,now);n+=ps.executeUpdate();}c.commit();return n;}catch(SQLException e){throw new RuntimeException(e);}}
+    public int insertCodes(long orderId,String gtin,DownloadedCodes d){
+        String sql="INSERT OR IGNORE INTO kiz_codes(shop_id,order_id,raw_code,display_code,gtin,block_id,status,legal_status,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?)";
+        try(Connection c=Database.getConnection();PreparedStatement ps=c.prepareStatement(sql)){
+            c.setAutoCommit(false);int n=0;String now=Instant.now().toString();
+            var identities=new java.util.HashMap<String,String>();for(String raw:d.codes())try{identities.put(raw,com.vncode.app.features.kiz.KizMark.parse(raw).cis());}catch(IllegalArgumentException legacy){/* Preserve support for existing SUZ encodings. */}
+            var existing=new java.util.HashSet<String>();var identifiers=new java.util.ArrayList<>(new java.util.HashSet<>(identities.values()));
+            for(int offset=0;offset<identifiers.size();offset+=500){
+                var batch=identifiers.subList(offset,Math.min(offset+500,identifiers.size()));
+                try(var p=c.prepareStatement("SELECT cis FROM kiz_import_entries WHERE cis IN ("+String.join(",",java.util.Collections.nCopies(batch.size(),"?"))+")")){
+                    int i=1;for(String cis:batch)p.setString(i++,cis);try(var r=p.executeQuery()){while(r.next())existing.add(r.getString(1));}
+                }
+            }
+            for(String raw:d.codes()){
+                if(existing.contains(identities.get(raw)))continue;
+                ps.setInt(1,shop.shopId());ps.setLong(2,orderId);ps.setString(3,raw);ps.setString(4,ZnackSanitizer.displayCode(raw));ps.setString(5,GtinNormalizer.normalize(gtin));ps.setString(6,d.blockId());ps.setString(7,KizInventoryStatus.AVAILABLE.name());ps.setString(8,KizLegalStatus.RECEIVED.name());ps.setString(9,now);ps.setString(10,now);n+=ps.executeUpdate();
+            }c.commit();return n;
+        }catch(SQLException e){throw new RuntimeException(e);}
+    }
     public List<KizCode> findCodes(long orderId){try(Connection c=Database.getConnection();PreparedStatement ps=c.prepareStatement("SELECT * FROM kiz_codes WHERE shop_id=? AND order_id=? ORDER BY id")){ps.setInt(1,shop.shopId());ps.setLong(2,orderId);try(ResultSet r=ps.executeQuery()){List<KizCode> o=new ArrayList<>();while(r.next())o.add(code(r));return o;}}catch(SQLException e){throw new RuntimeException(e);}}
     public void markCodes(long orderId,KizLegalStatus status,String pdfPath,Long documentId){execute("UPDATE kiz_codes SET legal_status=?,document_id=COALESCE(?,document_id),updated_at=? WHERE shop_id=? AND order_id=?",ps->{ps.setString(1,status.name());if(documentId==null)ps.setNull(2,Types.BIGINT);else ps.setLong(2,documentId);ps.setString(3,Instant.now().toString());ps.setInt(4,shop.shopId());ps.setLong(5,orderId);});}
 

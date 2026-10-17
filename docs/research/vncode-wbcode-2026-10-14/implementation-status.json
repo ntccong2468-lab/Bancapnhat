@@ -1,0 +1,190 @@
+{
+  "version": "1.4.1",
+  "release_published": false,
+  "website_deployed_by_this_change": false,
+  "architecture": "Mỗi PC có dữ liệu đơn/KIZ riêng; website dùng chung account/license.",
+  "items": [
+    {
+      "id": "01",
+      "module": "License và tài khoản",
+      "priority": "P0",
+      "status": "Nền đã có; chờ nghiệm thu thật",
+      "implementation": "Gmail đăng ký trực tiếp, nhập key luôn mở; nhiều máy theo max_devices. Hướng dẫn đã đồng bộ. Chưa dùng tài khoản thật để kiểm chứng duyệt/kích hoạt hai máy."
+    },
+    {
+      "id": "02",
+      "module": "Thêm cửa hàng và mở ứng dụng",
+      "priority": "P1",
+      "status": "Đã triển khai",
+      "implementation": "Trang đầu có bốn nút theo bước: đăng ký Gmail/nhập key → thêm shop → cấu hình Znack → kiểm tra sản phẩm; sidebar thu gọn/header wrap; giữ trạng thái license/shop hiện có."
+    },
+    {
+      "id": "03",
+      "module": "Dữ liệu sản phẩm Ozon",
+      "priority": "P0",
+      "status": "Đã triển khai",
+      "implementation": "Đọc brand/material/TN VED/gender từ snapshot Ozon của đúng owner; tách chưa tải và thiếu thuộc tính, bỏ nhóm thuộc tính phức hợp không tương ứng."
+    },
+    {
+      "id": "04",
+      "module": "Bảng sản phẩm và giới tính",
+      "priority": "P1",
+      "status": "Đã triển khai",
+      "implementation": "Dòng sản phẩm gọn, ảnh giữ tỉ lệ, giới tính hiển thị và sửa hàng loạt theo dictionary của từng sàn."
+    },
+    {
+      "id": "05",
+      "module": "Bộ lọc lỗi sản phẩm",
+      "priority": "P1",
+      "status": "Đã triển khai",
+      "implementation": "Bộ lọc chưa tải/thiếu thương hiệu/thiếu chất liệu/TN VED không hợp lệ; đếm trên cùng snapshot và phạm vi lọc."
+    },
+    {
+      "id": "06",
+      "module": "Chọn sản phẩm và sửa hàng loạt",
+      "priority": "P0",
+      "status": "Đã triển khai",
+      "implementation": "Xóa lựa chọn khi đổi lọc; khóa thao tác lô trong lúc dữ liệu đang thay đổi; preview tối đa 1000 sản phẩm và 64 MiB; giữ consent/checkpoint/readback."
+    },
+    {
+      "id": "07",
+      "module": "Giấy tờ và ngày dán từ clipboard",
+      "priority": "P0",
+      "status": "Đã triển khai",
+      "implementation": "Dán dd.MM.yyyy và commit editor trước preview; chặn ngày không hợp lệ ngay cả khi chưa mất focus."
+    },
+    {
+      "id": "08",
+      "module": "TN VED, ngành hàng và giấy tờ từng SKU",
+      "priority": "P1",
+      "status": "Một phần; cần nguồn quy tắc",
+      "implementation": "Chọn mã TN VED 10 số còn hiệu lực từ catalog trong công cụ sửa; giữ rà soát từng SKU/giấy tờ. Chưa tự suy ra phân loại pháp lý/giày khi thiếu nguồn quy tắc đã xác minh."
+    },
+    {
+      "id": "09",
+      "module": "Cấu hình Znack / CryptoPro",
+      "priority": "P0",
+      "status": "Nền đã có; chờ nghiệm thu thật",
+      "implementation": "Giữ CryptoPro và phiên CZ/ELK/National Catalog theo INN; cần Windows có chứng thư thật."
+    },
+    {
+      "id": "10",
+      "module": "Đồng bộ Catalog và tổng số thẻ",
+      "priority": "P1",
+      "status": "Một phần; cần hợp đồng API",
+      "implementation": "Giữ paging, đếm và đồng bộ nguồn hiện có; chưa chứng minh API toàn bộ thẻ ngoài app ở mọi nhóm hàng. Không gọi dữ liệu nguồn hạn chế là toàn bộ Catalog."
+    },
+    {
+      "id": "11",
+      "module": "Đăng ký Ozon hàng loạt",
+      "priority": "P0",
+      "status": "Đã triển khai",
+      "implementation": "Review lô Ozon tối đa 1000 SKU/64 MiB, consent giấy tờ chưa kiểm chứng, hàng đợi từng SKU, dừng phần chưa gửi và tiếp tục checkpoint."
+    },
+    {
+      "id": "12",
+      "module": "Tạo thẻ mới cho sản phẩm đã xuất bản",
+      "priority": "P1",
+      "status": "Đã triển khai",
+      "implementation": "Chọn sản phẩm đã xuất bản, tạo thẻ mới theo lô WB/Ozon; xác nhận số GTIN sẽ dùng; candidate và active được giữ riêng."
+    },
+    {
+      "id": "13",
+      "module": "Thêm GTIN vào WB / Ozon",
+      "priority": "P0",
+      "status": "Đã triển khai; chờ ghi thật",
+      "implementation": "Giữ ADD-only và readback; bổ sung đối chiếu GTIN barcode/Catalog của đúng SKU và credential owner. Catalog cũ cần đồng bộ lại để có owner proof."
+    },
+    {
+      "id": "14",
+      "module": "GS1: sáu kiểm tra và thỏa thuận CZ",
+      "priority": "P1",
+      "status": "Một phần; cần hợp đồng API",
+      "implementation": "Giữ sáu kiểm tra GS1. Thỏa thuận CZ chưa có API kiểm chứng tiếp tục hiển thị Chưa kiểm chứng và đường dẫn portal; header số dư đúng tài khoản/nhóm."
+    },
+    {
+      "id": "15",
+      "module": "GS1: xin tiền tố, gia hạn, khôi phục",
+      "priority": "P1",
+      "status": "Nền đã có; giới hạn mẫu",
+      "implementation": "Giữ đơn GS1, chữ ký vẽ, Word/PDF/ảnh và preview. Word phức tạp dùng PDF/ảnh seller đã ký; cần nghiệm thu mẫu thật."
+    },
+    {
+      "id": "16",
+      "module": "GS1: email thật và thư trả lời",
+      "priority": "P0",
+      "status": "Đã bổ sung; chờ mail thật",
+      "implementation": "Tự điền email hồ sơ đã xác thực và đúng INN khi chưa có cấu hình gửi; SMTP/IMAP TLS và DPAPI có sẵn vẫn cần quyền truy cập hộp thư thật."
+    },
+    {
+      "id": "17",
+      "module": "WB: đơn hàng và supply",
+      "priority": "P1",
+      "status": "Nền đã có; kiểm thử hồi quy",
+      "implementation": "Giữ supply cục bộ/đồng bộ nền, retry đọc có giới hạn và bảng cũ khi lỗi; kiểm thử hồi quy dữ liệu cache trong lúc worker bận."
+    },
+    {
+      "id": "18",
+      "module": "Ozon: gán KIZ theo shipment/lô",
+      "priority": "P0",
+      "status": "Đã triển khai",
+      "implementation": "Preflight tính tập posting sẵn sàng theo pool KIZ dùng chung; cho seller xác nhận xử lý riêng tập đủ điều kiện, giữ đơn bị chặn."
+    },
+    {
+      "id": "19",
+      "module": "FBO: GTIN theo biến thể và nhãn",
+      "priority": "P0",
+      "status": "Đã triển khai",
+      "implementation": "GTIN FBO khớp shop + sản phẩm gốc + biến thể + barcode thực tế + Catalog published/tradeUnit/current owner; chặn GTIN kỹ thuật 029 và ánh xạ mơ hồ."
+    },
+    {
+      "id": "20",
+      "module": "FBO: mua KIZ và xử lý phần đủ điều kiện",
+      "priority": "P0",
+      "status": "Đã triển khai",
+      "implementation": "Bảng Cần/Có/Phải mua theo SKU; chọn phần ready hoặc chuyển đăng ký; mua phần thiếu sau consent và kiểm tra lại; dự trữ KIZ nguyên tử theo lô."
+    },
+    {
+      "id": "21",
+      "module": "Thiết kế mẫu và lịch sử in",
+      "priority": "P1",
+      "status": "Đã triển khai",
+      "implementation": "Designer nhúng trong workspace, đổi ngôn ngữ giữ nội dung; FBO lưu layout và trang đã đóng băng, checkpoint tiêu thụ KIZ và khôi phục PDF sau lỗi xuất. PDF thành công không xác nhận máy in vật lý."
+    },
+    {
+      "id": "22",
+      "module": "Header, cảnh báo và tiến độ",
+      "priority": "P1",
+      "status": "Đã triển khai",
+      "implementation": "Header số dư theo INN/environment/tài khoản/nhóm với tuổi cache/ngưỡng cảnh báo; trung tâm tổng hợp job mọi shop và mở trang xử lý."
+    },
+    {
+      "id": "23",
+      "module": "Hướng dẫn, video và trợ giúp",
+      "priority": "P2",
+      "status": "Đã triển khai; cần nội dung media",
+      "implementation": "Tìm không dấu trong 8 mục, chữ đọc offline, thêm ảnh/video do người dùng chọn, play/seek/retry/resume và dừng khi rời trang. Chưa kèm bộ video hướng dẫn chính thức."
+    },
+    {
+      "id": "24",
+      "module": "Giao diện, font và bốn ngôn ngữ",
+      "priority": "P2",
+      "status": "Đã triển khai; QA Windows",
+      "implementation": "Đóng gói Inter có OFL và source hash, header wrap/sidebar thu gọn, bản dịch RU/EN/VI/ZH. QA native/DPI theo CI."
+    },
+    {
+      "id": "25",
+      "module": "Tin tức, cập nhật và khôi phục dữ liệu",
+      "priority": "P1",
+      "status": "Nền đã có; một phần",
+      "implementation": "Giữ updater/checksum/backup/lock/migration và tin WB. Chưa có nguồn tin Ozon chính thức đã xác minh. Không phát hành release hoặc triển khai website trong đợt này."
+    },
+    {
+      "id": "26",
+      "module": "10 shop, 1000+ đơn và nhiều người",
+      "priority": "P0",
+      "status": "Đã bổ sung; cần đo thực tế",
+      "implementation": "Giảm truy vấn theo SKU/GTIN bằng batch, giữ worker/cache budget và shop guards; đo synthetic 10 shop/100000 sản phẩm/10000 đơn. Chưa thay thế đo shipment API/máy in thật trên PC 2CPU/4GiB."
+    }
+  ]
+}

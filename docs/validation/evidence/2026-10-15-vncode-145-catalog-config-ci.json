@@ -1,0 +1,44 @@
+{
+  "version": "1.4.5",
+  "sourceCommit": "7b90774f8a8575850c9b72c1fb8a801fb82eedae",
+  "runId": 38625269821,
+  "runConclusion": "success",
+  "artifactId": 11923647521,
+  "url": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/38625269821/artifacts/11923647521",
+  "file": "VN-code-1.4.5-License-Diagnostics-Windows-x64.exe",
+  "sha256": "be5343d8104973fe7e22882e5f5474a055434ebefcb9742d2b66b15f94efd625",
+  "size": 144731136,
+  "windowsJava": {
+    "tests": 159,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "native": {
+    "windowTitle": "VN code v1.4.5",
+    "version": "1.4.5",
+    "appName": "VN code",
+    "nativeLauncher": "passed",
+    "platform": "windows-x64",
+    "liveMarketplaceMutations": false,
+    "historyPreserved": true,
+    "schemaMigration": "3 to 5",
+    "rollbackSnapshotVerified": true
+  },
+  "gs1": {
+    "appName": "VN code",
+    "version": "1.4.5",
+    "result": "passed",
+    "dpapiRoundTrip": true,
+    "protectedPasswordPersistence": true,
+    "unverifiedInvoiceBlocked": true,
+    "liveGS1Mutations": false,
+    "catalogKeyDpapiRoundTrip": true,
+    "catalogKeyPurposeIsolated": true
+  },
+  "nodeContractTests": 49,
+  "portalTests": 56,
+  "liveCatalogConnectionTested": false,
+  "officialReleasePublished": false,
+  "note": "Downloaded artifact, verified SHA256 against packaged checksum and PE signature. Tests use fixtures. Native smoke covers launcher/history/schema migration and DPAPI purposes; full installer/workspace upgrade and real seller API tests remain outstanding."
+}

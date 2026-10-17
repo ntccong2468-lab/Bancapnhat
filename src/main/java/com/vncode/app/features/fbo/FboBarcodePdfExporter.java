@@ -46,6 +46,10 @@ public class FboBarcodePdfExporter {
         exportPages(plan == null ? List.of() : plan.pages(), outputFile, beforePublish);
     }
 
+    public void exportPlan(FboPrintPlan plan, PrintTemplate frozenTemplate, File outputFile, Runnable beforePublish) throws IOException {
+        exportPages(plan == null ? List.of() : plan.pages(), java.util.Objects.requireNonNull(frozenTemplate), outputFile, beforePublish);
+    }
+
     public void exportSinglePage(FboProductSku product, File outputFile) throws IOException {
         exportPages(List.of(FboPrintPage.barcode(product, 1)), outputFile, () -> {
         });
@@ -53,9 +57,13 @@ public class FboBarcodePdfExporter {
 
     private void exportPages(List<FboPrintPage> pages, File outputFile, Runnable beforePublish) throws IOException {
         LicenseRuntime.require(Permission.PRINT_NEW);
+        exportPages(pages, templateService.getDefaultTemplate(), outputFile, beforePublish);
+    }
+
+    private void exportPages(List<FboPrintPage> pages, PrintTemplate template, File outputFile, Runnable beforePublish) throws IOException {
+        LicenseRuntime.require(Permission.PRINT_NEW);
         File staging = AtomicFilePublisher.stagingFile(outputFile, ".pdf");
         try {
-            PrintTemplate template = templateService.getDefaultTemplate();
             GenerateBarcode.exportTemplatePages(template, toOrders(pages), staging);
             LicenseRuntime.require(Permission.PRINT_NEW);
             if (beforePublish != null) {
@@ -67,7 +75,7 @@ public class FboBarcodePdfExporter {
         }
     }
 
-    private List<Order> toOrders(List<FboPrintPage> pages) {
+    public List<Order> toOrders(List<FboPrintPage> pages) {
         List<Order> orders = new ArrayList<>();
         for (FboPrintPage page : pages == null ? List.<FboPrintPage>of() : pages) {
             if (page == null || page.product() == null) {
@@ -90,7 +98,8 @@ public class FboBarcodePdfExporter {
         order.setColor(product.color());
         order.setSize(product.size());
         order.setRuSize(product.ruSize());
-        order.setBarcode(page.kind() == FboPrintPage.Kind.BARCODE ? product.sku() : null);
+        if(page.kind()==FboPrintPage.Kind.BARCODE&&product.requiresKiz()&&!page.categoryStock()&&!com.vncode.app.features.gtinsync.RegisteredGtinValidator.isValid(product.verifiedGtin()))throw new IllegalStateException("FBO_GTIN_UNVERIFIED");
+        order.setBarcode(page.kind()==FboPrintPage.Kind.BARCODE?(product.requiresKiz()&&!page.categoryStock()?product.verifiedGtin():product.sku()):null);
         order.setKiz(page.kind() == FboPrintPage.Kind.KIZ ? page.kizCode() : null);
         order.setStickerTail(String.valueOf(Math.max(1, page.pairNumber())));
         order.setImageUrl(product.imageUrl());

@@ -11,6 +11,32 @@ import java.util.concurrent.atomic.AtomicInteger;
 import static org.junit.jupiter.api.Assertions.*;
 
 class MarketplaceRequestBudgetTest {
+    @Test void stalledBackgroundReadLeavesARequestSlotForFbs() throws Exception {
+        var entered=new CountDownLatch(1);var release=new CountDownLatch(1);
+        try(var threads=Executors.newFixedThreadPool(3)) {
+            var background=threads.submit(()->{
+                try(var lane=MarketplaceRequestBudget.lane(true);var slot=MarketplaceRequestBudget.acquire()) {
+                    entered.countDown();assertTrue(release.await(5,TimeUnit.SECONDS));return null;
+                }
+            });
+            assertTrue(entered.await(5,TimeUnit.SECONDS));
+            var waiting=new CountDownLatch(1);
+            var anotherCatalog=threads.submit(()->{
+                try(var lane=MarketplaceRequestBudget.lane(true)) {
+                    waiting.countDown();try(var slot=MarketplaceRequestBudget.acquire()){return null;}
+                }
+            });
+            try {
+                assertTrue(waiting.await(5,TimeUnit.SECONDS));
+                assertThrows(TimeoutException.class,()->anotherCatalog.get(150,TimeUnit.MILLISECONDS));
+                threads.submit(()->{try(var lane=MarketplaceRequestBudget.lane(false);var slot=MarketplaceRequestBudget.acquire()){
+                    assertEquals(2,MarketplaceRequestBudget.activeCount());return null;
+                }}).get(1,TimeUnit.SECONDS);
+            } finally {release.countDown();}
+            background.get(5,TimeUnit.SECONDS);anotherCatalog.get(5,TimeUnit.SECONDS);
+        }
+        assertEquals(0,MarketplaceRequestBudget.activeCount());
+    }
     @Test void tenShopRequestsNeverExceedTwoInFlight() throws Exception {
         try(var server=new MockWebServer();var threads=Executors.newFixedThreadPool(10)) {
             var current=new AtomicInteger();var maximum=new AtomicInteger();var firstTwo=new CountDownLatch(2);var release=new CountDownLatch(1);

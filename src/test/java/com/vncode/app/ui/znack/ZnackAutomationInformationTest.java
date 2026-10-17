@@ -49,6 +49,23 @@ class ZnackAutomationInformationTest {
     @BeforeAll static void startFx() {
         try { Platform.startup(() -> Platform.setImplicitExit(false)); } catch (IllegalStateException started) {}
     }
+    @Test void catalogKeyIsMaskedAndClearedWhenSwitchingShopsAndLanguages() throws Exception {
+        fx(() -> {
+            var field=node("catalogKeyField",javafx.scene.control.PasswordField.class);
+            for(var language:AppLanguage.values()) {
+                i18n.setLanguage(language);controller.applyTranslations();
+                assertEquals(i18n.tr("znack.catalog.title"),label("catalogTitleLabel"));
+                assertFalse(node("checkCatalogButton",Button.class).getText().contains("znack.catalog."));
+            }
+            field.setText("synthetic-private-key");
+            assertTrue(label("catalogStatusLabel").contains(i18n.tr("znack.catalog.unchecked")));
+            assertFalse(label("catalogStatusLabel").contains(field.getText()));
+            controller.setShop(shop(2));assertEquals("",field.getText());
+            assertEquals(i18n.tr("znack.catalog.not_saved"),label("catalogStatusLabel"));
+            controller.setShop(null);assertTrue(field.isDisabled());assertTrue(node("checkCatalogButton",Button.class).isDisabled());
+            return null;
+        });
+    }
     @BeforeEach void setup() throws Exception {
         System.setProperty("vncode.appdata.dir", root.toString());
         Database.initDatabase();
@@ -75,7 +92,7 @@ class ZnackAutomationInformationTest {
             controller.accountReader((settings, owner, existing, active) -> { remoteCalls.incrementAndGet(); throw new AssertionError("No automatic login"); });
             var information = node("informationTab", Tab.class);
             assertSame(information, information.getTabPane().getSelectionModel().getSelectedItem());
-            assertEquals(List.of("informationTab", "ordersTab", "deletedTab", "settingsTab", "productsTab", "logsTab"),
+            assertEquals(List.of("informationTab", "ordersTab", "deletedTab", "settingsTab", "productsTab", "logsTab", "warehouseTab"),
                     information.getTabPane().getTabs().stream().map(Tab::getId).toList());
             for (var language : AppLanguage.values()) {
                 i18n.setLanguage(language); controller.applyTranslations();

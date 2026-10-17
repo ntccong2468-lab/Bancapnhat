@@ -20,6 +20,7 @@ import java.util.HashSet;
 import java.util.Collections;
 
 public class ZnackGtinInventoryService {
+    private static final class ImportedOwner {static String eligible(String alias){return com.vncode.app.features.kiz.KizWarehouseRepository.eligibleExact(alias);}static String current(Connection c,int shopId)throws SQLException{return com.vncode.app.features.kiz.KizWarehouseRepository.currentOwner(c,shopId);}}
     private static final Logger LOGGER = LoggerFactory.getLogger(ZnackGtinInventoryService.class);
 
     public List<Kiz> reserveAvailable(int shopId, String gtin, int quantity) {
@@ -36,6 +37,13 @@ public class ZnackGtinInventoryService {
     }
 
     public Map<String, List<Kiz>> reserveAvailableBulk(int shopId, Map<String, Integer> quantities, String reservationToken) {
+        return reserveAvailableBulk(shopId,quantities,reservationToken,false);
+    }
+    /** Explicit shipment purchase source must never draw from seller imports, even verified ones. */
+    public Map<String,List<Kiz>> reservePurchasedBulk(int shopId,Map<String,Integer> quantities) {
+        return reserveAvailableBulk(shopId,quantities,UUID.randomUUID().toString(),true);
+    }
+    private Map<String,List<Kiz>> reserveAvailableBulk(int shopId,Map<String,Integer> quantities,String reservationToken,boolean purchasedOnly) {
         if (shopId <= 0 || quantities == null || quantities.isEmpty() || quantities.size() > 10000) throw new IllegalArgumentException("Invalid KIZ reservation plan.");
         Map<String,Integer> requested = new LinkedHashMap<>();
         for (var entry : quantities.entrySet()) {
@@ -47,7 +55,7 @@ public class ZnackGtinInventoryService {
         try (Connection c = Database.getConnection(); Statement tx = c.createStatement()) {
             tx.execute("BEGIN IMMEDIATE");
             try {
-                Map<String,List<Kiz>> selected = selectAvailableBulk(c, shopId, requested);
+                Map<String,List<Kiz>> selected = selectAvailableBulk(c, shopId, requested,purchasedOnly);
                 for(var entry:requested.entrySet()) {
                     int available = selected.getOrDefault(entry.getKey(), List.of()).size();
                     if (available != entry.getValue()) {
@@ -99,15 +107,37 @@ public class ZnackGtinInventoryService {
     public int availableCount(int shopId, String gtin) {
         try (Connection c = Database.getConnection(); PreparedStatement ps = c.prepareStatement(
                 "SELECT COUNT(*) FROM kiz_codes INDEXED BY idx_kiz_codes_available_circulation WHERE shop_id=? AND gtin=? "
-                        + "AND status='AVAILABLE' AND legal_status='IN_CIRCULATION'")) {
+                        + "AND status='AVAILABLE' AND legal_status='IN_CIRCULATION' AND "+ImportedOwner.eligible("kiz_codes"))) {
             ps.setInt(1, shopId);
             ps.setString(2, GtinNormalizer.normalize(gtin));
+            ps.setString(3,ImportedOwner.current(c,shopId));
             try (ResultSet rs = ps.executeQuery()) {
                 return rs.next() ? rs.getInt(1) : 0;
             }
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
+    }
+    /** Bounded reads for whole shipments/FBO plans; no connection per GTIN. */
+    public Map<String,Integer> availableCounts(int shopId,java.util.Collection<String> gtins) {
+        return availableCounts(shopId,gtins,false);
+    }
+    public Map<String,Integer> purchasedAvailableCounts(int shopId,java.util.Collection<String> gtins) {
+        return availableCounts(shopId,gtins,true);
+    }
+    private Map<String,Integer> availableCounts(int shopId,java.util.Collection<String> gtins,boolean purchasedOnly) {
+        if(shopId<=0||gtins==null||gtins.size()>10000)throw new IllegalArgumentException("Invalid inventory scope");
+        var normalized=gtins.stream().map(GtinNormalizer::normalize).distinct().toList();
+        var counts=new LinkedHashMap<String,Integer>();normalized.forEach(g->counts.put(g,0));
+        try(var c=Database.getConnection()) {
+            String owner=ImportedOwner.current(c,shopId);
+            for(int offset=0;offset<normalized.size();offset+=750) {
+                var batch=normalized.subList(offset,Math.min(offset+750,normalized.size()));
+                String sql="SELECT gtin,count(*) FROM kiz_codes INDEXED BY idx_kiz_codes_available_circulation WHERE shop_id=? AND status='AVAILABLE' AND legal_status='IN_CIRCULATION' AND gtin IN ("+String.join(",",Collections.nCopies(batch.size(),"?"))+") AND "+ImportedOwner.eligible("kiz_codes")+purchasedFilter("kiz_codes",purchasedOnly)+" GROUP BY gtin";
+                try(var p=c.prepareStatement(sql)){p.setInt(1,shopId);int i=2;for(var g:batch)p.setString(i++,g);p.setString(i,owner);try(var r=p.executeQuery()){while(r.next())counts.put(r.getString(1),r.getInt(2));}}
+            }
+            return Map.copyOf(counts);
+        }catch(SQLException failure){throw new IllegalStateException("Unable to read inventory counts");}
     }
 
     public int discardableCount(int shopId, String gtin) {
@@ -201,21 +231,23 @@ public class ZnackGtinInventoryService {
         }
     }
 
-    private Map<String,List<Kiz>> selectAvailableBulk(Connection c,int shopId,Map<String,Integer> requested)throws SQLException {
+    private static String purchasedFilter(String alias,boolean purchasedOnly){return purchasedOnly?" AND NOT EXISTS(SELECT 1 FROM kiz_import_entries imported WHERE imported.code_id="+alias+".id)":"";}
+    private Map<String,List<Kiz>> selectAvailableBulk(Connection c,int shopId,Map<String,Integer> requested,boolean purchasedOnly)throws SQLException {
         Map<String,List<Kiz>> result=new LinkedHashMap<>();
         List<Map.Entry<String,Integer>> entries=new ArrayList<>(requested.entrySet());
+        String owner=ImportedOwner.current(c,shopId);
         for(int start=0;start<entries.size();start+=400) {
             var batch=entries.subList(start,Math.min(start+400,entries.size()));
             String values=String.join(",",Collections.nCopies(batch.size(),"(?,?)"));
             String sql="WITH wanted(gtin,quantity) AS (VALUES "+values+")"+"""
                     , ranked AS (SELECT code.id,code.raw_code,code.gtin,wanted.quantity,
-                      ROW_NUMBER() OVER(PARTITION BY code.gtin ORDER BY code.id) AS position
-                      FROM kiz_codes code INDEXED BY idx_kiz_codes_available_circulation JOIN wanted ON wanted.gtin=code.gtin
-                      WHERE code.shop_id=? AND code.status='AVAILABLE' AND code.legal_status='IN_CIRCULATION')
-                    SELECT id,raw_code,gtin FROM ranked WHERE position<=quantity ORDER BY gtin,id
-                    """;
+                      ROW_NUMBER() OVER(PARTITION BY code.gtin ORDER BY code.source_priority,code.id) AS position
+                      FROM kiz_codes code INDEXED BY idx_kiz_codes_priority_circulation JOIN wanted ON wanted.gtin=code.gtin
+                      WHERE code.shop_id=? AND code.status='AVAILABLE' AND code.legal_status='IN_CIRCULATION' AND %s)
+                    SELECT id,raw_code,gtin FROM ranked WHERE position<=quantity ORDER BY gtin,position
+                    """.formatted(ImportedOwner.eligible("code")+purchasedFilter("code",purchasedOnly));
             try(PreparedStatement ps=c.prepareStatement(sql)) {
-                int index=1;for(var entry:batch){ps.setString(index++,entry.getKey());ps.setInt(index++,entry.getValue());}ps.setInt(index,shopId);
+                int index=1;for(var entry:batch){ps.setString(index++,entry.getKey());ps.setInt(index++,entry.getValue());}ps.setInt(index++,shopId);ps.setString(index,owner);
                 try(ResultSet rs=ps.executeQuery()){while(rs.next())result.computeIfAbsent(rs.getString(3),ignored->new ArrayList<>()).add(new Kiz(rs.getInt(1),rs.getString(2)));}
             }
         }
@@ -223,7 +255,17 @@ public class ZnackGtinInventoryService {
     }
 
     private int updateCodes(int shopId, List<Kiz> codes, String target, boolean consumed, boolean requireAll) {
-        if (codes == null || codes.isEmpty()) return 0;
+        return updateCodes(shopId,codes,target,consumed,requireAll,c->{});
+    }
+    @FunctionalInterface private interface Checkpoint {void save(Connection c)throws SQLException;}
+    /** Inventory consumption and the recoverable print snapshot advance in one transaction. */
+    public int consumeForFboPrint(int shopId,List<Kiz> codes,long jobId) {
+        return updateCodes(shopId,codes==null?List.of():codes,"CONSUMED",true,true,c->{
+            try(var p=c.prepareStatement("UPDATE print_jobs SET status='pdf_ready' WHERE id=? AND shop_id=? AND status='prepared' AND supply_id LIKE 'FBO/%'")){p.setLong(1,jobId);p.setInt(2,shopId);if(p.executeUpdate()!=1)throw new IllegalStateException("FBO print checkpoint changed");}
+        });
+    }
+    private int updateCodes(int shopId,List<Kiz> codes,String target,boolean consumed,boolean requireAll,Checkpoint checkpoint) {
+        if(codes==null)throw new IllegalArgumentException("Invalid reservation list");
         var ids=new HashSet<Integer>();
         for(Kiz code:codes)if(code==null||code.getReservationToken()==null||code.getReservationToken().isBlank()||!ids.add(code.getId()))throw new IllegalStateException("KIZ reservation ownership is invalid.");
         String update = """
@@ -252,6 +294,7 @@ public class ZnackGtinInventoryService {
                 if (requireAll && updated != codes.size()) {
                     throw new IllegalStateException("One or more KIZ reservations are no longer owned by this workflow.");
                 }
+                checkpoint.save(c);
                 c.commit();
                 return updated;
             } catch (Exception e) {

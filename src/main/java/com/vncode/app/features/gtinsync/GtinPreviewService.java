@@ -14,17 +14,16 @@ public final class GtinPreviewService {
     public GtinPreviewService(GtinSyncRepository repository,Function<ProductKey,GtinMarketplaceAdapter> adapters,Clock clock){this.repository=repository;this.adapters=adapters;this.clock=clock;}
     public Preview create(ProductKey key,Operation operation,String oldGtin,String newGtin) throws Exception {
         var adapter=adapters.apply(key);var capability=adapter.capability(key);
-        if(!capability.supports(operation))throw new IllegalArgumentException("unsupported_operation");
+        if(!capability.supports(operation))throw new IllegalArgumentException(capability.reason().matches("[A-Z][A-Z0-9_]{2,100}")?capability.reason():"unsupported_operation");
         if(!RegisteredGtinValidator.isValid(newGtin))throw new IllegalArgumentException("invalid_gtin");
         var now=clock.instant();
-        boolean registered=repository.catalog(key.shopId(),key.marketplace()).stream()
-                .anyMatch(g -> g.gtin().equals(newGtin) && g.published() && g.tradeUnit()
-                        && !g.syncedAt().isBefore(now.minus(Duration.ofHours(24))) && !g.syncedAt().isAfter(now.plusSeconds(300)));
-        if(!registered)throw new IllegalArgumentException("unverified_catalog_gtin");
+        var observed=repository.catalogItem(key.shopId(),key.marketplace(),newGtin);
+        if(!observed.published()||!observed.tradeUnit()||observed.syncedAt().isBefore(now.minus(Duration.ofHours(24)))||observed.syncedAt().isAfter(now.plusSeconds(300)))throw new IllegalArgumentException("unverified_catalog_gtin");
         adapter.validateRegistration(newGtin);
         LicenseRuntime.require(Permission.SELLER_API);
         var product=adapter.read(key);
         if(!product.key().equals(key))throw new IllegalArgumentException("product_mismatch");
+        adapter.validateProduct(key);
         if(product.barcodes().contains(newGtin))throw new IllegalArgumentException("already_present");
         if(operation==Operation.REPLACE && (oldGtin==null || oldGtin.isBlank() || oldGtin.equals(newGtin) || !product.barcodes().contains(oldGtin)))
             throw new IllegalArgumentException("old_gtin_not_found");

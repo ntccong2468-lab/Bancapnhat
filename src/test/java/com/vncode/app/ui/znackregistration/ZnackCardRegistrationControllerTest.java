@@ -33,20 +33,55 @@ class ZnackCardRegistrationControllerTest {
             s.execute("INSERT INTO znack_card_registrations(shop_id,chrt_id,nm_id,status,created_at,updated_at) VALUES(1,2,102,'CHECKING','fixture','fixture')");
             s.execute("INSERT INTO znack_card_registrations(shop_id,chrt_id,nm_id,gtin,status,created_at,updated_at) VALUES(1,3,103,'04631993764370','PUBLISHED','fixture','fixture')");
         }
+        var owner=new Shop(1,"Fixture","fixture");
+        com.vncode.app.testsupport.RegistrationSourceFixture.ready(owner);
+        var scope=com.vncode.app.integration.znack.registration.ZnackRegistrationScope.fromSettings(new com.vncode.app.integration.znack.ZnackRepository(new com.vncode.app.integration.znack.ZnackModels.ShopContext(1,"Fixture")).getSettings());
+        var nativeRows=new com.vncode.app.integration.znack.registration.ZnackCardRegistrationRepository();
+        nativeRows.bindScope(owner,2,scope);nativeRows.bindScope(owner,3,scope);
+        new com.vncode.app.features.gtinsync.GtinSyncRepository().saveCatalog(1,com.vncode.app.integration.marketplace.Marketplace.WILDBERRIES,java.util.List.of(
+            new com.vncode.app.features.gtinsync.GtinSyncModels.RegisteredGtin("04631993764370","SKU-3","","XL",true,true,com.vncode.app.features.gtinsync.RegisteredGtinProof.source(owner),java.time.Instant.now())));
         fx(()->{
             loader=new FXMLLoader(ZnackCardRegistrationController.class.getResource("znack-card-registration-view.fxml"));
             loader.load();((ZnackCardRegistrationController)loader.getController()).setShop(new Shop(1,"Fixture","fixture"));return null;
         });
         awaitTasks();
     }
-    @AfterEach void cleanup() throws Exception {awaitTasks();com.vncode.app.testsupport.ShopReadTestCleanup.awaitSharedIdle();System.clearProperty("vncode.appdata.dir");}
-    @Test void selectAllChoosesOnlyEligibleRowsAndUsesMultipleSelection() throws Exception {
+    @AfterEach void cleanup() throws Exception {fx(()->{((ZnackCardRegistrationController)loader.getController()).dispose();return null;});awaitTasks();com.vncode.app.testsupport.ShopReadTestCleanup.awaitSharedIdle();System.clearProperty("vncode.appdata.dir");}
+    @Test void failedOrMissingPairHidesCachedRowsButKeepsConfigurationAndSyncAvailable()throws Exception {
+        try(var c=Database.getConnection();var statement=c.createStatement()){statement.execute("UPDATE sync_runs SET state='FAILED',error_code='NETWORK_TIMEOUT' WHERE kind='registration_sources'");}
+        fx(()->{button("refreshButton").fire();return null;});awaitTasks();
+        fx(()->{assertTrue(table().getItems().isEmpty());for(String action:new String[]{"updateWbButton","signApprovedButton","registerSelectedButton","selectAllButton"})assertTrue(button(action).isDisabled(),action);
+            assertFalse(button("syncZnackButton").isDisabled());assertFalse(button("configButton").isDisabled());assertTrue(((Label)loader.getNamespace().get("readinessLabel")).getText().contains("NETWORK_TIMEOUT"));return null;});
+    }
+    @Test void completedSourceMembershipExcludesCachedProductsThatWereNotObserved()throws Exception {
+        try(var c=Database.getConnection();var statement=c.createStatement()){
+            statement.execute("INSERT INTO wb_product_cards(shop_id,nm_id,vendor_code,title,synced_at) VALUES(1,999,'OLD','Not on source','old')");
+            statement.execute("INSERT INTO wb_product_sizes(shop_id,chrt_id,nm_id,tech_size) VALUES(1,999,999,'XL')");
+        }
+        fx(()->{button("refreshButton").fire();return null;});awaitTasks();fx(()->{assertEquals(3,table().getItems().size());assertTrue(table().getItems().stream().noneMatch(row->row.chrtId()==999));return null;});
+    }
+    @Test void publishedCatalogCardWithoutLocalRegistrationIsVisibleAndEffectiveFiltersAgree()throws Exception {
+        var owner=new Shop(1,"Fixture","fixture");
+        var catalog=new com.vncode.app.features.gtinsync.GtinSyncRepository();var cards=new java.util.ArrayList<>(catalog.catalog(1,com.vncode.app.integration.marketplace.Marketplace.WILDBERRIES));
+        cards.add(new com.vncode.app.features.gtinsync.GtinSyncModels.RegisteredGtin(com.vncode.app.features.gtinsync.GtinWriteTestFixture.GTIN,"SKU-1","Blue","XL",true,true,com.vncode.app.features.gtinsync.RegisteredGtinProof.source(owner),java.time.Instant.now()));catalog.saveCatalog(1,com.vncode.app.integration.marketplace.Marketplace.WILDBERRIES,cards);
+        try(var c=Database.getConnection();var statement=c.createStatement()){statement.execute("INSERT INTO wb_product_size_skus(shop_id,chrt_id,sku) VALUES(1,1,'00000000000017')");}
+        fx(()->{button("refreshButton").fire();return null;});awaitTasks();
+        fx(()->{
+            @SuppressWarnings("unchecked") var column=(javafx.scene.control.TableColumn<Sku,String>)loader.getNamespace().get("statusColumn");
+            assertEquals(I18nService.getInstance().tr("znack.registration.status.published"),column.getCellData(table().getItems().stream().filter(row->row.chrtId()==1).findFirst().orElseThrow()));
+            assertTrue(((Label)loader.getNamespace().get("summaryLabel")).getText().contains("2"));
+            RegistrationScreenshot.capture(loader.getRoot(),"wb-registration");
+            ((javafx.scene.control.ComboBox<?>)loader.getNamespace().get("statusFilter")).getSelectionModel().select(5);return null;
+        });awaitTasks();fx(()->{assertEquals(2,table().getItems().size());assertEquals(java.util.Set.of(1L,3L),table().getItems().stream().map(Sku::chrtId).collect(java.util.stream.Collectors.toSet()));return null;});
+    }
+    @Test void selectAllIncludesPublishedRowsForTheSeparateNewCardAction() throws Exception {
         fx(()->{
             assertEquals(SelectionMode.MULTIPLE,table().getSelectionModel().getSelectionMode());
             assertTrue(button("registerSelectedButton").isDisable());
             button("selectAllButton").fire();
-            assertEquals(2,table().getSelectionModel().getSelectedItems().size());
-            assertTrue(table().getSelectionModel().getSelectedItems().stream().noneMatch(s->s.status()==Status.PUBLISHED));
+            assertEquals(3,table().getSelectionModel().getSelectedItems().size());
+            assertEquals(1,table().getSelectionModel().getSelectedItems().stream().filter(s->s.status()==Status.PUBLISHED).count());
+            assertFalse(button("newCardsSelectedButton").isDisable());
             assertFalse(button("registerSelectedButton").isDisable());return null;
         });
     }
@@ -89,7 +124,7 @@ class ZnackCardRegistrationControllerTest {
             for(String key:new String[]{"znack.registration.new_gtin","znack.registration.confirm_new_gtin",
                     "znack.registration.status.gtin_review_required","znack.registration.register_selected",
                     "znack.registration.sign_approved","znack.registration.sync_znack","znack.registration.page_count",
-                    "znack.registration.catalog_summary","znack.registration.confirm_replacement"}) {
+                    "znack.registration.catalog_summary","znack.registration.confirm_replacement","znack.registration.title_ozon"}) {
                 assertTrue(bundle.containsKey(key),language+": "+key);
                 assertFalse(bundle.getString(key).isBlank());
             }
@@ -105,12 +140,13 @@ class ZnackCardRegistrationControllerTest {
             }
             c.commit();
         }
+        com.vncode.app.testsupport.RegistrationSourceFixture.ready(new Shop(1,"Fixture","fixture"));
         fx(()->{button("refreshButton").fire();return null;});awaitTasks();
-        fx(()->{assertEquals(300,table().getItems().size());assertTrue(button("loadMoreButton").isVisible());button("selectAllButton").fire();return null;});awaitTasks();
+        fx(()->{assertEquals(300,table().getItems().size());assertFalse(button("loadMoreButton").isVisible(),"Scrolling loads more rows without a pagination control");button("selectAllButton").fire();return null;});awaitTasks();
         fx(()->{
             assertEquals(300,table().getItems().size(),"All-filtered selection must not create every FX row");
             Label selected=(Label)loader.getNamespace().get("selectionLabel");
-            assertEquals(java.text.MessageFormat.format(I18nService.getInstance().tr("znack.registration.selection_count"),1_002),selected.getText());
+            assertEquals(java.text.MessageFormat.format(I18nService.getInstance().tr("znack.registration.selection_count"),1_003),selected.getText());
             assertFalse(button("registerSelectedButton").isDisable());button("clearSelectionButton").fire();
             assertTrue(button("registerSelectedButton").isDisable());button("loadMoreButton").fire();return null;
         });awaitTasks();
@@ -145,7 +181,15 @@ class ZnackCardRegistrationControllerTest {
     }
     static void awaitTasks() throws Exception {
         long end=System.nanoTime()+TimeUnit.SECONDS.toNanos(10);
-        while(AppTaskExecutor.hasRunningTasks() && System.nanoTime()<end)Thread.sleep(20);
-        fx(()->null);assertFalse(AppTaskExecutor.hasRunningTasks());
+        int idle=0;
+        while(System.nanoTime()<end) {
+            // Completion on FX may enqueue another worker after the first worker reaches zero.
+            fx(()->null);
+            idle=AppTaskExecutor.hasRunningTasks()?0:idle+1;
+            if(idle==2)return;
+            Thread.sleep(20);
+        }
+        assertFalse(AppTaskExecutor.hasRunningTasks());
+        fail("JavaFX callbacks and their follow-up tasks must settle within ten seconds");
     }
 }

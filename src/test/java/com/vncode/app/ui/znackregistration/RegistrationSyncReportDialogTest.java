@@ -1,0 +1,45 @@
+package com.vncode.app.ui.znackregistration;
+
+import com.vncode.app.config.Database;
+import com.vncode.app.integration.marketplace.Marketplace;
+import com.vncode.app.models.Shop;
+import com.vncode.app.shared.AppTaskExecutor;
+import com.vncode.app.testsupport.RegistrationSourceFixture;
+import javafx.application.Platform;
+import javafx.scene.control.*;
+import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.io.TempDir;
+import java.nio.file.Path;
+import java.util.concurrent.*;
+import static org.junit.jupiter.api.Assertions.*;
+
+class RegistrationSyncReportDialogTest {
+    @TempDir Path directory;
+    RegistrationSyncReportDialog.Report report;Shop shop;String run;
+    @BeforeAll static void toolkit(){try{Platform.startup(()->Platform.setImplicitExit(false));}catch(IllegalStateException started){}}
+    @BeforeEach void init()throws Exception {
+        System.setProperty("vncode.appdata.dir",directory.toString());Database.initDatabase();shop=new Shop(1,"Synthetic report",Marketplace.OZON,"fixture","synthetic");
+        try(var c=Database.getConnection();var s=c.createStatement()){
+            s.execute("INSERT INTO shops(id,name,marketplace,client_id,api_key) VALUES(1,'Synthetic report','OZON','fixture','synthetic')");c.setAutoCommit(false);
+            try(var p=c.prepareStatement("INSERT INTO ozon_products(shop_id,product_id,offer_id,sku,name,synced_at) VALUES(1,?,?,?,'Synthetic','test')")){
+                for(int n=1;n<=650;n++){p.setString(1,""+n);p.setString(2,"offer-"+n);p.setString(3,"sku-"+n);p.addBatch();}p.executeBatch();
+            }c.commit();
+        }
+        run=RegistrationSourceFixture.ready(shop);report=fx(()->new RegistrationSyncReportDialog.Report(shop,run));awaitIdle();
+    }
+    @AfterEach void clean()throws Exception{fx(()->{report.dispose();return null;});awaitIdle();System.clearProperty("vncode.appdata.dir");}
+    @Test void reportShowsRealReceiptStateAndUsesBoundedPages()throws Exception {
+        fx(()->{assertEquals(300,table().getItems().size());assertTrue(label("summary").getText().contains("SOURCES_COMPLETE"));RegistrationScreenshot.capture(report,"registration-report");button("next").fire();return null;});awaitIdle();
+        fx(()->{assertEquals(300,table().getItems().size());button("next").fire();return null;});awaitIdle();
+        fx(()->{assertEquals(50,table().getItems().size());assertTrue(button("next").isDisabled());button("previous").fire();return null;});awaitIdle();fx(()->{assertEquals(300,table().getItems().size());return null;});
+    }
+    @Test void reportReadsNewTerminalStateAndItsSafeError()throws Exception {
+        new com.vncode.app.features.sync.SyncRunRepository().stage(shop,run,"FAILED","READING_ZNACK","NETWORK_TIMEOUT");
+        fx(()->{button("refresh").fire();return null;});awaitIdle();fx(()->{assertTrue(label("summary").getText().contains("NETWORK_TIMEOUT"));assertTrue(label("events").getText().contains("READING_ZNACK"));return null;});
+    }
+    @SuppressWarnings("unchecked") TableView<?> table(){return (TableView<?>)report.lookup("#registrationSyncReportItems");}
+    private Object field(String name)throws Exception{var f=RegistrationSyncReportDialog.Report.class.getDeclaredField(name);f.setAccessible(true);return f.get(report);}
+    private Button button(String name)throws Exception{return (Button)field(name);}private Label label(String name)throws Exception{return (Label)field(name);}
+    private void awaitIdle()throws Exception{long end=System.nanoTime()+TimeUnit.SECONDS.toNanos(10);while(AppTaskExecutor.hasRunningTasks()&&System.nanoTime()<end)Thread.sleep(10);fx(()->null);assertFalse(AppTaskExecutor.hasRunningTasks());}
+    private static <T>T fx(Callable<T> action)throws Exception{var result=new FutureTask<>(action);Platform.runLater(result);return result.get(10,TimeUnit.SECONDS);}
+}

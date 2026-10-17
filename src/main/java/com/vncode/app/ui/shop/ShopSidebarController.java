@@ -15,6 +15,26 @@ import javafx.scene.control.ToggleGroup;
 import java.util.function.Consumer;
 
 public class ShopSidebarController {
+    @FXML private javafx.scene.layout.VBox sidebarRoot;
+    @FXML private Label sidebarTitle;
+    private boolean compact;private Boolean compactOverride;private double viewportWidth;
+    @FXML private Button sidebarToggleButton;
+    private MenuItem automaticLayoutItem;
+    @FXML private void onToggleSidebar(){compactOverride=!compact;setViewportWidth(viewportWidth);}
+    public void resetSidebarLayout(){compactOverride=null;setViewportWidth(viewportWidth);}
+
+    private final java.util.Map<javafx.scene.control.ButtonBase,String> fullLabels=new java.util.HashMap<>();
+    public void setViewportWidth(double width){viewportWidth=width;compact=compactOverride!=null?compactOverride:width>0&&width<1240;applyCompact();}
+    private void applyCompact(){if(sidebarRoot==null)return;double width=compact?64:224;sidebarRoot.setMinWidth(width);sidebarRoot.setMaxWidth(width);sidebarRoot.setPrefWidth(width);if(compact&&!sidebarRoot.getStyleClass().contains("sidebar-compact"))sidebarRoot.getStyleClass().add("sidebar-compact");else if(!compact)sidebarRoot.getStyleClass().remove("sidebar-compact");sidebarTitle.setVisible(!compact);sidebarTitle.setManaged(!compact);if(toolsPane!=null){toolsPane.setMinWidth(0);toolsPane.setText(compact?"":I18nService.getInstance().tr("sidebar.tools"));toolsPane.setAccessibleText(I18nService.getInstance().tr("sidebar.tools"));toolsPane.setGraphic(compact?new org.kordamp.ikonli.javafx.FontIcon("fth-more-horizontal"):null);}compactButtons(sidebarRoot);editionStatusLabel.setVisible(!compact);editionStatusLabel.setManaged(!compact);
+        if(sidebarToggleButton!=null){String text=I18nService.getInstance().tr(compact?"sidebar.expand":"sidebar.collapse");sidebarToggleButton.setTooltip(new javafx.scene.control.Tooltip(text));sidebarToggleButton.setAccessibleText(text);((org.kordamp.ikonli.javafx.FontIcon)sidebarToggleButton.getGraphic()).setIconLiteral(compact?"fth-chevrons-right":"fth-chevrons-left");}
+    }
+    private void compactButtons(javafx.scene.Parent parent){for(var n:parent.getChildrenUnmodifiable()){
+        if(n instanceof javafx.scene.control.ButtonBase button&&button!=sidebarToggleButton){if(!button.getText().isBlank())fullLabels.put(button,button.getText());button.setTooltip(new javafx.scene.control.Tooltip(fullLabels.getOrDefault(button,"")));button.setAccessibleText(fullLabels.getOrDefault(button,""));button.setMinWidth(0);button.setPrefWidth(javafx.scene.layout.Region.USE_COMPUTED_SIZE);button.setContentDisplay(compact?javafx.scene.control.ContentDisplay.GRAPHIC_ONLY:javafx.scene.control.ContentDisplay.LEFT);button.setText(compact?"":fullLabels.getOrDefault(button,button.getText()));}
+        if(n instanceof javafx.scene.Parent child)compactButtons(child);
+        if(n instanceof javafx.scene.control.ScrollPane scroll&&scroll.getContent() instanceof javafx.scene.Parent content)compactButtons(content);
+        if(n instanceof javafx.scene.control.TitledPane titled&&titled.getContent() instanceof javafx.scene.Parent content)compactButtons(content);
+    }}
+
     @FXML private Button listingCopyButton;
     private Runnable onListingCopy;
     public void setOnListingCopy(Runnable callback){onListingCopy=callback;}
@@ -36,19 +56,19 @@ public class ShopSidebarController {
     private Runnable onFinance;
     public void setOnFinance(Runnable action){onFinance=action;}
     @FXML private void onFinance(){if(onFinance!=null)onFinance.run();}
-    public void selectNavigation(String id){for(Button button:java.util.List.of(listingCopyButton,productsButton,dashboardButton,packingButton,fboPackingButton,templateButton,kizMappingButton,znackRegistrationButton,znackAutomationButton,btnPrintHistory,gtinSyncButton,gs1Button,fboOrdersButton,financeButton,guidesButton)){button.getStyleClass().remove("nav-selected");if(id.equals(button.getId()))button.getStyleClass().add("nav-selected");}}
+    public void selectNavigation(String id){for(Button button:java.util.List.of(listingCopyButton,productsButton,dashboardButton,packingButton,fboPackingButton,templateButton,kizMappingButton,znackRegistrationButton,znackAutomationButton,btnPrintHistory,gs1Button,fboOrdersButton,financeButton,guidesButton,tnvedButton)){button.getStyleClass().remove("nav-selected");if(id.equals(button.getId()))button.getStyleClass().add("nav-selected");}}
+    @FXML private Button tnvedButton;
+    private Runnable onTnved;
+    public void setOnTnved(Runnable action){onTnved=action;}
+    @FXML private void onTnved(){if(onTnved!=null)onTnved.run();}
     @FXML private Button gs1Button;
     private Runnable onGs1;
     private int gs1Unread;
     private boolean gs1Attention;
     public void setOnGs1(Runnable action){onGs1=action;}
-    public void setGs1Unread(int count){gs1Unread=Math.max(0,count);if(gs1Button!=null)gs1Button.setText(" "+I18nService.getInstance().tr("gs1.title")+(gs1Attention?" !":"")+(gs1Unread>0?" ("+gs1Unread+")":""));}
+    public void setGs1Unread(int count){gs1Unread=Math.max(0,count);if(gs1Button!=null)gs1Button.setText(" "+I18nService.getInstance().tr("gs1.title")+(gs1Attention?" !":"")+(gs1Unread>0?" ("+gs1Unread+")":""));if(sidebarRoot!=null)applyCompact();}
     public void setGs1Attention(boolean required){gs1Attention=required;setGs1Unread(gs1Unread);}
     @FXML private void onGs1(){if(onGs1!=null)onGs1.run();}
-    @FXML private Button gtinSyncButton;
-    private Runnable onGtinSync;
-    public void setOnGtinSync(Runnable action) { onGtinSync = action; }
-    @FXML private void onGtinSync() { if (onGtinSync != null) onGtinSync.run(); }
     @FXML
     private Button dashboardButton;
     @FXML
@@ -83,6 +103,7 @@ public class ShopSidebarController {
     private RadioMenuItem languageViMenuItem;
     @FXML
     private Menu themeMenu;
+    @FXML private MenuItem glassSettingsMenuItem;
     @FXML
     private RadioMenuItem themeDarkMenuItem;
     @FXML
@@ -134,6 +155,7 @@ public class ShopSidebarController {
 
     @FXML
     private void initialize() {
+        automaticLayoutItem=new MenuItem();automaticLayoutItem.setOnAction(e->resetSidebarLayout());sidebarToggleButton.setContextMenu(new javafx.scene.control.ContextMenu(automaticLayoutItem));
         ToggleGroup languageGroup = new ToggleGroup();
         languageRuMenuItem.setToggleGroup(languageGroup);
         languageEnMenuItem.setToggleGroup(languageGroup);
@@ -208,6 +230,8 @@ public class ShopSidebarController {
         this.onThemeChanged = onThemeChanged;
     }
 
+    @FXML private void onGlassSettings(){com.vncode.app.ui.GlassSettingsDialog.show();}
+
     public void setSelectedTheme(String themeName) {
         if ("light".equalsIgnoreCase(themeName)) {
             themeLightMenuItem.setSelected(true);
@@ -245,6 +269,8 @@ public class ShopSidebarController {
     }
 
     public void applyTranslations() {
+        tnvedButton.setText(" "+I18nService.getInstance().tr("tnved.title"));
+        if(automaticLayoutItem!=null)automaticLayoutItem.setText(I18nService.getInstance().tr("sidebar.automatic"));
         I18nService i18n = I18nService.getInstance();
         templateButton.setText(" " + i18n.tr("sidebar.template"));
         addShopButton.setText(" " + i18n.tr("sidebar.add_shop"));
@@ -254,12 +280,12 @@ public class ShopSidebarController {
         fboPackingButton.setText(" " + i18n.tr("sidebar.fbo_packing"));
         fboOrdersButton.setText(" " + i18n.tr("sidebar.fbo_orders"));
         kizMappingButton.setText(" " + i18n.tr("sidebar.kiz_mapping"));
-        gtinSyncButton.setText(" " + i18n.tr("gtinsync.sidebar"));
         znackAutomationButton.setText(" " + i18n.tr("sidebar.znack_automation"));
         znackRegistrationButton.setText(" " + i18n.tr("sidebar.znack_registration"));
         settingsMenuButton.setText(" " + i18n.tr("settings.menu"));
         languageMenu.setText(i18n.tr("sidebar.language"));
         themeMenu.setText(i18n.tr("settings.theme"));
+        glassSettingsMenuItem.setText(i18n.tr("settings.glass.title"));
         themeDarkMenuItem.setText(i18n.tr("settings.theme.dark"));
         themeLightMenuItem.setText(i18n.tr("settings.theme.light"));
         checkVersionMenuItem.setText(i18n.tr("settings.check_version"));
@@ -272,6 +298,7 @@ public class ShopSidebarController {
         listingCopyButton.setText(i18n.tr("copy.title"));
         guidesButton.setText(i18n.tr("guides.title"));
         renderLicenseStatus();
+        applyCompact();
     }
 
     private void applyMarketplaceTexts() {

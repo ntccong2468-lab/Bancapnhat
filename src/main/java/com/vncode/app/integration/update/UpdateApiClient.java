@@ -30,7 +30,14 @@ public class UpdateApiClient {
     private static final OkHttpClient CLIENT = new OkHttpClient.Builder()
             .connectTimeout(5, TimeUnit.SECONDS)
             .readTimeout(10, TimeUnit.SECONDS)
+            .callTimeout(20, TimeUnit.SECONDS)
+            .followSslRedirects(false)
             .build();
+    private final OkHttpClient http;
+    private final String pinnedUpdateKey;
+    public UpdateApiClient(){this(CLIENT);}
+    UpdateApiClient(OkHttpClient http){this(http,BuildConfig.getUpdateManifestPublicKey());}
+    UpdateApiClient(OkHttpClient http,String pinnedUpdateKey){this.http=http;this.pinnedUpdateKey=pinnedUpdateKey;}
 
     public UpdateInfo fetchLatestVersion() throws IOException {
         return fetchWithRetry(0);
@@ -40,7 +47,7 @@ public class UpdateApiClient {
         return normalizeUpdateSource(getEffectiveUpdateUrl());
     }
 
-    private UpdateInfo fetchWithRetry(int attempt) {
+    private UpdateInfo fetchWithRetry(int attempt) throws IOException {
         String sourceUrl = resolveConfiguredSource();
         if (sourceUrl == null || sourceUrl.isBlank()) {
             return null;
@@ -57,7 +64,7 @@ public class UpdateApiClient {
                 .get()
                 .build();
 
-        try (Response response = CLIENT.newCall(request).execute()) {
+        try (Response response = http.newCall(request).execute()) {
             if (response.code() == 204) {
                 return null;
             }
@@ -65,19 +72,24 @@ public class UpdateApiClient {
                 return null;
             }
             if (!response.isSuccessful()) {
-                LOGGER.warn("Update check failed: HTTP {}", response.code());
-                return null;
+                throw new IOException("UPDATE_HTTP_"+response.code());
             }
-            String body = response.body() != null ? response.body().string() : "";
+            if(response.body()==null||response.body().contentLength()>1024*1024)throw new IOException("UPDATE_INVALID_RESPONSE");
+            byte[] bytes=response.body().byteStream().readNBytes(1024*1024+1);
+            if(bytes.length>1024*1024)throw new IOException("UPDATE_INVALID_RESPONSE");
+            String body = new String(bytes,java.nio.charset.StandardCharsets.UTF_8);
             if (body.isEmpty()) return null;
             if (!githubSource) {
-                return GSON.fromJson(body, UpdateInfo.class);
+                UpdateInfo info=GSON.fromJson(body, UpdateInfo.class);
+                if(info==null||info.getVersion()==null||!info.getVersion().matches("[0-9]{1,5}\\.[0-9]{1,5}\\.[0-9]{1,5}"))throw new IOException("UPDATE_INVALID_RESPONSE");
+                return verifySignedIfConfigured(info,testChannel);
             }
-            return testChannel
+            UpdateInfo info=testChannel
                     ? parseGitHubReleaseList(body, ZNACK_TEST_TAG_PREFIX)
                     : parseGitHubRelease(body);
+            return verifySignedIfConfigured(info,testChannel);
         } catch (IOException e) {
-            if (attempt < 1) {
+            if (attempt < 1 && (e.getMessage()==null||!e.getMessage().startsWith("UPDATE_"))) {
                 LOGGER.debug("Update check attempt {} failed, retrying...", attempt + 1);
                 return fetchWithRetry(attempt + 1);
             }
@@ -86,8 +98,24 @@ public class UpdateApiClient {
             } else {
                 LOGGER.warn("Update check failed after retry", e);
             }
-            return null;
+            throw e;
+        } catch(RuntimeException malformed) {
+            throw new IOException("UPDATE_INVALID_RESPONSE");
         }
+    }
+
+    private UpdateInfo verifySignedIfConfigured(UpdateInfo info,boolean testChannel)throws IOException {
+            if(info!=null&&!testChannel&&pinnedUpdateKey!=null&&!pinnedUpdateKey.isBlank()) {
+                String url=info.getManifestUrl();
+                if(url==null||!url.startsWith("https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v"+info.getVersion()+"/"))throw new IOException("UPDATE_SIGNATURE_MISSING");
+                try(Response signed=http.newCall(new Request.Builder().url(url).header("User-Agent","VN-code-Updater").build()).execute()){
+                    if(!signed.isSuccessful()||signed.body()==null||signed.body().contentLength()>128*1024)throw new IOException("UPDATE_SIGNATURE_INVALID");
+                    byte[] manifest=signed.body().byteStream().readNBytes(128*1024+1);
+                    if(manifest.length>128*1024)throw new IOException("UPDATE_SIGNATURE_INVALID");
+                    info=SignedUpdateManifest.verify(new String(manifest,java.nio.charset.StandardCharsets.UTF_8),pinnedUpdateKey,info.getVersion());
+                }
+            }
+            return info;
     }
 
     static UpdateInfo parseGitHubRelease(String body) {
@@ -126,6 +154,8 @@ public class UpdateApiClient {
             return null;
         }
         String prefix = tagPrefix == null ? "" : tagPrefix;
+        if(root.has("draft")&&root.get("draft").getAsBoolean())return null;
+        if(prefix.isBlank()&&root.has("prerelease")&&root.get("prerelease").getAsBoolean())return null;
         if (!prefix.isBlank() && !tagName.startsWith(prefix)) {
             return null;
         }
@@ -134,11 +164,14 @@ public class UpdateApiClient {
         info.setVersion(prefix.isBlank()
                 ? stripLeadingV(tagName)
                 : stripLeadingV(tagName.substring(prefix.length())));
+        if(!info.getVersion().matches("[0-9]{1,5}\\.[0-9]{1,5}\\.[0-9]{1,5}"))return null;
         info.setReleaseDate(getString(root, "published_at"));
         info.setChangelog(getString(root, "body"));
         info.setMandatory(false);
 
         Map<String, String> downloadUrls = new LinkedHashMap<>();
+        Map<String,String> digests=new LinkedHashMap<>();
+        Map<String,Long> sizes=new LinkedHashMap<>();
         JsonArray assets = root.has("assets") && root.get("assets").isJsonArray() ? root.getAsJsonArray("assets") : new JsonArray();
         for (JsonElement assetElement : assets) {
             if (!assetElement.isJsonObject()) {
@@ -150,7 +183,14 @@ public class UpdateApiClient {
             if (assetName == null || downloadUrl == null || downloadUrl.isBlank()) {
                 continue;
             }
-            downloadUrls.put(resolveAssetKey(assetName), downloadUrl);
+            String key=resolveAssetKey(assetName);
+            if(assetName.equals("update-manifest.json"))info.setManifestUrl(downloadUrl);
+            downloadUrls.put(key, downloadUrl);
+            String digest=getString(asset,"digest");
+            if(digest!=null&&digest.matches("sha256:[a-fA-F0-9]{64}"))digests.put(key,digest.substring(7).toLowerCase(java.util.Locale.ROOT));
+            if(asset.has("size")&&asset.get("size").isJsonPrimitive()) {
+                try{long size=asset.get("size").getAsLong();if(size>0&&size<=1024L*1024*1024)sizes.put(key,size);}catch(RuntimeException ignored){}
+            }
         }
 
         String htmlUrl = getString(root, "html_url");
@@ -158,6 +198,7 @@ public class UpdateApiClient {
             downloadUrls.put("release", htmlUrl);
         }
         info.setDownloadUrls(downloadUrls);
+        info.setDownloadSha256(digests);info.setDownloadSizes(sizes);
         return info;
     }
 
@@ -190,7 +231,7 @@ public class UpdateApiClient {
             String path = url.substring("https://github.com/".length());
             String[] parts = path.split("/");
             if (parts.length >= 2) {
-                return "https://api.github.com/repos/" + parts[0] + "/" + parts[1];
+                return "https://api.github.com/repos/" + parts[0] + "/" + parts[1].replaceFirst("\\.git$", "");
             }
         }
         return url;

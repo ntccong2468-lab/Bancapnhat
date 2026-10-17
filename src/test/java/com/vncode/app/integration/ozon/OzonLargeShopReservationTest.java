@@ -52,7 +52,7 @@ class OzonLargeShopReservationTest {
         for (int shop = 1; shop <= 10; shop++) {
             try (var databaseSession = Database.openBatchSession()) {
                 for (String number : numbers) {
-                    var reserved = jobs.stageLocalForPrint(shop, plan(number), () -> { });
+                    var reserved = jobs.stageLocalForPrint(shop, plan(number),new com.vncode.app.features.kiz.KizSourceSelection(false,true), () -> { });
                     assertTrue(reserved.ready());
                     assertEquals(OzonExemplarJobStage.VALIDATED, reserved.job().stage());
                 }
@@ -77,6 +77,18 @@ class OzonLargeShopReservationTest {
         assertEquals(1000, scalar("SELECT COUNT(*) FROM ozon_exemplar_jobs WHERE shop_id=1 AND stage='ACCEPTED'"));
         assertEquals(0, scalar("SELECT COUNT(*) FROM ozon_exemplar_jobs WHERE shop_id<>1 AND stage='ACCEPTED'"));
         assertDatabaseIntegrity();
+    }
+
+    @Test void purchasedSourceStagesOneHundredFiveHundredAndOneThousandPostingBatches()throws Exception{
+        seed(1,1600);var jobs=new OzonExemplarJobRepository();int start=0;
+        for(int size:List.of(100,500,1000)){
+            long began=System.nanoTime();
+            try(var session=Database.openBatchSession()){
+                for(int n=start;n<start+size;n++)assertTrue(jobs.stageLocalForPrint(1,plan(number(n)),new com.vncode.app.features.kiz.KizSourceSelection(false,true),()->{}).ready());
+            }
+            System.out.println("OZON_FBS_SOURCE_BATCH synthetic=true orders="+size+" local_reservation_ms="+(System.nanoTime()-began)/1e6+" remote_api=false");start+=size;
+        }
+        assertEquals(1600,scalar("SELECT COUNT(DISTINCT kiz_id) FROM ozon_exemplars"));assertDatabaseIntegrity();
     }
 
     @Test void secondChunkOwnershipFailureRollsBackTheWholePrintedBatch() throws Exception {

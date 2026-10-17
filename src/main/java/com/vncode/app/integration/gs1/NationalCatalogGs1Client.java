@@ -22,13 +22,18 @@ public final class NationalCatalogGs1Client {
         this.transport = transport.newBuilder().retryOnConnectionFailure(false).followRedirects(false).followSslRedirects(false).build();
         this.root = Objects.requireNonNull(root);
     }
-    public Session login(String inn, String fingerprint, ZnackSignatureProvider signer) throws IOException {
+    public Session login(String inn, String fingerprint, ZnackSignatureProvider signer) throws IOException {return login(inn,fingerprint,signer,()->{});}
+    public Session login(String inn, String fingerprint, ZnackSignatureProvider signer,Runnable guard) throws IOException {
         Gs1Membership.requireInn(inn);
         String normalized = fingerprint == null ? "" : fingerprint.replaceAll("\\s", "").toUpperCase(Locale.ROOT);
         if (!normalized.matches("[A-F0-9]{40}")) throw new IllegalArgumentException("A resolved certificate fingerprint is required");
         Session session = new Session(inn, normalized, Objects.requireNonNull(signer));
+        session.guard=Objects.requireNonNull(guard);
         session.authenticate();
         return session;
+    }
+    public static final class AuthenticationException extends IOException {
+        public AuthenticationException(){super("GS1_AUTH_REQUIRED");}
     }
     @FunctionalInterface public interface XmlSigner { String sign(String xml) throws Exception; }
     /** Local signing failed before any sign-form POST could be made. */
@@ -49,6 +54,7 @@ public final class NationalCatalogGs1Client {
         private final String fingerprint;
         private final ZnackSignatureProvider signer;
         private final OkHttpClient http;
+        private Runnable guard=()->{};
         private String csrf;
         private Boolean member;
         private boolean excluded;
@@ -76,7 +82,7 @@ public final class NationalCatalogGs1Client {
             catch (IllegalArgumentException error) { throw new IOException("Invalid Catalog signing challenge"); }
             if (bytes.length == 0) throw new IOException("Empty Catalog signing challenge");
             String signature;
-            try { signature = signer.sign(bytes, ZnackSignatureContext.TRUE_API_DOCUMENT).base64(); }
+            try { signature = signer.sign(bytes, ZnackSignatureContext.CATALOG_AUTH_CHALLENGE).base64(); }
             catch (CryptoProException error) { throw new IOException("Catalog certificate signing failed (" + error.code() + ")"); }
             JsonObject credentials = new JsonObject();
             credentials.addProperty("inn", inn); credentials.addProperty("fingerprint", fingerprint); credentials.addProperty("signature", signature);
@@ -134,6 +140,22 @@ public final class NationalCatalogGs1Client {
             }
             return value;
         }
+        /** Compare with the API key of this CryptoPro-authenticated enterprise, never a public card. */
+        public synchronized void requireApiKey(String supplied) throws IOException {
+            String key=apiKey();
+            if(supplied==null||!java.security.MessageDigest.isEqual(key.getBytes(java.nio.charset.StandardCharsets.UTF_8),supplied.getBytes(java.nio.charset.StandardCharsets.UTF_8)))throw new IOException("CATALOG_KEY_OWNER_MISMATCH");
+        }
+        /** Read the key of the certificate-authenticated enterprise; never share a device's DPAPI blob. */
+        public synchronized String apiKey() throws IOException {
+            JsonObject bootstrap = object(call("bootstrap", null));
+            try {
+                JsonObject account=bootstrap.getAsJsonObject("account"),api=account.getAsJsonObject("api");
+                String accountInn=text(account,"inn");
+                if(!accountInn.isBlank()&&!inn.equals(accountInn))throw new IOException("CATALOG_KEY_OWNER_MISMATCH");
+                if(!Boolean.TRUE.equals(bool(api,"enabled")))throw new IOException("CATALOG_KEY_REQUIRED");
+                return com.vncode.app.integration.znack.CatalogCredentialRepository.normalize(text(api,"apikey"));
+            }catch(RuntimeException invalid){throw new IOException("CATALOG_KEY_IDENTITY_UNAVAILABLE");}
+        }
         public synchronized List<Choice> dictionary(String name) throws IOException {
             com.vncode.app.features.license.LicenseRuntime.require(com.vncode.app.features.license.LicenseModels.Permission.GS1);
             if (!Set.of("opf","positions","profiles-organization","enterprise-sector","main-products","documents","provider","participation","selling-ways","distribution-channels").contains(name)) throw new IllegalArgumentException("Unknown GS1 dictionary");
@@ -185,13 +207,17 @@ public final class NationalCatalogGs1Client {
             return exchange(Objects.requireNonNull(root.resolve(path)),body);
         }
         private String exchange(HttpUrl url,JsonObject body)throws IOException {
+            guard.run();
             Request.Builder request=new Request.Builder().url(url).header("Accept","application/json");
             if(csrf!=null&&!csrf.isBlank())request.header("X-Csrf-Token",csrf);
             if(body!=null)request.post(RequestBody.create(body.toString(),JSON));
             try(Response response=http.newCall(request.build()).execute()) {
+                guard.run();
+                if(response.code()==401||response.code()==403)throw new AuthenticationException();
                 if(!response.isSuccessful()||response.body()==null)throw new IOException("Catalog GS1 request failed (HTTP "+response.code()+")");
                 byte[] bytes=response.peekBody(LIMIT+1L).bytes();
                 if(bytes.length>LIMIT)throw new IOException("Catalog GS1 response exceeds size limit");
+                guard.run();
                 return new String(bytes,java.nio.charset.StandardCharsets.UTF_8);
             }
         }

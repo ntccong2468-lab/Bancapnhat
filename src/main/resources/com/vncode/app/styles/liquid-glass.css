@@ -1,0 +1,210 @@
+/* Approved reference: blue frosted glass, luminous edges and pill controls.
+   Static shared paints preserve virtualization; no effect/blur per FBS row. */
+.liquid-glass, .root.liquid-glass {
+    -glass-surface: rgba(22,48,75,.626);
+    -glass-elevated: rgba(33,64,94,.726);
+    -glass-row: rgba(22,48,75,.406);
+    -glass-popup: #193c60;
+    -glass-line: rgba(210,239,255,.32);
+    -glass-highlight: rgba(218,244,255,.14);
+    -glass-selected: rgba(110,180,242,.30);
+    -bg-primary: transparent;
+    -bg-secondary: -glass-surface;
+    -bg-tertiary: -glass-elevated;
+    -bg-odd-row: -glass-row;
+    -btn-bg: -glass-elevated;
+    -fx-background-radius: 28;
+}
+.liquid-glass.theme-dark {
+    -glass-surface: rgba(22,48,75,.626);
+    -glass-elevated: rgba(33,64,94,.726);
+    -glass-row: rgba(22,48,75,.406);
+    -glass-popup: #193c60;
+    -glass-line: rgba(210,239,255,.32);
+    -glass-highlight: rgba(218,244,255,.14);
+    -glass-selected: rgba(110,180,242,.30);
+    -glass-canvas: linear-gradient(from 0% 0% to 100% 100%, #123450 0%, #163c60 35%, #1b517c 72%, #142d4b 100%);
+    -text-primary: #f5f7ff;
+    -text-secondary: #d5dff2;
+    -text-muted: #becbe3;
+    -border-color: -glass-line;
+    -border-color-hover: #a9caff;
+    -accent: #c8d9ff;
+    -accent-hover: #dce8ff;
+    -accent-active: #adc8ff;
+    -accent-transparent: -glass-selected;
+    -btn-text-color: -text-primary;
+    -btn-bg-hover: rgba(121,153,211,.30);
+    -btn-bg-pressed: rgba(100,132,196,.38);
+    -success: #6de7bd;
+    -warning: #ffd58c;
+    -danger: #ff9fae;
+    -fx-background-color: -glass-canvas;
+}
+.liquid-glass.theme-light {
+    -glass-surface: rgba(199,226,246,.736);
+    -glass-elevated: rgba(226,241,252,.836);
+    -glass-row: rgba(199,226,246,.516);
+    -glass-popup: #dfedf9;
+    -glass-line: rgba(255,255,255,.62);
+    -glass-highlight: rgba(255,255,255,.36);
+    -glass-selected: rgba(54,117,190,.20);
+    -glass-canvas: linear-gradient(from 0% 0% to 100% 100%, #a6c9df 0%, #c7dce6 24%, #74a6dc 55%, #9ecbdd 79%, #b9d9e8 100%);
+    -text-primary: #112b40;
+    -text-secondary: #1c354a;
+    -text-muted: #20394e;
+    -border-color: -glass-line;
+    -border-color-hover: #3a639d;
+    -accent: #1856a0;
+    -accent-hover: #124582;
+    -accent-active: #103a72;
+    -accent-transparent: -glass-selected;
+    -btn-text-color: -text-primary;
+    -btn-bg-hover: rgba(232,247,255,.56);
+    -btn-bg-pressed: rgba(132,183,224,.62);
+    -success: #006d50;
+    -warning: #805000;
+    -danger: #ac203d;
+    -fx-background-color: -glass-canvas;
+}
+.liquid-glass .app-page, .liquid-glass .products-workspace,
+.liquid-glass .scroll-pane, .liquid-glass .scroll-pane > .viewport,
+.liquid-glass .tab-pane, .liquid-glass .tab-content-area {
+    -fx-background-color: transparent;
+}
+.liquid-glass .sidebar, .liquid-glass .header,
+.liquid-glass .card, .liquid-glass .surface, .liquid-glass .copy-card,
+.liquid-glass .guide-section, .liquid-glass .news-card, .liquid-glass .feature-card,
+.liquid-glass .products-bulk, .liquid-glass .supply-detail,
+.liquid-glass .gtin-inventory-card,
+.liquid-glass .info-banner, .liquid-glass .welcome-body {
+    -fx-background-color: -glass-surface, linear-gradient(from 0% 0% to 100% 100%, -glass-highlight, transparent 55%);
+    -fx-background-radius: 26;
+    -fx-border-color: -glass-line;
+    -fx-border-radius: 26;
+    -fx-border-width: 1;
+}
+.liquid-glass .button, .liquid-glass .menu-button, .liquid-glass .toggle-button,
+.liquid-glass .combo-box, .liquid-glass .choice-box, .liquid-glass .text-input,
+.liquid-glass .date-picker, .liquid-glass .spinner {
+    -fx-background-radius: 999;
+    -fx-border-radius: 999;
+    -fx-border-color: -glass-line;
+    -fx-text-fill: -text-primary;
+}
+.liquid-glass .button:focused, .liquid-glass .text-input:focused, .liquid-glass .combo-box:focused {
+    -fx-border-color: -accent;
+}
+.liquid-glass .text-input, .liquid-glass .combo-box, .liquid-glass .choice-box,
+.liquid-glass .date-picker, .liquid-glass .spinner {
+    -fx-background-color: -glass-elevated;
+    -fx-prompt-text-fill: -text-muted;
+    -fx-highlight-fill: -glass-selected;
+    -fx-highlight-text-fill: -text-primary;
+}
+.liquid-glass .text-area .content { -fx-background-color: -glass-elevated; -fx-background-radius: 12; }
+.liquid-glass .table-view, .liquid-glass .tree-table-view, .liquid-glass .list-view, .liquid-glass .tree-view {
+    -fx-background-color: -glass-surface;
+    -fx-border-color: -glass-line;
+    -fx-border-radius: 18;
+    -fx-background-radius: 18;
+}
+.liquid-glass .table-row-cell, .liquid-glass .tree-table-row-cell, .liquid-glass .list-cell, .liquid-glass .tree-cell {
+    -fx-background-color: transparent;
+    -fx-text-fill: -text-primary;
+}
+.liquid-glass .table-row-cell:odd, .liquid-glass .tree-table-row-cell:odd { -fx-background-color: -glass-row; }
+.liquid-glass .table-row-cell:selected, .liquid-glass .list-cell:selected,
+.liquid-glass .tree-cell:selected, .liquid-glass .tree-table-row-cell:selected { -fx-background-color: -glass-selected; }
+.liquid-glass .table-view .column-header-background { -fx-background-color: -glass-elevated; -fx-background-radius: 18 18 0 0; }
+.liquid-glass .table-view .column-header, .liquid-glass .table-view .filler { -fx-background-color: transparent; }
+.liquid-glass .table-cell { -fx-text-fill: -text-primary; }
+.liquid-glass .tab-pane > .tab-header-area > .tab-header-background { -fx-background-color: -glass-surface; -fx-background-radius: 16; }
+.liquid-glass .tab-pane > .tab-header-area > .headers-region > .tab { -fx-background-color: transparent; -fx-background-radius: 12; }
+.liquid-glass .tab-pane > .tab-header-area > .headers-region > .tab:selected { -fx-background-color: -glass-selected; }
+.liquid-glass .tab .tab-label { -fx-text-fill: -text-secondary; }
+.liquid-glass .tab:selected .tab-label { -fx-text-fill: -text-primary; }
+.liquid-glass .titled-pane > .title { -fx-background-color: -glass-surface; -fx-background-radius: 16; }
+.liquid-glass .titled-pane > .title > .text { -fx-fill: -text-primary; }
+.liquid-glass .titled-pane > .content { -fx-background-color: -glass-surface; -fx-border-color: -glass-line; -fx-background-radius: 0 0 16 16; -fx-border-radius: 0 0 16 16; }
+.liquid-glass .app-dialog-pane, .liquid-glass.dialog-pane { -fx-background-radius: 22; -fx-border-radius: 22; -fx-border-color: -glass-line; }
+.liquid-glass .dialog-pane > .button-bar { -fx-background-color: transparent; }
+.liquid-glass .context-menu, .liquid-glass.context-menu, .liquid-glass .combo-box-popup .list-view,
+.liquid-glass .tooltip, .liquid-glass.tooltip {
+    -fx-background-color: -glass-popup;
+    -fx-background-radius: 14;
+    -fx-border-radius: 14;
+    -fx-border-color: -glass-line;
+    -fx-text-fill: -text-primary;
+}
+.liquid-glass .menu-item:focused { -fx-background-color: -glass-selected; -fx-background-radius: 9; }
+.liquid-glass .menu-item .label { -fx-text-fill: -text-primary; }
+.liquid-glass .slider .track { -fx-background-color: -glass-elevated; -fx-background-radius: 8; -fx-border-color: -glass-line; -fx-border-radius: 8; }
+.liquid-glass .slider .thumb { -fx-background-color: -accent; -fx-background-radius: 26; }
+.liquid-glass .progress-bar > .bar { -fx-background-color: #537ed2; -fx-background-radius: 8; }
+.liquid-glass .progress-bar > .track { -fx-background-color: -glass-elevated; -fx-background-radius: 8; }
+.liquid-glass .check-box > .box, .liquid-glass .radio-button > .radio { -fx-background-color: -glass-elevated; -fx-border-color: -glass-line; -fx-background-radius: 7; -fx-border-radius: 7; }
+.liquid-glass .button.btn-primary, .liquid-glass .button.primary, .liquid-glass .button:default,
+.liquid-glass .sidebar .button.add-shop {
+    -fx-background-color: linear-gradient(to bottom, #2467c4, #1955ab);
+    -fx-border-color: rgba(231,243,255,.55);
+    -fx-text-fill: white;
+}
+.liquid-glass .button.btn-primary .ikonli-font-icon, .liquid-glass .button:default .ikonli-font-icon { -fx-icon-color: white; }
+.liquid-glass .sidebar .button.nav-selected { -fx-background-color: -glass-selected; -fx-background-radius: 14; }
+.liquid-glass .scroll-bar, .liquid-glass .scroll-bar .track { -fx-background-color: transparent; }
+.liquid-glass .scroll-bar .thumb { -fx-background-color: -glass-line; -fx-background-radius: 10; }
+.liquid-glass .glass-settings-preview { -fx-padding: 18; -fx-spacing: 10; }
+/* Semantic actions use dark enough fills for white text; status labels keep the adaptive palette. */
+.root.liquid-glass .btn-success { -fx-background-color: #087354; -fx-text-fill: white; }
+.root.liquid-glass .btn-danger { -fx-background-color: #a72c4b; -fx-text-fill: white; }
+.root.liquid-glass .btn-warning { -fx-background-color: #f3bc52; -fx-text-fill: #112b40; }
+.root.liquid-glass .btn-success .ikonli-font-icon, .root.liquid-glass .btn-danger .ikonli-font-icon { -fx-icon-color: white; }
+.root.liquid-glass .btn-warning .ikonli-font-icon { -fx-icon-color: #112b40; }
+
+/* Keep the application's content; only its shared visual material follows the reference. */
+.liquid-glass .sidebar { -fx-background-radius: 26 0 0 26; -fx-border-radius: 26 0 0 26; }
+.liquid-glass .header { -fx-background-radius: 0 26 0 0; -fx-border-radius: 0 26 0 0; }
+.liquid-glass .sidebar .button, .liquid-glass .sidebar .menu-button { -fx-background-radius: 14; -fx-border-radius: 14; -fx-border-color: transparent; }
+.liquid-glass .sidebar .button.add-shop { -fx-background-radius: 999; -fx-border-radius: 999; -fx-border-color: -glass-line; }
+.liquid-glass .button.feature-card { -fx-background-radius: 26; -fx-border-radius: 26; }
+.liquid-glass .supply-detail .button, .liquid-glass.supply-detail .button { -fx-background-radius: 999; -fx-border-radius: 999; }
+.liquid-glass .button:hover, .liquid-glass .menu-button:hover { -fx-border-color: -border-color-hover; }
+.liquid-glass .text-area { -fx-background-radius: 18; -fx-border-radius: 18; }
+.liquid-glass .split-pane { -fx-background-color: transparent; }
+.liquid-glass .split-pane > .split-pane-divider { -fx-background-color: -glass-line; -fx-padding: 0 1; }
+.liquid-glass .pagination > .pagination-control { -fx-background-color: transparent; }
+.liquid-glass .chart-plot-background, .liquid-glass .chart-legend { -fx-background-color: -glass-row; -fx-background-radius: 18; }
+.liquid-glass .chart-title, .liquid-glass .axis-label, .liquid-glass .chart-pie-label { -fx-fill: -text-primary; -fx-text-fill: -text-primary; }
+.liquid-glass .axis { -fx-tick-label-fill: -text-secondary; }
+.liquid-glass .document-valid { -fx-text-fill: -success; }
+.liquid-glass .sidebar-tools > .title, .liquid-glass .sidebar-tools > .content { -fx-background-color: transparent; -fx-border-color: transparent; }
+.root.liquid-glass .products-bulk, .root.liquid-glass.products-bulk { -fx-background-radius: 26; -fx-border-radius: 26; }
+.liquid-glass .check-box:selected > .box { -fx-background-color: #2467c4; -fx-border-color: #1955ab; }
+.liquid-glass .check-box:selected > .box > .mark { -fx-background-color: white; }
+.liquid-glass .radio-button:selected > .radio > .dot { -fx-background-color: -accent; }
+
+/* Clear-water controls keep a specular edge without dimming their children. */
+.liquid-glass .button, .liquid-glass .menu-button, .liquid-glass .toggle-button {
+    -fx-background-color: -glass-button, linear-gradient(to bottom, rgba(255,255,255,.14), transparent 62%);
+    -fx-effect: dropshadow(gaussian,rgba(10,35,65,.12),8,0,0,2);
+}
+.liquid-glass .button.btn-primary, .liquid-glass .button.primary, .liquid-glass .button:default {
+    -fx-background-color: -glass-selected, linear-gradient(to bottom,rgba(255,255,255,.20),transparent);
+    -fx-text-fill: -text-primary;
+    -fx-border-color: -border-color-hover;
+}
+.liquid-glass .button.btn-primary .ikonli-font-icon, .liquid-glass .button:default .ikonli-font-icon { -fx-icon-color: -text-primary; }
+.liquid-glass .news-card { -fx-alignment: top-left; -fx-padding: 16; }
+.liquid-glass .task-status-pill { -fx-background-color: -glass-popup; -fx-background-radius: 999; -fx-border-radius: 999; -fx-border-color: -border-color-hover; -fx-padding: 10 18; }
+.liquid-glass .radio-button > .radio { -fx-background-radius: 999; -fx-border-radius: 999; }
+.liquid-glass .combo-box-base > .arrow-button, .liquid-glass .choice-box > .open-button,
+.liquid-glass .spinner > .increment-arrow-button, .liquid-glass .spinner > .decrement-arrow-button,
+.liquid-glass .date-picker > .arrow-button {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-background-radius: 999;
+}
+.liquid-glass .combo-box-base .arrow, .liquid-glass .choice-box .arrow,
+.liquid-glass .spinner .increment-arrow, .liquid-glass .spinner .decrement-arrow,
+.liquid-glass .date-picker > .arrow-button > .arrow { -fx-background-color: -text-primary; }

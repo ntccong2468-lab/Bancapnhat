@@ -19,6 +19,11 @@ public final class WindowsGs1Probe {
         String secret="VN-code-CI-"+UUID.randomUUID()+"-пароль-"+"fixture".repeat(700);
         String encrypted=protector.protect(secret);
         if(encrypted.contains(secret)||!secret.equals(protector.reveal(encrypted)))throw new IllegalStateException("DPAPI round trip failed");
+        var catalogProtector=new WindowsSecretProtector(WindowsSecretProtector.CATALOG_PURPOSE,8192);
+        String catalogKey="synthetic-catalog-"+UUID.randomUUID();
+        String catalogEncrypted=catalogProtector.protect(catalogKey);
+        if(catalogEncrypted.contains(catalogKey)||!catalogKey.equals(catalogProtector.reveal(catalogEncrypted)))throw new IllegalStateException("Catalog DPAPI round trip failed");
+        try{protector.reveal(catalogEncrypted);throw new IllegalStateException("Catalog key reused the mail protection purpose");}catch(java.io.IOException expected){}
         Path file=root.resolve("gs1-fixture.db");var repo=new Gs1Repository(file);
         var account=new Gs1MailAccount("smtp.example.invalid",465,"imap.example.invalid",993,"ci-fixture","ci@example.invalid",encrypted);
         repo.saveMailAccount("7707083893",account);
@@ -33,6 +38,7 @@ public final class WindowsGs1Probe {
         try(var c=DriverManager.getConnection("jdbc:sqlite:"+file);var s=c.createStatement();var result=s.executeQuery("PRAGMA integrity_check")){if(!result.next()||!"ok".equals(result.getString(1)))throw new IllegalStateException("GS1 fixture integrity failed");}
         JsonObject report=new JsonObject();report.addProperty("appName","VN code");report.addProperty("version",args[0]);report.addProperty("result","passed");
         report.addProperty("dpapiRoundTrip",true);report.addProperty("protectedPasswordPersistence",true);report.addProperty("unverifiedInvoiceBlocked",true);report.addProperty("liveGS1Mutations",false);
+        report.addProperty("catalogKeyDpapiRoundTrip",true);report.addProperty("catalogKeyPurposeIsolated",true);
         System.out.println(report);
     }
 }

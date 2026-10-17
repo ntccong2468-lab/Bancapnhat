@@ -5,6 +5,7 @@ import com.vncode.app.integration.znack.signature.CryptoProException;
 import com.vncode.app.integration.znack.signature.ZnackSignatureProvider;
 import com.vncode.app.integration.znack.signature.XmlSignatureProvider;
 import com.vncode.app.integration.znack.signature.CertificateSigningQueue;
+import com.vncode.app.integration.znack.signature.ZnackSignatureContext;
 
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -34,21 +35,32 @@ public final class ZnackSigningSession {
 
     public static ZnackSignatureProvider guard(int shopId, String fingerprint, ZnackSignatureProvider delegate) {
         if (delegate == null) throw new IllegalArgumentException("Signature provider is required.");
-        return (payload,context)->guarded(shopId,fingerprint,()->delegate.sign(payload,context));
+        return (payload,context)->guarded(shopId,fingerprint,false,()->delegate.sign(payload,context));
+    }
+
+    /** Used only by read-only GS1 authentication adapters after verifying configured ownership.
+     * Authentication does not authorize recovered purchases or business document signing. */
+    public static ZnackSignatureProvider guardReadAuthentication(int shopId,String fingerprint,ZnackSignatureProvider delegate){
+        if(delegate==null)throw new IllegalArgumentException("Signature provider is required.");
+        return (payload,context)->{
+            if(context!=ZnackSignatureContext.AUTH_CHALLENGE&&context!=ZnackSignatureContext.CATALOG_AUTH_CHALLENGE)
+                throw new CryptoProException(CryptoProErrorCode.INVALID_SIGNATURE_OUTPUT,"Only authentication challenges are allowed.");
+            return guarded(shopId,fingerprint,true,()->delegate.sign(payload,context));
+        };
     }
 
     public static XmlSignatureProvider guardXml(int shopId,String fingerprint,XmlSignatureProvider delegate) {
         if(delegate==null)throw new IllegalArgumentException("XML signer is required");
-        return xml->guarded(shopId,fingerprint,()->delegate.signXml(xml));
+        return xml->guarded(shopId,fingerprint,false,()->delegate.signXml(xml));
     }
 
-    private static <T> T guarded(int shopId,String fingerprint,CertificateSigningQueue.Work<T> work)throws CryptoProException {
+    private static <T> T guarded(int shopId,String fingerprint,boolean authenticationOnly,CertificateSigningQueue.Work<T> work)throws CryptoProException {
         return CertificateSigningQueue.run(fingerprint,()->{
                 PipelineKey pipeline = CURRENT_PIPELINE.get();
                 boolean matchingPipeline = pipeline != null && pipeline.shopId() == shopId;
                 if (BLOCKED_SHOPS.contains(shopId)
                         || (matchingPipeline && WAITING_PIPELINES.contains(pipeline))
-                        || (!AUTHORIZED_SHOPS.contains(shopId)
+                        || (!authenticationOnly && !AUTHORIZED_SHOPS.contains(shopId)
                         && (!matchingPipeline || !AUTHORIZED_PIPELINES.contains(pipeline)))) {
                     if (matchingPipeline) WAITING_PIPELINES.add(pipeline);
                     throw new SigningDeferredException(WAITING_MESSAGE);

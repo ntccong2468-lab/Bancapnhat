@@ -10,6 +10,20 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 
 class UpdateApiClientTest {
 
+    @Test void stableChannelExcludesUnpublishedAndDiagnosticReleases() {
+        for(String flags:new String[]{"\"draft\":true","\"prerelease\":true"})
+            assertNull(UpdateApiClient.parseGitHubRelease("{\"tag_name\":\"v1.4.4\","+flags+"}"));
+        assertNull(UpdateApiClient.parseGitHubRelease("{\"tag_name\":\"v1.4.4-license-test.1\"}"));
+    }
+
+    @Test void assetDigestAndSizeBelongToTheSelectedPlatform() {
+        var info=UpdateApiClient.parseGitHubRelease("{\"tag_name\":\"v1.4.4\",\"assets\":[{\"name\":\"VN-code.exe\",\"browser_download_url\":\"https://example.com/app.exe\",\"size\":1234,\"digest\":\"sha256:"+"a".repeat(64)+"\"}]}");
+        String os=System.getProperty("os.name");
+        try{System.setProperty("os.name","Windows 11");assertEquals("a".repeat(64),info.getBestDownloadSha256());assertEquals(1234L,info.getBestDownloadSize());
+            System.setProperty("os.name","Mac OS X");assertNull(info.getBestDownloadUrl());assertNull(info.getBestDownloadSha256());
+        }finally{System.setProperty("os.name",os);}
+    }
+
     @Test
     void parseGitHubReleaseMapsVersionChangelogAndAssets() {
         String body = """

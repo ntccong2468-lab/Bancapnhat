@@ -2,6 +2,7 @@ package com.vncode.app.features.products;
 
 import com.google.gson.JsonParser;
 import com.vncode.app.config.Database;
+import com.vncode.app.config.SqliteWriteTransaction;
 import com.vncode.app.features.gtinsync.RegisteredGtinValidator;
 import com.vncode.app.integration.marketplace.Marketplace;
 import com.vncode.app.integration.listing.ListingIdentity;
@@ -21,44 +22,60 @@ public final class ProductRepository {
     private record Cursor(String scope,String title,String card,String variant) {}
     private static final String WB = """
         SELECT CAST(c.nm_id AS TEXT) card_id,COALESCE(CAST(v.chrt_id AS TEXT),'') variant_id,
-          COALESCE(c.title,'') title,COALESCE(c.vendor_code,'') article,CAST(c.nm_id AS TEXT) market_article,
+          COALESCE(json_extract(ps.payload,'$.title'),c.title,'') title,COALESCE(c.vendor_code,'') article,CAST(c.nm_id AS TEXT) market_article,
           COALESCE(CAST(c.subject_id AS TEXT),c.subject_name,'') category_id,COALESCE(c.subject_name,'') category,
-          COALESCE(c.brand,'') brand,COALESCE(v.tech_size,'') size,
+          COALESCE(json_extract(ps.payload,'$.brand'),c.brand,'') brand,COALESCE(v.tech_size,'') size,COALESCE(v.wb_size,'') russian_size,COALESCE(v.tech_size,'') manufacturer_size,
           COALESCE((SELECT group_concat(b.sku,char(31)) FROM wb_product_size_skus b
                     WHERE b.shop_id=c.shop_id AND b.chrt_id=v.chrt_id),'') barcodes,
           COALESCE((SELECT COALESCE(p.c246x328_url,p.square_url,p.big_url,p.hq_url) FROM wb_product_photos p
                     WHERE p.shop_id=c.shop_id AND p.nm_id=c.nm_id ORDER BY p.photo_index LIMIT 1),'') image,
           COALESCE((SELECT json_extract(ch.value_json,'$[0]') FROM wb_product_characteristics ch
-                    WHERE ch.shop_id=c.shop_id AND ch.nm_id=c.nm_id AND ch.characteristic_id IN (14177449,204557)
+                    WHERE ch.shop_id=c.shop_id AND ch.nm_id=c.nm_id AND vn_field_match('color',ch.name)=1
                     ORDER BY ch.characteristic_id DESC LIMIT 1),'') color,
-          COALESCE((SELECT COALESCE(json_extract(ch.value_json,'$[0]'),json_extract(ch.value_json,'$'))
-                    FROM wb_product_characteristics ch WHERE ch.shop_id=c.shop_id AND ch.nm_id=c.nm_id
-                    AND vn_casefold(ch.name) IN ('состав','материал','chất liệu','material') LIMIT 1),'') material,
-          COALESCE((SELECT COALESCE(json_extract(ch.value_json,'$[0]'),json_extract(ch.value_json,'$'))
-                    FROM wb_product_characteristics ch WHERE ch.shop_id=c.shop_id AND ch.nm_id=c.nm_id
-                    AND vn_casefold(ch.name) IN ('тнвэд','тн вэд','tn ved') LIMIT 1),'') tnved
+          CASE WHEN ps.payload IS NULL THEN COALESCE((SELECT COALESCE(json_extract(ch.value_json,'$[0]'),json_extract(ch.value_json,'$')) FROM wb_product_characteristics ch WHERE ch.shop_id=c.shop_id AND ch.nm_id=c.nm_id AND vn_field_match('material',ch.name)=1 LIMIT 1),'') ELSE COALESCE((SELECT group_concat(v.value,', ') FROM json_each(ps.payload,'$.attributes') a JOIN json_each(a.value,'$.values') v WHERE vn_field_match('material',json_extract(a.value,'$.name'))=1 AND COALESCE(json_extract(a.value,'$.complexId'),'0') IN ('','0')),'') END material,
+          CASE WHEN ps.payload IS NULL THEN COALESCE((SELECT COALESCE(json_extract(ch.value_json,'$[0]'),json_extract(ch.value_json,'$')) FROM wb_product_characteristics ch WHERE ch.shop_id=c.shop_id AND ch.nm_id=c.nm_id AND vn_field_match('tnved',ch.name)=1 LIMIT 1),'') ELSE COALESCE((SELECT group_concat(v.value,', ') FROM json_each(ps.payload,'$.attributes') a JOIN json_each(a.value,'$.values') v WHERE vn_field_match('tnved',json_extract(a.value,'$.name'))=1 AND COALESCE(json_extract(a.value,'$.complexId'),'0') IN ('','0')),'') END tnved,
+          CASE WHEN ps.payload IS NULL THEN COALESCE((SELECT COALESCE(json_extract(ch.value_json,'$[0]'),json_extract(ch.value_json,'$')) FROM wb_product_characteristics ch WHERE ch.shop_id=c.shop_id AND ch.nm_id=c.nm_id AND vn_field_match('gender',ch.name)=1 LIMIT 1),'') ELSE COALESCE((SELECT group_concat(v.value,', ') FROM json_each(ps.payload,'$.attributes') a JOIN json_each(a.value,'$.values') v WHERE vn_field_match('gender',json_extract(a.value,'$.name'))=1 AND COALESCE(json_extract(a.value,'$.complexId'),'0') IN ('','0')),'') END gender,1 attributes_loaded
         FROM wb_product_cards c LEFT JOIN wb_product_sizes v ON v.shop_id=c.shop_id AND v.nm_id=c.nm_id
+        LEFT JOIN product_snapshots ps ON ps.rowid=(SELECT own.rowid FROM product_snapshots own
+          WHERE own.shop_id=c.shop_id AND own.marketplace='WILDBERRIES' AND own.card_id=CAST(c.nm_id AS TEXT)
+            AND json_extract(own.payload,'$.metadata.owner')=? AND json_extract(own.payload,'$.revision') LIKE 'live:%'
+          ORDER BY own.checked_at DESC LIMIT 1)
         WHERE c.shop_id=?
         """;
     private static final String OZON = """
         SELECT p.product_id card_id,COALESCE(p.offer_id,'') variant_id,COALESCE(p.name,'') title,
           COALESCE(p.article,p.offer_id,'') article,COALESCE(p.sku,p.product_id) market_article,
-          COALESCE(p.category,'') category_id,COALESCE(p.category,'') category,'' brand,COALESCE(p.size,'') size,
+          COALESCE(p.category,'') category_id,COALESCE(p.category,'') category,
+          COALESCE(json_extract(ps.payload,'$.brand'),'') brand,COALESCE(p.size,'') size,COALESCE(p.russian_size,'') russian_size,COALESCE(p.manufacturer_size,'') manufacturer_size,
           COALESCE((SELECT group_concat(b.barcode,char(31)) FROM ozon_product_barcodes b
                     WHERE b.shop_id=p.shop_id AND b.product_id=p.product_id),'') barcodes,
-          COALESCE(p.primary_image_url,'') image,COALESCE(p.color,'') color,'' material,'' tnved
-        FROM ozon_products p WHERE p.shop_id=? AND p.archived=0
+          COALESCE(p.primary_image_url,'') image,COALESCE(p.color,'') color,
+          COALESCE((SELECT group_concat(v.value,', ') FROM json_each(ps.payload,'$.attributes') a
+            JOIN json_each(a.value,'$.values') v WHERE vn_field_match('material',json_extract(a.value,'$.name'))=1
+            AND COALESCE(json_extract(a.value,'$.complexId'),'0') IN ('','0')),'') material,
+          COALESCE((SELECT group_concat(vn_tnved_value(v.value),', ') FROM json_each(ps.payload,'$.attributes') a
+            JOIN json_each(a.value,'$.values') v WHERE vn_field_match('tnved',json_extract(a.value,'$.name'))=1
+            AND COALESCE(json_extract(a.value,'$.complexId'),'0') IN ('','0')),'') tnved,
+          COALESCE((SELECT group_concat(v.value,', ') FROM json_each(ps.payload,'$.attributes') a
+            JOIN json_each(a.value,'$.values') v WHERE vn_field_match('gender',json_extract(a.value,'$.name'))=1
+            AND COALESCE(json_extract(a.value,'$.complexId'),'0') IN ('','0')),'') gender,
+          CASE WHEN ps.payload IS NULL THEN 0 ELSE 1 END attributes_loaded
+        FROM ozon_products p LEFT JOIN product_snapshots ps ON ps.shop_id=p.shop_id AND ps.marketplace='OZON'
+          AND ps.card_id=p.product_id AND ps.variant_id=COALESCE(p.offer_id,'')
+          AND json_extract(ps.payload,'$.metadata.owner')=? AND json_extract(ps.payload,'$.revision') LIKE 'live:%'
+        WHERE p.shop_id=? AND p.archived=0
         """;
 
-    public ProductPage loadPage(ProductQuery query) {
+    public ProductPage loadPage(ProductQuery query) {return loadPage(query,"");}
+    public ProductPage loadPage(ProductQuery query,String receipt) {return loadPage(query,receipt,false);}
+    public ProductPage loadProductPage(ProductQuery query){return loadPage(query,"",true);}
+    private ProductPage loadPage(ProductQuery query,String receipt,boolean cardView) {
         try(var c=open()) {
             c.setAutoCommit(false);requireOwner(c,query.shopId(),query.marketplace());
-            var parameters=new ArrayList<Object>();String projection=projection(query,parameters);
-            String predicate=filter(query,parameters);String scope=scope(query);
-            long total;
-            try(var p=c.prepareStatement("SELECT count(*) FROM ("+projection+") x WHERE "+predicate)) {
-                bind(p,parameters);try(var r=p.executeQuery()){r.next();total=r.getLong(1);}
-            }
+            var parameters=new ArrayList<Object>();String projection=projection(query,parameters,c,cardView);
+            String predicate=filter(query,parameters)+receiptFilter(query,receipt,parameters);String scope=scope(query)+receipt+(cardView?":cards":"");
+            var counts=countIssues(c,query,receipt,cardView);
+            long total=counts.get(query.issue());
             String cursorPredicate="";
             if(query.cursor()!=null&&!query.cursor().isBlank()) {
                 Cursor cursor;
@@ -73,12 +90,29 @@ public final class ProductRepository {
             try(var p=c.prepareStatement(sql)){bind(p,parameters);try(var r=p.executeQuery()){while(r.next())rows.add(row(query,r));}}
             boolean more=rows.size()>query.limit();if(more)rows.removeLast();String next=null;
             if(more) {var last=rows.getLast();next=Base64.getUrlEncoder().withoutPadding().encodeToString(ProductJson.GSON.toJson(new Cursor(scope,fold(last.title()),last.key().cardId(),last.key().variantId())).getBytes(StandardCharsets.UTF_8));}
-            c.commit();return new ProductPage(rows,total,next);
+            c.commit();return new ProductPage(rows,total,next,counts);
         }catch(SQLException error){throw storeError();}
     }
-    public List<ProductKey> freezeKeys(ProductQuery query) {
+    private static Map<ProductIssueFilter,Long> countIssues(Connection c,ProductQuery q,String receipt,boolean cardView)throws SQLException {
+        var base=new ProductQuery(q.shopId(),q.marketplace(),q.text(),q.categoryIds(),q.documentState(),q.missingGtin(),null,q.limit());
+        var args=new ArrayList<Object>();var projection=projection(base,args,c,cardView);var predicate=filter(base,args)+receiptFilter(q,receipt,args);
+        var result=new EnumMap<ProductIssueFilter,Long>(ProductIssueFilter.class);
+        String sql="""
+            SELECT count(*),COALESCE(sum(attributes_loaded=0),0),
+              COALESCE(sum(attributes_loaded=1 AND trim(brand)=''),0),
+              COALESCE(sum(attributes_loaded=1 AND trim(material)=''),0),
+              COALESCE(sum(attributes_loaded=1 AND (length(tnved)<>10 OR tnved GLOB '*[^0-9]*')),0)
+            FROM (
+            """+projection+") x WHERE "+predicate;
+        try(var p=c.prepareStatement(sql)){bind(p,args);try(var r=p.executeQuery()){r.next();int i=1;for(var issue:ProductIssueFilter.values())result.put(issue,r.getLong(i++));}}
+        return Map.copyOf(result);
+    }
+    public List<ProductKey> freezeKeys(ProductQuery query) {return freezeKeys(query,"");}
+    public List<ProductKey> freezeKeys(ProductQuery query,String receipt) {return freezeKeys(query,receipt,false);}
+    public List<ProductKey> freezeProductKeys(ProductQuery query){return freezeKeys(query,"",true);}
+    private List<ProductKey> freezeKeys(ProductQuery query,String receipt,boolean cardView) {
         try(var c=open()) {
-            c.setAutoCommit(false);requireOwner(c,query.shopId(),query.marketplace());var args=new ArrayList<Object>();String projection=projection(query,args);String predicate=filter(query,args);
+            c.setAutoCommit(false);requireOwner(c,query.shopId(),query.marketplace());var args=new ArrayList<Object>();String projection=projection(query,args,c,cardView);String predicate=filter(query,args)+receiptFilter(query,receipt,args);
             var keys=new ArrayList<ProductKey>();
             try(var p=c.prepareStatement("SELECT card_id,variant_id FROM ("+projection+") x WHERE "+predicate+" ORDER BY sort_title,card_id,variant_id LIMIT 100001")) {
                 bind(p,args);try(var r=p.executeQuery()){while(r.next())keys.add(new ProductKey(query.shopId(),query.marketplace(),r.getString(1),r.getString(2)));}
@@ -92,9 +126,11 @@ public final class ProductRepository {
             try(var p=c.prepareStatement(sql)){p.setInt(1,shop);try(var r=p.executeQuery()){var values=new ArrayList<String>();while(r.next())if(r.getString(1)!=null&&!r.getString(1).isBlank())values.add(r.getString(1));return List.copyOf(values);}}
         }catch(SQLException error){throw storeError();}
     }
-    private static String projection(ProductQuery q,List<Object> args) {
-        args.add(q.shopId());args.add(q.marketplace().name());args.add(q.shopId());args.add(q.marketplace().name());args.add(q.shopId());
-        return """
+    private static String projection(ProductQuery q,List<Object> args,Connection c,boolean cardView)throws SQLException {
+        args.add(q.shopId());args.add(q.marketplace().name());args.add(q.shopId());args.add(q.marketplace().name());
+        args.add(currentOwner(c,new ProductKey(q.shopId(),q.marketplace(),"scope","scope")));
+        args.add(q.shopId());
+        String sql="""
             SELECT b.*,vn_casefold(b.title) sort_title,
               COALESCE((SELECT vn_verified_gtin(b.barcodes,m.gtin) FROM gtin_sync_mappings m JOIN gtin_sync_catalog g
                 ON g.shop_id=m.shop_id AND g.marketplace=m.marketplace AND g.gtin=m.gtin
@@ -110,6 +146,19 @@ public final class ProductRepository {
                 WHERE d.shop_id=? AND d.marketplace=? AND d.card_id=b.card_id),'MISSING') document_state
             FROM (
             """+(q.marketplace()==Marketplace.OZON?OZON:WB)+") b";
+        if(!cardView||q.marketplace()!=Marketplace.WILDBERRIES)return sql;
+        return """
+            SELECT card_id,'' variant_id,title,article,market_article,category_id,category,brand,
+              COALESCE(group_concat(NULLIF(size,''),', '),'') size,COALESCE(group_concat(NULLIF(russian_size,''),', '),'') russian_size,COALESCE(group_concat(NULLIF(manufacturer_size,''),', '),'') manufacturer_size,COALESCE(group_concat(NULLIF(barcodes,''),char(31)),'') barcodes,
+              image,color,material,tnved,gender,min(attributes_loaded) attributes_loaded,
+              CASE WHEN min(CASE WHEN verified_gtin<>'' THEN 1 ELSE 0 END)=1 THEN min(verified_gtin) ELSE '' END verified_gtin,
+              document_state,sort_title FROM (
+            """+sql+") GROUP BY card_id";
+    }
+    private static String receiptFilter(ProductQuery query,String receipt,List<Object> args) {
+        if(receipt==null||receipt.isBlank())return "";
+        args.add(receipt);args.add(query.shopId());args.add(query.marketplace().name());
+        return " AND EXISTS(SELECT 1 FROM sync_run_items member JOIN sync_runs source ON source.id=member.run_id WHERE source.id=? AND source.shop_id=? AND source.marketplace=? AND source.kind='registration_sources' AND source.state='SUCCEEDED' AND member.product_id=x.card_id AND member.variant_id=x.variant_id)";
     }
     private static String filter(ProductQuery q,List<Object> args) {
         var clauses=new ArrayList<String>();clauses.add("1=1");
@@ -125,12 +174,19 @@ public final class ProductRepository {
         if(!q.categoryIds().isEmpty()){clauses.add("(category_id IN ("+String.join(",",Collections.nCopies(q.categoryIds().size(),"?"))+") OR category IN ("+String.join(",",Collections.nCopies(q.categoryIds().size(),"?"))+"))");args.addAll(q.categoryIds());args.addAll(q.categoryIds());}
         if(q.documentState()!=null){clauses.add("document_state=?");args.add(q.documentState().name());}
         if(q.missingGtin())clauses.add("verified_gtin=''");
+        switch(q.issue()) {
+            case ALL -> {}
+            case ATTRIBUTES_UNLOADED -> clauses.add("attributes_loaded=0");
+            case MISSING_BRAND -> clauses.add("attributes_loaded=1 AND trim(brand)=''");
+            case MISSING_MATERIAL -> clauses.add("attributes_loaded=1 AND trim(material)=''");
+            case INVALID_TNVED -> clauses.add("attributes_loaded=1 AND (length(tnved)<>10 OR tnved GLOB '*[^0-9]*')");
+        }
         return String.join(" AND ",clauses);
     }
     private static ProductRow row(ProductQuery q,ResultSet r)throws SQLException {
         List<String> codes=r.getString("barcodes").isBlank()?List.of():Arrays.stream(r.getString("barcodes").split("\u001f")).distinct().sorted().toList();
         String candidate=r.getString("verified_gtin");String verified=RegisteredGtinValidator.isValid(candidate)&&codes.stream().anyMatch(x->padGtin(x).equals(padGtin(candidate)))?candidate:"";
-        return new ProductRow(new ProductKey(q.shopId(),q.marketplace(),r.getString("card_id"),r.getString("variant_id")),r.getString("title"),r.getString("article"),r.getString("market_article"),r.getString("category"),r.getString("brand"),r.getString("color"),r.getString("size"),codes,verified,r.getString("image"),r.getString("material"),r.getString("tnved"),DocumentState.valueOf(r.getString("document_state")));
+        return new ProductRow(new ProductKey(q.shopId(),q.marketplace(),r.getString("card_id"),r.getString("variant_id")),r.getString("title"),r.getString("article"),r.getString("market_article"),r.getString("category"),r.getString("brand"),r.getString("color"),r.getString("size"),codes,verified,r.getString("image"),r.getString("material"),r.getString("tnved"),DocumentState.valueOf(r.getString("document_state")),r.getString("gender"),r.getInt("attributes_loaded")==1,r.getString("russian_size"),r.getString("manufacturer_size"));
     }
     private static String padGtin(String value){return value.matches("[0-9]{8,14}")?"0".repeat(14-value.length())+value:value;}
     public Optional<ProductSnapshot> localSnapshot(ProductKey key) {
@@ -165,6 +221,26 @@ public final class ProductRepository {
             p.setInt(1,key.shopId());p.setString(2,key.cardId());try(var r=p.executeQuery()){if(!r.next())return Optional.empty();if(!key.variantId().equals(safe(r.getString("offer_id"))))throw new SecurityException("Unknown product variant");return Optional.of(new ProductSnapshot(key,"summary:"+hash(safe(r.getString("updated_at"))),safe(r.getString("name")),"","",safe(r.getString("article")),safe(r.getString("category")),safeMedia(r.getString("primary_image_url")).stream().toList(),List.of(),List.of(new ProductVariant(key.variantId(),safe(r.getString("offer_id")),safe(r.getString("color")),safe(r.getString("size")),"",false)),null,documents(c,key),Instant.now()));}
         }
     }
+    /** Existing documents across the current shop, including cards outside a bulk selection. */
+    public List<ProductDocument> shopDocuments(Shop shop){
+        ListingIdentity.require(shop);String owner=ListingIdentity.fingerprint(shop);
+        try(var c=open();var p=c.prepareStatement("""
+            SELECT payload FROM (
+              SELECT d.payload,d.document_id,
+                row_number() OVER(PARTITION BY json_extract(d.payload,'$.type'),json_extract(d.payload,'$.number')
+                  ORDER BY d.verified_at DESC,d.document_id) choice
+              FROM product_documents d WHERE d.shop_id=? AND d.marketplace=?
+                AND d.state NOT IN ('REJECTED','EXPIRED')
+                AND (d.valid_until IS NULL OR d.valid_until>=? OR json_extract(d.payload,'$.metadata.isEndless')='true')
+                AND EXISTS(SELECT 1 FROM product_snapshots snapshot WHERE snapshot.shop_id=d.shop_id
+                  AND snapshot.marketplace=d.marketplace AND snapshot.card_id=d.card_id
+                  AND json_extract(snapshot.payload,'$.metadata.owner')=? AND json_extract(snapshot.payload,'$.revision') LIKE 'live:%')
+            ) WHERE choice=1 ORDER BY json_extract(payload,'$.number'),document_id
+            """)){
+            p.setInt(1,shop.getId());p.setString(2,shop.getMarketplace().name());p.setString(3,java.time.LocalDate.now().toString());p.setString(4,owner);
+            var documents=new ArrayList<ProductDocument>();try(var rows=p.executeQuery()){while(rows.next())documents.add(ProductJson.GSON.fromJson(rows.getString(1),ProductDocument.class));}return List.copyOf(documents);
+        }catch(SQLException error){throw storeError();}
+    }
     private static List<ProductDocument> documents(Connection c,ProductKey key)throws SQLException {
         try(var p=c.prepareStatement("SELECT payload FROM product_documents WHERE shop_id=? AND marketplace=? AND card_id=? ORDER BY document_id")) {
             p.setInt(1,key.shopId());p.setString(2,key.marketplace().name());p.setString(3,key.cardId());try(var r=p.executeQuery()){var out=new ArrayList<ProductDocument>();while(r.next())out.add(ProductJson.GSON.fromJson(r.getString(1),ProductDocument.class));return List.copyOf(out);}
@@ -182,8 +258,7 @@ public final class ProductRepository {
         });
     }
     private void saveSnapshot(ProductSnapshot snapshot,boolean complete) {
-        try(var c=open()) {
-            c.setAutoCommit(false);var key=snapshot.key();requireOwner(c,key.shopId(),key.marketplace());
+        try{SqliteWriteTransaction.run(c->{var key=snapshot.key();requireOwner(c,key.shopId(),key.marketplace());
             if(complete){
                 if(!snapshot.metadata().get("owner").equals(currentOwner(c,key)))throw new SecurityException("Product credentials changed");
                 for(String table:List.of("product_snapshots","product_documents"))try(var clear=c.prepareStatement("DELETE FROM "+table+" WHERE shop_id=? AND marketplace=? AND card_id=?")){clear.setInt(1,key.shopId());clear.setString(2,key.marketplace().name());clear.setString(3,key.cardId());clear.executeUpdate();}
@@ -195,8 +270,8 @@ public final class ProductRepository {
             try(var p=c.prepareStatement("INSERT INTO product_documents VALUES(?,?,?,?,?,?,?,?,?) ON CONFLICT(shop_id,marketplace,card_id,document_id) DO UPDATE SET state=excluded.state,valid_until=excluded.valid_until,source=excluded.source,verified_at=excluded.verified_at,payload=excluded.payload")) {
                 for(var doc:snapshot.documents()){p.setInt(1,key.shopId());p.setString(2,key.marketplace().name());p.setString(3,key.cardId());p.setString(4,doc.id());p.setString(5,doc.state().name());p.setString(6,doc.validUntil()==null?null:doc.validUntil().toString());p.setString(7,doc.source());p.setString(8,doc.checkedAt()==null?null:doc.checkedAt().toString());p.setString(9,ProductJson.GSON.toJson(doc));p.addBatch();}p.executeBatch();
             }
-            c.commit();
-        }catch(SQLException error){throw storeError();}
+            return null;
+        });}catch(SQLException error){throw new IllegalStateException("SYNC_STORAGE",error);}
     }
     private static String currentOwner(Connection c,ProductKey key)throws SQLException{
         try(var q=c.prepareStatement("SELECT marketplace,client_id,api_key FROM shops WHERE id=?")){q.setInt(1,key.shopId());try(var r=q.executeQuery()){if(!r.next()||!key.marketplace().name().equals(r.getString(1)))throw new SecurityException("Product owner changed");return ListingIdentity.fingerprint(new Shop(key.shopId(),"cache",key.marketplace(),r.getString(2),r.getString(3)));}}
@@ -205,7 +280,10 @@ public final class ProductRepository {
         try(var p=c.prepareStatement("SELECT marketplace FROM shops WHERE id=?")){p.setInt(1,shop);try(var r=p.executeQuery()){if(!r.next()||!market.name().equals(r.getString(1)))throw new SecurityException("Product shop ownership mismatch");}}
     }
     private static Connection open()throws SQLException {
-        Connection c=Database.getConnection();try {Function.create(c,"vn_casefold",new Function(){protected void xFunc()throws SQLException{result(fold(value_text(0)));}},1,Function.FLAG_DETERMINISTIC);
+        Connection c=Database.getConnection();try {
+            Function.create(c,"vn_field_match",new Function(){protected void xFunc()throws SQLException{result(ProductFieldNames.matches(value_text(0),value_text(1))?1:0);}},2,Function.FLAG_DETERMINISTIC);
+            Function.create(c,"vn_casefold",new Function(){protected void xFunc()throws SQLException{result(fold(value_text(0)));}},1,Function.FLAG_DETERMINISTIC);
+            Function.create(c,"vn_tnved_value",new Function(){protected void xFunc()throws SQLException{String raw=value_text(0),code=ProductFieldNames.tnvedCode(raw);result(code.isBlank()?raw:code);}},1,Function.FLAG_DETERMINISTIC);
             Function.create(c,"vn_verified_gtin",new Function(){protected void xFunc()throws SQLException {
                 String gtin=safe(value_text(1));String codes=safe(value_text(0));
                 boolean verified=RegisteredGtinValidator.isValid(gtin)&&Arrays.stream(codes.split("\u001f")).anyMatch(x->padGtin(x).equals(padGtin(gtin)));
@@ -218,7 +296,7 @@ public final class ProductRepository {
     private static Optional<ProductMedia> safeMedia(String value){try {if(value==null||value.isBlank())return Optional.empty();URI uri=URI.create(value);if(!"https".equals(uri.getScheme())||uri.getHost()==null||uri.getUserInfo()!=null)return Optional.empty();return Optional.of(new ProductMedia(uri,null,null,null,null));}catch(RuntimeException bad){return Optional.empty();}}
     private static void bindKey(PreparedStatement p,ProductKey key)throws SQLException {p.setInt(1,key.shopId());p.setString(2,key.marketplace().name());p.setString(3,key.cardId());p.setString(4,key.variantId());}
     private static void bind(PreparedStatement p,List<Object> args)throws SQLException {for(int i=0;i<args.size();i++)p.setObject(i+1,args.get(i));}
-    private static String scope(ProductQuery q){return hash(q.shopId()+"|"+q.marketplace()+"|"+q.text()+"|"+q.categoryIds()+"|"+q.documentState()+"|"+q.missingGtin());}
+    private static String scope(ProductQuery q){return hash(q.shopId()+"|"+q.marketplace()+"|"+q.text()+"|"+q.categoryIds()+"|"+q.documentState()+"|"+q.missingGtin()+"|"+q.issue());}
     private static String hash(String value){try{return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(value.getBytes(StandardCharsets.UTF_8)));}catch(NoSuchAlgorithmException impossible){throw new IllegalStateException(impossible);}}
     private static IllegalStateException storeError(){return new IllegalStateException("Unable to read or save product data");}
 }

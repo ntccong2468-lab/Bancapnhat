@@ -1,5 +1,6 @@
 import {sendMail,mailReady} from './mail.js';
 import {desktopApi} from './desktop.js';
+import {adminCleanup} from './admin-cleanup.js';
 import {cleanupExpired} from './maintenance.js';
 // VNCode Accounts — Cloudflare Workers + D1. Account/entitlement MVP.
 const enc = new TextEncoder();
@@ -123,7 +124,7 @@ async function api(request,env) {
   const desktop=await desktopApi(request,env,{bodyJson,rateLimit,clientIp,sendMail,constantTimeEqual,audit,normalizeLicenseCode,newLicenseCode},path.startsWith('/api/admin/desktop/')?await auth(request,env):null);
   if(desktop)return desktop;
   if (method==='GET' && path==='/api/health') return json({ok:true,service:'VNCode Accounts'});
-  if (method==='GET' && path==='/api/config') return json({turnstile_site_key:env.TURNSTILE_SITE_KEY||'',email_verification_required:env.REQUIRE_EMAIL_VERIFICATION==='1',mail_ready:mailReady(env),desktop_registration_mode:'gmail_admin',portal_version:'0.3.2'});
+  if (method==='GET' && path==='/api/config') return json({turnstile_site_key:env.TURNSTILE_SITE_KEY||'',email_verification_required:env.REQUIRE_EMAIL_VERIFICATION==='1',mail_ready:mailReady(env),desktop_registration_mode:'gmail_admin',portal_version:'0.3.6'});
 
   if(method==='POST' && path==='/api/register'){
     if(!await rateLimit(env,'register:'+clientIp(request),7,3600)) return fail('Thử lại sau',429);
@@ -244,6 +245,8 @@ async function api(request,env) {
   }
 
   if(user.role!=='admin')return fail('Bạn không có quyền quản trị',403);
+  const cleaned=await adminCleanup(request,env,{bodyJson},user);
+  if(cleaned)return cleaned;
   if(method==='GET' && path==='/api/admin/users'){
     const limit=50; const page=Math.min(1000,Math.max(0,Number(url.searchParams.get('page')||0)||0));
     const rows=(await env.DB.prepare('SELECT id,email,role,status,email_verified,license_expires_at,created_at FROM users ORDER BY created_at DESC LIMIT ? OFFSET ?').bind(limit,page*limit).all()).results;
@@ -256,11 +259,13 @@ async function api(request,env) {
   }
   if(method==='GET' && path==='/api/admin/license-codes'){
     const page=Math.min(1000,Math.max(0,Number(url.searchParams.get('page')||0)||0));
+    const state=url.searchParams.get('state')||'';
+    if(state&&!['unused','redeemed','void'].includes(state))return fail('Trạng thái license không hợp lệ',400);
     const rows=(await env.DB.prepare(`SELECT c.id,c.code_last4,c.days,c.state,c.created_at,c.redeemed_at,
       u.email AS assigned_email,r.email AS redeemed_email FROM license_codes c
       JOIN users u ON u.id=c.assigned_user_id LEFT JOIN users r ON r.id=c.redeemed_by
-      ORDER BY c.created_at DESC,c.id DESC LIMIT 50 OFFSET ?`).bind(page*50).all()).results;
-    const count=await env.DB.prepare('SELECT COUNT(*) AS n FROM license_codes').first();
+      WHERE (?='' OR c.state=?) ORDER BY c.created_at DESC,c.id DESC LIMIT 50 OFFSET ?`).bind(state,state,page*50).all()).results;
+    const count=await env.DB.prepare("SELECT COUNT(*) AS n FROM license_codes WHERE (?='' OR state=?)").bind(state,state).first();
     return json({codes:rows,total:count?.n||0,page});
   }
   if(method==='POST' && path==='/api/admin/license-codes'){
@@ -269,7 +274,7 @@ async function api(request,env) {
     if(!Number.isInteger(days)||days<1||days>3650)return fail('Số ngày phải từ 1–3650',400);
     if(typeof assignedId!=='string'||! /^[a-f0-9-]{36}$/.test(assignedId))return fail('Tài khoản nhận không hợp lệ',400);
     const target=await env.DB.prepare('SELECT id,role,status FROM users WHERE id=?').bind(assignedId).first();
-    if(!target||target.role!=='user')return fail('Chỉ cấp mã cho tài khoản người dùng',400);
+    if(!target||!['user','admin'].includes(target.role))return fail('Không tìm thấy tài khoản nhận license',400);
     if(target.status!=='approved')return fail('Hãy phê duyệt tài khoản trước khi cấp mã',403);
     const code=newLicenseCode(),time=now();
     await env.DB.batch([

@@ -1,6 +1,7 @@
 package com.vncode.app.integration.wb;
 
 import com.vncode.app.config.Database;
+import com.vncode.app.config.SqliteWriteTransaction;
 import com.vncode.app.models.Order;
 
 import java.sql.Connection;
@@ -166,19 +167,23 @@ public class WbOrderRepository {
                 SET supplier_status = ?, wb_status = ?, is_cancellable = ?, status_synced_at = ?
                 WHERE shop_id = ? AND order_id = ?
                 """;
-        try (Connection conn = Database.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            String now = Instant.now().toString();
-            for (WbOrderStatusDto status : statuses) {
-                ps.setString(1, status.getSupplierStatus());
-                ps.setString(2, status.getWbStatus());
-                setNullableBoolean(ps, 3, status.getIsCancellable());
-                ps.setString(4, now);
-                ps.setInt(5, shopId);
-                ps.setLong(6, safeLong(status.getId()));
-                ps.addBatch();
-            }
-            ps.executeBatch();
+        try {
+            SqliteWriteTransaction.run(conn -> {
+                try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                    String now = Instant.now().toString();
+                    for (WbOrderStatusDto status : statuses) {
+                        ps.setString(1, status.getSupplierStatus());
+                        ps.setString(2, status.getWbStatus());
+                        setNullableBoolean(ps, 3, status.getIsCancellable());
+                        ps.setString(4, now);
+                        ps.setInt(5, shopId);
+                        ps.setLong(6, safeLong(status.getId()));
+                        ps.addBatch();
+                    }
+                    ps.executeBatch();
+                }
+                return null;
+            });
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }

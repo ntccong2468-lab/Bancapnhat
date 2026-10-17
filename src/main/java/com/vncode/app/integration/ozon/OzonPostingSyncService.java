@@ -42,16 +42,21 @@ public final class OzonPostingSyncService {
 
     public OzonSyncReport sync() throws IOException {
         LicenseRuntime.require(SELLER_API);
+        api.requireSyncOwner(shopId);
         Instant end = Instant.now();
         Instant start = startFor(state.find(shopId), end);
         int postingCount = 0;
         int itemCount = 0;
         String cursor = "";
+        var cursors=new java.util.HashSet<String>();
         try {
             for (int pageNumber = 0; pageNumber < MAX_PAGES; pageNumber++) {
+                if(Thread.currentThread().isInterrupted())throw new java.io.InterruptedIOException("OZON_SYNC_CANCELLED");
                 LicenseRuntime.require(SELLER_API);
-                OzonJson.PostingPage page = OzonJson.parsePostingPage(
+                OzonJson.PostingPage page = OzonJson.requirePostingPage(
                         api.listPostings(start.toString(), end.toString(), cursor, PAGE_SIZE));
+                if (page.hasNext() && !cursors.add(page.cursor())) throw new IOException("FBS_INVALID_CURSOR");
+                api.requireSyncOwner(shopId);
                 postings.upsertPage(shopId, page.postings());
                 postingCount += page.postings().size();
                 itemCount += page.postings().stream().mapToInt(posting -> posting.items().size()).sum();
@@ -59,22 +64,19 @@ public final class OzonPostingSyncService {
                     state.advancePostings(shopId, end.toString());
                     return new OzonSyncReport(0, postingCount, itemCount);
                 }
-                if (page.postings().isEmpty() || page.cursor().isBlank() || page.cursor().equals(cursor)) {
-                    throw new IOException("Ozon returned an invalid posting cursor.");
-                }
                 cursor = page.cursor();
             }
             throw new IOException("Ozon postings exceeded the safe pagination bound.");
         } catch (LicenseDeniedException paused) {
             throw paused;
         } catch (OzonApiException exception) {
-            state.recordSafeError(shopId, exception.kind());
+            reportFailure(exception.kind(),exception);
             throw exception;
         } catch (IOException exception) {
-            state.recordSafeError(shopId, "invalid_response");
+            reportFailure("invalid_response",exception);
             throw exception;
         } catch (RuntimeException exception) {
-            state.recordSafeError(shopId, "local_storage");
+            reportFailure("local_storage",exception);
             throw exception;
         }
     }
@@ -82,23 +84,25 @@ public final class OzonPostingSyncService {
     /** Refreshes Ozon's current actionable FBS queue, including changes made outside VN code. */
     public int syncUnfulfilled() throws IOException {
         LicenseRuntime.require(SELLER_API);
+        api.requireSyncOwner(shopId);
         Instant now = Instant.now();
         String cutoffFrom = now.minus(ACTIVE_CUTOFF_PAST).toString();
         String cutoffTo = now.plus(ACTIVE_CUTOFF_FUTURE).toString();
         int postingCount = 0;
         String cursor = "";
+        var cursors=new java.util.HashSet<String>();
         try {
             for (int pageNumber = 0; pageNumber < MAX_PAGES; pageNumber++) {
+                if(Thread.currentThread().isInterrupted())throw new java.io.InterruptedIOException("OZON_SYNC_CANCELLED");
                 LicenseRuntime.require(SELLER_API);
-                OzonJson.PostingPage page = OzonJson.parsePostingPage(api.listUnfulfilledPostings(
+                OzonJson.PostingPage page = OzonJson.requirePostingPage(api.listUnfulfilledPostings(
                         cutoffFrom, cutoffTo, cursor, PAGE_SIZE));
+                if (page.hasNext() && !cursors.add(page.cursor())) throw new IOException("FBS_INVALID_CURSOR");
+                api.requireSyncOwner(shopId);
                 postings.upsertPage(shopId, page.postings());
                 postingCount += page.postings().size();
                 if (!page.hasNext()) {
                     return postingCount;
-                }
-                if (page.postings().isEmpty() || page.cursor().isBlank() || page.cursor().equals(cursor)) {
-                    throw new IOException("Ozon returned an invalid unfulfilled posting cursor.");
                 }
                 cursor = page.cursor();
             }
@@ -106,19 +110,22 @@ public final class OzonPostingSyncService {
         } catch (LicenseDeniedException paused) {
             throw paused;
         } catch (OzonApiException exception) {
-            state.recordSafeError(shopId, exception.kind());
+            reportFailure(exception.kind(),exception);
             throw exception;
         } catch (IOException exception) {
-            state.recordSafeError(shopId, "invalid_response");
+            reportFailure("invalid_response",exception);
             throw exception;
         } catch (RuntimeException exception) {
-            state.recordSafeError(shopId, "local_storage");
+            reportFailure("local_storage",exception);
             throw exception;
         }
     }
 
     public OzonPostingDto refresh(String postingNumber, boolean withExemplars) throws IOException {
-        OzonPostingDto posting = OzonJson.parsePostingDetail(api.getPosting(postingNumber, withExemplars));
+        LicenseRuntime.require(SELLER_API);
+        api.requireSyncOwner(shopId);
+        OzonPostingDto posting = OzonJson.requirePostingDetail(api.getPosting(postingNumber, withExemplars),postingNumber);
+        api.requireSyncOwner(shopId);
         postings.upsertDetail(shopId, posting);
         return posting;
     }
@@ -151,4 +158,8 @@ public final class OzonPostingSyncService {
             return end.minus(INITIAL_WINDOW);
         }
     }
+    private void reportFailure(String code,Exception failure){
+        try{state.recordSafeError(shopId,code);}catch(RuntimeException reporting){failure.addSuppressed(reporting);}
+    }
+
 }

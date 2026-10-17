@@ -29,6 +29,7 @@ public final class ZnackSchemaSupport {
         addInventoryColumns(connection);
         migrateInventoryStatuses(connection);
         enforceGlobalCodeUniqueness(connection);
+        com.vncode.app.features.kiz.KizWarehouseSchema.initialize(connection);
         normalizeGtins(connection);
         try(Statement statement=connection.createStatement()){
             statement.execute("CREATE INDEX IF NOT EXISTS idx_kiz_codes_available_circulation ON kiz_codes(shop_id,gtin,id) WHERE status='AVAILABLE' AND legal_status='IN_CIRCULATION'");

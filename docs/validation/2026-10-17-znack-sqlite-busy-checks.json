@@ -1,0 +1,31 @@
+{
+  "sourceCommit": "5e69d79aa8d957201b3177d93d8aea1eee4593e9",
+  "baseRelease": "1.4.13",
+  "result": "passed",
+  "fullJava": {
+    "goal": "verify",
+    "tests": 1545,
+    "passed": 1543,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 2,
+    "finishedAt": "2026-10-16T21:14:56Z",
+    "logSha256": "c01f7d9844cc7f916e9188e1cdb737137152483f08fd72afc137b3958e126085"
+  },
+  "focusedTests": {
+    "tests": 63,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "reproductionOnOriginalCode": {
+    "tests": 3,
+    "failures": 1,
+    "errors": 1,
+    "passed": 1,
+    "logSha256": "33f575d2f7053b0f62d63f80d40c1d8594fc82166a22b327977038a0b06cf10b"
+  },
+  "liveSellerApi": false,
+  "nativeWindowsForThisFix": false,
+  "publishedForThisFix": false
+}

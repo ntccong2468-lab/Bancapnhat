@@ -4,6 +4,8 @@ import com.vncode.app.integration.znack.ZnackModels.GoodsDocument;
 import com.vncode.app.integration.znack.registration.*;
 import com.vncode.app.integration.znack.registration.ZnackCardRegistrationModels.*;
 import com.vncode.app.shared.I18nService;
+import com.vncode.app.shared.AlertService;
+import com.vncode.app.shared.DialogLayout;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.util.StringConverter;
@@ -15,8 +17,13 @@ final class OzonRegistrationReviewDialog {
     private record Input(Attribute attribute,Control value,ComboBox<String> type){}
     static Draft review(OzonCardRegistrationWorkflow.Preparation prepared) {
         var dialog=new Dialog<Draft>();dialog.setTitle(tr("znack.registration.ozon_review_title"));
-        dialog.setHeaderText(tr("znack.registration.ozon_gs1_warning"));
-        var grid=new GridPane();grid.setHgap(10);grid.setVgap(10);grid.getColumnConstraints().setAll(new ColumnConstraints(230),new ColumnConstraints(350),new ColumnConstraints(220));
+        var focused=javafx.stage.Window.getWindows().stream().filter(javafx.stage.Window::isFocused).findFirst().orElse(null);if(focused!=null)dialog.initOwner(focused);
+        var warning=new Label(tr("znack.registration.ozon_gs1_warning"));warning.setWrapText(true);warning.setMinWidth(0);warning.setMaxWidth(Double.MAX_VALUE);dialog.getDialogPane().setHeader(warning);
+        var grid=new GridPane();grid.setMinWidth(0);grid.setHgap(10);grid.setVgap(10);
+        var labels=new ColumnConstraints();labels.setMinWidth(90);labels.setPrefWidth(180);labels.setMaxWidth(200);
+        var valuesColumn=new ColumnConstraints();valuesColumn.setMinWidth(100);valuesColumn.setHgrow(Priority.ALWAYS);
+        var typesColumn=new ColumnConstraints();typesColumn.setMinWidth(60);typesColumn.setPrefWidth(150);
+        grid.getColumnConstraints().setAll(labels,valuesColumn,typesColumn);
         TextField name=new TextField(prepared.snapshot().title()),brand=new TextField(prepared.snapshot().brand());
         grid.addRow(0,new Label(tr("fbo.column.name")),name);grid.addRow(1,new Label(tr("znack.registration.brand")),brand);
         grid.addRow(2,new Label("TN VED"),new Label(prepared.tnved()));
@@ -38,7 +45,8 @@ final class OzonRegistrationReviewDialog {
             grid.addRow(row++,new Label(attribute.name()+" *"),value,type);inputs.add(new Input(attribute,value,type));
         }
         Label error=new Label();error.setWrapText(true);grid.add(error,0,row,3,1);
-        var scroll=new ScrollPane(grid);scroll.setFitToWidth(true);scroll.setPrefViewportHeight(540);dialog.getDialogPane().setContent(scroll);
+        for(var child:grid.getChildren()){if(child instanceof Label label){label.setWrapText(true);label.setMinWidth(0);}if(child instanceof Control control)control.setMaxWidth(Double.MAX_VALUE);}
+        var scroll=new ScrollPane(grid);scroll.setFitToWidth(true);scroll.setMinWidth(0);scroll.setPrefViewportHeight(420);dialog.getDialogPane().setContent(scroll);dialog.getDialogPane().setPrefSize(760,570);DialogLayout.install(dialog.getDialogPane());AlertService.applyTheme(dialog);
         ButtonType save=new ButtonType(tr("znack.registration.register_selected"),ButtonBar.ButtonData.OK_DONE);dialog.getDialogPane().getButtonTypes().setAll(save,ButtonType.CANCEL);
         dialog.getDialogPane().lookupButton(save).addEventFilter(javafx.event.ActionEvent.ACTION,event->{
             boolean invalid=name.getText().isBlank()||brand.getText().isBlank()||permit.getValue()==null;

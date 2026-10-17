@@ -3,7 +3,7 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <?import org.kordamp.ikonli.javafx.FontIcon?>
-<VBox spacing="10" styleClass="card" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.vncode.app.ui.kizmapping.KizMappingController">
+<VBox spacing="10" styleClass="card,app-page" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.vncode.app.ui.kizmapping.KizMappingController">
  <padding><Insets top="14" right="14" bottom="14" left="14"/></padding>
  <HBox alignment="CENTER_LEFT" spacing="10">
   <Label fx:id="titleLabel" styleClass="h2" text="%kiz_mapping.title"/>

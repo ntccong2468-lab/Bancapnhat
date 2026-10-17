@@ -55,6 +55,13 @@ public class WbSyncStateRepository {
                 });
     }
 
+    /** A saved page is a recovery checkpoint, not a completed catalog synchronization. */
+    public void saveProductsCheckpoint(int shopId,String updatedAt,Long nmId) {
+        updateShopSyncFields(shopId,"UPDATE shops SET wb_products_cursor_updated_at=?, wb_products_cursor_nm_id=? WHERE id=?",ps->{
+            ps.setString(1,updatedAt);setNullableLong(ps,2,nmId);ps.setInt(3,shopId);
+        });
+    }
+
     public void updateSuppliesCursor(int shopId, long next, String syncedAt) {
         updateShopSyncFields(shopId,
                 "UPDATE shops SET wb_supplies_next = ?, wb_supplies_last_synced_at = ?, wb_last_sync_error = NULL WHERE id = ?",

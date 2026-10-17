@@ -23,7 +23,7 @@ public final class OzonGtinAdapter implements GtinMarketplaceAdapter {
     private static final OzonApiRateLimiter BARCODE_LIMITER=new OzonApiRateLimiter(Duration.ofSeconds(3));
     private final Shop shop;private final ListingTransport client;private final BeforeRequest beforeRequest;
     public OzonGtinAdapter(Shop shop){this(shop,new ListingHttpClient(shop));}
-    public OzonGtinAdapter(Shop shop,ListingTransport client){this(shop,client,id->BARCODE_LIMITER.awaitTurn(id,"gtin-barcodes"));}
+    public OzonGtinAdapter(Shop shop,ListingTransport client){this(shop,client,id->BARCODE_LIMITER.awaitTurn(com.vncode.app.integration.listing.ListingIdentity.hash(shop.getClientId()+"\n"+shop.getApiKey()),"gtin-barcodes"));}
     public OzonGtinAdapter(Shop shop,ListingTransport client,BeforeRequest beforeRequest){
         MarketplaceGuard.requireOzon(shop);this.shop=new Shop(shop.getId(),shop.getName(),shop.getMarketplace(),shop.getClientId(),shop.getApiKey());
         this.client=Objects.requireNonNull(client);this.beforeRequest=Objects.requireNonNull(beforeRequest);
@@ -84,7 +84,7 @@ public final class OzonGtinAdapter implements GtinMarketplaceAdapter {
         return new Submission("");
         }catch(Exception failure){
             if(failure instanceof InterruptedException)Thread.currentThread().interrupt();
-            if(!dispatched.get())throw new GtinKnownUnsentException();
+            if(!dispatched.get())throw new GtinKnownUnsentException(com.vncode.app.features.sync.SyncFailure.of(failure,0).code());
             throw failure;
         }
     }
@@ -109,7 +109,7 @@ public final class OzonGtinAdapter implements GtinMarketplaceAdapter {
     private ProductSnapshot snapshot(ProductKey key,JsonObject product,List<String> override)throws IOException {
         var codes=override==null?strings(strictArray(product,"barcodes")):override;
         String article=text(product,"offer_id");
-        String fingerprint=ListingIdentity.hash(ListingIdentity.canonical(new Gson().toJsonTree(List.of(key,ListingIdentity.fingerprint(shop),text(product,"sku"),article,codes.stream().distinct().sorted().toList()))));
+        String fingerprint=ListingIdentity.hash(ListingIdentity.canonical(new Gson().toJsonTree(List.of(key,ListingIdentity.fingerprint(shop),text(product,"sku"),article,text(product,"name"),codes.stream().distinct().sorted().toList()))));
         return new ProductSnapshot(key,article,"","",codes,fingerprint,Instant.now());
     }
     private void requireWrite(Preview preview){requireKey(preview.before().key());LicenseRuntime.require(Permission.GTIN);LicenseRuntime.require(Permission.SELLER_API);RegisteredGtinProof.requireCurrent(shop,preview.newGtin());}

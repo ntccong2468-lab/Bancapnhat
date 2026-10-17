@@ -27,6 +27,17 @@ class ProductBulkEditServiceTest {
     }
     @AfterEach void clear(){System.clearProperty("vncode.appdata.dir");}
     ProductBulkEdit edit(){return new ProductBulkEdit("brand",List.of("New"),null,Map.of());}
+    @Test void perProductValuesSurvivePersistedPreviewAndReopeningBeforeTheActualSave()throws Exception {
+        var second=new ProductKey(1,Marketplace.WILDBERRIES,"124","");var initial=snapshot;
+        var secondCard=new ProductSnapshot(second,"live:second","Second","Keep description","Old","second","9",List.of(),List.of(),List.of(),initial.dimensions(),List.of(),Instant.now());
+        ProductSnapshotReader reader=(s,k)->k.equals(key)?initial:secondCard;
+        var sent=new ArrayList<String>();adapter=new FakeAdapter(){@Override public RemoteSubmission submitUpdate(Shop s,ProductEditPreview preview)throws IOException{sent.add(preview.preview().requestJson());return super.submitUpdate(s,preview);}};
+        var service=new ProductBulkEditService(repo,reader,s->adapter);
+        var preview=service.preview(shop,List.of(key,second),new ProductBulkEdit("brand",List.of("Fallback"),null,Map.of(key,List.of("First brand"),second,List.of("Second brand"))));
+        var reopened=new ProductBulkEditService(new ProductEditRepository(),reader,s->adapter);reopened.apply(shop,preview.id(),true);
+        assertEquals(2,adapter.writes.get());assertTrue(sent.stream().anyMatch(body->body.contains("First brand")));assertTrue(sent.stream().anyMatch(body->body.contains("Second brand")));assertTrue(sent.stream().noneMatch(body->body.contains("Fallback")));
+        reopened.apply(shop,preview.id(),true);assertEquals(2,adapter.writes.get(),"Opening and applying the saved job again must not resend");
+    }
     @Test void cardLevelConflictingSizesCannotSubmit()throws Exception {
         var second=new ProductKey(1,Marketplace.WILDBERRIES,"123","2");
         var e=new ProductBulkEdit("brand",List.of("New"),null,Map.of(key,List.of("A"),second,List.of("B")));
@@ -38,6 +49,12 @@ class ProductBulkEditServiceTest {
     }
     @Test void confirmationRequired()throws Exception {
         var p=service.preview(shop,List.of(key),edit());assertThrows(IllegalArgumentException.class,()->service.apply(shop,p.id(),false));assertEquals(0,adapter.writes.get());
+    }
+    @Test void openingAnotherServiceDoesNotRecoverAnActiveSendingClaim()throws Exception {
+        var p=service.preview(shop,List.of(key),edit());var item=p.items().getFirst();assertTrue(repo.claim(p.id(),item));
+        new ProductBulkEditService(repo,(s,k)->snapshot,s->adapter);
+        assertEquals(CopyState.SENDING,repo.items(p.id()).getFirst().state());
+        repo.recoverIncomplete();assertEquals(CopyState.RECONCILE_REQUIRED,repo.items(p.id()).getFirst().state());
     }
     @Test void documentUploadDoesNotImplyValid()throws Exception {
         var p=service.preview(shop,List.of(key),new ProductBulkEdit("documents",List.of(),List.of(),Map.of()));

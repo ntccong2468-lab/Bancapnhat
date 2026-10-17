@@ -1,0 +1,33 @@
+{
+  "date": "2026-10-15",
+  "timezone": "Asia/Saigon",
+  "ownerReported": {
+    "portalVersion": "0.3.5",
+    "keyId": "vncode-2",
+    "signingKeyValid": true,
+    "signatureMatchesClient": true,
+    "databaseReady": true,
+    "activationIn144": "succeeded-after-changing-Windows-time",
+    "catalogSyncIn144": "unverified_catalog_owner",
+    "catalogSignatureLogin": "reported-successful"
+  },
+  "reproduction": {
+    "baselineCodeCommit": "07c085aab3472e730669acb3ba97073d64155cf6",
+    "fixture": "Actual Portal Worker and in-memory D1 adapter → HTTP → Java client/verifier",
+    "clockOffsetSeconds": -3,
+    "beforeFix": {
+      "licenseCode": "redeemed",
+      "clientError": "LICENSE_PROTOCOL_INVALID",
+      "failingRegressionTests": 1
+    },
+    "afterFix": {
+      "clientStatus": "ACTIVE",
+      "crossRuntimeTestsPassed": 4,
+      "severeClockDifference": "LICENSE_CLOCK_SKEW before redemption",
+      "retryPreserves": "same code, device and expiry"
+    }
+  },
+  "productionActualClockOffset": "not-measured",
+  "liveMarketplaceMutations": false,
+  "privateKeysReceived": false
+}

@@ -71,6 +71,42 @@ class LicenseServiceTest {
             assertTrue(s.allows(Permission.PRINT_NEW));assertNotNull(LicenseDomainFixture.store(directory).load().orElseThrow().accessToken());
         }
     }
+    @Test void lostActivationResponseRetriesWithFreshChallengeAndSameDeviceIdentity()throws Exception {
+        var seen=new java.util.ArrayList<String>();var identities=new java.util.HashSet<String>();var recovered=new java.util.concurrent.atomic.AtomicInteger();
+        var api=new Api(){
+            int challenges;
+            @Override public Challenge challenge(String token,String publicKey,String action)throws IOException {
+                var base=super.challenge(token,publicKey,action);String id="challenge-"+(++challenges);
+                return new Challenge(id,"vncode-device-v1\n"+action+"\n"+id+"\n"+"N".repeat(43),base.expiresAt());
+            }
+            @Override public Grant activate(String token,Challenge c,String pub,String signature,String code)throws IOException {
+                seen.add(c.id());identities.add(pub);var grant=super.activate(token,c,pub,signature,code);
+                if(seen.size()==1)throw new Failure("LICENSE_TIMEOUT",0);return grant;
+            }
+            @Override public boolean recoverConnection(){recovered.incrementAndGet();return true;}
+        };
+        try(var s=service(api,true)) {
+            s.activate(LicenseDomainFixture.CODE).get(5,TimeUnit.SECONDS);
+            assertEquals(Status.ACTIVE,s.snapshot().status());assertEquals(2,seen.size());assertNotEquals(seen.get(0),seen.get(1));
+            assertEquals(1,identities.size());assertEquals(1,recovered.get());assertTrue(s.allows(Permission.SELLER_API));
+        }
+    }
+    @Test void recoveryIsBoundedAndNeverRetriesAccountDenial()throws Exception {
+        var attempts=new java.util.concurrent.atomic.AtomicInteger();var recoveries=new java.util.concurrent.atomic.AtomicInteger();
+        var api=new Api(){
+            @Override public Challenge challenge(String token,String key,String action)throws IOException {
+                attempts.incrementAndGet();throw failure;
+            }
+            @Override public boolean recoverConnection(){recoveries.incrementAndGet();return true;}
+        };
+        try(var s=service(api,true)) {
+            api.failure=new LicenseApi.Failure("LICENSE_TIMEOUT",0);s.activate(LicenseDomainFixture.CODE).get();
+            assertEquals(2,attempts.get());assertEquals(1,recoveries.get());assertFalse(s.allows(Permission.SELLER_API));
+            attempts.set(0);recoveries.set(0);api.failure=new LicenseApi.Failure("ACCOUNT_NOT_APPROVED",403);
+            s.activate(LicenseDomainFixture.CODE).get();assertEquals(1,attempts.get());assertEquals(0,recoveries.get());
+            assertFalse(s.allows(Permission.SELLER_API));
+        }
+    }
     @Test void automaticChecksAreSpacedButManualRefreshRemainsImmediate()throws Exception {
         var api=new Api();api.advanceServerClock=true;try(var s=service(api,true)){
             active(s,api);var tick=LicenseService.class.getDeclaredMethod("tick");tick.setAccessible(true);
@@ -94,9 +130,45 @@ class LicenseServiceTest {
     @Test void networkFailureUsesSignedOfflineButProtocolFailureNeverDoes()throws Exception {
         var api=new Api();try(var s=service(api,true)){active(s,api);api.failure=new LicenseApi.Failure("LICENSE_NETWORK",0);s.refresh().get();assertEquals(Status.OFFLINE,s.snapshot().status());assertTrue(s.allows(Permission.SELLER_API));api.failure=new LicenseApi.Failure("LICENSE_PROTOCOL_INVALID",0);s.refresh().get();assertFalse(s.allows(Permission.SELLER_API));assertEquals(Status.UNVERIFIED,s.snapshot().status());}
     }
+    @Test void supportChecksAndFailedModeChangesNeverInvalidateOrReplaceAnActiveLease()throws Exception {
+        var api=new Api(){
+            @Override public boolean supportsNetworkDiagnostics(){return true;}
+            @Override public NetworkReport checkConnection(){return new NetworkReport(List.of(new NetworkProbe(NetworkMode.AUTOMATIC,ProbeEndpoint.CONFIG,false,0,"LICENSE_TIMEOUT","TLS","",6000)));}
+            @Override public void setNetworkMode(NetworkMode mode)throws IOException{throw new IOException("LICENSE_NETWORK_SETTINGS_FAILED");}
+        };
+        try(var s=service(api,true)) {
+            active(s,api);var before=LicenseDomainFixture.store(directory).load().orElseThrow();
+            assertTrue(s.supportsNetworkDiagnostics());assertEquals("TLS",s.checkConnection().get(5,TimeUnit.SECONDS).probes().getFirst().phase());
+            assertThrows(ExecutionException.class,()->s.setNetworkMode(LicenseApi.NetworkMode.COMPATIBLE).get(5,TimeUnit.SECONDS));
+            assertEquals(Status.ACTIVE,s.snapshot().status());assertTrue(s.allows(Permission.KIZ));
+            var after=LicenseDomainFixture.store(directory).load().orElseThrow();
+            assertEquals(before.publicKey(),after.publicKey());assertEquals(before.privateKey(),after.privateKey());
+            assertEquals(before.envelope(),after.envelope());assertEquals(before.accessToken(),after.accessToken());
+        }
+    }
+    @Test void closingServiceCompletesAQueuedDiagnosticInsteadOfLeavingTheUiWaiting()throws Exception {
+        var api=new Api();try(var s=service(api,true)) {
+            active(s,api);api.entered=new CountDownLatch(1);api.release=new CountDownLatch(1);
+            s.refresh();assertTrue(api.entered.await(2,TimeUnit.SECONDS));
+            var queued=s.checkConnection();s.close();
+            assertThrows(ExecutionException.class,()->queued.get(2,TimeUnit.SECONDS));
+        }
+    }
     @Test void explicitDenialSurvivesRestartAndLaterNetworkError()throws Exception {
         var api=new Api();try(var s=service(api,true)){active(s,api);api.failure=new LicenseApi.Failure("DEVICE_REVOKED",403);s.refresh().get();assertFalse(s.allows(Permission.GTIN));api.failure=new LicenseApi.Failure("LICENSE_NETWORK",0);s.refresh().get();assertFalse(s.allows(Permission.GTIN));}
         try(var restarted=service(api,true)){assertEquals(Status.DENIED,restarted.snapshot().status());assertFalse(restarted.allows(Permission.GTIN));}
+    }
+    @Test void transportAndEdgeFailuresKeepOnlyExistingSignedOfflineRights()throws Exception {
+        for(String code:List.of("LICENSE_TLS","LICENSE_DNS","LICENSE_TIMEOUT","LICENSE_EDGE_CHALLENGE")) {
+            var api=new Api();
+            try(var s=service(api,true)) {
+                active(s,api);api.failure=new LicenseApi.Failure(code,0);s.refresh().get();
+                assertEquals(Status.OFFLINE,s.snapshot().status());assertEquals(code,s.snapshot().errorCode());
+                assertTrue(s.allows(Permission.GTIN));
+                s.logout().get();s.activate(LicenseDomainFixture.CODE).get();
+                assertEquals(code,s.snapshot().errorCode());assertFalse(s.allows(Permission.GTIN));
+            }
+        }
     }
     @Test void zeroOfflineHoursWorksOnlyWithinFreshOnlineDeadline()throws Exception {
         var api=new Api();api.hours=0;try(var s=service(api,true)){active(s,api);nano.set(300_000_000_000L);assertFalse(s.allows(Permission.PRINT_NEW));}
@@ -125,6 +197,11 @@ class LicenseServiceTest {
     @Test void signedConfigurationRefusalPersistsAcrossRestart()throws Exception {
         var api=new Api();try(var s=service(api,true)){active(s,api);api.failure=new LicenseApi.Failure("SIGNING_NOT_CONFIGURED",503);s.refresh().get();assertFalse(s.allows(Permission.SELLER_API));}
         try(var restarted=service(api,true)){assertFalse(restarted.allows(Permission.SELLER_API));assertEquals(Status.DENIED,restarted.snapshot().status());}
+    }
+    @Test void clockSkewNeverFallsBackToCachedRightsAndRequiresOnlineProofAfterRestart()throws Exception {
+        var api=new Api();
+        try(var s=service(api,true)){active(s,api);api.failure=new LicenseApi.Failure("LICENSE_CLOCK_SKEW",0);s.refresh().get();assertEquals("LICENSE_CLOCK_SKEW",s.snapshot().errorCode());assertFalse(s.allows(Permission.PRINT_NEW));}
+        try(var restarted=service(api,true)){assertFalse(restarted.allows(Permission.PRINT_NEW));assertEquals("LICENSE_CLOCK_SKEW",restarted.snapshot().errorCode());}
     }
     @Test void challengeForDifferentPurposeIsNeverSignedOrActivated()throws Exception {
         var api=new Api();api.accountStatus="approved";try(var s=service(api,true)){register(s);api.challengeActionOverride="renew";s.activate(LicenseDomainFixture.CODE).get();assertEquals(0,api.activations);assertEquals("LICENSE_PROTOCOL_INVALID",s.snapshot().errorCode());assertFalse(s.allows(Permission.GTIN));}

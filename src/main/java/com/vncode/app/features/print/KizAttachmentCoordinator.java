@@ -143,7 +143,7 @@ public final class KizAttachmentCoordinator {
     private void recordFailure(Job job,OrderKey key,String fingerprint,int status,String body)throws IOException{
         boolean ambiguous=status<=0||status>=500;
         journal.write(key,job.key.supplyId(),fingerprint,ambiguous?"RECONCILE":"REJECTED");
-        if(status==409&&body!=null&&(body.contains("FailedToUpdateMeta")||body.contains("Processing status"))){job.skipped++;return;}
+        if(status==409&&body!=null&&(body.contains("FailedToUpdateMeta")||body.contains("Processing status"))){fail(job,"KIZ_ORDER_STATUS",false);return;}
         fail(job,ambiguous?"KIZ_RECONCILIATION_REQUIRED":"KIZ_HTTP_"+status,false);
         if(status==429)job.stopped=true;
     }

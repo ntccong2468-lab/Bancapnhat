@@ -25,6 +25,24 @@ class ZnackSigningSessionTest {
     private static final int SHOP_B = 22;
     private static final long PIPELINE = 101L;
 
+    @Test void gs1AuthenticationWorksWithoutSelectingEveryShopButCannotAuthorizeBusinessSigning()throws Exception{
+        var calls=new AtomicInteger();var delegate=successfulSigner(calls);
+        var read=ZnackSigningSession.guardReadAuthentication(SHOP_B,"B".repeat(40),delegate);
+        read.sign(new byte[]{1},ZnackSignatureContext.CATALOG_AUTH_CHALLENGE);
+        read.sign(new byte[]{1},ZnackSignatureContext.AUTH_CHALLENGE);
+        assertEquals(2,calls.get());
+        assertThrows(CryptoProException.class,()->read.sign(new byte[]{1},ZnackSignatureContext.SUZ_POST_BODY));
+        assertThrows(CryptoProException.class,()->read.sign(new byte[]{1},ZnackSignatureContext.TRUE_API_DOCUMENT));
+        assertThrows(ZnackSigningSession.SigningDeferredException.class,()->ZnackSigningSession.guard(SHOP_B,delegate).sign(new byte[]{1},ZnackSignatureContext.TRUE_API_DOCUMENT));
+        assertEquals(2,calls.get());
+    }
+    @Test void cancellingAutomaticGs1AuthenticationCannotReopenTheSignerOnEveryPoll()throws Exception{
+        var calls=new AtomicInteger();var read=ZnackSigningSession.guardReadAuthentication(SHOP_B,"B".repeat(40),(p,c)->{calls.incrementAndGet();throw new CryptoProException(CryptoProErrorCode.CANCELLED,"Synthetic cancellation");});
+        assertThrows(CryptoProException.class,()->read.sign(new byte[]{1},ZnackSignatureContext.CATALOG_AUTH_CHALLENGE));
+        for(int retry=0;retry<5;retry++)assertThrows(ZnackSigningSession.SigningDeferredException.class,()->read.sign(new byte[]{1},ZnackSignatureContext.AUTH_CHALLENGE));
+        assertEquals(1,calls.get());
+    }
+
     @Test void distinctFingerprintsCanSignConcurrently() throws Exception {
         ZnackSigningSession.authorizeShop(SHOP_A);ZnackSigningSession.authorizeShop(SHOP_B);
         var both=new CountDownLatch(2);var release=new CountDownLatch(1);

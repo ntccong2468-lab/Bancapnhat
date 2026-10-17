@@ -1,0 +1,19 @@
+{
+  "appVersion": "1.4.11",
+  "valid": true,
+  "marks": 600,
+  "shortCis": 600,
+  "fullDataMatrix": 0,
+  "gtinCount": 1,
+  "duplicates": 0,
+  "issues": 0,
+  "preservedEveryOriginalLine": true,
+  "liveApiVerification": false,
+  "realCodesIncludedInReport": false,
+  "sourceCommit": "793850d5d29964164a46e774befe1fa6b991af00",
+  "verifiedWindowsBuildRunId": 38731269718,
+  "verifiedJavaArtifactId": 11971493403,
+  "probeExecutionPlatform": "Linux against shipped Windows-target Java inputs",
+  "inputDescription": "Seller-supplied quan.txt; paid marking codes kept outside Git",
+  "originalCodesIncludedInRepository": false
+}

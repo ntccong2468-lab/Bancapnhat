@@ -11,6 +11,7 @@ import com.vncode.app.integration.marketplace.MarketplaceGuard;
 import com.vncode.app.models.Shop;
 import com.vncode.app.features.shop.ShopOperationCoordinator;
 import com.vncode.app.integration.listing.ListingIdentity;
+import com.vncode.app.features.kiz.KizSourceSelection;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -102,12 +103,15 @@ public final class OzonExemplarService {
 
     /** A short-lived shop-owned operation snapshot, never a process-wide catalog cache. */
     public PrintBatch openPrintBatch(Shop shop) {
+        return openPrintBatch(shop,null);
+    }
+    public PrintBatch openPrintBatch(Shop shop,KizSourceSelection sources) {
         MarketplaceGuard.requireOzon(shop);
         Shop frozenShop = new Shop(shop.getId(), shop.getName(), shop.getMarketplace(),
                 shop.getClientId(), shop.getApiKey());
         return new PrintBatch(frozenShop,
-                mappings.findResolvedBySku(shop.getId()), policies.findExemptSkus(shop.getId()),
-                apiClients.apply(shop.getId(), new OzonCredentials(shop.getClientId(), shop.getApiKey())));
+                sources!=null&&!sources.purchased()?Map.of():mappings.findResolvedBySku(shop.getId()), policies.findExemptSkus(shop.getId()),
+                apiClients.apply(shop.getId(), new OzonCredentials(shop.getClientId(), shop.getApiKey())),sources);
     }
 
     /**
@@ -194,12 +198,13 @@ public final class OzonExemplarService {
         private final Map<String, String> skuMappings;
         private final Set<String> exemptions;
         private final OzonApiClient api;
+        private final KizSourceSelection sources;
 
-        private PrintBatch(Shop shop, Map<String, String> skuMappings, Set<String> exemptions, OzonApiClient api) {
+        private PrintBatch(Shop shop, Map<String, String> skuMappings, Set<String> exemptions, OzonApiClient api,KizSourceSelection sources) {
             this.shop = shop;
             this.skuMappings = Map.copyOf(skuMappings);
             this.exemptions = Set.copyOf(exemptions);
-            this.api = api;
+            this.api = api;this.sources=sources;
         }
 
         public OzonPreparationResult stageForPrint(String postingNumber) throws IOException {
@@ -212,7 +217,7 @@ public final class OzonExemplarService {
 
         private OzonPostingDto readDetail(String number) throws IOException {
             ListingIdentity.require(shop);
-            OzonPostingDto posting = OzonJson.parsePostingDetail(api.getPosting(number, true));
+            OzonPostingDto posting = OzonJson.requirePostingDetail(api.getPosting(number, true),number);
             if (!number.equals(posting.postingNumber())) {
                 throw new IOException("Ozon returned a different posting from the confirmed selection.");
             }
@@ -251,7 +256,7 @@ public final class OzonExemplarService {
                     ListingIdentity.require(shop);
                     postings.upsertDetail(shop.getId(), posting);
                     OzonRequirementGuard.PreparationPlan plan = OzonRequirementGuard.plan(
-                            posting, operation.skuMappings, operation.exemptions);
+                            posting, operation.skuMappings, operation.exemptions, operation.sources!=null&&!operation.sources.purchased()?posting.items().stream().map(OzonPostingItemDto::sku).collect(java.util.stream.Collectors.toSet()):operation.sources!=null&&!operation.sources.sellerImported()?Set.of():OzonCategoryStock.categorySkus(shop.getId(),posting.items().stream().map(OzonPostingItemDto::sku).toList()));
                     if (plan.exemplarCount() == 0) {
                         if (priorJob != null && priorJob.stage() != OzonExemplarJobStage.ACCEPTED
                                 && jobs.bindingCounts(shop.getId(), List.of(priorJob.id())).getOrDefault(priorJob.id(), 0) > 0) {
@@ -260,7 +265,7 @@ public final class OzonExemplarService {
                         return new OzonPreparationResult(safePosting, "NOT_REQUIRED", 0, true, false, "");
                     }
                     OzonExemplarJobRepository.LocalPrintReservation reservation = jobs.stageLocalForPrint(
-                            shop.getId(), plan, () -> {
+                            shop.getId(), plan, operation.sources, () -> {
                                 LicenseRuntime.require(Permission.PRINT_NEW);
                                 ListingIdentity.require(shop);
                             });
@@ -281,7 +286,7 @@ public final class OzonExemplarService {
             Shop shop, String postingNumber, boolean stopAfterValidation) throws IOException {
         OzonApiClient api = apiClients.apply(
                 shop.getId(), new OzonCredentials(shop.getClientId(), shop.getApiKey()));
-        OzonPostingDto posting = OzonJson.parsePostingDetail(api.getPosting(postingNumber, true));
+        OzonPostingDto posting = OzonJson.requirePostingDetail(api.getPosting(postingNumber, true),postingNumber);
         postings.upsertDetail(shop.getId(), posting);
         Map<String, String> skuMappings = mappings.findResolvedBySku(shop.getId());
         OzonRequirementGuard.PreparationPlan plan = OzonRequirementGuard.plan(

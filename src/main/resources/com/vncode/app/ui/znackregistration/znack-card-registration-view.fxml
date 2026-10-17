@@ -4,11 +4,11 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<VBox spacing="12" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="com.vncode.app.ui.znackregistration.ZnackCardRegistrationController">
+<VBox spacing="8" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.vncode.app.ui.znackregistration.ZnackCardRegistrationController" styleClass="app-page">
     <StackPane fx:id="ozonRegistrationHost" VBox.vgrow="ALWAYS" visible="false" managed="false"/>
-    <VBox fx:id="wbRegistrationContent" spacing="12" VBox.vgrow="ALWAYS">
-    <padding><Insets top="16" right="16" bottom="16" left="16"/></padding>
+    <VBox fx:id="wbRegistrationContent" spacing="8" VBox.vgrow="ALWAYS">
+    <padding><Insets top="12" right="12" bottom="12" left="12"/></padding>
     <HBox alignment="CENTER_LEFT" spacing="10">
         <Label fx:id="titleLabel" text="Đăng ký Znack" styleClass="h2"/>
         <Pane HBox.hgrow="ALWAYS"/>
@@ -20,20 +20,24 @@
         <Button fx:id="updateWbButton" text="Cập nhật GTIN lên WB" onAction="#onUpdateWb" styleClass="btn-secondary"/>
         <Button fx:id="syncZnackButton" text="Đồng bộ Znack" onAction="#onSyncZnack" styleClass="btn-secondary"/>
         <Button fx:id="refreshButton" text="Làm mới" onAction="#onRefresh" styleClass="btn-secondary"/>
+        <Button fx:id="reportButton" text="Báo cáo đồng bộ" onAction="#onReport"/>
     </FlowPane>
+    <Label fx:id="readinessLabel" wrapText="true" styleClass="text-muted"/>
     <Label fx:id="summaryLabel" wrapText="true" styleClass="text-muted"/>
-    <HBox alignment="CENTER_LEFT" spacing="8">
+    <FlowPane alignment="CENTER_LEFT" hgap="8" vgap="6">
         <Button fx:id="selectAllButton" text="Chọn tất cả" onAction="#onSelectAll"/>
         <Button fx:id="clearSelectionButton" text="Bỏ chọn" onAction="#onClearSelection"/>
         <Label fx:id="selectionLabel" styleClass="text-muted"/>
         <Button fx:id="registerSelectedButton" text="Đăng ký sản phẩm đã chọn" onAction="#onRegisterSelected" styleClass="btn-primary"/>
-    </HBox>
-    <HBox alignment="CENTER_LEFT" spacing="8">
+        <CheckBox fx:id="autoSignCheckBox" selected="true" wrapText="true" text="Tự ký khi thẻ được duyệt"/>
+        <Button fx:id="newCardsSelectedButton" text="Tạo thẻ mới cho tập đã chọn" onAction="#onNewCardsSelected" styleClass="btn-secondary"/>
+    </FlowPane>
+    <FlowPane alignment="CENTER_LEFT" hgap="8" vgap="6">
         <TextField fx:id="searchField" promptText="Tìm theo tên, article, SKU..." prefWidth="300"/>
         <MenuButton fx:id="categoryMenuButton" text="Danh mục"/>
         <ComboBox fx:id="statusFilter" prefWidth="180"/>
         <Button fx:id="clearFiltersButton" text="Xóa bộ lọc" onAction="#onClearFilters"/>
-    </HBox>
+    </FlowPane>
     <StackPane VBox.vgrow="ALWAYS">
         <TableView fx:id="productTable">
             <columns>
@@ -45,6 +49,7 @@
                 <TableColumn fx:id="sizeColumn" text="Size" prefWidth="70"/>
                 <TableColumn fx:id="barcodeColumn" text="Barcode WB / GTIN" prefWidth="180"/>
                 <TableColumn fx:id="statusColumn" text="Trạng thái" prefWidth="135"/>
+                <TableColumn fx:id="detailColumn" text="Chi tiết" prefWidth="180"/>
                 <TableColumn fx:id="actionColumn" text="Thao tác" prefWidth="170" maxWidth="210"/>
             </columns>
         </TableView>

@@ -1,0 +1,12 @@
+{
+  "Inter.ttf": {
+    "source": "https://github.com/google/fonts/blob/66928797f271fed5ee428544e7229685e2d90127/ofl/inter/Inter[opsz,wght].ttf",
+    "gitBlobSha": "047c92f6e2212473dc436020afed689527076d44",
+    "sha256": "29160a80ff49ddcab2c97711247e08b1fab27a484a329ce8b813d820dc559031"
+  },
+  "Inter-OFL.txt": {
+    "source": "https://github.com/google/fonts/blob/66928797f271fed5ee428544e7229685e2d90127/ofl/inter/OFL.txt",
+    "gitBlobSha": "21f6aff961064c2e429f570995e446bcdd555422",
+    "sha256": "5b9321a4298cfeb6b34354164a1c3afc3db114569984c502b9b35d988fd58c57"
+  }
+}

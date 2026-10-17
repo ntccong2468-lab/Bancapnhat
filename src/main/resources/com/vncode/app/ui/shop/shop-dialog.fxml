@@ -11,7 +11,7 @@
 <ScrollPane fitToWidth="true" focusTraversable="false" hbarPolicy="NEVER" maxHeight="420.0"
             minHeight="120.0" pannable="true" prefViewportHeight="300.0" prefViewportWidth="380.0"
             vbarPolicy="AS_NEEDED" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="com.vncode.app.ui.shop.ShopDialogController">
+            fx:controller="com.vncode.app.ui.shop.ShopDialogController" styleClass="app-page">
     <content>
         <VBox fx:id="shopFormContent" prefWidth="380.0" spacing="8.0" styleClass="dialog-content">
             <padding>

@@ -11,17 +11,22 @@ import static com.vncode.app.features.gtinsync.GtinSyncModels.*;
 
 /** Persists only normalized, credential-free data. Every public scoped read verifies ownership. */
 public final class GtinSyncRepository {
+    public void issue(UUID item,String code){write(c->{itemFor(c,item);try(var p=c.prepareStatement("INSERT INTO sync_gtin_issues VALUES(?,?,?) ON CONFLICT(item_id) DO UPDATE SET code=excluded.code,updated_at=excluded.updated_at")){p.setString(1,item.toString());p.setString(2,com.vncode.app.features.sync.SyncRunRepository.code(code));p.setString(3,Instant.now().toString());p.executeUpdate();}return null;});}
+    public String issue(UUID item){return transaction(c->{itemFor(c,item);try(var p=c.prepareStatement("SELECT code FROM sync_gtin_issues WHERE item_id=?")){p.setString(1,item.toString());try(var r=p.executeQuery()){return r.next()?r.getString(1):"";}}});}
     public void saveCatalog(int shopId, Marketplace marketplace, List<RegisteredGtin> rows) {
-        transaction(c -> {
+        write(c -> {
             requireShop(c,shopId,marketplace);
             try(var d=c.prepareStatement("DELETE FROM gtin_sync_catalog WHERE shop_id=? AND marketplace=?")) {
                 d.setInt(1,shopId);d.setString(2,marketplace.name());d.executeUpdate();
             }
+            String owner=com.vncode.app.integration.listing.ListingIdentity.fingerprint(c,shopId,marketplace);
             try(var p=c.prepareStatement("INSERT INTO gtin_sync_catalog VALUES(?,?,?,?)")) {
                 for(var row:rows) {
                     if(!RegisteredGtinValidator.isValid(row.gtin())) throw new IllegalArgumentException("invalid_gtin");
                     p.setInt(1,shopId);p.setString(2,marketplace.name());p.setString(3,row.gtin());
-                    p.setString(4,GtinJson.GSON.toJson(row));p.addBatch();
+                    var data=GtinJson.GSON.toJsonTree(row).getAsJsonObject();
+                    data.addProperty("owner",owner);
+                    p.setString(4,GtinJson.GSON.toJson(data));p.addBatch();
                 }
                 p.executeBatch();
             }
@@ -38,9 +43,25 @@ public final class GtinSyncRepository {
             return List.copyOf(result);
         });
     }
+    /** Merge a fully completed selected-card observation; untouched GTINs retain their cache. */
+    public void mergeCatalog(int shopId,Marketplace marketplace,List<RegisteredGtin> rows){
+        write(c->{requireShop(c,shopId,marketplace);String owner=com.vncode.app.integration.listing.ListingIdentity.fingerprint(c,shopId,marketplace);
+            try(var p=c.prepareStatement("INSERT INTO gtin_sync_catalog VALUES(?,?,?,?) ON CONFLICT(shop_id,marketplace,gtin) DO UPDATE SET data_json=excluded.data_json")){
+                var seen=new HashSet<String>();for(var row:rows){if(!RegisteredGtinValidator.isValid(row.gtin())||!seen.add(row.gtin()))throw new IllegalArgumentException("invalid_gtin");var data=GtinJson.GSON.toJsonTree(row).getAsJsonObject();data.addProperty("owner",owner);p.setInt(1,shopId);p.setString(2,marketplace.name());p.setString(3,row.gtin());p.setString(4,GtinJson.GSON.toJson(data));p.addBatch();}p.executeBatch();
+            }return null;
+        });
+    }
+    public RegisteredGtin catalogItem(int shopId,Marketplace marketplace,String gtin) {
+        return transaction(c->{requireShop(c,shopId,marketplace);
+            try(var p=c.prepareStatement("SELECT data_json FROM gtin_sync_catalog WHERE shop_id=? AND marketplace=? AND gtin=?")){
+                p.setInt(1,shopId);p.setString(2,marketplace.name());p.setString(3,gtin);
+                try(var r=p.executeQuery()){if(!r.next())throw new IllegalArgumentException("unverified_catalog_gtin");return GtinJson.GSON.fromJson(r.getString(1),RegisteredGtin.class);}
+            }
+        });
+    }
     public void saveMapping(ProductKey key, String gtin) {
         if(!RegisteredGtinValidator.isValid(gtin)) throw new IllegalArgumentException("invalid_gtin");
-        transaction(c -> {
+        write(c -> {
             requireShop(c,key.shopId(),key.marketplace());
             try(var p=c.prepareStatement("INSERT INTO gtin_sync_mappings VALUES(?,?,?,?,?,?) ON CONFLICT(shop_id,marketplace,product_id,variant_id) DO UPDATE SET gtin=excluded.gtin,updated_at=excluded.updated_at")) {
                 bindKey(p,key);p.setString(5,gtin);p.setString(6,Instant.now().toString());p.executeUpdate();
@@ -56,6 +77,22 @@ public final class GtinSyncRepository {
             }
         });
     }
+    /** A completed remote readback, never a proposed matching rule, authorizes KIZ resolution. */
+    public void recordVerifiedMapping(ProductKey key,String gtin){write(c->{requireShop(c,key.shopId(),key.marketplace());saveVerified(c,key,gtin);return null;});}
+    private static void saveVerified(Connection c,ProductKey key,String gtin)throws SQLException {
+        String owner=com.vncode.app.integration.listing.ListingIdentity.fingerprint(c,key.shopId(),key.marketplace()),source;
+        try(var p=c.prepareStatement("SELECT data_json FROM gtin_sync_catalog WHERE shop_id=? AND marketplace=? AND gtin=?")){
+            p.setInt(1,key.shopId());p.setString(2,key.marketplace().name());p.setString(3,gtin);
+            try(var r=p.executeQuery()){
+                if(!r.next())return;var data=com.google.gson.JsonParser.parseString(r.getString(1)).getAsJsonObject();
+                if(!data.has("owner")||!owner.equals(data.get("owner").getAsString())||!data.get("published").getAsBoolean()||!data.get("tradeUnit").getAsBoolean()||!RegisteredGtinValidator.isValid(gtin))return;
+                source=data.get("source").getAsString();if(!source.startsWith("National Catalog@"))return;
+            }
+        }
+        try(var p=c.prepareStatement("INSERT INTO gtin_sync_verified_mappings VALUES(?,?,?,?,?,?,?,?) ON CONFLICT(shop_id,marketplace,product_id,variant_id) DO UPDATE SET gtin=excluded.gtin,owner=excluded.owner,source=excluded.source,verified_at=excluded.verified_at")){
+            bindKey(p,key);p.setString(5,gtin);p.setString(6,owner);p.setString(7,source);p.setString(8,Instant.now().toString());p.executeUpdate();
+        }
+    }
     public UUID createJob(List<Preview> previews) {
         if(previews.isEmpty() || previews.size()>1000) throw new IllegalArgumentException("invalid_selection");
         var key=previews.getFirst().before().key();
@@ -63,7 +100,7 @@ public final class GtinSyncRepository {
             throw new IllegalArgumentException("mixed_shops");
         String dedup=hash(previews.stream().map(p -> GtinJson.GSON.toJson(List.of(p.before().key(),p.operation(),p.oldGtin(),p.newGtin(),p.before().fingerprint())))
                 .sorted().toList().toString());
-        return transaction(c -> {
+        return write(c -> {
             requireShop(c,key.shopId(),key.marketplace());
             UUID previous=null;
             try(var p=c.prepareStatement("SELECT id FROM gtin_sync_jobs WHERE dedup_key=?")) {
@@ -128,7 +165,7 @@ public final class GtinSyncRepository {
     }
     public boolean transition(UUID itemId, Status expected, Status next, String remoteTaskId) {
         if(!allowed(expected,next)) throw new IllegalArgumentException("invalid_transition");
-        return transaction(c -> {
+        return write(c -> {
             var item=itemFor(c,itemId);var key=item.preview().before().key();requireShop(c,key.shopId(),key.marketplace());
             String guard="";
             if(next==Status.VALIDATING || next==Status.SENDING)
@@ -143,12 +180,13 @@ public final class GtinSyncRepository {
             try(var p=c.prepareStatement("UPDATE gtin_sync_items SET status=?,remote_task_id=?,updated_at=? WHERE id=? AND status=?"+guard)) {
                 p.setString(1,next.name());p.setString(2,remoteTaskId==null?item.remoteTaskId():remoteTaskId);p.setString(3,Instant.now().toString());p.setString(4,itemId.toString());p.setString(5,expected.name());
                 if(p.executeUpdate()!=1) return false;
+                if(next==Status.SUCCEEDED)saveVerified(c,key,item.preview().newGtin());
                 event(c,itemId,next);return true;
             }
         });
     }
     public void recoverInterrupted() {
-        transaction(c -> {
+        write(c -> {
             try(var s=c.createStatement()) {
                 s.executeUpdate("INSERT INTO gtin_sync_events(item_id,status,created_at) SELECT id,CASE WHEN status='SENDING' THEN 'RECONCILE_REQUIRED' ELSE 'QUEUED' END,strftime('%Y-%m-%dT%H:%M:%fZ','now') FROM gtin_sync_items WHERE status IN ('SENDING','VALIDATING')");
                 s.executeUpdate("UPDATE gtin_sync_items SET status=CASE WHEN status='SENDING' THEN 'RECONCILE_REQUIRED' ELSE 'QUEUED' END WHERE status IN ('SENDING','VALIDATING')");
@@ -158,7 +196,7 @@ public final class GtinSyncRepository {
     }
     /** Called only before submit: a denied lease is known-unsent, never a remote ambiguity. */
     void pauseKnownUnsent(UUID itemId) {
-        transaction(c -> {
+        write(c -> {
             var item=itemFor(c,itemId);var key=item.preview().before().key();requireShop(c,key.shopId(),key.marketplace());
             if(item.status()!=Status.VALIDATING && item.status()!=Status.SENDING)return null;
             if(item.remoteTaskId()!=null && !item.remoteTaskId().isBlank())throw new IllegalStateException("already_submitted");
@@ -172,7 +210,7 @@ public final class GtinSyncRepository {
         });
     }
     public void pause(UUID jobId, boolean paused) {
-        transaction(c -> { requireJob(c,jobId);try(var p=c.prepareStatement("UPDATE gtin_sync_jobs SET paused=? WHERE id=?")) {p.setInt(1,paused?1:0);p.setString(2,jobId.toString());p.executeUpdate();}return null; });
+        write(c -> { requireJob(c,jobId);try(var p=c.prepareStatement("UPDATE gtin_sync_jobs SET paused=? WHERE id=?")) {p.setInt(1,paused?1:0);p.setString(2,jobId.toString());p.executeUpdate();}return null; });
     }
     public boolean paused(UUID jobId) {
         return transaction(c -> {requireJob(c,jobId);try(var p=c.prepareStatement("SELECT paused FROM gtin_sync_jobs WHERE id=?")){p.setString(1,jobId.toString());try(var r=p.executeQuery()){return r.next()&&r.getInt(1)==1;}}});
@@ -207,6 +245,10 @@ public final class GtinSyncRepository {
         catch(NoSuchAlgorithmException e){throw new IllegalStateException(e);}
     }
     private interface Work<T>{T run(Connection c)throws SQLException;}
+    private static <T> T write(Work<T> work) {
+        try { return com.vncode.app.config.SqliteWriteTransaction.run(work::run); }
+        catch(SQLException e){throw new IllegalStateException("gtin_storage_error",e);}
+    }
     private static <T> T transaction(Work<T> work) {
         try(var c=Database.getConnection()){c.setAutoCommit(false);try{T result=work.run(c);c.commit();return result;}catch(Exception e){c.rollback();throw e;}}
         catch(SQLException e){throw new IllegalStateException("gtin_storage_error",e);}

@@ -3,6 +3,8 @@ package com.vncode.app.features.print;
 import com.vncode.app.integration.marketplace.MarketplaceGuard;
 import com.google.zxing.WriterException;
 import com.vncode.app.features.kiz.KizService;
+import com.vncode.app.features.kiz.KizSourceSelection;
+import com.vncode.app.features.kiz.KizStockShortageException;
 import com.vncode.app.features.license.LicenseModels.Permission;
 import com.vncode.app.features.license.LicenseRuntime;
 import com.vncode.app.features.kizmapping.KizMappingRepository;
@@ -45,9 +47,34 @@ public class OrderExportWorkflow {
             public Map<Long,KizService.SgtinMetadata> metadata(Shop shop,List<Long> ids)throws IOException{return KizService.getSgtinMetadata(shop.getApiKey(),ids);}
             public Map<Long,String> mappings(int shopId,List<Long> ids){return kizMappingRepository.findMappings(shopId,ids);}
             public Set<Long> required(int shopId,List<Long> ids){return kizMappingRepository.findKizRequiredNmIds(shopId,ids);}
+            public Map<Long,String> stockCategories(int shopId,List<Long> ids){
+                var owner=new com.vncode.app.features.shop.ShopRepository().findById(shopId);
+                var bindings=new com.vncode.app.features.kiz.KizStockCategoryRepository().bindings(owner,ids.stream().map(String::valueOf).toList());
+                var active=new com.vncode.app.features.kiz.WbShipmentKizRepository().assignmentCategories(owner);
+                var result=new java.util.LinkedHashMap<Long,String>();bindings.forEach((id,category)->{if(active.contains(category))result.put(Long.parseLong(id),category);});return Map.copyOf(result);
+            }
+            public Map<Long,List<Kiz>> reserveCategoryStock(int shopId,Map<Long,Integer> quantities){
+                var owner=new com.vncode.app.features.shop.ShopRepository().findById(shopId);
+                var demands=quantities.entrySet().stream().map(e->new com.vncode.app.features.kiz.KizCategoryAllocator.Demand(Long.toString(e.getKey()),Long.toString(e.getKey()),e.getValue())).toList();
+                var reserved=new com.vncode.app.features.kiz.KizCategoryAllocator().reservePartial(owner,demands);
+                var result=new java.util.LinkedHashMap<Long,List<Kiz>>();reserved.forEach((id,codes)->result.put(Long.parseLong(id),codes));return Map.copyOf(result);
+            }
             public Map<String,String> activeGtinsByBarcode(int shopId){return new ZnackCardRegistrationRepository().activeGtinsByBarcode(shopId);}
             public Map<String,List<Kiz>> reserve(int shopId,Map<String,Integer> quantities){return inventoryService.reserveAvailableBulk(shopId,quantities);}
             public void release(int shopId,List<Kiz> codes){inventoryService.release(shopId,codes);}
+            public Map<String,List<Kiz>> reserveForOrders(Shop shop,Map<String,Integer> quantities,Map<Order,String> orders){
+                return reserveForOrders(shop,quantities,orders,null);
+            }
+            public Map<String,List<Kiz>> reserveForOrders(Shop shop,Map<String,Integer> quantities,Map<Order,String> orders,KizSourceSelection sources){
+                try{
+                    var products=orders.entrySet().stream().map(e->new com.vncode.app.features.kiz.KizPurchaseMappingProof.Product(String.valueOf(e.getKey().getNmId()),e.getKey().getBarcode(),e.getValue())).toList();
+                    java.util.function.Consumer<Map<String,Integer>> proof=missing->com.vncode.app.features.kiz.KizPurchaseMappingProof.require(shop,products,missing.keySet());
+                    var stock=new com.vncode.app.features.kiz.KizStockReplenisher();
+                    var result=sources==null?stock.ensure(shop,quantities,proof):stock.ensurePurchased(shop,quantities,proof);
+                    if(result.waiting())throw new com.vncode.app.features.kiz.KizAssignmentException("KIZ_PURCHASE_PENDING","","");
+                    return sources==null?inventoryService.reserveAvailableBulk(shop.getId(),quantities):inventoryService.reservePurchasedBulk(shop.getId(),quantities);
+                }catch(RuntimeException failure){throw failure;}catch(Exception failure){throw new IllegalStateException("KIZ_REPLENISH_FAILED",failure);}
+            }
             public void validate(Shop shop)throws IOException{KizService.requireCurrentShop(shop.getId(),shop.getApiKey());}
             public void requireNoPending(int shopId,List<Long> ids)throws IOException{new KizAttachmentCheckpointRepository().requireNoPending(shopId,ids);}
         }:planning;
@@ -73,7 +100,7 @@ public class OrderExportWorkflow {
         File barcodeStaging = null;
         File detailsStaging = null;
         try {
-            KizAssignmentResult assignmentResult = assignKizCodes(workingOrders, request.shop());
+            KizAssignmentResult assignmentResult = assignKizCodes(workingOrders, request.shop(),request.kizSources());
             usedKizs = assignmentResult.usedKizs();
             replaceExistingOrderIds = assignmentResult.replaceExistingOrderIds();
 
@@ -116,9 +143,12 @@ public class OrderExportWorkflow {
     }
 
     public void verifyKizAvailability(List<Order> orders, Shop shop) throws IOException, IllegalStateException {
+        verifyKizAvailability(orders,shop,null);
+    }
+    public void verifyKizAvailability(List<Order> orders, Shop shop,KizSourceSelection sources) throws IOException, IllegalStateException {
         MarketplaceGuard.requireWildberries(shop);
         LicenseRuntime.require(Permission.PRINT_NEW);
-        ShopOperationCoordinator.withActiveShop(shop.getId(),()->{KizAssignmentResult result=assignKizCodes(copyOrders(orders),shop);inventoryService.release(shop.getId(),result.usedKizs());return null;});
+        ShopOperationCoordinator.withActiveShop(shop.getId(),()->{KizAssignmentResult result=assignKizCodes(copyOrders(orders),shop,sources);inventoryService.release(shop.getId(),result.usedKizs());return null;});
     }
 
     private static List<Order> copyOrders(List<Order> orders) {
@@ -152,6 +182,11 @@ public class OrderExportWorkflow {
     }
 
     KizAssignmentResult assignKizCodes(List<Order> orders, Shop shop) throws IOException {
+        return assignKizCodes(orders,shop,null);
+    }
+    KizAssignmentResult assignKizCodes(List<Order> orders, Shop shop,KizSourceSelection sources) throws IOException {
+        if(sources!=null&&!sources.anySelected())throw new IllegalStateException("KIZ_SOURCE_REQUIRED");
+        boolean useImported=sources==null||sources.sellerImported(),usePurchased=sources==null||sources.purchased();
         planning.validate(shop);
         Set<Long> uniqueOrders=new java.util.HashSet<>();
         for (Order order : orders) {
@@ -173,9 +208,11 @@ public class OrderExportWorkflow {
                 .filter(value -> value != null && value > 0)
                 .distinct()
                 .toList();
-        java.util.Map<Long, String> mappingByNmId = planning.mappings(shop.getId(), nmIds);
+        java.util.Map<Long, String> mappingByNmId = usePurchased?planning.mappings(shop.getId(), nmIds):Map.of();
         Set<Long> kizRequiredNmIds = planning.required(shop.getId(), nmIds);
-        Map<String,String> activeGtinsByBarcode=planning.activeGtinsByBarcode(shop.getId());
+        Map<String,String> activeGtinsByBarcode=usePurchased?planning.activeGtinsByBarcode(shop.getId()):Map.of();
+        var categories=planning.stockCategories(shop.getId(),nmIds);
+        var needs=new ArrayList<Order>();var gtinForOrder=new java.util.IdentityHashMap<Order,String>();
         java.util.Map<String, List<Order>> ordersByGtin = new java.util.LinkedHashMap<>();
         for (int i = 0; i < orders.size(); i++) {
             Order order = orders.get(i);
@@ -183,12 +220,12 @@ public class OrderExportWorkflow {
             String gtin = order.getBarcode()==null?null:activeGtinsByBarcode.get(order.getBarcode().strip());
             if(gtin==null)gtin=order.getNmId() == null ? null : mappingByNmId.get(order.getNmId());
             boolean requiresKiz = order.isRequiresKiz() || isProductKizRequired(order, kizRequiredNmIds)
-                    || (sgtinMetadata != null && sgtinMetadata.available());
+                    || (sgtinMetadata != null && sgtinMetadata.available()) || (order.getNmId()!=null&&categories.containsKey(order.getNmId()));
             if (sgtinMetadata != null && sgtinMetadata.available()) {
                 order.setRequiresKiz(true);
                 if (sgtinMetadata.hasAppliedValue()) {
                     String appliedGtin = KizService.extractGtin(sgtinMetadata.appliedValue());
-                    if (gtin == null || gtin.equals(appliedGtin)) {
+                    if (sources!=null || gtin == null || (order.getNmId()!=null&&categories.containsKey(order.getNmId())) || com.vncode.app.features.gtinsync.RegisteredGtinProof.sameCode(gtin,appliedGtin)) {
                         order.setKiz(sgtinMetadata.appliedValue());
                         continue;
                     }
@@ -199,22 +236,32 @@ public class OrderExportWorkflow {
                 continue;
             }
             order.setRequiresKiz(true);
-            if (gtin == null) {
-                throw new IllegalStateException("Order thứ " + (i + 1) + " cần KIZ nhưng nmId chưa được map: " + order.getNmId());
-            }
-            ordersByGtin.computeIfAbsent(GtinNormalizer.normalize(gtin), key -> new ArrayList<>()).add(order);
+            needs.add(order);gtinForOrder.put(order,gtin);
         }
 
         try {
+            var categoryQuantities=new java.util.LinkedHashMap<Long,Integer>();
+            for(var order:needs)if(useImported&&(order.getNmId()!=null&&categories.containsKey(order.getNmId())))categoryQuantities.merge(order.getNmId(),1,Math::addExact);
+            var stock=categoryQuantities.isEmpty()?Map.<Long,List<Kiz>>of():planning.reserveCategoryStock(shop.getId(),categoryQuantities);
+            stock.values().forEach(usedKizs::addAll);var stockCursor=new java.util.HashMap<Long,Integer>();
+            var shortages=new ArrayList<KizStockShortageException.Missing>();
+            for(var order:needs){
+                var codes=order.getNmId()==null?List.<Kiz>of():stock.getOrDefault(order.getNmId(),List.of());int index=stockCursor.getOrDefault(order.getNmId(),0);
+                if(index<codes.size()){order.setKiz(codes.get(index).getCode());stockCursor.put(order.getNmId(),index+1);continue;}
+                if(!usePurchased){String category=order.getSubjectName();if(category==null||category.isBlank())category=order.getNmId()==null?"":categories.getOrDefault(order.getNmId(),"");shortages.add(new KizStockShortageException.Missing(String.valueOf(order.getId()),String.valueOf(order.getNmId()),category));continue;}
+                String gtin=gtinForOrder.get(order);
+                if(gtin==null)throw new com.vncode.app.features.kiz.KizAssignmentException("KIZ_GTIN_MAPPING_MISSING",String.valueOf(order.getId()),String.valueOf(order.getNmId()));
+                ordersByGtin.computeIfAbsent(GtinNormalizer.normalize(gtin),key->new ArrayList<>()).add(order);
+            }
+            if(!shortages.isEmpty())throw new KizStockShortageException(shortages);
             Map<String,Integer> quantities=new java.util.LinkedHashMap<>();
             ordersByGtin.forEach((gtin,gtinOrders)->quantities.put(gtin,gtinOrders.size()));
             if(!quantities.isEmpty()) {
                 LicenseRuntime.require(Permission.PRINT_NEW);
                 planning.validate(shop);
-                var reserved=planning.reserve(shop.getId(),quantities);
+                var purchaseTargets=new java.util.IdentityHashMap<Order,String>();ordersByGtin.forEach((gtin,group)->group.forEach(order->purchaseTargets.put(order,gtin)));
+                var reserved=planning.reserveForOrders(shop,quantities,purchaseTargets,sources);
                 usedKizs.addAll(reserved.values().stream().flatMap(List::stream).toList());
-                var uniqueCodes=new java.util.HashSet<String>();
-                for(Kiz code:usedKizs)if(code==null||code.getCode()==null||!uniqueCodes.add(KizService.scannerSafeCode(code.getCode())))throw new IllegalStateException("DUPLICATE_KIZ_RESERVATION");
             for (java.util.Map.Entry<String, List<Order>> entry : ordersByGtin.entrySet()) {
                 List<Order> gtinOrders = entry.getValue();
                 List<Kiz> kizList = reserved.get(entry.getKey());
@@ -225,7 +272,9 @@ public class OrderExportWorkflow {
                 }
             }
             }
-        } catch (RuntimeException e) {
+                var uniqueCodes=new java.util.HashSet<String>();
+                for(Kiz code:usedKizs)if(code==null||code.getCode()==null||!uniqueCodes.add(KizService.scannerSafeCode(code.getCode())))throw new IllegalStateException("DUPLICATE_KIZ_RESERVATION");
+        } catch (IOException | RuntimeException e) {
             planning.release(shop.getId(), usedKizs);
             throw e;
         }
@@ -293,8 +342,11 @@ public class OrderExportWorkflow {
             List<Order> orders,
             PrintJobOptions printOptions,
             File outputFile,
-            File detailsFile
+            File detailsFile,
+            KizSourceSelection kizSources
     ) {
+        /** Compatibility for non-shipment callers; the shipment UI supplies an explicit snapshot. */
+        public ExportRequest(Shop shop,String supplyId,String supplyName,List<Order> orders,PrintJobOptions printOptions,File outputFile,File detailsFile){this(shop,supplyId,supplyName,orders,printOptions,outputFile,detailsFile,null);}
     }
 
     public record ExportResult(
@@ -314,9 +366,13 @@ public class OrderExportWorkflow {
         Map<Long,String> mappings(int shopId,List<Long> ids);
         Set<Long> required(int shopId,List<Long> ids);
         default Map<String,String> activeGtinsByBarcode(int shopId){return Map.of();}
+        default Map<Long,String> stockCategories(int shopId,List<Long> ids){return Map.of();}
+        default Map<Long,List<Kiz>> reserveCategoryStock(int shopId,Map<Long,Integer> quantities){return Map.of();}
         default void validate(Shop shop)throws IOException{}
         default void requireNoPending(int shopId,List<Long> ids)throws IOException{}
         Map<String,List<Kiz>> reserve(int shopId,Map<String,Integer> quantities);
+        default Map<String,List<Kiz>> reserveForOrders(Shop shop,Map<String,Integer> quantities,Map<Order,String> orders){return reserve(shop.getId(),quantities);}
+        default Map<String,List<Kiz>> reserveForOrders(Shop shop,Map<String,Integer> quantities,Map<Order,String> orders,KizSourceSelection sources){return reserveForOrders(shop,quantities,orders);}
         void release(int shopId,List<Kiz> codes);
     }
 

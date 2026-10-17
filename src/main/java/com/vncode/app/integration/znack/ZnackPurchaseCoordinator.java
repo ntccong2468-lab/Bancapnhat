@@ -496,9 +496,7 @@ public class ZnackPurchaseCoordinator {
             throw new IllegalStateException("This GTIN already has purchased KIZ waiting for circulation. "
                     + "Synchronize its National Catalog document to resume the existing purchase.");
         }
-        Product product = repository.findProducts().stream()
-                .filter(candidate -> normalized.equals(candidate.gtin()))
-                .findFirst().orElse(null);
+        Product product = repository.findActiveProduct(normalized).orElse(null);
         if (product == null) {
             throw new IllegalArgumentException("GTIN is not registered for the selected shop.");
         }

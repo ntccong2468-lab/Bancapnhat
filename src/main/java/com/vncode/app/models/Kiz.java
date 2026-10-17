@@ -44,10 +44,6 @@ public class Kiz {
 
     @Override
     public String toString() {
-        return "Kiz{" +
-                "id=" + id +
-                ", code='" + code + '\'' +
-                ", reservationToken='" + reservationToken + '\'' +
-                '}';
+        return "Kiz[id="+id+", redacted]";
     }
 }
