@@ -81,7 +81,22 @@ public final class ZnackCardRegistrationWorkflow {
     }
     public boolean registerNew(Shop shop,Sku published,Draft draft,boolean confirmed,BiConsumer<Status,String> listener) {
         if(!confirmed || published==null || !published.canRegisterNew())return false;
+        if(published.status()==Status.ERROR)return replaceRejected(shop,published,draft,listener);
         return schedule(shop,published,draft,RegistrationAction.REGISTER_NEW,listener);
+    }
+    private boolean replaceRejected(Shop requested,Sku old,Draft draft,BiConsumer<Status,String> listener){
+        Shop shop=freezeShop(requested);if(shop==null||draft==null||shop.getMarketplace()!=Marketplace.WILDBERRIES)return false;
+        LicenseRuntime.require(Permission.GTIN);String key=operationKey(shop,old);if(!RUNNING.add(key))return false;
+        try{executor.execute(()->{
+            try{
+                guard(shop,old);var session=catalogFactory.open(shop);guard(shop,old);
+                if(strictScope&&!registrations.scope(shop.getId(),old.chrtId()).equals(session.scope()))throw new ZnackRegistrationScope.ScopeChangedException();
+                if(!CatalogFeedback.confirmedRejection(session.catalog().progress(session.token(),old.feedId(),old.gtin())))throw new IllegalStateException("CATALOG_NEW_GTIN_REQUIRES_REJECTED_FEED");
+                guard(shop,old);LicenseRuntime.require(Permission.GTIN);
+                if(!registrations.claimRejectedReplacement(shop.getId(),old))throw new IllegalStateException("REGISTRATION_CHANGED");
+                execute(shop,freshCandidate(old),draft,true,false,true,listener);
+            }catch(Exception error){fail(shop,old,error,listener);}finally{RUNNING.remove(key);}
+        });return true;}catch(java.util.concurrent.RejectedExecutionException full){RUNNING.remove(key);return false;}
     }
     /** One bounded executor item; cards are claimed sequentially from the frozen reviewed list. */
     public boolean signApproved(Shop requestedShop,List<Sku> skus,boolean confirmed,BiConsumer<Status,String> listener) {

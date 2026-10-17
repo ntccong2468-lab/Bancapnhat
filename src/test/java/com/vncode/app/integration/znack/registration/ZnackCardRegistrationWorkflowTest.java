@@ -422,6 +422,22 @@ class ZnackCardRegistrationWorkflowTest {
                 VALUES(1,11,101,?,'2026-10-06T00:00:00Z','2026-10-06T00:00:00Z')
                 """)){s.setString(1,status);s.executeUpdate();}
     }
+    @Test void sellerCanChooseANewGtinForAProvenRejectedCardWithoutLosingTheOldIdentity()throws Exception{
+        failedCardForReplacement();api.rejectExistingFeed=true;
+        assertTrue(workflow.registerNew(shop,current(),draft,true,null));assertEquals("04631993764370",current().gtin());assertEquals(Status.PUBLISHED,current().status());
+        assertEquals(1,api.allocations.get());assertEquals(1,api.submissions.get());
+        try(var c=Database.getConnection();var p=c.prepareStatement("SELECT gtin,feed_id FROM znack_card_registration_history WHERE shop_id=1 AND chrt_id=11");var r=p.executeQuery()){
+            assertTrue(r.next());assertEquals("04631993764363",r.getString(1));assertEquals("feed-existing",r.getString(2));
+        }
+    }
+    @Test void aProcessingFeedWithItemErrorsCannotConsumeANewGtinThroughRecovery(){
+        failedCardForReplacement();api.rejectExistingFeed=true;api.existingFeedStatus="Processing";
+        assertTrue(workflow.registerNew(shop,current(),draft,true,null));assertEquals("04631993764363",current().gtin());assertEquals(0,api.allocations.get());assertEquals(0,api.submissions.get());
+    }
+    private void failedCardForReplacement(){
+        repository.saveGenerated(1,current(),"04631993764363","6204",1,"Fixture",ZnackNationalCatalogService.buildPayload("04631993764363",draft,"").toString());
+        repository.updateProgress(1,11,Status.ERROR,"feed-existing",91L,"Rejected",false);
+    }
     @Test void acceptedFeedSurvivesRateLimitWithoutAllocatingOrSubmittingAgain()throws Exception{temporaryReadback(429);}
     @Test void acceptedFeedSurvivesNetworkTimeoutWithoutAllocatingOrSubmittingAgain()throws Exception{temporaryReadback(-1);}
     private void temporaryReadback(int failure)throws Exception{

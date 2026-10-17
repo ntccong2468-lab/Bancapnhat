@@ -35,6 +35,19 @@ public final class RegistrationMarketplaceConsent {
             require(c,shop);if(!current(c,key,gtin))return false;bind(p,shop,key,gtin);try(var rows=p.executeQuery()){return rows.next()&&rows.getInt(1)==1;}
         }catch(SQLException e){throw new IllegalStateException("REGISTRATION_STORAGE",e);}
     }
+    public record Candidate(String productId,String variantId,String gtin){}
+    /** A scheduling filter only. The live owner/scope/consent guards still run before confirmation. */
+    public static java.util.Set<Candidate> publishedCandidates(Shop shop){
+        ListingIdentity.require(shop);
+        String nativeJoin=shop.getMarketplace()==com.vncode.app.integration.marketplace.Marketplace.OZON?
+                "JOIN ozon_card_registrations r ON r.shop_id=c.shop_id AND r.product_id=c.product_id AND r.offer_id=c.variant_id AND r.gtin=c.gtin AND r.owner=c.owner ":
+                "JOIN znack_card_registrations r ON r.shop_id=c.shop_id AND r.nm_id=c.product_id AND r.chrt_id=c.variant_id AND r.gtin=c.gtin JOIN znack_card_registration_scopes s ON s.shop_id=r.shop_id AND s.chrt_id=r.chrt_id AND s.owner_hash=c.owner ";
+        try(var c=Database.getConnection();var p=c.prepareStatement("SELECT c.product_id,c.variant_id,c.gtin FROM znack_registration_marketplace_consents c "+nativeJoin+"WHERE c.shop_id=? AND c.marketplace=? AND c.owner=? AND c.enabled=1 AND r.status='PUBLISHED'")){
+            require(c,shop);p.setInt(1,shop.getId());p.setString(2,shop.getMarketplace().name());p.setString(3,ListingIdentity.fingerprint(shop));
+            var candidates=new java.util.HashSet<Candidate>();try(var rows=p.executeQuery()){while(rows.next())candidates.add(new Candidate(rows.getString(1),rows.getString(2),rows.getString(3)));}
+            return java.util.Set.copyOf(candidates);
+        }catch(SQLException e){throw new IllegalStateException("REGISTRATION_STORAGE",e);}
+    }
     private static void bind(PreparedStatement p,Shop shop,ProductKey key,String gtin)throws SQLException {
         p.setInt(1,shop.getId());p.setString(2,key.marketplace().name());p.setString(3,key.cardId());p.setString(4,key.variantId());p.setString(5,gtin);p.setString(6,ListingIdentity.fingerprint(shop));
     }

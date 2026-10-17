@@ -27,6 +27,18 @@ class WbGtinAdapterTest {
     }
     @AfterEach void clear(){System.clearProperty("vncode.appdata.dir");}
     Preview preview()throws Exception{return new GtinPreviewService(new GtinSyncRepository(),k->adapter).create(key,Operation.ADD,"",GTIN);}
+    @Test void visibleBarcodeCacheChangesOnlyAfterActualReadbackNotAfterAnAcknowledgement()throws Exception{
+        try(var c=Database.getConnection();var s=c.createStatement()){
+            s.execute("INSERT INTO wb_product_cards(shop_id,nm_id,title,vendor_code,synced_at) VALUES(1,101,'Fixture','Fixture','fixture')");
+            s.execute("INSERT INTO wb_product_sizes(shop_id,nm_id,chrt_id,tech_size) VALUES(1,101,11,'L'),(1,101,12,'XL')");
+            s.execute("INSERT INTO wb_product_size_skus(shop_id,chrt_id,sku) VALUES(1,12,'sibling')");
+        }
+        var plan=preview();transport.apply=false;var result=adapter.submit(plan);assertEquals(Verification.PENDING,adapter.verify(plan,result));assertFalse(cachedCodes().contains(GTIN));
+        transport.card.getAsJsonArray("sizes").get(0).getAsJsonObject().getAsJsonArray("skus").add(GTIN);
+        assertEquals(Verification.APPLIED,adapter.verify(plan,result));assertTrue(cachedCodes().contains(GTIN));
+        try(var c=Database.getConnection();var s=c.createStatement();var r=s.executeQuery("SELECT sku FROM wb_product_size_skus WHERE shop_id=1 AND chrt_id=12")){assertTrue(r.next());assertEquals("sibling",r.getString(1));}
+    }
+    private List<String> cachedCodes()throws Exception{var values=new java.util.ArrayList<String>();try(var c=Database.getConnection();var s=c.createStatement();var r=s.executeQuery("SELECT sku FROM wb_product_size_skus WHERE shop_id=1 AND chrt_id=11")){while(r.next())values.add(r.getString(1));}return values;}
     @Test void additionPreservesCompleteCardAndOtherSizeBarcodes()throws Exception {
         var p=preview();assertTrue(p.capability().add());assertFalse(p.capability().replace());
         var submitted=adapter.submit(p);assertEquals(1,transport.writes.get());

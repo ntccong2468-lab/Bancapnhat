@@ -33,7 +33,7 @@ public final class WbGtinAdapter implements GtinMarketplaceAdapter {
     public Capability capability(ProductKey key){requireKey(key);return CAPABILITY;}
     public void validateProduct(ProductKey key)throws IOException{WbArticlePolicy.checked(ownCard(key),client);}
     public void validateRegistration(String gtin){RegisteredGtinProof.requireCurrent(shop,gtin);}
-    public ProductSnapshot read(ProductKey key)throws IOException{return snapshot(key,ownCard(key));}
+    public ProductSnapshot read(ProductKey key)throws IOException{var actual=snapshot(key,ownCard(key));MarketplaceBarcodeCache.observe(shop,key,actual.barcodes());return actual;}
     public boolean conflicts(ProductKey key,String gtin)throws IOException {
         requireKey(key);
         String updated=null,nm=null;
@@ -86,7 +86,7 @@ public final class WbGtinAdapter implements GtinMarketplaceAdapter {
     }
     public Verification verify(Preview preview,Submission submission)throws IOException {
         requireKey(preview.before().key());
-        var card=ownCard(preview.before().key());var actual=snapshot(preview.before().key(),card);
+        var card=ownCard(preview.before().key());var actual=snapshot(preview.before().key(),card);MarketplaceBarcodeCache.observe(shop,preview.before().key(),actual.barcodes());
         if(RegisteredGtinProof.contains(actual.barcodes(),preview.newGtin()) && text(card,"vendorCode").equals(com.vncode.app.shared.SellerArticle.trim(preview.before().article())))
             return preview.before().barcodes().stream().allMatch(code->RegisteredGtinProof.contains(actual.barcodes(),code))?Verification.APPLIED:Verification.UNKNOWN;
         if("wb-rejected".equals(submission.remoteTaskId()))return Verification.REJECTED;

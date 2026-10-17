@@ -30,7 +30,7 @@ public final class OzonGtinAdapter implements GtinMarketplaceAdapter {
     }
     public Capability capability(ProductKey key){requireKey(key);return CAPABILITY;}
     public void validateRegistration(String gtin){RegisteredGtinProof.requireCurrent(shop,gtin);}
-    public ProductSnapshot read(ProductKey key)throws IOException{return snapshot(key,ownProduct(key),null);}
+    public ProductSnapshot read(ProductKey key)throws IOException{var actual=snapshot(key,ownProduct(key),null);MarketplaceBarcodeCache.observe(shop,key,actual.barcodes());return actual;}
     /** Exact owned readback for activating a signed Catalog candidate; no card import or write. */
     public boolean hasBarcode(ProductKey key,String expectedSku,String gtin)throws IOException {
         var product=ownProduct(key);
@@ -89,7 +89,7 @@ public final class OzonGtinAdapter implements GtinMarketplaceAdapter {
         }
     }
     public Verification verify(Preview preview,Submission submission)throws IOException {
-        var key=preview.before().key();requireKey(key);var product=ownProduct(key);var actual=snapshot(key,product,null);
+        var key=preview.before().key();requireKey(key);var product=ownProduct(key);var actual=snapshot(key,product,null);MarketplaceBarcodeCache.observe(shop,key,actual.barcodes());
         if(RegisteredGtinProof.contains(actual.barcodes(),preview.newGtin())) {
             var restored=actual.barcodes().stream().filter(code->!RegisteredGtinProof.sameCode(code,preview.newGtin())).toList();
             return snapshot(key,product,restored).fingerprint().equals(preview.before().fingerprint())?Verification.APPLIED:Verification.UNKNOWN;

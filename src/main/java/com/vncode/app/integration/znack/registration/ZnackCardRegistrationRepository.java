@@ -115,6 +115,7 @@ public class ZnackCardRegistrationRepository {
     /** Explicit new-card review preserves the old card and all inventory/mappings. */
     public boolean claimReplacement(int shopId,Sku sku) {
         if(sku==null || !sku.canRegisterNew())return false;
+        if(sku.status()==Status.ERROR)return claimRejectedReplacement(shopId,sku);
         try(var c=Database.getConnection();var transaction=c.createStatement()) {
             transaction.execute("BEGIN IMMEDIATE");
             try {
@@ -142,7 +143,11 @@ public class ZnackCardRegistrationRepository {
     }
 
     /** Keep every old card; only a reviewed new group can clear a known submitted checkpoint. */
-    public boolean claimGroupReplacement(int shopId,Sku sku,String tnved) {
+    public boolean claimGroupReplacement(int shopId,Sku sku,String tnved){return claimArchivedReplacement(shopId,sku,tnved,false);}
+    /** Call only after a fresh remote read proves this exact feed was rejected. */
+    public boolean claimRejectedReplacement(int shopId,Sku sku){return claimArchivedReplacement(shopId,sku,"",true);}
+    private boolean claimArchivedReplacement(int shopId,Sku sku,String tnved,boolean rejectedRecovery) {
+        if(rejectedRecovery&&(sku==null||sku.status()!=Status.ERROR))return false;
         if(sku==null||!sku.hasGtin()||!sku.hasFeed()||!TnvedGroupChange.replaceable(sku.status()))return false;
         try {return com.vncode.app.config.SqliteWriteTransaction.run(c->{
             try(var p=c.prepareStatement("SELECT owner_hash FROM znack_card_registration_scopes WHERE shop_id=? AND chrt_id=?")) {
@@ -153,7 +158,7 @@ public class ZnackCardRegistrationRepository {
                 p.setInt(1,shopId);p.setLong(2,sku.chrtId());p.setLong(3,sku.nmId());p.setString(4,sku.gtin());p.setString(5,sku.status().name());p.setString(6,sku.registrationRevision());
                 try(var r=p.executeQuery()){if(!r.next())return false;oldCode=value(r.getString(1));if(oldCode.isBlank())oldCode=TnvedGroupChange.payloadCode(r.getString(2));}
             }
-            if(!TnvedGroupChange.changed(oldCode,tnved))return false;
+            if(!rejectedRecovery&&!TnvedGroupChange.changed(oldCode,tnved))return false;
             try(var p=c.prepareStatement("SELECT 1 FROM znack_card_registration_signatures WHERE shop_id=? AND chrt_id=? AND state IN ('SENDING','RECONCILE_REQUIRED')")) {
                 p.setInt(1,shopId);p.setLong(2,sku.chrtId());try(var r=p.executeQuery()){if(r.next())return false;}
             }

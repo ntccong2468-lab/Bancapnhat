@@ -20,6 +20,9 @@ public final class CatalogFeedback {
         for(Throwable error=failure;error!=null;error=error.getCause())if(error instanceof java.io.IOException||error instanceof InterruptedException||error instanceof com.vncode.app.shared.RateLimitDeferral.Deferred)return true;
         return false;
     }
+    public static boolean confirmedRejection(ZnackNationalCatalogService.FeedProgress progress){
+        return progress.failed()&&java.util.Set.of("rejected","failed","error").contains(progress.status().toLowerCase(Locale.ROOT));
+    }
     public static boolean interrupted(String message) {
         String value=message==null?"":message.strip().toLowerCase(Locale.ROOT);
         return value.equals("registration interrupted")||value.equals("registration_interrupted");

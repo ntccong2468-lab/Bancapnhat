@@ -23,6 +23,8 @@ Repo mã nguồn nội bộ mới `rupphi/source-wcode` trả HTTP 404 với quy
 
 Linux: 1.715 kiểm thử hồi quy, 0 failure/error, 2 skip nền tảng; sau sửa preflight/bố cục cuối chạy thêm 57 kiểm thử đều qua. 90 kiểm thử sau sửa nhánh thiếu mã thẻ và 60 kiểm thử công cụ phát hành qua. Các số này không thay thế kiểm thử bộ cài Windows hoặc ký CryptoPro thật.
 
-Còn ba khác biệt được ghi rõ: lựa chọn GTIN mới cho mọi loại feed lỗi chưa rõ kết quả; backend hội thoại hỗ trợ/ảnh riêng; mẫu GS1 đóng gói sẵn (VNCode dùng mẫu doanh nghiệp nhập một lần). Không đánh dấu hoàn tất toàn bộ 159 đầu mục và không đổi các cờ nghiệm thu production thành true khi chưa có bằng chứng.
+Có lựa chọn GTIN mới sau khi Catalog xác nhận feed cũ bị từ chối, giữ lịch sử thẻ cũ; feed đang xử lý/không rõ kết quả không được tiêu thêm quota. GTIN đã đọc lại từ sàn cập nhật ngay vào cache hiển thị, chỉ đúng biến thể; ACK không sửa cache.
+
+Còn hai nhóm khác biệt được ghi rõ: backend hội thoại hỗ trợ/ảnh riêng đang chờ duyệt kiến trúc; mẫu GS1 đóng gói sẵn (VNCode dùng mẫu doanh nghiệp nhập một lần). Không đánh dấu hoàn tất toàn bộ 159 đầu mục và không đổi các cờ nghiệm thu production thành true khi chưa có bằng chứng.
 
 Giữ yêu cầu riêng đã duyệt: thương hiệu VNCode, license do admin cấp, kho KIZ seller theo danh mục không buộc GTIN/Znack, Liquid Glass và luồng FBS ưu tiên liên tục.

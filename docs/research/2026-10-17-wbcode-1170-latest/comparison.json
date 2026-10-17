@@ -660,7 +660,7 @@
       "line": 6,
       "requirement": "Thêm hộp thoại xác nhận khôi phục hàng loạt khi chọn nhiều sản phẩm đã có GTIN để thử lại hoặc xin GTIN mới một lần duy nhất.",
       "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.1.76",
-      "status": "partial-explicit-difference",
+      "status": "implementation-present",
       "code": [
         "src/main/java/com/vncode/app/integration/znack/registration/ZnackCardRegistrationWorkflow.java",
         "src/main/java/com/vncode/app/integration/znack/registration/OzonCardRegistrationWorkflow.java",
@@ -671,9 +671,8 @@
         "src/test/java/com/vncode/app/integration/znack/registration/OzonCardRegistrationWorkflowTest.java"
       ],
       "id": "WB-035",
-      "assessment": "Thử lại feed được server xác nhận từ chối bằng cùng GTIN; ghi nhận thẻ chưa tạo sau 5 phút. Quyền chọn GTIN mới khi chưa xác minh dứt điểm vẫn không được tự cấp.",
-      "verification": "Native automated regression; not a live seller acceptance claim",
-      "remaining": "Đã có retry cùng GTIN trên WB/Ozon và tạo thẻ mới sau published/đổi nhóm. Chưa thêm lựa chọn GTIN mới cho mọi lỗi feed chưa rõ kết quả; không tự tiêu quota trong nhánh này."
+      "assessment": "Có thử lại cùng GTIN và lựa chọn tạo GTIN mới cho thẻ bị Catalog xác nhận từ chối, cả WB/Ozon; lưu lịch sử yêu cầu cũ và xác nhận quota một lần cho lô. Feed còn xử lý hoặc chưa rõ kết quả phải đọc tiếp, không tự cấp thêm số.",
+      "verification": "Native automated regression; not a live seller acceptance claim"
     },
     {
       "release": "v1.1.76",
@@ -2328,7 +2327,7 @@
       "line": 13,
       "requirement": "Hỗ trợ: app hỏi tin nhắn mới thưa hơn nhiều khi cửa sổ hỗ trợ đang đóng.",
       "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.3.5",
-      "status": "implementation-present",
+      "status": "partial-explicit-difference",
       "code": [
         "src/main/java/com/vncode/app/ui/workspace/HomeController.java",
         "src/main/java/com/vncode/app/features/gs1/Gs1LettersService.java"
@@ -2339,7 +2338,8 @@
       ],
       "id": "WB-122",
       "assessment": "GS1 có thư riêng; VNCode không tự gửi báo cáo lỗi. Hộp hội thoại hỗ trợ trực tuyến của Wbcode chưa có backend tương đương trong VNCode.",
-      "verification": "Native automated regression; not a live seller acceptance claim"
+      "verification": "Native automated regression; not a live seller acceptance claim",
+      "remaining": "Chưa có backend hội thoại/ảnh hỗ trợ của VNCode; phương án Cloudflare riêng đang chờ duyệt kiến trúc. Nút Hỗ trợ hiện mở Hướng dẫn, không poll hộp thư hỗ trợ không tồn tại."
     },
     {
       "release": "v1.3.5",

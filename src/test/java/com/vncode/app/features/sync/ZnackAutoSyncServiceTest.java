@@ -87,6 +87,11 @@ class ZnackAutoSyncServiceTest {
             }
         }
         com.vncode.app.integration.znack.registration.RegistrationMarketplaceConsent.set(shop,key,observation.gtin(),true);
+        var candidate=new com.vncode.app.integration.znack.registration.RegistrationMarketplaceConsent.Candidate(key.cardId(),key.variantId(),observation.gtin());
+        assertEquals(Set.of(candidate),com.vncode.app.integration.znack.registration.RegistrationMarketplaceConsent.publishedCandidates(shop));
+        com.vncode.app.integration.znack.registration.RegistrationMarketplaceConsent.set(shop,key,observation.gtin(),false);
+        assertTrue(com.vncode.app.integration.znack.registration.RegistrationMarketplaceConsent.publishedCandidates(shop).isEmpty());
+        com.vncode.app.integration.znack.registration.RegistrationMarketplaceConsent.set(shop,key,observation.gtin(),true);
         service.step(shop,"");assertEquals(0,writes);
         service.step(shop,"");assertEquals(0,writes,"Authorization and linking must be durable before dispatch");
         var runs=new SyncRunRepository();var active=runs.active(shop,"znack_marketplace").orElseThrow();

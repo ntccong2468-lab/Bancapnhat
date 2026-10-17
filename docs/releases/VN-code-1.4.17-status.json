@@ -65,6 +65,10 @@
       "failures": 0,
       "errors": 0,
       "skipped": 0
+    },
+    "rejectedFeedRecoveryAndObservedBarcodeCache": {
+      "state": "awaiting-final-regression",
+      "liveSellerMutations": false
     }
   },
   "comparison": {
@@ -82,7 +86,6 @@
     "WB FBS live read needs the existing secret allowed destination marketplace-api.wildberries.ru"
   ],
   "remainingComparisonDifferences": [
-    "Explicit new GTIN choice for every failed/uncertain feed is not added; known rejected feeds reuse their GTIN safely",
     "Online support conversation/image backend is absent; current VNCode Support opens its guides",
     "GS1 signature/PDF workflow uses a seller-imported company form rather than an unverified bundled form"
   ]

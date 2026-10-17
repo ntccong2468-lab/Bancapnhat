@@ -72,6 +72,7 @@ public final class FriendlyErrorService {
         }
         if (error instanceof com.vncode.app.features.license.LicenseGate.LicenseDeniedException) return I18nService.getInstance().tr(error.getMessage().equals("LICENSE_SHOP_LIMIT")?"license.account.shop_limit":"license.account.required");
         String message = error.getMessage() == null ? "" : error.getMessage().trim();
+        if(message.contains("CATALOG_NEW_GTIN_REQUIRES_REJECTED_FEED"))return I18nService.getInstance().tr("znack.registration.new_gtin_requires_rejection");
         if(message.contains("CATALOG_READBACK_RETRY_PENDING"))return I18nService.getInstance().tr("znack.registration.readback_retry_pending");
         if(message.contains("CATALOG_CARD_NOT_CREATED_AFTER_WAIT"))return I18nService.getInstance().tr("znack.registration.wait_expired");
         if(message.contains("CATALOG_FEED_COMPLETED_WITHOUT_CARD"))return I18nService.getInstance().tr("znack.registration.completed_without_card");

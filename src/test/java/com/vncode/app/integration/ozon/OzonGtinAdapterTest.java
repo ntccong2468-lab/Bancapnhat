@@ -28,6 +28,27 @@ class OzonGtinAdapterTest {
     }
     @AfterEach void clear(){System.clearProperty("vncode.appdata.dir");}
     Preview preview()throws Exception{return new GtinPreviewService(new GtinSyncRepository(),k->adapter).create(key,Operation.ADD,"",GTIN);}
+    @Test void actualReadbackUpdatesOnlyTheSelectedOwnedProductCache()throws Exception {
+        try(var c=Database.getConnection();var s=c.createStatement()){
+            s.execute("INSERT INTO ozon_products(shop_id,product_id,offer_id,name,sku,synced_at) VALUES(2,'501','fixture-offer','Fixture','9001','fixture'),(2,'502','other-offer','Sibling','9002','fixture')");
+            s.execute("INSERT INTO ozon_product_barcodes(shop_id,product_id,barcode) VALUES(2,'502','sibling')");
+        }
+        var plan=preview();transport.apply=false;var response=adapter.submit(plan);
+        assertEquals(Verification.PENDING,adapter.verify(plan,response));assertEquals(List.of("legacy"),cachedCodes("501"));
+        transport.card.getAsJsonArray("barcodes").add(GTIN);
+        assertEquals(Verification.APPLIED,adapter.verify(plan,response));assertTrue(cachedCodes("501").contains(GTIN));
+        assertEquals(List.of("sibling"),cachedCodes("502"));
+        assertEquals(Verification.APPLIED,adapter.verify(plan,response));
+        assertTrue(cachedCodes("501").contains(GTIN),"The temporary fingerprint comparison must not overwrite observed barcodes");
+        try(var c=Database.getConnection();var s=c.createStatement()){s.execute("UPDATE shops SET api_key='changed' WHERE id=2");}
+        assertThrows(SecurityException.class,()->MarketplaceBarcodeCache.observe(shop,key,List.of("foreign")));
+        assertTrue(cachedCodes("501").contains(GTIN));
+    }
+    private List<String> cachedCodes(String product)throws Exception {
+        var values=new java.util.ArrayList<String>();try(var c=Database.getConnection();var p=c.prepareStatement("SELECT barcode FROM ozon_product_barcodes WHERE shop_id=2 AND product_id=? ORDER BY barcode")){
+            p.setString(1,product);try(var r=p.executeQuery()){while(r.next())values.add(r.getString(1));}
+        }return values;
+    }
     @Test void usesExactCurrentSkuAndOnlyBarcodeAddEndpoint()throws Exception {
         var p=preview();assertTrue(p.capability().add());assertFalse(p.capability().replace());
         var response=adapter.submit(p);assertEquals(1,transport.writes.get());

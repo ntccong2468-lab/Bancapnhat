@@ -73,6 +73,15 @@ class OzonCardRegistrationWorkflowTest {
             assertTrue(r.next());assertEquals(oldFeed,r.getString(1));assertEquals(gtin,r.getString(2));assertFalse(r.next());
         }
     }
+    @Test void sellerCanChooseOneNewGtinAfterConfirmedRejectionAndRetainTheOldRequest()throws Exception{
+        ready();String old=row().gtin(),feed=row().feedId();api.rejectedFeed=feed;new ZnackRegistrationMonitor(null,workflow).poll(shop,3);
+        assertTrue(workflow.register(shop,key,draft,true,true,null));assertNotEquals(old,row().gtin());assertEquals(Status.READY_TO_SIGN,row().status());
+        assertEquals(2,api.allocations.get());assertEquals(2,api.submissions.get());assertTrue(repository.claimedGtins().contains(old));
+    }
+    @Test void pendingOzonFeedCannotAllocateANewGtinThroughTheExplicitRecoveryAction(){
+        ready();repository.progress(key,Status.ERROR,91L,"fixture previous read failed");api.pendingModeration=true;
+        String old=row().gtin();assertTrue(workflow.register(shop,key,draft,true,true,null));assertEquals(old,row().gtin());assertEquals(1,api.allocations.get());assertEquals(1,api.submissions.get());
+    }
     @Test void automaticSigningConsentSurvivesReopeningAndDoesNotRepeatTheSignature()throws Exception {
         api.pendingModeration=true;assertTrue(workflow.register(shop,key,draft.withAutoSign(true),true,false,null));assertEquals(Status.PROCESSING,row().status());assertEquals(0,api.signatures.get());
         api.pendingModeration=false;var reopened=workflow(Runnable::run);var monitor=new ZnackRegistrationMonitor(null,reopened);assertEquals(1,monitor.poll(shop,3).published());assertEquals(Status.PUBLISHED,row().status());assertEquals(1,api.signatures.get());monitor.poll(shop,3);assertEquals(1,api.signatures.get());assertEquals(1,api.allocations.get());assertEquals(1,api.submissions.get());

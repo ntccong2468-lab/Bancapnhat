@@ -73,7 +73,11 @@ class ZnackCardRegistrationControllerTest {
             assertTrue(((Label)loader.getNamespace().get("summaryLabel")).getText().contains("2"));
             RegistrationScreenshot.capture(loader.getRoot(),"wb-registration");
             ((javafx.scene.control.ComboBox<?>)loader.getNamespace().get("statusFilter")).getSelectionModel().select(5);return null;
-        });awaitTasks();fx(()->{assertEquals(2,table().getItems().size());assertEquals(java.util.Set.of(1L,3L),table().getItems().stream().map(Sku::chrtId).collect(java.util.stream.Collectors.toSet()));return null;});
+        });awaitTasks();fx(()->{assertEquals(java.util.Set.of(1L),table().getItems().stream().map(Sku::chrtId).collect(java.util.stream.Collectors.toSet()));
+            ((javafx.scene.control.ComboBox<?>)loader.getNamespace().get("statusFilter")).getSelectionModel().select(2);return null;
+        });awaitTasks();fx(()->{assertTrue(table().getItems().stream().anyMatch(row->row.chrtId()==3),"A published Catalog card still waits for marketplace GTIN readback");
+            @SuppressWarnings("unchecked") var column=(javafx.scene.control.TableColumn<Sku,String>)loader.getNamespace().get("statusColumn");
+            assertEquals(I18nService.getInstance().tr("znack.registration.awaiting_wb_gtin"),column.getCellData(table().getItems().stream().filter(row->row.chrtId()==3).findFirst().orElseThrow()));return null;});
     }
     @Test void selectAllIncludesPublishedRowsForTheSeparateNewCardAction() throws Exception {
         fx(()->{

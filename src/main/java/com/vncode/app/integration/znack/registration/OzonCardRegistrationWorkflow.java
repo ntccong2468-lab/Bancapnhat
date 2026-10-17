@@ -169,6 +169,10 @@ public final class OzonCardRegistrationWorkflow {
             Draft reviewed=validateDraft(draft,session.catalog().requiredAttributes(draft.categoryId(),session.token()),documents);
             checkSession(shop,scope,session);LicenseRuntime.require(Permission.GTIN);
             var previous=repository.find(key);
+            if(newCard&&previous!=null&&previous.status()==Status.ERROR){
+                repository.guard(shop,key,scope);
+                if(previous.feedId().isBlank()||!CatalogFeedback.confirmedRejection(session.catalog().progress(session.token(),previous.feedId(),previous.gtin())))throw new IllegalStateException("CATALOG_NEW_GTIN_REQUIRES_REJECTED_FEED");
+            }
             boolean groupChange=previous!=null&&TnvedGroupChange.replaceable(previous.status())&&TnvedGroupChange.changed(TnvedGroupChange.payloadCode(previous.payload()),reviewed.tnved());
             if(previous!=null&&!newCard&&!groupChange&&!previous.feedId().isBlank()&&Set.of(Status.FEED_SUBMITTED,Status.PROCESSING,Status.READY_TO_SIGN).contains(previous.status())) {
                 repository.guard(shop,key,scope);RegistrationSigningConsent.set(shop,key,previous.gtin(),reviewed.autoSign());poll(shop,key,session,reviewed.autoSign(),callback);return;

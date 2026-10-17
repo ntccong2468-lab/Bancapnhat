@@ -43,17 +43,22 @@ public final class ZnackAutoSyncService {
         if(runs.find(active.get()).orElseThrow().state().equals("PAUSED"))return SyncCoordinator.Page.complete(0);
         if(runs.step(active.get()).equals("ZNACK_SOURCE"))return prepare(shop,active.get());
         String id=active.get();int processed=0;boolean waiting=false,blocked=false,review=false;SyncFailure retry=null;
+        var registeredCandidates=RegistrationMarketplaceConsent.publishedCandidates(shop);
         for(int offset=0;;offset+=1000){var items=runs.items(id,offset,1000);if(items.isEmpty())break;
             for(var item:items){
                 if(Set.of("SUCCEEDED","UNCHANGED","CANCELLED").contains(item.state()))continue;
                 if(Set.of("NEEDS_ACTION","FAILED").contains(item.state())){blocked=true;continue;}
                 if(item.childJob().isBlank()){
+                    if(!registeredCandidates.contains(new RegistrationMarketplaceConsent.Candidate(item.productId(),item.variantId(),item.gtin()))){
+                        if(!item.state().equals("AWAITING_CONFIRMATION"))runs.update(shop,item,"AWAITING_CONFIRMATION","REVIEW","GTIN_CONFIRMATION_REQUIRED",null);
+                        review=true;continue;
+                    }
+                    if(processed>=3){waiting=true;continue;}
                     var key=new ProductKey(shop.getId(),shop.getMarketplace(),item.productId(),item.variantId());
                     if(!RegistrationMarketplaceConsent.allowed(shop,key,item.gtin())||!RegisteredGtinProof.sameCode(registrationGtin(shop,key),item.gtin())){
                         if(!item.state().equals("AWAITING_CONFIRMATION"))runs.update(shop,item,"AWAITING_CONFIRMATION","REVIEW","GTIN_CONFIRMATION_REQUIRED",null);
                         review=true;continue;
                     }
-                    if(processed>=3){waiting=true;continue;}
                     processed++;
                     try{
                         // The original Register action approved only this native card/GTIN.
