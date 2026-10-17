@@ -28,7 +28,7 @@ public final class AppTaskExecutor {
         Objects.requireNonNull(task);ACTIVE_TASK_COUNT.incrementAndGet();
         // Set CANCELLED on FX before an interrupted worker can enqueue its FAILED event.
         var timeout=CATALOG_TIMEOUT.schedule(()->javafx.application.Platform.runLater(()->task.cancel(true)),Math.max(1,deadline.toMillis()),TimeUnit.MILLISECONDS);
-        try{CATALOG_EXECUTOR.execute(()->{try{task.run();}finally{timeout.cancel(false);ACTIVE_TASK_COUNT.decrementAndGet();}});return true;}
+        try{CATALOG_EXECUTOR.execute(()->{try(var lane=MarketplaceRequestBudget.lane(true)){task.run();}finally{timeout.cancel(false);ACTIVE_TASK_COUNT.decrementAndGet();}});return true;}
         catch(RejectedExecutionException full){timeout.cancel(false);ACTIVE_TASK_COUNT.decrementAndGet();task.cancel(false);rejected.accept(full);return false;}
     }
     private AppTaskExecutor() {

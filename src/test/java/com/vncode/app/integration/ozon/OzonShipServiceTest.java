@@ -85,6 +85,11 @@ class OzonShipServiceTest {
         assertThrows(IllegalArgumentException.class, () -> service().ship(shop, "POST-1", false));
         assertEquals(0, server.getRequestCount());
     }
+    @Test void foreignDetailCannotShipAnOrderOutsideTheConfirmedSelection()throws Exception{
+        server.enqueue(json(posting("awaiting_packaging",true).replace("POST-1","OTHER")));
+        assertEquals("FBS_FOREIGN_POSTING",assertThrows(java.io.IOException.class,()->service().ship(shop,"POST-1",true)).getMessage());
+        assertEquals(1,server.getRequestCount());assertEquals(0,count("SELECT count(*) FROM ozon_action_log WHERE action_type='ship'"));assertEquals(0,count("SELECT count(*) FROM ozon_postings"));
+    }
 
     @Test
     void markedPostingShipsWithoutUploadingOrCheckingKizOnOzon() throws Exception {

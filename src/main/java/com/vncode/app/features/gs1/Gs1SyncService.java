@@ -34,12 +34,19 @@ public final class Gs1SyncService {
         ListingIdentity.require(shop);String owner=ownerKey(shop),scope;
         var reports=new SyncRunRepository();
         try{var verified=RegisteredGtinProof.current(shop);RegisteredGtinProof.requireProduction(verified);scope=verified.source();}
-        catch(RuntimeException error){String run=reports.begin(shop,"gs1","CHECKING_SETTINGS");String code=SyncFailure.of(error,0).code();reports.stage(shop,run,"FAILED","CHECKING_SETTINGS",code);publish(owner,new Update("CHECKING_SETTINGS","FAILED",code,run,Instant.now().toString()));throw error;}
+        catch(RuntimeException error){
+            String run="",code=SyncFailure.of(error,0).code();
+            try{run=reports.begin(shop,"gs1","CHECKING_SETTINGS");reports.stage(shop,run,"FAILED","CHECKING_SETTINGS",code);}
+            catch(RuntimeException reporting){error.addSuppressed(reporting);}
+            publish(owner,new Update("CHECKING_SETTINGS","FAILED",code,run,Instant.now().toString()));throw error;
+        }
         String key=owner+"/"+scope;
         var future=new CompletableFuture<Gs1AutomaticSyncService.Result>();var prior=FLIGHTS.putIfAbsent(key,future);
         if(prior!=null){
             try{var result=prior.get(180,TimeUnit.SECONDS);if(!scope.equals(RegisteredGtinProof.current(shop).source()))throw new SecurityException("GS1_ACCOUNT_CHANGED");return result;}
-            catch(ExecutionException failed){if(failed.getCause() instanceof Exception cause)throw cause;throw new IllegalStateException("GS1_SYNC_FAILED",failed.getCause());}
+            catch(InterruptedException interrupted){Thread.currentThread().interrupt();throw new java.io.InterruptedIOException("GS1_SYNC_CANCELLED");}
+            catch(TimeoutException expired){throw new java.net.SocketTimeoutException("GS1_SYNC_TIMEOUT");}
+            catch(ExecutionException failed){if(failed.getCause() instanceof Exception cause)throw cause;if(failed.getCause() instanceof Error cause)throw cause;throw new IllegalStateException("GS1_SYNC_FAILED",failed.getCause());}
         }
         String run="";
         try{
@@ -66,6 +73,7 @@ public final class Gs1SyncService {
                 for(var item:reports.items(run,0,300))if(!Set.of("SUCCEEDED","FAILED").contains(item.state()))reports.update(shop,item,item.state().equals("QUEUED")?"CANCELLED":"FAILED",item.step(),item.state().equals("QUEUED")?"GS1_SOURCE_NOT_READ":code,null);
                 reports.stage(shop,run,"FAILED",failedStep,code);}catch(RuntimeException changed){error.addSuppressed(changed);}
             publish(owner,new Update("REPORT","FAILED",code,run,Instant.now().toString()));future.completeExceptionally(error);throw error;
-        }finally{FLIGHTS.remove(key,future);}
+        }catch(Error failed){future.completeExceptionally(failed);throw failed;}
+        finally{FLIGHTS.remove(key,future);}
     }
 }

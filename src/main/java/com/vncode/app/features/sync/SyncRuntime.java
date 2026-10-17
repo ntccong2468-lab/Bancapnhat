@@ -24,7 +24,7 @@ public final class SyncRuntime implements AutoCloseable {
     }
     public void updateShops(Collection<Shop> shops){coordinator.updateShops(shops);}
     public void selectShop(int id){coordinator.selectShop(id);}
-    public void selectSupply(int shopId,String supplyId){fbs.selectSupply(shopId,supplyId);}
+    public void selectSupply(int shopId,String supplyId){if(fbs.selectSupply(shopId,supplyId))coordinator.request(shopId,SyncCoordinator.Stream.SUPPLY_CONTENT);}
     public void request(Shop shop,SyncCoordinator.Stream stream){coordinator.request(shop.getId(),stream);}
     public void refreshShop(Shop shop){for(var stream:SyncCoordinator.Stream.values())if(stream!=SyncCoordinator.Stream.FINANCE)request(shop,stream);}
     public static boolean requestIfRunning(Shop shop,SyncCoordinator.Stream stream){var runtime=current;if(runtime==null)return false;runtime.request(shop,stream);return true;}
@@ -53,7 +53,13 @@ public final class SyncRuntime implements AutoCloseable {
                 var result=gs1.sync(shop);
                 return new SyncCoordinator.Page("",true,result.membership()==null?0:1,result.complete()?null:new SyncFailure("GS1_SYNC_PARTIAL",java.time.Duration.ofMinutes(1),false));
             }
-            case FBO:{return SyncCoordinator.Page.complete(new com.vncode.app.features.fbosupply.FboSupplySyncService().syncOrders(shop).size());}
+            case FBO:{
+                var service = new com.vncode.app.features.fbosupply.FboSupplySyncService();
+                int count;
+                try(var cooldown=com.vncode.app.shared.RateLimitDeferral.enter()){count=service.syncOrders(shop).size();}
+                String next = service.pendingOrdersCursor(shop);
+                return new SyncCoordinator.Page(next, next.isBlank(), count, null);
+            }
             case FINANCE:{com.vncode.app.features.finance.FinanceSyncScheduler.getInstance().runCoordinatedStep();return SyncCoordinator.Page.complete(0);}
             default:throw new IllegalArgumentException("UNSUPPORTED_SYNC_STREAM");
         }

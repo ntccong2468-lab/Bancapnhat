@@ -34,6 +34,20 @@ class SyncCoordinatorTest {
         assertTrue(calls.contains(SyncCoordinator.Stream.ZNACK));assertTrue(calls.contains(SyncCoordinator.Stream.GS1));
         assertEquals(1,background.size(),"Catalog worker is still occupied while registry requests can finish independently");
     }
+    @Test void fbsKeepsPollingWhileCatalogAndRegistryJobsRemainOccupied(){
+        var registry = new ArrayDeque<Runnable>(); var queues = new java.util.concurrent.atomic.AtomicInteger();
+        coordinator = new SyncCoordinator(new SyncStreamStore(), (s, stream, cursor) -> {
+            if (stream == SyncCoordinator.Stream.FBS_QUEUE) queues.incrementAndGet();
+            return SyncCoordinator.Page.complete(0);
+        }, clock, nanos::get, fast::add, background::add, registry::add, null);
+        coordinator.updateShops(List.of(shop)); coordinator.selectShop(shop.getId());
+        for (int second = 0; second <= 25; second++) {
+            coordinator.tick(); while (!fast.isEmpty()) fast.remove().run();
+            nanos.addAndGet(Duration.ofSeconds(1).toNanos());
+        }
+        assertEquals(3, queues.get(), "Visible FBS queue must refresh every ten seconds despite occupied slow workers");
+        assertEquals(1, background.size()); assertEquals(2, registry.size());
+    }
     @Test void requestArrivingDuringReadIsNotLostByCompletion(){
         create((s,stream,cursor)->{if(stream==SyncCoordinator.Stream.FBS_QUEUE)new SyncStreamStore().request(shop,stream.name());return SyncCoordinator.Page.complete(0);});
         coordinator.tick();fast.remove().run();assertTrue(new SyncStreamStore().ensure(shop,"FBS_QUEUE",Instant.now()).requested());

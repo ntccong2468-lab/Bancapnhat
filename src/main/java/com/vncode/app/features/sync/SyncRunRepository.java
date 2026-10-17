@@ -91,7 +91,7 @@ public final class SyncRunRepository {
         }); }catch(SQLException e){throw storage(e);}
     }
     public Optional<String> active(Shop shop,String kind){
-        try(var c=Database.getConnection();var p=c.prepareStatement("SELECT id FROM sync_runs WHERE shop_id=? AND owner=? AND kind=? AND state IN ('QUEUED','RUNNING','WAITING_REMOTE','RECONCILING','PAUSED') ORDER BY created_at LIMIT 1")){
+        try(var c=Database.getConnection();var p=c.prepareStatement("SELECT id FROM sync_runs WHERE shop_id=? AND owner=? AND kind=? AND state IN ('QUEUED','RUNNING','WAITING_REMOTE','RECONCILING','PAUSED') ORDER BY CASE state WHEN 'PAUSED' THEN 1 ELSE 0 END,created_at,rowid LIMIT 1")){
             p.setInt(1,shop.getId());p.setString(2,ListingIdentity.fingerprint(shop));p.setString(3,kind);try(var r=p.executeQuery()){return r.next()?Optional.of(r.getString(1)):Optional.empty();}
         }catch(SQLException e){throw storage(e);}
     }

@@ -96,6 +96,13 @@ public final class OzonApiClient {
         };
     }
 
+    /** Sync responses may be persisted only for the credentials that issued their request. */
+    void requireSyncOwner(int expectedShop) {
+        if (shopId != expectedShop) throw new SecurityException("SYNC_OWNER_CHANGED");
+        com.vncode.app.integration.listing.ListingIdentity.require(new com.vncode.app.models.Shop(shopId, "",
+                com.vncode.app.integration.marketplace.Marketplace.OZON, credentials.clientId(), credentials.apiKey()));
+    }
+
     @FunctionalInterface public interface BeforeSend {
         void check(String path, String family) throws IOException;
     }

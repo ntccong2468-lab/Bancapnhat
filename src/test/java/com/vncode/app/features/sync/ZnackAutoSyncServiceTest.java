@@ -46,6 +46,15 @@ class ZnackAutoSyncServiceTest {
     }
     @AfterEach void clear(){System.clearProperty("vncode.appdata.dir");}
     @Test void wbSourceRequiresReviewThenChainsToSingleVerifiedGtinWriteAndDurableReport()throws Exception{pipeline(Marketplace.WILDBERRIES);}
+    @Test void reportingFailureCannotReplaceTheOriginalCatalogReadFailure()throws Exception{
+        init(Marketplace.WILDBERRIES);var original=new java.io.IOException("CATALOG_READ_FAILED");
+        service=new ZnackAutoSyncService((s,issues)->{
+            try(var c=Database.getConnection();var statement=c.createStatement()){statement.execute("CREATE TRIGGER reject_failure_report BEFORE UPDATE OF state ON sync_runs WHEN NEW.state='FAILED' BEGIN SELECT RAISE(ABORT,'report unavailable'); END");}
+            throw original;
+        },(s,k)->snapshot,catalog);
+        assertSame(original,assertThrows(java.io.IOException.class,()->service.step(shop,"")));
+        assertEquals(1,original.getSuppressed().length);assertEquals("SYNC_STORAGE",original.getSuppressed()[0].getMessage());assertEquals(0,writes);
+    }
     @Test void ozonSourceRequiresReviewWithAlphanumericOfferAndExactSku()throws Exception{pipeline(Marketplace.OZON);}
     @Test void ozonSkuProposalIsPersistedAndRechecksFreshBrandBeforeConfirmation()throws Exception{
         init(Marketplace.OZON);
@@ -123,6 +132,12 @@ class ZnackAutoSyncServiceTest {
     @Test void pausedRunCannotStartOrAdvanceWrites()throws Exception{
         init(Marketplace.WILDBERRIES);service.step(shop,"");var reports=new SyncRunRepository();var id=reports.list(shop.getId(),0,10).getFirst().id();
         reports.stage(shop,id,"PAUSED","MATCHING","");assertTrue(service.step(shop,"").complete());assertEquals(0,writes);assertEquals(1,sourceReads);assertEquals(1,reports.list(shop.getId(),0,10).stream().filter(r->r.kind().equals("znack_marketplace")).count());assertEquals("PAUSED",reports.find(id).orElseThrow().state());
+    }
+    @Test void olderPausedReportCannotStarveANewConfirmedReview()throws Exception{
+        init(Marketplace.WILDBERRIES);service.step(shop,"");var reports=new SyncRunRepository();var paused=reports.list(shop.getId(),0,10).getFirst().id();
+        reports.stage(shop,paused,"PAUSED","MATCHING","");String next=service.review(shop);approve();
+        for(int turn=0;turn<4;turn++)if(service.step(shop,"").complete())break;
+        assertEquals("SUCCEEDED",reports.find(next).orElseThrow().state());assertEquals("PAUSED",reports.find(paused).orElseThrow().state());assertEquals(1,writes);
     }
     @Test void repeatedNetworkFailureEndsInAnActionableReportInsteadOfSynchronizingForever()throws Exception{
         init(Marketplace.OZON);service.step(shop,"");

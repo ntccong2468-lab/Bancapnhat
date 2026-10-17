@@ -217,7 +217,7 @@ public final class OzonExemplarService {
 
         private OzonPostingDto readDetail(String number) throws IOException {
             ListingIdentity.require(shop);
-            OzonPostingDto posting = OzonJson.parsePostingDetail(api.getPosting(number, true));
+            OzonPostingDto posting = OzonJson.requirePostingDetail(api.getPosting(number, true),number);
             if (!number.equals(posting.postingNumber())) {
                 throw new IOException("Ozon returned a different posting from the confirmed selection.");
             }
@@ -286,7 +286,7 @@ public final class OzonExemplarService {
             Shop shop, String postingNumber, boolean stopAfterValidation) throws IOException {
         OzonApiClient api = apiClients.apply(
                 shop.getId(), new OzonCredentials(shop.getClientId(), shop.getApiKey()));
-        OzonPostingDto posting = OzonJson.parsePostingDetail(api.getPosting(postingNumber, true));
+        OzonPostingDto posting = OzonJson.requirePostingDetail(api.getPosting(postingNumber, true),postingNumber);
         postings.upsertDetail(shop.getId(), posting);
         Map<String, String> skuMappings = mappings.findResolvedBySku(shop.getId());
         OzonRequirementGuard.PreparationPlan plan = OzonRequirementGuard.plan(

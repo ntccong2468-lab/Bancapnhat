@@ -56,6 +56,30 @@ class Gs1SyncServiceTest {
             Thread.sleep(100);release.countDown();assertTrue(first.get(5,TimeUnit.SECONDS).complete());assertTrue(second.get(5,TimeUnit.SECONDS).complete());assertEquals(1,calls.get());assertEquals(1,new SyncRunRepository().list(shop.getId(),0,10).size());
         }finally{release.countDown();pool.shutdownNow();}
     }
+    @Test void settingsFailureRemainsVisibleEvenWhenItsReportCannotBeWritten()throws Exception{
+        try(var c=Database.getConnection();var s=c.createStatement()){
+            s.execute("UPDATE znack_settings SET signer_tested_at=NULL");
+            s.execute("CREATE TRIGGER reject_gs1_failure BEFORE INSERT ON sync_run_events BEGIN SELECT RAISE(ABORT,'synthetic report failure'); END");
+        }
+        var failure=assertThrows(com.vncode.app.features.gtinsync.RegisteredGtinProof.UnverifiedOwnerException.class,
+                ()->new Gs1SyncService(new Gs1AutomaticSyncService((s,settings,scope)->{throw new AssertionError("Must not call API");})).sync(shop));
+        assertEquals(com.vncode.app.features.gtinsync.RegisteredGtinProof.OwnerFailure.SIGNATURE_NOT_TESTED,failure.reason());
+        assertEquals(1,failure.getSuppressed().length);
+    }
+    @Test void fatalSourceFailureUnblocksAllCoalescedReaders()throws Exception{
+        var started=new CountDownLatch(1);var release=new CountDownLatch(1);var joined=new CountDownLatch(1);var calls=new AtomicInteger();
+        var original=new AssertionError("Synthetic source failure");
+        try(var pool=Executors.newFixedThreadPool(2)){
+            var service=new Gs1SyncService(new Gs1AutomaticSyncService((s,settings,scope)->{calls.incrementAndGet();started.countDown();assertTrue(release.await(5,TimeUnit.SECONDS));throw original;}));
+            var first=pool.submit(()->service.sync(shop));assertTrue(started.await(5,TimeUnit.SECONDS));
+            var second=pool.submit(()->{joined.countDown();return service.sync(shop);});
+            try{assertTrue(joined.await(5,TimeUnit.SECONDS));assertThrows(TimeoutException.class,()->second.get(150,TimeUnit.MILLISECONDS));}
+            finally{release.countDown();}
+            assertSame(original,assertThrows(ExecutionException.class,()->first.get(5,TimeUnit.SECONDS)).getCause());
+            assertSame(original,assertThrows(ExecutionException.class,()->second.get(5,TimeUnit.SECONDS)).getCause());
+            assertEquals(1,calls.get());
+        }
+    }
     @Test void closingAViewObserverDoesNotCancelOrReceiveLaterWork()throws Exception{
         var updates=new AtomicInteger();var observer=Gs1SyncService.observe(shop,u->updates.incrementAndGet());observer.close();new Gs1SyncService(new Gs1AutomaticSyncService((s,settings,scope)->good())).sync(shop);assertEquals(0,updates.get());
     }

@@ -110,7 +110,7 @@ public final class SyncCoordinator implements AutoCloseable {
         }
     }
     private void execute(Key key,Entry entry,SyncStreamStore.State before,boolean interactive){
-        try(var scope=SyncDataScope.enter(dataDirectory)){executeScoped(key,entry,before,interactive);}
+        try(var scope=SyncDataScope.enter(dataDirectory);var lane=com.vncode.app.shared.MarketplaceRequestBudget.lane(!interactive)){executeScoped(key,entry,before,interactive);}
     }
     private void executeScoped(Key key,Entry entry,SyncStreamStore.State before,boolean interactive){
         Page result=null;SyncFailure failure=null;

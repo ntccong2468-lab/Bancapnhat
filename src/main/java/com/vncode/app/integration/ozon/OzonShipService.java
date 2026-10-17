@@ -60,7 +60,7 @@ public final class OzonShipService {
         if (!blocksShipRetry(priorCheckpoint)) LicenseRuntime.require(Permission.PACKING);
         OzonApiClient api = apiClients.apply(
                 shop.getId(), new OzonCredentials(shop.getClientId(), shop.getApiKey()));
-        OzonPostingDto posting = OzonJson.parsePostingDetail(api.getPosting(postingNumber, true));
+        OzonPostingDto posting = OzonJson.requirePostingDetail(api.getPosting(postingNumber, true),postingNumber);
         postings.upsertDetail(shop.getId(), posting);
         String previousAction = jobs.latestActionStatus(shop.getId(), "ship", posting.postingNumber());
         if (blocksShipRetry(previousAction)) {
@@ -110,7 +110,7 @@ public final class OzonShipService {
     }
 
     private OzonPostingDto refresh(OzonApiClient api, int shopId, String postingNumber) throws IOException {
-        OzonPostingDto posting = OzonJson.parsePostingDetail(api.getPosting(postingNumber, true));
+        OzonPostingDto posting = OzonJson.requirePostingDetail(api.getPosting(postingNumber, true),postingNumber);
         postings.upsertDetail(shopId, posting);
         return posting;
     }

@@ -101,7 +101,11 @@ public final class ZnackAutoSyncService {
             if(productCount==0){runs.stage(shop,id,"PARTIAL","REPORT","PRODUCT_CATALOG_EMPTY");return new SyncCoordinator.Page("",true,source.size(),new SyncFailure("PRODUCT_CATALOG_EMPTY",Duration.ofMinutes(1),true));}
             runs.stage(shop,id,"RUNNING","MATCHING",issues.isEmpty()?"":"CATALOG_PARTIAL");
             return new SyncCoordinator.Page(id,false,source.size());
-        }catch(Exception failure){runs.stage(shop,id,"FAILED","ZNACK_SOURCE",SyncFailure.of(failure,0).code());throw failure;}
+        }catch(Exception failure){
+            try{runs.stage(shop,id,"FAILED","ZNACK_SOURCE",SyncFailure.of(failure,0).code());}
+            catch(RuntimeException reporting){failure.addSuppressed(reporting);}
+            throw failure;
+        }
     }
     private static SyncRunRepository.Item reportItem(String run,String product,String variant,String sku,String article,String color,String size,String gtin,String state,String error,String evidence){return new SyncRunRepository.Item(UUID.randomUUID().toString(),run,product,variant,sku,article,color,size,gtin,state,"MATCHING",error,"",evidence);}
     private List<RegisteredGtin> match(Shop shop,ProductRow product,GtinCatalogIndex index)throws Exception {

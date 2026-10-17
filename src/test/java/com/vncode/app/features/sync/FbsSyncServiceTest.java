@@ -60,6 +60,26 @@ class FbsSyncServiceTest {
         shop=GtinWriteTestFixture.shop(Marketplace.OZON);server=new MockWebServer();server.start();
         return new FbsSyncService(s->new OzonApiClient(s.getId(),new OzonCredentials(s.getClientId(),s.getApiKey()),server.url("/"),new OkHttpClient.Builder().callTimeout(Duration.ofSeconds(3)).build(),new OzonApiRateLimiter(Duration.ZERO),new OzonRetryPolicy(1,Duration.ofMillis(1),Duration.ofMillis(1))),()->{throw new AssertionError("Not WB");});
     }
+    @Test void activeShipmentIsRefreshedDuringALongScanAndChangingItDoesNotLoseBackgroundPosition()throws Exception{
+        shop=GtinWriteTestFixture.shop(Marketplace.WILDBERRIES);
+        try(var c=Database.getConnection();var s=c.createStatement()){s.execute("INSERT INTO wb_supplies(shop_id,supply_id,done,synced_at) VALUES(1,'A',0,'now'),(1,'B',0,'now'),(1,'C',0,'now'),(1,'Y',0,'now'),(1,'Z',0,'now')");}
+        var read=new ArrayList<String>();var time=new java.util.concurrent.atomic.AtomicLong();
+        var api=new WbApiClient(){
+            @Override public WbSupplyDto getSupplyDetail(String token,String id){read.add(id);return JSON.fromJson("{\"id\":\""+id+"\",\"done\":false}",WbSupplyDto.class);}
+            @Override public WbSupplyOrderIdsResponse getSupplyOrderIds(String token,String id){return JSON.fromJson("{\"orderIds\":[]}",WbSupplyOrderIdsResponse.class);}
+        };
+        var service=new FbsSyncService(s->{throw new AssertionError("Not Ozon");},()->api,time::get);
+        assertTrue(service.selectSupply(1,"Z"));assertFalse(service.selectSupply(1,"Z"));
+        var cursor=service.step(shop,SyncCoordinator.Stream.SUPPLY_CONTENT,"").checkpoint();
+        cursor=service.step(shop,SyncCoordinator.Stream.SUPPLY_CONTENT,cursor).checkpoint();
+        time.addAndGet(java.util.concurrent.TimeUnit.SECONDS.toNanos(11));
+        cursor=service.step(shop,SyncCoordinator.Stream.SUPPLY_CONTENT,cursor).checkpoint();
+        cursor=service.step(shop,SyncCoordinator.Stream.SUPPLY_CONTENT,cursor).checkpoint();
+        assertEquals(List.of("Z","A","Z","B"),read);
+        assertTrue(service.selectSupply(1,"Y"));cursor=service.step(shop,SyncCoordinator.Stream.SUPPLY_CONTENT,cursor).checkpoint();
+        service.step(shop,SyncCoordinator.Stream.SUPPLY_CONTENT,cursor);
+        assertEquals(List.of("Z","A","Z","B","Y","C"),read,"Changing the visible shipment must preempt the scan, then resume it");
+    }
     @Test void ozonActivePostingLeavingUnfulfilledQueueIsReconciledByDetailStatus()throws Exception{
         var service=ozon();server.enqueue(new MockResponse().setBody("{\"postings\":[{\"posting_number\":\"101-1-1\",\"status\":\"awaiting_packaging\",\"products\":[]}],\"has_next\":false}"));
         assertTrue(service.step(shop,SyncCoordinator.Stream.FBS_QUEUE,"").complete());

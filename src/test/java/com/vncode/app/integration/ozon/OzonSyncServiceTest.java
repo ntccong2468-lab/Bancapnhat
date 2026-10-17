@@ -64,6 +64,26 @@ class OzonSyncServiceTest {
         }
         assertEquals(0,count("SELECT count(*) FROM ozon_products"));
     }
+    private void rotateCredentialsDuringResponse(String body) {
+        server.setDispatcher(new okhttp3.mockwebserver.Dispatcher(){
+            @Override public MockResponse dispatch(okhttp3.mockwebserver.RecordedRequest request) {
+                try(var c=Database.getConnection();var s=c.createStatement()){s.execute("UPDATE shops SET api_key='rotated-synthetic-key' WHERE id=1");}
+                catch(java.sql.SQLException e){throw new AssertionError(e);}
+                return json(body);
+            }
+        });
+    }
+    @Test void aCatalogResponseCannotBeSavedAfterTheShopCredentialWasChanged()throws Exception{
+        rotateCredentialsDuringResponse("{\"result\":{\"items\":[{\"product_id\":\"101\",\"offer_id\":\"A\"}],\"last_id\":\"next\"}}");
+        assertThrows(SecurityException.class,()->new OzonCatalogSyncService(1,api).syncFromStart());
+        assertEquals(1,server.getRequestCount());assertEquals(0,count("SELECT count(*) FROM ozon_products"));
+        assertEquals("",new OzonSyncStateRepository().find(1).productsLastId());
+    }
+    @Test void aPostingResponseCannotBeSavedAfterTheShopCredentialWasChanged()throws Exception{
+        rotateCredentialsDuringResponse("{\"result\":{\"posting_number\":\"P-1\",\"status\":\"awaiting_packaging\",\"products\":[]}}");
+        assertThrows(SecurityException.class,()->new OzonPostingSyncService(1,api).refresh("P-1",false));
+        assertEquals(1,server.getRequestCount());assertEquals(0,count("SELECT count(*) FROM ozon_postings"));
+    }
     @Test void registrationSnapshotCannotTurnMissingDetailsIntoAPlaceholderProduct() throws Exception {
         server.enqueue(json("{\"result\":{\"items\":[{\"product_id\":\"101\",\"offer_id\":\"A\"}],\"last_id\":\"next\"}}"));
         server.enqueue(json("{\"items\":[]}"));server.enqueue(json("{\"result\":[]} "));
@@ -71,6 +91,38 @@ class OzonSyncServiceTest {
         assertEquals(0,count("SELECT count(*) FROM ozon_products"));assertEquals("",new OzonSyncStateRepository().find(1).productsLastId());
     }
     private static void failSnapshot(){throw new AssertionError("Partial details cannot emit a completed page");}
+    @Test void postingHistoryCannotAdvanceItsWindowOnMalformedSuccess()throws Exception{
+        server.enqueue(json("{}"));
+        assertThrows(IOException.class,()->new OzonPostingSyncService(1,api).sync());
+        assertEquals("",new OzonSyncStateRepository().find(1).postingsChangedSince());assertEquals(0,count("SELECT count(*) FROM ozon_postings"));
+    }
+    @Test void unfulfilledQueueCannotIgnoreMalformedProducts()throws Exception{
+        server.enqueue(json("{\"postings\":[{\"posting_number\":\"P-1\",\"status\":\"awaiting_packaging\",\"products\":[{}]}],\"has_next\":false}"));
+        assertThrows(IOException.class,()->new OzonPostingSyncService(1,api).syncUnfulfilled());assertEquals(0,count("SELECT count(*) FROM ozon_postings"));
+    }
+    @Test void refreshRejectsAForeignPostingWithoutWritingIt()throws Exception{
+        server.enqueue(json("{\"result\":{\"posting_number\":\"OTHER\",\"status\":\"awaiting_deliver\",\"products\":[]}}"));
+        assertEquals("FBS_FOREIGN_POSTING",assertThrows(IOException.class,()->new OzonPostingSyncService(1,api).refresh("EXPECTED",false)).getMessage());assertEquals(0,count("SELECT count(*) FROM ozon_postings"));
+    }
+    @Test void missingQuantityCannotOverwriteThePreviouslyObservedOrderItems()throws Exception{
+        new OzonPostingRepository().upsertDetail(1,OzonJson.parsePostingDetail(com.google.gson.JsonParser.parseString(posting()).getAsJsonObject()));
+        server.enqueue(json("{\"result\":{\"posting_number\":\"POST-TEXT-1\",\"status\":\"awaiting_packaging\",\"products\":[{\"sku\":\"101\",\"offer_id\":\"offer-1\"}]}}"));
+        assertThrows(IOException.class,()->new OzonPostingSyncService(1,api).refresh("POST-TEXT-1",false));assertEquals(2,new OzonPostingRepository().find(1,"POST-TEXT-1").items().getFirst().quantity());
+    }
+    @Test void ordinaryRefreshRejectsMalformedListInsteadOfRecordingAnEmptySuccess()throws Exception{
+        for(String payload:java.util.List.of("{}","{\"result\":{\"items\":[{}]}}")){
+            server.enqueue(json(payload));assertThrows(IOException.class,()->new OzonCatalogSyncService(1,api).syncFromStart());
+        }
+        assertEquals("",new OzonSyncStateRepository().find(1).productsLastId());
+    }
+    @Test void ordinaryRefreshCannotEraseAnExistingProductWhenDetailsAreMissing()throws Exception{
+        var old=new OzonProductDto("101","A","501","Existing product","https://cdn.example/old.jpg",false,"",java.util.List.of("existing-barcode")).withCardAttributes("A","Blue","M","Clothing","Male");
+        new OzonCatalogRepository().upsertPage(1,java.util.List.of(old),"previous-cursor");
+        server.enqueue(json("{\"result\":{\"items\":[{\"product_id\":\"101\",\"offer_id\":\"A\"}],\"last_id\":\"next\"}}"));
+        server.enqueue(json("{\"items\":[]}"));server.enqueue(json("{\"result\":[]}"));
+        assertThrows(IOException.class,()->new OzonCatalogSyncService(1,api).syncFromStart());
+        var retained=new OzonCatalogRepository().findAll(1).getFirst();assertEquals(old.name(),retained.name());assertEquals(old.barcodes(),retained.barcodes());assertEquals(old.sku(),retained.sku());assertEquals("previous-cursor",new OzonSyncStateRepository().find(1).productsLastId());
+    }
     @Test void explicitSizeMigrationPreservesOldProductsAndBarcodesWithoutGuessingTheirSizeSystem()throws Exception{
         var product=new OzonProductDto("101","A-52","501","Synthetic","",false,"",java.util.List.of("legacy-code")).withCardAttributes("A","Blue","52","Clothing","Male","L","52");
         new OzonCatalogRepository().upsertPage(1,java.util.List.of(product),"old-cursor");
@@ -171,7 +223,7 @@ class OzonSyncServiceTest {
                 + "\",\"offer_id\":\"offer-1\",\"sku\":\"sku-1\",\"name\":\"Item\","
                 + "\"primary_image\":\"https://cdn.example/item.jpg\"}]}"));
         server.enqueue(json("{\"result\":[{\"id\":\"" + externalId
-                + "\",\"offer_id\":\"offer-card\",\"description_category_id\":\"17000001\","
+                + "\",\"offer_id\":\"offer-1\",\"description_category_id\":\"17000001\","
                 + "\"type_id\":\"90001\",\"attributes\":["
                 + "{\"id\":10096,\"values\":[{\"value\":\"deep black\"}]},"
                 + "{\"id\":4295,\"values\":[{\"value\":\"176\"}]},{\"id\":9533,\"values\":[{\"value\":\"XXL\"}]},"

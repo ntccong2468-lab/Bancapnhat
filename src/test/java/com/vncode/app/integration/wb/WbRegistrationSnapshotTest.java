@@ -31,4 +31,25 @@ class WbRegistrationSnapshotTest {
         var response=page("{\"cards\":[{\"nmID\":101,\"sizes\":[]}],\"cursor\":{\"total\":100,\"updatedAt\":\"same\",\"nmID\":101}}");
         assertEquals("WB_REPEATED_PRODUCT_CURSOR",assertThrows(java.io.IOException.class,()->service(List.of(response,response)).syncFromStart(shop,p->{})).getMessage());assertEquals(2,seen.size());
     }
+    @Test void incrementalReadAlsoRejectsMissingPagesAndCursors(){
+        for(String json:List.of("{}","{\"cards\":[{\"nmID\":101}]}"))
+            assertThrows(java.io.IOException.class,()->service(List.of(page(json))).sync(shop));
+    }
+    private WbProductCardsResponse fullPage(String cursor){
+        var body=new com.google.gson.JsonObject();var cards=new com.google.gson.JsonArray();
+        for(int id=101;id<=200;id++){var card=new com.google.gson.JsonObject();card.addProperty("nmID",id);card.add("sizes",new com.google.gson.JsonArray());cards.add(card);}
+        body.add("cards",cards);var next=new com.google.gson.JsonObject();next.addProperty("total",100);next.addProperty("updatedAt",cursor);next.addProperty("nmID",200);body.add("cursor",next);return new Gson().fromJson(body,WbProductCardsResponse.class);
+    }
+    @Test void incrementalReadCannotLoopOnARepeatedCursor(){
+        var response=fullPage("same");
+        assertEquals("WB_REPEATED_PRODUCT_CURSOR",assertThrows(java.io.IOException.class,()->service(List.of(response,response)).sync(shop)).getMessage());
+        assertEquals(2,seen.size());
+    }
+    @Test void aFailedLaterPageKeepsTheCheckpointWithoutClaimingFullSuccess()throws Exception{
+        var states=new WbSyncStateRepository();states.updateProductsCursor(1,"before",99L,"previous-success");
+        assertThrows(java.io.IOException.class,()->service(List.of(fullPage("page-1"),page("{}"))).sync(shop));
+        var failed=states.getShopSyncState(1);assertEquals("page-1",failed.productsCursorUpdatedAt());assertEquals("previous-success",failed.productsLastSyncedAt());
+        seen.clear();assertEquals(0,service(List.of(page("{\"cards\":[],\"cursor\":{\"total\":0}}"))).sync(shop));
+        assertEquals(List.of("page-1"),seen);assertNotEquals("previous-success",states.getShopSyncState(1).productsLastSyncedAt());
+    }
 }
