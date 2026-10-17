@@ -4,7 +4,7 @@
   "complete": false,
   "developmentComplete": true,
   "officialReleasePublished": false,
-  "phase": "linux-passed-windows-acceptance-running",
+  "phase": "final-modal-verified-exact-source-regression-running",
   "licenseIntegration": {
     "implemented": true,
     "productionReady": false,
@@ -15,16 +15,9 @@
     "productionLicenseVerified": false,
     "windowsNativeBuildThisVersion": false,
     "fullJavaRegression": {
-      "source": "f41386017ec6516a2322579dd2ee22306378d6e4",
-      "result": "passed",
-      "tests": 1684,
-      "failures": 0,
-      "errors": 0,
-      "skipped": 2,
-      "passed": 1682,
-      "logSha256": "d9dc3779a256e630940ed6a4ca4fb8563ceb50e9c04d8dad6488ee5acbe3c223",
-      "elapsed": "05:32 min",
-      "finishedAt": "2026-10-17T18:12:17Z"
+      "source": "2d3abfd32f3fa326695174c6c3730c9aac168581",
+      "result": "running",
+      "expectedTests": 1685
     },
     "node": {
       "tests": 60,
@@ -40,13 +33,25 @@
       "logSha256": "3707e204de53cce94c33aa728da54ba6d5ac97c24033592ee4014bd9a745008c"
     },
     "nativeWindowsRun": {
-      "run": 39056670575,
-      "source": "f41386017ec6516a2322579dd2ee22306378d6e4",
-      "status": "pending",
-      "url": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/39056670575"
+      "run": 39058310504,
+      "source": "2d3abfd32f3fa326695174c6c3730c9aac168581",
+      "status": "running",
+      "url": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/39058310504"
     },
     "finalReport": "docs/validation/2026-10-17-vncode-1416-final-acceptance.json",
-    "liveReadReport": "docs/validation/2026-10-17-vncode-1416-live-read.json"
+    "liveReadReport": "docs/validation/2026-10-17-vncode-1416-live-read.json",
+    "priorLinuxRegression": {
+      "source": "f41386017ec6516a2322579dd2ee22306378d6e4",
+      "result": "passed",
+      "tests": 1684,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 2,
+      "passed": 1682,
+      "logSha256": "d9dc3779a256e630940ed6a4ca4fb8563ceb50e9c04d8dad6488ee5acbe3c223",
+      "elapsed": "05:32 min",
+      "finishedAt": "2026-10-17T18:12:17Z"
+    }
   },
   "scope": [
     "Vietnamese news in bounded frame",
@@ -57,6 +62,6 @@
     "Clear-water Liquid Glass and contrast",
     "One-click listing copy with progress"
   ],
-  "applicationSource": "f41386017ec6516a2322579dd2ee22306378d6e4",
-  "sourceCommit": "f41386017ec6516a2322579dd2ee22306378d6e4"
+  "applicationSource": "2d3abfd32f3fa326695174c6c3730c9aac168581",
+  "sourceCommit": "2d3abfd32f3fa326695174c6c3730c9aac168581"
 }
