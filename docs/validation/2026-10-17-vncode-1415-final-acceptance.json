@@ -2,7 +2,7 @@
   "version": "1.4.15",
   "baseVersion": "1.4.13",
   "sourceCommit": "16f7b43047f50057df88f4bda70939da4b634a38",
-  "phase": "all-checks-passed-stable-draft-preparing",
+  "phase": "published-latest-verified",
   "ownerRequestedLatestAfterFullRecheck": true,
   "inheritedApplicationSource": "6ba183cd5fb4420e37df13035581fee08c2d2155",
   "applicationChangesAfterInheritedSource": [
@@ -160,11 +160,27 @@
     "upgradesPassed": 11
   },
   "publication": {
-    "published": false,
-    "latestChanged": false,
-    "currentSellerLatest": "1.4.13",
+    "published": true,
+    "latestChanged": true,
+    "currentSellerLatest": "1.4.15",
     "ownerRequestedPublication": true,
-    "standardLicenseGateAccepted": false
+    "standardLicenseGateAccepted": false,
+    "releaseId": 415683721,
+    "tag": "v1.4.15",
+    "publishedAt": "2026-10-17T08:47:32Z",
+    "url": "https://github.com/ntccong2468-lab/Bancapnhat/releases/tag/v1.4.15",
+    "installerUrl": "https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.4.15/VN-code-1.4.15-Windows-x64.exe",
+    "buildRunId": 39016087535,
+    "buildSourceCommit": "16f7b43047f50057df88f4bda70939da4b634a38",
+    "uploadWorkflowRunId": 39018536804,
+    "uploadedAssets": 22,
+    "allAssetDigestsMatchVerifiedBuild": true,
+    "ownerRequestedFullRecheckBeforePublication": true,
+    "standardProductionLicenseGateAccepted": false,
+    "manualPublicationFollowingOwnerInstruction": true,
+    "licenseVerificationCodeAndReleaseGateUnchanged": true,
+    "productionAcceptanceClaimsNotElevated": true,
+    "liveProductionLicenseAcceptanceIncomplete": true
   },
   "limitations": [
     "Production license activation/revocation for the exact build was not accepted against the real backend",
@@ -611,6 +627,51 @@
       "jarVersion": "1.4.15",
       "jarSha256": "59b866f7997340da4f0ac7e841b478f896c49a29e651d9115b634890c210111e",
       "compiled": true
+    }
+  ],
+  "publicDownload": {
+    "result": "passed",
+    "releaseId": 415683721,
+    "releaseUrl": "https://github.com/ntccong2468-lab/Bancapnhat/releases/tag/v1.4.15",
+    "tag": "v1.4.15",
+    "publishedAt": "2026-10-17T08:47:32Z",
+    "api": "https://api.github.com/repos/ntccong2468-lab/Bancapnhat/releases/latest",
+    "publicLatestVerified": true,
+    "browserDownloadUrl": "https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.4.15/VN-code-1.4.15-Windows-x64.exe",
+    "downloadedWithoutAuthorizationHeader": true,
+    "httpStatus": 200,
+    "bytes": 145456128,
+    "sha256": "fc3ecc9be0eefa37bb241d9a86f6b6715bb5ad75f51ed178ce10230e51205c16",
+    "matchesSuccessfulWindowsBuild": true,
+    "matchesGitHubAssetDigest": true,
+    "windowsPeSignature": true,
+    "changelogPresent": true,
+    "verifiedAt": "2026-10-17T08:47:39.031243+00:00"
+  },
+  "updaterReadback": [
+    {
+      "downloadUrl": "https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.4.15/VN-code-1.4.15-Windows-x64.exe",
+      "changelogPresent": true,
+      "bytes": 145456128,
+      "scope": "Verified Windows JAR metadata parser executed in cloud over actual public Latest API JSON",
+      "sellerDesktopPopupObserved": false,
+      "sha256": "fc3ecc9be0eefa37bb241d9a86f6b6715bb5ad75f51ed178ce10230e51205c16",
+      "verifiedJarVersion": "1.4.13",
+      "result": "passed",
+      "olderVersionsDetected": true,
+      "releaseVersion": "1.4.15"
+    },
+    {
+      "result": "passed",
+      "verifiedJarVersion": "1.4.15",
+      "sha256": "fc3ecc9be0eefa37bb241d9a86f6b6715bb5ad75f51ed178ce10230e51205c16",
+      "sellerDesktopPopupObserved": false,
+      "scope": "Verified Windows JAR metadata parser executed in cloud over actual public Latest API JSON",
+      "bytes": 145456128,
+      "changelogPresent": true,
+      "downloadUrl": "https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.4.15/VN-code-1.4.15-Windows-x64.exe",
+      "releaseVersion": "1.4.15",
+      "olderVersionsDetected": true
     }
   ]
 }

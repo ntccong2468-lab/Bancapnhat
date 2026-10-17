@@ -243,7 +243,7 @@
   "publication": {
     "published": false,
     "latestChanged": false,
-    "currentSellerLatest": "1.4.13",
+    "currentSellerLatest": "1.4.15",
     "ownerRequestedPublication": true,
     "draftReleaseId": 415658561,
     "uploadInProgress": false,
@@ -258,7 +258,8 @@
       "Exact-version production license acceptance required by existing automated publisher remains outstanding"
     ],
     "ownerRequestedFinalRecheckAndLatest": true,
-    "repeatBuildRunId": 39015146530
+    "repeatBuildRunId": 39015146530,
+    "supersededByPublishedRelease": "https://github.com/ntccong2468-lab/Bancapnhat/releases/tag/v1.4.15"
   },
   "inheritedImplementation": "docs/releases/VN-code-1.4.13-status.json",
   "sourceCommit": "6ba183cd5fb4420e37df13035581fee08c2d2155",

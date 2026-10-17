@@ -42,4 +42,12 @@ Kiểm tra lại parser của bản 1.4.15 trên phản hồi API thật đã l�
 - [Lượt Windows thành công](https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/39016087535).
 - `VN-code-1.4.15-Windows-x64.exe`: 145.456.128 byte; SHA-256 `fc3ecc9be0eefa37bb241d9a86f6b6715bb5ad75f51ed178ce10230e51205c16`. Tệp tải từ đúng lượt build, kiểm tra PE/MZ và checksum đạt.
 - [Bằng chứng Windows / nâng cấp / giao diện](2026-10-17-vncode-1415-windows-release-checks.json).
-- Đang chuẩn bị bản phát hành và sẽ kiểm tra link công khai, checksum và parser cập nhật của cả 1.4.13 / 1.4.15 sau khi đổi Latest.
+- Đã Published/Latest lúc **11:47:32 ngày 17/10/2026 (Moskva, UTC+3)**. Tải công khai không gửi Authorization trả HTTP 200; đủ 145.456.128 byte, SHA-256 và PE đều khớp artifact. Parser từ JAR Windows đã kiểm chứng của cả 1.4.13 và 1.4.15 đọc đúng phiên bản 1.4.15, EXE, digest, kích thước và ghi chú từ API Latest công khai. Chưa quan sát hộp thông báo trên máy seller thật.
+
+## Phát hành và cập nhật trong app
+
+- [VNCode 1.4.15 — Published/Latest](https://github.com/ntccong2468-lab/Bancapnhat/releases/tag/v1.4.15).
+- [Bộ cài Windows công khai](https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.4.15/VN-code-1.4.15-Windows-x64.exe).
+- [Bằng chứng xuất bản, tải công khai và đọc lại metadata](2026-10-17-vncode-1415-publication.json).
+- Cả 22 asset được đối chiếu SHA-256/kích thước trước xuất bản. Tag giữ nguyên source `16f7b43047f50057df88f4bda70939da4b634a38`.
+- Chủ ứng dụng tiếp tục chỉ dẫn phát hành Latest sau kiểm tra lại. Việc xuất bản thủ công giữ nguyên `complete=false`, `licenseIntegration.productionReady=false`, gate publisher và mô tả phạm vi kiểm thử; không gán trạng thái nghiệm thu license sản xuất từ fixture. Ghi chú phát hành công khai đã nêu phần kích hoạt backend/chứng thư doanh nghiệp chưa kiểm tra trực tiếp.

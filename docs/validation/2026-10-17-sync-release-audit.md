@@ -65,3 +65,7 @@ API đơn mới và shipment đều trả 200: 4 đơn mới, 293 shipment. Lị
 Token mới khác Secret được inject trong tiến trình môi trường hiện tại. Chỉ dùng token mới trong bộ nhớ để kiểm tra; không ghi token vào source, báo cáo hoặc GitHub. Kết quả 401 trước đó vẫn là lịch sử của Secret cũ, không còn đại diện cho token WB mới.
 
 Theo yêu cầu tiếp theo của chủ ứng dụng, đang chạy lại `clean verify`, toàn bộ Node/Portal và Windows build `39015146530` trên đúng source `6ba183c`, sau đó kiểm tra artifact mới trước khi phát hành Latest. Xem [báo cáo lượt kiểm tra cuối](2026-10-17-vncode-1414-final-recheck.json).
+
+## Kết quả phát hành cuối
+
+Toàn bộ phần sửa chức năng trong nháp 1.4.14 đã được đưa vào **1.4.15 Published/Latest**, nâng cấp trực tiếp từ 1.4.13. Lượt kiểm tra lại phát hiện race của fixture JavaFX; sau sửa, Linux và Windows đều đạt 1.664 bài / 0 failures/errors / 2 platform skips. Xem [nghiệm thu cuối 1.4.15](2026-10-17-vncode-1415-final-acceptance.md) và [bản phát hành công khai](https://github.com/ntccong2468-lab/Bancapnhat/releases/tag/v1.4.15).
