@@ -31,4 +31,13 @@ class ZnackGtinBackgroundServiceTest {
  @Test void uncertainWriteIsNeverAutomaticallyReplayed()throws Exception{
   var operations=new Operations(2);operations.unknown=true;assertThrows(java.io.IOException.class,()->new ZnackGtinBackgroundService(operations).run(shop,Set.of(),p->{}));assertEquals(1,operations.executions);assertEquals(0,operations.links);
  }
+ @Test void blockedValidationIsReportedAndNeverSent()throws Exception{
+  var recorded=new java.util.concurrent.atomic.AtomicInteger();
+  var operations=new Operations(3){
+   public Job preview(Shop s,List<Selection> selection){var job=super.preview(s,selection);return new Job(job.id(),job.shopId(),job.marketplace(),job.owner(),job.fields(),job.createdAt(),false,false,job.rows().stream().map(r->r.next(State.BLOCKED,"","SOURCE_AMBIGUOUS")).toList());}
+   public void blocked(Shop s,String run,List<SyncRunRepository.Item> rows,Job job){recorded.addAndGet(job.rows().size());}
+  };
+  var result=new ZnackGtinBackgroundService(operations).run(shop,Set.of(),p->{});assertEquals(3,result.progress().blocked());assertEquals(3,recorded.get());assertEquals(0,operations.executions);assertEquals(0,operations.links);
+ }
+
 }

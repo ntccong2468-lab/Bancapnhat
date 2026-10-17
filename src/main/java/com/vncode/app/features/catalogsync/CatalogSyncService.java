@@ -92,7 +92,7 @@ public final class CatalogSyncService {
                 if(patch!=null)for(var issue:patch.items().getFirst().issues())diffs.add(new Diff(issue.field(),List.of(),List.of(),issue.code(),issue.blocking()));
                 boolean blocked=diffs.stream().anyMatch(Diff::blocking);
                 List<ProductDocument> selectedDocuments=options.fields().contains(Field.DOCUMENTS)?options.documents().getOrDefault(item.key(),source.details().documents().stream().map(d->CatalogSyncMapper.document(d,shop.getMarketplace())).toList()):null;
-                var row=new Row(UUID.randomUUID().toString(),item.key(),source,actual.barcodes(),diffs,selectedDocuments,options.values().getOrDefault(item.key(),Map.of()),patch==null?"":patch.id(),"",blocked?State.BLOCKED:State.READY,"");
+                var row=new Row(UUID.randomUUID().toString(),item.key(),source,actual.barcodes(),diffs,selectedDocuments,options.values().getOrDefault(item.key(),Map.of()),patch==null?"":patch.id(),"",blocked?State.BLOCKED:State.READY,blocked?diffs.stream().filter(Diff::blocking).map(Diff::code).filter(code->!code.isBlank()).findFirst().orElse("GTIN_VALIDATION_BLOCKED"):"");
                 bytes+=(long)ProductJson.GSON.toJson(row).length()*2;if(bytes>64L*1024*1024)throw new IllegalArgumentException("CATALOG_PREVIEW_LIMIT");rows.add(row);
             }
         }

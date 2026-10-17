@@ -44,6 +44,7 @@ public final class ProductBulkEditPane extends BorderPane {
     private int readbackRounds;
     private boolean disposed,busy,resetting,ready,compact,sendAfterPrepare;
     private Runnable onBack,onSaved;
+    private VBox compactForm;
     private String notifiedJob;
 
     public ProductBulkEditPane(){this(new ProductBulkEditService(),ShopReadCoordinator.shared());}
@@ -204,6 +205,7 @@ public final class ProductBulkEditPane extends BorderPane {
         technical.setText(i.preview().preview().requestJson());
     }
     private void buttons(){
+        if(compactForm!=null)compactForm.setDisable(busy);
         preview.setDisable(busy||shop==null||keys.isEmpty());
         apply.setDisable(compact?busy||shop==null||keys.isEmpty():busy||jobId==null||!ready||previewRevision!=revision||!confirm.isSelected());
         reconcile.setDisable(busy||jobId==null||results.getItems().stream().noneMatch(i->i.state()==CopyState.REMOTE_PROCESSING||i.state()==CopyState.RECONCILE_REQUIRED));
@@ -247,7 +249,7 @@ public final class ProductBulkEditPane extends BorderPane {
     private void applyOnce(){if(busy)return;sendAfterPrepare=true;prepare();}
     void compact(){
         compact=true;setPadding(new Insets(12));setTop(title);title.setWrapText(true);
-        var form=new VBox(10);form.setMinWidth(0);
+        var form=new VBox(10);compactForm=form;form.setMinWidth(0);
         if(field.equals("brand")){
             value.setPromptText(tr("bulk.brand_search"));suggestions.setPrefHeight(350);suggestions.setMinHeight(120);
             suggestions.getSelectionModel().selectedItemProperty().addListener((o,a,b)->{if(b!=null)value.setText(b);});

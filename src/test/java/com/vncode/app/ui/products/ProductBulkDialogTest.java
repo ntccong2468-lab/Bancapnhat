@@ -36,13 +36,20 @@ class ProductBulkDialogTest {
  @Test void genderAndMaterialAreBatchPickersAndDocumentsHaveVisibleCalendars()throws Exception{
   fx(()->{pane.open(shop,"gender",keys);pane.compact();pane.applyCss();pane.layout();assertEquals(5,pane.lookupAll(".radio-button").size());assertNull(pane.lookup("#editResults"));pane.open(shop,"material",keys);pane.compact();pane.applyCss();pane.layout();assertNotNull(pane.lookup("#bulkMaterialName"));assertNotNull(pane.lookup("#bulkMaterialPercent"));pane.open(shop,"documents",keys);pane.compact();pane.applyCss();pane.layout();assertNotNull(pane.lookup("#bulkExistingDocument"));assertNotNull(pane.lookup("#editDocumentFrom"));assertNotNull(pane.lookup("#editDocumentUntil"));return null;});idle();
  }
+ @Test void acceptedBatchFreezesInputsUntilTheWriteCompletes()throws Exception{
+  adapter.entered=new CountDownLatch(1);adapter.release=new CountDownLatch(1);
+  try{
+   fx(()->{pane.open(shop,"brand",keys);pane.compact();pane.applyCss();pane.layout();((TextField)pane.lookup("#editValue")).setText("Accepted brand");((Button)pane.lookup("#editApply")).fire();return null;});
+   assertTrue(adapter.entered.await(5,TimeUnit.SECONDS));fx(()->{assertTrue(pane.lookup("#editValue").isDisabled());assertTrue(pane.lookup("#editApply").isDisabled());return null;});
+  }finally{adapter.release.countDown();}idle();assertEquals(2,adapter.sent.size());
+ }
  class Adapter implements ListingTargetAdapter {
-  List<String> sent=new CopyOnWriteArrayList<>();
+  List<String> sent=new CopyOnWriteArrayList<>();CountDownLatch entered,release;
   public List<TargetCategory> categories(Shop s){return List.of();}public List<TargetAttribute> attributes(Shop s,String c){return List.of();}
   public List<String> suggestValues(Shop s,String c,String f,String q){return List.of("New brand");}
   public CopyPreview preview(Shop s,ProductSnapshot p,CopyOptions o){throw new UnsupportedOperationException();}
   public ProductEditPreview previewUpdate(Shop s,ProductSnapshot fresh,Map<String,List<String>> changes,List<ProductDocument> docs){String body=ProductJson.GSON.toJson(changes),owner=ListingIdentity.fingerprint(s);var options=new CopyOptions(changes.keySet(),Set.of(),fresh.categoryId(),Map.of(),changes,Map.of(),null,"RUB",List.of(),null);return new ProductEditPreview(fresh.key(),fresh.revision(),new CopyPreview(s.getId(),s.getMarketplace(),owner,fresh.key(),fresh.revision(),CopyPreview.hash(body,"[]","[]",owner,fresh.revision(),"UPDATE"),body,"[]","[]",Map.of(),List.of(),List.of(fresh.vendorArticle()),options,"UPDATE"));}
-  public RemoteSubmission submitUpdate(Shop s,ProductEditPreview p){sent.add(p.preview().requestJson());return submit(s,p.preview());}
+  public RemoteSubmission submitUpdate(Shop s,ProductEditPreview p){sent.add(p.preview().requestJson());if(entered!=null){entered.countDown();try{if(!release.await(5,TimeUnit.SECONDS))throw new AssertionError("Timed out waiting for test release");}catch(InterruptedException error){throw new AssertionError(error);}}return submit(s,p.preview());}
   public RemoteSubmission submit(Shop s,CopyPreview p){return new RemoteSubmission(s.getId(),s.getMarketplace(),p.owner(),p.requestHash(),null,p.articles(),p.requestJson(),p.mediaJson(),p.documentsJson(),"CARD",Map.of());}
   public RemoteResult reconcile(Shop s,RemoteSubmission r){return new RemoteResult(CopyState.RECONCILED,List.of("fixture"),List.of(),Map.of());}
   public RemoteSubmission finishAssets(Shop s,RemoteSubmission r){return r;}

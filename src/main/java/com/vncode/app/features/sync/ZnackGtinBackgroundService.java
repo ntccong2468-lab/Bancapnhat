@@ -18,6 +18,8 @@ public final class ZnackGtinBackgroundService {
         Job preview(Shop shop,List<Selection> rows)throws Exception;
         Job execute(Shop shop,String job)throws Exception;
         void link(Shop shop,String run,Job job);
+        default void blocked(Shop shop,String run,List<SyncRunRepository.Item> rows,Job job){}
+        default void finish(Shop shop,String run){}
     }
     private final Operations operations;
     public ZnackGtinBackgroundService(){
@@ -29,6 +31,20 @@ public final class ZnackGtinBackgroundService {
             public Job preview(Shop s,List<Selection> rows)throws Exception{return catalog.preview(s,rows,new Options(Set.of(Field.GTIN),Map.of()));}
             public Job execute(Shop s,String id)throws Exception{return catalog.run(s,id,true);}
             public void link(Shop s,String r,Job j){reports.linkReviewed(s,r,j);}
+            public void blocked(Shop s,String r,List<SyncRunRepository.Item> rows,Job j){
+                for(var row:j.rows())if(row.state()==State.BLOCKED){
+                    var item=rows.stream().filter(i->i.productId().equals(row.key().productId())&&i.variantId().equals(row.key().variantId())).findFirst().orElseThrow();
+                    String reason=row.differences().stream().filter(Diff::blocking).map(Diff::code).filter(code->!code.isBlank()).findFirst().orElse("GTIN_VALIDATION_BLOCKED");
+                    reports.update(s,item,"NEEDS_ACTION","VALIDATING",reason,null);
+                }
+            }
+            public void finish(Shop s,String r){
+                var counts=reports.counts(r);
+                if(counts.getOrDefault("WAITING_REMOTE",0L)+counts.getOrDefault("RECONCILING",0L)>0)return;
+                if(counts.getOrDefault("AWAITING_CONFIRMATION",0L)>0)return;
+                boolean blocked=counts.getOrDefault("NEEDS_ACTION",0L)+counts.getOrDefault("FAILED",0L)>0;
+                reports.stage(s,r,blocked?"PARTIAL":"SUCCEEDED","REPORT",blocked?"ITEMS_NEED_ACTION":"");
+            }
         };
     }
     ZnackGtinBackgroundService(Operations operations){this.operations=operations;}
@@ -45,6 +61,7 @@ public final class ZnackGtinBackgroundService {
             var batch=List.copyOf(rows.subList(offset,Math.min(offset+100,rows.size())));
             var selections=operations.select(shop,run,batch);var plan=operations.preview(shop,selections);
             if(plan.readyCount()>0){plan=operations.execute(shop,plan.id());operations.link(shop,run,plan);}
+            else operations.blocked(shop,run,batch,plan);
             for(var row:plan.rows())switch(row.state()){
                 case SUCCEEDED -> ok++;
                 case BLOCKED -> blocked++;
@@ -52,6 +69,7 @@ public final class ZnackGtinBackgroundService {
             }
             done+=batch.size();progress.accept(new Progress(done,rows.size(),ok,pending,blocked));
         }
+        operations.finish(shop,run);
         return new Result(run,new Progress(done,rows.size(),ok,pending,blocked));
     }
 }
