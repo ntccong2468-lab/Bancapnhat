@@ -1,0 +1,210 @@
+{
+  "implementationCommit": "788267089291ad2adff023cfd60a4575147d12dd",
+  "releaseVersion": "1.4.14",
+  "liveRead": {
+    "at": "2026-10-17T04:52:32.258485+00:00",
+    "writes": 0,
+    "wbCards": 388,
+    "wbVariants": 1982,
+    "ozonInfo": 175,
+    "ozonAttributes": 175,
+    "catalogListed": 1276,
+    "catalogDetails": 1276,
+    "catalogErrors": 0,
+    "detailRequests": 52
+  },
+  "nativeMatching": {
+    "uniqueCandidates": 10,
+    "scope": "native parsers and matching over real responses; no Windows signing or production license acceptance",
+    "catalogParsed": 1276,
+    "catalogStates": {
+      "draft": 39,
+      "published": 1237
+    },
+    "oldExactMatches": 0,
+    "ambiguousCandidates": 0,
+    "ozonProducts": 175,
+    "remoteWrites": 0,
+    "source": "788267089291ad2adff023cfd60a4575147d12dd",
+    "cachedRealResponses": true,
+    "additionalRemoteRequests": 0
+  },
+  "ozonGtinWrite": {
+    "at": "2026-10-17T04:58:10.580825+00:00",
+    "posts": 1,
+    "applied": true,
+    "automaticReplay": false,
+    "scope": "real API protocol trial following native SKU/color/size matching; not a licensed Windows app session",
+    "acknowledged": true,
+    "identityPreserved": true,
+    "oldBarcodesPreserved": true,
+    "readbackAttempt": 1,
+    "outcome": "readback_confirmed"
+  },
+  "wbArticleTrim": {
+    "posts": 1,
+    "applied": true,
+    "newGtins": 0,
+    "automaticReplay": false,
+    "readbackConfirmed": true,
+    "allWritableFieldsPreserved": true,
+    "nativeSizeOrderChanged": true,
+    "scope": "real API trim-only trial with native payload readback, independent GET after original assertion detected size-array reorder; no request replay"
+  },
+  "wbNewGtinWrite": {
+    "attempted": false,
+    "reason": "TNVED_DIFF_REQUIRES_CATALOG_REVIEW",
+    "wbTnved": [
+      [
+        "6112120000"
+      ]
+    ],
+    "catalogTnved": [
+      "6103109000"
+    ],
+    "posts": 0
+  },
+  "previousWbSampleCatalogRead": {
+    "httpStatus": 403,
+    "cause": "not_confirmed",
+    "userConfirmedSameAccount": true
+  },
+  "focused": {
+    "tests": 43,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "logSha256": "cba9c2f585acbfbd0a9a4062c0f86582394eb72801f24cfee3c88e046555cd4c",
+    "source": "ce4ce76ec73cdcf86731034ac3d84a25e4eb7661"
+  },
+  "javaRegression": {
+    "tests": 1621,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 2,
+    "source": "8a51b72b1563940d6481706de23260e8ddae7eef",
+    "result": "passed",
+    "logSha256": "ca167d72bca57391a34047bac192f025d9c5552340e32ea4e491c4e7d1439311",
+    "elapsed": "10:46",
+    "platformSkips": [
+      {
+        "suite": "com.vncode.app.features.gs1.Gs1PrefixTemplateStoreTest",
+        "skipped": 1
+      },
+      {
+        "suite": "com.vncode.app.shared.WindowsSecretProtectorTest",
+        "skipped": 1
+      }
+    ],
+    "finishedAt": "2026-10-17T05:44:40Z"
+  },
+  "nodeContracts": {
+    "tests": 60,
+    "passed": 60,
+    "failed": 0,
+    "logSha256": "b27f0b38630d084e2ba93457f5332c469c7ae5d97f89eeaaf57de905344c489c"
+  },
+  "windows": {
+    "source": "788267089291ad2adff023cfd60a4575147d12dd",
+    "run": 39007018087,
+    "url": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/39007018087",
+    "result": "running"
+  },
+  "productionLicenseVerified": false,
+  "cryptoProVerified": false,
+  "officialLatestChanged": false,
+  "finalMatcherRegression": {
+    "source": "8a51b72b1563940d6481706de23260e8ddae7eef",
+    "result": "passed_via_full_regression"
+  },
+  "nativeOzonReadbackContract": {
+    "realApiResponses": true,
+    "nativeVerifier": "APPLIED",
+    "productionLicenseVerified": false,
+    "scope": "actual OzonGtinAdapter readback over captured before/after live API JSON; isolated synthetic owner reference; no license or certificate fabricated",
+    "networkWrites": 0
+  },
+  "referenceAppearance": {
+    "styleOnly": true,
+    "imageContentCopied": false,
+    "defaultTheme": "light",
+    "oneTimeUpgradeStyle": "blue-glass-1",
+    "transparencyRange": [
+      0,
+      100
+    ],
+    "defaultTransparency": 55,
+    "opaqueText": true,
+    "nativeDesktopBlur": false,
+    "livePreviewSaveCancel": true,
+    "laterThemeChoicePreserved": true
+  },
+  "priorRegressionAttempts": [
+    {
+      "source": "ce4ce76ec73cdcf86731034ac3d84a25e4eb7661",
+      "tests": 1619,
+      "failures": 1,
+      "errors": 0,
+      "skipped": 2,
+      "failure": "KIZ programmatic scrollTo(lastIndex) stopped one variable-height cell before the end",
+      "logSha256": "ca5f091fe42f7a641591c4598ae3e16bf44f0714cfae0ba61a409ea01560e242"
+    }
+  ],
+  "scrollValidation": {
+    "items": 2000,
+    "interaction": "actual vertical scrollbar to maximum after two render pulses",
+    "visibleCardNodesMaximum": 59,
+    "lastLabelMustIntersectViewport": true,
+    "periodicRefreshMustKeepPosition": true,
+    "programmaticScrollEstimateIsNotUserGesture": true
+  },
+  "blueFocusedRegression": {
+    "source": "8a51b72b1563940d6481706de23260e8ddae7eef",
+    "tests": 12,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "logSha256": "75507d3e8e6cb6b95d9c9faf54b9e005f120f2af763a005ec5cdd5a1e9ec9b81"
+  },
+  "screenshots": [
+    {
+      "path": "docs/validation/assets/liquid-glass/dark-55.png",
+      "sha256": "7293cf69ce7f52f52354ec7c9d03332199c7156aeb4ec77c11b5d7f578ed8c53"
+    },
+    {
+      "path": "docs/validation/assets/liquid-glass/fbs-synthetic.png",
+      "sha256": "f78f35643744402d37c7b4c8c57af74c586c6084cf8e2e60e0102d8dbc2e94ac"
+    },
+    {
+      "path": "docs/validation/assets/liquid-glass/light-100.png",
+      "sha256": "b5efdfedf2229b5efe90785b910888621c9d945a432c6d57f32d7f384e23dce9"
+    },
+    {
+      "path": "docs/validation/assets/liquid-glass/vncode-blue-reference.png",
+      "sha256": "86e9f10c2f7aae0430c00a8ffefb30b58e805c03741ceeb12d54bf502899d787"
+    },
+    {
+      "path": "docs/validation/assets/liquid-glass/vncode-glass-settings.png",
+      "sha256": "485965e257ea7f9f130ff13b686a66e83dd751a1dafe2d3f2b0a76d5b8ddf60c"
+    }
+  ],
+  "finalPaletteRegression": {
+    "source": "788267089291ad2adff023cfd60a4575147d12dd",
+    "result": "passed",
+    "tests": 13,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "logSha256": "0cc7125bf5ba1b874018955a0d2dee649b5e504f0753d276d34c83c8654e0e26",
+    "pages": 26,
+    "languages": 4,
+    "themes": 2,
+    "sizes": 2,
+    "fixedActionChecks": 1934,
+    "clippedActions": 0
+  },
+  "finalSourceDeltaFromFullRegression": [
+    "src/main/resources/com/vncode/app/styles/liquid-glass.css: darker secondary text",
+    "src/test/java/com/vncode/app/shared/ThemeServiceTest.java: canvas contrast assertions"
+  ]
+}

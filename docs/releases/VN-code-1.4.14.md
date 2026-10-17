@@ -1,10 +1,17 @@
 # VNCode 1.4.14
 
-Bản nâng cấp từ 1.4.13, tập trung sửa đồng bộ Znack, thao tác sửa sản phẩm và các màn hình đã đối chiếu với WBCode 1.3.9 cùng ảnh seller cung cấp.
+Bản nâng cấp từ 1.4.13, bổ sung giao diện Liquid Glass, ghép SKU Ozon với thẻ Znack và hoàn thiện đồng bộ, kho KIZ cùng thao tác sửa sản phẩm.
+
+- Giao diện Liquid Glass theo mẫu đã duyệt: nền kính xanh nhạt, chuyển sắc xanh mềm, viền sáng mảnh, panel bo góc và nút dạng viên thuốc. Áp dụng toàn app, giữ nội dung/chức năng VNCode. Bản nâng cấp mở với giao diện sáng theo mẫu; sau đó vẫn giữ lựa chọn sáng/tối của seller.
+- **Cài đặt → Liquid Glass** có thanh độ trong suốt 0–100, xem trước tức thì, Lưu/Hủy; giữ cài đặt khi mở lại. Chỉ độ trong của nền thay đổi, chữ và nút giữ độ hiển thị đầy đủ.
+- Tự bỏ khoảng trắng Unicode đầu/cuối article khi gửi WB và tạo article sao chép WB/Ozon; giữ khoảng trắng giữa các từ và dấu phân cách mã. Kiểm tra trùng article trước sửa thẻ WB.
+- Ozon ghép thêm qua SKU seller/offer_id và hậu tố size: kiểm tra model, màu, size nhà sản xuất/size Nga thực sự có từ API. Hỗ trợ ví dụ `152DASH-52` với article `152 nau dashoa` khi màu nâu và size 52 khớp; giữ các nhánh mẫu hàng khác nhau. Nhiều thẻ phù hợp sẽ báo mơ hồ.
+- Quy tắc ghép được dùng trong đồng bộ và màn đăng ký Znack; lưu bằng chứng và kiểm tra dữ liệu mới đọc trước xác nhận/chạy tác vụ.
+- Kho GTIN trong shipment FBS cập nhật theo khóa để giữ vị trí cuộn khi tự làm mới; dòng tự co theo chiều rộng thực của khung. Trang chào mừng chỉ đổi bố cục khi qua ngưỡng kích thước, tránh dựng lại cây giao diện ở mỗi thay đổi chiều rộng.
 
 - Sửa lỗi SQLite `SYNC_STORAGE` / `database is locked` khi nhiều tác vụ cùng ghi dữ liệu. Giữ nguyên nguyên nhân lỗi đồng bộ để báo cáo; các giao dịch chỉ ghi dữ liệu cục bộ được chờ và thử lại có giới hạn.
 - Sửa lỗi WB trả thuộc tính theo thứ tự khác nhau khiến VNCode tưởng sản phẩm đã đổi và chặn lưu. Vẫn kiểm tra các thay đổi thực sự của sản phẩm và thứ tự ảnh.
-- Sửa cả dấu vết bản xem trước GTIN WB khi API đảo thứ tự thuộc tính. Article có khoảng trắng đầu/cuối được báo rõ trước khi gửi; lỗi thẻ mới trả sau ACK được ghi nhận dứt điểm theo đúng sản phẩm, không chờ mãi hoặc gửi lặp.
+- Sửa cả dấu vết bản xem trước GTIN WB khi API đảo thứ tự thuộc tính. Article được tự bỏ khoảng trắng đầu/cuối và kiểm tra trùng trước khi gửi; lỗi thẻ mới trả sau ACK được ghi nhận dứt điểm theo đúng sản phẩm, không chờ mãi hoặc gửi lặp.
 - Màn Sản phẩm WB hiển thị một dòng cho mỗi bài đăng, giữ đầy đủ các size khi chọn sửa/sao chép. Bổ sung bộ lọc lỗi có số lượng và thanh sửa hàng loạt; bố cục rộng tách giấy tờ/chất liệu khỏi giới tính/TN VED.
 - Thêm gợi ý thương hiệu, giới tính và TN VED từ sàn; Ozon nhận diện đúng trường `ТН ВЭД коды ЕАЭС`, tìm giá trị đã chọn trong các từ điển lớn.
 - Ozon nhận mã TN VED từ nhãn từ điển có kèm mô tả; giữ riêng size Nga và size nhà sản xuất. Đối chiếu GTIN dùng đúng hệ size của thẻ Catalog và giá trị sàn thực sự trả về, không đoán quy đổi size. Cache cũ được đọc lại để bổ sung trường mới, giữ nguyên sản phẩm và barcode.
@@ -23,6 +30,6 @@ Bản nâng cấp từ 1.4.13, tập trung sửa đồng bộ Znack, thao tác s
 - Thương hiệu WB hiện thương hiệu của shop trước, tải thêm từ điển ở nền và cho cuộn toàn bộ kết quả. Nút dùng mã TN VED gợi ý theo từng sản phẩm nằm ngay bên trái Áp dụng; hộp duyệt Ozon được co gọn và xuống dòng.
 - Kiểm thử lại GS1 ký trực tiếp trên app, điền đơn 01.04.01, tạo PDF và đính kèm ảnh đơn đã ký JPG/PNG có xử lý hướng EXIF. Nét ký không lưu thành hồ sơ chữ ký; tệp đã ký vẫn có bước xem và xác nhận gửi.
 
-Đã kiểm tra API thật: đọc toàn bộ 388 bài/1.982 biến thể WB, 175 sản phẩm Ozon và đủ 1.962 thẻ Znack sau thử đăng ký. Đã cấp đúng một GTIN và đọc lại được thẻ mới dạng nháp, đang kiểm duyệt, chưa ký. Phép thử thêm GTIN WB bị sàn từ chối vì khoảng trắng cuối article; Ozon chưa có cặp biến thể khớp đủ điều kiện để thử ghi. Chưa nghiệm thu thành công thao tác ghi GTIN mới lên hai sàn, ký CryptoPro trên Windows hoặc mua/gán KIZ thật. Xem [báo cáo kiểm tra thật](../validation/2026-10-17-vncode-1414-live-acceptance.md) để phân biệt các kết quả này.
+Lượt API thật mới đọc đủ 388 bài/1.982 biến thể WB, 175 sản phẩm Ozon và 1.276 thẻ Catalog đang được API liệt kê. Quy tắc SKU tìm được 10 cặp Ozon duy nhất; đã gắn một GTIN và đọc lại thành công trên `152NAU-2XL`, màu nâu, size Nga 52, giữ barcode cũ. Đã xác nhận sửa khoảng trắng cuối article trên một bài WB, giữ các trường được phép ghi và barcode của 5 size. Ghi GTIN WB mới chưa nghiệm thu: mẫu cũ bị Catalog trả 403, mẫu bộ mới có khác TN VED cần xử lý trong bản xem trước đồng bộ. Lượt kiểm tra trước đã tạo được một thẻ Znack nháp, chưa ký/xuất bản. Xem [báo cáo bổ sung](../validation/2026-10-17-liquid-glass-ozon-sku.md) và [báo cáo trước](../validation/2026-10-17-vncode-1414-live-acceptance.md) để phân biệt các lượt kiểm tra.
 
 Bộ cài Windows chưa có chữ ký Authenticode.
