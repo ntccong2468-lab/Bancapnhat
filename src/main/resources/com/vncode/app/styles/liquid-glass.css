@@ -197,3 +197,14 @@
 .liquid-glass .button.btn-primary .ikonli-font-icon, .liquid-glass .button:default .ikonli-font-icon { -fx-icon-color: -text-primary; }
 .liquid-glass .news-card { -fx-alignment: top-left; -fx-padding: 16; }
 .liquid-glass .task-status-pill { -fx-background-color: -glass-popup; -fx-background-radius: 999; -fx-border-radius: 999; -fx-border-color: -border-color-hover; -fx-padding: 10 18; }
+.liquid-glass .radio-button > .radio { -fx-background-radius: 999; -fx-border-radius: 999; }
+.liquid-glass .combo-box-base > .arrow-button, .liquid-glass .choice-box > .open-button,
+.liquid-glass .spinner > .increment-arrow-button, .liquid-glass .spinner > .decrement-arrow-button,
+.liquid-glass .date-picker > .arrow-button {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-background-radius: 999;
+}
+.liquid-glass .combo-box-base .arrow, .liquid-glass .choice-box .arrow,
+.liquid-glass .spinner .increment-arrow, .liquid-glass .spinner .decrement-arrow,
+.liquid-glass .date-picker > .arrow-button > .arrow { -fx-background-color: -text-primary; }

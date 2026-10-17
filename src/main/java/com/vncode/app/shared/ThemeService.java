@@ -8,7 +8,7 @@ import javafx.scene.control.DialogPane;
 import javafx.stage.Window;
 import java.util.*;
 
-/** Shared glass material: only surface paints change alpha; text and controls retain full opacity. */
+/** Shared glass paints and high-contrast foregrounds; whole-window opacity stays intact. */
 public final class ThemeService {
     private static final String GLASS_CSS = Objects.requireNonNull(ThemeService.class.getResource("/com/vncode/app/styles/liquid-glass.css")).toExternalForm();
     private static final String BASE_CSS = Objects.requireNonNull(ThemeService.class.getResource("/com/vncode/app/styles/theme.css")).toExternalForm();

@@ -116,7 +116,7 @@ public final class ProductBulkEditPane extends BorderPane {
         lookup.setVisible(field.equals("tnved"));lookup.setManaged(lookup.isVisible());applyTranslations();status.setText(tr("edit.enter_value"));buttons();
         if(!field.equals("documents"))suggestionDelay.playFromStart();
     }
-    private void invalidate(){if(resetting)return;perProductTnved=Map.of();revision++;jobId=null;ready=false;previewRevision=-1;confirm.setSelected(false);readbackDelay.stop();status.setText(tr("edit.preview_required"));buttons();}
+    private void invalidate(){if(resetting)return;perProductTnved=Map.of();revision++;jobId=null;ready=false;previewRevision=-1;confirm.setSelected(false);readbackDelay.stop();status.setText(tr(compact?"bulk.choose_apply":"edit.preview_required"));buttons();}
     private void useSelected(){
         String selected=suggestions.getSelectionModel().getSelectedItem();if(selected==null||busy)return;
         String text=value.getText();int separator=text.lastIndexOf('|');value.setText(separator<0?selected:text.substring(0,separator+1)+selected);value.requestFocus();
@@ -132,7 +132,7 @@ public final class ProductBulkEditPane extends BorderPane {
         }))).whenComplete((found,error)->Platform.runLater(()->{
             if(disposed||epoch!=generation||ticket!=suggestionTicket)return;
             if(error==null)suggestions.getItems().setAll(found.values());
-            suggestionStatus.setText(error!=null?tr("edit.suggestions_failed"):tr(found.marketplaceValues()?"edit.suggestions_marketplace":"edit.suggestions_common")+" · "+found.category()+"\n"+tr("edit.suggestions_scope"));
+            suggestionStatus.setText(error!=null?tr("edit.suggestions_failed"):tr(found.marketplaceValues()?"edit.suggestions_marketplace":"edit.suggestions_common")+" · "+found.category()+(compact?"":"\n"+tr("edit.suggestions_scope")));
             if(error==null&&found.values().isEmpty())suggestionStatus.setText(suggestionStatus.getText()+"\n"+tr("edit.suggestions_empty"));
         }));
     }
@@ -148,10 +148,10 @@ public final class ProductBulkEditPane extends BorderPane {
     private void prepare(){
         if(shop==null||keys.isEmpty()||busy)return;final ProductBulkEdit edit;
         try{edit=edit();}catch(RuntimeException invalid){status.setText(tr("date.invalid".equals(invalid.getMessage())?"date.invalid":"edit.needs_data"));return;}
-        var owner=shop;var selected=keys;long epoch=generation,inputRevision=revision;busy=true;ready=false;status.setText(tr("edit.preview_loading"));buttons();
+        var owner=shop;var selected=keys;long epoch=generation,inputRevision=revision;busy=true;ready=false;status.setText(tr(compact?"bulk.validating":"edit.preview_loading"));buttons();
         reads.submit(new ShopReadCoordinator.Key(owner.getId(),"product-edit-preview",UUID.randomUUID().toString()),true,()->service.preview(owner,selected,edit)).whenComplete((p,error)->Platform.runLater(()->{
             if(disposed||epoch!=generation)return;busy=false;
-            if(inputRevision!=revision){status.setText(tr("edit.preview_required"));buttons();return;}
+            if(inputRevision!=revision){status.setText(tr(compact?"bulk.choose_apply":"edit.preview_required"));buttons();return;}
             if(error!=null){status.setText(FriendlyErrorService.format(unwrap(error)));buttons();return;}
             previewRevision=inputRevision;render(new ProductEditResult(p.id(),p.items(),false));
             if(sendAfterPrepare){sendAfterPrepare=false;if(ready){confirm.setSelected(true);submit();}else status.setText(tr("edit.result_needs_action")+"\n"+p.items().stream().flatMap(i->i.issues().stream()).map(i->i.code()+" · "+i.field()).distinct().collect(java.util.stream.Collectors.joining("\n")));}
@@ -196,7 +196,7 @@ public final class ProductBulkEditPane extends BorderPane {
         ready=!result.items().isEmpty()&&result.items().stream().allMatch(i->i.state()==CopyState.AWAITING_CONFIRMATION&&i.preview().preview().publishable());
         boolean saved=!result.items().isEmpty()&&result.items().stream().allMatch(i->i.state()==CopyState.RECONCILED);
         confirm.setSelected(false);results.getSelectionModel().selectFirst();
-        status.setText(tr(saved?"edit.saved":pending(result)?"edit.readback_pending":ready?"edit.review":"edit.result_needs_action"));
+        status.setText(tr(saved?"edit.saved":pending(result)?"edit.readback_pending":ready?(compact?"bulk.validating":"edit.review"):"edit.result_needs_action"));
         if(saved&&!Objects.equals(notifiedJob,result.id())){notifiedJob=result.id();if(onSaved!=null)onSaved.run();}
         buttons();
     }
@@ -244,13 +244,20 @@ public final class ProductBulkEditPane extends BorderPane {
     private void showCompact(javafx.stage.Window window,Runnable saved){
         var dialog=new Dialog<Void>();if(window!=null)dialog.initOwner(window);dialog.setTitle(title.getText());
         dialog.getDialogPane().setId("productBulkEditDialog");dialog.getDialogPane().setContent(this);
-        dialog.getDialogPane().setPrefSize(field.equals("material")?660:field.equals("gender")?460:860,field.equals("brand")?620:field.equals("gender")?400:510);
-        dialog.getDialogPane().getButtonTypes().setAll(ButtonType.CANCEL);setOnSaved(()->{if(saved!=null)saved.run();});
+        dialog.getDialogPane().setPrefSize(field.equals("material")?660:field.equals("gender")?460:860,field.equals("brand")?620:field.equals("gender")?350:field.equals("tnved")?290:430);
+        var applyType=new ButtonType(tr("common.apply"),ButtonBar.ButtonData.OK_DONE);
+        var cancelType=new ButtonType(tr("common.cancel"),ButtonBar.ButtonData.CANCEL_CLOSE);
+        dialog.getDialogPane().getButtonTypes().setAll(applyType,cancelType);
+        var applyButton=(Button)dialog.getDialogPane().lookupButton(applyType);applyButton.setId("editApply");applyButton.getStyleClass().add("btn-primary");applyButton.disableProperty().bind(apply.disableProperty());
+        applyButton.addEventFilter(javafx.event.ActionEvent.ACTION,e->{e.consume();apply.fire();});
+        var indicator=new ProgressIndicator();indicator.setMaxSize(20,20);indicator.visibleProperty().bind(apply.disableProperty());indicator.managedProperty().bind(indicator.visibleProperty());
+        var footer=new HBox(10,indicator,status);HBox.setHgrow(status,Priority.ALWAYS);footer.setPadding(new Insets(10,0,0,0));setBottom(footer);
+        setOnSaved(()->{if(saved!=null)saved.run();});
         dialog.setOnHidden(e->dispose());DialogLayout.install(dialog.getDialogPane());AlertService.applyTheme(dialog);dialog.show();
     }
     private void applyOnce(){if(busy)return;sendAfterPrepare=true;prepare();}
     void compact(){
-        compact=true;setPadding(new Insets(12));setTop(title);title.setWrapText(true);
+        compact=true;setPadding(new Insets(12));setTop(title);title.setWrapText(true);status.setText(tr("bulk.choose_apply"));endless.setText(tr("bulk.document_endless"));
         var form=new VBox(10);compactForm=form;form.setMinWidth(0);
         if(field.equals("brand")){
             value.setPromptText(tr("bulk.brand_search"));suggestions.setPrefHeight(350);suggestions.setMinHeight(120);

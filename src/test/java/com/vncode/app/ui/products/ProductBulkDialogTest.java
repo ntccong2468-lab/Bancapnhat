@@ -36,6 +36,20 @@ class ProductBulkDialogTest {
  @Test void genderAndMaterialAreBatchPickersAndDocumentsHaveVisibleCalendars()throws Exception{
   fx(()->{pane.open(shop,"gender",keys);pane.compact();pane.applyCss();pane.layout();assertEquals(5,pane.lookupAll(".radio-button").size());assertNull(pane.lookup("#editResults"));pane.open(shop,"material",keys);pane.compact();pane.applyCss();pane.layout();assertNotNull(pane.lookup("#bulkMaterialName"));assertNotNull(pane.lookup("#bulkMaterialPercent"));pane.open(shop,"documents",keys);pane.compact();pane.applyCss();pane.layout();assertNotNull(pane.lookup("#bulkExistingDocument"));assertNotNull(pane.lookup("#editDocumentFrom"));assertNotNull(pane.lookup("#editDocumentUntil"));return null;});idle();
  }
+ @Test void actualModalUsesOneLocalizedActionRowAndHasNoPreviewInstructions()throws Exception{
+  var language=I18nService.getInstance().getCurrentLanguage();
+  try{fx(()->{
+   I18nService.getInstance().setLanguage(AppLanguage.VI);pane.getScene().setRoot(new javafx.scene.layout.StackPane());pane.open(shop,"brand",keys);pane.compact();
+   var show=ProductBulkEditPane.class.getDeclaredMethod("showCompact",javafx.stage.Window.class,Runnable.class);show.setAccessible(true);show.invoke(pane,null,(Runnable)()->{});return null;
+  });idle();
+  fx(()->{
+   var window=javafx.stage.Window.getWindows().stream().filter(w->w.getScene()!=null&&w.getScene().getRoot() instanceof DialogPane d&&"productBulkEditDialog".equals(d.getId())).findFirst().orElseThrow();var dialog=(DialogPane)window.getScene().getRoot();dialog.applyCss();dialog.layout();
+   var applyType=dialog.getButtonTypes().stream().filter(t->t.getButtonData()==ButtonBar.ButtonData.OK_DONE).findFirst().orElseThrow();var cancelType=dialog.getButtonTypes().stream().filter(t->t.getButtonData()==ButtonBar.ButtonData.CANCEL_CLOSE).findFirst().orElseThrow();var apply=(Button)dialog.lookupButton(applyType);var cancel=(Button)dialog.lookupButton(cancelType);
+   assertEquals("Áp dụng",apply.getText());assertEquals("Hủy",cancel.getText());assertEquals(apply.localToScene(apply.getLayoutBounds()).getCenterY(),cancel.localToScene(cancel.getLayoutBounds()).getCenterY(),2);
+   assertTrue(dialog.lookupAll(".label").stream().map(n->((Label)n).getText().toLowerCase(java.util.Locale.ROOT)).noneMatch(text->text.contains("xem trước")));((TextField)dialog.lookup("#editValue")).setText("Modal brand");apply.fire();return null;
+  });idle();assertEquals(2,adapter.sent.size());assertTrue(adapter.sent.stream().allMatch(payload->payload.contains("Modal brand")));
+  fx(()->{for(var window:java.util.List.copyOf(javafx.stage.Window.getWindows()))if(window.getScene()!=null&&window.getScene().getRoot() instanceof DialogPane dialog&&"productBulkEditDialog".equals(dialog.getId())){var cancel=dialog.getButtonTypes().stream().filter(t->t.getButtonData()==ButtonBar.ButtonData.CANCEL_CLOSE).findFirst().orElseThrow();((Button)dialog.lookupButton(cancel)).fire();}return null;});}finally{fx(()->{I18nService.getInstance().setLanguage(language);return null;});}
+ }
  @Test void choosingAnExistingNumericCertificateKeepsItsIdentityAndMetadata()throws Exception{
   var before=snapshot(keys.getFirst());var document=new ProductDocument("existing-doc","1","CERT-42",java.time.LocalDate.now().minusDays(1),java.time.LocalDate.now().plusYears(1),"Existing applicant","scope",null,shop.getMarketplace(),DocumentState.UNVERIFIED,"",null,Map.of("applicant","Existing applicant","tradeName","Original trade name","productNumber","Original product number"));
   new ProductRepository().saveVerifiedSnapshot(shop,new ProductSnapshot(before.key(),before.revision(),before.title(),before.description(),before.brand(),before.vendorArticle(),before.categoryId(),before.media(),before.attributes(),before.variants(),before.dimensions(),List.of(document),before.checkedAt(),before.metadata()));
