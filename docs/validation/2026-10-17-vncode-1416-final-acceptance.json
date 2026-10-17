@@ -379,5 +379,17 @@
     "error": "FxmlSmokeTest.staleProductSnapshotCannotUpdateCurrentShop read rows before its FX completion callback",
     "fix": "Observe current-shop ListView result before assertion; ignore initial shop-load success/failure after HomeController disposal",
     "logSha256": "777f7b0970650f95e03f87c3f785aa8739a238b172e85abd242d847a2ebe4a54"
+  },
+  "windowsJavaRegression": {
+    "run": 39061440469,
+    "source": "536567835f6a044626d00be273b2217bb1c4fc7c",
+    "result": "passed",
+    "tests": 1687,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 2,
+    "passed": 1685,
+    "jarSha256": "ba5255a21646342fe697ecaf860499de037d2242f40ec3f151d737cc9f9c3470",
+    "nativeInstallerAcceptanceStillRunning": true
   }
 }

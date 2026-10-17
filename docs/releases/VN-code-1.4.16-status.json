@@ -4,7 +4,7 @@
   "complete": false,
   "developmentComplete": true,
   "officialReleasePublished": false,
-  "phase": "linux-accepted-native-windows-running",
+  "phase": "windows-java-accepted-native-installer-smokes-running",
   "licenseIntegration": {
     "implemented": true,
     "productionReady": false,
@@ -152,6 +152,18 @@
       "logSha256": "d9dc3779a256e630940ed6a4ca4fb8563ceb50e9c04d8dad6488ee5acbe3c223",
       "elapsed": "05:32 min",
       "finishedAt": "2026-10-17T18:12:17Z"
+    },
+    "windowsJavaRegression": {
+      "run": 39061440469,
+      "source": "536567835f6a044626d00be273b2217bb1c4fc7c",
+      "result": "passed",
+      "tests": 1687,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 2,
+      "passed": 1685,
+      "jarSha256": "ba5255a21646342fe697ecaf860499de037d2242f40ec3f151d737cc9f9c3470",
+      "nativeInstallerAcceptanceStillRunning": true
     }
   },
   "scope": [
