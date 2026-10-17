@@ -4,7 +4,7 @@
   "complete": false,
   "developmentComplete": true,
   "officialReleasePublished": false,
-  "phase": "regression-and-native-build",
+  "phase": "linux-passed-windows-acceptance-running",
   "licenseIntegration": {
     "implemented": true,
     "productionReady": false,
@@ -13,7 +13,40 @@
   },
   "validation": {
     "productionLicenseVerified": false,
-    "windowsNativeBuildThisVersion": false
+    "windowsNativeBuildThisVersion": false,
+    "fullJavaRegression": {
+      "source": "f41386017ec6516a2322579dd2ee22306378d6e4",
+      "result": "passed",
+      "tests": 1684,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 2,
+      "passed": 1682,
+      "logSha256": "d9dc3779a256e630940ed6a4ca4fb8563ceb50e9c04d8dad6488ee5acbe3c223",
+      "elapsed": "05:32 min",
+      "finishedAt": "2026-10-17T18:12:17Z"
+    },
+    "node": {
+      "tests": 60,
+      "passed": 60,
+      "failed": 0,
+      "logSha256": "4e7d4cdbf059f5a19bf999f65b8320607951de9f1a4971e9d79b0863973d776e"
+    },
+    "portal": {
+      "tests": 60,
+      "passed": 60,
+      "failed": 0,
+      "changedInThisVersion": false,
+      "logSha256": "3707e204de53cce94c33aa728da54ba6d5ac97c24033592ee4014bd9a745008c"
+    },
+    "nativeWindowsRun": {
+      "run": 39056670575,
+      "source": "f41386017ec6516a2322579dd2ee22306378d6e4",
+      "status": "pending",
+      "url": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/39056670575"
+    },
+    "finalReport": "docs/validation/2026-10-17-vncode-1416-final-acceptance.json",
+    "liveReadReport": "docs/validation/2026-10-17-vncode-1416-live-read.json"
   },
   "scope": [
     "Vietnamese news in bounded frame",
@@ -23,5 +56,7 @@
     "Immediate category KIZ totals during continuous FBS refresh",
     "Clear-water Liquid Glass and contrast",
     "One-click listing copy with progress"
-  ]
+  ],
+  "applicationSource": "f41386017ec6516a2322579dd2ee22306378d6e4",
+  "sourceCommit": "f41386017ec6516a2322579dd2ee22306378d6e4"
 }

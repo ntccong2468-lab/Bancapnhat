@@ -1,0 +1,243 @@
+{
+  "version": "1.4.16",
+  "baseVersion": "1.4.15",
+  "sourceCommit": "f41386017ec6516a2322579dd2ee22306378d6e4",
+  "checkedAt": "2026-10-17T18:14:11.398884+00:00",
+  "linux": {
+    "version": "1.4.16",
+    "source": "f41386017ec6516a2322579dd2ee22306378d6e4",
+    "result": "passed",
+    "tests": 1684,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 2,
+    "passed": 1682,
+    "skips": [
+      {
+        "suite": "com.vncode.app.features.gs1.Gs1PrefixTemplateStoreTest",
+        "skipped": 1
+      },
+      {
+        "suite": "com.vncode.app.shared.WindowsSecretProtectorTest",
+        "skipped": 1
+      }
+    ],
+    "focus": {
+      "com.vncode.app.ui.products.ProductBulkDialogTest": {
+        "tests": 5,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "seconds": 1.139
+      },
+      "com.vncode.app.integration.translation.AutomaticNewsTranslatorTest": {
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "seconds": 0.439
+      },
+      "com.vncode.app.shared.ThemeServiceTest": {
+        "tests": 6,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "seconds": 0.637
+      },
+      "com.vncode.app.ui.news.NewsPaneLayoutTest": {
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "seconds": 0.236
+      },
+      "com.vncode.app.ui.znackregistration.GtinBackgroundStatusTest": {
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "seconds": 0.017
+      },
+      "com.vncode.app.ui.listingcopy.ListingCopyPaneTest": {
+        "tests": 16,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "seconds": 4.642
+      },
+      "com.vncode.app.ui.znackregistration.OzonRegistrationPaneTest": {
+        "tests": 5,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "seconds": 0.935
+      },
+      "com.vncode.app.features.sync.ZnackGtinBackgroundServiceTest": {
+        "tests": 4,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "seconds": 0.008
+      },
+      "com.vncode.app.integration.znack.registration.ZnackCategoryResolverTest": {
+        "tests": 4,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "seconds": 0.005
+      },
+      "com.vncode.app.ui.kiz.WbShipmentKizPaneTest": {
+        "tests": 7,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "seconds": 1.495
+      }
+    },
+    "logSha256": "d9dc3779a256e630940ed6a4ca4fb8563ceb50e9c04d8dad6488ee5acbe3c223",
+    "elapsed": "05:32 min",
+    "finishedAt": "2026-10-17T18:12:17Z",
+    "fbsLatencyLines": [
+      "FBS_UI_LATENCY synthetic=true shops=10 orders_per_shop=1000 products=100000 samples=20 visible_page=100 commit_to_pulse_p95_ms=66.570196 fx_dispatch_p95_ms=0.731056 nativeWindows=false",
+      "FBS_UI_DIAGNOSTICS {ozon-fbs-render={medianMs=50.765211, samples=20, p95Ms=66.420647}, fxStallsOver500ms=0, maxFxPulseGapMs=50.403938, heapUsedBytes=678922280, maxHeapBytes=8589934592, logicalProcessors=4, readWorkers=3, readActive=0, readPending=0, imageWorkers=2, imagePending=0, legacyTasks=0, mutationActive=0, mutationPending=0, sellerHttpActive=0, screenCacheBytes=2266, screenCacheBudgetBytes=67108864}"
+    ],
+    "privateKizSample": {
+      "name": "quan.txt",
+      "bytes": 19200,
+      "validUniqueCodes": 600,
+      "importedCategoryAvailableCount": 600,
+      "productionOrdersMutated": false
+    }
+  },
+  "node": {
+    "tests": 60,
+    "passed": 60,
+    "failed": 0,
+    "logSha256": "4e7d4cdbf059f5a19bf999f65b8320607951de9f1a4971e9d79b0863973d776e"
+  },
+  "portal": {
+    "tests": 60,
+    "passed": 60,
+    "failed": 0,
+    "changedInThisVersion": false,
+    "logSha256": "3707e204de53cce94c33aa728da54ba6d5ac97c24033592ee4014bd9a745008c"
+  },
+  "windows": {
+    "run": 39056670575,
+    "source": "f41386017ec6516a2322579dd2ee22306378d6e4",
+    "status": "pending",
+    "url": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/39056670575"
+  },
+  "liveReads": "docs/validation/2026-10-17-vncode-1416-live-read.json",
+  "liveMutationAcceptance": {
+    "productionLicenseActivation": false,
+    "enterpriseCryptoProSigning": false,
+    "catalogCardCreation": false,
+    "marketplaceGtinWriteThisRun": false,
+    "paidKizPurchaseOrRealOrderAssignment": false
+  },
+  "comparison": "docs/research/2026-10-17-vncode-1416-seven-fixes.md",
+  "requirements": [
+    {
+      "item": 1,
+      "change": "Bounded news frame and automatic Vietnamese translation with protected dates/GTIN/URLs and isolated worker",
+      "implemented": true,
+      "tests": [
+        "NewsPaneLayoutTest",
+        "AutomaticNewsTranslatorTest",
+        "NewsTranslationServiceTest"
+      ]
+    },
+    {
+      "item": 2,
+      "change": "Compact bulk brand/material/gender/document/TNVED dialogs; one Apply with fresh validation and readback; retain existing certificate identity and metadata",
+      "implemented": true,
+      "tests": [
+        "ProductBulkDialogTest",
+        "ProductBulkEditServiceTest",
+        "ProductTnvedAdvisorTest",
+        "FashionTnvedBrowserTest"
+      ]
+    },
+    {
+      "item": 3,
+      "change": "Background WB/Ozon GTIN append, exact variants, bottom-centre pill and persisted blocked reasons",
+      "implemented": true,
+      "tests": [
+        "ZnackGtinBackgroundServiceTest",
+        "GtinBackgroundStatusTest",
+        "OzonRegistrationPaneTest",
+        "CatalogSyncServiceTest"
+      ]
+    },
+    {
+      "item": 4,
+      "change": "Automatic active preflight category from marketplace type, primary garment and equivalent word sets; no per-card chooser",
+      "implemented": true,
+      "tests": [
+        "ZnackCategoryResolverTest",
+        "OzonCardRegistrationWorkflowTest"
+      ],
+      "actualCatalogTaxonomyActiveCategories": 19,
+      "nativeJavaReadOnlyChecks": [
+        {
+          "marketplaceType": "Костюмы спортивные",
+          "categoryId": 30733
+        },
+        {
+          "marketplaceType": "Брюки",
+          "categoryId": 30683
+        },
+        {
+          "marketplaceType": "Брюки спортивные",
+          "categoryId": 30683
+        },
+        {
+          "marketplaceType": "Юбки",
+          "categoryId": 30685
+        },
+        {
+          "marketplaceType": "Спортивные куртки",
+          "categoryId": 30735
+        }
+      ]
+    },
+    {
+      "item": 5,
+      "change": "Keep same-shipment context through FBS refresh, immediately return category stock after import, read-only count refresh, hide consumed count",
+      "implemented": true,
+      "tests": [
+        "WbShipmentKizPaneTest",
+        "KizReimportRecoveryTest",
+        "KizCategoryAllocatorTest"
+      ],
+      "actualSellerFile": {
+        "name": "quan.txt",
+        "uniqueValidCodes": 600,
+        "availableAfterImport": 600,
+        "codesCommittedToRepository": false
+      }
+    },
+    {
+      "item": 6,
+      "change": "Clear-water material at 0%, adaptive translucent button paints and contrast; persistent setting",
+      "implemented": true,
+      "tests": [
+        "ThemeServiceTest"
+      ],
+      "primaryTextContrastMinimum": 7,
+      "controlTextContrastMinimum": 4.5,
+      "nativeDesktopBackdropBlurClaimed": false
+    },
+    {
+      "item": 7,
+      "change": "One-click copy posting, inherited original fields and variant prices, optional edits, progress and durable outcomes, no preview/confirm UI",
+      "implemented": true,
+      "tests": [
+        "ListingCopyPaneTest",
+        "ListingCopyWorkflowTest",
+        "ListingCopyMappingTest"
+      ]
+    }
+  ]
+}
