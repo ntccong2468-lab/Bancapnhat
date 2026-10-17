@@ -131,7 +131,9 @@ jobs:
         run: |
           $jar = "target\VNcode-$env:APP_VERSION.jar"
           $before = (Get-FileHash $jar -Algorithm SHA256).Hash.ToLowerInvariant()
-          .\mvnw.cmd -B test-compile
+          New-Item -ItemType Directory -Path target\test-classes -Force | Out-Null
+          $classpath = "$PWD\target\VNcode-$env:APP_VERSION.jar;$PWD\target\lib\*"
+          & javac -cp $classpath -d target\test-classes src\test\java\com\vncode\app\performance\SellerWorkspaceFixture.java src\test\java\com\vncode\app\features\license\LicenseDomainFixture.java
           if ($LASTEXITCODE -ne 0) { throw 'Cannot compile unchanged native UI test fixtures.' }
           if ((Get-FileHash $jar -Algorithm SHA256).Hash.ToLowerInvariant() -cne $before) {
             throw 'Test-fixture compilation replaced the verified application JAR.'

@@ -34,5 +34,5 @@ test('the real probe has a pinned 1.4.16 checksum while keeping all integrity ch
  assert.ok(probe.includes(`$baselineHash=if($FromStable1416){'${baselineHash}'}elseif($FromStable1415)`));
  assert.match(probe,/Get-FileHash \$oldExe -Algorithm SHA256/);assert.match(probe,/Existing VN code data or saved templates changed during upgrade/);
  const workflow=readFileSync(new URL('../.github/workflows/build-java.yml',import.meta.url),'utf8');assert.match(workflow,/mvnw.cmd -B clean verify/);assert.match(workflow,/run: node tools\/reuse-verified-windows-java.mjs/);
- assert.match(workflow,/mvnw.cmd -B test-compile/);assert.match(workflow,/Test-fixture compilation replaced the verified application JAR/);
+ assert.match(workflow,/javac -cp \$classpath -d target\\test-classes/);assert.match(workflow,/SellerWorkspaceFixture.java src\\test\\java\\com\\vncode\\app\\features\\license\\LicenseDomainFixture.java/);assert.match(workflow,/Test-fixture compilation replaced the verified application JAR/);
 });
