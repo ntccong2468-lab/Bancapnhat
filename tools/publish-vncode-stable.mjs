@@ -39,6 +39,7 @@ export function validateReusedJava(proof,version,sha,summary){
     assert.equal(proof.originRunId,verifiedJavaOrigin.run);assert.equal(proof.originSourceCommit,verifiedJavaOrigin.sha);
     assert.equal(proof.artifactId,verifiedJavaOrigin.artifact);assert.equal(proof.archiveSha256,verifiedJavaOrigin.digest);
     assert.equal(proof.applicationAndJavaTestInputsUnchanged,true);assert.equal(proof.javaExecutedInOriginRun,true);assert.equal(proof.nativeChecksMustRunAgain,true);
+    assert.equal(proof.fixtureClassesCompiledWithoutChangingJar,true);assert.match(proof.applicationJarSha256,/^[a-f0-9]{64}$/);
     for(const key of ['tests','failures','errors','skipped'])assert.equal(proof.tests[key],summary[key]);
 }
 

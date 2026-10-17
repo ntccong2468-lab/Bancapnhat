@@ -125,6 +125,22 @@ jobs:
           VNCODE_REUSE_JAVA_RUN: ${{ inputs.reuse_verified_java_run_id }}
         run: node tools/reuse-verified-windows-java.mjs
 
+      - name: Compile unchanged native UI fixtures without replacing the verified application JAR
+        if: ${{ inputs.reuse_verified_java_run_id != '' }}
+        shell: pwsh
+        run: |
+          $jar = "target\VNcode-$env:APP_VERSION.jar"
+          $before = (Get-FileHash $jar -Algorithm SHA256).Hash.ToLowerInvariant()
+          .\mvnw.cmd -B test-compile
+          if ($LASTEXITCODE -ne 0) { throw 'Cannot compile unchanged native UI test fixtures.' }
+          if ((Get-FileHash $jar -Algorithm SHA256).Hash.ToLowerInvariant() -cne $before) {
+            throw 'Test-fixture compilation replaced the verified application JAR.'
+          }
+          $proof = Get-Content target\java-verification-reuse.json -Raw | ConvertFrom-Json
+          $proof | Add-Member -NotePropertyName fixtureClassesCompiledWithoutChangingJar -NotePropertyValue $true
+          $proof | Add-Member -NotePropertyName applicationJarSha256 -NotePropertyValue $before
+          $proof | ConvertTo-Json -Depth 8 | Set-Content target\java-verification-reuse.json -Encoding utf8
+
       - name: Preserve verified Windows Java inputs
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
