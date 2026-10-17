@@ -4,7 +4,7 @@
   "complete": false,
   "developmentComplete": false,
   "officialReleasePublished": false,
-  "phase": "windows-installer-final-source-ready",
+  "phase": "windows-installer-under-final-native-validation",
   "licenseIntegration": {
     "implemented": true,
     "productionReady": false,
@@ -105,9 +105,9 @@
       "networkMutations": 0
     },
     "windowsBuild": {
-      "runId": 39071913482,
-      "sourceCommit": "a6e9a8684e8f3fd595ce395186c32f29811c8dd9",
-      "state": "cancelled-superseded-by-new-owner-request"
+      "runId": 39074687332,
+      "sourceCommit": "e64d6b862afc47221debc537c9874e67dd64e137",
+      "state": "in_progress"
     },
     "emptyKizRefill": {
       "markets": [
@@ -140,6 +140,16 @@
       "tests": 102,
       "failures": 0,
       "errors": 0
+    },
+    "uiNewsAndMissingFields": {
+      "sourceApplicationCommit": "6396af0",
+      "platform": "Linux/Xvfb",
+      "themes": [
+        "dark",
+        "light"
+      ],
+      "data": "synthetic",
+      "path": "docs/research/2026-10-17-wbcode-1170-latest/ui-proof"
     }
   },
   "comparison": {
