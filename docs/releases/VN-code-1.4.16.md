@@ -2,6 +2,8 @@
 
 Bản nâng cấp từ 1.4.15, tập trung sửa thao tác hàng loạt, đồng bộ GTIN chạy nền và kho KIZ trong shipment FBS.
 
+[Tải bộ cài Windows x64](https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.4.16/VN-code-1.4.16-Windows-x64.exe). Bộ cài có sẵn Java; cài đè để giữ dữ liệu hiện có.
+
 - **Tin tức:** tiêu đề và nội dung nằm trong khung, có cuộn riêng. Tin chính thức của WB được tự dịch sang tiếng Việt và lưu bộ nhớ đệm; giữ nguyên ngày tháng, GTIN và đường dẫn. Phần dịch chạy riêng, không chiếm worker đồng bộ sàn. Khi dịch vụ dịch không phản hồi, vẫn giữ bản gốc và ghi rõ trạng thái.
 - **Sản phẩm:** thay trang sửa có bảng xem trước bằng hộp sửa hàng loạt cho thương hiệu, chất liệu/tỷ lệ, giới tính, giấy tờ và TN VED. Bấm **Áp dụng** một lần cho tập sản phẩm đã chọn; app tự đọc mới, kiểm tra toàn bộ tập, lưu và đọc lại kết quả. Giấy tờ có sẵn được lấy từ toàn bộ cửa hàng, giữ thông tin loại và ngày hiệu lực. Thương hiệu shop được xếp trước; TN VED có nhóm gợi ý và lọc theo sản phẩm.
 - **GTIN lên WB/Ozon:** chạy nền từ màn đăng ký Znack; không mở bảng xem trước. Thông báo dạng viên thuốc nằm dưới giữa bảng, hiển thị tiến độ và số thành công/chờ đọc lại/cần xử lý. Giữ kiểm tra thẻ đã xuất bản, đúng biến thể và SKU Ozon; không lặp lại lần ghi chưa rõ kết quả.
