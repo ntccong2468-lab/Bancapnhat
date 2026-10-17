@@ -48,6 +48,20 @@ class SyncCoordinatorTest {
         assertEquals(3, queues.get(), "Visible FBS queue must refresh every ten seconds despite occupied slow workers");
         assertEquals(1, background.size()); assertEquals(2, registry.size());
     }
+    @Test void overdueOtherShopsCannotDelayTheVisibleShopsDueFbsQueue()throws Exception{
+        try(var c=Database.getConnection();var s=c.createStatement()){
+            s.execute("INSERT INTO shops(id,name,api_key,marketplace) VALUES(3,'Other','fixture-token','WILDBERRIES')");
+        }
+        var other=new Shop(3,"Other",Marketplace.WILDBERRIES,null,"fixture-token");
+        var calls=new ArrayList<String>();
+        create((s,stream,cursor)->{calls.add(s.getId()+":"+stream.name());return SyncCoordinator.Page.complete(0);});
+        coordinator.updateShops(List.of(shop,other));coordinator.selectShop(shop.getId());
+        coordinator.tick();while(!fast.isEmpty())fast.remove().run();calls.clear();
+        // Other shops and shipment scans still have older deadlines; the visible queue is due again.
+        nanos.set(Duration.ofSeconds(20).toNanos());coordinator.request(shop.getId(),SyncCoordinator.Stream.FBS_QUEUE);
+        coordinator.tick();fast.remove().run();
+        assertEquals(shop.getId()+":FBS_QUEUE",calls.getFirst());
+    }
     @Test void requestArrivingDuringReadIsNotLostByCompletion(){
         create((s,stream,cursor)->{if(stream==SyncCoordinator.Stream.FBS_QUEUE)new SyncStreamStore().request(shop,stream.name());return SyncCoordinator.Page.complete(0);});
         coordinator.tick();fast.remove().run();assertTrue(new SyncStreamStore().ensure(shop,"FBS_QUEUE",Instant.now()).requested());

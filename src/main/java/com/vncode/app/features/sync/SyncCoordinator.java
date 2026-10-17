@@ -70,15 +70,18 @@ public final class SyncCoordinator implements AutoCloseable {
     private void tickScoped(){
         if(closed)return;
         if(!dataDirectory.equals(com.vncode.app.shared.AppPaths.appDataDir().toAbsolutePath().normalize())){close();return;}
-        List<Map.Entry<Key,Entry>> ordered; int firstShop;
+        List<Map.Entry<Key,Entry>> ordered; int firstShop,visibleShop;
         synchronized(this){
             ordered=new ArrayList<>(entries.entrySet());
             firstShop=entries.keySet().stream().mapToInt(Key::shopId).min().orElse(-1);
+            visibleShop=selected;
         }
-        // Alternate shops, preserving bounded worker slots for the visible FBS queue.
-        ordered.sort(Comparator.<Map.Entry<Key,Entry>>comparingLong(e->e.getValue().dueNanos)
+        // A large overdue backlog must not defer the visible shop's actionable queue.
+        // Future/cooldown deadlines are still checked below; other shops use the remaining turns.
+        ordered.sort(Comparator.<Map.Entry<Key,Entry>>comparingInt(e->visibleFbsPriority(e.getKey(),visibleShop))
+            .thenComparingLong(e->e.getValue().dueNanos)
             .thenComparingInt(e->e.getKey().shopId()==lastShop?1:0)
-            .thenComparingInt(e->e.getKey().shopId()==selected?0:1)
+            .thenComparingInt(e->e.getKey().shopId()==visibleShop?0:1)
             .thenComparingInt(e->e.getKey().stream().ordinal()));
         for(var pair:ordered){var key=pair.getKey();var entry=pair.getValue();if(entry.running)continue;
             boolean interactive=key.stream()==Stream.FBS_QUEUE||key.stream()==Stream.FBS_STATUS||key.stream()==Stream.SUPPLIES||key.stream()==Stream.SUPPLY_CONTENT;
@@ -108,6 +111,12 @@ public final class SyncCoordinator implements AutoCloseable {
                 if(!(failed instanceof RejectedExecutionException))throw failed;
             }
         }
+    }
+    private static int visibleFbsPriority(Key key,int visibleShop){
+        if(key.shopId()!=visibleShop)return 4;
+        return switch(key.stream()){
+            case FBS_QUEUE->0;case FBS_STATUS->1;case SUPPLY_CONTENT->2;case SUPPLIES->3;default->4;
+        };
     }
     private void execute(Key key,Entry entry,SyncStreamStore.State before,boolean interactive){
         try(var scope=SyncDataScope.enter(dataDirectory);var lane=com.vncode.app.shared.MarketplaceRequestBudget.lane(!interactive)){executeScoped(key,entry,before,interactive);}
