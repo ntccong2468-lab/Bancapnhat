@@ -4,7 +4,7 @@
   "complete": false,
   "developmentComplete": false,
   "officialReleasePublished": false,
-  "phase": "windows-installer-under-final-native-validation",
+  "phase": "native-recheck-after-baseline-checksum-repair",
   "licenseIntegration": {
     "implemented": true,
     "productionReady": false,
@@ -32,8 +32,8 @@
       "skipped": 2
     },
     "releaseToolTests": {
-      "tests": 60,
-      "passed": 60
+      "tests": 65,
+      "passed": 65
     },
     "finalFocusedRegression": {
       "tests": 153,
@@ -108,7 +108,7 @@
     "windowsBuild": {
       "runId": 39075980471,
       "sourceCommit": "c09bc0d52eeae70f95dd8d9da065c4d309849c6d",
-      "state": "in_progress"
+      "state": "java-and-native-through-1415-passed-baseline-1416-checksum-harness-failed"
     },
     "emptyKizRefill": {
       "markets": [
@@ -168,7 +168,17 @@
         "runId": 39074687332,
         "state": "cancelled-before-packaging-to-include-missing-document-ui"
       }
-    ]
+    ],
+    "windowsJavaRegression": {
+      "sourceCommit": "c09bc0d52eeae70f95dd8d9da065c4d309849c6d",
+      "runId": 39075980471,
+      "tests": 1744,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 2,
+      "verifiedFromImmutableArtifact": true,
+      "archiveSha256": "a63aeab854f814d7a72b449710e5478599a55e66cbb6fa78ca31a09963a14dbf"
+    }
   },
   "comparison": {
     "from": "Wbcode 1.1.70",

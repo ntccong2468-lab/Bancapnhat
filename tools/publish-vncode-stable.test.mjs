@@ -1,7 +1,8 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {validateStableAsset,validatePublishedStable} from './publish-vncode-stable.mjs';
+import {validateStableAsset,validatePublishedStable,validateReusedJava} from './publish-vncode-stable.mjs';
+import {origin} from './reuse-verified-windows-java.mjs';
 
 const version='1.4.6',digest='a'.repeat(64),size=140000000;
 const asset={name:`VN-code-${version}-Windows-x64.exe`,state:'uploaded',digest:`sha256:${digest}`,size,
@@ -32,4 +33,10 @@ test('draft preparation retains production acceptance gate and publish promotes 
     assert.match(source,/make_latest:'true'/);
     assert.match(source,/validatePublishedStable\(api\('releases\/latest'\),version\)/);
     assert.match(source,/Never overwrite an already published version/);
+});
+test('installer proof retains the verified Windows Java origin after a probe-only repair',()=>{
+ const summary={tests:1744,failures:0,errors:0,skipped:2};const sha='a'.repeat(40);
+ const proof={version:'1.4.17',sourceCommit:sha,originRunId:origin.run,originSourceCommit:origin.sha,artifactId:origin.artifact,archiveSha256:origin.digest,applicationAndJavaTestInputsUnchanged:true,javaExecutedInOriginRun:true,nativeChecksMustRunAgain:true,tests:summary};
+ validateReusedJava(proof,'1.4.17',sha,summary);
+ for(const patch of [{sourceCommit:'b'.repeat(40)},{applicationAndJavaTestInputsUnchanged:false},{originRunId:1},{archiveSha256:'b'.repeat(64)},{tests:{...summary,tests:1743}}])assert.throws(()=>validateReusedJava({...proof,...patch},'1.4.17',sha,summary));
 });

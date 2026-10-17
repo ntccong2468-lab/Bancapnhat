@@ -10,6 +10,7 @@ import {validatePublicationSource,validateJavaTestSummary} from './preview-sourc
 import {validateBuild,validateNativeSmoke,validateSideBySideSmoke,validateUpgradeSmoke,validateReleaseAssets} from './publish-vncode-windows.mjs';
 import {validateLicenseReadiness} from './license-release-gate.mjs';
 import {validateWorkspaceSmoke} from './publish-vncode-preview.mjs';
+import {origin as verifiedJavaOrigin} from './reuse-verified-windows-java.mjs';
 
 const REPO='ntccong2468-lab/Bancapnhat';
 const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
@@ -32,6 +33,13 @@ export function validatePublishedStable(release,version) {
     assert.equal(release.tag_name,`v${version}`);assert.equal(release.draft,false);assert.equal(release.prerelease,false);
     assert.ok(release.body?.trim(),'Update notes are required');
     assert.ok(release.assets.some(asset=>asset.name===`VN-code-${version}-Windows-x64.exe`));
+}
+export function validateReusedJava(proof,version,sha,summary){
+    assert.equal(proof.version,version);assert.equal(proof.sourceCommit,sha);
+    assert.equal(proof.originRunId,verifiedJavaOrigin.run);assert.equal(proof.originSourceCommit,verifiedJavaOrigin.sha);
+    assert.equal(proof.artifactId,verifiedJavaOrigin.artifact);assert.equal(proof.archiveSha256,verifiedJavaOrigin.digest);
+    assert.equal(proof.applicationAndJavaTestInputsUnchanged,true);assert.equal(proof.javaExecutedInOriginRun,true);assert.equal(proof.nativeChecksMustRunAgain,true);
+    for(const key of ['tests','failures','errors','skipped'])assert.equal(proof.tests[key],summary[key]);
 }
 
 async function main(runId,sha,mode='prepare') {
@@ -76,10 +84,15 @@ async function main(runId,sha,mode='prepare') {
     assert.equal(gs1.result,'passed');assert.equal(gs1.version,version);assert.equal(gs1.liveGS1Mutations,false);
     assert.equal(gs1.catalogKeyDpapiRoundTrip,true);assert.equal(gs1.catalogKeyPurposeIsolated,true);
     proofFiles.push('seller-workspace-smoke.json','ui-layout.json','gs1-smoke.json');
-    const java=validateJavaTestSummary(gh(['run','view',runId,'--repo',REPO,'--log']));
+    const logs=gh(['run','view',runId,'--repo',REPO,'--log']);
+    const java=validateJavaTestSummary(logs);let javaVerificationOrigin;
+    if(logs.includes('REUSED_WINDOWS_JAVA:')){
+        javaVerificationOrigin=json(await readFile(path.join(directory,'java-verification-reuse.json')));
+        validateReusedJava(javaVerificationOrigin,version,sha,java);proofFiles.push('java-verification-reuse.json');
+    }
     const notes=(await readFile(`docs/releases/VN-code-${version}.md`,'utf8')).trim();assert.ok(notes.length>50);
     const info={version,sourceCommit:sha,runId:Number(runId),java,installer:{filename:name,bytes:bytes.length,sha256:digest},
-        licenseProductionAcceptance:status.licenseIntegration.productionReady,native,channel:'stable-after-publication',authenticodeSigned:false};
+        licenseProductionAcceptance:status.licenseIntegration.productionReady,native,javaVerificationOrigin,channel:'stable-after-publication',authenticodeSigned:false};
     await writeFile(path.join(directory,'build-info.json'),JSON.stringify(info,null,2)+'\n');
     await writeFile(path.join(directory,'release-notes.md'),notes+'\n');
     const names=[name,`VN-code-${version}-Windows-x64.sha256`,'build-info.json','release-notes.md',...proofFiles];

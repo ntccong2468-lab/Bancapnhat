@@ -19,6 +19,10 @@ on:
         description: Read-only inspection of the original MSI, no install/build/publication
         type: boolean
         default: false
+      reuse_verified_java_run_id:
+        description: Bounded recovery of the 1.4.17 baseline-checksum probe; app/test inputs must be identical
+        type: string
+        default: ''
   push:
     branches: [dev, main]
     paths-ignore:
@@ -77,6 +81,8 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
 
       - name: Set up JDK 25
         uses: actions/setup-java@03ad4de0992f5dab5e18fcb136590ce7c4a0ac95 # v5.6.0
@@ -98,16 +104,26 @@ jobs:
           node --test tools/*.test.mjs
 
       - name: Verify Windows asynchronous UI fixture cleanup
+        if: ${{ !inputs.reuse_verified_java_run_id }}
         shell: pwsh
         env:
           LOCALAPPDATA: ${{ runner.temp }}\vncode-java-fixture-cleanup-${{ github.run_id }}
         run: .\mvnw.cmd -B "-Dtest=Gs1PaneTest,ListingCopyPaneTest,ProductBulkEditPaneTest,ProductRefreshUiTest,CatalogSyncPaneTest,KizWarehousePaneTest" test
 
       - name: Run Java and FXML test suite
+        if: ${{ !inputs.reuse_verified_java_run_id }}
         shell: pwsh
         env:
           LOCALAPPDATA: ${{ runner.temp }}\vncode-java-fixtures-${{ github.run_id }}
         run: .\mvnw.cmd -B clean verify
+
+      - name: Restore byte-verified Windows Java after the baseline-checksum-only repair
+        if: ${{ inputs.reuse_verified_java_run_id != '' }}
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VNCODE_REUSE_JAVA_RUN: ${{ inputs.reuse_verified_java_run_id }}
+        run: node tools/reuse-verified-windows-java.mjs
 
       - name: Preserve verified Windows Java inputs
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
@@ -117,6 +133,7 @@ jobs:
             target/VNcode-${{ env.APP_VERSION }}.jar
             target/lib/**
             target/surefire-reports/TEST-*.xml
+            target/java-verification-reuse.json
           if-no-files-found: error
           retention-days: 14
 
@@ -255,6 +272,9 @@ jobs:
           $hash = (Get-FileHash $target -Algorithm SHA256).Hash.ToLowerInvariant()
           $checksum = Join-Path $PWD "out\VN-code-$env:APP_VERSION-Windows-x64.sha256"
           "$hash  VN-code-$env:APP_VERSION-Windows-x64.exe" | Set-Content $checksum -Encoding ascii
+          if (Test-Path target\java-verification-reuse.json) {
+            Copy-Item target\java-verification-reuse.json out\java-verification-reuse.json
+          }
 
       - name: Preserve Windows test installer
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
@@ -263,6 +283,7 @@ jobs:
           path: |
             out/VN-code-${{ env.APP_VERSION }}-Windows-x64.exe
             out/VN-code-${{ env.APP_VERSION }}-Windows-x64.sha256
+            out/java-verification-reuse.json
             out/native-smoke.json
             out/side-by-side-smoke.json
             out/upgrade-*.json
