@@ -16,13 +16,21 @@ public final class ThemeService {
     private static final String ORIGINAL_STYLE = ThemeService.class.getName()+".originalStyle";
     private static boolean observingWindows;
     public static final int DEFAULT_TRANSPARENCY = 55;
+    private static final String GLASS_STYLE_VERSION = "blue-glass-1";
 
     public enum Theme {
         DARK("dark"), LIGHT("light");
         private final String key;
         Theme(String key) { this.key=key; }
         public String getKey() { return key; }
-        public static Theme fromKey(String key) { return "light".equalsIgnoreCase(key)?LIGHT:DARK; }
+        public static Theme fromKey(String key) { return "dark".equalsIgnoreCase(key)?DARK:LIGHT; }
+    }
+    /** Apply the approved blue reference once on upgrade; later theme choices remain the user's. */
+    public static void initializeAppearance() {
+        if (!GLASS_STYLE_VERSION.equals(ConfigService.getConfigValue("glass_style_version"))) {
+            ConfigService.setConfigValue("app_theme",Theme.LIGHT.getKey());
+            ConfigService.setConfigValue("glass_style_version",GLASS_STYLE_VERSION);
+        }
     }
     public static Theme getCurrentTheme() { return Theme.fromKey(ConfigService.getConfigValue("app_theme")); }
     public static void setCurrentTheme(Theme theme) { switchTheme(theme.getKey()); }
@@ -85,9 +93,10 @@ public final class ThemeService {
         if(!root.getStyleClass().contains(selected))root.getStyleClass().add(selected);
         root.getStyleClass().remove(theme==Theme.LIGHT?"theme-dark":"theme-light");
         root.getProperties().putIfAbsent(ORIGINAL_STYLE,root.getStyle());
-        double alpha=1-amount*.0068; // 0..100 slider: opaque to 32% tinted glass, never transparent text.
-        String tint=theme==Theme.LIGHT?"255,255,255":"25,35,59";
-        String elevated=theme==Theme.LIGHT?"247,250,255":"35,47,73";
+        // The light blue material retains a contrast floor even over the strongest blue in the canvas.
+        double alpha=1-amount*(theme==Theme.LIGHT?.0048:.0068);
+        String tint=theme==Theme.LIGHT?"199,226,246":"22,48,75";
+        String elevated=theme==Theme.LIGHT?"226,241,252":"33,64,94";
         String paint=String.format(Locale.ROOT,"-glass-surface:rgba(%s,%.3f);-glass-elevated:rgba(%s,%.3f);-glass-row:rgba(%s,%.3f);",tint,alpha,elevated,Math.min(1,alpha+.10),tint,Math.max(.12,alpha-.22));
         root.setStyle(root.getProperties().get(ORIGINAL_STYLE)+";"+paint);
         root.getProperties().put("glass.transparency",amount);

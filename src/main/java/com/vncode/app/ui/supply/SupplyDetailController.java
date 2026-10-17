@@ -200,11 +200,16 @@ public class SupplyDetailController {
     private void initialize() {
         shipmentKizHost.getChildren().setAll(shipmentKizPane);
         gtinInventoryList.setCellFactory(list->new javafx.scene.control.ListCell<>(){
+            // Let VirtualFlow allocate the viewport width; a wrapped card must not size the viewport itself.
+            @Override protected double computePrefWidth(double height){return 0;}
             @Override protected void updateItem(ZnackGtinInventorySummary summary,boolean empty){
                 super.updateItem(summary,empty);setText(null);
                 if(getGraphic() instanceof Region prior)prior.prefWidthProperty().unbind();
                 if(empty||summary==null){setGraphic(null);return;}
-                var card=createGtinCard(summary);card.setMinWidth(0);card.prefWidthProperty().bind(list.widthProperty().subtract(28));setGraphic(card);
+                var card=createGtinCard(summary);card.setMinWidth(0);
+                card.prefWidthProperty().bind(javafx.beans.binding.Bindings.createDoubleBinding(
+                    ()->Math.max(0,getWidth()-snappedLeftInset()-snappedRightInset()),widthProperty(),insetsProperty()));
+                setGraphic(card);
             }
         });
         shipmentKizPane.setOnSelectionChanged(sources->{paidInventoryPane.setManaged(sources.purchased());paidInventoryPane.setVisible(sources.purchased());if(sources.purchased()&&znackRepository!=null)refreshGtinInventory();else if(!sources.purchased()){gtinSyncPending=false;pendingSyncShowsErrors=false;if(gtinRefreshTimer!=null)gtinRefreshTimer.stop();}});

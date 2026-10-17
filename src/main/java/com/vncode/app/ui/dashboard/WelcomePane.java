@@ -23,6 +23,7 @@ public final class WelcomePane extends ScrollPane {
     private static final String[] KEYS={"fbs","kiz","registration","fbo","templates","history"};
     private static final String[] ICONS={"fth-truck","fth-shield","fth-file-plus","fth-package","fth-edit","fth-clock"};
     private boolean compact;
+    private int arrangedColumns=-1;
     public WelcomePane(VBox news,List<Runnable> actions) {
         if(actions.size()!=6)throw new IllegalArgumentException("Six existing feature actions required");
         this.news=news;setFitToWidth(true);setHbarPolicy(ScrollBarPolicy.NEVER);getStyleClass().add("welcome-scroll");
@@ -41,8 +42,12 @@ public final class WelcomePane extends ScrollPane {
         news.setMinWidth(0);setContent(body);widthProperty().addListener((o,a,b)->arrange(b.doubleValue()));arrange(1100);applyTranslations();
     }
     private void arrange(double width) {
-        compact=width<1000;body.getChildren().clear();wide.getChildren().clear();cards.getChildren().clear();cards.getColumnConstraints().clear();
+        boolean nextCompact=width<1000;
         int columns=width<650?1:2;
+        // Width changes within the same layout do not require removing/recreating the entire node tree.
+        if(arrangedColumns==columns&&compact==nextCompact)return;
+        compact=nextCompact;arrangedColumns=columns;
+        body.getChildren().clear();wide.getChildren().clear();cards.getChildren().clear();cards.getColumnConstraints().clear();
         for(int i=0;i<columns;i++){var constraint=new ColumnConstraints();constraint.setPercentWidth(100.0/columns);constraint.setHgrow(Priority.ALWAYS);cards.getColumnConstraints().add(constraint);}
         for(int i=0;i<buttons.size();i++)cards.add(buttons.get(i),i%columns,i/columns);
         if(compact){news.setPrefWidth(-1);news.setMaxWidth(Double.MAX_VALUE);body.getChildren().setAll(introduction,news);}

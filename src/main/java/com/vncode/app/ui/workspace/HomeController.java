@@ -240,6 +240,7 @@ public class HomeController implements Initializable {
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         Database.initDatabase();
+        ThemeService.initializeAppearance();
         new com.vncode.app.features.products.ProductEditRepository().recoverIncomplete();
         new com.vncode.app.features.gtinsync.GtinSyncRepository().recoverInterrupted();
         new com.vncode.app.features.print.history.PrintHistoryRepository().recoverInterruptedFboJobs();

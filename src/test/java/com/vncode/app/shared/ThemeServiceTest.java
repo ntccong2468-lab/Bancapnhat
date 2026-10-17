@@ -28,16 +28,19 @@ class ThemeServiceTest {
     var label=new Label("Đơn hàng / Заказы / Orders 152DASH-52");label.setWrapText(true);
     var muted=new Label("GTIN · SKU · Znack");muted.getStyleClass().add("text-muted");
     var input=new TextField("152DASH-52");var button=new Button("Lưu thay đổi");button.getStyleClass().add("btn-primary");
-    var card=new VBox(12,label,muted,input,button);card.getStyleClass().add("card");
+    var selected=new CheckBox("Kho KIZ / Склад КИЗ");selected.setSelected(true);
+    var card=new VBox(12,label,muted,input,button,selected);card.getStyleClass().add("card");
     var root=new VBox(18,new Label("VNCode — Liquid Glass"),card);root.setStyle("-fx-padding:24;");
     var stage=new Stage();stage.setScene(new Scene(root,700,420));ThemeService.applyTheme(stage.getScene());stage.show();root.applyCss();root.layout();
     assertEquals(1,root.getOpacity());assertEquals(1,label.getOpacity());assertEquals(1,input.getOpacity());assertEquals(1,stage.getOpacity());
     assertTrue(card.getBackground().getFills().getFirst().getRadii().getTopLeftHorizontalRadius()>=18);
     assertEquals(1,((Color)label.getTextFill()).getOpacity());
-    var background=theme==ThemeService.Theme.DARK?Color.web("#24233f"):Color.web("#d5eeef");
+    var background=theme==ThemeService.Theme.DARK?Color.web("#163c60"):Color.web("#74a6dc");
     var fill=(Color)card.getBackground().getFills().getFirst().getFill();var blended=over(fill,background);
     assertTrue(contrast((Color)label.getTextFill(),blended)>=7,"Primary text contrast: "+theme+" "+amount);
     assertTrue(contrast((Color)muted.getTextFill(),blended)>=4.5,"Secondary text contrast: "+theme+" "+amount);
+    for(var stop:((javafx.scene.paint.LinearGradient)button.getBackground().getFills().getFirst().getFill()).getStops())assertTrue(contrast((Color)button.getTextFill(),stop.getColor())>=4.5,"Action text contrast");
+    var box=(Region)selected.lookup(".box");assertTrue(contrast(Color.WHITE,(Color)box.getBackground().getFills().getFirst().getFill())>=4.5,"Selected checkbox must remain visible");
     assertTrue(root.getStyle().contains("-fx-padding:24"));
     String output=System.getProperty("vncode.glass.screenshots");
     if(output!=null){var dir=Path.of(output);Files.createDirectories(dir);var image=root.snapshot(null,null);var pixels=new java.awt.image.BufferedImage((int)image.getWidth(),(int)image.getHeight(),java.awt.image.BufferedImage.TYPE_INT_ARGB);for(int y=0;y<image.getHeight();y++)for(int x=0;x<image.getWidth();x++)pixels.setRGB(x,y,image.getPixelReader().getArgb(x,y));javax.imageio.ImageIO.write(pixels,"png",dir.resolve(theme.getKey()+"-"+amount+".png").toFile());}
@@ -71,6 +74,31 @@ class ThemeServiceTest {
   ConfigService.setConfigValue("glass_transparency","NaN");assertEquals(55,ThemeService.getGlassTransparency());
   ConfigService.setConfigValue("glass_transparency","200");assertEquals(100,ThemeService.getGlassTransparency());
   ConfigService.setConfigValue("glass_transparency","-20");assertEquals(0,ThemeService.getGlassTransparency());
+ }
+ @Test void referenceAppearanceAppliesOnceAndPreservesTransparencyAndLaterThemeChoice(){
+  ConfigService.setConfigValue("app_theme","dark");ConfigService.setConfigValue("glass_transparency","72");
+  ThemeService.initializeAppearance();assertEquals(ThemeService.Theme.LIGHT,ThemeService.getCurrentTheme());assertEquals(72,ThemeService.getGlassTransparency());
+  ConfigService.setConfigValue("app_theme","dark");ThemeService.initializeAppearance();assertEquals(ThemeService.Theme.DARK,ThemeService.getCurrentTheme());
+ }
+ @Test void blueReferenceRendersTheActualVncodeNavigationAndWelcomePage()throws Exception{
+  fx(()->{
+   var previousLanguage=I18nService.getInstance().getCurrentLanguage();I18nService.getInstance().setLanguage(AppLanguage.VI);
+   try {
+   ThemeService.initializeAppearance();ThemeService.setGlassTransparency(55);
+   var sidebar=FxmlViewLoader.loader(com.vncode.app.ui.shop.ShopSidebarController.class,"shop-sidebar-view.fxml");
+   var header=FxmlViewLoader.loader(com.vncode.app.ui.workspace.WorkspaceHeaderController.class,"workspace-header-view.fxml");
+   javafx.scene.Parent nav=sidebar.load(),top=header.load();
+   var welcome=new com.vncode.app.ui.dashboard.WelcomePane(new VBox(),Collections.nCopies(6,()->{}));
+   var content=new BorderPane(welcome,top,null,null,null);BorderPane.setMargin(welcome,new javafx.geometry.Insets(18));
+   var shell=new BorderPane(content,null,null,null,nav);var stage=new Stage();stage.setScene(new Scene(shell,1460,900));ThemeService.applyTheme(stage.getScene());stage.show();shell.applyCss();shell.layout();
+   assertTrue(shell.getStyleClass().contains("theme-light"));assertEquals(6,shell.lookupAll(".feature-card").size());
+   for(var node:shell.lookupAll(".feature-card"))assertEquals(26,((Region)node).getBackground().getFills().getFirst().getRadii().getTopLeftHorizontalRadius());
+   var primary=(Button)shell.lookup(".add-shop");assertNotNull(primary);assertEquals(1,primary.getOpacity());
+   String output=System.getProperty("vncode.glass.screenshots");
+   if(output!=null){var image=shell.snapshot(null,null);var pixels=new java.awt.image.BufferedImage((int)image.getWidth(),(int)image.getHeight(),java.awt.image.BufferedImage.TYPE_INT_ARGB);for(int y=0;y<image.getHeight();y++)for(int x=0;x<image.getWidth();x++)pixels.setRGB(x,y,image.getPixelReader().getArgb(x,y));var dir=Path.of(output);Files.createDirectories(dir);javax.imageio.ImageIO.write(pixels,"png",dir.resolve("vncode-blue-reference.png").toFile());}
+   ((com.vncode.app.ui.workspace.WorkspaceHeaderController)header.getController()).dispose();stage.close();return null;
+   } finally { I18nService.getInstance().setLanguage(previousLanguage); }
+  });
  }
  static Color over(Color a,Color b){double t=a.getOpacity();return new Color(a.getRed()*t+b.getRed()*(1-t),a.getGreen()*t+b.getGreen()*(1-t),a.getBlue()*t+b.getBlue()*(1-t),1);}
  static double channel(double n){return n<=.04045?n/12.92:Math.pow((n+.055)/1.055,2.4);}

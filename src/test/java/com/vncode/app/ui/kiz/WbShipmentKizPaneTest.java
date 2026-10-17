@@ -31,6 +31,9 @@ class WbShipmentKizPaneTest {
         do{Thread.sleep(10);fx(()->null);if(AppTaskExecutor.getRunningTaskCount()==0){fx(()->null);if(AppTaskExecutor.getRunningTaskCount()==0)return;}}while(System.nanoTime()<until);
         fail("Shipment tasks did not finish");
     }
+    static void pulse()throws Exception{
+        var done=new CompletableFuture<Void>();fx(()->{new javafx.animation.AnimationTimer(){int frames;public void handle(long now){if(++frames==2){stop();done.complete(null);}}}.start();return null;});done.get(5,TimeUnit.SECONDS);
+    }
     CheckBox imported(){return (CheckBox)pane.lookup("#shipment-kiz-imported");}
     CheckBox purchased(){return (CheckBox)pane.lookup("#shipment-kiz-purchased");}
     @Test void sourcesPersistByShipmentAndCountsIncludeEmptyCategories()throws Exception {
@@ -94,20 +97,33 @@ class WbShipmentKizPaneTest {
             com.vncode.app.ui.supply.SupplyDetailController controller=loader.getController();var window=new javafx.stage.Stage();window.setScene(new Scene(view,1500,820));window.show();stage.set(window);controller.setShop(one);controller.setKizShipmentContext(one,"LARGE");((Button)view.lookup("#inventoryToggleButton")).fire();return new ShipmentView(controller,view);
         });
         try {
-            awaitTasks();fx(()->{
+            // Exercise scrolling after the loaded list has actually been displayed, as in a user gesture.
+            awaitTasks();pulse();fx(()->{
                 var view=loaded.view();view.applyCss();view.layout();var list=(ListView<?>)view.lookup("#gtinInventoryList");
                 assertEquals(2000,list.getItems().size());assertTrue(view.lookupAll(".gtin-inventory-card").size()<60,"Large catalog must not create one card node for every GTIN");
-                list.scrollTo(1999);view.layout();return null;
+                // Exercise the scrollbar the seller actually uses. VirtualFlow.scrollTo(lastIndex)
+                // estimates offsets for variable-height cells and can stop one row before the end.
+                var vertical=list.lookupAll(".scroll-bar").stream().filter(n->n instanceof ScrollBar b&&b.getOrientation()==javafx.geometry.Orientation.VERTICAL).map(n->(ScrollBar)n).findFirst().orElseThrow();
+                assertTrue(vertical.isVisible());vertical.setValue(vertical.getMax());view.layout();return null;
             });
             boolean lastVisible=false;long until=System.nanoTime()+TimeUnit.SECONDS.toNanos(5);
-            do{lastVisible=fx(()->loaded.view().lookupAll(".gtin-code").stream().filter(node->node instanceof Label).map(node->((Label)node).getText()).anyMatch("00000000002000"::equals));if(!lastVisible)Thread.sleep(20);}while(!lastVisible&&System.nanoTime()<until);
-            assertTrue(lastVisible,"The final GTIN must become visible after scrolling");
+            do{lastVisible=fx(()->lastGtinVisible(loaded.view()));if(!lastVisible)Thread.sleep(20);}while(!lastVisible&&System.nanoTime()<until);
+            assertTrue(lastVisible,()->{
+                try{return fx(()->{
+                    var list=(ListView<?>)loaded.view().lookup("#gtinInventoryList");
+                    return "The final GTIN must become visible after scrolling; viewport="+list.getWidth()+"x"+list.getHeight()+" finalItem="+list.getItems().getLast()+" visibleCells="+list.lookupAll(".list-cell").stream().filter(n->n instanceof ListCell<?>).map(n->((ListCell<?>)n).getIndex()).toList()+" bars="+list.lookupAll(".scroll-bar").stream().filter(n->n instanceof ScrollBar).map(n->{var b=(ScrollBar)n;return b.getOrientation()+":"+b.getValue()+"/"+b.getMax();}).toList();
+                });}catch(Exception error){return "Cannot inspect final GTIN: "+error;}
+            });
             fx(()->{loaded.controller().refreshGtinInventory();return null;});awaitTasks();
             fx(()->{
                 var view=loaded.view();view.applyCss();view.layout();
-                assertTrue(view.lookupAll(".gtin-code").stream().filter(node->node instanceof Label).map(node->((Label)node).getText()).anyMatch("00000000002000"::equals));
+                assertTrue(lastGtinVisible(view));
                 assertTrue(view.lookupAll(".gtin-inventory-card").size()<60);return null;
             });
         }finally{fx(()->{loaded.controller().dispose();if(stage.get()!=null)stage.get().close();return null;});awaitTasks();}
+    }
+    static boolean lastGtinVisible(javafx.scene.Parent view){
+        var list=view.lookup("#gtinInventoryList");var viewport=list.localToScene(list.getBoundsInLocal());
+        return view.lookupAll(".gtin-code").stream().anyMatch(node->node instanceof Label label&&"00000000002000".equals(label.getText())&&node.isVisible()&&viewport.intersects(node.localToScene(node.getBoundsInLocal())));
     }
 }
