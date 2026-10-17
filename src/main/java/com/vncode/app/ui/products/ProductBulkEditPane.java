@@ -142,7 +142,8 @@ public final class ProductBulkEditPane extends BorderPane {
         if(number.getText().isBlank()||type.getText().isBlank()||from.getValue()==null||(!endless.isSelected()&&until.getValue()==null))throw new IllegalArgumentException("Document metadata missing");
         var metadata=new HashMap<String,String>(selectedDocument==null?Map.of():selectedDocument.metadata());metadata.put("isEndless",Boolean.toString(endless.isSelected()));metadata.put("certificate_type",type.getText().strip());metadata.put("certificate_country",country.getText().strip());metadata.put("accordance_type",accordance.getText().strip());metadata.put("name",name.getText().strip());metadata.put("product_type",productType.getText().strip());metadata.put("link_to_registry",registry.getText().strip());metadata.put("type",type.getText().strip());
         var existing=selectedDocument;boolean reuse=existing!=null&&number.getText().strip().equals(existing.number())&&documentType(type.getText()).equals(documentType(existing.type()));
-        var doc=new ProductDocument(reuse?existing.id():"",type.getText().strip(),number.getText().strip(),from.getValue(),until.getValue(),existing==null?"":existing.owner(),existing==null?"":existing.scope(),file==null?null:file.toUri(),shop.getMarketplace(),DocumentState.UNVERIFIED,"",null,metadata);
+        String selectedType=reuse?existing.type():type.getText().strip();metadata.put("type",selectedType);metadata.put("certificate_type",reuse?existing.metadata().getOrDefault("certificate_type",selectedType):selectedType);
+        var doc=new ProductDocument(reuse?existing.id():"",selectedType,number.getText().strip(),from.getValue(),until.getValue(),existing==null?"":existing.owner(),existing==null?"":existing.scope(),file==null?null:file.toUri(),shop.getMarketplace(),DocumentState.UNVERIFIED,"",null,metadata);
         return new ProductBulkEdit(field,List.of(),List.of(doc),Map.of());
     }
     private void prepare(){
