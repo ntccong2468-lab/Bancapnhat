@@ -18,7 +18,7 @@ final class KizImportDialog {
         var summary=new Label(fileText(preview));summary.setId("kiz-import-file-report");summary.setWrapText(true);
         var details=new Label(preview.issues().stream().map(i->i.row()+": "+com.vncode.app.features.kiz.KizErrorMessages.message(i.code())).collect(java.util.stream.Collectors.joining("\n")));details.setId("kiz-import-damaged");details.setWrapText(true);
         var imported=new Label(result==null?"":resultText(result));imported.setWrapText(true);
-        var content=new ScrollPane(new VBox(12,summary,imported,details));content.setFitToWidth(true);dialog.getDialogPane().setContent(content);dialog.getDialogPane().setPrefSize(590,480);
+        var content=new ScrollPane(new VBox(12,summary,marketplaceStatus(),imported,details));content.setFitToWidth(true);dialog.getDialogPane().setContent(content);dialog.getDialogPane().setPrefSize(590,480);
         dialog.getDialogPane().getButtonTypes().setAll(ButtonType.CLOSE);dialog.getDialogPane().lookupButton(ButtonType.CLOSE).setId("kiz-import-report-close");
         DialogLayout.install(dialog.getDialogPane());AlertService.applyTheme(dialog);dialog.showAndWait();
     }
@@ -35,7 +35,7 @@ final class KizImportDialog {
         var help=new Label(tr("help"));help.setWrapText(true);help.getStyleClass().add("text-muted");
         var file=new Label(fileText(preview));file.setWrapText(true);file.setId("kiz-import-file-report");
         var issues=new Label(preview.issues().stream().map(i->i.row()+": "+com.vncode.app.features.kiz.KizErrorMessages.message(i.code())).collect(java.util.stream.Collectors.joining("\n")));issues.setWrapText(true);issues.setId("kiz-import-damaged");
-        var content=new ScrollPane(new VBox(12,file,counts,formats,issues,move,help));content.setFitToWidth(true);
+        var content=new ScrollPane(new VBox(12,file,marketplaceStatus(),counts,formats,issues,move,help));content.setFitToWidth(true);
         dialog.getDialogPane().setContent(content);dialog.getDialogPane().setPrefSize(590,480);
         var apply=new ButtonType(tr("apply"),ButtonBar.ButtonData.OK_DONE);dialog.getDialogPane().getButtonTypes().setAll(apply,ButtonType.CANCEL);
         dialog.getDialogPane().lookupButton(apply).setDisable(!preview.valid());
@@ -45,6 +45,9 @@ final class KizImportDialog {
     }
     static String fileText(KizImportReader.Preview preview){
         return MessageFormat.format(tr("file_report"),preview.total(),preview.marks().size(),preview.damaged(),preview.duplicates());
+    }
+    private static Label marketplaceStatus(){
+        var label=new Label(tr("marketplace_unchecked"));label.setId("kiz-import-marketplace-status");label.setWrapText(true);return label;
     }
     static String resultText(Imported result,KizImportReader.Preview preview){return fileText(preview)+"\n"+resultText(result);}
     static String reviewText(ImportReview review) {

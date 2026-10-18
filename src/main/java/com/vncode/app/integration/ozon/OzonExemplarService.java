@@ -255,8 +255,10 @@ public final class OzonExemplarService {
                 return ShopOperationCoordinator.withActiveShop(shop.getId(), () -> {
                     ListingIdentity.require(shop);
                     postings.upsertDetail(shop.getId(), posting);
+                    var categorySkus=new java.util.HashSet<>(operation.sources!=null&&!operation.sources.purchased()?posting.items().stream().map(OzonPostingItemDto::sku).collect(java.util.stream.Collectors.toSet()):operation.sources!=null&&!operation.sources.sellerImported()?Set.<String>of():OzonCategoryStock.categorySkus(shop.getId(),posting.items().stream().map(OzonPostingItemDto::sku).toList()));
+                    categorySkus.addAll(OzonCategoryStock.reservedCategorySkus(shop.getId(),posting,priorJob));
                     OzonRequirementGuard.PreparationPlan plan = OzonRequirementGuard.plan(
-                            posting, operation.skuMappings, operation.exemptions, operation.sources!=null&&!operation.sources.purchased()?posting.items().stream().map(OzonPostingItemDto::sku).collect(java.util.stream.Collectors.toSet()):operation.sources!=null&&!operation.sources.sellerImported()?Set.of():OzonCategoryStock.categorySkus(shop.getId(),posting.items().stream().map(OzonPostingItemDto::sku).toList()));
+                            posting, operation.skuMappings, operation.exemptions, categorySkus);
                     if (plan.exemplarCount() == 0) {
                         if (priorJob != null && priorJob.stage() != OzonExemplarJobStage.ACCEPTED
                                 && jobs.bindingCounts(shop.getId(), List.of(priorJob.id())).getOrDefault(priorJob.id(), 0) > 0) {

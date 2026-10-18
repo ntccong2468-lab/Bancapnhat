@@ -49,7 +49,7 @@
     -glass-line: rgba(255,255,255,.62);
     -glass-highlight: rgba(255,255,255,.36);
     -glass-selected: rgba(54,117,190,.20);
-    -glass-canvas: linear-gradient(from 0% 0% to 100% 100%, #a6c9df 0%, #c7dce6 24%, #74a6dc 55%, #9ecbdd 79%, #b9d9e8 100%);
+    -glass-canvas: linear-gradient(from 0% 0% to 100% 100%, #91d7f3 0%, #78c4ed 24%, #5baadc 55%, #7ec9e7 79%, #a7deed 100%);
     -text-primary: #112b40;
     -text-secondary: #1c354a;
     -text-muted: #20394e;
@@ -215,3 +215,104 @@
 .liquid-glass .combo-box-base .arrow, .liquid-glass .choice-box .arrow,
 .liquid-glass .spinner .increment-arrow, .liquid-glass .spinner .decrement-arrow,
 .liquid-glass .date-picker > .arrow-button > .arrow { -fx-background-color: -text-primary; }
+
+/* 1.5.0 reference: raised blue glass controls. Paint the material, never fade
+   the node: text and focus stay legible at every transparency setting. */
+.root.liquid-glass .button, .root.liquid-glass .menu-button,
+.root.liquid-glass .toggle-button {
+    -fx-background-color: -glass-button,
+        linear-gradient(from 0% 0% to 100% 100%, -glass-control-highlight, transparent 42%, -glass-control-shadow);
+    -fx-background-radius: 999;
+    -fx-background-insets: 0, 1;
+    -fx-border-color: rgba(228,249,255,.74) rgba(160,214,246,.38) rgba(42,114,174,.30) rgba(228,249,255,.68);
+    -fx-border-radius: 999;
+    -fx-border-width: 1;
+    -fx-text-fill: -text-primary;
+    -fx-effect: dropshadow(gaussian,rgba(8,60,110,.24),9,.10,0,3);
+}
+.root.liquid-glass .button:hover, .root.liquid-glass .menu-button:hover,
+.root.liquid-glass .toggle-button:hover {
+    -fx-background-color: -glass-button,
+        linear-gradient(to bottom,-glass-control-highlight,transparent 65%);
+    -fx-border-color: -border-color-hover;
+}
+.root.liquid-glass .button:pressed, .root.liquid-glass .menu-button:showing,
+.root.liquid-glass .toggle-button:selected {
+    -fx-background-color: -glass-selected;
+    -fx-effect: innershadow(gaussian,rgba(8,60,110,.25),7,.08,0,2);
+}
+.root.liquid-glass .button:focused, .root.liquid-glass .menu-button:focused,
+.root.liquid-glass .toggle-button:focused {
+    -fx-border-color: -accent;
+    -fx-border-width: 1.5;
+}
+.root.liquid-glass .button.btn-primary, .root.liquid-glass .button.primary,
+.root.liquid-glass .button:default, .root.liquid-glass .sidebar .button.add-shop {
+    -fx-background-color: -glass-selected,
+        linear-gradient(to bottom,-glass-control-highlight,transparent 58%,-glass-control-shadow);
+    -fx-text-fill: -text-primary;
+}
+.root.liquid-glass .button .ikonli-font-icon,
+.root.liquid-glass .menu-button .ikonli-font-icon,
+.root.liquid-glass .toggle-button .ikonli-font-icon { -fx-icon-color: -text-primary; }
+.root.liquid-glass .button.btn-icon {
+    -fx-min-width: 38;
+    -fx-pref-width: 38;
+    -fx-min-height: 38;
+    -fx-pref-height: 38;
+    -fx-padding: 8;
+    -fx-alignment: center;
+    -fx-background-radius: 999;
+    -fx-border-radius: 999;
+}
+.root.liquid-glass .sidebar .button.btn-icon { -fx-max-width: 38; }
+.root.liquid-glass .sidebar .button.nav-item,
+.root.liquid-glass .sidebar .menu-button {
+    -fx-background-radius: 22;
+    -fx-border-radius: 22;
+    -fx-effect: dropshadow(gaussian,rgba(8,60,110,.16),5,0,0,2);
+}
+.root.liquid-glass .sidebar .button.nav-selected {
+    -fx-background-color: -glass-selected,
+        linear-gradient(to bottom,-glass-control-highlight,transparent 65%);
+    -fx-border-color: -border-color-hover;
+}
+.root.liquid-glass .sidebar.sidebar-compact .button.nav-item {
+    -fx-min-width: 40;
+    -fx-pref-width: 40;
+    -fx-max-width: 40;
+    -fx-min-height: 40;
+    -fx-pref-height: 40;
+    -fx-background-radius: 999;
+    -fx-border-radius: 999;
+}
+/* Content cards retain room for wrapped text, unlike the circular icon buttons. */
+.root.liquid-glass .button.news-card, .root.liquid-glass .button.feature-card {
+    -fx-background-color: -glass-surface,
+        linear-gradient(from 0% 0% to 100% 100%, -glass-highlight, transparent 55%);
+    -fx-background-radius: 26;
+    -fx-border-radius: 26;
+    -fx-alignment: top-left;
+    -fx-padding: 16;
+    -fx-effect: dropshadow(gaussian,rgba(8,60,110,.12),7,0,0,2);
+}
+.root.liquid-glass .button.news-card { -fx-background-radius: 18; -fx-border-radius: 18; }
+.root.liquid-glass .button.btn-success { -fx-background-color: #087354; -fx-text-fill: white; }
+.root.liquid-glass .button.btn-danger { -fx-background-color: #a72c4b; -fx-text-fill: white; }
+.root.liquid-glass .button.btn-warning { -fx-background-color: #f3bc52; -fx-text-fill: #112b40; }
+.root.liquid-glass .button.btn-success .ikonli-font-icon,
+.root.liquid-glass .button.btn-danger .ikonli-font-icon { -fx-icon-color: white; }
+.root.liquid-glass .button.btn-warning .ikonli-font-icon { -fx-icon-color: #112b40; }
+/* The product reference layout owns sizing; the shared glass owns its material. */
+.root.liquid-glass #productsPane .products-bulk .button {
+    -fx-background-radius: 999;
+    -fx-border-radius: 999;
+}
+.root.liquid-glass #productsPane .products-bulk .button.btn-primary,
+.root.liquid-glass #productsPane .products-bulk .button.btn-primary:hover {
+    -fx-background-color: -glass-selected,
+        linear-gradient(to bottom,-glass-control-highlight,transparent 65%);
+    -fx-border-color: -glass-line;
+    -fx-text-fill: -text-primary;
+}
+.root.liquid-glass #productsPane .products-bulk .button.btn-primary .ikonli-font-icon { -fx-icon-color: -text-primary; }

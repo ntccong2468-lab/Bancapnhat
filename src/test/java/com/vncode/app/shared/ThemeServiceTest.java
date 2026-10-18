@@ -44,7 +44,11 @@ class ThemeServiceTest {
     assertTrue(contrast((Color)muted.getTextFill(),strongestCanvas)>=4.5,"Secondary text directly on canvas");
     var buttonPaint=(Color)button.getBackground().getFills().getFirst().getFill();var buttonBackground=over(buttonPaint,blended);
     assertTrue(contrast(over((Color)button.getTextFill(),buttonBackground),buttonBackground)>=4.5,"Action text contrast");
-    if(amount==0)assertTrue(fill.getOpacity()<.04,"Minimum is clear water");
+    if(amount==0){
+     assertTrue(fill.getOpacity()<=.005,"Minimum is pure clear water");
+     assertTrue(buttonPaint.getOpacity()<=.04,"Clear-water controls must not retain a frosted fill");
+     assertEquals(1,((Color)label.getTextFill()).getOpacity(),"The transparency slider never fades text");
+    }
     if(amount==100)assertEquals(1,fill.getOpacity());
     var box=(Region)selected.lookup(".box");assertTrue(contrast(Color.WHITE,(Color)box.getBackground().getFills().getFirst().getFill())>=4.5,"Selected checkbox must remain visible");
     assertTrue(root.getStyle().contains("-fx-padding:24"));
@@ -100,6 +104,10 @@ class ThemeServiceTest {
    assertTrue(shell.getStyleClass().contains("theme-light"));assertEquals(6,shell.lookupAll(".feature-card").size());
    for(var node:shell.lookupAll(".feature-card"))assertEquals(26,((Region)node).getBackground().getFills().getFirst().getRadii().getTopLeftHorizontalRadius());
    var primary=(Button)shell.lookup(".add-shop");assertNotNull(primary);assertEquals(1,primary.getOpacity());
+   for(var node:shell.lookupAll(".btn-icon"))if(node instanceof Button icon){
+    assertEquals(38,icon.getMinWidth());assertEquals(38,icon.getMinHeight());
+    assertTrue(icon.getBackground().getFills().getFirst().getRadii().getTopLeftHorizontalRadius()>=19);
+   }
    String output=System.getProperty("vncode.glass.screenshots");
    if(output!=null){var image=shell.snapshot(null,null);var pixels=new java.awt.image.BufferedImage((int)image.getWidth(),(int)image.getHeight(),java.awt.image.BufferedImage.TYPE_INT_ARGB);for(int y=0;y<image.getHeight();y++)for(int x=0;x<image.getWidth();x++)pixels.setRGB(x,y,image.getPixelReader().getArgb(x,y));var dir=Path.of(output);Files.createDirectories(dir);javax.imageio.ImageIO.write(pixels,"png",dir.resolve("vncode-blue-reference.png").toFile());}
    ((com.vncode.app.ui.workspace.WorkspaceHeaderController)header.getController()).dispose();stage.close();return null;

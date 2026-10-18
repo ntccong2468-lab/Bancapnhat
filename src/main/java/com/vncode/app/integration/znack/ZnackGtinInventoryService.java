@@ -216,10 +216,10 @@ public class ZnackGtinInventoryService {
     public int releaseRecoverableReservations() {
         String now = Instant.now().toString();
         try (Connection c = Database.getConnection(); PreparedStatement ps = c.prepareStatement("""
-                UPDATE kiz_codes SET status='AVAILABLE',reservation_token=NULL,reserved_at=NULL,
+                UPDATE kiz_codes SET status=%s,reservation_token=NULL,reserved_at=NULL,
                 reservation_recoverable=NULL,updated_at=?
                 WHERE status='RESERVED' AND reservation_recoverable=1
-                """)) {
+                """.formatted(com.vncode.app.features.kiz.KizStockCategoryRepository.releasedStatus("kiz_codes")))) {
             ps.setString(1, now);
             int released = ps.executeUpdate();
             if (released > 0) {
@@ -268,12 +268,13 @@ public class ZnackGtinInventoryService {
         if(codes==null)throw new IllegalArgumentException("Invalid reservation list");
         var ids=new HashSet<Integer>();
         for(Kiz code:codes)if(code==null||code.getReservationToken()==null||code.getReservationToken().isBlank()||!ids.add(code.getId()))throw new IllegalStateException("KIZ reservation ownership is invalid.");
+        boolean release=target.equals("AVAILABLE");
         String update = """
-                UPDATE kiz_codes SET status=?,reservation_token=NULL,reserved_at=NULL,
+                UPDATE kiz_codes SET status=%s,reservation_token=NULL,reserved_at=NULL,
                 reservation_recoverable=NULL,consumed_at=?,updated_at=?
                 WHERE status='RESERVED' AND shop_id=? AND id IN (SELECT id FROM requested) AND EXISTS (
                   SELECT 1 FROM requested WHERE requested.id=kiz_codes.id AND requested.token=kiz_codes.reservation_token)
-                """;
+                """.formatted(release?com.vncode.app.features.kiz.KizStockCategoryRepository.releasedStatus("kiz_codes"):"?");
         try (Connection c = Database.getConnection()) {
             c.setAutoCommit(false);
             try {
@@ -284,7 +285,7 @@ public class ZnackGtinInventoryService {
                     String values=String.join(",",Collections.nCopies(batch.size(),"(?,?)"));
                     try(PreparedStatement ps=c.prepareStatement("WITH requested(id,token) AS (VALUES "+values+") "+update)) {
                     int index=1;for(Kiz code:batch){ps.setInt(index++,code.getId());ps.setString(index++,code.getReservationToken());}
-                    ps.setString(index++, target);
+                    if(!release)ps.setString(index++, target);
                     ps.setString(index++, consumed ? now : null);
                     ps.setString(index++, now);
                     ps.setInt(index, shopId);

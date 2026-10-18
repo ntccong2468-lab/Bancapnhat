@@ -78,4 +78,32 @@ class KizReimportRecoveryTest {
         }
         Database.initDatabase();
     }
+    @Test void releasedReservationsFromADeletedCategoryCannotReappearAsAvailableStock()throws Exception {
+        for(var market:Marketplace.values()){
+            var shop=shop(market);String category=shipments.refreshCategories(shop).getFirst().id();
+            warehouse.commitToCategory(shop,file(3),category);
+            var held=new KizCategoryAllocator().reservePartial(shop,List.of(new KizCategoryAllocator.Demand("held","101",2))).get("held");
+            new KizStockCategoryRepository().delete(shop,category);
+            var inventory=new com.vncode.app.integration.znack.ZnackGtinInventoryService();
+            assertEquals(1,inventory.release(shop.getId(),List.of(held.getFirst())));
+            assertEquals(1,inventory.releaseRecoverableReservations());
+            try(var c=Database.getConnection();var p=c.prepareStatement("SELECT status,reservation_token FROM kiz_codes WHERE shop_id=?")){
+                p.setInt(1,shop.getId());try(var r=p.executeQuery()){int count=0;while(r.next()){
+                    count++;assertEquals("ARCHIVED",r.getString(1));assertNull(r.getString(2));
+                }assertEquals(3,count);}
+            }
+            assertTrue(shipments.refreshCategories(shop).isEmpty());
+        }
+    }
+    @Test void startupRepairsPreviouslyRevivedHiddenStockWithoutTouchingConsumedHistory()throws Exception{
+        var shop=shop(Marketplace.WILDBERRIES);String category=shipments.refreshCategories(shop).getFirst().id();warehouse.commitToCategory(shop,file(2),category);
+        var inventory=new com.vncode.app.integration.znack.ZnackGtinInventoryService();
+        var consumed=new KizCategoryAllocator().reservePartial(shop,List.of(new KizCategoryAllocator.Demand("old-order","101",1))).get("old-order");inventory.consume(shop.getId(),consumed);
+        new KizStockCategoryRepository().delete(shop,category);
+        try(var c=Database.getConnection();var s=c.createStatement()){s.execute("UPDATE kiz_codes SET status='AVAILABLE' WHERE status='ARCHIVED'");}
+        Database.initDatabase();Database.initDatabase();
+        try(var c=Database.getConnection();var s=c.createStatement();var r=s.executeQuery("SELECT status,count(*) FROM kiz_codes GROUP BY status")){
+            var states=new HashMap<String,Integer>();while(r.next())states.put(r.getString(1),r.getInt(2));assertEquals(Map.of("ARCHIVED",1,"CONSUMED",1),states);
+        }
+    }
 }

@@ -1,0 +1,15 @@
+# Đối chiếu yêu cầu VNCode 1.5.0
+
+| Yêu cầu | Trạng thái |
+| --- | --- |
+| Nút và điều hướng theo ảnh Liquid Glass mới | Đã viết lớp giao diện chung; giữ kích thước thanh sửa sản phẩm và khả năng cuộn của bảng tin. |
+| Trong như giọt nước, chữ rõ | Nền kính tối thiểu alpha 0,005; chữ alpha 1; không giảm opacity của Node/Window. Kiểm tra cả hai theme và hai đầu thanh trượt. |
+| Đưa các sửa GTIN/CryptoPro và KIZ vừa làm vào 1.5.0 | Có trong cùng mã nguồn ứng viên; không dùng lại bộ cài 1.4.19. |
+| Đăng ký lần lượt từng thẻ | WB đợi worker lưu checkpoint rồi mới chuẩn bị thẻ tiếp; Ozon giữ chuỗi chờ hoàn tất từng thẻ. Chờ duyệt/cần ký là trạng thái riêng, không phải thành công. |
+| Cập nhật GTIN lần lượt và báo kết quả thật | Giữ kiểm tra thẻ xuất bản, article/màu/size/TN VED, thêm kiểm tra SKU/offer Ozon; đọc lại sàn mới tính thành công. Không tự gửi lại lần ghi chưa rõ kết quả. |
+| Đồng bộ FBS liên tục, được ưu tiên | Không đổi nhịp FBS; ghi GTIN dùng hàng đợi seller hiện có và nhường suất HTTP riêng cho FBS. |
+| Dữ liệu thật | Đọc toàn bộ danh mục WB/Ozon/Catalog qua Secret của môi trường, không dùng dữ liệu fixture cho các yêu cầu thật. |
+| Đăng ký/ký thẻ và sửa sàn qua nút ứng dụng thật | **Chưa hoàn tất:** môi trường Linux không có CryptoPro/chứng thư riêng của seller, license production hay phiên seller Windows để nghiệm thu. Không dùng chứng thư hoặc license giả để thay thế. |
+| Lọc KIZ đỏ bị WB/Ozon từ chối ngay lúc nhập | **Chưa triển khai xác minh hàng loạt trên sàn.** Báo cáo tệp chỉ xác minh cấu trúc và ghi rõ chưa kiểm tra chấp nhận trên sàn; lỗi mạng/quyền không được gán thành “mã hỏng”. |
+
+Chi tiết kiểm thử và bộ cài được cập nhật trong [trạng thái phát hành](VN-code-1.5.0-status.json). Bản nền đã phát hành vẫn là 1.4.19 cho đến khi 1.5.0 được xuất bản.

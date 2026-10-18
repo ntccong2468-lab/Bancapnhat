@@ -14,6 +14,8 @@ public record SyncFailure(String code,Duration delay,boolean actionRequired) {
         for(Throwable e=failure;e!=null;e=e.getCause()) {
             if(e instanceof com.vncode.app.shared.RateLimitDeferral.Deferred deferred)return new SyncFailure("API_COOLDOWN",deferred.delay(),false);
             if(e instanceof LicenseDeniedException)return new SyncFailure("LICENSE_REQUIRED",Duration.ofMinutes(1),true);
+            if(e instanceof com.vncode.app.integration.znack.signature.CryptoProException crypto)
+                return new SyncFailure("CRYPTOPRO_"+crypto.code().name(),Duration.ofMinutes(5),true);
             if(e instanceof OzonApiException o) {
                 if(o.statusCode()==401||o.statusCode()==403)return new SyncFailure("OZON_AUTH_REQUIRED",Duration.ofMinutes(5),true);
                 if(o.statusCode()==429)return new SyncFailure("OZON_RATE_LIMIT",o.retryAfter()==null?Duration.ofMinutes(1):o.retryAfter(),false);

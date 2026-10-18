@@ -33,7 +33,7 @@ import java.util.Objects;
 import java.util.function.BiConsumer;
 import java.util.concurrent.Executor;
 
-/** Durable, one-SKU-at-a-time test workflow. A checkpoint is written before every remote transition. */
+/** Durable registration workflow. A checkpoint is written before every remote transition. */
 public final class ZnackCardRegistrationWorkflow {
     private static final int POLL_ATTEMPTS = 3;
     private static final Object GTIN_CHECKPOINT_LOCK = CatalogAllocationLock.MONITOR;
@@ -45,6 +45,7 @@ public final class ZnackCardRegistrationWorkflow {
 
     private final ZnackCardRegistrationRepository registrations;
     private static final Set<String> RUNNING = ConcurrentHashMap.newKeySet();
+    private static final Map<String,java.util.concurrent.CompletableFuture<Void>> COMPLETIONS = new ConcurrentHashMap<>();
     private final CatalogFactory catalogFactory;
     private final Executor executor;
     private final boolean strictScope;
@@ -76,6 +77,15 @@ public final class ZnackCardRegistrationWorkflow {
     }
     public static boolean hasActiveJobs(){return !RUNNING.isEmpty();}
     private String operationKey(Shop shop,Sku sku){return namespace+":"+shop.getId()+":"+sku.chrtId();}
+    /** The batch advances after the worker checkpoints its result, not when it is enqueued.
+     *  Pending moderation is a completed attempt, never a published-card success. */
+    public java.util.concurrent.CompletionStage<Void> completion(Shop shop,Sku sku) {
+        var result=COMPLETIONS.get(operationKey(shop,sku));
+        return result==null?java.util.concurrent.CompletableFuture.completedFuture(null):result.minimalCompletionStage();
+    }
+    private void finish(String key,java.util.concurrent.CompletableFuture<Void> completion) {
+        RUNNING.remove(key);COMPLETIONS.remove(key,completion);completion.complete(null);
+    }
     public int activeCount(Shop shop) {
         String prefix=namespace+":"+shop.getId()+":";return (int)RUNNING.stream().filter(key->key.startsWith(prefix)).count();
     }
@@ -87,6 +97,7 @@ public final class ZnackCardRegistrationWorkflow {
     private boolean replaceRejected(Shop requested,Sku old,Draft draft,BiConsumer<Status,String> listener){
         Shop shop=freezeShop(requested);if(shop==null||draft==null||shop.getMarketplace()!=Marketplace.WILDBERRIES)return false;
         LicenseRuntime.require(Permission.GTIN);String key=operationKey(shop,old);if(!RUNNING.add(key))return false;
+        var completion=new java.util.concurrent.CompletableFuture<Void>();COMPLETIONS.put(key,completion);
         try{executor.execute(()->{
             try{
                 guard(shop,old);var session=catalogFactory.open(shop);guard(shop,old);
@@ -95,8 +106,8 @@ public final class ZnackCardRegistrationWorkflow {
                 guard(shop,old);LicenseRuntime.require(Permission.GTIN);
                 if(!registrations.claimRejectedReplacement(shop.getId(),old))throw new IllegalStateException("REGISTRATION_CHANGED");
                 execute(shop,freshCandidate(old),draft,true,false,true,listener);
-            }catch(Exception error){fail(shop,old,error,listener);}finally{RUNNING.remove(key);}
-        });return true;}catch(java.util.concurrent.RejectedExecutionException full){RUNNING.remove(key);return false;}
+            }catch(Exception error){fail(shop,old,error,listener);}finally{finish(key,completion);}
+        });return true;}catch(java.util.concurrent.RejectedExecutionException full){finish(key,completion);return false;}
     }
     /** One bounded executor item; cards are claimed sequentially from the frozen reviewed list. */
     public boolean signApproved(Shop requestedShop,List<Sku> skus,boolean confirmed,BiConsumer<Status,String> listener) {
@@ -209,17 +220,18 @@ public final class ZnackCardRegistrationWorkflow {
             boolean claimed=groupChange?registrations.claimGroupReplacement(shop.getId(),sku,draft.tnved()):action==RegistrationAction.REGISTER_NEW?registrations.claimReplacement(shop.getId(),sku):registrations.claim(shop.getId(),sku,action);
             if(!claimed){RUNNING.remove(key);return false;}
             if(bound!=null)registrations.bindScope(shop,sku.chrtId(),bound);
+            var completion=new java.util.concurrent.CompletableFuture<Void>();COMPLETIONS.put(key,completion);
             try {
                 executor.execute(()->{
                     try{execute(shop,groupChange||action==RegistrationAction.REGISTER_NEW?freshCandidate(sku):sku,draft,groupChange||action==RegistrationAction.REQUEST_NEW_GTIN || action==RegistrationAction.REGISTER_NEW,action==RegistrationAction.SIGN_APPROVED,action!=RegistrationAction.RESUME&&action!=RegistrationAction.SIGN_APPROVED,listener);}
                     catch(LicenseDeniedException denied){pauseKnownUnsent(shop,sku,denied,listener);}
                     catch(Exception error){fail(shop,sku,error,listener);}
-                    finally{RUNNING.remove(key);}
+                    finally{finish(key,completion);}
                 });
             } catch (java.util.concurrent.RejectedExecutionException error) {
                 // No task started, so a durable failure can prove no remote mutation occurred.
                 fail(shop,sku,error,listener);
-                RUNNING.remove(key);
+                finish(key,completion);
                 return false;
             }
             return true;

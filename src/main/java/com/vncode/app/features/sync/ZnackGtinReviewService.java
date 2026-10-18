@@ -13,20 +13,30 @@ import java.util.*;
 
 /** Fresh reads prepare a review; only the existing confirmed Catalog queue can write. */
 public final class ZnackGtinReviewService {
-    @FunctionalInterface interface MarketplaceRefresh {void refresh(Shop shop)throws Exception;}
+    @FunctionalInterface interface MarketplaceRefresh {
+        void refresh(Shop shop)throws Exception;
+        default void refresh(Shop shop,java.util.function.Consumer<String> progress)throws Exception{refresh(shop);}
+    }
     private final MarketplaceRefresh marketplace;
     private final ZnackAutoSyncService source;
     private final ProductSnapshotReader products;
     private final SyncRunRepository reports=new SyncRunRepository();
-    public ZnackGtinReviewService(){this(shop->{
-        var sources=new RegistrationSources();var ready=sources.check(shop);
-        if(!ready.ready())ready=sources.refresh(shop,step->{});
-        if(!ready.ready())throw new IllegalStateException(ready.reason());
+    public ZnackGtinReviewService(){this(new MarketplaceRefresh(){
+        public void refresh(Shop shop)throws Exception{refresh(shop,step->{});}
+        public void refresh(Shop shop,java.util.function.Consumer<String> progress)throws Exception{
+            var sources=new RegistrationSources();var ready=sources.check(shop);
+            if(!ready.ready())ready=sources.refresh(shop,progress);
+            if(!ready.ready())throw new IllegalStateException(ready.reason());
+        }
     },new ZnackAutoSyncService(false),(shop,key)->shop.getMarketplace()==Marketplace.OZON?new OzonProductSnapshotReader().readForSynchronization(shop,key):new WbProductSnapshotReader().readForSynchronization(shop,key));}
     ZnackGtinReviewService(MarketplaceRefresh marketplace,ZnackAutoSyncService source,ProductSnapshotReader products){this.marketplace=marketplace;this.source=source;this.products=products;}
     public String prepare(Shop shop)throws Exception {
+        return prepare(shop,step->{});
+    }
+    public String prepare(Shop shop,java.util.function.Consumer<String> progress)throws Exception {
         return ShopOperationCoordinator.withActiveShop(shop.getId(),()->{
-            ListingIdentity.require(shop);marketplace.refresh(shop);ListingIdentity.require(shop);
+            ListingIdentity.require(shop);marketplace.refresh(shop,progress);ListingIdentity.require(shop);
+            progress.accept("MATCHING_GTIN");
             return source.review(shop,new RegistrationSources().require(shop).run());
         });
     }

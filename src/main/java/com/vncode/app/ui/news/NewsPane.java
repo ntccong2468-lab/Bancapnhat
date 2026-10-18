@@ -109,7 +109,7 @@ public final class NewsPane extends VBox {
  private void renderPreview(){
   preview.getChildren().clear();preview.getStyleClass().setAll("news-preview");preview.setMinSize(0,0);
   Label heading=new Label(tr("news.title"));heading.getStyleClass().add("h2");var count=new Label(Integer.toString(service.unreadCount()));count.getStyleClass().add("unread-badge");count.setVisible(service.unreadCount()>0);count.setManaged(count.isVisible());
-  var space=new Region();HBox.setHgrow(space,Priority.ALWAYS);var refresh=new Button();refresh.setGraphic(new org.kordamp.ikonli.javafx.FontIcon("fth-refresh-cw"));refresh.setTooltip(new Tooltip(tr("news.refresh")));refresh.setAccessibleText(tr("news.refresh"));refresh.setOnAction(e->refreshAsync());
+  var space=new Region();HBox.setHgrow(space,Priority.ALWAYS);var refresh=new Button();refresh.getStyleClass().add("btn-icon");refresh.setId("newsRefreshButton");refresh.setGraphic(new org.kordamp.ikonli.javafx.FontIcon("fth-refresh-cw"));refresh.setTooltip(new Tooltip(tr("news.refresh")));refresh.setAccessibleText(tr("news.refresh"));refresh.setOnAction(e->refreshAsync());
   preview.getChildren().add(new HBox(10,heading,count,space,refresh));var page=service.loadPage(null);
   var cards=new VBox(10);cards.setMinWidth(0);for(var item:page.items().stream().limit(2).toList())cards.getChildren().add(newsCard(item,true));
   var feed=new ScrollPane(cards);feed.setId("newsPreviewScroll");feed.setFitToWidth(true);feed.setMinSize(0,0);feed.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);VBox.setVgrow(feed,Priority.ALWAYS);preview.getChildren().add(feed);

@@ -144,6 +144,6 @@ public final class SyncRunRepository {
             p.setString(1,run);p.setString(2,item);p.setString(3,step);p.setString(4,state);p.setString(5,code(error));p.setString(6,Instant.now().toString());p.executeUpdate();
         }
     }
-    public static String code(String text){if(text==null||text.isBlank())return "";String value=text.toUpperCase(Locale.ROOT);return value.matches("(?:API|CATALOG|GS1|ZNACK|OZON|WB|GTIN|FBS|FBO|SYNC|NETWORK|LICENSE|PRODUCT|VARIANT|BARCODE|BARCODES|ATTRIBUTES|TARGET|CARD|ITEMS|SIGNATURE|CERTIFICATE|REGISTRY|PARTICIPANT|GOODS|UNVERIFIED|INVALID|MISSING|AMBIGUOUS|INCOMPLETE|REPEATED|READBACK|LEGACY|DETAIL|SHOP|SOURCE)_[A-Z0-9_]{1,64}")||Set.of("ALREADY_PRESENT","UNSUPPORTED_OPERATION","CAPABILITY_CHANGED").contains(value)?value:"DETAIL_NOT_AVAILABLE";}
+    public static String code(String text){if(text==null||text.isBlank())return "";String value=text.toUpperCase(Locale.ROOT);return value.matches("(?:API|CATALOG|GS1|ZNACK|OZON|WB|GTIN|FBS|FBO|SYNC|NETWORK|LICENSE|CRYPTOPRO|PRODUCT|VARIANT|BARCODE|BARCODES|ATTRIBUTES|TARGET|CARD|ITEMS|SIGNATURE|CERTIFICATE|REGISTRY|PARTICIPANT|GOODS|UNVERIFIED|INVALID|MISSING|AMBIGUOUS|INCOMPLETE|REPEATED|READBACK|LEGACY|DETAIL|SHOP|SOURCE)_[A-Z0-9_]{1,64}")||Set.of("ALREADY_PRESENT","UNSUPPORTED_OPERATION","CAPABILITY_CHANGED").contains(value)?value:"DETAIL_NOT_AVAILABLE";}
     private static IllegalStateException storage(SQLException e){return new IllegalStateException("SYNC_STORAGE",e);}
 }

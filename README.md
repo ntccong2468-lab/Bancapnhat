@@ -2,6 +2,10 @@
 
 Bản nền cho các cập nhật tiếp theo: [VNCode 1.4.19](docs/releases/BASELINE.md).
 
+Đang chuẩn bị [VNCode 1.5.0](docs/releases/VN-code-1.5.0.md): Liquid Glass mới,
+đăng ký từng thẻ, báo cáo GTIN/CryptoPro và sửa kho KIZ khi xóa danh mục.
+[Trạng thái bộ cài và nghiệm thu](docs/releases/VN-code-1.5.0-status.json).
+
 **VN code là ứng dụng Windows do Nguyễn Thành Công phát triển và quản lý**, phục vụ người bán trên **Wildberries** và **Ozon**.
 
 Repository này chứa các bản cập nhật của cùng ứng dụng VN code, giữ định danh bộ cài và dữ liệu đã cài.

@@ -102,6 +102,35 @@ class OzonExemplarWorkflowTest {
         assertEquals(com.vncode.app.testsupport.CategoryStockFixture.GTIN,scalar("SELECT k.gtin FROM ozon_exemplars e JOIN kiz_codes k ON k.id=e.kiz_id"));
         assertEquals(1,count("SELECT count(*) FROM kiz_stock_category_reservations"));assertEquals(2,server.getRequestCount());
     }
+    @Test void deletingCategoryKeepsTheExistingOzonPostingPrintableWithoutBuyingOrReservingAgain()throws Exception{
+        new OzonCatalogRepository().upsertPage(1,java.util.List.of(new OzonProductDto("9001","sku-a","101","Synthetic","",false,"",java.util.List.of())),"");
+        try(var c=Database.getConnection();var s=c.createStatement()){s.execute("DELETE FROM ozon_product_gtin_mappings");}
+        String category=com.vncode.app.testsupport.CategoryStockFixture.add(shop,"9001",temporaryDirectory,1);
+        server.enqueue(json(posting()));server.enqueue(json(posting()));var service=service();
+        assertTrue(service.stageForPrint(shop,"POST-1").shipReady());
+        String original=scalar("SELECT kiz_id FROM ozon_exemplars");
+        new com.vncode.app.features.kiz.KizStockCategoryRepository().delete(shop,category);
+        assertTrue(service.stageForPrint(shop,"POST-1").shipReady());
+        assertEquals(original,scalar("SELECT kiz_id FROM ozon_exemplars"));
+        assertEquals(1,count("SELECT count(*) FROM kiz_stock_category_reservations"));
+        assertEquals(2,server.getRequestCount());
+        assertEquals("/v3/posting/fbs/get",takeRequest().getPath());assertEquals("/v3/posting/fbs/get",takeRequest().getPath());
+        server.enqueue(json(posting()));
+        var bundle=new OzonPrintBundleService(new OzonPostingRepository(),new OzonExemplarJobRepository(),
+                OzonPrintBundleService.defaultPreparation(service),(selected,number,target)->{
+                    try(var pdf=new com.itextpdf.kernel.pdf.PdfDocument(new com.itextpdf.kernel.pdf.PdfWriter(target))){pdf.addNewPage(new com.itextpdf.kernel.geom.PageSize(200,100));}return target;
+                });
+        for(int i=0;i<2;i++){
+            var labels=temporaryDirectory.resolve("after-delete-"+i+".pdf");
+            var exported=bundle.export(shop,"POST-1",labels.toFile(),temporaryDirectory.resolve("picking-"+i+".pdf").toFile());
+            assertEquals(2,exported.totalPages());try(var pdf=org.apache.pdfbox.Loader.loadPDF(labels.toFile())){assertEquals(2,pdf.getNumberOfPages());}
+        }
+        assertEquals("CONSUMED",scalar("SELECT k.status FROM ozon_exemplars e JOIN kiz_codes k ON k.id=e.kiz_id"));
+        assertEquals(3,server.getRequestCount());assertEquals("/v3/posting/fbs/get",takeRequest().getPath());
+        server.enqueue(json(posting().replace("POST-1","POST-2")));
+        org.junit.jupiter.api.Assertions.assertThrows(OzonRequirementGuard.MissingMappingException.class,()->service.stageForPrint(shop,"POST-2"));
+        assertEquals(1,count("SELECT count(*) FROM kiz_stock_category_reservations"));
+    }
 
     @Test void explicitSellerSourceSkipsCatalogAndNeverUsesPaidStock()throws Exception{
         new OzonCatalogRepository().upsertPage(1,java.util.List.of(new OzonProductDto("9001","sku-a","101","Synthetic","",false,"",java.util.List.of())),"");

@@ -278,9 +278,23 @@ public final class ZnackCardRegistrationController {
     }
 
     private void submitWorkflow(Shop owner,long epoch,java.util.concurrent.Callable<Boolean> action,Runnable completed) {
+        submitWorkflow(owner,epoch,action,null,completed);
+    }
+
+    private void submitWorkflow(Shop owner,long epoch,java.util.concurrent.Callable<Boolean> action,Sku awaiting,Runnable completed) {
         if(!isCurrent(owner,epoch))return;
         Task<Boolean> task=new Task<>() {@Override protected Boolean call()throws Exception{sources.require(owner);return action.call();}};
-        task.setOnSucceeded(event->{if(isCurrent(owner,epoch)){if(!task.getValue())showInfo(tr("znack.registration.already_running"));completed.run();scheduleReload();}});
+        task.setOnSucceeded(event->{
+            if(!isCurrent(owner,epoch))return;
+            if(!task.getValue())showInfo(tr("znack.registration.already_running"));
+            if(task.getValue()&&awaiting!=null) {
+                workflow.completion(owner,awaiting).whenComplete((ignored,error)->Platform.runLater(()->{
+                    if(!isCurrent(owner,epoch))return;
+                    if(error!=null)showError(error);
+                    completed.run();scheduleReload();
+                }));
+            }else{completed.run();scheduleReload();}
+        });
         java.util.function.Consumer<Throwable> failure=error->{if(isCurrent(owner,epoch)){showError(error);completed.run();}};
         task.setOnFailed(event->failure.accept(task.getException()));AppTaskExecutor.execute(task,failure);
     }
@@ -356,6 +370,7 @@ public final class ZnackCardRegistrationController {
         if(!isCurrent(owner,epoch))return;
         if(index==selected.size()) {preparing=false;updateActionState();reload();return;}
         Sku sku=selected.get(index);
+        summaryLabel.setText(java.text.MessageFormat.format(tr("znack.registration.batch_progress"),index,selected.size())+" · "+sku.vendorCode()+" · "+sku.wbSize());
         prepareCard(owner,epoch,sku,sku.needsGtinReview(),()->prepareNext(selected,index+1,owner,epoch));
     }
 
@@ -679,7 +694,7 @@ public final class ZnackCardRegistrationController {
                 if(!accepted)attempt.blocked("ZNACK_REGISTRATION_ALREADY_RUNNING");
                 return accepted;
             }catch(Exception error){attempt.failed(error);throw error;}
-        },completed);
+        },sku,completed);
     }
 
     private void recordBlocked(RegistrationAttemptReports.Attempt attempt,String code) {

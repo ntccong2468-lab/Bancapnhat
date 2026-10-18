@@ -82,6 +82,7 @@ class ZnackCatalogSyncServiceTest {
   var service=new ZnackCatalogSyncService((s,i,p)->{throw new java.net.SocketTimeoutException("must not persist URL or token");});
   assertThrows(java.net.SocketTimeoutException.class,()->service.refresh(shop,true,p->{}));
   var run=new SyncRunRepository().list(shop.getId(),0,10).getFirst();assertEquals("FAILED",run.state());assertEquals("NETWORK_TIMEOUT",run.error());
+  assertEquals("AUTHENTICATING",run.step(),"A failed login must retain the exact failed phase");
   assertEquals(1,new GtinSyncRepository().catalog(shop.getId(),shop.getMarketplace()).size());
  }
  @Test void aFailureWhileSavingTheFailureReportNeverReplacesTheOriginalSourceError()throws Exception{

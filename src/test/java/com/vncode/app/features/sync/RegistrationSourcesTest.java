@@ -32,6 +32,17 @@ class RegistrationSourcesTest {
         assertThrows(java.net.SocketTimeoutException.class,()->reader((s,p)->p.accept(List.of(new RegistrationSources.Member("101","201","","A","Blue","M"))),s->{throw new java.net.SocketTimeoutException("secret response");}).refresh(shop,step->{}));
         var ready=sources.check(shop);assertFalse(ready.ready());assertEquals("READING_ZNACK",ready.step());assertEquals("NETWORK_TIMEOUT",ready.reason());assertFalse(new SyncRunRepository().find(ready.run()).orElseThrow().error().contains("secret"));
     }
+    @Test void failedCatalogSigningHasAnActionableReportAndCannotUnlockGtinWrites() {
+        var signing=new com.vncode.app.integration.znack.signature.CryptoProException(
+                com.vncode.app.integration.znack.signature.CryptoProErrorCode.PRIVATE_KEY_UNAVAILABLE,"token=secret-diagnostic");
+        assertThrows(java.io.IOException.class,()->reader((s,p)->{},s->{
+            throw new java.io.IOException("Catalog certificate signing failed",signing);
+        }).refresh(shop,step->{}));
+        var ready=sources.check(shop);assertFalse(ready.ready());assertEquals("READING_ZNACK",ready.step());
+        assertEquals("CRYPTOPRO_PRIVATE_KEY_UNAVAILABLE",ready.reason());
+        var report=new SyncRunRepository().find(ready.run()).orElseThrow();assertEquals("FAILED",report.state());
+        assertFalse(report.error().contains("secret-diagnostic"));
+    }
     @Test void catalogCardIssuesLeaveThePairPartial()throws Exception {
         var partial=reader((s,p)->{},s->new ZnackCatalogSyncService.Result(List.of(),List.of(new NationalCatalogGtinSource.CardIssue(GtinWriteTestFixture.GTIN,"CATALOG_CARD_INVALID")),"test"));
         assertFalse(partial.refresh(shop,step->{}).ready());assertEquals("SOURCE_CATALOG_PARTIAL",sources.check(shop).reason());

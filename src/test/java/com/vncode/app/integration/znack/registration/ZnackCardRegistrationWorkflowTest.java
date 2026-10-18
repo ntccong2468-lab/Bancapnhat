@@ -40,6 +40,28 @@ class ZnackCardRegistrationWorkflowTest {
     }
     @AfterEach void cleanup(){System.clearProperty("vncode.appdata.dir");}
     Sku current(){return repository.search(new SearchCriteria(1,"",List.of(),"ALL",20,0)).getFirst();}
+    @Test void nextCardWaitsForWorkerCheckpointInsteadOfQueueAcknowledgement() throws Exception {
+        var workers=new ArrayDeque<Runnable>();
+        var queued=new ZnackCardRegistrationWorkflow(repository,ignored->fixtureSession(),workers::add);
+        api.pendingModeration=true;
+        assertTrue(queued.start(shop,current(),draft,null));
+        var finished=queued.completion(shop,current()).toCompletableFuture();
+        assertFalse(finished.isDone());assertEquals(0,api.submissions.get());
+        var advanced=new AtomicInteger();
+        finished.thenRun(()->{assertFalse(queued.isRunning(shop,current()));assertEquals(Status.PROCESSING,current().status());advanced.incrementAndGet();});
+        assertEquals(0,advanced.get());workers.removeFirst().run();
+        assertTrue(finished.isDone());assertEquals(1,advanced.get());assertEquals(1,api.submissions.get());
+        assertNotEquals(Status.PUBLISHED,current().status());
+        assertTrue(queued.completion(shop,current()).toCompletableFuture().isDone());
+    }
+    @Test void failedCardAlsoCompletesBatchCheckpointAndReleasesRunningClaim() {
+        var workers=new ArrayDeque<Runnable>();
+        var queued=new ZnackCardRegistrationWorkflow(repository,ignored->{throw new IOException("fixture connection unavailable");},workers::add);
+        assertTrue(queued.start(shop,current(),draft,null));
+        var finished=queued.completion(shop,current()).toCompletableFuture();assertFalse(finished.isDone());
+        workers.removeFirst().run();assertTrue(finished.isDone());assertFalse(queued.isRunning(shop,current()));
+        assertNotEquals(Status.PUBLISHED,current().status());assertEquals(0,api.submissions.get());
+    }
     @Test void registeredSignedCardFlowsThroughCatalogAndRealWbCardUpdateWithReadback()throws Exception {
         com.vncode.app.features.gtinsync.GtinWriteTestFixture.saveSettings(shop,"A".repeat(40),ZnackModels.PRODUCTION_TRUE_API);
         api.moderated=true;assertTrue(workflow.start(shop,current(),draft,null));assertEquals(Status.READY_TO_SIGN,current().status());

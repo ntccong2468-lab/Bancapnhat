@@ -83,7 +83,7 @@ public final class NationalCatalogGs1Client {
             if (bytes.length == 0) throw new IOException("Empty Catalog signing challenge");
             String signature;
             try { signature = signer.sign(bytes, ZnackSignatureContext.CATALOG_AUTH_CHALLENGE).base64(); }
-            catch (CryptoProException error) { throw new IOException("Catalog certificate signing failed (" + error.code() + ")"); }
+            catch (CryptoProException error) { throw new IOException("Catalog certificate signing failed (" + error.code() + ")", error); }
             JsonObject credentials = new JsonObject();
             credentials.addProperty("inn", inn); credentials.addProperty("fingerprint", fingerprint); credentials.addProperty("signature", signature);
             JsonObject result = object(call("certlogin", credentials));

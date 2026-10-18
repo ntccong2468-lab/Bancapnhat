@@ -12,6 +12,10 @@ import java.util.*;
 /** Seller-defined imported-stock groups, independent of the GTIN purchase mapping. */
 public final class KizStockCategoryRepository {
     static final String VISIBLE="NOT EXISTS(SELECT 1 FROM kiz_stock_deleted_categories deleted WHERE deleted.category_id=category.id)";
+    /** A cancelled print cannot revive unused inventory in a seller-deleted category. */
+    public static String releasedStatus(String alias){
+        return "CASE WHEN EXISTS(SELECT 1 FROM kiz_stock_classifications classified JOIN kiz_stock_deleted_categories deleted ON deleted.category_id=classified.category_id WHERE classified.code_id="+alias+".id) THEN 'ARCHIVED' ELSE 'AVAILABLE' END";
+    }
     public record Deleted(int archived,int held){}
     /** Keep reservation proof and consumed history; retire only currently unused seller stock. */
     public Deleted delete(Shop shop,String category){

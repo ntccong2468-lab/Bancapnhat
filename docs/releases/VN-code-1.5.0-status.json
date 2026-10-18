@@ -1,0 +1,45 @@
+{
+  "version": "1.5.0",
+  "state": "candidate-being-verified",
+  "baseline": "v1.4.19",
+  "databaseSchema": 6,
+  "published": false,
+  "latest": "1.4.19",
+  "complete": false,
+  "validation": {
+    "windowsBuild": {
+      "state": "not_started"
+    },
+    "productionLicenseVerified": false,
+    "liveCryptoProSigningThisVersion": false,
+    "liveLicensedDesktopGtinWriteThisVersion": false,
+    "liveApiWbGtinWriteThisVersion": false,
+    "liveApiOzonGtinWriteThisVersion": false,
+    "liveCatalogCardCreatedThisVersion": false,
+    "liveRead": {
+      "checkedAtUtc": "2026-10-18T11:49:03.159895+00:00",
+      "wbProducts": 388,
+      "wbVariants": 1982,
+      "ozonProducts": 175,
+      "catalogCards": 1277,
+      "marketplaceWrites": 0,
+      "catalogWrites": 0
+    },
+    "localRegression": {
+      "tests": 264,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "finalMaterialRerunTests": 8,
+      "nodeContracts": 70,
+      "evidence": "../validation/2026-10-18-vncode-150-local.json"
+    }
+  },
+  "licenseIntegration": {
+    "implemented": true,
+    "productionReady": false,
+    "changedInThisVersion": false
+  },
+  "requestReport": "VN-code-1.5.0-request-report.md",
+  "bulkMarketplaceKizValidationOnImport": false
+}

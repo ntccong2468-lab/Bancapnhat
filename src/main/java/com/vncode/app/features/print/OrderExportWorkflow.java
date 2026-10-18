@@ -15,8 +15,6 @@ import com.vncode.app.models.Kiz;
 import com.vncode.app.models.Order;
 import com.vncode.app.models.Shop;
 import com.vncode.app.shared.AtomicFilePublisher;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -31,7 +29,6 @@ import com.vncode.app.integration.znack.registration.ZnackCardRegistrationReposi
 import com.vncode.app.features.shop.ShopOperationCoordinator;
 
 public class OrderExportWorkflow {
-    private static final Logger LOGGER = LoggerFactory.getLogger(OrderExportWorkflow.class);
     private final BarcodePrintService barcodePrintService = new BarcodePrintService();
     private final OrderDetailsPdfExporter orderDetailsPdfExporter = new OrderDetailsPdfExporter();
     private final PrintTemplateService printTemplateService = new PrintTemplateService();
@@ -119,7 +116,7 @@ public class OrderExportWorkflow {
             long printJobId = printHistoryService.recordSuccessfulJob(request.shop(), request.supplyId(), request.supplyName(), printedAt, template, workingOrders);
             successRecorded = true;
             return new ExportResult(workingOrders, usedKizs, printJobId,
-                    buildKizAttachmentAssignments(workingOrders, usedKizs, replaceExistingOrderIds));
+                    buildKizAttachmentAssignments(workingOrders, assignmentResult.allocatedByOrder(), replaceExistingOrderIds));
         } catch (IOException | WriterException | RuntimeException ex) {
             if (!inventoryConsumed) {
                 inventoryService.release(request.shop().getId(), usedKizs);
@@ -195,6 +192,7 @@ public class OrderExportWorkflow {
         }
 
         List<Kiz> usedKizs = new ArrayList<>();
+        Map<Long,Kiz> allocatedByOrder=new java.util.LinkedHashMap<>();
         Set<Long> replaceExistingOrderIds = new LinkedHashSet<>();
         List<Long> orderIds = orders.stream()
                 .map(Order::getId)
@@ -247,7 +245,11 @@ public class OrderExportWorkflow {
             var shortages=new ArrayList<KizStockShortageException.Missing>();
             for(var order:needs){
                 var codes=order.getNmId()==null?List.<Kiz>of():stock.getOrDefault(order.getNmId(),List.of());int index=stockCursor.getOrDefault(order.getNmId(),0);
-                if(index<codes.size()){order.setKiz(codes.get(index).getCode());stockCursor.put(order.getNmId(),index+1);continue;}
+                if(index<codes.size()){
+                    var code=codes.get(index);order.setKiz(code.getCode());
+                    if(order.getId()!=null)allocatedByOrder.put(order.getId(),code);
+                    stockCursor.put(order.getNmId(),index+1);continue;
+                }
                 if(!usePurchased){String category=order.getSubjectName();if(category==null||category.isBlank())category=order.getNmId()==null?"":categories.getOrDefault(order.getNmId(),"");shortages.add(new KizStockShortageException.Missing(String.valueOf(order.getId()),String.valueOf(order.getNmId()),category));continue;}
                 String gtin=gtinForOrder.get(order);
                 if(gtin==null)throw new com.vncode.app.features.kiz.KizAssignmentException("KIZ_GTIN_MAPPING_MISSING",String.valueOf(order.getId()),String.valueOf(order.getNmId()));
@@ -269,17 +271,20 @@ public class OrderExportWorkflow {
                 for (int i = 0; i < gtinOrders.size(); i++) {
                 Kiz kiz = kizList.get(i);
                     gtinOrders.get(i).setKiz(kiz.getCode());
+                    if(gtinOrders.get(i).getId()!=null)allocatedByOrder.put(gtinOrders.get(i).getId(),kiz);
                 }
             }
             }
-                var uniqueCodes=new java.util.HashSet<String>();
-                for(Kiz code:usedKizs)if(code==null||code.getCode()==null||!uniqueCodes.add(KizService.scannerSafeCode(code.getCode())))throw new IllegalStateException("DUPLICATE_KIZ_RESERVATION");
+                // Seller uploads may contain the same text more than once. Reservation
+                // identity is the stock row, not the raw text of the uploaded code.
+                var uniqueCodes=new java.util.HashSet<Integer>();
+                for(Kiz code:usedKizs)if(code==null||code.getCode()==null||!uniqueCodes.add(code.getId()))throw new IllegalStateException("DUPLICATE_KIZ_RESERVATION");
         } catch (IOException | RuntimeException e) {
             planning.release(shop.getId(), usedKizs);
             throw e;
         }
 
-        return new KizAssignmentResult(usedKizs, Set.copyOf(replaceExistingOrderIds));
+        return new KizAssignmentResult(List.copyOf(usedKizs), Set.copyOf(replaceExistingOrderIds),Map.copyOf(allocatedByOrder));
     }
 
     private boolean isProductKizRequired(Order order, Set<Long> kizRequiredNmIds) {
@@ -309,13 +314,11 @@ public class OrderExportWorkflow {
     }
 
     private static List<KizAttachmentAssignment> buildKizAttachmentAssignments(List<Order> orders,
-                                                                              List<Kiz> usedKizs,
+                                                                              Map<Long,Kiz> allocatedByOrder,
                                                                               Set<Long> replaceExistingOrderIds) {
-        if (orders == null || orders.isEmpty() || usedKizs == null || usedKizs.isEmpty()) {
+        if (orders == null || orders.isEmpty() || allocatedByOrder.isEmpty()) {
             return List.of();
         }
-        java.util.Map<String, Kiz> kizByCode = usedKizs.stream()
-                .collect(java.util.stream.Collectors.toMap(Kiz::getCode, value -> value, (left, right) -> left));
         List<KizAttachmentAssignment> assignments = new ArrayList<>();
         for (Order order : orders) {
             if (order.getId() == null || order.getKiz() == null || order.getKiz().isBlank()) {
@@ -324,9 +327,8 @@ public class OrderExportWorkflow {
             if (!order.isRequiresKiz()) {
                 continue;
             }
-            Kiz sourceKiz = kizByCode.get(order.getKiz());
+            Kiz sourceKiz = allocatedByOrder.get(order.getId());
             if (sourceKiz == null) {
-                LOGGER.warn("Không tìm thấy KIZ nguồn để enqueue background attach cho order {}", order.getId());
                 continue;
             }
             boolean replaceExisting = replaceExistingOrderIds != null && replaceExistingOrderIds.contains(order.getId());
@@ -376,6 +378,6 @@ public class OrderExportWorkflow {
         void release(int shopId,List<Kiz> codes);
     }
 
-    record KizAssignmentResult(List<Kiz> usedKizs, Set<Long> replaceExistingOrderIds) {
+    record KizAssignmentResult(List<Kiz> usedKizs, Set<Long> replaceExistingOrderIds,Map<Long,Kiz> allocatedByOrder) {
     }
 }

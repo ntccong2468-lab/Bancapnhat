@@ -2,6 +2,8 @@ package com.vncode.app.integration.gs1;
 
 import com.google.gson.JsonParser;
 import com.vncode.app.integration.znack.signature.CryptoProSigningResult;
+import com.vncode.app.integration.znack.signature.CryptoProErrorCode;
+import com.vncode.app.integration.znack.signature.CryptoProException;
 import okhttp3.OkHttpClient;
 import okhttp3.mockwebserver.*;
 import org.junit.jupiter.api.Test;
@@ -20,6 +22,20 @@ class NationalCatalogGs1ClientTest {
         server.enqueue(new MockResponse().setBody("{\"data\":\"YWJj\"}"));
         server.enqueue(new MockResponse().setHeader("Set-Cookie", "session=fixture; Path=/rest; HttpOnly")
                 .setBody("{\"csrfToken\":\"fixture-csrf\",\"gs1Member\":true}"));
+    }
+    @Test void signingFailureRetainsItsCauseAndNeverPostsCertificateLogin() throws Exception {
+        for (var code : java.util.List.of(CryptoProErrorCode.PRIVATE_KEY_UNAVAILABLE,
+                CryptoProErrorCode.TIMEOUT, CryptoProErrorCode.CANCELLED, CryptoProErrorCode.SIGNING_FAILED)) {
+            try (var server = new MockWebServer()) {
+                server.enqueue(new MockResponse().setBody("{\"data\":\"YWJj\"}"));
+                var signing = new CryptoProException(code, "Local signing failed");
+                var error = assertThrows(IOException.class, () -> client(server).login(INN, FINGERPRINT,
+                        (payload, context) -> { throw signing; }));
+                assertSame(signing, error.getCause(), "The UI and durable report need the actual CryptoPro code");
+                assertEquals("/rest/signed-data", server.takeRequest().getPath());
+                assertNull(server.takeRequest(100, TimeUnit.MILLISECONDS), "Failed signing must never POST certlogin");
+            }
+        }
     }
     @Test void catalogApiKeyMustMatchTheAuthenticatedBootstrapAndRemainOutOfErrors() throws Exception {
         try (var server = new MockWebServer()) {

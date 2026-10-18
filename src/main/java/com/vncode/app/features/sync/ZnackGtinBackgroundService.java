@@ -11,8 +11,13 @@ import java.util.function.Consumer;
 public final class ZnackGtinBackgroundService {
     public record Progress(int completed,int total,int succeeded,int pending,int blocked){}
     public record Result(String run,Progress progress){}
+    /** Only thrown before any marketplace write has been attempted by this run. */
+    public static final class PreparationException extends Exception {
+        PreparationException(Exception cause){super("GTIN_SOURCE_PREPARATION_FAILED",cause);}
+    }
     interface Operations {
         String prepare(Shop shop)throws Exception;
+        default String prepare(Shop shop,Consumer<String> phase)throws Exception{return prepare(shop);}
         List<SyncRunRepository.Item> page(Shop shop,String run,int offset);
         List<Selection> select(Shop shop,String run,List<SyncRunRepository.Item> rows)throws Exception;
         Job preview(Shop shop,List<Selection> rows)throws Exception;
@@ -28,6 +33,7 @@ public final class ZnackGtinBackgroundService {
         var review=new ZnackGtinReviewService();var catalog=new CatalogSyncService();var reports=new SyncRunRepository();
         operations=new Operations(){
             public String prepare(Shop s)throws Exception{return review.prepare(s);}
+            public String prepare(Shop s,Consumer<String> phase)throws Exception{return review.prepare(s,phase);}
             public List<SyncRunRepository.Item> page(Shop s,String r,int offset){return review.page(s,r,offset);}
             public List<Selection> select(Shop s,String r,List<SyncRunRepository.Item> rows)throws Exception{return review.select(s,r,rows);}
             public Job preview(Shop s,List<Selection> rows)throws Exception{return catalog.preview(s,rows,new Options(Set.of(Field.GTIN),Map.of()));}
@@ -56,8 +62,16 @@ public final class ZnackGtinBackgroundService {
     }
     ZnackGtinBackgroundService(Operations operations){this.operations=operations;}
     public Result run(Shop shop,Set<ProductKey> selected,Consumer<Progress> progress)throws Exception {
+        return run(shop,selected,progress,phase->{});
+    }
+    public Result run(Shop shop,Set<ProductKey> selected,Consumer<Progress> progress,Consumer<String> phase)throws Exception {
         for(var key:selected)if(key.shopId()!=shop.getId()||key.marketplace()!=shop.getMarketplace())throw new SecurityException("SYNC_REVIEW_OWNER_CHANGED");
-        String run=operations.prepare(shop);var rows=new ArrayList<SyncRunRepository.Item>();
+        phase.accept("PREPARING");
+        String run;
+        try{run=operations.prepare(shop,phase);}
+        catch(com.vncode.app.features.license.LicenseGate.LicenseDeniedException|SecurityException denied){throw denied;}
+        catch(Exception failure){throw new PreparationException(failure);}
+        var rows=new ArrayList<SyncRunRepository.Item>();
         for(int offset=0;;offset+=300){var page=operations.page(shop,run,offset);
             for(var row:page)if(ZnackGtinReviewService.eligible(row)&&(selected.isEmpty()||selected.contains(new ProductKey(shop.getId(),shop.getMarketplace(),row.productId(),row.variantId()))))rows.add(row);
             if(page.size()<300)break;

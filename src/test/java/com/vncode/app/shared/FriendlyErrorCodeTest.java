@@ -7,9 +7,10 @@ import static org.junit.jupiter.api.Assertions.*;
 class FriendlyErrorCodeTest {
  @TempDir java.nio.file.Path directory;
  private String previousDirectory;
- @BeforeEach void isolateData() {
+ @BeforeEach void isolateData() throws Exception {
   previousDirectory=System.getProperty("vncode.appdata.dir");
   System.setProperty("vncode.appdata.dir",directory.toString());
+  com.vncode.app.config.Database.initDatabase();
  }
  @AfterEach void restoreData() {
   if(previousDirectory==null)System.clearProperty("vncode.appdata.dir");
@@ -24,6 +25,21 @@ class FriendlyErrorCodeTest {
  @Test void wrappedHttpFailuresRetainSafeStatusCode() {
   var error=new RuntimeException("Cannot load supply",new com.vncode.app.integration.wb.WbApiException("upstream",503,"private raw body"));
   String text=FriendlyErrorService.format(error);assertTrue(text.contains("[WB_HTTP_503]"));assertFalse(text.contains("private raw body"));
+ }
+ @Test void wrappedCryptoProFailureShowsItsSpecificAdviceAndDurableActionCode() {
+  var i18n=I18nService.getInstance();var previous=i18n.getCurrentLanguage();
+  try{for(var language:AppLanguage.values()){
+   i18n.setLanguage(language);
+   var crypto=new com.vncode.app.integration.znack.signature.CryptoProException(
+       com.vncode.app.integration.znack.signature.CryptoProErrorCode.PRIVATE_KEY_UNAVAILABLE,"private diagnostic token=secret-value");
+   var wrapped=new java.io.IOException("Catalog certificate signing failed",crypto);
+   String text=FriendlyErrorService.format(wrapped);
+   assertTrue(text.contains(i18n.tr("znack.signature.error.private_key")));
+   assertTrue(text.contains("[CRYPTOPRO_PRIVATE_KEY_UNAVAILABLE]"));
+   assertFalse(text.contains("secret-value"));assertFalse(text.contains("private diagnostic"));
+   var failure=com.vncode.app.features.sync.SyncFailure.of(wrapped,0);
+   assertEquals("CRYPTOPRO_PRIVATE_KEY_UNAVAILABLE",failure.code());assertTrue(failure.actionRequired());
+  }}finally{i18n.setLanguage(previous);}
  }
  @Test void sqliteBusyExplainsLocalContentionWithoutExposingDatabasePaths() {
   var i18n=I18nService.getInstance();var previous=i18n.getCurrentLanguage();

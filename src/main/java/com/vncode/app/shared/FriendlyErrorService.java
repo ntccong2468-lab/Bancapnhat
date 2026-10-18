@@ -48,6 +48,8 @@ public final class FriendlyErrorService {
         }
         String detail="VN_NETWORK".equals(code)?I18nService.getInstance().tr("error.network"):
                 "SYNC_STORAGE".equals(code)?I18nService.getInstance().tr("error.database_storage"):formatDetail(error);
+        if(error instanceof com.vncode.app.features.sync.ZnackGtinBackgroundService.PreparationException)
+            detail=I18nService.getInstance().tr("gtin.background.prepare_failed")+"\n"+detail;
         return detail+"\n["+code+"]";
     }
 
@@ -66,10 +68,10 @@ public final class FriendlyErrorService {
                 return I18nService.getInstance().tr("error.catalog_owner_unverified")+"\n"+I18nService.getInstance().tr("error.catalog_owner."+owner.reason().name().toLowerCase(java.util.Locale.ROOT));
             if("unverified_catalog_owner".equals(cause.getMessage())||"catalog_owner_changed".equals(cause.getMessage()))
                 return I18nService.getInstance().tr("error.catalog_owner_unverified");
+            if(cause instanceof CryptoProException crypto)return formatCryptoPro(crypto);
         }
-        if (error instanceof CryptoProException crypto) {
-            return formatCryptoPro(crypto);
-        }
+        if(error instanceof com.vncode.app.features.sync.ZnackGtinBackgroundService.PreparationException && error.getCause()!=null)
+            return formatDetail(error.getCause());
         if (error instanceof com.vncode.app.features.license.LicenseGate.LicenseDeniedException) return I18nService.getInstance().tr(error.getMessage().equals("LICENSE_SHOP_LIMIT")?"license.account.shop_limit":"license.account.required");
         String message = error.getMessage() == null ? "" : error.getMessage().trim();
         if(message.contains("CATALOG_NEW_GTIN_REQUIRES_REJECTED_FEED"))return I18nService.getInstance().tr("znack.registration.new_gtin_requires_rejection");
@@ -78,6 +80,7 @@ public final class FriendlyErrorService {
         if(message.contains("CATALOG_FEED_COMPLETED_WITHOUT_CARD"))return I18nService.getInstance().tr("znack.registration.completed_without_card");
         if ("GTIN_NO_ELIGIBLE_PUBLISHED_CARDS".equals(message))return I18nService.getInstance().tr("gtin.background.no_eligible");
         if ("GTIN_TNVED_GROUP_CHANGED".equals(message))return I18nService.getInstance().tr("gtin.tnved_group_changed");
+        if ("GTIN_SYNC_CANCELLED".equals(message))return I18nService.getInstance().tr("gtin.background.cancelled");
         if (message.isBlank()) {
             return I18nService.getInstance().tr("znack.signature.error.failed");
         }

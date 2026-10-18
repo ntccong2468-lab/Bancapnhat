@@ -731,11 +731,11 @@ public final class OzonExemplarJobRepository {
         try (Connection connection = Database.getConnection()) {
             connection.setAutoCommit(false);
             try (PreparedStatement release = connection.prepareStatement("""
-                    UPDATE kiz_codes SET status='AVAILABLE',reservation_token=NULL,reserved_at=NULL,
+                    UPDATE kiz_codes SET status=%s,reservation_token=NULL,reserved_at=NULL,
                         reservation_recoverable=NULL,updated_at=?
                     WHERE id IN (SELECT kiz_id FROM ozon_exemplars WHERE job_id=? AND kiz_id IS NOT NULL)
                       AND status='RESERVED' AND reservation_token=?
-                    """)) {
+                    """.formatted(com.vncode.app.features.kiz.KizStockCategoryRepository.releasedStatus("kiz_codes")))) {
                 release.setString(1, Instant.now().toString());
                 release.setLong(2, job.id());
                 release.setString(3, "ozon:" + job.id());

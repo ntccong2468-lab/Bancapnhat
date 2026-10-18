@@ -8,11 +8,20 @@ import java.time.Instant;
 import java.util.*;
 import static org.junit.jupiter.api.Assertions.*;
 class ZnackGtinBackgroundServiceTest {
+ @org.junit.jupiter.api.io.TempDir java.nio.file.Path directory;
+ String previousDirectory;
+ @org.junit.jupiter.api.BeforeEach void isolateData()throws Exception{
+  previousDirectory=System.getProperty("vncode.appdata.dir");System.setProperty("vncode.appdata.dir",directory.toString());
+  com.vncode.app.config.Database.initDatabase();
+ }
+ @org.junit.jupiter.api.AfterEach void restoreData(){
+  if(previousDirectory==null)System.clearProperty("vncode.appdata.dir");else System.setProperty("vncode.appdata.dir",previousDirectory);
+ }
  final Shop shop=new Shop(1,"Fixture","fixture");
  static class Operations implements ZnackGtinBackgroundService.Operations {
   List<SyncRunRepository.Item> items=new ArrayList<>();int executions,links;List<Integer> batches=new ArrayList<>();boolean unknown;
   Operations(int count){for(int i=0;i<count;i++)items.add(new SyncRunRepository.Item("i"+i,"run","p"+i,"v"+i,"sku","article","Black","52","04610689132457","AWAITING_CONFIRMATION","REVIEW","","","{}"));}
-  public String prepare(Shop s){return "run";}
+  public String prepare(Shop s)throws Exception{return "run";}
   public List<SyncRunRepository.Item> page(Shop s,String run,int offset){return List.copyOf(items.subList(Math.min(offset,items.size()),Math.min(offset+300,items.size())));}
   public List<Selection> select(Shop s,String run,List<SyncRunRepository.Item> rows){batches.add(rows.size());return rows.stream().map(i->new Selection(new GtinSyncModels.ProductKey(s.getId(),s.getMarketplace(),i.productId(),i.variantId()),i.gtin())).toList();}
   Job current;
@@ -47,6 +56,27 @@ class ZnackGtinBackgroundServiceTest {
  }
  @Test void uncertainWriteIsNeverAutomaticallyReplayed()throws Exception{
   var operations=new Operations(2);operations.unknown=true;assertThrows(java.io.IOException.class,()->new ZnackGtinBackgroundService(operations).run(shop,Set.of(),p->{}));assertEquals(1,operations.executions);assertEquals(0,operations.links);
+ }
+ @Test void failedSourceSigningStopsBeforeAnyGtinWriteAndReportsTheActualCause() {
+  for(var code:com.vncode.app.integration.znack.signature.CryptoProErrorCode.values()){
+   var crypto=new com.vncode.app.integration.znack.signature.CryptoProException(code,"local signing failure");
+   var operations=new Operations(2){
+    public String prepare(Shop s)throws Exception{throw new java.io.IOException("Catalog certificate signing failed",crypto);}
+    public List<SyncRunRepository.Item> page(Shop s,String r,int offset){throw new AssertionError("Source preparation failed");}
+   };
+   var phases=new ArrayList<String>();
+   var error=assertThrows(ZnackGtinBackgroundService.PreparationException.class,
+       ()->new ZnackGtinBackgroundService(operations).run(shop,Set.of(),p->fail("No write progress expected"),phases::add));
+   assertSame(crypto,error.getCause().getCause());assertEquals(List.of("PREPARING"),phases);
+   assertEquals(0,operations.executions);assertEquals(0,operations.links);assertTrue(operations.batches.isEmpty());
+   var failure=SyncFailure.of(error,0);assertEquals("CRYPTOPRO_"+code.name(),failure.code());assertTrue(failure.actionRequired());
+   var i18n=com.vncode.app.shared.I18nService.getInstance();var previous=i18n.getCurrentLanguage();
+   try{for(var language:com.vncode.app.shared.AppLanguage.values()){
+    i18n.setLanguage(language);String text=com.vncode.app.shared.FriendlyErrorService.format(error);
+    assertTrue(text.contains(i18n.tr("gtin.background.prepare_failed")));assertFalse(text.contains("gtin.background.prepare_failed"));
+    assertTrue(text.contains("[CRYPTOPRO_"+code.name()+"]"));
+   }}finally{i18n.setLanguage(previous);}
+  }
  }
  @Test void blockedValidationIsReportedAndNeverSent()throws Exception{
   var recorded=new java.util.concurrent.atomic.AtomicInteger();

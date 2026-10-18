@@ -36,6 +36,8 @@ public final class ZnackErrorDetails {
             if (current instanceof ZnackApiClient.ZnackApiException apiError) {
                 details.append("\n").append(apiError.diagnosticDetails());
             }
+            if(current instanceof com.vncode.app.integration.znack.signature.CryptoProException crypto)
+                details.append("\nCryptoPro code: ").append(crypto.code());
         }
 
         StringWriter stackTrace = new StringWriter();

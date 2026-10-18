@@ -79,6 +79,14 @@ public final class KizWarehouseSchema {
                   shipment_id TEXT NOT NULL,seller_imported INTEGER NOT NULL,purchased INTEGER NOT NULL,
                   PRIMARY KEY(shop_id,owner,shipment_id))
                 """);
+            // Repair stock revived by an older print-release path after category deletion.
+            // Held marks and every consumed/history link remain untouched.
+            s.executeUpdate("""
+                UPDATE kiz_codes SET status='ARCHIVED',updated_at=strftime('%Y-%m-%dT%H:%M:%fZ','now')
+                WHERE status='AVAILABLE' AND id IN (
+                  SELECT classified.code_id FROM kiz_stock_classifications classified
+                  JOIN kiz_stock_deleted_categories deleted ON deleted.category_id=classified.category_id)
+                """);
         }
     }
 }

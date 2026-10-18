@@ -34,6 +34,42 @@ final class OzonCategoryStock {
             var result=new HashSet<String>();nativeIds.forEach((sku,id)->{if(categories.containsKey(id))result.add(sku);});return Set.copyOf(result);
         }catch(SQLException e){throw new IllegalStateException("KIZ_CATEGORY_STORAGE",e);}
     }
+    /** Frozen allocations remain printable after the seller hides their category.
+     * Proof is limited to this posting, item, native product and current shop owner. */
+    static Set<String> reservedCategorySkus(int shop,OzonPostingDto posting,OzonExemplarJob job){
+        if(job==null||job.shopId()!=shop||!job.postingNumber().equals(posting.postingNumber())
+                ||!Set.of(OzonExemplarJobStage.RESERVED,OzonExemplarJobStage.VALIDATED,OzonExemplarJobStage.ACCEPTED).contains(job.stage()))return Set.of();
+        try(var c=Database.getConnection()){
+            String owner=KizWarehouseRepository.currentOwner(c,shop),token="ozon:"+job.id();
+            var nativeIds=verifiedProducts(c,shop,posting.items());
+            var items=new HashMap<Integer,OzonPostingItemDto>();posting.items().forEach(i->items.put(i.itemIndex(),i));
+            var covered=new HashMap<Integer,Set<Integer>>();
+            try(var p=c.prepareStatement("""
+                SELECT e.item_index,e.product_id,e.exemplar_index,k.status,k.reservation_token,proof.product_id
+                FROM ozon_exemplars e JOIN ozon_exemplar_jobs job ON job.id=e.job_id
+                JOIN kiz_codes k ON k.id=e.kiz_id AND k.shop_id=job.shop_id
+                JOIN kiz_stock_category_reservations proof ON proof.code_id=k.id AND proof.token=?
+                  AND proof.shop_id=job.shop_id AND proof.allocation_key=job.posting_number||':'||e.item_index
+                JOIN kiz_stock_categories category ON category.id=proof.category_id
+                  AND category.shop_id=proof.shop_id AND category.owner=proof.owner
+                WHERE job.id=? AND job.shop_id=? AND job.posting_number=? AND e.shop_id=job.shop_id
+                  AND e.posting_number=job.posting_number AND proof.owner=? AND %s
+                """.formatted(KizWarehouseRepository.eligibleCategory("k")))){
+                p.setString(1,token);p.setLong(2,job.id());p.setInt(3,shop);p.setString(4,posting.postingNumber());p.setString(5,owner);p.setString(6,owner);
+                try(var r=p.executeQuery()){while(r.next()){
+                    var item=items.get(r.getInt(1));int index=r.getInt(3);
+                    boolean held="RESERVED".equals(r.getString(4))&&token.equals(r.getString(5));
+                    boolean printed=job.stage()==OzonExemplarJobStage.ACCEPTED&&"CONSUMED".equals(r.getString(4));
+                    if(item!=null&&item.productId().equals(r.getString(2))&&index>=0&&index<item.quantity()
+                            &&r.getString(6).equals(nativeIds.get(item.sku()))&&(held||printed))
+                        covered.computeIfAbsent(item.itemIndex(),i->new HashSet<>()).add(index);
+                }}
+            }
+            var result=new HashSet<String>();for(var item:posting.items())
+                if(covered.getOrDefault(item.itemIndex(),Set.of()).size()==item.quantity())result.add(item.sku());
+            return Set.copyOf(result);
+        }catch(SQLException error){throw new IllegalStateException("KIZ_CATEGORY_STORAGE",error);}
+    }
     /** One read transaction and one FIFO simulation across the complete batch; this never reserves marks. */
     static Map<String,Integer> coverage(int shop,List<OzonPostingDto> postings,Set<String> exempt){
         if(postings.isEmpty())return Map.of();
