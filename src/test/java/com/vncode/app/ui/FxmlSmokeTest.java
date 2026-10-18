@@ -629,6 +629,7 @@ class FxmlSmokeTest {
     @AfterAll
     static void clearAppDataOverride() throws Exception {
         com.vncode.app.testsupport.ShopReadTestCleanup.awaitSharedIdle();
+        com.vncode.app.testsupport.FinanceTestCleanup.detachAndAwait();
         System.clearProperty("vncode.appdata.dir");
     }
 

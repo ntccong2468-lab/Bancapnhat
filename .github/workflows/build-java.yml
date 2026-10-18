@@ -23,6 +23,10 @@ on:
         description: Bounded recovery of the 1.4.17 baseline-checksum probe; app/test inputs must be identical
         type: string
         default: ''
+      recover_fixture_failure_run_id:
+        description: Bounded 1.4.18 recovery after the Windows analytics fixture cleanup error
+        type: string
+        default: ''
   push:
     branches: [dev, main]
     paths-ignore:
@@ -108,14 +112,29 @@ jobs:
         shell: pwsh
         env:
           LOCALAPPDATA: ${{ runner.temp }}\vncode-java-fixture-cleanup-${{ github.run_id }}
-        run: .\mvnw.cmd -B "-Dtest=Gs1PaneTest,ListingCopyPaneTest,ProductBulkEditPaneTest,ProductRefreshUiTest,CatalogSyncPaneTest,KizWarehousePaneTest" test
+        run: .\mvnw.cmd -B "-Dtest=Gs1PaneTest,ListingCopyPaneTest,ProductBulkEditPaneTest,ProductRefreshUiTest,CatalogSyncPaneTest,KizWarehousePaneTest,FxmlSmokeTest,FinanceTestCleanupTest" test
 
       - name: Run Java and FXML test suite
-        if: ${{ !inputs.reuse_verified_java_run_id }}
+        if: ${{ !inputs.reuse_verified_java_run_id && !inputs.recover_fixture_failure_run_id }}
         shell: pwsh
         env:
           LOCALAPPDATA: ${{ runner.temp }}\vncode-java-fixtures-${{ github.run_id }}
         run: .\mvnw.cmd -B clean verify
+
+      - name: Reconcile unchanged passing Java methods after the fixture-only cleanup repair
+        if: ${{ inputs.recover_fixture_failure_run_id != '' }}
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VNCODE_FIXTURE_RECOVERY_RUN: ${{ inputs.recover_fixture_failure_run_id }}
+          LOCALAPPDATA: ${{ runner.temp }}\vncode-java-fixture-cleanup-${{ github.run_id }}
+        run: |
+          python tools/recover-windows-fixture-java.py prepare
+          if ($LASTEXITCODE -ne 0) { throw 'Windows fixture recovery validation failed.' }
+          .\mvnw.cmd -B -DskipTests package
+          if ($LASTEXITCODE -ne 0) { throw 'Packaging after the focused fixture rerun failed.' }
+          python tools/recover-windows-fixture-java.py finalize
+          if ($LASTEXITCODE -ne 0) { throw 'Windows fixture recovery finalization failed.' }
 
       - name: Restore byte-verified Windows Java after the baseline-checksum-only repair
         if: ${{ inputs.reuse_verified_java_run_id != '' }}
@@ -152,6 +171,7 @@ jobs:
             target/lib/**
             target/surefire-reports/TEST-*.xml
             target/java-verification-reuse.json
+            target/java-fixture-recovery.json
           if-no-files-found: error
           retention-days: 14
 
@@ -293,6 +313,9 @@ jobs:
           if (Test-Path target\java-verification-reuse.json) {
             Copy-Item target\java-verification-reuse.json out\java-verification-reuse.json
           }
+          if (Test-Path target\java-fixture-recovery.json) {
+            Copy-Item target\java-fixture-recovery.json out\java-fixture-recovery.json
+          }
 
       - name: Preserve Windows test installer
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
@@ -302,6 +325,7 @@ jobs:
             out/VN-code-${{ env.APP_VERSION }}-Windows-x64.exe
             out/VN-code-${{ env.APP_VERSION }}-Windows-x64.sha256
             out/java-verification-reuse.json
+            out/java-fixture-recovery.json
             out/native-smoke.json
             out/side-by-side-smoke.json
             out/upgrade-*.json

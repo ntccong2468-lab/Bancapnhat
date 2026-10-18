@@ -37,7 +37,7 @@
     "windowsBuild": {
       "runId": 39099056215,
       "sourceCommit": "62a5d0ea5f1abaf0ea638319b0b18231dfd0c238",
-      "state": "in_progress"
+      "state": "failed-at-fixture-cleanup"
     },
     "releaseToolTests": {
       "tests": 66,
@@ -52,6 +52,25 @@
       "skipped": 2,
       "result": "passed",
       "liveSellerMutations": false
+    },
+    "windowsFixtureRecovery": {
+      "originRunId": 39099056215,
+      "originSourceCommit": "62a5d0ea5f1abaf0ea638319b0b18231dfd0c238",
+      "originSuite": {
+        "tests": 1748,
+        "failures": 0,
+        "errors": 1,
+        "skipped": 2
+      },
+      "originNamedMethods": 1747,
+      "failure": "FXML class teardown did not await separate analytics workers before deleting Windows SQLite fixture",
+      "applicationRuntimeChanged": false,
+      "focusedLinuxRepairTests": 56,
+      "focusedFailures": 0,
+      "focusedErrors": 0,
+      "originalAssertionsPreserved": true,
+      "recoveryContractsPassed": 68,
+      "state": "repair-tested-locally-awaiting-Windows-rerun-and-native-checks"
     }
   },
   "remainingAcceptance": [

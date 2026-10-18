@@ -42,6 +42,21 @@ export function validateReusedJava(proof,version,sha,summary){
     assert.equal(proof.fixtureClassesCompiledWithoutChangingJar,true);assert.match(proof.applicationJarSha256,/^[a-f0-9]{64}$/);
     for(const key of ['tests','failures','errors','skipped'])assert.equal(proof.tests[key],summary[key]);
 }
+export function validateFixtureRecovery(proof,version,sha,summary){
+    assert.equal(version,'1.4.18');assert.equal(proof.kind,'fixture-cleanup-only-recovery');
+    assert.equal(proof.version,version);assert.equal(proof.sourceCommit,sha);
+    assert.equal(proof.applicationSourceCommit,'62a5d0ea5f1abaf0ea638319b0b18231dfd0c238');
+    assert.equal(proof.originRunId,39099056215);assert.equal(proof.originArtifactId,12126526148);
+    assert.equal(proof.originArchiveSha256,'ae82ace1389c81bac696ba57f1d53029a99eaa2ec10d02a5b3cedb6d66a97d65');
+    assert.deepEqual(proof.originSuite,{tests:1748,failures:0,errors:1,skipped:2});assert.equal(proof.originNamedTests,1747);
+    for(const key of ['originalContextFailureRetainedInProvenance','failedFixtureClassRerunPassed','newHandleCleanupTestPassed','applicationAndDependenciesUnchanged','originalAssertionsUnchanged','nativeChecksMustRunAgain','packageCompiledAfterFocusedTests'])assert.equal(proof[key],true,key);
+    assert.ok(proof.freshClasses.includes('com.vncode.app.ui.FxmlSmokeTest'));
+    assert.ok(proof.freshClasses.includes('com.vncode.app.testsupport.FinanceTestCleanupTest'));
+    assert.ok(proof.freshTestsExecuted>=56&&proof.reusedPassingTests>0);
+    assert.equal(proof.freshTestsExecuted+proof.reusedPassingTests,1748);
+    assert.match(proof.freshlyPackagedJarSha256,/^[a-f0-9]{64}$/);
+    for(const key of ['tests','failures','errors','skipped'])assert.equal(proof.tests[key],summary[key]);
+}
 
 // This one release was requested after the owner was told which live checks remain.
 // Retain the normal production-acceptance gate and all source/artifact/native checks.
@@ -118,6 +133,11 @@ async function main(runId,sha,mode='prepare') {
     if(logs.includes('REUSED_WINDOWS_JAVA:')){
         javaVerificationOrigin=json(await readFile(path.join(directory,'java-verification-reuse.json')));
         validateReusedJava(javaVerificationOrigin,version,sha,java);proofFiles.push('java-verification-reuse.json');
+    }
+    if(logs.includes('RECONCILED_WINDOWS_JAVA:')){
+        assert.equal(javaVerificationOrigin,undefined);
+        javaVerificationOrigin=json(await readFile(path.join(directory,'java-fixture-recovery.json')));
+        validateFixtureRecovery(javaVerificationOrigin,version,sha,java);proofFiles.push('java-fixture-recovery.json');
     }
     const notes=(await readFile(`docs/releases/VN-code-${version}.md`,'utf8')).trim();assert.ok(notes.length>50);
     const info={version,sourceCommit:sha,runId:Number(runId),java,installer:{filename:name,bytes:bytes.length,sha256:digest},

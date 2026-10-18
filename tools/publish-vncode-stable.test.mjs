@@ -1,7 +1,7 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {validateStableAsset,validatePublishedStable,validateReusedJava,validateOwnerApproved1418} from './publish-vncode-stable.mjs';
+import {validateStableAsset,validatePublishedStable,validateReusedJava,validateOwnerApproved1418,validateFixtureRecovery} from './publish-vncode-stable.mjs';
 import {origin} from './reuse-verified-windows-java.mjs';
 
 const version='1.4.6',digest='a'.repeat(64),size=140000000;
@@ -51,4 +51,10 @@ test('owner publication is limited to the exact requested 1.4.18 build and recor
  for(const field of ['suggestionsReviewedInTable','applyBelowTableVerified','ambiguousValuesNotInvented'])assert.throws(()=>validateOwnerApproved1418(decision,{...status,validation:{...status.validation,registrationPromptReview:{...status.validation.registrationPromptReview,[field]:false}}},...args));
  assert.throws(()=>validateOwnerApproved1418(decision,{...status,complete:true},...args));
  assert.throws(()=>validateOwnerApproved1418(decision,{...status,licenseIntegration:{...status.licenseIntegration,productionReady:true}},...args));
+});
+test('a corrected Windows fixture rerun cannot hide its original error or claim unchanged tests were freshly executed',()=>{
+ const sha='a'.repeat(40),summary={tests:1748,failures:0,errors:0,skipped:2};
+ const proof={kind:'fixture-cleanup-only-recovery',version:'1.4.18',sourceCommit:sha,applicationSourceCommit:'62a5d0ea5f1abaf0ea638319b0b18231dfd0c238',originRunId:39099056215,originArtifactId:12126526148,originArchiveSha256:'ae82ace1389c81bac696ba57f1d53029a99eaa2ec10d02a5b3cedb6d66a97d65',originSuite:{tests:1748,failures:0,errors:1,skipped:2},originNamedTests:1747,originalContextFailureRetainedInProvenance:true,failedFixtureClassRerunPassed:true,newHandleCleanupTestPassed:true,applicationAndDependenciesUnchanged:true,originalAssertionsUnchanged:true,nativeChecksMustRunAgain:true,packageCompiledAfterFocusedTests:true,freshClasses:['com.vncode.app.ui.FxmlSmokeTest','com.vncode.app.testsupport.FinanceTestCleanupTest'],freshTestsExecuted:56,reusedPassingTests:1692,freshlyPackagedJarSha256:'b'.repeat(64),tests:summary};
+ validateFixtureRecovery(proof,'1.4.18',sha,summary);
+ for(const patch of [{originSuite:{...proof.originSuite,errors:0}},{applicationAndDependenciesUnchanged:false},{failedFixtureClassRerunPassed:false},{newHandleCleanupTestPassed:false},{originalAssertionsUnchanged:false},{freshClasses:[]},{freshTestsExecuted:55},{reusedPassingTests:1691},{sourceCommit:'c'.repeat(40)},{originRunId:1},{originArchiveSha256:'c'.repeat(64)}])assert.throws(()=>validateFixtureRecovery({...proof,...patch},'1.4.18',sha,summary));
 });
