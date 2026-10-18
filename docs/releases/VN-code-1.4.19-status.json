@@ -16,5 +16,11 @@
   "liveWbApiGtinWriteVerified": true,
   "liveLicensedDesktopGtinWriteVerified": false,
   "liveWbGtinEvidence": "../validation/2026-10-18-vncode-1419-wb-live-gtin.json",
-  "tnvedGroupGuardVerified": true
+  "tnvedGroupGuardVerified": true,
+  "desktopButtonAcceptance": {
+    "state": "blocked",
+    "platformAttempted": "Linux",
+    "evidence": "../validation/evidence/2026-10-18-vncode-1419-button-attempt.json",
+    "requiredEnvironment": "Windows with a real activated VNCode session, linked WB shop and verified Znack configuration"
+  }
 }
