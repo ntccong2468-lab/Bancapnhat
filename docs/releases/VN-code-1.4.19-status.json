@@ -1,13 +1,13 @@
 {
   "version": "1.4.19",
-  "state": "fresh-windows-build-after-product-action-layout-fix",
+  "state": "published-latest-under-owner-request-with-disclosed-live-acceptance-limits",
   "baseline": "v1.4.18",
   "databaseSchema": 6,
-  "published": false,
-  "latest": "1.4.18",
+  "published": true,
+  "latest": "1.4.19",
   "validation": {
     "windowsBuild": {
-      "state": "in_progress",
+      "state": "passed",
       "runId": 39114287816,
       "sourceCommit": "d25718c6a69f94f08d9515d36f7444650b1eebd1",
       "url": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/39114287816",
@@ -29,17 +29,29 @@
         "state": "cancelled-before-completion",
         "reason": "Added explicit reference-client-width assertion and early Windows layout check."
       },
-      "lastObservedStep": "Verify ten-shop workspaces and actual Windows DPI 100 125 150"
+      "lastObservedStep": "Complete job",
+      "upgradeFrom1418Passed": true,
+      "nativeEvidence": "../validation/2026-10-18-vncode-1419-windows-native.json",
+      "installer": {
+        "name": "VN-code-1.4.19-Windows-x64.exe",
+        "bytes": 145632256,
+        "sha256": "e2d43bdca42031b6e583dea8efa298addc142e46fadfb2a21ca00b6e5cc31084",
+        "url": "https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.4.19/VN-code-1.4.19-Windows-x64.exe",
+        "fullPublicDownloadVerified": true,
+        "checksumAssetMatched": true,
+        "peHeaderVerified": true
+      }
     },
     "productionLicenseVerified": false,
     "liveCryptoProSigningThisVersion": false,
     "liveLicensedDesktopGtinWriteThisVersion": false,
     "liveApiWbGtinWriteThisVersion": true,
     "releaseToolTests": {
-      "tests": 70,
-      "passed": 70,
+      "windowsBuildContracts": 70,
+      "publicationWorkflowContracts": 70,
       "failures": 0,
-      "platform": "Linux / Node; fresh Windows run contains 69 pre-publication contracts"
+      "publicationWorkflowPlatform": "Linux / Node 22",
+      "windowsSourceCommit": "d25718c6a69f94f08d9515d36f7444650b1eebd1"
     },
     "upgradeProbeFocusedTests": {
       "tests": 3,
@@ -72,7 +84,8 @@
         "step": "Verify product action layout at the actual reference width",
         "tests": 1,
         "liveSellerWrites": false
-      }
+      },
+      "freshWindowsBuildCompleted": true
     },
     "fullJavaRegression": {
       "version": "1.4.19",
@@ -91,9 +104,27 @@
       "artifactArchiveSha256": "06983d8c87e0bf22adc954b543a3d8918dabed835bdba42d0930fcb514615f4e",
       "applicationJarSha256": "94e39301792ddd50959a70b9faac8a6958c884f24ef294bc8bb6a5846a968d47",
       "liveSellerMutations": false
+    },
+    "liveUpdaterAfterPublication": {
+      "result": "passed",
+      "installed1418Status": "AVAILABLE",
+      "newVersion": "1.4.19",
+      "realProductionServiceRequest": true,
+      "windowsUrlSha256SizeVerified": true,
+      "sellerDesktopNotificationDelivered": false,
+      "evidence": "../validation/2026-10-18-vncode-1419-update-feed-after.json",
+      "parserEvidence": "../validation/2026-10-18-vncode-1419-updater-parser.json"
     }
   },
-  "windowsInstaller": null,
+  "windowsInstaller": {
+    "name": "VN-code-1.4.19-Windows-x64.exe",
+    "bytes": 145632256,
+    "sha256": "e2d43bdca42031b6e583dea8efa298addc142e46fadfb2a21ca00b6e5cc31084",
+    "url": "https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.4.19/VN-code-1.4.19-Windows-x64.exe",
+    "fullPublicDownloadVerified": true,
+    "checksumAssetMatched": true,
+    "peHeaderVerified": true
+  },
   "jvmLastResults": {
     "tests": 1766,
     "failures": 0,
@@ -124,10 +155,20 @@
     "githubApiHttp": 401,
     "publicApiAlsoHttp": 401,
     "gitRead": "Could not read Username for github.com",
-    "publicationStarted": false,
+    "publicationStarted": true,
     "resume": "Restore environment GitHub authentication; inspect existing run 39111878315 before dispatching another build.",
     "resolved": true,
     "resolvedAtUtc": "2026-10-18T08:49:20.880347+00:00",
-    "resolution": "Existing GitHub API and HTTPS Git authentication work again; no new credentials requested."
+    "resolution": "Existing GitHub API and HTTPS Git authentication work again; no new credentials requested.",
+    "publicationCompleted": true
+  },
+  "release": {
+    "id": 416368799,
+    "url": "https://github.com/ntccong2468-lab/Bancapnhat/releases/tag/v1.4.19",
+    "tag": "v1.4.19",
+    "sourceCommit": "d25718c6a69f94f08d9515d36f7444650b1eebd1",
+    "publishedAtUtc": "2026-10-18T09:56:39Z",
+    "publicationRunId": 39116801568,
+    "publicAssetCount": 27
   }
 }

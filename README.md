@@ -1,6 +1,6 @@
 # VN code
 
-Bản nền cho các cập nhật tiếp theo: [VNCode 1.4.18](docs/releases/BASELINE.md).
+Bản nền cho các cập nhật tiếp theo: [VNCode 1.4.19](docs/releases/BASELINE.md).
 
 **VN code là ứng dụng Windows do Nguyễn Thành Công phát triển và quản lý**, phục vụ người bán trên **Wildberries** và **Ozon**.
 

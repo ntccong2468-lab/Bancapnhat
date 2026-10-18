@@ -1,14 +1,15 @@
 {
   "version": "1.4.19",
-  "recordedAtUtc": "2026-10-18T09:42:24.270987+00:00",
+  "recordedAtUtc": "2026-10-18T09:59:59.964621+00:00",
   "requestReportDelivered": true,
   "applicationBuildSource": "d25718c6a69f94f08d9515d36f7444650b1eebd1",
   "branchPushedThrough": "2941ca1",
   "windowsBuildRun": 39114287816,
   "windowsBuildUrl": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/39114287816",
   "lastObserved": {
-    "windows": "Fresh full Java suite passed: 1766 tests, 0 failures/errors, 2 platform skips. EXE built; startup and DPAPI passed; native multi-shop/DPI and upgrade checks in progress.",
-    "portal": "success"
+    "windows": "success: full 1766 Java tests (2 platform skips), native startup, DPAPI, multi-shop/DPI, 288 layouts and 14 upgrades",
+    "portal": "success",
+    "publication": "success"
   },
   "localChecks": {
     "releaseContractsPassed": 70,
@@ -18,16 +19,11 @@
     "api": "restored",
     "gitRead": "restored"
   },
-  "publishedByThisTask": false,
-  "latestLastVerified": "1.4.18",
-  "automaticSellerUpdateFor1419Published": false,
+  "publishedByThisTask": true,
+  "latestLastVerified": "1.4.19",
+  "automaticSellerUpdateFor1419Published": true,
   "productionDesktopGtinWriteAccepted": false,
-  "resumeSteps": [
-    "Restore existing environment GitHub authentication without placing credentials in chat.",
-    "Inspect the latest Windows build run 39114287816; previous run 39111878315 failed and produced no installer.",
-    "After verified native artifact and upgrade proofs, record exact EXE checksum, bytes, full test totals and owner decision; use strict owner-approved-1419 publisher.",
-    "Verify public Latest and download bytes, then production updater parser metadata."
-  ],
+  "resumeSteps": [],
   "previousBuilds": [
     {
       "runId": 39111878315,
@@ -45,5 +41,11 @@
       "state": "cancelled-before-completion"
     }
   ],
-  "currentWindowsJavaEvidence": "2026-10-18-vncode-1419-windows-java.json"
+  "currentWindowsJavaEvidence": "2026-10-18-vncode-1419-windows-java.json",
+  "publicationRunId": 39116801568,
+  "releaseId": 416368799,
+  "publicInstallerSha256": "e2d43bdca42031b6e583dea8efa298addc142e46fadfb2a21ca00b6e5cc31084",
+  "publicDownloadVerified": true,
+  "realUpdateServiceResult": "AVAILABLE for installed 1.4.18",
+  "sellerDesktopNotificationDeliveryVerified": false
 }
