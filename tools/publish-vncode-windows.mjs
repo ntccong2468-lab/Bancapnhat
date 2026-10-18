@@ -17,7 +17,8 @@ export function validateNativeSmoke(smoke,version) {
   assert.equal(smoke.version,version);assert.equal(smoke.platform,'windows-x64');
   assert.equal(smoke.appName,'VN code');assert.match(smoke.windowTitle,/^VN code v/);
   const [major,minor]=version.split('.').map(Number);
-  assert.equal(smoke.nativeLauncher,'passed');assert.equal(smoke.schemaMigration,major>1||major===1&&minor>=4?'3 to 5':'3 to 4');
+  const migration=version.localeCompare('1.4.19','en',{numeric:true})>=0?'3 to 6':major>1||major===1&&minor>=4?'3 to 5':'3 to 4';
+  assert.equal(smoke.nativeLauncher,'passed');assert.equal(smoke.schemaMigration,migration);
   assert.equal(smoke.historyPreserved,true);assert.equal(smoke.rollbackSnapshotVerified,true);
   assert.equal(smoke.liveMarketplaceMutations,false);
 }

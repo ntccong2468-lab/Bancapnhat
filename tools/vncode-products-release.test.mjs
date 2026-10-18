@@ -1,4 +1,5 @@
 import test from 'node:test';
+import {readFileSync} from 'node:fs';
 import assert from 'node:assert/strict';
 import * as preview from './publish-vncode-preview.mjs';
 import {validateNativeSmoke} from './publish-vncode-windows.mjs';
@@ -28,6 +29,17 @@ test('schema-five releases require the actual native 3 to 5 migration evidence',
  const proof={appName:'VN code',version,platform:'windows-x64',windowTitle:'VN code v'+version,nativeLauncher:'passed',schemaMigration:'3 to 5',historyPreserved:true,rollbackSnapshotVerified:true,liveMarketplaceMutations:false};
  assert.doesNotThrow(()=>validateNativeSmoke(proof,version));
  assert.throws(()=>validateNativeSmoke({...proof,schemaMigration:'3 to 4'},version));
+});
+test('seller KIZ occurrence releases require schema-six native migration evidence',()=>{
+ const current='1.4.19';
+ const proof={appName:'VN code',version:current,platform:'windows-x64',windowTitle:'VN code v'+current,nativeLauncher:'passed',schemaMigration:'3 to 6',historyPreserved:true,rollbackSnapshotVerified:true,liveMarketplaceMutations:false};
+ validateNativeSmoke(proof,current);
+ assert.throws(()=>validateNativeSmoke({...proof,schemaMigration:'3 to 5'},current));
+ const upgradeProbe=readFileSync(new URL('./windows-upgrade-smoke.ps1',import.meta.url),'utf8');
+ assert.match(upgradeProbe,/FromStable1418/);
+ assert.match(upgradeProbe,/571f7c26e85722ab742b92000505d606198ba1b66d44f08d2d0a01a4cd231ccd/);
+ const workflow=readFileSync(new URL('../.github/workflows/build-java.yml',import.meta.url),'utf8');
+ assert.match(workflow,/windows-upgrade-smoke\.ps1 -Version \$env:APP_VERSION -FromStable1418/);
 });
 test('the products release must upgrade the most recent GS1 installer with preserved data',()=>{
  assert.throws(()=>preview.validatePreviewUpgrades(version,upgrade('1.2.0'),upgrade('1.2.1'),upgrade('1.2.2'),null));

@@ -56,7 +56,7 @@ try {
         version = $Version
         platform = 'windows-x64'
         nativeLauncher = 'passed'
-        schemaMigration = '3 to 5'
+        schemaMigration = $(if ([version]$Version -ge [version]'1.4.19') {'3 to 6'} else {'3 to 5'})
         historyPreserved = $true
         rollbackSnapshotVerified = $true
         liveMarketplaceMutations = $false

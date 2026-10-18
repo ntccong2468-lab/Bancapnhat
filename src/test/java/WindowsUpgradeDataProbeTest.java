@@ -58,4 +58,21 @@ class WindowsUpgradeDataProbeTest {
         try(var c=Database.getConnection();var s=c.createStatement()) {s.execute("UPDATE kiz_codes SET source_priority=0 WHERE id=100");}
         assertThrows(IllegalStateException.class,()->invoke("verifyLegacyKizPriority",new Class<?>[]{Path.class},data));
     }
+
+    @Test void sellerOccurrenceMigrationPreservesLegacyRowsAndChecksPurchasedIdentity() throws Exception {
+        invoke("main",new Class<?>[]{String[].class},(Object)new String[]{"seed",data.toString()});
+        try(var c=Database.getConnection();var s=c.createStatement()) {
+            s.execute("DROP INDEX uq_kiz_codes_purchased_raw");
+            s.execute("ALTER TABLE kiz_codes DROP COLUMN stock_instance");
+        }
+        String before=fingerprint();
+        assertThrows(java.sql.SQLException.class,()->invoke("verifyLegacyKizPriority",new Class<?>[]{Path.class},data));
+        Database.initDatabase();
+        assertEquals(before,fingerprint(),"Adding seller occurrences must preserve all legacy rows and templates");
+        invoke("verifyLegacyKizPriority",new Class<?>[]{Path.class},data);
+        try(var c=Database.getConnection();var s=c.createStatement()) {
+            s.execute("UPDATE kiz_codes SET stock_instance='incorrectly-imported' WHERE id=100");
+        }
+        assertThrows(IllegalStateException.class,()->invoke("verifyLegacyKizPriority",new Class<?>[]{Path.class},data));
+    }
 }
