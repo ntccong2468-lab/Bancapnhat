@@ -1,7 +1,7 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {validateStableAsset,validatePublishedStable,validateReusedJava,validateOwnerApproved1418,validateOwnerApproved1419,validateOwnerRequest1419,validateFixtureRecovery} from './publish-vncode-stable.mjs';
+import {validateStableAsset,validatePublishedStable,validateReusedJava,validateOwnerApproved1418,validateOwnerApproved1419,validateOwnerRequest1419,validateOwnerRequested150,validateFixtureRecovery} from './publish-vncode-stable.mjs';
 import {origin} from './reuse-verified-windows-java.mjs';
 
 const version='1.4.6',digest='a'.repeat(64),size=140000000;
@@ -86,4 +86,37 @@ test('1.4.19 owner publication requires the exact fresh build and distinguishes 
   assert.throws(()=>validateOwnerApproved1419(decision,{...status,validation:{...status.validation,windowsBuild:{...status.validation.windowsBuild,...patch}}},'1.4.19',sha,runId));
  for(const [version,source,run] of [['1.4.18',sha,runId],['1.4.20',sha,runId],['1.4.19','b'.repeat(40),runId],['1.4.19',sha,'1']])
   assert.throws(()=>validateOwnerApproved1419(decision,status,version,source,run));
+});
+
+test('requested 1.5.0 publication binds its verified build without claiming private or new live-write acceptance',()=>{
+ const version='1.5.0',sha='2eea069123737e2c9f7bcddcecaa51f21a1645dc',runId='39130866288';
+ const java={tests:1792,failures:0,errors:0,skipped:2,passed:1790};
+ const decision={version,sourceCommit:sha,runId:Number(runId),phase:'verified-for-publication',ownerRequestedPublication:true,
+  ownerInstruction:'các mục vừa chỉnh sửa cũng đưa vào bản cập nhật mới, bản này có tên 1.5.0',
+  requestReportDeliveredBeforePublication:true,unverifiedChecksDisclosedBeforePublication:true,standardFullAcceptanceClaimed:false,
+  productionLicenseAcceptance:false,enterpriseCryptoProSigningAccepted:false,licensedDesktopGtinWriteAccepted:false,
+  liveApiWbGtinWriteThisVersion:false,liveApiOzonGtinWriteThisVersion:false,liveCatalogCardCreatedThisVersion:false,
+  bulkMarketplaceKizValidationOnImport:false,installerSha256:'a'.repeat(64),installerBytes:145000000,windowsJava:java};
+ const status={version,complete:false,databaseSchema:6,licenseIntegration:{productionReady:false,changedInThisVersion:false},
+  bulkMarketplaceKizValidationOnImport:false,requestReport:'VN-code-1.5.0-request-report.md',
+  validation:{productionLicenseVerified:false,liveCryptoProSigningThisVersion:false,liveLicensedDesktopGtinWriteThisVersion:false,
+   liveApiWbGtinWriteThisVersion:false,liveApiOzonGtinWriteThisVersion:false,liveCatalogCardCreatedThisVersion:false,
+   windowsBuild:{state:'passed',runId:Number(runId),sourceCommit:sha,freshFullJavaExecutionRequired:true,upgradeFrom1419Passed:true,fullJavaSuite:java}}};
+ validateOwnerRequested150(decision,status,version,sha,runId);
+ for(const patch of [{phase:'authorized-awaiting-verified-build'},{ownerRequestedPublication:false},{requestReportDeliveredBeforePublication:false},
+  {unverifiedChecksDisclosedBeforePublication:false},{standardFullAcceptanceClaimed:true},{productionLicenseAcceptance:true},
+  {enterpriseCryptoProSigningAccepted:true},{licensedDesktopGtinWriteAccepted:true},{liveApiWbGtinWriteThisVersion:true},
+  {liveApiOzonGtinWriteThisVersion:true},{liveCatalogCardCreatedThisVersion:true},{bulkMarketplaceKizValidationOnImport:true},
+  {installerSha256:'invalid'},{installerBytes:0},{windowsJava:{...java,errors:1}},{sourceCommit:'b'.repeat(40)},{runId:1}])
+  assert.throws(()=>validateOwnerRequested150({...decision,...patch},status,version,sha,runId));
+ for(const patch of [{state:'in_progress'},{runId:1},{sourceCommit:'b'.repeat(40)},{freshFullJavaExecutionRequired:false},
+  {upgradeFrom1419Passed:false},{fullJavaSuite:{...java,failures:1}}])
+  assert.throws(()=>validateOwnerRequested150(decision,{...status,validation:{...status.validation,windowsBuild:{...status.validation.windowsBuild,...patch}}},version,sha,runId));
+ for(const field of ['productionLicenseVerified','liveCryptoProSigningThisVersion','liveLicensedDesktopGtinWriteThisVersion',
+  'liveApiWbGtinWriteThisVersion','liveApiOzonGtinWriteThisVersion','liveCatalogCardCreatedThisVersion'])
+  assert.throws(()=>validateOwnerRequested150(decision,{...status,validation:{...status.validation,[field]:true}},version,sha,runId));
+ for(const patch of [{complete:true},{bulkMarketplaceKizValidationOnImport:true},{databaseSchema:5}])
+  assert.throws(()=>validateOwnerRequested150(decision,{...status,...patch},version,sha,runId));
+ for(const args of [['1.5.1',sha,runId],[version,'b'.repeat(40),runId],[version,sha,'1']])
+  assert.throws(()=>validateOwnerRequested150(decision,status,...args));
 });

@@ -107,9 +107,37 @@ export function validateOwnerApproved1419(decision,status,version,sha,runId) {
     assert.equal(status.requestReport,'VN-code-1.4.19-request-report.md');
 }
 
+// The continuing owner request names 1.5.0. Publish its tested installer with the
+// disclosed limits; this receipt must never be used as full live acceptance.
+export function validateOwnerRequested150(decision,status,version,sha,runId) {
+    assert.equal(version,'1.5.0');assert.equal(sha,'2eea069123737e2c9f7bcddcecaa51f21a1645dc');
+    assert.equal(String(runId),'39130866288');
+    assert.equal(decision.version,version);assert.equal(decision.sourceCommit,sha);assert.equal(String(decision.runId),String(runId));
+    assert.equal(decision.phase,'verified-for-publication');assert.equal(decision.ownerRequestedPublication,true);
+    assert.equal(decision.ownerInstruction,'các mục vừa chỉnh sửa cũng đưa vào bản cập nhật mới, bản này có tên 1.5.0');
+    assert.equal(decision.requestReportDeliveredBeforePublication,true);assert.equal(decision.unverifiedChecksDisclosedBeforePublication,true);
+    assert.equal(decision.standardFullAcceptanceClaimed,false);
+    for(const field of ['productionLicenseAcceptance','enterpriseCryptoProSigningAccepted','licensedDesktopGtinWriteAccepted',
+            'liveApiWbGtinWriteThisVersion','liveApiOzonGtinWriteThisVersion','liveCatalogCardCreatedThisVersion','bulkMarketplaceKizValidationOnImport'])
+        assert.equal(decision[field],false,field);
+    assert.match(decision.installerSha256,/^[a-f0-9]{64}$/);assert.ok(Number.isSafeInteger(decision.installerBytes)&&decision.installerBytes>1024*1024);
+    assert.equal(status.version,version);assert.equal(status.complete,false);assert.equal(status.databaseSchema,6);
+    assert.equal(status.licenseIntegration.productionReady,false);assert.equal(status.licenseIntegration.changedInThisVersion,false);
+    for(const field of ['productionLicenseVerified','liveCryptoProSigningThisVersion','liveLicensedDesktopGtinWriteThisVersion',
+            'liveApiWbGtinWriteThisVersion','liveApiOzonGtinWriteThisVersion','liveCatalogCardCreatedThisVersion'])
+        assert.equal(status.validation[field],false,field);
+    assert.equal(status.bulkMarketplaceKizValidationOnImport,false);
+    const build=status.validation.windowsBuild;
+    assert.equal(build.state,'passed');assert.equal(String(build.runId),String(runId));assert.equal(build.sourceCommit,sha);
+    assert.equal(build.freshFullJavaExecutionRequired,true);assert.equal(build.upgradeFrom1419Passed,true);
+    assert.deepEqual(decision.windowsJava,{tests:1792,failures:0,errors:0,skipped:2,passed:1790});
+    for(const field of ['tests','failures','errors','skipped','passed'])assert.equal(build.fullJavaSuite[field],decision.windowsJava[field]);
+    assert.equal(status.requestReport,'VN-code-1.5.0-request-report.md');
+}
+
 async function main(runId,sha,mode='prepare') {
     assert.match(runId??'',/^[1-9][0-9]{0,15}$/);assert.match(sha??'',/^[a-f0-9]{40}$/);
-    assert.ok(['prepare','publish','owner-approved-1418','owner-approved-1419'].includes(mode));
+    assert.ok(['prepare','publish','owner-approved-1418','owner-approved-1419','owner-requested-150'].includes(mode));
     const {version}=await resolveReleaseVersion({root:process.cwd()});const tag=`v${version}`;
     validatePublicationSource(sha);
     let run=api(`actions/runs/${runId}`);
@@ -135,6 +163,11 @@ async function main(runId,sha,mode='prepare') {
                 await new Promise(resolve=>setTimeout(resolve,30000));run=api(`actions/runs/${runId}`);
             }
         } else validateOwnerApproved1419(ownerDecision,status,version,sha,runId);
+        assert.ok((await readFile('docs/releases/'+status.requestReport,'utf8')).includes('Chưa hoàn tất'));
+    }
+    if(mode==='owner-requested-150') {
+        ownerDecision=json(await readFile('docs/validation/2026-10-18-vncode-150-owner-publication.json'));
+        validateOwnerRequested150(ownerDecision,status,version,sha,runId);
         assert.ok((await readFile('docs/releases/'+status.requestReport,'utf8')).includes('Chưa hoàn tất'));
     }
     validateBuild(run,sha,workflowId);
@@ -184,6 +217,10 @@ async function main(runId,sha,mode='prepare') {
     proofFiles.push('seller-workspace-smoke.json','ui-layout.json','gs1-smoke.json');
     const logs=gh(['run','view',runId,'--repo',REPO,'--log']);
     const java=validateJavaTestSummary(logs);let javaVerificationOrigin;
+    if(mode==='owner-requested-150') {
+        assert.ok(!logs.includes('REUSED_WINDOWS_JAVA:')&&!logs.includes('RECONCILED_WINDOWS_JAVA:'),'1.5.0 requires a fresh full Windows Java run');
+        assert.deepEqual(java,ownerDecision.windowsJava);
+    }
     if(logs.includes('REUSED_WINDOWS_JAVA:')){
         javaVerificationOrigin=json(await readFile(path.join(directory,'java-verification-reuse.json')));
         validateReusedJava(javaVerificationOrigin,version,sha,java);proofFiles.push('java-verification-reuse.json');
@@ -239,6 +276,15 @@ async function main(runId,sha,mode='prepare') {
         await writeFile(path.join(directory,'wb-live-gtin-test.json'),JSON.stringify(live,null,2)+'\n');
         names.push('release-acceptance.json','wb-live-gtin-test.json');
     }
+    if(mode==='owner-requested-150') {
+        await writeFile(path.join(directory,'release-acceptance.json'),JSON.stringify(ownerDecision,null,2)+'\n');
+        for(const [source,name] of [['docs/releases/VN-code-1.5.0-request-report.md','request-report.md'],
+                ['docs/validation/2026-10-18-vncode-150-live-read.json','catalog-marketplace-live-read.json'],
+                ['docs/validation/2026-10-18-vncode-150-catalog-details.json','catalog-live-details.json']]) {
+            await writeFile(path.join(directory,name),await readFile(source));names.push(name);
+        }
+        names.push('release-acceptance.json');
+    }
     const digests={};for(const file of names)digests[file]=hash(await readFile(path.join(directory,file)));
     const refs=api(`git/matching-refs/tags/${tag}`).filter(item=>item.ref===`refs/tags/${tag}`);
     assert.ok(refs.length<=1);
@@ -264,7 +310,7 @@ async function main(runId,sha,mode='prepare') {
     gh(['release','edit',tag,'--repo',REPO,'--title',`VNCode ${version}`,'--notes-file',path.join(directory,'release-notes.md')]);
     const ready=api(`releases/${release.id}`);validateReleaseAssets(ready.assets,names,true);
     validateStableAsset(ready.assets.find(a=>a.name===name),version,digest,bytes.length,ready.draft);
-    const publishing=mode==='publish'||mode==='owner-approved-1418'||mode==='owner-approved-1419';
+    const publishing=mode==='publish'||mode==='owner-approved-1418'||mode==='owner-approved-1419'||mode==='owner-requested-150';
     if(publishing) {
         const request=path.join(directory,'publish.json');await writeFile(request,JSON.stringify({draft:false,prerelease:false,make_latest:'true'}));
         gh(['api','-X','PATCH',`repos/${REPO}/releases/${release.id}`,'--input',request]);
