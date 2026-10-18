@@ -40,10 +40,10 @@ class ProductReferenceLayoutTest {
             await(()->pane.selectedKeys().size()==105);
             fx(()->{
                 pane.applyCss();pane.layout();var select=(CheckBox)pane.lookup("#productSelectAll");assertTrue(select.isSelected());assertFalse(select.isIndeterminate());
-                var bar=pane.lookup("#productBulkActions");assertTrue(bar.isVisible());assertTrue(bar.getBoundsInLocal().getHeight()<90,"The action bar stays one compact row at the reference width");assertTrue(bar.localToScene(bar.getBoundsInLocal()).getMinY()>pane.lookup("#productRows").localToScene(pane.lookup("#productRows").getBoundsInLocal()).getMaxY());
+                var bar=pane.lookup("#productBulkActions");assertTrue(bar.isVisible());assertTrue(bar.getBoundsInLocal().getHeight()<90,"The action bar stays one compact row at the reference width: "+bar.getBoundsInLocal());assertTrue(bar.localToScene(bar.getBoundsInLocal()).getMinY()>pane.lookup("#productRows").localToScene(pane.lookup("#productRows").getBoundsInLocal()).getMaxY());
                 var sync=pane.lookup("#productSync");assertTrue(sync.localToScene(sync.getBoundsInLocal()).getMinX()>pane.getWidth()-180,"Sync belongs in the top-right corner");
-                double previous=-1;
-                for(String field:List.of("brand","material","gender","tnved","documents")){var button=(Button)pane.lookup("#productEdit_"+field);assertNotNull(button.getGraphic());assertFalse(button.isDisabled());double x=button.localToScene(button.getBoundsInLocal()).getMinX();assertTrue(x>previous);previous=x;button.fire();}
+                double previous=-1,firstY=-1;
+                for(String field:List.of("brand","material","gender","tnved","documents")){var button=(Button)pane.lookup("#productEdit_"+field);assertNotNull(button.getGraphic());assertFalse(button.isDisabled());var bounds=button.localToScene(button.getBoundsInLocal());double x=bounds.getMinX();assertTrue(x>previous);previous=x;if(firstY<0)firstY=bounds.getMinY();else assertEquals(firstY,bounds.getMinY(),1,"Every batch action remains in the same row");button.fire();}
                 assertEquals(List.of("brand","material","gender","tnved","documents"),actions);
                 ((Button)pane.lookup("#productClearSelection")).fire();assertTrue(pane.selectedKeys().isEmpty());assertFalse(bar.isVisible());return null;
             });

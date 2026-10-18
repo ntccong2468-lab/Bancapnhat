@@ -56,7 +56,7 @@ public final class ProductsPane extends BorderPane {
     private final CheckBox missing=new CheckBox(),pageSelection=new CheckBox();
     private final Label title=new Label(),count=new Label(),status=new Label(),selected=new Label(),needsFix=new Label();
     private final Button reload=new Button(),more=new Button(),all=new Button(),copy=new Button(),clear=new Button("×");
-    private final HBox bulk=new HBox(12);
+    private final BorderPane bulk=new BorderPane();
     private final FlowPane bulkActions=new FlowPane(12,8),issueBar=new FlowPane(10,6);
     private final Map<ProductIssueFilter,ToggleButton> issueChips=new EnumMap<>(ProductIssueFilter.class);
     private final PauseTransition debounce=new PauseTransition(Duration.millis(300));
@@ -96,8 +96,14 @@ public final class ProductsPane extends BorderPane {
         }
         status.setWrapText(true);status.managedProperty().bind(status.textProperty().isNotEmpty());status.visibleProperty().bind(status.managedProperty());
         var top=new VBox(14,heading,filters,issueBar,status);top.setPadding(new Insets(0,0,16,0));setTop(top);setCenter(listing);
-        bulk.setId("productBulkActions");bulk.setAlignment(Pos.CENTER_LEFT);bulk.getStyleClass().add("products-bulk");bulk.getChildren().addAll(selected,bulkActions,clear);selected.getStyleClass().add("text-bold");selected.setMinWidth(Region.USE_PREF_SIZE);bulkActions.setMinWidth(0);HBox.setHgrow(bulkActions,Priority.ALWAYS);bulkActions.setAlignment(Pos.CENTER_LEFT);
-        bulkActions.prefWrapLengthProperty().bind(bulkActions.widthProperty());
+        bulk.setId("productBulkActions");bulk.getStyleClass().add("products-bulk");
+        bulk.setLeft(selected);bulk.setCenter(bulkActions);bulk.setRight(clear);
+        BorderPane.setAlignment(selected,Pos.CENTER_LEFT);BorderPane.setAlignment(clear,Pos.CENTER_RIGHT);
+        BorderPane.setMargin(bulkActions,new Insets(0,12,0,12));
+        selected.getStyleClass().add("text-bold");selected.setMinWidth(Region.USE_PREF_SIZE);bulkActions.setMinWidth(0);bulkActions.setAlignment(Pos.CENTER_LEFT);
+        // BorderPane measures the horizontal FlowPane with its actual available
+        // width. Binding the preferred wrap width to the previous child width
+        // could reserve several rows on the first visible Windows layout pulse.
         for(String field:List.of("brand","material","gender","tnved","documents")) {
             var button=new Button();button.setId("productEdit_"+field);button.getStyleClass().add("btn-primary");button.setDisable(true);button.setUserData(field);
             button.setGraphic(new FontIcon(switch(field){case "brand"->"fth-award";case "material"->"fth-layers";case "gender"->"fth-users";case "tnved"->"fth-hash";default->"fth-shield";}));

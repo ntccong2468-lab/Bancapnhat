@@ -1,18 +1,29 @@
 {
   "version": "1.4.19",
-  "state": "publication-blocked-by-github-authentication",
+  "state": "rebuilding-windows-after-product-action-layout-fix",
   "baseline": "v1.4.18",
   "databaseSchema": 6,
   "published": false,
   "latest": "1.4.18",
   "validation": {
     "windowsBuild": {
-      "state": "submitted-result-unavailable",
+      "state": "failed-product-reference-layout",
       "runId": 39111878315,
       "sourceCommit": "e87d0ef2fc0bc89a6487a955d64e183b55778b2e",
       "freshFullJavaExecutionRequired": true,
       "url": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/39111878315",
-      "lastObservedStep": "Run Java and FXML test suite"
+      "lastObservedStep": "Run Java and FXML test suite",
+      "firstAttempt": {
+        "runId": 39111878315,
+        "sourceCommit": "e87d0ef2fc0bc89a6487a955d64e183b55778b2e",
+        "tests": 1766,
+        "failures": 0,
+        "errors": 1,
+        "skipped": 2,
+        "failedClass": "ProductReferenceLayoutTest",
+        "failedAssertion": "The action bar stays one compact row at the reference width",
+        "installerBuilt": false
+      }
     },
     "productionLicenseVerified": false,
     "liveCryptoProSigningThisVersion": false,
@@ -31,6 +42,22 @@
       "errors": 0,
       "skipped": 0,
       "platform": "Linux / Java 25"
+    },
+    "liveUpdaterPreflight": {
+      "result": "passed",
+      "feedStatusFor1418": "CURRENT",
+      "source": "https://api.github.com/repos/ntccong2468-lab/Bancapnhat",
+      "evidence": "../validation/2026-10-18-vncode-1419-update-feed-before.json"
+    },
+    "productActionLayoutFix": {
+      "implementation": "BorderPane allocates actual remaining width to the action FlowPane instead of binding wrap width to previous child width",
+      "focusedTests": 18,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sameRowAssertionAdded": true,
+      "originalHeightAssertionPreserved": true,
+      "freshWindowsBuildRequired": true
     }
   },
   "windowsInstaller": null,
@@ -65,6 +92,9 @@
     "publicApiAlsoHttp": 401,
     "gitRead": "Could not read Username for github.com",
     "publicationStarted": false,
-    "resume": "Restore environment GitHub authentication; inspect existing run 39111878315 before dispatching another build."
+    "resume": "Restore environment GitHub authentication; inspect existing run 39111878315 before dispatching another build.",
+    "resolved": true,
+    "resolvedAtUtc": "2026-10-18T08:49:20.880347+00:00",
+    "resolution": "Existing GitHub API and HTTPS Git authentication work again; no new credentials requested."
   }
 }
