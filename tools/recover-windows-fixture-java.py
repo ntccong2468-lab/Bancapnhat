@@ -80,7 +80,7 @@ def validate_sources():
     needle = '        com.vncode.app.testsupport.ShopReadTestCleanup.awaitSharedIdle();\n        System.clearProperty("vncode.appdata.dir");'
     assert old.count(needle) == 1
     expected = old.replace(needle, needle.replace('\n        System.clearProperty', '\n        com.vncode.app.testsupport.FinanceTestCleanup.detachAndAwait();\n        System.clearProperty'))
-    assert Path(source).read_text() == expected, "Original FXML assertions changed"
+    assert Path(source).read_text(encoding="utf-8") == expected, "Original FXML assertions changed"
     # Runtime code/resources and dependency declarations must be byte-identical.
     for source in ["src/main", "pom.xml", "build.bat", "build.sh", ".mvn", "mvnw", "mvnw.cmd"]:
         assert command("git", "rev-parse", f"{ORIGIN_SHA}:{source}") == command("git", "rev-parse", f"HEAD:{source}")
@@ -90,7 +90,7 @@ def validate_sources():
     }.items():
         canonical = command("git", "show", f"HEAD:{source}")
         assert hashlib.sha256(canonical).hexdigest() == expected_hash
-        assert Path(source).read_text() == canonical.decode()
+        assert Path(source).read_text(encoding="utf-8") == canonical.decode()
     return changed
 
 
@@ -135,17 +135,17 @@ def prepare():
              "failedFixtureClassRerunPassed": True, "newHandleCleanupTestPassed": True,
              "applicationAndDependenciesUnchanged": True, "originalAssertionsUnchanged": True,
              "nativeChecksMustRunAgain": True, "sourceChanges": changed, "tests": totals}
-    Path("target/java-fixture-recovery.json").write_text(json.dumps(proof, indent=2) + "\n")
+    Path("target/java-fixture-recovery.json").write_text(json.dumps(proof, indent=2) + "\n", encoding="utf-8")
 
 
 def finalize():
     validate_sources()
-    path = Path("target/java-fixture-recovery.json"); proof = json.loads(path.read_text())
+    path = Path("target/java-fixture-recovery.json"); proof = json.loads(path.read_text(encoding="utf-8"))
     assert proof["sourceCommit"] == command("git", "rev-parse", "HEAD").decode().strip()
     jar = Path("target/VNcode-1.4.18.jar"); assert jar.is_file()
     proof["freshlyPackagedJarSha256"] = hashlib.sha256(jar.read_bytes()).hexdigest()
     proof["packageCompiledAfterFocusedTests"] = True
-    path.write_text(json.dumps(proof, indent=2) + "\n")
+    path.write_text(json.dumps(proof, indent=2) + "\n", encoding="utf-8")
     print("RECONCILED_WINDOWS_JAVA: unchanged passing methods reused from the original failed run; the fixed FXML lifecycle and cleanup test were executed freshly. This is not a fresh full-suite run.")
     print(json.dumps({"originErrors": 1, "freshTestsExecuted": proof["freshTestsExecuted"], "reusedPassingTests": proof["reusedPassingTests"]}))
     for cls in sorted(SKIP_CLASSES - set(proof["freshClasses"])):
