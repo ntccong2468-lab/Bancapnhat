@@ -68,6 +68,7 @@ public final class CatalogSyncService {
             var patches=new LinkedHashMap<Selection,CatalogSyncMapper.Patch>();var sources=new LinkedHashMap<Selection,GtinSyncModels.RegisteredGtin>();
             for(var item:group){
                 var source=current(shop,item.gtin());sources.put(item,source);
+                if(options.fields().contains(Field.GTIN)&&!options.fields().contains(Field.TNVED))GtinTnvedIdentity.requireCompatible(fresh,source);
                 patches.put(item,new CatalogSyncMapper().map(fresh,withValues(source,options.values().getOrDefault(item.key(),Map.of())),options.fields(),dictionary,options.documents().get(item.key())));
             }
             var base=patches.get(first);
@@ -137,9 +138,9 @@ public final class CatalogSyncService {
                     }
                 }
                 if(row.editJob().isBlank()){
-                    var fresh=reader.read(shop,productKey(row.key()));var patch=new CatalogSyncMapper().map(fresh,withValues(row.catalog(),row.values()),job.fields(),job.fields().equals(Set.of(Field.GTIN))?List.of():targets.apply(shop).attributes(shop,fresh.categoryId()),row.selectedDocuments());
+                    var fresh=reader.read(shop,productKey(row.key()));if(job.fields().contains(Field.GTIN))GtinTnvedIdentity.requireCompatible(fresh,row.catalog());var patch=new CatalogSyncMapper().map(fresh,withValues(row.catalog(),row.values()),job.fields(),job.fields().equals(Set.of(Field.GTIN))?List.of():targets.apply(shop).attributes(shop,fresh.categoryId()),row.selectedDocuments());
                     if(patch.blocked()||patch.changed())throw new IllegalStateException("TARGET_CHANGED");
-                }
+                }else if(job.fields().contains(Field.GTIN))GtinTnvedIdentity.requireCompatible(reader.read(shop,productKey(row.key())),row.catalog());
                 if(plans.paused(shop,id))continue;
                 if(!job.fields().contains(Field.GTIN)){plans.update(shop,id,row.next(State.SUCCEEDED,"",""));continue;}
                 assertSource(shop,row.catalog());LicenseRuntime.require(Permission.GTIN);

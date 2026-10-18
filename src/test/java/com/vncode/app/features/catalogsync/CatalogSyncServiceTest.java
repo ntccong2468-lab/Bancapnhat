@@ -33,6 +33,17 @@ class CatalogSyncServiceTest {
         service=new CatalogSyncService(plans,gtins,edits,(s,k)->snapshot,s->listing,k->codes,(s,g)->{});
     }
     @AfterEach void clear(){System.clearProperty("vncode.appdata.dir");}
+    @Test void wbChangedGroupCannotPreviewOldRegisteredGtin()throws Exception{changedGroup(Marketplace.WILDBERRIES);}
+    @Test void ozonChangedGroupCannotPreviewOldRegisteredGtin()throws Exception{changedGroup(Marketplace.OZON);}
+    private void changeGroup(){snapshot=new ProductSnapshot(snapshot.key(),"live:group-changed",snapshot.title(),snapshot.description(),snapshot.brand(),snapshot.vendorArticle(),snapshot.categoryId(),snapshot.media(),List.of(new ProductAttribute("88","ТН ВЭД",List.of("6112110000"),"")),snapshot.variants(),snapshot.dimensions(),snapshot.documents(),Instant.now());}
+    private void changedGroup(Marketplace market)throws Exception{
+        setup(market);changeGroup();var failure=assertThrows(IllegalArgumentException.class,()->service.preview(shop,List.of(new Selection(key,source.gtin())),new Options(Set.of(Field.GTIN),Map.of())));
+        assertEquals("GTIN_TNVED_GROUP_CHANGED",failure.getMessage());assertEquals(0,codes.writes);assertEquals(0,listing.writes);
+    }
+    @Test void tnvedGroupIsRecheckedAfterPreviewBeforeDispatch()throws Exception{
+        setup(Marketplace.WILDBERRIES);var plan=service.preview(shop,List.of(new Selection(key,source.gtin())),new Options(Set.of(Field.GTIN),Map.of()));changeGroup();
+        var result=service.run(shop,plan.id(),true);assertEquals(State.BLOCKED,result.rows().getFirst().state());assertEquals("GTIN_TNVED_GROUP_CHANGED",result.rows().getFirst().issue());assertEquals(0,codes.writes);
+    }
     @Test void metadataBeforeGtinWb()throws Exception{neverAddsGtinUntilAttributesWereReadBackAndPersistsRecovery(Marketplace.WILDBERRIES);}
     @Test void metadataBeforeGtinOzon()throws Exception{neverAddsGtinUntilAttributesWereReadBackAndPersistsRecovery(Marketplace.OZON);}
     @Test void lostRepliesWb()throws Exception{lostReadbackAndLostGtinResponseNeverReplayWrites(Marketplace.WILDBERRIES);}

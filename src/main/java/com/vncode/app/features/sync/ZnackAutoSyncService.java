@@ -133,6 +133,12 @@ public final class ZnackAutoSyncService {
     }
     private static SyncRunRepository.Item reportItem(String run,String product,String variant,String sku,String article,String color,String size,String gtin,String state,String error,String evidence){return new SyncRunRepository.Item(UUID.randomUUID().toString(),run,product,variant,sku,article,color,size,gtin,state,"MATCHING",error,"",evidence);}
     private List<RegisteredGtin> match(Shop shop,ProductRow product,GtinCatalogIndex index)throws Exception {
+        var matched=candidates(shop,product,index);
+        var compatible=matched.stream().filter(card->GtinTnvedIdentity.compatible(product.tnved(),card.details().values("tnved"))).toList();
+        if(!matched.isEmpty()&&compatible.isEmpty())throw new IllegalArgumentException("GTIN_TNVED_GROUP_CHANGED");
+        return compatible;
+    }
+    private List<RegisteredGtin> candidates(Shop shop,ProductRow product,GtinCatalogIndex index)throws Exception {
         String nativeGtin=registrationGtin(shop,product.key());
         if(!nativeGtin.isBlank()){
             var exact=index.code(nativeGtin);

@@ -20,7 +20,19 @@
     },
     "lastPackageBuild": "SUCCESS",
     "platform": "Linux / Java 25 / JavaFX Xvfb",
-    "note": "The final full sweep found one import-dialog timing error. Automatic import and stale-stock callback handling were fixed; all affected KIZ/UI cases were rerun. Results are the latest result of every test class, not a claim of one clean full-suite execution after that last UI change."
+    "note": "The final full sweep found one import-dialog timing error. Automatic import and stale-stock callback handling were fixed; all affected KIZ/UI cases were rerun. Results are the latest result of every test class, not a claim of one clean full-suite execution after that last UI change.",
+    "tnvedGroupGuardAffectedRetest": {
+      "tests": 57,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "latestPerClassResultsAfterTnvedGuard": {
+      "tests": 1765,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 2
+    }
   },
   "liveCatalogRead": {
     "checkedAt": "2026-10-18T07:49:40.667748+00:00",
@@ -90,13 +102,20 @@
   "artifact": {
     "type": "local Java package; not a Windows installer",
     "file": "VNcode-1.4.19.jar",
-    "bytes": 5088598,
-    "sha256": "1af556075a37d41c80b250ffff831b6b83860c196d8bc58a5b85b1a9117a860a"
+    "bytes": 5091451,
+    "sha256": "1ec1df5830c351517a2c28ee89281cbfbfdb8ca813baa4d88f6a9e14f250d061"
   },
   "limitations": {
     "realGtinWriteThroughLicensedDesktop": "not_verified",
     "productionLicenseAcceptance": "not_verified",
     "windowsInstaller1419": "not_built",
     "githubLatest": "1.4.18; unchanged"
-  }
+  },
+  "artifactBeforeTnvedGroupGuard": {
+    "type": "local Java package; not a Windows installer",
+    "file": "VNcode-1.4.19.jar",
+    "bytes": 5088598,
+    "sha256": "1af556075a37d41c80b250ffff831b6b83860c196d8bc58a5b85b1a9117a860a"
+  },
+  "liveWbApiEvidence": "2026-10-18-vncode-1419-wb-live-gtin.json"
 }

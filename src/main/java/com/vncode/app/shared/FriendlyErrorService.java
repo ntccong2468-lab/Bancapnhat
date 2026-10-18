@@ -77,6 +77,7 @@ public final class FriendlyErrorService {
         if(message.contains("CATALOG_CARD_NOT_CREATED_AFTER_WAIT"))return I18nService.getInstance().tr("znack.registration.wait_expired");
         if(message.contains("CATALOG_FEED_COMPLETED_WITHOUT_CARD"))return I18nService.getInstance().tr("znack.registration.completed_without_card");
         if ("GTIN_NO_ELIGIBLE_PUBLISHED_CARDS".equals(message))return I18nService.getInstance().tr("gtin.background.no_eligible");
+        if ("GTIN_TNVED_GROUP_CHANGED".equals(message))return I18nService.getInstance().tr("gtin.tnved_group_changed");
         if (message.isBlank()) {
             return I18nService.getInstance().tr("znack.signature.error.failed");
         }
