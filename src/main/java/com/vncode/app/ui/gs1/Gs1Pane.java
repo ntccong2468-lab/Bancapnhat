@@ -571,6 +571,7 @@ public final class Gs1Pane extends BorderPane {
     }
     private boolean reviewAutomaticReminder(Gs1MailAccount account,Gs1MailClient.Letter reviewed){
         Dialog<Boolean> dialog=dialog(tr("gs1.auto_reminder"));
+        dialog.getDialogPane().setId("gs1AutoReminderConsent");
         var notice=new Label(tr("gs1.auto_reminder_notice"));notice.setWrapText(true);
         var from=new Label(tr("gs1.from")+": "+account.from()+"\n"+tr("gs1.to")+": "+reviewed.recipient()+"\n"+reviewed.subject());from.setWrapText(true);
         var content=new TextArea(reviewed.body());content.setEditable(false);content.setWrapText(true);content.setPrefRowCount(14);

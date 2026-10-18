@@ -197,9 +197,12 @@ class Gs1PaneTest {
             var cancel=new javafx.animation.Timeline();cancel.setCycleCount(javafx.animation.Animation.INDEFINITE);
             cancel.getKeyFrames().add(new javafx.animation.KeyFrame(javafx.util.Duration.millis(50),event->{
                 for(var window:List.copyOf(javafx.stage.Window.getWindows()))if(window instanceof Stage stage&&stage.isShowing()
-                        &&I18nService.getInstance().tr("gs1.auto_reminder").equals(stage.getTitle())){
-                    var root=stage.getScene().getRoot();var candidate=root instanceof javafx.scene.control.DialogPane?root:root.lookup(".dialog-pane");
-                    if(candidate instanceof javafx.scene.control.DialogPane dialog){cancel.stop();((Button)dialog.lookupButton(ButtonType.CANCEL)).fire();}
+                        &&Platform.isNestedLoopRunning()){
+                    var root=stage.getScene().getRoot();var candidate="gs1AutoReminderConsent".equals(root.getId())?root:root.lookup("#gs1AutoReminderConsent");
+                    if(candidate instanceof javafx.scene.control.DialogPane dialog&&dialog.lookupButton(ButtonType.CANCEL) instanceof Button button&&!button.isDisabled()){
+                        assertTrue(dialog.getContent().lookupAll(".text-area").stream().anyMatch(javafx.scene.control.TextArea.class::isInstance),"The reviewed reminder body is displayed before consent");
+                        cancel.stop();button.fire();
+                    }
                 }
             }));
             cancel.play();try{checkbox.fire();}finally{cancel.stop();}assertFalse(checkbox.isSelected());

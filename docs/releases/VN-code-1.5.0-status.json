@@ -8,7 +8,7 @@
   "complete": false,
   "validation": {
     "windowsBuild": {
-      "state": "in_progress",
+      "state": "awaiting-fixed-viewport-and-consent-build",
       "supersededRuns": [
         {
           "runId": 39125393767,
@@ -23,10 +23,20 @@
           "reason": "Actual Catalog reads exposed external error/moderation/draft states being grouped as unpublished; included their distinct UI/report/filter states before release."
         }
       ],
-      "runId": 39128445608,
-      "sourceCommit": "d6b977403173a3952dac1e037bc069bc8f1af22f",
-      "url": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/39128445608",
-      "freshFullJavaExecutionRequired": true
+      "firstFullAttempt": {
+        "runId": 39128445608,
+        "sourceCommit": "d6b977403173a3952dac1e037bc069bc8f1af22f",
+        "state": "failed",
+        "tests": 1792,
+        "failures": 1,
+        "errors": 1,
+        "skipped": 2,
+        "failingCases": [
+          "WorkspacePagesLayoutTest: GTIN bottom action shadows exceeded the small Windows content viewport",
+          "Gs1PaneTest: reminder-consent test driver timed out targeting the localized dialog title"
+        ],
+        "installerBuilt": false
+      }
     },
     "productionLicenseVerified": false,
     "liveCryptoProSigningThisVersion": false,
@@ -76,6 +86,17 @@
       "failures": 0,
       "actualLinuxLauncherReady": true,
       "actualLinuxReopenReady": true
+    },
+    "windowsRegressionFix": {
+      "localTests": 81,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "completedAtUtc": "2026-10-18T13:16:04Z",
+      "gtinFooterHasShadowClearance": true,
+      "consentTestUsesStableDialogIdentityAndWaitsForNestedLoop": true,
+      "automaticReminderConsentStillRequired": true,
+      "freshFullWindowsBuildRequired": true
     }
   },
   "licenseIntegration": {
