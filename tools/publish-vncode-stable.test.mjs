@@ -60,7 +60,7 @@ test('a corrected Windows fixture rerun cannot hide its original error or claim 
 });
 
 test('1.4.19 owner publication requires the exact fresh build and distinguishes live API from desktop writes',()=>{
- const sha='e87d0ef2fc0bc89a6487a955d64e183b55778b2e',runId='39111878315';
+ const sha='d25718c6a69f94f08d9515d36f7444650b1eebd1',runId='39114287816';
  const decision={version:'1.4.19',sourceCommit:sha,runId:Number(runId),ownerRequestedPublication:true,
   ownerInstruction:'phát hành bản mới nhưng báo cáo trước cho tôi những gì chỉnh sửa tôi giao đã sửa chưa',
   ownerInformedOfUnverifiedChecks:true,requestReportDeliveredBeforePublication:true,standardFullAcceptanceClaimed:false,

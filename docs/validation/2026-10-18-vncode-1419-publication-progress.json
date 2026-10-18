@@ -2,22 +2,21 @@
   "version": "1.4.19",
   "recordedAtUtc": "2026-10-18T08:38:25.493526+00:00",
   "requestReportDelivered": true,
-  "applicationBuildSource": "e87d0ef2fc0bc89a6487a955d64e183b55778b2e",
+  "applicationBuildSource": "d25718c6a69f94f08d9515d36f7444650b1eebd1",
   "branchPushedThrough": "8c3e76c",
-  "windowsBuildRun": 39111878315,
-  "windowsBuildUrl": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/39111878315",
+  "windowsBuildRun": 39114287816,
+  "windowsBuildUrl": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/39114287816",
   "lastObserved": {
-    "windows": "Run Java and FXML test suite in progress",
-    "portal": "success"
+    "windows": "Early product reference layout check then fresh full suite; awaiting results",
+    "portal": "awaiting current build"
   },
   "localChecks": {
     "releaseContractsPassed": 70,
     "nativeUpgradeProbeTestsPassed": 3
   },
   "githubAuthentication": {
-    "api": 401,
-    "apiWithoutExplicitToken": 401,
-    "gitRead": "No credentials available"
+    "api": "restored",
+    "gitRead": "restored"
   },
   "publishedByThisTask": false,
   "latestLastVerified": "1.4.18",
@@ -25,8 +24,25 @@
   "productionDesktopGtinWriteAccepted": false,
   "resumeSteps": [
     "Restore existing environment GitHub authentication without placing credentials in chat.",
-    "Inspect existing Windows build run 39111878315. If it failed, diagnose and repair; do not assume passing results.",
+    "Inspect the latest Windows build run 39114287816; previous run 39111878315 failed and produced no installer.",
     "After verified native artifact and upgrade proofs, record exact EXE checksum, bytes, full test totals and owner decision; use strict owner-approved-1419 publisher.",
     "Verify public Latest and download bytes, then production updater parser metadata."
+  ],
+  "previousBuilds": [
+    {
+      "runId": 39111878315,
+      "sourceCommit": "e87d0ef2fc0bc89a6487a955d64e183b55778b2e",
+      "tests": 1766,
+      "failures": 0,
+      "errors": 1,
+      "skipped": 2,
+      "failedClass": "ProductReferenceLayoutTest",
+      "failedAssertion": "The action bar stays one compact row at the reference width",
+      "installerBuilt": false
+    },
+    {
+      "runId": 39114169104,
+      "state": "cancelled-before-completion"
+    }
   ]
 }

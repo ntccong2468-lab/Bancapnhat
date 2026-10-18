@@ -83,8 +83,8 @@ export function validateOwnerApproved1418(decision,status,version,sha,runId) {
 // The owner requested this release after the API-vs-desktop acceptance difference
 // was reported. Bind only this exact fresh Windows build; do not relax publish.
 export function validateOwnerApproved1419(decision,status,version,sha,runId) {
-    assert.equal(version,'1.4.19');assert.equal(sha,'e87d0ef2fc0bc89a6487a955d64e183b55778b2e');
-    assert.equal(String(runId),'39111878315');
+    assert.equal(version,'1.4.19');assert.equal(sha,'d25718c6a69f94f08d9515d36f7444650b1eebd1');
+    assert.equal(String(runId),'39114287816');
     assert.equal(decision.version,version);assert.equal(decision.sourceCommit,sha);assert.equal(String(decision.runId),String(runId));
     assert.equal(decision.ownerRequestedPublication,true);
     assert.equal(decision.ownerInstruction,'phát hành bản mới nhưng báo cáo trước cho tôi những gì chỉnh sửa tôi giao đã sửa chưa');

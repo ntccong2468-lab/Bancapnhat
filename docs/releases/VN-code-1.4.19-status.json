@@ -1,18 +1,17 @@
 {
   "version": "1.4.19",
-  "state": "rebuilding-windows-after-product-action-layout-fix",
+  "state": "fresh-windows-build-after-product-action-layout-fix",
   "baseline": "v1.4.18",
   "databaseSchema": 6,
   "published": false,
   "latest": "1.4.18",
   "validation": {
     "windowsBuild": {
-      "state": "failed-product-reference-layout",
-      "runId": 39111878315,
-      "sourceCommit": "e87d0ef2fc0bc89a6487a955d64e183b55778b2e",
+      "state": "in_progress",
+      "runId": 39114287816,
+      "sourceCommit": "d25718c6a69f94f08d9515d36f7444650b1eebd1",
+      "url": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/39114287816",
       "freshFullJavaExecutionRequired": true,
-      "url": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/39111878315",
-      "lastObservedStep": "Run Java and FXML test suite",
       "firstAttempt": {
         "runId": 39111878315,
         "sourceCommit": "e87d0ef2fc0bc89a6487a955d64e183b55778b2e",
@@ -23,6 +22,12 @@
         "failedClass": "ProductReferenceLayoutTest",
         "failedAssertion": "The action bar stays one compact row at the reference width",
         "installerBuilt": false
+      },
+      "supersededRun": {
+        "runId": 39114169104,
+        "sourceCommit": "bba7c0e03cc554a18a7fe32f9898f17741557276",
+        "state": "cancelled-before-completion",
+        "reason": "Added explicit reference-client-width assertion and early Windows layout check."
       }
     },
     "productionLicenseVerified": false,
@@ -57,7 +62,8 @@
       "skipped": 0,
       "sameRowAssertionAdded": true,
       "originalHeightAssertionPreserved": true,
-      "freshWindowsBuildRequired": true
+      "freshWindowsBuildRequired": true,
+      "referenceClientWidthAsserted": 1331
     }
   },
   "windowsInstaller": null,
