@@ -4,7 +4,7 @@
   "complete": false,
   "developmentComplete": false,
   "officialReleasePublished": false,
-  "phase": "draft-installer-uploaded-real-card-created-awaiting-signing-and-production-acceptance",
+  "phase": "superseded-by-1.4.18-without-publication",
   "licenseIntegration": {
     "implemented": true,
     "productionReady": false,
@@ -263,5 +263,6 @@
     "authenticatedRepositoryAccessRequired": true,
     "installerAndNotesVerifiedByPublisher": true
   },
-  "observedLatest": "1.4.16"
+  "observedLatest": "1.4.16",
+  "supersededBy": "1.4.18"
 }
