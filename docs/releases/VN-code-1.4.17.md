@@ -14,4 +14,4 @@
 - Kho KIZ hết mã vẫn nhận lô mới trong cùng danh mục, kể cả file trùng tên; số lượng cập nhật ngay, không khôi phục lại mã đã gán.
 - Bổ sung bộ lọc chất liệu TN VED, thanh gợi ý cuộn ngang, placeholder tải nhẹ; giữ phần ngân sách HTTP cho luồng FBS liên tục. Hướng dẫn có khung ảnh/video ổn định, âm lượng và mở bài trong trình duyệt.
 
-Bản đang được chuẩn bị. Kiểm thử tự động và đọc dữ liệu thật được ghi riêng với kiểm thử ghi/ký thật trên máy seller; không coi chúng là kết quả nghiệm thu CryptoPro hoặc license production.
+Bộ cài đã qua kiểm thử Windows: 1.744 kiểm thử Java/FXML, 288 bố cục và nâng cấp giữ dữ liệu từ 13 bản nền, gồm 1.4.10 và 1.4.16. Kết quả tạo/ký thẻ, ghi GTIN thật và license production được nghiệm thu riêng; xem báo cáo kiểm tra của bản này.

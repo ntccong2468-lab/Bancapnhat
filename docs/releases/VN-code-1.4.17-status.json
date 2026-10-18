@@ -4,7 +4,7 @@
   "complete": false,
   "developmentComplete": false,
   "officialReleasePublished": false,
-  "phase": "native-recheck-after-baseline-checksum-repair",
+  "phase": "windows-installer-verified-draft-preparation",
   "licenseIntegration": {
     "implemented": true,
     "productionReady": false,
@@ -16,7 +16,7 @@
     "liveCryptoProSigningThisVersion": false,
     "liveMarketplaceGtinWriteThisVersion": false,
     "productionLicenseVerified": false,
-    "windowsNativeBuildThisVersion": false,
+    "windowsNativeBuildThisVersion": true,
     "catalogFullRead": {
       "rows": 1276,
       "published": 1237,
@@ -106,9 +106,11 @@
       "networkMutations": 0
     },
     "windowsBuild": {
-      "runId": 39075980471,
-      "sourceCommit": "c09bc0d52eeae70f95dd8d9da065c4d309849c6d",
-      "state": "java-and-native-through-1415-passed-baseline-1416-checksum-harness-failed"
+      "runId": 39080316829,
+      "sourceCommit": "8146dfc61efe6a7b4ac925fed6eedc274576316d",
+      "state": "passed",
+      "javaVerificationOriginRunId": 39075980471,
+      "applicationAndJavaTestInputsUnchanged": true
     },
     "emptyKizRefill": {
       "markets": [
@@ -178,6 +180,40 @@
       "skipped": 2,
       "verifiedFromImmutableArtifact": true,
       "archiveSha256": "a63aeab854f814d7a72b449710e5478599a55e66cbb6fa78ca31a09963a14dbf"
+    },
+    "installer": {
+      "filename": "VN-code-1.4.17-Windows-x64.exe",
+      "bytes": 145611776,
+      "sha256": "481e0be210ba7e25db7032167420e3cae394e17beb61202ad4018d980be64e16"
+    },
+    "nativeChecks": {
+      "startup": "passed",
+      "gs1Dpapi": "passed",
+      "uiLayouts": 288,
+      "workspaceDpi": [
+        "100%",
+        "125%",
+        "150%"
+      ],
+      "upgradeBaselines": [
+        "1.1.34",
+        "1.2.0",
+        "1.2.1",
+        "1.2.2",
+        "1.3.0",
+        "1.4.0",
+        "1.4.6",
+        "1.4.10",
+        "1.4.11",
+        "1.4.12",
+        "1.4.13",
+        "1.4.15",
+        "1.4.16"
+      ],
+      "dataPreserved": true,
+      "singleRegistration": true,
+      "singleShortcutPerLocation": true,
+      "liveMarketplaceMutations": false
     }
   },
   "comparison": {
@@ -189,7 +225,6 @@
     "report": "docs/research/2026-10-17-wbcode-1170-latest/comparison.json"
   },
   "remainingAcceptance": [
-    "Windows native installer and layout checks for this exact source",
     "Real Windows CryptoPro publication/readback with seller certificate",
     "Real marketplace GTIN write/readback for a confirmed selected variant",
     "WB FBS live read needs the existing secret allowed destination marketplace-api.wildberries.ru"
@@ -197,9 +232,10 @@
   "remainingComparisonDifferences": [
     "GS1 signature/PDF workflow uses a seller-imported company form rather than an unverified bundled form"
   ],
-  "sourceCommit": "c09bc0d52eeae70f95dd8d9da065c4d309849c6d",
+  "sourceCommit": "8146dfc61efe6a7b4ac925fed6eedc274576316d",
   "decisions": {
     "support": "Keep existing Support/Guides as explicitly requested; no new conversation/image backend",
     "kizRefill": "Allow new KIZ batches when empty, including the same filename; do not restore previously used codes"
-  }
+  },
+  "applicationSourceCommit": "c09bc0d52eeae70f95dd8d9da065c4d309849c6d"
 }
