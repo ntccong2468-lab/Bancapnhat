@@ -8,7 +8,7 @@
   "complete": false,
   "validation": {
     "windowsBuild": {
-      "state": "awaiting-fixed-viewport-and-consent-build",
+      "state": "in_progress",
       "supersededRuns": [
         {
           "runId": 39125393767,
@@ -36,7 +36,12 @@
           "Gs1PaneTest: reminder-consent test driver timed out targeting the localized dialog title"
         ],
         "installerBuilt": false
-      }
+      },
+      "runId": 39130866288,
+      "sourceCommit": "2eea069123737e2c9f7bcddcecaa51f21a1645dc",
+      "url": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/39130866288",
+      "freshFullJavaExecutionRequired": true,
+      "earlyWindowsViewportAndGs1Consent": "passed"
     },
     "productionLicenseVerified": false,
     "liveCryptoProSigningThisVersion": false,
