@@ -1,14 +1,14 @@
 {
   "version": "1.4.19",
-  "recordedAtUtc": "2026-10-18T08:38:25.493526+00:00",
+  "recordedAtUtc": "2026-10-18T09:42:24.270987+00:00",
   "requestReportDelivered": true,
   "applicationBuildSource": "d25718c6a69f94f08d9515d36f7444650b1eebd1",
-  "branchPushedThrough": "8c3e76c",
+  "branchPushedThrough": "2941ca1",
   "windowsBuildRun": 39114287816,
   "windowsBuildUrl": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/39114287816",
   "lastObserved": {
-    "windows": "Early product reference layout check then fresh full suite; awaiting results",
-    "portal": "awaiting current build"
+    "windows": "Fresh full Java suite passed: 1766 tests, 0 failures/errors, 2 platform skips. EXE built; startup and DPAPI passed; native multi-shop/DPI and upgrade checks in progress.",
+    "portal": "success"
   },
   "localChecks": {
     "releaseContractsPassed": 70,
@@ -44,5 +44,6 @@
       "runId": 39114169104,
       "state": "cancelled-before-completion"
     }
-  ]
+  ],
+  "currentWindowsJavaEvidence": "2026-10-18-vncode-1419-windows-java.json"
 }

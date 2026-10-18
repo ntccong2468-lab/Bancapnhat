@@ -28,7 +28,8 @@
         "sourceCommit": "bba7c0e03cc554a18a7fe32f9898f17741557276",
         "state": "cancelled-before-completion",
         "reason": "Added explicit reference-client-width assertion and early Windows layout check."
-      }
+      },
+      "lastObservedStep": "Verify ten-shop workspaces and actual Windows DPI 100 125 150"
     },
     "productionLicenseVerified": false,
     "liveCryptoProSigningThisVersion": false,
@@ -63,12 +64,38 @@
       "sameRowAssertionAdded": true,
       "originalHeightAssertionPreserved": true,
       "freshWindowsBuildRequired": true,
-      "referenceClientWidthAsserted": 1331
+      "referenceClientWidthAsserted": 1331,
+      "windowsReferenceCheck": {
+        "state": "passed",
+        "runId": 39114287816,
+        "sourceCommit": "d25718c6a69f94f08d9515d36f7444650b1eebd1",
+        "step": "Verify product action layout at the actual reference width",
+        "tests": 1,
+        "liveSellerWrites": false
+      }
+    },
+    "fullJavaRegression": {
+      "version": "1.4.19",
+      "sourceCommit": "d25718c6a69f94f08d9515d36f7444650b1eebd1",
+      "runId": 39114287816,
+      "platform": "Windows x64 / Java 25.0.4.1",
+      "freshFullExecution": true,
+      "result": "passed",
+      "classes": 303,
+      "tests": 1766,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 2,
+      "passed": 1764,
+      "artifactId": 12132430844,
+      "artifactArchiveSha256": "06983d8c87e0bf22adc954b543a3d8918dabed835bdba42d0930fcb514615f4e",
+      "applicationJarSha256": "94e39301792ddd50959a70b9faac8a6958c884f24ef294bc8bb6a5846a968d47",
+      "liveSellerMutations": false
     }
   },
   "windowsInstaller": null,
   "jvmLastResults": {
-    "tests": 1765,
+    "tests": 1766,
     "failures": 0,
     "errors": 0,
     "skipped": 2
