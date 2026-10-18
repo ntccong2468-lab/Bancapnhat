@@ -114,6 +114,13 @@ jobs:
           LOCALAPPDATA: ${{ runner.temp }}\vncode-java-fixture-cleanup-${{ github.run_id }}
         run: .\mvnw.cmd -B "-Dtest=Gs1PaneTest,ListingCopyPaneTest,ProductBulkEditPaneTest,ProductRefreshUiTest,CatalogSyncPaneTest,KizWarehousePaneTest,FxmlSmokeTest,FinanceTestCleanupTest" test
 
+      - name: Verify product action layout at the actual reference width
+        if: ${{ !inputs.reuse_verified_java_run_id && !inputs.recover_fixture_failure_run_id }}
+        shell: pwsh
+        env:
+          LOCALAPPDATA: ${{ runner.temp }}\vncode-product-reference-${{ github.run_id }}
+        run: .\mvnw.cmd -B "-Dtest=ProductReferenceLayoutTest" test
+
       - name: Run Java and FXML test suite
         if: ${{ !inputs.reuse_verified_java_run_id && !inputs.recover_fixture_failure_run_id }}
         shell: pwsh

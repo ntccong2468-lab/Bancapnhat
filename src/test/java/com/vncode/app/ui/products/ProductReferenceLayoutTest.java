@@ -30,7 +30,12 @@ class ProductReferenceLayoutTest {
         }
         var reads=new ShopReadCoordinator(2,16);var pane=fx(()->new ProductsPane(null,reads));var stage=fx(()->new Stage());var language=I18nService.getInstance().getCurrentLanguage();
         try{
-            fx(()->{I18nService.getInstance().setLanguage(AppLanguage.VI);pane.applyTranslations();stage.setScene(new Scene(pane,1331,808));ThemeService.applyTheme(stage.getScene());stage.show();pane.setShop(new Shop(1,"Fixture shop","fixture"));return null;});
+            fx(()->{I18nService.getInstance().setLanguage(AppLanguage.VI);pane.applyTranslations();stage.setScene(new Scene(pane,1331,808));ThemeService.applyTheme(stage.getScene());stage.show();
+                // Windows can initially constrain a stage to a smaller CI desktop.
+                // This test is explicitly for the 1331px reference, not the narrow layout.
+                double frame=stage.getWidth()-stage.getScene().getWidth();stage.setMinWidth(1331+frame);stage.setWidth(1331+frame);
+                pane.setShop(new Shop(1,"Fixture shop","fixture"));return null;});
+            await(()->Math.abs(stage.getScene().getWidth()-1331)<1);
             await(()->!((Button)pane.lookup("#productSync")).isDisabled());
             fx(()->{((ComboBox<String>)pane.lookup("#productCategoryFilter")).setValue("Suits");return null;});
             await(()->!((Button)pane.lookup("#productSync")).isDisabled());
@@ -39,7 +44,7 @@ class ProductReferenceLayoutTest {
             fx(()->{pane.setOnEdit((field,keys)->{assertEquals(105,keys.size());assertTrue(keys.stream().allMatch(k->Integer.parseInt(k.cardId())<=105));actions.add(field);});((CheckBox)pane.lookup("#productSelectAll")).fire();return null;});
             await(()->pane.selectedKeys().size()==105);
             fx(()->{
-                pane.applyCss();pane.layout();var select=(CheckBox)pane.lookup("#productSelectAll");assertTrue(select.isSelected());assertFalse(select.isIndeterminate());
+                pane.applyCss();pane.layout();assertEquals(1331,stage.getScene().getWidth(),1,"Measure the actual reference client width");var select=(CheckBox)pane.lookup("#productSelectAll");assertTrue(select.isSelected());assertFalse(select.isIndeterminate());
                 var bar=pane.lookup("#productBulkActions");assertTrue(bar.isVisible());assertTrue(bar.getBoundsInLocal().getHeight()<90,"The action bar stays one compact row at the reference width: "+bar.getBoundsInLocal());assertTrue(bar.localToScene(bar.getBoundsInLocal()).getMinY()>pane.lookup("#productRows").localToScene(pane.lookup("#productRows").getBoundsInLocal()).getMaxY());
                 var sync=pane.lookup("#productSync");assertTrue(sync.localToScene(sync.getBoundsInLocal()).getMinX()>pane.getWidth()-180,"Sync belongs in the top-right corner");
                 double previous=-1,firstY=-1;
