@@ -7,6 +7,11 @@ import static org.junit.jupiter.api.Assertions.*;
 import java.util.List;
 
 class CatalogProductDataParserTest {
+    @Test void actualCatalogCardLifecycleFieldsAreStoredWithoutInventingFeedOrSignatureIdentities(){
+        var data=CatalogProductDataParser.parse(JsonParser.parseString("{\"good_status\":\"draft\",\"good_detailed_status\":[\"errors\"],\"good_signed\":false}").getAsJsonObject());
+        assertEquals("draft",data.single("@catalog_status"));assertEquals(List.of("errors"),data.values("@catalog_detailed_status"));
+        assertTrue(data.values("feed_id").isEmpty());assertTrue(data.values("signature").isEmpty());
+    }
     @Test void explicitCatalogSizeSystemIsPreservedWithoutConvertingTheSize(){
         var data=CatalogProductDataParser.parse(JsonParser.parseString("{\"good_attrs\":[{\"attr_id\":35,\"attr_value\":\"54\",\"attr_value_type\":\"РОССИЯ\"}]}").getAsJsonObject());
         assertEquals("54",data.single("size"));assertEquals("РОССИЯ",data.single("@size_type"));

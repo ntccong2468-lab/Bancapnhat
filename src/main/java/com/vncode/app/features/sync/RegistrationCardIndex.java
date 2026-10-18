@@ -66,7 +66,10 @@ public final class RegistrationCardIndex {
             // Exact codes also need compatible variant details before presenting a usable card.
             if((skuCandidates.contains(card)?!OzonSkuGtinMatcher.sameColor(color,card.color()):conflict(color,card.color()))||!safe(size).isBlank()&&!safe(card.size()).isBlank()&&!GtinVariantIdentity.sizeMatches(card,size,russianSize))return new View("source.ambiguous",card.gtin(),"GTIN_VARIANT_CONFLICT",true,false,true);
             if(card.published())return new View("status.published",card.gtin(),"SOURCE_PUBLISHED_CONFIRMED",true,true,false);
-            if(!nativeExists||status==Status.PUBLISHED)return new View("source.unpublished",card.gtin(),"SOURCE_NOT_PUBLISHED",true,false,true);
+            if(!nativeExists||status==Status.PUBLISHED){
+                var observed=com.vncode.app.integration.znack.registration.CatalogCardState.of(card);
+                return new View(observed.viewStatus,card.gtin(),observed.reason,true,false,true);
+            }
         }
         if(status==Status.PUBLISHED)return new View("source.unverified",safe(gtin),"SOURCE_PUBLISHED_NOT_CONFIRMED",true,false,true);
         return new View("status."+status.name().toLowerCase(Locale.ROOT),safe(gtin),nativeExists?"SOURCE_NATIVE_CHECKPOINT":"SOURCE_CARD_NOT_CREATED",nativeExists,false,false);

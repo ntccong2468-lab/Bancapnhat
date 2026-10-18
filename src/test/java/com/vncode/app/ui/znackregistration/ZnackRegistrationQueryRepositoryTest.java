@@ -81,4 +81,23 @@ class ZnackRegistrationQueryRepositoryTest {
         var other=repository.page(new SearchCriteria(2,"",List.of(),"ALL",300,0));
         assertEquals(1,other.filtered());assertEquals("Foreign",other.rows().getFirst().title());assertTrue(other.details().get(1L).gender().isBlank());
     }
+    @Test void observedModerationAndDraftsAreNotCountedOrFilteredAsCatalogErrors()throws Exception {
+        var shop=new com.vncode.app.models.Shop(1,"Fixture WB","fixture");
+        String receipt=com.vncode.app.testsupport.RegistrationSourceFixture.ready(shop);
+        long existingErrors=new ZnackRegistrationQueryRepository(receipt,new com.vncode.app.features.sync.RegistrationCardIndex(shop)).page(criteria("",0)).summary().errors();
+        var cards=new ArrayList<RegisteredGtin>();var codes=List.of("00000000000017","00000000000024","00000000000031");var states=List.of("errors","moderation","draft");
+        try(var c=Database.getConnection();var p=c.prepareStatement("INSERT INTO wb_product_size_skus(shop_id,chrt_id,sku) VALUES(1,?,?)")){
+            for(int i=0;i<codes.size();i++){
+                p.setLong(1,501+i);p.setString(2,codes.get(i));p.executeUpdate();
+                var details=com.vncode.app.integration.znack.registration.CatalogProductDataParser.parse(com.google.gson.JsonParser.parseString("{\"good_status\":\"draft\",\"good_detailed_status\":[\""+states.get(i)+"\"]}").getAsJsonObject());
+                cards.add(new RegisteredGtin(codes.get(i),"same-article","","XL",true,false,com.vncode.app.features.gtinsync.RegisteredGtinProof.source(shop),Instant.now(),details));
+            }
+        }
+        new GtinSyncRepository().saveCatalog(1,Marketplace.WILDBERRIES,cards);
+        var observed=new ZnackRegistrationQueryRepository(receipt,new com.vncode.app.features.sync.RegistrationCardIndex(shop));
+        assertEquals(existingErrors+1,observed.page(criteria("",0)).summary().errors());assertEquals(2,observed.page(criteria("",0)).summary().waiting());
+        var errors=observed.page(new SearchCriteria(1,"",List.of(),"ERROR",300,0)).rows();
+        assertTrue(errors.stream().anyMatch(r->r.chrtId()==501));assertFalse(errors.stream().anyMatch(r->r.chrtId()==502||r.chrtId()==503));
+        var processing=observed.page(new SearchCriteria(1,"",List.of(),"IN_PROGRESS",300,0)).rows();assertEquals(List.of(502L),processing.stream().map(Sku::chrtId).toList());
+    }
 }

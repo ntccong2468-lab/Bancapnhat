@@ -29,6 +29,16 @@ class RegistrationCardIndexTest {
     @Test void localPublishedWithoutCatalogProofIsNotPresentedAsPublished(){var view=index().view(Status.PUBLISHED,GtinWriteTestFixture.GTIN,List.of(),"A","Blue","M",true);assertFalse(view.published());assertTrue(view.blocked());assertEquals("SOURCE_PUBLISHED_NOT_CONFIRMED",view.detail());}
     @Test void draftCatalogCardDoesNotMasqueradeAsMissingOrPublished(){var view=index(card(GtinWriteTestFixture.GTIN,false)).view(Status.NOT_CREATED,"",List.of(),"A","Blue","M",true);assertFalse(view.published());assertTrue(view.exists());assertTrue(view.blocked());assertEquals("source.unpublished",view.status());}
     @Test void ownedModerationCheckpointKeepsItsActionableNativeStatus(){var view=index(card(GtinWriteTestFixture.GTIN,false)).view(Status.READY_TO_SIGN,GtinWriteTestFixture.GTIN,List.of(),"A","Blue","M",true);assertEquals("status.ready_to_sign",view.status());assertFalse(view.blocked());}
+    @Test void externalCatalogErrorsModerationAndDraftsRetainTheirActualDistinctStates(){
+        for(var status:List.of("errors","moderation","draft")){
+            var base=card(GtinWriteTestFixture.GTIN,false);
+            var data=com.vncode.app.integration.znack.registration.CatalogProductDataParser.parse(com.google.gson.JsonParser.parseString("{\"good_status\":\"draft\",\"good_detailed_status\":[\""+status+"\"]}").getAsJsonObject());
+            var observed=new RegisteredGtin(base.gtin(),base.article(),base.color(),base.size(),base.tradeUnit(),false,base.source(),base.syncedAt(),data);
+            var cards=index(observed);var view=cards.view(Status.NOT_CREATED,"",List.of(base.gtin()),"A","Blue","M",true);
+            assertEquals("source."+status,view.status());assertFalse(view.published());assertTrue(view.blocked());assertTrue(view.exists());
+            assertEquals("status.ready_to_sign",cards.view(Status.READY_TO_SIGN,base.gtin(),List.of(),"A","Blue","M",true).status(),"An old source receipt never replaces an actionable newer native checkpoint");
+        }
+    }
     @Test void ambiguousAttributeMatchAndConflictingVariantAreBlocked(){
         var cards=index(card(GtinWriteTestFixture.GTIN,true),card("00000000000024",true));
         assertTrue(cards.view(Status.NOT_CREATED,"",List.of(),"A","Blue","M",true).blocked());

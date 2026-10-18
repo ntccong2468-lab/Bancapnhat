@@ -8,6 +8,7 @@
 | Trong như giọt nước, chữ rõ | Nền kính tối thiểu alpha 0,005; chữ alpha 1; không giảm opacity của Node/Window. Kiểm tra cả hai theme và hai đầu thanh trượt. |
 | Đưa các sửa GTIN/CryptoPro và KIZ vừa làm vào 1.5.0 | Có trong cùng mã nguồn ứng viên; không dùng lại bộ cài 1.4.19. |
 | Đăng ký lần lượt từng thẻ | WB đợi worker lưu checkpoint rồi mới chuẩn bị thẻ tiếp; Ozon giữ chuỗi chờ hoàn tất từng thẻ. Chờ duyệt/cần ký là trạng thái riêng, không phải thành công. |
+| Trạng thái thẻ có sẵn trên Catalog | Bổ sung nhận diện lỗi/kiểm duyệt/nháp theo dữ liệu thật cho WB/Ozon; sửa báo cáo từng thẻ và bộ lọc/tổng hợp WB. Phân loại bằng mã ứng dụng khớp 1.277/1.277 phản hồi thật: 1.237 xuất bản, 34 lỗi, 4 kiểm duyệt, 2 nháp. |
 | Cập nhật GTIN lần lượt và báo kết quả thật | Giữ kiểm tra thẻ xuất bản, article/màu/size/TN VED, thêm kiểm tra SKU/offer Ozon; đọc lại sàn mới tính thành công. Không tự gửi lại lần ghi chưa rõ kết quả. |
 | Đồng bộ FBS liên tục, được ưu tiên | Không đổi nhịp FBS; ghi GTIN dùng hàng đợi seller hiện có và nhường suất HTTP riêng cho FBS. |
 | Dữ liệu thật | Đọc toàn bộ danh mục WB/Ozon/Catalog qua Secret của môi trường, không dùng dữ liệu fixture cho các yêu cầu thật. |

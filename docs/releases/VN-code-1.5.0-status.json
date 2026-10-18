@@ -8,17 +8,21 @@
   "complete": false,
   "validation": {
     "windowsBuild": {
-      "state": "in_progress",
-      "supersededRun": {
-        "runId": 39125393767,
-        "sourceCommit": "81ef06d80e3bb65d21452cde6b2c44d1f06080c1",
-        "state": "cancelled",
-        "reason": "Owner added updater 100% and startup-delay fixes before publication; final application source must be built afresh."
-      },
-      "runId": 39126852184,
-      "sourceCommit": "f13a303554d4a114bc020bf2202b27ccadc9fffb",
-      "url": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/39126852184",
-      "freshFullJavaExecutionRequired": true
+      "state": "awaiting-final-source-build",
+      "supersededRuns": [
+        {
+          "runId": 39125393767,
+          "sourceCommit": "81ef06d80e3bb65d21452cde6b2c44d1f06080c1",
+          "state": "cancelled",
+          "reason": "Owner added updater 100% and startup-delay fixes before publication; final application source must be built afresh."
+        },
+        {
+          "runId": 39126852184,
+          "sourceCommit": "f13a303554d4a114bc020bf2202b27ccadc9fffb",
+          "state": "cancelled",
+          "reason": "Actual Catalog reads exposed external error/moderation/draft states being grouped as unpublished; included their distinct UI/report/filter states before release."
+        }
+      ]
     },
     "productionLicenseVerified": false,
     "liveCryptoProSigningThisVersion": false,
@@ -35,7 +39,22 @@
       "marketplaceWrites": 0,
       "catalogWrites": 0,
       "productionClientsVerified": true,
-      "evidence": "../validation/2026-10-18-vncode-150-live-read.json"
+      "evidence": "../validation/2026-10-18-vncode-150-live-read.json",
+      "catalogDetails": {
+        "checked": 1277,
+        "publishedSigned": 1237,
+        "draft": 40,
+        "missing": 0,
+        "failed": 0,
+        "writes": 0,
+        "evidence": "../validation/2026-10-18-vncode-150-catalog-details.json",
+        "errors": 34,
+        "moderation": 4,
+        "plainDraft": 2,
+        "applicationClassifierVerified": true,
+        "focusedTests": 88,
+        "finalFilterTests": 25
+      }
     },
     "localRegression": {
       "tests": 264,

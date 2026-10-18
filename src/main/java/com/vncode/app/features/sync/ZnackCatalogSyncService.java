@@ -57,7 +57,13 @@ public final class ZnackCatalogSyncService {
             if(issues.isEmpty())gtins.saveCatalog(shop.getId(),shop.getMarketplace(),rows);else gtins.mergeCatalog(shop.getId(),shop.getMarketplace(),rows);
             project(shop,rows);
             var reportItems=new ArrayList<SyncRunRepository.Item>();
-            for(var row:rows)reportItems.add(new SyncRunRepository.Item(UUID.randomUUID().toString(),id,"catalog:"+row.gtin(),"catalog","",row.article(),row.color(),row.size(),row.gtin(),row.published()&&row.tradeUnit()?"SUCCEEDED":"UNCHANGED","SOURCE_COMPLETE",row.published()&&row.tradeUnit()?"":"CATALOG_NOT_ELIGIBLE","","{}"));
+            for(var row:rows){
+                var observed=com.vncode.app.integration.znack.registration.CatalogCardState.of(row);
+                boolean eligible=row.published()&&row.tradeUnit();
+                String state=eligible?"SUCCEEDED":row.published()?"UNCHANGED":observed.reportState;
+                String reason=eligible?"":row.published()||observed==com.vncode.app.integration.znack.registration.CatalogCardState.UNPUBLISHED?"CATALOG_NOT_ELIGIBLE":observed.reason;
+                reportItems.add(new SyncRunRepository.Item(UUID.randomUUID().toString(),id,"catalog:"+row.gtin(),"catalog","",row.article(),row.color(),row.size(),row.gtin(),state,"SOURCE_COMPLETE",reason,"","{}"));
+            }
             for(var issue:issues)reportItems.add(new SyncRunRepository.Item(UUID.randomUUID().toString(),id,"catalog:"+issue.gtin(),"catalog","","","","",issue.gtin(),"NEEDS_ACTION","SOURCE_READ",issue.code(),"","{}"));
             reports.addBatch(shop,id,reportItems);
             reports.stage(shop,id,issues.isEmpty()?"SUCCEEDED":"PARTIAL","SOURCE_COMPLETE",issues.isEmpty()?"":"CATALOG_PARTIAL");

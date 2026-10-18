@@ -20,6 +20,8 @@ public final class CatalogProductDataParser {
         Map.entry("description",List.of("description","описание")));
     public static CatalogProductData parse(JsonObject card) {
         var fields=new LinkedHashMap<String,LinkedHashSet<String>>();
+        add(fields,"@catalog_status",values(card.get("good_status")));
+        add(fields,"@catalog_detailed_status",values(card.get("good_detailed_status")));
         for(var entry:Map.of("tnved","tnved","brand","brand","title","good_name","description","description","article","article","color","color","size","size").entrySet())add(fields,entry.getKey(),values(card.get(entry.getValue())));
         var attrs=new ArrayList<CatalogProductData.Attribute>();var docs=new LinkedHashMap<String,CatalogProductData.Document>();
         for(var a:ZnackProductCardAttributes.from(card)) {

@@ -123,8 +123,8 @@ public final class ZnackRegistrationQueryRepository {
             case "", "ALL" -> true;
             case "COMPLETED" -> onMarketplace;
             case "NOT_CREATED" -> !state.exists()&&!state.blocked();
-            case "IN_PROGRESS" -> state.exists()&&!onMarketplace&&!state.blocked()&&row.status()!=Status.ERROR;
-            case "ERROR" -> state.blocked()||row.status()==Status.ERROR||row.status()==Status.PREFLIGHT_ERROR||row.status()==Status.PRE_SUBMIT_ERROR;
+            case "IN_PROGRESS" -> state.status().equals("source.moderation")||state.exists()&&!onMarketplace&&!state.blocked()&&row.status()!=Status.ERROR;
+            case "ERROR" -> !Set.of("source.moderation","source.draft").contains(state.status())&&(state.blocked()||row.status()==Status.ERROR||row.status()==Status.PREFLIGHT_ERROR||row.status()==Status.PRE_SUBMIT_ERROR);
             case "GTIN_REVIEW_REQUIRED" -> !state.blocked()&&!state.published()&&row.needsGtinReview();
             case "FEED_REVIEW_REQUIRED" -> !state.blocked()&&!state.published()&&row.needsFeedReview();
             default -> state.status().equals("status."+criteria.status().toLowerCase(Locale.ROOT));
@@ -176,6 +176,7 @@ public final class ZnackRegistrationQueryRepository {
                 while(rows.next()){
                     var row=map(rows);var state=view(row);total++;
                     if(state.published())published++;
+                    else if(Set.of("source.moderation","source.draft").contains(state.status()))waiting++;
                     else if(state.blocked()||Set.of(Status.ERROR,Status.PREFLIGHT_ERROR,Status.PRE_SUBMIT_ERROR,Status.GTIN_REVIEW_REQUIRED,Status.FEED_REVIEW_REQUIRED).contains(row.status()))errors++;
                     else if(row.status()==Status.READY_TO_SIGN)ready++;
                     else if(row.status()!=Status.NOT_CREATED)waiting++;
