@@ -74,5 +74,19 @@
   "published": false,
   "productionLicenseAcceptance": false,
   "liveCryptoProSigning": false,
-  "liveDesktopMarketplaceWrite": false
+  "liveDesktopMarketplaceWrite": false,
+  "actualLauncherReopen": {
+    "version": "1.5.0",
+    "profile": "existing isolated profile from first-launch smoke",
+    "ready": true,
+    "firstWindowMs": 4254.194877001282,
+    "workspaceReadyMs": 5569.007994999993,
+    "snapshotsBefore": 1,
+    "snapshotsAfter": 1,
+    "newSnapshotOnNormalReopen": false,
+    "sellerDataUsed": false,
+    "marketplaceWrites": 0,
+    "catalogWrites": 0
+  },
+  "applicationSourceCommit": "f13a303554d4a114bc020bf2202b27ccadc9fffb"
 }

@@ -8,13 +8,17 @@
   "complete": false,
   "validation": {
     "windowsBuild": {
-      "state": "awaiting-final-source-build",
+      "state": "in_progress",
       "supersededRun": {
         "runId": 39125393767,
         "sourceCommit": "81ef06d80e3bb65d21452cde6b2c44d1f06080c1",
         "state": "cancelled",
         "reason": "Owner added updater 100% and startup-delay fixes before publication; final application source must be built afresh."
-      }
+      },
+      "runId": 39126852184,
+      "sourceCommit": "f13a303554d4a114bc020bf2202b27ccadc9fffb",
+      "url": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/39126852184",
+      "freshFullJavaExecutionRequired": true
     },
     "productionLicenseVerified": false,
     "liveCryptoProSigningThisVersion": false,
@@ -47,7 +51,8 @@
       "tests": 119,
       "finalHandoffTests": 10,
       "failures": 0,
-      "actualLinuxLauncherReady": true
+      "actualLinuxLauncherReady": true,
+      "actualLinuxReopenReady": true
     }
   },
   "licenseIntegration": {
