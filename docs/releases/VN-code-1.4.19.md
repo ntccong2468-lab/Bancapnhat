@@ -10,7 +10,7 @@ Bản cập nhật tiếp nối bản nền 1.4.18, giữ giao diện Liquid Gla
 - **Định dạng tệp:** nhận dạng theo nội dung, đọc các sheet/cột chứa mã, giữ các dòng đúng khi tệp có dòng hỏng. Hỗ trợ văn bản, CSV/TSV, JSON/XML, Excel, DOCX, RTF/HTML, ZIP, PDF/ảnh DataMatrix; không bảo đảm giải mã mọi tệp nhị phân hoặc ảnh không đọc được.
 - **Dữ liệu:** nâng schema 5 lên 6, lưu riêng từng lượt mã seller nhập; giữ định danh, liên kết đơn và quy tắc duy nhất cho mã mua. Bản cũ sẽ từ chối mở schema mới để tránh xử lý sai kho mới.
 
-Luồng mua KIZ và ưu tiên đồng bộ FBS giữ nguyên. Đã [ghi một GTIN thật lên WB và xác nhận lưu trên sàn](../validation/2026-10-18-vncode-1419-wb-live-gtin.md) qua API với payload production. Chưa nghiệm thu thao tác ghi qua ứng dụng Windows có license production.
+Luồng mua KIZ và ưu tiên đồng bộ FBS giữ nguyên. Đã [ghi một GTIN thật lên WB và xác nhận lưu trên sàn](https://github.com/ntccong2468-lab/Bancapnhat/blob/v1.4.19/docs/validation/2026-10-18-vncode-1419-wb-live-gtin.md) qua API với payload production. Chưa nghiệm thu thao tác ghi qua ứng dụng Windows có license production.
 
 **Cài đặt:** đóng VNCode rồi chạy `VN-code-1.4.19-Windows-x64.exe`; Java được đóng gói sẵn. Bộ cài chưa ký Authenticode. Ứng dụng tạo bản sao dữ liệu trước khi nâng schema; bản cũ không mở được dữ liệu schema 6.
 

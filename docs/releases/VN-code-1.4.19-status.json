@@ -1,14 +1,17 @@
 {
   "version": "1.4.19",
-  "state": "implemented-and-checked-locally",
+  "state": "building-windows-for-requested-publication",
   "baseline": "v1.4.18",
   "databaseSchema": 6,
   "published": false,
   "latest": "1.4.18",
   "validation": {
     "windowsBuild": {
-      "state": "pending",
-      "freshFullJavaExecutionRequired": true
+      "state": "in_progress",
+      "runId": 39111878315,
+      "sourceCommit": "e87d0ef2fc0bc89a6487a955d64e183b55778b2e",
+      "freshFullJavaExecutionRequired": true,
+      "url": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/39111878315"
     },
     "productionLicenseVerified": false,
     "liveCryptoProSigningThisVersion": false,
