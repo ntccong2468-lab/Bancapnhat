@@ -16,6 +16,7 @@ public final class ThemeService {
     private static final String ORIGINAL_STYLE = ThemeService.class.getName()+".originalStyle";
     private static boolean observingWindows;
     public static final int DEFAULT_TRANSPARENCY = 55;
+    public static final String STARTUP_SCENE = "vncode.startup.progress";
     private static final String GLASS_STYLE_VERSION = "blue-glass-1";
 
     public enum Theme {
@@ -51,7 +52,7 @@ public final class ThemeService {
         for(var root:List.copyOf(ROOTS)) material(root,theme,amount);
     }
     public static void applyTheme(Scene scene) {
-        if(scene==null)return;
+        if(scene==null||Boolean.TRUE.equals(scene.getProperties().get(STARTUP_SCENE)))return;
         UiFonts.install();observeWindows();
         if(!scene.getStylesheets().contains(BASE_CSS))scene.getStylesheets().add(BASE_CSS);
         if(!scene.getStylesheets().contains(GLASS_CSS))scene.getStylesheets().add(GLASS_CSS);

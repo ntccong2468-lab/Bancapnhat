@@ -1,9 +1,7 @@
 package com.vncode.app;
 
 import com.vncode.app.shared.AppPaths;
-import com.vncode.app.shared.AppDataLock;
 import com.vncode.app.shared.LocalDataMigrationGate;
-import com.vncode.app.shared.LocalDataSnapshotService;
 import javafx.application.Application;
 
 import java.io.PrintWriter;
@@ -14,21 +12,27 @@ import java.time.LocalDateTime;
 
 public class Launcher {
     private static volatile LocalDataMigrationGate.Session dataSession;
+    private static final Object SESSION_LOCK=new Object();
+    private static boolean exiting;
     public static void main(String[] args) {
         configureStartupEnvironment();
-        try (LocalDataMigrationGate.Session session = LocalDataMigrationGate.prepare(
-                AppPaths.appDataDir(), BuildConfig.getAppVersion(), "javafx")) {
-            dataSession=session;
+        synchronized(SESSION_LOCK){exiting=false;}
+        try {
             Application.launch(MainApplication.class, args);
-        } catch (AppDataLock.AlreadyRunningException exception) {
-            System.err.println("VN code is already running for this app-data directory.");
-        } catch (LocalDataSnapshotService.InsufficientDiskSpaceException exception) {
-            writeStartupLog("main", exception);
-            System.err.println(exception.getMessage());
         } catch (Exception exception) {
             writeStartupLog("main", exception);
             System.err.println("VN code could not acquire its app-data directory.");
-        }finally{dataSession=null;}
+        }finally{
+            synchronized(SESSION_LOCK){exiting=true;var session=dataSession;dataSession=null;if(session!=null)try{session.close();}catch(java.io.IOException failed){writeStartupLog("close",failed);}}
+        }
+    }
+    /** The visible startup scene precedes recovery; no application writer opens first. */
+    static void prepareDataSession(java.util.function.Consumer<String> phase)throws Exception {
+        var session=LocalDataMigrationGate.prepare(AppPaths.appDataDir(),BuildConfig.getAppVersion(),"javafx",phase);
+        synchronized(SESSION_LOCK){
+            if(exiting||Thread.currentThread().isInterrupted()){session.close();throw new java.io.InterruptedIOException("STARTUP_CANCELLED");}
+            dataSession=session;
+        }
     }
     public static void prepareUpdateSnapshot()throws java.io.IOException {
         var session=dataSession;
@@ -63,7 +67,7 @@ public class Launcher {
         return value != null && value.chars().allMatch(ch -> ch >= 32 && ch <= 126);
     }
 
-    private static void writeStartupLog(String threadName, Throwable throwable) {
+    static void writeStartupLog(String threadName, Throwable throwable) {
         try {
             Path logsDir = AppPaths.logsDir();
             Files.createDirectories(logsDir);

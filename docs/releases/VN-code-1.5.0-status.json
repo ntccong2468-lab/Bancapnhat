@@ -8,7 +8,13 @@
   "complete": false,
   "validation": {
     "windowsBuild": {
-      "state": "not_started"
+      "state": "awaiting-final-source-build",
+      "supersededRun": {
+        "runId": 39125393767,
+        "sourceCommit": "81ef06d80e3bb65d21452cde6b2c44d1f06080c1",
+        "state": "cancelled",
+        "reason": "Owner added updater 100% and startup-delay fixes before publication; final application source must be built afresh."
+      }
     },
     "productionLicenseVerified": false,
     "liveCryptoProSigningThisVersion": false,
@@ -23,7 +29,9 @@
       "ozonProducts": 175,
       "catalogCards": 1277,
       "marketplaceWrites": 0,
-      "catalogWrites": 0
+      "catalogWrites": 0,
+      "productionClientsVerified": true,
+      "evidence": "../validation/2026-10-18-vncode-150-live-read.json"
     },
     "localRegression": {
       "tests": 264,
@@ -31,8 +39,15 @@
       "errors": 0,
       "skipped": 0,
       "finalMaterialRerunTests": 8,
-      "nodeContracts": 70,
+      "nodeContracts": 71,
       "evidence": "../validation/2026-10-18-vncode-150-local.json"
+    },
+    "startupAndUpdater": {
+      "evidence": "../validation/2026-10-18-vncode-150-update-startup.json",
+      "tests": 119,
+      "finalHandoffTests": 10,
+      "failures": 0,
+      "actualLinuxLauncherReady": true
     }
   },
   "licenseIntegration": {

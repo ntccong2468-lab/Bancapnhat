@@ -139,15 +139,36 @@ public class HomeController implements Initializable {
     private final UpdateService updateService = new UpdateService();
     private final UpdateInstallerService updateInstallerService;
     private final Runnable exitAfterUpdate;
+    private final PreparedLocalData preparedLocalData;
     private final I18nService i18nService = I18nService.getInstance();
 
     public HomeController() {
         this(new UpdateInstallerService(), Platform::exit);
     }
 
+    public HomeController(PreparedLocalData prepared){this(new UpdateInstallerService(),Platform::exit,java.util.Objects.requireNonNull(prepared));}
+
     HomeController(UpdateInstallerService installerService, Runnable exitAfterUpdate) {
+        this(installerService,exitAfterUpdate,null);
+    }
+    private HomeController(UpdateInstallerService installerService,Runnable exitAfterUpdate,PreparedLocalData prepared) {
         this.updateInstallerService = java.util.Objects.requireNonNull(installerService);
         this.exitAfterUpdate = java.util.Objects.requireNonNull(exitAfterUpdate);
+        this.preparedLocalData=prepared;
+    }
+    public static final class PreparedLocalData {
+        private final java.nio.file.Path directory=AppPaths.appDataDir().toAbsolutePath().normalize();
+        private PreparedLocalData(){}
+    }
+    /** Disk recovery runs once off FX on normal startup; direct FXML loads retain it. */
+    public static PreparedLocalData prepareLocalData(){
+        Database.initDatabase();ThemeService.initializeAppearance();
+        new com.vncode.app.features.products.ProductEditRepository().recoverIncomplete();
+        new com.vncode.app.features.gtinsync.GtinSyncRepository().recoverInterrupted();
+        new com.vncode.app.features.print.history.PrintHistoryRepository().recoverInterruptedFboJobs();
+        new ZnackGtinInventoryService().releaseRecoverableReservations();
+        new PrintTemplateService().ensureDefaultTemplateExists();
+        return new PreparedLocalData();
     }
 
     public StackPane sidebarContainer;
@@ -239,13 +260,7 @@ public class HomeController implements Initializable {
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
-        Database.initDatabase();
-        ThemeService.initializeAppearance();
-        new com.vncode.app.features.products.ProductEditRepository().recoverIncomplete();
-        new com.vncode.app.features.gtinsync.GtinSyncRepository().recoverInterrupted();
-        new com.vncode.app.features.print.history.PrintHistoryRepository().recoverInterruptedFboJobs();
-        new ZnackGtinInventoryService().releaseRecoverableReservations();
-        printTemplateService.ensureDefaultTemplateExists();
+        if(preparedLocalData==null||!preparedLocalData.directory.equals(AppPaths.appDataDir().toAbsolutePath().normalize()))prepareLocalData();
 
         fileChooser = new FileChooser();
         File initialDirectory = AppPaths.preferredFileChooserDirectory();
@@ -881,9 +896,10 @@ public class HomeController implements Initializable {
             protected java.nio.file.Path call() throws Exception {
                 updateMessage(i18nService.tr("update.progress.connecting"));
                 updateProgress(-1, 1);
-                var file=updateInstallerService.downloadInstaller(info, (downloadedBytes, totalBytes) -> {
+                var file=updateInstallerService.downloadInstaller(info, new UpdateInstallerService.ProgressListener() {
+                  @Override public void onProgress(long downloadedBytes,long totalBytes){
                     if (totalBytes > 0) {
-                        updateProgress(downloadedBytes, totalBytes);
+                        updateProgress(Math.min(.99,(double)downloadedBytes/totalBytes),1);
                         updateMessage(String.format(i18nService.tr("update.progress.downloaded"),
                                 formatBytes(downloadedBytes),
                                 formatBytes(totalBytes)));
@@ -891,8 +907,14 @@ public class HomeController implements Initializable {
                         updateProgress(-1, 1);
                         updateMessage(i18nService.tr("update.progress.downloading"));
                     }
+                  }
+                  @Override public void onPhase(UpdateInstallerService.Phase phase){
+                    updateMessage(i18nService.tr("update.progress.phase."+phase));
+                    if(phase!=UpdateInstallerService.Phase.DOWNLOADING)updateProgress(-1,1);
+                  }
                 });
-                return downloadOnly?updateInstallerService.saveDownloadedInstaller(info,file):file;
+                if(downloadOnly){updateProgress(-1,1);updateMessage(i18nService.tr("update.progress.phase.SAVING"));file=updateInstallerService.saveDownloadedInstaller(info,file);}
+                updateProgress(1,1);return file;
             }
         };
         updateDownloadTask=task;
@@ -918,12 +940,24 @@ public class HomeController implements Initializable {
             if(downloadOnly){updateDownloadRunning=false;AlertService.showInfo(i18nService.tr("update.saved"),info.getVersion(),installerFile.toAbsolutePath().toString());return;}
             if(hasUpdateBlockingWork()){updateDownloadRunning=false;AlertService.showError(i18nService.tr("update.busy"));return;}
             contentPane.setDisable(true);sidebarContainer.setDisable(true);
-            Task<Void> prepare=new Task<>(){protected Void call()throws Exception{updateInstallerService.launchInstallerAfterExit(installerFile);return null;}};
+            var installing=new java.util.concurrent.atomic.AtomicBoolean();
+            Task<Void> prepare=new Task<>(){protected Void call()throws Exception{
+                updateProgress(-1,1);updateMessage(i18nService.tr("update.progress.phase.VERIFYING"));
+                updateInstallerService.launchInstallerAfterExit(installerFile,phase->{
+                    if(phase==UpdateInstallerService.Phase.STARTING_INSTALLER)installing.set(true);
+                    updateMessage(i18nService.tr("update.progress.phase."+phase));
+                });return null;
+            }};
             updateDownloadTask=prepare;
-            prepare.setOnSucceeded(event->{updateDownloadRunning=false;if(!disposed)exitAfterUpdate.run();});
-            java.util.function.Consumer<Throwable> preparationFailure = rejection ->
-                    updateFailure.accept("update.error.launch_failed", rejection);
-            prepare.setOnFailed(event->preparationFailure.accept(prepare.getException()));executeUpdateTask(prepare,preparationFailure);
+            var preparationDialog=dialogService.showDownloadProgressDialog(info,prepare);
+            preparationDialog.setOnCloseRequest(event->{if(prepare.isRunning()){if(installing.get())event.consume();else prepare.cancel(true);}});
+            prepare.messageProperty().addListener((o,a,b)->{if(installing.get())preparationDialog.getDialogPane().lookupButton(ButtonType.CANCEL).setDisable(true);});
+            prepare.setOnSucceeded(event->{updateDownloadRunning=false;preparationDialog.close();if(!disposed)exitAfterUpdate.run();});
+            java.util.function.Consumer<Throwable> preparationFailure = rejection -> {
+                preparationDialog.close();updateFailure.accept("update.error.launch_failed", rejection);
+            };
+            prepare.setOnCancelled(event->{updateDownloadRunning=false;preparationDialog.close();contentPane.setDisable(false);sidebarContainer.setDisable(false);});
+            prepare.setOnFailed(event->preparationFailure.accept(prepare.getException()));preparationDialog.show();executeUpdateTask(prepare,preparationFailure);
         });
         progressDialog.show();
         executeUpdateTask(task, taskFailure);

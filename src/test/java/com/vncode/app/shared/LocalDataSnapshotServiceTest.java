@@ -127,6 +127,21 @@ class LocalDataSnapshotServiceTest {
     }
 
     @Test
+    void retentionDoesNotReadWholeDatabasesWhenNoSnapshotCanBeDeleted() throws Exception {
+        Path appData = tempDir.resolve("fast-retention");Files.createDirectories(appData);
+        createInventoryDatabase(appData.resolve("database.db"), "retention");
+        Instant now=Instant.parse("2026-10-18T00:00:00Z");
+        try(var ownership=AppDataLock.acquire(appData,"retention-test")) {
+            var snapshots=new java.util.ArrayList<LocalDataSnapshotService.Snapshot>();
+            for(int days:new int[]{10,8,5,1})snapshots.add(snapshotAt(ownership,now.minus(days,ChronoUnit.DAYS)));
+            Files.writeString(snapshots.getFirst().database(),"Unknown integrity is retained when no deletion is allowed");
+            var result=new LocalDataSnapshotService(InstantSource.fixed(now)).retainRollbackWindow(ownership);
+            assertEquals(0,result.deleted());assertEquals(4,result.retained());
+            for(var snapshot:snapshots)assertTrue(Files.exists(snapshot.database()));
+        }
+    }
+
+    @Test
     void retentionKeepsTheRollbackWindowRecentHistoryMarkerReferencesAndUnknownEvidence()
             throws Exception {
         Path appData = tempDir.resolve("retention-app-data");

@@ -1,5 +1,7 @@
 # VNCode 1.5.0
 
+- **Tiến trình cập nhật:** không giữ màn hình 100% khi vẫn đang kiểm tra hoặc sao lưu. Hiện riêng từng bước tải, kiểm tra tính toàn vẹn, sao lưu dữ liệu và mở bộ cài; các bước chạy nền, giao diện vẫn phản hồi. Tác vụ bị hủy trước khi mở bộ cài không được tiếp tục cài đặt.
+- **Khởi động:** hiện cửa sổ tiến trình trước khi xử lý dữ liệu; chuyển chuẩn bị dữ liệu và phục hồi ra khỏi luồng giao diện, không chạy lại cùng phần phục hồi khi nạp màn hình chính. Bảo trì sao lưu đọc metadata trước; khi không có bản nào được phép xóa, giữ nguyên mọi bản và bỏ lượt quét toàn bộ cơ sở dữ liệu sao lưu. Kiểm tra checksum, tính toàn vẹn của bản dùng để bảo vệ/nâng dữ liệu và điều kiện xóa sao lưu vẫn được giữ.
 - **Liquid Glass:** nút biểu tượng tròn, nút thao tác và điều hướng bo mềm, viền sáng và bóng kính xanh theo mẫu mới. Áp dụng chung cho các trang, hộp thoại, thanh sửa hàng loạt và bảng tin. Tin tức giữ khung riêng, xuống dòng và cuộn được.
 - **Độ trong:** đầu trong nhất của thanh chỉnh chỉ còn 0,5% màu nền kính. Chữ và biểu tượng không bị giảm opacity theo nền; giữ màu tương phản trong cả giao diện sáng/tối. Mức đục nhất giữ nền kính kín. Không đặt độ mờ lên toàn cửa sổ.
 - **Đăng ký Znack WB:** lô đã chọn đợi mỗi tác vụ ghi trạng thái thực tế rồi mới xử lý thẻ tiếp theo. Thẻ chờ kiểm duyệt, cần ký hoặc bị từ chối được báo đúng trạng thái; việc xếp hàng hoặc đọc nguồn không được tính là đăng ký thành công. Giữ checkpoint và đối chiếu quyền sở hữu trước mỗi thao tác.

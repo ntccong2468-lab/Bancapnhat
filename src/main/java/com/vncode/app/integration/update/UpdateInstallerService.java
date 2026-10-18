@@ -23,6 +23,7 @@ public class UpdateInstallerService {
     private final OkHttpClient http;
     private final boolean localTest;
     private final java.util.Map<Path,String> verifiedFiles=new java.util.concurrent.ConcurrentHashMap<>();
+    public enum Phase { DOWNLOADING, VERIFYING, BACKUP, STARTING_INSTALLER, SAVING }
     public UpdateInstallerService(){this(CLIENT,false);}
     UpdateInstallerService(OkHttpClient http,boolean localTest){this.http=http;this.localTest=localTest;}
 
@@ -71,12 +72,14 @@ public class UpdateInstallerService {
             if(totalBytes>=0&&totalBytes!=expected)throw new IOException("UPDATE_SIZE_MISMATCH");
             var digest=java.security.MessageDigest.getInstance("SHA-256");
             if (progressListener != null) {
+                progressListener.onPhase(Phase.DOWNLOADING);
                 progressListener.onProgress(0L, totalBytes);
             }
             try (InputStream input = response.body().byteStream();
                  OutputStream output = Files.newOutputStream(installerFile)) {
-                byte[] buffer = new byte[8192];
+                byte[] buffer = new byte[65536];
                 long downloadedBytes = 0L;
+                long lastProgress=System.nanoTime();
                 int read;
                 while ((read = input.read(buffer)) != -1) {
                     if(Thread.currentThread().isInterrupted()){call.cancel();throw new java.io.InterruptedIOException("UPDATE_CANCELLED");}
@@ -84,11 +87,13 @@ public class UpdateInstallerService {
                     output.write(buffer, 0, read);
                     digest.update(buffer,0,read);
                     downloadedBytes += read;
-                    if (progressListener != null) {
+                    if (progressListener != null && (downloadedBytes==expected || System.nanoTime()-lastProgress>=100_000_000L)) {
                         progressListener.onProgress(downloadedBytes, totalBytes);
+                        lastProgress=System.nanoTime();
                     }
                 }
                 if(downloadedBytes!=expected)throw new IOException("UPDATE_SIZE_MISMATCH");
+                if(progressListener!=null)progressListener.onPhase(Phase.VERIFYING);
             }
             String actual=java.util.HexFormat.of().formatHex(digest.digest());
             if(!actual.equalsIgnoreCase(info.getBestDownloadSha256()))throw new IOException("UPDATE_CHECKSUM_MISMATCH");
@@ -103,9 +108,15 @@ public class UpdateInstallerService {
     }
 
     public void launchInstallerAfterExit(Path installerFile) throws IOException {
+        launchInstallerAfterExit(installerFile,phase->{});
+    }
+    public void launchInstallerAfterExit(Path installerFile,java.util.function.Consumer<Phase> phase) throws IOException {
+        checkCancelled();phase.accept(Phase.VERIFYING);
         String expected=verifiedFiles.get(installerFile.toAbsolutePath().normalize());
         if(expected==null||!expected.equals(fileHash(installerFile)))throw new IOException("UPDATE_CHECKSUM_MISMATCH");
+        checkCancelled();phase.accept(Phase.BACKUP);
         com.vncode.app.Launcher.prepareUpdateSnapshot();
+        checkCancelled();phase.accept(Phase.STARTING_INSTALLER);
         String command = buildWindowsInstallCommand(installerFile);
         new ProcessBuilder(
                 "powershell.exe",
@@ -172,9 +183,12 @@ public class UpdateInstallerService {
         if(Files.size(file)>1024L*1024*1024)throw new IOException("UPDATE_SIZE_MISMATCH");
         try(var input=Files.newInputStream(file)){
             var digest=java.security.MessageDigest.getInstance("SHA-256");byte[] buffer=new byte[65536];int n;
-            while((n=input.read(buffer))!=-1)digest.update(buffer,0,n);
+            while((n=input.read(buffer))!=-1){checkCancelled();digest.update(buffer,0,n);}
             return java.util.HexFormat.of().formatHex(digest.digest());
         }catch(java.security.GeneralSecurityException impossible){throw new IOException("UPDATE_VERIFICATION_FAILED");}
+    }
+    private static void checkCancelled()throws java.io.InterruptedIOException {
+        if(Thread.currentThread().isInterrupted())throw new java.io.InterruptedIOException("UPDATE_CANCELLED");
     }
 
     private String guessExtension(String url) {
@@ -187,5 +201,6 @@ public class UpdateInstallerService {
     @FunctionalInterface
     public interface ProgressListener {
         void onProgress(long downloadedBytes, long totalBytes);
+        default void onPhase(Phase phase){}
     }
 }

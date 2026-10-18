@@ -2,6 +2,8 @@
 
 | Yêu cầu | Trạng thái |
 | --- | --- |
+| Tải 100% nhưng giữ tiến trình lâu | Đã tách trạng thái xác minh/sao lưu/mở bộ cài; không hiển thị 100% cho giai đoạn vẫn còn xử lý. Giao diện không bị khóa luồng FX khi thao tác đĩa. |
+| Mở ứng dụng chờ vài phút | Cửa sổ xuất hiện trước khi phục hồi; chuẩn bị dữ liệu chạy nền và chỉ chạy một lần. Bỏ lượt quét toàn bộ bản sao lưu khi không có bản nào được phép xóa. Launcher thật trên Linux/Xvfb với profile trống: cửa sổ đầu khoảng 3,93 giây, màn hình chính khoảng 5,28 giây; chưa coi đây là số đo máy seller Windows. |
 | Nút và điều hướng theo ảnh Liquid Glass mới | Đã viết lớp giao diện chung; giữ kích thước thanh sửa sản phẩm và khả năng cuộn của bảng tin. |
 | Trong như giọt nước, chữ rõ | Nền kính tối thiểu alpha 0,005; chữ alpha 1; không giảm opacity của Node/Window. Kiểm tra cả hai theme và hai đầu thanh trượt. |
 | Đưa các sửa GTIN/CryptoPro và KIZ vừa làm vào 1.5.0 | Có trong cùng mã nguồn ứng viên; không dùng lại bộ cài 1.4.19. |

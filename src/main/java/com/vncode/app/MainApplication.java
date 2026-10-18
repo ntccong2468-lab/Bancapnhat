@@ -24,8 +24,21 @@ public class MainApplication extends Application {
 
     @Override
     public void start(Stage stage) throws IOException {
+        stage.getIcons().add(new Image(MainApplication.class.getResourceAsStream("/com/vncode/app/assets/images/logo.png")));
+        com.vncode.app.ui.StartupProgress.show(stage,phase->{
+            Launcher.prepareDataSession(phase);phase.accept("INITIALIZING_DATA");return HomeController.prepareLocalData();
+        },prepared->{
+            try{openWorkspace(stage,prepared);}catch(IOException failure){throw new java.io.UncheckedIOException(failure);}
+        },failure->Launcher.writeStartupLog("startup-data",failure));
+    }
+
+    private void openWorkspace(Stage stage,HomeController.PreparedLocalData prepared) throws IOException {
         com.vncode.app.features.license.LicenseRuntime.bootstrap();
         FXMLLoader fxmlLoader = new FXMLLoader(MainApplication.class.getResource("/com/vncode/app/ui/workspace/home-view.fxml"));
+        fxmlLoader.setControllerFactory(type->{
+            if(type==HomeController.class)return new HomeController(prepared);
+            try{return type.getDeclaredConstructor().newInstance();}catch(ReflectiveOperationException failure){throw new IllegalStateException(failure);}
+        });
         Scene scene = new Scene(fxmlLoader.load());
         homeController = fxmlLoader.getController();
         scene.getStylesheets().add(MainApplication.class.getResource("/com/vncode/app/styles/theme.css").toExternalForm());
@@ -33,8 +46,6 @@ public class MainApplication extends Application {
         String testLabel = AppPaths.isZnackRegistrationTestProfile() ? " [ZNACK TEST]" : "";
         stage.setTitle(BuildConfig.getAppName() + testLabel + " v" + BuildConfig.getAppVersion());
 
-        Image appIcon = new Image(MainApplication.class.getResourceAsStream("/com/vncode/app/assets/images/logo.png"));
-        stage.getIcons().add(appIcon);
         stage.setOnCloseRequest(event -> {
             boolean hasBackgroundWork = AppTaskExecutor.hasRunningTasks() || com.vncode.app.shared.ShopBatchRegistry.hasWork() || KizAttachmentCoordinator.getInstance().hasActiveJobs()
                     || com.vncode.app.features.license.LicenseRuntime.hasPendingTasks()
@@ -53,6 +64,7 @@ public class MainApplication extends Application {
         });
 
         stage.setScene(scene);
+        stage.sizeToScene();
         stage.show();
         gs1Reminders.start();
         com.vncode.app.shared.RuntimeDiagnostics.startPulseMonitor();

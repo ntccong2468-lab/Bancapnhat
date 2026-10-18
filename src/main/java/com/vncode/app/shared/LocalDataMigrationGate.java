@@ -26,6 +26,10 @@ public final class LocalDataMigrationGate {
     }
 
     public static Session prepare(Path appDataDir, String appVersion, String writerId) throws Exception {
+        return prepare(appDataDir,appVersion,writerId,phase->{});
+    }
+
+    public static Session prepare(Path appDataDir,String appVersion,String writerId,java.util.function.Consumer<String> phase) throws Exception {
         if (appVersion == null || !VERSION_PATTERN.matcher(appVersion).matches()) {
             throw new IllegalArgumentException("appVersion has an invalid format");
         }
@@ -39,6 +43,7 @@ public final class LocalDataMigrationGate {
 
         AppDataLock ownership = AppDataLock.acquire(normalizedDir, writerId);
         try {
+            phase.accept("RECOVERING_DATA");
             LocalDataSnapshotService snapshots = new LocalDataSnapshotService();
             snapshots.recoverInterrupted(ownership);
             AppDataRecoveryService.recoverIfNeededOnStartup();
@@ -61,6 +66,7 @@ public final class LocalDataMigrationGate {
             }
             Path marker = requireSafeMarker(
                     normalizedDir.resolve("writer-state"), writerId + "-" + appVersion + ".ready");
+            phase.accept("CHECKING_BACKUP");
             if (existingSchemaVersion == currentSchemaVersion
                     && isReady(marker, appVersion, currentSchemaVersion, snapshots, ownership)) {
                 snapshots.retainRollbackWindow(ownership);
@@ -71,10 +77,12 @@ public final class LocalDataMigrationGate {
                     ? "wcode-schema-" + currentSchemaVersion
                     : writerId + "-writer-"
                             + appVersion.toLowerCase(Locale.ROOT).replace('_', '-');
+            phase.accept("CREATING_BACKUP");
             LocalDataSnapshotService.Snapshot snapshot = snapshots.create(
                     ownership, appVersion, existingSchemaVersion, reason);
             String snapshotChecksum = snapshot.sha256();
 
+            phase.accept("INITIALIZING_DATA");
             Database.initDatabase();
             if (readSchemaVersion(database) != currentSchemaVersion) {
                 throw new IOException("The VN code database schema migration did not complete safely.");

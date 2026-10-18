@@ -78,7 +78,7 @@ try{
     $app=Start-Process $launcher -PassThru -RedirectStandardOutput "out\upgrade-$fromVersion-baseline-stdout.log" -RedirectStandardError "out\upgrade-$fromVersion-baseline-stderr.log"
     [void](Wait-VncodeWindow -Process $app -Version $fromVersion)
     Stop-Process -Id $app.Id -Force;$app.WaitForExit();$app=$null
-    $baselineSchema=if([version]$fromVersion -ge [version]'1.4.0'){5}else{4}
+    $baselineSchema=if([version]$fromVersion -ge [version]'1.4.19'){6}elseif([version]$fromVersion -ge [version]'1.4.0'){5}else{4}
     & java --enable-native-access=ALL-UNNAMED -cp $probeClasspath WindowsDataProbe fresh $data $baselineSchema
     if($LASTEXITCODE -ne 0){throw 'The baseline launcher did not create the expected empty upgrade fixture.'}
     $baselineClasspath="$root;$program\app\*;$program\app\lib\*"

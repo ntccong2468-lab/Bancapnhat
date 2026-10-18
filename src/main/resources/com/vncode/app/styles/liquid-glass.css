@@ -8,6 +8,9 @@
     -glass-line: rgba(210,239,255,.32);
     -glass-highlight: rgba(218,244,255,.14);
     -glass-selected: rgba(110,180,242,.30);
+    -glass-button: rgba(33,64,94,.66);
+    -glass-control-highlight: rgba(255,255,255,.16);
+    -glass-control-shadow: rgba(20,94,158,.07);
     -bg-primary: transparent;
     -bg-secondary: -glass-surface;
     -bg-tertiary: -glass-elevated;
@@ -42,6 +45,7 @@
     -fx-background-color: -glass-canvas;
 }
 .liquid-glass.theme-light {
+    -glass-button: rgba(226,241,252,.66);
     -glass-surface: rgba(199,226,246,.736);
     -glass-elevated: rgba(226,241,252,.836);
     -glass-row: rgba(199,226,246,.516);

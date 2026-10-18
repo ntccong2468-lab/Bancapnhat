@@ -46,6 +46,14 @@ test('the products release must upgrade the most recent GS1 installer with prese
  assert.doesNotThrow(()=>preview.validatePreviewUpgrades(version,upgrade('1.2.0'),upgrade('1.2.1'),upgrade('1.2.2'),upgrade('1.3.0')));
  assert.throws(()=>preview.validatePreviewUpgrades(version,upgrade('1.2.0'),upgrade('1.2.1'),upgrade('1.2.2'),{...upgrade('1.3.0'),dataPreserved:false}));
 });
+test('1.5.0 tests the immutable 1.4.19 installer with its actual schema six',()=>{
+ const probe=readFileSync(new URL('./windows-upgrade-smoke.ps1',import.meta.url),'utf8');
+ assert.match(probe,/\$FromStable1419/);
+ assert.match(probe,/e2d43bdca42031b6e583dea8efa298addc142e46fadfb2a21ca00b6e5cc31084/);
+ assert.match(probe,/\$baselineSchema=if\(\[version\]\$fromVersion -ge \[version\]'1\.4\.19'\)\{6\}/);
+ const workflow=readFileSync(new URL('../.github/workflows/build-java.yml',import.meta.url),'utf8');
+ assert.match(workflow,/windows-upgrade-smoke\.ps1 -Version \$env:APP_VERSION -FromStable1419/);
+});
 test('workspace publication requires both datasets and all actual Windows DPI scales',()=>{
  assert.equal(typeof preview.validateWorkspaceSmoke,'function');
  const good=workspace();assert.doesNotThrow(()=>preview.validateWorkspaceSmoke(good,version,sha));

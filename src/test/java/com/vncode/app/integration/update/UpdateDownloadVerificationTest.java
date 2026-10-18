@@ -34,4 +34,20 @@ class UpdateDownloadVerificationTest {
         Path arbitrary=root.resolve("not-downloaded.exe");Files.writeString(arbitrary,"binary");
         assertEquals("UPDATE_CHECKSUM_MISMATCH",assertThrows(java.io.IOException.class,()->service.launchInstallerAfterExit(arbitrary)).getMessage());
     }
+    @Test void downloadReportsVerificationAndPreparationNeverClaimsInstallerStartedBeforeBackup()throws Exception {
+        var phases=new ArrayList<UpdateInstallerService.Phase>();var i=info("verified-installer");server.enqueue(new MockResponse().setBody("verified-installer"));
+        Path file=service.downloadInstaller(i,new UpdateInstallerService.ProgressListener(){
+            public void onProgress(long downloaded,long total){}
+            public void onPhase(UpdateInstallerService.Phase phase){phases.add(phase);}
+        });
+        assertEquals(List.of(UpdateInstallerService.Phase.DOWNLOADING,UpdateInstallerService.Phase.VERIFYING),phases);
+        phases.clear();assertEquals("UPDATE_BACKUP_UNAVAILABLE",assertThrows(java.io.IOException.class,()->service.launchInstallerAfterExit(file,phases::add)).getMessage());
+        assertEquals(List.of(UpdateInstallerService.Phase.VERIFYING,UpdateInstallerService.Phase.BACKUP),phases);
+    }
+    @Test void cancelledPreparationCannotLaunchOrStartBackup()throws Exception {
+        var phases=new ArrayList<UpdateInstallerService.Phase>();Thread.currentThread().interrupt();
+        try{assertThrows(java.io.InterruptedIOException.class,()->service.launchInstallerAfterExit(root.resolve("not-downloaded.exe"),phases::add));}
+        finally{Thread.interrupted();}
+        assertTrue(phases.isEmpty());
+    }
 }

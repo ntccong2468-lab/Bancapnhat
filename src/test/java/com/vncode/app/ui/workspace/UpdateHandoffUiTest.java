@@ -25,6 +25,8 @@ class UpdateHandoffUiTest {
     final AtomicBoolean wrongThread = new AtomicBoolean();
     final AtomicBoolean reached100 = new AtomicBoolean();
     IOException launchFailure;
+    CountDownLatch preparationEntered;
+    CountDownLatch allowPreparation;
 
     @BeforeAll static void toolkit() {
         try { Platform.startup(() -> Platform.setImplicitExit(false)); } catch (IllegalStateException running) { }
@@ -38,8 +40,10 @@ class UpdateHandoffUiTest {
                 wrongThread.compareAndSet(false, Platform.isFxApplicationThread());
                 progress.onProgress(100, 100); reached100.set(true); return installer;
             }
-            @Override public void launchInstallerAfterExit(Path file) throws IOException {
+            @Override public void launchInstallerAfterExit(Path file,java.util.function.Consumer<Phase> phase) throws IOException {
                 wrongThread.compareAndSet(false, Platform.isFxApplicationThread());
+                phase.accept(Phase.BACKUP);
+                if(preparationEntered!=null){preparationEntered.countDown();try{if(!allowPreparation.await(5,TimeUnit.SECONDS))throw new IOException("fixture preparation deadline");}catch(InterruptedException cancelled){Thread.currentThread().interrupt();throw new IOException("fixture cancelled",cancelled);}}
                 handedOff.set(file);
                 if (launchFailure != null) throw launchFailure;
             }
@@ -55,9 +59,20 @@ class UpdateHandoffUiTest {
         com.vncode.app.testsupport.ShopReadTestCleanup.awaitSharedIdle();
     }
     @AfterEach void cleanup() throws Exception {
+        if(allowPreparation!=null)allowPreparation.countDown();
         fx(() -> { home.dispose(); for (var window : List.copyOf(Window.getWindows())) window.hide(); return null; });
         com.vncode.app.testsupport.ShopReadTestCleanup.awaitSharedIdle();
         System.clearProperty("vncode.appdata.dir");
+    }
+    @Test void completedDownloadShowsBackupPhaseWithoutBlockingFxOrClaimingOneHundredPercent() throws Exception {
+        preparationEntered=new CountDownLatch(1);allowPreparation=new CountDownLatch(1);start();
+        assertTrue(preparationEntered.await(5,TimeUnit.SECONDS));
+        fx(()->{
+            var labels=Window.getWindows().stream().filter(Window::isShowing).flatMap(w->w.getScene().getRoot().lookupAll(".label").stream()).filter(Label.class::isInstance).map(Label.class::cast).map(Label::getText).toList();
+            assertTrue(labels.contains(I18nService.getInstance().tr("update.progress.phase.BACKUP")),labels.toString());
+            assertFalse(labels.contains("100%"));assertTrue(home.contentPane.isDisabled());return null;
+        });
+        assertFalse(exited.isDone());allowPreparation.countDown();exited.get(5,TimeUnit.SECONDS);assertFalse(wrongThread.get());
     }
     @Test void hundredPercentDownloadHandsImmutablePathToInstallerWorkerAndExitsOnFx() throws Exception {
         start();

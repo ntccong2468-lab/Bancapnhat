@@ -1,0 +1,78 @@
+{
+  "version": "1.5.0",
+  "kind": "update-handoff-and-startup",
+  "baselineSource": "81ef06d80e3bb65d21452cde6b2c44d1f06080c1",
+  "platform": "Linux / Java 25 / Xvfb",
+  "regression": {
+    "tests": 119,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "finishedAtUtc": "2026-10-18T12:16:51Z"
+  },
+  "finalCancellationAndHandoffRerun": {
+    "tests": 10,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "finishedAtUtc": "2026-10-18T12:18:05Z"
+  },
+  "nodeContracts": {
+    "tests": 71,
+    "passed": 71,
+    "failed": 0
+  },
+  "retentionBenchmark": {
+    "synthetic": true,
+    "snapshotCount": 8,
+    "approximateDatabaseBytesPerSnapshot": 16777216,
+    "sameFilesForBothAlgorithms": true,
+    "oldSamplesMs": [
+      444.852467,
+      153.946707,
+      149.453312,
+      128.665856,
+      123.034218
+    ],
+    "newSamplesMs": [
+      23.870775,
+      3.552824,
+      3.173534,
+      2.358739,
+      2.531894
+    ],
+    "oldMedianMs": 149.453312,
+    "newMedianMs": 3.173534,
+    "retained": 8,
+    "deleted": 0,
+    "claimsSellerWindowsTiming": false
+  },
+  "actualLauncher": {
+    "version": "1.5.0",
+    "platform": "Linux Java 25 / Xvfb / production Launcher",
+    "isolatedEmptyProfile": true,
+    "firstWindowMs": 3926.942713000244,
+    "workspaceReadyMs": 5280.846423000185,
+    "ready": true,
+    "processExitedBeforeReady": false,
+    "productionLicenseActivation": false,
+    "sellerDataUsed": false,
+    "marketplaceWrites": 0,
+    "catalogWrites": 0
+  },
+  "safety": {
+    "checksumVerificationRetained": true,
+    "backupBeforeInstallRetained": true,
+    "actualSnapshotVerificationBeforeMigrationRetained": true,
+    "originalVerificationBeforeAnyRetentionDeletionRetained": true,
+    "newerSchemaStillRefused": true,
+    "noWholeDatabaseScanForNoopRetention": true,
+    "workspaceNeverOpensAfterFailedRecovery": true,
+    "closingStartupWaitsForDataWorker": true
+  },
+  "windowsInstallerBuilt": false,
+  "published": false,
+  "productionLicenseAcceptance": false,
+  "liveCryptoProSigning": false,
+  "liveDesktopMarketplaceWrite": false
+}

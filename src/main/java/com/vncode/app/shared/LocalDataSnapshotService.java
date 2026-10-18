@@ -204,8 +204,21 @@ public final class LocalDataSnapshotService {
         }
         requireSafeDirectory(snapshotsDir, false, "The VN code snapshot directory is unsafe.");
 
-        List<Snapshot> verified = list(ownership).stream().filter(this::verify).toList();
+        List<Snapshot> listed = list(ownership);
         Set<String> markerChecksums = referencedSnapshotChecksums(appDataDir);
+        Instant cutoff = timeSource.instant().minus(ROLLBACK_WINDOW_DAYS, ChronoUnit.DAYS);
+        Map<String,Integer> positions=new HashMap<>();
+        boolean deletionPossible=false;
+        for(var snapshot:listed){
+            int position=positions.merge(snapshot.reason(),1,Integer::sum);
+            if(snapshot.createdAt().isBefore(cutoff)&&position>FALLBACKS_PER_REASON
+                    &&!markerChecksums.contains(snapshot.sha256())){deletionPossible=true;break;}
+        }
+        // Keeping every file needs no content scan. If anything could be removed,
+        // retain the original full checksum/integrity and verified-fallback policy.
+        // Migration/restore validation is independent and is never skipped here.
+        if(!deletionPossible)return new RetentionResult(0,listed.size());
+        List<Snapshot> verified = listed.stream().filter(this::verify).toList();
         Set<Snapshot> markerProtected = new HashSet<>();
         Set<String> unmatchedMarkerChecksums = new HashSet<>(markerChecksums);
         for (Snapshot snapshot : verified) {
@@ -223,7 +236,6 @@ public final class LocalDataSnapshotService {
             }
         }
 
-        Instant cutoff = timeSource.instant().minus(ROLLBACK_WINDOW_DAYS, ChronoUnit.DAYS);
         int deleted = 0;
         int retained = 0;
         for (Snapshot snapshot : verified) {
