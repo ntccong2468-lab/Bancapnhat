@@ -1,22 +1,37 @@
 {
   "version": "1.4.19",
-  "state": "building-windows-for-requested-publication",
+  "state": "publication-blocked-by-github-authentication",
   "baseline": "v1.4.18",
   "databaseSchema": 6,
   "published": false,
   "latest": "1.4.18",
   "validation": {
     "windowsBuild": {
-      "state": "in_progress",
+      "state": "submitted-result-unavailable",
       "runId": 39111878315,
       "sourceCommit": "e87d0ef2fc0bc89a6487a955d64e183b55778b2e",
       "freshFullJavaExecutionRequired": true,
-      "url": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/39111878315"
+      "url": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/39111878315",
+      "lastObservedStep": "Run Java and FXML test suite"
     },
     "productionLicenseVerified": false,
     "liveCryptoProSigningThisVersion": false,
     "liveLicensedDesktopGtinWriteThisVersion": false,
-    "liveApiWbGtinWriteThisVersion": true
+    "liveApiWbGtinWriteThisVersion": true,
+    "releaseToolTests": {
+      "tests": 70,
+      "passed": 70,
+      "failures": 0,
+      "platform": "Linux / Node; fresh Windows run contains 69 pre-publication contracts"
+    },
+    "upgradeProbeFocusedTests": {
+      "tests": 3,
+      "passed": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "platform": "Linux / Java 25"
+    }
   },
   "windowsInstaller": null,
   "jvmLastResults": {
@@ -42,5 +57,14 @@
     "changedInThisVersion": false
   },
   "requestReport": "VN-code-1.4.19-request-report.md",
-  "ownerRequestedPublication": true
+  "ownerRequestedPublication": true,
+  "publicationBlocker": {
+    "checkedAtUtc": "2026-10-18T08:38:25.493526+00:00",
+    "reason": "GitHub authentication unavailable",
+    "githubApiHttp": 401,
+    "publicApiAlsoHttp": 401,
+    "gitRead": "Could not read Username for github.com",
+    "publicationStarted": false,
+    "resume": "Restore environment GitHub authentication; inspect existing run 39111878315 before dispatching another build."
+  }
 }

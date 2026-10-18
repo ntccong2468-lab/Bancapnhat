@@ -1,0 +1,32 @@
+{
+  "version": "1.4.19",
+  "recordedAtUtc": "2026-10-18T08:38:25.493526+00:00",
+  "requestReportDelivered": true,
+  "applicationBuildSource": "e87d0ef2fc0bc89a6487a955d64e183b55778b2e",
+  "branchPushedThrough": "8c3e76c",
+  "windowsBuildRun": 39111878315,
+  "windowsBuildUrl": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/39111878315",
+  "lastObserved": {
+    "windows": "Run Java and FXML test suite in progress",
+    "portal": "success"
+  },
+  "localChecks": {
+    "releaseContractsPassed": 70,
+    "nativeUpgradeProbeTestsPassed": 3
+  },
+  "githubAuthentication": {
+    "api": 401,
+    "apiWithoutExplicitToken": 401,
+    "gitRead": "No credentials available"
+  },
+  "publishedByThisTask": false,
+  "latestLastVerified": "1.4.18",
+  "automaticSellerUpdateFor1419Published": false,
+  "productionDesktopGtinWriteAccepted": false,
+  "resumeSteps": [
+    "Restore existing environment GitHub authentication without placing credentials in chat.",
+    "Inspect existing Windows build run 39111878315. If it failed, diagnose and repair; do not assume passing results.",
+    "After verified native artifact and upgrade proofs, record exact EXE checksum, bytes, full test totals and owner decision; use strict owner-approved-1419 publisher.",
+    "Verify public Latest and download bytes, then production updater parser metadata."
+  ]
+}
