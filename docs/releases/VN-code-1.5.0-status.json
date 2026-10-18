@@ -8,7 +8,7 @@
   "complete": false,
   "validation": {
     "windowsBuild": {
-      "state": "in_progress",
+      "state": "native-verification-in-progress",
       "supersededRuns": [
         {
           "runId": 39125393767,
@@ -41,7 +41,30 @@
       "sourceCommit": "2eea069123737e2c9f7bcddcecaa51f21a1645dc",
       "url": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/39130866288",
       "freshFullJavaExecutionRequired": true,
-      "earlyWindowsViewportAndGs1Consent": "passed"
+      "earlyWindowsViewportAndGs1Consent": "passed",
+      "fullJavaSuite": {
+        "tests": 1792,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 2,
+        "passed": 1790,
+        "reportCount": 305,
+        "platformSkips": [
+          {
+            "class": "com.vncode.app.shared.WindowsSecretProtectorTest",
+            "method": "neverFallsBackToPlaintextOffWindows",
+            "reason": "Disabled on operating system: Windows Server 2025"
+          },
+          {
+            "class": "com.vncode.app.features.gs1.Gs1PrefixTemplateStoreTest",
+            "method": "privatePermissionsAreAppliedWhereSupported",
+            "reason": ""
+          }
+        ]
+      },
+      "installerPackaged": true,
+      "nativeLauncherSchema3Migration": "passed",
+      "gs1WindowsDpapi": "passed"
     },
     "productionLicenseVerified": false,
     "liveCryptoProSigningThisVersion": false,
