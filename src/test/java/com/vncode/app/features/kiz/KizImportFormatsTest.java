@@ -11,6 +11,31 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class KizImportFormatsTest {
     @TempDir Path path;
+    @Test void filenameExtensionDoesNotPreventReadingPlainCodes()throws Exception{
+        for(String extension:List.of("json","xml","rtf","pdf","xlsx","zip","unknown")){
+            var file=path.resolve("seller."+extension);Files.write(file,List.of(shortCode(1),shortCode(1),"broken"));var result=KizImportReader.read(file);
+            assertEquals(2,result.marks().size(),extension);assertEquals(1,result.damaged(),extension);
+        }
+    }
+    @Test void identicalPhysicalDataMatrixLabelsAreCountedSeparatelyWithoutCountingOverlappingScans()throws Exception{
+        String mark=KizWarehouseTest.mark(1);var matrix=new com.google.zxing.datamatrix.DataMatrixWriter().encode(mark,com.google.zxing.BarcodeFormat.DATA_MATRIX,180,180);
+        var bitmap=new java.awt.image.BufferedImage(440,220,java.awt.image.BufferedImage.TYPE_INT_RGB);var g=bitmap.createGraphics();g.setColor(java.awt.Color.WHITE);g.fillRect(0,0,440,220);g.dispose();
+        for(int copy=0;copy<2;copy++)for(int y=0;y<matrix.getHeight();y++)for(int x=0;x<matrix.getWidth();x++)bitmap.setRGB(20+copy*220+x,20+y,matrix.get(x,y)?0:0xffffff);
+        var file=path.resolve("labels.data");javax.imageio.ImageIO.write(bitmap,"png",file.toFile());var preview=KizImportReader.read(file);
+        assertEquals(2,preview.marks().size());assertEquals(0,preview.damaged());
+    }
+    @Test void mixedNotesKeepEveryUsableOccurrenceAndCountAllDamagedRowsBeyondReportLimit()throws Exception {
+        var file=path.resolve("notepad.backup");var lines=new ArrayList<String>();lines.add(shortCode(1));lines.add(shortCode(1));
+        for(int i=0;i<1500;i++)lines.add("broken-"+i);Files.write(file,lines);
+        var result=KizImportReader.read(file);assertTrue(result.valid());assertEquals(2,result.marks().size());assertEquals(0,result.duplicates());assertEquals(1500,result.damaged());assertEquals(1502,result.total());assertEquals(1000,result.issues().size());
+    }
+    @Test void workbookIsDetectedByContentAndReadsAllSheetsWithoutRequiringColumnNames()throws Exception {
+        var file=path.resolve("seller.backup");try(var book=new org.apache.poi.xssf.usermodel.XSSFWorkbook()){
+            for(int i=0;i<2;i++){var sheet=book.createSheet();sheet.createRow(0).createCell(1).setCellValue(shortCode(i));sheet.createRow(1).createCell(1).setCellValue("damaged");}
+            try(var out=Files.newOutputStream(file)){book.write(out);}
+        }
+        var result=KizImportReader.read(file);assertTrue(result.valid());assertEquals(2,result.marks().size());assertEquals(2,result.damaged());
+    }
     // Synthetic identifiers reproduce the user's 31-character layout, never their paid codes.
     static String shortCode(int i){return "01"+KizWarehouseTest.GTIN+"21"+String.format(Locale.ROOT,"%06d",i)+"a,<GS>;";}
     void exact(Path file,List<String> expected)throws Exception{var result=KizImportReader.read(file);assertTrue(result.valid(),()->result.issues().toString());assertEquals(expected,result.marks().stream().map(KizMark::raw).toList());}
@@ -62,6 +87,6 @@ class KizImportFormatsTest {
             zip.putNextEntry(new java.util.zip.ZipEntry("../short.txt"));zip.write(shorter.getBytes(StandardCharsets.UTF_8));zip.closeEntry();
             zip.putNextEntry(new java.util.zip.ZipEntry("full.txt"));zip.write(full.getBytes(StandardCharsets.UTF_8));zip.closeEntry();
         }
-        var result=KizImportReader.read(file);assertTrue(result.valid());assertEquals(1,result.duplicates());assertEquals(full,result.marks().getFirst().raw());assertFalse(Files.exists(path.resolve("short.txt")));
+        var result=KizImportReader.read(file);assertTrue(result.valid());assertEquals(0,result.duplicates());assertEquals(List.of(shorter,full),result.marks().stream().map(KizMark::raw).toList());assertFalse(Files.exists(path.resolve("short.txt")));
     }
 }

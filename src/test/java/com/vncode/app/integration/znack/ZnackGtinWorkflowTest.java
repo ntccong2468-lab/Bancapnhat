@@ -258,7 +258,7 @@ class ZnackGtinWorkflowTest {
         long firstOrder = repository.createDraft(A, 1);
         long secondOrder = other.createDraft(A, 1);
         try (Connection c = Database.getConnection(); Statement st = c.createStatement()) {
-            st.execute("DROP INDEX uq_kiz_codes_raw_code");
+            st.execute("DROP INDEX uq_kiz_codes_purchased_raw");
         }
         assertEquals(1, repository.insertCodes(firstOrder, A, new DownloadedCodes(List.of("same"), "first")));
         assertEquals(1, other.insertCodes(secondOrder, A, new DownloadedCodes(List.of("same"), "second")));

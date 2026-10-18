@@ -130,7 +130,9 @@ public final class ProductsPane extends BorderPane {
         if(disposed||shop==null||syncing)return;
         var selected=shop;var owner=new Shop(selected.getId(),selected.getName(),selected.getMarketplace(),selected.getClientId(),selected.getApiKey());
         var q=displayedQuery==null?query(""):displayedQuery;long ticket=++syncTicket;syncing=true;updateButtons();rows.refresh();reload.setDisable(true);status.setText(tr("products.loading"));
-        reads.submit(new ShopReadCoordinator.Key(owner.getId(),"product-sync",q.toString()),true,()->refreshService.refresh(owner,q)).whenComplete((report,error)->Platform.runLater(()->{
+        reads.submit(new ShopReadCoordinator.Key(owner.getId(),"product-sync",q.toString()),true,()->refreshService.refresh(owner,q,p->Platform.runLater(()->{
+            if(!disposed&&ticket==syncTicket&&shop!=null&&com.vncode.app.integration.listing.ListingIdentity.fingerprint(shop).equals(com.vncode.app.integration.listing.ListingIdentity.fingerprint(owner)))status.setText(tr("products.loading")+" "+p.completed()+"/"+p.total());
+        }))).whenComplete((report,error)->Platform.runLater(()->{
             if(disposed||ticket!=syncTicket||shop==null||shop.getId()!=owner.getId()||shop.getMarketplace()!=owner.getMarketplace()||!Objects.equals(shop.getApiKey(),owner.getApiKey())||!Objects.equals(shop.getClientId(),owner.getClientId()))return;
             syncing=false;updateButtons();rows.refresh();reload.setDisable(false);
             if(error!=null){status.setText(tr("products.read_failed"));return;}

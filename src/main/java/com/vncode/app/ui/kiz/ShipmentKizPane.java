@@ -20,7 +20,7 @@ public class ShipmentKizPane extends VBox {
     private final TableView<ShipmentKizRepository.CategoryStock> table=new TableView<>();
     private final ProgressIndicator progress=new ProgressIndicator();
     private final javafx.animation.Timeline stockRefresh=new javafx.animation.Timeline(new javafx.animation.KeyFrame(javafx.util.Duration.seconds(3),e->{if(getScene()!=null&&isVisible()&&!this.locked)refreshStock();}));
-    private Shop shop;private String shipment;private long generation;private boolean busy,locked,known;
+    private Shop shop;private String shipment;private long generation,stockRevision;private boolean busy,locked,known;
     private KizSourceSelection selection=KizSourceSelection.SELLER_ONLY;
     private Consumer<KizSourceSelection> changed=value->{};
 
@@ -39,6 +39,12 @@ public class ShipmentKizPane extends VBox {
             {button.setId("shipment-kiz-upload");button.setOnAction(event->{var row=getTableRow().getItem();if(row!=null)chooseFile(row);});}
             @Override protected void updateItem(Void value,boolean empty){super.updateItem(value,empty);button.setText(tr("upload"));setGraphic(empty?null:button);}
         });table.getColumns().add(upload);
+        var delete=new TableColumn<ShipmentKizRepository.CategoryStock,Void>();delete.setUserData("delete");delete.setMinWidth(56);delete.setPrefWidth(65);
+        delete.setCellFactory(col->new TableCell<>(){
+            private final Button button=new Button();
+            {button.setId("shipment-kiz-delete");button.setOnAction(e->{var row=getTableRow().getItem();if(row!=null)deleteCategory(row);});}
+            @Override protected void updateItem(Void value,boolean empty){super.updateItem(value,empty);button.setText(tr("delete"));setGraphic(empty?null:button);}
+        });table.getColumns().add(delete);
         imported.setOnAction(event->saveSelection());purchased.setOnAction(event->saveSelection());refresh.setOnAction(event->reload());
         stockRefresh.setCycleCount(javafx.animation.Animation.INDEFINITE);
         sceneProperty().addListener((o,a,b)->{if(b==null)stockRefresh.stop();else if(shop!=null)stockRefresh.play();});
@@ -77,9 +83,9 @@ public class ShipmentKizPane extends VBox {
     private boolean refreshingStock;
     private void refreshStock(){
         if(shop==null||!known||busy||refreshingStock||locked)return;
-        refreshingStock=true;Shop owner=shop;long epoch=generation;
+        refreshingStock=true;Shop owner=shop;long epoch=generation,revision=stockRevision;
         var task=new Task<List<ShipmentKizRepository.CategoryStock>>(){protected List<ShipmentKizRepository.CategoryStock> call(){return repository.stocks(owner);}};
-        task.setOnSucceeded(e->{refreshingStock=false;if(shop==owner&&generation==epoch&&!busy)table.getItems().setAll(task.getValue());});
+        task.setOnSucceeded(e->{refreshingStock=false;if(shop==owner&&generation==epoch&&stockRevision==revision&&!busy)table.getItems().setAll(task.getValue());});
         java.util.function.Consumer<Throwable> failed=error->{refreshingStock=false;};task.setOnFailed(e->failed.accept(task.getException()));AppTaskExecutor.execute(task,failed);
     }
     private void saveSelection() {
@@ -98,25 +104,32 @@ public class ShipmentKizPane extends VBox {
         var file=chooser.showOpenDialog(getScene()==null?null:getScene().getWindow());if(file==null)return;
         importFile(category,file.toPath());
     }
+    private void deleteCategory(ShipmentKizRepository.CategoryStock category){
+        if(busy||locked||shop==null||!known)return;
+        Shop owner=shop;long epoch=generation;
+        var dialog=new Alert(Alert.AlertType.CONFIRMATION,MessageFormat.format(tr("delete_confirm"),category.name(),category.ready(),category.held()),ButtonType.OK,ButtonType.CANCEL);
+        dialog.getDialogPane().setId("shipment-kiz-delete-confirm");
+        if(getScene()!=null)dialog.initOwner(getScene().getWindow());AlertService.applyTheme(dialog);
+        if(dialog.showAndWait().orElse(ButtonType.CANCEL)!=ButtonType.OK||shop!=owner||generation!=epoch)return;
+        run(()->{new KizStockCategoryRepository().delete(owner,category.id());return repository.stocks(owner);},rows->{table.getItems().setAll(rows);status.setText(MessageFormat.format(tr("deleted"),category.name()));});
+    }
     void importFile(ShipmentKizRepository.CategoryStock category,java.nio.file.Path file) {
         if(busy||locked||shop==null||!known)return;
         Shop owner=shop;long epoch=generation;
-        run(()->{var preview=KizImportReader.read(file);return new ImportPreview(preview,preview.valid()?new KizWarehouseRepository().review(owner,preview,category.id()):null);},data->{
-            var preview=data.preview();
-            if(!preview.valid()){
-                status.setText(tr("invalid_file")+"\n"+preview.issues().stream().limit(20).map(issue->issue.row()+": "+KizErrorMessages.message(issue.code())).collect(java.util.stream.Collectors.joining("\n")));return;
-            }
-            var choice=data.review().otherCategory()==0?Optional.of(new KizImportDialog.Choice(false)):KizImportDialog.confirm(getScene()==null?null:getScene().getWindow(),owner.getName()+" · "+category.name(),preview,data.review());
-            if(choice.isEmpty()||shop!=owner||generation!=epoch)return;
-            run(()->{var result=new KizWarehouseService().importFile(owner,preview,true,category.id(),choice.get().moveAvailable());return new ImportedStock(result,repository.stocks(owner));},dataAfter->{
+        run(()->KizImportReader.read(file),preview->{
+            status.setText(KizImportDialog.fileText(preview));
+            if(!preview.valid()){KizImportDialog.report(getScene()==null?null:getScene().getWindow(),owner.getName()+" · "+category.name(),preview,null);return;}
+            if(shop!=owner||generation!=epoch)return;
+            run(()->{var result=new KizWarehouseService().importFile(owner,preview,true,category.id());return new ImportedStock(result,repository.stocks(owner));},dataAfter->{
                 table.getItems().setAll(dataAfter.categories());
                 int ready=dataAfter.categories().stream().filter(c->c.id().equals(category.id())).mapToInt(ShipmentKizRepository.CategoryStock::ready).sum();
-                status.setText(category.name()+" · "+tr("ready")+": "+ready+"\n"+KizImportDialog.resultText(dataAfter.result()));
+                status.setText(category.name()+" · "+tr("ready")+": "+ready+"\n"+KizImportDialog.resultText(dataAfter.result(),preview));
+                KizImportDialog.report(getScene()==null?null:getScene().getWindow(),owner.getName()+" · "+category.name(),preview,dataAfter.result());
             });
         });
     }
     private <T>void run(Work<T> work,Consumer<T> completed) {
-        Shop owner=shop;long epoch=generation;busy=true;buttons();
+        Shop owner=shop;long epoch=generation;stockRevision++;busy=true;buttons();
         var task=new Task<T>(){protected T call()throws Exception{return work.run();}};
         task.setOnSucceeded(event->{if(shop!=owner||generation!=epoch)return;busy=false;buttons();completed.accept(task.getValue());});
         Consumer<Throwable> failed=error->{if(shop!=owner||generation!=epoch)return;busy=false;render(selection);buttons();status.setText(FriendlyErrorService.format(error));};
@@ -132,7 +145,6 @@ public class ShipmentKizPane extends VBox {
         table.setPlaceholder(new Label(tr("empty")));table.getColumns().forEach(column->column.setText(tr(String.valueOf(column.getUserData()))));table.refresh();
     }
     private static String tr(String key){return I18nService.getInstance().tr("kiz.shipment."+key);}
-    private record ImportPreview(KizImportReader.Preview preview,KizWarehouseRepository.ImportReview review){}
     private record ImportedStock(KizWarehouseRepository.Imported result,List<ShipmentKizRepository.CategoryStock> categories){}
     private record Snapshot(KizSourceSelection selection,List<ShipmentKizRepository.CategoryStock> categories){}
     @FunctionalInterface private interface Work<T>{T run()throws Exception;}

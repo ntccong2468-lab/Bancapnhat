@@ -19,7 +19,8 @@ public final class ZnackGtinReviewService {
     private final ProductSnapshotReader products;
     private final SyncRunRepository reports=new SyncRunRepository();
     public ZnackGtinReviewService(){this(shop->{
-        var ready=new RegistrationSources().refresh(shop,step->{});
+        var sources=new RegistrationSources();var ready=sources.check(shop);
+        if(!ready.ready())ready=sources.refresh(shop,step->{});
         if(!ready.ready())throw new IllegalStateException(ready.reason());
     },new ZnackAutoSyncService(false),(shop,key)->shop.getMarketplace()==Marketplace.OZON?new OzonProductSnapshotReader().readForSynchronization(shop,key):new WbProductSnapshotReader().readForSynchronization(shop,key));}
     ZnackGtinReviewService(MarketplaceRefresh marketplace,ZnackAutoSyncService source,ProductSnapshotReader products){this.marketplace=marketplace;this.source=source;this.products=products;}
@@ -34,11 +35,9 @@ public final class ZnackGtinReviewService {
         return ShopOperationCoordinator.withActiveShop(shop.getId(),()->{
             require(shop,run);
             if(rows.isEmpty()||rows.size()>1000||rows.stream().map(SyncRunRepository.Item::id).distinct().count()!=rows.size())throw new IllegalArgumentException("CATALOG_SELECTION_LIMIT");
-            var known=new HashMap<String,SyncRunRepository.Item>();
-            for(int offset=0;;offset+=1000){var page=reports.items(run,offset,1000);page.forEach(row->known.put(row.id(),row));if(page.size()<1000)break;}
             var result=new ArrayList<Selection>();
             for(var row:rows){
-                if(!row.equals(known.get(row.id()))||!eligible(row))throw new IllegalArgumentException("GTIN_REVIEW_CHANGED");
+                if(!row.equals(reports.item(run,row.id()).orElse(null))||!eligible(row))throw new IllegalArgumentException("GTIN_REVIEW_CHANGED");
                 new RegistrationSources().requireMember(shop,row.productId(),row.variantId());
                 RegisteredGtinProof.requireCurrent(shop,row.gtin());
                 var key=new ProductKey(shop.getId(),shop.getMarketplace(),row.productId(),row.variantId());

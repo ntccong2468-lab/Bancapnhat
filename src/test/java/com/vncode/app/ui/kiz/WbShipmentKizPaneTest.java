@@ -14,9 +14,18 @@ import java.util.concurrent.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 class WbShipmentKizPaneTest {
-    @TempDir Path root;WbShipmentKizPane pane;Shop one=new Shop(1,"WB 1","fixture-1"),two=new Shop(2,"WB 2","fixture-2");
+    @TempDir Path root;javafx.animation.Timeline approve;final java.util.List<String> reports=new java.util.ArrayList<>();WbShipmentKizPane pane;Shop one=new Shop(1,"WB 1","fixture-1"),two=new Shop(2,"WB 2","fixture-2");
     @BeforeAll static void start(){try{Platform.startup(()->Platform.setImplicitExit(false));}catch(IllegalStateException alreadyStarted){}}
     static <T>T fx(Callable<T> action)throws Exception{var task=new FutureTask<>(action);Platform.runLater(task);return task.get(10,TimeUnit.SECONDS);}
+    @BeforeEach void dialogDriver()throws Exception{
+        fx(()->{approve=new javafx.animation.Timeline(new javafx.animation.KeyFrame(javafx.util.Duration.millis(20),e->{
+            for(var window:java.util.List.copyOf(javafx.stage.Window.getWindows()))if(window.isShowing()&&window.getScene()!=null){
+                var node=window.getScene().lookup("#kiz-import-file-report");
+                if(node instanceof Label label){reports.add(label.getText());var root=window.getScene().getRoot();if(root instanceof DialogPane dialog)dialog.getButtonTypes().stream().filter(b->b.getButtonData()==ButtonBar.ButtonData.OK_DONE||b==ButtonType.CLOSE).findFirst().ifPresent(b->((Button)dialog.lookupButton(b)).fire());}
+            }
+        }));approve.setCycleCount(javafx.animation.Animation.INDEFINITE);approve.play();return null;});
+    }
+    @AfterEach void stopDialogs()throws Exception{fx(()->{if(approve!=null)approve.stop();return null;});}
     @BeforeEach void init()throws Exception {
         System.setProperty("vncode.appdata.dir",root.toString());Database.initDatabase();
         try(var c=Database.getConnection();var s=c.createStatement()){
@@ -95,8 +104,8 @@ class WbShipmentKizPaneTest {
         assertEquals(1,selected.size());new com.vncode.app.integration.znack.ZnackGtinInventoryService().consume(one.getId(),selected);
         fx(()->{pane.reload();return null;});awaitTasks();
         fx(()->{var table=(TableView<ShipmentKizRepository.CategoryStock>)pane.lookup("#shipment-kiz-categories");assertEquals(1,table.getItems().stream().filter(c->c.id().equals(category.id())).findFirst().orElseThrow().ready());return null;});
-        // Reimporting the same file cannot resurrect the consumed mark or duplicate the remaining one.
-        fx(()->{pane.importFile(category,file);return null;});awaitTasks();assertEquals(1,new ShipmentKizRepository().stocks(one).stream().filter(c->c.id().equals(category.id())).findFirst().orElseThrow().ready());
+        // Every upload is new seller stock, including an identical file and previously consumed raw codes.
+        fx(()->{pane.importFile(category,file);return null;});awaitTasks();assertEquals(3,new ShipmentKizRepository().stocks(one).stream().filter(c->c.id().equals(category.id())).findFirst().orElseThrow().ready());
     }
     @Test void sixHundredCodesFromSellerTextFileAreVisibleInTheirCategory()throws Exception{
         fx(()->{pane.setContext(one,"BULK-FILE");return null;});awaitTasks();var category=new ShipmentKizRepository().stocks(one).getFirst();
@@ -105,6 +114,24 @@ class WbShipmentKizPaneTest {
         fx(()->{pane.importFile(category,file);return null;});awaitTasks();
         fx(()->{var table=(TableView<ShipmentKizRepository.CategoryStock>)pane.lookup("#shipment-kiz-categories");assertEquals(600,table.getItems().stream().filter(c->c.id().equals(category.id())).findFirst().orElseThrow().ready());return null;});
         assertEquals(600,KizImportReader.read(file).marks().size());
+    }
+    @Test void deleteButtonRemovesTheSelectedCategoryAndRefreshDoesNotRecreateIt()throws Exception{
+        fx(()->{pane.setContext(one,"DELETE");return null;});awaitTasks();
+        fx(()->{
+            pane.applyCss();pane.layout();var button=(Button)pane.lookup("#shipment-kiz-delete");assertNotNull(button);
+            Platform.runLater(()->{
+                for(var window:java.util.List.copyOf(javafx.stage.Window.getWindows()))if(window.isShowing()&&window.getScene()!=null&&window.getScene().lookup("#shipment-kiz-delete-confirm") instanceof DialogPane dialog)((Button)dialog.lookupButton(ButtonType.OK)).fire();
+            });button.fire();return null;
+        });awaitTasks();
+        fx(()->{assertEquals(1,((TableView<?>)pane.lookup("#shipment-kiz-categories")).getItems().size());pane.reload();return null;});awaitTasks();
+        assertEquals(1,new ShipmentKizRepository().refreshCategories(one).size());
+    }
+    @Test void fileWithOnlyDamagedCodesShowsItsReportWithoutAddingStock()throws Exception{
+        fx(()->{pane.setContext(one,"DAMAGED");return null;});awaitTasks();
+        var category=new ShipmentKizRepository().stocks(one).getFirst();var file=root.resolve("damaged.txt");java.nio.file.Files.write(file,java.util.List.of("broken","not-a-code"));
+        fx(()->{pane.importFile(category,file);return null;});awaitTasks();
+        long until=System.nanoTime()+TimeUnit.SECONDS.toNanos(3);while(fx(()->reports.isEmpty())&&System.nanoTime()<until)Thread.sleep(10);
+        assertFalse(fx(()->reports.isEmpty()));assertTrue(new ShipmentKizRepository().stocks(one).stream().allMatch(row->row.ready()==0));
     }
     private record ShipmentView(com.vncode.app.ui.supply.SupplyDetailController controller,javafx.scene.Parent view){}
     @Test void largePaidCatalogOnlyCreatesVisibleCardsAndCanReachTheLastGtin()throws Exception {

@@ -39,17 +39,17 @@ class KizWarehouseTest {
         assertThrows(IllegalArgumentException.class,()->KizMark.parse(mark(1).replace(GTIN,"04645588781155")));
         assertFalse(parsed.toString().contains(parsed.cis()));
     }
-    @Test void txtJsonAndCsvRetainExactCodesAndRejectAmbiguousColumns()throws Exception{
+    @Test void txtJsonAndCsvRetainExactCodesAcrossMultipleCodeColumns()throws Exception{
         var text=preview(2,"marks.txt");assertEquals(2,text.marks().size());assertTrue(text.valid());
         var json=directory.resolve("marks.json");Files.writeString(json,new Gson().toJson(Map.of("codes",List.of(mark(1),mark(2)))));assertEquals(text.marks(),KizImportReader.read(json).marks());
         var csv=directory.resolve("marks.csv");Files.writeString(csv,"note;cis\nfixture;\""+mark(1)+"\"\n");assertEquals(mark(1),KizImportReader.read(csv).marks().getFirst().raw());
-        Files.writeString(csv,"cis;code\n"+mark(1)+";"+mark(2));assertThrows(IllegalArgumentException.class,()->KizImportReader.read(csv));
+        Files.writeString(csv,"cis;code\n"+mark(1)+";"+mark(2));assertEquals(List.of(mark(1),mark(2)),KizImportReader.read(csv).marks().stream().map(KizMark::raw).toList());
     }
     @Test void xlsxNeverEvaluatesFormulasAndRequiresTextCells()throws Exception{
         var path=directory.resolve("marks.xlsx");try(var book=new org.apache.poi.xssf.usermodel.XSSFWorkbook()){
             var sheet=book.createSheet();sheet.createRow(0).createCell(0).setCellValue("cis");sheet.createRow(1).createCell(0).setCellValue(mark(1).replace("\u001d","<GS>"));sheet.createRow(2).createCell(0).setCellFormula("1+1");try(var out=Files.newOutputStream(path)){book.write(out);}
         }
-        var parsed=KizImportReader.read(path);assertFalse(parsed.valid());assertEquals(1,parsed.marks().size(),()->parsed.issues().toString());assertEquals("KIZ_TEXT_CELL_REQUIRED",parsed.issues().getFirst().code());
+        var parsed=KizImportReader.read(path);assertTrue(parsed.valid());assertEquals(1,parsed.damaged());assertEquals(1,parsed.marks().size(),()->parsed.issues().toString());assertEquals("KIZ_TEXT_CELL_REQUIRED",parsed.issues().getFirst().code());
     }
     @Test void decodesActualGs1DataMatrixFromPdfWithoutUsingHumanReadableText()throws Exception{
         var path=directory.resolve("labels.pdf");new ZnackKizLabelPdfExporter().write(List.of(new Kiz(1,mark(1)),new Kiz(2,mark(2))),null,path.toFile());

@@ -11,6 +11,18 @@ import java.util.*;
 
 /** Seller-imported stock can be allocated locally after category assignment; legal status is never fabricated. */
 public final class KizWarehouseRepository {
+    public Set<Integer> sellerOccurrences(Shop shop,Collection<Integer> ids){
+        if(ids.isEmpty())return Set.of();
+        ListingIdentity.require(shop);var result=new HashSet<Integer>();var keys=ids.stream().distinct().toList();
+        try(var c=Database.getConnection()){
+            requireOwner(c,shop,ListingIdentity.fingerprint(shop));
+            for(int offset=0;offset<keys.size();offset+=500){var batch=keys.subList(offset,Math.min(offset+500,keys.size()));
+                try(var p=c.prepareStatement("SELECT k.id FROM kiz_codes k JOIN kiz_import_entries i ON i.code_id=k.id JOIN kiz_import_batches b ON b.id=i.batch_id WHERE k.shop_id=? AND b.owner=? AND k.stock_instance<>'' AND k.id IN ("+String.join(",",Collections.nCopies(batch.size(),"?"))+")")){
+                    p.setInt(1,shop.getId());p.setString(2,ListingIdentity.fingerprint(shop));for(int i=0;i<batch.size();i++)p.setInt(i+3,batch.get(i));try(var r=p.executeQuery()){while(r.next())result.add(r.getInt(1));}
+                }
+            }return Set.copyOf(result);
+        }catch(SQLException e){throw new IllegalStateException("KIZ_IMPORT_STORAGE_FAILED",e);}
+    }
     public record Summary(String gtin,int total,int ready,int held,int consumed,int unverified,String category){
         public Summary(String gtin,int total,int ready,int held,int consumed,int unverified){this(gtin,total,ready,held,consumed,unverified,"");}
     }
@@ -22,7 +34,7 @@ public final class KizWarehouseRepository {
         validateImport(shop,preview);
         try(var c=Database.getConnection()) {
             String owner=ListingIdentity.fingerprint(shop);requireOwner(c,shop,owner);KizStockCategoryRepository.require(c,shop,category);
-            return new KizImportInventory(c).review(shop,owner,category,preview);
+            return new ImportReview(preview.marks().size(),0,0,0,0,0,0,0,0,0);
         }
     }
     public Imported commit(Shop shop,KizImportReader.Preview preview)throws Exception {
@@ -35,7 +47,7 @@ public final class KizWarehouseRepository {
         Objects.requireNonNull(category);
         return commitToCategory(shop,preview,category,false);
     }
-    /** Moving free stock from another category requires a separate explicit UI selection. */
+    /** Each category upload creates new stock units; the legacy move flag is retained for callers. */
     public Imported commitToCategory(Shop shop,KizImportReader.Preview preview,String category,boolean moveAvailable)throws Exception {
         Objects.requireNonNull(category);
         return commit(shop,new RegisteredGtinProof.Scope("Seller import@"+ListingIdentity.fingerprint(shop),"","",""),preview,category,moveAvailable);
@@ -46,7 +58,7 @@ public final class KizWarehouseRepository {
     private static void validateImport(Shop shop,KizImportReader.Preview preview) {
         ListingIdentity.require(shop);if(!preview.valid()||!preview.sha256().matches("[a-f0-9]{64}"))throw new IllegalArgumentException("KIZ_IMPORT_PREVIEW_INVALID");
         var marks=preview.marks();if(marks.size()>100000)throw new IllegalArgumentException("KIZ_CODE_COUNT_LIMIT");
-        var identities=new HashSet<String>();for(var mark:marks)if(!mark.equals(KizMark.parse(mark.raw()))||!identities.add(mark.cis()))throw new IllegalArgumentException("KIZ_IMPORT_PREVIEW_INVALID");
+        for(var mark:marks)if(!mark.equals(KizMark.parse(mark.raw())))throw new IllegalArgumentException("KIZ_IMPORT_PREVIEW_INVALID");
     }
     private Imported commit(Shop shop,RegisteredGtinProof.Scope scope,KizImportReader.Preview preview,String category,boolean moveAvailable)throws Exception {
         validateImport(shop,preview);var marks=preview.marks();String owner=ListingIdentity.fingerprint(shop);
@@ -55,19 +67,22 @@ public final class KizWarehouseRepository {
                 String now=Instant.now().toString();String batch=null;
                 requireOwner(c,shop,owner);
                 if(category!=null)KizStockCategoryRepository.require(c,shop,category);
-                var inventory=new KizImportInventory(c);var review=inventory.review(shop,owner,category,preview);
-                // Reuse the journal batch, but inspect each code's current category and state.
-                // File-level dedup used to prevent assigning earlier, unclassified imports.
-                try(var p=c.prepareStatement("SELECT id FROM kiz_import_batches WHERE shop_id=? AND owner=? AND file_hash=?")){
+                var inventory=category==null?new KizImportInventory(c):null;
+                var review=category==null?inventory.review(shop,owner,null,preview):new ImportReview(marks.size(),0,0,0,0,0,0,0,0,0);
+                // Only the older unclassified inventory API is idempotent. Seller
+                // category uploads do not inspect existing files, codes or their states.
+                if(category==null)try(var p=c.prepareStatement("SELECT id FROM kiz_import_batches WHERE shop_id=? AND owner=? AND file_hash=?")){
                     p.setInt(1,shop.getId());p.setString(2,owner);p.setString(3,preview.sha256());try(var r=p.executeQuery()){if(r.next())batch=r.getString(1);}
                 }
                 if(batch==null&&review.fresh()>0) {
                     batch=UUID.randomUUID().toString();
-                    try(var p=c.prepareStatement("INSERT INTO kiz_import_batches VALUES(?,?,?,?,?,?,?)")){p.setString(1,batch);p.setInt(2,shop.getId());p.setString(3,owner);p.setString(4,scope.source());p.setString(5,scope.inn());p.setString(6,preview.sha256());p.setString(7,now);p.executeUpdate();}
+                    try(var p=c.prepareStatement("INSERT INTO kiz_import_batches VALUES(?,?,?,?,?,?,?)")){p.setString(1,batch);p.setInt(2,shop.getId());p.setString(3,owner);p.setString(4,scope.source());p.setString(5,scope.inn());p.setString(6,category==null?preview.sha256():preview.sha256()+"|"+batch);p.setString(7,now);p.executeUpdate();}
                 }
                 var orders=new HashMap<String,Long>();int inserted=0,duplicates=0,classified=0,moved=0;
+                var legacyIdentities=new HashSet<String>();
                 for(var mark:marks){
-                    var disposition=inventory.disposition(shop,owner,category,mark);
+                    if(category==null&&!legacyIdentities.add(mark.cis())){duplicates++;continue;}
+                    var disposition=category==null?inventory.disposition(shop,owner,null,mark):KizImportInventory.Disposition.NEW;
                     if(disposition!=KizImportInventory.Disposition.NEW) {
                         duplicates++;
                         if(category!=null&&(disposition==KizImportInventory.Disposition.UNASSIGNED||moveAvailable&&disposition==KizImportInventory.Disposition.OTHER_CATEGORY)) {
@@ -92,8 +107,8 @@ public final class KizWarehouseRepository {
                             p.setInt(1,shop.getId());p.setString(2,mark.gtin());p.setString(3,now);p.setString(4,now);p.executeUpdate();try(var r=p.getGeneratedKeys()){if(!r.next())throw new SQLException();order=r.getLong(1);}
                         }orders.put(mark.gtin(),order);
                     }
-                    long id;try(var p=c.prepareStatement("INSERT INTO kiz_codes(shop_id,order_id,raw_code,display_code,gtin,status,legal_status,source_priority,created_at,updated_at) VALUES(?,?,?,?,?,'AVAILABLE','RECEIVED',0,?,?)",Statement.RETURN_GENERATED_KEYS)){
-                        p.setInt(1,shop.getId());p.setLong(2,order);p.setString(3,mark.raw());p.setString(4,mark.cis());p.setString(5,mark.gtin());p.setString(6,now);p.setString(7,now);p.executeUpdate();try(var r=p.getGeneratedKeys()){if(!r.next())throw new SQLException();id=r.getLong(1);}
+                    long id;try(var p=c.prepareStatement("INSERT INTO kiz_codes(shop_id,order_id,raw_code,display_code,gtin,status,legal_status,source_priority,created_at,updated_at,stock_instance) VALUES(?,?,?,?,?,'AVAILABLE','RECEIVED',0,?,?,?)",Statement.RETURN_GENERATED_KEYS)){
+                        p.setInt(1,shop.getId());p.setLong(2,order);p.setString(3,mark.raw());p.setString(4,mark.cis());p.setString(5,mark.gtin());p.setString(6,now);p.setString(7,now);p.setString(8,category==null?"":UUID.randomUUID().toString());p.executeUpdate();try(var r=p.getGeneratedKeys()){if(!r.next())throw new SQLException();id=r.getLong(1);}
                     }
                     try(var p=c.prepareStatement("INSERT INTO kiz_import_entries(code_id,batch_id,cis) VALUES(?,?,?)")){p.setLong(1,id);p.setString(2,batch);p.setString(3,mark.cis());p.executeUpdate();}
                     if(category!=null)try(var p=c.prepareStatement("INSERT INTO kiz_stock_classifications VALUES(?,?,?)")){p.setLong(1,id);p.setString(2,category);p.setString(3,now);p.executeUpdate();}

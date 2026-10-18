@@ -49,15 +49,11 @@ public final class KizWarehousePane extends BorderPane {
     private void chooseFile(){
         if(shop==null||busy)return;if(category.getValue()==null){status.setText(tr("select_category"));return;}var chooser=new FileChooser();chooser.setTitle(tr("import"));chooser.getExtensionFilters().setAll(new FileChooser.ExtensionFilter("KIZ", "*.txt","*.csv","*.json","*.xlsx","*.xls","*.pdf","*.png","*.jpg","*.jpeg","*.bmp","*.gif","*.tif","*.tiff","*.tsv","*.docx","*.rtf","*.md","*.html","*.htm","*.xml","*.zip"),new FileChooser.ExtensionFilter("All files","*.*"));
         var file=chooser.showOpenDialog(getScene()==null?null:getScene().getWindow());if(file==null)return;Shop owner=shop;var chosenCategory=category.getValue();long epoch=generation;
-        run(()->{var preview=KizImportReader.read(file.toPath());return new ImportPreview(preview,preview.valid()?repository.review(owner,preview,chosenCategory.id()):null);},data->{
-            var preview=data.preview();
-            if(!preview.valid()){
-                String issues=preview.issues().stream().limit(20).map(i->tr("row")+" "+i.row()+": "+KizErrorMessages.message(i.code())).collect(java.util.stream.Collectors.joining("\n"));
-                AlertService.showError(tr("invalid")+"\n"+issues);return;
-            }
-            var choice=KizImportDialog.confirm(getScene()==null?null:getScene().getWindow(),owner.getName()+" · "+chosenCategory.name(),preview,data.review());
-            if(choice.isEmpty()||shop!=owner||generation!=epoch)return;
-            run(()->new KizWarehouseService().importFile(owner,preview,true,chosenCategory.id(),choice.get().moveAvailable()),result->{status.setText(KizImportDialog.resultText(result));reload();});
+        run(()->KizImportReader.read(file.toPath()),preview->{
+            status.setText(KizImportDialog.fileText(preview));
+            if(!preview.valid()){KizImportDialog.report(getScene()==null?null:getScene().getWindow(),owner.getName()+" · "+chosenCategory.name(),preview,null);return;}
+            if(shop!=owner||generation!=epoch)return;
+            run(()->new KizWarehouseService().importFile(owner,preview,true,chosenCategory.id()),result->{status.setText(KizImportDialog.resultText(result,preview));reload();KizImportDialog.report(getScene()==null?null:getScene().getWindow(),owner.getName()+" · "+chosenCategory.name(),preview,result);});
         });
     }
     private void createCategory(){
@@ -93,7 +89,6 @@ public final class KizWarehousePane extends BorderPane {
     }
     private void buttons(){category.setDisable(shop==null||busy);newCategory.setDisable(shop==null||busy);classify.setDisable(shop==null||busy||category.getValue()==null||table.getSelectionModel().getSelectedItem()==null);linkProducts.setDisable(shop==null||busy||category.getValue()==null);archive.setDisable(shop==null||busy||table.getSelectionModel().getSelectedItem()==null);restore.setDisable(shop==null||busy||table.getSelectionModel().getSelectedItem()==null);indicator.setVisible(busy);indicator.setManaged(busy);add.setDisable(shop==null||busy);refresh.setDisable(shop==null||busy);automatic.setDisable(shop==null||busy);}
     private static String tr(String key){return I18nService.getInstance().tr("kiz.warehouse."+key);}
-    private record ImportPreview(KizImportReader.Preview preview,KizWarehouseRepository.ImportReview review){}
     private record Snapshot(List<KizWarehouseRepository.Summary> rows,boolean automatic,Map<String,Integer> issues,List<KizStockCategoryRepository.Category> categories){}
     @FunctionalInterface private interface Work<T>{T run()throws Exception;}
 }

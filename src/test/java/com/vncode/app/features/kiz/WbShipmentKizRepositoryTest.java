@@ -31,14 +31,14 @@ class WbShipmentKizRepositoryTest {
         assertEquals(4,new KizStockCategoryRepository().bindings(shop,List.of("101","102","103","104")).size());
         assertEquals(second,repository.refreshCategories(shop));
     }
-    @Test void importsAreImmediatelyUsableByCategoryAndRepeatedFilesCannotMoveStock()throws Exception {
+    @Test void importsAreImmediatelyUsableAndRepeatedFilesCreateIndependentCategoryStock()throws Exception {
         var rows=repository.refreshCategories(shop);String trousers=rows.stream().filter(row->row.name().endsWith("WB 10")).findFirst().orElseThrow().id();String shirt=rows.stream().filter(row->row.name().endsWith("WB 20")).findFirst().orElseThrow().id();
         var file=root.resolve("seller.txt");Files.write(file,List.of(KizWarehouseTest.mark(1),KizWarehouseTest.mark(2)));var preview=KizImportReader.read(file);
         var imported=new KizWarehouseService().importFile(shop,preview,true,trousers);assertEquals(2,imported.inserted());
         assertEquals(Set.of(trousers),repository.assignmentCategories(shop));
-        var repeat=new KizWarehouseService().importFile(shop,preview,true,shirt);assertEquals(0,repeat.inserted());assertEquals(2,repeat.duplicates());
+        var repeat=new KizWarehouseService().importFile(shop,preview,true,shirt);assertEquals(2,repeat.inserted());assertEquals(0,repeat.duplicates());
         assertEquals(2,repository.refreshCategories(shop).stream().filter(row->row.id().equals(trousers)).findFirst().orElseThrow().ready());
-        assertEquals(0,repository.refreshCategories(shop).stream().filter(row->row.id().equals(shirt)).findFirst().orElseThrow().ready());
+        assertEquals(2,repository.refreshCategories(shop).stream().filter(row->row.id().equals(shirt)).findFirst().orElseThrow().ready());
         var reserved=new KizCategoryAllocator().reservePartial(shop,List.of(new KizCategoryAllocator.Demand("a","101",1))).get("a");
         var held=repository.refreshCategories(shop).stream().filter(row->row.id().equals(trousers)).findFirst().orElseThrow();assertEquals(1,held.ready());assertEquals(1,held.held());
         new ZnackGtinInventoryService().consume(shop.getId(),reserved);var used=repository.refreshCategories(shop).stream().filter(row->row.id().equals(trousers)).findFirst().orElseThrow();assertEquals(1,used.consumed());assertEquals(0,used.held());

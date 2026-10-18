@@ -30,7 +30,16 @@ class ZnackGtinBackgroundServiceTest {
  }
  @Test void processesEveryPageInBoundedChildrenAndReportsActualProgress()throws Exception{
   var operations=new Operations(650);var pulses=new ArrayList<ZnackGtinBackgroundService.Progress>();var result=new ZnackGtinBackgroundService(operations).run(shop,Set.of(),pulses::add);
-  assertEquals(650,result.progress().total());assertEquals(650,result.progress().succeeded());assertEquals(7,operations.executions);assertEquals(7,operations.links);assertTrue(operations.batches.stream().allMatch(n->n<=100));assertEquals(650,pulses.getLast().completed());
+  assertEquals(650,result.progress().total());assertEquals(650,result.progress().succeeded());assertEquals(650,operations.executions);assertEquals(650,operations.links);assertTrue(operations.batches.stream().allMatch(n->n==1));assertEquals(651,pulses.size());assertEquals(1,pulses.get(1).succeeded());assertEquals(650,pulses.getLast().completed());
+ }
+ @Test void oneInvalidVariantDoesNotPreventValidVariantsFromBeingWritten()throws Exception{
+  var invalid=new ArrayList<String>();
+  var operations=new Operations(3){
+   public List<Selection> select(Shop s,String run,List<SyncRunRepository.Item> rows){if(rows.getFirst().productId().equals("p0"))throw new IllegalArgumentException("GTIN_VARIANT_CONFLICT");return super.select(s,run,rows);}
+   public void invalid(Shop s,String run,SyncRunRepository.Item row,Exception error){invalid.add(row.productId());}
+  };
+  var result=new ZnackGtinBackgroundService(operations).run(shop,Set.of(),p->{});
+  assertEquals(List.of("p0"),invalid);assertEquals(3,result.progress().completed());assertEquals(2,result.progress().succeeded());assertEquals(1,result.progress().blocked());assertEquals(2,operations.executions);
  }
  @Test void explicitSelectionCannotWriteOtherVariantsOrShops()throws Exception{
   var operations=new Operations(650);var key=new ProductKey(1,shop.getMarketplace(),"p450","v450");var result=new ZnackGtinBackgroundService(operations).run(shop,Set.of(key),p->{});assertEquals(1,result.progress().total());assertEquals(1,operations.executions);

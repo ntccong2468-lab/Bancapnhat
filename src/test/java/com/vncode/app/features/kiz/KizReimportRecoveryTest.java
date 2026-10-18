@@ -29,49 +29,53 @@ class KizReimportRecoveryTest {
     private KizImportReader.Preview file(int count)throws Exception {
         var file=root.resolve("seller.txt");var codes=new ArrayList<String>();for(int i=1;i<=count;i++)codes.add(KizWarehouseTest.mark(i));Files.write(file,codes);return KizImportReader.read(file);
     }
-    @Test void wbRecoversTwoHundredCodes()throws Exception{sameFileWithTwoHundredUnclassifiedImportsRecoversCategoryWithoutRecreatingCodes(Marketplace.WILDBERRIES);}
-    @Test void ozonRecoversTwoHundredCodes()throws Exception{sameFileWithTwoHundredUnclassifiedImportsRecoversCategoryWithoutRecreatingCodes(Marketplace.OZON);}
-    void sameFileWithTwoHundredUnclassifiedImportsRecoversCategoryWithoutRecreatingCodes(Marketplace market)throws Exception {
-        var shop=shop(market);var file=file(200);var original=warehouse.commit(shop,file);
-        var category=shipments.refreshCategories(shop).getFirst();assertEquals(0,category.ready());
-        var review=warehouse.review(shop,file,category.id());assertEquals(200,review.unassigned());assertEquals(0,review.fresh());
-        var recovered=warehouse.commitToCategory(shop,file,category.id());assertEquals(original.batch(),recovered.batch());assertEquals(0,recovered.inserted());assertEquals(200,recovered.classified());
-        assertEquals(200,shipments.refreshCategories(shop).getFirst().ready());
-        var repeat=warehouse.commitToCategory(shop,file,category.id());assertEquals(0,repeat.classified());assertEquals(200,repeat.review().sameCategory());
-        try(var c=Database.getConnection();var s=c.createStatement();var r=s.executeQuery("SELECT count(*),count(DISTINCT raw_code) FROM kiz_codes")){assertTrue(r.next());assertEquals(200,r.getInt(1));assertEquals(200,r.getInt(2));}
-        var assigned=new KizCategoryAllocator().reservePartial(shop,List.of(new KizCategoryAllocator.Demand("order","101",1)));assertEquals(1,assigned.get("order").size(),"No Znack settings, matching marketplace GTIN or remote connection required");
-    }
-    @Test void onlyExplicitMoveReclassifiesFreeImportsAndNeverReservedConsumedOrArchivedCodes()throws Exception {
-        var shop=shop(Marketplace.WILDBERRIES);var file=file(5);var categories=new KizStockCategoryRepository();var old=categories.create(shop,"Previous");var target=shipments.refreshCategories(shop).stream().filter(c->!c.id().equals(old.id())).findFirst().orElseThrow();
-        warehouse.commitToCategory(shop,file,old.id());
-        try(var c=Database.getConnection();var s=c.createStatement()) {
-            s.execute("UPDATE kiz_codes SET status='RESERVED' WHERE id=(SELECT min(id) FROM kiz_codes)");
-            s.execute("UPDATE kiz_codes SET status='CONSUMED' WHERE id=(SELECT min(id)+1 FROM kiz_codes)");
-            s.execute("UPDATE kiz_codes SET status='ARCHIVED' WHERE id=(SELECT min(id)+2 FROM kiz_codes)");
+
+    @Test void everyUploadCreatesNewOccurrencesIncludingAnIdenticalFileForBothMarketplaces()throws Exception {
+        for(var market:Marketplace.values()) {
+            var shop=shop(market);var preview=file(200);var category=shipments.refreshCategories(shop).getFirst();
+            for(int upload=1;upload<=3;upload++){
+                var result=warehouse.commitToCategory(shop,preview,category.id());assertEquals(200,result.inserted());assertEquals(0,result.duplicates());
+                assertEquals(upload*200,shipments.stocks(shop).getFirst().ready());
+            }
         }
-        var review=warehouse.review(shop,file,target.id());assertEquals(2,review.otherCategory());assertEquals(1,review.reserved());assertEquals(1,review.consumed());assertEquals(1,review.archived());
-        assertEquals(0,warehouse.commitToCategory(shop,file,target.id()).moved());
-        var result=warehouse.commitToCategory(shop,file,target.id(),true);assertEquals(2,result.moved());
-        var rows=shipments.refreshCategories(shop);assertEquals(2,rows.stream().filter(c->c.id().equals(target.id())).findFirst().orElseThrow().ready());
-        var previous=rows.stream().filter(c->c.id().equals(old.id())).findFirst().orElseThrow();assertEquals(1,previous.held());assertEquals(1,previous.consumed());
-        try(var c=Database.getConnection();var p=c.prepareStatement("SELECT count(*) FROM kiz_stock_classifications c JOIN kiz_codes k ON k.id=c.code_id WHERE k.status<>'AVAILABLE' AND c.category_id=?")){p.setString(1,old.id());try(var r=p.executeQuery()){assertTrue(r.next());assertEquals(3,r.getInt(1));}}
     }
-    @Test void changesBetweenReviewAndCommitCannotResurrectAReservedCode()throws Exception {
-        var shop=shop(Marketplace.WILDBERRIES);var file=file(2);warehouse.commit(shop,file);String category=shipments.refreshCategories(shop).getFirst().id();assertEquals(2,warehouse.review(shop,file,category).unassigned());
-        try(var c=Database.getConnection();var s=c.createStatement()){s.execute("UPDATE kiz_codes SET status='RESERVED' WHERE id=(SELECT min(id) FROM kiz_codes)");}
-        var result=warehouse.commitToCategory(shop,file,category,true);assertEquals(1,result.classified());assertEquals(1,result.review().reserved());assertEquals(1,shipments.refreshCategories(shop).getFirst().ready());
+    @Test void repeatedRowsAndPreviouslyConsumedOrReservedCodesAreAcceptedWithoutChangingOldOrders()throws Exception {
+        var shop=shop(Marketplace.WILDBERRIES);var category=shipments.refreshCategories(shop).getFirst();var original=file(2);
+        warehouse.commitToCategory(shop,original,category.id());
+        var allocator=new KizCategoryAllocator();var inventory=new com.vncode.app.integration.znack.ZnackGtinInventoryService();
+        var consumed=allocator.reservePartial(shop,List.of(new KizCategoryAllocator.Demand("old","101",1))).get("old");assertEquals(1,inventory.consume(1,consumed));
+        var reserved=allocator.reservePartial(shop,List.of(new KizCategoryAllocator.Demand("held","101",1))).get("held");
+        Files.write(root.resolve("seller.txt"),List.of(KizWarehouseTest.mark(1),KizWarehouseTest.mark(1),KizWarehouseTest.mark(2),"broken"));
+        var preview=KizImportReader.read(root.resolve("seller.txt"));assertEquals(3,preview.marks().size());assertEquals(1,preview.damaged());assertEquals(0,preview.duplicates());
+        assertEquals(3,warehouse.commitToCategory(shop,preview,category.id()).inserted());assertEquals(3,shipments.stocks(shop).getFirst().ready());
+        var assigned=allocator.reservePartial(shop,List.of(new KizCategoryAllocator.Demand("new","101",3))).get("new");
+        assertEquals(3,assigned.size());assertEquals(3,assigned.stream().map(com.vncode.app.models.Kiz::getId).distinct().count());assertEquals(2,assigned.stream().map(com.vncode.app.models.Kiz::getCode).distinct().count());
+        assertEquals(3,inventory.consume(1,assigned));assertEquals(1,inventory.release(1,reserved));
+        Database.initDatabase();var remaining=shipments.stocks(shop).getFirst();assertEquals(1,remaining.ready());assertEquals(4,remaining.consumed());
+        try(var c=Database.getConnection();var st=c.createStatement();var r=st.executeQuery("PRAGMA foreign_key_check")){assertFalse(r.next());}
     }
-    @Test void anotherShopAndRotatedCredentialsCannotClaimExistingPaidCodes()throws Exception {
-        var first=shop(Marketplace.WILDBERRIES);var file=file(2);warehouse.commit(first,file);
-        var second=shop(Marketplace.OZON);String target=shipments.refreshCategories(second).getFirst().id();assertEquals(2,warehouse.review(second,file,target).otherStock());
-        var result=warehouse.commitToCategory(second,file,target,true);assertEquals(0,result.inserted());assertEquals(0,result.classified());assertEquals(0,result.moved());
-        try(var c=Database.getConnection();var s=c.createStatement()){s.execute("UPDATE shops SET api_key='rotated' WHERE id=1");}
-        var rotated=new Shop(1,"Fixture","rotated");String rotatedTarget=shipments.refreshCategories(rotated).getFirst().id();assertEquals(2,warehouse.review(rotated,file,rotatedTarget).otherStock());assertEquals(0,warehouse.commitToCategory(rotated,file,rotatedTarget,true).classified());
+    @Test void eachSellerMayImportTheSameCodeButStaleShopCredentialsStillCannotWrite()throws Exception {
+        var first=shop(Marketplace.WILDBERRIES);var preview=file(2);warehouse.commitToCategory(first,preview,shipments.refreshCategories(first).getFirst().id());
+        var second=shop(Marketplace.OZON);String target=shipments.refreshCategories(second).getFirst().id();assertEquals(2,warehouse.commitToCategory(second,preview,target).inserted());
+        try(var c=Database.getConnection();var st=c.createStatement()){st.execute("UPDATE shops SET api_key='rotated' WHERE id=1");}
+        assertThrows(SecurityException.class,()->warehouse.commitToCategory(first,preview,target));
     }
-    @Test void differentCryptoForTheSameCisIsReportedAndOriginalCodeIsPreserved()throws Exception {
-        var shop=shop(Marketplace.WILDBERRIES);var file=file(1);warehouse.commit(shop,file);String target=shipments.refreshCategories(shop).getFirst().id();
-        Files.writeString(root.resolve("conflict.txt"),KizWarehouseTest.mark(1).replace("91ABCD","91EFGH"));var conflict=KizImportReader.read(root.resolve("conflict.txt"));assertTrue(conflict.valid());
-        assertEquals(1,warehouse.review(shop,conflict,target).conflicts());var result=warehouse.commitToCategory(shop,conflict,target,true);assertEquals(0,result.classified());assertEquals(0,result.inserted());
-        try(var c=Database.getConnection();var s=c.createStatement();var r=s.executeQuery("SELECT raw_code FROM kiz_codes")){assertTrue(r.next());assertEquals(KizWarehouseTest.mark(1),r.getString(1));}
+    @Test void validCryptoVariantsAreNotComparedWithPreviouslyUploadedContent()throws Exception {
+        var shop=shop(Marketplace.WILDBERRIES);String target=shipments.refreshCategories(shop).getFirst().id();warehouse.commitToCategory(shop,file(1),target);
+        Files.writeString(root.resolve("changed.txt"),KizWarehouseTest.mark(1).replace("91ABCD","91EFGH"));var preview=KizImportReader.read(root.resolve("changed.txt"));
+        assertEquals(1,warehouse.commitToCategory(shop,preview,target).inserted());assertEquals(2,shipments.stocks(shop).getFirst().ready());
+    }
+    @Test void deletingCategoriesPersistsAcrossRefreshAndKeepsExistingReservationProofForBothMarkets()throws Exception {
+        for(var market:Marketplace.values()){
+            var shop=shop(market);String category=shipments.refreshCategories(shop).getFirst().id();warehouse.commitToCategory(shop,file(2),category);
+            var held=new KizCategoryAllocator().reservePartial(shop,List.of(new KizCategoryAllocator.Demand("held","101",1))).get("held");assertEquals(1,held.size());
+            var result=new KizStockCategoryRepository().delete(shop,category);assertEquals(1,result.archived());assertEquals(1,result.held());
+            assertTrue(shipments.refreshCategories(shop).isEmpty());assertTrue(shipments.stocks(shop).isEmpty());assertTrue(shipments.assignmentCategories(shop).isEmpty());assertTrue(new KizStockCategoryRepository().bindings(shop,List.of("101")).isEmpty());
+            try(var c=Database.getConnection()){var mark=held.getFirst();assertTrue(KizCategoryAllocator.hasProof(c,shop.getId(),com.vncode.app.integration.listing.ListingIdentity.fingerprint(shop),mark.getId(),mark.getReservationToken(),"held","101"));}
+            assertEquals(1,new com.vncode.app.integration.znack.ZnackGtinInventoryService().consume(shop.getId(),held));
+            assertTrue(new KizCategoryAllocator().reservePartial(shop,List.of(new KizCategoryAllocator.Demand("new","101",1))).isEmpty());
+            assertThrows(SecurityException.class,()->warehouse.commitToCategory(shop,file(1),category));
+        }
+        Database.initDatabase();
     }
 }

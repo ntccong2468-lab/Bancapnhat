@@ -1,0 +1,102 @@
+{
+  "version": "1.4.19",
+  "baseline": {
+    "version": "1.4.18",
+    "tag": "v1.4.18",
+    "commit": "e77a746128fa51f183a2a193275b6b1ef894c251"
+  },
+  "jvm": {
+    "resultsAfterFullSweepAndAffectedRetests": {
+      "tests": 1758,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 2
+    },
+    "finalAffectedSuite": {
+      "tests": 58,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "lastPackageBuild": "SUCCESS",
+    "platform": "Linux / Java 25 / JavaFX Xvfb",
+    "note": "The final full sweep found one import-dialog timing error. Automatic import and stale-stock callback handling were fixed; all affected KIZ/UI cases were rerun. Results are the latest result of every test class, not a claim of one clean full-suite execution after that last UI change."
+  },
+  "liveCatalogRead": {
+    "checkedAt": "2026-10-18T07:49:40.667748+00:00",
+    "mode": "read-only",
+    "writesPerformed": false,
+    "services": [
+      {
+        "service": "WB",
+        "status": "read_ok",
+        "complete": true,
+        "pages": 4,
+        "products": 388,
+        "variants": 1982,
+        "productsWithFields": {
+          "tnved": 388,
+          "material": 388,
+          "gender": 382,
+          "brand": 388,
+          "barcodes": 388,
+          "documents": 388
+        }
+      },
+      {
+        "service": "Ozon",
+        "status": "read_ok",
+        "complete": true,
+        "pages": 1,
+        "products": 175
+      }
+    ]
+  },
+  "offlineProductionProjection": {
+    "mode": "offline production parser using real read-only API payloads",
+    "license": "fixture; not production license acceptance",
+    "products": 388,
+    "variants": 1982,
+    "snapshots": 388,
+    "failed": 0,
+    "fields": {
+      "barcodes": 388,
+      "brand": 388,
+      "documents": 338,
+      "gender": 382,
+      "material": 388,
+      "tnved": 388
+    },
+    "remoteWrites": false
+  },
+  "sellerFile": {
+    "usable": 600,
+    "damaged": 0,
+    "discardedDuplicates": 0,
+    "writesPerformed": false
+  },
+  "baselineUpgrade": {
+    "baseline": "1.4.18 Windows JAR",
+    "fromSchema": 5,
+    "toSchema": 6,
+    "insertedOnReimport": 2,
+    "available": 2,
+    "heldPreserved": 1,
+    "consumedPreserved": 1,
+    "foreignKeysValid": true,
+    "restartPassed": true,
+    "remoteWrites": false
+  },
+  "artifact": {
+    "type": "local Java package; not a Windows installer",
+    "file": "VNcode-1.4.19.jar",
+    "bytes": 5088598,
+    "sha256": "1af556075a37d41c80b250ffff831b6b83860c196d8bc58a5b85b1a9117a860a"
+  },
+  "limitations": {
+    "realGtinWriteThroughLicensedDesktop": "not_verified",
+    "productionLicenseAcceptance": "not_verified",
+    "windowsInstaller1419": "not_built",
+    "githubLatest": "1.4.18; unchanged"
+  }
+}

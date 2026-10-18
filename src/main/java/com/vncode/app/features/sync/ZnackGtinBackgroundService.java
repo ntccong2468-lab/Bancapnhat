@@ -19,6 +19,7 @@ public final class ZnackGtinBackgroundService {
         Job execute(Shop shop,String job)throws Exception;
         void link(Shop shop,String run,Job job);
         default void blocked(Shop shop,String run,List<SyncRunRepository.Item> rows,Job job){}
+        default void invalid(Shop shop,String run,SyncRunRepository.Item row,Exception failure){}
         default void finish(Shop shop,String run){}
         default void noEligible(Shop shop,String run){}
     }
@@ -35,9 +36,13 @@ public final class ZnackGtinBackgroundService {
             public void blocked(Shop s,String r,List<SyncRunRepository.Item> rows,Job j){
                 for(var row:j.rows())if(row.state()==State.BLOCKED){
                     var item=rows.stream().filter(i->i.productId().equals(row.key().productId())&&i.variantId().equals(row.key().variantId())).findFirst().orElseThrow();
-                    String reason=row.differences().stream().filter(Diff::blocking).map(Diff::code).filter(code->!code.isBlank()).findFirst().orElse("GTIN_VALIDATION_BLOCKED");
+                    String reason=row.issue().isBlank()?row.differences().stream().filter(Diff::blocking).map(Diff::code).filter(code->!code.isBlank()).findFirst().orElse("GTIN_VALIDATION_BLOCKED"):row.issue();
                     reports.update(s,item,"NEEDS_ACTION","VALIDATING",reason,null);
                 }
+            }
+            public void invalid(Shop s,String r,SyncRunRepository.Item row,Exception failure){
+                var error=SyncFailure.of(failure,0);
+                reports.update(s,row,error.actionRequired()?"NEEDS_ACTION":"WAITING_REMOTE","VALIDATING",error.code(),null);
             }
             public void finish(Shop s,String r){
                 var counts=reports.counts(r);
@@ -62,12 +67,20 @@ public final class ZnackGtinBackgroundService {
             throw new IllegalStateException("GTIN_NO_ELIGIBLE_PUBLISHED_CARDS");
         }
         int done=0,ok=0,pending=0,blocked=0;progress.accept(new Progress(0,rows.size(),0,0,0));
-        // Bound each durable child; other shops and FBS retain their own reserved workers.
-        for(int offset=0;offset<rows.size();offset+=100){
-            var batch=List.copyOf(rows.subList(offset,Math.min(offset+100,rows.size())));
-            var selections=operations.select(shop,run,batch);var plan=operations.preview(shop,selections);
+        // Validate and dispatch each variant before reading the next. A bad variant must
+        // neither starve valid variants nor hide progress behind a 100-item preview.
+        for(var item:rows){
+            if(Thread.currentThread().isInterrupted())throw new java.io.InterruptedIOException("GTIN_SYNC_CANCELLED");
+            var batch=List.of(item);Job plan;
+            try{plan=operations.preview(shop,operations.select(shop,run,batch));}
+            catch(com.vncode.app.features.license.LicenseGate.LicenseDeniedException|SecurityException denied){throw denied;}
+            catch(Exception invalid){
+                operations.invalid(shop,run,item,invalid);
+                if(SyncFailure.of(invalid,0).actionRequired())blocked++;else pending++;
+                progress.accept(new Progress(++done,rows.size(),ok,pending,blocked));continue;
+            }
             if(plan.readyCount()>0){plan=operations.execute(shop,plan.id());operations.link(shop,run,plan);}
-            else operations.blocked(shop,run,batch,plan);
+            operations.blocked(shop,run,batch,plan);
             for(var row:plan.rows())switch(row.state()){
                 case SUCCEEDED -> ok++;
                 case BLOCKED -> blocked++;

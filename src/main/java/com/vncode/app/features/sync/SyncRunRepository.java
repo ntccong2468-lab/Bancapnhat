@@ -116,6 +116,14 @@ public final class SyncRunRepository {
             p.setInt(1,shopId);p.setInt(2,shopId);p.setInt(3,limit);p.setInt(4,offset);var out=new ArrayList<Run>();try(var r=p.executeQuery()){while(r.next())out.add(new Run(r.getString("id"),r.getInt("shop_id"),r.getString("marketplace"),r.getString("kind"),r.getString("state"),r.getString("step"),r.getInt("total"),r.getString("created_at"),r.getString("updated_at"),r.getString("error_code")));}return List.copyOf(out);
         }catch(SQLException e){throw storage(e);}
     }
+    public Optional<Item> item(String run,String id){
+        try(var c=Database.getConnection();var p=c.prepareStatement("SELECT * FROM sync_run_items WHERE run_id=? AND id=?")){
+            p.setString(1,run);p.setString(2,id);try(var r=p.executeQuery()){return r.next()?Optional.of(readItem(r,run)):Optional.empty();}
+        }catch(SQLException e){throw storage(e);}
+    }
+    private static Item readItem(ResultSet r,String run)throws SQLException{
+        return new Item(r.getString("id"),run,r.getString("product_id"),r.getString("variant_id"),r.getString("sku"),r.getString("article"),r.getString("color"),r.getString("size"),r.getString("gtin"),r.getString("state"),r.getString("step"),r.getString("error_code"),r.getString("child_job"),r.getString("evidence_json"));
+    }
     public List<Item> items(String run,int offset,int limit){
         if(offset<0||limit<1||limit>1000)throw new IllegalArgumentException("SYNC_PAGE_LIMIT");
         try(var c=Database.getConnection();var p=c.prepareStatement("SELECT * FROM sync_run_items WHERE run_id=? ORDER BY rowid LIMIT ? OFFSET ?")){

@@ -17,7 +17,7 @@ public class ShipmentKizRepository {
         try(var c=Database.getConnection()) {
             String owner=require(c,shop,"categories");var result=new HashSet<String>();
             try(var p=c.prepareStatement("""
-                SELECT category.id FROM kiz_stock_categories category WHERE category.shop_id=? AND category.owner=? AND (
+                SELECT category.id FROM kiz_stock_categories category WHERE NOT EXISTS(SELECT 1 FROM kiz_stock_deleted_categories deleted WHERE deleted.category_id=category.id) AND category.shop_id=? AND category.owner=? AND (
                   NOT EXISTS(SELECT 1 FROM kiz_wb_category_sources auto WHERE auto.category_id=category.id) AND NOT EXISTS(SELECT 1 FROM kiz_ozon_category_sources auto WHERE auto.category_id=category.id)
                   OR EXISTS(SELECT 1 FROM kiz_stock_classifications classified WHERE classified.category_id=category.id))
                 """)) {
@@ -56,6 +56,7 @@ public class ShipmentKizRepository {
                 }
                 for(var subject:subjects.entrySet()) {
                     String id=UUID.nameUUIDFromBytes((shop.getId()+"|"+owner+"|WB|"+subject.getKey()).getBytes(StandardCharsets.UTF_8)).toString();
+                    if(deleted(c,id))continue;
                     String label=subject.getValue()+" · WB "+subject.getKey();
                     try(var p=c.prepareStatement("INSERT INTO kiz_stock_categories VALUES(?,?,?,?,?) ON CONFLICT(id) DO UPDATE SET name=excluded.name")) {
                         p.setString(1,id);p.setInt(2,shop.getId());p.setString(3,owner);p.setString(4,label);p.setString(5,now);p.executeUpdate();
@@ -83,7 +84,7 @@ public class ShipmentKizRepository {
                     LEFT JOIN kiz_import_entries entry ON entry.code_id=classified.code_id
                     LEFT JOIN kiz_import_batches batch ON batch.id=entry.batch_id AND batch.owner=category.owner AND batch.shop_id=category.shop_id
                     LEFT JOIN kiz_codes k ON k.id=entry.code_id AND k.shop_id=category.shop_id AND batch.id IS NOT NULL
-                    WHERE category.shop_id=? AND category.owner=? GROUP BY category.id ORDER BY category.name,category.id
+                    WHERE NOT EXISTS(SELECT 1 FROM kiz_stock_deleted_categories deleted WHERE deleted.category_id=category.id) AND category.shop_id=? AND category.owner=? GROUP BY category.id ORDER BY category.name,category.id
                     """)) {
                     p.setInt(1,shop.getId());p.setString(2,owner);try(var r=p.executeQuery()){while(r.next())rows.add(new CategoryStock(r.getString(1),r.getString(2),r.getInt(3),r.getInt(4),r.getInt(5),r.getInt(6)));}
                 }
@@ -103,7 +104,7 @@ public class ShipmentKizRepository {
                 LEFT JOIN kiz_import_entries entry ON entry.code_id=classified.code_id
                 LEFT JOIN kiz_import_batches batch ON batch.id=entry.batch_id AND batch.owner=category.owner AND batch.shop_id=category.shop_id
                 LEFT JOIN kiz_codes k ON k.id=entry.code_id AND k.shop_id=category.shop_id AND batch.id IS NOT NULL
-                WHERE category.shop_id=? AND category.owner=? GROUP BY category.id ORDER BY category.name,category.id
+                WHERE NOT EXISTS(SELECT 1 FROM kiz_stock_deleted_categories deleted WHERE deleted.category_id=category.id) AND category.shop_id=? AND category.owner=? GROUP BY category.id ORDER BY category.name,category.id
                 """)){
                 p.setInt(1,shop.getId());p.setString(2,owner);try(var r=p.executeQuery()){while(r.next())rows.add(new CategoryStock(r.getString(1),r.getString(2),r.getInt(3),r.getInt(4),r.getInt(5),r.getInt(6)));}
             }return List.copyOf(rows);
@@ -117,6 +118,7 @@ public class ShipmentKizRepository {
         }
         for(var group:groups){
             String id=UUID.nameUUIDFromBytes((shop.getId()+"|"+owner+"|OZON|"+group.category()+"|"+group.type()).getBytes(StandardCharsets.UTF_8)).toString();
+            if(deleted(c,id))continue;
             String label=(group.name()==null||group.name().isBlank()?"Ozon":group.name())+" · "+group.category()+" / "+group.type();
             try(var p=c.prepareStatement("INSERT INTO kiz_stock_categories VALUES(?,?,?,?,?) ON CONFLICT(id) DO UPDATE SET name=excluded.name")){
                 p.setString(1,id);p.setInt(2,shop.getId());p.setString(3,owner);p.setString(4,label);p.setString(5,now);p.executeUpdate();
@@ -143,10 +145,13 @@ public class ShipmentKizRepository {
             LEFT JOIN kiz_import_entries entry ON entry.code_id=classified.code_id
             LEFT JOIN kiz_import_batches batch ON batch.id=entry.batch_id AND batch.owner=category.owner AND batch.shop_id=category.shop_id
             LEFT JOIN kiz_codes k ON k.id=entry.code_id AND k.shop_id=category.shop_id AND batch.id IS NOT NULL
-            WHERE category.shop_id=? AND category.owner=? GROUP BY category.id ORDER BY category.name,category.id
+            WHERE NOT EXISTS(SELECT 1 FROM kiz_stock_deleted_categories deleted WHERE deleted.category_id=category.id) AND category.shop_id=? AND category.owner=? GROUP BY category.id ORDER BY category.name,category.id
             """)){
             p.setInt(1,shop.getId());p.setString(2,owner);try(var r=p.executeQuery()){while(r.next())rows.add(new CategoryStock(r.getString(1),r.getString(2),r.getInt(3),r.getInt(4),r.getInt(5),r.getInt(6)));}
         }return List.copyOf(rows);
+    }
+    private static boolean deleted(Connection c,String id)throws SQLException {
+        try(var p=c.prepareStatement("SELECT 1 FROM kiz_stock_deleted_categories WHERE category_id=?")){p.setString(1,id);try(var r=p.executeQuery()){return r.next();}}
     }
     private static String require(Connection c,Shop shop,String shipment)throws SQLException {
         if(shop.getMarketplace()!=com.vncode.app.integration.marketplace.Marketplace.WILDBERRIES && shop.getMarketplace()!=com.vncode.app.integration.marketplace.Marketplace.OZON)throw new IllegalArgumentException("KIZ_MARKETPLACE_UNSUPPORTED");ListingIdentity.require(shop);

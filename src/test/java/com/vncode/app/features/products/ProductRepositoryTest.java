@@ -156,11 +156,11 @@ class ProductRepositoryTest {
         }
         var page=new ProductRepository().loadPage(query("",null));assertEquals(50000,page.total());assertEquals(100,page.rows().size());
     }
-    @Test void migration4To5PreservesRows() throws Exception {
+    @Test void migration4ToCurrentPreservesRows() throws Exception {
         card(1,1,"Existing",null);
         try(var c=Database.getConnection();var s=c.createStatement()){s.execute("PRAGMA user_version=4");}
         Database.initDatabase();
-        try(var c=Database.getConnection();var s=c.createStatement();var r=s.executeQuery("PRAGMA user_version")){assertTrue(r.next());assertEquals(5,r.getInt(1));}
+        try(var c=Database.getConnection();var s=c.createStatement();var r=s.executeQuery("PRAGMA user_version")){assertTrue(r.next());assertEquals(Database.currentSchemaVersion(),r.getInt(1));}
         assertEquals(1,new ProductRepository().loadPage(query("",null)).total());
         try(var c=Database.getConnection();var s=c.createStatement();var r=s.executeQuery("PRAGMA foreign_key_check")){assertFalse(r.next());}
     }

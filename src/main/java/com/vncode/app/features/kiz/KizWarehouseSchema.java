@@ -22,6 +22,7 @@ public final class KizWarehouseSchema {
                   cis TEXT NOT NULL UNIQUE,reason TEXT NOT NULL DEFAULT 'KIZ_NOT_VERIFIED',verified_at TEXT)
                 """);
             s.execute("CREATE INDEX IF NOT EXISTS idx_kiz_import_batch ON kiz_import_entries(batch_id,code_id)");
+            SellerKizImportSchema.entries(c);
             s.execute("""
                 CREATE TABLE IF NOT EXISTS kiz_warehouse_settings(
                   shop_id INTEGER PRIMARY KEY REFERENCES shops(id) ON DELETE CASCADE,
@@ -39,6 +40,11 @@ public final class KizWarehouseSchema {
                   category_id TEXT NOT NULL REFERENCES kiz_stock_categories(id) ON DELETE CASCADE,assigned_at TEXT NOT NULL)
                 """);
             s.execute("CREATE INDEX IF NOT EXISTS kiz_stock_classification_category ON kiz_stock_classifications(category_id,code_id)");
+            s.execute("""
+                CREATE TABLE IF NOT EXISTS kiz_stock_deleted_categories(
+                  category_id TEXT PRIMARY KEY REFERENCES kiz_stock_categories(id) ON DELETE CASCADE,
+                  deleted_at TEXT NOT NULL)
+                """);
             s.execute("""
                 CREATE TABLE IF NOT EXISTS kiz_stock_product_categories(
                   shop_id INTEGER NOT NULL REFERENCES shops(id) ON DELETE CASCADE,marketplace TEXT NOT NULL,

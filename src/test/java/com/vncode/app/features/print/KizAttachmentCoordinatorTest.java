@@ -273,4 +273,28 @@ class KizAttachmentCoordinatorTest {
         public KizService.RemoveMetaResult remove(String token,long id){throw new AssertionError();}
         public KizService.AttachCodeResult attach(String token,long id,String code){calls.incrementAndGet();return new KizService.AttachCodeResult(true,204,"");}
     };}
+
+    @Test void repeatedSellerCodesReachTheQueueAsSeparateStockUnits()throws Exception {
+        System.setProperty("vncode.appdata.dir",directory.toString());
+        try{
+            com.vncode.app.config.Database.initDatabase();
+            var shop=new Shop(1,"Seller","fixture");
+            try(var c=com.vncode.app.config.Database.getConnection();var st=c.createStatement()){
+                st.execute("INSERT INTO shops(id,name,api_key) VALUES(1,'Seller','fixture')");
+                st.execute("INSERT INTO wb_product_cards(shop_id,nm_id,title,synced_at) VALUES(1,101,'Synthetic','now')");
+            }
+            var categories=new com.vncode.app.features.kiz.KizStockCategoryRepository();var category=categories.create(shop,"Synthetic");
+            categories.assignProducts(shop,category.id(),List.of(new com.vncode.app.features.products.ProductKey(1,shop.getMarketplace(),"101","")));
+            var file=directory.resolve("same.txt");java.nio.file.Files.write(file,List.of("0100000000000017210000000000001","0100000000000017210000000000001"));
+            new com.vncode.app.features.kiz.KizWarehouseRepository().commitToCategory(shop,com.vncode.app.features.kiz.KizImportReader.read(file),category.id());
+            var units=new com.vncode.app.features.kiz.KizCategoryAllocator().reservePartial(shop,List.of(new com.vncode.app.features.kiz.KizCategoryAllocator.Demand("orders","101",2))).get("orders");
+            var queued=new ArrayList<Runnable>();
+            var coordinator=new KizAttachmentCoordinator(queued::add,new KizAttachmentCoordinator.AttachmentClient(){
+                public KizService.RemoveMetaResult remove(String token,long order){throw new AssertionError("No remote writes in this queue test");}
+                public KizService.AttachCodeResult attach(String token,long order,String code){throw new AssertionError("No remote writes in this queue test");}
+            });
+            coordinator.enqueue(shop,"shipment","shipment",List.of(new OrderExportWorkflow.KizAttachmentAssignment(101L,units.get(0).getCode(),units.get(0),false),new OrderExportWorkflow.KizAttachmentAssignment(102L,units.get(1).getCode(),units.get(1),false)));
+            assertEquals(1,queued.size());
+        }finally{System.clearProperty("vncode.appdata.dir");}
+    }
 }

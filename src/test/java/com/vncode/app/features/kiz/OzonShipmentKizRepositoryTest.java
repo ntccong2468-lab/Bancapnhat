@@ -23,13 +23,13 @@ class OzonShipmentKizRepositoryTest {
   assertEquals(id,repository.refreshCategories(shop).stream().filter(c->c.name().endsWith("10 / 20")).findFirst().orElseThrow().id());
   var source=new KizSourceSelection(false,true);repository.saveSelection(shop,"OZON:FBS",source);assertEquals(source,repository.selection(shop,"OZON:FBS"));assertEquals(KizSourceSelection.SELLER_ONLY,repository.selection(shop,"another-batch"));
  }
- @Test void importedStockImmediatelyCountsWithoutZnackAndCannotMoveOnRepeatedImport()throws Exception {
+ @Test void importedStockImmediatelyCountsWithoutZnackAndRepeatedImportsAddNewStock()throws Exception {
   new OzonCatalogRepository().upsertPage(shop.getId(),List.of(product("101","20"),product("102","30")),"");
   var groups=repository.refreshCategories(shop);var file=root.resolve("seller.txt");Files.writeString(file,KizWarehouseTest.mark(1));var preview=KizImportReader.read(file);
   try(var c=Database.getConnection();var st=c.createStatement()){st.execute("DELETE FROM znack_settings");}
-  var service=new KizWarehouseService();assertEquals(1,service.importFile(shop,preview,true,groups.get(0).id()).inserted());assertEquals(0,service.importFile(shop,preview,true,groups.get(1).id()).inserted());
+  var service=new KizWarehouseService();assertEquals(1,service.importFile(shop,preview,true,groups.get(0).id()).inserted());assertEquals(1,service.importFile(shop,preview,true,groups.get(1).id()).inserted());
   assertEquals(1,repository.refreshCategories(shop).stream().filter(c->c.id().equals(groups.get(0).id())).findFirst().orElseThrow().ready());
-  assertEquals(0,repository.refreshCategories(shop).stream().filter(c->c.id().equals(groups.get(1).id())).findFirst().orElseThrow().ready());
+  assertEquals(1,repository.refreshCategories(shop).stream().filter(c->c.id().equals(groups.get(1).id())).findFirst().orElseThrow().ready());
  }
  @Test void missingNativeCategoryDoesNotGuessFromNameAndDuplicateSkuCannotSupplyAnImage(){
   new OzonCatalogRepository().upsertPage(shop.getId(),List.of(new OzonProductDto("1","a","same","One","https://img/one",false,"",List.of()),new OzonProductDto("2","b","same","Two","https://img/two",false,"",List.of())),"");

@@ -110,6 +110,18 @@ public final class ProductRepository {
     public List<ProductKey> freezeKeys(ProductQuery query) {return freezeKeys(query,"");}
     public List<ProductKey> freezeKeys(ProductQuery query,String receipt) {return freezeKeys(query,receipt,false);}
     public List<ProductKey> freezeProductKeys(ProductQuery query){return freezeKeys(query,"",true);}
+    /** Freeze card identities before enrichment changes sort/filter values. No display-page limit. */
+    public List<ProductKey> synchronizationKeys(int shop,Marketplace market) {
+        try(var c=open()) {
+            requireOwner(c,shop,market);
+            String sql=market==Marketplace.OZON
+                ? "SELECT product_id,COALESCE(offer_id,'') FROM ozon_products WHERE shop_id=? AND archived=0 ORDER BY product_id"
+                : "SELECT CAST(p.nm_id AS TEXT),COALESCE(CAST(MIN(v.chrt_id) AS TEXT),'') FROM wb_product_cards p LEFT JOIN wb_product_sizes v ON v.shop_id=p.shop_id AND v.nm_id=p.nm_id WHERE p.shop_id=? GROUP BY p.nm_id ORDER BY p.nm_id";
+            var keys=new ArrayList<ProductKey>();
+            try(var p=c.prepareStatement(sql)){p.setInt(1,shop);try(var r=p.executeQuery()){while(r.next())keys.add(new ProductKey(shop,market,r.getString(1),r.getString(2)));}}
+            return List.copyOf(keys);
+        }catch(SQLException error){throw storeError();}
+    }
     private List<ProductKey> freezeKeys(ProductQuery query,String receipt,boolean cardView) {
         try(var c=open()) {
             c.setAutoCommit(false);requireOwner(c,query.shopId(),query.marketplace());var args=new ArrayList<Object>();String projection=projection(query,args,c,cardView);String predicate=filter(query,args)+receiptFilter(query,receipt,args);

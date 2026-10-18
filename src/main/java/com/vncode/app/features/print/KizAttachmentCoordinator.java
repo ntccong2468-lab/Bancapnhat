@@ -74,7 +74,12 @@ public final class KizAttachmentCoordinator {
             return new OrderExportWorkflow.KizAttachmentAssignment(a.orderId(),a.kizCode(),frozen,a.replaceExisting());
         }).toList();
         Set<Long> ids=new HashSet<>();Set<String> codes=new HashSet<>();
-        for(var a:copy)if(a.orderId()==null||a.orderId()<=0||a.kizCode()==null||a.kizCode().isBlank()||!ids.add(a.orderId())||!codes.add(hash(a.kizCode()))||a.sourceKiz()!=null&&!Objects.equals(KizService.scannerSafeCode(a.kizCode()),KizService.scannerSafeCode(a.sourceKiz().getCode())))throw new IllegalArgumentException("KIZ_ASSIGNMENT_DUPLICATE_OR_INVALID");
+        boolean repeated=copy.stream().map(OrderExportWorkflow.KizAttachmentAssignment::kizCode).distinct().count()<copy.size();
+        var imported=repeated?new com.vncode.app.features.kiz.KizWarehouseRepository().sellerOccurrences(shop,copy.stream().filter(a->a.sourceKiz()!=null).map(a->a.sourceKiz().getId()).toList()):Set.<Integer>of();
+        for(var a:copy){
+            String occurrence=a.sourceKiz()!=null&&imported.contains(a.sourceKiz().getId())?":"+a.sourceKiz().getId():"";
+            if(a.orderId()==null||a.orderId()<=0||a.kizCode()==null||a.kizCode().isBlank()||!ids.add(a.orderId())||!codes.add(hash(a.kizCode())+occurrence)||a.sourceKiz()!=null&&!Objects.equals(KizService.scannerSafeCode(a.kizCode()),KizService.scannerSafeCode(a.sourceKiz().getCode())))throw new IllegalArgumentException("KIZ_ASSIGNMENT_DUPLICATE_OR_INVALID");
+        }
         Job job=new Job(shop,new JobKey(shop.getId(),supplyId==null?"":supplyId),supplyName==null?"":supplyName,copy);
         synchronized(lock){
             if(activeJobs.size()>=128)throw new IllegalStateException("KIZ_QUEUE_FULL");
