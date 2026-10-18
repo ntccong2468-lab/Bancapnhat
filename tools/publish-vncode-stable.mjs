@@ -61,8 +61,8 @@ export function validateFixtureRecovery(proof,version,sha,summary){
 // This one release was requested after the owner was told which live checks remain.
 // Retain the normal production-acceptance gate and all source/artifact/native checks.
 export function validateOwnerApproved1418(decision,status,version,sha,runId) {
-    assert.equal(version,'1.4.18');assert.equal(sha,'62a5d0ea5f1abaf0ea638319b0b18231dfd0c238');
-    assert.equal(String(runId),'39099056215');
+    assert.equal(version,'1.4.18');assert.equal(sha,'e77a746128fa51f183a2a193275b6b1ef894c251');
+    assert.equal(String(runId),'39102138545');
     assert.equal(decision.version,version);assert.equal(decision.sourceCommit,sha);assert.equal(String(decision.runId),String(runId));
     assert.equal(decision.ownerRequestedPublication,true);assert.equal(decision.ownerInstruction,'xuất bản cập nhật mới');
     assert.equal(decision.ownerInformedOfUnverifiedChecks,true);assert.equal(decision.standardFullAcceptanceClaimed,false);

@@ -41,7 +41,7 @@ test('installer proof retains the verified Windows Java origin after a probe-onl
  for(const patch of [{sourceCommit:'b'.repeat(40)},{applicationAndJavaTestInputsUnchanged:false},{fixtureClassesCompiledWithoutChangingJar:false},{originRunId:1},{archiveSha256:'b'.repeat(64)},{tests:{...summary,tests:1743}}])assert.throws(()=>validateReusedJava({...proof,...patch},'1.4.17',sha,summary));
 });
 test('owner publication is limited to the exact requested 1.4.18 build and records incomplete live acceptance honestly',()=>{
- const sha='62a5d0ea5f1abaf0ea638319b0b18231dfd0c238',runId='39099056215';
+ const sha='e77a746128fa51f183a2a193275b6b1ef894c251',runId='39102138545';
  const decision={version:'1.4.18',sourceCommit:sha,runId:Number(runId),ownerRequestedPublication:true,ownerInstruction:'xuất bản cập nhật mới',ownerInformedOfUnverifiedChecks:true,standardFullAcceptanceClaimed:false,productionLicenseAcceptance:false,enterpriseCryptoProSigningAccepted:false,marketplaceLiveGtinWritesAccepted:false,installerSha256:'a'.repeat(64),installerBytes:145000000};
  const status={version:'1.4.18',complete:false,licenseIntegration:{productionReady:false,changedInThisVersion:false},validation:{liveCryptoProSigningThisVersion:false,liveMarketplaceGtinWriteThisVersion:false,productionLicenseVerified:false,windowsBuild:{state:'passed',runId:Number(runId)},registrationPromptReview:{suggestionsReviewedInTable:true,applyBelowTableVerified:true,ambiguousValuesNotInvented:true}}};
  const args=['1.4.18',sha,runId];validateOwnerApproved1418(decision,status,...args);
