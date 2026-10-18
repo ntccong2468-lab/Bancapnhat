@@ -4,7 +4,7 @@
   "complete": false,
   "developmentComplete": false,
   "officialReleasePublished": false,
-  "phase": "windows-installer-verified-draft-preparation",
+  "phase": "draft-installer-uploaded-awaiting-real-production-acceptance",
   "licenseIntegration": {
     "implemented": true,
     "productionReady": false,
@@ -237,5 +237,13 @@
     "support": "Keep existing Support/Guides as explicitly requested; no new conversation/image backend",
     "kizRefill": "Allow new KIZ batches when empty, including the same filename; do not restore previously used codes"
   },
-  "applicationSourceCommit": "c09bc0d52eeae70f95dd8d9da065c4d309849c6d"
+  "applicationSourceCommit": "c09bc0d52eeae70f95dd8d9da065c4d309849c6d",
+  "draftRelease": {
+    "url": "https://github.com/ntccong2468-lab/Bancapnhat/releases/tag/untagged-30df1c4def4f443d541f",
+    "prepareRunId": 39081738686,
+    "uploaded": true,
+    "authenticatedRepositoryAccessRequired": true,
+    "installerAndNotesVerifiedByPublisher": true
+  },
+  "observedLatest": "1.4.16"
 }
