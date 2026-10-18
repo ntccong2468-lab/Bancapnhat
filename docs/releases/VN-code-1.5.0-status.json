@@ -1,10 +1,10 @@
 {
   "version": "1.5.0",
-  "state": "verified-awaiting-requested-publication",
+  "state": "published-latest-under-continuing-owner-request-with-disclosed-live-acceptance-limits",
   "baseline": "v1.4.19",
   "databaseSchema": 6,
-  "published": false,
-  "latest": "1.4.19",
+  "published": true,
+  "latest": "1.5.0",
   "complete": false,
   "validation": {
     "windowsBuild": {
@@ -77,7 +77,9 @@
         "sha256": "b5b5ddd562213aa655c3183bc8e7e998ba58d42abd1563442a397865a5faea3f",
         "artifactChecksumMatched": true,
         "peHeaderVerified": true,
-        "fullPublicDownloadVerified": false
+        "fullPublicDownloadVerified": true,
+        "url": "https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.5.0/VN-code-1.5.0-Windows-x64.exe",
+        "checksumAssetMatched": true
       }
     },
     "productionLicenseVerified": false,
@@ -165,6 +167,18 @@
       "failures": 0,
       "platform": "Linux / Node",
       "scope": "Publication tooling only; application and Windows Java test inputs unchanged"
+    },
+    "liveUpdaterAfterPublication": {
+      "result": "passed",
+      "installed1419Status": "AVAILABLE",
+      "installed150Status": "CURRENT",
+      "newVersion": "1.5.0",
+      "realProductionServiceRequests": true,
+      "oldAndNewWindowsJarClientsVerified": true,
+      "fullPublicInstallerDownloadVerified": true,
+      "windowsUrlSha256SizeVerified": true,
+      "sellerDesktopNotificationDelivered": false,
+      "evidence": "../validation/2026-10-18-vncode-150-update-feed-after.json"
     }
   },
   "licenseIntegration": {
@@ -180,7 +194,44 @@
     "sha256": "b5b5ddd562213aa655c3183bc8e7e998ba58d42abd1563442a397865a5faea3f",
     "artifactChecksumMatched": true,
     "peHeaderVerified": true,
-    "fullPublicDownloadVerified": false
+    "fullPublicDownloadVerified": true,
+    "url": "https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.5.0/VN-code-1.5.0-Windows-x64.exe",
+    "checksumAssetMatched": true
   },
-  "ownerRequestedPublication": true
+  "ownerRequestedPublication": true,
+  "release": {
+    "id": 416488658,
+    "url": "https://github.com/ntccong2468-lab/Bancapnhat/releases/tag/v1.5.0",
+    "tag": "v1.5.0",
+    "sourceCommit": "2eea069123737e2c9f7bcddcecaa51f21a1645dc",
+    "publishedAtUtc": "2026-10-18T14:14:48Z",
+    "publicationRunId": 39134818816,
+    "publicationRunAttempt": 2,
+    "publicAssetCount": 30
+  },
+  "publicationAttempts": [
+    {
+      "method": "GitHub Actions",
+      "runId": 39134818816,
+      "runAttempt": 1,
+      "result": "failed",
+      "reason": "Integration token was denied when creating the immutable tag (Git refs HTTP 403).",
+      "installerOrApplicationFailure": false
+    },
+    {
+      "method": "Environment-authenticated verified publisher",
+      "result": "partial",
+      "tagCreatedAtVerifiedApplicationCommit": true,
+      "draftReleaseCreated": true,
+      "reason": "Environment credential was accepted by GitHub API but not by uploads.github.com (HTTP 401).",
+      "installerOrApplicationFailure": false
+    },
+    {
+      "method": "GitHub Actions using the existing immutable tag and draft",
+      "runId": 39134818816,
+      "runAttempt": 2,
+      "result": "passed",
+      "fullSourceNativeArtifactAndJavaChecksRetained": true
+    }
+  ]
 }

@@ -71,7 +71,7 @@
     "closingStartupWaitsForDataWorker": true
   },
   "windowsInstallerBuilt": true,
-  "published": false,
+  "published": true,
   "productionLicenseAcceptance": false,
   "liveCryptoProSigning": false,
   "liveDesktopMarketplaceWrite": false,
@@ -94,5 +94,6 @@
     "sourceCommit": "2eea069123737e2c9f7bcddcecaa51f21a1645dc",
     "result": "passed",
     "evidence": "2026-10-18-vncode-150-windows-native.json"
-  }
+  },
+  "releaseUrl": "https://github.com/ntccong2468-lab/Bancapnhat/releases/tag/v1.5.0"
 }

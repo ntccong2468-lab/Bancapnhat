@@ -1,8 +1,8 @@
 # VN code
 
-Bản nền cho các cập nhật tiếp theo: [VNCode 1.4.19](docs/releases/BASELINE.md).
+Bản nền cho các cập nhật tiếp theo: [VNCode 1.5.0](docs/releases/BASELINE.md).
 
-Đang chuẩn bị [VNCode 1.5.0](docs/releases/VN-code-1.5.0.md): Liquid Glass mới,
+Đã phát hành [VNCode 1.5.0](docs/releases/VN-code-1.5.0.md): Liquid Glass mới,
 đăng ký từng thẻ, báo cáo GTIN/CryptoPro và sửa kho KIZ khi xóa danh mục.
 [Trạng thái bộ cài và nghiệm thu](docs/releases/VN-code-1.5.0-status.json).
 

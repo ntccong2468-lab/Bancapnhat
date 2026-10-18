@@ -15,4 +15,4 @@
 | Đăng ký/ký thẻ và sửa sàn qua nút ứng dụng thật | **Chưa hoàn tất:** môi trường Linux không có CryptoPro/chứng thư riêng của seller, license production hay phiên seller Windows để nghiệm thu. Không dùng chứng thư hoặc license giả để thay thế. |
 | Lọc KIZ đỏ bị WB/Ozon từ chối ngay lúc nhập | **Chưa triển khai xác minh hàng loạt trên sàn.** Báo cáo tệp chỉ xác minh cấu trúc và ghi rõ chưa kiểm tra chấp nhận trên sàn; lỗi mạng/quyền không được gán thành “mã hỏng”. |
 
-Chi tiết kiểm thử và bộ cài được cập nhật trong [trạng thái phát hành](VN-code-1.5.0-status.json). Bản nền đã phát hành vẫn là 1.4.19 cho đến khi 1.5.0 được xuất bản.
+Chi tiết kiểm thử và bộ cài được cập nhật trong [trạng thái phát hành](VN-code-1.5.0-status.json). Đã xuất bản 1.5.0 lên Latest, lưu làm bản nền cho các cập nhật sau. Bộ kiểm thử Windows: 1.790 đạt, 2 trường hợp bỏ qua theo nền tảng; 288 bố cục và 15 đường nâng cấp đã qua. Đã tải toàn bộ bộ cài công khai, xác minh SHA-256 và kiểm tra nguồn cập nhật bằng mã ứng dụng 1.4.19/1.5.0 thật; chưa xác nhận thông báo trên máy seller.
