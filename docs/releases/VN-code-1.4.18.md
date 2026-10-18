@@ -1,5 +1,8 @@
 # VNCode 1.4.18
 
+- Màn Sản phẩm theo bố cục ảnh đã duyệt: bộ lọc và cảnh báo phía trên, ảnh cùng thông tin sản phẩm theo cột, thanh dưới cố định với năm nút sửa hàng loạt có biểu tượng. Giữ nền Liquid Glass và thanh chỉnh độ trong suốt của app. Chọn tất cả áp dụng toàn bộ kết quả lọc, kể cả dòng chưa cuộn tới.
+- Hộp sửa hàng loạt ghi rõ giá trị đề xuất, số sản phẩm, cửa hàng và sàn nhận thay đổi. Chọn giá trị rồi bấm Áp dụng để đóng hộp, chạy nền và hiển thị viên thuốc tiến độ giữa phía dưới danh sách. Chỉ báo đã lưu sau khi đọc lại được đúng dữ liệu từ sàn; đang xử lý, bị từ chối hoặc chưa xác minh đều có trạng thái riêng.
+
 - Khi đăng ký theo mẫu mặc định, bảng thiếu trường ghi rõ sản phẩm/article, trường và lý do. Đề xuất không mơ hồ được điền sẵn để seller kiểm tra rồi bấm Áp dụng; không tự chọn giá trị đầu tiên khi có nhiều khả năng. WB/Ozon kiểm tra lại trước cấp GTIN. TN VED đề xuất đúng thay cho mã cũ đang cần sửa.
 - Đăng ký Znack chỉ xác nhận đã xuất bản khi đọc lại được đúng GTIN, mã thẻ và trạng thái `published` trên Catalog. Nhận feed, gửi chữ ký và đọc nguồn có trạng thái riêng.
 - Mẫu đăng ký tự động mặc định dùng cấu trúc một thẻ Catalog đã xuất bản và schema hiện tại; dữ liệu luôn lấy từ đúng sản phẩm/biến thể được chọn. Tự bỏ khoảng trắng ở hai đầu, giữ thông tin bên trong.

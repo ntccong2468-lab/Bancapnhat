@@ -108,7 +108,7 @@ jobs:
           node --test tools/*.test.mjs
 
       - name: Verify Windows asynchronous UI fixture cleanup
-        if: ${{ !inputs.reuse_verified_java_run_id }}
+        if: ${{ inputs.recover_fixture_failure_run_id != '' }}
         shell: pwsh
         env:
           LOCALAPPDATA: ${{ runner.temp }}\vncode-java-fixture-cleanup-${{ github.run_id }}

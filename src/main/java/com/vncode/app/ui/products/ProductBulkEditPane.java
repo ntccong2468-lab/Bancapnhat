@@ -46,6 +46,7 @@ public final class ProductBulkEditPane extends BorderPane {
     private boolean disposed,busy,resetting,ready,compact,sendAfterPrepare;
     private Runnable onBack,onSaved;
     private VBox compactForm;
+    private Label compactConfirmation;
     private String notifiedJob;
     private ProductsPane backgroundHost;
     private boolean detached;
@@ -226,12 +227,19 @@ public final class ProductBulkEditPane extends BorderPane {
     }
     private void buttons(){
         if(compactForm!=null)compactForm.setDisable(busy);
+        updateCompactConfirmation();
         preview.setDisable(busy||shop==null||keys.isEmpty());
-        apply.setDisable(compact?busy||shop==null||keys.isEmpty():busy||jobId==null||!ready||previewRevision!=revision||!confirm.isSelected());
+        apply.setDisable(compact?busy||shop==null||keys.isEmpty()||!compactInputPresent():busy||jobId==null||!ready||previewRevision!=revision||!confirm.isSelected());
         reconcile.setDisable(busy||jobId==null||results.getItems().stream().noneMatch(i->i.state()==CopyState.REMOTE_PROCESSING||i.state()==CopyState.RECONCILE_REQUIRED));
         confirm.setDisable(busy||!ready||previewRevision!=revision);history.setDisable(busy);
         // A preview may become stale while typing; a send must retain its frozen inputs.
         boolean sending=busy&&jobId!=null;values.setDisable(sending);documents.setDisable(sending);
+    }
+    private boolean compactInputPresent(){return field.equals("documents")?!number.getText().isBlank()&&!type.getText().isBlank()&&from.getValue()!=null&&(endless.isSelected()||until.getValue()!=null):!value.getText().isBlank();}
+    private void updateCompactConfirmation(){
+        if(compactConfirmation==null||shop==null)return;
+        String proposal=field.equals("documents")?String.join(" · ",type.getText(),number.getText(),Objects.toString(from.getValue(),""),endless.isSelected()?tr("bulk.document_endless"):Objects.toString(until.getValue(),"")):perProductTnved.isEmpty()?value.getText().strip():tr("tnved.per_product_selected")+" "+perProductTnved.size();
+        compactConfirmation.setText(java.text.MessageFormat.format(tr("bulk.confirmation"),keys.size(),shop.getName(),shop.getMarketplace()==com.vncode.app.integration.marketplace.Marketplace.WILDBERRIES?"WB":"Ozon",tr("bulk.field."+field),proposal.isBlank()?tr("bulk.no_proposal"):proposal));
     }
     private void lookup(){
         if(shop==null||keys.isEmpty()||busy)return;
@@ -271,14 +279,14 @@ public final class ProductBulkEditPane extends BorderPane {
         dialog.getDialogPane().getButtonTypes().setAll(applyType,cancelType);
         var applyButton=(Button)dialog.getDialogPane().lookupButton(applyType);applyButton.setId("editApply");applyButton.getStyleClass().add("btn-primary");applyButton.disableProperty().bind(apply.disableProperty());
         applyButton.addEventFilter(javafx.event.ActionEvent.ACTION,e->{e.consume();apply.fire();if(busy&&backgroundHost!=null){detach();dialog.hide();}});
-        var indicator=new ProgressIndicator();indicator.setMaxSize(20,20);indicator.visibleProperty().bind(apply.disableProperty());indicator.managedProperty().bind(indicator.visibleProperty());
+        var indicator=new ProgressIndicator();indicator.setMaxSize(20,20);indicator.visibleProperty().bind(backgroundRunning);indicator.managedProperty().bind(indicator.visibleProperty());
         var footer=new HBox(10,indicator,status);HBox.setHgrow(status,Priority.ALWAYS);footer.setPadding(new Insets(10,0,0,0));setBottom(footer);
         setOnSaved(()->{if(backgroundHost==null)dialog.close();if(saved!=null)Platform.runLater(saved);});
         dialog.setOnHidden(e->{if(!detached)dispose();});DialogLayout.install(dialog.getDialogPane());AlertService.applyTheme(dialog);dialog.show();
     }
     private void applyOnce(){if(busy)return;backgroundRunning.set(true);sendAfterPrepare=true;prepare();if(!busy){backgroundRunning.set(false);sendAfterPrepare=false;}}
     void compact(){
-        compact=true;setPadding(new Insets(12));setTop(title);title.setWrapText(true);status.setText(tr("bulk.choose_apply"));endless.setText(tr("bulk.document_endless"));
+        compact=true;setPadding(new Insets(12));compactConfirmation=new Label();compactConfirmation.setId("bulkEditConfirmation");compactConfirmation.setWrapText(true);setTop(new VBox(8,title,compactConfirmation));title.setWrapText(true);status.setText(tr("bulk.choose_apply"));endless.setText(tr("bulk.document_endless"));
         var form=new VBox(10);compactForm=form;form.setMinWidth(0);
         if(field.equals("brand")){
             value.setPromptText(tr("bulk.brand_search"));suggestions.setPrefHeight(350);suggestions.setMinHeight(120);
@@ -308,7 +316,7 @@ public final class ProductBulkEditPane extends BorderPane {
         }else form.getChildren().setAll(value);
         var scroll=new ScrollPane(form);scroll.setFitToWidth(true);setCenter(scroll);BorderPane.setMargin(scroll,new Insets(12,0,8,0));
         apply.setText(tr("common.apply"));apply.setOnAction(e->applyOnce());var progress=new ProgressIndicator();progress.setMaxSize(20,20);
-        progress.visibleProperty().bind(apply.disableProperty());progress.managedProperty().bind(progress.visibleProperty());
+        progress.visibleProperty().bind(backgroundRunning);progress.managedProperty().bind(progress.visibleProperty());
         setBottom(new VBox(8,status,new HBox(10,progress,apply)));buttons();
     }
     private static String documentType(String value){return switch(Objects.toString(value,"").strip().toLowerCase(Locale.ROOT)){case "1","certificate","certificate_of_conformity"->"certificate";case "2","declaration"->"declaration";default->Objects.toString(value,"").strip().toLowerCase(Locale.ROOT);};}

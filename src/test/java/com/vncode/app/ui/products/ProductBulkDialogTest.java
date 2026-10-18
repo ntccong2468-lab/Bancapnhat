@@ -86,7 +86,13 @@ class ProductBulkDialogTest {
    });
    fx(()->{
     var window=javafx.stage.Window.getWindows().stream().filter(w->w.getScene()!=null&&w.getScene().getRoot() instanceof DialogPane d&&"productBulkEditDialog".equals(d.getId())).findFirst().orElseThrow();
-    var dialog=(DialogPane)window.getScene().getRoot();((TextField)dialog.lookup("#editValue")).setText("Background brand");var type=dialog.getButtonTypes().stream().filter(t->t.getButtonData()==ButtonBar.ButtonData.OK_DONE).findFirst().orElseThrow();((Button)dialog.lookupButton(type)).fire();
+    var dialog=(DialogPane)window.getScene().getRoot();
+    var type=dialog.getButtonTypes().stream().filter(t->t.getButtonData()==ButtonBar.ButtonData.OK_DONE).findFirst().orElseThrow();var apply=(Button)dialog.lookupButton(type);
+    assertTrue(apply.isDisabled(),"An empty proposal cannot be confirmed");
+    ((TextField)dialog.lookup("#editValue")).setText("Background brand");
+    var confirmation=((Label)dialog.lookup("#bulkEditConfirmation")).getText();
+    assertTrue(confirmation.contains("Background brand"));assertTrue(confirmation.contains(shop.getName()));assertTrue(confirmation.contains("2"));assertTrue(confirmation.contains("WB"));assertFalse(apply.isDisabled());
+    apply.fire();
     assertFalse(window.isShowing());assertNotNull(host[0].lookup("#productBulkProgressPill"));return null;
    });
    assertTrue(adapter.entered.await(5,TimeUnit.SECONDS));
