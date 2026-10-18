@@ -43,13 +43,40 @@ export function validateReusedJava(proof,version,sha,summary){
     for(const key of ['tests','failures','errors','skipped'])assert.equal(proof.tests[key],summary[key]);
 }
 
+// This one release was requested after the owner was told which live checks remain.
+// Retain the normal production-acceptance gate and all source/artifact/native checks.
+export function validateOwnerApproved1418(decision,status,version,sha,runId) {
+    assert.equal(version,'1.4.18');assert.equal(sha,'62a5d0ea5f1abaf0ea638319b0b18231dfd0c238');
+    assert.equal(String(runId),'39099056215');
+    assert.equal(decision.version,version);assert.equal(decision.sourceCommit,sha);assert.equal(String(decision.runId),String(runId));
+    assert.equal(decision.ownerRequestedPublication,true);assert.equal(decision.ownerInstruction,'xuất bản cập nhật mới');
+    assert.equal(decision.ownerInformedOfUnverifiedChecks,true);assert.equal(decision.standardFullAcceptanceClaimed,false);
+    assert.equal(decision.productionLicenseAcceptance,false);assert.equal(decision.enterpriseCryptoProSigningAccepted,false);
+    assert.equal(decision.marketplaceLiveGtinWritesAccepted,false);
+    assert.match(decision.installerSha256,/^[a-f0-9]{64}$/);assert.ok(Number.isSafeInteger(decision.installerBytes)&&decision.installerBytes>1024*1024);
+    assert.equal(status.version,version);assert.equal(status.complete,false);
+    assert.equal(status.licenseIntegration.productionReady,false);assert.equal(status.licenseIntegration.changedInThisVersion,false);
+    assert.equal(status.validation.liveCryptoProSigningThisVersion,false);
+    assert.equal(status.validation.liveMarketplaceGtinWriteThisVersion,false);
+    assert.equal(status.validation.productionLicenseVerified,false);
+    assert.equal(status.validation.windowsBuild.state,'passed');assert.equal(String(status.validation.windowsBuild.runId),String(runId));
+    assert.equal(status.validation.registrationPromptReview.suggestionsReviewedInTable,true);
+    assert.equal(status.validation.registrationPromptReview.applyBelowTableVerified,true);
+    assert.equal(status.validation.registrationPromptReview.ambiguousValuesNotInvented,true);
+}
+
 async function main(runId,sha,mode='prepare') {
     assert.match(runId??'',/^[1-9][0-9]{0,15}$/);assert.match(sha??'',/^[a-f0-9]{40}$/);
-    assert.ok(['prepare','publish'].includes(mode));
+    assert.ok(['prepare','publish','owner-approved-1418'].includes(mode));
     const {version}=await resolveReleaseVersion({root:process.cwd()});const tag=`v${version}`;
     validatePublicationSource(sha);
     const run=api(`actions/runs/${runId}`);validateBuild(run,sha,api('actions/workflows/build-java.yml').id);
     const status=json(await readFile(`docs/releases/VN-code-${version}-status.json`));
+    let ownerDecision;
+    if(mode==='owner-approved-1418') {
+        ownerDecision=json(await readFile('docs/validation/2026-10-18-vncode-1418-owner-publication.json'));
+        validateOwnerApproved1418(ownerDecision,status,version,sha,runId);
+    }
     if(mode==='publish') {
         assert.equal(status.complete,true,'Release functionality acceptance is incomplete');
         validateLicenseReadiness(status,json(await readFile('src/main/resources/com/vncode/app/license/trusted-keys.json')),
@@ -61,6 +88,7 @@ async function main(runId,sha,mode='prepare') {
     gh(['run','download',runId,'--repo',REPO,'--name',artifactName,'--dir',directory]);
     const name=`VN-code-${version}-Windows-x64.exe`;const bytes=await readFile(path.join(directory,name));
     const digest=hash(bytes);assert.equal(digest,(await readFile(path.join(directory,`VN-code-${version}-Windows-x64.sha256`),'utf8')).trim().split(/\s+/)[0]);
+    if(ownerDecision){assert.equal(digest,ownerDecision.installerSha256);assert.equal(bytes.length,ownerDecision.installerBytes);}
     assert.ok(bytes.length>1024*1024);assert.equal(bytes.subarray(0,2).toString(),'MZ');const pe=bytes.readUInt32LE(0x3c);assert.equal(bytes.subarray(pe,pe+4).toString(),'PE\0\0');
     const native=json(await readFile(path.join(directory,'native-smoke.json')));validateNativeSmoke(native,version);
     validateSideBySideSmoke(json(await readFile(path.join(directory,'side-by-side-smoke.json'))),version);
@@ -108,6 +136,15 @@ async function main(runId,sha,mode='prepare') {
     assert.equal(portalBytes.subarray(0,2).toString(),'PK');assert.ok(portalBytes.length>1000&&portalBytes.length<10*1024*1024);
     assert.equal(hash(portalBytes),(await readFile(path.join(directory,portalName+'.sha256'),'utf8')).trim().split(/\s+/)[0]);
     names.push(portalName+'.zip',portalName+'.sha256');
+    if(ownerDecision) {
+        const live=json(await readFile('docs/validation/2026-10-18-vncode-real-card.json'));
+        assert.equal(live.realCardReadBack,true);assert.equal(live.listedInOwnProductList,true);
+        assert.equal(live.realGtinsAllocated,1);assert.equal(live.cardsCreated,1);
+        assert.equal(live.fixtureLicenseUsedForLiveRequests,false);
+        await writeFile(path.join(directory,'release-acceptance.json'),JSON.stringify(ownerDecision,null,2)+'\n');
+        await writeFile(path.join(directory,'catalog-live-card-test.json'),JSON.stringify(live,null,2)+'\n');
+        names.push('release-acceptance.json','catalog-live-card-test.json');
+    }
     const digests={};for(const file of names)digests[file]=hash(await readFile(path.join(directory,file)));
     const refs=api(`git/matching-refs/tags/${tag}`).filter(item=>item.ref===`refs/tags/${tag}`);
     assert.ok(refs.length<=1);
@@ -133,12 +170,13 @@ async function main(runId,sha,mode='prepare') {
     gh(['release','edit',tag,'--repo',REPO,'--title',`VNCode ${version}`,'--notes-file',path.join(directory,'release-notes.md')]);
     const ready=api(`releases/${release.id}`);validateReleaseAssets(ready.assets,names,true);
     validateStableAsset(ready.assets.find(a=>a.name===name),version,digest,bytes.length,ready.draft);
-    if(mode==='publish') {
+    const publishing=mode==='publish'||mode==='owner-approved-1418';
+    if(publishing) {
         const request=path.join(directory,'publish.json');await writeFile(request,JSON.stringify({draft:false,prerelease:false,make_latest:'true'}));
         gh(['api','-X','PATCH',`repos/${REPO}/releases/${release.id}`,'--input',request]);
         validatePublishedStable(api('releases/latest'),version);
         validateStableAsset(api(`releases/${release.id}`).assets.find(a=>a.name===name),version,digest,bytes.length);
     }
-    console.log(JSON.stringify({version,mode,url:ready.html_url,sourceCommit:sha,sha256:digest,published:mode==='publish'}));
+    console.log(JSON.stringify({version,mode,url:api(`releases/${release.id}`).html_url,sourceCommit:sha,sha256:digest,published:publishing}));
 }
 if(process.argv[1]&&path.resolve(process.argv[1])===fileURLToPath(import.meta.url))await main(...process.argv.slice(2));

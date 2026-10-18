@@ -4,7 +4,7 @@
   "complete": false,
   "developmentComplete": false,
   "officialReleasePublished": false,
-  "phase": "missing-field-suggestions-implementation-and-verification",
+  "phase": "full-regression-and-native-windows-build",
   "licenseIntegration": {
     "implemented": true,
     "productionReady": false,
@@ -16,7 +16,43 @@
     "liveCryptoProSigningThisVersion": false,
     "liveMarketplaceGtinWriteThisVersion": false,
     "productionLicenseVerified": false,
-    "priorVersionCatalogCardEvidence": "docs/validation/2026-10-18-vncode-real-card.json"
+    "priorVersionCatalogCardEvidence": "docs/validation/2026-10-18-vncode-real-card.json",
+    "registrationPromptReview": {
+      "focusedTests": 19,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "suggestionsReviewedInTable": true,
+      "applyBelowTableVerified": true,
+      "ambiguousValuesNotInvented": true,
+      "tnvedSuggestionOverridesOldInvalidCode": true,
+      "uiLanguages": [
+        "vi",
+        "en",
+        "ru",
+        "zh"
+      ],
+      "screenshot": "docs/validation/images/2026-10-18-registration-suggestions-vi.png"
+    },
+    "windowsBuild": {
+      "runId": 39099056215,
+      "sourceCommit": "62a5d0ea5f1abaf0ea638319b0b18231dfd0c238",
+      "state": "in_progress"
+    },
+    "releaseToolTests": {
+      "tests": 66,
+      "passed": 66
+    },
+    "fullJavaRegression": {
+      "sourceCommit": "62a5d0ea5f1abaf0ea638319b0b18231dfd0c238",
+      "platform": "Linux with Xvfb",
+      "tests": 1747,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 2,
+      "result": "passed",
+      "liveSellerMutations": false
+    }
   },
   "remainingAcceptance": [
     "Real Windows CryptoPro signing/publication/readback with seller certificate",
@@ -26,5 +62,6 @@
   "decisions": {
     "publication": "Owner requested the new update, then added the missing-field prompt review before publication",
     "supersededDraft": "1.4.17 remains unpublished; do not move its existing source tag"
-  }
+  },
+  "sourceCommit": "62a5d0ea5f1abaf0ea638319b0b18231dfd0c238"
 }

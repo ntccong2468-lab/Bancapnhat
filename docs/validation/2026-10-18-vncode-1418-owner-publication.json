@@ -1,0 +1,21 @@
+{
+  "version": "1.4.18",
+  "sourceCommit": "62a5d0ea5f1abaf0ea638319b0b18231dfd0c238",
+  "runId": 39099056215,
+  "ownerRequestedPublication": true,
+  "ownerInstruction": "xuất bản cập nhật mới",
+  "ownerInformedOfUnverifiedChecks": true,
+  "additionalOwnerRequirement": "Báo rõ thẻ thiếu trường theo prompt mặc định, đề xuất sửa và nút Áp dụng",
+  "decisionDate": "2026-10-18",
+  "decisionTimezone": "Europe/Moscow",
+  "applicationSourcesChangedAfterVerifiedBuild": false,
+  "installerSha256": null,
+  "installerBytes": null,
+  "enterpriseCryptoProSigningAccepted": false,
+  "marketplaceLiveGtinWritesAccepted": false,
+  "productionLicenseAcceptance": false,
+  "standardFullAcceptanceClaimed": false,
+  "normalStablePublisherAcceptanceGateUnchanged": true,
+  "priorVersionLiveCardEvidence": "catalog-live-card-test.json",
+  "additionalRequirementEvidence": "docs/validation/2026-10-18-vncode-1418.md"
+}
