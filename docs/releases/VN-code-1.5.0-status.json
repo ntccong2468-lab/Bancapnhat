@@ -1,6 +1,6 @@
 {
   "version": "1.5.0",
-  "state": "candidate-being-verified",
+  "state": "verified-awaiting-requested-publication",
   "baseline": "v1.4.19",
   "databaseSchema": 6,
   "published": false,
@@ -8,7 +8,7 @@
   "complete": false,
   "validation": {
     "windowsBuild": {
-      "state": "native-verification-in-progress",
+      "state": "passed",
       "supersededRuns": [
         {
           "runId": 39125393767,
@@ -64,7 +64,21 @@
       },
       "installerPackaged": true,
       "nativeLauncherSchema3Migration": "passed",
-      "gs1WindowsDpapi": "passed"
+      "gs1WindowsDpapi": "passed",
+      "upgradeFrom1419Passed": true,
+      "upgradePaths": 15,
+      "uiLayouts": 288,
+      "nativeEvidence": "../validation/2026-10-18-vncode-150-windows-native.json",
+      "artifactId": 12138834197,
+      "artifactArchiveSha256": "sha256:8a129bc8a6beb53aaa609dbd96a376f4b453219929c9c78274c806703466f132",
+      "installer": {
+        "name": "VN-code-1.5.0-Windows-x64.exe",
+        "bytes": 145660928,
+        "sha256": "b5b5ddd562213aa655c3183bc8e7e998ba58d42abd1563442a397865a5faea3f",
+        "artifactChecksumMatched": true,
+        "peHeaderVerified": true,
+        "fullPublicDownloadVerified": false
+      }
     },
     "productionLicenseVerified": false,
     "liveCryptoProSigningThisVersion": false,
@@ -125,6 +139,32 @@
       "consentTestUsesStableDialogIdentityAndWaitsForNestedLoop": true,
       "automaticReminderConsentStillRequired": true,
       "freshFullWindowsBuildRequired": true
+    },
+    "fullJavaRegression": {
+      "version": "1.5.0",
+      "sourceCommit": "2eea069123737e2c9f7bcddcecaa51f21a1645dc",
+      "runId": 39130866288,
+      "platform": "Windows x64 / Java 25.0.4.1",
+      "freshFullExecution": true,
+      "result": "passed",
+      "classes": 305,
+      "tests": 1792,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 2,
+      "passed": 1790,
+      "artifactId": 12139046010,
+      "artifactArchiveSha256": "6c39bc805a1fa02512d5744a384e042b1ac48f2c47ad3ae2e2c11677abfc0b33",
+      "applicationJarSha256": "bf9e850dccae238aa44ab2e465f3d3e747fd152f5b626c0ae43ac1632b895f55",
+      "liveSellerMutations": false,
+      "evidence": "../validation/2026-10-18-vncode-150-full-java.json"
+    },
+    "releaseToolTests": {
+      "tests": 72,
+      "passed": 72,
+      "failures": 0,
+      "platform": "Linux / Node",
+      "scope": "Publication tooling only; application and Windows Java test inputs unchanged"
     }
   },
   "licenseIntegration": {
@@ -133,5 +173,14 @@
     "changedInThisVersion": false
   },
   "requestReport": "VN-code-1.5.0-request-report.md",
-  "bulkMarketplaceKizValidationOnImport": false
+  "bulkMarketplaceKizValidationOnImport": false,
+  "windowsInstaller": {
+    "name": "VN-code-1.5.0-Windows-x64.exe",
+    "bytes": 145660928,
+    "sha256": "b5b5ddd562213aa655c3183bc8e7e998ba58d42abd1563442a397865a5faea3f",
+    "artifactChecksumMatched": true,
+    "peHeaderVerified": true,
+    "fullPublicDownloadVerified": false
+  },
+  "ownerRequestedPublication": true
 }
