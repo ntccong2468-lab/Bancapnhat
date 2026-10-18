@@ -1,0 +1,38 @@
+{
+  "checkedAt": "2026-10-18T03:41:26.343943+00:00",
+  "testType": "Live Catalog API integration with actual VNCode 1.4.17 mapper and default template; not the desktop CryptoPro/license workflow",
+  "applicationSourceCommit": "c09bc0d52eeae70f95dd8d9da065c4d309849c6d",
+  "localApplicationJarSha256": "13ad95c7d6ed885a527bbb5f125a8819a89d118b5eacc92732006603a5b4b21b",
+  "realGtinsAllocated": 1,
+  "realCardReadBack": true,
+  "listedInOwnProductList": true,
+  "sameVariantAttributesVerified": true,
+  "verifiedAttributeCount": 10,
+  "cardStatus": "draft",
+  "cardDetailedStatus": [
+    "moderation"
+  ],
+  "signed": false,
+  "published": false,
+  "allocationRequests": 1,
+  "feedSubmissionRequests": 3,
+  "cardsCreated": 1,
+  "corrections": [
+    {
+      "code": 31,
+      "action": "Omit is_kit after confirmed Rejected, using production packing-correction policy"
+    },
+    {
+      "code": 55,
+      "action": "Omit optional inaccessible WB image after confirmed Rejected"
+    }
+  ],
+  "keptSameGtinAcrossRetries": true,
+  "productionLicenseTested": false,
+  "fixtureLicenseUsedForLiveRequests": false,
+  "marketplaceWrites": 0,
+  "cryptoProInstalled": false,
+  "evidence": "Private request/response and durable allocation/submission receipt retained outside Git; API credentials and seller card values excluded",
+  "cardReadbackSha256": "857e0915423e65c372593a7d528334b8cb92d56d49f4a6af56dfe0583e27de89",
+  "monitorWindowSeconds": 180
+}

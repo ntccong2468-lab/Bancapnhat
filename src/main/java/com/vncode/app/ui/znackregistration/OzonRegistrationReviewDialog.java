@@ -18,7 +18,9 @@ final class OzonRegistrationReviewDialog {
     static Draft review(OzonCardRegistrationWorkflow.Preparation prepared) {
         var dialog=new Dialog<Draft>();dialog.setTitle(tr("znack.registration.ozon_review_title"));
         var focused=javafx.stage.Window.getWindows().stream().filter(javafx.stage.Window::isFocused).findFirst().orElse(null);if(focused!=null)dialog.initOwner(focused);
-        var warning=new Label(tr("znack.registration.ozon_gs1_warning"));warning.setWrapText(true);warning.setMinWidth(0);warning.setMaxWidth(Double.MAX_VALUE);dialog.getDialogPane().setHeader(warning);
+        var warning=new Label(tr("znack.registration.ozon_gs1_warning"));warning.setWrapText(true);warning.setMinWidth(0);warning.setMaxWidth(Double.MAX_VALUE);
+        var identity=new Label(prepared.snapshot().vendorArticle()+" · "+prepared.snapshot().title());identity.setWrapText(true);
+        var suggestionsHint=new Label(tr("znack.registration.missing_suggestions_hint"));suggestionsHint.setWrapText(true);dialog.getDialogPane().setHeader(new VBox(8,identity,warning,suggestionsHint));
         var grid=new GridPane();grid.setMinWidth(0);grid.setHgap(10);grid.setVgap(10);
         var labels=new ColumnConstraints();labels.setMinWidth(90);labels.setPrefWidth(180);labels.setMaxWidth(200);
         var valuesColumn=new ColumnConstraints();valuesColumn.setMinWidth(100);valuesColumn.setHgrow(Priority.ALWAYS);
@@ -33,14 +35,16 @@ final class OzonRegistrationReviewDialog {
         grid.addRow(3,new Label(tr("znack.registration.documents")),permit);
         Label documentNote=new Label(tr(prepared.documents().requiresReview()?"znack.registration.perproduct_review":"znack.registration.ozon_required"));documentNote.setWrapText(true);grid.add(documentNote,0,4,3,1);
         var inputs=new ArrayList<Input>();int row=5;
+        String russianSize=prepared.snapshot().variants().stream().filter(v->v.id().equals(prepared.snapshot().key().variantId())).map(com.vncode.app.features.products.ProductVariant::russianSize).findFirst().orElse("");
         for(Attribute attribute:prepared.required()) {
             if(Set.of(2478L,2504L,3959L,ZnackNationalCatalogService.DECLARATION_ATTRIBUTE_ID,ZnackNationalCatalogService.CERTIFICATE_ATTRIBUTE_ID).contains(attribute.id()))continue;
             if(attribute.id()==13933L&&prepared.preflight().categoryTnved().length()==10)continue;
-            String suggested=prepared.suggestions().getOrDefault(attribute.id(),attribute.id()==13933L?prepared.tnved():"");
+            var proposal=RegistrationDraftCompletionDialog.suggestion(attribute,prepared.suggestions().getOrDefault(attribute.id(),attribute.id()==13933L?prepared.tnved():""),null,russianSize);
+            String suggested=proposal.text();
             Control value;
             if(attribute.presetOnly()) {var choice=new ComboBox<String>();choice.getItems().setAll(attribute.presets());if(choice.getItems().contains(suggested))choice.setValue(suggested);value=choice;}
             else value=new TextField(suggested);
-            ComboBox<String> type=new ComboBox<>();type.getItems().setAll(attribute.valueTypes());if(type.getItems().size()==1)type.getSelectionModel().selectFirst();
+            ComboBox<String> type=new ComboBox<>();type.getItems().setAll(attribute.valueTypes());type.setValue(proposal.type());
             type.setPromptText(tr("znack.registration.ozon_attribute_type"));type.setVisible(!type.getItems().isEmpty());type.setManaged(!type.getItems().isEmpty());
             grid.addRow(row++,new Label(attribute.name()+" *"),value,type);inputs.add(new Input(attribute,value,type));
         }
@@ -49,12 +53,13 @@ final class OzonRegistrationReviewDialog {
         var scroll=new ScrollPane(grid);scroll.setFitToWidth(true);scroll.setMinWidth(0);scroll.setPrefViewportHeight(420);dialog.getDialogPane().setContent(scroll);dialog.getDialogPane().setPrefSize(760,570);DialogLayout.install(dialog.getDialogPane());AlertService.applyTheme(dialog);
         ButtonType save=new ButtonType(tr("common.apply"),ButtonBar.ButtonData.OK_DONE);dialog.getDialogPane().getButtonTypes().setAll(save,ButtonType.CANCEL);
         dialog.getDialogPane().lookupButton(save).addEventFilter(javafx.event.ActionEvent.ACTION,event->{
-            boolean invalid=name.getText().isBlank()||brand.getText().isBlank()||permit.getValue()==null;
+            var missing=new ArrayList<String>();if(name.getText().isBlank())missing.add(tr("fbo.column.name"));if(brand.getText().isBlank())missing.add(tr("znack.registration.brand"));if(permit.getValue()==null)missing.add(tr("znack.registration.documents"));
             for(var input:inputs) {
                 String value=input.value() instanceof TextField text?text.getText():((ComboBox<?>)input.value()).getValue()==null?"":((ComboBox<?>)input.value()).getValue().toString();
-                if(value.isBlank()||(!input.type().getItems().isEmpty()&&input.type().getValue()==null))invalid=true;
+                String reason=RegistrationDraftCompletionDialog.problem(input.attribute(),new RegistrationDraftCompletionDialog.Value(value,input.type().getValue()),russianSize);
+                if(!reason.isBlank())missing.add(input.attribute().name()+" — "+tr(reason));
             }
-            if(invalid){event.consume();error.setText(tr("znack.registration.ozon_required"));}
+            if(!missing.isEmpty()){event.consume();error.setText(tr("znack.registration.ozon_required")+": "+String.join(", ",missing));}
         });
         dialog.setResultConverter(button->{
             if(button!=save)return null;var values=new LinkedHashMap<Long,String>();var types=new LinkedHashMap<Long,String>();

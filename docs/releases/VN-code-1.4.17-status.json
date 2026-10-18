@@ -4,7 +4,7 @@
   "complete": false,
   "developmentComplete": false,
   "officialReleasePublished": false,
-  "phase": "draft-installer-uploaded-awaiting-real-production-acceptance",
+  "phase": "draft-installer-uploaded-real-card-created-awaiting-signing-and-production-acceptance",
   "licenseIntegration": {
     "implemented": true,
     "productionReady": false,
@@ -12,7 +12,7 @@
     "changedInThisVersion": false
   },
   "validation": {
-    "liveNewCatalogCardCreatedThisVersion": false,
+    "liveNewCatalogCardCreatedThisVersion": true,
     "liveCryptoProSigningThisVersion": false,
     "liveMarketplaceGtinWriteThisVersion": false,
     "productionLicenseVerified": false,
@@ -214,6 +214,24 @@
       "singleRegistration": true,
       "singleShortcutPerLocation": true,
       "liveMarketplaceMutations": false
+    },
+    "liveCatalogCardTest": {
+      "report": "docs/validation/2026-10-18-vncode-real-card.md",
+      "evidence": "docs/validation/2026-10-18-vncode-real-card.json",
+      "cardsCreated": 1,
+      "gtinsAllocated": 1,
+      "cardIdentityAndAttributesVerified": true,
+      "status": "draft",
+      "detailedStatus": [
+        "moderation"
+      ],
+      "published": false,
+      "signed": false,
+      "fullDesktopWorkflowVerified": false,
+      "productionLicenseVerified": false,
+      "marketplaceWrites": 0,
+      "lastCheckedAt": "2026-10-18T03:41:26.343943+00:00",
+      "listedInOwnProductList": true
     }
   },
   "comparison": {

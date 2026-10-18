@@ -1,0 +1,30 @@
+{
+  "version": "1.4.18",
+  "baseVersion": "1.4.16",
+  "complete": false,
+  "developmentComplete": false,
+  "officialReleasePublished": false,
+  "phase": "missing-field-suggestions-implementation-and-verification",
+  "licenseIntegration": {
+    "implemented": true,
+    "productionReady": false,
+    "activeKeyId": "vncode-2",
+    "changedInThisVersion": false
+  },
+  "validation": {
+    "liveNewCatalogCardCreatedThisVersion": false,
+    "liveCryptoProSigningThisVersion": false,
+    "liveMarketplaceGtinWriteThisVersion": false,
+    "productionLicenseVerified": false,
+    "priorVersionCatalogCardEvidence": "docs/validation/2026-10-18-vncode-real-card.json"
+  },
+  "remainingAcceptance": [
+    "Real Windows CryptoPro signing/publication/readback with seller certificate",
+    "Real marketplace GTIN write/readback",
+    "Production license acceptance"
+  ],
+  "decisions": {
+    "publication": "Owner requested the new update, then added the missing-field prompt review before publication",
+    "supersededDraft": "1.4.17 remains unpublished; do not move its existing source tag"
+  }
+}

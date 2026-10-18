@@ -37,6 +37,27 @@ class RegistrationDraftCompletionDialogTest {
             return RegistrationDraftCompletionDialog.show(null,draft,List.of(country),"");
         });Platform.runLater(future);var result=future.get(15,TimeUnit.SECONDS);assertNotNull(result);assertEquals("Вьетнам",result.attributes().get(10L));
     }
+    @Test void safeLiteralSuggestionsCanBeAppliedWithoutPickingEveryFieldAndAmbiguousSizesRemainUnfilled(){
+        var letterSize=new Attribute(35,"Размер","string",false,false,true,false,List.of(),List.of("РОССИЯ","МЕЖДУНАРОДНЫЙ"));
+        var current=new Draft("6112110000","6112",1,"Selected product","Fixture",Map.of(10L," вьетнам ",35L," L "),Map.of(35L,"EU"),true,true);
+        var schema=List.of(country,letterSize);var proposed=RegistrationDraftCompletionDialog.suggestions(current,schema,"");
+        assertEquals("Вьетнам",proposed.get(10L).text());assertEquals(new RegistrationDraftCompletionDialog.Value("L","МЕЖДУНАРОДНЫЙ"),proposed.get(35L));
+        var completed=RegistrationDraftCompletionDialog.complete(current,schema,"",proposed);assertTrue(RegistrationDraftCompletionDialog.missing(completed,schema,"").isEmpty());
+        var ambiguous=RegistrationDraftCompletionDialog.suggestion(size,"52",null,"");assertNull(ambiguous.type());assertEquals("znack.registration.missing_type_reason",RegistrationDraftCompletionDialog.problem(size,ambiguous,""));
+        assertEquals("",RegistrationDraftCompletionDialog.suggestion(country,"",null,"").text(),"Never pick the first of several countries");
+    }
+    @Test void clickingApplyUsesTheShownSuggestionAndNamesTheSelectedProduct()throws Exception{
+        var current=new Draft("6112110000","6112",1,"Selected product","Fixture",Map.of(10L,"вьетнам",13914L,"Selected article"),Map.of());
+        var future=new FutureTask<Draft>(()->{
+            Platform.runLater(()->{
+                var pane=Window.getWindows().stream().filter(Window::isShowing).map(w->w.getScene().getRoot()).filter(n->"registrationCatalogMissingDialog".equals(n.getId())).findFirst().orElseThrow();pane.applyCss();pane.layout();
+                assertTrue(((Label)pane.lookup("#registrationCatalogMissingProduct")).getText().contains("Selected article"));
+                var box=(ComboBox<?>)pane.lookup("#registrationCatalogMissingValue");assertEquals("Вьетнам",box.getValue());
+                var table=(TableView<?>)pane.lookup(".table-view");assertEquals(4,table.getColumns().size());
+                ((Button)pane.lookup("#registrationCatalogMissingApply")).fire();
+            });return RegistrationDraftCompletionDialog.show(null,current,List.of(country),"");
+        });Platform.runLater(future);assertEquals("Вьетнам",future.get(15,TimeUnit.SECONDS).attributes().get(10L));
+    }
     @Test void missingDocumentsOpenTheExistingSuggestionFormFromTheirRowWithoutAllocatingAnything()throws Exception{
         var shop=com.vncode.app.features.gtinsync.GtinWriteTestFixture.shop(com.vncode.app.integration.marketplace.Marketplace.WILDBERRIES);
         var key=new com.vncode.app.features.products.ProductKey(1,shop.getMarketplace(),"101","201");var review=new RegistrationBatchPreflight.Review(List.of(new RegistrationBatchPreflight.Finding("documents",key,"Synthetic article","","","1")));

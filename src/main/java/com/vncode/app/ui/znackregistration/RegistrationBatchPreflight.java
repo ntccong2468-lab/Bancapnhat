@@ -19,6 +19,7 @@ final class RegistrationBatchPreflight {
         Finding(String field,ProductKey key,String article,String before,String suggestion){this(field,key,article,before,suggestion,"");}
     }
     record Review(List<Finding> findings){Review{findings=List.copyOf(findings);}List<ProductKey> keys(String field){return findings.stream().filter(f->f.field().equals(field)).map(Finding::key).distinct().toList();}}
+    static Map<Finding,String> initialValues(Review review){var values=new LinkedHashMap<Finding,String>();review.findings().forEach(f->values.put(f,f.suggestion().isBlank()?f.before():f.suggestion()));return values;}
     static Review read(Shop owner,List<ProductKey> selected){
         ListingIdentity.require(owner);var findings=new ArrayList<Finding>();var repo=new ProductRepository();var advisor=new ProductTnvedAdvisor();var cards=new HashSet<String>();
         var sources=new RegistrationSources();boolean sourceReady=sources.check(owner).ready();
@@ -50,7 +51,7 @@ final class RegistrationBatchPreflight {
         Editor(javafx.stage.Window window,Shop owner,Review review){
             this.owner=owner;this.review=review;if(window!=null)dialog.initOwner(window);
             dialog.setTitle(tr("znack.registration.batch_preflight"));dialog.setHeaderText(tr("znack.registration.complete_missing_hint"));
-            review.findings().forEach(f->values.put(f,f.before().isBlank()?f.suggestion():f.before()));
+            values.putAll(initialValues(review));
             table.getItems().setAll(review.findings());table.setPrefHeight(390);table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
             column(table,"Article",Finding::article);column(table,tr("znack.registration.complete_missing_field"),f->tr("products.edit_"+f.field()));column(table,tr("edit.before"),Finding::before);
             var input=new TableColumn<Finding,Finding>(tr("znack.registration.complete_missing_value"));input.setCellValueFactory(row->new javafx.beans.property.ReadOnlyObjectWrapper<>(row.getValue()));input.setPrefWidth(330);input.setMinWidth(180);
@@ -66,7 +67,8 @@ final class RegistrationBatchPreflight {
                     }
                     rendering=true;var options=new LinkedHashSet<String>();if(!active.suggestion().isBlank())options.add(active.suggestion());options.addAll(suggestions.getOrDefault(group(active),List.of()));box.getItems().setAll(options);box.setValue(values.getOrDefault(active,""));box.getEditor().setText(values.getOrDefault(active,""));rendering=false;setGraphic(box);}
             });table.getColumns().add(input);status.setWrapText(true);status.setId("registrationMissingStatus");
-            var content=new VBox(10,table,status);VBox.setVgrow(table,Priority.ALWAYS);dialog.getDialogPane().setContent(content);dialog.getDialogPane().setPrefSize(880,550);dialog.getDialogPane().setId("registrationMissingFieldsDialog");
+            var hint=new Label(tr("znack.registration.missing_suggestions_hint"));hint.setWrapText(true);
+            var content=new VBox(10,hint,table,status);VBox.setVgrow(table,Priority.ALWAYS);dialog.getDialogPane().setContent(content);dialog.getDialogPane().setPrefSize(880,550);dialog.getDialogPane().setId("registrationMissingFieldsDialog");
             dialog.getDialogPane().getButtonTypes().setAll(applyType,new ButtonType(tr("common.cancel"),ButtonBar.ButtonData.CANCEL_CLOSE));var apply=(Button)dialog.getDialogPane().lookupButton(applyType);apply.setId("registrationMissingApply");apply.getStyleClass().add("btn-primary");
             apply.addEventFilter(javafx.event.ActionEvent.ACTION,e->{e.consume();if(!busy)apply();});dialog.setResultConverter(button->false);
             dialog.setOnHidden(e->{disposed=true;retry.stop();});retry.setOnFinished(e->advance());DialogLayout.install(dialog.getDialogPane());AlertService.applyTheme(dialog);
@@ -99,7 +101,8 @@ final class RegistrationBatchPreflight {
         }
         void apply(){
             if(session!=null){advance();return;}
-            if(values.values().stream().anyMatch(v->v==null||v.isBlank())){status.setText(tr("znack.registration.ozon_required"));return;}
+            var missing=review.findings().stream().filter(f->values.get(f)==null||values.get(f).isBlank()).toList();
+            if(!missing.isEmpty()){status.setText(tr("znack.registration.ozon_required")+": "+missing.stream().map(f->f.article()+" · "+tr("products.edit_"+f.field())).collect(java.util.stream.Collectors.joining(", ")));return;}
             if(review.findings().stream().anyMatch(f->f.field().equals("tnved")&&!values.get(f).strip().matches("[0-9]{10}"))){status.setText(tr("znack.registration.ozon_tnved"));return;}
             var entered=Map.copyOf(values);var fields=new Review(review.findings().stream().filter(f->!f.field().equals("documents")).toList());work(()->{session=corrections.prepare(owner,fields,entered);return session.advance(p->progress(p));});
         }

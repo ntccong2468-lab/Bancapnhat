@@ -13,6 +13,13 @@ import static org.junit.jupiter.api.Assertions.*;
 class RegistrationBatchPreflightTest {
     @TempDir Path directory;
     @AfterEach void clean(){System.clearProperty("vncode.appdata.dir");}
+    @Test void aReviewedUniqueTnvedSuggestionIsReadyToApplyInsteadOfKeepingTheWrongOldCode(){
+        var key=new ProductKey(1,Marketplace.WILDBERRIES,"101","201");
+        var changed=new RegistrationBatchPreflight.Finding("tnved",key,"Article","6103109000","6112110000");
+        var ambiguous=new RegistrationBatchPreflight.Finding("material",key,"Article","","");
+        var values=RegistrationBatchPreflight.initialValues(new RegistrationBatchPreflight.Review(List.of(changed,ambiguous)));
+        assertEquals("6112110000",values.get(changed));assertEquals("",values.get(ambiguous));
+    }
     @Test void missingFactsAreGroupedBeforeAllocationAndTheReviewDoesNotChangeTheSource()throws Exception{
         System.setProperty("vncode.appdata.dir",directory.toString());Database.initDatabase();var shop=GtinWriteTestFixture.shop(Marketplace.WILDBERRIES);
         var key=new ProductKey(1,Marketplace.WILDBERRIES,"101","201");
