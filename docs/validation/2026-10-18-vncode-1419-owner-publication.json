@@ -1,0 +1,20 @@
+{
+  "version": "1.4.19",
+  "sourceCommit": "d25718c6a69f94f08d9515d36f7444650b1eebd1",
+  "runId": 39114287816,
+  "phase": "authorized-awaiting-verified-build",
+  "ownerRequestedPublication": true,
+  "ownerInstruction": "phát hành bản mới nhưng báo cáo trước cho tôi những gì chỉnh sửa tôi giao đã sửa chưa",
+  "continuationOwnerInstruction": "tiếp tục xuất bản cập nnhật xuống app",
+  "ownerInformedOfUnverifiedChecks": true,
+  "requestReportDeliveredBeforePublication": true,
+  "standardFullAcceptanceClaimed": false,
+  "productionLicenseAcceptance": false,
+  "enterpriseCryptoProSigningAccepted": false,
+  "licensedDesktopGtinWriteAccepted": false,
+  "liveApiWbGtinWriteVerified": true,
+  "installerSha256": null,
+  "installerBytes": null,
+  "requestReport": "docs/releases/VN-code-1.4.19-request-report.md",
+  "conditions": "Only this successful full Windows build and all native, upgrade, source and artifact checks can produce the final receipt and publish. A failed build stops publication."
+}

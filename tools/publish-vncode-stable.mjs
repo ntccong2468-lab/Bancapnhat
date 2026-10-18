@@ -82,7 +82,7 @@ export function validateOwnerApproved1418(decision,status,version,sha,runId) {
 
 // The owner requested this release after the API-vs-desktop acceptance difference
 // was reported. Bind only this exact fresh Windows build; do not relax publish.
-export function validateOwnerApproved1419(decision,status,version,sha,runId) {
+export function validateOwnerRequest1419(decision,version,sha,runId) {
     assert.equal(version,'1.4.19');assert.equal(sha,'d25718c6a69f94f08d9515d36f7444650b1eebd1');
     assert.equal(String(runId),'39114287816');
     assert.equal(decision.version,version);assert.equal(decision.sourceCommit,sha);assert.equal(String(decision.runId),String(runId));
@@ -92,6 +92,9 @@ export function validateOwnerApproved1419(decision,status,version,sha,runId) {
     assert.equal(decision.standardFullAcceptanceClaimed,false);assert.equal(decision.productionLicenseAcceptance,false);
     assert.equal(decision.enterpriseCryptoProSigningAccepted,false);assert.equal(decision.licensedDesktopGtinWriteAccepted,false);
     assert.equal(decision.liveApiWbGtinWriteVerified,true);
+}
+export function validateOwnerApproved1419(decision,status,version,sha,runId) {
+    validateOwnerRequest1419(decision,version,sha,runId);
     assert.match(decision.installerSha256,/^[a-f0-9]{64}$/);assert.ok(Number.isSafeInteger(decision.installerBytes)&&decision.installerBytes>1024*1024);
     assert.equal(status.version,version);assert.equal(status.complete,false);assert.equal(status.databaseSchema,6);
     assert.equal(status.licenseIntegration.productionReady,false);assert.equal(status.licenseIntegration.changedInThisVersion,false);
@@ -109,18 +112,32 @@ async function main(runId,sha,mode='prepare') {
     assert.ok(['prepare','publish','owner-approved-1418','owner-approved-1419'].includes(mode));
     const {version}=await resolveReleaseVersion({root:process.cwd()});const tag=`v${version}`;
     validatePublicationSource(sha);
-    const run=api(`actions/runs/${runId}`);validateBuild(run,sha,api('actions/workflows/build-java.yml').id);
+    let run=api(`actions/runs/${runId}`);
+    const workflowId=api('actions/workflows/build-java.yml').id;
     const status=json(await readFile(`docs/releases/VN-code-${version}-status.json`));
-    let ownerDecision;
+    let ownerDecision,pendingOwnerBuild=false;
     if(mode==='owner-approved-1418') {
         ownerDecision=json(await readFile('docs/validation/2026-10-18-vncode-1418-owner-publication.json'));
         validateOwnerApproved1418(ownerDecision,status,version,sha,runId);
     }
     if(mode==='owner-approved-1419') {
         ownerDecision=json(await readFile('docs/validation/2026-10-18-vncode-1419-owner-publication.json'));
-        validateOwnerApproved1419(ownerDecision,status,version,sha,runId);
+        validateOwnerRequest1419(ownerDecision,version,sha,runId);
+        pendingOwnerBuild=ownerDecision.phase==='authorized-awaiting-verified-build';
+        if(pendingOwnerBuild) {
+            assert.equal(ownerDecision.installerSha256,null);assert.equal(ownerDecision.installerBytes,null);
+            assert.equal(status.validation.windowsBuild.sourceCommit,sha);assert.equal(String(status.validation.windowsBuild.runId),String(runId));
+            const deadline=Date.now()+90*60*1000;
+            while(run.status!=='completed') {
+                assert.equal(run.head_sha,sha);assert.equal(run.workflow_id,workflowId);assert.equal(run.repository.full_name,REPO);
+                assert.ok(Date.now()<deadline,'Timed out waiting for the authorized Windows build');
+                console.log(`Waiting for authorized Windows build ${runId}; no release mutation has started.`);
+                await new Promise(resolve=>setTimeout(resolve,30000));run=api(`actions/runs/${runId}`);
+            }
+        } else validateOwnerApproved1419(ownerDecision,status,version,sha,runId);
         assert.ok((await readFile('docs/releases/'+status.requestReport,'utf8')).includes('Chưa hoàn tất'));
     }
+    validateBuild(run,sha,workflowId);
     if(mode==='publish') {
         assert.equal(status.complete,true,'Release functionality acceptance is incomplete');
         validateLicenseReadiness(status,json(await readFile('src/main/resources/com/vncode/app/license/trusted-keys.json')),
@@ -132,7 +149,7 @@ async function main(runId,sha,mode='prepare') {
     gh(['run','download',runId,'--repo',REPO,'--name',artifactName,'--dir',directory]);
     const name=`VN-code-${version}-Windows-x64.exe`;const bytes=await readFile(path.join(directory,name));
     const digest=hash(bytes);assert.equal(digest,(await readFile(path.join(directory,`VN-code-${version}-Windows-x64.sha256`),'utf8')).trim().split(/\s+/)[0]);
-    if(ownerDecision){assert.equal(digest,ownerDecision.installerSha256);assert.equal(bytes.length,ownerDecision.installerBytes);}
+    if(ownerDecision&&!pendingOwnerBuild){assert.equal(digest,ownerDecision.installerSha256);assert.equal(bytes.length,ownerDecision.installerBytes);}
     assert.ok(bytes.length>1024*1024);assert.equal(bytes.subarray(0,2).toString(),'MZ');const pe=bytes.readUInt32LE(0x3c);assert.equal(bytes.subarray(pe,pe+4).toString(),'PE\0\0');
     const native=json(await readFile(path.join(directory,'native-smoke.json')));validateNativeSmoke(native,version);
     validateSideBySideSmoke(json(await readFile(path.join(directory,'side-by-side-smoke.json'))),version);
@@ -171,6 +188,15 @@ async function main(runId,sha,mode='prepare') {
         assert.equal(javaVerificationOrigin,undefined);
         javaVerificationOrigin=json(await readFile(path.join(directory,'java-fixture-recovery.json')));
         validateFixtureRecovery(javaVerificationOrigin,version,sha,java);proofFiles.push('java-fixture-recovery.json');
+    }
+    if(pendingOwnerBuild) {
+        // Every build, native, upgrade, Java and artifact check above has passed.
+        // Fill the receipt with observed bytes; do not turn unknown live acceptance into success.
+        assert.equal(javaVerificationOrigin,undefined,'This authorization requires a fresh full Java run');
+        status.validation.windowsBuild={...status.validation.windowsBuild,state:'passed',upgradeFrom1418Passed:true};
+        ownerDecision={...ownerDecision,phase:'verified-for-publication',installerSha256:digest,installerBytes:bytes.length,
+            windowsJava:java,verifiedNativeProofs:proofFiles};
+        validateOwnerApproved1419(ownerDecision,status,version,sha,runId);
     }
     const notes=(await readFile(`docs/releases/VN-code-${version}.md`,'utf8')).trim();assert.ok(notes.length>50);
     const info={version,sourceCommit:sha,runId:Number(runId),java,installer:{filename:name,bytes:bytes.length,sha256:digest},

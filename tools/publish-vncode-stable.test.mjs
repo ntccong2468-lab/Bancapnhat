@@ -1,7 +1,7 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {validateStableAsset,validatePublishedStable,validateReusedJava,validateOwnerApproved1418,validateOwnerApproved1419,validateFixtureRecovery} from './publish-vncode-stable.mjs';
+import {validateStableAsset,validatePublishedStable,validateReusedJava,validateOwnerApproved1418,validateOwnerApproved1419,validateOwnerRequest1419,validateFixtureRecovery} from './publish-vncode-stable.mjs';
 import {origin} from './reuse-verified-windows-java.mjs';
 
 const version='1.4.6',digest='a'.repeat(64),size=140000000;
@@ -71,6 +71,11 @@ test('1.4.19 owner publication requires the exact fresh build and distinguishes 
   validation:{productionLicenseVerified:false,liveCryptoProSigningThisVersion:false,liveLicensedDesktopGtinWriteThisVersion:false,liveApiWbGtinWriteThisVersion:true,
    windowsBuild:{state:'passed',runId:Number(runId),sourceCommit:sha,freshFullJavaExecutionRequired:true,upgradeFrom1418Passed:true}}};
  validateOwnerApproved1419(decision,status,'1.4.19',sha,runId);
+ const pending={...decision,phase:'authorized-awaiting-verified-build',installerSha256:null,installerBytes:null};
+ validateOwnerRequest1419(pending,'1.4.19',sha,runId);
+ assert.throws(()=>validateOwnerApproved1419(pending,status,'1.4.19',sha,runId),'A request is not proof of a verified installer');
+ assert.throws(()=>validateOwnerRequest1419(pending,'1.4.20',sha,runId));
+ assert.throws(()=>validateOwnerRequest1419(pending,'1.4.19',sha,'1'));
  for(const patch of [{ownerRequestedPublication:false},{ownerInformedOfUnverifiedChecks:false},{requestReportDeliveredBeforePublication:false},
   {standardFullAcceptanceClaimed:true},{productionLicenseAcceptance:true},{enterpriseCryptoProSigningAccepted:true},
   {licensedDesktopGtinWriteAccepted:true},{liveApiWbGtinWriteVerified:false},{installerSha256:'bad'},{installerBytes:0},{runId:1},{sourceCommit:'b'.repeat(40)}])
