@@ -8,7 +8,7 @@
   "complete": false,
   "validation": {
     "windowsBuild": {
-      "state": "awaiting-final-source-build",
+      "state": "in_progress",
       "supersededRuns": [
         {
           "runId": 39125393767,
@@ -22,7 +22,11 @@
           "state": "cancelled",
           "reason": "Actual Catalog reads exposed external error/moderation/draft states being grouped as unpublished; included their distinct UI/report/filter states before release."
         }
-      ]
+      ],
+      "runId": 39128445608,
+      "sourceCommit": "d6b977403173a3952dac1e037bc069bc8f1af22f",
+      "url": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/39128445608",
+      "freshFullJavaExecutionRequired": true
     },
     "productionLicenseVerified": false,
     "liveCryptoProSigningThisVersion": false,
