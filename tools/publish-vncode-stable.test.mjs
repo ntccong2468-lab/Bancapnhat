@@ -122,8 +122,8 @@ test('requested 1.5.0 publication binds its verified build without claiming priv
 });
 
 test('1.5.1 publication binds the exact fresh build and keeps live acceptance limits explicit',()=>{
- const version='1.5.1',sha='85fd0e060ad75031d21b1ed54fb6a4821d46d9e7',runId='39268181948';
- const java={tests:1913,failures:0,errors:0,skipped:2,passed:1911};
+ const version='1.5.1',sha='bd421bbccab297db31ea68dfac3d6c707b319e99',runId='39277937972';
+ const java={tests:1924,failures:0,errors:0,skipped:2,passed:1922};
  const decision={version,sourceCommit:sha,runId,phase:'verified-for-publication',ownerRequestedPublication:true,
   ownerInstruction:'sau khi xong hãy đưa bản mới này lên latest để thông báo xuống app cho seller cập nhật',
   unverifiedChecksDisclosedBeforePublication:true,standardFullAcceptanceClaimed:false,productionLicenseAcceptance:false,
@@ -147,9 +147,9 @@ test('1.5.1 publication binds the exact fresh build and keeps live acceptance li
   assert.throws(()=>validateOwnerRequest151(pending,{...pendingStatus,validation:{...pendingStatus.validation,windowsBuild:{...pendingStatus.validation.windowsBuild,...patch}}},version,sha,runId));
  for(const patch of [{phase:'awaiting-build'},{ownerRequestedPublication:false},{standardFullAcceptanceClaimed:true},
   {enterpriseCryptoProSigningAccepted:true},{liveCatalogCardRepairedThisVersion:true},{installerSha256:null},{windowsJava:{...java,errors:1}},
-  {windowsJava:{tests:1912,failures:0,errors:0,skipped:2,passed:1910}}])
+  {windowsJava:{tests:1923,failures:0,errors:0,skipped:2,passed:1921}}])
   assert.throws(()=>validateOwnerRequested151({...decision,...patch},status,version,sha,runId));
  assert.throws(()=>validateOwnerRequested151(decision,status,version,'a'.repeat(40),runId));
- assert.throws(()=>validateOwnerRequested151(decision,status,version,sha,'39268181949'));
+ assert.throws(()=>validateOwnerRequested151(decision,status,version,sha,'39277937973'));
  assert.throws(()=>validateOwnerRequested151(decision,{...status,validation:{...status.validation,windowsBuild:{...status.validation.windowsBuild,upgradeFrom150Passed:false}}},version,sha,runId));
 });

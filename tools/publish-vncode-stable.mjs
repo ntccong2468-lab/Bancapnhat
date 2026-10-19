@@ -138,8 +138,8 @@ export function validateOwnerRequested150(decision,status,version,sha,runId) {
 // Explicit owner request for this exact 1.5.1 application build. The receipt
 // records missing live acceptance without changing the standard publish gate.
 export function validateOwnerRequest151(decision,status,version,sha,runId) {
-    assert.equal(version,'1.5.1');assert.equal(sha,'85fd0e060ad75031d21b1ed54fb6a4821d46d9e7');
-    assert.equal(String(runId),'39268181948');
+    assert.equal(version,'1.5.1');assert.equal(sha,'bd421bbccab297db31ea68dfac3d6c707b319e99');
+    assert.equal(String(runId),'39277937972');
     assert.equal(decision.version,version);assert.equal(decision.sourceCommit,sha);assert.equal(String(decision.runId),String(runId));
     assert.ok(['authorized-awaiting-verified-build','verified-for-publication'].includes(decision.phase));
     assert.equal(decision.ownerRequestedPublication,true);
@@ -165,7 +165,7 @@ export function validateOwnerRequested151(decision,status,version,sha,runId) {
     assert.match(decision.installerSha256,/^[a-f0-9]{64}$/);assert.ok(Number.isSafeInteger(decision.installerBytes)&&decision.installerBytes>1024*1024);
     const build=status.validation.windowsBuild;
     assert.equal(build.state,'passed');assert.equal(build.upgradeFrom150Passed,true);
-    assert.ok(decision.windowsJava.tests>=1913);assert.equal(decision.windowsJava.failures,0);assert.equal(decision.windowsJava.errors,0);
+    assert.ok(decision.windowsJava.tests>=1924);assert.equal(decision.windowsJava.failures,0);assert.equal(decision.windowsJava.errors,0);
     assert.equal(decision.windowsJava.passed,decision.windowsJava.tests-decision.windowsJava.skipped);
     assert.deepEqual(build.fullJavaSuite,decision.windowsJava);
 }

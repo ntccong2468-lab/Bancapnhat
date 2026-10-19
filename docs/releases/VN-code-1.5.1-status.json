@@ -1,6 +1,6 @@
 {
   "version": "1.5.1",
-  "state": "applying-published-catalog-rules-before-new-windows-build",
+  "state": "awaiting-verified-windows-build-for-published-catalog-rules",
   "baseline": "v1.5.0",
   "databaseSchema": 6,
   "published": false,
@@ -28,8 +28,11 @@
       "failures": 0
     },
     "windowsBuild": {
-      "state": "not-started",
-      "freshFullJavaExecutionRequired": true
+      "state": "running",
+      "freshFullJavaExecutionRequired": true,
+      "sourceCommit": "bd421bbccab297db31ea68dfac3d6c707b319e99",
+      "runId": 39277937972,
+      "url": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/39277937972"
     },
     "productionLicenseVerified": false,
     "liveCryptoProSigningThisVersion": false,
