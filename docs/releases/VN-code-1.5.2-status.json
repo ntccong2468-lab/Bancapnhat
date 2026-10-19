@@ -31,9 +31,9 @@
       "state": "running",
       "freshFullJavaExecutionRequired": true,
       "allNativeChecksMustRunAgain": true,
-      "sourceCommit": "fb9474ab4850e73542691d1a49d52948b2c95abf",
-      "runId": 39334212949,
-      "url": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/39334212949"
+      "sourceCommit": "6fe8ef21871657a38151897ddc13c3b1b5028fd5",
+      "runId": 39337203593,
+      "url": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/39337203593"
     },
     "productionLicenseVerified": false,
     "liveCryptoProSigningThisVersion": false,
@@ -65,6 +65,22 @@
       "failures": 0,
       "errors": 0,
       "responseDeadlineMillis": 300
+    },
+    "supersededBuild": {
+      "state": "cancelled-to-include-owner-kiz-and-shipping-request",
+      "freshFullJavaExecutionRequired": true,
+      "allNativeChecksMustRunAgain": true,
+      "sourceCommit": "fb9474ab4850e73542691d1a49d52948b2c95abf",
+      "runId": 39334212949,
+      "url": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/39334212949",
+      "acceptedForRelease": false
+    },
+    "kizShippingFocusedTests": {
+      "tests": 100,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "evidence": "docs/validation/2026-10-19-vncode-152-kiz-shipping.json"
     }
   }
 }
