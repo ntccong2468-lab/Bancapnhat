@@ -60,6 +60,37 @@ class Kn3BatchReplacementTest {
         repository.observe(shop,"101",List.of(new Kn3Mark("101","","",stock.getCode(),Kn3Mark.State.REJECTED,"sgtinRetired")));
         assertEquals("CONSUMED",stockState(stock));assertEquals(0,new ZnackGtinInventoryService().releaseRecoverableReservations());
     }
+    static String syntheticCode(int n){return "010464558878115421"+String.format(java.util.Locale.ROOT,"%013d",n);}
+    @Test void repeatedRedReplacementsUseOtherPoolsAndNeverReturnOrReimportRejectedCodes()throws Exception{
+        var category=new KizStockCategoryRepository().create(shop,"Other product pool");var file=root.resolve("repeat.txt");var codes=new ArrayList<String>();for(int n=1;n<=33;n++)codes.add(syntheticCode(n));
+        var original=new KizWarehouseService().importFile(shop,writeFile(file,codes),true,category.id());assertEquals(33,original.inserted());
+        var target=new Kn3Mark("101","","",syntheticCode(1),Kn3Mark.State.REJECTED,"sgtinRetired");repository.observe(shop,"101",List.of(target));
+        var stock=new Kn3BatchReplacement.StockActions();
+        for(int attempt=0;attempt<30;attempt++){
+            var next=stock.reserve(shop,new Kn3BatchReplacement.Row(target,"100","","",""),KizSourceSelection.SELLER_ONLY);assertNotEquals(target.fingerprint(),Kn3Mark.fingerprint(next.getCode()));
+            var id=repository.begin(shop,target,next.getCode(),"{}",next);repository.dispatch(shop,id,"AWAITING");target=new Kn3Mark("101","","",next.getCode(),Kn3Mark.State.REJECTED,"sgtinRetired");repository.observe(shop,"101",List.of(target));assertEquals("CONSUMED",stockState(next));
+        }
+        var reimported=new KizWarehouseService().importFile(shop,writeFile(file,codes),true,category.id());assertEquals(31,reimported.rejected());assertEquals(2,reimported.inserted());
+        try(var c=Database.getConnection();var p=c.prepareStatement("SELECT count(*) FROM kiz_codes WHERE shop_id=1 AND legal_status='REJECTED' AND status='AVAILABLE'");var r=p.executeQuery()){assertTrue(r.next());assertEquals(0,r.getInt(1));}
+        assertThrows(IllegalStateException.class,()->repository.begin(shop,red("102"),syntheticCode(1),"{}"));
+    }
+    KizImportReader.Preview writeFile(Path file,List<String> codes)throws Exception{Files.write(file,codes);return KizImportReader.read(file);}
+    @Test void aRedCisAlsoDiscardsFullCryptoCopiesInOtherCategories()throws Exception{
+        var categories=new KizStockCategoryRepository();var a=categories.create(shop,"A");var b=categories.create(shop,"B");String cis=syntheticCode(77),full=cis+"\u001d91ABCD\u001d92RklYVFVSRS1OT1QtQS1SRUFMLUNSWVBUTy1TSUdOQVRVUkU=";
+        var preview=writeFile(root.resolve("same-name.txt"),List.of(full,full));new KizWarehouseService().importFile(shop,preview,true,a.id());new KizWarehouseService().importFile(shop,preview,true,b.id());
+        repository.observe(shop,"101",List.of(new Kn3Mark("101","","",cis,Kn3Mark.State.REJECTED,"sgtinRetired")));
+        assertNull(new KizCategoryAllocator().reserveReplacement(shop));var result=new KizWarehouseService().importFile(shop,preview,true,a.id());assertEquals(2,result.rejected());assertEquals(0,result.inserted());
+    }
+    @Test void batchContinuesAfterNewRedCodesUntilAnExactGreenReadback()throws Exception{
+        repository.observe(shop,"101",List.of(red("101")));var writes=new AtomicInteger();var latest=new AtomicReference<String>();
+        var service=new Kn3BatchReplacement(new Kn3BatchReplacement.Actions(){
+            public Kiz reserve(Shop s,Kn3BatchReplacement.Row row,KizSourceSelection sources){if(writes.get()>0)assertEquals(latest.get(),row.mark().code());return new Kiz(writes.get()+1,"attempt-"+(writes.get()+1));}
+            public void replace(Shop s,Kn3BatchReplacement.Row row,Kiz code){writes.incrementAndGet();latest.set(code.getCode());repository.begin(s,row.mark(),code.getCode(),"{}");}
+            public void refresh(Shop s,String order){repository.observe(s,order,List.of(new Kn3Mark(order,"","",latest.get(),writes.get()<3?Kn3Mark.State.REJECTED:Kn3Mark.State.ACCEPTED,writes.get()<3?"sgtinRetired":"sgtinIntroduced")));}
+            public void releaseUnclaimed(Shop s,Kiz source){fail("Known applied codes must not return to stock");}
+        });
+        service.start(shop,service.report(shop,List.of("101")),KizSourceSelection.SELLER_ONLY).get(25,TimeUnit.SECONDS);assertEquals(3,writes.get());assertEquals(Kn3Mark.State.ACCEPTED,Kn3Mark.summary(repository.read(shop,"101")));
+    }
     @Test void labelsUseOnlyConfirmedReplacementAndKeepOriginalHistoryUnchanged()throws Exception{
         var old=red("101");repository.observe(shop,"101",List.of(old));repository.begin(shop,old,"new-101","{}");var slots=List.of(new Kn3PrintProjection.Slot("","",old.code()));
         assertThrows(java.io.IOException.class,()->Kn3PrintProjection.codes(shop,"101",slots));

@@ -20,6 +20,7 @@ public final class Kn3Repository {
         });}catch(SQLException e){throw new IllegalStateException("FBS_KN3_STORAGE",e);}
     }
     public static void initialize(Connection c)throws SQLException {
+        com.vncode.app.features.kiz.KizRejectedStock.initialize(c);
         try(var s=c.createStatement()){
             s.execute("CREATE TABLE IF NOT EXISTS kn3_marks(shop_id INTEGER NOT NULL REFERENCES shops(id) ON DELETE CASCADE,marketplace TEXT NOT NULL,owner TEXT NOT NULL,order_id TEXT NOT NULL,product_id TEXT NOT NULL,exemplar_id TEXT NOT NULL,code TEXT NOT NULL,state TEXT NOT NULL,reason TEXT NOT NULL,checked_at TEXT NOT NULL,PRIMARY KEY(shop_id,marketplace,order_id,product_id,exemplar_id))");
             s.execute("CREATE TABLE IF NOT EXISTS kn3_replacements(id TEXT PRIMARY KEY,shop_id INTEGER NOT NULL REFERENCES shops(id) ON DELETE CASCADE,marketplace TEXT NOT NULL,owner TEXT NOT NULL,order_id TEXT NOT NULL,product_id TEXT NOT NULL,exemplar_id TEXT NOT NULL,old_hash TEXT NOT NULL,new_code TEXT NOT NULL,state TEXT NOT NULL,payload TEXT NOT NULL DEFAULT '{}',updated_at TEXT NOT NULL)");
@@ -29,12 +30,16 @@ public final class Kn3Repository {
             s.execute("CREATE INDEX IF NOT EXISTS kn3_replacement_history ON kn3_replacements(shop_id,marketplace,owner,order_id)");
         }
     }
+    public void discardRejected(Shop shop,Kn3Mark mark){
+        ListingIdentity.require(shop);try{SqliteWriteTransaction.run(c->{requireOwner(c,shop);com.vncode.app.features.kiz.KizRejectedStock.discard(c,shop,mark);return null;});}catch(SQLException e){throw new IllegalStateException("FBS_KN3_STORAGE",e);}
+    }
     public void observe(Shop shop,String order,List<Kn3Mark> marks){
         ListingIdentity.require(shop);String owner=ListingIdentity.fingerprint(shop);String now=Instant.now().toString();
         if(marks.stream().anyMatch(m->!order.equals(m.orderId())))throw new SecurityException("FBS_FOREIGN_ORDER");
         try{SqliteWriteTransaction.run(c->{requireOwner(c,shop);
             try(var d=c.prepareStatement("DELETE FROM kn3_marks WHERE shop_id=? AND marketplace=? AND order_id=?")){d.setInt(1,shop.getId());d.setString(2,shop.getMarketplace().name());d.setString(3,order);d.executeUpdate();}
             var rows=marks.isEmpty()?List.of(new Kn3Mark(order,"","","",Kn3Mark.State.EMPTY,"")):marks;
+            for(var mark:rows)com.vncode.app.features.kiz.KizRejectedStock.discard(c,shop,mark);
             try(var p=c.prepareStatement("INSERT INTO kn3_marks VALUES(?,?,?,?,?,?,?,?,?,?)")){
                 for(var m:rows){Object[] values={shop.getId(),shop.getMarketplace().name(),owner,order,m.productId(),m.exemplarId(),m.code(),m.state().name(),m.reason(),now};for(int i=0;i<values.length;i++)p.setObject(i+1,values[i]);p.addBatch();}p.executeBatch();
             }
@@ -72,7 +77,7 @@ public final class Kn3Repository {
     }
     public String begin(Shop shop,Kn3Mark old,String newCode,String payload,Kiz stock){
         ListingIdentity.require(shop);String id=UUID.randomUUID().toString();
-        try{SqliteWriteTransaction.run(c->{requireOwner(c,shop);try(var p=c.prepareStatement("INSERT INTO kn3_replacements(id,shop_id,marketplace,owner,order_id,product_id,exemplar_id,old_hash,new_code,state,payload,updated_at) VALUES(?,?,?,?,?,?,?,?,?,'PREPARED',?,?)")){
+        try{SqliteWriteTransaction.run(c->{requireOwner(c,shop);if(com.vncode.app.features.kiz.KizRejectedStock.contains(c,shop.getId(),newCode))throw new IllegalStateException("FBS_KN3_NEW_CODE_REQUIRED");try(var p=c.prepareStatement("INSERT INTO kn3_replacements(id,shop_id,marketplace,owner,order_id,product_id,exemplar_id,old_hash,new_code,state,payload,updated_at) VALUES(?,?,?,?,?,?,?,?,?,'PREPARED',?,?)")){
             Object[] values={id,shop.getId(),shop.getMarketplace().name(),ListingIdentity.fingerprint(shop),old.orderId(),old.productId(),old.exemplarId(),old.fingerprint(),newCode,payload,Instant.now().toString()};for(int i=0;i<values.length;i++)p.setObject(i+1,values[i]);p.executeUpdate();}
             if(stock!=null){
                 try(var p=c.prepareStatement("UPDATE kiz_codes SET reservation_recoverable=0 WHERE id=? AND shop_id=? AND status='RESERVED' AND reservation_token=? AND raw_code=?")){p.setInt(1,stock.getId());p.setInt(2,shop.getId());p.setString(3,stock.getReservationToken());p.setString(4,stock.getCode());if(p.executeUpdate()!=1||!Kn3Mark.fingerprint(stock.getCode()).equals(Kn3Mark.fingerprint(newCode)))throw new SecurityException("FBS_KN3_STOCK_CHANGED");}

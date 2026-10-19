@@ -33,8 +33,8 @@
                 </Button>
                 <Label minWidth="0" fx:id="supplyTitleLabel" text="%supply.not_selected" styleClass="h3" />
                 <Pane HBox.hgrow="ALWAYS" />
-                <Button fx:id="addAgainKizButton" visible="false" managed="false" onAction="#onAddAgainKiz" text="%kn3.batch.title" styleClass="btn-primary"/>
                 <Button minWidth="0" fx:id="inventoryToggleButton" onAction="#onToggleInventory" text="%supply.inventory_toggle" prefHeight="46"/>
+                <Button fx:id="addAgainKizButton" visible="false" managed="false" onAction="#onAddAgainKiz" text="%kn3.batch.title" styleClass="btn-primary"/>
                 <Button minWidth="0" fx:id="printButton" disable="true" mnemonicParsing="false" onAction="#onPrint" prefHeight="46.0" text="%supply.print">
                     <styleClass>
                         <String fx:value="button" />

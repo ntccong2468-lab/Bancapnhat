@@ -2363,44 +2363,35 @@ public class HomeController implements Initializable {
     }
 
     private void deliverLoadedSupply() {
-        Shop shop = requireSelectedShop();
+        Shop selected = requireSelectedShop();
         WbSupplySummary supply = loadedSupplySummary;
-        if (shop == null || supply == null || !state.isSelectedShopTokenValid()) {
+        if (selected == null || supply == null || !state.isSelectedShopTokenValid() || isShopBusy(selected.getId())) {
             return;
         }
-        final com.vncode.app.ui.supply.WbShippingPane.Selection shipping;
-        try {shipping=wbShippingPane.selection();}
-        catch(IllegalArgumentException error){AlertService.showError(error.getMessage());return;}
-        ButtonType deliver = new ButtonType(i18nService.tr("supply.deliver"), ButtonBar.ButtonData.OK_DONE);
-        Alert confirm = new Alert(Alert.AlertType.CONFIRMATION,
-                MessageFormat.format(i18nService.tr("workspace.deliver.confirm.content"), supply.getSupplyId()),
-                deliver,
-                ButtonType.CANCEL);
-        AlertService.applyTheme(confirm);
-        confirm.setHeaderText(i18nService.tr("workspace.deliver.confirm.header"));
-        Optional<ButtonType> choice = confirm.showAndWait();
-        if (choice.isEmpty() || choice.get() != deliver) {
-            return;
-        }
+        Shop shop = frozenShop(selected);
+        var prepared = wbShippingPane.prepareSelection();
         Task<Void> task = new Task<>() {
             @Override
             protected Void call() throws Exception {
+                var shipping=prepared.get(90,java.util.concurrent.TimeUnit.SECONDS);
+                com.vncode.app.integration.listing.ListingIdentity.require(shop);
                 packingWorkflow.deliverSupply(shop, supply,shipping.parameters());
-                new com.vncode.app.integration.wb.WbShippingPreferenceService().save(shop.getId(),shipping.preferences());
+                if(shipping.location()!=null)try {
+                    new com.vncode.app.integration.wb.WbShippingPreferenceService().remember(shop,shipping.location());
+                }catch(RuntimeException rememberFailure){LOGGER.warn("Delivery succeeded; could not remember shipping location",rememberFailure);}
                 return null;
             }
         };
-        task.setOnRunning(e -> markShopRunning(shop.getId(), true));
+        markShopRunning(shop.getId(), true);
         java.util.function.Consumer<Throwable> taskFailure = rejection -> {
             markShopRunning(shop.getId(), false);
             LOGGER.error("Không thể chuyển supply {} sang giao hàng", supply.getSupplyId(), rejection);
-            AlertService.showError(rejection.getMessage());
+            if(!disposed&&sameOwner(shop))AlertService.showError(com.vncode.app.shared.FriendlyErrorService.format(rejection));
         };
         task.setOnFailed(e -> taskFailure.accept(task.getException()));
         task.setOnSucceeded(e -> {
             markShopRunning(shop.getId(), false);
-            refreshSupplyList();
-            showPacking();
+            if(!disposed&&sameOwner(shop)){refreshSupplyList();if(matchesCurrentSupply(shop.getId(),supply.getSupplyId()))showPacking();}
         });
         AppTaskExecutor.execute(task, taskFailure);
     }
@@ -2435,6 +2426,7 @@ public class HomeController implements Initializable {
         if (licensePane != null) licensePane.dispose();
         if(guidesPane!=null)guidesPane.dispose();
         if(workspaceHeaderController!=null)workspaceHeaderController.dispose();
+        if(wbShippingPane!=null)wbShippingPane.dispose();
         if(sidebarScene!=null)sidebarScene.widthProperty().removeListener(sidebarWidthListener);
         if (licenseSubscription != null) {
             try { licenseSubscription.close(); } catch (Exception ignored) { }

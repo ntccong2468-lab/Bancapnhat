@@ -66,12 +66,12 @@ public final class Kn3BatchReplacement {
     private final class Run {
         final Shop shop;final Report report;final KizSourceSelection sources;final CompletableFuture<Void> done;
         final Map<Kn3Mark,String> accepted=new HashMap<>();
-        int index;final List<String> errors=new ArrayList<>();String expected="";long started=System.nanoTime(),nextProbe;
+        Kn3Mark retryTarget;int index;final List<String> errors=new ArrayList<>();String expected="";long started=System.nanoTime(),nextProbe;
         Run(Shop shop,Report report,KizSourceSelection sources,CompletableFuture<Void> done){this.shop=shop;this.report=report;this.sources=sources;this.done=done;}
         void schedule(long millis){CLOCK.schedule(()->SellerMutationExecutor.submit(shop,()->{try(var lane=com.vncode.app.shared.MarketplaceRequestBudget.lane(true)){step();return null;}}).whenComplete((v,e)->{if(e!=null)done.completeExceptionally(e);else if(!done.isDone())schedule(1000);}),millis,TimeUnit.MILLISECONDS);}
         void step()throws Exception{
             ListingIdentity.require(shop);
-            if(System.nanoTime()-started>Duration.ofMinutes(5).toNanos()){errors.add(report.rows().get(index).mark().orderId()+": FBS_KN3_CONFIRMATION_PENDING");index++;expected="";started=System.nanoTime();}
+            if(index<report.rows().size()&&System.nanoTime()-started>Duration.ofMinutes(5).toNanos()){errors.add(report.rows().get(index).mark().orderId()+": FBS_KN3_CONFIRMATION_PENDING");index++;expected="";retryTarget=null;started=System.nanoTime();}
             if(index==report.rows().size()){
                 if(!errors.isEmpty())throw new IOException(String.join("\n",errors));
                 try(var c=Database.getConnection()){
@@ -80,23 +80,23 @@ public final class Kn3BatchReplacement {
                     if(current.values().stream().flatMap(List::stream).anyMatch(m->m.state()==Kn3Mark.State.REJECTED||m.state()==Kn3Mark.State.PENDING||m.state()==Kn3Mark.State.UNAVAILABLE))throw new IOException("FBS_KN3_SHIPMENT_NOT_CONFIRMED");
                 }done.complete(null);return;
             }
-            var row=report.rows().get(index);var target=row.mark();
+            var original=report.rows().get(index);var row=retryTarget==null?original:new Row(retryTarget,original.productId(),original.barcode(),original.gtin(),original.article());var target=row.mark();
             if(!expected.isEmpty()&&System.nanoTime()>=nextProbe){
                 nextProbe=System.nanoTime()+Duration.ofSeconds(10).toNanos();
                 try(var deferral=com.vncode.app.shared.RateLimitDeferral.enter()){actions.refresh(shop,target.orderId());}catch(IOException|com.vncode.app.shared.RateLimitDeferral.Deferred retryRead){return;}
             }
             var current=repository.read(shop,target.orderId()).stream().filter(m->m.productId().equals(target.productId())&&m.exemplarId().equals(target.exemplarId())).findFirst().orElseThrow(()->new IOException("FBS_KN3_CHANGED"));
             if(!expected.isEmpty()){
-                if(current.fingerprint().equals(expected)&&current.state()==Kn3Mark.State.ACCEPTED){accepted.put(target,current.fingerprint());index++;expected="";started=System.nanoTime();}
-                else if(current.state()==Kn3Mark.State.REJECTED){errors.add(target.orderId()+": FBS_KN3_REPLACEMENT_REJECTED_"+Kn3Mark.safe(current.reason()));index++;expected="";started=System.nanoTime();}
+                if(current.fingerprint().equals(expected)&&current.state()==Kn3Mark.State.ACCEPTED){accepted.put(original.mark(),current.fingerprint());index++;expected="";retryTarget=null;started=System.nanoTime();}
+                else if(current.fingerprint().equals(expected)&&current.state()==Kn3Mark.State.REJECTED){retryTarget=current;expected="";started=System.nanoTime();nextProbe=0;}
                 return;
             }
-            if(current.state()==Kn3Mark.State.ACCEPTED){accepted.put(target,current.fingerprint());index++;started=System.nanoTime();return;}
+            if(current.state()==Kn3Mark.State.ACCEPTED){accepted.put(original.mark(),current.fingerprint());index++;retryTarget=null;started=System.nanoTime();return;}
             if(current.state()!=Kn3Mark.State.REJECTED||!current.fingerprint().equals(target.fingerprint()))throw new IOException("FBS_KN3_CHANGED");
             Kiz source=null;
             try{source=actions.reserve(shop,row,sources);actions.replace(shop,row,source);expected=Kn3Mark.fingerprint(source.getCode());nextProbe=System.nanoTime()+Duration.ofSeconds(2).toNanos();}
             catch(SecurityException|com.vncode.app.features.license.LicenseGate.LicenseDeniedException fatal){if(source!=null)actions.releaseUnclaimed(shop,source);throw fatal;}
-            catch(Exception e){if(source!=null)actions.releaseUnclaimed(shop,source);if("KIZ_PURCHASE_PENDING".equals(e.getMessage()))return;errors.add(target.orderId()+": "+failureCode(e));index++;expected="";started=System.nanoTime();}
+            catch(Exception e){if(source!=null)actions.releaseUnclaimed(shop,source);if("KIZ_PURCHASE_PENDING".equals(e.getMessage()))return;errors.add(target.orderId()+": "+failureCode(e));index++;expected="";retryTarget=null;started=System.nanoTime();}
             com.vncode.app.features.sync.SyncRuntime.requestIfRunning(shop,com.vncode.app.features.sync.SyncCoordinator.Stream.FBS_STATUS);
         }
     }
@@ -104,23 +104,10 @@ public final class Kn3BatchReplacement {
     static final class StockActions implements Actions {
         final ZnackGtinInventoryService inventory=new ZnackGtinInventoryService();
         public Kiz reserve(Shop shop,Row row,KizSourceSelection sources)throws Exception{
-            if(row.productId()==null||row.productId().isBlank())throw new IOException("KIZ_GTIN_PRODUCT_MISSING");
-            // Identical occurrences of this known rejected code are unusable for its replacement.
-            for(int n=0;n<10000;n++){
-                Kiz code=null;
-                if(sources.sellerImported())code=new KizCategoryAllocator().reservePartial(shop,List.of(new KizCategoryAllocator.Demand("KN3:"+row.mark().orderId(),row.productId(),1))).values().stream().flatMap(List::stream).findFirst().orElse(null);
-                if(code==null&&sources.purchased()){
-                    var reference=new com.vncode.app.features.fbo.FboProductSku(1, "", "", "", "", "", "", "", row.barcode(), "", true, row.barcode(), "", "", row.productId());
-                    String gtin=new com.vncode.app.features.fbo.FboVerifiedGtinRepository().resolve(shop.getId(),shop.getMarketplace(),List.of(reference)).get(reference);
-                    if(gtin==null)throw new IOException("KIZ_GTIN_MAPPING_MISSING");
-                    var result=new KizStockReplenisher().ensurePurchased(shop,Map.of(gtin,1),missing->KizPurchaseMappingProof.require(shop,List.of(new KizPurchaseMappingProof.Product(row.productId(),row.barcode(),gtin)),missing.keySet()));
-                    if(result.waiting())throw new IOException("KIZ_PURCHASE_PENDING");
-                    code=inventory.reservePurchasedBulk(shop.getId(),Map.of(gtin,1)).values().stream().flatMap(List::stream).findFirst().orElse(null);
-                }
-                if(code==null)throw new IOException("KIZ_INVENTORY_SHORTAGE");
-                if(!Kn3Mark.fingerprint(code.getCode()).equals(row.mark().fingerprint()))return code;
-                inventory.consume(shop.getId(),List.of(code));
-            }throw new IOException("KIZ_INVENTORY_SHORTAGE");
+            new Kn3Repository().discardRejected(shop,row.mark());
+            var code=new KizCategoryAllocator().reserveReplacement(shop,sources.sellerImported(),sources.purchased());
+            if(code==null)throw new IOException("KIZ_INVENTORY_SHORTAGE");
+            return code;
         }
         public void replace(Shop shop,Row row,Kiz source)throws Exception{new Kn3ReplacementService().replace(shop,row.mark(),source.getCode(),source);}
         public void refresh(Shop shop,String order)throws Exception{

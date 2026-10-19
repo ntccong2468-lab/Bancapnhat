@@ -15,7 +15,7 @@ final class KizImportDialog {
     /** Choosing a file already authorizes a local import; this dialog only reports its result. */
     static void report(Window owner,String title,KizImportReader.Preview preview,Imported result){
         var dialog=new Dialog<Void>();dialog.setTitle(tr("title"));dialog.setHeaderText(title);if(owner!=null)dialog.initOwner(owner);
-        var summary=new Label(fileText(preview));summary.setId("kiz-import-file-report");summary.setWrapText(true);
+        var summary=new Label(fileText(preview,result));summary.setId("kiz-import-file-report");summary.setWrapText(true);
         var details=new Label(preview.issues().stream().map(i->i.row()+": "+com.vncode.app.features.kiz.KizErrorMessages.message(i.code())).collect(java.util.stream.Collectors.joining("\n")));details.setId("kiz-import-damaged");details.setWrapText(true);
         var imported=new Label(result==null?"":resultText(result));imported.setWrapText(true);
         var content=new ScrollPane(new VBox(12,summary,marketplaceStatus(),imported,details));content.setFitToWidth(true);dialog.getDialogPane().setContent(content);dialog.getDialogPane().setPrefSize(590,480);
@@ -49,7 +49,8 @@ final class KizImportDialog {
     private static Label marketplaceStatus(){
         var label=new Label(tr("marketplace_unchecked"));label.setId("kiz-import-marketplace-status");label.setWrapText(true);return label;
     }
-    static String resultText(Imported result,KizImportReader.Preview preview){return fileText(preview)+"\n"+resultText(result);}
+    static String fileText(KizImportReader.Preview preview,Imported result){return result==null?fileText(preview):MessageFormat.format(tr("file_report"),preview.total(),Math.max(0,preview.marks().size()-result.rejected()),preview.damaged()+result.rejected(),preview.duplicates());}
+    static String resultText(Imported result,KizImportReader.Preview preview){return fileText(preview,result)+"\n"+resultText(result);}
     static String reviewText(ImportReview review) {
         return MessageFormat.format(tr("review"),review.fresh(),review.unassigned(),review.sameCategory(),review.otherCategory(),review.reserved(),review.consumed(),review.archived(),review.otherStock(),review.conflicts(),review.fileDuplicates());
     }
@@ -57,6 +58,7 @@ final class KizImportDialog {
         var review=result.review();
         var lines=new java.util.ArrayList<String>();
         lines.add(MessageFormat.format(tr("result"),result.inserted(),result.classified(),result.moved()));
+        if(result.rejected()>0)lines.add(MessageFormat.format(tr("rejected_marketplace"),result.rejected()));
         String[] keys={"same","other","reserved","consumed","archived","foreign","conflicts","file_duplicates"};
         int[] counts={review.sameCategory(),review.otherCategory()-result.moved(),review.reserved(),review.consumed(),review.archived(),review.otherStock(),review.conflicts(),review.fileDuplicates()};
         for(int index=0;index<keys.length;index++)if(counts[index]>0)lines.add(MessageFormat.format(tr(keys[index]),counts[index]));

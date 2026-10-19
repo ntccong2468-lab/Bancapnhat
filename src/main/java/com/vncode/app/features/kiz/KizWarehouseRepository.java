@@ -29,7 +29,7 @@ public final class KizWarehouseRepository {
     public record Pending(long id,String raw,String cis,String gtin){@Override public String toString(){return "PendingKiz[redacted]";}}
     public record Verdict(boolean ready,String reason){public Verdict{if(!reason.matches("KIZ_[A-Z_]{1,70}"))throw new IllegalArgumentException("Invalid verification reason");}}
     public record ImportReview(int fresh,int unassigned,int sameCategory,int otherCategory,int reserved,int consumed,int archived,int otherStock,int conflicts,int fileDuplicates){}
-    public record Imported(String batch,int inserted,int duplicates,int classified,int moved,ImportReview review){}
+    public record Imported(String batch,int inserted,int duplicates,int classified,int moved,ImportReview review,int rejected){public Imported(String batch,int inserted,int duplicates,int classified,int moved,ImportReview review){this(batch,inserted,duplicates,classified,moved,review,0);}}
     public ImportReview review(Shop shop,KizImportReader.Preview preview,String category)throws SQLException {
         validateImport(shop,preview);
         try(var c=Database.getConnection()) {
@@ -78,9 +78,10 @@ public final class KizWarehouseRepository {
                     batch=UUID.randomUUID().toString();
                     try(var p=c.prepareStatement("INSERT INTO kiz_import_batches VALUES(?,?,?,?,?,?,?)")){p.setString(1,batch);p.setInt(2,shop.getId());p.setString(3,owner);p.setString(4,scope.source());p.setString(5,scope.inn());p.setString(6,category==null?preview.sha256():preview.sha256()+"|"+batch);p.setString(7,now);p.executeUpdate();}
                 }
-                var orders=new HashMap<String,Long>();int inserted=0,duplicates=0,classified=0,moved=0;
+                var orders=new HashMap<String,Long>();int inserted=0,duplicates=0,classified=0,moved=0,rejected=0;
                 var legacyIdentities=new HashSet<String>();
                 for(var mark:marks){
+                    if(KizRejectedStock.contains(c,shop.getId(),mark.raw())){rejected++;continue;}
                     if(category==null&&!legacyIdentities.add(mark.cis())){duplicates++;continue;}
                     var disposition=category==null?inventory.disposition(shop,owner,null,mark):KizImportInventory.Disposition.NEW;
                     if(disposition!=KizImportInventory.Disposition.NEW) {
@@ -115,7 +116,7 @@ public final class KizWarehouseRepository {
                     inserted++;
                 }
                 for(var order:orders.values())try(var p=c.prepareStatement("UPDATE kiz_orders SET quantity=(SELECT count(*) FROM kiz_codes WHERE order_id=?) WHERE id=? AND shop_id=?")){p.setLong(1,order);p.setLong(2,order);p.setInt(3,shop.getId());p.executeUpdate();}
-                return new Imported(Objects.toString(batch,""),inserted,duplicates+preview.duplicates(),classified,moved,review);
+                return new Imported(Objects.toString(batch,""),inserted,duplicates+preview.duplicates(),classified,moved,review,rejected);
             });
         }catch(SQLException storage){throw new IllegalStateException("KIZ_IMPORT_STORAGE_FAILED",storage);}
     }
@@ -194,10 +195,10 @@ public final class KizWarehouseRepository {
         try(var p=c.prepareStatement("SELECT name,marketplace,client_id,api_key FROM shops WHERE id=?")){p.setInt(1,shopId);try(var r=p.executeQuery()){if(!r.next())throw new SecurityException("SHOP_CREDENTIALS_UNAVAILABLE");return ListingIdentity.fingerprint(new Shop(shopId,r.getString(1),com.vncode.app.integration.marketplace.Marketplace.valueOf(r.getString(2)),r.getString(3),r.getString(4)));}}
     }
     /** Local category provenance: keep the shop/account boundary, independent of certificate/INN/API availability. */
-    public static String eligibleCategory(String alias){return "NOT EXISTS(SELECT 1 FROM kiz_import_entries ownership JOIN kiz_import_batches batch ON batch.id=ownership.batch_id WHERE ownership.code_id="+alias+".id AND (batch.owner<>? OR batch.shop_id<>"+alias+".shop_id))";}
+    public static String eligibleCategory(String alias){return "NOT EXISTS(SELECT 1 FROM kiz_import_entries ownership JOIN kiz_import_batches batch ON batch.id=ownership.batch_id WHERE ownership.code_id="+alias+".id AND (batch.owner<>? OR batch.shop_id<>"+alias+".shop_id))"+" AND "+KizRejectedStock.eligible(alias);}
     /** Used only when an imported category row has already been selected under the owner guard. */
     public static String categoryStock(String alias){return "EXISTS(SELECT 1 FROM kiz_stock_classifications category_stock JOIN kiz_import_entries imported ON imported.code_id=category_stock.code_id JOIN kiz_import_batches batch ON batch.id=imported.batch_id JOIN kiz_stock_categories category ON category.id=category_stock.category_id WHERE category_stock.code_id="+alias+".id AND batch.shop_id="+alias+".shop_id AND category.shop_id=batch.shop_id AND category.owner=batch.owner)";}
-    public static String eligible(String alias){return "NOT EXISTS(SELECT 1 FROM kiz_import_entries ownership JOIN kiz_import_batches batch ON batch.id=ownership.batch_id LEFT JOIN znack_settings config ON config.shop_id=batch.shop_id WHERE ownership.code_id="+alias+".id AND (batch.owner<>? OR batch.inn<>COALESCE(NULLIF(config.owner_inn,''),NULLIF(config.participant_inn,''),CASE WHEN json_valid(config.certificate_metadata_json) THEN json_extract(config.certificate_metadata_json,'$.inn') END,'')))";}
+    public static String eligible(String alias){return "NOT EXISTS(SELECT 1 FROM kiz_import_entries ownership JOIN kiz_import_batches batch ON batch.id=ownership.batch_id LEFT JOIN znack_settings config ON config.shop_id=batch.shop_id WHERE ownership.code_id="+alias+".id AND (batch.owner<>? OR batch.inn<>COALESCE(NULLIF(config.owner_inn,''),NULLIF(config.participant_inn,''),CASE WHEN json_valid(config.certificate_metadata_json) THEN json_extract(config.certificate_metadata_json,'$.inn') END,'')))"+" AND "+KizRejectedStock.eligible(alias);}
     /** Category stock belongs to its explicit product pool, never to another product's exact-GTIN fallback. */
     public static String eligibleExact(String alias){return eligible(alias)+" AND NOT EXISTS(SELECT 1 FROM kiz_stock_classifications classification JOIN kiz_stock_categories category ON category.id=classification.category_id JOIN kiz_import_entries imported ON imported.code_id=classification.code_id JOIN kiz_import_batches batch ON batch.id=imported.batch_id WHERE classification.code_id="+alias+".id AND category.shop_id="+alias+".shop_id AND category.owner=batch.owner)";}
     /** Explicit re-verification may rebind a rotated credential, but first quarantines every available imported code. */

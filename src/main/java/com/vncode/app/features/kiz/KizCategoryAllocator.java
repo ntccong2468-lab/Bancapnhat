@@ -19,6 +19,23 @@ public final class KizCategoryAllocator {
     public record Selection(String key,String productId,String category,Kiz code){
         @Override public String toString(){return "CategorySelection[code=redacted]";}
     }
+    /** A red-code replacement may use any seller-imported pool of this shop. */
+    public Kiz reserveReplacement(Shop shop){return reserveReplacement(shop,true,false);}
+    public Kiz reserveReplacement(Shop shop,boolean imported,boolean purchased){
+        LicenseRuntime.require(Permission.KIZ);ListingIdentity.require(shop);
+        try{return com.vncode.app.config.SqliteWriteTransaction.run(c->{
+            String owner=ListingIdentity.fingerprint(shop);if(!owner.equals(KizWarehouseRepository.currentOwner(c,shop.getId())))throw new SecurityException("KIZ_CATEGORY_OWNER_CHANGED");
+            Kiz code=null;
+            try(var p=c.prepareStatement("SELECT k.id,k.raw_code FROM kiz_codes k WHERE k.shop_id=? AND k.status='AVAILABLE' AND ((? AND EXISTS(SELECT 1 FROM kiz_import_entries entry JOIN kiz_import_batches batch ON batch.id=entry.batch_id WHERE entry.code_id=k.id AND batch.shop_id=k.shop_id AND batch.owner=?)) OR (? AND NOT EXISTS(SELECT 1 FROM kiz_import_entries entry WHERE entry.code_id=k.id))) AND "+KizRejectedStock.eligible("k")+" ORDER BY k.id LIMIT 1")){
+                p.setInt(1,shop.getId());p.setBoolean(2,imported);p.setString(3,owner);p.setBoolean(4,purchased);try(var r=p.executeQuery()){if(r.next())code=new Kiz(r.getInt(1),r.getString(2));}
+            }
+            if(code==null)return null;String token=UUID.randomUUID().toString(),now=Instant.now().toString();
+            try(var p=c.prepareStatement("UPDATE kiz_codes SET status='RESERVED',reservation_token=?,reserved_at=?,reservation_recoverable=1,updated_at=? WHERE id=? AND shop_id=? AND status='AVAILABLE'")){
+                p.setString(1,token);p.setString(2,now);p.setString(3,now);p.setInt(4,code.getId());p.setInt(5,shop.getId());if(p.executeUpdate()!=1)throw new IllegalStateException("KIZ_CATEGORY_STOCK_CHANGED");
+            }
+            return new Kiz(code.getId(),code.getCode(),token);
+        });}catch(SQLException e){throw new IllegalStateException("KIZ_CATEGORY_STORAGE",e);}
+    }
     /** Partial stock is intentional: only the remaining quantities proceed to exact-GTIN planning. */
     public Map<String,List<Kiz>> reservePartial(Shop shop,List<Demand> demands){
         LicenseRuntime.require(Permission.KIZ);ListingIdentity.require(shop);validate(demands);

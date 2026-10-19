@@ -135,6 +135,8 @@ public final class OzonDashboardController {
     private final ShipmentKizPane shipmentKizPane=new ShipmentKizPane();
     @FXML private VBox shipmentKizHost;
     @FXML private Tab shipmentKizTab;
+    @FXML private Button kizInventoryButton;
+    @FXML private void onOpenKizInventory(){orderStatusTabs.getSelectionModel().select(shipmentKizTab);shipmentKizPane.reload();}
     private final OzonPrintReadinessService printReadinessService = new OzonPrintReadinessService();
     private FboProductImageService imageService = new FboProductImageService();
     private final OzonPostingSortingService sortingService = new OzonPostingSortingService();
@@ -339,7 +341,7 @@ public final class OzonDashboardController {
         for (var column : List.of(newOrderPriceTC, packingOrderPriceTC, deliveringOrderPriceTC))
             column.setText(i18n.tr("packing.col.price"));
         postingSearch.setPromptText(i18n.tr("ozon.fbs.search"));previousPageButton.setText(i18n.tr("ozon.fbs.previous"));nextPageButton.setText(i18n.tr("ozon.fbs.next"));workflowLabel.setText(i18n.tr("ozon.fbs.workflow"));gtinInventoryPanel.setText(i18n.tr("supply.gtin_inventory.title"));
-        shipmentKizTab.setText(i18n.tr("kiz.shipment.title"));shipmentKizPane.applyTranslations();
+        kizInventoryButton.setText(i18n.tr("kiz.shipment.title"));shipmentKizTab.setText(i18n.tr("kiz.shipment.title"));shipmentKizPane.applyTranslations();
         batchResultsPanel.setText(i18n.tr("ozon.fbs.results"));titleLabel.setText(i18n.tr("ozon.dashboard.title"));
         refreshButton.setText(i18n.tr("ozon.dashboard.refresh"));
         updateTabTitles();

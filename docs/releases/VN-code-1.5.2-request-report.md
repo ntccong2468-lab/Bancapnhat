@@ -7,6 +7,9 @@
 - Tiến độ GTIN phân biệt đã xác minh trên sàn, đang chờ đọc lại, chưa cập nhật và chưa có GTIN.
 - Năm bảng sửa Sản phẩm WB/Ozon chọn sẵn đề xuất có dữ liệu; giữ quyền sửa lựa chọn. Áp dụng một lần, đóng bảng và chạy nền. Không đoán dữ liệu thương hiệu/giấy tờ/thành phần khi thiếu căn cứ.
 - Viên thuốc báo tổng, còn lại, thành công, thất bại, chờ sàn; thành công chỉ sau đối soát sàn. Hoàn tất tự ẩn sau tám giây, chi tiết được lưu lại.
+- Thay KIZ đỏ không giới hạn số lần: dùng mã sẵn có từ các kho đang chọn, không buộc danh mục/GTIN của đơn, không tự mua thêm; mỗi mã đỏ bị loại khỏi mọi bản sao trong kho và bị chặn nhập lại. Đọc lại đúng mã mới được sàn chấp nhận mới hoàn tất.
+- Bỏ nút thay ở từng đơn, giữ một nút cạnh Kho KIZ trong shipment WB/Ozon; bảng xác nhận đóng trước khi chạy nền, viên thuốc hoàn tất tự ẩn sau tám giây.
+- Chuyển giao hàng WB tự chọn điểm giao gần nhất từ lịch sử của đúng tài khoản; bỏ biểu mẫu quốc gia/cách giao/ngày/thành phố, không có ô biển số xe hay nơi sản xuất. Nút chuyển giao chạy trực tiếp, vẫn giữ kiểm tra nhãn và KIZ trước khi gọi sàn. Trường hợp không có lịch sử, WB kiểm tra cấu hình lô hiện có; app không tự bịa địa chỉ.
 - Kết nối KIZ đang xử lý giữ cấu hình gốc; bổ sung tiến độ Mapping, lỗi chữ ký/mua mã và tiếp tục quét Catalog.
 
 ## Kiểm chứng

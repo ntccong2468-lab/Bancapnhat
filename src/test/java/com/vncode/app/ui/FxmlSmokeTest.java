@@ -506,19 +506,20 @@ class FxmlSmokeTest {
             assertTrue(((Button)loader.getNamespace().get("deliverButton")).isDisabled());return null;
         });Platform.runLater(task);task.get(10,TimeUnit.SECONDS);
     }
-    @Test void wbShippingContextResetsAnOldLoadingButton() throws Exception {
+    @Test void wbShippingContextClearsThePreviousHistoricalPoint() throws Exception {
         var task=new java.util.concurrent.FutureTask<Void>(() -> {
             var pane=new com.vncode.app.ui.supply.WbShippingPane();
-            var f=pane.getClass().getDeclaredField("load");f.setAccessible(true);var button=(Button)f.get(pane);
-            button.setDisable(true);pane.setContext(null,null);assertFalse(button.isDisabled());return null;
+            var point=(ComboBox<com.vncode.app.integration.wb.WbShippingPreferenceService.Location>)pane.lookup("#shippingHistoryPoint");
+            point.getItems().add(new com.vncode.app.integration.wb.WbShippingPreferenceService.Location(100,"selfShipping",null,null));point.getSelectionModel().selectFirst();
+            pane.setContext(null,null);assertEquals(null,point.getValue());assertTrue(point.getItems().isEmpty());assertFalse(pane.isManaged());return null;
         });Platform.runLater(task);task.get(10,TimeUnit.SECONDS);
     }
-    @Test void wbShippingFormRequiresCountryAndAlwaysClearsThePreviousDate() throws Exception {
+    @Test void wbShippingHasNoManualCountryDateOrVehicleForm() throws Exception {
         var task=new java.util.concurrent.FutureTask<Void>(() -> {
             var pane=new com.vncode.app.ui.supply.WbShippingPane();
             assertThrows(IllegalArgumentException.class,pane::selection);
-            var field=pane.getClass().getDeclaredField("date");field.setAccessible(true);var date=(DatePicker)field.get(pane);
-            date.setValue(java.time.LocalDate.now().plusDays(1));pane.setContext(null,null);assertEquals(null,date.getValue());return null;
+            assertEquals(1,pane.getChildren().stream().filter(ComboBox.class::isInstance).count());
+            assertTrue(pane.lookupAll(".text-field").isEmpty());assertTrue(pane.lookupAll(".date-picker").isEmpty());return null;
         });Platform.runLater(task);task.get(10,TimeUnit.SECONDS);
     }
     @Test void tnvedCopyFollowsTheDisplayedTreeDetailRatherThanOldTableSelection() throws Exception {
