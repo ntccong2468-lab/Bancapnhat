@@ -94,5 +94,17 @@
     "maxItems": 100,
     "verified": 1000,
     "elapsedMs": 12639.774886
+  },
+  "additionalInteractionRegression": {
+    "tests": 5,
+    "failures": 0,
+    "errors": 0
+  },
+  "fullRegression": {
+    "tests": 1942,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 2,
+    "command": "mvn-vncode -o -q clean verify"
   }
 }

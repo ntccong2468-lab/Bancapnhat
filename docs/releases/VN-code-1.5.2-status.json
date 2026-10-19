@@ -1,0 +1,53 @@
+{
+  "version": "1.5.2",
+  "state": "candidate-awaiting-fresh-windows-verification",
+  "baseline": "v1.5.1",
+  "databaseSchema": 6,
+  "published": false,
+  "complete": false,
+  "requestReport": "VN-code-1.5.2-request-report.md",
+  "licenseIntegration": {
+    "productionReady": false,
+    "changedInThisVersion": false
+  },
+  "validation": {
+    "preProductRegression": {
+      "tests": 1937,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 2
+    },
+    "productFocusedTests": {
+      "tests": 66,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "releaseToolTests": {
+      "tests": 78,
+      "failures": 0
+    },
+    "windowsBuild": {
+      "state": "running",
+      "freshFullJavaExecutionRequired": true,
+      "allNativeChecksMustRunAgain": true,
+      "sourceCommit": "b2ad06aa0b495932dd0e80ce90fa1c8f544a64f1",
+      "runId": 39330524258,
+      "url": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/39330524258"
+    },
+    "productionLicenseVerified": false,
+    "liveCryptoProSigningThisVersion": false,
+    "liveLicensedDesktopGtinWriteThisVersion": false,
+    "liveApiWbGtinWriteThisVersion": false,
+    "liveApiOzonGtinWriteThisVersion": false,
+    "liveCatalogCardCreatedThisVersion": false,
+    "liveCatalogCardRepairedThisVersion": false,
+    "linuxFullSuite": {
+      "tests": 1942,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 2,
+      "command": "mvn-vncode -o -q clean verify"
+    }
+  }
+}

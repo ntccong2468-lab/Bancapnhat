@@ -1,9 +1,9 @@
 {
-  "recordedAt": "2026-10-19T21:42:47.746054+00:00",
-  "command": "DISPLAY=:99 XDG_CACHE_HOME=/tmp/vncode-ui-cache mvn-vncode -o -q clean test",
+  "recordedAt": "2026-10-19T21:58:37.256478+00:00",
+  "command": "DISPLAY=:99 XDG_CACHE_HOME=/tmp/vncode-ui-cache mvn-vncode -o -q clean verify",
   "exitCode": 0,
   "suite": {
-    "tests": 1937,
+    "tests": 1942,
     "failures": 0,
     "errors": 0,
     "skipped": 2
@@ -11,9 +11,17 @@
   "suites": 323,
   "syntheticBatchReport": {
     "rows": 650,
-    "refreshMilliseconds": 39.758558
+    "refreshMilliseconds": 39.966499
   },
   "remoteWritesPerformed": false,
   "liveReadEvidence": "live-read-access.json",
-  "productionSigningAcceptance": false
+  "productionSigningAcceptance": false,
+  "preProductRegression": {
+    "tests": 1937,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 2
+  },
+  "sourceCommit": "b2ad06aa0b495932dd0e80ce90fa1c8f544a64f1",
+  "jarSha256": "fa921d329054747365d56ac53b0a0607ef54baa173ea08e8134090ae9e2d7382"
 }

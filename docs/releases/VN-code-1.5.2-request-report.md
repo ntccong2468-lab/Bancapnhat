@@ -6,11 +6,12 @@
 - Báo cáo ghi đủ lựa chọn trước khi xử lý, đối chiếu cả lô, có trạng thái và lý do từng thẻ. Chọn tất cả chạy ngoài luồng giao diện.
 - Tiến độ GTIN phân biệt đã xác minh trên sàn, đang chờ đọc lại, chưa cập nhật và chưa có GTIN.
 - Năm bảng sửa Sản phẩm WB/Ozon chọn sẵn đề xuất có dữ liệu; giữ quyền sửa lựa chọn. Áp dụng một lần, đóng bảng và chạy nền. Không đoán dữ liệu thương hiệu/giấy tờ/thành phần khi thiếu căn cứ.
-- Viên thuốc báo tổng, còn lại, thành công, thất bại, chờ sàn; thành công chỉ sau đối soát sàn. Hoàn tất tự ẩn sau tám giây, chi tiết còn trong lịch sử.
+- Viên thuốc báo tổng, còn lại, thành công, thất bại, chờ sàn; thành công chỉ sau đối soát sàn. Hoàn tất tự ẩn sau tám giây, chi tiết được lưu lại.
 - Kết nối KIZ đang xử lý giữ cấu hình gốc; bổ sung tiến độ Mapping, lỗi chữ ký/mua mã và tiếp tục quét Catalog.
 
 ## Kiểm chứng
 
+- Hồi quy sạch toàn bộ sau sửa Sản phẩm: 1.942 kiểm thử, 0 lỗi, 2 bỏ qua theo nền tảng.
 - Hồi quy sạch trước thay đổi Sản phẩm: 1.937 kiểm thử, 0 lỗi, 2 bỏ qua theo nền tảng.
 - Bài thử lô 650 thẻ đối chiếu toàn bộ báo cáo trong khoảng 40 ms.
 - Kiểm thử nút Áp dụng cho WB và Ozon; kiểm thử payload năm trường WB, đọc lại xác nhận và phân biệt thẻ bị từ chối với thẻ đã sửa.
