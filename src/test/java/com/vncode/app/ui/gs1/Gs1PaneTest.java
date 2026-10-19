@@ -190,22 +190,15 @@ class Gs1PaneTest {
         long deadline=System.nanoTime()+TimeUnit.SECONDS.toNanos(5);boolean displayed=false;
         while(!displayed&&System.nanoTime()<deadline){displayed=fx(()->{pane.applyCss();pane.layout();return pane.lookup("#gs1AutoReminder")!=null;});if(!displayed)Thread.sleep(10);}
         assertTrue(displayed);
+        var checkbox=fx(()->(javafx.scene.control.CheckBox)pane.lookup("#gs1AutoReminder"));
+        assertFalse(fx(checkbox::isSelected));
+        com.vncode.app.testsupport.FxDialogDriver.choose(checkbox::fire,
+            dialog->"gs1AutoReminderConsent".equals(dialog.getId()),dialog->{
+                assertTrue(dialog.getContent().lookupAll(".text-area").stream().anyMatch(javafx.scene.control.TextArea.class::isInstance),"The reviewed reminder body is displayed before consent");
+                return ButtonType.CANCEL;
+            });
         fx(()->{
-            var checkbox=(javafx.scene.control.CheckBox)pane.lookup("#gs1AutoReminder");assertFalse(checkbox.isSelected());
-            // showAndWait can run queued FX work while constructing the window. Wait for the
-            // actual consent dialog rather than assuming one runLater sees an already shown stage.
-            var cancel=new javafx.animation.Timeline();cancel.setCycleCount(javafx.animation.Animation.INDEFINITE);
-            cancel.getKeyFrames().add(new javafx.animation.KeyFrame(javafx.util.Duration.millis(50),event->{
-                for(var window:List.copyOf(javafx.stage.Window.getWindows()))if(window instanceof Stage stage&&stage.isShowing()
-                        &&Platform.isNestedLoopRunning()){
-                    var root=stage.getScene().getRoot();var candidate="gs1AutoReminderConsent".equals(root.getId())?root:root.lookup("#gs1AutoReminderConsent");
-                    if(candidate instanceof javafx.scene.control.DialogPane dialog&&dialog.lookupButton(ButtonType.CANCEL) instanceof Button button&&!button.isDisabled()){
-                        assertTrue(dialog.getContent().lookupAll(".text-area").stream().anyMatch(javafx.scene.control.TextArea.class::isInstance),"The reviewed reminder body is displayed before consent");
-                        cancel.stop();button.fire();
-                    }
-                }
-            }));
-            cancel.play();try{checkbox.fire();}finally{cancel.stop();}assertFalse(checkbox.isSelected());
+            assertFalse(checkbox.isSelected());
             var repoField=Gs1Pane.class.getDeclaredField("repository");repoField.setAccessible(true);var repo=(com.vncode.app.features.gs1.Gs1Repository)repoField.get(pane);
             assertTrue(repo.reminderConsent(request.inn(),request.id()).isEmpty());return null;
         });

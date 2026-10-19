@@ -7,15 +7,11 @@ import com.vncode.app.integration.ozon.*;
 import com.vncode.app.models.Shop;
 import com.vncode.app.shared.*;
 import javafx.animation.AnimationTimer;
-import javafx.animation.KeyFrame;
-import javafx.animation.Timeline;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.stage.Stage;
-import javafx.stage.Window;
-import javafx.util.Duration;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -32,7 +28,6 @@ import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BooleanSupplier;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -43,7 +38,6 @@ class OzonBulkUiTest {
     private OzonDashboardController controller;
     private Stage window;
     private final AtomicInteger remoteCalls = new AtomicInteger();
-    private final AtomicReference<Throwable> dialogFailure = new AtomicReference<>();
     private final Shop shop = new Shop(1, "Bulk fixture", Marketplace.OZON, "11", "fixture");
 
     @BeforeAll static void startFx() {
@@ -110,27 +104,23 @@ class OzonBulkUiTest {
         awaitFx(() -> table("newOrdersTable").getItems().size() == 100 && table("packingOrdersTable").getItems().size() == 100);
         fx(() -> { node("selectFilteredButton", Button.class).fire(); return null; });
         awaitFx(() -> selected().size() == 1000 && !node("moveToPackingButton", Button.class).isDisabled());
-        fx(() -> {
-            cancelDialog(() -> node("moveToPackingButton", Button.class).fire(), dialog -> {
+        com.vncode.app.testsupport.FxDialogDriver.choose(()->node("moveToPackingButton",Button.class).fire(),
+            dialog->dialog.getScene().getWindow() instanceof Stage stage&&stage.getOwner()==window,dialog->{
                 assertTrue(dialog.getHeaderText().contains("1000"));
-                return dialog.getButtonTypes().stream().filter(type -> type.getButtonData() == ButtonBar.ButtonData.CANCEL_CLOSE).findFirst().orElseThrow();
+                return dialog.getButtonTypes().stream().filter(type -> type.getButtonData()==ButtonBar.ButtonData.CANCEL_CLOSE).findFirst().orElseThrow();
             });
+        fx(() -> {
             assertEquals(1000, selected().size());
             assertFalse(node("loadingIndicator", ProgressIndicator.class).isVisible());
             node("orderStatusTabs", TabPane.class).getSelectionModel().select(node("packingOrdersTab", Tab.class));
             return null;
         });
-        CountDownLatch cancelled = new CountDownLatch(1);
-        fx(() -> {
-            var timer = dialogCanceller(dialog -> {
-                assertEquals(MessageFormat.format(I18nService.getInstance().tr("ozon.batch.confirm_print"), 1000), dialog.getContentText());
-                cancelled.countDown(); return ButtonType.NO;
+        com.vncode.app.testsupport.FxDialogDriver.choose(()->node("printAllButton",Button.class).fire(),
+            dialog->dialog.getScene().getWindow() instanceof Stage stage&&stage.getOwner()==window,dialog->{
+                assertEquals(MessageFormat.format(I18nService.getInstance().tr("ozon.batch.confirm_print"),1000),dialog.getContentText());
+                return ButtonType.NO;
             });
-            timer.play(); node("printAllButton", Button.class).fire(); return null;
-        });
-        boolean dialogCancelled = cancelled.await(5, TimeUnit.SECONDS);
-        assertNoDialogFailure();
-        assertTrue(dialogCancelled); awaitWorkers();
+        awaitWorkers();
         fx(() -> { assertFalse(node("loadingIndicator", ProgressIndicator.class).isVisible()); return null; });
         try (var c = Database.getConnection(); var s = c.createStatement(); var row = s.executeQuery("SELECT COUNT(*) FROM ozon_exemplar_jobs")) {
             assertEquals(0, row.getInt(1));
@@ -177,28 +167,6 @@ class OzonBulkUiTest {
         return new OzonPostingDto(number, number, number, status, "", "fixture", "2026-10-13T12:00:00Z", "", "", "",
                 new OzonRequirements(List.of(), List.of(), List.of()), List.of(), false,
                 List.of(new OzonPostingItemDto(0, "1", "11", "fixture", "Fixture item", 1, "RUB", "100")));
-    }
-    private void cancelDialog(Runnable action, java.util.function.Function<DialogPane, ButtonType> choice) {
-        var timer = dialogCanceller(choice); timer.play(); try { action.run(); } finally { timer.stop(); }
-        assertNoDialogFailure();
-    }
-    private Timeline dialogCanceller(java.util.function.Function<DialogPane, ButtonType> choice) {
-        var timer = new Timeline(); timer.setCycleCount(javafx.animation.Animation.INDEFINITE);
-        timer.getKeyFrames().add(new KeyFrame(Duration.millis(50), ignored -> {
-            for (Window candidate : List.copyOf(Window.getWindows())) if (candidate instanceof Stage stage && stage.getOwner() == window && stage.isShowing()) {
-                var rootNode = stage.getScene().getRoot(); var found = rootNode instanceof DialogPane ? rootNode : rootNode.lookup(".dialog-pane");
-                if (found instanceof DialogPane dialog) {
-                    try { var type = choice.apply(dialog); timer.stop(); ((Button) dialog.lookupButton(type)).fire(); }
-                    catch (Throwable error) { dialogFailure.compareAndSet(null, error); timer.stop(); stage.close(); }
-                    return;
-                }
-            }
-        }));
-        return timer;
-    }
-    private void assertNoDialogFailure() {
-        Throwable failure = dialogFailure.get();
-        if (failure != null) throw new AssertionError("Owned confirmation dialog failed validation", failure);
     }
     private <T> T node(String key, Class<T> type) { return type.cast(loader.getNamespace().get(key)); }
     @SuppressWarnings("unchecked") private TableView<OzonPostingDto> table(String key) { return (TableView<OzonPostingDto>) loader.getNamespace().get(key); }

@@ -119,7 +119,7 @@ jobs:
         shell: pwsh
         env:
           LOCALAPPDATA: ${{ runner.temp }}\vncode-product-reference-${{ github.run_id }}
-        run: .\mvnw.cmd -B "-Dtest=ProductReferenceLayoutTest,WorkspacePagesLayoutTest,Gs1PaneTest" test
+        run: .\mvnw.cmd -B "-Dtest=ProductReferenceLayoutTest,WorkspacePagesLayoutTest,Gs1PaneTest,OzonBulkUiTest" test
 
       - name: Run Java and FXML test suite
         if: ${{ !inputs.reuse_verified_java_run_id && !inputs.recover_fixture_failure_run_id }}
