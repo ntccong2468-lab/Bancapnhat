@@ -20,7 +20,7 @@ on:
         type: boolean
         default: false
       reuse_verified_java_run_id:
-        description: Bounded recovery of the 1.4.17 baseline-checksum probe; app/test inputs must be identical
+        description: Bounded verified Java recovery; application/test/dependency inputs must be identical
         type: string
         default: ''
       recover_fixture_failure_run_id:
@@ -144,12 +144,20 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'Windows fixture recovery finalization failed.' }
 
       - name: Restore byte-verified Windows Java after the baseline-checksum-only repair
-        if: ${{ inputs.reuse_verified_java_run_id != '' }}
+        if: ${{ inputs.reuse_verified_java_run_id != '' && env.APP_VERSION != '1.5.1' }}
         shell: pwsh
         env:
           GH_TOKEN: ${{ github.token }}
           VNCODE_REUSE_JAVA_RUN: ${{ inputs.reuse_verified_java_run_id }}
         run: node tools/reuse-verified-windows-java.mjs
+
+      - name: Restore exact 151 Java bytes after the GitHub baseline download failure
+        if: ${{ inputs.reuse_verified_java_run_id != '' && env.APP_VERSION == '1.5.1' }}
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VNCODE_REUSE_JAVA_RUN: ${{ inputs.reuse_verified_java_run_id }}
+        run: node tools/reuse-verified-windows-java-151.mjs
 
       - name: Compile unchanged native UI fixtures without replacing the verified application JAR
         if: ${{ inputs.reuse_verified_java_run_id != '' }}

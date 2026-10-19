@@ -1,3 +1,4 @@
+import {origin151,plan151} from './reuse-verified-windows-java-151.mjs';
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
@@ -135,6 +136,14 @@ test('1.5.1 publication binds the exact fresh build and keeps live acceptance li
    liveApiWbGtinWriteThisVersion:false,liveApiOzonGtinWriteThisVersion:false,liveCatalogCardCreatedThisVersion:false,liveCatalogCardRepairedThisVersion:false,
    windowsBuild:{state:'passed',runId,sourceCommit:sha,freshFullJavaExecutionRequired:true,upgradeFrom150Passed:true,fullJavaSuite:java}}};
  validateOwnerRequested151(decision,status,version,sha,runId);
+ const reusedStatus={...status,validation:{...status.validation,windowsBuild:{...status.validation.windowsBuild,freshFullJavaExecutionRequired:false,javaExecutionPlan:plan151}}};
+ const reuseProof={version,sourceCommit:sha,originRunId:origin151.run,originSourceCommit:origin151.sha,artifactId:origin151.artifact,archiveSha256:origin151.digest,applicationJarSha256:origin151.jar,applicationAndJavaTestInputsUnchanged:true,javaExecutedInOriginRun:true,nativeChecksMustRunAgain:true,fixtureClassesCompiledWithoutChangingJar:true,tests:{tests:1924,failures:0,errors:0,skipped:2}};
+ const reusedDecision={...decision,freshJavaExecutedInThisRun:false,javaVerificationOrigin:reuseProof};
+ validateOwnerRequested151(reusedDecision,reusedStatus,version,sha,runId);
+ assert.throws(()=>validateOwnerRequested151(decision,reusedStatus,version,sha,runId));
+ assert.throws(()=>validateOwnerRequested151({...reusedDecision,freshJavaExecutedInThisRun:true},reusedStatus,version,sha,runId));
+ assert.throws(()=>validateOwnerRequested151({...reusedDecision,javaVerificationOrigin:{...reuseProof,applicationJarSha256:'f'.repeat(64)}},reusedStatus,version,sha,runId));
+ assert.throws(()=>validateOwnerRequested151(reusedDecision,{...reusedStatus,validation:{...reusedStatus.validation,windowsBuild:{...reusedStatus.validation.windowsBuild,javaExecutionPlan:{...plan151,runId:1}}}},version,sha,runId));
  const pending={...decision,phase:'authorized-awaiting-verified-build',installerSha256:null,installerBytes:null,windowsJava:null};
  const pendingStatus={...status,validation:{...status.validation,windowsBuild:{state:'running',runId,sourceCommit:sha,freshFullJavaExecutionRequired:true}}};
  validateOwnerRequest151(pending,pendingStatus,version,sha,runId);

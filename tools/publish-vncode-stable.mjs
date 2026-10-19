@@ -11,6 +11,7 @@ import {validateBuild,validateNativeSmoke,validateSideBySideSmoke,validateUpgrad
 import {validateLicenseReadiness} from './license-release-gate.mjs';
 import {validateWorkspaceSmoke} from './publish-vncode-preview.mjs';
 import {origin as verifiedJavaOrigin} from './reuse-verified-windows-java.mjs';
+import {plan151,validateReuse151} from './reuse-verified-windows-java-151.mjs';
 
 const REPO='ntccong2468-lab/Bancapnhat';
 const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
@@ -35,6 +36,7 @@ export function validatePublishedStable(release,version) {
     assert.ok(release.assets.some(asset=>asset.name===`VN-code-${version}-Windows-x64.exe`));
 }
 export function validateReusedJava(proof,version,sha,summary){
+    if(version==='1.5.1'){validateReuse151(proof,sha,summary);return;}
     assert.equal(proof.version,version);assert.equal(proof.sourceCommit,sha);
     assert.equal(proof.originRunId,verifiedJavaOrigin.run);assert.equal(proof.originSourceCommit,verifiedJavaOrigin.sha);
     assert.equal(proof.artifactId,verifiedJavaOrigin.artifact);assert.equal(proof.archiveSha256,verifiedJavaOrigin.digest);
@@ -153,7 +155,7 @@ export function validateOwnerRequest151(decision,status,version,sha,runId) {
             'liveApiWbGtinWriteThisVersion','liveApiOzonGtinWriteThisVersion','liveCatalogCardCreatedThisVersion','liveCatalogCardRepairedThisVersion'])assert.equal(status.validation[field],false,field);
     const build=status.validation.windowsBuild;
     assert.equal(String(build.runId),String(runId));assert.equal(build.sourceCommit,sha);
-    assert.equal(build.freshFullJavaExecutionRequired,true);assert.equal(status.requestReport,'VN-code-1.5.1-request-report.md');
+    if(build.freshFullJavaExecutionRequired===false)assert.deepEqual(build.javaExecutionPlan,plan151);else assert.equal(build.freshFullJavaExecutionRequired,true);assert.equal(status.requestReport,'VN-code-1.5.1-request-report.md');
     if(decision.phase==='authorized-awaiting-verified-build') {
         assert.equal(build.state,'running');assert.equal(decision.installerSha256,null);assert.equal(decision.installerBytes,null);
         assert.equal(decision.windowsJava,null);assert.equal(build.fullJavaSuite,undefined);assert.notEqual(build.upgradeFrom150Passed,true);
@@ -168,6 +170,7 @@ export function validateOwnerRequested151(decision,status,version,sha,runId) {
     assert.ok(decision.windowsJava.tests>=1924);assert.equal(decision.windowsJava.failures,0);assert.equal(decision.windowsJava.errors,0);
     assert.equal(decision.windowsJava.passed,decision.windowsJava.tests-decision.windowsJava.skipped);
     assert.deepEqual(build.fullJavaSuite,decision.windowsJava);
+    if(build.freshFullJavaExecutionRequired===false){assert.equal(decision.freshJavaExecutedInThisRun,false);validateReuse151(decision.javaVerificationOrigin,sha,decision.windowsJava);}
 }
 
 async function main(runId,sha,mode='prepare') {
@@ -270,7 +273,8 @@ async function main(runId,sha,mode='prepare') {
         assert.deepEqual(java,ownerDecision.windowsJava);
     }
     if(mode==='owner-requested-151') {
-        assert.ok(!logs.includes('REUSED_WINDOWS_JAVA:')&&!logs.includes('RECONCILED_WINDOWS_JAVA:'),'1.5.1 requires a fresh full Windows Java run');
+        assert.ok(!logs.includes('RECONCILED_WINDOWS_JAVA:'),'151 does not accept repaired Java failures');
+        assert.equal(logs.includes('REUSED_WINDOWS_JAVA:'),status.validation.windowsBuild.freshFullJavaExecutionRequired===false,'Java execution must match the disclosed verification plan');
         if(!pendingOwnerBuild)assert.deepEqual(java,ownerDecision.windowsJava);
     }
     if(logs.includes('REUSED_WINDOWS_JAVA:')){
@@ -285,9 +289,10 @@ async function main(runId,sha,mode='prepare') {
     if(pendingOwnerBuild) {
         // Every build, native, upgrade, Java and artifact check above has passed.
         // Fill the receipt with observed bytes; do not turn unknown live acceptance into success.
-        assert.equal(javaVerificationOrigin,undefined,'This authorization requires a fresh full Java run');
+        if(mode==='owner-requested-151'&&status.validation.windowsBuild.freshFullJavaExecutionRequired===false)validateReuse151(javaVerificationOrigin,sha,java);
+        else assert.equal(javaVerificationOrigin,undefined,'This authorization requires a fresh full Java run');
         ownerDecision={...ownerDecision,phase:'verified-for-publication',installerSha256:digest,installerBytes:bytes.length,
-            windowsJava:java,verifiedNativeProofs:proofFiles};
+            windowsJava:java,verifiedNativeProofs:proofFiles,...(mode==='owner-requested-151'&&javaVerificationOrigin?{freshJavaExecutedInThisRun:false,javaVerificationOrigin}:{})};
         if(mode==='owner-requested-151') {
             status.validation.windowsBuild={...status.validation.windowsBuild,state:'passed',upgradeFrom150Passed:true,fullJavaSuite:java};
             validateOwnerRequested151(ownerDecision,status,version,sha,runId);

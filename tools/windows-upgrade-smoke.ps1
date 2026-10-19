@@ -46,7 +46,7 @@ if($FromLicenseTest){
     & gh run download 38492821195 --repo ntccong2468-lab/Bancapnhat --name VN-code-1.4.0-Windows-x64 --dir $root
     if($LASTEXITCODE -ne 0){throw 'Cannot retrieve the immutable 1.4.0 license-test baseline.'}
     Move-Item -LiteralPath (Join-Path $root 'VN-code-1.4.0-Windows-x64.exe') -Destination $oldExe
-}else{Invoke-WebRequest -Uri $baselineUrl -OutFile $oldExe}
+}else{Invoke-WebRequest -Uri $baselineUrl -OutFile $oldExe -MaximumRetryCount 3 -RetryIntervalSec 2}
 if ((Get-FileHash $oldExe -Algorithm SHA256).Hash.ToLowerInvariant() -cne $baselineHash) { throw 'Incorrect baseline VN code installer checksum.' }
 [VNcode.Smoke.EmbeddedMsi]::Extract($oldExe,$oldMsi)
 $newMsi=(Resolve-Path "target\jpackage-temp\msi\VN code-$Version.msi").Path

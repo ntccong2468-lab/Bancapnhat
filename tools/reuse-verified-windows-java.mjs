@@ -27,7 +27,7 @@ export function validateOriginal(run,jobs,artifact){
  const failures=job.steps.filter(s=>s.conclusion==='failure');assert.equal(failures.length,1);assert.equal(failures[0].name,'Verify data-preserving upgrade from Latest VN code 1.4.16');
  assert.equal(artifact.id,origin.artifact);assert.equal(artifact.name,'VN-code-1.4.17-Windows-verified-java');assert.equal(artifact.expired,false);assert.equal(artifact.digest,`sha256:${origin.digest}`);
 }
-export function reportRows(xmls){
+export function reportRows(xmls,expectedTests=origin.tests){
  const names=new Set(),rows=[];
  for(const xml of xmls){
   const root=xml.replace(/^\uFEFF/,'').match(/^\s*(?:<\?xml[^?]*\?>\s*)?<testsuite\b([^>]*)>/);assert.ok(root,'Require a Surefire suite root');
@@ -38,7 +38,7 @@ export function reportRows(xmls){
  }
  assert.ok(rows.length>100,'Require the complete uploaded report collection');
  const total=rows.reduce((a,r)=>({tests:a.tests+r.tests,failures:a.failures+r.failures,errors:a.errors+r.errors,skipped:a.skipped+r.skipped}),{tests:0,failures:0,errors:0,skipped:0});
- assert.equal(total.tests,origin.tests);assert.equal(total.failures,0);assert.equal(total.errors,0);
+ assert.equal(total.tests,expectedTests);assert.equal(total.failures,0);assert.equal(total.errors,0);
  const text=rows.map(r=>`Tests run: ${r.tests}, Failures: ${r.failures}, Errors: ${r.errors}, Skipped: ${r.skipped}, Time elapsed: 0 s -- in ${r.name}`).join('\n')+`\nTests run: ${total.tests}, Failures: ${total.failures}, Errors: ${total.errors}, Skipped: ${total.skipped}`;
  validateJavaTestSummary(text);return {total,text};
 }

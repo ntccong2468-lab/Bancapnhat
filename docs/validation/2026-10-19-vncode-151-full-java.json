@@ -1,7 +1,7 @@
 {
   "version": "1.5.1",
-  "sourceCommit": "bd421bbccab297db31ea68dfac3d6c707b319e99",
-  "runId": 39277937972,
+  "sourceCommit": "96e20614882488a2d60319fc29f4ca62b6cb9b81",
+  "runId": 39286749991,
   "freshFullExecution": true,
   "result": "passed",
   "java": {
@@ -24,10 +24,10 @@
       "reason": "Disabled on operating system: Windows Server 2025"
     }
   ],
-  "artifactId": 12202715026,
-  "artifactArchiveBytes": 85493602,
-  "artifactArchiveSha256": "1979074d72637e724c2fd37d7dc6e185d953ea75573c53144c6782d79276e7b2",
-  "applicationJarSha256": "7334f0c82eae2673a90d3107a7e1e12b33677e5ea7d5c0aed906d795e40b6e7b",
+  "artifactId": 12205273211,
+  "artifactArchiveBytes": 85494041,
+  "artifactArchiveSha256": "a069bfc06c520cc3f35c4ad4db2f2d96420496a2c959b3ba362c1a3de1384f30",
+  "applicationJarSha256": "15fb154ceb416f48d1366267db7e1953b59195a2c9529f68ae46e1266db51e67",
   "liveSellerMutations": false,
   "packagedRegistrationTemplate": {
     "id": "vncode-catalog-official-v3",
