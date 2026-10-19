@@ -81,6 +81,27 @@ public final class ZnackNationalCatalogService {
         return new Preflight(normalized, categoryTnved, gs1, categories, token);
     }
 
+    /** Correcting an existing GTIN consumes no GS1 quota. */
+    public Preflight preflightExisting(String tnved,String token)throws Exception {
+        if(tnved==null||!tnved.matches("[0-9]{10}"))throw new IllegalArgumentException("ZNACK_MISSING_TNVED");
+        for(String code:categoryLookupCodes(tnved)){
+            LicenseRuntime.require(Permission.SELLER_API);
+            var categories=parseCategories(api.nationalCatalogCategories(settings.resolvedTrueApiBaseUrl(),token,code));
+            if(!categories.isEmpty())return new Preflight(tnved,code,new Gs1Status(0,0,0,false),categories,token);
+        }
+        throw new IllegalArgumentException("ZNACK_CATEGORY_UNRESOLVED");
+    }
+
+    /** Read a rejected draft by its exact identity; active published revisions are protected. */
+    public JsonObject rejectedCard(String token,String gtin,Long expectedId)throws Exception {
+        LicenseRuntime.require(Permission.SELLER_API);
+        var card=readCard(token,gtin,expectedId);
+        if(card==null||!"draft".equalsIgnoreCase(string(card,"good_status"))
+                ||detailedState(card).stream().noneMatch(Set.of("errors","error","rejected")::contains))
+            throw new IllegalStateException("CATALOG_CARD_NOT_REJECTED");
+        return card.deepCopy();
+    }
+
     public List<Attribute> requiredAttributes(long categoryId, String token) throws Exception {
         LicenseRuntime.require(Permission.SELLER_API);
         List<Attribute> attributes = parseAttributes(api.nationalCatalogAttributes(

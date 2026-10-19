@@ -48,6 +48,17 @@ class ZnackCardRegistrationControllerTest {
         awaitTasks();
     }
     @AfterEach void cleanup() throws Exception {fx(()->{((ZnackCardRegistrationController)loader.getController()).dispose();return null;});awaitTasks();com.vncode.app.testsupport.ShopReadTestCleanup.awaitSharedIdle();System.clearProperty("vncode.appdata.dir");}
+    @Test void errorFilterSelectAllOpensCompleteCatalogReportEvenForUnmatchedHistoricalCards()throws Exception{
+        var owner=new Shop(1,"Fixture","fixture");var raw=com.google.gson.JsonParser.parseString("{\"good_status\":\"draft\",\"good_detailed_status\":[\"errors\"]}").getAsJsonObject();
+        var card=new com.vncode.app.features.gtinsync.GtinSyncModels.RegisteredGtin("00000000000017","UNMATCHED","ЧЕРНЫЙ","1",true,false,com.vncode.app.features.gtinsync.RegisteredGtinProof.source(owner),java.time.Instant.now(),com.vncode.app.integration.znack.registration.CatalogProductDataParser.parse(raw));
+        new com.vncode.app.features.gtinsync.GtinSyncRepository().saveCatalog(1,owner.getMarketplace(),java.util.List.of(card));
+        fx(()->{((ComboBox<?>)loader.getNamespace().get("statusFilter")).getSelectionModel().selectLast();return null;});awaitTasks();
+        fx(()->{assertFalse(button("registerSelectedButton").isDisabled(),"Catalog-only errors still have a report action");((CheckBox)loader.getNamespace().get("allFilteredCheckBox")).fire();return null;});
+        long deadline=System.nanoTime()+TimeUnit.SECONDS.toNanos(8);boolean found=false;
+        while(!found&&System.nanoTime()<deadline){found=fx(()->{var dialog=Window.getWindows().stream().filter(Window::isShowing).map(w->w.getScene().getRoot()).filter(n->"catalogErrorReportDialog".equals(n.getId())).findFirst().orElse(null);if(dialog==null)return false;assertEquals(1,((TableView<?>)dialog.lookup("#catalogErrorReportTable")).getItems().size());var pane=(DialogPane)dialog;var cancel=pane.getButtonTypes().stream().filter(b->b.getButtonData()==ButtonBar.ButtonData.CANCEL_CLOSE).findFirst().orElseThrow();((Button)pane.lookupButton(cancel)).fire();return true;});if(!found)Thread.sleep(20);}
+        assertTrue(found,"Selecting all errors must open the report through the actual screen button");
+        try(var c=Database.getConnection();var q=c.createStatement();var r=q.executeQuery("SELECT count(*) FROM znack_card_registrations WHERE gtin='00000000000017'")){assertTrue(r.next());assertEquals(0,r.getInt(1));}
+    }
     @Test void failedOrMissingPairHidesCachedRowsButKeepsConfigurationAndSyncAvailable()throws Exception {
         try(var c=Database.getConnection();var statement=c.createStatement()){statement.execute("UPDATE sync_runs SET state='FAILED',error_code='NETWORK_TIMEOUT' WHERE kind='registration_sources'");}
         fx(()->{button("refreshButton").fire();return null;});awaitTasks();

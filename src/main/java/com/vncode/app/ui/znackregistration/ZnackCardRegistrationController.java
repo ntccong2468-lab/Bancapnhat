@@ -221,6 +221,7 @@ public final class ZnackCardRegistrationController {
 
     @FXML private void onSelectAll() {
         if(shop==null || !ready() || preparing || loading)return;
+        if(statusFilter.getValue()==StatusFilter.ERROR){allFilteredCheckBox.setSelected(false);openErrorRepair(true);return;}
         selectingProgrammatically=true;
         try {
             productTable.getSelectionModel().clearSelection();
@@ -322,6 +323,7 @@ public final class ZnackCardRegistrationController {
 
     @FXML private void onRegisterSelected() {
         if(shop==null || !ready() || preparing || loading) return;
+        if(statusFilter.getValue()==StatusFilter.ERROR||selectedRows().stream().anyMatch(row->view(row).status().equals("source.errors")||row.status()==Status.ERROR&&row.hasGtin())){openErrorRepair(selectedRows().isEmpty());return;}
         List<Sku> selected=selectedRows().stream().filter(this::eligible).toList();
         if(selected.isEmpty())return;
         long fresh=selected.stream().filter(Sku::needsGtinReview).count();
@@ -364,7 +366,12 @@ public final class ZnackCardRegistrationController {
         summaryLabel.setText(java.text.MessageFormat.format(tr("znack.registration.batch_progress"),index,selected.size()));
         prepareCard(owner,epoch,selected.get(index),false,true,()->prepareReplacementNext(selected,index+1,owner,epoch));
     }
-    private boolean selectable(Sku sku){return eligible(sku)||(sku!=null&&replaceable(sku)&&(!rowDetails.getOrDefault(sku.chrtId(),new ZnackRegistrationQueryRepository.Details("","")).pendingReplacement()||sku.status()==Status.ERROR)&&!workflow.isRunning(shop,sku));}
+    private boolean selectable(Sku sku){return errorRow(sku)||eligible(sku)||(sku!=null&&replaceable(sku)&&(!rowDetails.getOrDefault(sku.chrtId(),new ZnackRegistrationQueryRepository.Details("","")).pendingReplacement()||sku.status()==Status.ERROR)&&!workflow.isRunning(shop,sku));}
+    private boolean errorRow(Sku row){return row!=null&&(view(row).status().equals("source.errors")||isError(row.status()));}
+    private void openErrorRepair(boolean all){
+        var keys=selectedRows().stream().map(row->new com.vncode.app.features.products.ProductKey(shop.getId(),shop.getMarketplace(),Long.toString(row.nmId()),Long.toString(row.chrtId()))).collect(java.util.stream.Collectors.toSet());
+        CatalogErrorRepairDialog.open((StackPane)productTable.getParent(),shop,keys,all,this::scheduleReload);
+    }
 
     private void prepareNext(List<Sku> selected,int index,Shop owner,long epoch) {
         if(!isCurrent(owner,epoch))return;
@@ -917,7 +924,7 @@ public final class ZnackCardRegistrationController {
         boolean unavailable=shop==null||preparing||loading;
         boolean disabled=unavailable||!ready();
         allFilteredCheckBox.setDisable(disabled);reportLink.setDisable(shop==null);
-        autoSignCheckBox.setDisable(disabled);selectAllButton.setDisable(disabled);registerSelectedButton.setDisable(disabled||selectedRows().stream().noneMatch(this::eligible));newCardsSelectedButton.setDisable(disabled||selectedRows().stream().noneMatch(this::replaceable));
+        autoSignCheckBox.setDisable(disabled);selectAllButton.setDisable(disabled);registerSelectedButton.setText(tr(statusFilter.getValue()==StatusFilter.ERROR||selectedRows().stream().anyMatch(row->view(row).status().equals("source.errors")||row.status()==Status.ERROR&&row.hasGtin())?"repair.report":"znack.registration.register_short"));registerSelectedButton.setDisable(disabled||statusFilter.getValue()!=StatusFilter.ERROR&&selectedRows().stream().noneMatch(row->eligible(row)||errorRow(row)));newCardsSelectedButton.setDisable(disabled||selectedRows().stream().noneMatch(this::replaceable));
         searchField.setDisable(preparing);categoryMenuButton.setDisable(preparing);statusFilter.setDisable(preparing);clearFiltersButton.setDisable(preparing);
         configButton.setDisable(unavailable);signApprovedButton.setDisable(disabled);updateWbButton.setDisable(disabled);syncZnackButton.setDisable(unavailable);reportButton.setDisable(shop==null);
         loadMoreButton.setDisable(disabled||productTable.getItems().size()>=filteredCount);

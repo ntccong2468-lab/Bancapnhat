@@ -321,6 +321,9 @@ public final class OzonCardRegistrationWorkflow {
         if(documentPending)error="CATALOG_SIGNING_DOCUMENT_PENDING";
         repository.uncertain(key,state,error);notify(callback,state,error);
     }
+    public java.util.concurrent.CompletionStage<Void> completion(Shop shop){
+        var current=COMPLETIONS.get(namespace(shop));return current==null?CompletableFuture.completedFuture(null):current.minimalCompletionStage();
+    }
     public boolean isRunning(Shop shop){return shop!=null&&RUNNING.contains(namespace(shop));}
     public static boolean hasActiveJobs(){return !RUNNING.isEmpty();}
     private static String namespace(Shop shop){return AppPaths.appDataDir().toAbsolutePath().normalize()+":"+shop.getId();}

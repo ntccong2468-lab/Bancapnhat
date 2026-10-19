@@ -207,6 +207,10 @@ async function main(runId,sha,mode='prepare') {
         validateUpgradeSmoke(json(await readFile(path.join(directory,'upgrade-stable-1419-smoke.json'))),version,'1.4.19');
         proofFiles.push('upgrade-stable-1419-smoke.json');
     }
+    if(version.localeCompare('1.5.0','en',{numeric:true})>0) {
+        validateUpgradeSmoke(json(await readFile(path.join(directory,'upgrade-stable-150-smoke.json'))),version,'1.5.0');
+        proofFiles.push('upgrade-stable-150-smoke.json');
+    }
     const workspace=json(await readFile(path.join(directory,'seller-workspace-smoke.json')));validateWorkspaceSmoke(workspace,version,sha);
     const ui=json(await readFile(path.join(directory,'ui-layout.json')));
     assert.equal(ui.version,version);assert.equal(ui.liveSellerMutations,false);assert.equal(ui.layouts.length,version.localeCompare('1.4.13','en',{numeric:true})>0?288:272);

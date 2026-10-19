@@ -2,6 +2,8 @@
 
 **Đang phát triển — chưa phát hành lên Latest.** Giữ nền bản 1.5.0 đã phát hành và đưa toàn bộ thay đổi tiếp theo vào 1.5.1.
 
+- **Sửa thẻ Znack lỗi:** chọn **Lỗi → Chọn tất cả** để mở báo cáo, kể cả thẻ Catalog chưa ghép được với bài trên sàn. Bấm **Chỉnh sửa** để xem giá trị trước/sau, chọn đúng biến thể và giấy tờ, bổ sung trường thiếu rồi **Áp dụng**. Bảng đóng, viên thuốc dưới giữa danh sách theo dõi từng thẻ. Giữ GTIN cũ khi sửa cùng sản phẩm, lưu mã lượt gửi, phân biệt chờ duyệt/chờ ký/lỗi/đã xuất bản. Không gửi lại yêu cầu chưa rõ kết quả hoặc sửa đè thẻ đã xuất bản.
+
 - **Logo mới:** dùng mẫu VN Liquid Glass nền xanh trong, chữ trắng đã chọn; đồng bộ logo giao diện, cửa sổ, ICO Windows và ICNS macOS. Có nền trong suốt và nhiều kích thước cho biểu tượng ứng dụng. [Tài nguyên và kiểm tra đóng gói](../branding/README.md).
 
 - **Tăng tốc GTIN WB/Ozon:** gộp nhiều biến thể vào lô theo hạn mức chính thức, hỗ trợ tác vụ 10.000 GTIN; chia sẻ chỉ mục sản phẩm và đọc lại theo lô. Giữ barcode cũ, các biến thể, giấy tờ và dữ liệu khác của bài đăng. Chỉ tính thành công sau khi đọc lại đúng biến thể từ sàn; giữ checkpoint cho yêu cầu chưa rõ kết quả.

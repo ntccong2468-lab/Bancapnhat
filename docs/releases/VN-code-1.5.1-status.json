@@ -1,0 +1,22 @@
+{
+  "version": "1.5.1",
+  "state": "awaiting-verified-windows-build-under-owner-publication-request",
+  "baseline": "v1.5.0",
+  "databaseSchema": 6,
+  "published": false,
+  "complete": false,
+  "requestReport": "VN-code-1.5.1-request-report.md",
+  "licenseIntegration": {"productionReady": false, "changedInThisVersion": false},
+  "validation": {
+    "linuxRelatedTests": {"tests": 177, "failures": 0, "errors": 0},
+    "releaseToolTests": {"tests": 72, "failures": 0},
+    "windowsBuild": {"state": "pending", "freshFullJavaExecutionRequired": true},
+    "productionLicenseVerified": false,
+    "liveCryptoProSigningThisVersion": false,
+    "liveLicensedDesktopGtinWriteThisVersion": false,
+    "liveApiWbGtinWriteThisVersion": false,
+    "liveApiOzonGtinWriteThisVersion": false,
+    "liveCatalogCardCreatedThisVersion": false,
+    "liveCatalogCardRepairedThisVersion": false
+  }
+}

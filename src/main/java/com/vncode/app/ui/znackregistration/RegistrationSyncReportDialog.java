@@ -39,7 +39,7 @@ final class RegistrationSyncReportDialog {
             table.setId("registrationSyncReportItems");table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
             column("Product / variant",row->row.productId()+" / "+row.variantId());column("SKU",SyncRunRepository.Item::sku);column("Article",SyncRunRepository.Item::article);
             column(tr("fbo.column.color"),SyncRunRepository.Item::color);column(tr("fbo.column.size"),SyncRunRepository.Item::size);column("GTIN",SyncRunRepository.Item::gtin);column("Feed ID",row->identifier(row,"feedId"));column(tr("znack.registration.report_card_id"),row->identifier(row,"goodId"));
-            column(tr("znack.registration.status"),row->itemState(runs.getValue(),row));column(tr("jobs.step"),row->label("znack.registration.report_step."+row.step(),row.step()));column(tr("jobs.reason"),SyncRunRepository.Item::error);
+            column(tr("znack.registration.status"),row->itemState(runs.getValue(),row));column(tr("jobs.step"),row->label("znack.registration.report_step."+row.step(),row.step()));column(tr("jobs.reason"),row->row.error()+(identifier(row,"reason").isBlank()?"":" · "+identifier(row,"reason")));
             getChildren().setAll(new FlowPane(8,8,runs,refresh),summary,table,events,new HBox(8,previous,next));VBox.setVgrow(table,Priority.ALWAYS);
             runs.setOnAction(e->{if(busy)return;var run=runs.getValue();selected=run==null?"":run.id();offset=0;load();});
             previous.setOnAction(e->{offset=Math.max(0,offset-300);load();});next.setOnAction(e->{offset+=300;load();});refresh.setOnAction(e->load());
@@ -50,12 +50,12 @@ final class RegistrationSyncReportDialog {
             if(closed||busy)return;timer.stop();busy=true;buttons();String requested=selected;int start=offset;
             Task<Page> task=new Task<>(){protected Page call(){
                 ListingIdentity.require(owner);var owned=new ArrayList<SyncRunRepository.Run>();
-                for(var run:reports.list(owner.getId(),0,100))if(Set.of(RegistrationSources.KIND,RegistrationAttemptReports.KIND,"znack_catalog_read","znack_marketplace").contains(run.kind())) {
+                for(var run:reports.list(owner.getId(),0,100))if(Set.of(RegistrationSources.KIND,RegistrationAttemptReports.KIND,"catalog_repair","znack_catalog_read","znack_marketplace").contains(run.kind())) {
                     try{reports.assertOwner(owner,run.id());owned.add(run);}catch(SecurityException oldOwner){/* historical account */}
                 }
                 var run=owned.stream().filter(r->r.id().equals(requested)).findFirst().orElse(owned.stream().filter(r->RegistrationAttemptReports.KIND.equals(r.kind())).findFirst().orElse(owned.isEmpty()?null:owned.getFirst()));
                 if(run==null)return new Page(owned,null,List.of(),Map.of(),List.of());
-                var items=reports.items(run.id(),start,300);RegistrationAttemptReports.refresh(owner,run,items);
+                var items=reports.items(run.id(),start,300);RegistrationAttemptReports.refresh(owner,run,items);com.vncode.app.integration.znack.registration.CatalogErrorRepairService.refresh(owner,run,items);
                 run=reports.find(run.id()).orElseThrow();items=reports.items(run.id(),start,300);
                 for(int i=0;i<owned.size();i++)if(owned.get(i).id().equals(run.id()))owned.set(i,run);
                 return new Page(owned,run,items,reports.counts(run.id()),reports.events(run.id(),null,4));
