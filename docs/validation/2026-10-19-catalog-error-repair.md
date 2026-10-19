@@ -17,3 +17,7 @@ Báo cáo phân biệt đang xử lý/chờ duyệt/chờ ký/cần xử lý/đ�
 - Bổ sung kiểm tra nâng cấp từ bộ cài Published 1.5.0 với checksum đã lưu; kết quả Windows được ghi riêng sau CI.
 
 Đây là kiểm thử tự động bằng API giả lập. Không tạo/sửa/ký thẻ thật của seller trong đợt này. CryptoPro doanh nghiệp, license production và nghiệm thu thao tác ghi từ desktop lên sàn chưa được xác nhận. Giữ các cờ này false khi phát hành theo yêu cầu của chủ repo.
+
+## Theo dõi Windows
+
+Run 39255533688 chạy 1.913 ca, 0 assertion failures, 2 timeout ở trình điều khiển modal GS1/Ozon, 2 platform skips. Đã thay thao tác đóng bằng animation bằng cách bấm nút trong hộp thoại đang hiển thị; giữ nguyên assertions và không sửa production code. Cả 16 ca hai lớp qua trên Linux; cổng sớm Windows cũng qua. Bộ đầy đủ và các nâng cấp đang chạy lại ở run 39268181948, commit `85fd0e060ad75031d21b1ed54fb6a4821d46d9e7`. Không dùng lượt lỗi để phát hành.

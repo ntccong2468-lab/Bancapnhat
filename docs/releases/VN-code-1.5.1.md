@@ -1,25 +1,11 @@
 # VNCode 1.5.1
 
-**Đang phát triển — chưa phát hành lên Latest.** Giữ nền bản 1.5.0 đã phát hành và đưa toàn bộ thay đổi tiếp theo vào 1.5.1.
+- **Sửa thẻ Znack lỗi:** chọn **Lỗi → Chọn tất cả** để mở báo cáo. Bấm **Chỉnh sửa** để xem thông tin trước/sau, chọn đúng biến thể, giấy tờ và bổ sung trường thiếu, rồi **Áp dụng**. Bảng đóng và viên thuốc dưới giữa danh sách theo dõi từng thẻ.
+- **Đăng ký đúng dữ liệu:** kiểm tra giấy tờ còn hiệu lực, đúng phạm vi TN VED; dùng size và hệ size thật. Danh mục chỉ nhận size Nga sẽ lấy size Nga trên sàn, thay vì gắn nhầm 2XL vào hệ Nga. Sửa cùng thẻ giữ nguyên GTIN; thẻ đổi nhóm TN VED dùng luồng đăng ký mới có xác nhận.
+- **Báo cáo rõ trạng thái:** phân biệt lỗi, đã gửi, đang duyệt, chờ ký và đã xuất bản. Có GTIN, mã thẻ, mã lượt gửi và lý do khi Catalog trả về. Bảo vệ yêu cầu chưa rõ kết quả và thẻ đã xuất bản.
+- **GTIN WB/Ozon:** cập nhật theo lô, dùng chung chỉ mục sản phẩm và đọc lại kết quả; hỗ trợ lượt xử lý 10.000 GTIN. Giữ các barcode và dữ liệu khác của bài đăng.
+- **Sửa sản phẩm hàng loạt:** tối ưu thương hiệu, chất liệu, giới tính, TN VED và giấy tờ. Ozon cập nhật riêng thuộc tính, giảm phụ thuộc đọc giá; nhận đúng thành phần chất liệu và không lấy chất liệu lớp lót.
+- **KN3 trong shipment:** xanh khi sàn chấp nhận, đỏ khi sàn từ chối. Nút **Thêm lại KIZ** mở báo cáo và xác nhận thay; chạy nền và đọc lại trạng thái từ sàn. Giữ dữ liệu kho và nhãn, tiếp tục ưu tiên đồng bộ FBS.
+- **Logo:** VN Liquid Glass nền xanh, chữ trắng, đồng bộ biểu tượng giao diện và bộ cài.
 
-- **Sửa thẻ Znack lỗi:** chọn **Lỗi → Chọn tất cả** để mở báo cáo, kể cả thẻ Catalog chưa ghép được với bài trên sàn. Bấm **Chỉnh sửa** để xem giá trị trước/sau, chọn đúng biến thể và giấy tờ, bổ sung trường thiếu rồi **Áp dụng**. Bảng đóng, viên thuốc dưới giữa danh sách theo dõi từng thẻ. Giữ GTIN cũ khi sửa cùng sản phẩm, lưu mã lượt gửi, phân biệt chờ duyệt/chờ ký/lỗi/đã xuất bản. Không gửi lại yêu cầu chưa rõ kết quả hoặc sửa đè thẻ đã xuất bản.
-
-- **Logo mới:** dùng mẫu VN Liquid Glass nền xanh trong, chữ trắng đã chọn; đồng bộ logo giao diện, cửa sổ, ICO Windows và ICNS macOS. Có nền trong suốt và nhiều kích thước cho biểu tượng ứng dụng. [Tài nguyên và kiểm tra đóng gói](../branding/README.md).
-
-- **Tăng tốc GTIN WB/Ozon:** gộp nhiều biến thể vào lô theo hạn mức chính thức, hỗ trợ tác vụ 10.000 GTIN; chia sẻ chỉ mục sản phẩm và đọc lại theo lô. Giữ barcode cũ, các biến thể, giấy tờ và dữ liệu khác của bài đăng. Chỉ tính thành công sau khi đọc lại đúng biến thể từ sàn; giữ checkpoint cho yêu cầu chưa rõ kết quả.
-- **KN3 trong shipment:** xanh khi sàn chấp nhận, đỏ khi sàn từ chối; kết quả còn chờ hoặc chưa đọc được không được báo xanh. Cập nhật theo luồng FBS hiện có, ưu tiên shipment đang mở.
-- **Thêm lại KIZ:** nút chỉ xuất hiện khi có KN3 đỏ. Bảng đơn lỗi có **Xác nhận / Hủy**. Xác nhận đóng bảng, lấy mã từ nguồn KIZ đã chọn và chạy nền; viên thuốc giữa phía dưới hiển thị **Đang gán KIZ** rồi **Đã gán KIZ xong** sau khi đọc lại sàn và xác nhận phạm vi đang xử lý không còn đỏ/chờ.
-- **Giữ kho và nhãn KIZ:** không xóa mã WB trước khi gửi mã thay; giữ các exemplar khác trên Ozon. Giữ riêng mã đã gửi nhưng chưa rõ kết quả; hoàn trả mã chắc chắn chưa được gửi hoặc bị từ chối ở cấp yêu cầu mà chưa áp dụng. Giữ nguyên lịch sử kho/in và dùng mã thay đã xác nhận khi lập nhãn KIZ Ozon.
-- **Shipment nhỏ và nhiều trang:** nút WB xuống dòng trong cửa sổ nhỏ; báo cáo Ozon bao gồm đơn ngoài trang đang xem, phân biệt đúng tab, bộ lọc và shop.
-
-- **Đăng ký Znack WB/Ozon:** mẫu mặc định v2 kiểm tra phạm vi TN VED của giấy tờ qua registry trước khi cấp GTIN/gửi feed; chặn mâu thuẫn giới tính rõ ràng theo biểu thuế. Giấy tờ sai phạm vi phải được sửa và đọc lại; không tự thay mã để khớp giấy tờ. Hiển thị đủ lỗi thuộc tính, không giữ “đang ký” khi Catalog đã từ chối. Có báo cáo từng dòng và nút sao chép gồm GTIN, mã lượt gửi và lý do.
-- **Trạng thái thẻ thật:** đối chiếu Wbcode 1.3.10, bổ sung đọc thẻ Catalog khi trạng thái feed còn chậm. Phân biệt nháp, đang kiểm duyệt, chờ ký, lỗi và chờ xuất bản; không yêu cầu ký thêm khi thẻ đã ký/xuất bản được xác minh. Nếu Catalog chưa trả chi tiết từ chối thì báo rõ phần còn thiếu, không báo đăng ký thành công.
-- **Sửa sản phẩm hàng loạt:** sửa luồng năm trường thương hiệu, chất liệu, giới tính, TN VED và giấy tờ; bỏ phụ thuộc đọc giá, có tiến độ kiểm tra/gửi/đọc lại. Báo đúng lỗi từ chối WB thay vì chờ mãi; đối soát được tác vụ cũ theo nhật ký gửi, không lấy lỗi lịch sử để kết luận lượt sửa mới thất bại. Giữ hộp Áp dụng/Hủy và viên thuốc dưới danh sách.
-
-**Bằng chứng đã lưu:** [GTIN theo lô](../validation/2026-10-19-gtin-bulk.md), [KN3 và thay KIZ](../validation/2026-10-19-kn3-replacement.md). Các kết quả đó có phạm vi kiểm thử riêng, không thay thế nghiệm thu bản Windows 1.5.1 hoặc thao tác tạo/ký thẻ và ghi sàn bằng phiên seller thật.
-
-**Đợt sửa Znack/Sản phẩm:** [dữ liệu API thật, thay đổi và phạm vi nghiệm thu](../validation/2026-10-19-znack-product-edit.md). Chưa xác nhận tạo/ký thẻ mới hoặc ghi sửa sản phẩm thật trong phiên này; 34 thẻ lỗi được đọc có giấy tờ không bao phủ TN VED tương ứng.
-
-- **Tối ưu sửa sản phẩm:** WB gửi theo lô tối đa 100 bài/lượt; Ozon cập nhật riêng thuộc tính theo lô tối đa 100 bài, không yêu cầu giá hoặc nhập lại barcode/ảnh. Đọc danh mục theo trang, dùng chung từ điển và trạng thái tác vụ trong mỗi lượt kiểm tra; chỉ xác nhận sau khi đọc lại sàn. Giấy tờ Ozon vẫn qua bước tải và kiểm tra gắn giấy tờ riêng.
-- **Tự chọn giấy tờ đăng ký:** tự dùng lựa chọn duy nhất đã được registry xác minh hợp lệ, đúng phạm vi TN VED của sản phẩm. Giữ chặn giấy tờ sai nhóm; các thẻ đã bị từ chối trên Catalog vẫn cần sửa dữ liệu và gửi lại. [Kiểm tra lại bằng API và đo số yêu cầu](../validation/2026-10-19-product-batches-tnved.md).
-- **Chất liệu Ozon và mẫu đăng ký:** nhận đúng “Состав материала”, ưu tiên thành phần có tỷ lệ thay vì từ điển tên vật liệu; không lấy chất liệu lớp lót. Áp dụng thống nhất cho sửa hàng loạt, sửa thiếu trường trước đăng ký và đồng bộ từ Catalog.
+Bản phát hành được kiểm tra tự động và kiểm tra bộ cài Windows. Ký thật bằng CryptoPro doanh nghiệp và lượt sửa/ghi thật từ desktop của seller chưa được nghiệm thu trong đợt này; xem `request-report.md` và `release-acceptance.json` đính kèm để biết phạm vi kiểm chứng.

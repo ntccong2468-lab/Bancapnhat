@@ -23,9 +23,9 @@
     "windowsBuild": {
       "state": "running",
       "freshFullJavaExecutionRequired": true,
-      "sourceCommit": "835ad5041290c0330420d21fa13f82b686ac065c",
-      "runId": 39255533688,
-      "url": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/39255533688",
+      "sourceCommit": "85fd0e060ad75031d21b1ed54fb6a4821d46d9e7",
+      "runId": 39268181948,
+      "url": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/39268181948",
       "supersededRuns": [
         {
           "runId": 39254561526,
@@ -38,6 +38,18 @@
           "sourceCommit": "67f259b8454f3b943de9fbbcb72d878e525eacef",
           "state": "cancelled",
           "reason": "Added observed Russian-size fallback for Catalog categories without international sizing, and its regression case."
+        },
+        {
+          "runId": 39255533688,
+          "sourceCommit": "835ad5041290c0330420d21fa13f82b686ac065c",
+          "state": "failed",
+          "reason": "1913 full Windows tests executed: 0 assertion failures, 2 modal-driver timeouts, 2 platform skips. Replaced animation-dependent cancellation drivers; all original assertions remain. Full suite is rerunning on the fixed test source.",
+          "fullJavaSuite": {
+            "tests": 1913,
+            "failures": 0,
+            "errors": 2,
+            "skipped": 2
+          }
         }
       ]
     },
@@ -47,6 +59,13 @@
     "liveApiWbGtinWriteThisVersion": false,
     "liveApiOzonGtinWriteThisVersion": false,
     "liveCatalogCardCreatedThisVersion": false,
-    "liveCatalogCardRepairedThisVersion": false
+    "liveCatalogCardRepairedThisVersion": false,
+    "modalDriverRegression": {
+      "tests": 16,
+      "failures": 0,
+      "errors": 0,
+      "platform": "Linux Xvfb",
+      "windowsEarlyGate": "passed"
+    }
   }
 }
