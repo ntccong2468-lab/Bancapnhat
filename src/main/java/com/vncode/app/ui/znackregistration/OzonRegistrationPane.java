@@ -93,7 +93,7 @@ public final class OzonRegistrationPane extends VBox {
         });table.getColumns().add(images);column("Product ID / offer_id",row->row.key().cardId()+" / "+row.key().variantId());column(tr("fbo.column.name"),row->row.title()+(safe(row.tnved()).isBlank()?"":"\nTN VED: "+row.tnved()));
         column("SKU",row->skus.getOrDefault(row.key(),""));column(tr("products.article"),ProductRow::vendorArticle);column(tr("znack.registration.gender"),ProductRow::gender);column(tr("fbo.column.color"),ProductRow::color);column(tr("fbo.column.size"),ProductRow::size);
         column("Barcode / GTIN",row->String.join(", ",row.barcodes())+(view(row).gtin().isBlank()?"":"\nGTIN: "+view(row).gtin())+candidateText(row.key()));column(tr("znack.registration.status"),row->view(row).published()&&!com.vncode.app.features.gtinsync.RegisteredGtinProof.contains(row.barcodes(),view(row).gtin())?tr("znack.registration.awaiting_ozon_gtin"):tr("znack.registration."+view(row).status()));
-        column(tr("jobs.reason"),row->reason(view(row).detail())+(states.get(row.key())==null||safe(states.get(row.key()).error()).isBlank()?"":" · "+com.vncode.app.integration.znack.registration.CatalogFeedback.display(states.get(row.key()).error())));
+        column(tr("jobs.reason"),row->reason(view(row).detail())+(states.get(row.key())==null||safe(states.get(row.key()).error()).isBlank()?"":" · "+RegistrationDiagnostics.reason(states.get(row.key()).error())));
         var actions=new TableColumn<ProductRow,ProductRow>(tr("znack.registration.action"));actions.setCellValueFactory(cell->new ReadOnlyObjectWrapper<>(cell.getValue()));
         actions.setCellFactory(c->new TableCell<>() {
             final MenuButton menu=new MenuButton();final MenuItem create=new MenuItem(),resume=new MenuItem(),switchCard=new MenuItem(),newRejected=new MenuItem();
@@ -109,7 +109,10 @@ public final class OzonRegistrationPane extends VBox {
                 switchCard.setText(tr("znack.registration.switch_card"));switchCard.setDisable(!ready()||!view(row).published()||busy||state!=Status.PUBLISHED||!candidate);setGraphic(menu);
             }
         });actions.setMinWidth(130);actions.setPrefWidth(145);table.getColumns().add(actions);table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
-        table.setRowFactory(t->new TableRow<>(){@Override protected void updateItem(ProductRow row,boolean empty){super.updateItem(row,empty);var r=row==null?null:states.get(row.key());setTooltip(empty||r==null||safe(r.error()).isBlank()?null:new Tooltip(r.error()));}});buttons();
+        table.setRowFactory(t->new TableRow<>(){@Override protected void updateItem(ProductRow row,boolean empty){super.updateItem(row,empty);var r=row==null?null:states.get(row.key());setTooltip(empty||r==null||safe(r.error()).isBlank()?null:new Tooltip(r.error()));
+            if(empty||row==null){setContextMenu(null);return;}
+            var report=new MenuItem(tr("znack.registration.report"));report.setOnAction(e->RegistrationDiagnostics.show(row.vendorArticle(),r==null?view(row).gtin():r.gtin(),r==null?"":r.feedId(),tr("znack.registration."+view(row).status()),reason(view(row).detail())+"\n"+(r==null?"":r.error())));setContextMenu(new ContextMenu(report));
+        }});buttons();
     }
     private void column(String text,java.util.function.Function<ProductRow,String> value){var column=new TableColumn<ProductRow,String>(text);column.setCellValueFactory(c->new ReadOnlyStringWrapper(value.apply(c.getValue())));column.setPrefWidth(160);if(text.equals(tr("jobs.reason"))){column.setMinWidth(150);RegistrationTextCells.wrap(column);}table.getColumns().add(column);}
     private ProductQuery query(String cursor){return new ProductQuery(owner.getId(),Marketplace.OZON,search.getText(),List.of(),null,false,cursor,300);}
@@ -176,6 +179,12 @@ public final class OzonRegistrationPane extends VBox {
         background(()->{allowedKeys(List.of(key),newCard);return workflow.prepare(owner,key);},prepared->continuePrepare(key,newCard,prepared));
     }
     private void continuePrepare(ProductKey key,boolean newCard,OzonCardRegistrationWorkflow.Preparation prepared) {
+        if(!prepared.documents().issues().isEmpty()&&prepared.documents().candidates().isEmpty()){
+            if(prepared.documents().issues().stream().anyMatch(issue->issue.contains("ZNACK_DOCUMENT_REGISTRY_PENDING"))){status.setText(tr("catalogsync.issue.REGISTRY_DOCUMENTS_PENDING"));return;}
+            var review=new RegistrationBatchPreflight.Review(List.of(new RegistrationBatchPreflight.Finding("documents",key,prepared.snapshot().vendorArticle(),String.join("; ",prepared.documents().issues()),"")));
+            if(RegistrationBatchPreflight.show(getScene()==null?null:getScene().getWindow(),owner,review)&&!disposed)prepare(key,newCard);
+            return;
+        }
         if(prepared.preflight()==null) {
             var dialog=new TextInputDialog(prepared.tnved());dialog.setTitle(tr("znack.registration.title"));dialog.setHeaderText(tr("znack.registration.ozon_tnved"));
             var value=dialog.showAndWait();if(value.isEmpty())return;

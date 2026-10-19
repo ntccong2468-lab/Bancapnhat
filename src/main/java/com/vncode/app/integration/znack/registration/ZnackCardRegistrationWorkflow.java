@@ -269,9 +269,10 @@ public final class ZnackCardRegistrationWorkflow {
         Status status;
         var signature=registrations.signingCheckpoint(shop.getId(),sku.chrtId());
         if(progress.signed()){status=Status.PUBLISHED;registrations.finishSignature(shop.getId(),sku.chrtId(),true);}
+        else if(progress.failed())status=Status.ERROR;
         else if(sku.status()==Status.SIGNING||signature!=null&&Set.of("SENDING","RECONCILE_REQUIRED").contains(signature.state()))status=Status.SIGNING;
         else status=progress.failed()?Status.ERROR:progress.readyToSign()?Status.READY_TO_SIGN:Status.PROCESSING;
-        String error=progress.failed()?CatalogFeedback.rejection(progress):null;
+        String error=progress.failed()?CatalogFeedback.rejection(progress):CatalogFeedback.stage(progress);
         if(status==Status.PROCESSING&&java.time.Instant.now().isAfter(registrations.submissionStarted(shop.getId(),sku).plus(java.time.Duration.ofMinutes(5)))
                 &&!session.catalog().cardExists(session.token(),sku.gtin(),progress.goodId())){
             status=Status.ERROR;error="CATALOG_CARD_NOT_CREATED_AFTER_WAIT";
@@ -357,6 +358,7 @@ public final class ZnackCardRegistrationWorkflow {
         if (rebuildPayload) {
             draft=draft.withProductCategory(sku.subjectName());
             draft = withSchemaTypes(draft, catalog.requiredAttributes(draft.categoryId(), token), sku.wbSize());
+            catalog.validateDocuments(token,draft);
         }
         String imageUrl = retryImageUrl(sku.imageUrl(), sku.errorMessage());
         JsonObject payload;
@@ -453,6 +455,8 @@ public final class ZnackCardRegistrationWorkflow {
                 return;
             }
             update(shop, sku, Status.PROCESSING, feedId, goodId, listener);
+            String stage=CatalogFeedback.stage(progress);
+            if(stage!=null){registrations.updateProgress(shop.getId(),sku.chrtId(),Status.PROCESSING,feedId,goodId,stage,null);notify(listener,Status.PROCESSING,stage);}
             break;
         }
 
@@ -516,7 +520,13 @@ public final class ZnackCardRegistrationWorkflow {
                 registrations.finishSignature(shop.getId(),sku.chrtId(),true);return after.goodId();
             }
             registrations.finishSignature(shop.getId(),sku.chrtId(),false);
+            if(after.failed()){
+                String reason=CatalogFeedback.rejection(after);registrations.updateProgress(shop.getId(),sku.chrtId(),Status.ERROR,feedId,after.goodId(),reason,null);
+                notify(listener,Status.ERROR,reason);return null;
+            }
             update(shop,sku,Status.SIGNING,feedId,document.goodId(),listener);
+            String stage=CatalogFeedback.stage(after);
+            if(stage!=null)registrations.updateProgress(shop.getId(),sku.chrtId(),Status.SIGNING,feedId,document.goodId(),stage,null);
             notify(listener,Status.SIGNING,"The signature was received; publication still needs readback.");
             return null;
         }catch(Exception error) {
@@ -527,6 +537,10 @@ public final class ZnackCardRegistrationWorkflow {
                 var progress=session.catalog().progress(session.token(),feedId,gtin);
                 if(progress.signed() && Objects.equals(progress.goodId(),document.goodId())) {
                     registrations.finishSignature(shop.getId(),sku.chrtId(),true);return progress.goodId();
+                }
+                if(progress.failed()){
+                    String reason=CatalogFeedback.rejection(progress);registrations.updateProgress(shop.getId(),sku.chrtId(),Status.ERROR,feedId,progress.goodId(),reason,null);
+                    notify(listener,Status.ERROR,reason);return null;
                 }
             }catch(Exception unavailable){/* Preserve the durable uncertainty. */}
             update(shop,sku,Status.SIGNING,feedId,document.goodId(),listener);
@@ -594,7 +608,7 @@ public final class ZnackCardRegistrationWorkflow {
             registrations.updateProgress(shop.getId(),sku.chrtId(),Status.PROCESSING,null,null,"CATALOG_READBACK_RETRY_PENDING",null);
             notify(listener,Status.PROCESSING,"CATALOG_READBACK_RETRY_PENDING");return;
         }
-        boolean scopeBlocked=error instanceof ZnackRegistrationScope.ScopeChangedException;
+        boolean scopeBlocked=error instanceof ZnackRegistrationScope.ScopeChangedException||error instanceof RegistrationValidationException;
         Status failure=scopeBlocked && checkpoint.status()==Status.ALLOCATING_GTIN?Status.PREFLIGHT_ERROR
                 :scopeBlocked && checkpoint.status()==Status.FEED_SUBMITTING?Status.PRE_SUBMIT_ERROR
                 :checkpoint.status()==Status.ALLOCATING_GTIN ? Status.GTIN_REVIEW_REQUIRED

@@ -4,6 +4,11 @@ import org.junit.jupiter.api.Test;
 import java.util.*;
 import static org.junit.jupiter.api.Assertions.*;
 class ZnackCategoryResolverTest {
+ @Test void hoodiesAndSweatshirtsResolveToTheCurrentActiveKnitwearLeaf(){
+  var knitwear=new Category(30694,"Джемперы, свитеры, пуловеры");
+  var choices=List.of(new Category(31326,"Одежда второго и третьего слоя"),new Category(214940,"Кардиганы и жилеты"),knitwear);
+  for(String subject:List.of("Свитшоты","Худи","Толстовки"))assertEquals(knitwear,ZnackCategoryResolver.resolve(subject,"Худи или свитшот",choices).orElseThrow());
+ }
  @Test void selectsTheMarketplaceTypeRatherThanAnAccessoryMentionedInTheTitle(){
   var suit=new Category(1,"Костюмы спортивные");var pants=new Category(2,"Брюки мужские");
   assertEquals(suit,ZnackCategoryResolver.resolve("Костюмы спортивные","Костюм с брюками",List.of(pants,suit)).orElseThrow());

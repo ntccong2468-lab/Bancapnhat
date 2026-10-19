@@ -33,7 +33,7 @@ final class OzonRegistrationReviewDialog {
         permit.setConverter(new StringConverter<>(){public String toString(GoodsDocument d){return d==null?"":d.type()+" · "+d.number()+" · "+d.date();}public GoodsDocument fromString(String ignored){throw new UnsupportedOperationException();}});
         if(prepared.documents().automatic()!=null)permit.setValue(prepared.documents().automatic());else if(permit.getItems().size()==1)permit.getSelectionModel().selectFirst();
         grid.addRow(3,new Label(tr("znack.registration.documents")),permit);
-        Label documentNote=new Label(tr(prepared.documents().requiresReview()?"znack.registration.perproduct_review":"znack.registration.ozon_required"));documentNote.setWrapText(true);grid.add(documentNote,0,4,3,1);
+        Label documentNote=new Label(String.join("\n",prepared.documents().issues())+"\n"+tr(prepared.documents().requiresReview()?"znack.registration.perproduct_review":"znack.registration.ozon_required"));documentNote.setWrapText(true);grid.add(documentNote,0,4,3,1);
         var inputs=new ArrayList<Input>();int row=5;
         String russianSize=prepared.snapshot().variants().stream().filter(v->v.id().equals(prepared.snapshot().key().variantId())).map(com.vncode.app.features.products.ProductVariant::russianSize).findFirst().orElse("");
         for(Attribute attribute:prepared.required()) {

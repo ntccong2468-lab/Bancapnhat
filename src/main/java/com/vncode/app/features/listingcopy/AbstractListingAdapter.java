@@ -20,7 +20,7 @@ public abstract class AbstractListingAdapter implements ListingTargetAdapter {
     protected AbstractListingAdapter(Marketplace m,Function<Shop,ListingTransport> c,ListingMediaInspector i){market=m;clients=c;images=i;}
     protected void owner(Shop s){ListingIdentity.require(s);if(s.getMarketplace()!=market)throw new SecurityException("Wrong listing marketplace");}
     protected void owner(Shop s,RemoteSubmission r){owner(s);if(r.shopId()!=s.getId()||r.marketplace()!=market||!r.owner().equals(ListingIdentity.fingerprint(s)))throw new SecurityException("Foreign listing job");}
-    protected JsonObject call(Shop s,String path,JsonElement body,boolean mutation)throws IOException{owner(s);var r=object(clients.apply(s).call(path,body,mutation));if("true".equals(text(r,"error")))throw new IOException("Listing request rejected");return r;}
+    protected JsonObject call(Shop s,String path,JsonElement body,boolean mutation)throws IOException{owner(s);var r=object(clients.apply(s).call(path,body,mutation));if(market==Marketplace.WILDBERRIES)ListingRejectedException.requireWbAccepted(s,r);else if("true".equals(text(r,"error")))throw new ListingRejectedException("Listing request rejected");return r;}
     protected static void issue(List<CopyIssue> list,String code,String field){list.add(new CopyIssue(code,field,true));}
     protected List<ProductVariant> selected(ProductSnapshot source,CopyOptions o,List<CopyIssue> issues){
         if(!source.revision().startsWith("live:"))issue(issues,"FRESH_SOURCE_REQUIRED","source");

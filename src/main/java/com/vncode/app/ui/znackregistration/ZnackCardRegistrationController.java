@@ -586,7 +586,7 @@ public final class ZnackCardRegistrationController {
                 var snapshot=new com.vncode.app.features.products.ProductRepository().localSnapshot(key).orElse(null);
                 if(snapshot==null||snapshot.checkedAt()==null||snapshot.checkedAt().isBefore(java.time.Instant.now().minusSeconds(60))
                         ||!com.vncode.app.integration.listing.ListingIdentity.fingerprint(owner).equals(snapshot.metadata().get("owner")))
-                    snapshot=new com.vncode.app.integration.wb.WbProductSnapshotReader().read(owner,key);
+                    snapshot=new com.vncode.app.integration.wb.WbProductSnapshotReader().readForSynchronization(owner,key);
                 var productInputs=com.vncode.app.integration.znack.registration.RegistrationProductInputs.from(sku,snapshot);
                 List<WbCharacteristic> characteristics=productInputs.characteristics();tnved=ZnackWbAttributeMapper.findTnved(characteristics);
                 var code=snapshot.attributes().stream().filter(a->com.vncode.app.features.products.ProductFieldNames.matches("tnved",a.name())).flatMap(a->a.values().stream()).filter(v->v.matches("[0-9]{4,10}")).distinct().toList();
@@ -599,6 +599,7 @@ public final class ZnackCardRegistrationController {
                 ZnackApiClient api=com.vncode.app.integration.znack.CatalogConnectionService.apiForShop(owner,current);ZnackAuthService auth=new ZnackAuthService(api,signer);
                 var service=new ZnackNationalCatalogService(api,auth,signer,current);
                 scope.assertCurrent(owner);var preflight=service.preflight(tnved);scope.assertCurrent(owner);
+                documents=service.reviewDocuments(preflight.token(),documents,tnved);scope.assertCurrent(owner);
                 return new RegistrationInputs(productInputs.sku(),characteristics,scope,documents,service,preflight,attempt);
                 }catch(Exception error){if(error instanceof RegistrationInputException input)attempt.blocked(input.code);else attempt.failed(error);throw error;}
                 }
@@ -607,6 +608,17 @@ public final class ZnackCardRegistrationController {
         task.setOnSucceeded(event->{
             if(!isCurrent(owner,epoch))return;
             setLoading(false);var inputs=task.getValue();
+            if(inputs.documents().candidates().isEmpty()){
+                if(inputs.documents().issues().stream().anyMatch(issue->issue.contains("ZNACK_DOCUMENT_REGISTRY_PENDING"))){
+                    summaryLabel.setText(sku.vendorCode()+" · "+tr("catalogsync.issue.REGISTRY_DOCUMENTS_PENDING"));
+                    recordBlocked(inputs.attempt(),"ZNACK_DOCUMENT_REGISTRY_PENDING");completed.run();return;
+                }
+                var key=new com.vncode.app.features.products.ProductKey(owner.getId(),owner.getMarketplace(),Long.toString(sku.nmId()),Long.toString(sku.chrtId()));
+                var review=new RegistrationBatchPreflight.Review(List.of(new RegistrationBatchPreflight.Finding("documents",key,sku.vendorCode(),String.join("; ",inputs.documents().issues()),"")));
+                if(RegistrationBatchPreflight.show(productTable.getScene()==null?null:productTable.getScene().getWindow(),owner,review)&&isCurrent(owner,epoch))prepareCard(owner,epoch,sku,fresh,replacement,completed);
+                else {recordBlocked(inputs.attempt(),"ZNACK_DOCUMENT_TNVED_MISMATCH");completed.run();}
+                return;
+            }
             ZnackModels.GoodsDocument document=chooseDocument(inputs.documents());
             if(document==null||!isCurrent(owner,epoch)){recordBlocked(inputs.attempt(),"ZNACK_DOCUMENT_SELECTION_CANCELLED");completed.run();return;}
             Category category=chooseCategory(inputs.sku(),inputs.preflight().categories());
@@ -815,10 +827,10 @@ public final class ZnackCardRegistrationController {
         barcodeColumn.setCellValueFactory(cell -> new ReadOnlyStringWrapper(barcodes(cell.getValue())));
         RegistrationTextCells.wrap(detailColumn);
         detailColumn.setCellValueFactory(cell->new ReadOnlyStringWrapper(reason(view(cell.getValue()).detail())
-                +(value(cell.getValue().errorMessage()).isBlank()?"":" · "+SyncRunRepository.code(cell.getValue().errorMessage()))));
+                +(value(cell.getValue().errorMessage()).isBlank()?"":" · "+RegistrationDiagnostics.reason(cell.getValue().errorMessage()))));
         statusColumn.setCellValueFactory(cell -> new ReadOnlyStringWrapper(registrationStatus(cell.getValue())));
         statusColumn.setCellFactory(column -> new TableCell<>() {
-            {setOnMouseClicked(event->{var row=getTableRow()==null?null:getTableRow().getItem();if(row!=null&&isError(row.status())){showWorkflowError(row.errorMessage());event.consume();}});}
+            {setOnMouseClicked(event->{var row=getTableRow()==null?null:getTableRow().getItem();if(row!=null){showRegistrationReport(row);event.consume();}});}
             @Override protected void updateItem(String item, boolean empty) {
                 super.updateItem(item, empty);
                 setText(empty ? null : item);
@@ -872,7 +884,7 @@ public final class ZnackCardRegistrationController {
                 if(!empty&&item!=null&&item.hasFeed()&&item.hasGtin()) {
                     var read=new MenuItem(tr("znack.registration.read_status"));read.setOnAction(event->readStatus(item));
                     var report=new MenuItem(tr("znack.registration.report"));report.setOnAction(event->onReport());setContextMenu(new ContextMenu(read,report));
-                } else if(!empty&&item!=null&&isError(item.status())){var error=new MenuItem(tr("jobs.reason"));error.setOnAction(event->showWorkflowError(item.errorMessage()));setContextMenu(new ContextMenu(error));}else setContextMenu(null);
+                } else if(!empty&&item!=null){var error=new MenuItem(tr("znack.registration.report"));error.setOnAction(event->showRegistrationReport(item));setContextMenu(new ContextMenu(error));}else setContextMenu(null);
                 setTooltip(empty || item == null || item.errorMessage() == null || item.errorMessage().isBlank()
                         ? null : new Tooltip(item.errorMessage()));
             }
@@ -973,6 +985,7 @@ public final class ZnackCardRegistrationController {
                 : detail.lines().filter(line -> !line.isBlank()).findFirst().orElse(detail).replaceFirst("^Summary:\\s*", "");
         AlertService.showDetailedError(summary, full);
     }
+    private void showRegistrationReport(Sku sku){RegistrationDiagnostics.show(sku.vendorCode(),sku.gtin(),sku.feedId(),registrationStatus(sku),reason(view(sku).detail())+"\n"+reason(value(sku.errorMessage())));}
     private static void showWarning(String message) { Alert alert = new Alert(Alert.AlertType.WARNING, message, ButtonType.OK); alert.setHeaderText(null); alert.showAndWait(); }
     private static void showInfo(String message) { Alert alert = new Alert(Alert.AlertType.INFORMATION, message, ButtonType.OK); alert.setHeaderText(null); alert.showAndWait(); }
 

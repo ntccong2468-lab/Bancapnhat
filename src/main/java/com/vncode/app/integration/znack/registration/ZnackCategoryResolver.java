@@ -7,7 +7,8 @@ import java.util.*;
 
 /** Select only within the TN VED preflight candidates, using the marketplace product type. */
 public final class ZnackCategoryResolver {
-    private static final List<String> FAMILIES=List.of("костюм","брюк","шорт","футбол","рубаш","плать","юбк","свитшот","худи","жилет","куртк","обув","носк");
+    private static final List<String> FAMILIES=List.of("костюм","брюк","шорт","футбол","рубаш","плать","юбк","свитшот","худи","толстов","джемпер","свитер","пуловер","жилет","куртк","обув","носк");
+    private static final Set<String> KNIT_TOPS=Set.of("свитшот","худи","толстов","джемпер","свитер","пуловер");
     private static final Set<String> GENERIC=Set.of("товар","одежд","издел","прочи","мужск","женск","детск","спорти","тексти");
     private ZnackCategoryResolver(){}
     public static Optional<Category> resolve(ProductSnapshot product,List<Category> candidates){return resolve(product.metadata().getOrDefault("source.category.name",""),product.title(),candidates);}
@@ -34,6 +35,6 @@ public final class ZnackCategoryResolver {
         return best>=20&&!tied?Optional.of(winner):Optional.empty();
     }
     private static String normalize(String text){return Normalizer.normalize(Objects.toString(text,""),Normalizer.Form.NFKC).toLowerCase(Locale.ROOT).replace('ё','е').replaceAll("[^\\p{L}\\p{N}]+"," ").strip();}
-    private static Set<String> families(String text){var out=new HashSet<String>();for(String stem:FAMILIES)if(text.contains(stem))out.add(stem);return out;}
+    private static Set<String> families(String text){var out=new HashSet<String>();for(String stem:FAMILIES)if(text.contains(stem))out.add(KNIT_TOPS.contains(stem)?"джемпер":stem);return out;}
     private static Set<String> tokens(String text){var out=new HashSet<String>();for(String token:text.split(" +")){String stem=token.substring(0,Math.min(5,token.length()));if(stem.length()>=4&&!GENERIC.contains(stem))out.add(stem);}return out;}
 }

@@ -79,7 +79,11 @@ public final class WbListingAdapter extends AbstractListingAdapter {
     public RemoteResult reconcile(Shop s,RemoteSubmission r)throws IOException{
         owner(s,r);var ids=new LinkedHashMap<String,String>();var expected=JsonParser.parseString(r.requestJson()).getAsJsonArray();boolean update=expected.get(0).getAsJsonObject().has("nmID");var listings=update?expected:expected.get(0).getAsJsonObject().getAsJsonArray("variants");
         for(var e:listings){var want=object(e);String article=text(want,"vendorCode");var cards=find(s,article);if(cards.isEmpty()){var cursor=new JsonObject();cursor.addProperty("limit",100);var b=new JsonObject();b.add("cursor",cursor);var errors=array(obj(call(s,"content/v2/cards/error/list",b,false),"data"),"items");if(errors.asList().stream().anyMatch(v->strings(array(object(v),"vendorCodes")).contains(article)))return new RemoteResult(CopyState.FAILED,List.of(),List.of(new CopyIssue("IMPORT_REJECTED",article,true)),Map.of());return RemoteResult.pending();}if(cards.size()!=1)throw new IOException("Ambiguous destination article");var actual=cards.getFirst();String id=text(actual,"nmID");if(!id.matches("[1-9][0-9]*")||(update&&!text(want,"nmID").equals(id)))throw new IOException("Destination identity mismatch");
-            if(!matches(want,actual))return RemoteResult.pending();ids.put(article,id);
+            if(!matches(want,actual)){
+                String rejection=update?updateRejection(s,r,article):"";
+                if(!rejection.isBlank())return new RemoteResult(CopyState.FAILED,List.of(id),List.of(new CopyIssue("PRODUCT_UPDATE_REJECTED",rejection,true)),Map.of(article,id));
+                return RemoteResult.pending();
+            }ids.put(article,id);
             if(!pricesMatch(s,want,actual))return new RemoteResult(CopyState.REMOTE_PROCESSING,List.copyOf(ids.values()),List.of(new CopyIssue("PRICE_READBACK_PENDING",article,false)),ids);
             if((r.phase().equals("ASSETS_SENT")||r.phase().equals("ASSETS_SENDING"))&&!urls(r.mediaJson()).isEmpty()&&!imagesMatch(r.mediaJson(),array(actual,"photos").asList().stream().map(v->text(object(v),"big")).toList()))return RemoteResult.pending();
         }
@@ -101,7 +105,28 @@ public final class WbListingAdapter extends AbstractListingAdapter {
         if(request.has("dimensions"))obj(request,"dimensions").remove("isValid");if(request.has("documents")){var data=obj(request,"documents");data.remove("overallVerdict");for(var e:array(data,"items")){var d=object(e);d.remove("verdict");d.remove("createdAt");}}
         var arr=new JsonArray();arr.add(request);var options=new CopyOptions(changes.keySet(),Set.of(),fresh.categoryId(),Map.of(),changes,Map.of(),null,"RUB",List.of(),null);var p=previewRecord(s,fresh,options,arr,new JsonArray(),new JsonArray(),issues,List.of(trimmedArticle),"UPDATE");return new ProductEditPreview(fresh.key(),fresh.revision(),p);
     }
-    public RemoteSubmission submitUpdate(Shop s,ProductEditPreview p)throws IOException{requirePreview(s,p.preview());if(!p.preview().operation().equals("UPDATE"))throw new SecurityException("Wrong edit operation");call(s,"content/v2/cards/update",JsonParser.parseString(p.preview().requestJson()),true);return submitted(p.preview(),null);}
+    public RemoteSubmission submitUpdate(Shop s,ProductEditPreview p)throws IOException{requirePreview(s,p.preview());if(!p.preview().operation().equals("UPDATE"))throw new SecurityException("Wrong edit operation");var started=java.time.Instant.now();call(s,"content/v2/cards/update",JsonParser.parseString(p.preview().requestJson()),true);var r=submitted(p.preview(),null);return new RemoteSubmission(r.shopId(),r.marketplace(),r.owner(),r.requestHash(),r.taskId(),r.articles(),r.requestJson(),r.mediaJson(),r.documentsJson(),r.phase(),r.identities(),started);}
+    private String updateRejection(Shop shop,RemoteSubmission submission,String article)throws IOException{
+        if(submission.submittedAt()==null)return "";
+        var cursor=new JsonObject();cursor.addProperty("limit",100);var seen=new HashSet<String>();
+        for(int page=0;page<20;page++){
+            var body=new JsonObject();body.add("cursor",cursor);var data=obj(call(shop,"content/v2/cards/error/list",body,false),"data");
+            for(var value:array(data,"items")){
+                var item=object(value);java.time.Instant updated;
+                try{updated=java.time.Instant.parse(text(item,"updatedAt"));}catch(RuntimeException unknownTime){continue;}
+                if(updated.isBefore(submission.submittedAt())||updated.isAfter(java.time.Instant.now().plusSeconds(300)))continue;
+                if(!strings(array(item,"vendorCodes")).contains(article))continue;
+                var errors=obj(item,"errors").get(article);
+                if(errors!=null&&errors.isJsonArray()&&!errors.getAsJsonArray().isEmpty())
+                    return ListingRejectedException.safe(shop,article+": "+String.join("; ",strings(errors.getAsJsonArray())));
+            }
+            var next=obj(data,"cursor");if(!"true".equals(text(next,"next")))return "";
+            String date=text(next,"updatedAt"),batch=text(next,"batchUUID");
+            if(date.isBlank()||!batch.matches("[a-fA-F0-9-]{36}")||!seen.add(date+"/"+batch))throw new IOException("WB_ERROR_CURSOR_INVALID");
+            cursor=new JsonObject();cursor.addProperty("limit",100);cursor.addProperty("updatedAt",date);cursor.addProperty("batchUUID",batch);
+        }
+        return "";
+    }
     public List<JsonObject> find(Shop s,String article)throws IOException{
         var filter=new JsonObject();filter.addProperty("textSearch",article);filter.addProperty("withPhoto",-1);var settings=new JsonObject();settings.add("filter",filter);var cursor=new JsonObject();cursor.addProperty("limit",100);settings.add("cursor",cursor);var b=new JsonObject();b.add("settings",settings);var r=call(s,"content/v2/get/cards/list",b,false);var out=new ArrayList<JsonObject>();for(var e:array(r,"cards")){var c=object(e);if(text(c,"vendorCode").equals(article)||strings(array(c,"sizes")).contains(article)||array(c,"sizes").asList().stream().anyMatch(v->strings(array(object(v),"skus")).contains(article)))out.add(c);}return out;
     }

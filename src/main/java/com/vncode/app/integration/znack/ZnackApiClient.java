@@ -172,6 +172,11 @@ public class ZnackApiClient {
     public JsonElement nationalCatalogFeedStatus(String base, String token, String feedId) throws IOException {
         return get(nationalCatalogBase(base), "/v3/feed-status?verbose=true&feed_id=" + url(feedId), token);
     }
+    /** Read-only registry lookup: the POST does not create or modify a document. */
+    public JsonElement registrationPermitInfo(String base,String token,JsonArray documents)throws IOException {
+        if(documents==null||documents.isEmpty()||documents.size()>25)throw new IllegalArgumentException("Select 1 to 25 permits");
+        return post(nationalCatalogBase(base),"/v4/rd-info",token,documents);
+    }
     public JsonElement nationalCatalogSigningDocument(String base, String token, JsonObject body) throws IOException {
         return post(nationalCatalogBase(base), "/v3/feed-product-document", token, body);
     }

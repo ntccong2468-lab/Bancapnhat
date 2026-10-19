@@ -50,6 +50,7 @@ class ProductEditInteractionTest {
         if(path.startsWith("api/content/v1/brands"))return JsonParser.parseString("{\"brands\":[{\"id\":7,\"name\":\"New\"}],\"next\":0}");
         if(path.startsWith("content/v2/object/charcs"))return JsonParser.parseString("{\"data\":[]}");
         if(path.startsWith("api/v2/list/goods"))return JsonParser.parseString("{\"data\":{\"listGoods\":[]}}");
+        if(path.equals("content/v2/cards/error/list"))return JsonParser.parseString("{\"data\":{\"items\":[],\"cursor\":{\"next\":false}}}");
         if(!path.equals("content/v2/get/cards/list"))throw new java.io.IOException("Unexpected fixture route");
         if(entered!=null){entered.countDown();try{if(!release.await(5,TimeUnit.SECONDS))throw new java.io.IOException("fixture wait");}catch(InterruptedException e){Thread.currentThread().interrupt();throw new java.io.IOException(e);}}
         if(writes.get()>0)readbacks.incrementAndGet();

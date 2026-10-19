@@ -19,6 +19,49 @@ import java.util.concurrent.atomic.AtomicInteger;
 import static org.junit.jupiter.api.Assertions.*;
 
 class ZnackNationalCatalogServiceTest {
+    @Test void readsRealCardStagesWhenTheFeedStillSaysReceived()throws Exception{
+        for(String stage:List.of("draft","moderation","notsigned","errors")){
+            var api=new ZnackApiClient(){
+                @Override public JsonElement nationalCatalogFeedStatus(String base,String token,String feed){return JsonParser.parseString("{\"result\":{\"status\":\"Received\"}}");}
+                @Override public JsonElement productCards(String base,String token,String gtin){return JsonParser.parseString("{\"result\":[{\"gtin\":\"04631993764370\",\"good_id\":91,\"good_status\":\"draft\",\"good_signed\":false,\"good_detailed_status\":[\""+stage+"\"]}]}");}
+            };
+            var result=service(api).progress("fixture","feed","04631993764370");
+            assertEquals(switch(stage){case "draft"->"CardDraft";case "moderation"->"CardModeration";case "notsigned"->"Moderated";default->"Rejected";},result.status());
+            assertEquals(stage.equals("errors"),result.failed());assertFalse(result.signed());assertEquals(91L,result.goodId());
+        }
+    }
+    @Test void alreadySignedPublishedCardDoesNotRequireAnotherCryptoProSignature()throws Exception{
+        var api=new ZnackApiClient(){
+            @Override public JsonElement nationalCatalogFeedStatus(String base,String token,String feed){return JsonParser.parseString("{\"result\":{\"status\":\"Moderated\",\"item\":[{\"gtin\":\"04631993764370\",\"good_id\":91}]}}");}
+            @Override public JsonElement productCards(String base,String token,String gtin){return JsonParser.parseString("{\"result\":[{\"gtin\":\"04631993764370\",\"good_id\":91,\"good_status\":\"published\",\"good_signed\":true,\"good_detailed_status\":[\"published\"]}]}");}
+        };
+        var result=service(api).progress("fixture","feed","04631993764370");assertTrue(result.signed());assertFalse(result.readyToSign());
+    }
+    @Test void aReportedValidationCountCannotBeMistakenForSuccessWhenDetailsAreUnknown()throws Exception{
+        var api=new ZnackApiClient(){@Override public JsonElement nationalCatalogFeedStatus(String base,String token,String feed){return JsonParser.parseString("{\"result\":{\"status\":\"Signed\",\"error_details\":{\"totalErrors\":1}}}");}};
+        var result=service(api).progress("fixture","feed","04631993764370");
+        assertTrue(result.failed());assertFalse(result.signed());assertEquals("CATALOG_VALIDATION_ERRORS_UNAVAILABLE",result.errorMessage());
+    }
+    @Test void verboseObjectErrorsAndCommonErrorArePreservedAndScopedToTheRequestedGtin()throws Exception {
+        var api=new ZnackApiClient(){@Override public JsonElement nationalCatalogFeedStatus(String base,String token,String feed){return JsonParser.parseString("""
+            {"result":{"status":"Rejected","error_details":{"commonError":{"code":12,"text":"Invalid content"},"items":[
+              {"gtin":"04631993764370","errors":{"code":5,"attr_id":"23557","text":"Permit does not cover TN VED"}},
+              {"gtin":"04631993764363","errors":[{"code":5,"text":"Foreign card error"}]}]}}}
+            """);}};
+        var result=service(api).progress("fixture","feed","04631993764370");
+        assertTrue(result.failed());assertTrue(result.errorMessage().contains("23557: Permit does not cover TN VED"));
+        assertTrue(result.errorMessage().contains("Invalid content"));assertFalse(result.errorMessage().contains("Foreign card"));
+    }
+    @Test void repeatedAttributeErrorsForOneGtinDoNotTurnIntoAnIdentityError()throws Exception {
+        var api=new ZnackApiClient(){@Override public JsonElement nationalCatalogFeedStatus(String base,String token,String feed){return JsonParser.parseString("""
+            {"result":{"status":"Moderated","item":[
+              {"gtin":"04631993764370","good_id":91,"attribute_name":"Размер","status_code":5,"message":"Invalid size"},
+              {"gtin":"04631993764370","good_id":91,"attribute_name":"Состав","status_code":5,"message":"Missing composition"}]}}
+            """);}};
+        var result=service(api).progress("fixture","feed","04631993764370");
+        assertTrue(result.failed());assertFalse(result.readyToSign());assertEquals(2,result.errors().size());
+        assertTrue(result.errorMessage().contains("Размер: Invalid size"));
+    }
     @Test void signedFeedWithItemFailureCannotCountAsPublishedEvenWithoutAnErrorMessage()throws Exception {
         var api=new ZnackApiClient(){@Override public JsonElement nationalCatalogFeedStatus(String base,String token,String feed){return JsonParser.parseString("{\"result\":{\"status\":\"Signed\",\"item\":[{\"gtin\":\"04631993764370\",\"good_id\":91,\"status_code\":400}]}}");}};
         var result=service(api).progress("fixture-token","fixture-feed","04631993764370");assertTrue(result.failed());assertFalse(result.signed());
@@ -42,6 +85,13 @@ class ZnackNationalCatalogServiceTest {
                 "{\"result\":[{\"gtin\":\"04631993764370\",\"good_id\":91,\"good_status\":\"draft\"}]}")) {
             var progress=service(signedFeed(response)).progress("fixture-token","feed","04631993764370");
             assertFalse(progress.signed());assertFalse(progress.failed());assertEquals("PublicationPending",progress.status());
+        }
+    }
+    @Test void publishedRevisionWithADraftIsValidButExplicitUnsignedStateIsNot()throws Exception{
+        for(boolean signed:new boolean[]{true,false}){
+            var result=service(signedFeed("{\"result\":[{\"gtin\":\"04631993764370\",\"good_id\":91,\"good_status\":\"published\",\"good_signed\":"+signed+",\"good_detailed_status\":[\"published\",\"draft\"]}]}"))
+                    .progress("fixture","feed","04631993764370");
+            assertEquals(signed,result.signed());
         }
     }
     @Test void publishedReadbackMustHaveTheExactCardIdentity() {

@@ -40,6 +40,19 @@ class ZnackCardRegistrationWorkflowTest {
     }
     @AfterEach void cleanup(){System.clearProperty("vncode.appdata.dir");}
     Sku current(){return repository.search(new SearchCriteria(1,"",List.of(),"ALL",20,0)).getFirst();}
+    @Test void externallySignedCardWithLaggedFeedDoesNotSignAgain()throws Exception{
+        api.moderated=true;workflow.start(shop,current(),draft,null);assertEquals(Status.READY_TO_SIGN,current().status());
+        api.signatureAccepted=true;api.laggedModeration=true;
+        assertTrue(workflow.refreshStatus(shop,current()));assertEquals(Status.PUBLISHED,current().status());
+        assertEquals(0,api.signatures.get());assertEquals(0,api.documents.get());assertEquals(1,api.submissions.get());
+    }
+    @Test void definiteRejectionAfterASigningTimeoutShowsTheReasonWithoutReplaying()throws Exception{
+        api.moderated=true;api.signTimeout=true;workflow.start(shop,current(),draft,null);
+        workflow.signApproved(shop,List.of(current()),true,null);assertEquals(Status.SIGNING,current().status());
+        api.firstRejection="Permit does not cover product";assertFalse(workflow.refreshStatus(shop,current()));
+        assertEquals(Status.ERROR,current().status());assertTrue(current().errorMessage().contains("Permit does not cover product"));
+        assertEquals(1,api.signatures.get());assertEquals(1,api.allocations.get());assertEquals(1,api.submissions.get());
+    }
     @Test void nextCardWaitsForWorkerCheckpointInsteadOfQueueAcknowledgement() throws Exception {
         var workers=new ArrayDeque<Runnable>();
         var queued=new ZnackCardRegistrationWorkflow(repository,ignored->fixtureSession(),workers::add);
@@ -496,7 +509,7 @@ class ZnackCardRegistrationWorkflowTest {
     class FixtureApi extends ZnackApiClient {
         AtomicInteger allocations=new AtomicInteger(),submissions=new AtomicInteger(),signatures=new AtomicInteger(),documents=new AtomicInteger();
         boolean allocationTimeout,feedTimeout,existingDraft,rejectExistingFeed,readRejected;
-        boolean pendingModeration,moderated,signTimeout,signatureAccepted,changeSigningDocument,delayPublication;
+        boolean pendingModeration,moderated,signTimeout,signatureAccepted,changeSigningDocument,delayPublication,laggedModeration;
         int statusReadFailure;
         boolean cardPublished=true,cardMissing,completedWithoutCard,signingDocumentMissing;
         Map<String,String> bulkGtins=new HashMap<>();
@@ -535,13 +548,14 @@ class ZnackCardRegistrationWorkflowTest {
                 readRejected=true;
                 return json("{\"result\":{\"status\":\""+existingFeedStatus+"\",\"item\":[{\"gtin\":\"04631993764370\",\"status_code\":400,\"message\":\"required attribute missing\"}]}}");
             }
-            return json("{\"result\":{\"status\":\""+(pendingModeration?"Processing":moderated && !signatureAccepted?"Moderated":"Signed")+"\",\"item\":[{\"gtin\":\"04631993764370\",\"good_id\":91}]}}");
+            return json("{\"result\":{\"status\":\""+(pendingModeration?"Processing":laggedModeration||moderated && !signatureAccepted?"Moderated":"Signed")+"\",\"item\":[{\"gtin\":\"04631993764370\",\"good_id\":91}]}}");
         }
         @Override public JsonElement productCards(String base,String token,String gtins) {
             if(cardMissing||completedWithoutCard&&submissions.get()==1)return json("{\"result\":[]}");
             long id=91;
             for(var entry:bulkGtins.entrySet())if(entry.getValue().equals(gtins))id=bulkGoodIds.get(entry.getKey());
-            return json("{\"result\":[{\"gtin\":\""+gtins+"\",\"good_id\":"+id+",\"good_status\":\""+(cardPublished?"published":"draft")+"\"}]}");
+            boolean published=cardPublished&&!pendingModeration&&(!moderated||signatureAccepted);
+            return json("{\"result\":[{\"gtin\":\""+gtins+"\",\"good_id\":"+id+",\"good_status\":\""+(published?"published":"draft")+"\"}]}");
         }
         @Override public JsonElement nationalCatalogSigningDocument(String base,String token,JsonObject body)throws IOException {
             if(signingDocumentMissing)throw new ZnackApiClient.ZnackApiException("fixture",404,"not found");

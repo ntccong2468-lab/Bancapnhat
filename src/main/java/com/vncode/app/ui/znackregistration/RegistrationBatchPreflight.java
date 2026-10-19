@@ -19,7 +19,7 @@ final class RegistrationBatchPreflight {
         Finding(String field,ProductKey key,String article,String before,String suggestion){this(field,key,article,before,suggestion,"");}
     }
     record Review(List<Finding> findings){Review{findings=List.copyOf(findings);}List<ProductKey> keys(String field){return findings.stream().filter(f->f.field().equals(field)).map(Finding::key).distinct().toList();}}
-    static Map<Finding,String> initialValues(Review review){var values=new LinkedHashMap<Finding,String>();review.findings().forEach(f->values.put(f,f.suggestion().isBlank()?f.before():f.suggestion()));return values;}
+    static Map<Finding,String> initialValues(Review review){var values=new LinkedHashMap<Finding,String>();review.findings().forEach(f->values.put(f,f.field().equals("documents")?"":f.suggestion().isBlank()?f.before():f.suggestion()));return values;}
     static Review read(Shop owner,List<ProductKey> selected){
         ListingIdentity.require(owner);var findings=new ArrayList<Finding>();var repo=new ProductRepository();var advisor=new ProductTnvedAdvisor();var cards=new HashSet<String>();
         var sources=new RegistrationSources();boolean sourceReady=sources.check(owner).ready();
@@ -31,7 +31,9 @@ final class RegistrationBatchPreflight {
             if(com.vncode.app.integration.znack.registration.ZnackRegistrationDocuments.select(snapshot,settings,java.time.LocalDate.now()).candidates().isEmpty())findings.add(new Finding("documents",key,snapshot.vendorArticle(),"","",snapshot.categoryId()));
             for(String field:List.of("gender","material"))if(snapshot.attributes().stream().filter(a->a.complexId().isBlank()||a.complexId().equals("0")).filter(a->ProductFieldNames.matches(field,a.name())).flatMap(a->a.values().stream()).allMatch(String::isBlank))findings.add(new Finding(field,key,snapshot.vendorArticle(),"","",snapshot.categoryId()));
             var proposal=advisor.propose(snapshot);
-            if(proposal.current().isBlank()||proposal.unique()&&!ProductFieldNames.tnvedCode(proposal.current()).equals(proposal.candidates().getFirst().code()))
+            String gender=snapshot.attributes().stream().filter(a->ProductFieldNames.matches("gender",a.name())).flatMap(a->a.values().stream()).collect(java.util.stream.Collectors.joining(" "));
+            boolean tariffConflict=!com.vncode.app.integration.znack.registration.RegistrationTariffRules.genderProblem(ProductFieldNames.tnvedCode(proposal.current()),gender).isBlank();
+            if(proposal.current().isBlank()||tariffConflict||proposal.unique()&&!ProductFieldNames.tnvedCode(proposal.current()).equals(proposal.candidates().getFirst().code()))
                 findings.add(new Finding("tnved",key,snapshot.vendorArticle(),proposal.current(),proposal.unique()?proposal.candidates().getFirst().code():"",snapshot.categoryId()));
         }
         return new Review(findings);
@@ -92,9 +94,13 @@ final class RegistrationBatchPreflight {
         void verifyDocuments(Finding finding){
             if(disposed||busy)return;values.put(finding,"");busy=true;table.setDisable(true);dialog.getDialogPane().lookupButton(applyType).setDisable(true);
             var task=new Task<Boolean>(){protected Boolean call()throws Exception{try(var lane=MarketplaceRequestBudget.lane(true)){
-                var snapshot=owner.getMarketplace()==com.vncode.app.integration.marketplace.Marketplace.OZON?new com.vncode.app.integration.ozon.OzonProductSnapshotReader().read(owner,finding.key()):new com.vncode.app.integration.wb.WbProductSnapshotReader().read(owner,finding.key());
+                var snapshot=owner.getMarketplace()==com.vncode.app.integration.marketplace.Marketplace.OZON?new com.vncode.app.integration.ozon.OzonProductSnapshotReader().readForSynchronization(owner,finding.key()):new com.vncode.app.integration.wb.WbProductSnapshotReader().readForSynchronization(owner,finding.key());
                 var settings=new com.vncode.app.integration.znack.ZnackRepository(new com.vncode.app.integration.znack.ZnackModels.ShopContext(owner.getId(),owner.getName())).getSettings();
-                return !com.vncode.app.integration.znack.registration.ZnackRegistrationDocuments.select(snapshot,settings,java.time.LocalDate.now()).candidates().isEmpty();
+                var selected=com.vncode.app.integration.znack.registration.ZnackRegistrationDocuments.select(snapshot,settings,java.time.LocalDate.now());
+                var codes=snapshot.attributes().stream().filter(a->ProductFieldNames.matches("tnved",a.name())).flatMap(a->a.values().stream()).filter(v->v.matches("[0-9]{4,10}")).distinct().toList();
+                if(codes.size()!=1)return false;
+                var session=com.vncode.app.integration.znack.registration.ZnackCardRegistrationWorkflow.productionCatalog(owner);
+                return !session.catalog().reviewDocuments(session.token(),selected,codes.getFirst()).candidates().isEmpty();
             }}};
             task.setOnSucceeded(e->{busy=false;if(disposed)return;table.setDisable(false);dialog.getDialogPane().lookupButton(applyType).setDisable(false);if(task.getValue())values.put(finding,tr("znack.registration.complete_missing_documents_saved"));status.setText(tr(task.getValue()?"znack.registration.complete_missing_documents_saved":"znack.registration.complete_missing_documents_pending"));table.refresh();});
             java.util.function.Consumer<Throwable> failed=error->{busy=false;if(disposed)return;table.setDisable(false);dialog.getDialogPane().lookupButton(applyType).setDisable(false);status.setText(FriendlyErrorService.format(error));};task.setOnFailed(e->failed.accept(task.getException()));AppTaskExecutor.executeCatalog(task,failed);

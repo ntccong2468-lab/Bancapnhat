@@ -38,6 +38,8 @@ public final class ZnackNationalCatalogService {
     private final ZnackAuthService auth;
     private final ZnackSignatureProvider signer;
     private final ZnackModels.Settings settings;
+    private record PermitReadback(JsonElement response,java.time.Instant checkedAt){}
+    private final java.util.Map<ZnackModels.GoodsDocument,PermitReadback> permitReadbacks=new java.util.concurrent.ConcurrentHashMap<>();
 
     public ZnackNationalCatalogService(ZnackApiClient api, ZnackAuthService auth,
                                        ZnackSignatureProvider signer, ZnackModels.Settings settings) {
@@ -161,11 +163,51 @@ public final class ZnackNationalCatalogService {
 
     public String submit(String token, JsonObject payload) throws Exception {
         LicenseRuntime.require(Permission.GTIN);
+        validateDocuments(token,payload);
+        LicenseRuntime.require(Permission.GTIN);
         JsonObject result = resultObject(api.submitNationalCatalogFeed(
                 settings.resolvedTrueApiBaseUrl(), token, payload));
         String feedId = string(result, "feed_id");
         if (feedId.isBlank()) throw new IllegalStateException("National Catalog did not return feed_id.");
         return feedId;
+    }
+
+    public ZnackRegistrationDocuments.Selection reviewDocuments(String token,ZnackRegistrationDocuments.Selection selected,String tnved)throws Exception {
+        var valid=new ArrayList<ZnackModels.GoodsDocument>();var issues=new ArrayList<String>();
+        for(var document:selected.candidates()){
+            var cached=permitReadbacks.get(document);
+            JsonElement response=cached!=null&&cached.checkedAt().isAfter(java.time.Instant.now().minusSeconds(120))?cached.response():null;
+            if(response==null){
+                LicenseRuntime.require(Permission.SELLER_API);
+                var request=new JsonArray();request.add(RegistrationPermitValidator.request(document));
+                response=api.registrationPermitInfo(settings.resolvedTrueApiBaseUrl(),token,request);
+                // Pending results must be checked again on the next attempt.
+                if(response!=null&&!com.vncode.app.integration.znack.ZnackPermitDocumentParser.registryLookupPending(response))permitReadbacks.put(document,new PermitReadback(response,java.time.Instant.now()));
+            }
+            String problem=RegistrationPermitValidator.problem(response,document,tnved,java.time.LocalDate.now());
+            if(problem.isBlank())valid.add(document);else issues.add(document.number()+": "+problem);
+        }
+        var automatic=valid.contains(selected.automatic())?selected.automatic():null;
+        return new ZnackRegistrationDocuments.Selection(valid,automatic,selected.source(),automatic==null,issues);
+    }
+    public void validateDocuments(String token,Draft draft)throws Exception {validateDocuments(token,buildPayload("",draft,""));}
+    private void validateDocuments(String token,JsonObject payload)throws Exception {
+        var documents=new ArrayList<ZnackModels.GoodsDocument>();
+        String tnved=string(payload,"tnved"),gender="";
+        for(var value:array(payload.get("good_attrs")))if(value.isJsonObject()){
+            var a=value.getAsJsonObject();long id=number(a,"attr_id");
+            if(id==13933)tnved=string(a,"attr_value");
+            if(id==14013)gender=string(a,"attr_value");
+            if(id!=DECLARATION_ATTRIBUTE_ID&&id!=CERTIFICATE_ATTRIBUTE_ID)continue;
+            var parts=string(a,"attr_value").split(":::",2);
+            if(parts.length!=2)throw new RegistrationValidationException("ZNACK_DOCUMENT_DATE_REQUIRED");
+            documents.add(new ZnackModels.GoodsDocument(id==DECLARATION_ATTRIBUTE_ID?"CONFORMITY_DECLARATION":"CONFORMITY_CERTIFICATE",parts[0].strip(),parts[1].strip()));
+        }
+        String tariffProblem=RegistrationTariffRules.genderProblem(tnved,gender);
+        if(!tariffProblem.isBlank())throw new RegistrationValidationException(tariffProblem);
+        if(documents.isEmpty())return;
+        var checked=reviewDocuments(token,new ZnackRegistrationDocuments.Selection(documents,null,ZnackRegistrationDocuments.Source.PRODUCT,true),tnved);
+        if(!checked.issues().isEmpty())throw new RegistrationValidationException(String.join("; ",checked.issues()));
     }
 
     public FeedProgress progress(String token, String feedId, String gtin) throws Exception {
@@ -174,51 +216,63 @@ public final class ZnackNationalCatalogService {
         String status = string(result, "status");
         List<String> errors = new ArrayList<>();
         Long goodId = null;
-        int exactIdentities=0;
+        Set<String> exactIdentities = new LinkedHashSet<>();
         for (JsonElement element : array(result.get("item"))) {
             if (!element.isJsonObject()) continue;
             JsonObject item = element.getAsJsonObject();
             String itemGtin = string(item, "gtin");
             if (!itemGtin.isBlank() && !com.vncode.app.integration.znack.GtinNormalizer.normalize(itemGtin)
                     .equals(com.vncode.app.integration.znack.GtinNormalizer.normalize(gtin))) continue;
-            if(!itemGtin.isBlank())exactIdentities++;
-            if (item.has("good_id") && !item.get("good_id").isJsonNull()) goodId = item.get("good_id").getAsLong();
+            if(!itemGtin.isBlank())exactIdentities.add(com.vncode.app.integration.znack.GtinNormalizer.normalize(itemGtin));
+            if (!itemGtin.isBlank()&&item.has("good_id") && !item.get("good_id").isJsonNull()) {
+                long identity=item.get("good_id").getAsLong();
+                if(goodId!=null&&goodId!=identity)throw new IllegalStateException("CATALOG_IDENTITY_CHANGED");
+                goodId=identity;
+            }
             String message = first(string(item, "message"), string(item, "status_message"));
             int code = item.has("status_code") && !item.get("status_code").isJsonNull()
                     ? item.get("status_code").getAsInt() : 0;
-            if (code != 0) errors.add(message.isBlank()?"Catalog item status code "+code:message);
+            if (code != 0) errors.add(attributeError(item, message.isBlank()?"Catalog item status code "+code:message));
         }
-        if(("Signed".equalsIgnoreCase(status) || "Moderated".equalsIgnoreCase(status)) && exactIdentities!=1)
-            throw new IllegalStateException("Catalog feed readback did not confirm the requested GTIN.");
-        if("Signed".equalsIgnoreCase(status) && (goodId==null || goodId<=0))
-            throw new IllegalStateException("Catalog feed readback did not confirm the signed card identity.");
         JsonObject details = object(result.get("error_details"));
+        collectFeedErrors(details.get("commonError"), errors);
         for (JsonElement element : array(details.get("items"))) {
             if (!element.isJsonObject()) continue;
             JsonObject item = element.getAsJsonObject();
-            for (JsonElement error : array(item.get("errors"))) {
-                if (error.isJsonObject()) {
-                    String text = string(error.getAsJsonObject(), "text");
-                    if (!text.isBlank()) errors.add(text);
-                }
-            }
+            String itemGtin=string(item,"gtin");
+            if(!itemGtin.isBlank()&&!com.vncode.app.integration.znack.GtinNormalizer.normalize(itemGtin)
+                    .equals(com.vncode.app.integration.znack.GtinNormalizer.normalize(gtin)))continue;
+            // API 5.68 defines errors as an object; some gateways return an array instead.
+            collectFeedErrors(item.get("errors"), errors);
         }
+        if(number(details,"totalErrors")>0&&errors.isEmpty())errors.add("CATALOG_VALIDATION_ERRORS_UNAVAILABLE");
+        if(errors.isEmpty()&&("Signed".equalsIgnoreCase(status) || "Moderated".equalsIgnoreCase(status)) && exactIdentities.size()!=1)
+            throw new IllegalStateException("Catalog feed readback did not confirm the requested GTIN.");
+        if(errors.isEmpty()&&"Signed".equalsIgnoreCase(status) && (goodId==null || goodId<=0))
+            throw new IllegalStateException("Catalog feed readback did not confirm the signed card identity.");
         boolean publicationVerified=false;
-        if("Moderated".equalsIgnoreCase(status)&&errors.isEmpty()&&(goodId==null||goodId<=0)){
-            // Catalog may omit good_id from the feed while the exact approved card exists.
-            // Resolve its identity from the GTIN readback before asking for a signing document.
-            var card=readCard(token,gtin,null);
+        if(Set.of("received","processing","moderated").contains(status.toLowerCase(Locale.ROOT))&&errors.isEmpty()){
+            // The feed can lag behind the card. Inspect the exact product, as well as the feed,
+            // before reporting moderation or asking CryptoPro to sign an already published card.
+            var card=readCard(token,gtin,goodId);
             if(card!=null){
                 goodId=number(card,"good_id");if(goodId==0)goodId=number(card,"goodId");
-                if(isPublished(card)){status="Signed";publicationVerified=true;}
+                var detailsState=detailedState(card);
+                if(!isPublished(card)&&!java.util.Collections.disjoint(detailsState,Set.of("errors","error","rejected"))){
+                    status="Rejected";errors.add("CATALOG_CARD_REJECTED_DETAILS_UNAVAILABLE");
+                }else if(detailsState.contains("moderation"))status="CardModeration";
+                else if(!isPublished(card)&&detailsState.contains("draft")&&!detailsState.contains("notsigned"))status="CardDraft";
+                else if(!isPublished(card)&&detailsState.contains("notsigned"))status="Moderated";
+                else if("Moderated".equalsIgnoreCase(status)&&isPublished(card)
+                        &&java.util.Collections.disjoint(detailsState,Set.of("draft","moderation","errors","notsigned"))){status="Signed";publicationVerified=true;}
             }
         }
         if(Set.of("processed","done","completed").contains(status.toLowerCase(Locale.ROOT))&&errors.isEmpty()){
-            if(array(result.get("item")).size()>0&&exactIdentities!=1)throw new IllegalStateException("CATALOG_FEED_IDENTITY_NOT_CONFIRMED");
+            if(array(result.get("item")).size()>0&&exactIdentities.size()!=1)throw new IllegalStateException("CATALOG_FEED_IDENTITY_NOT_CONFIRMED");
             var card=readCard(token,gtin,goodId);
             if(card==null){status="Rejected";errors.add("CATALOG_FEED_COMPLETED_WITHOUT_CARD");}
             else if(isPublished(card)){
-                if(exactIdentities!=1)throw new IllegalStateException("CATALOG_FEED_IDENTITY_NOT_CONFIRMED");
+                if(exactIdentities.size()!=1)throw new IllegalStateException("CATALOG_FEED_IDENTITY_NOT_CONFIRMED");
                 goodId=number(card,"good_id");if(goodId==0)goodId=number(card,"goodId");status="Signed";publicationVerified=true;
             }
         }
@@ -229,12 +283,38 @@ public final class ZnackNationalCatalogService {
         return new FeedProgress(status, goodId, List.copyOf(errors));
     }
 
+    private static String attributeError(JsonObject error,String message){
+        String attribute=first(string(error,"attribute_name"),string(error,"attribute_id"),string(error,"attr_id"));
+        return ZnackSanitizer.message(attribute.isBlank()?message:attribute+": "+message);
+    }
+    private static Set<String> detailedState(JsonObject card){
+        var result=new LinkedHashSet<String>();var raw=card.get("good_detailed_status");
+        if(raw!=null&&raw.isJsonArray())for(var value:raw.getAsJsonArray())if(value.isJsonPrimitive())result.add(value.getAsString().strip().toLowerCase(Locale.ROOT));
+        if(raw!=null&&raw.isJsonPrimitive())result.add(raw.getAsString().strip().toLowerCase(Locale.ROOT));
+        return result;
+    }
+    private static void collectFeedErrors(JsonElement value,List<String> errors){
+        if(value==null||value.isJsonNull())return;
+        if(value.isJsonArray()){for(var error:value.getAsJsonArray())collectFeedErrors(error,errors);return;}
+        if(!value.isJsonObject())return;
+        var error=value.getAsJsonObject();
+        String message=first(string(error,"text"),string(error,"message"),string(error,"status_message"));
+        if(!message.isBlank())errors.add(attributeError(error,message));
+        else if(error.has("code")&&!string(error,"code").isBlank()&&!string(error,"code").equals("0"))errors.add(attributeError(error,"Catalog error "+string(error,"code")));
+    }
+
     private boolean publishedCard(String token,String gtin,Long expectedId)throws Exception {
         var card=readCard(token,gtin,expectedId);return card!=null&&isPublished(card);
     }
     /** Absence is confirmed only by a successful, identity-checked Catalog response. */
     public boolean cardExists(String token,String gtin,Long expectedId)throws Exception{return readCard(token,gtin,expectedId)!=null;}
-    private static boolean isPublished(JsonObject card){return "published".equalsIgnoreCase(first(string(card,"good_status"),string(card,"goodStatus"),string(card,"cardStatus")));}
+    private static boolean isPublished(JsonObject card){
+        if(!"published".equalsIgnoreCase(first(string(card,"good_status"),string(card,"goodStatus"),string(card,"cardStatus"))))return false;
+        // Published + draft is a published version with a draft revision, not a failed card.
+        // An explicitly unsigned response, however, cannot prove that our signing completed.
+        var signed=card.get("good_signed");return signed==null||signed.isJsonNull()
+                ||signed.isJsonPrimitive()&&signed.getAsJsonPrimitive().isBoolean()&&signed.getAsBoolean();
+    }
     private JsonObject readCard(String token,String gtin,Long expectedId)throws Exception {
         JsonElement response=unwrap(api.productCards(settings.resolvedTrueApiBaseUrl(),token,gtin));
         if(response==null||!response.isJsonArray())throw new IllegalStateException("CATALOG_PUBLICATION_RESPONSE_INVALID");

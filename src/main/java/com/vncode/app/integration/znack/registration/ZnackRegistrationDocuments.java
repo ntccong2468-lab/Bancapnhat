@@ -15,8 +15,9 @@ public final class ZnackRegistrationDocuments {
     private ZnackRegistrationDocuments() {}
     public enum Source { PRODUCT, SHOP, NONE }
     public record Selection(List<GoodsDocument> candidates, GoodsDocument automatic,
-                            Source source, boolean requiresReview) {
-        public Selection { candidates=List.copyOf(candidates); }
+                            Source source, boolean requiresReview,List<String> issues) {
+        public Selection(List<GoodsDocument> candidates,GoodsDocument automatic,Source source,boolean requiresReview){this(candidates,automatic,source,requiresReview,List.of());}
+        public Selection { candidates=List.copyOf(candidates);issues=List.copyOf(issues); }
         @Override public String toString(){ return "Selection[source="+source+", count="+candidates.size()+"]"; }
     }
 

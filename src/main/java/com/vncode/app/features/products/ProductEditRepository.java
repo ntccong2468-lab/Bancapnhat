@@ -48,6 +48,13 @@ public final class ProductEditRepository {
     public boolean checkpoint(String id,ProductBulkEditService.EditItem item,Set<CopyState> expected){return claimWrite(c->{var stored=new ProductEditAssets(c,id).store(item);String marks=String.join(",",Collections.nCopies(expected.size(),"?"));String phase=item.submission()==null?"CARD":item.submission().phase();try(var q=c.prepareStatement("UPDATE product_edit_items SET state=?,payload=?,phase=? WHERE job_id=? AND card_id=? AND state IN ("+marks+") AND (phase='CARD' OR ?<>'CARD')")){q.setString(1,item.state().name());q.setString(2,ProductJson.GSON.toJson(stored));q.setString(3,phase);q.setString(4,id);q.setString(5,item.key().cardId());int n=6;for(var s:expected)q.setString(n++,s.name());q.setString(n,phase);if(q.executeUpdate()!=1){throw new Unclaimed();}}event(c,id,item);return true;
     });}
     public void recoverIncomplete(){write(c->{try(var s=c.createStatement()){s.executeUpdate("UPDATE product_edit_items SET state='RECONCILE_REQUIRED' WHERE state='SENDING'");}return null;});}
+    /** Original dispatch checkpoint also exists in jobs written by versions before 1.5.1. */
+    public Instant submissionStarted(String id,ProductKey key){
+        try(var c=Database.getConnection();var q=c.prepareStatement("SELECT e.created_at FROM product_edit_events e JOIN product_edit_jobs j ON j.id=e.job_id WHERE e.job_id=? AND e.card_id=? AND j.shop_id=? AND e.state='SENDING' AND e.phase='CARD' ORDER BY e.id LIMIT 1")){
+            q.setString(1,id);q.setString(2,key.cardId());q.setInt(3,key.shopId());
+            try(var r=q.executeQuery()){return r.next()?Instant.parse(r.getString(1)):null;}
+        }catch(SQLException e){throw new IllegalStateException("Cannot read original product submission time",e);}
+    }
     private static final class Unclaimed extends RuntimeException {}
     private static boolean claimWrite(SqliteWriteTransaction.Work<Boolean> work){try{return write(work);}catch(Unclaimed unclaimed){return false;}}
     private static <T>T write(SqliteWriteTransaction.Work<T> work){try{return SqliteWriteTransaction.run(work);}catch(SQLException e){throw new IllegalStateException("SYNC_STORAGE",e);}}

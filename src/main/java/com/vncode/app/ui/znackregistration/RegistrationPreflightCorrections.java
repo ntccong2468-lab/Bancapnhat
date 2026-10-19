@@ -15,7 +15,7 @@ final class RegistrationPreflightCorrections {
     private final ProductBulkEditService edits;
     private final ProductSnapshotReader reader;
     private final Function<Shop,ListingTargetAdapter> adapters;
-    RegistrationPreflightCorrections(){this(new ProductBulkEditService(),(s,k)->s.getMarketplace()==Marketplace.OZON?new OzonProductSnapshotReader().read(s,k):new WbProductSnapshotReader().read(s,k),s->s.getMarketplace()==Marketplace.OZON?new OzonListingAdapter():new WbListingAdapter());}
+    RegistrationPreflightCorrections(){this(new ProductBulkEditService(),(s,k)->s.getMarketplace()==Marketplace.OZON?new OzonProductSnapshotReader().readForSynchronization(s,k):new WbProductSnapshotReader().readForSynchronization(s,k),s->s.getMarketplace()==Marketplace.OZON?new OzonListingAdapter():new WbListingAdapter());}
     RegistrationPreflightCorrections(ProductBulkEditService edits,ProductSnapshotReader reader,Function<Shop,ListingTargetAdapter> adapters){this.edits=edits;this.reader=reader;this.adapters=adapters;}
     Session prepare(Shop shop,RegistrationBatchPreflight.Review review,Map<RegistrationBatchPreflight.Finding,String> entered)throws Exception{
         var patches=new LinkedHashMap<ProductKey,Map<String,List<String>>>();var cards=new HashMap<String,ProductKey>();

@@ -37,7 +37,7 @@ final class ProductEditAssets {
     private ProductBulkEditService.EditItem convert(ProductBulkEditService.EditItem item,boolean storing)throws SQLException{
         var edit=item.preview();var p=edit.preview();String documents=storing?store(p.documentsJson()):load(p.documentsJson());
         var preview=withDocuments(p,documents);var r=item.submission();
-        if(r!=null)r=new RemoteSubmission(r.shopId(),r.marketplace(),r.owner(),r.requestHash(),r.taskId(),r.articles(),r.requestJson(),r.mediaJson(),storing?store(r.documentsJson()):load(r.documentsJson()),r.phase(),r.identities());
+        if(r!=null)r=new RemoteSubmission(r.shopId(),r.marketplace(),r.owner(),r.requestHash(),r.taskId(),r.articles(),r.requestJson(),r.mediaJson(),storing?store(r.documentsJson()):load(r.documentsJson()),r.phase(),r.identities(),r.submittedAt());
         return new ProductBulkEditService.EditItem(item.key(),item.changes(),item.documents(),new ListingTargetAdapter.ProductEditPreview(edit.key(),edit.sourceRevision(),preview),r,item.state(),item.issues(),item.before());
     }
     static CopyPreview withDocuments(CopyPreview p,String documents){return new CopyPreview(p.shopId(),p.marketplace(),p.owner(),p.sourceKey(),p.sourceRevision(),p.requestHash(),p.requestJson(),p.mediaJson(),documents,p.diff(),p.issues(),p.articles(),p.options(),p.operation());}

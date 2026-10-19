@@ -70,6 +70,15 @@ class ListingBeforeSendGuardTest {
             assertThrows(java.io.IOException.class,()->client.call("v1/barcode/add",new JsonObject(),true,()->{}));assertEquals(1,server.getRequestCount());
         }
     }
+    @Test void explicitHttp400PreservesTheReasonAndRedactsCredentials()throws Exception{
+        try(var server=new MockWebServer()){
+            server.start();server.enqueue(new MockResponse().setResponseCode(400).setBody("{\"message\":\"Invalid material; token=fixture-secret; "+shop.getApiKey()+"\"}"));
+            var client=new ListingHttpClient(shop,new OkHttpClient(),server.url("/"));
+            var error=assertThrows(com.vncode.app.integration.listing.ListingRejectedException.class,()->client.call("content/v2/cards/update",new JsonObject(),true));
+            assertTrue(error.getMessage().contains("Invalid material"));assertFalse(error.getMessage().contains("fixture-secret"));
+            assertFalse(error.getMessage().contains(shop.getApiKey()));assertEquals(1,server.getRequestCount());
+        }
+    }
     private static void awaitSemaphoreWait(AtomicReference<Thread> thread) {
         long deadline=System.nanoTime()+TimeUnit.SECONDS.toNanos(2);
         while(System.nanoTime()<deadline){var worker=thread.get();if(worker!=null&&worker.getState()==Thread.State.WAITING)return;Thread.onSpinWait();}

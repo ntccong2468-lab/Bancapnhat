@@ -30,6 +30,12 @@ public final class CatalogFeedback {
     public static String rejection(ZnackNationalCatalogService.FeedProgress progress) {
         String detail=display(progress.errorMessage());return detail.isBlank()?"CATALOG_REJECTED":"CATALOG_REJECTED: "+detail;
     }
+    public static String stage(ZnackNationalCatalogService.FeedProgress progress){return switch(progress.status().toLowerCase(Locale.ROOT)){
+        case "carddraft"->"CATALOG_CARD_DRAFT";
+        case "cardmoderation"->"CATALOG_CARD_IN_MODERATION";
+        case "publicationpending"->"CATALOG_PUBLICATION_PENDING";
+        default->null;
+    };}
     public static String display(String text) {
         return ZnackSanitizer.message(text).replaceAll("01[0-9]{14}21[^\\s]{13,}","[KIZ]");
     }
