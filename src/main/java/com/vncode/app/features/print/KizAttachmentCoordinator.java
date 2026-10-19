@@ -71,7 +71,7 @@ public final class KizAttachmentCoordinator {
         List<OrderExportWorkflow.KizAttachmentAssignment> copy=assignments.stream().map(a->{
             if(a==null)throw new IllegalArgumentException("KIZ_ASSIGNMENT_DUPLICATE_OR_INVALID");
             var source=a.sourceKiz();var frozen=source==null?null:new com.vncode.app.models.Kiz(source.getId(),source.getCode(),source.getReservationToken());
-            return new OrderExportWorkflow.KizAttachmentAssignment(a.orderId(),a.kizCode(),frozen,a.replaceExisting());
+            return new OrderExportWorkflow.KizAttachmentAssignment(a.orderId(),a.kizCode(),frozen,a.replaceExisting(),a.expectedRejectedHash());
         }).toList();
         Set<Long> ids=new HashSet<>();Set<String> codes=new HashSet<>();
         boolean repeated=copy.stream().map(OrderExportWorkflow.KizAttachmentAssignment::kizCode).distinct().count()<copy.size();
@@ -107,7 +107,7 @@ public final class KizAttachmentCoordinator {
     private void run(Job initial){
         Job job=initial;
         while(job!=null){
-            try{step(job);}catch(LicenseDeniedException denied){fail(job,"LICENSE_REQUIRED",true);}
+            try(var lane=com.vncode.app.shared.MarketplaceRequestBudget.lane(true)){step(job);}catch(LicenseDeniedException denied){fail(job,"LICENSE_REQUIRED",true);}
             catch(IOException|RuntimeException failure){String code=failure.getMessage();if(code==null||!Set.of("SHOP_CREDENTIALS_CHANGED","SHOP_CREDENTIALS_UNAVAILABLE","KIZ_REQUEST_CANCELLED","KIZ_CHECKPOINT_UNAVAILABLE").contains(code))code="KIZ_RECONCILIATION_REQUIRED";fail(job,code,true);LOGGER.warn("KIZ job stopped. shopId={}, errorType={}",job.key.shopId(),failure.getClass().getSimpleName());}
             boolean done=job.cancelled||job.stopped||job.index>=job.assignments.size();
             if(done)finish(job);else publish(job,true,false);
@@ -126,10 +126,20 @@ public final class KizAttachmentCoordinator {
         client.requireCurrentShop(job.key.shopId(),job.token);
         String fingerprint=hash(a.kizCode());Checkpoint old=journal.read(key);
         if(old!=null&&old.ambiguous()){fail(job,"KIZ_RECONCILIATION_REQUIRED",false);job.index++;return;}
-        if(old!=null&&old.codeHash().equals(fingerprint)&&old.phase().equals("CONFIRMED")){success(job,a);job.index++;return;}
+        if(a.expectedRejectedHash().isBlank()&&old!=null&&old.codeHash().equals(fingerprint)&&old.phase().equals("CONFIRMED")){success(job,a);job.index++;return;}
         if(old!=null&&old.phase().equals("OTHER_CODE")&&!a.replaceExisting()){fail(job,"KIZ_OTHER_CODE_PRESENT",false);job.index++;return;}
         boolean alreadyRemoved=old!=null&&old.codeHash().equals(fingerprint)&&old.phase().equals("READ_EMPTY");
-        if(a.replaceExisting()&&!alreadyRemoved){
+        if(!a.expectedRejectedHash().isBlank()){
+            var fresh=client.metadata(job.token,List.of(a.orderId())).get(a.orderId());
+            if(fresh!=null&&fresh.available()&&fresh.hasAppliedValue()&&hash(fresh.appliedValue()).equals(fingerprint)){success(job,a);job.index++;return;}
+            if(fresh==null||!fresh.available()||com.vncode.app.features.kiz.status.Kn3Mark.wbState(fresh.decision(),fresh.appliedValue())!=com.vncode.app.features.kiz.status.Kn3Mark.State.REJECTED||!hash(fresh.appliedValue()).equals(a.expectedRejectedHash())){
+                fail(job,"KIZ_REPLACEMENT_CHANGED",false);job.index++;return;
+            }
+            alreadyRemoved=false;
+        }
+        // An explicit KN3 replacement sets the new value directly. The official PUT
+        // replaces the field; deleting first would strand an order if the new PUT fails.
+        if(a.replaceExisting()&&a.expectedRejectedHash().isBlank()&&!alreadyRemoved){
             if(job.cancelled)return;
             LicenseRuntime.require(Permission.KIZ);journal.write(key,job.key.supplyId(),fingerprint,"REMOVE_PENDING");
             client.requireCurrentShop(job.key.shopId(),job.token);
@@ -138,7 +148,9 @@ public final class KizAttachmentCoordinator {
             journal.write(key,job.key.supplyId(),fingerprint,"READ_EMPTY");
         }
         if(job.cancelled)return;
-        LicenseRuntime.require(Permission.KIZ);journal.write(key,job.key.supplyId(),fingerprint,"ATTACH_PENDING");
+        LicenseRuntime.require(Permission.KIZ);
+        if(!a.expectedRejectedHash().isBlank())com.vncode.app.features.kiz.status.Kn3Repository.dispatchWb(job.key.shopId(),job.token,a.orderId(),a.kizCode(),"SENDING");
+        journal.write(key,job.key.supplyId(),fingerprint,"ATTACH_PENDING");
         client.requireCurrentShop(job.key.shopId(),job.token);
         var result=client.attach(job.key.shopId(),job.token,a.orderId(),a.kizCode(),()->job.cancelled);
         if(result.success()){journal.write(key,job.key.supplyId(),fingerprint,"CONFIRMED");success(job,a);}
@@ -152,8 +164,13 @@ public final class KizAttachmentCoordinator {
         fail(job,ambiguous?"KIZ_RECONCILIATION_REQUIRED":"KIZ_HTTP_"+status,false);
         if(status==429)job.stopped=true;
     }
-    private void success(Job job,OrderExportWorkflow.KizAttachmentAssignment a){job.completed++;if(a.sourceKiz()!=null&&a.sourceKiz().getCode()!=null)job.successful.add(a.sourceKiz().getCode());failedAttachments.remove(new OrderKey(job.key.shopId(),a.orderId()));}
-    private void fail(Job job,String code,boolean stop){job.failures.add(code);if(job.currentOrder!=null)failedAttachments.put(new OrderKey(job.key.shopId(),job.currentOrder),code);job.stopped|=stop;}
+    private void success(Job job,OrderExportWorkflow.KizAttachmentAssignment a){replacementState(job,a,"AWAITING");job.completed++;if(a.sourceKiz()!=null&&a.sourceKiz().getCode()!=null)job.successful.add(a.sourceKiz().getCode());failedAttachments.remove(new OrderKey(job.key.shopId(),a.orderId()));}
+    private void fail(Job job,String code,boolean stop){if(job.index<job.assignments.size())replacementState(job,job.assignments.get(job.index),code.equals("KIZ_RECONCILIATION_REQUIRED")?"RECONCILE":"FAILED");job.failures.add(code);if(job.currentOrder!=null)failedAttachments.put(new OrderKey(job.key.shopId(),job.currentOrder),code);job.stopped|=stop;}
+    private void replacementState(Job job,OrderExportWorkflow.KizAttachmentAssignment a,String state){
+        if(a.expectedRejectedHash().isBlank())return;
+        try{com.vncode.app.features.kiz.status.Kn3Repository.dispatchWb(job.key.shopId(),job.token,a.orderId(),a.kizCode(),state);}
+        catch(RuntimeException unavailable){LOGGER.warn("Cannot checkpoint KIZ replacement outcome. shopId={}",job.key.shopId());}
+    }
     private void finish(Job job){
         synchronized(lock){activeJobs.remove(job.key,job);for(var a:job.assignments)orderOwners.remove(new OrderKey(job.key.shopId(),a.orderId()),job);}
         publish(job,false,true);

@@ -12,6 +12,7 @@
 <?import javafx.scene.control.TableView?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.FlowPane?>
 <?import javafx.scene.layout.Pane?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
@@ -20,7 +21,7 @@
 
 <VBox minWidth="0" spacing="8.0" styleClass="card,supply-detail,app-page" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.vncode.app.ui.supply.SupplyDetailController">
     <children>
-        <HBox minWidth="0" alignment="CENTER_LEFT" spacing="8.0">
+        <FlowPane minWidth="0" alignment="CENTER_LEFT" hgap="8.0" vgap="6.0">
             <children>
                 <Button fx:id="backButton" alignment="CENTER" mnemonicParsing="false" onAction="#onBack" prefHeight="46.0" prefWidth="32.0">
                     <styleClass>
@@ -32,6 +33,7 @@
                 </Button>
                 <Label minWidth="0" fx:id="supplyTitleLabel" text="%supply.not_selected" styleClass="h3" />
                 <Pane HBox.hgrow="ALWAYS" />
+                <Button fx:id="addAgainKizButton" visible="false" managed="false" onAction="#onAddAgainKiz" text="%kn3.batch.title" styleClass="btn-primary"/>
                 <Button minWidth="0" fx:id="inventoryToggleButton" onAction="#onToggleInventory" text="%supply.inventory_toggle" prefHeight="46"/>
                 <Button minWidth="0" fx:id="printButton" disable="true" mnemonicParsing="false" onAction="#onPrint" prefHeight="46.0" text="%supply.print">
                     <styleClass>
@@ -52,7 +54,7 @@
                     </graphic>
                 </Button>
             </children>
-        </HBox>
+        </FlowPane>
         <Label fx:id="supplyMetaLabel" managed="false" style="-fx-text-fill: #6c757d;" text="" visible="false" />
         <HBox fx:id="stickerLoadingBox" alignment="CENTER_LEFT" managed="false" spacing="8.0" visible="false">
             <children>
@@ -70,7 +72,7 @@
         </HBox>
         <HBox spacing="12.0" VBox.vgrow="ALWAYS">
             <children>
-                <StackPane minWidth="0.0" prefHeight="520.0" HBox.hgrow="ALWAYS">
+                <StackPane fx:id="kn3StatusHost" minWidth="0.0" prefHeight="520.0" HBox.hgrow="ALWAYS">
                     <children>
                         <TableView minWidth="0" fx:id="orderTable" styleClass="supply-orders" managed="false" prefHeight="520.0" prefWidth="900.0" visible="false">
                             <columnResizePolicy>

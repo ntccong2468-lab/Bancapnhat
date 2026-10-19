@@ -143,10 +143,12 @@ public class WbSupplyWorkflow {
         List<Long> orderIds = orders.stream().map(Order::getId).toList();
         try {
             Map<Long, com.vncode.app.features.kiz.KizService.SgtinMetadata> metadata =
-                    com.vncode.app.features.kiz.KizService.getSgtinMetadata(shop.getApiKey(), orderIds);
+                    com.vncode.app.features.kiz.KizService.getSgtinMetadata(shop, orderIds);
             for (Order order : orders) {
                 com.vncode.app.features.kiz.KizService.SgtinMetadata meta = metadata.get(order.getId());
                 if (meta != null) {
+                    var mark=new com.vncode.app.features.kiz.status.Kn3Mark(order.getId().toString(),"","",meta.appliedValue(),com.vncode.app.features.kiz.status.Kn3Mark.wbState(meta.decision(),meta.appliedValue()),meta.decision());
+                    new com.vncode.app.features.kiz.status.Kn3Repository().observe(shop,order.getId().toString(),java.util.List.of(mark));order.setKn3Marks(java.util.List.of(mark));
                     if (meta.available()) {
                         order.setRequiresKiz(true);
                     }

@@ -28,6 +28,20 @@ class FbsSyncServiceTest {
     }
     int count(String sql)throws Exception{try(var c=Database.getConnection();var s=c.createStatement();var r=s.executeQuery(sql)){return r.getInt(1);}}
     FbsSyncService wb(WbApiClient client){return new FbsSyncService(s->{throw new AssertionError("Not Ozon");},()->client);}
+    @Test void existingFbsStatusTurnsRefreshBoundedKn3BatchesAndRotateEveryOrder()throws Exception {
+        shop=GtinWriteTestFixture.shop(Marketplace.WILDBERRIES);orders(105);var batches=new ArrayList<List<Long>>();
+        var marks=new com.vncode.app.features.kiz.status.Kn3SyncService((s,ids)->{batches.add(ids);var result=new HashMap<Long,com.vncode.app.features.kiz.KizService.SgtinMetadata>();for(long id:ids)result.put(id,new com.vncode.app.features.kiz.KizService.SgtinMetadata(true,"synthetic-"+id,id%2==0?"sgtinIntroduced":"sgtinRetired"));return result;});
+        var api=new WbApiClient(){@Override public WbOrderStatusesResponse getOrderStatuses(String token,List<Long> ids){var rows=new JsonArray();for(long id:ids){var row=new JsonObject();row.addProperty("id",id);row.addProperty("supplierStatus","confirm");row.addProperty("wbStatus","waiting");rows.add(row);}var body=new JsonObject();body.add("orders",rows);return JSON.fromJson(body,WbOrderStatusesResponse.class);}};
+        var service=new FbsSyncService(s->{throw new AssertionError("Not Ozon");},()->api,System::nanoTime,marks);
+        service.step(shop,SyncCoordinator.Stream.FBS_STATUS,"");service.step(shop,SyncCoordinator.Stream.FBS_STATUS,"");assertEquals(100,batches.getFirst().size());assertEquals(100,batches.getLast().size());assertTrue(batches.getLast().contains(105L));
+        assertEquals(105,count("SELECT count(*) FROM kn3_marks"));assertEquals(52,count("SELECT count(*) FROM kn3_marks WHERE state='ACCEPTED'"));assertEquals(53,count("SELECT count(*) FROM kn3_marks WHERE state='REJECTED'"));
+    }
+    @Test void kn3ReadFailureDoesNotStrandTheExistingOrderStatusCursor()throws Exception {
+        shop=GtinWriteTestFixture.shop(Marketplace.WILDBERRIES);orders(1205);var batches=new ArrayList<Integer>();
+        var api=new WbApiClient(){@Override public WbOrderStatusesResponse getOrderStatuses(String token,List<Long> ids){batches.add(ids.size());var rows=new JsonArray();for(long id:ids){var row=new JsonObject();row.addProperty("id",id);row.addProperty("supplierStatus","confirm");row.addProperty("wbStatus","waiting");rows.add(row);}var body=new JsonObject();body.add("orders",rows);return JSON.fromJson(body,WbOrderStatusesResponse.class);}};
+        var marks=new com.vncode.app.features.kiz.status.Kn3SyncService((s,ids)->{throw new java.io.IOException("WB_METADATA_HTTP_401");});var service=new FbsSyncService(s->{throw new AssertionError("Not Ozon");},()->api,System::nanoTime,marks);
+        var first=service.step(shop,SyncCoordinator.Stream.FBS_STATUS,"");assertFalse(first.complete());assertNotNull(first.warning());var second=service.step(shop,SyncCoordinator.Stream.FBS_STATUS,first.checkpoint());assertTrue(second.complete());assertEquals(List.of(1000,205),batches);
+    }
     @Test void thousandPlusWbStatusesUseBoundedPagesAndResumeBeyondFirstBatch()throws Exception{
         shop=GtinWriteTestFixture.shop(Marketplace.WILDBERRIES);orders(1205);var batches=new ArrayList<Integer>();
         var service=wb(new WbApiClient(){@Override public WbOrderStatusesResponse getOrderStatuses(String token,List<Long> ids){

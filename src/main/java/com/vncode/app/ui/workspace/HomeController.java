@@ -166,6 +166,7 @@ public class HomeController implements Initializable {
         new com.vncode.app.features.products.ProductEditRepository().recoverIncomplete();
         new com.vncode.app.features.gtinsync.GtinSyncRepository().recoverInterrupted();
         new com.vncode.app.features.print.history.PrintHistoryRepository().recoverInterruptedFboJobs();
+        com.vncode.app.features.kiz.status.Kn3Repository.recoverAtStartup();
         new ZnackGtinInventoryService().releaseRecoverableReservations();
         new PrintTemplateService().ensureDefaultTemplateExists();
         return new PreparedLocalData();

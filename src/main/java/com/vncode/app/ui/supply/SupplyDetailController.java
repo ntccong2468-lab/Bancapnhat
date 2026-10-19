@@ -144,7 +144,21 @@ public class SupplyDetailController {
     private boolean disposed;
     private final com.vncode.app.shared.ThumbnailLoader thumbnails=new com.vncode.app.shared.ThumbnailLoader();
     @FXML private void onToggleInventory(){boolean open=!gtinInventoryPane.isManaged();gtinInventoryPane.setManaged(open);gtinInventoryPane.setVisible(open);if(open)shipmentKizPane.reload();updateTableResizePolicy();}
-    public void setKizShipmentContext(Shop selected,String shipmentId){shipmentKizPane.setContext(selected,shipmentId);}
+    @FXML private javafx.scene.layout.StackPane kn3StatusHost;
+    private String kn3SupplyId="",kn3UiContext="";
+    @FXML private Button addAgainKizButton;
+    @FXML private void onAddAgainKiz(){
+        var owner=shop;if(owner==null||com.vncode.app.ui.kiz.Kn3BatchDialog.running(kn3StatusHost))return;String supply=kn3SupplyId;long generation=shopGeneration;
+        var ids=orderTable.getItems().stream().map(o->o.getId().toString()).toList();var sources=kizSources();
+        addAgainKizButton.setDisable(true);
+        com.vncode.app.shared.ShopReadCoordinator.shared().submitLocal(new com.vncode.app.shared.ShopReadCoordinator.Key(owner.getId(),"kn3-report",supply+":"+generation),()->new com.vncode.app.features.kiz.status.Kn3BatchReplacement().report(owner,ids)).whenComplete((report,error)->javafx.application.Platform.runLater(()->{
+            addAgainKizButton.setDisable(false);if(shop==null||generation!=shopGeneration||!supply.equals(kn3SupplyId))return;
+            if(error!=null){AlertService.showError(com.vncode.app.shared.FriendlyErrorService.format(error));return;}
+            com.vncode.app.ui.kiz.Kn3BatchDialog.open(kn3StatusHost,owner,report,sources,()->{if(generation==shopGeneration&&supply.equals(kn3SupplyId))refreshKn3Local(owner);});
+        }));
+    }
+
+    public void setKizShipmentContext(Shop selected,String shipmentId){String context=selected==null?"":selected.getId()+":"+com.vncode.app.integration.listing.ListingIdentity.fingerprint(selected)+":"+java.util.Objects.toString(shipmentId,"");if(!context.equals(kn3UiContext))com.vncode.app.ui.kiz.Kn3BatchDialog.clear(kn3StatusHost);kn3UiContext=context;kn3SupplyId=shipmentId==null?"":shipmentId;shipmentKizPane.setContext(selected,shipmentId);}
     public com.vncode.app.features.kiz.KizSourceSelection kizSources(){return shipmentKizPane.snapshot();}
     public void setKizJobRunning(boolean running){shipmentKizPane.setLocked(running);}
     private void updateTableResizePolicy(){double minimum=orderTable.getColumns().stream().mapToDouble(javafx.scene.control.TableColumnBase::getMinWidth).sum()+20;var policy=gtinInventoryPane.isManaged()||orderTable.getWidth()<minimum?TableView.UNCONSTRAINED_RESIZE_POLICY:TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN;if(orderTable.getColumnResizePolicy()!=policy)orderTable.setColumnResizePolicy(policy);}
@@ -349,6 +363,7 @@ public class SupplyDetailController {
     }
 
     public void setShop(Shop selected) {
+        com.vncode.app.ui.kiz.Kn3BatchDialog.clear(kn3StatusHost);kn3UiContext="";
         shipmentKizPane.setContext(null,null);
         renderedOrders.clear();shopGeneration++;mappingRequest++;orderMappings=java.util.Map.of();
         orderTable.refresh();
@@ -430,6 +445,8 @@ public class SupplyDetailController {
             var ids=orders.stream().map(Order::getNmId).filter(java.util.Objects::nonNull).distinct().toList();
             com.vncode.app.shared.ShopReadCoordinator.shared().submitLocal(new com.vncode.app.shared.ShopReadCoordinator.Key(shopId,"supply-mappings",request+":"+generation),()->gtinRepository.findMappings(shopId,ids)).whenComplete((value,error)->javafx.application.Platform.runLater(()->{if(request==mappingRequest&&generation==shopGeneration){if(error==null){var next=java.util.Map.copyOf(value);if(!next.equals(orderMappings)){orderMappings=next;orderTable.refresh();}}else AlertService.showError(error.getMessage());}}));
         }
+        boolean rejected=orders!=null&&orders.stream().flatMap(o->o.getKn3Marks().stream()).anyMatch(m->m.state()==com.vncode.app.features.kiz.status.Kn3Mark.State.REJECTED);
+        addAgainKizButton.setVisible(rejected);addAgainKizButton.setManaged(rejected);
         boolean hasOrders = orders != null && !orders.isEmpty();
         orderTable.setVisible(hasOrders);
         orderTable.setManaged(hasOrders);
@@ -511,6 +528,7 @@ public class SupplyDetailController {
     public void applyTranslations() {
         shipmentKizPane.applyTranslations();
         I18nService i18n = I18nService.getInstance();
+        addAgainKizButton.setText(i18n.tr("kn3.batch.title"));
         printButton.setText(i18n.tr("supply.print"));
         deliverButton.setText(i18n.tr("supply.deliver"));
         sortBySubjectCheckBox.setText(i18n.tr("supply.sort.subject"));
@@ -977,6 +995,7 @@ public class SupplyDetailController {
     }
 
     public void dispose() {
+        com.vncode.app.ui.kiz.Kn3BatchDialog.clear(kn3StatusHost);
         shipmentKizPane.dispose();
         disposed=true;thumbnails.close();
         shopGeneration++;
@@ -1018,14 +1037,14 @@ public class SupplyDetailController {
         private final Label titleLabel = new Label();
         private final Label metaLabel = new Label();
         private final Label subjectLabel = new Label();
-        private final Label statusLabel = new Label();
+        private final com.vncode.app.ui.kiz.Kn3Badge statusLabel = new com.vncode.app.ui.kiz.Kn3Badge();
         private final Label marketplaceStatus = new Label();
 
         OrderDetailsCell() {
             titleLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 13px; -fx-text-fill: -text-primary;");
             metaLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 11px; -fx-text-fill: -text-muted;");
             subjectLabel.setStyle("-fx-font-size: 11px; -fx-text-fill: -text-muted;");
-            statusLabel.getStyleClass().add("badge");
+
             marketplaceStatus.getStyleClass().add("text-muted");marketplaceStatus.setMaxWidth(Double.MAX_VALUE);
             vbox.getChildren().addAll(titleLabel, metaLabel, subjectLabel, marketplaceStatus, statusLabel);
             vbox.setAlignment(Pos.CENTER_LEFT);
@@ -1070,31 +1089,20 @@ public class SupplyDetailController {
             subjectLabel.setManaged(!subject.isEmpty());
 
             marketplaceStatus.setText(SupplyOrderPresentation.status(order));marketplaceStatus.setTooltip(new Tooltip(marketplaceStatus.getText()));marketplaceStatus.setVisible(!marketplaceStatus.getText().isBlank());marketplaceStatus.setManaged(marketplaceStatus.isVisible());
-            statusLabel.getStyleClass().removeAll("badge-green", "badge-red");
-            statusLabel.setVisible(false);
-            statusLabel.setManaged(false);
-            statusLabel.setTooltip(null);
-
-            if (order.isRequiresKiz()) {
-                String kizCode = order.getKiz();
-                String error = shop==null?null:com.vncode.app.features.print.KizAttachmentCoordinator.getInstance().getAttachmentError(shop.getId(),order.getId()==null?-1:order.getId());
-
-                if (error == null && kizCode != null && !kizCode.isBlank()) {
-                    statusLabel.setText(I18nService.getInstance().tr("supply.status.kiz_assigned"));
-                    statusLabel.getStyleClass().add("badge-green");
-                    statusLabel.setVisible(true);
-                    statusLabel.setManaged(true);
-                } else if (error != null) {
-                    statusLabel.setText(I18nService.getInstance().tr("supply.status.kiz_error"));
-                    statusLabel.setTooltip(new Tooltip(com.vncode.app.features.kiz.KizErrorMessages.message(error)));
-                    statusLabel.getStyleClass().add("badge-red");
-                    statusLabel.setVisible(true);
-                    statusLabel.setManaged(true);
-                }
-            }
+            var owner=shop;
+            statusLabel.show(order.getKn3Marks(),order.getKiz()!=null&&!order.getKiz().isBlank(),owner==null?null:()->com.vncode.app.ui.kiz.Kn3ReplacementDialog.open(kn3StatusHost,owner,order.getKn3Marks(),()->refreshKn3Local(owner)));
 
             setGraphic(vbox);
         }
+    }
+
+    private void refreshKn3Local(Shop owner){
+        if(shop==null||shop.getId()!=owner.getId()||!java.util.Objects.equals(shop.getApiKey(),owner.getApiKey()))return;
+        String supply=kn3SupplyId;long generation=shopGeneration;
+        com.vncode.app.shared.ShopReadCoordinator.shared().submitLocal(new com.vncode.app.shared.ShopReadCoordinator.Key(owner.getId(),"kn3-supply",supply+":"+generation),()->new com.vncode.app.integration.wb.WbOrderRepository().getOrdersForSupply(owner.getId(),supply)).whenComplete((rows,error)->javafx.application.Platform.runLater(()->{
+            if(error!=null||shop==null||generation!=shopGeneration||!supply.equals(kn3SupplyId))return;
+            com.vncode.app.features.supply.SupplyLoadWorkflow.preserveDisplayCache(java.util.List.copyOf(orderTable.getItems()),rows);setOrders(rows);
+        }));
     }
 
     private String formatPrice(Integer price) {

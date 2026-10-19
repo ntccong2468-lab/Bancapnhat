@@ -1,0 +1,184 @@
+{
+  "status": "implemented-local-build-not-published",
+  "baseline": "published v1.5.0, unchanged",
+  "source_parent": "fec7f2a8fc428a439daf8be733a2dfe26e166dab",
+  "staged_src_diff_sha256": "a89fe2ba1ee223b3fdea02b168c65d7733addd97acb10c72c22406c1cc58e9c5",
+  "generated_utc": "2026-10-19T10:14:50.383661+00:00",
+  "test_platform": "Linux Java 25 JavaFX 25 Xvfb :99 software rendering, real SQLite, synthetic identities and MockWebServer",
+  "test_totals_unique_latest_per_class": {
+    "tests": 129,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "test_classes": {
+    "Kn3BatchReplacementTest": {
+      "tests": 9,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "Kn3BatchUiTest": {
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "Kn3ReplacementTest": {
+      "tests": 8,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "Kn3ProtocolTest": {
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "KizAttachmentCoordinatorTest": {
+      "tests": 15,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "KizServiceTest": {
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "KizServiceScopeTest": {
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "WbLabelIdentifierRateLimiterTest": {
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "FbsSyncServiceTest": {
+      "tests": 8,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "OrderExportWorkflowKizPlanningTest": {
+      "tests": 13,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "KizCategoryAllocatorTest": {
+      "tests": 7,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "KizStockReplenisherTest": {
+      "tests": 6,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "KizPurchaseMappingProofTest": {
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "KizCategoryDeletionExportTest": {
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "KizPrintHistoryRecoveryTest": {
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "KizAttachmentCheckpointRepositoryTest": {
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "OzonExemplarWorkflowTest": {
+      "tests": 11,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "OzonExemplarStateMachineTest": {
+      "tests": 7,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "OzonFbsUiTest": {
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "OzonFbsEnrichmentUiTest": {
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "WbOrderRepositorySupplyDetailsTest": {
+      "tests": 11,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "FbsUiLatencyTest": {
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  },
+  "fbs_latency_synthetic": {
+    "shops": 10,
+    "orders_per_shop": 1000,
+    "products": 100000,
+    "samples": 20,
+    "commit_to_pulse_p95_ms": 151.176219,
+    "fx_stalls_over_500_ms": 0
+  },
+  "local_jar": {
+    "path": "target/VNcode-1.5.0.jar",
+    "bytes": 5278880,
+    "sha256": "0299a8253c32ab09f0f454b5792c6adaaa7826802a634f4970d9a5064adee00d",
+    "build_success": true,
+    "windows_installer": false
+  },
+  "live_ozon_read": {
+    "mode": "read-only",
+    "at": "2026-10-19T09:56:34.099275+00:00",
+    "postings_http": 429,
+    "postings_read": 0,
+    "active_in_page": 0,
+    "status_reads": []
+  },
+  "live_wb_limit": "Secret allowed only content-api.wildberries.ru; marketplace-api.wildberries.ru is not in its allowed domains. No bypass attempted.",
+  "live_kiz_writes_attempted": false,
+  "api_documents": {
+    "wb": {
+      "url": "https://dev.wildberries.ru/api/swagger/yaml/en/03-orders-fbs.yaml",
+      "sha256": "2f85fa11e45040bfb1f54e0c07d25060463b9bf0ee7b3a4b3d12d9e34187fc77"
+    },
+    "ozon": {
+      "url": "https://docs.ozon.ru/api/seller/swagger.json",
+      "sha256": "4c5756ae6b68177eae367786656f1b4ebdc00f2ca76c0311cf312a011ad1f9e4"
+    }
+  },
+  "ui_evidence": "/tmp/vncode-kn3-20261019/screens; synthetic report and actual JavaFX Confirm/Cancel/pill actions"
+}

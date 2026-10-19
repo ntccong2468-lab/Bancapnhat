@@ -9,7 +9,7 @@ import java.util.Objects;
 public final class FbsRowValues {
     private FbsRowValues() {}
     public static Object snapshot(Order row){
-        return new View(row.getId(),row.getNmId(),row.getArticle(),row.getBrand(),row.getName(),row.getSubjectName(),row.getSize(),row.getRuSize(),row.getColor(),row.getBarcode(),row.getKiz(),row.getSticker(),row.getStickerTail(),row.getStickerCode(),row.getImageUrl(),row.getCreatedAt(),row.getPrice(),row.getSupplierStatus(),row.getWbStatus(),row.isRequiresKiz(),row.getImage()==null?null:java.nio.ByteBuffer.wrap(row.getImage()).asReadOnlyBuffer());
+        return new View(row.getId(),row.getNmId(),row.getArticle(),row.getBrand(),row.getName(),row.getSubjectName(),row.getSize(),row.getRuSize(),row.getColor(),row.getBarcode(),row.getKiz(),row.getSticker(),row.getStickerTail(),row.getStickerCode(),row.getImageUrl(),row.getCreatedAt(),row.getPrice(),row.getSupplierStatus(),row.getWbStatus(),row.isRequiresKiz(),row.getKn3Marks(),row.getImage()==null?null:java.nio.ByteBuffer.wrap(row.getImage()).asReadOnlyBuffer());
     }
     private static final class View {
         private final Object[] values;
@@ -28,7 +28,7 @@ public final class FbsRowValues {
             &&Objects.equals(a.getStickerTail(),b.getStickerTail())&&Objects.equals(a.getStickerCode(),b.getStickerCode())
             &&Objects.equals(a.getImageUrl(),b.getImageUrl())&&Objects.equals(a.getCreatedAt(),b.getCreatedAt())
             &&Objects.equals(a.getPrice(),b.getPrice())&&Objects.equals(a.getSupplierStatus(),b.getSupplierStatus())
-            &&Objects.equals(a.getWbStatus(),b.getWbStatus())&&a.isRequiresKiz()==b.isRequiresKiz()
+            &&Objects.equals(a.getWbStatus(),b.getWbStatus())&&a.isRequiresKiz()==b.isRequiresKiz()&&a.getKn3Marks().equals(b.getKn3Marks())
             &&Arrays.equals(a.getImage(),b.getImage());
     }
     public static boolean sameSupply(WbSupplySummary a,WbSupplySummary b){

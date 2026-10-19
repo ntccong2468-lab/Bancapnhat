@@ -35,6 +35,7 @@
                     </children>
                 </VBox>
                 <ProgressIndicator fx:id="loadingIndicator" managed="false" maxHeight="18.0" maxWidth="18.0" visible="false" />
+                <Button fx:id="addAgainKizButton" visible="false" managed="false" onAction="#onAddAgainKiz" text="%kn3.batch.title" styleClass="btn-primary"/>
                 <Button fx:id="refreshButton" mnemonicParsing="false" onAction="#onRefresh" text="Refresh"><graphic><FontIcon iconLiteral="fth-refresh-cw" iconSize="15" /></graphic></Button>
             </children>
         </HBox>
@@ -48,7 +49,7 @@
             <children>
                 <VBox spacing="8.0" VBox.vgrow="ALWAYS">
                     <children>
-                        <TabPane fx:id="orderStatusTabs" styleClass="packing-tabs" tabClosingPolicy="UNAVAILABLE" VBox.vgrow="ALWAYS">
+                        <StackPane fx:id="kn3StatusHost" VBox.vgrow="ALWAYS"><TabPane fx:id="orderStatusTabs" styleClass="packing-tabs" tabClosingPolicy="UNAVAILABLE" VBox.vgrow="ALWAYS">
                             <tabs>
                         <Tab fx:id="newOrdersTab" text="New orders">
                             <content>
@@ -159,7 +160,7 @@
                             </VBox></content></ScrollPane>
                         </content></Tab>
                             </tabs>
-                        </TabPane>
+                        </TabPane></StackPane>
                     </children>
                 </VBox>
                 <HBox spacing="8.0" alignment="CENTER_RIGHT" styleClass="ozon-page-footer">

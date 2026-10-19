@@ -26,6 +26,25 @@ import org.junit.jupiter.api.io.TempDir;
 class KizAttachmentCoordinatorTest {
     private static final String SECRET = "upstream-secret-response-body";
     @TempDir Path directory;
+    @Test void explicitKn3ReplacementUsesOnePutAndWaitsForRemoteValidation()throws Exception {
+        System.setProperty("vncode.appdata.dir",directory.toString());
+        try{
+            com.vncode.app.config.Database.initDatabase();var shop=com.vncode.app.features.gtinsync.GtinWriteTestFixture.shop(com.vncode.app.integration.marketplace.Marketplace.WILDBERRIES);var repository=new com.vncode.app.features.kiz.status.Kn3Repository();var old=new com.vncode.app.features.kiz.status.Kn3Mark("101","","","old",com.vncode.app.features.kiz.status.Kn3Mark.State.REJECTED,"sgtinRetired");repository.observe(shop,"101",List.of(old));repository.begin(shop,old,"new","{}");
+            var writes=new AtomicInteger();var coordinator=new KizAttachmentCoordinator(Runnable::run,new KizAttachmentCoordinator.AttachmentClient(){
+                public KizService.RemoveMetaResult remove(String token,long order){throw new AssertionError("Do not remove an existing rejected value before the replacement PUT");}
+                public KizService.AttachCodeResult attach(String token,long order,String code){assertEquals("new",code);writes.incrementAndGet();return new KizService.AttachCodeResult(true,204,"");}
+                public Map<Long,KizService.SgtinMetadata> metadata(String token,List<Long> ids){return Map.of(101L,new KizService.SgtinMetadata(true,"old","sgtinRetired"));}
+            });coordinator.enqueue(shop,"KN3:101","KN3",List.of(new OrderExportWorkflow.KizAttachmentAssignment(101L,"new",null,true,old.fingerprint())));assertEquals(1,writes.get());assertEquals(com.vncode.app.features.kiz.status.Kn3Mark.State.PENDING,com.vncode.app.features.kiz.status.Kn3Mark.summary(repository.read(shop,"101")));
+        }finally{System.clearProperty("vncode.appdata.dir");}
+    }
+    @Test void aCodeAcceptedWhileTheReplacementWaitsInQueueCannotBeOverwritten()throws Exception {
+        System.setProperty("vncode.appdata.dir",directory.toString());
+        try{
+            com.vncode.app.config.Database.initDatabase();var shop=com.vncode.app.features.gtinsync.GtinWriteTestFixture.shop(com.vncode.app.integration.marketplace.Marketplace.WILDBERRIES);var old=new com.vncode.app.features.kiz.status.Kn3Mark("101","","","old",com.vncode.app.features.kiz.status.Kn3Mark.State.REJECTED,"sgtinRetired");new com.vncode.app.features.kiz.status.Kn3Repository().begin(shop,old,"new","{}");var pending=new ArrayList<Runnable>();
+            var coordinator=new KizAttachmentCoordinator(pending::add,new KizAttachmentCoordinator.AttachmentClient(){public KizService.RemoveMetaResult remove(String token,long order){throw new AssertionError("Accepted code must remain");}public KizService.AttachCodeResult attach(String token,long order,String code){throw new AssertionError("Accepted code must remain");}public Map<Long,KizService.SgtinMetadata> metadata(String token,List<Long> ids){return Map.of(101L,new KizService.SgtinMetadata(true,"old","sgtinIntroduced"));}});
+            coordinator.enqueue(shop,"KN3:101","KN3",List.of(new OrderExportWorkflow.KizAttachmentAssignment(101L,"new",null,true,old.fingerprint())));pending.getFirst().run();assertEquals("KIZ_REPLACEMENT_CHANGED",coordinator.getAttachmentError(shop.getId(),101));
+        }finally{System.clearProperty("vncode.appdata.dir");}
+    }
 
     @Test
     void deniedEnqueueCreatesNoBackgroundJob() throws Exception {

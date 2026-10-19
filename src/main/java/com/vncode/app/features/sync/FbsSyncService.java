@@ -19,12 +19,14 @@ public final class FbsSyncService {
     private final java.util.function.Function<Shop,OzonApiClient> ozonClients;
     private final java.util.function.Supplier<WbApiClient> wbClients;
     private final java.util.function.LongSupplier nanos;
+    private final com.vncode.app.features.kiz.status.Kn3SyncService kn3;
     private final Map<Integer,String> selectedSupplies=new java.util.concurrent.ConcurrentHashMap<>();
     private record RefreshedSupply(String owner,String supply,long completedNanos){}
     private final Map<Integer,RefreshedSupply> refreshedSupplies=new java.util.concurrent.ConcurrentHashMap<>();
-    public FbsSyncService(){this(shop->new OzonApiClient(shop.getId(),new OzonCredentials(shop.getClientId(),shop.getApiKey())),WbApiClient::new);}
+    public FbsSyncService(){this(shop->new OzonApiClient(shop.getId(),new OzonCredentials(shop.getClientId(),shop.getApiKey())),WbApiClient::new,System::nanoTime,new com.vncode.app.features.kiz.status.Kn3SyncService());}
     FbsSyncService(java.util.function.Function<Shop,OzonApiClient> ozonClients,java.util.function.Supplier<WbApiClient> wbClients){this(ozonClients,wbClients,System::nanoTime);}
-    FbsSyncService(java.util.function.Function<Shop,OzonApiClient> ozonClients,java.util.function.Supplier<WbApiClient> wbClients,java.util.function.LongSupplier nanos){this.ozonClients=ozonClients;this.wbClients=wbClients;this.nanos=nanos;}
+    FbsSyncService(java.util.function.Function<Shop,OzonApiClient> ozonClients,java.util.function.Supplier<WbApiClient> wbClients,java.util.function.LongSupplier nanos){this(ozonClients,wbClients,nanos,null);}
+    FbsSyncService(java.util.function.Function<Shop,OzonApiClient> ozonClients,java.util.function.Supplier<WbApiClient> wbClients,java.util.function.LongSupplier nanos,com.vncode.app.features.kiz.status.Kn3SyncService kn3){this.ozonClients=ozonClients;this.wbClients=wbClients;this.nanos=nanos;this.kn3=kn3;}
     public boolean selectSupply(int shopId,String id){
         if(id==null||id.isBlank()){refreshedSupplies.remove(shopId);return selectedSupplies.remove(shopId)!=null;}
         return !id.equals(selectedSupplies.put(shopId,id));
@@ -46,8 +48,9 @@ public final class FbsSyncService {
             try(var c=Database.getConnection();var p=c.prepareStatement("SELECT posting_number FROM ozon_postings WHERE shop_id=? AND status IN ('awaiting_packaging','awaiting_deliver','delivering') AND posting_number>? ORDER BY posting_number LIMIT 3")){
                 p.setInt(1,shop.getId());p.setString(2,after);try(var r=p.executeQuery()){while(r.next())ids.add(r.getString(1));}
             }
-            for(String id:ids){var item=OzonJson.requirePostingDetail(api.getPosting(id,false),id);if(!id.equals(item.postingNumber()))throw new IOException("FBS_FOREIGN_POSTING");ListingIdentity.require(shop);repository.upsertDetail(shop.getId(),item);}
-            return next(cursor,ids.isEmpty()?"":ids.getLast(),ids.size()<3,ids.size());
+            SyncFailure warning=null;
+            for(String id:ids){var item=OzonJson.requirePostingDetail(api.getPosting(id,false),id);if(!id.equals(item.postingNumber()))throw new IOException("FBS_FOREIGN_POSTING");ListingIdentity.require(shop);repository.upsertDetail(shop.getId(),item);try{if(kn3!=null)kn3.ozon(shop,item,api);}catch(IOException|com.vncode.app.shared.RateLimitDeferral.Deferred unavailable){warning=SyncFailure.of(unavailable,0);}}
+            return warning(next(cursor,ids.isEmpty()?"":ids.getLast(),ids.size()<3,ids.size()),warning);
         }
         if(stream==SyncCoordinator.Stream.SUPPLIES||stream==SyncCoordinator.Stream.SUPPLY_CONTENT)return SyncCoordinator.Page.complete(0);
         var raw=stream==SyncCoordinator.Stream.FBS_QUEUE?api.listUnfulfilledPostings(cursor.from(),cursor.to(),cursor.after(),100):api.listPostings(cursor.from(),cursor.to(),cursor.after(),100);
@@ -75,7 +78,8 @@ public final class FbsSyncService {
             var response=api.getOrderStatuses(shop.getApiKey(),ids);if(response==null||response.getOrders()==null)throw new IOException("FBS_INVALID_RESPONSE");
             WbFbsResponseValidator.statuses(response,ids);
             ListingIdentity.require(shop);orders.updateOrderStatuses(shop.getId(),response.getOrders());
-            return next(cursor,Long.toString(ids.getLast()),ids.size()<1000,response.getOrders().size());
+            SyncFailure warning=null;try{if(kn3!=null)kn3.wb(shop);}catch(IOException|com.vncode.app.shared.RateLimitDeferral.Deferred unavailable){warning=SyncFailure.of(unavailable,0);}
+            return warning(next(cursor,Long.toString(ids.getLast()),ids.size()<1000,response.getOrders().size()),warning);
         }
         if(stream==SyncCoordinator.Stream.SUPPLY_CONTENT){
             String preferred=selectedSupplies.getOrDefault(shop.getId(),"");String id="";
@@ -92,7 +96,8 @@ public final class FbsSyncService {
             ListingIdentity.require(shop);new WbSupplyRepository().saveSupplies(shop.getId(),List.of(detail));orders.replaceSupplyOrders(shop.getId(),id,ids);
             // An active shipment refresh must not reset or consume the background scan's cursor.
             if(priority)refreshedSupplies.put(shop.getId(),new RefreshedSupply(owner,id,nanos.getAsLong()));
-            return next(cursor,priority?cursor.after():id,false,ids.size());
+            SyncFailure warning=null;try{if(kn3!=null&&priority)kn3.wb(shop,id);}catch(IOException|com.vncode.app.shared.RateLimitDeferral.Deferred unavailable){warning=SyncFailure.of(unavailable,0);}
+            return warning(next(cursor,priority?cursor.after():id,false,ids.size()),warning);
         }
         long after=cursor.after().isBlank()?0:Long.parseLong(cursor.after());
         if(stream==SyncCoordinator.Stream.SUPPLIES){
@@ -108,4 +113,5 @@ public final class FbsSyncService {
         return next(cursor,Long.toString(next),done,response.getOrders().size());
     }
     private static SyncCoordinator.Page next(Cursor before,String after,boolean done,int count){return new SyncCoordinator.Page(done?"":JSON.toJson(new Cursor(after,before.from(),before.to(),before.pages()+1)),done,count);}
+    private static SyncCoordinator.Page warning(SyncCoordinator.Page page,SyncFailure warning){return new SyncCoordinator.Page(page.checkpoint(),page.complete(),page.changed(),warning);}
 }

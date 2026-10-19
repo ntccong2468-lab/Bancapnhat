@@ -7,6 +7,7 @@ import java.sql.SQLException;
 public final class SyncSchema {
     private SyncSchema() {}
     public static void initialize(Connection c) throws SQLException {
+        com.vncode.app.features.kiz.status.Kn3Repository.initialize(c);
         com.vncode.app.features.gs1.Gs1AutomaticSyncService.initialize(c);
         try (var s=c.createStatement()) {
             s.execute("CREATE TABLE IF NOT EXISTS sync_gtin_issues(item_id TEXT PRIMARY KEY REFERENCES gtin_sync_items(id) ON DELETE CASCADE,code TEXT NOT NULL,updated_at TEXT NOT NULL)");

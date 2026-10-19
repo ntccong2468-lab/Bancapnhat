@@ -376,6 +376,7 @@ public class WbOrderRepository {
                 order.setRequiresKiz(rs.getInt("requires_kiz") > 0);
                 orders.add(order);
             }
+            rs.close();new com.vncode.app.features.kiz.status.Kn3Repository().enrichWb(conn,shopId,orders);
             return orders;
         } catch (SQLException e) {
             throw new RuntimeException(e);
@@ -392,6 +393,11 @@ public class WbOrderRepository {
         return getPackingOrders(shopId, where);
     }
 
+    public List<Order> getOrders(int shopId,List<Long> ids) {
+        if(ids==null||ids.size()>10000)throw new IllegalArgumentException("WB_ORDER_SCOPE_LIMIT");
+        if(ids.isEmpty())return List.of();
+        return getPackingOrders(shopId,"AND o.order_id IN ("+ids.stream().map(id->Long.toString(java.util.Objects.requireNonNull(id))).collect(java.util.stream.Collectors.joining(","))+")");
+    }
     private List<Order> getPackingOrders(int shopId, String extraWhere) {
         List<Order> orders = new ArrayList<>();
         String sql = """
@@ -456,6 +462,7 @@ public class WbOrderRepository {
                 order.setRequiresKiz(rs.getInt("requires_kiz") > 0);
                 orders.add(order);
             }
+            rs.close();new com.vncode.app.features.kiz.status.Kn3Repository().enrichWb(conn,shopId,orders);
             return orders;
         } catch (SQLException e) {
             throw new RuntimeException(e);

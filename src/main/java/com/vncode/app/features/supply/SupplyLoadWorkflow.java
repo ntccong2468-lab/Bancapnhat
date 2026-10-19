@@ -30,7 +30,7 @@ public class SupplyLoadWorkflow {
             if(row.getStickerCode()==null||row.getStickerCode().isBlank())row.setStickerCode(old.getStickerCode());
             if(row.getImage()==null&&java.util.Objects.equals(row.getImageUrl(),old.getImageUrl()))row.setImage(old.getImage());
             if(java.util.Objects.equals(row.getNmId(),old.getNmId())&&java.util.Objects.equals(row.getSize(),old.getSize())&&java.util.Objects.equals(row.getColor(),old.getColor())&&java.util.Objects.equals(row.getBarcode(),old.getBarcode())){
-                if(row.getKiz()==null||row.getKiz().isBlank())row.setKiz(old.getKiz());
+                if(row.getKn3Marks().isEmpty()&&(row.getKiz()==null||row.getKiz().isBlank()))row.setKiz(old.getKiz());
                 if(old.isRequiresKiz())row.setRequiresKiz(true);
             }
         }

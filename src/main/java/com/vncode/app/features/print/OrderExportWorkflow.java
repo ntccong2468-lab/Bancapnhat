@@ -221,6 +221,8 @@ public class OrderExportWorkflow {
                     || (sgtinMetadata != null && sgtinMetadata.available()) || (order.getNmId()!=null&&categories.containsKey(order.getNmId()));
             if (sgtinMetadata != null && sgtinMetadata.available()) {
                 order.setRequiresKiz(true);
+                if(com.vncode.app.features.kiz.status.Kn3Mark.wbState(sgtinMetadata.decision(),sgtinMetadata.appliedValue())==com.vncode.app.features.kiz.status.Kn3Mark.State.REJECTED)
+                    throw new com.vncode.app.features.kiz.KizAssignmentException("KIZ_REMOTE_REJECTED",String.valueOf(order.getId()),String.valueOf(order.getNmId()));
                 if (sgtinMetadata.hasAppliedValue()) {
                     String appliedGtin = KizService.extractGtin(sgtinMetadata.appliedValue());
                     if (sources!=null || gtin == null || (order.getNmId()!=null&&categories.containsKey(order.getNmId())) || com.vncode.app.features.gtinsync.RegisteredGtinProof.sameCode(gtin,appliedGtin)) {
@@ -359,7 +361,9 @@ public class OrderExportWorkflow {
     ) {
     }
 
-    public record KizAttachmentAssignment(Long orderId, String kizCode, Kiz sourceKiz, boolean replaceExisting) {
+    public record KizAttachmentAssignment(Long orderId, String kizCode, Kiz sourceKiz, boolean replaceExisting,String expectedRejectedHash) {
+        public KizAttachmentAssignment{expectedRejectedHash=java.util.Objects.toString(expectedRejectedHash,"");if(!expectedRejectedHash.isBlank()&&(!replaceExisting||!expectedRejectedHash.matches("[a-f0-9]{64}")))throw new IllegalArgumentException("KIZ_REPLACEMENT_INVALID");}
+        public KizAttachmentAssignment(Long orderId,String code,Kiz source,boolean replace){this(orderId,code,source,replace,"");}
         @Override public String toString(){return "KizAttachmentAssignment[orderId="+orderId+", replaceExisting="+replaceExisting+"]";}
     }
 

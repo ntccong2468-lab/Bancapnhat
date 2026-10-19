@@ -38,10 +38,14 @@ final class OzonKizLabelAppender {
             List<OzonExemplarJobRepository.KizBinding> bindings, Map<String, OzonProductDto> products)
             throws IOException {
         int appended = 0;
+        var slots=new java.util.ArrayList<com.vncode.app.features.kiz.status.Kn3PrintProjection.Slot>();
+        for(var b:bindings)slots.add(new com.vncode.app.features.kiz.status.Kn3PrintProjection.Slot(item(posting,b.itemIndex()).sku(),b.exemplarId(),b.rawCode()));
+        var codes=com.vncode.app.features.kiz.status.Kn3PrintProjection.codes(shop,posting.postingNumber(),slots);
+        int codeIndex=0;
         for (OzonExemplarJobRepository.KizBinding binding : bindings) {
             OzonPostingItemDto item = item(posting, binding.itemIndex());
             OzonProductDto product = products.get(item.sku());
-            String code = KizService.scannerSafeCode(binding.rawCode());
+            String code = KizService.scannerSafeCode(codes.get(codeIndex++));
             if (code == null || code.isBlank()) {
                 throw new IOException("An accepted Ozon exemplar has no printable KIZ.");
             }

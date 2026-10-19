@@ -12,6 +12,7 @@ public final class KizErrorMessages {
             case "KIZ_HTTP_429"->"rate_limit";
             case "KIZ_RECONCILIATION_REQUIRED"->"uncertain";
             case "KIZ_OTHER_CODE_PRESENT"->"other_code";
+            case "KIZ_REMOTE_REJECTED"->"remote_rejected";
             case "KIZ_GTIN_MAPPING_MISSING"->"mapping";
             case "KIZ_INVENTORY_SHORTAGE"->"shortage";
             case "KIZ_PURCHASE_PENDING"->"purchase_pending";

@@ -115,6 +115,23 @@ public final class OzonDashboardController {
     public OzonDashboardController(){this(new OzonSyncWorkflow());}
     public OzonDashboardController(OzonSyncWorkflow syncWorkflow){this.syncWorkflow=java.util.Objects.requireNonNull(syncWorkflow);}
     private final OzonShipService shipService = new OzonShipService();
+    @FXML private StackPane kn3StatusHost;
+    @FXML private Button addAgainKizButton;
+    @FXML private void onAddAgainKiz(){
+        var owner=shop;if(owner==null||com.vncode.app.ui.kiz.Kn3BatchDialog.running(kn3StatusHost))return;String status=activeStatus(),text=postingSearch.getText(),sort=sortFields();long generation=shopGeneration;var sources=shipmentKizPane.snapshot();
+        addAgainKizButton.setDisable(true);
+        reads.submitLocal(new com.vncode.app.shared.ShopReadCoordinator.Key(owner.getId(),"kn3-report",status+":"+text+":"+generation),()->{
+            var ids=postings.freezeFilteredNumbers(new com.vncode.app.features.ozon.OzonFbsQuery(owner.getId(),status,text,sort,0,100),10000);
+            return new com.vncode.app.features.kiz.status.Kn3BatchReplacement().report(owner,ids);
+        }).whenComplete((report,error)->Platform.runLater(()->{
+            addAgainKizButton.setDisable(false);if(!isCurrent(owner)||generation!=shopGeneration||!status.equals(activeStatus())||!text.equals(postingSearch.getText()))return;
+            if(error!=null){AlertService.showError(com.vncode.app.shared.FriendlyErrorService.format(error));return;}
+            com.vncode.app.ui.kiz.Kn3BatchDialog.open(kn3StatusHost,owner,report,sources,()->{if(isCurrent(owner))loadLocal();});
+        }));
+    }
+    private record Kn3Pages(Map<String,com.vncode.app.features.ozon.OzonFbsPage> pages,boolean rejected){}
+
+    private Map<String,List<com.vncode.app.features.kiz.status.Kn3Mark>> kn3Marks=Map.of();
     private final ShipmentKizPane shipmentKizPane=new ShipmentKizPane();
     @FXML private VBox shipmentKizHost;
     @FXML private Tab shipmentKizTab;
@@ -220,9 +237,9 @@ public final class OzonDashboardController {
             @Override protected void updateItem(ZnackGtinInventorySummary row,boolean empty){super.updateItem(row,empty);setText(null);setGraphic(empty||row==null?null:createGtinCard(row));}
         });
         orderStatusTabs.getSelectionModel().select(newOrdersTab);
-        orderStatusTabs.getSelectionModel().selectedItemProperty().addListener((ignored, oldTab, selectedTab) -> updatePaging());
+        orderStatusTabs.getSelectionModel().selectedItemProperty().addListener((ignored, oldTab, selectedTab) -> {com.vncode.app.ui.kiz.Kn3BatchDialog.clear(kn3StatusHost);updatePaging();loadLocal();});
         postingDebounce.setOnFinished(e->{offsets.clear();loadLocal();});
-        postingSearch.textProperty().addListener((o,a,b)->postingDebounce.playFromStart());
+        postingSearch.textProperty().addListener((o,a,b)->{com.vncode.app.ui.kiz.Kn3BatchDialog.clear(kn3StatusHost);postingDebounce.playFromStart();});
         gtinInventoryPanel.expandedProperty().addListener((o,a,b)->{if(b)refreshGtinInventory();});
         applyTranslations();
         clear();
@@ -232,10 +249,11 @@ public final class OzonDashboardController {
         Shop selected = shop != null && shop.getMarketplace() == Marketplace.OZON ? shop : null;
         boolean sameContext = sameShopContext(this.shop, selected);
         if (!sameContext) {
+            com.vncode.app.ui.kiz.Kn3BatchDialog.clear(kn3StatusHost);
             requestToken++;
             setBusy(false);
             selectedPostingNumbers.clear();offsets.clear();totals.clear();pageGeneration++;
-            productsBySku=Map.of();verifiedGtinsBySku=Map.of();catalogProducts=List.of();
+            productsBySku=Map.of();verifiedGtinsBySku=Map.of();catalogProducts=List.of();kn3Marks=Map.of();addAgainKizButton.setVisible(false);addAgainKizButton.setManaged(false);
             newOrdersTable.getItems().clear();packingOrdersTable.getItems().clear();deliveringOrdersTable.getItems().clear();
         }
         this.shop = selected;
@@ -312,6 +330,7 @@ public final class OzonDashboardController {
 
     public void applyTranslations() {
         I18nService i18n = I18nService.getInstance();
+        addAgainKizButton.setText(i18n.tr("kn3.batch.title"));
         String clearSearch = i18n.tr("ozon.fbs.clear_search");
         clearSearchButton.setAccessibleText(clearSearch);
         clearSearchButton.setTooltip(new Tooltip(clearSearch));
@@ -600,20 +619,25 @@ public final class OzonDashboardController {
     public void refreshLocalData(){if(!disposed&&!busy)loadLocal();}
     private void loadLocal() {
         Shop selected=shop;if(disposed||selected==null){newOrdersTable.getItems().clear();packingOrdersTable.getItems().clear();deliveringOrdersTable.getItems().clear();updateTabTitles();updatePaging();return;}
-        long epoch=++pageGeneration,started=System.nanoTime();String text=postingSearch.getText();String sort=sortFields();var frozenOffsets=Map.copyOf(offsets);
-        var owner=selected;String scope=com.vncode.app.integration.listing.ListingIdentity.fingerprint(owner)+"|"+text+"|"+sort+"|"+frozenOffsets;
+        long epoch=++pageGeneration,started=System.nanoTime();String text=postingSearch.getText();String currentStatus=activeStatus();String sort=sortFields();var frozenOffsets=Map.copyOf(offsets);
+        var owner=selected;String scope=com.vncode.app.integration.listing.ListingIdentity.fingerprint(owner)+"|"+currentStatus+"|"+text+"|"+sort+"|"+frozenOffsets;
         reads.submitLocal(new com.vncode.app.shared.ShopReadCoordinator.Key(selected.getId(),"ozon-fbs-page",scope),()->{
             var pages=new java.util.LinkedHashMap<String,com.vncode.app.features.ozon.OzonFbsPage>();
             for(String status:List.of("awaiting_packaging","awaiting_deliver","delivering"))pages.put(status,fbsReader.apply(new com.vncode.app.features.ozon.OzonFbsQuery(owner.getId(),status,text,sort,frozenOffsets.getOrDefault(status,0),100)));
-            return pages;
-        }).whenComplete((pages,error)->Platform.runLater(()->{
+            var ids=postings.freezeFilteredNumbers(new com.vncode.app.features.ozon.OzonFbsQuery(owner.getId(),currentStatus,text,sort,0,100),10000);
+            boolean red;try(var c=com.vncode.app.config.Database.getConnection()){red=new com.vncode.app.features.kiz.status.Kn3Repository().read(c,owner.getId(),owner.getMarketplace(),ids).values().stream().flatMap(List::stream).anyMatch(m->m.state()==com.vncode.app.features.kiz.status.Kn3Mark.State.REJECTED);}
+            return new Kn3Pages(pages,red);
+        }).whenComplete((result,error)->Platform.runLater(()->{
             if(disposed||epoch!=pageGeneration||!isCurrent(owner))return;
             if(error!=null){statusLabel.setText(tr("products.read_failed"));return;}
+            var pages=result.pages();addAgainKizButton.setVisible(result.rejected());addAgainKizButton.setManaged(result.rejected());
+            var previousMarks=kn3Marks;var nextMarks=new java.util.HashMap<String,List<com.vncode.app.features.kiz.status.Kn3Mark>>();pages.values().forEach(page->nextMarks.putAll(page.kn3Marks()));kn3Marks=Map.copyOf(nextMarks);
+            var changedMarks=new java.util.HashSet<String>();changedMarks.addAll(previousMarks.keySet());changedMarks.addAll(kn3Marks.keySet());changedMarks.removeIf(id->java.util.Objects.equals(previousMarks.get(id),kn3Marks.get(id)));
             var previousProducts=productsBySku;var previousGtins=verifiedGtinsBySku;
             var products=new java.util.HashMap<String,OzonProductDto>();pages.values().forEach(page->products.putAll(page.productsBySku()));var gtins=new java.util.HashMap<String,String>();pages.values().forEach(page->gtins.putAll(page.verifiedGtinsBySku()));verifiedGtinsBySku=Map.copyOf(gtins);productsBySku=Map.copyOf(products);catalogProducts=List.copyOf(products.values());
             var enrichedSkus=new java.util.HashSet<String>();enrichedSkus.addAll(previousProducts.keySet());enrichedSkus.addAll(productsBySku.keySet());enrichedSkus.addAll(previousGtins.keySet());enrichedSkus.addAll(verifiedGtinsBySku.keySet());
             enrichedSkus.removeIf(sku->java.util.Objects.equals(previousProducts.get(sku),productsBySku.get(sku))&&java.util.Objects.equals(previousGtins.get(sku),verifiedGtinsBySku.get(sku)));
-            java.util.function.BiPredicate<OzonPostingDto,OzonPostingDto> unchanged=(old,value)->old.equals(value)&&value.items().stream().noneMatch(item->enrichedSkus.contains(item.sku()));
+            java.util.function.BiPredicate<OzonPostingDto,OzonPostingDto> unchanged=(old,value)->old.equals(value)&&!changedMarks.contains(value.postingNumber())&&value.items().stream().noneMatch(item->enrichedSkus.contains(item.sku()));
             var newSelection=selectedPostingNumber(newOrdersTable);var packingSelection=selectedPostingNumber(packingOrdersTable);var deliveringSelection=selectedPostingNumber(deliveringOrdersTable);
             com.vncode.app.shared.TableRows.merge(newOrdersTable.getItems(),pages.get("awaiting_packaging").postings(),OzonPostingDto::postingNumber,unchanged);packingOrdersRaw=pages.get("awaiting_deliver").postings();com.vncode.app.shared.TableRows.merge(packingOrdersTable.getItems(),packingOrdersRaw,OzonPostingDto::postingNumber,unchanged);com.vncode.app.shared.TableRows.merge(deliveringOrdersTable.getItems(),pages.get("delivering").postings(),OzonPostingDto::postingNumber,unchanged);
             pages.forEach((status,page)->totals.put(status,page.total()));selectPosting(newOrdersTable,newSelection);selectPosting(packingOrdersTable,packingSelection);selectPosting(deliveringOrdersTable,deliveringSelection);
@@ -626,7 +650,7 @@ public final class OzonDashboardController {
     @FXML private void onPreviousPage(){String status=activeStatus();offsets.put(status,Math.max(0,offsets.getOrDefault(status,0)-100));loadLocal();}
     @FXML private void onNextPage(){String status=activeStatus();if(offsets.getOrDefault(status,0)+100<totals.getOrDefault(status,0L)){offsets.put(status,offsets.getOrDefault(status,0)+100);loadLocal();}}
     private void updatePaging(){if(pageStatusLabel==null)return;String status=activeStatus();long total=totals.getOrDefault(status,0L);int offset=offsets.getOrDefault(status,0);pageStatusLabel.setText((total==0?0:offset+1)+"–"+Math.min(offset+100,total)+" / "+total);previousPageButton.setDisable(shop==null||offset==0);nextPageButton.setDisable(shop==null||offset+100>=total);}
-    public void dispose(){shipmentKizPane.dispose();disposed=true;pageGeneration++;requestToken++;shopGeneration++;postingDebounce.stop();if(gtinRefreshTimer!=null)gtinRefreshTimer.stop();if(gtinRefreshSpin!=null)gtinRefreshSpin.stop();productsBySku=Map.of();verifiedGtinsBySku=Map.of();catalogProducts=List.of();}
+    public void dispose(){com.vncode.app.ui.kiz.Kn3BatchDialog.clear(kn3StatusHost);shipmentKizPane.dispose();disposed=true;pageGeneration++;requestToken++;shopGeneration++;postingDebounce.stop();if(gtinRefreshTimer!=null)gtinRefreshTimer.stop();if(gtinRefreshSpin!=null)gtinRefreshSpin.stop();productsBySku=Map.of();verifiedGtinsBySku=Map.of();catalogProducts=List.of();kn3Marks=Map.of();}
 
     private void updateTabTitles() {
         I18nService i18n = I18nService.getInstance();
@@ -1489,7 +1513,9 @@ public final class OzonDashboardController {
             metadata.setTooltip(new Tooltip(metadata.getText()));
             var gtin=new Label("GTIN: "+verifiedGtinsBySku.getOrDefault(item.sku(),tr("products.unverified")));gtin.getStyleClass().add("text-muted");var card=findCatalogProduct(item);var barcode=new Label("SKU: "+item.sku()+" · "+(card==null?"":String.join(", ",card.barcodes())));barcode.getStyleClass().add("text-muted");barcode.setTooltip(new Tooltip(barcode.getText()));
             var marking=new Label(tr("ozon.fbs.kiz")+": "+(posting.requirements().mandatoryMarkProductIds().contains(item.productId())?tr("ozon.fbs.required"):tr("ozon.fbs.check_before_print")));marking.getStyleClass().add("text-muted");
-            VBox itemBox = new VBox(3, titleRow, metadata, gtin, barcode, marking);
+            var observations=kn3Marks.getOrDefault(posting.postingNumber(),List.of()).stream().filter(m->m.productId().equals(item.sku())).toList();
+            var badge=new com.vncode.app.ui.kiz.Kn3Badge();var owner=shop;badge.show(observations,posting.requirements().mandatoryMarkProductIds().contains(item.productId()),owner==null?null:()->com.vncode.app.ui.kiz.Kn3ReplacementDialog.open(kn3StatusHost,owner,observations,()->{if(sameShopContext(shop,owner))loadLocal();}));
+            VBox itemBox = new VBox(3, titleRow, metadata, gtin, barcode, badge.isVisible()?badge:marking);
             itemBox.setMinHeight(ITEM_HEIGHT); itemBox.setPrefHeight(ITEM_HEIGHT); itemBox.setMaxHeight(ITEM_HEIGHT);
             itemBox.setAlignment(Pos.TOP_LEFT);
             return itemBox;
