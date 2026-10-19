@@ -1,0 +1,197 @@
+{
+  "version": "1.5.2",
+  "sourceCommit": "6fe8ef21871657a38151897ddc13c3b1b5028fd5",
+  "runId": 39337203593,
+  "result": "passed",
+  "windowsJava": {
+    "tests": 1954,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 2,
+    "passed": 1952
+  },
+  "proofs": [
+    {
+      "file": "native-smoke.json",
+      "version": "1.5.2",
+      "liveMarketplaceMutations": false
+    },
+    {
+      "file": "side-by-side-smoke.json",
+      "result": "passed",
+      "version": "1.5.2",
+      "liveMarketplaceMutations": false
+    },
+    {
+      "file": "upgrade-smoke.json",
+      "result": "passed",
+      "version": "1.5.2",
+      "fromVersion": "1.1.34",
+      "dataPreserved": true,
+      "singleRegistration": true,
+      "liveMarketplaceMutations": false
+    },
+    {
+      "file": "upgrade-preview-smoke.json",
+      "result": "passed",
+      "version": "1.5.2",
+      "fromVersion": "1.2.0",
+      "dataPreserved": true,
+      "singleRegistration": true,
+      "liveMarketplaceMutations": false
+    },
+    {
+      "file": "upgrade-latest-preview-smoke.json",
+      "result": "passed",
+      "version": "1.5.2",
+      "fromVersion": "1.2.1",
+      "dataPreserved": true,
+      "singleRegistration": true,
+      "liveMarketplaceMutations": false
+    },
+    {
+      "file": "upgrade-current-preview-smoke.json",
+      "result": "passed",
+      "version": "1.5.2",
+      "fromVersion": "1.2.2",
+      "dataPreserved": true,
+      "singleRegistration": true,
+      "liveMarketplaceMutations": false
+    },
+    {
+      "file": "upgrade-gs1-preview-smoke.json",
+      "result": "passed",
+      "version": "1.5.2",
+      "fromVersion": "1.3.0",
+      "dataPreserved": true,
+      "singleRegistration": true,
+      "liveMarketplaceMutations": false
+    },
+    {
+      "file": "upgrade-license-test-smoke.json",
+      "result": "passed",
+      "version": "1.5.2",
+      "fromVersion": "1.4.0",
+      "dataPreserved": true,
+      "singleRegistration": true,
+      "liveMarketplaceMutations": false
+    },
+    {
+      "file": "upgrade-stable-146-smoke.json",
+      "result": "passed",
+      "version": "1.5.2",
+      "fromVersion": "1.4.6",
+      "dataPreserved": true,
+      "singleRegistration": true,
+      "liveMarketplaceMutations": false
+    },
+    {
+      "file": "upgrade-stable-1410-smoke.json",
+      "result": "passed",
+      "version": "1.5.2",
+      "fromVersion": "1.4.10",
+      "dataPreserved": true,
+      "singleRegistration": true,
+      "liveMarketplaceMutations": false
+    },
+    {
+      "file": "upgrade-stable-1411-smoke.json",
+      "result": "passed",
+      "version": "1.5.2",
+      "fromVersion": "1.4.11",
+      "dataPreserved": true,
+      "singleRegistration": true,
+      "liveMarketplaceMutations": false
+    },
+    {
+      "file": "upgrade-stable-1412-smoke.json",
+      "result": "passed",
+      "version": "1.5.2",
+      "fromVersion": "1.4.12",
+      "dataPreserved": true,
+      "singleRegistration": true,
+      "liveMarketplaceMutations": false
+    },
+    {
+      "file": "upgrade-stable-1413-smoke.json",
+      "result": "passed",
+      "version": "1.5.2",
+      "fromVersion": "1.4.13",
+      "dataPreserved": true,
+      "singleRegistration": true,
+      "liveMarketplaceMutations": false
+    },
+    {
+      "file": "upgrade-stable-1415-smoke.json",
+      "result": "passed",
+      "version": "1.5.2",
+      "fromVersion": "1.4.15",
+      "dataPreserved": true,
+      "singleRegistration": true,
+      "liveMarketplaceMutations": false
+    },
+    {
+      "file": "upgrade-stable-1416-smoke.json",
+      "result": "passed",
+      "version": "1.5.2",
+      "fromVersion": "1.4.16",
+      "dataPreserved": true,
+      "singleRegistration": true,
+      "liveMarketplaceMutations": false
+    },
+    {
+      "file": "upgrade-stable-1418-smoke.json",
+      "result": "passed",
+      "version": "1.5.2",
+      "fromVersion": "1.4.18",
+      "dataPreserved": true,
+      "singleRegistration": true,
+      "liveMarketplaceMutations": false
+    },
+    {
+      "file": "upgrade-stable-1419-smoke.json",
+      "result": "passed",
+      "version": "1.5.2",
+      "fromVersion": "1.4.19",
+      "dataPreserved": true,
+      "singleRegistration": true,
+      "liveMarketplaceMutations": false
+    },
+    {
+      "file": "upgrade-stable-150-smoke.json",
+      "result": "passed",
+      "version": "1.5.2",
+      "fromVersion": "1.5.0",
+      "dataPreserved": true,
+      "singleRegistration": true,
+      "liveMarketplaceMutations": false
+    },
+    {
+      "file": "upgrade-stable-151-smoke.json",
+      "result": "passed",
+      "version": "1.5.2",
+      "fromVersion": "1.5.1",
+      "dataPreserved": true,
+      "singleRegistration": true,
+      "liveMarketplaceMutations": false
+    },
+    {
+      "file": "seller-workspace-smoke.json",
+      "result": "passed",
+      "version": "1.5.2",
+      "liveMarketplaceMutations": false
+    },
+    {
+      "file": "ui-layout.json",
+      "version": "1.5.2"
+    },
+    {
+      "file": "gs1-smoke.json",
+      "result": "passed",
+      "version": "1.5.2",
+      "liveGS1Mutations": false,
+      "catalogKeyDpapiRoundTrip": true
+    }
+  ],
+  "realSellerMutationsPerformed": false
+}

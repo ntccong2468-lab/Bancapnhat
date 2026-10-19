@@ -7,5 +7,10 @@
   "rows": 0,
   "done": 0,
   "historicalShippingPointRows": 0,
-  "destinationOfficeRows": 0
+  "destinationOfficeRows": 0,
+  "secretAllowedDomainsAtCheck": [
+    "content-api.wildberries.ru"
+  ],
+  "marketplaceSecretScopeConfigured": false,
+  "upstreamCredentialValidityNotDetermined": true
 }

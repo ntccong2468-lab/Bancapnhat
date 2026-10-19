@@ -19,8 +19,13 @@
 - Bài thử lô 650 thẻ đối chiếu toàn bộ báo cáo trong khoảng 40 ms.
 - Kiểm thử nút Áp dụng cho WB và Ozon; kiểm thử payload năm trường WB, đọc lại xác nhận và phân biệt thẻ bị từ chối với thẻ đã sửa.
 - Kết nối chỉ đọc WB, Ozon và Catalog đều HTTP 200. Không dùng kết quả chỉ đọc làm bằng chứng đăng ký/ghi thật.
-- Bộ cài mới phải vượt qua bộ Java đầy đủ mới chạy trên Windows, kiểm tra giao diện, cài/gỡ và nâng cấp giữ dữ liệu, gồm bản 1.5.1.
+- Windows chạy mới toàn bộ: 1.954 kiểm thử, 0 lỗi, 2 bỏ qua theo nền tảng. Bộ cài đã qua kiểm tra mở app, nhiều cửa hàng/DPI, cài/gỡ và nâng cấp giữ dữ liệu, gồm bản 1.5.1.
+- Đã công bố Latest, tải lại đầy đủ bộ cài và đối chiếu SHA-256/kích thước; bộ cập nhật của app xác nhận bản 1.5.1 nhận 1.5.2.
 
 ## Chưa hoàn tất
 
-API đơn/lô hàng WB trong môi trường trả HTTP 401 khi kiểm tra lịch sử giao hàng; chưa nghiệm thu chuyển giao thật. Chưa nghiệm thu chữ ký CryptoPro doanh nghiệp, đăng ký/ký thẻ Catalog thật, ghi GTIN thật trên desktop có license production và toàn bộ giấy phép production trong lượt này. Các kiểm thử mô phỏng không được công bố là thành công trên tài khoản thật. Chủ ứng dụng yêu cầu đóng gói và phát hành Latest sau các sửa này; bản phát hành giữ công khai giới hạn trên.
+Secret WB trong môi trường chỉ cấp domain Content API; lượt kiểm tra Marketplace trả HTTP 401, chưa xác định tính hợp lệ của token đối với Marketplace; chưa nghiệm thu chuyển giao thật. Chưa nghiệm thu chữ ký CryptoPro doanh nghiệp, đăng ký/ký thẻ Catalog thật, ghi GTIN thật trên desktop có license production và toàn bộ giấy phép production trong lượt này. Các kiểm thử mô phỏng không được công bố là thành công trên tài khoản thật. Chủ ứng dụng yêu cầu đóng gói và phát hành Latest sau các sửa này; bản phát hành giữ công khai giới hạn trên.
+
+## Bản đã phát hành
+
+[VNCode 1.5.2 Latest](https://github.com/ntccong2468-lab/Bancapnhat/releases/tag/v1.5.2) · [Bộ cài Windows](https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.5.2/VN-code-1.5.2-Windows-x64.exe).
