@@ -11,6 +11,7 @@ public final class ErrorReportDialog {
     /** Opens a copyable diagnostic dialog on the FX thread. */
     public static void show(String shopName, String entity, String action, String rawError) {
         String message = ZnackErrorMessages.display(rawError);
+        if(message.isBlank())message=com.vncode.app.shared.I18nService.getInstance().tr("diagnostics.no_error_detail");
         String errorCode = ZnackErrorMessages.errorCode(rawError);
         String details = String.join("\n", BuildConfig.getAppName() + " " + BuildConfig.getAppVersion(),
                 shopName == null ? "" : shopName, entity == null ? "" : entity,

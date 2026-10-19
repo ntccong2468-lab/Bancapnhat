@@ -33,6 +33,19 @@ public final class ProductSuggestionService {
     public Suggestions suggest(Shop shop,List<ProductKey> keys,String field,String query)throws IOException {
         return suggest(shop,keys,field,query,values->{});
     }
+    /** A proposal from this shop's saved reads, never an arbitrary dictionary entry. */
+    public String defaultValue(Shop shop,List<ProductKey> keys,String field){
+        ListingIdentity.require(shop);String owner=ListingIdentity.fingerprint(shop);
+        var counts=new LinkedHashMap<String,Integer>();var cards=new HashSet<String>();
+        for(var key:keys){
+            ListingIdentity.require(shop,key);if(!cards.add(key.cardId()))continue;
+            var snapshot=snapshots.apply(key).filter(p->p.revision().startsWith("live:")&&owner.equals(p.metadata().get("owner"))).orElse(null);
+            if(snapshot==null)continue;ListingIdentity.require(shop,snapshot.key());if(!snapshot.key().cardId().equals(key.cardId()))throw new SecurityException("Own suggestion card required");
+            String candidate=field.equals("brand")?Objects.toString(snapshot.brand(),"").strip():String.join(" | ",ProductFieldNames.sourceAttributes(field,snapshot.attributes()).stream().flatMap(a->a.values().stream()).map(String::strip).filter(v->!v.isBlank()).toList());
+            if(!candidate.isBlank())counts.merge(candidate,1,Integer::sum);
+        }
+        return counts.entrySet().stream().max(Map.Entry.comparingByValue()).map(Map.Entry::getKey).orElseGet(()->field.equals("brand")&&shop.getMarketplace()==Marketplace.OZON?new OzonShopBrand().load(shop):"");
+    }
     public Suggestions suggest(Shop shop,List<ProductKey> keys,String field,String query,java.util.function.Consumer<Suggestions> partial)throws IOException {
         ListingIdentity.require(shop);if(keys.isEmpty())return new Suggestions(List.of(),"",false);
         com.vncode.app.features.license.LicenseRuntime.require(com.vncode.app.features.license.LicenseModels.Permission.SELLER_API);

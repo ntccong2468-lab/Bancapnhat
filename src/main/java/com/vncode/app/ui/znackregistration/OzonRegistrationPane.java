@@ -49,11 +49,12 @@ public final class OzonRegistrationPane extends VBox {
     private final java.util.concurrent.atomic.AtomicBoolean progressQueued=new java.util.concurrent.atomic.AtomicBoolean();
     private final java.util.concurrent.atomic.AtomicBoolean reviewPending=new java.util.concurrent.atomic.AtomicBoolean();
 
+    private String lastActionRun="";
     public OzonRegistrationPane(Shop shop){this(shop,null);}
     public OzonRegistrationPane(Shop shop,Runnable openGtin) {
         if(shop==null||shop.getMarketplace()!=Marketplace.OZON)throw new IllegalArgumentException("shop_mismatch");
         this.owner=new Shop(shop.getId(),shop.getName(),shop.getMarketplace(),shop.getClientId(),shop.getApiKey());
-        this.openGtin=openGtin==null?()->GtinBackgroundStatus.start((StackPane)table.getParent(),owner,new HashSet<>(selected()),this::refreshLocal):openGtin;
+        this.openGtin=openGtin==null?()->GtinBackgroundStatus.start((StackPane)table.getParent(),owner,new HashSet<>(selected()),this::refreshLocal,result->{lastActionRun=result.run();status.setText(GtinBackgroundStatus.summary(result));}):openGtin;
         setId("ozonRegistrationPane");setSpacing(8);setPadding(new Insets(12));
         title.getStyleClass().add("h2");status.setWrapText(true);status.getStyleClass().add("text-muted");
         title.setMinWidth(210);title.setPrefWidth(240);title.setMaxWidth(260);var space=new Region();HBox.setHgrow(space,Priority.ALWAYS);
@@ -65,14 +66,15 @@ public final class OzonRegistrationPane extends VBox {
         statusFilter.setConverter(new javafx.util.StringConverter<>(){public String toString(String value){return tr("znack.registration.filter."+("ERROR".equals(value)?"error":"all"));}public String fromString(String value){throw new UnsupportedOperationException();}});
         statusFilter.setOnAction(e->reload());
         var clearFilters=new Button(tr("znack.registration.clear"));clearFilters.setOnAction(e->{search.clear();statusFilter.setValue("ALL");reload();});
-        var filters=new FlowPane(8,8,search,statusFilter,clearFilters);autoSign.setSelected(true);autoSign.setWrapText(true);autoSign.setId("ozonRegistrationAutoSign");search.setPrefWidth(375);
+        var brandConfig=new Button(tr("ozon.brand.configure"));brandConfig.setId("ozonConfigureBrand");brandConfig.setOnAction(e->configureBrand());
+        var filters=new FlowPane(8,8,search,statusFilter,clearFilters,brandConfig);autoSign.setSelected(true);autoSign.setWrapText(true);autoSign.setId("ozonRegistrationAutoSign");search.setPrefWidth(375);
         allFiltered.setOnAction(e->{if(allFiltered.isSelected())all.fire();else clear.fire();});
         var footer=new HBox(10,allFiltered,register,count,more);footer.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
         HBox.setHgrow(search,Priority.ALWAYS);getChildren().setAll(header,status,filters,new StackPane(table),footer);VBox.setVgrow(table.getParent(),Priority.ALWAYS);
         TableScrollLoader.install(table,()->!disposed&&!busy&&!batchReviewing&&ready()&&cursor!=null,()->load(true));
         table.setId("ozonRegistrationTable");table.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
         table.getSelectionModel().getSelectedItems().addListener((javafx.collections.ListChangeListener<ProductRow>)change->{if(!programmaticSelection){frozen=List.of();buttons();}});
-        documents.setOnAction(e->configureDocuments());refresh.setOnAction(e->reload());sync.setOnAction(e->syncCatalog());sign.setOnAction(e->signApproved());gtin.setOnAction(e->{if(ready()&&!busy)this.openGtin.run();});report.setOnAction(e->RegistrationSyncReportDialog.show(getScene()==null?null:getScene().getWindow(),owner,readiness==null?"":readiness.run()));
+        documents.setOnAction(e->configureDocuments());refresh.setOnAction(e->reload());sync.setOnAction(e->syncCatalog());sign.setOnAction(e->signApproved());gtin.setOnAction(e->{if(ready()&&!busy)this.openGtin.run();});report.setOnAction(e->RegistrationSyncReportDialog.show(getScene()==null?null:getScene().getWindow(),owner,lastActionRun.isBlank()?(readiness==null?"":readiness.run()):lastActionRun));
         stopBatch.setOnAction(e->{cancelBatch.set(true);stopBatch.setDisable(true);status.setText(tr("znack.registration.batch_stopping"));});all.setOnAction(e->selectAll());clear.setOnAction(e->{frozen=List.of();table.getSelectionModel().clearSelection();buttons();});
         register.setOnAction(e->{if("ERROR".equals(statusFilter.getValue())||table.getSelectionModel().getSelectedItems().stream().anyMatch(row->view(row).status().equals("source.errors")))openErrorRepair(selected().isEmpty());else registerSelection();});newCards.setOnAction(e->registerBatch(true));more.setOnAction(e->load(true));
         debounce.setOnFinished(e->reload());refreshDebounce.setOnFinished(e->reload());search.textProperty().addListener((o,a,b)->debounce.playFromStart());
@@ -113,7 +115,7 @@ public final class OzonRegistrationPane extends VBox {
                 switchCard.setText(tr("znack.registration.switch_card"));switchCard.setDisable(!ready()||!view(row).published()||busy||state!=Status.PUBLISHED||!candidate);setGraphic(menu);
             }
         });actions.setMinWidth(130);actions.setPrefWidth(145);table.getColumns().add(actions);table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
-        table.setRowFactory(t->new TableRow<>(){@Override protected void updateItem(ProductRow row,boolean empty){super.updateItem(row,empty);var r=row==null?null:states.get(row.key());setTooltip(empty||r==null||safe(r.error()).isBlank()?null:new Tooltip(r.error()));
+        table.setRowFactory(t->new TableRow<>(){{setOnMouseClicked(e->{if(e.getClickCount()==2&&getItem()!=null){var row=getItem();var r=states.get(row.key());RegistrationDiagnostics.show(row.vendorArticle(),r==null?view(row).gtin():r.gtin(),r==null?"":r.feedId(),tr("znack.registration."+view(row).status()),reason(view(row).detail())+"\n"+(r==null?"":r.error()));}});}@Override protected void updateItem(ProductRow row,boolean empty){super.updateItem(row,empty);var r=row==null?null:states.get(row.key());setTooltip(empty||r==null||safe(r.error()).isBlank()?null:new Tooltip(r.error()));
             if(empty||row==null){setContextMenu(null);return;}
             var report=new MenuItem(tr("znack.registration.report"));report.setOnAction(e->RegistrationDiagnostics.show(row.vendorArticle(),r==null?view(row).gtin():r.gtin(),r==null?"":r.feedId(),tr("znack.registration."+view(row).status()),reason(view(row).detail())+"\n"+(r==null?"":r.error())));setContextMenu(new ContextMenu(report));
         }});buttons();
@@ -243,6 +245,18 @@ public final class OzonRegistrationPane extends VBox {
             dialog.setResultConverter(button->button==ButtonType.OK?new ZnackModels.GoodsDocument(type.getValue(),number.getText().strip(),date.getText().strip()):null);
             var result=dialog.showAndWait();if(result.isEmpty())return;var document=result.get();
             background(()->{com.vncode.app.integration.listing.ListingIdentity.require(owner);var target=new com.vncode.app.integration.znack.ZnackRepository(new ZnackModels.ShopContext(owner.getId(),owner.getName()));target.saveSettings(target.getSettings().withDefaultGoodsDocument(document.type(),document.number(),document.date()));return true;},saved->status.setText(tr("znack.registration.config_saved")));
+        });
+    }
+    private void configureBrand(){
+        if(busy)return;
+        background(()->new com.vncode.app.integration.ozon.OzonShopBrand().load(owner),saved->{
+            var dialog=new Dialog<String>();if(getScene()!=null)dialog.initOwner(getScene().getWindow());dialog.setTitle(tr("ozon.brand.configure"));
+            var brand=new TextField(saved);brand.setId("ozonShopBrandValue");brand.setPromptText(tr("znack.registration.brand"));
+            var hint=new Label(tr("ozon.brand.fallback_hint"));hint.setWrapText(true);hint.setMaxWidth(440);
+            dialog.getDialogPane().setContent(new VBox(12,hint,brand));dialog.getDialogPane().setPrefWidth(480);
+            var apply=new ButtonType(tr("common.apply"),ButtonBar.ButtonData.OK_DONE);dialog.getDialogPane().getButtonTypes().setAll(apply,ButtonType.CANCEL);
+            DialogLayout.install(dialog.getDialogPane());dialog.setResultConverter(button->button==apply?brand.getText().strip():null);
+            dialog.showAndWait().ifPresent(value->background(()->{new com.vncode.app.integration.ozon.OzonShopBrand().save(owner,value);return true;},ok->status.setText(tr("znack.status.saved"))));
         });
     }
     private void syncCatalog(){

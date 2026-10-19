@@ -35,7 +35,7 @@ class RegistrationSyncReportDialogTest {
     }
     @Test void reportReadsNewTerminalStateAndItsSafeError()throws Exception {
         new com.vncode.app.features.sync.SyncRunRepository().stage(shop,run,"FAILED","READING_ZNACK","NETWORK_TIMEOUT");
-        fx(()->{button("refresh").fire();return null;});awaitIdle();fx(()->{assertTrue(label("summary").getText().contains("NETWORK_TIMEOUT"));assertTrue(label("events").getText().contains("READING_ZNACK"));return null;});
+        fx(()->{button("refresh").fire();return null;});awaitIdle();fx(()->{assertTrue(label("summary").getText().contains("NETWORK_TIMEOUT"),label("summary").getText());assertTrue(label("events").getText().contains(com.vncode.app.shared.I18nService.getInstance().tr("znack.registration.report_step.READING_ZNACK")),label("events").getText());return null;});
     }
     @Test void sourceReceiptExplicitlyStatesThatItDidNotRegisterCards()throws Exception{
         fx(()->{assertTrue(label("summary").getText().contains(com.vncode.app.shared.I18nService.getInstance().tr("znack.registration.report_sources_only")));return null;});
@@ -46,7 +46,18 @@ class RegistrationSyncReportDialogTest {
         repository.add(shop,attempt,"1","offer-1","sku-1","Article","Brown","52","","NEEDS_ACTION","ZNACK_MISSING_PRODUCT_DOCUMENT","{}");
         repository.stage(shop,attempt,"PARTIAL","PREFLIGHT","ZNACK_REGISTRATION_NEEDS_ACTION");
         fx(()->{report.dispose();report=new RegistrationSyncReportDialog.Report(shop,attempt);return null;});awaitIdle();
-        fx(()->{assertEquals(1,table().getItems().size());assertTrue(label("summary").getText().contains("ZNACK_REGISTRATION_NEEDS_ACTION"));return null;});
+        fx(()->{assertEquals(1,table().getItems().size());assertTrue(label("summary").getText().contains("ZNACK_REGISTRATION_NEEDS_ACTION"),label("summary").getText());return null;});
+    }
+    @Test void marketplaceReadbackIsReportedAsUpdatedWhileLocalActivationIsPending()throws Exception{
+        var repository=new com.vncode.app.features.sync.SyncRunRepository();String gtinRun=repository.begin(shop,"znack_marketplace","READBACK");
+        repository.add(shop,gtinRun,"1","v1","","","","","04631993764370","WAITING_REMOTE","","{\"marketplaceVerified\":true}");
+        repository.add(shop,gtinRun,"2","v2","","","","","04631993764363","WAITING_REMOTE","READBACK_PENDING","{}");
+        repository.add(shop,gtinRun,"3","v3","","","","","04631993764356","NEEDS_ACTION","GTIN_TNVED_GROUP_CHANGED","{}");
+        repository.add(shop,gtinRun,"4","v4","","","","","","NEEDS_ACTION","ZNACK_MAPPING_UNVERIFIED","{}");
+        var counts=repository.marketplaceCounts(gtinRun);assertEquals(1L,counts.get("UPDATED"));assertEquals(3L,counts.get("WITH_GTIN"));assertEquals(1L,counts.get("WITHOUT_GTIN"));assertEquals(2L,counts.get("NOT_UPDATED"));
+        fx(()->{report.dispose();report=new RegistrationSyncReportDialog.Report(shop,gtinRun);return null;});awaitIdle();
+        fx(()->{assertTrue(label("summary").getText().contains("1/3"));assertEquals(4,table().getItems().size());return null;});
+        assertEquals("WAITING_REMOTE",repository.items(gtinRun,0,10).getFirst().state(),"Reporting must not bypass native candidate activation");
     }
     @SuppressWarnings("unchecked") TableView<?> table(){return (TableView<?>)report.lookup("#registrationSyncReportItems");}
     private Object field(String name)throws Exception{var f=RegistrationSyncReportDialog.Report.class.getDeclaredField(name);f.setAccessible(true);return f.get(report);}

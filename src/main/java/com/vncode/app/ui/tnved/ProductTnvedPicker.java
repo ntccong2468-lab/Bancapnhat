@@ -21,7 +21,7 @@ public final class ProductTnvedPicker {
         var browser=new FashionTnvedBrowser();var hint=new Label(tr("tnved.picker_scope")+" "+selected.stream().map(ProductKey::cardId).distinct().count());hint.setWrapText(true);
         var applyEach=new Button(tr("tnved.use_each"));applyEach.setId("tnvedApplyEach");applyEach.setDisable(true);var progress=new Label(tr("tnved.proposals_loading"));progress.setWrapText(true);
         var chosen=new LinkedHashMap<String,FashionTnvedCatalog.Entry>();
-        Runnable updateApply=()->applyEach.setDisable(selected.stream().map(ProductKey::cardId).distinct().anyMatch(id->!chosen.containsKey(id)));
+        Runnable updateApply=()->{boolean complete=selected.stream().map(ProductKey::cardId).distinct().allMatch(chosen::containsKey);applyEach.setDisable(!complete);browser.setDefaultApply(applyEach::fire,complete);};
         var table=new TableView<ProductTnvedAdvisor.Proposal>();table.setId("tnvedProposals");table.setPrefHeight(170);table.setMinHeight(90);table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
         column(table,tr("jobs.product"),p->p.title(),240);column(table,tr("edit.before"),ProductTnvedAdvisor.Proposal::current,110);
         var proposalColumn=new TableColumn<ProductTnvedAdvisor.Proposal,ProductTnvedAdvisor.Proposal>(tr("tnved.proposal"));proposalColumn.setMinWidth(180);proposalColumn.setPrefWidth(300);proposalColumn.setCellValueFactory(v->new javafx.beans.property.ReadOnlyObjectWrapper<>(v.getValue()));

@@ -24,6 +24,9 @@ class FashionTnvedBrowserTest {
             var apply=(Button)browser.lookup("#tnvedReferenceApply");assertFalse(apply.isDisabled());apply.fire();assertEquals("6112110000",selected.get().code());return null;
         });
     }
+    @Test void applyUsesTheCompletePerProductProposalUntilSellerChoosesAGlobalCode()throws Exception{
+        fx(()->{var browser=new FashionTnvedBrowser();new Scene(browser,1000,620);browser.applyCss();browser.layout();var chosen=new AtomicReference<Entry>();var applied=new java.util.concurrent.atomic.AtomicInteger();browser.setOnSelect(chosen::set);browser.setDefaultApply(applied::incrementAndGet,true);var apply=(Button)browser.lookup("#tnvedReferenceApply");assertFalse(apply.isDisabled());apply.fire();assertEquals(1,applied.get());assertNull(chosen.get());browser.selectCode("6112110000");apply.fire();assertEquals("6112110000",chosen.get().code());assertEquals(1,applied.get());return null;});
+    }
     @Test void actualMouseClickCopiesCodeWithoutApplyingOrClosingThePicker()throws Exception{
         var selected=new AtomicReference<Entry>();var stage=new javafx.stage.Stage[1];
         String code=fx(()->{

@@ -55,6 +55,7 @@ public final class OzonCardRegistrationWorkflow {
         Shop shop=capture(selected);
         require(shop,key);LicenseRuntime.require(Permission.SELLER_API);
         var snapshot=snapshots.read(shop,key);if(!snapshot.key().equals(key))throw new IllegalStateException("product_mismatch");
+        snapshot=new com.vncode.app.integration.ozon.OzonShopBrand().apply(shop,snapshot);
         String tnved=suppliedTnved==null?tnved(snapshot):suppliedTnved.strip();
         var settings=settings(shop);var docs=ZnackRegistrationDocuments.select(snapshot,settings,LocalDate.now());
         String owner=ListingIdentity.fingerprint(shop);
@@ -227,7 +228,7 @@ public final class OzonCardRegistrationWorkflow {
                 if(Thread.currentThread().isInterrupted())return;var row=repository.find(key);if(row==null||row.feedId().isBlank()||row.status()==Status.PUBLISHED)continue;
                 try{repository.guard(shop,key,scope);LicenseRuntime.require(Permission.GTIN);RegistrationSigningConsent.set(shop,key,row.gtin(),true);poll(shop,key,session,true,callback);}
                 catch(com.vncode.app.features.license.LicenseGate.LicenseDeniedException|ZnackRegistrationScope.ScopeChangedException stopped){throw stopped;}
-                catch(Exception failure){if(failure instanceof InterruptedException){Thread.currentThread().interrupt();return;}fail(key,callback,failure);}
+                catch(Exception failure){if(failure instanceof InterruptedException){Thread.currentThread().interrupt();return;}fail(key,callback,failure);if(CatalogFeedback.rateLimited(failure))return;}
             }
         },null,callback);
     }
@@ -251,18 +252,23 @@ public final class OzonCardRegistrationWorkflow {
         boolean auto=RegistrationSigningConsent.allowed(shop,key,row.gtin());
         if(auto)try{LicenseRuntime.require(Permission.GTIN);}catch(com.vncode.app.features.license.LicenseGate.LicenseDeniedException paused){auto=false;}
         poll(shop,key,session,auto,null);return repository.find(key).status()==Status.PUBLISHED;
-        }finally{RUNNING.remove(operation);}
+        }catch(Exception error){if(CatalogFeedback.notFound(error)){fail(key,null,error);return false;}throw error;}
+        finally{RUNNING.remove(operation);}
+    }
+    void recordPollingFailure(Shop shop,ProductKey key,Exception failure){
+        var row=repository.find(key);if(row==null||row.status()==Status.PUBLISHED)return;
+        repository.guard(shop,key,scope(row));
+        repository.progress(key,row.status(),row.goodId(),com.vncode.app.integration.znack.ZnackErrorDetails.summary(failure));
     }
     private void submitPrepared(Shop shop,ProductKey key,CatalogSession session,BiConsumer<Status,String> callback)throws Exception {
         repository.guard(shop,key,session.scope());LicenseRuntime.require(Permission.GTIN);if(!repository.prepareExistingIdentity(shop,key,session.scope()))return;var row=repository.find(key);
         if(row.status()!=Status.READY_TO_SUBMIT||!row.feedId().isBlank())return;
-        if(!repository.transition(key,Status.READY_TO_SUBMIT,Status.FEED_SUBMITTING))return;
-        notify(callback,Status.FEED_SUBMITTING,"");
-        try{repository.guard(shop,key,session.scope());LicenseRuntime.require(Permission.GTIN);}
-        catch(RuntimeException knownUnsent){repository.transition(key,Status.FEED_SUBMITTING,Status.READY_TO_SUBMIT);throw knownUnsent;}
         String feed;
-        try{feed=session.catalog().submit(session.token(),JsonParser.parseString(row.payload()).getAsJsonObject());}
-        catch(com.vncode.app.features.license.LicenseGate.LicenseDeniedException denied){repository.transition(key,Status.FEED_SUBMITTING,Status.READY_TO_SUBMIT);throw denied;}
+        try{feed=session.catalog().submit(session.token(),JsonParser.parseString(row.payload()).getAsJsonObject(),()->{
+            repository.guard(shop,key,session.scope());LicenseRuntime.require(Permission.GTIN);
+            if(!repository.transition(key,Status.READY_TO_SUBMIT,Status.FEED_SUBMITTING))throw new IllegalStateException("REGISTRATION_CHANGED");
+            notify(callback,Status.FEED_SUBMITTING,"");
+        });}catch(com.vncode.app.features.license.LicenseGate.LicenseDeniedException denied){repository.transition(key,Status.FEED_SUBMITTING,Status.READY_TO_SUBMIT);throw denied;}
         repository.submitted(key,feed);notify(callback,Status.FEED_SUBMITTED,"");
         new com.vncode.app.features.sync.SyncStreamStore().request(shop,"ZNACK");
     }
@@ -294,7 +300,7 @@ public final class OzonCardRegistrationWorkflow {
                 dispatched.set(true);
             });
         }catch(Exception failure){
-            if(!dispatched.get()){repository.releaseSignature(key,document.sha256());notify(callback,Status.READY_TO_SIGN,"signing_not_sent");return;}
+            if(!dispatched.get()){repository.releaseSignature(key,document.sha256());throw failure;}
             repository.uncertain(key,Status.SIGNING);
         }
         repository.guard(shop,key,session.scope());var after=session.catalog().progress(session.token(),row.feedId(),row.gtin());
@@ -309,8 +315,16 @@ public final class OzonCardRegistrationWorkflow {
     private boolean schedule(Shop shop,Action action,ProductKey key,BiConsumer<Status,String> callback) {
         String namespace=namespace(shop);if(!RUNNING.add(namespace))return false;
         var completion=new CompletableFuture<Void>();COMPLETIONS.put(namespace,completion);
-        try {executor.execute(()->{try{action.run();}catch(Exception failure){if(failure instanceof InterruptedException)Thread.currentThread().interrupt();fail(key,callback,failure);}finally{RUNNING.remove(namespace);completion.complete(null);COMPLETIONS.remove(namespace,completion);}});return true;}
+        try {executor.execute(()->{try{action.run();}catch(Exception failure){if(failure instanceof InterruptedException)Thread.currentThread().interrupt();fail(key,callback,failure);}finally{requestUnsentContinuation(shop,key);RUNNING.remove(namespace);completion.complete(null);COMPLETIONS.remove(namespace,completion);}});return true;}
         catch(RejectedExecutionException full){RUNNING.remove(namespace);COMPLETIONS.remove(namespace,completion);completion.complete(null);return false;}
+    }
+    private void requestUnsentContinuation(Shop shop,ProductKey key){
+        if(key==null)return;
+        try{
+            var row=repository.find(key);if(row==null||row.status()!=Status.READY_TO_SUBMIT||!row.feedId().isBlank())return;
+            new com.vncode.app.features.sync.SyncStreamStore().request(shop,"ZNACK");
+            com.vncode.app.features.sync.SyncRuntime.requestIfRunning(shop,com.vncode.app.features.sync.SyncCoordinator.Stream.ZNACK);
+        }catch(RuntimeException unavailable){org.slf4j.LoggerFactory.getLogger(OzonCardRegistrationWorkflow.class).warn("Registration continuation could not be requested: {}",com.vncode.app.features.sync.SyncFailure.of(unavailable,0).code());}
     }
     private void fail(ProductKey key,BiConsumer<Status,String> callback,Throwable failure) {
         String error=CatalogFeedback.display(com.vncode.app.shared.FriendlyErrorService.format(failure));

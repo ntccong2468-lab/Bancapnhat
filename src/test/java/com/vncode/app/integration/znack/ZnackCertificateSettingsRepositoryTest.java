@@ -170,21 +170,19 @@ class ZnackCertificateSettingsRepositoryTest {
     }
 
     @Test
-    void activeKizWorkPreventsSignerChangeAndRollsBackSettings() throws Exception {
+    void activeKizWorkKeepsItsOriginalConnectionWhenSettingsChange() throws Exception {
         Settings initial = settings("selector-a", Instant.parse("2026-07-18T00:00:00Z"),
                 "{\"thumbprint\":\"AA11\"}");
         repository.saveSettings(initial);
         insertProduct("04600000000001");
-        repository.createPipeline("04600000000001", 1);
+        long pipeline=repository.createPipeline("04600000000001", 1);
         Settings verified = settings("selector-b", Instant.parse("2026-07-18T01:00:00Z"),
                 "{\"thumbprint\":\"BB22\"}");
 
-        assertThrows(ZnackRepository.SignerChangeBlockedException.class,
-                () -> repository.saveVerifiedCertificate(initial, verified));
-
-        assertEquals(initial, repository.getSettings());
-        assertEquals(1, repository.findProducts().size());
-        assertEquals(0, signatureAuditCount());
+        repository.saveVerifiedCertificate(initial, verified);
+        assertEquals(verified, repository.getSettings());
+        assertEquals(initial, repository.pipelineSettings(pipeline),"Previously accepted purchases retain the original signing connection");
+        assertEquals(1, signatureAuditCount());
     }
 
     @Test

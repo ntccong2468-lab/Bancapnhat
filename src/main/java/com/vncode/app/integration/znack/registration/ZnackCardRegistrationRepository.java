@@ -251,6 +251,13 @@ public class ZnackCardRegistrationRepository {
         }catch(SQLException error){throw new RuntimeException(error);}
     }
 
+    /** Called only when the transport guard proves the signing POST was never dispatched. */
+    public void releaseUnsentSignature(int shopId,long chrtId,String sha256){
+        try(var c=Database.getConnection();var p=c.prepareStatement("DELETE FROM znack_card_registration_signatures WHERE shop_id=? AND chrt_id=? AND document_sha256=? AND state='SENDING'")){
+            p.setInt(1,shopId);p.setLong(2,chrtId);p.setString(3,sha256);p.executeUpdate();
+        }catch(SQLException error){throw new IllegalStateException("Cannot release unsent signing review",error);}
+    }
+
     public Status checkpointStatus(int shopId,long chrtId) {
         return checkpoint(shopId,chrtId).status();
     }
@@ -369,7 +376,7 @@ public class ZnackCardRegistrationRepository {
     }
     public List<Sku> pendingStatus(int shopId,int limit){
         if(limit<1||limit>100)throw new IllegalArgumentException("REGISTRY_POLL_LIMIT");
-        String sql=SELECT+" AND (r.status IN ('FEED_SUBMITTED','PROCESSING','READY_TO_SIGN','SIGNING') OR r.status='ERROR' AND LOWER(TRIM(COALESCE(r.error_message,''))) IN ('registration interrupted','registration_interrupted','catalog_card_not_created_after_wait')) AND NULLIF(r.feed_id,'') IS NOT NULL GROUP BY c.shop_id,c.nm_id,s.chrt_id ORDER BY CASE r.status WHEN 'READY_TO_SIGN' THEN 1 ELSE 0 END,r.updated_at LIMIT ?";
+        String sql=SELECT+" AND ((r.status IN ('FEED_SUBMITTED','PROCESSING','READY_TO_SIGN','SIGNING') OR r.status='ERROR' AND LOWER(TRIM(COALESCE(r.error_message,''))) IN ('registration interrupted','registration_interrupted','catalog_card_not_created_after_wait')) AND NULLIF(r.feed_id,'') IS NOT NULL OR r.status='READY_TO_SUBMIT' AND NULLIF(r.gtin,'') IS NOT NULL AND NULLIF(r.feed_id,'') IS NULL AND NULLIF(r.payload_json,'') IS NOT NULL) GROUP BY c.shop_id,c.nm_id,s.chrt_id ORDER BY CASE r.status WHEN 'READY_TO_SIGN' THEN 1 ELSE 0 END,r.updated_at LIMIT ?";
         try(var c=Database.getConnection();var p=c.prepareStatement(sql)){p.setInt(1,shopId);p.setInt(2,limit);var rows=new ArrayList<Sku>();try(var r=p.executeQuery()){while(r.next())rows.add(map(r));}return List.copyOf(rows);}catch(SQLException e){throw new IllegalStateException("REGISTRY_READ_FAILED",e);}
     }
     public Instant submissionStarted(int shopId,Sku sku){

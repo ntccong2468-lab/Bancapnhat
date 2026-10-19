@@ -12,7 +12,16 @@ public final class ZnackGtinBackgroundService {
     public record Progress(int completed,int total,int succeeded,int pending,int blocked,int submitted){
         public Progress(int completed,int total,int succeeded,int pending,int blocked){this(completed,total,succeeded,pending,blocked,0);}
     }
-    public record Result(String run,Progress progress){}
+    public record Inventory(int total,int withGtin,int withoutGtin,int blockedBeforeUpdate) {}
+    public record Result(String run,Progress progress,Inventory inventory){
+        public Result(String run,Progress progress){this(run,progress,new Inventory(progress.total(),progress.total(),0,0));}
+    }
+    /** Preserve the complete run and confirmed results when a later request fails. */
+    public static final class RunException extends java.io.IOException {
+        private final Result result;
+        RunException(Result result,Exception cause){super("GTIN_UPDATE_PARTIAL",cause);this.result=result;}
+        public Result result(){return result;}
+    }
     /** Only thrown before any marketplace write has been attempted by this run. */
     public static final class PreparationException extends Exception {
         PreparationException(Exception cause){super("GTIN_SOURCE_PREPARATION_FAILED",cause);}
@@ -89,16 +98,24 @@ public final class ZnackGtinBackgroundService {
         try{run=operations.prepare(shop,phase);}
         catch(com.vncode.app.features.license.LicenseGate.LicenseDeniedException|SecurityException denied){throw denied;}
         catch(Exception failure){throw new PreparationException(failure);}
-        var rows=new ArrayList<SyncRunRepository.Item>();
+        var last=new Progress[]{new Progress(0,0,0,0,0)};
+        Consumer<Progress> updates=value->{last[0]=value;progress.accept(value);};
+        var rows=new ArrayList<SyncRunRepository.Item>();int covered=0,missing=0,excluded=0;
         for(int offset=0;;offset+=300){var page=operations.page(shop,run,offset);
-            for(var row:page)if(ZnackGtinReviewService.eligible(row)&&(selected.isEmpty()||selected.contains(new ProductKey(shop.getId(),shop.getMarketplace(),row.productId(),row.variantId()))))rows.add(row);
+            for(var row:page){
+                if(row.productId().startsWith("catalog:")||(!selected.isEmpty()&&!selected.contains(new ProductKey(shop.getId(),shop.getMarketplace(),row.productId(),row.variantId()))))continue;
+                covered++;if(row.gtin().isBlank())missing++;
+                if(ZnackGtinReviewService.eligible(row))rows.add(row);else if(!row.gtin().isBlank())excluded++;
+            }
             if(page.size()<300)break;
         }
+        var inventory=new Inventory(covered,covered-missing,missing,excluded);
         if(rows.isEmpty()){
             operations.noEligible(shop,run);
-            throw new IllegalStateException("GTIN_NO_ELIGIBLE_PUBLISHED_CARDS");
+            var empty=new Progress(0,0,0,0,0);updates.accept(empty);
+            return new Result(run,empty,inventory);
         }
-        int done=0,ok=0,pending=0,blocked=0;var submitted=new HashSet<com.vncode.app.features.gtinsync.GtinSyncModels.ProductKey>();progress.accept(new Progress(0,rows.size(),0,0,0));
+        int done=0,ok=0,pending=0,blocked=0;var submitted=new HashSet<com.vncode.app.features.gtinsync.GtinSyncModels.ProductKey>();updates.accept(new Progress(0,rows.size(),0,0,0));
         var chunks=new ArrayDeque<List<SyncRunRepository.Item>>();int size=Math.max(1,Math.min(operations.batchSize(),com.vncode.app.features.gtinsync.GtinBatchAdapter.MAX_PLAN_ROWS));
         for(int offset=0;offset<rows.size();offset+=size)chunks.addLast(List.copyOf(rows.subList(offset,Math.min(offset+size,rows.size()))));
         try {
@@ -114,7 +131,7 @@ public final class ZnackGtinBackgroundService {
                 var item=batch.getFirst();
                 operations.invalid(shop,run,item,invalid);
                 if(SyncFailure.of(invalid,0).actionRequired())blocked++;else pending++;
-                progress.accept(new Progress(++done,rows.size(),ok,pending,blocked,submitted.size()));continue;
+                updates.accept(new Progress(++done,rows.size(),ok,pending,blocked,submitted.size()));continue;
             }
             if(plan.readyCount()>0){
                 plan=operations.confirm(shop,plan);if(plan.confirmed())operations.link(shop,run,plan);
@@ -124,7 +141,7 @@ public final class ZnackGtinBackgroundService {
                     var status=item.status();var key=item.preview().before().key();var previous=observed.put(key,status);
                     if(previous!=null)countStatus(previous,counts,-1);countStatus(status,counts,1);
                     if(Set.of(com.vncode.app.features.gtinsync.GtinSyncModels.Status.AWAITING_VERIFICATION,com.vncode.app.features.gtinsync.GtinSyncModels.Status.RECONCILE_REQUIRED,com.vncode.app.features.gtinsync.GtinSyncModels.Status.SUCCEEDED).contains(status))submitted.add(key);
-                    progress.accept(new Progress(baseDone+counts[0],rows.size(),baseOk+counts[1],basePending+counts[2],baseBlocked+counts[3],submitted.size()));
+                    updates.accept(new Progress(baseDone+counts[0],rows.size(),baseOk+counts[1],basePending+counts[2],baseBlocked+counts[3],submitted.size()));
                 });operations.link(shop,run,plan);
             }
             operations.blocked(shop,run,batch,plan);
@@ -133,11 +150,12 @@ public final class ZnackGtinBackgroundService {
                 case BLOCKED -> blocked++;
                 default -> pending++;
             }
-            done+=batch.size();progress.accept(new Progress(done,rows.size(),ok,pending,blocked,submitted.size()));
+            done+=batch.size();updates.accept(new Progress(done,rows.size(),ok,pending,blocked,submitted.size()));
         }
         operations.finish(shop,run);
-        return new Result(run,new Progress(done,rows.size(),ok,pending,blocked,submitted.size()));
-        }finally{operations.close();}
+        return new Result(run,new Progress(done,rows.size(),ok,pending,blocked,submitted.size()),inventory);
+        }catch(Exception failure){throw new RunException(new Result(run,last[0],inventory),failure);}
+        finally{operations.close();}
     }
     private static void countStatus(com.vncode.app.features.gtinsync.GtinSyncModels.Status status,int[] counts,int direction){
         switch(status){

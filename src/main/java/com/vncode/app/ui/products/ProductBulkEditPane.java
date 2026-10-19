@@ -54,7 +54,13 @@ public final class ProductBulkEditPane extends BorderPane {
     javafx.beans.property.ReadOnlyStringProperty progressText(){return status.textProperty();}
     javafx.beans.property.ReadOnlyBooleanProperty backgroundRunning(){return backgroundRunning;}
     private void progress(ProductBulkEditService.Progress progress){
-        Platform.runLater(()->{if(disposed)return;status.setText(java.text.MessageFormat.format(tr("bulk.progress."+progress.step()),tr("bulk.field."+field),shop.getMarketplace()==com.vncode.app.integration.marketplace.Marketplace.WILDBERRIES?"Wildberries":"Ozon",progress.completed(),progress.total()));});
+        Platform.runLater(()->{if(disposed)return;status.setText(java.text.MessageFormat.format(tr("bulk.progress."+progress.step()),tr("bulk.field."+field),shop.getMarketplace()==com.vncode.app.integration.marketplace.Marketplace.WILDBERRIES?"Wildberries":"Ozon",progress.completed(),progress.total())+" · "+counts(progress));});
+    }
+    private String counts(ProductBulkEditService.Progress progress){return java.text.MessageFormat.format(tr("bulk.progress.counts"),progress.total(),progress.remaining(),progress.succeeded(),progress.failed(),progress.pending());}
+    private String counts(ProductEditResult result){
+        int succeeded=0,failed=0,pending=0;
+        for(var item:result.items())switch(item.state()){case RECONCILED->succeeded++;case FAILED,NEEDS_DATA->failed++;case REMOTE_PROCESSING,RECONCILE_REQUIRED,SENDING->pending++;default->{}}
+        return counts(new ProductBulkEditService.Progress("READBACK",result.items().size(),result.items().size(),succeeded,failed,pending));
     }
     void showBackgroundDetails(){
         var text=new StringBuilder(status.getText());
@@ -156,7 +162,7 @@ public final class ProductBulkEditPane extends BorderPane {
     private ProductBulkEdit edit(){
         if(!field.equals("documents"))return new ProductBulkEdit(field,Arrays.stream(value.getText().split("\\|",-1)).map(String::strip).toList(),null,field.equals("tnved")?perProductTnved:Map.of());
         DocumentDateInput.commit(from);if(!endless.isSelected())DocumentDateInput.commit(until);
-        if(number.getText().isBlank()||type.getText().isBlank()||from.getValue()==null||(!endless.isSelected()&&until.getValue()==null))throw new IllegalArgumentException("Document metadata missing");
+        if(number.getText().isBlank()||type.getText().isBlank()||(!existingOzonDocument()&&(from.getValue()==null||(!endless.isSelected()&&until.getValue()==null))))throw new IllegalArgumentException("Document metadata missing");
         var metadata=new HashMap<String,String>(selectedDocument==null?Map.of():selectedDocument.metadata());metadata.put("isEndless",Boolean.toString(endless.isSelected()));metadata.put("certificate_type",type.getText().strip());metadata.put("certificate_country",country.getText().strip());metadata.put("accordance_type",accordance.getText().strip());metadata.put("name",name.getText().strip());metadata.put("product_type",productType.getText().strip());metadata.put("link_to_registry",registry.getText().strip());metadata.put("type",type.getText().strip());
         var existing=selectedDocument;boolean reuse=existing!=null&&number.getText().strip().equals(existing.number())&&documentType(type.getText()).equals(documentType(existing.type()));
         String selectedType=reuse?existing.type():type.getText().strip();metadata.put("type",selectedType);metadata.put("certificate_type",reuse?existing.metadata().getOrDefault("certificate_type",selectedType):selectedType);
@@ -166,10 +172,10 @@ public final class ProductBulkEditPane extends BorderPane {
     private void prepare(){
         if(shop==null||keys.isEmpty()||busy)return;final ProductBulkEdit edit;
         try{edit=edit();}catch(RuntimeException invalid){status.setText(tr("date.invalid".equals(invalid.getMessage())?"date.invalid":"edit.needs_data"));return;}
-        var owner=shop;var selected=keys;long epoch=generation,inputRevision=revision;busy=true;ready=false;status.setText(tr(compact?"bulk.validating":"edit.preview_loading"));buttons();
+        var owner=shop;var selected=keys;long epoch=generation,inputRevision=revision;busy=true;ready=false;status.setText(tr(compact?"bulk.validating":"edit.preview_loading")+" · "+counts(new ProductBulkEditService.Progress("VALIDATING",0,(int)keys.stream().map(ProductKey::cardId).distinct().count())));buttons();
         reads.submit(new ShopReadCoordinator.Key(owner.getId(),"product-edit-preview",UUID.randomUUID().toString()),true,()->service.preview(owner,selected,edit,this::progress)).whenComplete((p,error)->Platform.runLater(()->{
             if(disposed||epoch!=generation)return;busy=false;
-            if(inputRevision!=revision){status.setText(tr(compact?"bulk.choose_apply":"edit.preview_required"));buttons();return;}
+            if(inputRevision!=revision){backgroundRunning.set(false);sendAfterPrepare=false;status.setText(tr(compact?"bulk.choose_apply":"edit.preview_required"));buttons();return;}
             if(error!=null){backgroundRunning.set(false);status.setText(FriendlyErrorService.format(unwrap(error)));buttons();return;}
             previewRevision=inputRevision;render(new ProductEditResult(p.id(),p.items(),false));
             if(sendAfterPrepare){sendAfterPrepare=false;if(ready){confirm.setSelected(true);submit();}else {backgroundRunning.set(false);status.setText(tr("edit.result_needs_action")+"\n"+p.items().stream().flatMap(i->i.issues().stream()).map(i->i.code()+" · "+i.field()).distinct().collect(java.util.stream.Collectors.joining("\n")));}}
@@ -199,7 +205,7 @@ public final class ProductBulkEditPane extends BorderPane {
         busy=true;buttons();
         reads.submitLocal(new ShopReadCoordinator.Key(owner.getId(),"product-edit-recovery",id),()->service.result(owner,id)).whenComplete((r,e)->Platform.runLater(()->{
             if(disposed||epoch!=generation)return;busy=false;if(e==null)render(r);
-            backgroundRunning.set(false);status.setText(errorMessage+"\n"+tr("edit.reconcile_hint"));buttons();
+            backgroundRunning.set(false);status.setText(errorMessage+"\n"+tr("edit.reconcile_hint")+(e==null?" · "+counts(r):""));buttons();
         }));
     }
     private void readResult(Shop owner,String id){
@@ -215,8 +221,8 @@ public final class ProductBulkEditPane extends BorderPane {
         ready=!result.items().isEmpty()&&result.items().stream().allMatch(i->i.state()==CopyState.AWAITING_CONFIRMATION&&i.preview().preview().publishable());
         boolean saved=!result.items().isEmpty()&&result.items().stream().allMatch(i->i.state()==CopyState.RECONCILED);
         confirm.setSelected(false);results.getSelectionModel().selectFirst();
-        status.setText(tr(saved?"edit.saved":pending(result)?"edit.readback_pending":ready?(compact?"bulk.validating":"edit.review"):"edit.result_needs_action"));
-        if(saved&&!Objects.equals(notifiedJob,result.id())){notifiedJob=result.id();if(onSaved!=null)onSaved.run();}
+        status.setText(tr(saved?"edit.saved":pending(result)?"edit.readback_pending":ready?(compact?"bulk.validating":"edit.review"):"edit.result_needs_action")+" · "+counts(result));
+        if(!pending(result)&&result.items().stream().anyMatch(i->i.state()==CopyState.RECONCILED)&&!Objects.equals(notifiedJob,result.id())){notifiedJob=result.id();if(onSaved!=null)onSaved.run();}
         buttons();
     }
     private String after(EditItem i){return i.changes().isEmpty()?i.documents()==null?"":String.join("; ",i.documents().stream().map(ProductDocument::number).toList()):String.join("; ",i.changes().values().stream().flatMap(Collection::stream).toList());}
@@ -235,7 +241,8 @@ public final class ProductBulkEditPane extends BorderPane {
         // A preview may become stale while typing; a send must retain its frozen inputs.
         boolean sending=busy&&jobId!=null;values.setDisable(sending);documents.setDisable(sending);
     }
-    private boolean compactInputPresent(){return field.equals("documents")?!number.getText().isBlank()&&!type.getText().isBlank()&&from.getValue()!=null&&(endless.isSelected()||until.getValue()!=null):!value.getText().isBlank();}
+    private boolean existingOzonDocument(){return shop!=null&&shop.getMarketplace()==com.vncode.app.integration.marketplace.Marketplace.OZON&&selectedDocument!=null&&!selectedDocument.id().isBlank()&&number.getText().strip().equals(selectedDocument.number())&&documentType(type.getText()).equals(documentType(selectedDocument.type()));}
+    private boolean compactInputPresent(){return field.equals("documents")?!number.getText().isBlank()&&!type.getText().isBlank()&&(existingOzonDocument()||from.getValue()!=null&&(endless.isSelected()||until.getValue()!=null)):!value.getText().isBlank();}
     private void updateCompactConfirmation(){
         if(compactConfirmation==null||shop==null)return;
         String proposal=field.equals("documents")?String.join(" · ",type.getText(),number.getText(),Objects.toString(from.getValue(),""),endless.isSelected()?tr("bulk.document_endless"):Objects.toString(until.getValue(),"")):perProductTnved.isEmpty()?value.getText().strip():tr("tnved.per_product_selected")+" "+perProductTnved.size();
@@ -287,23 +294,21 @@ public final class ProductBulkEditPane extends BorderPane {
     private void applyOnce(){if(busy)return;backgroundRunning.set(true);sendAfterPrepare=true;prepare();if(!busy){backgroundRunning.set(false);sendAfterPrepare=false;}}
     void compact(){
         compact=true;setPadding(new Insets(12));compactConfirmation=new Label();compactConfirmation.setId("bulkEditConfirmation");compactConfirmation.setWrapText(true);setTop(new VBox(8,title,compactConfirmation));title.setWrapText(true);status.setText(tr("bulk.choose_apply"));endless.setText(tr("bulk.document_endless"));
-        var form=new VBox(10);compactForm=form;form.setMinWidth(0);
+        var form=new VBox(10);compactForm=form;form.setMinWidth(0);Consumer<String> defaultValue=value::setText;
         if(field.equals("brand")){
             value.setPromptText(tr("bulk.brand_search"));suggestions.setPrefHeight(350);suggestions.setMinHeight(120);
             suggestions.getSelectionModel().selectedItemProperty().addListener((o,a,b)->{if(b!=null)value.setText(b);});
             form.getChildren().setAll(value,suggestions,suggestionStatus);
         }else if(field.equals("gender")){
             var group=new ToggleGroup();String[][] genders={{"Женский","female"},{"Мужской","male"},{"Девочки","girl"},{"Мальчики","boy"},{"Детский","child"}};
-            for(var gender:genders){var radio=new RadioButton(tr("bulk.gender."+gender[1])+" ("+gender[0]+")");radio.setToggleGroup(group);radio.setOnAction(e->value.setText(gender[0]));form.getChildren().add(radio);}
+            for(var gender:genders){var radio=new RadioButton(tr("bulk.gender."+gender[1])+" ("+gender[0]+")");radio.setToggleGroup(group);value.textProperty().addListener((o,a,b)->radio.setSelected(gender[0].equalsIgnoreCase(b.strip())));radio.setOnAction(e->value.setText(gender[0]));form.getChildren().add(radio);}
         }else if(field.equals("material")){
             var rows=new VBox(8);var total=new Label();var output=new Label();output.setWrapText(true);
             var add=new Button(tr("bulk.material_add"));add.setOnAction(e->addMaterial(rows,total,output));
             form.getChildren().setAll(new Label(tr("bulk.material_hint")),rows,add,total,output);addMaterial(rows,total,output);
-            var owner=shop;long epoch=generation;
-            reads.submitLocal(new ShopReadCoordinator.Key(shop.getId(),"bulk-material-defaults",UUID.randomUUID().toString()),()->new ProductRepository().localSnapshot(keys.getFirst()).map(p->ProductFieldNames.sourceAttributes("material",p.attributes()).stream().flatMap(a->a.values().stream()).flatMap(v->Arrays.stream(v.split("[,;|]"))).map(String::strip).filter(v->!v.isBlank()).toList()).orElse(List.of())).whenComplete((materials,error)->Platform.runLater(()->{
-                if(disposed||epoch!=generation||owner!=shop||error!=null||materials.isEmpty()||!value.getText().isBlank())return;
-                rows.getChildren().clear();for(String material:materials){var match=java.util.regex.Pattern.compile("^(.*?)\\s+(\\d{1,3})\\s*%$").matcher(material);if(match.matches())addMaterial(rows,total,output,match.group(1),Integer.parseInt(match.group(2)));else addMaterial(rows,total,output,material,0);}
-            }));
+            defaultValue=materials->{
+                rows.getChildren().clear();for(String material:materials.split("[|,;]")){var match=java.util.regex.Pattern.compile("^(.*?)\\s+(\\d{1,3})\\s*%$").matcher(material.strip());if(match.matches())addMaterial(rows,total,output,match.group(1),Integer.parseInt(match.group(2)));else addMaterial(rows,total,output,material.strip(),0);}
+            };
             suggestions.getItems().addListener((javafx.collections.ListChangeListener<String>)change->{for(var row:rows.getChildren())if(row instanceof HBox h&&h.getChildren().getFirst() instanceof ComboBox<?> raw){@SuppressWarnings("unchecked")var box=(ComboBox<String>)raw;String current=box.getEditor().getText();box.getItems().setAll(suggestions.getItems());box.getEditor().setText(current);}});
         }else if(field.equals("documents")){
             var existing=new ComboBox<ProductDocument>();existing.setId("bulkExistingDocument");existing.setPromptText(tr("bulk.document_existing"));existing.setMaxWidth(Double.MAX_VALUE);
@@ -312,12 +317,22 @@ public final class ProductBulkEditPane extends BorderPane {
             form.getChildren().setAll(existing,new FlowPane(12,8,declaration,certificate),line("copy.doc.number",number),new FlowPane(8,8,new Label(tr("copy.doc.from")),from),new FlowPane(8,8,new Label(tr("copy.doc.to")),until,endless));
             existing.setOnAction(e->{var d=existing.getValue();if(d==null)return;selectedDocument=d;number.setText(d.number());type.setText(d.type());from.setValue(d.validFrom());until.setValue(d.validUntil());endless.setSelected(Boolean.parseBoolean(d.metadata().getOrDefault("isEndless","false")));name.setText(d.metadata().getOrDefault("name",""));country.setText(d.metadata().getOrDefault("certificate_country",""));accordance.setText(d.metadata().getOrDefault("accordance_type",""));productType.setText(d.metadata().getOrDefault("product_type",""));registry.setText(d.metadata().getOrDefault("link_to_registry",""));file=d.file()==null||!"file".equalsIgnoreCase(d.file().getScheme())?null:java.nio.file.Path.of(d.file());certificate.setSelected(documentType(d.type()).equals("certificate"));declaration.setSelected(!certificate.isSelected());});
             if(shop.getMarketplace()==com.vncode.app.integration.marketplace.Marketplace.OZON)form.getChildren().add(new TitledPane(tr("edit.technical"),new VBox(6,line("copy.doc.name",name),line("copy.doc.certificate_country",country),line("copy.doc.accordance_type",accordance),line("copy.doc.product_type",productType),line("copy.doc.link_to_registry",registry),chooseFile)));
-            var captured=shop;long epoch=generation;reads.submitLocal(new ShopReadCoordinator.Key(shop.getId(),"bulk-documents",UUID.randomUUID().toString()),()->new ProductRepository().shopDocuments(captured)).whenComplete((docs,error)->Platform.runLater(()->{if(!disposed&&epoch==generation&&shop==captured&&error==null)existing.getItems().setAll(docs);}));
+            var captured=shop;long epoch=generation;reads.submitLocal(new ShopReadCoordinator.Key(shop.getId(),"bulk-documents",UUID.randomUUID().toString()),()->new ProductRepository().shopDocuments(captured)).whenComplete((docs,error)->Platform.runLater(()->{if(!disposed&&epoch==generation&&shop==captured&&error==null){existing.getItems().setAll(docs);if(!busy&&number.getText().isBlank())docs.stream().filter(d->captured.getMarketplace()==com.vncode.app.integration.marketplace.Marketplace.OZON&&!d.id().isBlank()||d.validFrom()!=null&&(d.validUntil()!=null||Boolean.parseBoolean(d.metadata().getOrDefault("isEndless","false")))).findFirst().ifPresent(d->existing.getSelectionModel().select(d));}}));
         }else form.getChildren().setAll(value);
         var scroll=new ScrollPane(form);scroll.setFitToWidth(true);setCenter(scroll);BorderPane.setMargin(scroll,new Insets(12,0,8,0));
         apply.setText(tr("common.apply"));apply.setOnAction(e->applyOnce());var progress=new ProgressIndicator();progress.setMaxSize(20,20);
         progress.visibleProperty().bind(backgroundRunning);progress.managedProperty().bind(progress.visibleProperty());
         setBottom(new VBox(8,status,new HBox(10,progress,apply)));buttons();
+        if(Set.of("brand","gender","material").contains(field))loadDefaultProposal(defaultValue);
+    }
+    private void loadDefaultProposal(Consumer<String> accept){
+        var owner=shop;var selected=keys;String editedField=field;long epoch=generation,inputRevision=revision;
+        status.setText(tr("bulk.proposal_loading"));
+        reads.submitLocal(new ShopReadCoordinator.Key(owner.getId(),"product-edit-default",UUID.randomUUID().toString()),()->suggestionsService.defaultValue(owner,selected,editedField)).whenComplete((proposal,error)->Platform.runLater(()->{
+            if(disposed||epoch!=generation||owner!=shop||inputRevision!=revision||busy||!value.getText().isBlank())return;
+            if(error==null&&proposal!=null&&!proposal.isBlank()){accept.accept(proposal);status.setText(tr("bulk.proposal_ready"));}
+            else status.setText(tr("bulk.proposal_missing"));
+        }));
     }
     private static String documentType(String value){return switch(Objects.toString(value,"").strip().toLowerCase(Locale.ROOT)){case "1","certificate","certificate_of_conformity"->"certificate";case "2","declaration"->"declaration";default->Objects.toString(value,"").strip().toLowerCase(Locale.ROOT);};}
     private void addMaterial(VBox rows,Label total,Label output){addMaterial(rows,total,output,"",0);}

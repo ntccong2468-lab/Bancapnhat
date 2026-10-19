@@ -17,6 +17,7 @@ public final class RegistrationCardIndex {
     private final OzonSkuGtinMatcher ozon;
     private final Set<Long> wbOwners=new HashSet<>();
     private final String owner,scopeJson;
+    private final long catalogErrors;
     public RegistrationCardIndex(Shop shop) {
         var ready=new RegistrationSources().require(shop);
         var scope=RegisteredGtinProof.current(shop);owner=ListingIdentity.fingerprint(shop);
@@ -29,6 +30,7 @@ public final class RegistrationCardIndex {
             scoped.add(row);codes.computeIfAbsent(normal(row.gtin()),k->new ArrayList<>()).add(row);
             attributes.computeIfAbsent(key(row.article(),row.color(),row.size()),k->new ArrayList<>()).add(row);
         }
+        catalogErrors=scoped.stream().filter(c->com.vncode.app.integration.znack.registration.CatalogCardState.of(c)==com.vncode.app.integration.znack.registration.CatalogCardState.ERRORS).count();
         ozon=new OzonSkuGtinMatcher(scoped,true);
         try(var c=Database.getConnection();var p=c.prepareStatement("SELECT chrt_id FROM znack_card_registration_scopes WHERE shop_id=? AND owner_hash=? AND participant_inn=? AND environment=? AND fingerprint=?")) {
             p.setInt(1,shop.getId());p.setString(2,owner);p.setString(3,nativeScope.inn());p.setString(4,nativeScope.environment());p.setString(5,nativeScope.fingerprint());
@@ -36,6 +38,7 @@ public final class RegistrationCardIndex {
         }catch(java.sql.SQLException e){throw new IllegalStateException("SYNC_STORAGE",e);}
         if(!ready.run().equals(new RegistrationSources().require(shop).run()))throw new IllegalStateException("SOURCE_CONFIGURATION_CHANGED");
     }
+    public long catalogErrorCount(){return catalogErrors;}
     public boolean ownsWb(long variant){return wbOwners.contains(variant);}
     public boolean ownsOzon(String owner,String scope){return this.owner.equals(owner)&&scopeJson.equals(scope);}
     public View view(Status status,String gtin,List<String> barcodes,String article,String color,String size,boolean nativeOwned) {

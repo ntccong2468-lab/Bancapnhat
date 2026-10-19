@@ -17,7 +17,7 @@ import java.util.*;
 import java.util.concurrent.*;
 import static org.junit.jupiter.api.Assertions.*;
 class ProductBulkDialogTest {
- @TempDir Path root;Shop shop=new Shop(1,"Fixture shop","fixture");ShopReadCoordinator reads;ProductBulkEditPane pane;Adapter adapter;ProductBulkEditService service;
+ @TempDir Path root;Shop shop=new Shop(1,"Fixture shop","fixture");ShopReadCoordinator reads;ProductBulkEditPane pane;Adapter adapter;ProductBulkEditService service;List<ProductAttribute> fixtureAttributes=List.of();
  List<ProductKey> keys=List.of(new ProductKey(1,com.vncode.app.integration.marketplace.Marketplace.WILDBERRIES,"123",""),new ProductKey(1,com.vncode.app.integration.marketplace.Marketplace.WILDBERRIES,"124",""));
  @BeforeAll static void start(){try{Platform.startup(()->Platform.setImplicitExit(false));}catch(IllegalStateException started){}}
  static <T>T fx(Callable<T> f)throws Exception{var task=new FutureTask<>(f);Platform.runLater(task);return task.get(10,TimeUnit.SECONDS);}
@@ -26,9 +26,25 @@ class ProductBulkDialogTest {
   reads=new ShopReadCoordinator(2,64);adapter=new Adapter();ProductSnapshotReader reader=(s,k)->snapshot(k);service=new ProductBulkEditService(new ProductEditRepository(),reader,s->adapter);
   var suggestions=new ProductSuggestionService(reader,s->adapter,k->Optional.of(snapshot(k)));fx(()->{pane=new ProductBulkEditPane(service,reads,suggestions);new Scene(pane,850,580);return null;});
  }
- ProductSnapshot snapshot(ProductKey key){return new ProductSnapshot(key,"live:fixture","Fixture","Keep description","Old","article-"+key.cardId(),"9",List.of(),List.of(),List.of(),new PackageDimensions(null,null,null,null),List.of(),Instant.now(),Map.of("owner",ListingIdentity.fingerprint(shop)));}
+ ProductSnapshot snapshot(ProductKey key){return new ProductSnapshot(key,"live:fixture","Fixture","Keep description","Old","article-"+key.cardId(),"9",List.of(),fixtureAttributes,List.of(),new PackageDimensions(null,null,null,null),List.of(),Instant.now(),Map.of("owner",ListingIdentity.fingerprint(shop)));}
  void idle()throws Exception{int stable=0;for(int i=0;i<500;i++){Thread.sleep(10);fx(()->null);if(reads.activeCount()==0&&reads.pendingCount()==0&&SellerMutationExecutor.activeCount()==0){if(++stable==3)return;}else stable=0;}fail("Batch edit did not settle");}
  @AfterEach void clean()throws Exception{fx(()->{pane.dispose();return null;});com.vncode.app.testsupport.ShopReadTestCleanup.closeAndAwait(reads);com.vncode.app.testsupport.ShopReadTestCleanup.awaitSharedIdle();System.clearProperty("vncode.appdata.dir");}
+ @Test void defaultProposalNeedsOnlyApplyForWb()throws Exception{defaultProposalNeedsOnlyApply(com.vncode.app.integration.marketplace.Marketplace.WILDBERRIES);}
+ @Test void defaultProposalNeedsOnlyApplyForOzon()throws Exception{defaultProposalNeedsOnlyApply(com.vncode.app.integration.marketplace.Marketplace.OZON);}
+ void defaultProposalNeedsOnlyApply(com.vncode.app.integration.marketplace.Marketplace marketplace)throws Exception{
+  shop=new Shop(1,"Fixture shop",marketplace,marketplace==com.vncode.app.integration.marketplace.Marketplace.OZON?"fixture-client":null,"fixture");
+  keys=List.of(new ProductKey(1,marketplace,"123",""),new ProductKey(1,marketplace,"124",""));
+  try(var c=Database.getConnection();var statement=c.prepareStatement("UPDATE shops SET marketplace=?,client_id=? WHERE id=1")){statement.setString(1,marketplace.name());statement.setString(2,shop.getClientId());statement.executeUpdate();}
+  fx(()->{pane.open(shop,"brand",keys);pane.compact();pane.applyCss();pane.layout();return null;});idle();
+  fx(()->{assertEquals("Old",((TextField)pane.lookup("#editValue")).getText());var button=(Button)pane.lookup("#editApply");assertFalse(button.isDisabled());button.fire();return null;});idle();
+  assertEquals(2,adapter.sent.size());assertTrue(service.result(shop,service.list(shop).getFirst()).items().stream().allMatch(i->i.state()==CopyState.RECONCILED));
+ }
+ @Test void genderAndCompositionAreAutomaticallyProposedFromSelectedProducts()throws Exception{
+  fixtureAttributes=List.of(new ProductAttribute("1","Пол",List.of("Мужской"),""),new ProductAttribute("2","Состав",List.of("хлопок 80%, полиэстер 20%"),""));
+  fx(()->{pane.open(shop,"gender",keys);pane.compact();pane.applyCss();pane.layout();return null;});idle();
+  fx(()->{assertTrue(pane.lookupAll(".radio-button").stream().map(n->(RadioButton)n).anyMatch(r->r.isSelected()&&r.getText().contains("Мужской")));assertFalse(((Button)pane.lookup("#editApply")).isDisabled());pane.open(shop,"material",keys);pane.compact();pane.applyCss();pane.layout();return null;});idle();
+  fx(()->{assertEquals(2,pane.lookupAll("#bulkMaterialName").size());assertFalse(((Button)pane.lookup("#editApply")).isDisabled());return null;});
+ }
  @Test void applyBrandOnceUpdatesEverySelectedCardWithoutPreviewOrPerCardPrompts()throws Exception{
   fx(()->{pane.open(shop,"brand",keys);pane.compact();pane.applyCss();pane.layout();assertNull(pane.lookup("#editResults"));assertNull(pane.lookup("#editPreview"));assertNull(pane.lookup("#editConfirm"));((TextField)pane.lookup("#editValue")).setText("New brand");((Button)pane.lookup("#editApply")).fire();return null;});idle();
   assertEquals(2,adapter.sent.size());assertTrue(adapter.sent.stream().allMatch(r->r.contains("New brand")));var result=service.result(shop,service.list(shop).getFirst());assertEquals(2,result.items().size());assertTrue(result.items().stream().allMatch(i->i.state()==CopyState.RECONCILED));
@@ -54,7 +70,7 @@ class ProductBulkDialogTest {
   var before=snapshot(keys.getFirst());var document=new ProductDocument("existing-doc","1","CERT-42",java.time.LocalDate.now().minusDays(1),java.time.LocalDate.now().plusYears(1),"Existing applicant","scope",null,shop.getMarketplace(),DocumentState.UNVERIFIED,"",null,Map.of("applicant","Existing applicant","tradeName","Original trade name","productNumber","Original product number"));
   new ProductRepository().saveVerifiedSnapshot(shop,new ProductSnapshot(before.key(),before.revision(),before.title(),before.description(),before.brand(),before.vendorArticle(),before.categoryId(),before.media(),before.attributes(),before.variants(),before.dimensions(),List.of(document),before.checkedAt(),before.metadata()));
   fx(()->{pane.open(shop,"documents",keys);pane.compact();pane.applyCss();pane.layout();return null;});idle();
-  fx(()->{var existing=(ComboBox<ProductDocument>)pane.lookup("#bulkExistingDocument");assertEquals(1,existing.getItems().size());existing.getSelectionModel().selectFirst();assertTrue(pane.lookupAll(".radio-button").stream().map(n->(RadioButton)n).anyMatch(r->r.getText().startsWith("Сертификат")&&r.isSelected()));pane.lookupAll(".radio-button").stream().map(n->(RadioButton)n).filter(r->r.getText().startsWith("Сертификат")).findFirst().orElseThrow().fire();var method=ProductBulkEditPane.class.getDeclaredMethod("edit");method.setAccessible(true);var edit=(ProductBulkEdit)method.invoke(pane);var retained=edit.documents().getFirst();assertEquals("existing-doc",retained.id());assertEquals("1",retained.type());assertEquals("Original trade name",retained.metadata().get("tradeName"));assertEquals("Original product number",retained.metadata().get("productNumber"));assertEquals("Existing applicant",retained.owner());pane.lookupAll(".check-box").stream().map(n->(CheckBox)n).findFirst().orElseThrow().setSelected(true);var noExpiry=((ProductBulkEdit)method.invoke(pane)).documents().getFirst();assertNull(noExpiry.validUntil());assertEquals("true",noExpiry.metadata().get("isEndless"));return null;});
+  fx(()->{var existing=(ComboBox<ProductDocument>)pane.lookup("#bulkExistingDocument");assertEquals(1,existing.getItems().size());assertNotNull(existing.getValue());assertFalse(((Button)pane.lookup("#editApply")).isDisabled());existing.getSelectionModel().selectFirst();assertTrue(pane.lookupAll(".radio-button").stream().map(n->(RadioButton)n).anyMatch(r->r.getText().startsWith("Сертификат")&&r.isSelected()));pane.lookupAll(".radio-button").stream().map(n->(RadioButton)n).filter(r->r.getText().startsWith("Сертификат")).findFirst().orElseThrow().fire();var method=ProductBulkEditPane.class.getDeclaredMethod("edit");method.setAccessible(true);var edit=(ProductBulkEdit)method.invoke(pane);var retained=edit.documents().getFirst();assertEquals("existing-doc",retained.id());assertEquals("1",retained.type());assertEquals("Original trade name",retained.metadata().get("tradeName"));assertEquals("Original product number",retained.metadata().get("productNumber"));assertEquals("Existing applicant",retained.owner());pane.lookupAll(".check-box").stream().map(n->(CheckBox)n).findFirst().orElseThrow().setSelected(true);var noExpiry=((ProductBulkEdit)method.invoke(pane)).documents().getFirst();assertNull(noExpiry.validUntil());assertEquals("true",noExpiry.metadata().get("isEndless"));return null;});
  }
  @Test void documentPickerIncludesOtherCardsOfTheShopButExcludesAnotherShop()throws Exception{
   var second=snapshot(keys.get(1));var doc=new ProductDocument("other-card-doc","2","DECL-88",java.time.LocalDate.now().minusDays(1),java.time.LocalDate.now().plusYears(1),"","",null,shop.getMarketplace(),DocumentState.UNVERIFIED,"",null);
@@ -88,7 +104,7 @@ class ProductBulkDialogTest {
     var window=javafx.stage.Window.getWindows().stream().filter(w->w.getScene()!=null&&w.getScene().getRoot() instanceof DialogPane d&&"productBulkEditDialog".equals(d.getId())).findFirst().orElseThrow();
     var dialog=(DialogPane)window.getScene().getRoot();
     var type=dialog.getButtonTypes().stream().filter(t->t.getButtonData()==ButtonBar.ButtonData.OK_DONE).findFirst().orElseThrow();var apply=(Button)dialog.lookupButton(type);
-    assertTrue(apply.isDisabled(),"An empty proposal cannot be confirmed");
+
     ((TextField)dialog.lookup("#editValue")).setText("Background brand");
     var confirmation=((Label)dialog.lookup("#bulkEditConfirmation")).getText();
     assertTrue(confirmation.contains("Background brand"));assertTrue(confirmation.contains(shop.getName()));assertTrue(confirmation.contains("2"));assertTrue(confirmation.contains("WB"));assertFalse(apply.isDisabled());

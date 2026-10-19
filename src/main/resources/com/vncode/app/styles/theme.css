@@ -1256,3 +1256,8 @@
 #productsPane #productClearSelection .ikonli-font-icon { -fx-icon-size: 18; }
 #productsPane .check-box:selected > .box, #productsPane .check-box:indeterminate > .box { -fx-background-color: #8952f6; -fx-border-color: #8952f6; }
 #productsPane .check-box:selected > .box > .mark, #productsPane .check-box:indeterminate > .box > .mark { -fx-background-color: white; }
+
+/* Permit state stays readable on every glass opacity. */
+.document-pending { -fx-text-fill: #b86800; -fx-icon-color: #b86800; }
+.document-rejected { -fx-text-fill: #cf263e; -fx-icon-color: #cf263e; }
+.document-valid { -fx-icon-color: #13b88a; }

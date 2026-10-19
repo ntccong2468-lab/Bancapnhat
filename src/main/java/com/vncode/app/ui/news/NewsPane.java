@@ -93,7 +93,7 @@ public final class NewsPane extends VBox {
   opened=item;showOriginal=false;requestTranslation(item);detailShown=true;renderDetail(item);scroll.setContent(detail);scroll.setVvalue(0);more.setVisible(false);more.setManaged(false);renderPreview();unread.accept(service.unreadCount());
  }
  public void back(){detailShown=false;opened=null;scroll.setContent(list);renderList();scroll.setVvalue(listScroll);Platform.runLater(()->{if(!detailShown){scroll.applyCss();scroll.layout();scroll.setVvalue(listScroll);}}); }
- private void renderList(){list.getChildren().clear();for(var item:visible)list.getChildren().add(row(item));if(visible.isEmpty())list.getChildren().add(busy?new LoadingSkeleton(tr("znack.registration.loading")):new Label(tr("news.empty")));more.setVisible(!ended&&!detailShown);more.setManaged(!ended&&!detailShown);}
+ private void renderList(){double position=scroll.getVvalue();list.getChildren().clear();for(var item:visible)list.getChildren().add(row(item));if(visible.isEmpty())list.getChildren().add(busy?new LoadingSkeleton(tr("znack.registration.loading")):new Label(tr("news.empty")));more.setVisible(!ended&&!detailShown);more.setManaged(!ended&&!detailShown);scroll.setVvalue(position);Platform.runLater(()->{if(!disposed&&!detailShown)scroll.setVvalue(position);});}
  private Button newsCard(NewsItem item,boolean dashboard) {
   if(dashboard||getScene()!=null)requestTranslation(item);var shown=display(item);
   var heading=new Label(shown.title());heading.setWrapText(true);heading.setMinWidth(0);heading.setMaxWidth(Double.MAX_VALUE);heading.getStyleClass().add("news-card-title");
@@ -107,13 +107,15 @@ public final class NewsPane extends VBox {
  }
  private Node row(NewsItem item){return newsCard(item,false);}
  private void renderPreview(){
+  var previous=(ScrollPane)preview.lookup("#newsPreviewScroll");double position=previous==null?0:previous.getVvalue();
   preview.getChildren().clear();preview.getStyleClass().setAll("news-preview");preview.setMinSize(0,0);
   Label heading=new Label(tr("news.title"));heading.getStyleClass().add("h2");var count=new Label(Integer.toString(service.unreadCount()));count.getStyleClass().add("unread-badge");count.setVisible(service.unreadCount()>0);count.setManaged(count.isVisible());
   var space=new Region();HBox.setHgrow(space,Priority.ALWAYS);var refresh=new Button();refresh.getStyleClass().add("btn-icon");refresh.setId("newsRefreshButton");refresh.setGraphic(new org.kordamp.ikonli.javafx.FontIcon("fth-refresh-cw"));refresh.setTooltip(new Tooltip(tr("news.refresh")));refresh.setAccessibleText(tr("news.refresh"));refresh.setOnAction(e->refreshAsync());
   preview.getChildren().add(new HBox(10,heading,count,space,refresh));var page=service.loadPage(null);
   var cards=new VBox(10);cards.setMinWidth(0);for(var item:page.items().stream().limit(2).toList())cards.getChildren().add(newsCard(item,true));
-  var feed=new ScrollPane(cards);feed.setId("newsPreviewScroll");feed.setFitToWidth(true);feed.setMinSize(0,0);feed.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);VBox.setVgrow(feed,Priority.ALWAYS);preview.getChildren().add(feed);
-  if(page.items().isEmpty()){var empty=new Label(tr("news.empty"));empty.getStyleClass().add("text-muted");preview.getChildren().add(empty);}
+  var feed=new ScrollPane(cards);feed.setId("newsPreviewScroll");feed.setFitToWidth(true);feed.setMinSize(0,0);feed.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);VBox.setVgrow(feed,Priority.ALWAYS);preview.getChildren().add(feed);feed.setVvalue(position);Platform.runLater(()->{if(!disposed)feed.setVvalue(position);});
+  if(page.items().isEmpty()&&busy)cards.getChildren().add(new LoadingSkeleton(tr("znack.registration.loading")));
+  if(page.items().isEmpty()&&!busy){var empty=new Label(tr("news.empty"));empty.getStyleClass().add("text-muted");preview.getChildren().add(empty);}
 
   Button all=new Button(tr("news.all"));all.setMaxWidth(Double.MAX_VALUE);all.setPrefHeight(46);all.setOnAction(e->{back();if(onOpenPage!=null)onOpenPage.run();});preview.getChildren().add(all);
  }

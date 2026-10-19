@@ -475,11 +475,11 @@ public class SupplyDetailController {
 
     public void setLoading(boolean loading, String message) {
         if (orderLoadingInline != null) {
-            orderLoadingInline.setVisible(loading);
+            orderLoadingInline.setVisible(false);
         }
         if (orderLoadingBox != null) {
-            orderLoadingBox.setVisible(loading);
-            orderLoadingBox.setManaged(loading);
+            orderLoadingBox.setVisible(false);
+            orderLoadingBox.setManaged(false);
         }
         if (orderLoadingLabel != null) {
             orderLoadingLabel.setText(message == null || message.isBlank()
@@ -487,10 +487,9 @@ public class SupplyDetailController {
                     : message);
         }
         if (loading) {
-            orderTable.setVisible(false);
-            orderTable.setManaged(false);
-            sortOptionsBox.setVisible(false);
-            sortOptionsBox.setManaged(false);
+            orderTable.setPlaceholder(new com.vncode.app.shared.LoadingSkeleton(message));
+            orderTable.setVisible(true);
+            orderTable.setManaged(true);
             emptyStateLabel.setVisible(false);
             emptyStateLabel.setManaged(false);
         }

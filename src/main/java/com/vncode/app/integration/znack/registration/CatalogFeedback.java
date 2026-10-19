@@ -9,6 +9,12 @@ public final class CatalogFeedback {
         for(Throwable error=failure;error!=null;error=error.getCause())if(error instanceof com.vncode.app.integration.znack.ZnackApiClient.ZnackApiException api&&api.statusCode()==404)return true;
         return false;
     }
+    public static boolean rateLimited(Throwable failure){
+        for(Throwable error=failure;error!=null;error=error.getCause())
+            if(error instanceof com.vncode.app.shared.RateLimitDeferral.Deferred
+                    ||error instanceof com.vncode.app.integration.znack.ZnackApiClient.ZnackApiException api&&api.statusCode()==429)return true;
+        return false;
+    }
     /** Only a persisted feed may use this classification, and only for readback. */
     public static boolean retryableRead(Throwable failure){
         for(Throwable error=failure;error!=null;error=error.getCause()){
@@ -34,6 +40,7 @@ public final class CatalogFeedback {
         case "carddraft"->"CATALOG_CARD_DRAFT";
         case "cardmoderation"->"CATALOG_CARD_IN_MODERATION";
         case "publicationpending"->"CATALOG_PUBLICATION_PENDING";
+        case "cardnotfound"->"CATALOG_SIGNING_DOCUMENT_PENDING";
         default->null;
     };}
     public static String display(String text) {

@@ -51,6 +51,41 @@ class RegistrationAttemptReportsTest {
         var otherOwner=new Shop(1,"WB","different-fixture");
         assertThrows(SecurityException.class,()->RegistrationAttemptReports.refresh(otherOwner,run,List.of(item)));
     }
+    @Test void entireSelectionIsReportedBeforeTheFirstCardStarts(){
+        var selected=new java.util.ArrayList<Sku>();selected.add(sku());
+        for(int n=1;n<=1000;n++)selected.add(new Sku(101,11+n,1,"Item-"+n,"","","Item","","L",List.of(),"",false,"",null,"",Status.NOT_CREATED,"",false,""));
+        var batch=new RegistrationAttemptReports(shop,selected);String run=batch.queue();
+        assertEquals(1001,reports.find(run).orElseThrow().total());assertEquals(1001L,reports.counts(run).get("QUEUED"));
+        batch.begin(selected.getFirst()).blocked("ZNACK_MISSING_PRODUCT_DOCUMENT");
+        assertEquals(1000L,reports.counts(run).get("QUEUED"));assertEquals(1L,reports.counts(run).get("NEEDS_ACTION"));
+        assertEquals(1,reports.items(run,1000,300).size());
+    }
+    @Test void cancellingThePreflightKeepsAllSelectedRowsAndNeverClaimsPublication(){
+        var batch=new RegistrationAttemptReports(shop,List.of(sku()));String run=batch.queue();batch.stopPending("ZNACK_REGISTRATION_REVIEW_CANCELLED",true);
+        assertEquals("CANCELLED",reports.find(run).orElseThrow().state());assertEquals(1L,reports.counts(run).get("CANCELLED"));
+        assertEquals(1,reports.find(run).orElseThrow().total());
+    }
+    static String gtin(int n){String body=String.format("046319%07d",n);int sum=0;for(int i=0;i<body.length();i++)sum+=(body.charAt(i)-'0')*(i%2==0?3:1);return body+((10-sum%10)%10);}
+    @Test void reopeningTheReportReconcilesEveryCardBeyondTheVisiblePage()throws Exception{
+        String run=reports.begin(shop,RegistrationAttemptReports.KIND,"PREFLIGHT");var items=new java.util.ArrayList<SyncRunRepository.Item>();
+        try(var c=Database.getConnection()){
+            c.setAutoCommit(false);
+            try(var size=c.prepareStatement("INSERT OR IGNORE INTO wb_product_sizes(shop_id,chrt_id,nm_id,tech_size) VALUES(1,?,101,'XL')");
+                var nativeRow=c.prepareStatement("INSERT INTO znack_card_registrations(shop_id,nm_id,chrt_id,gtin,feed_id,good_id,status,created_at,updated_at) VALUES(1,101,?,?,?,91,'PUBLISHED',?,?)");
+                var scope=c.prepareStatement("INSERT INTO znack_card_registration_scopes(shop_id,chrt_id,participant_inn,environment,fingerprint,created_at,owner_hash) VALUES(1,?,'fixture','fixture','fixture',?,?)")){
+                for(int n=11;n<661;n++){
+                    String feed="feed-"+n,now=Instant.now().toString(),gtin=gtin(n);size.setInt(1,n);size.addBatch();
+                    nativeRow.setInt(1,n);nativeRow.setString(2,gtin);nativeRow.setString(3,feed);nativeRow.setString(4,now);nativeRow.setString(5,now);nativeRow.addBatch();
+                    scope.setInt(1,n);scope.setString(2,now);scope.setString(3,ListingIdentity.fingerprint(shop));scope.addBatch();
+                    items.add(new SyncRunRepository.Item("i"+n,run,"101",Integer.toString(n),"","Item-"+n,"","XL",gtin,"WAITING_REMOTE","FEED_SUBMITTED","","","{\"feedId\":\""+feed+"\"}"));
+                }
+                size.executeBatch();nativeRow.executeBatch();scope.executeBatch();
+            }c.commit();
+        }
+        reports.addBatch(shop,run,items);long started=System.nanoTime();RegistrationAttemptReports.refreshAll(shop,reports.find(run).orElseThrow());
+        System.out.println("ZNACK_REPORT_BATCH synthetic=true rows=650 elapsed_ms="+(System.nanoTime()-started)/1_000_000.0);
+        assertEquals(650L,reports.counts(run).get("SUCCEEDED"));assertEquals("SUCCEEDED",reports.find(run).orElseThrow().state());
+    }
     @Test void unpreparedProductsCannotBeCountedAsSuccessful(){
         var row=sku();var other=new Sku(102,12,1,"Other","","","Other","","L",List.of(),"",false,"",null,"",Status.NOT_CREATED,"",false,"");
         var attempt=new RegistrationAttemptReports(shop,List.of(row,other)).begin(row);attempt.blocked("ZNACK_REQUIRED_ATTRIBUTES_MISSING");

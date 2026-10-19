@@ -73,9 +73,20 @@ class ProductBulkEditServiceTest {
         var progress=new java.util.ArrayList<ProductBulkEditService.Progress>();
         var preview=bulk.preview(shop,keys,edit(),progress::add);assertEquals(120,preview.items().size());
         var sent=bulk.apply(shop,preview.id(),true,progress::add);assertEquals(120,sent.items().size());assertEquals(120,adapter.writes.get());
+        assertTrue(progress.stream().filter(p->p.step().equals("SENDING")).allMatch(p->p.succeeded()==0));
         adapter.ready=true;var result=bulk.reconcile(shop,preview.id(),progress::add);assertTrue(result.items().stream().allMatch(i->i.state()==CopyState.RECONCILED));
         for(String phase:List.of("VALIDATING","SENDING","READBACK"))assertTrue(progress.stream().anyMatch(p->p.step().equals(phase)&&p.completed()==120&&p.total()==120),phase);
+        var finished=progress.getLast();assertEquals(120,finished.succeeded());assertEquals(0,finished.remaining());assertEquals(0,finished.failed());assertEquals(0,finished.pending());
         bulk.reconcile(shop,preview.id(),p->{throw new IllegalStateException("Observer failure");});assertEquals(120,adapter.writes.get());
+    }
+    @Test void rejectedAndConfirmedCardsHaveSeparateCountersAndPendingIsNeverSuccess()throws Exception{
+        var second=new ProductKey(1,Marketplace.WILDBERRIES,"124","1");var base=snapshot;
+        adapter=new FakeAdapter(){@Override public RemoteResult reconcile(Shop shop,RemoteSubmission request){return request.articles().contains("124")?new RemoteResult(CopyState.FAILED,List.of(),List.of(new CopyIssue("PRODUCT_UPDATE_REJECTED","fixture",true)),Map.of()):super.reconcile(shop,request);}};
+        var bulk=new ProductBulkEditService(repo,(s,k)->new ProductSnapshot(k,base.revision(),base.title(),base.description(),base.brand(),k.cardId(),base.categoryId(),base.media(),base.attributes(),base.variants(),base.dimensions(),base.documents(),base.checkedAt(),base.metadata()),s->adapter);
+        var preview=bulk.preview(shop,List.of(key,second),edit());var changes=new ArrayList<ProductBulkEditService.Progress>();bulk.apply(shop,preview.id(),true,changes::add);
+        assertEquals(0,changes.getLast().succeeded());assertEquals(2,changes.getLast().pending());
+        bulk.reconcile(shop,preview.id(),changes::add);var waiting=changes.getLast();assertEquals(0,waiting.succeeded());assertEquals(1,waiting.failed());assertEquals(1,waiting.remaining());assertEquals(1,waiting.pending());
+        adapter.ready=true;bulk.reconcile(shop,preview.id(),changes::add);var done=changes.getLast();assertEquals(1,done.succeeded());assertEquals(1,done.failed());assertEquals(0,done.remaining());assertEquals(0,done.pending());
     }
     @Test void separateDraftCannotOverwritePendingCard()throws Exception {
         var a=service.preview(shop,List.of(key),edit());var b=service.preview(shop,List.of(key),edit());service.apply(shop,a.id(),true);assertThrows(IllegalStateException.class,()->service.apply(shop,b.id(),true));assertEquals(1,adapter.writes.get());

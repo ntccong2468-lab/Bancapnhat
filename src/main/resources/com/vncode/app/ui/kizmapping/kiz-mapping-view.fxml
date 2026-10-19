@@ -17,7 +17,8 @@
    <graphic><FontIcon iconLiteral="fth-refresh-cw" iconSize="15"/></graphic>
   </Button>
  </HBox>
- <TableView fx:id="gtinTable" VBox.vgrow="ALWAYS">
+ <StackPane VBox.vgrow="ALWAYS">
+ <TableView fx:id="gtinTable">
   <columnResizePolicy>
    <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
   </columnResizePolicy>
@@ -31,5 +32,7 @@
    <TableColumn fx:id="actionsColumn" minWidth="225" prefWidth="235" text="%kiz_mapping.column.actions"/>
   </columns>
  </TableView>
+ <Label fx:id="syncStatusLabel" StackPane.alignment="BOTTOM_CENTER" visible="false" styleClass="mapping-sync-pill" wrapText="true" mouseTransparent="true"><StackPane.margin><Insets bottom="16" left="16" right="16"/></StackPane.margin></Label>
+ </StackPane>
  <Label fx:id="emptyStateLabel" managed="false" styleClass="text-muted" text="%kiz_mapping.empty_gtin" visible="false"/>
 </VBox>

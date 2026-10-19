@@ -29,13 +29,21 @@ class ZnackGtinBackgroundServiceTest {
   public Job execute(Shop s,String id)throws Exception{executions++;if(unknown)throw new java.io.IOException("uncertain send");return new Job(current.id(),current.shopId(),current.marketplace(),current.owner(),current.fields(),current.createdAt(),true,false,current.rows().stream().map(r->r.next(State.SUCCEEDED,"","")).toList());}
   public void link(Shop s,String run,Job j){assertTrue(j.confirmed());assertEquals(Set.of(Field.GTIN),j.fields());links++;}
  }
- @Test void emptyOrUnmatchedSelectionNeverReportsAnUpdateAsSuccessful() {
+ @Test void unmatchedSelectionReturnsAnHonestZeroUpdateReportInsteadOfLosingTheRun()throws Exception {
   var marked=new java.util.concurrent.atomic.AtomicInteger();
   var operations=new Operations(3){public void noEligible(Shop s,String run){marked.incrementAndGet();}};
   var wrong=new ProductKey(1,shop.getMarketplace(),"absent","absent");
-  var error=assertThrows(IllegalStateException.class,()->new ZnackGtinBackgroundService(operations).run(shop,Set.of(wrong),p->{throw new AssertionError("No successful progress is expected");}));
-  assertEquals("GTIN_NO_ELIGIBLE_PUBLISHED_CARDS",error.getMessage());assertEquals(1,marked.get());assertEquals(0,operations.executions);assertEquals(0,operations.links);
-  operations.items.clear();assertThrows(IllegalStateException.class,()->new ZnackGtinBackgroundService(operations).run(shop,Set.of(),p->{}));assertEquals(2,marked.get());
+  var result=new ZnackGtinBackgroundService(operations).run(shop,Set.of(wrong),p->assertEquals(0,p.succeeded()));
+  assertEquals("run",result.run());assertEquals(0,result.inventory().total());assertEquals(1,marked.get());assertEquals(0,operations.executions);
+ }
+ @Test void wholeShopReportCountsUnmatchedCardsAndBlockedGtinsWithoutSendingThem()throws Exception{
+  var operations=new Operations(2);
+  operations.items.add(new SyncRunRepository.Item("missing","run","p2","v2","","","","","","NEEDS_ACTION","MATCHING","ZNACK_MAPPING_UNVERIFIED","","{}"));
+  operations.items.add(new SyncRunRepository.Item("blocked","run","p3","v3","","","","","04610689132457","NEEDS_ACTION","MATCHING","GTIN_TNVED_GROUP_CHANGED","","{}"));
+  operations.items.add(new SyncRunRepository.Item("catalog","run","catalog:other","other","","","","","04610689132457","NEEDS_ACTION","MATCHING","","","{}"));
+  var result=new ZnackGtinBackgroundService(operations).run(shop,Set.of(),p->{});
+  assertEquals(4,result.inventory().total());assertEquals(3,result.inventory().withGtin());assertEquals(1,result.inventory().withoutGtin());assertEquals(1,result.inventory().blockedBeforeUpdate());
+  assertEquals(2,result.progress().succeeded());assertEquals(2,operations.executions);
  }
  @Test void processesEveryPageInBoundedChildrenAndReportsActualProgress()throws Exception{
   var operations=new Operations(650);var pulses=new ArrayList<ZnackGtinBackgroundService.Progress>();var result=new ZnackGtinBackgroundService(operations).run(shop,Set.of(),pulses::add);
@@ -77,6 +85,11 @@ class ZnackGtinBackgroundServiceTest {
  }
  @Test void uncertainWriteIsNeverAutomaticallyReplayed()throws Exception{
   var operations=new Operations(2);operations.unknown=true;assertThrows(java.io.IOException.class,()->new ZnackGtinBackgroundService(operations).run(shop,Set.of(),p->{}));assertEquals(1,operations.executions);assertEquals(0,operations.links);
+ }
+ @Test void aLaterFailedWriteKeepsTheReportAndEarlierConfirmedResults(){
+  var operations=new Operations(2){public Job execute(Shop s,String id)throws Exception{if(executions==1){executions++;throw new java.io.IOException("uncertain write");}return super.execute(s,id);}};
+  var error=assertThrows(ZnackGtinBackgroundService.RunException.class,()->new ZnackGtinBackgroundService(operations).run(shop,Set.of(),p->{}));
+  assertEquals("run",error.result().run());assertEquals(1,error.result().progress().succeeded());assertEquals(2,error.result().inventory().withGtin());assertEquals(2,operations.executions);
  }
  @Test void failedSourceSigningStopsBeforeAnyGtinWriteAndReportsTheActualCause() {
   for(var code:com.vncode.app.integration.znack.signature.CryptoProErrorCode.values()){

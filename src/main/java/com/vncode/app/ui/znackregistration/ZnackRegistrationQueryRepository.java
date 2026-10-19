@@ -85,7 +85,7 @@ public final class ZnackRegistrationQueryRepository {
             c.setAutoCommit(false);requireOwner(c,criteria.shopId());
             if(count(c,query)>MAX_SELECTION)throw new IllegalArgumentException("registration_selection_limit");
             try(var p=prepare(c,SELECT+query.where()+" ORDER BY c.vendor_code COLLATE NOCASE,s.tech_size COLLATE NOCASE,c.nm_id,s.chrt_id",query.parameters());var r=p.executeQuery()) {
-                while(r.next()) {Sku row=map(r);if(!matches(criteria,row))continue;var view=observations==null?null:view(row);boolean change=groupChanged(r);boolean register=row.canRegister()||row.needsGtinReview()||change;boolean replace=row.canRegisterNew()&&(!r.getBoolean("pending_replacement")||row.status()==Status.ERROR);
+                while(r.next()) {Sku row=map(r);if(!matches(criteria,row))continue;var view=observations==null?null:view(row);boolean change=groupChanged(r);boolean register=row.canRegister()||row.canResume()||row.needsGtinReview()||change;boolean replace=row.canRegisterNew()&&(!r.getBoolean("pending_replacement")||row.status()==Status.ERROR);
                     if(view!=null){register=register&&!view.blocked()&&(!view.published()||change);replace=replace&&!view.blocked()&&(view.published()||row.status()==Status.ERROR);}if(switch(mode){case 1->row.canSignApproved()&&(view==null||(!view.blocked()&&!view.published()));case 2->register||replace;case 3->replace;default->register;})rows.add(row);}
             }
             c.commit();return List.copyOf(rows);

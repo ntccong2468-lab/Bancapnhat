@@ -193,15 +193,42 @@ public final class ZnackNationalCatalogService {
     }
 
     public String submit(String token, JsonObject payload) throws Exception {
+        return submit(token,payload,()->{});
+    }
+    public String submit(String token,JsonObject payload,Runnable beforeSend)throws Exception {
         LicenseRuntime.require(Permission.GTIN);
         payload=normalizedFeed(payload);
+        validateExistingCard(token,payload);
         validateDocuments(token,payload);
+        LicenseRuntime.require(Permission.GTIN);
+        beforeSend.run();
         LicenseRuntime.require(Permission.GTIN);
         JsonObject result = resultObject(api.submitNationalCatalogFeed(
                 settings.resolvedTrueApiBaseUrl(), token, payload));
         String feedId = string(result, "feed_id");
         if (feedId.isBlank()) throw new IllegalStateException("National Catalog did not return feed_id.");
         return feedId;
+    }
+
+    /** Updating a card never changes the identity or tariff of the registered trade item. */
+    private void validateExistingCard(String token,JsonObject payload)throws Exception {
+        if(!payload.has("good_id"))return;
+        String gtin=string(payload,"gtin");
+        if(!com.vncode.app.features.gtinsync.RegisteredGtinValidator.isValid(gtin))throw new RegistrationValidationException("CATALOG_REPAIR_INVALID");
+        var card=readCard(token,gtin,payload.get("good_id").getAsLong());
+        if(card==null)throw new RegistrationValidationException("CATALOG_REPAIR_CARD_NOT_FOUND");
+        String registered=CatalogProductDataParser.parse(card).single("tnved"),requested=string(payload,"tnved");
+        for(var value:array(payload.get("good_attrs")))if(value.isJsonObject()&&number(value.getAsJsonObject(),"attr_id")==13933)
+            requested=string(value.getAsJsonObject(),"attr_value");
+        if(!registered.matches("[0-9]{4}|[0-9]{10}")||!requested.matches("[0-9]{4}|[0-9]{10}")
+                ||!registered.substring(0,4).equals(requested.substring(0,4))
+                ||registered.length()==10&&requested.length()==10&&!registered.equals(requested))
+            throw new RegistrationValidationException("CATALOG_REGISTERED_TNVED_MISMATCH");
+        for(String field:List.of("owner_inn","participant_inn")){
+            String owner=string(card,field);
+            if(!owner.isBlank()&&!owner.equals(settings.participantInn())&&!owner.equals(settings.ownerInn()))
+                throw new RegistrationValidationException("CATALOG_OWNER_MISMATCH");
+        }
     }
 
     /** v5.68 §3.2.2, including saved requests prepared by an older application. */
@@ -270,8 +297,17 @@ public final class ZnackNationalCatalogService {
     }
 
     public FeedProgress progress(String token, String feedId, String gtin) throws Exception {
-        JsonObject result = resultObject(api.nationalCatalogFeedStatus(
-                settings.resolvedTrueApiBaseUrl(), token, feedId));
+        JsonObject result;
+        try{result=resultObject(api.nationalCatalogFeedStatus(settings.resolvedTrueApiBaseUrl(),token,feedId));}
+        catch(Exception missingFeed){
+            if(!CatalogFeedback.notFound(missingFeed))throw missingFeed;
+            // Old imports can expire from feed history while their exact card still exists.
+            // A 404 is neither a rejection nor permission to resend the original request.
+            try{
+                var card=readCard(token,gtin,null);
+                return card==null?new FeedProgress("CardNotFound",null,List.of()):observedCard(card);
+            }catch(Exception missingCard){if(CatalogFeedback.notFound(missingCard))return new FeedProgress("CardNotFound",null,List.of());throw missingCard;}
+        }
         String status = string(result, "status");
         List<String> errors = new ArrayList<>();
         Long goodId = null;
@@ -322,7 +358,7 @@ public final class ZnackNationalCatalogService {
                 }else if(detailsState.contains("moderation"))status="CardModeration";
                 else if(!isPublished(card)&&detailsState.contains("draft")&&!detailsState.contains("notsigned"))status="CardDraft";
                 else if(!isPublished(card)&&detailsState.contains("notsigned"))status="Moderated";
-                else if("Moderated".equalsIgnoreCase(status)&&isPublished(card)
+                else if(isPublished(card)
                         &&java.util.Collections.disjoint(detailsState,Set.of("draft","moderation","errors","notsigned"))){status="Signed";publicationVerified=true;}
             }
         }
@@ -331,15 +367,23 @@ public final class ZnackNationalCatalogService {
             var card=readCard(token,gtin,goodId);
             if(card==null){status="Rejected";errors.add("CATALOG_FEED_COMPLETED_WITHOUT_CARD");}
             else if(isPublished(card)){
-                if(exactIdentities.size()!=1)throw new IllegalStateException("CATALOG_FEED_IDENTITY_NOT_CONFIRMED");
                 goodId=number(card,"good_id");if(goodId==0)goodId=number(card,"goodId");status="Signed";publicationVerified=true;
-            }
+            }else{var observed=observedCard(card);status=observed.status();goodId=observed.goodId();errors.addAll(observed.errors());}
         }
         // A signed feed is an acknowledgement for the import/signing request. It is
         // not proof that the product card is visible and published in the catalog.
         if("Signed".equalsIgnoreCase(status) && errors.isEmpty()&&!publicationVerified
                 && !publishedCard(token,gtin,goodId))status="PublicationPending";
         return new FeedProgress(status, goodId, List.copyOf(errors));
+    }
+
+    private static FeedProgress observedCard(JsonObject card){
+        long good=number(card,"good_id");if(good==0)good=number(card,"goodId");
+        var state=detailedState(card);
+        if(isPublished(card))return new FeedProgress("Signed",good,List.of());
+        if(!java.util.Collections.disjoint(state,Set.of("errors","error","rejected")))
+            return new FeedProgress("Rejected",good,List.of("CATALOG_CARD_REJECTED_DETAILS_UNAVAILABLE"));
+        return new FeedProgress(state.contains("moderation")?"CardModeration":state.contains("notsigned")?"Moderated":"CardDraft",good,List.of());
     }
 
     private static String attributeError(JsonObject error,String message){
@@ -375,6 +419,7 @@ public final class ZnackNationalCatalogService {
                 ||signed.isJsonPrimitive()&&signed.getAsJsonPrimitive().isBoolean()&&signed.getAsBoolean();
     }
     private JsonObject readCard(String token,String gtin,Long expectedId)throws Exception {
+        // Only a successful empty response proves absence. An HTTP 404 remains retryable.
         JsonElement response=unwrap(api.productCards(settings.resolvedTrueApiBaseUrl(),token,gtin));
         if(response==null||!response.isJsonArray())throw new IllegalStateException("CATALOG_PUBLICATION_RESPONSE_INVALID");
         JsonObject selected=null;

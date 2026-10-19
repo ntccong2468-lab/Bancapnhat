@@ -31,24 +31,45 @@ public final class RegistrationAttemptReports {
                     if(evidence.has("feedId")&&!evidence.get("feedId").isJsonNull()&&!evidence.get("feedId").getAsString().equals(feed))continue;
                     Status status=Status.valueOf(r.getString("status"));String state=state(status),step=status==Status.PUBLISHED?"CARD_PUBLISHED":status.name();
                     String error=state.equals("NEEDS_ACTION")?"ZNACK_REGISTRATION_NEEDS_ACTION":"";
-                    evidence.addProperty("feedId",feed);evidence.addProperty("goodId",r.getLong("good_id"));evidence.addProperty("publicationVerified",status==Status.PUBLISHED);
-                    if(!state.equals(item.state())||!step.equals(item.step())||!gtin.equals(item.gtin()))changes.add(new SyncRunRepository.Item(item.id(),item.runId(),item.productId(),item.variantId(),item.sku(),item.article(),item.color(),item.size(),gtin,state,step,error,item.childJob(),evidence.toString()));
+                    evidence.addProperty("reason",com.vncode.app.integration.znack.ZnackSanitizer.message(r.getString("error_message")));evidence.addProperty("feedId",feed);long good=r.getLong("good_id");if(r.wasNull())evidence.add("goodId",com.google.gson.JsonNull.INSTANCE);else evidence.addProperty("goodId",good);evidence.addProperty("publicationVerified",status==Status.PUBLISHED);
+                    if(!state.equals(item.state())||!step.equals(item.step())||!gtin.equals(item.gtin())||!error.equals(item.error())||!evidence.toString().equals(item.evidence()))changes.add(new SyncRunRepository.Item(item.id(),item.runId(),item.productId(),item.variantId(),item.sku(),item.article(),item.color(),item.size(),gtin,state,step,error,item.childJob(),evidence.toString()));
                 }
             }
         }catch(java.sql.SQLException error){throw new IllegalStateException("SYNC_STORAGE",error);}
-        for(var item:changes)reports.registrationProgress(shop,item,item.gtin(),item.state(),item.step(),item.error(),item.evidence());
+        reports.registrationProgressBatch(shop,run.id(),changes);
         if(!changes.isEmpty())finish(shop,reports,run.id(),changes.getLast().step());
+    }
+    public static void refreshAll(Shop shop,SyncRunRepository.Run run){
+        if(!KIND.equals(run.kind()))return;
+        var reports=new SyncRunRepository();
+        for(int offset=0;offset<run.total();offset+=1000){
+            var items=reports.items(run.id(),offset,1000);refresh(shop,run,items);
+            if(items.size()<1000)break;
+        }
     }
     public RegistrationAttemptReports(Shop shop){this(shop,List.of());}
     public RegistrationAttemptReports(Shop shop,List<Sku> selection){
         owner=new Shop(shop.getId(),shop.getName(),shop.getMarketplace(),shop.getClientId(),shop.getApiKey());this.selection=List.copyOf(selection);
     }
-    public synchronized Attempt begin(Sku sku){
+    public synchronized String queue(){
         if(run==null){
             run=reports.begin(owner,KIND,"PREFLIGHT");var queued=new ArrayList<SyncRunRepository.Item>();
             for(var row:selection)queued.add(new SyncRunRepository.Item(UUID.randomUUID().toString(),run,Long.toString(row.nmId()),Long.toString(row.chrtId()),"",text(row.vendorCode()),text(row.color()),text(row.size()),"","QUEUED","PREFLIGHT","","","{}"));
             reports.addBatch(owner,run,queued);
         }
+        return run;
+    }
+    public synchronized void stopPending(String code,boolean cancelled){
+        if(run==null)return;
+        for(int offset=0;;offset+=1000){
+            var page=reports.items(run,offset,1000);var changes=new ArrayList<SyncRunRepository.Item>();
+            for(var item:page)if("QUEUED".equals(item.state()))changes.add(new SyncRunRepository.Item(item.id(),run,item.productId(),item.variantId(),item.sku(),item.article(),item.color(),item.size(),item.gtin(),cancelled?"CANCELLED":"NEEDS_ACTION","PREFLIGHT",code,item.childJob(),item.evidence()));
+            if(!changes.isEmpty())reports.updateBatch(owner,run,changes);if(page.size()<1000)break;
+        }
+        finish(owner,reports,run,"PREFLIGHT");
+    }
+    public synchronized Attempt begin(Sku sku){
+        queue();
         var item=reports.add(owner,run,Long.toString(sku.nmId()),Long.toString(sku.chrtId()),"",text(sku.vendorCode()),text(sku.color()),text(sku.size()),"","RUNNING","","{}");
         reports.update(owner,item,"RUNNING","PREFLIGHT","",null);
         reports.stage(owner,run,"RUNNING","PREFLIGHT","");
@@ -59,17 +80,18 @@ public final class RegistrationAttemptReports {
         private final SyncRunRepository.Item item;
         private Attempt(Sku sku,SyncRunRepository.Item item){this.sku=sku;this.item=item;}
         public String run(){return item.runId();}
-        public void blocked(String code){write("NEEDS_ACTION","PREFLIGHT",code,null);}
-        public void failed(Throwable error){blocked(SyncFailure.of(error,0).code());}
+        public void blocked(String code){write("NEEDS_ACTION","PREFLIGHT",code,null,code);}
+        public void waiting(Throwable error){write("WAITING_REMOTE","PREFLIGHT",SyncFailure.of(error,0).code(),null,com.vncode.app.integration.znack.ZnackSanitizer.error(error));}
+        public void failed(Throwable error){write("NEEDS_ACTION","PREFLIGHT",SyncFailure.of(error,0).code(),null,com.vncode.app.integration.znack.ZnackSanitizer.error(error));}
         public void observe(Status status,String detail){
             var current=new ZnackCardRegistrationRepository().find(owner.getId(),sku.chrtId());
             if(current==null||current.nmId()!=sku.nmId())throw new SecurityException("SYNC_OWNER_CHANGED");
             String state=state(status);
             String error=state.equals("NEEDS_ACTION")?SyncFailure.of(new IllegalStateException(detail),0).code():"CATALOG_READBACK_RETRY_PENDING".equals(detail)?detail:"";
-            write(state,status==Status.PUBLISHED?"CARD_PUBLISHED":status.name(),error,current);
+            write(state,status==Status.PUBLISHED?"CARD_PUBLISHED":status.name(),error,current,detail==null?current.errorMessage():detail);
         }
-        private void write(String state,String step,String error,Sku current){
-            var evidence=new JsonObject();evidence.addProperty("template",com.vncode.app.integration.znack.registration.RegistrationTemplate.defaults().id());
+        private void write(String state,String step,String error,Sku current,String detail){
+            var evidence=new JsonObject();evidence.addProperty("reason",com.vncode.app.integration.znack.ZnackSanitizer.message(detail));evidence.addProperty("template",com.vncode.app.integration.znack.registration.RegistrationTemplate.defaults().id());
             if(current!=null){
                 evidence.addProperty("feedId",current.feedId());evidence.addProperty("goodId",current.goodId());
                 evidence.addProperty("publicationVerified",state.equals("SUCCEEDED"));
@@ -88,7 +110,7 @@ public final class RegistrationAttemptReports {
     private static void finish(Shop owner,SyncRunRepository reports,String run,String step){
         var counts=reports.counts(run);
         String state=counts.getOrDefault("RUNNING",0L)+counts.getOrDefault("QUEUED",0L)>0?"RUNNING":counts.getOrDefault("WAITING_REMOTE",0L)>0?"WAITING_REMOTE"
-                :counts.getOrDefault("NEEDS_ACTION",0L)>0?"PARTIAL":"SUCCEEDED";
+                :counts.getOrDefault("NEEDS_ACTION",0L)>0?"PARTIAL":counts.getOrDefault("CANCELLED",0L)>0?"CANCELLED":"SUCCEEDED";
         reports.stage(owner,run,state,step,state.equals("PARTIAL")?"ZNACK_REGISTRATION_NEEDS_ACTION":"");
     }
 }

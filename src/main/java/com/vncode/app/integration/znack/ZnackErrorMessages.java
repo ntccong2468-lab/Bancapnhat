@@ -43,7 +43,10 @@ public final class ZnackErrorMessages {
     public static String errorCode(String raw) {
         if (raw == null) return "";
         Matcher matcher = ERROR_CODE.matcher(raw);
-        return matcher.find() ? matcher.group(1) : "";
+        if(matcher.find())return matcher.group(1);
+        for(var code:com.vncode.app.integration.znack.signature.CryptoProErrorCode.values())
+            if(Pattern.compile("(?<![A-Z_])(?:CRYPTOPRO_|code=)?"+code.name()+"(?![A-Z_])").matcher(raw).find())return "CRYPTOPRO_"+code.name();
+        return "";
     }
 
     /** Human-readable form of a stored error; falls back to the raw text when nothing better is found. */

@@ -55,6 +55,7 @@ public final class FriendlyErrorService {
 
     private static String formatDetail(Throwable error) {
         if (error == null) return I18nService.getInstance().tr("znack.signature.error.failed");
+        if(error instanceof com.vncode.app.features.sync.ZnackGtinBackgroundService.RunException&&error.getCause()!=null)return formatDetail(error.getCause());
         Throwable cause=error;
         for(int depth=0;cause!=null&&depth<8;depth++,cause=cause.getCause()) {
             if(cause instanceof com.vncode.app.features.kiz.KizStockShortageException shortage)

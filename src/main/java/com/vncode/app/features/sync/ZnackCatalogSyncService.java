@@ -71,7 +71,7 @@ public final class ZnackCatalogSyncService {
             ZnackGtinAutoSync.markAutoSynced(shop.getId());flight.result.complete(result);return result;
         }catch(Exception failed){
             ZnackGtinAutoSync.retryAfterFailure(shop.getId());
-            if(!run.isBlank())try{reports.stage(shop,run,"FAILED",reports.step(run),SyncFailure.of(failed,0).code());}
+            if(!run.isBlank())try{reports.stage(shop,run,com.vncode.app.integration.znack.registration.CatalogFeedback.rateLimited(failed)?"WAITING_REMOTE":"FAILED",reports.step(run),SyncFailure.of(failed,0).code());}
             catch(RuntimeException reportingFailure){failed.addSuppressed(reportingFailure);}
             flight.result.completeExceptionally(failed);throw failed;
         }

@@ -25,9 +25,21 @@ public final class ProductBulkEditService {
         public boolean publishable(){return !items.isEmpty()&&items.stream().allMatch(i->i.preview().preview().publishable());}
     }
     public record ProductEditResult(String id,List<EditItem> items,boolean documentsVerified){public ProductEditResult{items=List.copyOf(items);}}
-    public record Progress(String step,int completed,int total){}
+    public record Progress(String step,int completed,int total,int succeeded,int failed,int pending){
+        public Progress(String step,int completed,int total){this(step,completed,total,0,0,0);}
+        public int remaining(){return Math.max(0,total-succeeded-failed);}
+    }
     private static void progress(java.util.function.Consumer<Progress> listener,String step,int done,int total){
         try{listener.accept(new Progress(step,done,total));}catch(RuntimeException ignored){/* Progress cannot change a durable mutation. */}
+    }
+    private static final class ProgressTracker {
+        private final java.util.function.Consumer<Progress> listener;
+        private final Map<ProductKey,CopyState> states=new HashMap<>();
+        private int succeeded,failed,pending;
+        ProgressTracker(java.util.function.Consumer<Progress> listener,List<EditItem> items){this.listener=listener;items.forEach(this::update);}
+        void update(EditItem item){var previous=states.put(item.key(),item.state());if(previous!=null)count(previous,-1);count(item.state(),1);}
+        private void count(CopyState state,int delta){switch(state){case RECONCILED->succeeded+=delta;case FAILED,NEEDS_DATA->failed+=delta;case REMOTE_PROCESSING,RECONCILE_REQUIRED,SENDING->pending+=delta;default->{}}}
+        void emit(String step,int done){try{listener.accept(new Progress(step,done,states.size(),succeeded,failed,pending));}catch(RuntimeException ignored){}}
     }
     @FunctionalInterface public interface ApiSessions {ProductEditApiSession open(Shop shop,List<ProductKey> keys)throws IOException;}
     @FunctionalInterface private interface ApiWork<T> {T run()throws IOException;}
@@ -120,7 +132,7 @@ public final class ProductBulkEditService {
     private ProductEditResult applyLoaded(Shop shop,String id,boolean confirmed,java.util.function.Consumer<Progress> listener)throws IOException {
         if(!confirmed)throw new IllegalArgumentException("Explicit confirmation required");var approved=owned(shop,id);if(!approved.publishable())throw new IllegalStateException("Edit needs data");var items=repo.items(id);var adapter=adapter();
         if(items.stream().allMatch(i->i.preview().sourceRevision().startsWith("live:attributes:")))currentSession.get().useAttributeReads();
-        int sent=0,validated=0;progress(listener,"VALIDATING",0,items.size());
+        int sent=0,validated=0;var tracking=new ProgressTracker(listener,items);progress(listener,"VALIDATING",0,items.size());
         // Validate the complete batch before its first write. Submitted cards remain frozen.
         for(var i:items){if(i.state()==CopyState.AWAITING_CONFIRMATION){LicenseRuntime.require(LISTING_WRITE);LicenseRuntime.require(SELLER_API);var fresh=read(shop,i.key());requireFresh(shop,i.key(),fresh);if(!fresh.revision().equals(i.preview().sourceRevision()))throw new IllegalStateException("Product changed; preview again");var current=adapter.previewUpdate(shop,fresh,i.changes(),i.documents());if(!current.preview().publishable()||!current.preview().requestHash().equals(i.preview().preview().requestHash()))throw new IllegalStateException("Fields or documents changed; preview again");}progress(listener,"VALIDATING",++validated,items.size());}
         progress(listener,"SENDING",0,items.size());
@@ -143,17 +155,18 @@ public final class ProductBulkEditService {
                 repo.checkpoint(id,i.with(CopyState.NEEDS_DATA,null,List.of(new CopyIssue("PRODUCT_CHANGED","preview",true))),Set.of(CopyState.SENDING));
                 throw unsent;
             }
-            var unknown=unknown(shop,i);try{var r=adapter.submitUpdate(shop,i.preview());repo.checkpoint(id,i.with(CopyState.REMOTE_PROCESSING,r,List.of()),Set.of(CopyState.SENDING));}
-            catch(ListingRejectedException rejected){repo.checkpoint(id,i.with(CopyState.FAILED,unknown,List.of(new CopyIssue("PRODUCT_UPDATE_REJECTED",rejected.getMessage(),true))),Set.of(CopyState.SENDING));}
-            catch(IOException|RuntimeException e){repo.checkpoint(id,i.with(CopyState.RECONCILE_REQUIRED,unknown,List.of(new CopyIssue("RECONCILIATION_REQUIRED","submission",true))),Set.of(CopyState.SENDING));}
-            progress(listener,"SENDING",++sent,items.size());
+            var unknown=unknown(shop,i);EditItem outcome;
+            try{var r=adapter.submitUpdate(shop,i.preview());outcome=i.with(CopyState.REMOTE_PROCESSING,r,List.of());}
+            catch(ListingRejectedException rejected){outcome=i.with(CopyState.FAILED,unknown,List.of(new CopyIssue("PRODUCT_UPDATE_REJECTED",rejected.getMessage(),true)));}
+            catch(IOException|RuntimeException e){outcome=i.with(CopyState.RECONCILE_REQUIRED,unknown,List.of(new CopyIssue("RECONCILIATION_REQUIRED","submission",true)));}
+            if(!repo.checkpoint(id,outcome,Set.of(CopyState.SENDING)))throw new IllegalStateException("Product edit checkpoint changed; reconcile before retrying");tracking.update(outcome);tracking.emit("SENDING",++sent);
         }
         return result(shop,id);
     }
     private ProductEditResult applyBatches(Shop shop,String id,ProductEditPreview approved,List<EditItem> items,ProductUpdateBatchAdapter adapter,java.util.function.Consumer<Progress> listener)throws IOException{
         var awaiting=items.stream().filter(i->i.state()==CopyState.AWAITING_CONFIRMATION).toList();
         var byKey=new HashMap<ProductKey,EditItem>();for(var item:awaiting)byKey.put(item.key(),item);
-        int sent=items.size()-awaiting.size();
+        int sent=items.size()-awaiting.size();var tracking=new ProgressTracker(listener,items);
         for(var previews:adapter.updateBatches(awaiting.stream().map(EditItem::preview).toList())){
             var batch=previews.stream().map(p->byKey.get(p.key())).toList();
             LicenseRuntime.require(LISTING_WRITE);LicenseRuntime.require(SELLER_API);
@@ -193,7 +206,7 @@ public final class ProductBulkEditService {
             }catch(IOException|RuntimeException ambiguous){
                 outcomes=batch.stream().map(i->i.with(CopyState.RECONCILE_REQUIRED,unknowns.get(i.key()),List.of(new CopyIssue("RECONCILIATION_REQUIRED","submission",true)))).toList();
             }
-            checkpointBatch(id,outcomes);sent+=batch.size();progress(listener,"SENDING",sent,items.size());
+            checkpointBatch(id,outcomes);outcomes.forEach(tracking::update);sent+=batch.size();tracking.emit("SENDING",sent);
         }
         return result(shop,id);
     }
@@ -207,11 +220,31 @@ public final class ProductBulkEditService {
         return inSession(shop,approved.keys(),()->reconcileLoaded(shop,id,listener));
     }
     private ProductEditResult reconcileLoaded(Shop shop,String id,java.util.function.Consumer<Progress> listener)throws IOException {
-        currentSession.get().beginReadback();
-        owned(shop,id);var adapter=adapter();var items=repo.items(id);int checked=(int)items.stream().filter(i->i.state()!=CopyState.REMOTE_PROCESSING&&i.state()!=CopyState.RECONCILE_REQUIRED).count();progress(listener,"READBACK",checked,items.size());for(var i:items)if(i.state()==CopyState.REMOTE_PROCESSING||i.state()==CopyState.RECONCILE_REQUIRED){var r=i.submission()==null?unknown(shop,i):i.submission();if(r.submittedAt()==null&&shop.getMarketplace()==Marketplace.WILDBERRIES){var started=repo.submissionStarted(id,i.key());r=new RemoteSubmission(r.shopId(),r.marketplace(),r.owner(),r.requestHash(),r.taskId(),r.articles(),r.requestJson(),r.mediaJson(),r.documentsJson(),r.phase(),r.identities(),started);}var actual=adapter.reconcile(shop,r);var identities=new LinkedHashMap<>(r.identities());for(var entry:actual.identities().entrySet()){var prior=identities.putIfAbsent(entry.getKey(),entry.getValue());if(prior!=null&&!prior.equals(entry.getValue()))throw new SecurityException("Product readback identity changed");}var submitted=r.withPhase(r.phase(),identities);if(r.phase().equals("CARD")&&actual.issues().stream().anyMatch(v->v.code().equals("ASSETS_REQUIRED"))){LicenseRuntime.require(LISTING_WRITE);LicenseRuntime.require(SELLER_API);var assets=submitted.withPhase("ASSETS_SENDING",submitted.identities());if(!repo.claimAssets(id,i,assets))continue;try{var done=adapter.finishAssets(shop,assets);repo.checkpoint(id,i.with(CopyState.REMOTE_PROCESSING,done,List.of()),Set.of(CopyState.SENDING));}catch(IOException|RuntimeException e){repo.checkpoint(id,i.with(CopyState.RECONCILE_REQUIRED,assets,List.of(new CopyIssue("RECONCILIATION_REQUIRED","documents",true))),Set.of(CopyState.SENDING));}}else if(repo.checkpoint(id,i.with(actual.state(),submitted,actual.issues()),Set.of(CopyState.REMOTE_PROCESSING,CopyState.RECONCILE_REQUIRED))&&actual.state()==CopyState.RECONCILED){
-            // Refresh the complete cache through the same verified reader; cache failure cannot undo a known remote outcome.
-            try{currentSession.get().refreshCache(shop,i.key());}catch(IOException|RuntimeException unavailable){/* Explicit Products refresh remains available. */}
-        }progress(listener,"READBACK",++checked,items.size());}return result(shop,id);
+        currentSession.get().beginReadback();owned(shop,id);var adapter=adapter();var items=repo.items(id);
+        var tracking=new ProgressTracker(listener,items);
+        int checked=(int)items.stream().filter(i->i.state()!=CopyState.REMOTE_PROCESSING&&i.state()!=CopyState.RECONCILE_REQUIRED).count();tracking.emit("READBACK",checked);
+        for(var i:items)if(i.state()==CopyState.REMOTE_PROCESSING||i.state()==CopyState.RECONCILE_REQUIRED){
+            var r=i.submission()==null?unknown(shop,i):i.submission();
+            if(r.submittedAt()==null&&shop.getMarketplace()==Marketplace.WILDBERRIES){var started=repo.submissionStarted(id,i.key());r=new RemoteSubmission(r.shopId(),r.marketplace(),r.owner(),r.requestHash(),r.taskId(),r.articles(),r.requestJson(),r.mediaJson(),r.documentsJson(),r.phase(),r.identities(),started);}
+            var actual=adapter.reconcile(shop,r);var identities=new LinkedHashMap<>(r.identities());
+            for(var entry:actual.identities().entrySet()){var prior=identities.putIfAbsent(entry.getKey(),entry.getValue());if(prior!=null&&!prior.equals(entry.getValue()))throw new SecurityException("Product readback identity changed");}
+            var submitted=r.withPhase(r.phase(),identities);EditItem outcome;
+            if(r.phase().equals("CARD")&&actual.issues().stream().anyMatch(v->v.code().equals("ASSETS_REQUIRED"))){
+                LicenseRuntime.require(LISTING_WRITE);LicenseRuntime.require(SELLER_API);var assets=submitted.withPhase("ASSETS_SENDING",submitted.identities());
+                if(!repo.claimAssets(id,i,assets))continue;
+                try{outcome=i.with(CopyState.REMOTE_PROCESSING,adapter.finishAssets(shop,assets),List.of());}
+                catch(IOException|RuntimeException e){outcome=i.with(CopyState.RECONCILE_REQUIRED,assets,List.of(new CopyIssue("RECONCILIATION_REQUIRED","documents",true)));}
+                if(!repo.checkpoint(id,outcome,Set.of(CopyState.SENDING)))throw new IllegalStateException("Product edit checkpoint changed; reconcile before retrying");
+            }else{
+                outcome=i.with(actual.state(),submitted,actual.issues());
+                if(!repo.checkpoint(id,outcome,Set.of(CopyState.REMOTE_PROCESSING,CopyState.RECONCILE_REQUIRED)))throw new IllegalStateException("Product edit checkpoint changed; reconcile before retrying");
+                if(actual.state()==CopyState.RECONCILED){
+                    try{currentSession.get().refreshCache(shop,i.key());}catch(IOException|RuntimeException unavailable){/* A cache failure cannot undo a verified remote result. */}
+                }
+            }
+            tracking.update(outcome);tracking.emit("READBACK",++checked);
+        }
+        return result(shop,id);
     }
     public ProductEditResult result(Shop shop,String id){owned(shop,id);return new ProductEditResult(id,repo.items(id),false);}
     public List<String> list(Shop shop){ListingIdentity.require(shop);return repo.list(shop.getId(),ListingIdentity.fingerprint(shop));}

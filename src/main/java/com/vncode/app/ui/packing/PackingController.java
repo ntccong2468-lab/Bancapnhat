@@ -412,7 +412,9 @@ public class PackingController {
         newShipmentButton.setDisable(loading || selectedOrderIds.isEmpty() || !tokenValid);
         addToShipmentButton.setDisable(loading || selectedOrderIds.isEmpty() || !tokenValid);
         refreshButton.setDisable(loading || shop == null || !tokenValid);
-        refreshLoading.setVisible(loading);
+        refreshLoading.setVisible(false);
+        if(loading)newOrdersTable.setPlaceholder(new com.vncode.app.shared.LoadingSkeleton(I18nService.getInstance().tr("supply.loading_orders")));
+        else newOrdersTable.setPlaceholder(new Label(I18nService.getInstance().tr("supply_list.empty")));
         newOrdersTable.setDisable(loading);
         newOrderSearchField.setDisable(loading);
         categoryFilterMenuButton.setDisable(loading);

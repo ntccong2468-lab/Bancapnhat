@@ -24,6 +24,26 @@ class GtinBackgroundStatusTest {
   finish.countDown();task.get(3,TimeUnit.SECONDS);for(int i=0;i<100&&refreshed.get()<2;i++){Thread.sleep(10);fx(()->null);}
   fx(()->{assertEquals(2,refreshed.get());for(var pane:java.util.List.of(first,second)){assertTrue(pane.lookupAll(".label").stream().anyMatch(n->((Label)n).getText().contains("47")));assertTrue(pane.lookupAll(".progress-indicator").isEmpty());}return null;});
  }
+ @Test void completedPillDisappearsWithoutRemovingTheNextRunningTask()throws Exception{
+  var removed=new CountDownLatch(1);var host=fx(()->{
+   var pane=new StackPane();new Scene(pane,800,500);
+   var first=RegistrationStatusPill.show(pane,"registrationBackgroundPill","Finished",false);
+   RegistrationStatusPill.dismissAfter(pane,first,javafx.util.Duration.millis(40));
+   var next=RegistrationStatusPill.show(pane,"registrationBackgroundPill","Next card",true);
+   var timer=new javafx.animation.PauseTransition(javafx.util.Duration.millis(150));timer.setOnFinished(e->{assertTrue(pane.getChildren().contains(next));removed.countDown();});timer.play();
+   return pane;
+  });assertTrue(removed.await(3,TimeUnit.SECONDS));
+  var gone=new CountDownLatch(1);fx(()->{
+   var finished=RegistrationStatusPill.show(host,"registrationBackgroundPill","Finished",false);
+   host.getChildren().addListener((javafx.collections.ListChangeListener<javafx.scene.Node>)c->{if(!host.getChildren().contains(finished))gone.countDown();});
+   RegistrationStatusPill.dismissAfter(host,finished,javafx.util.Duration.millis(40));return null;
+  });assertTrue(gone.await(3,TimeUnit.SECONDS));
+  fx(()->{assertNull(host.lookup("#registrationBackgroundPill"));return null;});
+ }
+ @Test void resultCopySeparatesMarketplaceUpdatesFromUnmatchedAndUnconfirmedGtins(){
+  var result=new ZnackGtinBackgroundService.Result("run",new ZnackGtinBackgroundService.Progress(10,10,7,2,1),new ZnackGtinBackgroundService.Inventory(15,12,3,2));
+  String text=GtinBackgroundStatus.summary(result);assertTrue(text.contains("7/12"));assertTrue(text.contains("5"));assertTrue(text.contains("3"));assertFalse(text.contains("gtin.background.summary"));
+ }
  @Test void failedCatalogAuthenticationReplacesSpinnerWithSpecificCryptoProError()throws Exception{
   var i18n=I18nService.getInstance();String advice=i18n.tr("znack.signature.error.private_key");
   var task=new Task<ZnackGtinBackgroundService.Result>(){protected ZnackGtinBackgroundService.Result call()throws Exception{

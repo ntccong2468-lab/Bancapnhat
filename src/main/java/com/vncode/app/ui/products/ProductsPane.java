@@ -34,10 +34,12 @@ public final class ProductsPane extends BorderPane {
     private ProductBulkEditPane currentEdit;
     private HBox progressPill;
     private javafx.beans.value.ChangeListener<Boolean> editListener;
+    private final javafx.animation.PauseTransition progressDismiss=new javafx.animation.PauseTransition(javafx.util.Duration.seconds(8));
     void trackBulkEdit(ProductBulkEditPane editor){
         backgroundEdits.put(shopScope,editor);installProgress(editor);
     }
     private void installProgress(ProductBulkEditPane editor){
+        progressDismiss.stop();
         if(currentEdit!=null&&editListener!=null)currentEdit.backgroundRunning().removeListener(editListener);
         if(progressPill!=null){for(var node:progressPill.getChildren())if(node instanceof Label label)label.textProperty().unbind();listing.getChildren().remove(progressPill);}
         currentEdit=editor;if(editor==null){updateButtons();return;}
@@ -46,7 +48,9 @@ public final class ProductsPane extends BorderPane {
         var details=new Button(tr("products.details"));details.setOnAction(e->editor.showBackgroundDetails());
         progressPill=new HBox(10,spinner,text,details);progressPill.setId("productBulkProgressPill");progressPill.getStyleClass().add("task-status-pill");progressPill.setAlignment(javafx.geometry.Pos.CENTER);progressPill.setMaxSize(Region.USE_PREF_SIZE,Region.USE_PREF_SIZE);
         StackPane.setAlignment(progressPill,javafx.geometry.Pos.BOTTOM_CENTER);StackPane.setMargin(progressPill,new Insets(12));listing.getChildren().add(progressPill);
-        editListener=(o,old,value)->updateButtons();editor.backgroundRunning().addListener(editListener);updateButtons();
+        var installedPill=progressPill;
+        Runnable dismiss=()->{progressDismiss.setOnFinished(e->{if(currentEdit==editor&&!editor.backgroundRunning().get()){listing.getChildren().remove(installedPill);}});progressDismiss.playFromStart();};
+        editListener=(o,old,value)->{updateButtons();if(value)progressDismiss.stop();else dismiss.run();};editor.backgroundRunning().addListener(editListener);if(!editor.backgroundRunning().get())dismiss.run();updateButtons();
     }
     private final TextField search=new TextField();
     private final ComboBox<String> category=new ComboBox<>();
@@ -214,9 +218,17 @@ public final class ProductsPane extends BorderPane {
             else{box.getChildren().remove(taxonomy);right.getChildren().addAll(genderText,tnved);}
             var row=getItem();if(row!=null)meta.setText(java.util.stream.Stream.of(row.category(),row.brand()).filter(v->v!=null&&!v.isBlank()).collect(java.util.stream.Collectors.joining(" · ")));
         }
-        @Override protected void updateItem(ProductRow row,boolean empty){super.updateItem(row,empty);long ticket=++imageRequest;image.setImage(null);if(empty||row==null){setGraphic(null);return;}setGraphic(box);check.setDisable(loading||syncing||selecting);check.setSelected(selection.contains(row.key()));name.setText(row.title());article.setText(java.text.MessageFormat.format(tr("products.market_article"),row.key().marketplace()==com.vncode.app.integration.marketplace.Marketplace.WILDBERRIES?"WB":"Ozon")+": "+row.marketArticle());name.setTooltip(new Tooltip(row.title()));barcode.setText(tr("products.seller_article")+": "+row.vendorArticle());paper.setText(doc(row.documentState()));paper.getStyleClass().removeAll("document-valid","text-muted");paper.getStyleClass().add(row.documentState()==DocumentState.VALID?"document-valid":"text-muted");material.setText(row.attributesLoaded()?tr("products.material")+": "+row.material():tr("products.attributes_unloaded"));tnved.setText(row.attributesLoaded()?"TN VED: "+row.tnved():"");genderText.setText(tr("products.gender")+": "+row.gender());adaptRow();meta.setTooltip(new Tooltip(meta.getText()));barcode.setTooltip(new Tooltip(tr("products.barcode")+": "+String.join(", ",row.barcodes())+"\nGTIN: "+(row.verifiedGtin().isBlank()?tr("products.unverified"):row.verifiedGtin())));
+        @Override protected void updateItem(ProductRow row,boolean empty){super.updateItem(row,empty);long ticket=++imageRequest;image.setImage(null);if(empty||row==null){setGraphic(null);return;}setGraphic(box);check.setDisable(loading||syncing||selecting);check.setSelected(selection.contains(row.key()));name.setText(row.title());article.setText(java.text.MessageFormat.format(tr("products.market_article"),row.key().marketplace()==com.vncode.app.integration.marketplace.Marketplace.WILDBERRIES?"WB":"Ozon")+": "+row.marketArticle());name.setTooltip(new Tooltip(row.title()));barcode.setText(tr("products.seller_article")+": "+row.vendorArticle());paper.setText(doc(row.documentState()));styleDocument(paper,row.documentState());material.setText(row.attributesLoaded()?tr("products.material")+": "+row.material():tr("products.attributes_unloaded"));tnved.setText(row.attributesLoaded()?"TN VED: "+row.tnved():"");genderText.setText(tr("products.gender")+": "+row.gender());adaptRow();meta.setTooltip(new Tooltip(meta.getText()));barcode.setTooltip(new Tooltip(tr("products.barcode")+": "+String.join(", ",row.barcodes())+"\nGTIN: "+(row.verifiedGtin().isBlank()?tr("products.unverified"):row.verifiedGtin())));
             if(row.thumbnailUrl()!=null&&!row.thumbnailUrl().isBlank())try{thumbnails.load(URI.create(row.thumbnailUrl()),96,128).whenComplete((loaded,error)->Platform.runLater(()->{if(!disposed&&ticket==imageRequest&&getItem()==row&&error==null)image.setImage(loaded);}));}catch(IllegalArgumentException ignored){}
         }
+    }
+    static void styleDocument(Label label,DocumentState state){
+        label.getStyleClass().removeAll("document-valid","document-pending","document-rejected","text-muted");
+        String style=switch(state){case VALID->"document-valid";case PENDING,UNVERIFIED->"document-pending";case REJECTED,EXPIRED->"document-rejected";default->"text-muted";};
+        label.getStyleClass().add(style);
+        if(state==DocumentState.MISSING)label.setGraphic(null);
+        else{var shield=new FontIcon("fth-shield");shield.getStyleClass().add(style);label.setGraphic(shield);}
+        label.setAccessibleText(label.getText());
     }
     private String tr(String key){return i18n.tr(key);}
     private String syncStatus(){return lastSync==null?"":java.text.MessageFormat.format(tr("products.sync_summary"),lastSync.snapshots(),lastSync.failed());}
@@ -236,5 +248,5 @@ public final class ProductsPane extends BorderPane {
     }
     private void refreshIssueCells(){issue.setCellFactory(list->issueCell());issue.setButtonCell(issueCell());issueChips.forEach((kind,chip)->{chip.setText(tr("products.issue."+kind.name())+" ("+(issueCounts.containsKey(kind)?issueCounts.get(kind):"—")+")");chip.setSelected(issue.getValue()==kind);});}
     public void applyTranslations(){needsFix.setText(tr("products.needs_fix"));clear.setTooltip(new Tooltip(tr("products.clear_selection")));clear.setAccessibleText(tr("products.clear_selection"));refreshIssueCells();if(shop==null)status.setText(tr("products.select_shop"));document.setButtonCell(new ListCell<>(){@Override protected void updateItem(DocumentState item,boolean empty){super.updateItem(item,empty);setText(item==null?tr("products.documents_all"):doc(item));}});title.setText(tr("products.title"));reload.setText(tr("products.refresh"));reload.setTooltip(new Tooltip(tr("products.sync_help")));more.setText(tr("products.more"));all.setText(tr("products.all_results"));pageSelection.setText(tr("products.select_all"));missing.setText(tr("products.missing_gtin"));search.setPromptText(tr("products.search"));copy.setText(tr("products.copy"));for(var child:bulkActions.getChildren())if(child instanceof Button b&&b.getUserData()!=null)b.setText(tr("products.edit_"+b.getUserData()));updateSelection();category.setButtonCell(new ListCell<>(){@Override protected void updateItem(String item,boolean empty){super.updateItem(item,empty);setText(item==null?tr("products.categories"):item);}});rows.refresh();}
-    public void dispose(){if(disposed)return;disposed=true;generation++;syncTicket++;debounce.stop();thumbnails.close();}
+    public void dispose(){if(disposed)return;disposed=true;generation++;syncTicket++;progressDismiss.stop();debounce.stop();thumbnails.close();}
 }

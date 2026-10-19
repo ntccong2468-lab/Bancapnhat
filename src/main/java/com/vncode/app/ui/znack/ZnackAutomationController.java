@@ -763,6 +763,7 @@ public class ZnackAutomationController {
             if (generation != shopGeneration || currentRepository != repository) return;
             setSignatureTestBusy(false);
             SignatureVerification verification = task.getValue();
+            if(!currentRepository.getSettings().equals(verification.settings())){load();return;}
             loaded = verification.settings();
             signerCertificate = loaded.signerCertificate();
             certificateMetadata = loaded.certificateMetadataJson();
@@ -797,6 +798,8 @@ public class ZnackAutomationController {
         java.util.function.Consumer<Throwable> taskFailure = rejection -> {
             if (generation != shopGeneration || currentRepository != repository) return;
             setSignatureTestBusy(false);
+            // A late result from the old settings must not erase a newer persisted verification.
+            if(!currentRepository.getSettings().equals(expectedSettings)){load();return;}
             accountAuthenticatedAt = null;
             Throwable failure = rejection;
             if (failure instanceof ZnackRepository.SignerChangeBlockedException) {
@@ -1263,9 +1266,9 @@ public class ZnackAutomationController {
         saveButton.setDisable(repository == null || loading || verificationRequired
                 || accountRefreshRunning || catalogCheckRunning
                 || Objects.equals(savedFingerprint, fingerprint()));
-        signatureCertificateCombo.setDisable(repository == null || signatureTestRunning || productSyncRunning || accountRefreshRunning || catalogCheckRunning);
+        signatureCertificateCombo.setDisable(repository == null || signatureTestRunning || accountRefreshRunning || catalogCheckRunning);
         testSignatureButton.setDisable(repository == null || certificateDiscoveryRunning
-                || signatureTestRunning || productSyncRunning || accountRefreshRunning || catalogCheckRunning || blank(selectedCertificate())
+                || signatureTestRunning || accountRefreshRunning || catalogCheckRunning || blank(selectedCertificate())
                 || selectedCertificateExpired());
         updateAccountInfo();
     }

@@ -92,6 +92,27 @@ public final class SyncRunRepository {
             event(c,item.runId(),item.id(),step,state,error);return null;
         }); }catch(SQLException e){throw storage(e);}
     }
+    /** Reconcile a report page with short transactions; never one connection/commit per card. */
+    public void registrationProgressBatch(Shop shop,String run,List<Item> items){
+        if(items.size()>1000||items.stream().anyMatch(item->!run.equals(item.runId())))throw new IllegalArgumentException("SYNC_REPORT_LIMIT");
+        for(int offset=0;offset<items.size();offset+=250){
+            var part=items.subList(offset,Math.min(offset+250,items.size()));
+            try{SqliteWriteTransaction.run(c->{
+                require(c,shop,run);String now=Instant.now().toString();
+                try(var update=c.prepareStatement("UPDATE sync_run_items SET gtin=?,state=?,step=?,error_code=?,evidence_json=?,updated_at=? WHERE id=? AND run_id=? AND state NOT IN ('SUCCEEDED','CANCELLED') AND (gtin='' OR gtin=?)");
+                    var event=c.prepareStatement("INSERT INTO sync_run_events(run_id,item_id,step,state,error_code,created_at) VALUES(?,?,?,?,?,?)")){
+                    for(var item:part){
+                        String[] values={item.gtin(),item.state(),item.step(),code(item.error()),item.evidence(),now,item.id(),run,item.gtin()};
+                        for(int index=0;index<values.length;index++)update.setString(index+1,values[index]);
+                        if(update.executeUpdate()!=1)continue;
+                        String[] receipt={run,item.id(),item.step(),item.state(),code(item.error()),now};
+                        for(int index=0;index<receipt.length;index++)event.setString(index+1,receipt[index]);event.addBatch();
+                    }
+                    event.executeBatch();
+                }return null;
+            });}catch(SQLException error){throw storage(error);}
+        }
+    }
     /** Bounded progress write for a large FBS batch, with one owner check and transaction. */
     public void updateBatch(Shop shop,String run,List<Item> items){
         if(items.size()>10000||items.stream().anyMatch(i->!run.equals(i.runId())))throw new IllegalArgumentException("SYNC_REPORT_LIMIT");
@@ -106,11 +127,11 @@ public final class SyncRunRepository {
         if(!child.confirmed()||!child.fields().contains(com.vncode.app.features.catalogsync.CatalogSyncModels.Field.GTIN)||child.shopId()!=shop.getId()||!child.owner().equals(ListingIdentity.fingerprint(shop)))throw new SecurityException("SYNC_REVIEW_OWNER_CHANGED");
         try { SqliteWriteTransaction.run(c->{
             require(c,shop,run);
-            try(var p=c.prepareStatement("UPDATE sync_run_items SET gtin=?,child_job=?,state=?,step='READBACK',error_code=?,updated_at=? WHERE run_id=? AND product_id=? AND variant_id=? AND state NOT IN ('SUCCEEDED','UNCHANGED')")){
+            try(var p=c.prepareStatement("UPDATE sync_run_items SET gtin=?,child_job=?,state=?,step='READBACK',error_code=?,updated_at=?,evidence_json=json_set(COALESCE(evidence_json,'{}'),'$.marketplaceVerified',json(?)) WHERE run_id=? AND product_id=? AND variant_id=? AND state NOT IN ('SUCCEEDED','UNCHANGED')")){
               for(var row:child.rows()){
                     // Let the sync worker activate the native registration candidate after
                     // the confirmed child has verified the target. UI callbacks cannot skip it.
-                    p.setString(1,row.catalog().gtin());p.setString(2,child.id());p.setString(3,row.state()==com.vncode.app.features.catalogsync.CatalogSyncModels.State.BLOCKED?"NEEDS_ACTION":"WAITING_REMOTE");p.setString(4,code(row.issue()));p.setString(5,Instant.now().toString());p.setString(6,run);p.setString(7,row.key().productId());p.setString(8,row.key().variantId());p.addBatch();
+                    p.setString(1,row.catalog().gtin());p.setString(2,child.id());p.setString(3,row.state()==com.vncode.app.features.catalogsync.CatalogSyncModels.State.BLOCKED?"NEEDS_ACTION":"WAITING_REMOTE");p.setString(4,code(row.issue()));p.setString(5,Instant.now().toString());p.setString(6,row.state()==com.vncode.app.features.catalogsync.CatalogSyncModels.State.SUCCEEDED?"true":"false");p.setString(7,run);p.setString(8,row.key().productId());p.setString(9,row.key().variantId());p.addBatch();
               }p.executeBatch();
             }
             try(var p=c.prepareStatement("UPDATE sync_runs SET state='RUNNING',step='READBACK',finished_at=NULL,updated_at=? WHERE id=?")){p.setString(1,Instant.now().toString());p.setString(2,run);p.executeUpdate();}
@@ -125,6 +146,12 @@ public final class SyncRunRepository {
     public String step(String id){try(var c=Database.getConnection();var p=c.prepareStatement("SELECT step FROM sync_runs WHERE id=?")){p.setString(1,id);try(var r=p.executeQuery()){if(!r.next())throw new IllegalArgumentException("SYNC_JOB_NOT_FOUND");return r.getString(1);}}catch(SQLException e){throw storage(e);}}
     public Optional<Run> find(String id){try(var c=Database.getConnection();var p=c.prepareStatement("SELECT * FROM sync_runs WHERE id=?")){p.setString(1,id);try(var r=p.executeQuery()){return r.next()?Optional.of(new Run(r.getString("id"),r.getInt("shop_id"),r.getString("marketplace"),r.getString("kind"),r.getString("state"),r.getString("step"),r.getInt("total"),r.getString("created_at"),r.getString("updated_at"),r.getString("error_code"))):Optional.empty();}}catch(SQLException e){throw storage(e);}}
     public Map<String,Long> counts(String id){try(var c=Database.getConnection();var p=c.prepareStatement("SELECT state,count(*) FROM sync_run_items WHERE run_id=? GROUP BY state")){p.setString(1,id);var out=new LinkedHashMap<String,Long>();try(var r=p.executeQuery()){while(r.next())out.put(r.getString(1),r.getLong(2));}return Collections.unmodifiableMap(out);}catch(SQLException e){throw storage(e);}}
+    /** Marketplace readback counts are separate from activating the local registration pointer. */
+    public Map<String,Long> marketplaceCounts(String run){
+        try(var c=Database.getConnection();var p=c.prepareStatement("SELECT COUNT(*),COALESCE(SUM(CASE WHEN NULLIF(gtin,'') IS NOT NULL THEN 1 ELSE 0 END),0),COALESCE(SUM(CASE WHEN state IN ('SUCCEEDED','UNCHANGED') OR json_extract(evidence_json,'$.marketplaceVerified')=1 THEN 1 ELSE 0 END),0),COALESCE(SUM(CASE WHEN state IN ('NEEDS_ACTION','FAILED') AND NULLIF(gtin,'') IS NOT NULL THEN 1 ELSE 0 END),0) FROM sync_run_items WHERE run_id=? AND product_id NOT LIKE 'catalog:%'")){
+            p.setString(1,run);try(var r=p.executeQuery()){r.next();long total=r.getLong(1),with=r.getLong(2),updated=r.getLong(3);return Map.of("TOTAL",total,"WITH_GTIN",with,"WITHOUT_GTIN",total-with,"UPDATED",updated,"NOT_UPDATED",Math.max(0,with-updated),"BLOCKED",r.getLong(4));}
+        }catch(SQLException e){throw storage(e);}
+    }
     public List<Run> list(int shopId,int offset,int limit){
         if(offset<0||limit<1||limit>1000)throw new IllegalArgumentException("SYNC_PAGE_LIMIT");
         try(var c=Database.getConnection();var p=c.prepareStatement("SELECT * FROM sync_runs WHERE (?=0 OR shop_id=?) ORDER BY created_at DESC LIMIT ? OFFSET ?")){

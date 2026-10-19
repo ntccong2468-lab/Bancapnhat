@@ -27,7 +27,7 @@ final class RegistrationBatchPreflight {
         for(var key:selected){ListingIdentity.require(owner,key);if(!cards.add(key.cardId()))continue;
             var snapshot=repo.localSnapshot(key).orElse(null);if(snapshot==null)continue;
             if(!ListingIdentity.fingerprint(owner).equals(snapshot.metadata().get("owner"))){if(!sourceReady)continue;sources.requireMember(owner,key.cardId(),key.variantId());}
-            if(snapshot.brand()==null||snapshot.brand().isBlank())findings.add(new Finding("brand",key,snapshot.vendorArticle(),"","",snapshot.categoryId()));
+            if((snapshot.brand()==null||snapshot.brand().isBlank())&&(owner.getMarketplace()!=com.vncode.app.integration.marketplace.Marketplace.OZON||new com.vncode.app.integration.ozon.OzonShopBrand().load(owner).isBlank()))findings.add(new Finding("brand",key,snapshot.vendorArticle(),"","",snapshot.categoryId()));
             if(com.vncode.app.integration.znack.registration.ZnackRegistrationDocuments.select(snapshot,settings,java.time.LocalDate.now()).candidates().isEmpty())findings.add(new Finding("documents",key,snapshot.vendorArticle(),"","",snapshot.categoryId()));
             for(String field:List.of("gender","material"))if(snapshot.attributes().stream().filter(a->a.complexId().isBlank()||a.complexId().equals("0")).filter(a->ProductFieldNames.matches(field,a.name())).flatMap(a->a.values().stream()).allMatch(String::isBlank))findings.add(new Finding(field,key,snapshot.vendorArticle(),"","",snapshot.categoryId()));
             var proposal=advisor.propose(snapshot);

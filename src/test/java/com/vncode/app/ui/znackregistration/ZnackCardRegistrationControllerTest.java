@@ -169,7 +169,14 @@ class ZnackCardRegistrationControllerTest {
         fx(()->{assertEquals(600,table().getItems().size());button("loadMoreButton").fire();return null;});awaitTasks();
         fx(()->{assertEquals(900,table().getItems().size());button("loadMoreButton").fire();return null;});awaitTasks();
         fx(()->{assertEquals(1_003,table().getItems().size());assertFalse(button("loadMoreButton").isVisible());
-            assertEquals(1_003,table().getItems().stream().map(Sku::chrtId).distinct().count());return null;});
+            assertEquals(1_003,table().getItems().stream().map(Sku::chrtId).distinct().count());
+            ((ComboBox<?>)loader.getNamespace().get("statusFilter")).getSelectionModel().select(1);return null;});awaitTasks();
+        var responsive=new CountDownLatch(1);
+        fx(()->{((CheckBox)loader.getNamespace().get("allFilteredCheckBox")).fire();Platform.runLater(responsive::countDown);return null;});
+        assertTrue(responsive.await(3,TimeUnit.SECONDS));awaitTasks();
+        fx(()->{assertTrue(((Hyperlink)loader.getNamespace().get("reportLink")).isVisible());
+            assertEquals(java.text.MessageFormat.format(I18nService.getInstance().tr("znack.registration.selection_count"),1_001),((Label)loader.getNamespace().get("selectionLabel")).getText());
+            assertFalse(button("registerSelectedButton").isDisabled());return null;});
     }
     @Test void sourceActionsExistAndOpeningOrRefreshingDoesNotResumeRemoteRegistration() throws Exception {
         fx(()->{for(String id:new String[]{"configButton","signApprovedButton","updateWbButton","syncZnackButton"})assertNotNull(button(id));

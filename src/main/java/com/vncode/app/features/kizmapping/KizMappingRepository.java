@@ -65,7 +65,8 @@ public class KizMappingRepository {
                     ) THEN 1 ELSE 0 END) discardable_count,
                   ((SELECT COUNT(*) FROM znack_gtin_mapping_rules r WHERE r.shop_id=p.shop_id AND r.gtin=p.gtin)
                    + (SELECT COUNT(*) FROM ozon_product_gtin_mappings o WHERE o.shop_id=p.shop_id AND o.gtin=p.gtin)
-                   + (SELECT COUNT(*) FROM ozon_article_gtin_mappings a WHERE a.shop_id=p.shop_id AND a.gtin=p.gtin)) rule_count,
+                   + (SELECT COUNT(*) FROM ozon_article_gtin_mappings a WHERE a.shop_id=p.shop_id AND a.gtin=p.gtin)
+                   + (SELECT COUNT(*) FROM gtin_sync_verified_mappings v WHERE v.shop_id=p.shop_id AND v.gtin=p.gtin)) rule_count,
                   (SELECT o.local_status FROM kiz_orders o WHERE o.shop_id=p.shop_id AND o.gtin=p.gtin ORDER BY o.updated_at DESC LIMIT 1) order_status,
                   (SELECT x.id FROM znack_purchase_pipelines x WHERE x.shop_id=p.shop_id AND x.gtin=p.gtin ORDER BY x.updated_at DESC LIMIT 1) pipeline_id,
                   (SELECT x.stage FROM znack_purchase_pipelines x WHERE x.shop_id=p.shop_id AND x.gtin=p.gtin ORDER BY x.updated_at DESC LIMIT 1) pipeline_stage,
@@ -419,7 +420,8 @@ public class KizMappingRepository {
                     ) THEN 1 ELSE 0 END) discardable_count,
                   ((SELECT COUNT(*) FROM znack_gtin_mapping_rules r WHERE r.shop_id=p.shop_id AND r.gtin=p.gtin)
                    + (SELECT COUNT(*) FROM ozon_product_gtin_mappings o WHERE o.shop_id=p.shop_id AND o.gtin=p.gtin)
-                   + (SELECT COUNT(*) FROM ozon_article_gtin_mappings a WHERE a.shop_id=p.shop_id AND a.gtin=p.gtin)) rule_count,
+                   + (SELECT COUNT(*) FROM ozon_article_gtin_mappings a WHERE a.shop_id=p.shop_id AND a.gtin=p.gtin)
+                   + (SELECT COUNT(*) FROM gtin_sync_verified_mappings v WHERE v.shop_id=p.shop_id AND v.gtin=p.gtin)) rule_count,
                   (SELECT o.local_status FROM kiz_orders o WHERE o.shop_id=p.shop_id AND o.gtin=p.gtin {KIZ_ORDER_FILTER} ORDER BY o.updated_at DESC LIMIT 1) order_status,
                   (SELECT x.id FROM znack_purchase_pipelines x WHERE x.shop_id=p.shop_id AND x.gtin=p.gtin ORDER BY x.updated_at DESC LIMIT 1) pipeline_id,
                   (SELECT x.stage FROM znack_purchase_pipelines x WHERE x.shop_id=p.shop_id AND x.gtin=p.gtin ORDER BY x.updated_at DESC LIMIT 1) pipeline_stage,

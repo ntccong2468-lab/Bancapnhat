@@ -1,0 +1,19 @@
+{
+  "recordedAt": "2026-10-19T21:42:47.746054+00:00",
+  "command": "DISPLAY=:99 XDG_CACHE_HOME=/tmp/vncode-ui-cache mvn-vncode -o -q clean test",
+  "exitCode": 0,
+  "suite": {
+    "tests": 1937,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 2
+  },
+  "suites": 323,
+  "syntheticBatchReport": {
+    "rows": 650,
+    "refreshMilliseconds": 39.758558
+  },
+  "remoteWritesPerformed": false,
+  "liveReadEvidence": "live-read-access.json",
+  "productionSigningAcceptance": false
+}

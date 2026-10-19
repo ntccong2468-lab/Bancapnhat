@@ -46,9 +46,8 @@ public final class ZnackRepository {
     }
 
     public void saveSettings(Settings s) {
-        try(Connection c=Database.getConnection()){
-            saveSettings(c,s);
-        }catch(SQLException e){throw new RuntimeException(e);}
+        try{com.vncode.app.config.SqliteWriteTransaction.run(c->{saveSettings(c,s);return null;});}
+        catch(SQLException e){throw new RuntimeException(e);}
     }
 
     /**
@@ -64,6 +63,7 @@ public final class ZnackRepository {
             try {
                 if (!expected.equals(getSettings(connection))) throw new SettingsConflictException();
                 boolean signerChanged = signerChanged(expected, verified);
+                bindPipelineConnections(connection,getSettings(connection));
                 CatalogReset catalogReset = signerChanged
                         ? resetCatalogForSignerChange(connection)
                         : CatalogReset.EMPTY;
@@ -139,14 +139,6 @@ public final class ZnackRepository {
 
     private boolean hasSignerChangeBlocker(Connection connection) throws SQLException {
         try (PreparedStatement statement = connection.prepareStatement("""
-                SELECT 1 FROM znack_purchase_pipelines
-                WHERE shop_id=?
-                  AND stage NOT IN ('COMPLETED','INTRODUCED','FAILED','INTRODUCTION_FAILED',
-                                    'INTRODUCTION_SKIPPED_MISSING_DOCUMENTS',
-                                    'INTRODUCTION_SKIPPED_MISSING_METADATA')
-                UNION ALL
-                SELECT 1 FROM kiz_codes WHERE shop_id=? AND status='RESERVED'
-                UNION ALL
                 SELECT 1 FROM znack_card_registrations WHERE shop_id=?
                   AND status NOT IN ('PUBLISHED','NOT_CREATED','PREFLIGHT_ERROR')
                 UNION ALL
@@ -160,8 +152,6 @@ public final class ZnackRepository {
             statement.setInt(1, shop.shopId());
             statement.setInt(2, shop.shopId());
             statement.setInt(3, shop.shopId());
-            statement.setInt(4, shop.shopId());
-            statement.setInt(5, shop.shopId());
             try (ResultSet result = statement.executeQuery()) {
                 return result.next();
             }
@@ -261,6 +251,7 @@ public final class ZnackRepository {
     }
 
     private void saveSettings(Connection connection, Settings s) throws SQLException {
+        bindPipelineConnections(connection,getSettings(connection));
         try (PreparedStatement ps = connection.prepareStatement(SETTINGS_UPSERT)) {
             int i=1;ps.setInt(i++,shop.shopId());ps.setString(i++,s.trueApiBaseUrl());ps.setString(i++,s.suzBaseUrl());ps.setString(i++,s.omsId());
             ps.setString(i++,s.omsConnection());ps.setString(i++,s.participantInn());ps.setString(i++,s.producerInn());ps.setString(i++,s.ownerInn());
@@ -271,6 +262,25 @@ public final class ZnackRepository {
             ps.setString(i++,s.csptestPath());ps.setInt(i++,s.resolvedCryptoProTimeoutSeconds());ps.setString(i++,s.documentExpiryDate());
             ps.setString(i++,s.documentType());ps.setString(i,Instant.now().toString());ps.executeUpdate();
         }
+    }
+
+    /** Same local settings security boundary as znack_settings; never contains Catalog/API tokens. */
+    private void bindPipelineConnections(Connection c,Settings original)throws SQLException {
+        try(var p=c.createStatement()){p.execute("CREATE TABLE IF NOT EXISTS znack_pipeline_connections(pipeline_id INTEGER PRIMARY KEY REFERENCES znack_purchase_pipelines(id) ON DELETE CASCADE,shop_id INTEGER NOT NULL REFERENCES shops(id) ON DELETE CASCADE,settings_json TEXT NOT NULL)");}
+        try(var p=c.prepareStatement("INSERT OR IGNORE INTO znack_pipeline_connections SELECT id,shop_id,? FROM znack_purchase_pipelines WHERE shop_id=?")){
+            p.setString(1,com.vncode.app.features.products.ProductJson.GSON.toJson(original));p.setInt(2,shop.shopId());p.executeUpdate();
+        }
+    }
+    public Settings pipelineSettings(long pipelineId){
+        try{return com.vncode.app.config.SqliteWriteTransaction.run(c->{
+            bindPipelineConnections(c,getSettings(c));
+            try(var p=c.prepareStatement("SELECT settings_json FROM znack_pipeline_connections WHERE shop_id=? AND pipeline_id=?")){
+                p.setInt(1,shop.shopId());p.setLong(2,pipelineId);try(var r=p.executeQuery()){
+                    if(!r.next())throw new IllegalArgumentException("PURCHASE_PIPELINE_NOT_FOUND");
+                    return com.vncode.app.features.products.ProductJson.GSON.fromJson(r.getString(1),Settings.class);
+                }
+            }
+        });}catch(SQLException error){throw new IllegalStateException("PURCHASE_CONNECTION_STORAGE",error);}
     }
 
     public static final class SettingsConflictException extends RuntimeException {
@@ -604,7 +614,7 @@ public final class ZnackRepository {
         try(PreparedStatement ps=c.prepareStatement("INSERT INTO znack_purchase_pipelines(shop_id,gtin,quantity,request_key,stage,created_at,updated_at) VALUES(?,?,?,?,?,?,?)",Statement.RETURN_GENERATED_KEYS)){
             ps.setInt(1,shop.shopId());ps.setString(2,gtin);ps.setInt(3,quantity);ps.setString(4,requestKey);
             ps.setString(5,stage.name());ps.setString(6,now);ps.setString(7,now);ps.executeUpdate();
-            try(ResultSet r=ps.getGeneratedKeys()){r.next();return r.getLong(1);}
+            try(ResultSet r=ps.getGeneratedKeys()){r.next();long id=r.getLong(1);bindPipelineConnections(c,getSettings(c));return id;}
         }
     }
     public void updatePipeline(long id,Long orderId,PurchaseStage stage,String error){execute("UPDATE znack_purchase_pipelines SET order_id=COALESCE(?,order_id),stage=?,error_message=?,updated_at=? WHERE shop_id=? AND id=?",ps->{if(orderId==null)ps.setNull(1,Types.BIGINT);else ps.setLong(1,orderId);ps.setString(2,stage.name());ps.setString(3,ZnackSanitizer.message(error));ps.setString(4,Instant.now().toString());ps.setInt(5,shop.shopId());ps.setLong(6,id);});}

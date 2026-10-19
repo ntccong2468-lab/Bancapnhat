@@ -2,6 +2,7 @@ package com.vncode.app.features.sync;
 
 import com.vncode.app.config.Database;
 import com.vncode.app.features.gtinsync.RegisteredGtinProof;
+import com.vncode.app.integration.znack.registration.NationalCatalogGtinSource;
 import com.vncode.app.features.shop.ShopOperationCoordinator;
 import com.vncode.app.integration.listing.ListingIdentity;
 import com.vncode.app.integration.marketplace.Marketplace;
@@ -25,6 +26,7 @@ public final class RegistrationSources {
     private final CatalogReader catalog;
     private final SyncRunRepository reports=new SyncRunRepository();
     public RegistrationSources(){this(RegistrationSources::readMarketplace,shop->new ZnackCatalogSyncService().refresh(shop,true,p->{}));}
+    public RegistrationSources(Consumer<NationalCatalogGtinSource.Progress> progress){this(RegistrationSources::readMarketplace,shop->new ZnackCatalogSyncService().refresh(shop,true,progress));}
     RegistrationSources(MarketReader market,CatalogReader catalog){this.market=market;this.catalog=catalog;}
 
     public Readiness check(Shop shop) {
