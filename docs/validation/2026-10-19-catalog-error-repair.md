@@ -10,9 +10,9 @@ Báo cáo phân biệt đang xử lý/chờ duyệt/chờ ký/cần xử lý/đ�
 
 ## Kiểm tra trong máy Linux
 
-- 177 ca qua trong 11 lớp liên quan: service sửa WB/Ozon, các nút báo cáo/Áp dụng/Hủy, controller đăng ký thật, truy vấn và báo cáo, workflow WB/Ozon, registry và sửa sản phẩm theo lô.
-- 72 kiểm tra công cụ release qua.
-- 15 ca mới: 11 service, 3 hộp thoại, 1 thao tác nút Chọn tất cả trên màn hình WB. Dùng dữ liệu tổng hợp, SQLite thật, mapper/payload và workflow thật với API giả lập.
+- 178 ca qua trong 11 lớp liên quan: service sửa WB/Ozon, các nút báo cáo/Áp dụng/Hủy, controller đăng ký thật, truy vấn và báo cáo, workflow WB/Ozon, registry và sửa sản phẩm theo lô.
+- 73 kiểm tra công cụ release qua.
+- 16 ca mới: 12 service, 3 hộp thoại, 1 thao tác nút Chọn tất cả trên màn hình WB. Dùng dữ liệu tổng hợp, SQLite thật, mapper/payload và workflow thật với API giả lập.
 - Kiểm tra các trường hợp: đúng size 52 thay size 1; giấy tờ đúng nhóm; giấy tờ nhập sai không tạo checkpoint; không cấp GTIN; giữ GTIN/feed, chờ moderation; bảo vệ published/sai good_id; chặn thay đổi sau khi xem đề xuất; không gửi trùng; báo cáo thẻ lịch sử chưa có native checkpoint.
 - Bổ sung kiểm tra nâng cấp từ bộ cài Published 1.5.0 với checksum đã lưu; kết quả Windows được ghi riêng sau CI.
 

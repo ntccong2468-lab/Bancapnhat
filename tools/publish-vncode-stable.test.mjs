@@ -122,7 +122,7 @@ test('requested 1.5.0 publication binds its verified build without claiming priv
 });
 
 test('1.5.1 publication binds the exact fresh build and keeps live acceptance limits explicit',()=>{
- const version='1.5.1',sha='67f259b8454f3b943de9fbbcb72d878e525eacef',runId='39254860432';
+ const version='1.5.1',sha='835ad5041290c0330420d21fa13f82b686ac065c',runId='39255533688';
  const java={tests:1900,failures:0,errors:0,skipped:2,passed:1898};
  const decision={version,sourceCommit:sha,runId,phase:'verified-for-publication',ownerRequestedPublication:true,
   ownerInstruction:'sau khi xong hãy đưa bản mới này lên latest để thông báo xuống app cho seller cập nhật',
@@ -139,6 +139,6 @@ test('1.5.1 publication binds the exact fresh build and keeps live acceptance li
   {enterpriseCryptoProSigningAccepted:true},{liveCatalogCardRepairedThisVersion:true},{installerSha256:null},{windowsJava:{...java,errors:1}}])
   assert.throws(()=>validateOwnerRequested151({...decision,...patch},status,version,sha,runId));
  assert.throws(()=>validateOwnerRequested151(decision,status,version,'a'.repeat(40),runId));
- assert.throws(()=>validateOwnerRequested151(decision,status,version,sha,'39254860433'));
+ assert.throws(()=>validateOwnerRequested151(decision,status,version,sha,'39255533689'));
  assert.throws(()=>validateOwnerRequested151(decision,{...status,validation:{...status.validation,windowsBuild:{...status.validation.windowsBuild,upgradeFrom150Passed:false}}},version,sha,runId));
 });

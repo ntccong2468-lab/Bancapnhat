@@ -12,7 +12,7 @@
   },
   "validation": {
     "linuxRelatedTests": {
-      "tests": 177,
+      "tests": 178,
       "failures": 0,
       "errors": 0
     },
@@ -23,15 +23,21 @@
     "windowsBuild": {
       "state": "running",
       "freshFullJavaExecutionRequired": true,
-      "sourceCommit": "67f259b8454f3b943de9fbbcb72d878e525eacef",
-      "runId": 39254860432,
-      "url": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/39254860432",
+      "sourceCommit": "835ad5041290c0330420d21fa13f82b686ac065c",
+      "runId": 39255533688,
+      "url": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/39255533688",
       "supersededRuns": [
         {
           "runId": 39254561526,
           "sourceCommit": "b7478b78d711f372257a66d5bf27c4d7471e50ec",
           "state": "cancelled",
           "reason": "Added immediate predecessor binding to the new 1.5.0 upgrade probe before packaging."
+        },
+        {
+          "runId": 39254860432,
+          "sourceCommit": "67f259b8454f3b943de9fbbcb72d878e525eacef",
+          "state": "cancelled",
+          "reason": "Added observed Russian-size fallback for Catalog categories without international sizing, and its regression case."
         }
       ]
     },

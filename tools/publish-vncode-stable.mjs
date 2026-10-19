@@ -138,8 +138,8 @@ export function validateOwnerRequested150(decision,status,version,sha,runId) {
 // Explicit owner request for this exact 1.5.1 application build. The receipt
 // records missing live acceptance without changing the standard publish gate.
 export function validateOwnerRequested151(decision,status,version,sha,runId) {
-    assert.equal(version,'1.5.1');assert.equal(sha,'67f259b8454f3b943de9fbbcb72d878e525eacef');
-    assert.equal(String(runId),'39254860432');
+    assert.equal(version,'1.5.1');assert.equal(sha,'835ad5041290c0330420d21fa13f82b686ac065c');
+    assert.equal(String(runId),'39255533688');
     assert.equal(decision.version,version);assert.equal(decision.sourceCommit,sha);assert.equal(String(decision.runId),String(runId));
     assert.equal(decision.phase,'verified-for-publication');assert.equal(decision.ownerRequestedPublication,true);
     assert.equal(decision.ownerInstruction,'sau khi xong hãy đưa bản mới này lên latest để thông báo xuống app cho seller cập nhật');
