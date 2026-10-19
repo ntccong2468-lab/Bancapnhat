@@ -1,0 +1,21 @@
+{
+  "version": "1.5.1",
+  "runId": 39277937972,
+  "sourceCommit": "bd421bbccab297db31ea68dfac3d6c707b319e99",
+  "freshWindowsJava": {
+    "tests": 1924,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 2,
+    "passed": 1922
+  },
+  "nativeUpgradePathsPassed": 15,
+  "failedStep": "1.5.0 to 1.5.1 baseline download verification",
+  "expected150Sha256Unchanged": "b5b5ddd562213aa655c3183bc8e7e998ba58d42abd1563442a397865a5faea3f",
+  "cause": "FromStable150 had an expected hash and version but no baselineUrl branch; fallback URL downloaded 1.1.34.",
+  "fix": "Select the immutable published v1.5.0 EXE URL; keep checksum validation and its historical expected hash.",
+  "regressionToolTests": 74,
+  "currentCompletedWindowsLogSha256": "81fed5b632828536262d752de086952035a7e4870c482756b06e82d93ea35d59",
+  "releasePublished": false,
+  "newFullWindowsRunRequired": true
+}

@@ -1,6 +1,6 @@
 {
   "version": "1.5.1",
-  "state": "awaiting-verified-windows-build-for-published-catalog-rules",
+  "state": "windows-upgrade-probe-url-corrected-awaiting-fresh-build",
   "baseline": "v1.5.0",
   "databaseSchema": 6,
   "published": false,
@@ -24,15 +24,25 @@
       "singleInvocationClaimed": false
     },
     "releaseToolTests": {
-      "tests": 73,
+      "tests": 74,
       "failures": 0
     },
     "windowsBuild": {
-      "state": "running",
+      "state": "failed",
       "freshFullJavaExecutionRequired": true,
       "sourceCommit": "bd421bbccab297db31ea68dfac3d6c707b319e99",
       "runId": 39277937972,
-      "url": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/39277937972"
+      "url": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/39277937972",
+      "fullJavaSuite": {
+        "tests": 1924,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 2,
+        "passed": 1922
+      },
+      "upgradePathsPassed": 15,
+      "upgradeFrom150Passed": false,
+      "reason": "The 1.5.0 baseline hash was correct, but the missing URL branch downloaded 1.1.34. Checksum protection blocked publication before installing the wrong baseline. Fixed URL without changing expected hash; fresh full Windows rerun required."
     },
     "productionLicenseVerified": false,
     "liveCryptoProSigningThisVersion": false,
@@ -102,6 +112,44 @@
       "state": "passed",
       "platform": "Linux",
       "windowsInstaller": false
+    },
+    "fullJavaRegression": {
+      "version": "1.5.1",
+      "sourceCommit": "bd421bbccab297db31ea68dfac3d6c707b319e99",
+      "runId": 39277937972,
+      "freshFullExecution": true,
+      "result": "passed",
+      "java": {
+        "tests": 1924,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 2,
+        "passed": 1922
+      },
+      "reportCount": 323,
+      "skips": [
+        {
+          "class": "com.vncode.app.features.gs1.Gs1PrefixTemplateStoreTest",
+          "method": "privatePermissionsAreAppliedWhereSupported",
+          "reason": ""
+        },
+        {
+          "class": "com.vncode.app.shared.WindowsSecretProtectorTest",
+          "method": "neverFallsBackToPlaintextOffWindows",
+          "reason": "Disabled on operating system: Windows Server 2025"
+        }
+      ],
+      "artifactId": 12202715026,
+      "artifactArchiveBytes": 85493602,
+      "artifactArchiveSha256": "1979074d72637e724c2fd37d7dc6e185d953ea75573c53144c6782d79276e7b2",
+      "applicationJarSha256": "7334f0c82eae2673a90d3107a7e1e12b33677e5ea7d5c0aed906d795e40b6e7b",
+      "liveSellerMutations": false,
+      "packagedRegistrationTemplate": {
+        "id": "vncode-catalog-official-v3",
+        "resourceSha256": "fd95100cda99ace09d6cdcbb182bfcf4998aa0b96f68e5c0fa621b688a71f549",
+        "dependentAttributeValidatorClassPresent": true,
+        "testFixturesBundled": false
+      }
     }
   }
 }
