@@ -16,7 +16,7 @@
     "skipped": 0
   },
   "toolSuite": {
-    "tests": 73,
+    "tests": 74,
     "failures": 0
   },
   "jar": {
@@ -34,5 +34,6 @@
   "liveMarketplaceWrites": 0,
   "liveEnterpriseSigningVerified": false,
   "productionLicenseVerified": false,
-  "windowsCandidateForTheseChangesVerified": false
+  "windowsCandidateForTheseChangesVerified": false,
+  "windowsUpgradeProbeUrlFix": "2026-10-19-vncode-151-upgrade-url-fix.json"
 }

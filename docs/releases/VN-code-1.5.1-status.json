@@ -1,6 +1,6 @@
 {
   "version": "1.5.1",
-  "state": "windows-upgrade-probe-url-corrected-awaiting-fresh-build",
+  "state": "awaiting-verified-windows-build-after-upgrade-probe-url-fix",
   "baseline": "v1.5.0",
   "databaseSchema": 6,
   "published": false,
@@ -28,21 +28,11 @@
       "failures": 0
     },
     "windowsBuild": {
-      "state": "failed",
+      "state": "running",
       "freshFullJavaExecutionRequired": true,
-      "sourceCommit": "bd421bbccab297db31ea68dfac3d6c707b319e99",
-      "runId": 39277937972,
-      "url": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/39277937972",
-      "fullJavaSuite": {
-        "tests": 1924,
-        "failures": 0,
-        "errors": 0,
-        "skipped": 2,
-        "passed": 1922
-      },
-      "upgradePathsPassed": 15,
-      "upgradeFrom150Passed": false,
-      "reason": "The 1.5.0 baseline hash was correct, but the missing URL branch downloaded 1.1.34. Checksum protection blocked publication before installing the wrong baseline. Fixed URL without changing expected hash; fresh full Windows rerun required."
+      "sourceCommit": "96e20614882488a2d60319fc29f4ca62b6cb9b81",
+      "runId": 39286749991,
+      "url": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/39286749991"
     },
     "productionLicenseVerified": false,
     "liveCryptoProSigningThisVersion": false,
@@ -150,6 +140,27 @@
         "dependentAttributeValidatorClassPresent": true,
         "testFixturesBundled": false
       }
-    }
+    },
+    "previousOfficialRulesWindowsBuild": {
+      "state": "failed",
+      "freshFullJavaExecutionRequired": true,
+      "sourceCommit": "bd421bbccab297db31ea68dfac3d6c707b319e99",
+      "runId": 39277937972,
+      "url": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/39277937972",
+      "fullJavaSuite": {
+        "tests": 1924,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 2,
+        "passed": 1922
+      },
+      "upgradePathsPassed": 15,
+      "upgradeFrom150Passed": false,
+      "reason": "The 1.5.0 baseline hash was correct, but the missing URL branch downloaded 1.1.34. Checksum protection blocked publication before installing the wrong baseline. Fixed URL without changing expected hash; fresh full Windows rerun required."
+    },
+    "cancelledPublicationRuns": [
+      39268835904,
+      39278090180
+    ]
   }
 }

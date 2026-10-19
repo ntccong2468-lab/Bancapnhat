@@ -20,7 +20,7 @@ Mẫu mặc định **vncode-catalog-official-v3** được lưu trong resource 
 
 ## Kiểm tra và giới hạn
 
-Lượt kiểm thử liên quan trên Linux/Xvfb: **263 ca qua** trong toàn bộ nhóm registration, UI đăng ký, parser giấy tờ và TN VED. Hai ca bổ sung kiểm tra checkpoint WB/Ozon từ bản cũ được chạy riêng và qua cả hai (0 failures/errors). Công cụ release: **73 ca qua**. Bản JAR đã package thành công; kiểm thử bộ cài Windows mới được ghi riêng khi hoàn tất.
+Lượt kiểm thử liên quan trên Linux/Xvfb: **263 ca qua** trong toàn bộ nhóm registration, UI đăng ký, parser giấy tờ và TN VED. Hai ca bổ sung kiểm tra checkpoint WB/Ozon từ bản cũ được chạy riêng và qua cả hai (0 failures/errors). Công cụ release: **74 ca qua**. Bản JAR đã package thành công; kiểm thử bộ cài Windows mới được ghi riêng khi hoàn tất.
 
 Run Windows cũ 39268181948, nguồn 85fd0e060ad75031d21b1ed54fb6a4821d46d9e7, đã chạy đủ **1913 tests, 0 failures, 0 errors, 2 platform skips**; đã dừng trước khi phát hành vì chủ repo yêu cầu áp dụng quy tắc công bố vào mã mới. Workflow publish 39268835904 cũng đã hủy trước khi tạo tag/release. Kết quả đó không thay thế lượt Windows mới của bản sửa này.
 
@@ -33,3 +33,5 @@ SHA-256 trang tài liệu đã tải: `d2d0f01e96a060f73ba55f48d819292e7d5d0f909
 Schema thật danh mục 30696 xác nhận: thuộc tính 12 «Вид товара» có điều kiện «НЕТ В СПРАВОЧНИКЕ» làm thuộc tính 23828 bắt buộc. Metadata đầy đủ trả tên «Вид товара (при отсутствии в справочнике)», kiểu text. Không hardcode bộ giá trị của danh mục này vào danh mục khác; chương trình đọc schema hiện tại.
 
 Đã xác nhận bằng API những thẻ cùng tài khoản đã published/signed với 6103109000 và giấy tờ trả phạm vi 6101/6201/6202/6211. Điều này được ghi trong báo cáo riêng có định danh seller ở `/workspace/reports/catalog-the-xanh-6103-giay-to-4-nhom-2026-10-19.md`; không suy ra nguyên nhân từ chối của các thẻ đỏ khi chưa có feed_id/lý do gốc. Không đưa raw seller response hay API key vào repo.
+
+Windows 39277937972 của nguồn quy tắc mới đã qua 1.924 ca (0 failures/errors, 2 platform skips), 288 bố cục và 15 đường nâng cấp. Đường 1.5.0 bị chặn trước cài vì script thiếu nhánh URL và tải nhầm bộ cài 1.1.34; checksum đúng của 1.5.0 đã ngăn dùng file đó. Đã sửa URL, giữ nguyên checksum; nguồn `96e20614882488a2d60319fc29f4ca62b6cb9b81` đang chạy lại đầy đủ ở run `39286749991`. Chưa dùng kết quả một build thất bại để phát hành.
