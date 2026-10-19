@@ -19,6 +19,25 @@ import java.util.concurrent.atomic.AtomicInteger;
 import static org.junit.jupiter.api.Assertions.*;
 
 class ZnackNationalCatalogServiceTest {
+    @Test void conditionalRequirementsReadTheCompleteCurrentSchemaForNamesAndTypes()throws Exception{
+        var allReads=new AtomicInteger();var api=new ZnackApiClient(){
+            public JsonElement nationalCatalogAttributes(String b,String t,long c){return JsonParser.parseString("{\"result\":[{\"attr_id\":12,\"attr_name\":\"Вид товара\",\"attr_field_type\":\"text\",\"dependent_attributes\":[{\"value\":\"НЕТ В СПРАВОЧНИКЕ\",\"attrs\":[{\"attr_id\":23828,\"attr_type\":\"m\"}]}]}]}");}
+            public JsonElement nationalCatalogAllAttributes(String b,String t,long c){allReads.incrementAndGet();return JsonParser.parseString("{\"result\":[{\"attr_id\":23828,\"attr_name\":\"Вид товара (при отсутствии в справочнике)\",\"attr_field_type\":\"text\"}]}");}
+        };
+        var catalog=service(api);var schema=catalog.requiredAttributes(30696,"fixture");var active=RegistrationAttributeRules.required(schema,Map.of(12L,"НЕТ В СПРАВОЧНИКЕ"));catalog.requiredAttributes(30696,"fixture");
+        assertEquals(1,allReads.get());assertEquals(2,active.size());assertEquals("Вид товара (при отсутствии в справочнике)",active.getLast().name());assertEquals("text",active.getLast().fieldType());
+    }
+    @Test void publishedTariffFeedRulesNormalizeSavedDuplicatesAndRejectMixedBranches(){
+        var old=JsonParser.parseString("{\"good_id\":91,\"tnved\":\"6103109000\",\"good_attrs\":[{\"attr_id\":3959,\"attr_value\":\"6103\"},{\"attr_id\":13933,\"attr_value\":\"6103109000\"},{\"attr_id\":35,\"attr_value\":\"52\"}]}").getAsJsonObject();
+        var normalized=ZnackNationalCatalogService.normalizedFeed(old);assertEquals(91,normalized.get("good_id").getAsLong());assertEquals(1,normalized.getAsJsonArray("good_attrs").size());assertEquals(3,old.getAsJsonArray("good_attrs").size(),"Retain the original durable receipt");
+        old.addProperty("tnved","6103");normalized=ZnackNationalCatalogService.normalizedFeed(old);assertEquals(2,normalized.getAsJsonArray("good_attrs").size());
+        old.addProperty("tnved","6203");assertThrows(RegistrationValidationException.class,()->ZnackNationalCatalogService.normalizedFeed(old));
+        old.addProperty("tnved","6103");old.addProperty("good_id",-1);assertThrows(RegistrationValidationException.class,()->ZnackNationalCatalogService.normalizedFeed(old));
+    }
+    @Test void exactTenDigitFeedDoesNotDuplicateTariffAttributes(){
+        var payload=ZnackNationalCatalogService.buildPayload("00000000000017",new Draft("6103109000",1,"Suit","Fixture",Map.of(3959L,"6103",13933L,"6103109000",35L,"52")),"");
+        assertEquals(1,payload.getAsJsonArray("good_attrs").size());assertEquals(35,payload.getAsJsonArray("good_attrs").get(0).getAsJsonObject().get("attr_id").getAsLong());
+    }
     @Test void registryVerifiedSinglePermitIsAutomaticOnlyWithinItsTnvedScope()throws Exception{
         var calls=new AtomicInteger();var api=new ZnackApiClient(){
             @Override public JsonElement registrationPermitInfo(String base,String token,com.google.gson.JsonArray requested){
@@ -30,7 +49,7 @@ class ZnackNationalCatalogServiceTest {
         var selection=new ZnackRegistrationDocuments.Selection(List.of(permit),null,ZnackRegistrationDocuments.Source.PRODUCT,true);
         var service=service(api);var checked=service.reviewDocuments("fixture",selection,"6110209100");
         assertEquals(permit,checked.automatic());assertFalse(checked.requiresReview());
-        var wrong=service.reviewDocuments("fixture",selection,"6106909000");assertNull(wrong.automatic());assertTrue(wrong.candidates().isEmpty());assertTrue(wrong.issues().getFirst().contains("ZNACK_DOCUMENT_TNVED_MISMATCH"));assertEquals(1,calls.get(),"Registry response can be cached, not the per-product TN VED decision");
+        var wrong=service.reviewDocuments("fixture",selection,"6106909000");assertNull(wrong.automatic());assertEquals(List.of(permit),wrong.candidates());assertTrue(wrong.requiresReview());assertTrue(wrong.issues().getFirst().contains("ZNACK_DOCUMENT_TNVED_MISMATCH"));assertEquals(1,calls.get(),"Registry response can be cached, not the per-product TN VED decision");
     }
     @Test void readsRealCardStagesWhenTheFeedStillSaysReceived()throws Exception{
         for(String stage:List.of("draft","moderation","notsigned","errors")){

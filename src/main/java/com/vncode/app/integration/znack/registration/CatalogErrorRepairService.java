@@ -110,10 +110,10 @@ public final class CatalogErrorRepairService {
         if(documents.size()!=1)throw new IllegalArgumentException("ZNACK_MISSING_PRODUCT_DOCUMENT");
         var parts=draft.attributes().get(documents.getFirst()).split(":::",2);if(parts.length!=2||parts[0].isBlank())throw new IllegalArgumentException("ZNACK_MISSING_PRODUCT_DOCUMENT");
         LocalDate.parse(parts[1]); // Manually entered permits are registry-checked again before the checkpoint.
-        for(var a:p.required()){
+        for(var a:RegistrationAttributeRules.required(p.required(),draft.attributes())){
             if(a.id()==3959||a.id()==13933&&draft.feedTnved().length()==10||Set.of(23557L,23561L).contains(a.id()))continue;
             String value=draft.attributes().getOrDefault(a.id(),"");String type=draft.attributeTypes().get(a.id());
-            if(value.isBlank()||value.length()>5000||a.presetOnly()&&!a.presets().contains(value)||!a.valueTypes().isEmpty()&&(type==null||!a.valueTypes().contains(type)))throw new IllegalArgumentException("ZNACK_REQUIRED_ATTRIBUTES_MISSING: "+a.name());
+            if(value.isBlank()||value.length()>5000||!RegistrationAttributeRules.validFieldValue(a,value)||a.presetOnly()&&!a.presets().contains(value)||!a.valueTypes().isEmpty()&&(type==null||!a.valueTypes().contains(type)))throw new IllegalArgumentException("ZNACK_REQUIRED_ATTRIBUTES_MISSING: "+a.name());
             if(a.id()==35&&!a.valueTypes().isEmpty()){
                 var variant=p.snapshot().variants().stream().filter(v->v.id().equals(p.snapshot().key().variantId())).findFirst().orElseThrow();
                 String observed=ZnackWbAttributeMapper.resolveValueType(a,value,variant.russianSize());
@@ -138,6 +138,7 @@ public final class CatalogErrorRepairService {
                 p.session().catalog().validateDocuments(p.session().token(),draft);
                 com.vncode.app.features.license.LicenseRuntime.require(com.vncode.app.features.license.LicenseModels.Permission.GTIN);
                 var payload=ZnackNationalCatalogService.buildPayload(p.card().gtin(),draft,p.snapshot().media().isEmpty()?"":p.snapshot().media().getFirst().uri().toString());
+                payload.addProperty("good_id",p.goodId()); // §3.2.2: updating an existing card requires its exact identity.
                 if(!CatalogRepairCheckpoint.prepare(shop,key,current.metadata().getOrDefault("sku",""),p.card().gtin(),p.goodId(),payload.toString(),draft,p.session().scope()))throw new IllegalStateException("CATALOG_REPAIR_CHECKPOINT_BUSY");
                 final int done=completed;final Status[] state={Status.READY_TO_SUBMIT};
                 dispatch.resume(shop,key,p.session(),s->{state[0]=s;listener.accept(new Progress(done,proposals.size(),p.card().gtin(),s,""));});

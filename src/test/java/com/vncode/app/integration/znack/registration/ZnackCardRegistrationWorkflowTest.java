@@ -291,9 +291,9 @@ class ZnackCardRegistrationWorkflowTest {
         assertTrue(workflow.start(shop,current(),draft,null));assertEquals(Status.PUBLISHED,current().status());assertEquals(1,api.allocations.get());assertEquals(2,api.submissions.get());
         assertTrue(JsonParser.parseString(repository.payload(1,11)).getAsJsonObject().get("is_kit").getAsBoolean());assertTrue(api.lastPayload.get("is_kit").getAsBoolean());
     }
-    @Test void rejectedCardIdIsArchivedInsteadOfBlockingTheCorrectedFeedIdentity()throws Exception{
+    @Test void rejectedRetryPreservesItsExistingCardIdAndRefusesAnUnexpectedReplacement()throws Exception{
         api.firstRejection="Карточка должна быть создана с типом Комплект";api.firstRejectedGoodId=90L;
-        assertTrue(workflow.start(shop,current(),draft,null));assertEquals(Status.PUBLISHED,current().status());assertEquals(91L,current().goodId());assertEquals(1,api.allocations.get());assertEquals(2,api.submissions.get());
+        assertTrue(workflow.start(shop,current(),draft,null));assertEquals(Status.ERROR,current().status());assertEquals(90L,current().goodId());assertEquals(90L,api.lastPayload.get("good_id").getAsLong());assertEquals(1,api.allocations.get());assertEquals(2,api.submissions.get());
         try(var c=Database.getConnection();var s=c.createStatement();var r=s.executeQuery("SELECT good_id,payload_json FROM znack_card_registration_history")){assertTrue(r.next());assertEquals(90L,r.getLong(1));assertFalse(JsonParser.parseString(r.getString(2)).getAsJsonObject().has("is_kit"));}
     }
     @Test void reopeningAPreparedRetryPreservesTheReviewedServerCorrectedPayload()throws Exception{
@@ -301,6 +301,13 @@ class ZnackCardRegistrationWorkflowTest {
         var repaired=new Draft("6112120000","6112",1,"Fixture","Fixture",draft.attributes(),Map.of(),false,true);
         repository.saveGenerated(1,current(),"04631993764370",repaired.tnved(),1,"Fixture",ZnackNationalCatalogService.buildPayload("04631993764370",repaired,"").toString());repository.updateProgress(1,11,Status.READY_TO_SUBMIT,null,null,null,null);
         assertTrue(workflow.resume(shop,current(),null));assertEquals(Status.PUBLISHED,current().status());assertTrue(api.lastPayload.get("is_kit").getAsBoolean());assertEquals(0,api.allocations.get());assertEquals(1,api.submissions.get());
+    }
+    @Test void aLegacyUnsentEditPersistsItsKnownGoodIdBeforeSubmitting(){
+        repository.saveGenerated(1,current(),"04631993764370",draft.tnved(),1,"Fixture",ZnackNationalCatalogService.buildPayload("04631993764370",draft,"").toString());
+        repository.updateProgress(1,11,Status.READY_TO_SUBMIT,null,91L,null,null);
+        assertFalse(JsonParser.parseString(repository.payload(1,11)).getAsJsonObject().has("good_id"));
+        assertTrue(workflow.resume(shop,current(),null));assertEquals(Status.PUBLISHED,current().status());
+        assertEquals(91L,api.lastPayload.get("good_id").getAsLong());assertEquals(91L,JsonParser.parseString(repository.payload(1,11)).getAsJsonObject().get("good_id").getAsLong());assertEquals(0,api.allocations.get());assertEquals(1,api.submissions.get());
     }
     @Test void rejectionDoesNotResetASignatureWhoseResultStillNeedsReadback(){
         repository.saveGenerated(1,current(),"04631993764370","6204",1,"Fixture",ZnackNationalCatalogService.buildPayload("04631993764370",draft,"").toString());repository.updateProgress(1,11,Status.READY_TO_SIGN,"feed-existing",91L,null,false);

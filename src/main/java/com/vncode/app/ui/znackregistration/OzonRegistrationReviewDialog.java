@@ -33,7 +33,7 @@ final class OzonRegistrationReviewDialog {
         permit.setConverter(new StringConverter<>(){public String toString(GoodsDocument d){return d==null?"":d.type()+" · "+d.number()+" · "+d.date();}public GoodsDocument fromString(String ignored){throw new UnsupportedOperationException();}});
         if(prepared.documents().automatic()!=null)permit.setValue(prepared.documents().automatic());else if(permit.getItems().size()==1)permit.getSelectionModel().selectFirst();
         grid.addRow(3,new Label(tr("znack.registration.documents")),permit);
-        Label documentNote=new Label(String.join("\n",prepared.documents().issues())+"\n"+tr(prepared.documents().requiresReview()?"znack.registration.perproduct_review":"znack.registration.ozon_required"));documentNote.setWrapText(true);grid.add(documentNote,0,4,3,1);
+        Label documentNote=new Label((prepared.documents().issues().stream().anyMatch(RegistrationPermitValidator::advisory)?tr("znack.registration.document_scope_advisory")+"\n":"")+String.join("\n",prepared.documents().issues())+"\n"+tr(prepared.documents().requiresReview()?"znack.registration.perproduct_review":"znack.registration.ozon_required"));documentNote.setWrapText(true);grid.add(documentNote,0,4,3,1);
         var inputs=new ArrayList<Input>();int row=5;
         String russianSize=prepared.snapshot().variants().stream().filter(v->v.id().equals(prepared.snapshot().key().variantId())).map(com.vncode.app.features.products.ProductVariant::russianSize).findFirst().orElse("");
         for(Attribute attribute:prepared.required()) {
@@ -72,7 +72,8 @@ final class OzonRegistrationReviewDialog {
             values.put(id,document.number()+":::"+document.date());
             return new Draft(prepared.tnved(),prepared.preflight().categoryTnved(),prepared.categoryId(),name.getText().strip(),brand.getText().strip(),values,types).withProductCategory(prepared.snapshot().metadata().get("source.category.name"));
         });
-        return dialog.showAndWait().orElse(null);
+        var reviewed=dialog.showAndWait().orElse(null);
+        return reviewed==null?null:RegistrationDraftCompletionDialog.show(focused,reviewed,prepared.required(),russianSize);
     }
     private static String tr(String key){return I18nService.getInstance().tr(key);}
 }

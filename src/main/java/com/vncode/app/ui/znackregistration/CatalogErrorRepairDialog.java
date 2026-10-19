@@ -54,8 +54,8 @@ final class CatalogErrorRepairDialog {
         var dialog=new Dialog<List<Draft>>();owner(dialog,host);dialog.setTitle(tr("repair.proposals"));dialog.setHeaderText(tr("repair.proposals_hint"));dialog.getDialogPane().setId("catalogErrorProposalDialog");
         var fields=new ArrayList<Field>();var values=new HashMap<Field,String>();var types=new HashMap<Field,String>();
         for(var p:prepared.proposals()){
-            var ids=new LinkedHashSet<Long>(List.of(2478L,2504L,13914L,13933L,35L,36L,2483L,14013L));p.required().forEach(a->ids.add(a.id()));ids.removeAll(Set.of(3959L,23557L,23561L,23765L));
-            for(long id:ids){var a=p.required().stream().filter(s->s.id()==id).findFirst().orElse(null);var f=new Field(p,id,a==null?fieldName(id):a.name(),p.before().getOrDefault(id,""),a==null?List.of():a.presets(),a==null?List.of():a.valueTypes(),Set.of(13914L,13933L,35L,36L).contains(id));fields.add(f);values.put(f,p.draft().attributes().getOrDefault(id,""));types.put(f,p.draft().attributeTypes().getOrDefault(id,""));}
+            var active=RegistrationAttributeRules.required(p.required(),p.draft().attributes());var ids=new LinkedHashSet<Long>(List.of(2478L,2504L,13914L,13933L,35L,36L,2483L,14013L));active.forEach(a->ids.add(a.id()));ids.removeAll(Set.of(3959L,23557L,23561L,23765L));
+            for(long id:ids){var a=active.stream().filter(s->s.id()==id).findFirst().orElse(null);var f=new Field(p,id,a==null?fieldName(id):a.name(),p.before().getOrDefault(id,""),a==null?List.of():a.presets(),a==null?List.of():a.valueTypes(),Set.of(13914L,13933L,35L,36L).contains(id));fields.add(f);values.put(f,p.draft().attributes().getOrDefault(id,""));types.put(f,p.draft().attributeTypes().getOrDefault(id,""));}
             var selected=p.documents().size()==1?p.documents().getFirst():null;
             var prior=p.before().getOrDefault(23557L,p.before().getOrDefault(23561L,"")).split(":::",2);
             var docType=new Field(p,-1,tr("znack.registration.document_type"),p.before().containsKey(23561L)?"Сертификат":"Декларация",List.of("Декларация","Сертификат"),List.of(),false);
@@ -75,7 +75,10 @@ final class CatalogErrorRepairDialog {
             if(!Set.of("Декларация","Сертификат").contains(docType)||docNumber.isBlank()||date.isBlank())throw new IllegalArgumentException(tr("repair.choose_document"));
             if(date.matches("[0-9]{2}\\.[0-9]{2}\\.[0-9]{4}"))date=java.time.LocalDate.parse(date,java.time.format.DateTimeFormatter.ofPattern("dd.MM.uuuu").withResolverStyle(java.time.format.ResolverStyle.STRICT)).toString();
             attrs.put(docType.equals("Сертификат")?23561L:23557L,docNumber+":::"+date);
-            var d=p.draft();result.add(CatalogErrorRepairService.validate(p,new Draft(d.tnved(),d.feedTnved(),d.categoryId(),attrs.get(2478L),attrs.get(2504L),attrs,attrTypes,false,d.isKit())));
+            var d=p.draft();var candidate=new Draft(d.tnved(),d.feedTnved(),d.categoryId(),attrs.get(2478L),attrs.get(2504L),attrs,attrTypes,false,d.isKit());
+            String russianSize=p.snapshot().variants().stream().filter(v->v.id().equals(p.snapshot().key().variantId())).map(com.vncode.app.features.products.ProductVariant::russianSize).findFirst().orElse("");
+            var completed=RegistrationDraftCompletionDialog.show(dialog.getDialogPane().getScene().getWindow(),candidate,p.required(),russianSize);if(completed==null){e.consume();return;}
+            result.add(CatalogErrorRepairService.validate(p,completed));
         }}catch(RuntimeException invalid){e.consume();message.setText(FriendlyErrorService.format(invalid));notes.setVisible(true);notes.setManaged(true);}});
         dialog.setResultConverter(b->b==apply?List.copyOf(result):null);theme(dialog);return dialog.showAndWait().orElse(null);
     }

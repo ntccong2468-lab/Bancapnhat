@@ -30,10 +30,12 @@ public final class OzonRegistrationBatchDialog {
         });
         table.getColumns().setAll(selection,product,state,edit);table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);table.setPrefHeight(240);
         var detail=new TextArea();detail.setEditable(false);detail.setWrapText(true);detail.setPrefRowCount(7);
-        table.getSelectionModel().selectedItemProperty().addListener((o,a,b)->detail.setText(b==null?"":b.draft()!=null?ProductJson.GSON.toJson(b.draft())+"\n\n"+(b.ready()?"":tr(b.issue())):tr(b.issue())));
+        table.getSelectionModel().selectedItemProperty().addListener((o,a,b)->detail.setText(b==null?"":(b.draft()!=null?ProductJson.GSON.toJson(b.draft())+"\n\n"+(b.ready()?"":tr(b.issue())):tr(b.issue()))+(b.preparation()==null?"":"\n"+String.join("\n",b.preparation().documents().issues()))));
+        table.getSelectionModel().selectFirst();
+        var warnings=new TextArea(review.items().stream().filter(i->i.preparation()!=null&&!i.preparation().documents().issues().isEmpty()).map(i->i.preparation().snapshot().vendorArticle()+" · TN VED "+i.preparation().tnved()+"\n"+String.join("\n",i.preparation().documents().issues())).collect(java.util.stream.Collectors.joining("\n\n")));warnings.setEditable(false);warnings.setWrapText(true);warnings.setPrefRowCount(4);warnings.setId("ozonBatchDocumentWarnings");warnings.setVisible(!warnings.getText().isBlank());warnings.setManaged(warnings.isVisible());
         var documentConsent=new CheckBox(tr("znack.registration.batch_document_consent"));documentConsent.setWrapText(true);
         documentConsent.setOnAction(e->{for(var i:table.getItems())if(i.needsDocumentConsent()){if(documentConsent.isSelected())approved.add(i.key());else approved.remove(i.key());}updateSummary.run();table.refresh();});
-        dialog.getDialogPane().setContent(new VBox(12,summary,documentConsent,table,detail));dialog.getDialogPane().setPrefWidth(850);
+        dialog.getDialogPane().setContent(new VBox(12,summary,warnings,documentConsent,table,detail));dialog.getDialogPane().setPrefWidth(850);
         dialog.getDialogPane().lookupButton(submit).addEventFilter(javafx.event.ActionEvent.ACTION,e->{if(approved.isEmpty())e.consume();});
         dialog.setResultConverter(button->button==submit?table.getItems().stream().filter(i->approved.contains(i.key())).map(i->new OzonCardRegistrationWorkflow.BatchItem(i.key(),i.preparation(),i.draft(),"" )).toList():List.of());com.vncode.app.shared.DialogLayout.install(dialog.getDialogPane());com.vncode.app.shared.AlertService.applyTheme(dialog);return dialog.showAndWait().orElse(List.of());
     }

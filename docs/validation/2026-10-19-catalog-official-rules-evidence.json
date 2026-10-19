@@ -1,0 +1,38 @@
+{
+  "version": "1.5.1",
+  "contract": "National Catalog 5.68 (2026-09-28)",
+  "source": "https://docs.crpt.ru/gismt/API_%D0%9D%D0%9A/",
+  "template": "vncode-catalog-official-v3",
+  "linuxRelatedSuite": {
+    "tests": 263,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "separateLegacyCheckpointSuite": {
+    "tests": 2,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "toolSuite": {
+    "tests": 73,
+    "failures": 0
+  },
+  "jar": {
+    "bytes": 5650860,
+    "sha256": "aa41d2f5a501777952b7735a5cd57f491d57da0280a4128835b032ef1ac228f8",
+    "testFixturesBundled": false
+  },
+  "logHashes": {
+    "vncode151-official-rules-regression.log": "6a093d59cd65d43052c4e0bc83212d72c7728f5e279f2e1a6965262cc86302af",
+    "vncode151-official-legacy-check.log": "9b5b286218051e81210666eb1be6981b92bcfefc7106357880577d50c88f64d5",
+    "vncode151-official-tools.log": "7c88bc5391221f9de4ef99fd0e33d82d7e82d0d56d97e3a495849a235ef2dfdc",
+    "vncode151-official-package.log": "80a2997f83b10a8a163bf022273d6a2df42220883629c9746876479997f9d4b3"
+  },
+  "liveCatalogWrites": 0,
+  "liveMarketplaceWrites": 0,
+  "liveEnterpriseSigningVerified": false,
+  "productionLicenseVerified": false,
+  "windowsCandidateForTheseChangesVerified": false
+}

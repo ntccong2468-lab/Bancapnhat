@@ -51,11 +51,21 @@ class OzonCardRegistrationWorkflowTest {
         ready();api.accepted=true;api.laggedModeration=true;assertTrue(workflow.refreshStatus(shop,key));
         assertEquals(Status.PUBLISHED,row().status());assertEquals(0,api.signatures.get());assertEquals(0,api.documents.get());
     }
-    @Test void unrelatedPermitCannotConsumeAGtinOrSubmitAFeed(){
-        api.permitScope="6101, 6201, 6202, 6211";var errors=new ArrayList<String>();
-        workflow.register(shop,key,draft,true,false,(state,reason)->errors.add(reason));
+    @Test void tariffScopeWarningRequiresReviewInsteadOfInventingACatalogRejection()throws Exception{
+        api.permitScope="6101, 6201, 6202, 6211";var prepared=workflow.prepare(shop,key);
+        assertNull(prepared.documents().automatic());assertTrue(prepared.documents().requiresReview());
+        assertTrue(prepared.documents().issues().stream().anyMatch(RegistrationPermitValidator::advisory));
+        assertFalse(workflow.registerReviewed(shop,prepared,draft,false,false,null));
         assertEquals(0,api.allocations.get());assertEquals(0,api.submissions.get());
-        assertTrue(errors.stream().anyMatch(e->e.contains("ZNACK_DOCUMENT_TNVED_MISMATCH")));
+        assertTrue(workflow.registerReviewed(shop,prepared,draft,true,false,null));
+        assertEquals(1,api.allocations.get());assertEquals(1,api.submissions.get());assertEquals(Status.READY_TO_SIGN,row().status());
+    }
+    @Test void aLegacyUnsentEditAddsTheKnownIdentityWithoutAllocatingAnotherGtin()throws Exception{
+        ready();String gtin=row().gtin();
+        try(var c=Database.getConnection();var s=c.createStatement()){s.executeUpdate("UPDATE ozon_card_registrations SET status='READY_TO_SUBMIT',feed_id='',good_id=91");}
+        assertFalse(JsonParser.parseString(row().payload()).getAsJsonObject().has("good_id"));
+        assertTrue(workflow.resume(shop,key,false,null));assertEquals(Status.READY_TO_SIGN,row().status());assertEquals(gtin,row().gtin());
+        assertEquals(91L,api.lastPayload.get("good_id").getAsLong());assertEquals(91L,JsonParser.parseString(row().payload()).getAsJsonObject().get("good_id").getAsLong());assertEquals(1,api.allocations.get());assertEquals(2,api.submissions.get());
     }
     @Test void definiteRejectionAfterSigningTimeoutIsNotHiddenBehindSigning()throws Exception {
         ready();api.signTimeout=true;workflow.signApproved(shop,List.of(key),true,null);assertEquals(Status.SIGNING,row().status());
@@ -247,7 +257,7 @@ class OzonCardRegistrationWorkflowTest {
             var documents=requested.deepCopy();for(var entry:documents){var d=entry.getAsJsonObject();d.addProperty("status_group",1);d.addProperty("product_tnved",permitScope);}
             var result=new JsonObject();result.add("documents",documents);var root=new JsonObject();root.add("result",result);return root;
         }
-        AtomicInteger allocations=new AtomicInteger(),submissions=new AtomicInteger(),signatures=new AtomicInteger(),documents=new AtomicInteger();
+        AtomicInteger allocations=new AtomicInteger(),submissions=new AtomicInteger(),signatures=new AtomicInteger(),documents=new AtomicInteger();JsonObject lastPayload;
         ProductKey activeKey=key;boolean knownQuota;
         String rejectedFeed="";
         String rejectionStatus="Rejected",rejectionMessage="required attribute missing; token=fixture-secret";
@@ -257,7 +267,7 @@ class OzonCardRegistrationWorkflowTest {
         public JsonElement generateGtins(String base,String token,int quantity)throws IOException{assertEquals(Status.ALLOCATING_GTIN,repository.find(activeKey).status());int count=allocations.incrementAndGet();if(allocationTimeout)throw new IOException("fixture allocation timeout");currentGtin=count==1?GtinWriteTestFixture.GTIN:"00000000000024";return json("{\"result\":{\"drafts\":[{\"gtin\":\""+currentGtin+"\"}]}}");}
         public JsonElement nationalCatalogCategories(String base,String token,String tnved){return json(multipleCategories?"{\"result\":[{\"cat_id\":1,\"cat_name\":\"Fixture\",\"category_active\":true},{\"cat_id\":2,\"cat_name\":\"Fixture 2\",\"category_active\":true}]}":"{\"result\":[{\"cat_id\":1,\"cat_name\":\"Fixture\",\"category_active\":true}]}");}
         public JsonElement nationalCatalogAttributes(String base,String token,long category){return json("{\"result\":[{\"attr_id\":1,\"attr_name\":\"Fixture\",\"attr_field_type\":\"text\"},{\"attr_id\":23557,\"attr_name\":\"Declaration\",\"attr_field_type\":\"text\"},{\"attr_id\":23561,\"attr_name\":\"Certificate\",\"attr_field_type\":\"text\"}]}");}
-        public JsonElement submitNationalCatalogFeed(String base,String token,JsonElement body)throws IOException{assertEquals(Status.FEED_SUBMITTING,repository.find(activeKey).status());submissions.incrementAndGet();if(feedTimeout)throw new IOException("fixture feed timeout");return json("{\"result\":{\"feed_id\":\"feed-"+submissions.get()+"\"}}");}
+        public JsonElement submitNationalCatalogFeed(String base,String token,JsonElement body)throws IOException{assertEquals(Status.FEED_SUBMITTING,repository.find(activeKey).status());lastPayload=body.getAsJsonObject().deepCopy();submissions.incrementAndGet();if(feedTimeout)throw new IOException("fixture feed timeout");return json("{\"result\":{\"feed_id\":\"feed-"+submissions.get()+"\"}}");}
         public JsonElement productCards(String base,String token,String gtins){return json("{\"result\":[{\"gtin\":\""+gtins+"\",\"good_id\":91,\"good_status\":\""+(accepted||!gtins.equals(currentGtin)?"published":"draft")+"\"}]}");}
         public JsonElement nationalCatalogFeedStatus(String base,String token,String feed){if(rejected||feed.equals(rejectedFeed))return json("{\"result\":{\"status\":\""+rejectionStatus+"\",\"item\":[{\"gtin\":\""+currentGtin+"\",\"status_code\":400,\"message\":\""+rejectionMessage+"\"}]}}");return json("{\"result\":{\"status\":\""+(pendingModeration?"Processing":accepted&&!laggedModeration?"Signed":"Moderated")+"\",\"item\":[{\"gtin\":\""+currentGtin+"\",\"good_id\":91}]}}");}
         public JsonElement nationalCatalogSigningDocument(String base,String token,JsonObject body){int count=documents.incrementAndGet();return json("{\"result\":{\"xmls\":[{\"goodId\":91,\"xml\":\"<good>"+(changeSigningDocument&&count>1?"changed":"reviewed")+"</good>\"}]}}");}

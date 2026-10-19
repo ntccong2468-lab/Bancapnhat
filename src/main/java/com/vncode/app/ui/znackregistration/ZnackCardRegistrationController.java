@@ -40,6 +40,7 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import com.vncode.app.shared.DialogLayout;
 import javafx.util.Duration;
 
 import java.io.ByteArrayInputStream;
@@ -71,7 +72,8 @@ public final class ZnackCardRegistrationController {
     private Shop shop;
     private boolean loading;
     private boolean preparing;
-    private final java.util.Map<List<ZnackModels.GoodsDocument>,ZnackModels.GoodsDocument> reviewedDocuments=new java.util.HashMap<>();
+    private record DocumentChoice(List<ZnackModels.GoodsDocument> candidates,String tnved,List<String> issues){}
+    private final java.util.Map<DocumentChoice,ZnackModels.GoodsDocument> reviewedDocuments=new java.util.HashMap<>();
     private long shopEpoch;
     private long loadSequence;
     private long filteredCount;
@@ -626,7 +628,7 @@ public final class ZnackCardRegistrationController {
                 else {recordBlocked(inputs.attempt(),"ZNACK_DOCUMENT_TNVED_MISMATCH");completed.run();}
                 return;
             }
-            ZnackModels.GoodsDocument document=chooseDocument(inputs.documents());
+            ZnackModels.GoodsDocument document=chooseDocument(inputs.documents(),inputs.preflight().tnved());
             if(document==null||!isCurrent(owner,epoch)){recordBlocked(inputs.attempt(),"ZNACK_DOCUMENT_SELECTION_CANCELLED");completed.run();return;}
             Category category=chooseCategory(inputs.sku(),inputs.preflight().categories());
             if(category==null||!isCurrent(owner,epoch)){recordBlocked(inputs.attempt(),"ZNACK_CATEGORY_UNRESOLVED");completed.run();return;}
@@ -639,9 +641,9 @@ public final class ZnackCardRegistrationController {
         task.setOnFailed(event->failure.accept(task.getException()));AppTaskExecutor.execute(task,failure);
     }
 
-    private ZnackModels.GoodsDocument chooseDocument(ZnackRegistrationDocuments.Selection selection) {
+    private ZnackModels.GoodsDocument chooseDocument(ZnackRegistrationDocuments.Selection selection,String tnved) {
         if(selection.automatic()!=null&&!selection.requiresReview())return selection.automatic();
-        var choicesKey=List.copyOf(selection.candidates());
+        var choicesKey=new DocumentChoice(List.copyOf(selection.candidates()),tnved,List.copyOf(selection.issues()));
         if(preparing&&reviewedDocuments.containsKey(choicesKey))return reviewedDocuments.get(choicesKey);
         Dialog<ZnackModels.GoodsDocument> dialog=new Dialog<>();dialog.setTitle(tr("znack.registration.documents"));
         dialog.setHeaderText(tr("znack.registration.perproduct_review"));
@@ -650,9 +652,13 @@ public final class ZnackCardRegistrationController {
             public String toString(ZnackModels.GoodsDocument document){return document==null?"":document.type()+" · "+document.number()+" · "+document.date();}
             public ZnackModels.GoodsDocument fromString(String ignored){throw new UnsupportedOperationException();}
         });
-        choices.getSelectionModel().selectFirst();choices.setPrefWidth(620);dialog.getDialogPane().setContent(choices);
-        dialog.getDialogPane().getButtonTypes().setAll(ButtonType.OK,ButtonType.CANCEL);
-        dialog.setResultConverter(button->button==ButtonType.OK?choices.getValue():null);
+        choices.getSelectionModel().selectFirst();choices.setPrefWidth(620);
+        var note=new Label(tr("znack.registration.document_scope_advisory")+"\nTN VED: "+tnved+"\n"+String.join("\n",selection.issues()));note.setWrapText(true);note.setMaxWidth(680);
+        dialog.getDialogPane().setContent(new VBox(12,note,choices));
+        var apply=new ButtonType(tr("common.apply"),ButtonBar.ButtonData.OK_DONE);
+        dialog.getDialogPane().getButtonTypes().setAll(apply,ButtonType.CANCEL);
+        dialog.setResultConverter(button->button==apply?choices.getValue():null);
+        DialogLayout.install(dialog.getDialogPane());AlertService.applyTheme(dialog);
         var result=dialog.showAndWait().orElse(null);if(preparing)reviewedDocuments.put(choicesKey,result);return result;
     }
 

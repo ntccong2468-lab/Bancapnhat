@@ -1,23 +1,15 @@
 # VNCode 1.5.1 — sửa thẻ Catalog lỗi
 
-Thêm luồng **Lỗi → Chọn tất cả → báo cáo → Chỉnh sửa/Hủy → bảng đề xuất → Áp dụng** cho WB và Ozon. Báo cáo đọc toàn bộ snapshot Catalog thuộc shop/tài khoản hiện hành, giữ cả thẻ chưa ghép được sản phẩm; lỗi native cũng xuất hiện. Thẻ không có GTIN/thẻ từ xa cần quay lại luồng đăng ký, không giả tạo feed_id để sửa.
+Luồng WB/Ozon: **Lỗi → Chọn tất cả → báo cáo → Chỉnh sửa/Hủy → đề xuất → Áp dụng**. Báo cáo giữ cả thẻ lỗi lịch sử chưa có checkpoint native, không giả tạo feed_id. Khi một thẻ khớp nhiều biến thể, seller chọn chính xác màu/size trước khi xem đề xuất.
 
-Đề xuất dùng dữ liệu mới từ sàn và schema Catalog: article, màu, size/hệ size, TN VED, thương hiệu, chất liệu, giới tính và giấy tờ. Khi size cũ sai và nhiều biến thể có thể khớp, seller chọn biến thể trong báo cáo. Bảng đề xuất có giá trị trước/sau và các trường bắt buộc; giấy tờ có thể chọn hoặc nhập loại/số/ngày, được registry kiểm tra lại trước ghi. Không hardcode giấy tờ của tài khoản mẫu. TN VED đổi nhóm bốn số phải dùng luồng đăng ký thẻ mới đã có, giữ thẻ cũ.
+Đề xuất đọc dữ liệu mới trên sàn, đúng GTIN/good_id từ Catalog và schema hiện tại của danh mục. Cho xem trước/sau, sửa trường thiếu, chọn hoặc nhập giấy tờ thật. Giấy tờ được tra lại registry; không hợp lệ bị chặn. Cảnh báo phạm vi TN VED được tách khỏi lý do kiểm duyệt, hiện rõ trước Áp dụng theo API 5.68. Xem [quy tắc công bố](2026-10-19-catalog-official-rules.md).
 
-Áp dụng đóng bảng và chạy nền với viên thuốc dưới giữa bảng nguồn. Ghi danh sách đã chọn vào báo cáo trước khi xử lý, xử lý từng thẻ qua state machine đăng ký native hiện có. Chỉ nhập checkpoint cho thẻ được API xác nhận draft/errors; giữ GTIN, good_id, scope/owner, lịch sử và feed_id. Bảo vệ published/moderation, yêu cầu gửi/chữ ký chưa rõ kết quả, GTIN đang thuộc biến thể khác và các checkpoint đang chạy. Không cấp GTIN hoặc tra quota GS1 cho thao tác sửa cùng thẻ. Đọc lại hai nguồn trước mỗi lần gửi và không tự gửi lại khi timeout.
+Áp dụng đóng bảng và chạy từng thẻ trong nền với viên thuốc ở dưới giữa bảng nguồn. Lưu danh sách đã chọn trước khi xử lý, giữ GTIN khi sửa cùng thẻ, gửi good_id đúng hợp đồng edit và không tiêu GTIN GS1 cho thao tác này. Tiếp tục checkpoint cũ chưa gửi cũng giữ good_id. Lịch sử cũ và feed_id được lưu; thay đổi nhóm bốn số dùng luồng thẻ mới đã xác nhận, giữ thẻ cũ.
 
-Báo cáo phân biệt đang xử lý/chờ duyệt/chờ ký/cần xử lý/đã xuất bản. Chỉ native workflow xác minh xuất bản mới được ghi SUCCEEDED; feed receipt không được coi là thẻ đã duyệt. Lý do nguyên văn chỉ có khi Catalog/feed thực sự trả về; đề xuất kiểm tra giấy tờ/size không được trình bày thành kết luận kiểm duyệt.
+Bảo vệ thẻ published/moderation, chữ ký hoặc POST chưa rõ kết quả, GTIN đang thuộc biến thể khác, thay đổi credential/owner, dữ liệu sàn hoặc revision Catalog sau khi xem đề xuất. Không gửi lại timeout. Không cho phép đổi good_id ngoài dự kiến rồi báo thành công. Chỉ xác nhận SUCCEEDED khi đúng thẻ được đọc lại published; các trạng thái còn lại phân biệt chờ duyệt/chờ ký/cần xử lý. Lý do nguyên văn chỉ có khi Catalog/feed thực sự trả về.
 
-## Kiểm tra trong máy Linux
+Kiểm tra Linux/Xvfb của quy tắc mới: 263 ca trong nhóm đăng ký và UI qua; thêm hai ca tiếp tục checkpoint cũ được kiểm tra riêng, 73 kiểm tra công cụ release qua. Các lượt 178/55 ca trước đó là kiểm thử phiên bản điều kiện chặn cũ, không được dùng để tuyên bố quy tắc mới đã nghiệm thu.
 
-- 178 ca qua trong 11 lớp liên quan: service sửa WB/Ozon, các nút báo cáo/Áp dụng/Hủy, controller đăng ký thật, truy vấn và báo cáo, workflow WB/Ozon, registry và sửa sản phẩm theo lô.
-- 73 kiểm tra công cụ release qua.
-- 16 ca mới: 12 service, 3 hộp thoại, 1 thao tác nút Chọn tất cả trên màn hình WB. Dùng dữ liệu tổng hợp, SQLite thật, mapper/payload và workflow thật với API giả lập.
-- Kiểm tra các trường hợp: đúng size 52 thay size 1; giấy tờ đúng nhóm; giấy tờ nhập sai không tạo checkpoint; không cấp GTIN; giữ GTIN/feed, chờ moderation; bảo vệ published/sai good_id; chặn thay đổi sau khi xem đề xuất; không gửi trùng; báo cáo thẻ lịch sử chưa có native checkpoint.
-- Bổ sung kiểm tra nâng cấp từ bộ cài Published 1.5.0 với checksum đã lưu; kết quả Windows được ghi riêng sau CI.
+Run Windows 39255533688 trước đây có hai timeout trình điều khiển modal. Đã sửa driver; run 39268181948 tiếp theo qua đủ 1913 ca (1911 passed, 2 platform skips), nhưng hủy build/publication sau yêu cầu quy tắc công bố. Cần lượt Windows mới cho nguồn thay đổi hiện tại trước Latest.
 
-Đây là kiểm thử tự động bằng API giả lập. Không tạo/sửa/ký thẻ thật của seller trong đợt này. CryptoPro doanh nghiệp, license production và nghiệm thu thao tác ghi từ desktop lên sàn chưa được xác nhận. Giữ các cờ này false khi phát hành theo yêu cầu của chủ repo.
-
-## Theo dõi Windows
-
-Run 39255533688 chạy 1.913 ca, 0 assertion failures, 2 timeout ở trình điều khiển modal GS1/Ozon, 2 platform skips. Đã thay thao tác đóng bằng animation bằng cách bấm nút trong hộp thoại đang hiển thị; giữ nguyên assertions và không sửa production code. Cả 16 ca hai lớp qua trên Linux; cổng sớm Windows cũng qua. Bộ đầy đủ và các nâng cấp đang chạy lại ở run 39268181948, commit `85fd0e060ad75031d21b1ed54fb6a4821d46d9e7`. Không dùng lượt lỗi để phát hành.
+API seller đã đọc lại thẻ, giấy tờ và schema; không ghi thẻ hoặc sàn thật trong đợt này. CryptoPro doanh nghiệp, license production và nghiệm thu ghi từ app vẫn chưa được xác nhận. Giữ các cờ nghiệm thu này false khi phát hành theo yêu cầu của chủ repo.

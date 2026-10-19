@@ -11,8 +11,10 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
-/** Parses permit documents using the National Catalog v5.62 response contract. */
+/** Parses permit documents using the National Catalog v5.68 response contract. */
 public final class ZnackPermitDocumentParser {
+    // Published Green groups permit introduction. Yellow/Red groups do not.
+    private static final Set<Integer> INTRODUCTION_GROUPS=Set.of(1,4,6,26,27,28,29,30);
     private static final Map<String, String> TYPES = Map.of(
             "23557", "CONFORMITY_DECLARATION",
             "23561", "CONFORMITY_CERTIFICATE",
@@ -119,7 +121,7 @@ public final class ZnackPermitDocumentParser {
         if (group != null) {
             try {
                 groupValue = group.getAsInt();
-                if (groupValue != 1) return false;
+                if (!INTRODUCTION_GROUPS.contains(groupValue)) return false;
             } catch (RuntimeException ignored) {
                 return false;
             }

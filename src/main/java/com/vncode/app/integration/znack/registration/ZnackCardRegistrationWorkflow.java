@@ -383,6 +383,7 @@ public final class ZnackCardRegistrationWorkflow {
         } else {
             if (rebuildPayload) {
                 payload = ZnackNationalCatalogService.buildPayload(gtin, draft, imageUrl);
+                if(sku.goodId()!=null&&sku.goodId()>0)payload.addProperty("good_id",sku.goodId());
                 // A pending feed retains its original request until the server confirms rejection.
                 if(feedId==null||feedId.isBlank()){
                     registrations.saveGenerated(shop.getId(), sku, gtin, draft.tnved(), draft.categoryId(),draft.goodName(), payload.toString());
@@ -396,6 +397,10 @@ public final class ZnackCardRegistrationWorkflow {
         var nativeKey=new com.vncode.app.features.products.ProductKey(shop.getId(),shop.getMarketplace(),Long.toString(sku.nmId()),Long.toString(sku.chrtId()));
         if(recordConsent){RegistrationSigningConsent.set(shop,nativeKey,gtin,draft.autoSign());RegistrationMarketplaceConsent.set(shop,nativeKey,gtin,true);}
         if (feedId == null || feedId.isBlank()) {
+            if(sku.goodId()!=null&&sku.goodId()>0){
+                if(payload.has("good_id")&&payload.get("good_id").getAsLong()!=sku.goodId())throw new RegistrationValidationException("CATALOG_IDENTITY_CHANGED");
+                if(!payload.has("good_id")){payload.addProperty("good_id",sku.goodId());registrations.saveGenerated(shop.getId(),sku,gtin,draft.tnved(),draft.categoryId(),draft.goodName(),payload.toString());}
+            }
             LicenseRuntime.require(Permission.GTIN);
             update(shop,sku,Status.READY_TO_SUBMIT,null,null,listener);
             update(shop,sku,Status.FEED_SUBMITTING,null,null,listener);
@@ -427,9 +432,9 @@ public final class ZnackCardRegistrationWorkflow {
                     LicenseRuntime.require(Permission.GTIN);
                     if(removeImage){retriedWithoutImage=true;payload.remove("good_images");}
                     if(packing!=null){retriedPacking=true;draft=draft.withKit(packing);if(packing)payload.addProperty("is_kit",true);else payload.remove("is_kit");}
+                    if(goodId!=null&&goodId>0)payload.addProperty("good_id",goodId);
                     retriedRejectedFeed=true;
                     if(!registrations.prepareRejectedRetry(shop,sku,gtin,feedId,goodId,draft.tnved(),draft.categoryId(),draft.goodName(),payload.toString(),CatalogFeedback.rejection(progress)))throw new IllegalStateException("REGISTRATION_CHANGED");
-                    goodId=null;
                     update(shop,sku,Status.FEED_SUBMITTING,null,null,listener);
                     LicenseRuntime.require(Permission.GTIN);
                     guard(shop,sku);
@@ -559,9 +564,11 @@ public final class ZnackCardRegistrationWorkflow {
     static Draft withSchemaTypes(Draft draft,
             java.util.List<ZnackCardRegistrationModels.Attribute> schema, String wbSize) {
         Map<Long, String> types = new LinkedHashMap<>(draft.attributeTypes());
-        for (var attribute : schema) {
+        var baseIds=schema.stream().map(ZnackCardRegistrationModels.Attribute::id).collect(java.util.stream.Collectors.toSet());
+        for (var attribute : RegistrationAttributeRules.required(schema,draft.attributes())) {
             String value = draft.attributes().get(attribute.id());
-            if (value == null || value.isBlank()) continue;
+            if (value == null || value.isBlank()) {if(!baseIds.contains(attribute.id()))throw new IllegalArgumentException("ZNACK_REQUIRED_ATTRIBUTES_MISSING: "+attribute.name());continue;}
+            if(!RegistrationAttributeRules.validFieldValue(attribute,value))throw new IllegalArgumentException("ZNACK_INVALID_ATTRIBUTE_VALUE: "+attribute.name());
             String type = types.get(attribute.id());
             if (type == null || (!attribute.valueTypes().isEmpty() && !attribute.valueTypes().contains(type))) {
                 type = ZnackWbAttributeMapper.resolveValueType(attribute, value, wbSize);

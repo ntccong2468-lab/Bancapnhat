@@ -166,6 +166,10 @@ public class ZnackApiClient {
         return getEmptyOnNotFound(trueApiBase(base, 3),
                 "/nk/attributes?cat_id=" + categoryId + "&attr_type=m", token);
     }
+    public JsonElement nationalCatalogAllAttributes(String base,String token,long categoryId)throws IOException {
+        if(!catalogKey.isEmpty())return getEmptyOnNotFound(nationalCatalogBase(base),"/v3/attributes?cat_id="+categoryId+"&attr_type=a",null);
+        return getEmptyOnNotFound(trueApiBase(base,3),"/nk/attributes?cat_id="+categoryId+"&attr_type=a",token);
+    }
     public JsonElement submitNationalCatalogFeed(String base, String token, JsonElement feed) throws IOException {
         return postWithoutRetry(nationalCatalogBase(base), "/v3/feed", token, feed);
     }

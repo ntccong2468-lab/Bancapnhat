@@ -108,7 +108,7 @@ public final class OzonCardRegistrationWorkflow {
         if(p.preflight()==null||p.categoryId()==0||p.snapshot().title().isBlank()||p.snapshot().brand().isBlank()||p.documents().candidates().size()!=1)return java.util.Optional.empty();
         var values=new java.util.LinkedHashMap<Long,String>();var types=new java.util.LinkedHashMap<Long,String>();
         values.put(2478L,p.snapshot().title());values.put(2504L,p.snapshot().brand());
-        for(var a:p.required()) {
+        for(var a:RegistrationAttributeRules.required(p.required(),p.suggestions())) {
             if(java.util.Set.of(2478L,2504L,3959L,ZnackNationalCatalogService.DECLARATION_ATTRIBUTE_ID,ZnackNationalCatalogService.CERTIFICATE_ATTRIBUTE_ID).contains(a.id()))continue;
             if(a.id()==13933L&&p.preflight().categoryTnved().length()==10)continue;
             String value=p.suggestions().getOrDefault(a.id(),a.id()==13933L?p.tnved():"");
@@ -208,7 +208,11 @@ public final class OzonCardRegistrationWorkflow {
                 var rejected=session.catalog().progress(session.token(),row.feedId(),row.gtin());
                 var payload=com.google.gson.JsonParser.parseString(row.payload()).getAsJsonObject();
                 var packing=CatalogPackingPolicy.correction(rejected,payload.has("is_kit")&&payload.get("is_kit").getAsBoolean());
-                if(CatalogFeedback.confirmedRejection(rejected)&&repository.retryRejected(shop,key,row,scope,packing))submitPrepared(shop,key,session,callback);
+                if(CatalogFeedback.confirmedRejection(rejected)){
+                    if(row.goodId()!=null&&rejected.goodId()!=null&&!row.goodId().equals(rejected.goodId()))throw new IllegalStateException("catalog_identity_changed");
+                    if(rejected.goodId()!=null)repository.progress(key,Status.ERROR,rejected.goodId(),row.error());
+                    if(repository.retryRejected(shop,key,row,scope,packing))submitPrepared(shop,key,session,callback);
+                }
             }else if(row.feedId().isBlank())submitPrepared(shop,key,session,callback);
             if(automaticSigning!=null)RegistrationSigningConsent.set(shop,key,row.gtin(),automaticSigning);
             poll(shop,key,session,RegistrationSigningConsent.allowed(shop,key,row.gtin()),callback);
@@ -250,7 +254,7 @@ public final class OzonCardRegistrationWorkflow {
         }finally{RUNNING.remove(operation);}
     }
     private void submitPrepared(Shop shop,ProductKey key,CatalogSession session,BiConsumer<Status,String> callback)throws Exception {
-        repository.guard(shop,key,session.scope());LicenseRuntime.require(Permission.GTIN);var row=repository.find(key);
+        repository.guard(shop,key,session.scope());LicenseRuntime.require(Permission.GTIN);if(!repository.prepareExistingIdentity(shop,key,session.scope()))return;var row=repository.find(key);
         if(row.status()!=Status.READY_TO_SUBMIT||!row.feedId().isBlank())return;
         if(!repository.transition(key,Status.READY_TO_SUBMIT,Status.FEED_SUBMITTING))return;
         notify(callback,Status.FEED_SUBMITTING,"");
@@ -361,11 +365,11 @@ public final class OzonCardRegistrationWorkflow {
                         && (document.number()+":::"+document.date()).equals(documentValue));
         if(!eligible)throw new IllegalArgumentException("goods_document_changed");
         var types=new LinkedHashMap<Long,String>(draft.attributeTypes());
-        for(var attribute:required){
+        for(var attribute:RegistrationAttributeRules.required(required,draft.attributes())){
             if(attribute.id()==3959L||attribute.id()==13933L&&draft.feedTnved().length()==10)continue;
             if((attribute.id()==declaration||attribute.id()==certificate)&&attribute.id()!=documentId)continue;
             String value=draft.attributes().get(attribute.id());if(value==null||value.isBlank())throw new IllegalArgumentException("required_attribute_missing");
-            if(attribute.presetOnly()&&!attribute.presets().contains(value))throw new IllegalArgumentException("invalid_attribute_value");
+            if(attribute.presetOnly()&&!attribute.presets().contains(value)||!RegistrationAttributeRules.validFieldValue(attribute,value))throw new IllegalArgumentException("invalid_attribute_value");
             String type=types.get(attribute.id());if(type==null){if(attribute.valueTypes().size()==1)type=attribute.valueTypes().getFirst();else if(attribute.valueTypes().isEmpty())type="";else throw new IllegalArgumentException("attribute_type_required");}
             if(!attribute.valueTypes().isEmpty()&&!attribute.valueTypes().contains(type))throw new IllegalArgumentException("invalid_attribute_type");types.put(attribute.id(),type);
         }

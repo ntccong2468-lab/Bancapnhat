@@ -488,8 +488,9 @@ public class ZnackCardRegistrationRepository {
             try(var p=c.prepareStatement("INSERT OR IGNORE INTO znack_card_registration_history SELECT shop_id,chrt_id,nm_id,gtin,COALESCE(?,good_id),feed_id,payload_json,tnved,'ERROR',?,? FROM znack_card_registrations WHERE shop_id=? AND chrt_id=?")){
                 if(rejectedGoodId==null)p.setNull(1,java.sql.Types.BIGINT);else p.setLong(1,rejectedGoodId);p.setString(2,CatalogFeedback.display(rejection));p.setString(3,now);p.setInt(4,shop.getId());p.setLong(5,sku.chrtId());p.executeUpdate();
             }
-            try(var p=c.prepareStatement("UPDATE znack_card_registrations SET feed_id=NULL,good_id=NULL,tnved=?,category_id=?,good_name=?,payload_json=?,status='READY_TO_SUBMIT',error_message=NULL,updated_at=? WHERE shop_id=? AND chrt_id=?")){
-                p.setString(1,tnved);p.setLong(2,category);p.setString(3,name);p.setString(4,payload);p.setString(5,now);p.setInt(6,shop.getId());p.setLong(7,sku.chrtId());p.executeUpdate();
+            try(var p=c.prepareStatement("UPDATE znack_card_registrations SET feed_id=NULL,good_id=COALESCE(?,good_id),tnved=?,category_id=?,good_name=?,payload_json=?,status='READY_TO_SUBMIT',error_message=NULL,updated_at=? WHERE shop_id=? AND chrt_id=?")){
+                if(rejectedGoodId==null)p.setNull(1,java.sql.Types.BIGINT);else p.setLong(1,rejectedGoodId);
+                p.setString(2,tnved);p.setLong(3,category);p.setString(4,name);p.setString(5,payload);p.setString(6,now);p.setInt(7,shop.getId());p.setLong(8,sku.chrtId());p.executeUpdate();
             }
             try(var p=c.prepareStatement("DELETE FROM znack_card_registration_signatures WHERE shop_id=? AND chrt_id=?")){p.setInt(1,shop.getId());p.setLong(2,sku.chrtId());p.executeUpdate();}
             return true;

@@ -121,10 +121,15 @@ public final class ZnackCardRegistrationModels {
 
     public record Attribute(long id, String name, String fieldType, boolean presetOnly,
                             boolean multiple, boolean firstLayer, boolean secondLayer,
-                            List<String> presets, List<String> valueTypes) {
+                            List<String> presets, List<String> valueTypes, Map<String,List<Attribute>> dependencies) {
         public Attribute {
             presets = presets == null ? List.of() : List.copyOf(presets);
             valueTypes = valueTypes == null ? List.of() : List.copyOf(valueTypes);
+            var copy=new java.util.LinkedHashMap<String,List<Attribute>>();if(dependencies!=null)dependencies.forEach((k,v)->copy.put(k,List.copyOf(v)));dependencies=Map.copyOf(copy);
+        }
+
+        public Attribute(long id,String name,String fieldType,boolean presetOnly,boolean multiple,boolean firstLayer,boolean secondLayer,List<String> presets,List<String> valueTypes){
+            this(id,name,fieldType,presetOnly,multiple,firstLayer,secondLayer,presets,valueTypes,Map.of());
         }
 
         public Attribute(long id, String name, String fieldType, boolean presetOnly,

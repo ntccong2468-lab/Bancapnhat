@@ -10,6 +10,10 @@ import java.util.regex.Pattern;
 /** A valid date alone does not prove that a permit covers this product's customs code. */
 public final class RegistrationPermitValidator {
     private RegistrationPermitValidator(){}
+    /** Registry tariff metadata is advisory, not an undocumented feed rejection rule. */
+    public static boolean advisory(String problem){
+        return problem!=null&&(problem.contains("ZNACK_DOCUMENT_TNVED_MISMATCH")||problem.contains("ZNACK_DOCUMENT_TNVED_SCOPE_UNKNOWN"));
+    }
     public static long attribute(GoodsDocument document){return switch(document.type()){
         case "CONFORMITY_DECLARATION"->23557;case "CONFORMITY_CERTIFICATE"->23561;
         default->throw new IllegalArgumentException("ZNACK_DOCUMENT_TYPE_UNSUPPORTED");};}

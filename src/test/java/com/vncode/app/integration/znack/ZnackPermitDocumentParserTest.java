@@ -11,6 +11,13 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class ZnackPermitDocumentParserTest {
+    @Test void published568GreenGroupsAllowIntroductionWhileYellowAndRedDoNot(){
+        var permitted=java.util.Set.of(1,4,6,26,27,28,29,30);
+        for(int group=1;group<=31;group++){
+            var response=JsonParser.parseString("{\"result\":{\"documents\":[{\"attr_id\":23557,\"number\":\"FIXTURE\",\"from_date\":\"2026-01-01\",\"status_group\":"+group+"}]}}");
+            assertEquals(permitted.contains(group),!ZnackPermitDocumentParser.activeFromRegistry(response).isEmpty(),"status_group="+group);
+        }
+    }
     @Test
     void productCardReturnsEverySupportedPermitDocument() {
         var card = JsonParser.parseString("""

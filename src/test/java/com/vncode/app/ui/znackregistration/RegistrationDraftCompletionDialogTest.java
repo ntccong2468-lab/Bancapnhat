@@ -20,6 +20,18 @@ class RegistrationDraftCompletionDialogTest {
     @BeforeAll static void start(){try{Platform.startup(()->Platform.setImplicitExit(false));}catch(IllegalStateException started){}}
     @BeforeEach void setup(){System.setProperty("vncode.appdata.dir",root.toString());com.vncode.app.config.Database.initDatabase();}
     @AfterEach void clear()throws Exception{com.vncode.app.testsupport.ShopReadTestCleanup.awaitSharedIdle();System.clearProperty("vncode.appdata.dir");}
+    @Test void selectingOtherRevealsItsMandatoryFieldBeforeTheActualApplyButtonCanClose()throws Exception{
+        var child=new Attribute(23828,"Вид товара (при отсутствии в справочнике)","text",false,false,false,true,List.of());
+        var parent=new Attribute(12,"Вид товара","text",true,false,true,false,List.of("Костюм","НЕТ В СПРАВОЧНИКЕ"),List.of(),Map.of("НЕТ В СПРАВОЧНИКЕ",List.of(child)));
+        var result=new java.util.concurrent.atomic.AtomicReference<Draft>();
+        com.vncode.app.testsupport.FxDialogDriver.choose(()->result.set(RegistrationDraftCompletionDialog.show(null,draft,List.of(parent),"")),p->"registrationCatalogMissingDialog".equals(p.getId()),pane->{
+            pane.applyCss();pane.layout();var choice=(ComboBox<String>)pane.lookup("#registrationCatalogMissingValue");choice.setValue("НЕТ В СПРАВОЧНИКЕ");
+            ((Button)pane.lookup("#registrationCatalogMissingApply")).fire();assertTrue(pane.getScene().getWindow().isShowing());
+            var table=(TableView<Attribute>)pane.lookup(".table-view");assertTrue(table.getItems().stream().anyMatch(a->a.id()==23828));
+            pane.applyCss();pane.layout();var entry=pane.lookupAll("#registrationCatalogMissingValue").stream().filter(n->n instanceof ComboBox<?> box&&box.isEditable()).map(n->(ComboBox<String>)n).findFirst().orElseThrow();entry.getEditor().setText("Трикотажный костюм");
+            return pane.getButtonTypes().stream().filter(b->b.getButtonData()==ButtonBar.ButtonData.OK_DONE).findFirst().orElseThrow();
+        });assertNotNull(result.get());assertEquals("Трикотажный костюм",result.get().attributes().get(23828L));assertFalse(draft.attributes().containsKey(23828L));
+    }
     @Test void missingSchemaFieldsRequireLiteralPresetsAndAnExplicitAmbiguousType(){
         var schema=List.of(country,size);assertEquals(2,RegistrationDraftCompletionDialog.missing(draft,schema,"").size());
         assertThrows(IllegalArgumentException.class,()->RegistrationDraftCompletionDialog.complete(draft,schema,"",Map.of(10L,new RegistrationDraftCompletionDialog.Value("invented",null),35L,new RegistrationDraftCompletionDialog.Value("52","РОССИЯ"))));

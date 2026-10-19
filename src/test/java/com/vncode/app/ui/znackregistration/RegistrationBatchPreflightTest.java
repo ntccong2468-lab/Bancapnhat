@@ -13,6 +13,14 @@ import static org.junit.jupiter.api.Assertions.*;
 class RegistrationBatchPreflightTest {
     @TempDir Path directory;
     @AfterEach void clean(){System.clearProperty("vncode.appdata.dir");}
+    @Test void validExistingSuitCodeIsNotReclassifiedMerelyFromTheSportsCategory()throws Exception{
+        System.setProperty("vncode.appdata.dir",directory.toString());Database.initDatabase();var shop=GtinWriteTestFixture.shop(Marketplace.WILDBERRIES);var key=new ProductKey(1,shop.getMarketplace(),"101","201");
+        var attrs=List.of(new ProductAttribute("1","ТН ВЭД",List.of("6103109000"),""),new ProductAttribute("2","Пол",List.of("Мужской"),""),new ProductAttribute("3","Состав",List.of("хлопок 80%, полиэстер 20%"),""),new ProductAttribute("4","Тип ткани",List.of("Трикотаж"),""));
+        var snapshot=new ProductSnapshot(key,"live:fixture","Костюм спортивный","","Fixture","SUIT","1",List.of(),attrs,List.of(new ProductVariant("201","SUIT","Brown","52","",false)),null,List.of(),Instant.now(),Map.of("owner",ListingIdentity.fingerprint(shop),"source.category.name","Костюмы спортивные"));
+        var repository=new ProductRepository();repository.saveVerifiedSnapshot(shop,snapshot);
+        assertTrue(new com.vncode.app.features.tnved.ProductTnvedAdvisor().propose(snapshot).unique(),"An advisor may still offer a different optional code");
+        assertTrue(RegistrationBatchPreflight.read(shop,List.of(key)).keys("tnved").isEmpty());assertEquals(snapshot,repository.localSnapshot(key).orElseThrow());
+    }
     @Test void aReviewedUniqueTnvedSuggestionIsReadyToApplyInsteadOfKeepingTheWrongOldCode(){
         var key=new ProductKey(1,Marketplace.WILDBERRIES,"101","201");
         var changed=new RegistrationBatchPreflight.Finding("tnved",key,"Article","6103109000","6112110000");

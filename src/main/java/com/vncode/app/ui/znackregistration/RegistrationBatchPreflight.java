@@ -33,7 +33,8 @@ final class RegistrationBatchPreflight {
             var proposal=advisor.propose(snapshot);
             String gender=snapshot.attributes().stream().filter(a->ProductFieldNames.matches("gender",a.name())).flatMap(a->a.values().stream()).collect(java.util.stream.Collectors.joining(" "));
             boolean tariffConflict=!com.vncode.app.integration.znack.registration.RegistrationTariffRules.genderProblem(ProductFieldNames.tnvedCode(proposal.current()),gender).isBlank();
-            if(proposal.current().isBlank()||tariffConflict||proposal.unique()&&!ProductFieldNames.tnvedCode(proposal.current()).equals(proposal.candidates().getFirst().code()))
+            // A category/material suggestion does not establish that a seller's valid code is wrong.
+            if(!ProductFieldNames.tnvedCode(proposal.current()).matches("[0-9]{10}")||tariffConflict)
                 findings.add(new Finding("tnved",key,snapshot.vendorArticle(),proposal.current(),proposal.unique()?proposal.candidates().getFirst().code():"",snapshot.categoryId()));
         }
         return new Review(findings);

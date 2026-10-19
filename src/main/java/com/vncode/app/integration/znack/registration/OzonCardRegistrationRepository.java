@@ -108,8 +108,11 @@ public final class OzonCardRegistrationRepository {
             if(current==null||expected==null||current.status()!=Status.ERROR||!current.gtin().equals(expected.gtin())||!current.feedId().equals(expected.feedId())
                     ||!current.payload().equals(expected.payload())||Set.of("SENDING","RECONCILE_REQUIRED").contains(current.signatureState()))return false;
             requireOwner(current,ListingIdentity.fingerprint(shop),scope);archive(c,current);
-            String payload=current.payload();if(isKit!=null){var json=com.google.gson.JsonParser.parseString(payload).getAsJsonObject();if(isKit)json.addProperty("is_kit",true);else json.remove("is_kit");payload=json.toString();}
-            try(var p=c.prepareStatement("UPDATE ozon_card_registrations SET feed_id='',good_id=NULL,status='READY_TO_SUBMIT',error='',signature_xml=NULL,signature_sha256='',signature_state='',payload_json=?,updated_at=? WHERE shop_id=? AND product_id=? AND offer_id=?")){
+            var json=com.google.gson.JsonParser.parseString(current.payload()).getAsJsonObject();
+            if(current.goodId()!=null&&current.goodId()>0)json.addProperty("good_id",current.goodId());
+            if(isKit!=null){if(isKit)json.addProperty("is_kit",true);else json.remove("is_kit");}
+            String payload=json.toString();
+            try(var p=c.prepareStatement("UPDATE ozon_card_registrations SET feed_id='',status='READY_TO_SUBMIT',error='',signature_xml=NULL,signature_sha256='',signature_state='',payload_json=?,updated_at=? WHERE shop_id=? AND product_id=? AND offer_id=?")){
                 p.setString(1,payload);p.setString(2,Instant.now().toString());bindKey(p,3,key);return p.executeUpdate()==1;
             }
         });
@@ -117,6 +120,23 @@ public final class OzonCardRegistrationRepository {
     public void submitted(ProductKey key,String feedId) {
         if(feedId==null||feedId.isBlank()||feedId.length()>200)throw new IllegalArgumentException("invalid_feed_id");
         update(key,"UPDATE ozon_card_registrations SET feed_id=?,status='FEED_SUBMITTED',updated_at=? WHERE shop_id=? AND product_id=? AND offer_id=? AND status='FEED_SUBMITTING'",p->{p.setString(1,feedId);p.setString(2,Instant.now().toString());bindKey(p,3,key);});
+    }
+    /** Add a known edit identity to a legacy unsent checkpoint, never to an uncertain request. */
+    public boolean prepareExistingIdentity(Shop shop,ProductKey key,ZnackRegistrationScope scope){
+        requireShop(shop,key);return transaction(c->{
+            requireCurrentOwner(c,shop,key,scope);var current=row(c,key);
+            if(current==null||current.status()!=Status.READY_TO_SUBMIT||!current.feedId().isBlank())return false;
+            if(current.goodId()==null||current.goodId()<=0)return true;
+            var payload=com.google.gson.JsonParser.parseString(current.payload()).getAsJsonObject();
+            if(payload.has("good_id")){
+                if(payload.get("good_id").getAsLong()!=current.goodId())throw new RegistrationValidationException("CATALOG_IDENTITY_CHANGED");
+                return true;
+            }
+            payload.addProperty("good_id",current.goodId());
+            try(var p=c.prepareStatement("UPDATE ozon_card_registrations SET payload_json=?,updated_at=? WHERE shop_id=? AND product_id=? AND offer_id=? AND status='READY_TO_SUBMIT' AND COALESCE(feed_id,'')=''")){
+                p.setString(1,payload.toString());p.setString(2,Instant.now().toString());bindKey(p,3,key);return p.executeUpdate()==1;
+            }
+        });
     }
     public void progress(ProductKey key,Status status,Long goodId) {
         progress(key,status,goodId,"");

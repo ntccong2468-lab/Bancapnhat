@@ -22,6 +22,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
@@ -33,6 +34,8 @@ public final class ZnackNationalCatalogService {
     private static final Object GTIN_ALLOCATION_LOCK = new Object();
     public static final long DECLARATION_ATTRIBUTE_ID = 23_557L;
     public static final long CERTIFICATE_ATTRIBUTE_ID = 23_561L;
+    private record SchemaReadback(List<Attribute> attributes,java.time.Instant checkedAt){}
+    private final java.util.Map<Long,SchemaReadback> schemas=new java.util.concurrent.ConcurrentHashMap<>();
 
     private final ZnackApiClient api;
     private final ZnackAuthService auth;
@@ -104,13 +107,20 @@ public final class ZnackNationalCatalogService {
 
     public List<Attribute> requiredAttributes(long categoryId, String token) throws Exception {
         LicenseRuntime.require(Permission.SELLER_API);
+        var cached=schemas.get(categoryId);if(cached!=null&&cached.checkedAt().isAfter(java.time.Instant.now().minusSeconds(120)))return cached.attributes();
         List<Attribute> attributes = parseAttributes(api.nationalCatalogAttributes(
                 settings.resolvedTrueApiBaseUrl(), token, categoryId));
         if (attributes.isEmpty()) {
             throw new IllegalStateException("National Catalog returned no mandatory attribute model for category "
                     + categoryId + ". Check that the category is active and try again.");
         }
-        return attributes;
+        if(attributes.stream().anyMatch(a->!a.dependencies().isEmpty())){
+            LicenseRuntime.require(Permission.SELLER_API);
+            var all=parseAttributes(api.nationalCatalogAllAttributes(settings.resolvedTrueApiBaseUrl(),token,categoryId));
+            if(all.isEmpty())throw new IllegalStateException("CATALOG_CONDITIONAL_SCHEMA_UNAVAILABLE");
+            attributes=RegistrationAttributeRules.resolve(attributes,all);
+        }
+        schemas.put(categoryId,new SchemaReadback(attributes,java.time.Instant.now()));return attributes;
     }
 
     public String generateOne(String token) throws Exception {
@@ -184,6 +194,7 @@ public final class ZnackNationalCatalogService {
 
     public String submit(String token, JsonObject payload) throws Exception {
         LicenseRuntime.require(Permission.GTIN);
+        payload=normalizedFeed(payload);
         validateDocuments(token,payload);
         LicenseRuntime.require(Permission.GTIN);
         JsonObject result = resultObject(api.submitNationalCatalogFeed(
@@ -193,8 +204,29 @@ public final class ZnackNationalCatalogService {
         return feedId;
     }
 
+    /** v5.68 §3.2.2, including saved requests prepared by an older application. */
+    static JsonObject normalizedFeed(JsonObject original){
+        var payload=original.deepCopy();String tnved=string(payload,"tnved");
+        if(!tnved.isBlank()&&!tnved.matches("(?:[0-9]{4}|[0-9]{10})"))throw new RegistrationValidationException("ZNACK_TNVED_FORMAT");
+        if(payload.has("good_id")&&!string(payload,"good_id").matches("[1-9][0-9]{0,18}"))throw new RegistrationValidationException("CATALOG_REPAIR_INVALID");
+        var attributes=new JsonArray();
+        for(var value:array(payload.get("good_attrs"))){
+            if(!value.isJsonObject()){attributes.add(value);continue;}
+            var attribute=value.getAsJsonObject();long id=number(attribute,"attr_id");
+            if(id==3959||id==13933&&tnved.length()==10)continue;
+            if(id==13933&&tnved.length()==4){
+                String full=string(attribute,"attr_value");
+                if(!full.matches("[0-9]{10}")||!full.startsWith(tnved))throw new RegistrationValidationException("ZNACK_TNVED_GROUP_MISMATCH");
+            }
+            attributes.add(attribute);
+        }
+        if(payload.has("good_attrs"))payload.add("good_attrs",attributes);
+        if(payload.toString().getBytes(StandardCharsets.UTF_8).length>25*1024*1024)throw new RegistrationValidationException("CATALOG_FEED_TOO_LARGE");
+        return payload;
+    }
+
     public ZnackRegistrationDocuments.Selection reviewDocuments(String token,ZnackRegistrationDocuments.Selection selected,String tnved)throws Exception {
-        var valid=new ArrayList<ZnackModels.GoodsDocument>();var issues=new ArrayList<String>();
+        var valid=new ArrayList<ZnackModels.GoodsDocument>();var issues=new ArrayList<String>();var reviewRequired=new HashSet<ZnackModels.GoodsDocument>();
         for(var document:selected.candidates()){
             var cached=permitReadbacks.get(document);
             JsonElement response=cached!=null&&cached.checkedAt().isAfter(java.time.Instant.now().minusSeconds(120))?cached.response():null;
@@ -206,11 +238,14 @@ public final class ZnackNationalCatalogService {
                 if(response!=null&&!com.vncode.app.integration.znack.ZnackPermitDocumentParser.registryLookupPending(response))permitReadbacks.put(document,new PermitReadback(response,java.time.Instant.now()));
             }
             String problem=RegistrationPermitValidator.problem(response,document,tnved,java.time.LocalDate.now());
-            if(problem.isBlank())valid.add(document);else issues.add(document.number()+": "+problem);
+            if(problem.isBlank()||RegistrationPermitValidator.advisory(problem))valid.add(document);
+            if(!problem.isBlank())issues.add(document.number()+": "+problem);
+            if(RegistrationPermitValidator.advisory(problem))reviewRequired.add(document);
         }
         // Registry readback proves the number, dates, status and TN VED scope. One
         // remaining valid permit no longer needs a per-card seller selection.
         var automatic=valid.contains(selected.automatic())?selected.automatic():valid.size()==1?valid.getFirst():null;
+        if(reviewRequired.contains(automatic))automatic=null;
         return new ZnackRegistrationDocuments.Selection(valid,automatic,selected.source(),automatic==null,issues);
     }
     public void validateDocuments(String token,Draft draft)throws Exception {validateDocuments(token,buildPayload("",draft,""));}
@@ -230,7 +265,8 @@ public final class ZnackNationalCatalogService {
         if(!tariffProblem.isBlank())throw new RegistrationValidationException(tariffProblem);
         if(documents.isEmpty())return;
         var checked=reviewDocuments(token,new ZnackRegistrationDocuments.Selection(documents,null,ZnackRegistrationDocuments.Source.PRODUCT,true),tnved);
-        if(!checked.issues().isEmpty())throw new RegistrationValidationException(String.join("; ",checked.issues()));
+        var blocking=checked.issues().stream().filter(issue->!RegistrationPermitValidator.advisory(issue)).toList();
+        if(!blocking.isEmpty())throw new RegistrationValidationException(String.join("; ",blocking));
     }
 
     public FeedProgress progress(String token, String feedId, String gtin) throws Exception {
@@ -431,6 +467,8 @@ public final class ZnackNationalCatalogService {
 
         JsonArray attributes = new JsonArray();
         draft.attributes().entrySet().stream().sorted(java.util.Map.Entry.comparingByKey()).forEach(entry -> {
+            // §3.2.2: the feed carries the registered tariff node; do not duplicate its generated attributes.
+            if(entry.getKey()==3959L||entry.getKey()==13933L&&draft.feedTnved().length()==10)return;
             if (entry.getValue() == null || entry.getValue().isBlank()) return;
             JsonObject attribute = new JsonObject();
             attribute.addProperty("attr_id", entry.getKey());
@@ -563,6 +601,10 @@ public final class ZnackNationalCatalogService {
     }
 
     static List<Attribute> parseAttributes(JsonElement response) {
+        return parseAttributes(response,0);
+    }
+    private static List<Attribute> parseAttributes(JsonElement response,int depth) {
+        if(depth>8)throw new IllegalStateException("CATALOG_CONDITIONAL_SCHEMA_INVALID");
         List<Attribute> values = new ArrayList<>();
         for (JsonElement element : resultArray(response)) {
             if (!element.isJsonObject()) continue;
@@ -577,9 +619,14 @@ public final class ZnackNationalCatalogService {
             for (JsonElement type : array(value.get("attr_value_type"))) {
                 if (type.isJsonPrimitive()) valueTypes.add(type.getAsString());
             }
+            var dependencies=new java.util.LinkedHashMap<String,List<Attribute>>();
+            for(var dependency:array(value.get("dependent_attributes")))if(dependency.isJsonObject()){
+                var condition=dependency.getAsJsonObject();var children=condition.has("attrs")?condition.get("attrs"):condition.get("atters");
+                var wrapper=new JsonObject();wrapper.add("result",array(children));dependencies.put(string(condition,"value"),parseAttributes(wrapper,depth+1));
+            }
             values.add(new Attribute(id, string(value, "attr_name"), string(value, "attr_field_type"),
                     bool(value, "attr_preset_only"), bool(value, "attr_multiplicity"),
-                    bool(value, "first_layer"), bool(value, "second_layer"), presets, valueTypes));
+                    bool(value, "first_layer"), bool(value, "second_layer"), presets, valueTypes,dependencies));
         }
         return List.copyOf(values);
     }

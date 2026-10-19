@@ -1,6 +1,6 @@
 {
   "version": "1.5.1",
-  "state": "awaiting-verified-windows-build-under-owner-publication-request",
+  "state": "applying-published-catalog-rules-before-new-windows-build",
   "baseline": "v1.5.0",
   "databaseSchema": 6,
   "published": false,
@@ -12,16 +12,41 @@
   },
   "validation": {
     "linuxRelatedTests": {
-      "tests": 178,
+      "tests": 263,
       "failures": 0,
-      "errors": 0
+      "errors": 0,
+      "additionalLegacyTests": {
+        "tests": 2,
+        "failures": 0,
+        "errors": 0
+      },
+      "combinedLatestCases": 265,
+      "singleInvocationClaimed": false
     },
     "releaseToolTests": {
       "tests": 73,
       "failures": 0
     },
     "windowsBuild": {
-      "state": "running",
+      "state": "not-started",
+      "freshFullJavaExecutionRequired": true
+    },
+    "productionLicenseVerified": false,
+    "liveCryptoProSigningThisVersion": false,
+    "liveLicensedDesktopGtinWriteThisVersion": false,
+    "liveApiWbGtinWriteThisVersion": false,
+    "liveApiOzonGtinWriteThisVersion": false,
+    "liveCatalogCardCreatedThisVersion": false,
+    "liveCatalogCardRepairedThisVersion": false,
+    "modalDriverRegression": {
+      "tests": 16,
+      "failures": 0,
+      "errors": 0,
+      "platform": "Linux Xvfb",
+      "windowsEarlyGate": "passed"
+    },
+    "previousWindowsBuild": {
+      "state": "cancelled",
       "freshFullJavaExecutionRequired": true,
       "sourceCommit": "85fd0e060ad75031d21b1ed54fb6a4821d46d9e7",
       "runId": 39268181948,
@@ -51,21 +76,29 @@
             "skipped": 2
           }
         }
-      ]
+      ],
+      "fullJavaSuite": {
+        "tests": 1913,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 2,
+        "passed": 1911
+      },
+      "reason": "Owner requested published API 5.68 rules; Java passed on this older source, publication and remaining native probes cancelled before any release."
     },
-    "productionLicenseVerified": false,
-    "liveCryptoProSigningThisVersion": false,
-    "liveLicensedDesktopGtinWriteThisVersion": false,
-    "liveApiWbGtinWriteThisVersion": false,
-    "liveApiOzonGtinWriteThisVersion": false,
-    "liveCatalogCardCreatedThisVersion": false,
-    "liveCatalogCardRepairedThisVersion": false,
-    "modalDriverRegression": {
-      "tests": 16,
-      "failures": 0,
-      "errors": 0,
-      "platform": "Linux Xvfb",
-      "windowsEarlyGate": "passed"
+    "officialCatalogContract": {
+      "version": "5.68",
+      "date": "2026-09-28",
+      "source": "https://docs.crpt.ru/gismt/API_%D0%9D%D0%9A/",
+      "sha256": "d2d0f01e96a060f73ba55f48d819292e7d5d0f9092e9129a80d1e44405130491",
+      "template": "vncode-catalog-official-v3",
+      "sellerLiveMutations": 0
+    },
+    "cancelledPublicationRun": 39268835904,
+    "localPackage": {
+      "state": "passed",
+      "platform": "Linux",
+      "windowsInstaller": false
     }
   }
 }
