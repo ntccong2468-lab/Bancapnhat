@@ -1,0 +1,406 @@
+{
+  "runId": 39330524258,
+  "overallRunResult": "failure",
+  "overallAcceptedForRelease": false,
+  "reason": "exclusive-lock-test-fixture",
+  "componentSuites": [
+    {
+      "class": "com.vncode.app.features.products.ProductBulkDocumentBudgetTest",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.features.products.ProductBulkEditServiceTest",
+      "tests": 17,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.features.products.ProductBulkEditWbIntegrationTest",
+      "tests": 10,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.features.products.ProductEditAdapterTest",
+      "tests": 8,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.features.products.ProductEditBatchIntegrationTest",
+      "tests": 14,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.features.products.ProductRefreshServiceTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.features.products.ProductRepositoryTest",
+      "tests": 14,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.features.products.ProductSnapshotReaderTest",
+      "tests": 11,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.features.products.ProductSuggestionsTest",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.features.products.WbProductReadStabilityTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.features.sync.FbsSyncServiceTest",
+      "tests": 8,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.features.sync.GtinBulkPipelineTest",
+      "tests": 9,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.features.sync.RegistrationAttemptReportsTest",
+      "tests": 6,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.features.sync.RegistrationCardIndexTest",
+      "tests": 10,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.features.sync.RegistrationSourcesTest",
+      "tests": 12,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.features.sync.SyncCoordinatorTest",
+      "tests": 11,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.features.sync.SyncDataScopeTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.features.sync.SyncRunRepositoryConcurrencyTest",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.features.sync.ZnackAutoSyncServiceTest",
+      "tests": 19,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.features.sync.ZnackCatalogSyncServiceTest",
+      "tests": 11,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.features.sync.ZnackGtinBackgroundServiceTest",
+      "tests": 10,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.integration.znack.registration.CatalogArticleValueTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.integration.znack.registration.CatalogErrorRepairServiceTest",
+      "tests": 12,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.integration.znack.registration.CatalogPackingPolicyTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.integration.znack.registration.NationalCatalogBatchReadTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.integration.znack.registration.OzonCardRegistrationRepositoryTest",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.integration.znack.registration.OzonCardRegistrationWorkflowTest",
+      "tests": 35,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.integration.znack.registration.OzonRegistrationIntegrationTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.integration.znack.registration.RegisteredCatalogOwnershipTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.integration.znack.registration.RegistrationAttributeRulesTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.integration.znack.registration.RegistrationPermitValidatorTest",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.integration.znack.registration.RegistrationProductInputsTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.integration.znack.registration.RegistrationTemplateTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.integration.znack.registration.ZnackCardRegistrationRepositoryTest",
+      "tests": 15,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.integration.znack.registration.ZnackCardRegistrationWorkflowTest",
+      "tests": 56,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.integration.znack.registration.ZnackCategoryResolverTest",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.integration.znack.registration.ZnackNationalCatalogServiceTest",
+      "tests": 36,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.integration.znack.registration.ZnackRegistrationDocumentsTest",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.integration.znack.registration.ZnackRegistrationScopeTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.integration.znack.registration.ZnackWbAttributeMapperTest",
+      "tests": 6,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.ui.products.ProductBulkDialogTest",
+      "tests": 11,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.ui.products.ProductBulkEditPaneTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.ui.products.ProductEditInteractionTest",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.ui.products.ProductReferenceLayoutTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.ui.products.ProductRefreshUiTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.ui.products.ProductSelectionTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.ui.znackregistration.CatalogErrorRepairDialogTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.ui.znackregistration.GtinBackgroundStatusTest",
+      "tests": 6,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.ui.znackregistration.OzonRegistrationPaneTest",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.ui.znackregistration.RegistrationBatchPreflightTest",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.ui.znackregistration.RegistrationDiagnosticsTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.ui.znackregistration.RegistrationDraftCompletionDialogTest",
+      "tests": 6,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.ui.znackregistration.RegistrationPreflightCorrectionsTest",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.ui.znackregistration.RegistrationSyncReportDialogTest",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.ui.znackregistration.ZnackCardRegistrationControllerTest",
+      "tests": 12,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.ui.znackregistration.ZnackRegistrationQueryRepositoryTest",
+      "tests": 7,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  ],
+  "componentTotals": {
+    "tests": 462,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  }
+}

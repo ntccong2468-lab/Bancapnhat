@@ -31,9 +31,9 @@
       "state": "running",
       "freshFullJavaExecutionRequired": true,
       "allNativeChecksMustRunAgain": true,
-      "sourceCommit": "b2ad06aa0b495932dd0e80ce90fa1c8f544a64f1",
-      "runId": 39330524258,
-      "url": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/39330524258"
+      "sourceCommit": "fb9474ab4850e73542691d1a49d52948b2c95abf",
+      "runId": 39334212949,
+      "url": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/39334212949"
     },
     "productionLicenseVerified": false,
     "liveCryptoProSigningThisVersion": false,
@@ -47,7 +47,24 @@
       "failures": 0,
       "errors": 0,
       "skipped": 2,
-      "command": "mvn-vncode -o -q clean verify"
+      "command": "mvn-vncode -o -q clean verify",
+      "sourceCommit": "fb9474ab4850e73542691d1a49d52948b2c95abf"
+    },
+    "windowsPriorAttempt": {
+      "runId": 39330524258,
+      "sourceCommit": "b2ad06aa0b495932dd0e80ce90fa1c8f544a64f1",
+      "tests": 1942,
+      "failures": 0,
+      "errors": 1,
+      "skipped": 2,
+      "result": "failed-exclusive-lock-test-fixture",
+      "acceptedForRelease": false
+    },
+    "correctedFxmlFixture": {
+      "tests": 55,
+      "failures": 0,
+      "errors": 0,
+      "responseDeadlineMillis": 300
     }
   }
 }

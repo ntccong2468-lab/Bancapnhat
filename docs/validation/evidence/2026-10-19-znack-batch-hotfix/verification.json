@@ -1,5 +1,5 @@
 {
-  "recordedAt": "2026-10-19T21:58:37.256478+00:00",
+  "recordedAt": "2026-10-19T22:28:27.465977+00:00",
   "command": "DISPLAY=:99 XDG_CACHE_HOME=/tmp/vncode-ui-cache mvn-vncode -o -q clean verify",
   "exitCode": 0,
   "suite": {
@@ -22,6 +22,6 @@
     "errors": 0,
     "skipped": 2
   },
-  "sourceCommit": "b2ad06aa0b495932dd0e80ce90fa1c8f544a64f1",
-  "jarSha256": "fa921d329054747365d56ac53b0a0607ef54baa173ea08e8134090ae9e2d7382"
+  "sourceCommit": "fb9474ab4850e73542691d1a49d52948b2c95abf",
+  "jarSha256": "6412d7323d817b1e77ca97cfaf8c6f8b75788dc7514a8880a3af3992d8ef4462"
 }

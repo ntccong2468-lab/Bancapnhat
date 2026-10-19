@@ -54,6 +54,7 @@
   "src/test/java/com/vncode/app/integration/znack/ZnackCertificateSettingsRepositoryTest.java": "1fdff54c6aca3167485c881bbd3731fa82172170c1143c1edde2d6d6da16481c",
   "src/test/java/com/vncode/app/integration/znack/registration/OzonCardRegistrationWorkflowTest.java": "fda868d3fe153545f29752cb3d3da15cdd6fcf7b321373d9ab288e45b992e3ef",
   "src/test/java/com/vncode/app/integration/znack/registration/ZnackCardRegistrationWorkflowTest.java": "b767a566977a19c005a933aa24868e2c3080f800880be2adf8184850a79631b3",
+  "src/test/java/com/vncode/app/ui/FxmlSmokeTest.java": "c88d565b5d10591bbcaa0771af79bc4f000a6d39dcaa5d5cc76b9ddb205f0e1a",
   "src/test/java/com/vncode/app/ui/products/ProductBulkDialogTest.java": "5caac7570f35683a493d28eac6ad9d1068448112479df93afdf602e537467aee",
   "src/test/java/com/vncode/app/ui/products/ProductEditInteractionTest.java": "76329f388c663f3dded2eed39e41e1acd98cdf4215ba8291425362ca0a24446e",
   "src/test/java/com/vncode/app/ui/tnved/FashionTnvedBrowserTest.java": "5b2ed2fdde4427808a779b88b2f5945d30778db71b06e293493445b76c4ba992",
