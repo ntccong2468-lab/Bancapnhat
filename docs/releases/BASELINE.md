@@ -2,6 +2,8 @@
 
 The baseline for subsequent updates is the published **VNCode 1.5.0**.
 
+The current development target is **VNCode 1.5.1**, as requested on 19 October 2026. It includes GTIN batching (`fec7f2a`) and marketplace KN3/replacement (`40fa850`) and retains all published 1.5.0 fixes. Continue new fixes on this source; record them in [1.5.1 notes](VN-code-1.5.1.md). This is a saved development version, not a new published baseline. Keep the existing 1.5.0 tag, installer, Latest state and publication evidence unchanged until 1.5.1 is released.
+
 - Immutable tag: `v1.5.0`
 - Application source: `2eea069123737e2c9f7bcddcecaa51f21a1645dc`
 - Release: https://github.com/ntccong2468-lab/Bancapnhat/releases/tag/v1.5.0
