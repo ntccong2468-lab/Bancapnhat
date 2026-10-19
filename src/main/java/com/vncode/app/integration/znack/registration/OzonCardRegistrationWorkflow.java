@@ -331,7 +331,22 @@ public final class OzonCardRegistrationWorkflow {
     private static Shop capture(Shop shop){if(shop==null)throw new IllegalArgumentException("shop_mismatch");return new Shop(shop.getId(),shop.getName(),shop.getMarketplace(),shop.getClientId(),shop.getApiKey());}
     private static String sku(ProductSnapshot snapshot){String sku=snapshot.metadata().getOrDefault("sku","");if(!sku.matches("[1-9][0-9]{0,18}"))throw new IllegalStateException("ozon_sku_unavailable");return sku;}
     private static String tnved(ProductSnapshot snapshot){var values=new LinkedHashSet<String>();for(var a:snapshot.attributes())if(ProductFieldNames.matches("tnved",a.name()))for(var v:a.values()){var code=ProductFieldNames.tnvedCode(v);if(!code.isBlank())values.add(code);}return values.size()==1?values.getFirst():"";}
-    private static Map<Long,String> suggestions(ProductSnapshot snapshot,List<Attribute> required){var out=new LinkedHashMap<Long,String>();for(var target:required){var values=new LinkedHashSet<String>();for(var source:snapshot.attributes())if(normalize(target.name()).equals(normalize(source.name()))&&source.values().size()==1&&!source.values().getFirst().isBlank())values.add(source.values().getFirst());if(values.size()==1){String value=values.getFirst();if(!target.presetOnly()||target.presets().contains(value))out.put(target.id(),value);}}return Map.copyOf(out);}
+    static Map<Long,String> suggestions(ProductSnapshot snapshot,List<Attribute> required){
+        var out=new LinkedHashMap<Long,String>();
+        for(var target:required){
+            boolean composition=target.id()==2483L||normalize(target.name()).contains("состав");
+            int best=snapshot.attributes().stream().filter(a->a.complexId().isBlank()||a.complexId().equals("0")).mapToInt(a->ProductFieldNames.priority("material",a.name())).min().orElse(Integer.MAX_VALUE);
+            var values=new LinkedHashSet<String>();
+            for(var source:snapshot.attributes()){
+                if(!(source.complexId().isBlank()||source.complexId().equals("0")))continue;
+                boolean match=composition?best<Integer.MAX_VALUE&&ProductFieldNames.priority("material",source.name())==best:normalize(target.name()).equals(normalize(source.name()));
+                if(!match||source.values().isEmpty()||source.values().stream().anyMatch(String::isBlank))continue;
+                if(composition)values.add(String.join(", ",source.values()));else if(source.values().size()==1)values.add(source.values().getFirst());
+            }
+            if(values.size()==1){String value=values.getFirst();if(!target.presetOnly()||target.presets().contains(value))out.put(target.id(),value);}
+        }
+        return Map.copyOf(out);
+    }
     private static Draft validateDraft(Draft draft,List<Attribute> required,ZnackRegistrationDocuments.Selection documents){
         if(draft.goodName()==null||draft.goodName().isBlank()||draft.brand()==null||draft.brand().isBlank())throw new IllegalArgumentException("invalid_catalog_name");
         long declaration=ZnackNationalCatalogService.DECLARATION_ATTRIBUTE_ID,certificate=ZnackNationalCatalogService.CERTIFICATE_ATTRIBUTE_ID;

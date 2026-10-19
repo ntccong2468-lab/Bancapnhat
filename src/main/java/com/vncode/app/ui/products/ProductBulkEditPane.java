@@ -300,7 +300,7 @@ public final class ProductBulkEditPane extends BorderPane {
             var add=new Button(tr("bulk.material_add"));add.setOnAction(e->addMaterial(rows,total,output));
             form.getChildren().setAll(new Label(tr("bulk.material_hint")),rows,add,total,output);addMaterial(rows,total,output);
             var owner=shop;long epoch=generation;
-            reads.submitLocal(new ShopReadCoordinator.Key(shop.getId(),"bulk-material-defaults",UUID.randomUUID().toString()),()->new ProductRepository().localSnapshot(keys.getFirst()).map(p->p.attributes().stream().filter(a->ProductFieldNames.matches("material",a.name())).flatMap(a->a.values().stream()).flatMap(v->Arrays.stream(v.split("[,;|]"))).map(String::strip).filter(v->!v.isBlank()).toList()).orElse(List.of())).whenComplete((materials,error)->Platform.runLater(()->{
+            reads.submitLocal(new ShopReadCoordinator.Key(shop.getId(),"bulk-material-defaults",UUID.randomUUID().toString()),()->new ProductRepository().localSnapshot(keys.getFirst()).map(p->ProductFieldNames.sourceAttributes("material",p.attributes()).stream().flatMap(a->a.values().stream()).flatMap(v->Arrays.stream(v.split("[,;|]"))).map(String::strip).filter(v->!v.isBlank()).toList()).orElse(List.of())).whenComplete((materials,error)->Platform.runLater(()->{
                 if(disposed||epoch!=generation||owner!=shop||error!=null||materials.isEmpty()||!value.getText().isBlank())return;
                 rows.getChildren().clear();for(String material:materials){var match=java.util.regex.Pattern.compile("^(.*?)\\s+(\\d{1,3})\\s*%$").matcher(material);if(match.matches())addMaterial(rows,total,output,match.group(1),Integer.parseInt(match.group(2)));else addMaterial(rows,total,output,material,0);}
             }));

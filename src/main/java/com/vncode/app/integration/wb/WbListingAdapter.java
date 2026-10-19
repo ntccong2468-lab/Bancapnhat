@@ -12,7 +12,7 @@ import java.util.*;
 import java.util.function.Function;
 import static com.vncode.app.integration.listing.ListingJson.*;
 
-public final class WbListingAdapter extends AbstractListingAdapter {
+public final class WbListingAdapter extends AbstractListingAdapter implements ProductUpdateBatchAdapter {
     private final Function<Shop,ListingTransport> priceClients;
     public WbListingAdapter(){this(ListingHttpClient::new,ListingMediaInspector.fullSize(),s->new ListingHttpClient(s,new okhttp3.OkHttpClient(),okhttp3.HttpUrl.parse("https://discounts-prices-api.wildberries.ru/")));}
     public WbListingAdapter(Function<Shop,ListingTransport> c,ListingMediaInspector images){this(c,images,c);}
@@ -106,6 +106,27 @@ public final class WbListingAdapter extends AbstractListingAdapter {
         var arr=new JsonArray();arr.add(request);var options=new CopyOptions(changes.keySet(),Set.of(),fresh.categoryId(),Map.of(),changes,Map.of(),null,"RUB",List.of(),null);var p=previewRecord(s,fresh,options,arr,new JsonArray(),new JsonArray(),issues,List.of(trimmedArticle),"UPDATE");return new ProductEditPreview(fresh.key(),fresh.revision(),p);
     }
     public RemoteSubmission submitUpdate(Shop s,ProductEditPreview p)throws IOException{requirePreview(s,p.preview());if(!p.preview().operation().equals("UPDATE"))throw new SecurityException("Wrong edit operation");var started=java.time.Instant.now();call(s,"content/v2/cards/update",JsonParser.parseString(p.preview().requestJson()),true);var r=submitted(p.preview(),null);return new RemoteSubmission(r.shopId(),r.marketplace(),r.owner(),r.requestHash(),r.taskId(),r.articles(),r.requestJson(),r.mediaJson(),r.documentsJson(),r.phase(),r.identities(),started);}
+    /** A bounded window keeps concurrent seller changes observable between requests. */
+    public List<List<ProductEditPreview>> updateBatches(List<ProductEditPreview> previews)throws IOException{
+        var result=new ArrayList<List<ProductEditPreview>>();var current=new ArrayList<ProductEditPreview>();int bytes=2;
+        for(var p:previews){
+            var a=JsonParser.parseString(p.preview().requestJson()).getAsJsonArray();if(a.size()!=1||!p.preview().operation().equals("UPDATE"))throw new IllegalArgumentException("Wrong edit operation");
+            int size=a.get(0).toString().getBytes(java.nio.charset.StandardCharsets.UTF_8).length;
+            if(size+2>WbGtinAdapter.MAX_UPDATE_BYTES)throw new IllegalArgumentException("WB_UPDATE_TOO_LARGE");
+            if(current.size()==100||bytes+size+(current.isEmpty()?0:1)>WbGtinAdapter.MAX_UPDATE_BYTES){result.add(List.copyOf(current));current.clear();bytes=2;}
+            bytes+=size+(current.isEmpty()?0:1);current.add(p);
+        }
+        if(!current.isEmpty())result.add(List.copyOf(current));return List.copyOf(result);
+    }
+    public Map<ProductKey,ProductUpdateBatchAdapter.Outcome> submitUpdates(Shop s,List<ProductEditPreview> previews,Runnable beforeSend)throws IOException{
+        if(previews.isEmpty()||updateBatches(previews).size()!=1)throw new IllegalArgumentException("WB_BATCH_LIMIT");
+        var request=new JsonArray();var keys=new HashSet<ProductKey>();
+        for(var p:previews){requirePreview(s,p.preview());ListingIdentity.require(s,p.key());if(!keys.add(p.key()))throw new IllegalArgumentException("Duplicate edit card");request.add(JsonParser.parseString(p.preview().requestJson()).getAsJsonArray().get(0));}
+        var started=java.time.Instant.now();var response=object(clients.apply(s).call("content/v2/cards/update",request,true,()->{for(var p:previews)requirePreview(s,p.preview());beforeSend.run();}));
+        ListingRejectedException.requireWbAccepted(s,response);var outcomes=new LinkedHashMap<ProductKey,ProductUpdateBatchAdapter.Outcome>();
+        for(var p:previews){var r=submitted(p.preview(),null);outcomes.put(p.key(),ProductUpdateBatchAdapter.Outcome.accepted(new RemoteSubmission(r.shopId(),r.marketplace(),r.owner(),r.requestHash(),null,r.articles(),r.requestJson(),r.mediaJson(),r.documentsJson(),r.phase(),r.identities(),started)));}
+        return Map.copyOf(outcomes);
+    }
     private String updateRejection(Shop shop,RemoteSubmission submission,String article)throws IOException{
         if(submission.submittedAt()==null)return "";
         var cursor=new JsonObject();cursor.addProperty("limit",100);var seen=new HashSet<String>();

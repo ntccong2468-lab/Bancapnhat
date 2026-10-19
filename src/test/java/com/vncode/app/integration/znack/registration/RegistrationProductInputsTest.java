@@ -7,6 +7,12 @@ import java.time.Instant;
 import java.util.*;
 import static org.junit.jupiter.api.Assertions.*;
 class RegistrationProductInputsTest {
+    @Test void ozonDefaultRegistrationUsesCompositionInsteadOfMaterialOrLining(){
+        var snapshot=new ProductSnapshot(new ProductKey(1,Marketplace.OZON,"101","article"),"live:source","Title","","Brand","article","9:8",List.of(),
+                List.of(new ProductAttribute("4496","Материал",List.of("хлопок"),null),new ProductAttribute("4309","Материал подкладки",List.of("полиэстер"),null),new ProductAttribute("4604","Состав материала",List.of("хлопок 80%, полиэстер 20%"),null)),List.of(),null,List.of(),Instant.now());
+        var requested=List.of(new Attribute(2483,"Состав сырья","text",false,false,false,false,List.of()));
+        assertEquals("хлопок 80%, полиэстер 20%",OzonCardRegistrationWorkflow.suggestions(snapshot,requested).get(2483L));
+    }
     @Test void registrationUsesReadbackAfterBulkEditRatherThanStaleProductCache(){
         var selected=new Sku(101,201,1,"old article","old category","old brand","old title","Blue","M",List.of(),"",true,null,null,null,Status.NOT_CREATED,null,false,"48","checkpoint");
         var snapshot=new ProductSnapshot(new ProductKey(1,Marketplace.WILDBERRIES,"101","201"),"live:new","Bộ nâu","","New brand","152DASH-52","1",List.of(),

@@ -19,6 +19,19 @@ import java.util.concurrent.atomic.AtomicInteger;
 import static org.junit.jupiter.api.Assertions.*;
 
 class ZnackNationalCatalogServiceTest {
+    @Test void registryVerifiedSinglePermitIsAutomaticOnlyWithinItsTnvedScope()throws Exception{
+        var calls=new AtomicInteger();var api=new ZnackApiClient(){
+            @Override public JsonElement registrationPermitInfo(String base,String token,com.google.gson.JsonArray requested){
+                calls.incrementAndGet();var documents=requested.deepCopy();for(var value:documents){var d=value.getAsJsonObject();d.addProperty("status_group",1);d.addProperty("product_tnved","6110, 6103");}
+                var result=new JsonObject();result.add("documents",documents);var root=new JsonObject();root.add("result",result);return root;
+            }
+        };
+        var permit=new ZnackModels.GoodsDocument("CONFORMITY_DECLARATION","FIXTURE","2026-06-07");
+        var selection=new ZnackRegistrationDocuments.Selection(List.of(permit),null,ZnackRegistrationDocuments.Source.PRODUCT,true);
+        var service=service(api);var checked=service.reviewDocuments("fixture",selection,"6110209100");
+        assertEquals(permit,checked.automatic());assertFalse(checked.requiresReview());
+        var wrong=service.reviewDocuments("fixture",selection,"6106909000");assertNull(wrong.automatic());assertTrue(wrong.candidates().isEmpty());assertTrue(wrong.issues().getFirst().contains("ZNACK_DOCUMENT_TNVED_MISMATCH"));assertEquals(1,calls.get(),"Registry response can be cached, not the per-product TN VED decision");
+    }
     @Test void readsRealCardStagesWhenTheFeedStillSaysReceived()throws Exception{
         for(String stage:List.of("draft","moderation","notsigned","errors")){
             var api=new ZnackApiClient(){

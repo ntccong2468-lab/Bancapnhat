@@ -90,13 +90,19 @@ public final class GtinBatchTransport implements ListingTransport, AutoCloseable
         var request=body!=null&&body.isJsonObject()?body.getAsJsonObject():new JsonObject();
         if(shop.getMarketplace()==Marketplace.WILDBERRIES&&path.equals("content/v2/get/cards/list")) {
             String id=text(obj(obj(request,"settings"),"filter"),"textSearch");
-            if(!id.isBlank()&&owned.containsKey(id)){
-                var result=new JsonObject();var cards=new JsonArray();var entry=owned.get(id);
-                if(entry.active()){var card=get("w:"+id);if(card==null)throw new IOException("GTIN_BATCH_CARD_NOT_LOADED");cards.add(card.deepCopy());}
-                result.add("cards",cards);var cursor=new JsonObject();cursor.addProperty("total",cards.size());result.add("cursor",cursor);return result;
+            var matches=new LinkedHashSet<String>();
+            if(owned.containsKey(id))matches.add(id);
+            matches.addAll(articles.getOrDefault(article(id),Set.of()));
+            for(var key:codes.getOrDefault(normalize(id),Set.of()))matches.add(key.productId());
+            boolean loaded=!id.isBlank();var cards=new JsonArray();
+            for(String match:matches)if(owned.get(match).active()){
+                var card=get("w:"+match);if(card==null){loaded=false;break;}cards.add(card.deepCopy());
+            }
+            if(loaded&&!matches.isEmpty()){
+                guard.run();var result=new JsonObject();result.add("cards",cards);var cursor=new JsonObject();cursor.addProperty("total",cards.size());result.add("cursor",cursor);return result;
             }
             // An absent nmID must stay absent; do not turn a per-card lookup into a new full scan.
-            if(id.matches("[1-9][0-9]{0,19}")){var result=new JsonObject();result.add("cards",new JsonArray());return result;}
+            if(matches.isEmpty()&&id.matches("[1-9][0-9]{0,19}")){guard.run();var result=new JsonObject();result.add("cards",new JsonArray());return result;}
         }
         if(shop.getMarketplace()==Marketplace.OZON&&path.equals("v3/product/info/list"))return ozonResponse(request,"product_id","i:","items");
         if(shop.getMarketplace()==Marketplace.OZON&&path.equals("v4/product/info/attributes"))return ozonResponse(obj(request,"filter"),"product_id","a:","result");
@@ -109,6 +115,17 @@ public final class GtinBatchTransport implements ListingTransport, AutoCloseable
     }
     private JsonObject ozonResponse(JsonObject request,String field,String prefix,String resultField)throws IOException {
         var result=new JsonObject();var items=new JsonArray();
+        if(request.has("offer_id")&&!request.has(field)){
+            for(var e:strictArray(request,"offer_id")){
+                String offer=e.getAsString();
+                for(String id:articles.getOrDefault(article(offer),Set.of())){
+                    if(!owned.get(id).article().equals(offer))continue;
+                    if(!selected.contains(id))throw new IOException("GTIN_BATCH_UNSELECTED_PRODUCT");
+                    var value=get(prefix+id);if(value!=null)items.add(value.deepCopy());
+                }
+            }
+            result.add(resultField,items);return result;
+        }
         for(var e:strictArray(request,field)){String id=e.getAsString();if(!targets.contains(id))throw new IOException("GTIN_BATCH_UNSELECTED_PRODUCT");var value=get(prefix+id);if(value!=null)items.add(value.deepCopy());}
         result.add(resultField,items);return result;
     }

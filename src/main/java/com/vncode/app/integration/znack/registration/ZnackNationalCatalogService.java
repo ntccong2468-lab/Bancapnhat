@@ -187,7 +187,9 @@ public final class ZnackNationalCatalogService {
             String problem=RegistrationPermitValidator.problem(response,document,tnved,java.time.LocalDate.now());
             if(problem.isBlank())valid.add(document);else issues.add(document.number()+": "+problem);
         }
-        var automatic=valid.contains(selected.automatic())?selected.automatic():null;
+        // Registry readback proves the number, dates, status and TN VED scope. One
+        // remaining valid permit no longer needs a per-card seller selection.
+        var automatic=valid.contains(selected.automatic())?selected.automatic():valid.size()==1?valid.getFirst():null;
         return new ZnackRegistrationDocuments.Selection(valid,automatic,selected.source(),automatic==null,issues);
     }
     public void validateDocuments(String token,Draft draft)throws Exception {validateDocuments(token,buildPayload("",draft,""));}

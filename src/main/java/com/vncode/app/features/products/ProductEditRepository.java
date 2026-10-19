@@ -26,12 +26,19 @@ public final class ProductEditRepository {
     public ProductBulkEditService.ProductEditPreview find(int shop,String owner,String id){try(var c=Database.getConnection();var q=c.prepareStatement("SELECT preview FROM product_edit_jobs WHERE shop_id=? AND owner=? AND id=?")){q.setInt(1,shop);q.setString(2,owner);q.setString(3,id);try(var r=q.executeQuery()){if(!r.next())throw new SecurityException("Foreign product edit");return new ProductEditAssets(c,id).load(ProductJson.GSON.fromJson(r.getString(1),ProductBulkEditService.ProductEditPreview.class));}}catch(SQLException e){throw new IllegalStateException("Cannot read product edit");}}
     public List<String> list(int shop,String owner){try(var c=Database.getConnection();var q=c.prepareStatement("SELECT id FROM product_edit_jobs WHERE shop_id=? AND owner=? ORDER BY created_at DESC LIMIT 100")){q.setInt(1,shop);q.setString(2,owner);try(var r=q.executeQuery()){var ids=new ArrayList<String>();while(r.next())ids.add(r.getString(1));return List.copyOf(ids);}}catch(SQLException e){throw new IllegalStateException("Cannot read product edits");}}
     public List<ProductBulkEditService.EditItem> items(String id){try(var c=Database.getConnection();var q=c.prepareStatement("SELECT state,payload FROM product_edit_items WHERE job_id=? ORDER BY card_id")){q.setString(1,id);try(var r=q.executeQuery()){var assets=new ProductEditAssets(c,id);var out=new ArrayList<ProductBulkEditService.EditItem>();while(r.next()){var i=assets.load(ProductJson.GSON.fromJson(r.getString(2),ProductBulkEditService.EditItem.class));out.add(i.with(CopyState.valueOf(r.getString(1)),i.submission(),i.issues()));}return List.copyOf(out);}}catch(SQLException e){throw new IllegalStateException("Cannot read product edit items");}}
-    public boolean claim(String id,ProductBulkEditService.EditItem item){try{return claimWrite(c->{try(var q=c.prepareStatement("""
-          UPDATE product_edit_items SET state='SENDING' WHERE job_id=? AND card_id=? AND state='AWAITING_CONFIRMATION'
-          AND NOT EXISTS(SELECT 1 FROM gtin_sync_items g WHERE g.shop_id=product_edit_items.shop_id AND g.marketplace=product_edit_items.marketplace AND g.product_id=product_edit_items.card_id AND g.status IN ('VALIDATING','SENDING','AWAITING_VERIFICATION','RECONCILE_REQUIRED'))
-          """)){q.setString(1,id);q.setString(2,item.key().cardId());if(q.executeUpdate()!=1){throw new Unclaimed();}}
-        event(c,id,item.with(CopyState.SENDING,null,List.of()));return true;
-    });}catch(IllegalStateException conflict){if(conflict.getCause() instanceof SQLException sql&&(sql.getErrorCode()&255)==19)return false;throw conflict;}}
+    public boolean claim(String id,ProductBulkEditService.EditItem item){return claimBatch(id,List.of(item));}
+    /** Every card in an HTTP batch is claimed in one short transaction, or none is. */
+    public boolean claimBatch(String id,List<ProductBulkEditService.EditItem> items){
+        if(items.isEmpty())throw new IllegalArgumentException("Empty claim");
+        try{return claimWrite(c->{
+            try(var q=c.prepareStatement("""
+              UPDATE product_edit_items SET state='SENDING' WHERE job_id=? AND card_id=? AND state='AWAITING_CONFIRMATION'
+              AND NOT EXISTS(SELECT 1 FROM gtin_sync_items g WHERE g.shop_id=product_edit_items.shop_id AND g.marketplace=product_edit_items.marketplace AND g.product_id=product_edit_items.card_id AND g.status IN ('VALIDATING','SENDING','AWAITING_VERIFICATION','RECONCILE_REQUIRED'))
+              """)){
+                for(var item:items){q.setString(1,id);q.setString(2,item.key().cardId());if(q.executeUpdate()!=1)throw new Unclaimed();event(c,id,item.with(CopyState.SENDING,null,List.of()));}
+            }return true;
+        });}catch(IllegalStateException conflict){if(conflict.getCause() instanceof SQLException sql&&(sql.getErrorCode()&255)==19)return false;throw conflict;}
+    }
     public boolean claimAssets(String id,ProductBulkEditService.EditItem item,RemoteSubmission submission){var next=item.with(CopyState.SENDING,submission,List.of());return claimWrite(c->{var stored=new ProductEditAssets(c,id).store(next);try(var q=c.prepareStatement("UPDATE product_edit_items SET state='SENDING',phase='ASSETS_SENDING',payload=? WHERE job_id=? AND card_id=? AND phase='CARD' AND state IN ('REMOTE_PROCESSING','RECONCILE_REQUIRED')")){q.setString(1,ProductJson.GSON.toJson(stored));q.setString(2,id);q.setString(3,item.key().cardId());if(q.executeUpdate()!=1){throw new Unclaimed();}}event(c,id,next);return true;
     });}
     /** A denied pre-send check is a known-unsent outcome, never an ambiguous remote submission. */
@@ -45,7 +52,15 @@ public final class ProductEditRepository {
           """)){q.setString(1,id);q.setString(2,item.key().cardId());q.setString(3,item.preview().preview().requestHash());q.setString(4,owner);if(q.executeUpdate()!=1){throw new Unclaimed();}}
         event(c,id,item.with(CopyState.AWAITING_CONFIRMATION,null,item.issues()));return true;
     });}
-    public boolean checkpoint(String id,ProductBulkEditService.EditItem item,Set<CopyState> expected){return claimWrite(c->{var stored=new ProductEditAssets(c,id).store(item);String marks=String.join(",",Collections.nCopies(expected.size(),"?"));String phase=item.submission()==null?"CARD":item.submission().phase();try(var q=c.prepareStatement("UPDATE product_edit_items SET state=?,payload=?,phase=? WHERE job_id=? AND card_id=? AND state IN ("+marks+") AND (phase='CARD' OR ?<>'CARD')")){q.setString(1,item.state().name());q.setString(2,ProductJson.GSON.toJson(stored));q.setString(3,phase);q.setString(4,id);q.setString(5,item.key().cardId());int n=6;for(var s:expected)q.setString(n++,s.name());q.setString(n,phase);if(q.executeUpdate()!=1){throw new Unclaimed();}}event(c,id,item);return true;
+    public boolean checkpoint(String id,ProductBulkEditService.EditItem item,Set<CopyState> expected){return checkpointBatch(id,List.of(item),expected);}
+    /** One durable outcome transaction for the complete HTTP response, including partial rejection. */
+    public boolean checkpointBatch(String id,List<ProductBulkEditService.EditItem> items,Set<CopyState> expected){return claimWrite(c->{
+        String marks=String.join(",",Collections.nCopies(expected.size(),"?"));var assets=new ProductEditAssets(c,id);
+        try(var q=c.prepareStatement("UPDATE product_edit_items SET state=?,payload=?,phase=? WHERE job_id=? AND card_id=? AND state IN ("+marks+") AND (phase='CARD' OR ?<>'CARD')")){
+            for(var item:items){var stored=assets.store(item);String phase=item.submission()==null?"CARD":item.submission().phase();
+                q.setString(1,item.state().name());q.setString(2,ProductJson.GSON.toJson(stored));q.setString(3,phase);q.setString(4,id);q.setString(5,item.key().cardId());int n=6;for(var state:expected)q.setString(n++,state.name());q.setString(n,phase);if(q.executeUpdate()!=1)throw new Unclaimed();event(c,id,item);
+            }
+        }return true;
     });}
     public void recoverIncomplete(){write(c->{try(var s=c.createStatement()){s.executeUpdate("UPDATE product_edit_items SET state='RECONCILE_REQUIRED' WHERE state='SENDING'");}return null;});}
     /** Original dispatch checkpoint also exists in jobs written by versions before 1.5.1. */

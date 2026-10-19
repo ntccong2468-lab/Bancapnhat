@@ -15,3 +15,7 @@
 **Bằng chứng đã lưu:** [GTIN theo lô](../validation/2026-10-19-gtin-bulk.md), [KN3 và thay KIZ](../validation/2026-10-19-kn3-replacement.md). Các kết quả đó có phạm vi kiểm thử riêng, không thay thế nghiệm thu bản Windows 1.5.1 hoặc thao tác tạo/ký thẻ và ghi sàn bằng phiên seller thật.
 
 **Đợt sửa Znack/Sản phẩm:** [dữ liệu API thật, thay đổi và phạm vi nghiệm thu](../validation/2026-10-19-znack-product-edit.md). Chưa xác nhận tạo/ký thẻ mới hoặc ghi sửa sản phẩm thật trong phiên này; 34 thẻ lỗi được đọc có giấy tờ không bao phủ TN VED tương ứng.
+
+- **Tối ưu sửa sản phẩm:** WB gửi theo lô tối đa 100 bài/lượt; Ozon cập nhật riêng thuộc tính theo lô tối đa 100 bài, không yêu cầu giá hoặc nhập lại barcode/ảnh. Đọc danh mục theo trang, dùng chung từ điển và trạng thái tác vụ trong mỗi lượt kiểm tra; chỉ xác nhận sau khi đọc lại sàn. Giấy tờ Ozon vẫn qua bước tải và kiểm tra gắn giấy tờ riêng.
+- **Tự chọn giấy tờ đăng ký:** tự dùng lựa chọn duy nhất đã được registry xác minh hợp lệ, đúng phạm vi TN VED của sản phẩm. Giữ chặn giấy tờ sai nhóm; các thẻ đã bị từ chối trên Catalog vẫn cần sửa dữ liệu và gửi lại. [Kiểm tra lại bằng API và đo số yêu cầu](../validation/2026-10-19-product-batches-tnved.md).
+- **Chất liệu Ozon và mẫu đăng ký:** nhận đúng “Состав материала”, ưu tiên thành phần có tỷ lệ thay vì từ điển tên vật liệu; không lấy chất liệu lớp lót. Áp dụng thống nhất cho sửa hàng loạt, sửa thiếu trường trước đăng ký và đồng bộ từ Catalog.

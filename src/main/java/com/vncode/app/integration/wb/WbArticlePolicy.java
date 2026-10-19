@@ -11,6 +11,7 @@ import static com.vncode.app.integration.listing.ListingJson.*;
 final class WbArticlePolicy {
     private WbArticlePolicy() {}
     static String checked(JsonObject own, ListingTransport client) throws IOException {
+        if(client instanceof com.vncode.app.integration.listing.GtinBatchTransport batch)return batch.checkedWbArticle(own);
         String original = text(own, "vendorCode"), trimmed = SellerArticle.trim(original);
         if (trimmed.isBlank()) throw new IllegalArgumentException("WB_ARTICLE_REQUIRED");
         if (original.equals(trimmed)) return trimmed;

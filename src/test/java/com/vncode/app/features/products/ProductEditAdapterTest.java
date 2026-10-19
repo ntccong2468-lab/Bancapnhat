@@ -25,10 +25,11 @@ class ProductEditAdapterTest {
         var a=new WbListingAdapter(owner->(p,b,m)->JsonParser.parseString("{\"data\":[]}"),i->{throw new java.io.IOException();});var r=JsonParser.parseString(a.previewUpdate(s,f,Map.of("brand",List.of("New")),null).preview().requestJson()).getAsJsonArray().get(0).getAsJsonObject();
         assertEquals("New",r.get("brand").getAsString());assertEquals("Keep description",r.get("description").getAsString());assertEquals(456,r.getAsJsonArray("sizes").get(0).getAsJsonObject().get("chrtID").getAsInt());assertTrue(r.get("kizMarked").getAsBoolean());assertEquals("Cotton",r.getAsJsonArray("characteristics").get(0).getAsJsonObject().getAsJsonArray("value").get(0).getAsString());assertFalse(r.getAsJsonObject("dimensions").has("isValid"));
     }
-    @Test void ozonOwnComplexAttributesUseImportShapeWithoutLosingValues()throws Exception{
+    @Test void ozonBrandUsesPartialUpdateWithoutResendingComplexValuesOrPrice()throws Exception{
         var s=new Shop(2,"Ozon",Marketplace.OZON,"22","fixture");var f=fresh(s,"{\"info\":{\"price\":\"123\",\"currency_code\":\"RUB\"},\"attributes\":{\"offer_id\":\"own\",\"name\":\"Keep\",\"description_category_id\":9,\"type_id\":8,\"attributes\":[{\"id\":5,\"values\":[{\"value\":\"Untouched\"}]}],\"complex_attributes\":[{\"id\":6,\"complex_id\":7,\"values\":[{\"value\":\"One\"}]},{\"id\":8,\"complex_id\":7,\"values\":[{\"value\":\"Two\"}]}]}}");
         var a=new OzonListingAdapter(owner->(p,b,m)->JsonParser.parseString("{\"result\":[{\"id\":85,\"name\":\"Бренд\",\"type\":\"string\",\"max_value_count\":1}]}"),i->{throw new java.io.IOException();});var p=a.previewUpdate(s,f,Map.of("brand",List.of("New")),null).preview();assertTrue(p.publishable());var r=JsonParser.parseString(p.requestJson()).getAsJsonObject().getAsJsonArray("items").get(0).getAsJsonObject();
-        var group=r.getAsJsonArray("complex_attributes").get(0).getAsJsonObject();assertEquals(2,group.getAsJsonArray("attributes").size());assertEquals("One",group.getAsJsonArray("attributes").get(0).getAsJsonObject().getAsJsonArray("values").get(0).getAsJsonObject().get("value").getAsString());assertEquals("123",r.get("price").getAsString());assertEquals(2,r.getAsJsonArray("attributes").size());
+        assertEquals("UPDATE_ATTRIBUTES",p.operation());assertFalse(r.has("complex_attributes"));assertFalse(r.has("price"));assertFalse(r.has("barcode"));assertEquals(1,r.getAsJsonArray("attributes").size());assertEquals(85,r.getAsJsonArray("attributes").get(0).getAsJsonObject().get("id").getAsInt());
+
     }
     @Test void ozonOfficialReadPdfAndDictionaryValuesAreMappedToImportFields()throws Exception{
         var s=new Shop(2,"Ozon",Marketplace.OZON,"22","fixture");var f=fresh(s,"""
@@ -37,7 +38,7 @@ class ProductEditAdapterTest {
           "complex_attributes":[{"id":6,"complex_id":7,"values":[{"dictionaryValueId":55,"value":"Cotton"}]}]}}
           """);
         var a=new OzonListingAdapter(owner->(p,b,m)->JsonParser.parseString("{\"result\":[]}"),i->{throw new java.io.IOException();});
-        var p=a.previewUpdate(s,f,Map.of(),null).preview();assertTrue(p.publishable());
+        var p=a.previewUpdate(s,f,Map.of("title",List.of("Keep")),null).preview();assertTrue(p.publishable());
         var item=JsonParser.parseString(p.requestJson()).getAsJsonObject().getAsJsonArray("items").get(0).getAsJsonObject();
         var pdf=item.getAsJsonArray("pdf_list").get(0).getAsJsonObject();assertTrue(pdf.has("src_url"));assertEquals("https://cdn1.ozone.ru/manual.pdf",pdf.get("src_url").getAsString());assertTrue(pdf.has("index"));assertFalse(pdf.has("file_name"));
         var value=item.getAsJsonArray("complex_attributes").get(0).getAsJsonObject().getAsJsonArray("attributes").get(0).getAsJsonObject().getAsJsonArray("values").get(0).getAsJsonObject();
@@ -46,7 +47,7 @@ class ProductEditAdapterTest {
     @Test void ownPdfWithoutTransferableUrlBlocksAnUpdate()throws Exception{
         var s=new Shop(2,"Ozon",Marketplace.OZON,"22","fixture");var f=fresh(s,"{\"info\":{\"price\":\"123\"},\"attributes\":{\"offer_id\":\"own\",\"pdf_list\":[{\"file_name\":\"storage/manual.pdf\",\"name\":\"Manual\"}],\"attributes\":[]}}");
         var a=new OzonListingAdapter(owner->(p,b,m)->JsonParser.parseString("{\"result\":[]}"),i->{throw new java.io.IOException();});
-        assertFalse(a.previewUpdate(s,f,Map.of(),null).preview().publishable());
+        assertFalse(a.previewUpdate(s,f,Map.of("title",List.of("Keep")),null).preview().publishable());
     }
     @Test void readbackMustPreservePdfBeforeReportingSuccess()throws Exception{
         var s=new Shop(2,"Ozon",Marketplace.OZON,"22","fixture");String want="{\"items\":[{\"offer_id\":\"own\",\"pdf_list\":[{\"index\":1,\"name\":\"Manual\",\"src_url\":\"https://cdn1.ozone.ru/manual.pdf\"}]}]}";

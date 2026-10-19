@@ -21,7 +21,7 @@ public final class CatalogSyncMapper {
         for(Field field:fields.stream().sorted().toList()) {
             if(field==Field.GTIN||field==Field.DOCUMENTS||field==Field.OTHER)continue;
             String name=field.name().toLowerCase(Locale.ROOT);var values=source.details().values(name);
-            var target=(field==Field.BRAND||field==Field.TITLE)?List.<TargetAttribute>of():dictionary.stream().filter(a->simple(a)&&matches(name,a.name())).toList();
+            var target=(field==Field.BRAND||field==Field.TITLE)?List.<TargetAttribute>of():field==Field.MATERIAL?ProductFieldNames.targets(name,dictionary):dictionary.stream().filter(a->simple(a)&&matches(name,a.name())).toList();
             List<String> old=field==Field.TITLE?List.of(current.title()):field==Field.BRAND?List.of(current.brand()):target.size()==1?old(current,target.getFirst().id()):List.of();
             String issue=values.isEmpty()?"SOURCE_MISSING":field==Field.TNVED&&(values.size()!=1||!values.getFirst().matches("[0-9]{10}"))?"FULL_TNVED_REQUIRED":field!=Field.MATERIAL&&values.size()>1?"SOURCE_AMBIGUOUS":field!=Field.BRAND&&field!=Field.TITLE&&target.size()!=1?"TARGET_FIELD_AMBIGUOUS":"";
             diffs.add(new Diff(name,old,values,issue, !issue.isBlank()));

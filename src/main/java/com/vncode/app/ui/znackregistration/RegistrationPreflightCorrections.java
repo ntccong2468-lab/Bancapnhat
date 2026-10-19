@@ -39,7 +39,7 @@ final class RegistrationPreflightCorrections {
             var changes=new LinkedHashMap<String,List<String>>();var dictionary=adapters.apply(shop).attributes(shop,fresh.categoryId());
             for(var field:patch.getValue().entrySet()){
                 if(field.getKey().equals("brand")){changes.put("brand",field.getValue());continue;}
-                var candidates=dictionary.stream().filter(a->!a.namedField()&&(a.complexId().isBlank()||a.complexId().equals("0"))&&ProductFieldNames.matches(field.getKey(),a.name())).toList();
+                var candidates=ProductFieldNames.targets(field.getKey(),dictionary);
                 if(candidates.size()!=1)throw new IllegalArgumentException("ZNACK_REQUIRED_ATTRIBUTES_MISSING");
                 changes.put("attribute:"+candidates.getFirst().id(),field.getValue());
             }

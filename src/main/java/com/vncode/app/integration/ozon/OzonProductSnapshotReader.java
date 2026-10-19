@@ -21,6 +21,11 @@ public final class OzonProductSnapshotReader implements ProductSnapshotReader {
     public ProductSnapshot readForSynchronization(Shop shop,ProductKey key)throws IOException{return read(shop,key,false);}
     /** Barcode/add never changes certificates or prices; neither needs a per-product API read. */
     public ProductSnapshot readForGtinSync(Shop shop,ProductKey key)throws IOException{return read(shop,key,false,false,false);}
+    /** Attribute-only PATCH does not read or overwrite certificates, prices or the full local cache. */
+    public ProductSnapshot readForProductEdit(Shop shop,ProductKey key)throws IOException{
+        var value=read(shop,key,false,false,false);
+        return new ProductSnapshot(value.key(),"live:attributes:"+value.revision().substring(5),value.title(),value.description(),value.brand(),value.vendorArticle(),value.categoryId(),value.media(),value.attributes(),value.variants(),value.dimensions(),value.documents(),value.checkedAt(),value.metadata());
+    }
     private ProductSnapshot read(Shop shop,ProductKey key,boolean includePrices)throws IOException{
         return read(shop,key,includePrices,true,true);
     }
