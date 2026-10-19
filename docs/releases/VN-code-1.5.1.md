@@ -2,6 +2,8 @@
 
 **Đang phát triển — chưa phát hành lên Latest.** Giữ nền bản 1.5.0 đã phát hành và đưa toàn bộ thay đổi tiếp theo vào 1.5.1.
 
+- **Logo mới:** dùng mẫu VN Liquid Glass nền xanh trong, chữ trắng đã chọn; đồng bộ logo giao diện, cửa sổ, ICO Windows và ICNS macOS. Có nền trong suốt và nhiều kích thước cho biểu tượng ứng dụng. [Tài nguyên và kiểm tra đóng gói](../branding/README.md).
+
 - **Tăng tốc GTIN WB/Ozon:** gộp nhiều biến thể vào lô theo hạn mức chính thức, hỗ trợ tác vụ 10.000 GTIN; chia sẻ chỉ mục sản phẩm và đọc lại theo lô. Giữ barcode cũ, các biến thể, giấy tờ và dữ liệu khác của bài đăng. Chỉ tính thành công sau khi đọc lại đúng biến thể từ sàn; giữ checkpoint cho yêu cầu chưa rõ kết quả.
 - **KN3 trong shipment:** xanh khi sàn chấp nhận, đỏ khi sàn từ chối; kết quả còn chờ hoặc chưa đọc được không được báo xanh. Cập nhật theo luồng FBS hiện có, ưu tiên shipment đang mở.
 - **Thêm lại KIZ:** nút chỉ xuất hiện khi có KN3 đỏ. Bảng đơn lỗi có **Xác nhận / Hủy**. Xác nhận đóng bảng, lấy mã từ nguồn KIZ đã chọn và chạy nền; viên thuốc giữa phía dưới hiển thị **Đang gán KIZ** rồi **Đã gán KIZ xong** sau khi đọc lại sàn và xác nhận phạm vi đang xử lý không còn đỏ/chờ.
