@@ -73,7 +73,7 @@ class FxmlSmokeTest {
         var holder=new java.util.concurrent.atomic.AtomicReference<HomeController>();var setup=new java.util.concurrent.FutureTask<Void>(()->{var loader=FxmlViewLoader.loader(HomeController.class,"home-view.fxml");FxmlViewLoader.load(loader);holder.set(loader.getController());
             // This cached-row test owns the two blocked legacy workers below. The production
             // scheduler must not send real HTTP requests with synthetic marketplace credentials.
-            var runtime=HomeController.class.getDeclaredField("syncRuntime");runtime.setAccessible(true);((AutoCloseable)runtime.get(holder.get())).close();return null;});Platform.runLater(setup);setup.get(10,TimeUnit.SECONDS);awaitBackgroundTasksBeforeFixtureCleanup();
+            stopAutomaticSync(holder.get());return null;});Platform.runLater(setup);setup.get(10,TimeUnit.SECONDS);awaitBackgroundTasksBeforeFixtureCleanup();
         var entered=new CountDownLatch(2);var release=new CountDownLatch(1);try{
             for(int i=0;i<2;i++)assertTrue(com.vncode.app.shared.AppTaskExecutor.execute(new javafx.concurrent.Task<Void>(){protected Void call()throws Exception{entered.countDown();release.await(15,TimeUnit.SECONDS);return null;}}));assertTrue(entered.await(5,TimeUnit.SECONDS));
             var open=new java.util.concurrent.FutureTask<Void>(()->{var method=HomeController.class.getDeclaredMethod("loadSupply",com.vncode.app.integration.wb.WbSupplySummary.class);method.setAccessible(true);method.invoke(holder.get(),new com.vncode.app.integration.wb.WbSupplySummary("fixture-local","Fixture",false,null,"2026-10-11T00:00:00Z",1));return null;});Platform.runLater(open);open.get(2,TimeUnit.SECONDS);
@@ -84,17 +84,17 @@ class FxmlSmokeTest {
         var holder=new java.util.concurrent.atomic.AtomicReference<com.vncode.app.ui.gs1.Gs1Pane>();
         var request=new java.util.concurrent.atomic.AtomicReference<com.vncode.app.features.gs1.Gs1Repository.Request>();
         var setup=new java.util.concurrent.FutureTask<Void>(()->{var pane=new com.vncode.app.ui.gs1.Gs1Pane();holder.set(pane);var shop=pane.getClass().getDeclaredField("shop");shop.setAccessible(true);shop.set(pane,new Shop(1,"Fixture","fixture"));var inn=pane.getClass().getDeclaredField("inn");inn.setAccessible(true);inn.set(pane,"7707083893");var repo=new com.vncode.app.features.gs1.Gs1Repository();var row=repo.createRequest("7707083893","RENEWAL","mail@gs1ru.org","Thread fixture","Draft");repo.addMessage(row.inn(),row.id(),"response",false,"mail@gs1ru.org","Response",true);request.set(row);return null;});Platform.runLater(setup);setup.get(10,TimeUnit.SECONDS);
-        try(var c=Database.getConnection();var lock=c.createStatement()){lock.execute("PRAGMA journal_mode=DELETE");lock.execute("BEGIN EXCLUSIVE");try{var task=new java.util.concurrent.FutureTask<Void>(()->{var method=holder.get().getClass().getDeclaredMethod("showThread",com.vncode.app.features.gs1.Gs1Repository.Request.class);method.setAccessible(true);method.invoke(holder.get(),request.get());return null;});Platform.runLater(task);task.get(300,TimeUnit.MILLISECONDS);}finally{lock.execute("ROLLBACK");lock.execute("PRAGMA journal_mode=WAL");}}
+        try(var c=Database.getConnection();var lock=c.createStatement()){lock.execute("PRAGMA journal_mode=DELETE");lock.execute("BEGIN EXCLUSIVE");try{var task=new java.util.concurrent.FutureTask<Void>(()->{var method=holder.get().getClass().getDeclaredMethod("showThread",com.vncode.app.features.gs1.Gs1Repository.Request.class);method.setAccessible(true);method.invoke(holder.get(),request.get());return null;});Platform.runLater(task);task.get(300,TimeUnit.MILLISECONDS);}finally{lock.execute("ROLLBACK");awaitBackgroundTasksBeforeFixtureCleanup();lock.execute("PRAGMA journal_mode=WAL");}}
         finally{awaitBackgroundTasksBeforeFixtureCleanup();var close=new java.util.concurrent.FutureTask<Void>(()->{holder.get().dispose();return null;});Platform.runLater(close);close.get(5,TimeUnit.SECONDS);}
     }
     @Test void switchShopReturnsBeforeSlowRepository()throws Exception {
         try(var c=Database.getConnection();var s=c.createStatement()){s.execute("INSERT OR IGNORE INTO shops(id,name,marketplace,client_id,api_key) VALUES(2,'Switch Ozon','OZON','22','fixture')");}
         var holder=new java.util.concurrent.atomic.AtomicReference<HomeController>();
-        var setup=new java.util.concurrent.FutureTask<Void>(()->{var loader=FxmlViewLoader.loader(HomeController.class,"home-view.fxml");FxmlViewLoader.load(loader);holder.set(loader.getController());return null;});Platform.runLater(setup);setup.get(10,TimeUnit.SECONDS);awaitBackgroundTasksBeforeFixtureCleanup();
+        var setup=new java.util.concurrent.FutureTask<Void>(()->{var loader=FxmlViewLoader.loader(HomeController.class,"home-view.fxml");FxmlViewLoader.load(loader);holder.set(loader.getController());stopAutomaticSync(holder.get());return null;});Platform.runLater(setup);setup.get(10,TimeUnit.SECONDS);awaitStoppedSync(holder.get());awaitBackgroundTasksBeforeFixtureCleanup();
         try(var c=Database.getConnection();var lock=c.createStatement()) {
             lock.execute("PRAGMA journal_mode=DELETE");lock.execute("BEGIN EXCLUSIVE");
             try {var change=new java.util.concurrent.FutureTask<Void>(()->{var method=HomeController.class.getDeclaredMethod("selectShop",Shop.class);method.setAccessible(true);method.invoke(holder.get(),new Shop(2,"Switch Ozon",com.vncode.app.integration.marketplace.Marketplace.OZON,"22","fixture"));return null;});Platform.runLater(change);change.get(300,TimeUnit.MILLISECONDS);}
-            finally{lock.execute("ROLLBACK");lock.execute("PRAGMA journal_mode=WAL");}
+            finally{lock.execute("ROLLBACK");awaitBackgroundTasksBeforeFixtureCleanup();lock.execute("PRAGMA journal_mode=WAL");}
         } finally {var close=new java.util.concurrent.FutureTask<Void>(()->{holder.get().dispose();return null;});Platform.runLater(close);close.get(5,TimeUnit.SECONDS);awaitBackgroundTasksBeforeFixtureCleanup();}
     }
     @Test void repeatedOpenCloseDisposesReadsAndListeners()throws Exception {
@@ -104,8 +104,8 @@ class FxmlSmokeTest {
     }
     @Test void wbSupplyAndFboFiltersReturnBeforeSlowSqlite()throws Exception {
         var holder=new java.util.concurrent.atomic.AtomicReference<HomeController>();
-        var setup=new java.util.concurrent.FutureTask<Void>(()->{var loader=FxmlViewLoader.loader(HomeController.class,"home-view.fxml");FxmlViewLoader.load(loader);var home=(HomeController)loader.getController();holder.set(home);var state=HomeController.class.getDeclaredField("state");state.setAccessible(true);var model=state.get(home);var select=model.getClass().getDeclaredMethod("setSelectedShop",Shop.class);select.setAccessible(true);select.invoke(model,new Shop(1,"WB fixture","fixture"));var open=HomeController.class.getDeclaredMethod("showFboPacking");open.setAccessible(true);open.invoke(home);return null;});Platform.runLater(setup);setup.get(10,TimeUnit.SECONDS);awaitBackgroundTasksBeforeFixtureCleanup();
-        try(var c=Database.getConnection();var lock=c.createStatement()){lock.execute("PRAGMA journal_mode=DELETE");lock.execute("BEGIN EXCLUSIVE");try{var task=new java.util.concurrent.FutureTask<Void>(()->{for(String name:java.util.List.of("refreshSupplyList","refreshFboView")){var method=HomeController.class.getDeclaredMethod(name);method.setAccessible(true);method.invoke(holder.get());}return null;});Platform.runLater(task);task.get(300,TimeUnit.MILLISECONDS);}finally{lock.execute("ROLLBACK");lock.execute("PRAGMA journal_mode=WAL");}}
+        var setup=new java.util.concurrent.FutureTask<Void>(()->{var loader=FxmlViewLoader.loader(HomeController.class,"home-view.fxml");FxmlViewLoader.load(loader);var home=(HomeController)loader.getController();holder.set(home);var state=HomeController.class.getDeclaredField("state");state.setAccessible(true);var model=state.get(home);var select=model.getClass().getDeclaredMethod("setSelectedShop",Shop.class);select.setAccessible(true);select.invoke(model,new Shop(1,"WB fixture","fixture"));var open=HomeController.class.getDeclaredMethod("showFboPacking");open.setAccessible(true);open.invoke(home);stopAutomaticSync(home);return null;});Platform.runLater(setup);setup.get(10,TimeUnit.SECONDS);awaitStoppedSync(holder.get());awaitBackgroundTasksBeforeFixtureCleanup();
+        try(var c=Database.getConnection();var lock=c.createStatement()){lock.execute("PRAGMA journal_mode=DELETE");lock.execute("BEGIN EXCLUSIVE");try{var task=new java.util.concurrent.FutureTask<Void>(()->{for(String name:java.util.List.of("refreshSupplyList","refreshFboView")){var method=HomeController.class.getDeclaredMethod(name);method.setAccessible(true);method.invoke(holder.get());}return null;});Platform.runLater(task);task.get(300,TimeUnit.MILLISECONDS);}finally{lock.execute("ROLLBACK");awaitBackgroundTasksBeforeFixtureCleanup();lock.execute("PRAGMA journal_mode=WAL");}}
         finally{var close=new java.util.concurrent.FutureTask<Void>(()->{holder.get().dispose();return null;});Platform.runLater(close);close.get(5,TimeUnit.SECONDS);awaitBackgroundTasksBeforeFixtureCleanup();}
     }
     @Test void rejectedGs1ActionKeepsUnsentWorkAndClearsBusy() throws Exception {
@@ -132,7 +132,7 @@ class FxmlSmokeTest {
                 var switchShop=new java.util.concurrent.FutureTask<Void>(()->{holder.get().setShop(new Shop(1,"GS1 fixture","fixture"));return null;});
                 Platform.runLater(switchShop);switchShop.get(300,TimeUnit.MILLISECONDS);
                 assertEquals(0,holder.get().activeTaskCount(),"Shop switch must not start signing or remote refresh");
-            } finally {lock.execute("ROLLBACK");lock.execute("PRAGMA journal_mode=WAL");}
+            } finally {lock.execute("ROLLBACK");awaitBackgroundTasksBeforeFixtureCleanup();lock.execute("PRAGMA journal_mode=WAL");}
         } finally {
             var close=new java.util.concurrent.FutureTask<Void>(()->{holder.get().dispose();return null;});Platform.runLater(close);close.get(5,TimeUnit.SECONDS);awaitBackgroundTasksBeforeFixtureCleanup();
         }
@@ -607,6 +607,23 @@ class FxmlSmokeTest {
         Database.initDatabase();
         try (Connection connection = Database.getConnection(); Statement statement = connection.createStatement()) {
             statement.execute("INSERT OR IGNORE INTO shops(id,name,api_key) VALUES(1,'Shop A','a')");
+        }
+    }
+
+    private static void stopAutomaticSync(HomeController home)throws Exception {
+        var field=HomeController.class.getDeclaredField("syncRuntime");field.setAccessible(true);
+        ((AutoCloseable)field.get(home)).close();
+    }
+    /** Off FX: wait for this fixture's stopped scheduler to release all SQLite handles. */
+    private static void awaitStoppedSync(HomeController home)throws Exception {
+        assertFalse(Platform.isFxApplicationThread());
+        var runtime=HomeController.class.getDeclaredField("syncRuntime");runtime.setAccessible(true);var instance=runtime.get(home);
+        var coordinator=instance.getClass().getDeclaredField("coordinator");coordinator.setAccessible(true);var owner=coordinator.get(instance);
+        long deadline=System.nanoTime()+TimeUnit.SECONDS.toNanos(30);
+        for(String name:java.util.List.of("timer","fast","background","registry")){
+            var field=owner.getClass().getDeclaredField(name);field.setAccessible(true);
+            if(field.get(owner) instanceof java.util.concurrent.ExecutorService executor)
+                assertTrue(executor.awaitTermination(Math.max(1,deadline-System.nanoTime()),TimeUnit.NANOSECONDS),"Stopped fixture scheduler must release SQLite: "+name);
         }
     }
 
