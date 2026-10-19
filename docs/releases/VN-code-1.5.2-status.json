@@ -43,12 +43,12 @@
     "liveCatalogCardCreatedThisVersion": false,
     "liveCatalogCardRepairedThisVersion": false,
     "linuxFullSuite": {
-      "tests": 1942,
+      "tests": 1954,
       "failures": 0,
       "errors": 0,
       "skipped": 2,
       "command": "mvn-vncode -o -q clean verify",
-      "sourceCommit": "fb9474ab4850e73542691d1a49d52948b2c95abf"
+      "sourceCommit": "6fe8ef21871657a38151897ddc13c3b1b5028fd5"
     },
     "windowsPriorAttempt": {
       "runId": 39330524258,

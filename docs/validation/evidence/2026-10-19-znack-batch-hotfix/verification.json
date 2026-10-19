@@ -1,17 +1,16 @@
 {
-  "recordedAt": "2026-10-19T22:28:27.465977+00:00",
+  "recordedAt": "2026-10-19T22:54:25.733004+00:00",
   "command": "DISPLAY=:99 XDG_CACHE_HOME=/tmp/vncode-ui-cache mvn-vncode -o -q clean verify",
   "exitCode": 0,
   "suite": {
-    "tests": 1942,
+    "tests": 1954,
     "failures": 0,
     "errors": 0,
     "skipped": 2
   },
-  "suites": 323,
+  "suites": 325,
   "syntheticBatchReport": {
-    "rows": 650,
-    "refreshMilliseconds": 39.966499
+    "rows": 650
   },
   "remoteWritesPerformed": false,
   "liveReadEvidence": "live-read-access.json",
@@ -22,6 +21,6 @@
     "errors": 0,
     "skipped": 2
   },
-  "sourceCommit": "fb9474ab4850e73542691d1a49d52948b2c95abf",
-  "jarSha256": "6412d7323d817b1e77ca97cfaf8c6f8b75788dc7514a8880a3af3992d8ef4462"
+  "sourceCommit": "6fe8ef21871657a38151897ddc13c3b1b5028fd5",
+  "jarSha256": "7d072057d7fdb6df54a1617040f2296aa0aec82f75f1af05f43e1114b5ee95bc"
 }

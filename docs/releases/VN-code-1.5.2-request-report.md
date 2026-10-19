@@ -14,7 +14,7 @@
 
 ## Kiểm chứng
 
-- Hồi quy sạch toàn bộ sau sửa Sản phẩm: 1.942 kiểm thử, 0 lỗi, 2 bỏ qua theo nền tảng.
+- Hồi quy sạch toàn bộ sau sửa Sản phẩm, KIZ và chuyển giao: 1.954 kiểm thử, 0 lỗi, 2 bỏ qua theo nền tảng.
 - Hồi quy sạch trước thay đổi Sản phẩm: 1.937 kiểm thử, 0 lỗi, 2 bỏ qua theo nền tảng.
 - Bài thử lô 650 thẻ đối chiếu toàn bộ báo cáo trong khoảng 40 ms.
 - Kiểm thử nút Áp dụng cho WB và Ozon; kiểm thử payload năm trường WB, đọc lại xác nhận và phân biệt thẻ bị từ chối với thẻ đã sửa.
