@@ -92,6 +92,11 @@ public final class CatalogErrorRepairService {
             }
             values.put(entry.getKey(),value);types.remove(entry.getKey());
         }
+        var sizeSchema=required.stream().filter(a->a.id()==35L).findFirst().orElse(null);
+        if(sizeSchema!=null&&ZnackWbAttributeMapper.resolveValueType(sizeSchema,values.get(35L),variant.russianSize())==null
+                &&!safe(variant.russianSize()).isBlank()
+                &&ZnackWbAttributeMapper.resolveValueType(sizeSchema,variant.russianSize(),variant.russianSize())!=null)
+            values.put(35L,variant.russianSize());
         values.remove(23557L);values.remove(23561L);values.remove(23765L);
         if(checked.candidates().size()==1){var document=checked.candidates().getFirst();values.put(RegistrationPermitValidator.attribute(document),document.number()+":::"+document.date());}
         for(var a:required){String type=ZnackWbAttributeMapper.resolveValueType(a,values.getOrDefault(a.id(),""),variant.russianSize());if(type!=null)types.put(a.id(),type);}
@@ -109,6 +114,11 @@ public final class CatalogErrorRepairService {
             if(a.id()==3959||a.id()==13933&&draft.feedTnved().length()==10||Set.of(23557L,23561L).contains(a.id()))continue;
             String value=draft.attributes().getOrDefault(a.id(),"");String type=draft.attributeTypes().get(a.id());
             if(value.isBlank()||value.length()>5000||a.presetOnly()&&!a.presets().contains(value)||!a.valueTypes().isEmpty()&&(type==null||!a.valueTypes().contains(type)))throw new IllegalArgumentException("ZNACK_REQUIRED_ATTRIBUTES_MISSING: "+a.name());
+            if(a.id()==35&&!a.valueTypes().isEmpty()){
+                var variant=p.snapshot().variants().stream().filter(v->v.id().equals(p.snapshot().key().variantId())).findFirst().orElseThrow();
+                String observed=ZnackWbAttributeMapper.resolveValueType(a,value,variant.russianSize());
+                if(observed==null||!observed.equals(type))throw new IllegalArgumentException("CATALOG_REPAIR_SIZE_TYPE_UNVERIFIED");
+            }
         }
         return draft;
     }
