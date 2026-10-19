@@ -23,4 +23,4 @@
 
 ## Chưa hoàn tất
 
-Chưa nghiệm thu chữ ký CryptoPro doanh nghiệp, đăng ký/ký thẻ Catalog thật, ghi GTIN thật trên desktop có license production và toàn bộ giấy phép production trong lượt này. Các kiểm thử mô phỏng không được công bố là thành công trên tài khoản thật. Chủ ứng dụng yêu cầu đóng gói và phát hành Latest sau các sửa này; bản phát hành giữ công khai giới hạn trên.
+API đơn/lô hàng WB trong môi trường trả HTTP 401 khi kiểm tra lịch sử giao hàng; chưa nghiệm thu chuyển giao thật. Chưa nghiệm thu chữ ký CryptoPro doanh nghiệp, đăng ký/ký thẻ Catalog thật, ghi GTIN thật trên desktop có license production và toàn bộ giấy phép production trong lượt này. Các kiểm thử mô phỏng không được công bố là thành công trên tài khoản thật. Chủ ứng dụng yêu cầu đóng gói và phát hành Latest sau các sửa này; bản phát hành giữ công khai giới hạn trên.
