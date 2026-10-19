@@ -135,9 +135,33 @@ export function validateOwnerRequested150(decision,status,version,sha,runId) {
     assert.equal(status.requestReport,'VN-code-1.5.0-request-report.md');
 }
 
+// Explicit owner request for this exact 1.5.1 application build. The receipt
+// records missing live acceptance without changing the standard publish gate.
+export function validateOwnerRequested151(decision,status,version,sha,runId) {
+    assert.equal(version,'1.5.1');assert.equal(sha,'67f259b8454f3b943de9fbbcb72d878e525eacef');
+    assert.equal(String(runId),'39254860432');
+    assert.equal(decision.version,version);assert.equal(decision.sourceCommit,sha);assert.equal(String(decision.runId),String(runId));
+    assert.equal(decision.phase,'verified-for-publication');assert.equal(decision.ownerRequestedPublication,true);
+    assert.equal(decision.ownerInstruction,'sau khi xong hãy đưa bản mới này lên latest để thông báo xuống app cho seller cập nhật');
+    assert.equal(decision.unverifiedChecksDisclosedBeforePublication,true);assert.equal(decision.standardFullAcceptanceClaimed,false);
+    for(const field of ['productionLicenseAcceptance','enterpriseCryptoProSigningAccepted','licensedDesktopGtinWriteAccepted',
+            'liveApiWbGtinWriteThisVersion','liveApiOzonGtinWriteThisVersion','liveCatalogCardCreatedThisVersion','liveCatalogCardRepairedThisVersion'])assert.equal(decision[field],false,field);
+    assert.match(decision.installerSha256,/^[a-f0-9]{64}$/);assert.ok(Number.isSafeInteger(decision.installerBytes)&&decision.installerBytes>1024*1024);
+    assert.equal(status.version,version);assert.equal(status.complete,false);assert.equal(status.databaseSchema,6);
+    assert.equal(status.licenseIntegration.productionReady,false);assert.equal(status.licenseIntegration.changedInThisVersion,false);
+    for(const field of ['productionLicenseVerified','liveCryptoProSigningThisVersion','liveLicensedDesktopGtinWriteThisVersion',
+            'liveApiWbGtinWriteThisVersion','liveApiOzonGtinWriteThisVersion','liveCatalogCardCreatedThisVersion','liveCatalogCardRepairedThisVersion'])assert.equal(status.validation[field],false,field);
+    const build=status.validation.windowsBuild;
+    assert.equal(build.state,'passed');assert.equal(String(build.runId),String(runId));assert.equal(build.sourceCommit,sha);
+    assert.equal(build.freshFullJavaExecutionRequired,true);assert.equal(build.upgradeFrom150Passed,true);
+    assert.ok(decision.windowsJava.tests>=1807);assert.equal(decision.windowsJava.failures,0);assert.equal(decision.windowsJava.errors,0);
+    assert.equal(decision.windowsJava.passed,decision.windowsJava.tests-decision.windowsJava.skipped);
+    assert.deepEqual(build.fullJavaSuite,decision.windowsJava);assert.equal(status.requestReport,'VN-code-1.5.1-request-report.md');
+}
+
 async function main(runId,sha,mode='prepare') {
     assert.match(runId??'',/^[1-9][0-9]{0,15}$/);assert.match(sha??'',/^[a-f0-9]{40}$/);
-    assert.ok(['prepare','publish','owner-approved-1418','owner-approved-1419','owner-requested-150'].includes(mode));
+    assert.ok(['prepare','publish','owner-approved-1418','owner-approved-1419','owner-requested-150','owner-requested-151'].includes(mode));
     const {version}=await resolveReleaseVersion({root:process.cwd()});const tag=`v${version}`;
     validatePublicationSource(sha);
     let run=api(`actions/runs/${runId}`);
@@ -168,6 +192,11 @@ async function main(runId,sha,mode='prepare') {
     if(mode==='owner-requested-150') {
         ownerDecision=json(await readFile('docs/validation/2026-10-18-vncode-150-owner-publication.json'));
         validateOwnerRequested150(ownerDecision,status,version,sha,runId);
+        assert.ok((await readFile('docs/releases/'+status.requestReport,'utf8')).includes('Chưa hoàn tất'));
+    }
+    if(mode==='owner-requested-151') {
+        ownerDecision=json(await readFile('docs/validation/2026-10-19-vncode-151-owner-publication.json'));
+        validateOwnerRequested151(ownerDecision,status,version,sha,runId);
         assert.ok((await readFile('docs/releases/'+status.requestReport,'utf8')).includes('Chưa hoàn tất'));
     }
     validateBuild(run,sha,workflowId);
@@ -223,6 +252,10 @@ async function main(runId,sha,mode='prepare') {
     const java=validateJavaTestSummary(logs);let javaVerificationOrigin;
     if(mode==='owner-requested-150') {
         assert.ok(!logs.includes('REUSED_WINDOWS_JAVA:')&&!logs.includes('RECONCILED_WINDOWS_JAVA:'),'1.5.0 requires a fresh full Windows Java run');
+        assert.deepEqual(java,ownerDecision.windowsJava);
+    }
+    if(mode==='owner-requested-151') {
+        assert.ok(!logs.includes('REUSED_WINDOWS_JAVA:')&&!logs.includes('RECONCILED_WINDOWS_JAVA:'),'1.5.1 requires a fresh full Windows Java run');
         assert.deepEqual(java,ownerDecision.windowsJava);
     }
     if(logs.includes('REUSED_WINDOWS_JAVA:')){
@@ -289,6 +322,11 @@ async function main(runId,sha,mode='prepare') {
         }
         names.push('release-acceptance.json');
     }
+    if(mode==='owner-requested-151') {
+        await writeFile(path.join(directory,'release-acceptance.json'),JSON.stringify(ownerDecision,null,2)+'\n');
+        await writeFile(path.join(directory,'request-report.md'),await readFile('docs/releases/VN-code-1.5.1-request-report.md'));
+        names.push('release-acceptance.json','request-report.md');
+    }
     const digests={};for(const file of names)digests[file]=hash(await readFile(path.join(directory,file)));
     const refs=api(`git/matching-refs/tags/${tag}`).filter(item=>item.ref===`refs/tags/${tag}`);
     assert.ok(refs.length<=1);
@@ -314,7 +352,7 @@ async function main(runId,sha,mode='prepare') {
     gh(['release','edit',tag,'--repo',REPO,'--title',`VNCode ${version}`,'--notes-file',path.join(directory,'release-notes.md')]);
     const ready=api(`releases/${release.id}`);validateReleaseAssets(ready.assets,names,true);
     validateStableAsset(ready.assets.find(a=>a.name===name),version,digest,bytes.length,ready.draft);
-    const publishing=mode==='publish'||mode==='owner-approved-1418'||mode==='owner-approved-1419'||mode==='owner-requested-150';
+    const publishing=mode==='publish'||mode==='owner-approved-1418'||mode==='owner-approved-1419'||mode==='owner-requested-150'||mode==='owner-requested-151';
     if(publishing) {
         const request=path.join(directory,'publish.json');await writeFile(request,JSON.stringify({draft:false,prerelease:false,make_latest:'true'}));
         gh(['api','-X','PATCH',`repos/${REPO}/releases/${release.id}`,'--input',request]);

@@ -1,7 +1,7 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {validateStableAsset,validatePublishedStable,validateReusedJava,validateOwnerApproved1418,validateOwnerApproved1419,validateOwnerRequest1419,validateOwnerRequested150,validateFixtureRecovery} from './publish-vncode-stable.mjs';
+import {validateStableAsset,validatePublishedStable,validateReusedJava,validateOwnerApproved1418,validateOwnerApproved1419,validateOwnerRequest1419,validateOwnerRequested150,validateOwnerRequested151,validateFixtureRecovery} from './publish-vncode-stable.mjs';
 import {origin} from './reuse-verified-windows-java.mjs';
 
 const version='1.4.6',digest='a'.repeat(64),size=140000000;
@@ -119,4 +119,26 @@ test('requested 1.5.0 publication binds its verified build without claiming priv
   assert.throws(()=>validateOwnerRequested150(decision,{...status,...patch},version,sha,runId));
  for(const args of [['1.5.1',sha,runId],[version,'b'.repeat(40),runId],[version,sha,'1']])
   assert.throws(()=>validateOwnerRequested150(decision,status,...args));
+});
+
+test('1.5.1 publication binds the exact fresh build and keeps live acceptance limits explicit',()=>{
+ const version='1.5.1',sha='67f259b8454f3b943de9fbbcb72d878e525eacef',runId='39254860432';
+ const java={tests:1900,failures:0,errors:0,skipped:2,passed:1898};
+ const decision={version,sourceCommit:sha,runId,phase:'verified-for-publication',ownerRequestedPublication:true,
+  ownerInstruction:'sau khi xong hãy đưa bản mới này lên latest để thông báo xuống app cho seller cập nhật',
+  unverifiedChecksDisclosedBeforePublication:true,standardFullAcceptanceClaimed:false,productionLicenseAcceptance:false,
+  enterpriseCryptoProSigningAccepted:false,licensedDesktopGtinWriteAccepted:false,liveApiWbGtinWriteThisVersion:false,
+  liveApiOzonGtinWriteThisVersion:false,liveCatalogCardCreatedThisVersion:false,liveCatalogCardRepairedThisVersion:false,
+  installerSha256:'a'.repeat(64),installerBytes:145000000,windowsJava:java};
+ const status={version,complete:false,databaseSchema:6,requestReport:'VN-code-1.5.1-request-report.md',licenseIntegration:{productionReady:false,changedInThisVersion:false},
+  validation:{productionLicenseVerified:false,liveCryptoProSigningThisVersion:false,liveLicensedDesktopGtinWriteThisVersion:false,
+   liveApiWbGtinWriteThisVersion:false,liveApiOzonGtinWriteThisVersion:false,liveCatalogCardCreatedThisVersion:false,liveCatalogCardRepairedThisVersion:false,
+   windowsBuild:{state:'passed',runId,sourceCommit:sha,freshFullJavaExecutionRequired:true,upgradeFrom150Passed:true,fullJavaSuite:java}}};
+ validateOwnerRequested151(decision,status,version,sha,runId);
+ for(const patch of [{phase:'awaiting-build'},{ownerRequestedPublication:false},{standardFullAcceptanceClaimed:true},
+  {enterpriseCryptoProSigningAccepted:true},{liveCatalogCardRepairedThisVersion:true},{installerSha256:null},{windowsJava:{...java,errors:1}}])
+  assert.throws(()=>validateOwnerRequested151({...decision,...patch},status,version,sha,runId));
+ assert.throws(()=>validateOwnerRequested151(decision,status,version,'a'.repeat(40),runId));
+ assert.throws(()=>validateOwnerRequested151(decision,status,version,sha,'39254860433'));
+ assert.throws(()=>validateOwnerRequested151(decision,{...status,validation:{...status.validation,windowsBuild:{...status.validation.windowsBuild,upgradeFrom150Passed:false}}},version,sha,runId));
 });
