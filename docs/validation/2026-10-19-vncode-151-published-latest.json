@@ -1,0 +1,79 @@
+{
+  "version": "1.5.1",
+  "sourceCommit": "f9da70ca98734b8c5daed0a6ef49b38df9723f54",
+  "buildRunId": 39294782641,
+  "publicationRunId": 39294977095,
+  "release": "https://github.com/ntccong2468-lab/Bancapnhat/releases/tag/v1.5.1",
+  "publishedAt": "2026-10-19T17:55:42Z",
+  "publicInstaller": {
+    "filename": "VN-code-1.5.1-Windows-x64.exe",
+    "bytes": 146651136,
+    "sha256": "57dae2a5932697789c1cec8acc53de768e458516b0158f0ae83ed96b065d3788",
+    "downloadDigestMatchesBuildAndGitHub": true
+  },
+  "previousProductionUpdater": {
+    "installedVersion": "1.5.0",
+    "latestVersion": "1.5.1",
+    "decision": "AVAILABLE",
+    "productionUpdaterSourceUnchangedSince150": true,
+    "realProductionServiceRequest": true,
+    "hostPlatform": "Linux",
+    "installedVersionOverride": "1.5.0",
+    "windowsAssetMetadataSelectorChecked": true,
+    "actualSellerDesktopNotificationObserved": false
+  },
+  "windowsJava": {
+    "tests": 1924,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 2,
+    "passed": 1922
+  },
+  "freshJavaExecutedInThisRun": false,
+  "javaVerificationOrigin": {
+    "version": "1.5.1",
+    "sourceCommit": "f9da70ca98734b8c5daed0a6ef49b38df9723f54",
+    "originRunId": 39286749991,
+    "originSourceCommit": "96e20614882488a2d60319fc29f4ca62b6cb9b81",
+    "artifactId": 12205273211,
+    "archiveSha256": "a069bfc06c520cc3f35c4ad4db2f2d96420496a2c959b3ba362c1a3de1384f30",
+    "restoredApplicationJarSha256": "15fb154ceb416f48d1366267db7e1953b59195a2c9529f68ae46e1266db51e67",
+    "applicationAndJavaTestInputsUnchanged": true,
+    "tests": {
+      "tests": 1924,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 2
+    },
+    "javaExecutedInOriginRun": true,
+    "nativeChecksMustRunAgain": true,
+    "reason": "transient-github-baseline-download",
+    "fixtureClassesCompiledWithoutChangingJar": true,
+    "applicationJarSha256": "15fb154ceb416f48d1366267db7e1953b59195a2c9529f68ae46e1266db51e67"
+  },
+  "nativeProofFiles": [
+    "native-smoke.json",
+    "side-by-side-smoke.json",
+    "upgrade-smoke.json",
+    "upgrade-preview-smoke.json",
+    "upgrade-latest-preview-smoke.json",
+    "upgrade-current-preview-smoke.json",
+    "upgrade-gs1-preview-smoke.json",
+    "upgrade-license-test-smoke.json",
+    "upgrade-stable-146-smoke.json",
+    "upgrade-stable-1410-smoke.json",
+    "upgrade-stable-1411-smoke.json",
+    "upgrade-stable-1412-smoke.json",
+    "upgrade-stable-1413-smoke.json",
+    "upgrade-stable-1415-smoke.json",
+    "upgrade-stable-1416-smoke.json",
+    "upgrade-stable-1418-smoke.json",
+    "upgrade-stable-1419-smoke.json",
+    "upgrade-stable-150-smoke.json",
+    "seller-workspace-smoke.json",
+    "ui-layout.json",
+    "gs1-smoke.json",
+    "java-verification-reuse.json"
+  ],
+  "liveSellerMutationPerformedByThisVerification": false
+}

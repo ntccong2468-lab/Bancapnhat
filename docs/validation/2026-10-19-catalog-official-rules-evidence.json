@@ -34,7 +34,7 @@
   "liveMarketplaceWrites": 0,
   "liveEnterpriseSigningVerified": false,
   "productionLicenseVerified": false,
-  "windowsCandidateForTheseChangesVerified": false,
+  "windowsCandidateForTheseChangesVerified": true,
   "windowsUpgradeProbeUrlFix": "2026-10-19-vncode-151-upgrade-url-fix.json",
   "windowsVerificationStrategy": {
     "freshJavaRunId": 39286749991,
@@ -48,5 +48,39 @@
       "artifactId": 12205273211,
       "archiveSha256": "a069bfc06c520cc3f35c4ad4db2f2d96420496a2c959b3ba362c1a3de1384f30"
     }
-  }
+  },
+  "windowsSourceCommit": "f9da70ca98734b8c5daed0a6ef49b38df9723f54",
+  "windowsBuildRunId": 39294782641,
+  "windowsJava": {
+    "tests": 1924,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 2,
+    "passed": 1922
+  },
+  "javaVerificationOrigin": {
+    "version": "1.5.1",
+    "sourceCommit": "f9da70ca98734b8c5daed0a6ef49b38df9723f54",
+    "originRunId": 39286749991,
+    "originSourceCommit": "96e20614882488a2d60319fc29f4ca62b6cb9b81",
+    "artifactId": 12205273211,
+    "archiveSha256": "a069bfc06c520cc3f35c4ad4db2f2d96420496a2c959b3ba362c1a3de1384f30",
+    "restoredApplicationJarSha256": "15fb154ceb416f48d1366267db7e1953b59195a2c9529f68ae46e1266db51e67",
+    "applicationAndJavaTestInputsUnchanged": true,
+    "tests": {
+      "tests": 1924,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 2
+    },
+    "javaExecutedInOriginRun": true,
+    "nativeChecksMustRunAgain": true,
+    "reason": "transient-github-baseline-download",
+    "fixtureClassesCompiledWithoutChangingJar": true,
+    "applicationJarSha256": "15fb154ceb416f48d1366267db7e1953b59195a2c9529f68ae46e1266db51e67"
+  },
+  "freshJavaExecutedInNativeRecoveryRun": false,
+  "allNativeChecksExecutedInRecoveryRun": true,
+  "windowsEvidence": "2026-10-19-vncode-151-windows-native.json",
+  "publicationEvidence": "2026-10-19-vncode-151-published-latest.json"
 }
