@@ -1,6 +1,6 @@
 {
   "version": "1.5.1",
-  "state": "preparing-byte-verified-native-recovery-after-github-download-error",
+  "state": "awaiting-native-verification-with-byte-verified-passing-java",
   "baseline": "v1.5.0",
   "databaseSchema": 6,
   "published": false,
@@ -28,19 +28,19 @@
       "failures": 0
     },
     "windowsBuild": {
-      "state": "failed",
-      "freshFullJavaExecutionRequired": true,
-      "sourceCommit": "96e20614882488a2d60319fc29f4ca62b6cb9b81",
-      "runId": 39286749991,
-      "url": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/39286749991",
-      "fullJavaSuite": {
-        "tests": 1924,
-        "failures": 0,
-        "errors": 0,
-        "skipped": 2,
-        "passed": 1922
+      "state": "running",
+      "freshFullJavaExecutionRequired": false,
+      "javaExecutionPlan": {
+        "kind": "byte-verified-java-origin",
+        "runId": 39286749991,
+        "sourceCommit": "96e20614882488a2d60319fc29f4ca62b6cb9b81",
+        "artifactId": 12205273211,
+        "archiveSha256": "a069bfc06c520cc3f35c4ad4db2f2d96420496a2c959b3ba362c1a3de1384f30"
       },
-      "reason": "GitHub returned its Unicorn server-error page while downloading the old 1.3.0 baseline. Java and preceding native checks passed; no application/test/dependency changes are needed."
+      "allNativeChecksMustRunAgain": true,
+      "sourceCommit": "f9da70ca98734b8c5daed0a6ef49b38df9723f54",
+      "runId": 39294782641,
+      "url": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/39294782641"
     },
     "productionLicenseVerified": false,
     "liveCryptoProSigningThisVersion": false,
@@ -169,6 +169,21 @@
     "cancelledPublicationRuns": [
       39268835904,
       39278090180
-    ]
+    ],
+    "previousFullJavaWindowsBuild": {
+      "state": "failed",
+      "freshFullJavaExecutionRequired": true,
+      "sourceCommit": "96e20614882488a2d60319fc29f4ca62b6cb9b81",
+      "runId": 39286749991,
+      "url": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/39286749991",
+      "fullJavaSuite": {
+        "tests": 1924,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 2,
+        "passed": 1922
+      },
+      "reason": "GitHub returned its Unicorn server-error page while downloading the old 1.3.0 baseline. Java and preceding native checks passed; no application/test/dependency changes are needed."
+    }
   }
 }

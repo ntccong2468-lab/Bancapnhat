@@ -123,7 +123,7 @@ test('requested 1.5.0 publication binds its verified build without claiming priv
 });
 
 test('1.5.1 publication binds the exact fresh build and keeps live acceptance limits explicit',()=>{
- const version='1.5.1',sha='96e20614882488a2d60319fc29f4ca62b6cb9b81',runId='39286749991';
+ const version='1.5.1',sha='f9da70ca98734b8c5daed0a6ef49b38df9723f54',runId='39294782641';
  const java={tests:1924,failures:0,errors:0,skipped:2,passed:1922};
  const decision={version,sourceCommit:sha,runId,phase:'verified-for-publication',ownerRequestedPublication:true,
   ownerInstruction:'sau khi xong hãy đưa bản mới này lên latest để thông báo xuống app cho seller cập nhật',

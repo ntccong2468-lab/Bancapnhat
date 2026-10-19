@@ -20,7 +20,7 @@ Mẫu mặc định **vncode-catalog-official-v3** được lưu trong resource 
 
 ## Kiểm tra và giới hạn
 
-Lượt kiểm thử liên quan trên Linux/Xvfb: **263 ca qua** trong toàn bộ nhóm registration, UI đăng ký, parser giấy tờ và TN VED. Hai ca bổ sung kiểm tra checkpoint WB/Ozon từ bản cũ được chạy riêng và qua cả hai (0 failures/errors). Công cụ release: **74 ca qua**. Bản JAR đã package thành công; kiểm thử bộ cài Windows mới được ghi riêng khi hoàn tất.
+Lượt kiểm thử liên quan trên Linux/Xvfb: **263 ca qua** trong toàn bộ nhóm registration, UI đăng ký, parser giấy tờ và TN VED. Hai ca bổ sung kiểm tra checkpoint WB/Ozon từ bản cũ được chạy riêng và qua cả hai (0 failures/errors). Công cụ release: **77 ca qua**. Bản JAR đã package thành công; kiểm thử bộ cài Windows mới được ghi riêng khi hoàn tất.
 
 Run Windows cũ 39268181948, nguồn 85fd0e060ad75031d21b1ed54fb6a4821d46d9e7, đã chạy đủ **1913 tests, 0 failures, 0 errors, 2 platform skips**; đã dừng trước khi phát hành vì chủ repo yêu cầu áp dụng quy tắc công bố vào mã mới. Workflow publish 39268835904 cũng đã hủy trước khi tạo tag/release. Kết quả đó không thay thế lượt Windows mới của bản sửa này.
 
@@ -37,3 +37,5 @@ Schema thật danh mục 30696 xác nhận: thuộc tính 12 «Вид товар
 Windows 39277937972 của nguồn quy tắc mới đã qua 1.924 ca (0 failures/errors, 2 platform skips), 288 bố cục và 15 đường nâng cấp. Đường 1.5.0 bị chặn trước cài vì script thiếu nhánh URL và tải nhầm bộ cài 1.1.34; checksum đúng của 1.5.0 đã ngăn dùng file đó. Đã sửa URL, giữ nguyên checksum; nguồn `96e20614882488a2d60319fc29f4ca62b6cb9b81` đang chạy lại đầy đủ ở run `39286749991`. Chưa dùng kết quả một build thất bại để phát hành.
 
 Lượt 39286749991 thực thi mới đủ 1.924 ca Java qua nhưng bị lỗi dịch vụ GitHub khi tải baseline 1.3.0. Phục hồi chỉ cho phép thêm retry tải và công cụ xác minh; bắt buộc giữ nguyên app/Java test/dependency/packaging, ZIP/JAR đúng SHA-256 gốc. Báo cáo ghi rõ Java chạy ở nguồn 96e206/lượt 39286749991 và native chạy lại ở lượt phục hồi; không đổi lỗi Java thành qua và không bỏ kiểm tra native nào.
+
+Phục hồi native nguồn `f9da70ca98734b8c5daed0a6ef49b38df9723f54`, run `39294782641`: giữ kết quả Java thực thi mới ở run 39286749991/source96e206; chỉ chấp nhận archive/JAR đã ghim và không thay đổi app/test/dependency. Java không chạy lại ở run phục hồi, toàn bộ native/16 nâng cấp chạy lại; biên nhận phát hành sẽ ghi rõ nguồn từng loại kết quả. 77 ca công cụ qua.

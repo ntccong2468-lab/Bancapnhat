@@ -1,7 +1,7 @@
 {
   "version": "1.5.1",
-  "sourceCommit": "96e20614882488a2d60319fc29f4ca62b6cb9b81",
-  "runId": 39286749991,
+  "sourceCommit": "f9da70ca98734b8c5daed0a6ef49b38df9723f54",
+  "runId": 39294782641,
   "phase": "authorized-awaiting-verified-build",
   "ownerRequestedPublication": true,
   "ownerInstruction": "sau khi xong hãy đưa bản mới này lên latest để thông báo xuống app cho seller cập nhật",
@@ -16,5 +16,13 @@
   "liveCatalogCardRepairedThisVersion": false,
   "installerSha256": null,
   "installerBytes": null,
-  "windowsJava": null
+  "windowsJava": null,
+  "javaVerificationPlan": {
+    "kind": "byte-verified-java-origin",
+    "runId": 39286749991,
+    "sourceCommit": "96e20614882488a2d60319fc29f4ca62b6cb9b81",
+    "artifactId": 12205273211,
+    "archiveSha256": "a069bfc06c520cc3f35c4ad4db2f2d96420496a2c959b3ba362c1a3de1384f30"
+  },
+  "freshJavaExecutedInThisRun": false
 }
