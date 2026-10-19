@@ -60,6 +60,7 @@ class ProductEditInteractionTest {
           """).getAsJsonObject();response.getAsJsonArray("cards").get(0).getAsJsonObject().addProperty("brand",brand.get());return response;
     };}
     void waitFor(Callable<Boolean> condition)throws Exception{long until=System.nanoTime()+TimeUnit.SECONDS.toNanos(8);while(System.nanoTime()<until){if(fx(condition))return;Thread.sleep(20);}fail("Editor did not reach expected state");}
+    String status(String key,int remaining,int succeeded,int failed,int pending){return I18nService.getInstance().tr(key)+" · "+java.text.MessageFormat.format(I18nService.getInstance().tr("bulk.progress.counts"),1,remaining,succeeded,failed,pending);}
     Button button(String id){return (Button)pane.lookup("#"+id);}
     TextField input(){return (TextField)pane.lookup("#editValue");}
     @AfterEach void cleanup()throws Exception{
@@ -73,7 +74,7 @@ class ProductEditInteractionTest {
         waitFor(()->!((CheckBox)pane.lookup("#editConfirm")).isDisabled());
         assertEquals(0,writes.get());
         fx(()->{assertTrue(button("editApply").isDisabled());((CheckBox)pane.lookup("#editConfirm")).setSelected(true);assertFalse(button("editApply").isDisabled());button("editApply").fire();return null;});
-        waitFor(()->((Label)pane.lookup("#editStatus")).getText().equals(I18nService.getInstance().tr("edit.saved")));
+        waitFor(()->((Label)pane.lookup("#editStatus")).getText().equals(status("edit.saved",0,1,0,0)));
         assertEquals(1,writes.get());assertTrue(readbacks.get()>0);assertEquals("New",brand.get());
         assertEquals("New",new ProductRepository().localSnapshot(key).orElseThrow().brand());
         fx(()->{assertTrue(button("editApply").isDisabled());return null;});
@@ -89,7 +90,7 @@ class ProductEditInteractionTest {
         timeout=true;fx(()->{input().setText("New");button("editPreview").fire();return null;});
         waitFor(()->!((CheckBox)pane.lookup("#editConfirm")).isDisabled());
         fx(()->{((CheckBox)pane.lookup("#editConfirm")).setSelected(true);button("editApply").fire();return null;});
-        waitFor(()->((Label)pane.lookup("#editStatus")).getText().equals(I18nService.getInstance().tr("edit.saved")));
+        waitFor(()->((Label)pane.lookup("#editStatus")).getText().equals(status("edit.saved",0,1,0,0)));
         assertEquals(1,writes.get());assertTrue(readbacks.get()>0);
     }
     @Test void remotePendingIsNotReportedAsSavedAndKeepsReconcileAvailable()throws Exception{
@@ -97,7 +98,7 @@ class ProductEditInteractionTest {
         waitFor(()->!((CheckBox)pane.lookup("#editConfirm")).isDisabled());
         fx(()->{((CheckBox)pane.lookup("#editConfirm")).setSelected(true);button("editApply").fire();return null;});
         waitFor(()->!button("editReconcile").isDisabled());
-        fx(()->{assertEquals(I18nService.getInstance().tr("edit.readback_pending"),((Label)pane.lookup("#editStatus")).getText());assertTrue(button("editApply").isDisabled());button("editReconcile").fire();return null;});
+        fx(()->{assertEquals(status("edit.readback_pending",1,0,0,1),((Label)pane.lookup("#editStatus")).getText());assertTrue(button("editApply").isDisabled());button("editReconcile").fire();return null;});
         waitFor(()->!button("editReconcile").isDisabled());assertEquals(1,writes.get());assertTrue(readbacks.get()>1);
     }
     @Test void openingAnotherDocumentEditClearsAllMetadata()throws Exception{
