@@ -1,0 +1,14 @@
+{
+  "marketplace": "WILDBERRIES",
+  "gtins": 10000,
+  "liveSellerMutations": false,
+  "simulatedApi": true,
+  "realApplicationPlannerAdaptersAndSqlite": true,
+  "writes": 4,
+  "reads": 214,
+  "maximumRequestItems": 3000,
+  "maximumRequestBytes": 1396371,
+  "verified": 10000,
+  "elapsedMs": 33917.468425,
+  "quotaWaitSimulatedSeparately": true
+}

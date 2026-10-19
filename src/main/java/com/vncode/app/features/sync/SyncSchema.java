@@ -45,6 +45,7 @@ public final class SyncSchema {
                 """);
             s.execute("CREATE INDEX IF NOT EXISTS sync_runs_shop_time ON sync_runs(shop_id,created_at DESC)");
             s.execute("CREATE INDEX IF NOT EXISTS sync_items_run_state ON sync_run_items(run_id,state)");
+            s.execute("CREATE INDEX IF NOT EXISTS sync_items_child ON sync_run_items(run_id,child_job)");
         }
     }
 }

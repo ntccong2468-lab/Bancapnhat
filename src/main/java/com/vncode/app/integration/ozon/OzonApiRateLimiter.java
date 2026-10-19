@@ -7,11 +7,14 @@ import java.util.concurrent.ConcurrentMap;
 
 /** Small per-shop/per-endpoint-family limiter; Ozon traffic never shares a WB limiter. */
 public final class OzonApiRateLimiter {
-    private static final long MAX_COOLDOWN_NANOS = Duration.ofMinutes(10).toNanos();
+    private static final long MAX_COOLDOWN_NANOS = Duration.ofDays(1).toNanos();
     private final ConcurrentMap<Key, Long> nextAllowedNanos = new ConcurrentHashMap<>();
     private final ConcurrentMap<Key, Long> cooldownUntilNanos = new ConcurrentHashMap<>();
     private final long spacingNanos;
     private final long fboSpacingNanos;
+    private final java.util.function.LongSupplier clock;
+    private final Sleeper sleeper;
+    @FunctionalInterface interface Sleeper { void sleep(long nanos) throws InterruptedException; }
 
     public OzonApiRateLimiter() {
         this(Duration.ofMillis(120), Duration.ofSeconds(1));
@@ -22,12 +25,19 @@ public final class OzonApiRateLimiter {
     }
 
     private OzonApiRateLimiter(Duration minimumSpacing, Duration fboMinimumSpacing) {
+        this(minimumSpacing,fboMinimumSpacing,System::nanoTime,nanos->Thread.sleep(nanos/1_000_000L,(int)(nanos%1_000_000L)));
+    }
+
+    OzonApiRateLimiter(Duration minimumSpacing, Duration fboMinimumSpacing,
+                       java.util.function.LongSupplier clock, Sleeper sleeper) {
         if (minimumSpacing == null || minimumSpacing.isNegative()
                 || fboMinimumSpacing == null || fboMinimumSpacing.isNegative()) {
             throw new IllegalArgumentException("minimumSpacing must not be negative");
         }
         spacingNanos = minimumSpacing.toNanos();
         fboSpacingNanos = fboMinimumSpacing.toNanos();
+        this.clock=Objects.requireNonNull(clock);
+        this.sleeper=Objects.requireNonNull(sleeper);
     }
 
     public void awaitTurn(int shopId,String family)throws InterruptedException{if(shopId<=0)throw new IllegalArgumentException("Invalid shop");awaitTurn("shop:"+shopId,family);}
@@ -37,13 +47,13 @@ public final class OzonApiRateLimiter {
         }
         Key key = new Key(scope, family);
         long effectiveSpacing = "fbo-supplies".equals(family) ? fboSpacingNanos : spacingNanos;
-        long now = System.nanoTime();
+        long now = clock.getAsLong();
         long reserved = nextAllowedNanos.compute(key, (ignored, existing) -> {
             long start = existing == null ? now : Math.max(now, existing);
             return start + effectiveSpacing;
         }) - effectiveSpacing;
         while (true) {
-            long currentTime = System.nanoTime();
+            long currentTime = clock.getAsLong();
             Long cooldown = cooldownUntilNanos.get(key);
             if (cooldown != null && cooldown > reserved && cooldown > currentTime) {
                 // A 429 may arrive while this caller sleeps on an older slot. Reserve again
@@ -56,7 +66,7 @@ public final class OzonApiRateLimiter {
             long wait = reserved - currentTime;
             if (wait <= 0) return;
             com.vncode.app.shared.RateLimitDeferral.waiting(wait);
-            Thread.sleep(wait / 1_000_000L, (int) (wait % 1_000_000L));
+            sleeper.sleep(wait);
         }
     }
 
@@ -65,10 +75,10 @@ public final class OzonApiRateLimiter {
         if (scope==null || scope.isBlank() || family == null || family.isBlank()) return;
         Duration safe = retryAfter == null || retryAfter.isZero() || retryAfter.isNegative()
                 ? Duration.ofSeconds(60) : retryAfter;
-        long cooldown = safe.compareTo(Duration.ofMinutes(10)) > 0
+        long cooldown = safe.compareTo(Duration.ofDays(1)) > 0
                 ? MAX_COOLDOWN_NANOS : safe.toNanos();
         Key key = new Key(scope, family);
-        long until = System.nanoTime() + cooldown;
+        long until = clock.getAsLong() + cooldown;
         cooldownUntilNanos.compute(key, (ignored, existing) -> existing == null ? until : Math.max(existing, until));
         nextAllowedNanos.compute(key, (ignored, existing) -> existing == null ? until : Math.max(existing, until));
     }

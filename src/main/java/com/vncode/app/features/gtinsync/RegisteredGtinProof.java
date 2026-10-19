@@ -8,6 +8,8 @@ import com.vncode.app.models.Shop;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
+import java.util.Collection;
+import java.util.Map;
 import java.util.Locale;
 
 /** A registry observation belongs to one tested enterprise, certificate, environment and shop.
@@ -79,6 +81,14 @@ public final class RegisteredGtinProof {
                 &&!row.syncedAt().isBefore(now.minus(Duration.ofHours(24)))&&!row.syncedAt().isAfter(now.plusSeconds(300));
         if (!RegisteredGtinValidator.isValid(gtin) || !found) throw new IllegalArgumentException("unverified_catalog_gtin");
     }
+    public static Map<String,GtinSyncModels.RegisteredGtin> requireCurrent(Shop shop,Collection<String> gtins) {
+        var now=Instant.now();var scope=current(shop);requireProduction(scope);
+        var rows=new GtinSyncRepository().catalogItems(shop.getId(),shop.getMarketplace(),gtins);
+        for(var gtin:gtins){var row=rows.get(gtin);
+            if(!RegisteredGtinValidator.isValid(gtin)||row==null||!row.source().equals(scope.source())||!row.published()||!row.tradeUnit()
+                    ||row.syncedAt().isBefore(now.minus(Duration.ofHours(24)))||row.syncedAt().isAfter(now.plusSeconds(300)))throw new IllegalArgumentException("unverified_catalog_gtin");
+        }return rows;
+    }
     /** Production seller endpoints cannot consume a sandbox or arbitrary registry observation. */
     public static void requireProduction(Scope scope) {
         try {
@@ -96,6 +106,7 @@ public final class RegisteredGtinProof {
             return ("0".repeat(14-left.length())+left).equals("0".repeat(14-right.length())+right);
         return left.equals(right);
     }
+    public static String canonicalCode(String value){return value!=null&&value.matches("[0-9]{8,14}")?"0".repeat(14-value.length())+value:java.util.Objects.toString(value,"");}
 
     public static boolean contains(List<String> codes, String gtin) {
         return codes.stream().anyMatch(code -> sameCode(code, gtin));

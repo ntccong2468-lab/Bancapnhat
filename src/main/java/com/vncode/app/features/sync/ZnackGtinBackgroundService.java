@@ -9,7 +9,9 @@ import java.util.function.Consumer;
 
 /** A click authorizes GTIN append only. Matching, source proof and readback remain mandatory. */
 public final class ZnackGtinBackgroundService {
-    public record Progress(int completed,int total,int succeeded,int pending,int blocked){}
+    public record Progress(int completed,int total,int succeeded,int pending,int blocked,int submitted){
+        public Progress(int completed,int total,int succeeded,int pending,int blocked){this(completed,total,succeeded,pending,blocked,0);}
+    }
     public record Result(String run,Progress progress){}
     /** Only thrown before any marketplace write has been attempted by this run. */
     public static final class PreparationException extends Exception {
@@ -22,6 +24,12 @@ public final class ZnackGtinBackgroundService {
         List<Selection> select(Shop shop,String run,List<SyncRunRepository.Item> rows)throws Exception;
         Job preview(Shop shop,List<Selection> rows)throws Exception;
         Job execute(Shop shop,String job)throws Exception;
+        default Job execute(Shop shop,String job,Consumer<com.vncode.app.features.gtinsync.GtinSyncModels.JobItem> progress)throws Exception{return execute(shop,job);}
+        default Job confirm(Shop shop,Job job){return job;}
+        default int batchSize(){return 1;}
+        default boolean ownerChecks(){return false;}
+        default void prepareBatchRun(Shop shop,List<SyncRunRepository.Item> rows)throws Exception{}
+        default void close(){}
         void link(Shop shop,String run,Job job);
         default void blocked(Shop shop,String run,List<SyncRunRepository.Item> rows,Job job){}
         default void invalid(Shop shop,String run,SyncRunRepository.Item row,Exception failure){}
@@ -32,12 +40,19 @@ public final class ZnackGtinBackgroundService {
     public ZnackGtinBackgroundService(){
         var review=new ZnackGtinReviewService();var catalog=new CatalogSyncService();var reports=new SyncRunRepository();
         operations=new Operations(){
+            private GtinBulkSession bulk;
+            public int batchSize(){return com.vncode.app.features.gtinsync.GtinBatchAdapter.MAX_PLAN_ROWS;}
+            public boolean ownerChecks(){return true;}
+            public void prepareBatchRun(Shop s,List<SyncRunRepository.Item> rows)throws Exception{bulk=new GtinBulkSession(s);bulk.prepare(rows.stream().map(r->new com.vncode.app.features.gtinsync.GtinSyncModels.ProductKey(s.getId(),s.getMarketplace(),r.productId(),r.variantId())).toList());}
+            public void close(){if(bulk!=null)bulk.close();}
             public String prepare(Shop s)throws Exception{return review.prepare(s);}
             public String prepare(Shop s,Consumer<String> phase)throws Exception{return review.prepare(s,phase);}
             public List<SyncRunRepository.Item> page(Shop s,String r,int offset){return review.page(s,r,offset);}
-            public List<Selection> select(Shop s,String r,List<SyncRunRepository.Item> rows)throws Exception{return review.select(s,r,rows);}
-            public Job preview(Shop s,List<Selection> rows)throws Exception{return catalog.preview(s,rows,new Options(Set.of(Field.GTIN),Map.of()));}
-            public Job execute(Shop s,String id)throws Exception{return catalog.run(s,id,true);}
+            public List<Selection> select(Shop s,String r,List<SyncRunRepository.Item> rows)throws Exception{return bulk==null?review.select(s,r,rows):review.select(s,r,rows,bulk::read);}
+            public Job preview(Shop s,List<Selection> rows)throws Exception{return (bulk==null?catalog:bulk.catalog).preview(s,rows,new Options(Set.of(Field.GTIN),Map.of()));}
+            public Job confirm(Shop s,Job job){return (bulk==null?catalog:bulk.catalog).confirm(s,job.id());}
+            public Job execute(Shop s,String id)throws Exception{return (bulk==null?catalog:bulk.catalog).run(s,id,true);}
+            public Job execute(Shop s,String id,Consumer<com.vncode.app.features.gtinsync.GtinSyncModels.JobItem> progress)throws Exception{return (bulk==null?catalog:bulk.catalog).run(s,id,true,progress);}
             public void link(Shop s,String r,Job j){reports.linkReviewed(s,r,j);}
             public void blocked(Shop s,String r,List<SyncRunRepository.Item> rows,Job j){
                 for(var row:j.rows())if(row.state()==State.BLOCKED){
@@ -65,6 +80,9 @@ public final class ZnackGtinBackgroundService {
         return run(shop,selected,progress,phase->{});
     }
     public Result run(Shop shop,Set<ProductKey> selected,Consumer<Progress> progress,Consumer<String> phase)throws Exception {
+        try(var database=com.vncode.app.config.Database.openBatchSession();var checks=operations.ownerChecks()?com.vncode.app.integration.listing.ListingIdentity.batchChecks(shop):null){return runActive(shop,selected,progress,phase);}
+    }
+    private Result runActive(Shop shop,Set<ProductKey> selected,Consumer<Progress> progress,Consumer<String> phase)throws Exception {
         for(var key:selected)if(key.shopId()!=shop.getId()||key.marketplace()!=shop.getMarketplace())throw new SecurityException("SYNC_REVIEW_OWNER_CHANGED");
         phase.accept("PREPARING");
         String run;
@@ -80,29 +98,53 @@ public final class ZnackGtinBackgroundService {
             operations.noEligible(shop,run);
             throw new IllegalStateException("GTIN_NO_ELIGIBLE_PUBLISHED_CARDS");
         }
-        int done=0,ok=0,pending=0,blocked=0;progress.accept(new Progress(0,rows.size(),0,0,0));
-        // Validate and dispatch each variant before reading the next. A bad variant must
-        // neither starve valid variants nor hide progress behind a 100-item preview.
-        for(var item:rows){
+        int done=0,ok=0,pending=0,blocked=0;var submitted=new HashSet<com.vncode.app.features.gtinsync.GtinSyncModels.ProductKey>();progress.accept(new Progress(0,rows.size(),0,0,0));
+        var chunks=new ArrayDeque<List<SyncRunRepository.Item>>();int size=Math.max(1,Math.min(operations.batchSize(),com.vncode.app.features.gtinsync.GtinBatchAdapter.MAX_PLAN_ROWS));
+        for(int offset=0;offset<rows.size();offset+=size)chunks.addLast(List.copyOf(rows.subList(offset,Math.min(offset+size,rows.size()))));
+        try {
+        phase.accept("READING_MARKETPLACE");operations.prepareBatchRun(shop,rows);
+        while(!chunks.isEmpty()){
             if(Thread.currentThread().isInterrupted())throw new java.io.InterruptedIOException("GTIN_SYNC_CANCELLED");
-            var batch=List.of(item);Job plan;
+            var batch=chunks.removeFirst();Job plan;
             try{plan=operations.preview(shop,operations.select(shop,run,batch));}
-            catch(com.vncode.app.features.license.LicenseGate.LicenseDeniedException|SecurityException denied){throw denied;}
+            catch(com.vncode.app.features.license.LicenseGate.LicenseDeniedException|SecurityException|com.vncode.app.features.gtinsync.RegisteredGtinProof.UnverifiedOwnerException denied){throw denied;}
             catch(Exception invalid){
+                // Only a read/preview can split. An uncertain execution is never replayed.
+                if(batch.size()>1){int middle=batch.size()/2;chunks.addFirst(List.copyOf(batch.subList(middle,batch.size())));chunks.addFirst(List.copyOf(batch.subList(0,middle)));continue;}
+                var item=batch.getFirst();
                 operations.invalid(shop,run,item,invalid);
                 if(SyncFailure.of(invalid,0).actionRequired())blocked++;else pending++;
-                progress.accept(new Progress(++done,rows.size(),ok,pending,blocked));continue;
+                progress.accept(new Progress(++done,rows.size(),ok,pending,blocked,submitted.size()));continue;
             }
-            if(plan.readyCount()>0){plan=operations.execute(shop,plan.id());operations.link(shop,run,plan);}
+            if(plan.readyCount()>0){
+                plan=operations.confirm(shop,plan);if(plan.confirmed())operations.link(shop,run,plan);
+                final int baseDone=done,baseOk=ok,basePending=pending,baseBlocked=blocked;
+                var observed=new HashMap<com.vncode.app.features.gtinsync.GtinSyncModels.ProductKey,com.vncode.app.features.gtinsync.GtinSyncModels.Status>();var counts=new int[4];
+                plan=operations.execute(shop,plan.id(),item->{
+                    var status=item.status();var key=item.preview().before().key();var previous=observed.put(key,status);
+                    if(previous!=null)countStatus(previous,counts,-1);countStatus(status,counts,1);
+                    if(Set.of(com.vncode.app.features.gtinsync.GtinSyncModels.Status.AWAITING_VERIFICATION,com.vncode.app.features.gtinsync.GtinSyncModels.Status.RECONCILE_REQUIRED,com.vncode.app.features.gtinsync.GtinSyncModels.Status.SUCCEEDED).contains(status))submitted.add(key);
+                    progress.accept(new Progress(baseDone+counts[0],rows.size(),baseOk+counts[1],basePending+counts[2],baseBlocked+counts[3],submitted.size()));
+                });operations.link(shop,run,plan);
+            }
             operations.blocked(shop,run,batch,plan);
             for(var row:plan.rows())switch(row.state()){
                 case SUCCEEDED -> ok++;
                 case BLOCKED -> blocked++;
                 default -> pending++;
             }
-            done+=batch.size();progress.accept(new Progress(done,rows.size(),ok,pending,blocked));
+            done+=batch.size();progress.accept(new Progress(done,rows.size(),ok,pending,blocked,submitted.size()));
         }
         operations.finish(shop,run);
-        return new Result(run,new Progress(done,rows.size(),ok,pending,blocked));
+        return new Result(run,new Progress(done,rows.size(),ok,pending,blocked,submitted.size()));
+        }finally{operations.close();}
+    }
+    private static void countStatus(com.vncode.app.features.gtinsync.GtinSyncModels.Status status,int[] counts,int direction){
+        switch(status){
+            case SUCCEEDED -> {counts[0]+=direction;counts[1]+=direction;}
+            case FAILED,CANCELLED -> {counts[0]+=direction;counts[3]+=direction;}
+            case AWAITING_VERIFICATION,RECONCILE_REQUIRED -> {counts[0]+=direction;counts[2]+=direction;}
+            default -> {}
+        }
     }
 }

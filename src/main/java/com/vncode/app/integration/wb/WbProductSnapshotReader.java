@@ -19,7 +19,12 @@ public final class WbProductSnapshotReader implements ProductSnapshotReader {
     public WbProductSnapshotReader(Function<Shop,ListingTransport> clients,Function<Shop,ListingTransport> prices){this.clients=clients;this.prices=prices;}
     public ProductSnapshot read(Shop shop,ProductKey key)throws IOException{return read(shop,key,true);}
     public ProductSnapshot readForSynchronization(Shop shop,ProductKey key)throws IOException{return read(shop,key,false);}
+    /** The GTIN-only path does not replace the complete product-page snapshot cache. */
+    public ProductSnapshot readForGtinSync(Shop shop,ProductKey key)throws IOException{return read(shop,key,false,false);}
     private ProductSnapshot read(Shop shop,ProductKey key,boolean includePrices)throws IOException{
+        return read(shop,key,includePrices,true);
+    }
+    private ProductSnapshot read(Shop shop,ProductKey key,boolean includePrices,boolean persist)throws IOException{
         ListingIdentity.require(shop,key);if(key.marketplace()!=Marketplace.WILDBERRIES)throw new SecurityException("Not a WB card");
         JsonObject filter=new JsonObject();filter.addProperty("textSearch",key.cardId());filter.addProperty("withPhoto",-1);
         JsonObject cursor=new JsonObject();cursor.addProperty("limit",100);JsonObject settings=new JsonObject();settings.add("filter",filter);settings.add("cursor",cursor);
@@ -61,6 +66,6 @@ public final class WbProductSnapshotReader implements ProductSnapshotReader {
                 if(amounts.size()==1)inherited.put("source.price",amounts.iterator().next().toPlainString());
             }
         }catch(IOException unavailable){inherited.put("source.price.unavailable","true");}
-        String raw=ListingIdentity.canonical(card);inherited.put("source.payload",raw);inherited.put("owner",ListingIdentity.fingerprint(shop));var snapshot=new ProductSnapshot(key,"live:"+ListingIdentity.hash(raw+ListingIdentity.canonical(ProductJson.GSON.toJsonTree(inherited))),text(card,"title"),text(card,"description"),text(card,"brand"),text(card,"vendorCode"),text(card,"subjectID"),media,attributes,variants,dimensions,docs,now,inherited);new ProductRepository().saveVerifiedSnapshot(shop,snapshot);return snapshot;
+        String raw=ListingIdentity.canonical(card);inherited.put("source.payload",raw);inherited.put("owner",ListingIdentity.fingerprint(shop));var snapshot=new ProductSnapshot(key,"live:"+ListingIdentity.hash(raw+ListingIdentity.canonical(ProductJson.GSON.toJsonTree(inherited))),text(card,"title"),text(card,"description"),text(card,"brand"),text(card,"vendorCode"),text(card,"subjectID"),media,attributes,variants,dimensions,docs,now,inherited);if(persist)new ProductRepository().saveVerifiedSnapshot(shop,snapshot);return snapshot;
     }
 }

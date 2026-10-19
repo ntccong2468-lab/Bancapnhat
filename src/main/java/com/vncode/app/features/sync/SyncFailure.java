@@ -13,6 +13,8 @@ public record SyncFailure(String code,Duration delay,boolean actionRequired) {
             return new SyncFailure("SYNC_STORAGE_BUSY",backoff(attempt),false);
         for(Throwable e=failure;e!=null;e=e.getCause()) {
             if(e instanceof com.vncode.app.shared.RateLimitDeferral.Deferred deferred)return new SyncFailure("API_COOLDOWN",deferred.delay(),false);
+            if(e instanceof com.vncode.app.integration.listing.ListingRateLimitException rate)return new SyncFailure("API_COOLDOWN",rate.retryAfter(),false);
+            if(e instanceof com.vncode.app.features.gtinsync.GtinRateLimitedException rate)return new SyncFailure(rate.code(),rate.retryAfter(),false);
             if(e instanceof LicenseDeniedException)return new SyncFailure("LICENSE_REQUIRED",Duration.ofMinutes(1),true);
             if(e instanceof com.vncode.app.integration.znack.signature.CryptoProException crypto)
                 return new SyncFailure("CRYPTOPRO_"+crypto.code().name(),Duration.ofMinutes(5),true);

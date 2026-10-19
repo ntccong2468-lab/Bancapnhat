@@ -42,16 +42,19 @@ public final class ZnackGtinReviewService {
     }
     public List<SyncRunRepository.Item> page(Shop shop,String run,int offset){require(shop,run);return reports.items(run,offset,300);}
     public List<Selection> select(Shop shop,String run,List<SyncRunRepository.Item> rows)throws Exception {
+        return select(shop,run,rows,products);
+    }
+    List<Selection> select(Shop shop,String run,List<SyncRunRepository.Item> rows,ProductSnapshotReader reader)throws Exception {
         return ShopOperationCoordinator.withActiveShop(shop.getId(),()->{
             require(shop,run);
-            if(rows.isEmpty()||rows.size()>1000||rows.stream().map(SyncRunRepository.Item::id).distinct().count()!=rows.size())throw new IllegalArgumentException("CATALOG_SELECTION_LIMIT");
+            if(rows.isEmpty()||rows.size()>GtinBatchAdapter.MAX_PLAN_ROWS||rows.stream().map(SyncRunRepository.Item::id).distinct().count()!=rows.size())throw new IllegalArgumentException("CATALOG_SELECTION_LIMIT");
+            var observed=reports.selectedItems(run,rows.stream().map(SyncRunRepository.Item::id).toList());
+            new RegistrationSources().requireMembers(shop,rows);RegisteredGtinProof.requireCurrent(shop,rows.stream().map(SyncRunRepository.Item::gtin).toList());
             var result=new ArrayList<Selection>();
             for(var row:rows){
-                if(!row.equals(reports.item(run,row.id()).orElse(null))||!eligible(row))throw new IllegalArgumentException("GTIN_REVIEW_CHANGED");
-                new RegistrationSources().requireMember(shop,row.productId(),row.variantId());
-                RegisteredGtinProof.requireCurrent(shop,row.gtin());
+                if(!row.equals(observed.get(row.id()))||!eligible(row))throw new IllegalArgumentException("GTIN_REVIEW_CHANGED");
                 var key=new ProductKey(shop.getId(),shop.getMarketplace(),row.productId(),row.variantId());
-                var fresh=products.read(shop,key);
+                var fresh=reader.read(shop,key);
                 if(!key.equals(fresh.key()))throw new SecurityException("PRODUCT_MISMATCH");
                 var variant=fresh.variants().stream().filter(v->v.id().equals(key.variantId())).findFirst().orElseThrow(()->new IllegalArgumentException("VARIANT_NOT_FOUND"));
                 if(!same(row.color(),variant.color())||!same(row.size(),GtinVariantIdentity.size(shop.getMarketplace(),variant)))throw new IllegalArgumentException("GTIN_VARIANT_CONFLICT");

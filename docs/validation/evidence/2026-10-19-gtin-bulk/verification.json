@@ -1,0 +1,242 @@
+{
+  "checkedAt": "2026-10-19T09:16:33.851072+00:00",
+  "tests": 164,
+  "failures": 0,
+  "errors": 0,
+  "skipped": 0,
+  "platform": "Linux + Xvfb, software rendering",
+  "nativeWindowsAcceptance": false,
+  "suites": [
+    {
+      "name": "com.vncode.app.integration.listing.ListingRateLimitExceptionTest",
+      "tests": "3",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.018",
+      "timestamp": ""
+    },
+    {
+      "name": "com.vncode.app.integration.wb.WbContentApiRateLimiterTest",
+      "tests": "4",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.005",
+      "timestamp": ""
+    },
+    {
+      "name": "com.vncode.app.integration.ozon.OzonBarcodeQuotaTest",
+      "tests": "2",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.004",
+      "timestamp": ""
+    },
+    {
+      "name": "com.vncode.app.integration.wb.WbGtinAdapterTest",
+      "tests": "15",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "1.388",
+      "timestamp": ""
+    },
+    {
+      "name": "com.vncode.app.integration.ozon.OzonGtinAdapterTest",
+      "tests": "12",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "1.164",
+      "timestamp": ""
+    },
+    {
+      "name": "com.vncode.app.features.gtinsync.GtinSyncCoordinatorTest",
+      "tests": "15",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "1.166",
+      "timestamp": ""
+    },
+    {
+      "name": "com.vncode.app.features.gtinsync.GtinSyncRepositoryTest",
+      "tests": "10",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.556",
+      "timestamp": ""
+    },
+    {
+      "name": "com.vncode.app.features.catalogsync.CatalogSyncServiceTest",
+      "tests": "14",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "2.728",
+      "timestamp": ""
+    },
+    {
+      "name": "com.vncode.app.features.sync.RegistrationSourcesTest",
+      "tests": "12",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "1.155",
+      "timestamp": ""
+    },
+    {
+      "name": "com.vncode.app.integration.listing.ListingBeforeSendGuardTest",
+      "tests": "4",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.249",
+      "timestamp": ""
+    },
+    {
+      "name": "com.vncode.app.integration.listing.ListingOwnerCheckBatchTest",
+      "tests": "2",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.152",
+      "timestamp": ""
+    },
+    {
+      "name": "com.vncode.app.integration.ozon.OzonApiRateLimiterCooldownTest",
+      "tests": "2",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.51",
+      "timestamp": ""
+    },
+    {
+      "name": "com.vncode.app.features.gtinsync.GtinProductReaderTest",
+      "tests": "2",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.126",
+      "timestamp": ""
+    },
+    {
+      "name": "com.vncode.app.features.gtinsync.GtinPreviewServiceTest",
+      "tests": "3",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.142",
+      "timestamp": ""
+    },
+    {
+      "name": "com.vncode.app.features.gtinsync.GtinTnvedIdentityTest",
+      "tests": "3",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.003",
+      "timestamp": ""
+    },
+    {
+      "name": "com.vncode.app.features.gtinsync.RegisteredGtinProofTest",
+      "tests": "7",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.431",
+      "timestamp": ""
+    },
+    {
+      "name": "com.vncode.app.features.gtinsync.OzonSkuGtinMatcherTest",
+      "tests": "4",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.013",
+      "timestamp": ""
+    },
+    {
+      "name": "com.vncode.app.features.sync.GtinBulkPipelineTest",
+      "tests": "9",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "112.797",
+      "timestamp": ""
+    },
+    {
+      "name": "com.vncode.app.integration.listing.GtinSnapshotStoreTest",
+      "tests": "2",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.427",
+      "timestamp": ""
+    },
+    {
+      "name": "com.vncode.app.features.sync.ZnackGtinBackgroundServiceTest",
+      "tests": "8",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.741",
+      "timestamp": ""
+    },
+    {
+      "name": "com.vncode.app.features.sync.ZnackAutoSyncServiceTest",
+      "tests": "19",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "6.792",
+      "timestamp": ""
+    },
+    {
+      "name": "com.vncode.app.ui.znackregistration.GtinBackgroundStatusTest",
+      "tests": "4",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.382",
+      "timestamp": ""
+    },
+    {
+      "name": "com.vncode.app.ui.catalogsync.CatalogSyncPaneTest",
+      "tests": "3",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.303",
+      "timestamp": ""
+    },
+    {
+      "name": "com.vncode.app.performance.FbsUiLatencyTest",
+      "tests": "1",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "10.062",
+      "timestamp": ""
+    },
+    {
+      "name": "com.vncode.app.shared.MarketplaceRequestBudgetTest",
+      "tests": "4",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.865",
+      "timestamp": ""
+    }
+  ],
+  "artifact": {
+    "path": "target/VNcode-1.5.0.jar",
+    "sha256": "2a7907e394b987a44788a7361c5f7991571c52124029fcdc2b53004450b057a8",
+    "published": false,
+    "note": "Local development artifact built after published 1.5.0, not the released Windows installer."
+  }
+}

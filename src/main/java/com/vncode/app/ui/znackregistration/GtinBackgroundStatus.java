@@ -20,7 +20,7 @@ final class GtinBackgroundStatus {
         var shop=new Shop(owner.getId(),owner.getName(),owner.getMarketplace(),owner.getClientId(),owner.getApiKey());
         String action=I18nService.getInstance().tr(shop.getMarketplace()==com.vncode.app.integration.marketplace.Marketplace.OZON?"znack.registration.update_ozon":"znack.registration.update_wb");
         var task=new Task<ZnackGtinBackgroundService.Result>(){protected ZnackGtinBackgroundService.Result call()throws Exception{
-            updateMessage(action+"…");return new ZnackGtinBackgroundService().run(shop,frozen,p->{updateProgress(p.completed(),Math.max(1,p.total()));updateMessage(action+"… "+p.completed()+"/"+p.total());},
+            updateMessage(action+"…");return new ZnackGtinBackgroundService().run(shop,frozen,p->{updateProgress(p.completed(),Math.max(1,p.total()));updateMessage(action+"… "+p.completed()+"/"+p.total()+" · "+I18nService.getInstance().tr("gtin.background.sent")+": "+p.submitted()+" · "+I18nService.getInstance().tr("gtin.background.result")+": "+p.succeeded());},
                     phase->updateMessage(I18nService.getInstance().tr("gtin.background.phase."+phase)));
         }};
         RUNNING.put(key,task);attach(host,task,refresh);

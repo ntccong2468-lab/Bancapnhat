@@ -12,6 +12,10 @@ public final class GtinSyncModels {
     public enum Operation { ADD, REPLACE }
     public enum Status { QUEUED, VALIDATING, SENDING, AWAITING_VERIFICATION, SUCCEEDED, FAILED, RECONCILE_REQUIRED, CANCELLED }
     public enum Verification { PENDING, APPLIED, REJECTED, UNKNOWN }
+    public record VerificationResult(Verification outcome,String issue){
+        public VerificationResult {Objects.requireNonNull(outcome);issue=com.vncode.app.features.sync.SyncRunRepository.code(issue);}
+        public VerificationResult(Verification outcome){this(outcome,"");}
+    }
     public record ProductKey(int shopId, Marketplace marketplace, String productId, String variantId) {
         public ProductKey {
             if (shopId <= 0) throw new IllegalArgumentException("Positive shop identity required");

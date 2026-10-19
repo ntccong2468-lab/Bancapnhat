@@ -41,6 +41,27 @@ class ZnackGtinBackgroundServiceTest {
   var operations=new Operations(650);var pulses=new ArrayList<ZnackGtinBackgroundService.Progress>();var result=new ZnackGtinBackgroundService(operations).run(shop,Set.of(),pulses::add);
   assertEquals(650,result.progress().total());assertEquals(650,result.progress().succeeded());assertEquals(650,operations.executions);assertEquals(650,operations.links);assertTrue(operations.batches.stream().allMatch(n->n==1));assertEquals(651,pulses.size());assertEquals(1,pulses.get(1).succeeded());assertEquals(650,pulses.getLast().completed());
  }
+ @Test void largeButtonActionChunksAtTenThousandAndShowsSentBeforeVerification()throws Exception{
+  var pulses=new ArrayList<ZnackGtinBackgroundService.Progress>();
+  var operations=new Operations(10001){
+   public int batchSize(){return 10000;}
+   public Job confirm(Shop s,Job j){return new Job(j.id(),j.shopId(),j.marketplace(),j.owner(),j.fields(),j.createdAt(),true,j.paused(),j.rows());}
+   public Job execute(Shop s,String id,java.util.function.Consumer<GtinSyncModels.JobItem> progress)throws Exception{
+    assertEquals(executions*2+1,links,"Persist the confirmed parent link before the next write");
+    var child=UUID.randomUUID();
+    for(var row:current.rows()){
+     var before=new GtinSyncModels.ProductSnapshot(row.key(),"article","Blue","52",List.of("legacy"),"fp",Instant.now());
+     var preview=new GtinSyncModels.Preview(before,GtinSyncModels.Operation.ADD,"","04610689132457",new GtinSyncModels.Capability(true,false,""));
+     progress.accept(new GtinSyncModels.JobItem(UUID.randomUUID(),child,preview,GtinSyncModels.Status.AWAITING_VERIFICATION,""));
+    }
+    return super.execute(s,id);
+   }
+  };
+  var result=new ZnackGtinBackgroundService(operations).run(shop,Set.of(),pulses::add);
+  assertEquals(List.of(10000,1),operations.batches);assertEquals(2,operations.executions);assertEquals(4,operations.links);
+  assertEquals(10001,result.progress().succeeded());assertEquals(10001,result.progress().submitted());
+  assertTrue(pulses.stream().anyMatch(p->p.submitted()==10000&&p.succeeded()==0),"Readback must remain distinct from request acknowledgement");
+ }
  @Test void oneInvalidVariantDoesNotPreventValidVariantsFromBeingWritten()throws Exception{
   var invalid=new ArrayList<String>();
   var operations=new Operations(3){

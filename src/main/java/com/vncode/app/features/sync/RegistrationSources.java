@@ -52,6 +52,14 @@ public final class RegistrationSources {
             p.setString(1,run);p.setString(2,product);p.setString(3,variant);try(var row=p.executeQuery()){if(!row.next())throw new IllegalArgumentException("SOURCE_PRODUCT_NOT_OBSERVED");}
         }catch(SQLException e){throw new IllegalStateException("SYNC_STORAGE",e);}
     }
+    public void requireMembers(Shop shop,Collection<SyncRunRepository.Item> selected){
+        var receipt=require(shop);var members=new HashSet<String>();
+        try(var c=Database.getConnection();var p=c.prepareStatement("SELECT product_id,variant_id FROM sync_run_items WHERE run_id=?")){
+            p.setString(1,receipt.run());try(var r=p.executeQuery()){while(r.next())members.add(r.getString(1)+"\u001f"+r.getString(2));}
+        }catch(SQLException failure){throw new IllegalStateException("SYNC_STORAGE",failure);}
+        for(var item:selected)if(!members.contains(item.productId()+"\u001f"+item.variantId()))throw new IllegalArgumentException("SOURCE_PRODUCT_NOT_OBSERVED");
+        if(!receipt.equals(require(shop)))throw new IllegalStateException("SOURCE_CONFIGURATION_CHANGED");
+    }
     private static Readiness blocked(String run,String step,String reason){return new Readiness(false,run,step,reason,"");}
 
     public Readiness refresh(Shop shop,Consumer<String> progress)throws Exception {

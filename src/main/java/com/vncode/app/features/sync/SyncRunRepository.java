@@ -65,6 +65,21 @@ public final class SyncRunRepository {
             try(var p=c.prepareStatement("UPDATE sync_runs SET step=?,updated_at=? WHERE id=?")){p.setString(1,step);p.setString(2,Instant.now().toString());p.setString(3,item.runId());p.executeUpdate();}return null;
         }); }catch(SQLException e){throw storage(e);}
     }
+    /** Durable per-GTIN outcomes and events, with short transactions and reused statements. */
+    public void checkpointOutcomes(Shop shop,String run,List<Item> items){
+        if(items.size()>10000||items.stream().anyMatch(i->!run.equals(i.runId())))throw new IllegalArgumentException("SYNC_REPORT_LIMIT");
+        for(int offset=0;offset<items.size();offset+=250){var part=items.subList(offset,Math.min(offset+250,items.size()));
+            try{SqliteWriteTransaction.run(c->{require(c,shop,run);String now=Instant.now().toString();
+                try(var update=c.prepareStatement("UPDATE sync_run_items SET state=?,step=?,error_code=?,updated_at=? WHERE id=? AND run_id=? AND state NOT IN ('SUCCEEDED','UNCHANGED','CANCELLED')");
+                    var event=c.prepareStatement("INSERT INTO sync_run_events(run_id,item_id,step,state,error_code,created_at) VALUES(?,?,?,?,?,?)")){
+                    for(var item:part){update.setString(1,item.state());update.setString(2,item.step());update.setString(3,code(item.error()));update.setString(4,now);update.setString(5,item.id());update.setString(6,run);if(update.executeUpdate()!=1)continue;
+                        String[] values={run,item.id(),item.step(),item.state(),code(item.error()),now};for(int i=0;i<values.length;i++)event.setString(i+1,values[i]);event.addBatch();
+                    }event.executeBatch();
+                }
+                try(var p=c.prepareStatement("UPDATE sync_runs SET step='READBACK',updated_at=? WHERE id=?")){p.setString(1,now);p.setString(2,run);p.executeUpdate();}return null;
+            });}catch(SQLException failure){throw storage(failure);}
+        }
+    }
     /** A registration receipt records identifiers only, never its feed payload or credentials. */
     public void registrationProgress(Shop shop,Item item,String gtin,String state,String step,String error,String evidence){
         try { SqliteWriteTransaction.run(c->{
@@ -91,12 +106,12 @@ public final class SyncRunRepository {
         if(!child.confirmed()||!child.fields().contains(com.vncode.app.features.catalogsync.CatalogSyncModels.Field.GTIN)||child.shopId()!=shop.getId()||!child.owner().equals(ListingIdentity.fingerprint(shop)))throw new SecurityException("SYNC_REVIEW_OWNER_CHANGED");
         try { SqliteWriteTransaction.run(c->{
             require(c,shop,run);
-            for(var row:child.rows()){
-                try(var p=c.prepareStatement("UPDATE sync_run_items SET gtin=?,child_job=?,state=?,step='READBACK',error_code=?,updated_at=? WHERE run_id=? AND product_id=? AND variant_id=? AND state NOT IN ('SUCCEEDED','UNCHANGED')")){
+            try(var p=c.prepareStatement("UPDATE sync_run_items SET gtin=?,child_job=?,state=?,step='READBACK',error_code=?,updated_at=? WHERE run_id=? AND product_id=? AND variant_id=? AND state NOT IN ('SUCCEEDED','UNCHANGED')")){
+              for(var row:child.rows()){
                     // Let the sync worker activate the native registration candidate after
                     // the confirmed child has verified the target. UI callbacks cannot skip it.
-                    p.setString(1,row.catalog().gtin());p.setString(2,child.id());p.setString(3,row.state()==com.vncode.app.features.catalogsync.CatalogSyncModels.State.BLOCKED?"NEEDS_ACTION":"WAITING_REMOTE");p.setString(4,code(row.issue()));p.setString(5,Instant.now().toString());p.setString(6,run);p.setString(7,row.key().productId());p.setString(8,row.key().variantId());p.executeUpdate();
-                }
+                    p.setString(1,row.catalog().gtin());p.setString(2,child.id());p.setString(3,row.state()==com.vncode.app.features.catalogsync.CatalogSyncModels.State.BLOCKED?"NEEDS_ACTION":"WAITING_REMOTE");p.setString(4,code(row.issue()));p.setString(5,Instant.now().toString());p.setString(6,run);p.setString(7,row.key().productId());p.setString(8,row.key().variantId());p.addBatch();
+              }p.executeBatch();
             }
             try(var p=c.prepareStatement("UPDATE sync_runs SET state='RUNNING',step='READBACK',finished_at=NULL,updated_at=? WHERE id=?")){p.setString(1,Instant.now().toString());p.setString(2,run);p.executeUpdate();}
             SyncStreamStore.request(c,shop.getId(),"ZNACK");return null;
@@ -120,6 +135,23 @@ public final class SyncRunRepository {
         try(var c=Database.getConnection();var p=c.prepareStatement("SELECT * FROM sync_run_items WHERE run_id=? AND id=?")){
             p.setString(1,run);p.setString(2,id);try(var r=p.executeQuery()){return r.next()?Optional.of(readItem(r,run)):Optional.empty();}
         }catch(SQLException e){throw storage(e);}
+    }
+    public Map<String,Item> selectedItems(String run,Collection<String> ids){
+        var selected=new ArrayList<>(new LinkedHashSet<>(ids));var result=new HashMap<String,Item>();
+        try(var c=Database.getConnection()){
+            for(int offset=0;offset<selected.size();offset+=400){var batch=selected.subList(offset,Math.min(offset+400,selected.size()));
+                try(var p=c.prepareStatement("SELECT * FROM sync_run_items WHERE run_id=? AND id IN ("+String.join(",",Collections.nCopies(batch.size(),"?"))+")")){
+                    p.setString(1,run);for(int i=0;i<batch.size();i++)p.setString(i+2,batch.get(i));try(var r=p.executeQuery()){while(r.next()){var item=readItem(r,run);result.put(item.id(),item);}}
+                }
+            }return Map.copyOf(result);
+        }catch(SQLException failure){throw storage(failure);}
+    }
+    public List<Item> childItems(Shop shop,String run,String child){
+        assertOwner(shop,run);var result=new ArrayList<Item>();
+        try(var c=Database.getConnection();var p=c.prepareStatement("SELECT * FROM sync_run_items WHERE run_id=? AND child_job=? ORDER BY rowid")){
+            p.setString(1,run);p.setString(2,child);try(var r=p.executeQuery()){while(r.next()){if(result.size()>=com.vncode.app.features.gtinsync.GtinBatchAdapter.MAX_PLAN_ROWS)throw new IllegalStateException("SYNC_REPORT_LIMIT");result.add(readItem(r,run));}}
+            return List.copyOf(result);
+        }catch(SQLException failure){throw storage(failure);}
     }
     private static Item readItem(ResultSet r,String run)throws SQLException{
         return new Item(r.getString("id"),run,r.getString("product_id"),r.getString("variant_id"),r.getString("sku"),r.getString("article"),r.getString("color"),r.getString("size"),r.getString("gtin"),r.getString("state"),r.getString("step"),r.getString("error_code"),r.getString("child_job"),r.getString("evidence_json"));
