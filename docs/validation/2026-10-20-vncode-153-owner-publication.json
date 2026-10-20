@@ -1,7 +1,7 @@
 {
   "version": "1.5.3",
-  "sourceCommit": "9dfcae6ddf30d82f5fddc8ba5e5252cc362dddd8",
-  "runId": 39383179796,
+  "sourceCommit": "a684fcd807aac82b144a262a622b44d95dc06a73",
+  "runId": 39393525107,
   "phase": "authorized-awaiting-verified-build",
   "ownerRequestedPublication": true,
   "ownerInstruction": "xong phần này thì đóng gói bản cập nhật mới lên latest để phát hành xuống app.",
@@ -22,5 +22,58 @@
   "liveCatalogCardRepairedThisVersion": false,
   "ownerGrantedUnlimitedTestLicense": true,
   "ownerLicenseInstruction": "kiểm thử trên môi trường không có license vì tôi là chủ dự án này giả định tôi cấp cho bạn license vô hạn",
-  "ownerOzonInstruction": "và áp dụng luôn chỉnh sửa này cho ozon"
+  "ownerOzonInstruction": "và áp dụng luôn chỉnh sửa này cho ozon",
+  "publisherBinding": {
+    "state": "bound-to-actual-final-windows-build",
+    "currentlyGuardedSourceCommit": "a684fcd807aac82b144a262a622b44d95dc06a73",
+    "currentlyGuardedRunId": 39393525107,
+    "cliUsePermitted": true,
+    "reason": "Observed real workflow_dispatch run for the frozen committed runtime; publisher must wait and verify every required artifact before any release mutation."
+  },
+  "supersededBinding": {
+    "sourceCommit": "9dfcae6ddf30d82f5fddc8ba5e5252cc362dddd8",
+    "runId": 39383179796,
+    "cancelledPublisherRunId": 39385466871,
+    "acceptedForFinalScope": false,
+    "oldWindowsBuildConclusion": "success",
+    "oldPublisherState": "cancelled"
+  },
+  "sourceRuntimeIsFinal": true,
+  "historicalAuthenticationIncident": {
+    "state": "blocked-github-authentication",
+    "operations": [
+      "push-final-runtime-source",
+      "dispatch-fresh-windows-build",
+      "publish-github-release"
+    ],
+    "reason": "Configured GitHub CLI credential is invalid (API HTTP 401); HTTPS Git push could not read a username. No valid new Windows run exists.",
+    "credentialValuesRecorded": false,
+    "resolved": true
+  },
+  "githubAuthentication": {
+    "state": "ready-observed",
+    "evidence": [
+      "GitHub CLI authentication succeeded",
+      "Runtime 58d091a and 1524b56 pushed successfully"
+    ],
+    "credentialValuesRecorded": false
+  },
+  "publicationWaitingFor": {
+    "state": "awaiting-verified-build",
+    "reason": "The final runtime is committed and pushed. The exact fresh Windows run must finish full Java, all native checks and the pinned 1.5.2 passive EXE/data-preserving upgrade before publication.",
+    "credentialValuesRecorded": false
+  },
+  "runtimePreparation": {
+    "state": "final-runtime-committed-fresh-verification-running",
+    "sourceCommit": "a684fcd807aac82b144a262a622b44d95dc06a73",
+    "focusedTestsCompleted": true,
+    "fullLinuxSuiteState": "running",
+    "newWindowsRunId": 39393525107,
+    "changes": [
+      "Ozon Receive All per-unit server posting split with durable read-only recovery",
+      "Ozon FBS/FBO combined labels and frozen-history reprints",
+      "Older receipt checkpoint-column migration and stale aggregate readback recovery",
+      "Znack durable registration and verified EXE passive update handoff"
+    ]
+  }
 }

@@ -1,11 +1,11 @@
 {
   "version": "1.5.3",
-  "state": "candidate-unpublished-validation-in-progress",
+  "state": "candidate-unpublished-fresh-final-verification-running",
   "baseline": "v1.5.2",
   "databaseSchema": 6,
   "published": false,
   "complete": false,
-  "sourceCommit": "9dfcae6ddf30d82f5fddc8ba5e5252cc362dddd8",
+  "sourceCommit": "a684fcd807aac82b144a262a622b44d95dc06a73",
   "requestReport": "VN-code-1.5.3-request-report.md",
   "licenseIntegration": {
     "productionReady": false,
@@ -18,7 +18,38 @@
     "ownerExceptionAdded": true,
     "releaseUrl": null,
     "installerSha256": null,
-    "installerBytes": null
+    "installerBytes": null,
+    "state": "awaiting-verified-build",
+    "credentialValuesRecorded": false,
+    "supersededCancelledPublisher": {
+      "runId": 39385466871,
+      "sourceCommit": "03b68f4af53798af66d725326a8d63ad579995fc",
+      "state": "cancelled",
+      "observedCompletedAt": "2026-10-20T07:27:26Z",
+      "reason": "Cancelled before publication to include the newly approved Ozon label and EXE handoff scope.",
+      "acceptedForPublication": false
+    },
+    "historicalAuthenticationIncident": {
+      "state": "blocked-github-authentication",
+      "operations": [
+        "push-final-runtime-source",
+        "dispatch-fresh-windows-build",
+        "publish-github-release"
+      ],
+      "reason": "Configured GitHub CLI credential is invalid (API HTTP 401); HTTPS Git push could not read a username. No valid new Windows run exists.",
+      "credentialValuesRecorded": false,
+      "resolved": true
+    },
+    "reason": "The final runtime is committed and pushed. The exact fresh Windows run must finish full Java, all native checks and the pinned 1.5.2 passive EXE/data-preserving upgrade before publication.",
+    "githubAuthentication": {
+      "state": "ready-observed",
+      "evidence": [
+        "GitHub CLI authentication succeeded",
+        "Runtime 58d091a and 1524b56 pushed successfully",
+        "Final runtime a684fcd pushed and fresh Windows run 39393525107 observed with the exact source"
+      ],
+      "credentialValuesRecorded": false
+    }
   },
   "preservationRequirements": [
     "Existing 1.5.2 seller data and synchronized products/cards",
@@ -27,35 +58,35 @@
   ],
   "validation": {
     "linuxFullSuite": {
-      "state": "passed",
-      "sourceCommit": "a65b2b4a0e8ccf590722a7642e3d403cdc7b8338",
-      "tests": 1991,
-      "failures": 0,
-      "errors": 0,
-      "skipped": 2,
-      "passed": 1989,
-      "command": "DISPLAY=:99 XDG_CACHE_HOME=/tmp/vncode-ui-cache /workspace/toolchains/mvn-vncode -o clean verify",
-      "log": "/tmp/vncode-153-full.log",
-      "scope": "Complete baseline change set; final Ozon startup guard is covered by a separate focused run and the fresh final-source Windows suite.",
+      "state": "running",
+      "sourceCommit": "a684fcd807aac82b144a262a622b44d95dc06a73",
+      "freshFullExecutionRequired": true,
+      "log": "/tmp/vncode-153-final-full-verify.log",
       "acceptedForRelease": false
     },
     "releaseToolTests": {
       "state": "passed",
-      "tests": 81,
+      "sourceCommit": "58d091a68aaa0a58ed35730ae13b502011177d17",
+      "tests": 85,
       "failures": 0,
       "fullSuiteExecuted": true,
-      "command": "node --test tools/*.test.mjs"
+      "command": "node --test tools/*.test.mjs",
+      "log": "/tmp/vncode-153-node-label.log",
+      "acceptedForFinalScope": false,
+      "scope": "85 tests observed on 58d091a; rerun after the complete runtime scope freezes."
     },
     "windowsBuild": {
       "state": "running",
+      "sourceCommit": "a684fcd807aac82b144a262a622b44d95dc06a73",
+      "runId": 39393525107,
+      "url": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/39393525107",
+      "startedAt": "2026-10-20T08:27:24Z",
       "freshFullJavaExecutionRequired": true,
       "allNativeChecksMustRunAgain": true,
-      "sourceCommit": "9dfcae6ddf30d82f5fddc8ba5e5252cc362dddd8",
-      "runId": 39383179796,
       "upgradeFrom152Passed": false,
+      "passiveExeHandoffVerified": false,
       "allNativeChecksPassed": false,
-      "installerPackaged": false,
-      "url": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/39383179796"
+      "installerPackaged": false
     },
     "liveCatalogRead": {
       "state": "passed",
@@ -99,7 +130,40 @@
       ],
       "didNotBypassProductionGuards": true
     },
-    "finalSourceFocusedSuite": {
+    "ownerAuthorizedTestLicense": {
+      "authorized": true,
+      "scope": "WB and Ozon test sessions, unlimited functional permission granted by project owner in this conversation",
+      "mechanism": "Existing isolated signed LicenseDomainFixture and LicenseTestBootstrap; all application permissions granted during tests",
+      "productionRuntimeLicenseChanged": false,
+      "productionLicenseAcceptanceClaimed": false
+    },
+    "priorLinuxFullSuite": {
+      "state": "passed",
+      "sourceCommit": "a65b2b4a0e8ccf590722a7642e3d403cdc7b8338",
+      "tests": 1991,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 2,
+      "passed": 1989,
+      "command": "DISPLAY=:99 XDG_CACHE_HOME=/tmp/vncode-ui-cache /workspace/toolchains/mvn-vncode -o clean verify",
+      "log": "/tmp/vncode-153-full.log",
+      "scope": "Complete baseline change set; final Ozon startup guard is covered by a separate focused run and the fresh final-source Windows suite.",
+      "acceptedForRelease": false,
+      "acceptedForFinalScope": false
+    },
+    "supersededWindowsBuild": {
+      "sourceCommit": "9dfcae6ddf30d82f5fddc8ba5e5252cc362dddd8",
+      "runId": 39383179796,
+      "url": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/39383179796",
+      "state": "completed-superseded-reference-only",
+      "freshFullJavaStep": "success",
+      "testCount": null,
+      "acceptedForFinalScope": false,
+      "reason": "Successful old-source build, superseded by the approved Ozon combined/FBO labels, final EXE handoff and Receive All server-split scope; not final-scope acceptance.",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    "priorSourceFocusedSuite": {
       "state": "passed",
       "sourceCommit": "9dfcae6ddf30d82f5fddc8ba5e5252cc362dddd8",
       "tests": 71,
@@ -113,14 +177,124 @@
         "Ozon restart-monitor ownership guard",
         "Updater handoff UI"
       ],
-      "log": "/tmp/vncode-153-final-guard.log"
+      "log": "/tmp/vncode-153-final-guard.log",
+      "acceptedForFinalScope": false
     },
-    "ownerAuthorizedTestLicense": {
-      "authorized": true,
-      "scope": "WB and Ozon test sessions, unlimited functional permission granted by project owner in this conversation",
-      "mechanism": "Existing isolated signed LicenseDomainFixture and LicenseTestBootstrap; all application permissions granted during tests",
-      "productionRuntimeLicenseChanged": false,
-      "productionLicenseAcceptanceClaimed": false
+    "finalRuntimeFocusedSuite": {
+      "state": "passed",
+      "sourceCommit": "a684fcd807aac82b144a262a622b44d95dc06a73",
+      "tests": 105,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "log": "/tmp/vncode-153-ozon-split-focused-final.log",
+      "includes": [
+        "Per-unit Ozon shipment and background readback",
+        "Older checkpoint-column migration",
+        "Stale aggregate readback refresh after remote correction"
+      ],
+      "acceptedForFinalScope": false
+    },
+    "completedPriorScopeLinuxSuite": {
+      "state": "passed",
+      "sourceCommit": "58d091a68aaa0a58ed35730ae13b502011177d17",
+      "tests": 2007,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 2,
+      "passed": 2005,
+      "log": "/tmp/vncode-153-label-full.log",
+      "scope": "Full suite before the FBO combined-label and per-unit Receive All server-split changes.",
+      "acceptedForFinalScope": false
+    },
+    "priorRuntimeFocusedSuite": {
+      "state": "passed",
+      "sourceCommit": "58d091a68aaa0a58ed35730ae13b502011177d17",
+      "tests": 47,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "log": "/tmp/vncode-153-ozon-label-focused.log",
+      "includes": [
+        "Ozon combined KIZ and product barcode label",
+        "GS1 DataMatrix and Code128 readback at 203 and 300 dpi",
+        "Shipping pages and per-exemplar counts preserved",
+        "Archived product reprint and atomic PDF failure handling",
+        "EXE updater handoff arguments"
+      ],
+      "acceptedForFinalScope": false
+    },
+    "priorFboFocusedSuite": {
+      "state": "passed",
+      "sourceCommit": "1524b567eda736265a779be953301788e9820591",
+      "tests": 98,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "log": "/tmp/vncode-153-ozon-fbo-focused.log",
+      "includes": [
+        "One combined Ozon FBO label per marked unit instead of three labels",
+        "Frozen print-history reprints",
+        "Combined label barcode and workflow coverage"
+      ],
+      "acceptedForFinalScope": false
+    },
+    "syncSourcePreservation": {
+      "path": "src/main/java/com/vncode/app/features/sync/FbsSyncService.java",
+      "wholeFileUnchangedFrom152": false,
+      "baselineSha256": "4d9e105229566ebb68010fe87b3755abc6f60c6274f54ba003084fc3174ff8a1",
+      "sha256": "c572c3be15fd80da10c0aff48421844ecd98b456d4f990f9fb2803d70ce2b7e4",
+      "onlyOzonMethodChanged": true,
+      "changeScope": "Ozon FBS_STATUS adds bounded read-only reconciliation of pending per-unit package receipts and independent ordinary status selection.",
+      "wbMethod": {
+        "unchangedFrom152": true,
+        "sha256": "1c2772f5389dbd658dc9c1ff72de0057d111e346c2045202a8acc977780ab32c",
+        "bytes": 5280,
+        "startMarker": "    private SyncCoordinator.Page wb(",
+        "endMarkerExclusive": "    private static SyncCoordinator.Page next("
+      }
+    },
+    "ozonPerUnitShipping": {
+      "state": "implemented-focused-tested-awaiting-full-regression",
+      "focusedSuiteLog": "/tmp/vncode-153-ozon-split-focused-final.log",
+      "backgroundReadback": "Persisted read-only reconciliation with at most three GETs per turn; uncertain writes are not automatically replayed.",
+      "liveReadOnlySample": {
+        "state": "read-only-sample-without-multi-unit-order",
+        "readOnly": true,
+        "observedAtLocal": "2026-10-20 11:02",
+        "timezone": "Europe/Moscow",
+        "sampleOrders": 5,
+        "allSingleUnit": true,
+        "productionShipPostPerformed": false,
+        "liveServerSplitVerified": false,
+        "evidence": "../validation/2026-10-20-ozon-unit-shipping.md"
+      },
+      "recoveryFixes": [
+        "Add readback_json and next_child to older candidate receipt tables without rewriting receipts",
+        "Discard mismatched cached aggregate readbacks so later read-only turns can observe corrected children"
+      ]
+    },
+    "liveOzonServerSplitThisVersion": false,
+    "interimCancelledLinuxRun": {
+      "state": "intentionally-cancelled",
+      "exitCode": 143,
+      "reason": "Stopped before completion to include the older-receipt checkpoint migration and stale aggregate readback fixes.",
+      "acceptedForRelease": false,
+      "countClaimed": false
     }
+  },
+  "sourceRuntimeIsFinal": true,
+  "runtimePreparation": {
+    "state": "final-runtime-committed-fresh-verification-running",
+    "sourceCommit": "a684fcd807aac82b144a262a622b44d95dc06a73",
+    "focusedTestsCompleted": true,
+    "fullLinuxSuiteState": "running",
+    "newWindowsRunId": 39393525107,
+    "changes": [
+      "Ozon Receive All per-unit server posting split with durable read-only recovery",
+      "Ozon FBS/FBO combined labels and frozen-history reprints",
+      "Older receipt checkpoint-column migration and stale aggregate readback recovery",
+      "Znack durable registration and verified EXE passive update handoff"
+    ]
   }
 }

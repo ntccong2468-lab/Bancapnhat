@@ -198,7 +198,7 @@ test('1.5.2 requires fresh Java, latest upgrade and honest live limits',()=>{
 });
 
 test('1.5.3 requires fresh Java, latest upgrade and honest live limits',()=>{
- const version='1.5.3',sha='9dfcae6ddf30d82f5fddc8ba5e5252cc362dddd8',runId='39383179796';
+ const version='1.5.3',sha='a684fcd807aac82b144a262a622b44d95dc06a73',runId='39393525107';
  const java={tests:1990,failures:0,errors:0,skipped:2,passed:1988};
  const decision={version,sourceCommit:sha,runId,phase:'verified-for-publication',ownerRequestedPublication:true,
   ownerInstruction:'xong phần này thì đóng gói bản cập nhật mới lên latest để phát hành xuống app.',
