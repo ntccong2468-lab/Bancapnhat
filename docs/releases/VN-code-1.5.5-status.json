@@ -1,0 +1,126 @@
+{
+  "version": "1.5.5",
+  "state": "preparing-owner-requested-publication",
+  "baseline": "v1.5.4",
+  "baselineArtifact": {
+    "version": "1.5.4",
+    "tag": "v1.5.4",
+    "sourceCommit": "688bd01982898e18c9770300fa20cfe29bde1245",
+    "releaseUrl": "https://github.com/ntccong2468-lab/Bancapnhat/releases/tag/v1.5.4",
+    "installerFile": "VN-code-1.5.4-Windows-x64.exe",
+    "installerBytes": 146868224,
+    "installerSha256": "e7079a4aca07c1ae2fec26e46c4e3a3d77096a14b1c0485a88cefe95a3f7a18b",
+    "installerUrl": "https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.5.4/VN-code-1.5.4-Windows-x64.exe",
+    "immutable": true
+  },
+  "databaseSchema": 6,
+  "published": false,
+  "complete": false,
+  "sourceCommit": null,
+  "sourceRuntimeIsFinal": false,
+  "requestReport": "VN-code-1.5.5-request-report.md",
+  "licenseIntegration": {
+    "productionReady": false,
+    "changedInThisVersion": false
+  },
+  "publication": {
+    "state": "preparing-owner-requested-publication",
+    "latestReleaseAtPreparation": "v1.5.4",
+    "latestReleaseChangedByThisWork": false,
+    "ownerRequestedPublication": true,
+    "standardAcceptanceClaimed": false,
+    "published": false,
+    "credentialValuesRecorded": false
+  },
+  "changes": [
+    {
+      "area": "znack-registration",
+      "state": "implemented-awaiting-final-build",
+      "scope": "Full WB/Ozon schema preflight and exact remote-card confirmation"
+    },
+    {
+      "area": "automatic-defaults",
+      "state": "implemented-awaiting-final-build",
+      "scope": "Signed-reference template v4; verified product/permit facts; Russia display default"
+    },
+    {
+      "area": "registration-status",
+      "state": "implemented-awaiting-final-build",
+      "scope": "Durable per-card queue, live processing filter and dismissing completion pill"
+    },
+    {
+      "area": "signing-and-diagnostics",
+      "state": "implemented-awaiting-final-build",
+      "scope": "Up to 10 cards per signature POST and local-versus-remote failure classification"
+    },
+    {
+      "area": "ozon-mapping",
+      "state": "implemented-awaiting-final-build",
+      "scope": "Product/Catalog/variant/barcode mapping and per-product diagnostics"
+    },
+    {
+      "area": "startup-and-recovery",
+      "state": "implemented-awaiting-final-build",
+      "scope": "Restore existing owned workspace, actionable startup diagnostics and unreadable DB protection"
+    },
+    {
+      "area": "ozon-labels",
+      "state": "implemented-awaiting-final-build",
+      "scope": "Remove only fully covered redundant product labels"
+    }
+  ],
+  "preservationRequirements": [
+    "Immutable 1.5.4 release and data-preserving schema 6 upgrades",
+    "Seller stores, products, Catalog cards, KIZ stock and priority FBS",
+    "Permit TN VED scope, actual source identity and uncertain-submit/signing checkpoints",
+    "Runtime license, certificate, TLS, checksum and snapshot/restore guards"
+  ],
+  "validation": {
+    "linuxFullSuite": {
+      "state": "running",
+      "sourceCommit": null,
+      "fullSuiteExecuted": false,
+      "cleanVerifyExecuted": false
+    },
+    "releaseToolTests": {
+      "state": "pending"
+    },
+    "windowsBuild": {
+      "state": "pending",
+      "sourceCommit": null,
+      "runId": null,
+      "windowsArtifactId": null,
+      "freshFullJavaExecutionRequired": true,
+      "allNativeChecksMustRunAgain": true
+    },
+    "productionLicenseVerified": false,
+    "liveCryptoProSigningThisVersion": false,
+    "liveLicensedDesktopGtinWriteThisVersion": false,
+    "liveApiWbGtinWriteThisVersion": false,
+    "liveApiOzonGtinWriteThisVersion": false,
+    "liveCatalogCardCreatedThisVersion": false,
+    "liveCatalogCardRepairedThisVersion": false,
+    "liveKizPurchaseThisVersion": false,
+    "livePaidKizOrderThisVersion": false,
+    "liveApiWbKizPurchaseThisVersion": false,
+    "liveApiOzonKizPurchaseThisVersion": false,
+    "publicDownloadVerified": false,
+    "sellerDesktopPopupObserved": false
+  },
+  "requiredUpgradeFrom154": {
+    "baseline": {
+      "version": "1.5.4",
+      "tag": "v1.5.4",
+      "sourceCommit": "688bd01982898e18c9770300fa20cfe29bde1245",
+      "releaseUrl": "https://github.com/ntccong2468-lab/Bancapnhat/releases/tag/v1.5.4",
+      "installerFile": "VN-code-1.5.4-Windows-x64.exe",
+      "installerBytes": 146868224,
+      "installerSha256": "e7079a4aca07c1ae2fec26e46c4e3a3d77096a14b1c0485a88cefe95a3f7a18b",
+      "installerUrl": "https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.5.4/VN-code-1.5.4-Windows-x64.exe",
+      "immutable": true
+    },
+    "actualPassiveExeHandoffRequired": true,
+    "existingNativeAndUpgradeChecksPreserved": true,
+    "verified": false
+  }
+}
