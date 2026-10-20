@@ -1,0 +1,66 @@
+{
+  "version": "1.5.3",
+  "sourceCommit": "9dfcae6ddf30d82f5fddc8ba5e5252cc362dddd8",
+  "baseline": "6fe8ef21871657a38151897ddc13c3b1b5028fd5",
+  "unchangedCriticalInputs": [
+    {
+      "path": "src/main/resources/com/vncode/app/integration/znack/registration/default-registration-template.json",
+      "unchangedFrom152": true,
+      "sha256": "0858612bdda4d6c353aeadda22517432ec9fbb47af54708a07b0fbede9f34fc5"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/znack/registration/RegistrationTemplate.java",
+      "unchangedFrom152": true,
+      "sha256": "72d5229fe1ae2ae24f0e1ef591f982cee994c08eab6797e52974505ce380c005"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/znack/registration/ZnackRegistrationDocuments.java",
+      "unchangedFrom152": true,
+      "sha256": "4c92723f945ed596cd41fd42430802147fc22b052e9508eb82c9af6dca337f94"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/znack/registration/RegistrationTariffRules.java",
+      "unchangedFrom152": true,
+      "sha256": "d7a1c3eceb673171b2161fd2c8e05bb84ac8b3abce10a59189e1eb2fda09768e"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/features/sync/FbsSyncService.java",
+      "unchangedFrom152": true,
+      "sha256": "4d9e105229566ebb68010fe87b3755abc6f60c6274f54ba003084fc3174ff8a1"
+    }
+  ],
+  "linuxFullSuite": {
+    "sourceCommit": "a65b2b4a0e8ccf590722a7642e3d403cdc7b8338",
+    "tests": 1991,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 2,
+    "log": "/tmp/vncode-153-full.log"
+  },
+  "finalSourceFocusedSuite": {
+    "tests": 71,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "log": "/tmp/vncode-153-final-guard.log"
+  },
+  "releaseToolSuite": {
+    "tests": 81,
+    "failures": 0,
+    "log": "/tmp/vncode-153-node-final.log"
+  },
+  "windowsBuildRun": 39383179796,
+  "liveProductionRegistrationPerformed": false,
+  "ownerAuthorizedUnlimitedTestLicense": true,
+  "sameBehaviorImplementedFor": [
+    "WILDBERRIES",
+    "OZON"
+  ],
+  "localJar": {
+    "artifact": "VNcode-1.5.3.jar",
+    "sha256": "70f39aa396e2c640d06f96c2b7c2353aaf669c8c5987e5130a9119e962e80521",
+    "bytes": 5814961,
+    "testLicenseAuthorityBundled": false,
+    "sourceRuntimeCommit": "9dfcae6ddf30d82f5fddc8ba5e5252cc362dddd8"
+  }
+}
