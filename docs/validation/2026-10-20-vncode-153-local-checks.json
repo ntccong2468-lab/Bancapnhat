@@ -128,8 +128,8 @@
     "acceptedForPublication": false
   },
   "publication": {
-    "state": "awaiting-verified-build",
-    "reason": "Fresh final-scope Windows build is running for the exact frozen source; full Java, every native proof, the actual 1.5.2 passive EXE upgrade and the final Linux suite must pass before release mutation.",
+    "state": "published-latest-under-owner-request",
+    "reason": "Fresh final-source Java/native/upgrades and public installer/updater availability verified; unperformed live seller mutations and signing remain unverified.",
     "credentialValuesRecorded": false,
     "githubAuthentication": {
       "state": "ready-observed",
@@ -150,7 +150,18 @@
       "credentialValuesRecorded": false,
       "resolved": true
     },
-    "publisherDispatchedForFailedRun": false
+    "publisherDispatchedForFailedRun": false,
+    "latestReleaseAtPreparation": "v1.5.2",
+    "latestReleaseChangedByThisWork": true,
+    "standardAcceptanceClaimed": false,
+    "ownerExceptionAdded": true,
+    "releaseUrl": "https://github.com/ntccong2468-lab/Bancapnhat/releases/tag/v1.5.3",
+    "publishedAt": "2026-10-20T09:49:36Z",
+    "installerSha256": "ec608d3677581c12901ee702e516cb2eea2757a5a9ee8fd84a2ce2438e8a3f31",
+    "installerBytes": 146864128,
+    "publishRun": 39398012877,
+    "publishSourceCommit": "a8587c9eb025a62ee0fb2c5a92a06a4b3409ce7e",
+    "verifiedAt": "2026-10-20T09:50:17.190639+00:00"
   },
   "sourceRuntimeIsFinal": true,
   "completedPriorScopeLinuxSuite": {
@@ -178,7 +189,7 @@
     "acceptedForFinalScope": false
   },
   "runtimePreparation": {
-    "state": "final-scope-linux-and-tools-passed-windows-running",
+    "state": "published-after-final-automated-and-public-verification",
     "lastCommittedRuntime": "69ffc7ecb60a91c874510522c4aae3c5be069ccd",
     "sourceCommit": "69ffc7ecb60a91c874510522c4aae3c5be069ccd",
     "sourceRuntimeIsFinal": true,
@@ -193,7 +204,7 @@
       "Durable marketplaceVerified evidence before isolated local GTIN activation",
       "Read-only pending GTIN report counts with terminal pill dismissal and detached-view guards"
     ],
-    "freshWindowsRequiredForTheseChanges": true
+    "freshWindowsRequiredForTheseChanges": false
   },
   "modifiedSyncInput": {
     "path": "src/main/java/com/vncode/app/features/sync/FbsSyncService.java",
@@ -238,7 +249,7 @@
     "evidence": "../validation/2026-10-20-ozon-unit-shipping.md"
   },
   "windowsBuild": {
-    "state": "running",
+    "state": "passed",
     "sourceCommit": "69ffc7ecb60a91c874510522c4aae3c5be069ccd",
     "lastCommittedRuntime": "69ffc7ecb60a91c874510522c4aae3c5be069ccd",
     "runId": 39396769729,
@@ -246,10 +257,43 @@
     "observedCreatedAt": "2026-10-20T08:54:17Z",
     "freshFullJavaExecutionRequired": true,
     "allNativeChecksMustRunAgain": true,
-    "upgradeFrom152Passed": false,
-    "passiveExeHandoffVerified": false,
-    "allNativeChecksPassed": false,
-    "installerPackaged": false
+    "upgradeFrom152Passed": true,
+    "passiveExeHandoffVerified": true,
+    "allNativeChecksPassed": true,
+    "installerPackaged": true,
+    "fullJavaSuite": {
+      "tests": 2072,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 2,
+      "passed": 2070
+    },
+    "verifiedNativeProofs": [
+      "native-smoke.json",
+      "side-by-side-smoke.json",
+      "upgrade-smoke.json",
+      "upgrade-preview-smoke.json",
+      "upgrade-latest-preview-smoke.json",
+      "upgrade-current-preview-smoke.json",
+      "upgrade-gs1-preview-smoke.json",
+      "upgrade-license-test-smoke.json",
+      "upgrade-stable-146-smoke.json",
+      "upgrade-stable-1410-smoke.json",
+      "upgrade-stable-1411-smoke.json",
+      "upgrade-stable-1412-smoke.json",
+      "upgrade-stable-1413-smoke.json",
+      "upgrade-stable-1415-smoke.json",
+      "upgrade-stable-1416-smoke.json",
+      "upgrade-stable-1418-smoke.json",
+      "upgrade-stable-1419-smoke.json",
+      "upgrade-stable-150-smoke.json",
+      "upgrade-stable-151-smoke.json",
+      "upgrade-stable-152-smoke.json",
+      "seller-workspace-smoke.json",
+      "ui-layout.json",
+      "gs1-smoke.json"
+    ],
+    "observedCompletedAt": "2026-10-20T09:48:14Z"
   },
   "interimCancelledLinuxRun": {
     "state": "intentionally-cancelled",
@@ -368,5 +412,39 @@
     "scope": "Fixture-only conditional attribute m/a HTTP responses and global inventory count expectations; repaired before the final source freeze. This attempt is not a passing regression proof.",
     "log": "/tmp/vncode-153-znack-gtin-final-focused.log",
     "acceptedForFinalScope": false
-  }
+  },
+  "publicReleaseVerification": {
+    "checkedAt": "2026-10-20T09:50:17.190639+00:00",
+    "published": true,
+    "latestVersion": "1.5.3",
+    "releaseUrl": "https://github.com/ntccong2468-lab/Bancapnhat/releases/tag/v1.5.3",
+    "publishedAt": "2026-10-20T09:49:36Z",
+    "buildRun": 39396769729,
+    "publishRun": 39398012877,
+    "sourceCommit": "69ffc7ecb60a91c874510522c4aae3c5be069ccd",
+    "installerSha256": "ec608d3677581c12901ee702e516cb2eea2757a5a9ee8fd84a2ce2438e8a3f31",
+    "installerBytes": 146864128,
+    "downloadUrl": "https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.5.3/VN-code-1.5.3-Windows-x64.exe",
+    "publicDownloadVerified": true,
+    "windowsJava": {
+      "tests": 2072,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 2,
+      "passed": 2070
+    },
+    "updater": {
+      "previousVersion": "1.5.2",
+      "latestVersion": "1.5.3",
+      "status": "AVAILABLE",
+      "installerUrlVerified": true,
+      "installerSha256Verified": true,
+      "installerBytesVerified": true,
+      "sellerDesktopPopupObserved": false
+    },
+    "passiveExeHandoffVerified": true,
+    "realSellerMutationsPerformed": false
+  },
+  "published": true,
+  "postPublicationRecordedAt": "2026-10-20T09:50:34.974610+00:00"
 }

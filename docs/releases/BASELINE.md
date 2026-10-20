@@ -1,5 +1,23 @@
 # VNCode update baseline
 
+The baseline for subsequent updates is the published **VNCode 1.5.3**.
+
+- Immutable tag: `v1.5.3`
+- Source: `69ffc7ecb60a91c874510522c4aae3c5be069ccd`
+- Release: https://github.com/ntccong2468-lab/Bancapnhat/releases/tag/v1.5.3
+- Installer: `VN-code-1.5.3-Windows-x64.exe` (146864128 bytes)
+- SHA-256: `ec608d3677581c12901ee702e516cb2eea2757a5a9ee8fd84a2ce2438e8a3f31`
+- Native build and fresh full Windows Java execution: `39396769729`; publication: `39398012877`.
+- Previous baseline: **1.5.2**. All prior tags/assets and pinned upgrade inputs below remain immutable.
+
+Recorded final verification: Linux clean verify: 2072 tests (2070 passed, 2 platform skips); Windows fresh Java: 2072 tests (2070 passed, 2 platform skips), no failures/errors; all 23 native proof files including 288 UI layouts and 18 data-preserving upgrade probes. The upgrade from 1.5.2 ran the exact published EXE with `/passive /norestart` and verified its embedded MSI. Public EXE bytes match GitHub's digest, the checksum, CI build-info and the actual acceptance receipt. The actual updater offers 1.5.3 to 1.5.2 with matching URL/hash/size; this does not establish a popup reached a seller desktop.
+
+Preserve schema 6 seller data, the 1.5.2 registration template/permit TN VED scope, durable sequential registration, uncertain-request guards, exact GTIN readback evidence, priority FBS and KIZ workflows. WB FBS method remains identical to 1.5.2; Ozon adds pending per-unit shipment readback. Preserve the Ozon combined label, updater snapshot/data checks and explicit runtime licensing/signing trust checks.
+
+Evidence: [status](VN-code-1.5.3-status.json), [request report](VN-code-1.5.3-request-report.md), [Windows/native/public proof](../validation/2026-10-20-vncode-153-windows-native.json), [publication receipt](../validation/2026-10-20-vncode-153-owner-publication.json). Full production acceptance remains incomplete. No new production Catalog create/repair, seller-desktop marketplace GTIN write, enterprise CryptoPro signing, production license or multi-unit Ozon split was established by this release. Keep those acceptance flags false; no seller desktop notification delivery is claimed.
+
+## Previous published baseline 1.5.2 (immutable reference)
+
 The baseline for subsequent updates is the published **VNCode 1.5.2**.
 
 - Immutable tag: `v1.5.2`

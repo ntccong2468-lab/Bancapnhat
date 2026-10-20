@@ -1,0 +1,79 @@
+{
+  "mode": "production-read-only",
+  "writesPerformed": false,
+  "sourceCommitReviewed": "69ffc7ecb60a91c874510522c4aae3c5be069ccd",
+  "sourceReviewDoesNotAttributeApiEvents": true,
+  "observations": [
+    {
+      "checkedAt": "2026-10-20T09:27:09.902134+00:00",
+      "operation": "read-only POST content/v2/cards/error/list",
+      "httpStatus": 200,
+      "apiError": false,
+      "entries": 4,
+      "hasNext": false,
+      "messageCount": 68,
+      "messageCategories": {
+        "ARTICLE_WHITESPACE": 7,
+        "GROUP_DEPENDENT_ERROR": 61
+      },
+      "whitespaceMessageArticlesWithEdges": 7,
+      "earliestUpdated": "2026-10-17T20:18:00Z",
+      "latestUpdated": "2026-10-20T08:59:30Z"
+    },
+    {
+      "checkedAt": "2026-10-20T09:27:48.982704+00:00",
+      "operation": "read-only POST content/v2/cards/error/list",
+      "byTimestamp": [
+        {
+          "updatedAt": "2026-10-20T08:59:30Z",
+          "messageCategories": {
+            "ARTICLE_WHITESPACE": 2
+          }
+        },
+        {
+          "updatedAt": "2026-10-20T08:57:33Z",
+          "messageCategories": {
+            "ARTICLE_WHITESPACE": 2
+          }
+        },
+        {
+          "updatedAt": "2026-10-20T08:54:57Z",
+          "messageCategories": {
+            "ARTICLE_WHITESPACE": 1
+          }
+        },
+        {
+          "updatedAt": "2026-10-17T20:18:00Z",
+          "messageCategories": {
+            "GROUP_DEPENDENT_ERROR": 61,
+            "ARTICLE_WHITESPACE": 2
+          }
+        }
+      ]
+    }
+  ],
+  "comparisonWithEarlierObservation": {
+    "earlierCheckedAt": "2026-10-20T08:39:00.595407+00:00",
+    "earlierLatestUpdated": "2026-10-20T08:28:13Z",
+    "entriesDelta": 0,
+    "messageCountDelta": 0,
+    "messageCategoryCountDeltas": {
+      "ARTICLE_WHITESPACE": 0,
+      "GROUP_DEPENDENT_ERROR": 0
+    },
+    "latestUpdatedAdvanced": true
+  },
+  "interpretation": [
+    "The same aggregate counts now carry newer server updatedAt timestamps for the three recent whitespace-error entries.",
+    "This observation does not identify or attribute the submitting client, application version, source commit, or request.",
+    "An unchanged message count does not prove that no new submission occurred, and a newer updatedAt does not by itself count additional unique failed writes.",
+    "No write was performed to prove remote acceptance of the reviewed candidate payload."
+  ],
+  "sanitization": {
+    "containsProductIdentifiers": false,
+    "containsArticleValues": false,
+    "containsGtinValues": false,
+    "containsCredentialValues": false,
+    "scope": "Aggregate counts, HTTP outcome, timestamps and inference limits only."
+  }
+}

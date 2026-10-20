@@ -21,7 +21,7 @@ Bản nền là Published 1.5.2, source `6fe8ef21871657a38151897ddc13c3b1b5028fd
 - Đối soát GTIN ghi bền bằng chứng `marketplaceVerified` trước khi kích hoạt ứng viên cục bộ. Nếu kích hoạt lỗi, thẻ có lỗi `GTIN_LOCAL_ACTIVATION_FAILED` riêng và giữ bằng chứng đã đọc từ sàn; những thẻ khác vẫn được xử lý. Bằng chứng này xuất phát từ API đọc lại, không được suy ra từ HTTP 200 của lệnh ghi.
 - Viên thuốc WB/Ozon quan sát báo cáo SQLite theo chu kỳ, không gửi lại API ghi. Số đã xác minh trên sàn được giữ ngay cả khi còn lỗi kích hoạt cục bộ. Bộ quan sát ngừng khi mất trang hoặc ngữ cảnh shop/kết nối/dữ liệu thay đổi; thông báo cuối tự tắt, thông báo của trang cũ không được ghi đè thông báo mới.
 
-Các sửa trên đã đóng trong source `69ffc7ecb60a91c874510522c4aae3c5be069ccd`. Nhóm kiểm lại đích sau sửa fixture đạt 23/23 (mười mock feed, ba snapshot, mười viên thuốc); hồi quy Linux `clean verify` của cùng source đã đạt 2.072 kiểm thử (2.070 đạt, 0 thất bại, 0 lỗi, 2 bỏ qua theo nền tảng), thuộc 338 bộ kiểm thử, kết thúc lúc 09:02:42 UTC. Bộ công cụ phát hành đạt 85/85 kiểm thử Node. Nhóm đầu 226 kiểm thử có chín lỗi fixture, đã sửa trước khi đóng mã; không ghi nhóm đầu là kết quả đạt. Windows run [39396769729](https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/39396769729) đang chạy từ source cuối, chưa có kết quả Java/native/bộ cài để nghiệm thu.
+Các sửa trên đã đóng trong source `69ffc7ecb60a91c874510522c4aae3c5be069ccd`. Nhóm kiểm lại đích sau sửa fixture đạt 23/23 (mười mock feed, ba snapshot, mười viên thuốc); hồi quy Linux `clean verify` của cùng source đã đạt 2.072 kiểm thử (2.070 đạt, 0 thất bại, 0 lỗi, 2 bỏ qua theo nền tảng), thuộc 338 bộ kiểm thử, kết thúc lúc 09:02:42 UTC. Bộ công cụ phát hành đạt 85/85 kiểm thử Node. Nhóm đầu 226 kiểm thử có chín lỗi fixture, đã sửa trước khi đóng mã; không ghi nhóm đầu là kết quả đạt. Windows run [39396769729](https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/39396769729) đã đạt từ đúng source cuối: 2.072 kiểm thử Java (2.070 đạt, 0 thất bại/lỗi, 2 bỏ qua), toàn bộ 23 tệp bằng chứng native gồm 288 bố cục và 18 kịch bản nâng cấp giữ dữ liệu. Latest 1.5.3 được xuất bản lúc 2026-10-20T09:49:36Z bởi [39398012877](https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/39398012877). File công khai đã được tải lại và đối chiếu SHA-256; updater production nhận 1.5.3 từ 1.5.2 với đúng URL/hash/kích thước. Đây không phải bằng chứng thông báo đã tới desktop seller.
 
 ## Bảo toàn đầu vào bản nền
 
@@ -35,9 +35,9 @@ Bốn tệp mẫu đăng ký, lớp template, giấy tờ và quy tắc tariff v
 - Kiểm thử toàn bộ lựa chọn hơn 1.000 biến thể giữ số dòng JavaFX hữu hạn; bộ lọc phân biệt checkpoint chưa gửi, feed đã nhận và kết quả chưa xác định.
 - Kiểm thử updater: cùng hộp tiến trình qua tải/sao lưu; hủy trước bàn giao; lỗi bàn giao giữ app mở; không báo 100% trong lúc sao lưu; rollback/WAL và schema cũ giữ nguyên. Hành vi thực tế của khay/cài đặt được ghi riêng ở kết quả Windows.
 
-Kết quả hồi quy đầy đủ và bộ cài Windows sẽ được ghi vào `docs/releases/VN-code-1.5.3-status.json` sau khi chạy xong, không sử dụng lại kết quả 1.5.2.
+Kết quả hồi quy và bộ cài Windows cuối đã được ghi vào `docs/releases/VN-code-1.5.3-status.json` và [bằng chứng Windows/native/công khai](2026-10-20-vncode-153-windows-native.json); toàn bộ Java được chạy mới từ source cuối.
 
-Source a684fcd đã chạy đầy đủ Linux: 2.045 kiểm thử, không thất bại hoặc lỗi, 2 bỏ qua theo nền tảng, 335 bộ kiểm thử. Windows run 39393525107 dừng ở nhóm focused đầu với 83 kiểm thử/1 thất bại `OzonBulkUiTest` dòng 161; chưa chạy full Java và chưa có bộ cài. Sửa fixture đã chuẩn bị để kiểm lại, chưa được coi là đã đạt trên Windows. Các kết quả này thuộc phạm vi trước những sửa Znack/GTIN bổ sung ở trên; source/run mới phải được khóa theo lần đóng mã cuối và kiểm lại đầy đủ.
+Source a684fcd đã chạy đầy đủ Linux: 2.045 kiểm thử, không thất bại hoặc lỗi, 2 bỏ qua theo nền tảng, 335 bộ kiểm thử. Windows run 39393525107 dừng ở nhóm focused đầu với 83 kiểm thử/1 thất bại `OzonBulkUiTest` dòng 161; chưa chạy full Java và chưa có bộ cài. Đây là lượt thất bại đã được thay thế; bản sửa fixture và toàn bộ sửa Znack/GTIN sau đó đã được kiểm lại đầy đủ trong source 69ffc7e/run 39396769729. Không dùng kết quả của lượt cũ để nghiệm thu bản cuối.
 
 ## Đọc API production và giới hạn
 
@@ -50,6 +50,8 @@ Lúc 09:35 ngày 20.10.2026 (Europe/Moscow), đọc Catalog thật trả HTTP 20
 [Bằng chứng lỗi WB đã che article](2026-10-20-vncode-153-wb-error-readonly-recheck.json) ghi nhận bảy thông báo khoảng trắng: năm lỗi mới ngày 20/10, hai lỗi ngày 17/10; cả bảy article có khoảng trắng ASCII đầu/cuối, khớp article gốc đang có trên WB và không va chạm sau trim. 61 thông báo nhóm phụ thuộc chỉ có ngày 17/10, không chứng minh thêm trường sai. Có khoảng trắng giữa trong dữ liệu nhưng những lỗi này không chứng minh khoảng trắng giữa bị cấm. Việc verifier cũ so article đã trim với article gốc của lỗi đã được sửa trong source cuối; payload trim của bản mới chưa được gửi production để xác minh sàn chấp nhận. Dữ liệu chỉ đọc không xác định client/phiên bản đã tạo các lỗi mới.
 
 Lượt này chưa gửi mới/cấp GTIN/ký bằng tài khoản production. Đường đăng ký production vẫn xác minh license, chủ sở hữu và CryptoPro; không tắt các kiểm tra đó để làm test xanh. Kiểm thử HTTP localhost không chứng minh một thẻ mới đã xuất hiện trên trang Честный знак của seller. Chưa đo thời gian cập nhật trên máy seller. Lượt chuyển giao từ bản đang cài 1.5.2 vẫn chạy mã updater cũ; bản mới chỉ sửa được mã sau khi được cài.
+
+Lượt đọc WB lúc 09:27 UTC vẫn có bốn mục/68 thông báo, nhưng timestamp lỗi mới nhất đã đổi thành 08:59:30 UTC. [Bản chênh lệch chỉ đọc](2026-10-20-vncode-153-wb-readonly-delta.json) giữ tổng số và thời gian; dữ liệu không xác định ứng dụng hoặc phiên bản đã gửi yêu cầu, không chứng minh bản mới đã ghi thành công.
 
 ## Quyền kiểm thử do chủ dự án cấp
 

@@ -2,17 +2,47 @@
   "version": "1.5.3",
   "sourceCommit": "69ffc7ecb60a91c874510522c4aae3c5be069ccd",
   "runId": 39396769729,
-  "phase": "authorized-awaiting-verified-build",
+  "phase": "verified-for-publication",
   "ownerRequestedPublication": true,
   "ownerInstruction": "xong phần này thì đóng gói bản cập nhật mới lên latest để phát hành xuống app.",
   "additionalOwnerInstruction": "sau khi xong phát hành bản mới",
   "unverifiedChecksDisclosedBeforePublication": true,
   "standardFullAcceptanceClaimed": false,
-  "installerSha256": null,
-  "installerBytes": null,
-  "windowsJava": null,
-  "verifiedNativeProofs": null,
-  "passiveExeHandoffVerified": null,
+  "installerSha256": "ec608d3677581c12901ee702e516cb2eea2757a5a9ee8fd84a2ce2438e8a3f31",
+  "installerBytes": 146864128,
+  "windowsJava": {
+    "tests": 2072,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 2,
+    "passed": 2070
+  },
+  "verifiedNativeProofs": [
+    "native-smoke.json",
+    "side-by-side-smoke.json",
+    "upgrade-smoke.json",
+    "upgrade-preview-smoke.json",
+    "upgrade-latest-preview-smoke.json",
+    "upgrade-current-preview-smoke.json",
+    "upgrade-gs1-preview-smoke.json",
+    "upgrade-license-test-smoke.json",
+    "upgrade-stable-146-smoke.json",
+    "upgrade-stable-1410-smoke.json",
+    "upgrade-stable-1411-smoke.json",
+    "upgrade-stable-1412-smoke.json",
+    "upgrade-stable-1413-smoke.json",
+    "upgrade-stable-1415-smoke.json",
+    "upgrade-stable-1416-smoke.json",
+    "upgrade-stable-1418-smoke.json",
+    "upgrade-stable-1419-smoke.json",
+    "upgrade-stable-150-smoke.json",
+    "upgrade-stable-151-smoke.json",
+    "upgrade-stable-152-smoke.json",
+    "seller-workspace-smoke.json",
+    "ui-layout.json",
+    "gs1-smoke.json"
+  ],
+  "passiveExeHandoffVerified": true,
   "productionLicenseAcceptance": false,
   "enterpriseCryptoProSigningAccepted": false,
   "licensedDesktopGtinWriteAccepted": false,
@@ -24,11 +54,11 @@
   "ownerLicenseInstruction": "kiểm thử trên môi trường không có license vì tôi là chủ dự án này giả định tôi cấp cho bạn license vô hạn",
   "ownerOzonInstruction": "và áp dụng luôn chỉnh sửa này cho ozon",
   "publisherBinding": {
-    "state": "bound-to-real-final-source-and-running-build",
+    "state": "verified-and-published-exact-source",
     "currentlyGuardedSourceCommit": "69ffc7ecb60a91c874510522c4aae3c5be069ccd",
     "currentlyGuardedRunId": 39396769729,
-    "cliUsePermitted": true,
-    "reason": "The pending publisher may wait for this exact real build, but cannot create a release until all mandatory artifact, Java, native and upgrade checks pass."
+    "cliUsePermitted": false,
+    "reason": "This exact source/build was published once; no release or tag mutation is performed by the recorder."
   },
   "supersededBinding": {
     "sourceCommit": "9dfcae6ddf30d82f5fddc8ba5e5252cc362dddd8",
@@ -59,12 +89,12 @@
     "credentialValuesRecorded": false
   },
   "publicationWaitingFor": {
-    "state": "awaiting-verified-build",
-    "reason": "Fresh final-scope Windows build is running for the exact frozen source; full Java, every native proof, the actual 1.5.2 passive EXE upgrade and the final Linux suite must pass before release mutation.",
+    "state": "completed-verified-publication",
+    "reason": "Fresh final-source Java/native/upgrades and public installer/updater availability verified; unperformed live seller mutations and signing remain unverified.",
     "credentialValuesRecorded": false
   },
   "runtimePreparation": {
-    "state": "final-scope-linux-and-tools-passed-windows-running",
+    "state": "published-after-final-automated-and-public-verification",
     "lastCommittedRuntime": "69ffc7ecb60a91c874510522c4aae3c5be069ccd",
     "sourceCommit": "69ffc7ecb60a91c874510522c4aae3c5be069ccd",
     "sourceRuntimeIsFinal": true,
@@ -79,7 +109,7 @@
       "Durable marketplaceVerified evidence before isolated local GTIN activation",
       "Read-only pending GTIN report counts with terminal pill dismissal and detached-view guards"
     ],
-    "freshWindowsRequiredForTheseChanges": true
+    "freshWindowsRequiredForTheseChanges": false
   },
   "failedSupersededBinding": {
     "sourceCommit": "a684fcd807aac82b144a262a622b44d95dc06a73",
@@ -165,5 +195,11 @@
     "log": "/tmp/vncode-153-final-publication-node.log",
     "acceptedForFinalScope": true,
     "scope": "All release-tool Node tests after binding publication to the final runtime and actual Windows run."
-  }
+  },
+  "publicationRun": 39398012877,
+  "publicationSourceCommit": "a8587c9eb025a62ee0fb2c5a92a06a4b3409ce7e",
+  "publishedAt": "2026-10-20T09:49:36Z",
+  "releaseUrl": "https://github.com/ntccong2468-lab/Bancapnhat/releases/tag/v1.5.3",
+  "publicDownloadVerified": true,
+  "postPublicationRecordedAt": "2026-10-20T09:50:34.974610+00:00"
 }
