@@ -323,7 +323,7 @@
     ],
     "finishedAt": "2026-10-20T19:31:39Z"
   },
-  "uniqueJavaTests": 510,
+  "uniqueJavaTests": 606,
   "entrypointNodeContracts": {
     "tests": 10,
     "failures": 0
@@ -335,5 +335,79 @@
   "productionCardCreationVerified": false,
   "nativeWindowsInstallerTestedThisChange": false,
   "newInstallerPublished": false,
-  "published154Unchanged": true
+  "published154Unchanged": true,
+  "additionalGtinAndRepairRegression": {
+    "tests": 96,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "classCount": 9,
+    "classes": [
+      {
+        "name": "com.vncode.app.features.catalogsync.CatalogSyncServiceTest",
+        "tests": 14,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "name": "com.vncode.app.features.gtinsync.GtinCatalogIndexTest",
+        "tests": 5,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "name": "com.vncode.app.features.gtinsync.GtinSyncCoordinatorTest",
+        "tests": 15,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "name": "com.vncode.app.features.gtinsync.OzonSkuGtinMatcherTest",
+        "tests": 4,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "name": "com.vncode.app.features.sync.ZnackGtinBackgroundServiceTest",
+        "tests": 10,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "name": "com.vncode.app.integration.ozon.OzonGtinAdapterTest",
+        "tests": 12,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "name": "com.vncode.app.integration.wb.WbGtinAdapterTest",
+        "tests": 22,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "name": "com.vncode.app.ui.znackregistration.CatalogErrorRepairDialogTest",
+        "tests": 4,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "name": "com.vncode.app.ui.znackregistration.GtinBackgroundStatusTest",
+        "tests": 10,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      }
+    ],
+    "finishedAt": "2026-10-20T19:36:48Z"
+  },
+  "additionalSourceChange": "Completed Catalog repair pills auto-dismiss; reports remain stored."
 }

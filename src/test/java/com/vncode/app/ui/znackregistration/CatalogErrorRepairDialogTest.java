@@ -44,5 +44,21 @@ class CatalogErrorRepairDialogTest {
     @Test void cancelNeverReturnsAnApprovedCorrection()throws Exception{
         var future=new FutureTask<List<Draft>>(() -> {Platform.runLater(()->{var pane=pane("catalogErrorProposalDialog");var cancel=pane.getButtonTypes().stream().filter(b->b.getButtonData()==ButtonBar.ButtonData.CANCEL_CLOSE).findFirst().orElseThrow();((Button)pane.lookupButton(cancel)).fire();});return CatalogErrorRepairDialog.proposals(new StackPane(),new CatalogErrorRepairDialog.Prepared(List.of(proposal()),List.of()));});Platform.runLater(future);assertNull(future.get(15,TimeUnit.SECONDS));
     }
+    @Test void completedRepairPillDismissesWithoutLosingTheReportOrRemovingTheNextTask()throws Exception{
+        try(var c=com.vncode.app.config.Database.getConnection();var s=c.createStatement()){s.execute("INSERT INTO shops(id,name,marketplace,api_key) VALUES(1,'Fixture','WILDBERRIES','synthetic')");}
+        var owner=new com.vncode.app.models.Shop(1,"Fixture","synthetic");var reports=new com.vncode.app.features.sync.SyncRunRepository();String run=reports.begin(owner,"catalog_repair","READBACK");reports.stage(owner,run,"SUCCEEDED","READBACK","");
+        var gone=new CountDownLatch(1);var opened=new java.util.concurrent.atomic.AtomicInteger();var refreshed=new java.util.concurrent.atomic.AtomicInteger();
+        var host=new StackPane();var completed=new javafx.scene.layout.HBox();var newer=new javafx.scene.layout.HBox();
+        var task=new FutureTask<Void>(()->{
+            new javafx.scene.Scene(host,800,500);host.getProperties().put("catalogErrorRepairBusy",true);var text=new Label();var spinner=new ProgressIndicator();completed.setId("catalogRepairPill");completed.getChildren().setAll(spinner,text);host.getChildren().add(completed);
+            host.getChildren().addListener((javafx.collections.ListChangeListener<javafx.scene.Node>)change->{if(!host.getChildren().contains(completed))gone.countDown();});
+            CatalogErrorRepairDialog.complete(host,completed,text,spinner,Map.of("SUCCEEDED",2L,"WAITING_REMOTE",1L,"NEEDS_ACTION",3L),opened::incrementAndGet,refreshed::incrementAndGet,javafx.util.Duration.millis(40));
+            assertFalse(host.getProperties().containsKey("catalogErrorRepairBusy"));assertFalse(completed.getChildren().contains(spinner));assertEquals(java.text.MessageFormat.format(com.vncode.app.shared.I18nService.getInstance().tr("repair.complete_counts"),2L,1L,3L),text.getText());
+            ((Button)completed.lookup("#catalogRepairResultReport")).fire();assertEquals(1,opened.get());assertEquals(1,refreshed.get());
+            newer.setId("catalogRepairPill");newer.getChildren().add(new ProgressIndicator());host.getChildren().add(newer);return null;
+        });Platform.runLater(task);task.get(5,TimeUnit.SECONDS);assertTrue(gone.await(3,TimeUnit.SECONDS));
+        var check=new FutureTask<Void>(()->{assertFalse(host.getChildren().contains(completed));assertTrue(host.getChildren().contains(newer));return null;});Platform.runLater(check);check.get(5,TimeUnit.SECONDS);
+        assertTrue(reports.find(run).isPresent(),"The completed repair remains available through the registration report after its temporary pill disappears");
+    }
     static DialogPane pane(String id){return Window.getWindows().stream().filter(Window::isShowing).map(w->w.getScene().getRoot()).filter(n->id.equals(n.getId())).map(n->(DialogPane)n).findFirst().orElseThrow();}
 }

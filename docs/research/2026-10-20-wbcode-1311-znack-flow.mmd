@@ -1,0 +1,24 @@
+flowchart TD
+    A["Đồng bộ sản phẩm WB/Ozon và Catalog"] --> B["Lọc chưa tạo → chọn tất cả → Đăng ký"]
+    B --> C["Kiểm tra TN VED, giấy tờ, danh mục, thuộc tính<br/>Còn thiếu: gom đủ trường Catalog vào bảng đề xuất"]
+    C --> D["Lưu hàng đợi → xin GTIN → lưu dữ liệu trước khi gửi"]
+    D --> E["Gửi feed lên Catalog"]
+    E --> F{"Đọc thấy đúng thẻ trên Catalog?"}
+    F -->|"Chưa thấy"| W["Giữ trạng thái chờ và tự đọc lại<br/>Không báo tạo thành công; tiếp tục thẻ khác"]
+    W --> F
+    F -->|"Có thẻ"| G["Đã tạo nháp / đang chờ duyệt<br/>Hiện trong bộ lọc đang xử lý"]
+    F -->|"Bị từ chối"| R["Báo lỗi từng thẻ → đề xuất sửa → Áp dụng"]
+    R --> C
+    G --> H["Ký khi đủ điều kiện và có sự đồng ý<br/>Wbcode: tối đa 10 thẻ/lô · VNCode: từng thẻ"]
+    H --> I["Đọc Catalog xác nhận đã xuất bản"]
+    I --> J["Ghi GTIN đúng biến thể WB/Ozon"]
+    J --> K["Đọc lại sàn → báo đã sửa, còn lại, thất bại<br/>Viên thuốc hoàn tất tự ẩn; báo cáo được lưu"]
+    H -.-> X["Còn lỗi báo sai nguyên nhân:<br/>CRPT/mạng có thể bị gọi là CryptoPro ký thất bại"]
+    J -.-> O["KIZ Mapping Ozon còn thiếu:<br/>đồng bộ sản phẩm + nhận GTIN barcode + báo lỗi từng sản phẩm"]
+    D -.-> T["Mất mạng / đóng app:<br/>giữ hàng đợi, tiếp tục khi app chạy và có mạng"]
+    classDef present fill:#d9f7e8,stroke:#1b8f5a,color:#113b2b;
+    classDef corrected fill:#e2f0ff,stroke:#2d74ba,color:#14355b;
+    classDef gap fill:#fff1d0,stroke:#d08b00,color:#543a00;
+    class A,B,D,E,I,J,T present;
+    class F,W,G,R,K corrected;
+    class C,H,X,O gap;

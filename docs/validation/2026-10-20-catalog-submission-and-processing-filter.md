@@ -26,6 +26,8 @@ Final automated regression: **455 related Java tests passed**, with zero failure
 
 Initial failures exposed incorrect multi-card test identities and Ozon's filter event handling; these were corrected before the final run. FXML smoke tests use a separate JVM to prevent delayed fixture modal/update callbacks crossing into a different temporary profile. The startup assertion that the first window does not open SQL was preserved.
 
+The subsequent Wbcode flow comparison found that the Catalog repair completion pill still remained visible. It now dismisses after eight seconds (failure: 15 seconds) while keeping its report stored. A further **96 related GTIN/repair tests passed**, including the 10,001-GTIN orchestration and mocked WB/Ozon write/readback adapters. Total unique Java coverage across these final runs is **606 tests**, all passed; this is not a full-repository or live Windows acceptance claim.
+
 No live product was created, signed, or published by these checks. The cloud read did not establish an actual selected product-to-verified-permit binding, an unreserved GTIN, or the seller's Windows CryptoPro session. It therefore does not prove a successful production registration or signing operation. The default registration template and TN VED/document rules were not changed.
 
 This is a source correction after the existing 1.5.4 release. The published 1.5.4 installer and release evidence are unchanged.
