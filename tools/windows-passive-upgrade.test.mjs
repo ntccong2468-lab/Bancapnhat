@@ -5,6 +5,7 @@ import test from 'node:test';
 const probe=readFileSync(new URL('./windows-upgrade-smoke.ps1',import.meta.url),'utf8');
 const workflow=readFileSync(new URL('../.github/workflows/build-java.yml',import.meta.url),'utf8');
 const installer=readFileSync(new URL('../src/main/java/com/vncode/app/integration/update/UpdateInstallerService.java',import.meta.url),'utf8');
+const latestPreviewMode=/\$previewMode=[^\r\n]*-or \$FromStable154\r?\n/;
 
 test('latest upgrade executes the final EXE with exactly the runtime passive arguments',()=>{
     const start=probe.indexOf('    if($FromStable152 -or $FromStable153 -or $FromStable154){',probe.indexOf('Invalid pre-upgrade fingerprint.'));
@@ -96,7 +97,7 @@ test('1.5.4 upgrade pins the public installer and extends the preserved-data pas
     assert.match(probe,/\[switch\] \$FromStable154\)/);
     assert.match(probe,/if\(@\([^\n]*\$FromStable154\)\.Where\(\{\$_\}\)\.Count -gt 1\)/,
         'The new baseline cannot be combined with another baseline');
-    assert.match(probe,/\$previewMode=[^\n]*-or \$FromStable154\n/,
+    assert.match(probe,latestPreviewMode,
         'The old fixture must be preserved before starting the published baseline');
     assert.match(probe,/if\(\$FromStable154 -and \[version\]\$Version -le \[version\]'1\.5\.4'\)/);
     assert.match(probe,/\$previous=Get-Content [^\n]*elseif\(\$FromStable154\)\{'out\\upgrade-stable-153-smoke\.json'\}/);
@@ -109,4 +110,14 @@ test('1.5.4 upgrade pins the public installer and extends the preserved-data pas
     assert.ok(latestStep>previousStep&&latestStep<workflow.indexOf('- name: Verify and name test installer'));
     assert.match(workflow,/if \(\[version\]\$env:APP_VERSION -gt \[version\]"1\.5\.4"\) \{\s+\.\/tools\/windows-upgrade-smoke\.ps1 -Version \$env:APP_VERSION -FromStable154/);
     assert.match(workflow,/out\/upgrade-\*\.json/,'The 1.5.4 proof is retained with all prior upgrade proofs');
+});
+
+test('latest baseline fixture preservation is required for both LF and Windows CRLF checkouts',()=>{
+    for(const ending of ['\n','\r\n']){
+        const checkout=probe.replace(/\r?\n/g,ending);
+        assert.match(checkout,latestPreviewMode,'Either checkout format must retain the 1.5.4 fixture-preservation gate');
+        const missingLatestMode=checkout.replace(/(\$previewMode=[^\r\n]*) -or \$FromStable154(?=\r?\n)/,'$1');
+        assert.notEqual(missingLatestMode,checkout,'The negative fixture removes the actual latest-baseline branch');
+        assert.doesNotMatch(missingLatestMode,latestPreviewMode,'Line-ending compatibility must not allow omitting fixture preservation');
+    }
 });
