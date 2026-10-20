@@ -217,8 +217,8 @@ export function validateOwner153UpgradeProof(proof,version,installerDigest) {
     assert.match(proof.passiveExeEmbeddedMsiSha256,/^[a-f0-9]{64}$/);
 }
 export function validateOwnerRequest153(decision,status,version,sha,runId) {
-    assert.equal(version,'1.5.3');assert.equal(sha,'a684fcd807aac82b144a262a622b44d95dc06a73');
-    assert.equal(String(runId),'39393525107');
+    assert.equal(version,'1.5.3');assert.equal(sha,'69ffc7ecb60a91c874510522c4aae3c5be069ccd');
+    assert.equal(String(runId),'39396769729');
     assert.equal(decision.version,version);assert.equal(decision.sourceCommit,sha);assert.equal(String(decision.runId),String(runId));
     assert.ok(['authorized-awaiting-verified-build','verified-for-publication'].includes(decision.phase));
     assert.equal(decision.ownerRequestedPublication,true);

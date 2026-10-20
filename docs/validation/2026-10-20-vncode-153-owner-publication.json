@@ -1,7 +1,7 @@
 {
   "version": "1.5.3",
-  "sourceCommit": "a684fcd807aac82b144a262a622b44d95dc06a73",
-  "runId": 39393525107,
+  "sourceCommit": "69ffc7ecb60a91c874510522c4aae3c5be069ccd",
+  "runId": 39396769729,
   "phase": "authorized-awaiting-verified-build",
   "ownerRequestedPublication": true,
   "ownerInstruction": "xong phần này thì đóng gói bản cập nhật mới lên latest để phát hành xuống app.",
@@ -24,11 +24,11 @@
   "ownerLicenseInstruction": "kiểm thử trên môi trường không có license vì tôi là chủ dự án này giả định tôi cấp cho bạn license vô hạn",
   "ownerOzonInstruction": "và áp dụng luôn chỉnh sửa này cho ozon",
   "publisherBinding": {
-    "state": "bound-to-actual-final-windows-build",
-    "currentlyGuardedSourceCommit": "a684fcd807aac82b144a262a622b44d95dc06a73",
-    "currentlyGuardedRunId": 39393525107,
+    "state": "bound-to-real-final-source-and-running-build",
+    "currentlyGuardedSourceCommit": "69ffc7ecb60a91c874510522c4aae3c5be069ccd",
+    "currentlyGuardedRunId": 39396769729,
     "cliUsePermitted": true,
-    "reason": "Observed real workflow_dispatch run for the frozen committed runtime; publisher must wait and verify every required artifact before any release mutation."
+    "reason": "The pending publisher may wait for this exact real build, but cannot create a release until all mandatory artifact, Java, native and upgrade checks pass."
   },
   "supersededBinding": {
     "sourceCommit": "9dfcae6ddf30d82f5fddc8ba5e5252cc362dddd8",
@@ -60,20 +60,110 @@
   },
   "publicationWaitingFor": {
     "state": "awaiting-verified-build",
-    "reason": "The final runtime is committed and pushed. The exact fresh Windows run must finish full Java, all native checks and the pinned 1.5.2 passive EXE/data-preserving upgrade before publication.",
+    "reason": "Fresh final-scope Windows build is running for the exact frozen source; full Java, every native proof, the actual 1.5.2 passive EXE upgrade and the final Linux suite must pass before release mutation.",
     "credentialValuesRecorded": false
   },
   "runtimePreparation": {
-    "state": "final-runtime-committed-fresh-verification-running",
+    "state": "final-scope-linux-and-tools-passed-windows-running",
+    "lastCommittedRuntime": "69ffc7ecb60a91c874510522c4aae3c5be069ccd",
+    "sourceCommit": "69ffc7ecb60a91c874510522c4aae3c5be069ccd",
+    "sourceRuntimeIsFinal": true,
+    "newWindowsRunId": 39396769729,
+    "testResultsForPendingChangesRecorded": true,
+    "workingTreeScopeFrozen": true,
+    "implementedChanges": [
+      "Windows Ozon bulk UI fixture completion predicate repaired; fresh Windows verification required",
+      "Catalog schema-dependent required Type selection and Ozon article/size/source aliases",
+      "Known-unsent Ozon PRE_SUBMIT_ERROR payload retry retaining its allocated GTIN",
+      "WB exact original/submitted article correlation for fresh unambiguous errors",
+      "Durable marketplaceVerified evidence before isolated local GTIN activation",
+      "Read-only pending GTIN report counts with terminal pill dismissal and detached-view guards"
+    ],
+    "freshWindowsRequiredForTheseChanges": true
+  },
+  "failedSupersededBinding": {
     "sourceCommit": "a684fcd807aac82b144a262a622b44d95dc06a73",
-    "focusedTestsCompleted": true,
-    "fullLinuxSuiteState": "running",
-    "newWindowsRunId": 39393525107,
-    "changes": [
-      "Ozon Receive All per-unit server posting split with durable read-only recovery",
-      "Ozon FBS/FBO combined labels and frozen-history reprints",
-      "Older receipt checkpoint-column migration and stale aggregate readback recovery",
-      "Znack durable registration and verified EXE passive update handoff"
-    ]
+    "runId": 39393525107,
+    "conclusion": "failure",
+    "publisherDispatched": false,
+    "acceptedForFinalScope": false
+  },
+  "lastCommittedRuntime": "69ffc7ecb60a91c874510522c4aae3c5be069ccd",
+  "productionReadOnlyRecheck": {
+    "readOnly": true,
+    "writesPerformed": false,
+    "catalogSummary": "docs/validation/2026-10-20-vncode-153-catalog-readonly-recheck.json",
+    "coverageSummary": "docs/validation/2026-10-20-vncode-153-wb-catalog-coverage.json",
+    "catalog": {
+      "cards": 1277,
+      "published": 1241,
+      "errors": 34,
+      "draftsWithoutErrors": 2,
+      "allErrorDetailsRead": true,
+      "remoteModerationReasonPresent": false
+    },
+    "wb": {
+      "cards": 388,
+      "variants": 1982,
+      "pages": 4,
+      "pageCounts": [
+        100,
+        100,
+        100,
+        88
+      ]
+    },
+    "coverage": {
+      "variantsWithAtLeastOneCatalogPublishedGtin": 1,
+      "variantsWithoutCatalogPublishedGtin": 1981,
+      "variantsWithMultipleDistinctCatalogPublishedGtins": 0,
+      "distinctPublishedGtinsPresentOnWb": 1,
+      "publishedGtinsSharedAcrossDistinctWbVariants": 0,
+      "publishedGtinsSharedAcrossDistinctSizeLabels": 0,
+      "variantsUsingPublishedGtinsSharedAcrossDistinctSizeLabels": 0
+    },
+    "classification": "Exact barcode membership in the currently read Catalog published set only; not a new write, global registration status, identity, permit or account-ownership proof.",
+    "wbErrorSummary": "docs/validation/2026-10-20-vncode-153-wb-error-readonly-recheck.json",
+    "wbErrors": {
+      "whitespaceMessages": 7,
+      "fresh20261020": 5,
+      "historical20261017": 2,
+      "allWithEdgeWhitespace": true,
+      "trimCollisions": 0,
+      "groupDependentMessages": 61,
+      "groupDependentMessagesOnly20261017": true,
+      "internalSpacesProhibitedProved": false,
+      "newCandidateWriteAccepted": false
+    }
+  },
+  "linuxFullSuite": {
+    "state": "passed",
+    "sourceCommit": "69ffc7ecb60a91c874510522c4aae3c5be069ccd",
+    "tests": 2072,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 2,
+    "passed": 2070,
+    "testSuites": 338,
+    "fullSuiteExecuted": true,
+    "cleanVerifyExecuted": true,
+    "log": "/tmp/vncode-153-final-full-verify.log",
+    "summary": "/tmp/vncode-153-final-linux-summary.json",
+    "finishedAt": "2026-10-20T09:02:42Z",
+    "duration": "8m37s",
+    "acceptedForFinalScope": true,
+    "acceptedForRelease": false,
+    "scope": "Final frozen runtime complete Linux clean verify; Windows Java/native/upgrade proof remains mandatory."
+  },
+  "releaseToolTests": {
+    "state": "passed",
+    "sourceCommit": "69ffc7ecb60a91c874510522c4aae3c5be069ccd",
+    "tests": 85,
+    "failures": 0,
+    "fullSuiteExecuted": true,
+    "command": "node --test tools/*.test.mjs",
+    "log": "/tmp/vncode-153-final-publication-node.log",
+    "acceptedForFinalScope": true,
+    "scope": "All release-tool Node tests after binding publication to the final runtime and actual Windows run."
   }
 }

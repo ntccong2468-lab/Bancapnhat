@@ -1,7 +1,5 @@
 # VNCode 1.5.3
 
-Bản ứng viên chưa phát hành; các sửa Znack/GTIN đã đóng phạm vi mã và đang được kiểm thử lại trước lượt Windows mới.
-
 - Đăng ký Znack WB/Ozon: lưu toàn bộ lô đã chọn trước khi xử lý, gửi lần lượt từng thẻ lên Catalog. Chỉ tính đã gửi và chuyển thẻ sang Đang xử lý sau khi có kết quả nhận feed; trạng thái xếp hàng hoặc cấp GTIN không được tính là đã đăng ký thành công.
 - Trang đăng ký vẫn cho tìm kiếm, đổi bộ lọc và xem các thẻ đang chờ duyệt trong lúc chạy. Báo cáo lưu đủ từng thẻ; tiến độ phân biệt đã gửi, còn lại và cần xử lý. Thẻ đã có yêu cầu gửi chưa rõ kết quả được đối chiếu trước khi thử tiếp.
 - Đăng ký Ozon: đề xuất tự động dùng đúng Type của article và hệ size theo schema Catalog, nhận tên trường nguồn tương ứng với màu, giới tính, chất liệu và danh mục. Dữ liệu không đủ để xác định duy nhất vẫn yêu cầu seller bổ sung. Thẻ lỗi trước khi gửi được dựng lại payload đã sửa với chính GTIN đã cấp; không xin GTIN khác hoặc gửi lại yêu cầu chưa rõ kết quả.

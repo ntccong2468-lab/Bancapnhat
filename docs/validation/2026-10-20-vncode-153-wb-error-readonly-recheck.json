@@ -1,0 +1,152 @@
+{
+  "mode": "production-read-only",
+  "writesPerformed": false,
+  "sanitization": {
+    "containsProductIdentifiers": false,
+    "containsGtinValues": false,
+    "containsCredentialValues": false,
+    "articlePlaceholder": "[ARTICLE]",
+    "relatedArticlesPlaceholder": "[RELATED_ARTICLES]",
+    "scope": "Public error phrases with original articles redacted; counts and timestamps only."
+  },
+  "errorFeed": {
+    "checkedAt": "2026-10-20T08:39:00.595407+00:00",
+    "mode": "production-read-only",
+    "writesPerformed": false,
+    "httpStatuses": [
+      200
+    ],
+    "entries": 4,
+    "totalMessages": 68,
+    "sanitizedReasons": {
+      "В Артикуле продавца [ARTICLE] содержится пробел. Пожалуйста, удалите пробел.": 7,
+      "Исправьте ошибки в данной группе товаров у карточек [RELATED_ARTICLES]": 61
+    },
+    "byTimestamp": [
+      {
+        "updatedAt": "2026-10-20T08:28:13Z",
+        "count": 2,
+        "reasons": {
+          "В Артикуле продавца [ARTICLE] содержится пробел. Пожалуйста, удалите пробел.": 2
+        }
+      },
+      {
+        "updatedAt": "2026-10-20T08:26:19Z",
+        "count": 2,
+        "reasons": {
+          "В Артикуле продавца [ARTICLE] содержится пробел. Пожалуйста, удалите пробел.": 2
+        }
+      },
+      {
+        "updatedAt": "2026-10-20T08:23:51Z",
+        "count": 1,
+        "reasons": {
+          "В Артикуле продавца [ARTICLE] содержится пробел. Пожалуйста, удалите пробел.": 1
+        }
+      },
+      {
+        "updatedAt": "2026-10-17T20:18:00Z",
+        "count": 63,
+        "reasons": {
+          "Исправьте ошибки в данной группе товаров у карточек [RELATED_ARTICLES]": 61,
+          "В Артикуле продавца [ARTICLE] содержится пробел. Пожалуйста, удалите пробел.": 2
+        }
+      }
+    ]
+  },
+  "articleCorrelation": {
+    "checkedAt": "2026-10-20T08:39:50.950924+00:00",
+    "mode": "production-read-only",
+    "writesPerformed": false,
+    "cards": 388,
+    "catalogArticleWhitespace": {
+      "edgeWhitespace": 7,
+      "internalWhitespaceAfterTrim": 383,
+      "unicodeWhitespace": 0
+    },
+    "byErrorTimestamp": [
+      {
+        "updatedAt": "2026-10-20T08:28:13Z",
+        "whitespaceRejectionCorrelation": {
+          "rejectedArticles": 2,
+          "errorArticle_edgeWhitespace": 2,
+          "errorArticle_internalWhitespaceAfterTrim": 2,
+          "errorArticle_unicodeWhitespace": 0,
+          "exactCurrentCardMatches": 2,
+          "trimCurrentCardMatches": 2,
+          "currentArticle_edgeWhitespace": 2,
+          "currentArticle_internalWhitespaceAfterTrim": 2,
+          "currentArticle_unicodeWhitespace": 0,
+          "trimCollisionCards": 0
+        }
+      },
+      {
+        "updatedAt": "2026-10-20T08:26:19Z",
+        "whitespaceRejectionCorrelation": {
+          "rejectedArticles": 2,
+          "errorArticle_edgeWhitespace": 2,
+          "errorArticle_internalWhitespaceAfterTrim": 2,
+          "errorArticle_unicodeWhitespace": 0,
+          "exactCurrentCardMatches": 2,
+          "trimCurrentCardMatches": 2,
+          "currentArticle_edgeWhitespace": 2,
+          "currentArticle_internalWhitespaceAfterTrim": 2,
+          "currentArticle_unicodeWhitespace": 0,
+          "trimCollisionCards": 0
+        }
+      },
+      {
+        "updatedAt": "2026-10-20T08:23:51Z",
+        "whitespaceRejectionCorrelation": {
+          "rejectedArticles": 1,
+          "errorArticle_edgeWhitespace": 1,
+          "errorArticle_internalWhitespaceAfterTrim": 1,
+          "errorArticle_unicodeWhitespace": 0,
+          "exactCurrentCardMatches": 1,
+          "trimCurrentCardMatches": 1,
+          "currentArticle_edgeWhitespace": 1,
+          "currentArticle_internalWhitespaceAfterTrim": 1,
+          "currentArticle_unicodeWhitespace": 0,
+          "trimCollisionCards": 0
+        }
+      },
+      {
+        "updatedAt": "2026-10-17T20:18:00Z",
+        "whitespaceRejectionCorrelation": {
+          "rejectedArticles": 2,
+          "errorArticle_edgeWhitespace": 2,
+          "errorArticle_internalWhitespaceAfterTrim": 2,
+          "errorArticle_unicodeWhitespace": 0,
+          "exactCurrentCardMatches": 2,
+          "trimCurrentCardMatches": 2,
+          "currentArticle_edgeWhitespace": 2,
+          "currentArticle_internalWhitespaceAfterTrim": 2,
+          "currentArticle_unicodeWhitespace": 0,
+          "trimCollisionCards": 0
+        }
+      }
+    ]
+  },
+  "observations": {
+    "whitespaceErrorMessages": 7,
+    "whitespaceMessagesOn20261020": 5,
+    "whitespaceMessagesOn20261017": 2,
+    "groupDependentErrorMessages": 61,
+    "groupDependentMessagesOnlyOn20261017": true,
+    "allWhitespaceRejectedArticlesHaveEdgeWhitespace": true,
+    "trimCollisionCards": 0,
+    "internalWhitespaceProhibitedByThisEvidence": false
+  },
+  "candidateChange": {
+    "sourceCommit": "69ffc7ecb60a91c874510522c4aae3c5be069ccd",
+    "originalVerifierIssue": "The old verifier compared a trimmed preview article to raw rejection articles, which could miss an original article with edge whitespace and remain pending.",
+    "implementedFix": "Correlate exact original article only from the unchanged owned preimage, and the submitted trimmed article; require current timestamps and unique product ownership for each article.",
+    "submissionPolicy": "Single and batch payloads use edge-trimmed collision-checked articles.",
+    "candidateRemoteAcceptanceVerified": false
+  },
+  "limitations": [
+    "The five fresh whitespace messages and two historical messages do not identify which client or release submitted them.",
+    "Group-dependent messages do not identify another invalid field or an additional restriction.",
+    "The observed whitespace errors do not prove internal spaces are forbidden. No production write was performed to prove acceptance of the candidate payload."
+  ]
+}

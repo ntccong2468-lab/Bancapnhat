@@ -1,6 +1,6 @@
 {
   "version": "1.5.3",
-  "sourceCommit": "a684fcd807aac82b144a262a622b44d95dc06a73",
+  "sourceCommit": "69ffc7ecb60a91c874510522c4aae3c5be069ccd",
   "baseline": "6fe8ef21871657a38151897ddc13c3b1b5028fd5",
   "unchangedCriticalInputs": [
     {
@@ -25,38 +25,51 @@
     }
   ],
   "linuxFullSuite": {
-    "state": "running",
-    "sourceCommit": "a684fcd807aac82b144a262a622b44d95dc06a73",
-    "freshFullExecutionRequired": true,
+    "state": "passed",
+    "sourceCommit": "69ffc7ecb60a91c874510522c4aae3c5be069ccd",
+    "tests": 2072,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 2,
+    "passed": 2070,
+    "testSuites": 338,
+    "fullSuiteExecuted": true,
+    "cleanVerifyExecuted": true,
     "log": "/tmp/vncode-153-final-full-verify.log",
-    "acceptedForRelease": false
+    "summary": "/tmp/vncode-153-final-linux-summary.json",
+    "finishedAt": "2026-10-20T09:02:42Z",
+    "duration": "8m37s",
+    "acceptedForFinalScope": true,
+    "acceptedForRelease": false,
+    "scope": "Final frozen runtime complete Linux clean verify; Windows Java/native/upgrade proof remains mandatory."
   },
   "finalSourceFocusedSuite": {
     "state": "passed",
-    "sourceCommit": "a684fcd807aac82b144a262a622b44d95dc06a73",
-    "tests": 105,
+    "sourceCommit": "69ffc7ecb60a91c874510522c4aae3c5be069ccd",
+    "tests": 23,
     "failures": 0,
     "errors": 0,
     "skipped": 0,
-    "log": "/tmp/vncode-153-ozon-split-focused-final.log",
-    "includes": [
-      "Per-unit Ozon shipment and background readback",
-      "Older checkpoint-column migration",
-      "Stale aggregate readback refresh after remote correction"
-    ],
-    "acceptedForFinalScope": false
+    "passed": 23,
+    "countsRecorded": true,
+    "fullSuiteExecuted": false,
+    "log": "/tmp/vncode-153-znack-gtin-recovery-focused.log",
+    "scope": "Final targeted recovery checks after fixture-only repairs: mock Catalog feed (10), local GTIN snapshot (3), status pill (10). Full final-source regression remains required.",
+    "acceptedForFinalScope": true,
+    "acceptedForRelease": false
   },
   "releaseToolSuite": {
     "state": "passed",
-    "sourceCommit": "58d091a68aaa0a58ed35730ae13b502011177d17",
+    "sourceCommit": "69ffc7ecb60a91c874510522c4aae3c5be069ccd",
     "tests": 85,
     "failures": 0,
     "fullSuiteExecuted": true,
-    "log": "/tmp/vncode-153-node-label.log",
-    "acceptedForFinalScope": false,
-    "scope": "Observed on 58d091a; rerun after the complete runtime scope freezes."
+    "command": "node --test tools/*.test.mjs",
+    "log": "/tmp/vncode-153-final-publication-node.log",
+    "acceptedForFinalScope": true,
+    "scope": "All release-tool Node tests after binding publication to the final runtime and actual Windows run."
   },
-  "windowsBuildRun": 39393525107,
+  "windowsBuildRun": 39396769729,
   "liveProductionRegistrationPerformed": false,
   "ownerAuthorizedUnlimitedTestLicense": true,
   "sameBehaviorImplementedFor": [
@@ -116,7 +129,7 @@
   },
   "publication": {
     "state": "awaiting-verified-build",
-    "reason": "The final runtime is committed and pushed. The exact fresh Windows run must finish full Java, all native checks and the pinned 1.5.2 passive EXE/data-preserving upgrade before publication.",
+    "reason": "Fresh final-scope Windows build is running for the exact frozen source; full Java, every native proof, the actual 1.5.2 passive EXE upgrade and the final Linux suite must pass before release mutation.",
     "credentialValuesRecorded": false,
     "githubAuthentication": {
       "state": "ready-observed",
@@ -136,20 +149,23 @@
       "reason": "Configured GitHub CLI credential is invalid (API HTTP 401); HTTPS Git push could not read a username. No valid new Windows run exists.",
       "credentialValuesRecorded": false,
       "resolved": true
-    }
+    },
+    "publisherDispatchedForFailedRun": false
   },
   "sourceRuntimeIsFinal": true,
   "completedPriorScopeLinuxSuite": {
     "state": "passed",
-    "sourceCommit": "58d091a68aaa0a58ed35730ae13b502011177d17",
-    "tests": 2007,
+    "sourceCommit": "a684fcd807aac82b144a262a622b44d95dc06a73",
+    "tests": 2045,
     "failures": 0,
     "errors": 0,
     "skipped": 2,
-    "passed": 2005,
-    "log": "/tmp/vncode-153-label-full.log",
-    "scope": "Full suite before the FBO combined-label and per-unit Receive All server-split changes.",
-    "acceptedForFinalScope": false
+    "passed": 2043,
+    "testSuites": 335,
+    "log": "/tmp/vncode-153-a684-full-verify.log",
+    "scope": "Compiled before the additional Znack/GTIN fixes now in progress; historical scope evidence only.",
+    "acceptedForFinalScope": false,
+    "acceptedForRelease": false
   },
   "priorRuntimeFocusedSuite": {
     "state": "passed",
@@ -162,17 +178,22 @@
     "acceptedForFinalScope": false
   },
   "runtimePreparation": {
-    "state": "final-runtime-committed-fresh-verification-running",
-    "sourceCommit": "a684fcd807aac82b144a262a622b44d95dc06a73",
-    "focusedTestsCompleted": true,
-    "fullLinuxSuiteState": "running",
-    "newWindowsRunId": 39393525107,
-    "changes": [
-      "Ozon Receive All per-unit server posting split with durable read-only recovery",
-      "Ozon FBS/FBO combined labels and frozen-history reprints",
-      "Older receipt checkpoint-column migration and stale aggregate readback recovery",
-      "Znack durable registration and verified EXE passive update handoff"
-    ]
+    "state": "final-scope-linux-and-tools-passed-windows-running",
+    "lastCommittedRuntime": "69ffc7ecb60a91c874510522c4aae3c5be069ccd",
+    "sourceCommit": "69ffc7ecb60a91c874510522c4aae3c5be069ccd",
+    "sourceRuntimeIsFinal": true,
+    "newWindowsRunId": 39396769729,
+    "testResultsForPendingChangesRecorded": true,
+    "workingTreeScopeFrozen": true,
+    "implementedChanges": [
+      "Windows Ozon bulk UI fixture completion predicate repaired; fresh Windows verification required",
+      "Catalog schema-dependent required Type selection and Ozon article/size/source aliases",
+      "Known-unsent Ozon PRE_SUBMIT_ERROR payload retry retaining its allocated GTIN",
+      "WB exact original/submitted article correlation for fresh unambiguous errors",
+      "Durable marketplaceVerified evidence before isolated local GTIN activation",
+      "Read-only pending GTIN report counts with terminal pill dismissal and detached-view guards"
+    ],
+    "freshWindowsRequiredForTheseChanges": true
   },
   "modifiedSyncInput": {
     "path": "src/main/java/com/vncode/app/features/sync/FbsSyncService.java",
@@ -218,10 +239,11 @@
   },
   "windowsBuild": {
     "state": "running",
-    "sourceCommit": "a684fcd807aac82b144a262a622b44d95dc06a73",
-    "runId": 39393525107,
-    "url": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/39393525107",
-    "startedAt": "2026-10-20T08:27:24Z",
+    "sourceCommit": "69ffc7ecb60a91c874510522c4aae3c5be069ccd",
+    "lastCommittedRuntime": "69ffc7ecb60a91c874510522c4aae3c5be069ccd",
+    "runId": 39396769729,
+    "url": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/39396769729",
+    "observedCreatedAt": "2026-10-20T08:54:17Z",
     "freshFullJavaExecutionRequired": true,
     "allNativeChecksMustRunAgain": true,
     "upgradeFrom152Passed": false,
@@ -235,5 +257,116 @@
     "reason": "Stopped before completion to include the older-receipt checkpoint migration and stale aggregate readback fixes.",
     "acceptedForRelease": false,
     "countClaimed": false
+  },
+  "failedSupersededWindowsBuild": {
+    "sourceCommit": "a684fcd807aac82b144a262a622b44d95dc06a73",
+    "runId": 39393525107,
+    "url": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/39393525107",
+    "status": "completed",
+    "conclusion": "failure",
+    "stage": "focused Windows product/layout/FXML gate",
+    "focusedTests": 83,
+    "failures": 1,
+    "otherTestCountsNotRecorded": true,
+    "failedTest": "com.vncode.app.ui.ozon.OzonBulkUiTest",
+    "failureLine": 161,
+    "fullJavaSuiteExecuted": false,
+    "installerPackaged": false,
+    "allNativeChecksCompleted": false,
+    "acceptedForFinalScope": false,
+    "fixtureRepairPrepared": true,
+    "fixtureRepairVerifiedOnWindows": false,
+    "fixtureRepairScope": "Wait for bounded bulk completion with inactive-tab button handling, up to 30 seconds, retaining and extending assertions.",
+    "publisherDispatchedForThisRun": false
+  },
+  "earlierCompletedScopeLinuxSuites": [
+    {
+      "state": "passed",
+      "sourceCommit": "58d091a68aaa0a58ed35730ae13b502011177d17",
+      "tests": 2007,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 2,
+      "passed": 2005,
+      "log": "/tmp/vncode-153-label-full.log",
+      "scope": "Full suite before the FBO combined-label and per-unit Receive All server-split changes.",
+      "acceptedForFinalScope": false
+    }
+  ],
+  "completedPriorScopeFocusedSuite": {
+    "state": "passed",
+    "sourceCommit": "a684fcd807aac82b144a262a622b44d95dc06a73",
+    "tests": 105,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "log": "/tmp/vncode-153-ozon-split-focused-final.log",
+    "includes": [
+      "Per-unit Ozon shipment and background readback",
+      "Older checkpoint-column migration",
+      "Stale aggregate readback refresh after remote correction"
+    ],
+    "acceptedForFinalScope": false
+  },
+  "criticalInputVerificationScope": {
+    "sourceCommit": "69ffc7ecb60a91c874510522c4aae3c5be069ccd",
+    "state": "passed-for-final-frozen-source",
+    "recheckAfterPendingRuntimeFixes": false
+  },
+  "lastCommittedRuntime": "69ffc7ecb60a91c874510522c4aae3c5be069ccd",
+  "productionReadOnlyRecheck": {
+    "readOnly": true,
+    "writesPerformed": false,
+    "catalogSummary": "docs/validation/2026-10-20-vncode-153-catalog-readonly-recheck.json",
+    "coverageSummary": "docs/validation/2026-10-20-vncode-153-wb-catalog-coverage.json",
+    "catalog": {
+      "cards": 1277,
+      "published": 1241,
+      "errors": 34,
+      "draftsWithoutErrors": 2,
+      "allErrorDetailsRead": true,
+      "remoteModerationReasonPresent": false
+    },
+    "wb": {
+      "cards": 388,
+      "variants": 1982,
+      "pages": 4,
+      "pageCounts": [
+        100,
+        100,
+        100,
+        88
+      ]
+    },
+    "coverage": {
+      "variantsWithAtLeastOneCatalogPublishedGtin": 1,
+      "variantsWithoutCatalogPublishedGtin": 1981,
+      "variantsWithMultipleDistinctCatalogPublishedGtins": 0,
+      "distinctPublishedGtinsPresentOnWb": 1,
+      "publishedGtinsSharedAcrossDistinctWbVariants": 0,
+      "publishedGtinsSharedAcrossDistinctSizeLabels": 0,
+      "variantsUsingPublishedGtinsSharedAcrossDistinctSizeLabels": 0
+    },
+    "classification": "Exact barcode membership in the currently read Catalog published set only; not a new write, global registration status, identity, permit or account-ownership proof.",
+    "wbErrorSummary": "docs/validation/2026-10-20-vncode-153-wb-error-readonly-recheck.json",
+    "wbErrors": {
+      "whitespaceMessages": 7,
+      "fresh20261020": 5,
+      "historical20261017": 2,
+      "allWithEdgeWhitespace": true,
+      "trimCollisions": 0,
+      "groupDependentMessages": 61,
+      "groupDependentMessagesOnly20261017": true,
+      "internalSpacesProhibitedProved": false,
+      "newCandidateWriteAccepted": false
+    }
+  },
+  "initialFinalScopeFocusedAttempt": {
+    "state": "failed-fixtures-repaired-before-final-commit",
+    "tests": 226,
+    "failures": 9,
+    "scope": "Fixture-only conditional attribute m/a HTTP responses and global inventory count expectations; repaired before the final source freeze. This attempt is not a passing regression proof.",
+    "log": "/tmp/vncode-153-znack-gtin-final-focused.log",
+    "acceptedForFinalScope": false
   }
 }
