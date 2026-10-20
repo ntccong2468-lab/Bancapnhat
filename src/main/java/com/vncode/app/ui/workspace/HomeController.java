@@ -926,6 +926,7 @@ public class HomeController implements Initializable {
                     file=updateInstallerService.saveDownloadedInstaller(info,file);
                 }else{
                     preparing.set(true);updateProgress(-1,1);updateMessage(i18nService.tr("update.progress.phase.VERIFYING"));
+                    final long[] lastSnapshotUpdate={0};final String[] lastSnapshotPhase={""};
                     // Keep one worker/dialog through download, rollback and launch. A completed
                     // download is never advertised as a completed installation or queued twice.
                     var gate=new java.util.concurrent.FutureTask<Boolean>(()->{
@@ -937,6 +938,14 @@ public class HomeController implements Initializable {
                     updateInstallerService.launchInstallerAfterExit(file,phase->{
                         if(phase==UpdateInstallerService.Phase.STARTING_INSTALLER)installing.set(true);
                         updateMessage(i18nService.tr("update.progress.phase."+phase));
+                        updateProgress(-1,1);
+                    },progress->{
+                        long now=System.nanoTime();boolean newPhase=!progress.phase().equals(lastSnapshotPhase[0]);
+                        if(!newPhase&&progress.total()>0&&progress.completed()<progress.total()&&now-lastSnapshotUpdate[0]<100_000_000L)return;
+                        lastSnapshotPhase[0]=progress.phase();lastSnapshotUpdate[0]=now;
+                        if(progress.total()>0)updateProgress(Math.min(.99,(double)progress.completed()/progress.total()),1);
+                        else updateProgress(-1,1);
+                        updateMessage(MessageFormat.format(i18nService.tr("update.progress.snapshot."+progress.phase()),formatBytes(progress.completed()),formatBytes(progress.total())));
                     });
                 }
                 updateProgress(1,1);return file;

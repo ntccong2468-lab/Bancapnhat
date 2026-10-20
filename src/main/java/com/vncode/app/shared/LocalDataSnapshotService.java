@@ -31,6 +31,7 @@ import java.util.Objects;
 import java.util.Properties;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.sqlite.SQLiteConnection;
@@ -38,6 +39,8 @@ import org.sqlite.SQLiteErrorCode;
 
 /** Creates verified SQLite snapshots and crash-recoverable offline restores. */
 public final class LocalDataSnapshotService {
+    /** Actual copied/hashed bytes; an unknown total denotes an integrity-check phase. */
+    public record Progress(String phase,long completed,long total) { }
     private static final Pattern VERSION_PATTERN = Pattern.compile("[A-Za-z0-9][A-Za-z0-9._-]{0,31}");
     private static final Pattern REASON_PATTERN = Pattern.compile("[a-z0-9][a-z0-9.-]{0,63}");
     private static final Pattern SNAPSHOT_ID_PATTERN =
@@ -85,7 +88,14 @@ public final class LocalDataSnapshotService {
 
     public Snapshot create(AppDataLock ownership, String appVersion, int schemaVersion, String reason)
             throws IOException, SQLException {
+        return create(ownership,appVersion,schemaVersion,reason,progress->{});
+    }
+
+    public Snapshot create(AppDataLock ownership,String appVersion,int schemaVersion,String reason,Consumer<Progress> progress)
+            throws IOException,SQLException {
         Objects.requireNonNull(ownership, "ownership");
+        Objects.requireNonNull(progress,"progress");
+        checkCancelled();
         requireMatch(appVersion, VERSION_PATTERN, "appVersion");
         requireMatch(reason, REASON_PATTERN, "reason");
         if (schemaVersion < 0) {
@@ -108,20 +118,28 @@ public final class LocalDataSnapshotService {
         forceDirectory(snapshotsDir);
 
         try {
-            backup(liveDatabase, snapshotDatabase);
+            progress.accept(new Progress("COPYING_DATA",0,0));
+            backup(liveDatabase, snapshotDatabase,progress);
+            // sqlite-jdbc's native backup callback cannot abort its loop. A pinned
+            // source read transaction makes its work finite; cancellation is honored
+            // immediately after that copy, before hashing or publishing any receipt.
+            checkCancelled();
             forceFile(snapshotDatabase);
             // The final verify below checks the exact persisted checksum and SQLite integrity.
             // Running integrity_check here as well doubles the largest scan of a seller database.
-            String checksum = sha256(snapshotDatabase);
+            String checksum = sha256(snapshotDatabase,progress,"HASHING_SNAPSHOT",0,Files.size(snapshotDatabase));
             writeAtomic(metadata, snapshotMetadata(appVersion, schemaVersion, reason, createdAt, checksum));
 
             Snapshot snapshot = new Snapshot(
                     snapshotDatabase, metadata, checksum, appVersion, schemaVersion, reason, createdAt);
-            if (!verify(snapshot)) {
+            progress.accept(new Progress("VERIFYING_SNAPSHOT",0,0));
+            boolean verified=verify(snapshot);
+            checkCancelled();
+            if (!verified) {
                 throw new IOException("The new VN code data snapshot failed verification.");
             }
             return snapshot;
-        } catch (IOException | SQLException exception) {
+        } catch (IOException | SQLException | RuntimeException exception) {
             bestEffortDelete(metadata, exception);
             bestEffortDelete(snapshotDatabase, exception);
             bestEffortDelete(snapshotDir, exception);
@@ -979,14 +997,37 @@ public final class LocalDataSnapshotService {
                 : IntegrityStatus.UNVERIFIED;
     }
 
-    private static void backup(Path source, Path destination) throws SQLException {
-        try (Connection connection = DriverManager.getConnection("jdbc:sqlite:" + source.toAbsolutePath())) {
+    private static void backup(Path source,Path destination,Consumer<Progress> progress) throws SQLException,IOException {
+        try (Connection connection = DriverManager.getConnection("jdbc:sqlite:" + source.toAbsolutePath());
+             Statement statement=connection.createStatement()) {
+            statement.execute("PRAGMA busy_timeout=5000");
+            statement.execute("BEGIN");
+            // Pin the source's committed SQLite/WAL view once. Without this read,
+            // every FBS cache commit can restart sqlite3_backup_step from page one.
+            // WAL writers continue normally while this fixed snapshot is copied.
+            try(ResultSet pinned=statement.executeQuery("SELECT count(*) FROM sqlite_schema")){
+                if(!pinned.next())throw new SQLException("Cannot pin the VN code backup source");
+            }
+            long pageSize;
+            try(ResultSet pages=statement.executeQuery("PRAGMA page_size")){
+                if(!pages.next())throw new SQLException("Cannot read the VN code backup page size");
+                pageSize=pages.getLong(1);
+            }
+            checkCancelled();
             SQLiteConnection sqliteConnection = connection.unwrap(SQLiteConnection.class);
-            int result = sqliteConnection
-                    .getDatabase()
-                    .backup("main", destination.toAbsolutePath().toString(), (remaining, total) -> {}, 100, 100, 100);
-            if (result != SQLiteErrorCode.SQLITE_OK.code) {
-                throw new SQLException("SQLite online backup failed with result code " + result);
+            var callbackFailure=new java.util.concurrent.atomic.AtomicReference<RuntimeException>();
+            try {
+                int result = sqliteConnection.getDatabase().backup("main",destination.toAbsolutePath().toString(),(remaining,total)->{
+                    // Never throw across JNI: this driver does not unwind its backup
+                    // loop on a Java observer exception. Report it after native return.
+                    if(callbackFailure.get()==null)try{
+                        progress.accept(new Progress("COPYING_DATA",Math.max(0L,(long)total-remaining)*pageSize,Math.max(0L,total)*pageSize));
+                    }catch(RuntimeException failed){callbackFailure.compareAndSet(null,failed);}
+                },100,3,100);
+                if (result != SQLiteErrorCode.SQLITE_OK.code)throw new SQLException("SQLite online backup failed with result code " + result);
+                if(callbackFailure.get()!=null)throw callbackFailure.get();
+            } finally {
+                statement.execute("ROLLBACK");
             }
         }
     }
@@ -1002,19 +1043,30 @@ public final class LocalDataSnapshotService {
     }
 
     private static String sha256(Path file) throws IOException {
+        return sha256(file,progress->{},"HASHING_SNAPSHOT",0,Files.size(file));
+    }
+
+    private static String sha256(Path file,Consumer<Progress> progress,String phase,long offset,long total) throws IOException {
+        checkCancelled();progress.accept(new Progress(phase,offset,total));
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
             try (var input = Files.newInputStream(file)) {
                 byte[] buffer = new byte[64 * 1024];
                 int read;
                 while ((read = input.read(buffer)) >= 0) {
+                    checkCancelled();
                     digest.update(buffer, 0, read);
+                    offset+=read;progress.accept(new Progress(phase,offset,total));
                 }
             }
             return HexFormat.of().formatHex(digest.digest());
         } catch (NoSuchAlgorithmException exception) {
             throw new IllegalStateException("SHA-256 is not available", exception);
         }
+    }
+
+    private static void checkCancelled()throws java.io.InterruptedIOException {
+        if(Thread.currentThread().isInterrupted())throw new java.io.InterruptedIOException("UPDATE_CANCELLED");
     }
 
     private static boolean matchesOptionalChecksum(Path file, String checksum) throws IOException {

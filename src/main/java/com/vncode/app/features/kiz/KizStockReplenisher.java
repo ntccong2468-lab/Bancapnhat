@@ -60,9 +60,10 @@ public final class KizStockReplenisher {
                 purchaseProof.accept(Map.copyOf(toBuy));
                 var buyer=purchases.apply(shop);
                 for(var entry:toBuy.entrySet())buyer.validate(entry.getKey(),entry.getValue());
-                String request=UUID.randomUUID().toString();int enqueued=0;
+                int enqueued=0;
                 for(var entry:toBuy.entrySet()){
-                    ListingIdentity.require(shop);buyer.enqueue(entry.getKey(),entry.getValue(),"stock:"+request+":"+entry.getKey());enqueued++;
+                    // The shared purchase coordinator accepts one canonical UUID per paid request.
+                    ListingIdentity.require(shop);buyer.enqueue(entry.getKey(),entry.getValue(),UUID.randomUUID().toString());enqueued++;
                 }
                 if(enqueued>0)buyer.resume();
                 return new Result(missing,enqueued,!missing.isEmpty());

@@ -28,6 +28,9 @@ class UpdateHandoffUiTest {
     IOException launchFailure;
     CountDownLatch preparationEntered;
     CountDownLatch allowPreparation;
+    boolean emitSnapshotProgress;
+    CountDownLatch verificationEntered;
+    CountDownLatch allowVerification;
 
     @BeforeAll static void toolkit() {
         try { Platform.startup(() -> Platform.setImplicitExit(false)); } catch (IllegalStateException running) { }
@@ -44,10 +47,12 @@ class UpdateHandoffUiTest {
                 catch (Exception failed) { throw new IOException("fixture cannot inspect progress window", failed); }
                 return installer;
             }
-            @Override public void launchInstallerAfterExit(Path file,java.util.function.Consumer<Phase> phase) throws IOException {
+            @Override public void launchInstallerAfterExit(Path file,java.util.function.Consumer<Phase> phase,java.util.function.Consumer<LocalDataSnapshotService.Progress> progress) throws IOException {
                 wrongThread.compareAndSet(false, Platform.isFxApplicationThread());
                 phase.accept(Phase.BACKUP);
+                if(emitSnapshotProgress)progress.accept(new LocalDataSnapshotService.Progress("COPYING_DATA",1024,4096));
                 if(preparationEntered!=null){preparationEntered.countDown();try{if(!allowPreparation.await(5,TimeUnit.SECONDS))throw new IOException("fixture preparation deadline");}catch(InterruptedException cancelled){Thread.currentThread().interrupt();throw new IOException("fixture cancelled",cancelled);}}
+                if(emitSnapshotProgress){progress.accept(new LocalDataSnapshotService.Progress("VERIFYING_SNAPSHOT",0,0));verificationEntered.countDown();try{if(!allowVerification.await(5,TimeUnit.SECONDS))throw new IOException("fixture integrity deadline");}catch(InterruptedException cancelled){Thread.currentThread().interrupt();throw new IOException("fixture cancelled",cancelled);}}
                 handedOff.set(file);
                 if (launchFailure != null) throw launchFailure;
             }
@@ -64,6 +69,7 @@ class UpdateHandoffUiTest {
     }
     @AfterEach void cleanup() throws Exception {
         if(allowPreparation!=null)allowPreparation.countDown();
+        if(allowVerification!=null)allowVerification.countDown();
         fx(() -> { home.dispose(); for (var window : List.copyOf(Window.getWindows())) window.hide(); return null; });
         com.vncode.app.testsupport.ShopReadTestCleanup.awaitSharedIdle();
         System.clearProperty("vncode.appdata.dir");
@@ -89,6 +95,23 @@ class UpdateHandoffUiTest {
         assertTrue(reached100.get()); assertFalse(wrongThread.get());
         assertEquals(data.resolve("downloaded-installer.exe"), handedOff.get());
         assertFalse(fx(() -> (boolean) field("updateDownloadRunning")));
+    }
+    @Test void realBackupByteProgressKeepsFxResponsiveAndResetsBeforeIntegrityVerification()throws Exception {
+        emitSnapshotProgress=true;preparationEntered=new CountDownLatch(1);allowPreparation=new CountDownLatch(1);
+        verificationEntered=new CountDownLatch(1);allowVerification=new CountDownLatch(1);start();
+        assertTrue(preparationEntered.await(5,TimeUnit.SECONDS));
+        long until=System.nanoTime()+TimeUnit.SECONDS.toNanos(5);
+        while(System.nanoTime()<until&&!fx(()->progressBars().stream().anyMatch(bar->Math.abs(bar.getProgress()-.25)<.001)))Thread.sleep(10);
+        fx(()->{
+            assertTrue(progressBars().stream().anyMatch(bar->Math.abs(bar.getProgress()-.25)<.001));
+            assertTrue(labels().stream().anyMatch(text->text.contains(I18nService.getInstance().tr("update.progress.snapshot.COPYING_DATA").split("\\{0\\}")[0])));
+            assertFalse(labels().contains("100%"));assertTrue(home.contentPane.isDisabled());return null;
+        });
+        assertFalse(exited.isDone());allowPreparation.countDown();assertTrue(verificationEntered.await(5,TimeUnit.SECONDS));
+        until=System.nanoTime()+TimeUnit.SECONDS.toNanos(5);
+        while(System.nanoTime()<until&&!fx(()->labels().contains(I18nService.getInstance().tr("update.progress.snapshot.VERIFYING_SNAPSHOT"))))Thread.sleep(10);
+        fx(()->{assertTrue(labels().contains(I18nService.getInstance().tr("update.progress.snapshot.VERIFYING_SNAPSHOT")));assertFalse(progressBars().isEmpty());assertTrue(progressBars().stream().allMatch(bar->bar.getProgress()<0));assertFalse(labels().contains("100%"));return null;});
+        assertFalse(exited.isDone());allowVerification.countDown();exited.get(5,TimeUnit.SECONDS);assertFalse(wrongThread.get());
     }
     @Test void installerPreparationFailureIsReportedAsLaunchFailureAndAppStaysOpen() throws Exception {
         launchFailure = new IOException("fixture-installer-rejected"); start();
@@ -138,6 +161,8 @@ class UpdateHandoffUiTest {
         });
     }
     private Object field(String name) throws Exception { Field f = HomeController.class.getDeclaredField(name); f.setAccessible(true); return f.get(home); }
+    private List<ProgressBar> progressBars(){return Window.getWindows().stream().filter(Window::isShowing).flatMap(w->w.getScene().getRoot().lookupAll(".progress-bar").stream()).filter(ProgressBar.class::isInstance).map(ProgressBar.class::cast).toList();}
+    private List<String> labels(){return Window.getWindows().stream().filter(Window::isShowing).flatMap(w->w.getScene().getRoot().lookupAll(".label").stream()).filter(Label.class::isInstance).map(Label.class::cast).map(Label::getText).toList();}
     private String diagnostics() {
         return Window.getWindows().stream().filter(Window::isShowing)
                 .flatMap(w -> w.getScene().getRoot().lookupAll(".text-area").stream())

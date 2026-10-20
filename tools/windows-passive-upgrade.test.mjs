@@ -7,7 +7,7 @@ const workflow=readFileSync(new URL('../.github/workflows/build-java.yml',import
 const installer=readFileSync(new URL('../src/main/java/com/vncode/app/integration/update/UpdateInstallerService.java',import.meta.url),'utf8');
 
 test('latest upgrade executes the final EXE with exactly the runtime passive arguments',()=>{
-    const start=probe.indexOf('    if($FromStable152){',probe.indexOf('Invalid pre-upgrade fingerprint.'));
+    const start=probe.indexOf('    if($FromStable152 -or $FromStable153){',probe.indexOf('Invalid pre-upgrade fingerprint.'));
     const end=probe.indexOf('    $registrations=Registrations',start);
     assert.ok(start>=0&&end>start,'The EXE protocol must run for the latest baseline');
     const upgrade=probe.slice(start,end);
@@ -26,7 +26,7 @@ test('latest upgrade executes the final EXE with exactly the runtime passive arg
 
 test('native EXE proof is bound to the exact MSI and public artifact bytes',()=>{
     const selection=probe.slice(probe.indexOf('$passiveExeUpgradeSucceeded=$false'),probe.indexOf('function Property('));
-    assert.match(selection,/if\(\$FromStable152\)\{/);
+    assert.match(selection,/if\(\$FromStable152 -or \$FromStable153\)\{/);
     assert.match(selection,/Get-ChildItem -LiteralPath \(Join-Path \$PWD 'out'\) -Filter 'VN code\*\.exe' -File/);
     assert.match(selection,/\$installers\.Count -ne 1/);
     assert.match(selection,/\$installers\[0\]\.Length -lt 1MB/);
@@ -37,6 +37,9 @@ test('native EXE proof is bound to the exact MSI and public artifact bytes',()=>
     assert.ok(workflow.indexOf('windows-upgrade-smoke.ps1 -Version $env:APP_VERSION -FromStable152')
         <workflow.indexOf('- name: Verify and name test installer'),
         'The tested EXE is only renamed, never repackaged after the native probe');
+    const stable153Step=workflow.indexOf('windows-upgrade-smoke.ps1 -Version $env:APP_VERSION -FromStable153');
+    assert.ok(stable153Step>=0&&stable153Step<workflow.indexOf('- name: Verify and name test installer'),
+        'The latest published baseline must execute the same final EXE before it is renamed');
     assert.match(probe,/\$proof\.passiveExeInstallerSha256=\$passiveExeInstallerSha256/);
     assert.match(probe,/\$proof\.passiveExeEmbeddedMsiSha256=\$passiveExeEmbeddedMsiSha256/);
 });
@@ -51,6 +54,29 @@ test('passive handoff is reported only after real upgrade and all preserved-data
     assert.ok(flag>probe.indexOf("throw 'Existing VN code data or saved templates changed during upgrade.'"));
     assert.ok(flag>probe.indexOf("throw 'Uninstall did not preserve upgrade data.'"));
     assert.equal((probe.match(/\$proof\.passiveExeHandoffVerified=\$true/g)??[]).length,1);
-    assert.match(probe,/if\(\$FromStable152\)\{\s+if\(-not \$passiveExeUpgradeSucceeded\)\{throw 'Passive EXE handoff was not exercised\.'/);
+    assert.match(probe,/if\(\$FromStable152 -or \$FromStable153\)\{\s+if\(-not \$passiveExeUpgradeSucceeded\)\{throw 'Passive EXE handoff was not exercised\.'/);
     assert.ok(probe.indexOf('$proof | ConvertTo-Json | Set-Content')>flag);
+});
+
+test('1.5.3 upgrade pins the published bytes and preserves the complete 1.5.2 proof chain',()=>{
+    const published=JSON.parse(readFileSync(new URL('../docs/releases/VN-code-1.5.3-status.json',import.meta.url),'utf8')).publication;
+    const selected=(name,flag)=>{
+        const line=probe.split('\n').find(value=>value.startsWith('$'+name+'='));
+        return new Map([...line.matchAll(/(?:if|elseif)\(\$(\w+)\)\{'([^']+)'\}/g)].map(match=>[match[1],match[2]])).get(flag);
+    };
+    assert.equal(selected('fromVersion','FromStable153'),'1.5.3');
+    assert.equal(selected('baselineUrl','FromStable153'),published.releaseUrl.replace('/tag/','/download/')+'/VN-code-1.5.3-Windows-x64.exe');
+    assert.equal(selected('baselineHash','FromStable153'),published.installerSha256);
+    const size=probe.match(/\$baselineBytes=if\(\$FromStable153\)\{([0-9]+)\}else\{\$null\}/);
+    assert.ok(size);assert.equal(Number(size[1]),published.installerBytes);
+    const sizeGuard=probe.indexOf("throw 'Incorrect baseline VN code installer size.'");
+    const hashGuard=probe.indexOf("throw 'Incorrect baseline VN code installer checksum.'");
+    const extract=probe.indexOf('[VNcode.Smoke.EmbeddedMsi]::Extract($oldExe,$oldMsi)');
+    assert.ok(sizeGuard>hashGuard&&sizeGuard<extract,'Both checksum and exact size must pass before the old installer is consumed');
+    assert.match(probe,/if\(\$FromStable153 -and \[version\]\$Version -le \[version\]'1\.5\.3'\)/);
+    assert.match(probe,/\$previous=Get-Content \$\(if\(\$FromStable152\)\{'out\\upgrade-stable-151-smoke\.json'\}elseif\(\$FromStable153\)\{'out\\upgrade-stable-152-smoke\.json'\}/);
+    assert.match(probe,/Set-Content \$\(if\(\$FromStable152\)\{'out\\upgrade-stable-152-smoke\.json'\}elseif\(\$FromStable153\)\{'out\\upgrade-stable-153-smoke\.json'\}/);
+    assert.match(probe,/if\(\$FromStable153\)\{\s+\$proof\.baselineTag='v1\.5\.3'\s+\$proof\.baselineInstallerSha256=\$baselineHash\s+\$proof\.baselineInstallerBytes=\$baselineBytes/);
+    assert.equal((probe.match(/if\(\$FromStable152 -or \$FromStable153\)\{/g)??[]).length,3,
+        'Both baselines must select, execute and attest the verified passive EXE protocol');
 });

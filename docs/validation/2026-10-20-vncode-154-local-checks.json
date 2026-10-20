@@ -1,0 +1,124 @@
+{
+  "version": "1.5.4",
+  "sourceCommit": null,
+  "sourceRuntimeIsFinal": false,
+  "baseline": {
+    "version": "1.5.3",
+    "tag": "v1.5.3",
+    "sourceCommit": "69ffc7ecb60a91c874510522c4aae3c5be069ccd",
+    "releaseUrl": "https://github.com/ntccong2468-lab/Bancapnhat/releases/tag/v1.5.3",
+    "installerFile": "VN-code-1.5.3-Windows-x64.exe",
+    "installerBytes": 146864128,
+    "installerSha256": "ec608d3677581c12901ee702e516cb2eea2757a5a9ee8fd84a2ce2438e8a3f31",
+    "installerUrl": "https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.5.3/VN-code-1.5.3-Windows-x64.exe",
+    "immutable": true
+  },
+  "runtimeChanges": [
+    {
+      "area": "updater",
+      "state": "implemented-focused-regression-passed-awaiting-full-suite",
+      "scope": "Pin SQLite source read view during backup; real byte/hash/integrity progress and cancellation while preserving snapshot/restore checks."
+    },
+    {
+      "area": "kiz-stock-replenishment",
+      "state": "implemented-awaiting-regression",
+      "scope": "Canonical per-GTIN UUID for new stock purchase requests on the shared WB/Ozon coordinator."
+    },
+    {
+      "area": "kiz-paid-code-readback",
+      "state": "implemented-awaiting-regression",
+      "scope": "Do not replay codes GET; retain partial quantity checkpoint; match the exact GTIN buffer and report missing/ambiguous status."
+    },
+    {
+      "area": "kiz-error-ui",
+      "state": "implemented-focused-regression-passed-awaiting-full-suite",
+      "scope": "Localized missing/ambiguous buffer diagnosis and continued reconciliation of the existing paid order."
+    }
+  ],
+  "linuxFullSuite": {
+    "state": "awaiting-final-source-and-execution",
+    "sourceCommit": null,
+    "countsRecorded": false,
+    "tests": null,
+    "failures": null,
+    "errors": null,
+    "skipped": null,
+    "freshFullExecutionRequired": true,
+    "acceptedForRelease": false
+  },
+  "releaseToolSuite": {
+    "state": "passed-preparation-unbound",
+    "sourceCommit": null,
+    "tests": 90,
+    "failures": 0,
+    "fullSuiteExecuted": true,
+    "countsRecorded": true,
+    "command": "node --test tools/*.test.mjs",
+    "log": "/tmp/vncode-154-node-preparation.log",
+    "acceptedForFinalScope": false,
+    "scope": "Working-tree release preparation, source not frozen or bound; rerun after the final scope freezes."
+  },
+  "windowsBuild": {
+    "state": "preparation-unbound",
+    "sourceCommit": null,
+    "runId": null,
+    "url": null,
+    "freshFullJavaExecutionRequired": true,
+    "allNativeChecksMustRunAgain": true,
+    "upgradeFrom153Passed": false,
+    "passiveExeHandoffVerified": null,
+    "allNativeChecksPassed": false,
+    "installerPackaged": false,
+    "verifiedNativeProofs": null
+  },
+  "windowsBuildRun": null,
+  "localJar": {
+    "state": "not-recorded",
+    "sha256": null,
+    "bytes": null,
+    "sourceRuntimeCommit": null,
+    "windowsInstaller": false,
+    "publicDownloadVerified": false
+  },
+  "liveProductionRegistrationPerformed": false,
+  "liveKizPurchaseThisVersion": false,
+  "livePaidKizOrderThisVersion": false,
+  "liveProductionOzonSplitPerformed": false,
+  "productionLicenseVerified": false,
+  "liveCryptoProSigningThisVersion": false,
+  "liveLicensedDesktopGtinWriteThisVersion": false,
+  "liveApiWbGtinWriteThisVersion": false,
+  "liveApiOzonGtinWriteThisVersion": false,
+  "liveCatalogCardCreatedThisVersion": false,
+  "liveCatalogCardRepairedThisVersion": false,
+  "publication": {
+    "state": "preparation-unbound",
+    "published": false,
+    "latestReleaseChanged": false,
+    "installerSha256": null,
+    "installerBytes": null
+  },
+  "requiredRegression": [
+    "Pinned-source SQLite/WAL backup completes despite ongoing writes",
+    "Backup progress, cancellation and data integrity/restore remain enforced",
+    "Fresh WB/Ozon stock replenishment UUID accepted by canonical purchase coordinator",
+    "Paid codes GET is not replayed after transport/HTTP failure",
+    "Partial code delivery does not count as all codes downloaded",
+    "Order status selects the exact GTIN buffer and keeps ambiguous/missing checkpoints",
+    "Full final-source Windows Java and all native/previous upgrade proofs",
+    "Actual passive EXE handoff from immutable published 1.5.3 with data preserved"
+  ],
+  "countsRecorded": false,
+  "focusedRuntimeSuite": {
+    "state": "passed-final-working-tree-before-commit",
+    "sourceCommit": null,
+    "tests": 193,
+    "passed": 193,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "acceptedForFinalScope": false,
+    "scope": "Root-observed focused regression including live-WAL snapshot2, updater UI5, FXML55, KIZ readback7 and friendly errors9; bind to the actual final runtime commit when available."
+  },
+  "updatePreparationEvidence": "docs/validation/2026-10-20-vncode-154-update-preparation.md"
+}

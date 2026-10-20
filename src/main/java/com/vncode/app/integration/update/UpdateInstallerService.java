@@ -112,11 +112,14 @@ public class UpdateInstallerService {
         launchInstallerAfterExit(installerFile,phase->{});
     }
     public void launchInstallerAfterExit(Path installerFile,java.util.function.Consumer<Phase> phase) throws IOException {
+        launchInstallerAfterExit(installerFile,phase,progress->{});
+    }
+    public void launchInstallerAfterExit(Path installerFile,java.util.function.Consumer<Phase> phase,java.util.function.Consumer<com.vncode.app.shared.LocalDataSnapshotService.Progress> progress) throws IOException {
         checkCancelled();phase.accept(Phase.VERIFYING);
         var verified=verifiedFiles.get(installerFile.toAbsolutePath().normalize());
         if(verified==null||!verified.sha256().equals(fileHash(installerFile)))throw new IOException("UPDATE_CHECKSUM_MISMATCH");
         checkCancelled();phase.accept(Phase.BACKUP);
-        com.vncode.app.Launcher.prepareUpdateSnapshot(verified.version());
+        com.vncode.app.Launcher.prepareUpdateSnapshot(verified.version(),progress);
         checkCancelled();phase.accept(Phase.STARTING_INSTALLER);
         String command = buildWindowsInstallCommand(installerFile);
         checkCancelled();

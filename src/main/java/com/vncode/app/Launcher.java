@@ -38,9 +38,12 @@ public class Launcher {
         prepareUpdateSnapshot(null);
     }
     public static void prepareUpdateSnapshot(String targetVersion)throws java.io.IOException {
+        prepareUpdateSnapshot(targetVersion,progress->{});
+    }
+    public static void prepareUpdateSnapshot(String targetVersion,java.util.function.Consumer<com.vncode.app.shared.LocalDataSnapshotService.Progress> progress)throws java.io.IOException {
         var session=dataSession;
         if(session==null)throw new java.io.IOException("UPDATE_BACKUP_UNAVAILABLE");
-        try{session.createSignedUpdateSnapshot(targetVersion);}
+        try{session.createSignedUpdateSnapshot(targetVersion,progress);}
         catch(Exception failed){throw new java.io.IOException("UPDATE_BACKUP_FAILED", failed);}
     }
 

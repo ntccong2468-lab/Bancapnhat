@@ -2,7 +2,7 @@ import {origin151,plan151} from './reuse-verified-windows-java-151.mjs';
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {validateStableAsset,validatePublishedStable,validateReusedJava,validateOwnerApproved1418,validateOwnerApproved1419,validateOwnerRequest1419,validateOwnerRequested150,validateOwnerRequest151,validateOwnerRequested151,validateOwnerRequest152,validateOwnerRequested152,validateOwnerRequest153,validateOwnerRequested153,validateOwner153UpgradeProof,validateFixtureRecovery} from './publish-vncode-stable.mjs';
+import {validateStableAsset,validatePublishedStable,validateReusedJava,validateOwnerApproved1418,validateOwnerApproved1419,validateOwnerRequest1419,validateOwnerRequested150,validateOwnerRequest151,validateOwnerRequested151,validateOwnerRequest152,validateOwnerRequested152,validateOwnerRequest153,validateOwnerRequested153,validateOwner153UpgradeProof,owner154Binding,owner154RequiredNativeProofs,validateOwner154UpgradeProof,validateOwner154Evidence,validateOwnerRequest154,validateOwnerRequested154,validateFixtureRecovery} from './publish-vncode-stable.mjs';
 import {origin} from './reuse-verified-windows-java.mjs';
 
 const version='1.4.6',digest='a'.repeat(64),size=140000000;
@@ -243,7 +243,7 @@ test('1.5.3 must verify and ship the actual 1.5.2 upgrade proof before release m
  assert.match(source,/else validateUpgradeSmoke\(upgrade152,version,'1\.5\.2'\);\s+proofFiles\.push\('upgrade-stable-152-smoke\.json'\);/);
  assert.ok(source.indexOf("'upgrade-stable-152-smoke.json'",source.indexOf('async function main'))<source.indexOf("const refs=api("));
  const workflow=readFileSync(new URL('../.github/workflows/publish-vncode-stable.yml',import.meta.url),'utf8');
- assert.match(workflow,/owner-requested-153\]/);
+ assert.match(workflow,/options: \[[^\]]*owner-requested-153(?:,|\])/);
  assert.match(source,/if\(mode==='owner-requested-153'\) \{\s+assert\.ok\(!logs\.includes\('REUSED_WINDOWS_JAVA:'\)&&!logs\.includes\('RECONCILED_WINDOWS_JAVA:'\)/);
 });
 
@@ -255,4 +255,102 @@ test('1.5.3 passive EXE handoff proof still requires preserved data and the exac
  assert.throws(()=>validateOwner153UpgradeProof(proof,'1.5.4','b'.repeat(64)));
  assert.throws(()=>validateOwner153UpgradeProof(proof,'1.5.3'));
  assert.throws(()=>validateOwner153UpgradeProof(proof,'1.5.3','a'.repeat(64)));
+});
+
+function owner154Fixture(pending=false){
+ const version='1.5.4',sha=owner154Binding.sourceCommit??'a'.repeat(40),runId=String(owner154Binding.runId??'123456789');
+ const java={tests:2072,failures:0,errors:0,skipped:2,passed:2070};
+ const decision={version,sourceCommit:sha,sourceRuntimeIsFinal:true,runId,phase:pending?'authorized-awaiting-verified-build':'verified-for-publication',
+  ownerRequestedPublication:true,ownerInstruction:'xong phần này thì đóng gói bản cập nhật mới lên latest để phát hành xuống app.',
+  unverifiedChecksDisclosedBeforePublication:true,standardFullAcceptanceClaimed:false,
+  productionLicenseAcceptance:false,enterpriseCryptoProSigningAccepted:false,licensedDesktopGtinWriteAccepted:false,
+  liveApiWbGtinWriteThisVersion:false,liveApiOzonGtinWriteThisVersion:false,liveCatalogCardCreatedThisVersion:false,
+  liveCatalogCardRepairedThisVersion:false,liveKizPurchaseThisVersion:false,livePaidKizOrderThisVersion:false,liveApiWbKizPurchaseThisVersion:false,liveApiOzonKizPurchaseThisVersion:false,
+  installerSha256:pending?null:'b'.repeat(64),installerBytes:pending?null:146900000,windowsJava:pending?null:java,
+  verifiedNativeProofs:pending?null:[...owner154RequiredNativeProofs],passiveExeHandoffVerified:pending?null:true};
+ const build={state:pending?'running':'passed',runId,sourceCommit:sha,freshFullJavaExecutionRequired:true,allNativeChecksMustRunAgain:true,
+  ...(pending?{}:{upgradeFrom153Passed:true,allNativeChecksPassed:true,installerPackaged:true,passiveExeHandoffVerified:true,fullJavaSuite:java})};
+ const status={version,sourceCommit:sha,sourceRuntimeIsFinal:true,baseline:'v1.5.3',complete:false,databaseSchema:6,
+  requestReport:'VN-code-1.5.4-request-report.md',licenseIntegration:{productionReady:false,changedInThisVersion:false},
+  validation:{productionLicenseVerified:false,liveCryptoProSigningThisVersion:false,liveLicensedDesktopGtinWriteThisVersion:false,
+   liveApiWbGtinWriteThisVersion:false,liveApiOzonGtinWriteThisVersion:false,liveCatalogCardCreatedThisVersion:false,
+   liveCatalogCardRepairedThisVersion:false,liveKizPurchaseThisVersion:false,livePaidKizOrderThisVersion:false,liveApiWbKizPurchaseThisVersion:false,liveApiOzonKizPurchaseThisVersion:false,
+   linuxFullSuite:{state:'passed',sourceCommit:sha,fullSuiteExecuted:true,cleanVerifyExecuted:true,tests:2072,failures:0,errors:0},windowsBuild:build}};
+ return {version,sha,runId,java,decision,status};
+}
+
+test('1.5.4 evidence cannot fabricate build results or claim a production purchase',()=>{
+ for(const pending of [true,false]){
+  const f=owner154Fixture(pending),{decision,status,version,sha,runId}=f;
+  validateOwner154Evidence(decision,status,version,sha,runId);
+  for(const patch of [{sourceCommit:null},{runId:null},{sourceRuntimeIsFinal:false},{ownerRequestedPublication:false},
+   {standardFullAcceptanceClaimed:true},{unverifiedChecksDisclosedBeforePublication:false},{productionLicenseAcceptance:true},
+   {enterpriseCryptoProSigningAccepted:true},{liveKizPurchaseThisVersion:true},{livePaidKizOrderThisVersion:true},{liveApiWbKizPurchaseThisVersion:true},{liveApiOzonKizPurchaseThisVersion:true}])
+   assert.throws(()=>validateOwner154Evidence({...decision,...patch},status,version,sha,runId));
+  for(const patch of [{sourceCommit:'b'.repeat(40)},{sourceRuntimeIsFinal:false},{baseline:'v1.5.2'},{complete:true},
+   {licenseIntegration:{productionReady:true,changedInThisVersion:false}}])
+   assert.throws(()=>validateOwner154Evidence(decision,{...status,...patch},version,sha,runId));
+  for(const patch of [{state:'running'},{sourceCommit:'b'.repeat(40)},{fullSuiteExecuted:false},{cleanVerifyExecuted:false},{tests:2071},{failures:1},{errors:1}])
+   assert.throws(()=>validateOwner154Evidence(decision,{...status,validation:{...status.validation,linuxFullSuite:{...status.validation.linuxFullSuite,...patch}}},version,sha,runId));
+  for(const field of ['productionLicenseVerified','liveCryptoProSigningThisVersion','liveKizPurchaseThisVersion','livePaidKizOrderThisVersion','liveApiWbKizPurchaseThisVersion','liveApiOzonKizPurchaseThisVersion'])
+   assert.throws(()=>validateOwner154Evidence(decision,{...status,validation:{...status.validation,[field]:true}},version,sha,runId));
+ }
+ const f=owner154Fixture(true),{decision,status,version,sha,runId}=f;
+ for(const patch of [{installerSha256:'b'.repeat(64)},{installerBytes:146900000},{windowsJava:f.java},{verifiedNativeProofs:[]},{passiveExeHandoffVerified:true}])
+  assert.throws(()=>validateOwner154Evidence({...decision,...patch},status,version,sha,runId));
+ for(const patch of [{state:'passed'},{fullJavaSuite:f.java},{freshFullJavaExecutionRequired:false},{allNativeChecksMustRunAgain:false},
+  {upgradeFrom153Passed:true},{allNativeChecksPassed:true},{installerPackaged:true},{passiveExeHandoffVerified:true}])
+  assert.throws(()=>validateOwner154Evidence(decision,{...status,validation:{...status.validation,windowsBuild:{...status.validation.windowsBuild,...patch}}},version,sha,runId));
+ const verified=owner154Fixture();
+ for(const patch of [{verifiedNativeProofs:owner154RequiredNativeProofs.filter(n=>n!=='upgrade-stable-152-smoke.json')},
+  {verifiedNativeProofs:owner154RequiredNativeProofs.filter(n=>n!=='upgrade-stable-153-smoke.json')},
+  {windowsJava:{...verified.java,tests:2071}},{windowsJava:{...verified.java,failures:1}},{windowsJava:{...verified.java,skipped:3}},
+  {passiveExeHandoffVerified:false},{installerSha256:null}])
+  assert.throws(()=>validateOwner154Evidence({...verified.decision,...patch},verified.status,verified.version,verified.sha,verified.runId));
+ for(const patch of [{state:'running'},{upgradeFrom153Passed:false},{allNativeChecksPassed:false},{installerPackaged:false},{passiveExeHandoffVerified:false}])
+  assert.throws(()=>validateOwner154Evidence(verified.decision,{...verified.status,validation:{...verified.status.validation,windowsBuild:{...verified.status.validation.windowsBuild,...patch}}},verified.version,verified.sha,verified.runId));
+});
+
+test('1.5.4 authorization rejects unbound preparation and any other consistent source or run',()=>{
+ for(const pending of [true,false]){
+  const {decision,status,version,sha,runId}=owner154Fixture(pending);
+  if(owner154Binding.sourceCommit===null||owner154Binding.runId===null){
+   assert.throws(()=>validateOwnerRequest154(decision,status,version,sha,runId));
+   assert.throws(()=>validateOwnerRequested154(decision,status,version,sha,runId));
+  }else{
+   validateOwnerRequest154(decision,status,version,sha,runId);
+   if(!pending)validateOwnerRequested154(decision,status,version,sha,runId);
+  }
+  const other='b'.repeat(40),otherRun='999999999';
+  assert.throws(()=>validateOwnerRequest154({...decision,sourceCommit:other},{...status,sourceCommit:other,validation:{...status.validation,linuxFullSuite:{...status.validation.linuxFullSuite,sourceCommit:other},windowsBuild:{...status.validation.windowsBuild,sourceCommit:other}}},version,other,runId));
+  assert.throws(()=>validateOwnerRequest154({...decision,runId:otherRun},{...status,validation:{...status.validation,windowsBuild:{...status.validation.windowsBuild,runId:otherRun}}},version,sha,otherRun));
+ }
+ const receipt=JSON.parse(readFileSync(new URL('../docs/validation/2026-10-20-vncode-154-owner-publication.json',import.meta.url),'utf8'));
+ const status=JSON.parse(readFileSync(new URL('../docs/releases/VN-code-1.5.4-status.json',import.meta.url),'utf8'));
+ if(receipt.sourceCommit===null||receipt.runId===null)
+  assert.throws(()=>validateOwnerRequest154(receipt,status,'1.5.4',receipt.sourceCommit,receipt.runId),'An actual unbound preparation record never authorizes publication');
+});
+
+test('1.5.4 upgrade proof binds immutable published1.5.3 and the exact target EXE',()=>{
+ const proof={appName:'VN code',version:'1.5.4',fromVersion:'1.5.3',result:'passed',installerUpgradeUuid:'8CBBA0E2-6E73-4F56-9101-6BC0948D3C72',
+  singleRegistration:true,dataPreserved:true,liveMarketplaceMutations:false,fingerprint:'a'.repeat(64),passiveExeHandoffVerified:true,
+  passiveExeInstallerSha256:'b'.repeat(64),passiveExeEmbeddedMsiSha256:'c'.repeat(64),baselineTag:'v1.5.3',baselineInstallerBytes:146864128,
+  baselineInstallerSha256:'ec608d3677581c12901ee702e516cb2eea2757a5a9ee8fd84a2ce2438e8a3f31'};
+ validateOwner154UpgradeProof(proof,'1.5.4','b'.repeat(64));
+ for(const patch of [{baselineTag:'v1.5.2'},{baselineInstallerBytes:146864129},{baselineInstallerSha256:'a'.repeat(64)},
+  {fromVersion:'1.5.2'},{passiveExeHandoffVerified:false},{passiveExeInstallerSha256:'a'.repeat(64)},
+  {passiveExeEmbeddedMsiSha256:'bad'},{dataPreserved:false},{singleRegistration:false},{liveMarketplaceMutations:true}])
+  assert.throws(()=>validateOwner154UpgradeProof({...proof,...patch},'1.5.4','b'.repeat(64)));
+ assert.throws(()=>validateOwner154UpgradeProof(proof,'1.5.5','b'.repeat(64)));
+});
+
+test('1.5.4 keeps all prior native proofs and verifies passive upgrade before release mutation',()=>{
+ const source=readFileSync(new URL('./publish-vncode-stable.mjs',import.meta.url),'utf8');
+ assert.equal(owner154RequiredNativeProofs.length,24);
+ assert.ok(owner154RequiredNativeProofs.includes('upgrade-stable-152-smoke.json'));
+ assert.ok(owner154RequiredNativeProofs.includes('upgrade-stable-153-smoke.json'));
+ assert.ok(source.indexOf("validateOwner154UpgradeProof(upgrade153,version,digest)")<source.indexOf('const refs=api('));
+ assert.match(source,/if\(mode==='owner-requested-154'\) \{\s+assert\.ok\(!logs\.includes\('REUSED_WINDOWS_JAVA:'\)&&!logs\.includes\('RECONCILED_WINDOWS_JAVA:'\)/);
+ const workflow=readFileSync(new URL('../.github/workflows/publish-vncode-stable.yml',import.meta.url),'utf8');
+ assert.match(workflow,/owner-requested-154\]/);
 });

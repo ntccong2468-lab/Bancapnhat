@@ -200,7 +200,13 @@ public class ZnackApiClient {
     }
     public JsonArray orderStatus(String base,String token,String omsId,String orderId)throws IOException{return suzGet(base,"/api/v3/order/status?omsId="+url(omsId)+"&orderId="+url(orderId),token).getAsJsonArray();}
     public JsonElement codes(String base,String token,String omsId,String orderId,int quantity,String gtin)throws IOException{
-        return suzGet(base,"/api/v3/codes?omsId="+url(omsId)+"&orderId="+url(orderId)+"&quantity="+quantity+"&gtin="+url(gtin),token);
+        // Despite GET, this issues a new block from the paid order's buffer. A lost response must
+        // be recovered through /order/codes/blocks and /order/codes/retry, never transparently
+        // repeated by OkHttp as an ordinary read.
+        Request request=new Request.Builder().url(join(base,"/api/v3/codes?omsId="+url(omsId)
+                +"&orderId="+url(orderId)+"&quantity="+quantity+"&gtin="+url(gtin)))
+                .headers(suzHeaders(token)).get().build();
+        return execute(request,false,false);
     }
     public JsonElement codeBlocks(String base,String token,String omsId,String orderId,String gtin)throws IOException{
         return suzGet(base,"/api/v3/order/codes/blocks?omsId="+url(omsId)+"&orderId="+url(orderId)+"&gtin="+url(gtin),token);

@@ -219,18 +219,22 @@ public final class LocalDataMigrationGate {
         }
 
         public synchronized void createSignedUpdateSnapshot(String targetVersion) throws Exception {
+            createSignedUpdateSnapshot(targetVersion,progress->{});
+        }
+
+        public synchronized void createSignedUpdateSnapshot(String targetVersion,java.util.function.Consumer<LocalDataSnapshotService.Progress> progress) throws Exception {
             Path database = appDataDir.resolve("database.db");
             int schemaVersion = readSchemaVersion(database);
             LocalDataSnapshotService snapshots = new LocalDataSnapshotService();
-            if(targetVersion!=null&&UpdateSnapshotHandoff.reusable(ownership,targetVersion,schemaVersion,snapshots)!=null)return;
+            if(targetVersion!=null&&UpdateSnapshotHandoff.reusable(ownership,targetVersion,schemaVersion,snapshots,progress)!=null)return;
             UpdateSnapshotHandoff.clear(ownership);
             UpdateSnapshotHandoff.Identity before=null,after=null;
-            try{before=UpdateSnapshotHandoff.capture(ownership);}catch(IOException changing){
+            try{before=UpdateSnapshotHandoff.capture(ownership,progress);}catch(IOException changing){
                 if(Thread.currentThread().isInterrupted())throw changing;
                 /* Optimization is optional; a full rollback is still required. */
             }
-            var snapshot=snapshots.create(ownership, appVersion, schemaVersion, "signed-update-install");
-            if(before!=null)try{after=UpdateSnapshotHandoff.capture(ownership);}catch(IOException changing){
+            var snapshot=snapshots.create(ownership, appVersion, schemaVersion, "signed-update-install",progress);
+            if(before!=null)try{after=UpdateSnapshotHandoff.capture(ownership,progress);}catch(IOException changing){
                 if(Thread.currentThread().isInterrupted())throw changing;
                 /* Startup takes a fresh snapshot if any live bytes changed. */
             }

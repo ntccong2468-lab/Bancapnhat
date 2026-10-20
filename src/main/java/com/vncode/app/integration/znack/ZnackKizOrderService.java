@@ -7,6 +7,7 @@ import com.vncode.app.integration.znack.ZnackModels.*;
 import com.vncode.app.integration.znack.signature.ZnackSignatureContext;
 import com.vncode.app.integration.znack.signature.ZnackSignatureProvider;
 
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
@@ -14,6 +15,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ZnackKizOrderService {
+    public static final String BUFFER_MULTIPLE = "SUZ_KIZ_BUFFER_MULTIPLE";
+    public static final String BUFFER_MISSING = "SUZ_KIZ_BUFFER_MISSING";
+    public static final String BUFFER_STATUS_MISSING = "SUZ_KIZ_BUFFER_STATUS_MISSING";
     private static final Duration RECONCILIATION_CLOCK_SKEW = Duration.ofSeconds(30);
     private static final Duration RECONCILIATION_WINDOW = Duration.ofMinutes(5);
     private final ZnackApiClient api; private final ZnackAuthService auth; private final ZnackSignatureProvider signer; private final ZnackRepository repository;
@@ -55,9 +59,21 @@ public class ZnackKizOrderService {
     public KizOrder refresh(Settings s,long id)throws Exception{
         ZnackSafety.requireSigned(s,true);
         KizOrder order=repository.findOrder(id).orElseThrow();JsonArray response=api.orderStatus(s.resolvedSuzBaseUrl(),auth.suzToken(s),s.omsId(),required(order.externalOrderId(),"Znack order has no external order ID."));
-        String remote="PENDING",reason=null;int available=0;boolean rejected=false;
-        for(JsonElement e:response){JsonObject o=e.getAsJsonObject();remote=text(o,"bufferStatus","status");available+=integer(o,"availableCodes");reason=text(o,"rejectionReason");rejected|="REJECTED".equalsIgnoreCase(remote);}
-        BufferStatus status=new BufferStatus(remote,available,rejected,reason);repository.updateOrder(id,null,remote,status.localStatus(),reason);return repository.findOrder(id).orElseThrow();
+        JsonObject buffer=null;
+        for(JsonElement element:response){
+            if(!element.isJsonObject())continue;
+            JsonObject candidate=element.getAsJsonObject();String candidateGtin=text(candidate,"gtin");
+            if(candidateGtin.isBlank())continue;
+            try{if(!order.gtin().equals(GtinNormalizer.normalize(candidateGtin)))continue;}
+            catch(IllegalArgumentException invalid){continue;}
+            if(buffer!=null)throw new IOException(BUFFER_MULTIPLE);
+            buffer=candidate;
+        }
+        if(buffer==null)throw new IOException(BUFFER_MISSING);
+        String remote=text(buffer,"bufferStatus","status"),reason=text(buffer,"rejectionReason");
+        if(remote.isBlank())throw new IOException(BUFFER_STATUS_MISSING);
+        BufferStatus status=new BufferStatus(remote,integer(buffer,"availableCodes"),"REJECTED".equalsIgnoreCase(remote),reason);
+        repository.updateOrder(id,null,remote,status.localStatus(),reason);return repository.findOrder(id).orElseThrow();
     }
     /**
      * Uses SUZ's recovery-only order list after an ambiguous POST. A match is accepted only when

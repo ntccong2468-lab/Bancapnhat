@@ -36,6 +36,8 @@ public final class FriendlyErrorService {
         String code="VN_LOCAL";
         Throwable cause=error;
         for(int depth=0;cause!=null&&depth<8;depth++,cause=cause.getCause()) {
+            String bufferIssue = ZnackErrorMessages.kizOrderBufferIssueCode(cause.getMessage());
+            if (!bufferIssue.isBlank()) { code = bufferIssue; break; }
             if(cause instanceof com.vncode.app.features.gtinsync.RegisteredGtinProof.UnverifiedOwnerException owner){code="CATALOG_OWNER_"+owner.reason().name();break;}
             if(cause instanceof com.vncode.app.integration.wb.WbApiException wb){code="WB_HTTP_"+wb.getStatusCode();break;}
             if(cause instanceof com.vncode.app.integration.ozon.OzonApiException ozon){code="OZON_HTTP_"+ozon.statusCode();break;}
@@ -58,6 +60,8 @@ public final class FriendlyErrorService {
         if(error instanceof com.vncode.app.features.sync.ZnackGtinBackgroundService.RunException&&error.getCause()!=null)return formatDetail(error.getCause());
         Throwable cause=error;
         for(int depth=0;cause!=null&&depth<8;depth++,cause=cause.getCause()) {
+            if (!ZnackErrorMessages.kizOrderBufferIssueCode(cause.getMessage()).isBlank())
+                return ZnackErrorMessages.display(cause.getMessage());
             if(cause instanceof com.vncode.app.features.kiz.KizStockShortageException shortage)
                 return com.vncode.app.features.kiz.KizErrorMessages.message(shortage.getMessage())+"\n"+shortage.missing().stream()
                     .map(row->MessageFormat.format(I18nService.getInstance().tr("kiz.shipment.missing_order"),row.order(),row.product(),row.category().isBlank()?"—":row.category()))

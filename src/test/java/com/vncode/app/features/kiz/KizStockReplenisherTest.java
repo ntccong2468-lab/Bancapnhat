@@ -2,6 +2,7 @@ package com.vncode.app.features.kiz;
 
 import com.vncode.app.config.Database;
 import com.vncode.app.integration.znack.*;
+import com.vncode.app.integration.marketplace.Marketplace;
 import com.vncode.app.models.Shop;
 import java.nio.file.Path;
 import java.util.*;
@@ -42,6 +43,36 @@ class KizStockReplenisherTest {
     @Test void noPurchaseWithoutSellerSettingOrWhenStockIsSufficient()throws Exception {
         assertFalse(stock.ensure(shop,Map.of(KizWarehouseTest.GTIN,5)).waiting());assertEquals(0,buyer.bought);
         new KizWarehouseRepository().autoPurchase(shop,true);assertTrue(stock.ensure(shop,Map.of(KizWarehouseTest.GTIN,2)).missing().isEmpty());assertEquals(0,buyer.bought);
+    }
+    @Test void shortageKeysReachRealCoordinatorValidationForWbAndOzonWithoutDuplicatePurchases()throws Exception {
+        try(var c=Database.getConnection();var s=c.createStatement()){
+            s.execute("INSERT INTO shops(id,name,marketplace,client_id,api_key) VALUES(2,'Ozon','OZON','client','ozon-fixture')");
+        }
+        var keys=new HashSet<String>();
+        for(var owner:List.of(shop,new Shop(2,"Ozon",Marketplace.OZON,"client","ozon-fixture"))){
+            var repository=new ZnackRepository(new ZnackModels.ShopContext(owner.getId(),owner.getName()));
+            repository.upsertProducts(List.of(new ZnackModels.Product(KizWarehouseTest.GTIN,"Fixture",null,null,null,null,null)));
+            var prerequisitesReached=new IllegalStateException("fixture-prerequisites-reached");
+            var coordinator=new ZnackPurchaseCoordinator(repository,null,null,null){
+                @Override public void validatePrerequisites(ZnackModels.Settings settings,String gtin,int quantity){throw prerequisitesReached;}
+            };
+            var strict=new KizStockReplenisher(ignored->new KizStockReplenisher.Purchases(){
+                public void validate(String gtin,int quantity){}
+                public void enqueue(String gtin,int quantity,String key){
+                    // Exercise the actual consumer contract and stop before signing or a remote purchase.
+                    assertSame(prerequisitesReached,assertThrows(IllegalStateException.class,
+                            ()->coordinator.enqueue(ZnackModels.Settings.empty(),gtin,quantity,key)));
+                    assertTrue(keys.add(key),"Each paid deficit needs its own request identity");
+                    repository.enqueuePipeline(gtin,quantity,key);
+                }
+                public void resume(){}
+            });
+            assertEquals(1,strict.ensurePurchased(owner,Map.of(KizWarehouseTest.GTIN,5),missing->{}).enqueued());
+            var again=strict.ensurePurchased(owner,Map.of(KizWarehouseTest.GTIN,5),missing->fail("Pending purchase must not buy again"));
+            assertEquals(0,again.enqueued());assertTrue(again.waiting());
+            assertEquals(1,repository.findActivePipelines().size());
+        }
+        assertEquals(2,keys.size());
     }
     @Test void purchasesOnlyMissingUnitsAndAnUnfinishedPipelinePreventsDuplicateBuys()throws Exception {
         new KizWarehouseRepository().autoPurchase(shop,true);

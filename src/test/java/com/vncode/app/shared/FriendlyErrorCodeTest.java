@@ -70,4 +70,55 @@ class FriendlyErrorCodeTest {
    assertFalse(FriendlyErrorService.format(new IllegalStateException("unverified_catalog_owner")).contains("unverified_catalog_owner"));
   }}finally{i18n.setLanguage(previous);}
  }
+
+ @Test void missingOrAmbiguousPurchaseBuffersKeepDistinctLocalizedCheckingAdvice() {
+  var i18n=I18nService.getInstance();var previous=i18n.getCurrentLanguage();
+  try{for(var language:AppLanguage.values()){
+   i18n.setLanguage(language);
+   var messages=new java.util.HashSet<String>();
+   for(var issue:purchaseBufferIssues()){
+    String expected=i18n.tr("znack.error.order_buffer."+issue.key());
+    assertFalse(expected.startsWith("znack.error."));
+    String actual=com.vncode.app.integration.znack.ZnackErrorMessages.displayForPipeline("POLLING_ORDER",issue.code());
+    assertEquals(expected,actual);assertFalse(actual.contains(issue.code()));
+    assertEquals(actual,com.vncode.app.integration.znack.ZnackErrorMessages.display(issue.legacy()));
+    messages.add(actual);
+   }
+   assertEquals(3,messages.size(),"Missing buffer, ambiguous buffer and missing status need distinct reasons");
+  }}finally{i18n.setLanguage(previous);}
+ }
+
+ @Test void wrappedPurchaseBufferWaitsRetainCodesWithoutLeakingUnrelatedWrapperDetails() {
+  var i18n=I18nService.getInstance();var previous=i18n.getCurrentLanguage();
+  try{for(var language:AppLanguage.values()){
+   i18n.setLanguage(language);
+   for(var issue:purchaseBufferIssues())for(String raw:java.util.List.of(issue.code(),issue.legacy())){
+    var error=new java.util.concurrent.CompletionException("private account token=secret-value",
+        new java.io.IOException("private transport body",new java.io.IOException(raw)));
+    String actual=FriendlyErrorService.format(error);
+    assertEquals(i18n.tr("znack.error.order_buffer."+issue.key())+"\n["+issue.code()+"]",actual);
+    assertFalse(actual.contains("secret-value"));assertFalse(actual.contains("private transport"));
+    assertFalse(actual.contains("[VN_LOCAL]"));
+   }
+  }}finally{i18n.setLanguage(previous);}
+ }
+
+ @Test void unrelatedSuzErrorsAreNotReclassifiedAsIncompletePurchaseBuffers() {
+  String rejection="SUZ rejected the purchased GTIN for a different validation reason.";
+  assertEquals("",com.vncode.app.integration.znack.ZnackErrorMessages.kizOrderBufferIssueCode(rejection));
+  assertEquals(rejection,com.vncode.app.integration.znack.ZnackErrorMessages.display(rejection));
+  assertEquals("",com.vncode.app.integration.znack.ZnackErrorMessages.kizOrderBufferIssueCode("SUZ_KIZ_BUFFER_MISSING_EXTRA"));
+  assertEquals("",com.vncode.app.integration.znack.ZnackErrorMessages.kizOrderBufferIssueCode(null));
+ }
+
+ private static java.util.List<PurchaseBufferIssue> purchaseBufferIssues(){
+  return java.util.List.of(
+      new PurchaseBufferIssue(com.vncode.app.integration.znack.ZnackKizOrderService.BUFFER_MULTIPLE,"multiple",
+          "SUZ returned several buffers for the purchased GTIN; keep checking the existing order."),
+      new PurchaseBufferIssue(com.vncode.app.integration.znack.ZnackKizOrderService.BUFFER_MISSING,"missing",
+          "SUZ did not return the purchased GTIN buffer; keep checking the existing order."),
+      new PurchaseBufferIssue(com.vncode.app.integration.znack.ZnackKizOrderService.BUFFER_STATUS_MISSING,"status_missing",
+          "SUZ did not return the purchased GTIN buffer status; keep checking the existing order."));
+ }
+ private record PurchaseBufferIssue(String code,String key,String legacy){}
 }

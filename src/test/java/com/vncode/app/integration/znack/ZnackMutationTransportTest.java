@@ -9,6 +9,26 @@ import java.util.concurrent.atomic.AtomicInteger;
 import static org.junit.jupiter.api.Assertions.*;
 
 class ZnackMutationTransportTest {
+    @Test void issuedKizBlockIsNotTransparentlyRequestedAgainAfterHttp408() throws Exception {
+        AtomicInteger requests=new AtomicInteger();
+        HttpServer server=server(requests);
+        try {
+            String base="http://127.0.0.1:"+server.getAddress().getPort();
+            assertThrows(ZnackApiClient.ZnackApiException.class,()->new ZnackApiClient().codes(
+                    base,"fixture","fixture-oms","fixture-order",2,"04601234567890"));
+            assertEquals(1,requests.get(),"An issued SUZ block must be recovered by block ID, not silently issued again");
+        }finally{server.stop(0);}
+    }
+    @Test void issuedKizBlockIsNotRequestedAgainAfterHttp503WithImmediateRetryAfter() throws Exception {
+        AtomicInteger requests=new AtomicInteger();
+        HttpServer server=server(requests,503);
+        try {
+            String base="http://127.0.0.1:"+server.getAddress().getPort();
+            assertThrows(java.io.IOException.class,()->new ZnackApiClient().codes(
+                    base,"fixture","fixture-oms","fixture-order",2,"04601234567890"));
+            assertEquals(1,requests.get(),"503 Retry-After must not consume another block from the paid order");
+        }finally{server.stop(0);}
+    }
     @Test void allocationIsNotTransparentlyRepeatedAfterHttp408() throws Exception {
         AtomicInteger requests=new AtomicInteger();
         HttpServer server=server(requests);
