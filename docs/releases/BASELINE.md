@@ -1,5 +1,23 @@
 # VNCode update baseline
 
+The baseline for subsequent updates is the published **VNCode 1.5.4**.
+
+- Immutable tag: `v1.5.4`
+- Source: `688bd01982898e18c9770300fa20cfe29bde1245`
+- Release: https://github.com/ntccong2468-lab/Bancapnhat/releases/tag/v1.5.4
+- Installer: `VN-code-1.5.4-Windows-x64.exe` (146868224 bytes)
+- SHA-256: `e7079a4aca07c1ae2fec26e46c4e3a3d77096a14b1c0485a88cefe95a3f7a18b`
+- Native build and fresh full Windows Java execution: `39415265129`; publication: `39417571803`.
+- Previous baseline: **1.5.3**. All prior tags, assets and pinned upgrade inputs below remain immutable.
+
+Recorded final verification: Linux clean verify 2088 tests (2086 passed, 2 platform skips); Windows fresh Java 2088 tests (2086 passed, 2 platform skips), no failures/errors; release tools 92 tests. All 24 native proof files passed, including 288 UI layouts and 19 data-preserving upgrades. The upgrade from 1.5.3 ran the exact published EXE with `/passive /norestart` and verified its embedded MSI. Public installer bytes agree with the published checksum, GitHub asset digest, build-info and acceptance receipt. The actual updater offers 1.5.4 to 1.5.3 with matching URL/hash/size; seller desktop popup delivery is not established.
+
+Preserve schema 6 seller data, the existing registration template and permit TN VED rules, durable sequential registration, uncertain-request safeguards, verified GTIN readback, priority FBS, KIZ checkpoints and the Ozon combined label. Preserve the pinned SQLite/WAL snapshot backup, real progress and integrity/restore checks; retain canonical purchase request identities, non-replayed paid-code issuance, partial-code counts and exact-GTIN buffer reconciliation. Runtime license, signature and TLS checks remain enforced.
+
+Evidence: [status](VN-code-1.5.4-status.json), [request report](VN-code-1.5.4-request-report.md), [Windows/native/public proof](../validation/2026-10-20-vncode-154-windows-native.json), [publication receipt](../validation/2026-10-20-vncode-154-owner-publication.json). Full production acceptance remains incomplete. This release does not establish a real paid KIZ purchase, new Catalog create/repair/signature, live seller marketplace GTIN write, enterprise CryptoPro signing, production license or multi-unit Ozon split. All corresponding acceptance flags remain false.
+
+## Previous published baseline 1.5.3 (immutable reference)
+
 The baseline for subsequent updates is the published **VNCode 1.5.3**.
 
 - Immutable tag: `v1.5.3`

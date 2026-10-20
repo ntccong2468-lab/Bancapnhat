@@ -9,18 +9,24 @@
 
 Các thay đổi sử dụng luồng chung cho WB/Ozon. Payload mua, loại phát hành mã, license, chữ ký, TLS và kiểm tra toàn vẹn vẫn được bảo vệ. Dữ liệu và các luồng khác của bản nền 1.5.3 được giữ.
 
-## Bản nền và kiểm tra bắt buộc
+## Kiểm thử bộ cài phát hành
 
-Bản nền bất biến: [VNCode 1.5.3](https://github.com/ntccong2468-lab/Bancapnhat/releases/tag/v1.5.3), source `69ffc7ecb60a91c874510522c4aae3c5be069ccd`. Bộ cài `VN-code-1.5.3-Windows-x64.exe` có 146.864.128 byte, SHA-256 `ec608d3677581c12901ee702e516cb2eea2757a5a9ee8fd84a2ce2438e8a3f31`.
+Source: `688bd01982898e18c9770300fa20cfe29bde1245`. Bản nền: [VNCode 1.5.3](https://github.com/ntccong2468-lab/Bancapnhat/releases/tag/v1.5.3); giữ schema 6 và dữ liệu seller.
 
-Source cuối 1.5.4 là `688bd01982898e18c9770300fa20cfe29bde1245`; Windows [39415265129](https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/39415265129) đang chạy từ đúng source này. Linux `clean verify` của cùng source đạt 2.088 kiểm thử: 2.086 đạt, không thất bại hoặc lỗi, hai bỏ qua theo nền tảng, thuộc 340 bộ kiểm thử; kết thúc lúc 11:41:08 UTC ngày 20/10/2026 sau 12 phút 11 giây. Chưa có kết quả Windows/native cuối, checksum hoặc kích thước bộ cài mới. Trước phát hành phải chạy hồi quy đầy đủ Linux, công cụ phát hành, toàn bộ Java Windows và mọi kiểm tra native/nâng cấp trước đây. Bổ sung nâng cấp từ bộ cài 1.5.3 đúng checksum, giữ dữ liệu và xác minh chính EXE phát hành với `/passive /norestart`. Không dùng kết quả 1.5.3 làm kết quả kiểm thử của mã 1.5.4.
+Linux `clean verify`: 2.088 kiểm thử, 2.086 đạt, 0 thất bại, 0 lỗi, 2 bỏ qua theo nền tảng. Windows Java mới: 2.088 kiểm thử, 2.086 đạt, 0 thất bại, 0 lỗi, 2 bỏ qua theo nền tảng. [Windows build 39415265129](https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/39415265129) chạy từ đúng source trên; không dùng lại kết quả Java của bản trước.
 
-Kiểm tra trọng tâm cần chứng minh: sao lưu kết thúc khi vẫn có ghi WAL, tiến độ và hủy đúng; coordinator nhận yêu cầu bổ sung KIZ mới của WB/Ozon; lỗi nhận khối mã không tự phát lại yêu cầu; số lượng nhận một phần không báo xong; trạng thái khác GTIN, thiếu hoặc trùng buffer không làm sai đơn mua.
+Đã xác minh đủ 24 bằng chứng native và 19 ca nâng cấp giữ dữ liệu, gồm 288 bố cục, launcher, workspace, DPAPI và nâng cấp từ bộ cài 1.5.3 đúng checksum. Bàn giao `/passive /norestart` được kiểm tra bằng chính EXE phát hành và MSI nhúng; dữ liệu và đăng ký ứng dụng được giữ.
 
-Kiểm tra trọng tâm của mã đã đóng phạm vi đạt 193/193 theo kết quả root, gồm sao lưu khi có ghi WAL, updater UI/FXML và KIZ. Bộ công cụ phát hành đạt 92/92 kiểm thử Node sau khi khóa source và lượt Windows thực tế. Đây chưa phải kết quả full Java Windows hoặc bằng chứng bộ cài. [Chi tiết sao lưu/tiến độ](../validation/2026-10-20-vncode-154-update-preparation.md).
+Bộ cài: `VN-code-1.5.4-Windows-x64.exe`, 146.868.224 byte. SHA-256: `e7079a4aca07c1ae2fec26e46c4e3a3d77096a14b1c0485a88cefe95a3f7a18b`. Checksum và bằng chứng đi kèm dùng để đối chiếu đúng các byte đã kiểm tra. Việc build đạt hoặc updater phát hiện bản mới không chứng minh thông báo đã xuất hiện trên desktop seller.
 
 ## Chưa hoàn tất
 
-Linux toàn bộ đã đạt; Windows/native/bộ cài của source cuối và tải công khai của 1.5.4 còn chờ bằng chứng thực. Chưa thực hiện mua KIZ trả phí thật, ký CryptoPro doanh nghiệp, ghi thẻ Catalog hoặc GTIN lên sàn qua desktop seller trong phiên bản này. Mọi cờ nghiệm thu production tương ứng vẫn false.
+Chưa nghiệm thu giao dịch mua KIZ trả phí thật, chữ ký CryptoPro doanh nghiệp, license production, tạo/sửa thẻ Catalog hoặc ghi GTIN lên sàn qua desktop seller trong phiên bản này. Mọi cờ nghiệm thu production tương ứng vẫn false; kiểm thử mô phỏng không thay thế bằng chứng giao dịch thật. Chưa đo thời gian cập nhật trên máy seller.
 
-Phát hành theo yêu cầu tiếp tục của chủ dự án sau khi các kiểm tra bắt buộc đạt; chưa nhận nghiệm thu production đầy đủ. Quyền license không giới hạn của phiên kiểm thử chỉ áp dụng dữ liệu cô lập WB/Ozon, không thay đổi kiểm tra license/chữ ký của app. Latest hiện vẫn là 1.5.3 và chưa có hành động phát hành hoặc thay tag của 1.5.4.
+Phát hành theo yêu cầu tiếp tục của chủ dự án với các giới hạn đã công bố, không nhận nghiệm thu production đầy đủ. Quyền license không giới hạn của phiên kiểm thử chỉ áp dụng dữ liệu cô lập WB/Ozon; kiểm tra license, chữ ký, TLS và toàn vẹn của app được giữ. Lượt tải và bàn giao ban đầu từ 1.5.3 vẫn chạy mã updater của 1.5.3; phần sửa updater mới có hiệu lực sau khi cài bản này.
+
+## Xác minh sau phát hành
+
+Đã xuất bản [v1.5.4 trên Latest](https://github.com/ntccong2468-lab/Bancapnhat/releases/tag/v1.5.4) ngày 20/10/2026. Tải lại bộ cài công khai xác nhận đúng 146.868.224 byte và SHA-256 ở trên. Mã `UpdateApiClient`/`UpdateService` thật, chạy với cấu hình cô lập đang ở 1.5.3, nhận trạng thái `AVAILABLE` cho 1.5.4 với URL, checksum và kích thước đúng. Chưa quan sát thông báo trên desktop seller. Đã lưu 1.5.4 làm bản nền tiếp theo; giữ bất biến các tag/bộ cài cũ.
+
+[Bằng chứng Windows/native và tải công khai](../validation/2026-10-20-vncode-154-windows-native.json). Lượt phát hành: [39417571803](https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/39417571803). Bộ công cụ phát hành đạt 92/92 kiểm thử.
