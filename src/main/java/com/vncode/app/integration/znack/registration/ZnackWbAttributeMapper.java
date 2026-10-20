@@ -7,7 +7,6 @@ import com.vncode.app.integration.znack.registration.ZnackCardRegistrationModels
 
 import java.text.Normalizer;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -38,6 +37,7 @@ public final class ZnackWbAttributeMapper {
         List<String> missing = new ArrayList<>();
 
         if (goodName.isBlank()) missing.add("Наименование товара");
+        if (brand.isBlank()) missing.add("Товарный знак");
         for (Attribute attribute : required) {
             long id = attribute.id();
             if (id == TNVED_GROUP) {
@@ -128,7 +128,8 @@ public final class ZnackWbAttributeMapper {
         }
         if (id == GOODS_KIND || name.contains("вид товара")) return clean(sku.subjectName());
         if (name.contains("технического регламента") || name.contains("технический регламент")) {
-            return presetContaining(attribute, "017/2011");
+            return firstCharacteristic(characteristics,
+                    List.of("технический регламент", "технического регламента"), "");
         }
 
         String exact = matchingCharacteristic(characteristics, name);
@@ -143,26 +144,7 @@ public final class ZnackWbAttributeMapper {
     }
 
     static String resolvePreset(Attribute attribute, String source) {
-        String value = clean(source);
-        if (attribute.presets().isEmpty()) return value;
-        if (value.isBlank()) return "";
-        String normalized = normalize(value);
-        return attribute.presets().stream()
-                .map(preset -> new ScoredPreset(preset, scorePreset(normalized, normalize(preset))))
-                .filter(item -> item.score > 0)
-                .max(Comparator.comparingInt(ScoredPreset::score))
-                .map(ScoredPreset::value)
-                .orElse(attribute.presetOnly() ? "" : value);
-    }
-
-    private static int scorePreset(String source, String preset) {
-        if (source.equals(preset)) return 1000;
-        if (source.contains(preset) || preset.contains(source)) return 500 + Math.min(source.length(), preset.length());
-        Set<String> sourceWords = words(source);
-        Set<String> presetWords = words(preset);
-        int overlap = 0;
-        for (String word : sourceWords) if (word.length() > 2 && presetWords.contains(word)) overlap++;
-        return overlap * 20;
+        return RegistrationPresetNormalizer.resolve(attribute, source);
     }
 
     private static String matchingCharacteristic(List<WbCharacteristic> characteristics, String targetName) {
@@ -195,30 +177,25 @@ public final class ZnackWbAttributeMapper {
     private static String gender(Attribute attribute, Sku sku, List<WbCharacteristic> characteristics) {
         String explicit = firstCharacteristic(characteristics,
                 List.of("пол", "целевой пол", "для кого", "назначение", "целевая аудитория"), "");
-        String source = normalize(explicit + " " + clean(sku.title()) + " "
-                + clean(sku.subjectName()) + " " + clean(sku.vendorCode()));
+        // A seller's explicit gender field takes precedence over wording elsewhere in the card.
+        String source = normalize(explicit.isBlank() ? clean(sku.title()) + " " + clean(sku.subjectName()) : explicit);
         GenderKind kind = genderKind(source);
-        if (kind == GenderKind.UNKNOWN) kind = GenderKind.UNISEX;
+        if (kind == GenderKind.UNKNOWN) return "";
 
         // National Catalog validates preset values literally. Classify the WB wording first,
         // then return the exact value (including spelling/case) supplied by the Znack schema.
-        for (String preset : attribute.presets()) {
-            if (genderKind(normalize(preset)) == kind) return preset;
-        }
+        var matches = attribute.presets().stream().filter(preset -> genderKind(normalize(preset)) == kind).toList();
+        if (matches.size() == 1) return matches.getFirst();
 
         // Do not guess a binary gender from the grammar of the product name. If this category
-        // explicitly supports a neutral preset, it is the only safe fully automatic fallback.
+        // provides several matching labels, the seller must choose the intended one.
         return attribute.presets().isEmpty() ? kind.canonicalValue : "";
     }
 
     private static String brand(Sku sku, List<WbCharacteristic> characteristics) {
         String wbBrand = clean(sku.brand());
         if (!wbBrand.isBlank()) return wbBrand;
-        return firstCharacteristic(characteristics, List.of("бренд", "товарный знак"), NO_BRAND);
-    }
-
-    private static String presetContaining(Attribute attribute, String needle) {
-        return attribute.presets().stream().filter(value -> value.contains(needle)).findFirst().orElse("");
+        return firstCharacteristic(characteristics, List.of("бренд", "товарный знак"), "");
     }
 
     private static GenderKind genderKind(String value) {
@@ -287,11 +264,11 @@ public final class ZnackWbAttributeMapper {
     }
 
     private static String normalize(String value) {
-        return Normalizer.normalize(clean(value).toLowerCase(Locale.ROOT).replace('ё', 'е'), Normalizer.Form.NFKC).trim();
+        return Normalizer.normalize(clean(value).toLowerCase(Locale.ROOT).replace('ё', 'е'), Normalizer.Form.NFKC).replaceAll("\\s+", " ").trim();
     }
 
     private static String digits(String value) { return clean(value).replaceAll("\\D", ""); }
-    private static String clean(String value) { return value == null ? "" : value.trim(); }
+    private static String clean(String value) { return RegistrationTemplate.clean(value); }
     private static String first(String... values) {
         for (String value : values) if (!clean(value).isBlank()) return clean(value);
         return "";
@@ -303,5 +280,4 @@ public final class ZnackWbAttributeMapper {
         public boolean complete() { return missingFields.isEmpty(); }
     }
 
-    private record ScoredPreset(String value, int score) { }
 }

@@ -33,24 +33,22 @@ final class RegistrationAutomaticDraft {
         if(selected.automatic()==null||selected.requiresReview())throw new RegistrationValidationException("ZNACK_PRODUCT_DOCUMENT_REVIEW_REQUIRED");
         var snapshotForReview=snapshot;
         var resolved=ZnackCategoryResolver.resolve(inputs.sku().subjectName(),inputs.sku().title(),preflight.categories()).or(()->RegistrationReviewedValues.reviewedCategory(shop,snapshotForReview,preflight.categories())).orElseThrow(()->new RegistrationValidationException("ZNACK_CATEGORY_REVIEW_REQUIRED"));
-        var required=session.catalog().requiredAttributes(resolved.id(),preflight.token());
+        var required=session.catalog().registrationAttributes(resolved.id(),preflight.token());
         var mapped=new ZnackWbAttributeMapper().map(inputs.sku(),inputs.characteristics(),required,preflight.tnved(),preflight.categoryTnved(),selected.automatic());
         var draft=new Draft(preflight.tnved(),preflight.categoryTnved(),resolved.id(),mapped.goodName(),mapped.brand(),mapped.attributes(),mapped.attributeTypes(),autoSign).withProductCategory(inputs.sku().subjectName());
+        draft=RegistrationVerifiedDefaults.applyAutomatic(draft,required,session.catalog(),selected.automatic(),snapshot);
         draft=RegistrationReviewedValues.apply(shop,snapshot,draft,required);
         return complete(draft,required,inputs.sku().wbSize());
     }
-    /** Only exact preset normalization or a sole permitted option is safe without seller input. */
+    /** Normalize known source values; a sole allowed option is not proof of a product fact. */
     static Draft complete(Draft draft,List<Attribute> schema,String wbSize) {
         var values=new LinkedHashMap<>(draft.attributes());var types=new LinkedHashMap<>(draft.attributeTypes());
         for(int pass=0;pass<=schema.size();pass++){
             boolean changed=false;
             for(var attribute:RegistrationAttributeRules.required(schema,values)){
                 if(omitted(attribute,draft))continue;
-                String current=value(draft,values,attribute.id()),text=current.strip();
-                if(attribute.presetOnly()&&!attribute.presets().contains(text)){
-                    String normalized=normalize(text);var matches=attribute.presets().stream().filter(p->!normalized.isBlank()&&normalize(p).equals(normalized)).toList();
-                    if(matches.size()==1)text=matches.getFirst();else if(text.isBlank()&&attribute.presets().size()==1)text=attribute.presets().getFirst();
-                }
+                String current=value(draft,values,attribute.id()),text=RegistrationPresetNormalizer.resolve(attribute,current);
+                if(text.isBlank()&&!RegistrationTemplate.clean(current).isBlank())text=RegistrationTemplate.clean(current);
                 if(!text.equals(current)){values.put(attribute.id(),text);changed=true;}
                 String type=types.get(attribute.id());
                 if(type==null||!attribute.valueTypes().isEmpty()&&!attribute.valueTypes().contains(type))type=ZnackWbAttributeMapper.resolveValueType(attribute,text,wbSize);
@@ -61,7 +59,7 @@ final class RegistrationAutomaticDraft {
         var missing=new ArrayList<String>();
         for(var attribute:RegistrationAttributeRules.required(schema,values)){
             if(omitted(attribute,draft))continue;
-            String text=value(draft,values,attribute.id()).strip(),type=types.get(attribute.id());
+            String text=RegistrationTemplate.clean(value(draft,values,attribute.id())),type=types.get(attribute.id());
             if(text.isBlank()||text.length()>5000||attribute.presetOnly()&&!attribute.presets().contains(text)||!RegistrationAttributeRules.validFieldValue(attribute,text)
                     ||type==null||!attribute.valueTypes().isEmpty()&&!attribute.valueTypes().contains(type))missing.add(attribute.name()+" ["+attribute.id()+"]");
         }

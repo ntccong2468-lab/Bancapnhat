@@ -751,7 +751,7 @@ public final class ZnackCardRegistrationController {
                 var service=new ZnackNationalCatalogService(api,auth,signer,current);
                 scope.assertCurrent(owner);var preflight=service.preflight(tnved);scope.assertCurrent(owner);
                 documents=service.reviewDocuments(preflight.token(),documents,tnved);scope.assertCurrent(owner);
-                return new RegistrationInputs(productInputs.sku(),characteristics,scope,documents,service,preflight,attempt);
+                return new RegistrationInputs(productInputs.sku(),snapshot,characteristics,scope,documents,service,preflight,attempt);
                 }catch(Exception error){if(error instanceof RegistrationInputException input)attempt.blocked(input.code);else if(CatalogFeedback.retryableRead(error))attempt.waiting(error);else attempt.failed(error);throw error;}
                 }
             }
@@ -830,12 +830,14 @@ public final class ZnackCardRegistrationController {
             @Override protected AutomaticDraft call()throws Exception {
                 try(var lane=com.vncode.app.shared.MarketplaceRequestBudget.lane(true)){
                 inputs.scope().assertCurrent(owner);
-                var required=inputs.service().requiredAttributes(category.id(),inputs.preflight().token());
+                var required=inputs.service().registrationAttributes(category.id(),inputs.preflight().token());
                 inputs.scope().assertCurrent(owner);
                 var mapped=new ZnackWbAttributeMapper().map(inputs.sku(),inputs.characteristics(),required,
                         inputs.preflight().tnved(),inputs.preflight().categoryTnved(),document);
                 var draft=new Draft(inputs.preflight().tnved(),inputs.preflight().categoryTnved(),category.id(),
                         mapped.goodName(),mapped.brand(),mapped.attributes(),mapped.attributeTypes()).withProductCategory(inputs.sku().subjectName());
+                draft=com.vncode.app.integration.znack.registration.RegistrationVerifiedDefaults.applyAutomatic(
+                        draft,required,inputs.service(),document,inputs.snapshot());
                 return new AutomaticDraft(draft,required);
                 }catch(Exception error){if(CatalogFeedback.retryableRead(error))inputs.attempt().waiting(error);else inputs.attempt().failed(error);throw error;}
             }
@@ -1210,7 +1212,7 @@ public final class ZnackCardRegistrationController {
 
     private static final class RegistrationInputException extends IllegalArgumentException {final String code;RegistrationInputException(String code,String text){super(text);this.code=code;}}
 
-    private record RegistrationInputs(Sku sku,List<WbCharacteristic> characteristics,ZnackRegistrationScope scope,
+    private record RegistrationInputs(Sku sku,com.vncode.app.features.products.ProductSnapshot snapshot,List<WbCharacteristic> characteristics,ZnackRegistrationScope scope,
             ZnackRegistrationDocuments.Selection documents,ZnackNationalCatalogService service,ZnackNationalCatalogService.Preflight preflight,RegistrationAttemptReports.Attempt attempt) {
         @Override public String toString(){return "RegistrationInputs[redacted]";}
     }

@@ -16,6 +16,10 @@ Preserve schema 6 seller data, the existing registration template and permit TN 
 
 Evidence: [status](VN-code-1.5.4-status.json), [request report](VN-code-1.5.4-request-report.md), [Windows/native/public proof](../validation/2026-10-20-vncode-154-windows-native.json), [publication receipt](../validation/2026-10-20-vncode-154-owner-publication.json). Full production acceptance remains incomplete. This release does not establish a real paid KIZ purchase, new Catalog create/repair/signature, live seller marketplace GTIN write, enterprise CryptoPro signing, production license or multi-unit Ozon split. All corresponding acceptance flags remain false.
 
+## Source changes after 1.5.4
+
+The next build uses `vncode-catalog-signed-reference-v4`, documented in [the automatic registration prompt](../registration/default-znack-prompt.md). It incorporates a read-only comparison with 24 actually signed/published Catalog cards, current category dictionaries and verified permit regulations. Registration fills known WB/Ozon facts automatically; manufacturing country displays **Россия** (Catalog transport `RU`) when the source has no explicit country, following the owner's instruction. The live green samples do not themselves establish a manufacturing country. Preserve source/seller overrides, current schema validation, permit checks and durable submission/signing guards. [Validation](../validation/2026-10-20-signed-card-defaults.md): 527 related tests passed and Java packaging passed. These source changes do not alter the immutable published 1.5.4 installer or establish a new production registration.
+
 ## Previous published baseline 1.5.3 (immutable reference)
 
 The baseline for subsequent updates is the published **VNCode 1.5.3**.

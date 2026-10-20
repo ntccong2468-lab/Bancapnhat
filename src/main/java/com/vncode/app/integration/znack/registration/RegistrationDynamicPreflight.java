@@ -42,7 +42,7 @@ public final class RegistrationDynamicPreflight {
             if(!documents.issues().isEmpty()&&!RegistrationReviewedValues.permitRevision(documents).equals(acknowledgedDocuments.get(snapshot.key())))warnings.add(new DocumentWarning(snapshot.key(),snapshot.vendorArticle(),String.join("; ",documents.issues())));
             var category=categories.containsKey(snapshot.key())?checked.categories().stream().filter(c->c.id()==categories.get(snapshot.key())).findFirst():ZnackCategoryResolver.resolve(snapshot,checked.categories());
             if(category.isEmpty()){blocked.add(new Blocked(snapshot.key(),snapshot.vendorArticle(),"catalog_category","ZNACK_CATEGORY_REVIEW_REQUIRED",checked.categories()));continue;}var resolved=category.orElseThrow();
-            var schema=schemas.get(resolved.id());if(schema==null){schema=session.catalog().requiredAttributes(resolved.id(),session.token());schemas.put(resolved.id(),schema);}
+            var schema=schemas.get(resolved.id());if(schema==null){schema=session.catalog().registrationAttributes(resolved.id(),session.token());schemas.put(resolved.id(),schema);}
             Draft draft;
             if(shop.getMarketplace()==Marketplace.WILDBERRIES){
                 var selected=new ZnackCardRegistrationRepository().find(shop.getId(),Long.parseLong(snapshot.key().variantId()));if(selected==null)throw new SecurityException("SOURCE_PRODUCT_NOT_OBSERVED");
@@ -52,6 +52,7 @@ public final class RegistrationDynamicPreflight {
                 var preparation=OzonCardRegistrationWorkflow.reviewedPreparation(shop,snapshot,checked,resolved.id(),schema,documents,session);
                 draft=OzonCardRegistrationWorkflow.draftForReview(preparation,false);schema=preparation.required();
             }
+            draft=RegistrationVerifiedDefaults.applyAutomatic(draft,schema,session.catalog(),documents.automatic(),snapshot);
             try{draft=RegistrationReviewedValues.apply(shop,snapshot,draft,schema);}catch(RegistrationValidationException changed){if(changed.getMessage()==null||!changed.getMessage().contains("ZNACK_REVIEWED_VALUES_CHANGED"))throw changed;/* Rebuild the proposal from fresh facts; worker loads remain strict. */}
             draft=RegistrationReviewedValues.apply(draft,entered.getOrDefault(snapshot.key(),Map.of()));
             var plan=new Plan(snapshot,draft,schema,documents);plans.add(plan);missing.addAll(inspect(plan));

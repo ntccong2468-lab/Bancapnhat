@@ -17,6 +17,7 @@ import static com.vncode.app.integration.znack.registration.ZnackCardRegistratio
 import static org.junit.jupiter.api.Assertions.*;
 
 class RegistrationDynamicPreflightTest {
+    private static final String REGULATION="ТР ТС 017/2011 \"О безопасности продукции легкой промышленности\"";
     @TempDir Path directory;Shop shop;FixtureApi api;RegistrationDynamicPreflight service;
     @BeforeEach void setup()throws Exception{
         System.setProperty("vncode.appdata.dir",directory.toString());Database.initDatabase();shop=GtinWriteTestFixture.shop(Marketplace.OZON);api=new FixtureApi();
@@ -44,6 +45,36 @@ class RegistrationDynamicPreflightTest {
         var review=service.read(shop,List.of(one,two),entered);assertTrue(review.missing().isEmpty());assertTrue(review.blocked().isEmpty());
         var approvals=RegistrationDynamicPreflight.approvals(review);assertEquals(2,approvals.size());assertEquals("A",approvals.getFirst().values().get(999L).text());assertEquals(0,api.writes);
         try(var c=Database.getConnection();var s=c.createStatement();var rows=s.executeQuery("SELECT COUNT(*) FROM ozon_card_registrations")){assertTrue(rows.next());assertEquals(0,rows.getInt(1));}
+    }
+    @Test void verifiedPermitRegulationFillsEverySelectedCardWithoutAChoiceOrExtraReads()throws Exception{
+        api.requiredRegulation=true;
+        var selected=java.util.stream.IntStream.rangeClosed(1,25).mapToObj(n->snapshot(Integer.toString(n))).toList();
+        var entered=new LinkedHashMap<ProductKey,Map<Long,RegistrationReviewedValues.Value>>();
+        for(var item:selected)entered.put(item.key(),Map.of(999L,new RegistrationReviewedValues.Value("A","")));
+        var review=service.read(shop,selected,entered);
+        assertEquals(25,review.plans().size());assertTrue(review.missing().isEmpty());assertTrue(review.blocked().isEmpty());assertTrue(review.documents().isEmpty());
+        for(var plan:review.plans())assertEquals(REGULATION,plan.draft().attributes().get(13836L));
+        assertEquals(25,RegistrationDynamicPreflight.approvals(review).size());assertEquals(1,api.permits);assertEquals(1,api.attributes);assertEquals(0,api.writes);
+    }
+    @Test void invalidExplicitRegulationStillNeedsReviewInsteadOfBeingReplacedByPermitDefault()throws Exception{
+        api.requiredRegulation=true;var original=snapshot("1");var attributes=new ArrayList<>(original.attributes());
+        attributes.add(new ProductAttribute("source-regulation","Технический регламент",List.of("Unknown regulation"),""));
+        var source=new ProductSnapshot(original.key(),original.revision(),original.title(),original.description(),original.brand(),original.vendorArticle(),original.categoryId(),original.media(),attributes,original.variants(),original.dimensions(),original.documents(),original.checkedAt(),original.metadata());
+        var review=service.read(shop,List.of(source),Map.of(source.key(),Map.of(999L,new RegistrationReviewedValues.Value("A",""))));
+        assertEquals(1,review.missing().size());assertEquals(13836L,review.missing().getFirst().attribute().id());assertEquals(0,api.writes);
+    }
+    @Test void announcedProductionCountryDefaultsToRussiaWithoutAnyRegulationProofOrSellerChoice()throws Exception{
+        api.announcedCountry=true;var one=snapshot("1");var two=snapshot("2");
+        var entered=Map.of(one.key(),Map.of(999L,new RegistrationReviewedValues.Value("A","")),two.key(),Map.of(999L,new RegistrationReviewedValues.Value("B","")));
+        var review=service.read(shop,List.of(one,two),entered);
+        assertTrue(review.missing().isEmpty());assertEquals(2,review.plans().size());for(var plan:review.plans()){assertEquals("RU",plan.draft().attributes().get(2630L));assertFalse(plan.draft().attributes().containsKey(13836L));}
+        assertEquals(1,api.countries);assertEquals(1,api.fullModels);assertEquals(1,api.permits);assertEquals(0,api.writes);
+    }
+    @Test void actualChineseSourceCountryIsKeptAsItsOfficialIsoInsteadOfUsingRussiaDefault()throws Exception{
+        api.announcedCountry=true;var original=snapshot("1");var attributes=new ArrayList<>(original.attributes());attributes.add(new ProductAttribute("country","Страна происхождения",List.of("Китай"),""));
+        var source=new ProductSnapshot(original.key(),original.revision(),original.title(),original.description(),original.brand(),original.vendorArticle(),original.categoryId(),original.media(),attributes,original.variants(),original.dimensions(),original.documents(),original.checkedAt(),original.metadata());
+        var review=service.read(shop,List.of(source),Map.of(source.key(),Map.of(999L,new RegistrationReviewedValues.Value("A",""))));
+        assertTrue(review.missing().isEmpty());assertEquals("CN",review.plans().getFirst().draft().attributes().get(2630L));assertEquals(0,api.writes);
     }
     @Test void missingOrAmbiguousCategoriesAreReportedForEverySelectedCard()throws Exception{
         api.ambiguous=true;var review=service.read(shop,List.of(snapshot("1"),snapshot("2")),Map.of());
@@ -74,11 +105,14 @@ class RegistrationDynamicPreflightTest {
         assertTrue(changed.stream().anyMatch(m->m.attribute().id()==1000));assertTrue(changed.stream().anyMatch(m->m.attribute().id()==35&&m.reason().equals("type")));
     }
     final class FixtureApi extends ZnackApiClient{
-        int categories,attributes,permits,quota,writes;int permitStatus=1;boolean ambiguous;String scope="6204";
+        int categories,attributes,permits,quota,writes,countries,fullModels;int permitStatus=1;boolean ambiguous,requiredRegulation,announcedCountry;String scope="6204";
         public JsonElement generatedGtins(String base,String token){quota++;return json("{\"result\":{\"drafts\":[],\"monthly-limit\":{\"limit\":10000,\"usage\":0}}}");}
         public JsonElement nationalCatalogCategories(String base,String token,String tnved){categories++;return json(ambiguous?"{\"result\":[{\"cat_id\":1,\"cat_name\":\"Other A\"},{\"cat_id\":2,\"cat_name\":\"Other B\"}]}":"{\"result\":[{\"cat_id\":1,\"cat_name\":\"Fixture\"}]}");}
-        public JsonElement nationalCatalogAttributes(String base,String token,long category){attributes++;return json("{\"result\":[{\"attr_id\":999,\"attr_name\":\"Catalog mandatory detail\",\"attr_field_type\":\"text\",\"attr_preset_only\":true,\"attr_preset\":[\"A\",\"B\"]}]}");}
-        public JsonElement registrationPermitInfo(String base,String token,JsonArray requested){permits++;var docs=requested.deepCopy();for(var value:docs){value.getAsJsonObject().addProperty("status_group",permitStatus);value.getAsJsonObject().addProperty("product_tnved",scope);}var result=new JsonObject();result.add("documents",docs);var response=new JsonObject();response.add("result",result);return response;}
+        public JsonElement nationalCatalogAttributes(String base,String token,long category){attributes++;return attributeResponse();}
+        public JsonElement nationalCatalogAllAttributes(String base,String token,long category){fullModels++;var response=attributeResponse();if(announcedCountry){var field=new JsonObject();field.addProperty("attr_id",2630);field.addProperty("attr_name","Страна производства");field.addProperty("attr_field_type","text");field.addProperty("attr_preset_only",true);response.getAsJsonArray("result").add(field);}return response;}
+        public JsonElement nationalCatalogCountries(String base,String token){countries++;return json("{\"result\":[{\"country_iso\":\"RU\",\"country_name\":\"Россия\"},{\"country_iso\":\"CN\",\"country_name\":\"Китай\"}]}");}
+        private JsonObject attributeResponse(){var response=json("{\"result\":[{\"attr_id\":999,\"attr_name\":\"Catalog mandatory detail\",\"attr_field_type\":\"text\",\"attr_preset_only\":true,\"attr_preset\":[\"A\",\"B\"]}]}").getAsJsonObject();if(requiredRegulation){var field=new JsonObject();field.addProperty("attr_id",13836);field.addProperty("attr_name","Технический регламент");field.addProperty("attr_field_type","text");field.addProperty("attr_preset_only",true);var presets=new JsonArray();presets.add(REGULATION);field.add("attr_preset",presets);response.getAsJsonArray("result").add(field);}return response;}
+        public JsonElement registrationPermitInfo(String base,String token,JsonArray requested){permits++;var docs=requested.deepCopy();for(var value:docs){value.getAsJsonObject().addProperty("status_group",permitStatus);value.getAsJsonObject().addProperty("product_tnved",scope);if(requiredRegulation)value.getAsJsonObject().addProperty("product_tech_regulations","ТР ТС 017/2011 О безопасности продукции легкой промышленности");}var result=new JsonObject();result.add("documents",docs);var response=new JsonObject();response.add("result",result);return response;}
         public JsonElement generateGtins(String base,String token,int quantity){writes++;throw new AssertionError("Preflight allocated a GTIN");}
         public JsonElement submitNationalCatalogFeed(String base,String token,JsonElement body){writes++;throw new AssertionError("Preflight sent a card");}
         JsonElement json(String value){return JsonParser.parseString(value);}

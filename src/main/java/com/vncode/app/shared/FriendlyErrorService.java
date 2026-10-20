@@ -16,6 +16,10 @@ import java.util.regex.Pattern;
  */
 public final class FriendlyErrorService {
 
+    private static final java.util.Set<String> REGISTRATION_MODEL_ERRORS = java.util.Set.of(
+            "CATALOG_REGISTRATION_SCHEMA_UNAVAILABLE", "CATALOG_COUNTRY_DICTIONARY_UNAVAILABLE",
+            "CATALOG_COUNTRY_DICTIONARY_INVALID");
+
     private static final Pattern NOT_ENOUGH_KIZ = Pattern.compile(
             "Not enough available KIZ for GTIN ([0-9]{14}): required (\\d+), available (\\d+)");
 
@@ -36,6 +40,7 @@ public final class FriendlyErrorService {
         String code="VN_LOCAL";
         Throwable cause=error;
         for(int depth=0;cause!=null&&depth<8;depth++,cause=cause.getCause()) {
+            if(REGISTRATION_MODEL_ERRORS.contains(cause.getMessage()==null?"":cause.getMessage())){code=cause.getMessage();break;}
             String bufferIssue = ZnackErrorMessages.kizOrderBufferIssueCode(cause.getMessage());
             if (!bufferIssue.isBlank()) { code = bufferIssue; break; }
             if(cause instanceof com.vncode.app.features.gtinsync.RegisteredGtinProof.UnverifiedOwnerException owner){code="CATALOG_OWNER_"+owner.reason().name();break;}
@@ -60,6 +65,8 @@ public final class FriendlyErrorService {
         if(error instanceof com.vncode.app.features.sync.ZnackGtinBackgroundService.RunException&&error.getCause()!=null)return formatDetail(error.getCause());
         Throwable cause=error;
         for(int depth=0;cause!=null&&depth<8;depth++,cause=cause.getCause()) {
+            if(REGISTRATION_MODEL_ERRORS.contains(cause.getMessage()==null?"":cause.getMessage()))
+                return I18nService.getInstance().tr("znack.registration.reason."+cause.getMessage());
             if (!ZnackErrorMessages.kizOrderBufferIssueCode(cause.getMessage()).isBlank())
                 return ZnackErrorMessages.display(cause.getMessage());
             if(cause instanceof com.vncode.app.features.kiz.KizStockShortageException shortage)

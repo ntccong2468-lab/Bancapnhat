@@ -1,0 +1,419 @@
+{
+  "checkedAt": "2026-10-20T20:40:08.299710+00:00",
+  "mode": "automated-local-registration-regression",
+  "classes": 50,
+  "totals": {
+    "tests": 527,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "resultsBasis": "Latest result per selected class: 50-class execution followed by corrected template-fixture rerun (3 tests) and successful Maven package.",
+  "mavenPackage": "passed",
+  "javafxUiEnvironment": "Linux Xvfb :99; actual controls/dialog actions; not native Windows acceptance",
+  "productionApiWritesPerformed": false,
+  "newCatalogCardCreatedOrSigned": false,
+  "latestInstallerPublished": false,
+  "testClasses": [
+    {
+      "class": "com.vncode.app.integration.znack.ZnackModuleTest",
+      "tests": 76,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "reportSha256": "30f01976bda65154458226b665abfc6f08241933a99027a6de31ade97415be9b"
+    },
+    {
+      "class": "com.vncode.app.integration.znack.registration.CatalogArticleValueTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "reportSha256": "4f6622ece76aee52f641563189e4a95ee5c69b6fd9fc9968e283dbb4706ad428"
+    },
+    {
+      "class": "com.vncode.app.integration.znack.registration.CatalogErrorRepairServiceTest",
+      "tests": 12,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "reportSha256": "5782d470c3a18d75cc32bf4f8a50495288581543bb26b4cda06d0b8948b330c7"
+    },
+    {
+      "class": "com.vncode.app.integration.znack.registration.CatalogPackingPolicyTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "reportSha256": "cf8d5f8921cbcb4ed7591a1ebe791e5c7938d3bc6f7d5b0017bf263231776a7a"
+    },
+    {
+      "class": "com.vncode.app.integration.znack.registration.NationalCatalogBatchReadTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "reportSha256": "bef3c482a6b43f19798165ea2564d2d480b564485c45f16c6106b643ad48c033"
+    },
+    {
+      "class": "com.vncode.app.integration.znack.registration.OzonAutomaticDraftSchemaTest",
+      "tests": 10,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "reportSha256": "83102dec60f439100d29d5c0379a1ed29deffed93a08beb8e6d8a015530192e0"
+    },
+    {
+      "class": "com.vncode.app.integration.znack.registration.OzonCardBatchSigningTest",
+      "tests": 10,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "reportSha256": "f36ef0fa5ce31362c1ae7206c598b4a976be9e93f9751136a552cbd9a332b839"
+    },
+    {
+      "class": "com.vncode.app.integration.znack.registration.OzonCardRegistrationRepositoryTest",
+      "tests": 6,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "reportSha256": "88f939b8e1e03e62d9560d08f4323c1e1e892528d98deb3bb44f34b821abda8c"
+    },
+    {
+      "class": "com.vncode.app.integration.znack.registration.OzonCardRegistrationWorkflowTest",
+      "tests": 48,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "reportSha256": "f78b95e9cc1beee8fe8f89e81ecc4b6fb47ccf91f4eed2f58fbc61fc51538048"
+    },
+    {
+      "class": "com.vncode.app.integration.znack.registration.OzonRegistrationAttemptReportsTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "reportSha256": "3e3e503de48fb0e93c420fc2209bfe9e23e4699e9c0e132200456d884409ddb3"
+    },
+    {
+      "class": "com.vncode.app.integration.znack.registration.OzonRegistrationIntegrationTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "reportSha256": "10114644b11f15e4de467beb57a019c410b0476fc9d003cb3516bb7d7ae85b24"
+    },
+    {
+      "class": "com.vncode.app.integration.znack.registration.RegisteredCatalogOwnershipTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "reportSha256": "7523e03d283f5d3715ea46b3fd28f6f4b330e8e4698915b14c8772fe8d56dbe1"
+    },
+    {
+      "class": "com.vncode.app.integration.znack.registration.RegistrationAttributeRulesTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "reportSha256": "b687496ea312655b482bc65fd80ff44c74f7ff880dab889813d9ce609463f877"
+    },
+    {
+      "class": "com.vncode.app.integration.znack.registration.RegistrationAutomaticDraftTest",
+      "tests": 6,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "reportSha256": "aa99c54340ae0773c9eb24d38df8341764ba897ac17efc7dbc16fa8eeb2564c2"
+    },
+    {
+      "class": "com.vncode.app.integration.znack.registration.RegistrationCatalogCooldownTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "reportSha256": "551c7f127d8575855b7e40cbb007f2da0b86d0eede69d97cf68f0b3d64bf9085"
+    },
+    {
+      "class": "com.vncode.app.integration.znack.registration.RegistrationDynamicPreflightTest",
+      "tests": 10,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "reportSha256": "fb5cf96954deccb16d322d36b469246ad4e4dd28385e53a50b284b421ace949e"
+    },
+    {
+      "class": "com.vncode.app.integration.znack.registration.RegistrationPermitValidatorTest",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "reportSha256": "8b1274343a2e1e2fa9e7fb0a5d18298d59b640e690f541a6406ab879552e36eb"
+    },
+    {
+      "class": "com.vncode.app.integration.znack.registration.RegistrationPresetNormalizerTest",
+      "tests": 8,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "reportSha256": "c7fe0b0734aec55e83ed7e2e97aeb453241c042fca75d32637574d42f83ec9f8"
+    },
+    {
+      "class": "com.vncode.app.integration.znack.registration.RegistrationProductInputsTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "reportSha256": "48d9742d1be6d4329d20572cba8a48d52ef807e9c41ff12e3f7da05b7d82cbaf"
+    },
+    {
+      "class": "com.vncode.app.integration.znack.registration.RegistrationReviewedValuesTest",
+      "tests": 14,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "reportSha256": "8b62e99c5d0010defbfaaea381998b7d18926c4dbfd551f7e046c4f327bd2427"
+    },
+    {
+      "class": "com.vncode.app.integration.znack.registration.RegistrationSnapshotReviewTest",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "reportSha256": "95fcabd72aabd6411fcfdae3292d10c75f63283d392dc2f4c85d5f11b38167e4"
+    },
+    {
+      "class": "com.vncode.app.integration.znack.registration.RegistrationTemplateTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "reportSha256": "9a68ec3b4d6f6a8001172074189a160643493f9e5b9edbf2c73221f825a55694"
+    },
+    {
+      "class": "com.vncode.app.integration.znack.registration.RegistrationVerifiedDefaultsTest",
+      "tests": 9,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "reportSha256": "e86cf3ed1547ce58275273994ca468b8efaa95fba66306aa5e0cc2b18499afe9"
+    },
+    {
+      "class": "com.vncode.app.integration.znack.registration.ZnackCardBatchSigningTest",
+      "tests": 10,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "reportSha256": "6110918361c786e6ceccc87b4be055bdc25fccb5b8a5e22cebba142f15739a29"
+    },
+    {
+      "class": "com.vncode.app.integration.znack.registration.ZnackCardRegistrationRepositoryTest",
+      "tests": 15,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "reportSha256": "b6ef8580561e50fbccd224068124ad4f9457b1508ddcfbe676fe14955ba14556"
+    },
+    {
+      "class": "com.vncode.app.integration.znack.registration.ZnackCardRegistrationWorkflowTest",
+      "tests": 56,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "reportSha256": "e4842faa4830cc0ad74e4051552a2edb6db60767079f55180d0bb3639c7122a5"
+    },
+    {
+      "class": "com.vncode.app.integration.znack.registration.ZnackCatalogSigningBatchTest",
+      "tests": 11,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "reportSha256": "f88d076a89c74c9e8d129f7146cb2230f6c907340085c19d1d805a8a8cb98bac"
+    },
+    {
+      "class": "com.vncode.app.integration.znack.registration.ZnackCatalogSubmissionReadbackTest",
+      "tests": 7,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "reportSha256": "b30f9d85b53c3ed2ca93bd8fd288ed0d515a5491b60af87c0bffa950578122bb"
+    },
+    {
+      "class": "com.vncode.app.integration.znack.registration.ZnackCategoryResolverTest",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "reportSha256": "4df3dca026045c99c10e0b60cc749ae915bde9fcafd809721a5a60b209f17422"
+    },
+    {
+      "class": "com.vncode.app.integration.znack.registration.ZnackNationalCatalogServiceTest",
+      "tests": 36,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "reportSha256": "91bcb87e5fd8a5a28a84c14606e57b282f9e0a5c1cf060e999eef3a8a89acaee"
+    },
+    {
+      "class": "com.vncode.app.integration.znack.registration.ZnackRegistrationBatchHttpIntegrationTest",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "reportSha256": "fdee833cedbc1d00e4613db2d3d1ac9fc7611ac56e7b361251fd709f1d797520"
+    },
+    {
+      "class": "com.vncode.app.integration.znack.registration.ZnackRegistrationBatchServiceTest",
+      "tests": 12,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "reportSha256": "5e8acecc0fe060dcf6292494ff2e9e5bceeaa9586af3d15edaed44000e7e0236"
+    },
+    {
+      "class": "com.vncode.app.integration.znack.registration.ZnackRegistrationCountryModelTest",
+      "tests": 8,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "reportSha256": "51e2c9f62a4d9ca84b4b7ff8bab34b6f0e70fd9e3e5ff8ecbe55a4d54dbf232a"
+    },
+    {
+      "class": "com.vncode.app.integration.znack.registration.ZnackRegistrationDocumentsTest",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "reportSha256": "d36d283359671739fbcf7ac64ea73621f35ebf61450a21924eeedbaebc4f0157"
+    },
+    {
+      "class": "com.vncode.app.integration.znack.registration.ZnackRegistrationMonitorFairnessTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "reportSha256": "c1e52a29714b191fa8e9d900b33ed6b18473e3734e0ef5a31247f2eb2431d33b"
+    },
+    {
+      "class": "com.vncode.app.integration.znack.registration.ZnackRegistrationScopeTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "reportSha256": "9a0ed27200beb39851539eccd7774fc769904ba896310502d203ef425c2261b5"
+    },
+    {
+      "class": "com.vncode.app.integration.znack.registration.ZnackVerifiedRegistrationAttributesTest",
+      "tests": 10,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "reportSha256": "9470f14e90b698aa65538cf01897c3e9fe551d92473d35407bac6c2d02e71e84"
+    },
+    {
+      "class": "com.vncode.app.integration.znack.registration.ZnackWbAttributeMapperTest",
+      "tests": 13,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "reportSha256": "22d6cee68897b352b41867fef0ccfd2fa174b77bbce22b0ffb407c40f766bc73"
+    },
+    {
+      "class": "com.vncode.app.shared.FriendlyErrorCodeTest",
+      "tests": 10,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "reportSha256": "5b84da527b121f59e4c28ff7aa1b44dfa77dd77022664a5001877241bc62c756"
+    },
+    {
+      "class": "com.vncode.app.ui.znackregistration.CatalogErrorRepairDialogTest",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "reportSha256": "14d294bbacda92f0f5be4b7332282d980cbda625269f10861e0d712ac591f91b"
+    },
+    {
+      "class": "com.vncode.app.ui.znackregistration.GtinBackgroundStatusTest",
+      "tests": 10,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "reportSha256": "36cb0164dbb909c73958b5df99aacf9f41d9be28100e36f271c7d75cd654f0c2"
+    },
+    {
+      "class": "com.vncode.app.ui.znackregistration.OzonRegistrationPaneTest",
+      "tests": 14,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "reportSha256": "69119cf646457ba8033dc2422cae712cc443b9073b6edeb8a60595ec9255278e"
+    },
+    {
+      "class": "com.vncode.app.ui.znackregistration.RegistrationBatchPreflightTest",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "reportSha256": "5a5edfad2dac5777430e74ba411487fd66104ff916fb4dff6340e798b17a35c6"
+    },
+    {
+      "class": "com.vncode.app.ui.znackregistration.RegistrationCountryDisplayTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "reportSha256": "08abddc3c924c97d2be4843292afc59cbfb2ba0dfc1f2bc5f41c4ff860f598f0"
+    },
+    {
+      "class": "com.vncode.app.ui.znackregistration.RegistrationDiagnosticsTest",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "reportSha256": "a34169fc5b89ad14c288666db7df80162460c6a883beb3e0195819893e793f76"
+    },
+    {
+      "class": "com.vncode.app.ui.znackregistration.RegistrationDraftCompletionDialogTest",
+      "tests": 7,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "reportSha256": "7743efeedba9419814c6c4d7478d4eaeea521e101edd6a0ba6a7bd5139edfa4d"
+    },
+    {
+      "class": "com.vncode.app.ui.znackregistration.RegistrationPreflightCorrectionsTest",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "reportSha256": "637646410f28b7ec1a5ee2cbe509d1ca559b8218341c3d293c9af09da0d9f463"
+    },
+    {
+      "class": "com.vncode.app.ui.znackregistration.RegistrationSyncReportDialogTest",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "reportSha256": "a75e01a3d779e635fb3a38c04da2f7b403ea38168d98c5dd4883b07e7af59b91"
+    },
+    {
+      "class": "com.vncode.app.ui.znackregistration.ZnackCardRegistrationControllerTest",
+      "tests": 18,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "reportSha256": "ee16787de26e52a03d993f125059196a6c1987f7814c6dce53f3593eb0905ea7"
+    },
+    {
+      "class": "com.vncode.app.ui.znackregistration.ZnackRegistrationQueryRepositoryTest",
+      "tests": 8,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "reportSha256": "a4d9d02923e9510d8210eb2e9d36dac0b3f7851fb01c04397f4e357498eeb24a"
+    }
+  ]
+}

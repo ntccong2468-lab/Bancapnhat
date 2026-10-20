@@ -31,4 +31,29 @@ class RegistrationTemplateTest {
         payload.addProperty("brand","Mutated result");
         assertEquals("DASHOA",template.build("00000000000017",draft,"").get("brand").getAsString(),"A returned payload must not mutate the saved default");
     }
+
+    @Test void signedReferenceStructureKeepsEachVariantsSizeSystemArticleAndPermitIndependent(){
+        String[] gtins={"00000000000017","00000000000024","00000000000031"};
+        String[] sizes={"52","176-104","XL"};
+        String[] systems={"РОССИЯ","РОСТ-ОГ","МЕЖДУНАРОДНЫЙ"};
+        String[] articleTypes={"Артикул","Модель","Артикул"};
+        for(int index=0;index<sizes.length;index++){
+            var draft=new Draft("6103220000","6103",30733,"Synthetic garment "+index,"Synthetic brand "+index,
+                    Map.of(35L,sizes[index],13914L,"SYNTHETIC-ARTICLE-"+index,13933L,"6103220000",23557L,"SYNTHETIC-PERMIT-"+index+":::2026-01-01"),
+                    Map.of(35L,systems[index],13914L,articleTypes[index]));
+            var payload=RegistrationTemplate.defaults().build(gtins[index],draft,"");
+            assertEquals(gtins[index],payload.get("gtin").getAsString());
+            var attrs=payload.getAsJsonArray("good_attrs").asList().stream().map(e->e.getAsJsonObject())
+                    .collect(java.util.stream.Collectors.toMap(a->a.get("attr_id").getAsLong(),a->a));
+            assertEquals(sizes[index],attrs.get(35L).get("attr_value").getAsString());
+            assertEquals(systems[index],attrs.get(35L).get("attr_value_type").getAsString());
+            assertEquals(articleTypes[index],attrs.get(13914L).get("attr_value_type").getAsString());
+            assertEquals("SYNTHETIC-ARTICLE-"+index,attrs.get(13914L).get("attr_value").getAsString());
+            assertEquals("SYNTHETIC-PERMIT-"+index+":::2026-01-01",attrs.get(23557L).get("attr_value").getAsString());
+            assertEquals("6103220000",attrs.get(13933L).get("attr_value").getAsString());
+            assertFalse(attrs.containsKey(3959L));
+            for(String responseOnly:java.util.List.of("good_id","good_status","good_signed","producer_inn","producer_name","create_date","first_sign_date","update_date"))
+                assertFalse(payload.has(responseOnly),responseOnly);
+        }
+    }
 }

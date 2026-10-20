@@ -170,6 +170,10 @@ public class ZnackApiClient {
         if(!catalogKey.isEmpty())return getEmptyOnNotFound(nationalCatalogBase(base),"/v3/attributes?cat_id="+categoryId+"&attr_type=a",null);
         return getEmptyOnNotFound(trueApiBase(base,3),"/nk/attributes?cat_id="+categoryId+"&attr_type=a",token);
     }
+    public JsonElement nationalCatalogCountries(String base,String token)throws IOException {
+        if(!catalogKey.isEmpty())return get(nationalCatalogBase(base),"/v3/dictionary/isocountry",null);
+        return get(trueApiBase(base,3),"/nk/dictionary/isocountry",token);
+    }
     public JsonElement submitNationalCatalogFeed(String base, String token, JsonElement feed) throws IOException {
         return postWithoutRetry(nationalCatalogBase(base), "/v3/feed", token, feed);
     }

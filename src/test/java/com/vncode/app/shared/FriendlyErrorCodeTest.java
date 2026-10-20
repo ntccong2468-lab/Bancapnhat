@@ -111,6 +111,20 @@ class FriendlyErrorCodeTest {
   assertEquals("",com.vncode.app.integration.znack.ZnackErrorMessages.kizOrderBufferIssueCode(null));
  }
 
+ @Test void catalogModelReadFailuresHaveLocalizedAdviceAndKeepTheirCodesThroughWrappers() {
+  var i18n=I18nService.getInstance();var previous=i18n.getCurrentLanguage();
+  try{for(var language:AppLanguage.values()){
+   i18n.setLanguage(language);
+   for(String code:java.util.List.of("CATALOG_REGISTRATION_SCHEMA_UNAVAILABLE","CATALOG_COUNTRY_DICTIONARY_UNAVAILABLE","CATALOG_COUNTRY_DICTIONARY_INVALID")){
+    String key="znack.registration.reason."+code,expected=i18n.tr(key);
+    assertNotEquals(key,expected);assertFalse(expected.isBlank());
+    String actual=FriendlyErrorService.format(new java.io.IOException("private account token=secret-value",new IllegalStateException(code)));
+    assertEquals(expected+"\n["+code+"]",actual);
+    assertFalse(actual.contains("secret-value"));assertFalse(actual.contains("[VN_LOCAL]"));
+   }
+  }}finally{i18n.setLanguage(previous);}
+ }
+
  private static java.util.List<PurchaseBufferIssue> purchaseBufferIssues(){
   return java.util.List.of(
       new PurchaseBufferIssue(com.vncode.app.integration.znack.ZnackKizOrderService.BUFFER_MULTIPLE,"multiple",

@@ -42,8 +42,8 @@ public final class OzonCardRegistrationWorkflow {
     public static final class Preparation {
         private final ProductSnapshot snapshot;private final String tnved;private final PreflightMetadata preflight;
         private final long categoryId;private final List<Attribute> required;private final ZnackRegistrationDocuments.Selection documents;
-        private final Map<Long,String> suggestions;private final CatalogSession session;private final String owner;
-        private Preparation(ProductSnapshot snapshot,String tnved,PreflightMetadata preflight,long categoryId,List<Attribute> required,ZnackRegistrationDocuments.Selection documents,Map<Long,String> suggestions,CatalogSession session,String owner){this.snapshot=snapshot;this.tnved=tnved;this.preflight=preflight;this.categoryId=categoryId;this.required=List.copyOf(required);this.documents=documents;this.suggestions=Map.copyOf(suggestions);this.session=session;this.owner=owner;}
+        private final Map<Long,String> suggestions;private final Map<Long,String> verifiedDefaults;private final String productionCountry;private final CatalogSession session;private final String owner;
+        private Preparation(ProductSnapshot snapshot,String tnved,PreflightMetadata preflight,long categoryId,List<Attribute> required,ZnackRegistrationDocuments.Selection documents,Map<Long,String> suggestions,CatalogSession session,String owner){this.snapshot=snapshot;this.tnved=tnved;this.preflight=preflight;this.categoryId=categoryId;this.required=List.copyOf(required);this.documents=documents;this.suggestions=Map.copyOf(suggestions);this.verifiedDefaults=verifiedDefaults(session,documents,required);this.productionCountry=session==null?"":RegistrationVerifiedDefaults.productionCountry(snapshot,required,session.catalog()::registrationCountryCode);this.session=session;this.owner=owner;}
         public ProductSnapshot snapshot(){return snapshot;}public String tnved(){return tnved;}public PreflightMetadata preflight(){return preflight;}
         public long categoryId(){return categoryId;}public List<Attribute> required(){return required;}public ZnackRegistrationDocuments.Selection documents(){return documents;}public Map<Long,String> suggestions(){return suggestions;}
         @Override public String toString(){return "OzonRegistrationPreparation[key="+snapshot.key()+"]";}
@@ -151,6 +151,8 @@ public final class OzonCardRegistrationWorkflow {
         var document=p.documents().automatic()==null?p.documents().candidates().getFirst():p.documents().automatic();long id=document.type().toUpperCase(java.util.Locale.ROOT).contains("CERTIFICATE")?ZnackNationalCatalogService.CERTIFICATE_ATTRIBUTE_ID:ZnackNationalCatalogService.DECLARATION_ATTRIBUTE_ID;
         values.put(id,document.number()+":::"+document.date());
         var draft=new Draft(p.tnved(),p.preflight().categoryTnved(),p.categoryId(),p.snapshot().title(),p.snapshot().brand(),values,types).withProductCategory(p.snapshot().metadata().get("source.category.name"));
+        draft=RegistrationVerifiedDefaults.apply(draft,p.required(),p.verifiedDefaults,p.snapshot());
+        draft=RegistrationVerifiedDefaults.applyProductionCountry(draft,p.required(),p.productionCountry,p.snapshot());
         if(includeReviewed){var shop=new com.vncode.app.features.shop.ShopRepository().findById(p.snapshot().key().shopId());if(shop==null||!p.owner.equals(ListingIdentity.fingerprint(shop)))throw new SecurityException("SOURCE_CONFIGURATION_CHANGED");draft=RegistrationReviewedValues.apply(shop,p.snapshot(),draft,p.required());}
         return draft;
     }
@@ -206,15 +208,11 @@ public final class OzonCardRegistrationWorkflow {
         }
         return values.size()==1?values.getFirst():"";
     }
-    private static String automaticPreset(Attribute a,String raw){
-        String value=RegistrationTemplate.clean(raw);if(value.isBlank()||a.presets().isEmpty()||a.presets().contains(value))return value;
-        var matches=a.presets().stream().filter(preset->normalize(preset).equals(normalize(value))).toList();
-        if(matches.size()==1)return matches.getFirst();
-        if(a.id()==12L){var words=new TreeSet<>(List.of(normalize(value).split("\\s+")));matches=a.presets().stream().filter(preset->new TreeSet<>(List.of(normalize(preset).split("\\s+"))).equals(words)).toList();if(matches.size()==1)return matches.getFirst();}
-        if(a.id()==13836L&&value.matches("(?i)(?:ТР\\s*(?:ТС|ЕАЭС)\\s*)?[0-9]{3}/[0-9]{4}")){
-            String code=value.replaceFirst("(?i)^ТР\\s*(?:ТС|ЕАЭС)\\s*","");matches=a.presets().stream().filter(preset->preset.contains(code)).toList();if(matches.size()==1)return matches.getFirst();
-        }
-        return a.presetOnly()?"":value;
+    private static String automaticPreset(Attribute a,String raw){return RegistrationPresetNormalizer.resolve(a,raw);}
+    private static Map<Long,String> verifiedDefaults(CatalogSession session,ZnackRegistrationDocuments.Selection documents,List<Attribute> schema){
+        if(session==null||schema.isEmpty()||documents==null)return Map.of();
+        var document=documents.automatic()!=null?documents.automatic():documents.candidates().size()==1?documents.candidates().getFirst():null;
+        return document==null?Map.of():Map.copyOf(session.catalog().verifiedRegistrationAttributes(document,schema));
     }
     /** Chain one accepted job per shop; queueing a whole batch must not discard all but its first SKU. */
     public CompletableFuture<Integer> submitBatchReviewed(Shop shop,List<BatchItem> approved,boolean newCard,boolean confirmed,BiConsumer<Status,String> callback) {
@@ -239,7 +237,7 @@ public final class OzonCardRegistrationWorkflow {
         require(shop,preparation.snapshot().key());
         if(!preparation.owner.equals(ListingIdentity.fingerprint(shop))||preparation.session==null||preparation.preflight()==null||preparation.preflight().categories().stream().noneMatch(c->c.id()==categoryId))throw new IllegalArgumentException("foreign_category");
         checkSession(shop,preparation.session.scope(),preparation.session);LicenseRuntime.require(Permission.SELLER_API);
-        var required=preparation.session.catalog().requiredAttributes(categoryId,preparation.session.token());
+        var required=preparation.session.catalog().registrationAttributes(categoryId,preparation.session.token());
         checkSession(shop,preparation.session.scope(),preparation.session);
         return new Preparation(preparation.snapshot(),preparation.tnved(),preparation.preflight(),categoryId,required,preparation.documents(),suggestions(preparation.snapshot(),required),preparation.session,preparation.owner);
     }
@@ -272,7 +270,10 @@ public final class OzonCardRegistrationWorkflow {
             var preflight=session.catalog().preflight(draft.tnved());
             if(preflight.categories().stream().noneMatch(c->c.id()==draft.categoryId())||!preflight.categoryTnved().equals(draft.feedTnved()))throw new IllegalArgumentException("foreign_category");
             var documents=ZnackRegistrationDocuments.select(snapshot,settings(shop),LocalDate.now());
-            Draft reviewed=validateDraft(draft.withProductCategory(snapshot.metadata().get("source.category.name")),session.catalog().requiredAttributes(draft.categoryId(),session.token()),documents);
+            var submissionSchema=session.catalog().requiredAttributes(draft.categoryId(),session.token());
+            if(submissionSchema.stream().anyMatch(attribute->attribute.id()==2630L&&attribute.presetOnly()&&attribute.presets().isEmpty()))submissionSchema=session.catalog().registrationAttributes(draft.categoryId(),session.token());
+            Draft countryComplete=RegistrationVerifiedDefaults.applyProductionCountry(draft.withProductCategory(snapshot.metadata().get("source.category.name")),submissionSchema,RegistrationVerifiedDefaults.productionCountry(snapshot,submissionSchema,session.catalog()::registrationCountryCode));
+            Draft reviewed=validateDraft(countryComplete,submissionSchema,documents);
             session.catalog().validateDocuments(session.token(),reviewed);
             checkSession(shop,scope,session);LicenseRuntime.require(Permission.GTIN);
             var previous=repository.find(key);

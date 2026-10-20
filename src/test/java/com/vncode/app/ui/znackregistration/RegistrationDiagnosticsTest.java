@@ -33,4 +33,14 @@ class RegistrationDiagnosticsTest {
         assertTrue(report.contains("23557: TN VED mismatch"));assertFalse(report.contains("fixture-secret"));
         assertFalse(report.contains("jobs.status"));
     }
+    @Test void registrationModelFailuresAreLocalizedInRowReports(){
+        var i18n=com.vncode.app.shared.I18nService.getInstance();
+        for(var language:com.vncode.app.shared.AppLanguage.values()){
+            var bundle=java.util.ResourceBundle.getBundle("com.vncode.app.i18n.messages",language.toLocale());
+            for(String code:new String[]{"CATALOG_REGISTRATION_SCHEMA_UNAVAILABLE","CATALOG_COUNTRY_DICTIONARY_UNAVAILABLE","CATALOG_COUNTRY_DICTIONARY_INVALID"}){
+                assertFalse(bundle.getString("znack.registration.reason."+code).isBlank());
+                assertEquals(i18n.tr("znack.registration.reason."+code),RegistrationDiagnostics.reason(code));
+            }
+        }
+    }
 }

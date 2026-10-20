@@ -37,20 +37,33 @@ public final class ZnackNationalCatalogService {
     public static final long CERTIFICATE_ATTRIBUTE_ID = 23_561L;
     private record SchemaReadback(List<Attribute> attributes,java.time.Instant checkedAt){}
     private final java.util.Map<Long,SchemaReadback> schemas=new java.util.concurrent.ConcurrentHashMap<>();
+    private final java.util.Map<Long,SchemaReadback> completeSchemas=new java.util.concurrent.ConcurrentHashMap<>();
+    private record CountryReadback(java.util.Map<String,String> aliases,List<String> codes,java.time.Instant checkedAt){}
+    private volatile CountryReadback countries;
 
     private final ZnackApiClient api;
     private final ZnackAuthService auth;
     private final ZnackSignatureProvider signer;
     private final ZnackModels.Settings settings;
+    private final java.time.Clock permitClock;
+    private final java.nio.file.Path dataProfile=com.vncode.app.shared.AppPaths.appDataDir().toAbsolutePath().normalize();
     private record PermitReadback(JsonElement response,java.time.Instant checkedAt){}
     private final java.util.Map<ZnackModels.GoodsDocument,PermitReadback> permitReadbacks=new java.util.concurrent.ConcurrentHashMap<>();
+    private static final int MAX_PERMIT_READBACKS=256;
+    private static final long TECHNICAL_REGULATION_ATTRIBUTE_ID=13_836L;
+    private static final java.util.regex.Pattern TECHNICAL_REGULATION=java.util.regex.Pattern.compile("(?iu)(?<![\\p{L}0-9])ТР\\s*(ТС|ЕАЭС)\\s*([0-9]{3})\\s*/\\s*([0-9]{4})(?![0-9])");
 
     public ZnackNationalCatalogService(ZnackApiClient api, ZnackAuthService auth,
                                        ZnackSignatureProvider signer, ZnackModels.Settings settings) {
+        this(api,auth,signer,settings,java.time.Clock.systemUTC());
+    }
+    ZnackNationalCatalogService(ZnackApiClient api,ZnackAuthService auth,ZnackSignatureProvider signer,
+                               ZnackModels.Settings settings,java.time.Clock permitClock){
         this.api = api;
         this.auth = auth;
         this.signer = signer;
         this.settings = settings;
+        this.permitClock=java.util.Objects.requireNonNull(permitClock);
     }
 
     /** Owner-verified Catalog keys authenticate Catalog requests directly, without True API CMS. */
@@ -124,9 +137,67 @@ public final class ZnackNationalCatalogService {
             LicenseRuntime.require(Permission.SELLER_API);
             var all=parseAttributes(api.nationalCatalogAllAttributes(settings.resolvedTrueApiBaseUrl(),token,categoryId));
             if(all.isEmpty())throw new IllegalStateException("CATALOG_CONDITIONAL_SCHEMA_UNAVAILABLE");
+            cacheCompleteSchema(categoryId,all);
             attributes=RegistrationAttributeRules.resolve(attributes,all);
         }
         schemas.put(categoryId,new SchemaReadback(attributes,java.time.Instant.now()));return attributes;
+    }
+
+    /** Registration planning includes only the country optional field actually announced by this category. */
+    public List<Attribute> registrationAttributes(long categoryId,String token)throws Exception {
+        if(!dataProfile.equals(com.vncode.app.shared.AppPaths.appDataDir().toAbsolutePath().normalize()))throw new ZnackRegistrationScope.ScopeChangedException();
+        var required=requiredAttributes(categoryId,token);
+        var full=completeSchemas.get(categoryId);
+        if(full==null||!full.checkedAt().isAfter(permitClock.instant().minusSeconds(120))){
+            LicenseRuntime.require(Permission.SELLER_API);
+            var attributes=parseAttributes(api.nationalCatalogAllAttributes(settings.resolvedTrueApiBaseUrl(),token,categoryId));
+            if(attributes.isEmpty())throw new IllegalStateException("CATALOG_REGISTRATION_SCHEMA_UNAVAILABLE");
+            cacheCompleteSchema(categoryId,attributes);full=completeSchemas.get(categoryId);
+        }
+        var model=new java.util.LinkedHashMap<Long,Attribute>();required.forEach(attribute->model.put(attribute.id(),attribute));
+        if(!model.containsKey(2630L)){
+            var announced=full.attributes().stream().filter(attribute->attribute.id()==2630L).toList();
+            if(announced.size()==1)model.put(2630L,announced.getFirst());
+        }
+        var country=model.get(2630L);
+        if(country!=null&&country.presetOnly()&&country.presets().isEmpty()){
+            var dictionary=countryDictionary(token);
+            model.put(2630L,new Attribute(country.id(),country.name(),country.fieldType(),country.presetOnly(),country.multiple(),country.firstLayer(),country.secondLayer(),dictionary.codes(),country.valueTypes(),country.dependencies()));
+        }
+        return List.copyOf(model.values());
+    }
+    /** Resolve an explicit country name/code through the same current official dictionary, without HTTP. */
+    public String registrationCountryCode(String source,List<Attribute> schema){
+        if(source==null||source.isBlank()||schema==null||!dataProfile.equals(com.vncode.app.shared.AppPaths.appDataDir().toAbsolutePath().normalize()))return "";
+        var fields=schema.stream().filter(attribute->attribute.id()==2630L).toList();if(fields.size()!=1)return "";
+        var field=fields.getFirst();String key=countryKey(source),code="";
+        var dictionary=countries;
+        if(dictionary!=null&&dictionary.checkedAt().isAfter(permitClock.instant().minusSeconds(120)))code=dictionary.aliases().getOrDefault(key,"");
+        if(code.isBlank()&&source.strip().matches("(?i)[a-z]{2}"))code=source.strip().toUpperCase(Locale.ROOT);
+        return field.presets().contains(code)&&RegistrationAttributeRules.validFieldValue(field,code)?code:"";
+    }
+    private synchronized CountryReadback countryDictionary(String token)throws Exception {
+        var cached=countries;if(cached!=null&&cached.checkedAt().isAfter(permitClock.instant().minusSeconds(120)))return cached;
+        LicenseRuntime.require(Permission.SELLER_API);
+        var aliases=new java.util.LinkedHashMap<String,String>();var ambiguous=new HashSet<String>();var codes=new LinkedHashSet<String>();
+        var response=api.nationalCatalogCountries(settings.resolvedTrueApiBaseUrl(),token);
+        var entries=resultArray(response);if(entries.size()>1024)throw new IllegalStateException("CATALOG_COUNTRY_DICTIONARY_INVALID");
+        for(var value:entries)if(value.isJsonObject()){
+            var entry=value.getAsJsonObject();String code=permitText(entry,"country_iso").toUpperCase(Locale.ROOT),name=permitText(entry,"country_name");
+            if(!code.matches("[A-Z]{2}")||name.isBlank())continue;codes.add(code);
+            for(String alias:List.of(code,name)){String key=countryKey(alias);var previous=aliases.putIfAbsent(key,code);if(previous!=null&&!previous.equals(code))ambiguous.add(key);}
+        }
+        ambiguous.forEach(aliases::remove);
+        if(codes.isEmpty())throw new IllegalStateException("CATALOG_COUNTRY_DICTIONARY_UNAVAILABLE");
+        countries=new CountryReadback(java.util.Map.copyOf(aliases),List.copyOf(codes),permitClock.instant());return countries;
+    }
+    private static String countryKey(String value){return java.text.Normalizer.normalize(value.strip(),java.text.Normalizer.Form.NFKC).toLowerCase(Locale.ROOT).replace('ё','е').replaceAll("\\s+"," ");}
+    private void cacheCompleteSchema(long categoryId,List<Attribute> attributes){
+        synchronized(completeSchemas){
+            var now=permitClock.instant();completeSchemas.entrySet().removeIf(entry->!entry.getValue().checkedAt().isAfter(now.minusSeconds(120)));
+            if(!completeSchemas.containsKey(categoryId))while(completeSchemas.size()>=128){var oldest=completeSchemas.entrySet().stream().min(java.util.Map.Entry.comparingByValue(Comparator.comparing(SchemaReadback::checkedAt))).orElseThrow();completeSchemas.remove(oldest.getKey());}
+            completeSchemas.put(categoryId,new SchemaReadback(List.copyOf(attributes),now));
+        }
     }
 
     public String generateOne(String token) throws Exception {
@@ -262,15 +333,15 @@ public final class ZnackNationalCatalogService {
         var valid=new ArrayList<ZnackModels.GoodsDocument>();var issues=new ArrayList<String>();var reviewRequired=new HashSet<ZnackModels.GoodsDocument>();
         for(var document:selected.candidates()){
             var cached=permitReadbacks.get(document);
-            JsonElement response=cached!=null&&cached.checkedAt().isAfter(java.time.Instant.now().minusSeconds(120))?cached.response():null;
+            JsonElement response=cached!=null&&cached.checkedAt().isAfter(permitClock.instant().minusSeconds(120))?cached.response():null;
             if(response==null){
                 LicenseRuntime.require(Permission.SELLER_API);
                 var request=new JsonArray();request.add(RegistrationPermitValidator.request(document));
                 response=api.registrationPermitInfo(settings.resolvedTrueApiBaseUrl(),token,request);
                 // Pending results must be checked again on the next attempt.
-                if(response!=null&&!com.vncode.app.integration.znack.ZnackPermitDocumentParser.registryLookupPending(response))permitReadbacks.put(document,new PermitReadback(response,java.time.Instant.now()));
+                if(response!=null&&!com.vncode.app.integration.znack.ZnackPermitDocumentParser.registryLookupPending(response))cachePermitReadback(document,response);
             }
-            String problem=RegistrationPermitValidator.problem(response,document,tnved,java.time.LocalDate.now());
+            String problem=RegistrationPermitValidator.problem(response,document,tnved,java.time.LocalDate.now(permitClock));
             if(problem.isBlank()||RegistrationPermitValidator.advisory(problem))valid.add(document);
             if(!problem.isBlank())issues.add(document.number()+": "+problem);
             if(RegistrationPermitValidator.advisory(problem))reviewRequired.add(document);
@@ -280,6 +351,53 @@ public final class ZnackNationalCatalogService {
         var automatic=valid.contains(selected.automatic())?selected.automatic():valid.size()==1?valid.getFirst():null;
         if(reviewRequired.contains(automatic))automatic=null;
         return new ZnackRegistrationDocuments.Selection(valid,automatic,selected.source(),automatic==null,issues);
+    }
+
+    /** Facts from the selected active registry permit, expressed as exact current-schema literals. */
+    public java.util.Map<Long,String> verifiedRegistrationAttributes(ZnackModels.GoodsDocument document,List<Attribute> schema){
+        if(document==null||!document.complete()||!Set.of("CONFORMITY_DECLARATION","CONFORMITY_CERTIFICATE").contains(document.type())||schema==null||!dataProfile.equals(com.vncode.app.shared.AppPaths.appDataDir().toAbsolutePath().normalize()))return java.util.Map.of();
+        var cached=permitReadbacks.get(document);
+        if(cached==null||!cached.checkedAt().isAfter(permitClock.instant().minusSeconds(120)))return java.util.Map.of();
+        String problem=RegistrationPermitValidator.problem(cached.response(),document,"",java.time.LocalDate.now(permitClock));
+        if(!problem.isBlank()&&!RegistrationPermitValidator.advisory(problem))return java.util.Map.of();
+        var registry=exactPermit(cached.response(),document);if(registry==null)return java.util.Map.of();
+        var regulations=regulationCodes(permitText(registry,"product_tech_regulations"));if(regulations.isEmpty())return java.util.Map.of();
+        var fields=schema.stream().filter(attribute->attribute.id()==TECHNICAL_REGULATION_ATTRIBUTE_ID).toList();if(fields.size()!=1)return java.util.Map.of();
+        var field=fields.getFirst();var matches=new LinkedHashSet<String>();
+        for(String literal:field.presets()){
+            var codes=regulationCodes(literal);
+            if(codes.size()==1&&regulations.contains(codes.iterator().next())&&RegistrationAttributeRules.validFieldValue(field,literal))matches.add(literal);
+        }
+        return matches.size()==1?java.util.Map.of(TECHNICAL_REGULATION_ATTRIBUTE_ID,matches.iterator().next()):java.util.Map.of();
+    }
+    private void cachePermitReadback(ZnackModels.GoodsDocument document,JsonElement response){
+        synchronized(permitReadbacks){
+            var now=permitClock.instant();permitReadbacks.entrySet().removeIf(entry->!entry.getValue().checkedAt().isAfter(now.minusSeconds(120)));
+            if(!permitReadbacks.containsKey(document))while(permitReadbacks.size()>=MAX_PERMIT_READBACKS){
+                var oldest=permitReadbacks.entrySet().stream().min(java.util.Map.Entry.comparingByValue(Comparator.comparing(PermitReadback::checkedAt))).orElseThrow();permitReadbacks.remove(oldest.getKey());
+            }
+            permitReadbacks.put(document,new PermitReadback(response.deepCopy(),now));
+        }
+    }
+    private static JsonObject exactPermit(JsonElement response,ZnackModels.GoodsDocument document){
+        var result=response!=null&&response.isJsonObject()?response.getAsJsonObject():new JsonObject();
+        if(result.has("result")&&result.get("result").isJsonObject())result=result.getAsJsonObject("result");
+        JsonObject found=null;
+        for(var value:array(result.get("documents")))if(value.isJsonObject()){
+            var candidate=value.getAsJsonObject();
+            if(permitText(candidate,"number").equals(document.number())&&permitText(candidate,"from_date").equals(document.date())&&permitText(candidate,"attr_id").equals(Long.toString(RegistrationPermitValidator.attribute(document)))){
+                if(found!=null)return null;found=candidate;
+            }
+        }
+        return found;
+    }
+    private static String permitText(JsonObject value,String key){
+        var field=value.get(key);return field!=null&&field.isJsonPrimitive()?field.getAsString().strip():"";
+    }
+    private static Set<String> regulationCodes(String value){
+        var codes=new LinkedHashSet<String>();var matches=TECHNICAL_REGULATION.matcher(value);
+        while(matches.find())codes.add(matches.group(1).toUpperCase(Locale.ROOT)+":"+matches.group(2)+"/"+matches.group(3));
+        return Set.copyOf(codes);
     }
     public void validateDocuments(String token,Draft draft)throws Exception {validateDocuments(token,buildPayload("",draft,""));}
     private void validateDocuments(String token,JsonObject payload)throws Exception {
