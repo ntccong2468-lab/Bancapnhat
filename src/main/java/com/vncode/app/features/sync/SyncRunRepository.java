@@ -70,9 +70,9 @@ public final class SyncRunRepository {
         if(items.size()>10000||items.stream().anyMatch(i->!run.equals(i.runId())))throw new IllegalArgumentException("SYNC_REPORT_LIMIT");
         for(int offset=0;offset<items.size();offset+=250){var part=items.subList(offset,Math.min(offset+250,items.size()));
             try{SqliteWriteTransaction.run(c->{require(c,shop,run);String now=Instant.now().toString();
-                try(var update=c.prepareStatement("UPDATE sync_run_items SET state=?,step=?,error_code=?,updated_at=? WHERE id=? AND run_id=? AND state NOT IN ('SUCCEEDED','UNCHANGED','CANCELLED')");
+                try(var update=c.prepareStatement("UPDATE sync_run_items SET state=?,step=?,error_code=?,evidence_json=?,updated_at=? WHERE id=? AND run_id=? AND state NOT IN ('SUCCEEDED','UNCHANGED','CANCELLED')");
                     var event=c.prepareStatement("INSERT INTO sync_run_events(run_id,item_id,step,state,error_code,created_at) VALUES(?,?,?,?,?,?)")){
-                    for(var item:part){update.setString(1,item.state());update.setString(2,item.step());update.setString(3,code(item.error()));update.setString(4,now);update.setString(5,item.id());update.setString(6,run);if(update.executeUpdate()!=1)continue;
+                    for(var item:part){update.setString(1,item.state());update.setString(2,item.step());update.setString(3,code(item.error()));update.setString(4,item.evidence());update.setString(5,now);update.setString(6,item.id());update.setString(7,run);if(update.executeUpdate()!=1)continue;
                         String[] values={run,item.id(),item.step(),item.state(),code(item.error()),now};for(int i=0;i<values.length;i++)event.setString(i+1,values[i]);event.addBatch();
                     }event.executeBatch();
                 }

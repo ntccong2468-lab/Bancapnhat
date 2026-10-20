@@ -29,6 +29,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BooleanSupplier;
+import java.util.function.Supplier;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -158,7 +159,23 @@ class OzonBulkUiTest {
                     assertTrue(dialog.getContentText().contains(I18nService.getInstance().tr("ozon.fbs.auto_split_notice")));
                     return dialog.getButtonTypes().stream().filter(type->type.getButtonData()==ButtonBar.ButtonData.OK_DONE).findFirst().orElseThrow();
                 });
-        awaitFx(()->accepted.get()==101&&selected().size()==2&&!node("moveToPackingButton",Button.class).isDisabled());
+        // Successful acceptance selects the packing tab. The Receive button lives
+        // in the now-inactive tab and can legitimately be effectively disabled.
+        // Await the committed batch/report instead of that transient control state.
+        // This fixture writes 198 children individually on the Windows runner.
+        awaitFx(30,()->accepted.get()==101&&selected().size()==2
+                        &&ShopBatchRegistry.activeCount()==0
+                        &&!node("loadingIndicator",ProgressIndicator.class).isVisible()
+                        &&node("batchResultsPanel",TitledPane.class).isVisible()
+                        &&node("batchResultsArea",TextArea.class).getText().lines().count()==101,
+                ()->"Bulk acceptance did not finish: accepted="+accepted.get()+", selected="+selected()
+                        +", activeLeases="+ShopBatchRegistry.activeCount()
+                        +", loading="+node("loadingIndicator",ProgressIndicator.class).isVisible()
+                        +", reportLines="+node("batchResultsArea",TextArea.class).getText().lines().count()
+                        +", tab="+node("orderStatusTabs",TabPane.class).getSelectionModel().getSelectedItem().getId()
+                        +", receiveOwnDisable="+node("moveToPackingButton",Button.class).isDisable()
+                        +", receiveEffectiveDisabled="+node("moveToPackingButton",Button.class).isDisabled()
+                        +", status="+node("statusLabel",Label.class).getText());
         awaitFx(()->node("packingOrdersTab",Tab.class).getText().contains("198"));
         fx(()->{
             assertEquals(Set.of("split-100","split-101"),selected());
@@ -167,6 +184,9 @@ class OzonBulkUiTest {
             assertTrue(report.contains("split-1-A, split-1-B"));
             assertTrue(report.contains("split-100 · "+I18nService.getInstance().tr("ozon.fbs.pending")));
             assertTrue(report.contains(I18nService.getInstance().tr("ozon.fbs.reason.OZON_SPLIT_HAS_BOUND_KIZ")));
+            assertEquals(99,report.lines().filter(line->line.contains(" · "+I18nService.getInstance().tr("ozon.fbs.packaged")+" → ")).count());
+            assertEquals(1,report.lines().filter(line->line.startsWith("split-100 · "+I18nService.getInstance().tr("ozon.fbs.pending"))).count());
+            assertEquals(1,report.lines().filter(line->line.startsWith("split-101 · "+I18nService.getInstance().tr("ozon.fbs.failed"))).count());
             assertTrue(node("batchResultsPanel",TitledPane.class).isExpanded());
             assertEquals(0,ShopBatchRegistry.activeCount());return null;
         });
@@ -237,9 +257,13 @@ class OzonBulkUiTest {
         catch (ReflectiveOperationException error) { throw new AssertionError(error); }
     }
     private void awaitFx(BooleanSupplier condition) throws Exception {
-        long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(5);
+        awaitFx(5,condition,()->"Ozon workspace did not reach the expected state");
+    }
+    private void awaitFx(int timeoutSeconds,BooleanSupplier condition,Supplier<String> diagnostic) throws Exception {
+        long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(timeoutSeconds);
         while (System.nanoTime() < deadline) { if (fx(condition::getAsBoolean)) return; Thread.sleep(10); }
-        assertTrue(fx(condition::getAsBoolean), "Ozon workspace did not reach the expected state");
+        boolean reached=fx(condition::getAsBoolean);
+        assertTrue(reached,reached?"":fx(diagnostic::get));
     }
     private static <T> T fx(Callable<T> operation) throws Exception {
         var task = new FutureTask<>(operation); Platform.runLater(task); return task.get(10, TimeUnit.SECONDS);

@@ -1,7 +1,12 @@
 # VNCode 1.5.3
 
+Bản ứng viên chưa phát hành; các sửa Znack/GTIN đã đóng phạm vi mã và đang được kiểm thử lại trước lượt Windows mới.
+
 - Đăng ký Znack WB/Ozon: lưu toàn bộ lô đã chọn trước khi xử lý, gửi lần lượt từng thẻ lên Catalog. Chỉ tính đã gửi và chuyển thẻ sang Đang xử lý sau khi có kết quả nhận feed; trạng thái xếp hàng hoặc cấp GTIN không được tính là đã đăng ký thành công.
 - Trang đăng ký vẫn cho tìm kiếm, đổi bộ lọc và xem các thẻ đang chờ duyệt trong lúc chạy. Báo cáo lưu đủ từng thẻ; tiến độ phân biệt đã gửi, còn lại và cần xử lý. Thẻ đã có yêu cầu gửi chưa rõ kết quả được đối chiếu trước khi thử tiếp.
+- Đăng ký Ozon: đề xuất tự động dùng đúng Type của article và hệ size theo schema Catalog, nhận tên trường nguồn tương ứng với màu, giới tính, chất liệu và danh mục. Dữ liệu không đủ để xác định duy nhất vẫn yêu cầu seller bổ sung. Thẻ lỗi trước khi gửi được dựng lại payload đã sửa với chính GTIN đã cấp; không xin GTIN khác hoặc gửi lại yêu cầu chưa rõ kết quả.
+- Cập nhật GTIN WB: đối chiếu lỗi theo đúng article gốc và article đã gửi sau khi bỏ khoảng trắng đầu/cuối, bỏ qua lỗi cũ hoặc article không phân biệt được giữa nhiều sản phẩm. Kết quả đọc lại đã có GTIN trên sàn được lưu trước bước kích hoạt cục bộ; lỗi kích hoạt được báo riêng cho từng thẻ.
+- Báo cáo GTIN WB/Ozon tự đọc tiến độ đã lưu của tác vụ nền, hiện số đã xác minh, còn chưa cập nhật, thiếu GTIN, chờ kết quả và cần xử lý. Viên thuốc tự tắt khi lô đã có kết quả cuối; rời trang không hủy tác vụ hoặc để thông báo cũ ghi đè trang mới.
 - Lô đăng ký được giữ trong dữ liệu cục bộ để tiếp tục sau khi có mạng hoặc mở app lại. Đóng cửa sổ khi đang đăng ký sẽ chuyển xuống khay hệ thống nếu hệ thống hỗ trợ, có nút mở lại và thoát. Khi đã thoát hẳn tiến trình hoặc máy tắt, công việc tiếp tục sau lần mở app kế tiếp.
 - Cập nhật và khởi động: giảm kiểm tra, sao lưu lặp và chuẩn bị dữ liệu trên luồng giao diện. Không báo hoàn tất 100% trước bước bàn giao bộ cài; giữ xác minh bộ cài, checksum, dữ liệu SQLite/WAL và bản sao phục hồi.
 - Giữ dữ liệu đã đồng bộ của 1.5.2, mẫu đăng ký mặc định, phạm vi TN VED của giấy tờ và dữ liệu KIZ. Luồng FBS của WB giữ nguyên; đồng bộ Ozon bổ sung đọc lại kết quả đóng gói đang chờ. Bổ sung kiểm tra nâng cấp giữ dữ liệu từ bộ cài 1.5.2 có checksum cố định.

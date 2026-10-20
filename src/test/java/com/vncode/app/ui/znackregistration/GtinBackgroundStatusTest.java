@@ -86,4 +86,61 @@ class GtinBackgroundStatusTest {
   }finally{release.countDown();prior.get(5,TimeUnit.SECONDS);if(accepted!=null)accepted.get(5,TimeUnit.SECONDS);}
   assertEquals(1,task.get(3,TimeUnit.SECONDS).progress().succeeded());assertEquals(0,ran.getCount());
  }
+ @Test void persistedPendingReadbackRefreshesCountsAndDismissesOnlyAfterSettlement()throws Exception{
+  var shop=com.vncode.app.features.gtinsync.GtinWriteTestFixture.shop(com.vncode.app.integration.marketplace.Marketplace.WILDBERRIES);
+  var repo=new com.vncode.app.features.sync.SyncRunRepository();String run=repo.begin(shop,"znack_marketplace","READBACK");
+  var item=repo.add(shop,run,"100","101","","","","",com.vncode.app.features.gtinsync.GtinWriteTestFixture.GTIN,"WAITING_REMOTE","","{}");
+  var context=com.vncode.app.features.sync.GtinRunStatusSnapshot.capture(shop,java.util.Set.of());
+  var initial=com.vncode.app.features.sync.GtinRunStatusSnapshot.read(context,run).result();
+  var pending=new CountDownLatch(1);var verified=new CountDownLatch(1);var gone=new CountDownLatch(1);
+  var pane=fx(()->{var host=new StackPane();new Scene(host,800,500);
+   GtinBackgroundStatus.observe(host,context,initial,()->{},value->{if(value.progress().pending()==1)pending.countDown();if(value.progress().succeeded()==1)verified.countDown();},javafx.util.Duration.millis(30),javafx.util.Duration.millis(160));
+   host.getChildren().addListener((javafx.collections.ListChangeListener<javafx.scene.Node>)change->{if(host.lookup("#gtinBackgroundPill")==null)gone.countDown();});return host;});
+  assertTrue(pending.await(4,TimeUnit.SECONDS));assertEquals(1,gone.getCount());
+  repo.registrationProgress(shop,item,item.gtin(),"SUCCEEDED","VERIFIED","","{\"marketplaceVerified\":true}");
+  assertTrue(verified.await(4,TimeUnit.SECONDS));fx(()->{assertTrue(pane.lookupAll(".progress-indicator").isEmpty());assertTrue(pane.lookupAll(".label").stream().map(n->((Label)n).getText()).anyMatch(t->t.contains("1/1")));return null;});
+  assertTrue(gone.await(4,TimeUnit.SECONDS));
+ }
+ @Test void oldRunAndChangedOwnerNeverOverwriteTheCurrentStatusPill()throws Exception{
+  var shop=com.vncode.app.features.gtinsync.GtinWriteTestFixture.shop(com.vncode.app.integration.marketplace.Marketplace.WILDBERRIES);
+  var repo=new com.vncode.app.features.sync.SyncRunRepository();String old=repo.begin(shop,"znack_marketplace","READBACK"),next=repo.begin(shop,"znack_marketplace","READBACK");
+  repo.add(shop,old,"100","101","","","","",com.vncode.app.features.gtinsync.GtinWriteTestFixture.GTIN,"SUCCEEDED","","{}");
+  repo.add(shop,next,"200","201","","","","",com.vncode.app.features.gtinsync.GtinWriteTestFixture.GTIN,"WAITING_REMOTE","","{}");
+  var context=com.vncode.app.features.sync.GtinRunStatusSnapshot.capture(shop,java.util.Set.of());var stale=new java.util.concurrent.atomic.AtomicInteger();var current=new CountDownLatch(1);
+  var pane=fx(()->{var host=new StackPane();new Scene(host,800,500);
+   GtinBackgroundStatus.observe(host,context,com.vncode.app.features.sync.GtinRunStatusSnapshot.read(context,old).result(),()->{},value->stale.incrementAndGet(),javafx.util.Duration.millis(30),javafx.util.Duration.millis(100));
+   GtinBackgroundStatus.observe(host,context,com.vncode.app.features.sync.GtinRunStatusSnapshot.read(context,next).result(),()->{},value->{assertEquals(next,value.run());current.countDown();},javafx.util.Duration.millis(30),javafx.util.Duration.millis(100));return host;});
+  assertTrue(current.await(4,TimeUnit.SECONDS));assertEquals(0,stale.get());
+  try(var c=com.vncode.app.config.Database.getConnection();var p=c.prepareStatement("UPDATE shops SET api_key='rotated-fixture' WHERE id=?")){p.setInt(1,shop.getId());p.executeUpdate();}
+  var removed=new CountDownLatch(1);fx(()->{if(pane.lookup("#gtinBackgroundPill")==null)removed.countDown();else pane.getChildren().addListener((javafx.collections.ListChangeListener<javafx.scene.Node>)change->{if(pane.lookup("#gtinBackgroundPill")==null)removed.countDown();});return null;});
+  assertTrue(removed.await(4,TimeUnit.SECONDS));assertEquals(0,stale.get());
+ }
+ @Test void aRejectedQueuedMutationCannotReplaceANewerShopsStatusPill()throws Exception{
+  fx(()->{var host=new StackPane();new Scene(host,800,500);
+   var task=new Task<ZnackGtinBackgroundService.Result>(){protected ZnackGtinBackgroundService.Result call(){throw new AssertionError("Rejected mutation must not run");}};
+   var old=RegistrationStatusPill.show(host,"gtinBackgroundPill","Old shop",true);
+   var current=RegistrationStatusPill.show(host,"gtinBackgroundPill","Current shop",true);
+   GtinBackgroundStatus.finishRejected(host,old,task,new java.util.concurrent.RejectedExecutionException("queue unavailable"));
+   assertSame(current,host.lookup("#gtinBackgroundPill"));assertTrue(host.getChildren().contains(current));
+   GtinBackgroundStatus.finishRejected(host,current,task,new java.util.concurrent.RejectedExecutionException("queue unavailable"));
+   assertFalse(host.getChildren().contains(current));assertTrue(host.lookupAll(".progress-indicator").isEmpty());assertNotNull(host.lookup("#gtinBackgroundErrorDetails"));return null;});
+ }
+ @Test void detachingPendingViewRemovesOnlyItsPillAndReopeningReadsTheCompletedDurableRun()throws Exception{
+  var shop=com.vncode.app.features.gtinsync.GtinWriteTestFixture.shop(com.vncode.app.integration.marketplace.Marketplace.WILDBERRIES);
+  var repo=new com.vncode.app.features.sync.SyncRunRepository();String run=repo.begin(shop,"znack_marketplace","READBACK");
+  var item=repo.add(shop,run,"100","101","","","","",com.vncode.app.features.gtinsync.GtinWriteTestFixture.GTIN,"WAITING_REMOTE","","{}");
+  var context=com.vncode.app.features.sync.GtinRunStatusSnapshot.capture(shop,java.util.Set.of());
+  var initial=com.vncode.app.features.sync.GtinRunStatusSnapshot.read(context,run).result();var pending=new CountDownLatch(1);var removed=new CountDownLatch(1);
+  var pane=fx(()->{var host=new StackPane();new Scene(host,800,500);
+   GtinBackgroundStatus.observe(host,context,initial,()->{},result->pending.countDown(),javafx.util.Duration.millis(30),javafx.util.Duration.millis(200));
+   host.getChildren().addListener((javafx.collections.ListChangeListener<javafx.scene.Node>)change->{if(host.lookup("#gtinBackgroundPill")==null)removed.countDown();});return host;});
+  assertTrue(pending.await(4,TimeUnit.SECONDS));fx(()->{pane.getScene().setRoot(new StackPane());assertNull(pane.getScene());return null;});
+  assertTrue(removed.await(4,TimeUnit.SECONDS),"Detached cached views must not retain a permanent pending spinner");
+  // The durable worker remains independent from the detached view and completes its readback.
+  var work=java.util.concurrent.CompletableFuture.runAsync(()->repo.registrationProgress(shop,item,item.gtin(),"SUCCEEDED","VERIFIED","","{\"marketplaceVerified\":true}"));work.get(4,TimeUnit.SECONDS);
+  assertEquals("SUCCEEDED",repo.item(run,item.id()).orElseThrow().state());var complete=new CountDownLatch(1);
+  fx(()->{new Scene(pane,800,500);assertNull(pane.lookup("#gtinBackgroundPill"));
+   GtinBackgroundStatus.observe(pane,context,initial,()->{},result->{if(result.progress().succeeded()==1)complete.countDown();},javafx.util.Duration.millis(30),javafx.util.Duration.millis(300));return null;});
+  assertTrue(complete.await(4,TimeUnit.SECONDS));fx(()->{assertTrue(pane.lookupAll(".progress-indicator").isEmpty());assertTrue(pane.lookupAll(".label").stream().map(n->((Label)n).getText()).anyMatch(text->text.contains("1/1")));return null;});
+ }
 }

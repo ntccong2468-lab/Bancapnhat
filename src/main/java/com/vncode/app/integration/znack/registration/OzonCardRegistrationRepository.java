@@ -73,7 +73,9 @@ public final class OzonCardRegistrationRepository {
                     boolean rejectedRecovery=previous.status()==Status.ERROR&&!previous.gtin().isBlank()&&!previous.feedId().isBlank()&&!Set.of("SENDING","RECONCILE_REQUIRED").contains(previous.signatureState());
                     if(!rejectedRecovery&&(previous.status()!=Status.PUBLISHED||previous.gtin().isBlank()||!previous.activeGtin().equals(previous.gtin())))return false;
                     archive(c,previous);
-                }else if(previous.status()!=Status.NOT_CREATED&&previous.status()!=Status.PREFLIGHT_ERROR)return false;
+                }else if(previous.status()!=Status.NOT_CREATED&&previous.status()!=Status.PREFLIGHT_ERROR
+                        &&!(previous.status()==Status.PRE_SUBMIT_ERROR&&previous.gtin().isBlank()&&previous.feedId().isBlank()
+                            &&previous.goodId()==null&&previous.signatureState().isBlank()&&previous.signatureXml().length==0))return false;
             }else if(newCard)return false;
             String active=previous!=null&&(newCard||TnvedGroupChange.changed(TnvedGroupChange.payloadCode(previous.payload()),reviewedTnved))?previous.activeGtin():activeGtin;
             try(var p=c.prepareStatement("""
@@ -97,6 +99,23 @@ public final class OzonCardRegistrationRepository {
     public void generated(ProductKey key,String gtin,String payload) {
         if(!RegisteredGtinValidator.isValid(gtin)||payload.length()>2*1024*1024)throw new IllegalArgumentException("invalid_catalog_draft");
         update(key,"UPDATE ozon_card_registrations SET gtin=?,payload_json=?,status='READY_TO_SUBMIT',error='',updated_at=? WHERE shop_id=? AND product_id=? AND offer_id=? AND status='ALLOCATING_GTIN'",p->{p.setString(1,gtin);p.setString(2,payload);p.setString(3,Instant.now().toString());bindKey(p,4,key);});
+    }
+    /** Rebuild only a provably unsent validation failure, retaining its allocated GTIN. */
+    boolean rebuildKnownUnsent(Shop shop,ProductKey key,Row expected,ZnackRegistrationScope scope,String sku,String payload){
+        requireShop(shop,key);
+        if(expected==null||expected.status()!=Status.PRE_SUBMIT_ERROR||!RegisteredGtinValidator.isValid(expected.gtin())
+                ||!expected.feedId().isBlank()||expected.goodId()!=null||!expected.signatureState().isBlank()||expected.signatureXml().length!=0)return false;
+        var body=JsonParser.parseString(payload).getAsJsonObject();
+        if(!expected.gtin().equals(safeText(body,"gtin"))||body.has("good_id")||payload.length()>2*1024*1024)throw new IllegalArgumentException("invalid_catalog_draft");
+        return transaction(c->{
+            requireCurrentOwner(c,shop,key,scope);var current=row(c,key);requireOwner(current,ListingIdentity.fingerprint(shop),scope);
+            if(current.status()!=Status.PRE_SUBMIT_ERROR||!current.gtin().equals(expected.gtin())||!current.payload().equals(expected.payload())
+                    ||!current.sku().equals(sku)||!current.feedId().isBlank()||current.goodId()!=null||!current.signatureState().isBlank()||current.signatureXml().length!=0)return false;
+            archive(c,current);
+            try(var statement=c.prepareStatement("UPDATE ozon_card_registrations SET payload_json=?,status='READY_TO_SUBMIT',error='',updated_at=? WHERE shop_id=? AND product_id=? AND offer_id=? AND status='PRE_SUBMIT_ERROR'")){
+                statement.setString(1,payload);statement.setString(2,Instant.now().toString());bindKey(statement,3,key);return statement.executeUpdate()==1;
+            }
+        });
     }
     /** Explicit retry only, after the server proves that the old feed was rejected. */
     public boolean retryRejected(Shop shop,ProductKey key,Row expected,ZnackRegistrationScope scope){

@@ -88,7 +88,6 @@ public final class OzonRegistrationBatchService {
                     if(row!=null&&row.status()==Status.READY_TO_SUBMIT)accepted=workflow.resumeForBatch(shop,item.key(),batch.autoSign());
                     else {
                         if(row!=null&&row.status()==Status.CHECKING)cards.transition(item.key(),Status.CHECKING,Status.PREFLIGHT_ERROR);
-                        if(row!=null&&row.status()==Status.PRE_SUBMIT_ERROR){item(shop,item,"FAILED",row.error().isBlank()?"REGISTRATION_REVIEW_REQUIRED":row.error());continue;}
                         var prepared=workflow.prepare(shop,item.key());
                         var draft=OzonCardRegistrationWorkflow.suggestedDraft(prepared);
                         if(draft.isEmpty()||prepared.documents().automatic()==null){item(shop,item,"FAILED",draft.isEmpty()?"REGISTRATION_MISSING_REQUIRED_FIELDS":"REGISTRATION_DOCUMENT_REVIEW_REQUIRED");continue;}

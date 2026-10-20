@@ -110,16 +110,93 @@ public final class OzonCardRegistrationWorkflow {
         if(p.preflight()==null||p.categoryId()==0||p.snapshot().title().isBlank()||p.snapshot().brand().isBlank()||p.documents().candidates().size()!=1)return java.util.Optional.empty();
         var values=new java.util.LinkedHashMap<Long,String>();var types=new java.util.LinkedHashMap<Long,String>();
         values.put(2478L,p.snapshot().title());values.put(2504L,p.snapshot().brand());
-        for(var a:RegistrationAttributeRules.required(p.required(),p.suggestions())) {
-            if(java.util.Set.of(2478L,2504L,3959L,ZnackNationalCatalogService.DECLARATION_ATTRIBUTE_ID,ZnackNationalCatalogService.CERTIFICATE_ATTRIBUTE_ID).contains(a.id()))continue;
-            if(a.id()==13933L&&p.preflight().categoryTnved().length()==10)continue;
-            String value=p.suggestions().getOrDefault(a.id(),a.id()==13933L?p.tnved():"");
-            if(value.isBlank()||(a.presetOnly()&&!a.presets().contains(value))||a.valueTypes().size()>1)return java.util.Optional.empty();
-            values.put(a.id(),value);if(a.valueTypes().size()==1)types.put(a.id(),a.valueTypes().getFirst());
+        var variant=automaticVariant(p.snapshot());
+        // Resolve dependencies after their parent values; a multi-type schema is not itself missing data.
+        for(int pass=0;pass<=p.required().size();pass++){
+            boolean changed=false;
+            for(var a:RegistrationAttributeRules.required(p.required(),values)){
+                if(java.util.Set.of(2478L,2504L,3959L,ZnackNationalCatalogService.DECLARATION_ATTRIBUTE_ID,ZnackNationalCatalogService.CERTIFICATE_ATTRIBUTE_ID).contains(a.id()))continue;
+                if(a.id()==13933L&&p.preflight().categoryTnved().length()==10)continue;
+                var size=a.id()==35L?automaticSize(a,variant,p.suggestions().getOrDefault(a.id(),"")):null;
+                String value=a.id()==35L?(size==null?"":size.value()):automaticValue(p,a,variant);
+                value=automaticPreset(a,value);
+                String type=automaticType(a,size);
+                if(value.isBlank()||type==null||!RegistrationAttributeRules.validFieldValue(a,value))continue;
+                if(!value.equals(values.put(a.id(),value)))changed=true;types.put(a.id(),type);
+            }
+            if(!changed)break;
+        }
+        for(var a:RegistrationAttributeRules.required(p.required(),values)){
+            if(java.util.Set.of(3959L,ZnackNationalCatalogService.DECLARATION_ATTRIBUTE_ID,ZnackNationalCatalogService.CERTIFICATE_ATTRIBUTE_ID).contains(a.id())||a.id()==13933L&&p.preflight().categoryTnved().length()==10)continue;
+            String value=values.getOrDefault(a.id(),"");
+            if(value.isBlank()||a.presetOnly()&&!a.presets().contains(value)||!RegistrationAttributeRules.validFieldValue(a,value))return java.util.Optional.empty();
+            if(a.id()!=2478L&&a.id()!=2504L&&!types.containsKey(a.id()))return java.util.Optional.empty();
         }
         var document=p.documents().candidates().getFirst();long id=document.type().toUpperCase(java.util.Locale.ROOT).contains("CERTIFICATE")?ZnackNationalCatalogService.CERTIFICATE_ATTRIBUTE_ID:ZnackNationalCatalogService.DECLARATION_ATTRIBUTE_ID;
         values.put(id,document.number()+":::"+document.date());
         return java.util.Optional.of(new Draft(p.tnved(),p.preflight().categoryTnved(),p.categoryId(),p.snapshot().title(),p.snapshot().brand(),values,types).withProductCategory(p.snapshot().metadata().get("source.category.name")));
+    }
+    private record AutomaticSize(String value,String type){}
+    private static ProductVariant automaticVariant(ProductSnapshot snapshot){
+        var matches=snapshot.variants().stream().filter(v->snapshot.key().variantId().equals(v.id())||snapshot.key().variantId().equals(v.sellerArticle())).toList();
+        return matches.size()==1?matches.getFirst():matches.isEmpty()&&snapshot.variants().size()==1?snapshot.variants().getFirst():null;
+    }
+    private static AutomaticSize automaticSize(Attribute a,ProductVariant variant,String suggested){
+        String russian=variant==null?"":RegistrationTemplate.clean(variant.russianSize());
+        String manufacturer=variant==null?RegistrationTemplate.clean(suggested):RegistrationTemplate.clean(variant.size());
+        if(!russian.isBlank()){
+            var types=a.valueTypes().stream().filter(t->normalize(t).equals("россия")).toList();
+            if(types.size()==1)return new AutomaticSize(russian,types.getFirst());
+        }
+        if(manufacturer.matches("(?i)(?:[2-9]?[XSML]+)(?:[-/](?:[2-9]?[XSML]+))*")){
+            var types=a.valueTypes().stream().filter(t->Set.of("международный","int").contains(normalize(t))).toList();
+            if(types.size()==1)return new AutomaticSize(manufacturer,types.getFirst());
+        }
+        // A numeric manufacturer size alone cannot identify Russia, EU or US.
+        if(a.valueTypes().isEmpty()&&!manufacturer.isBlank())return new AutomaticSize(manufacturer,"");
+        return null;
+    }
+    private static String automaticType(Attribute a,AutomaticSize size){
+        if(a.id()==35L)return size==null?null:size.type();
+        if(a.valueTypes().isEmpty())return "";
+        if(a.id()==13914L){var literal=a.valueTypes().stream().filter(t->normalize(t).equals("артикул")).toList();if(literal.size()==1)return literal.getFirst();}
+        return a.valueTypes().size()==1?a.valueTypes().getFirst():null;
+    }
+    private static String automaticValue(Preparation p,Attribute a,ProductVariant variant){
+        var snapshot=p.snapshot();
+        return switch((int)a.id()){
+            case 13933 -> p.tnved();
+            case 13914 -> RegistrationTemplate.clean(snapshot.vendorArticle());
+            case 36 -> variant!=null&&!RegistrationTemplate.clean(variant.color()).isBlank()?RegistrationTemplate.clean(variant.color()):automaticField(snapshot,"color");
+            case 14013 -> automaticField(snapshot,"gender");
+            case 2483 -> automaticField(snapshot,"material");
+            case 12 -> p.suggestions().getOrDefault(a.id(),snapshot.metadata().getOrDefault("source.category.name",""));
+            default -> p.suggestions().getOrDefault(a.id(),automaticNamedValue(snapshot,a));
+        };
+    }
+    private static String automaticField(ProductSnapshot snapshot,String field){
+        var attributes=ProductFieldNames.sourceAttributes(field,snapshot.attributes());var values=new LinkedHashSet<String>();
+        for(var source:attributes){if(source.values().isEmpty()||source.values().stream().anyMatch(v->v==null||v.isBlank()))continue;
+            if(field.equals("material"))values.add(String.join(", ",source.values()));else if(source.values().size()==1)values.add(source.values().getFirst());}
+        return values.size()==1?RegistrationTemplate.clean(values.getFirst()):"";
+    }
+    private static String automaticNamedValue(ProductSnapshot snapshot,Attribute target){
+        var values=new LinkedHashSet<String>();
+        for(var source:snapshot.attributes()){
+            if(!(source.complexId().isBlank()||source.complexId().equals("0"))||source.values().size()!=1)continue;
+            if(normalize(source.name()).equals(normalize(target.name()))||target.id()==13836L&&normalize(source.name()).contains("регламент"))values.add(RegistrationTemplate.clean(source.values().getFirst()));
+        }
+        return values.size()==1?values.getFirst():"";
+    }
+    private static String automaticPreset(Attribute a,String raw){
+        String value=RegistrationTemplate.clean(raw);if(value.isBlank()||a.presets().isEmpty()||a.presets().contains(value))return value;
+        var matches=a.presets().stream().filter(preset->normalize(preset).equals(normalize(value))).toList();
+        if(matches.size()==1)return matches.getFirst();
+        if(a.id()==12L){var words=new TreeSet<>(List.of(normalize(value).split("\\s+")));matches=a.presets().stream().filter(preset->new TreeSet<>(List.of(normalize(preset).split("\\s+"))).equals(words)).toList();if(matches.size()==1)return matches.getFirst();}
+        if(a.id()==13836L&&value.matches("(?i)(?:ТР\\s*(?:ТС|ЕАЭС)\\s*)?[0-9]{3}/[0-9]{4}")){
+            String code=value.replaceFirst("(?i)^ТР\\s*(?:ТС|ЕАЭС)\\s*","");matches=a.presets().stream().filter(preset->preset.contains(code)).toList();if(matches.size()==1)return matches.getFirst();
+        }
+        return a.presetOnly()?"":value;
     }
     /** Chain one accepted job per shop; queueing a whole batch must not discard all but its first SKU. */
     public CompletableFuture<Integer> submitBatchReviewed(Shop shop,List<BatchItem> approved,boolean newCard,boolean confirmed,BiConsumer<Status,String> callback) {
@@ -184,6 +261,13 @@ public final class OzonCardRegistrationWorkflow {
             if(newCard&&previous!=null&&previous.status()==Status.ERROR){
                 repository.guard(shop,key,scope);
                 if(previous.feedId().isBlank()||!CatalogFeedback.confirmedRejection(session.catalog().progress(session.token(),previous.feedId(),previous.gtin())))throw new IllegalStateException("CATALOG_NEW_GTIN_REQUIRES_REJECTED_FEED");
+            }
+            if(!newCard&&previous!=null&&previous.status()==Status.PRE_SUBMIT_ERROR&&!previous.gtin().isBlank()){
+                // Fresh source/schema/documents were validated above. Never allocate again or reuse the invalid payload.
+                repository.guard(shop,key,scope);var rebuilt=ZnackNationalCatalogService.buildPayload(previous.gtin(),reviewed,"");
+                if(!repository.rebuildKnownUnsent(shop,key,previous,scope,sku,rebuilt.toString()))throw new IllegalStateException("registration_changed");
+                RegistrationSigningConsent.set(shop,key,previous.gtin(),reviewed.autoSign());RegistrationMarketplaceConsent.set(shop,key,previous.gtin(),true);
+                submitPrepared(shop,key,session,callback);if(!submitOnly)poll(shop,key,session,reviewed.autoSign(),callback);return;
             }
             boolean groupChange=previous!=null&&TnvedGroupChange.replaceable(previous.status())&&TnvedGroupChange.changed(TnvedGroupChange.payloadCode(previous.payload()),reviewed.tnved());
             if(previous!=null&&!newCard&&!groupChange&&!previous.feedId().isBlank()&&Set.of(Status.FEED_SUBMITTED,Status.PROCESSING,Status.READY_TO_SIGN).contains(previous.status())) {

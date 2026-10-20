@@ -171,7 +171,7 @@ public final class ZnackAutoSyncService {
             if(!compatible(variant.color(),item.color())||!compatible(GtinVariantIdentity.size(shop.getMarketplace(),variant),item.size()))throw new IllegalArgumentException("PRODUCT_CHANGED");
             var result=catalog.run(shop,item.childJob(),false);
             if(result.rows().stream().allMatch(r->r.state()==CatalogSyncModels.State.SUCCEEDED)){
-                completeRegistration(shop,key,item.gtin());runs.update(shop,item,"SUCCEEDED","VERIFIED","",null);
+                activateVerified(shop,verified(shop,List.of(item)),null);
             }else if(result.rows().stream().anyMatch(r->r.state()==CatalogSyncModels.State.BLOCKED)){
                 String issue=result.rows().stream().filter(r->r.state()==CatalogSyncModels.State.BLOCKED).map(CatalogSyncModels.Row::issue).filter(x->!x.isBlank()).findFirst().orElse("GTIN_REJECTED");runs.update(shop,item,"NEEDS_ACTION","READBACK",issue,null);
             }else {
@@ -198,16 +198,45 @@ public final class ZnackAutoSyncService {
             }
         }
         var result=work.run(shop,original.id(),false);var rows=new HashMap<GtinSyncModels.ProductKey,CatalogSyncModels.Row>();for(var row:result.rows())rows.put(row.key(),row);
-        var candidates=completionCandidates(shop);var outcomes=new ArrayList<SyncRunRepository.Item>();
+        var verified=new ArrayList<SyncRunRepository.Item>();var outcomes=new ArrayList<SyncRunRepository.Item>();
         for(var item:items){if(Set.of("SUCCEEDED","UNCHANGED","CANCELLED").contains(item.state()))continue;
             var key=new ProductKey(shop.getId(),shop.getMarketplace(),item.productId(),item.variantId());var row=rows.get(new GtinSyncModels.ProductKey(shop.getId(),shop.getMarketplace(),item.productId(),item.variantId()));
-            if(row.state()==CatalogSyncModels.State.SUCCEEDED){if(candidates.contains(key))completeRegistration(shop,key,item.gtin());outcomes.add(outcome(item,"SUCCEEDED","VERIFIED",""));}
+            if(row.state()==CatalogSyncModels.State.SUCCEEDED)verified.add(item);
             else if(row.state()==CatalogSyncModels.State.BLOCKED)outcomes.add(outcome(item,"NEEDS_ACTION","READBACK",row.issue().isBlank()?"GTIN_REJECTED":row.issue()));
             else if(!row.issue().isBlank()){var failure=SyncFailure.of(new java.io.IOException(row.issue()),0);long failures=runs.events(item.runId(),item.id(),1000).stream().filter(e->e.error().equals(failure.code())).count();outcomes.add(outcome(item,failure.actionRequired()||failures>=2?"NEEDS_ACTION":"RECONCILING","READBACK",failure.code()));}
             else outcomes.add(outcome(item,"WAITING_REMOTE","READBACK","READBACK_PENDING"));
         }
+        // Marketplace truth is durable before any independent local activation or report write.
+        var proof=verified(shop,verified);
         runs.checkpointOutcomes(shop,items.getFirst().runId(),outcomes);
+        if(!proof.isEmpty())activateVerified(shop,proof,completionCandidates(shop));
     }
+    private List<SyncRunRepository.Item> verified(Shop shop,List<SyncRunRepository.Item> items){
+        if(items.isEmpty())return List.of();var proof=new ArrayList<SyncRunRepository.Item>();
+        for(var item:items){var evidence=com.google.gson.JsonParser.parseString(item.evidence()).getAsJsonObject();evidence.addProperty("marketplaceVerified",true);evidence.addProperty("activationPending",true);
+            proof.add(withEvidence(item,"WAITING_REMOTE","LOCAL_ACTIVATION","",evidence.toString()));
+        }
+        runs.checkpointOutcomes(shop,proof.getFirst().runId(),proof);return List.copyOf(proof);
+    }
+    /** A local candidate failure cannot erase verified marketplace data or affect its siblings. */
+    private void activateVerified(Shop shop,List<SyncRunRepository.Item> items,Set<ProductKey> candidates){
+        var outcomes=new ArrayList<SyncRunRepository.Item>();
+        for(var item:items){var evidence=com.google.gson.JsonParser.parseString(item.evidence()).getAsJsonObject();
+            try{
+                var key=new ProductKey(shop.getId(),shop.getMarketplace(),item.productId(),item.variantId());
+                if(candidates==null||candidates.contains(key))completeRegistration(shop,key,item.gtin());
+                evidence.addProperty("activationPending",false);evidence.remove("activationError");evidence.remove("reason");
+                outcomes.add(withEvidence(item,"SUCCEEDED","VERIFIED","",evidence.toString()));
+            }catch(Exception activation){
+                var failure=SyncFailure.of(activation,0);String code="GTIN_LOCAL_ACTIVATION_FAILED";
+                long prior=runs.events(item.runId(),item.id(),1000).stream().filter(event->event.error().equals(code)).count();
+                evidence.addProperty("activationError",failure.code());evidence.addProperty("reason",code+": "+failure.code());
+                outcomes.add(withEvidence(item,failure.actionRequired()||prior>=2?"NEEDS_ACTION":"RECONCILING","LOCAL_ACTIVATION",code,evidence.toString()));
+            }
+        }
+        if(!outcomes.isEmpty())runs.checkpointOutcomes(shop,outcomes.getFirst().runId(),outcomes);
+    }
+    private static SyncRunRepository.Item withEvidence(SyncRunRepository.Item item,String state,String step,String issue,String evidence){return new SyncRunRepository.Item(item.id(),item.runId(),item.productId(),item.variantId(),item.sku(),item.article(),item.color(),item.size(),item.gtin(),state,step,issue,item.childJob(),evidence);}
     private static SyncRunRepository.Item outcome(SyncRunRepository.Item item,String state,String step,String issue){return new SyncRunRepository.Item(item.id(),item.runId(),item.productId(),item.variantId(),item.sku(),item.article(),item.color(),item.size(),item.gtin(),state,step,issue,item.childJob(),item.evidence());}
     private static Set<ProductKey> completionCandidates(Shop shop)throws java.sql.SQLException {
         var result=new HashSet<ProductKey>();String sql=shop.getMarketplace()==Marketplace.OZON?"SELECT product_id,offer_id FROM ozon_card_registrations WHERE shop_id=? AND status='PUBLISHED' AND active_gtin<>gtin":"SELECT r.nm_id,r.chrt_id FROM znack_card_registrations r JOIN znack_card_registration_replacements x ON x.shop_id=r.shop_id AND x.chrt_id=r.chrt_id WHERE r.shop_id=? AND r.status='PUBLISHED' AND x.state='CANDIDATE'";

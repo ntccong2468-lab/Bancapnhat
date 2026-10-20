@@ -4,6 +4,10 @@
 
 - Znack WB/Ozon lưu lô đăng ký, gửi lần lượt từng thẻ và ghi tiến độ sau khi Catalog nhận feed. Bộ lọc Chưa tạo không coi dữ liệu mới xếp hàng là thẻ đã gửi; Đang xử lý giữ các thẻ chờ duyệt và trạng thái đọc lại từ Catalog.
 - Trang đăng ký tiếp tục phản hồi khi chạy lô; báo cáo giữ đầy đủ lựa chọn. Gửi chưa rõ kết quả phải đối chiếu, không tự cấp thêm GTIN hoặc gửi trùng.
+- Đề xuất đăng ký Ozon đọc đầy đủ các trường bắt buộc và phụ thuộc của schema Catalog. Article chọn Type «Артикул» khi xác định duy nhất; size dùng hệ Nga khi có size Nga, hoặc hệ quốc tế khi giá trị chữ và schema cho phép. Alias của trường màu, giới tính, chất liệu, danh mục và quy chuẩn được đọc từ dữ liệu sản phẩm; giá trị cố định phải khớp lựa chọn hợp lệ. Không tự đoán hệ size từ một số đơn lẻ.
+- Ozon `PRE_SUBMIT_ERROR` đã chắc chắn chưa gửi được phép sửa payload từ dữ liệu/schema/giấy tờ mới và dùng lại GTIN đã cấp. Guard kiểm tra danh tính, dữ liệu đã gửi và chữ ký vẫn giữ; yêu cầu chưa rõ kết quả không được đưa vào đường thử lại này.
+- WB đối chiếu lỗi GTIN với article gốc và article đã gửi sau khi trim, đúng sản phẩm và mốc thời gian; article trùng giữa nhiều sản phẩm không được dùng để gán lỗi tùy ý. Khi đọc lại xác nhận GTIN đã lên sàn, báo cáo lưu bằng chứng `marketplaceVerified` trước bước kích hoạt dữ liệu cục bộ. Lỗi kích hoạt cục bộ được giữ riêng theo thẻ, không xóa kết quả trên sàn hoặc làm mất kết quả của các thẻ khác.
+- Tiến độ GTIN WB/Ozon đọc lại báo cáo cục bộ của tác vụ nền để cập nhật số đã xác minh, còn thiếu, chưa có GTIN, chờ kết quả và cần xử lý. Bộ quan sát không gửi thêm lệnh ghi lên sàn. Viên thuốc tự tắt sau kết quả cuối, dừng cập nhật khi trang đã rời hoặc shop/kết nối/thư mục dữ liệu đã đổi.
 - Hàng đợi tiếp tục khi có mạng hoặc mở lại app. Đóng cửa sổ lúc đang chạy có thể giữ app trong khay hệ thống với nút Mở lại/Thoát; nếu không tạo được biểu tượng khay, cửa sổ vẫn hiện và báo lý do.
 - Giảm phần kiểm tra/sao lưu lặp ở khởi động và bàn giao bộ cài, giữ kiểm tra toàn vẹn và dữ liệu SQLite/WAL. Giữ mẫu đăng ký, quy tắc phạm vi giấy tờ/TN VED và dữ liệu KIZ của 1.5.2. Nhánh FBS của WB giữ nguyên; nhánh Ozon bổ sung đối soát đóng gói đang chờ.
 - Ozon FBO chuyển ba nhãn riêng của mỗi sản phẩm cần KIZ thành một nhãn ghép 58×40 mm theo mẫu đã duyệt. Lịch sử giữ cả hai mã và định danh đã xác minh để in lại khi không còn Catalog hoặc quyền in mới, không lấy thêm KIZ. Ozon FBS dùng cùng mẫu nhãn ghép và giữ nguyên các trang vận chuyển chính thức.
@@ -15,11 +19,17 @@
 
 Lượt đọc chỉ đọc lúc 09:35 ngày 20/10/2026, giờ Moscow, nhận HTTP 200 và 1.277 thẻ: 1.241 đã xuất bản, 34 lỗi, 2 nháp. Không thực hiện POST tạo thẻ mới trong lượt kiểm tra này. Số lượng đọc được không chứng minh nút Đăng ký đã tạo thành công một thẻ mới.
 
+Lượt đọc lại lúc 11:30 Moscow đọc đủ 1.277 thẻ và chi tiết cả 34 thẻ lỗi; API không trả nguyên văn lý do kiểm duyệt hoặc feed ID của các thẻ đó. Không quy kết toàn bộ 34 lỗi về Type, alias hoặc giấy tờ khi chưa có lý do gốc từ feed. Lượt đối chiếu lúc 11:44 Moscow đọc đủ 388 thẻ WB, 1.982 biến thể qua bốn trang. Trong tập Catalog đã xuất bản đọc bằng API hiện tại, chỉ một biến thể WB có barcode khớp GTIN; 1.981 biến thể còn lại không khớp tập này. Đây là phép so sánh độ phủ mã trong phạm vi dữ liệu đã đọc, không chứng minh sản phẩm chưa đăng ký ở mọi tài khoản hoặc seller dùng sai tài khoản. Bằng chứng chỉ giữ tổng số, HTTP và giới hạn suy luận trong [Catalog chỉ đọc](../validation/2026-10-20-vncode-153-catalog-readonly-recheck.json) và [độ phủ WB–Catalog](../validation/2026-10-20-vncode-153-wb-catalog-coverage.json); không chứa ID thẻ, GTIN hoặc khóa API.
+
 ## Kiểm tra metadata
 
-`release-version.mjs` xác nhận hai khai báo phiên bản trong `pom.xml` cùng là 1.5.3. Lượt trước khi thêm FBO/tách shipment, source 58d091a, đạt 2.007 kiểm thử Linux với 2 bỏ qua theo nền tảng và 85 kiểm thử Node. Phần FBO trên source 1524b56 đạt 98 kiểm thử trọng tâm. Phạm vi cuối, gồm hai sửa lỗi checkpoint và cache đối soát, đạt 105 kiểm thử trọng tâm, không lỗi hoặc bỏ qua. Kết quả hồi quy sạch toàn bộ và Windows mới được ghi riêng trong JSON/bằng chứng của đúng source cuối; không dùng lượt Windows của phạm vi cũ làm nghiệm thu cuối.
+`release-version.mjs` xác nhận hai khai báo phiên bản trong `pom.xml` cùng là 1.5.3. Source a684fcd đạt 2.045 kiểm thử Linux, 0 lỗi, 2 bỏ qua theo nền tảng, thuộc 335 bộ kiểm thử; đây là mã trước các sửa Znack/GTIN bổ sung hiện tại. Phạm vi Ozon checkpoint/cache của source này cũng đạt 105 kiểm thử trọng tâm. Các kết quả đó được giữ làm bằng chứng phạm vi trước, không tính là nghiệm thu mã mới đang sửa.
 
-So sánh mã nguồn xác nhận bốn đầu vào mẫu đăng ký/giấy tờ/TN VED vẫn trùng byte với 1.5.2. Toàn bộ `FbsSyncService.java` có thay đổi trong nhánh Ozon; đoạn phương thức đồng bộ WB vẫn trùng byte với bản nền.
+Windows run 39393525107 của source a684fcd thất bại tại nhóm kiểm thử giao diện đầu: 83 kiểm thử, 1 thất bại ở `OzonBulkUiTest` dòng 161. Lượt này chưa chạy toàn bộ Java, chưa tạo bộ cài và chưa qua kiểm tra native/nâng cấp. Predicate chờ hoàn tất có giới hạn thời gian của fixture đã được sửa và bổ sung assertions; chưa ghi nhận đạt trên Windows cho tới khi chạy lại.
+
+Các sửa Type bắt buộc nhiều lựa chọn của Catalog, alias nguồn trong đề xuất Ozon, retry giữ GTIN, bằng chứng GTIN đã xác minh/lỗi kích hoạt WB và báo cáo nền chỉ đọc đã đóng phạm vi mã. Kiểm thử trọng tâm tổng hợp đang chạy; chưa ghi nhận số đạt mới hoặc Windows run mới cho phạm vi này. Chưa dispatch publisher.
+
+So sánh tại source a684fcd xác nhận bốn đầu vào mẫu đăng ký/giấy tờ/TN VED vẫn trùng byte với 1.5.2. Toàn bộ `FbsSyncService.java` có thay đổi trong nhánh Ozon; đoạn phương thức đồng bộ WB vẫn trùng byte với bản nền. Các hash sẽ được kiểm tra lại sau khi đóng phạm vi sửa mới.
 
 Lượt đọc Ozon thật lúc 11:02 ngày 20/10/2026, giờ Moscow, có năm đơn chờ đóng gói và đều một đơn vị. Không có đơn nhiều đơn vị trong mẫu, không thực hiện POST đóng gói/tách shipment production. Kiểm thử mô phỏng không được ghi nhận là tách shipment thật trên tài khoản seller.
 

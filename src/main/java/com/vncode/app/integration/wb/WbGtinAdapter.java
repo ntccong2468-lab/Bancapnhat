@@ -88,25 +88,43 @@ public final class WbGtinAdapter implements GtinBatchAdapter {
     }
     @Override public Map<ProductKey,VerificationResult> verifyBatch(List<JobItem> items)throws IOException {
         if(client instanceof GtinBatchTransport batch)batch.refresh(items.stream().map(i->i.preview().before().key()).toList());
-        var result=new LinkedHashMap<ProductKey,VerificationResult>();var pending=new ArrayList<JobItem>();
+        var result=new LinkedHashMap<ProductKey,VerificationResult>();var pending=new ArrayList<JobItem>();var targets=new ArrayList<RejectionTarget>();
         for(var item:items)try{
             var p=item.preview();var card=ownCard(p.before().key());var actual=snapshot(p.before().key(),card);observe(actual);
+            targets.add(rejectionTarget(p,card,actual));
             if(RegisteredGtinProof.contains(actual.barcodes(),p.newGtin())&&text(card,"vendorCode").equals(com.vncode.app.shared.SellerArticle.trim(p.before().article())))result.put(p.before().key(),new VerificationResult(p.before().barcodes().stream().allMatch(code->RegisteredGtinProof.contains(actual.barcodes(),code))?Verification.APPLIED:Verification.UNKNOWN));
             else if("wb-rejected".equals(item.remoteTaskId()))result.put(p.before().key(),new VerificationResult(Verification.REJECTED));
             else pending.add(item);
         }catch(IOException unavailable){result.put(item.preview().before().key(),new VerificationResult(Verification.UNKNOWN,com.vncode.app.features.sync.SyncFailure.of(unavailable,0).code()));}
         if(!pending.isEmpty())try{
-            var errors=batchRejections(pending);
-            for(var item:pending){var p=item.preview();var error=errors.get(com.vncode.app.shared.SellerArticle.trim(p.before().article()));result.put(p.before().key(),new VerificationResult(error!=null&&!error.isBefore(p.before().fetchedAt())?Verification.REJECTED:Verification.PENDING,error!=null&&!error.isBefore(p.before().fetchedAt())?"WB_GTIN_CARD_REJECTED":""));}
+            var errors=recentRejections(targets,20_000);
+            for(var item:pending){var key=item.preview().before().key();var error=errors.get(key);result.put(key,new VerificationResult(error!=null?Verification.REJECTED:Verification.PENDING,error!=null?error.issue():""));}
         }catch(IOException unavailable){for(var item:pending)result.put(item.preview().before().key(),new VerificationResult(Verification.UNKNOWN,com.vncode.app.features.sync.SyncFailure.of(unavailable,0).code()));}
         return Map.copyOf(result);
     }
-    private Map<String,Instant> batchRejections(List<JobItem> items)throws IOException {
-        var wanted=items.stream().map(i->com.vncode.app.shared.SellerArticle.trim(i.preview().before().article())).collect(java.util.stream.Collectors.toSet());var result=new HashMap<String,Instant>();var cursor=new JsonObject();cursor.addProperty("limit",100);var seen=new HashSet<String>();
-        for(int page=0;page<20_000;page++){
+    private record RejectionTarget(Preview preview,Set<String> articles) {}
+    private record CardRejection(Instant time,String issue) {}
+    private static RejectionTarget rejectionTarget(Preview preview,JsonObject card,ProductSnapshot actual) {
+        var articles=new LinkedHashSet<String>();articles.add(com.vncode.app.shared.SellerArticle.trim(preview.before().article()));
+        // ProductSnapshot strips article edges. Recover the exact original only from its owned, unchanged preimage.
+        if(actual.fingerprint().equals(preview.before().fingerprint()))articles.add(text(card,"vendorCode"));
+        return new RejectionTarget(preview,Set.copyOf(articles));
+    }
+    private Map<ProductKey,CardRejection> recentRejections(List<RejectionTarget> targets,int pageLimit)throws IOException {
+        var owners=new HashMap<String,Set<String>>();
+        for(var target:targets)for(String article:target.articles())owners.computeIfAbsent(article,k->new HashSet<>()).add(target.preview().before().key().productId());
+        var result=new HashMap<ProductKey,CardRejection>();var cursor=new JsonObject();cursor.addProperty("limit",100);var seen=new HashSet<String>();
+        for(int page=0;page<pageLimit;page++){
             var body=new JsonObject();body.add("cursor",cursor);var response=object(client.call("content/v2/cards/error/list",body,false));if("true".equals(text(response,"error")))throw new IOException("WB_ERROR_LIST_UNAVAILABLE");var data=obj(response,"data");
             for(var entry:strictArray(data,"items")){var item=object(entry);Instant time;try{time=Instant.parse(text(item,"updatedAt"));}catch(RuntimeException invalid){continue;}if(time.isAfter(Instant.now().plusSeconds(300)))continue;
-                for(var code:array(item,"vendorCodes")){String article=code.getAsString();var errors=obj(item,"errors").get(article);if(wanted.contains(article)&&errors!=null&&errors.isJsonArray()&&!errors.getAsJsonArray().isEmpty())result.merge(article,time,(a,b)->a.isAfter(b)?a:b);}
+                for(var code:array(item,"vendorCodes")){
+                    if(!code.isJsonPrimitive()||!code.getAsJsonPrimitive().isString())continue;
+                    String article=code.getAsString();var errors=obj(item,"errors").get(article);
+                    if(owners.getOrDefault(article,Set.of()).size()!=1||errors==null||!errors.isJsonArray()||errors.getAsJsonArray().isEmpty())continue;
+                    boolean whitespace=errors.getAsJsonArray().asList().stream().filter(JsonElement::isJsonPrimitive).map(JsonElement::getAsString).anyMatch(value->value.toLowerCase(Locale.ROOT).contains("пробел"));
+                    String issue=whitespace&&!article.equals(com.vncode.app.shared.SellerArticle.trim(article))?"WB_ARTICLE_EDGE_WHITESPACE":"WB_GTIN_CARD_REJECTED";
+                    for(var target:targets)if(target.articles().contains(article)&&!time.isBefore(target.preview().before().fetchedAt()))result.merge(target.preview().before().key(),new CardRejection(time,issue),(a,b)->a.time().isAfter(b.time())?a:b);
+                }
             }
             var next=obj(data,"cursor");if(!"true".equals(text(next,"next")))return result;String updated=text(next,"updatedAt"),batch=text(next,"batchUUID");if(updated.isBlank()||!batch.matches("[a-fA-F0-9-]{36}")||!seen.add(updated+"/"+batch))throw new IOException("WB_ERROR_CURSOR_INVALID");cursor=new JsonObject();cursor.addProperty("limit",100);cursor.addProperty("updatedAt",updated);cursor.addProperty("batchUUID",batch);
         }throw new IOException("WB_ERROR_PAGE_LIMIT");
@@ -157,31 +175,8 @@ public final class WbGtinAdapter implements GtinBatchAdapter {
         if(RegisteredGtinProof.contains(actual.barcodes(),preview.newGtin()) && text(card,"vendorCode").equals(com.vncode.app.shared.SellerArticle.trim(preview.before().article())))
             return preview.before().barcodes().stream().allMatch(code->RegisteredGtinProof.contains(actual.barcodes(),code))?Verification.APPLIED:Verification.UNKNOWN;
         if("wb-rejected".equals(submission.remoteTaskId()))return Verification.REJECTED;
-        String rejection=recentRejection(preview,com.vncode.app.shared.SellerArticle.trim(preview.before().article()));if(!rejection.isBlank())throw new GtinRejectedException(rejection);
+        var rejection=recentRejections(List.of(rejectionTarget(preview,card,actual)),10).get(preview.before().key());if(rejection!=null)throw new GtinRejectedException(rejection.issue());
         return Verification.PENDING;
-    }
-    private String recentRejection(Preview preview,String article)throws IOException {
-        var cursor=new JsonObject();cursor.addProperty("limit",100);var seen=new HashSet<String>();
-        for(int page=0;page<10;page++){
-            var body=new JsonObject();body.add("cursor",cursor);
-            var response=object(client.call("content/v2/cards/error/list",body,false));
-            if("true".equals(text(response,"error")))throw new IOException("WB_ERROR_LIST_UNAVAILABLE");
-            var data=obj(response,"data");
-            for(var entry:strictArray(data,"items")){
-                var item=object(entry);Instant updated;
-                try{updated=Instant.parse(text(item,"updatedAt"));}catch(RuntimeException invalid){continue;}
-                if(updated.isBefore(preview.before().fetchedAt())||updated.isAfter(Instant.now().plusSeconds(300)))continue;
-                if(!strings(array(item,"vendorCodes")).contains(article))continue;
-                var errors=obj(item,"errors").get(article);if(errors==null||!errors.isJsonArray()||errors.getAsJsonArray().isEmpty())continue;
-                boolean whitespace=errors.getAsJsonArray().asList().stream().filter(JsonElement::isJsonPrimitive).map(JsonElement::getAsString).anyMatch(value->value.toLowerCase(Locale.ROOT).contains("пробел"));
-                return whitespace&&!article.equals(article.strip())?"WB_ARTICLE_EDGE_WHITESPACE":"WB_GTIN_CARD_REJECTED";
-            }
-            var next=obj(data,"cursor");if(!"true".equals(text(next,"next")))return "";
-            String updated=text(next,"updatedAt"),batch=text(next,"batchUUID");
-            if(updated.isBlank()||!batch.matches("[a-fA-F0-9-]{36}")||!seen.add(updated+"/"+batch))throw new IOException("WB_ERROR_CURSOR_INVALID");
-            cursor=new JsonObject();cursor.addProperty("limit",100);cursor.addProperty("updatedAt",updated);cursor.addProperty("batchUUID",batch);
-        }
-        throw new IOException("WB_ERROR_PAGE_LIMIT");
     }
     private void requireWrite(Preview preview){
         requireKey(preview.before().key());

@@ -122,7 +122,57 @@ class WbGtinAdapterTest {
         transport.errors=errorList("Fixture",p.before().fetchedAt().minusSeconds(60));assertEquals(Verification.PENDING,adapter.verify(p,sent));
         transport.errors=errorList("Foreign",Instant.now().plusSeconds(1));assertEquals(Verification.PENDING,adapter.verify(p,sent));assertEquals(1,transport.writes.get());
     }
-    private static JsonElement errorList(String article,Instant at){var item=new JsonObject();var codes=new JsonArray();codes.add(article);item.add("vendorCodes",codes);item.addProperty("updatedAt",at.toString());var errors=new JsonObject();var messages=new JsonArray();messages.add("Invalid fixture attributes");errors.add(article,messages);item.add("errors",errors);var items=new JsonArray();items.add(item);var data=new JsonObject();data.add("items",items);var root=new JsonObject();root.add("data",data);return root;}
+    @Test void originalEdgeArticleRejectionEndsTheAcknowledgedBatchWithWhitespaceDetail()throws Exception {
+        String original=" Fixture - model \u00a0";transport.card.addProperty("vendorCode",original);
+        var repo=new GtinSyncRepository();var runner=new GtinSyncCoordinator(repo,k->adapter,Clock.systemUTC(),1,Duration.ZERO);var job=runner.confirm(List.of(preview()));transport.apply=false;
+        transport.errors=errorList(original,Instant.now().plusSeconds(1),"В Артикуле продавца содержится пробел. Пожалуйста, удалите пробел.");
+        runner.runJob(job);repo.recoverInterrupted();runner.runJob(job);
+        var item=repo.jobItems(job).getFirst();assertEquals(Status.FAILED,item.status());assertEquals("WB_ARTICLE_EDGE_WHITESPACE",repo.issue(item.id()));assertEquals(1,transport.writes.get());
+        assertEquals("Fixture - model",transport.sent.get(0).getAsJsonObject().get("vendorCode").getAsString());
+    }
+    @Test void singleRejectionAcceptsExactOriginalAndSubmittedArticlesAndClassifiesTheRawSource()throws Exception {
+        String original=" Fixture - model ";transport.card.addProperty("vendorCode",original);var p=preview();transport.apply=false;var sent=adapter.submit(p);
+        transport.errors=errorList(original,Instant.now().plusSeconds(1),"В Артикуле продавца содержится пробел.");
+        assertEquals("WB_ARTICLE_EDGE_WHITESPACE",assertThrows(GtinRejectedException.class,()->adapter.verify(p,sent)).code());
+        transport.errors=errorList("Fixture - model",Instant.now().plusSeconds(1),"В Артикуле продавца содержится пробел.");
+        assertEquals("WB_GTIN_CARD_REJECTED",assertThrows(GtinRejectedException.class,()->adapter.verify(p,sent)).code());
+        transport.errors=errorList(original,Instant.now().plusSeconds(1));assertEquals("WB_GTIN_CARD_REJECTED",assertThrows(GtinRejectedException.class,()->adapter.verify(p,sent)).code());assertEquals(1,transport.writes.get());
+    }
+    @Test void batchRejectionAcceptsTheExactSubmittedArticleWhilePreservingInternalSpaces()throws Exception {
+        transport.card.addProperty("vendorCode"," Fixture - model ");var p=preview();transport.apply=false;adapter.submitBatch(List.of(p),()->{});
+        transport.errors=errorList("Fixture - model",Instant.now().plusSeconds(1));var result=adapter.verifyBatch(List.of(awaiting(p))).get(key);
+        assertEquals(Verification.REJECTED,result.outcome());assertEquals("WB_GTIN_CARD_REJECTED",result.issue());assertEquals(1,transport.writes.get());
+    }
+    @Test void originalArticleRejectionCannotMatchAnotherEdgeSpellingOldTimeOrFutureTime()throws Exception {
+        String original=" Fixture - model ";transport.card.addProperty("vendorCode",original);var p=preview();transport.apply=false;var sent=adapter.submit(p);
+        transport.errors=errorList("  Fixture - model",Instant.now().plusSeconds(1));assertPending(p,sent);
+        transport.errors=errorList("Fixture-model",Instant.now().plusSeconds(1));assertPending(p,sent);
+        transport.errors=errorList(original,p.before().fetchedAt().minusSeconds(1));assertPending(p,sent);
+        transport.errors=errorList(original,Instant.now().plusSeconds(600));assertPending(p,sent);assertEquals(1,transport.writes.get());
+    }
+    @Test void originalArticleAliasRequiresTheUnchangedOwnedPreimage()throws Exception {
+        String original=" Fixture - model ";transport.card.addProperty("vendorCode",original);var p=preview();transport.apply=false;var sent=adapter.submit(p);
+        transport.card.addProperty("description","Changed after acknowledgement");transport.errors=errorList(original,Instant.now().plusSeconds(1));assertPending(p,sent);
+    }
+    @Test void rejectionOfAnUnverifiedSiblingDoesNotOverrideVerifiedReadback()throws Exception {
+        var first=preview();var secondKey=new ProductKey(1,Marketplace.WILDBERRIES,"101","12");
+        var second=new Preview(adapter.read(secondKey),Operation.ADD,"","00000000000024",adapter.capability(secondKey));
+        transport.card.getAsJsonArray("sizes").get(0).getAsJsonObject().getAsJsonArray("skus").add(GTIN);
+        transport.errors=errorList("Fixture",Instant.now().plusSeconds(1));var result=adapter.verifyBatch(List.of(awaiting(first),awaiting(second)));
+        assertEquals(Verification.APPLIED,result.get(key).outcome());assertEquals("",result.get(key).issue());assertEquals(Verification.REJECTED,result.get(secondKey).outcome());assertEquals("WB_GTIN_CARD_REJECTED",result.get(secondKey).issue());assertEquals(0,transport.writes.get());
+    }
+    @Test void anArticleAliasSharedByDifferentProductOwnersCannotAttributeARejection()throws Exception {
+        transport.card.addProperty("vendorCode"," Fixture - model ");transport.extra=transport.card.deepCopy();transport.extra.addProperty("nmID",102);transport.extra.addProperty("vendorCode","Fixture - model");
+        transport.extra.getAsJsonArray("sizes").get(0).getAsJsonObject().addProperty("chrtID",21);transport.extra.getAsJsonArray("sizes").get(1).getAsJsonObject().addProperty("chrtID",22);
+        var otherKey=new ProductKey(1,Marketplace.WILDBERRIES,"102","21");
+        var first=new Preview(adapter.read(key),Operation.ADD,"",GTIN,adapter.capability(key));var second=new Preview(adapter.read(otherKey),Operation.ADD,"","00000000000024",adapter.capability(otherKey));
+        transport.errors=errorList("Fixture - model",Instant.now().plusSeconds(1));var result=adapter.verifyBatch(List.of(awaiting(first),awaiting(second)));
+        assertEquals(Verification.PENDING,result.get(key).outcome());assertEquals(Verification.PENDING,result.get(otherKey).outcome());assertEquals(0,transport.writes.get());
+    }
+    private void assertPending(Preview p,Submission sent)throws Exception{assertEquals(Verification.PENDING,adapter.verify(p,sent));assertEquals(Verification.PENDING,adapter.verifyBatch(List.of(awaiting(p))).get(p.before().key()).outcome());}
+    private static JobItem awaiting(Preview p){return new JobItem(java.util.UUID.randomUUID(),java.util.UUID.randomUUID(),p,Status.AWAITING_VERIFICATION,"");}
+    private static JsonElement errorList(String article,Instant at){return errorList(article,at,"Invalid fixture attributes");}
+    private static JsonElement errorList(String article,Instant at,String reason){var item=new JsonObject();var codes=new JsonArray();codes.add(article);item.add("vendorCodes",codes);item.addProperty("updatedAt",at.toString());var errors=new JsonObject();var messages=new JsonArray();messages.add(reason);errors.add(article,messages);item.add("errors",errors);var items=new JsonArray();items.add(item);var data=new JsonObject();data.add("items",items);var root=new JsonObject();root.add("data",data);return root;}
     static final class Fixture implements ListingTransport {
         JsonObject card=JsonParser.parseString("""
           {"nmID":101,"subjectID":77,"vendorCode":"Fixture","title":"Keep title","description":"Keep description","brand":"Keep brand","kizMarked":true,
@@ -131,12 +181,12 @@ class WbGtinAdapterTest {
           "sizes":[{"chrtID":11,"techSize":"XL","wbSize":"50","skus":["legacy"]},{"chrtID":12,"techSize":"L","wbSize":"48","skus":["other-size"]}],
           "documents":{"items":[{"id":"owned-document","type":2,"number":"D","applicant":"Fixture","verdict":{"verified":true,"status":1}}],"overallVerdict":{"verified":true}},"photos":[{"big":"https://example.invalid/fixture.jpg"}]}
           """).getAsJsonObject();
-        JsonObject conflict;JsonArray sent;JsonElement errors=JsonParser.parseString("{\"data\":{\"items\":[],\"cursor\":{\"next\":false}}}");AtomicInteger writes=new AtomicInteger();boolean apply=true,loseResponse,reject;Runnable beforeSend=()->{};
+        JsonObject conflict,extra;JsonArray sent;JsonElement errors=JsonParser.parseString("{\"data\":{\"items\":[],\"cursor\":{\"next\":false}}}");AtomicInteger writes=new AtomicInteger();boolean apply=true,loseResponse,reject;Runnable beforeSend=()->{};
         public JsonElement call(String path,JsonElement body,boolean mutation)throws IOException {
             if(mutation){assertEquals("content/v2/cards/update",path);writes.incrementAndGet();sent=body.getAsJsonArray().deepCopy();if(apply)card=sent.get(0).getAsJsonObject().deepCopy();if(loseResponse)throw new IOException("fixture timeout");return JsonParser.parseString(reject?"{\"error\":true}":"{\"error\":false}");}
             if(path.equals("content/v2/cards/error/list"))return errors.deepCopy();
             assertEquals("content/v2/get/cards/list",path);String search=body.getAsJsonObject().getAsJsonObject("settings").getAsJsonObject("filter").get("textSearch").getAsString();
-            var cards=new JsonArray();if(search.equals("101"))cards.add(card.deepCopy());else if(conflict!=null)cards.add(conflict.deepCopy());var out=new JsonObject();out.add("cards",cards);return out;
+            var cards=new JsonArray();if(search.equals("101"))cards.add(card.deepCopy());else if(extra!=null&&search.equals(extra.get("nmID").getAsString()))cards.add(extra.deepCopy());else if(conflict!=null)cards.add(conflict.deepCopy());var out=new JsonObject();out.add("cards",cards);return out;
         }
         public JsonElement call(String path,JsonElement body,boolean mutation,Runnable guard)throws IOException{beforeSend.run();guard.run();return call(path,body,mutation);}
     }
