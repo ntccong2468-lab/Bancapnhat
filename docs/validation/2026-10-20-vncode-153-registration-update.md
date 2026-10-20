@@ -26,3 +26,7 @@ Kết quả hồi quy đầy đủ và bộ cài Windows sẽ được ghi vào 
 Lúc 09:35 ngày 20.10.2026 (Europe/Moscow), đọc Catalog thật trả HTTP 200: 1.277 thẻ, gồm 1.241 published, 34 lỗi, 2 nháp. Đọc chi tiết một thẻ lỗi cũng trả HTTP 200. API danh sách/chi tiết không trả nguyên văn lỗi kiểm duyệt hoặc `feed_id`; endpoint trạng thái cần feed ID được lưu trong app của seller.
 
 Lượt này chưa gửi mới/cấp GTIN/ký bằng tài khoản production. Đường đăng ký production vẫn xác minh license, chủ sở hữu và CryptoPro; không tắt các kiểm tra đó để làm test xanh. Kiểm thử HTTP localhost không chứng minh một thẻ mới đã xuất hiện trên trang Честный знак của seller. Chưa đo thời gian cập nhật trên máy seller. Lượt chuyển giao từ bản đang cài 1.5.2 vẫn chạy mã updater cũ; bản mới chỉ sửa được mã sau khi được cài.
+
+## Quyền kiểm thử do chủ dự án cấp
+
+Chủ dự án cho phép phiên kiểm thử có quyền license không giới hạn, áp dụng cả WB và Ozon. Bộ kiểm thử dùng authority ký tạm `LicenseDomainFixture`/`LicenseTestBootstrap` đã có, cấp mọi quyền ứng dụng trong dữ liệu cô lập; không đưa khóa authority kiểm thử vào bộ cài. 71 ca cuối trên source 9dfcae6 đã đạt, gồm cả WB, Ozon, nút đăng ký, HTTP transport và guard monitor khôi phục. Điều này gỡ phần chặn quyền license trong phiên kiểm thử, không cung cấp chứng thư/khóa CryptoPro hoặc biến chữ ký fixture thành chữ ký production. Cờ nghiệm thu license production vẫn được tách riêng.

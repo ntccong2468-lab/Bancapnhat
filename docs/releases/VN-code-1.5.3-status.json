@@ -5,7 +5,7 @@
   "databaseSchema": 6,
   "published": false,
   "complete": false,
-  "sourceCommit": null,
+  "sourceCommit": "9dfcae6ddf30d82f5fddc8ba5e5252cc362dddd8",
   "requestReport": "VN-code-1.5.3-request-report.md",
   "licenseIntegration": {
     "productionReady": false,
@@ -15,7 +15,7 @@
     "latestReleaseAtPreparation": "v1.5.2",
     "latestReleaseChangedByThisWork": false,
     "standardAcceptanceClaimed": false,
-    "ownerExceptionAdded": false,
+    "ownerExceptionAdded": true,
     "releaseUrl": null,
     "installerSha256": null,
     "installerBytes": null
@@ -27,25 +27,35 @@
   ],
   "validation": {
     "linuxFullSuite": {
-      "state": "awaiting-final-result",
+      "state": "passed",
+      "sourceCommit": "a65b2b4a0e8ccf590722a7642e3d403cdc7b8338",
+      "tests": 1991,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 2,
+      "passed": 1989,
+      "command": "DISPLAY=:99 XDG_CACHE_HOME=/tmp/vncode-ui-cache /workspace/toolchains/mvn-vncode -o clean verify",
+      "log": "/tmp/vncode-153-full.log",
+      "scope": "Complete baseline change set; final Ozon startup guard is covered by a separate focused run and the fresh final-source Windows suite.",
       "acceptedForRelease": false
     },
     "releaseToolTests": {
       "state": "passed",
-      "tests": 27,
+      "tests": 81,
       "failures": 0,
-      "fullSuiteExecuted": false,
-      "command": "node --test tools/vncode-products-release.test.mjs tools/release-version.test.mjs tools/javafx-production-entrypoint.test.mjs"
+      "fullSuiteExecuted": true,
+      "command": "node --test tools/*.test.mjs"
     },
     "windowsBuild": {
-      "state": "not-run",
+      "state": "running",
       "freshFullJavaExecutionRequired": true,
       "allNativeChecksMustRunAgain": true,
-      "sourceCommit": null,
-      "runId": null,
+      "sourceCommit": "9dfcae6ddf30d82f5fddc8ba5e5252cc362dddd8",
+      "runId": 39383179796,
       "upgradeFrom152Passed": false,
       "allNativeChecksPassed": false,
-      "installerPackaged": false
+      "installerPackaged": false,
+      "url": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/39383179796"
     },
     "liveCatalogRead": {
       "state": "passed",
@@ -67,6 +77,50 @@
     "liveCatalogCardCreatedThisVersion": false,
     "liveCatalogCardRepairedThisVersion": false,
     "windowsTrayVerifiedOnWindows": false,
-    "publicDownloadVerified": false
+    "publicDownloadVerified": false,
+    "cancelledWindowsBuild": {
+      "runId": 39382705240,
+      "sourceCommit": "a65b2b4a0e8ccf590722a7642e3d403cdc7b8338",
+      "reason": "Intentionally cancelled to include the final Ozon startup ownership guard. Not a completed verification."
+    },
+    "liveReadFeasibility": {
+      "readOnly": true,
+      "wbHttp": 200,
+      "wbProducts": 388,
+      "wbVariants": 1982,
+      "wbPages": 4,
+      "catalogHttp": 200,
+      "catalogCards": 1277,
+      "newFeedSent": false,
+      "gtinAllocated": false,
+      "productionAppPathBlockedBy": [
+        "No Windows CryptoPro executable/private certificate in this Linux environment",
+        "No uniquely validated product/permit sample available through current read-only probes"
+      ],
+      "didNotBypassProductionGuards": true
+    },
+    "finalSourceFocusedSuite": {
+      "state": "passed",
+      "sourceCommit": "9dfcae6ddf30d82f5fddc8ba5e5252cc362dddd8",
+      "tests": 71,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "includes": [
+        "WB and Ozon sequential durable registration",
+        "Real localhost HTTP POST /v3/feed with accepted identity checks",
+        "Register button and unlocked filters",
+        "Ozon restart-monitor ownership guard",
+        "Updater handoff UI"
+      ],
+      "log": "/tmp/vncode-153-final-guard.log"
+    },
+    "ownerAuthorizedTestLicense": {
+      "authorized": true,
+      "scope": "WB and Ozon test sessions, unlimited functional permission granted by project owner in this conversation",
+      "mechanism": "Existing isolated signed LicenseDomainFixture and LicenseTestBootstrap; all application permissions granted during tests",
+      "productionRuntimeLicenseChanged": false,
+      "productionLicenseAcceptanceClaimed": false
+    }
   }
 }
