@@ -1,0 +1,82 @@
+{
+  "change": "Ozon carrier plus combined KIZ/product barcode labels",
+  "baseCommit": "0c2be2a",
+  "publishedBaseline": "v1.5.4",
+  "state": "implemented-focused-regression-passed",
+  "publication": "source-fix-for-next-update; no new installer published",
+  "tests": 46,
+  "passed": 46,
+  "failures": 0,
+  "errors": 0,
+  "skipped": 0,
+  "suites": [
+    {
+      "suite": "OzonOfficialLabelSelectorTest",
+      "tests": 10,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "suite": "OzonPrintBundleServiceTest",
+      "tests": 21,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "suite": "OzonCombinedLabelRendererTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "suite": "OzonLabelServiceTest",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "suite": "OzonPrintHistoryServiceTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "suite": "OzonFboCombinedPrintTest",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "suite": "OzonFbsPrintReportTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  ],
+  "command": "/workspace/toolchains/mvn-vncode -o -Djava.awt.headless=true -Dtest=OzonOfficialLabelSelectorTest,OzonPrintBundleServiceTest,OzonCombinedLabelRendererTest,OzonLabelServiceTest,OzonPrintHistoryServiceTest,OzonFboCombinedPrintTest,OzonFbsPrintReportTest test",
+  "log": "/tmp/vncode-ozon-two-labels-verified.log",
+  "sourceSha256": {
+    "src/main/java/com/vncode/app/integration/ozon/OzonOfficialLabelSelector.java": "2c37de792dc28bee8538c8d33a45b6a5f9c036be58dc87e2525d14d1b8e60718",
+    "src/main/java/com/vncode/app/integration/ozon/OzonPrintBundleService.java": "24e0135edf5367c560b2231677a33198c814f624120ea07040b3e9b904a1a7a1"
+  },
+  "offlineSyntheticFixtures": true,
+  "liveSellerMutationsPerformed": false,
+  "newWindowsInstallerBuilt": false,
+  "newReleasePublished": false,
+  "checks": [
+    "One official carrier + one official product + one combined label becomes two output labels; retained carrier content stream unchanged.",
+    "KIZ and product barcode independently decode at 203 and 300 DPI; GS1 symbology preserved.",
+    "Multi-unit marked posting keeps one combined label per unit; exact output counts.",
+    "Mixed marked/unmarked batch omits product page only when combined coverage is complete; ordered progress and 1000-order streaming unchanged.",
+    "Reprint reuses durable KIZ; new print consumes reservation only after atomic output publication.",
+    "Keep carrier QR, rectangular DataMatrix, unrelated barcodes, unknown formats, oversized pages and incomplete/shared-barcode coverage.",
+    "FBO combined labels, official download and print history regressions pass."
+  ]
+}

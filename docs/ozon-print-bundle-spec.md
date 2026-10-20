@@ -2,9 +2,9 @@
 
 ## Objective
 
-Add the JavaFX Ozon print flow that mirrors the useful parts of the existing WB workflow without reusing WB mutations. A single print action must idempotently prepare Ozon exemplars, download the official Ozon shipping document, append one physical KIZ label for every accepted exemplar, and create a separate A4 picking list.
+Add the JavaFX Ozon print flow that mirrors the useful parts of the existing WB workflow without reusing WB mutations. A single print action must idempotently prepare Ozon exemplars, download the official Ozon shipping document, append one combined KIZ/product-barcode label for every printable exemplar, and create a separate A4 picking list.
 
-For the common posting with one product and quantity one, the label bundle contains three pages: the two official Ozon pages followed by one 58 x 40 mm KIZ page. For larger postings the page count is `official Ozon pages + accepted exemplars`; it is not fixed at three pages per posting.
+For the common posting with one product and quantity one, the label bundle contains **two labels**: the official Ozon carrier label and the existing 58 x 40 mm combined KIZ/product-barcode label. The redundant official standalone product label is omitted when its barcode is independently identified and all corresponding units have combined-label coverage. Genuine additional carrier pages, unknown formats and product labels without complete combined coverage remain. For larger postings the page count is `retained official pages + printable exemplars`.
 
 Printing does not ship, cancel, change stock, or change prices.
 
@@ -43,7 +43,7 @@ if (markingIsRequested(posting) && !accepted(job)) {
 }
 ```
 
-The official Ozon pages are copied without scaling. Raw KIZ values are used only while rendering DataMatrix and are never logged, shown in the UI, or written to evidence.
+The official Ozon download is kept unchanged; retained carrier pages are copied into the print bundle without scaling or rewriting their content. The first official page always remains. Removing a later product-only page must not remove transport QR/DataMatrix, another shipping barcode or posting identity. Raw KIZ values are used only while rendering DataMatrix and are never logged, shown in the UI, or written to evidence.
 
 The picking PDF is intentionally minimal: it contains only a product table with columns `#`, `Image`, `Product`, `SKU`, `Offer ID`, and `Qty`. It contains no title/metadata block, no KIZ column, no KIZ explanatory note, and no posting footer. The product image comes from the synchronized Ozon catalog and is embedded in the PDF; an unavailable or invalid image renders a stable placeholder instead of aborting the whole print job.
 
@@ -51,7 +51,9 @@ The physical KIZ page has no border, brand/shop heading, or Ozon status text. It
 
 ## Testing Strategy
 
-- Unit/integration test that a two-page official PDF plus one accepted exemplar produces three pages.
+- Unit/integration test that an official carrier/product PDF plus one printable exemplar produces only the carrier and combined label, with correct page totals.
+- Verify genuine additional carrier pages and unknown layouts remain; no-KIZ and incomplete combined coverage retain the original product label.
+- Verify single print, reprint and mixed print-all batches apply the same page-selection rule.
 - Decode the generated DataMatrix, require GS1 symbology identifier `]d2`, and compare it with the persisted KIZ inside the test process.
 - Verify multiple exemplars append one KIZ page each in stable item/exemplar order.
 - Verify an accepted durable job does not invoke preparation again.
@@ -70,7 +72,7 @@ The physical KIZ page has no border, brand/shop heading, or Ozon status text. It
 
 ## Success Criteria
 
-- One-item/quantity-one accepted posting exports two official pages plus one 58 x 40 mm KIZ page.
+- One-item/quantity-one marked posting exports one official carrier label plus one 58 x 40 mm combined KIZ/product-barcode label when the official product page is identified.
 - Each additional accepted exemplar adds exactly one KIZ page.
 - A separate A4 picking PDF is exported for the posting.
 - The picking PDF starts with the product table, embeds catalog images to the left of product names, and contains no KIZ or order-metadata prose.

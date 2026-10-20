@@ -14,6 +14,8 @@ import com.google.zxing.client.j2se.BufferedImageLuminanceSource;
 import com.google.zxing.common.HybridBinarizer;
 import com.google.zxing.datamatrix.DataMatrixReader;
 import com.google.zxing.oned.Code128Reader;
+import com.itextpdf.barcodes.Barcode128;
+import com.itextpdf.kernel.colors.ColorConstants;
 import com.itextpdf.kernel.font.PdfFontFactory;
 import com.itextpdf.kernel.pdf.canvas.PdfCanvas;
 import com.itextpdf.kernel.geom.PageSize;
@@ -161,7 +163,7 @@ class OzonPrintBundleServiceTest {
     }
 
     @Test
-    void acceptedSingleUnitProducesThreeLabelPagesAndSeparatePickingPdf() throws Exception {
+    void acceptedSingleUnitProducesOnlyShippingAndCombinedLabelsAndSeparatePickingPdf() throws Exception {
         seedPosting(1);
         seedAcceptedExemplars(List.of(RAW_KIZ));
         AtomicBoolean prepared = new AtomicBoolean(false);
@@ -172,14 +174,13 @@ class OzonPrintBundleServiceTest {
                 shop, "POST-1", labels.toFile(), picking.toFile());
 
         assertFalse(prepared.get(), "An accepted durable job must not push KIZ again while reprinting");
-        assertEquals(2, result.officialPages());
+        assertEquals(1, result.officialPages());
         assertEquals(1, result.kizPages());
-        assertEquals(3, result.totalPages());
+        assertEquals(2, result.totalPages());
         try (PDDocument document = Loader.loadPDF(labels.toFile())) {
-            assertEquals(3, document.getNumberOfPages());
+            assertEquals(2, document.getNumberOfPages());
             assertPageMillimeters(document, 0, 58, 40);
             assertPageMillimeters(document, 1, 58, 40);
-            assertPageMillimeters(document, 2, 58, 40);
             for (float dpi : new float[] {203, 300}) {
                 Result matrix = decodeRenderedDataMatrixResult(document, 1, dpi);
                 assertEquals(KizService.scannerSafeCode(RAW_KIZ), KizService.scannerSafeCode(matrix.getText()));
@@ -189,9 +190,8 @@ class OzonPrintBundleServiceTest {
             try (PDDocument official = Loader.loadPDF(officialPdf.toFile())) {
                 assertArrayEquals(official.getPage(0).getContents().readAllBytes(),
                         document.getPage(0).getContents().readAllBytes());
-                assertArrayEquals(official.getPage(1).getContents().readAllBytes(),
-                        document.getPage(2).getContents().readAllBytes());
             }
+            assertFalse(new PDFTextStripper().getText(document).contains("Official Ozon product label"));
             String kizText = pageText(document, 1);
             assertTrue(kizText.contains("Men's sports suit"));
             assertTrue(kizText.contains("Article: seller-article"));
@@ -243,15 +243,17 @@ class OzonPrintBundleServiceTest {
         OzonPrintBundleService.ExportResult result = service(new AtomicBoolean()).export(
                 shop, "POST-1", labels.toFile(), picking.toFile());
 
-        assertEquals(4, result.totalPages());
+        assertEquals(1, result.officialPages());
+        assertEquals(3, result.totalPages());
         assertEquals(2, result.kizPages());
         try (PDDocument document = Loader.loadPDF(labels.toFile())) {
+            assertEquals(3, document.getNumberOfPages());
             assertEquals(KizService.scannerSafeCode(RAW_KIZ),
                     KizService.scannerSafeCode(decodeRenderedDataMatrixResult(document, 1, 300).getText()));
             assertEquals(KizService.scannerSafeCode(secondKiz),
-                    KizService.scannerSafeCode(decodeRenderedDataMatrixResult(document, 3, 300).getText()));
+                    KizService.scannerSafeCode(decodeRenderedDataMatrixResult(document, 2, 300).getText()));
             assertEquals(PRODUCT_BARCODE, decodeProductBarcode(document, 1, 203));
-            assertEquals(PRODUCT_BARCODE, decodeProductBarcode(document, 3, 203));
+            assertEquals(PRODUCT_BARCODE, decodeProductBarcode(document, 2, 203));
         }
     }
 
@@ -369,7 +371,9 @@ class OzonPrintBundleServiceTest {
                 shop, "POST-1", labels.toFile(), picking.toFile());
 
         assertFalse(prepared.get(), "A locally reserved KIZ must print without any Ozon exemplar request");
+        assertEquals(1, result.officialPages());
         assertEquals(1, result.kizPages());
+        assertEquals(2, result.totalPages());
         assertTrue(Files.isRegularFile(labels));
         assertTrue(Files.isRegularFile(picking));
         assertEquals("CONSUMED", scalar("SELECT status FROM kiz_codes WHERE id=100"));
@@ -478,6 +482,34 @@ class OzonPrintBundleServiceTest {
             assertPickingColumnOrder(text);
             assertPageMillimeters(document, 0, 210, 297);
         }
+    }
+
+    @Test
+    void printAllOmitsProductLabelOnlyForPostingWithCombinedKizCoverage() throws Exception {
+        seedPosting(1);
+        seedAcceptedExemplars(List.of(RAW_KIZ));
+        seedUnmarkedPosting("POST-2", "SKU-2", "offer-blue-68");
+        new OzonProductKizPolicyRepository().setRequired(1, "SKU-2", false);
+        Path labels = temporaryDirectory.resolve("mixed-labels.pdf");
+        Path picking = temporaryDirectory.resolve("mixed-picking.pdf");
+        var progress = new java.util.ArrayList<Integer>();
+
+        var result = service(new AtomicBoolean()).exportAll(
+                shop, List.of("POST-1", "POST-2"), labels.toFile(), picking.toFile(), progress::add);
+
+        assertEquals(2, result.postingCount());
+        assertEquals(1, result.kizPages());
+        assertEquals(4, result.totalPages());
+        assertEquals(List.of(1, 2), progress);
+        try (PDDocument document = Loader.loadPDF(labels.toFile())) {
+            assertEquals(4, document.getNumberOfPages());
+            assertTrue(pageText(document, 0).contains("Official Ozon shipping page"));
+            assertEquals(PRODUCT_BARCODE, decodeProductBarcode(document, 1, 203));
+            assertTrue(pageText(document, 2).contains("Official Ozon shipping page"));
+            assertTrue(pageText(document, 3).contains("Official Ozon product label"),
+                    "A posting without a combined label must retain its official product label");
+        }
+        assertEquals("ACCEPTED", scalar("SELECT stage FROM ozon_exemplar_jobs WHERE id=51"));
     }
 
     @Test
@@ -754,11 +786,21 @@ class OzonPrintBundleServiceTest {
 
     private static void writeOfficialTwoPagePdf(Path target) throws IOException {
         try (PdfDocument document = new PdfDocument(new PdfWriter(target.toFile()))) {
-            for (int index = 1; index <= 2; index++) {
-                var page = document.addNewPage(new PageSize(LABEL_WIDTH, LABEL_HEIGHT));
-                new PdfCanvas(page).beginText().setFontAndSize(PdfFontFactory.createFont(), 8)
-                        .moveText(10, 10).showText("Official Ozon shipping page " + index).endText();
-            }
+            var shipping = document.addNewPage(new PageSize(LABEL_WIDTH, LABEL_HEIGHT));
+            new PdfCanvas(shipping).beginText().setFontAndSize(PdfFontFactory.createFont(), 8)
+                    .moveText(10, 10).showText("Official Ozon shipping page 1").endText();
+            var product = document.addNewPage(new PageSize(LABEL_WIDTH, LABEL_HEIGHT));
+            new PdfCanvas(product).beginText().setFontAndSize(PdfFontFactory.createFont(), 8)
+                    .moveText(10, 90).showText("Official Ozon product label").endText();
+            Barcode128 barcode = new Barcode128(document);
+            barcode.setCode(PRODUCT_BARCODE);
+            barcode.setSize(8);
+            barcode.setBarHeight(25);
+            barcode.setX(0.75f);
+            PdfCanvas canvas = new PdfCanvas(product).saveState().concatMatrix(1, 0, 0, 1,
+                    (LABEL_WIDTH - barcode.getBarcodeSize().getWidth()) / 2, 30);
+            barcode.placeBarcode(canvas, ColorConstants.BLACK, ColorConstants.BLACK);
+            canvas.restoreState();
         }
     }
 
