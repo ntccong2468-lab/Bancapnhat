@@ -64,6 +64,19 @@ class OzonRegistrationPaneTest {
         for(int count:new int[]{600,900,1000}){fx(()->{button("more").fire();return null;});awaitRows(count);}
         fx(()->{assertEquals(1000,table().getItems().stream().map(ProductRow::key).distinct().count());assertFalse(button("more").isVisible());return null;});
     }
+    @Test void notCreatedSelectAllFreezesEveryMatchingCardBeyondTheVisiblePage()throws Exception {
+        fx(()->{var filter=(javafx.scene.control.ComboBox<String>)pane.lookup("#ozonRegistrationStatusFilter");assertTrue(filter.getItems().containsAll(java.util.List.of("NOT_CREATED","IN_PROGRESS","COMPLETED")));filter.setValue("NOT_CREATED");return null;});awaitRows(300);
+        fx(()->{button("all").fire();return null;});awaitIdle();
+        fx(()->{var selected=OzonRegistrationPane.class.getDeclaredMethod("selected");selected.setAccessible(true);assertEquals(1000,((java.util.List<?>)selected.invoke(pane)).size());assertEquals(300,table().getItems().size());return null;});
+    }
+    @Test void knownUnsentGtinStaysNotCreatedAndAcceptedFeedMovesToProcessing(){
+        var key=new com.vncode.app.features.products.ProductKey(1,Marketplace.OZON,"1","offer-1");
+        var unsent=new com.vncode.app.integration.znack.registration.OzonCardRegistrationRepository.Row(key,"10001",com.vncode.app.integration.znack.registration.ZnackCardRegistrationModels.Status.READY_TO_SUBMIT,"00000000000017","","",null,"{}","{}","owner",null,"","","");
+        var nativeView=new com.vncode.app.features.sync.RegistrationCardIndex.View("status.ready_to_submit",unsent.gtin(),"",true,false,false);
+        assertTrue(OzonRegistrationPane.matchesFilter("NOT_CREATED",unsent,nativeView));assertFalse(OzonRegistrationPane.matchesFilter("IN_PROGRESS",unsent,nativeView));
+        var submitted=new com.vncode.app.integration.znack.registration.OzonCardRegistrationRepository.Row(key,"10001",com.vncode.app.integration.znack.registration.ZnackCardRegistrationModels.Status.FEED_SUBMITTED,unsent.gtin(),"","accepted-feed",null,"{}","{}","owner",null,"","","");
+        assertFalse(OzonRegistrationPane.matchesFilter("NOT_CREATED",submitted,nativeView));assertTrue(OzonRegistrationPane.matchesFilter("IN_PROGRESS",submitted,nativeView));
+    }
     @Test void gtinActionStartsTheInjectedBackgroundActionWithoutOpeningTheReportBrowser()throws Exception {
         fx(()->{var action=button("gtin");assertEquals(com.vncode.app.shared.I18nService.getInstance().tr("znack.registration.update_ozon"),action.getText());action.fire();assertEquals(1,gtinOpens.get());return null;});
     }

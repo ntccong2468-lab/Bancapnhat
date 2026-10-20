@@ -62,6 +62,7 @@
         <Hyperlink fx:id="reportLink" text="Báo cáo" visible="false" managed="false" onAction="#onReport"/>
         <MenuButton fx:id="moreActionsButton" text="⋯" visible="false" managed="false"/>
     </HBox>
+    <Label fx:id="batchProgressLabel" wrapText="true" visible="false" managed="false" styleClass="text-muted"/>
     <Label fx:id="summaryLabel" wrapText="true" styleClass="text-muted"/>
     </VBox>
 </VBox>

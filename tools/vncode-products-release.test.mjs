@@ -66,6 +66,22 @@ test('the 1.5.0 upgrade probe selects the exact published installer URL and chec
  assert.equal(selectedLiteral('baselineHash','FromStable150'),published.sha256);
  assert.match(published.url,/\/v1\.5\.0\/VN-code-1\.5\.0-Windows-x64\.exe$/);
 });
+test('later releases upgrade the immutable 1.5.2 baseline and preserve the probe chain',()=>{
+ const probe=readFileSync(new URL('./windows-upgrade-smoke.ps1',import.meta.url),'utf8');
+ const published=JSON.parse(readFileSync(new URL('../docs/releases/VN-code-1.5.2-status.json',import.meta.url),'utf8'));
+ function selectedLiteral(name,flag){
+  const line=probe.split('\n').find(line=>line.startsWith('$'+name+'='));
+  return new Map([...line.matchAll(/(?:if|elseif)\(\$(\w+)\)\{'([^']+)'\}/g)].map(m=>[m[1],m[2]])).get(flag);
+ }
+ assert.equal(selectedLiteral('fromVersion','FromStable152'),'1.5.2');
+ assert.equal(selectedLiteral('baselineUrl','FromStable152'),published.releaseUrl.replace('/tag/','/download/')+'/VN-code-1.5.2-Windows-x64.exe');
+ assert.equal(selectedLiteral('baselineHash','FromStable152'),published.installerSha256);
+ assert.match(probe,/\$previous=Get-Content \$\(if\(\$FromStable152\)\{'out\\upgrade-stable-151-smoke\.json'\}/);
+ assert.match(probe,/Set-Content \$\(if\(\$FromStable152\)\{'out\\upgrade-stable-152-smoke\.json'\}/);
+ const workflow=readFileSync(new URL('../.github/workflows/build-java.yml',import.meta.url),'utf8');
+ assert.match(workflow,/if \(\[version\]\$env:APP_VERSION -gt \[version\]"1\.5\.2"\) \{\s+\.\/tools\/windows-upgrade-smoke\.ps1 -Version \$env:APP_VERSION -FromStable152/);
+ assert.match(workflow,/out\/upgrade-\*\.json/);
+});
 test('workspace publication requires both datasets and all actual Windows DPI scales',()=>{
  assert.equal(typeof preview.validateWorkspaceSmoke,'function');
  const good=workspace();assert.doesNotThrow(()=>preview.validateWorkspaceSmoke(good,version,sha));

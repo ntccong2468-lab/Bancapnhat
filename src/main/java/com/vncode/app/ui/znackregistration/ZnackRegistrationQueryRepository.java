@@ -2,6 +2,7 @@ package com.vncode.app.ui.znackregistration;
 
 import com.google.gson.JsonParser;
 import com.vncode.app.config.Database;
+import com.vncode.app.features.sync.RegistrationCardIndex;
 import com.vncode.app.integration.znack.registration.ZnackCardRegistrationModels.*;
 import java.sql.*;
 import java.time.Instant;
@@ -105,10 +106,11 @@ public final class ZnackRegistrationQueryRepository {
         String status=observations==null?safe(criteria.status()):"ALL";
         switch(status) {
             case "","ALL" -> {}
-            case "NOT_CREATED" -> sql.append(" AND (r.status IS NULL OR r.status='NOT_CREATED')");
+            case "NOT_CREATED" -> sql.append(" AND r.good_id IS NULL AND NULLIF(TRIM(r.feed_id),'') IS NULL AND COALESCE(r.wb_updated,0)=0 AND ((COALESCE(r.status,'NOT_CREATED') IN ('NOT_CREATED','PREFLIGHT_ERROR','CHECKING') AND NULLIF(TRIM(r.gtin),'') IS NULL) OR r.status IN ('READY_TO_SUBMIT','PRE_SUBMIT_ERROR'))");
             case "GTIN_REVIEW_REQUIRED" -> sql.append(" AND NULLIF(TRIM(r.gtin),'') IS NULL AND r.good_id IS NULL AND NULLIF(TRIM(r.feed_id),'') IS NULL AND COALESCE(r.wb_updated,0)=0 AND r.status IN ('CHECKING','ALLOCATING_GTIN','GTIN_REVIEW_REQUIRED','ERROR')");
             case "FEED_REVIEW_REQUIRED" -> sql.append(" AND NULLIF(TRIM(r.gtin),'') IS NOT NULL AND (r.status IN ('FEED_SUBMITTING','FEED_REVIEW_REQUIRED') OR (NULLIF(TRIM(r.feed_id),'') IS NULL AND r.status IN ('ERROR','GTIN_GENERATED','CHECKING')))");
-            case "IN_PROGRESS" -> sql.append(" AND r.status NOT IN ('PUBLISHED','ERROR')");
+            case "IN_PROGRESS" -> sql.append(" AND NULLIF(TRIM(r.feed_id),'') IS NOT NULL AND r.status IN ('FEED_SUBMITTED','PROCESSING','READY_TO_SIGN','SIGNING')");
+            case "ERROR" -> sql.append(" AND (r.status IN ('ERROR','PREFLIGHT_ERROR','PRE_SUBMIT_ERROR','GTIN_REVIEW_REQUIRED','FEED_REVIEW_REQUIRED','FEED_SUBMITTING','GTIN_GENERATED') OR (r.status='CHECKING' AND NULLIF(TRIM(r.gtin),'') IS NOT NULL))");
             case "COMPLETED" -> sql.append(" AND r.status='PUBLISHED'");
             default -> {sql.append(" AND r.status=?");params.add(status);}
         }
@@ -122,9 +124,9 @@ public final class ZnackRegistrationQueryRepository {
         return switch(safe(criteria.status())){
             case "", "ALL" -> true;
             case "COMPLETED" -> onMarketplace;
-            case "NOT_CREATED" -> !state.exists()&&!state.blocked();
-            case "IN_PROGRESS" -> state.status().equals("source.moderation")||state.exists()&&!onMarketplace&&!state.blocked()&&row.status()!=Status.ERROR;
-            case "ERROR" -> !Set.of("source.moderation","source.draft").contains(state.status())&&(state.blocked()||row.status()==Status.ERROR||row.status()==Status.PREFLIGHT_ERROR||row.status()==Status.PRE_SUBMIT_ERROR);
+            case "NOT_CREATED" -> !state.published()&&!state.blocked()&&RegistrationCardIndex.notSubmitted(row);
+            case "IN_PROGRESS" -> state.status().equals("source.moderation")||!onMarketplace&&!state.blocked()&&(state.published()||RegistrationCardIndex.confirmedSubmission(row.status(),row.feedId()));
+            case "ERROR" -> !Set.of("source.moderation","source.draft").contains(state.status())&&(state.blocked()||registrationError(row.status(),row.gtin()));
             case "GTIN_REVIEW_REQUIRED" -> !state.blocked()&&!state.published()&&row.needsGtinReview();
             case "FEED_REVIEW_REQUIRED" -> !state.blocked()&&!state.published()&&row.needsFeedReview();
             default -> state.status().equals("status."+criteria.status().toLowerCase(Locale.ROOT));
@@ -177,18 +179,21 @@ public final class ZnackRegistrationQueryRepository {
                     var row=map(rows);var state=view(row);total++;
                     if(state.published())published++;
                     else if(Set.of("source.moderation","source.draft").contains(state.status()))waiting++;
-                    else if(state.blocked()||Set.of(Status.ERROR,Status.PREFLIGHT_ERROR,Status.PRE_SUBMIT_ERROR,Status.GTIN_REVIEW_REQUIRED,Status.FEED_REVIEW_REQUIRED).contains(row.status()))errors++;
-                    else if(row.status()==Status.READY_TO_SIGN)ready++;
-                    else if(row.status()!=Status.NOT_CREATED)waiting++;
+                    else if(state.blocked()||registrationError(row.status(),row.gtin()))errors++;
+                    else if(RegistrationCardIndex.confirmedSubmission(row.status(),row.feedId())) {
+                        if(row.status()==Status.READY_TO_SIGN)ready++;else waiting++;
+                    }
                 }
             }
         }else{
-        try(var p=prepare(c,"SELECT COALESCE(r.status,'NOT_CREATED') state,COUNT(*) n "+scope.where()+" GROUP BY state",scope.parameters());var r=p.executeQuery()) {
-            while(r.next()) {long n=r.getLong(2);String state=r.getString(1);total+=n;
-                if("PUBLISHED".equals(state))published+=n;
-                else if(Set.of("ERROR","PREFLIGHT_ERROR","PRE_SUBMIT_ERROR","GTIN_REVIEW_REQUIRED","FEED_REVIEW_REQUIRED").contains(state))errors+=n;
-                else if("READY_TO_SIGN".equals(state))ready+=n;
-                else if(!"NOT_CREATED".equals(state))waiting+=n;
+        try(var p=prepare(c,"SELECT COALESCE(r.status,'NOT_CREATED') state,COUNT(*) n,NULLIF(TRIM(r.feed_id),'') IS NOT NULL has_feed,NULLIF(TRIM(r.gtin),'') IS NOT NULL has_gtin "+scope.where()+" GROUP BY state,has_feed,has_gtin",scope.parameters());var r=p.executeQuery()) {
+            while(r.next()) {long n=r.getLong(2);String state=r.getString(1);total+=n;Status status;
+                try{status=Status.valueOf(state);}catch(IllegalArgumentException invalid){status=Status.ERROR;}
+                if(status==Status.PUBLISHED)published+=n;
+                else if(registrationError(status,r.getBoolean("has_gtin")?"allocated":""))errors+=n;
+                else if(RegistrationCardIndex.confirmedSubmission(status,r.getBoolean("has_feed")?"accepted":"")) {
+                    if(status==Status.READY_TO_SIGN)ready+=n;else waiting+=n;
+                }
             }
         }
         }
@@ -207,6 +212,11 @@ public final class ZnackRegistrationQueryRepository {
             }
         }
         return new Summary(total,published,errors,ready,waiting,catalog,catalogPublished,unlinked,synced);
+    }
+    private static boolean registrationError(Status status,String gtin) {
+        return Set.of(Status.ERROR,Status.PREFLIGHT_ERROR,Status.PRE_SUBMIT_ERROR,Status.GTIN_REVIEW_REQUIRED,
+                Status.FEED_REVIEW_REQUIRED,Status.FEED_SUBMITTING,Status.GTIN_GENERATED).contains(status)
+                ||status==Status.CHECKING&&!safe(gtin).isBlank();
     }
     private static void requireOwner(Connection c,int shopId)throws SQLException {
         try(var p=prepare(c,"SELECT 1 FROM shops WHERE id=? AND marketplace='WILDBERRIES'",List.of(shopId));var r=p.executeQuery()) {

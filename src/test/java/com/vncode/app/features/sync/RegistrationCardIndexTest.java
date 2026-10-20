@@ -29,6 +29,21 @@ class RegistrationCardIndexTest {
     @Test void localPublishedWithoutCatalogProofIsNotPresentedAsPublished(){var view=index().view(Status.PUBLISHED,GtinWriteTestFixture.GTIN,List.of(),"A","Blue","M",true);assertFalse(view.published());assertTrue(view.blocked());assertEquals("SOURCE_PUBLISHED_NOT_CONFIRMED",view.detail());}
     @Test void draftCatalogCardDoesNotMasqueradeAsMissingOrPublished(){var view=index(card(GtinWriteTestFixture.GTIN,false)).view(Status.NOT_CREATED,"",List.of(),"A","Blue","M",true);assertFalse(view.published());assertTrue(view.exists());assertTrue(view.blocked());assertEquals("source.unpublished",view.status());}
     @Test void ownedModerationCheckpointKeepsItsActionableNativeStatus(){var view=index(card(GtinWriteTestFixture.GTIN,false)).view(Status.READY_TO_SIGN,GtinWriteTestFixture.GTIN,List.of(),"A","Blue","M",true);assertEquals("status.ready_to_sign",view.status());assertFalse(view.blocked());}
+    @Test void allocationAndLocalPreflightDoNotProveSubmissionButKeepOwnershipGuards(){
+        var cards=index(card(GtinWriteTestFixture.GTIN,false));
+        assertTrue(RegistrationCardIndex.notSubmitted(Status.READY_TO_SUBMIT,GtinWriteTestFixture.GTIN,null,"",false));
+        assertTrue(cards.view(Status.READY_TO_SUBMIT,GtinWriteTestFixture.GTIN,List.of(),"A","Blue","M",true).exists(),"Presentation eligibility must not erase the native identity used by ownership and duplicate guards");
+        assertTrue(cards.view(Status.READY_TO_SUBMIT,GtinWriteTestFixture.GTIN,List.of(),"A","Blue","M",false).blocked());
+        assertEquals("source.unpublished",cards.view(Status.CHECKING,"",List.of(GtinWriteTestFixture.GTIN),"A","Blue","M",true).status(),"A matching preexisting Catalog card cannot become a fresh create just because local preflight started");
+        for(var uncertain:List.of(Status.GTIN_GENERATED,Status.FEED_SUBMITTING,Status.FEED_REVIEW_REQUIRED,Status.ALLOCATING_GTIN)){
+            assertFalse(RegistrationCardIndex.notSubmitted(uncertain,GtinWriteTestFixture.GTIN,null,"",false));
+            assertFalse(RegistrationCardIndex.confirmedSubmission(uncertain,""));
+        }
+        assertFalse(RegistrationCardIndex.confirmedSubmission(Status.PROCESSING,""));
+        assertTrue(RegistrationCardIndex.confirmedSubmission(Status.FEED_SUBMITTED,"accepted-feed"));
+        assertFalse(RegistrationCardIndex.notSubmitted(Status.READY_TO_SUBMIT,GtinWriteTestFixture.GTIN,123L,"",false));
+        assertFalse(RegistrationCardIndex.notSubmitted(Status.READY_TO_SUBMIT,GtinWriteTestFixture.GTIN,null,"accepted-feed",false));
+    }
     @Test void externalCatalogErrorsModerationAndDraftsRetainTheirActualDistinctStates(){
         for(var status:List.of("errors","moderation","draft")){
             var base=card(GtinWriteTestFixture.GTIN,false);

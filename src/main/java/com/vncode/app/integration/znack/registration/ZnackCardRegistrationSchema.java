@@ -82,5 +82,6 @@ public final class ZnackCardRegistrationSchema {
                         FOREIGN KEY(shop_id,chrt_id) REFERENCES znack_card_registrations(shop_id,chrt_id) ON DELETE CASCADE)
                     """);
         }
+        ZnackRegistrationBatchStore.initialize(connection);
     }
 }

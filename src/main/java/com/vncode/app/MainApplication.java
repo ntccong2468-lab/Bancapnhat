@@ -7,6 +7,7 @@ import com.vncode.app.shared.AlertService;
 import com.vncode.app.shared.AppPaths;
 import com.vncode.app.shared.AppTaskExecutor;
 import com.vncode.app.shared.I18nService;
+import com.vncode.app.shared.RegistrationBackgroundLifetime;
 import com.vncode.app.shared.ThemeService;
 import com.vncode.app.ui.workspace.HomeController;
 import javafx.application.Application;
@@ -20,6 +21,7 @@ import java.io.IOException;
 
 public class MainApplication extends Application {
     private HomeController homeController;
+    private RegistrationBackgroundLifetime registrationBackgroundLifetime;
     private final com.vncode.app.features.gs1.Gs1AutoReminderScheduler gs1Reminders=new com.vncode.app.features.gs1.Gs1AutoReminderScheduler();
 
     @Override
@@ -46,20 +48,22 @@ public class MainApplication extends Application {
         String testLabel = AppPaths.isZnackRegistrationTestProfile() ? " [ZNACK TEST]" : "";
         stage.setTitle(BuildConfig.getAppName() + testLabel + " v" + BuildConfig.getAppVersion());
 
+        registrationBackgroundLifetime = RegistrationBackgroundLifetime.attach(stage, BuildConfig.getAppName(),
+                MainApplication::hasRegistrationWork,
+                () -> !hasOtherBackgroundWork() && gs1Reminders.tryStop(),
+                MainApplication::showBusyWarning,
+                MainApplication::showTrayUnavailableWarning);
+
         stage.setOnCloseRequest(event -> {
-            boolean hasBackgroundWork = AppTaskExecutor.hasRunningTasks() || com.vncode.app.shared.ShopBatchRegistry.hasWork() || KizAttachmentCoordinator.getInstance().hasActiveJobs()
-                    || com.vncode.app.features.license.LicenseRuntime.hasPendingTasks()
-                    || com.vncode.app.integration.znack.registration.ZnackCardRegistrationWorkflow.hasActiveJobs()
-                    || com.vncode.app.integration.znack.registration.OzonCardRegistrationWorkflow.hasActiveJobs();
+            if (registrationBackgroundLifetime.requestBackground()) {
+                event.consume();
+                return;
+            }
+            boolean hasBackgroundWork = hasOtherBackgroundWork() || hasRegistrationWork();
             if(!hasBackgroundWork&&!gs1Reminders.tryStop())hasBackgroundWork=true;
             if (hasBackgroundWork) {
                 event.consume();
-                I18nService i18n = I18nService.getInstance();
-                AlertService.showWarning(
-                        i18n.tr("app.busy.title"),
-                        i18n.tr("app.busy.header"),
-                        i18n.tr("app.busy.content")
-                );
+                showBusyWarning();
             }
         });
 
@@ -70,8 +74,34 @@ public class MainApplication extends Application {
         com.vncode.app.shared.RuntimeDiagnostics.startPulseMonitor();
     }
 
+    private static boolean hasRegistrationWork() {
+        return com.vncode.app.integration.znack.registration.ZnackRegistrationBatchService.hasPendingJobs()
+                || com.vncode.app.integration.znack.registration.OzonRegistrationBatchService.hasPendingJobs()
+                || com.vncode.app.integration.znack.registration.ZnackCardRegistrationWorkflow.hasActiveJobs()
+                || com.vncode.app.integration.znack.registration.OzonCardRegistrationWorkflow.hasActiveJobs();
+    }
+
+    private static boolean hasOtherBackgroundWork() {
+        return AppTaskExecutor.hasRunningTasks() || com.vncode.app.shared.ShopBatchRegistry.hasWork()
+                || KizAttachmentCoordinator.getInstance().hasActiveJobs()
+                || com.vncode.app.features.license.LicenseRuntime.hasPendingTasks();
+    }
+
+    private static void showBusyWarning() {
+        I18nService i18n = I18nService.getInstance();
+        AlertService.showWarning(i18n.tr("app.busy.title"), i18n.tr("app.busy.header"), i18n.tr("app.busy.content"));
+    }
+
+    private static void showTrayUnavailableWarning() {
+        I18nService i18n = I18nService.getInstance();
+        AlertService.showWarning(i18n.tr("app.busy.title"),
+                i18n.tr("app.background.unavailable.header", "Chưa thể thu nhỏ xuống khay hệ thống"),
+                i18n.tr("app.background.unavailable.content", "Hệ thống không hỗ trợ biểu tượng khay hoặc không tạo được biểu tượng. Giữ cửa sổ mở hoặc thu nhỏ xuống thanh tác vụ để việc đăng ký tiếp tục."));
+    }
+
     @Override
     public void stop() {
+        if (registrationBackgroundLifetime != null) registrationBackgroundLifetime.close();
         gs1Reminders.close();
         com.vncode.app.shared.RuntimeDiagnostics.stopPulseMonitor();
         if (homeController != null) {

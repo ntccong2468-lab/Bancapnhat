@@ -48,6 +48,35 @@ class ZnackCardRegistrationControllerTest {
         awaitTasks();
     }
     @AfterEach void cleanup() throws Exception {fx(()->{((ZnackCardRegistrationController)loader.getController()).dispose();return null;});awaitTasks();com.vncode.app.testsupport.ShopReadTestCleanup.awaitSharedIdle();System.clearProperty("vncode.appdata.dir");}
+    @Test void registrationProgressCountsAcceptedFeedsAndDoesNotLockBrowsing()throws Exception{
+        fx(()->{
+            var controller=(ZnackCardRegistrationController)loader.getController();
+            var preparing=ZnackCardRegistrationController.class.getDeclaredField("preparing");preparing.setAccessible(true);preparing.setBoolean(controller,true);
+            var actions=ZnackCardRegistrationController.class.getDeclaredMethod("updateActionState");actions.setAccessible(true);actions.invoke(controller);
+            for(String id:new String[]{"searchField","categoryMenuButton","statusFilter","clearFiltersButton"})
+                assertFalse(((Control)loader.getNamespace().get(id)).isDisabled(),id+" must stay available during preparation");
+            preparing.setBoolean(controller,false);
+            var render=ZnackCardRegistrationController.class.getDeclaredMethod("renderBatchProgress",com.vncode.app.integration.znack.registration.ZnackRegistrationBatchService.Progress.class);render.setAccessible(true);
+            render.invoke(controller,new com.vncode.app.integration.znack.registration.ZnackRegistrationBatchService.Progress("durable-test",100,2,1,97,"Next article","XL","Accepted article","52","CATALOG_CARD_IN_MODERATION",com.vncode.app.integration.znack.registration.ZnackRegistrationBatchService.State.RUNNING));
+            var footer=(Label)loader.getNamespace().get("batchProgressLabel");assertTrue(footer.isVisible());assertTrue(footer.getText().contains("2/100"));assertTrue(footer.getText().contains("97"));
+            assertTrue(button("registerSelectedButton").isDisabled(),"Another batch cannot be started while the durable queue runs");
+            assertFalse(((ComboBox<?>)loader.getNamespace().get("statusFilter")).isDisabled());
+            var host=(javafx.scene.layout.StackPane)table().getParent();assertTrue(host.lookup("#registrationBackgroundPill")!=null);
+            assertTrue(((javafx.scene.layout.HBox)host.lookup("#registrationBackgroundPill")).getChildren().stream().filter(Label.class::isInstance).map(Label.class::cast).anyMatch(l->l.getText().contains("Accepted article · 52")));
+            return null;
+        });
+    }
+    @Test void terminalBatchShowsActionReasonAndKeepsMoreRecentReport()throws Exception{
+        fx(()->{
+            var controller=(ZnackCardRegistrationController)loader.getController();
+            var render=ZnackCardRegistrationController.class.getDeclaredMethod("renderBatchProgress",com.vncode.app.integration.znack.registration.ZnackRegistrationBatchService.Progress.class);render.setAccessible(true);
+            var progress=new com.vncode.app.integration.znack.registration.ZnackRegistrationBatchService.Progress("old-batch",100,0,0,100,"","","","","SOURCE_CONFIGURATION_CHANGED",com.vncode.app.integration.znack.registration.ZnackRegistrationBatchService.State.NEEDS_ACTION);
+            render.invoke(controller,progress);
+            assertTrue(((Label)loader.getNamespace().get("batchProgressLabel")).getText().contains("SOURCE_CONFIGURATION_CHANGED"));
+            var run=ZnackCardRegistrationController.class.getDeclaredField("lastRegistrationRun");run.setAccessible(true);run.set(controller,"newer-gtin-run");render.invoke(controller,progress);
+            assertEquals("newer-gtin-run",run.get(controller));return null;
+        });
+    }
     @Test void errorFilterSelectAllOpensCompleteCatalogReportEvenForUnmatchedHistoricalCards()throws Exception{
         var owner=new Shop(1,"Fixture","fixture");var raw=com.google.gson.JsonParser.parseString("{\"good_status\":\"draft\",\"good_detailed_status\":[\"errors\"]}").getAsJsonObject();
         var card=new com.vncode.app.features.gtinsync.GtinSyncModels.RegisteredGtin("00000000000017","UNMATCHED","ЧЕРНЫЙ","1",true,false,com.vncode.app.features.gtinsync.RegisteredGtinProof.source(owner),java.time.Instant.now(),com.vncode.app.integration.znack.registration.CatalogProductDataParser.parse(raw));
@@ -102,6 +131,10 @@ class ZnackCardRegistrationControllerTest {
         });
     }
     @Test void cancellingFreshGtinConfirmationLeavesThePendingCardUnchanged() throws Exception {
+        try(var c=Database.getConnection();var statement=c.createStatement()){
+            statement.execute("UPDATE znack_card_registrations SET status='ALLOCATING_GTIN' WHERE shop_id=1 AND chrt_id=2");
+        }
+        fx(()->{button("refreshButton").fire();return null;});awaitTasks();
         fx(()->{
             // Other FXML tests may leave a dialog open. Never dismiss or inspect that dialog.
             Alert unrelated=new Alert(Alert.AlertType.INFORMATION,"Unrelated fixture notification");
@@ -131,7 +164,7 @@ class ZnackCardRegistrationControllerTest {
         });
         try(var c=Database.getConnection();var s=c.createStatement();var r=s.executeQuery(
                 "SELECT status,gtin,updated_at FROM znack_card_registrations WHERE shop_id=1 AND chrt_id=2")) {
-            assertTrue(r.next());assertEquals("CHECKING",r.getString(1));assertNull(r.getString(2));assertEquals("fixture",r.getString(3));
+            assertTrue(r.next());assertEquals("ALLOCATING_GTIN",r.getString(1));assertNull(r.getString(2));assertEquals("fixture",r.getString(3));
         }
     }
     @Test void recoveryCopyExistsInEverySupportedLanguage() {
@@ -175,7 +208,7 @@ class ZnackCardRegistrationControllerTest {
         fx(()->{((CheckBox)loader.getNamespace().get("allFilteredCheckBox")).fire();Platform.runLater(responsive::countDown);return null;});
         assertTrue(responsive.await(3,TimeUnit.SECONDS));awaitTasks();
         fx(()->{assertTrue(((Hyperlink)loader.getNamespace().get("reportLink")).isVisible());
-            assertEquals(java.text.MessageFormat.format(I18nService.getInstance().tr("znack.registration.selection_count"),1_001),((Label)loader.getNamespace().get("selectionLabel")).getText());
+            assertEquals(java.text.MessageFormat.format(I18nService.getInstance().tr("znack.registration.selection_count"),1_002),((Label)loader.getNamespace().get("selectionLabel")).getText());
             assertFalse(button("registerSelectedButton").isDisabled());return null;});
     }
     @Test void sourceActionsExistAndOpeningOrRefreshingDoesNotResumeRemoteRegistration() throws Exception {
@@ -206,11 +239,35 @@ class ZnackCardRegistrationControllerTest {
             return null;
         });
     }
-    @Test void progressRefreshCannotDiscardAnActiveRegistrationBatch()throws Exception{
+    @Test void oneRegisterClickDispatchesTheFrozenSelectionWhileFiltersRemainUsable()throws Exception{
         var controller=(ZnackCardRegistrationController)loader.getController();
-        fx(()->{button("selectAllButton").fire();var field=controller.getClass().getDeclaredField("preparing");field.setAccessible(true);field.setBoolean(controller,true);
-            button("refreshButton").fire();assertEquals(3,table().getItems().size());assertEquals(3,table().getSelectionModel().getSelectedItems().size());
-            field.setBoolean(controller,false);return null;});
+        var dispatched=new CountDownLatch(1);var finish=new CountDownLatch(1);
+        var frozen=new java.util.concurrent.atomic.AtomicReference<java.util.List<Sku>>();
+        fx(()->{
+            var preflight=controller.getClass().getDeclaredField("preflightReader");preflight.setAccessible(true);
+            preflight.set(controller,(java.util.function.BiFunction<Shop,java.util.List<com.vncode.app.features.products.ProductKey>,RegistrationBatchPreflight.Review>)(owner,selection)->new RegistrationBatchPreflight.Review(java.util.List.of()));
+            var field=controller.getClass().getDeclaredField("batchStarter");field.setAccessible(true);
+            field.set(controller,(ZnackCardRegistrationController.BatchStarter)(owner,selection,autoSign)->{
+                frozen.set(java.util.List.copyOf(selection));dispatched.countDown();
+                try{if(!finish.await(5,TimeUnit.SECONDS))throw new IllegalStateException("fixture dispatch timed out");}
+                catch(InterruptedException error){Thread.currentThread().interrupt();throw new IllegalStateException(error);}
+                return "frozen-button-run";
+            });
+            ((ComboBox<?>)loader.getNamespace().get("statusFilter")).getSelectionModel().select(1);return null;
+        });awaitTasks();
+        try{
+            fx(()->{((CheckBox)loader.getNamespace().get("allFilteredCheckBox")).fire();button("registerSelectedButton").fire();return null;});
+            assertTrue(dispatched.await(5,TimeUnit.SECONDS),"One click must dispatch every safe unsent card without another create click");
+            assertEquals(java.util.Set.of(1L,2L),frozen.get().stream().map(Sku::chrtId).collect(java.util.stream.Collectors.toSet()));
+            fx(()->{
+                assertFalse(((ComboBox<?>)loader.getNamespace().get("statusFilter")).isDisabled());
+                assertFalse(((TextField)loader.getNamespace().get("searchField")).isDisabled());
+                ((ComboBox<?>)loader.getNamespace().get("statusFilter")).getSelectionModel().select(2);
+                return null;
+            });
+            assertEquals(2,frozen.get().size(),"Changing the view cannot discard the dispatched selection");
+        }finally{finish.countDown();}
+        awaitTasks();
     }
     @SuppressWarnings("unchecked") TableView<Sku> table(){return (TableView<Sku>)loader.getNamespace().get("productTable");}
     Button button(String id){var b=(Button)loader.getNamespace().get(id);assertNotNull(b,id);return b;}

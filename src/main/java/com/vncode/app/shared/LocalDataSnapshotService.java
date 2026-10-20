@@ -110,7 +110,8 @@ public final class LocalDataSnapshotService {
         try {
             backup(liveDatabase, snapshotDatabase);
             forceFile(snapshotDatabase);
-            assertIntegrity(snapshotDatabase);
+            // The final verify below checks the exact persisted checksum and SQLite integrity.
+            // Running integrity_check here as well doubles the largest scan of a seller database.
             String checksum = sha256(snapshotDatabase);
             writeAtomic(metadata, snapshotMetadata(appVersion, schemaVersion, reason, createdAt, checksum));
 
@@ -129,6 +130,16 @@ public final class LocalDataSnapshotService {
     }
 
     public boolean verify(Snapshot snapshot) {
+        return verify(snapshot,true);
+    }
+
+    /** Only for a checksum already recorded by this application's successful full verification.
+     * Exact bytes retain their prior SQLite integrity result; restores still use full verify. */
+    boolean verifyPreviouslyValidated(Snapshot snapshot,String expectedChecksum) {
+        return expectedChecksum!=null&&constantTimeEquals(expectedChecksum,snapshot.sha256())&&verify(snapshot,false);
+    }
+
+    private boolean verify(Snapshot snapshot,boolean checkIntegrity) {
         Objects.requireNonNull(snapshot, "snapshot");
         try {
             Path snapshotDir = snapshot.database().getParent();
@@ -145,7 +156,7 @@ public final class LocalDataSnapshotService {
             if (!parsed.equals(snapshot) || !constantTimeEquals(snapshot.sha256(), sha256(snapshot.database()))) {
                 return false;
             }
-            assertIntegrity(snapshot.database());
+            if(checkIntegrity)assertIntegrity(snapshot.database());
             return true;
         } catch (IOException | SQLException | RuntimeException exception) {
             return false;

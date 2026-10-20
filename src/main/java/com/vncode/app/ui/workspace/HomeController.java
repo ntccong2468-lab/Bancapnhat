@@ -834,6 +834,11 @@ public class HomeController implements Initializable {
                 ||AppTaskExecutor.getRunningTaskCount()>0||AppTaskExecutor.pendingCount()>0
                 ||com.vncode.app.shared.SellerMutationExecutor.pendingCount()>0
                 ||kizAttachmentCoordinator.hasActiveJobs()||activityTracker.hasRunningWork()
+                ||com.vncode.app.integration.znack.registration.ZnackRegistrationBatchService.hasPendingJobs()
+                ||com.vncode.app.integration.znack.registration.OzonRegistrationBatchService.hasPendingJobs()
+                ||com.vncode.app.integration.znack.registration.ZnackCardRegistrationWorkflow.hasActiveJobs()
+                ||com.vncode.app.integration.znack.registration.OzonCardRegistrationWorkflow.hasActiveJobs()
+                ||com.vncode.app.features.sync.SyncRuntime.hasActiveWrites()
                 ||com.vncode.app.features.license.LicenseRuntime.hasPendingTasks();
     }
 
@@ -891,77 +896,64 @@ public class HomeController implements Initializable {
         if(disposed||updateDownloadRunning)return;
         if(!downloadOnly&&hasUpdateBlockingWork()){AlertService.showError(i18nService.tr("update.busy"));return;}
         updateDownloadRunning=true;
+        var preparing=new java.util.concurrent.atomic.AtomicBoolean();
+        var installing=new java.util.concurrent.atomic.AtomicBoolean();
         UpdateDialogService dialogService = new UpdateDialogService();
         Task<java.nio.file.Path> task = new Task<>() {
-            @Override
-            protected java.nio.file.Path call() throws Exception {
-                updateMessage(i18nService.tr("update.progress.connecting"));
-                updateProgress(-1, 1);
-                var file=updateInstallerService.downloadInstaller(info, new UpdateInstallerService.ProgressListener() {
-                  @Override public void onProgress(long downloadedBytes,long totalBytes){
-                    if (totalBytes > 0) {
-                        updateProgress(Math.min(.99,(double)downloadedBytes/totalBytes),1);
-                        updateMessage(String.format(i18nService.tr("update.progress.downloaded"),
-                                formatBytes(downloadedBytes),
-                                formatBytes(totalBytes)));
-                    } else {
-                        updateProgress(-1, 1);
-                        updateMessage(i18nService.tr("update.progress.downloading"));
+            @Override protected java.nio.file.Path call() throws Exception {
+                updateMessage(i18nService.tr("update.progress.connecting"));updateProgress(-1,1);
+                var file=updateInstallerService.downloadInstaller(info,new UpdateInstallerService.ProgressListener(){
+                    @Override public void onProgress(long downloadedBytes,long totalBytes){
+                        if(totalBytes>0){
+                            updateProgress(Math.min(.99,(double)downloadedBytes/totalBytes),1);
+                            updateMessage(String.format(i18nService.tr("update.progress.downloaded"),formatBytes(downloadedBytes),formatBytes(totalBytes)));
+                        }else{updateProgress(-1,1);updateMessage(i18nService.tr("update.progress.downloading"));}
                     }
-                  }
-                  @Override public void onPhase(UpdateInstallerService.Phase phase){
-                    updateMessage(i18nService.tr("update.progress.phase."+phase));
-                    if(phase!=UpdateInstallerService.Phase.DOWNLOADING)updateProgress(-1,1);
-                  }
+                    @Override public void onPhase(UpdateInstallerService.Phase phase){
+                        updateMessage(i18nService.tr("update.progress.phase."+phase));
+                        if(phase!=UpdateInstallerService.Phase.DOWNLOADING)updateProgress(-1,1);
+                    }
                 });
-                if(downloadOnly){updateProgress(-1,1);updateMessage(i18nService.tr("update.progress.phase.SAVING"));file=updateInstallerService.saveDownloadedInstaller(info,file);}
+                if(downloadOnly){
+                    updateProgress(-1,1);updateMessage(i18nService.tr("update.progress.phase.SAVING"));
+                    file=updateInstallerService.saveDownloadedInstaller(info,file);
+                }else{
+                    preparing.set(true);updateProgress(-1,1);updateMessage(i18nService.tr("update.progress.phase.VERIFYING"));
+                    // Keep one worker/dialog through download, rollback and launch. A completed
+                    // download is never advertised as a completed installation or queued twice.
+                    var gate=new java.util.concurrent.FutureTask<Boolean>(()->{
+                        if(disposed||isDone()||hasUpdateBlockingWork())return false;
+                        contentPane.setDisable(true);sidebarContainer.setDisable(true);return true;
+                    });
+                    Platform.runLater(gate);
+                    if(!gate.get(15,java.util.concurrent.TimeUnit.SECONDS))throw new java.io.IOException(i18nService.tr("update.busy"));
+                    updateInstallerService.launchInstallerAfterExit(file,phase->{
+                        if(phase==UpdateInstallerService.Phase.STARTING_INSTALLER)installing.set(true);
+                        updateMessage(i18nService.tr("update.progress.phase."+phase));
+                    });
+                }
                 updateProgress(1,1);return file;
             }
         };
         updateDownloadTask=task;
-        var progressDialog = dialogService.showDownloadProgressDialog(info, task);
-        java.util.function.BiConsumer<String, Throwable> updateFailure = (summaryKey, rejection) -> {
-            updateDownloadRunning=false;if(disposed)return;
+        var progressDialog=dialogService.showDownloadProgressDialog(info,task);
+        progressDialog.setOnCloseRequest(event->{if(task.isRunning()){if(installing.get())event.consume();else task.cancel(true);}});
+        task.messageProperty().addListener((o,a,b)->{if(installing.get())progressDialog.getDialogPane().lookupButton(ButtonType.CANCEL).setDisable(true);});
+        java.util.function.Consumer<Throwable> failed=rejection->{
+            updateDownloadRunning=false;progressDialog.close();if(disposed)return;
             contentPane.setDisable(false);sidebarContainer.setDisable(false);
-            progressDialog.close();
-            LOGGER.error("Update {} failed at {}", info.getVersion(), summaryKey, rejection);
-            AlertService.showDetailedError(
-                    i18nService.tr(summaryKey),
-                    com.vncode.app.integration.znack.ZnackErrorDetails.format(rejection));
+            String summaryKey=preparing.get()?"update.error.launch_failed":"update.error.download_generic";
+            LOGGER.error("Update {} failed at {}",info.getVersion(),summaryKey,rejection);
+            AlertService.showDetailedError(i18nService.tr(summaryKey),com.vncode.app.integration.znack.ZnackErrorDetails.format(rejection));
         };
-        java.util.function.Consumer<Throwable> taskFailure = rejection ->
-                updateFailure.accept("update.error.download_generic", rejection);
-        task.setOnFailed(e -> taskFailure.accept(task.getException()));
-        task.setOnCancelled(event->{updateDownloadRunning=false;progressDialog.close();});
-        task.setOnSucceeded(e -> {
-            progressDialog.close();
-            if(disposed)return;
-            // Task properties belong to FX; pass the completed value to the worker, not the Task.
-            final java.nio.file.Path installerFile = task.getValue();
-            if(downloadOnly){updateDownloadRunning=false;AlertService.showInfo(i18nService.tr("update.saved"),info.getVersion(),installerFile.toAbsolutePath().toString());return;}
-            if(hasUpdateBlockingWork()){updateDownloadRunning=false;AlertService.showError(i18nService.tr("update.busy"));return;}
-            contentPane.setDisable(true);sidebarContainer.setDisable(true);
-            var installing=new java.util.concurrent.atomic.AtomicBoolean();
-            Task<Void> prepare=new Task<>(){protected Void call()throws Exception{
-                updateProgress(-1,1);updateMessage(i18nService.tr("update.progress.phase.VERIFYING"));
-                updateInstallerService.launchInstallerAfterExit(installerFile,phase->{
-                    if(phase==UpdateInstallerService.Phase.STARTING_INSTALLER)installing.set(true);
-                    updateMessage(i18nService.tr("update.progress.phase."+phase));
-                });return null;
-            }};
-            updateDownloadTask=prepare;
-            var preparationDialog=dialogService.showDownloadProgressDialog(info,prepare);
-            preparationDialog.setOnCloseRequest(event->{if(prepare.isRunning()){if(installing.get())event.consume();else prepare.cancel(true);}});
-            prepare.messageProperty().addListener((o,a,b)->{if(installing.get())preparationDialog.getDialogPane().lookupButton(ButtonType.CANCEL).setDisable(true);});
-            prepare.setOnSucceeded(event->{updateDownloadRunning=false;preparationDialog.close();if(!disposed)exitAfterUpdate.run();});
-            java.util.function.Consumer<Throwable> preparationFailure = rejection -> {
-                preparationDialog.close();updateFailure.accept("update.error.launch_failed", rejection);
-            };
-            prepare.setOnCancelled(event->{updateDownloadRunning=false;preparationDialog.close();contentPane.setDisable(false);sidebarContainer.setDisable(false);});
-            prepare.setOnFailed(event->preparationFailure.accept(prepare.getException()));preparationDialog.show();executeUpdateTask(prepare,preparationFailure);
+        task.setOnFailed(event->failed.accept(task.getException()));
+        task.setOnCancelled(event->{updateDownloadRunning=false;progressDialog.close();if(!disposed){contentPane.setDisable(false);sidebarContainer.setDisable(false);}});
+        task.setOnSucceeded(event->{
+            updateDownloadRunning=false;progressDialog.close();if(disposed)return;
+            if(downloadOnly)AlertService.showInfo(i18nService.tr("update.saved"),info.getVersion(),task.getValue().toAbsolutePath().toString());
+            else exitAfterUpdate.run();
         });
-        progressDialog.show();
-        executeUpdateTask(task, taskFailure);
+        progressDialog.show();executeUpdateTask(task,failed);
     }
 
     private String formatBytes(long bytes) {

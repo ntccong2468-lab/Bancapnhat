@@ -1,0 +1,72 @@
+{
+  "version": "1.5.3",
+  "state": "candidate-unpublished-validation-in-progress",
+  "baseline": "v1.5.2",
+  "databaseSchema": 6,
+  "published": false,
+  "complete": false,
+  "sourceCommit": null,
+  "requestReport": "VN-code-1.5.3-request-report.md",
+  "licenseIntegration": {
+    "productionReady": false,
+    "changedInThisVersion": false
+  },
+  "publication": {
+    "latestReleaseAtPreparation": "v1.5.2",
+    "latestReleaseChangedByThisWork": false,
+    "standardAcceptanceClaimed": false,
+    "ownerExceptionAdded": false,
+    "releaseUrl": null,
+    "installerSha256": null,
+    "installerBytes": null
+  },
+  "preservationRequirements": [
+    "Existing 1.5.2 seller data and synchronized products/cards",
+    "Default Catalog registration template and permit TN VED scope rules",
+    "Existing synchronization, FBS priority and KIZ workflows"
+  ],
+  "validation": {
+    "linuxFullSuite": {
+      "state": "awaiting-final-result",
+      "acceptedForRelease": false
+    },
+    "releaseToolTests": {
+      "state": "passed",
+      "tests": 27,
+      "failures": 0,
+      "fullSuiteExecuted": false,
+      "command": "node --test tools/vncode-products-release.test.mjs tools/release-version.test.mjs tools/javafx-production-entrypoint.test.mjs"
+    },
+    "windowsBuild": {
+      "state": "not-run",
+      "freshFullJavaExecutionRequired": true,
+      "allNativeChecksMustRunAgain": true,
+      "sourceCommit": null,
+      "runId": null,
+      "upgradeFrom152Passed": false,
+      "allNativeChecksPassed": false,
+      "installerPackaged": false
+    },
+    "liveCatalogRead": {
+      "state": "passed",
+      "readOnly": true,
+      "http": 200,
+      "observedAtLocal": "2026-10-20 09:35",
+      "timezone": "Europe/Moscow",
+      "total": 1277,
+      "published": 1241,
+      "errors": 34,
+      "drafts": 2,
+      "newProductionPostPerformed": false
+    },
+    "productionLicenseVerified": false,
+    "liveCryptoProSigningThisVersion": false,
+    "liveLicensedDesktopGtinWriteThisVersion": false,
+    "liveApiWbGtinWriteThisVersion": false,
+    "liveApiOzonGtinWriteThisVersion": false,
+    "liveCatalogCardCreatedThisVersion": false,
+    "liveCatalogCardRepairedThisVersion": false,
+    "windowsTrayVerifiedOnWindows": false,
+    "publicDownloadVerified": false
+  }
+}

@@ -22,7 +22,8 @@ public class UpdateInstallerService {
             .build();
     private final OkHttpClient http;
     private final boolean localTest;
-    private final java.util.Map<Path,String> verifiedFiles=new java.util.concurrent.ConcurrentHashMap<>();
+    private record VerifiedInstaller(String sha256,String version) { }
+    private final java.util.Map<Path,VerifiedInstaller> verifiedFiles=new java.util.concurrent.ConcurrentHashMap<>();
     public enum Phase { DOWNLOADING, VERIFYING, BACKUP, STARTING_INSTALLER, SAVING }
     public UpdateInstallerService(){this(CLIENT,false);}
     UpdateInstallerService(OkHttpClient http,boolean localTest){this.http=http;this.localTest=localTest;}
@@ -97,7 +98,7 @@ public class UpdateInstallerService {
             }
             String actual=java.util.HexFormat.of().formatHex(digest.digest());
             if(!actual.equalsIgnoreCase(info.getBestDownloadSha256()))throw new IOException("UPDATE_CHECKSUM_MISMATCH");
-            verifiedFiles.put(installerFile.toAbsolutePath().normalize(),actual);
+            verifiedFiles.put(installerFile.toAbsolutePath().normalize(),new VerifiedInstaller(actual,info.getVersion()));
         }catch(IOException|java.security.GeneralSecurityException failure){
             Files.deleteIfExists(installerFile);Files.deleteIfExists(tempDir);
             if(failure instanceof IOException io)throw io;
@@ -112,12 +113,13 @@ public class UpdateInstallerService {
     }
     public void launchInstallerAfterExit(Path installerFile,java.util.function.Consumer<Phase> phase) throws IOException {
         checkCancelled();phase.accept(Phase.VERIFYING);
-        String expected=verifiedFiles.get(installerFile.toAbsolutePath().normalize());
-        if(expected==null||!expected.equals(fileHash(installerFile)))throw new IOException("UPDATE_CHECKSUM_MISMATCH");
+        var verified=verifiedFiles.get(installerFile.toAbsolutePath().normalize());
+        if(verified==null||!verified.sha256().equals(fileHash(installerFile)))throw new IOException("UPDATE_CHECKSUM_MISMATCH");
         checkCancelled();phase.accept(Phase.BACKUP);
-        com.vncode.app.Launcher.prepareUpdateSnapshot();
+        com.vncode.app.Launcher.prepareUpdateSnapshot(verified.version());
         checkCancelled();phase.accept(Phase.STARTING_INSTALLER);
         String command = buildWindowsInstallCommand(installerFile);
+        checkCancelled();
         new ProcessBuilder(
                 "powershell.exe",
                 "-NoProfile",
@@ -128,8 +130,9 @@ public class UpdateInstallerService {
     }
     public Path saveDownloadedInstaller(UpdateInfo info,Path file)throws IOException {
         if(!info.getVersion().matches("[0-9]{1,5}\\.[0-9]{1,5}\\.[0-9]{1,5}"))throw new IOException("UPDATE_INVALID_RESPONSE");
-        String expected=verifiedFiles.get(file.toAbsolutePath().normalize());
-        if(expected==null||!expected.equals(fileHash(file)))throw new IOException("UPDATE_CHECKSUM_MISMATCH");
+        var verified=verifiedFiles.get(file.toAbsolutePath().normalize());
+        if(verified==null||!verified.sha256().equals(fileHash(file)))throw new IOException("UPDATE_CHECKSUM_MISMATCH");
+        String expected=verified.sha256();
         Path saved=Files.createTempFile(AppPaths.preferredDownloadsDirectory().toPath(),"VN-code-"+info.getVersion()+"-",guessExtension(info.getBestDownloadUrl()));
         try{Files.copy(file,saved,java.nio.file.StandardCopyOption.REPLACE_EXISTING);if(!expected.equals(fileHash(saved)))throw new IOException("UPDATE_CHECKSUM_MISMATCH");return saved;}
         catch(IOException failure){Files.deleteIfExists(saved);throw failure;}
@@ -148,12 +151,11 @@ public class UpdateInstallerService {
                 $installer = '%s';
                 $extension = [System.IO.Path]::GetExtension($installer).ToLowerInvariant();
                 if ($extension -eq '.msi') {
-                    $process = Start-Process -FilePath 'msiexec.exe' -ArgumentList @('/i', ('"' + $installer + '"')) -Wait -PassThru;
+                    $process = Start-Process -FilePath 'msiexec.exe' -ArgumentList @('/i', ('"' + $installer + '"'), '/passive', '/norestart') -Wait -PassThru;
                 } else {
                     $process = Start-Process -FilePath $installer -Wait -PassThru;
                 }
                 if ($null -ne $process -and $process.ExitCode -in @(0,3010)) {
-                    Start-Sleep -Seconds 1;
                     $candidates = @(
                         (Join-Path $env:LOCALAPPDATA '%s\\%s'),
                         (Join-Path $env:LOCALAPPDATA 'Programs\\%s\\%s'),

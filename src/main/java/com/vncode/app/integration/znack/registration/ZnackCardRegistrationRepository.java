@@ -40,13 +40,13 @@ public class ZnackCardRegistrationRepository {
              PreparedStatement statement = connection.prepareStatement("""
                      INSERT INTO znack_card_registrations(shop_id,chrt_id,nm_id,vendor_code,source_barcode,
                          status,created_at,updated_at)
-                     SELECT ?,?,?,?,?,'CHECKING',?,?
+                     SELECT ?,?,?,?,?,?,?,?
                      WHERE EXISTS(SELECT 1 FROM wb_product_sizes s JOIN shops sh ON sh.id=s.shop_id
                                   WHERE s.shop_id=? AND s.chrt_id=? AND s.nm_id=?
                                     AND sh.marketplace='WILDBERRIES')
                        AND (?=1 OR EXISTS(SELECT 1 FROM znack_card_registrations r
                                           WHERE r.shop_id=? AND r.chrt_id=?))
-                     ON CONFLICT(shop_id,chrt_id) DO UPDATE SET status='CHECKING',error_message=NULL,
+                     ON CONFLICT(shop_id,chrt_id) DO UPDATE SET status=excluded.status,error_message=NULL,
                          updated_at=excluded.updated_at
                      WHERE znack_card_registrations.nm_id=excluded.nm_id
                        AND znack_card_registrations.status=?
@@ -60,6 +60,7 @@ public class ZnackCardRegistrationRepository {
             statement.setInt(index++,shopId); statement.setLong(index++,sku.chrtId());
             statement.setLong(index++,sku.nmId()); statement.setString(index++,sku.vendorCode());
             statement.setString(index++,sku.sourceBarcode());
+            statement.setString(index++,action==RegistrationAction.RESUME&&sku.status()==Status.READY_TO_SUBMIT&&!sku.hasFeed()?Status.READY_TO_SUBMIT.name():Status.CHECKING.name());
             statement.setString(index++,now); statement.setString(index++,now);
             statement.setInt(index++,shopId); statement.setLong(index++,sku.chrtId());
             statement.setLong(index++,sku.nmId()); statement.setInt(index++,newRow?1:0);
@@ -445,15 +446,22 @@ public class ZnackCardRegistrationRepository {
 
     public void saveGenerated(int shopId, Sku sku, String gtin, String tnved, long categoryId,
                               String goodName, String payloadJson) {
+        saveGenerated(shopId,sku,gtin,tnved,categoryId,goodName,payloadJson,Status.GTIN_GENERATED);
+    }
+    /** New checkpoints prove that dispatch has not begun, atomically with saving the allocated GTIN. */
+    public void saveReadyToSubmitGenerated(int shopId,Sku sku,String gtin,String tnved,long categoryId,String goodName,String payloadJson) {
+        saveGenerated(shopId,sku,gtin,tnved,categoryId,goodName,payloadJson,Status.READY_TO_SUBMIT);
+    }
+    private void saveGenerated(int shopId,Sku sku,String gtin,String tnved,long categoryId,String goodName,String payloadJson,Status checkpoint) {
         String now = Instant.now().toString();
         try (Connection connection = Database.getConnection();
              PreparedStatement statement = connection.prepareStatement("""
                      INSERT INTO znack_card_registrations(shop_id,chrt_id,nm_id,vendor_code,source_barcode,
                          gtin,tnved,category_id,good_name,payload_json,status,created_at,updated_at)
-                     VALUES(?,?,?,?,?,?,?,?,?,?,'GTIN_GENERATED',?,?)
+                     VALUES(?,?,?,?,?,?,?,?,?,?,?, ?,?)
                      ON CONFLICT(shop_id,chrt_id) DO UPDATE SET gtin=excluded.gtin,tnved=excluded.tnved,
                          category_id=excluded.category_id,good_name=excluded.good_name,payload_json=excluded.payload_json,
-                         status='GTIN_GENERATED',error_message=NULL,updated_at=excluded.updated_at
+                         status=excluded.status,error_message=NULL,updated_at=excluded.updated_at
                     WHERE znack_card_registrations.status <> 'PUBLISHED'
                       AND (NULLIF(TRIM(znack_card_registrations.gtin),'') IS NULL
                            OR znack_card_registrations.gtin=excluded.gtin)
@@ -469,6 +477,7 @@ public class ZnackCardRegistrationRepository {
             statement.setLong(index++, categoryId);
             statement.setString(index++, goodName);
             statement.setString(index++, payloadJson);
+            statement.setString(index++, checkpoint.name());
             statement.setString(index++, now);
             statement.setString(index, now);
             if (statement.executeUpdate() != 1) {

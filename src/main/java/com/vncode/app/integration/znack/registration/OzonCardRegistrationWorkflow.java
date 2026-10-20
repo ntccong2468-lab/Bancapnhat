@@ -30,6 +30,7 @@ public final class OzonCardRegistrationWorkflow {
     // One accepted work item per shop prevents a large shop from filling the shared queue.
     private static final Set<String> RUNNING=ConcurrentHashMap.newKeySet();
     private static final Map<String,CompletableFuture<Void>> COMPLETIONS=new ConcurrentHashMap<>();
+    private final Map<String,Throwable> failures=new ConcurrentHashMap<>();
     private final OzonCardRegistrationRepository repository;private final CatalogFactory catalogs;
     private final SnapshotSource snapshots;private final Executor executor;private final MarketplaceCompletion completion;
     public OzonCardRegistrationWorkflow(){this(new OzonCardRegistrationRepository());}
@@ -148,16 +149,24 @@ public final class OzonCardRegistrationWorkflow {
         return new Preparation(preparation.snapshot(),preparation.tnved(),preparation.preflight(),categoryId,required,preparation.documents(),suggestions(preparation.snapshot(),required),preparation.session,preparation.owner);
     }
     public boolean register(Shop shop,ProductKey key,Draft draft,boolean confirmed,boolean newCard,BiConsumer<Status,String> callback) {
-        return register(shop,key,null,draft,confirmed,newCard,callback);
+        return register(shop,key,null,draft,confirmed,newCard,callback,false);
     }
     public boolean registerReviewed(Shop shop,Preparation preparation,Draft draft,boolean confirmed,boolean newCard,BiConsumer<Status,String> callback) {
         if(preparation==null||draft==null)return false;
         require(shop,preparation.snapshot().key());
         if(preparation.session==null||preparation.categoryId()!=draft.categoryId()||!preparation.owner.equals(ListingIdentity.fingerprint(shop)))throw new IllegalArgumentException("registration_review_changed");
         checkSession(shop,preparation.session.scope(),preparation.session);
-        return register(shop,preparation.snapshot().key(),preparation,draft,confirmed,newCard,callback);
+        return register(shop,preparation.snapshot().key(),preparation,draft,confirmed,newCard,callback,false);
     }
-    private boolean register(Shop selected,ProductKey key,Preparation preparation,Draft draft,boolean confirmed,boolean newCard,BiConsumer<Status,String> callback) {
+    /** The durable batch advances only after the Catalog POST returned its persisted feed ID. */
+    public boolean registerReviewedForBatch(Shop shop,Preparation preparation,Draft draft,BiConsumer<Status,String> callback) {
+        if(preparation==null||draft==null)return false;
+        require(shop,preparation.snapshot().key());
+        if(preparation.session==null||preparation.categoryId()!=draft.categoryId()||!preparation.owner.equals(ListingIdentity.fingerprint(shop)))throw new IllegalArgumentException("registration_review_changed");
+        checkSession(shop,preparation.session.scope(),preparation.session);
+        return register(shop,preparation.snapshot().key(),preparation,draft,true,false,callback,true);
+    }
+    private boolean register(Shop selected,ProductKey key,Preparation preparation,Draft draft,boolean confirmed,boolean newCard,BiConsumer<Status,String> callback,boolean submitOnly) {
         Shop shop=capture(selected);
         if(!confirmed||draft==null)return false;require(shop,key);LicenseRuntime.require(Permission.GTIN);
         return schedule(shop,()->{
@@ -194,11 +203,17 @@ public final class OzonCardRegistrationWorkflow {
                 // Optional photos never substitute a marketplace thumbnail for a verified full-size image.
                 var payload=ZnackNationalCatalogService.buildPayload(gtin,reviewed,"");repository.generated(key,gtin,payload.toString());RegistrationSigningConsent.set(shop,key,gtin,reviewed.autoSign());RegistrationMarketplaceConsent.set(shop,key,gtin,true);notify(callback,Status.GTIN_GENERATED,"");
             }
-            submitPrepared(shop,key,session,callback);poll(shop,key,session,reviewed.autoSign(),callback);
+            submitPrepared(shop,key,session,callback);if(!submitOnly)poll(shop,key,session,reviewed.autoSign(),callback);
         },key,callback);
     }
     public boolean resume(Shop selected,ProductKey key,BiConsumer<Status,String> callback) {return resume(selected,key,null,callback);}
     public boolean resume(Shop selected,ProductKey key,Boolean automaticSigning,BiConsumer<Status,String> callback) {
+        return resume(selected,key,automaticSigning,callback,false);
+    }
+    public boolean resumeForBatch(Shop selected,ProductKey key,boolean automaticSigning) {
+        return resume(selected,key,automaticSigning,null,true);
+    }
+    private boolean resume(Shop selected,ProductKey key,Boolean automaticSigning,BiConsumer<Status,String> callback,boolean submitOnly) {
         Shop shop=capture(selected);
         require(shop,key);var row=repository.find(key);if(row==null||row.status()==Status.PUBLISHED||row.status()==Status.GTIN_REVIEW_REQUIRED||row.status()==Status.FEED_REVIEW_REQUIRED||row.status()==Status.ALLOCATING_GTIN||row.status()==Status.FEED_SUBMITTING)return false;
         if(row.feedId().isBlank()&&row.status()!=Status.READY_TO_SUBMIT)return false;
@@ -216,7 +231,7 @@ public final class OzonCardRegistrationWorkflow {
                 }
             }else if(row.feedId().isBlank())submitPrepared(shop,key,session,callback);
             if(automaticSigning!=null)RegistrationSigningConsent.set(shop,key,row.gtin(),automaticSigning);
-            poll(shop,key,session,RegistrationSigningConsent.allowed(shop,key,row.gtin()),callback);
+            if(!submitOnly)poll(shop,key,session,RegistrationSigningConsent.allowed(shop,key,row.gtin()),callback);
         },key,callback);
     }
     public boolean signApproved(Shop selected,List<ProductKey> keys,boolean confirmed,BiConsumer<Status,String> callback) {
@@ -314,8 +329,8 @@ public final class OzonCardRegistrationWorkflow {
     @FunctionalInterface private interface Action {void run()throws Exception;}
     private boolean schedule(Shop shop,Action action,ProductKey key,BiConsumer<Status,String> callback) {
         String namespace=namespace(shop);if(!RUNNING.add(namespace))return false;
-        var completion=new CompletableFuture<Void>();COMPLETIONS.put(namespace,completion);
-        try {executor.execute(()->{try{action.run();}catch(Exception failure){if(failure instanceof InterruptedException)Thread.currentThread().interrupt();fail(key,callback,failure);}finally{requestUnsentContinuation(shop,key);RUNNING.remove(namespace);completion.complete(null);COMPLETIONS.remove(namespace,completion);}});return true;}
+        var completion=new CompletableFuture<Void>();COMPLETIONS.put(namespace,completion);failures.remove(namespace);var directory=AppPaths.appDataDir().toAbsolutePath().normalize();
+        try {executor.execute(()->{try(var dataScope=com.vncode.app.features.sync.SyncDataScope.enter(directory)){com.vncode.app.features.sync.SyncDataScope.requireCurrent();action.run();}catch(Exception failure){failures.put(namespace,failure);if(failure instanceof InterruptedException)Thread.currentThread().interrupt();if(directory.equals(AppPaths.appDataDir().toAbsolutePath().normalize()))fail(key,callback,failure);}finally{if(directory.equals(AppPaths.appDataDir().toAbsolutePath().normalize()))requestUnsentContinuation(shop,key);RUNNING.remove(namespace);completion.complete(null);COMPLETIONS.remove(namespace,completion);}});return true;}
         catch(RejectedExecutionException full){RUNNING.remove(namespace);COMPLETIONS.remove(namespace,completion);completion.complete(null);return false;}
     }
     private void requestUnsentContinuation(Shop shop,ProductKey key){
@@ -339,6 +354,7 @@ public final class OzonCardRegistrationWorkflow {
         if(documentPending)error="CATALOG_SIGNING_DOCUMENT_PENDING";
         repository.uncertain(key,state,error);notify(callback,state,error);
     }
+    Throwable failure(Shop shop){return failures.get(namespace(shop));}
     public java.util.concurrent.CompletionStage<Void> completion(Shop shop){
         var current=COMPLETIONS.get(namespace(shop));return current==null?CompletableFuture.completedFuture(null):current.minimalCompletionStage();
     }

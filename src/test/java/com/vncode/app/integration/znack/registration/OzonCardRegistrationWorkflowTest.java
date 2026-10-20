@@ -158,6 +158,34 @@ class OzonCardRegistrationWorkflowTest {
         assertEquals(2,batchWorkflow.submitBatchReviewed(shop,review.ready(),false,true,null).get(10,java.util.concurrent.TimeUnit.SECONDS));
         assertEquals(2,api.allocations.get());assertNotNull(repository.find(second));assertNotNull(repository.find(key));
     }
+    @Test void durableBatchResumesFrozenSelectionAndCountsOnlyActualCatalogReceipts()throws Exception {
+        api.knownQuota=true;api.pendingModeration=true;
+        var second=new ProductKey(2,Marketplace.OZON,"502","fixture-offer-2");var base=snapshot;var snapshots=new HashMap<ProductKey,ProductSnapshot>();snapshots.put(key,base);
+        snapshots.put(second,new ProductSnapshot(second,"live:second","Second","",base.brand(),second.variantId(),base.categoryId(),base.media(),base.attributes(),List.of(new ProductVariant(second.variantId(),second.variantId(),"","","",false)),base.dimensions(),base.documents(),Instant.now(),Map.of("sku","9002","owner",com.vncode.app.integration.listing.ListingIdentity.fingerprint(shop))));
+        try(var c=Database.getConnection();var p=c.prepareStatement("INSERT INTO ozon_products(shop_id,product_id,offer_id,sku,name,synced_at) VALUES(2,?,?,?,'Fixture',?)")){
+            for(var k:List.of(key,second)){p.setString(1,k.cardId());p.setString(2,k.variantId());p.setString(3,k.equals(key)?"9001":"9002");p.setString(4,Instant.now().toString());p.addBatch();}p.executeBatch();
+        }
+        com.vncode.app.testsupport.RegistrationSourceFixture.ready(shop);
+        var keys=List.of(key,second);var queue=new OzonRegistrationBatchRepository();String report=OzonRegistrationAttemptReports.queue(shop,keys);
+        queue.create(shop,keys,false,session().scope(),report);
+        assertEquals(0,queue.counts(report).submitted());assertEquals(2,queue.counts(report).remaining());
+        var batchWorkflow=new OzonCardRegistrationWorkflow(repository,s->session(),(s,k)->{api.activeKey=k;return snapshots.get(k);},Runnable::run,(s,k,sku,gtin)->false);
+        var restarted=new OzonRegistrationBatchService(new OzonRegistrationBatchRepository(),repository,batchWorkflow);
+        assertTrue(restarted.resumePending(shop));
+        long until=System.nanoTime()+java.util.concurrent.TimeUnit.SECONDS.toNanos(8);
+        while(System.nanoTime()<until&&queue.counts(report).remaining()>0)Thread.sleep(10);
+        while(System.nanoTime()<until&&OzonRegistrationBatchService.hasPendingJobs())Thread.sleep(10);
+        var progress=restarted.latest(shop);assertEquals(2,progress.submitted());assertEquals(0,progress.failed());assertEquals(0,progress.remaining());assertEquals(OzonRegistrationBatchService.State.COMPLETED,progress.state());assertEquals(second.variantId(),progress.lastSubmittedArticle());
+        assertEquals(2,api.submissions.get());assertEquals(2,api.allocations.get());assertEquals(0,api.polls.get());assertEquals(Status.FEED_SUBMITTED,repository.find(key).status());assertEquals(Status.FEED_SUBMITTED,repository.find(second).status());
+        var reports=new com.vncode.app.features.sync.SyncRunRepository();assertEquals(2,reports.find(report).orElseThrow().total());assertEquals(2L,reports.counts(report).get("WAITING_REMOTE"));
+        assertFalse(new OzonRegistrationBatchService(queue,repository,batchWorkflow).resumePending(shop));assertEquals(2,api.submissions.get());
+    }
+    @Test void batchSubmissionReleasesWorkerBeforeAnyModerationPoll()throws Exception {
+        api.pendingModeration=true;var prepared=workflow.prepare(shop,key);
+        assertTrue(workflow.registerReviewedForBatch(shop,prepared,draft.withAutoSign(true),null));
+        assertEquals(Status.FEED_SUBMITTED,row().status());assertFalse(row().feedId().isBlank());assertEquals(1,api.submissions.get());assertEquals(0,api.polls.get());assertEquals(0,api.signatures.get());
+        assertTrue(workflow.resumeForBatch(shop,key,true));assertEquals(1,api.submissions.get());assertEquals(0,api.polls.get());
+    }
     @Test void unknownTnvedDoesNotAuthenticateOrAllocateBeforeExplicitEntry()throws Exception {
         snapshot=snapshot("live:missing",false);var prepared=workflow.prepare(shop,key);
         assertEquals("",prepared.tnved());assertNull(prepared.preflight());assertEquals(0,sessions.get());assertEquals(0,api.allocations.get());
@@ -257,7 +285,7 @@ class OzonCardRegistrationWorkflowTest {
             var documents=requested.deepCopy();for(var entry:documents){var d=entry.getAsJsonObject();d.addProperty("status_group",1);d.addProperty("product_tnved",permitScope);}
             var result=new JsonObject();result.add("documents",documents);var root=new JsonObject();root.add("result",result);return root;
         }
-        AtomicInteger allocations=new AtomicInteger(),submissions=new AtomicInteger(),signatures=new AtomicInteger(),documents=new AtomicInteger();JsonObject lastPayload;
+        AtomicInteger allocations=new AtomicInteger(),submissions=new AtomicInteger(),signatures=new AtomicInteger(),documents=new AtomicInteger(),polls=new AtomicInteger();JsonObject lastPayload;
         ProductKey activeKey=key;boolean knownQuota;
         String rejectedFeed="";
         String rejectionStatus="Rejected",rejectionMessage="required attribute missing; token=fixture-secret";
@@ -269,7 +297,7 @@ class OzonCardRegistrationWorkflowTest {
         public JsonElement nationalCatalogAttributes(String base,String token,long category){return json("{\"result\":[{\"attr_id\":1,\"attr_name\":\"Fixture\",\"attr_field_type\":\"text\"},{\"attr_id\":23557,\"attr_name\":\"Declaration\",\"attr_field_type\":\"text\"},{\"attr_id\":23561,\"attr_name\":\"Certificate\",\"attr_field_type\":\"text\"}]}");}
         public JsonElement submitNationalCatalogFeed(String base,String token,JsonElement body)throws IOException{assertEquals(Status.FEED_SUBMITTING,repository.find(activeKey).status());lastPayload=body.getAsJsonObject().deepCopy();submissions.incrementAndGet();if(feedTimeout)throw new IOException("fixture feed timeout");return json("{\"result\":{\"feed_id\":\"feed-"+submissions.get()+"\"}}");}
         public JsonElement productCards(String base,String token,String gtins){return json("{\"result\":[{\"gtin\":\""+gtins+"\",\"good_id\":91,\"tnved\":\"6204\",\"good_status\":\""+(accepted||!gtins.equals(currentGtin)?"published":"draft")+"\"}]}");}
-        public JsonElement nationalCatalogFeedStatus(String base,String token,String feed){if(rejected||feed.equals(rejectedFeed))return json("{\"result\":{\"status\":\""+rejectionStatus+"\",\"item\":[{\"gtin\":\""+currentGtin+"\",\"status_code\":400,\"message\":\""+rejectionMessage+"\"}]}}");return json("{\"result\":{\"status\":\""+(pendingModeration?"Processing":accepted&&!laggedModeration?"Signed":"Moderated")+"\",\"item\":[{\"gtin\":\""+currentGtin+"\",\"good_id\":91}]}}");}
+        public JsonElement nationalCatalogFeedStatus(String base,String token,String feed){polls.incrementAndGet();if(rejected||feed.equals(rejectedFeed))return json("{\"result\":{\"status\":\""+rejectionStatus+"\",\"item\":[{\"gtin\":\""+currentGtin+"\",\"status_code\":400,\"message\":\""+rejectionMessage+"\"}]}}");return json("{\"result\":{\"status\":\""+(pendingModeration?"Processing":accepted&&!laggedModeration?"Signed":"Moderated")+"\",\"item\":[{\"gtin\":\""+currentGtin+"\",\"good_id\":91}]}}");}
         public JsonElement nationalCatalogSigningDocument(String base,String token,JsonObject body){int count=documents.incrementAndGet();return json("{\"result\":{\"xmls\":[{\"goodId\":91,\"xml\":\"<good>"+(changeSigningDocument&&count>1?"changed":"reviewed")+"</good>\"}]}}");}
         public JsonElement signNationalCatalogProduct(String base,String token,JsonArray body)throws IOException{assertEquals(Status.SIGNING,repository.find(activeKey).status());assertEquals("SENDING",repository.find(activeKey).signatureState());assertEquals("<good>reviewed</good>",new String(Base64.getDecoder().decode(body.get(0).getAsJsonObject().get("base64Xml").getAsString()),java.nio.charset.StandardCharsets.UTF_8));signatures.incrementAndGet();if(signTimeout)throw new IOException("fixture signing timeout");accepted=true;return json("{\"result\":{\"signed\":[91]}}");}
         JsonElement json(String value){return JsonParser.parseString(value);}

@@ -17,6 +17,7 @@ public final class RegistrationAttemptReports {
     /** Resume reporting after a view/app restart without re-sending any request. */
     public static void refresh(Shop shop,SyncRunRepository.Run run,List<SyncRunRepository.Item> items){
         if(!KIND.equals(run.kind()))return;
+        if(shop.getMarketplace()==com.vncode.app.integration.marketplace.Marketplace.OZON){com.vncode.app.integration.znack.registration.OzonRegistrationAttemptReports.refreshAll(shop,run);return;}
         var reports=new SyncRunRepository();reports.assertOwner(shop,run.id());
         var changes=new ArrayList<SyncRunRepository.Item>();
         try(var c=com.vncode.app.config.Database.getConnection();var p=c.prepareStatement("SELECT r.* FROM znack_card_registrations r JOIN znack_card_registration_scopes s ON s.shop_id=r.shop_id AND s.chrt_id=r.chrt_id WHERE r.shop_id=? AND r.nm_id=? AND r.chrt_id=? AND s.owner_hash=?")){
@@ -41,6 +42,7 @@ public final class RegistrationAttemptReports {
     }
     public static void refreshAll(Shop shop,SyncRunRepository.Run run){
         if(!KIND.equals(run.kind()))return;
+        if(shop.getMarketplace()==com.vncode.app.integration.marketplace.Marketplace.OZON){com.vncode.app.integration.znack.registration.OzonRegistrationAttemptReports.refreshAll(shop,run);return;}
         var reports=new SyncRunRepository();
         for(int offset=0;offset<run.total();offset+=1000){
             var items=reports.items(run.id(),offset,1000);refresh(shop,run,items);
@@ -50,6 +52,11 @@ public final class RegistrationAttemptReports {
     public RegistrationAttemptReports(Shop shop){this(shop,List.of());}
     public RegistrationAttemptReports(Shop shop,List<Sku> selection){
         owner=new Shop(shop.getId(),shop.getName(),shop.getMarketplace(),shop.getClientId(),shop.getApiKey());this.selection=List.copyOf(selection);
+    }
+    /** Attach the same full-selection report when a durable registration batch resumes. */
+    public static RegistrationAttemptReports attach(Shop shop,String run) {
+        var result=new RegistrationAttemptReports(shop);result.reports.assertOwner(shop,run);
+        result.run=run;return result;
     }
     public synchronized String queue(){
         if(run==null){

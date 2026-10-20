@@ -27,6 +27,7 @@ public final class OzonCardRegistrationRepository {
         @Override public String toString(){return "OzonCardRegistrationRow[key="+key+", status="+status+"]";}
     }
     public static void initialize(Connection connection)throws SQLException {
+        OzonRegistrationBatchRepository.initialize(connection);
         try(var s=connection.createStatement()){
             s.execute("""
               CREATE TABLE IF NOT EXISTS ozon_card_registrations(

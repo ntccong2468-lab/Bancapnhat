@@ -24,6 +24,7 @@ class UpdateHandoffUiTest {
     final CompletableFuture<Void> exited = new CompletableFuture<>();
     final AtomicBoolean wrongThread = new AtomicBoolean();
     final AtomicBoolean reached100 = new AtomicBoolean();
+    final AtomicReference<Window> downloadWindow = new AtomicReference<>();
     IOException launchFailure;
     CountDownLatch preparationEntered;
     CountDownLatch allowPreparation;
@@ -36,9 +37,12 @@ class UpdateHandoffUiTest {
         ConfigService.setConfigValue("update_api_url", "http://127.0.0.1:1");
         Path installer = data.resolve("downloaded-installer.exe"); Files.writeString(installer, "fixture-only");
         var service = new UpdateInstallerService() {
-            @Override public Path downloadInstaller(UpdateInfo info, ProgressListener progress) {
+            @Override public Path downloadInstaller(UpdateInfo info, ProgressListener progress) throws IOException {
                 wrongThread.compareAndSet(false, Platform.isFxApplicationThread());
-                progress.onProgress(100, 100); reached100.set(true); return installer;
+                progress.onProgress(100, 100); reached100.set(true);
+                try { downloadWindow.set(fx(() -> Window.getWindows().stream().filter(Window::isShowing).findFirst().orElseThrow())); }
+                catch (Exception failed) { throw new IOException("fixture cannot inspect progress window", failed); }
+                return installer;
             }
             @Override public void launchInstallerAfterExit(Path file,java.util.function.Consumer<Phase> phase) throws IOException {
                 wrongThread.compareAndSet(false, Platform.isFxApplicationThread());
@@ -70,7 +74,9 @@ class UpdateHandoffUiTest {
         fx(()->{
             var labels=Window.getWindows().stream().filter(Window::isShowing).flatMap(w->w.getScene().getRoot().lookupAll(".label").stream()).filter(Label.class::isInstance).map(Label.class::cast).map(Label::getText).toList();
             assertTrue(labels.contains(I18nService.getInstance().tr("update.progress.phase.BACKUP")),labels.toString());
-            assertFalse(labels.contains("100%"));assertTrue(home.contentPane.isDisabled());return null;
+            assertFalse(labels.contains("100%"));assertTrue(home.contentPane.isDisabled());
+            assertTrue(downloadWindow.get().isShowing(), "The same download dialog must remain visible during backup");
+            assertEquals(1,Window.getWindows().stream().filter(Window::isShowing).count());return null;
         });
         assertFalse(exited.isDone());allowPreparation.countDown();exited.get(5,TimeUnit.SECONDS);assertFalse(wrongThread.get());
     }
@@ -105,6 +111,24 @@ class UpdateHandoffUiTest {
         });
         assertEquals(data.resolve("downloaded-installer.exe"), handedOff.get());
         assertFalse(exited.isDone()); assertFalse(wrongThread.get());
+    }
+    @Test void cancellingBackupKeepsTheAppOpenAndDoesNotLaunchTheInstaller() throws Exception {
+        preparationEntered=new CountDownLatch(1);allowPreparation=new CountDownLatch(1);start();
+        assertTrue(preparationEntered.await(5,TimeUnit.SECONDS));
+        fx(() -> {
+            var cancel = downloadWindow.get().getScene().getRoot().lookupAll(".button").stream()
+                    .filter(javafx.scene.control.Button.class::isInstance)
+                    .map(javafx.scene.control.Button.class::cast)
+                    .filter(button -> button.isCancelButton()).findFirst().orElseThrow();
+            cancel.fire();return null;
+        });
+        long until=System.nanoTime()+TimeUnit.SECONDS.toNanos(5);
+        while(fx(()->(boolean)field("updateDownloadRunning"))&&System.nanoTime()<until)Thread.sleep(10);
+        fx(()->{
+            assertFalse((boolean)field("updateDownloadRunning"));
+            assertFalse(home.contentPane.isDisabled());assertFalse(home.sidebarContainer.isDisabled());return null;
+        });
+        assertNull(handedOff.get());assertFalse(exited.isDone());
     }
     private void start() throws Exception {
         fx(() -> {

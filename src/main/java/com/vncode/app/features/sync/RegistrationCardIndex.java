@@ -5,6 +5,7 @@ import com.vncode.app.features.gtinsync.*;
 import com.vncode.app.features.gtinsync.GtinSyncModels.RegisteredGtin;
 import com.vncode.app.integration.listing.ListingIdentity;
 import com.vncode.app.integration.znack.GtinNormalizer;
+import com.vncode.app.integration.znack.registration.ZnackCardRegistrationModels.Sku;
 import com.vncode.app.integration.znack.registration.ZnackCardRegistrationModels.Status;
 import com.vncode.app.models.Shop;
 import java.time.Instant;
@@ -13,6 +14,26 @@ import java.util.*;
 /** Presentation only: fresh Catalog observations never invent native feed/checkpoint identities. */
 public final class RegistrationCardIndex {
     public record View(String status,String gtin,String detail,boolean exists,boolean published,boolean blocked) {}
+    /** A local allocation/checkpoint is not proof that the product feed reached Catalog. */
+    public static boolean notSubmitted(Sku row) {
+        return notSubmitted(row.status(),row.gtin(),row.goodId(),row.feedId(),row.wbUpdated());
+    }
+    public static boolean notSubmitted(Status status,String gtin,Long goodId,String feedId,boolean marketplaceUpdated) {
+        if(goodId!=null||!safe(feedId).isBlank()||marketplaceUpdated)return false;
+        return switch(status==null?Status.NOT_CREATED:status) {
+            case NOT_CREATED,PREFLIGHT_ERROR,CHECKING -> safe(gtin).isBlank();
+            case READY_TO_SUBMIT,PRE_SUBMIT_ERROR -> true;
+            // Old allocations and an interrupted POST need reconciliation, never another new POST.
+            default -> false;
+        };
+    }
+    public static boolean confirmedSubmission(Status status,String feedId) {
+        if(safe(feedId).isBlank()||status==null)return false;
+        return switch(status) {
+            case FEED_SUBMITTED,PROCESSING,READY_TO_SIGN,SIGNING,PUBLISHED -> true;
+            default -> false;
+        };
+    }
     private final Map<String,List<RegisteredGtin>> codes=new HashMap<>(),attributes=new HashMap<>();
     private final OzonSkuGtinMatcher ozon;
     private final Set<Long> wbOwners=new HashSet<>();
@@ -69,7 +90,7 @@ public final class RegistrationCardIndex {
             // Exact codes also need compatible variant details before presenting a usable card.
             if((skuCandidates.contains(card)?!OzonSkuGtinMatcher.sameColor(color,card.color()):conflict(color,card.color()))||!safe(size).isBlank()&&!safe(card.size()).isBlank()&&!GtinVariantIdentity.sizeMatches(card,size,russianSize))return new View("source.ambiguous",card.gtin(),"GTIN_VARIANT_CONFLICT",true,false,true);
             if(card.published())return new View("status.published",card.gtin(),"SOURCE_PUBLISHED_CONFIRMED",true,true,false);
-            if(!nativeExists||status==Status.PUBLISHED){
+            if(!nativeExists||status==Status.PUBLISHED||safe(gtin).isBlank()&&notSubmitted(status,gtin,null,"",false)){
                 var observed=com.vncode.app.integration.znack.registration.CatalogCardState.of(card);
                 return new View(observed.viewStatus,card.gtin(),observed.reason,true,false,true);
             }

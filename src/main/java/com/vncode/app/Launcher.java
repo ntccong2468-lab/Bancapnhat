@@ -35,9 +35,12 @@ public class Launcher {
         }
     }
     public static void prepareUpdateSnapshot()throws java.io.IOException {
+        prepareUpdateSnapshot(null);
+    }
+    public static void prepareUpdateSnapshot(String targetVersion)throws java.io.IOException {
         var session=dataSession;
         if(session==null)throw new java.io.IOException("UPDATE_BACKUP_UNAVAILABLE");
-        try{session.createSignedUpdateSnapshot();}
+        try{session.createSignedUpdateSnapshot(targetVersion);}
         catch(Exception failed){throw new java.io.IOException("UPDATE_BACKUP_FAILED", failed);}
     }
 

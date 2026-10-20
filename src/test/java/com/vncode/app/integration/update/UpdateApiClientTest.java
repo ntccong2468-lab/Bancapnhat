@@ -74,7 +74,7 @@ class UpdateApiClientTest {
                 "release", "https://example.com/releases/latest"
         ));
 
-        assertWithOs("Windows 11", "https://example.com/WCode.exe", info);
+        assertWithOs("Windows 11", "https://example.com/WCode.msi", info);
         assertWithOs("Mac OS X", "https://example.com/WCode-mac-arm64.dmg", info);
         assertWithOs("Linux", "https://example.com/WCode-linux-amd64.deb", info);
     }

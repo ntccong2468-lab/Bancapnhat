@@ -5,8 +5,20 @@ import org.junit.jupiter.api.Test;
 import java.nio.file.Path;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 class UpdateInstallerServiceTest {
+
+    @Test
+    void msiUpgradeIsPassiveAndRelaunchWaitsForTheInstallerInsteadOfAnExtraTimer() {
+        String command = new UpdateInstallerService()
+                .buildWindowsInstallCommand(Path.of("C:\\Temp\\VN-code-update.msi"));
+
+        assertTrue(command.contains("'/passive', '/norestart'"));
+        assertTrue(command.contains("-Wait -PassThru"));
+        assertTrue(command.contains("$process.ExitCode -in @(0,3010)"));
+        assertFalse(command.contains("Start-Sleep"));
+    }
 
     @Test
     void relaunchesFromTheDataSafeInstallDirectoryAfterUpgrade() {

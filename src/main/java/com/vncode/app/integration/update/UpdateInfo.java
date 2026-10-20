@@ -45,7 +45,8 @@ public class UpdateInfo {
 
         String os = System.getProperty("os.name", "").toLowerCase(Locale.ROOT);
         if (os.contains("win")) {
-            return firstAvailable("exe", "msi", "zip", "release");
+            // Windows Installer supports a passive upgrade without a second setup wizard.
+            return firstAvailable("msi", "exe", "zip", "release");
         }
         if (os.contains("mac")) {
             String architecture = System.getProperty("os.arch", "").toLowerCase(Locale.ROOT);
