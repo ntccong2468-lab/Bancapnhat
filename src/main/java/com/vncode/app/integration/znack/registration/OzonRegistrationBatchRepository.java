@@ -46,6 +46,13 @@ public final class OzonRegistrationBatchRepository {
             try(var p=c.prepareStatement("INSERT INTO ozon_registration_batch_items(run_id,position,product_id,offer_id) VALUES(?,?,?,?)")){int n=0;for(var key:frozen){p.setString(1,id);p.setInt(2,n++);p.setString(3,key.cardId());p.setString(4,key.variantId());p.addBatch();if(n%500==0)p.executeBatch();}p.executeBatch();}
             return id;});
     }
+    /** The exact frozen native product belongs to an unfinished submission batch. */
+    public boolean ownsPending(Shop shop,ProductKey key){
+        if(shop==null||key==null||shop.getMarketplace()!=Marketplace.OZON||key.marketplace()!=Marketplace.OZON||key.shopId()!=shop.getId())return false;
+        return read(c->{try(var p=c.prepareStatement("SELECT 1 FROM ozon_registration_batch_items i JOIN ozon_registration_batches b ON b.run_id=i.run_id WHERE b.shop_id=? AND b.owner=? AND b.state IN ('QUEUED','RUNNING','WAITING') AND i.state IN ('PENDING','RUNNING') AND i.product_id=? AND i.offer_id=? LIMIT 1")){
+            p.setInt(1,shop.getId());p.setString(2,ListingIdentity.fingerprint(shop));p.setString(3,key.cardId());p.setString(4,key.variantId());try(var r=p.executeQuery()){return r.next();}
+        }});
+    }
     public Batch latest(Shop shop){return read(c->latest(c,shop.getId()));}
     public Item next(Batch batch){return read(c->{try(var p=c.prepareStatement("SELECT * FROM ozon_registration_batch_items WHERE run_id=? AND state IN ('PENDING','RUNNING') ORDER BY position LIMIT 1")){p.setString(1,batch.id());try(var r=p.executeQuery()){return r.next()?new Item(batch.id(),r.getInt("position"),new ProductKey(batch.shopId(),Marketplace.OZON,r.getString("product_id"),r.getString("offer_id")),r.getString("state"),r.getString("detail")):null;}}});}
     public Item lastSubmitted(Batch batch){return read(c->{try(var p=c.prepareStatement("SELECT * FROM ozon_registration_batch_items WHERE run_id=? AND state='SUBMITTED' ORDER BY position DESC LIMIT 1")){p.setString(1,batch.id());try(var r=p.executeQuery()){return r.next()?new Item(batch.id(),r.getInt("position"),new ProductKey(batch.shopId(),Marketplace.OZON,r.getString("product_id"),r.getString("offer_id")),r.getString("state"),r.getString("detail")):null;}}});}

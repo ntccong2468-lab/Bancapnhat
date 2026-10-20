@@ -180,6 +180,19 @@ class OzonCardRegistrationWorkflowTest {
         var reports=new com.vncode.app.features.sync.SyncRunRepository();assertEquals(2,reports.find(report).orElseThrow().total());assertEquals(2L,reports.counts(report).get("WAITING_REMOTE"));
         assertFalse(new OzonRegistrationBatchService(queue,repository,batchWorkflow).resumePending(shop));assertEquals(2,api.submissions.get());
     }
+    @Test void monitorLeavesKnownUnsentSubmissionToItsDurableBatchEvenBeforeBatchWorkerStarts()throws Exception {
+        var scope=session().scope();assertTrue(repository.claim(shop,key,"9001","",scope,false));assertTrue(repository.transition(key,Status.CHECKING,Status.ALLOCATING_GTIN));
+        repository.generated(key,GtinWriteTestFixture.GTIN,ZnackNationalCatalogService.buildPayload(GtinWriteTestFixture.GTIN,draft,"").toString());
+        var queue=new OzonRegistrationBatchRepository();String run=OzonRegistrationAttemptReports.queue(shop,List.of(key));queue.create(shop,List.of(key),false,scope,run);
+        var batch=new OzonRegistrationBatchService(queue,repository,workflow);assertTrue(batch.ownsPending(shop,key));
+        // This models startup after dispatch is accepted but before its worker claims the card.
+        var monitor=new ZnackRegistrationMonitor(null,workflow,ignored->true,batch::ownsPending);
+        var guarded=monitor.poll(shop,3);assertTrue(guarded.pending());assertEquals(Status.READY_TO_SUBMIT,row().status());assertEquals(0,api.submissions.get());assertEquals(0,api.polls.get());
+        assertFalse(batch.ownsPending(shop,new ProductKey(shop.getId(),Marketplace.OZON,key.cardId(),"different-offer")));
+        queue.item(queue.next(queue.latest(shop)),"FAILED","fixture release");assertFalse(batch.ownsPending(shop,key));
+        // Unrelated legacy work still resumes even while another batch remains pending.
+        monitor.poll(shop,3);assertEquals(1,api.submissions.get());assertEquals(0,api.allocations.get());assertEquals(Status.READY_TO_SIGN,row().status());
+    }
     @Test void batchSubmissionReleasesWorkerBeforeAnyModerationPoll()throws Exception {
         api.pendingModeration=true;var prepared=workflow.prepare(shop,key);
         assertTrue(workflow.registerReviewedForBatch(shop,prepared,draft.withAutoSign(true),null));

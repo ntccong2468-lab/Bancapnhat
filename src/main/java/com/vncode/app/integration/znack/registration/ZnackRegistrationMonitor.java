@@ -15,13 +15,16 @@ public final class ZnackRegistrationMonitor {
     private final ZnackCardRegistrationRepository wb=new ZnackCardRegistrationRepository();
     private final ZnackCardRegistrationWorkflow wbWorkflow;
     private final OzonCardRegistrationWorkflow ozonWorkflow;
+    private final java.util.function.Predicate<Shop> resumeOzonBatch;
+    private final java.util.function.BiPredicate<Shop,ProductKey> ownsOzonBatch;
     public ZnackRegistrationMonitor(){this(new ZnackCardRegistrationWorkflow(new ZnackCardRegistrationRepository()),new OzonCardRegistrationWorkflow());}
-    ZnackRegistrationMonitor(ZnackCardRegistrationWorkflow wb,OzonCardRegistrationWorkflow ozon){wbWorkflow=wb;ozonWorkflow=ozon;}
+    ZnackRegistrationMonitor(ZnackCardRegistrationWorkflow wb,OzonCardRegistrationWorkflow ozon){this(wb,ozon,new OzonRegistrationBatchService()::resumePending,new OzonRegistrationBatchService()::ownsPending);}
+    ZnackRegistrationMonitor(ZnackCardRegistrationWorkflow wb,OzonCardRegistrationWorkflow ozon,java.util.function.Predicate<Shop> resumeOzonBatch,java.util.function.BiPredicate<Shop,ProductKey> ownsOzonBatch){wbWorkflow=wb;ozonWorkflow=ozon;this.resumeOzonBatch=resumeOzonBatch;this.ownsOzonBatch=ownsOzonBatch;}
     public Result poll(Shop shop,int limit)throws Exception {
         ListingIdentity.require(shop);if(limit<1||limit>100)throw new IllegalArgumentException("REGISTRY_POLL_LIMIT");
         boolean batchPending=shop.getMarketplace()==Marketplace.WILDBERRIES
                 ?new ZnackRegistrationBatchService(wb).resumePending(shop)
-                :new OzonRegistrationBatchService().resumePending(shop);
+                :resumeOzonBatch.test(shop);
         int checked=0,published=0;com.vncode.app.features.sync.SyncFailure warning=null;
         if(shop.getMarketplace()==Marketplace.WILDBERRIES){
             var rows=new ArrayList<>(wb.pendingStatus(shop.getId(),limit));
@@ -32,7 +35,7 @@ public final class ZnackRegistrationMonitor {
             try(var c=Database.getConnection();var p=c.prepareStatement("SELECT product_id,offer_id FROM ozon_card_registrations WHERE shop_id=? AND ((status IN ('FEED_SUBMITTED','PROCESSING','READY_TO_SIGN','SIGNING') OR status='ERROR' AND error='CATALOG_CARD_NOT_CREATED_AFTER_WAIT') AND NULLIF(feed_id,'') IS NOT NULL OR status='READY_TO_SUBMIT' AND NULLIF(gtin,'') IS NOT NULL AND NULLIF(feed_id,'') IS NULL) ORDER BY CASE status WHEN 'READY_TO_SIGN' THEN 1 ELSE 0 END,updated_at LIMIT ?")){
                 p.setInt(1,shop.getId());p.setInt(2,limit);try(var r=p.executeQuery()){while(r.next())keys.add(new ProductKey(shop.getId(),Marketplace.OZON,r.getString(1),r.getString(2)));}
             }
-            for(var key:keys){if(Thread.currentThread().isInterrupted())throw new java.io.InterruptedIOException("ZNACK_SYNC_CANCELLED");try{var row=new OzonCardRegistrationRepository().find(key);if(row!=null&&row.status()==ZnackCardRegistrationModels.Status.READY_TO_SUBMIT&&row.feedId().isBlank())ozonWorkflow.resume(shop,key,null);else if(ozonWorkflow.refreshStatus(shop,key))published++;checked++;}catch(Exception error){if(CatalogFeedback.rateLimited(error)||error instanceof java.io.InterruptedIOException&&!(error instanceof java.net.SocketTimeoutException))throw error;warning=com.vncode.app.features.sync.SyncFailure.of(error,0);try{ozonWorkflow.recordPollingFailure(shop,key,error);}catch(RuntimeException originalAccountChanged){/* Never rebind a historical request. */}checked++;}}
+            for(var key:keys){if(Thread.currentThread().isInterrupted())throw new java.io.InterruptedIOException("ZNACK_SYNC_CANCELLED");try{var row=new OzonCardRegistrationRepository().find(key);if(row!=null&&row.status()==ZnackCardRegistrationModels.Status.READY_TO_SUBMIT&&row.feedId().isBlank()){if(!batchPending||!ownsOzonBatch.test(shop,key))ozonWorkflow.resume(shop,key,null);}else if(ozonWorkflow.refreshStatus(shop,key))published++;checked++;}catch(Exception error){if(CatalogFeedback.rateLimited(error)||error instanceof java.io.InterruptedIOException&&!(error instanceof java.net.SocketTimeoutException))throw error;warning=com.vncode.app.features.sync.SyncFailure.of(error,0);try{ozonWorkflow.recordPollingFailure(shop,key,error);}catch(RuntimeException originalAccountChanged){/* Never rebind a historical request. */}checked++;}}
         }
         String table=shop.getMarketplace()==Marketplace.OZON?"ozon_card_registrations":"znack_card_registrations";
         boolean pending;

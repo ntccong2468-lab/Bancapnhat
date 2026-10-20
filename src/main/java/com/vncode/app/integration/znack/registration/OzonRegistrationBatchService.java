@@ -59,6 +59,7 @@ public final class OzonRegistrationBatchService {
         if(ACTIVE.add(namespace)){var directory=AppPaths.appDataDir().toAbsolutePath().normalize();WORKERS.execute(()->run(shop,namespace,directory));}
         return true;
     }
+    public boolean ownsPending(Shop shop,ProductKey key){return batches.ownsPending(shop,key);}
     public static boolean hasPendingJobs(){return !ACTIVE.isEmpty();}
     private void run(Shop shop,String namespace,java.nio.file.Path directory) {
         boolean deferred=false;OzonRegistrationBatchRepository.Batch batch=null;
