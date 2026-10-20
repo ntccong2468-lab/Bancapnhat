@@ -46,10 +46,9 @@ public final class OzonFboProductRepository {
                 SELECT p.product_id,p.offer_id,p.sku AS catalog_sku,p.name,p.primary_image_url,
                        p.article,p.color,p.size,p.category,
                        COALESCE((
-                           SELECT b.barcode FROM ozon_product_barcodes b
+                           SELECT json_group_array(b.barcode) FROM ozon_product_barcodes b
                            WHERE b.shop_id=p.shop_id AND b.product_id=p.product_id
-                           ORDER BY b.barcode LIMIT 1
-                       ),p.sku) AS print_barcode,
+                       ),'[]') AS product_barcodes,
                        CASE WHEN policy.requires_kiz=0 THEN 0 ELSE 1 END AS requires_kiz
                 FROM ozon_products p
                 LEFT JOIN ozon_product_kiz_policies policy
@@ -114,7 +113,11 @@ public final class OzonFboProductRepository {
         String name = safe(result.getString("name"));
         String article = first(result.getString("article"), result.getString("offer_id"));
         String size = safe(result.getString("size"));
-        String barcode = first(result.getString("print_barcode"), result.getString("catalog_sku"));
+        String barcode="";
+        var codes=com.google.gson.JsonParser.parseString(result.getString("product_barcodes")).getAsJsonArray().asList().stream().map(com.google.gson.JsonElement::getAsString).toList();
+        var actual=new OzonProductDto(productId,safe(result.getString("offer_id")),safe(result.getString("catalog_sku")),name,"",false,"",codes);
+        try{barcode=OzonCombinedLabelRenderer.barcodeFor(new OzonPostingItemDto(0,productId,actual.sku(),actual.offerId(),name,1,"",""),actual);}
+        catch(java.io.IOException missingOrAmbiguous){/* Keep the row visible; print preflight gives its actionable reason. */}
         return new FboProductSku(
                 numericId(productId), article, safe(result.getString("category")), "", name,
                 safe(result.getString("color")), size, size, barcode,

@@ -5,7 +5,8 @@ public record FboPrintPage(FboProductSku product, String kizCode, int pairNumber
     public static FboPrintPage barcode(FboProductSku product,int pairNumber,boolean categoryStock){return new FboPrintPage(product,null,pairNumber,Kind.BARCODE,categoryStock);}
     public enum Kind {
         BARCODE,
-        KIZ
+        KIZ,
+        COMBINED
     }
 
     public static FboPrintPage barcode(FboProductSku product, int pairNumber) {

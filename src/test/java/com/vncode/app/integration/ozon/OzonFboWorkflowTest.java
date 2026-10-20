@@ -37,7 +37,7 @@ class OzonFboWorkflowTest {
                     + "VALUES(1,'Ozon','OZON','client','secret')");
         }
         new OzonCatalogRepository().upsertPage(1, List.of(
-                product("101", "SKU-42", "BARCODE-42", "42", "Jackets", false),
+                product("101", "SKU-42", "OZN0000000042", "42", "Jackets", false),
                 product("102", "SKU-44", "BARCODE-44", "44", "Trousers", false),
                 product("103", "SKU-OLD", "BARCODE-OLD", "46", "Archived", true)), "cursor");
         new OzonProductKizPolicyRepository().setRequired(1, "SKU-44", false);
@@ -70,7 +70,7 @@ class OzonFboWorkflowTest {
         FboProductSku size42 = products.stream().filter(product -> "42".equals(product.size())).findFirst().orElseThrow();
         FboProductSku size44 = products.stream().filter(product -> "44".equals(product.size())).findFirst().orElseThrow();
         assertEquals("SKU-42", size42.catalogSku());
-        assertEquals(GTIN, size42.sku());
+        assertEquals("OZN0000000042", size42.sku());
         assertEquals("ART-42", size42.vendorCode());
         assertTrue(size42.requiresKiz());
         assertFalse(size44.requiresKiz());
@@ -90,7 +90,7 @@ class OzonFboWorkflowTest {
     }
 
     @Test
-    void printsTwoBarcodePagesThenOneKizPageForEachRequiredSize() {
+    void printsOneCombinedPageForEachRequiredSize() {
         FboProductSku required = new OzonFboProductRepository().search(
                 new FboProductSearchCriteria(1, "SKU-42", List.of(), 10, 0)).getFirst();
 
@@ -98,10 +98,9 @@ class OzonFboWorkflowTest {
                 1, List.of(new FboBarcodePrintItem(required, 2)));
 
         assertEquals(List.of(
-                        FboPrintPage.Kind.BARCODE, FboPrintPage.Kind.BARCODE, FboPrintPage.Kind.KIZ,
-                        FboPrintPage.Kind.BARCODE, FboPrintPage.Kind.BARCODE, FboPrintPage.Kind.KIZ),
+                        FboPrintPage.Kind.COMBINED,FboPrintPage.Kind.COMBINED),
                 plan.pages().stream().map(FboPrintPage::kind).toList());
-        assertEquals(java.util.Arrays.asList(null, null, "KIZ-1", null, null, "KIZ-2"),
+        assertEquals(List.of("KIZ-1","KIZ-2"),
                 plan.pages().stream().map(FboPrintPage::kizCode).toList());
         assertEquals(2, plan.usedKizs().size());
     }

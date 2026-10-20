@@ -45,6 +45,9 @@ public class PrintHistoryService {
     public long recordPreparedFboJob(Shop shop,PrintTemplate template,List<Order> orders) {
         return repository.insertPreparedFboJob(shop,template.getName(),printTemplateService.toJson(template),snapshotItems(orders));
     }
+    public long recordPreparedFboJob(Shop shop,String templateName,String layoutJson,List<Order> orders) {
+        return repository.insertPreparedFboJob(shop,templateName,layoutJson,snapshotItems(orders));
+    }
     private List<PrintHistoryItem> snapshotItems(List<Order> orders) {
         List<PrintHistoryItem> items = new ArrayList<>(orders.size());
         for (int index = 0; index < orders.size(); index++) {
@@ -106,7 +109,8 @@ public class PrintHistoryService {
 
     public OrderExportWorkflow.ExportResult reprint(PrintHistoryJobSummary job, File outputFile, File detailsFile) throws IOException, WriterException {
         if(job==null||!job.canReprint())throw new IllegalArgumentException("Print history is not recoverable");
-        PrintTemplate template = job.templateLayoutJson()==null||job.templateLayoutJson().isBlank()?printTemplateService.getDefaultTemplate():printTemplateService.fromJson(job.templateLayoutJson());
+        boolean ozonCombined=job.isFbo()&&"OZON".equalsIgnoreCase(job.marketplace())&&com.vncode.app.integration.ozon.OzonFboBarcodePdfExporter.isFrozenLayout(job.templateLayoutJson());
+        PrintTemplate template = ozonCombined?null:job.templateLayoutJson()==null||job.templateLayoutJson().isBlank()?printTemplateService.getDefaultTemplate():printTemplateService.fromJson(job.templateLayoutJson());
         PrintJobOptions printOptions = printPreferenceService.load();
         File barcodeStaging = null;
         File detailsStaging = null;
@@ -114,7 +118,8 @@ public class PrintHistoryService {
             List<Order> orders = toOrders(repository.findItems(job.id()));
             barcodeStaging = AtomicFilePublisher.stagingFile(outputFile, ".pdf");
             detailsStaging = AtomicFilePublisher.stagingFile(detailsFile, ".pdf");
-            if(job.isFbo())com.vncode.app.features.print.GenerateBarcode.exportTemplatePages(template,orders,barcodeStaging);
+            if(ozonCombined)com.vncode.app.integration.ozon.OzonFboBarcodePdfExporter.renderFrozen(job.templateLayoutJson(),orders,barcodeStaging);
+            else if(job.isFbo())com.vncode.app.features.print.GenerateBarcode.exportTemplatePages(template,orders,barcodeStaging);
             else barcodePrintService.export(template, orders, barcodeStaging, printOptions);
             orderDetailsPdfExporter.export(detailsStaging, orders, new OrderDetailsPdfExporter.PrintDetailsMetadata(
                     job.supplyId(),

@@ -62,22 +62,22 @@ final class OzonKizLabelAppender {
             if (code == null || code.isBlank()) {
                 throw new IOException("An accepted Ozon exemplar has no printable KIZ.");
             }
-            appendPage(document, item, product, code);
+            OzonCombinedLabelRenderer.append(document, item, product, code);
             appended++;
         }
         return appended;
     }
 
-    private static void appendPage(
+    static void appendProductPage(
             PdfDocument document,
             OzonPostingItemDto item,
             OzonProductDto product,
             String code) throws IOException {
         String productBarcode = OzonProductLabelBarcode.resolve(item, product);
         Barcode128 barcode = productBarcode(document, item, productBarcode);
-        BarcodeDataMatrix matrix = dataMatrix(code);
+        BarcodeDataMatrix matrix = code == null || code.isBlank() ? null : dataMatrix(code);
         PdfPage page = document.addNewPage(PAGE_SIZE);
-        drawDataMatrix(page, matrix);
+        if (matrix != null) drawDataMatrix(page, matrix);
         drawProductBarcode(page, barcode);
 
         try (Canvas canvas = new Canvas(page, PAGE_SIZE)) {
@@ -92,8 +92,10 @@ final class OzonKizLabelAppender {
                     x, HEIGHT - mm(18.5) - 8, width, 7, true).setHeight(8));
             canvas.add(text(fitLines("Size: " + first(product.russianSize(), product.size()), font, width, 8, 1),
                     x, HEIGHT - mm(23.5) - 9, width, 8, true).setHeight(9));
-            canvas.add(text("KIZ", mm(2.5), HEIGHT - mm(24.5), MATRIX_SIDE, 6, false)
-                    .setTextAlignment(TextAlignment.CENTER));
+            if (matrix != null) {
+                canvas.add(text("KIZ", mm(2.5), HEIGHT - mm(24.5), MATRIX_SIDE, 6, false)
+                        .setTextAlignment(TextAlignment.CENTER));
+            }
             canvas.add(text(productBarcode, mm(2.5), HEIGHT - mm(36.5) - 8, mm(53), 7, false)
                     .setTextAlignment(TextAlignment.CENTER));
         }
