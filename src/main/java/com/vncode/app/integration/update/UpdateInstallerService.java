@@ -144,6 +144,8 @@ public class UpdateInstallerService {
         String appName = testProfile ? "VN code Znack Test" : "VN code";
         String appExecutable = appName + ".exe";
         String installDirectory = testProfile ? "VNcodeZnackRegistrationTestApp" : "VNcodeApp";
+        // OpenJDK25's jpackage EXE forwards its arguments to msiexec after adding /i.
+        // Use the same passive/no-restart options as the direct MSI path.
         return """
                 $ErrorActionPreference = 'Stop';
                 $oldProcess = Get-Process -Id %d -ErrorAction SilentlyContinue;
@@ -153,7 +155,7 @@ public class UpdateInstallerService {
                 if ($extension -eq '.msi') {
                     $process = Start-Process -FilePath 'msiexec.exe' -ArgumentList @('/i', ('"' + $installer + '"'), '/passive', '/norestart') -Wait -PassThru;
                 } else {
-                    $process = Start-Process -FilePath $installer -Wait -PassThru;
+                    $process = Start-Process -FilePath $installer -ArgumentList @('/passive', '/norestart') -Wait -PassThru;
                 }
                 if ($null -ne $process -and $process.ExitCode -in @(0,3010)) {
                     $candidates = @(

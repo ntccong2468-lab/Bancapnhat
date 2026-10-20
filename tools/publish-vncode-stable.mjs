@@ -208,6 +208,14 @@ export function validateOwnerRequested152(decision,status,version,sha,runId) {
 }
 
 // Owner-authorized 1.5.3: fresh full Java and all native checks remain mandatory.
+export function validateOwner153UpgradeProof(proof,version,installerDigest) {
+    assert.equal(version,'1.5.3');
+    validateUpgradeSmoke(proof,version,'1.5.2');
+    assert.equal(proof.passiveExeHandoffVerified,true,'Require the actual EXE passive handoff over 1.5.2');
+    assert.match(installerDigest,/^[a-f0-9]{64}$/);
+    assert.equal(proof.passiveExeInstallerSha256,installerDigest,'Passive handoff must test the exact published EXE bytes');
+    assert.match(proof.passiveExeEmbeddedMsiSha256,/^[a-f0-9]{64}$/);
+}
 export function validateOwnerRequest153(decision,status,version,sha,runId) {
     assert.equal(version,'1.5.3');assert.equal(sha,'9dfcae6ddf30d82f5fddc8ba5e5252cc362dddd8');
     assert.equal(String(runId),'39383179796');
@@ -229,6 +237,7 @@ export function validateOwnerRequest153(decision,status,version,sha,runId) {
     if(decision.phase==='authorized-awaiting-verified-build') {
         assert.equal(build.state,'running');assert.equal(decision.installerSha256,null);assert.equal(decision.installerBytes,null);
         assert.equal(decision.windowsJava,null);assert.equal(decision.verifiedNativeProofs,null);
+        assert.equal(decision.passiveExeHandoffVerified,null);assert.notEqual(build.passiveExeHandoffVerified,true);
         assert.equal(build.fullJavaSuite,undefined);assert.notEqual(build.upgradeFrom152Passed,true);
         assert.notEqual(build.allNativeChecksPassed,true);assert.notEqual(build.installerPackaged,true);
     }
@@ -240,6 +249,7 @@ export function validateOwnerRequested153(decision,status,version,sha,runId) {
     const build=status.validation.windowsBuild;
     assert.equal(build.state,'passed');assert.equal(build.upgradeFrom152Passed,true);
     assert.equal(build.allNativeChecksPassed,true);assert.equal(build.installerPackaged,true);
+    assert.equal(decision.passiveExeHandoffVerified,true);assert.equal(build.passiveExeHandoffVerified,true);
     assert.ok(decision.verifiedNativeProofs.includes('upgrade-stable-152-smoke.json'));
     assert.ok(decision.windowsJava.tests>=1990);assert.equal(decision.windowsJava.failures,0);assert.equal(decision.windowsJava.errors,0);
     assert.equal(decision.windowsJava.passed,decision.windowsJava.tests-decision.windowsJava.skipped);
@@ -322,6 +332,7 @@ async function main(runId,sha,mode='prepare') {
     validateSideBySideSmoke(json(await readFile(path.join(directory,'side-by-side-smoke.json'))),version);
     validateUpgradeSmoke(json(await readFile(path.join(directory,'upgrade-smoke.json'))),version);
     const proofFiles=['native-smoke.json','side-by-side-smoke.json','upgrade-smoke.json'];
+    let passiveExeHandoffVerified;
     for(const [file,from] of [['upgrade-preview-smoke.json','1.2.0'],['upgrade-latest-preview-smoke.json','1.2.1'],
             ['upgrade-current-preview-smoke.json','1.2.2'],['upgrade-gs1-preview-smoke.json','1.3.0'],['upgrade-license-test-smoke.json','1.4.0']]) {
         validateUpgradeSmoke(json(await readFile(path.join(directory,file))),version,from);proofFiles.push(file);
@@ -350,7 +361,11 @@ async function main(runId,sha,mode='prepare') {
         proofFiles.push('upgrade-stable-151-smoke.json');
     }
     if(version.localeCompare('1.5.2','en',{numeric:true})>0) {
-        validateUpgradeSmoke(json(await readFile(path.join(directory,'upgrade-stable-152-smoke.json'))),version,'1.5.2');
+        const upgrade152=json(await readFile(path.join(directory,'upgrade-stable-152-smoke.json')));
+        if(mode==='owner-requested-153') {
+            validateOwner153UpgradeProof(upgrade152,version,digest);
+            passiveExeHandoffVerified=upgrade152.passiveExeHandoffVerified;
+        } else validateUpgradeSmoke(upgrade152,version,'1.5.2');
         proofFiles.push('upgrade-stable-152-smoke.json');
     }
     const workspace=json(await readFile(path.join(directory,'seller-workspace-smoke.json')));validateWorkspaceSmoke(workspace,version,sha);
@@ -395,7 +410,8 @@ async function main(runId,sha,mode='prepare') {
         if(mode==='owner-requested-151'&&status.validation.windowsBuild.freshFullJavaExecutionRequired===false)validateReuse151(javaVerificationOrigin,sha,java);
         else assert.equal(javaVerificationOrigin,undefined,'This authorization requires a fresh full Java run');
         ownerDecision={...ownerDecision,phase:'verified-for-publication',installerSha256:digest,installerBytes:bytes.length,
-            windowsJava:java,verifiedNativeProofs:proofFiles,...(mode==='owner-requested-151'&&javaVerificationOrigin?{freshJavaExecutedInThisRun:false,javaVerificationOrigin}:{})};
+            windowsJava:java,verifiedNativeProofs:proofFiles,...(mode==='owner-requested-153'?{passiveExeHandoffVerified}:{}),
+            ...(mode==='owner-requested-151'&&javaVerificationOrigin?{freshJavaExecutedInThisRun:false,javaVerificationOrigin}:{})};
         if(mode==='owner-requested-151') {
             status.validation.windowsBuild={...status.validation.windowsBuild,state:'passed',upgradeFrom150Passed:true,fullJavaSuite:java};
             validateOwnerRequested151(ownerDecision,status,version,sha,runId);
@@ -403,7 +419,7 @@ async function main(runId,sha,mode='prepare') {
             status.validation.windowsBuild={...status.validation.windowsBuild,state:'passed',upgradeFrom151Passed:true,fullJavaSuite:java};
             validateOwnerRequested152(ownerDecision,status,version,sha,runId);
         } else if(mode==='owner-requested-153') {
-            status.validation.windowsBuild={...status.validation.windowsBuild,state:'passed',upgradeFrom152Passed:true,allNativeChecksPassed:true,installerPackaged:true,fullJavaSuite:java};
+            status.validation.windowsBuild={...status.validation.windowsBuild,state:'passed',upgradeFrom152Passed:true,allNativeChecksPassed:true,installerPackaged:true,passiveExeHandoffVerified,fullJavaSuite:java};
             validateOwnerRequested153(ownerDecision,status,version,sha,runId);
         } else {
             status.validation.windowsBuild={...status.validation.windowsBuild,state:'passed',upgradeFrom1418Passed:true};

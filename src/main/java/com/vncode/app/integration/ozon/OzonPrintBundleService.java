@@ -333,7 +333,7 @@ public final class OzonPrintBundleService {
         Map<String, OzonProductDto> products = new LinkedHashMap<>();
         OzonCatalogRepository catalog = new OzonCatalogRepository();
         for (int start = 0; start < skus.size(); start += 500) {
-            products.putAll(catalog.findBySkus(shop.getId(), skus.subList(start, Math.min(start + 500, skus.size()))));
+            products.putAll(catalog.findBySkusForPrinting(shop.getId(), skus.subList(start, Math.min(start + 500, skus.size()))));
         }
         return Map.copyOf(products);
     }

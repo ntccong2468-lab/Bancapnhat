@@ -50,6 +50,22 @@ if($FromLicenseTest){
 if ((Get-FileHash $oldExe -Algorithm SHA256).Hash.ToLowerInvariant() -cne $baselineHash) { throw 'Incorrect baseline VN code installer checksum.' }
 [VNcode.Smoke.EmbeddedMsi]::Extract($oldExe,$oldMsi)
 $newMsi=(Resolve-Path "target\jpackage-temp\msi\VN code-$Version.msi").Path
+$passiveExeUpgradeSucceeded=$false
+if($FromStable152){
+    # build.bat places the final jpackage EXE in out; the workflow renames it
+    # only after this probe. Select exactly that delivered file, not a WiX stub.
+    $installers=@(Get-ChildItem -LiteralPath (Join-Path $PWD 'out') -Filter 'VN code*.exe' -File)
+    if($installers.Count -ne 1 -or $installers[0].Length -lt 1MB -or $installers[0].Length -gt 1GB -or
+       ($installers[0].Attributes -band [IO.FileAttributes]::ReparsePoint) -ne 0){throw 'Require exactly one regular final jpackage EXE.'}
+    $passiveExe=$installers[0].FullName
+    $passiveExeInstallerSha256=(Get-FileHash -LiteralPath $passiveExe -Algorithm SHA256).Hash.ToLowerInvariant()
+    $embeddedMsi=Join-Path $root 'candidate-embedded.msi'
+    [VNcode.Smoke.EmbeddedMsi]::Extract($passiveExe,$embeddedMsi)
+    $passiveExeEmbeddedMsiSha256=(Get-FileHash -LiteralPath $embeddedMsi -Algorithm SHA256).Hash.ToLowerInvariant()
+    if($passiveExeEmbeddedMsiSha256 -cne (Get-FileHash -LiteralPath $newMsi -Algorithm SHA256).Hash.ToLowerInvariant()){
+        throw 'The final EXE does not contain the exact MSI used by the native upgrade probes.'
+    }
+}
 function Property([string]$Package,[string]$Name){
     $installer=New-Object -ComObject WindowsInstaller.Installer;$database=$installer.OpenDatabase($Package,0)
     $view=$database.OpenView("SELECT ``Value`` FROM ``Property`` WHERE ``Property`` = '$Name'")
@@ -86,7 +102,16 @@ try{
     if($LASTEXITCODE -ne 0){throw 'Cannot seed upgrade fixture.'}
     $before=& java --enable-native-access=ALL-UNNAMED -cp $probeClasspath WindowsUpgradeDataProbe fingerprint $data
     if($LASTEXITCODE -ne 0 -or $before -notmatch '^[0-9a-f]{64}$'){throw 'Invalid pre-upgrade fingerprint.'}
-    Msi '/i' $newMsi;$activeMsi=$newMsi
+    if($FromStable152){
+        if((Get-FileHash -LiteralPath $passiveExe -Algorithm SHA256).Hash.ToLowerInvariant() -cne $passiveExeInstallerSha256){throw 'The final EXE changed before passive upgrade.'}
+        # Exercise the exact public EXE protocol used by UpdateInstallerService.
+        # OpenJDK's wrapper forwards these arguments to its own embedded MSI.
+        $upgradeProcess=Start-Process -FilePath $passiveExe -ArgumentList @('/passive','/norestart') -Wait -PassThru
+        if($upgradeProcess.ExitCode -notin @(0,3010)){throw "Passive EXE upgrade failed: $($upgradeProcess.ExitCode)"}
+        $activeMsi=$newMsi
+        if((Get-FileHash -LiteralPath $passiveExe -Algorithm SHA256).Hash.ToLowerInvariant() -cne $passiveExeInstallerSha256){throw 'The final EXE changed during passive upgrade.'}
+        $passiveExeUpgradeSucceeded=$true
+    }else{Msi '/i' $newMsi;$activeMsi=$newMsi}
     $registrations=Registrations
     if($registrations.Count -ne 1 -or $registrations[0].DisplayVersion -cne $Version){throw 'Upgrade created a second VN code registration or retained the old version.'}
     Write-Host "Launching upgraded VN code $Version over the seeded $fromVersion fixture."
@@ -99,5 +124,12 @@ try{
     if($LASTEXITCODE -ne 0){throw 'Legacy KIZ stock did not retain its required default priority.'}
     Msi '/x' $newMsi;$installed=$false
     if(@(Registrations).Count -ne 0 -or -not(Test-Path (Join-Path $data 'database.db'))){throw 'Uninstall did not preserve upgrade data.'}
-    @{appName='VN code';fromVersion=$fromVersion;version=$Version;result='passed';installerUpgradeUuid=$upgrade;singleRegistration=$true;singleShortcutPerLocation=$singleShortcutPerLocation;dataPreserved=$true;windowTitle=$window;liveMarketplaceMutations=$false;fingerprint=$after} | ConvertTo-Json | Set-Content $(if($FromStable152){'out\upgrade-stable-152-smoke.json'}elseif($FromStable151){'out\upgrade-stable-151-smoke.json'}elseif($FromStable150){'out\upgrade-stable-150-smoke.json'}elseif($FromStable1419){'out\upgrade-stable-1419-smoke.json'}elseif($FromStable1418){'out\upgrade-stable-1418-smoke.json'}elseif($FromStable1416){'out\upgrade-stable-1416-smoke.json'}elseif($FromStable1415){'out\upgrade-stable-1415-smoke.json'}elseif($FromStable1413){'out\upgrade-stable-1413-smoke.json'}elseif($FromStable1412){'out\upgrade-stable-1412-smoke.json'}elseif($FromStable1411){'out\upgrade-stable-1411-smoke.json'}elseif($FromStable1410){'out\upgrade-stable-1410-smoke.json'}elseif($FromStable146){'out\upgrade-stable-146-smoke.json'}elseif($FromLicenseTest){'out\upgrade-license-test-smoke.json'}elseif($FromGs1Preview){'out\upgrade-gs1-preview-smoke.json'}elseif($FromCurrentPreview){'out\upgrade-current-preview-smoke.json'}elseif($FromLatestPreview){'out\upgrade-latest-preview-smoke.json'}elseif($FromPreview){'out\upgrade-preview-smoke.json'}else{'out\upgrade-smoke.json'}) -Encoding utf8
+    $proof=@{appName='VN code';fromVersion=$fromVersion;version=$Version;result='passed';installerUpgradeUuid=$upgrade;singleRegistration=$true;singleShortcutPerLocation=$singleShortcutPerLocation;dataPreserved=$true;windowTitle=$window;liveMarketplaceMutations=$false;fingerprint=$after}
+    if($FromStable152){
+        if(-not $passiveExeUpgradeSucceeded){throw 'Passive EXE handoff was not exercised.'}
+        $proof.passiveExeHandoffVerified=$true
+        $proof.passiveExeInstallerSha256=$passiveExeInstallerSha256
+        $proof.passiveExeEmbeddedMsiSha256=$passiveExeEmbeddedMsiSha256
+    }
+    $proof | ConvertTo-Json | Set-Content $(if($FromStable152){'out\upgrade-stable-152-smoke.json'}elseif($FromStable151){'out\upgrade-stable-151-smoke.json'}elseif($FromStable150){'out\upgrade-stable-150-smoke.json'}elseif($FromStable1419){'out\upgrade-stable-1419-smoke.json'}elseif($FromStable1418){'out\upgrade-stable-1418-smoke.json'}elseif($FromStable1416){'out\upgrade-stable-1416-smoke.json'}elseif($FromStable1415){'out\upgrade-stable-1415-smoke.json'}elseif($FromStable1413){'out\upgrade-stable-1413-smoke.json'}elseif($FromStable1412){'out\upgrade-stable-1412-smoke.json'}elseif($FromStable1411){'out\upgrade-stable-1411-smoke.json'}elseif($FromStable1410){'out\upgrade-stable-1410-smoke.json'}elseif($FromStable146){'out\upgrade-stable-146-smoke.json'}elseif($FromLicenseTest){'out\upgrade-license-test-smoke.json'}elseif($FromGs1Preview){'out\upgrade-gs1-preview-smoke.json'}elseif($FromCurrentPreview){'out\upgrade-current-preview-smoke.json'}elseif($FromLatestPreview){'out\upgrade-latest-preview-smoke.json'}elseif($FromPreview){'out\upgrade-preview-smoke.json'}else{'out\upgrade-smoke.json'}) -Encoding utf8
 }finally{if($app -and -not $app.HasExited){Stop-Process -Id $app.Id -Force};if($installed){Msi '/x' $activeMsi}}

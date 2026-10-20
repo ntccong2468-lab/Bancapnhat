@@ -103,7 +103,7 @@ class OzonExemplarWorkflowTest {
         assertEquals(1,count("SELECT count(*) FROM kiz_stock_category_reservations"));assertEquals(2,server.getRequestCount());
     }
     @Test void deletingCategoryKeepsTheExistingOzonPostingPrintableWithoutBuyingOrReservingAgain()throws Exception{
-        new OzonCatalogRepository().upsertPage(1,java.util.List.of(new OzonProductDto("9001","sku-a","101","Synthetic","",false,"",java.util.List.of())),"");
+        new OzonCatalogRepository().upsertPage(1,java.util.List.of(new OzonProductDto("9001","sku-a","101","Synthetic","",false,"",java.util.List.of("OZN0000000101"))),"");
         try(var c=Database.getConnection();var s=c.createStatement()){s.execute("DELETE FROM ozon_product_gtin_mappings");}
         String category=com.vncode.app.testsupport.CategoryStockFixture.add(shop,"9001",temporaryDirectory,1);
         server.enqueue(json(posting()));server.enqueue(json(posting()));var service=service();

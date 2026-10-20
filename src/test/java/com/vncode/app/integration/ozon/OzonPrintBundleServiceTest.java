@@ -1,6 +1,7 @@
 package com.vncode.app.integration.ozon;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -12,6 +13,9 @@ import com.google.zxing.ResultMetadataType;
 import com.google.zxing.client.j2se.BufferedImageLuminanceSource;
 import com.google.zxing.common.HybridBinarizer;
 import com.google.zxing.datamatrix.DataMatrixReader;
+import com.google.zxing.oned.Code128Reader;
+import com.itextpdf.kernel.font.PdfFontFactory;
+import com.itextpdf.kernel.pdf.canvas.PdfCanvas;
 import com.itextpdf.kernel.geom.PageSize;
 import com.itextpdf.kernel.pdf.PdfDocument;
 import com.itextpdf.kernel.pdf.PdfWriter;
@@ -61,6 +65,7 @@ class OzonPrintBundleServiceTest {
     private static final float LABEL_WIDTH = (float) (58 * 72d / 25.4d);
     private static final float LABEL_HEIGHT = (float) (40 * 72d / 25.4d);
     private static final String RAW_KIZ = "010464558878115421SERIAL-0001\u001d91ABCD\u001d92SIGNATURE";
+    private static final String PRODUCT_BARCODE = "OZN0000003583";
 
     @TempDir
     Path temporaryDirectory;
@@ -175,18 +180,31 @@ class OzonPrintBundleServiceTest {
             assertPageMillimeters(document, 0, 58, 40);
             assertPageMillimeters(document, 1, 58, 40);
             assertPageMillimeters(document, 2, 58, 40);
-            Result matrix = decodeRenderedDataMatrixResult(document, 1, 300);
-            assertEquals(KizService.scannerSafeCode(RAW_KIZ), KizService.scannerSafeCode(matrix.getText()));
-            assertEquals("]d2", matrix.getResultMetadata().get(ResultMetadataType.SYMBOLOGY_IDENTIFIER));
+            for (float dpi : new float[] {203, 300}) {
+                Result matrix = decodeRenderedDataMatrixResult(document, 1, dpi);
+                assertEquals(KizService.scannerSafeCode(RAW_KIZ), KizService.scannerSafeCode(matrix.getText()));
+                assertEquals("]d2", matrix.getResultMetadata().get(ResultMetadataType.SYMBOLOGY_IDENTIFIER));
+                assertEquals(PRODUCT_BARCODE, decodeProductBarcode(document, 1, dpi));
+            }
+            try (PDDocument official = Loader.loadPDF(officialPdf.toFile())) {
+                assertArrayEquals(official.getPage(0).getContents().readAllBytes(),
+                        document.getPage(0).getContents().readAllBytes());
+                assertArrayEquals(official.getPage(1).getContents().readAllBytes(),
+                        document.getPage(2).getContents().readAllBytes());
+            }
             String kizText = pageText(document, 1);
             assertTrue(kizText.contains("Men's sports suit"));
             assertTrue(kizText.contains("Article: seller-article"));
+            assertTrue(kizText.contains("Màu: deep black"));
+            assertTrue(kizText.contains("Size: XL"));
+            assertTrue(kizText.contains(PRODUCT_BARCODE));
             assertFalse(kizText.contains(shop.getName()), "The KIZ label must not print a shop/brand heading");
             assertFalse(kizText.contains("OZON - KIZ"));
             assertFalse(kizText.contains("KIZ accepted by Ozon"));
             assertFalse(kizText.contains("Item "), "The KIZ label must not print item counters");
             assertFalse(kizText.contains("Unit "), "The KIZ label must not print unit counters");
-            assertFalse(pageOperators(document, 1).contains("S"), "The KIZ page must not stroke an outer border");
+            assertEquals(1, pageOperators(document, 1).stream().filter("S"::equals).count(),
+                    "Only the horizontal separator is stroked; the label has no outer border");
             assertEquals(0, imageCount(document, 1), "The DataMatrix must be vector content, not a bitmap image");
         }
         try (PDDocument document = Loader.loadPDF(picking.toFile())) {
@@ -232,7 +250,111 @@ class OzonPrintBundleServiceTest {
                     KizService.scannerSafeCode(decodeRenderedDataMatrixResult(document, 1, 300).getText()));
             assertEquals(KizService.scannerSafeCode(secondKiz),
                     KizService.scannerSafeCode(decodeRenderedDataMatrixResult(document, 3, 300).getText()));
+            assertEquals(PRODUCT_BARCODE, decodeProductBarcode(document, 1, 203));
+            assertEquals(PRODUCT_BARCODE, decodeProductBarcode(document, 3, 203));
         }
+    }
+
+    @Test
+    void missingProductBarcodeKeepsExistingFilesAndReservedKiz() throws Exception {
+        seedPosting(1);
+        seedValidatedExemplar(RAW_KIZ);
+        try (Connection connection = Database.getConnection(); Statement statement = connection.createStatement()) {
+            statement.execute("DELETE FROM ozon_product_barcodes");
+        }
+        assertBarcodeFailureKeepsFilesAndReservation("OZON_LABEL_BARCODE_MISSING");
+    }
+
+    @Test
+    void ambiguousProductBarcodeKeepsExistingFilesAndReservedKiz() throws Exception {
+        seedPosting(1);
+        seedValidatedExemplar(RAW_KIZ);
+        try (Connection connection = Database.getConnection(); Statement statement = connection.createStatement()) {
+            statement.execute("INSERT INTO ozon_product_barcodes(shop_id,product_id,barcode) "
+                    + "VALUES(1,'1001','OZN0000009999')");
+        }
+        assertBarcodeFailureKeepsFilesAndReservation("OZON_LABEL_BARCODE_AMBIGUOUS");
+    }
+
+    @Test
+    void archivedProductReprintUsesItsActualCachedBarcodeWithoutNewKizOrApiCalls() throws Exception {
+        seedPosting(1);
+        seedAcceptedExemplars(List.of(RAW_KIZ));
+        try (Connection connection = Database.getConnection(); Statement statement = connection.createStatement()) {
+            statement.execute("UPDATE ozon_products SET archived=1 WHERE shop_id=1 AND product_id='1001'");
+        }
+        assertTrue(new OzonCatalogRepository().findBySkus(1, List.of("SKU-3583")).isEmpty(),
+                "General product lookup must continue to exclude archived products");
+        AtomicBoolean prepared = new AtomicBoolean();
+        Path labels = temporaryDirectory.resolve("archived-labels.pdf");
+        service(prepared).export(shop, "POST-1", labels.toFile(),
+                temporaryDirectory.resolve("archived-picking.pdf").toFile());
+        assertFalse(prepared.get());
+        assertEquals("CONSUMED", scalar("SELECT status FROM kiz_codes WHERE id=100"));
+        assertEquals("1", scalar("SELECT count(*) FROM kiz_codes"));
+        try (PDDocument document = Loader.loadPDF(labels.toFile())) {
+            assertEquals(PRODUCT_BARCODE, decodeProductBarcode(document, 1, 203));
+        }
+    }
+
+    @Test
+    void barcodeTooDenseForThermalPrinterCannotPublishUnreadableLabel() throws Exception {
+        seedPosting(1);
+        seedValidatedExemplar(RAW_KIZ);
+        try (Connection connection = Database.getConnection(); Statement statement = connection.createStatement()) {
+            statement.execute("DELETE FROM ozon_product_barcodes");
+            statement.execute("INSERT INTO ozon_product_barcodes(shop_id,product_id,barcode) "
+                    + "VALUES(1,'1001','OZN" + "1".repeat(100) + "')");
+        }
+        assertBarcodeFailureKeepsFilesAndReservation("OZON_LABEL_BARCODE_TOO_DENSE");
+    }
+
+    @Test
+    void staleExemplarIdentityCannotPrintAnotherProductsBarcode() throws Exception {
+        seedPosting(1);
+        seedValidatedExemplar(RAW_KIZ);
+        try (Connection connection = Database.getConnection(); Statement statement = connection.createStatement()) {
+            statement.execute("UPDATE ozon_exemplars SET product_id='different-product'");
+        }
+        assertBarcodeFailureKeepsFilesAndReservation("OZON_LABEL_BINDING_MISMATCH");
+    }
+
+    @Test
+    void longNumericOzonBarcodeAndCyrillicProductDecodeOnThermalPrinters() throws Exception {
+        seedPosting(1);
+        seedAcceptedExemplars(List.of(RAW_KIZ));
+        String barcode = "OZN12345678901234567890";
+        new OzonCatalogRepository().upsertPage(1, List.of(new OzonProductDto(
+                "1001", "offer-black-176", "SKU-3583", "Костюм спортивный мужской утеплённый", "",
+                "152DASH-52", "Коричневый", "52", false, "", List.of(barcode))), "");
+        Path labels = temporaryDirectory.resolve("cyrillic-labels.pdf");
+        service(new AtomicBoolean()).export(shop, "POST-1", labels.toFile(),
+                temporaryDirectory.resolve("cyrillic-picking.pdf").toFile());
+        try (PDDocument document = Loader.loadPDF(labels.toFile())) {
+            for (float dpi : new float[] {203, 300}) {
+                assertEquals(barcode, decodeProductBarcode(document, 1, dpi));
+                assertEquals(KizService.scannerSafeCode(RAW_KIZ),
+                        KizService.scannerSafeCode(decodeRenderedDataMatrixResult(document, 1, dpi).getText()));
+            }
+            assertTrue(pageText(document, 1).contains("Коричневый"));
+            assertTrue(pageText(document, 1).contains("152DASH-52"));
+            assertTrue(pageText(document, 1).contains("Size: 52"));
+        }
+    }
+
+    private void assertBarcodeFailureKeepsFilesAndReservation(String code) throws Exception {
+        Path labels = temporaryDirectory.resolve("unchanged-labels.pdf");
+        Path picking = temporaryDirectory.resolve("unchanged-picking.pdf");
+        Files.writeString(labels, "previous labels");
+        Files.writeString(picking, "previous picking");
+        IOException failure = assertThrows(IOException.class, () -> service(new AtomicBoolean()).export(
+                shop, "POST-1", labels.toFile(), picking.toFile()));
+        assertTrue(failure.getMessage().contains(code), failure.getMessage());
+        assertTrue(failure.getMessage().contains("SKU-3583"));
+        assertEquals("previous labels", Files.readString(labels));
+        assertEquals("previous picking", Files.readString(picking));
+        assertEquals("RESERVED", scalar("SELECT status FROM kiz_codes WHERE id=100"));
+        assertEquals("VALIDATED", scalar("SELECT stage FROM ozon_exemplar_jobs WHERE id=51"));
     }
 
     @Test
@@ -525,7 +647,7 @@ class OzonPrintBundleServiceTest {
         new OzonCatalogRepository().upsertPage(1, List.of(new OzonProductDto(
                 "1001", "offer-black-176", "SKU-3583", "Men's sports suit", imageUrl,
                 "seller-article", "deep black", "XL",
-                false, "2026-08-19T00:00:00Z", List.of())), "");
+                false, "2026-08-19T00:00:00Z", List.of("04645588781154", PRODUCT_BARCODE))), "");
         new ImageCacheRepository().saveImage(
                 PrintHistoryService.imageCacheKey(imageUrl), imageUrl, sampleProductPng(), "image/png");
     }
@@ -632,8 +754,11 @@ class OzonPrintBundleServiceTest {
 
     private static void writeOfficialTwoPagePdf(Path target) throws IOException {
         try (PdfDocument document = new PdfDocument(new PdfWriter(target.toFile()))) {
-            document.addNewPage(new PageSize(LABEL_WIDTH, LABEL_HEIGHT));
-            document.addNewPage(new PageSize(LABEL_WIDTH, LABEL_HEIGHT));
+            for (int index = 1; index <= 2; index++) {
+                var page = document.addNewPage(new PageSize(LABEL_WIDTH, LABEL_HEIGHT));
+                new PdfCanvas(page).beginText().setFontAndSize(PdfFontFactory.createFont(), 8)
+                        .moveText(10, 10).showText("Official Ozon shipping page " + index).endText();
+            }
         }
     }
 
@@ -650,16 +775,25 @@ class OzonPrintBundleServiceTest {
         BufferedImage page = new PDFRenderer(document).renderImageWithDPI(pageIndex, dpi, ImageType.GRAY);
         float scale = dpi / 72f;
         int margin = Math.round(3 * scale);
-        int x = Math.max(0, Math.round(7 * scale) - margin);
-        int y = Math.max(0, Math.round((LABEL_HEIGHT - 25 - 62) * scale) - margin);
+        int x = Math.max(0, Math.round((float) (2.5 * 72 / 25.4) * scale) - margin);
+        int y = Math.max(0, Math.round((float) (5 * 72 / 25.4) * scale) - margin);
         int side = Math.min(
-                Math.round(62 * scale) + margin * 2,
+                Math.round(50 * scale) + margin * 2,
                 Math.min(page.getWidth() - x, page.getHeight() - y));
         BufferedImage barcode = page.getSubimage(x, y, side, side);
         BinaryBitmap bitmap = new BinaryBitmap(
                 new HybridBinarizer(new BufferedImageLuminanceSource(barcode)));
         return new DataMatrixReader().decode(
                 bitmap, Map.of(DecodeHintType.TRY_HARDER, Boolean.TRUE));
+    }
+
+    private static String decodeProductBarcode(PDDocument document, int pageIndex, float dpi) throws Exception {
+        BufferedImage page = new PDFRenderer(document).renderImageWithDPI(pageIndex, dpi, ImageType.GRAY);
+        int y = Math.round((float) (27.5 * dpi / 25.4));
+        BufferedImage barcode = page.getSubimage(0, y, page.getWidth(), page.getHeight() - y);
+        return new Code128Reader().decode(new BinaryBitmap(
+                new HybridBinarizer(new BufferedImageLuminanceSource(barcode))),
+                Map.of(DecodeHintType.TRY_HARDER, Boolean.TRUE)).getText();
     }
 
     private static int imageCount(PDDocument document, int pageIndex) throws IOException {

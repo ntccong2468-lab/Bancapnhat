@@ -2,7 +2,7 @@ import {origin151,plan151} from './reuse-verified-windows-java-151.mjs';
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {validateStableAsset,validatePublishedStable,validateReusedJava,validateOwnerApproved1418,validateOwnerApproved1419,validateOwnerRequest1419,validateOwnerRequested150,validateOwnerRequest151,validateOwnerRequested151,validateOwnerRequest152,validateOwnerRequested152,validateOwnerRequest153,validateOwnerRequested153,validateFixtureRecovery} from './publish-vncode-stable.mjs';
+import {validateStableAsset,validatePublishedStable,validateReusedJava,validateOwnerApproved1418,validateOwnerApproved1419,validateOwnerRequest1419,validateOwnerRequested150,validateOwnerRequest151,validateOwnerRequested151,validateOwnerRequest152,validateOwnerRequested152,validateOwnerRequest153,validateOwnerRequested153,validateOwner153UpgradeProof,validateFixtureRecovery} from './publish-vncode-stable.mjs';
 import {origin} from './reuse-verified-windows-java.mjs';
 
 const version='1.4.6',digest='a'.repeat(64),size=140000000;
@@ -205,31 +205,31 @@ test('1.5.3 requires fresh Java, latest upgrade and honest live limits',()=>{
   unverifiedChecksDisclosedBeforePublication:true,standardFullAcceptanceClaimed:false,productionLicenseAcceptance:false,
   enterpriseCryptoProSigningAccepted:false,licensedDesktopGtinWriteAccepted:false,liveApiWbGtinWriteThisVersion:false,
   liveApiOzonGtinWriteThisVersion:false,liveCatalogCardCreatedThisVersion:false,liveCatalogCardRepairedThisVersion:false,
-  installerSha256:'a'.repeat(64),installerBytes:145000000,windowsJava:java,verifiedNativeProofs:['upgrade-stable-152-smoke.json']};
+  installerSha256:'a'.repeat(64),installerBytes:145000000,windowsJava:java,verifiedNativeProofs:['upgrade-stable-152-smoke.json'],passiveExeHandoffVerified:true};
  const status={version,complete:false,databaseSchema:6,requestReport:'VN-code-1.5.3-request-report.md',licenseIntegration:{productionReady:false,changedInThisVersion:false},
   validation:{productionLicenseVerified:false,liveCryptoProSigningThisVersion:false,liveLicensedDesktopGtinWriteThisVersion:false,
    liveApiWbGtinWriteThisVersion:false,liveApiOzonGtinWriteThisVersion:false,liveCatalogCardCreatedThisVersion:false,liveCatalogCardRepairedThisVersion:false,
-   windowsBuild:{state:'passed',runId,sourceCommit:sha,freshFullJavaExecutionRequired:true,allNativeChecksMustRunAgain:true,allNativeChecksPassed:true,installerPackaged:true,upgradeFrom152Passed:true,fullJavaSuite:java}}};
+   windowsBuild:{state:'passed',runId,sourceCommit:sha,freshFullJavaExecutionRequired:true,allNativeChecksMustRunAgain:true,allNativeChecksPassed:true,installerPackaged:true,passiveExeHandoffVerified:true,upgradeFrom152Passed:true,fullJavaSuite:java}}};
  validateOwnerRequested153(decision,status,version,sha,runId);
  assert.throws(()=>validateOwnerRequested153(decision,{...status,validation:{...status.validation,windowsBuild:{...status.validation.windowsBuild,freshFullJavaExecutionRequired:false}}},version,sha,runId));
- const pending={...decision,phase:'authorized-awaiting-verified-build',installerSha256:null,installerBytes:null,windowsJava:null,verifiedNativeProofs:null};
+ const pending={...decision,phase:'authorized-awaiting-verified-build',installerSha256:null,installerBytes:null,windowsJava:null,verifiedNativeProofs:null,passiveExeHandoffVerified:null};
  const pendingStatus={...status,validation:{...status.validation,windowsBuild:{state:'running',runId,sourceCommit:sha,freshFullJavaExecutionRequired:true,allNativeChecksMustRunAgain:true}}};
  validateOwnerRequest153(pending,pendingStatus,version,sha,runId);
  assert.throws(()=>validateOwnerRequested153(pending,pendingStatus,version,sha,runId),'Authorization alone is not a verified installer');
- for(const patch of [{installerSha256:'a'.repeat(64)},{installerBytes:145000000},{windowsJava:java},{verifiedNativeProofs:[]},{ownerRequestedPublication:false},
+ for(const patch of [{installerSha256:'a'.repeat(64)},{installerBytes:145000000},{windowsJava:java},{verifiedNativeProofs:[]},{passiveExeHandoffVerified:true},{ownerRequestedPublication:false},
   {unverifiedChecksDisclosedBeforePublication:false},{standardFullAcceptanceClaimed:true},{liveCatalogCardRepairedThisVersion:true},
   {sourceCommit:'b'.repeat(40)},{runId:'1'}])
   assert.throws(()=>validateOwnerRequest153({...pending,...patch},pendingStatus,version,sha,runId));
- for(const patch of [{state:'passed'},{state:'failed'},{fullJavaSuite:java},{upgradeFrom152Passed:true},{allNativeChecksPassed:true},{installerPackaged:true},{allNativeChecksMustRunAgain:false},{sourceCommit:'b'.repeat(40)},{runId:'1'}])
+ for(const patch of [{state:'passed'},{state:'failed'},{fullJavaSuite:java},{upgradeFrom152Passed:true},{allNativeChecksPassed:true},{installerPackaged:true},{passiveExeHandoffVerified:true},{allNativeChecksMustRunAgain:false},{sourceCommit:'b'.repeat(40)},{runId:'1'}])
   assert.throws(()=>validateOwnerRequest153(pending,{...pendingStatus,validation:{...pendingStatus.validation,windowsBuild:{...pendingStatus.validation.windowsBuild,...patch}}},version,sha,runId));
  for(const patch of [{phase:'awaiting-build'},{ownerRequestedPublication:false},{standardFullAcceptanceClaimed:true},
-  {enterpriseCryptoProSigningAccepted:true},{liveCatalogCardRepairedThisVersion:true},{verifiedNativeProofs:[]},{installerSha256:null},{windowsJava:{...java,errors:1}},
+  {enterpriseCryptoProSigningAccepted:true},{liveCatalogCardRepairedThisVersion:true},{verifiedNativeProofs:[]},{passiveExeHandoffVerified:false},{installerSha256:null},{windowsJava:{...java,errors:1}},
   {windowsJava:{tests:1989,failures:0,errors:0,skipped:2,passed:1987}}])
   assert.throws(()=>validateOwnerRequested153({...decision,...patch},status,version,sha,runId));
  assert.throws(()=>validateOwnerRequested153(decision,status,version,'a'.repeat(40),runId));
  assert.throws(()=>validateOwnerRequested153(decision,status,version,sha,'39277937973'));
  assert.throws(()=>validateOwnerRequested153(decision,{...status,validation:{...status.validation,windowsBuild:{...status.validation.windowsBuild,upgradeFrom152Passed:false}}},version,sha,runId));
- for(const patch of [{allNativeChecksPassed:false},{installerPackaged:false},{allNativeChecksMustRunAgain:false}])
+ for(const patch of [{allNativeChecksPassed:false},{installerPackaged:false},{passiveExeHandoffVerified:false},{allNativeChecksMustRunAgain:false}])
   assert.throws(()=>validateOwnerRequested153(decision,{...status,validation:{...status.validation,windowsBuild:{...status.validation.windowsBuild,...patch}}},version,sha,runId));
  const otherSha='b'.repeat(40),otherRun='39382705240';
  assert.throws(()=>validateOwnerRequested153({...decision,sourceCommit:otherSha},{...status,validation:{...status.validation,windowsBuild:{...status.validation.windowsBuild,sourceCommit:otherSha}}},version,otherSha,runId),'A consistent but different source is outside this authorization');
@@ -238,9 +238,21 @@ test('1.5.3 requires fresh Java, latest upgrade and honest live limits',()=>{
 
 test('1.5.3 must verify and ship the actual 1.5.2 upgrade proof before release mutation',()=>{
  const source=readFileSync(new URL('./publish-vncode-stable.mjs',import.meta.url),'utf8');
- assert.match(source,/if\(version\.localeCompare\('1\.5\.2','en',\{numeric:true\}\)>0\) \{\s+validateUpgradeSmoke\(json\(await readFile\(path\.join\(directory,'upgrade-stable-152-smoke\.json'\)\)\),version,'1\.5\.2'\);\s+proofFiles\.push\('upgrade-stable-152-smoke\.json'\);/);
+ assert.match(source,/if\(version\.localeCompare\('1\.5\.2','en',\{numeric:true\}\)>0\) \{\s+const upgrade152=json\(await readFile\(path\.join\(directory,'upgrade-stable-152-smoke\.json'\)\)\);/);
+ assert.match(source,/if\(mode==='owner-requested-153'\) \{\s+validateOwner153UpgradeProof\(upgrade152,version,digest\);\s+passiveExeHandoffVerified=upgrade152\.passiveExeHandoffVerified;/);
+ assert.match(source,/else validateUpgradeSmoke\(upgrade152,version,'1\.5\.2'\);\s+proofFiles\.push\('upgrade-stable-152-smoke\.json'\);/);
  assert.ok(source.indexOf("'upgrade-stable-152-smoke.json'",source.indexOf('async function main'))<source.indexOf("const refs=api("));
  const workflow=readFileSync(new URL('../.github/workflows/publish-vncode-stable.yml',import.meta.url),'utf8');
  assert.match(workflow,/owner-requested-153\]/);
  assert.match(source,/if\(mode==='owner-requested-153'\) \{\s+assert\.ok\(!logs\.includes\('REUSED_WINDOWS_JAVA:'\)&&!logs\.includes\('RECONCILED_WINDOWS_JAVA:'\)/);
+});
+
+test('1.5.3 passive EXE handoff proof still requires preserved data and the exact prior installer identity',()=>{
+ const proof={appName:'VN code',version:'1.5.3',fromVersion:'1.5.2',result:'passed',installerUpgradeUuid:'8CBBA0E2-6E73-4F56-9101-6BC0948D3C72',singleRegistration:true,dataPreserved:true,liveMarketplaceMutations:false,fingerprint:'a'.repeat(64),passiveExeHandoffVerified:true,passiveExeInstallerSha256:'b'.repeat(64),passiveExeEmbeddedMsiSha256:'c'.repeat(64)};
+ validateOwner153UpgradeProof(proof,'1.5.3','b'.repeat(64));
+ for(const patch of [{passiveExeHandoffVerified:false},{passiveExeHandoffVerified:undefined},{fromVersion:'1.5.1'},{version:'1.5.2'},{dataPreserved:false},{singleRegistration:false},{liveMarketplaceMutations:true},{installerUpgradeUuid:'other'},{fingerprint:'bad'},{passiveExeInstallerSha256:'a'.repeat(64)},{passiveExeEmbeddedMsiSha256:'bad'}])
+  assert.throws(()=>validateOwner153UpgradeProof({...proof,...patch},'1.5.3','b'.repeat(64)));
+ assert.throws(()=>validateOwner153UpgradeProof(proof,'1.5.4','b'.repeat(64)));
+ assert.throws(()=>validateOwner153UpgradeProof(proof,'1.5.3'));
+ assert.throws(()=>validateOwner153UpgradeProof(proof,'1.5.3','a'.repeat(64)));
 });

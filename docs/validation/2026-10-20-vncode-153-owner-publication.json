@@ -12,6 +12,7 @@
   "installerBytes": null,
   "windowsJava": null,
   "verifiedNativeProofs": null,
+  "passiveExeHandoffVerified": null,
   "productionLicenseAcceptance": false,
   "enterpriseCryptoProSigningAccepted": false,
   "licensedDesktopGtinWriteAccepted": false,
