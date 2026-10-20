@@ -1,5 +1,23 @@
 # VNCode update baseline
 
+The baseline for subsequent updates is the published **VNCode 1.5.5**.
+
+- Immutable tag: `v1.5.5`
+- Source: `cc73b32ae50ed21a25196653291df2996ecef1bf`
+- Release: https://github.com/ntccong2468-lab/Bancapnhat/releases/tag/v1.5.5
+- Installer: `VN-code-1.5.5-Windows-x64.exe` (147044352 bytes)
+- SHA-256: `e966b8d36101f8d0c62b5340e7804ff574fb1453e89d713dbcd604b7446b4b13`
+- Native build: `39496207125`; publication: `39497248970`, successful attempt 3.
+- Previous baseline: **1.5.4**. Prior tags, assets and pinned upgrade inputs remain immutable.
+
+Recorded verification: fresh Linux and Windows suites each ran 2309 tests (2307 passed, 2 platform skips), with no failures or errors. The completed Windows build supplied 25 native proof files and 20 data-preserving upgrades, including the exact published 1.5.4 EXE and actual `/passive /norestart` handoff. The publisher anonymously downloaded the public EXE and matched its bytes/hash with the build and GitHub asset. Latest exposes v1.5.5 with the correct installer URL, SHA-256 and size. No additional application tests or updater probe were run after the owner's immediate-publication instruction; seller desktop notification delivery is not established.
+
+Preserve schema 6 seller data, source identities, continuous priority FBS, KIZ checkpoints, verified marketplace GTIN readback, Liquid Glass, the updater snapshot/recovery safeguards and the Ozon combined label. Registration uses `vncode-catalog-signed-reference-v4`: fill verified WB/Ozon product facts and permit regulations; display manufacturing country **Россия** (wire `RU`) when the source has no explicit country. Preserve explicit overrides, TN VED and permit-scope validation, durable per-card registration, uncertain-request/signing checkpoints and ownership safeguards. Runtime license, signature, TLS and integrity checks remain enforced.
+
+Evidence: [status](VN-code-1.5.5-status.json), [request report](VN-code-1.5.5-request-report.md), [Windows/native/public proof](../validation/2026-10-20-vncode-155-windows-native.json), [publication receipt](../validation/2026-10-20-vncode-155-owner-publication.json). Production Catalog create/repair/signing, live seller GTIN writes, paid KIZ purchase, enterprise CryptoPro and production license acceptance remain unverified in this version; corresponding flags remain false.
+
+## Previous published baseline 1.5.4 (immutable reference)
+
 The baseline for subsequent updates is the published **VNCode 1.5.4**.
 
 - Immutable tag: `v1.5.4`

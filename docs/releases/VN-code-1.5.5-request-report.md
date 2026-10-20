@@ -8,10 +8,16 @@ Giữ dữ liệu seller, schema 6, phạm vi TN VED/giấy tờ, ưu tiên FBS,
 
 ## Kiểm thử bộ cài phát hành
 
-Linux clean verify mới: 2309 kiểm thử, 2307 đạt, 0 thất bại, 0 lỗi, 2 bỏ qua theo nền tảng. 103 kiểm tra công cụ phát hành đạt. Windows build 39496207125 đang chạy từ source cc73b32ae50ed21a25196653291df2996ecef1bf; chưa ghi nhận checksum hoặc ca nâng cấp thành công cho tới khi đọc đủ bằng chứng. Phải kiểm tra nâng cấp từ đúng EXE 1.5.4 đã phát hành bằng /passive /norestart và giữ dữ liệu.
+Source: `cc73b32ae50ed21a25196653291df2996ecef1bf`. Bản nền: [VNCode 1.5.4](https://github.com/ntccong2468-lab/Bancapnhat/releases/tag/v1.5.4); giữ schema 6 và dữ liệu seller.
+
+Linux `clean verify`: 2.309 kiểm thử, 2.307 đạt, 0 thất bại, 0 lỗi, 2 bỏ qua theo nền tảng. Windows Java mới: 2.309 kiểm thử, 2.307 đạt, 0 thất bại, 0 lỗi, 2 bỏ qua theo nền tảng. [Windows build 39496207125](https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/39496207125) chạy từ đúng source, artifact 12301419643; không dùng lại kết quả Java của bản trước.
+
+Đủ 25 bằng chứng native và 20 ca nâng cấp giữ dữ liệu, gồm 288 bố cục, launcher, workspace, DPAPI và bộ cài 1.5.4 đúng checksum. Bàn giao `/passive /norestart` được kiểm tra bằng chính EXE phát hành và MSI nhúng; dữ liệu và đăng ký ứng dụng được giữ.
+
+Bộ cài: `VN-code-1.5.5-Windows-x64.exe`, 147.044.352 byte. SHA-256: `e966b8d36101f8d0c62b5340e7804ff574fb1453e89d713dbcd604b7446b4b13`. Checksum đối chiếu đúng các byte đã kiểm tra. Updater phát hiện bản mới không chứng minh thông báo đã xuất hiện trên desktop seller.
 
 ## Chưa hoàn tất
 
-Chưa nghiệm thu tạo/sửa/ký thẻ Catalog production, ghi GTIN lên WB/Ozon bằng nút trên Windows seller, mua KIZ trả phí thật, chữ ký CryptoPro doanh nghiệp hoặc license production trong phiên bản này. Chưa đo thời gian nâng cấp trên máy seller và chưa chứng minh thông báo đã tới desktop seller. Các cờ nghiệm thu tương ứng vẫn false; giữ kiểm tra license, chữ ký, TLS và toàn vẹn dữ liệu.
+Chưa nghiệm thu tạo/sửa thẻ Catalog production, chữ ký CryptoPro doanh nghiệp, ghi GTIN qua desktop seller, giao dịch mua KIZ trả phí thật hoặc license production trong phiên bản này. Mọi cờ nghiệm thu production tương ứng vẫn false; kiểm thử mô phỏng không thay thế giao dịch thật. Không bảo đảm sản phẩm khác được duyệt chỉ vì mẫu Catalog đã xanh.
 
-Phát hành theo yêu cầu của chủ dự án: «áp dụng cho bản cập nhật mới và đưa lên latest». Quyền kiểm thử không giới hạn chỉ áp dụng môi trường dữ liệu cô lập; không thay đổi cơ chế license của bộ cài seller.
+Phát hành theo yêu cầu trực tiếp của chủ dự án với các giới hạn đã công bố. Kiểm tra license, chữ ký, TLS và toàn vẹn của app được giữ.
