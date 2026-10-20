@@ -2,7 +2,7 @@ import {origin151,plan151} from './reuse-verified-windows-java-151.mjs';
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {validateStableAsset,validatePublishedStable,validateReusedJava,validateOwnerApproved1418,validateOwnerApproved1419,validateOwnerRequest1419,validateOwnerRequested150,validateOwnerRequest151,validateOwnerRequested151,validateOwnerRequest152,validateOwnerRequested152,validateOwnerRequest153,validateOwnerRequested153,validateOwner153UpgradeProof,owner154Binding,owner154RequiredNativeProofs,validateOwner154UpgradeProof,validateOwner154Evidence,validateOwnerRequest154,validateOwnerRequested154,validateFixtureRecovery} from './publish-vncode-stable.mjs';
+import {validateStableAsset,validatePublishedStable,validateReusedJava,validateOwnerApproved1418,validateOwnerApproved1419,validateOwnerRequest1419,validateOwnerRequested150,validateOwnerRequest151,validateOwnerRequested151,validateOwnerRequest152,validateOwnerRequested152,validateOwnerRequest153,validateOwnerRequested153,validateOwner153UpgradeProof,owner154Binding,owner154RequiredNativeProofs,validateOwner154UpgradeProof,validateOwner154Evidence,validateOwnerRequest154,validateOwnerRequested154,formatOwner154RequestReport,validateFixtureRecovery} from './publish-vncode-stable.mjs';
 import {origin} from './reuse-verified-windows-java.mjs';
 
 const version='1.4.6',digest='a'.repeat(64),size=140000000;
@@ -259,7 +259,7 @@ test('1.5.3 passive EXE handoff proof still requires preserved data and the exac
 
 function owner154Fixture(pending=false){
  const version='1.5.4',sha=owner154Binding.sourceCommit??'a'.repeat(40),runId=String(owner154Binding.runId??'123456789');
- const java={tests:2072,failures:0,errors:0,skipped:2,passed:2070};
+ const java={tests:2088,failures:0,errors:0,skipped:2,passed:2086};
  const decision={version,sourceCommit:sha,sourceRuntimeIsFinal:true,runId,phase:pending?'authorized-awaiting-verified-build':'verified-for-publication',
   ownerRequestedPublication:true,ownerInstruction:'xong phần này thì đóng gói bản cập nhật mới lên latest để phát hành xuống app.',
   unverifiedChecksDisclosedBeforePublication:true,standardFullAcceptanceClaimed:false,
@@ -275,7 +275,7 @@ function owner154Fixture(pending=false){
   validation:{productionLicenseVerified:false,liveCryptoProSigningThisVersion:false,liveLicensedDesktopGtinWriteThisVersion:false,
    liveApiWbGtinWriteThisVersion:false,liveApiOzonGtinWriteThisVersion:false,liveCatalogCardCreatedThisVersion:false,
    liveCatalogCardRepairedThisVersion:false,liveKizPurchaseThisVersion:false,livePaidKizOrderThisVersion:false,liveApiWbKizPurchaseThisVersion:false,liveApiOzonKizPurchaseThisVersion:false,
-   linuxFullSuite:{state:'passed',sourceCommit:sha,fullSuiteExecuted:true,cleanVerifyExecuted:true,tests:2072,failures:0,errors:0},windowsBuild:build}};
+   linuxFullSuite:{state:'passed',sourceCommit:sha,fullSuiteExecuted:true,cleanVerifyExecuted:true,tests:2088,passed:2086,skipped:2,failures:0,errors:0},windowsBuild:build}};
  return {version,sha,runId,java,decision,status};
 }
 
@@ -290,7 +290,7 @@ test('1.5.4 evidence cannot fabricate build results or claim a production purcha
   for(const patch of [{sourceCommit:'b'.repeat(40)},{sourceRuntimeIsFinal:false},{baseline:'v1.5.2'},{complete:true},
    {licenseIntegration:{productionReady:true,changedInThisVersion:false}}])
    assert.throws(()=>validateOwner154Evidence(decision,{...status,...patch},version,sha,runId));
-  for(const patch of [{state:'running'},{sourceCommit:'b'.repeat(40)},{fullSuiteExecuted:false},{cleanVerifyExecuted:false},{tests:2071},{failures:1},{errors:1}])
+  for(const patch of [{state:'running'},{sourceCommit:'b'.repeat(40)},{fullSuiteExecuted:false},{cleanVerifyExecuted:false},{tests:2087},{failures:1},{errors:1}])
    assert.throws(()=>validateOwner154Evidence(decision,{...status,validation:{...status.validation,linuxFullSuite:{...status.validation.linuxFullSuite,...patch}}},version,sha,runId));
   for(const field of ['productionLicenseVerified','liveCryptoProSigningThisVersion','liveKizPurchaseThisVersion','livePaidKizOrderThisVersion','liveApiWbKizPurchaseThisVersion','liveApiOzonKizPurchaseThisVersion'])
    assert.throws(()=>validateOwner154Evidence(decision,{...status,validation:{...status.validation,[field]:true}},version,sha,runId));
@@ -304,7 +304,7 @@ test('1.5.4 evidence cannot fabricate build results or claim a production purcha
  const verified=owner154Fixture();
  for(const patch of [{verifiedNativeProofs:owner154RequiredNativeProofs.filter(n=>n!=='upgrade-stable-152-smoke.json')},
   {verifiedNativeProofs:owner154RequiredNativeProofs.filter(n=>n!=='upgrade-stable-153-smoke.json')},
-  {windowsJava:{...verified.java,tests:2071}},{windowsJava:{...verified.java,failures:1}},{windowsJava:{...verified.java,skipped:3}},
+  {windowsJava:{...verified.java,tests:2087}},{windowsJava:{...verified.java,failures:1}},{windowsJava:{...verified.java,skipped:3}},
   {passiveExeHandoffVerified:false},{installerSha256:null}])
   assert.throws(()=>validateOwner154Evidence({...verified.decision,...patch},verified.status,verified.version,verified.sha,verified.runId));
  for(const patch of [{state:'running'},{upgradeFrom153Passed:false},{allNativeChecksPassed:false},{installerPackaged:false},{passiveExeHandoffVerified:false}])
@@ -327,8 +327,8 @@ test('1.5.4 authorization rejects unbound preparation and any other consistent s
  }
  const receipt=JSON.parse(readFileSync(new URL('../docs/validation/2026-10-20-vncode-154-owner-publication.json',import.meta.url),'utf8'));
  const status=JSON.parse(readFileSync(new URL('../docs/releases/VN-code-1.5.4-status.json',import.meta.url),'utf8'));
- if(receipt.sourceCommit===null||receipt.runId===null)
-  assert.throws(()=>validateOwnerRequest154(receipt,status,'1.5.4',receipt.sourceCommit,receipt.runId),'An actual unbound preparation record never authorizes publication');
+ if(receipt.sourceCommit===null||receipt.runId===null||status.validation.linuxFullSuite.state!=='passed')
+  assert.throws(()=>validateOwnerRequest154(receipt,status,'1.5.4',receipt.sourceCommit,receipt.runId),'An actual unbound or unfinished Linux preparation record never authorizes publication');
 });
 
 test('1.5.4 upgrade proof binds immutable published1.5.3 and the exact target EXE',()=>{
@@ -353,4 +353,38 @@ test('1.5.4 keeps all prior native proofs and verifies passive upgrade before re
  assert.match(source,/if\(mode==='owner-requested-154'\) \{\s+assert\.ok\(!logs\.includes\('REUSED_WINDOWS_JAVA:'\)&&!logs\.includes\('RECONCILED_WINDOWS_JAVA:'\)/);
  const workflow=readFileSync(new URL('../.github/workflows/publish-vncode-stable.yml',import.meta.url),'utf8');
  assert.match(workflow,/owner-requested-154\]/);
+});
+
+test('1.5.4 final attached report preserves repair scope and replaces pending text with observed evidence',()=>{
+ const f=owner154Fixture(),preamble='# Báo cáo VNCode 1.5.4\n\n## Phạm vi sửa\n\n- SCOPE: giữ dữ liệu khi sao lưu WAL và không mua KIZ trùng.\n\nGiữ license, TLS và chữ ký.';
+ const template=preamble+'\n\n## Bản nền và kiểm tra bắt buộc\n\nWindows đang chạy. Latest hiện vẫn là 1.5.3. PENDING_SENTINEL\n\n## Chưa hoàn tất\n\nOLD_LIMITS_SENTINEL';
+ const report=formatOwner154RequestReport(template,f.decision,f.status);
+ assert.ok(report.startsWith(preamble+'\n\n## Kiểm thử bộ cài phát hành\n'));
+ assert.ok(!report.includes('PENDING_SENTINEL')&&!report.includes('OLD_LIMITS_SENTINEL'));
+ assert.ok(!report.includes('Windows đang chạy')&&!report.includes('Latest hiện vẫn là 1.5.3'));
+ assert.ok(report.includes(f.sha)&&report.includes(`/actions/runs/${f.runId}`));
+ assert.ok(report.includes('Linux `clean verify`: 2.088 kiểm thử, 2.086 đạt'));
+ assert.ok(report.includes('Windows Java mới: 2.088 kiểm thử, 2.086 đạt'));
+ assert.ok(report.includes('24 bằng chứng native và 19 ca nâng cấp'));
+ assert.ok(report.includes('288 bố cục')&&report.includes('`/passive /norestart`'));
+ assert.ok(report.includes('146.900.000 byte')&&report.includes(f.decision.installerSha256));
+ assert.ok(report.includes('## Chưa hoàn tất')&&report.includes('mua KIZ trả phí thật')&&report.includes('CryptoPro doanh nghiệp'));
+ assert.ok(report.includes('Mọi cờ nghiệm thu production tương ứng vẫn false'));
+ assert.ok(report.includes('không chứng minh thông báo đã xuất hiện trên desktop seller'));
+});
+
+test('1.5.4 report formatting refuses pending or inconsistent evidence instead of inventing final results',()=>{
+ const template='# Báo cáo VNCode 1.5.4\n\n## Phạm vi sửa\n\nSCOPE\n\n## Kiểm tra\n\nPending';
+ const f=owner154Fixture();
+ for(const broken of ['# Wrong release\n\n## Phạm vi sửa\n\nSCOPE\n\n## Kiểm tra\nPending',
+  '# Báo cáo VNCode 1.5.4\n\n## Other scope\n\nSCOPE\n\n## Kiểm tra\nPending',
+  '# Báo cáo VNCode 1.5.4\n\n## Phạm vi sửa\n\nUnseparated pending verification'])
+  assert.throws(()=>formatOwner154RequestReport(broken,f.decision,f.status));
+ const pending=owner154Fixture(true);
+ assert.throws(()=>formatOwner154RequestReport(template,pending.decision,pending.status));
+ for(const patch of [{phase:'authorized-awaiting-verified-build'},{installerSha256:null},{livePaidKizOrderThisVersion:true},
+  {verifiedNativeProofs:owner154RequiredNativeProofs.filter(name=>name!=='upgrade-stable-153-smoke.json')}])
+  assert.throws(()=>formatOwner154RequestReport(template,{...f.decision,...patch},f.status));
+ const linux=f.status.validation.linuxFullSuite;
+ assert.throws(()=>formatOwner154RequestReport(template,f.decision,{...f.status,validation:{...f.status.validation,linuxFullSuite:{...linux,passed:2085}}}));
 });

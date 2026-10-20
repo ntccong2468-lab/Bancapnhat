@@ -1,7 +1,7 @@
 {
   "version": "1.5.4",
-  "sourceCommit": null,
-  "sourceRuntimeIsFinal": false,
+  "sourceCommit": "688bd01982898e18c9770300fa20cfe29bde1245",
+  "sourceRuntimeIsFinal": true,
   "baseline": {
     "version": "1.5.3",
     "tag": "v1.5.3",
@@ -36,33 +36,48 @@
     }
   ],
   "linuxFullSuite": {
-    "state": "awaiting-final-source-and-execution",
-    "sourceCommit": null,
-    "countsRecorded": false,
-    "tests": null,
-    "failures": null,
-    "errors": null,
-    "skipped": null,
+    "sourceCommit": "688bd01982898e18c9770300fa20cfe29bde1245",
+    "command": "DISPLAY=:99 XDG_CACHE_HOME=/tmp/vncode-ui-cache /workspace/toolchains/mvn-vncode -o clean verify",
+    "fullSuiteExecuted": true,
+    "cleanVerifyExecuted": true,
+    "suites": 340,
+    "tests": 2088,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 2,
+    "skippedCases": [
+      "com.vncode.app.shared.WindowsSecretProtectorTest.separatesLicenseAndExistingMailEntropyOnWindows",
+      "com.vncode.app.features.gs1.Gs1PrefixTemplateStoreTest.refusesNtfsJunctionDirectoryAndAncestors"
+    ],
+    "log": "/tmp/vncode-154-final-full-verify.log",
+    "passed": 2086,
+    "finishedAt": "2026-10-20T11:41:08Z",
+    "totalTime": "12:11 min",
+    "state": "passed",
+    "countsRecorded": true,
     "freshFullExecutionRequired": true,
-    "acceptedForRelease": false
+    "acceptedForFinalScope": true,
+    "acceptedForRelease": false,
+    "scope": "Final frozen source complete Linux clean verify; Windows/native/public evidence remains mandatory."
   },
   "releaseToolSuite": {
-    "state": "passed-preparation-unbound",
-    "sourceCommit": null,
-    "tests": 90,
+    "state": "passed",
+    "sourceCommit": "688bd01982898e18c9770300fa20cfe29bde1245",
+    "tests": 92,
     "failures": 0,
     "fullSuiteExecuted": true,
     "countsRecorded": true,
     "command": "node --test tools/*.test.mjs",
-    "log": "/tmp/vncode-154-node-preparation.log",
-    "acceptedForFinalScope": false,
-    "scope": "Working-tree release preparation, source not frozen or bound; rerun after the final scope freezes."
+    "log": "/tmp/vncode-154-final-report-node.log",
+    "acceptedForFinalScope": true,
+    "scope": "Full release-tool suite including final154 report formatting after exact source/run binding and observed finalLinux2088; Windows/native/public proof remains pending."
   },
   "windowsBuild": {
-    "state": "preparation-unbound",
-    "sourceCommit": null,
-    "runId": null,
-    "url": null,
+    "state": "running",
+    "sourceCommit": "688bd01982898e18c9770300fa20cfe29bde1245",
+    "runId": 39415265129,
+    "url": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/39415265129",
+    "observedCreatedAt": "2026-10-20T11:29:04Z",
     "freshFullJavaExecutionRequired": true,
     "allNativeChecksMustRunAgain": true,
     "upgradeFrom153Passed": false,
@@ -71,7 +86,7 @@
     "installerPackaged": false,
     "verifiedNativeProofs": null
   },
-  "windowsBuildRun": null,
+  "windowsBuildRun": 39415265129,
   "localJar": {
     "state": "not-recorded",
     "sha256": null,
@@ -92,7 +107,7 @@
   "liveCatalogCardCreatedThisVersion": false,
   "liveCatalogCardRepairedThisVersion": false,
   "publication": {
-    "state": "preparation-unbound",
+    "state": "awaiting-verified-windows-build-and-public-proof",
     "published": false,
     "latestReleaseChanged": false,
     "installerSha256": null,
@@ -110,15 +125,16 @@
   ],
   "countsRecorded": false,
   "focusedRuntimeSuite": {
-    "state": "passed-final-working-tree-before-commit",
-    "sourceCommit": null,
+    "state": "passed",
+    "sourceCommit": "688bd01982898e18c9770300fa20cfe29bde1245",
     "tests": 193,
     "passed": 193,
     "failures": 0,
     "errors": 0,
     "skipped": 0,
-    "acceptedForFinalScope": false,
-    "scope": "Root-observed focused regression including live-WAL snapshot2, updater UI5, FXML55, KIZ readback7 and friendly errors9; bind to the actual final runtime commit when available."
+    "acceptedForFinalScope": true,
+    "scope": "Final frozen runtime focused regression observed by root before commit; full clean verify and Windows proof remain mandatory."
   },
-  "updatePreparationEvidence": "docs/validation/2026-10-20-vncode-154-update-preparation.md"
+  "updatePreparationEvidence": "docs/validation/2026-10-20-vncode-154-update-preparation.md",
+  "state": "verification-running"
 }

@@ -256,9 +256,9 @@ export function validateOwnerRequested153(decision,status,version,sha,runId) {
     assert.deepEqual(build.fullJavaSuite,decision.windowsJava);
 }
 
-// 1.5.4 is deliberately disabled until the final application commit and real build exist.
-// Replace both nulls only with the observed, frozen source/build; never accept a placeholder.
-export const owner154Binding=Object.freeze({sourceCommit:null,runId:null});
+// Owner-requested 1.5.4 is bound to this observed frozen source and fresh Windows run.
+// Never replace this binding with placeholders or an unverified different build.
+export const owner154Binding=Object.freeze({sourceCommit:'688bd01982898e18c9770300fa20cfe29bde1245',runId:39415265129});
 export const owner154RequiredNativeProofs=Object.freeze([
     'native-smoke.json','side-by-side-smoke.json','upgrade-smoke.json',
     'upgrade-preview-smoke.json','upgrade-latest-preview-smoke.json','upgrade-current-preview-smoke.json',
@@ -298,7 +298,7 @@ export function validateOwner154Evidence(decision,status,version,sha,runId) {
             'liveKizPurchaseThisVersion','livePaidKizOrderThisVersion','liveApiWbKizPurchaseThisVersion','liveApiOzonKizPurchaseThisVersion'])assert.equal(status.validation[field],false,field);
     const linux=status.validation.linuxFullSuite;assert.equal(linux.state,'passed');assert.equal(linux.sourceCommit,sha);
     assert.equal(linux.fullSuiteExecuted,true);assert.equal(linux.cleanVerifyExecuted,true);
-    assert.ok(linux.tests>=2072);assert.equal(linux.failures,0);assert.equal(linux.errors,0);
+    assert.ok(linux.tests>=2088);assert.equal(linux.failures,0);assert.equal(linux.errors,0);
     const build=status.validation.windowsBuild;assert.equal(String(build.runId),String(runId));assert.equal(build.sourceCommit,sha);
     assert.equal(build.freshFullJavaExecutionRequired,true);assert.equal(build.allNativeChecksMustRunAgain,true);
     assert.equal(status.requestReport,'VN-code-1.5.4-request-report.md');
@@ -314,7 +314,7 @@ export function validateOwner154Evidence(decision,status,version,sha,runId) {
         assert.equal(decision.passiveExeHandoffVerified,true);assert.equal(build.passiveExeHandoffVerified,true);
         assert.deepEqual(decision.verifiedNativeProofs,owner154RequiredNativeProofs);
         for(const field of ['tests','failures','errors','skipped','passed'])assert.ok(Number.isSafeInteger(decision.windowsJava[field]),field);
-        assert.ok(decision.windowsJava.tests>=2072);assert.equal(decision.windowsJava.failures,0);assert.equal(decision.windowsJava.errors,0);
+        assert.ok(decision.windowsJava.tests>=2088);assert.equal(decision.windowsJava.failures,0);assert.equal(decision.windowsJava.errors,0);
         assert.ok(decision.windowsJava.skipped>=0&&decision.windowsJava.skipped<=2);
         assert.equal(decision.windowsJava.passed,decision.windowsJava.tests-decision.windowsJava.skipped);
         assert.deepEqual(build.fullJavaSuite,decision.windowsJava);
@@ -328,6 +328,35 @@ export function validateOwnerRequest154(decision,status,version,sha,runId) {
 }
 export function validateOwnerRequested154(decision,status,version,sha,runId) {
     validateOwnerRequest154(decision,status,version,sha,runId);assert.equal(decision.phase,'verified-for-publication');
+}
+
+/** The attached report describes observed final evidence, not the preparation record. */
+export function formatOwner154RequestReport(template,decision,status) {
+    validateOwnerRequested154(decision,status,'1.5.4',decision.sourceCommit,decision.runId);
+    const text=template.replace(/\r\n/g,'\n');assert.match(text,/^# Báo cáo VNCode 1\.5\.4\n/);
+    const scope=text.indexOf('## Phạm vi sửa\n');assert.ok(scope>=0,'154 request report must describe its scope');
+    const next=text.indexOf('\n## ',scope+1);assert.ok(next>scope,'154 request report must separate scope and verification');
+    const preamble=text.slice(0,next).trim(),linux=status.validation.linuxFullSuite,windows=decision.windowsJava;
+    for(const key of ['tests','passed','skipped'])assert.ok(Number.isSafeInteger(linux[key]),key);
+    assert.equal(linux.passed,linux.tests-linux.skipped);assert.ok(linux.skipped>=0&&linux.skipped<=2);
+    const proofs=decision.verifiedNativeProofs,upgrades=proofs.filter(name=>name.startsWith('upgrade-')).length;
+    assert.equal(proofs.length,24);assert.equal(upgrades,19);
+    const number=value=>new Intl.NumberFormat('vi-VN').format(value);
+    return `${preamble}\n\n## Kiểm thử bộ cài phát hành\n\n`+
+        `Source: \`${decision.sourceCommit}\`. Bản nền: [VNCode 1.5.3](https://github.com/${REPO}/releases/tag/v1.5.3); giữ schema 6 và dữ liệu seller.\n\n`+
+        `Linux \`clean verify\`: ${number(linux.tests)} kiểm thử, ${number(linux.passed)} đạt, 0 thất bại, 0 lỗi, ${linux.skipped} bỏ qua theo nền tảng. `+
+        `Windows Java mới: ${number(windows.tests)} kiểm thử, ${number(windows.passed)} đạt, 0 thất bại, 0 lỗi, ${windows.skipped} bỏ qua theo nền tảng. `+
+        `[Windows build ${decision.runId}](https://github.com/${REPO}/actions/runs/${decision.runId}) chạy từ đúng source trên; không dùng lại kết quả Java của bản trước.\n\n`+
+        `Đã xác minh đủ ${proofs.length} bằng chứng native và ${upgrades} ca nâng cấp giữ dữ liệu, gồm 288 bố cục, launcher, workspace, DPAPI và nâng cấp từ bộ cài 1.5.3 đúng checksum. `+
+        `Bàn giao \`/passive /norestart\` được kiểm tra bằng chính EXE phát hành và MSI nhúng; dữ liệu và đăng ký ứng dụng được giữ.\n\n`+
+        `Bộ cài: \`VN-code-1.5.4-Windows-x64.exe\`, ${number(decision.installerBytes)} byte. SHA-256: \`${decision.installerSha256}\`. `+
+        `Checksum và bằng chứng đi kèm dùng để đối chiếu đúng các byte đã kiểm tra. Việc build đạt hoặc updater phát hiện bản mới không chứng minh thông báo đã xuất hiện trên desktop seller.\n\n`+
+        `## Chưa hoàn tất\n\n`+
+        `Chưa nghiệm thu giao dịch mua KIZ trả phí thật, chữ ký CryptoPro doanh nghiệp, license production, tạo/sửa thẻ Catalog hoặc ghi GTIN lên sàn qua desktop seller trong phiên bản này. `+
+        `Mọi cờ nghiệm thu production tương ứng vẫn false; kiểm thử mô phỏng không thay thế bằng chứng giao dịch thật. Chưa đo thời gian cập nhật trên máy seller.\n\n`+
+        `Phát hành theo yêu cầu tiếp tục của chủ dự án với các giới hạn đã công bố, không nhận nghiệm thu production đầy đủ. `+
+        `Quyền license không giới hạn của phiên kiểm thử chỉ áp dụng dữ liệu cô lập WB/Ozon; kiểm tra license, chữ ký, TLS và toàn vẹn của app được giữ. `+
+        `Lượt tải và bàn giao ban đầu từ 1.5.3 vẫn chạy mã updater của 1.5.3; phần sửa updater mới có hiệu lực sau khi cài bản này.\n`;
 }
 
 async function main(runId,sha,mode='prepare') {
@@ -585,7 +614,7 @@ async function main(runId,sha,mode='prepare') {
     }
     if(mode==='owner-requested-154') {
         await writeFile(path.join(directory,'release-acceptance.json'),JSON.stringify(ownerDecision,null,2)+'\n');
-        await writeFile(path.join(directory,'request-report.md'),await readFile('docs/releases/VN-code-1.5.4-request-report.md'));
+        await writeFile(path.join(directory,'request-report.md'),formatOwner154RequestReport(await readFile('docs/releases/VN-code-1.5.4-request-report.md','utf8'),ownerDecision,status));
         names.push('release-acceptance.json','request-report.md');
     }
     const digests={};for(const file of names)digests[file]=hash(await readFile(path.join(directory,file)));
