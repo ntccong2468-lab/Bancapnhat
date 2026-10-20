@@ -37,7 +37,7 @@ class OzonAutomaticDraftSchemaTest {
     private ProductSnapshot snapshot;
     private JsonObject schema, allSchema;
     private HttpServer server;
-    private final AtomicInteger allocations = new AtomicInteger(), posts = new AtomicInteger(), feedReads = new AtomicInteger(), cardReads = new AtomicInteger();
+    private final AtomicInteger allocations = new AtomicInteger(), posts = new AtomicInteger(), feedReads = new AtomicInteger(), cardReads = new AtomicInteger(), countryReads = new AtomicInteger();
     private final AtomicReference<JsonObject> payload = new AtomicReference<>();
     private final AtomicReference<Throwable> serverFailure = new AtomicReference<>();
 
@@ -94,6 +94,9 @@ class OzonAutomaticDraftSchemaTest {
         assertEquals("МУЖСКОЙ", draft.attributes().get(14013L));
         assertEquals("хлопок 80%, полиэстер 20%", draft.attributes().get(2483L));
         assertEquals("КОСТЮМ СПОРТИВНЫЙ", draft.attributes().get(12L));
+        assertEquals("RU", draft.attributes().get(2630L), "The actual dictionary envelope must allow the seller's manufacturing-country default");
+        assertEquals("", draft.attributeTypes().get(2630L));
+        assertEquals(1, countryReads.get());
         assertEquals(0, allocations.get());
         assertEquals(0, posts.get());
     }
@@ -197,6 +200,9 @@ class OzonAutomaticDraftSchemaTest {
         assertEquals("Артикул", attribute(payload.get(), 13914).get("attr_value_type").getAsString());
         assertEquals("РОССИЯ", attribute(payload.get(), 35).get("attr_value_type").getAsString());
         assertEquals("52", attribute(payload.get(), 35).get("attr_value").getAsString());
+        assertEquals("RU", attribute(payload.get(), 2630).get("attr_value").getAsString(), "The one-click HTTP feed must carry ISO RU, not the display label");
+        assertEquals("", attribute(payload.get(), 2630).get("attr_value_type").getAsString());
+        assertEquals(1, countryReads.get(), "Planning and submission reuse the same verified dictionary");
         assertFalse(batches.resumePending(shop));
         assertEquals(1, posts.get());
     }
@@ -282,7 +288,10 @@ class OzonAutomaticDraftSchemaTest {
             response = switch (path) {
                 case "/v3/categories" -> JsonParser.parseString("{\"result\":[{\"cat_id\":31326,\"cat_name\":\"Костюм спортивный\",\"category_active\":true}]}").getAsJsonObject();
                 case "/v3/attributes" -> query.contains("attr_type=a") ? allSchema.deepCopy() : schema.deepCopy();
-                case "/v3/dictionary/isocountry" -> JsonParser.parseString("{\"result\":[{\"country_iso\":\"RU\",\"country_name\":\"Россия\"},{\"country_iso\":\"CN\",\"country_name\":\"Китай\"}]}").getAsJsonObject();
+                case "/v3/dictionary/isocountry" -> {
+                    countryReads.incrementAndGet();
+                    yield JsonParser.parseString("{\"result\":{\"_etag\":\"fixture-country-etag\",\"_list\":[{\"country_iso\":\"RU\",\"country_name\":\"Россия\"},{\"country_iso\":\"CN\",\"country_name\":\"Китай\"}]}}").getAsJsonObject();
+                }
                 case "/v3/generate-gtins" -> {
                     if (query.contains("quantity=1")) {
                         assertEquals(Status.ALLOCATING_GTIN, cards.find(key).status());

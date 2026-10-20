@@ -181,7 +181,11 @@ public final class ZnackNationalCatalogService {
         LicenseRuntime.require(Permission.SELLER_API);
         var aliases=new java.util.LinkedHashMap<String,String>();var ambiguous=new HashSet<String>();var codes=new LinkedHashSet<String>();
         var response=api.nationalCatalogCountries(settings.resolvedTrueApiBaseUrl(),token);
-        var entries=resultArray(response);if(entries.size()>1024)throw new IllegalStateException("CATALOG_COUNTRY_DICTIONARY_INVALID");
+        // The official dictionary wraps its rows in result._list (alongside _etag),
+        // unlike the category/attribute endpoints that return a result array.
+        var result=unwrap(response);
+        if(result!=null&&result.isJsonObject())result=result.getAsJsonObject().get("_list");
+        var entries=array(result);if(entries.size()>1024)throw new IllegalStateException("CATALOG_COUNTRY_DICTIONARY_INVALID");
         for(var value:entries)if(value.isJsonObject()){
             var entry=value.getAsJsonObject();String code=permitText(entry,"country_iso").toUpperCase(Locale.ROOT),name=permitText(entry,"country_name");
             if(!code.matches("[A-Z]{2}")||name.isBlank())continue;codes.add(code);

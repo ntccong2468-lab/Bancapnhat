@@ -32,6 +32,13 @@ class ZnackRegistrationCountryModelTest {
         assertEquals("",catalog.registrationCountryCode("Неизвестная страна",schema));assertEquals("",catalog.registrationCountryCode("Сделано в России",schema));
         assertEquals(1,api.dictionaryReads);
     }
+    @Test void stillAcceptsTheFlatResultArrayWithoutChangingOfficialCountryValues()throws Exception {
+        api.flatDictionary=true;
+        var schema=catalog.registrationAttributes(1,"fixture");
+        assertEquals(List.of("RU","CN"),schema.getLast().presets());
+        assertEquals("RU",catalog.registrationCountryCode("Россия",schema));
+        assertEquals("CN",catalog.registrationCountryCode("Китай",schema));
+    }
     @Test void doesNotInventCountryOrFactoryFieldsWhenCountryIsNotAnnounced()throws Exception {
         api.countryAnnounced=false;var schema=catalog.registrationAttributes(1,"fixture");
         assertEquals(List.of(1L),schema.stream().map(Attribute::id).toList());assertEquals(0,api.dictionaryReads);
@@ -68,7 +75,7 @@ class ZnackRegistrationCountryModelTest {
         public ZoneId getZone(){return ZoneOffset.UTC;}public Clock withZone(ZoneId zone){return this;}public Instant instant(){return now;}
     }
     static final class FixtureApi extends ZnackApiClient {
-        int requiredReads,allReads,dictionaryReads;boolean countryAnnounced=true,conditional,emptyDictionary;
+        int requiredReads,allReads,dictionaryReads;boolean countryAnnounced=true,conditional,emptyDictionary,flatDictionary;
         String russiaName="Россия",chinaName="Китай";
         @Override public JsonElement nationalCatalogAttributes(String base,String token,long id){requiredReads++;return json(conditional?"{\"result\":[{\"attr_id\":1,\"attr_name\":\"Kind\",\"attr_field_type\":\"text\",\"dependent_attributes\":[{\"value\":\"OTHER\",\"attrs\":[{\"attr_id\":2}]}]}]}":"{\"result\":[{\"attr_id\":1,\"attr_name\":\"Kind\",\"attr_field_type\":\"text\"}]}");}
         @Override public JsonElement nationalCatalogAllAttributes(String base,String token,long id){
@@ -78,7 +85,9 @@ class ZnackRegistrationCountryModelTest {
         @Override public JsonElement nationalCatalogCountries(String base,String token){
             dictionaryReads++;var result=new JsonArray();
             if(!emptyDictionary)for(var pair:List.of(List.of("RU",russiaName),List.of("CN",chinaName))){var country=new JsonObject();country.addProperty("country_iso",pair.getFirst());country.addProperty("country_name",pair.getLast());result.add(country);}
-            var response=new JsonObject();response.add("result",result);return response;
+            var response=new JsonObject();var dictionary=new JsonObject();
+            dictionary.addProperty("_etag","country-dictionary-fixture");dictionary.add("_list",result);
+            response.add("result",flatDictionary?result:dictionary);return response;
         }
         static JsonElement json(String value){return JsonParser.parseString(value);}
     }

@@ -66,11 +66,13 @@ class OzonCardRegistrationWorkflowTest {
         assertEquals("RU",automatic.attributes().get(2630L));assertEquals(List.of("RU","CN"),prepared.required().stream().filter(attribute->attribute.id()==2630L).findFirst().orElseThrow().presets());
         assertTrue(workflow.registerReviewed(shop,prepared,automatic,true,false,null));assertEquals(Status.READY_TO_SIGN,row().status());
         assertTrue(api.lastPayload.getAsJsonArray("good_attrs").asList().stream().map(JsonElement::getAsJsonObject).anyMatch(attribute->attribute.get("attr_id").getAsLong()==2630L&&attribute.get("attr_value").getAsString().equals("RU")));
+        assertEquals(1,api.countryReads.get(),"The real _etag/_list country envelope is verified once for planning and submission");
     }
     @Test void directRegistrationWithMandatoryCountryUsesTheSellerDefaultWithoutRejectingEmptyInlinePresets(){
         api.mandatoryCountry=true;
         assertTrue(workflow.register(shop,key,draft,true,false,null));assertEquals(Status.READY_TO_SIGN,row().status());
         assertTrue(api.lastPayload.getAsJsonArray("good_attrs").asList().stream().map(JsonElement::getAsJsonObject).anyMatch(attribute->attribute.get("attr_id").getAsLong()==2630L&&attribute.get("attr_value").getAsString().equals("RU")));
+        assertEquals(1,api.countryReads.get());
     }
     @Test void aLegacyUnsentEditAddsTheKnownIdentityWithoutAllocatingAnotherGtin()throws Exception{
         ready();String gtin=row().gtin();
@@ -414,7 +416,7 @@ class OzonCardRegistrationWorkflowTest {
             var documents=requested.deepCopy();for(var entry:documents){var d=entry.getAsJsonObject();d.addProperty("status_group",1);d.addProperty("product_tnved",permitScope);}
             var result=new JsonObject();result.add("documents",documents);var root=new JsonObject();root.add("result",result);return root;
         }
-        AtomicInteger allocations=new AtomicInteger(),submissions=new AtomicInteger(),signatures=new AtomicInteger(),documents=new AtomicInteger(),polls=new AtomicInteger();JsonObject lastPayload;
+        AtomicInteger allocations=new AtomicInteger(),submissions=new AtomicInteger(),signatures=new AtomicInteger(),documents=new AtomicInteger(),polls=new AtomicInteger(),countryReads=new AtomicInteger();JsonObject lastPayload;
         ProductKey activeKey=key;boolean knownQuota,mandatoryCountry;
         String rejectedFeed="";
         String rejectionStatus="Rejected",rejectionMessage="required attribute missing; token=fixture-secret";
@@ -430,7 +432,7 @@ class OzonCardRegistrationWorkflowTest {
         public JsonElement nationalCatalogCategories(String base,String token,String tnved){return json(multipleCategories?"{\"result\":[{\"cat_id\":1,\"cat_name\":\"Fixture\",\"category_active\":true},{\"cat_id\":2,\"cat_name\":\"Fixture 2\",\"category_active\":true}]}":"{\"result\":[{\"cat_id\":1,\"cat_name\":\"Fixture\",\"category_active\":true}]}");}
         public JsonElement nationalCatalogAttributes(String base,String token,long category){var response=json("{\"result\":[{\"attr_id\":1,\"attr_name\":\"Fixture\",\"attr_field_type\":\"text\"},{\"attr_id\":23557,\"attr_name\":\"Declaration\",\"attr_field_type\":\"text\"},{\"attr_id\":23561,\"attr_name\":\"Certificate\",\"attr_field_type\":\"text\"}]}").getAsJsonObject();if(mandatoryCountry)response.getAsJsonArray("result").add(json("{\"attr_id\":2630,\"attr_name\":\"Страна производства\",\"attr_field_type\":\"text\",\"attr_preset_only\":true,\"attr_preset\":[]}"));return response;}
         public JsonElement nationalCatalogAllAttributes(String base,String token,long category){return nationalCatalogAttributes(base,token,category);}
-        public JsonElement nationalCatalogCountries(String base,String token){return json("{\"result\":[{\"country_iso\":\"RU\",\"country_name\":\"Россия\"},{\"country_iso\":\"CN\",\"country_name\":\"Китай\"}]}");}
+        public JsonElement nationalCatalogCountries(String base,String token){countryReads.incrementAndGet();return json("{\"result\":{\"_etag\":\"fixture-country-etag\",\"_list\":[{\"country_iso\":\"RU\",\"country_name\":\"Россия\"},{\"country_iso\":\"CN\",\"country_name\":\"Китай\"}]}}");}
         public JsonElement submitNationalCatalogFeed(String base,String token,JsonElement body)throws IOException{assertEquals(Status.FEED_SUBMITTING,repository.find(activeKey).status());lastPayload=body.getAsJsonObject().deepCopy();submissions.incrementAndGet();if(feedTimeout)throw new IOException("fixture feed timeout");String feed="feed-"+submissions.get();feedGtins.put(feed,lastPayload.get("gtin").getAsString());return json("{\"result\":{\"feed_id\":\""+feed+"\"}}");}
         public JsonElement productCards(String base,String token,String gtins)throws IOException {
             if(readbackStatus>0)throw new ZnackApiClient.ZnackApiException("fixture readback deferred",readbackStatus,"{}");

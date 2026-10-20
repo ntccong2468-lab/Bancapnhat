@@ -1,0 +1,43 @@
+{
+  "version": "1.5.6",
+  "baseline": "v1.5.5",
+  "databaseSchema": 6,
+  "state": "focused-hotfix-ready-for-windows-package",
+  "published": false,
+  "sourceCommit": null,
+  "scope": "Fix official Catalog country dictionary result._list parsing for WB/Ozon registration",
+  "ownerRequestedExpeditedPublication": true,
+  "validation": {
+    "linuxFocusedJava": {
+      "state": "passed",
+      "tests": 129,
+      "passed": 129,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "fullSuiteExecuted": false,
+      "log": "/tmp/vncode-156-country-focused.log"
+    },
+    "liveCountryDictionaryRead": {
+      "httpStatus": 200,
+      "countries": 254,
+      "russia": {
+        "country_iso": "RU",
+        "country_name": "Россия"
+      },
+      "responseEnvelope": "result._list",
+      "writesPerformed": false
+    },
+    "fullJavaSuiteRunThisVersion": false,
+    "nativeSmokeRunThisVersion": false,
+    "legacyUpgradeMatrixRunThisVersion": false,
+    "productionLicenseVerified": false,
+    "liveCatalogCardCreatedThisVersion": false,
+    "liveCatalogCardRepairedThisVersion": false,
+    "liveCryptoProSigningThisVersion": false,
+    "liveApiWbGtinWriteThisVersion": false,
+    "liveApiOzonGtinWriteThisVersion": false,
+    "liveKizPurchaseThisVersion": false,
+    "sellerDesktopPopupObserved": false
+  }
+}

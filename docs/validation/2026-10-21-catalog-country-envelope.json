@@ -1,0 +1,74 @@
+{
+  "mode": "production-read-only-country-envelope",
+  "writesPerformed": false,
+  "checkedAt": "2026-10-20T22:38:17.133367+00:00",
+  "requests": [
+    {
+      "service": "Catalog",
+      "method": "GET",
+      "path": "/v3/dictionary/isocountry",
+      "purpose": "fresh exact country dictionary envelope",
+      "httpStatus": 200,
+      "responseBytes": 15022
+    },
+    {
+      "service": "Catalog",
+      "method": "GET",
+      "path": "/v3/attributes",
+      "purpose": "fresh country2630 national_reference metadata",
+      "httpStatus": 200,
+      "responseBytes": 42811
+    }
+  ],
+  "sanitization": {
+    "containsCredentialValues": false,
+    "containsProductIdentifiers": false,
+    "containsGtinValues": false,
+    "containsSellerRawData": false
+  },
+  "gtinAllocationPerformed": false,
+  "countryResponse": {
+    "topLevelKeys": [
+      "apiversion",
+      "result"
+    ],
+    "resultType": "dict",
+    "resultKeys": [
+      "_etag",
+      "_list"
+    ],
+    "entryCount": 254,
+    "entryKeyNames": [
+      "country_iso",
+      "country_name"
+    ],
+    "russia": [
+      {
+        "country_iso": "RU",
+        "country_name": "Россия"
+      }
+    ],
+    "expectedExtractionPath": "result._list"
+  },
+  "countryAttributes": [
+    {
+      "attr_group_id": 24,
+      "attr_name": "Страна производства",
+      "preset_url": "https://апи.национальный-каталог.рф/v3/dictionary/isocountry",
+      "attr_preset_only": true,
+      "attr_multiplicity": true,
+      "attr_multiplicity_type": "regular",
+      "attr_id": 2630,
+      "attr_group_name": "Идентификация товара",
+      "attr_field_type": "text",
+      "attr_value_type": [],
+      "first_layer": false,
+      "second_layer": false,
+      "attr_type": "r",
+      "attr_preset": [],
+      "dependent_attributes": []
+    }
+  ],
+  "status": "COMPLETE",
+  "completedAt": "2026-10-20T22:38:20.655964+00:00"
+}
