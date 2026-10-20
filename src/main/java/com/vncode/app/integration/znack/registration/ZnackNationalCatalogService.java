@@ -20,6 +20,7 @@ import org.slf4j.LoggerFactory;
 
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Base64;
 import java.util.Comparator;
 import java.util.HashSet;
@@ -52,13 +53,18 @@ public final class ZnackNationalCatalogService {
         this.settings = settings;
     }
 
+    /** Owner-verified Catalog keys authenticate Catalog requests directly, without True API CMS. */
+    public String catalogToken() throws Exception {
+        return api.hasCatalogKey() ? "" : auth.trueApiToken(settings);
+    }
+
     public Preflight preflight(String tnved) throws Exception {
         String normalized = digits(tnved);
         if (normalized.length() < 4 || normalized.length() > 10) {
             throw new IllegalArgumentException("TN VED must contain 4 to 10 digits.");
         }
         LicenseRuntime.require(Permission.SELLER_API);
-        String token = auth.trueApiToken(settings);
+        String token = catalogToken();
         LicenseRuntime.require(Permission.SELLER_API);
         Gs1Status gs1 = parseGs1(api.generatedGtins(settings.resolvedTrueApiBaseUrl(), token));
         if (gs1.quotaKnown() && !gs1.canGenerate() && gs1.existingDrafts() == 0) {
@@ -297,6 +303,36 @@ public final class ZnackNationalCatalogService {
     }
 
     public FeedProgress progress(String token, String feedId, String gtin) throws Exception {
+        return readFeedProgress(token, feedId, gtin, true);
+    }
+
+    /** A receipt proves import acceptance, never that a product card was created. */
+    public FeedProgress submissionStatus(String token, String feedId, String gtin) throws Exception {
+        FeedProgress feed = readFeedProgress(token, feedId, gtin, false);
+        if (feed.failed()) return feed;
+        JsonObject card = readCard(token, gtin, feed.goodId());
+        if (card != null) {
+            // An old published version may coexist with the revision submitted by this
+            // still-active feed. Its publication does not prove the revision is finished.
+            var revision=detailedState(card);
+            if(Set.of("received","processing","moderated").contains(feed.status().toLowerCase(Locale.ROOT))
+                    &&isPublished(card)&&!Collections.disjoint(revision,Set.of("draft","moderation","errors","error","rejected","notsigned"))){
+                long good=number(card,"good_id");if(good==0)good=number(card,"goodId");
+                if(!Collections.disjoint(revision,Set.of("errors","error","rejected")))
+                    return new FeedProgress("Rejected",good,List.of("CATALOG_CARD_REJECTED_DETAILS_UNAVAILABLE"));
+                if(revision.contains("moderation"))return new FeedProgress("CardModeration",good,List.of());
+                if(revision.contains("draft"))return new FeedProgress("CardDraft",good,List.of());
+                return new FeedProgress("Moderated",good,List.of());
+            }
+            return observedCard(card);
+        }
+        if (Set.of("processed", "done", "completed").contains(feed.status().toLowerCase(Locale.ROOT))) {
+            return new FeedProgress("Rejected", null, List.of("CATALOG_FEED_COMPLETED_WITHOUT_CARD"));
+        }
+        return new FeedProgress("CardNotFound", null, List.of());
+    }
+
+    private FeedProgress readFeedProgress(String token, String feedId, String gtin, boolean verifyCard) throws Exception {
         JsonObject result;
         try{result=resultObject(api.nationalCatalogFeedStatus(settings.resolvedTrueApiBaseUrl(),token,feedId));}
         catch(Exception missingFeed){
@@ -341,12 +377,14 @@ public final class ZnackNationalCatalogService {
             collectFeedErrors(item.get("errors"), errors);
         }
         if(number(details,"totalErrors")>0&&errors.isEmpty())errors.add("CATALOG_VALIDATION_ERRORS_UNAVAILABLE");
-        if(errors.isEmpty()&&("Signed".equalsIgnoreCase(status) || "Moderated".equalsIgnoreCase(status)) && exactIdentities.size()!=1)
+        if(!verifyCard&&errors.isEmpty()&&!array(result.get("item")).isEmpty()&&exactIdentities.size()!=1)
+            throw new IllegalStateException("CATALOG_FEED_IDENTITY_NOT_CONFIRMED");
+        if(verifyCard&&errors.isEmpty()&&("Signed".equalsIgnoreCase(status) || "Moderated".equalsIgnoreCase(status)) && exactIdentities.size()!=1)
             throw new IllegalStateException("Catalog feed readback did not confirm the requested GTIN.");
-        if(errors.isEmpty()&&"Signed".equalsIgnoreCase(status) && (goodId==null || goodId<=0))
+        if(verifyCard&&errors.isEmpty()&&"Signed".equalsIgnoreCase(status) && (goodId==null || goodId<=0))
             throw new IllegalStateException("Catalog feed readback did not confirm the signed card identity.");
         boolean publicationVerified=false;
-        if(Set.of("received","processing","moderated").contains(status.toLowerCase(Locale.ROOT))&&errors.isEmpty()){
+        if(verifyCard&&Set.of("received","processing","moderated").contains(status.toLowerCase(Locale.ROOT))&&errors.isEmpty()){
             // The feed can lag behind the card. Inspect the exact product, as well as the feed,
             // before reporting moderation or asking CryptoPro to sign an already published card.
             var card=readCard(token,gtin,goodId);
@@ -362,7 +400,7 @@ public final class ZnackNationalCatalogService {
                         &&java.util.Collections.disjoint(detailsState,Set.of("draft","moderation","errors","notsigned"))){status="Signed";publicationVerified=true;}
             }
         }
-        if(Set.of("processed","done","completed").contains(status.toLowerCase(Locale.ROOT))&&errors.isEmpty()){
+        if(verifyCard&&Set.of("processed","done","completed").contains(status.toLowerCase(Locale.ROOT))&&errors.isEmpty()){
             if(array(result.get("item")).size()>0&&exactIdentities.size()!=1)throw new IllegalStateException("CATALOG_FEED_IDENTITY_NOT_CONFIRMED");
             var card=readCard(token,gtin,goodId);
             if(card==null){status="Rejected";errors.add("CATALOG_FEED_COMPLETED_WITHOUT_CARD");}
@@ -372,7 +410,7 @@ public final class ZnackNationalCatalogService {
         }
         // A signed feed is an acknowledgement for the import/signing request. It is
         // not proof that the product card is visible and published in the catalog.
-        if("Signed".equalsIgnoreCase(status) && errors.isEmpty()&&!publicationVerified
+        if(verifyCard&&"Signed".equalsIgnoreCase(status) && errors.isEmpty()&&!publicationVerified
                 && !publishedCard(token,gtin,goodId))status="PublicationPending";
         return new FeedProgress(status, goodId, List.copyOf(errors));
     }
@@ -757,7 +795,11 @@ public final class ZnackNationalCatalogService {
     public record Preflight(String tnved, String categoryTnved, Gs1Status gs1,
                             List<Category> categories, String token) { }
     public record FeedProgress(String status, Long goodId, List<String> errors) {
-        public boolean failed() { return "Rejected".equalsIgnoreCase(status) || !errors.isEmpty(); }
+        public boolean failed() { return Set.of("rejected", "failed", "error").contains(status.toLowerCase(Locale.ROOT)) || !errors.isEmpty(); }
+        public boolean cardVerified() {
+            return !failed() && goodId != null && goodId > 0
+                    && Set.of("carddraft", "cardmoderation", "moderated", "signed").contains(status.toLowerCase(Locale.ROOT));
+        }
         public boolean readyToSign() { return "Moderated".equalsIgnoreCase(status) && errors.isEmpty(); }
         public boolean signed() { return "Signed".equalsIgnoreCase(status) && errors.isEmpty(); }
         public String errorMessage() { return String.join("; ", errors); }

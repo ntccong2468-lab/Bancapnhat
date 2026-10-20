@@ -125,7 +125,8 @@ public final class ZnackRegistrationQueryRepository {
             case "", "ALL" -> true;
             case "COMPLETED" -> onMarketplace;
             case "NOT_CREATED" -> !state.published()&&!state.blocked()&&RegistrationCardIndex.notSubmitted(row);
-            case "IN_PROGRESS" -> state.status().equals("source.moderation")||!onMarketplace&&!state.blocked()&&(state.published()||RegistrationCardIndex.confirmedSubmission(row.status(),row.feedId()));
+            case "IN_PROGRESS" -> Set.of("source.draft","source.processing","source.moderation").contains(state.status())
+                    ||!onMarketplace&&!state.blocked()&&(state.published()||RegistrationCardIndex.confirmedSubmission(row.status(),row.feedId()));
             case "ERROR" -> !Set.of("source.moderation","source.draft").contains(state.status())&&(state.blocked()||registrationError(row.status(),row.gtin()));
             case "GTIN_REVIEW_REQUIRED" -> !state.blocked()&&!state.published()&&row.needsGtinReview();
             case "FEED_REVIEW_REQUIRED" -> !state.blocked()&&!state.published()&&row.needsFeedReview();

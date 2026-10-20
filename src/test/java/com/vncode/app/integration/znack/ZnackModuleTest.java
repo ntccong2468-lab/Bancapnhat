@@ -582,6 +582,10 @@ class ZnackModuleTest {
             assertEquals(429,error.statusCode());
             assertEquals(1,attempts.get());
             assertTrue(delays.isEmpty());
+            assertEquals(java.time.Duration.ofSeconds(301),error.retryAfter());
+            assertEquals(java.time.Duration.ofSeconds(301),
+                    com.vncode.app.features.sync.SyncFailure.of(error,0).delay(),
+                    "A deferred worker must retain the server delay even when inline retry is refused");
         } finally { server.stop(0); }
     }
 

@@ -1,6 +1,8 @@
 package com.vncode.app;
 
 import com.vncode.app.shared.AppPaths;
+import com.vncode.app.shared.AppDataLock;
+import com.vncode.app.shared.AppInstanceActivation;
 import com.vncode.app.shared.LocalDataMigrationGate;
 import javafx.application.Application;
 
@@ -28,11 +30,27 @@ public class Launcher {
     }
     /** The visible startup scene precedes recovery; no application writer opens first. */
     static void prepareDataSession(java.util.function.Consumer<String> phase)throws Exception {
-        var session=LocalDataMigrationGate.prepare(AppPaths.appDataDir(),BuildConfig.getAppVersion(),"javafx",phase);
+        prepareDataSession(phase,null);
+    }
+    static void prepareDataSession(java.util.function.Consumer<String> phase,
+                                   java.util.function.Supplier<? extends java.util.concurrent.CompletionStage<Void>> restore)throws Exception {
+        LocalDataMigrationGate.Session session;
+        try{session=LocalDataMigrationGate.prepare(AppPaths.appDataDir(),BuildConfig.getAppVersion(),"javafx",phase,restore);}
+        catch(AppDataLock.AlreadyRunningException alreadyRunning){
+            try{
+                if(AppInstanceActivation.requestActivation(AppPaths.appDataDir(),java.time.Duration.ofSeconds(3)))
+                    throw new AppInstanceActivation.ActivatedException();
+            }catch(AppInstanceActivation.ActivatedException activated){throw activated;
+            }catch(java.io.IOException unavailable){alreadyRunning.addSuppressed(unavailable);}
+            throw alreadyRunning;
+        }
         synchronized(SESSION_LOCK){
             if(exiting||Thread.currentThread().isInterrupted()){session.close();throw new java.io.InterruptedIOException("STARTUP_CANCELLED");}
             dataSession=session;
         }
+    }
+    static void stopInstanceActivation(){
+        synchronized(SESSION_LOCK){if(dataSession!=null)dataSession.closeActivation();}
     }
     public static void prepareUpdateSnapshot()throws java.io.IOException {
         prepareUpdateSnapshot(null);
@@ -84,6 +102,8 @@ public class Launcher {
 
             String content = """
                     [%s] Thread: %s
+                    app.version=%s
+                    process.pid=%s
                     user.home=%s
                     LOCALAPPDATA=%s
                     APPDATA=%s
@@ -95,6 +115,8 @@ public class Launcher {
                     """.formatted(
                     LocalDateTime.now(),
                     threadName,
+                    BuildConfig.getAppVersion(),
+                    ProcessHandle.current().pid(),
                     System.getProperty("user.home"),
                     System.getenv("LOCALAPPDATA"),
                     System.getenv("APPDATA"),

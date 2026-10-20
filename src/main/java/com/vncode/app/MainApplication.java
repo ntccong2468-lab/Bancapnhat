@@ -22,16 +22,45 @@ import java.io.IOException;
 public class MainApplication extends Application {
     private HomeController homeController;
     private RegistrationBackgroundLifetime registrationBackgroundLifetime;
+    private boolean stopping;
     private final com.vncode.app.features.gs1.Gs1AutoReminderScheduler gs1Reminders=new com.vncode.app.features.gs1.Gs1AutoReminderScheduler();
 
     @Override
     public void start(Stage stage) throws IOException {
         stage.getIcons().add(new Image(MainApplication.class.getResourceAsStream("/com/vncode/app/assets/images/logo.png")));
         com.vncode.app.ui.StartupProgress.show(stage,phase->{
-            Launcher.prepareDataSession(phase);phase.accept("INITIALIZING_DATA");return HomeController.prepareLocalData();
+            Launcher.prepareDataSession(phase,()->restoreWindow(stage));phase.accept("INITIALIZING_DATA");return HomeController.prepareLocalData();
         },prepared->{
             try{openWorkspace(stage,prepared);}catch(IOException failure){throw new java.io.UncheckedIOException(failure);}
         },failure->Launcher.writeStartupLog("startup-data",failure));
+    }
+
+    /** Complete only after the owned window has actually been restored on the FX thread. */
+    private java.util.concurrent.CompletionStage<Void> restoreWindow(Stage stage){
+        var restored=new java.util.concurrent.CompletableFuture<Void>();
+        try{javafx.application.Platform.runLater(()->{
+            try{
+                if(stopping)throw new IllegalStateException("APPLICATION_STOPPING");
+                if(registrationBackgroundLifetime!=null)registrationBackgroundLifetime.restore();
+                else{stage.show();stage.setIconified(false);stage.toFront();stage.requestFocus();}
+                verifyWindowRestored(stage,restored,System.nanoTime()+java.util.concurrent.TimeUnit.SECONDS.toNanos(2));
+            }catch(RuntimeException failure){restored.completeExceptionally(failure);}
+        });}catch(RuntimeException unavailable){restored.completeExceptionally(unavailable);}
+        return restored;
+    }
+
+    private void verifyWindowRestored(Stage stage,java.util.concurrent.CompletableFuture<Void> restored,long deadline){
+        if(restored.isDone())return;
+        if(stopping){restored.completeExceptionally(new IllegalStateException("APPLICATION_STOPPING"));return;}
+        if(stage.isShowing()&&!stage.isIconified()){restored.complete(null);return;}
+        if(System.nanoTime()>=deadline){restored.completeExceptionally(new IllegalStateException("APPLICATION_WINDOW_NOT_RESTORED"));return;}
+        // Deiconification is confirmed asynchronously by the native window manager.
+        // Check after pulses without blocking FX or acknowledging a merely queued show.
+        try{
+            stage.setIconified(false);
+            var check=new javafx.animation.PauseTransition(javafx.util.Duration.millis(50));
+            check.setOnFinished(ignored->verifyWindowRestored(stage,restored,deadline));check.play();
+        }catch(RuntimeException unavailable){restored.completeExceptionally(unavailable);}
     }
 
     private void openWorkspace(Stage stage,HomeController.PreparedLocalData prepared) throws IOException {
@@ -101,6 +130,8 @@ public class MainApplication extends Application {
 
     @Override
     public void stop() {
+        stopping=true;
+        Launcher.stopInstanceActivation();
         if (registrationBackgroundLifetime != null) registrationBackgroundLifetime.close();
         gs1Reminders.close();
         com.vncode.app.shared.RuntimeDiagnostics.stopPulseMonitor();

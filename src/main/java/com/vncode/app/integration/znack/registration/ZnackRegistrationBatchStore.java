@@ -37,7 +37,7 @@ final class ZnackRegistrationBatchStore {
     String create(Shop shop,String run,List<Sku> rows,boolean autoSign,String scope){
         try{return SqliteWriteTransaction.run(c->{
             requireOwner(c,shop);
-            try(var p=c.prepareStatement("SELECT id FROM znack_registration_batches WHERE shop_id=? AND owner=? AND state IN ('QUEUED','RUNNING','WAITING_NETWORK') ORDER BY created_at DESC LIMIT 1")){
+            try(var p=c.prepareStatement("SELECT id FROM znack_registration_batches WHERE shop_id=? AND owner=? AND state IN ('QUEUED','RUNNING','WAITING_NETWORK','WAITING_REMOTE') ORDER BY created_at DESC LIMIT 1")){
                 p.setInt(1,shop.getId());p.setString(2,ListingIdentity.fingerprint(shop));try(var r=p.executeQuery()){if(r.next())throw new IllegalStateException("ZNACK_REGISTRATION_BATCH_ALREADY_RUNNING");}
             }
             String now=Instant.now().toString();

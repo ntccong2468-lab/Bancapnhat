@@ -1,0 +1,250 @@
+{
+  "mode": "production-read-only",
+  "writesPerformed": false,
+  "checkedAt": "2026-10-20T18:51:27.217276+00:00",
+  "requests": [
+    {
+      "service": "Catalog",
+      "method": "GET",
+      "path": "/v4/product-list",
+      "purpose": "bounded complete card status list",
+      "httpStatus": 200,
+      "responseBytes": 346456
+    },
+    {
+      "service": "Catalog",
+      "method": "GET",
+      "path": "/v4/product-list",
+      "purpose": "bounded complete card status list",
+      "httpStatus": 200,
+      "responseBytes": 94870
+    },
+    {
+      "service": "Catalog",
+      "method": "GET",
+      "path": "/v3/feed-product",
+      "purpose": "error/draft/recent card details",
+      "httpStatus": 200,
+      "responseBytes": 107808
+    },
+    {
+      "service": "Catalog",
+      "method": "GET",
+      "path": "/v3/feed-product",
+      "purpose": "error/draft/recent card details",
+      "httpStatus": 200,
+      "responseBytes": 94354
+    },
+    {
+      "service": "WB",
+      "method": "POST",
+      "path": "/content/v2/get/cards/list",
+      "purpose": "read-only current WB product coverage",
+      "httpStatus": 200,
+      "responseBytes": 647270
+    },
+    {
+      "service": "WB",
+      "method": "POST",
+      "path": "/content/v2/get/cards/list",
+      "purpose": "read-only current WB product coverage",
+      "httpStatus": 200,
+      "responseBytes": 650352
+    },
+    {
+      "service": "WB",
+      "method": "POST",
+      "path": "/content/v2/get/cards/list",
+      "purpose": "read-only current WB product coverage",
+      "httpStatus": 200,
+      "responseBytes": 633312
+    },
+    {
+      "service": "WB",
+      "method": "POST",
+      "path": "/content/v2/get/cards/list",
+      "purpose": "read-only current WB product coverage",
+      "httpStatus": 200,
+      "responseBytes": 555711
+    }
+  ],
+  "sanitization": {
+    "containsCredentialValues": false,
+    "containsProductIdentifiers": false,
+    "containsGtinValues": false,
+    "containsSellerRawData": false
+  },
+  "catalog": {
+    "listingComplete": true,
+    "pages": [
+      {
+        "count": 1000,
+        "reportedTotal": 1277
+      },
+      {
+        "count": 277,
+        "reportedTotal": 1277
+      }
+    ],
+    "cards": 1277,
+    "statuses": {
+      "published": 1241,
+      "draft": 36
+    },
+    "detailedStatuses": {
+      "draft|published": 1,
+      "published": 1240,
+      "draft": 2,
+      "errors": 34
+    },
+    "published": 1241,
+    "errors": 34,
+    "draftWithoutErrors": 2,
+    "listFields": [
+      "brand_name",
+      "good_detailed_status",
+      "good_id",
+      "good_name",
+      "good_status",
+      "gtin",
+      "tnved",
+      "updated_date"
+    ],
+    "maxCreateDate": "",
+    "maxUpdateDate": "2026-10-19 22:34:25",
+    "createdSinceEarlierRead": null,
+    "updatedSinceEarlierRead": 0,
+    "comparisonBaselineMoscow": "2026-10-20 11:30:45",
+    "recentTenUpdateDates": [
+      "2026-10-19 22:34:25",
+      "2026-10-19 11:10:38",
+      "2026-10-19 11:10:18",
+      "2026-10-19 11:09:57",
+      "2026-10-06 22:22:26",
+      "2026-10-06 22:22:26",
+      "2026-10-06 22:22:24",
+      "2026-10-06 22:22:24",
+      "2026-10-06 22:22:23",
+      "2026-10-06 22:22:22"
+    ],
+    "recentTenStatuses": [
+      "published|published",
+      "published|published",
+      "published|published",
+      "published|published",
+      "published|published",
+      "published|published",
+      "published|published",
+      "published|published",
+      "published|published",
+      "published|published"
+    ]
+  },
+  "details": {
+    "requested": 46,
+    "received": 46,
+    "errorCardsRead": 34,
+    "fields": [
+      "brand_id",
+      "brand_name",
+      "categories",
+      "create_date",
+      "first_sign_date",
+      "flags_updated_date",
+      "good_attrs",
+      "good_detailed_status",
+      "good_id",
+      "good_images",
+      "good_img",
+      "good_mark_flag",
+      "good_name",
+      "good_prices",
+      "good_rating",
+      "good_reviews",
+      "good_reviews_count",
+      "good_signed",
+      "good_status",
+      "good_turn_flag",
+      "good_url",
+      "identified_by",
+      "is_kit",
+      "is_set",
+      "is_tech_gtin",
+      "producer_inn",
+      "producer_name",
+      "remainder_type",
+      "set_gtins",
+      "update_date"
+    ],
+    "feedIdPresentCount": 0,
+    "taskIdPresentCount": 0,
+    "reasonNonemptyCounts": {
+      "errors": 0,
+      "error": 0,
+      "error_details": 0,
+      "reject_reason": 0,
+      "rejection_reason": 0,
+      "moderation_reason": 0,
+      "good_reviews": 0
+    },
+    "literalPermitGroupMismatchOccurrences": 0,
+    "maxCreateDate": "2026-10-18 06:37:43",
+    "maxUpdateDate": "2026-10-19 22:34:25",
+    "errorTnvedAttributeOccurrencesByGroup": {
+      "6106": 14,
+      "6110": 48,
+      "6103": 6
+    },
+    "tnvedCountUnit": "Attribute occurrences; both3959 and13933 may exist on the same card, so these are not unique-card counts."
+  },
+  "feedReadback": [],
+  "feedHistoryLimitation": "No genuine feed_id in returned cards; no arbitrary feed IDs or undocumented history endpoints queried.",
+  "wbCoverage": {
+    "listingComplete": true,
+    "pages": [
+      100,
+      100,
+      100,
+      88
+    ],
+    "products": 388,
+    "variants": 1982,
+    "barcodes": 3777,
+    "variantsWithPublishedCatalogGtin": 1,
+    "variantsWithoutPublishedCatalogGtin": 1981,
+    "distinctPublishedCatalogGtinsPresentOnWb": 1,
+    "limitations": "Exact barcode membership only; not new-write, item identity, legal document scope or global unregistered proof."
+  },
+  "status": "COMPLETE",
+  "completedAt": "2026-10-20T18:51:43.124125+00:00",
+  "previousAttempts": [
+    {
+      "httpStatus": 429,
+      "retryAfterSeconds": 31,
+      "action": "Stopped immediately; one retry after server delay."
+    },
+    {
+      "httpStatus": 400,
+      "cause": "Probe accidentally comma-joined detail IDs; corrected to documented semicolon delimiter. Not an application registration response."
+    }
+  ],
+  "comparisonToEarlierEvidence": {
+    "baselineFile": "docs/validation/2026-10-20-vncode-153-catalog-readonly-recheck.json",
+    "baselineCheckedAt": "2026-10-20T08:30:45.443952+00:00",
+    "totalCardDelta": 0,
+    "publishedDelta": 0,
+    "errorDelta": 0,
+    "plainDraftDelta": 0,
+    "doesNotProveWhichClientCreatedOrSubmittedCards": true
+  },
+  "interpretation": {
+    "currentApiReadWorks": true,
+    "completeCatalogStatusListingRead": true,
+    "listingIncludesNoNewerReportedUpdatesSinceBaseline": true,
+    "remoteModerationCauseEstablished": false,
+    "liveCardCreationOrPublicationPerformed": false,
+    "liveRegistrationRequestOutcomeEstablished": false,
+    "pendingRequestCannotBeReadWithoutAuthenticFeedId": true,
+    "timestamps": "Catalog date strings as returned; listing create_date unavailable."
+  }
+}

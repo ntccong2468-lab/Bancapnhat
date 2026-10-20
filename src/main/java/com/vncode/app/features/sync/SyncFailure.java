@@ -30,7 +30,7 @@ public record SyncFailure(String code,Duration delay,boolean actionRequired) {
             }
             if(e instanceof com.vncode.app.integration.znack.ZnackApiClient.ZnackApiException z){
                 if(z.statusCode()==401||z.statusCode()==403)return new SyncFailure("ZNACK_AUTH_REQUIRED",Duration.ofMinutes(1),true);
-                if(z.statusCode()==429)return new SyncFailure("ZNACK_RATE_LIMIT",Duration.ofMinutes(1),false);
+                if(z.statusCode()==429)return new SyncFailure("ZNACK_RATE_LIMIT",z.retryAfter()==null?Duration.ofMinutes(1):z.retryAfter(),false);
                 return new SyncFailure("ZNACK_HTTP_"+z.statusCode(),backoff(attempt),z.statusCode()>=400&&z.statusCode()<500);
             }
             if(e instanceof java.io.InterruptedIOException&&!(e instanceof java.net.SocketTimeoutException))return new SyncFailure("ZNACK_SYNC_CANCELLED",backoff(attempt),false);

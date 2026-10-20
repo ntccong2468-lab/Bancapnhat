@@ -176,9 +176,73 @@ class OzonCardRegistrationWorkflowTest {
         while(System.nanoTime()<until&&queue.counts(report).remaining()>0)Thread.sleep(10);
         while(System.nanoTime()<until&&OzonRegistrationBatchService.hasPendingJobs())Thread.sleep(10);
         var progress=restarted.latest(shop);assertEquals(2,progress.submitted());assertEquals(0,progress.failed());assertEquals(0,progress.remaining());assertEquals(OzonRegistrationBatchService.State.COMPLETED,progress.state());assertEquals(second.variantId(),progress.lastSubmittedArticle());
-        assertEquals(2,api.submissions.get());assertEquals(2,api.allocations.get());assertEquals(0,api.polls.get());assertEquals(Status.FEED_SUBMITTED,repository.find(key).status());assertEquals(Status.FEED_SUBMITTED,repository.find(second).status());
+        assertEquals(2,api.submissions.get());assertEquals(2,api.allocations.get());assertEquals(2,api.polls.get());assertEquals(Status.PROCESSING,repository.find(key).status());assertEquals(Status.PROCESSING,repository.find(second).status());
         var reports=new com.vncode.app.features.sync.SyncRunRepository();assertEquals(2,reports.find(report).orElseThrow().total());assertEquals(2L,reports.counts(report).get("WAITING_REMOTE"));
         assertFalse(new OzonRegistrationBatchService(queue,repository,batchWorkflow).resumePending(shop));assertEquals(2,api.submissions.get());
+    }
+    @Test void delayedFirstImportDoesNotBlockOtherSelectedCardsAndRetriesOnlyReadback()throws Exception {
+        api.knownQuota=true;api.pendingModeration=true;api.missingGtins.add(GtinWriteTestFixture.GTIN);
+        var second=new ProductKey(2,Marketplace.OZON,"502","fixture-offer-2");var base=snapshot;
+        var snapshots=Map.of(key,base,second,new ProductSnapshot(second,"live:second","Second","",base.brand(),second.variantId(),base.categoryId(),base.media(),base.attributes(),List.of(new ProductVariant(second.variantId(),second.variantId(),"","","",false)),base.dimensions(),base.documents(),Instant.now(),Map.of("sku","9002","owner",com.vncode.app.integration.listing.ListingIdentity.fingerprint(shop))));
+        try(var c=Database.getConnection();var p=c.prepareStatement("INSERT INTO ozon_products(shop_id,product_id,offer_id,sku,name,synced_at) VALUES(2,?,?,?,'Fixture',?)")){
+            for(var k:List.of(key,second)){p.setString(1,k.cardId());p.setString(2,k.variantId());p.setString(3,k.equals(key)?"9001":"9002");p.setString(4,Instant.now().toString());p.addBatch();}p.executeBatch();
+        }
+        com.vncode.app.testsupport.RegistrationSourceFixture.ready(shop);
+        var queue=new OzonRegistrationBatchRepository();String run=OzonRegistrationAttemptReports.queue(shop,List.of(key,second));queue.create(shop,List.of(key,second),false,session().scope(),run);
+        var worker=new OzonCardRegistrationWorkflow(repository,s->session(),(s,k)->{api.activeKey=k;return snapshots.get(k);},Runnable::run,(s,k,sku,gtin)->false);
+        var batch=new OzonRegistrationBatchService(queue,repository,worker);
+        try{
+            assertTrue(batch.resumePending(shop));long until=System.nanoTime()+java.util.concurrent.TimeUnit.SECONDS.toNanos(8);
+            while(System.nanoTime()<until&&!queue.latest(shop).state().equals("WAITING_REMOTE"))Thread.sleep(10);
+            assertEquals("WAITING_REMOTE",queue.latest(shop).state());assertEquals(1,queue.counts(run).submitted());assertEquals(1,queue.counts(run).remaining());
+            assertEquals(2,api.submissions.get(),"A missing card must not block the later selected product");assertEquals(2,api.allocations.get());
+            assertEquals(Status.FEED_SUBMITTED,repository.find(key).status());assertTrue(OzonCardRegistrationWorkflow.verifiedSubmission(repository.find(second)));
+            String firstFeed=repository.find(key).feedId();api.missingGtins.clear();
+            until=System.nanoTime()+java.util.concurrent.TimeUnit.SECONDS.toNanos(20);
+            while(System.nanoTime()<until&&!queue.latest(shop).state().equals("COMPLETED"))Thread.sleep(20);
+            assertEquals("COMPLETED",queue.latest(shop).state());assertEquals(2,queue.counts(run).submitted());assertEquals(0,queue.counts(run).remaining());
+            assertEquals(firstFeed,repository.find(key).feedId());assertEquals(2,api.submissions.get());assertEquals(2,api.allocations.get());assertEquals(0,api.signatures.get());
+        }finally{queue.state(run,"FAILED","fixture complete");batch.resumePending(shop);}
+    }
+    @Test void newlyAcceptedFeedWithUnconfirmedIdentityFailsTheBatchWithoutResending()throws Exception {
+        api.invalidFeedIdentity="missing";
+        var queue=singleCardBatch("PENDING");var batch=new OzonRegistrationBatchService(queue,repository,workflow);
+        assertTrue(batch.resumePending(shop));awaitFinished(batch,queue,"CATALOG_FEED_IDENTITY_NOT_CONFIRMED");
+        assertFalse(row().feedId().isBlank());assertFalse(row().gtin().isBlank());
+        assertEquals(1,api.allocations.get());assertEquals(1,api.submissions.get());assertEquals(0,api.signatures.get());
+    }
+    @Test void savedReadyCardWithPermanentFeedIdentityFailureCannotCountAsSubmitted()throws Exception {
+        ready();String feed=row().feedId(),gtin=row().gtin();assertTrue(OzonCardRegistrationWorkflow.verifiedSubmission(row()));
+        api.invalidFeedIdentity="missing";
+        var queue=singleCardBatch("PENDING");var batch=new OzonRegistrationBatchService(queue,repository,workflow);
+        assertTrue(batch.resumePending(shop));awaitFinished(batch,queue,"CATALOG_FEED_IDENTITY_NOT_CONFIRMED");
+        assertEquals(feed,row().feedId());assertEquals(gtin,row().gtin());assertEquals(Status.READY_TO_SIGN,row().status());
+        assertEquals(1,api.allocations.get());assertEquals(1,api.submissions.get());assertEquals(0,api.signatures.get());
+    }
+    @Test void waitingPublishedCardWithChangedFeedIdentityFailsWithoutAnotherReadbackLoop()throws Exception {
+        published();String feed=row().feedId(),gtin=row().gtin();api.invalidFeedIdentity="changed";
+        var queue=singleCardBatch("WAITING_REMOTE");var batch=new OzonRegistrationBatchService(queue,repository,workflow);
+        assertTrue(batch.resumePending(shop));awaitFinished(batch,queue,"CATALOG_IDENTITY_CHANGED");
+        assertEquals(feed,row().feedId());assertEquals(gtin,row().gtin());assertEquals(Status.PUBLISHED,row().status());
+        assertEquals(1,api.allocations.get());assertEquals(1,api.submissions.get());assertEquals(1,api.signatures.get());
+    }
+    private OzonRegistrationBatchRepository singleCardBatch(String state)throws Exception {
+        api.knownQuota=true;
+        try(var c=Database.getConnection();var p=c.prepareStatement("INSERT INTO ozon_products(shop_id,product_id,offer_id,sku,name,synced_at) VALUES(2,?,?,?,'Fixture',?)")){
+            p.setString(1,key.cardId());p.setString(2,key.variantId());p.setString(3,"9001");p.setString(4,Instant.now().toString());p.executeUpdate();
+        }
+        com.vncode.app.testsupport.RegistrationSourceFixture.ready(shop);
+        var queue=new OzonRegistrationBatchRepository();String run=OzonRegistrationAttemptReports.queue(shop,List.of(key));queue.create(shop,List.of(key),false,session().scope(),run);
+        if(!state.equals("PENDING"))queue.item(queue.next(queue.latest(shop)),state,"");return queue;
+    }
+    private void awaitFinished(OzonRegistrationBatchService batch,OzonRegistrationBatchRepository queue,String reason)throws Exception {
+        String run=queue.latest(shop).id();long until=System.nanoTime()+java.util.concurrent.TimeUnit.SECONDS.toNanos(8);
+        while(System.nanoTime()<until&&(!queue.latest(shop).state().equals("COMPLETED")||OzonRegistrationBatchService.hasPendingJobs()))Thread.sleep(10);
+        assertEquals("COMPLETED",queue.latest(shop).state());assertEquals(0,queue.counts(run).submitted());assertEquals(1,queue.counts(run).failed());assertEquals(0,queue.counts(run).remaining());
+        try(var c=Database.getConnection();var p=c.prepareStatement("SELECT state,detail FROM ozon_registration_batch_items WHERE run_id=?")){
+            p.setString(1,run);try(var rows=p.executeQuery()){assertTrue(rows.next());assertEquals("FAILED",rows.getString("state"));assertTrue(rows.getString("detail").contains(reason),rows.getString("detail"));}
+        }
+        assertFalse(batch.resumePending(shop));assertFalse(OzonRegistrationBatchService.hasPendingJobs());
     }
     @Test void monitorLeavesKnownUnsentSubmissionToItsDurableBatchEvenBeforeBatchWorkerStarts()throws Exception {
         var scope=session().scope();assertTrue(repository.claim(shop,key,"9001","",scope,false));assertTrue(repository.transition(key,Status.CHECKING,Status.ALLOCATING_GTIN));
@@ -193,11 +257,51 @@ class OzonCardRegistrationWorkflowTest {
         // Unrelated legacy work still resumes even while another batch remains pending.
         monitor.poll(shop,3);assertEquals(1,api.submissions.get());assertEquals(0,api.allocations.get());assertEquals(Status.READY_TO_SIGN,row().status());
     }
-    @Test void batchSubmissionReleasesWorkerBeforeAnyModerationPoll()throws Exception {
+    @Test void batchSubmissionVerifiesOneCardWithoutWaitingForModerationOrSigning()throws Exception {
         api.pendingModeration=true;var prepared=workflow.prepare(shop,key);
         assertTrue(workflow.registerReviewedForBatch(shop,prepared,draft.withAutoSign(true),null));
-        assertEquals(Status.FEED_SUBMITTED,row().status());assertFalse(row().feedId().isBlank());assertEquals(1,api.submissions.get());assertEquals(0,api.polls.get());assertEquals(0,api.signatures.get());
-        assertTrue(workflow.resumeForBatch(shop,key,true));assertEquals(1,api.submissions.get());assertEquals(0,api.polls.get());
+        assertEquals(Status.PROCESSING,row().status());assertFalse(row().feedId().isBlank());assertEquals(1,api.submissions.get());assertEquals(1,api.polls.get());assertEquals(0,api.signatures.get());
+        assertEquals("CATALOG_CARD_IN_MODERATION",row().error());assertTrue(OzonCardRegistrationWorkflow.verifiedSubmission(row()));
+        assertTrue(workflow.resumeForBatch(shop,key,true));assertEquals(1,api.submissions.get());assertEquals(2,api.polls.get());assertEquals(0,api.signatures.get());
+    }
+    @Test void feedReceiptWithoutCardStaysPendingThenLateCardIsReadWithoutAnotherPost()throws Exception {
+        api.pendingModeration=true;api.cardMissing=true;
+        var prepared=workflow.prepare(shop,key);
+        assertTrue(workflow.registerReviewedForBatch(shop,prepared,draft.withAutoSign(true),null));
+        assertEquals(Status.FEED_SUBMITTED,row().status());assertNull(row().goodId());
+        assertEquals("CATALOG_REQUEST_ACCEPTED_CARD_PENDING",row().error());
+        assertFalse(OzonCardRegistrationWorkflow.verifiedSubmission(row()));
+        String feed=row().feedId(),gtin=row().gtin();
+        api.cardMissing=false;assertTrue(workflow.verifySubmissionForBatch(shop,key));
+        assertTrue(OzonCardRegistrationWorkflow.verifiedSubmission(row()));assertEquals(Status.PROCESSING,row().status());
+        assertEquals(feed,row().feedId());assertEquals(gtin,row().gtin());
+        assertEquals(1,api.allocations.get());assertEquals(1,api.submissions.get());assertEquals(0,api.signatures.get());
+    }
+    @Test void unavailableReadbackKeepsReceiptAndIdentityWithoutResending()throws Exception {
+        api.pendingModeration=true;api.readbackFailure=true;
+        var prepared=workflow.prepare(shop,key);assertTrue(workflow.registerReviewedForBatch(shop,prepared,draft,null));
+        assertEquals(Status.FEED_SUBMITTED,row().status());assertEquals("CATALOG_READBACK_RETRY_PENDING",row().error());
+        assertFalse(OzonCardRegistrationWorkflow.verifiedSubmission(row()));String feed=row().feedId(),gtin=row().gtin();
+        assertTrue(workflow.verifySubmissionForBatch(shop,key));assertEquals(1,api.submissions.get());
+        api.readbackFailure=false;assertTrue(workflow.verifySubmissionForBatch(shop,key));
+        assertEquals(feed,row().feedId());assertEquals(gtin,row().gtin());assertEquals(91L,row().goodId());
+        assertEquals(1,api.allocations.get());assertEquals(1,api.submissions.get());assertEquals(0,api.signatures.get());
+    }
+    @Test void rateLimitedReadbackRetainsSavedReceiptAndDoesNotRepeatPaidAllocationOrFeed()throws Exception {
+        api.pendingModeration=true;api.readbackStatus=429;
+        var prepared=workflow.prepare(shop,key);assertTrue(workflow.registerReviewedForBatch(shop,prepared,draft,null));
+        assertEquals(Status.FEED_SUBMITTED,row().status());assertEquals("CATALOG_READBACK_RETRY_PENDING",row().error());
+        String feed=row().feedId(),gtin=row().gtin();api.readbackStatus=0;
+        assertTrue(workflow.verifySubmissionForBatch(shop,key));assertTrue(OzonCardRegistrationWorkflow.verifiedSubmission(row()));
+        assertEquals(feed,row().feedId());assertEquals(gtin,row().gtin());assertEquals(1,api.allocations.get());assertEquals(1,api.submissions.get());
+    }
+    @Test void failedAndErrorFeedWithoutDetailsAreReportedInsteadOfWaitingForModeration()throws Exception {
+        api.emptyDetailFailure="Failed";
+        var prepared=workflow.prepare(shop,key);assertTrue(workflow.registerReviewedForBatch(shop,prepared,draft,null));
+        assertEquals(Status.ERROR,row().status());assertFalse(OzonCardRegistrationWorkflow.verifiedSubmission(row()));
+        assertTrue(row().error().contains("CATALOG_REJECTED"));
+        api.emptyDetailFailure="Error";assertTrue(workflow.verifySubmissionForBatch(shop,key));
+        assertEquals(Status.ERROR,row().status());assertEquals(1,api.allocations.get());assertEquals(1,api.submissions.get());
     }
     @Test void unknownTnvedDoesNotAuthenticateOrAllocateBeforeExplicitEntry()throws Exception {
         snapshot=snapshot("live:missing",false);var prepared=workflow.prepare(shop,key);
@@ -302,15 +406,29 @@ class OzonCardRegistrationWorkflowTest {
         ProductKey activeKey=key;boolean knownQuota;
         String rejectedFeed="";
         String rejectionStatus="Rejected",rejectionMessage="required attribute missing; token=fixture-secret";
-        boolean multipleCategories,allocationTimeout,feedTimeout,signTimeout,changeSigningDocument,accepted,rejected,pendingModeration,laggedModeration;
+        boolean multipleCategories,allocationTimeout,feedTimeout,signTimeout,changeSigningDocument,accepted,rejected,pendingModeration,laggedModeration,cardMissing,readbackFailure;
+        final Set<String> missingGtins=java.util.concurrent.ConcurrentHashMap.newKeySet();
+        final Map<String,String> feedGtins=new java.util.concurrent.ConcurrentHashMap<>();
+        int readbackStatus;
+        String emptyDetailFailure="";
+        volatile String invalidFeedIdentity="";
         String currentGtin=GtinWriteTestFixture.GTIN;
         public JsonElement generatedGtins(String base,String token){return json(knownQuota?"{\"result\":{\"drafts\":[],\"monthly-limit\":{\"limit\":100,\"usage\":0}}}":"{\"result\":{\"drafts\":[]}}");}
         public JsonElement generateGtins(String base,String token,int quantity)throws IOException{assertEquals(Status.ALLOCATING_GTIN,repository.find(activeKey).status());int count=allocations.incrementAndGet();if(allocationTimeout)throw new IOException("fixture allocation timeout");currentGtin=count==1?GtinWriteTestFixture.GTIN:"00000000000024";return json("{\"result\":{\"drafts\":[{\"gtin\":\""+currentGtin+"\"}]}}");}
         public JsonElement nationalCatalogCategories(String base,String token,String tnved){return json(multipleCategories?"{\"result\":[{\"cat_id\":1,\"cat_name\":\"Fixture\",\"category_active\":true},{\"cat_id\":2,\"cat_name\":\"Fixture 2\",\"category_active\":true}]}":"{\"result\":[{\"cat_id\":1,\"cat_name\":\"Fixture\",\"category_active\":true}]}");}
         public JsonElement nationalCatalogAttributes(String base,String token,long category){return json("{\"result\":[{\"attr_id\":1,\"attr_name\":\"Fixture\",\"attr_field_type\":\"text\"},{\"attr_id\":23557,\"attr_name\":\"Declaration\",\"attr_field_type\":\"text\"},{\"attr_id\":23561,\"attr_name\":\"Certificate\",\"attr_field_type\":\"text\"}]}");}
-        public JsonElement submitNationalCatalogFeed(String base,String token,JsonElement body)throws IOException{assertEquals(Status.FEED_SUBMITTING,repository.find(activeKey).status());lastPayload=body.getAsJsonObject().deepCopy();submissions.incrementAndGet();if(feedTimeout)throw new IOException("fixture feed timeout");return json("{\"result\":{\"feed_id\":\"feed-"+submissions.get()+"\"}}");}
-        public JsonElement productCards(String base,String token,String gtins){return json("{\"result\":[{\"gtin\":\""+gtins+"\",\"good_id\":91,\"tnved\":\"6204\",\"good_status\":\""+(accepted||!gtins.equals(currentGtin)?"published":"draft")+"\"}]}");}
-        public JsonElement nationalCatalogFeedStatus(String base,String token,String feed){polls.incrementAndGet();if(rejected||feed.equals(rejectedFeed))return json("{\"result\":{\"status\":\""+rejectionStatus+"\",\"item\":[{\"gtin\":\""+currentGtin+"\",\"status_code\":400,\"message\":\""+rejectionMessage+"\"}]}}");return json("{\"result\":{\"status\":\""+(pendingModeration?"Processing":accepted&&!laggedModeration?"Signed":"Moderated")+"\",\"item\":[{\"gtin\":\""+currentGtin+"\",\"good_id\":91}]}}");}
+        public JsonElement submitNationalCatalogFeed(String base,String token,JsonElement body)throws IOException{assertEquals(Status.FEED_SUBMITTING,repository.find(activeKey).status());lastPayload=body.getAsJsonObject().deepCopy();submissions.incrementAndGet();if(feedTimeout)throw new IOException("fixture feed timeout");String feed="feed-"+submissions.get();feedGtins.put(feed,lastPayload.get("gtin").getAsString());return json("{\"result\":{\"feed_id\":\""+feed+"\"}}");}
+        public JsonElement productCards(String base,String token,String gtins)throws IOException {
+            if(readbackStatus>0)throw new ZnackApiClient.ZnackApiException("fixture readback deferred",readbackStatus,"{}");
+            if(readbackFailure)throw new IOException("fixture readback offline");
+            if(cardMissing||missingGtins.contains(gtins))return json("{\"result\":[]}");
+            boolean published=accepted||!gtins.equals(currentGtin);
+            return json("{\"result\":[{\"gtin\":\""+gtins+"\",\"good_id\":91,\"tnved\":\"6204\",\"good_status\":\""+(published?"published":"draft")+"\",\"good_detailed_status\":[\""+(published?"published":pendingModeration?"moderation":"notsigned")+"\"]}]}");
+        }
+        public JsonElement nationalCatalogFeedStatus(String base,String token,String feed){polls.incrementAndGet();String feedGtin=feedGtins.getOrDefault(feed,currentGtin);
+            if(invalidFeedIdentity.equals("missing"))return json("{\"result\":{\"status\":\"Processing\",\"item\":[{\"gtin\":\"00000000000024\",\"good_id\":91}]}}");
+            if(invalidFeedIdentity.equals("changed"))return json("{\"result\":{\"status\":\"Processing\",\"item\":[{\"gtin\":\""+currentGtin+"\",\"good_id\":91},{\"gtin\":\""+currentGtin+"\",\"good_id\":92}]}}");
+            if(!emptyDetailFailure.isBlank())return json("{\"result\":{\"status\":\""+emptyDetailFailure+"\",\"item\":[]}}");if(rejected||feed.equals(rejectedFeed))return json("{\"result\":{\"status\":\""+rejectionStatus+"\",\"item\":[{\"gtin\":\""+feedGtin+"\",\"status_code\":400,\"message\":\""+rejectionMessage+"\"}]}}");return json("{\"result\":{\"status\":\""+(pendingModeration?"Processing":accepted&&!laggedModeration?"Signed":"Moderated")+"\",\"item\":[{\"gtin\":\""+feedGtin+"\",\"good_id\":91}]}}");}
         public JsonElement nationalCatalogSigningDocument(String base,String token,JsonObject body){int count=documents.incrementAndGet();return json("{\"result\":{\"xmls\":[{\"goodId\":91,\"xml\":\"<good>"+(changeSigningDocument&&count>1?"changed":"reviewed")+"</good>\"}]}}");}
         public JsonElement signNationalCatalogProduct(String base,String token,JsonArray body)throws IOException{assertEquals(Status.SIGNING,repository.find(activeKey).status());assertEquals("SENDING",repository.find(activeKey).signatureState());assertEquals("<good>reviewed</good>",new String(Base64.getDecoder().decode(body.get(0).getAsJsonObject().get("base64Xml").getAsString()),java.nio.charset.StandardCharsets.UTF_8));signatures.incrementAndGet();if(signTimeout)throw new IOException("fixture signing timeout");accepted=true;return json("{\"result\":{\"signed\":[91]}}");}
         JsonElement json(String value){return JsonParser.parseString(value);}

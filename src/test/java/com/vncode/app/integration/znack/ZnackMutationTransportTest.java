@@ -9,6 +9,28 @@ import java.util.concurrent.atomic.AtomicInteger;
 import static org.junit.jupiter.api.Assertions.*;
 
 class ZnackMutationTransportTest {
+    @Test void rateLimitedFeedPreservesServerDelayWithoutRepeatingItsPost() throws Exception {
+        for(String retryAfter:java.util.List.of("125","invalid")){
+            AtomicInteger requests=new AtomicInteger();
+            HttpServer server=HttpServer.create(new InetSocketAddress("127.0.0.1",0),0);
+            server.createContext("/",exchange->{
+                exchange.getRequestBody().readAllBytes();requests.incrementAndGet();
+                exchange.getResponseHeaders().add("Retry-After",retryAfter);
+                exchange.sendResponseHeaders(429,-1);exchange.close();
+            });
+            server.start();
+            try{
+                String base="http://127.0.0.1:"+server.getAddress().getPort();
+                var failure=assertThrows(ZnackApiClient.ZnackApiException.class,
+                        ()->new ZnackApiClient().submitNationalCatalogFeed(base,"fixture",new JsonObject()));
+                assertEquals(1,requests.get(),"A rate-limited feed must not be blindly replayed");
+                var reason=com.vncode.app.features.sync.SyncFailure.of(failure,0);
+                assertEquals("ZNACK_RATE_LIMIT",reason.code());
+                assertFalse(reason.actionRequired());
+                assertEquals(java.time.Duration.ofSeconds(retryAfter.equals("125")?125:60),reason.delay());
+            }finally{server.stop(0);}
+        }
+    }
     @Test void issuedKizBlockIsNotTransparentlyRequestedAgainAfterHttp408() throws Exception {
         AtomicInteger requests=new AtomicInteger();
         HttpServer server=server(requests);

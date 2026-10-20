@@ -17,7 +17,7 @@ import static com.vncode.app.integration.znack.registration.ZnackCardRegistratio
 
 /** Durable, sequential Catalog submission. Moderation/signing stays with the existing monitor. */
 public final class OzonRegistrationBatchService {
-    public enum State { QUEUED,RUNNING,WAITING,COMPLETED,FAILED }
+    public enum State { QUEUED,RUNNING,WAITING,WAITING_REMOTE,COMPLETED,FAILED }
     public record Progress(String runId,int total,int submitted,int failed,int remaining,String currentArticle,String currentSize,String detail,State state,String lastSubmittedArticle,String lastSubmittedSize) {}
     private static final ScheduledExecutorService WORKERS=Executors.newScheduledThreadPool(2,r->{var t=new Thread(r,"ozon-registration-batch");t.setDaemon(true);return t;});
     private static final Set<String> ACTIVE=ConcurrentHashMap.newKeySet();
@@ -54,7 +54,7 @@ public final class OzonRegistrationBatchService {
     /** Called by the existing sync monitor at startup and after network recovery. */
     public boolean resumePending(Shop selected) {
         if(selected==null||selected.getMarketplace()!=Marketplace.OZON)return false;
-        var batch=batches.latest(selected);if(batch==null||Set.of("COMPLETED","FAILED").contains(batch.state()))return false;
+        var batch=batches.latest(selected);if(batch==null||Set.of("COMPLETED","FAILED").contains(batch.state())){ACTIVE.remove(namespace(selected));return false;}
         Shop shop=capture(selected);String namespace=namespace(shop);
         if(ACTIVE.add(namespace)){var directory=AppPaths.appDataDir().toAbsolutePath().normalize();WORKERS.execute(()->run(shop,namespace,directory));}
         return true;
@@ -65,18 +65,43 @@ public final class OzonRegistrationBatchService {
         boolean deferred=false;OzonRegistrationBatchRepository.Batch batch=null;
         try(var dataScope=com.vncode.app.features.sync.SyncDataScope.enter(directory);var lane=com.vncode.app.shared.MarketplaceRequestBudget.lane(true)) {
             com.vncode.app.features.sync.SyncDataScope.requireCurrent();
-            batch=batches.latest(shop);if(batch==null)return;
+            batch=batches.latest(shop);if(batch==null||Set.of("COMPLETED","FAILED").contains(batch.state()))return;
             if(!batch.owner().equals(ListingIdentity.fingerprint(shop))||!batch.scope().equals(new Gson().toJson(scope(shop)))){failPending(shop,batch.id(),"SOURCE_CONFIGURATION_CHANGED");return;}
+            var checkedReceipts=new HashSet<Integer>();
             for(;;) {
                 var item=batches.next(batch);
-                if(item==null){batches.state(batch.id(),"COMPLETED","");return;}
+                if(item==null){
+                    // Delayed imports never prevent the remaining selected products being sent.
+                    // Each saved receipt is read at most once in this worker pass.
+                    for(var waiting:batches.waitingReadback(batch)){
+                        if(!checkedReceipts.add(waiting.position()))continue;
+                        new RegistrationSources().require(shop);scope(shop).assertCurrent(shop);ListingIdentity.require(shop);
+                        try{
+                            if(workflow.verifySubmissionForBatch(shop,waiting.key()))observeReceipt(shop,waiting);
+                            if(deferReadbackLimit(shop,namespace,directory,batch.id())){deferred=true;return;}
+                        }catch(Exception unavailable){
+                            if(unavailable instanceof ZnackRegistrationScope.ScopeChangedException changed)throw changed;
+                            var reason=SyncFailure.of(unavailable,0);
+                            observeReadbackFailure(shop,waiting,unavailable);
+                            if(CatalogFeedback.rateLimited(unavailable)){defer(shop,namespace,directory,batch.id(),"CATALOG_READBACK_RETRY_PENDING",Math.max(15,reason.delay().toSeconds()));deferred=true;return;}
+                        }
+                    }
+                    if(batches.counts(batch.id()).remaining()>0){
+                        defer(shop,namespace,directory,batch.id(),"CATALOG_REQUEST_ACCEPTED_CARD_PENDING",15);deferred=true;return;
+                    }
+                    batches.state(batch.id(),"COMPLETED","");return;
+                }
                 if(workflow.isRunning(shop)){defer(shop,namespace,directory,batch.id(),"REGISTRATION_BUSY",2);deferred=true;return;}
                 batches.state(batch.id(),"RUNNING","");item(shop,item,"RUNNING","");
                 try {
                     new RegistrationSources().require(shop);scope(shop).assertCurrent(shop);ListingIdentity.require(shop);
                     var row=cards.find(item.key());
                     if(row!=null&&!row.feedId().isBlank()) {
-                        cards.guard(shop,item.key(),scope(shop));item(shop,item,"SUBMITTED","");continue;
+                        checkedReceipts.add(item.position());cards.guard(shop,item.key(),scope(shop));
+                        if(workflow.verifySubmissionForBatch(shop,item.key()))observeReceipt(shop,item);
+                        else item(shop,item,"WAITING_REMOTE","REGISTRATION_BUSY");
+                        if(deferReadbackLimit(shop,namespace,directory,batch.id())){deferred=true;return;}
+                        continue;
                     }
                     if(row!=null&&Set.of(Status.GTIN_REVIEW_REQUIRED,Status.FEED_REVIEW_REQUIRED,Status.ALLOCATING_GTIN,Status.FEED_SUBMITTING).contains(row.status())) {
                         // A crash during a write has an unknown remote outcome. Never request another GTIN/feed.
@@ -96,7 +121,10 @@ public final class OzonRegistrationBatchService {
                     if(!accepted){item(shop,item,"PENDING","");defer(shop,namespace,directory,batch.id(),"REGISTRATION_BUSY",2);deferred=true;return;}
                     workflow.completion(shop).toCompletableFuture().join();
                     row=cards.find(item.key());
-                    if(row!=null&&!row.feedId().isBlank())item(shop,item,"SUBMITTED","");
+                    if(row!=null&&!row.feedId().isBlank()){
+                        checkedReceipts.add(item.position());observeReceipt(shop,item);
+                        if(deferReadbackLimit(shop,namespace,directory,batch.id())){deferred=true;return;}
+                    }
                     else if(row!=null&&row.status()==Status.READY_TO_SUBMIT){item(shop,item,"PENDING",row.error());defer(shop,namespace,directory,batch.id(),"NETWORK_RETRY",10);deferred=true;return;}
                     else if((row==null||row.status()==Status.PREFLIGHT_ERROR)&&workflow.failure(shop)!=null&&!SyncFailure.of(workflow.failure(shop),0).actionRequired()){
                         var reason=SyncFailure.of(workflow.failure(shop),0);item(shop,item,"PENDING",reason.code());defer(shop,namespace,directory,batch.id(),reason.code(),Math.max(2,reason.delay().toSeconds()));deferred=true;return;
@@ -105,6 +133,12 @@ public final class OzonRegistrationBatchService {
                 }catch(Exception failure) {
                     if(failure instanceof ZnackRegistrationScope.ScopeChangedException){failPending(shop,batch.id(),"SOURCE_CONFIGURATION_CHANGED");return;}
                     var reason=SyncFailure.of(failure,0);
+                    var row=cards.find(item.key());
+                    if(row!=null&&!row.feedId().isBlank()){
+                        checkedReceipts.add(item.position());observeReadbackFailure(shop,item,failure);
+                        if(CatalogFeedback.rateLimited(failure)){defer(shop,namespace,directory,batch.id(),"CATALOG_READBACK_RETRY_PENDING",Math.max(15,reason.delay().toSeconds()));deferred=true;return;}
+                        continue;
+                    }
                     if(!reason.actionRequired()) {item(shop,item,"PENDING",reason.code());defer(shop,namespace,directory,batch.id(),reason.code(),Math.max(2,reason.delay().toSeconds()));deferred=true;return;}
                     item(shop,item,"FAILED",reason.code());
                 }
@@ -113,7 +147,25 @@ public final class OzonRegistrationBatchService {
             if(batch!=null&&directory.equals(AppPaths.appDataDir().toAbsolutePath().normalize()))failPending(shop,batch.id(),"SOURCE_CONFIGURATION_CHANGED");
         }finally {if(!deferred)ACTIVE.remove(namespace);}
     }
-    private void defer(Shop shop,String namespace,java.nio.file.Path directory,String run,String detail,long seconds){batches.state(run,"WAITING",detail);WORKERS.schedule(()->run(shop,namespace,directory),Math.min(300,seconds),TimeUnit.SECONDS);}
+    private void observeReceipt(Shop shop,OzonRegistrationBatchRepository.Item item){
+        var row=cards.find(item.key());
+        if(row!=null&&Set.of(Status.ERROR,Status.PREFLIGHT_ERROR,Status.PRE_SUBMIT_ERROR,Status.GTIN_REVIEW_REQUIRED,Status.FEED_REVIEW_REQUIRED).contains(row.status())){
+            item(shop,item,"FAILED",row.error());return;
+        }
+        var failure=workflow.failure(shop);
+        if(failure!=null){observeReadbackFailure(shop,item,failure);return;}
+        if(OzonCardRegistrationWorkflow.verifiedSubmission(row)){item(shop,item,"SUBMITTED",row.error());return;}
+        item(shop,item,"WAITING_REMOTE",row==null||row.error().isBlank()?"CATALOG_REQUEST_ACCEPTED_CARD_PENDING":row.error());
+    }
+    private void observeReadbackFailure(Shop shop,OzonRegistrationBatchRepository.Item item,Throwable failure){
+        boolean retry=CatalogFeedback.retryableRead(failure)||CatalogFeedback.notFound(failure);
+        item(shop,item,retry?"WAITING_REMOTE":"FAILED",retry?"CATALOG_READBACK_RETRY_PENDING":com.vncode.app.integration.znack.ZnackSanitizer.error(failure));
+    }
+    private boolean deferReadbackLimit(Shop shop,String namespace,java.nio.file.Path directory,String run){
+        var failure=workflow.failure(shop);if(failure==null||!CatalogFeedback.rateLimited(failure))return false;
+        defer(shop,namespace,directory,run,"CATALOG_READBACK_RETRY_PENDING",Math.max(15,SyncFailure.of(failure,0).delay().toSeconds()));return true;
+    }
+    private void defer(Shop shop,String namespace,java.nio.file.Path directory,String run,String detail,long seconds){batches.state(run,Set.of("CATALOG_REQUEST_ACCEPTED_CARD_PENDING","CATALOG_READBACK_RETRY_PENDING").contains(detail)?"WAITING_REMOTE":"WAITING",detail);WORKERS.schedule(()->run(shop,namespace,directory),Math.max(1,seconds),TimeUnit.SECONDS);}
     private void failPending(Shop shop,String run,String detail){batches.failPending(run,detail);OzonRegistrationAttemptReports.failPending(shop,run,detail);}
     private void item(Shop shop,OzonRegistrationBatchRepository.Item item,String state,String detail){batches.item(item,state,detail);OzonRegistrationAttemptReports.observe(shop,item.run(),item.key(),state,detail);}
     private static ZnackRegistrationScope scope(Shop shop){return ZnackRegistrationScope.fromSettings(new ZnackRepository(new ZnackModels.ShopContext(shop.getId(),shop.getName())).getSettings());}

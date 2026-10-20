@@ -19,10 +19,10 @@ public final class OzonRegistrationAttemptReports {
     }
     public static void observe(Shop shop,String run,ProductKey key,String queueState,String detail){
         var reports=new SyncRunRepository();var row=new OzonCardRegistrationRepository().find(key);String gtin=row==null?"":row.gtin();
-        String state=queueState.equals("FAILED")?"NEEDS_ACTION":queueState.equals("PENDING")?"WAITING_REMOTE":row!=null&&!row.feedId().isBlank()?state(row.status()):"RUNNING";
+        String state=queueState.equals("FAILED")?"NEEDS_ACTION":Set.of("PENDING","WAITING_REMOTE").contains(queueState)?"WAITING_REMOTE":row!=null&&!row.feedId().isBlank()?state(row.status()):"RUNNING";
         String step=row==null?"PREFLIGHT":row.status().name();String error=state.equals("NEEDS_ACTION")?"ZNACK_REGISTRATION_NEEDS_ACTION":"";
         var evidence=new JsonObject();evidence.addProperty("reason",ZnackSanitizer.message(detail));evidence.addProperty("template",RegistrationTemplate.defaults().id());
-        if(row!=null){evidence.addProperty("feedId",row.feedId());evidence.addProperty("goodId",row.goodId());evidence.addProperty("publicationVerified",row.status()==Status.PUBLISHED);}
+        if(row!=null){evidence.addProperty("feedId",row.feedId());evidence.addProperty("goodId",row.goodId());evidence.addProperty("publicationVerified",queueState.equals("SUBMITTED")&&row.status()==Status.PUBLISHED);}
         var item=item(run,key,state,step,error,gtin,evidence.toString());reports.registrationProgress(shop,item,gtin,state,step,error,evidence.toString());finish(shop,run);
     }
     public static void failPending(Shop shop,String run,String detail){
@@ -35,11 +35,11 @@ public final class OzonRegistrationAttemptReports {
     }
     public static void refreshAll(Shop shop,SyncRunRepository.Run run){
         if(shop.getMarketplace()!=Marketplace.OZON||!RegistrationAttemptReports.KIND.equals(run.kind()))return;
-        var reports=new SyncRunRepository();reports.assertOwner(shop,run.id());var repository=new OzonCardRegistrationRepository();var submitted=new HashSet<ProductKey>();
-        try(var c=com.vncode.app.config.Database.getConnection();var p=c.prepareStatement("SELECT product_id,offer_id FROM ozon_registration_batch_items WHERE run_id=? AND state='SUBMITTED'")){p.setString(1,run.id());try(var r=p.executeQuery()){while(r.next())submitted.add(new ProductKey(shop.getId(),Marketplace.OZON,r.getString(1),r.getString(2)));}}catch(java.sql.SQLException failure){throw new IllegalStateException("SYNC_STORAGE",failure);}
+        var reports=new SyncRunRepository();reports.assertOwner(shop,run.id());var repository=new OzonCardRegistrationRepository();var queueStates=new HashMap<ProductKey,String>();
+        try(var c=com.vncode.app.config.Database.getConnection();var p=c.prepareStatement("SELECT product_id,offer_id,state FROM ozon_registration_batch_items WHERE run_id=?")){p.setString(1,run.id());try(var r=p.executeQuery()){while(r.next())queueStates.put(new ProductKey(shop.getId(),Marketplace.OZON,r.getString(1),r.getString(2)),r.getString(3));}}catch(java.sql.SQLException failure){throw new IllegalStateException("SYNC_STORAGE",failure);}
         String owner=com.vncode.app.integration.listing.ListingIdentity.fingerprint(shop);
         for(int offset=0;offset<run.total();offset+=1000){var page=reports.items(run.id(),offset,1000);var keys=page.stream().map(i->new ProductKey(shop.getId(),Marketplace.OZON,i.productId(),i.variantId())).toList();var rows=repository.findMany(keys);var changes=new ArrayList<SyncRunRepository.Item>();
-            for(var item:page){var key=new ProductKey(shop.getId(),Marketplace.OZON,item.productId(),item.variantId());if(!submitted.contains(key)&&(!"WAITING_REMOTE".equals(item.state())||item.step().equals("PREFLIGHT")))continue;var row=rows.get(key);if(row==null||row.feedId().isBlank()||!owner.equals(row.owner())||!item.gtin().isBlank()&&!item.gtin().equals(row.gtin()))continue;
+            for(var item:page){var key=new ProductKey(shop.getId(),Marketplace.OZON,item.productId(),item.variantId());String queueState=queueStates.get(key);if(queueState!=null&&!queueState.equals("SUBMITTED"))continue;if(queueState==null&&(!"WAITING_REMOTE".equals(item.state())||item.step().equals("PREFLIGHT")))continue;var row=rows.get(key);if(row==null||row.feedId().isBlank()||!owner.equals(row.owner())||!item.gtin().isBlank()&&!item.gtin().equals(row.gtin()))continue;
                 var prior=com.google.gson.JsonParser.parseString(item.evidence()).getAsJsonObject();if(prior.has("feedId")&&!prior.get("feedId").isJsonNull()&&!prior.get("feedId").getAsString().isBlank()&&!prior.get("feedId").getAsString().equals(row.feedId()))continue;
                 var evidence=prior.deepCopy();evidence.addProperty("feedId",row.feedId());evidence.addProperty("reason",ZnackSanitizer.message(row.error()));evidence.addProperty("goodId",row.goodId());evidence.addProperty("publicationVerified",row.status()==Status.PUBLISHED);String state=state(row.status()),step=row.status()==Status.PUBLISHED?"CARD_PUBLISHED":row.status().name(),error=state.equals("NEEDS_ACTION")?"ZNACK_REGISTRATION_NEEDS_ACTION":"";
                 if(!state.equals(item.state())||!step.equals(item.step())||!evidence.toString().equals(item.evidence()))changes.add(new SyncRunRepository.Item(item.id(),item.runId(),item.productId(),item.variantId(),item.sku(),item.article(),item.color(),item.size(),row.gtin(),state,step,error,item.childJob(),evidence.toString()));

@@ -66,6 +66,106 @@ class ZnackCardRegistrationControllerTest {
             return null;
         });
     }
+    @Test void progressReadFailureIsVisibleSafeAndRecoversWithoutLosingKnownCounts()throws Exception{
+        var controller=(ZnackCardRegistrationController)loader.getController();
+        var progress=new com.vncode.app.integration.znack.registration.ZnackRegistrationBatchService.Progress("read-progress",100,2,1,97,"Next article","XL","Accepted article","52","CATALOG_CARD_IN_MODERATION",com.vncode.app.integration.znack.registration.ZnackRegistrationBatchService.State.RUNNING);
+        var failRead=new java.util.concurrent.atomic.AtomicBoolean(true);
+        fx(()->{
+            var reader=ZnackCardRegistrationController.class.getDeclaredField("batchReader");reader.setAccessible(true);
+            reader.set(controller,(java.util.function.Function<Shop,com.vncode.app.integration.znack.registration.ZnackRegistrationBatchService.Progress>)owner->{
+                if(failRead.get())throw new IllegalStateException("api_key=sensitive-progress-secret feed_id=private-feed");
+                return progress;
+            });
+            var render=ZnackCardRegistrationController.class.getDeclaredMethod("renderBatchProgress",progress.getClass());render.setAccessible(true);render.invoke(controller,progress);
+            var refresh=ZnackCardRegistrationController.class.getDeclaredField("workflowRefresh");refresh.setAccessible(true);((javafx.animation.PauseTransition)refresh.get(controller)).stop();
+            pollBatchProgress(controller);return null;
+        });
+        com.vncode.app.testsupport.ShopReadTestCleanup.awaitSharedIdle();
+        var errorPill=fx(()->{
+            stopBatchPolling(controller);
+            String text=((Label)loader.getNamespace().get("batchProgressLabel")).getText();
+            assertTrue(text.contains("2/100"));assertTrue(text.contains("SYNC_INTERNAL"));
+            assertTrue(text.contains(I18nService.getInstance().tr("znack.registration.batch_progress_read_unknown")));
+            assertFalse(text.contains("sensitive-progress-secret"));assertFalse(text.contains("private-feed"));
+            assertFalse(text.contains("api_key"));assertFalse(text.contains("feed_id"));
+            var state=ZnackCardRegistrationController.class.getDeclaredField("batchProgress");state.setAccessible(true);assertSame(progress,state.get(controller));
+            assertFalse(((ComboBox<?>)loader.getNamespace().get("statusFilter")).isDisabled());
+            assertFalse(((TextField)loader.getNamespace().get("searchField")).isDisabled());
+            var pill=(javafx.scene.layout.HBox)((javafx.scene.layout.StackPane)table().getParent()).lookup("#registrationBackgroundPill");
+            assertNotNull(pill);assertTrue(pill.getChildren().stream().noneMatch(ProgressIndicator.class::isInstance));return pill;
+        });
+        fx(()->{pollBatchProgress(controller);return null;});
+        com.vncode.app.testsupport.ShopReadTestCleanup.awaitSharedIdle();
+        fx(()->{stopBatchPolling(controller);assertSame(errorPill,((javafx.scene.layout.StackPane)table().getParent()).lookup("#registrationBackgroundPill"),"A repeated read error must not reset its dismissal timer");return null;});
+        failRead.set(false);
+        fx(()->{pollBatchProgress(controller);return null;});
+        com.vncode.app.testsupport.ShopReadTestCleanup.awaitSharedIdle();
+        fx(()->{
+            stopBatchPolling(controller);
+            String text=((Label)loader.getNamespace().get("batchProgressLabel")).getText();
+            assertTrue(text.contains("2/100"));assertFalse(text.contains("SYNC_INTERNAL"));
+            var pill=(javafx.scene.layout.HBox)((javafx.scene.layout.StackPane)table().getParent()).lookup("#registrationBackgroundPill");
+            assertNotSame(errorPill,pill);assertTrue(pill.getChildren().stream().anyMatch(ProgressIndicator.class::isInstance),"A successful read restores the still-running batch even when its counters did not change");return null;
+        });
+    }
+    private static void stopBatchPolling(ZnackCardRegistrationController controller)throws Exception{
+        var refresh=ZnackCardRegistrationController.class.getDeclaredField("batchRefresh");refresh.setAccessible(true);((javafx.animation.PauseTransition)refresh.get(controller)).stop();
+        var rows=ZnackCardRegistrationController.class.getDeclaredField("batchRowsRefresh");rows.setAccessible(true);((javafx.animation.PauseTransition)rows.get(controller)).stop();
+    }
+    private static void pollBatchProgress(ZnackCardRegistrationController controller)throws Exception{
+        stopBatchPolling(controller);var poll=ZnackCardRegistrationController.class.getDeclaredMethod("pollBatchProgress");poll.setAccessible(true);poll.invoke(controller);
+    }
+    @Test void unchangedRemotePendingCountersRefreshANewCatalogDraftInProcessing()throws Exception{
+        var controller=(ZnackCardRegistrationController)loader.getController();
+        var progress=new com.vncode.app.integration.znack.registration.ZnackRegistrationBatchService.Progress("pending-live",100,0,0,100,"Next","52","","","CATALOG_REQUEST_ACCEPTED_CARD_PENDING",com.vncode.app.integration.znack.registration.ZnackRegistrationBatchService.State.WAITING_REMOTE);
+        fx(()->{stopBatchPolling(controller);((ComboBox<?>)loader.getNamespace().get("statusFilter")).getSelectionModel().select(2);return null;});awaitTasks();
+        fx(()->{assertTrue(table().getItems().stream().noneMatch(row->row.chrtId()==1));renderProgress(controller,progress);stopBatchPolling(controller);return null;});
+        var owner=new Shop(1,"Fixture","fixture");var catalog=new com.vncode.app.features.gtinsync.GtinSyncRepository();
+        var cards=new java.util.ArrayList<>(catalog.catalog(1,owner.getMarketplace()));
+        var details=com.vncode.app.integration.znack.registration.CatalogProductDataParser.parse(com.google.gson.JsonParser.parseString("{\"good_status\":\"draft\",\"good_detailed_status\":[\"draft\"]}").getAsJsonObject());
+        cards.add(new com.vncode.app.features.gtinsync.GtinSyncModels.RegisteredGtin("00000000000017","SKU-1","","XL",true,false,com.vncode.app.features.gtinsync.RegisteredGtinProof.source(owner),java.time.Instant.now(),details));catalog.saveCatalog(1,owner.getMarketplace(),cards);
+        try(var c=Database.getConnection();var s=c.createStatement()){s.execute("INSERT INTO wb_product_size_skus(shop_id,chrt_id,sku) VALUES(1,1,'00000000000017')");}
+        fx(()->{
+            var at=ZnackCardRegistrationController.class.getDeclaredField("lastBatchRowsRefreshNanos");at.setAccessible(true);at.setLong(controller,0);renderProgress(controller,progress);
+            var timer=ZnackCardRegistrationController.class.getDeclaredField("batchRowsRefresh");timer.setAccessible(true);
+            assertEquals(javafx.animation.Animation.Status.RUNNING,((javafx.animation.PauseTransition)timer.get(controller)).getStatus());((javafx.animation.PauseTransition)timer.get(controller)).stop();
+            var refresh=ZnackCardRegistrationController.class.getDeclaredMethod("refreshBatchRows");refresh.setAccessible(true);refresh.invoke(controller);
+            assertFalse(((ComboBox<?>)loader.getNamespace().get("statusFilter")).isDisabled());assertFalse(((TextField)loader.getNamespace().get("searchField")).isDisabled());return null;
+        });awaitTasks();
+        fx(()->{stopBatchPolling(controller);var row=table().getItems().stream().filter(item->item.chrtId()==1).findFirst().orElseThrow();assertFalse(row.hasFeed());
+            @SuppressWarnings("unchecked") var status=(TableColumn<Sku,String>)loader.getNamespace().get("statusColumn");assertEquals(I18nService.getInstance().tr("znack.registration.source.draft"),status.getCellData(row));
+            var pill=(javafx.scene.layout.HBox)((javafx.scene.layout.StackPane)table().getParent()).lookup("#registrationBackgroundPill");assertTrue(pill.getChildren().stream().anyMatch(ProgressIndicator.class::isInstance));return null;});
+    }
+    @Test void backgroundRefreshPreservesSelectedNotCreatedCardsAndKeepsThePageVisible()throws Exception{
+        var controller=(ZnackCardRegistrationController)loader.getController();
+        fx(()->{stopBatchPolling(controller);((ComboBox<?>)loader.getNamespace().get("statusFilter")).getSelectionModel().select(1);return null;});awaitTasks();
+        fx(()->{button("selectAllButton").fire();return null;});awaitTasks();
+        var before=fx(()->{var selected=ZnackCardRegistrationController.class.getDeclaredMethod("selectedRows");selected.setAccessible(true);return java.util.List.copyOf((java.util.List<Sku>)selected.invoke(controller));});
+        assertFalse(before.isEmpty());
+        fx(()->{var refresh=ZnackCardRegistrationController.class.getDeclaredMethod("refreshBatchRows");refresh.setAccessible(true);refresh.invoke(controller);assertFalse(table().getItems().isEmpty());assertFalse(((ComboBox<?>)loader.getNamespace().get("statusFilter")).isDisabled());assertFalse(button("selectAllButton").isDisabled());return null;});awaitTasks();
+        fx(()->{var selected=ZnackCardRegistrationController.class.getDeclaredMethod("selectedRows");selected.setAccessible(true);assertEquals(before.stream().map(Sku::chrtId).toList(),((java.util.List<Sku>)selected.invoke(controller)).stream().map(Sku::chrtId).toList());assertEquals(before.size(),table().getSelectionModel().getSelectedItems().size());return null;});
+    }
+    private static void renderProgress(ZnackCardRegistrationController controller,com.vncode.app.integration.znack.registration.ZnackRegistrationBatchService.Progress progress)throws Exception{
+        var render=ZnackCardRegistrationController.class.getDeclaredMethod("renderBatchProgress",progress.getClass());render.setAccessible(true);render.invoke(controller,progress);
+    }
+    @Test void processingRefreshPreservesAlreadyLoadedPagesAndSelection()throws Exception{
+        try(var c=Database.getConnection()){
+            c.setAutoCommit(false);
+            try(var card=c.prepareStatement("INSERT INTO wb_product_cards(shop_id,nm_id,vendor_code,title,synced_at) VALUES(1,?,'bulk','Fixture','fixture')");var size=c.prepareStatement("INSERT INTO wb_product_sizes(shop_id,chrt_id,nm_id,tech_size) VALUES(1,?,?,'XL')")){
+                for(int id=4;id<=603;id++){card.setInt(1,100+id);card.addBatch();size.setInt(1,id);size.setInt(2,100+id);size.addBatch();}card.executeBatch();size.executeBatch();
+            }
+            try(var s=c.createStatement()){
+                s.execute("INSERT INTO znack_card_registrations(shop_id,chrt_id,nm_id,status,feed_id,created_at,updated_at) SELECT shop_id,chrt_id,nm_id,'FEED_SUBMITTED','feed-'||chrt_id,'fixture','fixture' FROM wb_product_sizes WHERE shop_id=1 AND chrt_id>3");
+                s.execute("INSERT INTO znack_card_registration_scopes(shop_id,chrt_id,participant_inn,environment,fingerprint,owner_hash,created_at) SELECT r.shop_id,r.chrt_id,o.participant_inn,o.environment,o.fingerprint,o.owner_hash,'fixture' FROM znack_card_registrations r JOIN znack_card_registration_scopes o ON o.shop_id=r.shop_id AND o.chrt_id=2 WHERE r.shop_id=1 AND r.chrt_id>3");
+            }c.commit();
+        }
+        com.vncode.app.testsupport.RegistrationSourceFixture.ready(new Shop(1,"Fixture","fixture"));
+        var controller=(ZnackCardRegistrationController)loader.getController();
+        fx(()->{stopBatchPolling(controller);((ComboBox<?>)loader.getNamespace().get("statusFilter")).getSelectionModel().select(2);return null;});awaitTasks();
+        fx(()->{assertEquals(300,table().getItems().size());button("loadMoreButton").fire();return null;});awaitTasks();
+        fx(()->{assertEquals(600,table().getItems().size());table().getSelectionModel().select(450);var refresh=ZnackCardRegistrationController.class.getDeclaredMethod("refreshBatchRows");refresh.setAccessible(true);refresh.invoke(controller);assertEquals(600,table().getItems().size());return null;});awaitTasks();
+        fx(()->{assertEquals(600,table().getItems().size());assertEquals(600,table().getItems().stream().map(Sku::chrtId).distinct().count());assertEquals(1,table().getSelectionModel().getSelectedItems().size());assertFalse(((ComboBox<?>)loader.getNamespace().get("statusFilter")).isDisabled());return null;});
+    }
     @Test void terminalBatchShowsActionReasonAndKeepsMoreRecentReport()throws Exception{
         fx(()->{
             var controller=(ZnackCardRegistrationController)loader.getController();

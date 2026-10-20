@@ -40,7 +40,7 @@ public final class CatalogFeedback {
         case "carddraft"->"CATALOG_CARD_DRAFT";
         case "cardmoderation"->"CATALOG_CARD_IN_MODERATION";
         case "publicationpending"->"CATALOG_PUBLICATION_PENDING";
-        case "cardnotfound"->"CATALOG_SIGNING_DOCUMENT_PENDING";
+        case "cardnotfound"->"CATALOG_REQUEST_ACCEPTED_CARD_PENDING";
         default->null;
     };}
     public static String display(String text) {

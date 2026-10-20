@@ -539,6 +539,7 @@ class ZnackCardRegistrationWorkflowTest {
         assertTrue(workflow.registerNew(shop,current(),draft,true,null));assertEquals("04631993764363",current().gtin());assertEquals(0,api.allocations.get());assertEquals(0,api.submissions.get());
     }
     private void failedCardForReplacement(){
+        api.existingFeedGtin="04631993764363";
         repository.saveGenerated(1,current(),"04631993764363","6204",1,"Fixture",ZnackNationalCatalogService.buildPayload("04631993764363",draft,"").toString());
         repository.updateProgress(1,11,Status.ERROR,"feed-existing",91L,"Rejected",false);
     }
@@ -564,6 +565,7 @@ class ZnackCardRegistrationWorkflowTest {
         Map<String,String> bulkGtins=new HashMap<>();
         Map<String,Long> bulkGoodIds=new HashMap<>();
         String existingFeedStatus="Rejected";
+        String existingFeedGtin="04631993764370";
         String firstRejection;Long firstRejectedGoodId;JsonObject lastPayload;
         @Override public JsonElement generatedGtins(String base,String token) {
             return json(existingDraft?"{\"result\":{\"drafts\":[{\"gtin\":\"04631993764363\"}]}}":"{\"result\":{\"drafts\":[]}}");
@@ -595,7 +597,7 @@ class ZnackCardRegistrationWorkflowTest {
             if(bulkGtins.containsKey(feed))return json("{\"result\":{\"status\":\"Signed\",\"item\":[{\"gtin\":\""+bulkGtins.get(feed)+"\",\"good_id\":"+bulkGoodIds.get(feed)+"}]}}");
             if(rejectExistingFeed && feed.equals("feed-existing")) {
                 readRejected=true;
-                return json("{\"result\":{\"status\":\""+existingFeedStatus+"\",\"item\":[{\"gtin\":\"04631993764370\",\"status_code\":400,\"message\":\"required attribute missing\"}]}}");
+                return json("{\"result\":{\"status\":\""+existingFeedStatus+"\",\"item\":[{\"gtin\":\""+existingFeedGtin+"\",\"status_code\":400,\"message\":\"required attribute missing\"}]}}");
             }
             return json("{\"result\":{\"status\":\""+(pendingModeration?"Processing":laggedModeration||moderated && !signatureAccepted?"Moderated":"Signed")+"\",\"item\":[{\"gtin\":\"04631993764370\",\"good_id\":91}]}}");
         }
@@ -606,7 +608,8 @@ class ZnackCardRegistrationWorkflowTest {
             long id=91;
             for(var entry:bulkGtins.entrySet())if(entry.getValue().equals(gtins))id=bulkGoodIds.get(entry.getKey());
             boolean published=cardPublished&&!pendingModeration&&(!moderated||signatureAccepted);
-            return json("{\"result\":[{\"gtin\":\""+gtins+"\",\"good_id\":"+id+",\"tnved\":\"6204\",\"good_status\":\""+(published?"published":"draft")+"\"}]}");
+            String details=published?"":moderated?"notsigned":pendingModeration?"moderation":"draft";
+            return json("{\"result\":[{\"gtin\":\""+gtins+"\",\"good_id\":"+id+",\"tnved\":\"6204\",\"good_status\":\""+(published?"published":"draft")+"\",\"good_detailed_status\":[\""+details+"\"]}]}");
         }
         @Override public JsonElement nationalCatalogSigningDocument(String base,String token,JsonObject body)throws IOException {
             if(signingDocumentMissing)throw new ZnackApiClient.ZnackApiException("fixture",404,"not found");

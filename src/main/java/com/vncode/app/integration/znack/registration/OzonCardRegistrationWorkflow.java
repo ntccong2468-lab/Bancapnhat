@@ -267,7 +267,7 @@ public final class OzonCardRegistrationWorkflow {
                 repository.guard(shop,key,scope);var rebuilt=ZnackNationalCatalogService.buildPayload(previous.gtin(),reviewed,"");
                 if(!repository.rebuildKnownUnsent(shop,key,previous,scope,sku,rebuilt.toString()))throw new IllegalStateException("registration_changed");
                 RegistrationSigningConsent.set(shop,key,previous.gtin(),reviewed.autoSign());RegistrationMarketplaceConsent.set(shop,key,previous.gtin(),true);
-                submitPrepared(shop,key,session,callback);if(!submitOnly)poll(shop,key,session,reviewed.autoSign(),callback);return;
+                submitPrepared(shop,key,session,callback);if(submitOnly)verifySubmittedCard(shop,key,session,callback);else poll(shop,key,session,reviewed.autoSign(),callback);return;
             }
             boolean groupChange=previous!=null&&TnvedGroupChange.replaceable(previous.status())&&TnvedGroupChange.changed(TnvedGroupChange.payloadCode(previous.payload()),reviewed.tnved());
             if(previous!=null&&!newCard&&!groupChange&&!previous.feedId().isBlank()&&Set.of(Status.FEED_SUBMITTED,Status.PROCESSING,Status.READY_TO_SIGN).contains(previous.status())) {
@@ -287,7 +287,7 @@ public final class OzonCardRegistrationWorkflow {
                 // Optional photos never substitute a marketplace thumbnail for a verified full-size image.
                 var payload=ZnackNationalCatalogService.buildPayload(gtin,reviewed,"");repository.generated(key,gtin,payload.toString());RegistrationSigningConsent.set(shop,key,gtin,reviewed.autoSign());RegistrationMarketplaceConsent.set(shop,key,gtin,true);notify(callback,Status.GTIN_GENERATED,"");
             }
-            submitPrepared(shop,key,session,callback);if(!submitOnly)poll(shop,key,session,reviewed.autoSign(),callback);
+            submitPrepared(shop,key,session,callback);if(submitOnly)verifySubmittedCard(shop,key,session,callback);else poll(shop,key,session,reviewed.autoSign(),callback);
         },key,callback);
     }
     public boolean resume(Shop selected,ProductKey key,BiConsumer<Status,String> callback) {return resume(selected,key,null,callback);}
@@ -315,7 +315,7 @@ public final class OzonCardRegistrationWorkflow {
                 }
             }else if(row.feedId().isBlank())submitPrepared(shop,key,session,callback);
             if(automaticSigning!=null)RegistrationSigningConsent.set(shop,key,row.gtin(),automaticSigning);
-            if(!submitOnly)poll(shop,key,session,RegistrationSigningConsent.allowed(shop,key,row.gtin()),callback);
+            if(submitOnly)verifySubmittedCard(shop,key,session,callback);else poll(shop,key,session,RegistrationSigningConsent.allowed(shop,key,row.gtin()),callback);
         },key,callback);
     }
     public boolean signApproved(Shop selected,List<ProductKey> keys,boolean confirmed,BiConsumer<Status,String> callback) {
@@ -359,6 +359,57 @@ public final class OzonCardRegistrationWorkflow {
         repository.guard(shop,key,scope(row));
         repository.progress(key,row.status(),row.goodId(),com.vncode.app.integration.znack.ZnackErrorDetails.summary(failure));
     }
+    /** Reconcile a saved receipt without allocating, sending another feed, signing, or waiting. */
+    public boolean verifySubmissionForBatch(Shop selected,ProductKey key)throws Exception {
+        Shop shop=capture(selected);require(shop,key);String operation=namespace(shop);
+        if(!RUNNING.add(operation))return false;
+        failures.remove(operation);
+        try {
+            var row=repository.find(key);if(row==null||row.feedId().isBlank())return true;
+            var expected=scope(row);repository.guard(shop,key,expected);
+            var session=catalogs.open(shop);checkSession(shop,expected,session);
+            verifySubmittedCard(shop,key,session,null);return true;
+        }catch(Exception failure){failures.put(operation,failure);throw failure;
+        }finally{RUNNING.remove(operation);}
+    }
+    static boolean verifiedSubmission(OzonCardRegistrationRepository.Row row){
+        if(row==null||row.feedId().isBlank()||row.goodId()==null||row.goodId()<=0)return false;
+        if(Set.of("CATALOG_REQUEST_ACCEPTED_CARD_PENDING","CATALOG_READBACK_RETRY_PENDING").contains(Objects.toString(row.error(),"")))return false;
+        return row.status()==Status.PUBLISHED||row.status()==Status.READY_TO_SIGN
+                ||Set.of(Status.PROCESSING,Status.SIGNING).contains(row.status())
+                &&Set.of("CATALOG_CARD_DRAFT","CATALOG_CARD_IN_MODERATION","CATALOG_PUBLICATION_PENDING").contains(Objects.toString(row.error(),""));
+    }
+    private void verifySubmittedCard(Shop shop,ProductKey key,CatalogSession session,BiConsumer<Status,String> callback)throws Exception {
+        repository.guard(shop,key,session.scope());var row=repository.find(key);
+        if(row==null||row.feedId().isBlank())return;
+        ZnackNationalCatalogService.FeedProgress progress;
+        try {
+            progress=session.catalog().submissionStatus(session.token(),row.feedId(),row.gtin());
+            repository.guard(shop,key,session.scope());
+        }catch(Exception failure){
+            if(CatalogFeedback.retryableRead(failure)||CatalogFeedback.notFound(failure)){
+                failures.put(namespace(shop),failure);
+                if(failure instanceof InterruptedException)Thread.currentThread().interrupt();
+                Status pending=row.status()==Status.PUBLISHED?Status.PUBLISHED:Set.of("SENDING","RECONCILE_REQUIRED").contains(row.signatureState())?Status.SIGNING:Status.FEED_SUBMITTED;
+                repository.uncertain(key,pending,"CATALOG_READBACK_RETRY_PENDING");
+                notify(callback,pending,"CATALOG_READBACK_RETRY_PENDING");return;
+            }
+            throw failure;
+        }
+        if(row.goodId()!=null&&progress.goodId()!=null&&!row.goodId().equals(progress.goodId()))throw new IllegalStateException("CATALOG_IDENTITY_CHANGED");
+        if(progress.failed()){
+            String reason=CatalogFeedback.rejection(progress);repository.progress(key,Status.ERROR,progress.goodId(),reason);notify(callback,Status.ERROR,reason);return;
+        }
+        if(progress.signed()){publish(shop,key,session,progress.goodId(),callback);return;}
+        boolean signaturePending=Set.of("SENDING","RECONCILE_REQUIRED").contains(row.signatureState());
+        if(!progress.cardVerified()){
+            Status status=signaturePending?Status.SIGNING:Status.FEED_SUBMITTED;
+            repository.uncertain(key,status,"CATALOG_REQUEST_ACCEPTED_CARD_PENDING");notify(callback,status,"CATALOG_REQUEST_ACCEPTED_CARD_PENDING");return;
+        }
+        Status status=signaturePending?Status.SIGNING:progress.readyToSign()?Status.READY_TO_SIGN:Status.PROCESSING;
+        String detail=signaturePending?"CATALOG_PUBLICATION_PENDING":CatalogFeedback.stage(progress);
+        repository.progress(key,status,progress.goodId(),detail==null?"":detail);notify(callback,status,detail);
+    }
     private void submitPrepared(Shop shop,ProductKey key,CatalogSession session,BiConsumer<Status,String> callback)throws Exception {
         repository.guard(shop,key,session.scope());LicenseRuntime.require(Permission.GTIN);if(!repository.prepareExistingIdentity(shop,key,session.scope()))return;var row=repository.find(key);
         if(row.status()!=Status.READY_TO_SUBMIT||!row.feedId().isBlank())return;
@@ -373,15 +424,22 @@ public final class OzonCardRegistrationWorkflow {
     }
     private void poll(Shop shop,ProductKey key,CatalogSession session,boolean sign,BiConsumer<Status,String> callback)throws Exception {
         repository.guard(shop,key,session.scope());var row=repository.find(key);if(row.feedId().isBlank())return;
-        var progress=session.catalog().progress(session.token(),row.feedId(),row.gtin());repository.guard(shop,key,session.scope());
+        var progress=session.catalog().submissionStatus(session.token(),row.feedId(),row.gtin());repository.guard(shop,key,session.scope());
         if(row.goodId()!=null&&progress.goodId()!=null&&!row.goodId().equals(progress.goodId()))throw new IllegalStateException("CATALOG_IDENTITY_CHANGED");
         if(progress.signed()){publish(shop,key,session,progress.goodId(),callback);return;}
         if(progress.failed()){repository.progress(key,Status.ERROR,progress.goodId(),CatalogFeedback.rejection(progress));notify(callback,Status.ERROR,CatalogFeedback.rejection(progress));return;}
+        if(!progress.cardVerified()){
+            if(java.time.Instant.now().isAfter(repository.submissionStarted(key).plus(java.time.Duration.ofMinutes(5)))){
+                repository.progress(key,Status.ERROR,progress.goodId(),"CATALOG_CARD_NOT_CREATED_AFTER_WAIT");notify(callback,Status.ERROR,"CATALOG_CARD_NOT_CREATED_AFTER_WAIT");
+            }else{
+                Status pending=Set.of("SENDING","RECONCILE_REQUIRED").contains(row.signatureState())?Status.SIGNING:Status.FEED_SUBMITTED;
+                repository.uncertain(key,pending,"CATALOG_REQUEST_ACCEPTED_CARD_PENDING");notify(callback,pending,"CATALOG_REQUEST_ACCEPTED_CARD_PENDING");
+            }
+            return;
+        }
         if(row.status()==Status.SIGNING||Set.of("SENDING","RECONCILE_REQUIRED").contains(row.signatureState())){notify(callback,Status.SIGNING,"readback_required");return;}
         if(!progress.readyToSign()){
-            if(java.time.Instant.now().isAfter(repository.submissionStarted(key).plus(java.time.Duration.ofMinutes(5)))&&!session.catalog().cardExists(session.token(),row.gtin(),progress.goodId())){
-                repository.progress(key,Status.ERROR,progress.goodId(),"CATALOG_CARD_NOT_CREATED_AFTER_WAIT");notify(callback,Status.ERROR,"CATALOG_CARD_NOT_CREATED_AFTER_WAIT");
-            }else{String stage=CatalogFeedback.stage(progress);repository.progress(key,Status.PROCESSING,progress.goodId(),stage);notify(callback,Status.PROCESSING,stage==null?"":stage);}
+            String stage=CatalogFeedback.stage(progress);repository.progress(key,Status.PROCESSING,progress.goodId(),stage);notify(callback,Status.PROCESSING,stage==null?"":stage);
             return;
         }
         repository.progress(key,Status.READY_TO_SIGN,progress.goodId());notify(callback,Status.READY_TO_SIGN,"");if(!sign)return;

@@ -295,7 +295,8 @@ public class ZnackApiClient {
                             request.method(),request.url(),response.code(),response.header("Content-Type",""),
                             safeDiagnostic(body));
                     throw new ZnackApiException("Znack API request failed",response.code(),safeDiagnostic(body),
-                            request.method(),request.url().toString());
+                            request.method(),request.url().toString(),
+                            response.code()==429?retryAfter(response.header("Retry-After")):null);
                 }
                 if(body.isBlank())return JsonNull.INSTANCE;
                 try{
@@ -318,6 +319,13 @@ public class ZnackApiClient {
             if(seconds>=0)return Math.multiplyExact(seconds,1_000L);
         }catch(ArithmeticException|NumberFormatException ignored){}
         return RATE_LIMIT_FALLBACK_DELAY_MS<<(attempt-1);
+    }
+    private static Duration retryAfter(String value){
+        if(value!=null)try{
+            long seconds=Long.parseLong(value.trim());
+            if(seconds>=0)return Duration.ofSeconds(seconds);
+        }catch(NumberFormatException ignored){}
+        return null;
     }
     private void sleepRateLimit(long delay)throws IOException{
         com.vncode.app.shared.RateLimitDeferral.waiting(java.util.concurrent.TimeUnit.MILLISECONDS.toNanos(delay));
@@ -357,22 +365,29 @@ public class ZnackApiClient {
         private final String responseBody;
         private final String method;
         private final String url;
+        private final Duration retryAfter;
         public ZnackApiException(String message,int statusCode,String body){this(message,statusCode,body,"","");}
         public ZnackApiException(String message,int statusCode,String body,String method,String url){
+            this(message,statusCode,body,method,url,null);
+        }
+        public ZnackApiException(String message,int statusCode,String body,String method,String url,Duration retryAfter){
             super(message+" (HTTP "+statusCode+"): "+ZnackSanitizer.message(body));
             this.statusCode=statusCode;
             this.responseBody=ZnackSanitizer.diagnostic(body);
             this.method=method==null?"":method;
             this.url=ZnackSanitizer.diagnostic(url);
+            this.retryAfter=retryAfter;
         }
         public int statusCode(){return statusCode;}
         public String responseBody(){return responseBody;}
         public String method(){return method;}
         public String url(){return url;}
+        public Duration retryAfter(){return retryAfter;}
         public String diagnosticDetails(){
             return "HTTP status: "+statusCode
                     +(method.isBlank()?"":"\nMethod: "+method)
                     +(url.isBlank()?"":"\nURL: "+url)
+                    +(retryAfter==null?"":"\nRetry-After seconds: "+retryAfter.toSeconds())
                     +(responseBody.isBlank()?"":"\nResponse body:\n"+responseBody);
         }
     }

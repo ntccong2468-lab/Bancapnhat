@@ -98,7 +98,15 @@ class ZnackRegistrationQueryRepositoryTest {
         assertEquals(existingErrors+1,observed.page(criteria("",0)).summary().errors());assertEquals(2,observed.page(criteria("",0)).summary().waiting());
         var errors=observed.page(new SearchCriteria(1,"",List.of(),"ERROR",300,0)).rows();
         assertTrue(errors.stream().anyMatch(r->r.chrtId()==501));assertFalse(errors.stream().anyMatch(r->r.chrtId()==502||r.chrtId()==503));
-        var processing=observed.page(new SearchCriteria(1,"",List.of(),"IN_PROGRESS",300,0)).rows();assertEquals(List.of(502L),processing.stream().map(Sku::chrtId).toList());
+        var processing=observed.page(new SearchCriteria(1,"",List.of(),"IN_PROGRESS",300,0)).rows();
+        assertEquals(List.of(502L,503L),processing.stream().map(Sku::chrtId).toList(),
+                "A draft already observed on Catalog must appear beside moderated cards");
+        var draft=processing.stream().filter(row->row.chrtId()==503).findFirst().orElseThrow();
+        assertFalse(draft.hasFeed(),"Showing a Catalog draft must not invent a registration receipt");
+        assertTrue(observed.page(new SearchCriteria(1,"",List.of(),"NOT_CREATED",300,0)).rows()
+                .stream().noneMatch(row->row.chrtId()==502||row.chrtId()==503));
+        assertTrue(observed.allEligible(new SearchCriteria(1,"",List.of(),"IN_PROGRESS",300,0))
+                .stream().noneMatch(row->row.chrtId()==503),"An existing draft is not a new submission");
     }
     @Test void unsentLocalWorkStaysNotCreatedUntilCatalogAcceptsItsFeed()throws Exception {
         var shop=new com.vncode.app.models.Shop(1,"Fixture WB","fixture");
