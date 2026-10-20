@@ -163,11 +163,26 @@ class ZnackRegistrationBatchServiceTest {
             assertEquals(0,batch.latest(shop).submitted(),"A busy reconciliation has supplied no new card readback");
             assertEquals(1,batch.latest(shop).remaining());assertEquals(0,batch.latest(shop).failed());
             assertEquals(ZnackRegistrationBatchService.State.WAITING_REMOTE,batch.latest(shop).state());
+            assertTrue(ZnackRegistrationBatchService.hasPendingJobs());
             try(var c=Database.getConnection();var p=c.prepareStatement("SELECT detail FROM znack_registration_batch_items WHERE run_id=?")){
                 p.setString(1,run);try(var result=p.executeQuery()){assertTrue(result.next());assertEquals("REGISTRATION_BUSY",result.getString(1));}
             }
             assertEquals(1,api.submits.get());assertEquals(1,api.allocations.get());
-        }finally{api.releaseFeedRead.countDown();monitor.get(3,java.util.concurrent.TimeUnit.SECONDS);}
+        }finally{
+            api.releaseFeedRead.countDown();monitor.get(3,java.util.concurrent.TimeUnit.SECONDS);
+            // This injected executor has no scheduled retry. Finish its own saved batch
+            // through real readback before the fixture's app-data directory is released.
+            retryNow(run);assertTrue(batch.resumePending(shop));
+            assertEquals(ZnackRegistrationBatchService.State.COMPLETE,batch.latest(shop).state());
+            assertEquals(1,batch.latest(shop).submitted());assertEquals(0,batch.latest(shop).remaining());
+            assertEquals(1,api.submits.get());assertEquals(1,api.allocations.get());
+            assertFalse(ZnackRegistrationBatchService.hasPendingJobs(),"The fixture must release its completed background registration");
+            String profile=System.getProperty("vncode.appdata.dir");
+            try{
+                System.setProperty("vncode.appdata.dir",directory.resolve("another-profile").toString());
+                assertFalse(ZnackRegistrationBatchService.hasPendingJobs(),"Completed fixture work must not block another profile's updater");
+            }finally{System.setProperty("vncode.appdata.dir",profile);}
+        }
     }
 
     private void retryNow(String run)throws Exception {
