@@ -8,7 +8,7 @@ Giữ dữ liệu seller, schema 6, phạm vi TN VED/giấy tờ, ưu tiên FBS,
 
 ## Kiểm thử bộ cài phát hành
 
-Đang chuẩn bị kết quả hồi quy Linux và build Windows mới. Chưa xác nhận số kiểm thử, checksum bộ cài hoặc ca nâng cấp cho phiên bản này cho tới khi đọc được bằng chứng thực tế. Phải kiểm tra nâng cấp từ đúng EXE 1.5.4 đã phát hành bằng /passive /norestart và giữ dữ liệu.
+Linux clean verify mới: 2309 kiểm thử, 2307 đạt, 0 thất bại, 0 lỗi, 2 bỏ qua theo nền tảng. 103 kiểm tra công cụ phát hành đạt. Windows build 39496207125 đang chạy từ source cc73b32ae50ed21a25196653291df2996ecef1bf; chưa ghi nhận checksum hoặc ca nâng cấp thành công cho tới khi đọc đủ bằng chứng. Phải kiểm tra nâng cấp từ đúng EXE 1.5.4 đã phát hành bằng /passive /norestart và giữ dữ liệu.
 
 ## Chưa hoàn tất
 

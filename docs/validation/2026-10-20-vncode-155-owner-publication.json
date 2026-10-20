@@ -1,9 +1,9 @@
 {
   "version": "1.5.5",
-  "sourceCommit": null,
-  "runId": null,
+  "sourceCommit": "cc73b32ae50ed21a25196653291df2996ecef1bf",
+  "runId": 39496207125,
   "phase": "authorized-awaiting-verified-build",
-  "sourceRuntimeIsFinal": false,
+  "sourceRuntimeIsFinal": true,
   "ownerRequestedPublication": true,
   "ownerInstruction": "áp dụng cho bản cập nhật mới và đưa lên latest",
   "unverifiedChecksDisclosedBeforePublication": true,
@@ -40,10 +40,54 @@
     "immutable": true
   },
   "publicationWaitingFor": [
-    "Fresh full Linux clean verify",
     "Fresh full Windows Java and all native proofs",
     "Verified published 1.5.4 passive EXE data-preserving upgrade",
-    "Exact build/source/artifact binding and public-byte verification"
+    "Exact artifact and public-byte verification"
   ],
-  "credentialValuesRecorded": false
+  "credentialValuesRecorded": false,
+  "publisherBinding": {
+    "state": "bound-awaiting-verified-build",
+    "currentlyGuardedSourceCommit": "cc73b32ae50ed21a25196653291df2996ecef1bf",
+    "currentlyGuardedRunId": 39496207125,
+    "cliUsePermitted": true,
+    "reason": "Linux full suite and release-tool checks passed; the owner-authorized publisher must verify the exact fresh Windows run, all native proofs and artifact before publication."
+  },
+  "linuxFullSuite": {
+    "state": "passed",
+    "sourceCommit": "cc73b32ae50ed21a25196653291df2996ecef1bf",
+    "command": "DISPLAY=:99 XDG_CACHE_HOME=/tmp/vncode-ui-cache /workspace/toolchains/mvn-vncode -o clean verify",
+    "fullSuiteExecuted": true,
+    "cleanVerifyExecuted": true,
+    "suites": 361,
+    "tests": 2309,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 2,
+    "passed": 2307,
+    "skippedCases": [
+      "com.vncode.app.features.gs1.Gs1PrefixTemplateStoreTest.refusesNtfsJunctionDirectoryAndAncestors",
+      "com.vncode.app.shared.WindowsSecretProtectorTest.separatesLicenseAndExistingMailEntropyOnWindows"
+    ],
+    "finishedAt": "2026-10-20T21:02:38Z",
+    "totalTime": "06:40 min",
+    "log": "/tmp/vncode-155-final-full-verify.log",
+    "logSha256": "b2522f8360e6d292aaae7fb9530af774d0e1a8fb62169107ab5fb509cc58a06f",
+    "freshFullExecutionRequired": true,
+    "countsRecorded": true,
+    "acceptedForFinalScope": true,
+    "scope": "Fresh complete clean verify on the final application and Java test source; Windows/native/public-byte evidence is verified independently."
+  },
+  "releaseToolTests": {
+    "state": "passed",
+    "sourceCommit": "cc73b32ae50ed21a25196653291df2996ecef1bf",
+    "tests": 103,
+    "passed": 103,
+    "failures": 0,
+    "fullSuiteExecuted": true,
+    "command": "node --test tools/*.test.mjs",
+    "log": "/tmp/vncode-155-final-release-tools.log",
+    "logSha256": "94cb10dc92faee6f231146a8db56f24737bfd69b9b3a41808cd3dfaf7851466b",
+    "countsRecorded": true,
+    "scope": "All release-tool checks including the publication-only155 publisher changes; GitHub publication job will execute these checks again from its exact tooling source."
+  }
 }

@@ -352,7 +352,7 @@ test('1.5.4 keeps all prior native proofs and verifies passive upgrade before re
  assert.ok(source.indexOf("validateOwner154UpgradeProof(upgrade153,version,digest)")<source.indexOf('const refs=api('));
  assert.match(source,/if\(mode==='owner-requested-154'\) \{\s+assert\.ok\(!logs\.includes\('REUSED_WINDOWS_JAVA:'\)&&!logs\.includes\('RECONCILED_WINDOWS_JAVA:'\)/);
  const workflow=readFileSync(new URL('../.github/workflows/publish-vncode-stable.yml',import.meta.url),'utf8');
- assert.match(workflow,/owner-requested-154\]/);
+ assert.match(workflow,/owner-requested-154(?:,|\])/);
 });
 
 test('1.5.4 final attached report preserves repair scope and replaces pending text with observed evidence',()=>{

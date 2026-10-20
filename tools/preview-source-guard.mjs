@@ -4,6 +4,7 @@ import {execFileSync} from 'node:child_process';
 const publicationFiles=new Set([
  'tools/publish-vncode-stable.mjs',
  'tools/publish-vncode-stable.test.mjs',
+ 'tools/publish-vncode-stable-155.test.mjs',
  '.github/workflows/publish-vncode-stable.yml',
  'tools/publish-vncode-preview.mjs',
  'tools/preview-source-guard.mjs',

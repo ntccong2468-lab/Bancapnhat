@@ -20,7 +20,7 @@ on:
         required: true
         default: prepare
         type: choice
-        options: [prepare, publish, owner-approved-1416, owner-approved-1418, owner-approved-1419, owner-requested-150, owner-requested-151, owner-requested-152, owner-requested-153, owner-requested-154]
+        options: [prepare, publish, owner-approved-1416, owner-approved-1418, owner-approved-1419, owner-requested-150, owner-requested-151, owner-requested-152, owner-requested-153, owner-requested-154, owner-requested-155]
 permissions:
   contents: write
   actions: read
