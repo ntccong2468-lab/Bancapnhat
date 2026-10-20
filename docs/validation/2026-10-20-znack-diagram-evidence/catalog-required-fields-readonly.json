@@ -1,0 +1,1142 @@
+{
+  "mode": "production-read-only-field-audit",
+  "writesPerformed": false,
+  "checkedAt": "2026-10-20T19:53:33.118512+00:00",
+  "requests": [
+    {
+      "service": "Catalog",
+      "method": "GET",
+      "path": "/v4/product-list",
+      "purpose": "fresh complete status counts",
+      "httpStatus": 200,
+      "responseBytes": 346456
+    },
+    {
+      "service": "Catalog",
+      "method": "GET",
+      "path": "/v4/product-list",
+      "purpose": "fresh complete status counts",
+      "httpStatus": 200,
+      "responseBytes": 94870
+    },
+    {
+      "service": "Catalog",
+      "method": "GET",
+      "path": "/v3/feed-product",
+      "purpose": "read actual error/draft card attributes",
+      "httpStatus": 200,
+      "responseBytes": 107808
+    },
+    {
+      "service": "Catalog",
+      "method": "GET",
+      "path": "/v3/feed-product",
+      "purpose": "read actual error/draft card attributes",
+      "httpStatus": 200,
+      "responseBytes": 42725
+    },
+    {
+      "service": "Catalog",
+      "method": "GET",
+      "path": "/v3/attributes",
+      "purpose": "read current mandatory schema",
+      "httpStatus": 200,
+      "responseBytes": 17316
+    },
+    {
+      "service": "Catalog",
+      "method": "GET",
+      "path": "/v3/attributes",
+      "purpose": "read current mandatory schema",
+      "httpStatus": 200,
+      "responseBytes": 17316
+    },
+    {
+      "service": "Catalog",
+      "method": "POST",
+      "path": "/v4/rd-info",
+      "purpose": "read status and TNVED scope of real card permit references",
+      "httpStatus": 200,
+      "responseBytes": 1999
+    },
+    {
+      "service": "Catalog",
+      "method": "GET",
+      "path": "/v3/attributes",
+      "purpose": "verify actual legacy draft category schema, not assumed clothing category",
+      "httpStatus": 200,
+      "responseBytes": 17316
+    }
+  ],
+  "sanitization": {
+    "containsCredentialValues": false,
+    "containsProductIdentifiers": false,
+    "containsGtinValues": false,
+    "containsSellerRawData": false
+  },
+  "gtinAllocationPerformed": false,
+  "catalog": {
+    "total": 1277,
+    "listingComplete": true,
+    "published": 1241,
+    "errors": 34,
+    "draftWithoutErrors": 2,
+    "statuses": {
+      "published|draft,published": 1,
+      "published|published": 1240,
+      "draft|draft": 2,
+      "draft|errors": 34
+    },
+    "latestUpdateDate": "2026-10-19 22:34:25"
+  },
+  "details": {
+    "requested": 36,
+    "received": 36,
+    "fields": [
+      "brand_id",
+      "brand_name",
+      "categories",
+      "create_date",
+      "flags_updated_date",
+      "good_attrs",
+      "good_detailed_status",
+      "good_id",
+      "good_images",
+      "good_img",
+      "good_mark_flag",
+      "good_name",
+      "good_prices",
+      "good_rating",
+      "good_reviews",
+      "good_reviews_count",
+      "good_signed",
+      "good_status",
+      "good_turn_flag",
+      "good_url",
+      "identified_by",
+      "is_kit",
+      "is_set",
+      "is_tech_gtin",
+      "producer_inn",
+      "producer_name",
+      "remainder_type",
+      "set_gtins",
+      "update_date"
+    ],
+    "categoryIds": [
+      30683,
+      31326,
+      234383,
+      238944,
+      550212,
+      550215
+    ],
+    "categoryResponseShape": [
+      {
+        "cat_id": 31326,
+        "cat_name": "Одежда второго и третьего слоя"
+      },
+      {
+        "cat_id": 234383,
+        "cat_name": "6106 Блузки, блузы и блузоны трикотажные машинного или ручного вязания, женские или для девочек"
+      }
+    ],
+    "realFeedIdentifierPresent": false,
+    "reasonFieldNonemptyCounts": {
+      "errors": 0,
+      "error": 0,
+      "error_details": 0,
+      "reject_reason": 0,
+      "rejection_reason": 0,
+      "moderation_reason": 0,
+      "good_reviews": 0
+    }
+  },
+  "schemas": [
+    {
+      "categoryId": 30683,
+      "mandatoryAttributes": [
+        {
+          "id": 13933,
+          "name": "Код ТНВЭД",
+          "requiresValueType": false,
+          "presetOnly": true,
+          "presetCount": 248,
+          "dependentAttributeCount": 0
+        },
+        {
+          "id": 36,
+          "name": "Цвет",
+          "requiresValueType": false,
+          "presetOnly": false,
+          "presetCount": 77,
+          "dependentAttributeCount": 0
+        },
+        {
+          "id": 2478,
+          "name": "Полное наименование товара",
+          "requiresValueType": false,
+          "presetOnly": false,
+          "presetCount": 0,
+          "dependentAttributeCount": 0
+        },
+        {
+          "id": 2483,
+          "name": "Состав",
+          "requiresValueType": false,
+          "presetOnly": false,
+          "presetCount": 0,
+          "dependentAttributeCount": 0
+        },
+        {
+          "id": 2504,
+          "name": "Товарный знак",
+          "requiresValueType": false,
+          "presetOnly": false,
+          "presetCount": 0,
+          "dependentAttributeCount": 0
+        },
+        {
+          "id": 3959,
+          "name": "Группа ТНВЭД",
+          "requiresValueType": false,
+          "presetOnly": true,
+          "presetCount": 0,
+          "dependentAttributeCount": 0
+        },
+        {
+          "id": 13914,
+          "name": "Модель / артикул производителя",
+          "requiresValueType": true,
+          "presetOnly": false,
+          "presetCount": 0,
+          "dependentAttributeCount": 0
+        },
+        {
+          "id": 14013,
+          "name": "Целевой пол",
+          "requiresValueType": false,
+          "presetOnly": true,
+          "presetCount": 4,
+          "dependentAttributeCount": 0
+        },
+        {
+          "id": 35,
+          "name": "Размер одежды / изделия",
+          "requiresValueType": true,
+          "presetOnly": false,
+          "presetCount": 0,
+          "dependentAttributeCount": 0
+        },
+        {
+          "id": 13836,
+          "name": "Номер технического регламента",
+          "requiresValueType": false,
+          "presetOnly": true,
+          "presetCount": 8,
+          "dependentAttributeCount": 0
+        },
+        {
+          "id": 12,
+          "name": "Вид товара",
+          "requiresValueType": false,
+          "presetOnly": true,
+          "presetCount": 241,
+          "dependentAttributeCount": 1
+        }
+      ]
+    },
+    {
+      "categoryId": 31326,
+      "mandatoryAttributes": [
+        {
+          "id": 13933,
+          "name": "Код ТНВЭД",
+          "requiresValueType": false,
+          "presetOnly": true,
+          "presetCount": 248,
+          "dependentAttributeCount": 0
+        },
+        {
+          "id": 36,
+          "name": "Цвет",
+          "requiresValueType": false,
+          "presetOnly": false,
+          "presetCount": 77,
+          "dependentAttributeCount": 0
+        },
+        {
+          "id": 2478,
+          "name": "Полное наименование товара",
+          "requiresValueType": false,
+          "presetOnly": false,
+          "presetCount": 0,
+          "dependentAttributeCount": 0
+        },
+        {
+          "id": 2483,
+          "name": "Состав",
+          "requiresValueType": false,
+          "presetOnly": false,
+          "presetCount": 0,
+          "dependentAttributeCount": 0
+        },
+        {
+          "id": 2504,
+          "name": "Товарный знак",
+          "requiresValueType": false,
+          "presetOnly": false,
+          "presetCount": 0,
+          "dependentAttributeCount": 0
+        },
+        {
+          "id": 3959,
+          "name": "Группа ТНВЭД",
+          "requiresValueType": false,
+          "presetOnly": true,
+          "presetCount": 0,
+          "dependentAttributeCount": 0
+        },
+        {
+          "id": 13914,
+          "name": "Модель / артикул производителя",
+          "requiresValueType": true,
+          "presetOnly": false,
+          "presetCount": 0,
+          "dependentAttributeCount": 0
+        },
+        {
+          "id": 14013,
+          "name": "Целевой пол",
+          "requiresValueType": false,
+          "presetOnly": true,
+          "presetCount": 4,
+          "dependentAttributeCount": 0
+        },
+        {
+          "id": 35,
+          "name": "Размер одежды / изделия",
+          "requiresValueType": true,
+          "presetOnly": false,
+          "presetCount": 0,
+          "dependentAttributeCount": 0
+        },
+        {
+          "id": 13836,
+          "name": "Номер технического регламента",
+          "requiresValueType": false,
+          "presetOnly": true,
+          "presetCount": 8,
+          "dependentAttributeCount": 0
+        },
+        {
+          "id": 12,
+          "name": "Вид товара",
+          "requiresValueType": false,
+          "presetOnly": true,
+          "presetCount": 241,
+          "dependentAttributeCount": 1
+        }
+      ]
+    }
+  ],
+  "permitReadback": {
+    "parseableDistinctPermitReferences": 1,
+    "registry": [
+      {
+        "permitReference": "permit-1",
+        "registryIdentityMatched": true,
+        "statusGroup": 1,
+        "hasNumber": true,
+        "hasIssuedDate": true,
+        "fromDate": "2026-06-07",
+        "toDate": "2031-06-03",
+        "tnvedScopeCodes": [
+          "6101",
+          "6201",
+          "6202",
+          "6211"
+        ],
+        "matchingCardCount": 34,
+        "observedTnvedCounts": {
+          "6106909000": 7,
+          "6110209100": 24,
+          "6103420001": 3
+        },
+        "tnvedOutsidePublishedRegistryScope": 34
+      }
+    ],
+    "limitation": "Scope comparison is independent validation evidence, not a verbatim Catalog rejection message or proof each product belongs to this permit."
+  },
+  "fieldFindings": {
+    "schemaCompared": true,
+    "missingMandatoryCounts": {
+      "Код ТНВЭД": 2,
+      "Цвет": 2,
+      "Состав": 2,
+      "Модель / артикул производителя": 2,
+      "Целевой пол": 2,
+      "Размер одежды / изделия": 2,
+      "Номер технического регламента": 2,
+      "Вид товара": 2
+    },
+    "invalidPresetCounts": {},
+    "missingValueTypeCounts": {},
+    "cardsWithInlinePermitReference": 34,
+    "cardsWithoutInlinePermitReference": 2,
+    "cards": [
+      {
+        "cardReference": "error-card-01",
+        "status": "draft",
+        "detailedStatus": [
+          "errors"
+        ],
+        "categoryIds": [
+          31326,
+          234383
+        ],
+        "tnvedCode": "6106909000",
+        "missingMandatoryFields": [],
+        "invalidPresetFields": [],
+        "missingValueTypeFields": [],
+        "inlinePermitReferencePresent": true,
+        "hasTitle": true,
+        "limitation": "Field comparison is not verbatim moderation rejection; conditional schema and document registry may impose further constraints."
+      },
+      {
+        "cardReference": "error-card-02",
+        "status": "draft",
+        "detailedStatus": [
+          "errors"
+        ],
+        "categoryIds": [
+          31326,
+          550215
+        ],
+        "tnvedCode": "6110209100",
+        "missingMandatoryFields": [],
+        "invalidPresetFields": [],
+        "missingValueTypeFields": [],
+        "inlinePermitReferencePresent": true,
+        "hasTitle": true,
+        "limitation": "Field comparison is not verbatim moderation rejection; conditional schema and document registry may impose further constraints."
+      },
+      {
+        "cardReference": "error-card-03",
+        "status": "draft",
+        "detailedStatus": [
+          "errors"
+        ],
+        "categoryIds": [
+          31326,
+          550215
+        ],
+        "tnvedCode": "6110209100",
+        "missingMandatoryFields": [],
+        "invalidPresetFields": [],
+        "missingValueTypeFields": [],
+        "inlinePermitReferencePresent": true,
+        "hasTitle": true,
+        "limitation": "Field comparison is not verbatim moderation rejection; conditional schema and document registry may impose further constraints."
+      },
+      {
+        "cardReference": "error-card-04",
+        "status": "draft",
+        "detailedStatus": [
+          "errors"
+        ],
+        "categoryIds": [
+          31326,
+          234383
+        ],
+        "tnvedCode": "6106909000",
+        "missingMandatoryFields": [],
+        "invalidPresetFields": [],
+        "missingValueTypeFields": [],
+        "inlinePermitReferencePresent": true,
+        "hasTitle": true,
+        "limitation": "Field comparison is not verbatim moderation rejection; conditional schema and document registry may impose further constraints."
+      },
+      {
+        "cardReference": "error-card-05",
+        "status": "draft",
+        "detailedStatus": [
+          "errors"
+        ],
+        "categoryIds": [
+          31326,
+          234383
+        ],
+        "tnvedCode": "6106909000",
+        "missingMandatoryFields": [],
+        "invalidPresetFields": [],
+        "missingValueTypeFields": [],
+        "inlinePermitReferencePresent": true,
+        "hasTitle": true,
+        "limitation": "Field comparison is not verbatim moderation rejection; conditional schema and document registry may impose further constraints."
+      },
+      {
+        "cardReference": "error-card-06",
+        "status": "draft",
+        "detailedStatus": [
+          "errors"
+        ],
+        "categoryIds": [
+          31326,
+          550215
+        ],
+        "tnvedCode": "6110209100",
+        "missingMandatoryFields": [],
+        "invalidPresetFields": [],
+        "missingValueTypeFields": [],
+        "inlinePermitReferencePresent": true,
+        "hasTitle": true,
+        "limitation": "Field comparison is not verbatim moderation rejection; conditional schema and document registry may impose further constraints."
+      },
+      {
+        "cardReference": "error-card-07",
+        "status": "draft",
+        "detailedStatus": [
+          "errors"
+        ],
+        "categoryIds": [
+          31326,
+          550215
+        ],
+        "tnvedCode": "6110209100",
+        "missingMandatoryFields": [],
+        "invalidPresetFields": [],
+        "missingValueTypeFields": [],
+        "inlinePermitReferencePresent": true,
+        "hasTitle": true,
+        "limitation": "Field comparison is not verbatim moderation rejection; conditional schema and document registry may impose further constraints."
+      },
+      {
+        "cardReference": "error-card-08",
+        "status": "draft",
+        "detailedStatus": [
+          "errors"
+        ],
+        "categoryIds": [
+          31326,
+          550215
+        ],
+        "tnvedCode": "6110209100",
+        "missingMandatoryFields": [],
+        "invalidPresetFields": [],
+        "missingValueTypeFields": [],
+        "inlinePermitReferencePresent": true,
+        "hasTitle": true,
+        "limitation": "Field comparison is not verbatim moderation rejection; conditional schema and document registry may impose further constraints."
+      },
+      {
+        "cardReference": "error-card-09",
+        "status": "draft",
+        "detailedStatus": [
+          "errors"
+        ],
+        "categoryIds": [
+          31326,
+          550215
+        ],
+        "tnvedCode": "6110209100",
+        "missingMandatoryFields": [],
+        "invalidPresetFields": [],
+        "missingValueTypeFields": [],
+        "inlinePermitReferencePresent": true,
+        "hasTitle": true,
+        "limitation": "Field comparison is not verbatim moderation rejection; conditional schema and document registry may impose further constraints."
+      },
+      {
+        "cardReference": "error-card-10",
+        "status": "draft",
+        "detailedStatus": [
+          "errors"
+        ],
+        "categoryIds": [
+          31326,
+          234383
+        ],
+        "tnvedCode": "6106909000",
+        "missingMandatoryFields": [],
+        "invalidPresetFields": [],
+        "missingValueTypeFields": [],
+        "inlinePermitReferencePresent": true,
+        "hasTitle": true,
+        "limitation": "Field comparison is not verbatim moderation rejection; conditional schema and document registry may impose further constraints."
+      },
+      {
+        "cardReference": "error-card-11",
+        "status": "draft",
+        "detailedStatus": [
+          "errors"
+        ],
+        "categoryIds": [
+          31326,
+          550215
+        ],
+        "tnvedCode": "6110209100",
+        "missingMandatoryFields": [],
+        "invalidPresetFields": [],
+        "missingValueTypeFields": [],
+        "inlinePermitReferencePresent": true,
+        "hasTitle": true,
+        "limitation": "Field comparison is not verbatim moderation rejection; conditional schema and document registry may impose further constraints."
+      },
+      {
+        "cardReference": "error-card-12",
+        "status": "draft",
+        "detailedStatus": [
+          "errors"
+        ],
+        "categoryIds": [
+          31326,
+          234383
+        ],
+        "tnvedCode": "6106909000",
+        "missingMandatoryFields": [],
+        "invalidPresetFields": [],
+        "missingValueTypeFields": [],
+        "inlinePermitReferencePresent": true,
+        "hasTitle": true,
+        "limitation": "Field comparison is not verbatim moderation rejection; conditional schema and document registry may impose further constraints."
+      },
+      {
+        "cardReference": "error-card-13",
+        "status": "draft",
+        "detailedStatus": [
+          "errors"
+        ],
+        "categoryIds": [
+          31326,
+          550215
+        ],
+        "tnvedCode": "6110209100",
+        "missingMandatoryFields": [],
+        "invalidPresetFields": [],
+        "missingValueTypeFields": [],
+        "inlinePermitReferencePresent": true,
+        "hasTitle": true,
+        "limitation": "Field comparison is not verbatim moderation rejection; conditional schema and document registry may impose further constraints."
+      },
+      {
+        "cardReference": "error-card-14",
+        "status": "draft",
+        "detailedStatus": [
+          "errors"
+        ],
+        "categoryIds": [
+          31326,
+          234383
+        ],
+        "tnvedCode": "6106909000",
+        "missingMandatoryFields": [],
+        "invalidPresetFields": [],
+        "missingValueTypeFields": [],
+        "inlinePermitReferencePresent": true,
+        "hasTitle": true,
+        "limitation": "Field comparison is not verbatim moderation rejection; conditional schema and document registry may impose further constraints."
+      },
+      {
+        "cardReference": "error-card-15",
+        "status": "draft",
+        "detailedStatus": [
+          "errors"
+        ],
+        "categoryIds": [
+          31326,
+          550215
+        ],
+        "tnvedCode": "6110209100",
+        "missingMandatoryFields": [],
+        "invalidPresetFields": [],
+        "missingValueTypeFields": [],
+        "inlinePermitReferencePresent": true,
+        "hasTitle": true,
+        "limitation": "Field comparison is not verbatim moderation rejection; conditional schema and document registry may impose further constraints."
+      },
+      {
+        "cardReference": "error-card-16",
+        "status": "draft",
+        "detailedStatus": [
+          "errors"
+        ],
+        "categoryIds": [
+          31326,
+          550215
+        ],
+        "tnvedCode": "6110209100",
+        "missingMandatoryFields": [],
+        "invalidPresetFields": [],
+        "missingValueTypeFields": [],
+        "inlinePermitReferencePresent": true,
+        "hasTitle": true,
+        "limitation": "Field comparison is not verbatim moderation rejection; conditional schema and document registry may impose further constraints."
+      },
+      {
+        "cardReference": "error-card-17",
+        "status": "draft",
+        "detailedStatus": [
+          "errors"
+        ],
+        "categoryIds": [
+          31326,
+          550215
+        ],
+        "tnvedCode": "6110209100",
+        "missingMandatoryFields": [],
+        "invalidPresetFields": [],
+        "missingValueTypeFields": [],
+        "inlinePermitReferencePresent": true,
+        "hasTitle": true,
+        "limitation": "Field comparison is not verbatim moderation rejection; conditional schema and document registry may impose further constraints."
+      },
+      {
+        "cardReference": "error-card-18",
+        "status": "draft",
+        "detailedStatus": [
+          "errors"
+        ],
+        "categoryIds": [
+          31326,
+          234383
+        ],
+        "tnvedCode": "6106909000",
+        "missingMandatoryFields": [],
+        "invalidPresetFields": [],
+        "missingValueTypeFields": [],
+        "inlinePermitReferencePresent": true,
+        "hasTitle": true,
+        "limitation": "Field comparison is not verbatim moderation rejection; conditional schema and document registry may impose further constraints."
+      },
+      {
+        "cardReference": "error-card-19",
+        "status": "draft",
+        "detailedStatus": [
+          "errors"
+        ],
+        "categoryIds": [
+          31326,
+          550215
+        ],
+        "tnvedCode": "6110209100",
+        "missingMandatoryFields": [],
+        "invalidPresetFields": [],
+        "missingValueTypeFields": [],
+        "inlinePermitReferencePresent": true,
+        "hasTitle": true,
+        "limitation": "Field comparison is not verbatim moderation rejection; conditional schema and document registry may impose further constraints."
+      },
+      {
+        "cardReference": "error-card-20",
+        "status": "draft",
+        "detailedStatus": [
+          "errors"
+        ],
+        "categoryIds": [
+          31326,
+          550215
+        ],
+        "tnvedCode": "6110209100",
+        "missingMandatoryFields": [],
+        "invalidPresetFields": [],
+        "missingValueTypeFields": [],
+        "inlinePermitReferencePresent": true,
+        "hasTitle": true,
+        "limitation": "Field comparison is not verbatim moderation rejection; conditional schema and document registry may impose further constraints."
+      },
+      {
+        "cardReference": "error-card-21",
+        "status": "draft",
+        "detailedStatus": [
+          "errors"
+        ],
+        "categoryIds": [
+          30683,
+          550212
+        ],
+        "tnvedCode": "6103420001",
+        "missingMandatoryFields": [],
+        "invalidPresetFields": [],
+        "missingValueTypeFields": [],
+        "inlinePermitReferencePresent": true,
+        "hasTitle": true,
+        "limitation": "Field comparison is not verbatim moderation rejection; conditional schema and document registry may impose further constraints."
+      },
+      {
+        "cardReference": "error-card-22",
+        "status": "draft",
+        "detailedStatus": [
+          "errors"
+        ],
+        "categoryIds": [
+          31326,
+          550215
+        ],
+        "tnvedCode": "6110209100",
+        "missingMandatoryFields": [],
+        "invalidPresetFields": [],
+        "missingValueTypeFields": [],
+        "inlinePermitReferencePresent": true,
+        "hasTitle": true,
+        "limitation": "Field comparison is not verbatim moderation rejection; conditional schema and document registry may impose further constraints."
+      },
+      {
+        "cardReference": "error-card-23",
+        "status": "draft",
+        "detailedStatus": [
+          "errors"
+        ],
+        "categoryIds": [
+          30683,
+          550212
+        ],
+        "tnvedCode": "6103420001",
+        "missingMandatoryFields": [],
+        "invalidPresetFields": [],
+        "missingValueTypeFields": [],
+        "inlinePermitReferencePresent": true,
+        "hasTitle": true,
+        "limitation": "Field comparison is not verbatim moderation rejection; conditional schema and document registry may impose further constraints."
+      },
+      {
+        "cardReference": "error-card-24",
+        "status": "draft",
+        "detailedStatus": [
+          "errors"
+        ],
+        "categoryIds": [
+          31326,
+          550215
+        ],
+        "tnvedCode": "6110209100",
+        "missingMandatoryFields": [],
+        "invalidPresetFields": [],
+        "missingValueTypeFields": [],
+        "inlinePermitReferencePresent": true,
+        "hasTitle": true,
+        "limitation": "Field comparison is not verbatim moderation rejection; conditional schema and document registry may impose further constraints."
+      },
+      {
+        "cardReference": "error-card-25",
+        "status": "draft",
+        "detailedStatus": [
+          "errors"
+        ],
+        "categoryIds": [
+          30683,
+          550212
+        ],
+        "tnvedCode": "6103420001",
+        "missingMandatoryFields": [],
+        "invalidPresetFields": [],
+        "missingValueTypeFields": [],
+        "inlinePermitReferencePresent": true,
+        "hasTitle": true,
+        "limitation": "Field comparison is not verbatim moderation rejection; conditional schema and document registry may impose further constraints."
+      },
+      {
+        "cardReference": "draft-card-26",
+        "status": "draft",
+        "detailedStatus": [
+          "draft"
+        ],
+        "categoryIds": [
+          238944,
+          550212
+        ],
+        "tnvedCode": null,
+        "missingMandatoryFields": [
+          {
+            "id": 13933,
+            "name": "Код ТНВЭД"
+          },
+          {
+            "id": 36,
+            "name": "Цвет"
+          },
+          {
+            "id": 2483,
+            "name": "Состав"
+          },
+          {
+            "id": 13914,
+            "name": "Модель / артикул производителя"
+          },
+          {
+            "id": 14013,
+            "name": "Целевой пол"
+          },
+          {
+            "id": 35,
+            "name": "Размер одежды / изделия"
+          },
+          {
+            "id": 13836,
+            "name": "Номер технического регламента"
+          },
+          {
+            "id": 12,
+            "name": "Вид товара"
+          }
+        ],
+        "invalidPresetFields": [],
+        "missingValueTypeFields": [],
+        "inlinePermitReferencePresent": false,
+        "hasTitle": true,
+        "limitation": "Field comparison is not verbatim moderation rejection; conditional schema and document registry may impose further constraints.",
+        "schemaEvidence": "Additional actual category238944 mandatory GET HTTP200 in vncode-catalog-draft-category.json confirms same 11 mandatory IDs/names."
+      },
+      {
+        "cardReference": "error-card-27",
+        "status": "draft",
+        "detailedStatus": [
+          "errors"
+        ],
+        "categoryIds": [
+          31326,
+          550215
+        ],
+        "tnvedCode": "6110209100",
+        "missingMandatoryFields": [],
+        "invalidPresetFields": [],
+        "missingValueTypeFields": [],
+        "inlinePermitReferencePresent": true,
+        "hasTitle": true,
+        "limitation": "Field comparison is not verbatim moderation rejection; conditional schema and document registry may impose further constraints."
+      },
+      {
+        "cardReference": "draft-card-28",
+        "status": "draft",
+        "detailedStatus": [
+          "draft"
+        ],
+        "categoryIds": [
+          31326,
+          550212
+        ],
+        "tnvedCode": null,
+        "missingMandatoryFields": [
+          {
+            "id": 13933,
+            "name": "Код ТНВЭД"
+          },
+          {
+            "id": 36,
+            "name": "Цвет"
+          },
+          {
+            "id": 2483,
+            "name": "Состав"
+          },
+          {
+            "id": 13914,
+            "name": "Модель / артикул производителя"
+          },
+          {
+            "id": 14013,
+            "name": "Целевой пол"
+          },
+          {
+            "id": 35,
+            "name": "Размер одежды / изделия"
+          },
+          {
+            "id": 13836,
+            "name": "Номер технического регламента"
+          },
+          {
+            "id": 12,
+            "name": "Вид товара"
+          }
+        ],
+        "invalidPresetFields": [],
+        "missingValueTypeFields": [],
+        "inlinePermitReferencePresent": false,
+        "hasTitle": true,
+        "limitation": "Field comparison is not verbatim moderation rejection; conditional schema and document registry may impose further constraints."
+      },
+      {
+        "cardReference": "error-card-29",
+        "status": "draft",
+        "detailedStatus": [
+          "errors"
+        ],
+        "categoryIds": [
+          31326,
+          550215
+        ],
+        "tnvedCode": "6110209100",
+        "missingMandatoryFields": [],
+        "invalidPresetFields": [],
+        "missingValueTypeFields": [],
+        "inlinePermitReferencePresent": true,
+        "hasTitle": true,
+        "limitation": "Field comparison is not verbatim moderation rejection; conditional schema and document registry may impose further constraints."
+      },
+      {
+        "cardReference": "error-card-30",
+        "status": "draft",
+        "detailedStatus": [
+          "errors"
+        ],
+        "categoryIds": [
+          31326,
+          550215
+        ],
+        "tnvedCode": "6110209100",
+        "missingMandatoryFields": [],
+        "invalidPresetFields": [],
+        "missingValueTypeFields": [],
+        "inlinePermitReferencePresent": true,
+        "hasTitle": true,
+        "limitation": "Field comparison is not verbatim moderation rejection; conditional schema and document registry may impose further constraints."
+      },
+      {
+        "cardReference": "error-card-31",
+        "status": "draft",
+        "detailedStatus": [
+          "errors"
+        ],
+        "categoryIds": [
+          31326,
+          550215
+        ],
+        "tnvedCode": "6110209100",
+        "missingMandatoryFields": [],
+        "invalidPresetFields": [],
+        "missingValueTypeFields": [],
+        "inlinePermitReferencePresent": true,
+        "hasTitle": true,
+        "limitation": "Field comparison is not verbatim moderation rejection; conditional schema and document registry may impose further constraints."
+      },
+      {
+        "cardReference": "error-card-32",
+        "status": "draft",
+        "detailedStatus": [
+          "errors"
+        ],
+        "categoryIds": [
+          31326,
+          550215
+        ],
+        "tnvedCode": "6110209100",
+        "missingMandatoryFields": [],
+        "invalidPresetFields": [],
+        "missingValueTypeFields": [],
+        "inlinePermitReferencePresent": true,
+        "hasTitle": true,
+        "limitation": "Field comparison is not verbatim moderation rejection; conditional schema and document registry may impose further constraints."
+      },
+      {
+        "cardReference": "error-card-33",
+        "status": "draft",
+        "detailedStatus": [
+          "errors"
+        ],
+        "categoryIds": [
+          31326,
+          550215
+        ],
+        "tnvedCode": "6110209100",
+        "missingMandatoryFields": [],
+        "invalidPresetFields": [],
+        "missingValueTypeFields": [],
+        "inlinePermitReferencePresent": true,
+        "hasTitle": true,
+        "limitation": "Field comparison is not verbatim moderation rejection; conditional schema and document registry may impose further constraints."
+      },
+      {
+        "cardReference": "error-card-34",
+        "status": "draft",
+        "detailedStatus": [
+          "errors"
+        ],
+        "categoryIds": [
+          31326,
+          550215
+        ],
+        "tnvedCode": "6110209100",
+        "missingMandatoryFields": [],
+        "invalidPresetFields": [],
+        "missingValueTypeFields": [],
+        "inlinePermitReferencePresent": true,
+        "hasTitle": true,
+        "limitation": "Field comparison is not verbatim moderation rejection; conditional schema and document registry may impose further constraints."
+      },
+      {
+        "cardReference": "error-card-35",
+        "status": "draft",
+        "detailedStatus": [
+          "errors"
+        ],
+        "categoryIds": [
+          31326,
+          550215
+        ],
+        "tnvedCode": "6110209100",
+        "missingMandatoryFields": [],
+        "invalidPresetFields": [],
+        "missingValueTypeFields": [],
+        "inlinePermitReferencePresent": true,
+        "hasTitle": true,
+        "limitation": "Field comparison is not verbatim moderation rejection; conditional schema and document registry may impose further constraints."
+      },
+      {
+        "cardReference": "error-card-36",
+        "status": "draft",
+        "detailedStatus": [
+          "errors"
+        ],
+        "categoryIds": [
+          31326,
+          550215
+        ],
+        "tnvedCode": "6110209100",
+        "missingMandatoryFields": [],
+        "invalidPresetFields": [],
+        "missingValueTypeFields": [],
+        "inlinePermitReferencePresent": true,
+        "hasTitle": true,
+        "limitation": "Field comparison is not verbatim moderation rejection; conditional schema and document registry may impose further constraints."
+      }
+    ],
+    "draftsMissingEightFields": 2
+  },
+  "status": "COMPLETE",
+  "completedAt": "2026-10-20T19:55:12.545748+00:00",
+  "userProvidedReplacementPermitReadback": {
+    "evidenceFile": "vncode-user-permit-exact-date.json",
+    "httpStatus": 200,
+    "numberAndDateMatched": true,
+    "registry": [
+      {
+        "canonicalNumberMatches": true,
+        "issueDateMatches": true,
+        "type": "CONFORMITY_DECLARATION",
+        "attrId": 23557,
+        "statusGroup": 1,
+        "status": "Действует",
+        "fromDate": "2026-05-28",
+        "toDate": "2031-05-26",
+        "dateRangeValidToday": true,
+        "tnvedScopeCodes": [
+          "6103",
+          "6104",
+          "6105",
+          "6106",
+          "6110",
+          "6112"
+        ],
+        "technicalRegulations": "ТР ТС 017/2011 О безопасности продукции легкой промышленности",
+        "priorErrorTnvedCoverage": {
+          "6106909000": true,
+          "6110209100": true,
+          "6103420001": true
+        }
+      }
+    ],
+    "appliedToCards": false,
+    "limitation": "Verified registry scope and dates; do not infer every product is legally covered merely from a tariff-prefix match."
+  }
+}

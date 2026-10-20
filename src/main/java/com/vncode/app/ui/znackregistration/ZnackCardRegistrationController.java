@@ -64,7 +64,7 @@ public final class ZnackCardRegistrationController {
     private final ZnackRegistrationBatchService batches = new ZnackRegistrationBatchService(repository);
     @FunctionalInterface interface BatchStarter { String start(Shop owner,List<Sku> selection,boolean autoSign); }
     private BatchStarter batchStarter=batches::start;
-    private java.util.function.BiFunction<Shop,List<com.vncode.app.features.products.ProductKey>,RegistrationBatchPreflight.Review> preflightReader=RegistrationBatchPreflight::read;
+    private java.util.function.BiFunction<Shop,List<com.vncode.app.features.products.ProductKey>,RegistrationBatchPreflight.Review> preflightReader=RegistrationBatchPreflight::readComplete;
     private final PauseTransition batchRefresh = new PauseTransition(Duration.millis(1200));
     private java.util.function.Function<Shop,ZnackRegistrationBatchService.Progress> batchReader = batches::latest;
     private ZnackRegistrationBatchService.Progress batchProgress;

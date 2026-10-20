@@ -728,6 +728,7 @@ public class ZnackAutomationController {
         ZnackRepository currentRepository = repository;
         Settings expectedSettings = loaded;
         Settings candidateSettings = settings();
+        var signaturePhase = new java.util.concurrent.atomic.AtomicReference<>(SignatureTestFailure.Phase.LOCAL_SIGNATURE);
         setSignatureTestBusy(true);
         Task<SignatureVerification> task = new Task<>() {
             @Override protected SignatureVerification call() throws Exception {
@@ -749,11 +750,13 @@ public class ZnackAutomationController {
                 };
                 ZnackAuthService auth = new ZnackAuthService(api, verifiedProvider);
                 // Verify the selected certificate against Znack itself before retiring any local catalog.
+                signaturePhase.set(SignatureTestFailure.Phase.CRPT_AUTHENTICATION);
                 auth.trueApiToken(verifiedSettings);
                 String authenticatedInn = auth.authenticatedParticipantInn();
                 if (!blank(authenticatedInn) && !actualCertificate.inn().equals(authenticatedInn))
                     throw new CryptoProException(CryptoProErrorCode.INVALID_SIGNATURE_OUTPUT,
                             "The authenticated account does not match the selected signing certificate.");
+                signaturePhase.set(SignatureTestFailure.Phase.SAVE_VERIFICATION);
                 ZnackRepository.CertificateVerificationResult result =
                         currentRepository.saveVerifiedCertificate(expectedSettings, verifiedSettings);
                 return new SignatureVerification(verifiedSettings, result, api, auth, actualCertificate);
@@ -818,14 +821,18 @@ public class ZnackAutomationController {
                 AlertService.showError(tr("znack.signature.error.settings_changed"));
                 return;
             }
-            CryptoProException error = failure instanceof CryptoProException cpe ? cpe
-                    : new CryptoProException(CryptoProErrorCode.SIGNING_FAILED, "CryptoPro signing failed.", failure);
+            var error = SignatureTestFailure.classify(failure,signaturePhase.get());
             signerTestedAt = null;
-            currentRepository.log("SIGNATURE_TEST", null, "ERROR", signatureDiagnostic(error), null);
+            currentRepository.log("SIGNATURE_TEST", null, "ERROR", error.diagnostic(), null);
             logsTable.getItems().setAll(currentRepository.findLogs());
             updateSignatureSummary();
             updateSaveState();
-            AlertService.showError(signatureError(error));
+            if(error.cryptoError()!=null)AlertService.showError(signatureError(error.cryptoError()));
+            else {
+                String message=tr(error.messageKey());
+                if(error.retryAfter()!=null)message+="\n"+MessageFormat.format(tr("znack.signature.error.retry_after"),Math.max(1,error.retryAfter().toSeconds()));
+                AlertService.showError(withSignatureDetails(message,error.diagnostic()));
+            }
         };
         task.setOnFailed(event -> taskFailure.accept(task.getException()));
         AppTaskExecutor.execute(task, taskFailure);
@@ -1512,10 +1519,6 @@ public class ZnackAutomationController {
     private String withSignatureDetails(String message, String details) {
         String sanitized = ZnackSanitizer.message(details);
         return sanitized.isBlank() ? message : message + "\n\n" + tr("znack.signature.error.details") + ": " + sanitized;
-    }
-
-    private String signatureDiagnostic(CryptoProException error) {
-        return "code=" + error.code() + "; " + ZnackSanitizer.error(error);
     }
 
     private void configureLogCopy() {

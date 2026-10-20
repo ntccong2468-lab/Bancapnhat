@@ -37,7 +37,7 @@ class OzonAutomaticDraftSchemaTest {
     private ProductSnapshot snapshot;
     private JsonObject schema, allSchema;
     private HttpServer server;
-    private final AtomicInteger allocations = new AtomicInteger(), posts = new AtomicInteger();
+    private final AtomicInteger allocations = new AtomicInteger(), posts = new AtomicInteger(), feedReads = new AtomicInteger(), cardReads = new AtomicInteger();
     private final AtomicReference<JsonObject> payload = new AtomicReference<>();
     private final AtomicReference<Throwable> serverFailure = new AtomicReference<>();
 
@@ -189,7 +189,10 @@ class OzonAutomaticDraftSchemaTest {
         assertEquals(run, progress.runId());
         assertEquals(1, allocations.get());
         assertEquals(1, posts.get(), "One register action must submit without a second click");
-        assertEquals(Status.FEED_SUBMITTED, cards.find(key).status());
+        assertEquals(Status.PROCESSING, cards.find(key).status());
+        assertEquals(91L, cards.find(key).goodId());
+        assertEquals("CATALOG_CARD_IN_MODERATION", cards.find(key).error());
+        assertEquals(1, feedReads.get()); assertEquals(1, cardReads.get(), "Created count requires the exact remote card readback");
         assertEquals("wire-ozon-feed", cards.find(key).feedId());
         assertEquals("Артикул", attribute(payload.get(), 13914).get("attr_value_type").getAsString());
         assertEquals("РОССИЯ", attribute(payload.get(), 35).get("attr_value_type").getAsString());
@@ -231,7 +234,10 @@ class OzonAutomaticDraftSchemaTest {
         assertEquals(1, batches.latest(shop).submitted(), () -> "Repaired card not submitted: " + batches.latest(shop));
         assertEquals(0, batches.latest(shop).failed());
         assertEquals("00000000000024", cards.find(key).gtin());
-        assertEquals(Status.FEED_SUBMITTED, cards.find(key).status());
+        assertEquals(Status.PROCESSING, cards.find(key).status());
+        assertEquals(91L, cards.find(key).goodId());
+        assertEquals("CATALOG_CARD_IN_MODERATION", cards.find(key).error());
+        assertEquals(1, feedReads.get()); assertEquals(1, cardReads.get(), "Created count requires the exact remote card readback");
         assertEquals(0, allocations.get(), "Repairing a known-unsent card must not request a new GS1 identity");
         assertEquals(1, posts.get());
         assertFalse(cards.find(key).payload().contains("OLD-EXPIRED"));
@@ -303,6 +309,17 @@ class OzonAutomaticDraftSchemaTest {
                     payload.set(JsonParser.parseString(new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8)).getAsJsonObject());
                     posts.incrementAndGet();
                     yield JsonParser.parseString("{\"result\":{\"feed_id\":\"wire-ozon-feed\"}}").getAsJsonObject();
+                }
+                case "/v3/feed-status" -> {
+                    assertEquals("GET",exchange.getRequestMethod());assertTrue(query.contains("feed_id=wire-ozon-feed"));
+                    assertEquals(1,posts.get());assertNotNull(payload.get());feedReads.incrementAndGet();
+                    String gtin=payload.get().get("gtin").getAsString();
+                    yield JsonParser.parseString("{\"result\":{\"status\":\"Processing\",\"item\":[{\"gtin\":\""+gtin+"\",\"good_id\":91}]}}").getAsJsonObject();
+                }
+                case "/v3/feed-product" -> {
+                    assertEquals("GET",exchange.getRequestMethod());assertEquals(1,posts.get());assertNotNull(payload.get());
+                    String gtin=payload.get().get("gtin").getAsString();assertEquals("gtins="+gtin,java.net.URLDecoder.decode(query,StandardCharsets.UTF_8));cardReads.incrementAndGet();
+                    yield JsonParser.parseString("{\"result\":[{\"gtin\":\""+gtin+"\",\"good_id\":91,\"tnved\":\"6211331000\",\"good_status\":\"draft\",\"good_detailed_status\":[\"moderation\"]}]}").getAsJsonObject();
                 }
                 default -> throw new AssertionError("Unexpected Catalog request: " + path);
             };

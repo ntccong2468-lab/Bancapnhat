@@ -41,7 +41,7 @@ public final class SyncRuntime implements AutoCloseable {
             case ZNACK:{
                 var settings=new ZnackRepository(new ZnackModels.ShopContext(shop.getId(),shop.getName())).getSettings();
                 if(settings.signerTestedAt()==null)return SyncCoordinator.Page.complete(0);
-                var registrations=new com.vncode.app.integration.znack.registration.ZnackRegistrationMonitor().poll(shop,3);
+                var registrations=new com.vncode.app.integration.znack.registration.ZnackRegistrationMonitor().poll(shop,30);
                 if(registrations.warning()!=null)return new SyncCoordinator.Page("",true,registrations.published(),registrations.warning());
                 if(registrations.published()>0)new ZnackCatalogSyncService().refresh(shop,true,p->{});
                 // Moderation polling must not rebuild an entire 17k-product review each tick.

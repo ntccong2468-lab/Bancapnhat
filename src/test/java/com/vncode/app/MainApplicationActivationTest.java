@@ -50,11 +50,12 @@ class MainApplicationActivationTest {
             assertFalse(stage.isShowing());
             var completion=restore().toCompletableFuture();
             assertFalse(completion.isDone(),"The queued window restore has not executed yet");
-            completion.thenRun(()->{completedOnFx.set(Platform.isFxApplicationThread());visibleAtCompletion.set(stage.isShowing()&&!stage.isIconified());});
-            return completion;
+            // Waiting on the parent can execute its dependent observer on the waiting thread.
+            // Wait for the observer instead, keeping the exact restored-window assertions on FX.
+            return completion.thenRun(()->{completedOnFx.set(Platform.isFxApplicationThread());visibleAtCompletion.set(stage.isShowing()&&!stage.isIconified());});
         });
         restored.get(5,TimeUnit.SECONDS);
-        fx(()->{assertTrue(completedOnFx.get());assertTrue(visibleAtCompletion.get());assertTrue(stage.isShowing());assertFalse(stage.isIconified());return null;});
+        fx(()->{assertTrue(completedOnFx.get(),"Completion observer ran outside FX");assertTrue(visibleAtCompletion.get(),"Window was not visible and restored when observed");assertTrue(stage.isShowing(),"Restored window is hidden");assertFalse(stage.isIconified(),"Restored window is iconified");return null;});
     }
 
     @Test void aSecondLaunchIsAcknowledgedOnlyAfterTheRealWindowRestore()throws Exception {

@@ -22,6 +22,7 @@ public final class ZnackRegistrationMonitor {
     ZnackRegistrationMonitor(ZnackCardRegistrationWorkflow wb,OzonCardRegistrationWorkflow ozon,java.util.function.Predicate<Shop> resumeOzonBatch,java.util.function.BiPredicate<Shop,ProductKey> ownsOzonBatch){wbWorkflow=wb;ozonWorkflow=ozon;this.resumeOzonBatch=resumeOzonBatch;this.ownsOzonBatch=ownsOzonBatch;}
     public Result poll(Shop shop,int limit)throws Exception {
         ListingIdentity.require(shop);if(limit<1||limit>100)throw new IllegalArgumentException("REGISTRY_POLL_LIMIT");
+        var cooldown=RegistrationCatalogCooldown.warning(shop);if(cooldown!=null)return new Result(0,0,true,cooldown);
         boolean batchPending=shop.getMarketplace()==Marketplace.WILDBERRIES
                 ?new ZnackRegistrationBatchService(wb).resumePending(shop)
                 :resumeOzonBatch.test(shop);
@@ -29,13 +30,24 @@ public final class ZnackRegistrationMonitor {
         if(shop.getMarketplace()==Marketplace.WILDBERRIES){
             var rows=new ArrayList<>(wb.pendingStatus(shop.getId(),limit));
             if(rows.size()<limit)rows.addAll(wb.unconfirmedPublications(shop,limit-rows.size()));
-            for(var row:rows){if(Thread.currentThread().isInterrupted())throw new java.io.InterruptedIOException("ZNACK_SYNC_CANCELLED");try{if(!row.hasFeed()&&row.canResume()){if(!batchPending||!new ZnackRegistrationBatchService(wb).ownsPending(shop,row))wbWorkflow.resume(shop,row,null);}else if(wbWorkflow.refreshStatus(shop,row))published++;checked++;}catch(Exception error){if(CatalogFeedback.rateLimited(error)||error instanceof java.io.InterruptedIOException&&!(error instanceof java.net.SocketTimeoutException))throw error;warning=com.vncode.app.features.sync.SyncFailure.of(error,0);try{wbWorkflow.recordPollingFailure(shop,row,error);}catch(RuntimeException originalAccountChanged){/* Never rebind a historical request. */}checked++;}}
-        }else{
-            var keys=new ArrayList<ProductKey>();
-            try(var c=Database.getConnection();var p=c.prepareStatement("SELECT product_id,offer_id FROM ozon_card_registrations WHERE shop_id=? AND ((status IN ('FEED_SUBMITTED','PROCESSING','READY_TO_SIGN','SIGNING') OR status='ERROR' AND error='CATALOG_CARD_NOT_CREATED_AFTER_WAIT') AND NULLIF(feed_id,'') IS NOT NULL OR status='READY_TO_SUBMIT' AND NULLIF(gtin,'') IS NOT NULL AND NULLIF(feed_id,'') IS NULL) ORDER BY CASE status WHEN 'READY_TO_SIGN' THEN 1 ELSE 0 END,updated_at LIMIT ?")){
-                p.setInt(1,shop.getId());p.setInt(2,limit);try(var r=p.executeQuery()){while(r.next())keys.add(new ProductKey(shop.getId(),Marketplace.OZON,r.getString(1),r.getString(2)));}
+            var signable=new ArrayList<ZnackCardRegistrationModels.Sku>();
+            for(var row:rows){if(Thread.currentThread().isInterrupted())throw new java.io.InterruptedIOException("ZNACK_SYNC_CANCELLED");try{if(!row.hasFeed()&&row.canResume()){if(!batchPending||!new ZnackRegistrationBatchService(wb).ownsPending(shop,row))wbWorkflow.resume(shop,row,null);}else if(wbWorkflow.refreshStatusWithoutSigning(shop,row))published++;checked++;
+                var current=wb.find(shop.getId(),row.chrtId());if(current!=null&&current.status()==ZnackCardRegistrationModels.Status.READY_TO_SIGN&&RegistrationSigningConsent.allowed(shop,new ProductKey(shop.getId(),Marketplace.WILDBERRIES,Long.toString(current.nmId()),Long.toString(current.chrtId())),current.gtin()))signable.add(current);
+            }catch(Exception error){if(CatalogFeedback.rateLimited(error)||error instanceof java.io.InterruptedIOException&&!(error instanceof java.net.SocketTimeoutException))throw error;warning=com.vncode.app.features.sync.SyncFailure.of(error,0);try{wbWorkflow.recordPollingFailure(shop,row,error);}catch(RuntimeException originalAccountChanged){/* Never rebind a historical request. */}checked++;}}
+            if(!signable.isEmpty()){
+                try{wbWorkflow.signConsented(shop,signable,null);}catch(com.vncode.app.features.license.LicenseGate.LicenseDeniedException paused){warning=com.vncode.app.features.sync.SyncFailure.of(paused,0);}
+                for(var row:signable)if(wb.checkpointStatus(shop.getId(),row.chrtId())==ZnackCardRegistrationModels.Status.PUBLISHED)published++;
             }
-            for(var key:keys){if(Thread.currentThread().isInterrupted())throw new java.io.InterruptedIOException("ZNACK_SYNC_CANCELLED");try{var row=new OzonCardRegistrationRepository().find(key);if(row!=null&&row.status()==ZnackCardRegistrationModels.Status.READY_TO_SUBMIT&&row.feedId().isBlank()){if(!batchPending||!ownsOzonBatch.test(shop,key))ozonWorkflow.resume(shop,key,null);}else if(ozonWorkflow.refreshStatus(shop,key))published++;checked++;}catch(Exception error){if(CatalogFeedback.rateLimited(error)||error instanceof java.io.InterruptedIOException&&!(error instanceof java.net.SocketTimeoutException))throw error;warning=com.vncode.app.features.sync.SyncFailure.of(error,0);try{ozonWorkflow.recordPollingFailure(shop,key,error);}catch(RuntimeException originalAccountChanged){/* Never rebind a historical request. */}checked++;}}
+        }else{
+            var keys=pendingOzonKeys(shop,limit);
+            var signable=new ArrayList<ProductKey>();var ozon=new OzonCardRegistrationRepository();
+            for(var key:keys){if(Thread.currentThread().isInterrupted())throw new java.io.InterruptedIOException("ZNACK_SYNC_CANCELLED");try{var row=ozon.find(key);if(row!=null&&row.status()==ZnackCardRegistrationModels.Status.READY_TO_SUBMIT&&row.feedId().isBlank()){if(!batchPending||!ownsOzonBatch.test(shop,key))ozonWorkflow.resume(shop,key,null);}else if(ozonWorkflow.refreshStatusWithoutSigning(shop,key))published++;checked++;
+                var current=ozon.find(key);if(current!=null&&current.status()==ZnackCardRegistrationModels.Status.READY_TO_SIGN&&RegistrationSigningConsent.allowed(shop,key,current.gtin()))signable.add(key);
+            }catch(Exception error){if(CatalogFeedback.rateLimited(error)||error instanceof java.io.InterruptedIOException&&!(error instanceof java.net.SocketTimeoutException))throw error;warning=com.vncode.app.features.sync.SyncFailure.of(error,0);try{ozonWorkflow.recordPollingFailure(shop,key,error);}catch(RuntimeException originalAccountChanged){/* Never rebind a historical request. */}checked++;}}
+            if(!signable.isEmpty()){
+                try{ozonWorkflow.signConsented(shop,signable,null);}catch(com.vncode.app.features.license.LicenseGate.LicenseDeniedException paused){warning=com.vncode.app.features.sync.SyncFailure.of(paused,0);}
+                for(var key:signable)if(ozon.find(key).status()==ZnackCardRegistrationModels.Status.PUBLISHED)published++;
+            }
         }
         String table=shop.getMarketplace()==Marketplace.OZON?"ozon_card_registrations":"znack_card_registrations";
         boolean pending;
@@ -51,5 +63,12 @@ public final class ZnackRegistrationMonitor {
         pending|=batchPending;
         pending|=shop.getMarketplace()==Marketplace.WILDBERRIES?wbWorkflow.activeCount(shop)>0:ozonWorkflow.isRunning(shop);
         return new Result(checked,published,pending,warning);
+    }
+    static List<ProductKey> pendingOzonKeys(Shop shop,int limit)throws java.sql.SQLException {
+        var keys=new ArrayList<ProductKey>();
+        try(var c=Database.getConnection();var p=c.prepareStatement("SELECT product_id,offer_id FROM ozon_card_registrations r WHERE shop_id=? AND ((status IN ('FEED_SUBMITTED','PROCESSING','READY_TO_SIGN','SIGNING') OR status='ERROR' AND error='CATALOG_CARD_NOT_CREATED_AFTER_WAIT') AND NULLIF(feed_id,'') IS NOT NULL OR status='READY_TO_SUBMIT' AND NULLIF(gtin,'') IS NOT NULL AND NULLIF(feed_id,'') IS NULL) ORDER BY CASE WHEN status='READY_TO_SIGN' THEN CASE WHEN EXISTS(SELECT 1 FROM znack_registration_signing_consents consent WHERE consent.shop_id=r.shop_id AND consent.marketplace='OZON' AND consent.product_id=r.product_id AND consent.variant_id=r.offer_id AND consent.gtin=r.gtin AND consent.owner=? AND consent.enabled=1) THEN 0 ELSE 2 END ELSE 0 END,updated_at LIMIT ?")){
+            p.setInt(1,shop.getId());p.setString(2,ListingIdentity.fingerprint(shop));p.setInt(3,limit);try(var r=p.executeQuery()){while(r.next())keys.add(new ProductKey(shop.getId(),Marketplace.OZON,r.getString(1),r.getString(2)));}
+        }
+        return List.copyOf(keys);
     }
 }

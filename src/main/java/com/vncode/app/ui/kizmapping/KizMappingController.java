@@ -56,7 +56,9 @@ public class KizMappingController {
     private boolean syncing;
     private long shopGeneration;
     private final javafx.animation.PauseTransition syncRetry=new javafx.animation.PauseTransition();
-    private record Synced(List<ZnackGtinInventorySummary> summaries,com.vncode.app.features.kizmapping.WbCatalogMappingService.Result mapping){}
+    private record MappingIssue(String article,String size,String sku,String gtin,String reason){}
+    private record MappingReport(int mapped,int exempt,List<MappingIssue> issues){MappingReport{issues=List.copyOf(issues);}}
+    private record Synced(List<ZnackGtinInventorySummary> summaries,MappingReport mapping){}
 
     @FXML
     private void initialize() {
@@ -147,8 +149,11 @@ public class KizMappingController {
         titleLabel.setText(tr(ozon ? "ozon.mapping.title" : "kiz_mapping.title"));
         searchField.setPromptText(tr("kiz_mapping.search_gtin"));
         categoryFilter.setTexts(tr("znack.filter.button"), tr("znack.filter.no_category"), tr("znack.filter.clear"));
-        refreshButton.setTooltip(new Tooltip(tr("kiz_mapping.refresh")));
-        refreshButton.setAccessibleText(tr("kiz_mapping.refresh"));
+        refreshButton.setText(tr("mapping.sync_and_map"));
+        refreshButton.getStyleClass().remove("btn-icon");
+        if(!refreshButton.getStyleClass().contains("btn-primary"))refreshButton.getStyleClass().add("btn-primary");
+        refreshButton.setTooltip(new Tooltip(tr("mapping.sync_and_map")));
+        refreshButton.setAccessibleText(tr("mapping.sync_and_map"));
         gtinColumn.setText(tr("znack.field.gtin"));
         nameColumn.setText(tr("znack.field.name"));
         mappingColumn.setText(tr(ozon ? "ozon.mapping.column.mapping" : "kiz_mapping.column.mapping"));
@@ -176,9 +181,14 @@ public class KizMappingController {
                     java.util.function.Consumer<com.vncode.app.integration.znack.registration.NationalCatalogGtinSource.Progress> progress=p->javafx.application.Platform.runLater(()->{
                         if(generation==shopGeneration){syncStatusLabel.setText(tr("mapping.progress."+p.phase())+" · "+p.completed()+" / "+p.total());syncStatusLabel.setVisible(true);}
                     });
-                    com.vncode.app.features.kizmapping.WbCatalogMappingService.Result mapped=null;
-                    if(owner.getMarketplace()==Marketplace.WILDBERRIES)mapped=new com.vncode.app.features.kizmapping.WbCatalogMappingService().synchronize(owner,progress);
-                    else new com.vncode.app.features.sync.ZnackCatalogSyncService().refresh(owner,true,progress);
+                    MappingReport mapped;
+                    if(owner.getMarketplace()==Marketplace.WILDBERRIES){
+                        var result=new com.vncode.app.features.kizmapping.WbCatalogMappingService().synchronize(owner,progress);
+                        mapped=new MappingReport(result.mapped(),0,result.issues().stream().map(issue->new MappingIssue(issue.article(),issue.size(),"",issue.gtin(),issue.reason())).toList());
+                    }else{
+                        var result=new com.vncode.app.features.kizmapping.OzonCatalogMappingService().synchronize(owner,progress);
+                        mapped=new MappingReport(result.mapped(),result.exempt(),result.issues().stream().map(issue->new MappingIssue(issue.article(),issue.size(),issue.sku(),issue.gtin(),issue.reason())).toList());
+                    }
                     ZnackPurchaseCoordinator.create(current).resumeEligibleIntroductionsAsync(current.getSettings());
                     return new Synced(mappingRepository.findGtinSummaries(shopId),mapped);
                 } catch (Exception error) {
@@ -193,7 +203,8 @@ public class KizMappingController {
             if (generation != shopGeneration || shop == null || shop.getId() != shopId) return;
             syncing = false;
             summaries = task.getValue().summaries();
-            syncStatusLabel.setText(tr("mapping.progress.MAPPING_COMPLETE"));syncStatusLabel.setVisible(true);
+            var result=task.getValue().mapping();
+            syncStatusLabel.setText(java.text.MessageFormat.format(tr("mapping.complete_counts"),result.mapped(),result.exempt(),result.issues().size()));syncStatusLabel.setVisible(true);
             if(task.getValue().mapping()!=null&&!task.getValue().mapping().issues().isEmpty())showMappingIssues(task.getValue().mapping());
             categoryFilter.rebuild(summaries.stream().map(ZnackGtinInventorySummary::category).toList());
             applyFilter();
@@ -218,16 +229,18 @@ public class KizMappingController {
         AppTaskExecutor.execute(task, taskFailure);
     }
 
-    private void showMappingIssues(com.vncode.app.features.kizmapping.WbCatalogMappingService.Result result){
-        var dialog=new Dialog<Void>();if(gtinTable.getScene()!=null)dialog.initOwner(gtinTable.getScene().getWindow());dialog.setTitle(tr("mapping.issues"));
-        var table=new TableView<com.vncode.app.features.kizmapping.WbCatalogMappingService.Issue>();table.getItems().setAll(result.issues());table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
-        for(String field:List.of("article","size","gtin","reason")){
-            var col=new TableColumn<com.vncode.app.features.kizmapping.WbCatalogMappingService.Issue,String>(tr("mapping.column."+field));
-            col.setCellValueFactory(cell->new SimpleStringProperty(switch(field){case "article"->cell.getValue().article();case "size"->cell.getValue().size();case "gtin"->cell.getValue().gtin();default->tr("mapping.reason."+cell.getValue().reason());}));
+    private void showMappingIssues(MappingReport result){
+        var dialog=new Dialog<Void>();if(gtinTable.getScene()!=null)dialog.initOwner(gtinTable.getScene().getWindow());dialog.setTitle(tr(shop!=null&&shop.getMarketplace()==Marketplace.OZON?"ozon.mapping.issues":"mapping.issues"));
+        var table=new TableView<MappingIssue>();table.setId("mappingIssueTable");table.getItems().setAll(result.issues());table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
+        for(String field:shop!=null&&shop.getMarketplace()==Marketplace.OZON?List.of("article","size","sku","gtin","reason"):List.of("article","size","gtin","reason")){
+            var col=new TableColumn<MappingIssue,String>(tr("mapping.column."+field));
+            col.setCellValueFactory(cell->new SimpleStringProperty(switch(field){case "article"->cell.getValue().article();case "size"->cell.getValue().size();case "sku"->cell.getValue().sku();case "gtin"->cell.getValue().gtin();default->mappingReason(cell.getValue().reason());}));
             col.setCellFactory(c->new TableCell<>(){protected void updateItem(String text,boolean empty){super.updateItem(text,empty);setText(empty?null:text);setWrapText(true);}});table.getColumns().add(col);
         }
-        dialog.getDialogPane().setContent(table);dialog.getDialogPane().setPrefSize(980,500);dialog.getDialogPane().getButtonTypes().add(ButtonType.CLOSE);com.vncode.app.shared.DialogLayout.install(dialog.getDialogPane());dialog.show();
+        dialog.getDialogPane().setId("mappingIssuesDialog");dialog.getDialogPane().setContent(table);dialog.getDialogPane().setPrefSize(980,500);dialog.getDialogPane().getButtonTypes().add(ButtonType.CLOSE);com.vncode.app.shared.DialogLayout.install(dialog.getDialogPane());AlertService.applyTheme(dialog);dialog.show();
     }
+
+    private String mappingReason(String code){return I18nService.getInstance().tr("mapping.reason."+code,FriendlyErrorService.format(new IllegalArgumentException(code)));}
 
     public void refresh() {
         if (loading) return;

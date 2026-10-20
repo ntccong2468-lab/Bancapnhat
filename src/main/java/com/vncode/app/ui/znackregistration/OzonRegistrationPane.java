@@ -47,6 +47,8 @@ public final class OzonRegistrationPane extends VBox {
     private final Map<ProductKey,OzonCardRegistrationRepository.Row> states=new HashMap<>();
     private final TextField search=new TextField();
     private final ComboBox<String> statusFilter=new ComboBox<>();
+    private final MenuButton categoryFilter=new MenuButton();
+    private final com.vncode.app.ui.controls.CategoryFilterMenu categories=new com.vncode.app.ui.controls.CategoryFilterMenu(categoryFilter,this::reload);
     private final CheckBox autoSign=new CheckBox(),allFiltered=new CheckBox();
     private final Label title=new Label(),status=new Label(),count=new Label(),selection=new Label();
     private final Button report=new Button(),documents=new Button(),refresh=new Button(),sync=new Button(),sign=new Button(),gtin=new Button(),all=new Button(),clear=new Button(),register=new Button(),newCards=new Button(),stopBatch=new Button(),more=new Button();
@@ -76,9 +78,9 @@ public final class OzonRegistrationPane extends VBox {
         statusFilter.getItems().setAll("ALL","NOT_CREATED","IN_PROGRESS","COMPLETED","ERROR");statusFilter.setValue("ALL");statusFilter.setId("ozonRegistrationStatusFilter");statusFilter.setPrefWidth(220);
         statusFilter.setConverter(new javafx.util.StringConverter<>(){public String toString(String value){return tr("znack.registration.filter."+(value==null?"all":value.toLowerCase(java.util.Locale.ROOT)));}public String fromString(String value){throw new UnsupportedOperationException();}});
         statusFilter.valueProperty().addListener((observable,previous,current)->reload());
-        var clearFilters=new Button(tr("znack.registration.clear"));clearFilters.setOnAction(e->{search.clear();statusFilter.setValue("ALL");reload();});
+        var clearFilters=new Button(tr("znack.registration.clear"));clearFilters.setOnAction(e->{search.clear();categories.clear();statusFilter.setValue("ALL");reload();});
         var brandConfig=new Button(tr("ozon.brand.configure"));brandConfig.setId("ozonConfigureBrand");brandConfig.setOnAction(e->configureBrand());
-        var filters=new FlowPane(8,8,search,statusFilter,clearFilters,brandConfig);autoSign.setSelected(true);autoSign.setWrapText(true);autoSign.setId("ozonRegistrationAutoSign");search.setPrefWidth(375);
+        categoryFilter.setId("ozonRegistrationCategoryFilter");var filters=new FlowPane(8,8,search,categoryFilter,statusFilter,clearFilters,brandConfig);autoSign.setSelected(true);autoSign.setWrapText(true);autoSign.setId("ozonRegistrationAutoSign");search.setPrefWidth(375);
         allFiltered.setOnAction(e->{if(allFiltered.isSelected())all.fire();else clear.fire();});
         var footer=new HBox(10,allFiltered,register,count,more);footer.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
         HBox.setHgrow(search,Priority.ALWAYS);batchProgress.setId("ozonRegistrationBatchProgress");batchProgress.setWrapText(true);batchProgress.getStyleClass().add("text-muted");getChildren().setAll(header,status,filters,new StackPane(table),footer,batchProgress);VBox.setVgrow(table.getParent(),Priority.ALWAYS);
@@ -141,6 +143,7 @@ public final class OzonRegistrationPane extends VBox {
     }
     private static String tr(String key){return I18nService.getInstance().tr(key);}
     public void applyTranslations() {
+        categories.setTexts(tr("ozon.mapping.filter.category"),tr("ozon.mapping.filter.category"),tr("znack.registration.clear"));
         title.setText(tr("znack.registration.title_ozon")+" · "+owner.getName());
         documents.setText(tr("znack.registration.documents"));refresh.setText(tr("znack.registration.refresh"));sync.setText(tr("znack.registration.sync_znack"));report.setText(tr("znack.registration.report"));sign.setText(tr("znack.registration.sign_approved"));
         gtin.setText(tr("znack.registration.update_ozon"));all.setText(tr("znack.registration.select_all"));clear.setText(tr("znack.registration.clear_selection"));
@@ -181,9 +184,9 @@ public final class OzonRegistrationPane extends VBox {
         }});buttons();
     }
     private void column(String text,java.util.function.Function<ProductRow,String> value){var column=new TableColumn<ProductRow,String>(text);column.setCellValueFactory(c->new ReadOnlyStringWrapper(value.apply(c.getValue())));column.setPrefWidth(160);if(text.equals(tr("jobs.reason"))){column.setMinWidth(150);RegistrationTextCells.wrap(column);}table.getColumns().add(column);}
-    private ProductQuery query(String cursor){return new ProductQuery(owner.getId(),Marketplace.OZON,search.getText(),List.of(),null,false,cursor,300);}
+    private ProductQuery query(String cursor){return new ProductQuery(owner.getId(),Marketplace.OZON,search.getText(),List.copyOf(categories.selectedCategories()),null,false,cursor,300);}
     private void reload(){if(disposed)return;if(batchReviewing){deferredReload=true;return;}debounce.stop();batchRowsRefresh.stop();++generation;batchRowsReadInFlight=false;cursor=null;frozen=List.of();readiness=null;cardIndex=null;table.getItems().clear();total=0;load(false);}
-    private record Loaded(RegistrationSources.Readiness readiness,RegistrationCardIndex index,ProductPage page,Map<ProductKey,OzonCardRegistrationRepository.Row> states,Map<ProductKey,String> skus){}
+    private record Loaded(RegistrationSources.Readiness readiness,RegistrationCardIndex index,ProductPage page,Map<ProductKey,OzonCardRegistrationRepository.Row> states,Map<ProductKey,String> skus,List<String> categories){}
     private void load(boolean append) {
         load(append,false);
     }
@@ -193,7 +196,7 @@ public final class OzonRegistrationPane extends VBox {
         ProductQuery query=query(filtered?null:append?cursor:null);
         int visibleExtent=backgroundRefresh?Math.max(300,table.getItems().size()):300;
         Callable<Loaded> read=()->{
-            var ready=sources.check(owner);if(!ready.ready())return new Loaded(ready,null,null,Map.of(),Map.of());
+            var ready=sources.check(owner);if(!ready.ready())return new Loaded(ready,null,null,Map.of(),Map.of(),List.of());
             var index=new RegistrationCardIndex(owner);ProductPage page;
             if(filtered)page=filteredPage(query,ready,index,errorStart,filter,visibleExtent);
             else{
@@ -218,11 +221,11 @@ public final class OzonRegistrationPane extends VBox {
                 }
             }
             if(!sources.require(owner).run().equals(ready.run()))throw new IllegalStateException("SOURCE_CONFIGURATION_CHANGED");
-            return new Loaded(ready,index,page,registrations.findMany(keys),Map.copyOf(nativeSkus));
+            return new Loaded(ready,index,page,registrations.findMany(keys),Map.copyOf(nativeSkus),products.categories(owner.getId(),Marketplace.OZON));
         };
         Consumer<Loaded> apply=loaded->{
             var retained=backgroundRefresh?List.copyOf(selected()):List.<ProductKey>of();
-            readiness=loaded.readiness();cardIndex=loaded.index();
+            readiness=loaded.readiness();cardIndex=loaded.index();categories.rebuild(loaded.categories());
             if(!ready()){table.getItems().clear();states.clear();skus.clear();cursor=null;total=0;status.setText(tr("znack.registration.sources_required")+" · "+readiness.reason());buttons();return;}
             skus.putAll(loaded.skus());
             if(!append)states.clear();states.putAll(loaded.states());total=loaded.page().total();cursor=loaded.page().nextCursor();
@@ -255,7 +258,7 @@ public final class OzonRegistrationPane extends VBox {
     }
     private List<ProductRow> filteredRows(ProductQuery query,RegistrationSources.Readiness ready,RegistrationCardIndex index,String filter){
         String next=null;var matches=new ArrayList<ProductRow>();int scanned=0;
-        do{var page=products.loadPage(new ProductQuery(owner.getId(),Marketplace.OZON,query.text(),List.of(),null,false,next,1000),ready.run());var checkpoints=registrations.findMany(page.rows().stream().map(ProductRow::key).toList());
+        do{var page=products.loadPage(new ProductQuery(owner.getId(),Marketplace.OZON,query.text(),query.categoryIds(),null,false,next,1000),ready.run());var checkpoints=registrations.findMany(page.rows().stream().map(ProductRow::key).toList());
             for(var row:page.rows()){if(++scanned>100000)throw new IllegalArgumentException("SYNC_REPORT_LIMIT");var nativeRow=checkpoints.get(row.key());var state=nativeRow==null?Status.NOT_CREATED:nativeRow.status();var observed=index.viewOzon(state,nativeRow==null?"":nativeRow.gtin(),row,nativeRow==null||index.ownsOzon(nativeRow.owner(),nativeRow.scopeJson()));if(matchesFilter(filter,nativeRow,observed))matches.add(row);}
             next=page.nextCursor();
         }while(next!=null);return List.copyOf(matches);
@@ -276,7 +279,7 @@ public final class OzonRegistrationPane extends VBox {
     private void registerSelection(){
         var selected=List.copyOf(selected());if(selected.isEmpty()||busy||selectionPreparing||batchActive()||!ready())return;
         selectionPreparing=true;buttons();
-        var task=new Task<RegistrationBatchPreflight.Review>(){protected RegistrationBatchPreflight.Review call(){return RegistrationBatchPreflight.read(owner,selected);}};
+        var task=new Task<RegistrationBatchPreflight.Review>(){protected RegistrationBatchPreflight.Review call(){return RegistrationBatchPreflight.readComplete(owner,selected);}};
         task.setOnSucceeded(e->{if(disposed)return;selectionPreparing=false;buttons();
             boolean applied=RegistrationBatchPreflight.show(getScene()==null?null:getScene().getWindow(),owner,task.getValue());
             if(applied&&!disposed)registerPreparedSelection(selected);

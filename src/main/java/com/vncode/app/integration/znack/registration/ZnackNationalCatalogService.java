@@ -509,18 +509,31 @@ public final class ZnackNationalCatalogService {
 
     /** Exactly one reviewed POST. The durable caller must reconcile an uncertain result. */
     public long sendReviewedSigning(String token,SigningDocument document,BeforeSigningSend beforeSend) throws Exception {
+        return sendReviewedSigningBatch(token,List.of(document),beforeSend).getFirst();
+    }
+
+    /** At most ten immutable, separately signed XML documents in one non-replayed POST. */
+    public List<Long> sendReviewedSigningBatch(String token,List<SigningDocument> documents,BeforeSigningSend beforeSend) throws Exception {
+        var frozen=List.copyOf(documents);
+        if(frozen.isEmpty()||frozen.size()>10||frozen.stream().map(SigningDocument::goodId).distinct().count()!=frozen.size())
+            throw new IllegalArgumentException("CATALOG_SIGNING_BATCH_INVALID");
         LicenseRuntime.require(Permission.GTIN);
-        byte[] xmlBytes=document.xml();
-        byte[] signature=signer.sign(xmlBytes,ZnackSignatureContext.TRUE_API_DOCUMENT).cms();
-        JsonObject signed = new JsonObject(); signed.addProperty("goodId",document.goodId());
-        signed.addProperty("base64Xml",Base64.getEncoder().encodeToString(xmlBytes));
-        signed.addProperty("signature",Base64.getEncoder().encodeToString(signature));
-        JsonArray batch=new JsonArray();batch.add(signed);
+        JsonArray batch=new JsonArray();
+        for(var document:frozen){
+            byte[] xmlBytes=document.xml();
+            byte[] signature=signer.sign(xmlBytes,ZnackSignatureContext.TRUE_API_DOCUMENT).cms();
+            JsonObject signed = new JsonObject(); signed.addProperty("goodId",document.goodId());
+            signed.addProperty("base64Xml",Base64.getEncoder().encodeToString(xmlBytes));
+            signed.addProperty("signature",Base64.getEncoder().encodeToString(signature));batch.add(signed);
+        }
         LicenseRuntime.require(Permission.GTIN);
         if(beforeSend!=null)beforeSend.check();
         JsonObject response=resultObject(api.signNationalCatalogProduct(settings.resolvedTrueApiBaseUrl(),token,batch));
-        for(JsonElement id:array(response.get("signed")))if(id.getAsLong()==document.goodId())return document.goodId();
-        throw new IllegalStateException("National Catalog did not confirm the signature. Refresh to reconcile before continuing.");
+        var acknowledged=new LinkedHashSet<Long>();
+        for(JsonElement id:array(response.get("signed")))if(id.isJsonPrimitive())acknowledged.add(id.getAsLong());
+        if(!acknowledged.equals(frozen.stream().map(SigningDocument::goodId).collect(java.util.stream.Collectors.toCollection(LinkedHashSet::new))))
+            throw new IllegalStateException(frozen.size()==1?"National Catalog did not confirm the signature. Refresh to reconcile before continuing.":"National Catalog did not confirm every signature. Refresh to reconcile before continuing.");
+        return frozen.stream().map(SigningDocument::goodId).toList();
     }
     public long sign(String token,String gtin)throws Exception {
         return sendReviewedSigning(token,reviewSigning(token,gtin),null);

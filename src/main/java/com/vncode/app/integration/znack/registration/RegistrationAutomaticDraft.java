@@ -29,11 +29,14 @@ final class RegistrationAutomaticDraft {
         var session=ZnackCardRegistrationWorkflow.productionCatalog(shop);
         var preflight=session.catalog().preflight(tnved);session.scope().assertCurrent(shop);
         selected=session.catalog().reviewDocuments(preflight.token(),selected,tnved);session.scope().assertCurrent(shop);
+        selected=RegistrationReviewedValues.reviewedDocuments(shop,snapshot,selected);
         if(selected.automatic()==null||selected.requiresReview())throw new RegistrationValidationException("ZNACK_PRODUCT_DOCUMENT_REVIEW_REQUIRED");
-        var resolved=ZnackCategoryResolver.resolve(inputs.sku().subjectName(),inputs.sku().title(),preflight.categories()).orElseThrow(()->new RegistrationValidationException("ZNACK_CATEGORY_REVIEW_REQUIRED"));
+        var snapshotForReview=snapshot;
+        var resolved=ZnackCategoryResolver.resolve(inputs.sku().subjectName(),inputs.sku().title(),preflight.categories()).or(()->RegistrationReviewedValues.reviewedCategory(shop,snapshotForReview,preflight.categories())).orElseThrow(()->new RegistrationValidationException("ZNACK_CATEGORY_REVIEW_REQUIRED"));
         var required=session.catalog().requiredAttributes(resolved.id(),preflight.token());
         var mapped=new ZnackWbAttributeMapper().map(inputs.sku(),inputs.characteristics(),required,preflight.tnved(),preflight.categoryTnved(),selected.automatic());
         var draft=new Draft(preflight.tnved(),preflight.categoryTnved(),resolved.id(),mapped.goodName(),mapped.brand(),mapped.attributes(),mapped.attributeTypes(),autoSign).withProductCategory(inputs.sku().subjectName());
+        draft=RegistrationReviewedValues.apply(shop,snapshot,draft,required);
         return complete(draft,required,inputs.sku().wbSize());
     }
     /** Only exact preset normalization or a sole permitted option is safe without seller input. */

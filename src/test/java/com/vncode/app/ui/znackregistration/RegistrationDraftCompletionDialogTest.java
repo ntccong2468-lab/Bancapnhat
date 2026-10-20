@@ -83,5 +83,19 @@ class RegistrationDraftCompletionDialogTest {
             });return RegistrationBatchPreflight.show(null,shop,review);
         });Platform.runLater(future);assertFalse(future.get(15,TimeUnit.SECONDS));
         try(var c=com.vncode.app.config.Database.getConnection();var s=c.createStatement();var r=s.executeQuery("SELECT COUNT(*) FROM znack_card_registrations")){assertTrue(r.next());assertEquals(0,r.getInt(1));}
+    }    @Test void completeSelectionDialogNamesTheExactCatalogAttributeAndVariantAndDoesNotCloseWithMissingValues()throws Exception{
+        var shop=com.vncode.app.features.gtinsync.GtinWriteTestFixture.shop(com.vncode.app.integration.marketplace.Marketplace.WILDBERRIES);
+        var key=new com.vncode.app.features.products.ProductKey(shop.getId(),shop.getMarketplace(),"101","201");
+        var finding=new RegistrationBatchPreflight.Finding("catalog:10",key,"Selected Article","","","",country,null,"value",List.of());
+        var review=new RegistrationBatchPreflight.Review(List.of(finding),List.of(key),new com.vncode.app.integration.znack.registration.RegistrationDynamicPreflight.Review(List.of(),List.of()));
+        var result=new java.util.concurrent.atomic.AtomicBoolean(true);
+        com.vncode.app.testsupport.FxDialogDriver.choose(()->result.set(RegistrationBatchPreflight.show(null,shop,review)),pane->"registrationMissingFieldsDialog".equals(pane.getId()),pane->{
+            pane.applyCss();pane.layout();var table=(TableView<RegistrationBatchPreflight.Finding>)pane.lookup(".table-view");
+            assertEquals(List.of(finding),table.getItems());assertTrue(RegistrationBatchPreflight.fieldLabel(finding).contains("Страна [10]"));assertTrue(table.getColumns().getFirst().getCellObservableValue(0).getValue().toString().contains("Selected Article · 201"));
+            var box=(ComboBox<?>)pane.lookup("#registrationMissingValue");assertTrue(box.getItems().containsAll(List.of("Россия","Вьетнам")));
+            ((Button)pane.lookup("#registrationMissingApply")).fire();assertTrue(pane.getScene().getWindow().isShowing());assertTrue(((Label)pane.lookup("#registrationMissingStatus")).getText().contains("Selected Article"));
+            return pane.getButtonTypes().stream().filter(button->button.getButtonData()==ButtonBar.ButtonData.CANCEL_CLOSE).findFirst().orElseThrow();
+        });assertFalse(result.get());
     }
+
 }

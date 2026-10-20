@@ -46,5 +46,17 @@ class RegistrationBatchPreflightTest {
         assertEquals(List.of(key),RegistrationBatchPreflight.read(shop,List.of(key)).keys("documents"));
         var settings=new com.vncode.app.integration.znack.ZnackRepository(new com.vncode.app.integration.znack.ZnackModels.ShopContext(1,shop.getName()));settings.saveSettings(settings.getSettings().withDefaultGoodsDocument("CONFORMITY_DECLARATION","SYNTHETIC-DOC",java.time.LocalDate.now().minusDays(1).format(java.time.format.DateTimeFormatter.ofPattern("dd.MM.uuuu"))));
         assertTrue(RegistrationBatchPreflight.read(shop,List.of(key)).keys("documents").isEmpty());
+    }    @Test void staleStoredApprovalRequiresFreshExplicitReviewEvenWhenAutomaticValuesAreComplete()throws Exception{
+        System.setProperty("vncode.appdata.dir",directory.toString());Database.initDatabase();var shop=GtinWriteTestFixture.shop(Marketplace.WILDBERRIES);var key=new ProductKey(shop.getId(),shop.getMarketplace(),"101","201");
+        var snapshot=new ProductSnapshot(key,"live:fixture","Name","","Brand","Article","1",List.of(),List.of(),List.of(new ProductVariant("201","Article","Brown","52","",false)),null,List.of(),Instant.now(),Map.of("owner",ListingIdentity.fingerprint(shop)));
+        var attribute=new com.vncode.app.integration.znack.registration.ZnackCardRegistrationModels.Attribute(999,"Catalog field","text",false,false,true,false,List.of());var schema=List.of(attribute);
+        com.vncode.app.integration.znack.registration.RegistrationReviewedValues.save(shop,List.of(new com.vncode.app.integration.znack.registration.RegistrationReviewedValues.Approval(snapshot,schema,Map.of(999L,new com.vncode.app.integration.znack.registration.RegistrationReviewedValues.Value("Old approval","")))));
+        var changed=new ProductSnapshot(key,"live:new","Name","","Brand","Changed article","1",snapshot.media(),snapshot.attributes(),snapshot.variants(),snapshot.dimensions(),snapshot.documents(),Instant.now(),snapshot.metadata());
+        var plan=new com.vncode.app.integration.znack.registration.RegistrationDynamicPreflight.Plan(changed,new com.vncode.app.integration.znack.registration.ZnackCardRegistrationModels.Draft("6204",1,"Name","Brand",Map.of(999L,"Automatic value")),schema);
+        var current=new RegistrationBatchPreflight.Review(List.of(),List.of(key),new com.vncode.app.integration.znack.registration.RegistrationDynamicPreflight.Review(List.of(plan),List.of()));
+        var review=RegistrationBatchPreflight.reviewStaleApprovals(shop,current);assertEquals(1,review.findings().size());assertEquals("Automatic value",review.findings().getFirst().suggestion());
+        assertThrows(com.vncode.app.integration.znack.registration.RegistrationValidationException.class,()->com.vncode.app.integration.znack.registration.RegistrationReviewedValues.load(shop,changed,schema),"Merely reading a proposal must not change the old approval");
+        com.vncode.app.integration.znack.registration.RegistrationReviewedValues.save(shop,com.vncode.app.integration.znack.registration.RegistrationDynamicPreflight.approvals(current.dynamic()));assertEquals("Automatic value",com.vncode.app.integration.znack.registration.RegistrationReviewedValues.load(shop,changed,schema).get(999L).text());assertTrue(RegistrationBatchPreflight.reviewStaleApprovals(shop,current).findings().isEmpty());
     }
+
 }

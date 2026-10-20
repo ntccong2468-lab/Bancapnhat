@@ -79,6 +79,12 @@ public final class FriendlyErrorService {
             return formatDetail(error.getCause());
         if (error instanceof com.vncode.app.features.license.LicenseGate.LicenseDeniedException) return I18nService.getInstance().tr(error.getMessage().equals("LICENSE_SHOP_LIMIT")?"license.account.shop_limit":"license.account.required");
         String message = error.getMessage() == null ? "" : error.getMessage().trim();
+        for(String preflightCode:new String[]{"ZNACK_PREFLIGHT_READ_FAILED","ZNACK_REVIEWED_VALUES_CHANGED"})
+            if(message.contains(preflightCode))return I18nService.getInstance().tr("znack.registration.reason."+preflightCode);
+        if("REGISTRATION_REVIEW_TOO_LARGE".equals(message))
+            return I18nService.getInstance().tr("znack.registration.preflight.review_too_large");
+        if("registration_selection_limit".equals(message)||"SYNC_REPORT_LIMIT".equals(message))
+            return I18nService.getInstance().tr("znack.registration.selection_limit");
         if(message.contains("CATALOG_NEW_GTIN_REQUIRES_REJECTED_FEED"))return I18nService.getInstance().tr("znack.registration.new_gtin_requires_rejection");
         if(message.contains("CATALOG_READBACK_RETRY_PENDING"))return I18nService.getInstance().tr("znack.registration.readback_retry_pending");
         if(message.contains("CATALOG_CARD_NOT_CREATED_AFTER_WAIT"))return I18nService.getInstance().tr("znack.registration.wait_expired");
