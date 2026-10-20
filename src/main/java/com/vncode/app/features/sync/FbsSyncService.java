@@ -44,13 +44,13 @@ public final class FbsSyncService {
         var api=ozonClients.apply(shop);
         var repository=new OzonPostingRepository();
         if(stream==SyncCoordinator.Stream.FBS_STATUS){
-            String after=cursor.after();var ids=new ArrayList<String>();
-            try(var c=Database.getConnection();var p=c.prepareStatement("SELECT posting_number FROM ozon_postings WHERE shop_id=? AND status IN ('awaiting_packaging','awaiting_deliver','delivering') AND posting_number>? ORDER BY posting_number LIMIT 3")){
-                p.setInt(1,shop.getId());p.setString(2,after);try(var r=p.executeQuery()){while(r.next())ids.add(r.getString(1));}
-            }
+            int readbacks=0;
+            try{readbacks=new OzonShipService().reconcilePendingReadOnly(shop,api,3);}
+            catch(RuntimeException waiting){org.slf4j.LoggerFactory.getLogger(FbsSyncService.class).warn("Ozon package readback is pending; regular FBS status refresh continues: {}",waiting.getClass().getSimpleName());}
+            String after=cursor.after();var ids=repository.findStatusNumbersAfter(shop.getId(),after,3);
             SyncFailure warning=null;
             for(String id:ids){var item=OzonJson.requirePostingDetail(api.getPosting(id,false),id);if(!id.equals(item.postingNumber()))throw new IOException("FBS_FOREIGN_POSTING");ListingIdentity.require(shop);repository.upsertDetail(shop.getId(),item);try{if(kn3!=null)kn3.ozon(shop,item,api);}catch(IOException|com.vncode.app.shared.RateLimitDeferral.Deferred unavailable){warning=SyncFailure.of(unavailable,0);}}
-            return warning(next(cursor,ids.isEmpty()?"":ids.getLast(),ids.size()<3,ids.size()),warning);
+            return warning(next(cursor,ids.isEmpty()?"":ids.getLast(),ids.size()<3,ids.size()+readbacks),warning);
         }
         if(stream==SyncCoordinator.Stream.SUPPLIES||stream==SyncCoordinator.Stream.SUPPLY_CONTENT)return SyncCoordinator.Page.complete(0);
         var raw=stream==SyncCoordinator.Stream.FBS_QUEUE?api.listUnfulfilledPostings(cursor.from(),cursor.to(),cursor.after(),100):api.listPostings(cursor.from(),cursor.to(),cursor.after(),100);

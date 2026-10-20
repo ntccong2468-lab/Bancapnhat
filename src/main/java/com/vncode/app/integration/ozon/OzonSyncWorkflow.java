@@ -23,6 +23,7 @@ public final class OzonSyncWorkflow {
         OzonPostingSyncService postingSync = new OzonPostingSyncService(shop.getId(), api);
         postingSync.syncUnfulfilled();
         OzonSyncReport postings = postingSync.sync();
+        reconcilePackages(shop,api);
         postingSync.refreshActiveDetails();
         int products = new OzonCatalogSyncService(shop.getId(), api).syncFromStart();
         return new OzonSyncReport(products, postings.postings(), postings.items());
@@ -32,7 +33,8 @@ public final class OzonSyncWorkflow {
     public int syncCurrentPostings(Shop shop) throws IOException {
         MarketplaceGuard.requireOzon(shop);
         LicenseRuntime.require(SELLER_API);
-        return new OzonPostingSyncService(shop.getId(), client(shop)).syncUnfulfilled();
+        var api=client(shop);int changed=new OzonPostingSyncService(shop.getId(),api).syncUnfulfilled();
+        reconcilePackages(shop,api);return changed;
     }
 
     /** Refreshes one posting before a print decision so stale list data cannot omit a KIZ rule. */
@@ -47,6 +49,11 @@ public final class OzonSyncWorkflow {
     }
     private OzonApiClient client(Shop shop) {
         return clients.apply(shop);
+    }
+
+    private static void reconcilePackages(Shop shop,OzonApiClient api){
+        try{new OzonShipService().reconcilePendingReadOnly(shop,api,3);}
+        catch(RuntimeException waiting){org.slf4j.LoggerFactory.getLogger(OzonSyncWorkflow.class).warn("Ozon package readback is pending; normal synchronization completed: {}",waiting.getClass().getSimpleName());}
     }
 
 }

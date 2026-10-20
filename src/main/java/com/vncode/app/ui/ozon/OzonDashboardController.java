@@ -115,6 +115,9 @@ public final class OzonDashboardController {
     public OzonDashboardController(){this(new OzonSyncWorkflow());}
     public OzonDashboardController(OzonSyncWorkflow syncWorkflow){this.syncWorkflow=java.util.Objects.requireNonNull(syncWorkflow);}
     private final OzonShipService shipService = new OzonShipService();
+    @FunctionalInterface interface PostingAcceptor {com.vncode.app.integration.ozon.OzonShipResult accept(Shop owner,String number)throws Exception;}
+    private PostingAcceptor postingAcceptor=(owner,number)->shipService.shipPerUnit(owner,number,true);
+    void setPostingAcceptor(PostingAcceptor acceptor){postingAcceptor=Objects.requireNonNull(acceptor);}
     @FXML private StackPane kn3StatusHost;
     @FXML private Button addAgainKizButton;
     @FXML private void onAddAgainKiz(){
@@ -129,7 +132,9 @@ public final class OzonDashboardController {
             com.vncode.app.ui.kiz.Kn3BatchDialog.open(kn3StatusHost,owner,report,sources,()->{if(isCurrent(owner))loadLocal();});
         }));
     }
-    private record Kn3Pages(Map<String,com.vncode.app.features.ozon.OzonFbsPage> pages,boolean rejected){}
+    private record Kn3Pages(Map<String,com.vncode.app.features.ozon.OzonFbsPage> pages,boolean rejected,Map<String,List<String>> completedTransfers){}
+    private BatchTransitionResult lastTransitionResult;
+    private long transitionRevision;
 
     private Map<String,List<com.vncode.app.features.kiz.status.Kn3Mark>> kn3Marks=Map.of();
     private final ShipmentKizPane shipmentKizPane=new ShipmentKizPane();
@@ -259,7 +264,7 @@ public final class OzonDashboardController {
             newOrdersTable.getItems().clear();packingOrdersTable.getItems().clear();deliveringOrdersTable.getItems().clear();
         }
         this.shop = selected;
-        if(!sameContext){batchResultsArea.clear();batchResultsPanel.setVisible(false);batchResultsPanel.setManaged(false);}
+        if(!sameContext){lastTransitionResult=null;transitionRevision++;batchResultsArea.clear();batchResultsPanel.setVisible(false);batchResultsPanel.setManaged(false);}
         if (!sameContext) {setGtinShop(selected);shipmentKizPane.setContext(selected,"OZON:FBS");}
         if (this.shop == null) {
             clear();
@@ -412,7 +417,7 @@ public final class OzonDashboardController {
         if (selected == null || postingNumbers.isEmpty() || busy) return;
         var dialog=new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.CONFIRMATION);
         if(newOrdersTable.getScene()!=null&&newOrdersTable.getScene().getWindow()!=null)dialog.initOwner(newOrdersTable.getScene().getWindow());
-        AlertService.applyTheme(dialog);dialog.setTitle(tr("ozon.fbs.confirm_title"));dialog.setHeaderText(selected.getName()+" · "+postingNumbers.size());dialog.setContentText(tr("ozon.fbs.confirm_body")+"\n"+String.join(", ",postingNumbers.stream().limit(20).toList())+(postingNumbers.size()>20?" …":""));
+        AlertService.applyTheme(dialog);dialog.setTitle(tr("ozon.fbs.confirm_title"));dialog.setHeaderText(selected.getName()+" · "+postingNumbers.size());dialog.setContentText(tr("ozon.fbs.confirm_body")+"\n"+tr("ozon.fbs.auto_split_notice")+"\n"+String.join(", ",postingNumbers.stream().limit(20).toList())+(postingNumbers.size()>20?" …":""));
         var accepted=new javafx.scene.control.ButtonType(tr("ozon.fbs.confirm_accept"),javafx.scene.control.ButtonBar.ButtonData.OK_DONE);var cancelled=new javafx.scene.control.ButtonType(tr("common.cancel"),javafx.scene.control.ButtonBar.ButtonData.CANCEL_CLOSE);dialog.getButtonTypes().setAll(accepted,cancelled);if(dialog.showAndWait().orElse(cancelled)!=accepted)return;
         if(disposed||!isCurrent(selected)||busy)return;
         var lease=com.vncode.app.shared.ShopBatchRegistry.claim(selected,"ozon-pack").orElse(null);if(lease==null){statusLabel.setText(tr("runtime.queue_full"));return;}
@@ -422,19 +427,23 @@ public final class OzonDashboardController {
                 lease.requireOwner(selected);
                 List<String> completed = new ArrayList<>();
                 List<String> failed = new ArrayList<>();List<String> pending=new ArrayList<>();
+                var children=new java.util.LinkedHashMap<String,List<String>>();var reasons=new java.util.LinkedHashMap<String,String>();
                 int processed=0;for (String postingNumber : postingNumbers) {
                     if(lease.stopping()||Thread.currentThread().isInterrupted())break;
                     lease.requireOwner(selected);
                     com.vncode.app.integration.listing.ListingIdentity.require(selected);
                     try {
-                        shipService.ship(selected, postingNumber, true);
+                        var result=postingAcceptor.accept(selected,postingNumber);
+                        children.put(postingNumber,result.resultingPostings());
                         completed.add(postingNumber);
                     } catch (Exception exception) {
-                        if(reconciliationRequired(exception))pending.add(postingNumber);else failed.add(postingNumber + " (" + safeFailure(exception) + ")");
+                        reasons.put(postingNumber,shippingFailure(exception));
+                        try{var known=shipService.knownUnitPostings(selected,postingNumber);if(!known.isEmpty())children.put(postingNumber,known);}catch(RuntimeException unavailable){/* Keep the primary error; the durable receipt remains intact. */}
+                        if(reconciliationRequired(exception))pending.add(postingNumber);else failed.add(postingNumber);
                     }
                     reportProgress(token,selected,++processed,postingNumbers.size());
                 }
-                return new BatchTransitionResult(postingNumbers.size(), List.copyOf(completed), List.copyOf(failed),List.copyOf(pending));
+                return new BatchTransitionResult(postingNumbers.size(), List.copyOf(completed), List.copyOf(failed),List.copyOf(pending),Map.copyOf(children),Map.copyOf(reasons));
             }
         };
         setBusy(true);
@@ -444,8 +453,7 @@ public final class OzonDashboardController {
             setBusy(false);
             BatchTransitionResult result = task.getValue();
             selectedPostingNumbers.removeAll(result.completed());
-            statusLabel.setText(batchResultText(result));
-            var lines=new ArrayList<String>();result.completed().forEach(id->lines.add(id+" · "+tr("ozon.fbs.packaged")));result.pending().forEach(id->lines.add(id+" · "+tr("ozon.fbs.pending")));result.failed().forEach(id->lines.add(id+" · "+tr("ozon.fbs.failed")));batchResultsArea.setText(String.join("\n",lines));batchResultsPanel.setVisible(true);batchResultsPanel.setManaged(true);batchResultsPanel.setExpanded(!result.pending().isEmpty()||!result.failed().isEmpty());
+            lastTransitionResult=result;transitionRevision++;renderTransitionResult(result);
             loadLocal();
             if (!result.completed().isEmpty()) orderStatusTabs.getSelectionModel().select(packingOrdersTab);
         });
@@ -622,16 +630,24 @@ public final class OzonDashboardController {
     private void loadLocal() {
         Shop selected=shop;if(disposed||selected==null){newOrdersTable.getItems().clear();packingOrdersTable.getItems().clear();deliveringOrdersTable.getItems().clear();updateTabTitles();updatePaging();return;}
         long epoch=++pageGeneration,started=System.nanoTime();String text=postingSearch.getText();String currentStatus=activeStatus();String sort=sortFields();var frozenOffsets=Map.copyOf(offsets);
-        var owner=selected;String scope=com.vncode.app.integration.listing.ListingIdentity.fingerprint(owner)+"|"+currentStatus+"|"+text+"|"+sort+"|"+frozenOffsets;
+        var owner=selected;var transferReport=lastTransitionResult;String scope=com.vncode.app.integration.listing.ListingIdentity.fingerprint(owner)+"|"+currentStatus+"|"+text+"|"+sort+"|"+frozenOffsets+"|batch:"+transitionRevision;
         reads.submitLocal(new com.vncode.app.shared.ShopReadCoordinator.Key(selected.getId(),"ozon-fbs-page",scope),()->{
             var pages=new java.util.LinkedHashMap<String,com.vncode.app.features.ozon.OzonFbsPage>();
             for(String status:List.of("awaiting_packaging","awaiting_deliver","delivering"))pages.put(status,fbsReader.apply(new com.vncode.app.features.ozon.OzonFbsQuery(owner.getId(),status,text,sort,frozenOffsets.getOrDefault(status,0),100)));
             var ids=postings.freezeFilteredNumbers(new com.vncode.app.features.ozon.OzonFbsQuery(owner.getId(),currentStatus,text,sort,0,100),10000);
             boolean red;try(var c=com.vncode.app.config.Database.getConnection()){red=new com.vncode.app.features.kiz.status.Kn3Repository().read(c,owner.getId(),owner.getMarketplace(),ids).values().stream().flatMap(List::stream).anyMatch(m->m.state()==com.vncode.app.features.kiz.status.Kn3Mark.State.REJECTED);}
-            return new Kn3Pages(pages,red);
+            var completed=transferReport==null||transferReport.pending().isEmpty()?Map.<String,List<String>>of():shipService.completedUnitPostings(owner,transferReport.pending());
+            return new Kn3Pages(pages,red,completed);
         }).whenComplete((result,error)->Platform.runLater(()->{
             if(disposed||epoch!=pageGeneration||!isCurrent(owner))return;
             if(error!=null){statusLabel.setText(tr("products.read_failed"));return;}
+            if(transferReport!=null&&transferReport==lastTransitionResult&&!result.completedTransfers().isEmpty()){
+                var completed=new ArrayList<>(transferReport.completed());completed.addAll(result.completedTransfers().keySet());
+                var pending=new ArrayList<>(transferReport.pending());pending.removeAll(result.completedTransfers().keySet());
+                var children=new java.util.LinkedHashMap<>(transferReport.children());children.putAll(result.completedTransfers());
+                lastTransitionResult=new BatchTransitionResult(transferReport.requested(),List.copyOf(completed),transferReport.failed(),List.copyOf(pending),Map.copyOf(children),transferReport.reasons());
+                selectedPostingNumbers.removeAll(result.completedTransfers().keySet());transitionRevision++;renderTransitionResult(lastTransitionResult);
+            }
             var pages=result.pages();addAgainKizButton.setVisible(result.rejected());addAgainKizButton.setManaged(result.rejected());
             var previousMarks=kn3Marks;var nextMarks=new java.util.HashMap<String,List<com.vncode.app.features.kiz.status.Kn3Mark>>();pages.values().forEach(page->nextMarks.putAll(page.kn3Marks()));kn3Marks=Map.copyOf(nextMarks);
             var changedMarks=new java.util.HashSet<String>();changedMarks.addAll(previousMarks.keySet());changedMarks.addAll(kn3Marks.keySet());changedMarks.removeIf(id->java.util.Objects.equals(previousMarks.get(id),kn3Marks.get(id)));
@@ -1403,7 +1419,18 @@ public final class OzonDashboardController {
     private static String batchResultText(BatchTransitionResult result) {
         String text = MessageFormat.format(I18nService.getInstance().tr("ozon.dashboard.move_result"),
                 result.completed().size(), result.requested());
-        if(!result.pending().isEmpty())text+=" • "+I18nService.getInstance().tr("ozon.fbs.pending")+": "+result.pending().size();return result.failed().isEmpty() ? text : text + " • " + result.failed().getFirst();
+        int childCount=result.completed().stream().mapToInt(id->result.children().getOrDefault(id,List.of(id)).size()).sum();
+        if(childCount>result.completed().size())text+=" • "+MessageFormat.format(I18nService.getInstance().tr("ozon.fbs.split_result"),childCount);
+        if(!result.pending().isEmpty())text+=" • "+I18nService.getInstance().tr("ozon.fbs.pending")+": "+result.pending().size();
+        return result.failed().isEmpty()?text:text+" • "+result.failed().getFirst()+": "+result.reasons().getOrDefault(result.failed().getFirst(),"");
+    }
+    private void renderTransitionResult(BatchTransitionResult result){
+        statusLabel.setText(batchResultText(result));
+        var lines=new ArrayList<String>();
+        result.completed().forEach(id->lines.add(id+" · "+tr("ozon.fbs.packaged")+" → "+String.join(", ",result.children().getOrDefault(id,List.of(id)))));
+        result.pending().forEach(id->lines.add(id+" · "+tr("ozon.fbs.pending")+" · "+result.reasons().getOrDefault(id,"")+(result.children().containsKey(id)?" → "+String.join(", ",result.children().get(id)):"")));
+        result.failed().forEach(id->lines.add(id+" · "+tr("ozon.fbs.failed")+" · "+result.reasons().getOrDefault(id,"")));
+        batchResultsArea.setText(String.join("\n",lines));batchResultsPanel.setVisible(true);batchResultsPanel.setManaged(true);batchResultsPanel.setExpanded(!result.pending().isEmpty()||!result.failed().isEmpty());
     }
     static boolean reconciliationRequired(Throwable error){return error instanceof com.vncode.app.integration.ozon.OzonApiException e&&(e.ambiguousMutation()||e.kind().equals("reconcile_required"));}
 
@@ -1447,6 +1474,11 @@ public final class OzonDashboardController {
         if (message == null || message.isBlank()) message = failure.getClass().getSimpleName();
         String safe = message.replaceAll("\\p{Cntrl}", " ").strip();
         return safe.length() <= 100 ? safe : safe.substring(0, 100);
+    }
+
+    private static String shippingFailure(Throwable failure){
+        String code=failure instanceof com.vncode.app.integration.ozon.OzonApiException api?api.safeErrorCode():failure.getMessage();
+        return code!=null&&code.startsWith("OZON_SPLIT_")?I18nService.getInstance().tr("ozon.fbs.reason."+code,safeFailure(failure)):safeFailure(failure);
     }
 
     private static File pickingTarget(File labelTarget) {
@@ -1530,7 +1562,7 @@ public final class OzonDashboardController {
         return product==null||!item.offerId().isBlank()&&!item.offerId().equals(product.offerId())?null:product;
     }
 
-    private record BatchTransitionResult(int requested, List<String> completed, List<String> failed,List<String> pending) { }
+    private record BatchTransitionResult(int requested,List<String> completed,List<String> failed,List<String> pending,Map<String,List<String>> children,Map<String,String> reasons) { }
     private record PrintOutput(String message, List<File> files, List<String> postingNumbers) {
         private PrintOutput {
             message = message == null ? "" : message;

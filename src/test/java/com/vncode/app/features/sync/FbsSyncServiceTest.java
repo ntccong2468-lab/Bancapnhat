@@ -101,6 +101,71 @@ class FbsSyncServiceTest {
         assertTrue(service.step(shop,SyncCoordinator.Stream.FBS_STATUS,"").complete());assertEquals(1,count("SELECT count(*) FROM ozon_postings WHERE shop_id=2 AND status='cancelled'"));
         assertEquals("/v4/posting/fbs/unfulfilled/list",server.takeRequest().getPath());assertEquals("/v3/posting/fbs/get",server.takeRequest().getPath());
     }
+    @Test void foreignPendingSplitChildDoesNotBlockIndependentHealthyStatusRefresh()throws Exception{
+        var service=ozon();
+        var source=OzonJson.parsePostingDetail(unitPosting("PARENT","ORDER","awaiting_packaging",2));
+        var healthy=OzonJson.parsePostingDetail(unitPosting("HEALTHY","HEALTHY-ORDER","awaiting_packaging",1));
+        var repository=new OzonPostingRepository();repository.upsertPage(shop.getId(),List.of(source,healthy));
+        // A frozen receipt from an earlier accepted HTTP request survives app restart.
+        try(var c=Database.getConnection();var statement=c.createStatement()){
+            statement.execute("""
+                    CREATE TABLE IF NOT EXISTS ozon_unit_ship_receipts(
+                        shop_id INTEGER NOT NULL REFERENCES shops(id) ON DELETE CASCADE,
+                        posting_number TEXT NOT NULL,owner TEXT NOT NULL,source_json TEXT NOT NULL,
+                        request_json TEXT NOT NULL,request_fingerprint TEXT NOT NULL,
+                        children_json TEXT NOT NULL DEFAULT '[]',state TEXT NOT NULL,updated_at TEXT NOT NULL,
+                        parent_in_children INTEGER NOT NULL DEFAULT 1,
+                        readback_json TEXT NOT NULL DEFAULT '{}',next_child INTEGER NOT NULL DEFAULT 0,
+                        PRIMARY KEY(shop_id,posting_number))
+                    """);
+            var request=OzonPackageBuilder.perUnitPackages(source).toString();
+            try(var insert=c.prepareStatement("""
+                    INSERT INTO ozon_unit_ship_receipts(shop_id,posting_number,owner,source_json,
+                        request_json,request_fingerprint,children_json,state,updated_at)
+                    VALUES(?,?,?,?,?,?,'["BROKEN-CHILD","OTHER-CHILD"]','ACCEPTED','2026-10-20T00:00:00Z')
+                    """)){
+                insert.setInt(1,shop.getId());insert.setString(2,"PARENT");
+                insert.setString(3,com.vncode.app.integration.listing.ListingIdentity.fingerprint(shop));
+                insert.setString(4,JSON.toJson(source));insert.setString(5,request);
+                insert.setString(6,com.vncode.app.integration.listing.ListingIdentity.hash(request));insert.executeUpdate();
+            }
+        }
+        var read=new java.util.concurrent.CopyOnWriteArrayList<String>();
+        var unexpected=new java.util.concurrent.atomic.AtomicReference<Throwable>();
+        server.setDispatcher(new Dispatcher(){@Override public MockResponse dispatch(RecordedRequest request){
+            try{
+                assertEquals("POST",request.getMethod());assertEquals("/v3/posting/fbs/get",request.getPath(),"Status sync must not submit shipping requests");
+                var body=JsonParser.parseString(request.getBody().readUtf8()).getAsJsonObject();
+                String number=body.get("posting_number").getAsString();read.add(number);
+                JsonObject result=switch(number){
+                    case "BROKEN-CHILD"->unitPosting(number,"FOREIGN-ORDER","awaiting_deliver",1);
+                    case "HEALTHY"->unitPosting(number,"HEALTHY-ORDER","awaiting_deliver",1);
+                    default->throw new AssertionError("Unexpected posting read: "+number);
+                };
+                return new MockResponse().setHeader("Content-Type","application/json").setBody(result.toString());
+            }catch(Throwable failure){unexpected.compareAndSet(null,failure);return new MockResponse().setResponseCode(422).setBody("{}");}
+        }});
+        var page=service.step(shop,SyncCoordinator.Stream.FBS_STATUS,"");
+        assertNull(unexpected.get(),()->"HTTP fixture failed: "+unexpected.get());
+        assertEquals(List.of("BROKEN-CHILD","HEALTHY"),read);
+        assertTrue(server.getRequestCount()<=4,"At most three receipt reads plus the ordinary healthy status read");
+        assertTrue(page.complete());assertEquals(1,page.changed());
+        assertEquals("awaiting_deliver",repository.find(shop.getId(),"HEALTHY").status());
+        assertNotNull(repository.find(shop.getId(),"PARENT"),"Preserve the unresolved source cache/history");
+        assertEquals(1,count("SELECT count(*) FROM ozon_unit_ship_receipts WHERE state='ACCEPTED'"));
+        assertEquals(0,count("SELECT count(*) FROM ozon_postings WHERE posting_number='BROKEN-CHILD'"));
+        assertEquals(0,count("SELECT count(*) FROM ozon_action_log WHERE action_type='ship_units'"));
+    }
+    private static JsonObject unitPosting(String number,String order,String status,int quantity){
+        var response=JsonParser.parseString("""
+                {"result":{"posting_number":"fixture","order_id":"fixture","order_number":"ORDER-NO",
+                  "status":"awaiting_packaging","delivery_method":{"warehouse_id":"WH"},
+                  "products":[{"sku":101,"quantity":1}],"requirements":{},"available_actions":["ship"]}}
+                """).getAsJsonObject();
+        var posting=response.getAsJsonObject("result");posting.addProperty("posting_number",number);
+        posting.addProperty("order_id",order);posting.addProperty("status",status);
+        posting.getAsJsonArray("products").get(0).getAsJsonObject().addProperty("quantity",quantity);return response;
+    }
     @Test void missingOzonPostingListIsAnErrorRatherThanSuccessfulEmptySnapshot()throws Exception{
         var service=ozon();server.enqueue(new MockResponse().setBody("{}"));
         assertEquals("FBS_INVALID_RESPONSE",assertThrows(java.io.IOException.class,()->service.step(shop,SyncCoordinator.Stream.FBS_QUEUE,"")).getMessage());

@@ -1,6 +1,6 @@
 # VNCode 1.5.3: đăng ký tuần tự và bàn giao cập nhật
 
-Bản nền là Published 1.5.2, source `6fe8ef21871657a38151897ddc13c3b1b5028fd5`. Các thay đổi dưới đây không thay mẫu đăng ký mặc định, phạm vi TN VED của giấy tờ, giấy tờ của seller, dữ liệu sản phẩm đã đồng bộ hay cơ chế KIZ/FBS.
+Bản nền là Published 1.5.2, source `6fe8ef21871657a38151897ddc13c3b1b5028fd5`. Mẫu đăng ký mặc định, phạm vi TN VED của giấy tờ, giấy tờ của seller, dữ liệu sản phẩm/KIZ đã đồng bộ và nhánh FBS của WB được giữ nguyên. Nhánh FBS Ozon bổ sung đối soát shipment đang chờ sau thao tác đóng gói từng đơn vị.
 
 ## Nguyên nhân và thay đổi
 
@@ -9,7 +9,12 @@ Bản nền là Published 1.5.2, source `6fe8ef21871657a38151897ddc13c3b1b5028fd
 - Cả WB và Ozon có báo cáo toàn bộ lựa chọn và tiến trình bền vững. Chỉ `feed_id` đã lưu mới tăng số đã gửi; không coi cấp GTIN, xếp hàng hoặc HTTP 200 thiếu danh tính là thành công.
 - Trang WB/Ozon tiếp tục cho tìm kiếm, đổi bộ lọc và xem thẻ đang chờ duyệt. Nhãn tiến trình đặt dưới hàng nút đăng ký, viên thuốc xác định article/size vừa gửi và tự tắt khi hoàn tất. Ô thao tác ngoài cùng bên phải của thẻ chờ duyệt hiển thị **Đang chờ duyệt**.
 - Khi mất mạng, trạng thái chắc chắn chưa gửi được lưu và thử tiếp; các yêu cầu có kết quả chưa xác định phải đối soát. Mở lại app sẽ phục hồi hàng đợi. Đóng cửa sổ khi có hàng đợi có thể thu xuống khay hệ thống với Mở lại/Thoát; không thể gửi API khi không có mạng hoặc tiến trình đã tắt.
-- Updater giữ một tác vụ/hộp tiến trình trong lúc tải, xác minh, sao lưu và bàn giao. 100% chỉ xuất hiện khi đã sẵn sàng cài. Bỏ lần kiểm tra toàn vẹn SQLite trùng, dùng lại rollback đã xác minh chỉ khi checksum snapshot cùng toàn bộ DB/WAL còn khớp; dữ liệu đổi sẽ sao lưu lại. Khóa dữ liệu được giữ đến hết sao lưu. MSI dùng chế độ passive của Windows Installer, vẫn giữ kiểm tra checksum/kích thước/TLS và phục hồi đầy đủ. Cập nhật bị chặn khi còn công việc ghi/đăng ký đang chạy.
+- Updater giữ một tác vụ/hộp tiến trình trong lúc tải, xác minh, sao lưu và bàn giao. 100% chỉ xuất hiện khi đã sẵn sàng cài. Bỏ lần kiểm tra toàn vẹn SQLite trùng, dùng lại rollback đã xác minh chỉ khi checksum snapshot cùng toàn bộ DB/WAL còn khớp; dữ liệu đổi sẽ sao lưu lại. Khóa dữ liệu được giữ đến hết sao lưu. EXE chuyển tiếp `/passive /norestart` của jpackage; bước Windows từ 1.5.2 phải xác minh đúng EXE phát hành, MSI nhúng và dữ liệu giữ nguyên. Vẫn giữ kiểm tra checksum/kích thước/TLS và phục hồi đầy đủ. Cập nhật bị chặn khi còn công việc ghi/đăng ký đang chạy.
+- Ozon Nhận tất cả đóng gói mỗi đơn vị trong một package qua `/v4/posting/fbs/ship`, lưu kế hoạch và số shipment Ozon trả về. Xác nhận cần đọc lại các shipment con đúng đơn/kho/SKU, mỗi shipment một đơn vị, đủ số lượng và đúng trạng thái. Kết quả không rõ được lưu để đối soát, không tự lặp POST. Đồng bộ Ozon nền đọc tối đa ba GET cho hàng đợi mỗi lượt và vẫn chạy luồng trạng thái thông thường.
+
+## Bảo toàn đầu vào bản nền
+
+Bốn tệp mẫu đăng ký, lớp template, giấy tờ và quy tắc tariff vẫn trùng byte với 1.5.2. `FbsSyncService.java` đã thay đổi trong phương thức Ozon để thêm đọc lại đóng gói; phương thức WB từ dấu khai báo `private SyncCoordinator.Page wb(` đến trước `private static SyncCoordinator.Page next(` vẫn trùng byte với bản nền. Hash và phạm vi kiểm tra được lưu riêng trong `2026-10-20-vncode-153-local-checks.json`; không mô tả cả tệp FBS là chưa thay đổi.
 
 ## Bằng chứng kiểm thử
 

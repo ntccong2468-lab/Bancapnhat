@@ -129,6 +129,67 @@ class OzonBulkUiTest {
         assertEquals(0, ShopBatchRegistry.activeCount());
     }
 
+    @Test void acceptAllProcessesBeyondTheVisiblePageAndReportsChildrenPendingAndProtectedKizSeparately() throws Exception {
+        var repository=new OzonPostingRepository();var sources=new ArrayList<OzonPostingDto>();
+        for(int i=1;i<=101;i++){
+            var p=posting("split-"+i,"awaiting_packaging");
+            sources.add(new OzonPostingDto(p.postingNumber(),p.orderId(),p.orderNumber(),p.status(),p.substatus(),p.warehouseId(),p.shipmentAt(),p.inProcessAt(),p.lowerBarcode(),p.upperBarcode(),p.requirements(),List.of("ship"),true,
+                    List.of(new OzonPostingItemDto(0,"1","11","fixture","Fixture item",2,"RUB","100"))));
+        }
+        repository.upsertPage(1,sources);var accepted=new AtomicInteger();
+        fx(()->{
+            controller.setPostingAcceptor((owner,number)->{
+                assertFalse(Platform.isFxApplicationThread());assertEquals(shop.getId(),owner.getId());accepted.incrementAndGet();
+                if(number.equals("split-100"))throw new OzonApiException("reconcile_required",0,false,true,null);
+                if(number.equals("split-101"))throw new IllegalStateException("OZON_SPLIT_HAS_BOUND_KIZ");
+                var children=List.of(number+"-A",number+"-B");
+                repository.upsertDetail(1,posting(number,"cancelled"));
+                repository.upsertPage(1,children.stream().map(child->posting(child,"awaiting_deliver")).toList());
+                return new OzonShipResult(number,"awaiting_deliver",false,children);
+            });
+            controller.setShop(shop,false);return null;
+        });
+        awaitFx(()->table("newOrdersTable").getItems().size()==100);
+        fx(()->{node("selectFilteredButton",Button.class).fire();return null;});
+        awaitFx(()->selected().size()==101&&!node("moveToPackingButton",Button.class).isDisabled());
+        com.vncode.app.testsupport.FxDialogDriver.choose(()->node("moveToPackingButton",Button.class).fire(),
+                dialog->dialog.getScene().getWindow() instanceof Stage stage&&stage.getOwner()==window,dialog->{
+                    assertTrue(dialog.getHeaderText().contains("101"));
+                    assertTrue(dialog.getContentText().contains(I18nService.getInstance().tr("ozon.fbs.auto_split_notice")));
+                    return dialog.getButtonTypes().stream().filter(type->type.getButtonData()==ButtonBar.ButtonData.OK_DONE).findFirst().orElseThrow();
+                });
+        awaitFx(()->accepted.get()==101&&selected().size()==2&&!node("moveToPackingButton",Button.class).isDisabled());
+        awaitFx(()->node("packingOrdersTab",Tab.class).getText().contains("198"));
+        fx(()->{
+            assertEquals(Set.of("split-100","split-101"),selected());
+            String report=node("batchResultsArea",TextArea.class).getText();
+            assertEquals(101,report.lines().count());
+            assertTrue(report.contains("split-1-A, split-1-B"));
+            assertTrue(report.contains("split-100 · "+I18nService.getInstance().tr("ozon.fbs.pending")));
+            assertTrue(report.contains(I18nService.getInstance().tr("ozon.fbs.reason.OZON_SPLIT_HAS_BOUND_KIZ")));
+            assertTrue(node("batchResultsPanel",TitledPane.class).isExpanded());
+            assertEquals(0,ShopBatchRegistry.activeCount());return null;
+        });
+        // Simulate the ordinary FBS read-only turn committing the native children.
+        // The open report must advance without a second acceptance click or remote write.
+        new OzonShipService().knownUnitPostings(shop,"split-100");
+        repository.upsertPage(1,List.of(posting("split-100-A","awaiting_deliver"),posting("split-100-B","awaiting_deliver")));
+        try(var c=Database.getConnection();var statement=c.prepareStatement("INSERT INTO ozon_unit_ship_receipts(shop_id,posting_number,owner,source_json,request_json,request_fingerprint,children_json,state,updated_at,parent_in_children) VALUES(1,'split-100',?,?,? ,?,'[\"split-100-A\",\"split-100-B\"]','COMPLETE','2026-10-20T01:00:00Z',0)")){
+            statement.setString(1,com.vncode.app.integration.listing.ListingIdentity.fingerprint(shop));
+            statement.setString(2,new com.google.gson.Gson().toJson(sources.stream().filter(p->p.postingNumber().equals("split-100")).findFirst().orElseThrow()));
+            statement.setString(3,"{}");statement.setString(4,"a".repeat(64));statement.executeUpdate();
+        }
+        fx(()->{controller.refreshLocalData();return null;});
+        awaitFx(()->selected().equals(Set.of("split-101"))&&node("packingOrdersTab",Tab.class).getText().contains("200"));
+        fx(()->{
+            String report=node("batchResultsArea",TextArea.class).getText();
+            assertEquals(101,report.lines().count());
+            assertTrue(report.contains("split-100 · "+I18nService.getInstance().tr("ozon.fbs.packaged")+" → split-100-A, split-100-B"));
+            assertFalse(report.contains("split-100 · "+I18nService.getInstance().tr("ozon.fbs.pending")));
+            assertEquals(101,accepted.get(),"Ordinary readback must never repeat acceptance");return null;
+        });
+    }
+
     @Test void slowBackgroundReadKeepsFxPulsingAndOnlyTheNewestSearchReachesTheTable() throws Exception {
         CountDownLatch entered = new CountDownLatch(1), release = new CountDownLatch(1), pulses = new CountDownLatch(4);
         AtomicBoolean first = new AtomicBoolean(true);

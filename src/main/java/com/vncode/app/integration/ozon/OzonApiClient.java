@@ -221,10 +221,15 @@ public final class OzonApiClient {
     }
 
     public JsonObject getPosting(String postingNumber, boolean withExemplars) throws IOException {
+        return getPosting(postingNumber,withExemplars,false);
+    }
+
+    public JsonObject getPosting(String postingNumber, boolean withExemplars, boolean relatedPostings) throws IOException {
         JsonObject with = new JsonObject();
         with.addProperty("analytics_data", false);
         with.addProperty("financial_data", false);
         with.addProperty("product_exemplars", withExemplars);
+        if(relatedPostings)with.addProperty("related_postings",true);
         JsonObject request = new JsonObject();
         request.addProperty("posting_number", requireExternalId(postingNumber, "posting number"));
         request.add("with", with);
