@@ -1,0 +1,75 @@
+{
+  "date": "2026-10-15",
+  "timezone": "Asia/Saigon",
+  "catalogApiVersion": "5.68 (28.09.2026)",
+  "apiContractSnapshotSha256": "c28a684fb69327bec6618c903e2942309fc6c2446d65acb332adab8ee54532b0",
+  "webFrontendSha256": "418008d632e150b62eac9e8e24eebb951c00fb54d2cc947665ddbb386e8c8a60",
+  "validation": [
+    {
+      "name": "com.vncode.app.integration.znack.CatalogApiAuthorizationTest",
+      "tests": "4",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.CatalogCredentialRepositoryTest",
+      "tests": "5",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "com.vncode.app.integration.gs1.NationalCatalogGs1ClientTest",
+      "tests": "8",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "com.vncode.app.ui.znack.ZnackAutomationInformationTest",
+      "tests": "5",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.registration.ZnackNationalCatalogServiceTest",
+      "tests": "18",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.ZnackMutationTransportTest",
+      "tests": "4",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "com.vncode.app.features.gtinsync.RegisteredGtinProofTest",
+      "tests": "7",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "com.vncode.app.features.gtinsync.RegisteredGtinSourceTest",
+      "tests": "4",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.registration.RegisteredCatalogOwnershipTest",
+      "tests": "1",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    }
+  ],
+  "productionTested": false,
+  "liveCatalogMutations": false,
+  "note": "Official API sections 2.2,3.1.1,3.1.4,3.2,3.3 describe apikey query parameter or Bearer alternative. Official frontend reads GET /rest/bootstrap account.api.enabled/apikey after certificate login. Mock HTTP tests verify same-session cookie, foreign key rejection and read-only check. The live enterprise check requires the installed desktop and owner CryptoPro."
+}

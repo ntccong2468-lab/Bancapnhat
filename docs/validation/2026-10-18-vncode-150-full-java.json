@@ -1,0 +1,18 @@
+{
+  "version": "1.5.0",
+  "sourceCommit": "2eea069123737e2c9f7bcddcecaa51f21a1645dc",
+  "runId": 39130866288,
+  "platform": "Windows x64 / Java 25.0.4.1",
+  "freshFullExecution": true,
+  "result": "passed",
+  "classes": 305,
+  "tests": 1792,
+  "failures": 0,
+  "errors": 0,
+  "skipped": 2,
+  "passed": 1790,
+  "artifactId": 12139046010,
+  "artifactArchiveSha256": "6c39bc805a1fa02512d5744a384e042b1ac48f2c47ad3ae2e2c11677abfc0b33",
+  "applicationJarSha256": "bf9e850dccae238aa44ab2e465f3d3e747fd152f5b626c0ae43ac1632b895f55",
+  "liveSellerMutations": false
+}

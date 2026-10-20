@@ -23,6 +23,6 @@
     "REQUIRE_EMAIL_VERIFICATION": "0",
     "EMAIL_FROM": "no-reply@vncode.id.vn",
     "PUBLIC_BASE_URL": "https://vncode.id.vn",
-    "LICENSE_KEY_ID": "vncode-1"
+    "LICENSE_KEY_ID": "vncode-2"
   }
 }

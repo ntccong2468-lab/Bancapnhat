@@ -1,0 +1,75 @@
+{
+  "version": "1.5.6",
+  "baseline": "v1.5.5",
+  "databaseSchema": 6,
+  "state": "published-before-owner-hold-not-latest",
+  "published": true,
+  "sourceCommit": "541e982b47ff702522ede392dadb3cea433157bc",
+  "scope": "Fix official Catalog country dictionary result._list parsing for WB/Ozon registration",
+  "ownerRequestedExpeditedPublication": true,
+  "validation": {
+    "linuxFocusedJava": {
+      "state": "passed",
+      "tests": 129,
+      "passed": 129,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "fullSuiteExecuted": false,
+      "log": "/tmp/vncode-156-country-focused.log"
+    },
+    "liveCountryDictionaryRead": {
+      "httpStatus": 200,
+      "countries": 254,
+      "russia": {
+        "country_iso": "RU",
+        "country_name": "Россия"
+      },
+      "responseEnvelope": "result._list",
+      "writesPerformed": false
+    },
+    "fullJavaSuiteRunThisVersion": false,
+    "nativeSmokeRunThisVersion": false,
+    "legacyUpgradeMatrixRunThisVersion": false,
+    "productionLicenseVerified": false,
+    "liveCatalogCardCreatedThisVersion": false,
+    "liveCatalogCardRepairedThisVersion": false,
+    "liveCryptoProSigningThisVersion": false,
+    "liveApiWbGtinWriteThisVersion": false,
+    "liveApiOzonGtinWriteThisVersion": false,
+    "liveKizPurchaseThisVersion": false,
+    "sellerDesktopPopupObserved": false,
+    "windowsFocusedJava": {
+      "state": "passed",
+      "runId": 39509983616,
+      "sourceCommit": "541e982b47ff702522ede392dadb3cea433157bc",
+      "errors": 0,
+      "tests": 86,
+      "failures": 0,
+      "skipped": 0,
+      "passed": 86,
+      "fullSuiteExecuted": false
+    }
+  },
+  "latest": false,
+  "publishedAt": "2026-10-20T22:46:08Z",
+  "ownerHold": {
+    "instruction": "chưa tạo bộ cài vội",
+    "workflowCompletedBeforeCancellation": true,
+    "cancellationResult": "Cannot cancel a workflow run that is completed",
+    "latestRestoredTo": "v1.5.5",
+    "hotfixWorkflowState": "disabled_manually",
+    "releaseImmutable": true,
+    "returnToDraftRejectedByGitHub": true,
+    "publishedAssetsOrTagsDeleted": false,
+    "furtherPackagingOrPublicationAuthorized": false,
+    "recordedAt": "2026-10-20T22:47:41.613702+00:00"
+  },
+  "installer": {
+    "bytes": 147044352,
+    "name": "VN-code-1.5.6-Windows-x64.exe",
+    "sha256": "befb15cab1696f5ce42b8fecf5dd9f6a2a3fddeea15c1720d38f28d0d8099002"
+  },
+  "windowsBuildRun": 39509983616,
+  "doNotOverwritePublishedVersion": true
+}

@@ -22,6 +22,13 @@ public class WbSyncWorkflow {
         return productSyncService.sync(shop);
     }
 
+    /** An explicit catalogue refresh includes unchanged cards, not only the checkpoint tail. */
+    public int syncAllProducts(Shop shop) throws IOException {
+        MarketplaceGuard.requireWildberries(shop);
+        LicenseRuntime.require(SELLER_API);
+        return productSyncService.syncFromStart(shop, cards -> {});
+    }
+
     public WbSyncReport syncOverview(Shop shop) throws IOException {
         MarketplaceGuard.requireWildberries(shop);
         LicenseRuntime.require(SELLER_API);

@@ -66,7 +66,8 @@ public final class FinanceSyncScheduler {
         return INSTANCE;
     }
 
-    public void updateShops(Collection<Shop> currentShops) {
+    public void updateShops(Collection<Shop> currentShops) { updateShops(currentShops,true); }
+    public void updateShops(Collection<Shop> currentShops,boolean ownScheduler) {
         Path databasePath = AnalyticsDatabase.databasePath().toAbsolutePath().normalize();
         shopsDatabasePath = databasePath;
         Map<Integer, Shop> snapshots = new ConcurrentHashMap<>();
@@ -86,7 +87,7 @@ public final class FinanceSyncScheduler {
                 repository.ensureShopState(shop.getId(), shop.getMarketplace(), today, now);
             }
         });
-        start();
+        if(ownScheduler)start();
     }
 
     public void requestRecentSync(int shopId) {
@@ -130,6 +131,11 @@ public final class FinanceSyncScheduler {
                 workRunning.set(false);
             }
         });
+    }
+
+    public void runCoordinatedStep(){
+        if(shops.isEmpty()||!workRunning.compareAndSet(false,true))return;
+        try{runOneRequest();}finally{workRunning.set(false);}
     }
 
     void runOneRequest() {

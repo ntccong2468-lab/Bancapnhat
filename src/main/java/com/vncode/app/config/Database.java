@@ -23,7 +23,7 @@ import com.vncode.app.integration.znack.registration.ZnackCardRegistrationSchema
 public class Database {
     private static final Logger LOGGER = LoggerFactory.getLogger(Database.class);
     private static final String DB_NAME = "database.db";
-    private static final int CURRENT_SCHEMA_VERSION = 5;
+    private static final int CURRENT_SCHEMA_VERSION = 6;
 
     public static int currentSchemaVersion() {
         return CURRENT_SCHEMA_VERSION;
@@ -57,6 +57,7 @@ public class Database {
     }
 
     public static Connection getConnection() {
+        com.vncode.app.features.sync.SyncDataScope.requireCurrent();
         try {
             Path dir = AppPaths.appDataDir();
 
@@ -230,6 +231,7 @@ public class Database {
             }
             dropLegacyKizTables(conn);
             ShopCredentialSchema.initialize(conn);
+            com.vncode.app.features.sync.SyncSchema.initialize(conn);
             st.execute("PRAGMA user_version = " + CURRENT_SCHEMA_VERSION);
         } catch (SQLException e) {
             throw new RuntimeException(e);

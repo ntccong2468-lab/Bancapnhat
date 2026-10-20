@@ -26,6 +26,25 @@ import org.junit.jupiter.api.io.TempDir;
 class KizAttachmentCoordinatorTest {
     private static final String SECRET = "upstream-secret-response-body";
     @TempDir Path directory;
+    @Test void explicitKn3ReplacementUsesOnePutAndWaitsForRemoteValidation()throws Exception {
+        System.setProperty("vncode.appdata.dir",directory.toString());
+        try{
+            com.vncode.app.config.Database.initDatabase();var shop=com.vncode.app.features.gtinsync.GtinWriteTestFixture.shop(com.vncode.app.integration.marketplace.Marketplace.WILDBERRIES);var repository=new com.vncode.app.features.kiz.status.Kn3Repository();var old=new com.vncode.app.features.kiz.status.Kn3Mark("101","","","old",com.vncode.app.features.kiz.status.Kn3Mark.State.REJECTED,"sgtinRetired");repository.observe(shop,"101",List.of(old));repository.begin(shop,old,"new","{}");
+            var writes=new AtomicInteger();var coordinator=new KizAttachmentCoordinator(Runnable::run,new KizAttachmentCoordinator.AttachmentClient(){
+                public KizService.RemoveMetaResult remove(String token,long order){throw new AssertionError("Do not remove an existing rejected value before the replacement PUT");}
+                public KizService.AttachCodeResult attach(String token,long order,String code){assertEquals("new",code);writes.incrementAndGet();return new KizService.AttachCodeResult(true,204,"");}
+                public Map<Long,KizService.SgtinMetadata> metadata(String token,List<Long> ids){return Map.of(101L,new KizService.SgtinMetadata(true,"old","sgtinRetired"));}
+            });coordinator.enqueue(shop,"KN3:101","KN3",List.of(new OrderExportWorkflow.KizAttachmentAssignment(101L,"new",null,true,old.fingerprint())));assertEquals(1,writes.get());assertEquals(com.vncode.app.features.kiz.status.Kn3Mark.State.PENDING,com.vncode.app.features.kiz.status.Kn3Mark.summary(repository.read(shop,"101")));
+        }finally{System.clearProperty("vncode.appdata.dir");}
+    }
+    @Test void aCodeAcceptedWhileTheReplacementWaitsInQueueCannotBeOverwritten()throws Exception {
+        System.setProperty("vncode.appdata.dir",directory.toString());
+        try{
+            com.vncode.app.config.Database.initDatabase();var shop=com.vncode.app.features.gtinsync.GtinWriteTestFixture.shop(com.vncode.app.integration.marketplace.Marketplace.WILDBERRIES);var old=new com.vncode.app.features.kiz.status.Kn3Mark("101","","","old",com.vncode.app.features.kiz.status.Kn3Mark.State.REJECTED,"sgtinRetired");new com.vncode.app.features.kiz.status.Kn3Repository().begin(shop,old,"new","{}");var pending=new ArrayList<Runnable>();
+            var coordinator=new KizAttachmentCoordinator(pending::add,new KizAttachmentCoordinator.AttachmentClient(){public KizService.RemoveMetaResult remove(String token,long order){throw new AssertionError("Accepted code must remain");}public KizService.AttachCodeResult attach(String token,long order,String code){throw new AssertionError("Accepted code must remain");}public Map<Long,KizService.SgtinMetadata> metadata(String token,List<Long> ids){return Map.of(101L,new KizService.SgtinMetadata(true,"old","sgtinIntroduced"));}});
+            coordinator.enqueue(shop,"KN3:101","KN3",List.of(new OrderExportWorkflow.KizAttachmentAssignment(101L,"new",null,true,old.fingerprint())));pending.getFirst().run();assertEquals("KIZ_REPLACEMENT_CHANGED",coordinator.getAttachmentError(shop.getId(),101));
+        }finally{System.clearProperty("vncode.appdata.dir");}
+    }
 
     @Test
     void deniedEnqueueCreatesNoBackgroundJob() throws Exception {
@@ -213,6 +232,15 @@ class KizAttachmentCoordinatorTest {
         } finally {release.countDown();executor.shutdownNow();}
     }
 
+    @Test void processingStatusRejectionIsAVisibleOrderErrorRatherThanASuccessfulSkip(){
+        var last=new AtomicReference<KizAttachmentCoordinator.KizAttachmentProgress>();
+        var coordinator=new KizAttachmentCoordinator(Runnable::run,new KizAttachmentCoordinator.AttachmentClient(){
+            public KizService.RemoveMetaResult remove(String token,long id){throw new AssertionError();}
+            public KizService.AttachCodeResult attach(String token,long id,String code){return new KizService.AttachCodeResult(false,409,"FailedToUpdateMeta: Processing status "+SECRET);}
+        });
+        coordinator.addListener(last::set);coordinator.enqueue(new Shop(7,"Main","token"),"SUP","Supply",assignments(7,1));
+        assertEquals("KIZ_ORDER_STATUS",coordinator.getAttachmentError(7,1));assertEquals(0,last.get().completed());assertFalse(last.get().failures().isEmpty());assertFalse(last.get().failures().toString().contains(SECRET));
+    }
     @Test void errorsWithSameOrderIdCannotLeakOrClearAcrossShopsAndRateLimitStopsJob() {
         var coordinator=new KizAttachmentCoordinator(Runnable::run,new KizAttachmentCoordinator.AttachmentClient(){
             public KizService.RemoveMetaResult remove(String token,long id){throw new AssertionError();}
@@ -264,4 +292,28 @@ class KizAttachmentCoordinatorTest {
         public KizService.RemoveMetaResult remove(String token,long id){throw new AssertionError();}
         public KizService.AttachCodeResult attach(String token,long id,String code){calls.incrementAndGet();return new KizService.AttachCodeResult(true,204,"");}
     };}
+
+    @Test void repeatedSellerCodesReachTheQueueAsSeparateStockUnits()throws Exception {
+        System.setProperty("vncode.appdata.dir",directory.toString());
+        try{
+            com.vncode.app.config.Database.initDatabase();
+            var shop=new Shop(1,"Seller","fixture");
+            try(var c=com.vncode.app.config.Database.getConnection();var st=c.createStatement()){
+                st.execute("INSERT INTO shops(id,name,api_key) VALUES(1,'Seller','fixture')");
+                st.execute("INSERT INTO wb_product_cards(shop_id,nm_id,title,synced_at) VALUES(1,101,'Synthetic','now')");
+            }
+            var categories=new com.vncode.app.features.kiz.KizStockCategoryRepository();var category=categories.create(shop,"Synthetic");
+            categories.assignProducts(shop,category.id(),List.of(new com.vncode.app.features.products.ProductKey(1,shop.getMarketplace(),"101","")));
+            var file=directory.resolve("same.txt");java.nio.file.Files.write(file,List.of("0100000000000017210000000000001","0100000000000017210000000000001"));
+            new com.vncode.app.features.kiz.KizWarehouseRepository().commitToCategory(shop,com.vncode.app.features.kiz.KizImportReader.read(file),category.id());
+            var units=new com.vncode.app.features.kiz.KizCategoryAllocator().reservePartial(shop,List.of(new com.vncode.app.features.kiz.KizCategoryAllocator.Demand("orders","101",2))).get("orders");
+            var queued=new ArrayList<Runnable>();
+            var coordinator=new KizAttachmentCoordinator(queued::add,new KizAttachmentCoordinator.AttachmentClient(){
+                public KizService.RemoveMetaResult remove(String token,long order){throw new AssertionError("No remote writes in this queue test");}
+                public KizService.AttachCodeResult attach(String token,long order,String code){throw new AssertionError("No remote writes in this queue test");}
+            });
+            coordinator.enqueue(shop,"shipment","shipment",List.of(new OrderExportWorkflow.KizAttachmentAssignment(101L,units.get(0).getCode(),units.get(0),false),new OrderExportWorkflow.KizAttachmentAssignment(102L,units.get(1).getCode(),units.get(1),false)));
+            assertEquals(1,queued.size());
+        }finally{System.clearProperty("vncode.appdata.dir");}
+    }
 }

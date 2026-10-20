@@ -1,0 +1,19 @@
+{
+  "version": "1.4.19",
+  "releaseId": 416368799,
+  "publicLatest": true,
+  "prerelease": false,
+  "publishedAtUtc": "2026-10-18T09:56:39Z",
+  "installer": {
+    "name": "VN-code-1.4.19-Windows-x64.exe",
+    "bytes": 145632256,
+    "sha256": "e2d43bdca42031b6e583dea8efa298addc142e46fadfb2a21ca00b6e5cc31084",
+    "url": "https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.4.19/VN-code-1.4.19-Windows-x64.exe",
+    "fullPublicDownloadVerified": true,
+    "checksumAssetMatched": true,
+    "peHeaderVerified": true
+  },
+  "metadataAssetsVerified": 25,
+  "sourceBuildRun": 39114287816,
+  "publicationRun": 39116801568
+}

@@ -1,0 +1,131 @@
+{
+  "version": "1.5.1",
+  "published": false,
+  "catalog": {
+    "at_moscow": "2026-10-19T14:20:50.128719+03:00",
+    "read_only": true,
+    "listed": 1277,
+    "total": 1277,
+    "states": {
+      "published / draft,published": 1,
+      "published / published": 1239,
+      "draft / draft": 2,
+      "draft / errors": 34,
+      "draft / notsigned": 1
+    },
+    "errorDetailsRead": 34,
+    "permitScopes": [
+      {
+        "status_group": 1,
+        "product_tnved": "6101, 6201, 6202, 6211"
+      }
+    ],
+    "mutations": 0
+  },
+  "liveOzonDictionary": {
+    "readOnly": true,
+    "readAtMoscow": "2026-10-19T14:41:41+03:00",
+    "material": {
+      "id": 4496,
+      "name": "Материал",
+      "dictionary_id": 1503
+    },
+    "composition": {
+      "id": 4604,
+      "name": "Состав материала",
+      "type": "String",
+      "is_collection": false,
+      "max_value_count": 0,
+      "dictionary_id": 0
+    },
+    "lining": {
+      "id": 4309,
+      "name": "Материал подкладки"
+    },
+    "mutationCount": 0
+  },
+  "officialOzonSwaggerSha256": "4c5756ae6b68177eae367786656f1b4ebdc00f2ca76c0311cf312a011ad1f9e4",
+  "runs": [
+    {
+      "log": "regression.log",
+      "sha256": "d9b64cb00d8c717066e9e6a84c532d518d9a741eb07c0e3de339069c3f3b920e",
+      "total": {
+        "tests": 688,
+        "failures": 0,
+        "errors": 1,
+        "skipped": 0
+      },
+      "success": false
+    },
+    {
+      "log": "final-regression.log",
+      "sha256": "7e78f6a66ba5f28e477dad2f0f1d752d85ab9b8fb99089514d886b1f25b65d95",
+      "total": {
+        "tests": 525,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "success": true
+    },
+    {
+      "log": "material-final.log",
+      "sha256": "8828a0585dee81909ffa37ae678aacbb16526dbd13e269e6db185d42ded4be00",
+      "total": {
+        "tests": 48,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "success": true
+    }
+  ],
+  "latestPerClassResults": {
+    "classes": 101,
+    "tests": 694,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "initialRegressionCorrection": "Expired license must permit readback of an accepted job; new writes and asset dispatch still require the appropriate permissions. The failing LicenseListingBoundaryTest was fixed and passed in final-regression.log.",
+  "materialFollowup": "Confirmed the real Ozon dictionary; prefer composition over material/lining, honor is_collection=false despite max_value_count=0, join user components into one text value and format existing percentages before material names.",
+  "benchmarks": {
+    "wildberries": {
+      "marketplace": "WILDBERRIES",
+      "products": 1000,
+      "simulatedApi": true,
+      "liveSellerMutations": false,
+      "writes": 10,
+      "reads": 67,
+      "dictionaryReads": 2,
+      "taskReads": 0,
+      "maxItems": 100,
+      "verified": 1000,
+      "elapsedMs": 16745.249145
+    },
+    "ozon": {
+      "marketplace": "OZON",
+      "products": 1000,
+      "simulatedApi": true,
+      "liveSellerMutations": false,
+      "writes": 10,
+      "reads": 1045,
+      "dictionaryReads": 3,
+      "taskReads": 10,
+      "maxItems": 100,
+      "verified": 1000,
+      "elapsedMs": 11902.312909
+    }
+  },
+  "liveSellerWritesVerified": false,
+  "liveCryptoProRegistrationVerified": false,
+  "rawSellerResponsesCommitted": false,
+  "windowsInstallerBuilt": false,
+  "artifact": {
+    "path": "target/VNcode-1.5.1.jar",
+    "bytes": 5319910,
+    "sha256": "dc7f3aec3ee0dc4e23c05940c279e51f9598988c2fbbf10a81498a7ddaaaa31b",
+    "mavenPackage": "BUILD SUCCESS",
+    "productionTestFixturesBundled": false
+  }
+}

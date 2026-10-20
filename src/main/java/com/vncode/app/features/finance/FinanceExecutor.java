@@ -33,7 +33,9 @@ public final class FinanceExecutor {
 
     public static void executeSync(Runnable task) {
         try {
-            SYNC_WORKER.execute(task);
+            SYNC_WORKER.execute(() -> {
+                try(var lane=com.vncode.app.shared.MarketplaceRequestBudget.lane(true)){task.run();}
+            });
         } catch (RejectedExecutionException ignored) {
             // Application is shutting down.
         }

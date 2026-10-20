@@ -1,0 +1,248 @@
+{
+  "version": "1.4.16",
+  "baseVersion": "1.4.15",
+  "complete": false,
+  "developmentComplete": true,
+  "officialReleasePublished": true,
+  "phase": "published-latest-owner-approved",
+  "licenseIntegration": {
+    "implemented": true,
+    "productionReady": false,
+    "activeKeyId": "vncode-2",
+    "changedInThisVersion": false
+  },
+  "validation": {
+    "productionLicenseVerified": false,
+    "windowsNativeBuildThisVersion": true,
+    "fullJavaRegression": {
+      "version": "1.4.16",
+      "source": "536567835f6a044626d00be273b2217bb1c4fc7c",
+      "result": "passed",
+      "tests": 1687,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 2,
+      "passed": 1685,
+      "skips": [
+        {
+          "suite": "com.vncode.app.features.gs1.Gs1PrefixTemplateStoreTest",
+          "skipped": 1
+        },
+        {
+          "suite": "com.vncode.app.shared.WindowsSecretProtectorTest",
+          "skipped": 1
+        }
+      ],
+      "focus": {
+        "com.vncode.app.ui.products.ProductBulkDialogTest": {
+          "tests": 7,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "seconds": 1.465
+        },
+        "com.vncode.app.integration.translation.AutomaticNewsTranslatorTest": {
+          "tests": 3,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "seconds": 0.436
+        },
+        "com.vncode.app.shared.ThemeServiceTest": {
+          "tests": 6,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "seconds": 0.574
+        },
+        "com.vncode.app.ui.news.NewsPaneLayoutTest": {
+          "tests": 1,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "seconds": 0.23
+        },
+        "com.vncode.app.ui.znackregistration.GtinBackgroundStatusTest": {
+          "tests": 1,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "seconds": 0.015
+        },
+        "com.vncode.app.ui.listingcopy.ListingCopyPaneTest": {
+          "tests": 16,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "seconds": 4.582
+        },
+        "com.vncode.app.ui.znackregistration.OzonRegistrationPaneTest": {
+          "tests": 5,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "seconds": 0.946
+        },
+        "com.vncode.app.features.sync.ZnackGtinBackgroundServiceTest": {
+          "tests": 4,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "seconds": 0.011
+        },
+        "com.vncode.app.integration.znack.registration.ZnackCategoryResolverTest": {
+          "tests": 4,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "seconds": 0.006
+        },
+        "com.vncode.app.ui.kiz.WbShipmentKizPaneTest": {
+          "tests": 7,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "seconds": 1.477
+        }
+      },
+      "logSha256": "b52518f44463fa24d5ec117b29010c9cb44ecf38acdef1df766b73c12a9586ee",
+      "elapsed": "05:33 min",
+      "finishedAt": "2026-10-17T19:17:52Z",
+      "fbsLatencyLines": [
+        "FBS_UI_LATENCY synthetic=true shops=10 orders_per_shop=1000 products=100000 samples=20 visible_page=100 commit_to_pulse_p95_ms=65.858391 fx_dispatch_p95_ms=1.008125 nativeWindows=false",
+        "FBS_UI_DIAGNOSTICS {ozon-fbs-render={medianMs=50.878892, samples=20, p95Ms=63.037447}, fxStallsOver500ms=0, maxFxPulseGapMs=28.765601, heapUsedBytes=614096824, maxHeapBytes=8589934592, logicalProcessors=4, readWorkers=3, readActive=0, readPending=0, imageWorkers=2, imagePending=0, legacyTasks=0, mutationActive=0, mutationPending=0, sellerHttpActive=0, screenCacheBytes=2266, screenCacheBudgetBytes=67108864}"
+      ],
+      "privateKizSample": {
+        "name": "quan.txt",
+        "bytes": 19200,
+        "validUniqueCodes": 600,
+        "importedCategoryAvailableCount": 600,
+        "productionOrdersMutated": false
+      }
+    },
+    "node": {
+      "tests": 60,
+      "passed": 60,
+      "failed": 0,
+      "logSha256": "4e7d4cdbf059f5a19bf999f65b8320607951de9f1a4971e9d79b0863973d776e"
+    },
+    "portal": {
+      "tests": 60,
+      "passed": 60,
+      "failed": 0,
+      "changedInThisVersion": false,
+      "logSha256": "3707e204de53cce94c33aa728da54ba6d5ac97c24033592ee4014bd9a745008c"
+    },
+    "nativeWindowsRun": {
+      "run": 39061440469,
+      "source": "536567835f6a044626d00be273b2217bb1c4fc7c",
+      "status": "completed",
+      "url": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/39061440469",
+      "conclusion": "failure"
+    },
+    "finalReport": "docs/validation/2026-10-17-vncode-1416-final-acceptance.json",
+    "liveReadReport": "docs/validation/2026-10-17-vncode-1416-live-read.json",
+    "priorLinuxRegression": {
+      "source": "f41386017ec6516a2322579dd2ee22306378d6e4",
+      "result": "passed",
+      "tests": 1684,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 2,
+      "passed": 1682,
+      "logSha256": "d9dc3779a256e630940ed6a4ca4fb8563ceb50e9c04d8dad6488ee5acbe3c223",
+      "elapsed": "05:32 min",
+      "finishedAt": "2026-10-17T18:12:17Z"
+    },
+    "windowsJavaRegression": {
+      "run": 39061440469,
+      "source": "536567835f6a044626d00be273b2217bb1c4fc7c",
+      "result": "passed",
+      "tests": 1687,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 2,
+      "passed": 1685,
+      "jarSha256": "ba5255a21646342fe697ecaf860499de037d2242f40ec3f151d737cc9f9c3470",
+      "nativeInstallerAcceptanceStillRunning": false
+    },
+    "nativeAcceptance": {
+      "nativeLauncher": true,
+      "dpapi": true,
+      "dpi": [
+        100,
+        125,
+        150
+      ],
+      "layouts": 288,
+      "upgradeBaselinesPassed": 11,
+      "upgrade1415Retested": false,
+      "failure": "Probe expected schema 4 instead of actual schema 5 for 1.4.15; probe corrected"
+    },
+    "windowsNativeAcceptanceComplete": false
+  },
+  "scope": [
+    "Vietnamese news in bounded frame",
+    "Compact product bulk dialogs",
+    "Background GTIN with bottom-centre status",
+    "Automatic Znack category selection",
+    "Immediate category KIZ totals during continuous FBS refresh",
+    "Clear-water Liquid Glass and contrast",
+    "One-click listing copy with progress"
+  ],
+  "applicationSource": "536567835f6a044626d00be273b2217bb1c4fc7c",
+  "sourceCommit": "536567835f6a044626d00be273b2217bb1c4fc7c",
+  "ownerPublicationInstruction": "docs/validation/2026-10-17-vncode-1416-owner-publication.json",
+  "publication": {
+    "published": true,
+    "latestChanged": true,
+    "version": "1.4.16",
+    "releaseId": 416022169,
+    "tag": "v1.4.16",
+    "publishedAt": "2026-10-17T19:46:25Z",
+    "url": "https://github.com/ntccong2468-lab/Bancapnhat/releases/tag/v1.4.16",
+    "installerUrl": "https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.4.16/VN-code-1.4.16-Windows-x64.exe",
+    "sourceCommit": "536567835f6a044626d00be273b2217bb1c4fc7c",
+    "buildRunId": 39061440469,
+    "publicationWorkflowRunId": 39063828895,
+    "publicationWorkflowSucceeded": true,
+    "assets": 23,
+    "allAssetDigestsValidatedInPublicationWorkflow": true,
+    "ownerRequestedImmediatePublication": true,
+    "standardFullAcceptanceClaimed": false,
+    "upgrade1415Retested": false,
+    "productionLicenseAcceptance": false
+  },
+  "publicDownload": {
+    "result": "passed",
+    "releaseId": 416022169,
+    "tag": "v1.4.16",
+    "publishedAt": "2026-10-17T19:46:25Z",
+    "releaseUrl": "https://github.com/ntccong2468-lab/Bancapnhat/releases/tag/v1.4.16",
+    "api": "https://api.github.com/repos/ntccong2468-lab/Bancapnhat/releases/latest",
+    "publicLatestVerified": true,
+    "browserDownloadUrl": "https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.4.16/VN-code-1.4.16-Windows-x64.exe",
+    "downloadedWithoutAuthorizationHeader": true,
+    "httpStatus": 200,
+    "bytes": 145501184,
+    "sha256": "9c18a6d388945358213dad0c6eaa158cdd53b4f78cacbe773fe87b6d0883dfb2",
+    "matchesGitHubAssetDigest": true,
+    "windowsPeSignature": true,
+    "changelogPresent": true,
+    "verifiedAt": "2026-10-17T19:47:19.466415+00:00",
+    "matchesVerifiedWindowsInstaller": true,
+    "sourceRunCompleteSuccess": false
+  },
+  "updaterReadback": {
+    "olderVersionsDetected": true,
+    "releaseVersion": "1.4.16",
+    "downloadUrl": "https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.4.16/VN-code-1.4.16-Windows-x64.exe",
+    "changelogPresent": true,
+    "bytes": 145501184,
+    "scope": "Actual public Latest JSON parsed by verified Windows application JAR in cloud",
+    "sellerDesktopPopupObserved": false,
+    "sha256": "9c18a6d388945358213dad0c6eaa158cdd53b4f78cacbe773fe87b6d0883dfb2",
+    "verifiedJarVersion": "1.4.16",
+    "result": "passed"
+  }
+}

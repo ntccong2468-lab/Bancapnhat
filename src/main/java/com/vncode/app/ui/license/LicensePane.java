@@ -3,6 +3,7 @@ package com.vncode.app.ui.license;
 import com.vncode.app.features.license.LicenseModels.Snapshot;
 import com.vncode.app.features.license.LicenseModels.Status;
 import com.vncode.app.features.license.LicenseService;
+import com.vncode.app.integration.license.LicenseApi;
 import com.vncode.app.shared.I18nService;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
@@ -15,6 +16,10 @@ import javafx.scene.control.PasswordField;
 import javafx.scene.control.ProgressIndicator;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
+import javafx.scene.control.CheckBox;
+import javafx.scene.control.TextArea;
+import javafx.scene.input.Clipboard;
+import javafx.scene.input.ClipboardContent;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.VBox;
 
@@ -39,6 +44,10 @@ public final class LicensePane extends ScrollPane {
         CompletableFuture<Snapshot> activate(String code);
         CompletableFuture<Snapshot> refresh();
         CompletableFuture<Snapshot> logout();
+        default boolean supportsNetworkDiagnostics() { return false; }
+        default LicenseApi.NetworkMode networkMode() { return LicenseApi.NetworkMode.AUTOMATIC; }
+        default CompletableFuture<LicenseApi.NetworkReport> checkConnection() { return CompletableFuture.failedFuture(new IllegalStateException()); }
+        default CompletableFuture<LicenseApi.NetworkMode> setNetworkMode(LicenseApi.NetworkMode mode) { return CompletableFuture.failedFuture(new IllegalStateException()); }
     }
 
     private final Actions actions;
@@ -61,6 +70,13 @@ public final class LicensePane extends ScrollPane {
     private final Button check = button("licenseCheck", false);
     private final Button refresh = button("licenseRefresh", false);
     private final Button reset = button("licenseReset", false);
+    private final Button networkCheck = button("licenseNetworkCheck", false);
+    private final Button networkCopy = button("licenseNetworkCopy", false);
+    private final CheckBox compatibleConnection = new CheckBox();
+    private final TextArea networkReport = new TextArea();
+    private final Label networkHelp = label("licenseNetworkHelp", "text-secondary");
+    private final VBox networkControls;
+    private LicenseApi.NetworkReport lastNetworkReport;
     private final Label feedback = label("licenseFeedback", "text-danger");
     private final ProgressIndicator progress = new ProgressIndicator();
     private final AutoCloseable subscription;
@@ -78,6 +94,10 @@ public final class LicensePane extends ScrollPane {
             public CompletableFuture<Snapshot> activate(String value) { return service.activate(value); }
             public CompletableFuture<Snapshot> refresh() { return service.refresh(); }
             public CompletableFuture<Snapshot> logout() { return service.logout(); }
+            public boolean supportsNetworkDiagnostics() { return service.supportsNetworkDiagnostics(); }
+            public LicenseApi.NetworkMode networkMode() { return service.networkMode(); }
+            public CompletableFuture<LicenseApi.NetworkReport> checkConnection() { return service.checkConnection(); }
+            public CompletableFuture<LicenseApi.NetworkMode> setNetworkMode(LicenseApi.NetworkMode mode) { return service.setNetworkMode(mode); }
         });
     }
 
@@ -98,8 +118,17 @@ public final class LicensePane extends ScrollPane {
         VBox account = card(registeredEmail, status, expiry, offlineExpiry, limits,
                 new FlowPane(10, 10, check, refresh, reset));
         VBox activation = card(activationTitle, activationHelp, license, activate);
-        VBox body = new VBox(18, title, description, registration, account, activation, progress, feedback);
-        body.setPadding(new Insets(24));
+        compatibleConnection.setId("licenseCompatibleConnection");
+        compatibleConnection.setWrapText(true);
+        networkReport.setId("licenseNetworkReport");
+        networkReport.setEditable(false);
+        networkReport.setWrapText(true);
+        networkReport.setPrefRowCount(7);
+        networkControls = card(new FlowPane(10, 10, networkCheck, networkCopy), compatibleConnection, networkHelp, networkReport);
+        visible(networkControls, actions.supportsNetworkDiagnostics());
+        visible(networkReport, false);
+        VBox body = new VBox(12, title, description, registration, account, activation, progress, feedback, networkControls);
+        body.setPadding(new Insets(16));
         body.setMinWidth(0);
         setContent(body);
 
@@ -114,6 +143,19 @@ public final class LicensePane extends ScrollPane {
         check.setOnAction(event -> run(actions::checkStatus));
         refresh.setOnAction(event -> run(actions::refresh));
         reset.setOnAction(event -> confirmReset());
+        networkCheck.setOnAction(event -> runSupport(actions::checkConnection, result -> {
+            lastNetworkReport = result;
+            renderNetworkReport();
+        }, "LICENSE_NETWORK_CHECK_FAILED"));
+        compatibleConnection.setOnAction(event -> {
+            var mode = compatibleConnection.isSelected() ? LicenseApi.NetworkMode.COMPATIBLE : LicenseApi.NetworkMode.AUTOMATIC;
+            runSupport(() -> actions.setNetworkMode(mode), ignored -> {}, "LICENSE_NETWORK_SETTINGS_FAILED");
+        });
+        networkCopy.setOnAction(event -> {
+            var content = new ClipboardContent();
+            content.putString(networkReport.getText());
+            Clipboard.getSystemClipboard().setContent(content);
+        });
         subscription = actions.subscribe(ignored -> onFx(() -> render(actions.snapshot())));
         applyTranslations();
     }
@@ -133,6 +175,11 @@ public final class LicensePane extends ScrollPane {
         check.setText(tr("check"));
         refresh.setText(tr("refresh"));
         reset.setText(tr("reset"));
+        networkCheck.setText(tr("network.check"));
+        networkCopy.setText(tr("network.copy"));
+        compatibleConnection.setText(tr("network.compatible"));
+        networkHelp.setText(tr("network.help"));
+        renderNetworkReport();
         render(actions.snapshot());
     }
 
@@ -172,7 +219,47 @@ public final class LicensePane extends ScrollPane {
         check.setDisable(busy || !registered || hasLease);
         refresh.setDisable(busy || !hasLease);
         reset.setDisable(busy || snapshot.status() == Status.UNREGISTERED);
+        networkCheck.setDisable(busy);
+        compatibleConnection.setDisable(busy);
+        compatibleConnection.setSelected(actions.networkMode() == LicenseApi.NetworkMode.COMPATIBLE);
+        networkCopy.setDisable(lastNetworkReport == null);
         visible(progress, busy && !disposed);
+    }
+
+    private void renderNetworkReport() {
+        visible(networkReport, lastNetworkReport != null);
+        if (lastNetworkReport == null) return;
+        StringBuilder text = new StringBuilder(tr("network.report.help"));
+        for (var probe : lastNetworkReport.probes()) {
+            text.append('\n').append(tr("network.mode." + probe.mode().name().toLowerCase(Locale.ROOT)))
+                    .append(" / ").append(tr("network.endpoint." + probe.endpoint().name().toLowerCase(Locale.ROOT)))
+                    .append(": ").append(probe.reachable() ? tr("network.ok") : probe.code())
+                    .append(" [HTTP ").append(probe.httpStatus()).append("; ").append(probe.protocol())
+                    .append("; ").append(tr("network.phase." + probe.phase().toLowerCase(Locale.ROOT)))
+                    .append("; ").append(probe.elapsedMillis()).append(" ms]");
+        }
+        networkReport.setText(text.toString());
+    }
+
+    private <T> void runSupport(Supplier<CompletableFuture<T>> operation, Consumer<T> consume, String failureCode) {
+        if (disposed || requestInFlight || actions.snapshot().busy()) return;
+        requestInFlight = true;
+        localError = null;
+        long request = ++generation;
+        render(actions.snapshot());
+        try {
+            operation.get().whenComplete((value, failure) -> onFx(() -> {
+                if (request != generation) return;
+                requestInFlight = false;
+                if (failure != null) localError = failureCode;
+                else consume.accept(value);
+                render(actions.snapshot());
+            }));
+        } catch (RuntimeException failure) {
+            requestInFlight = false;
+            localError = failureCode;
+            render(actions.snapshot());
+        }
     }
 
     private void run(Supplier<CompletableFuture<Snapshot>> operation) {
@@ -227,14 +314,27 @@ public final class LicensePane extends ScrollPane {
     private String errorText(String code) {
         if (code == null || code.isBlank()) return "";
         String normalized = switch (code.toUpperCase(Locale.ROOT)) {
+            case "LICENSE_NETWORK" -> "network";
+            case "LICENSE_UNAVAILABLE" -> "unavailable";
+            case "LICENSE_HTTP_ERROR" -> "http_error";
+            case "LICENSE_REDIRECT_REJECTED" -> "redirect_rejected";
+            case "LICENSE_BUSY" -> "busy";
+            case "LICENSE_RECHECK_REQUIRED" -> "saved_registration";
+            case "LICENSE_CHANGED" -> "device_limit_or_license_changed";
             case "LICENSE_EXPIRED" -> "subscription_inactive";
             case "LICENSE_TRUST_NOT_CONFIGURED" -> "trust_not_configured";
             case "LICENSE_CLOCK_ROLLBACK" -> "clock";
+            case "LICENSE_CLOCK_SKEW" -> "clock_skew";
             case "LICENSE_STORE_INVALID", "LICENSE_DEVICE_KEY_INVALID" -> "saved_registration";
             case "LICENSE_PROTOCOL_INVALID" -> "verification";
             default -> code.toLowerCase(Locale.ROOT);
         };
-        return i18n.tr("license.account.error." + normalized, tr("error.unexpected"));
+        String translated = i18n.tr("license.account.error." + normalized, "");
+        // Show only recognized protocol codes, never upstream messages or credentials.
+        if (translated.isBlank()) return tr("error.unexpected");
+        String diagnostic = code.toUpperCase(Locale.ROOT);
+        return diagnostic.matches("[A-Z][A-Z0-9_]{1,80}")
+                ? translated + " [" + diagnostic + "]" : tr("error.unexpected");
     }
 
     private String date(long epochSeconds) {

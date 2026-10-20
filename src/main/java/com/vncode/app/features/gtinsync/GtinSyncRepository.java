@@ -11,17 +11,32 @@ import static com.vncode.app.features.gtinsync.GtinSyncModels.*;
 
 /** Persists only normalized, credential-free data. Every public scoped read verifies ownership. */
 public final class GtinSyncRepository {
+    public record Change(JobItem item,Status next,String remoteTask,String issue){}
+    public void issue(UUID item,String code){write(c->{itemFor(c,item);try(var p=c.prepareStatement("INSERT INTO sync_gtin_issues VALUES(?,?,?) ON CONFLICT(item_id) DO UPDATE SET code=excluded.code,updated_at=excluded.updated_at")){p.setString(1,item.toString());p.setString(2,com.vncode.app.features.sync.SyncRunRepository.code(code));p.setString(3,Instant.now().toString());p.executeUpdate();}return null;});}
+    public String issue(UUID item){return transaction(c->{itemFor(c,item);try(var p=c.prepareStatement("SELECT code FROM sync_gtin_issues WHERE item_id=?")){p.setString(1,item.toString());try(var r=p.executeQuery()){return r.next()?r.getString(1):"";}}});}
+    public Map<UUID,String> issues(Collection<UUID> ids){
+        return transaction(c->{var all=new ArrayList<>(new LinkedHashSet<>(ids));var result=new HashMap<UUID,String>();
+            for(int offset=0;offset<all.size();offset+=400){var batch=all.subList(offset,Math.min(offset+400,all.size()));
+                try(var p=c.prepareStatement("SELECT i.id,q.code,i.shop_id,i.marketplace FROM gtin_sync_items i JOIN sync_gtin_issues q ON q.item_id=i.id WHERE i.id IN ("+String.join(",",Collections.nCopies(batch.size(),"?"))+")")){
+                    for(int n=0;n<batch.size();n++)p.setString(n+1,batch.get(n).toString());try(var r=p.executeQuery()){while(r.next()){requireShop(c,r.getInt(3),Marketplace.valueOf(r.getString(4)));result.put(UUID.fromString(r.getString(1)),r.getString(2));}}
+                }
+            }return Map.copyOf(result);
+        });
+    }
     public void saveCatalog(int shopId, Marketplace marketplace, List<RegisteredGtin> rows) {
-        transaction(c -> {
+        write(c -> {
             requireShop(c,shopId,marketplace);
             try(var d=c.prepareStatement("DELETE FROM gtin_sync_catalog WHERE shop_id=? AND marketplace=?")) {
                 d.setInt(1,shopId);d.setString(2,marketplace.name());d.executeUpdate();
             }
+            String owner=com.vncode.app.integration.listing.ListingIdentity.fingerprint(c,shopId,marketplace);
             try(var p=c.prepareStatement("INSERT INTO gtin_sync_catalog VALUES(?,?,?,?)")) {
                 for(var row:rows) {
                     if(!RegisteredGtinValidator.isValid(row.gtin())) throw new IllegalArgumentException("invalid_gtin");
                     p.setInt(1,shopId);p.setString(2,marketplace.name());p.setString(3,row.gtin());
-                    p.setString(4,GtinJson.GSON.toJson(row));p.addBatch();
+                    var data=GtinJson.GSON.toJsonTree(row).getAsJsonObject();
+                    data.addProperty("owner",owner);
+                    p.setString(4,GtinJson.GSON.toJson(data));p.addBatch();
                 }
                 p.executeBatch();
             }
@@ -38,9 +53,36 @@ public final class GtinSyncRepository {
             return List.copyOf(result);
         });
     }
+    /** Merge a fully completed selected-card observation; untouched GTINs retain their cache. */
+    public void mergeCatalog(int shopId,Marketplace marketplace,List<RegisteredGtin> rows){
+        write(c->{requireShop(c,shopId,marketplace);String owner=com.vncode.app.integration.listing.ListingIdentity.fingerprint(c,shopId,marketplace);
+            try(var p=c.prepareStatement("INSERT INTO gtin_sync_catalog VALUES(?,?,?,?) ON CONFLICT(shop_id,marketplace,gtin) DO UPDATE SET data_json=excluded.data_json")){
+                var seen=new HashSet<String>();for(var row:rows){if(!RegisteredGtinValidator.isValid(row.gtin())||!seen.add(row.gtin()))throw new IllegalArgumentException("invalid_gtin");var data=GtinJson.GSON.toJsonTree(row).getAsJsonObject();data.addProperty("owner",owner);p.setInt(1,shopId);p.setString(2,marketplace.name());p.setString(3,row.gtin());p.setString(4,GtinJson.GSON.toJson(data));p.addBatch();}p.executeBatch();
+            }return null;
+        });
+    }
+    public RegisteredGtin catalogItem(int shopId,Marketplace marketplace,String gtin) {
+        return transaction(c->{requireShop(c,shopId,marketplace);
+            try(var p=c.prepareStatement("SELECT data_json FROM gtin_sync_catalog WHERE shop_id=? AND marketplace=? AND gtin=?")){
+                p.setInt(1,shopId);p.setString(2,marketplace.name());p.setString(3,gtin);
+                try(var r=p.executeQuery()){if(!r.next())throw new IllegalArgumentException("unverified_catalog_gtin");return GtinJson.GSON.fromJson(r.getString(1),RegisteredGtin.class);}
+            }
+        });
+    }
+    /** Bounded IN lists share one read transaction; no per-GTIN connection or full-catalog scan. */
+    public Map<String,RegisteredGtin> catalogItems(int shopId,Marketplace marketplace,Collection<String> gtins) {
+        return transaction(c->{requireShop(c,shopId,marketplace);var all=new ArrayList<>(new LinkedHashSet<>(gtins));var result=new HashMap<String,RegisteredGtin>();
+            for(int offset=0;offset<all.size();offset+=400){var batch=all.subList(offset,Math.min(offset+400,all.size()));
+                try(var p=c.prepareStatement("SELECT gtin,data_json FROM gtin_sync_catalog WHERE shop_id=? AND marketplace=? AND gtin IN ("+String.join(",",Collections.nCopies(batch.size(),"?"))+")")){
+                    p.setInt(1,shopId);p.setString(2,marketplace.name());for(int i=0;i<batch.size();i++)p.setString(i+3,batch.get(i));
+                    try(var r=p.executeQuery()){while(r.next())result.put(r.getString(1),GtinJson.GSON.fromJson(r.getString(2),RegisteredGtin.class));}
+                }
+            }return Map.copyOf(result);
+        });
+    }
     public void saveMapping(ProductKey key, String gtin) {
         if(!RegisteredGtinValidator.isValid(gtin)) throw new IllegalArgumentException("invalid_gtin");
-        transaction(c -> {
+        write(c -> {
             requireShop(c,key.shopId(),key.marketplace());
             try(var p=c.prepareStatement("INSERT INTO gtin_sync_mappings VALUES(?,?,?,?,?,?) ON CONFLICT(shop_id,marketplace,product_id,variant_id) DO UPDATE SET gtin=excluded.gtin,updated_at=excluded.updated_at")) {
                 bindKey(p,key);p.setString(5,gtin);p.setString(6,Instant.now().toString());p.executeUpdate();
@@ -56,14 +98,33 @@ public final class GtinSyncRepository {
             }
         });
     }
+    /** A completed remote readback, never a proposed matching rule, authorizes KIZ resolution. */
+    public void recordVerifiedMapping(ProductKey key,String gtin){write(c->{requireShop(c,key.shopId(),key.marketplace());saveVerified(c,key,gtin);return null;});}
+    private static void saveVerified(Connection c,ProductKey key,String gtin)throws SQLException {
+        String owner=com.vncode.app.integration.listing.ListingIdentity.fingerprint(c,key.shopId(),key.marketplace()),source;
+        try(var p=c.prepareStatement("SELECT data_json FROM gtin_sync_catalog WHERE shop_id=? AND marketplace=? AND gtin=?")){
+            p.setInt(1,key.shopId());p.setString(2,key.marketplace().name());p.setString(3,gtin);
+            try(var r=p.executeQuery()){
+                if(!r.next())return;var data=com.google.gson.JsonParser.parseString(r.getString(1)).getAsJsonObject();
+                if(!data.has("owner")||!owner.equals(data.get("owner").getAsString())||!data.get("published").getAsBoolean()||!data.get("tradeUnit").getAsBoolean()||!RegisteredGtinValidator.isValid(gtin))return;
+                source=data.get("source").getAsString();if(!source.startsWith("National Catalog@"))return;
+            }
+        }
+        try(var p=c.prepareStatement("INSERT INTO gtin_sync_verified_mappings VALUES(?,?,?,?,?,?,?,?) ON CONFLICT(shop_id,marketplace,product_id,variant_id) DO UPDATE SET gtin=excluded.gtin,owner=excluded.owner,source=excluded.source,verified_at=excluded.verified_at")){
+            bindKey(p,key);p.setString(5,gtin);p.setString(6,owner);p.setString(7,source);p.setString(8,Instant.now().toString());p.executeUpdate();
+        }
+    }
     public UUID createJob(List<Preview> previews) {
-        if(previews.isEmpty() || previews.size()>1000) throw new IllegalArgumentException("invalid_selection");
+        if(previews.isEmpty() || previews.size()>GtinBatchAdapter.MAX_PLAN_ROWS) throw new IllegalArgumentException("invalid_selection");
         var key=previews.getFirst().before().key();
         if(previews.stream().anyMatch(p -> p.before().key().shopId()!=key.shopId() || p.before().key().marketplace()!=key.marketplace()))
             throw new IllegalArgumentException("mixed_shops");
         String dedup=hash(previews.stream().map(p -> GtinJson.GSON.toJson(List.of(p.before().key(),p.operation(),p.oldGtin(),p.newGtin(),p.before().fingerprint())))
                 .sorted().toList().toString());
-        return transaction(c -> {
+        // Serialize outside the writer; a 10,000-member consent stays atomic without
+        // retaining the FBS write queue for JSON generation or SQL preparation per row.
+        var payloads=previews.stream().map(GtinJson.GSON::toJson).toList();
+        return write(c -> {
             requireShop(c,key.shopId(),key.marketplace());
             UUID previous=null;
             try(var p=c.prepareStatement("SELECT id FROM gtin_sync_jobs WHERE dedup_key=?")) {
@@ -83,13 +144,16 @@ public final class GtinSyncRepository {
             try(var p=c.prepareStatement("INSERT INTO gtin_sync_jobs(id,dedup_key,shop_id,marketplace,created_at) VALUES(?,?,?,?,?)")) {
                 p.setString(1,id.toString());p.setString(2,dedup);p.setInt(3,key.shopId());p.setString(4,key.marketplace().name());p.setString(5,Instant.now().toString());p.executeUpdate();
             }
-            for(var preview:previews) {
-                var item=UUID.randomUUID();var k=preview.before().key();
-                try(var p=c.prepareStatement("INSERT INTO gtin_sync_items(id,job_id,shop_id,marketplace,product_id,variant_id,preview_json,status,updated_at) VALUES(?,?,?,?,?,?,?,?,?)")) {
+            String now=Instant.now().toString();
+            try(var p=c.prepareStatement("INSERT INTO gtin_sync_items(id,job_id,shop_id,marketplace,product_id,variant_id,preview_json,status,updated_at) VALUES(?,?,?,?,?,?,?,?,?)");
+                var events=c.prepareStatement("INSERT INTO gtin_sync_events(item_id,status,created_at) VALUES(?,?,?)")){
+              for(int i=0;i<previews.size();i++) {
+                var preview=previews.get(i);var item=UUID.randomUUID();var k=preview.before().key();
                     p.setString(1,item.toString());p.setString(2,id.toString());p.setInt(3,k.shopId());p.setString(4,k.marketplace().name());
-                    p.setString(5,k.productId());p.setString(6,k.variantId());p.setString(7,GtinJson.GSON.toJson(preview));p.setString(8,Status.QUEUED.name());p.setString(9,Instant.now().toString());p.executeUpdate();
-                }
-                event(c,item,Status.QUEUED);
+                    p.setString(5,k.productId());p.setString(6,k.variantId());p.setString(7,payloads.get(i));p.setString(8,Status.QUEUED.name());p.setString(9,now);p.addBatch();
+                events.setString(1,item.toString());events.setString(2,Status.QUEUED.name());events.setString(3,now);events.addBatch();
+              }
+              p.executeBatch();events.executeBatch();
             }
             return id;
         });
@@ -128,7 +192,7 @@ public final class GtinSyncRepository {
     }
     public boolean transition(UUID itemId, Status expected, Status next, String remoteTaskId) {
         if(!allowed(expected,next)) throw new IllegalArgumentException("invalid_transition");
-        return transaction(c -> {
+        return write(c -> {
             var item=itemFor(c,itemId);var key=item.preview().before().key();requireShop(c,key.shopId(),key.marketplace());
             String guard="";
             if(next==Status.VALIDATING || next==Status.SENDING)
@@ -143,12 +207,86 @@ public final class GtinSyncRepository {
             try(var p=c.prepareStatement("UPDATE gtin_sync_items SET status=?,remote_task_id=?,updated_at=? WHERE id=? AND status=?"+guard)) {
                 p.setString(1,next.name());p.setString(2,remoteTaskId==null?item.remoteTaskId():remoteTaskId);p.setString(3,Instant.now().toString());p.setString(4,itemId.toString());p.setString(5,expected.name());
                 if(p.executeUpdate()!=1) return false;
+                if(next==Status.SUCCEEDED)saveVerified(c,key,item.preview().newGtin());
                 event(c,itemId,next);return true;
             }
         });
     }
+    /** Claim siblings of the same card together, excluding every active item outside this batch.
+     * The writer lock is released before validation, rate-limit waits, or network calls. */
+    public List<JobItem> claimBatch(List<JobItem> candidates) {
+        if(candidates.isEmpty())return List.of();
+        return write(c->{var selected=new HashSet<UUID>();candidates.forEach(i->selected.add(i.id()));var blocked=new HashSet<String>();var result=new ArrayList<JobItem>();
+            var first=candidates.getFirst().preview().before().key();requireShop(c,first.shopId(),first.marketplace());var cardJobs=new HashMap<String,UUID>();
+            try(var p=c.prepareStatement("SELECT id,product_id FROM gtin_sync_items WHERE shop_id=? AND marketplace=? AND status IN ('VALIDATING','SENDING','AWAITING_VERIFICATION','RECONCILE_REQUIRED')")){
+                p.setInt(1,first.shopId());p.setString(2,first.marketplace().name());try(var r=p.executeQuery()){while(r.next())blocked.add(r.getString(2));}
+            }
+            try(var schema=c.prepareStatement("SELECT 1 FROM sqlite_master WHERE name='product_edit_items'");var rs=schema.executeQuery()){
+                if(rs.next())try(var p=c.prepareStatement("SELECT card_id FROM product_edit_items WHERE shop_id=? AND marketplace=? AND state IN ('SENDING','REMOTE_PROCESSING','RECONCILE_REQUIRED')")){
+                    p.setInt(1,first.shopId());p.setString(2,first.marketplace().name());try(var r=p.executeQuery()){while(r.next())blocked.add(r.getString(1));}
+                }
+            }
+            for(var candidate:candidates){var item=itemFor(c,candidate.id());var key=item.preview().before().key();
+                if(key.shopId()!=first.shopId()||key.marketplace()!=first.marketplace())throw new IllegalArgumentException("mixed_shops");
+                if(item.status()!=Status.QUEUED||blocked.contains(key.productId()))continue;
+                var cardJob=cardJobs.putIfAbsent(key.productId(),item.jobId());if(cardJob!=null&&!cardJob.equals(item.jobId()))continue;
+                try(var p=c.prepareStatement("UPDATE gtin_sync_items SET status='VALIDATING',updated_at=? WHERE id=? AND status='QUEUED' AND EXISTS(SELECT 1 FROM gtin_sync_jobs j WHERE j.id=gtin_sync_items.job_id AND j.paused=0)")){
+                    p.setString(1,Instant.now().toString());p.setString(2,item.id().toString());if(p.executeUpdate()==1){event(c,item.id(),Status.VALIDATING);result.add(new JobItem(item.id(),item.jobId(),item.preview(),Status.VALIDATING,item.remoteTaskId()));}
+                }
+            }return List.copyOf(result);
+        });
+    }
+    /** Atomic request checkpoint. A concurrent pause/cancellation prevents the entire request. */
+    public boolean sendingBatch(List<JobItem> items) {
+        if(items.isEmpty())return false;
+        return write(c->{for(var expected:items){var item=itemFor(c,expected.id());if(item.status()!=Status.VALIDATING)return false;
+                try(var p=c.prepareStatement("SELECT paused FROM gtin_sync_jobs WHERE id=?")){p.setString(1,item.jobId().toString());try(var r=p.executeQuery()){if(!r.next()||r.getInt(1)!=0)return false;}}
+            }
+            try(var p=c.prepareStatement("UPDATE gtin_sync_items SET status='SENDING',updated_at=? WHERE id=? AND status='VALIDATING'")){
+                for(var item:items){p.setString(1,Instant.now().toString());p.setString(2,item.id().toString());p.addBatch();}p.executeBatch();
+            }for(var item:items)event(c,item.id(),Status.SENDING);return true;
+        });
+    }
+    /** Checkpoints/readback results in short transactions; no connection/commit per GTIN. */
+    public List<JobItem> applyBatch(List<Change> changes){
+        var result=new ArrayList<JobItem>();
+        for(int offset=0;offset<changes.size();offset+=250){var part=changes.subList(offset,Math.min(offset+250,changes.size()));
+            result.addAll(write(c->{var completed=new ArrayList<JobItem>();
+                for(var change:part){var expected=change.item();if(change.next()==Status.SENDING||change.next()==Status.VALIDATING||!allowed(expected.status(),change.next()))throw new IllegalArgumentException("invalid_transition");
+                    var actual=itemFor(c,expected.id());if(actual.status()!=expected.status())continue;var key=actual.preview().before().key();requireShop(c,key.shopId(),key.marketplace());String remote=change.remoteTask()==null?actual.remoteTaskId():change.remoteTask();
+                    try(var p=c.prepareStatement("UPDATE gtin_sync_items SET status=?,remote_task_id=?,updated_at=? WHERE id=? AND status=?")){
+                        p.setString(1,change.next().name());p.setString(2,remote);p.setString(3,Instant.now().toString());p.setString(4,actual.id().toString());p.setString(5,expected.status().name());if(p.executeUpdate()!=1)continue;
+                    }
+                    if(change.issue()!=null)putIssue(c,actual.id(),change.issue());if(change.next()==Status.SUCCEEDED)saveVerified(c,key,actual.preview().newGtin());event(c,actual.id(),change.next());completed.add(new JobItem(actual.id(),actual.jobId(),actual.preview(),change.next(),remote));
+                }return completed;
+            }));
+        }return List.copyOf(result);
+    }
+    public void requireSendingBatch(List<JobItem> items) {
+        transaction(c->{var jobs=new HashSet<UUID>();for(var expected:items){var item=itemFor(c,expected.id());if(item.status()!=Status.SENDING)throw new IllegalStateException("GTIN_BATCH_CHECKPOINT_CHANGED");jobs.add(item.jobId());}
+            for(var id:jobs)try(var p=c.prepareStatement("SELECT paused FROM gtin_sync_jobs WHERE id=?")){p.setString(1,id.toString());try(var r=p.executeQuery()){if(!r.next()||r.getInt(1)!=0)throw new IllegalStateException("GTIN_BATCH_PAUSED");}}return null;
+        });
+    }
+    /** Only for an adapter's proven pre-dispatch failure, never a timeout or response loss. */
+    public void releaseUnsentBatch(List<JobItem> items,String code,boolean pause) {
+        write(c->{var jobs=new HashSet<UUID>();for(var expected:items){var item=itemFor(c,expected.id());
+                if(item.status()!=Status.SENDING&&item.status()!=Status.VALIDATING)continue;
+                if(item.remoteTaskId()!=null&&!item.remoteTaskId().isBlank())throw new IllegalStateException("already_submitted");
+                try(var p=c.prepareStatement("UPDATE gtin_sync_items SET status='QUEUED',updated_at=? WHERE id=? AND status=?")){
+                    p.setString(1,Instant.now().toString());p.setString(2,item.id().toString());p.setString(3,item.status().name());p.executeUpdate();
+                }
+                putIssue(c,item.id(),code);event(c,item.id(),Status.QUEUED);jobs.add(item.jobId());
+            }
+            if(pause)for(var job:jobs)try(var p=c.prepareStatement("UPDATE gtin_sync_jobs SET paused=1 WHERE id=?")){p.setString(1,job.toString());p.executeUpdate();}return null;
+        });
+    }
+    private static void putIssue(Connection c,UUID id,String code)throws SQLException {
+        try(var p=c.prepareStatement("INSERT INTO sync_gtin_issues VALUES(?,?,?) ON CONFLICT(item_id) DO UPDATE SET code=excluded.code,updated_at=excluded.updated_at")){
+            p.setString(1,id.toString());p.setString(2,com.vncode.app.features.sync.SyncRunRepository.code(code));p.setString(3,Instant.now().toString());p.executeUpdate();
+        }
+    }
     public void recoverInterrupted() {
-        transaction(c -> {
+        write(c -> {
             try(var s=c.createStatement()) {
                 s.executeUpdate("INSERT INTO gtin_sync_events(item_id,status,created_at) SELECT id,CASE WHEN status='SENDING' THEN 'RECONCILE_REQUIRED' ELSE 'QUEUED' END,strftime('%Y-%m-%dT%H:%M:%fZ','now') FROM gtin_sync_items WHERE status IN ('SENDING','VALIDATING')");
                 s.executeUpdate("UPDATE gtin_sync_items SET status=CASE WHEN status='SENDING' THEN 'RECONCILE_REQUIRED' ELSE 'QUEUED' END WHERE status IN ('SENDING','VALIDATING')");
@@ -158,7 +296,7 @@ public final class GtinSyncRepository {
     }
     /** Called only before submit: a denied lease is known-unsent, never a remote ambiguity. */
     void pauseKnownUnsent(UUID itemId) {
-        transaction(c -> {
+        write(c -> {
             var item=itemFor(c,itemId);var key=item.preview().before().key();requireShop(c,key.shopId(),key.marketplace());
             if(item.status()!=Status.VALIDATING && item.status()!=Status.SENDING)return null;
             if(item.remoteTaskId()!=null && !item.remoteTaskId().isBlank())throw new IllegalStateException("already_submitted");
@@ -172,7 +310,7 @@ public final class GtinSyncRepository {
         });
     }
     public void pause(UUID jobId, boolean paused) {
-        transaction(c -> { requireJob(c,jobId);try(var p=c.prepareStatement("UPDATE gtin_sync_jobs SET paused=? WHERE id=?")) {p.setInt(1,paused?1:0);p.setString(2,jobId.toString());p.executeUpdate();}return null; });
+        write(c -> { requireJob(c,jobId);try(var p=c.prepareStatement("UPDATE gtin_sync_jobs SET paused=? WHERE id=?")) {p.setInt(1,paused?1:0);p.setString(2,jobId.toString());p.executeUpdate();}return null; });
     }
     public boolean paused(UUID jobId) {
         return transaction(c -> {requireJob(c,jobId);try(var p=c.prepareStatement("SELECT paused FROM gtin_sync_jobs WHERE id=?")){p.setString(1,jobId.toString());try(var r=p.executeQuery()){return r.next()&&r.getInt(1)==1;}}});
@@ -207,6 +345,10 @@ public final class GtinSyncRepository {
         catch(NoSuchAlgorithmException e){throw new IllegalStateException(e);}
     }
     private interface Work<T>{T run(Connection c)throws SQLException;}
+    private static <T> T write(Work<T> work) {
+        try { return com.vncode.app.config.SqliteWriteTransaction.run(work::run); }
+        catch(SQLException e){throw new IllegalStateException("gtin_storage_error",e);}
+    }
     private static <T> T transaction(Work<T> work) {
         try(var c=Database.getConnection()){c.setAutoCommit(false);try{T result=work.run(c);c.commit();return result;}catch(Exception e){c.rollback();throw e;}}
         catch(SQLException e){throw new IllegalStateException("gtin_storage_error",e);}

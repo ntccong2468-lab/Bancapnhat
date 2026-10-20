@@ -124,5 +124,6 @@ public final class AlertService {
             pane.getStyleClass().add("app-dialog-pane");
         }
         ThemeService.applyTheme(pane);
+        DialogLayout.install(pane);
     }
 }

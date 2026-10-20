@@ -1,0 +1,82 @@
+{
+  "version": "1.5.0",
+  "baseline": "1.4.19",
+  "platform": "Linux / Java 25 / Xvfb, actual JavaFX controls",
+  "focusedRegression": {
+    "tests": 264,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "finishedAtUtc": "2026-10-18T11:56:12Z"
+  },
+  "finalMaterialRerun": {
+    "tests": 8,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "finishedAtUtc": "2026-10-18T11:57:43Z",
+    "reason": "Material highlight alpha follows the transparency slider too"
+  },
+  "nodeContracts": {
+    "tests": 70,
+    "passed": 70,
+    "failed": 0
+  },
+  "appearance": {
+    "minimumMaterialAlpha": 0.005,
+    "maximumMaterialAlpha": 1,
+    "textOpacity": 1,
+    "rootNodeOpacity": 1,
+    "windowOpacity": 1,
+    "themes": [
+      "light",
+      "dark"
+    ],
+    "transparencyLevels": [
+      0,
+      55,
+      100
+    ],
+    "foregroundContrastChecked": true,
+    "circularIconControlsChecked": true,
+    "newsDoesNotUseCapsuleRadius": true,
+    "productReferenceActionLayoutPreserved": true
+  },
+  "wbBatchCheckpoint": {
+    "waitsForWorkerNotEnqueueAcknowledgement": true,
+    "pendingModerationNotPublishedSuccess": true,
+    "failureReleasesClaimAndCompletion": true
+  },
+  "windowsInstallerBuilt": false,
+  "published": false,
+  "productionLicenseAcceptance": false,
+  "liveCryptoProSigning": false,
+  "liveDesktopMarketplaceWrite": false,
+  "liveReads": {
+    "time": "2026-10-18T11:49:03.159895+00:00",
+    "reads": [
+      {
+        "market": "WB",
+        "http": 200,
+        "products": 388,
+        "variants": 1982,
+        "pages": 4
+      },
+      {
+        "market": "Ozon",
+        "http": 200,
+        "products": 175,
+        "pages": 1
+      },
+      {
+        "market": "Catalog",
+        "http": 200,
+        "cards": 1277,
+        "reportedTotal": 1277,
+        "pages": 2
+      }
+    ],
+    "mutations": 0
+  },
+  "bulkMarketplaceKizValidationOnImport": false
+}

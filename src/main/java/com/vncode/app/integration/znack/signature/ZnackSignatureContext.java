@@ -2,6 +2,7 @@ package com.vncode.app.integration.znack.signature;
 
 public enum ZnackSignatureContext {
     AUTH_CHALLENGE(false),
+    CATALOG_AUTH_CHALLENGE(true),
     SUZ_POST_BODY(true),
     TRUE_API_DOCUMENT(true),
     SIGNATURE_TEST(true);

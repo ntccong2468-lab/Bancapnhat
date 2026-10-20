@@ -33,6 +33,9 @@ public final class WbFbwRateLimiter {
             waitNanos = start - now;
         }
         if (waitNanos > 0) {
+            // Normal two-second spacing stays local to this bounded read. Long 429 cooldowns
+            // yield the background worker so one FBO endpoint cannot occupy it for ten minutes.
+            if (waitNanos > Duration.ofSeconds(5).toNanos()) com.vncode.app.shared.RateLimitDeferral.waiting(waitNanos);
             long millis = waitNanos / 1_000_000L;
             int nanos = (int) (waitNanos % 1_000_000L);
             Thread.sleep(millis, nanos);

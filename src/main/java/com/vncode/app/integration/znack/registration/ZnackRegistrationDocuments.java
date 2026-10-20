@@ -15,8 +15,9 @@ public final class ZnackRegistrationDocuments {
     private ZnackRegistrationDocuments() {}
     public enum Source { PRODUCT, SHOP, NONE }
     public record Selection(List<GoodsDocument> candidates, GoodsDocument automatic,
-                            Source source, boolean requiresReview) {
-        public Selection { candidates=List.copyOf(candidates); }
+                            Source source, boolean requiresReview,List<String> issues) {
+        public Selection(List<GoodsDocument> candidates,GoodsDocument automatic,Source source,boolean requiresReview){this(candidates,automatic,source,requiresReview,List.of());}
+        public Selection { candidates=List.copyOf(candidates);issues=List.copyOf(issues); }
         @Override public String toString(){ return "Selection[source="+source+", count="+candidates.size()+"]"; }
     }
 
@@ -64,8 +65,8 @@ public final class ZnackRegistrationDocuments {
     private static String type(String value) {
         String normalized=value==null?"":value.strip().toUpperCase(Locale.ROOT);
         return switch(normalized) {
-            case "CONFORMITY_DECLARATION", "DECLARATION", "ДЕКЛАРАЦИЯ", "ДЕКЛАРАЦИЯ О СООТВЕТСТВИИ" -> "CONFORMITY_DECLARATION";
-            case "CONFORMITY_CERTIFICATE", "CERTIFICATE", "СЕРТИФИКАТ", "СЕРТИФИКАТ СООТВЕТСТВИЯ" -> "CONFORMITY_CERTIFICATE";
+            case "2", "CONFORMITY_DECLARATION", "DECLARATION", "DECLARATION_OF_CONFORMITY", "ДЕКЛАРАЦИЯ", "ДЕКЛАРАЦИЯ О СООТВЕТСТВИИ" -> "CONFORMITY_DECLARATION";
+            case "1", "CONFORMITY_CERTIFICATE", "CERTIFICATE", "CERTIFICATE_OF_CONFORMITY", "СЕРТИФИКАТ", "СЕРТИФИКАТ СООТВЕТСТВИЯ" -> "CONFORMITY_CERTIFICATE";
             default -> "";
         };
     }

@@ -38,11 +38,14 @@ public class ZnackPurchaseCoordinator {
         thread.setDaemon(true);
         return thread;
     });
+    private static final java.util.concurrent.ConcurrentMap<String,Instant> NEXT_CHECKS=new java.util.concurrent.ConcurrentHashMap<>();
+    public static Instant nextCheckAt(int shopId,long pipelineId){return NEXT_CHECKS.get(shopId+":"+pipelineId);}
     private static final Set<String> SCHEDULED = ConcurrentHashMap.newKeySet();
     private static final Set<String> RUNNING = ConcurrentHashMap.newKeySet();
     private static final Set<java.util.concurrent.ScheduledFuture<?>> PENDING_POLLS = ConcurrentHashMap.newKeySet();
 
     private final ZnackRepository repository;
+    private Settings serviceSettings;
     private final ZnackKizOrderService orders;
     private final ZnackKizCodeService codes;
     private final ZnackIntroductionService introduction;
@@ -76,10 +79,11 @@ public class ZnackPurchaseCoordinator {
         ZnackSignatureProvider signer = ZnackSigningSession.guard(repository.shop().shopId(), settings.signerCertificate(), cryptoProSigner);
         ZnackApiClient api = new ZnackApiClient();
         ZnackAuthService auth = new ZnackAuthService(api, signer);
-        return new ZnackPurchaseCoordinator(repository, new ZnackKizOrderService(api, auth, signer, repository),
+        var coordinator=new ZnackPurchaseCoordinator(repository, new ZnackKizOrderService(api, auth, signer, repository),
                 new ZnackKizCodeService(api, auth, repository),
                 new ZnackIntroductionService(api, auth, signer, repository),
                 new ZnackIntroductionReadinessService(api, auth, repository));
+        coordinator.serviceSettings=settings;return coordinator;
     }
 
     public static void resumeAllPersisted() {
@@ -389,6 +393,11 @@ public class ZnackPurchaseCoordinator {
     }
 
     public void advance(Settings settings, long pipelineId) throws Exception {
+        if(serviceSettings!=null){
+            var original=repository.pipelineSettings(pipelineId);
+            if(!serviceSettings.equals(original)){create(repository,original).advance(original,pipelineId);return;}
+            settings=original;
+        }
         String key = pipelineKey(pipelineId);
         if (!RUNNING.add(key)) return;
         String gtin = null;
@@ -496,9 +505,7 @@ public class ZnackPurchaseCoordinator {
             throw new IllegalStateException("This GTIN already has purchased KIZ waiting for circulation. "
                     + "Synchronize its National Catalog document to resume the existing purchase.");
         }
-        Product product = repository.findProducts().stream()
-                .filter(candidate -> normalized.equals(candidate.gtin()))
-                .findFirst().orElse(null);
+        Product product = repository.findActiveProduct(normalized).orElse(null);
         if (product == null) {
             throw new IllegalArgumentException("GTIN is not registered for the selected shop.");
         }
@@ -784,7 +791,9 @@ public class ZnackPurchaseCoordinator {
                 ? 30 : ZnackErrorMessages.isClosedKizOrder(pipeline.errorMessage())
                 ? 300 : pipeline.errorMessage() == null || pipeline.errorMessage().isBlank() ? 5 : 30;
         PENDING_POLLS.removeIf(java.util.concurrent.Future::isDone);
+        NEXT_CHECKS.put(key,Instant.now().plusSeconds(delaySeconds));
         PENDING_POLLS.add(POLLER.schedule(() -> {
+            NEXT_CHECKS.remove(key);
             try {
                 Settings latestSettings = repository.getSettings();
                 advance(latestSettings, pipelineId);

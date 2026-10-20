@@ -1,0 +1,21 @@
+{
+  "checkedAt": "2026-10-17T20:52:36.148499+00:00",
+  "readOnly": true,
+  "mutations": 0,
+  "listPages": 2,
+  "detailBatches": 52,
+  "errors": [],
+  "listRows": 1276,
+  "total": 1276,
+  "listStatusCounts": {
+    "published": 1237,
+    "draft": 39
+  },
+  "detailRows": 1276,
+  "detailStatusCounts": {
+    "published": 1237,
+    "draft": 39
+  },
+  "completeCatalogRead": true,
+  "finishedAt": "2026-10-17T20:54:09.789459+00:00"
+}

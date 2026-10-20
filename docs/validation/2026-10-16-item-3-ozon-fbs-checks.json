@@ -1,0 +1,51 @@
+{
+  "item": 3,
+  "synthetic": true,
+  "latestFocused": {
+    "tests": 12,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "earlierFocusedRuns": [
+    {
+      "tests": 49,
+      "failures": 0,
+      "errors": 0
+    },
+    {
+      "tests": 20,
+      "failures": 0,
+      "errors": 0
+    }
+  ],
+  "reservationScale": {
+    "shops": 10,
+    "ordersPerShop": 1000,
+    "distinctReservations": 10000,
+    "crossShopAssignments": 0,
+    "remoteAPI": false
+  },
+  "localBatchMilliseconds": {
+    "100": 519.401,
+    "500": 1661.895,
+    "1000": 3056.438
+  },
+  "logs": [
+    {
+      "path": "/tmp/vncode-item3-focused3.log",
+      "sha256": "c2dbf549fc21ed1f873d7009e604765a9a41f241ad4701964b35749828a555e6"
+    },
+    {
+      "path": "/tmp/vncode-item3-final-focused.log",
+      "sha256": "20cfc6906524f6d273456fc4dd0c41baa05bb0975946f5189d66d4b10c2448fd"
+    },
+    {
+      "path": "/tmp/vncode-item3-close.log",
+      "sha256": "31ad970c434abedc6bc74b0a485a9ac4b0249f271df87aace669d70c25c787cc"
+    }
+  ],
+  "liveMarketplaceWrite": false,
+  "livePurchase": false,
+  "nativeWindows": false
+}

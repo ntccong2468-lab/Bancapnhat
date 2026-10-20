@@ -59,5 +59,16 @@ class OzonCardRegistrationRepositoryTest {
         byte[] read=repository.find(key).signatureXml();read[0]=0;assertArrayEquals(document.xml(),repository.find(key).signatureXml());
         assertTrue(repository.claimSignature(key,document.sha256()));assertFalse(repository.claimSignature(key,document.sha256()));repository.releaseSignature(key,document.sha256());assertEquals("PREPARED",repository.find(key).signatureState());assertTrue(repository.claimSignature(key,document.sha256()));
     }
+    @Test void knownUnsentRebuildRetainsIdentityAndNeverResetsAnUncertainPost() {
+        claim();assertTrue(repository.transition(key,Status.CHECKING,Status.ALLOCATING_GTIN));
+        repository.generated(key,GtinWriteTestFixture.GTIN,"{\"gtin\":\"00000000000017\",\"good_name\":\"Old\",\"tnved\":\"6204\"}");
+        repository.uncertain(key,Status.PRE_SUBMIT_ERROR,"REGISTRATION_VALIDATION_FAILED");
+        var saved=repository.find(key);
+        assertThrows(IllegalArgumentException.class,()->repository.rebuildKnownUnsent(shop,key,saved,scope,"9001","{\"gtin\":\"00000000000024\"}"));
+        assertTrue(repository.transition(key,Status.PRE_SUBMIT_ERROR,Status.FEED_SUBMITTING));
+        assertFalse(repository.rebuildKnownUnsent(shop,key,saved,scope,"9001","{\"gtin\":\"00000000000017\",\"good_name\":\"Fixed\",\"tnved\":\"6204\"}"));
+        assertEquals(Status.FEED_SUBMITTING,repository.find(key).status());
+        assertEquals(GtinWriteTestFixture.GTIN,repository.find(key).gtin());
+    }
     private static void cleanDatabase()throws Exception{try(var c=Database.getConnection();var s=c.createStatement();var r=s.executeQuery("PRAGMA integrity_check")){assertTrue(r.next());assertEquals("ok",r.getString(1));}try(var c=Database.getConnection();var s=c.createStatement();var r=s.executeQuery("PRAGMA foreign_key_check")){assertFalse(r.next());}}
 }

@@ -1,0 +1,304 @@
+{
+  "version": "1.5.5",
+  "sourceCommit": "cc73b32ae50ed21a25196653291df2996ecef1bf",
+  "runId": 39496207125,
+  "publishRun": 39497248970,
+  "publishRunAttempt": 3,
+  "publishSourceCommit": "5b6ef1df779fa57bf90952825601cf45e0d37377",
+  "result": "passed",
+  "windowsJava": {
+    "tests": 2309,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 2,
+    "passed": 2307
+  },
+  "freshFullJavaExecuted": true,
+  "reusedJavaAcceptance": false,
+  "proofs": [
+    {
+      "file": "native-smoke.json",
+      "sha256": "43e100c4c58fac66da1c126c7929c9f954e0369fcdfd41f1419df022adb63a94",
+      "version": "1.5.5",
+      "liveMarketplaceMutations": false
+    },
+    {
+      "file": "side-by-side-smoke.json",
+      "sha256": "6a6b8cb0969d1e8ea04d31b7f40d8cc79a88ce88ba217fe9d0b77cbf30df6a50",
+      "result": "passed",
+      "version": "1.5.5",
+      "liveMarketplaceMutations": false
+    },
+    {
+      "file": "upgrade-smoke.json",
+      "sha256": "37f6266cc238af544913d8b72f2caa086ec160b6d7f960c761d0e0424bc958e3",
+      "result": "passed",
+      "version": "1.5.5",
+      "fromVersion": "1.1.34",
+      "dataPreserved": true,
+      "singleRegistration": true,
+      "liveMarketplaceMutations": false
+    },
+    {
+      "file": "upgrade-preview-smoke.json",
+      "sha256": "c19d2d69dcf72e78924c6eebf777b131c752c725ec90cf5da53ed0032f22a9d9",
+      "result": "passed",
+      "version": "1.5.5",
+      "fromVersion": "1.2.0",
+      "dataPreserved": true,
+      "singleRegistration": true,
+      "liveMarketplaceMutations": false
+    },
+    {
+      "file": "upgrade-latest-preview-smoke.json",
+      "sha256": "97c710e712168aebe9f8fe518217d77b4f230c748e37dfc66d3922fb684dbba2",
+      "result": "passed",
+      "version": "1.5.5",
+      "fromVersion": "1.2.1",
+      "dataPreserved": true,
+      "singleRegistration": true,
+      "liveMarketplaceMutations": false
+    },
+    {
+      "file": "upgrade-current-preview-smoke.json",
+      "sha256": "6848fe2fca0522e7e04b5d4cb3a32d50cdbb897e06cd08c2fc476856b4638edd",
+      "result": "passed",
+      "version": "1.5.5",
+      "fromVersion": "1.2.2",
+      "dataPreserved": true,
+      "singleRegistration": true,
+      "liveMarketplaceMutations": false
+    },
+    {
+      "file": "upgrade-gs1-preview-smoke.json",
+      "sha256": "1bf5714ce505dd165a45d833ab11311819a06cabe35109e7d5d77bfd7d569540",
+      "result": "passed",
+      "version": "1.5.5",
+      "fromVersion": "1.3.0",
+      "dataPreserved": true,
+      "singleRegistration": true,
+      "liveMarketplaceMutations": false
+    },
+    {
+      "file": "upgrade-license-test-smoke.json",
+      "sha256": "332e3281e27a3b6a7806d393f23333d9006b93bf0a1a0881d90b16b4d696a414",
+      "result": "passed",
+      "version": "1.5.5",
+      "fromVersion": "1.4.0",
+      "dataPreserved": true,
+      "singleRegistration": true,
+      "liveMarketplaceMutations": false
+    },
+    {
+      "file": "upgrade-stable-146-smoke.json",
+      "sha256": "422e33c07c60c781dd8bec75feb1172420d1a6387a7bc3d27e617f9cfbe4e0dd",
+      "result": "passed",
+      "version": "1.5.5",
+      "fromVersion": "1.4.6",
+      "dataPreserved": true,
+      "singleRegistration": true,
+      "liveMarketplaceMutations": false
+    },
+    {
+      "file": "upgrade-stable-1410-smoke.json",
+      "sha256": "709f9bed8310033700fdcf348b1eba3dd242d678f23b1c65b76b62761224eb54",
+      "result": "passed",
+      "version": "1.5.5",
+      "fromVersion": "1.4.10",
+      "dataPreserved": true,
+      "singleRegistration": true,
+      "liveMarketplaceMutations": false
+    },
+    {
+      "file": "upgrade-stable-1411-smoke.json",
+      "sha256": "403613e1f26a8960fc66cd72b8497e02dde46285a303dfb4d51faa02ed23e502",
+      "result": "passed",
+      "version": "1.5.5",
+      "fromVersion": "1.4.11",
+      "dataPreserved": true,
+      "singleRegistration": true,
+      "liveMarketplaceMutations": false
+    },
+    {
+      "file": "upgrade-stable-1412-smoke.json",
+      "sha256": "b08bf7947fd45a162627167845c6836a5f068575a8acde0f1261da0c31d37b40",
+      "result": "passed",
+      "version": "1.5.5",
+      "fromVersion": "1.4.12",
+      "dataPreserved": true,
+      "singleRegistration": true,
+      "liveMarketplaceMutations": false
+    },
+    {
+      "file": "upgrade-stable-1413-smoke.json",
+      "sha256": "7986847dc0078949a0bcb8f2e7b8a4b55085423bbf4e8e5812e2b4fb779a862d",
+      "result": "passed",
+      "version": "1.5.5",
+      "fromVersion": "1.4.13",
+      "dataPreserved": true,
+      "singleRegistration": true,
+      "liveMarketplaceMutations": false
+    },
+    {
+      "file": "upgrade-stable-1415-smoke.json",
+      "sha256": "5b5268e6fe859ef1fda2fc259d15f8fd9624958aff654db2d27c7b050738f4f2",
+      "result": "passed",
+      "version": "1.5.5",
+      "fromVersion": "1.4.15",
+      "dataPreserved": true,
+      "singleRegistration": true,
+      "liveMarketplaceMutations": false
+    },
+    {
+      "file": "upgrade-stable-1416-smoke.json",
+      "sha256": "31ff2d4fa2fb4052349223e299ae2db961d32f4b7fbe452109c1867bb9defbb0",
+      "result": "passed",
+      "version": "1.5.5",
+      "fromVersion": "1.4.16",
+      "dataPreserved": true,
+      "singleRegistration": true,
+      "liveMarketplaceMutations": false
+    },
+    {
+      "file": "upgrade-stable-1418-smoke.json",
+      "sha256": "5d65711c11db6b9359939ac317b6714c034a7a32e4231eec41a204b39cc43c3c",
+      "result": "passed",
+      "version": "1.5.5",
+      "fromVersion": "1.4.18",
+      "dataPreserved": true,
+      "singleRegistration": true,
+      "liveMarketplaceMutations": false
+    },
+    {
+      "file": "upgrade-stable-1419-smoke.json",
+      "sha256": "cbf67cb3ad5adec67baa39e6d8fd3cd641be45c441923d4523b1db50aaf272a5",
+      "result": "passed",
+      "version": "1.5.5",
+      "fromVersion": "1.4.19",
+      "dataPreserved": true,
+      "singleRegistration": true,
+      "liveMarketplaceMutations": false
+    },
+    {
+      "file": "upgrade-stable-150-smoke.json",
+      "sha256": "ce064673385c37d43dcae1206ef44dc0a2bc431a88bc85249fb625477dede378",
+      "result": "passed",
+      "version": "1.5.5",
+      "fromVersion": "1.5.0",
+      "dataPreserved": true,
+      "singleRegistration": true,
+      "liveMarketplaceMutations": false
+    },
+    {
+      "file": "upgrade-stable-151-smoke.json",
+      "sha256": "e8ba3bee0f3331f96c82af7615bea1e692d282ce1f25944dddfa932f1c22d885",
+      "result": "passed",
+      "version": "1.5.5",
+      "fromVersion": "1.5.1",
+      "dataPreserved": true,
+      "singleRegistration": true,
+      "liveMarketplaceMutations": false
+    },
+    {
+      "file": "upgrade-stable-152-smoke.json",
+      "sha256": "5433f2b4836ecf0f794b32be6c1b7df347fe19a10b2e60d272af02b285ecb26f",
+      "result": "passed",
+      "version": "1.5.5",
+      "fromVersion": "1.5.2",
+      "dataPreserved": true,
+      "singleRegistration": true,
+      "liveMarketplaceMutations": false,
+      "passiveExeHandoffVerified": true,
+      "passiveExeInstallerSha256": "e966b8d36101f8d0c62b5340e7804ff574fb1453e89d713dbcd604b7446b4b13",
+      "passiveExeEmbeddedMsiSha256": "832c1138239927231dfb5da7e0e5bf6bd87f88b5d1c29a406457a908a8a05d91"
+    },
+    {
+      "file": "upgrade-stable-153-smoke.json",
+      "sha256": "e5411a691ba77580c4c889bbdcefd633443016ac8b7226184a7d1f41fa5d6ddb",
+      "result": "passed",
+      "version": "1.5.5",
+      "fromVersion": "1.5.3",
+      "dataPreserved": true,
+      "singleRegistration": true,
+      "liveMarketplaceMutations": false,
+      "passiveExeHandoffVerified": true,
+      "passiveExeInstallerSha256": "e966b8d36101f8d0c62b5340e7804ff574fb1453e89d713dbcd604b7446b4b13",
+      "passiveExeEmbeddedMsiSha256": "832c1138239927231dfb5da7e0e5bf6bd87f88b5d1c29a406457a908a8a05d91"
+    },
+    {
+      "file": "upgrade-stable-154-smoke.json",
+      "sha256": "7c2a247588d70cc24c6a851c669050ce0e68da89da05599456ba879ff99d8adc",
+      "result": "passed",
+      "version": "1.5.5",
+      "fromVersion": "1.5.4",
+      "dataPreserved": true,
+      "singleRegistration": true,
+      "liveMarketplaceMutations": false,
+      "passiveExeHandoffVerified": true,
+      "passiveExeInstallerSha256": "e966b8d36101f8d0c62b5340e7804ff574fb1453e89d713dbcd604b7446b4b13",
+      "passiveExeEmbeddedMsiSha256": "832c1138239927231dfb5da7e0e5bf6bd87f88b5d1c29a406457a908a8a05d91"
+    },
+    {
+      "file": "seller-workspace-smoke.json",
+      "sha256": "12c5796a99a7674616fc23428f072df282fed009ac53c6d8616662de4b280bfa",
+      "result": "passed",
+      "version": "1.5.5",
+      "liveMarketplaceMutations": false
+    },
+    {
+      "file": "ui-layout.json",
+      "sha256": "db005f37e69b1ece784778723a1150962ede7c7c9c29ee19b47022bb733a71b3",
+      "version": "1.5.5",
+      "liveSellerMutations": false
+    },
+    {
+      "file": "gs1-smoke.json",
+      "sha256": "bcc1755ad6a50e989887962a184f3146b162cf6863facdb030608af5f7cb5253",
+      "result": "passed",
+      "version": "1.5.5",
+      "liveGS1Mutations": false
+    }
+  ],
+  "upgradeProbes": 20,
+  "publicRelease": {
+    "checkedAt": "2026-10-20T22:06:38.556327+00:00",
+    "published": true,
+    "latestVersion": "1.5.5",
+    "releaseUrl": "https://github.com/ntccong2468-lab/Bancapnhat/releases/tag/v1.5.5",
+    "publishedAt": "2026-10-20T22:05:02Z",
+    "buildRun": 39496207125,
+    "publishRun": 39497248970,
+    "publishRunAttempt": 3,
+    "publishSourceCommit": "5b6ef1df779fa57bf90952825601cf45e0d37377",
+    "sourceCommit": "cc73b32ae50ed21a25196653291df2996ecef1bf",
+    "installerSha256": "e966b8d36101f8d0c62b5340e7804ff574fb1453e89d713dbcd604b7446b4b13",
+    "installerBytes": 147044352,
+    "downloadUrl": "https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.5.5/VN-code-1.5.5-Windows-x64.exe",
+    "publicDownloadVerified": true,
+    "anonymousDownload": {
+      "bytes": 147044352,
+      "sha256": "e966b8d36101f8d0c62b5340e7804ff574fb1453e89d713dbcd604b7446b4b13",
+      "anonymousDownloadVerified": true
+    },
+    "windowsJava": {
+      "tests": 2309,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 2,
+      "passed": 2307
+    },
+    "windowsArtifactId": 12301419643,
+    "verifiedNativeProofFiles": 25,
+    "verifiedUpgradeProbes": 20,
+    "passiveExeHandoffVerified": true,
+    "sellerDesktopPopupObserved": false,
+    "actualUpdaterProbeExecuted": false,
+    "realSellerMutationsPerformed": false,
+    "paidKizPurchasePerformed": false
+  },
+  "productionLicenseAccepted": false,
+  "enterpriseCryptoProSigningAccepted": false,
+  "sellerDesktopPopupObserved": false,
+  "actualUpdaterProbeExecuted": false,
+  "recordedAt": "2026-10-20T22:06:38.556327+00:00"
+}

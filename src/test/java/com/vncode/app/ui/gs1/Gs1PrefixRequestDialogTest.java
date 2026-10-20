@@ -225,6 +225,7 @@ class Gs1PrefixRequestDialogTest {
     }
 
     @Test void storedPrefixPdfRequiresReviewAndLegacyDraftWithoutCheckpointCannotSend() throws Exception {
+        try(var connection=Database.getConnection();var sql=connection.createStatement()){sql.execute("INSERT INTO shops(id,name,api_key) VALUES(1,'Fixture','fixture')");}
         var repository = new Gs1Repository(); var signed = signedDocument();
         repository.saveMailAccount(INN, new Gs1MailAccount("smtp.fixture", 465, "imap.fixture", 993,
                 "fixture", "owner@fixture.ru", "dpapi:fixture"));

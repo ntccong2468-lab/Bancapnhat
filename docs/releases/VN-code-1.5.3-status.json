@@ -1,0 +1,520 @@
+{
+  "version": "1.5.3",
+  "state": "published-latest-under-owner-request",
+  "baseline": "v1.5.2",
+  "databaseSchema": 6,
+  "published": true,
+  "complete": false,
+  "sourceCommit": "69ffc7ecb60a91c874510522c4aae3c5be069ccd",
+  "requestReport": "VN-code-1.5.3-request-report.md",
+  "licenseIntegration": {
+    "productionReady": false,
+    "changedInThisVersion": false
+  },
+  "publication": {
+    "latestReleaseAtPreparation": "v1.5.2",
+    "latestReleaseChangedByThisWork": true,
+    "standardAcceptanceClaimed": false,
+    "ownerExceptionAdded": true,
+    "releaseUrl": "https://github.com/ntccong2468-lab/Bancapnhat/releases/tag/v1.5.3",
+    "installerSha256": "ec608d3677581c12901ee702e516cb2eea2757a5a9ee8fd84a2ce2438e8a3f31",
+    "installerBytes": 146864128,
+    "state": "published-latest-under-owner-request",
+    "credentialValuesRecorded": false,
+    "supersededCancelledPublisher": {
+      "runId": 39385466871,
+      "sourceCommit": "03b68f4af53798af66d725326a8d63ad579995fc",
+      "state": "cancelled",
+      "observedCompletedAt": "2026-10-20T07:27:26Z",
+      "reason": "Cancelled before publication to include the newly approved Ozon label and EXE handoff scope.",
+      "acceptedForPublication": false
+    },
+    "historicalAuthenticationIncident": {
+      "state": "blocked-github-authentication",
+      "operations": [
+        "push-final-runtime-source",
+        "dispatch-fresh-windows-build",
+        "publish-github-release"
+      ],
+      "reason": "Configured GitHub CLI credential is invalid (API HTTP 401); HTTPS Git push could not read a username. No valid new Windows run exists.",
+      "credentialValuesRecorded": false,
+      "resolved": true
+    },
+    "reason": "Fresh final-source Java/native/upgrades and public installer/updater availability verified; unperformed live seller mutations and signing remain unverified.",
+    "githubAuthentication": {
+      "state": "ready-observed",
+      "evidence": [
+        "GitHub CLI authentication succeeded",
+        "Runtime 58d091a and 1524b56 pushed successfully",
+        "Final runtime a684fcd pushed and fresh Windows run 39393525107 observed with the exact source"
+      ],
+      "credentialValuesRecorded": false
+    },
+    "publisherDispatchedForFailedRun": false,
+    "publishedAt": "2026-10-20T09:49:36Z",
+    "publishRun": 39398012877,
+    "publishSourceCommit": "a8587c9eb025a62ee0fb2c5a92a06a4b3409ce7e",
+    "verifiedAt": "2026-10-20T09:50:17.190639+00:00"
+  },
+  "preservationRequirements": [
+    "Existing 1.5.2 seller data and synchronized products/cards",
+    "Default Catalog registration template and permit TN VED scope rules",
+    "Existing synchronization, FBS priority and KIZ workflows"
+  ],
+  "validation": {
+    "linuxFullSuite": {
+      "state": "passed",
+      "sourceCommit": "69ffc7ecb60a91c874510522c4aae3c5be069ccd",
+      "tests": 2072,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 2,
+      "passed": 2070,
+      "testSuites": 338,
+      "fullSuiteExecuted": true,
+      "cleanVerifyExecuted": true,
+      "log": "/tmp/vncode-153-final-full-verify.log",
+      "summary": "/tmp/vncode-153-final-linux-summary.json",
+      "finishedAt": "2026-10-20T09:02:42Z",
+      "duration": "8m37s",
+      "acceptedForFinalScope": true,
+      "acceptedForRelease": false,
+      "scope": "Final frozen runtime complete Linux clean verify; Windows Java/native/upgrade proof remains mandatory."
+    },
+    "releaseToolTests": {
+      "state": "passed",
+      "sourceCommit": "69ffc7ecb60a91c874510522c4aae3c5be069ccd",
+      "tests": 85,
+      "failures": 0,
+      "fullSuiteExecuted": true,
+      "command": "node --test tools/*.test.mjs",
+      "log": "/tmp/vncode-153-final-publication-node.log",
+      "acceptedForFinalScope": true,
+      "scope": "All release-tool Node tests after binding publication to the final runtime and actual Windows run."
+    },
+    "windowsBuild": {
+      "state": "passed",
+      "sourceCommit": "69ffc7ecb60a91c874510522c4aae3c5be069ccd",
+      "lastCommittedRuntime": "69ffc7ecb60a91c874510522c4aae3c5be069ccd",
+      "runId": 39396769729,
+      "url": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/39396769729",
+      "observedCreatedAt": "2026-10-20T08:54:17Z",
+      "freshFullJavaExecutionRequired": true,
+      "allNativeChecksMustRunAgain": true,
+      "upgradeFrom152Passed": true,
+      "passiveExeHandoffVerified": true,
+      "allNativeChecksPassed": true,
+      "installerPackaged": true,
+      "fullJavaSuite": {
+        "tests": 2072,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 2,
+        "passed": 2070
+      },
+      "verifiedNativeProofs": [
+        "native-smoke.json",
+        "side-by-side-smoke.json",
+        "upgrade-smoke.json",
+        "upgrade-preview-smoke.json",
+        "upgrade-latest-preview-smoke.json",
+        "upgrade-current-preview-smoke.json",
+        "upgrade-gs1-preview-smoke.json",
+        "upgrade-license-test-smoke.json",
+        "upgrade-stable-146-smoke.json",
+        "upgrade-stable-1410-smoke.json",
+        "upgrade-stable-1411-smoke.json",
+        "upgrade-stable-1412-smoke.json",
+        "upgrade-stable-1413-smoke.json",
+        "upgrade-stable-1415-smoke.json",
+        "upgrade-stable-1416-smoke.json",
+        "upgrade-stable-1418-smoke.json",
+        "upgrade-stable-1419-smoke.json",
+        "upgrade-stable-150-smoke.json",
+        "upgrade-stable-151-smoke.json",
+        "upgrade-stable-152-smoke.json",
+        "seller-workspace-smoke.json",
+        "ui-layout.json",
+        "gs1-smoke.json"
+      ],
+      "observedCompletedAt": "2026-10-20T09:48:14Z"
+    },
+    "liveCatalogRead": {
+      "state": "passed",
+      "readOnly": true,
+      "http": 200,
+      "observedAtLocal": "2026-10-20 09:35",
+      "timezone": "Europe/Moscow",
+      "total": 1277,
+      "published": 1241,
+      "errors": 34,
+      "drafts": 2,
+      "newProductionPostPerformed": false
+    },
+    "productionLicenseVerified": false,
+    "liveCryptoProSigningThisVersion": false,
+    "liveLicensedDesktopGtinWriteThisVersion": false,
+    "liveApiWbGtinWriteThisVersion": false,
+    "liveApiOzonGtinWriteThisVersion": false,
+    "liveCatalogCardCreatedThisVersion": false,
+    "liveCatalogCardRepairedThisVersion": false,
+    "windowsTrayVerifiedOnWindows": false,
+    "publicDownloadVerified": true,
+    "cancelledWindowsBuild": {
+      "runId": 39382705240,
+      "sourceCommit": "a65b2b4a0e8ccf590722a7642e3d403cdc7b8338",
+      "reason": "Intentionally cancelled to include the final Ozon startup ownership guard. Not a completed verification."
+    },
+    "liveReadFeasibility": {
+      "readOnly": true,
+      "wbHttp": 200,
+      "wbProducts": 388,
+      "wbVariants": 1982,
+      "wbPages": 4,
+      "catalogHttp": 200,
+      "catalogCards": 1277,
+      "newFeedSent": false,
+      "gtinAllocated": false,
+      "productionAppPathBlockedBy": [
+        "No Windows CryptoPro executable/private certificate in this Linux environment",
+        "No uniquely validated product/permit sample available through current read-only probes"
+      ],
+      "didNotBypassProductionGuards": true
+    },
+    "ownerAuthorizedTestLicense": {
+      "authorized": true,
+      "scope": "WB and Ozon test sessions, unlimited functional permission granted by project owner in this conversation",
+      "mechanism": "Existing isolated signed LicenseDomainFixture and LicenseTestBootstrap; all application permissions granted during tests",
+      "productionRuntimeLicenseChanged": false,
+      "productionLicenseAcceptanceClaimed": false
+    },
+    "priorLinuxFullSuite": {
+      "state": "passed",
+      "sourceCommit": "a65b2b4a0e8ccf590722a7642e3d403cdc7b8338",
+      "tests": 1991,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 2,
+      "passed": 1989,
+      "command": "DISPLAY=:99 XDG_CACHE_HOME=/tmp/vncode-ui-cache /workspace/toolchains/mvn-vncode -o clean verify",
+      "log": "/tmp/vncode-153-full.log",
+      "scope": "Complete baseline change set; final Ozon startup guard is covered by a separate focused run and the fresh final-source Windows suite.",
+      "acceptedForRelease": false,
+      "acceptedForFinalScope": false
+    },
+    "supersededWindowsBuild": {
+      "sourceCommit": "9dfcae6ddf30d82f5fddc8ba5e5252cc362dddd8",
+      "runId": 39383179796,
+      "url": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/39383179796",
+      "state": "completed-superseded-reference-only",
+      "freshFullJavaStep": "success",
+      "testCount": null,
+      "acceptedForFinalScope": false,
+      "reason": "Successful old-source build, superseded by the approved Ozon combined/FBO labels, final EXE handoff and Receive All server-split scope; not final-scope acceptance.",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    "priorSourceFocusedSuite": {
+      "state": "passed",
+      "sourceCommit": "9dfcae6ddf30d82f5fddc8ba5e5252cc362dddd8",
+      "tests": 71,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "includes": [
+        "WB and Ozon sequential durable registration",
+        "Real localhost HTTP POST /v3/feed with accepted identity checks",
+        "Register button and unlocked filters",
+        "Ozon restart-monitor ownership guard",
+        "Updater handoff UI"
+      ],
+      "log": "/tmp/vncode-153-final-guard.log",
+      "acceptedForFinalScope": false
+    },
+    "finalRuntimeFocusedSuite": {
+      "state": "passed",
+      "sourceCommit": "69ffc7ecb60a91c874510522c4aae3c5be069ccd",
+      "tests": 23,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "passed": 23,
+      "countsRecorded": true,
+      "fullSuiteExecuted": false,
+      "log": "/tmp/vncode-153-znack-gtin-recovery-focused.log",
+      "scope": "Final targeted recovery checks after fixture-only repairs: mock Catalog feed (10), local GTIN snapshot (3), status pill (10). Full final-source regression remains required.",
+      "acceptedForFinalScope": true,
+      "acceptedForRelease": false
+    },
+    "completedPriorScopeLinuxSuite": {
+      "state": "passed",
+      "sourceCommit": "a684fcd807aac82b144a262a622b44d95dc06a73",
+      "tests": 2045,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 2,
+      "passed": 2043,
+      "testSuites": 335,
+      "log": "/tmp/vncode-153-a684-full-verify.log",
+      "scope": "Compiled before the additional Znack/GTIN fixes now in progress; historical scope evidence only.",
+      "acceptedForFinalScope": false,
+      "acceptedForRelease": false
+    },
+    "priorRuntimeFocusedSuite": {
+      "state": "passed",
+      "sourceCommit": "58d091a68aaa0a58ed35730ae13b502011177d17",
+      "tests": 47,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "log": "/tmp/vncode-153-ozon-label-focused.log",
+      "includes": [
+        "Ozon combined KIZ and product barcode label",
+        "GS1 DataMatrix and Code128 readback at 203 and 300 dpi",
+        "Shipping pages and per-exemplar counts preserved",
+        "Archived product reprint and atomic PDF failure handling",
+        "EXE updater handoff arguments"
+      ],
+      "acceptedForFinalScope": false
+    },
+    "priorFboFocusedSuite": {
+      "state": "passed",
+      "sourceCommit": "1524b567eda736265a779be953301788e9820591",
+      "tests": 98,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "log": "/tmp/vncode-153-ozon-fbo-focused.log",
+      "includes": [
+        "One combined Ozon FBO label per marked unit instead of three labels",
+        "Frozen print-history reprints",
+        "Combined label barcode and workflow coverage"
+      ],
+      "acceptedForFinalScope": false
+    },
+    "syncSourcePreservation": {
+      "path": "src/main/java/com/vncode/app/features/sync/FbsSyncService.java",
+      "wholeFileUnchangedFrom152": false,
+      "baselineSha256": "4d9e105229566ebb68010fe87b3755abc6f60c6274f54ba003084fc3174ff8a1",
+      "sha256": "c572c3be15fd80da10c0aff48421844ecd98b456d4f990f9fb2803d70ce2b7e4",
+      "onlyOzonMethodChanged": true,
+      "changeScope": "Ozon FBS_STATUS adds bounded read-only reconciliation of pending per-unit package receipts and independent ordinary status selection.",
+      "wbMethod": {
+        "unchangedFrom152": true,
+        "sha256": "1c2772f5389dbd658dc9c1ff72de0057d111e346c2045202a8acc977780ab32c",
+        "bytes": 5280,
+        "startMarker": "    private SyncCoordinator.Page wb(",
+        "endMarkerExclusive": "    private static SyncCoordinator.Page next("
+      }
+    },
+    "ozonPerUnitShipping": {
+      "state": "implemented-full-regression-and-native-upgrades-passed",
+      "focusedSuiteLog": "/tmp/vncode-153-ozon-split-focused-final.log",
+      "backgroundReadback": "Persisted read-only reconciliation with at most three GETs per turn; uncertain writes are not automatically replayed.",
+      "liveReadOnlySample": {
+        "state": "read-only-sample-without-multi-unit-order",
+        "readOnly": true,
+        "observedAtLocal": "2026-10-20 11:02",
+        "timezone": "Europe/Moscow",
+        "sampleOrders": 5,
+        "allSingleUnit": true,
+        "productionShipPostPerformed": false,
+        "liveServerSplitVerified": false,
+        "evidence": "../validation/2026-10-20-ozon-unit-shipping.md"
+      },
+      "recoveryFixes": [
+        "Add readback_json and next_child to older candidate receipt tables without rewriting receipts",
+        "Discard mismatched cached aggregate readbacks so later read-only turns can observe corrected children"
+      ],
+      "finalRegressionSource": "69ffc7ecb60a91c874510522c4aae3c5be069ccd",
+      "windowsBuildRun": 39396769729
+    },
+    "liveOzonServerSplitThisVersion": false,
+    "interimCancelledLinuxRun": {
+      "state": "intentionally-cancelled",
+      "exitCode": 143,
+      "reason": "Stopped before completion to include the older-receipt checkpoint migration and stale aggregate readback fixes.",
+      "acceptedForRelease": false,
+      "countClaimed": false
+    },
+    "failedSupersededWindowsBuild": {
+      "sourceCommit": "a684fcd807aac82b144a262a622b44d95dc06a73",
+      "runId": 39393525107,
+      "url": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/39393525107",
+      "status": "completed",
+      "conclusion": "failure",
+      "stage": "focused Windows product/layout/FXML gate",
+      "focusedTests": 83,
+      "failures": 1,
+      "otherTestCountsNotRecorded": true,
+      "failedTest": "com.vncode.app.ui.ozon.OzonBulkUiTest",
+      "failureLine": 161,
+      "fullJavaSuiteExecuted": false,
+      "installerPackaged": false,
+      "allNativeChecksCompleted": false,
+      "acceptedForFinalScope": false,
+      "fixtureRepairPrepared": true,
+      "fixtureRepairVerifiedOnWindows": false,
+      "fixtureRepairScope": "Wait for bounded bulk completion with inactive-tab button handling, up to 30 seconds, retaining and extending assertions.",
+      "publisherDispatchedForThisRun": false
+    },
+    "earlierCompletedScopeLinuxSuites": [
+      {
+        "state": "passed",
+        "sourceCommit": "58d091a68aaa0a58ed35730ae13b502011177d17",
+        "tests": 2007,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 2,
+        "passed": 2005,
+        "log": "/tmp/vncode-153-label-full.log",
+        "scope": "Full suite before the FBO combined-label and per-unit Receive All server-split changes.",
+        "acceptedForFinalScope": false
+      }
+    ],
+    "completedPriorScopeFocusedSuite": {
+      "state": "passed",
+      "sourceCommit": "a684fcd807aac82b144a262a622b44d95dc06a73",
+      "tests": 105,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "log": "/tmp/vncode-153-ozon-split-focused-final.log",
+      "includes": [
+        "Per-unit Ozon shipment and background readback",
+        "Older checkpoint-column migration",
+        "Stale aggregate readback refresh after remote correction"
+      ],
+      "acceptedForFinalScope": false
+    },
+    "ongoingZnackGtinDiagnostics": {
+      "state": "fixes-in-progress",
+      "identifiedIssues": [
+        "Catalog mandatory multi-value Type handling",
+        "Ozon suggestedDraft source alias handling",
+        "WB GTIN verified evidence and activation failure handling",
+        "Read-only background registration/GTIN report refresh"
+      ],
+      "newTestResultClaimed": false,
+      "productionWriteVerificationClaimed": false
+    },
+    "initialFinalScopeFocusedAttempt": {
+      "state": "failed-fixtures-repaired-before-final-commit",
+      "tests": 226,
+      "failures": 9,
+      "scope": "Fixture-only conditional attribute m/a HTTP responses and global inventory count expectations; repaired before the final source freeze. This attempt is not a passing regression proof.",
+      "log": "/tmp/vncode-153-znack-gtin-final-focused.log",
+      "acceptedForFinalScope": false
+    },
+    "updater": {
+      "previousVersion": "1.5.2",
+      "latestVersion": "1.5.3",
+      "status": "AVAILABLE",
+      "installerUrlVerified": true,
+      "installerSha256Verified": true,
+      "installerBytesVerified": true,
+      "sellerDesktopPopupObserved": false
+    },
+    "publicReleaseVerification": {
+      "checkedAt": "2026-10-20T09:50:17.190639+00:00",
+      "published": true,
+      "latestVersion": "1.5.3",
+      "releaseUrl": "https://github.com/ntccong2468-lab/Bancapnhat/releases/tag/v1.5.3",
+      "publishedAt": "2026-10-20T09:49:36Z",
+      "buildRun": 39396769729,
+      "publishRun": 39398012877,
+      "sourceCommit": "69ffc7ecb60a91c874510522c4aae3c5be069ccd",
+      "installerSha256": "ec608d3677581c12901ee702e516cb2eea2757a5a9ee8fd84a2ce2438e8a3f31",
+      "installerBytes": 146864128,
+      "downloadUrl": "https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.5.3/VN-code-1.5.3-Windows-x64.exe",
+      "publicDownloadVerified": true,
+      "windowsJava": {
+        "tests": 2072,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 2,
+        "passed": 2070
+      },
+      "updater": {
+        "previousVersion": "1.5.2",
+        "latestVersion": "1.5.3",
+        "status": "AVAILABLE",
+        "installerUrlVerified": true,
+        "installerSha256Verified": true,
+        "installerBytesVerified": true,
+        "sellerDesktopPopupObserved": false
+      },
+      "passiveExeHandoffVerified": true,
+      "realSellerMutationsPerformed": false
+    },
+    "wbLatestReadOnlyDelta": "../validation/2026-10-20-vncode-153-wb-readonly-delta.json"
+  },
+  "sourceRuntimeIsFinal": true,
+  "runtimePreparation": {
+    "state": "published-after-final-automated-and-public-verification",
+    "lastCommittedRuntime": "69ffc7ecb60a91c874510522c4aae3c5be069ccd",
+    "sourceCommit": "69ffc7ecb60a91c874510522c4aae3c5be069ccd",
+    "sourceRuntimeIsFinal": true,
+    "newWindowsRunId": 39396769729,
+    "testResultsForPendingChangesRecorded": true,
+    "workingTreeScopeFrozen": true,
+    "implementedChanges": [
+      "Windows Ozon bulk UI fixture completion predicate repaired; fresh Windows verification required",
+      "Catalog schema-dependent required Type selection and Ozon article/size/source aliases",
+      "Known-unsent Ozon PRE_SUBMIT_ERROR payload retry retaining its allocated GTIN",
+      "WB exact original/submitted article correlation for fresh unambiguous errors",
+      "Durable marketplaceVerified evidence before isolated local GTIN activation",
+      "Read-only pending GTIN report counts with terminal pill dismissal and detached-view guards"
+    ],
+    "freshWindowsRequiredForTheseChanges": false
+  },
+  "lastCommittedRuntime": "69ffc7ecb60a91c874510522c4aae3c5be069ccd",
+  "productionReadOnlyRecheck": {
+    "readOnly": true,
+    "writesPerformed": false,
+    "catalogSummary": "docs/validation/2026-10-20-vncode-153-catalog-readonly-recheck.json",
+    "coverageSummary": "docs/validation/2026-10-20-vncode-153-wb-catalog-coverage.json",
+    "catalog": {
+      "cards": 1277,
+      "published": 1241,
+      "errors": 34,
+      "draftsWithoutErrors": 2,
+      "allErrorDetailsRead": true,
+      "remoteModerationReasonPresent": false
+    },
+    "wb": {
+      "cards": 388,
+      "variants": 1982,
+      "pages": 4,
+      "pageCounts": [
+        100,
+        100,
+        100,
+        88
+      ]
+    },
+    "coverage": {
+      "variantsWithAtLeastOneCatalogPublishedGtin": 1,
+      "variantsWithoutCatalogPublishedGtin": 1981,
+      "variantsWithMultipleDistinctCatalogPublishedGtins": 0,
+      "distinctPublishedGtinsPresentOnWb": 1,
+      "publishedGtinsSharedAcrossDistinctWbVariants": 0,
+      "publishedGtinsSharedAcrossDistinctSizeLabels": 0,
+      "variantsUsingPublishedGtinsSharedAcrossDistinctSizeLabels": 0
+    },
+    "classification": "Exact barcode membership in the currently read Catalog published set only; not a new write, global registration status, identity, permit or account-ownership proof.",
+    "wbErrorSummary": "docs/validation/2026-10-20-vncode-153-wb-error-readonly-recheck.json",
+    "wbErrors": {
+      "whitespaceMessages": 7,
+      "fresh20261020": 5,
+      "historical20261017": 2,
+      "allWithEdgeWhitespace": true,
+      "trimCollisions": 0,
+      "groupDependentMessages": 61,
+      "groupDependentMessagesOnly20261017": true,
+      "internalSpacesProhibitedProved": false,
+      "newCandidateWriteAccepted": false
+    }
+  },
+  "postPublicationRecordedAt": "2026-10-20T09:50:34.974610+00:00"
+}

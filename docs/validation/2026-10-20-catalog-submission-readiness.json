@@ -1,0 +1,186 @@
+{
+  "checkedAt": "2026-10-20T18:56:59.397136+00:00",
+  "mode": "production-read-only-readiness",
+  "writesPerformed": false,
+  "gtinAllocationPerformed": false,
+  "requests": [
+    {
+      "service": "Catalog",
+      "path": "/v3/generate-gtins",
+      "method": "GET",
+      "httpStatus": 200
+    },
+    {
+      "service": "Catalog",
+      "path": "/v4/product-list",
+      "method": "GET",
+      "httpStatus": 200
+    },
+    {
+      "service": "Catalog",
+      "path": "/v4/product-list",
+      "method": "GET",
+      "httpStatus": 200
+    },
+    {
+      "service": "Catalog",
+      "path": "/v3/feed-product",
+      "method": "GET",
+      "httpStatus": 200
+    },
+    {
+      "service": "WB",
+      "path": "/content/v2/get/cards/list",
+      "method": "POST",
+      "httpStatus": 200
+    },
+    {
+      "service": "WB",
+      "path": "/content/v2/get/cards/list",
+      "method": "POST",
+      "httpStatus": 200
+    },
+    {
+      "service": "WB",
+      "path": "/content/v2/get/cards/list",
+      "method": "POST",
+      "httpStatus": 200
+    },
+    {
+      "service": "WB",
+      "path": "/content/v2/get/cards/list",
+      "method": "POST",
+      "httpStatus": 200
+    }
+  ],
+  "sanitization": {
+    "containsCredentialValues": false,
+    "containsGtinValues": false,
+    "containsProductIdentifiers": false,
+    "containsPermitNumbers": false
+  },
+  "existingGtinDrafts": {
+    "validDistinctExistingDrafts": 130,
+    "responseFields": [
+      "drafts",
+      "monthly-limit"
+    ],
+    "monthlyQuotaKnown": true,
+    "monthlyLimit": 11000,
+    "monthlyUsage": 130,
+    "interpretation": "Only already allocated drafts were read; local app reservations/unknown requests must also be excluded before any use.",
+    "existingDraftsWithoutVisibleCatalogCard": 130,
+    "existingDraftsWithVisibleCatalogCard": 0
+  },
+  "samplePermitRegistry": {
+    "samplePublished": true,
+    "sampleSigned": true,
+    "permitReferencesRead": 0,
+    "registryMatches": [],
+    "interpretation": "A sample permit is not automatically authorized for every other shop product; actual product/app permit binding remains required.",
+    "registryByGtinRead": {
+      "checkedAt": "2026-10-20T18:58:06.491032+00:00",
+      "mode": "production-read-only-readiness",
+      "writesPerformed": false,
+      "gtinAllocationPerformed": false,
+      "requests": [
+        {
+          "service": "Catalog",
+          "path": "/v4/product-list",
+          "method": "GET",
+          "httpStatus": 200
+        },
+        {
+          "service": "Catalog",
+          "path": "/v4/rd-info-by-gtin",
+          "method": "POST",
+          "httpStatus": 200
+        }
+      ],
+      "sanitization": {
+        "containsCredentialValues": false,
+        "containsGtinValues": false,
+        "containsProductIdentifiers": false,
+        "containsPermitNumbers": false
+      },
+      "status": "COMPLETE",
+      "samplePublished": true,
+      "sampleTnvedGroup": "6103",
+      "registryResponseFields": [
+        "apiversion",
+        "result"
+      ],
+      "registryResultFields": [
+        "documents",
+        "errors"
+      ],
+      "registryDocuments": [],
+      "completedAt": "2026-10-20T18:58:09.466903+00:00"
+    }
+  },
+  "wbTnved": {
+    "listingComplete": true,
+    "pages": [
+      100,
+      100,
+      100,
+      88
+    ],
+    "products": 388,
+    "allSingleTnvedGroupsByProduct": {
+      "6103": 123,
+      "4304": 2,
+      "6112": 190,
+      "6110": 25,
+      "6211": 25,
+      "6109": 22,
+      "6201": 1
+    },
+    "variantsByTnvedGroup": {
+      "6103": 620,
+      "4304": 10,
+      "6112": 975,
+      "6110": 127,
+      "6211": 125,
+      "6109": 120,
+      "6201": 5
+    },
+    "missingTnvedProducts": 0,
+    "ambiguousTnvedProducts": 0,
+    "targetPaperGroups": [
+      "6101",
+      "6201",
+      "6202",
+      "6211"
+    ],
+    "matchingPaperGroupProducts": 26,
+    "matchingPaperGroupVariants": 130,
+    "matchingProductsByGroup": {
+      "6211": 25,
+      "6201": 1
+    },
+    "matchingProductsWithSameReadVerifiedPermit": 0,
+    "matchingVariantsWithSameReadVerifiedPermit": 0,
+    "matchingVariantsWithoutPublishedBarcodeMembership": 130,
+    "missingBasicFieldsAmongMatchingProducts": {
+      "gender": 1
+    }
+  },
+  "readiness": {
+    "remoteExistingUnusedDraftCandidateCount": 130,
+    "candidateWithVerifiedActualSourcePermitProven": false,
+    "unregisteredIdentityProven": false,
+    "catalogMandatorySchemaForSpecificCandidateValidated": false,
+    "testReady": false,
+    "reasons": [
+      "The actual sampled published/signed card has no inline permit references and registry-by-GTIN returns documents=[]; no verified permit-to-selected-WB-product binding was established in this read.",
+      "Read-only barcode coverage does not exclude an existing Catalog identity under a different barcode/article representation.",
+      "Sample paper is not substituted for another product. Full actual candidate/app binding and mandatory schema must be validated before any test write.",
+      "Local Windows CryptoPro certificate, production app license/session and durable GTIN reservations have not been established in this cloud readiness read.",
+      "The130 returned preallocated drafts have no visible Catalog card, but this read cannot exclude local Windows reservations or requests with unknown outcome."
+    ],
+    "usableUnreservedDraftGtinProven": false
+  },
+  "status": "COMPLETE",
+  "completedAt": "2026-10-20T18:57:16.964512+00:00"
+}

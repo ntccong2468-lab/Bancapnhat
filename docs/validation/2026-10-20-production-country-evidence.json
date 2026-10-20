@@ -1,0 +1,110 @@
+{
+  "mode": "production-read-only-country-schema",
+  "writesPerformed": false,
+  "checkedAt": "2026-10-20T20:29:17.188151+00:00",
+  "requests": [
+    {
+      "service": "Catalog",
+      "method": "GET",
+      "path": "/v3/dictionary/isocountry",
+      "purpose": "read official country code/name for Russia",
+      "httpStatus": 200,
+      "responseBytes": 15022
+    },
+    {
+      "service": "Catalog",
+      "method": "GET",
+      "path": "/v3/attributes",
+      "purpose": "current production country and factory attributes",
+      "httpStatus": 200,
+      "responseBytes": 42811
+    }
+  ],
+  "sanitization": {
+    "containsCredentialValues": false,
+    "containsProductIdentifiers": false,
+    "containsGtinValues": false,
+    "containsSellerRawData": false
+  },
+  "gtinAllocationPerformed": false,
+  "countryDictionary": {
+    "entries": 254,
+    "russia": [
+      {
+        "country_iso": "RU",
+        "country_name": "Россия"
+      }
+    ],
+    "responseKeyNames": [
+      "country_iso",
+      "country_name"
+    ],
+    "officialSection": "API5.68§3.3.3"
+  },
+  "schema": [
+    {
+      "attrId": 2630,
+      "name": "Страна производства",
+      "presetOnly": true,
+      "multiplicity": true,
+      "presetCount": 0,
+      "allowsRuValueType": false,
+      "valueTypeCount": 0,
+      "dependentAttributes": []
+    },
+    {
+      "attrId": 2502,
+      "name": "Изготовитель / Производственная площадка",
+      "presetOnly": false,
+      "multiplicity": true,
+      "presetCount": 0,
+      "allowsRuValueType": true,
+      "valueTypeCount": 253,
+      "dependentAttributes": []
+    },
+    {
+      "attrId": 2503,
+      "name": "Производитель",
+      "presetOnly": false,
+      "multiplicity": false,
+      "presetCount": 0,
+      "allowsRuValueType": false,
+      "valueTypeCount": 0,
+      "dependentAttributes": []
+    }
+  ],
+  "greenSamples": {
+    "actualReadAt": "2026-10-20T20:21:56.669889+00:00",
+    "count": 24,
+    "statusSignedPublishedConfirmed": true,
+    "countryAttribute2630Present": 0,
+    "factoryAttribute2502Present": 0,
+    "producerAttribute2503Present": 0,
+    "countryRequiredInObservedMandatorySchemas": false,
+    "limitation": "Country/factory absent in these24 green responses. Russian participant/producer identifiers do not prove manufacture country."
+  },
+  "safeCountryAttributeExample": {
+    "attr_id": 2630,
+    "attr_value": "RU",
+    "attr_value_type": ""
+  },
+  "distinction": {
+    "countryOfManufacture": "Catalog attr2630 uses dictionary country code RU, not free prose made in Russia.",
+    "factoryOrManufacturerSite": "attr2502 value is actual company/site data, country-type RU is a value type; do not fill its value with a country label.",
+    "kizEmission": "ZnackKizOrderService.java:34 releaseMethodType=PRODUCTION controls code order method, distinct from Catalog country.",
+    "introduction": "ZnackIntroductionService.java:43 production_type=OWN_PRODUCTION controls circulation document, distinct from Catalog country."
+  },
+  "status": "COMPLETE",
+  "completedAt": "2026-10-20T20:29:20.182317+00:00",
+  "officialContract": {
+    "url": "https://docs.crpt.ru/gismt/API_%D0%9D%D0%9A/",
+    "version": "5.68",
+    "dictionarySection": "3.3.3",
+    "feedSection": "3.2.2",
+    "documentedFeedCountryAttribute": {
+      "attr_id": 2630,
+      "attr_value": "RU"
+    },
+    "note": "Official create/update feed example uses country codeRU; attr_value_type is omitted in that example. No real feed was submitted by this check."
+  }
+}

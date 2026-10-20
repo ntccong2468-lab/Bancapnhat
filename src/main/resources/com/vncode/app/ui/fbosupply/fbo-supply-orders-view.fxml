@@ -18,16 +18,16 @@
 <?import javafx.scene.layout.VBox?>
 <?import org.kordamp.ikonli.javafx.FontIcon?>
 
-<VBox spacing="12.0" styleClass="card" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1"
+<VBox spacing="12.0" styleClass="card,app-page" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="com.vncode.app.ui.fbosupply.FboSupplyOrdersController">
-    <padding><Insets top="16.0" right="16.0" bottom="16.0" left="16.0" /></padding>
+    <padding><Insets top="12.0" right="12.0" bottom="12.0" left="12.0" /></padding>
     <HBox alignment="CENTER_LEFT" spacing="10.0">
-        <Label fx:id="titleLabel" styleClass="h2" text="FBO supply orders" />
+        <Label fx:id="titleLabel" styleClass="h2" text="FBO supply orders" minWidth="0" wrapText="true" />
         <Label fx:id="marketplaceLabel">
             <styleClass><String fx:value="badge" /><String fx:value="badge-gray" /></styleClass>
         </Label>
         <Region HBox.hgrow="ALWAYS" />
-        <Label fx:id="lastSyncLabel" styleClass="text-muted" />
+        <Label fx:id="lastSyncLabel" styleClass="text-muted" minWidth="0" wrapText="true" />
         <ProgressIndicator fx:id="progressIndicator" managed="false" maxHeight="22.0" maxWidth="22.0" visible="false" />
         <Button fx:id="refreshButton" mnemonicParsing="false" onAction="#refresh" text="Refresh">
             <styleClass><String fx:value="button" /><String fx:value="btn-primary" /></styleClass>
@@ -54,7 +54,7 @@
     </HBox>
     <SplitPane dividerPositions="0.49" VBox.vgrow="ALWAYS">
         <items>
-            <TableView fx:id="orderTable" id="fboSupplyOrderTable" minWidth="460.0">
+            <TableView fx:id="orderTable" id="fboSupplyOrderTable" minWidth="260.0">
                 <columns>
                     <TableColumn fx:id="orderNumberColumn" prefWidth="125.0" text="Number" />
                     <TableColumn fx:id="orderStatusColumn" prefWidth="145.0" text="Status" />
@@ -65,7 +65,7 @@
                     <TableColumn fx:id="updatedColumn" prefWidth="130.0" text="Updated" />
                 </columns>
             </TableView>
-            <VBox spacing="9.0" minWidth="520.0">
+            <VBox spacing="9.0" minWidth="300.0">
                 <HBox alignment="CENTER_LEFT" spacing="10.0">
                     <Label fx:id="selectedOrderLabel" styleClass="h3" />
                     <Region HBox.hgrow="ALWAYS" />

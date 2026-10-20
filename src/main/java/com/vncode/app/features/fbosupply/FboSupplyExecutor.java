@@ -22,7 +22,9 @@ public final class FboSupplyExecutor {
     public static void execute(Task<?> task) {
         if (task == null || EXECUTOR.isShutdown()) return;
         try {
-            EXECUTOR.execute(task);
+            EXECUTOR.execute(() -> {
+                try(var lane=com.vncode.app.shared.MarketplaceRequestBudget.lane(true)){task.run();}
+            });
         } catch (RejectedExecutionException ignored) {
         }
     }

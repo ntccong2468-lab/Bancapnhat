@@ -1,0 +1,14 @@
+{
+  "sourceCommit": "a6e9a8684e8f3fd595ce395186c32f29811c8dd9",
+  "networkMutations": 0,
+  "input": "API response snapshot, read earlier in this task",
+  "usesProductionParser": true,
+  "license": "synthetic test fixture only",
+  "cards": 1276,
+  "published": 1237,
+  "tradeUnit": 1276,
+  "withArticle": 1270,
+  "withColor": 1274,
+  "withSize": 1274,
+  "errors": 0
+}

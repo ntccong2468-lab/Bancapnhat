@@ -1,0 +1,109 @@
+{
+  "item": 6,
+  "diagramApproved": true,
+  "applicationCommit": "5cc986b99f18bac53aa265c25146e852c90d54f9",
+  "fullJavaRegression": {
+    "tests": 1514,
+    "passed": 1512,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 2,
+    "result": "passed",
+    "finishedAt": "2026-10-16T18:59:27Z",
+    "logSha256": "b637ec2789d5971bfb4727c09a667ba19a7cfabaa2f7eae7155e11118e3d2489",
+    "sourceCommit": "5cc986b99f18bac53aa265c25146e852c90d54f9",
+    "platformSkips": [
+      {
+        "className": "com.vncode.app.features.gs1.Gs1PrefixTemplateStoreTest",
+        "test": "refusesNtfsJunctionDirectoryAndAncestors"
+      },
+      {
+        "className": "com.vncode.app.shared.WindowsSecretProtectorTest",
+        "test": "separatesLicenseAndExistingMailEntropyOnWindows"
+      }
+    ]
+  },
+  "focusedVerification": {
+    "tests": 71,
+    "passed": 71,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "result": "passed",
+    "finishedAt": "2026-10-16T18:54:56Z",
+    "logSha256": "a4be6ea6683b3db6e528793b2181e7fcf38982382bfc66777d3e50554b8199eb"
+  },
+  "comparison": {
+    "latestWbcode": "v1.3.9",
+    "publishedAt": "2026-10-15T16:56:43Z",
+    "userTimezone": "Europe/Moscow",
+    "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.3.9",
+    "internalSourceAvailable": false,
+    "legacyReference": "rupphi/test-wcode@457a6113301978454f244248956962ab1fcdeb7e",
+    "legacyTreePaths": 308,
+    "legacyListingModuleFound": false
+  },
+  "workflowCoverage": [
+    "WB to WB",
+    "WB to Ozon",
+    "Ozon to WB",
+    "Ozon to Ozon"
+  ],
+  "verifiedBehaviors": [
+    "preview makes no publication mutation",
+    "source data and per-size prices inherited",
+    "explicit edits retained per product and destination",
+    "wrong readback prices remain pending",
+    "source primary image ordering preserved",
+    "no duplicate write on restart",
+    "partial batch reporting",
+    "old dictionary and preview callbacks discarded",
+    "legacy draft JSON remains readable"
+  ],
+  "purchasePipelinePreserved": {
+    "ZnackPurchaseCoordinator": {
+      "unchanged": true,
+      "sha256": "541b6b7a95322a334620bc0d2e6a66b79a7cb400f8a321ccfb8bfa0a418c548c"
+    },
+    "ZnackKizOrderService": {
+      "unchanged": true,
+      "sha256": "f2df13878035bd5cdd46ae7e09dd7f9d3fe86ce57e88fbd9b5679456404d1881"
+    },
+    "ZnackKizCodeService": {
+      "unchanged": true,
+      "sha256": "193b08fd5453159cc32e833f07726fbbcbabe9faec04434c0696320496b4f767"
+    }
+  },
+  "screenshots": [
+    {
+      "file": "docs/validation/images/2026-10-16-item6-copy-ready-1366.png",
+      "sha256": "13760e36409bb6cb4b7d18dabc9d271e8615fd41a7ee95ff7e015f8491381cfa",
+      "width": 1366,
+      "height": 768,
+      "data": "synthetic only; actual Ozon adapter preview, no publication"
+    },
+    {
+      "file": "docs/validation/images/2026-10-16-item6-copy-ready-1024.png",
+      "sha256": "a5f4fd52c431186d43fe3ca003fb2d58a477d530ce700005dde8409716849eb2",
+      "width": 1024,
+      "height": 600,
+      "data": "synthetic only; actual Ozon adapter preview, no publication"
+    }
+  ],
+  "wbApiContract": {
+    "url": "https://dev.wildberries.ru/api/swagger/yaml/en/02-items.yaml",
+    "sha256": "2020b0cc3b33322a8ed34312749964a705b573ecf7275bd89bef7c95511d52db",
+    "validatedPaths": [
+      "POST content/v2/cards/upload sizes[].price integer RUB",
+      "GET api/v2/list/goods/filter exact nmID and sizeID"
+    ]
+  },
+  "liveMarketplaceReadsThisItem": false,
+  "liveListingPublication": false,
+  "nativeWindowsVerified": false,
+  "sellerSecondMachineVerified": false,
+  "newReleasePublished": false,
+  "latestChanged": false,
+  "currentSellerLatest": "1.4.12",
+  "report": "docs/validation/2026-10-16-item-6-listing-copy.md"
+}

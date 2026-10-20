@@ -1,0 +1,55 @@
+{
+  "missingGtins": 0,
+  "requests": 52,
+  "checkedAtUtc": "2026-10-18T12:32:19.418236694Z",
+  "publishedWithoutSignature": 0,
+  "returnedCards": 1277,
+  "writes": 0,
+  "signed": 1237,
+  "listed": 1277,
+  "states": {
+    "draft": 40,
+    "published": 1237
+  },
+  "failedItemsByReason": {},
+  "draftDetailedStates": {
+    "draft": 2,
+    "errors": 34,
+    "moderation": 4
+  },
+  "detailResponseSha256": "0c422d003960c5505cce5b4fd56866cfeea98f2dd0da9fa7fdcb87965026271b",
+  "version": "1.5.0",
+  "testType": "read-only full product-list and 25-GTIN semicolon batches through actual ZnackApiClient",
+  "productionLicenseAcceptance": false,
+  "cryptoProSigningTested": false,
+  "desktopButtonAcceptance": false,
+  "applicationStateAudit": {
+    "allObservedStatesPreserved": true,
+    "tradeUnits": 1277,
+    "desktopButtonAcceptance": false,
+    "licenseFixtureUsed": false,
+    "writes": 0,
+    "cards": 1277,
+    "states": {
+      "DRAFT": 2,
+      "ERRORS": 34,
+      "MODERATION": 4,
+      "PUBLISHED": 1237
+    },
+    "applicationClassifier": "CatalogProductDataParser + CatalogCardState"
+  },
+  "regression": {
+    "tests": 88,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "finishedAtUtc": "2026-10-18T12:39:33Z"
+  },
+  "finalFilterRerun": {
+    "tests": 25,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "finishedAtUtc": "2026-10-18T12:40:54Z"
+  }
+}

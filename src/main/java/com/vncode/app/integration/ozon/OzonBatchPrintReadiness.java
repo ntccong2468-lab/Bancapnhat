@@ -6,9 +6,12 @@ import java.util.List;
 public record OzonBatchPrintReadiness(
         boolean ready,
         List<OzonPrintReadiness> postings,
-        List<OzonPrintReadiness.GtinAvailability> gtinAvailability) {
+        List<OzonPrintReadiness.GtinAvailability> gtinAvailability,
+        List<String> readyPostingNumbers) {
+    public OzonBatchPrintReadiness(boolean ready,List<OzonPrintReadiness> postings,List<OzonPrintReadiness.GtinAvailability> gtinAvailability){this(ready,postings,gtinAvailability,ready?postings.stream().map(OzonPrintReadiness::postingNumber).toList():List.of());}
     public OzonBatchPrintReadiness {
         postings = postings == null ? List.of() : List.copyOf(postings);
         gtinAvailability = gtinAvailability == null ? List.of() : List.copyOf(gtinAvailability);
+        readyPostingNumbers=List.copyOf(readyPostingNumbers);
     }
 }

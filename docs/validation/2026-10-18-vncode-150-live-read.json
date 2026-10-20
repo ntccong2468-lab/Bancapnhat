@@ -1,0 +1,59 @@
+{
+  "version": "1.5.0",
+  "checkedAtUtc": "2026-10-18T12:00:11.191152233Z",
+  "applicationClientSourceCommit": "81ef06d80e3bb65d21452cde6b2c44d1f06080c1",
+  "readOnly": true,
+  "fixtureLicenseUsed": false,
+  "appClientsUsed": [
+    "WbApiClient",
+    "OzonApiClient",
+    "ZnackApiClient"
+  ],
+  "wb": {
+    "variants": 1982,
+    "products": 388,
+    "pages": 4
+  },
+  "ozon": {
+    "pages": 1,
+    "products": 175
+  },
+  "catalog": {
+    "total": 1277,
+    "cards": 1277,
+    "pages": 2
+  },
+  "wbFbs": {
+    "verified": false,
+    "http": 401,
+    "configuredCredentialDestinations": [
+      "content-api.wildberries.ru"
+    ],
+    "missingCredentialDestination": "marketplace-api.wildberries.ru",
+    "configurationEditSaved": false,
+    "reason": "Existing Secret target cannot be amended with the additive draft tool; destination must be edited in environment settings."
+  },
+  "ozonFbs": {
+    "read": true
+  },
+  "previousWbGtinPersistence": {
+    "checkedAtUtc": "2026-10-18T12:00:11.191152233Z",
+    "previousWriteOnly": true,
+    "newWrites": 0,
+    "sample": {
+      "nmID": 443045288,
+      "chrtID": 627025126,
+      "gtin": "04650738830910"
+    },
+    "persistedOnWb": true,
+    "catalogSigned": true,
+    "catalogStatus": "published",
+    "catalogDetailedStatus": [
+      "published"
+    ],
+    "cardResponseSha256": "fd912e74394f06f21f4cbbea7b3f3f86e13bbf387589ba4eec4089a6fdaa10a1"
+  },
+  "writes": 0,
+  "licensedDesktopButtonAcceptance": false,
+  "cryptoProSigning": false
+}

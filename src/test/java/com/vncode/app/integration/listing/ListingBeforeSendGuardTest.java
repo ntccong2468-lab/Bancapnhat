@@ -27,13 +27,19 @@ class ListingBeforeSendGuardTest {
         shop=new Shop(1,"Fixture",Marketplace.WILDBERRIES,null,"fixture-token");
     }
     @AfterEach void clear(){System.clearProperty("vncode.appdata.dir");}
-    @Test void changedShopDuringSharedRequestBudgetWaitCannotSendOldCredentials()throws Exception {
+    @Test void changedShopDuringSharedRequestBudgetWaitCannotSendOldCredentials()throws Exception{changedOwner(false);}
+    @Test void reusedOwnerStatementStillDetectsCredentialRotationDuringBudgetWait()throws Exception{changedOwner(true);}
+    private void changedOwner(boolean batchChecks)throws Exception {
         try(var server=new MockWebServer();var first=MarketplaceRequestBudget.acquire();var second=MarketplaceRequestBudget.acquire()){
             server.start();var client=new ListingHttpClient(shop,new OkHttpClient(),server.url("/"));
             var thread=new AtomicReference<Thread>();var guardCalls=new AtomicInteger();
             var executor=Executors.newSingleThreadExecutor(task->{var worker=new Thread(task,"listing-budget-fixture");thread.set(worker);return worker;});
             try {
-                var pending=executor.submit(()->client.call("content/v2/cards/update",new JsonObject(),true,guardCalls::incrementAndGet));
+                var pending=executor.submit(()->{
+                    try(var database=Database.openBatchSession();var checks=batchChecks?ListingIdentity.batchChecks(shop):null){
+                        return client.call("content/v2/cards/update",new JsonObject(),true,guardCalls::incrementAndGet);
+                    }
+                });
                 awaitSemaphoreWait(thread);
                 try(var c=Database.getConnection();var s=c.createStatement()){s.execute("UPDATE shops SET api_key='rotated-fixture' WHERE id=1");}
                 first.close();
@@ -62,6 +68,15 @@ class ListingBeforeSendGuardTest {
             server.enqueue(new MockResponse().setResponseCode(200).setBody("{}"));
             var client=new ListingHttpClient(shop,new OkHttpClient(),server.url("/"));
             assertThrows(java.io.IOException.class,()->client.call("v1/barcode/add",new JsonObject(),true,()->{}));assertEquals(1,server.getRequestCount());
+        }
+    }
+    @Test void explicitHttp400PreservesTheReasonAndRedactsCredentials()throws Exception{
+        try(var server=new MockWebServer()){
+            server.start();server.enqueue(new MockResponse().setResponseCode(400).setBody("{\"message\":\"Invalid material; token=fixture-secret; "+shop.getApiKey()+"\"}"));
+            var client=new ListingHttpClient(shop,new OkHttpClient(),server.url("/"));
+            var error=assertThrows(com.vncode.app.integration.listing.ListingRejectedException.class,()->client.call("content/v2/cards/update",new JsonObject(),true));
+            assertTrue(error.getMessage().contains("Invalid material"));assertFalse(error.getMessage().contains("fixture-secret"));
+            assertFalse(error.getMessage().contains(shop.getApiKey()));assertEquals(1,server.getRequestCount());
         }
     }
     private static void awaitSemaphoreWait(AtomicReference<Thread> thread) {

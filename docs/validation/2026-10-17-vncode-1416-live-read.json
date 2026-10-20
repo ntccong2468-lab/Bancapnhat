@@ -1,0 +1,73 @@
+{
+  "checkedAt": "2026-10-17T17:48:33.068541+00:00",
+  "results": [
+    {
+      "name": "wb_fbs",
+      "http": 401,
+      "readOnly": true
+    },
+    {
+      "name": "wb_news",
+      "http": 401,
+      "readOnly": true
+    },
+    {
+      "name": "ozon_products",
+      "http": 200,
+      "rows": 175,
+      "readOnly": true
+    }
+  ],
+  "liveMutations": false,
+  "catalog": {
+    "firstPage": {
+      "name": "catalog_first_page",
+      "http": 200,
+      "rows": 1000,
+      "responseKeys": [
+        "apiversion",
+        "result"
+      ],
+      "resultKeys": [
+        "goods",
+        "offset",
+        "limit",
+        "total"
+      ],
+      "readOnly": true
+    },
+    "secondPage": {
+      "name": "catalog_second_page",
+      "http": 200,
+      "rows": 276,
+      "total": 1276,
+      "readOnly": true
+    },
+    "completePagesRead": true,
+    "cards": 1276
+  },
+  "translation": {
+    "publicEndpointHttp": 200,
+    "protectedDateAndGtinRoundTripObserved": true,
+    "privateCredentialsSent": false,
+    "nativeClientLiveHttpVerified": false,
+    "probeClient": "Python HTTPS; Java provider separately covered by MockWebServer tests"
+  },
+  "wbProducts": {
+    "name": "wb_products_allowed_domain",
+    "http": 200,
+    "cards": 1,
+    "readOnly": true
+  },
+  "wbSecretScope": {
+    "configuredAllowedDomains": [
+      "content-api.wildberries.ru"
+    ],
+    "missingDomains": [
+      "marketplace-api.wildberries.ru",
+      "common-api.wildberries.ru"
+    ],
+    "configurationDraftChanged": false,
+    "reason": "Existing secret requirement destinations cannot be changed by the draft tool; edit the existing binding in environment settings and Publish."
+  }
+}

@@ -1,0 +1,237 @@
+{
+  "version": "1.5.0",
+  "state": "published-latest-under-continuing-owner-request-with-disclosed-live-acceptance-limits",
+  "baseline": "v1.4.19",
+  "databaseSchema": 6,
+  "published": true,
+  "latest": "1.5.0",
+  "complete": false,
+  "validation": {
+    "windowsBuild": {
+      "state": "passed",
+      "supersededRuns": [
+        {
+          "runId": 39125393767,
+          "sourceCommit": "81ef06d80e3bb65d21452cde6b2c44d1f06080c1",
+          "state": "cancelled",
+          "reason": "Owner added updater 100% and startup-delay fixes before publication; final application source must be built afresh."
+        },
+        {
+          "runId": 39126852184,
+          "sourceCommit": "f13a303554d4a114bc020bf2202b27ccadc9fffb",
+          "state": "cancelled",
+          "reason": "Actual Catalog reads exposed external error/moderation/draft states being grouped as unpublished; included their distinct UI/report/filter states before release."
+        }
+      ],
+      "firstFullAttempt": {
+        "runId": 39128445608,
+        "sourceCommit": "d6b977403173a3952dac1e037bc069bc8f1af22f",
+        "state": "failed",
+        "tests": 1792,
+        "failures": 1,
+        "errors": 1,
+        "skipped": 2,
+        "failingCases": [
+          "WorkspacePagesLayoutTest: GTIN bottom action shadows exceeded the small Windows content viewport",
+          "Gs1PaneTest: reminder-consent test driver timed out targeting the localized dialog title"
+        ],
+        "installerBuilt": false
+      },
+      "runId": 39130866288,
+      "sourceCommit": "2eea069123737e2c9f7bcddcecaa51f21a1645dc",
+      "url": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/39130866288",
+      "freshFullJavaExecutionRequired": true,
+      "earlyWindowsViewportAndGs1Consent": "passed",
+      "fullJavaSuite": {
+        "tests": 1792,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 2,
+        "passed": 1790,
+        "reportCount": 305,
+        "platformSkips": [
+          {
+            "class": "com.vncode.app.shared.WindowsSecretProtectorTest",
+            "method": "neverFallsBackToPlaintextOffWindows",
+            "reason": "Disabled on operating system: Windows Server 2025"
+          },
+          {
+            "class": "com.vncode.app.features.gs1.Gs1PrefixTemplateStoreTest",
+            "method": "privatePermissionsAreAppliedWhereSupported",
+            "reason": ""
+          }
+        ]
+      },
+      "installerPackaged": true,
+      "nativeLauncherSchema3Migration": "passed",
+      "gs1WindowsDpapi": "passed",
+      "upgradeFrom1419Passed": true,
+      "upgradePaths": 15,
+      "uiLayouts": 288,
+      "nativeEvidence": "../validation/2026-10-18-vncode-150-windows-native.json",
+      "artifactId": 12138834197,
+      "artifactArchiveSha256": "sha256:8a129bc8a6beb53aaa609dbd96a376f4b453219929c9c78274c806703466f132",
+      "installer": {
+        "name": "VN-code-1.5.0-Windows-x64.exe",
+        "bytes": 145660928,
+        "sha256": "b5b5ddd562213aa655c3183bc8e7e998ba58d42abd1563442a397865a5faea3f",
+        "artifactChecksumMatched": true,
+        "peHeaderVerified": true,
+        "fullPublicDownloadVerified": true,
+        "url": "https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.5.0/VN-code-1.5.0-Windows-x64.exe",
+        "checksumAssetMatched": true
+      }
+    },
+    "productionLicenseVerified": false,
+    "liveCryptoProSigningThisVersion": false,
+    "liveLicensedDesktopGtinWriteThisVersion": false,
+    "liveApiWbGtinWriteThisVersion": false,
+    "liveApiOzonGtinWriteThisVersion": false,
+    "liveCatalogCardCreatedThisVersion": false,
+    "liveRead": {
+      "checkedAtUtc": "2026-10-18T11:49:03.159895+00:00",
+      "wbProducts": 388,
+      "wbVariants": 1982,
+      "ozonProducts": 175,
+      "catalogCards": 1277,
+      "marketplaceWrites": 0,
+      "catalogWrites": 0,
+      "productionClientsVerified": true,
+      "evidence": "../validation/2026-10-18-vncode-150-live-read.json",
+      "catalogDetails": {
+        "checked": 1277,
+        "publishedSigned": 1237,
+        "draft": 40,
+        "missing": 0,
+        "failed": 0,
+        "writes": 0,
+        "evidence": "../validation/2026-10-18-vncode-150-catalog-details.json",
+        "errors": 34,
+        "moderation": 4,
+        "plainDraft": 2,
+        "applicationClassifierVerified": true,
+        "focusedTests": 88,
+        "finalFilterTests": 25
+      }
+    },
+    "localRegression": {
+      "tests": 264,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "finalMaterialRerunTests": 8,
+      "nodeContracts": 71,
+      "evidence": "../validation/2026-10-18-vncode-150-local.json"
+    },
+    "startupAndUpdater": {
+      "evidence": "../validation/2026-10-18-vncode-150-update-startup.json",
+      "tests": 119,
+      "finalHandoffTests": 10,
+      "failures": 0,
+      "actualLinuxLauncherReady": true,
+      "actualLinuxReopenReady": true
+    },
+    "windowsRegressionFix": {
+      "localTests": 81,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "completedAtUtc": "2026-10-18T13:16:04Z",
+      "gtinFooterHasShadowClearance": true,
+      "consentTestUsesStableDialogIdentityAndWaitsForNestedLoop": true,
+      "automaticReminderConsentStillRequired": true,
+      "freshFullWindowsBuildRequired": true
+    },
+    "fullJavaRegression": {
+      "version": "1.5.0",
+      "sourceCommit": "2eea069123737e2c9f7bcddcecaa51f21a1645dc",
+      "runId": 39130866288,
+      "platform": "Windows x64 / Java 25.0.4.1",
+      "freshFullExecution": true,
+      "result": "passed",
+      "classes": 305,
+      "tests": 1792,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 2,
+      "passed": 1790,
+      "artifactId": 12139046010,
+      "artifactArchiveSha256": "6c39bc805a1fa02512d5744a384e042b1ac48f2c47ad3ae2e2c11677abfc0b33",
+      "applicationJarSha256": "bf9e850dccae238aa44ab2e465f3d3e747fd152f5b626c0ae43ac1632b895f55",
+      "liveSellerMutations": false,
+      "evidence": "../validation/2026-10-18-vncode-150-full-java.json"
+    },
+    "releaseToolTests": {
+      "tests": 72,
+      "passed": 72,
+      "failures": 0,
+      "platform": "Linux / Node",
+      "scope": "Publication tooling only; application and Windows Java test inputs unchanged"
+    },
+    "liveUpdaterAfterPublication": {
+      "result": "passed",
+      "installed1419Status": "AVAILABLE",
+      "installed150Status": "CURRENT",
+      "newVersion": "1.5.0",
+      "realProductionServiceRequests": true,
+      "oldAndNewWindowsJarClientsVerified": true,
+      "fullPublicInstallerDownloadVerified": true,
+      "windowsUrlSha256SizeVerified": true,
+      "sellerDesktopNotificationDelivered": false,
+      "evidence": "../validation/2026-10-18-vncode-150-update-feed-after.json"
+    }
+  },
+  "licenseIntegration": {
+    "implemented": true,
+    "productionReady": false,
+    "changedInThisVersion": false
+  },
+  "requestReport": "VN-code-1.5.0-request-report.md",
+  "bulkMarketplaceKizValidationOnImport": false,
+  "windowsInstaller": {
+    "name": "VN-code-1.5.0-Windows-x64.exe",
+    "bytes": 145660928,
+    "sha256": "b5b5ddd562213aa655c3183bc8e7e998ba58d42abd1563442a397865a5faea3f",
+    "artifactChecksumMatched": true,
+    "peHeaderVerified": true,
+    "fullPublicDownloadVerified": true,
+    "url": "https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.5.0/VN-code-1.5.0-Windows-x64.exe",
+    "checksumAssetMatched": true
+  },
+  "ownerRequestedPublication": true,
+  "release": {
+    "id": 416488658,
+    "url": "https://github.com/ntccong2468-lab/Bancapnhat/releases/tag/v1.5.0",
+    "tag": "v1.5.0",
+    "sourceCommit": "2eea069123737e2c9f7bcddcecaa51f21a1645dc",
+    "publishedAtUtc": "2026-10-18T14:14:48Z",
+    "publicationRunId": 39134818816,
+    "publicationRunAttempt": 2,
+    "publicAssetCount": 30
+  },
+  "publicationAttempts": [
+    {
+      "method": "GitHub Actions",
+      "runId": 39134818816,
+      "runAttempt": 1,
+      "result": "failed",
+      "reason": "Integration token was denied when creating the immutable tag (Git refs HTTP 403).",
+      "installerOrApplicationFailure": false
+    },
+    {
+      "method": "Environment-authenticated verified publisher",
+      "result": "partial",
+      "tagCreatedAtVerifiedApplicationCommit": true,
+      "draftReleaseCreated": true,
+      "reason": "Environment credential was accepted by GitHub API but not by uploads.github.com (HTTP 401).",
+      "installerOrApplicationFailure": false
+    },
+    {
+      "method": "GitHub Actions using the existing immutable tag and draft",
+      "runId": 39134818816,
+      "runAttempt": 2,
+      "result": "passed",
+      "fullSourceNativeArtifactAndJavaChecksRetained": true
+    }
+  ]
+}

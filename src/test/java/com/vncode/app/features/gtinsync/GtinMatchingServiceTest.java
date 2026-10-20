@@ -33,8 +33,14 @@ class GtinMatchingServiceTest {
         assertFalse(matcher.match(product("PANTS-1","","XL"),List.of(good)).exact());
         assertFalse(matcher.match(product("PANTS-1","Đen","XL"),List.of(candidate("PANTS-1","XL",false,true))).exact());
         assertFalse(matcher.match(product("PANTS-1","Đen","XL"),List.of(candidate("PANTS-1","XL",true,false))).exact());
-        var other=new RegisteredGtin("00000000000024","PANTS-1","Đen","XL",true,true,"NK",Instant.now());
+        var other=new RegisteredGtin("00000000000024","PANTSố-1","Đen","XL",true,true,"NK",Instant.now());
         assertFalse(matcher.match(product("PANTS-1","Đen","XL"),List.of(good,other)).exact());
+    }
+    @Test void charactersRemovedByCatalogDoNotCauseFalseDifferentProductButCollisionsStayAmbiguous() {
+        var product=product("PANTSấ-1","Đen","XL");var service=new GtinMatchingService();
+        var card=new RegisteredGtin("00000000000017","PANTS-1","Đen","XL",true,true,"fixture",java.time.Instant.now());assertTrue(service.match(product,List.of(card)).exact());
+        var duplicate=new RegisteredGtin("00000000000024","PANTSố-1","Đen","XL",true,true,"fixture",java.time.Instant.now());assertFalse(service.match(product,List.of(card,duplicate)).exact());
+        assertFalse(service.match(product("PANTS2","Đen","XL"),List.of(card)).exact());assertFalse(service.match(product("ấố","Đen","XL"),List.of(card)).exact());
     }
     @Test void validatesIdentityAndCopiesCollections() {
         assertThrows(IllegalArgumentException.class,()->new ProductKey(0,Marketplace.OZON,"1","1"));

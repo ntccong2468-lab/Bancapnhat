@@ -29,6 +29,8 @@ public final class ZnackSchemaSupport {
         addInventoryColumns(connection);
         migrateInventoryStatuses(connection);
         enforceGlobalCodeUniqueness(connection);
+        com.vncode.app.features.kiz.SellerKizImportSchema.codes(connection);
+        com.vncode.app.features.kiz.KizWarehouseSchema.initialize(connection);
         normalizeGtins(connection);
         try(Statement statement=connection.createStatement()){
             statement.execute("CREATE INDEX IF NOT EXISTS idx_kiz_codes_available_circulation ON kiz_codes(shop_id,gtin,id) WHERE status='AVAILABLE' AND legal_status='IN_CIRCULATION'");
@@ -405,8 +407,8 @@ public final class ZnackSchemaSupport {
         int duplicateCount;
         try (Statement st = c.createStatement(); ResultSet rs = st.executeQuery("""
                 SELECT COUNT(*) FROM kiz_codes
-                WHERE id NOT IN (SELECT MIN(id) FROM kiz_codes GROUP BY raw_code)
-                """)) {
+                WHERE %s id NOT IN (SELECT MIN(id) FROM kiz_codes WHERE %s 1=1 GROUP BY raw_code)
+                """.formatted(hasColumn(c,"kiz_codes","stock_instance")?"stock_instance='' AND ":"",hasColumn(c,"kiz_codes","stock_instance")?"stock_instance='' AND ":""))) {
             duplicateCount = rs.next() ? rs.getInt(1) : 0;
         }
         if (duplicateCount > 0) {
@@ -417,21 +419,21 @@ public final class ZnackSchemaSupport {
                     reservation_token,reserved_at,reservation_recoverable,consumed_at,created_at,updated_at,archived_at,reason)
                     SELECT id,shop_id,order_id,raw_code,display_code,gtin,block_id,document_id,status,legal_status,
                     reservation_token,reserved_at,reservation_recoverable,consumed_at,created_at,updated_at,?,'DUPLICATE_RAW_CODE'
-                    FROM kiz_codes WHERE id NOT IN (SELECT MIN(id) FROM kiz_codes GROUP BY raw_code)
-                    """);
+                    FROM kiz_codes WHERE %s id NOT IN (SELECT MIN(id) FROM kiz_codes WHERE %s 1=1 GROUP BY raw_code)
+                    """.formatted(hasColumn(c,"kiz_codes","stock_instance")?"stock_instance='' AND ":"",hasColumn(c,"kiz_codes","stock_instance")?"stock_instance='' AND ":""));
                  Statement delete = c.createStatement()) {
                 archive.setString(1, archivedAt);
                 archive.executeUpdate();
                 delete.executeUpdate("""
                         DELETE FROM kiz_codes
-                        WHERE id NOT IN (SELECT MIN(id) FROM kiz_codes GROUP BY raw_code)
-                        """);
+                        WHERE %s id NOT IN (SELECT MIN(id) FROM kiz_codes WHERE %s 1=1 GROUP BY raw_code)
+                        """.formatted(hasColumn(c,"kiz_codes","stock_instance")?"stock_instance='' AND ":"",hasColumn(c,"kiz_codes","stock_instance")?"stock_instance='' AND ":""));
             }
             LOGGER.warn("Archived and removed {} duplicate KIZ code rows before enforcing global uniqueness.",
                     duplicateCount);
         }
         try (Statement st = c.createStatement()) {
-            st.execute("CREATE UNIQUE INDEX IF NOT EXISTS uq_kiz_codes_raw_code ON kiz_codes(raw_code)");
+            if(!hasColumn(c,"kiz_codes","stock_instance"))st.execute("CREATE UNIQUE INDEX IF NOT EXISTS uq_kiz_codes_raw_code ON kiz_codes(raw_code)");
         }
     }
 

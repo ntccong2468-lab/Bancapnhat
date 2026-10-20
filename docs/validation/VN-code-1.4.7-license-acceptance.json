@@ -1,0 +1,18 @@
+{
+  "version": "1.4.7",
+  "result": "blocked",
+  "sourceCommit": null,
+  "keyId": "vncode-2",
+  "publicKey": "SPtRxTUJ78fqt5YMJ4DJ_PZwB2cMYegs-J7nY62ADMQ",
+  "backendSourceSha256": null,
+  "windowsDpapiPassed": false,
+  "foreignWindowsIdentityRejected": false,
+  "backendGmailApprovalPassed": false,
+  "deviceLimitConcurrencyPassed": false,
+  "activationRetryPassed": false,
+  "signedOfflinePassed": false,
+  "revocationPassed": false,
+  "readonlyDataPreserved": false,
+  "serverSigningKeyMatch": "unverified",
+  "note": "License code unchanged from verified Windows 1.4.6. Owner confirmed activation on 1.4.4; production multi-device/offline/revocation acceptance on 1.4.7 remains outstanding. Fixture tests are not live acceptance."
+}

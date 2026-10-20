@@ -1,0 +1,83 @@
+{
+  "version": "1.4.19",
+  "sourceCommitAtLiveRequest": "88ed74d",
+  "testMode": "direct authenticated official WB API with unchanged production WbGtinAdapter payload builder; not licensed Windows desktop end-to-end",
+  "result": "passed",
+  "catalog": {
+    "authenticatedOwnListRead": true,
+    "cardsListed": 1277,
+    "freshDetailHttp": 200,
+    "published": true,
+    "signed": true,
+    "tradeUnit": true,
+    "articleColorSizeMatched": true,
+    "russianSizeConfirmed": true,
+    "tnvedMatched": true
+  },
+  "selected": {
+    "nmID": 443045288,
+    "chrtID": 627025126,
+    "article": "Bolong den adidas",
+    "color": "черный",
+    "techSize": "3XL",
+    "wbSize": "54",
+    "catalogSize": "54",
+    "gtin": "04650738830910",
+    "catalogTnved": "6103109000"
+  },
+  "mutation": {
+    "endpoint": "https://content-api.wildberries.ru/content/v2/cards/update",
+    "requestCount": 1,
+    "http": 200,
+    "error": false,
+    "sentAtMoscow": "2026-10-18T11:15:40.387109+03:00",
+    "newCardCreated": false,
+    "newGtinAllocated": false,
+    "productionPayloadBuilderSha256": "36faad286680b19483b0129c8c653ab7325306255c13e77b46b80d447660613f"
+  },
+  "readback": {
+    "verifiedTime": "2026-10-18T11:15:49.872555+03:00",
+    "readbackAttempts": 2,
+    "oldBarcodeCount": 2,
+    "newBarcodeCount": 3,
+    "oldBarcodesPreserved": true,
+    "otherVariantsUnchanged": true,
+    "otherFieldsPreserved": true,
+    "photosPreserved": true
+  },
+  "independentPersistenceCheck": {
+    "time": "2026-10-18T11:19:24.590465+03:00",
+    "gtin": "04650738830910",
+    "nmID": 443045288,
+    "chrtID": 627025126,
+    "lookups": [
+      {
+        "lookup": "GTIN",
+        "confirmed": true
+      },
+      {
+        "lookup": "nmID",
+        "confirmed": true
+      }
+    ],
+    "persistedOnWB": true,
+    "additionalWrites": 0
+  },
+  "license": {
+    "fixtureUsedForLiveMutation": false,
+    "productionDesktopAcceptance": "not_exercised"
+  },
+  "scope": {
+    "changedCards": 1,
+    "changedVariants": 1,
+    "otherMarketsChanged": false,
+    "githubReleaseChanged": false
+  },
+  "followupFix": {
+    "reason": "A read-only candidate with matching article/color/size had a different TN VED group. It was excluded before any write. Added a known-group mismatch guard to automatic matching and to preview/revalidation.",
+    "safeErrorCode": "GTIN_TNVED_GROUP_CHANGED",
+    "regressionTests": 57,
+    "failures": 0,
+    "errors": 0
+  }
+}

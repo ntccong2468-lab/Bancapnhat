@@ -74,7 +74,6 @@ import com.vncode.app.ui.supply.SupplyManagementController;
 import com.vncode.app.ui.znack.ZnackAutomationController;
 import com.vncode.app.ui.znackregistration.ZnackCardRegistrationController;
 import javafx.concurrent.Task;
-import javafx.animation.FadeTransition;
 import javafx.animation.PauseTransition;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXMLLoader;
@@ -138,8 +137,40 @@ public class HomeController implements Initializable {
     private final WorkspaceState state = new WorkspaceState();
     private final WorkspaceActivityTracker activityTracker = new WorkspaceActivityTracker();
     private final UpdateService updateService = new UpdateService();
-    private final UpdateInstallerService updateInstallerService = new UpdateInstallerService();
+    private final UpdateInstallerService updateInstallerService;
+    private final Runnable exitAfterUpdate;
+    private final PreparedLocalData preparedLocalData;
     private final I18nService i18nService = I18nService.getInstance();
+
+    public HomeController() {
+        this(new UpdateInstallerService(), Platform::exit);
+    }
+
+    public HomeController(PreparedLocalData prepared){this(new UpdateInstallerService(),Platform::exit,java.util.Objects.requireNonNull(prepared));}
+
+    HomeController(UpdateInstallerService installerService, Runnable exitAfterUpdate) {
+        this(installerService,exitAfterUpdate,null);
+    }
+    private HomeController(UpdateInstallerService installerService,Runnable exitAfterUpdate,PreparedLocalData prepared) {
+        this.updateInstallerService = java.util.Objects.requireNonNull(installerService);
+        this.exitAfterUpdate = java.util.Objects.requireNonNull(exitAfterUpdate);
+        this.preparedLocalData=prepared;
+    }
+    public static final class PreparedLocalData {
+        private final java.nio.file.Path directory=AppPaths.appDataDir().toAbsolutePath().normalize();
+        private PreparedLocalData(){}
+    }
+    /** Disk recovery runs once off FX on normal startup; direct FXML loads retain it. */
+    public static PreparedLocalData prepareLocalData(){
+        Database.initDatabase();ThemeService.initializeAppearance();
+        new com.vncode.app.features.products.ProductEditRepository().recoverIncomplete();
+        new com.vncode.app.features.gtinsync.GtinSyncRepository().recoverInterrupted();
+        new com.vncode.app.features.print.history.PrintHistoryRepository().recoverInterruptedFboJobs();
+        com.vncode.app.features.kiz.status.Kn3Repository.recoverAtStartup();
+        new ZnackGtinInventoryService().releaseRecoverableReservations();
+        new PrintTemplateService().ensureDefaultTemplateExists();
+        return new PreparedLocalData();
+    }
 
     public StackPane sidebarContainer;
     public StackPane headerContainer;
@@ -193,6 +224,33 @@ public class HomeController implements Initializable {
     private final Set<Integer> productKizSyncingShopIds = ConcurrentHashMap.newKeySet();
     private boolean initialZnackShopAuthorized;
     private boolean disposed;
+    private com.vncode.app.features.sync.SyncRuntime syncRuntime;
+    private final javafx.animation.PauseTransition syncUiDebounce=new javafx.animation.PauseTransition(javafx.util.Duration.millis(400));
+    private final java.util.EnumSet<com.vncode.app.features.sync.SyncCoordinator.Stream> pendingSyncViews=java.util.EnumSet.noneOf(com.vncode.app.features.sync.SyncCoordinator.Stream.class);
+    private void applySyncChange(com.vncode.app.features.sync.SyncCoordinator.Health health){
+        if(disposed||!isCurrentShop(health.shopId()))return;
+        if(workspaceHeaderController!=null)workspaceHeaderController.setSyncHealth(health);
+        if(health.running())return;
+        pendingSyncViews.add(health.stream());int shopId=health.shopId();
+        syncUiDebounce.setOnFinished(e->{
+            var changes=java.util.EnumSet.copyOf(pendingSyncViews);pendingSyncViews.clear();
+            if(disposed||!isCurrentShop(shopId))return;
+            if(changes.contains(com.vncode.app.features.sync.SyncCoordinator.Stream.FBO)&&fboSupplyOrdersController!=null&&isFboSupplyOrdersVisible())fboSupplyOrdersController.refreshLocalData();
+            if(changes.contains(com.vncode.app.features.sync.SyncCoordinator.Stream.GS1)&&gs1Pane!=null)gs1Pane.refreshFromCache();
+            if(changes.contains(com.vncode.app.features.sync.SyncCoordinator.Stream.ZNACK)&&znackRegistrationController!=null&&isZnackRegistrationVisible())znackRegistrationController.refreshLocal();
+            if(changes.stream().anyMatch(v->v.ordinal()<=com.vncode.app.features.sync.SyncCoordinator.Stream.HISTORY.ordinal())){
+                if(isOzonDashboardVisible()&&ozonDashboardController!=null)ozonDashboardController.refreshLocalData();
+                else if(state.getSelectedShop()!=null&&state.getSelectedShop().getMarketplace()==Marketplace.WILDBERRIES){refreshSupplyList(state.getLoadedSupplyId(),false);if(isPackingVisible()&&packingController!=null)packingController.refreshLocalData();if(state.getLoadedSupplyId()!=null&&supplyDetailController!=null)refreshLoadedSupplyLocally();}
+            }
+        });syncUiDebounce.playFromStart();
+    }
+    private void refreshLoadedSupplyLocally(){
+        Shop selected=state.getSelectedShop();String supply=state.getLoadedSupplyId();if(selected==null||supply==null||selected.getMarketplace()!=Marketplace.WILDBERRIES||isShopBusy(selected.getId())||supplyPrintRequest.isLoading())return;
+        if(syncRuntime!=null)syncRuntime.selectSupply(selected.getId(),supply);
+        var owner=frozenShop(selected);localReads.submitLocal(new com.vncode.app.shared.ShopReadCoordinator.Key(owner.getId(),"live-supply",supply),()->supplyLoadWorkflow.loadLocal(owner,supply)).whenComplete((orders,error)->Platform.runLater(()->{if(!disposed&&error==null&&sameOwner(owner)&&java.util.Objects.equals(supply,state.getLoadedSupplyId())&&!isShopBusy(owner.getId())&&!supplyPrintRequest.isLoading()){
+            com.vncode.app.features.supply.SupplyLoadWorkflow.preserveDisplayCache(state.getLoadedOrdersRaw(),orders);
+            state.setLoadedOrdersRaw(orders);applySortAndDisplayOrders();}}));
+    }
     private long gs1SidebarEpoch;
 
     private long supplyListEpoch,fboEpoch;
@@ -203,9 +261,7 @@ public class HomeController implements Initializable {
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
-        Database.initDatabase();
-        new ZnackGtinInventoryService().releaseRecoverableReservations();
-        printTemplateService.ensureDefaultTemplateExists();
+        if(preparedLocalData==null||!preparedLocalData.directory.equals(AppPaths.appDataDir().toAbsolutePath().normalize()))prepareLocalData();
 
         fileChooser = new FileChooser();
         File initialDirectory = AppPaths.preferredFileChooserDirectory();
@@ -224,11 +280,17 @@ public class HomeController implements Initializable {
         showDashboard();
         updateHeaderState();
         updateExportAvailability();
+        syncRuntime=new com.vncode.app.features.sync.SyncRuntime(health->Platform.runLater(()->applySyncChange(health)));
         loadShops();
         checkForUpdates();
     }
 
+    private javafx.scene.Scene sidebarScene;
+    private final javafx.beans.value.ChangeListener<Number> sidebarWidthListener=(o,a,b)->{if(shopSidebarController!=null)shopSidebarController.setViewportWidth(b.doubleValue());};
+    private void watchSidebarWidth(){dynamicContentContainer.sceneProperty().addListener((o,a,b)->{if(a!=null)a.widthProperty().removeListener(sidebarWidthListener);sidebarScene=b;if(b!=null){b.widthProperty().addListener(sidebarWidthListener);if(shopSidebarController!=null)shopSidebarController.setViewportWidth(b.getWidth());}});}
+
     private void loadDynamicViews() {
+        watchSidebarWidth();
         if(newsPane==null) {
             var service=new com.vncode.app.features.news.NewsService(java.util.List.of(),
                 new com.vncode.app.features.news.NewsRepository(com.vncode.app.shared.AppPaths.appDataDir()));
@@ -238,6 +300,8 @@ public class HomeController implements Initializable {
             welcomePane=new com.vncode.app.ui.dashboard.WelcomePane(newsPane.preview(),java.util.List.of(
                 this::showPacking,this::showZnackAutomation,this::showZnackRegistration,this::showFboPacking,
                 () -> onSettings(new ActionEvent()),this::showPrintHistory));
+            welcomePane.setOnboardingActions(java.util.List.of(
+                ()->workspaceNavigator.show("license"),()->onAddShop(new ActionEvent()),this::showZnackAutomation,this::showProducts));
             welcomePane.sceneProperty().addListener((observable,oldScene,newScene) -> {
                 if(newScene==null)return;
                 if(newScene.getWindow()!=null&&newScene.getWindow().isShowing())javafx.application.Platform.runLater(newsPane::refreshAsync);
@@ -260,6 +324,7 @@ public class HomeController implements Initializable {
                     com.vncode.app.features.license.LicenseRuntime.service());
             return licensePane;
         });
+        workspaceNavigator.register("designer", () -> {if(designerView==null)designerView=printTemplateDesignerService.createEmbedded();return designerView;});
         workspaceNavigator.register("guides", () -> {if(guidesPane==null)guidesPane=new com.vncode.app.ui.guides.GuidesPane();return guidesPane;});
         workspaceNavigator.register("news", () -> newsPane);
         workspaceNavigator.register("finance", () -> {
@@ -327,11 +392,7 @@ public class HomeController implements Initializable {
                 ZnackCardRegistrationController.class, "znack-card-registration-view.fxml");
         znackRegistrationView = FxmlViewLoader.load(znackRegistrationLoader);
         znackRegistrationController = znackRegistrationLoader.getController();
-        znackRegistrationController.setOzonRegistrationFactory(owner ->
-                new com.vncode.app.ui.znackregistration.OzonRegistrationPane(owner,()->{
-                    Shop current=state.getSelectedShop();
-                    if(current!=null&&current.getId()==owner.getId()&&current.getMarketplace()==owner.getMarketplace())showGtinSync();
-                }));
+        znackRegistrationController.setOzonRegistrationFactory(com.vncode.app.ui.znackregistration.OzonRegistrationPane::new);
 
             return znackRegistrationView;
         });
@@ -345,17 +406,19 @@ public class HomeController implements Initializable {
 
             return printHistoryView;
         });
-        workspaceNavigator.register("gtin-sync", () -> gtinSyncView);
         workspaceNavigator.register("gs1", this::gs1Pane);
+        workspaceNavigator.register("tnved",()->{tnvedReferencePane=new com.vncode.app.ui.tnved.FashionTnvedBrowser();return tnvedReferencePane;});
         workspaceNavigator.register("products", () -> {productsPane=new com.vncode.app.ui.products.ProductsPane();productsPane.setOnCopy(this::showListingCopy);productsPane.setOnEdit(this::showProductEdit);return productsPane;});
         workspaceNavigator.register("listing-copy", () -> {listingCopyPane=new com.vncode.app.ui.listingcopy.ListingCopyPane();listingCopyPane.setOnChooseProducts(this::showProducts);return listingCopyPane;});
-        workspaceNavigator.register("product-edit", () -> {productEditPane=new com.vncode.app.ui.products.ProductBulkEditPane();productEditPane.setOnBack(this::showProducts);return productEditPane;});
+        workspaceNavigator.register("product-edit", () -> {productEditPane=new com.vncode.app.ui.products.ProductBulkEditPane();productEditPane.setOnBack(this::showProducts);productEditPane.setOnSaved(()->{if(productsPane!=null)productsPane.refresh();});return productEditPane;});
     }
 
+    private com.vncode.app.ui.tnved.FashionTnvedBrowser tnvedReferencePane;
+    private void showTnved(){clearKizDraft();workspaceNavigator.show("tnved");}
     private com.vncode.app.ui.products.ProductsPane productsPane;
     private com.vncode.app.ui.listingcopy.ListingCopyPane listingCopyPane;
     private com.vncode.app.ui.products.ProductBulkEditPane productEditPane;
-    private void showProductEdit(String field,java.util.List<com.vncode.app.features.products.ProductKey> keys){clearKizDraft();workspaceNavigator.show("product-edit");productEditPane.open(state.getSelectedShop(),field,keys);}
+    private void showProductEdit(String field,java.util.List<com.vncode.app.features.products.ProductKey> keys){com.vncode.app.ui.products.ProductBulkEditPane.showDialog(productsPane==null||productsPane.getScene()==null?null:productsPane.getScene().getWindow(),state.getSelectedShop(),field,keys,()->{if(productsPane!=null)productsPane.refresh();},productsPane);}
     public void showListingCopy(){clearKizDraft();workspaceNavigator.show("listing-copy");listingCopyPane.setShop(state.getSelectedShop());}
     public void showListingCopy(java.util.List<com.vncode.app.features.products.ProductKey> keys){showListingCopy();listingCopyPane.open(state.getSelectedShop(),keys);}
     public void showProducts(){clearKizDraft();workspaceNavigator.show("products");productsPane.setShop(state.getSelectedShop());}
@@ -374,7 +437,8 @@ public class HomeController implements Initializable {
         clearKizDraft();workspaceNavigator.show("finance");financeDashboardController.setShop(state.getSelectedShop());
     }
     private com.vncode.app.ui.guides.GuidesPane guidesPane;
-    private void showGuides(){clearKizDraft();workspaceNavigator.show("guides");}
+    private javafx.scene.Parent designerView;
+    private void showGuides(){clearKizDraft();workspaceNavigator.show("guides");guidesPane.applyTranslations();}
 
     private void showOzonDashboard(boolean syncRemote) {
         clearKizDraft();
@@ -426,17 +490,7 @@ public class HomeController implements Initializable {
         znackRegistrationController.setShop(state.getSelectedShop());
     }
 
-    private void showGtinSync() {
-        clearKizDraft();
-        if (gtinSyncView == null) {
-            FXMLLoader loader = FxmlViewLoader.loader(com.vncode.app.ui.gtinsync.GtinSyncController.class, "gtin-sync-view.fxml");
-            gtinSyncView = FxmlViewLoader.load(loader);
-            gtinSyncController = loader.getController();
-            new com.vncode.app.features.gtinsync.GtinSyncRepository().recoverInterrupted();
-        }
-        gtinSyncController.setShop(state.getSelectedShop());
-        workspaceNavigator.show("gtin-sync");
-    }
+    private void showGtinSync(){showZnackRegistration();}
 
     private void refreshPrintHistory() {
         if (printHistoryController == null) {
@@ -508,7 +562,7 @@ public class HomeController implements Initializable {
         var owner=frozenShop(state.getSelectedShop());long epoch=++fboEpoch;int offset=append?fboPackingController.rowCount():0;
         var criteria=fboPackingController.criteria(owner.getId(),FBO_PAGE_SIZE+1,offset);
         fboLoading=true;fboPackingController.setLoading(true);
-        localReads.submitLocal(new com.vncode.app.shared.ShopReadCoordinator.Key(owner.getId(),"fbo-page",criteria.toString()),()->owner.getMarketplace()==Marketplace.OZON?ozonFboProductRepository.search(criteria):fboProductRepository.search(criteria)).whenComplete((loaded,error)->javafx.application.Platform.runLater(()->{
+        localReads.submitLocal(new com.vncode.app.shared.ShopReadCoordinator.Key(owner.getId(),"fbo-page",criteria.toString()),()->{var page=owner.getMarketplace()==Marketplace.OZON?ozonFboProductRepository.search(criteria):fboProductRepository.search(criteria);var verified=new com.vncode.app.features.fbo.FboVerifiedGtinRepository().resolve(owner.getId(),owner.getMarketplace(),page);return page.stream().map(p->p.withVerifiedGtin(verified.getOrDefault(p,""))).toList();}).whenComplete((loaded,error)->javafx.application.Platform.runLater(()->{
             if(disposed||epoch!=fboEpoch||!sameOwner(owner))return;
             fboLoading=false;fboPackingController.setLoading(false);
             if(error!=null)return;
@@ -527,15 +581,12 @@ public class HomeController implements Initializable {
         clearFboQuantitiesIfLeaving(view);
         stopPackingDelayIfLeaving(view);
         if(shopSidebarController!=null) {
-            String selected=view==listingCopyPane?"listingCopyButton":view==productsPane?"productsButton":view==welcomePane?"dashboardButton":view==guidesPane?"guidesButton":view==financeDashboardView?"financeButton":view==packingView||view==ozonDashboardView||view==supplyManagementView?"packingButton":view==fboPackingView?"fboPackingButton":view==fboSupplyOrdersView?"fboOrdersButton":view==kizMappingView?"kizMappingButton":view==znackAutomationView?"znackAutomationButton":view==znackRegistrationView?"znackRegistrationButton":view==printHistoryView?"btnPrintHistory":view==gtinSyncView?"gtinSyncButton":view==gs1Pane?"gs1Button":"";
+            String selected=view==designerView?"templateButton":view==listingCopyPane?"listingCopyButton":view==productsPane?"productsButton":view==welcomePane?"dashboardButton":view==guidesPane?"guidesButton":view==financeDashboardView?"financeButton":view==packingView||view==ozonDashboardView||view==supplyManagementView?"packingButton":view==fboPackingView?"fboPackingButton":view==fboSupplyOrdersView?"fboOrdersButton":view==kizMappingView?"kizMappingButton":view==znackAutomationView?"znackAutomationButton":view==znackRegistrationView?"znackRegistrationButton":view==printHistoryView?"btnPrintHistory":view==gtinSyncView?"gtinSyncButton":view==gs1Pane?"gs1Button":view==tnvedReferencePane?"tnvedButton":"";
             shopSidebarController.selectNavigation(selected);
         }
+        if(guidesPane!=null&&view!=guidesPane)guidesPane.stopMedia();
         dynamicContentContainer.getChildren().setAll(view);
-        view.setOpacity(0.0);
-        FadeTransition fade = new FadeTransition(javafx.util.Duration.millis(120), view);
-        fade.setFromValue(0.0);
-        fade.setToValue(1.0);
-        fade.play();
+        view.setOpacity(1.0);
     }
 
     private void clearFboQuantitiesIfLeaving(Node nextView) {
@@ -567,7 +618,7 @@ public class HomeController implements Initializable {
     private void reconcileHistoryKiz(PrintHistoryJobSummary job) {
         Shop selected=state.getSelectedShop();
         if(selected==null||job==null||!job.canReprint()||job.shopId()!=selected.getId()
-                ||selected.getMarketplace()!=Marketplace.WILDBERRIES||isShopBusy(selected.getId()))return;
+                ||selected.getMarketplace()!=Marketplace.WILDBERRIES||job.isFbo()||isShopBusy(selected.getId()))return;
         Shop owner=frozenShop(selected);
         var confirm=new Alert(Alert.AlertType.CONFIRMATION,i18nService.tr("history.reconcile_confirm"),ButtonType.OK,ButtonType.CANCEL);
         AlertService.applyTheme(confirm);confirm.setHeaderText(owner.getName()+" · "+job.supplyId());
@@ -631,18 +682,43 @@ public class HomeController implements Initializable {
     }
 
     private void printFboBarcodes(List<FboBarcodePrintItem> items) {
+        if(items==null||items.isEmpty())return;Shop selected=state.getSelectedShop();if(selected==null)return;
+        Shop owner=new Shop(selected.getId(),selected.getName(),selected.getMarketplace(),selected.getClientId(),selected.getApiKey());
+        localReads.submitLocal(new com.vncode.app.shared.ShopReadCoordinator.Key(owner.getId(),"fbo-preflight",java.util.UUID.randomUUID().toString()),()->new com.vncode.app.features.fbo.FboPreflightService().inspect(owner,List.copyOf(items)))
+          .whenComplete((result,error)->javafx.application.Platform.runLater(()->{
+            if(disposed||!sameOwner(owner))return;
+            if(error!=null){AlertService.showError(com.vncode.app.shared.FriendlyErrorService.format(error));return;}
+            var approved=com.vncode.app.ui.fbo.FboPreflightDialog.review(result,fboPackingView==null||fboPackingView.getScene()==null?null:fboPackingView.getScene().getWindow(),this::showZnackRegistration,r->buyFboMissing(owner,List.copyOf(items),r));
+            if(!approved.isEmpty()&&sameOwner(owner))printApprovedFboBarcodes(approved);
+          }));
+    }
+
+    private void buyFboMissing(Shop owner,List<FboBarcodePrintItem> items,com.vncode.app.features.fbo.FboPreflightService.Result approved) {
+        if(disposed||!sameOwner(owner))return;
+        com.vncode.app.shared.SellerMutationExecutor.submit(owner,()->{new com.vncode.app.features.fbo.FboPurchaseService().enqueue(owner,items,approved,true);return true;})
+          .whenComplete((done,error)->javafx.application.Platform.runLater(()->{
+            if(disposed||!sameOwner(owner))return;
+            if(error!=null)AlertService.showError(com.vncode.app.shared.FriendlyErrorService.format(error));
+            else AlertService.showInfo(i18nService.tr("fbo.preflight.title"),"",i18nService.tr("fbo.preflight.purchase_queued"));
+          }));
+    }
+
+    private void printApprovedFboBarcodes(List<FboBarcodePrintItem> items) {
         if (items == null || items.isEmpty()) {
             return;
         }
-        Shop shop = state.getSelectedShop();
+        Shop selected = state.getSelectedShop();
+        Shop shop=selected==null?null:frozenShop(selected);
         if (shop == null) {
             return;
         }
         preparePdfSaveChooser();
         File file = fileChooser.showSaveDialog(null);
-        if (file == null) {
+        if (file == null||disposed||!sameOwner(shop)) {
             return;
         }
+        var lease=com.vncode.app.shared.ShopBatchRegistry.claim(shop,"fbo-print",List.of(file.toPath())).orElse(null);
+        if(lease==null){AlertService.showError(i18nService.tr("ozon.batch.target_busy"));return;}markShopRunning(shop.getId(),true);
         Task<Void> task = new Task<>() {
             @Override
             protected Void call() throws Exception {
@@ -656,117 +732,121 @@ public class HomeController implements Initializable {
             }
         };
         java.util.function.Consumer<Throwable> taskFailure = rejection -> {
+            lease.close();markShopRunning(shop.getId(),false);
             if (ShopOperationCoordinator.isShopUnavailable(rejection)) return;
             LOGGER.error("Không thể in barcode FBO", rejection);
             AlertService.showError(rejection.getMessage());
         };
         task.setOnFailed(event -> taskFailure.accept(task.getException()));
         task.setOnSucceeded(event -> {
-            fboPackingController.clearQuantities();
-            tryOpenFile(file);
+            lease.close();markShopRunning(shop.getId(),false);
+            if(!disposed&&sameOwner(shop))fboPackingController.clearQuantities();
+            if(!disposed)tryOpenFile(file);
         });
         AppTaskExecutor.execute(task, taskFailure);
     }
 
     private void printSingleFboBarcode(FboProductSku product) {
-        if (product == null) {
-            return;
-        }
-        Shop shop = state.getSelectedShop();
-        if (shop == null) {
-            return;
-        }
-        preparePdfSaveChooser();
-        File file = fileChooser.showSaveDialog(null);
-        if (file == null) {
-            return;
-        }
-        Task<Void> task = new Task<>() {
-            @Override
-            protected Void call() throws Exception {
-                return ShopOperationCoordinator.withActiveShop(shop.getId(), () -> {
-                    List<FboBarcodePrintItem> items = List.of(new FboBarcodePrintItem(product, 1));
-                    FboPrintPlan plan = shop.getMarketplace() == Marketplace.OZON
-                            ? ozonFboKizPrintPlanner.plan(shop.getId(), items)
-                            : fboKizPrintPlanner.plan(shop.getId(), items);
-                    exportFboPlan(shop.getId(), plan, file);
-                    return null;
-                });
-            }
-        };
-        java.util.function.Consumer<Throwable> taskFailure = rejection -> {
-            if (ShopOperationCoordinator.isShopUnavailable(rejection)) return;
-            LOGGER.error("Không thể in nhanh barcode FBO", rejection);
-            AlertService.showError(rejection.getMessage());
-        };
-        task.setOnFailed(event -> taskFailure.accept(task.getException()));
-        task.setOnSucceeded(event -> {
-            tryOpenFile(file);
-        });
-        AppTaskExecutor.execute(task, taskFailure);
+        if(product!=null)printFboBarcodes(List.of(new FboBarcodePrintItem(product,1)));
     }
 
-    private void exportFboPlan(int shopId, FboPrintPlan plan, File file) throws IOException {
-        boolean[] inventoryConsumed = {false};
+    private void exportFboPlan(int shopId,FboPrintPlan plan,File file)throws IOException {
+        long[] journal={0};
+        boolean[] consumed={false};var history=new com.vncode.app.features.print.history.PrintHistoryRepository();
         try {
-            fboBarcodePdfExporter.exportPlan(plan, file, () -> {
-                KizService.deleteKizs(shopId, plan.usedKizs());
-                inventoryConsumed[0] = true;
-            });
-        } catch (IOException | RuntimeException error) {
-            if (!inventoryConsumed[0]) {
-                KizService.releaseKizs(shopId, plan.usedKizs());
+            var owner=new com.vncode.app.features.shop.ShopRepository().findById(shopId);if(owner==null)throw new IllegalStateException("Shop unavailable");
+            Runnable consume=()->{
+                com.vncode.app.integration.listing.ListingIdentity.require(owner);
+                new com.vncode.app.integration.znack.ZnackGtinInventoryService().consumeForFboPrint(shopId,plan.usedKizs(),journal[0]);consumed[0]=true;
+            };
+            if(owner.getMarketplace()==Marketplace.OZON){
+                var exporter=new com.vncode.app.integration.ozon.OzonFboBarcodePdfExporter();
+                journal[0]=printHistoryService.recordPreparedFboJob(owner,com.vncode.app.integration.ozon.OzonFboBarcodePdfExporter.TEMPLATE_NAME,com.vncode.app.integration.ozon.OzonFboBarcodePdfExporter.frozenLayout(plan),exporter.toOrders(plan.pages()));
+                exporter.exportPlan(plan,file,consume);
+            }else{
+                var template=new com.vncode.app.features.fbo.FboPrintTemplateService().getDefaultTemplate();
+                journal[0]=printHistoryService.recordPreparedFboJob(owner,template,fboBarcodePdfExporter.toOrders(plan.pages()));
+                fboBarcodePdfExporter.exportPlan(plan,template,file,consume);
             }
+            history.finishFboJob(shopId,journal[0],"pdf_ready","success");
+        }catch(IOException|RuntimeException error) {
+            if(!consumed[0]){KizService.releaseKizs(shopId,plan.usedKizs());if(journal[0]>0)history.finishFboJob(shopId,journal[0],"prepared","failed");}
+            // Once consumed, pdf_ready retains exact frozen labels for explicit recovery/reprint.
             throw error;
         }
     }
 
-    private void checkForUpdates() {
-        javafx.concurrent.Task<UpdateInfo> task = new javafx.concurrent.Task<>() {
-            @Override
-            protected UpdateInfo call() {
-                return updateService.checkForUpdate();
-            }
-        };
-        task.setOnSucceeded(e -> {
-            if(disposed)return;
-            UpdateInfo info = task.getValue();
-            if (info != null) {
-                showUpdateDialog(info);
-            }
-        });
-        java.util.function.Consumer<Throwable> taskFailure = rejection ->
-            LOGGER.warn("Update check failed", rejection)
-        ;
-        task.setOnFailed(e -> taskFailure.accept(task.getException()));
-        AppTaskExecutor.execute(task, taskFailure);
+    private final javafx.animation.Timeline updatePolling=new javafx.animation.Timeline();
+    private boolean checkingUpdate,pendingManualCheck,updateDownloadRunning;
+    private UpdateInfo availableUpdate;
+    private String automaticallyShownUpdate="";
+    private Task<?> updateCheckTask,updateDownloadTask;
+    private final java.util.concurrent.ThreadPoolExecutor updateExecutor=new java.util.concurrent.ThreadPoolExecutor(
+            1,1,0,java.util.concurrent.TimeUnit.MILLISECONDS,new java.util.concurrent.ArrayBlockingQueue<>(2),
+            action->{Thread thread=new Thread(action,"vncode-updater");thread.setDaemon(true);return thread;},
+            new java.util.concurrent.ThreadPoolExecutor.AbortPolicy());
+    private void executeUpdateTask(Task<?> task,java.util.function.Consumer<Throwable> failure) {
+        try{updateExecutor.execute(task);}
+        catch(java.util.concurrent.RejectedExecutionException rejected){task.cancel(false);failure.accept(rejected);}
     }
 
-    private void checkVersionManually() {
-        Task<UpdateInfo> task = new Task<>() {
-            @Override
-            protected UpdateInfo call() {
-                return updateService.checkForUpdate();
-            }
+    private void checkForUpdates() {
+        requestUpdateCheck(false);
+        updatePolling.getKeyFrames().setAll(new javafx.animation.KeyFrame(
+                javafx.util.Duration.minutes(45+java.util.concurrent.ThreadLocalRandom.current().nextInt(16)),
+                event->requestUpdateCheck(false)));
+        updatePolling.setCycleCount(javafx.animation.Animation.INDEFINITE);updatePolling.play();
+    }
+    private void checkVersionManually() { requestUpdateCheck(true); }
+    private void requestUpdateCheck(boolean manual) {
+        if(disposed)return;
+        if(updateDownloadRunning){if(manual)AlertService.showError(i18nService.tr("update.busy"));return;}
+        if(checkingUpdate){pendingManualCheck|=manual;return;}
+        checkingUpdate=true;pendingManualCheck=manual;
+        Task<UpdateService.CheckResult> task=new Task<>() {
+            protected UpdateService.CheckResult call(){return updateService.check(manual);}
         };
-        task.setOnSucceeded(e -> {
-            UpdateInfo info = task.getValue();
-            if (info != null) {
-                showUpdateDialog(info);
+        updateCheckTask=task;
+        java.util.function.Consumer<Throwable> failed=error->{
+            checkingUpdate=false;if(disposed)return;
+            if(pendingManualCheck)AlertService.showError(i18nService.tr("version.check_failed"));pendingManualCheck=false;
+        };
+        task.setOnFailed(event->failed.accept(task.getException()));
+        task.setOnSucceeded(event->{
+            checkingUpdate=false;if(disposed)return;
+            boolean userRequested=pendingManualCheck;pendingManualCheck=false;
+            var result=task.getValue();
+            if(result.status()==UpdateService.Status.AVAILABLE
+                    ||userRequested&&result.status()==UpdateService.Status.SKIPPED) {
+                availableUpdate=result.info();workspaceHeaderController.setAvailableUpdate(availableUpdate.getVersion());
+                if(userRequested||!availableUpdate.getVersion().equals(automaticallyShownUpdate)&&!hasUpdateBlockingWork()) {
+                    automaticallyShownUpdate=availableUpdate.getVersion();showUpdateDialog(availableUpdate);
+                }
+            } else if(result.status()==UpdateService.Status.FAILED) {
+                if(userRequested)AlertService.showError(i18nService.tr("version.check_failed")+" ["+result.errorCode()+"]");
             } else {
-                AlertService.showInfo(
-                        i18nService.tr("version.current.title"),
-                        i18nService.tr("version.current.header"),
-                        MessageFormat.format(i18nService.tr("version.current.content"), BuildConfig.getAppVersion())
-                );
+                availableUpdate=null;workspaceHeaderController.setAvailableUpdate(null);
+                if(userRequested) {
+                    String message=result.status()==UpdateService.Status.NO_RELEASE
+                            ?i18nService.tr("update.no_published_release")
+                            :MessageFormat.format(i18nService.tr("version.current.content"),BuildConfig.getAppVersion());
+                    AlertService.showInfo(i18nService.tr("version.current.title"),i18nService.tr("version.current.header"),message);
+                }
             }
         });
-        java.util.function.Consumer<Throwable> taskFailure = rejection -> {
-            LOGGER.warn("Manual update check failed", rejection);
-            AlertService.showError(i18nService.tr("version.check_failed"));
-        };
-        task.setOnFailed(e -> taskFailure.accept(task.getException()));
-        AppTaskExecutor.execute(task, taskFailure);
+        executeUpdateTask(task,failed);
+    }
+    private boolean hasUpdateBlockingWork() {
+        return com.vncode.app.shared.SellerMutationExecutor.activeCount()>0
+                ||AppTaskExecutor.getRunningTaskCount()>0||AppTaskExecutor.pendingCount()>0
+                ||com.vncode.app.shared.SellerMutationExecutor.pendingCount()>0
+                ||kizAttachmentCoordinator.hasActiveJobs()||activityTracker.hasRunningWork()
+                ||com.vncode.app.integration.znack.registration.ZnackRegistrationBatchService.hasPendingJobs()
+                ||com.vncode.app.integration.znack.registration.OzonRegistrationBatchService.hasPendingJobs()
+                ||com.vncode.app.integration.znack.registration.ZnackCardRegistrationWorkflow.hasActiveJobs()
+                ||com.vncode.app.integration.znack.registration.OzonCardRegistrationWorkflow.hasActiveJobs()
+                ||com.vncode.app.features.sync.SyncRuntime.hasActiveWrites()
+                ||com.vncode.app.features.license.LicenseRuntime.hasPendingTasks();
     }
 
     private void showPersonalEdition() {
@@ -795,67 +875,101 @@ public class HomeController implements Initializable {
     }
 
     private void showUpdateDialog(UpdateInfo info) {
+        if(disposed||updateDownloadRunning)return;
         UpdateDialogService dialogService = new UpdateDialogService();
         UpdateDialogService.UpdateChoice choice = dialogService.showDialog(info);
         switch (choice) {
             case DOWNLOAD:
                 if (updateInstallerService.supportsInAppInstall(info)) {
-                    startInstallerUpdate(info);
+                    startInstallerUpdate(info,false);
                 } else {
                     UpdateDialogService.openDownloadUrl(info);
                 }
                 break;
+            case DOWNLOAD_ONLY:
+                if(updateInstallerService.supportsInAppInstall(info))startInstallerUpdate(info,true);
+                else UpdateDialogService.openDownloadUrl(info);
+                break;
             case SKIP:
                 ConfigService.setSkippedVersion(info.getVersion());
+                availableUpdate=null;workspaceHeaderController.setAvailableUpdate(null);
                 break;
             case LATER:
                 break;
         }
     }
 
-    private void startInstallerUpdate(UpdateInfo info) {
+    private void startInstallerUpdate(UpdateInfo info,boolean downloadOnly) {
+        if(disposed||updateDownloadRunning)return;
+        if(!downloadOnly&&hasUpdateBlockingWork()){AlertService.showError(i18nService.tr("update.busy"));return;}
+        updateDownloadRunning=true;
+        var preparing=new java.util.concurrent.atomic.AtomicBoolean();
+        var installing=new java.util.concurrent.atomic.AtomicBoolean();
         UpdateDialogService dialogService = new UpdateDialogService();
         Task<java.nio.file.Path> task = new Task<>() {
-            @Override
-            protected java.nio.file.Path call() throws Exception {
-                updateMessage(i18nService.tr("update.progress.connecting"));
-                updateProgress(-1, 1);
-                return updateInstallerService.downloadInstaller(info, (downloadedBytes, totalBytes) -> {
-                    if (totalBytes > 0) {
-                        updateProgress(downloadedBytes, totalBytes);
-                        updateMessage(String.format(i18nService.tr("update.progress.downloaded"),
-                                formatBytes(downloadedBytes),
-                                formatBytes(totalBytes)));
-                    } else {
-                        updateProgress(-1, 1);
-                        updateMessage(i18nService.tr("update.progress.downloading"));
+            @Override protected java.nio.file.Path call() throws Exception {
+                updateMessage(i18nService.tr("update.progress.connecting"));updateProgress(-1,1);
+                var file=updateInstallerService.downloadInstaller(info,new UpdateInstallerService.ProgressListener(){
+                    @Override public void onProgress(long downloadedBytes,long totalBytes){
+                        if(totalBytes>0){
+                            updateProgress(Math.min(.99,(double)downloadedBytes/totalBytes),1);
+                            updateMessage(String.format(i18nService.tr("update.progress.downloaded"),formatBytes(downloadedBytes),formatBytes(totalBytes)));
+                        }else{updateProgress(-1,1);updateMessage(i18nService.tr("update.progress.downloading"));}
+                    }
+                    @Override public void onPhase(UpdateInstallerService.Phase phase){
+                        updateMessage(i18nService.tr("update.progress.phase."+phase));
+                        if(phase!=UpdateInstallerService.Phase.DOWNLOADING)updateProgress(-1,1);
                     }
                 });
+                if(downloadOnly){
+                    updateProgress(-1,1);updateMessage(i18nService.tr("update.progress.phase.SAVING"));
+                    file=updateInstallerService.saveDownloadedInstaller(info,file);
+                }else{
+                    preparing.set(true);updateProgress(-1,1);updateMessage(i18nService.tr("update.progress.phase.VERIFYING"));
+                    final long[] lastSnapshotUpdate={0};final String[] lastSnapshotPhase={""};
+                    // Keep one worker/dialog through download, rollback and launch. A completed
+                    // download is never advertised as a completed installation or queued twice.
+                    var gate=new java.util.concurrent.FutureTask<Boolean>(()->{
+                        if(disposed||isDone()||hasUpdateBlockingWork())return false;
+                        contentPane.setDisable(true);sidebarContainer.setDisable(true);return true;
+                    });
+                    Platform.runLater(gate);
+                    if(!gate.get(15,java.util.concurrent.TimeUnit.SECONDS))throw new java.io.IOException(i18nService.tr("update.busy"));
+                    updateInstallerService.launchInstallerAfterExit(file,phase->{
+                        if(phase==UpdateInstallerService.Phase.STARTING_INSTALLER)installing.set(true);
+                        updateMessage(i18nService.tr("update.progress.phase."+phase));
+                        updateProgress(-1,1);
+                    },progress->{
+                        long now=System.nanoTime();boolean newPhase=!progress.phase().equals(lastSnapshotPhase[0]);
+                        if(!newPhase&&progress.total()>0&&progress.completed()<progress.total()&&now-lastSnapshotUpdate[0]<100_000_000L)return;
+                        lastSnapshotPhase[0]=progress.phase();lastSnapshotUpdate[0]=now;
+                        if(progress.total()>0)updateProgress(Math.min(.99,(double)progress.completed()/progress.total()),1);
+                        else updateProgress(-1,1);
+                        updateMessage(MessageFormat.format(i18nService.tr("update.progress.snapshot."+progress.phase()),formatBytes(progress.completed()),formatBytes(progress.total())));
+                    });
+                }
+                updateProgress(1,1);return file;
             }
         };
-        var progressDialog = dialogService.showDownloadProgressDialog(info, task);
-        java.util.function.Consumer<Throwable> taskFailure = rejection -> {
-            progressDialog.close();
-            LOGGER.error("Không thể tải bản cập nhật {}", info.getVersion(), rejection);
-            AlertService.showDetailedError(
-                    i18nService.tr("update.error.download_generic"),
-                    com.vncode.app.integration.znack.ZnackErrorDetails.format(rejection));
+        updateDownloadTask=task;
+        var progressDialog=dialogService.showDownloadProgressDialog(info,task);
+        progressDialog.setOnCloseRequest(event->{if(task.isRunning()){if(installing.get())event.consume();else task.cancel(true);}});
+        task.messageProperty().addListener((o,a,b)->{if(installing.get())progressDialog.getDialogPane().lookupButton(ButtonType.CANCEL).setDisable(true);});
+        java.util.function.Consumer<Throwable> failed=rejection->{
+            updateDownloadRunning=false;progressDialog.close();if(disposed)return;
+            contentPane.setDisable(false);sidebarContainer.setDisable(false);
+            String summaryKey=preparing.get()?"update.error.launch_failed":"update.error.download_generic";
+            LOGGER.error("Update {} failed at {}",info.getVersion(),summaryKey,rejection);
+            AlertService.showDetailedError(i18nService.tr(summaryKey),com.vncode.app.integration.znack.ZnackErrorDetails.format(rejection));
         };
-        task.setOnFailed(e -> taskFailure.accept(task.getException()));
-        task.setOnSucceeded(e -> {
-            progressDialog.close();
-            try {
-                updateInstallerService.launchInstallerAfterExit(task.getValue());
-                Platform.exit();
-            } catch (IOException ex) {
-                LOGGER.error("Không thể khởi chạy installer cập nhật {}", info.getVersion(), ex);
-                AlertService.showDetailedError(
-                        i18nService.tr("update.error.launch_failed"),
-                        com.vncode.app.integration.znack.ZnackErrorDetails.format(ex));
-            }
+        task.setOnFailed(event->failed.accept(task.getException()));
+        task.setOnCancelled(event->{updateDownloadRunning=false;progressDialog.close();if(!disposed){contentPane.setDisable(false);sidebarContainer.setDisable(false);}});
+        task.setOnSucceeded(event->{
+            updateDownloadRunning=false;progressDialog.close();if(disposed)return;
+            if(downloadOnly)AlertService.showInfo(i18nService.tr("update.saved"),info.getVersion(),task.getValue().toAbsolutePath().toString());
+            else exitAfterUpdate.run();
         });
-        progressDialog.show();
-        AppTaskExecutor.execute(task, taskFailure);
+        progressDialog.show();executeUpdateTask(task,failed);
     }
 
     private String formatBytes(long bytes) {
@@ -941,11 +1055,15 @@ public class HomeController implements Initializable {
         String supplyId = state.getLoadedSupplyId();
         String supplyName = state.getLoadedSupplyName();
         long exportRequestToken = state.getSupplyRequestToken();
+        final com.vncode.app.features.kiz.KizSourceSelection kizSources;
+        try{kizSources=supplyDetailController.kizSources();}
+        catch(IllegalStateException unavailable){AlertService.showError(com.vncode.app.shared.FriendlyErrorService.format(unavailable));return;}
+        if(!kizSources.anySelected()){AlertService.showError(com.vncode.app.features.kiz.KizErrorMessages.message("KIZ_SOURCE_REQUIRED"));return;}
 
         Task<Void> checkTask = new Task<>() {
             @Override
             protected Void call() throws Exception {
-                orderExportWorkflow.verifyKizAvailability(exportOrders, shop);
+                orderExportWorkflow.verifyKizAvailability(exportOrders, shop,kizSources);
                 return null;
             }
         };
@@ -964,7 +1082,7 @@ public class HomeController implements Initializable {
             }
             Throwable ex = rejection;
             LOGGER.error("Verify KIZ thất bại cho shop {}", shop.getId(), ex);
-            AlertService.showError(ex.getMessage());
+            AlertService.showError(com.vncode.app.shared.FriendlyErrorService.format(ex));
         };
         checkTask.setOnFailed(e -> checkTaskFailure.accept(checkTask.getException()));
         checkTask.setOnSucceeded(e -> {
@@ -1006,7 +1124,8 @@ public class HomeController implements Initializable {
                                             ordersWithStickers,
                                             printOptions.get(),
                                             file,
-                                            orderDetailsFile
+                                            orderDetailsFile,
+                                            kizSources
                                     )
                             );
                         }
@@ -1027,7 +1146,7 @@ public class HomeController implements Initializable {
                         }
                         Throwable ex = rejection;
                         LOGGER.error("Export thất bại cho shop {}", shop.getId(), ex);
-                        AlertService.showError(ex.getMessage());
+                        AlertService.showError(com.vncode.app.shared.FriendlyErrorService.format(ex));
                     };
         exportTask.setOnFailed(ev -> exportTaskFailure.accept(exportTask.getException()));
                     exportTask.setOnSucceeded(ev -> {
@@ -1073,7 +1192,7 @@ public class HomeController implements Initializable {
     }
 
     public void onSettings(ActionEvent event) {
-        printTemplateDesignerService.showDialog();
+        clearKizDraft();workspaceNavigator.show("designer");
     }
 
     public void onUpdateShop(ActionEvent actionEvent) {
@@ -1169,6 +1288,7 @@ public class HomeController implements Initializable {
     }
 
     private void loadShops() {
+        if (disposed) return;
         Task<List<Shop>> task = new Task<>() {
             @Override
             protected List<Shop> call() throws Exception {
@@ -1176,8 +1296,10 @@ public class HomeController implements Initializable {
             }
         };
         task.setOnSucceeded(e -> {
+            if (disposed) return;
             state.setShops(task.getValue());
-            FinanceSyncScheduler.getInstance().updateShops(task.getValue());
+            FinanceSyncScheduler.getInstance().updateShops(task.getValue(),false);
+            if(syncRuntime!=null)syncRuntime.updateShops(task.getValue());
             renderShops();
             if (state.getShops().isEmpty()) {
                 state.clearWorkspace();
@@ -1201,7 +1323,7 @@ public class HomeController implements Initializable {
                 resumeAllPersistedZnackPipelines();
             }
         });
-        java.util.function.Consumer<Throwable> taskFailure = rejection -> AlertService.showError(rejection.getMessage());
+        java.util.function.Consumer<Throwable> taskFailure = rejection -> { if (!disposed) AlertService.showError(rejection.getMessage()); };
         task.setOnFailed(e -> taskFailure.accept(task.getException()));
         AppTaskExecutor.execute(task, taskFailure);
     }
@@ -1290,14 +1412,18 @@ public class HomeController implements Initializable {
                 settings.cryptcpPath(), settings.signerCertificate(),
                 Duration.ofSeconds(settings.resolvedCryptoProTimeoutSeconds()));
         ZnackApiClient api = new ZnackApiClient();
-        new ZnackProductService(api, new ZnackAuthService(api, signer), repository).sync(settings);
+        var sourceShop=new com.vncode.app.features.shop.ShopRepository().findById(repository.shop().shopId());
+        if(sourceShop==null)throw new IllegalStateException("SHOP_CREDENTIALS_UNAVAILABLE");
+        new com.vncode.app.features.sync.ZnackCatalogSyncService().refresh(sourceShop,false,p->{});
         ZnackGtinAutoSync.markAutoSynced(repository.shop().shopId());
     }
 
     private void selectShop(Shop shop) {
         boolean sharedView = workspaceNavigator.currentRoute().equals("product-edit") || workspaceNavigator.currentRoute().equals("listing-copy") || workspaceNavigator.currentRoute().equals("products") || workspaceNavigator.currentRoute().equals("gs1") || workspaceNavigator.currentRoute().equals("gtin-sync") || isPrintHistoryVisible() || isZnackAutomationVisible() || isFboSupplyOrdersVisible();
         boolean dashboardVisible = isDashboardVisible();
+        pendingSyncViews.clear();syncUiDebounce.stop();
         state.setSelectedShop(shop);
+        if(syncRuntime!=null)syncRuntime.selectShop(shop.getId());
         if(newsPane!=null)newsPane.setShop(shop);
         shopSidebarController.setMarketplace(shop.getMarketplace());
         workspaceHeaderController.setMarketplace(shop.getMarketplace());
@@ -1370,6 +1496,7 @@ public class HomeController implements Initializable {
     }
 
     private void startShopSync(Shop shop, boolean manual) {
+        if(syncRuntime!=null&&shop!=null){syncRuntime.refreshShop(shop);return;}
         if (shop == null) {
             return;
         }
@@ -1479,6 +1606,7 @@ public class HomeController implements Initializable {
         long requestToken = state.nextSupplyRequestToken();
         state.setLoadedSupplyId(supply.getSupplyId());
         state.setLoadedSupplyName(supply.getName());
+        supplyDetailController.setKizShipmentContext(shop,supply.getSupplyId());
         supplyPrintRequest.begin(shop.getId(), supply.getSupplyId(), requestToken);
         updateExportAvailability();
         if(wbShippingPane!=null)wbShippingPane.setContext(shop,supply.getSupplyId());
@@ -1631,11 +1759,11 @@ public class HomeController implements Initializable {
         shopSidebarController.setOnFinance(this::showFinance);
         shopSidebarController.setOnGuides(this::showGuides);
         shopSidebarController.setOnGs1(this::showGs1);
+        shopSidebarController.setOnTnved(this::showTnved);
         shopSidebarController.setOnPacking(this::showPacking);
         shopSidebarController.setOnFboPacking(this::showFboPacking);
         shopSidebarController.setOnFboOrders(this::showFboSupplyOrders);
         shopSidebarController.setOnKizMapping(this::showKizMapping);
-        shopSidebarController.setOnGtinSync(this::showGtinSync);
         shopSidebarController.setOnZnackAutomation(this::showZnackAutomation);
         shopSidebarController.setOnZnackRegistration(this::showZnackRegistration);
         shopSidebarController.setOnPrintHistory(this::showPrintHistory);
@@ -1673,11 +1801,28 @@ public class HomeController implements Initializable {
         dialog.getDialogPane().lookupButton(remove).addEventFilter(ActionEvent.ACTION,event->{new com.vncode.app.integration.translation.TranslationSettingsRepository().clear();if(newsPane!=null)newsPane.translationSettingsChanged();});dialog.setOnHidden(e->password.clear());dialog.show();
     }
 
+    private void openJob(com.vncode.app.features.jobs.JobCenterRepository.Row row) {
+        var owner=state.getShops().stream().filter(shop->shop.getId()==row.shopId()).findFirst().orElse(null);
+        if(owner==null)return;
+        if(state.getSelectedShop()==null||state.getSelectedShop().getId()!=owner.getId())selectShop(owner);
+        switch(row.kind()) {
+            case "registration","znack_marketplace"->showZnackRegistration();
+            case "gs1"->showGs1();
+            case "purchase"->showZnackAutomation();
+            case "gtin"->showZnackRegistration();
+            case "edit"->showProducts();
+            case "print"->{workspaceNavigator.show("print-history");refreshPrintHistory();}
+            default->showPacking();
+        }
+    }
+
     private void initializeHeader() {
         FXMLLoader loader = FxmlViewLoader.loader(WorkspaceHeaderController.class, "workspace-header-view.fxml");
-        HBox root = FxmlViewLoader.load(loader);
+        javafx.scene.layout.Region root = FxmlViewLoader.load(loader);
         workspaceHeaderController = loader.getController();
         workspaceHeaderController.setOnSupport(this::showGuides);
+        workspaceHeaderController.setOnUpdate(()->{if(availableUpdate!=null)showUpdateDialog(availableUpdate);else checkVersionManually();});
+        workspaceHeaderController.setOnJobOpen(this::openJob);
         workspaceHeaderController.setOnSync(() -> onSyncWildberries(new ActionEvent()));
         workspaceHeaderController.setOnEditShop(() -> onUpdateShop(new ActionEvent()));
         workspaceHeaderController.setOnDeleteShop(() -> onDeleteShop(new ActionEvent()));
@@ -1698,7 +1843,7 @@ public class HomeController implements Initializable {
         }
         return gs1Pane;
     }
-    private void showGs1(){clearKizDraft();gs1Pane().setShop(state.getSelectedShop());workspaceNavigator.show("gs1");}
+    private void showGs1(){clearKizDraft();var pane=gs1Pane();pane.setShop(state.getSelectedShop());pane.setOnSyncRequested(()->{var shop=state.getSelectedShop();if(shop!=null&&syncRuntime!=null)syncRuntime.request(shop,com.vncode.app.features.sync.SyncCoordinator.Stream.GS1);});workspaceNavigator.show("gs1");if(state.getSelectedShop()!=null&&syncRuntime!=null)syncRuntime.request(state.getSelectedShop(),com.vncode.app.features.sync.SyncCoordinator.Stream.GS1);}
 
     private void initializeSupplyViews() {
         FXMLLoader supplyListLoader = FxmlViewLoader.loader(SupplyListController.class, "supply-list-view.fxml");
@@ -1732,6 +1877,7 @@ public class HomeController implements Initializable {
     }
 
     private void renderShops() {
+        if(syncRuntime!=null)syncRuntime.updateShops(state.getShops());
         workspaceHeaderController.setShops(state.getShops(), state.getSelectedShop());
     }
 
@@ -1742,6 +1888,7 @@ public class HomeController implements Initializable {
         if(productEditPane!=null)productEditPane.applyTranslations();
         if(listingCopyPane!=null)listingCopyPane.applyTranslations();
         if(guidesPane!=null)guidesPane.applyTranslations();
+        printTemplateDesignerService.applyEmbeddedTranslations();
         if(newsPane!=null)newsPane.applyTranslations();
         if(welcomePane!=null)welcomePane.applyTranslations();
         if (disposed) {
@@ -2056,6 +2203,7 @@ public class HomeController implements Initializable {
     private void markShopRunning(int shopId, boolean running) {
         activityTracker.markRunning(shopId, running);
         if (isCurrentShop(shopId)) {
+            if(supplyDetailController!=null)supplyDetailController.setKizJobRunning(isShopBusy(shopId));
             updateHeaderState();
         }
     }
@@ -2146,7 +2294,7 @@ public class HomeController implements Initializable {
                 AlertService.showWarning(
                         i18nService.tr("workspace.kiz_incomplete.title"),
                         progress.message(),
-                        String.join(System.lineSeparator(), progress.failures())
+                        progress.failures().stream().distinct().map(com.vncode.app.features.kiz.KizErrorMessages::message).collect(java.util.stream.Collectors.joining(System.lineSeparator()))
                 );
             }
             if (isCurrentShop(progress.shopId())) {
@@ -2223,44 +2371,35 @@ public class HomeController implements Initializable {
     }
 
     private void deliverLoadedSupply() {
-        Shop shop = requireSelectedShop();
+        Shop selected = requireSelectedShop();
         WbSupplySummary supply = loadedSupplySummary;
-        if (shop == null || supply == null || !state.isSelectedShopTokenValid()) {
+        if (selected == null || supply == null || !state.isSelectedShopTokenValid() || isShopBusy(selected.getId())) {
             return;
         }
-        final com.vncode.app.ui.supply.WbShippingPane.Selection shipping;
-        try {shipping=wbShippingPane.selection();}
-        catch(IllegalArgumentException error){AlertService.showError(error.getMessage());return;}
-        ButtonType deliver = new ButtonType(i18nService.tr("supply.deliver"), ButtonBar.ButtonData.OK_DONE);
-        Alert confirm = new Alert(Alert.AlertType.CONFIRMATION,
-                MessageFormat.format(i18nService.tr("workspace.deliver.confirm.content"), supply.getSupplyId()),
-                deliver,
-                ButtonType.CANCEL);
-        AlertService.applyTheme(confirm);
-        confirm.setHeaderText(i18nService.tr("workspace.deliver.confirm.header"));
-        Optional<ButtonType> choice = confirm.showAndWait();
-        if (choice.isEmpty() || choice.get() != deliver) {
-            return;
-        }
+        Shop shop = frozenShop(selected);
+        var prepared = wbShippingPane.prepareSelection();
         Task<Void> task = new Task<>() {
             @Override
             protected Void call() throws Exception {
+                var shipping=prepared.get(90,java.util.concurrent.TimeUnit.SECONDS);
+                com.vncode.app.integration.listing.ListingIdentity.require(shop);
                 packingWorkflow.deliverSupply(shop, supply,shipping.parameters());
-                new com.vncode.app.integration.wb.WbShippingPreferenceService().save(shop.getId(),shipping.preferences());
+                if(shipping.location()!=null)try {
+                    new com.vncode.app.integration.wb.WbShippingPreferenceService().remember(shop,shipping.location());
+                }catch(RuntimeException rememberFailure){LOGGER.warn("Delivery succeeded; could not remember shipping location",rememberFailure);}
                 return null;
             }
         };
-        task.setOnRunning(e -> markShopRunning(shop.getId(), true));
+        markShopRunning(shop.getId(), true);
         java.util.function.Consumer<Throwable> taskFailure = rejection -> {
             markShopRunning(shop.getId(), false);
             LOGGER.error("Không thể chuyển supply {} sang giao hàng", supply.getSupplyId(), rejection);
-            AlertService.showError(rejection.getMessage());
+            if(!disposed&&sameOwner(shop))AlertService.showError(com.vncode.app.shared.FriendlyErrorService.format(rejection));
         };
         task.setOnFailed(e -> taskFailure.accept(task.getException()));
         task.setOnSucceeded(e -> {
             markShopRunning(shop.getId(), false);
-            refreshSupplyList();
-            showPacking();
+            if(!disposed&&sameOwner(shop)){refreshSupplyList();if(matchesCurrentSupply(shop.getId(),supply.getSupplyId()))showPacking();}
         });
         AppTaskExecutor.execute(task, taskFailure);
     }
@@ -2287,7 +2426,16 @@ public class HomeController implements Initializable {
             return;
         }
         disposed = true;
+        updatePolling.stop();
+        syncUiDebounce.stop();if(syncRuntime!=null)syncRuntime.close();
+        if(updateCheckTask!=null)updateCheckTask.cancel(true);
+        if(updateDownloadTask!=null)updateDownloadTask.cancel(true);
+        updateExecutor.shutdownNow();
         if (licensePane != null) licensePane.dispose();
+        if(guidesPane!=null)guidesPane.dispose();
+        if(workspaceHeaderController!=null)workspaceHeaderController.dispose();
+        if(wbShippingPane!=null)wbShippingPane.dispose();
+        if(sidebarScene!=null)sidebarScene.widthProperty().removeListener(sidebarWidthListener);
         if (licenseSubscription != null) {
             try { licenseSubscription.close(); } catch (Exception ignored) { }
             licenseSubscription = null;

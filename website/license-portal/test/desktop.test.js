@@ -34,6 +34,29 @@ async function proof(ctx,auth,d,action){
 }
 async function activate(ctx,reg,d,code){return req(ctx.env,'/api/client/license/activate','POST',{...await proof(ctx,reg.auth,d,'activate'),code,device_name:'Test Windows'},'',reg.auth);}
 
+test('issuer rotation renews the same device and code without adding days or losing accounts',async()=>{
+ const ctx=await setup();ctx.env.LICENSE_KEY_ID='vncode-1';
+ try {
+  const reg=await register(ctx),d=await device(),code=await approve(ctx,reg);
+  const before=await activate(ctx,reg,d,code);assert.equal(before.status,200);assert.equal(before.data.lease.key_id,'vncode-1');
+  const expiry=before.data.user.expires_at,deviceId=JSON.parse(Buffer.from(before.data.lease.payload,'base64url').toString()).deviceId;
+  const rotated=await crypto.subtle.generateKey('Ed25519',true,['sign','verify']);
+  ctx.env.LICENSE_SIGNING_KEY=encode(await crypto.subtle.exportKey('pkcs8',rotated.privateKey));ctx.env.LICENSE_KEY_ID='vncode-2';
+  const auth={authorization:'Bearer '+before.data.access_token};
+  const renewal=await req(ctx.env,'/api/client/license/renew','POST',await proof(ctx,auth,d,'renew'),'',auth);
+  assert.equal(renewal.status,200);assert.equal(renewal.data.lease.key_id,'vncode-2');assert.equal(renewal.data.user.expires_at,expiry);
+  const payload=Buffer.from(renewal.data.lease.payload,'base64url'),signature=Buffer.from(renewal.data.lease.signature,'base64url');
+  assert.equal(JSON.parse(payload.toString()).deviceId,deviceId);
+  assert.equal(await crypto.subtle.verify('Ed25519',rotated.publicKey,signature,payload),true);
+  assert.equal(await crypto.subtle.verify('Ed25519',ctx.keys.publicKey,signature,payload),false);
+  const retry=await activate(ctx,reg,d,code);assert.equal(retry.status,200);assert.equal(retry.data.lease.key_id,'vncode-2');assert.equal(retry.data.user.expires_at,expiry);
+  assert.equal(ctx.env.sqlite.prepare('SELECT COUNT(*) n FROM license_devices').get().n,1);
+  assert.equal(ctx.env.sqlite.prepare('SELECT COUNT(*) n FROM license_redemptions').get().n,1);
+  assert.equal(ctx.env.sqlite.prepare('SELECT state FROM license_codes').get().state,'redeemed');
+  assert.equal(ctx.env.sqlite.prepare('SELECT email FROM users WHERE id=?').get(reg.id).email,reg.email);
+ }finally{ctx.env.sqlite.close();}
+});
+
 test('direct Gmail registration, owner approval, one-use key, signed lease and renewal',async()=>{
  const ctx=await setup(),reg=await register(ctx),d=await device();
  assert.equal(ctx.mail.length,0,'Registration must not send OTP');

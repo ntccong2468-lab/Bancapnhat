@@ -9,7 +9,12 @@ public class UpdateInfo {
     private String releaseDate;
     private String changelog;
     private Map<String, String> downloadUrls;
+    private Map<String, String> downloadSha256;
+    private Map<String, Long> downloadSizes;
     private boolean mandatory;
+    private String manifestUrl;
+    public String getManifestUrl(){return manifestUrl;}
+    public void setManifestUrl(String value){manifestUrl=value;}
 
     public String getVersion() { return version; }
     public String getReleaseDate() { return releaseDate; }
@@ -22,6 +27,16 @@ public class UpdateInfo {
     public void setChangelog(String changelog) { this.changelog = changelog; }
     public void setDownloadUrls(Map<String, String> downloadUrls) { this.downloadUrls = downloadUrls; }
     public void setMandatory(boolean mandatory) { this.mandatory = mandatory; }
+    public void setDownloadSha256(Map<String,String> values) { downloadSha256 = values; }
+    public void setDownloadSizes(Map<String,Long> values) { downloadSizes = values; }
+    public String getBestDownloadSha256() { return valueForSelectedUrl(downloadSha256); }
+    public Long getBestDownloadSize() { return valueForSelectedUrl(downloadSizes); }
+    private <T> T valueForSelectedUrl(Map<String,T> values) {
+        String selected=getBestDownloadUrl();
+        if(values==null||selected==null||downloadUrls==null)return null;
+        return downloadUrls.entrySet().stream().filter(e->selected.equals(e.getValue()))
+                .map(e->values.get(e.getKey())).filter(java.util.Objects::nonNull).findFirst().orElse(null);
+    }
 
     public String getBestDownloadUrl() {
         if (downloadUrls == null || downloadUrls.isEmpty()) {
@@ -30,7 +45,8 @@ public class UpdateInfo {
 
         String os = System.getProperty("os.name", "").toLowerCase(Locale.ROOT);
         if (os.contains("win")) {
-            return firstAvailable("exe", "msi", "zip", "release");
+            // Windows Installer supports a passive upgrade without a second setup wizard.
+            return firstAvailable("msi", "exe", "zip", "release");
         }
         if (os.contains("mac")) {
             String architecture = System.getProperty("os.arch", "").toLowerCase(Locale.ROOT);
@@ -54,10 +70,7 @@ public class UpdateInfo {
                 return url;
             }
         }
-        return downloadUrls.values().stream()
-                .filter(url -> url != null && !url.isBlank())
-                .findFirst()
-                .orElse(null);
+        return null;
     }
 
     public String getDisplayChangelog() {

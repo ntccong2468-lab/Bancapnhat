@@ -82,7 +82,7 @@ export async function buildSignedUpdateManifest({
       fileName: "VN-code.msi",
       size: file.size,
       sha256: await sha256(installer),
-      url: `https://github.com/ntccong2468-lab/Vncode/releases/download/v${version}/VN-code.msi`,
+      url: `https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v${version}/VN-code.msi`,
     }],
   };
   const payloadBytes = Buffer.from(JSON.stringify(payload), "utf8");

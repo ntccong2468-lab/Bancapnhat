@@ -1,0 +1,499 @@
+{
+  "version": "1.4.13",
+  "baseVersion": "1.4.12",
+  "complete": false,
+  "officialReleasePublished": true,
+  "phase": "latest-published-native-verified-live-production-acceptance-pending",
+  "licenseIntegration": {
+    "implemented": true,
+    "productionReady": false,
+    "activeKeyId": "vncode-2",
+    "changedInThisVersion": false
+  },
+  "scope": [
+    "Shared owner-scoped Catalog product/GTIN reader for all production screens and automatic WB/Ozon pipeline",
+    "Own Catalog key discovery on fresh Windows device and authenticated recovery after foreign DPAPI ciphertext",
+    "Catalog listing across product groups, normalized GTINs, batched card reads and explicit per-card reports",
+    "Published products no longer hidden for missing permit metadata",
+    "Dedicated registry and UI Catalog workers, cancellable deadlines and bounded readback retries",
+    "Indexed exact GTIN/article/color/size matching and exact Ozon product/offer/SKU guards",
+    "GTIN-only sync no longer depends on prices or metadata dictionaries",
+    "Seller-imported KIZ category allocation without Znack checks or matching product GTINs; paid purchases remain verified",
+    "Explicit card creation/moderation/signing and independent exact publication readback",
+    "Reviewed WB/Ozon GTIN actions; source reads do not approve writes; Ozon name and SKU guards",
+    "Bounded read-only moderation monitor in the existing Znack sync worker",
+    "National Catalog product-list date interval fixed after live reproduction: 0 records before, 1961 after",
+    "Reviewed WB shipment KIZ sources saved per shipment; seller imports by synced native category without Znack or matching product GTIN",
+    "Paid source excludes imported codes and uses existing purchase/introduction pipeline for only the deficit",
+    "Virtualized WB shipment paid GTIN inventory; 2000 synthetic rows remain scrollable without constructing all cards",
+    "Shared read-authenticated Catalog and ELK sessions for GS1 UI and background worker, with independent expiry/recovery and per-account locking",
+    "Shop/certificate-scoped membership and balance cache, independent success timestamps, explicit partial/whole failure persistence",
+    "Reported and coalesced GS1 synchronization with per-source phases, bounded waits and observer lifecycle",
+    "Compact membership/six checks/prefix/inbox UI with Znack configuration and read-only source report actions",
+    "Catalog profile email reused as a mailbox configuration hint; reviewed API forms and seller-configured SMTP/IMAP retained",
+    "Compact copy wizard with optional detail sections and actionable per-field preview errors",
+    "Source values remain inherited; separate explicit edits and per-variant prices persist in backwards-compatible drafts",
+    "Real prepared destination data, dictionary labels and variant prices displayed before publication",
+    "Primary image and full source barcode coverage checked; unsupported source fields reported explicitly",
+    "Bounded selected-job reconciliation, durable no-duplicate writes and native WB size-price readback",
+    "Ozon FBS shares shipment KIZ source UI, native category/type stock and frozen source selection from readiness to local print allocation",
+    "Ozon primary image handles string/array/object, excludes ambiguous SKU and checks posting offer identity",
+    "Durable per-posting FBS print report separates local KIZ, PDF and remote acceptance",
+    "Shared compact styling for all workspace FXML and Java pages, responsive header overflow and manually collapsible navigation",
+    "Keyed FBS and product row updates preserve unchanged rows, selections and scroll position, including mutable WB values and changed Ozon product enrichment",
+    "Owner-scoped image callbacks survive unchanged FBS refreshes, with bounded two-pulse GS1 conversation scrolling",
+    "Dialogs respect owner size, task states and print phases are localized, report timestamps use Moscow time"
+  ],
+  "validation": {
+    "focusedGuards": {
+      "result": "passed",
+      "tests": 102,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "note": "Before final task-deadline tests; final regression results are recorded separately."
+    },
+    "liveSecondSellerMachine": false,
+    "liveMarketplaceWrite": false,
+    "liveKizAssignment": false,
+    "livePurchase": false,
+    "windowsNativeBuildThisVersion": true,
+    "releaseContractTests": {
+      "result": "passed",
+      "tests": 60,
+      "passed": 60,
+      "failed": 0,
+      "skipped": 0,
+      "logSha256": "a80c8f788b1eef2156d2576f4db27136825399ea1d467e9289ae9af980d3442d"
+    },
+    "previousFullJavaRegression": {
+      "tests": 1408,
+      "passed": 1406,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 2,
+      "result": "passed",
+      "report": "docs/validation/2026-10-16-vncode-1413-local-checks.json"
+    },
+    "fullJavaRegression": {
+      "result": "passed",
+      "goal": "verify",
+      "buildResult": "BUILD SUCCESS",
+      "tests": 1535,
+      "passed": 1533,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 2,
+      "testSuites": 266,
+      "finishedAt": "2026-10-16T20:22:25Z",
+      "sourceCommit": "040172d66b1a40978bef9a5e7f7e8147b401ec1b",
+      "logSha256": "9bc690d90fe00da6bc0c572861e296b1641f199c6268ba8f7bf2e3d77c94b8f1",
+      "log": "/tmp/vncode-1413-items3-7-final-verify.log",
+      "platformSkips": [
+        {
+          "className": "com.vncode.app.features.gs1.Gs1PrefixTemplateStoreTest",
+          "test": "refusesNtfsJunctionDirectoryAndAncestors"
+        },
+        {
+          "className": "com.vncode.app.shared.WindowsSecretProtectorTest",
+          "test": "separatesLicenseAndExistingMailEntropyOnWindows"
+        }
+      ],
+      "report": "docs/validation/2026-10-16-items-3-7-final-checks.json"
+    },
+    "sharedReadFocusedTests": {
+      "result": "passed",
+      "tests": 28,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "fxDeadlineFocusedTests": {
+      "result": "passed",
+      "tests": 31,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "deadlineTestRepetitions": 3
+    },
+    "supersededWindowsRuns": [
+      {
+        "runId": 38891383274,
+        "result": "cancelled",
+        "reason": "Added shared UI/background result delivery before final Windows build."
+      },
+      {
+        "runId": 38892305238,
+        "result": "cancelled",
+        "reason": "Found and fixed JavaFX cancellation/FAILED event race in full local regression."
+      }
+    ],
+    "windowsFullBuild": {
+      "result": "success",
+      "runId": 38962251398,
+      "sourceCommit": "eb25ecb5f9cee5cde32a283e57067642be836bc5",
+      "url": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/38962251398",
+      "finishedAt": "2026-10-16T20:52:41Z",
+      "report": "docs/validation/2026-10-16-vncode-1413-windows-release-checks.json"
+    },
+    "baselineFullJavaRegression": {
+      "tests": 1411,
+      "passed": 1409,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 2,
+      "result": "passed",
+      "applicationCommit": "90063a7238bf06b68efb2b91f4220b311830359d",
+      "report": "docs/validation/2026-10-16-vncode-1413-local-checks.json"
+    },
+    "baselineWindowsFullBuild": {
+      "result": "success",
+      "runId": 38893594183,
+      "buildSourceCommit": "1940c0b299171054ae23cc5d38d06933881cbcdf",
+      "url": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/38893594183",
+      "validForCurrentApprovedItem1": false
+    },
+    "readonlyProbeTests": {
+      "tests": 7,
+      "passed": 7,
+      "failed": 0
+    },
+    "liveProbeReadiness": {
+      "result": "WB_Ozon_and_Catalog_read_verified",
+      "catalogCredentialSource": "user-supplied-for-read-only-check",
+      "writesPerformed": false
+    },
+    "liveMarketplaceRead": true,
+    "liveApiChecks": {
+      "result": "live_read_verified_new_write_and_native_signing_pending",
+      "report": "docs/validation/2026-10-16-item-1-live-api-checks.json",
+      "sourceCommit": "370142d4cf419c8f2f3c53b20f2bef704b538882"
+    },
+    "previousApprovedItem1FullJavaRegression": {
+      "result": "passed",
+      "tests": 1425,
+      "passed": 1423,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 2,
+      "finishedAt": "2026-10-16T12:06:57Z",
+      "logSha256": "9daa2d2d3506d8f83767fb79d7d2e5fb332f87a980a0b7355a80b41b7f822700",
+      "platformSkips": [
+        "Gs1PrefixTemplateStoreTest",
+        "WindowsSecretProtectorTest"
+      ],
+      "sourceRevision": "bf6fa35f4eefcd2687fd24b32f730fc4eda70e76",
+      "report": "docs/validation/2026-10-16-approved-item-1-checks.json"
+    },
+    "previousLiveCatalogFixFullJavaRegression": {
+      "result": "passed",
+      "tests": 1426,
+      "passed": 1424,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 2,
+      "finishedAt": "2026-10-16T12:48:10Z",
+      "logSha256": "09e11810c62afd2605e85bc71c06dd21775205f3d6fbe3cd2dd236378f3e189a",
+      "platformSkips": [
+        "Gs1PrefixTemplateStoreTest",
+        "WindowsSecretProtectorTest"
+      ],
+      "sourceCommit": "370142d4cf419c8f2f3c53b20f2bef704b538882",
+      "log": "/tmp/vncode-item1-live-fix-verified-regression.log",
+      "report": "docs/validation/2026-10-16-item-1-live-api-checks.json"
+    },
+    "item2FocusedSourceAndUi": {
+      "tests": 19,
+      "passed": 19,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "result": "passed",
+      "logSha256": "a3e698702a988f3059c146a2d2ec3197bcb68ee69102c8bd0b3e155eda9c36b5"
+    },
+    "item2PurchasePipelinePreserved": true,
+    "previousItem2FullJavaRegression": {
+      "tests": 1439,
+      "passed": 1437,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 2,
+      "result": "passed",
+      "finishedAt": "2026-10-16T13:30:37Z",
+      "logSha256": "aca8a3f97e7adc944f7eff2189f672b60c7f4e0b4c4d2ea5a361367281c97835",
+      "platformSkips": [
+        "Gs1PrefixTemplateStoreTest",
+        "WindowsSecretProtectorTest"
+      ],
+      "sourceCommit": "453c7bf7ffbc1cc671d6514e52d176b05bb1adc9",
+      "report": "docs/validation/2026-10-16-item-2-wb-shipment-kiz-checks.json"
+    },
+    "finalItem4UiVerification": {
+      "tests": 75,
+      "passed": 75,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "result": "passed",
+      "finishedAt": "2026-10-16T14:58:34Z",
+      "logSha256": "c49f071c60768d0a27a46a58bae4f6a206e6236588e11f21aca497e668ce8ce7",
+      "sourceCommit": "54dff46b684dc41ac8807a9a394148d460e0625b",
+      "note": "After the full regression, only Ozon title, action width and wrapping of status explanations changed; FXML, WB/Ozon registration, queries and report tests reran."
+    },
+    "item4PurchasePipelinePreserved": true,
+    "previousItem4FullJavaRegression": {
+      "tests": 1471,
+      "passed": 1469,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 2,
+      "result": "passed",
+      "finishedAt": "2026-10-16T14:56:39Z",
+      "logSha256": "8eb8bbbdd804bb3be76a1633e032fa174c81ad5223ae496215796fc203c09ca0",
+      "sourceCommit": "4a02d2b54d5d2b8cfeb8d6aac01f68a8e6a27573",
+      "platformSkips": [
+        "Gs1PrefixTemplateStoreTest",
+        "WindowsSecretProtectorTest"
+      ]
+    },
+    "item5PhaseVerification": {
+      "tests": 16,
+      "passed": 16,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "result": "passed",
+      "finishedAt": "2026-10-16T15:47:50Z",
+      "logSha256": "6dc38cad0e95e8a736e06644234bdbb83cfe61ed2732a47fc6e1c57225b5204f"
+    },
+    "item5UiFixtureVerification": {
+      "tests": 83,
+      "passed": 83,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "result": "passed",
+      "finishedAt": "2026-10-16T15:46:40Z",
+      "logSha256": "6d20a31b6283f4bfdafdb32d81c813356522df9a887992b0f9d634248b541480"
+    },
+    "item5PurchasePipelinePreserved": true,
+    "previousItem5FullJavaRegression": {
+      "tests": 1493,
+      "passed": 1491,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 2,
+      "result": "passed",
+      "finishedAt": "2026-10-16T15:51:40Z",
+      "logSha256": "619d53c9269b8ab8cd0ae9bb34d61198b0f3c7b6205bbf4138a94c444cfed841",
+      "sourceCommit": "cffacc55de7aff7f8fd13a3df0caa388cacf9ae4",
+      "platformSkips": [
+        {
+          "className": "com.vncode.app.features.gs1.Gs1PrefixTemplateStoreTest",
+          "test": "refusesNtfsJunctionDirectoryAndAncestors"
+        },
+        {
+          "className": "com.vncode.app.shared.WindowsSecretProtectorTest",
+          "test": "separatesLicenseAndExistingMailEntropyOnWindows"
+        }
+      ]
+    },
+    "item6FocusedVerification": {
+      "tests": 71,
+      "passed": 71,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "result": "passed",
+      "finishedAt": "2026-10-16T18:54:56Z",
+      "logSha256": "a4be6ea6683b3db6e528793b2181e7fcf38982382bfc66777d3e50554b8199eb"
+    },
+    "item6PurchasePipelinePreserved": true,
+    "previousItem6FullJavaRegression": {
+      "tests": 1514,
+      "passed": 1512,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 2,
+      "result": "passed",
+      "finishedAt": "2026-10-16T18:59:27Z",
+      "logSha256": "b637ec2789d5971bfb4727c09a667ba19a7cfabaa2f7eae7155e11118e3d2489",
+      "sourceCommit": "5cc986b99f18bac53aa265c25146e852c90d54f9",
+      "platformSkips": [
+        {
+          "className": "com.vncode.app.features.gs1.Gs1PrefixTemplateStoreTest",
+          "test": "refusesNtfsJunctionDirectoryAndAncestors"
+        },
+        {
+          "className": "com.vncode.app.shared.WindowsSecretProtectorTest",
+          "test": "separatesLicenseAndExistingMailEntropyOnWindows"
+        }
+      ]
+    },
+    "portalSyntaxCheck": "passed",
+    "portalTests": {
+      "result": "passed",
+      "tests": 60,
+      "passed": 60,
+      "failed": 0,
+      "skipped": 0,
+      "logSha256": "6a76679a9bff48ed546902c2f73056a3de7c55e843a12c356e65c81dd1e6620f"
+    },
+    "items3And7FinalVerification": {
+      "result": "passed",
+      "sourceCommit": "040172d66b1a40978bef9a5e7f7e8147b401ec1b",
+      "report": "docs/validation/2026-10-16-items-3-7-final-checks.json",
+      "syntheticFbsUi": {
+        "shops": 10,
+        "ordersPerShop": 1000,
+        "products": 100000,
+        "visiblePageOrders": 100,
+        "changedDatabaseRowsPerSample": 9001,
+        "samples": 20,
+        "commitToDisplayedPulseP95Ms": 89.092907,
+        "fxDispatchP95Ms": 1.387508,
+        "fxStallsOver500ms": 0,
+        "maxFxPulseGapMs": 55.308145,
+        "logicalProcessors": 4,
+        "rendering": "JavaFX software rendering under Xvfb on Linux",
+        "nativeWindows": false,
+        "includesMarketplaceNetworkTime": false
+      },
+      "purchasePipelinePreserved": true
+    },
+    "fullWindowsJavaRegression": {
+      "tests": 1535,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 2,
+      "passed": 1533,
+      "result": "passed",
+      "sourceCommit": "eb25ecb5f9cee5cde32a283e57067642be836bc5",
+      "platformSkips": [
+        {
+          "className": "com.vncode.app.shared.WindowsSecretProtectorTest",
+          "test": "neverFallsBackToPlaintextOffWindows"
+        },
+        {
+          "className": "com.vncode.app.features.gs1.Gs1PrefixTemplateStoreTest",
+          "test": "privatePermissionsAreAppliedWhereSupported"
+        }
+      ],
+      "report": "docs/validation/2026-10-16-vncode-1413-windows-release-checks.json"
+    },
+    "publicInstallerDownload": {
+      "result": "passed",
+      "bytes": 145292288,
+      "sha256": "e547fcb7cbfd7f4b2d55816a88eaf45c4c8503e1e41cae5d4eaedd94a0d0ac82",
+      "report": "docs/validation/2026-10-16-vncode-1413-windows-release-checks.json"
+    },
+    "publishedUpdaterMetadata": "passed_actual_windows_jar_parser"
+  },
+  "publication": {
+    "published": true,
+    "latestChanged": true,
+    "currentSellerLatest": "1.4.13",
+    "releaseId": 415370557,
+    "tag": "v1.4.13",
+    "publishedAt": "2026-10-16T20:54:57Z",
+    "url": "https://github.com/ntccong2468-lab/Bancapnhat/releases/tag/v1.4.13",
+    "installerUrl": "https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.4.13/VN-code-1.4.13-Windows-x64.exe",
+    "buildRunId": 38962251398,
+    "buildSourceCommit": "eb25ecb5f9cee5cde32a283e57067642be836bc5",
+    "uploadWorkflowRunId": 38965498967,
+    "ownerRequestedPublication": true,
+    "liveProductionAcceptanceIncomplete": true
+  },
+  "report": "docs/validation/2026-10-16-vncode-1413-windows-release-checks.json",
+  "applicationCommit": "eb25ecb5f9cee5cde32a283e57067642be836bc5",
+  "approvedWork": {
+    "item1": {
+      "diagramApproved": true,
+      "codeImplemented": true,
+      "liveAcceptance": "partial_live_reads_verified_native_signing_and_new_write_pending",
+      "testCategory": "clothing_sets"
+    },
+    "item2": {
+      "diagramApproved": true,
+      "codeImplemented": true,
+      "sourceCommit": "453c7bf7ffbc1cc671d6514e52d176b05bb1adc9",
+      "localRegression": "passed",
+      "liveKizAssignment": false,
+      "livePurchase": false,
+      "purchasePipelinePreserved": true,
+      "report": "docs/validation/2026-10-16-item-2-wb-shipment-kiz.md"
+    },
+    "item3": {
+      "diagramApproved": true,
+      "codeImplemented": true,
+      "status": "implemented_full_local_verify_passed",
+      "liveKizAssignment": false,
+      "livePurchase": false,
+      "purchasePipelinePreserved": true,
+      "report": "docs/validation/2026-10-16-item-3-ozon-fbs.md",
+      "sourceCommit": "0d0b41b9ef9bbebe57229a3e2402f6d3ade2edb8",
+      "localValidation": "passed_full_java_verify_and_focused_scale_checks",
+      "nativeWindowsFixtureValidation": "passed"
+    },
+    "item4": {
+      "diagramApproved": true,
+      "codeImplemented": true,
+      "sourceCommit": "54dff46b684dc41ac8807a9a394148d460e0625b",
+      "fullRegressionSource": "4a02d2b54d5d2b8cfeb8d6aac01f68a8e6a27573",
+      "localValidation": "passed_full_regression_plus_final_ui_verification",
+      "liveAcceptance": "pending_seller_machine_and_confirmed_write",
+      "purchasePipelinePreserved": true,
+      "report": "docs/validation/2026-10-16-item-4-znack-registration.md"
+    },
+    "item5": {
+      "diagramApproved": true,
+      "codeImplemented": true,
+      "sourceCommit": "cffacc55de7aff7f8fd13a3df0caa388cacf9ae4",
+      "localValidation": "passed_full_java_regression",
+      "liveAcceptance": "pending_native_windows_cryptopro_and_production_gs1",
+      "purchasePipelinePreserved": true,
+      "report": "docs/validation/2026-10-16-item-5-gs1.md"
+    },
+    "item6": {
+      "diagramApproved": true,
+      "codeImplemented": true,
+      "sourceCommit": "5cc986b99f18bac53aa265c25146e852c90d54f9",
+      "localValidation": "passed_full_java_regression_and_actual_adapter_mock_workflows",
+      "liveAcceptance": "pending_native_windows_and_confirmed_seller_publication",
+      "purchasePipelinePreserved": true,
+      "report": "docs/validation/2026-10-16-item-6-listing-copy.md"
+    },
+    "item7": {
+      "diagramApproved": true,
+      "codeImplemented": true,
+      "status": "implemented_full_local_verify_passed",
+      "liveAcceptance": "native_windows_dpi_and_layouts_passed_live_seller_api_pending",
+      "architectureReplaced": false,
+      "report": "docs/validation/2026-10-16-item-7-workspace-ui.md",
+      "sourceCommit": "c5cb5fb6e88c212608007a63ac6897872a82c497",
+      "finalSourceCommit": "040172d66b1a40978bef9a5e7f7e8147b401ec1b",
+      "localValidation": "passed_full_java_verify_layout_matrix_and_synthetic_ui_latency",
+      "nativeWindowsFixtureValidation": "passed"
+    }
+  },
+  "item4Changes": [
+    "Paired source receipt and current product membership; failed/partial/stale reads remain blocked",
+    "Current Catalog publication status and suitable registration actions",
+    "WB/Ozon reviewed GTIN and bounded per-product reports"
+  ],
+  "item5Changes": [
+    "Shared read-authenticated Catalog and ELK sessions for GS1 UI and background worker, with independent expiry/recovery and per-account locking",
+    "Shop/certificate-scoped membership and balance cache, independent success timestamps, explicit partial/whole failure persistence",
+    "Reported and coalesced GS1 synchronization with per-source phases, bounded waits and observer lifecycle",
+    "Compact membership/six checks/prefix/inbox UI with Znack configuration and read-only source report actions",
+    "Catalog profile email reused as a mailbox configuration hint; reviewed API forms and seller-configured SMTP/IMAP retained"
+  ],
+  "item6Changes": [
+    "Compact copy wizard with optional detail sections and actionable per-field preview errors",
+    "Source values remain inherited; separate explicit edits and per-variant prices persist in backwards-compatible drafts",
+    "Real prepared destination data, dictionary labels and variant prices displayed before publication",
+    "Primary image and full source barcode coverage checked; unsupported source fields reported explicitly",
+    "Bounded selected-job reconciliation, durable no-duplicate writes and native WB size-price readback"
+  ],
+  "developmentComplete": true
+}

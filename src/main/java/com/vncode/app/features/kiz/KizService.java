@@ -96,7 +96,11 @@ public class KizService {
     }
 
     public static Map<Long, SgtinMetadata> getSgtinMetadata(String apiKey, List<Long> orderIds) throws IOException {
-        return getSgtinMetadata(orderIds,batch->requestSgtinMetadataBatch(apiKey,batch));
+        return getSgtinMetadata(orderIds,batch->requestSgtinMetadataBatch(apiKey,batch,null));
+    }
+    public static Map<Long,SgtinMetadata> getSgtinMetadata(com.vncode.app.models.Shop shop,List<Long> ids)throws IOException {
+        com.vncode.app.integration.listing.ListingIdentity.require(shop);
+        return getSgtinMetadata(ids,batch->requestSgtinMetadataBatch(shop.getApiKey(),batch,shop));
     }
 
     static Map<Long,SgtinMetadata> getSgtinMetadata(List<Long> orderIds,MetadataReader reader)throws IOException {
@@ -113,7 +117,7 @@ public class KizService {
         return metadataByOrderId;
     }
 
-    private static Map<Long, SgtinMetadata> requestSgtinMetadataBatch(String apiKey, List<Long> orderIds) throws IOException {
+    private static Map<Long, SgtinMetadata> requestSgtinMetadataBatch(String apiKey, List<Long> orderIds,com.vncode.app.models.Shop owner) throws IOException {
         String url = "https://marketplace-api.wildberries.ru/api/marketplace/v3/orders/meta";
         Map<String, Object> bodyMap = new HashMap<>();
         bodyMap.put("orders", orderIds);
@@ -126,20 +130,24 @@ public class KizService {
                 .build();
 
         WbLabelIdentifierRateLimiter.awaitTurn(apiKey);
-        try (var slot=MarketplaceRequestBudget.acquire(); Response response = client.newCall(request).execute()) {
+        try (var slot=MarketplaceRequestBudget.acquire()) {
+          if(owner!=null)com.vncode.app.integration.listing.ListingIdentity.require(owner);
+          try(Response response = client.newCall(request).execute()) {
             String responseBody = boundedBody(response);
             WbLabelIdentifierRateLimiter.registerResponse(apiKey, response.code(), response.headers());
             if (!response.isSuccessful()) {
                 LOGGER.warn("WB metadata request failed for {} orders with status {}", orderIds.size(), response.code());
                 throw new IOException("WB_METADATA_HTTP_" + response.code());
             }
+            if(owner!=null)com.vncode.app.integration.listing.ListingIdentity.require(owner);
             try{return parseSgtinMetadata(responseBody);}catch(RuntimeException malformed){throw new IOException("WB_METADATA_INVALID");}
+          }
         } catch (InterruptedIOException ex) {
             throw new IOException("Wildberries system response timed out. Please try again.", ex);
         }
     }
 
-    private static Map<Long, SgtinMetadata> parseSgtinMetadata(String responseBody) {
+    static Map<Long, SgtinMetadata> parseSgtinMetadata(String responseBody) {
         if (responseBody == null || responseBody.isBlank()) {
             return Map.of();
         }
@@ -159,7 +167,9 @@ public class KizService {
             long orderId = orderObject.get("id").getAsLong();
             boolean available = hasSgtinMetaObject(orderObject) || hasSgtinMetaDetail(orderObject);
             String appliedValue = firstSgtinValue(orderObject);
-            metadataByOrderId.put(orderId, new SgtinMetadata(available, appliedValue));
+            var detail=sgtinDetail(orderObject);
+            String decision=detail!=null&&detail.has("decision")&&!detail.get("decision").isJsonNull()?detail.get("decision").getAsString():"";
+            if(metadataByOrderId.put(orderId, new SgtinMetadata(available, appliedValue,decision))!=null)throw new IllegalArgumentException("WB_METADATA_AMBIGUOUS");
         }
         return metadataByOrderId;
     }
@@ -189,14 +199,7 @@ public class KizService {
     }
 
     private static String firstSgtinValue(JsonObject orderObject) {
-        if (!orderObject.has("meta") || !orderObject.get("meta").isJsonObject()) {
-            return "";
-        }
-        JsonObject meta = orderObject.getAsJsonObject("meta");
-        if (!meta.has("sgtin") || !meta.get("sgtin").isJsonObject()) {
-            return "";
-        }
-        JsonObject sgtin = meta.getAsJsonObject("sgtin");
+        JsonObject sgtin=sgtinDetail(orderObject);if(sgtin==null)return "";
         if (!sgtin.has("value") || sgtin.get("value").isJsonNull()) {
             return "";
         }
@@ -209,6 +212,16 @@ public class KizService {
             return values.get(0).getAsString();
         }
         return value.getAsString();
+    }
+    private static JsonObject sgtinDetail(JsonObject order){
+        JsonObject found=null;
+        if(order.has("metaDetails")&&order.get("metaDetails").isJsonArray())for(var item:order.getAsJsonArray("metaDetails")){
+            if(!item.isJsonObject())continue;var detail=item.getAsJsonObject();
+            if(detail.has("key")&&"sgtin".equalsIgnoreCase(detail.get("key").getAsString())){if(found!=null)throw new IllegalArgumentException("WB_METADATA_AMBIGUOUS");found=detail;}
+        }
+        if(found!=null)return found;
+        if(order.has("meta")&&order.get("meta").isJsonObject()){var meta=order.getAsJsonObject("meta");if(meta.has("sgtin")&&meta.get("sgtin").isJsonObject())return meta.getAsJsonObject("sgtin");}
+        return null;
     }
 
     private static AttachCodeResult sendAttachCodeRequest(int shopId,String apiKey, Long orderId, String code,BooleanSupplier cancelled) throws IOException {
@@ -226,12 +239,12 @@ public class KizService {
                 .build();
 
         sleepBeforeWrite();
-        WbLabelIdentifierRateLimiter.awaitTurn(apiKey);
+        WbLabelIdentifierRateLimiter.awaitTurn(apiKey,true);
         try (var slot=MarketplaceRequestBudget.acquire()) {
         return withWriteScope(shopId,apiKey,cancelled,()->{
         try(Response response = client.newCall(request).execute()) {
             String responseBody = boundedBody(response);
-            WbLabelIdentifierRateLimiter.registerResponse(apiKey, response.code(), response.headers());
+            WbLabelIdentifierRateLimiter.registerResponse(apiKey, response.code(), response.headers(),true);
             if (!response.isSuccessful()) {
                 if (response.code() == 409 && responseBody.contains("FailedToUpdateMeta")) {
                     LOGGER.info("WB skipped KIZ attach for order {} because it is not in Processing status", orderId);
@@ -323,7 +336,8 @@ public class KizService {
         @Override public String toString(){return "RemoveMetaResult[success="+success+", statusCode="+statusCode+"]";}
     }
 
-    public record SgtinMetadata(boolean available, String appliedValue) {
+    public record SgtinMetadata(boolean available, String appliedValue,String decision) {
+        public SgtinMetadata(boolean available,String appliedValue){this(available,appliedValue,"");}
         @Override public String toString(){return "SgtinMetadata[available="+available+"]";}
         public boolean hasAppliedValue() {
             return appliedValue != null && !appliedValue.isBlank();

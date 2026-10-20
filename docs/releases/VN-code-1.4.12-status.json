@@ -1,0 +1,153 @@
+{
+  "version": "1.4.12",
+  "baseVersion": "1.4.11",
+  "upgradeBaselinesInclude": [
+    "1.4.10",
+    "1.4.11"
+  ],
+  "complete": false,
+  "officialReleasePublished": true,
+  "phase": "published-latest-owner-request-production-license-acceptance-outstanding",
+  "scope": [
+    "Application-scoped scheduling with reserved FBS workers, persisted checkpoints and bounded shop fairness",
+    "Published National Catalog cards automatically chain to verified GTIN updates and per-item reports",
+    "Ozon product/offer/SKU and variant checks before marketplace GTIN writes",
+    "GS1 certificate authentication using Znack settings without browser sign-in",
+    "Compact GS1 UI and unified per-job details with CSV/JSON export",
+    "Imported KIZ allocated FIFO by seller category for WB/Ozon FBS and FBO; new paid purchases require exact product/variant GTIN proof",
+    "Listing copies inherit original data, dictionary mappings, variants and source prices where available, including per-product defaults in batches"
+  ],
+  "licenseIntegration": {
+    "implemented": true,
+    "productionReady": false,
+    "activeKeyId": "vncode-2",
+    "serverSigningKeyMatch": "owner-confirmed-Portal035-vncode2",
+    "ownerReportedActivationVersion": "1.4.4",
+    "newDesktopLicenseProductionAcceptance": false
+  },
+  "validation": {
+    "implementationReport": "docs/validation/2026-10-15-vncode-1412-implementation.md",
+    "gs1Architecture": "docs/architecture/2026-10-15-gs1-automatic-sync.md",
+    "localFullJava": {
+      "result": "passed",
+      "tests": 1386,
+      "passed": 1384,
+      "failures": 0,
+      "errors": 0,
+      "platformSpecificSkipped": 2,
+      "coverageNote": "Full local regression and final focused guards passed; exact application source fdce2e185d17afaf2a72643700b8ddf233f1d525 subsequently passed the complete Windows suite and native installer checks."
+    },
+    "finalAuthenticationFocusedJava": {
+      "result": "passed",
+      "tests": 69,
+      "passed": 69,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "releaseContractTests": {
+      "tests": 53,
+      "passed": 53,
+      "failed": 0
+    },
+    "windowsFullBuild": {
+      "result": "passed",
+      "runId": 38776235230,
+      "url": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/38776235230",
+      "sourceCommit": "fdce2e185d17afaf2a72643700b8ddf233f1d525",
+      "java": {
+        "tests": 1388,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 2,
+        "passed": 1386
+      },
+      "nativeLauncher": "passed",
+      "dpapi": "passed",
+      "layouts": 272,
+      "upgradeBaselines": [
+        "1.1.34",
+        "1.2.0",
+        "1.2.1",
+        "1.2.2",
+        "1.3.0",
+        "1.4.0",
+        "1.4.6",
+        "1.4.10",
+        "1.4.11"
+      ],
+      "report": "docs/validation/VN-code-1.4.12-Windows-build.json"
+    },
+    "liveMarketplaceWriteAcceptance": false,
+    "liveGs1Acceptance": false,
+    "liveKizAssignmentAcceptance": false,
+    "livePurchasePerformed": false,
+    "liveEmailSent": false,
+    "finalGuardFocusedJava": {
+      "result": "passed",
+      "tests": 11,
+      "passed": 11,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "compactGs1Ui": {
+      "result": "passed",
+      "tests": 10,
+      "passed": 10,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "categoryCopyFocusedJava": {
+      "result": "passed",
+      "tests": 59,
+      "passed": 59,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "sourceComparison": "docs/research/2026-10-15-vncode-1412-category-copy.md",
+    "categoryCopyArchitecture": "docs/architecture/2026-10-15-category-kiz-and-listing-copy.md",
+    "latestPublicWbcodeReviewed": "1.3.9 (release notes; internal source and live seller acceptance unavailable)",
+    "copySizeCurrencyFocusedJava": {
+      "result": "passed",
+      "tests": 48,
+      "passed": 48,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  },
+  "publication": {
+    "published": true,
+    "latestChanged": true,
+    "productionAcceptanceRequiredByReleaseGate": true,
+    "candidateArtifactUrl": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/38776235230/artifacts/11994844404",
+    "draftPrepared": false,
+    "draftReleaseId": 414102966,
+    "draftReleaseUrl": "https://github.com/ntccong2468-lab/Bancapnhat/releases/tag/untagged-624cbb26b2590222e0f6",
+    "prepareRunId": 38780513750,
+    "buildSourceCommit": "fdce2e185d17afaf2a72643700b8ddf233f1d525",
+    "releaseId": 414102966,
+    "releaseUrl": "https://github.com/ntccong2468-lab/Bancapnhat/releases/tag/v1.4.12",
+    "publishedAt": "2026-10-15T17:57:27Z",
+    "method": "Owner-directed manual GitHub Release promotion after verified Windows build; the standard automated production license acceptance gate remains unchanged.",
+    "ownerDirection": {
+      "request": "đưa bộ cài và ghi chú nội dung phát hành lên bản cập nhật để thông báo về app cập nhật",
+      "priorDisclosure": "Draft was disclosed as awaiting real production license acceptance before this explicit publication request.",
+      "decision": "Publish existing verified installer and release notes as Latest; do not assert missing license acceptance."
+    },
+    "publicUpdateApi": "https://api.github.com/repos/ntccong2468-lab/Bancapnhat/releases/latest",
+    "publicInstallerUrl": "https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.4.12/VN-code-1.4.12-Windows-x64.exe",
+    "publicUpdateDiscoveryPassed": true,
+    "publicInstallerRangeGetPassed": true,
+    "publicationReport": "docs/validation/2026-10-15-vncode-1412-publication.md"
+  },
+  "pendingOwnerChanges": [],
+  "installer": {
+    "filename": "VN-code-1.4.12-Windows-x64.exe",
+    "bytes": 145091584,
+    "sha256": "66b34a542bca66b812a5c7f8685596196f0de0d9e6d0fc3d2b8d67178d15b8a1"
+  }
+}

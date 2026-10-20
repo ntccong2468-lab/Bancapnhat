@@ -1,0 +1,78 @@
+{
+  "mode": "production-read-only",
+  "writesPerformed": false,
+  "checkedAt": "2026-10-20T08:44:39.908259+00:00",
+  "status": "OK",
+  "requests": [
+    {
+      "service": "Catalog product-list read",
+      "httpStatus": 200
+    },
+    {
+      "service": "Catalog product-list read",
+      "httpStatus": 200
+    },
+    {
+      "service": "WB cards/list read-only POST",
+      "httpStatus": 200
+    },
+    {
+      "service": "WB cards/list read-only POST",
+      "httpStatus": 200
+    },
+    {
+      "service": "WB cards/list read-only POST",
+      "httpStatus": 200
+    },
+    {
+      "service": "WB cards/list read-only POST",
+      "httpStatus": 200
+    }
+  ],
+  "classification": "coverage-only; not proof of a write by the candidate release or legal permit approval",
+  "catalog": {
+    "listingComplete": true,
+    "cards": 1277,
+    "statuses": {
+      "published": 1241,
+      "draft": 36
+    },
+    "publishedCards": 1241,
+    "distinctPublishedGtins": 1241,
+    "publicationRule": "good_status == 'published' (detailed_status may additionally include draft)"
+  },
+  "wb": {
+    "listingComplete": true,
+    "pages": 4,
+    "pageCounts": [
+      100,
+      100,
+      100,
+      88
+    ],
+    "cards": 388,
+    "variants": 1982,
+    "barcodes": 3777
+  },
+  "coverage": {
+    "variantsWithAtLeastOneCatalogPublishedGtin": 1,
+    "variantsWithoutCatalogPublishedGtin": 1981,
+    "variantsWithMultipleDistinctCatalogPublishedGtins": 0,
+    "distinctPublishedGtinsPresentOnWb": 1,
+    "publishedGtinsSharedAcrossDistinctWbVariants": 0,
+    "publishedGtinsSharedAcrossDistinctSizeLabels": 0,
+    "variantsUsingPublishedGtinsSharedAcrossDistinctSizeLabels": 0
+  },
+  "normalization": "ASCII numeric GTINs 8..14 digits left padded to14; no checksum-only registration inference",
+  "sharedSizeDefinition": "distinct (techSize, wbSize) labels; distinct WB variants separately reported using (nmID, chrtID)",
+  "limitations": [
+    "Exact code membership proves coverage in this Catalog account only; it does not establish item/color/size identity, ownership, legal permit scope, or a new marketplace write.",
+    "A different Catalog account could contain other WB barcodes; this report does not infer a wrong owner or an unregistered product globally."
+  ],
+  "sanitization": {
+    "containsProductIdentifiers": false,
+    "containsGtinValues": false,
+    "containsCredentialValues": false,
+    "scope": "Aggregate counts, HTTP statuses, field rules and inference limits only."
+  }
+}

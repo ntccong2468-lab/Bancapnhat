@@ -7,15 +7,11 @@ import com.vncode.app.integration.ozon.*;
 import com.vncode.app.models.Shop;
 import com.vncode.app.shared.*;
 import javafx.animation.AnimationTimer;
-import javafx.animation.KeyFrame;
-import javafx.animation.Timeline;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.stage.Stage;
-import javafx.stage.Window;
-import javafx.util.Duration;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -32,8 +28,8 @@ import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BooleanSupplier;
+import java.util.function.Supplier;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -43,7 +39,6 @@ class OzonBulkUiTest {
     private OzonDashboardController controller;
     private Stage window;
     private final AtomicInteger remoteCalls = new AtomicInteger();
-    private final AtomicReference<Throwable> dialogFailure = new AtomicReference<>();
     private final Shop shop = new Shop(1, "Bulk fixture", Marketplace.OZON, "11", "fixture");
 
     @BeforeAll static void startFx() {
@@ -110,33 +105,109 @@ class OzonBulkUiTest {
         awaitFx(() -> table("newOrdersTable").getItems().size() == 100 && table("packingOrdersTable").getItems().size() == 100);
         fx(() -> { node("selectFilteredButton", Button.class).fire(); return null; });
         awaitFx(() -> selected().size() == 1000 && !node("moveToPackingButton", Button.class).isDisabled());
-        fx(() -> {
-            cancelDialog(() -> node("moveToPackingButton", Button.class).fire(), dialog -> {
+        com.vncode.app.testsupport.FxDialogDriver.choose(()->node("moveToPackingButton",Button.class).fire(),
+            dialog->dialog.getScene().getWindow() instanceof Stage stage&&stage.getOwner()==window,dialog->{
                 assertTrue(dialog.getHeaderText().contains("1000"));
-                return dialog.getButtonTypes().stream().filter(type -> type.getButtonData() == ButtonBar.ButtonData.CANCEL_CLOSE).findFirst().orElseThrow();
+                return dialog.getButtonTypes().stream().filter(type -> type.getButtonData()==ButtonBar.ButtonData.CANCEL_CLOSE).findFirst().orElseThrow();
             });
+        fx(() -> {
             assertEquals(1000, selected().size());
             assertFalse(node("loadingIndicator", ProgressIndicator.class).isVisible());
             node("orderStatusTabs", TabPane.class).getSelectionModel().select(node("packingOrdersTab", Tab.class));
             return null;
         });
-        CountDownLatch cancelled = new CountDownLatch(1);
-        fx(() -> {
-            var timer = dialogCanceller(dialog -> {
-                assertEquals(MessageFormat.format(I18nService.getInstance().tr("ozon.batch.confirm_print"), 1000), dialog.getContentText());
-                cancelled.countDown(); return ButtonType.NO;
+        com.vncode.app.testsupport.FxDialogDriver.choose(()->node("printAllButton",Button.class).fire(),
+            dialog->dialog.getScene().getWindow() instanceof Stage stage&&stage.getOwner()==window,dialog->{
+                assertEquals(MessageFormat.format(I18nService.getInstance().tr("ozon.batch.confirm_print"),1000),dialog.getContentText());
+                return ButtonType.NO;
             });
-            timer.play(); node("printAllButton", Button.class).fire(); return null;
-        });
-        boolean dialogCancelled = cancelled.await(5, TimeUnit.SECONDS);
-        assertNoDialogFailure();
-        assertTrue(dialogCancelled); awaitWorkers();
+        awaitWorkers();
         fx(() -> { assertFalse(node("loadingIndicator", ProgressIndicator.class).isVisible()); return null; });
         try (var c = Database.getConnection(); var s = c.createStatement(); var row = s.executeQuery("SELECT COUNT(*) FROM ozon_exemplar_jobs")) {
             assertEquals(0, row.getInt(1));
         }
         try (var files = Files.walk(root)) { assertTrue(files.noneMatch(path -> path.getFileName().toString().endsWith(".pdf"))); }
         assertEquals(0, ShopBatchRegistry.activeCount());
+    }
+
+    @Test void acceptAllProcessesBeyondTheVisiblePageAndReportsChildrenPendingAndProtectedKizSeparately() throws Exception {
+        var repository=new OzonPostingRepository();var sources=new ArrayList<OzonPostingDto>();
+        for(int i=1;i<=101;i++){
+            var p=posting("split-"+i,"awaiting_packaging");
+            sources.add(new OzonPostingDto(p.postingNumber(),p.orderId(),p.orderNumber(),p.status(),p.substatus(),p.warehouseId(),p.shipmentAt(),p.inProcessAt(),p.lowerBarcode(),p.upperBarcode(),p.requirements(),List.of("ship"),true,
+                    List.of(new OzonPostingItemDto(0,"1","11","fixture","Fixture item",2,"RUB","100"))));
+        }
+        repository.upsertPage(1,sources);var accepted=new AtomicInteger();
+        fx(()->{
+            controller.setPostingAcceptor((owner,number)->{
+                assertFalse(Platform.isFxApplicationThread());assertEquals(shop.getId(),owner.getId());accepted.incrementAndGet();
+                if(number.equals("split-100"))throw new OzonApiException("reconcile_required",0,false,true,null);
+                if(number.equals("split-101"))throw new IllegalStateException("OZON_SPLIT_HAS_BOUND_KIZ");
+                var children=List.of(number+"-A",number+"-B");
+                repository.upsertDetail(1,posting(number,"cancelled"));
+                repository.upsertPage(1,children.stream().map(child->posting(child,"awaiting_deliver")).toList());
+                return new OzonShipResult(number,"awaiting_deliver",false,children);
+            });
+            controller.setShop(shop,false);return null;
+        });
+        awaitFx(()->table("newOrdersTable").getItems().size()==100);
+        fx(()->{node("selectFilteredButton",Button.class).fire();return null;});
+        awaitFx(()->selected().size()==101&&!node("moveToPackingButton",Button.class).isDisabled());
+        com.vncode.app.testsupport.FxDialogDriver.choose(()->node("moveToPackingButton",Button.class).fire(),
+                dialog->dialog.getScene().getWindow() instanceof Stage stage&&stage.getOwner()==window,dialog->{
+                    assertTrue(dialog.getHeaderText().contains("101"));
+                    assertTrue(dialog.getContentText().contains(I18nService.getInstance().tr("ozon.fbs.auto_split_notice")));
+                    return dialog.getButtonTypes().stream().filter(type->type.getButtonData()==ButtonBar.ButtonData.OK_DONE).findFirst().orElseThrow();
+                });
+        // Successful acceptance selects the packing tab. The Receive button lives
+        // in the now-inactive tab and can legitimately be effectively disabled.
+        // Await the committed batch/report instead of that transient control state.
+        // This fixture writes 198 children individually on the Windows runner.
+        awaitFx(30,()->accepted.get()==101&&selected().size()==2
+                        &&ShopBatchRegistry.activeCount()==0
+                        &&!node("loadingIndicator",ProgressIndicator.class).isVisible()
+                        &&node("batchResultsPanel",TitledPane.class).isVisible()
+                        &&node("batchResultsArea",TextArea.class).getText().lines().count()==101,
+                ()->"Bulk acceptance did not finish: accepted="+accepted.get()+", selected="+selected()
+                        +", activeLeases="+ShopBatchRegistry.activeCount()
+                        +", loading="+node("loadingIndicator",ProgressIndicator.class).isVisible()
+                        +", reportLines="+node("batchResultsArea",TextArea.class).getText().lines().count()
+                        +", tab="+node("orderStatusTabs",TabPane.class).getSelectionModel().getSelectedItem().getId()
+                        +", receiveOwnDisable="+node("moveToPackingButton",Button.class).isDisable()
+                        +", receiveEffectiveDisabled="+node("moveToPackingButton",Button.class).isDisabled()
+                        +", status="+node("statusLabel",Label.class).getText());
+        awaitFx(()->node("packingOrdersTab",Tab.class).getText().contains("198"));
+        fx(()->{
+            assertEquals(Set.of("split-100","split-101"),selected());
+            String report=node("batchResultsArea",TextArea.class).getText();
+            assertEquals(101,report.lines().count());
+            assertTrue(report.contains("split-1-A, split-1-B"));
+            assertTrue(report.contains("split-100 · "+I18nService.getInstance().tr("ozon.fbs.pending")));
+            assertTrue(report.contains(I18nService.getInstance().tr("ozon.fbs.reason.OZON_SPLIT_HAS_BOUND_KIZ")));
+            assertEquals(99,report.lines().filter(line->line.contains(" · "+I18nService.getInstance().tr("ozon.fbs.packaged")+" → ")).count());
+            assertEquals(1,report.lines().filter(line->line.startsWith("split-100 · "+I18nService.getInstance().tr("ozon.fbs.pending"))).count());
+            assertEquals(1,report.lines().filter(line->line.startsWith("split-101 · "+I18nService.getInstance().tr("ozon.fbs.failed"))).count());
+            assertTrue(node("batchResultsPanel",TitledPane.class).isExpanded());
+            assertEquals(0,ShopBatchRegistry.activeCount());return null;
+        });
+        // Simulate the ordinary FBS read-only turn committing the native children.
+        // The open report must advance without a second acceptance click or remote write.
+        new OzonShipService().knownUnitPostings(shop,"split-100");
+        repository.upsertPage(1,List.of(posting("split-100-A","awaiting_deliver"),posting("split-100-B","awaiting_deliver")));
+        try(var c=Database.getConnection();var statement=c.prepareStatement("INSERT INTO ozon_unit_ship_receipts(shop_id,posting_number,owner,source_json,request_json,request_fingerprint,children_json,state,updated_at,parent_in_children) VALUES(1,'split-100',?,?,? ,?,'[\"split-100-A\",\"split-100-B\"]','COMPLETE','2026-10-20T01:00:00Z',0)")){
+            statement.setString(1,com.vncode.app.integration.listing.ListingIdentity.fingerprint(shop));
+            statement.setString(2,new com.google.gson.Gson().toJson(sources.stream().filter(p->p.postingNumber().equals("split-100")).findFirst().orElseThrow()));
+            statement.setString(3,"{}");statement.setString(4,"a".repeat(64));statement.executeUpdate();
+        }
+        fx(()->{controller.refreshLocalData();return null;});
+        awaitFx(()->selected().equals(Set.of("split-101"))&&node("packingOrdersTab",Tab.class).getText().contains("200"));
+        fx(()->{
+            String report=node("batchResultsArea",TextArea.class).getText();
+            assertEquals(101,report.lines().count());
+            assertTrue(report.contains("split-100 · "+I18nService.getInstance().tr("ozon.fbs.packaged")+" → split-100-A, split-100-B"));
+            assertFalse(report.contains("split-100 · "+I18nService.getInstance().tr("ozon.fbs.pending")));
+            assertEquals(101,accepted.get(),"Ordinary readback must never repeat acceptance");return null;
+        });
     }
 
     @Test void slowBackgroundReadKeepsFxPulsingAndOnlyTheNewestSearchReachesTheTable() throws Exception {
@@ -178,28 +249,6 @@ class OzonBulkUiTest {
                 new OzonRequirements(List.of(), List.of(), List.of()), List.of(), false,
                 List.of(new OzonPostingItemDto(0, "1", "11", "fixture", "Fixture item", 1, "RUB", "100")));
     }
-    private void cancelDialog(Runnable action, java.util.function.Function<DialogPane, ButtonType> choice) {
-        var timer = dialogCanceller(choice); timer.play(); try { action.run(); } finally { timer.stop(); }
-        assertNoDialogFailure();
-    }
-    private Timeline dialogCanceller(java.util.function.Function<DialogPane, ButtonType> choice) {
-        var timer = new Timeline(); timer.setCycleCount(javafx.animation.Animation.INDEFINITE);
-        timer.getKeyFrames().add(new KeyFrame(Duration.millis(50), ignored -> {
-            for (Window candidate : List.copyOf(Window.getWindows())) if (candidate instanceof Stage stage && stage.getOwner() == window && stage.isShowing()) {
-                var rootNode = stage.getScene().getRoot(); var found = rootNode instanceof DialogPane ? rootNode : rootNode.lookup(".dialog-pane");
-                if (found instanceof DialogPane dialog) {
-                    try { var type = choice.apply(dialog); timer.stop(); ((Button) dialog.lookupButton(type)).fire(); }
-                    catch (Throwable error) { dialogFailure.compareAndSet(null, error); timer.stop(); stage.close(); }
-                    return;
-                }
-            }
-        }));
-        return timer;
-    }
-    private void assertNoDialogFailure() {
-        Throwable failure = dialogFailure.get();
-        if (failure != null) throw new AssertionError("Owned confirmation dialog failed validation", failure);
-    }
     private <T> T node(String key, Class<T> type) { return type.cast(loader.getNamespace().get(key)); }
     @SuppressWarnings("unchecked") private TableView<OzonPostingDto> table(String key) { return (TableView<OzonPostingDto>) loader.getNamespace().get(key); }
     @SuppressWarnings("unchecked") private Set<String> selected() { return (Set<String>) field("selectedPostingNumbers"); }
@@ -208,9 +257,13 @@ class OzonBulkUiTest {
         catch (ReflectiveOperationException error) { throw new AssertionError(error); }
     }
     private void awaitFx(BooleanSupplier condition) throws Exception {
-        long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(5);
+        awaitFx(5,condition,()->"Ozon workspace did not reach the expected state");
+    }
+    private void awaitFx(int timeoutSeconds,BooleanSupplier condition,Supplier<String> diagnostic) throws Exception {
+        long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(timeoutSeconds);
         while (System.nanoTime() < deadline) { if (fx(condition::getAsBoolean)) return; Thread.sleep(10); }
-        assertTrue(fx(condition::getAsBoolean), "Ozon workspace did not reach the expected state");
+        boolean reached=fx(condition::getAsBoolean);
+        assertTrue(reached,reached?"":fx(diagnostic::get));
     }
     private static <T> T fx(Callable<T> operation) throws Exception {
         var task = new FutureTask<>(operation); Platform.runLater(task); return task.get(10, TimeUnit.SECONDS);

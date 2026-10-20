@@ -145,6 +145,7 @@ public class PackingWorkflow {
     public void deliverSupply(Shop shop,WbSupplySummary supply,com.vncode.app.integration.wb.WbShippingContract.Parameters shipping) throws IOException {
         MarketplaceGuard.requireWildberries(shop);
         LicenseRuntime.require(Permission.PACKING);
+        com.vncode.app.integration.listing.ListingIdentity.require(shop);
         DeliveryPreflight preflight = inspectDelivery(shop.getId(), supply);
         if (!preflight.labelsPrinted()) {
             throw new IllegalStateException("Сначала распечатайте этикетки для поставки.");
@@ -158,6 +159,7 @@ public class PackingWorkflow {
             new com.vncode.app.integration.wb.WbShippingService(apiClient,actionLogRepository,java.time.Clock.systemDefaultZone()).ensureShipping(shop,shipping,true);
         }
         LicenseRuntime.require(Permission.PACKING);
+        com.vncode.app.integration.listing.ListingIdentity.require(shop);
         try {
             apiClient.deliverSupply(shop.getApiKey(), supply.getSupplyId());
             supplyRepository.markSupplyDelivered(shop.getId(), supply.getSupplyId());

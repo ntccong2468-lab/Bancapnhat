@@ -1,0 +1,204 @@
+{
+  "baselineCommit": "0cee8c2",
+  "baselineVersion": "1.4.19",
+  "state": "source-fixed-tested-unreleased",
+  "completedUtc": "2026-10-18T11:37:56Z",
+  "environment": "Linux, Java 25.0.4.1, JavaFX under Xvfb; temporary shop databases; Ozon MockWebServer; actual PDF writers/readers",
+  "tests": 147,
+  "failures": 0,
+  "errors": 0,
+  "skipped": 0,
+  "suites": [
+    {
+      "class": "com.vncode.app.features.fbo.FboKizPrintPlannerTest",
+      "tests": 8,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.features.kiz.KizCategoryAllocatorTest",
+      "tests": 7,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.features.kiz.KizImportFormatsTest",
+      "tests": 13,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.features.kiz.KizReimportRecoveryTest",
+      "tests": 7,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.features.kiz.KizWarehouseTest",
+      "tests": 13,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.features.kiz.OzonShipmentKizRepositoryTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.features.kiz.SellerKizImportSchemaTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.features.kiz.WbShipmentKizRepositoryTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.features.print.KizAttachmentCoordinatorTest",
+      "tests": 13,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.features.print.KizPrintHistoryRecoveryTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.features.print.OrderExportWorkflowKizPlanningTest",
+      "tests": 13,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.features.print.ZnackKizExportServiceTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.features.print.KizCategoryDeletionExportTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.integration.ozon.OzonExemplarStateMachineTest",
+      "tests": 7,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.integration.ozon.OzonExemplarWorkflowTest",
+      "tests": 11,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.integration.ozon.OzonPrintBundleServiceTest",
+      "tests": 14,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.integration.ozon.OzonPrintHistoryServiceTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.integration.ozon.OzonPrintReadinessServiceTest",
+      "tests": 8,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.integration.znack.ZnackGtinInventoryBulkTest",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.ui.kiz.KizImportDialogTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.ui.kiz.KizWarehousePaneTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.ui.kiz.WbShipmentKizPaneTest",
+      "tests": 9,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.ui.ozon.OzonShipmentSourcesUiTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  ],
+  "reproducedBeforeFix": [
+    "Ozon: MissingMappingException after deleting category despite durable original KIZ reservation",
+    "Released KIZ in a deleted category becomes AVAILABLE",
+    "WB: DUPLICATE_KIZ_RESERVATION on independently imported occurrences with the same text"
+  ],
+  "verifiedAfterFix": [
+    "Deleted category reservation release archives unused stock; startup repairs old revived rows; consumed history preserved",
+    "Ozon existing posting reuses its original owner/product/item-bound reservation after category deletion; new posting cannot claim that proof",
+    "Ozon actual PDF bundle exported and reprinted after category deletion with original bindings",
+    "WB duplicate seller occurrences export to real PDFs; attachments retain distinct stock row IDs",
+    "Existing WB remote mark does not take another order occurrence; actual PDF reprint preserves frozen history",
+    "JavaFX category delete click and refresh do not recreate deleted category",
+    "Import report says structurally valid and marketplace acceptance not checked"
+  ],
+  "sellerRulesPreserved": [
+    "No Znack lookup or product GTIN matching for seller category stock",
+    "Repeated filenames, code content and past used content remain accepted as independent seller stock occurrences",
+    "Purchased KIZ allocation and business flow unchanged"
+  ],
+  "marketplaceRedKizDefinition": "Code rejected/red on WB or Ozon; requires marketplace evidence for the code and corresponding order. Structural validity is not marketplace acceptance.",
+  "bulkMarketplaceValidationOnUploadImplemented": false,
+  "actualMarketplaceAcceptanceVerified": false,
+  "liveMarketplaceWritesThisTask": 0,
+  "windowsInstallerTestedThisTask": false,
+  "releasePublishedThisTask": false,
+  "screenshot": {
+    "path": "docs/validation/evidence/2026-10-18-kiz-import-verification-state.png",
+    "sha256": "af4706c006ce251e0bb6e479a06a0c3c4cf863a638186c45b242adf517f5f616",
+    "containsRealKiz": false
+  }
+}

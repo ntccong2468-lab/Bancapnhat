@@ -1,0 +1,47 @@
+{
+  "sourceCommit": "e77a746128fa51f183a2a193275b6b1ef894c251",
+  "runId": 39102138545,
+  "artifactId": 12127726796,
+  "artifactSha256": "807ae8619fb2cccc3acbef128a74ec575bb12a36a449d4f05e45203d0c0acc8d",
+  "freshFullWindowsExecution": true,
+  "summary": {
+    "tests": 1749,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 2
+  },
+  "focusClasses": {
+    "com.vncode.app.testsupport.FinanceTestCleanupTest": {
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "com.vncode.app.ui.FxmlSmokeTest": {
+      "tests": 55,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "com.vncode.app.ui.products.ProductBulkDialogTest": {
+      "tests": 8,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "com.vncode.app.ui.products.ProductReferenceLayoutTest": {
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "com.vncode.app.ui.products.ProductRefreshUiTest": {
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  },
+  "liveSellerMutations": false,
+  "builtJarProductsResourcesMatchSource": true
+}

@@ -48,5 +48,12 @@ class KizServiceTest {
         var result=KizService.getSgtinMetadata(ids,batch->{calls.incrementAndGet();assertTrue(batch.size()<=100);Map<Long,KizService.SgtinMetadata> response=new HashMap<>();for(Long id:batch){assertTrue(queried.add(id));response.put(id,new KizService.SgtinMetadata(true,"fixture-value"));}response.put(9999L,new KizService.SgtinMetadata(true,"other-shop-value"));return response;});
         assertEquals(10,calls.get());assertEquals(1000,result.size());assertNull(result.get(9999L));
     }
+    @Test void readsTheOfficialMetaDetailsValueAndValidationDecision(){
+        var values=KizService.parseSgtinMetadata("{\"orders\":[{\"id\":101,\"metaDetails\":[{\"key\":\"imei\",\"value\":\"unrelated\",\"decision\":\"imeiMaySell\"},{\"key\":\"sgtin\",\"value\":\"synthetic-code\",\"decision\":\"sgtinRetired\"}]}]}");
+        assertTrue(values.get(101L).available());assertEquals("synthetic-code",values.get(101L).appliedValue());assertEquals("sgtinRetired",values.get(101L).decision());assertTrue(!values.get(101L).toString().contains("synthetic-code"));
+    }
+    @Test void malformedDuplicateOrderOrSgtinMetadataCannotBecomeAnAcceptedResult(){
+        org.junit.jupiter.api.Assertions.assertThrows(IllegalArgumentException.class,()->KizService.parseSgtinMetadata("{\"orders\":[{\"id\":101,\"metaDetails\":[{\"key\":\"sgtin\",\"value\":\"first\",\"decision\":\"sgtinIntroduced\"},{\"key\":\"sgtin\",\"value\":\"second\",\"decision\":\"sgtinRetired\"}]}]}"));
+    }
 
 }

@@ -23,6 +23,56 @@ public class ZnackApiClient {
     private final OkHttpClient nonRepeatingClient;
     private final Sleeper sleeper;
     private final Gson gson = new Gson();
+    private String catalogKey = "";
+    // /v4/product-list silently returns an empty list without its date interval.
+    // Freeze the upper bound for this client so every page sees the same snapshot.
+    private final String catalogReadUntil=java.time.ZonedDateTime.now(java.time.ZoneId.of("Europe/Moscow"))
+            .format(java.time.format.DateTimeFormatter.ofPattern("uuuu-MM-dd HH:mm:ss"));
+
+    private String catalogListPath(int limit,int offset){
+        return "/v4/product-list?from_date="+url("2000-01-01 00:00:00")+"&to_date="+url(catalogReadUntil)+"&limit="+limit+"&offset="+offset;
+    }
+
+    public static ZnackApiClient forCatalogKey(String key, Runnable guard) throws IOException {
+        return forCatalogKey(defaultClient(), key, guard);
+    }
+    static ZnackApiClient forCatalogKey(OkHttpClient transport, String key, Runnable guard) throws IOException {
+        String normalized = CatalogCredentialRepository.normalize(key);
+        OkHttpClient.Builder scopedBuilder = transport.newBuilder().followRedirects(false).followSslRedirects(false);
+        scopedBuilder.interceptors().add(0, chain -> {
+                    Request request = chain.request();
+                    String host = request.url().host();
+                    boolean catalog = host.equals(HttpUrl.get(ZnackModels.PRODUCTION_NATIONAL_CATALOG).host())
+                            || host.equals(HttpUrl.get(ZnackModels.SANDBOX_NATIONAL_CATALOG).host());
+                    if (catalog) {
+                        guard.run();
+                        if (!request.url().isHttps() || request.url().port() != 443)
+                            throw new IOException("CATALOG_KEY_ENDPOINT_INVALID");
+                        request = request.newBuilder().removeHeader("Authorization")
+                                .url(request.url().newBuilder().setQueryParameter("apikey", normalized).build()).build();
+                    }
+                    try { return chain.proceed(request); }
+                    catch (IOException failure) {
+                        if (catalog) throw new IOException("Catalog connection failed; retry the connection check.");
+                        throw failure;
+                    }
+                });
+        OkHttpClient scoped = scopedBuilder.build();
+        ZnackApiClient result = new ZnackApiClient(scoped);
+        result.catalogKey = normalized;
+        return result;
+    }
+    private String safeDiagnostic(String text) {
+        return ZnackSanitizer.diagnostic(catalogKey.isEmpty() || text == null ? text : text.replace(catalogKey, "[REDACTED]"));
+    }
+    public void checkCatalogConnection(String base) throws IOException {
+        JsonElement response = get(nationalCatalogBase(base), catalogListPath(1,0), null);
+        try {
+            JsonObject result = response.getAsJsonObject().getAsJsonObject("result");
+            if (response.getAsJsonObject().has("errors") || result == null || !result.get("goods").isJsonArray()
+                    || result.get("total").getAsInt() < 0) throw new IllegalArgumentException();
+        } catch (RuntimeException invalid) { throw new IOException("CATALOG_KEY_RESPONSE_INVALID"); }
+    }
 
     public ZnackApiClient() {
         this(defaultClient(), Thread::sleep);
@@ -61,7 +111,20 @@ public class ZnackApiClient {
         return post(authBase(base), "/auth/simpleSignIn" + (connection == null || connection.isBlank() ? "" : "/" + connection), null, body).getAsJsonObject();
     }
     public JsonElement products(String base, String token) throws IOException { return products(base, token, 0, 10_000); }
+    public boolean hasCatalogKey(){return !catalogKey.isEmpty();}
     public JsonElement products(String base, String token, int page, int limit) throws IOException {
+        if(page<0||page>=100||limit<1||limit>10_000)throw new IllegalArgumentException("CATALOG_PAGE_INVALID");
+        if(hasCatalogKey()){
+            int size=Math.min(limit,1000);
+            var response=get(nationalCatalogBase(base),catalogListPath(size,Math.multiplyExact(page,size)),null);
+            try{
+                var result=response.getAsJsonObject().getAsJsonObject("result");
+                if(response.getAsJsonObject().has("errors"))throw new IllegalArgumentException();
+                var goods=result.getAsJsonArray("goods");int total=result.get("total").getAsBigDecimal().intValueExact();
+                if(total<0||goods==null||goods.size()>size)throw new IllegalArgumentException();
+                var normalized=new JsonObject();normalized.add("results",goods);normalized.addProperty("total",total);return normalized;
+            }catch(RuntimeException invalid){throw new IOException("CATALOG_LIST_RESPONSE_INVALID");}
+        }
         return get(trueApiBase(base, 4), "/product/gtin?includeSubaccount=false&limit=" + limit + "&page=" + page + "&pg=lp", token);
     }
     public JsonElement productInfo(String base,String token,String gtin)throws IOException{
@@ -69,6 +132,7 @@ public class ZnackApiClient {
         return post(trueApiBase(base,4),"/product/info",token,body);
     }
     public JsonElement productCards(String base, String token, String gtins) throws IOException {
+        if (!catalogKey.isEmpty()) return get(nationalCatalogBase(base), "/v3/feed-product?gtins=" + url(gtins), null);
         return get(trueApiBase(base, 3), "/nk/feed-product?gtins=" + url(gtins), token);
     }
     public JsonElement permitDocuments(String base,String token,String gtin,String inn)throws IOException{
@@ -90,6 +154,7 @@ public class ZnackApiClient {
         return getWithoutRetry(nationalCatalogBase(base), "/v3/generate-gtins?quantity=" + quantity, token);
     }
     public JsonElement nationalCatalogCategories(String base, String token, String tnved) throws IOException {
+        if (!catalogKey.isEmpty()) return getEmptyOnNotFound(nationalCatalogBase(base), "/v3/categories?tnved=" + url(tnved), null);
         // Use the National Catalog gateway exposed by True API. The bearer token is issued by
         // this same GIS MT environment, and the official True API documentation publishes the
         // lookup as /nk/categories. Calling the standalone production host directly can return
@@ -97,14 +162,28 @@ public class ZnackApiClient {
         return getEmptyOnNotFound(trueApiBase(base, 3), "/nk/categories?tnved=" + url(tnved), token);
     }
     public JsonElement nationalCatalogAttributes(String base, String token, long categoryId) throws IOException {
+        if (!catalogKey.isEmpty()) return getEmptyOnNotFound(nationalCatalogBase(base), "/v3/attributes?cat_id=" + categoryId + "&attr_type=m", null);
         return getEmptyOnNotFound(trueApiBase(base, 3),
                 "/nk/attributes?cat_id=" + categoryId + "&attr_type=m", token);
+    }
+    public JsonElement nationalCatalogAllAttributes(String base,String token,long categoryId)throws IOException {
+        if(!catalogKey.isEmpty())return getEmptyOnNotFound(nationalCatalogBase(base),"/v3/attributes?cat_id="+categoryId+"&attr_type=a",null);
+        return getEmptyOnNotFound(trueApiBase(base,3),"/nk/attributes?cat_id="+categoryId+"&attr_type=a",token);
+    }
+    public JsonElement nationalCatalogCountries(String base,String token)throws IOException {
+        if(!catalogKey.isEmpty())return get(nationalCatalogBase(base),"/v3/dictionary/isocountry",null);
+        return get(trueApiBase(base,3),"/nk/dictionary/isocountry",token);
     }
     public JsonElement submitNationalCatalogFeed(String base, String token, JsonElement feed) throws IOException {
         return postWithoutRetry(nationalCatalogBase(base), "/v3/feed", token, feed);
     }
     public JsonElement nationalCatalogFeedStatus(String base, String token, String feedId) throws IOException {
         return get(nationalCatalogBase(base), "/v3/feed-status?verbose=true&feed_id=" + url(feedId), token);
+    }
+    /** Read-only registry lookup: the POST does not create or modify a document. */
+    public JsonElement registrationPermitInfo(String base,String token,JsonArray documents)throws IOException {
+        if(documents==null||documents.isEmpty()||documents.size()>25)throw new IllegalArgumentException("Select 1 to 25 permits");
+        return post(nationalCatalogBase(base),"/v4/rd-info",token,documents);
     }
     public JsonElement nationalCatalogSigningDocument(String base, String token, JsonObject body) throws IOException {
         return post(nationalCatalogBase(base), "/v3/feed-product-document", token, body);
@@ -125,7 +204,13 @@ public class ZnackApiClient {
     }
     public JsonArray orderStatus(String base,String token,String omsId,String orderId)throws IOException{return suzGet(base,"/api/v3/order/status?omsId="+url(omsId)+"&orderId="+url(orderId),token).getAsJsonArray();}
     public JsonElement codes(String base,String token,String omsId,String orderId,int quantity,String gtin)throws IOException{
-        return suzGet(base,"/api/v3/codes?omsId="+url(omsId)+"&orderId="+url(orderId)+"&quantity="+quantity+"&gtin="+url(gtin),token);
+        // Despite GET, this issues a new block from the paid order's buffer. A lost response must
+        // be recovered through /order/codes/blocks and /order/codes/retry, never transparently
+        // repeated by OkHttp as an ordinary read.
+        Request request=new Request.Builder().url(join(base,"/api/v3/codes?omsId="+url(omsId)
+                +"&orderId="+url(orderId)+"&quantity="+quantity+"&gtin="+url(gtin)))
+                .headers(suzHeaders(token)).get().build();
+        return execute(request,false,false);
     }
     public JsonElement codeBlocks(String base,String token,String omsId,String orderId,String gtin)throws IOException{
         return suzGet(base,"/api/v3/order/codes/blocks?omsId="+url(omsId)+"&orderId="+url(orderId)+"&gtin="+url(gtin),token);
@@ -184,6 +269,8 @@ public class ZnackApiClient {
             Request attemptRequest=repeatable?request:request.newBuilder()
                     .tag(NetworkAttempt.class,new NetworkAttempt()).build();
             try(Response response=transport.newCall(attemptRequest).execute()){
+                if (!catalogKey.isEmpty() && response.body()!=null && response.peekBody(4_194_305L).bytes().length>4_194_304)
+                    throw new IOException("Catalog response exceeds size limit");
                 String body=response.body()==null?"":response.body().string();
                 if(emptyOnNotFound&&response.code()==404){
                     LOGGER.info("Znack API returned no existing resource; continuing with an empty result. method={}, url={}",
@@ -210,9 +297,10 @@ public class ZnackApiClient {
                     }
                     LOGGER.error("Znack API request failed. method={}, url={}, httpStatus={}, contentType={}, responseBody={}",
                             request.method(),request.url(),response.code(),response.header("Content-Type",""),
-                            ZnackSanitizer.diagnostic(body));
-                    throw new ZnackApiException("Znack API request failed",response.code(),body,
-                            request.method(),request.url().toString());
+                            safeDiagnostic(body));
+                    throw new ZnackApiException("Znack API request failed",response.code(),safeDiagnostic(body),
+                            request.method(),request.url().toString(),
+                            response.code()==429?retryAfter(response.header("Retry-After")):null);
                 }
                 if(body.isBlank())return JsonNull.INSTANCE;
                 try{
@@ -220,9 +308,9 @@ public class ZnackApiClient {
                 }catch(JsonParseException e){
                     LOGGER.error("Znack API returned invalid JSON. method={}, url={}, httpStatus={}, contentType={}, responseBody={}",
                             request.method(),request.url(),response.code(),response.header("Content-Type",""),
-                            ZnackSanitizer.diagnostic(body),e);
+                            safeDiagnostic(body));
                     throw new IOException("Znack API returned invalid JSON (HTTP "+response.code()+"): "
-                            +ZnackSanitizer.message(body),e);
+                            +ZnackSanitizer.message(safeDiagnostic(body)));
                 }
             }
         }
@@ -236,7 +324,15 @@ public class ZnackApiClient {
         }catch(ArithmeticException|NumberFormatException ignored){}
         return RATE_LIMIT_FALLBACK_DELAY_MS<<(attempt-1);
     }
+    private static Duration retryAfter(String value){
+        if(value!=null)try{
+            long seconds=Long.parseLong(value.trim());
+            if(seconds>=0)return Duration.ofSeconds(seconds);
+        }catch(NumberFormatException ignored){}
+        return null;
+    }
     private void sleepRateLimit(long delay)throws IOException{
+        com.vncode.app.shared.RateLimitDeferral.waiting(java.util.concurrent.TimeUnit.MILLISECONDS.toNanos(delay));
         try{sleeper.sleep(delay);}
         catch(InterruptedException e){Thread.currentThread().interrupt();throw new IOException("Interrupted while waiting for the Znack rate limit.",e);}
     }
@@ -273,22 +369,29 @@ public class ZnackApiClient {
         private final String responseBody;
         private final String method;
         private final String url;
+        private final Duration retryAfter;
         public ZnackApiException(String message,int statusCode,String body){this(message,statusCode,body,"","");}
         public ZnackApiException(String message,int statusCode,String body,String method,String url){
+            this(message,statusCode,body,method,url,null);
+        }
+        public ZnackApiException(String message,int statusCode,String body,String method,String url,Duration retryAfter){
             super(message+" (HTTP "+statusCode+"): "+ZnackSanitizer.message(body));
             this.statusCode=statusCode;
             this.responseBody=ZnackSanitizer.diagnostic(body);
             this.method=method==null?"":method;
             this.url=ZnackSanitizer.diagnostic(url);
+            this.retryAfter=retryAfter;
         }
         public int statusCode(){return statusCode;}
         public String responseBody(){return responseBody;}
         public String method(){return method;}
         public String url(){return url;}
+        public Duration retryAfter(){return retryAfter;}
         public String diagnosticDetails(){
             return "HTTP status: "+statusCode
                     +(method.isBlank()?"":"\nMethod: "+method)
                     +(url.isBlank()?"":"\nURL: "+url)
+                    +(retryAfter==null?"":"\nRetry-After seconds: "+retryAfter.toSeconds())
                     +(responseBody.isBlank()?"":"\nResponse body:\n"+responseBody);
         }
     }

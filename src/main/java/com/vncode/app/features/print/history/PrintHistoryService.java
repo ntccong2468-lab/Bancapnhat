@@ -26,6 +26,29 @@ public class PrintHistoryService {
     private final PrintPreferenceService printPreferenceService = new PrintPreferenceService();
 
     public long recordSuccessfulJob(Shop shop, String supplyId, String supplyName, String printedAt, PrintTemplate template, List<Order> orders) {
+        List<PrintHistoryItem> items = snapshotItems(orders);
+        return repository.insertSuccessfulJob(
+                shop.getId(),
+                shop.getName(),
+                shop.getMarketplace().name(),
+                supplyId,
+                supplyName,
+                printedAt,
+                orders.size(),
+                template.getId(),
+                template.getName(),
+                printTemplateService.toJson(template),
+                items
+        );
+    }
+
+    public long recordPreparedFboJob(Shop shop,PrintTemplate template,List<Order> orders) {
+        return repository.insertPreparedFboJob(shop,template.getName(),printTemplateService.toJson(template),snapshotItems(orders));
+    }
+    public long recordPreparedFboJob(Shop shop,String templateName,String layoutJson,List<Order> orders) {
+        return repository.insertPreparedFboJob(shop,templateName,layoutJson,snapshotItems(orders));
+    }
+    private List<PrintHistoryItem> snapshotItems(List<Order> orders) {
         List<PrintHistoryItem> items = new ArrayList<>(orders.size());
         for (int index = 0; index < orders.size(); index++) {
             Order order = orders.get(index);
@@ -53,19 +76,7 @@ public class PrintHistoryService {
                     null
             ));
         }
-        return repository.insertSuccessfulJob(
-                shop.getId(),
-                shop.getName(),
-                shop.getMarketplace().name(),
-                supplyId,
-                supplyName,
-                printedAt,
-                orders.size(),
-                template.getId(),
-                template.getName(),
-                printTemplateService.toJson(template),
-                items
-        );
+        return List.copyOf(items);
     }
 
     public long recordFailedJob(Shop shop, String supplyId, String supplyName, String printedAt, PrintTemplate template, int itemCount, String errorMessage) {
@@ -97,7 +108,9 @@ public class PrintHistoryService {
     }
 
     public OrderExportWorkflow.ExportResult reprint(PrintHistoryJobSummary job, File outputFile, File detailsFile) throws IOException, WriterException {
-        PrintTemplate template = printTemplateService.getDefaultTemplate();
+        if(job==null||!job.canReprint())throw new IllegalArgumentException("Print history is not recoverable");
+        boolean ozonCombined=job.isFbo()&&"OZON".equalsIgnoreCase(job.marketplace())&&com.vncode.app.integration.ozon.OzonFboBarcodePdfExporter.isFrozenLayout(job.templateLayoutJson());
+        PrintTemplate template = ozonCombined?null:job.templateLayoutJson()==null||job.templateLayoutJson().isBlank()?printTemplateService.getDefaultTemplate():printTemplateService.fromJson(job.templateLayoutJson());
         PrintJobOptions printOptions = printPreferenceService.load();
         File barcodeStaging = null;
         File detailsStaging = null;
@@ -105,7 +118,9 @@ public class PrintHistoryService {
             List<Order> orders = toOrders(repository.findItems(job.id()));
             barcodeStaging = AtomicFilePublisher.stagingFile(outputFile, ".pdf");
             detailsStaging = AtomicFilePublisher.stagingFile(detailsFile, ".pdf");
-            barcodePrintService.export(template, orders, barcodeStaging, printOptions);
+            if(ozonCombined)com.vncode.app.integration.ozon.OzonFboBarcodePdfExporter.renderFrozen(job.templateLayoutJson(),orders,barcodeStaging);
+            else if(job.isFbo())com.vncode.app.features.print.GenerateBarcode.exportTemplatePages(template,orders,barcodeStaging);
+            else barcodePrintService.export(template, orders, barcodeStaging, printOptions);
             orderDetailsPdfExporter.export(detailsStaging, orders, new OrderDetailsPdfExporter.PrintDetailsMetadata(
                     job.supplyId(),
                     job.supplyName(),

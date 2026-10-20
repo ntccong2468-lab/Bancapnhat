@@ -21,13 +21,13 @@ public final class OzonPostingRepository {
     public long countFiltered(int shop,String status,String text){try(var c=Database.getConnection()){return countFiltered(c,shop,status,text);}catch(SQLException e){throw new IllegalStateException("Cannot count Ozon postings");}}
     public long countFiltered(Connection c,int shop,String status,String text)throws SQLException{
         var q=new com.vncode.app.features.ozon.OzonFbsQuery(shop,status,text,"",0,100);registerSearch(c);
-        try(var p=c.prepareStatement("SELECT COUNT(*) FROM ozon_postings p WHERE "+filter(q))){bindFilter(p,q);try(var r=p.executeQuery()){return r.getLong(1);}}
+        try(var p=c.prepareStatement("SELECT COUNT(*) FROM ozon_postings p WHERE "+filter(q)+unitShipExclusion(c))){bindFilter(p,q);try(var r=p.executeQuery()){return r.getLong(1);}}
     }
     public List<OzonPostingDto> findSortedPage(com.vncode.app.features.ozon.OzonFbsQuery q){try(var c=Database.getConnection()){return findSortedPage(c,q);}catch(SQLException e){throw new IllegalStateException("Cannot page Ozon postings");}}
     public List<OzonPostingDto> findSortedPage(Connection c,com.vncode.app.features.ozon.OzonFbsQuery q)throws SQLException{
         registerSearch(c);org.sqlite.Collation.create(c,"VN_NATURAL",new org.sqlite.Collation(){protected int xCompare(String a,String b){return com.vncode.app.shared.NaturalOrderComparator.compareIgnoreCase(a,b);}});
         var sort=new ArrayList<String>();if(!q.sort().isBlank())for(String field:q.sort().split(",")){String expression=switch(field){case "product"->"coalesce(nullif(pr.name,''),nullif(i.name,''),i.sku)";case "article"->"coalesce(nullif(pr.article,''),nullif(i.offer_id,''),i.sku)";case "color"->"pr.color";default->"pr.size";};sort.add("CASE WHEN "+expression+" IS NULL OR "+expression+"='' THEN 1 ELSE 0 END");sort.add(expression+" COLLATE VN_NATURAL");}sort.add("p.posting_number COLLATE VN_NATURAL");
-        String sql="SELECT p.* FROM ozon_postings p LEFT JOIN ozon_posting_items i ON i.shop_id=p.shop_id AND i.posting_number=p.posting_number AND i.item_index=0 LEFT JOIN ozon_products pr ON pr.shop_id=i.shop_id AND pr.product_id=coalesce((SELECT own.product_id FROM ozon_products own WHERE own.shop_id=i.shop_id AND own.product_id=i.product_id),(SELECT own.product_id FROM ozon_products own WHERE own.shop_id=i.shop_id AND own.sku=i.sku ORDER BY own.product_id LIMIT 1)) WHERE "+filter(q)+" ORDER BY "+String.join(",",sort)+" LIMIT ? OFFSET ?";
+        String sql="SELECT p.* FROM ozon_postings p LEFT JOIN ozon_posting_items i ON i.shop_id=p.shop_id AND i.posting_number=p.posting_number AND i.item_index=0 LEFT JOIN ozon_products pr ON pr.shop_id=i.shop_id AND pr.product_id=coalesce((SELECT own.product_id FROM ozon_products own WHERE own.shop_id=i.shop_id AND own.product_id=i.product_id),(SELECT own.product_id FROM ozon_products own WHERE own.shop_id=i.shop_id AND own.sku=i.sku ORDER BY own.product_id LIMIT 1)) WHERE "+filter(q)+unitShipExclusion(c)+" ORDER BY "+String.join(",",sort)+" LIMIT ? OFFSET ?";
         var rows=new ArrayList<OzonPostingDto>();try(var p=c.prepareStatement(sql)){int n=bindFilter(p,q);p.setInt(n++,q.limit());p.setInt(n,q.offset());try(var r=p.executeQuery()){while(r.next())rows.add(readPosting(c,q.shopId(),r,List.of()));}}
         return withItems(c, q.shopId(), rows);
     }
@@ -69,7 +69,7 @@ public final class OzonPostingRepository {
                             (SELECT own.product_id FROM ozon_products own
                              WHERE own.shop_id=i.shop_id AND own.sku=i.sku ORDER BY own.product_id LIMIT 1))
                         WHERE
-                        """ + filter(query) + " ORDER BY " + String.join(",", order) + " LIMIT ?";
+                        """ + filter(query) + unitShipExclusion(connection) + " ORDER BY " + String.join(",", order) + " LIMIT ?";
                 List<String> numbers = new ArrayList<>();
                 try (PreparedStatement statement = connection.prepareStatement(sql)) {
                     statement.setInt(bindFilter(statement, query), maximum + 1);
@@ -89,6 +89,27 @@ public final class OzonPostingRepository {
         } catch (SQLException exception) {
             throw new IllegalStateException("Cannot freeze the selected Ozon postings", exception);
         }
+    }
+
+    /** Preserve the source cache/history; actionable views show only remotely verified children. */
+    private static String unitShipExclusion(Connection connection)throws SQLException {
+        try(var statement=connection.prepareStatement("SELECT 1 FROM sqlite_master WHERE type='table' AND name='ozon_unit_ship_receipts'");var result=statement.executeQuery()){
+            if(!result.next())return "";
+        }
+        return " AND NOT EXISTS(SELECT 1 FROM ozon_unit_ship_receipts r WHERE r.shop_id=p.shop_id AND r.posting_number=p.posting_number AND r.state='COMPLETE' AND r.parent_in_children=0)";
+    }
+
+    private static String unitShipStatusExclusion(Connection connection)throws SQLException {
+        String excluded=unitShipExclusion(connection);if(excluded.isBlank())return excluded;
+        return excluded+" AND NOT EXISTS(SELECT 1 FROM ozon_unit_ship_receipts r WHERE r.shop_id=p.shop_id AND r.posting_number=p.posting_number AND r.state IN ('PENDING','AMBIGUOUS','ACCEPTED'))";
+    }
+
+    /** Independent ordinary status cursor; pending split sources have their own bounded reader. */
+    public List<String> findStatusNumbersAfter(int shopId,String after,int limit){
+        if(shopId<=0||limit<1||limit>1000)throw new IllegalArgumentException("Invalid Ozon status page");
+        try(var connection=Database.getConnection();var statement=connection.prepareStatement("SELECT p.posting_number FROM ozon_postings p WHERE p.shop_id=? AND p.status IN ('awaiting_packaging','awaiting_deliver','delivering') AND p.posting_number>?"+unitShipStatusExclusion(connection)+" ORDER BY p.posting_number LIMIT ?")){
+            statement.setInt(1,shopId);statement.setString(2,after);statement.setInt(3,limit);try(var result=statement.executeQuery()){var numbers=new ArrayList<String>();while(result.next())numbers.add(result.getString(1));return List.copyOf(numbers);}
+        }catch(SQLException error){throw new IllegalStateException("Cannot read Ozon status page",error);}
     }
 
     private static void registerSearch(Connection c)throws SQLException{org.sqlite.Function.create(c,"vn_fold",new org.sqlite.Function(){protected void xFunc()throws SQLException{String v=value_text(0);result(v==null?"":java.text.Normalizer.normalize(v,java.text.Normalizer.Form.NFKC).toLowerCase(java.util.Locale.ROOT));}});}
@@ -176,7 +197,7 @@ public final class OzonPostingRepository {
     /** Keyset scan stays stable when detail refresh removes rows from the active queue. */
     List<String> findActiveNumbersAfter(int shopId,String after,int limit){
         if(shopId<=0||limit<1||limit>1000)throw new IllegalArgumentException("Invalid Ozon posting page");
-        try(var c=Database.getConnection();var p=c.prepareStatement("SELECT posting_number FROM ozon_postings WHERE shop_id=? AND status IN ('awaiting_packaging','awaiting_deliver') AND posting_number>? ORDER BY posting_number LIMIT ?")){
+        try(var c=Database.getConnection();var p=c.prepareStatement("SELECT p.posting_number FROM ozon_postings p WHERE p.shop_id=? AND p.status IN ('awaiting_packaging','awaiting_deliver') AND p.posting_number>?"+unitShipStatusExclusion(c)+" ORDER BY p.posting_number LIMIT ?")){
             p.setInt(1,shopId);p.setString(2,after);p.setInt(3,limit);try(var r=p.executeQuery()){var values=new ArrayList<String>();while(r.next())values.add(r.getString(1));return List.copyOf(values);}
         }catch(SQLException e){throw new IllegalStateException("Cannot read active Ozon posting page");}
     }
@@ -338,7 +359,7 @@ public final class OzonPostingRepository {
                 List.copyOf(items.getOrDefault(value.postingNumber(), List.of())))).toList();
     }
 
-    private static void upsert(Connection connection, int shopId, OzonPostingDto posting) throws SQLException {
+    static void upsert(Connection connection, int shopId, OzonPostingDto posting) throws SQLException {
         String now = Instant.now().toString();
         try (PreparedStatement statement = connection.prepareStatement("""
                 INSERT INTO ozon_postings(shop_id,posting_number,order_id,order_number,status,substatus,

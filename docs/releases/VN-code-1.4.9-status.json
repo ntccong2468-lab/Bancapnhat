@@ -1,0 +1,94 @@
+{
+  "version": "1.4.9",
+  "baseVersion": "1.4.8",
+  "complete": false,
+  "officialReleasePublished": true,
+  "licenseIntegration": {
+    "implemented": true,
+    "productionReady": false,
+    "activeKeyId": "vncode-2",
+    "serverSigningKeyMatch": "owner-confirmed-Portal035-vncode2",
+    "ownerReportedActivationVersion": "1.4.4"
+  },
+  "scope": [
+    "License route recovery and larger bounded timeout budget for hotspot/international networks",
+    "One-shot activation POSTs and explicit Cloudflare challenge diagnostics",
+    "Regression coverage for device continuity across VN/RU and IPv4/IPv6 network metadata"
+  ],
+  "validation": {
+    "windowsFullBuild": {
+      "runId": 38686022279,
+      "sourceCommit": "9c9c68b88f4c8b7f3b64e3da3c6af74e417db31d",
+      "result": "passed",
+      "javaSuites": 217,
+      "javaTests": 1245,
+      "javaPassed": 1243,
+      "javaFailures": 0,
+      "javaErrors": 0,
+      "javaSkippedPlatformSpecific": 2,
+      "nativeLauncher": "passed",
+      "gs1AndCatalogDpapi": "passed",
+      "installerArtifactId": 11951571193,
+      "nativeInstallAndUpgrade": "passed",
+      "upgradeFromVersions": [
+        "1.1.34",
+        "1.2.0",
+        "1.2.1",
+        "1.2.2",
+        "1.3.0",
+        "1.4.0",
+        "1.4.6"
+      ],
+      "desktopLayouts": 272,
+      "horizontalButtonOverflow": 0,
+      "workspaceDpi": [
+        100,
+        125,
+        150
+      ],
+      "workspaceDatasets": [
+        "6wb4ozon",
+        "10ozon"
+      ],
+      "windowsLowEndHardwareMeasured": false
+    },
+    "realVietnamRussiaWifiMobileNetworks": "owner-testing-required",
+    "productionCloudflareZoneRules": "not-inspected-or-modified",
+    "productionMultiDeviceOfflineRevocation": "not-verified",
+    "localFocusedTests": {
+      "javaJavaFx": 70,
+      "portal": 58,
+      "releaseContracts": 53,
+      "result": "passed"
+    },
+    "separateWindowsLicenseValidation": {
+      "runId": 38688104707,
+      "result": "passed",
+      "reason": "Run separately while the full Java suite took longer than the prior build; full run later passed."
+    },
+    "ownerReadOnlyNetworkProbes": {
+      "ipv4PublicConfig": "200 Portal 0.3.5",
+      "ipv6PublicConfig": "owner reports equivalent successful response",
+      "desktopRegistrationStatus": "401 AUTH_REQUIRED without credentials, using app User-Agent",
+      "authenticatedActivationOnAffectedCarrier": "not-yet-tested-with-1.4.9"
+    },
+    "shippedJavaProductionProbe": "Read-only synthetic registration status returned expected 401 REGISTRATION_EXPIRED over verified HTTPS from cloud; no real key/account/device used."
+  },
+  "releaseChannel": {
+    "repository": "ntccong2468-lab/Bancapnhat",
+    "tag": "v1.4.9",
+    "appAutomaticFeed": "/releases/latest",
+    "publicationAuthorization": "Owner requested all future updates as Published/Latest and requested license connectivity improvements for Wi-Fi, mobile hotspots and VN/RU networks. Unverified production/carrier acceptance remains disclosed.",
+    "installerSha256": "6330d7628640da5b99560434236fb814ae53a0e1d1933a0a73880812f0f102a7",
+    "installerBytes": 144735232,
+    "prepareRunId": 38689254529,
+    "draftPreparation": "passed",
+    "publishedAt": "2026-10-15T05:54:38Z",
+    "releaseId": 413462253,
+    "url": "https://github.com/ntccong2468-lab/Bancapnhat/releases/tag/v1.4.9",
+    "publicLatestVerified": true,
+    "publicInstallerDownloadedAndSha256Verified": true,
+    "desktop149UpdaterDiscovery": "AVAILABLE for current version 1.4.4; Windows install action supported",
+    "desktop149UpdaterDownload": "passed on Linux using session HTTPS proxy and trusted CA; exact public EXE size and SHA-256 verified; no EXE execution in this library probe; native installer checked separately on Windows CI"
+  }
+}

@@ -4,6 +4,21 @@ import {createSigningKeyProvider} from '../src/signing-key.js';
 
 const material=n=>Buffer.alloc(48,n).toString('base64url');
 
+test('actual Ed25519 PKCS8 imports from clipboard whitespace, Base64, quoted text and PEM without rotating the key',async()=>{
+ const pair=await crypto.subtle.generateKey('Ed25519',true,['sign','verify']);
+ const der=Buffer.from(await crypto.subtle.exportKey('pkcs8',pair.privateKey));
+ const b64=der.toString('base64'),url=der.toString('base64url');
+ const forms=[url,'\ufeff  '+url+'\r\n',b64,JSON.stringify(url),'-----BEGIN PRIVATE KEY-----\n'+b64+'\n-----END PRIVATE KEY-----'];
+ const get=createSigningKeyProvider(),message=new TextEncoder().encode('configuration compatibility check');
+ for(const form of forms) {
+  const imported=await get({LICENSE_KEY_ID:'vncode-1',LICENSE_SIGNING_KEY:form});
+  const signature=await crypto.subtle.sign('Ed25519',imported.key,message);
+  assert.equal(await crypto.subtle.verify('Ed25519',pair.publicKey,signature,message),true);
+ }
+ for(const invalid of ['{"d":"private"}','-----BEGIN PUBLIC KEY-----\n'+b64+'\n-----END PUBLIC KEY-----','a=garbage'])
+  await assert.rejects(get({LICENSE_KEY_ID:'vncode-1',LICENSE_SIGNING_KEY:invalid}),{message:'SIGNING_NOT_CONFIGURED'});
+});
+
 test('1000 concurrent requests share one signing import and do not expose its material',async()=>{
  let imports=0,finish;
  const imported={fixture:'key-a'},get=createSigningKeyProvider(async raw=>{

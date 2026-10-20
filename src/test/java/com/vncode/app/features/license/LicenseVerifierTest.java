@@ -4,11 +4,24 @@ import com.google.gson.*;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 import static com.vncode.app.features.license.LicenseModels.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 class LicenseVerifierTest {
+    @Test void signedStartTimesAllowBoundedDriftInEitherDisplayTimezoneAndRejectMoreThanFiveMinutes()throws Exception {
+        var f=new LicenseTestFixtures();var envelope=f.sign(f.payload());
+        var instant=java.time.Instant.ofEpochSecond(LicenseTestFixtures.NOW-3);
+        for(String zone:List.of("Asia/Ho_Chi_Minh","Europe/Moscow")) {
+            var clock=java.time.Clock.fixed(instant,java.time.ZoneId.of(zone));
+            assertNotNull(f.verify(envelope,clock.instant().getEpochSecond(),true));
+        }
+        assertNotNull(f.verify(envelope,LicenseTestFixtures.NOW-300,true));
+        assertEquals("LICENSE_CLOCK_SKEW",assertThrows(IOException.class,()->f.verify(envelope,LicenseTestFixtures.NOW-301,true)).getMessage());
+        assertEquals("LICENSE_EXPIRED",assertThrows(IOException.class,()->f.verify(envelope,LicenseTestFixtures.NOW+72*3600,false)).getMessage());
+        assertEquals("LICENSE_EXPIRED",assertThrows(IOException.class,()->f.verify(envelope,LicenseTestFixtures.NOW+30*86400,true)).getMessage());
+    }
     @Test void validatesGeneratedIssuerSignatureAndImmutablePermissions() throws Exception {
         var f = new LicenseTestFixtures(); var lease = f.verify(f.sign(f.payload()), LicenseTestFixtures.NOW, false);
         assertEquals("account-test", lease.accountId()); assertEquals(f.device.hash(), lease.deviceHash());

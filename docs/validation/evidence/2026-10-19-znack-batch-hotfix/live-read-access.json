@@ -1,0 +1,25 @@
+{
+  "mode": "read-only",
+  "writesPerformed": false,
+  "checkedAt": "2026-10-19T21:21:26.349848+00:00",
+  "services": [
+    {
+      "service": "WB",
+      "httpStatus": 200,
+      "status": "read_ok",
+      "rowsRead": 1
+    },
+    {
+      "service": "Ozon",
+      "httpStatus": 200,
+      "status": "read_ok",
+      "rowsRead": 1
+    },
+    {
+      "service": "NationalCatalog",
+      "httpStatus": 200,
+      "status": "read_ok",
+      "rowsRead": 1
+    }
+  ]
+}

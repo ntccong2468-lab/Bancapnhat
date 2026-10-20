@@ -22,6 +22,9 @@ public class Order {
     private String wbStatus;
     private Long nmId;
     private boolean requiresKiz;
+    private java.util.List<com.vncode.app.features.kiz.status.Kn3Mark> kn3Marks=java.util.List.of();
+    public java.util.List<com.vncode.app.features.kiz.status.Kn3Mark> getKn3Marks(){return kn3Marks;}
+    public void setKn3Marks(java.util.List<com.vncode.app.features.kiz.status.Kn3Mark> marks){kn3Marks=java.util.List.copyOf(marks);}
 
     public Order() {
     }

@@ -9,6 +9,7 @@ import com.vncode.app.features.license.LicenseRuntime;
 import com.vncode.app.integration.marketplace.MarketplaceGuard;
 import com.vncode.app.models.Shop;
 import com.vncode.app.shared.AtomicFilePublisher;
+import com.vncode.app.features.kiz.KizSourceSelection;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -23,8 +24,9 @@ import java.util.LinkedHashMap;
 import java.util.function.IntConsumer;
 
 /**
- * Idempotent Ozon print orchestration: reserve KIZ locally, preserve official pages, append physical
- * KIZ labels and create a separate picking list. KIZ is never submitted to Ozon.
+ * Idempotent Ozon print orchestration: reserve KIZ locally, preserve official shipping pages,
+ * replace redundant product labels with combined KIZ labels and create a separate picking list.
+ * KIZ is never submitted to Ozon.
  */
 public final class OzonPrintBundleService {
     private final OzonPostingRepository postings;
@@ -43,19 +45,23 @@ public final class OzonPrintBundleService {
                 new OzonLabelService()::downloadOfficialPdf);
     }
 
+    public OzonPrintBundleService(KizSourceSelection sources){
+        this(new OzonPostingRepository(),new OzonExemplarJobRepository(),defaultPreparation(new OzonExemplarService(),Objects.requireNonNull(sources)),new OzonLabelService()::downloadOfficialPdf);
+    }
     private static Preparation defaultPreparation() {
         return defaultPreparation(new OzonExemplarService());
     }
 
-    static Preparation defaultPreparation(OzonExemplarService service) {
+    static Preparation defaultPreparation(OzonExemplarService service) {return defaultPreparation(service,null);}
+    static Preparation defaultPreparation(OzonExemplarService service,KizSourceSelection sources) {
         return new Preparation() {
             @Override public OzonPreparationResult prepare(Shop shop, String postingNumber) throws IOException {
-                return service.stageForPrint(shop, postingNumber);
+                return service.openPrintBatch(shop,sources).stageForPrint(postingNumber);
             }
             @Override public boolean refreshEveryNewPrint() { return true; }
             @Override public boolean validateShopOwner() { return true; }
             @Override public Preparation forBatch(Shop shop) {
-                OzonExemplarService.PrintBatch batch = service.openPrintBatch(shop);
+                OzonExemplarService.PrintBatch batch = service.openPrintBatch(shop,sources);
                 return new Preparation() {
                     private final Map<String,OzonPreparationResult> prepared=new LinkedHashMap<>();
                     @Override public OzonPreparationResult prepare(Shop selected, String number) throws IOException {
@@ -328,7 +334,7 @@ public final class OzonPrintBundleService {
         Map<String, OzonProductDto> products = new LinkedHashMap<>();
         OzonCatalogRepository catalog = new OzonCatalogRepository();
         for (int start = 0; start < skus.size(); start += 500) {
-            products.putAll(catalog.findBySkus(shop.getId(), skus.subList(start, Math.min(start + 500, skus.size()))));
+            products.putAll(catalog.findBySkusForPrinting(shop.getId(), skus.subList(start, Math.min(start + 500, skus.size()))));
         }
         return Map.copyOf(products);
     }
@@ -361,13 +367,16 @@ public final class OzonPrintBundleService {
         }
         try (PdfDocument source = new PdfDocument(new PdfReader(official));
                 PdfDocument destination = new PdfDocument(new PdfWriter(target))) {
-            int officialPages = source.getNumberOfPages();
-            if (officialPages < 1) throw new IOException("The official Ozon shipping label PDF has no pages.");
+            if (source.getNumberOfPages() < 1) {
+                throw new IOException("The official Ozon shipping label PDF has no pages.");
+            }
+            List<Integer> retainedPages = OzonOfficialLabelSelector.retainedPages(
+                    official, source, posting, bindings, products);
             int bindingIndex = 0;
             int appended = 0;
-            // Preserve every official 58 x 40 mm page unchanged and place the corresponding
-            // physical KIZ page directly after it whenever one is available.
-            for (int page = 1; page <= officialPages; page++) {
+            // Shipping pages retain their exact content and dimensions. A product-only page
+            // already covered by the combined labels is omitted instead of printing it twice.
+            for (int page : retainedPages) {
                 source.copyPagesTo(page, page, destination);
                 if (bindingIndex < bindings.size()) {
                     appended += kizLabels.append(
@@ -381,7 +390,7 @@ public final class OzonPrintBundleService {
             if (appended != bindings.size()) {
                 throw new IOException("The Ozon KIZ label page count is incomplete.");
             }
-            return officialPages;
+            return retainedPages.size();
         } catch (IOException exception) {
             throw exception;
         } catch (RuntimeException exception) {

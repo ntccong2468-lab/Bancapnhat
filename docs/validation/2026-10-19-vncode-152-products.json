@@ -1,0 +1,110 @@
+{
+  "targeted": [
+    {
+      "class": "com.vncode.app.features.products.ProductSuggestionsTest",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.ui.products.ProductBulkDialogTest",
+      "tests": 11,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.features.products.ProductBulkEditServiceTest",
+      "tests": 17,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.features.products.ProductBulkEditWbIntegrationTest",
+      "tests": 10,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.ui.products.ProductBulkEditPaneTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.features.products.ProductEditBatchIntegrationTest",
+      "tests": 14,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.features.products.ProductBulkDocumentBudgetTest",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.ui.tnved.FashionTnvedBrowserTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  ],
+  "totals": {
+    "tests": 66,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "releaseToolTests": {
+    "tests": 78,
+    "failures": 0
+  },
+  "simulatedMarketplaceWrites": true,
+  "liveMarketplaceWriteAcceptance": false,
+  "wildberriesBatch": {
+    "marketplace": "WILDBERRIES",
+    "products": 1000,
+    "simulatedApi": true,
+    "liveSellerMutations": false,
+    "writes": 10,
+    "reads": 67,
+    "dictionaryReads": 2,
+    "taskReads": 0,
+    "maxItems": 100,
+    "verified": 1000,
+    "elapsedMs": 18356.571273
+  },
+  "ozonBatch": {
+    "marketplace": "OZON",
+    "products": 1000,
+    "simulatedApi": true,
+    "liveSellerMutations": false,
+    "writes": 10,
+    "reads": 1045,
+    "dictionaryReads": 3,
+    "taskReads": 10,
+    "maxItems": 100,
+    "verified": 1000,
+    "elapsedMs": 12639.774886
+  },
+  "additionalInteractionRegression": {
+    "tests": 5,
+    "failures": 0,
+    "errors": 0
+  },
+  "fullRegression": {
+    "tests": 1942,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 2,
+    "command": "mvn-vncode -o -q clean verify"
+  }
+}

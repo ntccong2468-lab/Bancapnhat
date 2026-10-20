@@ -38,6 +38,11 @@ class ZnackRegistrationQueryRepositoryTest {
     @AfterEach void cleanup(){System.clearProperty("vncode.appdata.dir");}
     SearchCriteria criteria(String query,int offset){return new SearchCriteria(1,query,List.of(),"ALL",10_000,offset);}
 
+    @Test void changedGroupIsDetectedForBothLoadedRowsAndFrozenBackgroundSelection()throws Exception {
+        try(var c=Database.getConnection();var st=c.createStatement()){st.execute("UPDATE znack_card_registrations SET tnved='6204',feed_id='old-feed' WHERE shop_id=1 AND chrt_id=1");}
+        var query=new SearchCriteria(1,"",List.of(),"ALL",300,0);var page=repository.page(query);var old=page.rows().stream().filter(r->r.chrtId()==1).findFirst().orElseThrow();assertTrue(old.tnvedGroupChanged());assertTrue(page.details().get(1L).groupChanged());assertEquals("6103220000",page.details().get(1L).tnved());
+        assertTrue(repository.allEligible(query).stream().anyMatch(r->r.chrtId()==1&&r.tnvedGroupChanged()));
+    }
     @Test void stableBoundedPagesReachEveryVariantBeyondFiveHundred() {
         var seen=new LinkedHashSet<Long>();
         for(int offset=0;offset<1_230;offset+=ZnackRegistrationQueryRepository.PAGE_SIZE) {
@@ -75,5 +80,63 @@ class ZnackRegistrationQueryRepositoryTest {
         assertThrows(IllegalArgumentException.class,()->repository.allEligible(new SearchCriteria(99,"",List.of(),"ALL",300,0)));
         var other=repository.page(new SearchCriteria(2,"",List.of(),"ALL",300,0));
         assertEquals(1,other.filtered());assertEquals("Foreign",other.rows().getFirst().title());assertTrue(other.details().get(1L).gender().isBlank());
+    }
+    @Test void observedModerationAndDraftsAreNotCountedOrFilteredAsCatalogErrors()throws Exception {
+        var shop=new com.vncode.app.models.Shop(1,"Fixture WB","fixture");
+        String receipt=com.vncode.app.testsupport.RegistrationSourceFixture.ready(shop);
+        long existingErrors=new ZnackRegistrationQueryRepository(receipt,new com.vncode.app.features.sync.RegistrationCardIndex(shop)).page(criteria("",0)).summary().errors();
+        var cards=new ArrayList<RegisteredGtin>();var codes=List.of("00000000000017","00000000000024","00000000000031");var states=List.of("errors","moderation","draft");
+        try(var c=Database.getConnection();var p=c.prepareStatement("INSERT INTO wb_product_size_skus(shop_id,chrt_id,sku) VALUES(1,?,?)")){
+            for(int i=0;i<codes.size();i++){
+                p.setLong(1,501+i);p.setString(2,codes.get(i));p.executeUpdate();
+                var details=com.vncode.app.integration.znack.registration.CatalogProductDataParser.parse(com.google.gson.JsonParser.parseString("{\"good_status\":\"draft\",\"good_detailed_status\":[\""+states.get(i)+"\"]}").getAsJsonObject());
+                cards.add(new RegisteredGtin(codes.get(i),"same-article","","XL",true,false,com.vncode.app.features.gtinsync.RegisteredGtinProof.source(shop),Instant.now(),details));
+            }
+        }
+        new GtinSyncRepository().saveCatalog(1,Marketplace.WILDBERRIES,cards);
+        var observed=new ZnackRegistrationQueryRepository(receipt,new com.vncode.app.features.sync.RegistrationCardIndex(shop));
+        assertEquals(existingErrors+1,observed.page(criteria("",0)).summary().errors());assertEquals(2,observed.page(criteria("",0)).summary().waiting());
+        var errors=observed.page(new SearchCriteria(1,"",List.of(),"ERROR",300,0)).rows();
+        assertTrue(errors.stream().anyMatch(r->r.chrtId()==501));assertFalse(errors.stream().anyMatch(r->r.chrtId()==502||r.chrtId()==503));
+        var processing=observed.page(new SearchCriteria(1,"",List.of(),"IN_PROGRESS",300,0)).rows();
+        assertEquals(List.of(502L,503L),processing.stream().map(Sku::chrtId).toList(),
+                "A draft already observed on Catalog must appear beside moderated cards");
+        var draft=processing.stream().filter(row->row.chrtId()==503).findFirst().orElseThrow();
+        assertFalse(draft.hasFeed(),"Showing a Catalog draft must not invent a registration receipt");
+        assertTrue(observed.page(new SearchCriteria(1,"",List.of(),"NOT_CREATED",300,0)).rows()
+                .stream().noneMatch(row->row.chrtId()==502||row.chrtId()==503));
+        assertTrue(observed.allEligible(new SearchCriteria(1,"",List.of(),"IN_PROGRESS",300,0))
+                .stream().noneMatch(row->row.chrtId()==503),"An existing draft is not a new submission");
+    }
+    @Test void unsentLocalWorkStaysNotCreatedUntilCatalogAcceptsItsFeed()throws Exception {
+        var shop=new com.vncode.app.models.Shop(1,"Fixture WB","fixture");
+        String receipt=com.vncode.app.testsupport.RegistrationSourceFixture.ready(shop);
+        var scope=com.vncode.app.integration.znack.registration.ZnackRegistrationScope.fromSettings(
+                new com.vncode.app.integration.znack.ZnackRepository(new com.vncode.app.integration.znack.ZnackModels.ShopContext(1,"Fixture WB")).getSettings());
+        var nativeRows=new com.vncode.app.integration.znack.registration.ZnackCardRegistrationRepository();
+        var statuses=List.of(Status.CHECKING,Status.READY_TO_SUBMIT,Status.PREFLIGHT_ERROR,Status.PRE_SUBMIT_ERROR,
+                Status.GTIN_GENERATED,Status.FEED_SUBMITTING,Status.FEED_REVIEW_REQUIRED,Status.FEED_SUBMITTED,
+                Status.PROCESSING,Status.READY_TO_SIGN,Status.CHECKING,Status.ALLOCATING_GTIN);
+        try(var c=Database.getConnection();var p=c.prepareStatement("INSERT INTO znack_card_registrations(shop_id,chrt_id,nm_id,gtin,feed_id,status,created_at,updated_at) VALUES(1,?,100,?,?,?,'fixture','fixture')")){
+            for(int i=0;i<statuses.size();i++){
+                long variant=10+i;boolean allocated=!Set.of(10L,12L,21L).contains(variant);
+                p.setLong(1,variant);p.setString(2,allocated?String.format(Locale.ROOT,"%014d",100_000+variant):null);
+                p.setString(3,Set.of(17L,19L).contains(variant)?"accepted-feed-"+variant:"");p.setString(4,statuses.get(i).name());p.executeUpdate();
+            }
+        }
+        for(long variant=10;variant<=21;variant++)nativeRows.bindScope(shop,variant,scope);
+        var observed=new ZnackRegistrationQueryRepository(receipt,new com.vncode.app.features.sync.RegistrationCardIndex(shop));
+        for(var query:List.of(repository,observed)){
+            var notCreated=new SearchCriteria(1,"",List.of(),"NOT_CREATED",300,0);
+            assertEquals(1_220,query.page(notCreated).filtered());
+            var selected=query.allEligible(notCreated).stream().map(Sku::chrtId).toList();
+            assertTrue(selected.containsAll(List.of(10L,11L,12L,13L,1_230L)),"Selection must include every safe unsent checkpoint, beyond the loaded page");
+            assertFalse(selected.stream().anyMatch(id->id>=14&&id<=21),"An accepted or uncertain feed must not be submitted as a new card");
+            var processing=query.page(new SearchCriteria(1,"",List.of(),"IN_PROGRESS",300,0));
+            assertEquals(List.of(17L,19L),processing.rows().stream().map(Sku::chrtId).toList());
+            assertEquals(1,processing.summary().waiting());assertEquals(1,processing.summary().readyToSign());
+            var errors=query.page(new SearchCriteria(1,"",List.of(),"ERROR",300,0)).rows().stream().map(Sku::chrtId).toList();
+            assertTrue(errors.containsAll(List.of(14L,15L,16L,20L)),"Legacy allocations and uncertain POST outcomes need a report/reconciliation, never another POST");
+        }
     }
 }

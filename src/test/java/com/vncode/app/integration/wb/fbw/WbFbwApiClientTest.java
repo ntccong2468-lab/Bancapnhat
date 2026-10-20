@@ -65,4 +65,14 @@ class WbFbwApiClientTest {
 
         assertEquals(1, server.getRequestCount());
     }
+
+    @Test void longCooldownYieldsTheBackgroundWorkerWithoutSendingAgain() throws Exception {
+        var limiter = new WbFbwRateLimiter(Duration.ZERO);
+        limiter.registerRateLimit(7, new okhttp3.Headers.Builder().add("Retry-After", "600").build());
+        try(var scope=com.vncode.app.shared.RateLimitDeferral.enter()) {
+            var deferred=assertThrows(com.vncode.app.shared.RateLimitDeferral.Deferred.class,()->limiter.awaitTurn(7));
+            assertTrue(deferred.delay().compareTo(Duration.ofMinutes(9))>0);
+        }
+        assertEquals(0,server.getRequestCount());
+    }
 }

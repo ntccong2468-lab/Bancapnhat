@@ -20,13 +20,14 @@ public abstract class AbstractListingAdapter implements ListingTargetAdapter {
     protected AbstractListingAdapter(Marketplace m,Function<Shop,ListingTransport> c,ListingMediaInspector i){market=m;clients=c;images=i;}
     protected void owner(Shop s){ListingIdentity.require(s);if(s.getMarketplace()!=market)throw new SecurityException("Wrong listing marketplace");}
     protected void owner(Shop s,RemoteSubmission r){owner(s);if(r.shopId()!=s.getId()||r.marketplace()!=market||!r.owner().equals(ListingIdentity.fingerprint(s)))throw new SecurityException("Foreign listing job");}
-    protected JsonObject call(Shop s,String path,JsonElement body,boolean mutation)throws IOException{owner(s);var r=object(clients.apply(s).call(path,body,mutation));if("true".equals(text(r,"error")))throw new IOException("Listing request rejected");return r;}
+    protected JsonObject call(Shop s,String path,JsonElement body,boolean mutation)throws IOException{owner(s);var r=object(clients.apply(s).call(path,body,mutation));if(market==Marketplace.WILDBERRIES)ListingRejectedException.requireWbAccepted(s,r);else if("true".equals(text(r,"error")))throw new ListingRejectedException("Listing request rejected");return r;}
     protected static void issue(List<CopyIssue> list,String code,String field){list.add(new CopyIssue(code,field,true));}
     protected List<ProductVariant> selected(ProductSnapshot source,CopyOptions o,List<CopyIssue> issues){
         if(!source.revision().startsWith("live:"))issue(issues,"FRESH_SOURCE_REQUIRED","source");
         var result=source.variants().stream().filter(v->o.variantIds().contains(v.id())).toList();
         if(result.isEmpty()||result.size()!=o.variantIds().size())issue(issues,"VARIANT_SELECTION_CHANGED","sizes");
-        if(o.fields().contains("gtin")){var gtins=new HashSet<String>();for(var v:result)if(!v.gtinVerified()||!com.vncode.app.features.gtinsync.RegisteredGtinValidator.isValid(v.gtin()))issue(issues,"GTIN_NOT_VERIFIED",v.id());else if(!gtins.add(v.gtin().replaceFirst("^0+","")))issue(issues,"DUPLICATE_VARIANT_GTIN",v.id());}
+        // Copying a fresh listing's barcode does not grant a Catalog/KIZ purchase proof.
+        if(o.fields().contains("gtin")){var codes=new HashSet<String>();for(var v:result){var inherited=CopyDefaults.barcodes(source,v);if(inherited.isEmpty())issue(issues,"GTIN_NOT_VERIFIED",v.id());for(String code:inherited)if(code.isBlank()||code.length()>100||code.codePoints().anyMatch(Character::isISOControl))issue(issues,"GTIN_NOT_VERIFIED",v.id());else if(!codes.add(code))issue(issues,"DUPLICATE_VARIANT_GTIN",v.id());}}
         return result;
     }
     protected Map<String,List<String>> mapped(ProductSnapshot s,CopyOptions o,List<TargetAttribute> dictionary,List<CopyIssue> issues){
@@ -36,6 +37,7 @@ public abstract class AbstractListingAdapter implements ListingTargetAdapter {
             if(a.name().toLowerCase(Locale.ROOT).matches(".*(kiz|км|код маркиров).*")){issue(issues,"MARKING_CODES_NOT_TRANSFERABLE",a.id());continue;}
             String id=o.attributeMapping().get(a.id());if(id==null){issue(issues,"ATTRIBUTE_MAPPING_REQUIRED",a.id());continue;}
             if(id.equals("@skip")){issues.add(new CopyIssue("ATTRIBUTE_EXPLICITLY_OMITTED",a.mappingKey(),false));continue;}
+            if(market==Marketplace.WILDBERRIES&&Set.of("@size","@russianSize").contains(id)){if(!o.fields().contains("sizes"))issue(issues,"VARIANT_MAPPING_REQUIRED",a.mappingKey());continue;}
             if(market==Marketplace.WILDBERRIES&&Set.of("@brand","@description","@title").contains(id)){if(!o.fields().contains(id.substring(1)))issue(issues,"TEXT_FIELD_MAPPING_REQUIRED",id);continue;}
             if(!ids.contains(id)){issue(issues,"FOREIGN_TARGET_ATTRIBUTE",id);continue;}
             if(result.putIfAbsent(id,a.values())!=null)issue(issues,"ATTRIBUTE_MAPPING_CONFLICT",id);
@@ -63,13 +65,20 @@ public abstract class AbstractListingAdapter implements ListingTargetAdapter {
     }
     protected List<ProductDocument> documents(ProductSnapshot s,CopyOptions o){return !o.documents().isEmpty()?o.documents():o.fields().contains("documents")?s.documents():List.of();}
     protected CopyPreview previewRecord(Shop s,ProductSnapshot source,CopyOptions o,JsonElement request,JsonArray media,JsonArray docs,List<CopyIssue> issues,List<String> articles,String operation){
+        if(operation.equals("CREATE"))issues.addAll(CopySourceCoverage.unsupported(source));
         String r=ListingIdentity.canonical(request),m=ListingIdentity.canonical(media),d=ListingIdentity.canonical(docs),owner=ListingIdentity.fingerprint(s);
         var diff=new LinkedHashMap<String,String>();diff.put("source",source.title());diff.put("target",s.getName()+" · "+market);diff.put("category",o.targetCategoryId());diff.put("articles",String.join(", ",articles));diff.put("fields",String.join(", ",new TreeSet<>(o.fields())));
         return new CopyPreview(s.getId(),market,owner,source.key(),source.revision(),CopyPreview.hash(r,m,d,owner,source.revision(),operation),r,m,d,diff,issues,articles,o,operation);
     }
+    protected static CopyPreview withLabels(CopyPreview preview,List<TargetCategory> categories,List<TargetAttribute> dictionary){
+        var labels=new LinkedHashMap<>(preview.diff());
+        categories.stream().filter(c->c.id().equals(preview.options().targetCategoryId())).findFirst().ifPresent(c->labels.put("category_name",c.name()));
+        dictionary.forEach(attribute->labels.put("attribute."+attribute.id(),attribute.name()));
+        return new CopyPreview(preview.shopId(),preview.marketplace(),preview.owner(),preview.sourceKey(),preview.sourceRevision(),preview.requestHash(),preview.requestJson(),preview.mediaJson(),preview.documentsJson(),labels,preview.issues(),preview.articles(),preview.options(),preview.operation());
+    }
     protected void requirePreview(Shop s,CopyPreview p){owner(s);if(p.shopId()!=s.getId()||p.marketplace()!=market||!p.owner().equals(ListingIdentity.fingerprint(s))||!p.publishable())throw new SecurityException("Listing preview is not publishable");}
     protected RemoteSubmission submitted(CopyPreview p,String task){return new RemoteSubmission(p.shopId(),p.marketplace(),p.owner(),p.requestHash(),task,p.articles(),p.requestJson(),p.mediaJson(),p.documentsJson(),"CARD",Map.of());}
-    protected String article(CopyOptions o,ProductVariant v,List<CopyIssue> issues){String a=o.newArticles().get(market==Marketplace.WILDBERRIES?"*":v.id());if(a==null||a.isBlank()||a.length()>(market==Marketplace.WILDBERRIES?72:50)||a.codePoints().anyMatch(Character::isISOControl)){issue(issues,"NEW_ARTICLE_REQUIRED",v.id());return "";}return a.strip();}
+    protected String article(CopyOptions o,ProductVariant v,List<CopyIssue> issues){String a=com.vncode.app.shared.SellerArticle.trim(o.newArticles().get(market==Marketplace.WILDBERRIES?"*":v.id()));if(a.isBlank()||a.length()>(market==Marketplace.WILDBERRIES?72:50)||a.codePoints().anyMatch(Character::isISOControl)){issue(issues,"NEW_ARTICLE_REQUIRED",v.id());return "";}return a;}
     protected static JsonArray urls(String media){var urls=new JsonArray();for(var e:JsonParser.parseString(media).getAsJsonArray())urls.add(text(object(e),"url"));return urls;}
     protected static boolean same(JsonElement a,JsonElement b){return a!=null&&b!=null&&ListingIdentity.canonical(a).equals(ListingIdentity.canonical(b));}
     protected static boolean subset(JsonObject expected,JsonObject actual,Set<String> skip){for(var e:expected.entrySet())if(!skip.contains(e.getKey())&&!same(e.getValue(),actual.get(e.getKey())))return false;return true;}
@@ -90,5 +99,5 @@ public abstract class AbstractListingAdapter implements ListingTargetAdapter {
     }
     protected static boolean expired(ProductDocument d){return d.state()==DocumentState.EXPIRED||d.validUntil()!=null&&d.validUntil().isBefore(LocalDate.now());}
     protected static boolean validDocument(ProductDocument d){return !expired(d)&&d.state()!=DocumentState.REJECTED;}
-    protected static String namedValue(ProductSnapshot s,CopyOptions o,String field,String fallback){String explicit=o.textOverrides().get(field);if(explicit!=null&&!explicit.isBlank())return explicit;return s.attributes().stream().filter(a->("@"+field).equals(o.attributeMapping().get(a.mappingKey()))).findFirst().map(a->String.join(" ",a.values())).orElse(explicit==null?fallback:explicit);}
+    protected static String namedValue(ProductSnapshot s,CopyOptions o,String field,String fallback){String explicit=o.textOverrides().get(field);if(explicit!=null)return explicit;return s.attributes().stream().filter(a->("@"+field).equals(o.attributeMapping().get(a.mappingKey()))).findFirst().map(a->String.join(" ",a.values())).orElse(explicit==null?fallback:explicit);}
 }

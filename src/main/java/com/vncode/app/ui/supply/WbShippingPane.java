@@ -1,87 +1,59 @@
 package com.vncode.app.ui.supply;
 
 import com.vncode.app.integration.wb.*;
+import com.vncode.app.integration.listing.ListingIdentity;
 import com.vncode.app.models.Shop;
-import com.vncode.app.shared.AppTaskExecutor;
-import com.vncode.app.shared.FriendlyErrorService;
-import javafx.concurrent.Task;
+import com.vncode.app.shared.*;
+import javafx.application.Platform;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
-import javafx.util.StringConverter;
 import java.time.*;
 import java.util.*;
+import java.util.concurrent.*;
 
-/** Per-supply shipping form. Country is explicit because WB supply type does not identify seller country. */
+/** Latest historical point is selected automatically. No vehicle, country or manufacturing form. */
 public final class WbShippingPane extends VBox {
-    private final ComboBox<String> country=new ComboBox<>(),method=new ComboBox<>();
-    private final ComboBox<Integer> cargo=new ComboBox<>();
-    private final DatePicker date=new DatePicker();
-    private final TextField city=new TextField(),search=new TextField();
-    private final ComboBox<WbShippingContract.Point> point=new ComboBox<>();
-    private final Button load=new Button("Tải điểm nhận"),more=new Button("Thêm điểm nhận");
+    private final ComboBox<WbShippingPreferenceService.Location> point=new ComboBox<>();
     private final Label status=new Label();
-    private final FlowPane fields=new FlowPane(8,8);
-    private final WbApiClient api=new WbApiClient();
-    private final WbShippingPreferenceService preferences=new WbShippingPreferenceService();
-    private List<WbShippingContract.Point> points=List.of();
-    private String loadedCity;
-    private Integer loadedCargo;
-    private Long restorePoint;
+    private final WbShippingHistoryService history;
+    private CompletableFuture<List<WbShippingPreferenceService.Location>> loading;
     private Shop shop;
     private String supplyId;
     private long epoch;
-    public record Selection(WbShippingContract.Parameters parameters,WbShippingPreferenceService.Preferences preferences) { }
-    public WbShippingPane() {
-        super(6);country.getItems().setAll("RU","OTHER");country.setPromptText("Quốc gia của người bán");
-        country.setConverter(converter(Map.of("RU","Nga","OTHER","Ngoài Nga")));
-        method.getItems().setAll("selfShipping","transportCompany");method.setPromptText("Cách giao");
-        method.setConverter(converter(Map.of("selfShipping","Tự giao","transportCompany","Công ty vận chuyển")));
-        cargo.getItems().setAll(1,2,3);cargo.setPromptText("Loại hàng 1/2/3");date.setPromptText("Ngày giao");
-        date.setDayCellFactory(picker->new DateCell(){@Override public void updateItem(LocalDate value,boolean empty){super.updateItem(value,empty);setDisable(empty||value.isBefore(LocalDate.now()));}});
-        city.setPromptText("Thành phố bằng tiếng Nga");search.setPromptText("Tìm điểm nhận");point.setPromptText("Điểm nhận");point.setPrefWidth(300);
-        fields.getChildren().setAll(method,date,cargo,city,load,search,point,more);
-        getChildren().setAll(new HBox(8,new Label("Thông số giao WB FBS"),country),fields,status);
-        country.valueProperty().addListener((o,a,b)->updateCountry());updateCountry();
-        city.textProperty().addListener((o,a,b)->invalidatePoints());cargo.valueProperty().addListener((o,a,b)->invalidatePoints());
-        search.textProperty().addListener((o,a,b)->showPoints(false));
-        load.setOnAction(e->loadPoints());more.setOnAction(e->showPoints(true));
+    public record Selection(WbShippingContract.Parameters parameters,WbShippingPreferenceService.Location location) { }
+    public WbShippingPane(){this(new WbShippingHistoryService());}
+    public WbShippingPane(WbShippingHistoryService history) {
+        super(6);this.history=history;point.setId("shippingHistoryPoint");point.setPromptText("Điểm giao từ lịch sử");
+        point.setMaxWidth(Double.MAX_VALUE);point.setMinWidth(0);status.setWrapText(true);
+        getChildren().setAll(point,status);setContext(null,null);
     }
-    private static StringConverter<String> converter(Map<String,String> labels){return new StringConverter<>(){public String toString(String key){return labels.getOrDefault(key,"");}public String fromString(String value){return labels.entrySet().stream().filter(e->e.getValue().equals(value)).map(Map.Entry::getKey).findFirst().orElse(null);}};}
-    public void setContext(Shop shop,String supplyId) {
-        long request=++epoch;load.setDisable(false);this.shop=shop;this.supplyId=supplyId;date.setValue(null);country.setValue(null);method.setValue(null);cargo.setValue(null);city.clear();search.clear();restorePoint=null;invalidatePoints();
-        setVisible(shop!=null&&supplyId!=null);setManaged(isVisible());status.setText("");if(shop==null||supplyId==null)return;
-        var task=new Task<WbShippingPreferenceService.Preferences>(){
-            private Integer supplyCargo;
-            @Override protected WbShippingPreferenceService.Preferences call()throws Exception {
-                var saved=preferences.load(shop.getId());var detail=api.getSupplyDetail(shop.getApiKey(),supplyId);
-                if(detail==null||!supplyId.equals(detail.getId()))throw new java.io.IOException("WB_SUPPLY_ID_MISMATCH");supplyCargo=detail.getCargoType();return saved;
-            }
-            @Override protected void succeeded(){if(request!=epoch)return;var saved=getValue();country.setValue(saved.country());method.setValue(saved.shippingType());city.setText(Objects.toString(saved.city(),""));cargo.setValue(supplyCargo);restorePoint=saved.pointId();if("RU".equals(saved.country())&&saved.city()!=null&&supplyCargo!=null)loadPoints();}
-            @Override protected void failed(){if(request==epoch)status.setText(FriendlyErrorService.format(getException()));}
-        };AppTaskExecutor.execute(task,error->{if(request==epoch)status.setText(FriendlyErrorService.format(error));});
+    public void setContext(Shop selected,String supplyId) {
+        long request=++epoch;this.shop=selected==null?null:new Shop(selected.getId(),selected.getName(),selected.getMarketplace(),selected.getClientId(),selected.getApiKey());
+        this.supplyId=supplyId;point.getItems().clear();point.setValue(null);point.setDisable(true);loading=null;
+        setVisible(shop!=null&&supplyId!=null);setManaged(isVisible());status.setText("");if(!isVisible())return;
+        Shop owner=shop;status.setText("Đang đọc điểm giao từ lịch sử…");
+        loading=ShopReadCoordinator.shared().submit(new ShopReadCoordinator.Key(owner.getId(),"wb-shipping-history",ListingIdentity.fingerprint(owner)+":"+supplyId),true,()->history.load(owner,supplyId));
+        loading.whenComplete((rows,error)->Platform.runLater(()->{
+            if(request!=epoch)return;
+            if(error!=null){status.setText(FriendlyErrorService.format(error));return;}
+            point.getItems().setAll(rows);point.setDisable(rows.isEmpty());if(!rows.isEmpty())point.getSelectionModel().selectFirst();
+            status.setText(rows.isEmpty()?"Chưa có lịch sử điểm giao. Khi chuyển giao hàng, WB sẽ kiểm tra cấu hình hiện có của lô.":"Đã chọn điểm giao gần nhất. Chỉ cần bấm Chuyển sang giao hàng.");
+        }));
     }
-    private void updateCountry(){boolean ru="RU".equals(country.getValue());fields.setVisible(ru);fields.setManaged(ru);}
-    private void invalidatePoints(){points=List.of();loadedCity=null;loadedCargo=null;point.getItems().clear();point.setValue(null);more.setDisable(true);}
-    private void loadPoints() {
-        if(shop==null||cargo.getValue()==null||city.getText().isBlank()){status.setText("Chọn loại hàng và thành phố trước.");return;}
-        Shop selected=shop;String selectedCity=city.getText().strip();Integer selectedCargo=cargo.getValue();long request=epoch;load.setDisable(true);
-        var task=new Task<List<WbShippingContract.Point>>(){@Override protected List<WbShippingContract.Point> call()throws Exception{return api.getShippingPoints(selected.getApiKey(),selectedCity,selectedCargo);}};
-        task.setOnSucceeded(e->{if(request!=epoch)return;if(!selectedCity.equals(city.getText().strip())||!selectedCargo.equals(cargo.getValue())){load.setDisable(false);return;}points=task.getValue();loadedCity=selectedCity;loadedCargo=selectedCargo;load.setDisable(false);showPoints(false);status.setText(points.isEmpty()?"Không có điểm nhận phù hợp.":"");});
-        java.util.function.Consumer<Throwable> taskFailure = rejection ->{if(request==epoch){load.setDisable(false);status.setText(FriendlyErrorService.format(rejection));}};
-        task.setOnFailed(e -> taskFailure.accept(task.getException()));AppTaskExecutor.execute(task, taskFailure);
-    }
-    private void showPoints(boolean append) {
-        var chosen=point.getValue();int offset=append?point.getItems().size():0;if(!append)point.getItems().clear();
-        var rows=WbShippingContract.page(points,search.getText(),offset);point.getItems().addAll(rows);more.setDisable(rows.size()<20);
-        if(chosen!=null&&point.getItems().contains(chosen))point.setValue(chosen);
-        else if(restorePoint!=null){Long remembered=restorePoint;restorePoint=null;points.stream().filter(p->p.id()==remembered).findFirst().ifPresent(point::setValue);}
+    /** Captures the current owner and selection on FX; waiting for reads happens in the delivery worker. */
+    public CompletableFuture<Selection> prepareSelection() {
+        if(shop==null||supplyId==null||loading==null)return CompletableFuture.failedFuture(new IllegalArgumentException("Chưa chọn lô hàng."));
+        String selectedSupply=supplyId;
+        var chosen=point.getValue();
+        if(chosen!=null)return CompletableFuture.completedFuture(selection(selectedSupply,chosen));
+        return loading.thenApply(rows->selection(selectedSupply,rows.isEmpty()?null:rows.getFirst()));
     }
     public Selection selection() {
-        if(shop==null||supplyId==null||country.getValue()==null)throw new IllegalArgumentException("Chọn quốc gia của người bán trước khi giao.");
-        if("OTHER".equals(country.getValue()))return new Selection(null,new WbShippingPreferenceService.Preferences("OTHER",null,null,null));
-        var selected=point.getValue();if(selected==null||!points.contains(selected)||!Objects.equals(loadedCity,city.getText().strip())||!Objects.equals(loadedCargo,cargo.getValue()))throw new IllegalArgumentException("Chọn điểm nhận hợp lệ cho thành phố và loại hàng.");
-        date.commitValue();
-        var parameters=new WbShippingContract.Parameters(supplyId,method.getValue(),date.getValue(),selected.id());parameters.payload(Clock.systemDefaultZone());
-        return new Selection(parameters,new WbShippingPreferenceService.Preferences("RU",method.getValue(),loadedCity,selected.id()));
+        if(loading==null||!loading.isDone())throw new IllegalArgumentException("Đang đọc lịch sử điểm giao.");
+        return prepareSelection().join();
     }
+    private static Selection selection(String supplyId,WbShippingPreferenceService.Location location) {
+        return new Selection(location==null?null:new WbShippingContract.Parameters(supplyId,location.shippingType(),LocalDate.now(),location.pointId()),location);
+    }
+    public void dispose(){epoch++;}
 }

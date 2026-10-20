@@ -2,13 +2,17 @@ package com.vncode.app.shared;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.sqlite.SQLiteConfig;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.LinkOption;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -54,80 +58,104 @@ public final class AppDataRecoveryService {
     }
 
     public static void recoverIfNeededOnStartup() {
-        restoreFromUpdateBackupIfNeeded();
-        restoreFromLegacyLocationIfNeeded();
+        recoverIfNeededOnStartup(AppPaths.appDataDir(), AppPaths.updateBackupDir(), AppPaths.legacyAppDataDirs());
     }
 
-    private static void restoreFromUpdateBackupIfNeeded() {
-        Path backupRoot = AppPaths.updateBackupDir();
+    static void recoverIfNeededOnStartup(Path currentDir, Path backupRoot, List<Path> legacyDirs) {
+        restoreFromUpdateBackupIfNeeded(currentDir, backupRoot);
+        restoreFromLegacyLocationIfNeeded(currentDir, legacyDirs);
+    }
+
+    private static void restoreFromUpdateBackupIfNeeded(Path currentDir, Path backupRoot) {
         Path marker = backupRoot.resolve(MARKER_FILE);
         Path payloadDir = backupRoot.resolve("payload");
-        if (!Files.exists(marker) || !hasUsableBackup(payloadDir)) {
+        if (Files.notExists(marker, LinkOption.NOFOLLOW_LINKS)) {
             return;
         }
         try {
-            Path currentDir = AppPaths.appDataDir();
+            if (!Files.isRegularFile(marker, LinkOption.NOFOLLOW_LINKS)) {
+                throw new IOException("The pending VNCode recovery marker cannot be read safely.");
+            }
             Path currentDb = currentDir.resolve(DB_NAME);
-            if (!Files.exists(currentDb) || databaseLooksEmpty(currentDb)) {
+            if (inspectDatabase(currentDb) != DatabaseContents.USER_DATA) {
+                if (inspectDatabase(payloadDir.resolve(DB_NAME)) != DatabaseContents.USER_DATA) {
+                    throw new IOException("The pending VNCode backup is missing or contains no user data.");
+                }
                 copyAppDataWithoutDeletingCurrent(payloadDir, currentDir, true);
+                if (inspectDatabase(currentDb) != DatabaseContents.USER_DATA) {
+                    throw new IOException("The restored VNCode database could not be confirmed.");
+                }
                 LOGGER.info("Restored app data from update backup {}", payloadDir);
             } else {
                 LOGGER.info("Skipped update backup restore because current database is not empty");
             }
-        } catch (Exception ex) {
+            // A failed inspection or copy must retain the pending request for diagnosis.
+            Files.delete(marker);
+        } catch (IOException ex) {
             LOGGER.error("Failed to restore app data from update backup", ex);
-        } finally {
-            try {
-                Files.deleteIfExists(marker);
-            } catch (IOException ignored) {
-            }
+            throw recoveryFailure(ex);
         }
     }
 
-    private static void restoreFromLegacyLocationIfNeeded() {
-        Path currentDir = AppPaths.appDataDir();
+    private static void restoreFromLegacyLocationIfNeeded(Path currentDir, List<Path> legacyDirs) {
         Path currentDb = currentDir.resolve(DB_NAME);
-        if (Files.exists(currentDb) && !databaseLooksEmpty(currentDb)) {
+        if (inspectDatabase(currentDb) == DatabaseContents.USER_DATA) {
             return;
         }
-        for (Path legacyDir : AppPaths.legacyAppDataDirs()) {
+        for (Path legacyDir : legacyDirs) {
             Path legacyDb = legacyDir.resolve(DB_NAME);
-            if (!Files.exists(legacyDb) || !databaseHasUserData(legacyDb)) {
+            if (inspectDatabase(legacyDb) != DatabaseContents.USER_DATA) {
                 continue;
             }
             try {
                 copyAppDataWithoutDeletingCurrent(legacyDir, currentDir, true);
+                if (inspectDatabase(currentDb) != DatabaseContents.USER_DATA) {
+                    throw new IOException("The migrated VNCode database could not be confirmed.");
+                }
                 LOGGER.info("Migrated app data from legacy directory {}", legacyDir);
                 return;
-            } catch (Exception ex) {
+            } catch (IOException ex) {
                 LOGGER.error("Failed to migrate app data from legacy directory {}", legacyDir, ex);
+                throw recoveryFailure(ex);
             }
         }
     }
 
-    private static boolean hasUsableBackup(Path payloadDir) {
-        Path backupDb = payloadDir.resolve(DB_NAME);
-        return Files.exists(backupDb) && databaseHasUserData(backupDb);
+    private static IllegalStateException recoveryFailure(IOException cause) {
+        return new IllegalStateException("STARTUP_DATA_RECOVERY_FAILED: VNCode could not finish restoring its data. "
+                + "Keep the database, WAL files and pending backup; check startup diagnostics before trying recovery again.", cause);
     }
 
-    private static boolean databaseLooksEmpty(Path database) {
-        if (!Files.exists(database)) {
-            return true;
-        }
-        return !databaseHasUserData(database);
-    }
+    private enum DatabaseContents { MISSING, EMPTY, USER_DATA }
 
-    private static boolean databaseHasUserData(Path database) {
-        String url = "jdbc:sqlite:" + database.toAbsolutePath();
-        try (Connection connection = DriverManager.getConnection(url)) {
-            return countIfTableExists(connection, "shops") > 0
+    /** An unreadable database is never evidence that replacing it is safe. */
+    private static DatabaseContents inspectDatabase(Path database) {
+        try {
+            BasicFileAttributes attributes = Files.readAttributes(database, BasicFileAttributes.class,
+                    LinkOption.NOFOLLOW_LINKS);
+            if (!attributes.isRegularFile() || attributes.isSymbolicLink()) {
+                throw new IOException("The existing VNCode database is not a regular file.");
+            }
+            // Driver flags preserve ordinary Windows paths, including spaces, while
+            // preventing an inspection from creating a database or checkpointing its WAL.
+            SQLiteConfig readOnly = new SQLiteConfig();
+            readOnly.setReadOnly(true);
+            String url = "jdbc:sqlite:" + database.toAbsolutePath();
+            try (Connection connection = DriverManager.getConnection(url, readOnly.toProperties())) {
+                boolean present = countIfTableExists(connection, "shops") > 0
                     || countIfTableExists(connection, "wb_orders") > 0
                     || countIfTableExists(connection, "wb_supplies") > 0
                     || countIfTableExists(connection, "print_jobs") > 0
                     || countIfTableExists(connection, "kiz_codes") > 0;
-        } catch (SQLException ex) {
-            LOGGER.warn("Unable to inspect database {}", database, ex);
-            return false;
+                return present ? DatabaseContents.USER_DATA : DatabaseContents.EMPTY;
+            }
+        } catch (NoSuchFileException missing) {
+            return DatabaseContents.MISSING;
+        } catch (IOException | SQLException ex) {
+            LOGGER.error("Unable to inspect VNCode database {}; automatic restore was stopped", database, ex);
+            throw new IllegalStateException("STARTUP_DATA_INSPECTION_FAILED: VNCode cannot read its existing data. "
+                    + "Close another VNCode instance or database tool and check startup diagnostics. "
+                    + "Do not delete or replace database.db or its WAL files.", ex);
         }
     }
 

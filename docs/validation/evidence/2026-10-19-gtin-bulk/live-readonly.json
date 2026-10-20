@@ -1,0 +1,22 @@
+{
+  "mode": "read-only-production-batch-index",
+  "writesPerformed": false,
+  "services": [
+    {
+      "marketplace": "WILDBERRIES",
+      "status": "ok",
+      "indexedOwnedProducts": 406,
+      "readRequests": 8,
+      "retainedBytes": 4950,
+      "elapsedMs": 10547.953863
+    },
+    {
+      "marketplace": "OZON",
+      "status": "ok",
+      "indexedOwnedProducts": 175,
+      "readRequests": 7,
+      "retainedBytes": 5297,
+      "elapsedMs": 4722.506315
+    }
+  ]
+}

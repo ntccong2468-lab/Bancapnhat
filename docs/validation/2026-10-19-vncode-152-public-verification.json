@@ -1,0 +1,30 @@
+{
+  "checkedAt": "2026-10-19T23:53:45.510799+00:00",
+  "published": true,
+  "latestVersion": "1.5.2",
+  "releaseUrl": "https://github.com/ntccong2468-lab/Bancapnhat/releases/tag/v1.5.2",
+  "publishedAt": "2026-10-19T23:53:08Z",
+  "buildRun": 39337203593,
+  "publishRun": 39338177252,
+  "sourceCommit": "6fe8ef21871657a38151897ddc13c3b1b5028fd5",
+  "installerSha256": "4f1b28dbb8eaffa4f86a5512f8155b00f7c7688d744e778e87c9f03120feb31c",
+  "installerBytes": 146716672,
+  "downloadUrl": "https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.5.2/VN-code-1.5.2-Windows-x64.exe",
+  "publicDownloadVerified": true,
+  "windowsJava": {
+    "tests": 1954,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 2,
+    "passed": 1952
+  },
+  "updater": {
+    "updaterParserVerified": true,
+    "baseline": "1.5.1",
+    "offeredVersion": "1.5.2",
+    "installerUrlVerified": true,
+    "digestVerified": true,
+    "sizeVerified": true
+  },
+  "realSellerMutationsPerformed": false
+}

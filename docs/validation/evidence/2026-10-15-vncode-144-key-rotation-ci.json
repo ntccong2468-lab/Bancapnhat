@@ -1,0 +1,50 @@
+{
+  "sourceCommit": "07c085aab3472e730669acb3ba97073d64155cf6",
+  "run": 38615048269,
+  "officialRelease": false,
+  "productionActivationVerified": false,
+  "keyId": "vncode-2",
+  "publicKey": "SPtRxTUJ78fqt5YMJ4DJ_PZwB2cMYegs-J7nY62ADMQ",
+  "privateKeyReceived": false,
+  "installer": {
+    "artifact": 11920585481,
+    "sha256": "c73a6998e551859ebc66be06d5fd0d574087963363b2a986a027ffa47c5bc2bb"
+  },
+  "portal": {
+    "version": "0.3.5",
+    "artifact": 11920515061,
+    "sha256": "b47122a7c8563dfdcf86f0600e4cc0a4c76326784ccfb003e9383eae438b58e3",
+    "tests": 56,
+    "productionDeployment": false
+  },
+  "windowsTests": {
+    "tests": 88,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "nodeContracts": {
+    "tests": 49,
+    "failures": 0
+  },
+  "nativeSmoke": {
+    "schemaMigration": "3 to 5",
+    "liveMarketplaceMutations": false,
+    "appName": "VN code",
+    "nativeLauncher": "passed",
+    "version": "1.4.4",
+    "rollbackSnapshotVerified": true,
+    "platform": "windows-x64",
+    "windowTitle": "VN code v1.4.4",
+    "historyPreserved": true
+  },
+  "gs1Smoke": {
+    "appName": "VN code",
+    "version": "1.4.4",
+    "result": "passed",
+    "dpapiRoundTrip": true,
+    "protectedPasswordPersistence": true,
+    "unverifiedInvoiceBlocked": true,
+    "liveGS1Mutations": false
+  }
+}

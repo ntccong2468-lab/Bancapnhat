@@ -1,0 +1,19 @@
+{
+  "version": "1.4.19",
+  "runId": 39111878315,
+  "sourceCommit": "e87d0ef2fc0bc89a6487a955d64e183b55778b2e",
+  "result": "failed",
+  "tests": 1766,
+  "failures": 0,
+  "errors": 1,
+  "skipped": 2,
+  "failedClass": "com.vncode.app.ui.products.ProductReferenceLayoutTest",
+  "assertion": "The action bar stays one compact row at the reference width",
+  "installerProduced": false,
+  "repair": "Replace outer HBox/self-width wrap preference with BorderPane measurement using actual available width; keep original assertion and add equal-Y check for all five buttons.",
+  "focusedRepairTests": 18,
+  "focusedRepairFailures": 0,
+  "focusedRepairErrors": 0,
+  "productionCodeChanged": true,
+  "freshFullWindowsRunRequired": true
+}

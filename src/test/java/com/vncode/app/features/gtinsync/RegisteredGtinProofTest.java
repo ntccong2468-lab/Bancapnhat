@@ -52,4 +52,29 @@ class RegisteredGtinProofTest {
             assertThrows(IllegalArgumentException.class,()->RegisteredGtinProof.requireCurrent(shop,GTIN));
         }
     }
+    @Test void ownerFailureNamesTheFailedConditionWithoutDisclosingCertificateOrAccountValues() {
+        var base=new ZnackRepository(new ZnackModels.ShopContext(1,"Fixture")).getSettings();var now=Instant.now();
+        var metadata=com.google.gson.JsonParser.parseString(base.certificateMetadataJson()).getAsJsonObject();
+        record Case(RegisteredGtinProof.OwnerFailure expected,ZnackModels.Settings settings){}
+        var cases=new java.util.ArrayList<Case>();
+        cases.add(new Case(RegisteredGtinProof.OwnerFailure.SIGNATURE_NOT_TESTED,copy(base,base.participantInn(),"",CERTIFICATE,metadata.toString(),null)));
+        cases.add(new Case(RegisteredGtinProof.OwnerFailure.SIGNATURE_TIME_INVALID,copy(base,base.participantInn(),"",CERTIFICATE,metadata.toString(),now.plusSeconds(301))));
+        cases.add(new Case(RegisteredGtinProof.OwnerFailure.METADATA_INVALID,copy(base,base.participantInn(),"",CERTIFICATE,"{}",now)));
+        cases.add(new Case(RegisteredGtinProof.OwnerFailure.CERTIFICATE_CHANGED,copy(base,base.participantInn(),"","B".repeat(40),metadata.toString(),now)));
+        var noPrivate=metadata.deepCopy();noPrivate.addProperty("hasPrivateKey",false);
+        cases.add(new Case(RegisteredGtinProof.OwnerFailure.PRIVATE_KEY_UNAVAILABLE,copy(base,base.participantInn(),"",CERTIFICATE,noPrivate.toString(),now)));
+        var future=metadata.deepCopy();future.addProperty("validFrom",now.plusSeconds(60).toString());
+        cases.add(new Case(RegisteredGtinProof.OwnerFailure.CERTIFICATE_NOT_YET_VALID,copy(base,base.participantInn(),"",CERTIFICATE,future.toString(),now)));
+        var expired=metadata.deepCopy();expired.addProperty("validTo",now.minusSeconds(1).toString());
+        cases.add(new Case(RegisteredGtinProof.OwnerFailure.CERTIFICATE_EXPIRED,copy(base,base.participantInn(),"",CERTIFICATE,expired.toString(),now)));
+        cases.add(new Case(RegisteredGtinProof.OwnerFailure.PARTICIPANT_MISMATCH,copy(base,"7800000000","",CERTIFICATE,metadata.toString(),now)));
+        cases.add(new Case(RegisteredGtinProof.OwnerFailure.GOODS_OWNER_MISMATCH,copy(base,base.participantInn(),"7800000000",CERTIFICATE,metadata.toString(),now)));
+        for(var sample:cases){
+            var error=assertThrows(RegisteredGtinProof.UnverifiedOwnerException.class,()->RegisteredGtinProof.scope(shop,sample.settings(),now));
+            assertEquals(sample.expected(),error.reason());assertFalse(error.toString().contains("7800000000"));assertFalse(error.toString().contains(CERTIFICATE));
+        }
+    }
+    private static ZnackModels.Settings copy(ZnackModels.Settings base,String participant,String owner,String selector,String metadata,Instant tested){
+        return new ZnackModels.Settings(base.trueApiBaseUrl(),base.suzBaseUrl(),base.omsId(),base.omsConnection(),participant,base.producerInn(),owner,base.signerExecutable(),selector,base.signerArgumentsJson(),base.documentNumber(),base.documentDate(),base.pdfFolder(),base.autoIntroduction(),base.certificateListExecutable(),base.certificateListArgumentsJson(),metadata,tested);
+    }
 }

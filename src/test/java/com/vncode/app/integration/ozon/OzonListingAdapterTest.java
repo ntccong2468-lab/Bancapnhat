@@ -23,4 +23,9 @@ class OzonListingAdapterTest {
     @Test void foreignOwnerCannotReconcile()throws Exception{
         var calls=new AtomicInteger();var adapter=new OzonListingAdapter(s->(p,b,m)->{calls.incrementAndGet();return new JsonObject();},i->{throw new java.io.IOException();});var r=new RemoteSubmission(3,Marketplace.OZON,"foreign","hash","1",List.of("a"),"{}","[]","[]","CARD",Map.of());assertThrows(SecurityException.class,()->adapter.reconcile(target(Marketplace.OZON),r));assertEquals(0,calls.get());
     }
+    @Test void aDifferentPrimaryImageCannotPassReadbackJustBecauseTheGalleryCountMatches()throws Exception{
+        var shop=target(Marketplace.OZON);var adapter=new OzonListingAdapter(s->(path,body,mutation)->JsonParser.parseString(path.equals("v3/product/info/list")?"{\"items\":[{\"id\":321,\"offer_id\":\"NEW-M\",\"sku\":999,\"primary_image\":[\"https://ir.ozone.ru/2.jpg\"]}]}":"{\"result\":[{\"id\":321,\"offer_id\":\"NEW-M\",\"images\":[\"https://ir.ozone.ru/1.jpg\",\"https://ir.ozone.ru/2.jpg\"]}]}"),image->new ListingMediaInspector.Inspected(image.uri().toString().endsWith("1.jpg")?"FIRST":"SECOND",900,1200,"image/jpeg"));
+        var submission=new RemoteSubmission(2,Marketplace.OZON,com.vncode.app.integration.listing.ListingIdentity.fingerprint(shop),"hash",null,List.of("NEW-M"),"{\"items\":[{\"offer_id\":\"NEW-M\",\"images\":[\"https://ir.ozone.ru/1.jpg\",\"https://ir.ozone.ru/2.jpg\"],\"primary_image\":\"https://ir.ozone.ru/1.jpg\"}]}","[{\"url\":\"https://ir.ozone.ru/1.jpg\",\"sha256\":\"FIRST\"},{\"url\":\"https://ir.ozone.ru/2.jpg\",\"sha256\":\"SECOND\"}]","[]","CARD",Map.of());
+        assertNotEquals(CopyState.RECONCILED,adapter.reconcile(shop,submission).state());
+    }
 }

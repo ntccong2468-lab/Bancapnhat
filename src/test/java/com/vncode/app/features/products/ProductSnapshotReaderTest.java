@@ -35,7 +35,7 @@ class ProductSnapshotReaderTest {
         var reader=new WbProductSnapshotReader(s->(path,body,mutation)->JsonParser.parseString(WB));
         var snapshot=reader.read(wb,new ProductKey(1,Marketplace.WILDBERRIES,"123","101"));
         assertTrue(snapshot.revision().startsWith("live:"));assertEquals(2,snapshot.media().size());assertTrue(snapshot.media().get(1).uri().toString().endsWith("2.jpg"));
-        assertEquals(2,snapshot.variants().size());assertEquals("46",snapshot.variants().getFirst().russianSize());
+        assertEquals(2,snapshot.variants().size());assertEquals("46",snapshot.variants().getFirst().russianSize());assertEquals("Black",snapshot.variants().getFirst().color());
         assertEquals(new BigDecimal("0.123"),snapshot.dimensions().weightKg());assertEquals("04610689132457",snapshot.variants().getFirst().gtin());
         assertFalse(snapshot.variants().getFirst().gtinVerified());assertEquals(DocumentState.VALID,snapshot.documents().getFirst().state());
         assertNull(snapshot.documents().getFirst().file());assertEquals("Scope",snapshot.documents().getFirst().metadata().get("productNumber"));
@@ -47,6 +47,14 @@ class ProductSnapshotReaderTest {
         new WbProductSnapshotReader(s->(p,b,m)->JsonParser.parseString(WB)).read(wb,key);
         var repo=new ProductRepository();assertEquals("Text",repo.localSnapshot(key).orElseThrow().description());
         assertEquals(1,repo.loadPage(new ProductQuery(1,Marketplace.WILDBERRIES,"",List.of(),DocumentState.VALID,false,null,100)).total());
+    }
+    @Test void wbSourcePriceReadIsScopedToTheExactCardAndEachSize()throws Exception{
+        var reader=new WbProductSnapshotReader(s->(p,b,m)->JsonParser.parseString(WB),s->(p,b,m)->{
+            assertEquals("api/v2/list/goods/filter?limit=100&filterNmID=123",p);assertFalse(m);
+            return JsonParser.parseString("{\"data\":{\"listGoods\":[{\"nmID\":123,\"currencyIsoCode4217\":\"RUB\",\"sizes\":[{\"sizeID\":101,\"price\":1200},{\"sizeID\":102,\"price\":1400}]},{\"nmID\":999,\"sizes\":[{\"sizeID\":101,\"price\":1}]}]}}");
+        });
+        var snapshot=reader.read(wb,new ProductKey(1,Marketplace.WILDBERRIES,"123","101"));
+        assertEquals("1200",snapshot.metadata().get("source.price.101"));assertEquals("1400",snapshot.metadata().get("source.price.102"));assertFalse(snapshot.metadata().containsKey("source.price"));
     }
     @Test void completeReadRemovesDocumentsThatMarketplaceRemoved()throws Exception{
         var data=new java.util.concurrent.atomic.AtomicReference<>(WB);var reader=new WbProductSnapshotReader(s->(p,b,m)->JsonParser.parseString(data.get()));
@@ -100,5 +108,15 @@ class ProductSnapshotReaderTest {
             case "v1/description-category/attribute" -> "{\"result\":[{\"id\":900,\"name\":\"Material\"}]}";
             default -> "{\"result\":{\"certificates\":[],\"page_count\":1}}";
         }));var snapshot=reader.read(ozon,new ProductKey(2,Marketplace.OZON,"321","O-1"));assertEquals(2,snapshot.attributes().size());assertEquals("50:900",snapshot.attributes().getFirst().mappingKey());assertEquals(List.of("Wool"),snapshot.attributes().get(1).values());assertEquals("true",snapshot.metadata().get("complex.ambiguous"));
+    }
+    @Test void ozonSourcePriceUsesTheNativeProductAndKeepsItsCurrency()throws Exception{
+        var reader=new OzonProductSnapshotReader(s->(p,b,m)->JsonParser.parseString(switch(p){
+            case "v3/product/info/list" -> "{\"items\":[{\"id\":321,\"offer_id\":\"O-1\",\"sku\":99}]}";
+            case "v4/product/info/attributes" -> "{\"result\":[{\"id\":321,\"offer_id\":\"O-1\",\"name\":\"Full\",\"description_category_id\":12,\"type_id\":13,\"dimension_unit\":\"mm\",\"weight_unit\":\"g\",\"attributes\":[{\"id\":1001,\"values\":[{\"value\":\"M\"}]},{\"id\":1002,\"values\":[{\"value\":\"46\"}]}]}]}";
+            case "v1/description-category/attribute" -> "{\"result\":[{\"id\":1001,\"name\":\"Размер производителя\"},{\"id\":1002,\"name\":\"Российский размер\"}]}";
+            case "v5/product/info/prices" -> {assertFalse(m);assertEquals("321",b.getAsJsonObject().getAsJsonObject("filter").getAsJsonArray("product_id").get(0).getAsString());yield "{\"items\":[{\"product_id\":999,\"price\":{\"price\":1,\"currency_code\":\"RUB\"}},{\"product_id\":321,\"offer_id\":\"O-1\",\"price\":{\"price\":2500.50,\"currency_code\":\"CNY\"}}]}";}
+            default -> "{\"result\":{\"certificates\":[],\"page_count\":1}}";
+        }));
+        var source=reader.read(ozon,new ProductKey(2,Marketplace.OZON,"321","O-1"));assertEquals("2500.50",source.metadata().get("source.price"));assertEquals("CNY",source.metadata().get("source.currency"));assertEquals("M",source.variants().getFirst().size());assertEquals("46",source.variants().getFirst().russianSize());
     }
 }

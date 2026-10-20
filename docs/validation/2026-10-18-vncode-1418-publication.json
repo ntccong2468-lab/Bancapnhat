@@ -1,0 +1,35 @@
+{
+  "version": "1.4.18",
+  "sourceCommit": "e77a746128fa51f183a2a193275b6b1ef894c251",
+  "buildRunId": 39102138545,
+  "publicationRunId": 39105331400,
+  "releaseId": 416284006,
+  "publishedAt": "2026-10-18T06:49:05Z",
+  "releaseUrl": "https://github.com/ntccong2468-lab/Bancapnhat/releases/tag/v1.4.18",
+  "latestTag": "v1.4.18",
+  "draft": false,
+  "prerelease": false,
+  "installerUrl": "https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.4.18/VN-code-1.4.18-Windows-x64.exe",
+  "installerBytes": 145615872,
+  "installerSha256": "571f7c26e85722ab742b92000505d606198ba1b66d44f08d2d0a01a4cd231ccd",
+  "publicWholeFileDownloadVerified": true,
+  "tagPointsToVerifiedSource": true,
+  "productionUpdaterParser": {
+    "applicationJar": "verified Windows 1.4.18 JAR",
+    "realLatestMetadataUsed": true,
+    "exeUrlSizeAndDigestMatched": true,
+    "availableFor": [
+      "1.4.10",
+      "1.4.13",
+      "1.4.16",
+      "1.4.17"
+    ],
+    "currentFor": "1.4.18",
+    "notificationDeliveryToSellerPcsVerified": false
+  },
+  "liveMarketplaceProductEditVerified": false,
+  "liveMarketplaceGtinWriteVerified": false,
+  "liveCryptoProSigningVerified": false,
+  "productionLicenseVerified": false,
+  "standardFullAcceptanceClaimed": false
+}

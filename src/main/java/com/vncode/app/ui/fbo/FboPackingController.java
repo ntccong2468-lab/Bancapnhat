@@ -57,6 +57,7 @@ public class FboPackingController {
     @FXML private TableColumn<FboProductRow, String> sizeColumn;
     @FXML private TableColumn<FboProductRow, String> catalogSkuColumn;
     @FXML private TableColumn<FboProductRow, String> skuColumn;
+    @FXML private TableColumn<FboProductRow,String> gtinColumn;
     @FXML private TableColumn<FboProductRow, FboProductRow> quantityColumn;
     @FXML private TableColumn<FboProductRow, FboProductRow> quickPrintColumn;
 
@@ -308,6 +309,7 @@ public class FboPackingController {
         sizeColumn.setCellValueFactory(cell -> new ReadOnlyStringWrapper(cell.getValue().product().size()));
         catalogSkuColumn.setCellValueFactory(cell -> new ReadOnlyStringWrapper(cell.getValue().product().catalogSku()));
         skuColumn.setCellValueFactory(cell -> new ReadOnlyStringWrapper(cell.getValue().product().sku()));
+        gtinColumn.setCellValueFactory(cell->new ReadOnlyStringWrapper(cell.getValue().product().verifiedGtin()));
         quantityColumn.setCellValueFactory(cell -> new SimpleObjectProperty<>(cell.getValue()));
         quantityColumn.setCellFactory(column -> new QuantityCell());
         quickPrintColumn.setCellValueFactory(cell -> new SimpleObjectProperty<>(cell.getValue()));

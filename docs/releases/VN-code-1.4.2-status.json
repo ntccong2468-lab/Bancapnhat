@@ -1,0 +1,39 @@
+{
+  "version": "1.4.2",
+  "baseVersion": "1.4.1",
+  "complete": false,
+  "changes": [
+    "Hiển thị đúng lỗi kết nối khi kích hoạt thay vì thông báo chung.",
+    "Phân biệt DNS, HTTPS, quá thời gian chờ và mã lỗi HTTP; chỉ hiển thị mã lỗi an toàn.",
+    "Portal 0.3.3 cho Gmail admin dùng license desktop riêng; thêm xóa Gmail và xóa license đã hủy.",
+    "Giữ nguyên kiểm tra chữ ký, duyệt Gmail, giới hạn thiết bị và quyền offline có chữ ký."
+  ],
+  "licenseIntegration": {
+    "implemented": true,
+    "productionReady": false,
+    "status": "server-signing-not-configured-owner-screenshot",
+    "backend": "Portal 0.3.2; owner Windows curl /api/config returned 200",
+    "customerRegistrationStatus": "owner-reports-approved-in-desktop",
+    "customerCodeState": "owner-reports-unused-after-failed-activation",
+    "trustedProductionKeys": 1,
+    "pinnedKeyIds": [
+      "vncode-1"
+    ],
+    "serverSigningKeyMatch": "unverified"
+  },
+  "validation": {
+    "focusedLicenseJavaTests": 50,
+    "focusedLicenseJavaFailures": 0,
+    "nodeReleaseContractTests": 48,
+    "productionActivation": "failed-SIGNING_NOT_CONFIGURED-owner-screenshot",
+    "windowsInstaller": "focused-license-diagnostic-candidate-verified",
+    "focusedWindowsLicenseTests": 63,
+    "focusedWindowsLicenseFailures": 0,
+    "diagnosticSourceCommit": "6e71fe8e5170dad2bd318aa0cdd9a67960fd46ee",
+    "diagnosticBuildRun": 38552502757,
+    "diagnosticArtifact": 11887267816,
+    "portalTests": 50,
+    "portalDeployment": "not-deployed",
+    "fullWindowsMatrix": "passed-38551260158-source-3b864ca7f37f5b8bf57015de26115c826db446b9"
+  }
+}

@@ -41,6 +41,44 @@ class Gs1PaneTest {
         fx(()->{pane=new Gs1Pane();new Scene(pane,1000,850);field("shop",new Shop(1,"Fixture","fixture"));field("inn","7707083893");field("environment","production");return null;});
     }
     @AfterEach void tearDown()throws Exception{fx(()->{pane.dispose();return null;});com.vncode.app.testsupport.ShopReadTestCleanup.awaitSharedIdle();System.clearProperty("vncode.appdata.dir");}
+    @Test void configuredCacheShowsTheActualProfileEmailAndIndependentSourceTimes()throws Exception{
+        var owner=com.vncode.app.features.gtinsync.GtinWriteTestFixture.shop(com.vncode.app.integration.marketplace.Marketplace.WILDBERRIES);
+        com.vncode.app.features.gs1.Gs1UiTestFixture.sync(owner,true);fx(()->{pane.setShop(owner);return null;});awaitCache("source@example.invalid");
+        fx(()->{
+            pane.applyCss();pane.layout();
+            var method=Gs1Pane.class.getDeclaredMethod("profileEmail");method.setAccessible(true);assertEquals("source@example.invalid",method.invoke(pane));
+            assertEquals(1,pane.lookupAll("#gs1CheckAllButton").size());assertNotNull(pane.lookup("#gs1ConfigureZnack"));assertNotNull(pane.lookup("#gs1SyncReport"));
+            var checks=(GridPane)pane.lookup("#gs1ReadinessGrid");assertEquals(6,checks.getChildren().size());
+            var detailField=Gs1Pane.class.getDeclaredField("detail");detailField.setAccessible(true);assertTrue(((Label)detailField.get(pane)).getText().contains(I18nService.getInstance().tr("gs1.sync.catalog_checked")));
+            capture("gs1-ready",1366,768);capture("gs1-ready-small",1024,600);return null;
+        });
+    }
+    @Test void failedRefreshKeepsTheCorrectScopedDataAndExposesTheError()throws Exception{
+        var owner=com.vncode.app.features.gtinsync.GtinWriteTestFixture.shop(com.vncode.app.integration.marketplace.Marketplace.WILDBERRIES);
+        com.vncode.app.features.gs1.Gs1UiTestFixture.sync(owner,true);fx(()->{pane.setShop(owner);return null;});awaitCache("source@example.invalid");
+        com.vncode.app.features.gs1.Gs1UiTestFixture.sync(owner,false);com.vncode.app.testsupport.ShopReadTestCleanup.awaitSharedIdle();
+        fx(()->{pane.refreshFromCache();return null;});awaitStatus("NETWORK_TIMEOUT");
+        fx(()->{var f=Gs1Pane.class.getDeclaredField("membership");f.setAccessible(true);assertTrue(((Gs1Membership)f.get(pane)).member());capture("gs1-partial",1366,768);return null;});
+    }
+    @Test void switchingToAnUnconfiguredShopClearsTheOldMemberAndEmail()throws Exception{
+        var owner=com.vncode.app.features.gtinsync.GtinWriteTestFixture.shop(com.vncode.app.integration.marketplace.Marketplace.WILDBERRIES);
+        com.vncode.app.features.gs1.Gs1UiTestFixture.sync(owner,true);fx(()->{pane.setShop(owner);return null;});awaitCache("source@example.invalid");
+        try(var c=Database.getConnection();var sql=c.createStatement()){sql.execute("INSERT INTO shops(id,name,marketplace,client_id,api_key) VALUES(9,'No signer','OZON','synthetic','synthetic')");}
+        fx(()->{pane.setShop(new Shop(9,"No signer",com.vncode.app.integration.marketplace.Marketplace.OZON,"synthetic","synthetic"));return null;});com.vncode.app.testsupport.ShopReadTestCleanup.awaitSharedIdle();
+        fx(()->{var memberField=Gs1Pane.class.getDeclaredField("membership");memberField.setAccessible(true);assertNull(memberField.get(pane));var emailField=Gs1Pane.class.getDeclaredField("profileEmail");emailField.setAccessible(true);assertEquals("",emailField.get(pane));assertNotNull(pane.lookup("#gs1ConfigureZnack"));return null;});
+    }
+    private void awaitCache(String email)throws Exception{
+        long end=System.nanoTime()+TimeUnit.SECONDS.toNanos(5);while(System.nanoTime()<end){if(fx(()->{var f=Gs1Pane.class.getDeclaredField("profileEmail");f.setAccessible(true);return email.equals(f.get(pane));}))return;Thread.sleep(10);}fail("Scoped profile did not load");
+    }
+    private void awaitStatus(String code)throws Exception{
+        long end=System.nanoTime()+TimeUnit.SECONDS.toNanos(5);while(System.nanoTime()<end){if(fx(()->{var f=Gs1Pane.class.getDeclaredField("status");f.setAccessible(true);return ((Label)f.get(pane)).getText().contains(code);}))return;Thread.sleep(10);}fail("Expected visible status "+code);
+    }
+    private void capture(String name,int width,int height)throws Exception{
+        String directory=System.getProperty("vncode.item5.capture.dir");if(directory==null)return;
+        var language=I18nService.getInstance().getCurrentLanguage();I18nService.getInstance().setLanguage(AppLanguage.VI);render();
+        pane.resize(width,height);pane.setPrefSize(width,height);var scene=pane.getScene();scene.getStylesheets().add(Gs1Pane.class.getResource("/com/vncode/app/styles/theme.css").toExternalForm());pane.applyCss();pane.layout();var image=pane.snapshot(null,null);
+        var png=new java.awt.image.BufferedImage((int)image.getWidth(),(int)image.getHeight(),java.awt.image.BufferedImage.TYPE_INT_ARGB);for(int y=0;y<png.getHeight();y++)for(int x=0;x<png.getWidth();x++)png.setRGB(x,y,image.getPixelReader().getArgb(x,y));java.nio.file.Files.createDirectories(Path.of(directory));javax.imageio.ImageIO.write(png,"png",Path.of(directory,name+".png").toFile());I18nService.getInstance().setLanguage(language);render();
+    }
     @Test void anotherPrefixPreventsFalseShortageAndRenewalOnlyAppearsWhenDue()throws Exception{
         fx(()->{
             var date=LocalDate.now(ZoneId.of("Europe/Moscow"));
@@ -69,6 +107,17 @@ class Gs1PaneTest {
     @Test void narrowWorkspaceStacksCardsAndInboxWithoutHidingEitherPanel()throws Exception{
         fx(()->{render();pane.resize(760,850);pane.layout();var split=(SplitPane)pane.lookup("#gs1WorkspaceSplit");
             assertEquals(Orientation.VERTICAL,split.getOrientation());assertTrue(pane.lookup("#gs1AccountScroll").isVisible());assertTrue(pane.lookup("#gs1InboxPanel").isVisible());assertTrue(pane.lookup("#gs1InboxPanel").getBoundsInLocal().getHeight()>100);return null;
+        });
+    }
+    @Test void syncButtonQueuesConfiguredBackgroundReadWithoutOpeningBrowserOrDuplicatingMembershipButton()throws Exception{
+        var requests=new java.util.concurrent.atomic.AtomicInteger();
+        fx(()->{
+            pane.setOnSyncRequested(requests::incrementAndGet);render();
+            button("gs1CheckAllButton").fire();
+            assertEquals(1,requests.get());assertEquals(0,pane.activeTaskCount());
+            assertNull(pane.lookup("#gs1CheckMembership"));
+            var statusField=Gs1Pane.class.getDeclaredField("status");statusField.setAccessible(true);var status=(Label)statusField.get(pane);assertEquals(I18nService.getInstance().tr("gs1.auto_sync_queued"),status.getText());
+            return null;
         });
     }
     @Test void prefixTableUsesSourcedDatesAndNeverTreatsUnknownAsUnlimitedOrPaid()throws Exception{
@@ -141,19 +190,15 @@ class Gs1PaneTest {
         long deadline=System.nanoTime()+TimeUnit.SECONDS.toNanos(5);boolean displayed=false;
         while(!displayed&&System.nanoTime()<deadline){displayed=fx(()->{pane.applyCss();pane.layout();return pane.lookup("#gs1AutoReminder")!=null;});if(!displayed)Thread.sleep(10);}
         assertTrue(displayed);
+        var checkbox=fx(()->(javafx.scene.control.CheckBox)pane.lookup("#gs1AutoReminder"));
+        assertFalse(fx(checkbox::isSelected));
+        com.vncode.app.testsupport.FxDialogDriver.choose(checkbox::fire,
+            dialog->"gs1AutoReminderConsent".equals(dialog.getId()),dialog->{
+                assertTrue(dialog.getContent().lookupAll(".text-area").stream().anyMatch(javafx.scene.control.TextArea.class::isInstance),"The reviewed reminder body is displayed before consent");
+                return ButtonType.CANCEL;
+            });
         fx(()->{
-            var checkbox=(javafx.scene.control.CheckBox)pane.lookup("#gs1AutoReminder");assertFalse(checkbox.isSelected());
-            // showAndWait can run queued FX work while constructing the window. Wait for the
-            // actual consent dialog rather than assuming one runLater sees an already shown stage.
-            var cancel=new javafx.animation.Timeline();cancel.setCycleCount(javafx.animation.Animation.INDEFINITE);
-            cancel.getKeyFrames().add(new javafx.animation.KeyFrame(javafx.util.Duration.millis(50),event->{
-                for(var window:List.copyOf(javafx.stage.Window.getWindows()))if(window instanceof Stage stage&&stage.isShowing()
-                        &&I18nService.getInstance().tr("gs1.auto_reminder").equals(stage.getTitle())){
-                    var root=stage.getScene().getRoot();var candidate=root instanceof javafx.scene.control.DialogPane?root:root.lookup(".dialog-pane");
-                    if(candidate instanceof javafx.scene.control.DialogPane dialog){cancel.stop();((Button)dialog.lookupButton(ButtonType.CANCEL)).fire();}
-                }
-            }));
-            cancel.play();try{checkbox.fire();}finally{cancel.stop();}assertFalse(checkbox.isSelected());
+            assertFalse(checkbox.isSelected());
             var repoField=Gs1Pane.class.getDeclaredField("repository");repoField.setAccessible(true);var repo=(com.vncode.app.features.gs1.Gs1Repository)repoField.get(pane);
             assertTrue(repo.reminderConsent(request.inn(),request.id()).isEmpty());return null;
         });

@@ -60,7 +60,7 @@ public final class OzonShipService {
         if (!blocksShipRetry(priorCheckpoint)) LicenseRuntime.require(Permission.PACKING);
         OzonApiClient api = apiClients.apply(
                 shop.getId(), new OzonCredentials(shop.getClientId(), shop.getApiKey()));
-        OzonPostingDto posting = OzonJson.parsePostingDetail(api.getPosting(postingNumber, true));
+        OzonPostingDto posting = OzonJson.requirePostingDetail(api.getPosting(postingNumber, true),postingNumber);
         postings.upsertDetail(shop.getId(), posting);
         String previousAction = jobs.latestActionStatus(shop.getId(), "ship", posting.postingNumber());
         if (blocksShipRetry(previousAction)) {
@@ -109,8 +109,30 @@ public final class OzonShipService {
         return new OzonShipResult(posting.postingNumber(), refreshed.status(), false);
     }
 
+    /** Receive/accept selection: native Ozon packages contain exactly one physical unit. */
+    public OzonShipResult shipPerUnit(Shop shop,String postingNumber,boolean confirmed)throws IOException {
+        return new OzonUnitShipService(postings,jobs,apiClients).ship(shop,postingNumber,confirmed);
+    }
+
+    /** Persisted native IDs for a pending report, never guessed from the source number. */
+    public java.util.List<String> knownUnitPostings(Shop shop,String postingNumber){
+        MarketplaceGuard.requireOzon(shop);com.vncode.app.integration.listing.ListingIdentity.require(shop);
+        var receipt=new OzonUnitShipRepository().find(shop,postingNumber);
+        return receipt==null?java.util.List.of():receipt.children();
+    }
+
+    public int reconcilePendingReadOnly(Shop shop,OzonApiClient api,int maximumReads){
+        return new OzonUnitShipService(postings,jobs,apiClients).reconcilePendingReadOnly(shop,api,maximumReads);
+    }
+
+    /** Local readback for the open batch report; never sends another acceptance request. */
+    public java.util.Map<String,java.util.List<String>> completedUnitPostings(Shop shop,java.util.Collection<String> sources){
+        MarketplaceGuard.requireOzon(shop);com.vncode.app.integration.listing.ListingIdentity.require(shop);
+        return new OzonUnitShipRepository().completed(shop,sources);
+    }
+
     private OzonPostingDto refresh(OzonApiClient api, int shopId, String postingNumber) throws IOException {
-        OzonPostingDto posting = OzonJson.parsePostingDetail(api.getPosting(postingNumber, true));
+        OzonPostingDto posting = OzonJson.requirePostingDetail(api.getPosting(postingNumber, true),postingNumber);
         postings.upsertDetail(shopId, posting);
         return posting;
     }

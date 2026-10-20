@@ -48,6 +48,8 @@ public class ZnackAutomationController {
     @FXML private Label omsHelpTitleLabel, omsHelpDescriptionLabel, omsHelpStepsTitleLabel, omsHelpStepsLabel;
     @FXML private Label omsHelpRecognizeTitleLabel, omsHelpRecognizeLabel, omsHelpWarningLabel;
     @FXML private Label signatureTitleLabel;
+    private final com.vncode.app.ui.kiz.KizWarehousePane warehousePane=new com.vncode.app.ui.kiz.KizWarehousePane();
+    private final Tab warehouseTab=new Tab();
     @FXML private Tab informationTab, settingsTab, productsTab, deletedTab, ordersTab, logsTab;
     @FXML private Label accountOwnerTitleLabel, accountOwnerLabel, accountInnLabel, accountStatusLabel;
     @FXML private Label accountBalanceTitleLabel, accountBalanceLabel, accountBalanceUpdatedLabel;
@@ -57,6 +59,12 @@ public class ZnackAutomationController {
     @FXML private ComboBox<BalanceSnapshot> accountBalanceCombo;
     public void openSettings(){settingsTab.getTabPane().getSelectionModel().select(settingsTab);}
     @FXML private TextField omsIdField, omsConnectionField;
+    @FXML private PasswordField catalogKeyField;
+    @FXML private Label catalogTitleLabel, catalogHelpLabel, catalogStatusLabel;
+    @FXML private Button checkCatalogButton, removeCatalogButton;
+    private Shop catalogShop;
+    private boolean catalogCheckRunning;
+    private String catalogStatusKey = "znack.catalog.not_saved";
     @FXML private TextField productSearchField, deletedSearchField;
     @FXML private ComboBox<CryptoProCertificateInfo> signatureCertificateCombo;
     @FXML private CheckBox autoIntroductionCheck;
@@ -65,6 +73,9 @@ public class ZnackAutomationController {
     @FXML private MenuButton productCategoryFilterButton, deletedCategoryFilterButton;
     @FXML private Button omsIdHelpButton, omsConnectionHelpButton, closeOmsHelpButton;
     @FXML private javafx.scene.layout.VBox omsHelpPane;
+    @FXML private javafx.scene.layout.GridPane connectionPanels;
+    @FXML private javafx.scene.layout.VBox catalogPanel, signaturePanel;
+    private int connectionColumns;
     @FXML private TableView<Product> productsTable;
     @FXML private TableColumn<Product,String> productGtinColumn, productNameColumn, productCategoryColumn, productTnVedColumn;
     @FXML private TableColumn<Product,Product> productSelectColumn, productActionsColumn;
@@ -100,6 +111,7 @@ public class ZnackAutomationController {
     private boolean updatingCertificateSelection;
     private boolean reopeningCertificatePopup;
     private boolean productSyncRunning;
+    private Task<List<Product>> productSyncTask;
     private boolean signerChangeSyncPending;
     private boolean signatureTestRunning;
     private long certificateDiscoveryGeneration;
@@ -127,6 +139,16 @@ public class ZnackAutomationController {
 
     @FXML
     private void initialize() {
+        warehouseTab.setId("warehouseTab");warehouseTab.setClosable(false);warehouseTab.setContent(warehousePane);informationTab.getTabPane().getTabs().add(warehouseTab);
+        warehouseTab.selectedProperty().addListener((o,a,b)->{if(b)warehousePane.reload();});
+        connectionPanels.widthProperty().addListener((ignored,old,width)->arrangeConnectionPanels(width.doubleValue()));
+        arrangeConnectionPanels(0);
+        catalogKeyField.textProperty().addListener((ignored, old, text) -> {
+            if (!loading) {
+                catalogStatusKey = "znack.catalog.unchecked";
+                catalogStatusLabel.setText(tr(catalogStatusKey));
+            }
+        });
         informationTab.selectedProperty().addListener((ignored, old, selected) -> {
             if (selected) updateAccountInfo();
         });
@@ -226,8 +248,31 @@ public class ZnackAutomationController {
         clear();
     }
 
+    private void arrangeConnectionPanels(double width) {
+        int columns=width>=780?2:1;
+        if(columns==connectionColumns)return;
+        connectionColumns=columns;
+        connectionPanels.getColumnConstraints().clear();
+        for(int column=0;column<columns;column++) {
+            var constraint=new javafx.scene.layout.ColumnConstraints();
+            constraint.setPercentWidth(100.0/columns);constraint.setMinWidth(0);
+            constraint.setHgrow(javafx.scene.layout.Priority.ALWAYS);connectionPanels.getColumnConstraints().add(constraint);
+        }
+        javafx.scene.layout.GridPane.setColumnIndex(catalogPanel,0);
+        javafx.scene.layout.GridPane.setRowIndex(catalogPanel,0);
+        javafx.scene.layout.GridPane.setColumnIndex(signaturePanel,columns==2?1:0);
+        javafx.scene.layout.GridPane.setRowIndex(signaturePanel,columns==2?0:1);
+        javafx.scene.layout.GridPane.setValignment(catalogPanel,javafx.geometry.VPos.TOP);
+        javafx.scene.layout.GridPane.setValignment(signaturePanel,javafx.geometry.VPos.TOP);
+    }
+
     public void setShop(Shop shop) {
+        warehousePane.setShop(shop);
+        if(warehouseTab.isSelected())warehousePane.reload();
         shopGeneration++;
+        if(productSyncTask!=null){productSyncTask.cancel(true);productSyncTask=null;}
+        catalogCheckRunning = false;
+        catalogShop = shop == null ? null : new Shop(shop.getId(), shop.getName(), shop.getMarketplace(), shop.getClientId(), shop.getApiKey());
         resetAccountSession();
         setSignatureTestBusy(false);
         productSyncRunning = false;
@@ -249,6 +294,15 @@ public class ZnackAutomationController {
     }
 
     public void applyTranslations() {
+        warehouseTab.setText(I18nService.getInstance().tr("kiz.warehouse.title"));warehousePane.applyTranslations();
+        omsConnectionField.setPromptText(tr("znack.oms_connection_prompt"));
+        if(repository==null)authStatusLabel.setText(tr("znack.error.select_shop"));
+        catalogTitleLabel.setText(tr("znack.catalog.title"));
+        catalogHelpLabel.setText(tr("znack.catalog.help"));
+        catalogKeyField.setPromptText(tr("znack.catalog.key_prompt"));
+        checkCatalogButton.setText(tr("znack.catalog.check"));
+        removeCatalogButton.setText(tr("znack.catalog.remove"));
+        catalogStatusLabel.setText(tr(catalogStatusKey));
         titleLabel.setText(tr("znack.title"));
         informationTab.setText(tr("znack.tab.information"));
         settingsTab.setText(tr("znack.tab.settings"));
@@ -674,6 +728,7 @@ public class ZnackAutomationController {
         ZnackRepository currentRepository = repository;
         Settings expectedSettings = loaded;
         Settings candidateSettings = settings();
+        var signaturePhase = new java.util.concurrent.atomic.AtomicReference<>(SignatureTestFailure.Phase.LOCAL_SIGNATURE);
         setSignatureTestBusy(true);
         Task<SignatureVerification> task = new Task<>() {
             @Override protected SignatureVerification call() throws Exception {
@@ -695,11 +750,13 @@ public class ZnackAutomationController {
                 };
                 ZnackAuthService auth = new ZnackAuthService(api, verifiedProvider);
                 // Verify the selected certificate against Znack itself before retiring any local catalog.
+                signaturePhase.set(SignatureTestFailure.Phase.CRPT_AUTHENTICATION);
                 auth.trueApiToken(verifiedSettings);
                 String authenticatedInn = auth.authenticatedParticipantInn();
                 if (!blank(authenticatedInn) && !actualCertificate.inn().equals(authenticatedInn))
                     throw new CryptoProException(CryptoProErrorCode.INVALID_SIGNATURE_OUTPUT,
                             "The authenticated account does not match the selected signing certificate.");
+                signaturePhase.set(SignatureTestFailure.Phase.SAVE_VERIFICATION);
                 ZnackRepository.CertificateVerificationResult result =
                         currentRepository.saveVerifiedCertificate(expectedSettings, verifiedSettings);
                 return new SignatureVerification(verifiedSettings, result, api, auth, actualCertificate);
@@ -709,6 +766,7 @@ public class ZnackAutomationController {
             if (generation != shopGeneration || currentRepository != repository) return;
             setSignatureTestBusy(false);
             SignatureVerification verification = task.getValue();
+            if(!currentRepository.getSettings().equals(verification.settings())){load();return;}
             loaded = verification.settings();
             signerCertificate = loaded.signerCertificate();
             certificateMetadata = loaded.certificateMetadataJson();
@@ -743,6 +801,8 @@ public class ZnackAutomationController {
         java.util.function.Consumer<Throwable> taskFailure = rejection -> {
             if (generation != shopGeneration || currentRepository != repository) return;
             setSignatureTestBusy(false);
+            // A late result from the old settings must not erase a newer persisted verification.
+            if(!currentRepository.getSettings().equals(expectedSettings)){load();return;}
             accountAuthenticatedAt = null;
             Throwable failure = rejection;
             if (failure instanceof ZnackRepository.SignerChangeBlockedException) {
@@ -761,14 +821,18 @@ public class ZnackAutomationController {
                 AlertService.showError(tr("znack.signature.error.settings_changed"));
                 return;
             }
-            CryptoProException error = failure instanceof CryptoProException cpe ? cpe
-                    : new CryptoProException(CryptoProErrorCode.SIGNING_FAILED, "CryptoPro signing failed.", failure);
+            var error = SignatureTestFailure.classify(failure,signaturePhase.get());
             signerTestedAt = null;
-            currentRepository.log("SIGNATURE_TEST", null, "ERROR", signatureDiagnostic(error), null);
+            currentRepository.log("SIGNATURE_TEST", null, "ERROR", error.diagnostic(), null);
             logsTable.getItems().setAll(currentRepository.findLogs());
             updateSignatureSummary();
             updateSaveState();
-            AlertService.showError(signatureError(error));
+            if(error.cryptoError()!=null)AlertService.showError(signatureError(error.cryptoError()));
+            else {
+                String message=tr(error.messageKey());
+                if(error.retryAfter()!=null)message+="\n"+MessageFormat.format(tr("znack.signature.error.retry_after"),Math.max(1,error.retryAfter().toSeconds()));
+                AlertService.showError(withSignatureDetails(message,error.diagnostic()));
+            }
         };
         task.setOnFailed(event -> taskFailure.accept(task.getException()));
         AppTaskExecutor.execute(task, taskFailure);
@@ -785,6 +849,10 @@ public class ZnackAutomationController {
         resetAccountSession();
         loading = true;
         loaded = repository.getSettings();
+        catalogKeyField.clear();
+        catalogStatusKey = new com.vncode.app.integration.znack.CatalogCredentialRepository().hasSaved(repository.shop().shopId())
+                ? "znack.catalog.saved" : "znack.catalog.not_saved";
+        catalogStatusLabel.setText(tr(catalogStatusKey));
         signerCertificate = value(loaded.signerCertificate());
         certificateMetadata = value(loaded.certificateMetadataJson());
         signerTestedAt = loaded.signerTestedAt();
@@ -1063,30 +1131,35 @@ public class ZnackAutomationController {
         long generation = shopGeneration;
         ZnackRepository currentRepository = repository;
         Settings currentSettings = loaded;
+        Shop sourceShop=catalogShop;
+        var partialCards=new java.util.concurrent.atomic.AtomicInteger();
         Task<List<Product>> task = new Task<>() {
             @Override protected List<Product> call() throws Exception {
                 try {
-                    ZnackApiClient api = verifiedApi == null ? new ZnackApiClient() : verifiedApi;
-                    ZnackAuthService auth = verifiedAuth;
-                    if (auth == null) {
-                        ZnackSignatureProvider signer = new CryptoProSignatureProvider(currentSettings.cryptcpPath(),
-                                currentSettings.signerCertificate(), Duration.ofSeconds(currentSettings.resolvedCryptoProTimeoutSeconds()));
-                        auth = new ZnackAuthService(api, signer);
-                    }
-                    return new ZnackProductService(api, auth, currentRepository).sync(currentSettings);
+                    if(sourceShop==null||sourceShop.getId()!=currentRepository.shop().shopId())throw new IllegalStateException("SHOP_CREDENTIALS_CHANGED");
+                    var result=new com.vncode.app.features.sync.ZnackCatalogSyncService().refresh(sourceShop,true,p->updateMessage(java.text.MessageFormat.format(tr("znack.catalog.read_progress"),tr("znack.catalog.phase."+p.phase()),p.completed(),p.total())));
+                    partialCards.set(result.issues().size());
+                    if(!result.issues().isEmpty())updateMessage(java.text.MessageFormat.format(tr("znack.catalog.partial"),result.issues().size()));
+                    return currentRepository.findProducts();
                 } catch (Exception error) {
                     currentRepository.log("GTIN_SYNC", null, "ERROR", error.getMessage(), null);
                     throw error;
                 }
             }
         };
+        productSyncTask=task;
+        task.messageProperty().addListener((o,before,message)->{if(generation==shopGeneration&&currentRepository==repository&&productSyncTask==task&&productSyncRunning&&!task.isCancelled()&&!message.isBlank())authStatusLabel.setText(message);});
         productSyncRunning = true;
+        authStatusLabel.setText(tr("znack.catalog.queued"));
         updateSaveState();
         task.setOnSucceeded(event -> {
             if (generation != shopGeneration || currentRepository != repository) return;
             productSyncRunning = false;
             updateSaveState();
             allProducts = task.getValue();
+            catalogStatusKey="znack.catalog.connected";catalogStatusLabel.setText(tr(catalogStatusKey));
+            authStatusLabel.setText(partialCards.get()==0?tr("znack.result.sync_completed"):java.text.MessageFormat.format(tr("znack.catalog.partial"),partialCards.get()));
+            if(catalogShop!=null)com.vncode.app.features.sync.SyncRuntime.requestIfRunning(catalogShop,com.vncode.app.features.sync.SyncCoordinator.Stream.ZNACK);
             productCategoryFilter.rebuild(allProducts.stream().map(Product::category).toList());
             applyProductFilter();
             ordersTable.getItems().setAll(currentRepository.findOrders());
@@ -1094,12 +1167,13 @@ public class ZnackAutomationController {
             resumeEligibleIntroductions(currentSettings);
             if (signerChangeSyncPending) {
                 signerChangeSyncPending = false;
-                authStatusLabel.setText(tr("znack.signature.catalog_refreshed"));
+                if(partialCards.get()==0)authStatusLabel.setText(tr("znack.signature.catalog_refreshed"));
             }
         });
         java.util.function.Consumer<Throwable> taskFailure = rejection -> {
             if (generation != shopGeneration || currentRepository != repository) return;
             productSyncRunning = false;
+            authStatusLabel.setText(tr("znack.catalog.failed")+" ["+com.vncode.app.features.sync.SyncFailure.of(rejection,0).code()+"]");
             updateSaveState();
             loadProductsFromDatabase();
             logsTable.getItems().setAll(currentRepository.findLogs());
@@ -1109,7 +1183,8 @@ public class ZnackAutomationController {
             }
         };
         task.setOnFailed(event -> taskFailure.accept(task.getException()));
-        AppTaskExecutor.execute(task, taskFailure);
+        task.setOnCancelled(event->taskFailure.accept(new java.net.SocketTimeoutException("ZNACK_SYNC_TIMEOUT")));
+        AppTaskExecutor.executeCatalog(task, taskFailure);
     }
 
     private boolean hasVerifiedSignature(Settings settings) {
@@ -1158,6 +1233,9 @@ public class ZnackAutomationController {
     private void clear() {
         resetAccountSession();
         loading = true;
+        catalogKeyField.clear();
+        catalogStatusKey = "znack.catalog.not_saved";
+        catalogStatusLabel.setText(tr(catalogStatusKey));
         loaded = Settings.empty();
         for (TextField field : List.of(omsIdField, omsConnectionField)) field.clear();
         signatureCertificateCombo.getItems().clear();
@@ -1186,16 +1264,68 @@ public class ZnackAutomationController {
     }
 
     private void updateSaveState() {
+        boolean catalogBusy = repository == null || loading || catalogCheckRunning || signatureTestRunning || productSyncRunning || accountRefreshRunning;
+        catalogKeyField.setDisable(catalogBusy);
+        checkCatalogButton.setDisable(catalogBusy || !Objects.equals(savedFingerprint, fingerprint()));
+        removeCatalogButton.setDisable(catalogBusy);
         boolean verificationRequired = (!blank(selectedCertificate()) && signerTestedAt == null)
                 || (!blank(loaded.signerCertificate()) && blank(selectedCertificate()));
         saveButton.setDisable(repository == null || loading || verificationRequired
-                || accountRefreshRunning
+                || accountRefreshRunning || catalogCheckRunning
                 || Objects.equals(savedFingerprint, fingerprint()));
-        signatureCertificateCombo.setDisable(repository == null || signatureTestRunning || productSyncRunning || accountRefreshRunning);
+        signatureCertificateCombo.setDisable(repository == null || signatureTestRunning || accountRefreshRunning || catalogCheckRunning);
         testSignatureButton.setDisable(repository == null || certificateDiscoveryRunning
-                || signatureTestRunning || productSyncRunning || accountRefreshRunning || blank(selectedCertificate())
+                || signatureTestRunning || accountRefreshRunning || catalogCheckRunning || blank(selectedCertificate())
                 || selectedCertificateExpired());
         updateAccountInfo();
+    }
+
+    @FXML private void checkCatalogConnection() {
+        if (repository == null || catalogCheckRunning || !Objects.equals(savedFingerprint, fingerprint())) return;
+        Shop owner = catalogShop; long generation = shopGeneration;
+        String input = catalogKeyField.getText();
+        catalogCheckRunning = true;
+        catalogStatusKey = "znack.catalog.checking";
+        catalogStatusLabel.setText(tr(catalogStatusKey));
+        updateSaveState();
+        Task<Void> task = new Task<>() {
+            @Override protected Void call() throws Exception {
+                new com.vncode.app.integration.znack.CatalogConnectionService().checkAndSave(owner, input,
+                        () -> generation == shopGeneration);
+                return null;
+            }
+        };
+        task.setOnSucceeded(event -> {
+            if (generation != shopGeneration) return;
+            catalogCheckRunning = false;
+            loading = true; catalogKeyField.clear(); loading = false;
+            catalogStatusKey = "znack.catalog.connected";
+            catalogStatusLabel.setText(tr(catalogStatusKey));
+            updateSaveState();
+        });
+        java.util.function.Consumer<Throwable> failure = error -> {
+            if (generation != shopGeneration) return;
+            catalogCheckRunning = false;
+            catalogStatusKey = "znack.catalog.failed";
+            String code = error == null ? "" : Objects.toString(error.getMessage(), "");
+            String detail = code.startsWith("CATALOG_KEY_")
+                    ? I18nService.getInstance().tr("znack.catalog.error." + code, tr("znack.catalog.failed"))
+                    : com.vncode.app.shared.FriendlyErrorService.format(error);
+            catalogStatusLabel.setText(tr(catalogStatusKey) + " " + detail);
+            updateSaveState();
+        };
+        task.setOnFailed(event -> failure.accept(task.getException()));
+        AppTaskExecutor.execute(task, failure);
+    }
+    @FXML private void removeCatalogKey() {
+        if (catalogShop == null || catalogCheckRunning) return;
+        try {
+            new com.vncode.app.integration.znack.CatalogCredentialRepository().remove(catalogShop);
+            loading = true; catalogKeyField.clear(); loading = false;
+            catalogStatusKey = "znack.catalog.not_saved";
+            catalogStatusLabel.setText(tr(catalogStatusKey));
+        } catch (RuntimeException failure) { AlertService.showError(tr("znack.catalog.failed")); }
+        updateSaveState();
     }
 
     private void updateSignatureSummary() {
@@ -1389,10 +1519,6 @@ public class ZnackAutomationController {
     private String withSignatureDetails(String message, String details) {
         String sanitized = ZnackSanitizer.message(details);
         return sanitized.isBlank() ? message : message + "\n\n" + tr("znack.signature.error.details") + ": " + sanitized;
-    }
-
-    private String signatureDiagnostic(CryptoProException error) {
-        return "code=" + error.code() + "; " + ZnackSanitizer.error(error);
     }
 
     private void configureLogCopy() {

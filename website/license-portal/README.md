@@ -1,8 +1,47 @@
-# VNCode Portal 0.3.2 — đăng ký Gmail trực tiếp và kích hoạt nhiều máy
+# VNCode Portal 0.3.6 — API license dự phòng
 
-Bản cập nhật từ Portal 0.3.1, giữ các tài khoản và trang quản trị hiện có.
-Chủ website đã xác nhận bản đang chạy có cấu hình gửi mail và ký license với
-vncode-1. Bản sửa 0.3.2 cần deploy Worker và assets; chưa deploy lên production.
+Cập nhật Portal hiện có và thêm Worker gateway riêng cho VNCode 1.4.10. Giữ D1, tài khoản, license và khóa ký `vncode-2` hiện có. Không cần migration mới từ 0.3.5, không tạo hoặc đổi khóa ký.
+
+**Bắt đầu bằng [hướng dẫn triển khai Portal 0.3.6 và API dự phòng](DEPLOY-LICENSE-NETWORK-VI.md).** Deploy Portal trước, sau đó chạy `npm run deploy:gateway` để thêm `license.vncode.id.vn`. Gói này chưa tự triển khai lên tài khoản Cloudflare của bạn.
+
+Gateway dùng Service Binding tới `vncode-portal`, chỉ cho API client và dùng chung quyền/dữ liệu với website. App xác minh chữ ký issuer cùng nonce và hostname trước khi gửi thông tin license tới backup. Hai đường vẫn cùng thuộc Cloudflare.
+
+Các mục dưới là lịch sử tính năng và hướng dẫn tham khảo cho bản cũ; không xoay lại khóa khi nâng cấp từ 0.3.5.
+
+## Xoay khóa 0.3.5
+
+- Pin chẩn đoán và LICENSE_KEY_ID trong wrangler.jsonc chuyển sang vncode-2.
+- Public key: `SPtRxTUJ78fqt5YMJ4DJ_PZwB2cMYegs-J7nY62ADMQ`. Chỉ khóa công khai nằm trong mã nguồn.
+- Cần VNCode 1.4.4 trở lên để nhận quyền mới; app vẫn giữ pin vncode-1 cho quyền offline cũ đến hạn.
+- Không đổi D1/schema, Gmail, mã VNC, số ngày, quota hoặc thiết bị khi xoay khóa.
+- Công cụ `tools/check-signing-key.mjs` xác minh tệp riêng trên máy chủ phần mềm khớp public pin trước khi đổi Secret; không in private key.
+- Xem [thứ tự cài app, deploy Portal và đổi Secret](HUONG-DAN-CAP-NHAT-035.md).
+
+## Chẩn đoán license 0.3.4
+
+- Nút **Kiểm tra cấu hình license** ký một thông điệp thử và xác minh bằng public key của VNCode, thay vì chỉ kiểm tra Secret có tồn tại. Chỉ admin truy cập API chẩn đoán.
+- Báo riêng khóa không hợp lệ, key ID sai, cặp khóa không khớp và bảng/cột D1 còn thiếu; không trả private key hoặc dữ liệu khách.
+- Đọc khóa Ed25519 PKCS8 ở dạng Base64URL, Base64, PEM PRIVATE KEY; xử lý khoảng trắng và chuỗi JSON được đặt trong dấu nháy. Không chấp nhận public key thay cho private key.
+- Giữ các chức năng 0.3.3 bên dưới. Xem [hướng dẫn deploy và xử lý mất tệp khóa](HUONG-DAN-CAP-NHAT-034.md).
+
+## Quản trị 0.3.3
+
+- Gmail có vai trò admin cũng nhận được license desktop riêng. Trong mục Người
+  dùng, bấm **Cấp license VNCode** ở tài khoản admin để mở đúng Gmail và đặt số
+  ngày/máy/cửa hàng. Mã desktop không đổi vai trò hoặc mật khẩu website; quyền
+  admin website không tự thay thế khóa, giới hạn máy hoặc thời hạn desktop.
+- Nút **Xóa license đã hủy** chỉ hiện cho mã đã hủy. API từ chối xóa mã chưa
+  dùng, mã đã kích hoạt hoặc mã có lịch sử đổi license.
+- Nút **Xóa Gmail** nằm trong cả danh sách desktop và danh sách người dùng.
+  Admin nhập lại chính xác Gmail trước khi xóa tài khoản, khóa, thiết bị và phiên
+  liên quan trong một giao dịch. Không cho xóa admin hoặc lịch sử license của
+  khách khác. Nhật ký thao tác quản trị được giữ lại.
+- Cùng Gmail có thể đăng ký lại; tài khoản mới chờ duyệt, không nhận lại quyền,
+  mật khẩu, hạn hoặc mã cũ. Giới hạn đăng ký theo Gmail được đặt lại; giới hạn
+  chung theo IP giữ nguyên. Trong app, nhấn **Kiểm tra trạng thái** rồi đăng ký
+  lại hoặc **Xóa đăng ký trên máy này** để bỏ phiên cũ trước khi đăng ký.
+- Phiên online cũ hết quyền; quyền offline đã ký vẫn còn đến hạn đã cấp.
+- Không cần migration mới từ 0.3.2. Xem [hướng dẫn cập nhật Windows](HUONG-DAN-CAP-NHAT-033.md).
 
 ## Sửa đăng ký và license 0.3.2
 

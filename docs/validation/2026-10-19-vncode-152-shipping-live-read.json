@@ -1,0 +1,16 @@
+{
+  "checkedAt": "2026-10-19T23:01:08.768992+00:00",
+  "writesPerformed": false,
+  "tokenConfigured": true,
+  "detailsChecked": [],
+  "listHttpStatus": 401,
+  "rows": 0,
+  "done": 0,
+  "historicalShippingPointRows": 0,
+  "destinationOfficeRows": 0,
+  "secretAllowedDomainsAtCheck": [
+    "content-api.wildberries.ru"
+  ],
+  "marketplaceSecretScopeConfigured": false,
+  "upstreamCredentialValidityNotDetermined": true
+}

@@ -1,0 +1,13 @@
+# Shipment changes for VNCode 1.5.2
+
+The replacement workflow has no attempt-count limit. It reserves one available code at a time from this shop's selected inventory sources, without requiring the order's product-category mapping. It never buys additional codes. The replacement is complete only when an API readback reports the exact new code as accepted. Another red readback consumes that code permanently and advances to the next available code; an unknown response waits for reconciliation instead of sending another code blindly. Exhausted inventory is reported and the seller can import a new batch and run replacement again.
+
+`kiz_rejected_stock` retains a local exclusion by canonical CIS, so a full cryptographic copy of a red code cannot reappear through another category or a repeated import. Historical records remain available for auditing/printing; rejected codes are excluded from available stock. This differs from ordinary file duplicates, which remain allowed under the owner's earlier instruction.
+
+WB and Ozon have one shipment-level replacement button beside the inventory button. Individual order badges show KN3 status only. Confirmation closes the report before work starts; the bottom-center pill uses the two requested running/completed messages and hides eight seconds after verified completion.
+
+WB handover uses the current account's historical shipping point, automatically selected. Saved successful points are credential-scoped. Legacy city preferences can resolve display addresses, but cannot introduce an unverified point ID. Required API shipping fields are populated internally; there is no country, vehicle, manufacturing, city or date form. With no known historical point, the delivery request uses WB's existing supply configuration and preserves WB's actual rejection if it is insufficient. Label/KIZ preflight and uncertain-write reconciliation remain enforced.
+
+The 100 focused tests in the JSON evidence cover repeated rejection, thirty successive replacements, duplicate CIS/crypto exclusions, stock exhaustion/readback boundaries, both shipment buttons, account rotation, historical-point lookup, early delivery selection without blocking FX, and existing shipping contracts and license gates. These are synthetic fixtures; no live seller order was delivered or assigned a KIZ during these tests.
+
+A read-only check of the environment WB Marketplace token returned HTTP 401 for the supplies endpoint. Historical delivery points and real handover could not be accepted on this account in this session. No keys, seller order IDs or raw API responses are retained in the evidence JSON.

@@ -1,0 +1,24 @@
+{
+  "version": "1.4.13",
+  "testedApplicationCommit": "90063a7238bf06b68efb2b91f4220b311830359d",
+  "result": "passed",
+  "java": {
+    "tests": 1411,
+    "passed": 1409,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 2
+  },
+  "releaseContracts": {
+    "tests": 53,
+    "passed": 53,
+    "failed": 0
+  },
+  "platform": "Linux + Xvfb JavaFX, Java 25.0.4.1",
+  "liveSellerActions": false,
+  "finishedAtUtc": "2026-10-16T11:29:53Z",
+  "userTimezone": "Europe/Moscow",
+  "sharedReadSubscribers": "passed: UI and background share one result; canceled subscriber does not cancel owner",
+  "fxDeadlineCleanup": "passed: cancellation dispatched on FX; timeout case repeated three times",
+  "syntheticTenShopReadLatency": "6 WB + 4 Ozon and 10 Ozon fixtures; actual low-end Windows hardware not claimed"
+}

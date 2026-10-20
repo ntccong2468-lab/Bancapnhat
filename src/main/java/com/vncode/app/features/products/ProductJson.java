@@ -3,7 +3,7 @@ package com.vncode.app.features.products;
 import com.google.gson.*;
 import java.time.*;
 public final class ProductJson {
-    public static final Gson GSON=new GsonBuilder()
+    public static final Gson GSON=new GsonBuilder().enableComplexMapKeySerialization()
         .registerTypeAdapter(Instant.class,new TemporalAdapter<>(Instant::parse))
         .registerTypeAdapter(LocalDate.class,new TemporalAdapter<>(LocalDate::parse)).create();
     private ProductJson(){}

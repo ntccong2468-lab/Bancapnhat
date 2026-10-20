@@ -1,0 +1,152 @@
+{
+  "baselineCommit": "0cee8c2",
+  "baselineVersion": "1.4.19",
+  "state": "source-fix-tested-unreleased",
+  "validationUtc": "2026-10-18T11:09:49Z",
+  "environment": "Linux; Java 25.0.4.1; Xvfb; JavaFX software renderer",
+  "tests": 153,
+  "failures": 0,
+  "errors": 0,
+  "skipped": 0,
+  "suites": [
+    {
+      "class": "com.vncode.app.features.catalogsync.CatalogSyncServiceTest",
+      "tests": 14,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.features.gtinsync.GtinSyncCoordinatorTest",
+      "tests": 15,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.features.gtinsync.RegisteredGtinProofTest",
+      "tests": 7,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.features.sync.RegistrationSourcesTest",
+      "tests": 12,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.features.sync.ZnackAutoSyncServiceTest",
+      "tests": 19,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.features.sync.ZnackCatalogSyncServiceTest",
+      "tests": 11,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.features.sync.ZnackGtinBackgroundServiceTest",
+      "tests": 7,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.integration.gs1.NationalCatalogGs1ClientTest",
+      "tests": 10,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.integration.znack.CatalogCredentialRepositoryTest",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.integration.znack.CatalogDeviceConnectionTest",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.integration.znack.ZnackErrorDetailsTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.integration.znack.ZnackSigningSessionTest",
+      "tests": 9,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.integration.znack.signature.CryptoProSignatureTest",
+      "tests": 21,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.shared.FriendlyErrorCodeTest",
+      "tests": 6,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.shared.MarketplaceRequestBudgetTest",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.shared.SellerMutationExecutorTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.ui.znackregistration.GtinBackgroundStatusTest",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  ],
+  "redReproduction": {
+    "tests": 16,
+    "failures": 2,
+    "cause": "Catalog signing exception loses cause; nested CryptoPro exception loses specific localized advice"
+  },
+  "fixed": [
+    "GTIN writes no longer use the three-minute catalog-read deadline",
+    "Cancelled GTIN task no longer produces generic CryptoPro signing failure",
+    "Cancelled task is removed; terminal task attachment resolves immediately",
+    "Catalog auth retains CryptoPro cause and durable code",
+    "Failed source preparation stops before marketplace writes",
+    "Failed phase retained in report",
+    "Background pill exposes copyable redacted error details"
+  ],
+  "liveCryptoProVerified": false,
+  "liveWindowsGtinButtonVerified": false,
+  "liveMarketplaceWritesThisTask": 0,
+  "releasePublishedThisTask": false,
+  "publicLatestUnchanged": "1.4.19",
+  "remaining": "Seller Windows version and redacted Summary/ERROR CHAIN not yet provided; actual machine signing failure is not conclusively classified."
+}

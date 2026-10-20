@@ -12,6 +12,18 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class PrintHistoryRepository {
+    public long insertPreparedFboJob(com.vncode.app.models.Shop shop,String templateName,String templateJson,List<PrintHistoryItem> items) {
+        com.vncode.app.integration.listing.ListingIdentity.require(shop);
+        return insertJob(shop.getId(),shop.getName(),shop.getMarketplace().name(),"FBO/"+java.util.UUID.randomUUID(),"FBO",Instant.now().toString(),items.size(),null,templateName,templateJson,"prepared",null,items);
+    }
+    public void finishFboJob(int shopId,long id,String expected,String target) {
+        if(!java.util.Set.of("prepared","pdf_ready").contains(expected)||!java.util.Set.of("success","failed","pdf_ready").contains(target))throw new IllegalArgumentException("Invalid print checkpoint");
+        try(var c=Database.getConnection();var p=c.prepareStatement("UPDATE print_jobs SET status=? WHERE id=? AND shop_id=? AND status=? AND supply_id LIKE 'FBO/%'")){p.setString(1,target);p.setLong(2,id);p.setInt(3,shopId);p.setString(4,expected);if(p.executeUpdate()!=1)throw new IllegalStateException("FBO print checkpoint changed");}catch(SQLException failure){throw new IllegalStateException("Unable to update FBO print checkpoint");}
+    }
+    /** Called only during process startup, while the app-data lock is held. */
+    public void recoverInterruptedFboJobs() {
+        try(var c=Database.getConnection();var p=c.prepareStatement("UPDATE print_jobs SET status='failed',error_message='FBO_EXPORT_INTERRUPTED' WHERE status='prepared' AND supply_id LIKE 'FBO/%'")){p.executeUpdate();}catch(SQLException failure){throw new IllegalStateException("Unable to recover FBO print checkpoints");}
+    }
 
     public long insertSuccessfulJob(int shopId,
                                     String shopName,

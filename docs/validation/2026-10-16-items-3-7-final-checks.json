@@ -1,0 +1,178 @@
+{
+  "version": "1.4.13",
+  "baseVersion": "1.4.12",
+  "sourceCommit": "040172d66b1a40978bef9a5e7f7e8147b401ec1b",
+  "implementationCommits": {
+    "item3": "0d0b41b9ef9bbebe57229a3e2402f6d3ade2edb8",
+    "item7": "c5cb5fb6e88c212608007a63ac6897872a82c497",
+    "standaloneGtinFxmlFix": "040172d66b1a40978bef9a5e7f7e8147b401ec1b"
+  },
+  "fullJavaVerification": {
+    "result": "passed",
+    "goal": "verify",
+    "buildResult": "BUILD SUCCESS",
+    "tests": 1535,
+    "passed": 1533,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 2,
+    "testSuites": 266,
+    "finishedAt": "2026-10-16T20:22:25Z",
+    "sourceCommit": "040172d66b1a40978bef9a5e7f7e8147b401ec1b",
+    "logSha256": "9bc690d90fe00da6bc0c572861e296b1641f199c6268ba8f7bf2e3d77c94b8f1",
+    "log": "/tmp/vncode-1413-items3-7-final-verify.log",
+    "platformSkips": [
+      {
+        "className": "com.vncode.app.features.gs1.Gs1PrefixTemplateStoreTest",
+        "test": "refusesNtfsJunctionDirectoryAndAncestors"
+      },
+      {
+        "className": "com.vncode.app.shared.WindowsSecretProtectorTest",
+        "test": "separatesLicenseAndExistingMailEntropyOnWindows"
+      }
+    ],
+    "report": "docs/validation/2026-10-16-items-3-7-final-checks.json"
+  },
+  "releaseContractTests": {
+    "result": "passed",
+    "tests": 60,
+    "passed": 60,
+    "failed": 0,
+    "skipped": 0,
+    "log": {
+      "path": "/tmp/vncode-1413-release-contract.log",
+      "sha256": "a80c8f788b1eef2156d2576f4db27136825399ea1d467e9289ae9af980d3442d"
+    }
+  },
+  "portalChecks": {
+    "syntax": "passed",
+    "unitTests": 60,
+    "passed": 60,
+    "failed": 0,
+    "skipped": 0,
+    "logs": [
+      {
+        "path": "/tmp/vncode-1413-portal-check.log",
+        "sha256": "8ff1a1a67f6825c3ddf7846a5c72c805f12dfc0d80abe1a25723ee6cce7d8746"
+      },
+      {
+        "path": "/tmp/vncode-1413-portal-tests.log",
+        "sha256": "6a76679a9bff48ed546902c2f73056a3de7c55e843a12c356e65c81dd1e6620f"
+      }
+    ],
+    "websiteChangedInItems3And7": false
+  },
+  "layout": {
+    "fxmlPages": 16,
+    "javaPages": 9,
+    "locales": 4,
+    "themes": 2,
+    "contentSizes": 2,
+    "fxmlControlChecks": 960,
+    "javaControlChecks": 864,
+    "clippedControls": 0,
+    "shellWindows": [
+      "1024x600",
+      "1366x768",
+      "1600x900"
+    ]
+  },
+  "syntheticFbsUi": {
+    "shops": 10,
+    "ordersPerShop": 1000,
+    "products": 100000,
+    "visiblePageOrders": 100,
+    "changedDatabaseRowsPerSample": 9001,
+    "samples": 20,
+    "commitToDisplayedPulseP95Ms": 89.092907,
+    "fxDispatchP95Ms": 1.387508,
+    "fxStallsOver500ms": 0,
+    "maxFxPulseGapMs": 55.308145,
+    "logicalProcessors": 4,
+    "rendering": "JavaFX software rendering under Xvfb on Linux",
+    "nativeWindows": false,
+    "includesMarketplaceNetworkTime": false
+  },
+  "syntheticLocalOzonReservationMs": {
+    "100": 300.391659,
+    "500": 1535.890095,
+    "1000": 3086.126863,
+    "remoteApi": false
+  },
+  "rawMetrics": [
+    "OZON_FBS_SOURCE_BATCH synthetic=true orders=100 local_reservation_ms=300.391659 remote_api=false",
+    "OZON_FBS_SOURCE_BATCH synthetic=true orders=500 local_reservation_ms=1535.890095 remote_api=false",
+    "OZON_FBS_SOURCE_BATCH synthetic=true orders=1000 local_reservation_ms=3086.126863 remote_api=false",
+    "SYNTHETIC_LOCAL_READ 6wb4ozon samples=200 median_ms=27.842642 p95_ms=37.401861 actualWindowsLowEnd=false",
+    "SYNTHETIC_LOCAL_READ 10ozon samples=200 median_ms=23.542629 p95_ms=31.589862 actualWindowsLowEnd=false",
+    "FBS_UI_LATENCY synthetic=true shops=10 orders_per_shop=1000 products=100000 samples=20 visible_page=100 commit_to_pulse_p95_ms=89.092907 fx_dispatch_p95_ms=1.387508 nativeWindows=false",
+    "FBS_UI_DIAGNOSTICS {ozon-fbs-render={samples=20, p95Ms=87.074371, medianMs=61.313202}, fxStallsOver500ms=0, maxFxPulseGapMs=55.308145, heapUsedBytes=203727056, maxHeapBytes=8589934592, logicalProcessors=4, readWorkers=3, readActive=0, readPending=0, imageWorkers=2, imagePending=0, legacyTasks=0, mutationActive=0, mutationPending=0, sellerHttpActive=0, screenCacheBytes=0, screenCacheBudgetBytes=67108864}",
+    "WORKSPACE_JAVA_LAYOUT pages=9 locales=4 themes=2 sizes=2 fixed_action_checks=864 clipped=0",
+    "WORKSPACE_LAYOUT pages=16 locales=4 themes=2 content_sizes=2 fixed_action_checks=960 clipped={}"
+  ],
+  "purchasePipeline": {
+    "preserved": true,
+    "files": [
+      {
+        "path": "src/main/java/com/vncode/app/integration/znack/ZnackPurchaseCoordinator.java",
+        "sha256": "541b6b7a95322a334620bc0d2e6a66b79a7cb400f8a321ccfb8bfa0a418c548c",
+        "matchesApprovedItem2Baseline": true
+      },
+      {
+        "path": "src/main/java/com/vncode/app/integration/znack/ZnackKizOrderService.java",
+        "sha256": "f2df13878035bd5cdd46ae7e09dd7f9d3fe86ce57e88fbd9b5679456404d1881",
+        "matchesApprovedItem2Baseline": true
+      },
+      {
+        "path": "src/main/java/com/vncode/app/integration/znack/ZnackKizCodeService.java",
+        "sha256": "193b08fd5453159cc32e833f07726fbbcbabe9faec04434c0696320496b4f767",
+        "matchesApprovedItem2Baseline": true
+      }
+    ]
+  },
+  "fullRegressionInitialFailure": {
+    "sourceCommit": "c5cb5fb6e88c212608007a63ac6897872a82c497",
+    "tests": 1535,
+    "failures": 0,
+    "errors": 3,
+    "skipped": 2,
+    "cause": "Standalone GTIN FXML was opened without a ResourceBundle by the existing compatibility loader.",
+    "fix": "Keep default title in FXML and translate in controller; original compatibility assertions retained.",
+    "fixedSourceCommit": "040172d66b1a40978bef9a5e7f7e8147b401ec1b",
+    "targetedRerunTests": 4,
+    "targetedRerunResult": "passed",
+    "logs": [
+      {
+        "path": "/tmp/vncode-1413-items3-7-full-regression.log",
+        "sha256": "3271e12948d7ec137caeb7a69875ab43f5945b9895c69835e19c211cec2babec"
+      },
+      {
+        "path": "/tmp/vncode-item7-gtin-resource-fix.log",
+        "sha256": "1a8a266b248be112af5c555e57a723d74d29fdd42b31202b130947ba34356a46"
+      }
+    ]
+  },
+  "reference": {
+    "latestPublicWbcode": "v1.3.9",
+    "publishedAt": "2026-10-15T16:56:43Z",
+    "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.3.9",
+    "internalSourceAvailable": false,
+    "legacyPublicWcode": "1.0.27",
+    "legacySourceCommit": "457a6113301978454f244248956962ab1fcdeb7e"
+  },
+  "acceptance": {
+    "localCodeAndRegressionComplete": true,
+    "nativeWindows": false,
+    "liveMarketplaceWrite": false,
+    "liveKizAssignment": false,
+    "livePurchase": false,
+    "liveSecondSellerMachine": false,
+    "licenseProductionVerifiedForThisSource": false
+  },
+  "publication": {
+    "published": false,
+    "latestChanged": false,
+    "currentSellerLatest": "1.4.12",
+    "windowsInstallerCreatedForThisSource": false
+  }
+}

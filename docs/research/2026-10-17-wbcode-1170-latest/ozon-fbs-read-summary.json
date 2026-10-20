@@ -1,0 +1,23 @@
+{
+  "checkedAt": "2026-10-17T21:42:39.622686Z",
+  "readOnly": true,
+  "liveMutations": false,
+  "services": [
+    {
+      "kind": "history30Days",
+      "endpoint": "v4/posting/fbs/list",
+      "http": 200,
+      "pages": 9,
+      "postings": 883,
+      "completeWindow": true
+    },
+    {
+      "kind": "unfulfilled",
+      "endpoint": "v4/posting/fbs/unfulfilled/list",
+      "http": 200,
+      "pages": 3,
+      "postings": 255,
+      "completeWindow": true
+    }
+  ]
+}

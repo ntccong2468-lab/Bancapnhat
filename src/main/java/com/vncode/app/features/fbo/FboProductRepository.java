@@ -16,7 +16,7 @@ public class FboProductRepository {
             SELECT c.nm_id, c.vendor_code, c.subject_name, c.brand, c.title,
                    COALESCE(c.need_kiz, 0) AS need_kiz,
                    COALESCE(c.kiz_marked, 0) AS kiz_marked,
-                   s.tech_size, s.wb_size, sku.sku,
+                   s.tech_size, s.wb_size, sku.sku, CAST(s.chrt_id AS TEXT) variant_id,
                    p.c246x328_url, p.square_url, p.big_url, p.hq_url, p.tm_url,
                    (SELECT COALESCE(json_extract(ch.value_json, '$[0]'), json_extract(ch.value_json, '$'))
                     FROM wb_product_characteristics ch
@@ -148,7 +148,7 @@ public class FboProductRepository {
                         rs.getString("big_url"),
                         rs.getString("hq_url"),
                         rs.getString("tm_url")),
-                rs.getInt("need_kiz") > 0 || rs.getInt("kiz_marked") > 0);
+                rs.getInt("need_kiz") > 0 || rs.getInt("kiz_marked") > 0,rs.getString("sku"),rs.getString("variant_id"),"");
     }
 
     private static String firstNonBlank(String... values) {

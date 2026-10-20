@@ -24,7 +24,9 @@ class SellerWorkspacePerformanceTest {
   try(var c=Database.getConnection();var s=c.createStatement()){
    for(String sql:List.of("SELECT count(*) FROM shops","SELECT (SELECT count(*) FROM wb_product_cards)+(SELECT count(*) FROM ozon_products)","SELECT (SELECT count(*) FROM wb_orders)+(SELECT count(*) FROM ozon_postings)"))try(var r=s.executeQuery(sql)){assertTrue(r.next());assertEquals(sql.contains("FROM shops")?10:sql.contains("product")?100000:10000,r.getInt(1));}
   }
-  var entered=new CountDownLatch(2);var release=new CountDownLatch(1);var client=new OkHttpClient.Builder().callTimeout(java.time.Duration.ofSeconds(90)).build();
+  // The fixture deliberately holds HTTP calls throughout all 200 local reads.
+  // Keep its socket timeout aligned with that hold; cache reads still have the 3s deadline below.
+  var entered=new CountDownLatch(2);var release=new CountDownLatch(1);var client=new OkHttpClient.Builder().callTimeout(java.time.Duration.ofSeconds(90)).readTimeout(java.time.Duration.ofSeconds(90)).build();
   try(var server=new MockWebServer();var reads=new ShopReadCoordinator(3,64,1)){
    server.setDispatcher(new okhttp3.mockwebserver.Dispatcher(){public MockResponse dispatch(RecordedRequest request)throws InterruptedException{entered.countDown();release.await(90,TimeUnit.SECONDS);return new MockResponse().setBody("{}");}});
    var network=new ArrayList<CompletableFuture<String>>();for(int i=1;i<=2;i++)network.add(reads.submit(new ShopReadCoordinator.Key(i,"slow-fixture-http","read"),false,()->{try(var slot=MarketplaceRequestBudget.acquire();var response=client.newCall(new Request.Builder().url(server.url("/read")).build()).execute()){return response.body().string();}}));

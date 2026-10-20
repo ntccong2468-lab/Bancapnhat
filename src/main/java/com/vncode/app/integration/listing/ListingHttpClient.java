@@ -34,13 +34,31 @@ public final class ListingHttpClient implements ListingTransport {
         if(mutation)b.tag(NetworkAttempt.class,new NetworkAttempt());
         if(shop.getMarketplace()==Marketplace.OZON)b.header("Client-Id",shop.getClientId()).header("Api-Key",shop.getApiKey());else b.header("Authorization",shop.getApiKey());
         if(body==null)b.get();else b.post(RequestBody.create(MediaType.get("application/json"),body.toString()));
-        if(origin.host().equals("content-api.wildberries.ru"))com.vncode.app.integration.wb.WbContentApiRateLimiter.awaitTurn(shop.getApiKey());
-        if(origin.host().equals("api-seller.ozon.ru"))try{OZON_LIMITER.awaitTurn(shop.getId(),"catalog");}catch(InterruptedException e){Thread.currentThread().interrupt();throw new InterruptedIOException("Listing request cancelled");}
+        if(origin.host().equals("content-api.wildberries.ru"))com.vncode.app.integration.wb.WbContentApiRateLimiter.awaitTurn(shop.getApiKey(),path);
+        if(origin.host().equals("api-seller.ozon.ru"))try{OZON_LIMITER.awaitTurn(ListingIdentity.hash(shop.getClientId()),"catalog");}catch(InterruptedException e){Thread.currentThread().interrupt();throw new InterruptedIOException("Listing request cancelled");}
         try(var slot=com.vncode.app.shared.MarketplaceRequestBudget.acquire()){
             ListingIdentity.require(shop);beforeSend.run();
             try(var r=http.newCall(b.build()).execute()){
-            if(r.code()==429&&origin.host().equals("content-api.wildberries.ru"))com.vncode.app.integration.wb.WbContentApiRateLimiter.registerRateLimit(shop.getApiKey(),r.headers());
-            if(!r.isSuccessful())throw new IOException("Listing API HTTP "+r.code());
+            if(r.code()==429){
+                var rejected=new ListingRateLimitException(r.headers());
+                if(origin.host().equals("content-api.wildberries.ru"))com.vncode.app.integration.wb.WbContentApiRateLimiter.registerRateLimit(shop.getApiKey(),path,r.headers());
+                if(origin.host().equals("api-seller.ozon.ru"))OZON_LIMITER.registerRateLimit(ListingIdentity.hash(shop.getClientId()),"catalog",rejected.retryAfter());
+                throw rejected;
+            }
+            if(!r.isSuccessful()){
+                if(r.code()>=400&&r.code()<500&&r.code()!=408&&r.code()!=425){
+                    String reason="";
+                    try{
+                        var detail=JsonParser.parseString(r.peekBody(8192).string());
+                        if(detail.isJsonObject())for(String field:new String[]{"errorText","message","detail"}){
+                            var value=detail.getAsJsonObject().get(field);
+                            if(value!=null&&value.isJsonPrimitive()){reason=ListingRejectedException.safe(shop,value.getAsString());if(!reason.isBlank())break;}
+                        }
+                    }catch(IOException|RuntimeException unavailable){/* Status is still an explicit rejection. */}
+                    throw new ListingRejectedException("Listing API HTTP "+r.code()+(reason.isBlank()?"":": "+reason));
+                }
+                throw new IOException("Listing API HTTP "+r.code());
+            }
             if(r.body()==null||r.body().contentLength()>LIMIT)throw new IOException("Listing response unavailable or too large");
             try(var in=r.body().byteStream()){var bytes=in.readNBytes(LIMIT+1);if(bytes.length>LIMIT)throw new IOException("Listing response too large");return JsonParser.parseString(new String(bytes,StandardCharsets.UTF_8));}
             }

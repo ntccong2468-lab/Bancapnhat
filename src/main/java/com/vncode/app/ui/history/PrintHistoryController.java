@@ -46,7 +46,7 @@ public class PrintHistoryController {
         supplyNameTC.setCellValueFactory(cell -> new ReadOnlyStringWrapper(cell.getValue().supplyName()));
         supplyIdTC.setCellValueFactory(cell -> new ReadOnlyStringWrapper(cell.getValue().supplyId()));
         itemCountTC.setCellValueFactory(cell -> new ReadOnlyObjectWrapper<>(cell.getValue().itemCount()));
-        statusTC.setCellValueFactory(cell -> new ReadOnlyStringWrapper(cell.getValue().status()));
+        statusTC.setCellValueFactory(cell -> new ReadOnlyStringWrapper(I18nService.getInstance().tr("history.status."+cell.getValue().status())));
         actionTC.setCellFactory(col -> new TableCell<>() {
             private final Button button = new Button();
             private final Button reconcile = new Button();
@@ -77,7 +77,7 @@ public class PrintHistoryController {
                 } else {
                     button.setDisable(!job.canReprint());
                     reconcile.setText(I18nService.getInstance().tr("history.reconcile_kiz"));
-                    reconcile.setDisable(!job.canReprint()||onReconcile==null);
+                    reconcile.setDisable(!job.canReprint()||job.isFbo()||onReconcile==null);
                     setGraphic(actions);
                 }
             }

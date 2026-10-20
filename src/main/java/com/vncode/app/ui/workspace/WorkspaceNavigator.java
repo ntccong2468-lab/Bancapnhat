@@ -20,6 +20,8 @@ public final class WorkspaceNavigator {
         var factory=routes.get(route);if(factory==null)throw new IllegalArgumentException("unknown_route");
         if(!access.test(route))throw new SecurityException("route_denied");
         var view=cache.computeIfAbsent(route,key->Objects.requireNonNull(factory.get(),"View not initialized"));
+        if(!view.getStyleClass().contains("app-page"))view.getStyleClass().add("app-page");
+        if(view instanceof javafx.scene.layout.Region region){region.setMinWidth(0);region.setMinHeight(0);}
         display.accept(view);current=route;
     }
     public void showView(Node view) {

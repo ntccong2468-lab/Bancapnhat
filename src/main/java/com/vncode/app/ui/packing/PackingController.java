@@ -61,6 +61,7 @@ import java.util.Set;
 import java.util.function.Consumer;
 
 public class PackingController {
+    private final com.vncode.app.shared.TableRows.Tracked<Order,Long> renderedOrders=new com.vncode.app.shared.TableRows.Tracked<>();
     private static final Logger LOGGER = LoggerFactory.getLogger(PackingController.class);
     private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm");
     private final PackingWorkflow packingWorkflow = new PackingWorkflow();
@@ -135,7 +136,7 @@ public class PackingController {
     }
 
     public void setShop(Shop shop, boolean tokenValid) {
-        shopGeneration++;
+        renderedOrders.clear();shopGeneration++;
         dispatchEpoch++;dispatchLoading=false;dispatchOffset=0;dispatchTable.getItems().clear();dispatchMoreButton.setDisable(true);
         this.shop = shop;
         this.tokenValid = tokenValid;
@@ -230,6 +231,8 @@ public class PackingController {
                     selectedShop, supply.getSupplyId(), orderIds));
         });
     }
+
+    public void refreshLocalData(){refresh();}
 
     private void refresh() {
         if (shop == null) {
@@ -327,13 +330,13 @@ public class PackingController {
     }
 
     private void setBoard(PackingWorkflow.PackingBoard board) {
-        selectedOrderIds.clear();
+        var retained=new java.util.HashSet<Long>();if(board.newOrders()!=null)for(var row:board.newOrders())if(row.getId()!=null)retained.add(row.getId());selectedOrderIds.retainAll(retained);
         allNewOrders = board.newOrders() == null ? List.of() : List.copyOf(board.newOrders());
         updateCategoryFilterOptions();
         applyNewOrderFilters();
-        preparationTable.getItems().setAll(board.preparationSupplies());
+        com.vncode.app.shared.TableRows.merge(preparationTable.getItems(),board.preparationSupplies(),WbSupplySummary::getSupplyId,com.vncode.app.shared.FbsRowValues::sameSupply);
         dispatchEpoch++;
-        dispatchTable.getItems().setAll(board.dispatchSupplies());
+        com.vncode.app.shared.TableRows.merge(dispatchTable.getItems(),board.dispatchSupplies(),WbSupplySummary::getSupplyId,com.vncode.app.shared.FbsRowValues::sameSupply);
         dispatchOffset=board.dispatchSupplies().size();dispatchLoading=false;
         dispatchMoreButton.setDisable(shop==null||board.dispatchSupplies().size()<20);
         updateSelectionState();
@@ -409,7 +412,9 @@ public class PackingController {
         newShipmentButton.setDisable(loading || selectedOrderIds.isEmpty() || !tokenValid);
         addToShipmentButton.setDisable(loading || selectedOrderIds.isEmpty() || !tokenValid);
         refreshButton.setDisable(loading || shop == null || !tokenValid);
-        refreshLoading.setVisible(loading);
+        refreshLoading.setVisible(false);
+        if(loading)newOrdersTable.setPlaceholder(new com.vncode.app.shared.LoadingSkeleton(I18nService.getInstance().tr("supply.loading_orders")));
+        else newOrdersTable.setPlaceholder(new Label(I18nService.getInstance().tr("supply_list.empty")));
         newOrdersTable.setDisable(loading);
         newOrderSearchField.setDisable(loading);
         categoryFilterMenuButton.setDisable(loading);
@@ -550,7 +555,7 @@ public class PackingController {
                 .filter(id -> id != null)
                 .collect(java.util.stream.Collectors.toCollection(LinkedHashSet::new));
         selectedOrderIds.retainAll(visibleIds);
-        newOrdersTable.getItems().setAll(filtered);
+        renderedOrders.merge(newOrdersTable.getItems(),filtered,Order::getId,com.vncode.app.shared.FbsRowValues::snapshot);
         emptyNewOrdersLabel.setVisible(filtered.isEmpty());
         emptyNewOrdersLabel.setManaged(filtered.isEmpty());
         updateSelectionState();

@@ -226,10 +226,22 @@ public final class FboSupplyOrdersController {
         if (syncIfStale && syncService.isOrderListStale(selectedShop)) refresh();
     }
 
+    public void refreshLocalData(){
+        Shop owner=shop;long generation=shopGeneration;if(owner==null||orderSyncRunning)return;
+        com.vncode.app.shared.ShopReadCoordinator.shared().submitLocal(new com.vncode.app.shared.ShopReadCoordinator.Key(owner.getId(),"fbo-orders-cache",com.vncode.app.integration.listing.ListingIdentity.fingerprint(owner)),()->syncService.cachedOrders(owner))
+            .whenComplete((orders,error)->javafx.application.Platform.runLater(()->{
+                if(error!=null||generation!=shopGeneration||shop==null||!com.vncode.app.integration.listing.ListingIdentity.fingerprint(owner).equals(com.vncode.app.integration.listing.ListingIdentity.fingerprint(shop)))return;
+                renderOrders(orders);updateLastSync();setStatus(false,"");
+            }));
+    }
+
     @FXML
     private void refresh() {
         Shop requestedShop = shop;
         if (requestedShop == null || orderSyncRunning) return;
+        if(com.vncode.app.features.sync.SyncRuntime.requestIfRunning(requestedShop,com.vncode.app.features.sync.SyncCoordinator.Stream.FBO)){
+            setStatus(false,i18n.tr("fbo.orders.syncing"));return;
+        }
         long generation = shopGeneration;
         orderSyncRunning = true;
         setStatus(true, i18n.tr("fbo.orders.syncing"));

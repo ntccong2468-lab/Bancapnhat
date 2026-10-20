@@ -1,0 +1,20 @@
+{
+  "checkedAt": "2026-10-16T10:59:41.733303+00:00",
+  "userTimezone": "Europe/Moscow",
+  "latestPublicWbcode": "v1.3.9",
+  "publishedAt": "2026-10-15T16:56:43Z",
+  "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.3.9",
+  "releaseNotes": "# Wbcode 1.3.9\n\n- Windows: cài mới hoặc cập nhật chỉ còn một biểu tượng Wbcode trên màn hình chính và trong menu Start, không còn biểu tượng WCode thứ hai.\n- Đăng ký Znack (Ozon): bấm đăng ký lại một thẻ đang chờ kiểm duyệt với đúng dữ liệu không còn báo lỗi. Dòng đó chuyển sang «Đang kiểm duyệt», Wbcode tự ký khi thẻ được duyệt và hiện lý do nếu thẻ bị từ chối.\n- Đăng ký Znack (WB): thẻ đang đăng ký dở khi tắt ứng dụng tự chạy lại ở lần mở sau, không còn báo lỗi «Registration interrupted». Các thẻ đã bị báo lỗi này cũng tự chạy lại.\n- Hộp thoại không còn bị nhảy lên xuống liên tục khi cửa sổ ứng dụng nhỏ, ví dụ hộp gửi yêu cầu GS1.\n\n Bộ cài Windows hiện chưa có chữ ký Authenticode.\n",
+  "latestInternalSourceAvailable": false,
+  "publicSourceReference": "rupphi/test-wcode@8f7c3d1ac8598158029b8d037e2d3c128e240727",
+  "publicLegacyKizReference": "rupphi/test-wcode@457a6113301978454f244248956962ab1fcdeb7e",
+  "liveSellerAccountUsed": false,
+  "latestTagTree": {
+    "paths": [
+      "README.md"
+    ],
+    "sha": "98b4f47c53bcfaeb6f84ef454def6a2c9cb29322",
+    "truncated": false
+  },
+  "latestTagContainsJavaSource": false
+}

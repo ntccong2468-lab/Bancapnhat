@@ -26,6 +26,15 @@ public final class LocalDataMigrationGate {
     }
 
     public static Session prepare(Path appDataDir, String appVersion, String writerId) throws Exception {
+        return prepare(appDataDir,appVersion,writerId,phase->{});
+    }
+
+    public static Session prepare(Path appDataDir,String appVersion,String writerId,java.util.function.Consumer<String> phase) throws Exception {
+        return prepare(appDataDir,appVersion,writerId,phase,null);
+    }
+
+    public static Session prepare(Path appDataDir,String appVersion,String writerId,java.util.function.Consumer<String> phase,
+                                  java.util.function.Supplier<? extends java.util.concurrent.CompletionStage<Void>> activation) throws Exception {
         if (appVersion == null || !VERSION_PATTERN.matcher(appVersion).matches()) {
             throw new IllegalArgumentException("appVersion has an invalid format");
         }
@@ -38,7 +47,14 @@ public final class LocalDataMigrationGate {
         }
 
         AppDataLock ownership = AppDataLock.acquire(normalizedDir, writerId);
+        Session session=new Session(ownership,appVersion,normalizedDir);
         try {
+            // Register before recovery/backup: another launch can raise the visible startup
+            // window while this process still owns and prepares its data directory.
+            if(activation!=null)try{session.startActivation(activation);}catch(IOException|RuntimeException unavailable){
+                System.getLogger(LocalDataMigrationGate.class.getName()).log(System.Logger.Level.DEBUG,"Window activation listener unavailable",unavailable);
+            }
+            phase.accept("RECOVERING_DATA");
             LocalDataSnapshotService snapshots = new LocalDataSnapshotService();
             snapshots.recoverInterrupted(ownership);
             AppDataRecoveryService.recoverIfNeededOnStartup();
@@ -61,29 +77,34 @@ public final class LocalDataMigrationGate {
             }
             Path marker = requireSafeMarker(
                     normalizedDir.resolve("writer-state"), writerId + "-" + appVersion + ".ready");
+            phase.accept("CHECKING_BACKUP");
             if (existingSchemaVersion == currentSchemaVersion
                     && isReady(marker, appVersion, currentSchemaVersion, snapshots, ownership)) {
                 snapshots.retainRollbackWindow(ownership);
-                return new Session(ownership, appVersion, normalizedDir);
+                return session;
             }
 
             String reason = existingSchemaVersion < currentSchemaVersion
                     ? "wcode-schema-" + currentSchemaVersion
                     : writerId + "-writer-"
                             + appVersion.toLowerCase(Locale.ROOT).replace('_', '-');
-            LocalDataSnapshotService.Snapshot snapshot = snapshots.create(
-                    ownership, appVersion, existingSchemaVersion, reason);
+            phase.accept("CREATING_BACKUP");
+            LocalDataSnapshotService.Snapshot snapshot = existingSchemaVersion==currentSchemaVersion
+                    ?UpdateSnapshotHandoff.reusable(ownership,appVersion,currentSchemaVersion,snapshots):null;
+            if(snapshot==null)snapshot=snapshots.create(ownership,appVersion,existingSchemaVersion,reason);
             String snapshotChecksum = snapshot.sha256();
 
+            phase.accept("INITIALIZING_DATA");
             Database.initDatabase();
             if (readSchemaVersion(database) != currentSchemaVersion) {
                 throw new IOException("The VN code database schema migration did not complete safely.");
             }
             writeReadyMarker(marker, appVersion, currentSchemaVersion, snapshotChecksum);
+            UpdateSnapshotHandoff.clear(ownership);
             snapshots.retainRollbackWindow(ownership);
-            return new Session(ownership, appVersion, normalizedDir);
+            return session;
         } catch (Exception exception) {
-            ownership.close();
+            session.close();
             throw exception;
         }
     }
@@ -129,7 +150,7 @@ public final class LocalDataMigrationGate {
                 return false;
             }
             return snapshots.list(ownership).stream()
-                    .anyMatch(snapshot -> expected.equals(snapshot.sha256()) && snapshots.verify(snapshot));
+                    .anyMatch(snapshot -> expected.equals(snapshot.sha256()) && snapshots.verifyPreviouslyValidated(snapshot,expected));
         } catch (IOException exception) {
             return false;
         }
@@ -197,6 +218,8 @@ public final class LocalDataMigrationGate {
         private final AppDataLock ownership;
         private final String appVersion;
         private final Path appDataDir;
+        private final Object activationLock=new Object();
+        private AppInstanceActivation activation;
 
         private Session(AppDataLock ownership, String appVersion, Path appDataDir) {
             this.ownership = ownership;
@@ -204,16 +227,48 @@ public final class LocalDataMigrationGate {
             this.appDataDir = appDataDir;
         }
 
+        public void startActivation(java.util.function.Supplier<? extends java.util.concurrent.CompletionStage<Void>> restore)throws IOException {
+            synchronized(activationLock){if(activation==null)activation=AppInstanceActivation.listen(ownership,restore);}
+        }
+
+        public void closeActivation(){
+            synchronized(activationLock){if(activation!=null){activation.close();activation=null;}}
+        }
+
         public synchronized void createSignedUpdateSnapshot() throws Exception {
+            createSignedUpdateSnapshot(null);
+        }
+
+        public synchronized void createSignedUpdateSnapshot(String targetVersion) throws Exception {
+            createSignedUpdateSnapshot(targetVersion,progress->{});
+        }
+
+        public synchronized void createSignedUpdateSnapshot(String targetVersion,java.util.function.Consumer<LocalDataSnapshotService.Progress> progress) throws Exception {
             Path database = appDataDir.resolve("database.db");
             int schemaVersion = readSchemaVersion(database);
             LocalDataSnapshotService snapshots = new LocalDataSnapshotService();
-            snapshots.create(ownership, appVersion, schemaVersion, "signed-update-install");
-            snapshots.retainRollbackWindow(ownership);
+            if(targetVersion!=null&&UpdateSnapshotHandoff.reusable(ownership,targetVersion,schemaVersion,snapshots,progress)!=null)return;
+            UpdateSnapshotHandoff.clear(ownership);
+            UpdateSnapshotHandoff.Identity before=null,after=null;
+            try{before=UpdateSnapshotHandoff.capture(ownership,progress);}catch(IOException changing){
+                if(Thread.currentThread().isInterrupted())throw changing;
+                /* Optimization is optional; a full rollback is still required. */
+            }
+            var snapshot=snapshots.create(ownership, appVersion, schemaVersion, "signed-update-install",progress);
+            if(before!=null)try{after=UpdateSnapshotHandoff.capture(ownership,progress);}catch(IOException changing){
+                if(Thread.currentThread().isInterrupted())throw changing;
+                /* Startup takes a fresh snapshot if any live bytes changed. */
+            }
+            UpdateSnapshotHandoff.record(ownership,targetVersion,snapshot,before,after);
+            // Retention is housekeeping, already run by startup. Never put deletion/scans of
+            // every expired rollback file between completed download and installer launch.
         }
 
         @Override
-        public void close() throws IOException {
+        public synchronized void close() throws IOException {
+            // An interrupted/native SQLite backup may still be returning. Keep ownership
+            // until its synchronized snapshot operation has finished or cleaned up.
+            closeActivation();
             ownership.close();
         }
     }

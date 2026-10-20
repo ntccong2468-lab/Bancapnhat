@@ -1,0 +1,20 @@
+{
+  "productionRenderer": "OzonKizLabelAppender",
+  "realMarketplaceCalls": false,
+  "realKiz": false,
+  "productBarcode": "OZN0000000000",
+  "scanChecks": [
+    {
+      "dpi": 203,
+      "kizDecoded": true,
+      "productBarcodeDecoded": true,
+      "gs1Symbology": "]d2"
+    },
+    {
+      "dpi": 300,
+      "kizDecoded": true,
+      "productBarcodeDecoded": true,
+      "gs1Symbology": "]d2"
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "date": "2026-10-15",
+  "sources": [
+    {
+      "name": "WB item management",
+      "url": "https://dev.wildberries.ru/api/swagger/yaml/en/02-items.yaml",
+      "sha256": "2020b0cc3b33322a8ed34312749964a705b573ecf7275bd89bef7c95511d52db",
+      "bytes": 386059
+    },
+    {
+      "name": "Ozon Seller API",
+      "url": "https://docs.ozon.ru/api/seller/swagger.json",
+      "sha256": "e57753fad3373e7da1148ef2129941113012e901b9084be1f3f26da81d92ac65",
+      "bytes": 4232190
+    }
+  ],
+  "validatedPaths": [
+    "GET https://discounts-prices-api.wildberries.ru/api/v2/list/goods/filter",
+    "POST https://api-seller.ozon.ru/v5/product/info/prices"
+  ],
+  "notes": [
+    "WB sizes[].sizeID is the Content API chrtID; prices retain exact size and currency.",
+    "Ozon v5 prices response is top-level items with product_id and price.price/currency_code; filter.product_id and limit are required.",
+    "Public documentation reads only; no seller credentials or live product mutations."
+  ]
+}

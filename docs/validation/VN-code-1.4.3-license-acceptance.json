@@ -1,0 +1,18 @@
+{
+  "version": "1.4.3",
+  "result": "blocked",
+  "sourceCommit": null,
+  "keyId": "vncode-1",
+  "publicKey": "Gg7F92gqXnCLGdMbI130qHcBJ2hiI6KseZBgWkNCTeI",
+  "backendSourceSha256": null,
+  "windowsDpapiPassed": false,
+  "foreignWindowsIdentityRejected": false,
+  "backendGmailApprovalPassed": false,
+  "deviceLimitConcurrencyPassed": false,
+  "activationRetryPassed": false,
+  "signedOfflinePassed": false,
+  "revocationPassed": false,
+  "readonlyDataPreserved": false,
+  "serverSigningKeyMatch": "unverified",
+  "note": "Owner screenshot of VNCode 1.4.2 proves SIGNING_NOT_CONFIGURED. Original private-key files are lost. Portal 0.3.4 must validate the retained Cloudflare Secret against the client pin before real Windows activation acceptance; no production deployment or successful activation is claimed."
+}

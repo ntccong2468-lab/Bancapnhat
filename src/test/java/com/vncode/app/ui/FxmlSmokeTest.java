@@ -60,30 +60,41 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class FxmlSmokeTest {
+    @Test void openingJobSelectsItsShopBeforeShowingHistory()throws Exception {
+        try(var c=Database.getConnection();var s=c.createStatement()){s.execute("INSERT OR IGNORE INTO shops(id,name,marketplace,client_id,api_key) VALUES(2,'Job owner','OZON','22','fixture')");}
+        var holder=new java.util.concurrent.atomic.AtomicReference<HomeController>();
+        var setup=new java.util.concurrent.FutureTask<Void>(()->{var loader=FxmlViewLoader.loader(HomeController.class,"home-view.fxml");FxmlViewLoader.load(loader);holder.set(loader.getController());return null;});Platform.runLater(setup);setup.get(10,TimeUnit.SECONDS);awaitBackgroundTasksBeforeFixtureCleanup();
+        try {
+            var open=new java.util.concurrent.FutureTask<Void>(()->{var method=HomeController.class.getDeclaredMethod("openJob",com.vncode.app.features.jobs.JobCenterRepository.Row.class);method.setAccessible(true);method.invoke(holder.get(),new com.vncode.app.features.jobs.JobCenterRepository.Row(2,"Job owner","print","review",1));var state=HomeController.class.getDeclaredField("state");state.setAccessible(true);var model=state.get(holder.get());var selected=model.getClass().getDeclaredMethod("getSelectedShop");selected.setAccessible(true);assertEquals(2,((Shop)selected.invoke(model)).getId());return null;});Platform.runLater(open);open.get(10,TimeUnit.SECONDS);
+        }finally{var close=new java.util.concurrent.FutureTask<Void>(()->{holder.get().dispose();return null;});Platform.runLater(close);close.get(5,TimeUnit.SECONDS);awaitBackgroundTasksBeforeFixtureCleanup();}
+    }
     @Test void cachedSupplyRowsAppearWhileLegacyNetworkWorkersAreBusy()throws Exception {
         try(var c=Database.getConnection();var s=c.createStatement()){s.execute("UPDATE shops SET api_key='fixture.e30.fixture' WHERE id=1");s.execute("INSERT INTO wb_supplies(shop_id,supply_id,done,name,synced_at) VALUES(1,'fixture-local',0,'Fixture','2026-10-11T00:00:00Z')");s.execute("INSERT INTO wb_orders(shop_id,order_id,supply_id,article,supplier_status,wb_status,synced_at) VALUES(1,98765,'fixture-local','fixture','confirm','waiting','2026-10-11T00:00:00Z')");s.execute("INSERT INTO wb_supply_orders VALUES(1,'fixture-local',98765)");}
-        var holder=new java.util.concurrent.atomic.AtomicReference<HomeController>();var setup=new java.util.concurrent.FutureTask<Void>(()->{var loader=FxmlViewLoader.loader(HomeController.class,"home-view.fxml");FxmlViewLoader.load(loader);holder.set(loader.getController());return null;});Platform.runLater(setup);setup.get(10,TimeUnit.SECONDS);awaitBackgroundTasksBeforeFixtureCleanup();
+        var holder=new java.util.concurrent.atomic.AtomicReference<HomeController>();var setup=new java.util.concurrent.FutureTask<Void>(()->{var loader=FxmlViewLoader.loader(HomeController.class,"home-view.fxml");FxmlViewLoader.load(loader);holder.set(loader.getController());
+            // This cached-row test owns the two blocked legacy workers below. The production
+            // scheduler must not send real HTTP requests with synthetic marketplace credentials.
+            stopAutomaticSync(holder.get());return null;});Platform.runLater(setup);setup.get(10,TimeUnit.SECONDS);awaitBackgroundTasksBeforeFixtureCleanup();
         var entered=new CountDownLatch(2);var release=new CountDownLatch(1);try{
             for(int i=0;i<2;i++)assertTrue(com.vncode.app.shared.AppTaskExecutor.execute(new javafx.concurrent.Task<Void>(){protected Void call()throws Exception{entered.countDown();release.await(15,TimeUnit.SECONDS);return null;}}));assertTrue(entered.await(5,TimeUnit.SECONDS));
             var open=new java.util.concurrent.FutureTask<Void>(()->{var method=HomeController.class.getDeclaredMethod("loadSupply",com.vncode.app.integration.wb.WbSupplySummary.class);method.setAccessible(true);method.invoke(holder.get(),new com.vncode.app.integration.wb.WbSupplySummary("fixture-local","Fixture",false,null,"2026-10-11T00:00:00Z",1));return null;});Platform.runLater(open);open.get(2,TimeUnit.SECONDS);
             boolean shown=false;long until=System.nanoTime()+TimeUnit.SECONDS.toNanos(2);do{var check=new java.util.concurrent.FutureTask<Boolean>(()->{var field=HomeController.class.getDeclaredField("supplyDetailController");field.setAccessible(true);var controller=field.get(holder.get());var table=controller.getClass().getDeclaredField("orderTable");table.setAccessible(true);return ((TableView<?>)table.get(controller)).getItems().size()==1;});Platform.runLater(check);shown=check.get(1,TimeUnit.SECONDS);if(!shown)Thread.sleep(10);}while(!shown&&System.nanoTime()<until);assertTrue(shown,"Cached supply rows must display without waiting for the two legacy workers");
-        }finally{release.countDown();awaitBackgroundTasksBeforeFixtureCleanup();var close=new java.util.concurrent.FutureTask<Void>(()->{holder.get().dispose();return null;});Platform.runLater(close);close.get(5,TimeUnit.SECONDS);}
+        }finally{release.countDown();var close=new java.util.concurrent.FutureTask<Void>(()->{holder.get().dispose();return null;});Platform.runLater(close);close.get(5,TimeUnit.SECONDS);awaitBackgroundTasksBeforeFixtureCleanup();}
     }
     @Test void gs1ThreadSelectionDoesNotWaitForLockedSqlite()throws Exception {
         var holder=new java.util.concurrent.atomic.AtomicReference<com.vncode.app.ui.gs1.Gs1Pane>();
         var request=new java.util.concurrent.atomic.AtomicReference<com.vncode.app.features.gs1.Gs1Repository.Request>();
         var setup=new java.util.concurrent.FutureTask<Void>(()->{var pane=new com.vncode.app.ui.gs1.Gs1Pane();holder.set(pane);var shop=pane.getClass().getDeclaredField("shop");shop.setAccessible(true);shop.set(pane,new Shop(1,"Fixture","fixture"));var inn=pane.getClass().getDeclaredField("inn");inn.setAccessible(true);inn.set(pane,"7707083893");var repo=new com.vncode.app.features.gs1.Gs1Repository();var row=repo.createRequest("7707083893","RENEWAL","mail@gs1ru.org","Thread fixture","Draft");repo.addMessage(row.inn(),row.id(),"response",false,"mail@gs1ru.org","Response",true);request.set(row);return null;});Platform.runLater(setup);setup.get(10,TimeUnit.SECONDS);
-        try(var c=Database.getConnection();var lock=c.createStatement()){lock.execute("PRAGMA journal_mode=DELETE");lock.execute("BEGIN EXCLUSIVE");try{var task=new java.util.concurrent.FutureTask<Void>(()->{var method=holder.get().getClass().getDeclaredMethod("showThread",com.vncode.app.features.gs1.Gs1Repository.Request.class);method.setAccessible(true);method.invoke(holder.get(),request.get());return null;});Platform.runLater(task);task.get(300,TimeUnit.MILLISECONDS);}finally{lock.execute("ROLLBACK");lock.execute("PRAGMA journal_mode=WAL");}}
+        try(var c=Database.getConnection();var lock=c.createStatement()){lock.execute("PRAGMA journal_mode=DELETE");lock.execute("BEGIN EXCLUSIVE");try{var task=new java.util.concurrent.FutureTask<Void>(()->{var method=holder.get().getClass().getDeclaredMethod("showThread",com.vncode.app.features.gs1.Gs1Repository.Request.class);method.setAccessible(true);method.invoke(holder.get(),request.get());return null;});Platform.runLater(task);task.get(300,TimeUnit.MILLISECONDS);}finally{lock.execute("ROLLBACK");awaitBackgroundTasksBeforeFixtureCleanup();lock.execute("PRAGMA journal_mode=WAL");}}
         finally{awaitBackgroundTasksBeforeFixtureCleanup();var close=new java.util.concurrent.FutureTask<Void>(()->{holder.get().dispose();return null;});Platform.runLater(close);close.get(5,TimeUnit.SECONDS);}
     }
     @Test void switchShopReturnsBeforeSlowRepository()throws Exception {
         try(var c=Database.getConnection();var s=c.createStatement()){s.execute("INSERT OR IGNORE INTO shops(id,name,marketplace,client_id,api_key) VALUES(2,'Switch Ozon','OZON','22','fixture')");}
         var holder=new java.util.concurrent.atomic.AtomicReference<HomeController>();
-        var setup=new java.util.concurrent.FutureTask<Void>(()->{var loader=FxmlViewLoader.loader(HomeController.class,"home-view.fxml");FxmlViewLoader.load(loader);holder.set(loader.getController());return null;});Platform.runLater(setup);setup.get(10,TimeUnit.SECONDS);awaitBackgroundTasksBeforeFixtureCleanup();
+        var setup=new java.util.concurrent.FutureTask<Void>(()->{var loader=FxmlViewLoader.loader(HomeController.class,"home-view.fxml");FxmlViewLoader.load(loader);holder.set(loader.getController());stopAutomaticSync(holder.get());return null;});Platform.runLater(setup);setup.get(10,TimeUnit.SECONDS);awaitStoppedSync(holder.get());awaitBackgroundTasksBeforeFixtureCleanup();
         try(var c=Database.getConnection();var lock=c.createStatement()) {
             lock.execute("PRAGMA journal_mode=DELETE");lock.execute("BEGIN EXCLUSIVE");
             try {var change=new java.util.concurrent.FutureTask<Void>(()->{var method=HomeController.class.getDeclaredMethod("selectShop",Shop.class);method.setAccessible(true);method.invoke(holder.get(),new Shop(2,"Switch Ozon",com.vncode.app.integration.marketplace.Marketplace.OZON,"22","fixture"));return null;});Platform.runLater(change);change.get(300,TimeUnit.MILLISECONDS);}
-            finally{lock.execute("ROLLBACK");lock.execute("PRAGMA journal_mode=WAL");}
+            finally{lock.execute("ROLLBACK");awaitBackgroundTasksBeforeFixtureCleanup();lock.execute("PRAGMA journal_mode=WAL");}
         } finally {var close=new java.util.concurrent.FutureTask<Void>(()->{holder.get().dispose();return null;});Platform.runLater(close);close.get(5,TimeUnit.SECONDS);awaitBackgroundTasksBeforeFixtureCleanup();}
     }
     @Test void repeatedOpenCloseDisposesReadsAndListeners()throws Exception {
@@ -93,8 +104,8 @@ class FxmlSmokeTest {
     }
     @Test void wbSupplyAndFboFiltersReturnBeforeSlowSqlite()throws Exception {
         var holder=new java.util.concurrent.atomic.AtomicReference<HomeController>();
-        var setup=new java.util.concurrent.FutureTask<Void>(()->{var loader=FxmlViewLoader.loader(HomeController.class,"home-view.fxml");FxmlViewLoader.load(loader);var home=(HomeController)loader.getController();holder.set(home);var state=HomeController.class.getDeclaredField("state");state.setAccessible(true);var model=state.get(home);var select=model.getClass().getDeclaredMethod("setSelectedShop",Shop.class);select.setAccessible(true);select.invoke(model,new Shop(1,"WB fixture","fixture"));var open=HomeController.class.getDeclaredMethod("showFboPacking");open.setAccessible(true);open.invoke(home);return null;});Platform.runLater(setup);setup.get(10,TimeUnit.SECONDS);awaitBackgroundTasksBeforeFixtureCleanup();
-        try(var c=Database.getConnection();var lock=c.createStatement()){lock.execute("PRAGMA journal_mode=DELETE");lock.execute("BEGIN EXCLUSIVE");try{var task=new java.util.concurrent.FutureTask<Void>(()->{for(String name:java.util.List.of("refreshSupplyList","refreshFboView")){var method=HomeController.class.getDeclaredMethod(name);method.setAccessible(true);method.invoke(holder.get());}return null;});Platform.runLater(task);task.get(300,TimeUnit.MILLISECONDS);}finally{lock.execute("ROLLBACK");lock.execute("PRAGMA journal_mode=WAL");}}
+        var setup=new java.util.concurrent.FutureTask<Void>(()->{var loader=FxmlViewLoader.loader(HomeController.class,"home-view.fxml");FxmlViewLoader.load(loader);var home=(HomeController)loader.getController();holder.set(home);var state=HomeController.class.getDeclaredField("state");state.setAccessible(true);var model=state.get(home);var select=model.getClass().getDeclaredMethod("setSelectedShop",Shop.class);select.setAccessible(true);select.invoke(model,new Shop(1,"WB fixture","fixture"));var open=HomeController.class.getDeclaredMethod("showFboPacking");open.setAccessible(true);open.invoke(home);stopAutomaticSync(home);return null;});Platform.runLater(setup);setup.get(10,TimeUnit.SECONDS);awaitStoppedSync(holder.get());awaitBackgroundTasksBeforeFixtureCleanup();
+        try(var c=Database.getConnection();var lock=c.createStatement()){lock.execute("PRAGMA journal_mode=DELETE");lock.execute("BEGIN EXCLUSIVE");try{var task=new java.util.concurrent.FutureTask<Void>(()->{for(String name:java.util.List.of("refreshSupplyList","refreshFboView")){var method=HomeController.class.getDeclaredMethod(name);method.setAccessible(true);method.invoke(holder.get());}return null;});Platform.runLater(task);task.get(300,TimeUnit.MILLISECONDS);}finally{lock.execute("ROLLBACK");awaitBackgroundTasksBeforeFixtureCleanup();lock.execute("PRAGMA journal_mode=WAL");}}
         finally{var close=new java.util.concurrent.FutureTask<Void>(()->{holder.get().dispose();return null;});Platform.runLater(close);close.get(5,TimeUnit.SECONDS);awaitBackgroundTasksBeforeFixtureCleanup();}
     }
     @Test void rejectedGs1ActionKeepsUnsentWorkAndClearsBusy() throws Exception {
@@ -121,7 +132,7 @@ class FxmlSmokeTest {
                 var switchShop=new java.util.concurrent.FutureTask<Void>(()->{holder.get().setShop(new Shop(1,"GS1 fixture","fixture"));return null;});
                 Platform.runLater(switchShop);switchShop.get(300,TimeUnit.MILLISECONDS);
                 assertEquals(0,holder.get().activeTaskCount(),"Shop switch must not start signing or remote refresh");
-            } finally {lock.execute("ROLLBACK");lock.execute("PRAGMA journal_mode=WAL");}
+            } finally {lock.execute("ROLLBACK");awaitBackgroundTasksBeforeFixtureCleanup();lock.execute("PRAGMA journal_mode=WAL");}
         } finally {
             var close=new java.util.concurrent.FutureTask<Void>(()->{holder.get().dispose();return null;});Platform.runLater(close);close.get(5,TimeUnit.SECONDS);awaitBackgroundTasksBeforeFixtureCleanup();
         }
@@ -151,7 +162,7 @@ class FxmlSmokeTest {
         });Platform.runLater(task);task.get(15,TimeUnit.SECONDS);
     }
     @Test void staleProductSnapshotCannotUpdateCurrentShop() throws Exception {
-        var entered=new CountDownLatch(1);var release=new CountDownLatch(1);var bReady=new CountDownLatch(1);
+        var entered=new CountDownLatch(1);var release=new CountDownLatch(1);var bReady=new CountDownLatch(1);var bVisible=new CountDownLatch(1);
         var reads=new com.vncode.app.shared.ShopReadCoordinator(2,8);var holder=new java.util.concurrent.atomic.AtomicReference<com.vncode.app.ui.products.ProductsPane>();
         var setup=new java.util.concurrent.FutureTask<Void>(()->{
             var pane=new com.vncode.app.ui.products.ProductsPane(query->{
@@ -159,13 +170,18 @@ class FxmlSmokeTest {
                 if(query.shopId()==2)bReady.countDown();
                 var row=new com.vncode.app.features.products.ProductRow(new com.vncode.app.features.products.ProductKey(query.shopId(),query.marketplace(),"1",""),"Shop "+query.shopId(),"","","","","","",java.util.List.of(),"","","","",com.vncode.app.features.products.DocumentState.MISSING);
                 return new com.vncode.app.features.products.ProductPage(java.util.List.of(row),1,"");
-            },reads);holder.set(pane);pane.setShop(new Shop(1,"A","fixture"));return null;
+            },reads);holder.set(pane);
+            var field=pane.getClass().getDeclaredField("rows");field.setAccessible(true);
+            var list=(javafx.scene.control.ListView<com.vncode.app.features.products.ProductRow>)field.get(pane);
+            list.getItems().addListener((javafx.collections.ListChangeListener<com.vncode.app.features.products.ProductRow>)change->{if(list.getItems().stream().anyMatch(row->row.key().shopId()==2))bVisible.countDown();});
+            pane.setShop(new Shop(1,"A","fixture"));return null;
         });
         try{
             Platform.runLater(setup);setup.get(10,TimeUnit.SECONDS);assertTrue(entered.await(5,TimeUnit.SECONDS));
             var change=new java.util.concurrent.FutureTask<Void>(()->{holder.get().setShop(new Shop(2,"B","fixture"));return null;});Platform.runLater(change);change.get(5,TimeUnit.SECONDS);
             assertTrue(bReady.await(5,TimeUnit.SECONDS));release.countDown();
             for(int i=0;i<100&&(reads.activeCount()>0||reads.pendingCount()>0);i++)Thread.sleep(20);
+            assertTrue(bVisible.await(5,TimeUnit.SECONDS),"Wait for the current shop's FX result, not just an idle read worker");
             var check=new java.util.concurrent.FutureTask<Void>(()->{
                 var field=holder.get().getClass().getDeclaredField("rows");field.setAccessible(true);var list=(javafx.scene.control.ListView<com.vncode.app.features.products.ProductRow>)field.get(holder.get());
                 assertEquals(2,list.getItems().getFirst().key().shopId());assertEquals("Shop 2",list.getItems().getFirst().title());return null;
@@ -202,22 +218,24 @@ class FxmlSmokeTest {
         }finally{home.dispose();}return null;});Platform.runLater(task);task.get(10,TimeUnit.SECONDS);
     }
     @Test void gs1DoesNotStartTwoOperationsInTheSameShopGeneration() throws Exception {
-        var release=new CountDownLatch(1);var holder=new java.util.concurrent.atomic.AtomicReference<com.vncode.app.ui.gs1.Gs1Pane>();
-        var work=new java.util.concurrent.Callable<String>(){public String call()throws Exception{release.await(10,TimeUnit.SECONDS);return "fixture";}};
+        var owner=syntheticGs1Shop(801,"7707083893");
+        var entered=new CountDownLatch(1);var release=new CountDownLatch(1);var holder=new java.util.concurrent.atomic.AtomicReference<com.vncode.app.ui.gs1.Gs1Pane>();
+        var work=new java.util.concurrent.Callable<String>(){public String call()throws Exception{entered.countDown();release.await(10,TimeUnit.SECONDS);return "fixture";}};
         var setup=new java.util.concurrent.FutureTask<Void>(()->{
-            var pane=new com.vncode.app.ui.gs1.Gs1Pane();holder.set(pane);
+            var pane=new com.vncode.app.ui.gs1.Gs1Pane();holder.set(pane);pane.setShop(owner);
             var method=pane.getClass().getDeclaredMethod("run",java.util.concurrent.Callable.class,java.util.function.Consumer.class);method.setAccessible(true);
             method.invoke(pane,work,(java.util.function.Consumer<String>)ignored->{});
             method.invoke(pane,work,(java.util.function.Consumer<String>)ignored->{});
             assertEquals(1,pane.activeTaskCount(),"Thread actions must not start another operation while busy");return null;
         });
-        try{Platform.runLater(setup);setup.get(10,TimeUnit.SECONDS);}
+        try{Platform.runLater(setup);setup.get(10,TimeUnit.SECONDS);assertTrue(entered.await(5,TimeUnit.SECONDS),"The first operation must pass owner validation and actually start");}
         finally{release.countDown();awaitBackgroundTasksBeforeFixtureCleanup();var close=new java.util.concurrent.FutureTask<Void>(()->{if(holder.get()!=null)holder.get().dispose();return null;});Platform.runLater(close);close.get(5,TimeUnit.SECONDS);}
     }
     @Test void gs1LongConversationScrollsToNewestAfterTheSkinIsInstalled() throws Exception {
+        var owner=syntheticGs1Shop(802,"7707083893");
         var holder=new java.util.concurrent.atomic.AtomicReference<com.vncode.app.ui.gs1.Gs1Pane>();var window=new java.util.concurrent.atomic.AtomicReference<javafx.stage.Stage>();
         var setup=new java.util.concurrent.FutureTask<Void>(()->{
-            var pane=new com.vncode.app.ui.gs1.Gs1Pane();holder.set(pane);pane.setShop(new Shop(1,"GS1 UI fixture","fixture"));
+            var pane=new com.vncode.app.ui.gs1.Gs1Pane();holder.set(pane);pane.setShop(owner);
             var inn=pane.getClass().getDeclaredField("inn");inn.setAccessible(true);inn.set(pane,"7707083893");
             var repository=pane.getClass().getDeclaredField("repository");repository.setAccessible(true);var repo=(com.vncode.app.features.gs1.Gs1Repository)repository.get(pane);
             var request=repo.createRequest("7707083893","RENEWAL","mail@gs1ru.org","Scroll fixture","Draft");
@@ -229,21 +247,23 @@ class FxmlSmokeTest {
         try{
             Platform.runLater(setup);setup.get(10,TimeUnit.SECONDS);
             awaitBackgroundTasksBeforeFixtureCleanup();
+            var tailPulse=new java.util.concurrent.CompletableFuture<Void>();Platform.runLater(()->new javafx.animation.AnimationTimer(){int frames;public void handle(long now){if(++frames>=3){stop();tailPulse.complete(null);}}}.start());tailPulse.get(5,TimeUnit.SECONDS);
             var check=new java.util.concurrent.FutureTask<Void>(()->{var field=holder.get().getClass().getDeclaredField("conversationScroll");field.setAccessible(true);var scroll=(ScrollPane)field.get(holder.get());
                 assertTrue(scroll.getContent().getBoundsInLocal().getHeight()>scroll.getViewportBounds().getHeight());assertEquals(1,scroll.getVvalue(),0.001);return null;});
             Platform.runLater(check);check.get(10,TimeUnit.SECONDS);
         }finally{var close=new java.util.concurrent.FutureTask<Void>(()->{if(holder.get()!=null)holder.get().dispose();if(window.get()!=null)window.get().close();return null;});Platform.runLater(close);close.get(5,TimeUnit.SECONDS);}
     }
     @Test void gs1StartsWithoutNetworkAndDiscardsOldShopCallbacks() throws Exception {
+        var first=syntheticGs1Shop(803,"7707083893");var second=syntheticGs1Shop(804,"7707083893");
         var entered=new CountDownLatch(1);var release=new CountDownLatch(1);var applied=new AtomicInteger();
         var holder=new java.util.concurrent.atomic.AtomicReference<com.vncode.app.ui.gs1.Gs1Pane>();
         var setup=new java.util.concurrent.FutureTask<Void>(() -> {
             var pane=new com.vncode.app.ui.gs1.Gs1Pane();holder.set(pane);
-            pane.setShop(new Shop(1,"Fixture A","fixture"));
+            pane.setShop(first);
             assertEquals(0,pane.activeTaskCount());
             var method=pane.getClass().getDeclaredMethod("run",java.util.concurrent.Callable.class,java.util.function.Consumer.class);method.setAccessible(true);
             method.invoke(pane,(java.util.concurrent.Callable<String>)()->{entered.countDown();release.await(5,TimeUnit.SECONDS);return "old shop";},(java.util.function.Consumer<String>)ignored->applied.incrementAndGet());
-            pane.setShop(new Shop(2,"Fixture B","fixture"));return null;
+            pane.setShop(second);return null;
         });
         try{
             Platform.runLater(setup);setup.get(10,TimeUnit.SECONDS);assertTrue(entered.await(5,TimeUnit.SECONDS));release.countDown();
@@ -252,9 +272,21 @@ class FxmlSmokeTest {
             release.countDown();var close=new java.util.concurrent.FutureTask<Void>(() -> {if(holder.get()!=null)holder.get().dispose();return null;});Platform.runLater(close);close.get(5,TimeUnit.SECONDS);
         }
     }
+    /** Owned, synthetic identities: these fixtures never contact Catalog or sign a document. */
+    private static Shop syntheticGs1Shop(int id,String inn)throws Exception {
+        try(var c=Database.getConnection();var p=c.prepareStatement("INSERT INTO shops(id,name,marketplace,client_id,api_key) VALUES(?,'GS1 fixture','WILDBERRIES',NULL,'fixture')")){
+            p.setInt(1,id);p.executeUpdate();
+        }
+        var shop=new Shop(id,"GS1 fixture","fixture");var fingerprint="A".repeat(40);var now=java.time.Instant.now();
+        String metadata="{\"selector\":\""+fingerprint+"\",\"thumbprint\":\""+fingerprint+"\",\"inn\":\""+inn+"\",\"hasPrivateKey\":true,\"validFrom\":\""+now.minusSeconds(86400)+"\",\"validTo\":\""+now.plusSeconds(86400)+"\"}";
+        var settings=new com.vncode.app.integration.znack.ZnackModels.Settings(com.vncode.app.integration.znack.ZnackModels.PRODUCTION_TRUE_API,"","","",inn,"","","",fingerprint,"[]","","","",false,"","[]",metadata,now,"","","",60);
+        new com.vncode.app.integration.znack.ZnackRepository(new com.vncode.app.integration.znack.ZnackModels.ShopContext(id,shop.getName())).saveSettings(settings);
+        return shop;
+    }
     @Test void printPreflightClaimsActivityImmediately() throws Exception { assertPrintPreflightContext(true); }
     @Test void printPreflightCannotOpenDialogsForAnotherShop() throws Exception { assertPrintPreflightContext(false); }
     private void assertPrintPreflightContext(boolean checkImmediateActivity) throws Exception {
+        try(var c=Database.getConnection();var statement=c.createStatement()){statement.execute("UPDATE shops SET name='Fixture A',api_key='fixture-only',marketplace='WILDBERRIES',client_id=NULL WHERE id=1");}
         var release = new CountDownLatch(1);
         var checked = new CountDownLatch(1);
         var dialogs = new AtomicInteger();
@@ -269,9 +301,11 @@ class FxmlSmokeTest {
             var supply = state.getClass().getDeclaredMethod("setLoadedSupplyId", String.class); supply.setAccessible(true); supply.invoke(state, "WB-A");
             var order = new com.vncode.app.models.Order(); order.setId(123L);
             var orders = state.getClass().getDeclaredMethod("setDisplayedOrders", java.util.List.class); orders.setAccessible(true); orders.invoke(state, java.util.List.of(order));
+            var detail=HomeController.class.getDeclaredField("supplyDetailController");detail.setAccessible(true);((SupplyDetailController)detail.get(home)).setKizShipmentContext(new Shop(1,"Fixture A","fixture-only"),"WB-A");
             var workflow = HomeController.class.getDeclaredField("orderExportWorkflow"); workflow.setAccessible(true);
             workflow.set(home, new com.vncode.app.features.print.OrderExportWorkflow() {
-                @Override public void verifyKizAvailability(java.util.List<com.vncode.app.models.Order> ignored, Shop shop) {
+                @Override public void verifyKizAvailability(java.util.List<com.vncode.app.models.Order> ignored, Shop shop, com.vncode.app.features.kiz.KizSourceSelection sources) {
+                    assertEquals(com.vncode.app.features.kiz.KizSourceSelection.SELLER_ONLY,sources);
                     verifications.incrementAndGet();
                     try { assertTrue(release.await(10, TimeUnit.SECONDS)); }
                     catch (InterruptedException ex) { Thread.currentThread().interrupt(); throw new IllegalStateException(ex); }
@@ -284,19 +318,30 @@ class FxmlSmokeTest {
                     dialogs.incrementAndGet(); return java.util.Optional.empty();
                 }
             });
-            home.onExport(new javafx.event.ActionEvent());
-            var busy = HomeController.class.getDeclaredMethod("isShopBusy", int.class); busy.setAccessible(true);
-            if (checkImmediateActivity) {
-                assertTrue((boolean) busy.invoke(home, 1), "The print handoff must claim activity before its asynchronous task starts");
-                home.onExport(new javafx.event.ActionEvent());
-            }
-            select.invoke(state, new Shop(2, "Fixture B", "fixture-only"));
-            var clear = state.getClass().getDeclaredMethod("clearLoadedSupply"); clear.setAccessible(true); clear.invoke(state);
-            supply.invoke(state, "WB-B");
             return null;
         });
         try {
-            Platform.runLater(setup); setup.get(15, TimeUnit.SECONDS); release.countDown();
+            Platform.runLater(setup); setup.get(15, TimeUnit.SECONDS); awaitBackgroundTasksBeforeFixtureCleanup();
+            var context=new java.util.concurrent.FutureTask<Void>(()->{var detail=HomeController.class.getDeclaredField("supplyDetailController");detail.setAccessible(true);((SupplyDetailController)detail.get(holder.get())).setKizShipmentContext(new Shop(1,"Fixture A","fixture-only"),"WB-A");return null;});
+            Platform.runLater(context);context.get(5,TimeUnit.SECONDS);awaitBackgroundTasksBeforeFixtureCleanup();
+            var trigger=new java.util.concurrent.FutureTask<Void>(()->{
+                var home=holder.get();var sf=HomeController.class.getDeclaredField("state");sf.setAccessible(true);var state=sf.get(home);
+                var select=state.getClass().getDeclaredMethod("setSelectedShop",Shop.class);select.setAccessible(true);
+                var supply=state.getClass().getDeclaredMethod("setLoadedSupplyId",String.class);supply.setAccessible(true);
+                select.invoke(state,new Shop(1,"Fixture A","fixture-only"));supply.invoke(state,"WB-A");
+                var valid=state.getClass().getDeclaredMethod("setSelectedShopTokenValid",boolean.class);valid.setAccessible(true);valid.invoke(state,true);
+                var order=new com.vncode.app.models.Order();order.setId(123L);var rows=state.getClass().getDeclaredMethod("setDisplayedOrders",java.util.List.class);rows.setAccessible(true);rows.invoke(state,java.util.List.of(order));
+                home.onExport(new javafx.event.ActionEvent());
+                var busy = HomeController.class.getDeclaredMethod("isShopBusy", int.class); busy.setAccessible(true);
+                if (checkImmediateActivity) {
+                    assertTrue((boolean) busy.invoke(home, 1), "The print handoff must claim activity before its asynchronous task starts");
+                    home.onExport(new javafx.event.ActionEvent());
+                }
+                select.invoke(state, new Shop(2, "Fixture B", "fixture-only"));
+                var clear = state.getClass().getDeclaredMethod("clearLoadedSupply"); clear.setAccessible(true); clear.invoke(state);
+                supply.invoke(state, "WB-B");
+                return null;
+            });Platform.runLater(trigger);trigger.get(10,TimeUnit.SECONDS);release.countDown();
             assertTrue(checked.await(10, TimeUnit.SECONDS));
             awaitBackgroundTasksBeforeFixtureCleanup();
             var verify = new java.util.concurrent.FutureTask<Void>(() -> {
@@ -393,7 +438,11 @@ class FxmlSmokeTest {
                 stage.show();
                 for(String theme:java.util.List.of("theme-dark","theme-light")) {
                     pane.getStyleClass().removeAll("theme-dark","theme-light");pane.getStyleClass().add(theme);pane.applyCss();pane.layout();
-                    for(var node:pane.lookupAll(".feature-card"))assertTrue(node.getBoundsInParent().getHeight()>=140&&node.getBoundsInParent().getHeight()<260,"Feature card must fit a normal dashboard row: "+node.getBoundsInParent().getHeight());
+                    for(var node:pane.lookupAll(".feature-card")) {
+                        assertTrue(node.getBoundsInParent().getHeight()>=110&&node.getBoundsInParent().getHeight()<220,"Compact feature card must retain usable content height: "+node.getBoundsInParent().getHeight());
+                        for(var child:((javafx.scene.Parent)node).getChildrenUnmodifiable())if(child.isManaged()&&child.isVisible())
+                            assertTrue(child.getBoundsInParent().getMaxY()<=node.getLayoutBounds().getHeight()+1,"Compact dashboard card clips content");
+                    }
                     for(var node:pane.lookupAll(".news-card"))assertTrue(node.getBoundsInParent().getHeight()<350,"News preview must not force a huge scroll area");
                     assertTrue(pane.lookup(".welcome-title").localToScene(pane.lookup(".welcome-title").getBoundsInLocal()).getMinY()>=0,"Welcome title must be visible on first open");
                 }
@@ -419,14 +468,14 @@ class FxmlSmokeTest {
             }finally {home.dispose();}return null;
         });Platform.runLater(task);task.get(15,TimeUnit.SECONDS);
     }
-    @Test void gs1NavigationWorksAndTnvedIsInternalOnly() throws Exception {
+    @Test void gs1AndTnvedReferenceNavigationWork() throws Exception {
         var task=new java.util.concurrent.FutureTask<Void>(() -> {
             var loader=FxmlViewLoader.loader(HomeController.class,"home-view.fxml");FxmlViewLoader.load(loader);var home=(HomeController)loader.getController();
             try {
                 var field=HomeController.class.getDeclaredField("workspaceNavigator");field.setAccessible(true);var navigator=(com.vncode.app.ui.workspace.WorkspaceNavigator)field.get(home);
                 navigator.show("news");assertEquals("news",navigator.currentRoute());
                 navigator.show("gs1");assertEquals("gs1",navigator.currentRoute());
-                assertThrows(IllegalArgumentException.class,()->navigator.show("tnved"));
+                navigator.show("tnved");assertEquals("tnved",navigator.currentRoute());
                 var sidebar=HomeController.class.getDeclaredField("shopSidebarController");sidebar.setAccessible(true);
                 var button=sidebar.get(home).getClass().getDeclaredField("gs1Button");button.setAccessible(true);
                 ((Button)button.get(sidebar.get(home))).fire();assertEquals("gs1",navigator.currentRoute());
@@ -457,19 +506,20 @@ class FxmlSmokeTest {
             assertTrue(((Button)loader.getNamespace().get("deliverButton")).isDisabled());return null;
         });Platform.runLater(task);task.get(10,TimeUnit.SECONDS);
     }
-    @Test void wbShippingContextResetsAnOldLoadingButton() throws Exception {
+    @Test void wbShippingContextClearsThePreviousHistoricalPoint() throws Exception {
         var task=new java.util.concurrent.FutureTask<Void>(() -> {
             var pane=new com.vncode.app.ui.supply.WbShippingPane();
-            var f=pane.getClass().getDeclaredField("load");f.setAccessible(true);var button=(Button)f.get(pane);
-            button.setDisable(true);pane.setContext(null,null);assertFalse(button.isDisabled());return null;
+            var point=(ComboBox<com.vncode.app.integration.wb.WbShippingPreferenceService.Location>)pane.lookup("#shippingHistoryPoint");
+            point.getItems().add(new com.vncode.app.integration.wb.WbShippingPreferenceService.Location(100,"selfShipping",null,null));point.getSelectionModel().selectFirst();
+            pane.setContext(null,null);assertEquals(null,point.getValue());assertTrue(point.getItems().isEmpty());assertFalse(pane.isManaged());return null;
         });Platform.runLater(task);task.get(10,TimeUnit.SECONDS);
     }
-    @Test void wbShippingFormRequiresCountryAndAlwaysClearsThePreviousDate() throws Exception {
+    @Test void wbShippingHasNoManualCountryDateOrVehicleForm() throws Exception {
         var task=new java.util.concurrent.FutureTask<Void>(() -> {
             var pane=new com.vncode.app.ui.supply.WbShippingPane();
             assertThrows(IllegalArgumentException.class,pane::selection);
-            var field=pane.getClass().getDeclaredField("date");field.setAccessible(true);var date=(DatePicker)field.get(pane);
-            date.setValue(java.time.LocalDate.now().plusDays(1));pane.setContext(null,null);assertEquals(null,date.getValue());return null;
+            assertEquals(1,pane.getChildren().stream().filter(ComboBox.class::isInstance).count());
+            assertTrue(pane.lookupAll(".text-field").isEmpty());assertTrue(pane.lookupAll(".date-picker").isEmpty());return null;
         });Platform.runLater(task);task.get(10,TimeUnit.SECONDS);
     }
     @Test void tnvedCopyFollowsTheDisplayedTreeDetailRatherThanOldTableSelection() throws Exception {
@@ -482,8 +532,9 @@ class FxmlSmokeTest {
             var treeField=pane.getClass().getDeclaredField("tree");treeField.setAccessible(true);
             var tree=(javafx.scene.control.TreeView<com.vncode.app.features.tnved.TnvedModels.Node>)treeField.get(pane);
             tree.getSelectionModel().select(tree.getRoot().getChildren().get(1));
-            var right=(VBox)((javafx.scene.control.SplitPane)pane.getCenter()).getItems().get(2);
-            ((Button)right.getChildren().get(2)).fire();assertEquals("II",javafx.scene.input.Clipboard.getSystemClipboard().getString());return null;
+            var tabs=(javafx.scene.control.TabPane)pane.getCenter();tabs.getSelectionModel().select(1);
+            var right=(VBox)((javafx.scene.control.SplitPane)tabs.getSelectionModel().getSelectedItem().getContent()).getItems().get(2);
+            ((Button)((javafx.scene.layout.FlowPane)right.getChildren().get(2)).getChildren().get(0)).fire();assertEquals("II",javafx.scene.input.Clipboard.getSystemClipboard().getString());return null;
         });Platform.runLater(task);task.get(10,TimeUnit.SECONDS);
     }
     @Test void tnvedLoadMoreKeepsTheSubmittedQueryWhenTheInputHasBeenEdited() throws Exception {
@@ -523,13 +574,13 @@ class FxmlSmokeTest {
             assertEquals(21,pane.rootCount());return null;
         });Platform.runLater(verify);verify.get(10,TimeUnit.SECONDS);
     }
-    @Test void tnvedCatalogRemainsAvailableWithoutStandaloneNavigation() throws Exception {
+    @Test void tnvedReferenceNavigationAndImportedCatalogRemainAvailable() throws Exception {
         var catalog=new com.vncode.app.features.tnved.TnvedCatalog(appDataDir.resolve("tnved-ui-fixture.sqlite"));
         catalog.initialize();var roots=catalog.children(null);
         var task=new java.util.concurrent.FutureTask<Void>(() -> {
             FXMLLoader loader=FxmlViewLoader.loader(ShopSidebarController.class,"shop-sidebar-view.fxml");
             FxmlViewLoader.load(loader);var controller=(ShopSidebarController)loader.getController();
-            assertFalse(loader.getNamespace().containsKey("tnvedButton"));
+            assertNotNull(loader.getNamespace().get("tnvedButton"));var opened=new java.util.concurrent.atomic.AtomicBoolean();controller.setOnTnved(()->opened.set(true));((Button)loader.getNamespace().get("tnvedButton")).fire();assertTrue(opened.get());
             assertNotNull(loader.getNamespace().get("gs1Button"));
             var pane=new com.vncode.app.ui.tnved.TnvedPane(catalog);pane.setRoots(roots);
             assertEquals(21,pane.rootCount());assertEquals("Chưa tải dữ liệu",pane.emptyBranchText());
@@ -560,6 +611,23 @@ class FxmlSmokeTest {
         }
     }
 
+    private static void stopAutomaticSync(HomeController home)throws Exception {
+        var field=HomeController.class.getDeclaredField("syncRuntime");field.setAccessible(true);
+        ((AutoCloseable)field.get(home)).close();
+    }
+    /** Off FX: wait for this fixture's stopped scheduler to release all SQLite handles. */
+    private static void awaitStoppedSync(HomeController home)throws Exception {
+        assertFalse(Platform.isFxApplicationThread());
+        var runtime=HomeController.class.getDeclaredField("syncRuntime");runtime.setAccessible(true);var instance=runtime.get(home);
+        var coordinator=instance.getClass().getDeclaredField("coordinator");coordinator.setAccessible(true);var owner=coordinator.get(instance);
+        long deadline=System.nanoTime()+TimeUnit.SECONDS.toNanos(30);
+        for(String name:java.util.List.of("timer","fast","background","registry")){
+            var field=owner.getClass().getDeclaredField(name);field.setAccessible(true);
+            if(field.get(owner) instanceof java.util.concurrent.ExecutorService executor)
+                assertTrue(executor.awaitTermination(Math.max(1,deadline-System.nanoTime()),TimeUnit.NANOSECONDS),"Stopped fixture scheduler must release SQLite: "+name);
+        }
+    }
+
     @org.junit.jupiter.api.AfterEach
     void awaitBackgroundTasksBeforeFixtureCleanup() throws Exception {
         long deadline=System.nanoTime()+TimeUnit.SECONDS.toNanos(30);
@@ -579,6 +647,7 @@ class FxmlSmokeTest {
     @AfterAll
     static void clearAppDataOverride() throws Exception {
         com.vncode.app.testsupport.ShopReadTestCleanup.awaitSharedIdle();
+        com.vncode.app.testsupport.FinanceTestCleanup.detachAndAwait();
         System.clearProperty("vncode.appdata.dir");
     }
 
@@ -588,6 +657,20 @@ class FxmlSmokeTest {
         assertLoads(HomeController.class,"home-view.fxml");
         assertEquals(before,((java.util.List<?>)listeners.get(I18nService.getInstance())).size(),
                 "A smoke-loaded Home must not receive later fixture language changes or launch database tasks after cleanup");
+    }
+
+    @Test void disposedHomeDoesNotApplyItsInitialShopLoad() throws Exception {
+        var holder=new java.util.concurrent.atomic.AtomicReference<HomeController>();
+        var setup=new java.util.concurrent.FutureTask<Void>(()->{
+            var loader=FxmlViewLoader.loader(HomeController.class,"home-view.fxml");FxmlViewLoader.load(loader);
+            var home=(HomeController)loader.getController();holder.set(home);home.dispose();return null;
+        });Platform.runLater(setup);setup.get(10,TimeUnit.SECONDS);awaitBackgroundTasksBeforeFixtureCleanup();
+        var check=new java.util.concurrent.FutureTask<Void>(()->{
+            var field=HomeController.class.getDeclaredField("state");field.setAccessible(true);var state=field.get(holder.get());
+            var shops=state.getClass().getDeclaredMethod("getShops");shops.setAccessible(true);
+            assertTrue(((java.util.List<?>)shops.invoke(state)).isEmpty(),"A disposed workspace must ignore a late shop result and must not restart schedulers or token dialogs");
+            return null;
+        });Platform.runLater(check);check.get(5,TimeUnit.SECONDS);
     }
 
     @Test
@@ -831,6 +914,23 @@ class FxmlSmokeTest {
         assertTrue(valid.get(), "The shop form must scroll while dialog buttons remain outside the content");
     }
 
+    @Test void compactSidebarKeepsNavigationGraphicsInsideTheViewport() throws Exception {
+        var task=new java.util.concurrent.FutureTask<Void>(() -> {
+            var loader=FxmlViewLoader.loader(ShopSidebarController.class,"shop-sidebar-view.fxml");
+            Parent root=FxmlViewLoader.load(loader);ShopSidebarController controller=loader.getController();controller.setViewportWidth(1024);
+            var scene=new javafx.scene.Scene(root,64,850);scene.getStylesheets().add(getClass().getResource("/com/vncode/app/styles/theme.css").toExternalForm());root.applyCss();root.layout();
+            for(String id:java.util.List.of("dashboardButton","productsButton","packingButton","gs1Button","znackRegistrationButton")) {
+                var button=(Button)loader.getNamespace().get(id);assertNotNull(button.getGraphic());
+                var bounds=button.getGraphic().localToScene(button.getGraphic().getBoundsInLocal());
+                assertTrue(bounds.getMinX()>=0&&bounds.getMaxX()<=64,"Compact navigation graphic is clipped: "+id+" "+bounds);
+                assertFalse(button.getAccessibleText().isBlank());
+            }
+            controller.setViewportWidth(1366);root.applyCss();root.layout();
+            assertFalse(((Button)loader.getNamespace().get("productsButton")).getText().isBlank());
+            return null;
+        });Platform.runLater(task);task.get(10,TimeUnit.SECONDS);
+    }
+
     @Test
     void sidebarShouldExposeNavigationButtons() throws Exception {
         CountDownLatch latch = new CountDownLatch(1);
@@ -970,7 +1070,9 @@ class FxmlSmokeTest {
                 CheckBox selectAll = (CheckBox) selectColumn.getGraphic();
                 selectAll.fire();
                 valid.set(tabs != null
-                        && tabs.getTabs().size() == 3
+                        && tabs.getTabs().size() == 4
+                        && loader.getNamespace().get("shipmentKizTab") != null
+                        && loader.getNamespace().get("shipmentKizHost") != null
                         && tabs.getSelectionModel().getSelectedItem() == loader.getNamespace().get("newOrdersTab")
                         && newOrdersTab.getText().endsWith("(0)")
                         && packingOrdersTab.getText().endsWith("(0)")
@@ -982,15 +1084,18 @@ class FxmlSmokeTest {
                         && moveToPacking != null
                         && !moveToPacking.isDisabled()
                         && moveToPacking.isVisible()
-                        && ((javafx.scene.layout.HBox) loader.getNamespace().get("selectionActionBar")).isVisible()
+                        && ((javafx.scene.layout.Pane) loader.getNamespace().get("selectionActionBar")).isVisible()
                         && packingOrders != null
                         && loader.getNamespace().get("packingOrderImageTC") != null
                         && loader.getNamespace().get("packingLabelTC") != null
                         && loader.getNamespace().get("deliveringOrdersTable") != null
                         && loader.getNamespace().get("deliveringOrderImageTC") != null
-                        && loader.getNamespace().get("newOrderShipmentTC") == null
-                        && loader.getNamespace().get("packingOrderShipmentTC") == null
-                        && loader.getNamespace().get("deliveringOrderShipmentTC") == null
+                        && loader.getNamespace().get("newOrderShipmentTC") != null
+                        && loader.getNamespace().get("newOrderPriceTC") != null
+                        && loader.getNamespace().get("packingOrderShipmentTC") != null
+                        && loader.getNamespace().get("packingOrderPriceTC") != null
+                        && loader.getNamespace().get("deliveringOrderShipmentTC") != null
+                        && loader.getNamespace().get("deliveringOrderPriceTC") != null
                         && loader.getNamespace().get("accountLabel") == null
                         && newOrderNumber.getPrefWidth() == 100.0
                         && packingOrderNumber.getPrefWidth() == 100.0

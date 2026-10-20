@@ -1,0 +1,105 @@
+{
+  "version": "1.5.1",
+  "published": false,
+  "checkedAt": "2026-10-19T10:30:15.101298Z",
+  "catalog": {
+    "listed": 1277,
+    "total": 1277,
+    "states": {
+      "published / draft,published": 1,
+      "published / published": 1239,
+      "draft / draft": 2,
+      "draft / errors": 34,
+      "draft / notsigned": 1
+    },
+    "errorDetailsRead": 34,
+    "approvedDetailsRead": 3,
+    "permitLookupHttp": 200,
+    "permitScopeGroups": [
+      "6101",
+      "6201",
+      "6202",
+      "6211"
+    ],
+    "failedCardGroups": {
+      "6110": 24,
+      "6106": 7,
+      "6103": 3
+    },
+    "literalModerationReasonsRead": false,
+    "reason": "Historical feed_id is not present in product-list/feed-product responses or this workspace."
+  },
+  "wb": {
+    "productReadHttp": 200,
+    "dictionaryReadHttp": 200,
+    "errorListHttp": 200,
+    "directArticleWhitespaceErrors": 8
+  },
+  "liveMutationAttempted": false,
+  "rawResponsesCommitted": false,
+  "specification": {
+    "url": "https://docs.crpt.ru/gismt/API_%D0%9D%D0%9A/",
+    "version": "5.68",
+    "sha256": "cf8a013b33c9d03f585ebcbb9fc7649eadd6d74cc166a5cfc818af88f0f4a926"
+  },
+  "templateId": "vncode-catalog-approved-v2",
+  "regression": {
+    "tests": 668,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "scope": "Products, listing, Znack registration, Catalog, TN VED, GTIN, related license and JavaFX interactions",
+    "command": "DISPLAY=:99 XDG_CACHE_HOME=/tmp/vncode-kn3-xdg /workspace/toolchains/mvn-vncode -B -DargLine=-Dprism.order=sw -Dtest=*Product*Test,*Listing*Test,*Registration*Test,*NationalCatalog*Test,*Tnved*Test,*Gtin*Test,*Catalog*Test test"
+  },
+  "categoryFollowup": {
+    "tests": 5,
+    "failures": 0,
+    "errors": 0,
+    "command": "/workspace/toolchains/mvn-vncode -B -Dtest=ZnackCategoryResolverTest test",
+    "change": "Match hoodie/sweatshirt marketplace names to active Catalog knitwear leaf."
+  },
+  "followup": {
+    "tests": 24,
+    "failures": 0,
+    "errors": 0,
+    "scope": "Preflight corrections, full WB product editor integration, category resolver and product button interactions"
+  },
+  "build": {
+    "artifact": "target/VNcode-1.5.1.jar",
+    "bytes": 5299471,
+    "sha256": "ac2f4e8f9bf55def8155f62237ab6f57ed89330a5555e20e06997a2a7e341987",
+    "version": "1.5.1",
+    "verifiedTemplateId": "vncode-catalog-approved-v2",
+    "containsRealCardStageReconciliation": true,
+    "status": "local build; not a published Windows installer"
+  },
+  "wbcodeReference": {
+    "release": "v1.3.10",
+    "publishedAt": "2026-10-19T07:50:57Z",
+    "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.3.10",
+    "asset": "WCode.exe",
+    "sha256": "742c457f7948640f5a807bb9d68e6d9e78883da23650471e6d62fc4b43551b31",
+    "officialChecksumMatched": true,
+    "executedVendorApplication": false,
+    "method": "Read-only official installer extraction and selected packaged Java method inspection; no private repository access claim",
+    "inspectedClasses": [
+      "ZnackNationalCatalogService",
+      "ZnackCardRegistrationWorkflow",
+      "RegistrationRunner",
+      "RegistrationPublication",
+      "ApprovedCardSigningPresentation",
+      "RegistrationCategoryDialog"
+    ]
+  },
+  "wbcodeAlignmentTests": {
+    "tests": 236,
+    "failures": 0,
+    "errors": 0
+  },
+  "publicationFollowup": {
+    "tests": 117,
+    "failures": 0,
+    "errors": 0,
+    "scope": "WB/Ozon workflow, actual-card stages, externally signed card with delayed feed, report diagnostics"
+  }
+}
