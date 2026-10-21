@@ -388,3 +388,28 @@ test('1.5.4 report formatting refuses pending or inconsistent evidence instead o
  const linux=f.status.validation.linuxFullSuite;
  assert.throws(()=>formatOwner154RequestReport(template,f.decision,{...f.status,validation:{...f.status.validation,linuxFullSuite:{...linux,passed:2085}}}));
 });
+
+
+test('157 owner release is bounded to its exact build and never claims live acceptance',async()=>{
+    const {validateOwnerRequest157,validateOwnerRequested157}=await import('./publish-vncode-stable.mjs');
+    const sha='2a44ebda0879ad844cefb86a3e4b97dfaa45c7de',run='39549870900';
+    const decision={version:'1.5.7',buildSourceCommit:sha,runId:Number(run),ownerRequestedPublication:true,ownerInstruction:'tạo bộ cài và thay latest',unverifiedChecksDisclosedBeforePublication:true,standardFullAcceptanceClaimed:false,productionLicenseAcceptance:false,enterpriseCryptoProSigningAccepted:false,liveMarketplaceWritesAccepted:false,phase:'authorized-awaiting-verified-windows-build'};
+    const status={version:'1.5.7',complete:false,databaseSchema:6,licenseIntegration:{productionReady:false,changedInThisVersion:false},validation:{productionLicenseVerified:false,liveCryptoProSigningThisVersion:false,liveMarketplaceWritesThisVersion:false,windowsBuild:{state:'running',sourceCommit:sha,runId:Number(run),freshFullJavaExecutionRequired:true}}};
+    assert.doesNotThrow(()=>validateOwnerRequest157(decision,status,'1.5.7',sha,run));
+    for(const patch of [{ownerInstruction:'publish anything'},{buildSourceCommit:'0'.repeat(40)},{runId:1},{ownerRequestedPublication:false},{productionLicenseAcceptance:true},{standardFullAcceptanceClaimed:true}])assert.throws(()=>validateOwnerRequest157({...decision,...patch},status,'1.5.7',sha,run));
+    assert.throws(()=>validateOwnerRequested157(decision,status,'1.5.7',sha,run));
+    const java={tests:2788,failures:0,errors:0,skipped:2,passed:2786};
+    const verified={...decision,phase:'verified-for-publication',installerSha256:'a'.repeat(64),installerBytes:140000000,passiveExeHandoffVerified:true,windowsJava:java};
+    const passed=structuredClone(status);Object.assign(passed.validation.windowsBuild,{state:'passed',upgradeFrom155Passed:true,allNativeChecksPassed:true,passiveExeHandoffVerified:true,fullJavaSuite:java});
+    assert.doesNotThrow(()=>validateOwnerRequested157(verified,passed,'1.5.7',sha,run));
+    for(const patch of [{upgradeFrom155Passed:false},{freshFullJavaExecutionRequired:false},{allNativeChecksPassed:false},{fullJavaSuite:{...java,errors:1}}]){const bad=structuredClone(passed);Object.assign(bad.validation.windowsBuild,patch);assert.throws(()=>validateOwnerRequested157(verified,bad,'1.5.7',sha,run));}
+});
+
+test('157 adds its latest upgrade checks before mutation and preserves the ordinary publish gate',()=>{
+    const source=readFileSync(new URL('./publish-vncode-stable.mjs',import.meta.url),'utf8');
+    const checks=source.indexOf("const upgrade155=json(await readFile(path.join(directory,'upgrade-stable-155-smoke.json')))");
+    const mutation=source.indexOf("const refs=api(`git/matching-refs/tags/${tag}`)");
+    assert.ok(checks>0&&checks<mutation);
+    assert.match(source,/assert\.equal\(status\.complete,true,'Release functionality acceptance is incomplete'\)/);
+    assert.match(source,/mode==='owner-requested-157'\)publicDownload|\['owner-requested-155','owner-requested-157'\]\.includes\(mode\)\)publicDownload/);
+});

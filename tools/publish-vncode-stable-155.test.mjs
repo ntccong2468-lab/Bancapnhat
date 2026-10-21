@@ -111,5 +111,5 @@ test('155 workflow retains the normal production gate and verifies all evidence 
     assert.ok(source.indexOf('validateOwner155Artifact(buildArtifact,version,sha,runId')<source.indexOf('const refs=api('));
     assert.match(source,/if\(mode==='owner-requested-155'\) \{\s+assert\.ok\(!logs\.includes\('REUSED_WINDOWS_JAVA:'\)&&!logs\.includes\('RECONCILED_WINDOWS_JAVA:'\)/);
     assert.ok(source.indexOf('publicDownload=await verifyPublicInstaller')>source.indexOf("make_latest:'true'"));
-    assert.match(readFileSync(new URL('../.github/workflows/publish-vncode-stable.yml',import.meta.url),'utf8'),/owner-requested-155\]/);
+    assert.match(readFileSync(new URL('../.github/workflows/publish-vncode-stable.yml',import.meta.url),'utf8'),/owner-requested-155(?:,|\])/);
 });

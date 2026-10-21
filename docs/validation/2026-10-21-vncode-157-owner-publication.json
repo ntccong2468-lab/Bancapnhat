@@ -17,5 +17,8 @@
     "data-preserving passive EXE upgrade from v1.5.5",
     "exact artifact/source/hash validation",
     "public installer and Latest readback"
-  ]
+  ],
+  "buildSourceCommit": "2a44ebda0879ad844cefb86a3e4b97dfaa45c7de",
+  "runId": 39549870900,
+  "runUrl": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/39549870900"
 }
