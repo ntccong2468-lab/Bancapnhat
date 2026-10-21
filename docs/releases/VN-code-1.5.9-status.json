@@ -1,0 +1,51 @@
+{
+  "version": "1.5.9",
+  "state": "published-latest",
+  "published": true,
+  "completeProductionAcceptance": false,
+  "sourceCommit": "a80f56d20612d6637b5cc3a59735ab4d520bf566",
+  "buildRunId": 39660999070,
+  "buildRunUrl": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/39660999070",
+  "ownerInstruction": "ra bản cập nhật mới không kiểm tra các bản cũ",
+  "installer": {
+    "sha256": "52923eb59e193a02add66de92ade665aa224b66658fad07c1ca534d6a4c378d6",
+    "name": "VN-code-1.5.9-Windows-x64.exe",
+    "bytes": 147331072
+  },
+  "verification": {
+    "windowsFocusedJava": {
+      "errors": 0,
+      "failures": 0,
+      "passed": 110,
+      "skipped": 0,
+      "tests": 110
+    },
+    "nativeStartup": {
+      "nativeLauncher": "passed",
+      "liveMarketplaceWriteVerified": false,
+      "freshDatabase": "passed",
+      "windowTitle": "VN code v1.5.9",
+      "liveCatalogWriteVerified": false,
+      "version": "1.5.9",
+      "legacyUpgradeMatrixRun": false,
+      "previousVersionInstalled": false,
+      "databaseIntegrity": "ok",
+      "platform": "windows-x64"
+    },
+    "publicDownload": {
+      "version": "1.5.9",
+      "latestVerified": true,
+      "publicUnauthenticatedDownloadVerified": true,
+      "bytes": 147331072,
+      "sha256": "52923eb59e193a02add66de92ade665aa224b66658fad07c1ca534d6a4c378d6",
+      "url": "https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.5.9/VN-code-1.5.9-Windows-x64.exe",
+      "checkedAt": "2026-10-21T19:28:24.431812+00:00",
+      "buildRun": 39660999070,
+      "legacyVersionTestsRun": false
+    },
+    "legacyUpgradeMatrixRun": false,
+    "liveCatalogWriteVerified": false,
+    "liveMarketplaceWriteVerified": false
+  },
+  "testScopeNote": "Windows ran 110 cases in four matching classes. The requested selector ZnackRegistrationRegistrationModelTest matched no class; it is not claimed as executed. The selector is corrected in the follow-up release tooling. Earlier Linux registration regression had 742 passing cases and the supplementary UI/document run had 29; overlapping runs are not summed."
+}

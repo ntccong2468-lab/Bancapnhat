@@ -32,7 +32,7 @@ jobs:
       EXPECTED_SOURCE: ${{ inputs.source_commit || github.sha }}
       RELEASE_ID: ${{ inputs.release_id }}
       HOTFIX_VERSION: '1.5.9'
-      FOCUSED_TESTS: ZnackRegistrationRegistrationModelTest,RegistrationDynamicPreflightTest,OzonAutomaticDraftSchemaTest,OzonCardRegistrationWorkflowTest,RegistrationVerifiedDefaultsTest
+      FOCUSED_TESTS: ZnackRegistrationCountryModelTest,RegistrationDynamicPreflightTest,OzonAutomaticDraftSchemaTest,OzonCardRegistrationWorkflowTest,RegistrationVerifiedDefaultsTest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
@@ -61,13 +61,13 @@ jobs:
           distribution: oracle
           cache: maven
 
-      - name: Verify focused registration registration regressions and package Java
+      - name: Verify focused registration regressions and package Java
         shell: pwsh
         env:
           LOCALAPPDATA: ${{ runner.temp }}\vncode-registration-hotfix-${{ github.run_id }}
         run: |
           .\mvnw.cmd -B "-Dtest=$env:FOCUSED_TESTS" clean package
-          if ($LASTEXITCODE -ne 0) { throw 'Focused registration registration tests failed.' }
+          if ($LASTEXITCODE -ne 0) { throw 'Focused registration tests failed.' }
 
       - name: Build Windows EXE from this job's focused verified Java
         id: package
@@ -110,7 +110,7 @@ jobs:
             ownerRequestedExpeditedHotfix = $true
             installer = @{ name = $file; bytes = (Get-Item -LiteralPath $target).Length; sha256 = $hash }
             verification = @{
-              scope = 'focused-registration-registration-hotfix'; focusedTestClasses = $env:FOCUSED_TESTS.Split(',')
+              scope = 'focused-registration-hotfix'; focusedTestClasses = $env:FOCUSED_TESTS.Split(',')
               focusedJava = @{ tests = $tests; failures = $failures; errors = $errors; skipped = $skipped; passed = $tests - $skipped }
               fullJavaSuiteRun = $false; nativeSmokeRun = $true; legacyUpgradeMatrixRun = $false
               productionAcceptanceClaimed = $false; liveCatalogWriteVerified = $false; liveMarketplaceWriteVerified = $false
@@ -176,5 +176,5 @@ jobs:
             "Published [$tag]($($latest.html_url)) as Latest.",
             "Installer: $($asset[0].browser_download_url)",
             "SHA256: $($info.installer.sha256); bytes: $($info.installer.bytes).",
-            'Verification scope: focused registration registration tests only; fresh native startup passed; no full Java suite, legacy upgrade matrix or live production write acceptance claimed.'
+            'Verification scope: focused registration tests only; fresh native startup passed; no full Java suite, legacy upgrade matrix or live production write acceptance claimed.'
           ) | Add-Content $env:GITHUB_STEP_SUMMARY

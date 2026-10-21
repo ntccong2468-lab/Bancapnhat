@@ -1,5 +1,9 @@
 # VN code
 
+**Bản mới nhất: [VNCode 1.5.9](https://github.com/ntccong2468-lab/Bancapnhat/releases/tag/v1.5.9).**
+[Tải bộ cài Windows](https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.5.9/VN-code-1.5.9-Windows-x64.exe) · [Ghi chú](docs/releases/VN-code-1.5.9.md) · [Bằng chứng phát hành](docs/releases/VN-code-1.5.9-status.json).
+Kiểm tra bản mới và khởi động Windows đạt; không chạy ma trận các phiên bản cũ theo yêu cầu chủ dự án.
+
 Bản nền cho các cập nhật tiếp theo: [VNCode 1.5.0](docs/releases/BASELINE.md).
 
 Đã phát hành [VNCode 1.5.0](docs/releases/VN-code-1.5.0.md): Liquid Glass mới,
