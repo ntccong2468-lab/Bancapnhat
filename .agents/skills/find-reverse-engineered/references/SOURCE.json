@@ -1,0 +1,21 @@
+{
+  "repository": "https://github.com/alexgaoth/awesome-reverse-engineered",
+  "commit": "586cffd011070efff6875b3f3921b05637f67786",
+  "upstreamSkillPath": "plugin/skills/find-reverse-engineered",
+  "codeLicense": "MIT",
+  "indexLicense": "CC0-1.0",
+  "bundledEntries": 12866,
+  "upstreamSha256": {
+    "plugin/skills/find-reverse-engineered/SKILL.md": "17e52c8cf74e78ed75061190ec7680da04d01e4b7f264a1d25a979e28328e411",
+    "plugin/skills/find-reverse-engineered/scripts/re_index.py": "5cad537f25fde5a094888e11e1c89d24ae5f17c81564c4ef784460ca2131234b",
+    "data/entries.json": "3a3572bc04983b9ddd6f67f665ea13bfd0dffcc00ac863c0b39540c052959d51",
+    "LICENSE": "e249e59dd9c62c832854d823c600d650899c66acecd8c78807e79aafa72358ac",
+    "LICENSE-DATA": "a2010f343487d3f7618affe54f789f5487602331c0a8d03f49e9a7c547cf0499"
+  },
+  "adaptations": [
+    "Codex repository skill discovery path and local instructions",
+    "Bundled index relative to the installed skill",
+    "Writable temporary/XDG cache and offline operation",
+    "Use configured gh CLI for README access without extracting authentication tokens"
+  ]
+}

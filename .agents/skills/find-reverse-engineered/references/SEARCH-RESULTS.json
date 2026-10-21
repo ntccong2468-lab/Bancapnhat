@@ -1,0 +1,305 @@
+{
+  "checkedAt": "2026-10-21T20:35:38.482603+03:00",
+  "upstreamCommit": "586cffd011070efff6875b3f3921b05637f67786",
+  "bundledEntryCount": 12866,
+  "indexedSearches": [
+    {
+      "query": [
+        "Честный",
+        "ЗНАК"
+      ],
+      "source": "bundled curated index",
+      "resultCount": 0,
+      "completeMatchesWithinLimit": 0,
+      "results": []
+    },
+    {
+      "query": [
+        "chestny",
+        "znak"
+      ],
+      "source": "bundled curated index",
+      "resultCount": 0,
+      "completeMatchesWithinLimit": 0,
+      "results": []
+    },
+    {
+      "query": [
+        "crpt"
+      ],
+      "source": "bundled curated index",
+      "resultCount": 0,
+      "completeMatchesWithinLimit": 0,
+      "results": []
+    },
+    {
+      "query": [
+        "National",
+        "Catalog"
+      ],
+      "source": "bundled curated index",
+      "resultCount": 5,
+      "completeMatchesWithinLimit": 0,
+      "results": [
+        {
+          "repository": "AssetCatalogTinkerer",
+          "url": "https://github.com/insidegui/AssetCatalogTinkerer",
+          "matchedTerms": 1,
+          "completeMatch": false,
+          "description": "App to open Apple compiled asset catalog (.car) files and extract images",
+          "license": "BSD-2-Clause",
+          "archived": false
+        },
+        {
+          "repository": "mercadona-cli",
+          "url": "https://github.com/ivorpad/mercadona-cli",
+          "matchedTerms": 1,
+          "completeMatch": false,
+          "description": "Unofficial CLI for the Mercadona online store: catalog search, prices, cart and checkout",
+          "license": "",
+          "archived": false
+        },
+        {
+          "repository": "webOS App Museum service",
+          "url": "https://github.com/webOSArchive/webos-catalog-service",
+          "matchedTerms": 1,
+          "completeMatch": false,
+          "description": "Reimplemented backend for the webOS App Museum on legacy Palm devices",
+          "license": "",
+          "archived": false
+        },
+        {
+          "repository": "QLCARFiles",
+          "url": "https://github.com/Timac/QLCARFiles",
+          "matchedTerms": 1,
+          "completeMatch": false,
+          "description": "QuickLook plugin for compiled Asset Catalog .car files",
+          "license": "MIT",
+          "archived": false
+        },
+        {
+          "repository": "acextract",
+          "url": "https://github.com/bartoszj/acextract",
+          "matchedTerms": 1,
+          "completeMatch": false,
+          "description": "Lists and extracts content from Apple Assets.car compiled asset catalogs",
+          "license": "MIT",
+          "archived": false
+        }
+      ]
+    },
+    {
+      "query": [
+        "национальный",
+        "каталог"
+      ],
+      "source": "bundled curated index",
+      "resultCount": 0,
+      "completeMatchesWithinLimit": 0,
+      "results": []
+    },
+    {
+      "query": [
+        "CryptoPro"
+      ],
+      "source": "bundled curated index",
+      "resultCount": 0,
+      "completeMatchesWithinLimit": 0,
+      "results": []
+    },
+    {
+      "query": [
+        "криптопро"
+      ],
+      "source": "bundled curated index",
+      "resultCount": 0,
+      "completeMatchesWithinLimit": 0,
+      "results": []
+    },
+    {
+      "query": [
+        "Wildberries",
+        "API"
+      ],
+      "source": "bundled curated index",
+      "resultCount": 5,
+      "completeMatchesWithinLimit": 1,
+      "results": [
+        {
+          "repository": "wb-private-api",
+          "url": "https://github.com/glmn/wb-private-api",
+          "matchedTerms": 2,
+          "completeMatch": true,
+          "description": "Wrapper for the private API of the Wildberries marketplace",
+          "license": "",
+          "archived": false
+        },
+        {
+          "repository": "Douyin_TikTok_Download_API",
+          "url": "https://github.com/Evil0ctal/Douyin_TikTok_Download_API",
+          "matchedTerms": 1,
+          "completeMatch": false,
+          "description": "Self-hosted API for Douyin/TikTok data scraping and watermark-free video download",
+          "license": "Apache-2.0",
+          "archived": false
+        },
+        {
+          "repository": "evolution-api",
+          "url": "https://github.com/evolution-foundation/evolution-api",
+          "matchedTerms": 1,
+          "completeMatch": false,
+          "description": "Open-source WhatsApp integration API (Baileys-based)",
+          "license": "NOASSERTION",
+          "archived": false
+        },
+        {
+          "repository": "youtube-transcript-api",
+          "url": "https://github.com/jdepoix/youtube-transcript-api",
+          "matchedTerms": 1,
+          "completeMatch": false,
+          "description": "This is a python API which allows you to get the transcript/subtitles for a given YouTube video. It also works for...",
+          "license": "MIT",
+          "archived": false
+        },
+        {
+          "repository": "TikTok-Api",
+          "url": "https://github.com/davidteather/TikTok-Api",
+          "matchedTerms": 1,
+          "completeMatch": false,
+          "description": "The Unofficial TikTok API Wrapper In Python",
+          "license": "MIT",
+          "archived": false
+        }
+      ]
+    }
+  ],
+  "supplementalGitHubSearches": [
+    {
+      "group": "chestny",
+      "query": "\"честный знак\" in:name,description,readme",
+      "rawTotalCountNotRelevantCount": 380,
+      "topRepositories": [
+        "papyrussolution/OpenPapyrus",
+        "pincetgore/amnezia-app-ru-list",
+        "GrimbirdUsers/ru-routing-dat",
+        "yallie/MdlpClient",
+        "FairMark/FairMarkClient"
+      ]
+    },
+    {
+      "group": "catalog",
+      "query": "crpt catalog in:name,description,readme",
+      "rawTotalCountNotRelevantCount": 12,
+      "topRepositories": [
+        "tandemgov/appropriations-committee-reports",
+        "galegoww/criado-por-ia",
+        "crptteam/react-breadcrumbs",
+        "glazole/msij-project",
+        "Center4ResearchPerspectiveTechnologies/NationalCatalogApiClient"
+      ]
+    },
+    {
+      "group": "cryptopro",
+      "query": "cryptopro in:name,description",
+      "rawTotalCountNotRelevantCount": 1816,
+      "topRepositories": [
+        "AlexMAS/GostCryptography",
+        "kov-serg/get-cpcert",
+        "dbfun/cryptopro",
+        "CryptoPro/libcore",
+        "taigasys/CryptoProCSP"
+      ]
+    },
+    {
+      "group": "wildberries",
+      "query": "wildberries api in:name,description",
+      "rawTotalCountNotRelevantCount": 248,
+      "topRepositories": [
+        "glmn/wb-private-api",
+        "matacoder/wildberries-rest-api",
+        "ilyautov/marketplaces-mcp-ru",
+        "Dakword/WBSeller",
+        "pashabaranov/Wildberries_Dashboard"
+      ]
+    }
+  ],
+  "reviewedCandidates": [
+    {
+      "repository": "FairMark/FairMarkClient",
+      "url": "https://github.com/FairMark/FairMarkClient",
+      "source": "supplemental GitHub search, not in curated index",
+      "headCommit": "c564b226c8696f8016d7e0ca8866f516968b2736",
+      "language": "C#",
+      "licenseMetadata": "MIT",
+      "lastPush": "2022-07-13T13:40:24Z",
+      "archived": false,
+      "readmeExcerptRead": true,
+      "assessmentVi": ".NET; True API/SUZ/EDO Lite; cập nhật 2022, cần đối chiếu API hiện hành."
+    },
+    {
+      "repository": "Center4ResearchPerspectiveTechnologies/NationalCatalogApiClient",
+      "url": "https://github.com/Center4ResearchPerspectiveTechnologies/NationalCatalogApiClient",
+      "source": "supplemental GitHub search, not in curated index",
+      "headCommit": "f62a6880a84d588d9a0d2b9e68dd4948b98459c8",
+      "language": "PHP",
+      "licenseMetadata": "Apache-2.0",
+      "lastPush": "2019-04-03T16:09:45Z",
+      "archived": false,
+      "readmeExcerptRead": true,
+      "assessmentVi": "PHP, National Catalog API v3; cập nhật 2019, không coi là đặc tả API hiện hành."
+    },
+    {
+      "repository": "CryptoPro/libcore",
+      "url": "https://github.com/CryptoPro/libcore",
+      "source": "supplemental GitHub search, not in curated index",
+      "headCommit": "5aa1ee8f9303784e06bce16390ea4dc35791b8c5",
+      "language": null,
+      "licenseMetadata": null,
+      "lastPush": "2026-10-15T09:01:48Z",
+      "archived": false,
+      "readmeExcerptRead": true,
+      "assessmentVi": "Repository thuộc tổ chức CryptoPro; .NET, không phải Java/JCP; GitHub chưa nhận diện license."
+    },
+    {
+      "repository": "AlexMAS/GostCryptography",
+      "url": "https://github.com/AlexMAS/GostCryptography",
+      "source": "supplemental GitHub search, not in curated index",
+      "headCommit": "31413f6621d1e77e4fe5d7bb2f95a9746d64e9e0",
+      "language": "C#",
+      "licenseMetadata": "MIT",
+      "lastPush": "2024-07-01T08:21:17Z",
+      "archived": false,
+      "readmeExcerptRead": true,
+      "assessmentVi": "MIT; tham khảo CMS/PKCS#7/XML cho CSP; .NET, không tích hợp trực tiếp Java."
+    },
+    {
+      "repository": "glmn/wb-private-api",
+      "url": "https://github.com/glmn/wb-private-api",
+      "source": "curated index + GitHub",
+      "headCommit": "538355baf2293917ec55b2b2afc1326d106e8c89",
+      "language": "JavaScript",
+      "licenseMetadata": null,
+      "lastPush": "2026-02-15T14:54:07Z",
+      "archived": false,
+      "readmeExcerptRead": true,
+      "assessmentVi": "Private API JavaScript; chỉ một mục có trong chỉ mục; GitHub chưa nhận diện license. Ưu tiên API seller chính thức."
+    }
+  ],
+  "validation": {
+    "offlineCompatibilityTests": 7,
+    "failures": 0,
+    "onlineIndexDownload": true,
+    "onlineEntries": 12866,
+    "onlineSnapshotSha256": "3a3572bc04983b9ddd6f67f665ea13bfd0dffcc00ac863c0b39540c052959d51",
+    "bundledSnapshotSha256": "3a3572bc04983b9ddd6f67f665ea13bfd0dffcc00ac863c0b39540c052959d51",
+    "categoriesCommand": true,
+    "cloneCommand": true,
+    "cloneReference": "glmn/wb-private-api",
+    "clonedCommit": "538355baf2293917ec55b2b2afc1326d106e8c89",
+    "clonedCodeExecuted": false,
+    "applicationSourceChanged": false,
+    "sellerApiCalled": false,
+    "sellerCredentialsUsed": false,
+    "newSessionSkillAutoDiscoveryObserved": false
+  }
+}
