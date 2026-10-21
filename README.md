@@ -19,8 +19,6 @@ Xin tiền tố 999/99.999 mã kiểm tra mọi hạn mức trước gửi; tự
 [phạm vi GS1 và điều kiện còn thiếu](docs/releases/VN-code-1.4.0.md).
 Mẫu Word cá nhân không đóng gói; ký thỏa thuận CZ trong app và nghiệm thu thật
 chưa hoàn tất; chưa phát hành EXE 1.4.0.
-
-Đã đối chiếu thêm [Wbcode 1.3.8 và hai màn hình Cấu hình/Đăng ký Znack](docs/research/2026-10-13-vn-code-wbcode-138-znack-audit.md):
 đã bổ sung thông tin tài khoản, scope đăng ký, giấy tờ sản phẩm và thẻ mới giữ GTIN cũ.
 GTIN ADD WB/Ozon có hợp đồng/fixture, chưa nghiệm thu seller thật.
 [Báo cáo hiệu năng mới](docs/validation/2026-10-14-vn-code-140-scaling.md) và
