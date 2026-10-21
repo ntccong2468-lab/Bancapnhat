@@ -22,6 +22,9 @@ public final class ZnackRegistrationDocuments {
     }
 
     public static Selection select(ProductSnapshot snapshot, ZnackModels.Settings settings, LocalDate today) {
+        // The stored type can have a UI default even when the seller has configured no paper.
+        if(settings!=null&&java.util.stream.Stream.of(settings.documentNumber(),settings.documentDate())
+                .anyMatch(value->value!=null&&!value.isBlank()))return configured(settings,today);
         var candidates=new LinkedHashMap<GoodsDocument,Boolean>();
         boolean productEvidence=false;
         if(snapshot!=null)for(ProductDocument document:snapshot.documents()) {
@@ -42,22 +45,27 @@ public final class ZnackRegistrationDocuments {
             GoodsDocument automatic=list.size()==1 && Boolean.TRUE.equals(candidates.get(list.getFirst()))?list.getFirst():null;
             return new Selection(list,automatic,Source.PRODUCT,automatic==null);
         }
-        if(settings!=null && settings.hasDefaultGoodsDocument()) {
-            try {
-                settings.validateDefaultGoodsDocument();
-                GoodsDocument fallback=settings.defaultGoodsDocument();
-                String fallbackType=type(fallback.type());
-                if(fallbackType.isBlank())return new Selection(List.of(),null,Source.NONE,true);
-                LocalDate date=parseDate(fallback.date());
-                if(date.isAfter(today))return new Selection(List.of(),null,Source.NONE,true);
-                if(settings.documentExpiryDate()!=null&&!settings.documentExpiryDate().isBlank()
-                        &&parseDate(settings.documentExpiryDate()).isBefore(today))return new Selection(List.of(),null,Source.NONE,true);
-                var normalized=new GoodsDocument(fallbackType,fallback.number().strip(),date.toString());
-                return new Selection(List.of(normalized),normalized,Source.SHOP,false);
-            } catch(IllegalArgumentException | java.time.DateTimeException ignored) { /* An invalid default cannot become an automatic permit. */ }
-        }
         return new Selection(List.of(),null,Source.NONE,true);
     }
+    /** An explicit registration configuration takes precedence; never silently use another permit. */
+    private static Selection configured(ZnackModels.Settings settings,LocalDate today){
+        try {
+            settings.validateDefaultGoodsDocument();
+            GoodsDocument document=settings.defaultGoodsDocument();
+            String kind=type(document.type());
+            if(!document.complete())return configuredIssue("ZNACK_MISSING_PRODUCT_DOCUMENT");
+            if(kind.isBlank())return configuredIssue("ZNACK_DOCUMENT_TYPE_UNSUPPORTED");
+            LocalDate date=parseDate(document.date());
+            if(date.isAfter(today))return configuredIssue("ZNACK_DOCUMENT_NOT_YET_VALID");
+            if(settings.documentExpiryDate()!=null&&!settings.documentExpiryDate().isBlank()
+                    &&parseDate(settings.documentExpiryDate()).isBefore(today))return configuredIssue("ZNACK_DOCUMENT_EXPIRED");
+            var normalized=new GoodsDocument(kind,document.number().strip(),date.toString());
+            return new Selection(List.of(normalized),normalized,Source.SHOP,false);
+        }catch(IllegalArgumentException|java.time.DateTimeException invalid){
+            return configuredIssue("ZNACK_DOCUMENT_REGISTRY_DATE_INVALID");
+        }
+    }
+    private static Selection configuredIssue(String code){return new Selection(List.of(),null,Source.SHOP,true,List.of(code));}
     private static LocalDate parseDate(String value) {
         if(value.matches("\\d{2}\\.\\d{2}\\.\\d{4}"))return LocalDate.parse(value,java.time.format.DateTimeFormatter.ofPattern("dd.MM.uuuu").withResolverStyle(java.time.format.ResolverStyle.STRICT));
         return LocalDate.parse(value);

@@ -40,6 +40,21 @@ class RegistrationSyncReportDialogTest {
     @Test void sourceReceiptExplicitlyStatesThatItDidNotRegisterCards()throws Exception{
         fx(()->{assertTrue(label("summary").getText().contains(com.vncode.app.shared.I18nService.getInstance().tr("znack.registration.report_sources_only")));return null;});
     }
+    @Test void registrationFailureShowsItsFieldInTheVisibleSummary()throws Exception{
+        var repository=new com.vncode.app.features.sync.SyncRunRepository();
+        String failed=repository.begin(shop,com.vncode.app.features.sync.RegistrationAttemptReports.KIND,"PREFLIGHT");
+        repository.addBatch(shop,failed,java.util.List.of(new com.vncode.app.features.sync.SyncRunRepository.Item(
+                "failed-row",failed,"1","offer-1","sku-1","SUIT-52","Brown","52","","NEEDS_ACTION","PRE_SUBMIT_ERROR",
+                "ZNACK_INVALID_ATTRIBUTE_VALUE","","{\"reason\":\"ZNACK_INVALID_ATTRIBUTE_VALUE: Размер одежды / изделия [35]\"}")));
+        repository.stage(shop,failed,"PARTIAL","PRE_SUBMIT_ERROR","ZNACK_REGISTRATION_NEEDS_ACTION");
+        fx(()->{report.dispose();report=new RegistrationSyncReportDialog.Report(shop,failed);return null;});awaitIdle();
+        fx(()->{
+            assertTrue(label("summary").getText().contains("Размер одежды / изделия [35]"),label("summary").getText());
+            assertTrue(label("summary").getText().contains("SUIT-52 / 52"));
+            assertEquals(com.vncode.app.shared.I18nService.getInstance().tr("jobs.reason"),table().getColumns().get(5).getText());
+            return null;
+        });
+    }
     @Test void actualRegistrationReportIsSelectableAndKeepsItsFailure()throws Exception{
         var repository=new com.vncode.app.features.sync.SyncRunRepository();
         String attempt=repository.begin(shop,com.vncode.app.features.sync.RegistrationAttemptReports.KIND,"PREFLIGHT");

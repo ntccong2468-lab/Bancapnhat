@@ -10,7 +10,7 @@ class RegistrationTemplateTest {
     @Test void setsMatchTheCurrentWbcodePackagingRuleAndSurviveStoredPayloadRecovery(){
         var draft=new Draft("6112110000","6112",321,"Synthetic suit","Fixture",Map.of(35L,"52"),Map.of(35L,"---")).withProductCategory("Костюмы спортивные").withAutoSign(true);
         var payload=ZnackNationalCatalogService.buildPayload("00000000000017",draft,"");assertTrue(payload.get("is_kit").getAsBoolean());
-        assertEquals("",payload.getAsJsonArray("good_attrs").get(0).getAsJsonObject().get("attr_value_type").getAsString());
+        assertEquals("---",payload.getAsJsonArray("good_attrs").get(0).getAsJsonObject().get("attr_value_type").getAsString());
         assertTrue(ZnackCardRegistrationWorkflow.draftFromPayload(payload).isKit());assertTrue(draft.withAutoSign(false).isKit());
         var exception=new Draft("6112120000","6112",321,"Synthetic suit","Fixture",Map.of(),Map.of()).withProductCategory("Костюмы спортивные");
         assertFalse(exception.isKit());assertFalse(ZnackNationalCatalogService.buildPayload("00000000000017",exception,"").has("is_kit"));

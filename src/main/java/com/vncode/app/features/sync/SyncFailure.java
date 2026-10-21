@@ -41,6 +41,10 @@ public record SyncFailure(String code,Duration delay,boolean actionRequired) {
         }
         String text=failure.getMessage();
         String safe=com.vncode.app.features.sync.SyncRunRepository.code(text);
+        // Preserve only the allowlisted code preceding a field-specific diagnostic.
+        // Never persist that diagnostic (which may contain secrets) in error_code.
+        if("DETAIL_NOT_AVAILABLE".equals(safe)&&text!=null&&text.indexOf(':')>0)
+            safe=SyncRunRepository.code(text.substring(0,text.indexOf(':')).strip());
         String code=!safe.isBlank()&&!safe.equals("DETAIL_NOT_AVAILABLE")?safe:failure instanceof java.io.IOException?"NETWORK_OR_RESPONSE":"SYNC_INTERNAL";
         return new SyncFailure(code,backoff(attempt),failure instanceof IllegalArgumentException||failure instanceof SecurityException);
     }

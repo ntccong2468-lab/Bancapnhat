@@ -1,0 +1,180 @@
+name: Publish VNCode registration hotfix
+
+on:
+  push:
+    branches: [fix/znack-catalog-submit-158-20261021]
+    paths: [.github/workflows/publish-vncode-registration-hotfix.yml]
+  workflow_dispatch:
+    inputs:
+      source_commit:
+        description: Exact committed VNCode 1.5.9 source, also targeted by the existing release tag
+        required: true
+        type: string
+      release_id:
+        description: Existing unpublished GitHub release ID for v1.5.9
+        required: true
+        type: string
+
+permissions:
+  contents: write
+  actions: read
+
+concurrency:
+  group: vncode-stable-release
+  cancel-in-progress: false
+
+jobs:
+  registration-hotfix:
+    if: github.repository == 'ntccong2468-lab/Bancapnhat'
+    runs-on: windows-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      EXPECTED_SOURCE: ${{ inputs.source_commit || github.sha }}
+      RELEASE_ID: ${{ inputs.release_id }}
+      HOTFIX_VERSION: '1.5.9'
+      FOCUSED_TESTS: ZnackRegistrationRegistrationModelTest,RegistrationDynamicPreflightTest,OzonAutomaticDraftSchemaTest,OzonCardRegistrationWorkflowTest,RegistrationVerifiedDefaultsTest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ inputs.source_commit || github.sha }}
+          fetch-depth: 0
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: '22'
+
+      - name: Verify exact hotfix source
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          if ($env:EXPECTED_SOURCE -cnotmatch '^[a-f0-9]{40}$') { throw 'Invalid source commit.' }
+          if ($env:RELEASE_ID -and $env:RELEASE_ID -notmatch '^[1-9][0-9]*$') { throw 'Invalid release ID.' }
+          if ((git rev-parse HEAD).Trim() -cne $env:EXPECTED_SOURCE) { throw 'Checkout does not match the authorized source.' }
+          $version = (node tools/release-version.mjs).Trim()
+          if ($LASTEXITCODE -ne 0 -or $version -cne $env:HOTFIX_VERSION) { throw 'Source is not VNCode 1.5.9.' }
+          if (-not (Test-Path "docs/releases/VN-code-$version.md")) { throw 'Missing hotfix release notes.' }
+
+      - name: Set up JDK 25 with Maven cache
+        uses: actions/setup-java@03ad4de0992f5dab5e18fcb136590ce7c4a0ac95
+        with:
+          java-version: '25'
+          distribution: oracle
+          cache: maven
+
+      - name: Verify focused registration registration regressions and package Java
+        shell: pwsh
+        env:
+          LOCALAPPDATA: ${{ runner.temp }}\vncode-registration-hotfix-${{ github.run_id }}
+        run: |
+          .\mvnw.cmd -B "-Dtest=$env:FOCUSED_TESTS" clean package
+          if ($LASTEXITCODE -ne 0) { throw 'Focused registration registration tests failed.' }
+
+      - name: Build Windows EXE from this job's focused verified Java
+        id: package
+        shell: cmd
+        env:
+          VNCODE_REUSE_VERIFIED_BUILD: 'true'
+        run: build.bat exe
+
+      - name: Verify native startup with fresh data (current version only)
+        shell: pwsh
+        run: ./tools/windows-current-version-smoke.ps1 -Version $env:HOTFIX_VERSION
+
+      - name: Name installer and record exact focused verification scope
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $version = $env:HOTFIX_VERSION
+          $installers = @(Get-ChildItem out -Filter 'VN code*.exe' -File)
+          if ($installers.Count -ne 1 -or $installers[0].Length -lt 1MB) { throw 'Expected exactly one packaged EXE.' }
+          $file = "VN-code-$version-Windows-x64.exe"
+          $target = Join-Path $PWD "out/$file"
+          Move-Item -LiteralPath $installers[0].FullName -Destination $target
+          $hash = (Get-FileHash -LiteralPath $target -Algorithm SHA256).Hash.ToLowerInvariant()
+          "$hash  $file" | Set-Content "out/VN-code-$version-Windows-x64.sha256" -Encoding ascii
+          Copy-Item "docs/releases/VN-code-$version.md" out/release-notes.md
+          $tests = 0; $failures = 0; $errors = 0; $skipped = 0
+          $reports = @(Get-ChildItem target/surefire-reports -Filter 'TEST-*.xml' -File)
+          if ($reports.Count -eq 0) { throw 'Focused test reports are missing.' }
+          foreach ($report in $reports) {
+            [xml]$xml = Get-Content -LiteralPath $report.FullName -Raw
+            $tests += [int]$xml.testsuite.tests
+            $failures += [int]$xml.testsuite.failures
+            $errors += [int]$xml.testsuite.errors
+            $skipped += [int]$xml.testsuite.skipped
+          }
+          if ($tests -lt 1 -or $failures -ne 0 -or $errors -ne 0) { throw 'Focused test evidence is incomplete or failed.' }
+          $info = [ordered]@{
+            version = $version; sourceCommit = $env:EXPECTED_SOURCE; runId = [long]$env:GITHUB_RUN_ID
+            runAttempt = [int]$env:GITHUB_RUN_ATTEMPT; workflow = 'publish-vncode-registration-hotfix.yml'
+            ownerRequestedExpeditedHotfix = $true
+            installer = @{ name = $file; bytes = (Get-Item -LiteralPath $target).Length; sha256 = $hash }
+            verification = @{
+              scope = 'focused-registration-registration-hotfix'; focusedTestClasses = $env:FOCUSED_TESTS.Split(',')
+              focusedJava = @{ tests = $tests; failures = $failures; errors = $errors; skipped = $skipped; passed = $tests - $skipped }
+              fullJavaSuiteRun = $false; nativeSmokeRun = $true; legacyUpgradeMatrixRun = $false
+              productionAcceptanceClaimed = $false; liveCatalogWriteVerified = $false; liveMarketplaceWriteVerified = $false
+            }
+          }
+          $info | ConvertTo-Json -Depth 8 | Set-Content out/build-info.json -Encoding utf8NoBOM
+
+      - name: Preserve candidate even if later release publication fails
+        if: ${{ always() && steps.package.outcome == 'success' }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: VN-code-1.5.9-Windows-x64
+          path: |
+            out/*.exe
+            out/*.sha256
+            out/build-info.json
+            out/release-notes.md
+            out/native-smoke.json
+            target/surefire-reports/TEST-*.xml
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Upload to existing draft and publish Latest
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $version = $env:HOTFIX_VERSION
+          $tag = "v$version"
+          # A branch push starts packaging immediately. The owner creates the exact
+          # tag and draft while this job builds; GITHUB_TOKEN never creates either.
+          if ($env:RELEASE_ID) {
+            $release = gh api "repos/$env:GITHUB_REPOSITORY/releases/$env:RELEASE_ID" | ConvertFrom-Json
+          } else {
+            $releases = @(gh api "repos/$env:GITHUB_REPOSITORY/releases?per_page=100" | ConvertFrom-Json)
+            if ($LASTEXITCODE -ne 0) { throw 'Could not read existing releases.' }
+            $hotfixReleases = @($releases | Where-Object { $_.tag_name -ceq $tag })
+            if ($hotfixReleases.Count -ne 1) { throw 'Expected exactly one existing v1.5.9 draft release.' }
+            $release = $hotfixReleases[0]
+          }
+          if ($LASTEXITCODE -ne 0 -or $release.tag_name -cne $tag -or -not $release.draft -or $release.prerelease) { throw 'Release is no longer the authorized unpublished draft.' }
+          $ref = gh api "repos/$env:GITHUB_REPOSITORY/git/ref/tags/$tag" | ConvertFrom-Json
+          if ($LASTEXITCODE -ne 0 -or $ref.object.type -cne 'commit' -or $ref.object.sha -cne $env:EXPECTED_SOURCE) { throw 'Release tag source changed.' }
+          $files = @("VN-code-$version-Windows-x64.exe", "VN-code-$version-Windows-x64.sha256", 'build-info.json', 'release-notes.md', 'native-smoke.json')
+          foreach ($file in $files) {
+            $path = Join-Path out $file
+            $hash = (Get-FileHash -LiteralPath $path -Algorithm SHA256).Hash.ToLowerInvariant()
+            $existing = @($release.assets | Where-Object { $_.name -ceq $file })
+            if ($existing.Count -gt 0) {
+              if ($existing.Count -ne 1 -or $existing[0].state -cne 'uploaded' -or $existing[0].digest -cne "sha256:$hash" -or $existing[0].size -ne (Get-Item -LiteralPath $path).Length) { throw "Existing draft asset differs: $file" }
+            } else {
+              gh release upload $tag $path --repo $env:GITHUB_REPOSITORY
+              if ($LASTEXITCODE -ne 0) { throw "Release asset upload failed: $file" }
+            }
+          }
+          gh release edit $tag --repo $env:GITHUB_REPOSITORY --draft=false --latest --notes-file out/release-notes.md
+          if ($LASTEXITCODE -ne 0) { throw 'Assets are preserved, but GitHub release publication failed.' }
+          $latest = gh api "repos/$env:GITHUB_REPOSITORY/releases/latest" | ConvertFrom-Json
+          if ($LASTEXITCODE -ne 0 -or $latest.id -ne $release.id -or $latest.tag_name -cne $tag -or $latest.draft -or $latest.prerelease) { throw 'GitHub Latest does not match the published hotfix.' }
+          $info = Get-Content out/build-info.json -Raw | ConvertFrom-Json
+          $asset = @($latest.assets | Where-Object { $_.name -ceq $info.installer.name })
+          if ($asset.Count -ne 1 -or $asset[0].digest -cne "sha256:$($info.installer.sha256)" -or $asset[0].size -ne $info.installer.bytes -or $asset[0].state -cne 'uploaded') { throw 'Public installer metadata does not match the packaged bytes.' }
+          @(
+            "Published [$tag]($($latest.html_url)) as Latest.",
+            "Installer: $($asset[0].browser_download_url)",
+            "SHA256: $($info.installer.sha256); bytes: $($info.installer.bytes).",
+            'Verification scope: focused registration registration tests only; fresh native startup passed; no full Java suite, legacy upgrade matrix or live production write acceptance claimed.'
+          ) | Add-Content $env:GITHUB_STEP_SUMMARY

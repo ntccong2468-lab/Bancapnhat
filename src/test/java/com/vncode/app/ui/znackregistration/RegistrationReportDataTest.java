@@ -30,6 +30,17 @@ class RegistrationReportDataTest {
         assertEquals(1,page.matched());assertEquals("variant-10001",page.rows().getFirst().variantId());assertEquals(Set.of("FAILED","SUCCEEDED"),page.states());
         assertEquals(0,RegistrationReportData.page(shop,run,new RegistrationReportData.Filter("needle-last","SUCCEEDED"),0,300).matched());
     }
+    @Test void summaryFindsTheActualFailureOutsideTheVisiblePageAndFilter()throws Exception{
+        rows(1001);
+        try(var c=Database.getConnection();var p=c.prepareStatement("UPDATE sync_run_items SET error_code='ZNACK_INVALID_ATTRIBUTE_VALUE',evidence_json=? WHERE id='row-1001' AND run_id=?")){
+            p.setString(1,"{\"reason\":\"ZNACK_INVALID_ATTRIBUTE_VALUE: Размер одежды / изделия [35]\"}");p.setString(2,run);p.executeUpdate();
+        }
+        var page=RegistrationReportData.page(shop,run,new RegistrationReportData.Filter("","SUCCEEDED"),0,300);
+        assertEquals(300,page.rows().size());assertEquals(1,page.failures().size());
+        String summary=RegistrationSyncReportDialog.failureSummary(page.failures());
+        assertTrue(summary.contains("Размер одежды / изделия [35]"),summary);
+        assertTrue(summary.contains("@SUM(1) / M"),summary);
+    }
     @Test void csvExportsEveryRowWithRawCodesRedactedEvidenceAndFormulaProtection()throws Exception{
         rows(10_001);String multilineSku="Public first line\nPublic \"quoted\", second line";
         try(var c=Database.getConnection();var p=c.prepareStatement("UPDATE sync_run_items SET sku=? WHERE id='row-1' AND run_id=?")){p.setString(1,multilineSku);p.setString(2,run);assertEquals(1,p.executeUpdate());}
