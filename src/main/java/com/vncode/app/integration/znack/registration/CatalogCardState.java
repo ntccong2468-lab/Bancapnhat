@@ -23,4 +23,13 @@ public enum CatalogCardState {
         if(details.contains("draft")||card.details().values("@catalog_status").stream().anyMatch(s->"draft".equalsIgnoreCase(s.strip())))return DRAFT;
         return UNPUBLISHED;
     }
+    /** Review eligibility only; an actual submission still requires a fresh exact-card read. */
+    public static boolean reviewableDraft(RegisteredGtin card){
+        return card!=null&&!card.published()&&card.tradeUnit()
+                &&com.vncode.app.features.gtinsync.RegisteredGtinProof.identifiedObservation(card)
+                &&"draft".equalsIgnoreCase(card.details().single("@catalog_status"))
+                &&card.details().values("@catalog_signed").stream().allMatch("false"::equalsIgnoreCase)
+                &&card.details().values("@catalog_detailed_status").stream().map(value->value.strip().toLowerCase(Locale.ROOT))
+                .allMatch("draft"::equals);
+    }
 }

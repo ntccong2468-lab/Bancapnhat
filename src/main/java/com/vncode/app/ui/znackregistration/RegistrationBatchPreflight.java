@@ -92,9 +92,10 @@ return readComplete(owner,selected,entered,documents,Map.of());
         if("changed".equals(finding.reason()))return tr("znack.registration.reason.ZNACK_REVIEWED_VALUES_CHANGED");
         return tr("type".equals(finding.reason())?"znack.registration.missing_type_reason":finding.before().isBlank()?"znack.registration.missing_value_reason":"znack.registration.invalid_value_reason");
     }
-    static boolean show(javafx.stage.Window window,Shop owner,Review review){
-        if(review.findings().isEmpty())return true;
-        return new Editor(window,owner,review).show();
+    static boolean show(javafx.stage.Window window,Shop owner,Review review){return show(window,owner,review,false);}
+    static boolean show(javafx.stage.Window window,Shop owner,Review review,boolean reviewAllFields){
+        if(!reviewAllFields&&review.findings().isEmpty())return true;
+        return new Editor(window,owner,review,reviewAllFields).show();
     }
     static boolean sameFacts(RegistrationDynamicPreflight.Review before,RegistrationDynamicPreflight.Review after){
         if(before.plans().size()!=after.plans().size())return false;var old=new HashMap<ProductKey,RegistrationDynamicPreflight.Plan>();before.plans().forEach(p->old.put(p.snapshot().key(),p));
@@ -115,12 +116,15 @@ return readComplete(owner,selected,entered,documents,Map.of());
         final ButtonType applyType=new ButtonType(tr("common.apply"),ButtonBar.ButtonData.OK_DONE);
         final RegistrationPreflightCorrections corrections=new RegistrationPreflightCorrections();
         final javafx.animation.PauseTransition retry=new javafx.animation.PauseTransition(javafx.util.Duration.seconds(2));
-        RegistrationPreflightCorrections.Session session;volatile boolean disposed;boolean busy;int polls;
+        RegistrationPreflightCorrections.Session session;volatile boolean disposed;boolean busy;int polls;boolean awaitingFullReview;
         final Set<Task<?>> reads=new HashSet<>();
         @FunctionalInterface interface ReviewReader{Review read(Shop shop,List<ProductKey> keys,Map<ProductKey,Map<Long,RegistrationReviewedValues.Value>> values,Map<ProductKey,String> documents,Map<ProductKey,Long> categories);}
         ReviewReader reviewReader=RegistrationBatchPreflight::readComplete;
-        Editor(javafx.stage.Window window,Shop owner,Review review){
-            this.owner=owner;this.review=review;if(window!=null)dialog.initOwner(window);
+        Editor(javafx.stage.Window window,Shop owner,Review review){this(window,owner,review,false);}
+        Editor(javafx.stage.Window window,Shop owner,Review initial,boolean reviewAllFields){
+            if(reviewAllFields&&initial.dynamic()==null&&initial.findings().isEmpty())throw new RegistrationValidationException("ZNACK_REGISTRATION_STATE_REQUIRES_REVIEW");
+            Review review=reviewAllFields&&initial.dynamic()!=null?forceReview(initial):initial;
+            this.owner=owner;this.review=review;awaitingFullReview=reviewAllFields&&initial.dynamic()==null;if(window!=null)dialog.initOwner(window);
             dialog.setTitle(tr("znack.registration.batch_preflight"));dialog.setHeaderText(tr("znack.registration.complete_missing_hint"));
             values.putAll(initialValues(review));review.findings().forEach(f->types.put(f,f.suggestedType()));
             table.getItems().setAll(review.findings());table.setPrefHeight(390);table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
@@ -206,9 +210,9 @@ return readComplete(owner,selected,entered,documents,Map.of());
         void approveDocument(Finding finding){if(review.dynamic()!=null)review.dynamic().plans().stream().filter(p->p.snapshot().key().equals(finding.key())&&p.documents()!=null).findFirst().ifPresent(p->approvedDocuments.put(finding.key(),RegistrationReviewedValues.permitRevision(p.documents())));}
         void freshReview(boolean saveWhenComplete){
             busy=true;table.setDisable(true);dialog.getDialogPane().lookupButton(applyType).setDisable(true);status.setText(tr("znack.registration.preflight.checking_schema"));
-            var entered=new LinkedHashMap<ProductKey,Map<Long,RegistrationReviewedValues.Value>>();reviewed.forEach((key,map)->entered.put(key,Map.copyOf(map)));var keys=review.selected();var previous=review.dynamic();var acknowledged=Map.copyOf(approvedDocuments);var categories=Map.copyOf(chosenCategories);
-            var task=new Task<Review>(){protected Review call()throws Exception{try(var lane=MarketplaceRequestBudget.lane(true)){var checked=reviewReader.read(owner,keys,Map.copyOf(entered),acknowledged,categories);if(previous!=null&&checked.dynamic()!=null&&!sameFacts(previous,checked.dynamic()))return forceReview(checked);if(isCancelled()||disposed||Thread.currentThread().isInterrupted())throw new InterruptedException("Registration preflight cancelled");if(saveWhenComplete&&checked.findings().isEmpty()&&checked.dynamic()!=null)RegistrationReviewedValues.save(owner,RegistrationDynamicPreflight.approvals(checked.dynamic()));return checked;}}};
-            task.setOnSucceeded(e->{busy=false;if(disposed)return;review=task.getValue();if(review.findings().isEmpty()){dialog.setResult(true);dialog.close();return;}values.clear();values.putAll(initialValues(review));types.clear();review.findings().forEach(f->types.put(f,f.suggestedType()));table.getItems().setAll(review.findings());table.setDisable(false);dialog.getDialogPane().lookupButton(applyType).setDisable(false);status.setText(tr("znack.registration.preflight.review_next_fields"));loadSuggestions();});
+            var entered=new LinkedHashMap<ProductKey,Map<Long,RegistrationReviewedValues.Value>>();reviewed.forEach((key,map)->entered.put(key,Map.copyOf(map)));var keys=review.selected();var previous=review.dynamic();var acknowledged=Map.copyOf(approvedDocuments);var categories=Map.copyOf(chosenCategories);boolean requireFullReview=awaitingFullReview;
+            var task=new Task<Review>(){protected Review call()throws Exception{try(var lane=MarketplaceRequestBudget.lane(true)){var checked=reviewReader.read(owner,keys,Map.copyOf(entered),acknowledged,categories);if(requireFullReview&&checked.dynamic()!=null)return forceReview(checked);if(previous!=null&&checked.dynamic()!=null&&!sameFacts(previous,checked.dynamic()))return forceReview(checked);if(isCancelled()||disposed||Thread.currentThread().isInterrupted())throw new InterruptedException("Registration preflight cancelled");if(saveWhenComplete&&checked.findings().isEmpty()&&checked.dynamic()!=null)RegistrationReviewedValues.save(owner,RegistrationDynamicPreflight.approvals(checked.dynamic()));return checked;}}};
+            task.setOnSucceeded(e->{busy=false;if(disposed)return;review=task.getValue();if(requireFullReview&&review.dynamic()!=null)awaitingFullReview=false;if(review.findings().isEmpty()){dialog.setResult(true);dialog.close();return;}values.clear();values.putAll(initialValues(review));types.clear();review.findings().forEach(f->types.put(f,f.suggestedType()));table.getItems().setAll(review.findings());table.setDisable(false);dialog.getDialogPane().lookupButton(applyType).setDisable(false);status.setText(tr("znack.registration.preflight.review_next_fields"));loadSuggestions();});
             java.util.function.Consumer<Throwable> failed=error->{busy=false;if(disposed)return;table.setDisable(false);dialog.getDialogPane().lookupButton(applyType).setDisable(false);status.setText(FriendlyErrorService.format(error));};task.setOnFailed(e->failed.accept(task.getException()));executeRead(task,failed);
         }
         void executeRead(Task<?> task,java.util.function.Consumer<Throwable> failed){

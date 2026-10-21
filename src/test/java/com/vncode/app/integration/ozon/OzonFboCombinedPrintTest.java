@@ -53,10 +53,10 @@ class OzonFboCombinedPrintTest {
         long order=repository.createDraft(GTIN,2);repository.insertCodes(order,GTIN,new DownloadedCodes(CODES,"fixture-block"));
         try(var c=Database.getConnection();var s=c.createStatement()){
             s.execute("UPDATE kiz_codes SET legal_status='IN_CIRCULATION' WHERE shop_id=1");
-            try(var p=c.prepareStatement("INSERT INTO gtin_sync_catalog VALUES(1,'OZON',?,?)")){
-                p.setString(1,GTIN);p.setString(2,"{\"published\":true,\"tradeUnit\":true,\"owner\":\""+ListingIdentity.fingerprint(shop)+"\"}");p.executeUpdate();
-            }
         }
+        com.vncode.app.features.gtinsync.GtinWriteTestFixture.saveSettings(shop,com.vncode.app.features.gtinsync.GtinWriteTestFixture.CERTIFICATE,com.vncode.app.integration.znack.ZnackModels.PRODUCTION_TRUE_API);
+        var details=new com.vncode.app.features.catalogsync.CatalogProductData(Map.of("@catalog_id",List.of("91"),"@catalog_status",List.of("published")),List.of(),List.of());
+        new com.vncode.app.features.gtinsync.GtinSyncRepository().saveCatalog(1,Marketplace.OZON,List.of(new com.vncode.app.features.gtinsync.GtinSyncModels.RegisteredGtin(GTIN,"152DASH-52","Коричневый","52",true,true,com.vncode.app.features.gtinsync.RegisteredGtinProof.source(shop),java.time.Instant.now(),details)));
     }
     @AfterEach void cleanup(){System.clearProperty("vncode.appdata.dir");}
 

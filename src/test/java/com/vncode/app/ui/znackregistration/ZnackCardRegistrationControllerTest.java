@@ -237,7 +237,34 @@ class ZnackCardRegistrationControllerTest {
             ((javafx.scene.control.ComboBox<?>)loader.getNamespace().get("statusFilter")).getSelectionModel().select(2);return null;
         });awaitTasks();fx(()->{assertTrue(table().getItems().stream().anyMatch(row->row.chrtId()==3),"A published Catalog card still waits for marketplace GTIN readback");
             @SuppressWarnings("unchecked") var column=(javafx.scene.control.TableColumn<Sku,String>)loader.getNamespace().get("statusColumn");
-            assertEquals(I18nService.getInstance().tr("znack.registration.awaiting_wb_gtin"),column.getCellData(table().getItems().stream().filter(row->row.chrtId()==3).findFirst().orElseThrow()));return null;});
+            var row=table().getItems().stream().filter(item->item.chrtId()==3).findFirst().orElseThrow();
+            assertEquals(I18nService.getInstance().tr("znack.registration.status.published"),column.getCellData(row));
+            @SuppressWarnings("unchecked") var marketplace=(TableColumn<Sku,String>)loader.getNamespace().get("marketplaceSyncColumn");
+            assertTrue(marketplace.getCellData(row).contains(I18nService.getInstance().tr("znack.registration.awaiting_wb_gtin")));return null;});
+    }
+    @Test void originalAndRussianSizesAndTheThreeIndependentStatesHaveSeparateColumns()throws Exception {
+        try(var c=Database.getConnection();var statement=c.createStatement()){
+            statement.execute("UPDATE wb_product_sizes SET wb_size='52' WHERE shop_id=1 AND chrt_id=3");
+        }
+        fx(()->{button("refreshButton").fire();return null;});awaitTasks();
+        fx(()->{
+            @SuppressWarnings("unchecked") var original=(TableColumn<Sku,String>)loader.getNamespace().get("sizeColumn");
+            @SuppressWarnings("unchecked") var russian=(TableColumn<Sku,String>)loader.getNamespace().get("russianSizeColumn");
+            @SuppressWarnings("unchecked") var registration=(TableColumn<Sku,String>)loader.getNamespace().get("statusColumn");
+            @SuppressWarnings("unchecked") var moderation=(TableColumn<Sku,String>)loader.getNamespace().get("moderationColumn");
+            @SuppressWarnings("unchecked") var marketplace=(TableColumn<Sku,String>)loader.getNamespace().get("marketplaceSyncColumn");
+            var known=table().getItems().stream().filter(row->row.chrtId()==3).findFirst().orElseThrow();
+            var unknown=table().getItems().stream().filter(row->row.chrtId()==1).findFirst().orElseThrow();
+            assertEquals("XL",original.getCellData(known));assertEquals("52",russian.getCellData(known));
+            assertEquals(I18nService.getInstance().tr("znack.registration.table_size_unknown"),russian.getCellData(unknown));
+            assertEquals(I18nService.getInstance().tr("znack.registration.column_registration"),registration.getText());
+            assertEquals(I18nService.getInstance().tr("znack.registration.column_moderation"),moderation.getText());
+            assertEquals(I18nService.getInstance().tr("znack.registration.status.published"),registration.getCellData(known));
+            assertTrue(moderation.getCellData(known).contains(I18nService.getInstance().tr("znack.registration.status.published")));
+            assertTrue(marketplace.getCellData(known).contains(I18nService.getInstance().tr("znack.registration.awaiting_wb_gtin")));
+            assertTrue(marketplace.getCellData(known).contains(java.text.MessageFormat.format(I18nService.getInstance().tr("znack.registration.table_checked_at"),"")));
+            return null;
+        });
     }
     @Test void selectAllIncludesPublishedRowsForTheSeparateNewCardAction() throws Exception {
         fx(()->{
@@ -405,6 +432,31 @@ class ZnackCardRegistrationControllerTest {
             return pane.getButtonTypes().stream().filter(button->button.getButtonData()==ButtonBar.ButtonData.CANCEL_CLOSE).findFirst().orElseThrow();
         });awaitTasks();assertEquals(0,starts.get());
         try(var c=Database.getConnection();var statement=c.createStatement();var rows=statement.executeQuery("SELECT count(*) FROM znack_card_registrations WHERE chrt_id=1")){assertTrue(rows.next());assertEquals(0,rows.getInt(1),"Infrastructure failure must not allocate GTIN or mark this product as a failed submission");}
+    }
+    @Test void selectingExistingDraftsOpensFullFreshReviewAndCancellingDoesNotStartOrResume()throws Exception {
+        var owner=new Shop(1,"Fixture","fixture");var catalog=new com.vncode.app.features.gtinsync.GtinSyncRepository();
+        var cards=new java.util.ArrayList<>(catalog.catalog(1,owner.getMarketplace()));
+        for(int n=1;n<=2;n++){
+            String code=n==1?"00000000000017":"00000000000024";
+            var details=new com.vncode.app.features.catalogsync.CatalogProductData(java.util.Map.of("@catalog_id",java.util.List.of(Integer.toString(900+n)),"@catalog_status",java.util.List.of("draft"),"@catalog_detailed_status",java.util.List.of("draft"),"@catalog_signed",java.util.List.of("false")),java.util.List.of(),java.util.List.of());
+            cards.add(new com.vncode.app.features.gtinsync.GtinSyncModels.RegisteredGtin(code,"SKU-"+n,"Blue","XL",true,false,com.vncode.app.features.gtinsync.RegisteredGtinProof.source(owner),java.time.Instant.now(),details));
+        }
+        catalog.saveCatalog(1,owner.getMarketplace(),cards);
+        try(var c=Database.getConnection();var statement=c.createStatement()){statement.execute("UPDATE znack_card_registrations SET gtin='00000000000024',good_id=902,status='PROCESSING',feed_id=NULL,error_message='CATALOG_CARD_DRAFT' WHERE shop_id=1 AND chrt_id=2");}
+        fx(()->{button("refreshButton").fire();return null;});awaitTasks();
+        var controller=(ZnackCardRegistrationController)loader.getController();var starts=new java.util.concurrent.atomic.AtomicInteger();
+        fx(()->{var reader=controller.getClass().getDeclaredField("preflightReader");reader.setAccessible(true);reader.set(controller,(java.util.function.BiFunction<Shop,java.util.List<com.vncode.app.features.products.ProductKey>,RegistrationBatchPreflight.Review>)(shop,keys)->{
+                assertFalse(Platform.isFxApplicationThread());assertEquals(java.util.Set.of("1","2"),keys.stream().map(com.vncode.app.features.products.ProductKey::variantId).collect(java.util.stream.Collectors.toSet()));return ExistingDraftReviewTest.completeReview(shop,keys);});
+            var starter=controller.getClass().getDeclaredField("batchStarter");starter.setAccessible(true);starter.set(controller,(ZnackCardRegistrationController.BatchStarter)(shop,rows,sign)->{starts.incrementAndGet();return "must-not-start";});return null;});
+        com.vncode.app.testsupport.FxDialogDriver.choose(()->{button("selectAllButton").fire();assertFalse(button("registerSelectedButton").isDisabled());button("registerSelectedButton").fire();},pane->"registrationMissingFieldsDialog".equals(pane.getId()),pane->{
+            var content=(javafx.scene.layout.VBox)pane.getContent();var review=content.getChildren().stream().filter(TableView.class::isInstance).map(TableView.class::cast).findFirst().orElseThrow();
+            assertEquals(4,review.getItems().size(),"Both complete Drafts require explicit review, not just missing fields");
+            assertFalse(((ComboBox<?>)loader.getNamespace().get("statusFilter")).isDisabled());
+            return pane.getButtonTypes().stream().filter(type->type.getButtonData()==ButtonBar.ButtonData.CANCEL_CLOSE).findFirst().orElseThrow();
+        });awaitTasks();assertEquals(0,starts.get());
+        try(var c=Database.getConnection();var statement=c.createStatement();var rows=statement.executeQuery("SELECT status,gtin,good_id,feed_id FROM znack_card_registrations WHERE shop_id=1 AND chrt_id=2")){
+            assertTrue(rows.next());assertEquals("PROCESSING",rows.getString(1));assertEquals("00000000000024",rows.getString(2));assertEquals(902,rows.getLong(3));assertNull(rows.getString(4));
+        }
     }
     @Test void navigatingAwayInterruptsAnInitialCatalogReadWithoutDispatchingARegistration()throws Exception{
         var controller=(ZnackCardRegistrationController)loader.getController();var started=new CountDownLatch(1);var exited=new CountDownLatch(1);var release=new CountDownLatch(1);var starts=new java.util.concurrent.atomic.AtomicInteger();var savedTask=new java.util.concurrent.atomic.AtomicReference<javafx.concurrent.Task<?>>();

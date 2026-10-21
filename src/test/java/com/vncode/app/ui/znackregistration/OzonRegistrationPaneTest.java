@@ -217,6 +217,24 @@ class OzonRegistrationPaneTest {
             try(var c=Database.getConnection();var statement=c.createStatement();var rows=statement.executeQuery("SELECT COUNT(*) FROM ozon_registration_batches")){assertTrue(rows.next());assertEquals(0,rows.getInt(1));}
         }finally{release.countDown();}
     }
+    @Test void anExistingOzonDraftIsReviewableButCancelCannotStartARegistration()throws Exception {
+        var owner=new Shop(1,"Ozon fixture",Marketplace.OZON,"fixture","synthetic");
+        try(var c=Database.getConnection();var statement=c.createStatement()){statement.execute("UPDATE ozon_products SET article='offer-1',color='Blue',size='M',manufacturer_size='M' WHERE shop_id=1 AND product_id='1'");}
+        var details=new com.vncode.app.features.catalogsync.CatalogProductData(java.util.Map.of("@catalog_id",java.util.List.of("901"),"@catalog_status",java.util.List.of("draft"),"@catalog_detailed_status",java.util.List.of("draft"),"@catalog_signed",java.util.List.of("false")),java.util.List.of(),java.util.List.of());
+        new com.vncode.app.features.gtinsync.GtinSyncRepository().saveCatalog(1,Marketplace.OZON,java.util.List.of(new com.vncode.app.features.gtinsync.GtinSyncModels.RegisteredGtin("00000000000017","offer-1","Blue","M",true,false,com.vncode.app.features.gtinsync.RegisteredGtinProof.source(owner),java.time.Instant.now(),details)));
+        fx(()->{button("refresh").fire();return null;});awaitIdle();
+        fx(()->{var reader=OzonRegistrationPane.class.getDeclaredField("preflightReader");reader.setAccessible(true);reader.set(pane,(java.util.function.BiFunction<Shop,java.util.List<ProductKey>,RegistrationBatchPreflight.Review>)(shop,keys)->{
+                assertFalse(Platform.isFxApplicationThread());assertEquals(java.util.List.of(new ProductKey(1,Marketplace.OZON,"1","offer-1")),keys);return ExistingDraftReviewTest.completeReview(shop,keys);});
+            table().getSelectionModel().select(table().getItems().stream().filter(row->row.key().cardId().equals("1")).findFirst().orElseThrow());return null;});
+        var register=fx(()->button("register"));
+        com.vncode.app.testsupport.FxDialogDriver.choose(register::fire,dialog->"registrationMissingFieldsDialog".equals(dialog.getId()),dialog->{
+            var content=(javafx.scene.layout.VBox)dialog.getContent();var review=content.getChildren().stream().filter(TableView.class::isInstance).map(TableView.class::cast).findFirst().orElseThrow();assertEquals(2,review.getItems().size());
+            return dialog.getButtonTypes().stream().filter(type->type.getButtonData()==javafx.scene.control.ButtonBar.ButtonData.CANCEL_CLOSE).findFirst().orElseThrow();
+        });awaitIdle();
+        try(var c=Database.getConnection();var statement=c.createStatement()){
+            for(String name:java.util.List.of("ozon_registration_batches","ozon_card_registrations"))try(var rows=statement.executeQuery("SELECT count(*) FROM "+name)){assertTrue(rows.next());assertEquals(0,rows.getInt(1),name);}
+        }
+    }
     @Test void separateOzonBarcodeAndGtinProofColumnsKeepUnknownAndConfirmedCodesDistinct()throws Exception{
         var owner=new Shop(1,"Ozon fixture",Marketplace.OZON,"fixture","synthetic");String actual="00000000000017";var checked=java.time.Instant.now().minusSeconds(120);
         try(var c=Database.getConnection();var statement=c.createStatement()){statement.execute("UPDATE ozon_products SET color='Blue',size='M',manufacturer_size='M' WHERE shop_id=1 AND product_id='1'");statement.execute("INSERT INTO ozon_product_barcodes(shop_id,product_id,barcode) VALUES(1,'1','00000000000017'),(1,'2','4006381333931')");}
@@ -226,6 +244,26 @@ class OzonRegistrationPaneTest {
             var observed=table().getItems().stream().filter(row->row.key().cardId().equals("1")).findFirst().orElseThrow();var unknown=table().getItems().stream().filter(row->row.key().cardId().equals("2")).findFirst().orElseThrow();assertEquals(actual,raw.getCellData(observed));assertTrue(verified.getCellData(observed).startsWith(actual+"\n"));assertTrue(verified.getCellData(observed).contains(java.text.MessageFormat.format(com.vncode.app.shared.I18nService.getInstance().tr("znack.registration.gtin_verified_at"),java.time.format.DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm").withZone(java.time.ZoneId.systemDefault()).format(checked))));assertEquals("4006381333931",raw.getCellData(unknown));assertTrue(verified.getCellData(unknown).contains(com.vncode.app.shared.I18nService.getInstance().tr("znack.registration.gtin_unverified")));assertFalse(verified.getCellData(unknown).contains("4006381333931"));
             var index=OzonRegistrationPane.class.getDeclaredField("cardIndex");index.setAccessible(true);var saved=index.get(pane);index.set(pane,null);assertTrue(verified.getCellData(observed).contains(com.vncode.app.shared.I18nService.getInstance().tr("znack.registration.gtin_unverified")));assertEquals(actual,raw.getCellData(observed));index.set(pane,saved);return null;});
         try(var c=Database.getConnection();var statement=c.createStatement();var rows=statement.executeQuery("SELECT count(*) FROM ozon_card_registrations")){assertTrue(rows.next());assertEquals(0,rows.getInt(1));}
+    }
+    @Test void originalAndRussianSizesAndAllThreeStatesRemainIndependent()throws Exception {
+        try(var c=Database.getConnection();var statement=c.createStatement()){
+            statement.execute("UPDATE ozon_products SET size='L',manufacturer_size='L',russian_size='52' WHERE shop_id=1 AND product_id='1'");
+            statement.execute("UPDATE ozon_products SET size='XL',manufacturer_size='XL' WHERE shop_id=1 AND product_id='2'");
+        }
+        fx(()->{button("refresh").fire();return null;});awaitIdle();
+        fx(()->{
+            var columns=new java.util.HashMap<String,javafx.scene.control.TableColumn<ProductRow,String>>();
+            for(var column:table().getColumns())if(column.getId()!=null)columns.put(column.getId(),(javafx.scene.control.TableColumn<ProductRow,String>)column);
+            var explicit=table().getItems().stream().filter(row->row.key().cardId().equals("1")).findFirst().orElseThrow();
+            var missing=table().getItems().stream().filter(row->row.key().cardId().equals("2")).findFirst().orElseThrow();
+            assertEquals("L",columns.get("ozonOriginalSize").getCellData(explicit));assertEquals("52",columns.get("ozonRussianSize").getCellData(explicit));
+            assertEquals("XL",columns.get("ozonOriginalSize").getCellData(missing));
+            assertEquals(com.vncode.app.shared.I18nService.getInstance().tr("znack.registration.table_size_unknown"),columns.get("ozonRussianSize").getCellData(missing));
+            for(String id:java.util.List.of("ozonRegistrationStatus","ozonModerationStatus","ozonMarketplaceSyncStatus"))assertNotNull(columns.get(id),id);
+            assertTrue(columns.get("ozonModerationStatus").getCellData(explicit).contains(com.vncode.app.shared.I18nService.getInstance().tr("znack.registration.table_catalog_unknown")));
+            assertTrue(columns.get("ozonMarketplaceSyncStatus").getCellData(explicit).contains(com.vncode.app.shared.I18nService.getInstance().tr("znack.registration.gtin_unverified")));
+            return null;
+        });
     }
     private void renderProgress(com.vncode.app.integration.znack.registration.OzonRegistrationBatchService.Progress progress)throws Exception{var render=OzonRegistrationPane.class.getDeclaredMethod("renderBatchProgress",progress.getClass());render.setAccessible(true);render.invoke(pane,progress);}
     private void stopBatchPolling()throws Exception{var timer=OzonRegistrationPane.class.getDeclaredField("batchRefresh");timer.setAccessible(true);((javafx.animation.Timeline)timer.get(pane)).stop();var rows=OzonRegistrationPane.class.getDeclaredField("batchRowsRefresh");rows.setAccessible(true);((javafx.animation.PauseTransition)rows.get(pane)).stop();}

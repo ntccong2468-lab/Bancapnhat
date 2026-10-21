@@ -6,20 +6,31 @@ import java.time.Duration;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.LongSupplier;
 
-/** Official per-account buckets: shared Content 100/min, cards/update 10/min, burst 5.
- * An update is an exception to the shared Content bucket. Cooldown waits never hold HTTP slots. */
+/** Content reads use 100/min; updates and the error-list/limits group each use 10/min, burst 5.
+ * Cooldown waits never hold HTTP slots. */
 public final class WbContentApiRateLimiter {
-    private static final ConcurrentHashMap<String,Gate> READS=new ConcurrentHashMap<>(),UPDATES=new ConcurrentHashMap<>();
+    private static final Buckets BUCKETS=new Buckets(System::nanoTime,nanos->{try{Thread.sleep(nanos/1_000_000L,(int)(nanos%1_000_000L));}catch(InterruptedException interrupted){Thread.currentThread().interrupt();throw new java.io.InterruptedIOException("WB API wait cancelled");}});
     private WbContentApiRateLimiter(){}
     public static void awaitTurn(String apiKey)throws IOException{awaitTurn(apiKey,"");}
-    public static void awaitTurn(String apiKey,String path)throws IOException{bucket(apiKey,path).await();}
+    public static void awaitTurn(String apiKey,String path)throws IOException{BUCKETS.awaitTurn(apiKey,path);}
     public static void registerRateLimit(String apiKey,Headers headers){registerRateLimit(apiKey,"",headers);}
-    public static void registerRateLimit(String apiKey,String path,Headers headers){bucket(apiKey,path).cooldown(com.vncode.app.integration.listing.ListingRateLimitException.delay(headers));}
-    private static Gate bucket(String apiKey,String path){
-        boolean update="content/v2/cards/update".equals(path)||"/content/v2/cards/update".equals(path);
-        return (update?UPDATES:READS).computeIfAbsent(com.vncode.app.integration.listing.ListingIdentity.hash(apiKey==null?"":apiKey),ignored->new Gate(Duration.ofMillis(update?6000:600),5,System::nanoTime,nanos->{try{Thread.sleep(nanos/1_000_000L,(int)(nanos%1_000_000L));}catch(InterruptedException interrupted){Thread.currentThread().interrupt();throw new java.io.InterruptedIOException("WB API wait cancelled");}}));
-    }
+    public static void registerRateLimit(String apiKey,String path,Headers headers){BUCKETS.registerRateLimit(apiKey,path,headers);}
     @FunctionalInterface interface Sleeper{void sleep(long nanos)throws IOException;}
+    /** Injectable clocks keep path routing and shared cooldown tests independent of wall time. */
+    static final class Buckets {
+        private final ConcurrentHashMap<String,Gate> reads=new ConcurrentHashMap<>(),updates=new ConcurrentHashMap<>(),errors=new ConcurrentHashMap<>();
+        private final LongSupplier clock;private final Sleeper sleep;
+        Buckets(LongSupplier clock,Sleeper sleep){this.clock=clock;this.sleep=sleep;}
+        void awaitTurn(String apiKey,String path)throws IOException{bucket(apiKey,path).await();}
+        void registerRateLimit(String apiKey,String path,Headers headers){bucket(apiKey,path).cooldown(com.vncode.app.integration.listing.ListingRateLimitException.delay(headers));}
+        private Gate bucket(String apiKey,String path){
+            String normalized=path!=null&&path.startsWith("/")?path.substring(1):path;
+            boolean update="content/v2/cards/update".equals(normalized);
+            // WB documents the error list and listing limits as one shared quota group.
+            boolean errorList="content/v2/cards/error/list".equals(normalized)||"content/v2/cards/limits".equals(normalized);
+            return (update?updates:errorList?errors:reads).computeIfAbsent(com.vncode.app.integration.listing.ListingIdentity.hash(apiKey==null?"":apiKey),ignored->new Gate(Duration.ofMillis(update||errorList?6000:600),5,clock,sleep));
+        }
+    }
     static final class Gate {
         private final long interval;private final int burst;private final LongSupplier clock;private final Sleeper sleep;
         private double tokens;private long updated,cooldown=Long.MIN_VALUE;

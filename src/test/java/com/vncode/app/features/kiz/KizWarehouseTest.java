@@ -127,4 +127,29 @@ class KizWarehouseTest {
         valid.getAsJsonArray().add(valid.getAsJsonArray().get(0).deepCopy());assertFalse(KizWarehouseService.inspect(pending,INN,valid).get(mark.cis()).ready());
         assertEquals("KIZ_VERIFY_INCOMPLETE",KizWarehouseService.inspect(pending,INN,new JsonArray()).get(mark.cis()).reason());
     }
+    @Test void verificationAcceptsLiteralNumericOrStringZeroWithExactOwnerGtinAndCis(){
+        var mark=KizMark.parse(mark(1));var pending=List.of(new KizWarehouseRepository.Pending(1,mark.raw(),mark.cis(),GTIN));
+        for(var code:List.of(new JsonPrimitive(0),new JsonPrimitive("0"))){
+            var entry=circulatedResponse(mark.cis());entry.add("errorCode",code);entry.addProperty("errorMessage","");entry.getAsJsonObject("cisInfo").add("errorCode",code.deepCopy());
+            var response=new JsonArray();response.add(entry);assertTrue(KizWarehouseService.inspect(pending,INN,response).get(mark.cis()).ready(),code.toString());
+            assertEquals("KIZ_OWNER_MISMATCH",KizWarehouseService.inspect(pending,"other-owner",response).get(mark.cis()).reason());
+            entry.getAsJsonObject("cisInfo").addProperty("gtin","04645588781155");assertEquals("KIZ_GTIN_MISMATCH",KizWarehouseService.inspect(pending,INN,response).get(mark.cis()).reason());
+        }
+    }
+    @Test void verificationNeverIgnoresMalformedNonzeroOrNestedErrorsEvenWithCodeZero(){
+        var mark=KizMark.parse(mark(1));var pending=List.of(new KizWarehouseRepository.Pending(1,mark.raw(),mark.cis(),GTIN));
+        for(String error:List.of("404","false","0.1","\"00\"","{}","[]"))for(boolean nested:List.of(false,true)){
+            var entry=circulatedResponse(mark.cis());entry.addProperty("errorCode",0);var target=nested?entry.getAsJsonObject("cisInfo"):entry;target.add("errorCode",JsonParser.parseString(error));
+            var response=new JsonArray();response.add(entry);assertEquals("KIZ_VERIFY_LOOKUP_FAILED",KizWarehouseService.inspect(pending,INN,response).get(mark.cis()).reason(),error+" nested="+nested);
+        }
+        for(boolean nested:List.of(false,true)){
+            var entry=circulatedResponse(mark.cis());entry.addProperty("errorCode",0);(nested?entry.getAsJsonObject("cisInfo"):entry).addProperty("errorMessage","Lookup rejected");
+            var response=new JsonArray();response.add(entry);assertEquals("KIZ_VERIFY_LOOKUP_FAILED",KizWarehouseService.inspect(pending,INN,response).get(mark.cis()).reason());
+        }
+    }
+    private static JsonObject circulatedResponse(String cis){
+        var info=new JsonObject();info.addProperty("cis",cis);info.addProperty("gtin",GTIN);info.addProperty("ownerInn",INN);info.addProperty("status","INTRODUCED");
+        var entry=new JsonObject();entry.add("cisInfo",info);return entry;
+    }
+
 }

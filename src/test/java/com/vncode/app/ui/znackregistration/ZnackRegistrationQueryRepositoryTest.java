@@ -108,6 +108,29 @@ class ZnackRegistrationQueryRepositoryTest {
         assertTrue(observed.allEligible(new SearchCriteria(1,"",List.of(),"IN_PROGRESS",300,0))
                 .stream().noneMatch(row->row.chrtId()==503),"An existing draft is not a new submission");
     }
+    @Test void aPureIdentifiedDraftCanBeSelectedForReviewButAnExistingFeedCannotBeReplayed()throws Exception {
+        var shop=new com.vncode.app.models.Shop(1,"Fixture WB","fixture");String receipt=com.vncode.app.testsupport.RegistrationSourceFixture.ready(shop);
+        try(var c=Database.getConnection();var statement=c.createStatement()){
+            statement.execute("UPDATE wb_product_sizes SET tech_size='XXL' WHERE shop_id=1 AND chrt_id<>503");
+            statement.execute("INSERT INTO wb_product_characteristics(shop_id,nm_id,characteristic_id,name,value_json) VALUES(1,100,3,'Цвет','[\"Blue\"]')");
+        }
+        var details=new com.vncode.app.features.catalogsync.CatalogProductData(Map.of("@catalog_id",List.of("901"),"@catalog_status",List.of("draft"),"@catalog_detailed_status",List.of("draft"),"@catalog_signed",List.of("false")),List.of(),List.of());
+        new GtinSyncRepository().saveCatalog(1,Marketplace.WILDBERRIES,List.of(new RegisteredGtin("00000000000017","same-article","Blue","XL",true,false,com.vncode.app.features.gtinsync.RegisteredGtinProof.source(shop),Instant.now(),details)));
+        var criteria=new SearchCriteria(1,"",List.of(),"IN_PROGRESS",300,0);
+        var observed=new ZnackRegistrationQueryRepository(receipt,new com.vncode.app.features.sync.RegistrationCardIndex(shop));
+        assertEquals(List.of(503L),observed.allSelectable(criteria).stream().map(Sku::chrtId).toList());
+        assertEquals(List.of(503L),observed.allEligible(criteria).stream().map(Sku::chrtId).toList());
+        try(var c=Database.getConnection();var statement=c.createStatement()){
+            statement.execute("INSERT INTO znack_card_registrations(shop_id,chrt_id,nm_id,gtin,good_id,status,error_message,created_at,updated_at) VALUES(1,503,100,'00000000000017',901,'PROCESSING','CATALOG_CARD_DRAFT','fixture','fixture')");
+        }
+        var settings=new com.vncode.app.integration.znack.ZnackRepository(new com.vncode.app.integration.znack.ZnackModels.ShopContext(1,shop.getName())).getSettings();
+        new com.vncode.app.integration.znack.registration.ZnackCardRegistrationRepository().bindScope(shop,503,com.vncode.app.integration.znack.registration.ZnackRegistrationScope.fromSettings(settings));
+        observed=new ZnackRegistrationQueryRepository(receipt,new com.vncode.app.features.sync.RegistrationCardIndex(shop));
+        assertEquals(List.of(503L),observed.allSelectable(criteria).stream().map(Sku::chrtId).toList());
+        try(var c=Database.getConnection();var statement=c.createStatement()){statement.execute("UPDATE znack_card_registrations SET feed_id='previous-submission' WHERE shop_id=1 AND chrt_id=503");}
+        observed=new ZnackRegistrationQueryRepository(receipt,new com.vncode.app.features.sync.RegistrationCardIndex(shop));
+        assertTrue(observed.allEligible(criteria).isEmpty(),"A known feed stays on readback rather than becoming another reviewed POST");
+    }
     @Test void unsentLocalWorkStaysNotCreatedUntilCatalogAcceptsItsFeed()throws Exception {
         var shop=new com.vncode.app.models.Shop(1,"Fixture WB","fixture");
         String receipt=com.vncode.app.testsupport.RegistrationSourceFixture.ready(shop);

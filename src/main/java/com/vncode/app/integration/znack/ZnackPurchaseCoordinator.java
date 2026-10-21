@@ -412,11 +412,13 @@ public class ZnackPurchaseCoordinator {
                 }
                 switch (pipeline.stage()) {
                     case QUEUED -> {
+                        if(resumeExistingPurchase(settings,pipeline))break;
                         LicenseRuntime.require(Permission.KIZ);
                         // Activation is handled in finally after checking that no purchase mutation
                         // is currently active for this GTIN.
                     }
                     case VALIDATING -> {
+                        if(resumeExistingPurchase(settings,pipeline))break;
                         LicenseRuntime.require(Permission.KIZ);
                         validatePrerequisites(settings, pipeline.gtin(), pipeline.quantity());
                         createOrder(settings, pipeline);
@@ -432,9 +434,10 @@ public class ZnackPurchaseCoordinator {
                                         pipeline.updatedAt().minusSeconds(30)).map(KizOrder::id).orElse(null);
                         repository.updatePipeline(pipeline.id(), localOrderId,
                                 PurchaseStage.RECONCILING_ORDER, pipeline.errorMessage());
-                        reconcileOrder(settings, repository.findPipeline(pipeline.id()).orElseThrow());
+                        var interrupted=repository.findPipeline(pipeline.id()).orElseThrow();
+                        if(!resumeExistingPurchase(settings,interrupted))reconcileOrder(settings,interrupted);
                     }
-                    case RECONCILING_ORDER -> reconcileOrder(settings, pipeline);
+                    case RECONCILING_ORDER -> {if(!resumeExistingPurchase(settings,pipeline))reconcileOrder(settings,pipeline);}
                     default -> {
                     }
                 }
@@ -519,6 +522,19 @@ public class ZnackPurchaseCoordinator {
         }
         CryptoProSignatureProvider.requireAvailable(settings.cryptcpPath(),
                 Duration.ofSeconds(settings.resolvedCryptoProTimeoutSeconds()));
+    }
+
+    /** A legacy pre-send label cannot authorize a second purchase of its saved order. */
+    private boolean resumeExistingPurchase(Settings settings,ZnackPurchasePipelineState pipeline)throws Exception{
+        if(pipeline.orderId()==null)return false;
+        var local=repository.findOrder(pipeline.orderId()).orElseThrow(()->new IllegalStateException("SUZ_ORDER_RECONCILIATION_INVALID"));
+        // The existing explicit insufficient-funds retry is a proven server rejection,
+        // unlike a FAILED local draft after a timeout/response loss.
+        if((local.externalOrderId()==null||local.externalOrderId().isBlank())&&local.localStatus()==OrderStatus.FAILED&&ZnackErrorMessages.isInsufficientFunds(local.errorMessage()))return false;
+        boolean accepted=local.externalOrderId()!=null&&!local.externalOrderId().isBlank();
+        repository.updatePipeline(pipeline.id(),local.id(),accepted?PurchaseStage.POLLING_ORDER:PurchaseStage.RECONCILING_ORDER,pipeline.errorMessage());
+        var resumed=repository.findPipeline(pipeline.id()).orElseThrow();
+        if(accepted)pollOrder(settings,resumed);else reconcileOrder(settings,resumed);return true;
     }
 
     private void createOrder(Settings settings, ZnackPurchasePipelineState pipeline) throws Exception {

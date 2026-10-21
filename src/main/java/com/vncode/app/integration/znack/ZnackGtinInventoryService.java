@@ -17,6 +17,7 @@ import java.util.UUID;
 import java.util.Map;
 import java.util.LinkedHashMap;
 import java.util.HashSet;
+import java.util.HashMap;
 import java.util.Collections;
 
 public class ZnackGtinInventoryService {
@@ -262,6 +263,37 @@ public class ZnackGtinInventoryService {
     public int consumeForFboPrint(int shopId,List<Kiz> codes,long jobId) {
         return updateCodes(shopId,codes==null?List.of():codes,"CONSUMED",true,true,c->{
             try(var p=c.prepareStatement("UPDATE print_jobs SET status='pdf_ready' WHERE id=? AND shop_id=? AND status='prepared' AND supply_id LIKE 'FBO/%'")){p.setLong(1,jobId);p.setInt(2,shopId);if(p.executeUpdate()!=1)throw new IllegalStateException("FBO print checkpoint changed");}
+        });
+    }
+    /** Extend the existing print journal to WB shipment and stand-alone KIZ PDFs. */
+    public int consumeForPrint(int shopId,List<Kiz> codes,long jobId) {
+        return updateCodes(shopId,codes==null?List.of():codes,"CONSUMED",true,true,c->{
+            var snapshots=new HashMap<String,Integer>();
+            try(var p=c.prepareStatement("SELECT i.kiz FROM print_job_items i JOIN print_jobs j ON j.id=i.print_job_id WHERE j.id=? AND j.shop_id=? AND j.status='prepared'")){
+                p.setLong(1,jobId);p.setInt(2,shopId);try(var r=p.executeQuery()){while(r.next()){
+                    String value=r.getString(1);if(value!=null&&!value.isBlank())snapshots.merge(value,1,Integer::sum);
+                }}
+            }
+            var reserved=codes==null?List.<Kiz>of():codes;
+            var actual=new HashMap<Integer,String>();
+            for(int start=0;start<reserved.size();start+=400){
+                var batch=reserved.subList(start,Math.min(start+400,reserved.size()));
+                try(var p=c.prepareStatement("SELECT id,raw_code FROM kiz_codes WHERE shop_id=? AND id IN ("+String.join(",",Collections.nCopies(batch.size(),"?"))+")")){
+                    p.setInt(1,shopId);for(int i=0;i<batch.size();i++)p.setInt(i+2,batch.get(i).getId());
+                    try(var r=p.executeQuery()){while(r.next())actual.put(r.getInt(1),r.getString(2));}
+                }
+            }
+            for(Kiz code:reserved){
+                String raw=actual.get(code.getId());
+                if(raw==null||!raw.equals(code.getCode()))throw new IllegalStateException("Print reservation no longer matches its KIZ");
+                int count=snapshots.getOrDefault(raw,0);
+                if(count<1)throw new IllegalStateException("Print snapshot does not contain the reserved KIZ");
+                snapshots.put(raw,count-1);
+            }
+            try(var p=c.prepareStatement("UPDATE print_jobs SET status='pdf_ready' WHERE id=? AND shop_id=? AND status='prepared'")){
+                p.setLong(1,jobId);p.setInt(2,shopId);
+                if(p.executeUpdate()!=1)throw new IllegalStateException("Print checkpoint changed");
+            }
         });
     }
     private int updateCodes(int shopId,List<Kiz> codes,String target,boolean consumed,boolean requireAll,Checkpoint checkpoint) {

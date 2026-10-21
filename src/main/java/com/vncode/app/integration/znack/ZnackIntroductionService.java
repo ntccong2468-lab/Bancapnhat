@@ -86,6 +86,8 @@ public class ZnackIntroductionService {
             return new ConfirmResult(ConfirmStatus.PENDING,null);
         }
         if(codes==null||codes.isEmpty())throw new IllegalStateException("No KIZ codes are available for introduction confirmation.");
+        if(codes.size()!=order.quantity()||!ZnackCisReadback.validRequests(codes,order.gtin(),order.id()))
+            return new ConfirmResult(ConfirmStatus.PENDING,null);
         String token=auth.trueApiToken(s);
         for(int start=0;start<codes.size();start+=ZnackApiClient.CISES_MAX_CODES_PER_REQUEST){
             List<KizCode> batch=codes.subList(start,
@@ -93,7 +95,7 @@ public class ZnackIntroductionService {
             JsonArray values=new JsonArray();
             batch.forEach(c->values.add(ZnackCisNormalizer.forTrueApi(c.rawCode())));
             JsonElement info=api.cisesInfo(s.resolvedTrueApiBaseUrl(),token,values);
-            if(!allIntroduced(info,batch.size()))return new ConfirmResult(ConfirmStatus.PENDING,null);
+            if(ZnackCisReadback.inspect(info,batch,order.gtin()).introduced()!=batch.size())return new ConfirmResult(ConfirmStatus.PENDING,null);
         }
         repository.updateDocument(document.id(),null,"CHECKED_OK",null);
         repository.markCodes(order.id(),KizLegalStatus.IN_CIRCULATION,null,null);repository.updateOrder(order.id(),null,null,OrderStatus.INTRODUCED,null);
@@ -133,8 +135,6 @@ public class ZnackIntroductionService {
         else if(e.isJsonArray())for(JsonElement x:e.getAsJsonArray())collectErrorValues(x,out);
         else if(e.isJsonObject())for(var x:e.getAsJsonObject().entrySet())collectErrorValues(x.getValue(),out);
     }
-    private boolean allIntroduced(JsonElement e,int expected){int[] count={0};walk(e,count);return count[0]>=expected;}
-    private void walk(JsonElement e,int[] count){if(e==null)return;if(e.isJsonObject()){JsonObject o=e.getAsJsonObject();if(o.has("status")&&!o.get("status").isJsonNull()&&"INTRODUCED".equalsIgnoreCase(o.get("status").getAsString())){count[0]++;return;}for(var x:o.entrySet())walk(x.getValue(),count);}else if(e.isJsonArray())for(JsonElement x:e.getAsJsonArray())walk(x,count);}
     private String text(JsonObject o,String...k){for(String x:k)if(o.has(x)&&!o.get(x).isJsonNull())return o.get(x).getAsString();return "";}
     private String valueOr(String value,String fallback){return value==null||value.isBlank()?fallback:value.trim();}
     private String required(String value,String message){if(value==null||value.isBlank())throw new IllegalStateException(message);return value.trim();}

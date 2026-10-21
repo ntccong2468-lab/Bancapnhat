@@ -51,9 +51,12 @@ class OzonFboWorkflowTest {
         }
         new OzonProductGtinMappingRepository().put(1, "SKU-42", GTIN);
         try(var c=Database.getConnection();var st=c.createStatement()) {
-            st.execute("INSERT INTO gtin_sync_catalog VALUES(1,'OZON','"+GTIN+"','{\"published\":true,\"tradeUnit\":true,\"owner\":\""+com.vncode.app.integration.listing.ListingIdentity.fingerprint(new com.vncode.app.models.Shop(1,"Ozon",com.vncode.app.integration.marketplace.Marketplace.OZON,"client","secret"))+"\"}')");
             st.execute("INSERT INTO ozon_product_barcodes(shop_id,product_id,barcode) SELECT shop_id,product_id,'"+GTIN+"' FROM ozon_products WHERE sku='SKU-42'");
         }
+        var shop=new com.vncode.app.models.Shop(1,"Ozon",com.vncode.app.integration.marketplace.Marketplace.OZON,"client","secret");
+        com.vncode.app.features.gtinsync.GtinWriteTestFixture.saveSettings(shop,com.vncode.app.features.gtinsync.GtinWriteTestFixture.CERTIFICATE,com.vncode.app.integration.znack.ZnackModels.PRODUCTION_TRUE_API);
+        var details=new com.vncode.app.features.catalogsync.CatalogProductData(java.util.Map.of("@catalog_id",List.of("91"),"@catalog_status",List.of("published")),List.of(),List.of());
+        new com.vncode.app.features.gtinsync.GtinSyncRepository().saveCatalog(1,shop.getMarketplace(),List.of(new com.vncode.app.features.gtinsync.GtinSyncModels.RegisteredGtin(GTIN,"ART-42","Black","42",true,true,com.vncode.app.features.gtinsync.RegisteredGtinProof.source(shop),java.time.Instant.now(),details)));
     }
 
     @AfterEach

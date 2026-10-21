@@ -70,9 +70,13 @@ public final class ZnackCardRegistrationModels {
 
         public boolean canRegister() {
             return ((status == Status.NOT_CREATED || status == Status.PREFLIGHT_ERROR) && !hasIdentity())
+                    || canReviewExistingDraft()
                     || (status == Status.ERROR && hasGtin() && hasFeed())
                     || (status == Status.PRE_SUBMIT_ERROR && hasGtin() && !hasFeed() && goodId==null);
         }
+        /** This opens fresh seller review; it is never permission to replay a previous send. */
+        public boolean canReviewExistingDraft(){return hasGtin()&&goodId!=null&&goodId>0&&!hasFeed()
+                &&status==Status.PROCESSING&&"CATALOG_CARD_DRAFT".equals(errorMessage);}
 
         public boolean hasFeed() { return feedId != null && !feedId.isBlank(); }
 

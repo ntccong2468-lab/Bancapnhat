@@ -1,6 +1,7 @@
 package com.vncode.app.integration.znack;
 
 import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
 import java.util.ArrayList;
@@ -39,6 +40,21 @@ public final class ZnackErrorMessages {
     private ZnackErrorMessages() {
     }
 
+    /** True API CIS lookup: only literal number/string zero is a successful supplied error code. */
+    public static boolean hasCisLookupError(JsonObject object){
+        if(object==null)return true;
+        for(String key:List.of("errorMessage","error_message")){
+            var value=object.get(key);if(value!=null&&!value.isJsonNull()&&(!value.isJsonPrimitive()||!value.getAsJsonPrimitive().isString()||!value.getAsString().isBlank()))return true;
+        }
+        for(String key:List.of("errorCode","error_code")){
+            var value=object.get(key);if(value==null||value.isJsonNull())continue;
+            if(!value.isJsonPrimitive())return true;
+            var code=value.getAsJsonPrimitive();
+            if(code.isString()&&code.getAsString().isBlank())continue;
+            if((code.isString()||code.isNumber())&&"0".equals(code.getAsString()))continue;
+            return true;
+        }return false;
+    }
     /** Mã lỗi Znack (nếu có), ví dụ "1110"; rỗng nếu không tìm thấy. */
     public static String errorCode(String raw) {
         if (raw == null) return "";

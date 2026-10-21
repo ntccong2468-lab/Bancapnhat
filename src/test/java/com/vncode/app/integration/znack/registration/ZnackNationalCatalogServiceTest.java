@@ -102,6 +102,37 @@ class ZnackNationalCatalogServiceTest {
         assertTrue(result.failed());assertFalse(result.readyToSign());assertEquals(2,result.errors().size());
         assertTrue(result.errorMessage().contains("Размер: Invalid size"));
     }
+    @Test void standardFeedErrorsWithoutAnIdentityLinkRetainTheirFeedScopeAndAreSanitized()throws Exception{
+        var api=new ZnackApiClient(){@Override public JsonElement nationalCatalogFeedStatus(String base,String token,String feed){return JsonParser.parseString("""
+            {"result":{"status":"Rejected","result":{"0":["Неверный тип атрибута https://catalog.example.test/read?apikey=private-secret"],"totalErrors":"1"}}}
+            """);}
+            @Override public JsonElement productCards(String base,String token,String gtin){throw new AssertionError("Rejected feed cannot authorize a card read/sign/write");}
+        };
+        var result=service(api).progress("fixture","feed","04631993764370");
+        assertTrue(result.failed());assertTrue(result.errorMessage().contains("CATALOG_FEED_ERROR: Неверный тип атрибута"));
+        assertFalse(result.errorMessage().contains("private-secret"));assertFalse(result.readyToSign());
+    }
+    @Test void standardEntryErrorsUseOnlyAnExplicitItemIdGtinLinkAndDoNotRepeatVerboseErrors()throws Exception{
+        var api=new ZnackApiClient(){@Override public JsonElement nationalCatalogFeedStatus(String base,String token,String feed){return JsonParser.parseString("""
+            {"result":{"status":"Rejected","item":[
+              {"id":0,"gtin":"04631993764370","good_id":91},
+              {"id":1,"gtin":"04631993764363","good_id":92}],
+              "error_details":{"items":[{"gtin":"04631993764370","errors":{"text":"Invalid size"}}]},
+              "result":{"0":["Invalid size"],"1":["Other product permit error"],"totalErrors":"2"}}}
+            """);}};
+        var result=service(api).progress("fixture","feed","04631993764370");
+        assertEquals(List.of("Invalid size"),result.errors());assertEquals(91L,result.goodId());assertTrue(result.failed());
+    }
+    @Test void standardValidationCountWithoutDetailsCannotAuthorizeSigning()throws Exception{
+        var api=new ZnackApiClient(){@Override public JsonElement nationalCatalogFeedStatus(String base,String token,String feed){return JsonParser.parseString("{\"result\":{\"status\":\"Signed\",\"result\":{\"totalErrors\":\"1\"}}}");}};
+        var result=service(api).progress("fixture","feed","04631993764370");
+        assertTrue(result.failed());assertFalse(result.signed());assertEquals("CATALOG_VALIDATION_ERRORS_UNAVAILABLE",result.errorMessage());
+    }
+    @Test void malformedStandardEntryErrorsRemainAnUnknownReadInsteadOfARejectionOrSuccess(){
+        var api=new ZnackApiClient(){@Override public JsonElement nationalCatalogFeedStatus(String base,String token,String feed){return JsonParser.parseString("{\"result\":{\"status\":\"Rejected\",\"result\":{\"0\":{\"text\":\"Wrong shape\"}}}}");}};
+        var failure=assertThrows(IllegalStateException.class,()->service(api).progress("fixture","feed","04631993764370"));
+        assertEquals("CATALOG_FEED_RESPONSE_INVALID",failure.getMessage());
+    }
     @Test void signedFeedWithItemFailureCannotCountAsPublishedEvenWithoutAnErrorMessage()throws Exception {
         var api=new ZnackApiClient(){@Override public JsonElement nationalCatalogFeedStatus(String base,String token,String feed){return JsonParser.parseString("{\"result\":{\"status\":\"Signed\",\"item\":[{\"gtin\":\"04631993764370\",\"good_id\":91,\"status_code\":400}]}}");}};
         var result=service(api).progress("fixture-token","fixture-feed","04631993764370");assertTrue(result.failed());assertFalse(result.signed());

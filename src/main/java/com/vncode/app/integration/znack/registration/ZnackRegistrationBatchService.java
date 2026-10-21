@@ -49,7 +49,7 @@ public final class ZnackRegistrationBatchService {
         if(RUNNING.contains(key(shop)))throw new IllegalStateException("ZNACK_REGISTRATION_BATCH_ALREADY_RUNNING");
         var unique=new LinkedHashMap<Long,Sku>();for(var sku:List.copyOf(selected))if(sku!=null)unique.putIfAbsent(sku.chrtId(),sku);
         if(unique.isEmpty())throw new IllegalArgumentException("ZNACK_EMPTY_SELECTION");
-        for(var sku:unique.values())if(sku.tnvedGroupChanged()||!RegistrationCardIndex.notSubmitted(sku))
+        for(var sku:unique.values())if(sku.tnvedGroupChanged()||!RegistrationCardIndex.notSubmitted(sku)&&!sku.canReviewExistingDraft())
             throw new RegistrationValidationException("ZNACK_BATCH_REQUIRES_KNOWN_UNSUBMITTED_CARD");
         var previous=store.latest(shop);if(previous!=null&&(active(previous.state())||"PAUSED".equals(previous.state())))throw new IllegalStateException("ZNACK_REGISTRATION_BATCH_ALREADY_RUNNING");
         String scope=strictScope?JSON.toJson(currentScope(shop)):"";
@@ -124,7 +124,7 @@ public final class ZnackRegistrationBatchService {
                 Sku current=registrations.find(shop.getId(),item.sku().chrtId());
                 if(current==null||current.nmId()!=item.sku().nmId())throw new SecurityException("PRODUCT_MISMATCH");
                 assertNativeScope(shop,current,batch);
-                if(current.hasFeed()||current.hasGtin()&&current.goodId()!=null){
+                if(current.hasFeed()||current.hasGtin()&&current.goodId()!=null&&!current.canReviewExistingDraft()&&current.status()!=Status.READY_TO_SUBMIT){
                     if(!workflow.verifySubmissionForBatch(shop,current)){
                         store.item(shop,item,"WAITING_REMOTE","REGISTRATION_BUSY",null,current.feedId());attempt.waiting(new IllegalStateException("REGISTRATION_BUSY"));continue;
                     }
@@ -132,7 +132,7 @@ public final class ZnackRegistrationBatchService {
                 }
                 if(workflow.isRunning(shop,current))workflow.completion(shop,current).toCompletableFuture().join();
                 current=registrations.find(shop.getId(),item.sku().chrtId());
-                if(current.hasFeed()||current.hasGtin()&&current.goodId()!=null){
+                if(current.hasFeed()||current.hasGtin()&&current.goodId()!=null&&!current.canReviewExistingDraft()&&current.status()!=Status.READY_TO_SUBMIT){
                     if(!workflow.verifySubmissionForBatch(shop,current)){
                         store.item(shop,item,"WAITING_REMOTE","REGISTRATION_BUSY",null,current.feedId());attempt.waiting(new IllegalStateException("REGISTRATION_BUSY"));continue;
                     }

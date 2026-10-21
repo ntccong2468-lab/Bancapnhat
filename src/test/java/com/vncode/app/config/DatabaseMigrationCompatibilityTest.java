@@ -358,32 +358,40 @@ class DatabaseMigrationCompatibilityTest {
                           (1,'00000000000123','Padded',NULL,'2026-01-02T00:00:00Z')
                     """);
             st.execute("""
-                    INSERT INTO kiz_orders(id,shop_id,gtin,quantity,local_status,created_at,updated_at)
-                    VALUES(1,1,'123',1,'DRAFT','2026-01-01T00:00:00Z','2026-01-01T00:00:00Z')
+                    INSERT INTO kiz_orders(id,shop_id,external_order_id,gtin,quantity,local_status,created_at,updated_at)
+                    VALUES(1,1,'remote-short','123',1,'SUBMITTED','2026-01-01T00:00:00Z','2026-01-01T00:00:00Z'),
+                          (2,1,'remote-padded','00000000000123',1,'SUBMITTED','2026-01-02T00:00:00Z','2026-01-02T00:00:00Z')
                     """);
             st.execute("""
-                    INSERT INTO znack_purchase_pipelines(shop_id,gtin,quantity,stage,created_at,updated_at)
-                    VALUES(1,'123',1,'POLLING_ORDER','2026-01-01T00:00:00Z','2026-01-01T00:00:00Z'),
-                          (1,'00000000000123',1,'POLLING_ORDER','2026-01-02T00:00:00Z','2026-01-02T00:00:00Z')
+                    INSERT INTO znack_purchase_pipelines(id,shop_id,gtin,quantity,order_id,request_key,stage,error_message,created_at,updated_at)
+                    VALUES(1,1,'123',1,1,'request-short','POLLING_ORDER','short-pending','2026-01-01T00:00:00Z','2026-01-01T00:00:00Z'),
+                          (2,1,'00000000000123',1,2,'request-padded','POLLING_ORDER','padded-pending','2026-01-02T00:00:00Z','2026-01-02T00:00:00Z')
                     """);
         }
 
-        Database.initDatabase();
-
-        assertEquals(1, count("SELECT COUNT(*) FROM znack_products WHERE gtin='00000000000123'"));
-        assertEquals(1, count("SELECT COUNT(*) FROM kiz_orders WHERE gtin='00000000000123'"));
-        assertEquals(1, count("""
-                SELECT COUNT(*) FROM znack_purchase_pipelines
-                WHERE gtin='00000000000123' AND stage='POLLING_ORDER'
-                """));
-        assertEquals(1, count("""
-                SELECT COUNT(*) FROM znack_purchase_pipelines
-                WHERE gtin='00000000000123' AND stage='QUEUED'
-                """));
-        assertEquals(1, count("""
-                SELECT COUNT(*) FROM znack_products
-                WHERE gtin='00000000000123' AND tn_ved='6201'
-                """));
+        for (int initialization = 0; initialization < 2; initialization++) {
+            Database.initDatabase();
+            assertEquals(1, count("SELECT COUNT(*) FROM znack_products WHERE gtin='00000000000123'"));
+            assertEquals(2, count("SELECT COUNT(*) FROM kiz_orders WHERE gtin='00000000000123'"));
+            // Both remote purchases already exist. Canonicalizing their GTIN may not
+            // turn either receipt into a fresh queued purchase to satisfy an index.
+            assertEquals(2, count("""
+                    SELECT COUNT(*) FROM znack_purchase_pipelines
+                    WHERE gtin='00000000000123' AND stage='POLLING_ORDER'
+                    """));
+            assertEquals(0, count("SELECT COUNT(*) FROM znack_purchase_pipelines WHERE stage='QUEUED'"));
+            for (int id = 1; id <= 2; id++) {
+                String label = id == 1 ? "short" : "padded";
+                assertEquals("remote-" + label, scalarText("SELECT o.external_order_id FROM znack_purchase_pipelines p JOIN kiz_orders o ON o.id=p.order_id AND o.shop_id=p.shop_id WHERE p.id=" + id));
+                assertEquals("request-" + label, scalarText("SELECT request_key FROM znack_purchase_pipelines WHERE id=" + id));
+                assertEquals(label + "-pending", scalarText("SELECT error_message FROM znack_purchase_pipelines WHERE id=" + id));
+                assertEquals("2026-01-0" + id + "T00:00:00Z", scalarText("SELECT updated_at FROM znack_purchase_pipelines WHERE id=" + id));
+            }
+            assertEquals(1, count("""
+                    SELECT COUNT(*) FROM znack_products
+                    WHERE gtin='00000000000123' AND tn_ved='6201'
+                    """));
+        }
     }
 
     private boolean tableExists(String name) throws Exception {

@@ -20,9 +20,13 @@ public final class FboPurchaseService {
             String request=UUID.randomUUID().toString();
             for(var entry:fresh.toBuy().entrySet()) {
                 ListingIdentity.require(shop);
-                coordinator.enqueue(settings,entry.getKey(),entry.getValue(),"fbo:"+request+":"+entry.getKey());
+                coordinator.enqueue(settings,entry.getKey(),entry.getValue(),requestKey(request,entry.getKey()));
             }
             coordinator.resumeAsync(settings);return null;
         });
+    }
+    /** One canonical UUID per GTIN within this seller-confirmed intent. */
+    static String requestKey(String intent,String gtin){
+        return UUID.nameUUIDFromBytes((UUID.fromString(intent)+"\n"+GtinNormalizer.normalize(gtin)).getBytes(java.nio.charset.StandardCharsets.UTF_8)).toString();
     }
 }

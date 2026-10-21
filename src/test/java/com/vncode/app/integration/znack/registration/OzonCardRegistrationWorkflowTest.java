@@ -165,6 +165,53 @@ class OzonCardRegistrationWorkflowTest {
         installExistingCard("draft");assertTrue(workflow.register(shop,key,draft.withAutoSign(true),true,false,null));assertEquals(Status.READY_TO_SIGN,row().status());assertEquals("",row().feedId());assertFalse(RegistrationSigningConsent.allowed(shop,key,row().gtin()));
         assertFalse(workflow.refreshStatusWithoutSigning(shop,key));assertEquals(0,api.signatures.get());assertTrue(sign());assertEquals(Status.PUBLISHED,row().status());assertEquals("",row().feedId());assertEquals(1,api.signatures.get());assertEquals(0,api.allocations.get());assertEquals(0,api.submissions.get());
     }
+    @Test void aSellerReviewedExistingDraftSendsItsSameIdentityToModerationWithoutAllocatingOrSigning()throws Exception{
+        installUnsubmittedDraft();api.pendingModeration=true;
+        assertFalse(workflow.register(shop,key,draft,false,false,null));assertNull(row());assertEquals(0,api.submissions.get());
+        assertTrue(workflow.register(shop,key,draft.withAutoSign(true),true,false,null));
+        assertEquals(Status.PROCESSING,row().status());assertEquals(91L,row().goodId());assertEquals(GtinWriteTestFixture.GTIN,row().gtin());assertEquals("feed-1",row().feedId());
+        assertEquals(0,api.allocations.get());assertEquals(1,api.submissions.get());assertEquals(0,api.signatures.get());
+        assertEquals(91L,api.lastPayload.get("good_id").getAsLong());assertEquals(1,api.lastPayload.get("moderation").getAsInt());assertEquals(GtinWriteTestFixture.GTIN,api.lastPayload.get("gtin").getAsString());
+        assertFalse(api.lastPayload.has("_vncode_reviewed_draft"));assertTrue(ZnackNationalCatalogService.hasReviewedDraft(JsonParser.parseString(row().payload()).getAsJsonObject()));
+        assertTrue(repository.reviewedRevisions(key).stream().allMatch(hash->hash.matches("[0-9a-f]{64}")));
+        assertFalse(RegistrationSigningConsent.allowed(shop,key,row().gtin()));assertFalse(RegistrationMarketplaceConsent.allowed(shop,key,row().gtin()));
+        assertTrue(workflow.register(shop,key,draft.withAutoSign(true),true,false,null));assertEquals(1,api.submissions.get());assertEquals(0,api.allocations.get());assertEquals(0,api.signatures.get());
+    }
+    @Test void anAlreadyLinkedDraftRequiresFreshSellerReviewAndNoAllocationQuotaToSendItsFirstFeed()throws Exception{
+        installUnsubmittedDraft();var observed=session().catalog().observedCardStatus("fixture-token",GtinWriteTestFixture.GTIN,91L);
+        assertTrue(repository.linkObserved(shop,key,"9001","",session().scope(),draft,observed));assertTrue(row().reviewableDraft());
+        assertTrue(workflow.resume(shop,key,null));assertEquals(0,api.submissions.get());assertTrue(row().reviewableDraft());
+        api.forbidQuota=true;var prepared=workflow.prepare(shop,key);
+        assertTrue(workflow.registerReviewed(shop,prepared,draft,true,false,null));
+        assertEquals(Status.READY_TO_SIGN,row().status());assertEquals("feed-1",row().feedId());assertEquals(91L,row().goodId());assertEquals(GtinWriteTestFixture.GTIN,row().gtin());
+        assertEquals(1,api.submissions.get());assertEquals(0,api.allocations.get());assertEquals(0,api.signatures.get());
+    }
+    @Test void anUncertainExistingDraftUpdateIsNeverAutomaticallySentTwice()throws Exception{
+        installUnsubmittedDraft();api.feedTimeout=true;api.pendingModeration=true;
+        assertTrue(workflow.register(shop,key,draft.withAutoSign(true),true,false,null));
+        assertEquals(Status.FEED_REVIEW_REQUIRED,row().status());assertEquals(91L,row().goodId());assertEquals(GtinWriteTestFixture.GTIN,row().gtin());assertEquals("",row().feedId());
+        var draftState=new JsonArray();draftState.add("draft");api.preExisting.add("good_detailed_status",draftState);
+        assertTrue(workflow.verifySubmissionForBatch(shop,key));assertEquals(Status.FEED_REVIEW_REQUIRED,row().status());assertFalse(row().reviewableDraft());
+        assertFalse(workflow.resume(shop,key,null));assertTrue(workflow.register(shop,key,draft,true,false,null));
+        assertEquals(Status.FEED_REVIEW_REQUIRED,row().status());assertEquals(1,api.submissions.get());assertEquals(0,api.allocations.get());assertEquals(0,api.signatures.get());
+        var moderationState=new JsonArray();moderationState.add("moderation");api.preExisting.add("good_detailed_status",moderationState);
+        assertTrue(workflow.verifySubmissionForBatch(shop,key));assertEquals(Status.PROCESSING,row().status());assertFalse(row().reviewableDraft());assertEquals(1,api.submissions.get());
+    }
+    @Test void anAdoptedDraftWhoseReviewSourceChangedCannotBeSent()throws Exception{
+        installUnsubmittedDraft();var observed=session().catalog().observedCardStatus("fixture-token",GtinWriteTestFixture.GTIN,91L);
+        assertTrue(repository.linkObserved(shop,key,"9001","",session().scope(),draft,observed));var prepared=workflow.prepare(shop,key);
+        var before=snapshot;snapshot=new ProductSnapshot(before.key(),"live:changed",before.title(),before.description(),before.brand(),before.vendorArticle(),before.categoryId(),before.media(),before.attributes(),before.variants(),before.dimensions(),before.documents(),before.checkedAt(),before.metadata());
+        assertTrue(workflow.registerReviewed(shop,prepared,draft,true,false,null));
+        assertEquals(0,api.submissions.get());assertEquals(0,api.allocations.get());assertEquals(91L,row().goodId());assertEquals(GtinWriteTestFixture.GTIN,row().gtin());assertFalse(row().payload().contains("_vncode_reviewed_draft"));
+    }
+    @Test void aKnownUnsentReviewedDraftResumesTheFrozenIntentWithoutASecondReviewOrAllocation()throws Exception{
+        installUnsubmittedDraft();var prior=LicenseRuntime.service();try(var denied=LicenseDomainFixture.denied(root.resolve("draft-denied-license"))){
+            try{assertTrue(workflow.register(shop,key,draft,true,false,(state,detail)->{if(state==Status.FEED_SUBMITTING)LicenseRuntime.install(denied);}));}
+            finally{LicenseRuntime.install(prior);}
+            assertEquals(Status.READY_TO_SUBMIT,row().status());assertEquals(0,api.submissions.get());String frozen=row().payload();assertTrue(ZnackNationalCatalogService.hasReviewedDraft(JsonParser.parseString(frozen).getAsJsonObject()));
+            api.forbidQuota=true;assertTrue(workflow.resume(shop,key,false,null));assertEquals(Status.READY_TO_SIGN,row().status());assertEquals(frozen,row().payload());assertEquals(1,api.submissions.get());assertEquals(0,api.allocations.get());assertEquals(0,api.signatures.get());
+        }
+    }
     @Test void unknownExistingCardReadNeverBecomesPermissionToAllocateOrCreate()throws Exception{
         installExistingCard("draft");api.readbackStatus=403;var original=snapshot;assertTrue(workflow.register(shop,key,draft,true,false,null));assertNull(row());assertEquals(0,api.allocations.get());assertEquals(0,api.submissions.get());assertEquals(original,snapshot);assertNotNull(workflow.failure(shop));
     }
@@ -176,6 +223,7 @@ class OzonCardRegistrationWorkflowTest {
         api.preExisting=ZnackNationalCatalogService.buildPayload(GtinWriteTestFixture.GTIN,draft,"");api.preExisting.addProperty("good_id",91);api.preExisting.addProperty("good_status",status);var states=new JsonArray();states.add(status.equals("published")?"published":"notsigned");api.preExisting.add("good_detailed_status",states);
         workflow=new OzonCardRegistrationWorkflow(repository,s->session(),(s,k)->snapshot,Runnable::run,(s,k,sku,gtin)->onMarketplace,()->new RegistrationExistingCards.LookupContext((s,c)->List.of(source),(c,g,id)->c.catalog().observedCardStatus(c.token(),g,id),(s,c)->com.vncode.app.features.gtinsync.RegisteredGtinProof.source(s)));
     }
+    private void installUnsubmittedDraft(){installExistingCard("draft");var states=new JsonArray();states.add("draft");api.preExisting.add("good_detailed_status",states);}
     @Test void preparationRecognizesTheRealOzonEaeuTnvedAttributeName()throws Exception {
         var base=snapshot;snapshot=new ProductSnapshot(base.key(),base.revision(),base.title(),base.description(),base.brand(),base.vendorArticle(),base.categoryId(),base.media(),List.of(new ProductAttribute("22232","ТН ВЭД коды ЕАЭС",List.of("6204"),null)),base.variants(),base.dimensions(),base.documents(),base.checkedAt(),base.metadata());
         assertEquals("6204",workflow.prepare(shop,key).tnved());
@@ -503,15 +551,15 @@ class OzonCardRegistrationWorkflowTest {
         int readbackStatus;
         String emptyDetailFailure="";
         volatile String invalidFeedIdentity="";
-        boolean unitEvidence=true;
+        boolean unitEvidence=true,forbidQuota;
         String currentGtin=GtinWriteTestFixture.GTIN;
-        public JsonElement generatedGtins(String base,String token){return json(knownQuota?"{\"result\":{\"drafts\":[],\"monthly-limit\":{\"limit\":100,\"usage\":0}}}":"{\"result\":{\"drafts\":[]}}");}
+        public JsonElement generatedGtins(String base,String token){if(forbidQuota)throw new AssertionError("An existing draft update does not allocate or require allocation quota");return json(knownQuota?"{\"result\":{\"drafts\":[],\"monthly-limit\":{\"limit\":100,\"usage\":0}}}":"{\"result\":{\"drafts\":[]}}");}
         public JsonElement generateGtins(String base,String token,int quantity)throws IOException{assertEquals(Status.ALLOCATING_GTIN,repository.find(activeKey).status());int count=allocations.incrementAndGet();if(allocationTimeout)throw new IOException("fixture allocation timeout");currentGtin=count==1?GtinWriteTestFixture.GTIN:"00000000000024";return json("{\"result\":{\"drafts\":[{\"gtin\":\""+currentGtin+"\"}]}}");}
         public JsonElement nationalCatalogCategories(String base,String token,String tnved){if(tnved.length()==10)return json("{\"result\":[]}");return json(multipleCategories?"{\"result\":[{\"cat_id\":1,\"cat_name\":\"Fixture\",\"category_active\":true},{\"cat_id\":2,\"cat_name\":\"Fixture 2\",\"category_active\":true}]}":"{\"result\":[{\"cat_id\":1,\"cat_name\":\"Fixture\",\"category_active\":true}]}");}
         public JsonElement nationalCatalogAttributes(String base,String token,long category){var response=json("{\"result\":[{\"attr_id\":1,\"attr_name\":\"Fixture\",\"attr_field_type\":\"text\"},{\"attr_id\":23557,\"attr_name\":\"Declaration\",\"attr_field_type\":\"text\"},{\"attr_id\":23561,\"attr_name\":\"Certificate\",\"attr_field_type\":\"text\"}]}").getAsJsonObject();if(mandatoryCountry)response.getAsJsonArray("result").add(json("{\"attr_id\":2630,\"attr_name\":\"Страна производства\",\"attr_field_type\":\"text\",\"attr_preset_only\":true,\"attr_preset\":[]}"));return response;}
         public JsonElement nationalCatalogAllAttributes(String base,String token,long category){var response=nationalCatalogAttributes(base,token,category).getAsJsonObject();var all=response.getAsJsonArray("result");for(String field:List.of("{\"attr_id\":35,\"attr_name\":\"Размер\",\"attr_field_type\":\"text\"}","{\"attr_id\":36,\"attr_name\":\"Цвет\",\"attr_field_type\":\"text\"}","{\"attr_id\":13914,\"attr_name\":\"Артикул\",\"attr_field_type\":\"text\"}"))all.add(json(field));return response;}
         public JsonElement nationalCatalogCountries(String base,String token){countryReads.incrementAndGet();return json("{\"apiversion\":3,\"result\":{\"_etag\":\"fixture-country-etag\",\"_list\":[{\"country_iso\":\"RU\",\"country_name\":\"Россия\"},{\"country_iso\":\"CN\",\"country_name\":\"Китай\"}]}}");}
-        public JsonElement submitNationalCatalogFeed(String base,String token,JsonElement body)throws IOException{assertEquals(Status.FEED_SUBMITTING,repository.find(activeKey).status());lastPayload=body.getAsJsonObject().deepCopy();submissions.incrementAndGet();if(feedTimeout)throw new IOException("fixture feed timeout");String feed="feed-"+submissions.get();feedGtins.put(feed,lastPayload.get("gtin").getAsString());return json("{\"result\":{\"feed_id\":\""+feed+"\"}}");}
+        public JsonElement submitNationalCatalogFeed(String base,String token,JsonElement body)throws IOException{assertEquals(Status.FEED_SUBMITTING,repository.find(activeKey).status());lastPayload=body.getAsJsonObject().deepCopy();assertFalse(lastPayload.has("_vncode_reviewed_draft"));if(preExisting!=null&&lastPayload.has("moderation")){preExisting=lastPayload.deepCopy();preExisting.addProperty("good_status","draft");var state=new JsonArray();state.add(pendingModeration?"moderation":"notsigned");preExisting.add("good_detailed_status",state);}submissions.incrementAndGet();if(feedTimeout)throw new IOException("fixture feed timeout");String feed="feed-"+submissions.get();feedGtins.put(feed,lastPayload.get("gtin").getAsString());return json("{\"result\":{\"feed_id\":\""+feed+"\"}}");}
         public JsonElement productCards(String base,String token,String gtins)throws IOException {
             if(readbackStatus>0)throw new ZnackApiClient.ZnackApiException("fixture readback deferred",readbackStatus,"{}");
             if(readbackFailure)throw new IOException("fixture readback offline");

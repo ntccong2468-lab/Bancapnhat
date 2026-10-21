@@ -13,7 +13,10 @@ import java.util.*;
 
 /** Presentation only: fresh Catalog observations never invent native feed/checkpoint identities. */
 public final class RegistrationCardIndex {
-    public record View(String status,String gtin,String detail,boolean exists,boolean published,boolean blocked) {}
+    public record View(String status,String gtin,String detail,boolean exists,boolean published,boolean blocked,boolean draftReview) {
+        public View(String status,String gtin,String detail,boolean exists,boolean published,boolean blocked){this(status,gtin,detail,exists,published,blocked,false);}
+        public boolean canReviewDraft(){return draftReview&&exists&&!published&&status.equals("source.draft")&&detail.equals("CATALOG_CARD_DRAFT");}
+    }
     /** A local allocation/checkpoint is not proof that the product feed reached Catalog. */
     public static boolean notSubmitted(Sku row) {
         return notSubmitted(row.status(),row.gtin(),row.goodId(),row.feedId(),row.wbUpdated());
@@ -132,6 +135,7 @@ public final class RegistrationCardIndex {
                 return new View(observed,card.gtin(),"GTIN_VARIANT_UNVERIFIED",true,false,true);
             }
             if(card.published())return new View("status.published",card.gtin(),"SOURCE_PUBLISHED_CONFIRMED",true,true,false);
+            if(com.vncode.app.integration.znack.registration.CatalogCardState.reviewableDraft(card))return new View("source.draft",card.gtin(),"CATALOG_CARD_DRAFT",true,false,true,true);
             if(!nativeExists||status==Status.PUBLISHED||safe(gtin).isBlank()&&notSubmitted(status,gtin,null,"",false)){
                 var observed=com.vncode.app.integration.znack.registration.CatalogCardState.of(card);
                 return new View(observed.viewStatus,card.gtin(),observed.reason,true,false,true);

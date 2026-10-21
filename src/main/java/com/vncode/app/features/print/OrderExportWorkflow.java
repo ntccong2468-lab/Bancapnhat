@@ -80,13 +80,17 @@ public class OrderExportWorkflow {
     public ExportResult export(ExportRequest request) throws IOException, WriterException {
         MarketplaceGuard.requireWildberries(request.shop());
         LicenseRuntime.require(Permission.PRINT_NEW);
-        try{return ShopOperationCoordinator.withActiveShop(request.shop().getId(),()->exportCurrent(request));}
+        try(var claim=com.vncode.app.features.print.history.PrintHistoryRepository.claimOrders(request.shop().getId(),request.orders().stream().map(Order::getId).toList())){
+            return ShopOperationCoordinator.withActiveShop(request.shop().getId(),()->exportCurrent(request));
+        }
         catch(IOException|WriterException|RuntimeException failure){throw failure;}
         catch(Exception unexpected){throw new IOException("WB_EXPORT_FAILED");}
     }
 
     private ExportResult exportCurrent(ExportRequest request)throws IOException,WriterException {
         planning.validate(request.shop());
+        new com.vncode.app.features.print.history.PrintHistoryRepository().requireNoRecoverableOrders(request.shop().getId(),
+                request.orders().stream().map(Order::getId).filter(id->id!=null&&id>0).distinct().toList());
         List<Order> workingOrders = copyOrders(request.orders());
         List<Kiz> usedKizs = List.of();
         Set<Long> replaceExistingOrderIds = Set.of();
@@ -94,6 +98,7 @@ public class OrderExportWorkflow {
         String printedAt = Instant.now().toString();
         boolean successRecorded = false;
         boolean inventoryConsumed = false;
+        long preparedJobId=0;
         File barcodeStaging = null;
         File detailsStaging = null;
         try {
@@ -109,19 +114,22 @@ public class OrderExportWorkflow {
                     request.supplyName(), printedAt, workingOrders, request.printOptions());
             LicenseRuntime.require(Permission.PRINT_NEW);
             planning.validate(request.shop());
-            inventoryService.consume(request.shop().getId(), usedKizs);
+            preparedJobId=printHistoryService.recordPreparedJob(request.shop(),request.supplyId(),request.supplyName(),printedAt,template,workingOrders);
+            inventoryService.consumeForPrint(request.shop().getId(), usedKizs,preparedJobId);
             inventoryConsumed = true;
             AtomicFilePublisher.publish(barcodeStaging, request.outputFile());
             AtomicFilePublisher.publish(detailsStaging, request.detailsFile());
-            long printJobId = printHistoryService.recordSuccessfulJob(request.shop(), request.supplyId(), request.supplyName(), printedAt, template, workingOrders);
+            new com.vncode.app.features.print.history.PrintHistoryRepository().finishPrintJob(request.shop().getId(),preparedJobId,"pdf_ready","success");
             successRecorded = true;
-            return new ExportResult(workingOrders, usedKizs, printJobId,
+            return new ExportResult(workingOrders, usedKizs, preparedJobId,
                     buildKizAttachmentAssignments(workingOrders, assignmentResult.allocatedByOrder(), replaceExistingOrderIds));
         } catch (IOException | WriterException | RuntimeException ex) {
             if (!inventoryConsumed) {
                 inventoryService.release(request.shop().getId(), usedKizs);
+                if(preparedJobId>0)try{new com.vncode.app.features.print.history.PrintHistoryRepository().finishPrintJob(request.shop().getId(),preparedJobId,"prepared","failed");}
+                catch(RuntimeException checkpointFailure){ex.addSuppressed(checkpointFailure);}
             }
-            if (!successRecorded) {
+            if (!successRecorded&&preparedJobId==0) {
                 printHistoryService.recordFailedJob(
                         request.shop(),
                         request.supplyId(),

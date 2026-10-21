@@ -56,8 +56,7 @@ public class WbProductSyncService {
                 if(++pages>20000 || Thread.currentThread().isInterrupted())throw new IOException("WB_SNAPSHOT_INTERRUPTED_OR_LIMIT");
                 LicenseRuntime.require(SELLER_API);
                 WbProductCardsResponse response = apiClient.getProductCards(shop.getApiKey(), "ru", cursorUpdatedAt, cursorNmId, PAGE_LIMIT);
-                if(response==null || response.getCards()==null || response.getCards().size()>PAGE_LIMIT)throw new IOException("WB_INCOMPLETE_PRODUCT_PAGE");
-                if(response.getCursor()==null || response.getCursor().getTotal()==null || response.getCursor().getTotal()<response.getCards().size() || response.getCursor().getTotal()>PAGE_LIMIT)throw new IOException("WB_INCOMPLETE_PRODUCT_CURSOR");
+                requireCompletePage(response);
                 com.vncode.app.integration.listing.ListingIdentity.require(shop);
                 if (response.getCards().isEmpty()) {
                     if(response.getCursor().getTotal()!=0)throw new IOException("WB_INCOMPLETE_PRODUCT_CURSOR");
@@ -67,10 +66,7 @@ public class WbProductSyncService {
                 }
 
                 var next=response.getCursor();
-                if(next.getUpdatedAt()==null || next.getUpdatedAt().isBlank() || next.getNmID()==null || next.getNmID()<=0)throw new IOException("WB_INCOMPLETE_PRODUCT_CURSOR");
                 if(!cursors.add(next.getUpdatedAt()+"/"+next.getNmID()))throw new IOException("WB_REPEATED_PRODUCT_CURSOR");
-                var ids=new java.util.HashSet<Long>();
-                for(var card:response.getCards())if(card==null || card.getNmID()==null || card.getNmID()<=0 || !ids.add(card.getNmID()))throw new IOException("WB_INCOMPLETE_PRODUCT_PAGE");
                 productRepository.saveProductBatch(shop.getId(), response.getCards());
                 page.accept(List.copyOf(response.getCards()));
                 read += response.getCards().size();
@@ -107,6 +103,16 @@ public class WbProductSyncService {
         try{syncRunRepository.finishSyncRun(run,false,read,written,code,failure.getMessage());}catch(RuntimeException reporting){failure.addSuppressed(reporting);}
     }
 
+    /** A cursor/page contradiction is an unknown read, never an empty or complete catalog. */
+    private static void requireCompletePage(WbProductCardsResponse response)throws IOException {
+        if(response==null||response.getCards()==null||response.getCards().size()>PAGE_LIMIT)throw new IOException("WB_INCOMPLETE_PRODUCT_PAGE");
+        var cursor=response.getCursor();
+        if(cursor==null||cursor.getTotal()==null||cursor.getTotal()!=response.getCards().size())throw new IOException("WB_INCOMPLETE_PRODUCT_CURSOR");
+        if(!response.getCards().isEmpty()&&(cursor.getUpdatedAt()==null||cursor.getUpdatedAt().isBlank()||cursor.getNmID()==null||cursor.getNmID()<=0))throw new IOException("WB_INCOMPLETE_PRODUCT_CURSOR");
+        var ids=new java.util.HashSet<Long>();
+        for(var card:response.getCards())if(card==null||card.getNmID()==null||card.getNmID()<=0||!ids.add(card.getNmID()))throw new IOException("WB_INCOMPLETE_PRODUCT_PAGE");
+    }
+
     public int recoverProductsByNmIds(Shop shop, List<Long> nmIds) throws IOException {
         LicenseRuntime.require(SELLER_API);
         Set<Long> remaining = new LinkedHashSet<>();
@@ -126,13 +132,17 @@ public class WbProductSyncService {
         int written = 0;
         String cursorUpdatedAt = null;
         Long cursorNmId = null;
+        var cursors=new java.util.HashSet<String>();int pages=0;
         try {
             while (true) {
+                if(++pages>20000||Thread.currentThread().isInterrupted())throw new IOException("WB_SNAPSHOT_INTERRUPTED_OR_LIMIT");
                 LicenseRuntime.require(SELLER_API);
                 WbProductCardsResponse response = apiClient.getProductCards(shop.getApiKey(), "ru", cursorUpdatedAt, cursorNmId, PAGE_LIMIT);
-                if (response == null || response.getCards() == null || response.getCards().isEmpty()) {
+                requireCompletePage(response);
+                if (response.getCards().isEmpty()) {
                     break;
                 }
+                if(!cursors.add(response.getCursor().getUpdatedAt()+"/"+response.getCursor().getNmID()))throw new IOException("WB_REPEATED_PRODUCT_CURSOR");
 
                 read += response.getCards().size();
                 List<WbProductCard> foundCards = response.getCards().stream()

@@ -64,6 +64,22 @@ class RegistrationSigningReviewDialogTest {
         assertTrue(result);assertArrayEquals(originalXml,review.cards().getFirst().document().xml());
         assertEquals(before,storedWrites(),"Returning explicit approval is separate from native queue/CMS/API execution");
     }
+    @Test void signingIdentityHeadersAreVietnameseWhileExactPayloadRemainsUnchanged()throws Exception {
+        var i18n=I18nService.getInstance();var previous=i18n.getCurrentLanguage();
+        try {
+            i18n.setLanguage(com.vncode.app.shared.AppLanguage.VI);var review=review();
+            drive(review,pane->{
+                @SuppressWarnings("unchecked") var table=(TableView<RegistrationSigningReview.Card>)pane.lookup("#registrationSigningReviewCards");
+                var headers=table.getColumns().stream().map(TableColumn::getText).toList();
+                assertTrue(headers.contains("Mã sản phẩm"));assertTrue(headers.contains("Mã biến thể / offer_id"));
+                assertTrue(headers.contains("Phiên bản dữ liệu"));assertTrue(headers.contains("Mã thẻ Catalog"));
+                assertFalse(headers.contains("ProductID"));assertFalse(headers.contains("VariantID / offer_id"));assertFalse(headers.contains("Revision"));
+                var xml=(TextArea)pane.lookup("#registrationSigningReviewXml");
+                assertEquals(new String(review.cards().getFirst().document().xml(),StandardCharsets.UTF_8),xml.getText());
+                cancel(pane);
+            });
+        } finally {i18n.setLanguage(previous);}
+    }
     private RegistrationSigningReview review(){
         var first=new ZnackNationalCatalogService.SigningDocument(91,"<?xml version=\"1.0\"?><card>Первый &amp; первый</card>".getBytes(StandardCharsets.UTF_8));
         var second=new ZnackNationalCatalogService.SigningDocument(92,"<card>第二张\nточный XML</card>".getBytes(StandardCharsets.UTF_8));

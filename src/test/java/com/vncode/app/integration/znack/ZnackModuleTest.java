@@ -942,7 +942,7 @@ class ZnackModuleTest {
             }
             @Override public JsonElement cisesInfo(String base,String token,JsonElement body){
                 cisesRequest.set(body);
-                return JsonParser.parseString("[{\"status\":\"INTRODUCED\"}]");
+                return introducedCises(body,"04601234567890");
             }
         };
         ZnackAuthService auth=new ZnackAuthService(api,testSigner()){
@@ -967,7 +967,7 @@ class ZnackModuleTest {
                         "{\"status\":\"CHECKED_OK\",\"items\":[{\"status\":\"REJECTED\"}]}");
             }
             @Override public JsonElement cisesInfo(String base,String token,JsonElement body){
-                return JsonParser.parseString("[{\"status\":\"INTRODUCED\"}]");
+                return introducedCises(body,"04601234567890");
             }
         };
         ZnackAuthService auth=new ZnackAuthService(api,testSigner()){
@@ -1025,9 +1025,7 @@ class ZnackModuleTest {
             @Override public JsonElement cisesInfo(String base,String token,JsonElement body){
                 JsonArray request=body.getAsJsonArray();
                 requestSizes.add(request.size());
-                JsonArray response=new JsonArray();
-                request.forEach(ignored->{JsonObject item=new JsonObject();item.addProperty("status","INTRODUCED");response.add(item);});
-                return response;
+                return introducedCises(body,product.gtin());
             }
         };
         ZnackAuthService auth=new ZnackAuthService(api,testSigner()){
@@ -1067,9 +1065,7 @@ class ZnackModuleTest {
             @Override public JsonElement cisesInfo(String base,String token,JsonElement body){
                 JsonArray request=body.getAsJsonArray();
                 requestSizes.add(request.size());
-                JsonArray response=new JsonArray();
-                request.forEach(ignored->{JsonObject item=new JsonObject();item.addProperty("status","INTRODUCED");response.add(item);});
-                return response;
+                return introducedCises(body,product.gtin());
             }
         };
         ZnackAuthService auth=new ZnackAuthService(api,testSigner()){
@@ -2008,6 +2004,13 @@ class ZnackModuleTest {
 
     private static String jwtWithInn(String inn){
         return "header."+java.util.Base64.getUrlEncoder().withoutPadding().encodeToString(("{\"participant_inn\":\""+inn+"\"}").getBytes(StandardCharsets.UTF_8))+".signature";
+    }
+
+    private static JsonArray introducedCises(JsonElement request,String gtin){
+        var response=new JsonArray();for(var code:request.getAsJsonArray()){
+            var info=new JsonObject();info.addProperty("requestedCis",code.getAsString());info.addProperty("cis",code.getAsString());info.addProperty("gtin",gtin);info.addProperty("status","INTRODUCED");
+            var row=new JsonObject();row.add("cisInfo",info);response.add(row);
+        }return response;
     }
 
     private static ZnackRepository repository(int id, String name) {

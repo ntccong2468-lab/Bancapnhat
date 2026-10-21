@@ -24,6 +24,12 @@ public final class OzonCardRegistrationRepository {
                       String signatureState,String error) {
         public Row { signatureXml=signatureXml==null?new byte[0]:signatureXml.clone(); }
         @Override public byte[] signatureXml(){return signatureXml.clone();}
+        public boolean reviewableDraft(){
+            if(status!=Status.PROCESSING||!feedId.isBlank()||goodId==null||goodId<=0||!RegisteredGtinValidator.isValid(gtin)
+                    ||!signatureState.isBlank()||signatureXml.length!=0||!"CATALOG_CARD_DRAFT".equals(error))return false;
+            try{return !ZnackNationalCatalogService.hasReviewedDraft(JsonParser.parseString(payload).getAsJsonObject());}
+            catch(RuntimeException invalid){return false;}
+        }
         @Override public String toString(){return "OzonCardRegistrationRow[key="+key+", status="+status+"]";}
     }
     public static void initialize(Connection connection)throws SQLException {
@@ -112,6 +118,31 @@ public final class OzonCardRegistrationRepository {
             var observation=preserveDocumentState(c,shop,new RegisteredGtin(card.gtin(),card.details().single("article"),card.details().single("color"),card.details().single("size"),card.tradeUnit(),progress.signed(),source,card.checkedAt(),card.details()));
             var data=JSON.toJsonTree(observation).getAsJsonObject();data.addProperty("owner",ListingIdentity.fingerprint(shop));try(var p=c.prepareStatement("INSERT INTO gtin_sync_catalog VALUES(?,?,?,?) ON CONFLICT(shop_id,marketplace,gtin) DO UPDATE SET data_json=excluded.data_json")){p.setInt(1,key.shopId());p.setString(2,Marketplace.OZON.name());p.setString(3,card.gtin());p.setString(4,JSON.toJson(data));p.executeUpdate();}
             return true;
+        });
+    }
+    /** A seller-reviewed update of a proven existing draft, never a new allocation or uncertain replay. */
+    public boolean prepareReviewedDraft(Shop shop,ProductKey key,Row expected,ZnackRegistrationScope scope,String sku,
+            ZnackCardRegistrationModels.Draft approved,ZnackNationalCatalogService.ObservedCard observed,String sourceRevision,String schemaRevision){
+        requireShop(shop,key);
+        if(expected==null||!expected.reviewableDraft()||observed==null||!observed.draftForReview()
+                ||!Objects.equals(expected.goodId(),observed.goodId())||!RegisteredGtinProof.sameCode(expected.gtin(),observed.gtin())
+                ||!Objects.equals(expected.sku(),sku)||!sourceRevision.matches("[0-9a-f]{64}")||!schemaRevision.matches("[0-9a-f]{64}"))return false;
+        Instant now=Instant.now();
+        if(observed.checkedAt()==null||observed.checkedAt().isAfter(now.plusSeconds(300))||observed.checkedAt().isBefore(now.minusSeconds(300))
+                ||!sameCatalogId(observed.details().single("@catalog_id"),observed.goodId()))throw new RegistrationValidationException("CATALOG_IDENTITY_CHANGED");
+        var body=ZnackNationalCatalogService.buildPayload(expected.gtin(),approved.withAutoSign(false),"");
+        body.addProperty("good_id",observed.goodId());body.addProperty("moderation",1);
+        var payload=ZnackNationalCatalogService.reviewedDraftPayload(shop,body);
+        if(payload.toString().length()>2*1024*1024)throw new IllegalArgumentException("invalid_catalog_draft");
+        return transaction(c->{
+            requireCurrentOwner(c,shop,key,scope);var current=row(c,key);if(current==null)return false;
+            requireOwner(current,ListingIdentity.fingerprint(shop),scope);
+            if(!current.reviewableDraft()||!current.gtin().equals(expected.gtin())||!Objects.equals(current.goodId(),expected.goodId())
+                    ||!current.sku().equals(expected.sku())||!current.payload().equals(expected.payload()))return false;
+            archive(c,current);
+            try(var p=c.prepareStatement("UPDATE ozon_card_registrations SET payload_json=?,source_revision=?,schema_revision=?,status='READY_TO_SUBMIT',error='',updated_at=? WHERE shop_id=? AND product_id=? AND offer_id=? AND status='PROCESSING' AND feed_id=''")){
+                p.setString(1,payload.toString());p.setString(2,sourceRevision);p.setString(3,schemaRevision);p.setString(4,Instant.now().toString());bindKey(p,5,key);return p.executeUpdate()==1;
+            }
         });
     }
     public boolean transition(ProductKey key,Status expected,Status next) {

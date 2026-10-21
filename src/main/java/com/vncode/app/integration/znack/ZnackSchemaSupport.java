@@ -32,6 +32,7 @@ public final class ZnackSchemaSupport {
         com.vncode.app.features.kiz.SellerKizImportSchema.codes(connection);
         com.vncode.app.features.kiz.KizWarehouseSchema.initialize(connection);
         normalizeGtins(connection);
+        protectPurchaseClaims(connection);
         try(Statement statement=connection.createStatement()){
             statement.execute("CREATE INDEX IF NOT EXISTS idx_kiz_codes_available_circulation ON kiz_codes(shop_id,gtin,id) WHERE status='AVAILABLE' AND legal_status='IN_CIRCULATION'");
         }
@@ -221,24 +222,40 @@ public final class ZnackSchemaSupport {
             st.execute("CREATE INDEX IF NOT EXISTS idx_znack_logs_shop_created ON znack_operation_logs(shop_id,created_at DESC)");
             st.execute("CREATE INDEX IF NOT EXISTS idx_znack_gtin_mapping_rules_shop_gtin ON znack_gtin_mapping_rules(shop_id,gtin)");
             st.execute("CREATE INDEX IF NOT EXISTS idx_znack_purchase_pipelines_shop_gtin ON znack_purchase_pipelines(shop_id,gtin,updated_at DESC)");
-            // Only a remote-purchase mutation is serialized per GTIN. Later requests remain
-            // durably QUEUED, while introduction jobs may continue independently after all codes
-            // have been downloaded.
-            st.execute("""
-                    UPDATE znack_purchase_pipelines SET stage='QUEUED',error_message=NULL
-                    WHERE stage IN ('VALIDATING','CREATING_ORDER','RECONCILING_ORDER','POLLING_ORDER','DOWNLOADING_CODES')
-                      AND id NOT IN (
-                        SELECT MIN(id) FROM znack_purchase_pipelines
-                        WHERE stage IN ('VALIDATING','CREATING_ORDER','RECONCILING_ORDER','POLLING_ORDER','DOWNLOADING_CODES')
-                        GROUP BY shop_id,gtin
-                      )
-                    """);
+            // A legacy database can contain several already-sent purchases for one GTIN.
+            // Remove the old broad index before canonicalization; their receipts must survive.
             st.execute("DROP INDEX IF EXISTS uq_znack_purchase_pipeline_active");
+            st.execute("DROP TRIGGER IF EXISTS znack_purchase_claim_insert");
+            st.execute("DROP TRIGGER IF EXISTS znack_purchase_claim_update");
+        }
+    }
+
+    /** Preserve sent/uncertain legacy rows while excluding every new competing paid claim. */
+    private static void protectPurchaseClaims(Connection c)throws SQLException {
+        try(var st=c.createStatement()){
+            // VALIDATING with no order is a durable pre-POST checkpoint. Only those rows
+            // may return to FIFO; never rewrite CREATING/RECONCILING/POLLING/DOWNLOADING.
             st.execute("""
-                    CREATE UNIQUE INDEX uq_znack_purchase_pipeline_active
-                    ON znack_purchase_pipelines(shop_id,gtin)
-                    WHERE stage IN ('VALIDATING','CREATING_ORDER','RECONCILING_ORDER','POLLING_ORDER','DOWNLOADING_CODES')
-                    """);
+                UPDATE znack_purchase_pipelines SET stage='QUEUED'
+                WHERE stage='VALIDATING' AND order_id IS NULL AND EXISTS(
+                  SELECT 1 FROM znack_purchase_pipelines other
+                  WHERE other.id<>znack_purchase_pipelines.id
+                    AND other.shop_id=znack_purchase_pipelines.shop_id
+                    AND other.gtin=znack_purchase_pipelines.gtin
+                    AND other.stage IN ('VALIDATING','CREATING_ORDER','RECONCILING_ORDER','POLLING_ORDER','DOWNLOADING_CODES')
+                    AND (other.stage<>'VALIDATING' OR other.order_id IS NOT NULL OR other.id<znack_purchase_pipelines.id))
+                """);
+            st.execute("""
+                CREATE UNIQUE INDEX IF NOT EXISTS uq_znack_purchase_pipeline_active
+                ON znack_purchase_pipelines(shop_id,gtin)
+                WHERE stage='VALIDATING' AND order_id IS NULL
+                """);
+            String active="('VALIDATING','CREATING_ORDER','RECONCILING_ORDER','POLLING_ORDER','DOWNLOADING_CODES')";
+            String conflict="EXISTS(SELECT 1 FROM znack_purchase_pipelines other WHERE other.id<>NEW.id AND other.shop_id=NEW.shop_id AND other.gtin=NEW.gtin AND other.stage IN "+active+")";
+            st.execute("CREATE TRIGGER IF NOT EXISTS znack_purchase_claim_insert BEFORE INSERT ON znack_purchase_pipelines WHEN NEW.stage IN "+active+" AND "+conflict+" BEGIN SELECT RAISE(ABORT,'znack_purchase_pending'); END");
+            // Existing remote checkpoints may advance even when another legacy order still
+            // needs recovery. A transition into a fresh validation/send claim may not.
+            st.execute("CREATE TRIGGER IF NOT EXISTS znack_purchase_claim_update BEFORE UPDATE OF stage,shop_id,gtin ON znack_purchase_pipelines WHEN NEW.stage IN ('VALIDATING','CREATING_ORDER') AND (NEW.stage<>OLD.stage OR NEW.shop_id<>OLD.shop_id OR NEW.gtin<>OLD.gtin) AND "+conflict+" BEGIN SELECT RAISE(ABORT,'znack_purchase_pending'); END");
         }
     }
 
@@ -442,17 +459,6 @@ public final class ZnackSchemaSupport {
         try (Statement st = c.createStatement()) {
             st.execute("PRAGMA foreign_keys=OFF");
             c.setAutoCommit(false);
-            st.execute("""
-                    UPDATE znack_purchase_pipelines SET stage='QUEUED',error_message=NULL
-                    WHERE stage IN ('VALIDATING','CREATING_ORDER','RECONCILING_ORDER','POLLING_ORDER','DOWNLOADING_CODES')
-                      AND id NOT IN (
-                        SELECT MIN(id) FROM znack_purchase_pipelines
-                        WHERE stage IN ('VALIDATING','CREATING_ORDER','RECONCILING_ORDER','POLLING_ORDER','DOWNLOADING_CODES')
-                        GROUP BY shop_id,CASE
-                          WHEN length(gtin)<14 AND gtin NOT GLOB '*[^0-9]*'
-                          THEN substr('00000000000000'||gtin,-14,14) ELSE gtin END
-                      )
-                    """);
             st.execute("""
                     INSERT INTO znack_products(shop_id,gtin,product_name,tn_ved,certificate_type,certificate_number,
                                                certificate_date,production_date,synced_at)

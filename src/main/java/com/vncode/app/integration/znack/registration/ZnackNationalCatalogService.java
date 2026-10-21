@@ -31,6 +31,7 @@ import java.util.Set;
 
 /** National Catalog card workflow primitives. All methods are blocking and must run off the FX thread. */
 public final class ZnackNationalCatalogService {
+    private static final String REVIEWED_DRAFT="_vncode_reviewed_draft";
     private static final Logger LOGGER = LoggerFactory.getLogger(ZnackNationalCatalogService.class);
     private static final Object GTIN_ALLOCATION_LOCK = new Object();
     public static final long DECLARATION_ATTRIBUTE_ID = 23_557L;
@@ -364,6 +365,47 @@ public final class ZnackNationalCatalogService {
         return submit(token,payload,()->{});
     }
     public String submit(String token,JsonObject payload,Runnable beforeSend)throws Exception {
+        if(hasReviewedDraft(payload))throw new RegistrationValidationException("REGISTRATION_REVIEW_REQUIRED");
+        return submit(token,payload,beforeSend,null);
+    }
+    public static boolean hasReviewedDraft(JsonObject payload){return payload!=null&&payload.has(REVIEWED_DRAFT);}
+    /** Local checkpoint metadata only; it must never be sent to National Catalog. */
+    public static JsonObject reviewedDraftPayload(com.vncode.app.models.Shop shop,JsonObject original){
+        com.vncode.app.integration.listing.ListingIdentity.require(shop);
+        var payload=original.deepCopy();payload.remove(REVIEWED_DRAFT);
+        long id=exactPositiveId(payload.get("good_id"),"good_id");String gtin=string(payload,"gtin");
+        if(!com.vncode.app.features.gtinsync.RegisteredGtinValidator.isValid(gtin)||!payload.has("moderation")||!(number(payload,"moderation")==1||payload.get("moderation").isJsonPrimitive()&&payload.getAsJsonPrimitive("moderation").isBoolean()&&payload.get("moderation").getAsBoolean()))throw new RegistrationValidationException("REGISTRATION_REVIEW_REQUIRED");
+        var settings=new com.vncode.app.integration.znack.ZnackRepository(new ZnackModels.ShopContext(shop.getId(),shop.getName())).getSettings();
+        var marker=new JsonObject();marker.addProperty("version",1);marker.addProperty("gtin",gtin);marker.addProperty("good_id",id);
+        marker.addProperty("owner",com.vncode.app.integration.listing.ListingIdentity.fingerprint(shop));
+        marker.addProperty("scope",draftScope(settings));marker.addProperty("payload_hash",draftHash(payload));
+        payload.add(REVIEWED_DRAFT,marker);return payload;
+    }
+    public String submitReviewedDraft(com.vncode.app.models.Shop shop,String token,JsonObject reviewed,Runnable beforeSend)throws Exception{
+        requireDraftReview(shop,reviewed);
+        var payload=reviewed.deepCopy();payload.remove(REVIEWED_DRAFT);
+        return submit(token,payload,beforeSend,()->{
+            requireDraftReview(shop,reviewed);
+            var card=observedCardStatus(token,string(payload,"gtin"),exactPositiveId(payload.get("good_id"),"good_id"));
+            if(card==null||!card.draftForReview())throw new RegistrationValidationException("SOURCE_CARD_ACTION_CHANGED");
+            requireDraftReview(shop,reviewed);
+        });
+    }
+    private void requireDraftReview(com.vncode.app.models.Shop shop,JsonObject reviewed){
+        com.vncode.app.integration.listing.ListingIdentity.require(shop);
+        try{
+            if(!hasReviewedDraft(reviewed)||!reviewed.get(REVIEWED_DRAFT).isJsonObject())throw new RegistrationValidationException("REGISTRATION_REVIEW_REQUIRED");
+            var marker=reviewed.getAsJsonObject(REVIEWED_DRAFT);var payload=reviewed.deepCopy();payload.remove(REVIEWED_DRAFT);
+            var current=new com.vncode.app.integration.znack.ZnackRepository(new ZnackModels.ShopContext(shop.getId(),shop.getName())).getSettings();
+            if(!string(marker,"owner").equals(com.vncode.app.integration.listing.ListingIdentity.fingerprint(shop))||!string(marker,"scope").equals(draftScope(current))||!draftScope(current).equals(draftScope(settings)))throw new ZnackRegistrationScope.ScopeChangedException();
+            if(number(marker,"version")!=1||!string(marker,"gtin").equals(string(payload,"gtin"))||exactPositiveId(marker.get("good_id"),"good_id")!=exactPositiveId(payload.get("good_id"),"good_id")||!string(marker,"payload_hash").equals(draftHash(payload)))throw new RegistrationValidationException("ZNACK_REVIEWED_VALUES_CHANGED");
+        }catch(ZnackRegistrationScope.ScopeChangedException|RegistrationValidationException invalid){throw invalid;}
+        catch(RuntimeException malformed){throw new RegistrationValidationException("REGISTRATION_REVIEW_REQUIRED");}
+    }
+    private static String draftHash(JsonObject payload){return com.vncode.app.integration.listing.ListingIdentity.hash(com.vncode.app.integration.listing.ListingIdentity.canonical(payload));}
+    private static String draftScope(ZnackModels.Settings settings){var scope=ZnackRegistrationScope.fromSettings(settings);return com.vncode.app.integration.listing.ListingIdentity.hash(scope.inn()+"\n"+scope.environment()+"\n"+scope.fingerprint());}
+    @FunctionalInterface private interface DraftDispatchCheck{void check()throws Exception;}
+    private String submit(String token,JsonObject payload,Runnable beforeSend,DraftDispatchCheck draftCheck)throws Exception {
         LicenseRuntime.require(Permission.GTIN);
         payload=normalizedFeed(payload);
         validateExistingCard(token,payload);
@@ -373,6 +415,7 @@ public final class ZnackNationalCatalogService {
             validateRegistrationCountry(token,payload);
         }
         LicenseRuntime.require(Permission.GTIN);
+        if(draftCheck!=null)draftCheck.check();
         beforeSend.run();
         LicenseRuntime.require(Permission.GTIN);
         JsonObject result = resultObject(api.submitNationalCatalogFeed(
@@ -683,10 +726,14 @@ public final class ZnackNationalCatalogService {
         List<String> errors = new ArrayList<>();
         Long goodId = null;
         Set<String> exactIdentities = new LinkedHashSet<>();
+        var entryIdentities=new java.util.HashMap<String,Set<String>>();
         for (JsonElement element : array(result.get("item"))) {
             if (!element.isJsonObject()) continue;
             JsonObject item = element.getAsJsonObject();
             String itemGtin = string(item, "gtin");
+            String entry=string(item,"id");
+            if(!entry.isBlank()&&!itemGtin.isBlank())entryIdentities.computeIfAbsent(entry,key->new LinkedHashSet<>())
+                    .add(com.vncode.app.integration.znack.GtinNormalizer.normalize(itemGtin));
             if (!itemGtin.isBlank() && !com.vncode.app.integration.znack.GtinNormalizer.normalize(itemGtin)
                     .equals(com.vncode.app.integration.znack.GtinNormalizer.normalize(gtin))) continue;
             if(!itemGtin.isBlank())exactIdentities.add(com.vncode.app.integration.znack.GtinNormalizer.normalize(itemGtin));
@@ -712,6 +759,7 @@ public final class ZnackNationalCatalogService {
             collectFeedErrors(item.get("errors"), errors);
         }
         if(number(details,"totalErrors")>0&&errors.isEmpty())errors.add("CATALOG_VALIDATION_ERRORS_UNAVAILABLE");
+        collectStandardFeedErrors(result.get("result"),entryIdentities,gtin,errors);
         if(!verifyCard&&errors.isEmpty()&&!array(result.get("item")).isEmpty()&&exactIdentities.size()!=1)
             throw new IllegalStateException("CATALOG_FEED_IDENTITY_NOT_CONFIRMED");
         if(verifyCard&&errors.isEmpty()&&("Signed".equalsIgnoreCase(status) || "Moderated".equalsIgnoreCase(status)) && exactIdentities.size()!=1)
@@ -747,7 +795,7 @@ public final class ZnackNationalCatalogService {
         // not proof that the product card is visible and published in the catalog.
         if(verifyCard&&"Signed".equalsIgnoreCase(status) && errors.isEmpty()&&!publicationVerified
                 && !publishedCard(token,gtin,goodId))status="PublicationPending";
-        return new FeedProgress(status, goodId, List.copyOf(errors));
+        return new FeedProgress(status, goodId, List.copyOf(new LinkedHashSet<>(errors)));
     }
 
     private static JsonObject feedResult(JsonElement response){
@@ -756,6 +804,7 @@ public final class ZnackNationalCatalogService {
         var result=raw.getAsJsonObject();var status=result.get("status");
         if(status==null||!status.isJsonPrimitive()||!status.getAsJsonPrimitive().isString()||status.getAsString().isBlank())throw new IllegalStateException("CATALOG_FEED_RESPONSE_INVALID");
         if(result.has("item")&&!result.get("item").isJsonArray()||result.has("error_details")&&!result.get("error_details").isJsonObject())throw new IllegalStateException("CATALOG_FEED_RESPONSE_INVALID");
+        if(result.has("result")&&!result.get("result").isJsonObject())throw new IllegalStateException("CATALOG_FEED_RESPONSE_INVALID");
         for(var item:array(result.get("item")))if(!item.isJsonObject())throw new IllegalStateException("CATALOG_FEED_RESPONSE_INVALID");
         return result;
     }
@@ -788,6 +837,27 @@ public final class ZnackNationalCatalogService {
         if(!message.isBlank())errors.add(attributeError(error,message));
         else if(error.has("code")&&!string(error,"code").isBlank()&&!string(error,"code").equals("0"))errors.add(attributeError(error,"Catalog error "+string(error,"code")));
     }
+    /** API 5.68 also documents the standard (non-verbose) entry-indexed error block.
+     * An index alone is not a GTIN: retain its feed scope unless item.id proves the link. */
+    private static void collectStandardFeedErrors(JsonElement raw,java.util.Map<String,Set<String>> identities,String gtin,List<String> errors){
+        if(raw==null||raw.isJsonNull())return;
+        var standard=raw.getAsJsonObject();String requested=com.vncode.app.integration.znack.GtinNormalizer.normalize(gtin);
+        boolean applicable=false,hasEntries=false;int initial=errors.size();
+        for(var entry:standard.entrySet()){
+            if(entry.getKey().equals("totalErrors"))continue;
+            hasEntries=true;var codes=identities.getOrDefault(entry.getKey(),Set.of());
+            if(!codes.isEmpty()&&!codes.contains(requested))continue;
+            applicable=true;boolean linked=codes.size()==1&&codes.contains(requested);
+            var value=entry.getValue();if(value==null||!value.isJsonArray())throw new IllegalStateException("CATALOG_FEED_RESPONSE_INVALID");
+            for(var message:value.getAsJsonArray()){
+                if(!message.isJsonPrimitive()||!message.getAsJsonPrimitive().isString())throw new IllegalStateException("CATALOG_FEED_RESPONSE_INVALID");
+                String text=ZnackSanitizer.message(message.getAsString());if(text.isBlank())continue;
+                errors.add(linked?text:"CATALOG_FEED_ERROR: "+text);
+            }
+        }
+        if(number(standard,"totalErrors")>0&&(!hasEntries||applicable)&&errors.size()==initial&&errors.isEmpty())
+            errors.add("CATALOG_VALIDATION_ERRORS_UNAVAILABLE");
+    }
 
     private boolean publishedCard(String token,String gtin,Long expectedId)throws Exception {
         var card=readCard(token,gtin,expectedId);return card!=null&&isPublished(card);
@@ -797,6 +867,11 @@ public final class ZnackNationalCatalogService {
     public record ObservedCard(long goodId,String gtin,String rawStatus,FeedProgress progress,
             com.vncode.app.features.catalogsync.CatalogProductData details,java.time.Instant checkedAt,boolean tradeUnit){
         public ObservedCard(long goodId,String gtin,String rawStatus,FeedProgress progress,com.vncode.app.features.catalogsync.CatalogProductData details,java.time.Instant checkedAt){this(goodId,gtin,rawStatus,progress,details,checkedAt,false);}
+        /** Only a real, ordinary Draft may enter the seller-reviewed update flow. */
+        public boolean draftForReview(){return goodId>0&&tradeUnit&&"draft".equalsIgnoreCase(rawStatus)
+                &&progress!=null&&!progress.failed()&&"CardDraft".equalsIgnoreCase(progress.status())
+                &&details!=null&&details.values("@catalog_signed").stream().allMatch("false"::equalsIgnoreCase)
+                &&details.values("@catalog_detailed_status").stream().allMatch(value->"draft".equalsIgnoreCase(value.strip()));}
     }
     /** Fresh exact-identity evidence. Authentication, parse and incomplete reads are never absence. */
     public ObservedCard observedCardStatus(String token,String gtin,Long expectedId)throws Exception {

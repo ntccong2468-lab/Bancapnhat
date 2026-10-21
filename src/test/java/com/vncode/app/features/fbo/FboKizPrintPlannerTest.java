@@ -115,7 +115,13 @@ class FboKizPrintPlannerTest {
             st.execute("INSERT INTO wb_product_cards(shop_id,nm_id,vendor_code,subject_name,need_kiz,synced_at) VALUES(1,1001,'ART','Shoes',1,'now')");
             st.execute("INSERT INTO wb_product_sizes(shop_id,chrt_id,nm_id,tech_size) VALUES(1,1,1001,'42')");
             st.execute("INSERT INTO wb_product_size_skus(shop_id,chrt_id,sku) VALUES(1,1,'SKU'),(1,1,'"+GTIN+"')");
-            if(mapping){st.execute("INSERT INTO gtin_sync_catalog VALUES(1,'WILDBERRIES','"+GTIN+"','{\"published\":true,\"tradeUnit\":true,\"owner\":\""+com.vncode.app.integration.listing.ListingIdentity.fingerprint(new com.vncode.app.models.Shop(1,"Shop","token"))+"\"}')");}
+            st.execute("INSERT INTO wb_product_characteristics(shop_id,nm_id,characteristic_id,name,value_json) VALUES(1,1001,14177449,'Цвет','[\"Black\"]')");
+        }
+        if(mapping){
+            var shop=new com.vncode.app.models.Shop(1,"Shop","token");
+            com.vncode.app.features.gtinsync.GtinWriteTestFixture.saveSettings(shop,com.vncode.app.features.gtinsync.GtinWriteTestFixture.CERTIFICATE,com.vncode.app.integration.znack.ZnackModels.PRODUCTION_TRUE_API);
+            var details=new com.vncode.app.features.catalogsync.CatalogProductData(java.util.Map.of("@catalog_id",List.of("91"),"@catalog_status",List.of("published")),List.of(),List.of());
+            new com.vncode.app.features.gtinsync.GtinSyncRepository().saveCatalog(1,shop.getMarketplace(),List.of(new com.vncode.app.features.gtinsync.GtinSyncModels.RegisteredGtin(GTIN,"ART","Black","42",true,true,com.vncode.app.features.gtinsync.RegisteredGtinProof.source(shop),java.time.Instant.now(),details)));
         }
         ZnackRepository repository = new ZnackRepository(new ShopContext(1, "Shop"));
         repository.upsertProducts(List.of(new Product(GTIN, "Shoes GTIN", null, null, null, null, null)));

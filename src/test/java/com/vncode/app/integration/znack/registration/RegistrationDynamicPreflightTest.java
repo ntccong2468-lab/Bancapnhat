@@ -40,6 +40,25 @@ class RegistrationDynamicPreflightTest {
         assertEquals(1,api.categories);assertEquals(1,api.attributes);assertEquals(1,api.permits);assertEquals(1,api.quota);
         assertThrows(RegistrationValidationException.class,()->RegistrationDynamicPreflight.approvals(review));assertEquals(0,api.writes);
     }
+    @Test void draftCandidateCatalogIsLoadedOnceForTheEntireReviewBatch()throws Exception{
+        var reads=new java.util.concurrent.atomic.AtomicInteger();
+        var settings=new ZnackRepository(new ZnackModels.ShopContext(shop.getId(),shop.getName())).getSettings();
+        var auth=new ZnackAuthService(api,null){@Override public String trueApiToken(ZnackModels.Settings ignored){return "fixture";}};
+        var catalog=new ZnackNationalCatalogService(api,auth,null,settings);
+        var checked=new RegistrationDynamicPreflight(s->new ZnackCardRegistrationWorkflow.CatalogSession("fixture",catalog,ZnackRegistrationScope.fromSettings(settings)),s->{reads.incrementAndGet();return new com.vncode.app.features.gtinsync.GtinSyncRepository().catalog(s.getId(),s.getMarketplace());});
+        var selected=java.util.stream.IntStream.rangeClosed(1,25).mapToObj(n->snapshot(Integer.toString(n))).toList();
+        assertEquals(25,checked.read(shop,selected,Map.of()).plans().size());assertEquals(1,reads.get());assertEquals(1,api.quota);assertEquals(0,api.writes);
+    }
+    @Test void onlyAScopedRecentUniquePhysicalDraftMayBypassExhaustedQuotaDuringReview()throws Exception{
+        api.exhausted=true;var selected=snapshot("1");
+        var details=new com.vncode.app.features.catalogsync.CatalogProductData(Map.of("@catalog_id",List.of("91"),"@catalog_status",List.of("draft"),"@catalog_detailed_status",List.of("draft")),List.of(),List.of());
+        new com.vncode.app.features.gtinsync.GtinSyncRepository().saveCatalog(shop.getId(),shop.getMarketplace(),List.of(new com.vncode.app.features.gtinsync.GtinSyncModels.RegisteredGtin(GtinWriteTestFixture.GTIN,"offer-1","Brown","52",true,false,com.vncode.app.features.gtinsync.RegisteredGtinProof.source(shop),Instant.now(),details)));
+        assertEquals(1,service.read(shop,List.of(selected),Map.of()).plans().size());assertEquals(0,api.quota);assertEquals(0,api.writes);
+        var wrong=snapshot("2");assertThrows(IllegalStateException.class,()->service.read(shop,List.of(wrong),Map.of()));
+        assertEquals(1,api.quota);assertEquals(0,api.writes);
+        new com.vncode.app.features.gtinsync.GtinSyncRepository().saveCatalog(shop.getId(),shop.getMarketplace(),List.of(new com.vncode.app.features.gtinsync.GtinSyncModels.RegisteredGtin(GtinWriteTestFixture.GTIN,"offer-1","Brown","52",true,false,"National Catalog@foreign",Instant.now(),details)));
+        assertThrows(IllegalStateException.class,()->service.read(shop,List.of(selected),Map.of()));assertEquals(2,api.quota);assertEquals(0,api.writes);
+    }
     @Test void enteredExactTypedValuesCompleteEveryCardWithoutAllocatingOrSubmitting()throws Exception{
         var one=snapshot("1");var two=snapshot("2");var entered=Map.of(one.key(),Map.of(999L,new RegistrationReviewedValues.Value("A","")),two.key(),Map.of(999L,new RegistrationReviewedValues.Value("B","")));
         var review=service.read(shop,List.of(one,two),entered);assertTrue(review.missing().isEmpty());assertTrue(review.blocked().isEmpty());
@@ -106,7 +125,8 @@ class RegistrationDynamicPreflightTest {
     }
     final class FixtureApi extends ZnackApiClient{
         int categories,attributes,permits,quota,writes,countries,fullModels;int permitStatus=1;boolean ambiguous,requiredRegulation,announcedCountry;String scope="6204";
-        public JsonElement generatedGtins(String base,String token){quota++;return json("{\"result\":{\"drafts\":[],\"monthly-limit\":{\"limit\":10000,\"usage\":0}}}");}
+        boolean exhausted;
+        public JsonElement generatedGtins(String base,String token){quota++;return json(exhausted?"{\"result\":{\"drafts\":[],\"monthly-limit\":{\"limit\":0,\"usage\":0}}}":"{\"result\":{\"drafts\":[],\"monthly-limit\":{\"limit\":10000,\"usage\":0}}}");}
         public JsonElement nationalCatalogCategories(String base,String token,String tnved){categories++;return json(ambiguous?"{\"result\":[{\"cat_id\":1,\"cat_name\":\"Other A\"},{\"cat_id\":2,\"cat_name\":\"Other B\"}]}":"{\"result\":[{\"cat_id\":1,\"cat_name\":\"Fixture\"}]}");}
         public JsonElement nationalCatalogAttributes(String base,String token,long category){attributes++;return attributeResponse();}
         public JsonElement nationalCatalogAllAttributes(String base,String token,long category){fullModels++;var response=attributeResponse();if(announcedCountry){var field=new JsonObject();field.addProperty("attr_id",2630);field.addProperty("attr_name","Страна производства");field.addProperty("attr_field_type","text");field.addProperty("attr_preset_only",true);response.getAsJsonArray("result").add(field);}return response;}

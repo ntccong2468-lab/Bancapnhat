@@ -6,6 +6,32 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 class WbContentApiRateLimiterTest {
+    @Test void errorListRoutingUsesItsOwnSixSecondQuotaIncludingLeadingSlash()throws Exception {
+        var clock=new AtomicLong();var buckets=new WbContentApiRateLimiter.Buckets(clock::get,clock::addAndGet);
+        for(int i=0;i<5;i++)buckets.awaitTurn("fixture-token",i%2==0?"content/v2/cards/error/list":"/content/v2/cards/error/list");
+        assertEquals(0,clock.get());buckets.awaitTurn("fixture-token","content/v2/cards/error/list");
+        assertEquals(Duration.ofSeconds(6).toNanos(),clock.get());
+        buckets.awaitTurn("fixture-token","content/v2/cards/limits");
+        assertEquals(Duration.ofSeconds(12).toNanos(),clock.get(),"Listing limits shares the documented error-list quota");
+    }
+    @Test void anErrorListCooldownDoesNotBlockOrdinaryReadsOrUpdates()throws Exception {
+        var clock=new AtomicLong();var buckets=new WbContentApiRateLimiter.Buckets(clock::get,clock::addAndGet);
+        buckets.registerRateLimit("fixture-token","/content/v2/cards/error/list",new okhttp3.Headers.Builder().add("Retry-After","45").build());
+        for(int i=0;i<5;i++){buckets.awaitTurn("fixture-token","content/v2/get/cards/list");buckets.awaitTurn("fixture-token","content/v2/cards/update");}
+        assertEquals(0,clock.get());buckets.awaitTurn("fixture-token","content/v2/cards/error/list");
+        assertEquals(Duration.ofSeconds(45).toNanos(),clock.get());buckets.awaitTurn("fixture-token","content/v2/cards/error/list");
+        assertEquals(Duration.ofSeconds(51).toNanos(),clock.get());
+    }
+    @Test void ordinaryReadAndUpdateCooldownsDoNotUseTheErrorListBucket()throws Exception {
+        var clock=new AtomicLong();var buckets=new WbContentApiRateLimiter.Buckets(clock::get,clock::addAndGet);
+        var headers=new okhttp3.Headers.Builder().add("Retry-After","30").build();
+        buckets.registerRateLimit("fixture-token","content/v2/get/cards/list",headers);
+        buckets.registerRateLimit("fixture-token","content/v2/cards/update",headers);
+        for(int i=0;i<5;i++)buckets.awaitTurn("fixture-token","content/v2/cards/error/list");
+        assertEquals(0,clock.get());buckets.awaitTurn("another-fixture-token","content/v2/cards/error/list");assertEquals(0,clock.get());
+        buckets.awaitTurn("fixture-token","content/v2/get/cards/list");assertEquals(Duration.ofSeconds(30).toNanos(),clock.get());
+        buckets.awaitTurn("fixture-token","content/v2/cards/update");assertEquals(Duration.ofSeconds(30).toNanos(),clock.get());
+    }
     @Test void updateBucketAllowsOfficialBurstThenRefillsAtTenPerMinute()throws Exception {
         var clock=new AtomicLong();
         var gate=new WbContentApiRateLimiter.Gate(Duration.ofSeconds(6),5,clock::get,clock::addAndGet);

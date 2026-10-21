@@ -19,8 +19,10 @@ public final class RegistrationDynamicPreflight {
     public record Blocked(ProductKey key,String article,String field,String detail,List<Category> categories){public Blocked{categories=List.copyOf(categories);}}
     public record Review(List<Plan> plans,List<Missing> missing,List<DocumentWarning> documents,List<Blocked> blocked){public Review(List<Plan> plans,List<Missing> missing){this(plans,missing,List.of(),List.of());}public Review{plans=List.copyOf(plans);missing=List.copyOf(missing);documents=List.copyOf(documents);blocked=List.copyOf(blocked);}}
     private final ZnackCardRegistrationWorkflow.CatalogFactory catalogs;
+    private final java.util.function.Function<Shop,List<com.vncode.app.features.gtinsync.GtinSyncModels.RegisteredGtin>> catalogRows;
     public RegistrationDynamicPreflight(){this(ZnackCardRegistrationWorkflow::productionCatalog);}
-    public RegistrationDynamicPreflight(ZnackCardRegistrationWorkflow.CatalogFactory catalogs){this.catalogs=catalogs;}
+    public RegistrationDynamicPreflight(ZnackCardRegistrationWorkflow.CatalogFactory catalogs){this(catalogs,shop->new com.vncode.app.features.gtinsync.GtinSyncRepository().catalog(shop.getId(),shop.getMarketplace()));}
+    RegistrationDynamicPreflight(ZnackCardRegistrationWorkflow.CatalogFactory catalogs,java.util.function.Function<Shop,List<com.vncode.app.features.gtinsync.GtinSyncModels.RegisteredGtin>> catalogRows){this.catalogs=catalogs;this.catalogRows=catalogRows;}
     public Review read(Shop shop,List<ProductSnapshot> snapshots,Map<ProductKey,Map<Long,RegistrationReviewedValues.Value>> entered)throws Exception{
         return read(shop,snapshots,entered,Map.of());
     }
@@ -30,13 +32,15 @@ public final class RegistrationDynamicPreflight {
     public Review read(Shop shop,List<ProductSnapshot> snapshots,Map<ProductKey,Map<Long,RegistrationReviewedValues.Value>> entered,Map<ProductKey,String> acknowledgedDocuments,Map<ProductKey,Long> categories)throws Exception{
         CatalogSession session=null;ZnackNationalCatalogService.CountryReadScope countryRead=null;var preflights=new HashMap<String,ZnackNationalCatalogService.Preflight>();var schemas=new HashMap<Long,List<Attribute>>();var plans=new ArrayList<Plan>();var missing=new ArrayList<Missing>();var warnings=new ArrayList<DocumentWarning>();var blocked=new ArrayList<Blocked>();var documentsCache=new HashMap<String,ZnackRegistrationDocuments.Selection>();
         var settings=new ZnackRepository(new ZnackModels.ShopContext(shop.getId(),shop.getName())).getSettings();
+        var draftCandidates=new DraftCandidates(shop,catalogRows.apply(shop));
         try{
         for(var original:snapshots){
             var snapshot=shop.getMarketplace()==Marketplace.OZON?new com.vncode.app.integration.ozon.OzonShopBrand().apply(shop,original):original;
             if(Thread.currentThread().isInterrupted())throw new java.io.InterruptedIOException("ZNACK_PREFLIGHT_CANCELLED");ListingIdentity.require(shop,snapshot.key());
             if(session==null){session=catalogs.open(shop);countryRead=session.catalog().registrationCountryReadScope();}session.scope().assertCurrent(shop);
             String tnved=ProductFieldNames.tnvedCode(snapshot.attributes().stream().filter(a->ProductFieldNames.matches("tnved",a.name())).flatMap(a->a.values().stream()).findFirst().orElse(""));
-            var checked=preflights.get(tnved);if(checked==null){checked=session.catalog().preflight(tnved);preflights.put(tnved,checked);}
+            boolean existingDraft=draftCandidates.matches(shop,snapshot);String preflightKey=tnved+"/"+existingDraft;
+            var checked=preflights.get(preflightKey);if(checked==null){checked=existingDraft?session.catalog().preflightExisting(tnved,session.token()):session.catalog().preflight(tnved);preflights.put(preflightKey,checked);}
             var selectedDocuments=ZnackRegistrationDocuments.select(snapshot,settings,LocalDate.now());String documentKey=tnved+"/"+selectedDocuments.source()+"/"+RegistrationReviewedValues.permitRevision(selectedDocuments);var documents=documentsCache.get(documentKey);if(documents==null){documents=session.catalog().reviewDocuments(session.token(),selectedDocuments,tnved);documentsCache.put(documentKey,documents);}
             if(documents.automatic()==null&&documents.candidates().size()==1&&!documents.issues().isEmpty()&&documents.issues().stream().allMatch(RegistrationPermitValidator::advisory))documents=new ZnackRegistrationDocuments.Selection(documents.candidates(),documents.candidates().getFirst(),documents.source(),false,documents.issues());
             if(documents.automatic()==null||documents.requiresReview()){blocked.add(new Blocked(snapshot.key(),snapshot.vendorArticle(),"documents","ZNACK_PRODUCT_DOCUMENT_REVIEW_REQUIRED; "+String.join("; ",documents.issues()),List.of()));continue;}
@@ -60,6 +64,34 @@ public final class RegistrationDynamicPreflight {
         }
         return new Review(plans,missing,warnings,blocked);
         }finally{if(countryRead!=null)countryRead.close();}
+    }
+    /** A scoped, recent, unique physical Draft permits quota-free review, never a write. */
+    static boolean knownDraftForReview(Shop shop,ProductSnapshot snapshot){
+        return new DraftCandidates(shop,new com.vncode.app.features.gtinsync.GtinSyncRepository().catalog(shop.getId(),shop.getMarketplace())).matches(shop,snapshot);
+    }
+    private static final class DraftCandidates{
+        private final Map<String,List<com.vncode.app.features.gtinsync.GtinSyncModels.RegisteredGtin>> articles=new HashMap<>();
+        private final com.vncode.app.features.gtinsync.OzonSkuGtinMatcher ozon;
+        DraftCandidates(Shop shop,List<com.vncode.app.features.gtinsync.GtinSyncModels.RegisteredGtin> observed){
+            com.vncode.app.features.gtinsync.RegisteredGtinProof.Scope scope;
+            try{scope=com.vncode.app.features.gtinsync.RegisteredGtinProof.current(shop);}
+            catch(com.vncode.app.features.gtinsync.RegisteredGtinProof.UnverifiedOwnerException unknown){ozon=new com.vncode.app.features.gtinsync.OzonSkuGtinMatcher(List.of(),true);return;}
+            var now=java.time.Instant.now();
+            var rows=observed.stream()
+                .filter(row->row.source().equals(scope.source())&&row.tradeUnit()
+                        &&com.vncode.app.features.gtinsync.RegisteredGtinProof.identifiedObservation(row)
+                        &&!row.syncedAt().isBefore(now.minusSeconds(86400))&&!row.syncedAt().isAfter(now.plusSeconds(300)))
+                .toList();
+            for(var row:rows)articles.computeIfAbsent(com.vncode.app.features.gtinsync.GtinMatchingService.normalizeArticle(row.article()),key->new ArrayList<>()).add(row);
+            ozon=new com.vncode.app.features.gtinsync.OzonSkuGtinMatcher(rows,true);
+        }
+        boolean matches(Shop shop,ProductSnapshot snapshot){
+            var variants=snapshot.variants().stream().filter(value->value.id().equals(snapshot.key().variantId())).toList();
+            if(variants.size()!=1)return false;var variant=variants.getFirst();
+            var matches=articles.getOrDefault(com.vncode.app.features.gtinsync.GtinMatchingService.normalizeArticle(snapshot.vendorArticle()),List.of()).stream().filter(row->com.vncode.app.integration.listing.ListingIdentity.compatibleVariant(row,snapshot.vendorArticle(),variant.color(),variant.size(),variant.russianSize())).toList();
+            if(matches.isEmpty()&&shop.getMarketplace()==Marketplace.OZON)matches=ozon.candidates(snapshot.key().variantId(),snapshot.vendorArticle(),variant.color(),variant.size(),variant.russianSize(),snapshot.title(),snapshot.metadata().getOrDefault("source.category.name",""),snapshot.brand());
+            return matches.size()==1&&CatalogCardState.reviewableDraft(matches.getFirst());
+        }
     }
     public static List<Missing> inspect(Plan plan){
         var result=new ArrayList<Missing>();var draft=plan.draft();String wbSize=plan.snapshot().variants().stream().filter(v->v.id().equals(plan.snapshot().key().variantId())).map(ProductVariant::russianSize).findFirst().orElse("");

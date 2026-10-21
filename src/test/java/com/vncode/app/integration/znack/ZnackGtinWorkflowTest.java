@@ -874,8 +874,8 @@ class ZnackGtinWorkflowTest {
             @Override public JsonElement cisesInfo(String base, String token, JsonElement body) {
                 requested.set(body.getAsJsonArray().get(0).getAsString());
                 return JsonParser.parseString("""
-                        [{"cisInfo":{"gtin":"%s","productName":"A","status":"APPLIED","statusEx":"EMPTY"}}]
-                        """.formatted(A));
+                        [{"cisInfo":{"requestedCis":"%s","cis":"%s","gtin":"%s","productName":"A","status":"APPLIED","statusEx":"EMPTY"}}]
+                        """.formatted(requested.get(),requested.get(),A));
             }
         };
         ZnackAuthService auth = new ZnackAuthService(api, (input, context) -> null) {

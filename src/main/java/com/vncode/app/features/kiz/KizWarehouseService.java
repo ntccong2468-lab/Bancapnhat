@@ -68,7 +68,7 @@ public final class KizWarehouseService {
             if(!wanted.containsKey(cis))continue;
             if(!seen.add(cis)){result.put(cis,new Verdict(false,"KIZ_VERIFY_DUPLICATE_RESPONSE"));continue;}
             var item=wanted.get(cis);String reason="KIZ_READY";
-            if(!text(entry,"errorCode").isBlank()||!text(entry,"errorMessage").isBlank())reason="KIZ_VERIFY_LOOKUP_FAILED";
+            if(ZnackErrorMessages.hasCisLookupError(entry)||info!=entry&&ZnackErrorMessages.hasCisLookupError(info))reason="KIZ_VERIFY_LOOKUP_FAILED";
             else if(!inn.equals(text(info,"ownerInn")))reason="KIZ_OWNER_MISMATCH";
             else if(!RegisteredGtinProof.sameCode(item.gtin(),text(info,"gtin")))reason="KIZ_GTIN_MISMATCH";
             else if(!text(info,"status").equals("INTRODUCED")||!Set.of("","EMPTY").contains(text(info,"statusEx")))reason="KIZ_NOT_IN_CIRCULATION";

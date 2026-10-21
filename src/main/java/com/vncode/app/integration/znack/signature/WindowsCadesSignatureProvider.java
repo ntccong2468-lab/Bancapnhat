@@ -303,21 +303,26 @@ final class WindowsCadesSignatureProvider implements ZnackSignatureProvider, Xml
     }
 
     static void requireAvailable(Duration timeout) throws CryptoProException {
+        requireAvailable(new CryptoProCommandRunner(), timeout);
+    }
+
+    static void requireAvailable(CryptoProCommandRunner runner, Duration timeout) throws CryptoProException {
         CryptoProCommandRunner.Result result;
         try {
-            result = runWithPowerShellFallback(new CryptoProCommandRunner(), "-Command",
+            result = runWithPowerShellFallback(runner, "-Command",
                     new String[]{PROBE_SCRIPT}, timeout);
             if (result.exitCode() != 0 && safeToRetryInOtherPowerShell(result)) {
                 Path probe = Files.createTempFile("vncode-cades-probe-", ".vbs");
                 try {
                     Files.writeString(probe, VBS_PROBE_SCRIPT, StandardCharsets.UTF_8);
-                    result = runWithCscriptFallback(new CryptoProCommandRunner(),
+                    result = runWithCscriptFallback(runner,
                             new String[]{probe.toString()}, timeout);
                 } finally {
                     Files.deleteIfExists(probe);
                 }
             }
         } catch (CryptoProException error) {
+            if (error.code() == CryptoProErrorCode.CANCELLED || error.code() == CryptoProErrorCode.TIMEOUT) throw error;
             throw unavailable(error);
         } catch (Exception error) {
             throw unavailable(new CryptoProException(CryptoProErrorCode.CADESCOM_MISSING,

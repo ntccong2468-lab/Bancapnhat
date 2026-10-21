@@ -43,6 +43,7 @@ public final class FriendlyErrorService {
         String code="VN_LOCAL";
         Throwable cause=error;
         for(int depth=0;cause!=null&&depth<8;depth++,cause=cause.getCause()) {
+            if("SUZ_ORDER_RECONCILIATION_INVALID".equals(cause.getMessage())){code="SUZ_ORDER_RECONCILIATION_INVALID";break;}
             if("PRODUCT_PROPOSAL_CHANGED".equals(cause.getMessage())){code="PRODUCT_PROPOSAL_CHANGED";break;}
             if(REGISTRATION_MODEL_ERRORS.contains(cause.getMessage()==null?"":cause.getMessage())){code=cause.getMessage();break;}
             String bufferIssue = ZnackErrorMessages.kizOrderBufferIssueCode(cause.getMessage());
@@ -69,6 +70,7 @@ public final class FriendlyErrorService {
         if(error instanceof com.vncode.app.features.sync.ZnackGtinBackgroundService.RunException&&error.getCause()!=null)return formatDetail(error.getCause());
         Throwable cause=error;
         for(int depth=0;cause!=null&&depth<8;depth++,cause=cause.getCause()) {
+            if("SUZ_ORDER_RECONCILIATION_INVALID".equals(cause.getMessage()))return I18nService.getInstance().tr("znack.error.suz_order_reconciliation_invalid");
             if("PRODUCT_PROPOSAL_CHANGED".equals(cause.getMessage()))return I18nService.getInstance().tr("bulk.proposal.changed");
             if(REGISTRATION_MODEL_ERRORS.contains(cause.getMessage()==null?"":cause.getMessage()))
                 return I18nService.getInstance().tr("znack.registration.reason."+cause.getMessage());

@@ -77,7 +77,7 @@ public class PrintHistoryController {
                 } else {
                     button.setDisable(!job.canReprint());
                     reconcile.setText(I18nService.getInstance().tr("history.reconcile_kiz"));
-                    reconcile.setDisable(!job.canReprint()||job.isFbo()||onReconcile==null);
+                    reconcile.setDisable(!job.canReprint()||job.isFbo()||job.isKizExport()||onReconcile==null);
                     setGraphic(actions);
                 }
             }

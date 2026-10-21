@@ -111,6 +111,18 @@ class FriendlyErrorCodeTest {
   assertEquals("",com.vncode.app.integration.znack.ZnackErrorMessages.kizOrderBufferIssueCode(null));
  }
 
+ @Test void malformedSuzOrderReconciliationHasLocalizedAdviceAndRetainsItsTechnicalCause() {
+  var i18n=I18nService.getInstance();var previous=i18n.getCurrentLanguage();
+  var cause=new java.io.IOException("SUZ_ORDER_RECONCILIATION_INVALID");
+  var wrapped=new java.util.concurrent.CompletionException("private account token=secret-value",cause);
+  try{for(var language:AppLanguage.values()){
+   i18n.setLanguage(language);String key="znack.error.suz_order_reconciliation_invalid",expected=i18n.tr(key);
+   assertNotEquals(key,expected);assertFalse(expected.isBlank());
+   assertEquals(expected+"\n[SUZ_ORDER_RECONCILIATION_INVALID]",FriendlyErrorService.format(wrapped));
+   assertSame(cause,wrapped.getCause());assertEquals("SUZ_ORDER_RECONCILIATION_INVALID",cause.getMessage());
+  }}finally{i18n.setLanguage(previous);}
+ }
+
  @Test void catalogModelReadFailuresHaveLocalizedAdviceAndKeepTheirCodesThroughWrappers() {
   var i18n=I18nService.getInstance();var previous=i18n.getCurrentLanguage();
   try{for(var language:AppLanguage.values()){

@@ -48,6 +48,23 @@ public class PrintHistoryService {
     public long recordPreparedFboJob(Shop shop,String templateName,String layoutJson,List<Order> orders) {
         return repository.insertPreparedFboJob(shop,templateName,layoutJson,snapshotItems(orders));
     }
+    public long recordPreparedJob(Shop shop,String supplyId,String supplyName,String printedAt,
+                                  PrintTemplate template,List<Order> orders) {
+        return repository.insertPreparedJob(shop,supplyId,supplyName,printedAt,template.getId(),
+                template.getName(),printTemplateService.toJson(template),snapshotItems(orders));
+    }
+    public long recordPreparedKizJob(Shop shop,
+            com.vncode.app.features.kizmapping.ZnackKizLabelMetadata metadata,
+            List<com.vncode.app.models.Kiz> codes,String gtin) {
+        var orders=new ArrayList<Order>();
+        for(var code:codes){var order=new Order();order.setId((long)code.getId());
+            order.setName(metadata.productName());order.setSize(metadata.size());order.setKiz(code.getCode());orders.add(order);}
+        var layout=new com.google.gson.JsonObject();layout.addProperty("kind","znack-kiz-label/v1");
+        layout.addProperty("gtin",com.vncode.app.integration.znack.GtinNormalizer.normalize(gtin));
+        layout.add("metadata",new com.google.gson.Gson().toJsonTree(metadata));
+        return repository.insertPreparedJob(shop,"KIZ/"+java.util.UUID.randomUUID(),"Nhãn KIZ",
+                java.time.Instant.now().toString(),null,"Nhãn KIZ",layout.toString(),snapshotItems(orders));
+    }
     private List<PrintHistoryItem> snapshotItems(List<Order> orders) {
         List<PrintHistoryItem> items = new ArrayList<>(orders.size());
         for (int index = 0; index < orders.size(); index++) {
@@ -110,7 +127,7 @@ public class PrintHistoryService {
     public OrderExportWorkflow.ExportResult reprint(PrintHistoryJobSummary job, File outputFile, File detailsFile) throws IOException, WriterException {
         if(job==null||!job.canReprint())throw new IllegalArgumentException("Print history is not recoverable");
         boolean ozonCombined=job.isFbo()&&"OZON".equalsIgnoreCase(job.marketplace())&&com.vncode.app.integration.ozon.OzonFboBarcodePdfExporter.isFrozenLayout(job.templateLayoutJson());
-        PrintTemplate template = ozonCombined?null:job.templateLayoutJson()==null||job.templateLayoutJson().isBlank()?printTemplateService.getDefaultTemplate():printTemplateService.fromJson(job.templateLayoutJson());
+        PrintTemplate template = ozonCombined||job.isKizExport()?null:job.templateLayoutJson()==null||job.templateLayoutJson().isBlank()?printTemplateService.getDefaultTemplate():printTemplateService.fromJson(job.templateLayoutJson());
         PrintJobOptions printOptions = printPreferenceService.load();
         File barcodeStaging = null;
         File detailsStaging = null;
@@ -118,7 +135,14 @@ public class PrintHistoryService {
             List<Order> orders = toOrders(repository.findItems(job.id()));
             barcodeStaging = AtomicFilePublisher.stagingFile(outputFile, ".pdf");
             detailsStaging = AtomicFilePublisher.stagingFile(detailsFile, ".pdf");
-            if(ozonCombined)com.vncode.app.integration.ozon.OzonFboBarcodePdfExporter.renderFrozen(job.templateLayoutJson(),orders,barcodeStaging);
+            if(job.isKizExport()){
+                var layout=com.google.gson.JsonParser.parseString(job.templateLayoutJson()).getAsJsonObject();
+                if(!"znack-kiz-label/v1".equals(layout.get("kind").getAsString()))throw new IOException("Không nhận dạng được bố cục nhãn KIZ đã lưu.");
+                var metadata=new com.google.gson.Gson().fromJson(layout.get("metadata"),com.vncode.app.features.kizmapping.ZnackKizLabelMetadata.class);
+                var codes=orders.stream().map(order->new com.vncode.app.models.Kiz(Math.toIntExact(order.getId()),order.getKiz())).toList();
+                new com.vncode.app.features.print.ZnackKizLabelPdfExporter().write(codes,metadata,barcodeStaging);
+            }
+            else if(ozonCombined)com.vncode.app.integration.ozon.OzonFboBarcodePdfExporter.renderFrozen(job.templateLayoutJson(),orders,barcodeStaging);
             else if(job.isFbo())com.vncode.app.features.print.GenerateBarcode.exportTemplatePages(template,orders,barcodeStaging);
             else barcodePrintService.export(template, orders, barcodeStaging, printOptions);
             orderDetailsPdfExporter.export(detailsStaging, orders, new OrderDetailsPdfExporter.PrintDetailsMetadata(
@@ -130,6 +154,7 @@ public class PrintHistoryService {
             ));
             AtomicFilePublisher.publish(barcodeStaging, outputFile);
             AtomicFilePublisher.publish(detailsStaging, detailsFile);
+            if("pdf_ready".equalsIgnoreCase(job.status()))repository.finishPrintJob(job.shopId(),job.id(),"pdf_ready","success");
             return new OrderExportWorkflow.ExportResult(orders, List.of(), 0L, List.of());
         } finally {
             AtomicFilePublisher.deleteQuietly(barcodeStaging);

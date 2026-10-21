@@ -27,12 +27,20 @@ final class RegistrationAutomaticDraft {
         var selected=ZnackRegistrationDocuments.select(snapshot,settings,LocalDate.now());
         if(selected.candidates().isEmpty())throw new RegistrationValidationException("ZNACK_MISSING_PRODUCT_DOCUMENT");
         var session=ZnackCardRegistrationWorkflow.productionCatalog(shop);
-        var preflight=session.catalog().preflight(tnved);session.scope().assertCurrent(shop);
+        ZnackNationalCatalogService.Preflight preflight;
+        if(sku.canReviewExistingDraft())preflight=session.catalog().preflightExisting(tnved,session.token());
+        else try{preflight=session.catalog().preflight(tnved);}
+        catch(IllegalStateException quota){
+            if(quota.getMessage()==null||!quota.getMessage().startsWith("GS1/GTIN quota is unavailable or exhausted")||!RegistrationDynamicPreflight.knownDraftForReview(shop,snapshot))throw quota;
+            preflight=session.catalog().preflightExisting(tnved,session.token());
+        }
+        session.scope().assertCurrent(shop);
+        var reviewPreflight=preflight;
         selected=session.catalog().reviewDocuments(preflight.token(),selected,tnved);session.scope().assertCurrent(shop);
         selected=RegistrationReviewedValues.reviewedDocuments(shop,snapshot,selected);
         if(selected.automatic()==null||selected.requiresReview())throw new RegistrationValidationException("ZNACK_PRODUCT_DOCUMENT_REVIEW_REQUIRED");
         var snapshotForReview=snapshot;
-        var resolved=ZnackCategoryResolver.resolve(inputs.sku().subjectName(),inputs.sku().title(),preflight.categories()).or(()->RegistrationReviewedValues.reviewedCategory(shop,snapshotForReview,preflight.categories())).orElseThrow(()->new RegistrationValidationException("ZNACK_CATEGORY_REVIEW_REQUIRED"));
+        var resolved=ZnackCategoryResolver.resolve(inputs.sku().subjectName(),inputs.sku().title(),preflight.categories()).or(()->RegistrationReviewedValues.reviewedCategory(shop,snapshotForReview,reviewPreflight.categories())).orElseThrow(()->new RegistrationValidationException("ZNACK_CATEGORY_REVIEW_REQUIRED"));
         try(var countryRead=session.catalog().registrationCountryReadScope()){
         var required=session.catalog().registrationAttributes(resolved.id(),preflight.token());
         var mapped=new ZnackWbAttributeMapper().map(inputs.sku(),inputs.characteristics(),required,preflight.tnved(),preflight.categoryTnved(),selected.automatic());

@@ -82,38 +82,55 @@ public class ZnackKizOrderService {
     public OrderReconciliation reconcile(Settings s,KizOrder local)throws Exception{
         ZnackSafety.requireSigned(s,true);
         JsonObject response=api.orderList(s.resolvedSuzBaseUrl(),auth.suzToken(s),s.omsId());
-        JsonArray orderInfos=response.has("orderInfos")&&response.get("orderInfos").isJsonArray()
-                ?response.getAsJsonArray("orderInfos"):new JsonArray();
+        if(response==null||hasReconciliationErrors(response)||!response.has("orderInfos")||!response.get("orderInfos").isJsonArray())throw invalidReconciliation(null);
+        // The published list request is scoped by omsId. Do not invent a mandatory
+        // response field; if the server supplies one, it must be the original OMS.
+        if(response.has("omsId")&&!strictText(response,"omsId").equals(s.omsId()))throw invalidReconciliation(null);
+        JsonArray orderInfos=response.getAsJsonArray("orderInfos");
         Instant earliest=local.createdAt().minus(RECONCILIATION_CLOCK_SKEW);
         Instant latest=local.createdAt().plus(RECONCILIATION_WINDOW);
-        List<RemoteOrder> matches=new ArrayList<>();
+        List<RemoteOrder> matches=new ArrayList<>();var identities=new java.util.HashSet<String>();
         for(JsonElement element:orderInfos){
-            if(!element.isJsonObject())continue;
-            JsonObject candidate=element.getAsJsonObject();
-            String externalId=text(candidate,"orderId");
-            if(externalId.isBlank()||!candidate.has("createdTimestamp")||candidate.get("createdTimestamp").isJsonNull())continue;
+            if(!element.isJsonObject())throw invalidReconciliation(null);
+            JsonObject candidate=element.getAsJsonObject();if(hasReconciliationErrors(candidate))throw invalidReconciliation(null);
+            String externalId=strictText(candidate,"orderId"),status=strictText(candidate,"orderStatus");
+            if(!identities.add(externalId))throw invalidReconciliation(null);
             Instant created;
-            try{created=Instant.ofEpochMilli(candidate.get("createdTimestamp").getAsLong());}
-            catch(RuntimeException invalid){continue;}
-            if(created.isBefore(earliest)||created.isAfter(latest))continue;
-            JsonArray buffers=candidate.has("buffers")&&candidate.get("buffers").isJsonArray()
-                    ?candidate.getAsJsonArray("buffers"):new JsonArray();
+            try{created=Instant.ofEpochMilli(exactNonnegative(candidate,"createdTimestamp"));}
+            catch(RuntimeException invalid){throw invalidReconciliation(invalid);}
+            if(!candidate.has("buffers")||!candidate.get("buffers").isJsonArray()||candidate.getAsJsonArray("buffers").isEmpty())throw invalidReconciliation(null);
             int matchingQuantity=0;
-            for(JsonElement bufferElement:buffers){
-                if(!bufferElement.isJsonObject())continue;
-                JsonObject buffer=bufferElement.getAsJsonObject();
-                String candidateGtin=text(buffer,"gtin");
-                if(candidateGtin.isBlank())continue;
-                if(!local.gtin().equals(GtinNormalizer.normalize(candidateGtin)))continue;
-                matchingQuantity+=integer(buffer,"totalCodes");
+            for(JsonElement bufferElement:candidate.getAsJsonArray("buffers")){
+                if(!bufferElement.isJsonObject())throw invalidReconciliation(null);
+                JsonObject buffer=bufferElement.getAsJsonObject();if(hasReconciliationErrors(buffer))throw invalidReconciliation(null);
+                String candidateGtin=strictText(buffer,"gtin");if(!candidateGtin.matches("[0-9]{8,14}"))throw invalidReconciliation(null);
+                int quantity;
+                try{quantity=Math.toIntExact(exactNonnegative(buffer,"totalCodes"));}
+                catch(RuntimeException invalid){throw invalidReconciliation(invalid);}
+                if(local.gtin().equals(GtinNormalizer.normalize(candidateGtin)))try{matchingQuantity=Math.addExact(matchingQuantity,quantity);}
+                catch(ArithmeticException invalid){throw invalidReconciliation(invalid);}
             }
-            if(matchingQuantity==local.quantity()){
-                matches.add(new RemoteOrder(externalId,text(candidate,"orderStatus"),created));
-            }
+            if(!created.isBefore(earliest)&&!created.isAfter(latest)&&matchingQuantity==local.quantity())matches.add(new RemoteOrder(externalId,status,created));
         }
         if(matches.isEmpty())return new OrderReconciliation(ReconciliationStatus.NOT_FOUND,null,0);
         if(matches.size()>1)return new OrderReconciliation(ReconciliationStatus.CONFLICT,null,matches.size());
         return new OrderReconciliation(ReconciliationStatus.MATCHED,matches.getFirst(),1);
+    }
+    private static IOException invalidReconciliation(Throwable cause){return new IOException("SUZ_ORDER_RECONCILIATION_INVALID",cause);}
+    private static String strictText(JsonObject value,String field)throws IOException{
+        var raw=value.get(field);if(raw==null||!raw.isJsonPrimitive()||!raw.getAsJsonPrimitive().isString()||raw.getAsString().isBlank())throw invalidReconciliation(null);return raw.getAsString();
+    }
+    private static long exactNonnegative(JsonObject value,String field){
+        var raw=value.get(field);if(raw==null||!raw.isJsonPrimitive()||!raw.getAsJsonPrimitive().isNumber())throw new IllegalArgumentException("Missing numeric field");
+        long result=raw.getAsBigDecimal().longValueExact();if(result<0)throw new IllegalArgumentException("Negative numeric field");return result;
+    }
+    private static boolean hasReconciliationErrors(JsonObject value){
+        for(String key:List.of("error","errorCode","errorMessage","error_message","errors","globalErrors","fieldErrors")){
+            var raw=value.get(key);if(raw==null||raw.isJsonNull())continue;
+            if(raw.isJsonArray()&&raw.getAsJsonArray().isEmpty()||raw.isJsonObject()&&raw.getAsJsonObject().size()==0)continue;
+            if(raw.isJsonPrimitive()){var primitive=raw.getAsJsonPrimitive();if(primitive.isString()&&primitive.getAsString().isBlank()||primitive.isBoolean()&&!primitive.getAsBoolean())continue;if(key.equals("errorCode")&&(primitive.isNumber()||primitive.isString())&&primitive.getAsString().equals("0"))continue;}
+            return true;
+        }return false;
     }
     public enum ReconciliationStatus{MATCHED,NOT_FOUND,CONFLICT}
     public record OrderReconciliation(ReconciliationStatus status,RemoteOrder order,int candidateCount){}

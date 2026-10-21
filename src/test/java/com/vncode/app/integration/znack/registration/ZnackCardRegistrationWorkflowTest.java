@@ -669,6 +669,58 @@ class ZnackCardRegistrationWorkflowTest {
         assertFalse(workflow.signApproved(shop,List.of(current()),true,null));assertEquals(0,api.signatures.get());
         assertFalse(RegistrationSigningConsent.allowed(shop,new com.vncode.app.features.products.ProductKey(1,shop.getMarketplace(),"101","11"),current().gtin()));
     }
+    @Test void reviewedGenuineDraftUpdatesItsExistingIdentityWithoutAllocationSigningOrMarketplaceGrant()throws Exception{
+        prepareReviewedRawDraft();var reviewed=reviewedDraftWorkflow();
+        assertTrue(reviewed.start(shop,current(),draft.withAutoSign(true),null));
+        assertDraftUpdateOnly();assertTrue(current().hasFeed());assertEquals("feed-new",current().feedId());assertEquals(Status.PROCESSING,current().status());
+    }
+    @Test void adoptedNativeDraftWithoutFeedCanBeReviewedAndSubmittedOnceWithItsExistingGtin()throws Exception{
+        prepareReviewedRawDraft();repository.saveGenerated(1,current(),"04631993764370","6204",1,"Fixture","");
+        repository.updateProgress(1,11,Status.PROCESSING,null,91L,"CATALOG_CARD_DRAFT",false);assertTrue(current().canReviewExistingDraft());
+        assertTrue(reviewedDraftWorkflow().start(shop,current(),draft.withAutoSign(true),null));
+        assertDraftUpdateOnly();assertTrue(current().hasFeed());assertEquals(Status.PROCESSING,current().status());
+    }
+    @Test void uncertainDraftSubmissionAndStillDraftReadbackCannotReplayOrGrantAnotherAction()throws Exception{
+        prepareReviewedRawDraft();api.feedTimeout=true;var reviewed=reviewedDraftWorkflow();
+        assertTrue(reviewed.start(shop,current(),draft.withAutoSign(true),null));assertEquals(Status.FEED_REVIEW_REQUIRED,current().status());assertFalse(current().hasFeed());assertDraftUpdateOnly();
+        String frozen=repository.payload(1,11);assertTrue(ZnackNationalCatalogService.hasReviewedDraft(JsonParser.parseString(frozen).getAsJsonObject()));
+        assertTrue(reviewed.verifySubmissionForBatch(shop,current()));assertEquals(Status.FEED_REVIEW_REQUIRED,current().status());assertEquals(frozen,repository.payload(1,11));
+        assertFalse(reviewed.resumeSubmissionOnly(shop,current(),true,null));assertFalse(reviewed.start(shop,current(),draft,null));assertEquals(1,api.submissions.get());assertEquals(0,api.allocations.get());assertEquals(0,api.signatures.get());
+    }
+    @Test void restartedKnownUnsentReviewedDraftDispatchesOnlyTheFrozenPayloadWithoutAutoGrants()throws Exception{
+        prepareReviewedRawDraft();var approved=new Draft("6204",1,"Frozen reviewed name","Brand",Map.of(1L,"Frozen reviewed value"));
+        var body=ZnackNationalCatalogService.buildPayload("04631993764370",approved,"");body.addProperty("good_id",91L);var checkpoint=ZnackNationalCatalogService.reviewedDraftPayload(shop,body);
+        repository.saveReadyToSubmitGenerated(1,current(),"04631993764370","6204",1,approved.goodName(),checkpoint.toString());repository.updateProgress(1,11,Status.READY_TO_SUBMIT,null,91L,null,false);
+        String frozen=repository.payload(1,11);assertTrue(current().canResume());
+        var restarted=reviewedDraftWorkflow();assertTrue(restarted.resumeSubmissionOnly(shop,current(),true,null));assertDraftUpdateOnly();
+        assertEquals(ZnackNationalCatalogService.normalizedFeed(body),api.lastPayload);assertEquals(frozen,repository.payload(1,11));assertEquals(Status.PROCESSING,current().status());
+    }
+    private void prepareReviewedRawDraft()throws Exception{
+        com.vncode.app.features.gtinsync.GtinWriteTestFixture.saveSettings(shop,com.vncode.app.features.gtinsync.GtinWriteTestFixture.CERTIFICATE,ZnackModels.PRODUCTION_TRUE_API);
+        try(var c=Database.getConnection();var statement=c.createStatement()){statement.execute("INSERT INTO wb_product_characteristics(shop_id,nm_id,characteristic_id,name,value_json) VALUES(1,101,14177449,'Цвет','[\"черный\"]')");}
+        api.preExistingRawDraft=JsonParser.parseString("""
+            {"good_id":91,"gtin":"04631993764370","good_status":"draft","good_signed":false,
+             "good_detailed_status":["draft"],"article":"PANTS","color":"черный","size":"XL","tnved":"6204",
+             "good_name":"Fixture","brand":"Brand","good_attrs":[{"attr_id":1,"attr_value":"Fixture"}],
+             "identified_by":[{"type":"gtin","value":"04631993764370","level":"trade-unit"}]}
+            """).getAsJsonObject();
+    }
+    private ZnackCardRegistrationWorkflow reviewedDraftWorkflow(){
+        return new ZnackCardRegistrationWorkflow(repository,owner->{
+            var settings=new ZnackRepository(new ZnackModels.ShopContext(owner.getId(),owner.getName())).getSettings();
+            var auth=new ZnackAuthService(api,null){@Override public String trueApiToken(ZnackModels.Settings ignored){return "fixture-token";}};
+            return new ZnackCardRegistrationWorkflow.CatalogSession("fixture-token",new ZnackNationalCatalogService(api,auth,
+                    (payload,context)->{throw new AssertionError("An ordinary draft review is not permission to sign");},settings));
+        },Runnable::run,false,(owner,nm,variant,gtin)->{throw new AssertionError("Draft review cannot write marketplace data");},()->new RegistrationExistingCards.LookupContext(
+                (owner,session)->{var data=CatalogProductDataParser.parse(api.preExistingRawDraft);return List.of(new com.vncode.app.features.gtinsync.GtinSyncModels.RegisteredGtin("04631993764370","PANTS","черный","XL",true,false,"fixture",java.time.Instant.now(),data));},
+                (session,gtin,id)->session.catalog().observedCardStatus(session.token(),gtin,id),(owner,session)->"fixture"));
+    }
+    private void assertDraftUpdateOnly(){
+        assertEquals(0,api.allocations.get());assertEquals(0,api.signatures.get());assertEquals(1,api.submissions.get());assertEquals(91L,current().goodId());assertEquals("04631993764370",current().gtin());
+        assertNotNull(api.lastPayload);assertEquals(91L,api.lastPayload.get("good_id").getAsLong());assertEquals("04631993764370",api.lastPayload.get("gtin").getAsString());assertEquals(1,api.lastPayload.get("moderation").getAsInt());
+        assertTrue(api.lastPayload.keySet().stream().noneMatch(key->key.startsWith("_vncode")));var key=new com.vncode.app.features.products.ProductKey(1,shop.getMarketplace(),"101","11");
+        assertFalse(RegistrationSigningConsent.allowed(shop,key,current().gtin()));assertFalse(RegistrationMarketplaceConsent.allowed(shop,key,current().gtin()));
+    }
     Draft automaticDraft(){return new Draft("6204420000","6204420000",1,"Fixture","Brand",Map.of(1L,"Fixture"),Map.of(),true);}
     ZnackCardRegistrationWorkflow.CatalogSession fixtureSession() {
         var auth=new ZnackAuthService(api,null){@Override public String trueApiToken(ZnackModels.Settings settings){return "fixture-token";}};
@@ -722,7 +774,7 @@ class ZnackCardRegistrationWorkflowTest {
         Map<String,Long> bulkGoodIds=new HashMap<>();
         String existingFeedStatus="Rejected";
         String existingFeedGtin="04631993764370";
-        String firstRejection;Long firstRejectedGoodId;JsonObject lastPayload;
+        String firstRejection;Long firstRejectedGoodId;JsonObject lastPayload,preExistingRawDraft;
         @Override public JsonElement generatedGtins(String base,String token) {
             return json(existingDraft?"{\"result\":{\"drafts\":[{\"gtin\":\"04631993764363\"}]}}":"{\"result\":{\"drafts\":[]}}");
         }
@@ -765,6 +817,7 @@ class ZnackCardRegistrationWorkflowTest {
             if(temporaryCardReads-->0)throw new java.net.SocketTimeoutException("temporary card read");
             if(cardHttp404)throw new ZnackApiClient.ZnackApiException("fixture",404,"temporary card lookup");
             if(cardMissing||completedWithoutCard&&submissions.get()==1)return json("{\"result\":[]}");
+            if(preExistingRawDraft!=null){var cards=new JsonArray();cards.add(preExistingRawDraft.deepCopy());var response=new JsonObject();response.add("result",cards);return response;}
             long id=91;
             for(var entry:bulkGtins.entrySet())if(entry.getValue().equals(gtins))id=bulkGoodIds.get(entry.getKey());
             boolean published=cardPublished&&!pendingModeration&&(!moderated||signatureAccepted);

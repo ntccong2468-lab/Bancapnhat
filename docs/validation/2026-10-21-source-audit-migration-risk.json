@@ -1,0 +1,85 @@
+{
+  "base": "b4672258090b51d6e40f1266cc180c6d1c4946f7",
+  "cases": [
+    {
+      "case": "legacy-active-duplicates",
+      "before": [
+        {
+          "id": 1,
+          "shop_id": 1,
+          "gtin": "04600000000001",
+          "order_id": 101,
+          "stage": "POLLING_ORDER",
+          "error_message": null
+        },
+        {
+          "id": 2,
+          "shop_id": 1,
+          "gtin": "04600000000001",
+          "order_id": 102,
+          "stage": "RECONCILING_ORDER",
+          "error_message": "uncertain accepted POST"
+        }
+      ],
+      "after": [
+        {
+          "id": 1,
+          "shop_id": 1,
+          "gtin": "04600000000001",
+          "order_id": 101,
+          "stage": "POLLING_ORDER",
+          "error_message": null
+        },
+        {
+          "id": 2,
+          "shop_id": 1,
+          "gtin": "04600000000001",
+          "order_id": 102,
+          "stage": "QUEUED",
+          "error_message": null
+        }
+      ],
+      "note": "Exact migration SQL only; Java workflow and API not executed."
+    },
+    {
+      "case": "canonical-gtin-collision",
+      "before": [
+        {
+          "id": 1,
+          "shop_id": 1,
+          "gtin": "4600000000001",
+          "order_id": 101,
+          "stage": "POLLING_ORDER",
+          "error_message": null
+        },
+        {
+          "id": 2,
+          "shop_id": 1,
+          "gtin": "04600000000001",
+          "order_id": 102,
+          "stage": "RECONCILING_ORDER",
+          "error_message": "uncertain accepted POST"
+        }
+      ],
+      "after": [
+        {
+          "id": 1,
+          "shop_id": 1,
+          "gtin": "4600000000001",
+          "order_id": 101,
+          "stage": "POLLING_ORDER",
+          "error_message": null
+        },
+        {
+          "id": 2,
+          "shop_id": 1,
+          "gtin": "04600000000001",
+          "order_id": 102,
+          "stage": "QUEUED",
+          "error_message": null
+        }
+      ],
+      "note": "Exact migration SQL only; Java workflow and API not executed."
+    }
+  ]
+}
