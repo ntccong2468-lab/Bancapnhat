@@ -1,20 +1,27 @@
-# Nghiệm thu production V3
+# Nghiệm thu bản sửa đăng ký Znack 1.5.8
 
-Chưa thực hiện thao tác ghi/cấp GTIN/ký/đồng bộ WB thật trong tác vụ này.
-Không có bằng chứng Level 2, Level 3 hoặc Level 4.
+Luồng mới chạy bên dưới màn hình/nút 1.5.7. Không có màn hình V3 riêng để nghiệm thu.
+Đã có bằng chứng Level 1 cục bộ trong `ZNACK_V3_TEST_REPORT.md`; chưa thực hiện thao tác
+cấp GTIN/gửi thẻ/ký/đồng bộ seller thật, không có bằng chứng Level 2, 3 hoặc 4.
 
 Điều kiện tiếp tục:
-1. NK 5.68 đã đối chiếu tài liệu. Còn cần quyền đọc tài liệu WB/CryptoPro hiện hành,
-   đối chiếu phần chưa xác minh và chuẩn bị môi trường nghiệm thu riêng.
-2. Seller cấu hình tài khoản/chứng thư an toàn trong ứng dụng trên Windows; không gửi
-   PIN/private key/mật khẩu/token vào chat hoặc Git. Kiểm tra quyền, GS1 và hạn mức.
-3. Seller chọn đúng shop, nmID/chrtID, GTIN, nội dung thẻ và duyệt cấp GTIN nếu cần.
-4. Seller xem payload và xác nhận GỬI THẺ THẬT. Ghi feed ID/thời điểm, đọc lại trạng thái.
-5. Khi server cho ký, seller xem đúng XML/hash/chứng thư và duyệt riêng thao tác ký.
-6. Đọc lại đúng GTIN/good_id/môi trường và trạng thái công bố: mới được Level 4.
-7. Nếu cần WB, seller duyệt thay đổi từng biến thể; đọc lại toàn bộ size/barcode để xác minh.
+1. Áp dụng cấu hình mạng GitHub, xác minh quyền, chạy Windows build đầy đủ trên đúng commit;
+   giữ fresh Java execution, native smoke, DPAPI và probe nâng cấp trực tiếp `-FromStable157`.
+   So sánh fingerprint dữ liệu, registration, shortcut và hash EXE/embedded MSI.
+2. Seller cấu hình tài khoản/chứng thư an toàn trên Windows, kiểm tra quyền, GS1, hạn mức.
+   Không đưa PIN/private key/token vào chat hoặc Git; xác minh CryptoPro thực.
+3. Dùng các nút/hộp duyệt hiện có để chọn đúng shop, nmID/chrtID, GTIN, giấy tờ và nội dung.
+   Xác nhận riêng việc cấp mã/gửi/ký hoặc đồng bộ khi ứng dụng yêu cầu.
+4. Sau gửi, giữ feed ID/thời điểm và đọc lại đúng thẻ. Feed được tiếp nhận hoặc chữ ký
+   được nhận không phải bằng chứng công bố.
+5. Đọc lại đúng GTIN/good_id/môi trường/nội dung đã duyệt và trạng thái công bố trước Level 4.
+   Kết quả chưa rõ chỉ được đối chiếu, không cấp thêm/gửi lại để né trạng thái UNKNOWN.
+6. Kiểm tra đồng bộ WB bằng preview/consent/readback hiện hữu, giữ toàn bộ size/barcode.
+   Kiểm tra hồi quy Ozon và các tác vụ cũ đang chờ trong cùng database.
+7. Ghi hồ sơ nghiệm thu đúng 1.5.8 trước khi gọi publisher. Không dùng ngoại lệ hoặc proof
+   phát hành của 1.5.7 cho 1.5.8; không nới gate license/production hoặc giả lập kết quả native.
 
-Level 1 cần build/unit/migration thực chạy; Level 2 cần sandbox thực; Level 3 cần
-production tiếp nhận và đọc lại; Level 4 cần công bố được API production xác nhận.
-MockWebServer/unit tests không được tính vào Level 2–4. Bộ cài 1.5.7 và các proof cũ
-không là bằng chứng nghiệm thu V3. Không tự động merge production hoặc phát hành.
+Level 2 cần sandbox thực; Level 3 cần production tiếp nhận và đọc lại; Level 4 cần API
+production xác nhận công bố đúng nội dung. Mock/unit tests và app-image Linux không thay
+các mức này hoặc bộ cài Windows. Gateway V3 độc lập ở lượt thử nghiệm vẫn có policy riêng;
+nó không là đường của nút đồng bộ WB cũ trong bản sửa giữ nguyên giao diện.

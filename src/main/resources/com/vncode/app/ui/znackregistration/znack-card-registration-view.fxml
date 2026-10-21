@@ -20,7 +20,6 @@
     <Label fx:id="loadingLabel" text="Đang tải..." visible="false" managed="false" styleClass="text-muted"/>
     <Label fx:id="readinessLabel" wrapText="true" styleClass="text-muted"/>
     <Label fx:id="operationLabel" wrapText="true" styleClass="text-muted"/>
-    <Button text="Đăng ký Znack V3" onAction="#onOpenV3" styleClass="btn-secondary"/>
     <VBox fx:id="extraActions" visible="false" managed="false">
         <Button fx:id="refreshButton" text="Làm mới" onAction="#onRefresh"/>
         <Button fx:id="reportButton" text="Báo cáo đồng bộ" onAction="#onReport"/>

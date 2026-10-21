@@ -297,7 +297,7 @@ public final class ZnackNationalCatalogService {
     }
 
     public String generateFreshOne(String token, Set<String> claimedGtins) throws Exception {
-        return allocate(token, claimedGtins, false);
+        return generateFreshOne(token,claimedGtins,()->{});
     }
 
     /**
@@ -308,10 +308,16 @@ public final class ZnackNationalCatalogService {
      * the draft list back instead of issuing the state-changing request again.</p>
      */
     public String generateOne(String token, Set<String> claimedGtins) throws Exception {
-        return allocate(token, claimedGtins, true);
+        return generateOne(token,claimedGtins,()->{});
     }
 
-    private String allocate(String token, Set<String> claimedGtins, boolean reuseExisting) throws Exception {
+    public String generateFreshOne(String token,Set<String> claimedGtins,Runnable beforeAllocation)throws Exception {
+        return allocate(token,claimedGtins,false,beforeAllocation);
+    }
+    public String generateOne(String token,Set<String> claimedGtins,Runnable beforeAllocation)throws Exception {
+        return allocate(token,claimedGtins,true,beforeAllocation);
+    }
+    private String allocate(String token, Set<String> claimedGtins, boolean reuseExisting,Runnable beforeAllocation) throws Exception {
         LicenseRuntime.require(Permission.GTIN);
         Set<String> claimed = normalizedGtins(claimedGtins);
         synchronized (GTIN_ALLOCATION_LOCK) {
@@ -324,6 +330,8 @@ public final class ZnackNationalCatalogService {
                 return reusable;
             }
 
+            LicenseRuntime.require(Permission.GTIN);
+            beforeAllocation.run();
             LicenseRuntime.require(Permission.GTIN);
             JsonElement generatedResponse = api.generateGtins(
                     settings.resolvedTrueApiBaseUrl(), token, 1);

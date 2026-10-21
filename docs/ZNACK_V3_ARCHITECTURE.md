@@ -1,3 +1,6 @@
+> Cập nhật theo yêu cầu giữ nguyên giao diện 1.5.7: xem [bản sửa 1.5.8](ZNACK_1.5.8_UPDATE.md).
+> Các phần nói V3 song song/màn hình mới bên dưới mô tả lượt thử nghiệm trước, không còn là cách tích hợp hiện tại.
+
 # Đăng ký Znack V3 — thiết kế và phạm vi
 
 Ngày 21/10/2026. Yêu cầu gốc: MASTER PROMPT V3 do chủ dự án cung cấp.

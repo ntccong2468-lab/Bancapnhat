@@ -1,60 +1,90 @@
-# Báo cáo kiểm thử V3
+# Kiểm thử bản sửa Znack 1.5.8
 
-Nền v1.5.7 `9b580f42f3ea5b64a89a56591a598740cc7f5f45`, ngày 21/10/2026.
-Môi trường Linux/Xvfb, Java 25.0.5, Node 22.23.3. Không có Windows/CryptoPro,
-chứng thư hoặc seller production để nghiệm thu thao tác thật.
+Ngày 21/10/2026. Nền 1.5.7, commit `9b580f42f3ea5b64a89a56591a598740cc7f5f45`.
+Phạm vi cuối: giữ nguyên màn hình/nút 1.5.7, tích hợp xử lý bên dưới; không có màn hình V3 riêng.
+Môi trường Linux/Xvfb, Oracle Java 25.0.5, JavaFX 25.0.2, Maven 3.8.5, Node 22.23.3.
 
-## Kết quả thực chạy
+## Kết quả cuối
 
-| Phạm vi | Kết quả | Giới hạn bằng chứng |
-|---|---|---|
-| Baseline `-DskipTests package` | BUILD SUCCESS | Chỉ compile/package, không tính là test |
-| Java toàn bộ `verify` | 2.809 ca, 0 lỗi, 2 bỏ qua; BUILD SUCCESS, 26 phút 11 giây | Chạy trước các sửa chữa sau review |
-| Java liên quan trên mã cuối `verify` | 135 ca, 0 lỗi, 0 bỏ qua; BUILD SUCCESS, 1 phút 02 giây | Gồm toàn bộ V3 và các integration/migration/recovery liên quan; không chạy lại toàn bộ suite |
-| `node --test tools/*.test.mjs` | 106/106 đạt | Tooling không thay đổi sau lần chạy này |
-| JavaFX V3 | Render 7 tab ở 1280×800; đã xem ảnh thực | Trạng thái không có seller, không gọi mutation |
-| Khởi động JAR cuối | Cửa sổ `VN code v1.5.7`, 1300×700; ba bảng V3 tồn tại; SQLite `integrity_check=ok` | Appdata mới, riêng biệt; không chứng minh thao tác tài khoản thật |
-| `git diff --check` | Đạt | Kiểm tra định dạng diff |
+| Kiểm tra | Kết quả thực chạy |
+|---|---|
+| Maven `clean verify` toàn bộ trên mã cuối | **2.838 ca, 0 failures, 0 errors, 2 skipped; BUILD SUCCESS** |
+| Đối chiếu Surefire XML | 2.836 đạt; 2 ca Windows bỏ qua trên Linux |
+| `node --test tools/*.test.mjs` | **107/107 đạt** |
+| FXML/controller đăng ký | Khớp nguyên văn tag 1.5.7; FXML smoke/controller tests đạt trong bộ đầy đủ |
+| Hiển thị màn hình cũ | Render thực 1300×800, đủ các nút cũ, không có tab/màn hình V3 |
+| JAR và `jpackage --type app-image` trên Linux | Đóng gói và khởi động native đạt; cửa sổ `VN code v1.5.8` đúng PID vừa mở |
+| Database native mới | Đủ 5 bảng V3; `integrity_check=ok`, `foreign_key_check` không có lỗi |
+| `git diff --check` | Đạt |
 
-Hai ca bỏ qua trong lần Java toàn bộ chỉ dành cho Windows:
-`WindowsSecretProtectorTest.separatesLicenseAndExistingMailEntropyOnWindows` và
-`Gs1PrefixTemplateStoreTest.refusesNtfsJunctionDirectoryAndAncestors`.
-Không cộng 135 vào 2.809 thành số ca độc lập: hai lượt có kiểm thử trùng nhau.
+Lượt `clean verify` cuối chạy đủ mọi ca, không lọc lớp, trong 13 phút 15 giây.
+Dùng hai Surefire JVM với user.home và Xvfb riêng cho từng fork; không dùng song song
+trên cùng màn hình/clipboard. Wrapper test và hướng dẫn trong workspace
+`/workspace/znack-v3-research/158-isolated-forks/`, không nằm trong runtime production.
+Không cộng các lượt focused/runner vào số ca độc lập của bộ đầy đủ.
 
-## Phạm vi hồi quy
+Hai ca bỏ qua:
+- `WindowsSecretProtectorTest.separatesLicenseAndExistingMailEntropyOnWindows`.
+- `Gs1PrefixTemplateStoreTest.refusesNtfsJunctionDirectoryAndAncestors`.
 
-Đã kiểm tra migration hai lần giữ dữ liệu cũ, CAS, journal trước network, worker crash,
-GTIN duy nhất và pool allocation chưa rõ, owner/environment isolation, hai confirm đồng thời,
-review hết hạn/thay đổi/hủy mở lại, timeout không replay, lỗi 429 chỉ retry sau duyệt mới,
-feed/sign acknowledgement không đồng nghĩa publication, publication cùng GTIN nhưng nội dung
-cũ bị từ chối, đối chiếu submission/signature chưa rõ, sửa thẻ bị từ chối giữ GTIN/feed receipt,
-GTIN phục hồi thủ công, nhập mọi trang/size/barcode WB và cursor hỏng, conditional attributes,
-preview WB tồn tại qua checkpoint, hủy/chờ/timeout/readback WB và callback UI cũ.
+SHA-256 JAR phát triển đã kiểm tra native:
+`78395e4dcc16dc416e5de487f37ae1829ad473abd3a57378525d32ca66feddc7`.
+Đây là JAR/app-image Linux trên nhánh phát triển, không phải EXE Windows đã phát hành.
 
-Một lượt review độc lập đã hoàn tất. Bốn phát hiện quan trọng đều được sửa cùng test
-hồi quy RED→GREEN. Nhóm 135 ca được chạy bằng Maven trên mã cuối sau các sửa chữa đó.
-Các lần runner tạm thất bại do cấu hình JUnit/classpath đã được sửa; không dùng chúng
-thay cho kết quả Maven cuối.
+## Các lỗi được phát hiện và sửa
 
-## Bằng chứng tại workspace
+Review độc lập phát hiện receipt cấp mã chưa giữ chỗ khi crash trước khi lưu thẻ;
+lượt thay thẻ bị từ chối dùng lại cache cấp mã cũ; marker allocation đặt trước GET.
+Đã sửa cùng kiểm thử hồi quy về reservation, generation bền vững và boundary tại mutation.
+Đường nhận thẻ hiện có cũng được đưa qua kiểm tra nội dung và đối chiếu journal chung.
+
+Trong rà soát cuối, mở rộng reservation vào cả truy vấn claimed-GTIN của WB/Ozon.
+Test thêm đã thất bại đúng chỗ trước sửa, rồi đạt 14/14 trong runner riêng; sau đó chạy
+lại toàn bộ Maven trên chính mã đã sửa, kết quả cuối nêu trên.
+
+Lượt full đầu tiên có 2.838 ca, **4 failures**, 0 errors, 2 skipped. Bốn ca thuộc
+`ZnackRegistrationBatchHttpIntegrationTest`:
+- `sequentialBatchPostsTheSavedPayloadsAndCountsOnlyReadBackCards`.
+- `readbackRateLimitAfterAcceptedPostPreservesIdentityAndNeverReplaysPost`.
+- `http200WithoutFeedIdDoesNotCountAsCreatedOrReplayTheRequest`.
+- `acceptedHttpFeedsWithoutCardsRemainPendingUntilReadbackConfirmsThem`.
+
+Nguyên nhân: fixture HTTP không seed danh tính/chứng thư như các fixture workflow khác;
+điểm kiểm tra chủ thể mới chặn trước POST. Đổi setup sang fixture repository chuẩn,
+giữ nguyên mọi assertion HTTP/readback. Chạy lại bốn ca đạt, rồi toàn bộ `clean verify`
+cuối đạt. Không bỏ các ca lỗi, không nới kiểm tra production để cho test qua.
+
+Các hồi quy còn bao gồm hai worker, mất phản hồi, khôi phục receipt không POST lại,
+thay payload không vượt UNKNOWN, pool INN/môi trường qua đổi shop/chứng thư,
+group signing nguyên tử, thẻ published nội dung cũ không hoàn tất, sửa thẻ cùng GTIN,
+nhận thẻ sau mất feed cho phép duyệt ký riêng, ownership/profile và bảo toàn dữ liệu cũ.
+
+## Nâng cấp và giới hạn bằng chứng
+
+CI đã thêm baseline `-FromStable157`: EXE 1.5.7 ghim checksum/kích thước từ bằng chứng
+phát hành của kho, giữ chuỗi probe cũ, kiểm tra passive EXE/embedded MSI và fingerprint
+dữ liệu, lưu `upgrade-stable-157-smoke.json`. Node contract mới đã qua RED→GREEN.
+**Chưa chạy probe này trên Windows**, chưa tự tải/xác minh lại bộ cài baseline ở tác vụ này;
+CI phải xác minh byte/checksum trước khi cài. Bằng chứng nguồn được lưu trong
+`docs/evidence/vncode-1.5.7-installer.json`.
+
+Chỉ có nghiệm thu cục bộ Level 1. Không có bằng chứng sandbox Level 2, production tiếp nhận
+Level 3 hay công bố Level 4. Không cấp GTIN, gửi thẻ, ký hoặc đồng bộ seller thật.
+Chưa kiểm tra CryptoPro/chứng thư, DPAPI và nâng cấp native trên Windows cho 1.5.8.
+
+`api.github.com` bị proxy CONNECT 403 cả khi không xác thực, nên quyền GitHub/Windows CI
+chưa được xác minh. Bản nháp mạng thêm host này đã lưu, **chưa áp dụng**; cần review và
+Save trong Environment settings rồi Publish môi trường. Không tự nới gate phát hành.
+
+## Bằng chứng giữ trong workspace
 
 Trong `/workspace/znack-v3-research/`:
-- `full-verify.log`: Java toàn bộ, kết thúc 11:02:25 UTC.
-- `final-maven-verify.log`: nhóm mã cuối, kết thúc 11:13:29 UTC.
-- `node-tests.log`: 106 ca tooling.
-- `v3-ui-smoke.png`, `v3-ui-smoke.log`: cửa sổ V3 thực.
-- `app-ready-result.txt`, `app-ready.log`, `app-ready-path`: JAR hoàn tất splash và migration.
+- `1.5.8-final-full-verify.log`, `158-java-results.json`: kết quả Java cuối.
+- `158-final-node.log`: 107 ca công cụ.
+- `1.5.8-full-verify.log`: lượt đầu có bốn failures, giữ nguyên để đối chiếu.
+- `158-http-fixture-green.log`, `158-reservation-red.log`, `158-reservation-green.log`.
+- `158-upgrade-red.log`: regression baseline Windows trước sửa.
+- `1.5.8-registration-ui.png`, `1.5.8-fxml-smoke.log`: màn hình cũ thực.
+- `native-158-smoke.json`, `native-158-package.log`, `native-158-path`, `native-158-data`.
 
-Lần smoke ban đầu chỉ thấy splash và bị kết thúc trước migration, nên không dùng làm
-bằng chứng startup. Lần chạy lại nêu trên chờ đúng cửa sổ chính và đủ ba bảng V3.
-Updater nền gặp proxy CONNECT 403; kiểm tra cập nhật online chưa thành công, không cản cửa sổ chính.
-JAR `target/VNcode-1.5.7.jar` là artifact phát triển trên nhánh này, không phải bộ cài mới
-đã phát hành. Lệnh tái chạy môi trường được ghi trong `ZNACK_V3_IMPLEMENTATION.md`.
-
-## Chưa được chứng minh
-
-Chỉ có bằng chứng Level 1 cục bộ. Chưa có Level 2 sandbox, Level 3 production tiếp nhận,
-hoặc Level 4 công bố. MockWebServer/unit tests không thay thế các mức nghiệm thu đó.
-Không thực hiện cấp GTIN, gửi thẻ, ký hay đồng bộ WB thật. WB mutation vẫn khóa;
-sandbox chưa có adapter auth được nghiệm thu. Windows/CryptoPro/chứng thư và từng xác nhận
-của seller cần thực hiện theo `ZNACK_V3_PRODUCTION_ACCEPTANCE.md`.
+Hướng dẫn tích hợp/phát hành: `ZNACK_1.5.8_UPDATE.md`.

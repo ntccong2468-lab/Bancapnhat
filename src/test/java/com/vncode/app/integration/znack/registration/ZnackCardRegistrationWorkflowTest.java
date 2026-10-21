@@ -40,6 +40,56 @@ class ZnackCardRegistrationWorkflowTest {
     }
     @AfterEach void cleanup(){System.clearProperty("vncode.appdata.dir");}
     Sku current(){return repository.search(new SearchCriteria(1,"",List.of(),"ALL",20,0)).getFirst();}
+    @Test void existingRegisterActionUsesV3JournalWithoutANewScreen()throws Exception {
+        assertTrue(workflow.start(shop,current(),draft,null));
+        assertEquals(Status.PUBLISHED,current().status());
+        try(var c=Database.getConnection();var p=c.prepareStatement("SELECT action,state,receipt FROM znack_v3_dispatches ORDER BY rowid");var r=p.executeQuery()){
+            assertTrue(r.next());assertEquals("ALLOCATE_GTIN",r.getString(1));assertEquals("ACKNOWLEDGED",r.getString(2));assertEquals(current().gtin(),r.getString(3));
+            assertTrue(r.next());assertEquals("SUBMIT",r.getString(1));assertEquals("ACKNOWLEDGED",r.getString(2));assertEquals(current().feedId(),r.getString(3));assertFalse(r.next());
+        }
+        assertEquals(1,api.allocations.get());assertEquals(1,api.submissions.get());
+    }
+    @Test void publishedStatusForOlderContentCannotCompleteTheReviewedRegistration()throws Exception {
+        api.staleCardContent=true;
+        var session=fixtureSession();
+        var scope=ZnackRegistrationScope.fromSettings(new ZnackRepository(new ZnackModels.ShopContext(1,"Fixture")).getSettings());
+        var scoped=RegistrationWorkflowTestFixtures.workflow(repository,ignored->new ZnackCardRegistrationWorkflow.CatalogSession(session.token(),session.catalog(),scope),Runnable::run);
+        assertTrue(scoped.start(shop,current(),automaticDraft().withAutoSign(false),null));
+        assertNotEquals(Status.PUBLISHED,current().status());assertTrue(current().errorMessage().contains("CATALOG_PUBLICATION_NOT_CONFIRMED"));
+        assertEquals(1,api.submissions.get());var saved=current();
+        api.staleCardContent=false;assertTrue(scoped.refreshStatusWithoutSigning(shop,saved));assertEquals(Status.PUBLISHED,current().status());
+        assertEquals(saved.gtin(),current().gtin());assertEquals(saved.feedId(),current().feedId());assertEquals(1,api.submissions.get());assertEquals(0,api.signatures.get());
+    }
+    @Test void failedAllocationReadBeforeMutationCanBeReviewedAndRetriedWithoutFreezingThePool()throws Exception {
+        api.failGeneratedReadNumber=2;
+        assertTrue(workflow.start(shop,current(),draft,null));assertEquals(0,api.allocations.get());
+        try(var c=Database.getConnection();var q=c.createStatement();var r=q.executeQuery("SELECT state FROM znack_v3_dispatches WHERE action='ALLOCATE_GTIN'")){
+            assertTrue(r.next());assertEquals("REJECTED",r.getString(1));
+        }
+        api.failGeneratedReadNumber=0;
+        assertTrue(workflow.requestNewGtin(shop,current(),draft,true,null));assertEquals(1,api.allocations.get());assertEquals(1,api.submissions.get());
+    }
+    @Test void explicitRejectedReplacementAdvancesGenerationInsideTheArchiveTransaction()throws Exception {
+        api.firstRejection="required attribute missing";workflow.start(shop,current(),draft,null);assertEquals(Status.ERROR,current().status());
+        var journal=new com.vncode.app.integration.znack.registration.v3.RegistrationCommandJournal();String first=journal.allocationGeneration(1,101,11);
+        assertTrue(repository.claimRejectedReplacement(1,current()));String second=journal.allocationGeneration(1,101,11);assertNotEquals(first,second);
+        repository.saveGenerated(1,current(),"04631993764363","6204",1,"Fixture",ZnackNationalCatalogService.buildPayload("04631993764363",draft,"").toString());
+        repository.updateProgress(1,11,Status.ERROR,"second-rejected-feed",92L,"rejected",false);
+        assertTrue(repository.claimRejectedReplacement(1,current()));assertNotEquals(second,journal.allocationGeneration(1,101,11));
+    }
+    @Test void exactExistingCardResolvesLostSubmissionBeforeSeparateReviewedSigning()throws Exception {
+        api.feedTimeout=true;api.moderated=true;
+        var session=fixtureSession();var scope=ZnackRegistrationScope.fromSettings(new ZnackRepository(new ZnackModels.ShopContext(1,"Fixture")).getSettings());
+        var scoped=RegistrationWorkflowTestFixtures.workflow(repository,ignored->new ZnackCardRegistrationWorkflow.CatalogSession(session.token(),session.catalog(),scope),Runnable::run);
+        assertTrue(scoped.start(shop,current(),automaticDraft().withAutoSign(false),null));assertFalse(current().hasFeed());assertEquals(1,api.submissions.get());
+        repository.updateProgress(1,11,Status.FEED_REVIEW_REQUIRED,null,91L,"CATALOG_FEED_READBACK_REQUIRED",false);
+        api.feedTimeout=false;assertTrue(scoped.verifySubmissionForBatch(shop,current()));assertEquals(Status.READY_TO_SIGN,current().status());
+        try(var c=Database.getConnection();var q=c.createStatement();var r=q.executeQuery("SELECT state,receipt FROM znack_v3_dispatches WHERE action='SUBMIT'")){
+            assertTrue(r.next());assertEquals("OBSERVED",r.getString(1));assertEquals("",r.getString(2));
+        }
+        assertTrue(scoped.signApprovedReviewed(shop,scoped.prepareApprovedSigning(shop,List.of(current())),null));
+        assertEquals(1,api.signatures.get());assertEquals(1,api.submissions.get());assertEquals(Status.PUBLISHED,current().status());
+    }
     @Test void manualDraftMissingRequiredCountryCannotAllocateAGtin()throws Exception{
         api.mandatoryCountry=true;
         try(var c=Database.getConnection();var statement=c.createStatement()){statement.execute("INSERT INTO wb_product_size_skus(shop_id,chrt_id,sku) VALUES(1,11,'seller-existing-barcode')");}
@@ -764,10 +814,10 @@ class ZnackCardRegistrationWorkflowTest {
     }
     class FixtureApi extends ZnackApiClient {
         AtomicInteger allocations=new AtomicInteger(),submissions=new AtomicInteger(),signatures=new AtomicInteger(),documents=new AtomicInteger(),countryReads=new AtomicInteger();
-        boolean mandatoryCountry;
+        boolean mandatoryCountry,staleCardContent;
         boolean allocationTimeout,feedTimeout,existingDraft,rejectExistingFeed,readRejected;
         boolean pendingModeration,moderated,signTimeout,signatureAccepted,changeSigningDocument,delayPublication,laggedModeration;
-        int statusReadFailure,temporaryCardReads;
+        int statusReadFailure,temporaryCardReads,generatedReads,failGeneratedReadNumber;
         boolean cardHttp404;
         boolean cardPublished=true,cardMissing,completedWithoutCard,signingDocumentMissing;
         Map<String,String> bulkGtins=new HashMap<>();
@@ -775,7 +825,8 @@ class ZnackCardRegistrationWorkflowTest {
         String existingFeedStatus="Rejected";
         String existingFeedGtin="04631993764370";
         String firstRejection;Long firstRejectedGoodId;JsonObject lastPayload,preExistingRawDraft;
-        @Override public JsonElement generatedGtins(String base,String token) {
+        @Override public JsonElement generatedGtins(String base,String token)throws IOException {
+            if(++generatedReads==failGeneratedReadNumber)throw new java.net.SocketTimeoutException("initial allocation read");
             return json(existingDraft?"{\"result\":{\"drafts\":[{\"gtin\":\"04631993764363\"}]}}":"{\"result\":{\"drafts\":[]}}");
         }
         @Override public JsonElement generateGtins(String base,String token,int quantity) throws IOException {
@@ -824,6 +875,7 @@ class ZnackCardRegistrationWorkflowTest {
             String details=published?"":moderated?"notsigned":pendingModeration?"moderation":"draft";
             JsonObject card=lastPayload==null?new JsonObject():lastPayload.deepCopy();
             if(lastPayload==null&&!repository.payload(1,11).isBlank())card=JsonParser.parseString(repository.payload(1,11)).getAsJsonObject();
+            if(staleCardContent)card.addProperty("good_name","Older content");card.addProperty("good_signed",published);
             card.addProperty("gtin",gtins);card.addProperty("good_id",id);card.addProperty("good_status",published?"published":"draft");
             var states=new JsonArray();states.add(details);card.add("good_detailed_status",states);var cards=new JsonArray();cards.add(card);var result=new JsonObject();result.add("result",cards);return result;
         }

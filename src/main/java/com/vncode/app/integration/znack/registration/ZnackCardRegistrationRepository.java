@@ -137,6 +137,7 @@ public class ZnackCardRegistrationRepository {
                 try(var s=c.prepareStatement("UPDATE znack_card_registrations SET gtin=NULL,good_id=NULL,feed_id=NULL,payload_json=NULL,status='CHECKING',wb_updated=0,error_message=NULL,updated_at=? WHERE shop_id=? AND chrt_id=?")) {
                     s.setString(1,now);s.setInt(2,shopId);s.setLong(3,sku.chrtId());s.executeUpdate();
                 }
+                com.vncode.app.integration.znack.registration.v3.RegistrationCommandJournal.advanceGeneration(c,shopId,sku.nmId(),sku.chrtId());
                 try(var s=c.prepareStatement("DELETE FROM znack_card_registration_signatures WHERE shop_id=? AND chrt_id=?")){s.setInt(1,shopId);s.setLong(2,sku.chrtId());s.executeUpdate();}
                 transaction.execute("COMMIT");return true;
             }catch(SQLException|RuntimeException error){transaction.execute("ROLLBACK");throw error;}
@@ -176,6 +177,7 @@ public class ZnackCardRegistrationRepository {
             try(var p=c.prepareStatement("UPDATE znack_card_registrations SET gtin=NULL,good_id=NULL,feed_id=NULL,payload_json=NULL,status='CHECKING',wb_updated=0,error_message=NULL,updated_at=? WHERE shop_id=? AND chrt_id=?")) {
                 p.setString(1,now);p.setInt(2,shopId);p.setLong(3,sku.chrtId());p.executeUpdate();
             }
+            com.vncode.app.integration.znack.registration.v3.RegistrationCommandJournal.advanceGeneration(c,shopId,sku.nmId(),sku.chrtId());
             try(var p=c.prepareStatement("DELETE FROM znack_card_registration_signatures WHERE shop_id=? AND chrt_id=?")){p.setInt(1,shopId);p.setLong(2,sku.chrtId());p.executeUpdate();}
             return true;
         });}catch(SQLException failed){throw new IllegalStateException("REGISTRATION_STORAGE",failed);}
@@ -442,6 +444,7 @@ public class ZnackCardRegistrationRepository {
                      UNION SELECT active_gtin FROM ozon_card_registrations WHERE active_gtin<>''
                      UNION SELECT gtin FROM znack_card_registration_history WHERE gtin<>''
                      UNION SELECT gtin FROM ozon_card_registration_history WHERE gtin<>''
+                     UNION SELECT receipt FROM znack_v3_dispatches WHERE action='ALLOCATE_GTIN' AND state='ACKNOWLEDGED' AND receipt<>''
                      """)) {
             try (ResultSet result = statement.executeQuery()) {
                 Set<String> values = new LinkedHashSet<>();

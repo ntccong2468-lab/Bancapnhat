@@ -1,3 +1,6 @@
+> Cập nhật theo yêu cầu giữ nguyên giao diện 1.5.7: xem [bản sửa 1.5.8](ZNACK_1.5.8_UPDATE.md).
+> Các phần nói V3 song song/màn hình mới bên dưới mô tả lượt thử nghiệm trước, không còn là cách tích hợp hiện tại.
+
 # Triển khai Znack V3
 
 Nền: VNCode v1.5.7, commit `9b580f42f3ea5b64a89a56591a598740cc7f5f45`.

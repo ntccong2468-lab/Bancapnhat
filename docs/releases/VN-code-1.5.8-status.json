@@ -1,0 +1,46 @@
+{
+  "version": "1.5.8",
+  "complete": false,
+  "state": "locally-verified-awaiting-windows-build",
+  "databaseSchema": 6,
+  "baseline": "v1.5.7",
+  "registrationUi": {
+    "identicalTo157": true,
+    "separateV3Screen": false
+  },
+  "linuxTests": {
+    "tests": 2838,
+    "passed": 2836,
+    "failures": 0,
+    "errors": 0,
+    "windowsOnlySkipped": 2
+  },
+  "nodeContracts": {
+    "tests": 107,
+    "passed": 107,
+    "failures": 0
+  },
+  "licenseIntegration": {
+    "productionReady": false,
+    "changedInThisVersion": false
+  },
+  "validation": {
+    "windowsBuild": {
+      "state": "not-started",
+      "freshFullJavaExecutionRequired": true,
+      "upgradeFrom157Required": true
+    },
+    "linuxNativeLauncher": "passed",
+    "linuxDatabaseIntegrity": "ok",
+    "liveCryptoProSigningThisVersion": false,
+    "liveMarketplaceWritesThisVersion": false
+  },
+  "developmentJarSha256": "78395e4dcc16dc416e5de487f37ae1829ad473abd3a57378525d32ca66feddc7",
+  "blocked": [
+    "Windows full build and native/data-preserving upgrade from1.5.7 have not run.",
+    "Production license/CryptoPro/seller acceptance remains unverified.",
+    "GitHub API is currently blocked by the cloud proxy; network draft requires review/save and Publish."
+  ],
+  "requestReport": "../ZNACK_1.5.8_UPDATE.md",
+  "testReport": "../ZNACK_V3_TEST_REPORT.md"
+}

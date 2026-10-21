@@ -63,7 +63,7 @@ class ZnackRegistrationBatchHttpIntegrationTest {
                         + (10 + i) + "," + (100 + i) + ",'XL')");
             }
         }
-        repository = new ZnackCardRegistrationRepository();
+        repository = RegistrationWorkflowTestFixtures.repository(shop);
         for (int i = 0; i < 3; i++) {
             var row = repository.find(1, 11 + i);
             var draft = new Draft("6204", 1, "Fixture " + (i + 1), "Brand", Map.of());

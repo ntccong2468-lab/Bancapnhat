@@ -17,6 +17,7 @@ public final class RegistrationStore {
     public RegistrationStore(){recoverInterrupted();}
 
     public static void initialize(Connection c) throws SQLException {
+        RegistrationCommandJournal.initialize(c);
         try (var s = c.createStatement()) {
             s.execute("""
                 CREATE TABLE IF NOT EXISTS znack_v3_jobs(
@@ -191,7 +192,7 @@ public final class RegistrationStore {
     });}
     public Set<String> claimedGtins(Owner owner){return transaction(c->{
         var codes=new HashSet<String>();
-        try(var p=c.prepareStatement("SELECT json_extract(document,'$.data.gtin') FROM znack_v3_jobs WHERE owner_key=?")){
+        try(var p=c.prepareStatement("SELECT json_extract(document,'$.data.gtin') FROM znack_v3_jobs WHERE owner_key=? UNION SELECT receipt FROM znack_v3_dispatches WHERE action='ALLOCATE_GTIN' AND state='ACKNOWLEDGED' AND receipt<>''")){
             p.setString(1,owner.key());try(var r=p.executeQuery()){while(r.next()){String code=r.getString(1);if(code!=null&&!code.isBlank())codes.add(code);}}
         }return Set.copyOf(codes);
     });}
