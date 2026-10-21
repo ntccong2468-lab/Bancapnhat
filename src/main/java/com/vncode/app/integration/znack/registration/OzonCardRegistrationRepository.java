@@ -47,7 +47,9 @@ public final class OzonCardRegistrationRepository {
                 FOREIGN KEY(shop_id) REFERENCES shops(id) ON DELETE CASCADE)
               """);
         }
+        column(connection,"source_revision");column(connection,"schema_revision");
     }
+    private static void column(Connection c,String name)throws SQLException{try(var p=c.createStatement();var r=p.executeQuery("PRAGMA table_info(ozon_card_registrations)")){while(r.next())if(name.equals(r.getString("name")))return;}try(var p=c.createStatement()){p.execute("ALTER TABLE ozon_card_registrations ADD COLUMN "+name+" TEXT NOT NULL DEFAULT ''");}}
     public Row find(ProductKey key){return readTransaction(c->{requireKey(c,key);return row(c,key);});}
     public Map<ProductKey,Row> findMany(List<ProductKey> keys) {
         if(keys.size()>100_000)throw new IllegalArgumentException("invalid_selection");
@@ -68,7 +70,7 @@ public final class OzonCardRegistrationRepository {
             if(previous!=null){
                 requireOwner(previous,owner,scope);
                 boolean groupChange=TnvedGroupChange.replaceable(previous.status())&&!previous.feedId().isBlank()&&TnvedGroupChange.changed(TnvedGroupChange.payloadCode(previous.payload()),reviewedTnved);
-                if(groupChange){if(Set.of("SENDING","RECONCILE_REQUIRED").contains(previous.signatureState()))return false;archive(c,previous);}
+                if(groupChange){if(!newCard||Set.of("SENDING","RECONCILE_REQUIRED").contains(previous.signatureState()))return false;archive(c,previous);}
                 else if(newCard){
                     boolean rejectedRecovery=previous.status()==Status.ERROR&&!previous.gtin().isBlank()&&!previous.feedId().isBlank()&&!Set.of("SENDING","RECONCILE_REQUIRED").contains(previous.signatureState());
                     if(!rejectedRecovery&&(previous.status()!=Status.PUBLISHED||previous.gtin().isBlank()||!previous.activeGtin().equals(previous.gtin())))return false;
@@ -82,7 +84,7 @@ public final class OzonCardRegistrationRepository {
               INSERT INTO ozon_card_registrations(shop_id,product_id,offer_id,sku,status,active_gtin,scope_json,owner,created_at,updated_at)
               VALUES(?,?,?,?,?,?,?,?,?,?) ON CONFLICT(shop_id,product_id,offer_id) DO UPDATE SET
               sku=excluded.sku,status=excluded.status,gtin='',active_gtin=excluded.active_gtin,feed_id='',good_id=NULL,payload_json='',
-              signature_xml=NULL,signature_sha256='',signature_state='',error='',scope_json=excluded.scope_json,owner=excluded.owner,updated_at=excluded.updated_at
+              signature_xml=NULL,signature_sha256='',signature_state='',error='',source_revision='',schema_revision='',scope_json=excluded.scope_json,owner=excluded.owner,updated_at=excluded.updated_at
               """)){
                 bindKey(p,key);p.setString(4,sku);p.setString(5,Status.CHECKING.name());p.setString(6,safe(active));p.setString(7,JSON.toJson(scope));p.setString(8,owner);p.setString(9,Instant.now().toString());p.setString(10,Instant.now().toString());p.executeUpdate();
             }return true;
@@ -90,6 +92,27 @@ public final class OzonCardRegistrationRepository {
     }
     public void guard(Shop shop,ProductKey key,ZnackRegistrationScope scope) {
         requireShop(shop,key);var current=find(key);if(current==null)throw new IllegalStateException("registration_missing");requireOwner(current,ListingIdentity.fingerprint(shop),scope);scope.assertCurrent(shop);
+    }
+    /** Durable reviewed intent exists before the paid allocation; READY payload bytes are never rewritten. */
+    public void rememberReview(ProductKey key,String source,String schema,String intent){
+        if(source==null||!source.matches("[0-9a-f]{64}")||schema==null||!schema.matches("[0-9a-f]{64}")||intent==null||intent.length()>2*1024*1024)throw new IllegalArgumentException("invalid_registration_review");
+        update(key,"UPDATE ozon_card_registrations SET source_revision=?,schema_revision=?,payload_json=CASE WHEN status='CHECKING' THEN ? ELSE payload_json END,updated_at=? WHERE shop_id=? AND product_id=? AND offer_id=? AND status IN ('CHECKING','READY_TO_SUBMIT') AND feed_id=''",p->{p.setString(1,source);p.setString(2,schema);p.setString(3,intent);p.setString(4,Instant.now().toString());bindKey(p,5,key);});
+    }
+    public List<String> reviewedRevisions(ProductKey key){return readTransaction(c->{requireKey(c,key);try(var p=c.prepareStatement("SELECT source_revision,schema_revision FROM ozon_card_registrations WHERE shop_id=? AND product_id=? AND offer_id=?")){bindKey(p,key);try(var r=p.executeQuery()){return r.next()?List.of(safe(r.getString(1)),safe(r.getString(2))):List.of("","");}}});}
+    /** Link an actually observed Catalog identity; never invent a feed receipt for an existing card. */
+    public boolean linkObserved(Shop shop,ProductKey key,String sku,String active,ZnackRegistrationScope scope,ZnackCardRegistrationModels.Draft approved,ZnackNationalCatalogService.ObservedCard card){
+        requireShop(shop,key);scope.assertCurrent(shop);if(card==null||card.goodId()<=0||!RegisteredGtinValidator.isValid(card.gtin())||!sku.matches("[1-9][0-9]{0,18}"))throw new IllegalArgumentException("CATALOG_IDENTITY_CHANGED");
+        String source=RegisteredGtinProof.source(shop);var progress=card.progress();Status state=progress.signed()?Status.PUBLISHED:progress.failed()?Status.ERROR:progress.readyToSign()?Status.READY_TO_SIGN:Status.PROCESSING;
+        var payload=ZnackNationalCatalogService.buildPayload(card.gtin(),approved,"");payload.addProperty("good_id",card.goodId());String detail=progress.failed()?CatalogFeedback.rejection(progress):Objects.toString(CatalogFeedback.stage(progress),"CATALOG_EXISTING_CARD_LINKED");
+        return transaction(c->{requireCurrentOwner(c,shop,key,scope);var previous=row(c,key);if(previous!=null){requireOwner(previous,ListingIdentity.fingerprint(shop),scope);if(!previous.feedId().isBlank()||!previous.gtin().isBlank()||previous.goodId()!=null||!Set.of(Status.NOT_CREATED,Status.PREFLIGHT_ERROR).contains(previous.status()))return false;}
+            String now=Instant.now().toString();try(var p=c.prepareStatement("""
+              INSERT INTO ozon_card_registrations(shop_id,product_id,offer_id,sku,status,gtin,active_gtin,good_id,payload_json,scope_json,owner,error,created_at,updated_at)
+              VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?) ON CONFLICT(shop_id,product_id,offer_id) DO UPDATE SET sku=excluded.sku,status=excluded.status,gtin=excluded.gtin,active_gtin=excluded.active_gtin,good_id=excluded.good_id,payload_json=excluded.payload_json,scope_json=excluded.scope_json,owner=excluded.owner,error=excluded.error,updated_at=excluded.updated_at
+              """)){bindKey(p,key);p.setString(4,sku);p.setString(5,state.name());p.setString(6,card.gtin());p.setString(7,safe(active));p.setLong(8,card.goodId());p.setString(9,payload.toString());p.setString(10,JSON.toJson(scope));p.setString(11,ListingIdentity.fingerprint(shop));p.setString(12,CatalogFeedback.display(detail));p.setString(13,now);p.setString(14,now);p.executeUpdate();}
+            var observation=preserveDocumentState(c,shop,new RegisteredGtin(card.gtin(),card.details().single("article"),card.details().single("color"),card.details().single("size"),card.tradeUnit(),progress.signed(),source,card.checkedAt(),card.details()));
+            var data=JSON.toJsonTree(observation).getAsJsonObject();data.addProperty("owner",ListingIdentity.fingerprint(shop));try(var p=c.prepareStatement("INSERT INTO gtin_sync_catalog VALUES(?,?,?,?) ON CONFLICT(shop_id,marketplace,gtin) DO UPDATE SET data_json=excluded.data_json")){p.setInt(1,key.shopId());p.setString(2,Marketplace.OZON.name());p.setString(3,card.gtin());p.setString(4,JSON.toJson(data));p.executeUpdate();}
+            return true;
+        });
     }
     public boolean transition(ProductKey key,Status expected,Status next) {
         return transaction(c->{requireKey(c,key);try(var p=c.prepareStatement("UPDATE ozon_card_registrations SET status=?,updated_at=? WHERE shop_id=? AND product_id=? AND offer_id=? AND status=?")){
@@ -163,7 +186,7 @@ public final class OzonCardRegistrationRepository {
     }
     public void progress(ProductKey key,Status status,Long goodId,String error) {
         if(!Set.of(Status.PROCESSING,Status.READY_TO_SIGN,Status.ERROR,Status.SIGNING).contains(status))throw new IllegalArgumentException("invalid_progress");
-        update(key,"UPDATE ozon_card_registrations SET status=?,good_id=COALESCE(?,good_id),error=?,updated_at=? WHERE shop_id=? AND product_id=? AND offer_id=? AND feed_id<>''",p->{p.setString(1,status.name());if(goodId==null)p.setNull(2,Types.BIGINT);else p.setLong(2,goodId);p.setString(3,CatalogFeedback.display(error));p.setString(4,Instant.now().toString());bindKey(p,5,key);});
+        update(key,"UPDATE ozon_card_registrations SET status=?,good_id=COALESCE(?,good_id),error=?,updated_at=? WHERE shop_id=? AND product_id=? AND offer_id=? AND (feed_id<>'' OR good_id IS NOT NULL)",p->{p.setString(1,status.name());if(goodId==null)p.setNull(2,Types.BIGINT);else p.setLong(2,goodId);p.setString(3,CatalogFeedback.display(error));p.setString(4,Instant.now().toString());bindKey(p,5,key);});
     }
     public Instant submissionStarted(ProductKey key){
         try(var c=Database.getConnection();var p=c.prepareStatement("SELECT created_at FROM ozon_card_registrations WHERE shop_id=? AND product_id=? AND offer_id=?")){
@@ -187,15 +210,22 @@ public final class OzonCardRegistrationRepository {
         update(key,"UPDATE ozon_card_registrations SET status='READY_TO_SIGN',signature_state='PREPARED',updated_at=? WHERE shop_id=? AND product_id=? AND offer_id=? AND signature_state='SENDING' AND signature_sha256=?",p->{p.setString(1,Instant.now().toString());bindKey(p,2,key);p.setString(5,digest);});
     }
     public void publish(Shop shop,ProductKey key,ZnackRegistrationScope scope,long goodId) {
+        publish(shop,key,scope,goodId,null);
+    }
+    public void publish(Shop shop,ProductKey key,ZnackRegistrationScope scope,ZnackNationalCatalogService.ObservedCard observed){
+        Objects.requireNonNull(observed);publish(shop,key,scope,observed.goodId(),observed);
+    }
+    private void publish(Shop shop,ProductKey key,ZnackRegistrationScope scope,long goodId,ZnackNationalCatalogService.ObservedCard observed) {
         guard(shop,key,scope);String source=RegisteredGtinProof.source(shop);
         transaction(c->{requireCurrentOwner(c,shop,key,scope);var row=row(c,key);requireOwner(row,ListingIdentity.fingerprint(shop),scope);
-            if(row.feedId().isBlank()||!RegisteredGtinValidator.isValid(row.gtin())||goodId<=0||(row.goodId()!=null&&row.goodId()!=goodId))throw new IllegalStateException("catalog_identity_changed");
+            if(row.feedId().isBlank()&&row.goodId()==null||!RegisteredGtinValidator.isValid(row.gtin())||goodId<=0||(row.goodId()!=null&&row.goodId()!=goodId))throw new IllegalStateException("catalog_identity_changed");
+            if(observed!=null&&(!RegisteredGtinProof.sameCode(row.gtin(),observed.gtin())||observed.progress()==null||observed.details()==null||!observed.progress().signed()||!Objects.equals(observed.progress().goodId(),goodId)||!"published".equalsIgnoreCase(observed.rawStatus())||!"published".equalsIgnoreCase(observed.details().single("@catalog_status"))||!sameCatalogId(observed.details().single("@catalog_id"),goodId)||observed.checkedAt()==null||observed.checkedAt().isBefore(Instant.now().minusSeconds(300))||observed.checkedAt().isAfter(Instant.now().plusSeconds(300))))throw new RegistrationValidationException("CATALOG_IDENTITY_CHANGED");
             var payload=JsonParser.parseString(row.payload()).getAsJsonObject();
             try(var p=c.prepareStatement("UPDATE ozon_card_registrations SET status='PUBLISHED',good_id=?,signature_state=CASE WHEN signature_state='' THEN '' ELSE 'CONFIRMED' END,error='',updated_at=? WHERE shop_id=? AND product_id=? AND offer_id=?")){p.setLong(1,goodId);p.setString(2,Instant.now().toString());bindKey(p,3,key);p.executeUpdate();}
-            // Feed signing proves this trade-unit GTIN. Attribute-name enrichment comes from
-            // the subsequent owner registry refresh; category-specific IDs are not guessed.
-            var observation=new RegisteredGtin(row.gtin(),"","","",true,true,source,Instant.now());
-            try(var p=c.prepareStatement("INSERT INTO gtin_sync_catalog VALUES(?,?,?,?) ON CONFLICT(shop_id,marketplace,gtin) DO UPDATE SET data_json=excluded.data_json")){p.setInt(1,key.shopId());p.setString(2,Marketplace.OZON.name());p.setString(3,row.gtin());p.setString(4,JSON.toJson(observation));p.executeUpdate();}
+            // Only an exact remote card read can provide publication/packaging evidence.
+            // Legacy local notifications never overwrite an existing authenticated observation.
+            if(observed!=null){var observation=preserveDocumentState(c,shop,new RegisteredGtin(row.gtin(),observed.details().single("article"),observed.details().single("color"),observed.details().single("size"),observed.tradeUnit(),true,source,observed.checkedAt(),observed.details()));
+                var data=JSON.toJsonTree(observation).getAsJsonObject();data.addProperty("owner",ListingIdentity.fingerprint(shop));try(var p=c.prepareStatement("INSERT INTO gtin_sync_catalog VALUES(?,?,?,?) ON CONFLICT(shop_id,marketplace,gtin) DO UPDATE SET data_json=excluded.data_json")){p.setInt(1,key.shopId());p.setString(2,Marketplace.OZON.name());p.setString(3,row.gtin());p.setString(4,JSON.toJson(data));p.executeUpdate();}}
             try(var p=c.prepareStatement("""
               INSERT INTO znack_products(shop_id,gtin,product_name,tn_ved,card_status,synced_at)
               VALUES(?,?,?,?,'published',?) ON CONFLICT(shop_id,gtin) DO UPDATE SET product_name=excluded.product_name,tn_ved=excluded.tn_ved,card_status=excluded.card_status,synced_at=excluded.synced_at
@@ -206,14 +236,25 @@ public final class OzonCardRegistrationRepository {
     }
     public boolean complete(Shop shop,ProductKey key,ZnackRegistrationScope scope,String expectedGtin) {
         guard(shop,key,scope);
-        RegisteredGtinProof.requireCurrent(shop,expectedGtin);
+        RegisteredGtinProof.requireCurrent(shop,expectedGtin);String source=RegisteredGtinProof.source(shop);
         return transaction(c->{requireCurrentOwner(c,shop,key,scope);var row=row(c,key);requireOwner(row,ListingIdentity.fingerprint(shop),scope);
             if(row.status()!=Status.PUBLISHED||!row.gtin().equals(expectedGtin))return false;
+            try(var p=c.prepareStatement("SELECT data_json FROM gtin_sync_catalog WHERE shop_id=? AND marketplace=? AND gtin=?")){p.setInt(1,key.shopId());p.setString(2,Marketplace.OZON.name());p.setString(3,expectedGtin);try(var result=p.executeQuery()){if(!result.next())throw new IllegalArgumentException("unverified_catalog_gtin");var raw=JsonParser.parseString(result.getString(1)).getAsJsonObject();var proof=com.vncode.app.features.products.ProductJson.GSON.fromJson(raw,RegisteredGtin.class);if(row.goodId()==null||!sameCatalogId(proof.details().single("@catalog_id"),row.goodId())||!source.equals(proof.source())||!ListingIdentity.fingerprint(shop).equals(safeText(raw,"owner"))||!RegisteredGtinProof.currentObservation(proof,Instant.now()))throw new IllegalArgumentException("unverified_catalog_gtin");}}
             try(var p=c.prepareStatement("INSERT INTO ozon_product_gtin_mappings(shop_id,sku,gtin,created_at,updated_at) VALUES(?,?,?,?,?) ON CONFLICT(shop_id,sku) DO UPDATE SET gtin=excluded.gtin,updated_at=excluded.updated_at")){p.setInt(1,key.shopId());p.setString(2,row.sku());p.setString(3,expectedGtin);p.setString(4,Instant.now().toString());p.setString(5,Instant.now().toString());p.executeUpdate();}
             try(var p=c.prepareStatement("INSERT INTO gtin_sync_mappings VALUES(?,?,?,?,?,?) ON CONFLICT(shop_id,marketplace,product_id,variant_id) DO UPDATE SET gtin=excluded.gtin,updated_at=excluded.updated_at")){p.setInt(1,key.shopId());p.setString(2,Marketplace.OZON.name());p.setString(3,key.cardId());p.setString(4,key.variantId());p.setString(5,expectedGtin);p.setString(6,Instant.now().toString());p.executeUpdate();}
             try(var p=c.prepareStatement("UPDATE ozon_card_registrations SET active_gtin=gtin,updated_at=? WHERE shop_id=? AND product_id=? AND offer_id=?")){p.setString(1,Instant.now().toString());bindKey(p,2,key);p.executeUpdate();}
             return true;
         });
+    }
+    private static boolean sameCatalogId(String id,long expected){return id.matches("[0-9]{1,64}")&&new java.math.BigInteger(id).equals(java.math.BigInteger.valueOf(expected));}
+    /** A card read updates card facts, but cannot silently resolve an outstanding permit-registry read. */
+    private static RegisteredGtin preserveDocumentState(Connection c,Shop shop,RegisteredGtin observed)throws SQLException{
+        var aliases=new LinkedHashSet<String>();String canonical=RegisteredGtinProof.canonicalCode(observed.gtin());for(int length:List.of(8,12,13,14))if(canonical.startsWith("0".repeat(14-length)))aliases.add(canonical.substring(14-length));var previous=new ArrayList<RegisteredGtin>();
+        try(var p=c.prepareStatement("SELECT data_json FROM gtin_sync_catalog WHERE shop_id=? AND marketplace='OZON' AND gtin IN ("+String.join(",",Collections.nCopies(aliases.size(),"?"))+")")){p.setInt(1,shop.getId());int index=2;for(String alias:aliases)p.setString(index++,alias);try(var rows=p.executeQuery()){while(rows.next())previous.add(com.vncode.app.features.products.ProductJson.GSON.fromJson(rows.getString(1),RegisteredGtin.class));}}
+        try{RegisteredGtinProof.requireKnownDocumentState(previous,List.of(observed));return observed;}
+        catch(IllegalArgumentException pending){if(!Set.of("REGISTRY_DOCUMENTS_PENDING","REGISTRY_DOCUMENTS_UNAVAILABLE").contains(pending.getMessage()))throw pending;
+            var prior=previous.stream().filter(value->value.source().equals(observed.source())&&!value.details().documents().isEmpty()&&value.details().values("@documents_status").stream().anyMatch(status->status.startsWith("REGISTRY_DOCUMENTS_"))).findFirst().orElseThrow();var fields=new LinkedHashMap<>(observed.details().fields());fields.put("@documents_status",prior.details().values("@documents_status"));var details=new com.vncode.app.features.catalogsync.CatalogProductData(fields,observed.details().attributes(),observed.details().documents().isEmpty()?prior.details().documents():observed.details().documents());return new RegisteredGtin(observed.gtin(),observed.article(),observed.color(),observed.size(),observed.tradeUnit(),observed.published(),observed.source(),observed.syncedAt(),details);
+        }
     }
     public Set<String> claimedGtins(){return readTransaction(c->{var result=new HashSet<String>();try(var s=c.createStatement();var r=s.executeQuery("SELECT gtin FROM ozon_card_registrations WHERE gtin<>'' UNION SELECT active_gtin FROM ozon_card_registrations WHERE active_gtin<>'' UNION SELECT gtin FROM znack_card_registrations WHERE gtin IS NOT NULL AND gtin<>'' UNION SELECT active_gtin FROM znack_card_registration_replacements WHERE active_gtin<>'' UNION SELECT gtin FROM znack_card_registration_history WHERE gtin<>'' UNION SELECT gtin FROM ozon_card_registration_history WHERE gtin<>''")){while(r.next())result.add(r.getString(1));}return Set.copyOf(result);});}
     private static void archive(Connection c,Row row)throws SQLException{try(var p=c.prepareStatement("INSERT INTO ozon_card_registration_history(shop_id,product_id,offer_id,gtin,payload_json,feed_id,good_id,created_at) VALUES(?,?,?,?,?,?,?,?)")){bindKey(p,row.key());p.setString(4,row.gtin());p.setString(5,row.payload());p.setString(6,row.feedId());if(row.goodId()==null)p.setNull(7,Types.BIGINT);else p.setLong(7,row.goodId());p.setString(8,Instant.now().toString());p.executeUpdate();}}

@@ -84,6 +84,11 @@ public final class GtinBatchTransport implements ListingTransport, AutoCloseable
         return trimmed;
     }
     @Override public JsonElement call(String path,JsonElement body,boolean mutation)throws IOException{return call(path,body,mutation,()->{});}
+    @Override public JsonElement call(String path,JsonElement body,boolean mutation,ListingTransport.CheckedGuard freshRead,Runnable guard)throws IOException {
+        requireReady();
+        if(mutation)return upstream.call(path,body,true,()->{requireReady();freshRead.check();},()->{requireReady();guard.run();});
+        freshRead.check();return call(path,body,false,guard);
+    }
     @Override public JsonElement call(String path,JsonElement body,boolean mutation,Runnable guard)throws IOException {
         requireReady();
         if(mutation)return upstream.call(path,body,true,()->{requireReady();guard.run();});
@@ -131,7 +136,7 @@ public final class GtinBatchTransport implements ListingTransport, AutoCloseable
     }
     private void scanWb(boolean trash,boolean incremental)throws IOException {
         JsonObject cursor=incremental?(trash?trashCursor:activeCursor).deepCopy():new JsonObject();cursor.addProperty("limit",100);
-        var seen=new HashSet<String>();boolean finished=false;
+        var seen=new HashSet<String>();var products=new HashSet<String>();boolean finished=false;
         for(int page=0;page<20_000;page++){
             var settings=new JsonObject();settings.add("cursor",cursor);var sort=new JsonObject();sort.addProperty("ascending",true);settings.add("sort",sort);
             if(!trash){var filter=new JsonObject();filter.addProperty("withPhoto",-1);settings.add("filter",filter);}
@@ -139,12 +144,14 @@ public final class GtinBatchTransport implements ListingTransport, AutoCloseable
             var response=object(upstream.call(trash?"content/v2/get/cards/trash":"content/v2/get/cards/list",request,false));
             if("true".equals(text(response,"error")))throw new IOException("wb_catalog_rejected");
             var cards=strictArray(response,"cards");
+            var next=obj(response,"cursor");int total;
+            try{var value=next.get("total");if(value==null||!value.isJsonPrimitive()||!value.getAsJsonPrimitive().isNumber())throw new NumberFormatException();total=value.getAsBigDecimal().toBigIntegerExact().intValueExact();if(total<0||total>100||total!=cards.size())throw new NumberFormatException();}
+            catch(RuntimeException invalid){throw new IOException("GTIN_BATCH_INCOMPLETE_RESPONSE",invalid);}
             // The cursor advances for the whole account. Keep changes to every selected
             // card, including earlier write batches, or final readback would see stale data.
-            for(var e:cards){var card=object(e);String id=text(card,"nmID");if(!id.matches("[1-9][0-9]{0,19}"))throw new IOException("invalid_wb_catalog");indexWb(id,card,!trash);if(!trash&&selected.contains(id))retain("w:"+id,card);if(trash)remove("w:"+id);}
-            var next=obj(response,"cursor");String date=text(next,trash?"trashedAt":"updatedAt"),id=text(next,"nmID");
+            for(var e:cards){var card=object(e);String id=text(card,"nmID");if(!id.matches("[1-9][0-9]{0,19}")||!products.add(id))throw new IOException("invalid_wb_catalog");indexWb(id,card,!trash);if(!trash&&selected.contains(id))retain("w:"+id,card);if(trash)remove("w:"+id);}
+            String date=text(next,trash?"trashedAt":"updatedAt"),id=text(next,"nmID");
             if(!date.isBlank()&&id.matches("[1-9][0-9]{0,19}")){var saved=new JsonObject();saved.addProperty(trash?"trashedAt":"updatedAt",date);saved.addProperty("nmID",new java.math.BigInteger(id));if(trash)trashCursor=saved;else activeCursor=saved;}
-            int total=next.has("total")?next.get("total").getAsInt():cards.size();
             if(total<100){finished=true;break;}
             if(date.isBlank()||!id.matches("[1-9][0-9]{0,19}")||!seen.add(date+":"+id))throw new IOException("invalid_wb_cursor");
             cursor=next.deepCopy();cursor.remove("total");cursor.addProperty("limit",100);
@@ -152,16 +159,35 @@ public final class GtinBatchTransport implements ListingTransport, AutoCloseable
         if(!finished)throw new IOException("wb_page_limit");
     }
     private void scanOzon()throws IOException {
-        String cursor="";var seen=new HashSet<String>();
+        var products=new HashSet<String>();
+        // Ozon's ALL explicitly excludes archived products, which can still own a barcode.
+        for(String visibility:List.of("ALL","ARCHIVED"))scanOzon(visibility,products);
+    }
+    private void scanOzon(String visibility,Set<String> products)throws IOException {
+        String cursor="";var seen=new HashSet<String>();long observed=0,expected=-1;
         for(int page=0;page<20_000;page++){
-            var filter=new JsonObject();filter.addProperty("visibility","ALL");var request=new JsonObject();request.add("filter",filter);request.addProperty("last_id",cursor);request.addProperty("limit",1000);
+            var filter=new JsonObject();filter.addProperty("visibility",visibility);var request=new JsonObject();request.add("filter",filter);request.addProperty("last_id",cursor);request.addProperty("limit",1000);
             var result=obj(object(upstream.call("v3/product/list",request,false)),"result");var rows=strictArray(result,"items");var ids=new LinkedHashSet<String>();
-            for(var e:rows){String id=text(object(e),"product_id");if(!id.matches("[1-9][0-9]{0,18}")||!ids.add(id))throw new IOException("invalid_ozon_catalog");}
+            long total=ozonTotal(result);if(expected<0)expected=total;else if(total!=expected)throw new IOException("incomplete_ozon_catalog");
+            if(rows.size()>1000)throw new IOException("incomplete_ozon_catalog");
+            for(var e:rows){String id=text(object(e),"product_id");if(!id.matches("[1-9][0-9]{0,18}")||!ids.add(id)||!products.add(id))throw new IOException("invalid_ozon_catalog");}
+            observed+=ids.size();if(observed>expected)throw new IOException("incomplete_ozon_catalog");
             infoOzon(ids);
-            if(rows.size()<1000)return;
+            if(observed==expected)return;
+            if(rows.isEmpty())throw new IOException("incomplete_ozon_catalog");
             String next=text(result,"last_id");if(next.isBlank()||!seen.add(next)||next.equals(cursor))throw new IOException("invalid_ozon_cursor");cursor=next;
         }
         throw new IOException("ozon_page_limit");
+    }
+    private static long ozonTotal(JsonObject result)throws IOException {
+        Long total=null;
+        for(String field:List.of("total_items","total"))if(result.has(field)){
+            try {
+                var value=result.get(field);if(!value.isJsonPrimitive()||!value.getAsJsonPrimitive().isNumber())throw new NumberFormatException();
+                long current=value.getAsBigDecimal().toBigIntegerExact().longValueExact();if(current<0||total!=null&&total!=current)throw new NumberFormatException();total=current;
+            }catch(RuntimeException invalid){throw new IOException("incomplete_ozon_catalog",invalid);}
+        }
+        if(total==null)throw new IOException("incomplete_ozon_catalog");return total;
     }
     private void infoOzon(Collection<String> ids)throws IOException {
         for(var batch:chunks(ids,1000)){
@@ -180,7 +206,8 @@ public final class GtinBatchTransport implements ListingTransport, AutoCloseable
     }
     private void indexWb(String id,JsonObject card,boolean active)throws IOException {
         var entries=new ArrayList<Map.Entry<String,ProductKey>>();
-        for(var e:strictArray(card,"sizes")){var size=object(e);String variant=text(size,"chrtID");if(!variant.matches("[1-9][0-9]{0,19}"))throw new IOException("invalid_wb_size");var key=new ProductKey(shop.getId(),Marketplace.WILDBERRIES,id,variant);var barcodes=stringCodes(strictArray(size,"skus"));for(var code:barcodes)entries.add(Map.entry(code,key));if(active&&selected.contains(id))observations.put(key,barcodes);}
+        var sizes=new HashSet<String>();
+        for(var e:strictArray(card,"sizes")){var size=object(e);String variant=text(size,"chrtID");if(!variant.matches("[1-9][0-9]{0,19}")||!sizes.add(variant))throw new IOException("invalid_wb_size");var key=new ProductKey(shop.getId(),Marketplace.WILDBERRIES,id,variant);var barcodes=stringCodes(strictArray(size,"skus"));for(var code:barcodes)entries.add(Map.entry(code,key));if(active&&selected.contains(id))observations.put(key,barcodes);}
         index(id,new Owned(text(card,"vendorCode"),entries,active));
     }
     private void index(String id,Owned replacement){

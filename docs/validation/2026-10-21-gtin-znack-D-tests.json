@@ -1,0 +1,229 @@
+{
+  "stage": "D",
+  "mode": "Linux Java25 JavaFX Xvfb + localhost and fixtures",
+  "productionWrites": false,
+  "tests": 327,
+  "failures": 0,
+  "errors": 0,
+  "skipped": 0,
+  "classes": [
+    {
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "classname": "com.vncode.app.features.gtinsync.GtinTnvedIdentityTest"
+    },
+    {
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "classname": "com.vncode.app.features.gtinsync.GtinMatchingServiceTest"
+    },
+    {
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "classname": "com.vncode.app.features.gtinsync.GtinCatalogIndexTest"
+    },
+    {
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "classname": "com.vncode.app.features.gtinsync.OzonSkuGtinMatcherTest"
+    },
+    {
+      "tests": 7,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "classname": "com.vncode.app.features.gtinsync.RegisteredGtinProofTest"
+    },
+    {
+      "tests": 15,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "classname": "com.vncode.app.features.gtinsync.GtinSyncCoordinatorTest"
+    },
+    {
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "classname": "com.vncode.app.features.products.ProductSuggestionsTest"
+    },
+    {
+      "tests": 6,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "classname": "com.vncode.app.features.products.ProductDefaultProposalTest"
+    },
+    {
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "classname": "com.vncode.app.features.products.ProductVariantTest"
+    },
+    {
+      "tests": 14,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "classname": "com.vncode.app.features.products.ProductEditBatchIntegrationTest"
+    },
+    {
+      "tests": 15,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "classname": "com.vncode.app.features.products.ProductSnapshotReaderTest"
+    },
+    {
+      "tests": 17,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "classname": "com.vncode.app.features.products.ProductRepositoryTest"
+    },
+    {
+      "tests": 21,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "classname": "com.vncode.app.features.products.ProductBulkEditServiceTest"
+    },
+    {
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "classname": "com.vncode.app.features.tnved.ProductTnvedReviewServiceTest"
+    },
+    {
+      "tests": 19,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "classname": "com.vncode.app.features.kizmapping.OzonCatalogMappingServiceTest"
+    },
+    {
+      "tests": 14,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "classname": "com.vncode.app.features.kizmapping.WbCatalogMappingServiceTest"
+    },
+    {
+      "tests": 13,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "classname": "com.vncode.app.features.listingcopy.CopyDefaultsTest"
+    },
+    {
+      "tests": 6,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "classname": "com.vncode.app.features.listingcopy.ListingCopyMappingTest"
+    },
+    {
+      "tests": 17,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "classname": "com.vncode.app.features.sync.RegistrationCardIndexTest"
+    },
+    {
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "classname": "com.vncode.app.integration.listing.GtinSnapshotStoreTest"
+    },
+    {
+      "tests": 10,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "classname": "com.vncode.app.integration.znack.registration.RegistrationDynamicPreflightTest"
+    },
+    {
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "classname": "com.vncode.app.integration.znack.registration.RegistrationSnapshotReviewTest"
+    },
+    {
+      "tests": 19,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "classname": "com.vncode.app.integration.znack.registration.RegistrationReviewedValuesTest"
+    },
+    {
+      "tests": 20,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "classname": "com.vncode.app.integration.znack.registration.OzonAutomaticDraftSchemaTest"
+    },
+    {
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "classname": "com.vncode.app.ui.products.ProductBulkEditPaneTest"
+    },
+    {
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "classname": "com.vncode.app.ui.products.ProductEditInteractionTest"
+    },
+    {
+      "tests": 12,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "classname": "com.vncode.app.ui.products.ProductBulkDialogTest"
+    },
+    {
+      "tests": 22,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "classname": "com.vncode.app.ui.znackregistration.ZnackCardRegistrationControllerTest"
+    },
+    {
+      "tests": 17,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "classname": "com.vncode.app.ui.znackregistration.OzonRegistrationPaneTest"
+    },
+    {
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "classname": "com.vncode.app.ui.znackregistration.RegistrationDiagnosticsTest"
+    },
+    {
+      "tests": 16,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "classname": "com.vncode.app.ui.listingcopy.ListingCopyPaneTest"
+    }
+  ],
+  "note": "Final per-class results after combined31classes then affected3class rerun; not one all-pass repository run."
+}

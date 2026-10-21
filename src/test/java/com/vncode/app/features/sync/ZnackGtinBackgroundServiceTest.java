@@ -34,7 +34,7 @@ class ZnackGtinBackgroundServiceTest {
   var operations=new Operations(3){public void noEligible(Shop s,String run){marked.incrementAndGet();}};
   var wrong=new ProductKey(1,shop.getMarketplace(),"absent","absent");
   var result=new ZnackGtinBackgroundService(operations).run(shop,Set.of(wrong),p->assertEquals(0,p.succeeded()));
-  assertEquals("run",result.run());assertEquals(0,result.inventory().total());assertEquals(1,marked.get());assertEquals(0,operations.executions);
+  assertEquals("run",result.run());assertEquals(1,result.inventory().total());assertEquals(1,result.inventory().unknown());assertEquals(0,result.inventory().withoutGtin());assertEquals(1,marked.get());assertEquals(0,operations.executions);
  }
  @Test void wholeShopReportCountsUnmatchedCardsAndBlockedGtinsWithoutSendingThem()throws Exception{
   var operations=new Operations(2);
@@ -119,6 +119,18 @@ class ZnackGtinBackgroundServiceTest {
    public void blocked(Shop s,String run,List<SyncRunRepository.Item> rows,Job job){recorded.addAndGet(job.rows().size());}
   };
   var result=new ZnackGtinBackgroundService(operations).run(shop,Set.of(),p->{});assertEquals(3,result.progress().blocked());assertEquals(3,recorded.get());assertEquals(0,operations.executions);assertEquals(0,operations.links);
+ }
+
+ @Test void explicitRejectedDispatchCountsAttemptWithoutClaimingMarketplaceApplied()throws Exception{
+  var operations=new Operations(1){
+   public Job execute(Shop owner,String id,java.util.function.Consumer<GtinSyncModels.JobItem> progress){
+    executions++;var row=current.rows().getFirst();var before=new GtinSyncModels.ProductSnapshot(row.key(),"article","Black","52",List.of("legacy"),"fixture",Instant.now());
+    var request=new GtinSyncModels.Preview(before,GtinSyncModels.Operation.ADD,"","04610689132457",new GtinSyncModels.Capability(true,false,""));
+    progress.accept(new GtinSyncModels.JobItem(UUID.randomUUID(),UUID.randomUUID(),request,GtinSyncModels.Status.FAILED,"",Instant.now()));
+    return new Job(current.id(),current.shopId(),current.marketplace(),current.owner(),current.fields(),current.createdAt(),true,false,List.of(row.next(State.BLOCKED,"","WB_HTTP_400")));
+   }
+  };
+  var result=new ZnackGtinBackgroundService(operations).run(shop,Set.of(),p->{});assertEquals(1,result.progress().submitted());assertEquals(0,result.progress().succeeded());assertEquals(1,result.progress().blocked());
  }
 
 }

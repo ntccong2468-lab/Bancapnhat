@@ -40,6 +40,9 @@ class OzonAutomaticDraftSchemaTest {
     private final AtomicInteger allocations = new AtomicInteger(), posts = new AtomicInteger(), feedReads = new AtomicInteger(), cardReads = new AtomicInteger(), countryReads = new AtomicInteger();
     private final AtomicReference<JsonObject> payload = new AtomicReference<>();
     private final AtomicReference<Throwable> serverFailure = new AtomicReference<>();
+    private ZnackCardRegistrationWorkflow.CatalogSession session;
+    private DictionaryFault dictionaryFault=DictionaryFault.NONE;
+    private enum DictionaryFault { NONE, EMPTY_BODY, EMPTY_LIST, MALFORMED_JSON, WRONG_SCHEMA, HTML, UNAUTHORIZED, FORBIDDEN, RATE_LIMITED, TRUNCATED_BODY }
 
     @BeforeEach void setup() throws Exception {
         System.setProperty("vncode.appdata.dir", directory.toString());
@@ -69,9 +72,13 @@ class OzonAutomaticDraftSchemaTest {
         }, catalogSettings);
         var settings = new ZnackRepository(new ZnackModels.ShopContext(2, shop.getName())).getSettings();
         var scope = ZnackRegistrationScope.fromSettings(settings);
+        session=new ZnackCardRegistrationWorkflow.CatalogSession("fixture-token",catalog,scope);
         workflow = new OzonCardRegistrationWorkflow(cards,
-                ignored -> new ZnackCardRegistrationWorkflow.CatalogSession("fixture-token", catalog, scope),
-                (owner, selected) -> snapshot, Runnable::run, (owner, selected, sku, gtin) -> false);
+                ignored -> session,
+                (owner, selected) -> snapshot, Runnable::run, (owner, selected, sku, gtin) -> false,
+                () -> new RegistrationExistingCards.LookupContext((owner, current) -> List.of(),
+                        (current, gtin, expectedId) -> { throw new AssertionError("The explicit complete-empty Catalog fixture has no existing candidate"); },
+                        (owner, current) -> com.vncode.app.features.gtinsync.RegisteredGtinProof.source(owner)));
     }
 
     @AfterEach void cleanup() {
@@ -162,6 +169,61 @@ class OzonAutomaticDraftSchemaTest {
         assertEquals(0, allocations.get()); assertEquals(0, posts.get());
     }
 
+    @Test void emptyCountryBodyBlocksPreflightWithoutChangingExistingIdentities()throws Exception{assertDictionaryFailurePreservesState(DictionaryFault.EMPTY_BODY);}
+    @Test void emptyCountryListBlocksPreflightWithoutChangingExistingIdentities()throws Exception{assertDictionaryFailurePreservesState(DictionaryFault.EMPTY_LIST);}
+    @Test void malformedCountryJsonBlocksPreflightWithoutChangingExistingIdentities()throws Exception{assertDictionaryFailurePreservesState(DictionaryFault.MALFORMED_JSON);}
+    @Test void invalidCountrySchemaBlocksPreflightWithoutChangingExistingIdentities()throws Exception{assertDictionaryFailurePreservesState(DictionaryFault.WRONG_SCHEMA);}
+    @Test void countryLoginHtmlBlocksPreflightWithoutChangingExistingIdentities()throws Exception{assertDictionaryFailurePreservesState(DictionaryFault.HTML);}
+    @Test void countryUnauthorizedBlocksPreflightWithoutChangingExistingIdentities()throws Exception{assertDictionaryFailurePreservesState(DictionaryFault.UNAUTHORIZED);}
+    @Test void countryForbiddenBlocksPreflightWithoutChangingExistingIdentities()throws Exception{assertDictionaryFailurePreservesState(DictionaryFault.FORBIDDEN);}
+    @Test void countryRateLimitBlocksPreflightWithoutChangingExistingIdentities()throws Exception{assertDictionaryFailurePreservesState(DictionaryFault.RATE_LIMITED);}
+    @Test void interruptedCountryBodyBlocksPreflightWithoutChangingExistingIdentities()throws Exception{assertDictionaryFailurePreservesState(DictionaryFault.TRUNCATED_BODY);}
+
+    private void assertDictionaryFailurePreservesState(DictionaryFault fault)throws Exception{
+        seedExistingIdentities();dictionaryFault=fault;
+        String beforeCard=ProductJson.GSON.toJson(cards.find(key));
+        var products=new ProductRepository();var beforeProduct=products.localSnapshot(key).orElseThrow();
+        var catalog=new OzonCatalogRepository();var beforeMarketplace=catalog.findBySkus(shop.getId(),List.of("9001"));
+        assertThrows(Exception.class,()->new RegistrationDynamicPreflight(ignored->session).read(shop,List.of(snapshot),Map.of()),
+                "Country failure must block the actual selected-product preflight instead of submitting a guessed value");
+        assertTrue(countryReads.get()>0,"The failure must come from the real dictionary HTTP path");
+        assertEquals(0,allocations.get());assertEquals(0,posts.get());assertNull(payload.get());
+        assertEquals(0,feedReads.get());assertEquals(0,cardReads.get());
+        assertEquals(beforeCard,ProductJson.GSON.toJson(cards.find(key)),"Keep prior GTIN/feed/card status and active GTIN intact");
+        assertEquals(beforeProduct,products.localSnapshot(key).orElseThrow(),"A dictionary outage must not rewrite product facts or its verified GTIN");
+        assertEquals(beforeMarketplace,catalog.findBySkus(shop.getId(),List.of("9001")),"Keep the seller's marketplace barcodes unchanged");
+        assertNull(serverFailure.get(),()->"Unexpected HTTP fixture failure: "+serverFailure.get());
+    }
+
+    @Test void unknownExplicitCountryRemainsForReviewWithoutReplacingSellerGtinOrBarcode()throws Exception{
+        seedExistingIdentities();
+        addSourceAttributes(List.of(new ProductAttribute("country","Страна производства",List.of("Неизвестная страна"),"")));
+        String beforeCard=ProductJson.GSON.toJson(cards.find(key));
+        var catalog=new OzonCatalogRepository();var beforeMarketplace=catalog.findBySkus(shop.getId(),List.of("9001"));
+        var review=new RegistrationDynamicPreflight(ignored->session).read(shop,List.of(snapshot),Map.of());
+        assertTrue(review.missing().stream().anyMatch(missing->missing.attribute().id()==2630L));
+        assertFalse(review.plans().getFirst().draft().attributes().containsKey(2630L),"An explicit unknown country must not fall back to Russia");
+        assertThrows(RegistrationValidationException.class,()->RegistrationDynamicPreflight.approvals(review));
+        assertEquals(1,countryReads.get());assertEquals(0,allocations.get());assertEquals(0,posts.get());
+        assertEquals(beforeCard,ProductJson.GSON.toJson(cards.find(key)));
+        assertEquals(beforeMarketplace,catalog.findBySkus(shop.getId(),List.of("9001")));
+    }
+
+    private void seedExistingIdentities()throws Exception{
+        var original=snapshot;var variant=original.variants().getFirst();
+        snapshot=new ProductSnapshot(original.key(),original.revision(),original.title(),original.description(),original.brand(),original.vendorArticle(),original.categoryId(),original.media(),original.attributes(),
+                List.of(new ProductVariant(variant.id(),variant.sellerArticle(),variant.color(),variant.size(),"00000000000017",true,variant.russianSize())),original.dimensions(),original.documents(),original.checkedAt(),original.metadata());
+        new OzonCatalogRepository().upsertPage(shop.getId(),List.of(new OzonProductDto("501",key.variantId(),"9001",snapshot.title(),"",key.variantId(),"коричневый","3XL","Костюм спортивный","Мужской",false,
+                Instant.now().toString(),List.of("seller-barcode-152-52","00000000000017"))),"");
+        new ProductRepository().saveVerifiedSnapshot(shop,snapshot);
+        assertTrue(cards.claim(shop,key,"9001","00000000000017",session.scope(),false));
+        assertTrue(cards.transition(key,Status.CHECKING,Status.ALLOCATING_GTIN));
+        var previous=new Draft("6211331000","6211331000",31326,"Existing card","Existing brand",Map.of(2478L,"Existing card",2504L,"Existing brand"),Map.of());
+        cards.generated(key,"00000000000024",ZnackNationalCatalogService.buildPayload("00000000000024",previous,"").toString());
+        assertTrue(cards.transition(key,Status.READY_TO_SUBMIT,Status.FEED_SUBMITTING));
+        cards.submitted(key,"previous-confirmed-feed");cards.progress(key,Status.ERROR,91L,"Previous rejection retained for review");
+    }
+
     private void addSourceAttributes(List<ProductAttribute> additions) {
         var attributes = new ArrayList<>(snapshot.attributes()); attributes.addAll(additions);
         snapshot = new ProductSnapshot(snapshot.key(), snapshot.revision(), snapshot.title(), snapshot.description(),
@@ -202,7 +264,7 @@ class OzonAutomaticDraftSchemaTest {
         assertEquals("52", attribute(payload.get(), 35).get("attr_value").getAsString());
         assertEquals("RU", attribute(payload.get(), 2630).get("attr_value").getAsString(), "The one-click HTTP feed must carry ISO RU, not the display label");
         assertEquals("", attribute(payload.get(), 2630).get("attr_value_type").getAsString());
-        assertEquals(1, countryReads.get(), "Planning and submission reuse the same verified dictionary");
+        assertEquals(2, countryReads.get(), "Planning pins one dictionary; final submission independently revalidates current country data");
         assertFalse(batches.resumePending(shop));
         assertEquals(1, posts.get());
     }
@@ -285,12 +347,15 @@ class OzonAutomaticDraftSchemaTest {
         JsonObject response;
         try {
             String path = exchange.getRequestURI().getPath(), query = Objects.toString(exchange.getRequestURI().getQuery(), "");
+            if(path.equals("/v3/dictionary/isocountry")&&dictionaryFault!=DictionaryFault.NONE){
+                countryReads.incrementAndGet();respondDictionaryFault(exchange);return;
+            }
             response = switch (path) {
                 case "/v3/categories" -> JsonParser.parseString("{\"result\":[{\"cat_id\":31326,\"cat_name\":\"Костюм спортивный\",\"category_active\":true}]}").getAsJsonObject();
                 case "/v3/attributes" -> query.contains("attr_type=a") ? allSchema.deepCopy() : schema.deepCopy();
                 case "/v3/dictionary/isocountry" -> {
                     countryReads.incrementAndGet();
-                    yield JsonParser.parseString("{\"result\":{\"_etag\":\"fixture-country-etag\",\"_list\":[{\"country_iso\":\"RU\",\"country_name\":\"Россия\"},{\"country_iso\":\"CN\",\"country_name\":\"Китай\"}]}}").getAsJsonObject();
+                    yield JsonParser.parseString("{\"apiversion\":3,\"result\":{\"_etag\":\"fixture-country-etag\",\"_list\":[{\"country_iso\":\"RU\",\"country_name\":\"Россия\"},{\"country_iso\":\"CN\",\"country_name\":\"Китай\"}]}}").getAsJsonObject();
                 }
                 case "/v3/generate-gtins" -> {
                     if (query.contains("quantity=1")) {
@@ -341,5 +406,26 @@ class OzonAutomaticDraftSchemaTest {
         exchange.getResponseHeaders().set("Content-Type", "application/json");
         exchange.sendResponseHeaders(status, body.length);
         exchange.getResponseBody().write(body); exchange.close();
+    }
+
+    private void respondDictionaryFault(HttpExchange exchange)throws java.io.IOException{
+        int status=switch(dictionaryFault){case UNAUTHORIZED->401;case FORBIDDEN->403;case RATE_LIMITED->429;default->200;};
+        String text=switch(dictionaryFault){
+            case EMPTY_BODY->"";
+            case EMPTY_LIST->"{\"apiversion\":3,\"result\":{\"_etag\":\"fixture-empty\",\"_list\":[]}}";
+            case MALFORMED_JSON,TRUNCATED_BODY->"{\"result\":{\"_list\":[";
+            case WRONG_SCHEMA->"{\"apiversion\":3,\"result\":{\"_etag\":\"fixture-invalid\",\"_list\":{}}}";
+            case HTML->"<!doctype html><html><body>Fixture login page</body></html>";
+            default->"{\"error\":\"Fixture dictionary unavailable\"}";
+        };
+        byte[] body=text.getBytes(StandardCharsets.UTF_8);
+        exchange.getResponseHeaders().set("Content-Type",dictionaryFault==DictionaryFault.HTML?"text/html":"application/json");
+        if(dictionaryFault==DictionaryFault.RATE_LIMITED)exchange.getResponseHeaders().set("Retry-After","301");
+        if(dictionaryFault==DictionaryFault.TRUNCATED_BODY){
+            exchange.getResponseHeaders().set("Connection","close");exchange.sendResponseHeaders(status,body.length+128L);
+            try{exchange.getResponseBody().write(body);}finally{exchange.close();}
+            return;
+        }
+        exchange.sendResponseHeaders(status,body.length);exchange.getResponseBody().write(body);exchange.close();
     }
 }

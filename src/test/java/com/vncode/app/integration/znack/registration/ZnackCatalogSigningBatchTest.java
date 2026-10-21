@@ -74,6 +74,15 @@ class ZnackCatalogSigningBatchTest {
         assertRejectedBeforeWire(List.of());
     }
 
+    @Test void malformedSignatureAcknowledgementsRemainUncertainAfterOnePost()throws Exception {
+        for(String raw:List.of("[\"1\"]","[1.5]","[1,1]","[true]","[{}]","[-1]")){
+            acknowledgement=ignored->{var response=new JsonObject();response.add("signed",JsonParser.parseString(raw));return response;};
+            int before=posts.get();var dispatched=new AtomicBoolean();
+            assertThrows(IllegalStateException.class,()->service(signer()).sendReviewedSigningBatch("synthetic-token",List.of(document(1)),()->dispatched.set(true)));
+            assertTrue(dispatched.get());assertEquals(before+1,posts.get(),"Uncertain acknowledgement cannot replay the signing POST");
+        }
+    }
+
     @Test void elevenCardsAreRejectedInsteadOfSilentlyTruncatingOrSplitting() {
         var documents=new ArrayList<SigningDocument>();for(int i=1;i<=11;i++)documents.add(document(i));
         assertRejectedBeforeWire(documents);

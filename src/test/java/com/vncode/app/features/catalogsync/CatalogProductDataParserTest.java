@@ -12,6 +12,17 @@ class CatalogProductDataParserTest {
         assertEquals("draft",data.single("@catalog_status"));assertEquals(List.of("errors"),data.values("@catalog_detailed_status"));
         assertTrue(data.values("feed_id").isEmpty());assertTrue(data.values("signature").isEmpty());
     }
+    @Test void actualRemoteCardIdentityIsPreservedAsLocalMetadataWithoutBorrowingOtherIds(){
+        var numeric=CatalogProductDataParser.parse(JsonParser.parseString("{\"good_id\":1234567890123456789,\"good_status\":\"draft\",\"good_detailed_status\":[\"moderation\"]}").getAsJsonObject());
+        assertEquals("1234567890123456789",numeric.single("@catalog_id"));assertEquals("draft",numeric.single("@catalog_status"));assertEquals(List.of("moderation"),numeric.values("@catalog_detailed_status"));
+        var string=CatalogProductDataParser.parse(JsonParser.parseString("{\"good_id\":\"000123\",\"gtin\":\"04610689132457\",\"feed_id\":\"different-id\"}").getAsJsonObject());assertEquals("000123",string.single("@catalog_id"));
+        var absent=CatalogProductDataParser.parse(JsonParser.parseString("{\"gtin\":\"04610689132457\",\"feed_id\":\"different-id\",\"id\":99}").getAsJsonObject());assertTrue(absent.values("@catalog_id").isEmpty());
+    }
+    @Test void malformedRemoteIdsCannotBecomeTrustedCatalogIdentity(){
+        for(String raw:List.of("true","{}","[]","-1","0","1.5","1e100","\" 12 \"","\"not-an-id\"")){
+            var failure=assertThrows(IllegalArgumentException.class,()->CatalogProductDataParser.parse(JsonParser.parseString("{\"good_id\":"+raw+"}").getAsJsonObject()),raw);assertEquals("CATALOG_IDENTITY_INVALID",failure.getMessage());
+        }
+    }
     @Test void explicitCatalogSizeSystemIsPreservedWithoutConvertingTheSize(){
         var data=CatalogProductDataParser.parse(JsonParser.parseString("{\"good_attrs\":[{\"attr_id\":35,\"attr_value\":\"54\",\"attr_value_type\":\"РОССИЯ\"}]}").getAsJsonObject());
         assertEquals("54",data.single("size"));assertEquals("РОССИЯ",data.single("@size_type"));
@@ -73,4 +84,10 @@ class CatalogProductDataParserTest {
         assertEquals("REGISTRY_DOCUMENTS_PENDING",pending.single("@documents_status"));assertTrue(pending.documents().isEmpty());
         assertEquals("REGISTRY_DOCUMENTS_UNAVAILABLE",CatalogProductDataParser.withRegistry(CatalogProductData.EMPTY,JsonParser.parseString("{} ")).single("@documents_status"));
     }
+    @Test void explicitSignedFlagIsPreservedAndMalformedFlagsStayUnknown(){
+        assertEquals("false",CatalogProductDataParser.parse(JsonParser.parseString("{\"good_signed\":false}").getAsJsonObject()).single("@catalog_signed"));
+        assertEquals("true",CatalogProductDataParser.parse(JsonParser.parseString("{\"good_signed\":true}").getAsJsonObject()).single("@catalog_signed"));
+        for(String raw:List.of("\"false\"","0","{}","[]")){var failure=assertThrows(IllegalArgumentException.class,()->CatalogProductDataParser.parse(JsonParser.parseString("{\"good_signed\":"+raw+"}").getAsJsonObject()));assertEquals("CATALOG_SIGNATURE_STATUS_UNVERIFIED",failure.getMessage());}
+    }
+
 }

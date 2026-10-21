@@ -37,11 +37,11 @@ public final class RegistrationCardIndex {
     private final Map<String,List<RegisteredGtin>> codes=new HashMap<>(),attributes=new HashMap<>();
     private final OzonSkuGtinMatcher ozon;
     private final Set<Long> wbOwners=new HashSet<>();
-    private final String owner,scopeJson;
+    private final String owner,scopeJson,catalogSource;
     private final long catalogErrors;
     public RegistrationCardIndex(Shop shop) {
         var ready=new RegistrationSources().require(shop);
-        var scope=RegisteredGtinProof.current(shop);owner=ListingIdentity.fingerprint(shop);
+        var scope=RegisteredGtinProof.current(shop);owner=ListingIdentity.fingerprint(shop);catalogSource=scope.source();
         var settings=new com.vncode.app.integration.znack.ZnackRepository(new com.vncode.app.integration.znack.ZnackModels.ShopContext(shop.getId(),shop.getName())).getSettings();
         var nativeScope=com.vncode.app.integration.znack.registration.ZnackRegistrationScope.fromSettings(settings);
         scopeJson=new com.google.gson.Gson().toJson(nativeScope);
@@ -60,6 +60,36 @@ public final class RegistrationCardIndex {
         if(!ready.run().equals(new RegistrationSources().require(shop).run()))throw new IllegalStateException("SOURCE_CONFIGURATION_CHANGED");
     }
     public long catalogErrorCount(){return catalogErrors;}
+    /** Called on a read worker before retaining a previous observation, never from a cell renderer. */
+    public boolean currentScope(Shop shop){
+        try{return owner.equals(ListingIdentity.fingerprint(shop))&&catalogSource.equals(RegisteredGtinProof.current(shop).source());}
+        catch(RuntimeException unavailable){return false;}
+    }
+    /** Historical observation only; a feed/checkpoint cannot populate this value. */
+    public Optional<RegisteredGtin> observation(View view){
+        var matches=codes.getOrDefault(normal(view.gtin()),List.of());return matches.size()==1?Optional.of(matches.getFirst()):Optional.empty();
+    }
+    /** Display proof is stricter than a local allocation/checkpoint or barcode format. */
+    public Optional<RegisteredGtin> verifiedWb(Sku row){
+        var observed=view(row.status(),row.gtin(),row.barcodes(),row.vendorCode(),row.color(),row.size(),row.wbSize(),ownsWb(row.chrtId()));
+        return verified(observed,row.vendorCode(),row.color(),row.size(),row.wbSize(),List.of(),false);
+    }
+    public Optional<RegisteredGtin> verifiedOzon(com.vncode.app.features.products.ProductRow row,Status status,String gtin,boolean nativeOwned){
+        var candidates=ozon.candidates(row);var observed=viewOzon(status,gtin,row,nativeOwned);
+        return verified(observed,row.vendorArticle(),row.color(),GtinVariantIdentity.primarySize(row),row.russianSize(),candidates,true);
+    }
+    private Optional<RegisteredGtin> verified(View observed,String article,String color,String size,String russianSize,List<RegisteredGtin> skuCandidates,boolean ozonColor){
+        if(observed.gtin().isBlank()||Set.of("source.unverified","source.ambiguous").contains(observed.status()))return Optional.empty();
+        var matches=codes.getOrDefault(normal(observed.gtin()),List.of());if(matches.size()!=1)return Optional.empty();var card=matches.getFirst();
+        var now=Instant.now();if(card.syncedAt().isBefore(now.minusSeconds(86400))||card.syncedAt().isAfter(now.plusSeconds(300)))return Optional.empty();
+        // A unique raw barcode cannot prove an apparel variant with missing color/size facts.
+        if(safe(color).isBlank()||safe(card.color()).isBlank()||safe(size).isBlank()&&safe(russianSize).isBlank()||safe(card.size()).isBlank())return Optional.empty();
+        if(!(ozonColor?OzonSkuGtinMatcher.sameColor(color,card.color()):!conflict(color,card.color()))||!GtinVariantIdentity.sizeMatches(card,size,russianSize))return Optional.empty();
+        boolean sameArticle=GtinMatchingService.normalizeArticle(article).equals(GtinMatchingService.normalizeArticle(card.article()));
+        boolean exactSellerSku=skuCandidates.size()==1&&skuCandidates.contains(card);
+        if(!safe(article).isBlank()&&!safe(card.article()).isBlank()&&!sameArticle&&!exactSellerSku)return Optional.empty();
+        return Optional.of(card);
+    }
     public boolean ownsWb(long variant){return wbOwners.contains(variant);}
     public boolean ownsOzon(String owner,String scope){return this.owner.equals(owner)&&scopeJson.equals(scope);}
     public View view(Status status,String gtin,List<String> barcodes,String article,String color,String size,boolean nativeOwned) {
@@ -88,7 +118,19 @@ public final class RegistrationCardIndex {
         if(matches.size()==1) {
             var card=matches.iterator().next();
             // Exact codes also need compatible variant details before presenting a usable card.
-            if((skuCandidates.contains(card)?!OzonSkuGtinMatcher.sameColor(color,card.color()):conflict(color,card.color()))||!safe(size).isBlank()&&!safe(card.size()).isBlank()&&!GtinVariantIdentity.sizeMatches(card,size,russianSize))return new View("source.ambiguous",card.gtin(),"GTIN_VARIANT_CONFLICT",true,false,true);
+            boolean exactSellerSku=skuCandidates.size()==1&&skuCandidates.contains(card);
+            boolean articleConflict=!safe(article).isBlank()&&!safe(card.article()).isBlank()
+                    &&!GtinMatchingService.normalizeArticle(article).equals(GtinMatchingService.normalizeArticle(card.article()))&&!exactSellerSku;
+            if(articleConflict||(skuCandidates.contains(card)?!OzonSkuGtinMatcher.sameColor(color,card.color()):conflict(color,card.color()))||!safe(size).isBlank()&&!safe(card.size()).isBlank()&&!GtinVariantIdentity.sizeMatches(card,size,russianSize))return new View("source.ambiguous",card.gtin(),"GTIN_VARIANT_CONFLICT",true,false,true);
+            boolean missingVariant=safe(color).isBlank()||safe(card.color()).isBlank()
+                    ||safe(size).isBlank()&&safe(russianSize).isBlank()||safe(card.size()).isBlank();
+            if(missingVariant){
+                // A real remote card may still be in moderation/draft while its variant is unproven.
+                // Preserve that independent stage, but never present its GTIN as verified/published.
+                String observed=card.published()?"source.unverified":com.vncode.app.integration.znack.registration.CatalogCardState.of(card).viewStatus;
+                if(Set.of(Status.FEED_SUBMITTED,Status.PROCESSING,Status.READY_TO_SIGN,Status.SIGNING).contains(status))observed="status."+status.name().toLowerCase(Locale.ROOT);
+                return new View(observed,card.gtin(),"GTIN_VARIANT_UNVERIFIED",true,false,true);
+            }
             if(card.published())return new View("status.published",card.gtin(),"SOURCE_PUBLISHED_CONFIRMED",true,true,false);
             if(!nativeExists||status==Status.PUBLISHED||safe(gtin).isBlank()&&notSubmitted(status,gtin,null,"",false)){
                 var observed=com.vncode.app.integration.znack.registration.CatalogCardState.of(card);

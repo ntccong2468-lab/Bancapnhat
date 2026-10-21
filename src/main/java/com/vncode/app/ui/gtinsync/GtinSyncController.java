@@ -157,8 +157,10 @@ public final class GtinSyncController {
         var scope=scope(token);if(disposed||!runningQueues.add(scope))return;updateButtons();
         Task<List<JobItem>> task=new Task<>() {
             @Override protected List<JobItem> call() {
+                try(var lane=MarketplaceRequestBudget.lane(true)){
                 workspace.coordinator.runPending(token.shopId(),token.marketplace(),item->updateValue(workspace.repository.history(token.shopId(),token.marketplace())));
                 return workspace.repository.history(token.shopId(),token.marketplace());
+                }
             }
         };
         task.valueProperty().addListener((o,a,b)->{if(b!=null&&!disposed&&model.token().equals(token))showHistory(b);});
@@ -203,7 +205,7 @@ public final class GtinSyncController {
     private <T> void background(GtinSyncViewModel.LoadToken token,Work<T> work,Consumer<T> done,boolean blocking,boolean cancellable) {
         if(disposed||token.shopId()==0||(blocking&&busy))return;
         if(blocking){busy=true;updateButtons();statusLabel.setText(tr("gtinsync.loading"));}
-        Task<T> task=new Task<>(){@Override protected T call()throws Exception{return work.run();}};
+        Task<T> task=new Task<>(){@Override protected T call()throws Exception{try(var lane=MarketplaceRequestBudget.lane(true)){return work.run();}}};
         if(cancellable)reads.add(task);
         Runnable finish=()->{reads.remove(task);if(!disposed&&model.token().equals(token)){if(blocking)busy=false;updateButtons();}};
         task.setOnSucceeded(e->{try{if(!disposed&&model.token().equals(token))done.accept(task.getValue());}finally{finish.run();}});

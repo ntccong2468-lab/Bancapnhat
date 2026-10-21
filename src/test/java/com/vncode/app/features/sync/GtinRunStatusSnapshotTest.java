@@ -42,8 +42,8 @@ class GtinRunStatusSnapshotTest {
         var shop=GtinWriteTestFixture.shop(Marketplace.WILDBERRIES);var repo=new SyncRunRepository();String run=repo.begin(shop,"znack_marketplace","READBACK");
         var item=repo.add(shop,run,"100","101","","","","",GtinWriteTestFixture.GTIN,"WAITING_REMOTE","","{}");
         var context=GtinRunStatusSnapshot.capture(shop,Set.of(new ProductKey(1,Marketplace.WILDBERRIES,"100","101"),new ProductKey(1,Marketplace.WILDBERRIES,"100","missing")));
-        var pending=GtinRunStatusSnapshot.read(context,run);assertEquals(2,pending.result().inventory().total());assertEquals(1,pending.result().inventory().withoutGtin());assertEquals(1,pending.result().progress().blocked());assertEquals(1,pending.result().progress().pending());
+        var pending=GtinRunStatusSnapshot.read(context,run);assertEquals(2,pending.result().inventory().total());assertEquals(0,pending.result().inventory().withoutGtin());assertEquals(1,pending.result().inventory().unknown());assertEquals(1,pending.result().progress().blocked());assertEquals(1,pending.result().progress().pending());
         repo.registrationProgress(shop,item,item.gtin(),"SUCCEEDED","VERIFIED","","{\"marketplaceVerified\":true}");
-        var complete=GtinRunStatusSnapshot.read(context,run);assertTrue(complete.settled());assertEquals(2,complete.result().inventory().total());assertEquals(1,complete.result().inventory().withoutGtin());assertEquals(1,complete.result().progress().blocked());assertEquals(1,complete.result().progress().succeeded());
+        var complete=GtinRunStatusSnapshot.read(context,run);assertTrue(complete.settled());assertEquals(2,complete.result().inventory().total());assertEquals(0,complete.result().inventory().withoutGtin());assertEquals(1,complete.result().inventory().unknown());assertEquals(1,complete.result().progress().blocked());assertEquals(1,complete.result().progress().succeeded());
     }
 }

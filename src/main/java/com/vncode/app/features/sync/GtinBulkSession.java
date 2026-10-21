@@ -27,13 +27,18 @@ final class GtinBulkSession implements AutoCloseable {
     GtinBulkSession(Shop shop){this(shop,new ListingHttpClient(shop));}
     GtinBulkSession(Shop shop,ListingTransport client){this(shop,client,null);}
     GtinBulkSession(Shop shop,ListingTransport client,OzonGtinAdapter.BeforeRequest beforeRequest){
+        this(shop,client,beforeRequest,null);
+    }
+    GtinBulkSession(Shop shop,ListingTransport client,OzonGtinAdapter.BeforeRequest beforeRequest,CatalogSyncService.SourceRefresh sourceRefresh){
         this.shop=shop;transport=new GtinBatchTransport(shop,client);
         adapter=shop.getMarketplace()==Marketplace.WILDBERRIES?new WbGtinAdapter(shop,transport):beforeRequest==null?new OzonGtinAdapter(shop,transport):new OzonGtinAdapter(shop,transport,beforeRequest);
         wb=new WbProductSnapshotReader(s->transport);ozon=new OzonProductSnapshotReader(s->transport);
         databaseSession=com.vncode.app.config.Database.openBatchSession();
         ownerChecks=openOwnerChecks(shop,databaseSession);
-        try{catalog=new CatalogSyncService(new CatalogSyncRepository(),new GtinSyncRepository(),new ProductBulkEditService(),this::read,
-            s->s.getMarketplace()==Marketplace.OZON?new OzonListingAdapter():new WbListingAdapter(),key->adapter,RegisteredGtinProof::requireCurrent);}
+        try{catalog=sourceRefresh==null?new CatalogSyncService(new CatalogSyncRepository(),new GtinSyncRepository(),new ProductBulkEditService(),this::read,
+            s->s.getMarketplace()==Marketplace.OZON?new OzonListingAdapter():new WbListingAdapter(),key->adapter,RegisteredGtinProof::requireCurrent):
+            new CatalogSyncService(new CatalogSyncRepository(),new GtinSyncRepository(),new ProductBulkEditService(),this::read,
+            s->s.getMarketplace()==Marketplace.OZON?new OzonListingAdapter():new WbListingAdapter(),key->adapter,RegisteredGtinProof::requireCurrent,sourceRefresh);}
         catch(RuntimeException failure){transport.close();ownerChecks.close();databaseSession.close();throw failure;}
     }
     private static ListingIdentity.OwnerCheckBatch openOwnerChecks(Shop shop,com.vncode.app.config.Database.BatchSession database){

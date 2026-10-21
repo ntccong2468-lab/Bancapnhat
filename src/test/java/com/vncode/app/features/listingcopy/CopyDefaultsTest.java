@@ -105,4 +105,10 @@ class CopyDefaultsTest {
         var old=ListingCopyMappingTest.options(Marketplace.OZON);var options=ListingCopyService.options(old,Set.of("v1"));
         var preview=adapter(Marketplace.OZON).preview(ListingCopyMappingTest.target(Marketplace.OZON),source,options);assertFalse(preview.publishable());assertTrue(preview.issues().stream().anyMatch(i->i.code().equals("OWN_BARCODE_SET_UNSUPPORTED")));
     }
+    @Test void missingRawPayloadKeepsEveryVariantBarcodeWithoutPretendingItIsARegisteredGtin(){
+        for(var market:Marketplace.values()){
+            var original=source(market,"12",Map.of("source.payload","{}"));var variant=new ProductVariant("v1","A","Black","M","",false,"46",List.of("000123","000456"),ProductVariant.GtinEvidence.UNVERIFIED);
+            assertEquals(List.of("000123","000456"),CopyDefaults.barcodes(original,variant));assertEquals("",variant.gtin());assertFalse(variant.gtinVerified());
+        }
+    }
 }

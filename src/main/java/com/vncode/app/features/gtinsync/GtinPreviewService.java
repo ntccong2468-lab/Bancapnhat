@@ -19,14 +19,15 @@ public final class GtinPreviewService {
         if(!RegisteredGtinValidator.isValid(newGtin))throw new IllegalArgumentException("invalid_gtin");
         var now=clock.instant();
         var observed=repository.catalogItem(key.shopId(),key.marketplace(),newGtin);
-        if(!observed.published()||!observed.tradeUnit()||observed.syncedAt().isBefore(now.minus(Duration.ofHours(24)))||observed.syncedAt().isAfter(now.plusSeconds(300)))throw new IllegalArgumentException("unverified_catalog_gtin");
+        if(!RegisteredGtinProof.currentObservation(observed,now))throw new IllegalArgumentException("unverified_catalog_gtin");
         adapter.validateRegistration(newGtin);
         LicenseRuntime.require(Permission.SELLER_API);
         var product=adapter.read(key);
         if(!product.key().equals(key))throw new IllegalArgumentException("product_mismatch");
         adapter.validateProduct(key);
-        if(product.barcodes().contains(newGtin))throw new IllegalArgumentException("already_present");
-        if(operation==Operation.REPLACE && (oldGtin==null || oldGtin.isBlank() || oldGtin.equals(newGtin) || !product.barcodes().contains(oldGtin)))
+        adapter.validateIdentity(product,observed);
+        if(RegisteredGtinProof.contains(product.barcodes(),newGtin))throw new IllegalArgumentException("already_present");
+        if(operation==Operation.REPLACE && (oldGtin==null || oldGtin.isBlank() || RegisteredGtinProof.sameCode(oldGtin,newGtin) || !RegisteredGtinProof.contains(product.barcodes(),oldGtin)))
             throw new IllegalArgumentException("old_gtin_not_found");
         if(operation==Operation.ADD && oldGtin!=null && !oldGtin.isBlank())throw new IllegalArgumentException("unexpected_old_gtin");
         LicenseRuntime.require(Permission.SELLER_API);
@@ -47,8 +48,8 @@ public final class GtinPreviewService {
             var key=e.getKey();String gtin=e.getValue();var capability=adapter.capability(key);var source=observed.get(gtin);
             if(!capability.add())throw new IllegalArgumentException("unsupported_operation");
             if(!RegisteredGtinValidator.isValid(gtin))throw new IllegalArgumentException("invalid_gtin");
-            if(source==null||!source.published()||!source.tradeUnit()||source.syncedAt().isBefore(now.minus(Duration.ofHours(24)))||source.syncedAt().isAfter(now.plusSeconds(300)))throw new IllegalArgumentException("unverified_catalog_gtin");
-            var product=adapter.read(key);if(!product.key().equals(key))throw new IllegalArgumentException("product_mismatch");adapter.validateProduct(key);
+            if(!RegisteredGtinProof.currentObservation(source,now))throw new IllegalArgumentException("unverified_catalog_gtin");
+            var product=adapter.read(key);if(!product.key().equals(key))throw new IllegalArgumentException("product_mismatch");adapter.validateProduct(key);adapter.validateIdentity(product,source);
             if(RegisteredGtinProof.contains(product.barcodes(),gtin))throw new IllegalArgumentException("already_present");
             if(adapter.conflicts(key,gtin))throw new IllegalArgumentException("gtin_on_another_product");
             result.add(new Preview(product,Operation.ADD,"",gtin,capability));

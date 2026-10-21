@@ -33,11 +33,13 @@ public final class ZnackGtinReviewService {
     public String prepare(Shop shop)throws Exception {
         return prepare(shop,step->{});
     }
-    public String prepare(Shop shop,java.util.function.Consumer<String> progress)throws Exception {
+    public String prepare(Shop shop,java.util.function.Consumer<String> progress)throws Exception {return prepare(shop,Set.of(),progress);}
+    public String prepare(Shop shop,Set<ProductKey> selected,java.util.function.Consumer<String> progress)throws Exception {
+        var cohort=Set.copyOf(selected);for(var key:cohort)ListingIdentity.require(shop,key);
         return ShopOperationCoordinator.withActiveShop(shop.getId(),()->{
             ListingIdentity.require(shop);marketplace.refresh(shop,progress);ListingIdentity.require(shop);
             progress.accept("MATCHING_GTIN");
-            return source.review(shop,new RegistrationSources().require(shop).run());
+            return source.review(shop,new RegistrationSources().require(shop).run(),cohort);
         });
     }
     public List<SyncRunRepository.Item> page(Shop shop,String run,int offset){require(shop,run);return reports.items(run,offset,300);}

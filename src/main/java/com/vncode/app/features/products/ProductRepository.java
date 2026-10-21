@@ -139,17 +139,23 @@ public final class ProductRepository {
         }catch(SQLException error){throw storeError();}
     }
     private static String projection(ProductQuery q,List<Object> args,Connection c,boolean cardView)throws SQLException {
-        args.add(q.shopId());args.add(q.marketplace().name());args.add(q.shopId());args.add(q.marketplace().name());
-        args.add(currentOwner(c,new ProductKey(q.shopId(),q.marketplace(),"scope","scope")));
+        var shop=currentShop(c,new ProductKey(q.shopId(),q.marketplace(),"scope","scope"));String owner=ListingIdentity.fingerprint(shop);
+        args.add(q.shopId());args.add(q.marketplace().name());args.add(owner);args.add(ListingIdentity.currentCatalogSource(shop));args.add(owner);args.add(q.shopId());args.add(q.marketplace().name());
+        args.add(owner);
         args.add(q.shopId());
         String sql="""
             SELECT b.*,vn_casefold(b.title) sort_title,
-              COALESCE((SELECT vn_verified_gtin(b.barcodes,m.gtin) FROM gtin_sync_mappings m JOIN gtin_sync_catalog g
+              COALESCE((SELECT vn_verified_gtin(b.barcodes,m.gtin,g.data_json,b.article,b.color,b.size,b.russian_size) FROM gtin_sync_mappings m JOIN gtin_sync_catalog g
                 ON g.shop_id=m.shop_id AND g.marketplace=m.marketplace AND g.gtin=m.gtin
                 WHERE m.shop_id=? AND m.marketplace=? AND m.product_id=b.card_id AND m.variant_id=b.variant_id
-                  AND json_extract(g.data_json,'$.published')=1 AND json_extract(g.data_json,'$.tradeUnit')=1),'') verified_gtin,
+                  AND json_extract(g.data_json,'$.published')=1 AND json_extract(g.data_json,'$.tradeUnit')=1
+                  AND json_extract(g.data_json,'$.owner')=? AND json_extract(g.data_json,'$.source')=?
+                  AND julianday(json_extract(g.data_json,'$.syncedAt'))>=julianday('now','-1 day')
+                  AND julianday(json_extract(g.data_json,'$.syncedAt'))<=julianday('now','+5 minutes')),'') verified_gtin,
               COALESCE((SELECT CASE
                   WHEN count(*)=0 THEN 'MISSING'
+                  WHEN NOT EXISTS(SELECT 1 FROM product_snapshots own WHERE own.shop_id=d.shop_id AND own.marketplace=d.marketplace
+                    AND own.card_id=b.card_id AND json_extract(own.payload,'$.metadata.owner')=? AND json_extract(own.payload,'$.revision') LIKE 'live:%') THEN 'UNVERIFIED'
                   WHEN sum(CASE WHEN d.state='EXPIRED' OR (d.valid_until IS NOT NULL AND d.valid_until<date('now')) THEN 1 ELSE 0 END)>0 THEN 'EXPIRED'
                   WHEN sum(CASE WHEN d.state='REJECTED' THEN 1 ELSE 0 END)>0 THEN 'REJECTED'
                   WHEN sum(CASE WHEN d.state='PENDING' THEN 1 ELSE 0 END)>0 THEN 'PENDING'
@@ -205,9 +211,10 @@ public final class ProductRepository {
         try(var c=open()) {
             requireOwner(c,key.shopId(),key.marketplace());
             try(var p=c.prepareStatement("SELECT payload FROM product_snapshots WHERE shop_id=? AND marketplace=? AND card_id=? AND variant_id=?")) {
-                bindKey(p,key);try(var r=p.executeQuery()){if(r.next()){var snapshot=ProductJson.GSON.fromJson(r.getString(1),ProductSnapshot.class);if(!key.equals(snapshot.key()))throw new SecurityException("Product snapshot owner mismatch");String owner=snapshot.metadata().get("owner");if(owner==null||owner.equals(currentOwner(c,key)))return Optional.of(snapshot);}}
+                bindKey(p,key);try(var r=p.executeQuery()){if(r.next()){var snapshot=ProductJson.GSON.fromJson(r.getString(1),ProductSnapshot.class);if(!key.equals(snapshot.key()))throw new SecurityException("Product snapshot owner mismatch");String owner=snapshot.metadata().get("owner");if(owner==null||owner.equals(currentOwner(c,key)))return Optional.of(currentProof(c,snapshot));}}
             }
-            return key.marketplace()==Marketplace.WILDBERRIES?wbSnapshot(c,key):ozonSnapshot(c,key);
+            var snapshot=key.marketplace()==Marketplace.WILDBERRIES?wbSnapshot(c,key):ozonSnapshot(c,key);
+            return snapshot.isEmpty()?snapshot:Optional.of(currentProof(c,snapshot.orElseThrow()));
         }catch(SQLException error){throw storeError();}
     }
     private static Optional<ProductSnapshot> wbSnapshot(Connection c,ProductKey key)throws SQLException {
@@ -220,8 +227,8 @@ public final class ProductRepository {
                 try(var fields=c.prepareStatement("SELECT characteristic_id,name,value_json FROM wb_product_characteristics WHERE shop_id=? AND CAST(nm_id AS TEXT)=? ORDER BY characteristic_id")) {
                     fields.setInt(1,key.shopId());fields.setString(2,key.cardId());try(var a=fields.executeQuery()){while(a.next()) {var values=new ArrayList<String>();try {var json=JsonParser.parseString(a.getString(3));if(json.isJsonArray())json.getAsJsonArray().forEach(v->values.add(v.isJsonPrimitive()?v.getAsString():v.toString()));else if(json.isJsonPrimitive())values.add(json.getAsString());}catch(RuntimeException ignored){}attrs.add(new ProductAttribute(a.getString(1),safe(a.getString(2)),values,""));}}
                 }
-                try(var sizes=c.prepareStatement("SELECT CAST(v.chrt_id AS TEXT),v.tech_size FROM wb_product_sizes v WHERE v.shop_id=? AND CAST(v.nm_id AS TEXT)=? ORDER BY v.chrt_id")) {
-                    sizes.setInt(1,key.shopId());sizes.setString(2,key.cardId());try(var a=sizes.executeQuery()){while(a.next())variants.add(new ProductVariant(a.getString(1),safe(r.getString("vendor_code")),"",safe(a.getString(2)),"",false));}
+                try(var sizes=c.prepareStatement("SELECT CAST(v.chrt_id AS TEXT),v.tech_size,v.wb_size,COALESCE((SELECT group_concat(sku,char(31)) FROM wb_product_size_skus b WHERE b.shop_id=v.shop_id AND b.chrt_id=v.chrt_id),'') FROM wb_product_sizes v WHERE v.shop_id=? AND CAST(v.nm_id AS TEXT)=? ORDER BY v.chrt_id")) {
+                    sizes.setInt(1,key.shopId());sizes.setString(2,key.cardId());try(var a=sizes.executeQuery()){while(a.next())variants.add(new ProductVariant(a.getString(1),safe(r.getString("vendor_code")),"",safe(a.getString(2)),"",false,safe(a.getString(3)),barcodeValues(a.getString(4)),ProductVariant.GtinEvidence.UNVERIFIED));}
                 }
                 if(!key.variantId().isBlank()&&variants.stream().noneMatch(v->v.id().equals(key.variantId())))throw new SecurityException("Unknown product variant");
                 return Optional.of(new ProductSnapshot(key,"cache:"+hash(safe(r.getString("updated_at"))+safe(r.getString("synced_at"))),safe(r.getString("title")),safe(r.getString("description")),safe(r.getString("brand")),safe(r.getString("vendor_code")),safe(r.getString("subject_id")),media,attrs,variants,new PackageDimensions(decimal(r,"dimension_length"),decimal(r,"dimension_width"),decimal(r,"dimension_height"),decimal(r,"dimension_weight_brutto")),documents(c,key),Instant.now()));
@@ -230,7 +237,7 @@ public final class ProductRepository {
     }
     private static Optional<ProductSnapshot> ozonSnapshot(Connection c,ProductKey key)throws SQLException {
         try(var p=c.prepareStatement("SELECT * FROM ozon_products WHERE shop_id=? AND product_id=?")) {
-            p.setInt(1,key.shopId());p.setString(2,key.cardId());try(var r=p.executeQuery()){if(!r.next())return Optional.empty();if(!key.variantId().equals(safe(r.getString("offer_id"))))throw new SecurityException("Unknown product variant");return Optional.of(new ProductSnapshot(key,"summary:"+hash(safe(r.getString("updated_at"))),safe(r.getString("name")),"","",safe(r.getString("article")),safe(r.getString("category")),safeMedia(r.getString("primary_image_url")).stream().toList(),List.of(),List.of(new ProductVariant(key.variantId(),safe(r.getString("offer_id")),safe(r.getString("color")),safe(r.getString("size")),"",false)),null,documents(c,key),Instant.now()));}
+            p.setInt(1,key.shopId());p.setString(2,key.cardId());try(var r=p.executeQuery()){if(!r.next())return Optional.empty();if(!key.variantId().equals(safe(r.getString("offer_id"))))throw new SecurityException("Unknown product variant");var barcodes=new ArrayList<String>();try(var codes=c.prepareStatement("SELECT barcode FROM ozon_product_barcodes WHERE shop_id=? AND product_id=? ORDER BY barcode")){codes.setInt(1,key.shopId());codes.setString(2,key.cardId());try(var values=codes.executeQuery()){while(values.next())barcodes.add(values.getString(1));}}return Optional.of(new ProductSnapshot(key,"summary:"+hash(safe(r.getString("updated_at"))),safe(r.getString("name")),"","",safe(r.getString("article")),safe(r.getString("category")),safeMedia(r.getString("primary_image_url")).stream().toList(),List.of(),List.of(new ProductVariant(key.variantId(),safe(r.getString("offer_id")),safe(r.getString("color")),safe(r.getString("size")),"",false,safe(r.getString("russian_size")),barcodes,ProductVariant.GtinEvidence.UNVERIFIED)),null,documents(c,key),Instant.now()));}
         }
     }
     /** Existing documents across the current shop, including cards outside a bulk selection. */
@@ -270,6 +277,7 @@ public final class ProductRepository {
         });
     }
     private void saveSnapshot(ProductSnapshot snapshot,boolean complete) {
+        if(complete){var identities=new HashSet<String>();for(var document:snapshot.documents())if(document.id()==null||document.id().isBlank()||!identities.add(document.id()))throw new IllegalArgumentException("PRODUCT_DOCUMENT_IDENTITY_UNVERIFIED");}
         try{SqliteWriteTransaction.run(c->{var key=snapshot.key();requireOwner(c,key.shopId(),key.marketplace());
             if(complete){
                 if(!snapshot.metadata().get("owner").equals(currentOwner(c,key)))throw new SecurityException("Product credentials changed");
@@ -286,7 +294,20 @@ public final class ProductRepository {
         });}catch(SQLException error){throw new IllegalStateException("SYNC_STORAGE",error);}
     }
     private static String currentOwner(Connection c,ProductKey key)throws SQLException{
-        try(var q=c.prepareStatement("SELECT marketplace,client_id,api_key FROM shops WHERE id=?")){q.setInt(1,key.shopId());try(var r=q.executeQuery()){if(!r.next()||!key.marketplace().name().equals(r.getString(1)))throw new SecurityException("Product owner changed");return ListingIdentity.fingerprint(new Shop(key.shopId(),"cache",key.marketplace(),r.getString(2),r.getString(3)));}}
+        return ListingIdentity.fingerprint(currentShop(c,key));
+    }
+    private static Shop currentShop(Connection c,ProductKey key)throws SQLException{
+        try(var q=c.prepareStatement("SELECT marketplace,client_id,api_key FROM shops WHERE id=?")){q.setInt(1,key.shopId());try(var r=q.executeQuery()){if(!r.next()||!key.marketplace().name().equals(r.getString(1)))throw new SecurityException("Product owner changed");return new Shop(key.shopId(),"cache",key.marketplace(),r.getString(2),r.getString(3));}}
+    }
+    private static List<String> barcodeValues(String values){return values==null||values.isBlank()?List.of():List.of(values.split("\u001f"));}
+    private static ProductSnapshot currentProof(Connection c,ProductSnapshot snapshot)throws SQLException{
+        var shop=currentShop(c,snapshot.key());var variants=new ArrayList<ProductVariant>();
+        for(var variant:snapshot.variants()){
+            var key=new ProductKey(snapshot.key().shopId(),snapshot.key().marketplace(),snapshot.key().cardId(),variant.id());
+            var proof=ListingIdentity.verifiedGtinEvidence(shop,key,variant.barcodes(),variant.sellerArticle(),variant.color(),variant.size(),variant.russianSize());
+            variants.add(new ProductVariant(variant.id(),variant.sellerArticle(),variant.color(),variant.size(),proof.map(ListingIdentity.VerifiedGtin::gtin).orElse(variant.gtin()),proof.isPresent(),variant.russianSize(),variant.barcodes(),proof.map(ListingIdentity.VerifiedGtin::evidence).orElse(variant.gtin().isBlank()?ProductVariant.GtinEvidence.UNVERIFIED:variant.gtinEvidence().historical())));
+        }
+        return new ProductSnapshot(snapshot.key(),snapshot.revision(),snapshot.title(),snapshot.description(),snapshot.brand(),snapshot.vendorArticle(),snapshot.categoryId(),snapshot.media(),snapshot.attributes(),variants,snapshot.dimensions(),snapshot.documents(),snapshot.checkedAt(),snapshot.metadata());
     }
     public static void requireOwner(Connection c,int shop,Marketplace market)throws SQLException {
         try(var p=c.prepareStatement("SELECT marketplace FROM shops WHERE id=?")){p.setInt(1,shop);try(var r=p.executeQuery()){if(!r.next()||!market.name().equals(r.getString(1)))throw new SecurityException("Product shop ownership mismatch");}}
@@ -299,8 +320,9 @@ public final class ProductRepository {
             Function.create(c,"vn_verified_gtin",new Function(){protected void xFunc()throws SQLException {
                 String gtin=safe(value_text(1));String codes=safe(value_text(0));
                 boolean verified=RegisteredGtinValidator.isValid(gtin)&&Arrays.stream(codes.split("\u001f")).anyMatch(x->padGtin(x).equals(padGtin(gtin)));
+                if(verified)try{var row=ProductJson.GSON.fromJson(value_text(2),com.vncode.app.features.gtinsync.GtinSyncModels.RegisteredGtin.class);verified=ListingIdentity.compatibleVariant(row,safe(value_text(3)),safe(value_text(4)),safe(value_text(5)),safe(value_text(6)));}catch(RuntimeException malformed){verified=false;}
                 result(verified?gtin:"");
-            }},2,Function.FLAG_DETERMINISTIC);return c;}catch(SQLException error){c.close();throw error;}
+            }},7,Function.FLAG_DETERMINISTIC);return c;}catch(SQLException error){c.close();throw error;}
     }
     private static String fold(String value){return Normalizer.normalize(safe(value),Normalizer.Form.NFKC).toLowerCase(Locale.ROOT);}
     private static String safe(String value){return value==null?"":value;}

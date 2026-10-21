@@ -4,6 +4,11 @@ import java.util.*;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 class GtinCatalogIndexTest {
+ @Test void registrationLookupCanDetectDraftsAndUnknownPackagingWithoutMakingThemEligibleForWrites(){
+  var draft=row("00000000000017","PANTS-1","Brown","52",false);var unknown=new GtinSyncModels.RegisteredGtin("00000000000024","PANTS-2","Brown","52",false,false,"fixture",Instant.now());var rows=List.of(draft,unknown);
+  assertTrue(new GtinCatalogIndex(rows).attributes("PANTS-1","Brown","52").isEmpty());assertTrue(new GtinCatalogIndex(rows).code(unknown.gtin()).isEmpty());
+  assertEquals(List.of(draft),new GtinCatalogIndex(rows,true).attributes("PANTS-1","Brown","52"));assertEquals(List.of(unknown),new GtinCatalogIndex(rows,true).attributes("PANTS-2","Brown","52"));
+ }
  @Test void ozonAutomaticIndexUsesSellerSkuSizeWithoutChangingTheWbArticleRules(){
   var source=row("00000000000017","152DASHOA","Brown","52",true);
   var key=new com.vncode.app.features.products.ProductKey(1,com.vncode.app.integration.marketplace.Marketplace.OZON,"101","152DASH-52");

@@ -50,14 +50,33 @@ class RegistrationSyncReportDialogTest {
     }
     @Test void marketplaceReadbackIsReportedAsUpdatedWhileLocalActivationIsPending()throws Exception{
         var repository=new com.vncode.app.features.sync.SyncRunRepository();String gtinRun=repository.begin(shop,"znack_marketplace","READBACK");
-        repository.add(shop,gtinRun,"1","v1","","","","","04631993764370","WAITING_REMOTE","","{\"marketplaceVerified\":true}");
+        repository.add(shop,gtinRun,"1","v1","","","","","04631993764370","WAITING_REMOTE","","{\"marketplaceVerified\":true,\"cohortScope\":\"STORE\"}");
         repository.add(shop,gtinRun,"2","v2","","","","","04631993764363","WAITING_REMOTE","READBACK_PENDING","{}");
         repository.add(shop,gtinRun,"3","v3","","","","","04631993764356","NEEDS_ACTION","GTIN_TNVED_GROUP_CHANGED","{}");
         repository.add(shop,gtinRun,"4","v4","","","","","","NEEDS_ACTION","ZNACK_MAPPING_UNVERIFIED","{}");
         var counts=repository.marketplaceCounts(gtinRun);assertEquals(1L,counts.get("UPDATED"));assertEquals(3L,counts.get("WITH_GTIN"));assertEquals(1L,counts.get("WITHOUT_GTIN"));assertEquals(2L,counts.get("NOT_UPDATED"));
         fx(()->{report.dispose();report=new RegistrationSyncReportDialog.Report(shop,gtinRun);return null;});awaitIdle();
-        fx(()->{assertTrue(label("summary").getText().contains("1/3"));assertEquals(4,table().getItems().size());return null;});
+        fx(()->{assertTrue(label("summary").getText().contains("1/3"));assertTrue(label("summary").getText().contains(com.vncode.app.shared.I18nService.getInstance().tr("znack.registration.report_scope_store")));assertEquals(4,table().getItems().size());return null;});
         assertEquals("WAITING_REMOTE",repository.items(gtinRun,0,10).getFirst().state(),"Reporting must not bypass native candidate activation");
+    }
+    @Test void reportFiltersTheWholeRunAndShowsActualBarcodeCatalogTimeAndNextAction()throws Exception{
+        try(var c=Database.getConnection();var p=c.prepareStatement("UPDATE sync_run_items SET state='FAILED',error_code='NETWORK_TIMEOUT',updated_at='2026-10-21T01:02:03Z',evidence_json=? WHERE run_id=? AND variant_id='offer-650'")){
+            p.setString(1,"{\"barcodes\":[\"000123\"],\"goodId\":\"919\",\"catalogStatus\":\"draft\",\"catalogDetailedStatus\":[\"moderation\"],\"catalogCheckedAt\":\"2026-10-21T00:00:00Z\",\"checkResult\":\"UNKNOWN\",\"syncResult\":\"UNKNOWN\",\"nextAction\":\"READBACK_REQUIRED\"}");p.setString(2,run);assertEquals(1,p.executeUpdate());
+        }
+        fx(()->{button("refresh").fire();return null;});awaitIdle();
+        fx(()->{((ComboBox<String>)report.lookup("#registrationSyncReportState")).setValue("FAILED");return null;});awaitIdle();
+        fx(()->{assertEquals(1,table().getItems().size());var row=table().getItems().getFirst();assertEquals("offer-650",((com.vncode.app.features.sync.SyncRunRepository.Item)row).variantId());var values=new java.util.ArrayList<String>();for(var column:table().getColumns())values.add(String.valueOf(((TableColumn)column).getCellData(row)));String cells=String.join("\n",values);for(String expected:java.util.List.of("000123","919","draft / moderation","2026-10-21T00:00:00Z","2026-10-21T01:02:03Z","READBACK_REQUIRED"))assertTrue(cells.contains(expected),expected);assertTrue(button("next").isDisabled());assertFalse(((Button)report.lookup("#registrationSyncReportExport")).isDisabled());assertTrue(label("summary").getText().contains(com.vncode.app.shared.I18nService.getInstance().tr("znack.registration.report_scope_store")));assertTrue(label("summary").getText().contains("650"));assertEquals("FAILED",((ComboBox<?>)report.lookup("#registrationSyncReportState")).getValue());return null;});
+    }
+    @Test void freeTextSearchFindsItemsBeyondTheLoadedPage()throws Exception{
+        fx(()->{((TextField)report.lookup("#registrationSyncReportSearch")).setText("offer-650");return null;});
+        long deadline=System.nanoTime()+TimeUnit.SECONDS.toNanos(5);while(System.nanoTime()<deadline){if(fx(()->table().getItems().size()==1))break;Thread.sleep(10);}awaitIdle();
+        fx(()->{assertEquals(1,table().getItems().size());assertEquals("offer-650",((com.vncode.app.features.sync.SyncRunRepository.Item)table().getItems().getFirst()).variantId());assertTrue(button("next").isDisabled());return null;});
+    }
+    @Test void transientReportReadFailureKeepsPreviousResultsAndOwnerChangeClearsThem()throws Exception{
+        try(var c=Database.getConnection();var s=c.createStatement()){s.execute("ALTER TABLE sync_run_events RENAME TO temporarily_unavailable_events");}
+        fx(()->{button("refresh").fire();return null;});awaitIdle();fx(()->{assertEquals(300,table().getItems().size());assertTrue(label("summary").getText().contains(com.vncode.app.shared.I18nService.getInstance().tr("znack.registration.latest_read_unknown")));return null;});
+        try(var c=Database.getConnection();var s=c.createStatement()){s.execute("ALTER TABLE temporarily_unavailable_events RENAME TO sync_run_events");s.execute("UPDATE shops SET api_key='rotated-fixture' WHERE id=1");}
+        fx(()->{button("refresh").fire();return null;});awaitIdle();fx(()->{assertTrue(table().getItems().isEmpty());assertTrue(((Button)report.lookup("#registrationSyncReportExport")).isDisabled());return null;});
     }
     @SuppressWarnings("unchecked") TableView<?> table(){return (TableView<?>)report.lookup("#registrationSyncReportItems");}
     private Object field(String name)throws Exception{var f=RegistrationSyncReportDialog.Report.class.getDeclaredField(name);f.setAccessible(true);return f.get(report);}

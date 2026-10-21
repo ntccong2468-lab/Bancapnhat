@@ -12,7 +12,9 @@ public final class ZnackGtinBackgroundService {
     public record Progress(int completed,int total,int succeeded,int pending,int blocked,int submitted){
         public Progress(int completed,int total,int succeeded,int pending,int blocked){this(completed,total,succeeded,pending,blocked,0);}
     }
-    public record Inventory(int total,int withGtin,int withoutGtin,int blockedBeforeUpdate) {}
+    public record Inventory(int total,int withGtin,int withoutGtin,int blockedBeforeUpdate,int unknown) {
+        public Inventory(int total,int withGtin,int withoutGtin,int blockedBeforeUpdate){this(total,withGtin,withoutGtin,blockedBeforeUpdate,0);}
+    }
     public record Result(String run,Progress progress,Inventory inventory){
         public Result(String run,Progress progress){this(run,progress,new Inventory(progress.total(),progress.total(),0,0));}
     }
@@ -29,6 +31,7 @@ public final class ZnackGtinBackgroundService {
     interface Operations {
         String prepare(Shop shop)throws Exception;
         default String prepare(Shop shop,Consumer<String> phase)throws Exception{return prepare(shop);}
+        default String prepare(Shop shop,Set<ProductKey> selected,Consumer<String> phase)throws Exception{return prepare(shop,phase);}
         List<SyncRunRepository.Item> page(Shop shop,String run,int offset);
         List<Selection> select(Shop shop,String run,List<SyncRunRepository.Item> rows)throws Exception;
         Job preview(Shop shop,List<Selection> rows)throws Exception;
@@ -56,6 +59,7 @@ public final class ZnackGtinBackgroundService {
             public void close(){if(bulk!=null)bulk.close();}
             public String prepare(Shop s)throws Exception{return review.prepare(s);}
             public String prepare(Shop s,Consumer<String> phase)throws Exception{return review.prepare(s,phase);}
+            public String prepare(Shop s,Set<ProductKey> selected,Consumer<String> phase)throws Exception{return review.prepare(s,selected,phase);}
             public List<SyncRunRepository.Item> page(Shop s,String r,int offset){return review.page(s,r,offset);}
             public List<Selection> select(Shop s,String r,List<SyncRunRepository.Item> rows)throws Exception{return bulk==null?review.select(s,r,rows):review.select(s,r,rows,bulk::read);}
             public Job preview(Shop s,List<Selection> rows)throws Exception{return (bulk==null?catalog:bulk.catalog).preview(s,rows,new Options(Set.of(Field.GTIN),Map.of()));}
@@ -91,25 +95,30 @@ public final class ZnackGtinBackgroundService {
     public Result run(Shop shop,Set<ProductKey> selected,Consumer<Progress> progress,Consumer<String> phase)throws Exception {
         try(var database=com.vncode.app.config.Database.openBatchSession();var checks=operations.ownerChecks()?com.vncode.app.integration.listing.ListingIdentity.batchChecks(shop):null){return runActive(shop,selected,progress,phase);}
     }
+    static boolean unknownSource(String evidence){
+        try{var data=com.google.gson.JsonParser.parseString(evidence).getAsJsonObject();return data.has("checkResult")&&"UNKNOWN".equals(data.get("checkResult").getAsString());}
+        catch(RuntimeException invalid){return true;}
+    }
     private Result runActive(Shop shop,Set<ProductKey> selected,Consumer<Progress> progress,Consumer<String> phase)throws Exception {
         for(var key:selected)if(key.shopId()!=shop.getId()||key.marketplace()!=shop.getMarketplace())throw new SecurityException("SYNC_REVIEW_OWNER_CHANGED");
         phase.accept("PREPARING");
         String run;
-        try{run=operations.prepare(shop,phase);}
+        try{run=operations.prepare(shop,selected,phase);}
         catch(com.vncode.app.features.license.LicenseGate.LicenseDeniedException|SecurityException denied){throw denied;}
         catch(Exception failure){throw new PreparationException(failure);}
         var last=new Progress[]{new Progress(0,0,0,0,0)};
         Consumer<Progress> updates=value->{last[0]=value;progress.accept(value);};
-        var rows=new ArrayList<SyncRunRepository.Item>();int covered=0,missing=0,excluded=0;
+        var rows=new ArrayList<SyncRunRepository.Item>();int covered=0,missing=0,excluded=0,unknown=0;var seen=new HashSet<ProductKey>();
         for(int offset=0;;offset+=300){var page=operations.page(shop,run,offset);
             for(var row:page){
                 if(row.productId().startsWith("catalog:")||(!selected.isEmpty()&&!selected.contains(new ProductKey(shop.getId(),shop.getMarketplace(),row.productId(),row.variantId()))))continue;
-                covered++;if(row.gtin().isBlank())missing++;
+                seen.add(new ProductKey(shop.getId(),shop.getMarketplace(),row.productId(),row.variantId()));covered++;if(row.gtin().isBlank()){if(unknownSource(row.evidence()))unknown++;else missing++;}
                 if(ZnackGtinReviewService.eligible(row))rows.add(row);else if(!row.gtin().isBlank())excluded++;
             }
             if(page.size()<300)break;
         }
-        var inventory=new Inventory(covered,covered-missing,missing,excluded);
+        for(var key:selected)if(!seen.contains(key)){covered++;unknown++;}
+        var inventory=new Inventory(covered,covered-missing-unknown,missing,excluded,unknown);
         if(rows.isEmpty()){
             operations.noEligible(shop,run);
             var empty=new Progress(0,0,0,0,0);updates.accept(empty);
@@ -140,7 +149,7 @@ public final class ZnackGtinBackgroundService {
                 plan=operations.execute(shop,plan.id(),item->{
                     var status=item.status();var key=item.preview().before().key();var previous=observed.put(key,status);
                     if(previous!=null)countStatus(previous,counts,-1);countStatus(status,counts,1);
-                    if(Set.of(com.vncode.app.features.gtinsync.GtinSyncModels.Status.AWAITING_VERIFICATION,com.vncode.app.features.gtinsync.GtinSyncModels.Status.RECONCILE_REQUIRED,com.vncode.app.features.gtinsync.GtinSyncModels.Status.SUCCEEDED).contains(status))submitted.add(key);
+                    if(item.dispatchedAt()!=null||Set.of(com.vncode.app.features.gtinsync.GtinSyncModels.Status.AWAITING_VERIFICATION,com.vncode.app.features.gtinsync.GtinSyncModels.Status.RECONCILE_REQUIRED,com.vncode.app.features.gtinsync.GtinSyncModels.Status.SUCCEEDED).contains(status))submitted.add(key);
                     updates.accept(new Progress(baseDone+counts[0],rows.size(),baseOk+counts[1],basePending+counts[2],baseBlocked+counts[3],submitted.size()));
                 });operations.link(shop,run,plan);
             }

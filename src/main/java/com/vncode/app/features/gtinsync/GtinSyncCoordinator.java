@@ -17,14 +17,20 @@ public final class GtinSyncCoordinator {
     private final Clock clock;
     private final int maxPolls;
     private final Duration interval;
+    @FunctionalInterface public interface SourceRefresh {void refresh(Map<ProductKey,String> cohort)throws Exception;}
+    private final SourceRefresh sourceRefresh;
     public GtinSyncCoordinator(GtinSyncRepository repository,Function<ProductKey,GtinMarketplaceAdapter> adapters,Clock clock,int maxPolls,Duration interval) {
+        this(repository,adapters,clock,maxPolls,interval,cohort->refreshCatalog(repository,cohort));
+    }
+    public GtinSyncCoordinator(GtinSyncRepository repository,Function<ProductKey,GtinMarketplaceAdapter> adapters,Clock clock,int maxPolls,Duration interval,SourceRefresh sourceRefresh) {
         if(maxPolls<1 || interval.isNegative())throw new IllegalArgumentException("invalid_poll_policy");
-        this.repository=repository;this.adapters=adapters;this.clock=clock;this.maxPolls=maxPolls;this.interval=interval;
+        this.repository=repository;this.adapters=adapters;this.clock=clock;this.maxPolls=maxPolls;this.interval=interval;this.sourceRefresh=Objects.requireNonNull(sourceRefresh);
         this.previews=new GtinPreviewService(repository,adapters,clock);
     }
     public UUID confirm(List<Preview> selection) throws Exception {
         if(selection.isEmpty())throw new IllegalArgumentException("empty_selection");
         LicenseRuntime.require(Permission.GTIN);
+        sourceRefresh.refresh(cohort(selection));
         if(selection.stream().allMatch(p->p.operation()==Operation.ADD)&&adapters.apply(selection.getFirst().before().key()) instanceof GtinBatchAdapter)validateBatch(selection);
         else for(var p:selection) validate(p);
         LicenseRuntime.require(Permission.GTIN);
@@ -46,10 +52,12 @@ public final class GtinSyncCoordinator {
     public void runJob(UUID jobId,Consumer<JobItem> progress){runItems(repository.jobItems(jobId),progress);}
     private void runItems(List<JobItem> items,Consumer<JobItem> progress) {
         if(!items.isEmpty()&&adapters.apply(items.getFirst().preview().before().key()) instanceof GtinBatchAdapter batch){runBatches(items,batch,progress,0);return;}
+        var queued=items.stream().filter(i->i.status()==Status.QUEUED&&!repository.paused(i.jobId())).toList();
+        boolean fresh=queued.isEmpty()||refreshQueued(queued,progress);
         for(var item:items) {
             if(Thread.currentThread().isInterrupted())return;
             if(item.status()==Status.AWAITING_VERIFICATION || item.status()==Status.RECONCILE_REQUIRED){reconcile(item.id());publish(progress,item.id());continue;}
-            if(item.status()!=Status.QUEUED || repository.paused(item.jobId()))continue;
+            if(!fresh || item.status()!=Status.QUEUED || repository.paused(item.jobId()))continue;
             try{LicenseRuntime.require(Permission.GTIN);}
             catch(LicenseDeniedException denied){repository.pause(item.jobId(),true);publish(progress,item.id());continue;}
             if(!repository.transition(item.id(),Status.QUEUED,Status.VALIDATING,null))continue;
@@ -68,8 +76,11 @@ public final class GtinSyncCoordinator {
             try{LicenseRuntime.require(Permission.GTIN);}
             catch(LicenseDeniedException denied){repository.pauseKnownUnsent(item.id());publish(progress,item.id());continue;}
             try {
+                repository.requireSendingBatch(List.of(repository.item(item.id())));
                 var submission=adapters.apply(item.preview().before().key()).submit(item.preview());
                 repository.transition(item.id(),Status.SENDING,Status.AWAITING_VERIFICATION,submission.remoteTaskId());
+            }catch(com.vncode.app.integration.listing.ListingRejectedException rejected){
+                repository.issue(item.id(),rejected.code());repository.transition(item.id(),Status.SENDING,Status.FAILED,null);
             }catch(GtinKnownUnsentException knownUnsent){
                 repository.issue(item.id(),knownUnsent.code());
                 repository.pauseKnownUnsent(item.id());publish(progress,item.id());
@@ -83,6 +94,29 @@ public final class GtinSyncCoordinator {
             reconcile(item.id());
             publish(progress,item.id());
         }
+    }
+    private static Map<ProductKey,String> cohort(List<Preview> selection){
+        if(selection.isEmpty()||selection.size()>GtinBatchAdapter.MAX_PLAN_ROWS)throw new IllegalArgumentException("invalid_selection");
+        var result=new LinkedHashMap<ProductKey,String>();var first=selection.getFirst().before().key();
+        for(var preview:selection){var key=preview.before().key();if(key.shopId()!=first.shopId()||key.marketplace()!=first.marketplace()||result.put(key,preview.newGtin())!=null)throw new IllegalArgumentException("invalid_selection");}
+        return Collections.unmodifiableMap(result);
+    }
+    private boolean refreshQueued(List<JobItem> queued,Consumer<JobItem> progress){
+        try{LicenseRuntime.require(Permission.GTIN);for(int offset=0;offset<queued.size();offset+=GtinBatchAdapter.MAX_PLAN_ROWS){if(Thread.currentThread().isInterrupted())throw new java.io.InterruptedIOException("GTIN_SOURCE_REFRESH_INTERRUPTED");var part=queued.subList(offset,Math.min(offset+GtinBatchAdapter.MAX_PLAN_ROWS,queued.size()));sourceRefresh.refresh(cohort(part.stream().map(JobItem::preview).toList()));}return true;}
+        catch(Exception unavailable){for(var item:queued){repository.issue(item.id(),com.vncode.app.features.sync.SyncFailure.of(unavailable,0).code());repository.pause(item.jobId(),true);publish(progress,item.id());}return false;}
+    }
+    /** A completed selected-card remote observation is mandatory before an unsent mutation. */
+    private static void refreshCatalog(GtinSyncRepository repository,Map<ProductKey,String> cohort)throws Exception{
+        if(cohort.isEmpty())throw new IllegalArgumentException("invalid_selection");
+        var first=cohort.keySet().iterator().next();var shop=new com.vncode.app.features.shop.ShopRepository().findById(first.shopId());
+        if(shop==null||shop.getMarketplace()!=first.marketplace()||cohort.keySet().stream().anyMatch(k->k.shopId()!=first.shopId()||k.marketplace()!=first.marketplace()))throw new SecurityException("SYNC_OWNER_CHANGED");
+        String scope=RegisteredGtinProof.source(shop);var requested=new LinkedHashSet<>(cohort.values());
+        var rows=com.vncode.app.integration.znack.registration.NationalCatalogGtinSource.forSelection(shop,requested,false).read(shop.getId());
+        var expected=requested.stream().map(RegisteredGtinProof::canonicalCode).collect(java.util.stream.Collectors.toSet());
+        var seen=new HashSet<String>();for(var row:rows)if(!RegisteredGtinProof.identifiedObservation(row)||!scope.equals(row.source())||!seen.add(RegisteredGtinProof.canonicalCode(row.gtin())))throw new IllegalStateException("GTIN_SOURCE_READBACK_MISMATCH");
+        if(!seen.equals(expected)||!scope.equals(RegisteredGtinProof.source(shop)))throw new IllegalStateException("GTIN_SOURCE_READBACK_MISMATCH");
+        RegisteredGtinProof.requireKnownDocumentState(repository.catalogItems(shop.getId(),shop.getMarketplace(),requested).values(),rows);
+        repository.mergeCatalog(shop.getId(),shop.getMarketplace(),rows);RegisteredGtinProof.requireCurrent(shop,requested);
     }
     private void validateBatch(List<Preview> selection)throws Exception {
         var requested=new LinkedHashMap<ProductKey,String>();var saved=new HashMap<ProductKey,Preview>();
@@ -100,6 +134,7 @@ public final class GtinSyncCoordinator {
         var paused=new HashSet<UUID>();for(var id:items.stream().map(JobItem::jobId).distinct().toList())if(repository.paused(id))paused.add(id);
         var queued=items.stream().filter(i->i.status()==Status.QUEUED&&!paused.contains(i.jobId())).toList();
         if(queued.isEmpty())return;
+        if(retryDepth==0&&!refreshQueued(queued,progress))return;
         try{LicenseRuntime.require(Permission.GTIN);adapter.prepareBatch(queued.stream().map(i->i.preview().before().key()).toList());}
         catch(Exception denied){for(var item:queued){repository.issue(item.id(),com.vncode.app.features.sync.SyncFailure.of(denied,0).code());repository.pause(item.jobId(),true);publish(progress,item.id());}return;}
         var claimed=repository.claimBatch(queued);if(claimed.isEmpty())return;
@@ -121,6 +156,9 @@ public final class GtinSyncCoordinator {
                 if(!submissions.keySet().equals(part.stream().map(p->p.before().key()).collect(java.util.stream.Collectors.toSet())))throw new java.io.IOException("GTIN_BATCH_RESPONSE_MISMATCH");
                 var changes=members.stream().map(item->new GtinSyncRepository.Change(new JobItem(item.id(),item.jobId(),item.preview(),Status.SENDING,item.remoteTaskId()),Status.AWAITING_VERIFICATION,submissions.get(item.preview().before().key()).remoteTaskId(),null)).toList();
                 for(var item:repository.applyBatch(changes)){publishItem(progress,item);sent.add(item);}
+            }catch(com.vncode.app.integration.listing.ListingRejectedException rejected){
+                var changes=members.stream().map(item->new GtinSyncRepository.Change(new JobItem(item.id(),item.jobId(),item.preview(),Status.SENDING,item.remoteTaskId(),item.dispatchedAt()),Status.FAILED,null,rejected.code())).toList();
+                for(var item:repository.applyBatch(changes))publishItem(progress,item);
             }catch(LicenseDeniedException denied){repository.releaseUnsentBatch(members,"LICENSE_REQUIRED",true);for(var item:members)publish(progress,item.id());break;}
             catch(GtinKnownUnsentException unsent){
                 boolean changed=Set.of("PRODUCT_CHANGED","ALREADY_PRESENT","GTIN_ON_ANOTHER_PRODUCT","OZON_BARCODE_LIMIT","WB_ARTICLE_TRIM_COLLISION","VARIANT_NOT_FOUND").contains(unsent.code());
@@ -200,7 +238,7 @@ public final class GtinSyncCoordinator {
         var adapter=adapters.apply(item.preview().before().key());
         for(int poll=0;poll<maxPolls && !clock.instant().isAfter(deadline);poll++) {
             Verification outcome;
-            try{outcome=adapter.verify(item.preview(),new Submission(item.remoteTaskId()));}
+            try{outcome=adapter.verify(item.preview(),new Submission(item.remoteTaskId(),item.dispatchedAt()));}
             catch(GtinRejectedException rejected){repository.issue(itemId,rejected.code());repository.transition(itemId,item.status(),Status.FAILED,null);return;}
             catch(Exception e){repository.issue(itemId,com.vncode.app.features.sync.SyncFailure.of(e,0).code());outcome=Verification.UNKNOWN;if(e instanceof InterruptedException)Thread.currentThread().interrupt();}
             if(outcome==Verification.APPLIED || outcome==Verification.REJECTED) {

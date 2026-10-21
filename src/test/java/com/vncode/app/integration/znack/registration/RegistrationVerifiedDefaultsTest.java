@@ -52,10 +52,11 @@ class RegistrationVerifiedDefaultsTest {
     @Test void productionCountryDefaultsToAdvertisedRussiaIndependentlyOfVerifiedPermitFields(){
         var country=new Attribute(2630,"Страна производства","text",true,false,false,false,List.of("RU","CN"));
         var schema=List.of(country);var before=draft(Map.of());
-        String resolved=RegistrationVerifiedDefaults.productionCountry(null,schema,(source,model)->{throw new AssertionError("A country default needs no source lookup");});
+        String resolved=RegistrationVerifiedDefaults.productionCountry(null,schema,(source,model)->{assertEquals("Россия",source);return "RU";});
         var after=RegistrationVerifiedDefaults.applyProductionCountry(before,schema,resolved);
         assertEquals("RU",after.attributes().get(2630L));assertEquals("",after.attributeTypes().get(2630L));assertFalse(after.attributes().containsKey(13836L));
         assertSame(before,RegistrationVerifiedDefaults.applyProductionCountry(before,List.of(),"RU"));
+        assertEquals("",RegistrationVerifiedDefaults.productionCountry(null,schema,(source,model)->""),"The owner default must not bypass an unavailable dictionary");
         assertEquals("",RegistrationVerifiedDefaults.productionCountry(null,List.of(new Attribute(2630,"Country","text",true,false,false,false,List.of("CN"))),(source,model)->""));
     }
     @Test void explicitCountryIsCanonicalizedAndUnknownOrConflictingCountriesNeverBecomeRussia(){
@@ -71,7 +72,7 @@ class RegistrationVerifiedDefaultsTest {
         var country=new Attribute(2630,"Страна производства","text",true,false,false,false,List.of("RU","CN"));
         var source=new ProductSnapshot(new ProductKey(1,Marketplace.WILDBERRIES,"101","201"),"read","Name","","Brand","Article","1",List.of(),
                 List.of(new ProductAttribute("size","Российский размер",List.of("52"),"")),List.of(),null,List.of(),Instant.now());
-        assertEquals("RU",RegistrationVerifiedDefaults.productionCountry(source,List.of(country),(value,model)->{throw new AssertionError("Size must not be treated as a country");}));
+        assertEquals("RU",RegistrationVerifiedDefaults.productionCountry(source,List.of(country),(value,model)->{assertEquals("Россия",value,"Only the explicit owner default may be resolved, never the size");return "RU";}));
     }
     @Test void conflictingExplicitCountriesRemoveTheUnreviewedFirstMapperMatchButAllowSellerOverride(){
         var country=new Attribute(2630,"Страна производства","text",true,false,false,false,List.of("RU","CN"));var schema=List.of(country);
@@ -83,5 +84,20 @@ class RegistrationVerifiedDefaultsTest {
         var reviewed=RegistrationReviewedValues.apply(automatic,Map.of(2630L,new RegistrationReviewedValues.Value("CN","")));
         assertEquals("CN",reviewed.attributes().get(2630L));
     }
-    private ProductSnapshot countrySource(String... values){return new ProductSnapshot(new ProductKey(1,Marketplace.WILDBERRIES,"101","201"),"read","Name","","Brand","Article","1",List.of(),List.of(new ProductAttribute("country","Страна происхождения",List.of(values),"")),List.of(),null,List.of(),Instant.now());}
+    @Test void productionCountryDoesNotUseOriginLegalCountryGenericCountryOrCoincidentMarketplaceId(){
+        var schema=List.of(new Attribute(2630,"Страна производства","text",true,false,false,false,List.of("RU","CN","DE","JP")));
+        java.util.function.BiFunction<String,List<Attribute>,String> resolve=(value,model)->Map.of("Россия","RU","Китай","CN","Германия","DE","Япония","JP").getOrDefault(value,"");
+        var otherRoles=List.of(new ProductAttribute("origin","Страна происхождения",List.of("Китай"),""),new ProductAttribute("legal","Страна регистрации изготовителя",List.of("Германия"),""),new ProductAttribute("country","Country",List.of("Япония"),""),new ProductAttribute("2630","Unrelated marketplace attribute",List.of("Япония"),""));
+        var source=new ProductSnapshot(new ProductKey(1,Marketplace.WILDBERRIES,"101","201"),"read","Name","","Brand","Article","1",List.of(),otherRoles,List.of(),null,List.of(),Instant.now());
+        assertEquals("RU",RegistrationVerifiedDefaults.productionCountry(source,schema,resolve),"Other country roles do not replace the explicitly configured manufacturing-country default");
+        var explicit=new ArrayList<>(otherRoles);explicit.add(new ProductAttribute("manufacture","Страна производства",List.of("Китай"),""));
+        var actual=new ProductSnapshot(source.key(),"read","Name","","Brand","Article","1",List.of(),explicit,List.of(),null,List.of(),Instant.now());
+        assertEquals("CN",RegistrationVerifiedDefaults.productionCountry(actual,schema,resolve));
+    }
+    @Test void explicitOzonManufacturingCountryDoesNotBecomeTheOwnerRussiaDefault(){
+        var schema=List.of(new Attribute(2630,"Страна производства","text",true,false,false,false,List.of("RU","CN")));
+        var source=new ProductSnapshot(new ProductKey(1,Marketplace.OZON,"101","offer-52"),"read","Name","","Brand","Article","1",List.of(),List.of(new ProductAttribute("country","Страна-изготовитель",List.of("Китай"),"")),List.of(),null,List.of(),Instant.now());
+        assertEquals("CN",RegistrationVerifiedDefaults.productionCountry(source,schema,(value,model)->Map.of("Россия","RU","Китай","CN").getOrDefault(value,"")));
+    }
+    private ProductSnapshot countrySource(String... values){return new ProductSnapshot(new ProductKey(1,Marketplace.WILDBERRIES,"101","201"),"read","Name","","Brand","Article","1",List.of(),List.of(new ProductAttribute("country","Страна производства",List.of(values),"")),List.of(),null,List.of(),Instant.now());}
 }

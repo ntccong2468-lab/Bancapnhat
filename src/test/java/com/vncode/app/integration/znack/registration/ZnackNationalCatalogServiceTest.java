@@ -19,6 +19,14 @@ import java.util.concurrent.atomic.AtomicInteger;
 import static org.junit.jupiter.api.Assertions.*;
 
 class ZnackNationalCatalogServiceTest {
+    @Test void existingLegacyFourDigitDraftReadsOnlyCategoriesAndNeverRequestsGs1Quota()throws Exception{
+        var lookups=new ArrayList<String>();var api=new ZnackApiClient(){
+            @Override public JsonElement generatedGtins(String base,String token){throw new AssertionError("Existing-card review cannot inspect allocation quota");}
+            @Override public JsonElement nationalCatalogCategories(String base,String token,String tnved){lookups.add(tnved);return JsonParser.parseString("{\"result\":[{\"cat_id\":1,\"cat_name\":\"Fixture category\",\"category_active\":true}]}");}
+        };
+        var preflight=service(api).preflightExisting("6110","fixture");assertEquals("6110",preflight.tnved());assertEquals("6110",preflight.categoryTnved());assertEquals(List.of("6110"),lookups);assertEquals(1,preflight.categories().size());
+        assertThrows(IllegalArgumentException.class,()->service(api).preflightExisting("61102","fixture"));assertEquals(List.of("6110"),lookups);
+    }
     @Test void conditionalRequirementsReadTheCompleteCurrentSchemaForNamesAndTypes()throws Exception{
         var allReads=new AtomicInteger();var api=new ZnackApiClient(){
             public JsonElement nationalCatalogAttributes(String b,String t,long c){return JsonParser.parseString("{\"result\":[{\"attr_id\":12,\"attr_name\":\"Вид товара\",\"attr_field_type\":\"text\",\"dependent_attributes\":[{\"value\":\"НЕТ В СПРАВОЧНИКЕ\",\"attrs\":[{\"attr_id\":23828,\"attr_type\":\"m\"}]}]}]}");}

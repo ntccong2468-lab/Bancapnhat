@@ -38,8 +38,39 @@ public final class ZnackNationalCatalogService {
     private record SchemaReadback(List<Attribute> attributes,java.time.Instant checkedAt){}
     private final java.util.Map<Long,SchemaReadback> schemas=new java.util.concurrent.ConcurrentHashMap<>();
     private final java.util.Map<Long,SchemaReadback> completeSchemas=new java.util.concurrent.ConcurrentHashMap<>();
-    private record CountryReadback(java.util.Map<String,String> aliases,List<String> codes,java.time.Instant checkedAt){}
+    public record CountryDictionaryEvidence(String source,String environment,String scopeFingerprint,
+            String operationId,int apiVersion,String etag,String contentHash,java.time.Instant loadedAt,
+            int entries,String reusePolicy){}
+    private record CountryReadback(java.util.Map<String,String> aliases,List<String> codes,CountryDictionaryEvidence evidence){}
     private volatile CountryReadback countries;
+    private final ThreadLocal<CountryReadScope> countryReadScopes=new ThreadLocal<>();
+    private static final class CountryReadState {
+        final String operationId=java.util.UUID.randomUUID().toString();
+        final Set<String> models=new HashSet<>();
+        final java.util.Map<Long,List<Attribute>> mandatory=new java.util.HashMap<>(),complete=new java.util.HashMap<>(),registration=new java.util.HashMap<>();
+        CountryReadback snapshot;Exception failure;String credentialScope;
+    }
+    /** One verified immutable dictionary for a read/registration operation; never an HTTP cache. */
+    public final class CountryReadScope implements AutoCloseable {
+        private final Thread owner=Thread.currentThread();
+        private final CountryReadScope parent;
+        private final CountryReadState state;
+        private boolean closed;
+        private CountryReadScope(CountryReadScope parent){this.parent=parent;this.state=parent==null?new CountryReadState():parent.state;}
+        @Override public void close(){
+            if(closed)return;
+            if(owner!=Thread.currentThread()||countryReadScopes.get()!=this)throw new IllegalStateException("Country read scopes must close in their owning operation");
+            closed=true;if(parent==null)countryReadScopes.remove();else countryReadScopes.set(parent);
+        }
+    }
+    public CountryReadScope registrationCountryReadScope(){
+        assertCountryAccess();var scope=new CountryReadScope(countryReadScopes.get());countryReadScopes.set(scope);return scope;
+    }
+    /** Historical diagnostics only; possession of evidence does not authorize reuse or a write. */
+    public java.util.Optional<CountryDictionaryEvidence> countryDictionaryEvidence(){
+        if(!dataProfile.equals(com.vncode.app.shared.AppPaths.appDataDir().toAbsolutePath().normalize()))return java.util.Optional.empty();
+        var snapshot=countries;return snapshot==null?java.util.Optional.empty():java.util.Optional.of(snapshot.evidence());
+    }
 
     private final ZnackApiClient api;
     private final ZnackAuthService auth;
@@ -105,7 +136,7 @@ public final class ZnackNationalCatalogService {
 
     /** Correcting an existing GTIN consumes no GS1 quota. */
     public Preflight preflightExisting(String tnved,String token)throws Exception {
-        if(tnved==null||!tnved.matches("[0-9]{10}"))throw new IllegalArgumentException("ZNACK_MISSING_TNVED");
+        if(tnved==null||!tnved.matches("(?:[0-9]{4}|[0-9]{10})"))throw new IllegalArgumentException("ZNACK_MISSING_TNVED");
         for(String code:categoryLookupCodes(tnved)){
             LicenseRuntime.require(Permission.SELLER_API);
             var categories=parseCategories(api.nationalCatalogCategories(settings.resolvedTrueApiBaseUrl(),token,code));
@@ -145,56 +176,112 @@ public final class ZnackNationalCatalogService {
 
     /** Registration planning includes only the country optional field actually announced by this category. */
     public List<Attribute> registrationAttributes(long categoryId,String token)throws Exception {
-        if(!dataProfile.equals(com.vncode.app.shared.AppPaths.appDataDir().toAbsolutePath().normalize()))throw new ZnackRegistrationScope.ScopeChangedException();
-        var required=requiredAttributes(categoryId,token);
-        var full=completeSchemas.get(categoryId);
-        if(full==null||!full.checkedAt().isAfter(permitClock.instant().minusSeconds(120))){
-            LicenseRuntime.require(Permission.SELLER_API);
-            var attributes=parseAttributes(api.nationalCatalogAllAttributes(settings.resolvedTrueApiBaseUrl(),token,categoryId));
-            if(attributes.isEmpty())throw new IllegalStateException("CATALOG_REGISTRATION_SCHEMA_UNAVAILABLE");
-            cacheCompleteSchema(categoryId,attributes);full=completeSchemas.get(categoryId);
-        }
+        assertCountryAccess();
+        if(countryReadScopes.get()==null)try(var scope=registrationCountryReadScope()){return registrationAttributes(categoryId,token);}
+        var state=countryState(token);var existing=state.registration.get(categoryId);if(existing!=null)return existing;
+        var required=registrationMandatoryAttributes(categoryId,token);
+        var full=registrationCompleteAttributes(categoryId,token);
         var model=new java.util.LinkedHashMap<Long,Attribute>();required.forEach(attribute->model.put(attribute.id(),attribute));
         if(!model.containsKey(2630L)){
-            var announced=full.attributes().stream().filter(attribute->attribute.id()==2630L).toList();
+            var announced=full.stream().filter(attribute->attribute.id()==2630L).toList();
             if(announced.size()==1)model.put(2630L,announced.getFirst());
         }
         var country=model.get(2630L);
-        if(country!=null&&country.presetOnly()&&country.presets().isEmpty()){
+        if(country!=null){
             var dictionary=countryDictionary(token);
-            model.put(2630L,new Attribute(country.id(),country.name(),country.fieldType(),country.presetOnly(),country.multiple(),country.firstLayer(),country.secondLayer(),dictionary.codes(),country.valueTypes(),country.dependencies()));
+            if(!country.presetOnly())throw invalidCountry("Country attribute is not an official dictionary field");
+            if(!country.presets().isEmpty()&&!dictionary.codes().containsAll(country.presets()))throw invalidCountry("Country schema contains a value outside the verified dictionary");
+            var codes=country.presets().isEmpty()?dictionary.codes():country.presets();
+            model.put(2630L,new Attribute(country.id(),country.name(),country.fieldType(),country.presetOnly(),country.multiple(),country.firstLayer(),country.secondLayer(),codes,country.valueTypes(),country.dependencies()));
         }
-        return List.copyOf(model.values());
+        var result=List.copyOf(model.values());if(country!=null)state.models.add(RegistrationReviewedValues.schemaRevision(result));state.registration.put(categoryId,result);return result;
+    }
+    private List<Attribute> registrationMandatoryAttributes(long category,String token)throws Exception {
+        var state=countryState(token);var cached=state.mandatory.get(category);if(cached!=null)return cached;
+        try{
+            var required=parseAttributes(api.nationalCatalogAttributes(settings.resolvedTrueApiBaseUrl(),token,category));
+            if(required.isEmpty())throw new IllegalStateException("CATALOG_REGISTRATION_SCHEMA_UNAVAILABLE",new IllegalArgumentException("Current mandatory category model is empty"));
+            if(required.stream().anyMatch(attribute->!attribute.dependencies().isEmpty()))required=RegistrationAttributeRules.resolve(required,registrationCompleteAttributes(category,token));
+            state.mandatory.put(category,required);schemas.put(category,new SchemaReadback(required,java.time.Instant.now()));return required;
+        }catch(Exception failure){state.failure=failure;throw failure;}
+    }
+    private List<Attribute> registrationCompleteAttributes(long category,String token)throws Exception {
+        var state=countryState(token);var cached=state.complete.get(category);if(cached!=null)return cached;
+        try{
+            var attributes=parseAttributes(api.nationalCatalogAllAttributes(settings.resolvedTrueApiBaseUrl(),token,category));
+            if(attributes.isEmpty())throw new IllegalStateException("CATALOG_REGISTRATION_SCHEMA_UNAVAILABLE",new IllegalArgumentException("Current complete category model is empty"));
+            state.complete.put(category,attributes);cacheCompleteSchema(category,attributes);return attributes;
+        }catch(Exception failure){state.failure=failure;throw failure;}
     }
     /** Resolve an explicit country name/code through the same current official dictionary, without HTTP. */
     public String registrationCountryCode(String source,List<Attribute> schema){
         if(source==null||source.isBlank()||schema==null||!dataProfile.equals(com.vncode.app.shared.AppPaths.appDataDir().toAbsolutePath().normalize()))return "";
+        assertCountryAccess();var read=countryReadScopes.get();
+        if(read==null||read.state.snapshot==null||read.state.failure!=null||!read.state.models.contains(RegistrationReviewedValues.schemaRevision(schema)))return "";
         var fields=schema.stream().filter(attribute->attribute.id()==2630L).toList();if(fields.size()!=1)return "";
-        var field=fields.getFirst();String key=countryKey(source),code="";
-        var dictionary=countries;
-        if(dictionary!=null&&dictionary.checkedAt().isAfter(permitClock.instant().minusSeconds(120)))code=dictionary.aliases().getOrDefault(key,"");
-        if(code.isBlank()&&source.strip().matches("(?i)[a-z]{2}"))code=source.strip().toUpperCase(Locale.ROOT);
+        var field=fields.getFirst();String key=countryKey(source),code=read.state.snapshot.aliases().getOrDefault(key,"");
         return field.presets().contains(code)&&RegistrationAttributeRules.validFieldValue(field,code)?code:"";
     }
-    private synchronized CountryReadback countryDictionary(String token)throws Exception {
-        var cached=countries;if(cached!=null&&cached.checkedAt().isAfter(permitClock.instant().minusSeconds(120)))return cached;
-        LicenseRuntime.require(Permission.SELLER_API);
+    private CountryReadback countryDictionary(String token)throws Exception {
+        var state=countryState(token);if(state.snapshot!=null)return state.snapshot;
+        try{
+            var response=api.nationalCatalogCountries(settings.resolvedTrueApiBaseUrl(),token);
+            assertCountryAccess();var snapshot=parseCountryDictionary(response,state.operationId,state.credentialScope);
+            countries=snapshot;state.snapshot=snapshot;return snapshot;
+        }catch(Exception failure){state.failure=failure;throw failure;}
+    }
+    private CountryReadState countryState(String token)throws Exception {
+        assertCountryAccess();var scope=countryReadScopes.get();
+        if(scope==null)throw new IllegalStateException("Country dictionary requires an owning read operation");
+        var state=scope.state;String credential=countryScope(token);
+        if(state.credentialScope!=null&&!state.credentialScope.equals(credential))state.failure=new ZnackRegistrationScope.ScopeChangedException();
+        state.credentialScope=credential;if(state.failure!=null)throw state.failure;return state;
+    }
+    private CountryReadback parseCountryDictionary(JsonElement response,String operation,String credential){
+        if(response==null||!response.isJsonObject())throw invalidCountry("Expected a JSON object with apiversion and result");
+        var root=response.getAsJsonObject();
+        if(!root.keySet().equals(Set.of("apiversion","result"))){
+            String observed=com.vncode.app.integration.znack.ZnackErrorMessages.errorCode(response.toString());
+            throw invalidCountry("Unexpected country response fields; business errors or incomplete envelopes cannot be used"+(observed.isBlank()?"":"; observed business errorCode="+observed));
+        }
+        var version=root.get("apiversion");
+        if(!version.isJsonPrimitive()||!version.getAsJsonPrimitive().isNumber()||!version.getAsString().equals("3"))throw invalidCountry("Country response API version is not 3");
+        var rawResult=root.get("result");if(!rawResult.isJsonObject())throw invalidCountry("Country result must contain the documented _etag and _list object");
+        var result=rawResult.getAsJsonObject();
+        if(!result.keySet().equals(Set.of("_etag","_list")))throw invalidCountry("Country result is incomplete or has unsupported pagination metadata");
+        String etag=countryString(result.get("_etag"),"Country dictionary _etag");
+        var rawEntries=result.get("_list");if(!rawEntries.isJsonArray())throw invalidCountry("Country dictionary _list must be an array");
+        var entries=rawEntries.getAsJsonArray();if(entries.size()>1024)throw invalidCountry("Country dictionary exceeds the read bound");
+        if(entries.isEmpty())throw new IllegalStateException("CATALOG_COUNTRY_DICTIONARY_UNAVAILABLE",new IllegalArgumentException("The complete country dictionary contains no rows"));
         var aliases=new java.util.LinkedHashMap<String,String>();var ambiguous=new HashSet<String>();var codes=new LinkedHashSet<String>();
-        var response=api.nationalCatalogCountries(settings.resolvedTrueApiBaseUrl(),token);
-        // The official dictionary wraps its rows in result._list (alongside _etag),
-        // unlike the category/attribute endpoints that return a result array.
-        var result=unwrap(response);
-        if(result!=null&&result.isJsonObject())result=result.getAsJsonObject().get("_list");
-        var entries=array(result);if(entries.size()>1024)throw new IllegalStateException("CATALOG_COUNTRY_DICTIONARY_INVALID");
-        for(var value:entries)if(value.isJsonObject()){
-            var entry=value.getAsJsonObject();String code=permitText(entry,"country_iso").toUpperCase(Locale.ROOT),name=permitText(entry,"country_name");
-            if(!code.matches("[A-Z]{2}")||name.isBlank())continue;codes.add(code);
+        var canonical=new java.util.TreeMap<String,String>();
+        for(var value:entries){
+            if(!value.isJsonObject()||!value.getAsJsonObject().keySet().equals(Set.of("country_iso","country_name")))throw invalidCountry("Every country row must contain only country_iso and country_name");
+            var entry=value.getAsJsonObject();String code=countryString(entry.get("country_iso"),"Country ISO"),name=countryString(entry.get("country_name"),"Country name");
+            if(!code.matches("[A-Z]{2}")||!codes.add(code))throw invalidCountry("Country ISO must be a unique uppercase two-letter dictionary value");
+            canonical.put(code,name);
             for(String alias:List.of(code,name)){String key=countryKey(alias);var previous=aliases.putIfAbsent(key,code);if(previous!=null&&!previous.equals(code))ambiguous.add(key);}
         }
         ambiguous.forEach(aliases::remove);
-        if(codes.isEmpty())throw new IllegalStateException("CATALOG_COUNTRY_DICTIONARY_UNAVAILABLE");
-        countries=new CountryReadback(java.util.Map.copyOf(aliases),List.copyOf(codes),permitClock.instant());return countries;
+        var content=new JsonArray();canonical.forEach((code,name)->{var row=new JsonObject();row.addProperty("country_iso",code);row.addProperty("country_name",name);content.add(row);});
+        var evidence=new CountryDictionaryEvidence(api.nationalCatalogCountrySource(settings.resolvedTrueApiBaseUrl()),countryEnvironment(),credential,operation,3,etag,
+                com.vncode.app.integration.listing.ListingIdentity.hash(content.toString()),permitClock.instant(),codes.size(),"current-operation-only; HTTP no-store");
+        return new CountryReadback(java.util.Map.copyOf(aliases),List.copyOf(codes),evidence);
     }
+    private void assertCountryAccess(){
+        if(!dataProfile.equals(com.vncode.app.shared.AppPaths.appDataDir().toAbsolutePath().normalize()))throw new ZnackRegistrationScope.ScopeChangedException();
+        LicenseRuntime.require(Permission.SELLER_API);api.assertCatalogReadScope();
+    }
+    private String countryScope(String token){return com.vncode.app.integration.listing.ListingIdentity.hash(api.catalogReadScopeId()+"\n"+countryEnvironment()+"\n"+dataProfile+"\n"+settings.participantInn()+"\n"+settings.ownerInn()+"\n"+(api.hasCatalogKey()?"Catalog key":java.util.Objects.toString(token,"")));}
+    private String countryEnvironment(){
+        var uri=java.net.URI.create(settings.resolvedTrueApiBaseUrl());
+        return uri.getScheme()+"://"+uri.getHost()+(uri.getPort()<0?"":":"+uri.getPort())+java.util.Objects.toString(uri.getPath(),"");
+    }
+    private static String countryString(JsonElement value,String label){
+        if(value==null||!value.isJsonPrimitive()||!value.getAsJsonPrimitive().isString()||value.getAsString().isBlank())throw invalidCountry(label+" must be a nonblank string");
+        return value.getAsString();
+    }
+    private static IllegalStateException invalidCountry(String reason){return new IllegalStateException("CATALOG_COUNTRY_DICTIONARY_INVALID",new IllegalArgumentException(reason));}
     private static String countryKey(String value){return java.text.Normalizer.normalize(value.strip(),java.text.Normalizer.Form.NFKC).toLowerCase(Locale.ROOT).replace('ё','е').replaceAll("\\s+"," ");}
     private void cacheCompleteSchema(long categoryId,List<Attribute> attributes){
         synchronized(completeSchemas){
@@ -281,6 +368,10 @@ public final class ZnackNationalCatalogService {
         payload=normalizedFeed(payload);
         validateExistingCard(token,payload);
         validateDocuments(token,payload);
+        try(var read=registrationCountryReadScope()){
+            validateCurrentRegistrationModel(token,payload);
+            validateRegistrationCountry(token,payload);
+        }
         LicenseRuntime.require(Permission.GTIN);
         beforeSend.run();
         LicenseRuntime.require(Permission.GTIN);
@@ -289,6 +380,130 @@ public final class ZnackNationalCatalogService {
         String feedId = string(result, "feed_id");
         if (feedId.isBlank()) throw new IllegalStateException("National Catalog did not return feed_id.");
         return feedId;
+    }
+
+    /** A read-only preallocation check. It never supplies missing facts or rewrites the reviewed payload. */
+    public void validateCurrentRegistrationDraft(String token,Draft draft)throws Exception {
+        java.util.Objects.requireNonNull(draft,"draft");
+        var payload=normalizedFeed(buildPayload("",draft,""));
+        try(var read=registrationCountryReadScope()){
+            validateCurrentRegistrationModel(token,payload);
+            validateRegistrationCountry(token,payload);
+        }
+    }
+
+    /** Re-read the current mandatory model immediately before the durable dispatch marker. */
+    private void validateCurrentRegistrationModel(String token,JsonObject payload)throws Exception {
+        var supplied=new java.util.LinkedHashMap<Long,List<JsonObject>>();
+        var values=new java.util.LinkedHashMap<Long,String>();
+        if(!payload.has("good_attrs")||!payload.get("good_attrs").isJsonArray())throw invalidRegistrationField("good_attrs");
+        for(var raw:payload.getAsJsonArray("good_attrs")){
+            if(!raw.isJsonObject())throw invalidRegistrationField("good_attrs");
+            var attribute=raw.getAsJsonObject();long id=exactPositiveId(attribute.get("attr_id"),"attr_id");
+            var rawValue=attribute.get("attr_value");
+            if(rawValue==null||!rawValue.isJsonPrimitive()||!rawValue.getAsJsonPrimitive().isString())throw invalidRegistrationField("attr_value ["+id+"]");
+            supplied.computeIfAbsent(id,ignored->new ArrayList<>()).add(attribute);
+            values.put(id,rawValue.getAsString());
+        }
+        values.putIfAbsent(2478L,string(payload,"good_name"));values.putIfAbsent(2504L,string(payload,"brand"));
+        if(!payload.has("categories")||!payload.get("categories").isJsonArray()||payload.getAsJsonArray("categories").isEmpty())throw invalidRegistrationField("categories");
+        var categories=new LinkedHashSet<Long>();
+        for(var category:payload.getAsJsonArray("categories"))categories.add(exactPositiveId(category,"category"));
+        for(long category:categories){
+            var state=countryState(token);
+            // A previous review in the same long-running batch cannot authorize a later POST.
+            state.mandatory.remove(category);state.complete.remove(category);state.registration.remove(category);
+            var required=RegistrationAttributeRules.required(registrationMandatoryAttributes(category,token),values);
+            var current=new java.util.LinkedHashMap<Long,Attribute>();
+            registrationCompleteAttributes(category,token).forEach(attribute->current.put(attribute.id(),attribute));
+            required.forEach(attribute->current.put(attribute.id(),attribute));
+            for(var attribute:required){
+                long id=attribute.id();
+                if(id==3959L||id==13933L&&string(payload,"tnved").length()==10||id==2630L)continue;
+                if(id==DECLARATION_ATTRIBUTE_ID||id==CERTIFICATE_ATTRIBUTE_ID){
+                    if(!supplied.containsKey(DECLARATION_ATTRIBUTE_ID)&&!supplied.containsKey(CERTIFICATE_ATTRIBUTE_ID))throw missingRegistrationField(attribute);
+                    continue;
+                }
+                var entries=supplied.getOrDefault(id,List.of());String text=values.getOrDefault(id,"");
+                if(text.isBlank())throw missingRegistrationField(attribute);
+                validateSubmittedAttribute(attribute,entries,text);
+            }
+            for(var suppliedField:supplied.entrySet()){
+                long id=suppliedField.getKey();
+                if(id==3959L||id==13933L||id==2630L||id==DECLARATION_ATTRIBUTE_ID||id==CERTIFICATE_ATTRIBUTE_ID)continue;
+                var attribute=current.get(id);
+                // Title/brand are also documented base feed fields, independent of category attrs.
+                if(attribute==null&&(id==2478L||id==2504L))continue;
+                if(attribute==null)throw invalidRegistrationField("Unannounced current attribute ["+id+"]");
+                validateSubmittedAttribute(attribute,suppliedField.getValue(),values.getOrDefault(id,""));
+            }
+        }
+    }
+    private static void validateSubmittedAttribute(Attribute attribute,List<JsonObject> entries,String fallback){
+        String field=attribute.name()+" ["+attribute.id()+"]";
+        if(!attribute.multiple()&&entries.size()>1)throw invalidRegistrationField(field);
+        var texts=entries.isEmpty()?List.of(fallback):entries.stream().map(entry->string(entry,"attr_value")).toList();
+        for(String value:texts)if(value.isBlank()||value.length()>5000||attribute.presetOnly()&&!attribute.presets().contains(value)||!RegistrationAttributeRules.validFieldValue(attribute,value))throw invalidRegistrationField(field);
+        for(var entry:entries){
+            var rawType=entry.get("attr_value_type");
+            if(rawType==null||!rawType.isJsonPrimitive()||!rawType.getAsJsonPrimitive().isString())throw invalidRegistrationField(field);
+            if(!attribute.valueTypes().isEmpty()&&!attribute.valueTypes().contains(rawType.getAsString()))throw invalidRegistrationField(field);
+        }
+    }
+    private static RegistrationValidationException missingRegistrationField(Attribute attribute){return new RegistrationValidationException("ZNACK_REQUIRED_ATTRIBUTES_MISSING: "+attribute.name()+" ["+attribute.id()+"]");}
+    private static RegistrationValidationException invalidRegistrationField(String field){return new RegistrationValidationException("ZNACK_INVALID_ATTRIBUTE_VALUE: "+field);}
+    private static long exactPositiveId(JsonElement value,String field){
+        if(value==null||!value.isJsonPrimitive()||value.getAsJsonPrimitive().isBoolean())throw invalidRegistrationField(field);
+        try{String text=value.getAsString();if(!text.matches("[1-9][0-9]{0,18}"))throw invalidRegistrationField(field);return Long.parseLong(text);}
+        catch(NumberFormatException invalid){throw invalidRegistrationField(field);}
+    }
+
+    /** Verify the same country-bearing draft before allocating any GS1 number. */
+    public void validateRegistrationCountry(String token,Draft draft)throws Exception {
+        java.util.Objects.requireNonNull(draft,"draft");
+        validateRegistrationCountry(token,buildPayload("",draft,""));
+    }
+
+    /** The final safe read precedes the durable send marker and the non-replayed feed POST. */
+    private void validateRegistrationCountry(String token,JsonObject payload)throws Exception {
+        var countryValues=new ArrayList<JsonObject>();var values=new java.util.LinkedHashMap<Long,String>();
+        for(var raw:array(payload.get("good_attrs")))if(raw.isJsonObject()){
+            var attribute=raw.getAsJsonObject();long id=number(attribute,"attr_id");
+            if(id==2630L)countryValues.add(attribute);
+            if(attribute.has("attr_value")&&attribute.get("attr_value").isJsonPrimitive())values.put(id,attribute.get("attr_value").getAsString());
+        }
+        var categories=new LinkedHashSet<Long>();
+        for(var raw:array(payload.get("categories"))){
+            if(!raw.isJsonPrimitive()||!raw.getAsString().matches("[1-9][0-9]{0,17}"))throw invalidCountry("A country-bearing feed requires an exact category");
+            categories.add(raw.getAsLong());
+        }
+        if(categories.isEmpty()){
+            if(!countryValues.isEmpty())throw invalidCountry("Country values cannot be verified without the feed category");
+            return;
+        }
+        try(var read=registrationCountryReadScope()){
+            for(long category:categories){
+                var mandatory=RegistrationAttributeRules.required(registrationMandatoryAttributes(category,token),values);
+                boolean required=mandatory.stream().anyMatch(attribute->attribute.id()==2630L);
+                if(countryValues.isEmpty()&&!required)continue;
+                var schema=registrationAttributes(category,token);
+                var fields=schema.stream().filter(attribute->attribute.id()==2630L).toList();
+                if(fields.size()!=1)throw invalidCountry("The feed category does not announce a unique manufacturing-country field");
+                if(countryValues.isEmpty())throw new RegistrationValidationException("ZNACK_REQUIRED_ATTRIBUTES_MISSING: Страна производства [2630]");
+                var country=fields.getFirst();
+                if(!country.multiple()&&countryValues.size()>1)throw invalidCountry("The country field does not allow multiple values");
+                for(var attribute:countryValues){
+                    String code=countryString(attribute.get("attr_value"),"Submitted country ISO");
+                    if(!code.equals(registrationCountryCode(code,schema)))throw invalidCountry("Submitted country is not allowed by the current verified dictionary");
+                    String type=attribute.has("attr_value_type")?countryStringOrEmpty(attribute.get("attr_value_type")):"";
+                    if(country.valueTypes().isEmpty()?!type.isEmpty():!country.valueTypes().contains(type))throw invalidCountry("Submitted country uses an unsupported value type");
+                }
+            }
+        }
+    }
+    private static String countryStringOrEmpty(JsonElement value){
+        if(value==null||!value.isJsonPrimitive()||!value.getAsJsonPrimitive().isString())throw invalidCountry("Country value type must be a string");
+        return value.getAsString();
     }
 
     /** Updating a card never changes the identity or tariff of the registered trade item. */
@@ -456,15 +671,13 @@ public final class ZnackNationalCatalogService {
 
     private FeedProgress readFeedProgress(String token, String feedId, String gtin, boolean verifyCard) throws Exception {
         JsonObject result;
-        try{result=resultObject(api.nationalCatalogFeedStatus(settings.resolvedTrueApiBaseUrl(),token,feedId));}
+        try{result=feedResult(api.nationalCatalogFeedStatus(settings.resolvedTrueApiBaseUrl(),token,feedId));}
         catch(Exception missingFeed){
             if(!CatalogFeedback.notFound(missingFeed))throw missingFeed;
             // Old imports can expire from feed history while their exact card still exists.
             // A 404 is neither a rejection nor permission to resend the original request.
-            try{
-                var card=readCard(token,gtin,null);
-                return card==null?new FeedProgress("CardNotFound",null,List.of()):observedCard(card);
-            }catch(Exception missingCard){if(CatalogFeedback.notFound(missingCard))return new FeedProgress("CardNotFound",null,List.of());throw missingCard;}
+            var card=readCard(token,gtin,null);
+            return card==null?new FeedProgress("CardNotFound",null,List.of()):observedCard(card);
         }
         String status = string(result, "status");
         List<String> errors = new ArrayList<>();
@@ -537,6 +750,16 @@ public final class ZnackNationalCatalogService {
         return new FeedProgress(status, goodId, List.copyOf(errors));
     }
 
+    private static JsonObject feedResult(JsonElement response){
+        var raw=unwrap(response);
+        if(raw==null||!raw.isJsonObject())throw new IllegalStateException("CATALOG_FEED_RESPONSE_INVALID");
+        var result=raw.getAsJsonObject();var status=result.get("status");
+        if(status==null||!status.isJsonPrimitive()||!status.getAsJsonPrimitive().isString()||status.getAsString().isBlank())throw new IllegalStateException("CATALOG_FEED_RESPONSE_INVALID");
+        if(result.has("item")&&!result.get("item").isJsonArray()||result.has("error_details")&&!result.get("error_details").isJsonObject())throw new IllegalStateException("CATALOG_FEED_RESPONSE_INVALID");
+        for(var item:array(result.get("item")))if(!item.isJsonObject())throw new IllegalStateException("CATALOG_FEED_RESPONSE_INVALID");
+        return result;
+    }
+
     private static FeedProgress observedCard(JsonObject card){
         long good=number(card,"good_id");if(good==0)good=number(card,"goodId");
         var state=detailedState(card);
@@ -571,6 +794,68 @@ public final class ZnackNationalCatalogService {
     }
     /** Absence is confirmed only by a successful, identity-checked Catalog response. */
     public boolean cardExists(String token,String gtin,Long expectedId)throws Exception{return readCard(token,gtin,expectedId)!=null;}
+    public record ObservedCard(long goodId,String gtin,String rawStatus,FeedProgress progress,
+            com.vncode.app.features.catalogsync.CatalogProductData details,java.time.Instant checkedAt,boolean tradeUnit){
+        public ObservedCard(long goodId,String gtin,String rawStatus,FeedProgress progress,com.vncode.app.features.catalogsync.CatalogProductData details,java.time.Instant checkedAt){this(goodId,gtin,rawStatus,progress,details,checkedAt,false);}
+    }
+    /** Fresh exact-identity evidence. Authentication, parse and incomplete reads are never absence. */
+    public ObservedCard observedCardStatus(String token,String gtin,Long expectedId)throws Exception {
+        assertRegistrationReadScope();
+        if(!com.vncode.app.features.gtinsync.RegisteredGtinValidator.isValid(gtin))throw new RegistrationValidationException("CATALOG_REPAIR_INVALID");
+        var card=readCard(token,gtin,expectedId);if(card==null)return null;
+        validateObservedOwner(card);
+        String raw=first(string(card,"good_status"),string(card,"goodStatus"),string(card,"cardStatus"));
+        if(!Set.of("draft","published").contains(raw.toLowerCase(Locale.ROOT)))throw new IllegalStateException("CATALOG_PUBLICATION_RESPONSE_INVALID");
+        var status=observedCard(card);
+        return new ObservedCard(status.goodId(),com.vncode.app.integration.znack.GtinNormalizer.normalize(gtin),raw,status,CatalogProductDataParser.parse(card),permitClock.instant(),observedTradeUnit(card,gtin));
+    }
+    private static boolean observedTradeUnit(JsonObject card,String gtin){boolean found=false;var raw=card.get("identified_by");if(raw==null||!raw.isJsonArray())return false;for(var value:raw.getAsJsonArray()){if(!value.isJsonObject())return false;var identity=value.getAsJsonObject();if("gtin".equalsIgnoreCase(string(identity,"type"))&&com.vncode.app.features.gtinsync.RegisteredGtinProof.sameCode(gtin,first(string(identity,"value"),string(identity,"gtin")))){if(!"trade-unit".equalsIgnoreCase(string(identity,"level")))return false;found=true;}}return found;}
+    /** Reassert the original client's credential/profile/license guard when a caller reuses read evidence. */
+    public void assertRegistrationReadScope(){assertCountryAccess();}
+    private void validateObservedOwner(JsonObject card){
+        for(String field:List.of("owner_inn","participant_inn")){
+            String owner=string(card,field);
+            if(!owner.isBlank()&&!owner.equals(settings.participantInn())&&!owner.equals(settings.ownerInn()))throw new RegistrationValidationException("CATALOG_OWNER_MISMATCH");
+        }
+    }
+
+    /** Automatic consent covers the saved business values, not any later XML for the same GTIN. */
+    public void validateApprovedSigningCard(String token,String gtin,Long expectedId,JsonObject approvedPayload)throws Exception {
+        assertRegistrationReadScope();
+        if(approvedPayload==null||!com.vncode.app.features.gtinsync.RegisteredGtinProof.sameCode(gtin,string(approvedPayload,"gtin"))||expectedId==null||expectedId<=0)throw signingReviewRequired();
+        var approved=normalizedFeed(approvedPayload);var card=readCard(token,gtin,expectedId);
+        if(card==null)throw signingReviewRequired();validateObservedOwner(card);
+        if(!observedCard(card).readyToSign())throw signingReviewRequired();
+        var data=CatalogProductDataParser.parse(card);
+        for(var field:java.util.Map.of("good_name","title","brand","brand").entrySet()){
+            String requested=string(approved,field.getKey());
+            if(requested.isBlank()||!RegistrationTemplate.clean(requested).equals(RegistrationTemplate.clean(data.single(field.getValue()))))throw signingReviewRequired();
+        }
+        String tariff=string(approved,"tnved");
+        for(var raw:array(approved.get("good_attrs")))if(raw.isJsonObject()&&number(raw.getAsJsonObject(),"attr_id")==13933L)tariff=string(raw.getAsJsonObject(),"attr_value");
+        if(!tariff.matches("[0-9]{10}")||!tariff.equals(data.single("tnved")))throw signingReviewRequired();
+        // Unknown/absent category evidence requires a manual review of the current XML.
+        if(!approved.has("categories")||!approved.get("categories").isJsonArray()||!card.has("categories")||!card.get("categories").isJsonArray()||!approved.get("categories").equals(card.get("categories")))throw signingReviewRequired();
+        if(approved.has("is_kit")?!approved.get("is_kit").equals(card.get("is_kit")):card.has("is_kit")&&(!card.get("is_kit").isJsonPrimitive()||!card.get("is_kit").getAsJsonPrimitive().isBoolean()||card.get("is_kit").getAsBoolean()))throw signingReviewRequired();
+        var desired=businessAttributes(approved);var observed=businessAttributes(card);
+        if(!desired.equals(observed))throw signingReviewRequired();
+    }
+    private static java.util.Map<Long,List<String>> businessAttributes(JsonObject payload){
+        var result=new java.util.TreeMap<Long,List<String>>();
+        for(var attribute:com.vncode.app.integration.znack.ZnackProductCardAttributes.from(payload)){
+            String idText=com.vncode.app.integration.znack.ZnackProductCardAttributes.id(attribute);
+            if(!idText.matches("[1-9][0-9]{0,18}"))throw signingReviewRequired();
+            long id;try{id=Long.parseLong(idText);}catch(NumberFormatException invalid){throw signingReviewRequired();}
+            if(id==3959L||id==13933L||id==2478L||id==2504L)continue;
+            String value=com.vncode.app.integration.znack.ZnackProductCardAttributes.text(attribute,"attr_value","attrValue","value");
+            if(value.isBlank())throw signingReviewRequired();
+            if(id==13914L)value=CatalogArticleValue.stored(value);
+            String type=com.vncode.app.integration.znack.ZnackProductCardAttributes.text(attribute,"attr_value_type","attrValueType");
+            result.computeIfAbsent(id,ignored->new ArrayList<>()).add(RegistrationTemplate.clean(value)+"\u0000"+RegistrationTemplate.clean(type));
+        }
+        result.values().forEach(Collections::sort);return result;
+    }
+    private static RegistrationValidationException signingReviewRequired(){return new RegistrationValidationException("CATALOG_SIGNING_REVIEW_REQUIRED");}
     private static boolean isPublished(JsonObject card){
         if(!"published".equalsIgnoreCase(first(string(card,"good_status"),string(card,"goodStatus"),string(card,"cardStatus"))))return false;
         // Published + draft is a published version with a draft revision, not a failed card.
@@ -594,9 +879,15 @@ public final class ZnackNationalCatalogService {
             if(matches){if(selected!=null)throw new IllegalStateException("CATALOG_PUBLICATION_AMBIGUOUS");selected=card;}
         }
         if(selected==null){if(!response.getAsJsonArray().isEmpty())throw new IllegalStateException("CATALOG_PUBLICATION_ID_CHANGED");return null;}
-        long actualId=number(selected,"good_id");if(actualId==0)actualId=number(selected,"goodId");
+        long actualId=catalogCardIdentity(selected.get(selected.has("good_id")?"good_id":"goodId"));
+        if(selected.has("good_id")&&selected.has("goodId")&&catalogCardIdentity(selected.get("goodId"))!=actualId)throw new IllegalStateException("CATALOG_PUBLICATION_ID_CHANGED");
         if(actualId<=0||expectedId!=null&&actualId!=expectedId)throw new IllegalStateException("CATALOG_PUBLICATION_ID_CHANGED");
         return selected;
+    }
+    private static long catalogCardIdentity(JsonElement value){
+        if(value==null||!value.isJsonPrimitive()||value.getAsJsonPrimitive().isBoolean())throw new IllegalStateException("CATALOG_PUBLICATION_ID_CHANGED");
+        try{String text=value.getAsString();if(!text.matches("[1-9][0-9]{0,18}"))throw new IllegalStateException("CATALOG_PUBLICATION_ID_CHANGED");return Long.parseLong(text);}
+        catch(NumberFormatException invalid){throw new IllegalStateException("CATALOG_PUBLICATION_ID_CHANGED",invalid);}
     }
 
     public record SigningDocument(long goodId, byte[] xml, String sha256) {
@@ -652,7 +943,12 @@ public final class ZnackNationalCatalogService {
         if(beforeSend!=null)beforeSend.check();
         JsonObject response=resultObject(api.signNationalCatalogProduct(settings.resolvedTrueApiBaseUrl(),token,batch));
         var acknowledged=new LinkedHashSet<Long>();
-        for(JsonElement id:array(response.get("signed")))if(id.isJsonPrimitive())acknowledged.add(id.getAsLong());
+        if(!response.has("signed")||!response.get("signed").isJsonArray())throw new IllegalStateException("CATALOG_SIGNING_ACKNOWLEDGEMENT_INVALID");
+        for(JsonElement id:response.getAsJsonArray("signed")){
+            if(!id.isJsonPrimitive()||!id.getAsJsonPrimitive().isNumber())throw new IllegalStateException("CATALOG_SIGNING_ACKNOWLEDGEMENT_INVALID");
+            long value;try{value=id.getAsBigDecimal().longValueExact();}catch(ArithmeticException|NumberFormatException invalid){throw new IllegalStateException("CATALOG_SIGNING_ACKNOWLEDGEMENT_INVALID",invalid);}
+            if(value<=0||!acknowledged.add(value))throw new IllegalStateException("CATALOG_SIGNING_ACKNOWLEDGEMENT_INVALID");
+        }
         if(!acknowledged.equals(frozen.stream().map(SigningDocument::goodId).collect(java.util.stream.Collectors.toCollection(LinkedHashSet::new))))
             throw new IllegalStateException(frozen.size()==1?"National Catalog did not confirm the signature. Refresh to reconcile before continuing.":"National Catalog did not confirm every signature. Refresh to reconcile before continuing.");
         return frozen.stream().map(SigningDocument::goodId).toList();

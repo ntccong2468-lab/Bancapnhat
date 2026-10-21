@@ -108,6 +108,53 @@ class RegistrationReviewedValuesTest {
         assertThrows(RegistrationValidationException.class,()->RegistrationReviewedValues.save(shop,List.of(new Approval(snapshot,schema(),values()),invalid)));
         assertTrue(RegistrationReviewedValues.load(shop,snapshot,schema()).isEmpty());
     }
+    @Test void approvalHistoryKeepsOldAndNewTypedValuesAndHonestSourceEvidence(){
+        var withPrivateMetadata=copy(snapshot,snapshot.key(),snapshot.title(),snapshot.attributes(),snapshot.variants(),snapshot.documents(),Map.of("owner",ListingIdentity.fingerprint(shop),"source.category.name","Костюмы спортивные","api_key","fixture-secret-must-not-be-journaled"),snapshot.checkedAt());
+        RegistrationReviewedValues.save(shop,List.of(new Approval(withPrivateMetadata,schema(),values(),"permit-one",44)));
+        var first=RegistrationReviewedValues.history(shop,snapshot.key(),10);assertEquals(1,first.size());assertNull(first.getFirst().before());
+        assertEquals(values(),first.getFirst().after().values());assertEquals("SELLER_EXPLICIT_CATALOG_REVIEW",first.getFirst().source());assertTrue(first.getFirst().reason().contains("LOCAL_APPROVAL_ONLY"));
+        assertEquals(44,first.getFirst().after().categoryId());assertEquals("permit-one",first.getFirst().after().permitRevision());assertEquals(snapshot.checkedAt().toString(),first.getFirst().after().sourceFacts().get("observedAt"));
+        assertFalse(first.getFirst().after().sourceFacts().toString().contains("fixture-secret"));assertFalse(first.getFirst().after().sourceFacts().containsKey("api_key"));
+        var changedValues=new LinkedHashMap<>(values());changedValues.put(900L,new Value("120","GRAMS"));
+        var changed=copy(snapshot,snapshot.key(),"Reviewed new title",snapshot.attributes(),snapshot.variants(),snapshot.documents(),snapshot.metadata(),Instant.now());
+        RegistrationReviewedValues.save(shop,List.of(new Approval(changed,schema(),changedValues,"permit-two",45)));
+        var history=RegistrationReviewedValues.history(shop,snapshot.key(),10);assertEquals(2,history.size());assertTrue(history.getFirst().id()>history.getLast().id());
+        assertEquals(first.getFirst().after(),history.getFirst().before());assertEquals(changedValues,history.getFirst().after().values());assertNotEquals(history.getFirst().before().productRevision(),history.getFirst().after().productRevision());
+        assertEquals("permit-two",history.getFirst().after().permitRevision());assertEquals(45,history.getFirst().after().categoryId());assertEquals(changedValues,RegistrationReviewedValues.load(shop,changed,schema()));
+    }
+    @Test void historyIsIsolatedByVariantOwnerAndCertificateAndHasABoundedRead()throws Exception{
+        save();assertEquals(1,RegistrationReviewedValues.history(shop,snapshot.key(),1).size());
+        var sibling=new ProductKey(shop.getId(),shop.getMarketplace(),snapshot.key().cardId(),"202");assertTrue(RegistrationReviewedValues.history(shop,sibling,10).isEmpty());
+        assertThrows(IllegalArgumentException.class,()->RegistrationReviewedValues.history(shop,snapshot.key(),0));assertThrows(IllegalArgumentException.class,()->RegistrationReviewedValues.history(shop,snapshot.key(),501));
+        assertThrows(SecurityException.class,()->RegistrationReviewedValues.history(shop,new ProductKey(2,Marketplace.OZON,"101","201"),10));
+        GtinWriteTestFixture.saveSettings(shop,"B".repeat(40),ZnackModels.PRODUCTION_TRUE_API);assertTrue(RegistrationReviewedValues.history(shop,snapshot.key(),10).isEmpty());
+        GtinWriteTestFixture.saveSettings(shop,"A".repeat(40),ZnackModels.PRODUCTION_TRUE_API);assertEquals(1,RegistrationReviewedValues.history(shop,snapshot.key(),10).size());
+        try(var connection=Database.getConnection();var statement=connection.createStatement()){statement.execute("UPDATE shops SET api_key='rotated-fixture' WHERE id=1");}
+        assertThrows(SecurityException.class,()->RegistrationReviewedValues.history(shop,snapshot.key(),10));var replacement=new Shop(1,shop.getName(),"rotated-fixture");assertTrue(RegistrationReviewedValues.history(replacement,snapshot.key(),10).isEmpty());
+    }
+    @Test void failureWhileJournalingRollsBackBothCurrentApprovalsAndTheirHistory()throws Exception{
+        save();var sibling=copy(snapshot,new ProductKey(shop.getId(),shop.getMarketplace(),"102","202"),snapshot.title(),snapshot.attributes(),snapshot.variants(),snapshot.documents(),snapshot.metadata(),Instant.now());
+        try(var connection=Database.getConnection();var statement=connection.createStatement()){statement.execute("CREATE TRIGGER fixture_reject_approval_history BEFORE INSERT ON znack_registration_approval_history WHEN NEW.product_id='102' BEGIN SELECT RAISE(ABORT,'fixture journal failure'); END");}
+        var changed=new LinkedHashMap<>(values());changed.put(900L,new Value("200","GRAMS"));
+        var failure=assertThrows(IllegalStateException.class,()->RegistrationReviewedValues.save(shop,List.of(new Approval(snapshot,schema(),changed),new Approval(sibling,schema(),values()))));assertEquals("SYNC_STORAGE",failure.getMessage());assertNotNull(failure.getCause());
+        assertEquals(values(),RegistrationReviewedValues.load(shop,snapshot,schema()));assertTrue(RegistrationReviewedValues.load(shop,sibling,schema()).isEmpty());assertEquals(1,RegistrationReviewedValues.history(shop,snapshot.key(),10).size());assertTrue(RegistrationReviewedValues.history(shop,sibling.key(),10).isEmpty());
+    }
+    @Test void introducingHistoryPreservesExistingApprovalsAndDoesNotInventTheirSource()throws Exception{
+        save();try(var connection=Database.getConnection();var statement=connection.createStatement()){statement.execute("DROP TABLE znack_registration_approval_history");}
+        assertTrue(RegistrationReviewedValues.history(shop,snapshot.key(),10).isEmpty());assertEquals(values(),RegistrationReviewedValues.load(shop,snapshot,schema()));
+        var changed=new LinkedHashMap<>(values());changed.put(900L,new Value("150","GRAMS"));RegistrationReviewedValues.save(shop,List.of(new Approval(snapshot,schema(),changed)));
+        var history=RegistrationReviewedValues.history(shop,snapshot.key(),10);assertEquals(1,history.size());assertEquals(values(),history.getFirst().before().values());assertEquals("legacy_current_approval; source facts not recorded",history.getFirst().before().sourceFacts().get("evidence"));assertEquals(changed,history.getFirst().after().values());
+    }
+    @Test void refreshingOnlyTheGtinProofTimeKeepsApprovedProductFactsStable(){
+        var now=Instant.now();var firstEvidence=new ProductVariant.GtinEvidence(ProductVariant.Verification.VERIFIED,"National Catalog@"+"a".repeat(64),now,"b".repeat(64),"42","published");
+        var secondEvidence=new ProductVariant.GtinEvidence(firstEvidence.status(),firstEvidence.source(),now.plusSeconds(60),firstEvidence.observationHash(),firstEvidence.catalogId(),firstEvidence.catalogStatus());
+        var first=copy(snapshot,snapshot.key(),snapshot.title(),snapshot.attributes(),List.of(new ProductVariant("201","Fixture article","Brown","52",GtinWriteTestFixture.GTIN,true,"52",List.of(GtinWriteTestFixture.GTIN),firstEvidence)),snapshot.documents(),snapshot.metadata(),now);
+        var refreshed=copy(snapshot,snapshot.key(),snapshot.title(),snapshot.attributes(),List.of(new ProductVariant("201","Fixture article","Brown","52",GtinWriteTestFixture.GTIN,true,"52",List.of(GtinWriteTestFixture.GTIN),secondEvidence)),snapshot.documents(),snapshot.metadata(),now.plusSeconds(60));
+        RegistrationReviewedValues.save(shop,List.of(new Approval(first,schema(),values())));assertEquals(productRevision(first),productRevision(refreshed));assertEquals(values(),RegistrationReviewedValues.load(shop,refreshed,schema()));
+        var changedEvidence=new ProductVariant.GtinEvidence(firstEvidence.status(),firstEvidence.source(),now,"c".repeat(64),firstEvidence.catalogId(),firstEvidence.catalogStatus());
+        var changed=copy(snapshot,snapshot.key(),snapshot.title(),snapshot.attributes(),List.of(new ProductVariant("201","Fixture article","Brown","52",GtinWriteTestFixture.GTIN,true,"52",List.of(GtinWriteTestFixture.GTIN),changedEvidence)),snapshot.documents(),snapshot.metadata(),now);
+        assertNotEquals(productRevision(first),productRevision(changed));assertThrows(RegistrationValidationException.class,()->RegistrationReviewedValues.load(shop,changed,schema()));
+    }
     @Test void advisoryApprovalIsBoundToTheExactPapersRegistryReasonAndProductFacts(){
         var selected=advisory("fixture-paper","ZNACK_DOCUMENT_TNVED_MISMATCH: 6103 / 6101");
         assertNull(RegistrationReviewedValues.reviewedDocuments(shop,snapshot,selected).automatic());

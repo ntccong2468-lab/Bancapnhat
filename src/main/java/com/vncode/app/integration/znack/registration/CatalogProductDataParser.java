@@ -20,7 +20,15 @@ public final class CatalogProductDataParser {
         Map.entry("description",List.of("description","описание")));
     public static CatalogProductData parse(JsonObject card) {
         var fields=new LinkedHashMap<String,LinkedHashSet<String>>();
+        // @ keys are local observation metadata, not National Catalog request fields.
+        // Keep the actual remote identity; never synthesize it from GTIN or a local feed checkpoint.
+        String catalogId=catalogId(card.get("good_id"));if(!catalogId.isBlank())add(fields,"@catalog_id",List.of(catalogId));
         add(fields,"@catalog_status",values(card.get("good_status")));
+        var signed=card.get("good_signed");
+        if(signed!=null&&!signed.isJsonNull()){
+            if(!signed.isJsonPrimitive()||!signed.getAsJsonPrimitive().isBoolean())throw new IllegalArgumentException("CATALOG_SIGNATURE_STATUS_UNVERIFIED");
+            add(fields,"@catalog_signed",List.of(Boolean.toString(signed.getAsBoolean())));
+        }
         add(fields,"@catalog_detailed_status",values(card.get("good_detailed_status")));
         for(var entry:Map.of("tnved","tnved","brand","brand","title","good_name","description","description","article","article","color","color","size","size").entrySet())add(fields,entry.getKey(),values(card.get(entry.getValue())));
         var attrs=new ArrayList<CatalogProductData.Attribute>();var docs=new LinkedHashMap<String,CatalogProductData.Document>();
@@ -56,6 +64,20 @@ public final class CatalogProductDataParser {
         var codes=fields.get("tnved");if(codes!=null&&codes.stream().anyMatch(v->v.matches("[0-9]{10}")))codes.removeIf(v->v.matches("[0-9]{4}"));
         var immutable=new LinkedHashMap<String,List<String>>();fields.forEach((k,v)->immutable.put(k,List.copyOf(v)));
         return new CatalogProductData(immutable,attrs,List.copyOf(docs.values()));
+    }
+    private static String catalogId(JsonElement value){
+        if(value==null||value.isJsonNull())return "";
+        if(!value.isJsonPrimitive())throw new IllegalArgumentException("CATALOG_IDENTITY_INVALID");
+        var primitive=value.getAsJsonPrimitive();String identity;
+        try{
+            if(primitive.isNumber()){
+                var number=primitive.getAsBigDecimal();if(number.precision()>64||number.scale()<-64||number.scale()>64)throw new ArithmeticException("Catalog identity exceeds the observation bound");
+                identity=number.toBigIntegerExact().toString();
+            }else identity=primitive.isString()?primitive.getAsString():"";
+        }
+        catch(ArithmeticException|NumberFormatException invalid){throw new IllegalArgumentException("CATALOG_IDENTITY_INVALID",invalid);}
+        if(!identity.matches("[0-9]{1,64}")||identity.chars().allMatch(c->c=='0'))throw new IllegalArgumentException("CATALOG_IDENTITY_INVALID");
+        return identity;
     }
     public static CatalogProductData withRegistry(CatalogProductData data,JsonElement response){
         var fields=new LinkedHashMap<>(data.fields());

@@ -18,7 +18,8 @@ public final class FriendlyErrorService {
 
     private static final java.util.Set<String> REGISTRATION_MODEL_ERRORS = java.util.Set.of(
             "CATALOG_REGISTRATION_SCHEMA_UNAVAILABLE", "CATALOG_COUNTRY_DICTIONARY_UNAVAILABLE",
-            "CATALOG_COUNTRY_DICTIONARY_INVALID");
+            "CATALOG_COUNTRY_DICTIONARY_INVALID", "GTIN_VARIANT_IDENTITY_UNVERIFIED",
+            "unverified_catalog_gtin", "UNVERIFIED_CATALOG_GTIN", "MARKETPLACE_REQUEST_REJECTED");
 
     private static final Pattern NOT_ENOUGH_KIZ = Pattern.compile(
             "Not enough available KIZ for GTIN ([0-9]{14}): required (\\d+), available (\\d+)");
@@ -37,9 +38,12 @@ public final class FriendlyErrorService {
     public static String format(Throwable error) {
         if(com.vncode.app.config.SqliteWriteTransaction.isBusy(error))
             return I18nService.getInstance().tr("error.database_busy")+"\n[SYNC_STORAGE_BUSY]";
+        var countryFailure=CatalogReadFailure.country(error);
+        if(countryFailure.isPresent())return countryFailure.get().message()+"\n["+countryFailure.get().code()+"]";
         String code="VN_LOCAL";
         Throwable cause=error;
         for(int depth=0;cause!=null&&depth<8;depth++,cause=cause.getCause()) {
+            if("PRODUCT_PROPOSAL_CHANGED".equals(cause.getMessage())){code="PRODUCT_PROPOSAL_CHANGED";break;}
             if(REGISTRATION_MODEL_ERRORS.contains(cause.getMessage()==null?"":cause.getMessage())){code=cause.getMessage();break;}
             String bufferIssue = ZnackErrorMessages.kizOrderBufferIssueCode(cause.getMessage());
             if (!bufferIssue.isBlank()) { code = bufferIssue; break; }
@@ -65,6 +69,7 @@ public final class FriendlyErrorService {
         if(error instanceof com.vncode.app.features.sync.ZnackGtinBackgroundService.RunException&&error.getCause()!=null)return formatDetail(error.getCause());
         Throwable cause=error;
         for(int depth=0;cause!=null&&depth<8;depth++,cause=cause.getCause()) {
+            if("PRODUCT_PROPOSAL_CHANGED".equals(cause.getMessage()))return I18nService.getInstance().tr("bulk.proposal.changed");
             if(REGISTRATION_MODEL_ERRORS.contains(cause.getMessage()==null?"":cause.getMessage()))
                 return I18nService.getInstance().tr("znack.registration.reason."+cause.getMessage());
             if (!ZnackErrorMessages.kizOrderBufferIssueCode(cause.getMessage()).isBlank())

@@ -30,24 +30,25 @@ class ZnackAutoSyncServiceTest {
                 s.execute("INSERT INTO wb_product_characteristics(shop_id,nm_id,characteristic_id,name,value_json) VALUES(1,101,14177449,'Цвет','[\"Blue\"]')");
             }
         }
-        observation=new GtinSyncModels.RegisteredGtin(GtinWriteTestFixture.GTIN,"Fixture","Blue","M",true,true,RegisteredGtinProof.source(shop),Instant.now());
+        observation=new GtinSyncModels.RegisteredGtin(GtinWriteTestFixture.GTIN,"Fixture","Blue","M",true,true,RegisteredGtinProof.source(shop),Instant.now(),new CatalogProductData(Map.of("@catalog_id",List.of("91"),"@catalog_status",List.of("published")),List.of(),List.of()));
         snapshot=new ProductSnapshot(key,"live:fixture","Synthetic","","","Fixture","1",List.of(),List.of(),List.of(new ProductVariant(key.variantId(),"Fixture","Blue","M","",false)),null,List.of(),Instant.now(),Map.of("sku","501","owner",ListingIdentity.fingerprint(shop)));
         GtinMarketplaceAdapter adapter=new GtinMarketplaceAdapter(){
             public GtinSyncModels.Capability capability(GtinSyncModels.ProductKey key){return new GtinSyncModels.Capability(true,false,"");}
             public GtinSyncModels.ProductSnapshot read(GtinSyncModels.ProductKey key){return new GtinSyncModels.ProductSnapshot(key,"Fixture","Blue","M",barcodes,ListingIdentity.hash(barcodes.toString()),Instant.now());}
+            public void validateIdentity(GtinSyncModels.ProductSnapshot target,GtinSyncModels.RegisteredGtin source){assertEquals(key.cardId(),target.key().productId());}
             public boolean conflicts(GtinSyncModels.ProductKey key,String gtin){return false;}
             public GtinSyncModels.Submission submit(GtinSyncModels.Preview preview){writes++;if(apply)barcodes.add(preview.newGtin());return new GtinSyncModels.Submission("");}
             public GtinSyncModels.Verification verify(GtinSyncModels.Preview preview,GtinSyncModels.Submission submission)throws Exception{if(failVerification)throw new java.net.SocketTimeoutException();return barcodes.contains(preview.newGtin())?GtinSyncModels.Verification.APPLIED:GtinSyncModels.Verification.PENDING;}
         };
         var target=new ReadOnlyListing();var repository=new GtinSyncRepository();
-        catalog=new CatalogSyncService(new CatalogSyncRepository(),repository,new ProductBulkEditService(new ProductEditRepository(),(s,k)->snapshot,s->target),(s,k)->snapshot,s->target,k->adapter,RegisteredGtinProof::requireCurrent);
+        catalog=new CatalogSyncService(new CatalogSyncRepository(),repository,new ProductBulkEditService(new ProductEditRepository(),(s,k)->snapshot,s->target),(s,k)->snapshot,s->target,k->adapter,RegisteredGtinProof::requireCurrent,(s,codes)->RegisteredGtinProof.requireCurrent(s,codes));
         com.vncode.app.testsupport.RegistrationSourceFixture.ready(shop);
         service=new ZnackAutoSyncService((s,issues)->{sourceReads++;return List.of(observation);},(s,k)->snapshot,catalog);
     }
     @AfterEach void clear(){System.clearProperty("vncode.appdata.dir");}
     @Test void automaticMatchingReportsChangedTnvedGroupInsteadOfReusingTheOldCard()throws Exception{
         init(Marketplace.WILDBERRIES);
-        observation=new GtinSyncModels.RegisteredGtin(observation.gtin(),observation.article(),observation.color(),observation.size(),true,true,observation.source(),Instant.now(),new CatalogProductData(Map.of("tnved",List.of("6103109000")),List.of(),List.of()));
+        observation=new GtinSyncModels.RegisteredGtin(observation.gtin(),observation.article(),observation.color(),observation.size(),true,true,observation.source(),Instant.now(),new CatalogProductData(Map.of("@catalog_id",List.of("91"),"@catalog_status",List.of("published"),"tnved",List.of("6103109000")),List.of(),List.of()));
         try(var c=Database.getConnection();var s=c.createStatement()){s.execute("INSERT INTO wb_product_characteristics(shop_id,nm_id,characteristic_id,name,value_json) VALUES(1,101,88,'ТНВЭД','[\"6112110000\"]')");}
         String run=service.review(shop);var item=new SyncRunRepository().items(run,0,10).getFirst();assertEquals("NEEDS_ACTION",item.state());assertEquals("GTIN_TNVED_GROUP_CHANGED",item.error());assertEquals(0,writes);
     }
@@ -66,7 +67,7 @@ class ZnackAutoSyncServiceTest {
         init(Marketplace.OZON);
         try(var c=Database.getConnection();var s=c.createStatement()){s.execute("UPDATE ozon_products SET offer_id='152DASH-52',article='152DASH-52',name='Костюм',color='Brown',size='52',manufacturer_size='XL',russian_size='52' WHERE shop_id=2");}
         key=new ProductKey(shop.getId(),Marketplace.OZON,"101","152DASH-52");
-        observation=new GtinSyncModels.RegisteredGtin(observation.gtin(),"152DASHOA","Brown","52",true,true,observation.source(),Instant.now(),new CatalogProductData(Map.of("@size_type",List.of("РОССИЯ"),"brand",List.of("DASHOA"),"title",List.of("Костюм")),List.of(),List.of()));
+        observation=new GtinSyncModels.RegisteredGtin(observation.gtin(),"152DASHOA","Brown","52",true,true,observation.source(),Instant.now(),new CatalogProductData(Map.of("@catalog_id",List.of("91"),"@catalog_status",List.of("published"),"@size_type",List.of("РОССИЯ"),"brand",List.of("DASHOA"),"title",List.of("Костюм")),List.of(),List.of()));
         snapshot=new ProductSnapshot(key,"live:fixture","Костюм","","DASHOA","152DASH-52","1",List.of(),List.of(),List.of(new ProductVariant(key.variantId(),key.variantId(),"Brown","XL","",false,"52")),null,List.of(),Instant.now(),Map.of("sku","501","owner",ListingIdentity.fingerprint(shop)));
         com.vncode.app.testsupport.RegistrationSourceFixture.ready(shop);service.step(shop,"");
         var reports=new SyncRunRepository();var run=reports.list(shop.getId(),0,10).getFirst();var items=reports.items(run.id(),0,10);
@@ -132,7 +133,7 @@ class ZnackAutoSyncServiceTest {
     @Test void ozonRussianSizeFromTheCatalogIsComparedToTheExplicitRussianSizeOnFreshReadback()throws Exception{
         init(Marketplace.OZON);
         try(var c=Database.getConnection();var s=c.createStatement()){s.execute("UPDATE ozon_products SET size='52' WHERE shop_id=2");}
-        observation=new GtinSyncModels.RegisteredGtin(observation.gtin(),"Fixture","Blue","52",true,true,observation.source(),Instant.now());
+        observation=new GtinSyncModels.RegisteredGtin(observation.gtin(),"Fixture","Blue","52",true,true,observation.source(),Instant.now(),new CatalogProductData(Map.of("@catalog_id",List.of("91"),"@catalog_status",List.of("published")),List.of(),List.of()));
         snapshot=new ProductSnapshot(snapshot.key(),snapshot.revision(),snapshot.title(),snapshot.description(),snapshot.brand(),snapshot.vendorArticle(),snapshot.categoryId(),snapshot.media(),snapshot.attributes(),List.of(new ProductVariant(key.variantId(),"Fixture","Blue","L","",false,"52")),null,List.of(),Instant.now(),snapshot.metadata());
         service.step(shop,"");approve();
         for(int turn=0;turn<4;turn++)if(service.step(shop,"").complete())break;
@@ -141,7 +142,7 @@ class ZnackAutoSyncServiceTest {
     @Test void wbCatalogRussianSizeUsesObservedWbSizeWhileReviewKeepsNativeManufacturerSize()throws Exception{
         init(Marketplace.WILDBERRIES);
         try(var c=Database.getConnection();var s=c.createStatement()){s.execute("UPDATE wb_product_sizes SET wb_size='54' WHERE shop_id=1");}
-        observation=new GtinSyncModels.RegisteredGtin(observation.gtin(),"Fixture","Blue","54",true,true,observation.source(),Instant.now(),new CatalogProductData(Map.of("@size_type",List.of("РОССИЯ")),List.of(),List.of()));
+        observation=new GtinSyncModels.RegisteredGtin(observation.gtin(),"Fixture","Blue","54",true,true,observation.source(),Instant.now(),new CatalogProductData(Map.of("@catalog_id",List.of("91"),"@catalog_status",List.of("published"),"@size_type",List.of("РОССИЯ")),List.of(),List.of()));
         service.step(shop,"");approve();for(int turn=0;turn<4;turn++)if(service.step(shop,"").complete())break;
         assertEquals(1,writes);assertEquals("SUCCEEDED",new SyncRunRepository().list(shop.getId(),0,10).getFirst().state());
     }
@@ -155,13 +156,13 @@ class ZnackAutoSyncServiceTest {
     @Test void ozonInternationalCatalogCardUsesManufacturerSizeWhileTheVisibleCatalogKeepsRussianSize()throws Exception{
         init(Marketplace.OZON);
         try(var c=Database.getConnection();var s=c.createStatement()){s.execute("UPDATE ozon_products SET size='52',russian_size='52',manufacturer_size='M' WHERE shop_id=2");}
-        observation=new GtinSyncModels.RegisteredGtin(observation.gtin(),"Fixture","Blue","M",true,true,observation.source(),Instant.now(),new CatalogProductData(Map.of("@size_type",List.of("МЕЖДУНАРОДНЫЙ")),List.of(),List.of()));
+        observation=new GtinSyncModels.RegisteredGtin(observation.gtin(),"Fixture","Blue","M",true,true,observation.source(),Instant.now(),new CatalogProductData(Map.of("@catalog_id",List.of("91"),"@catalog_status",List.of("published"),"@size_type",List.of("МЕЖДУНАРОДНЫЙ")),List.of(),List.of()));
         snapshot=new ProductSnapshot(snapshot.key(),snapshot.revision(),snapshot.title(),snapshot.description(),snapshot.brand(),snapshot.vendorArticle(),snapshot.categoryId(),snapshot.media(),snapshot.attributes(),List.of(new ProductVariant(key.variantId(),"Fixture","Blue","M","",false,"52")),null,List.of(),Instant.now(),snapshot.metadata());
         service.step(shop,"");approve();for(int turn=0;turn<4;turn++)if(service.step(shop,"").complete())break;
         assertEquals(1,writes);assertEquals("SUCCEEDED",new SyncRunRepository().list(shop.getId(),0,10).getFirst().state());
     }
     @Test void wrongSizeDoesNotFallBackToArticleAndDoesNotWrite()throws Exception{
-        init(Marketplace.OZON);observation=new GtinSyncModels.RegisteredGtin(observation.gtin(),"Fixture","Blue","XL",true,true,observation.source(),Instant.now());
+        init(Marketplace.OZON);observation=new GtinSyncModels.RegisteredGtin(observation.gtin(),"Fixture","Blue","XL",true,true,observation.source(),Instant.now(),new CatalogProductData(Map.of("@catalog_id",List.of("91"),"@catalog_status",List.of("published")),List.of(),List.of()));
         service.step(shop,"");service.step(shop,"");assertEquals(0,writes);
         var reports=new SyncRunRepository();var run=reports.list(shop.getId(),0,10).getFirst();assertEquals("PARTIAL",run.state());assertEquals("ZNACK_MAPPING_UNVERIFIED",reports.items(run.id(),0,10).getFirst().error());
     }
@@ -195,7 +196,7 @@ class ZnackAutoSyncServiceTest {
         assertThrows(java.net.SocketTimeoutException.class,()->review.prepare(shop));assertEquals(0,sourceReads);assertEquals(0,writes);
     }
     @Test void unpublishedCardCannotReachPreviewOrWrite()throws Exception {
-        init(Marketplace.OZON);observation=new GtinSyncModels.RegisteredGtin(observation.gtin(),"Fixture","Blue","M",true,false,observation.source(),Instant.now());service.step(shop,"");
+        init(Marketplace.OZON);observation=new GtinSyncModels.RegisteredGtin(observation.gtin(),"Fixture","Blue","M",true,false,observation.source(),Instant.now(),new CatalogProductData(Map.of("@catalog_id",List.of("91"),"@catalog_status",List.of("published")),List.of(),List.of()));service.step(shop,"");
         var reports=new SyncRunRepository();var run=reports.list(shop.getId(),0,10).getFirst();var rows=reports.items(run.id(),0,10);
         assertFalse(ZnackGtinReviewService.eligible(rows.getFirst()));
         assertThrows(IllegalArgumentException.class,()->new ZnackGtinReviewService(s->{},service,(s,k)->snapshot).select(shop,run.id(),rows));assertEquals(0,writes);
@@ -210,4 +211,21 @@ class ZnackAutoSyncServiceTest {
         public RemoteResult reconcile(Shop s,RemoteSubmission r){throw new AssertionError("No metadata task");}
         public RemoteSubmission finishAssets(Shop s,RemoteSubmission r){throw new AssertionError("No uploads");}
     }
+    @Test void selectedReviewUsesExactlyRequestedCohortAndPreservesSourceEvidenceAndUnknownMissingMember()throws Exception{
+        init(Marketplace.WILDBERRIES);
+        try(var c=Database.getConnection();var statement=c.createStatement()){
+            statement.execute("INSERT INTO wb_product_cards(shop_id,nm_id,title,vendor_code,synced_at) VALUES(1,102,'Unselected','Other','now')");
+            statement.execute("INSERT INTO wb_product_sizes(shop_id,chrt_id,nm_id,tech_size) VALUES(1,202,102,'L')");
+            statement.execute("INSERT INTO wb_product_size_skus(shop_id,chrt_id,sku) VALUES(1,201,'legacy')");
+        }
+        var missing=new ProductKey(shop.getId(),shop.getMarketplace(),"999","999");
+        service=new ZnackAutoSyncService((s,issues)->{issues.accept(new com.vncode.app.integration.znack.registration.NationalCatalogGtinSource.CardIssue("00000000000024","CATALOG_CARD_READ_FAILED"));return List.of(observation);},(s,k)->snapshot,catalog);
+        String run=service.review(shop,"",Set.of(key,missing));var repository=new SyncRunRepository();var rows=repository.items(run,0,1000);
+        assertEquals(2,rows.size());assertTrue(rows.stream().noneMatch(row->row.productId().equals("102")||row.productId().startsWith("catalog:")));
+        var actual=rows.stream().filter(row->row.productId().equals("101")).findFirst().orElseThrow();var facts=com.google.gson.JsonParser.parseString(actual.evidence()).getAsJsonObject();
+        assertEquals("SELECTED",facts.get("cohortScope").getAsString());assertEquals("91",facts.get("goodId").getAsString());assertEquals("published",facts.get("catalogStatus").getAsString());assertEquals(observation.syncedAt().toString(),facts.get("catalogCheckedAt").getAsString());assertEquals("legacy",facts.getAsJsonArray("barcodes").get(0).getAsString());
+        assertFalse(actual.updatedAt().isBlank());assertEquals("PRODUCT_NOT_FOUND",rows.stream().filter(row->row.productId().equals("999")).findFirst().orElseThrow().error());
+        var counts=repository.marketplaceCounts(run);assertEquals(2L,counts.get("TOTAL"));assertEquals(1L,counts.get("WITH_GTIN"));assertEquals(0L,counts.get("WITHOUT_GTIN"));assertEquals(1L,counts.get("UNVERIFIED"));assertEquals(0,writes);
+    }
+
 }

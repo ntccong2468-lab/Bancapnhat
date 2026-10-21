@@ -13,7 +13,7 @@ import java.util.*;
 /** Frozen seller selection. This queue never deletes marketplace snapshots or Catalog identities. */
 final class ZnackRegistrationBatchStore {
     private static final Gson JSON=new Gson();
-    record Batch(String id,String owner,String scope,boolean autoSign,String state,String detail,Instant retryAt){}
+    record Batch(String id,String owner,String scope,boolean autoSign,String state,String detail,Instant retryAt,int retries,Instant waitingSince){}
     record Item(String run,int position,Sku sku,Draft draft,String state,String detail){}
     static void initialize(Connection c)throws SQLException {
         try(var s=c.createStatement()){
@@ -33,11 +33,17 @@ final class ZnackRegistrationBatchStore {
                 """);
             s.execute("CREATE INDEX IF NOT EXISTS znack_registration_batches_shop ON znack_registration_batches(shop_id,owner,created_at)");
         }
+        ensureColumn(c,"retry_count","INTEGER NOT NULL DEFAULT 0");
+        ensureColumn(c,"waiting_since","TEXT");
+    }
+    private static void ensureColumn(Connection c,String name,String definition)throws SQLException {
+        try(var s=c.createStatement();var r=s.executeQuery("PRAGMA table_info(znack_registration_batches)")){while(r.next())if(name.equals(r.getString("name")))return;}
+        try(var s=c.createStatement()){s.execute("ALTER TABLE znack_registration_batches ADD COLUMN "+name+" "+definition);}
     }
     String create(Shop shop,String run,List<Sku> rows,boolean autoSign,String scope){
         try{return SqliteWriteTransaction.run(c->{
             requireOwner(c,shop);
-            try(var p=c.prepareStatement("SELECT id FROM znack_registration_batches WHERE shop_id=? AND owner=? AND state IN ('QUEUED','RUNNING','WAITING_NETWORK','WAITING_REMOTE') ORDER BY created_at DESC LIMIT 1")){
+            try(var p=c.prepareStatement("SELECT id FROM znack_registration_batches WHERE shop_id=? AND owner=? AND state IN ('QUEUED','RUNNING','WAITING_NETWORK','WAITING_REMOTE','PAUSED') ORDER BY created_at DESC LIMIT 1")){
                 p.setInt(1,shop.getId());p.setString(2,ListingIdentity.fingerprint(shop));try(var r=p.executeQuery()){if(r.next())throw new IllegalStateException("ZNACK_REGISTRATION_BATCH_ALREADY_RUNNING");}
             }
             String now=Instant.now().toString();
@@ -66,19 +72,19 @@ final class ZnackRegistrationBatchStore {
             p.setString(1,id);try(var r=p.executeQuery()){while(r.next())out.add(new Item(id,r.getInt("position"),JSON.fromJson(r.getString("sku_json"),Sku.class),JSON.fromJson(r.getString("draft_json"),Draft.class),r.getString("state"),r.getString("detail")));}return List.copyOf(out);
         }catch(SQLException e){throw storage(e);}
     }
-    record Summary(int total,int submitted,int failed,Sku current,Sku last){}
+    record Summary(int total,int submitted,int failed,int cancelled,Sku current,Sku last){}
     Summary summary(Shop shop,String id){
         get(shop,id);
         try(var c=Database.getConnection()){
-            c.setAutoCommit(false);int total,submitted,failed;
-            try(var p=c.prepareStatement("SELECT count(*),COALESCE(sum(state='SUBMITTED'),0),COALESCE(sum(state='NEEDS_ACTION'),0) FROM znack_registration_batch_items WHERE run_id=?")){
-                p.setString(1,id);try(var r=p.executeQuery()){r.next();total=r.getInt(1);submitted=r.getInt(2);failed=r.getInt(3);}
+            c.setAutoCommit(false);int total,submitted,failed,cancelled;
+            try(var p=c.prepareStatement("SELECT count(*),COALESCE(sum(state='SUBMITTED'),0),COALESCE(sum(state='NEEDS_ACTION'),0),COALESCE(sum(state='CANCELLED'),0) FROM znack_registration_batch_items WHERE run_id=?")){
+                p.setString(1,id);try(var r=p.executeQuery()){r.next();total=r.getInt(1);submitted=r.getInt(2);failed=r.getInt(3);cancelled=r.getInt(4);}
             }
-            Sku current=summarySku(c,id,false),last=summarySku(c,id,true);c.commit();return new Summary(total,submitted,failed,current,last);
+            Sku current=summarySku(c,id,false),last=summarySku(c,id,true);c.commit();return new Summary(total,submitted,failed,cancelled,current,last);
         }catch(SQLException e){throw storage(e);}
     }
     private static Sku summarySku(Connection c,String id,boolean last)throws SQLException {
-        String predicate=last?"state='SUBMITTED'":"state NOT IN ('SUBMITTED','NEEDS_ACTION')";
+        String predicate=last?"state='SUBMITTED'":"state NOT IN ('SUBMITTED','NEEDS_ACTION','CANCELLED')";
         try(var p=c.prepareStatement("SELECT sku_json FROM znack_registration_batch_items WHERE run_id=? AND "+predicate+" ORDER BY position "+(last?"DESC":"ASC")+" LIMIT 1")){
             p.setString(1,id);try(var r=p.executeQuery()){return r.next()?JSON.fromJson(r.getString(1),Sku.class):null;}
         }
@@ -88,8 +94,28 @@ final class ZnackRegistrationBatchStore {
             p.setString(1,state);p.setString(2,safe(detail));p.setString(3,draft==null?null:JSON.toJson(draft));p.setString(4,text(feed));p.setString(5,text(feed));p.setString(6,Instant.now().toString());p.setString(7,item.run());p.setInt(8,item.position());p.executeUpdate();}return null;});
     }
     void state(Shop shop,String id,String state,String detail,Instant retry){
-        write(shop,id,c->{try(var p=c.prepareStatement("UPDATE znack_registration_batches SET state=?,detail=?,retry_at=?,updated_at=? WHERE id=?")){
+        write(shop,id,c->{try(var p=c.prepareStatement("UPDATE znack_registration_batches SET state=?,detail=?,retry_at=?,updated_at=? WHERE id=? AND state NOT IN ('PAUSED','CANCELLED')")){
             p.setString(1,state);p.setString(2,safe(detail));p.setString(3,retry==null?null:retry.toString());p.setString(4,Instant.now().toString());p.setString(5,id);p.executeUpdate();}return null;});
+    }
+    /** Controls take effect between cards; an in-flight remote request retains its receipt. */
+    boolean control(Shop shop,String id,String state,String detail){
+        var changed=new boolean[1];
+        write(shop,id,c->{
+            String eligible="QUEUED".equals(state)?"state='PAUSED'":"state IN ('QUEUED','RUNNING','WAITING_NETWORK','WAITING_REMOTE','PAUSED')";
+            try(var p=c.prepareStatement("UPDATE znack_registration_batches SET state=?,detail=?,retry_at=NULL,retry_count=CASE WHEN ?='QUEUED' THEN 0 ELSE retry_count END,waiting_since=CASE WHEN ?='QUEUED' THEN NULL ELSE waiting_since END,updated_at=? WHERE id=? AND "+eligible)){
+                p.setString(1,state);p.setString(2,safe(detail));p.setString(3,state);p.setString(4,state);p.setString(5,Instant.now().toString());p.setString(6,id);changed[0]=p.executeUpdate()==1;
+            }
+            if(changed[0]&&"CANCELLED".equals(state))try(var p=c.prepareStatement("UPDATE znack_registration_batch_items SET state='CANCELLED',detail='ZNACK_BATCH_CANCELLED',updated_at=? WHERE run_id=? AND state='QUEUED'")){
+                p.setString(1,Instant.now().toString());p.setString(2,id);p.executeUpdate();
+            }
+            return null;
+        });return changed[0];
+    }
+    int retry(Shop shop,String id){
+        write(shop,id,c->{try(var p=c.prepareStatement("UPDATE znack_registration_batches SET retry_count=retry_count+1 WHERE id=? AND state IN ('QUEUED','RUNNING','WAITING_NETWORK','WAITING_REMOTE')")){p.setString(1,id);p.executeUpdate();}return null;});return get(shop,id).retries();
+    }
+    Instant waitingSince(Shop shop,String id){
+        write(shop,id,c->{try(var p=c.prepareStatement("UPDATE znack_registration_batches SET waiting_since=COALESCE(waiting_since,?) WHERE id=? AND state IN ('QUEUED','RUNNING','WAITING_NETWORK','WAITING_REMOTE')")){p.setString(1,Instant.now().toString());p.setString(2,id);p.executeUpdate();}return null;});return get(shop,id).waitingSince();
     }
     private void write(Shop shop,String id,SqliteWriteTransaction.Work<Void> work){
         try{SqliteWriteTransaction.run(c->{requireOwner(c,shop);try(var p=c.prepareStatement("SELECT 1 FROM znack_registration_batches WHERE id=? AND shop_id=? AND owner=?")){p.setString(1,id);p.setInt(2,shop.getId());p.setString(3,ListingIdentity.fingerprint(shop));try(var r=p.executeQuery()){if(!r.next())throw new SecurityException("SYNC_OWNER_CHANGED");}}return work.run(c);});}catch(SQLException e){throw storage(e);}
@@ -100,7 +126,7 @@ final class ZnackRegistrationBatchStore {
             p.setString(1,Instant.now().toString());p.setInt(2,shop.getId());p.setLong(3,sku.chrtId());p.setLong(4,sku.nmId());p.setString(5,sku.registrationRevision());return p.executeUpdate()==1;}});
         }catch(SQLException e){throw storage(e);}
     }
-    private static Batch batch(ResultSet r)throws SQLException {String retry=r.getString("retry_at");return new Batch(r.getString("id"),r.getString("owner"),r.getString("scope"),r.getBoolean("auto_sign"),r.getString("state"),r.getString("detail"),retry==null?null:Instant.parse(retry));}
+    private static Batch batch(ResultSet r)throws SQLException {String retry=r.getString("retry_at");return new Batch(r.getString("id"),r.getString("owner"),r.getString("scope"),r.getBoolean("auto_sign"),r.getString("state"),r.getString("detail"),retry==null?null:Instant.parse(retry),r.getInt("retry_count"),r.getString("waiting_since")==null?null:Instant.parse(r.getString("waiting_since")));}
     private static void requireOwner(Connection c,Shop shop)throws SQLException {if(!ListingIdentity.fingerprint(shop).equals(ListingIdentity.fingerprint(c,shop.getId(),shop.getMarketplace())))throw new SecurityException("SYNC_OWNER_CHANGED");}
     private static String safe(String detail){return com.vncode.app.integration.znack.ZnackSanitizer.message(detail);}
     private static String text(String v){return Objects.requireNonNullElse(v,"");}

@@ -54,8 +54,13 @@ public final class GtinSyncModels {
             oldGtin = safe(oldGtin); newGtin = required(newGtin);
         }
     }
-    public record Submission(String remoteTaskId) { public Submission { remoteTaskId = safe(remoteTaskId); } }
-    public record JobItem(UUID id, UUID jobId, Preview preview, Status status, String remoteTaskId) {}
+    public record Submission(String remoteTaskId, Instant dispatchedAt) {
+        public Submission(String remoteTaskId){this(remoteTaskId,null);}
+        public Submission { remoteTaskId = safe(remoteTaskId); }
+    }
+    public record JobItem(UUID id, UUID jobId, Preview preview, Status status, String remoteTaskId, Instant dispatchedAt) {
+        public JobItem(UUID id,UUID jobId,Preview preview,Status status,String remoteTaskId){this(id,jobId,preview,status,remoteTaskId,null);}
+    }
     static String safe(String value) { return value == null ? "" : value.strip(); }
     private static String required(String value) {
         String result = safe(value);

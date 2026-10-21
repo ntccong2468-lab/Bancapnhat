@@ -164,4 +164,28 @@ class ProductRepositoryTest {
         assertEquals(1,new ProductRepository().loadPage(query("",null)).total());
         try(var c=Database.getConnection();var s=c.createStatement();var r=s.executeQuery("PRAGMA foreign_key_check")){assertFalse(r.next());}
     }
+    @Test void legacySnapshotReadPreservesTheStoredPayloadAndDowngradesUnknownGtinProvenance()throws Exception{
+        card(1,1,"Legacy","00000000000017");var key=new ProductKey(1,Marketplace.WILDBERRIES,"1","1");
+        String payload="{\"key\":{\"shopId\":1,\"marketplace\":\"WILDBERRIES\",\"cardId\":\"1\",\"variantId\":\"1\"},\"revision\":\"legacy\",\"title\":\"Legacy\",\"description\":\"\",\"brand\":\"\",\"vendorArticle\":\"A\",\"categoryId\":\"1\",\"media\":[],\"attributes\":[],\"variants\":[{\"id\":\"1\",\"gtin\":\"00000000000017\",\"gtinVerified\":true}],\"documents\":[],\"checkedAt\":\"2026-01-01T00:00:00Z\",\"metadata\":{}}";
+        try(var c=Database.getConnection();var p=c.prepareStatement("INSERT INTO product_snapshots VALUES(1,'WILDBERRIES','1','1',?,'2026-01-01T00:00:00Z')")){p.setString(1,payload);p.executeUpdate();}
+        var variant=new ProductRepository().localSnapshot(key).orElseThrow().variants().getFirst();assertEquals("00000000000017",variant.gtin());assertFalse(variant.gtinVerified());assertEquals(ProductVariant.Verification.HISTORICAL,variant.gtinEvidence().status());assertEquals(List.of("00000000000017"),variant.barcodes());
+        try(var c=Database.getConnection();var q=c.createStatement();var r=q.executeQuery("SELECT payload FROM product_snapshots")){assertTrue(r.next());assertEquals(payload,r.getString(1));}
+    }
+    @Test void rejectedAmbiguousDocumentIdentityCannotReplaceThePreviousCompleteCache()throws Exception{
+        card(1,1,"Documents","RAW");var shop=new com.vncode.app.models.Shop(1,"WB","fixture");var repo=new ProductRepository();var key=new ProductKey(1,Marketplace.WILDBERRIES,"1","1");
+        var saved=document("known","ORIGINAL");repo.saveVerifiedSnapshot(shop,documentSnapshot(shop,key,List.of(saved)));
+        for(var invalid:List.of(List.of(document("","ONE"),document("","TWO")),List.of(document("same","ONE"),document("same","TWO")))){
+            assertThrows(IllegalArgumentException.class,()->repo.saveVerifiedSnapshot(shop,documentSnapshot(shop,key,invalid)));assertEquals(List.of(saved),repo.localSnapshot(key).orElseThrow().documents());
+            try(var c=Database.getConnection();var q=c.createStatement();var r=q.executeQuery("SELECT count(*),min(document_id) FROM product_documents")){assertTrue(r.next());assertEquals(1,r.getInt(1));assertEquals("known",r.getString(2));}
+        }
+    }
+    @Test void rotatingOwnerCredentialsMakesOldValidDocumentsUnverifiedWithoutDeletingThem()throws Exception{
+        card(1,1,"Documents","RAW");var shop=new com.vncode.app.models.Shop(1,"WB","fixture");var repo=new ProductRepository();var key=new ProductKey(1,Marketplace.WILDBERRIES,"1","1");
+        repo.saveVerifiedSnapshot(shop,documentSnapshot(shop,key,List.of(document("known","ORIGINAL"))));assertEquals(DocumentState.VALID,repo.loadPage(query("",null)).rows().getFirst().documentState());
+        try(var c=Database.getConnection();var q=c.createStatement()){q.executeUpdate("UPDATE shops SET api_key='rotated' WHERE id=1");}
+        assertEquals(DocumentState.UNVERIFIED,repo.loadPage(query("",null)).rows().getFirst().documentState());
+        try(var c=Database.getConnection();var q=c.createStatement();var r=q.executeQuery("SELECT count(*),min(state) FROM product_documents")){assertTrue(r.next());assertEquals(1,r.getInt(1));assertEquals("VALID",r.getString(2));}
+    }
+    private ProductDocument document(String id,String number){return new ProductDocument(id,"declaration",number,null,null,"Owner","Scope",null,Marketplace.WILDBERRIES,DocumentState.VALID,"https://content-api.wildberries.ru/content/v2/get/cards/list",java.time.Instant.now());}
+    private ProductSnapshot documentSnapshot(com.vncode.app.models.Shop shop,ProductKey key,List<ProductDocument> documents){return new ProductSnapshot(key,"live:readback","Documents","","","A","1",List.of(),List.of(),List.of(new ProductVariant("1","A","","M","",false)),null,documents,java.time.Instant.now(),Map.of("owner",com.vncode.app.integration.listing.ListingIdentity.fingerprint(shop)));}
 }

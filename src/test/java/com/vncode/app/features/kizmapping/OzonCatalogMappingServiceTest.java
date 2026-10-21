@@ -54,6 +54,30 @@ class OzonCatalogMappingServiceTest {
         var op=new Fake();String code=gtin(1);op.cards.add(card(code));op.targets.add(target(1,List.of(code),false,""));op.targets.add(target(2,List.of(code),false,""));
         var result=run(op);assertEquals(List.of("GTIN_MULTIPLE_PRODUCTS","GTIN_MULTIPLE_PRODUCTS"),reasons(result));assertTrue(op.verified.isEmpty());
     }
+    @Test void repeatedListingsForTheSameProvenPhysicalVariantMayShareOneGtin()throws Exception{
+        var op=new Fake();String code=gtin(1);op.cards.add(card(code));
+        op.targets.add(target(1,List.of(code),false,"","same-physical-model","Brown","52"));
+        op.targets.add(target(2,List.of(code),false,"","same-physical-model","коричневый","52"));
+        var result=run(op);assertEquals(2,result.mapped());assertTrue(result.issues().isEmpty());assertEquals(Map.of("1",code,"2",code),op.verified);
+    }
+    @Test void conflictingExistingRulesCannotBypassDuplicateVariantChecks()throws Exception{
+        var op=new Fake();String code=gtin(1);op.cards.add(card(code));
+        op.targets.add(target(1,List.of("seller-alias-a"),false,code));op.targets.add(target(2,List.of("seller-alias-b"),false,code));
+        var result=run(op);assertEquals(0,result.mapped());assertEquals(List.of("GTIN_MULTIPLE_PRODUCTS","GTIN_MULTIPLE_PRODUCTS"),reasons(result));assertTrue(op.verified.isEmpty());
+    }
+    @Test void aSavedRuleDoesNotHideFailedVerificationOfTheCurrentMarketplaceBarcode()throws Exception{
+        var op=new Fake();String saved=gtin(1),observed=gtin(2);op.cards.add(card(saved));
+        op.targets.add(target(1,List.of(observed),false,saved));op.failures.put(observed,new java.net.SocketTimeoutException("fixture timeout"));
+        var result=run(op);assertEquals(0,result.mapped());assertEquals(List.of("NETWORK_TIMEOUT"),reasons(result));assertTrue(op.verified.isEmpty());
+    }
+    @Test void missingExplicitColorOrSizeCannotBeTreatedAsAMatchingVariant()throws Exception{
+        var op=new Fake();String color=gtin(1),size=gtin(2);
+        var complete=card(color);op.cards.add(new RegisteredGtin(color,complete.article(),"",complete.size(),true,true,SOURCE,Instant.now(),complete.details()));
+        complete=card(size);op.cards.add(new RegisteredGtin(size,complete.article(),complete.color(),"",true,true,SOURCE,Instant.now(),complete.details()));
+        op.targets.add(target(1,List.of(color),false,"","article1","","52"));
+        op.targets.add(target(2,List.of(size),false,"","article2","Brown",""));
+        var result=run(op);assertEquals(0,result.mapped());assertEquals(List.of("GTIN_COLOR_MISMATCH","GTIN_SIZE_MISMATCH"),reasons(result));assertTrue(op.verified.isEmpty());
+    }
     @Test void multipleEligibleCatalogBarcodesRemainAmbiguousButUnknownExtraBarcodeDoesNotHideOneProvenMatch()throws Exception{
         var op=new Fake();String a=gtin(1),b=gtin(2),c=gtin(3);op.cards.add(card(a));op.cards.add(card(b));
         op.targets.add(target(1,List.of(a,b),false,""));op.targets.add(target(2,List.of(c,gtin(4)),false,""));op.cards.add(card(c));
@@ -102,8 +126,9 @@ class OzonCatalogMappingServiceTest {
             s.execute("INSERT INTO ozon_products(shop_id,product_id,offer_id,sku,article,synced_at) VALUES(2,'1','offer1','sku1','same','fixture'),(2,'2','offer2','sku2','same','fixture')");
             s.execute("INSERT INTO ozon_product_barcodes(shop_id,product_id,barcode) VALUES(2,'1','"+code+"')");
         }
-        var base=card(code);var source=new RegisteredGtin(code,base.article(),base.color(),base.size(),true,true,RegisteredGtinProof.source(shop),Instant.now(),base.details());new GtinSyncRepository().saveCatalog(shop.getId(),Marketplace.OZON,List.of(source));
-        var local=new LocalOperations();var op=new Fake(){
+        var base=card(code);var local=new LocalOperations();var legacy=new RegisteredGtin(code,base.article(),base.color(),base.size(),true,true,RegisteredGtinProof.source(shop),Instant.now(),base.details());new GtinSyncRepository().saveCatalog(shop.getId(),Marketplace.OZON,List.of(legacy));assertThrows(IllegalArgumentException.class,()->local.verified(shop,target(1,List.of(code),false,""),code));
+        var details=new CatalogProductData(Map.of("@catalog_id",List.of("91"),"@catalog_status",List.of("published")),base.details().attributes(),base.details().documents());var source=new RegisteredGtin(code,base.article(),base.color(),base.size(),true,true,RegisteredGtinProof.source(shop),Instant.now(),details);new GtinSyncRepository().saveCatalog(shop.getId(),Marketplace.OZON,List.of(source));
+        var op=new Fake(){
             @Override public String scope(Shop owner){return local.scope(owner);}
             @Override public List<RegisteredGtin> catalog(Shop owner){return local.catalog(owner);}
             @Override public void enrich(Shop owner,List<RegisteredGtin> cards){local.enrich(owner,cards);}
@@ -120,7 +145,10 @@ class OzonCatalogMappingServiceTest {
     Result run(Fake operations)throws Exception{return new OzonCatalogMappingService(operations).synchronize(owner,p->{});}
     List<String> reasons(Result result){return result.issues().stream().map(Issue::reason).toList();}
     static Target target(int id,List<String> codes,boolean exempt,String existing){
-        var row=new ProductRow(new ProductKey(2,Marketplace.OZON,Integer.toString(id),"offer"+id),"Fixture","article"+id,"sku"+id,"Sets","","Brown","52",codes,"","","cotton","6103109000",DocumentState.VALID,"",true);
+        return target(id,codes,exempt,existing,"article"+id,"Brown","52");
+    }
+    static Target target(int id,List<String> codes,boolean exempt,String existing,String article,String color,String size){
+        var row=new ProductRow(new ProductKey(2,Marketplace.OZON,Integer.toString(id),"offer"+id),"Fixture",article,"sku"+id,"Sets","",color,size,codes,"","","cotton","6103109000",DocumentState.VALID,"",true);
         return new Target(row,"sku"+id,exempt,existing);
     }
     static RegisteredGtin card(String gtin){return card(gtin,List.of(new CatalogProductData.Document("DECLARATION","fixture","2020-01-01","",true,"",Map.of())));}

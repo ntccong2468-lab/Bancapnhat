@@ -65,5 +65,53 @@ public final class ListingIdentity {
         }catch(java.sql.SQLException ignored){/* Missing/corrupt proof is never a verified GTIN. */}
         return "";
     }
+    public record VerifiedGtin(String gtin,ProductVariant.GtinEvidence evidence){}
+    /** Read-only evidence for an exact marketplace variant. A barcode/checksum or old unscoped cache is not proof. */
+    public static Optional<VerifiedGtin> verifiedGtinEvidence(Shop shop,ProductKey key,List<String> barcodes){
+        return verifiedGtinEvidence(shop,key,barcodes,"","","","");
+    }
+    public static Optional<VerifiedGtin> verifiedGtinEvidence(Shop shop,ProductKey key,List<String> barcodes,String article,String color,String size,String russianSize){
+        require(shop,key);
+        String source=currentCatalogSource(shop);if(source.isBlank())return Optional.empty();
+        String owner=fingerprint(shop);var now=java.time.Instant.now();
+        try(var c=Database.getConnection();var p=c.prepareStatement("""
+          SELECT m.gtin,g.data_json FROM gtin_sync_mappings m JOIN gtin_sync_catalog g
+            ON g.shop_id=m.shop_id AND g.marketplace=m.marketplace AND g.gtin=m.gtin
+          WHERE m.shop_id=? AND m.marketplace=? AND m.product_id=? AND m.variant_id=?
+          """)){
+            p.setInt(1,key.shopId());p.setString(2,key.marketplace().name());p.setString(3,key.cardId());p.setString(4,key.variantId());
+            try(var rows=p.executeQuery()){
+                if(!rows.next())return Optional.empty();
+                String gtin=rows.getString(1);var data=com.google.gson.JsonParser.parseString(rows.getString(2)).getAsJsonObject();
+                if(!RegisteredGtinValidator.isValid(gtin)||!barcodes.stream().anyMatch(code->pad(code).equals(pad(gtin)))
+                        ||!data.has("owner")||!owner.equals(data.get("owner").getAsString())
+                        ||!data.has("source")||!source.equals(data.get("source").getAsString())
+                        ||!data.has("published")||!data.get("published").getAsBoolean()
+                        ||!data.has("tradeUnit")||!data.get("tradeUnit").getAsBoolean()||!data.has("syncedAt"))return Optional.empty();
+                var checked=java.time.Instant.parse(data.get("syncedAt").getAsString());
+                if(checked.isBefore(now.minusSeconds(86400))||checked.isAfter(now.plusSeconds(300)))return Optional.empty();
+                var row=ProductJson.GSON.fromJson(data,com.vncode.app.features.gtinsync.GtinSyncModels.RegisteredGtin.class);
+                if(!compatibleVariant(row,article,color,size,russianSize))return Optional.empty();
+                String status=row.details().single("@catalog_status");
+                var content=data.deepCopy();content.remove("syncedAt");
+                var verification=com.vncode.app.features.gtinsync.RegisteredGtinProof.currentObservation(row,now)?ProductVariant.Verification.VERIFIED:ProductVariant.Verification.HISTORICAL;
+                var evidence=new ProductVariant.GtinEvidence(verification,source,checked,hash(canonical(content)),row.details().single("@catalog_id"),status);
+                require(shop,key);return Optional.of(new VerifiedGtin(gtin,evidence));
+            }
+        }catch(java.sql.SQLException|com.google.gson.JsonParseException|java.time.DateTimeException|IllegalStateException malformed){return Optional.empty();}
+    }
+    /** A missing/unverified signature scope leaves reads usable, without upgrading historical GTIN data. */
+    public static String currentCatalogSource(Shop shop){
+        try{return com.vncode.app.features.gtinsync.RegisteredGtinProof.current(shop).source();}
+        catch(com.vncode.app.features.gtinsync.RegisteredGtinProof.UnverifiedOwnerException unknown){return "";}
+    }
+    /** Exact product facts only; broader seller-approved Ozon SKU matching belongs to its Catalog mapper. */
+    public static boolean compatibleVariant(com.vncode.app.features.gtinsync.GtinSyncModels.RegisteredGtin row,String article,String color,String size,String russianSize){
+        return article!=null&&!article.isBlank()&&!row.article().isBlank()
+                &&com.vncode.app.features.gtinsync.GtinMatchingService.normalizeArticle(article).equals(com.vncode.app.features.gtinsync.GtinMatchingService.normalizeArticle(row.article()))
+                &&color!=null&&!color.isBlank()&&!row.color().isBlank()
+                &&com.vncode.app.features.gtinsync.OzonSkuGtinMatcher.sameColor(color,row.color())
+                &&!row.size().isBlank()&&com.vncode.app.features.gtinsync.GtinVariantIdentity.sizeMatches(row,size,russianSize);
+    }
     private static String pad(String s){return s!=null&&s.matches("[0-9]{8,14}")?"0".repeat(14-s.length())+s:Objects.toString(s,"");}
 }

@@ -34,7 +34,7 @@ class CatalogErrorRepairServiceTest {
         raw=JsonParser.parseString("{\"gtin\":\"00000000000017\",\"good_id\":91,\"good_status\":\"draft\",\"good_detailed_status\":[\"errors\"],\"good_name\":\"Костюм размер 1\",\"good_attrs\":[{\"attr_id\":13933,\"attr_value\":\"6112110000\"},{\"attr_id\":35,\"attr_value\":\"1\",\"attr_value_type\":\"РОССИЯ\"},{\"attr_id\":23557,\"attr_value\":\"OLD:::2026-01-01\"}]}").getAsJsonObject();
         api=new FixtureApi();var catalog=new ZnackNationalCatalogService(api,new ZnackAuthService(api,null){public String trueApiToken(ZnackModels.Settings s){return "fixture";}},null,ZnackModels.Settings.empty());session=new ZnackCardRegistrationWorkflow.CatalogSession("fixture",catalog,scope);
         service=new CatalogErrorRepairService(s->session,(s,k)->snapshot,(s,k,cs,progress)->{
-            var repo=new ZnackCardRegistrationRepository();var workflow=new ZnackCardRegistrationWorkflow(repo,x->cs,Runnable::run,true,(a,b,c,d)->false);
+            var repo=new ZnackCardRegistrationRepository();var workflow=RegistrationWorkflowTestFixtures.workflow(repo,x->cs,Runnable::run,true,(a,b,c,d)->false);
             assertTrue(workflow.resume(s,repo.find(s.getId(),Long.parseLong(k.variantId())),false,(status,detail)->progress.accept(status)));
         });
     }
@@ -86,6 +86,8 @@ class CatalogErrorRepairServiceTest {
         var row=new ProductRow(nativeKey,"Suit","SUIT","9001","Костюмы спортивные","Fixture","ЧЕРНЫЙ","52",List.of(),"","","хлопок","6112110000",DocumentState.UNVERIFIED,"Мужской",true,"52");
         var card=new CatalogErrorRepairService.ErrorCard(gtin,"SUIT","ЧЕРНЫЙ","1","CATALOG_CARD_ERRORS",List.of(row));var proposal=service.prepare(ozon,card,nativeKey);String run=service.apply(ozon,List.of(proposal),List.of(proposal.draft()),ignored->{});
         var stored=new OzonCardRegistrationRepository().find(nativeKey);assertEquals("9001",stored.sku());assertEquals(gtin,stored.gtin());assertEquals("fixture-feed",stored.feedId());assertEquals(Status.PROCESSING,stored.status());assertEquals("WAITING_REMOTE",new SyncRunRepository().find(run).orElseThrow().state());assertEquals(1,api.writes.get());assertEquals(0,api.allocations.get());
+        var revisions=new OzonCardRegistrationRepository().reviewedRevisions(nativeKey);assertEquals(2,revisions.size());assertTrue(revisions.stream().allMatch(value->value.matches("[0-9a-f]{64}")),"Repair approval must bind both current marketplace source and Catalog schema");
+        var expected=ZnackNationalCatalogService.buildPayload(gtin,proposal.draft(),"");expected.addProperty("good_id",91L);assertEquals(expected,JsonParser.parseString(stored.payload()));assertEquals(expected,api.sent,"Review stamping must not rebuild or silently replace the approved repair attributes");
         assertFalse(CatalogRepairCheckpoint.prepare(ozon,nativeKey,"9001",gtin,91,"{}",proposal.draft(),oscope));
     }
     @Test void invalidManualPermitCannotCreateACheckpointOrPost()throws Exception{
@@ -99,6 +101,17 @@ class CatalogErrorRepairServiceTest {
         public JsonElement registrationPermitInfo(String b,String t,JsonArray request){var docs=request.deepCopy();for(var value:docs){var doc=value.getAsJsonObject();doc.addProperty("status_group",doc.get("number").getAsString().equals("OLD")?3:1);doc.addProperty("product_tnved",doc.get("number").getAsString().equals("OLD")?"6203":permitScope);}var result=new JsonObject();result.add("documents",docs);var out=new JsonObject();out.add("result",result);return out;}
         public JsonElement nationalCatalogCategories(String b,String t,String n){return JsonParser.parseString("{\"result\":[{\"cat_id\":1,\"cat_name\":\"Костюмы спортивные\",\"category_active\":true}]}");}
         public JsonElement nationalCatalogAttributes(String b,String t,long id){return JsonParser.parseString("{\"result\":[{\"attr_id\":35,\"attr_name\":\"Размер\",\"attr_required\":true,\"attr_value_type\":[\"РОССИЯ\"]}]}");}
+        public JsonElement nationalCatalogAllAttributes(String b,String t,long id){return JsonParser.parseString("""
+            {"result":[
+              {"attr_id":35,"attr_name":"Размер","attr_field_type":"text","attr_value_type":["РОССИЯ"]},
+              {"attr_id":36,"attr_name":"Цвет","attr_field_type":"text"},
+              {"attr_id":13914,"attr_name":"Артикул","attr_field_type":"text"},
+              {"attr_id":2483,"attr_name":"Состав","attr_field_type":"text"},
+              {"attr_id":14013,"attr_name":"Пол","attr_field_type":"text"},
+              {"attr_id":2478,"attr_name":"Наименование товара","attr_field_type":"text"},
+              {"attr_id":2504,"attr_name":"Товарный знак","attr_field_type":"text"}
+            ]}
+            """);}
         public JsonElement submitNationalCatalogFeed(String b,String t,JsonElement request){writes.incrementAndGet();sent=request.getAsJsonObject().deepCopy();raw.add("good_detailed_status",JsonParser.parseString("[\"moderation\"]"));return JsonParser.parseString("{\"result\":{\"feed_id\":\"fixture-feed\"}}");}
         public JsonElement nationalCatalogFeedStatus(String b,String t,String feed){return JsonParser.parseString("{\"result\":{\"status\":\"Received\"}}");}
     }

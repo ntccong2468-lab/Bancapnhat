@@ -10,7 +10,8 @@ import java.util.*;
 /** A read cursor only: it can never allocate a GTIN, submit a feed or authorize signing. */
 final class CatalogScanCheckpoint {
     record State(int nextPage,Integer total,boolean listed,List<String> gtins,int nextCard,
-                 List<RegisteredGtin> cards,List<NationalCatalogGtinSource.CardIssue> issues){
+                 List<RegisteredGtin> cards,List<NationalCatalogGtinSource.CardIssue> issues,int pageSize){
+        State(int nextPage,Integer total,boolean listed,List<String> gtins,int nextCard,List<RegisteredGtin> cards,List<NationalCatalogGtinSource.CardIssue> issues){this(nextPage,total,listed,gtins,nextCard,cards,issues,0);}
         State{gtins=List.copyOf(gtins);cards=List.copyOf(cards);issues=List.copyOf(issues);}
     }
     private static final Gson JSON=new GsonBuilder().registerTypeAdapter(Instant.class,

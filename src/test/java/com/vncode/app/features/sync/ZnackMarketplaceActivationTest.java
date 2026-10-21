@@ -58,6 +58,15 @@ class ZnackMarketplaceActivationTest {
         releaseTrigger();worker.step(shop,run);assertEquals("SUCCEEDED",reports.items(run,0,10).getFirst().state());assertEquals(0,posts.get());assertEquals(1,readbacks.get());
     }
 
+    @Test void anotherCatalogCardCannotActivateTheNativeReplacementWithTheSameBarcode()throws Exception {
+        fixture(1);releaseTrigger();
+        try(var c=Database.getConnection();var s=c.createStatement()){s.execute("UPDATE znack_card_registrations SET good_id=999 WHERE shop_id=1 AND chrt_id=201");}
+        worker.step(shop,run);
+        var item=reports.items(run,0,10).getFirst();assertEquals("LOCAL_ACTIVATION",item.step());assertEquals("GTIN_LOCAL_ACTIVATION_FAILED",item.error());
+        assertNotEquals("SUCCEEDED",item.state());assertEquals("CANDIDATE",nativeState(201));assertEquals(0,posts.get());assertEquals(1,readbacks.get());
+        assertTrue(JsonParser.parseString(item.evidence()).getAsJsonObject().get("marketplaceVerified").getAsBoolean());
+    }
+
     private void fixture(int count)throws Exception {
         System.setProperty("vncode.appdata.dir",directory.toString());Database.initDatabase();plans=new CatalogSyncRepository();shop=GtinWriteTestFixture.shop(Marketplace.WILDBERRIES);
         var observations=new ArrayList<GtinSyncModels.RegisteredGtin>();var previews=new ArrayList<GtinSyncModels.Preview>();var reportItems=new ArrayList<SyncRunRepository.Item>();
@@ -68,8 +77,8 @@ class ZnackMarketplaceActivationTest {
                 s.execute("INSERT INTO wb_product_cards(shop_id,nm_id,title,vendor_code,synced_at) VALUES(1,"+product+",'Synthetic','"+article+"','fixture')");
                 s.execute("INSERT INTO wb_product_sizes(shop_id,chrt_id,nm_id,tech_size) VALUES(1,"+variant+","+product+",'"+size+"')");
                 s.execute("INSERT INTO wb_product_size_skus(shop_id,chrt_id,sku) VALUES(1,"+variant+",'legacy')");
-                try(var p=c.prepareStatement("INSERT INTO znack_card_registrations(shop_id,chrt_id,nm_id,gtin,feed_id,status,created_at,updated_at) VALUES(1,?,?,?,'synthetic-feed','PUBLISHED',?,?)")){
-                    p.setString(1,variant);p.setString(2,product);p.setString(3,gtin);p.setString(4,now);p.setString(5,now);p.executeUpdate();
+                try(var p=c.prepareStatement("INSERT INTO znack_card_registrations(shop_id,chrt_id,nm_id,gtin,feed_id,status,good_id,created_at,updated_at) VALUES(1,?,?,?,'synthetic-feed','PUBLISHED',?,?,?)")){
+                    p.setString(1,variant);p.setString(2,product);p.setString(3,gtin);p.setString(4,product);p.setString(5,now);p.setString(6,now);p.executeUpdate();
                 }
                 try(var p=c.prepareStatement("INSERT INTO znack_card_registration_replacements(shop_id,chrt_id,active_gtin,state,created_at,updated_at) VALUES(1,?,'','CANDIDATE',?,?)")){
                     p.setString(1,variant);p.setString(2,now);p.setString(3,now);p.executeUpdate();
@@ -79,7 +88,8 @@ class ZnackMarketplaceActivationTest {
             var key=new ProductKey(1,Marketplace.WILDBERRIES,product,variant);var nativeKey=new GtinSyncModels.ProductKey(1,Marketplace.WILDBERRIES,product,variant);
             var snapshot=new ProductSnapshot(key,"live:"+product,"Synthetic","","",article,"1",List.of(),List.of(),List.of(new ProductVariant(variant,article,"Blue",size,"",false)),null,List.of(),Instant.now(),Map.of("owner",ListingIdentity.fingerprint(shop)));
             products.put(key,snapshot);actual.put(nativeKey,List.of("legacy",gtin));
-            observations.add(new GtinSyncModels.RegisteredGtin(gtin,article,"Blue",size,true,true,RegisteredGtinProof.source(shop),Instant.now()));
+            var details=new CatalogProductData(Map.of("@catalog_id",List.of(product),"@catalog_status",List.of("published")),List.of(),List.of());
+            observations.add(new GtinSyncModels.RegisteredGtin(gtin,article,"Blue",size,true,true,RegisteredGtinProof.source(shop),Instant.now(),details));
             var before=new GtinSyncModels.ProductSnapshot(nativeKey,article,"Blue",size,List.of("legacy"),"before-"+product,Instant.now());
             previews.add(new GtinSyncModels.Preview(before,GtinSyncModels.Operation.ADD,"",gtin,new GtinSyncModels.Capability(true,false,"")));
         }
@@ -94,11 +104,15 @@ class ZnackMarketplaceActivationTest {
             public GtinSyncModels.Capability capability(GtinSyncModels.ProductKey key){return new GtinSyncModels.Capability(true,false,"");}
             public GtinSyncModels.ProductSnapshot read(GtinSyncModels.ProductKey key){var p=products.get(new ProductKey(key.shopId(),key.marketplace(),key.productId(),key.variantId()));return new GtinSyncModels.ProductSnapshot(key,p.vendorArticle(),"Blue",p.variants().getFirst().size(),actual.get(key),"after-"+key.productId(),Instant.now());}
             public boolean conflicts(GtinSyncModels.ProductKey key,String gtin){return false;}
+            public void validateIdentity(GtinSyncModels.ProductSnapshot target,GtinSyncModels.RegisteredGtin source){assertEquals(target.article(),source.article());assertEquals(target.color(),source.color());assertEquals(target.size(),source.size());}
             public GtinSyncModels.Submission submit(GtinSyncModels.Preview preview){posts.incrementAndGet();throw new AssertionError("An acknowledged GTIN write must never be replayed");}
             public GtinSyncModels.Verification verify(GtinSyncModels.Preview preview,GtinSyncModels.Submission submission){readbacks.incrementAndGet();return actual.get(preview.before().key()).contains(preview.newGtin())?GtinSyncModels.Verification.APPLIED:GtinSyncModels.Verification.PENDING;}
         };
         var target=new ZnackAutoSyncServiceTest.ReadOnlyListing();ProductSnapshotReader reader=(selected,key)->Objects.requireNonNull(products.get(key));
-        catalog=new CatalogSyncService(plans,gtins,new ProductBulkEditService(new ProductEditRepository(),reader,selected->target),reader,selected->target,key->adapter,RegisteredGtinProof::requireCurrent);
+        catalog=new CatalogSyncService(plans,gtins,new ProductBulkEditService(new ProductEditRepository(),reader,selected->target),reader,selected->target,key->adapter,RegisteredGtinProof::requireCurrent,(selected,requested)->{
+            assertTrue(observations.stream().map(GtinSyncModels.RegisteredGtin::gtin).collect(java.util.stream.Collectors.toSet()).containsAll(requested));
+            gtins.saveCatalog(selected.getId(),selected.getMarketplace(),observations);
+        });
         var rows=new ArrayList<Row>();for(int i=0;i<count;i++){
             var preview=previews.get(i);var snapshot=products.get(new ProductKey(1,Marketplace.WILDBERRIES,preview.before().key().productId(),preview.before().key().variantId()));String identity=GtinProductIdentity.fingerprint(snapshot);
             rows.add(new Row(UUID.randomUUID().toString(),preview.before().key(),observations.get(i),preview.before().barcodes(),List.of(new Diff("identity",List.of(identity),List.of(identity),"",false)),null,Map.of(),"",queue.toString(),State.GTIN_PENDING,""));

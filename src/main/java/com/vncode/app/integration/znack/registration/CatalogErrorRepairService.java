@@ -137,9 +137,15 @@ public final class CatalogErrorRepairService {
                 var raw=p.session().catalog().rejectedCard(p.session().token(),p.card().gtin(),p.goodId());if(!revision(raw).equals(p.remoteRevision()))throw new IllegalStateException("CATALOG_REPAIR_REVIEW_CHANGED");
                 p.session().catalog().validateDocuments(p.session().token(),draft);
                 com.vncode.app.features.license.LicenseRuntime.require(com.vncode.app.features.license.LicenseModels.Permission.GTIN);
+                List<Attribute> repairSchema=List.of();
+                if(key.marketplace()==Marketplace.OZON)try(var read=p.session().catalog().registrationCountryReadScope()){
+                    p.session().catalog().validateCurrentRegistrationDraft(p.session().token(),draft);
+                    repairSchema=p.session().catalog().registrationAttributes(draft.categoryId(),p.session().token());
+                }
                 var payload=ZnackNationalCatalogService.buildPayload(p.card().gtin(),draft,p.snapshot().media().isEmpty()?"":p.snapshot().media().getFirst().uri().toString());
                 payload.addProperty("good_id",p.goodId()); // §3.2.2: updating an existing card requires its exact identity.
                 if(!CatalogRepairCheckpoint.prepare(shop,key,current.metadata().getOrDefault("sku",""),p.card().gtin(),p.goodId(),payload.toString(),draft,p.session().scope()))throw new IllegalStateException("CATALOG_REPAIR_CHECKPOINT_BUSY");
+                if(key.marketplace()==Marketplace.OZON)new OzonCardRegistrationRepository().rememberReview(key,RegistrationReviewedValues.productRevision(new com.vncode.app.integration.ozon.OzonShopBrand().apply(shop,current)),RegistrationReviewedValues.schemaRevision(repairSchema),payload.toString());
                 final int done=completed;final Status[] state={Status.READY_TO_SUBMIT};
                 dispatch.resume(shop,key,p.session(),s->{state[0]=s;listener.accept(new Progress(done,proposals.size(),p.card().gtin(),s,""));});
                 String nativeFeed=key.marketplace()==Marketplace.WILDBERRIES?new ZnackCardRegistrationRepository().find(shop.getId(),Long.parseLong(key.variantId())).feedId():new OzonCardRegistrationRepository().find(key).feedId();

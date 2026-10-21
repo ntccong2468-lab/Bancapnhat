@@ -28,12 +28,13 @@ public final class RegistrationDynamicPreflight {
         return read(shop,snapshots,entered,acknowledgedDocuments,Map.of());
     }
     public Review read(Shop shop,List<ProductSnapshot> snapshots,Map<ProductKey,Map<Long,RegistrationReviewedValues.Value>> entered,Map<ProductKey,String> acknowledgedDocuments,Map<ProductKey,Long> categories)throws Exception{
-        CatalogSession session=null;var preflights=new HashMap<String,ZnackNationalCatalogService.Preflight>();var schemas=new HashMap<Long,List<Attribute>>();var plans=new ArrayList<Plan>();var missing=new ArrayList<Missing>();var warnings=new ArrayList<DocumentWarning>();var blocked=new ArrayList<Blocked>();var documentsCache=new HashMap<String,ZnackRegistrationDocuments.Selection>();
+        CatalogSession session=null;ZnackNationalCatalogService.CountryReadScope countryRead=null;var preflights=new HashMap<String,ZnackNationalCatalogService.Preflight>();var schemas=new HashMap<Long,List<Attribute>>();var plans=new ArrayList<Plan>();var missing=new ArrayList<Missing>();var warnings=new ArrayList<DocumentWarning>();var blocked=new ArrayList<Blocked>();var documentsCache=new HashMap<String,ZnackRegistrationDocuments.Selection>();
         var settings=new ZnackRepository(new ZnackModels.ShopContext(shop.getId(),shop.getName())).getSettings();
+        try{
         for(var original:snapshots){
             var snapshot=shop.getMarketplace()==Marketplace.OZON?new com.vncode.app.integration.ozon.OzonShopBrand().apply(shop,original):original;
             if(Thread.currentThread().isInterrupted())throw new java.io.InterruptedIOException("ZNACK_PREFLIGHT_CANCELLED");ListingIdentity.require(shop,snapshot.key());
-            if(session==null)session=catalogs.open(shop);session.scope().assertCurrent(shop);
+            if(session==null){session=catalogs.open(shop);countryRead=session.catalog().registrationCountryReadScope();}session.scope().assertCurrent(shop);
             String tnved=ProductFieldNames.tnvedCode(snapshot.attributes().stream().filter(a->ProductFieldNames.matches("tnved",a.name())).flatMap(a->a.values().stream()).findFirst().orElse(""));
             var checked=preflights.get(tnved);if(checked==null){checked=session.catalog().preflight(tnved);preflights.put(tnved,checked);}
             var selectedDocuments=ZnackRegistrationDocuments.select(snapshot,settings,LocalDate.now());String documentKey=tnved+"/"+selectedDocuments.source()+"/"+RegistrationReviewedValues.permitRevision(selectedDocuments);var documents=documentsCache.get(documentKey);if(documents==null){documents=session.catalog().reviewDocuments(session.token(),selectedDocuments,tnved);documentsCache.put(documentKey,documents);}
@@ -58,6 +59,7 @@ public final class RegistrationDynamicPreflight {
             var plan=new Plan(snapshot,draft,schema,documents);plans.add(plan);missing.addAll(inspect(plan));
         }
         return new Review(plans,missing,warnings,blocked);
+        }finally{if(countryRead!=null)countryRead.close();}
     }
     public static List<Missing> inspect(Plan plan){
         var result=new ArrayList<Missing>();var draft=plan.draft();String wbSize=plan.snapshot().variants().stream().filter(v->v.id().equals(plan.snapshot().key().variantId())).map(ProductVariant::russianSize).findFirst().orElse("");

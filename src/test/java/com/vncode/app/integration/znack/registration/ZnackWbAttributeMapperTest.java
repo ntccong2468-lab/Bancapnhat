@@ -214,6 +214,22 @@ class ZnackWbAttributeMapperTest {
         assertEquals("КОСТЮМ СПОРТИВНЫЙ", result.attributes().get(12L));
     }
 
+    @Test
+    void productionCountryDoesNotFallBackToOriginLegalOrGenericCountry() {
+        var otherRoles=List.of(new WbCharacteristic(1,"Страна происхождения",List.of("RU")),
+                new WbCharacteristic(2,"Страна регистрации изготовителя",List.of("DE")),
+                new WbCharacteristic(3,"Страна",List.of("RU")));
+        var production=preset(2630,"Страна производства","RU","CN","DE");
+        var missing=map(sku("Brand","Сумка","ART-1"),otherRoles,List.of(production));
+        assertFalse(missing.complete());assertFalse(missing.attributes().containsKey(2630L));
+        var explicit=new java.util.ArrayList<>(otherRoles);explicit.add(new WbCharacteristic(4,"Страна производства",List.of("CN")));
+        var actual=map(sku("Brand","Сумка","ART-1"),explicit,List.of(production));
+        assertTrue(actual.complete(),actual.missingFields().toString());assertEquals("CN",actual.attributes().get(2630L));
+        var ambiguous=new java.util.ArrayList<>(explicit);ambiguous.add(new WbCharacteristic(5,"Страна изготовления",List.of("RU")));
+        var conflict=map(sku("Brand","Сумка","ART-1"),ambiguous,List.of(production));
+        assertFalse(conflict.complete());assertFalse(conflict.attributes().containsKey(2630L));
+    }
+
     private static Sku sku(String brand, String title, String article) {
         return new Sku(1, 2, 3, article, "Сумки", brand, title,
                 "", "ONE SIZE", List.of(), "", true, "", null, "", Status.NOT_CREATED, "", false);

@@ -30,6 +30,7 @@ public final class ProductBulkEditPane extends BorderPane {
     private final Button back=new Button(),preview=new Button(),apply=new Button(),reconcile=new Button(),lookup=new Button(),chooseFile=new Button(),useSuggestion=new Button();
     private final TextArea detail=new TextArea(),technical=new TextArea();
     private final TableView<EditItem> results=new TableView<>();
+    private final TableView<ProductSuggestionService.ProposalRow> proposalRows=new TableView<>();
     private final ListView<String> suggestions=new ListView<>();
     private final ComboBox<String> history=new ComboBox<>();
     private final VBox documents=new VBox(8),values=new VBox(8);
@@ -38,6 +39,7 @@ public final class ProductBulkEditPane extends BorderPane {
     private Shop shop;
     private List<ProductKey> keys=List.of();
     private Map<ProductKey,List<String>> perProductTnved=Map.of();
+    private Map<ProductKey,String> expectedRevisions=Map.of();
     private String field="brand",jobId;
     private Path file;
     private ProductDocument selectedDocument;
@@ -93,6 +95,8 @@ public final class ProductBulkEditPane extends BorderPane {
         column("products.article",i->i.key().cardId()+" / "+i.key().variantId(),140);
         column("edit.before",i->String.join("; ",i.before()),170);
         column("edit.after",this::after,170);
+        column("bulk.proposal.source",i->i.key().marketplace()+" · "+i.preview().sourceRevision(),180);
+        column("bulk.proposal.reason",i->i.issues().isEmpty()?tr("bulk.proposal.reason.approved"):i.issues().stream().map(v->v.code()+" · "+v.field()).collect(java.util.stream.Collectors.joining("; ")),180);
         column("znack.registration.status",i->tr("copy.state."+i.state().name()),150);
         results.getSelectionModel().selectedItemProperty().addListener((o,a,b)->showItem(b));
         detail.setEditable(false);detail.setWrapText(true);detail.setPrefRowCount(3);
@@ -125,7 +129,7 @@ public final class ProductBulkEditPane extends BorderPane {
     public void setOnSaved(Runnable callback){onSaved=callback;}
     public List<ProductKey> frozenKeys(){return keys;}
     public void setShop(Shop owner){
-        generation++;suggestionTicket++;suggestionDelay.stop();readbackDelay.stop();shop=owner;selectedDocument=null;keys=List.of();perProductTnved=Map.of();jobId=null;notifiedJob=null;
+        generation++;suggestionTicket++;suggestionDelay.stop();readbackDelay.stop();shop=owner;selectedDocument=null;keys=List.of();perProductTnved=Map.of();expectedRevisions=Map.of();jobId=null;notifiedJob=null;proposalRows.getItems().clear();
         busy=false;ready=false;previewRevision=-1;confirm.setSelected(false);results.getItems().clear();detail.clear();technical.clear();status.setText("");
         suggestions.getItems().clear();suggestionStatus.setText("");history.getItems().clear();
         if(owner!=null){long epoch=generation;reads.submitLocal(new ShopReadCoordinator.Key(owner.getId(),"product-edit-history",UUID.randomUUID().toString()),()->service.list(owner)).whenComplete((ids,error)->Platform.runLater(()->{if(!disposed&&epoch==generation&&error==null)history.getItems().setAll(ids);}));}
@@ -139,7 +143,7 @@ public final class ProductBulkEditPane extends BorderPane {
         lookup.setVisible(field.equals("tnved"));lookup.setManaged(lookup.isVisible());applyTranslations();status.setText(tr("edit.enter_value"));buttons();
         if(!field.equals("documents"))suggestionDelay.playFromStart();
     }
-    private void invalidate(){if(resetting)return;perProductTnved=Map.of();revision++;jobId=null;ready=false;previewRevision=-1;confirm.setSelected(false);readbackDelay.stop();status.setText(tr(compact?"bulk.choose_apply":"edit.preview_required"));buttons();}
+    private void invalidate(){if(resetting)return;perProductTnved=Map.of();expectedRevisions=Map.of();proposalRows.getItems().clear();revision++;jobId=null;ready=false;previewRevision=-1;confirm.setSelected(false);readbackDelay.stop();status.setText(tr(compact?"bulk.choose_apply":"edit.preview_required"));buttons();}
     private void useSelected(){
         String selected=suggestions.getSelectionModel().getSelectedItem();if(selected==null||busy)return;
         String text=value.getText();int separator=text.lastIndexOf('|');value.setText(separator<0?selected:text.substring(0,separator+1)+selected);value.requestFocus();
@@ -160,7 +164,7 @@ public final class ProductBulkEditPane extends BorderPane {
         }));
     }
     private ProductBulkEdit edit(){
-        if(!field.equals("documents"))return new ProductBulkEdit(field,Arrays.stream(value.getText().split("\\|",-1)).map(String::strip).toList(),null,field.equals("tnved")?perProductTnved:Map.of());
+        if(!field.equals("documents"))return new ProductBulkEdit(field,Arrays.stream(value.getText().split("\\|",-1)).map(String::strip).toList(),null,field.equals("tnved")?perProductTnved:Map.of(),expectedRevisions);
         DocumentDateInput.commit(from);if(!endless.isSelected())DocumentDateInput.commit(until);
         if(number.getText().isBlank()||type.getText().isBlank()||(!existingOzonDocument()&&(from.getValue()==null||(!endless.isSelected()&&until.getValue()==null))))throw new IllegalArgumentException("Document metadata missing");
         var metadata=new HashMap<String,String>(selectedDocument==null?Map.of():selectedDocument.metadata());metadata.put("isEndless",Boolean.toString(endless.isSelected()));metadata.put("certificate_type",type.getText().strip());metadata.put("certificate_country",country.getText().strip());metadata.put("accordance_type",accordance.getText().strip());metadata.put("name",name.getText().strip());metadata.put("product_type",productType.getText().strip());metadata.put("link_to_registry",registry.getText().strip());metadata.put("type",type.getText().strip());
@@ -271,7 +275,7 @@ public final class ProductBulkEditPane extends BorderPane {
         if(field.equals("tnved")){
             com.vncode.app.ui.tnved.ProductTnvedPicker.show(window,owner,selected,choice->{
                 var pane=new ProductBulkEditPane();pane.open(owner,field,selected);pane.compact();pane.backgroundHost=host;
-                pane.value.setText(choice.globalCode().isBlank()?choice.perProduct().values().iterator().next().getFirst():choice.globalCode());pane.perProductTnved=choice.perProduct();
+                pane.value.setText(choice.globalCode().isBlank()?choice.perProduct().values().iterator().next().getFirst():choice.globalCode());pane.perProductTnved=choice.perProduct();pane.expectedRevisions=choice.expectedRevisions();
                 pane.setOnSaved(saved);if(host==null)pane.showCompact(window,saved);pane.applyOnce();if(host!=null&&pane.busy)pane.detach();
             });return;
         }
@@ -317,8 +321,16 @@ public final class ProductBulkEditPane extends BorderPane {
             form.getChildren().setAll(existing,new FlowPane(12,8,declaration,certificate),line("copy.doc.number",number),new FlowPane(8,8,new Label(tr("copy.doc.from")),from),new FlowPane(8,8,new Label(tr("copy.doc.to")),until,endless));
             existing.setOnAction(e->{var d=existing.getValue();if(d==null)return;selectedDocument=d;number.setText(d.number());type.setText(d.type());from.setValue(d.validFrom());until.setValue(d.validUntil());endless.setSelected(Boolean.parseBoolean(d.metadata().getOrDefault("isEndless","false")));name.setText(d.metadata().getOrDefault("name",""));country.setText(d.metadata().getOrDefault("certificate_country",""));accordance.setText(d.metadata().getOrDefault("accordance_type",""));productType.setText(d.metadata().getOrDefault("product_type",""));registry.setText(d.metadata().getOrDefault("link_to_registry",""));file=d.file()==null||!"file".equalsIgnoreCase(d.file().getScheme())?null:java.nio.file.Path.of(d.file());certificate.setSelected(documentType(d.type()).equals("certificate"));declaration.setSelected(!certificate.isSelected());});
             if(shop.getMarketplace()==com.vncode.app.integration.marketplace.Marketplace.OZON)form.getChildren().add(new TitledPane(tr("edit.technical"),new VBox(6,line("copy.doc.name",name),line("copy.doc.certificate_country",country),line("copy.doc.accordance_type",accordance),line("copy.doc.product_type",productType),line("copy.doc.link_to_registry",registry),chooseFile)));
-            var captured=shop;long epoch=generation;reads.submitLocal(new ShopReadCoordinator.Key(shop.getId(),"bulk-documents",UUID.randomUUID().toString()),()->new ProductRepository().shopDocuments(captured)).whenComplete((docs,error)->Platform.runLater(()->{if(!disposed&&epoch==generation&&shop==captured&&error==null){existing.getItems().setAll(docs);if(!busy&&number.getText().isBlank())docs.stream().filter(d->captured.getMarketplace()==com.vncode.app.integration.marketplace.Marketplace.OZON&&!d.id().isBlank()||d.validFrom()!=null&&(d.validUntil()!=null||Boolean.parseBoolean(d.metadata().getOrDefault("isEndless","false")))).findFirst().ifPresent(d->existing.getSelectionModel().select(d));}}));
+            var captured=shop;long epoch=generation;reads.submitLocal(new ShopReadCoordinator.Key(shop.getId(),"bulk-documents",UUID.randomUUID().toString()),()->new ProductRepository().shopDocuments(captured)).whenComplete((docs,error)->Platform.runLater(()->{if(!disposed&&epoch==generation&&shop==captured&&error==null)existing.getItems().setAll(docs);}));
         }else form.getChildren().setAll(value);
+        if(Set.of("brand","gender","material").contains(field)){
+            proposalRows.setId("bulkProposalRows");proposalRows.setPrefHeight(180);proposalRows.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);proposalRows.getColumns().clear();
+            proposalColumn("jobs.product",r->r.key().cardId()+" / "+r.key().variantId());proposalColumn("bulk.proposal.field",r->tr("bulk.field."+r.field()));
+            proposalColumn("edit.before",ProductSuggestionService.ProposalRow::before);proposalColumn("edit.after",ProductSuggestionService.ProposalRow::proposed);
+            proposalColumn("bulk.proposal.source",r->tr("bulk.proposal.source."+(r.source().isBlank()?"unverified":r.source()))+(r.checkedAt()==null?"":" · "+r.checkedAt()));
+            proposalColumn("bulk.proposal.reason",r->tr("bulk.proposal.reason."+r.reason()));proposalColumn("znack.registration.status",r->tr(r.automatic()?"bulk.proposal.safe":"bulk.proposal.needs_data"));
+            var evidence=new TitledPane(tr("bulk.proposal.details"),proposalRows);evidence.setExpanded(false);form.getChildren().add(evidence);
+        }
         var scroll=new ScrollPane(form);scroll.setFitToWidth(true);setCenter(scroll);BorderPane.setMargin(scroll,new Insets(12,0,8,0));
         apply.setText(tr("common.apply"));apply.setOnAction(e->applyOnce());var progress=new ProgressIndicator();progress.setMaxSize(20,20);
         progress.visibleProperty().bind(backgroundRunning);progress.managedProperty().bind(progress.visibleProperty());
@@ -328,11 +340,16 @@ public final class ProductBulkEditPane extends BorderPane {
     private void loadDefaultProposal(Consumer<String> accept){
         var owner=shop;var selected=keys;String editedField=field;long epoch=generation,inputRevision=revision;
         status.setText(tr("bulk.proposal_loading"));
-        reads.submitLocal(new ShopReadCoordinator.Key(owner.getId(),"product-edit-default",UUID.randomUUID().toString()),()->suggestionsService.defaultValue(owner,selected,editedField)).whenComplete((proposal,error)->Platform.runLater(()->{
+        reads.submitLocal(new ShopReadCoordinator.Key(owner.getId(),"product-edit-default",UUID.randomUUID().toString()),()->suggestionsService.defaultProposal(owner,selected,editedField)).whenComplete((proposal,error)->Platform.runLater(()->{
             if(disposed||epoch!=generation||owner!=shop||inputRevision!=revision||busy||!value.getText().isBlank())return;
-            if(error==null&&proposal!=null&&!proposal.isBlank()){accept.accept(proposal);status.setText(tr("bulk.proposal_ready"));}
+            if(error==null&&proposal!=null&&!proposal.value().isBlank()){accept.accept(proposal.value());expectedRevisions=proposal.expectedRevisions();status.setText(tr("bulk.proposal_ready"));}
             else status.setText(tr("bulk.proposal_missing"));
+            if(error==null&&proposal!=null)proposalRows.getItems().setAll(proposal.rows());
         }));
+    }
+    private void proposalColumn(String key,Function<ProductSuggestionService.ProposalRow,String> value){
+        var column=new TableColumn<ProductSuggestionService.ProposalRow,String>(tr(key));column.setMinWidth(100);column.setPrefWidth(160);
+        column.setCellValueFactory(row->new ReadOnlyStringWrapper(value.apply(row.getValue())));proposalRows.getColumns().add(column);
     }
     private static String documentType(String value){return switch(Objects.toString(value,"").strip().toLowerCase(Locale.ROOT)){case "1","certificate","certificate_of_conformity"->"certificate";case "2","declaration"->"declaration";default->Objects.toString(value,"").strip().toLowerCase(Locale.ROOT);};}
     private void addMaterial(VBox rows,Label total,Label output){addMaterial(rows,total,output,"",0);}

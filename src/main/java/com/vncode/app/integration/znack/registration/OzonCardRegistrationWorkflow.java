@@ -33,11 +33,14 @@ public final class OzonCardRegistrationWorkflow {
     private final Map<String,Throwable> failures=new ConcurrentHashMap<>();
     private final OzonCardRegistrationRepository repository;private final CatalogFactory catalogs;
     private final SnapshotSource snapshots;private final Executor executor;private final MarketplaceCompletion completion;
+    private final java.util.function.Supplier<RegistrationExistingCards.LookupContext> existingCards;
     public OzonCardRegistrationWorkflow(){this(new OzonCardRegistrationRepository());}
     public OzonCardRegistrationWorkflow(OzonCardRegistrationRepository repository){
         this(repository,ZnackCardRegistrationWorkflow::productionCatalog,new OzonProductSnapshotReader()::read,WORKERS,OzonCardRegistrationWorkflow::candidatePresent);
     }
-    public OzonCardRegistrationWorkflow(OzonCardRegistrationRepository repository,CatalogFactory catalogs,SnapshotSource snapshots,Executor executor,MarketplaceCompletion completion){this.repository=Objects.requireNonNull(repository);this.catalogs=Objects.requireNonNull(catalogs);this.snapshots=Objects.requireNonNull(snapshots);this.executor=Objects.requireNonNull(executor);this.completion=Objects.requireNonNull(completion);}
+    public OzonCardRegistrationWorkflow(OzonCardRegistrationRepository repository,CatalogFactory catalogs,SnapshotSource snapshots,Executor executor,MarketplaceCompletion completion){this(repository,catalogs,snapshots,executor,completion,RegistrationExistingCards::currentOperation);}
+    public OzonCardRegistrationWorkflow(OzonCardRegistrationRepository repository,CatalogFactory catalogs,SnapshotSource snapshots,Executor executor,MarketplaceCompletion completion,java.util.function.Supplier<RegistrationExistingCards.LookupContext> existingCards){this.repository=Objects.requireNonNull(repository);this.catalogs=Objects.requireNonNull(catalogs);this.snapshots=Objects.requireNonNull(snapshots);this.executor=Objects.requireNonNull(executor);this.completion=Objects.requireNonNull(completion);this.existingCards=Objects.requireNonNull(existingCards);}
+    RegistrationExistingCards.LookupContext lookupOperation(){return existingCards.get();}
     public record PreflightMetadata(String tnved,String categoryTnved,Gs1Status gs1,List<Category> categories){public PreflightMetadata{categories=List.copyOf(categories);}}
     public static final class Preparation {
         private final ProductSnapshot snapshot;private final String tnved;private final PreflightMetadata preflight;
@@ -53,12 +56,15 @@ public final class OzonCardRegistrationWorkflow {
         return prepare(selected,key,suppliedTnved,null);
     }
     private Preparation prepare(Shop selected,ProductKey key,String suppliedTnved,CatalogSession sharedSession)throws Exception {
+        return prepare(selected,key,suppliedTnved,sharedSession,null);
+    }
+    private Preparation prepare(Shop selected,ProductKey key,String suppliedTnved,CatalogSession sharedSession,java.util.function.Consumer<CatalogSession> beforeCountryRead)throws Exception {
         Shop shop=capture(selected);
         require(shop,key);LicenseRuntime.require(Permission.SELLER_API);
         var snapshot=snapshots.read(shop,key);if(!snapshot.key().equals(key))throw new IllegalStateException("product_mismatch");
-        return reviewSnapshot(shop,snapshot,suppliedTnved,sharedSession,false);
+        return reviewSnapshot(shop,snapshot,suppliedTnved,sharedSession,false,beforeCountryRead);
     }
-    private Preparation reviewSnapshot(Shop selected,ProductSnapshot snapshot,String suppliedTnved,CatalogSession sharedSession,boolean requireFreshProof)throws Exception {
+    private Preparation reviewSnapshot(Shop selected,ProductSnapshot snapshot,String suppliedTnved,CatalogSession sharedSession,boolean requireFreshProof,java.util.function.Consumer<CatalogSession> beforeCountryRead)throws Exception {
         Shop shop=capture(selected);require(shop,snapshot.key());LicenseRuntime.require(Permission.SELLER_API);
         if(requireFreshProof&&(!ListingIdentity.fingerprint(shop).equals(snapshot.metadata().get("owner"))))throw new SecurityException("SOURCE_PRODUCT_NOT_OBSERVED");
         snapshot=new com.vncode.app.integration.ozon.OzonShopBrand().apply(shop,snapshot);
@@ -68,7 +74,8 @@ public final class OzonCardRegistrationWorkflow {
         if(tnved.isBlank())return new Preparation(snapshot,"",null,0,List.of(),docs,Map.of(),null,owner);
         if(!tnved.matches("[0-9]{4,10}"))throw new IllegalArgumentException("invalid_tnved");
         var scope=ZnackRegistrationScope.fromSettings(settings);scope.assertCurrent(shop);var session=sharedSession==null?catalogs.open(shop):sharedSession;checkSession(shop,scope,session);
-        var checked=session.catalog().preflight(tnved);checkSession(shop,scope,session);
+        if(beforeCountryRead!=null)beforeCountryRead.accept(session);
+        var checked=requireFreshProof?session.catalog().preflightExisting(tnved,session.token()):session.catalog().preflight(tnved);checkSession(shop,scope,session);
         docs=session.catalog().reviewDocuments(session.token(),docs,tnved);
         docs=RegistrationReviewedValues.reviewedDocuments(shop,snapshot,docs);
         var metadata=new PreflightMetadata(checked.tnved(),checked.categoryTnved(),checked.gs1(),checked.categories());
@@ -95,6 +102,8 @@ public final class OzonCardRegistrationWorkflow {
     public BatchReview prepareBatch(Shop shop,java.util.List<ProductKey> keys,boolean newCard,java.util.function.IntConsumer progress)throws Exception {
         if(keys==null||keys.isEmpty()||keys.size()>1000)throw new IllegalArgumentException("Registration batch limit is 1000");
         require(shop,keys.getFirst());var items=new java.util.ArrayList<BatchItem>();var checkpoints=repository.findMany(keys);CatalogSession shared=null;long retained=0;long quota=Long.MAX_VALUE;
+        var countryRead=new ZnackNationalCatalogService.CountryReadScope[1];
+        try{
         for(var key:keys.stream().distinct().toList()) {
             if(Thread.currentThread().isInterrupted())throw new InterruptedException("Registration preview cancelled");
             require(shop,key);
@@ -103,7 +112,7 @@ public final class OzonCardRegistrationWorkflow {
                     :current==null||java.util.Set.of(Status.NOT_CREATED,Status.PREFLIGHT_ERROR,Status.PRE_SUBMIT_ERROR).contains(current.status());
             if(!eligible){items.add(new BatchItem(key,null,null,"znack.registration.batch_not_eligible"));progress.accept(items.size());continue;}
             try {
-                var p=prepare(shop,key,null,shared);if(p.session!=null)shared=p.session;
+                var p=prepare(shop,key,null,shared,session->{if(countryRead[0]==null)countryRead[0]=session.catalog().registrationCountryReadScope();});if(p.session!=null)shared=p.session;
                 retained+=(long)com.vncode.app.features.products.ProductJson.GSON.toJson(p.snapshot()).length()*2;
                 if(retained>64L*1024*1024)throw new IllegalArgumentException("Registration preview exceeds 64 MiB; select a smaller batch");
                 var draft=suggestedDraft(p);String issue=draft.isPresent()?(p.documents().automatic()==null?"znack.registration.batch_document_review":""):"znack.registration.batch_needs_review";
@@ -117,6 +126,7 @@ public final class OzonCardRegistrationWorkflow {
             progress.accept(items.size());
         }
         return new BatchReview(items,newCard);
+        }finally{if(countryRead[0]!=null)countryRead[0].close();}
     }
     public static java.util.Optional<Draft> suggestedDraft(Preparation p) {
         if(p.preflight()==null||p.categoryId()==0||p.snapshot().title().isBlank()||p.snapshot().brand().isBlank()||p.documents().candidates().size()!=1)return java.util.Optional.empty();
@@ -221,11 +231,12 @@ public final class OzonCardRegistrationWorkflow {
     public CompletableFuture<Integer> submitBatchReviewed(Shop shop,List<BatchItem> approved,boolean newCard,boolean confirmed,BiConsumer<Status,String> callback,java.util.function.BooleanSupplier cancelled) {
         if(!confirmed||approved==null||approved.isEmpty()||approved.size()>1000)throw new IllegalArgumentException("Reviewed batch confirmation required");
         var chain=CompletableFuture.completedFuture(0);
+        var lookup=lookupOperation();
         for(var item:List.copyOf(approved)) {
             if(!item.ready())throw new IllegalArgumentException("Batch item needs review");
             chain=chain.thenComposeAsync(count->{
                 if(cancelled.getAsBoolean())return CompletableFuture.completedFuture(count);
-                boolean accepted=registerReviewed(shop,item.preparation(),item.draft(),true,newCard,callback);
+                boolean accepted=register(shop,item.key(),item.preparation(),item.draft(),true,newCard,callback,false,lookup);
                 if(!accepted){notify(callback,Status.ERROR,"registration_already_running");return CompletableFuture.completedFuture(count);}
                 var completion=COMPLETIONS.get(namespace(shop));
                 return (completion==null?CompletableFuture.<Void>completedFuture(null):completion).thenApply(done->count+1);
@@ -237,9 +248,11 @@ public final class OzonCardRegistrationWorkflow {
         require(shop,preparation.snapshot().key());
         if(!preparation.owner.equals(ListingIdentity.fingerprint(shop))||preparation.session==null||preparation.preflight()==null||preparation.preflight().categories().stream().noneMatch(c->c.id()==categoryId))throw new IllegalArgumentException("foreign_category");
         checkSession(shop,preparation.session.scope(),preparation.session);LicenseRuntime.require(Permission.SELLER_API);
+        try(var countryRead=preparation.session.catalog().registrationCountryReadScope()){
         var required=preparation.session.catalog().registrationAttributes(categoryId,preparation.session.token());
         checkSession(shop,preparation.session.scope(),preparation.session);
         return new Preparation(preparation.snapshot(),preparation.tnved(),preparation.preflight(),categoryId,required,preparation.documents(),suggestions(preparation.snapshot(),required),preparation.session,preparation.owner);
+        }
     }
     public boolean register(Shop shop,ProductKey key,Draft draft,boolean confirmed,boolean newCard,BiConsumer<Status,String> callback) {
         return register(shop,key,null,draft,confirmed,newCard,callback,false);
@@ -253,28 +266,35 @@ public final class OzonCardRegistrationWorkflow {
     }
     /** The durable batch advances only after the Catalog POST returned its persisted feed ID. */
     public boolean registerReviewedForBatch(Shop shop,Preparation preparation,Draft draft,BiConsumer<Status,String> callback) {
+        return registerReviewedForBatch(shop,preparation,draft,callback,null);
+    }
+    public boolean registerReviewedForBatch(Shop shop,Preparation preparation,Draft draft,BiConsumer<Status,String> callback,RegistrationExistingCards.LookupContext lookup) {
         if(preparation==null||draft==null)return false;
         require(shop,preparation.snapshot().key());
         if(preparation.session==null||preparation.categoryId()!=draft.categoryId()||!preparation.owner.equals(ListingIdentity.fingerprint(shop)))throw new IllegalArgumentException("registration_review_changed");
         checkSession(shop,preparation.session.scope(),preparation.session);
-        return register(shop,preparation.snapshot().key(),preparation,draft,true,false,callback,true);
+        return register(shop,preparation.snapshot().key(),preparation,draft,true,false,callback,true,lookup);
     }
     private boolean register(Shop selected,ProductKey key,Preparation preparation,Draft draft,boolean confirmed,boolean newCard,BiConsumer<Status,String> callback,boolean submitOnly) {
+        return register(selected,key,preparation,draft,confirmed,newCard,callback,submitOnly,null);
+    }
+    private boolean register(Shop selected,ProductKey key,Preparation preparation,Draft draft,boolean confirmed,boolean newCard,BiConsumer<Status,String> callback,boolean submitOnly,RegistrationExistingCards.LookupContext lookup) {
         Shop shop=capture(selected);
         if(!confirmed||draft==null)return false;require(shop,key);LicenseRuntime.require(Permission.GTIN);
         return schedule(shop,()->{
-            LicenseRuntime.require(Permission.GTIN);var snapshot=snapshots.read(shop,key);String sku=sku(snapshot);
+            LicenseRuntime.require(Permission.GTIN);var snapshot=new com.vncode.app.integration.ozon.OzonShopBrand().apply(shop,snapshots.read(shop,key));String sku=sku(snapshot);
             if(preparation!=null&&(!preparation.owner.equals(ListingIdentity.fingerprint(shop))||!preparation.snapshot().revision().equals(snapshot.revision())))throw new IllegalArgumentException("registration_review_changed");
             var scope=ZnackRegistrationScope.fromSettings(settings(shop));var session=preparation==null?catalogs.open(shop):preparation.session;checkSession(shop,scope,session);
             if(preparation!=null&&!preparation.session.scope().equals(scope))throw new ZnackRegistrationScope.ScopeChangedException();
             var preflight=session.catalog().preflight(draft.tnved());
             if(preflight.categories().stream().noneMatch(c->c.id()==draft.categoryId())||!preflight.categoryTnved().equals(draft.feedTnved()))throw new IllegalArgumentException("foreign_category");
             var documents=ZnackRegistrationDocuments.select(snapshot,settings(shop),LocalDate.now());
-            var submissionSchema=session.catalog().requiredAttributes(draft.categoryId(),session.token());
-            if(submissionSchema.stream().anyMatch(attribute->attribute.id()==2630L&&attribute.presetOnly()&&attribute.presets().isEmpty()))submissionSchema=session.catalog().registrationAttributes(draft.categoryId(),session.token());
+            try(var countryRead=session.catalog().registrationCountryReadScope()){
+            var submissionSchema=session.catalog().registrationAttributes(draft.categoryId(),session.token());
             Draft countryComplete=RegistrationVerifiedDefaults.applyProductionCountry(draft.withProductCategory(snapshot.metadata().get("source.category.name")),submissionSchema,RegistrationVerifiedDefaults.productionCountry(snapshot,submissionSchema,session.catalog()::registrationCountryCode));
             Draft reviewed=validateDraft(countryComplete,submissionSchema,documents);
             session.catalog().validateDocuments(session.token(),reviewed);
+            session.catalog().validateCurrentRegistrationDraft(session.token(),reviewed);
             checkSession(shop,scope,session);LicenseRuntime.require(Permission.GTIN);
             var previous=repository.find(key);
             if(newCard&&previous!=null&&previous.status()==Status.ERROR){
@@ -285,15 +305,24 @@ public final class OzonCardRegistrationWorkflow {
                 // Fresh source/schema/documents were validated above. Never allocate again or reuse the invalid payload.
                 repository.guard(shop,key,scope);var rebuilt=ZnackNationalCatalogService.buildPayload(previous.gtin(),reviewed,"");
                 if(!repository.rebuildKnownUnsent(shop,key,previous,scope,sku,rebuilt.toString()))throw new IllegalStateException("registration_changed");
+                rememberReview(key,snapshot,submissionSchema,reviewed);
                 RegistrationSigningConsent.set(shop,key,previous.gtin(),reviewed.autoSign());RegistrationMarketplaceConsent.set(shop,key,previous.gtin(),true);
-                submitPrepared(shop,key,session,callback);if(submitOnly)verifySubmittedCard(shop,key,session,callback);else poll(shop,key,session,reviewed.autoSign(),callback);return;
+                submitPrepared(shop,key,session,callback,true);if(submitOnly)verifySubmittedCard(shop,key,session,callback);else poll(shop,key,session,reviewed.autoSign(),callback);return;
             }
             boolean groupChange=previous!=null&&TnvedGroupChange.replaceable(previous.status())&&TnvedGroupChange.changed(TnvedGroupChange.payloadCode(previous.payload()),reviewed.tnved());
+            if(groupChange&&!newCard){RegistrationSigningConsent.set(shop,key,previous.gtin(),false);throw new IllegalArgumentException("CATALOG_REGISTERED_TNVED_MISMATCH");}
             if(previous!=null&&!newCard&&!groupChange&&!previous.feedId().isBlank()&&Set.of(Status.FEED_SUBMITTED,Status.PROCESSING,Status.READY_TO_SIGN).contains(previous.status())) {
-                repository.guard(shop,key,scope);RegistrationSigningConsent.set(shop,key,previous.gtin(),reviewed.autoSign());poll(shop,key,session,reviewed.autoSign(),callback);return;
+                repository.guard(shop,key,scope);if(!reviewed.autoSign())RegistrationSigningConsent.set(shop,key,previous.gtin(),false);poll(shop,key,session,reviewed.autoSign()&&RegistrationSigningConsent.allowed(shop,key,previous.gtin()),callback);return;
             }
             String active=snapshot.variants().stream().filter(ProductVariant::gtinVerified).map(ProductVariant::gtin).filter(g->g!=null&&!g.isBlank()).findFirst().orElse("");
+            if(!newCard){
+                var observed=(lookup==null?lookupOperation():lookup).lookup(shop,RegistrationExistingCards.Variant.ozon(snapshot,reviewed),session);
+                if(observed.isPresent()){
+                    var card=observed.orElseThrow();if(repository.linkObserved(shop,key,sku,active,scope,reviewed,card)){RegistrationSigningConsent.set(shop,key,card.gtin(),false);notify(callback,repository.find(key).status(),"CATALOG_EXISTING_CARD_LINKED");}return;
+                }
+            }
             if(!repository.claim(shop,key,sku,active,scope,newCard,reviewed.tnved()))return;
+            rememberReview(key,snapshot,submissionSchema,reviewed);
             notify(callback,Status.CHECKING,"");
             synchronized(CatalogAllocationLock.MONITOR){
                 repository.guard(shop,key,scope);LicenseRuntime.require(Permission.GTIN);
@@ -306,7 +335,8 @@ public final class OzonCardRegistrationWorkflow {
                 // Optional photos never substitute a marketplace thumbnail for a verified full-size image.
                 var payload=ZnackNationalCatalogService.buildPayload(gtin,reviewed,"");repository.generated(key,gtin,payload.toString());RegistrationSigningConsent.set(shop,key,gtin,reviewed.autoSign());RegistrationMarketplaceConsent.set(shop,key,gtin,true);notify(callback,Status.GTIN_GENERATED,"");
             }
-            submitPrepared(shop,key,session,callback);if(submitOnly)verifySubmittedCard(shop,key,session,callback);else poll(shop,key,session,reviewed.autoSign(),callback);
+            submitPrepared(shop,key,session,callback,true);if(submitOnly)verifySubmittedCard(shop,key,session,callback);else poll(shop,key,session,reviewed.autoSign(),callback);
+            }
         },key,callback);
     }
     public boolean resume(Shop selected,ProductKey key,BiConsumer<Status,String> callback) {return resume(selected,key,null,callback);}
@@ -319,8 +349,8 @@ public final class OzonCardRegistrationWorkflow {
     private boolean resume(Shop selected,ProductKey key,Boolean automaticSigning,BiConsumer<Status,String> callback,boolean submitOnly) {
         Shop shop=capture(selected);
         require(shop,key);var row=repository.find(key);if(row==null||row.status()==Status.PUBLISHED||row.status()==Status.GTIN_REVIEW_REQUIRED||row.status()==Status.FEED_REVIEW_REQUIRED||row.status()==Status.ALLOCATING_GTIN||row.status()==Status.FEED_SUBMITTING)return false;
-        if(row.feedId().isBlank()&&row.status()!=Status.READY_TO_SUBMIT)return false;
-        if(row.feedId().isBlank())LicenseRuntime.require(Permission.GTIN);
+        if(row.feedId().isBlank()&&row.goodId()==null&&row.status()!=Status.READY_TO_SUBMIT)return false;
+        if(row.feedId().isBlank()&&row.goodId()==null)LicenseRuntime.require(Permission.GTIN);
         return schedule(shop,()->{
             var scope=scope(row);repository.guard(shop,key,scope);var session=catalogs.open(shop);checkSession(shop,scope,session);
             if(row.status()==Status.ERROR&&!row.feedId().isBlank()&&!Set.of("SENDING","RECONCILE_REQUIRED").contains(row.signatureState())){
@@ -332,14 +362,41 @@ public final class OzonCardRegistrationWorkflow {
                     if(rejected.goodId()!=null)repository.progress(key,Status.ERROR,rejected.goodId(),row.error());
                     if(repository.retryRejected(shop,key,row,scope,packing))submitPrepared(shop,key,session,callback);
                 }
-            }else if(row.feedId().isBlank())submitPrepared(shop,key,session,callback);
-            if(automaticSigning!=null)RegistrationSigningConsent.set(shop,key,row.gtin(),automaticSigning);
+            }else if(row.feedId().isBlank()&&row.status()==Status.READY_TO_SUBMIT)submitPrepared(shop,key,session,callback);
+            if(Boolean.FALSE.equals(automaticSigning))RegistrationSigningConsent.set(shop,key,row.gtin(),false);
             if(submitOnly)verifySubmittedCard(shop,key,session,callback);else poll(shop,key,session,RegistrationSigningConsent.allowed(shop,key,row.gtin()),callback);
         },key,callback);
     }
     public boolean signApproved(Shop selected,List<ProductKey> keys,boolean confirmed,BiConsumer<Status,String> callback) {
-        return confirmed&&signSelected(selected,keys,true,callback);
+        if(confirmed)notify(callback,Status.READY_TO_SIGN,"SIGNING_REVIEW_REQUIRED");return false;
     }
+    /** Fetch immutable documents before seller approval. No consent, CMS or external write occurs here. */
+    public RegistrationSigningReview prepareApprovedSigning(Shop selected,List<ProductKey> keys)throws Exception {
+        Shop shop=capture(selected);if(keys==null||keys.isEmpty()||keys.size()>10_000)throw new IllegalArgumentException("invalid_selection");LicenseRuntime.require(Permission.GTIN);
+        var scope=ZnackRegistrationScope.fromSettings(settings(shop));var session=catalogs.open(shop);checkSession(shop,scope,session);var cards=new ArrayList<RegistrationSigningReview.Card>();
+        for(var key:List.copyOf(new LinkedHashSet<>(keys))){require(shop,key);var row=repository.find(key);if(row==null||row.status()==Status.PUBLISHED||row.feedId().isBlank()&&row.goodId()==null)continue;repository.guard(shop,key,scope);poll(shop,key,session,false,null);row=repository.find(key);if(row.status()!=Status.READY_TO_SIGN||Set.of("SENDING","RECONCILE_REQUIRED").contains(row.signatureState()))continue;
+            var document=session.catalog().reviewSigning(session.token(),row.gtin());if(row.goodId()==null||row.goodId()!=document.goodId())throw new IllegalStateException("CATALOG_IDENTITY_CHANGED");cards.add(new RegistrationSigningReview.Card(key.cardId(),key.variantId(),signingRevision(row),row.gtin(),row.goodId(),"READY_TO_SIGN",document));
+        }
+        return new RegistrationSigningReview(ListingIdentity.fingerprint(shop),scope,scope.inn()+" / "+scope.fingerprint(),cards);
+    }
+    /** Consume precisely the documents displayed to the seller, and recheck them before CMS/POST. */
+    public boolean signApprovedReviewed(Shop selected,RegistrationSigningReview review,BiConsumer<Status,String> callback){
+        Shop shop=capture(selected);if(review==null||review.cards().isEmpty()||review.cards().size()>10_000)return false;
+        if(!review.owner().equals(ListingIdentity.fingerprint(shop)))throw new ZnackRegistrationScope.ScopeChangedException();review.scope().assertCurrent(shop);LicenseRuntime.require(Permission.GTIN);
+        return schedule(shop,()->{var session=catalogs.open(shop);checkSession(shop,review.scope(),session);var group=new ArrayList<SigningMember>(10);
+            for(var card:review.cards()){
+                var key=new ProductKey(shop.getId(),Marketplace.OZON,card.productId(),card.variantId());require(shop,key);repository.guard(shop,key,review.scope());var row=repository.find(key);
+                if(row==null||!row.gtin().equals(card.gtin())||!Objects.equals(row.goodId(),card.goodId())||!signingRevision(row).equals(card.revision()))throw new IllegalStateException("SIGNING_DOCUMENT_CHANGED");
+                var current=readProgress(session,row);if(current.signed()){publish(shop,key,session,current.goodId(),callback);continue;}
+                if(current.failed()||!current.readyToSign()||!Objects.equals(current.goodId(),card.goodId()))throw new IllegalStateException("CATALOG_SIGNING_NOT_READY");
+                var fresh=session.catalog().reviewSigning(session.token(),card.gtin());if(fresh.goodId()!=card.document().goodId()||!fresh.sha256().equals(card.document().sha256()))throw new IllegalStateException("SIGNING_DOCUMENT_CHANGED");
+                repository.prepareSignature(key,card.document());RegistrationSigningConsent.set(shop,key,row.gtin(),true,card.document());group.add(new SigningMember(key,row.gtin(),row.feedId(),card.document()));
+                if(group.size()==10){if(!sendSigningGroup(shop,session,group,callback))return;group.clear();}
+            }
+            if(!group.isEmpty())sendSigningGroup(shop,session,group,callback);
+        },null,callback);
+    }
+    private static String signingRevision(OzonCardRegistrationRepository.Row row){return ListingIdentity.hash(row.key()+"\n"+row.gtin()+"\n"+row.goodId()+"\n"+row.payload()+"\n"+row.owner()+"\n"+row.scopeJson());}
     /** Background aggregation can use only the exact per-card consent already saved by the seller. */
     public boolean signConsented(Shop selected,List<ProductKey> keys,BiConsumer<Status,String> callback) {
         return signSelected(selected,keys,false,callback);
@@ -352,15 +409,17 @@ public final class OzonCardRegistrationWorkflow {
             var scope=ZnackRegistrationScope.fromSettings(settings(shop));var session=catalogs.open(shop);checkSession(shop,scope,session);
             var group=new ArrayList<SigningMember>(10);
             for(var key:frozenKeys){
-                if(Thread.currentThread().isInterrupted())return;var row=repository.find(key);if(row==null||row.feedId().isBlank()||row.status()==Status.PUBLISHED)continue;
+                if(Thread.currentThread().isInterrupted())return;var row=repository.find(key);if(row==null||row.feedId().isBlank()&&row.goodId()==null||row.status()==Status.PUBLISHED)continue;
+                if(new OzonRegistrationBatchRepository().blocksSigning(shop,key))continue;
                 try{
                     repository.guard(shop,key,scope);LicenseRuntime.require(Permission.GTIN);
-                    if(manual)RegistrationSigningConsent.set(shop,key,row.gtin(),true);
                     if(!RegistrationSigningConsent.allowed(shop,key,row.gtin()))continue;
                     poll(shop,key,session,false,callback);row=repository.find(key);
                     if(row.status()!=Status.READY_TO_SIGN||Set.of("SENDING","RECONCILE_REQUIRED").contains(row.signatureState()))continue;
                     var document=session.catalog().reviewSigning(session.token(),row.gtin());
                     if(row.goodId()==null||row.goodId()!=document.goodId())throw new IllegalStateException("CATALOG_IDENTITY_CHANGED");
+                    session.catalog().validateApprovedSigningCard(session.token(),row.gtin(),document.goodId(),JsonParser.parseString(row.payload()).getAsJsonObject());
+                    if(!RegistrationSigningConsent.bindVerifiedDocument(shop,key,row.gtin(),document))throw new RegistrationValidationException("SIGNING_REVIEW_REQUIRED");
                     repository.guard(shop,key,scope);repository.prepareSignature(key,document);
                     group.add(new SigningMember(key,row.gtin(),row.feedId(),document));
                     if(group.size()==10){if(!sendSigningGroup(shop,session,group,callback))return;group.clear();}
@@ -385,7 +444,7 @@ public final class OzonCardRegistrationWorkflow {
                 for(var member:remaining){
                     repository.guard(shop,member.key(),session.scope());LicenseRuntime.require(Permission.GTIN);
                     var row=repository.find(member.key());
-                    if(row==null||row.status()!=Status.READY_TO_SIGN||!sameSigningIdentity(row,member)||!RegistrationSigningConsent.allowed(shop,member.key(),member.gtin()))continue;
+                    if(row==null||row.status()!=Status.READY_TO_SIGN||!sameSigningIdentity(row,member)||!RegistrationSigningConsent.allowed(shop,member.key(),member.gtin(),member.document()))continue;
                     if(repository.claimSignature(member.key(),member.document().sha256())){claimed.add(member);notify(callback,Status.SIGNING,"");}
                 }
             }catch(Exception stopped){RegistrationCatalogCooldown.record(shop,stopped);for(var member:claimed)repository.releaseSignature(member.key(),member.document().sha256());throw stopped;}
@@ -398,8 +457,8 @@ public final class OzonCardRegistrationWorkflow {
                             repository.guard(shop,member.key(),session.scope());LicenseRuntime.require(Permission.GTIN);
                             var row=repository.find(member.key());
                             if(row==null||row.status()!=Status.SIGNING||!"SENDING".equals(row.signatureState())||!sameSigningIdentity(row,member))throw new IllegalStateException("SIGNING_DOCUMENT_CHANGED");
-                            if(!RegistrationSigningConsent.allowed(shop,member.key(),member.gtin()))throw new RegistrationValidationException("CATALOG_SIGNING_CONSENT_REQUIRED");
-                            var progress=session.catalog().submissionStatus(session.token(),member.feed(),member.gtin());
+                            if(!RegistrationSigningConsent.allowed(shop,member.key(),member.gtin(),member.document()))throw new RegistrationValidationException("CATALOG_SIGNING_CONSENT_REQUIRED");
+                            var progress=readProgress(session,row);
                             if(progress.signed()){publish(shop,member.key(),session,progress.goodId(),callback);throw new SigningMemberUnavailable(member,null);}
                             if(progress.failed()||!progress.readyToSign()||progress.goodId()==null||progress.goodId()!=member.document().goodId())throw new IllegalStateException("CATALOG_SIGNING_NOT_READY");
                             var fresh=session.catalog().reviewSigning(session.token(),member.gtin());
@@ -414,7 +473,7 @@ public final class OzonCardRegistrationWorkflow {
                         repository.guard(shop,member.key(),session.scope());LicenseRuntime.require(Permission.GTIN);
                         var row=repository.find(member.key());
                         if(row==null||row.status()!=Status.SIGNING||!"SENDING".equals(row.signatureState())||!sameSigningIdentity(row,member))throw new IllegalStateException("SIGNING_DOCUMENT_CHANGED");
-                        if(!RegistrationSigningConsent.allowed(shop,member.key(),member.gtin()))throw new RegistrationValidationException("CATALOG_SIGNING_CONSENT_REQUIRED");
+                        if(!RegistrationSigningConsent.allowed(shop,member.key(),member.gtin(),member.document()))throw new RegistrationValidationException("CATALOG_SIGNING_CONSENT_REQUIRED");
                     }
                     dispatched.set(true);
                 });
@@ -471,9 +530,9 @@ public final class OzonCardRegistrationWorkflow {
     private boolean refreshStatus(Shop selected,ProductKey key,boolean automaticSigning)throws Exception {
         Shop shop=capture(selected);require(shop,key);String operation=namespace(shop);if(!RUNNING.add(operation))return false;
         try {
-        var row=repository.find(key);if(row==null||row.feedId().isBlank()||!(Set.of(Status.FEED_SUBMITTED,Status.PROCESSING,Status.READY_TO_SIGN,Status.SIGNING).contains(row.status())||row.status()==Status.ERROR&&"CATALOG_CARD_NOT_CREATED_AFTER_WAIT".equals(row.error())))return false;
+        var row=repository.find(key);if(row==null||row.feedId().isBlank()&&row.goodId()==null||!(Set.of(Status.FEED_SUBMITTED,Status.PROCESSING,Status.READY_TO_SIGN,Status.SIGNING).contains(row.status())||row.status()==Status.ERROR&&"CATALOG_CARD_NOT_CREATED_AFTER_WAIT".equals(row.error())))return false;
         var expected=scope(row);repository.guard(shop,key,expected);var session=catalogs.open(shop);checkSession(shop,expected,session);
-        boolean auto=automaticSigning&&RegistrationSigningConsent.allowed(shop,key,row.gtin());
+        boolean auto=automaticSigning&&!new OzonRegistrationBatchRepository().blocksSigning(shop,key)&&RegistrationSigningConsent.allowed(shop,key,row.gtin());
         if(auto)try{LicenseRuntime.require(Permission.GTIN);}catch(com.vncode.app.features.license.LicenseGate.LicenseDeniedException paused){auto=false;}
         poll(shop,key,session,auto,null);return repository.find(key).status()==Status.PUBLISHED;
         }catch(Exception error){if(CatalogFeedback.notFound(error)){fail(key,null,error);return false;}throw error;}
@@ -490,7 +549,7 @@ public final class OzonCardRegistrationWorkflow {
         if(!RUNNING.add(operation))return false;
         failures.remove(operation);
         try {
-            var row=repository.find(key);if(row==null||row.feedId().isBlank())return true;
+            var row=repository.find(key);if(row==null||row.feedId().isBlank()&&row.goodId()==null)return true;
             var expected=scope(row);repository.guard(shop,key,expected);
             var session=catalogs.open(shop);checkSession(shop,expected,session);
             verifySubmittedCard(shop,key,session,null);return true;
@@ -498,7 +557,7 @@ public final class OzonCardRegistrationWorkflow {
         }finally{RUNNING.remove(operation);}
     }
     static boolean verifiedSubmission(OzonCardRegistrationRepository.Row row){
-        if(row==null||row.feedId().isBlank()||row.goodId()==null||row.goodId()<=0)return false;
+        if(row==null||row.goodId()==null||row.goodId()<=0||!com.vncode.app.features.gtinsync.RegisteredGtinValidator.isValid(row.gtin()))return false;
         if(Set.of("CATALOG_REQUEST_ACCEPTED_CARD_PENDING","CATALOG_READBACK_RETRY_PENDING").contains(Objects.toString(row.error(),"")))return false;
         return row.status()==Status.PUBLISHED||row.status()==Status.READY_TO_SIGN
                 ||Set.of(Status.PROCESSING,Status.SIGNING).contains(row.status())
@@ -506,10 +565,10 @@ public final class OzonCardRegistrationWorkflow {
     }
     private void verifySubmittedCard(Shop shop,ProductKey key,CatalogSession session,BiConsumer<Status,String> callback)throws Exception {
         repository.guard(shop,key,session.scope());var row=repository.find(key);
-        if(row==null||row.feedId().isBlank())return;
+        if(row==null||row.feedId().isBlank()&&row.goodId()==null)return;
         ZnackNationalCatalogService.FeedProgress progress;
         try {
-            progress=session.catalog().submissionStatus(session.token(),row.feedId(),row.gtin());
+            progress=readProgress(session,row);
             repository.guard(shop,key,session.scope());
         }catch(Exception failure){
             if(CatalogFeedback.retryableRead(failure)||CatalogFeedback.notFound(failure)){
@@ -536,8 +595,12 @@ public final class OzonCardRegistrationWorkflow {
         repository.progress(key,status,progress.goodId(),detail==null?"":detail);notify(callback,status,detail);
     }
     private void submitPrepared(Shop shop,ProductKey key,CatalogSession session,BiConsumer<Status,String> callback)throws Exception {
+        submitPrepared(shop,key,session,callback,false);
+    }
+    private void submitPrepared(Shop shop,ProductKey key,CatalogSession session,BiConsumer<Status,String> callback,boolean freshlyReviewed)throws Exception {
         repository.guard(shop,key,session.scope());LicenseRuntime.require(Permission.GTIN);if(!repository.prepareExistingIdentity(shop,key,session.scope()))return;var row=repository.find(key);
         if(row.status()!=Status.READY_TO_SUBMIT||!row.feedId().isBlank())return;
+        if(!freshlyReviewed)validateSavedReview(shop,key,row,session);
         String feed;
         try{feed=session.catalog().submit(session.token(),JsonParser.parseString(row.payload()).getAsJsonObject(),()->{
             repository.guard(shop,key,session.scope());LicenseRuntime.require(Permission.GTIN);
@@ -547,9 +610,25 @@ public final class OzonCardRegistrationWorkflow {
         repository.submitted(key,feed);notify(callback,Status.FEED_SUBMITTED,"");
         new com.vncode.app.features.sync.SyncStreamStore().request(shop,"ZNACK");
     }
+    private void rememberReview(ProductKey key,ProductSnapshot snapshot,List<Attribute> schema,Draft draft){repository.rememberReview(key,RegistrationReviewedValues.productRevision(snapshot),RegistrationReviewedValues.schemaRevision(schema),ZnackNationalCatalogService.buildPayload("",draft,"").toString());}
+    private void validateSavedReview(Shop shop,ProductKey key,OzonCardRegistrationRepository.Row row,CatalogSession session)throws Exception{
+        var snapshot=new com.vncode.app.integration.ozon.OzonShopBrand().apply(shop,snapshots.read(shop,key));if(!snapshot.key().equals(key))throw new SecurityException("product_mismatch");
+        var saved=ZnackCardRegistrationWorkflow.draftFromPayload(JsonParser.parseString(row.payload()).getAsJsonObject());
+        try(var countries=session.catalog().registrationCountryReadScope()){
+            var schema=session.catalog().registrationAttributes(saved.categoryId(),session.token());var revisions=repository.reviewedRevisions(key);String source=RegistrationReviewedValues.productRevision(snapshot),model=RegistrationReviewedValues.schemaRevision(schema);
+            if(!revisions.getFirst().isBlank()){
+                if(!source.equals(revisions.getFirst())||!model.equals(revisions.getLast()))throw new RegistrationValidationException("ZNACK_REVIEWED_VALUES_CHANGED");
+            }else{
+                var preparation=reviewSnapshot(shop,snapshot,null,session,true,null);var current=suggestedDraft(preparation).orElseThrow(()->new RegistrationValidationException("ZNACK_REVIEWED_VALUES_CHANGED"));
+                if(!reviewPayload(ZnackNationalCatalogService.buildPayload(row.gtin(),current,"")).equals(reviewPayload(JsonParser.parseString(row.payload()).getAsJsonObject())))throw new RegistrationValidationException("ZNACK_REVIEWED_VALUES_CHANGED");
+                repository.rememberReview(key,source,model,row.payload());
+            }
+        }
+    }
+    private static String reviewPayload(JsonObject raw){var payload=raw.deepCopy();payload.remove("good_id");var attributes=payload.getAsJsonArray("good_attrs");if(attributes!=null){var sorted=new TreeMap<Long,JsonElement>();for(var element:attributes){var value=element.getAsJsonObject();long id=value.get("attr_id").getAsLong();if(sorted.put(id,value)!=null)throw new RegistrationValidationException("ZNACK_REVIEWED_VALUES_CHANGED");}var normalized=new JsonArray();sorted.values().forEach(normalized::add);payload.add("good_attrs",normalized);}return ListingIdentity.canonical(payload);}
     private void poll(Shop shop,ProductKey key,CatalogSession session,boolean sign,BiConsumer<Status,String> callback)throws Exception {
-        repository.guard(shop,key,session.scope());var row=repository.find(key);if(row.feedId().isBlank())return;
-        var progress=session.catalog().submissionStatus(session.token(),row.feedId(),row.gtin());repository.guard(shop,key,session.scope());
+        repository.guard(shop,key,session.scope());var row=repository.find(key);if(row.feedId().isBlank()&&row.goodId()==null)return;
+        var progress=readProgress(session,row);repository.guard(shop,key,session.scope());
         if(row.goodId()!=null&&progress.goodId()!=null&&!row.goodId().equals(progress.goodId()))throw new IllegalStateException("CATALOG_IDENTITY_CHANGED");
         if(progress.signed()){publish(shop,key,session,progress.goodId(),callback);return;}
         if(progress.failed()){repository.progress(key,Status.ERROR,progress.goodId(),CatalogFeedback.rejection(progress));notify(callback,Status.ERROR,CatalogFeedback.rejection(progress));return;}
@@ -567,17 +646,20 @@ public final class OzonCardRegistrationWorkflow {
             String stage=CatalogFeedback.stage(progress);repository.progress(key,Status.PROCESSING,progress.goodId(),stage);notify(callback,Status.PROCESSING,stage==null?"":stage);
             return;
         }
-        repository.progress(key,Status.READY_TO_SIGN,progress.goodId());notify(callback,Status.READY_TO_SIGN,"");if(!sign)return;
+        repository.progress(key,Status.READY_TO_SIGN,progress.goodId());notify(callback,Status.READY_TO_SIGN,"");if(!sign||new OzonRegistrationBatchRepository().blocksSigning(shop,key))return;
         LicenseRuntime.require(Permission.GTIN);var document=session.catalog().reviewSigning(session.token(),row.gtin());
         if(progress.goodId()!=null&&progress.goodId()!=document.goodId())throw new IllegalStateException("catalog_identity_changed");
+        if(!RegistrationSigningConsent.allowed(shop,key,row.gtin()))throw new RegistrationValidationException("SIGNING_REVIEW_REQUIRED");
+        session.catalog().validateApprovedSigningCard(session.token(),row.gtin(),document.goodId(),JsonParser.parseString(row.payload()).getAsJsonObject());
+        if(!RegistrationSigningConsent.bindVerifiedDocument(shop,key,row.gtin(),document))throw new RegistrationValidationException("SIGNING_REVIEW_REQUIRED");
         repository.prepareSignature(key,document);repository.guard(shop,key,session.scope());LicenseRuntime.require(Permission.GTIN);
         if(!repository.claimSignature(key,document.sha256()))return;notify(callback,Status.SIGNING,"");
         var dispatched=new java.util.concurrent.atomic.AtomicBoolean();
         try {
             session.catalog().sendReviewedSigning(session.token(),document,()->{
                 repository.guard(shop,key,session.scope());LicenseRuntime.require(Permission.GTIN);
-                var current=session.catalog().progress(session.token(),row.feedId(),row.gtin());var fresh=session.catalog().reviewSigning(session.token(),row.gtin());
-                if(!current.readyToSign()||current.failed()||fresh.goodId()!=document.goodId()||!fresh.sha256().equals(document.sha256()))throw new IllegalStateException("signing_document_changed");
+                var current=readProgress(session,row);var fresh=session.catalog().reviewSigning(session.token(),row.gtin());
+                if(!current.readyToSign()||current.failed()||fresh.goodId()!=document.goodId()||!fresh.sha256().equals(document.sha256())||!RegistrationSigningConsent.allowed(shop,key,row.gtin(),document))throw new IllegalStateException("signing_document_changed");
                 repository.guard(shop,key,session.scope());LicenseRuntime.require(Permission.GTIN);
                 dispatched.set(true);
             });
@@ -587,13 +669,19 @@ public final class OzonCardRegistrationWorkflow {
             repository.uncertain(key,Status.SIGNING);
             if(CatalogFeedback.rateLimited(failure))throw failure;
         }
-        repository.guard(shop,key,session.scope());var after=session.catalog().progress(session.token(),row.feedId(),row.gtin());
+        repository.guard(shop,key,session.scope());var after=readProgress(session,row);
         if(after.signed()&&after.goodId()!=null&&after.goodId()==document.goodId())publish(shop,key,session,after.goodId(),callback);
         else if(after.failed()){repository.progress(key,Status.ERROR,after.goodId(),CatalogFeedback.rejection(after));notify(callback,Status.ERROR,CatalogFeedback.rejection(after));}
         else {repository.progress(key,Status.SIGNING,after.goodId(),CatalogFeedback.stage(after));notify(callback,Status.SIGNING,"readback_required");}
     }
-    private void publish(Shop shop,ProductKey key,CatalogSession session,Long goodId,BiConsumer<Status,String> callback) {
-        if(goodId==null||goodId<=0)throw new IllegalStateException("catalog_identity_changed");repository.guard(shop,key,session.scope());repository.publish(shop,key,session.scope(),goodId);notify(callback,Status.PUBLISHED,"");
+    private void publish(Shop shop,ProductKey key,CatalogSession session,Long goodId,BiConsumer<Status,String> callback)throws Exception {
+        if(goodId==null||goodId<=0)throw new IllegalStateException("catalog_identity_changed");repository.guard(shop,key,session.scope());var row=repository.find(key);var observed=session.catalog().observedCardStatus(session.token(),row.gtin(),goodId);if(observed==null||!observed.progress().signed())throw new IllegalStateException("CATALOG_PUBLICATION_PENDING");repository.guard(shop,key,session.scope());repository.publish(shop,key,session.scope(),observed);notify(callback,Status.PUBLISHED,"");
+    }
+    private static ZnackNationalCatalogService.FeedProgress readProgress(CatalogSession session,OzonCardRegistrationRepository.Row row)throws Exception{
+        if(!row.feedId().isBlank())return session.catalog().submissionStatus(session.token(),row.feedId(),row.gtin());
+        if(row.goodId()==null)throw new IllegalStateException("CATALOG_IDENTITY_CHANGED");
+        var observed=session.catalog().observedCardStatus(session.token(),row.gtin(),row.goodId());
+        return observed==null?new ZnackNationalCatalogService.FeedProgress("CardNotFound",null,List.of()):observed.progress();
     }
     @FunctionalInterface private interface Action {void run()throws Exception;}
     private boolean schedule(Shop shop,Action action,ProductKey key,BiConsumer<Status,String> callback) {
@@ -617,7 +705,7 @@ public final class OzonCardRegistrationWorkflow {
         if(row.status()==Status.PUBLISHED){notify(callback,Status.ERROR,error);return;}
         boolean documentPending=CatalogFeedback.notFound(failure)&&!row.feedId().isBlank()
                 &&!Set.of("SENDING","RECONCILE_REQUIRED").contains(row.signatureState());
-        Status state=failure instanceof RegistrationValidationException?Status.PRE_SUBMIT_ERROR:documentPending?Status.PROCESSING:switch(row.status()){
+        Status state=failure instanceof RegistrationValidationException&&row.feedId().isBlank()&&row.goodId()==null?Status.PRE_SUBMIT_ERROR:documentPending?Status.PROCESSING:switch(row.status()){
             case ALLOCATING_GTIN->Status.GTIN_REVIEW_REQUIRED;case FEED_SUBMITTING->Status.FEED_REVIEW_REQUIRED;
             case SIGNING->Status.SIGNING;case CHECKING->Status.PREFLIGHT_ERROR;default->row.status();};
         if(documentPending)error="CATALOG_SIGNING_DOCUMENT_PENDING";

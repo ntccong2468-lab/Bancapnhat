@@ -63,6 +63,7 @@ public final class ProductBulkEditService {
     private ProductEditPreview previewLoaded(Shop shop,List<ProductKey> keys,ProductBulkEdit edit,java.util.function.Consumer<Progress> listener)throws IOException {
         if(shop.getMarketplace()==Marketplace.OZON&&!Set.of("documents","title").contains(edit.field()))currentSession.get().useAttributeReads();
         ListingIdentity.require(shop);var frozen=keys.stream().distinct().sorted(Comparator.comparing(ProductKey::cardId).thenComparing(ProductKey::variantId)).toList();if(frozen.isEmpty())throw new IllegalArgumentException("Select products");
+        if(!frozen.containsAll(edit.expectedRevisions().keySet()))throw new SecurityException("Foreign product proposal scope");
         var groups=new LinkedHashMap<String,List<ProductKey>>();for(var key:frozen){ListingIdentity.require(shop,key);groups.computeIfAbsent(key.cardId(),k->new ArrayList<>()).add(key);}if(groups.size()>1000)throw new IllegalArgumentException("Product edit limit is 1000 cards");
         documentBudget(shop,edit.documents());
         LicenseRuntime.require(SELLER_API);
@@ -72,6 +73,8 @@ public final class ProductBulkEditService {
             var values=edit.perKeyValues().getOrDefault(group.getFirst(),edit.values());if(group.stream().anyMatch(k->!values.equals(edit.perKeyValues().getOrDefault(k,edit.values()))))throw new IllegalArgumentException("Conflicting values for sizes of one card");
             LicenseRuntime.require(SELLER_API);
             var fresh=read(shop,group.getFirst());requireFresh(shop,group.getFirst(),fresh);Map<String,List<String>> changes;
+            for(var key:group){String expected=edit.expectedRevisions().get(key);if(expected!=null&&!expected.equals(
+                    expected.startsWith("live:proposal:")?ProductSuggestionService.proposalRevision(shop,fresh,edit.field()):fresh.revision()))throw new IllegalStateException("PRODUCT_PROPOSAL_CHANGED");}
             if(edit.field().equals("documents"))changes=Map.of();else if(edit.field().equals("brand"))changes=Map.of("brand",values);else{
                 var candidates=ProductFieldNames.targets(edit.field(),adapter.attributes(shop,fresh.categoryId()));if(candidates.size()!=1)throw new IllegalStateException("Field dictionary is missing or ambiguous");changes=Map.of("attribute:"+candidates.getFirst().id(),values);
             }
@@ -114,7 +117,10 @@ public final class ProductBulkEditService {
         long bytes=((long)p.preview().requestJson().length()+p.preview().documentsJson().length())*2;
         if(bytes>64L*1024*1024)throw new IllegalArgumentException("Product preview payload exceeds 64 MiB");
         var patchChanges=changes;
-        var before=fresh.attributes().stream().filter(a->patchChanges.containsKey("attribute:"+a.id())).flatMap(a->a.values().stream()).toList();
+        var before=new ArrayList<String>();
+        if(patchChanges.containsKey("brand"))before.add(Objects.toString(fresh.brand(),""));
+        fresh.attributes().stream().filter(a->patchChanges.containsKey("attribute:"+a.id())).flatMap(a->a.values().stream()).forEach(before::add);
+        if(documents!=null)fresh.documents().stream().map(ProductDocument::number).forEach(before::add);
         var item=new EditItem(fresh.key(),changes,documents,p,null,p.preview().publishable()?CopyState.AWAITING_CONFIRMATION:CopyState.NEEDS_DATA,p.preview().issues(),before);
         var result=new ProductEditPreview(UUID.randomUUID().toString(),shop.getId(),ListingIdentity.fingerprint(shop),List.of(fresh.key()),null,List.of(item));repo.insert(result);return result;
     }

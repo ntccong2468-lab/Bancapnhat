@@ -20,7 +20,7 @@ public enum CatalogCardState {
                 .map(s->s.strip().toLowerCase(Locale.ROOT)).collect(Collectors.toSet());
         if(details.stream().anyMatch(Set.of("errors","rejected","error")::contains))return ERRORS;
         if(details.contains("moderation"))return MODERATION;
-        if(details.contains("draft"))return DRAFT;
+        if(details.contains("draft")||card.details().values("@catalog_status").stream().anyMatch(s->"draft".equalsIgnoreCase(s.strip())))return DRAFT;
         return UNPUBLISHED;
     }
 }

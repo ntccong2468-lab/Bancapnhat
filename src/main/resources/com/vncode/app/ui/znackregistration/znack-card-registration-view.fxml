@@ -45,7 +45,8 @@
                 <TableColumn fx:id="genderColumn" text="Giới tính" prefWidth="90"/>
                 <TableColumn fx:id="colorColumn" text="Màu" prefWidth="100"/>
                 <TableColumn fx:id="sizeColumn" text="Size" prefWidth="70"/>
-                <TableColumn fx:id="barcodeColumn" text="Barcode WB / GTIN" prefWidth="180"/>
+                <TableColumn fx:id="barcodeColumn" text="Barcode WB" prefWidth="150"/>
+                <TableColumn fx:id="verifiedGtinColumn" text="GTIN đã xác minh" prefWidth="175"/>
                 <TableColumn fx:id="statusColumn" text="Trạng thái" prefWidth="135"/>
                 <TableColumn fx:id="detailColumn" text="Chi tiết" prefWidth="180" visible="false"/>
                 <TableColumn fx:id="actionColumn" text="Thao tác" prefWidth="170" maxWidth="210"/>

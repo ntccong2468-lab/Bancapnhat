@@ -18,4 +18,11 @@ class NationalCatalogBatchReadTest {
         cards.prepare(List.of("first"));assertThrows(java.io.IOException.class,()->cards.read("first"));assertThrows(java.io.IOException.class,()->cards.read("first"));assertEquals(1,attempts.get());cards.prepare(List.of("first"));assertEquals("first",cards.read("first").getAsString());
         cards.prepare(List.of("second"));assertEquals("second",cards.read("second").getAsString());assertThrows(IllegalArgumentException.class,()->cards.read("first"));
     }
+    @Test void everyCardInTheSameHttpBatchKeepsItsActualResponseTimeAndCannotRefreshItByReadingTheCache()throws Exception{
+        var time=new java.util.concurrent.atomic.AtomicReference<>(java.time.Instant.parse("2026-01-01T00:00:00Z"));
+        var remote=new NationalCatalogGtinSource.CardReader(){public JsonElement read(String group){return new JsonPrimitive(group);}public java.time.Instant observedAt(){return time.get();}};
+        var cards=new NationalCatalogGtinSource.BatchedCards(remote);cards.prepare(List.of("first","second"));assertThrows(IllegalStateException.class,cards::observedAt);
+        cards.read("first");assertEquals(time.get(),cards.observedAt());var original=time.get();time.set(original.plusSeconds(60));cards.read("second");assertEquals(original,cards.observedAt());
+        cards.prepare(List.of("third"));assertThrows(IllegalStateException.class,cards::observedAt);cards.read("third");assertEquals(time.get(),cards.observedAt());
+    }
 }

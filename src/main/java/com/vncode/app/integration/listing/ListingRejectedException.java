@@ -7,7 +7,16 @@ import java.io.IOException;
 
 /** An explicit seller API rejection, distinct from an unknown transport outcome. */
 public final class ListingRejectedException extends IOException {
-    public ListingRejectedException(String reason){super(reason);}
+    private final com.vncode.app.integration.marketplace.Marketplace marketplace;
+    private final int statusCode;
+    public ListingRejectedException(String reason){this(null,0,reason);}
+    public ListingRejectedException(com.vncode.app.integration.marketplace.Marketplace marketplace,int statusCode,String reason){super(reason);this.marketplace=marketplace;this.statusCode=statusCode;}
+    public int statusCode(){return statusCode;}
+    public String code(){
+        if(marketplace==null||statusCode==0)return "MARKETPLACE_REQUEST_REJECTED";
+        String prefix=marketplace==com.vncode.app.integration.marketplace.Marketplace.OZON?"OZON":"WB";
+        return prefix+((statusCode==401||statusCode==403)?"_AUTH_REQUIRED":"_HTTP_"+statusCode);
+    }
     public static void requireWbAccepted(Shop shop,JsonObject response)throws ListingRejectedException {
         if(response.has("error")&&response.get("error").isJsonPrimitive()
                 &&"true".equalsIgnoreCase(response.get("error").getAsString())){

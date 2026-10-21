@@ -24,13 +24,16 @@ public class ZnackProductService {
     public List<Product> sync(ZnackModels.Settings settings)throws Exception{
         ZnackSafety.requireSigned(settings,false);
         LicenseRuntime.require(Permission.SELLER_API);
+        boolean catalogKey=api.hasCatalogKey();int pageSize=catalogKey?1_000:PAGE_SIZE;
         String token=auth.trueApiToken(settings);Map<String,Product> byGtin=new LinkedHashMap<>();int page=0,fetched=0,technical=0;Integer total=null;
         do{
             LicenseRuntime.require(Permission.SELLER_API);
+            if(catalogKey&&(long)page*pageSize+pageSize>10_000)throw new IllegalStateException("CATALOG_LIST_RANGE_UNSUPPORTED");
             JsonElement response=page==0?api.products(settings.resolvedTrueApiBaseUrl(),token):
-                    api.products(settings.resolvedTrueApiBaseUrl(),token,page,PAGE_SIZE);
+                    api.products(settings.resolvedTrueApiBaseUrl(),token,page,pageSize);
             JsonArray array=response.isJsonArray()?response.getAsJsonArray():response.getAsJsonObject().getAsJsonArray("results");
             if(response.isJsonObject()&&response.getAsJsonObject().has("total")&&!response.getAsJsonObject().get("total").isJsonNull())total=response.getAsJsonObject().get("total").getAsInt();
+            if(catalogKey&&total!=null&&total>10_000)throw new IllegalStateException("CATALOG_LIST_RANGE_UNSUPPORTED");
             if(array!=null)for(JsonElement e:array){JsonObject o=e.getAsJsonObject();String gtin=text(o,"gtin","productGtin");if(!gtin.isBlank()){String normalized=GtinNormalizer.normalize(gtin);if(GtinNormalizer.isTechnicalRange(normalized)){technical++;continue;}byGtin.put(normalized,new Product(
                     normalized,text(o,"productName","name"),tnVed(o),
                     null,null,null,text(o,"productionDate","production_date"),
@@ -38,7 +41,8 @@ public class ZnackProductService {
                     text(o,"goodStatus","good_status","cardStatus"),text(o,"goodDetailedStatus","good_detailed_status"),
                     "",null,cisType(o)));}}
             int received=array==null?0:array.size();fetched+=received;page++;
-            if(total==null&&received<PAGE_SIZE)break;
+            if(catalogKey&&total!=null&&received<pageSize&&fetched<total)throw new IllegalStateException("CATALOG_LIST_RESPONSE_INCOMPLETE");
+            if(total==null&&received<pageSize)break;
             if(received==0)break;
         }while(total==null||fetched<total);
         Set<String> incompleteGtins=new HashSet<>();

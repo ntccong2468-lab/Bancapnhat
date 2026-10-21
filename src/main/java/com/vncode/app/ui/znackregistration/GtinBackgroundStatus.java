@@ -111,7 +111,8 @@ final class GtinBackgroundStatus {
     }
     static String summary(ZnackGtinBackgroundService.Result result){
         var p=result.progress();var stock=result.inventory();
-        return java.text.MessageFormat.format(I18nService.getInstance().tr("gtin.background.summary"),p.succeeded(),stock.withGtin(),Math.max(0,stock.withGtin()-p.succeeded()),stock.withoutGtin(),p.pending(),p.blocked()+stock.blockedBeforeUpdate());
+        String summary=java.text.MessageFormat.format(I18nService.getInstance().tr("gtin.background.summary"),p.succeeded(),stock.withGtin(),Math.max(0,stock.withGtin()-p.succeeded()),stock.withoutGtin(),p.pending(),p.blocked()+stock.blockedBeforeUpdate());
+        return stock.unknown()>0?summary+" · "+I18nService.getInstance().tr("znack.registration.report_unverified")+": "+stock.unknown():summary;
     }
     private static boolean terminal(javafx.concurrent.Worker.State state){return state==javafx.concurrent.Worker.State.SUCCEEDED||state==javafx.concurrent.Worker.State.FAILED||state==javafx.concurrent.Worker.State.CANCELLED;}
     private static void finish(StackPane host,String message){remove(host);var text=new Label(message);text.setWrapText(true);text.setMaxWidth(680);var pill=new HBox(text);install(host,pill);RegistrationStatusPill.dismissAfter(host,pill,javafx.util.Duration.seconds(8));}

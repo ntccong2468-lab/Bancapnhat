@@ -132,11 +132,20 @@ public final class ZnackWbAttributeMapper {
                     List.of("технический регламент", "технического регламента"), "");
         }
 
+        if(id==2630L||RegistrationVerifiedDefaults.productionCountryField(name)){
+            var countries=new LinkedHashSet<String>();
+            for(var source:safe(characteristics))if(RegistrationVerifiedDefaults.productionCountryField(source.name()))
+                for(String value:source.values())if(!clean(value).isBlank())countries.add(clean(value));
+            return countries.size()==1?countries.getFirst():"";
+        }
+        if(name.contains("страна")||name.contains("country")){
+            var countries=new LinkedHashSet<String>();
+            for(var source:safe(characteristics))if(normalize(source.name()).equals(name))
+                for(String value:source.values())if(!clean(value).isBlank())countries.add(clean(value));
+            return countries.size()==1?countries.getFirst():"";
+        }
         String exact = matchingCharacteristic(characteristics, name);
         if (!exact.isBlank()) return exact;
-        if (name.contains("страна происхождения") || name.contains("страна производства")) {
-            return firstCharacteristic(characteristics, List.of("страна производства", "страна происхождения"), "");
-        }
         if (name.contains("производител")) {
             return firstCharacteristic(characteristics, List.of("производитель", "изготовитель"), "");
         }

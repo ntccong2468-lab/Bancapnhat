@@ -44,6 +44,12 @@ class GtinBackgroundStatusTest {
   var result=new ZnackGtinBackgroundService.Result("run",new ZnackGtinBackgroundService.Progress(10,10,7,2,1),new ZnackGtinBackgroundService.Inventory(15,12,3,2));
   String text=GtinBackgroundStatus.summary(result);assertTrue(text.contains("7/12"));assertTrue(text.contains("5"));assertTrue(text.contains("3"));assertFalse(text.contains("gtin.background.summary"));
  }
+ @Test void missingRequestedRowsRemainUnknownAndAreNotReportedAsAbsentGtins(){
+  var result=new ZnackGtinBackgroundService.Result("run",new ZnackGtinBackgroundService.Progress(0,0,0,0,0),new ZnackGtinBackgroundService.Inventory(3,0,0,0,3));
+  var i18n=I18nService.getInstance();String known=java.text.MessageFormat.format(i18n.tr("gtin.background.summary"),0,0,0,0,0,0);
+  assertEquals(known+" · "+i18n.tr("znack.registration.report_unverified")+": 3",GtinBackgroundStatus.summary(result));
+  var legacy=new ZnackGtinBackgroundService.Result("legacy",new ZnackGtinBackgroundService.Progress(0,0,0,0,0),new ZnackGtinBackgroundService.Inventory(0,0,0,0));assertEquals(known,GtinBackgroundStatus.summary(legacy));
+ }
  @Test void failedCatalogAuthenticationReplacesSpinnerWithSpecificCryptoProError()throws Exception{
   var i18n=I18nService.getInstance();String advice=i18n.tr("znack.signature.error.private_key");
   var task=new Task<ZnackGtinBackgroundService.Result>(){protected ZnackGtinBackgroundService.Result call()throws Exception{

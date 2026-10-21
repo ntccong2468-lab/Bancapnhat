@@ -95,6 +95,26 @@ class ProductBulkEditServiceTest {
         var p=service.preview(shop,List.of(key),new ProductBulkEdit("material",List.of("Cotton"),null,Map.of()));assertEquals(Map.of("attribute:723",List.of("Cotton")),adapter.changes);assertTrue(p.publishable());
     }
     @Test void previewShowsActualOldAndNewValue()throws Exception {var p=service.preview(shop,List.of(key),edit());assertEquals(List.of("Old"),p.items().getFirst().before());assertEquals(List.of("New"),p.items().getFirst().changes().get("brand"));}
+    @Test void autoProposalChangedBeforePreviewNeedsFreshReviewWithoutAnyWrite()throws Exception{
+        String revision=ProductSuggestionService.proposalRevision(shop,snapshot,"brand");var original=snapshot;
+        snapshot=new ProductSnapshot(key,"live:changed",original.title(),original.description(),"Changed",original.vendorArticle(),original.categoryId(),original.media(),original.attributes(),original.variants(),original.dimensions(),original.documents(),Instant.now());
+        var failure=assertThrows(IllegalStateException.class,()->service.preview(shop,List.of(key),new ProductBulkEdit("brand",List.of("Old"),null,Map.of(),Map.of(key,revision))));
+        assertEquals("PRODUCT_PROPOSAL_CHANGED",failure.getMessage());assertEquals(0,adapter.writes.get());assertTrue(service.list(shop).isEmpty());
+    }
+    @Test void equivalentReadModesKeepTheReviewedFactsBindingInPersistedHistory()throws Exception{
+        String revision=ProductSuggestionService.proposalRevision(shop,snapshot,"brand");var original=snapshot;
+        snapshot=new ProductSnapshot(key,"live:attributes:another-read-mode",original.title(),original.description(),original.brand(),original.vendorArticle(),original.categoryId(),original.media(),original.attributes(),original.variants(),original.dimensions(),original.documents(),Instant.now());
+        var preview=service.preview(shop,List.of(key),new ProductBulkEdit("brand",List.of("Old"),null,Map.of(),Map.of(key,revision)));
+        var stored=repo.find(shop.getId(),ListingIdentity.fingerprint(shop),preview.id());assertEquals(revision,stored.edit().expectedRevisions().get(key));assertEquals(snapshot.revision(),stored.items().getFirst().preview().sourceRevision());assertEquals(List.of("Old"),stored.items().getFirst().before());
+    }
+    @Test void oldSavedProductEditsRemainManualWhenTheyHaveNoProposalRevision(){
+        var old=ProductJson.GSON.fromJson("{\"field\":\"brand\",\"values\":[\"New\"],\"documents\":null,\"perKeyValues\":{}}",ProductBulkEdit.class);
+        assertTrue(old.expectedRevisions().isEmpty());assertEquals(List.of("New"),old.values());
+    }
+    @Test void multiFieldPatchHistoryIncludesTheActualPriorBrand()throws Exception{
+        var preview=service.previewPatch(shop,snapshot,Map.of("brand",List.of("New")),null);
+        assertEquals(List.of("Old"),preview.items().getFirst().before());assertEquals(List.of("Old"),repo.find(shop.getId(),ListingIdentity.fingerprint(shop),preview.id()).items().getFirst().before());assertEquals(0,adapter.writes.get());
+    }
     @Test void pendingGtinUpdateBlocksCardEdit()throws Exception {
         var p=service.preview(shop,List.of(key),edit());try(var c=Database.getConnection();var s=c.createStatement()){s.execute("INSERT INTO gtin_sync_jobs VALUES('g','hash',1,'WILDBERRIES',0,'now')");s.execute("INSERT INTO gtin_sync_items VALUES('i','g',1,'WILDBERRIES','123','1','{}','RECONCILE_REQUIRED','','now')");}
         assertThrows(IllegalStateException.class,()->service.apply(shop,p.id(),true));assertEquals(0,adapter.writes.get());

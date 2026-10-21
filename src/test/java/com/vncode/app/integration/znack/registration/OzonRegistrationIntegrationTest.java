@@ -63,6 +63,9 @@ class OzonRegistrationIntegrationTest {
         assertNull(mappings.findGtin(1,"501"));assertEquals("",registrations.find(key).activeGtin());
         Database.initDatabase();assertEquals("fixture-feed",registrations.find(key).feedId());
         assertThrows(IllegalStateException.class,()->new ShopRepository().delete(1));
+        assertThrows(IllegalArgumentException.class,()->registrations.complete(shop,key,scope,gtin),"A legacy publication notification cannot manufacture remote Catalog proof");
+        var raw=com.google.gson.JsonParser.parseString("{\"gtin\":\""+gtin+"\",\"good_id\":901,\"good_status\":\"published\",\"good_name\":\"Fixture\"}").getAsJsonObject();
+        registrations.publish(shop,key,scope,new ZnackNationalCatalogService.ObservedCard(901,gtin,"published",new ZnackNationalCatalogService.FeedProgress("Signed",901L,List.of()),CatalogProductDataParser.parse(raw),java.time.Instant.now(),true));
         assertTrue(registrations.complete(shop,key,scope,gtin));assertEquals(gtin,mappings.findGtin(1,"501"));
         assertEquals(gtin,registrations.find(key).activeGtin());assertNull(mappings.findGtin(2,"501"));
         try(var c=Database.getConnection();var s=c.createStatement()) {

@@ -76,7 +76,39 @@ class ListingBeforeSendGuardTest {
             var client=new ListingHttpClient(shop,new OkHttpClient(),server.url("/"));
             var error=assertThrows(com.vncode.app.integration.listing.ListingRejectedException.class,()->client.call("content/v2/cards/update",new JsonObject(),true));
             assertTrue(error.getMessage().contains("Invalid material"));assertFalse(error.getMessage().contains("fixture-secret"));
+            assertEquals(400,error.statusCode());assertEquals("WB_HTTP_400",error.code());assertEquals("WB_HTTP_400",com.vncode.app.features.sync.SyncFailure.of(error,0).code());
             assertFalse(error.getMessage().contains(shop.getApiKey()));assertEquals(1,server.getRequestCount());
+        }
+    }
+    @Test void freshDispatchReadUsesNoHeldBackgroundPermitAndCanCallTheMarketplace()throws Exception {
+        try(var server=new MockWebServer()) {
+            server.start();server.enqueue(new MockResponse().setBody("{}"));server.enqueue(new MockResponse().setBody("{}"));
+            var client=new ListingHttpClient(shop,new OkHttpClient(),server.url("/"));
+            var executor=Executors.newSingleThreadExecutor();var finalChecks=new AtomicInteger();
+            try {
+                var pending=executor.submit(()->{
+                    try(var lane=MarketplaceRequestBudget.lane(true)) {
+                        return client.call("content/v2/cards/update",new JsonObject(),true,()->{
+                            assertEquals(0,MarketplaceRequestBudget.activeCount());
+                            client.call("content/v2/get/cards/list",new JsonObject(),false);
+                        },()->{assertEquals(1,MarketplaceRequestBudget.activeCount());finalChecks.incrementAndGet();});
+                    }
+                });
+                pending.get(3,TimeUnit.SECONDS);
+                assertEquals(1,finalChecks.get());assertEquals(2,server.getRequestCount());
+                assertEquals("/content/v2/get/cards/list",server.takeRequest().getPath());
+                assertEquals("/content/v2/cards/update",server.takeRequest().getPath());
+            } finally {executor.shutdownNow();assertTrue(executor.awaitTermination(3,TimeUnit.SECONDS));}
+        }
+    }
+    @Test void failedFreshDispatchReadKeepsItsCauseAndNeverSendsTheMutation()throws Exception {
+        try(var server=new MockWebServer()) {
+            server.start();var client=new ListingHttpClient(shop,new OkHttpClient(),server.url("/"));
+            var failure=new java.io.IOException("fixture current card unavailable");var finalChecks=new AtomicInteger();
+            var actual=assertThrows(java.io.IOException.class,()->client.call("content/v2/cards/update",new JsonObject(),true,()->{throw failure;},finalChecks::incrementAndGet));
+            assertSame(failure,actual);assertEquals(0,finalChecks.get());assertEquals(0,server.getRequestCount());
+            ListingTransport fixture=(path,body,mutation)->{fail("A failed current read cannot reach the fixture mutation");return null;};
+            assertSame(failure,assertThrows(java.io.IOException.class,()->fixture.call("content/v2/cards/update",new JsonObject(),true,()->{throw failure;},finalChecks::incrementAndGet)));
         }
     }
     private static void awaitSemaphoreWait(AtomicReference<Thread> thread) {

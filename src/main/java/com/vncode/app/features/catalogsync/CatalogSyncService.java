@@ -29,29 +29,41 @@ public final class CatalogSyncService {
     private final Function<GtinSyncModels.ProductKey,GtinMarketplaceAdapter> adapters;
     private final BiConsumer<Shop,String> authority;
     private final GtinSyncCoordinator queue;
-    @FunctionalInterface public interface SourceRefresh {void refresh(Shop shop,Set<String> gtins)throws Exception;}
+    @FunctionalInterface public interface SourceRefresh {
+        void refresh(Shop shop,Set<String> gtins)throws Exception;
+        default void refresh(Shop shop,Set<String> gtins,boolean includeDocuments)throws Exception{refresh(shop,gtins);}
+    }
     private final SourceRefresh refresh;
     public CatalogSyncService(){
         this(new CatalogSyncRepository(),new GtinSyncRepository(),new ProductBulkEditService(),
             (s,k)->s.getMarketplace()==Marketplace.OZON?new OzonProductSnapshotReader().readForSynchronization(s,k):new WbProductSnapshotReader().readForSynchronization(s,k),
             s->s.getMarketplace()==Marketplace.OZON?new OzonListingAdapter():new WbListingAdapter(),
             k->{var s=new com.vncode.app.features.shop.ShopRepository().findById(k.shopId());if(s==null||s.getMarketplace()!=k.marketplace())throw new SecurityException("shop_mismatch");return k.marketplace()==Marketplace.OZON?new OzonGtinAdapter(s):new WbGtinAdapter(s);},
-            RegisteredGtinProof::requireCurrent,(shop,selected)->{
-                var observations=com.vncode.app.integration.znack.registration.NationalCatalogGtinSource.forSelection(shop,selected,true).read(shop.getId());
-                ListingIdentity.require(shop);new GtinSyncRepository().mergeCatalog(shop.getId(),shop.getMarketplace(),observations);
-            });
+            RegisteredGtinProof::requireCurrent,defaultSourceRefresh());
     }
     public CatalogSyncService(CatalogSyncRepository plans,GtinSyncRepository gtins,ProductBulkEditService edits,
                               ProductSnapshotReader reader,Function<Shop,ListingTargetAdapter> targets,
                               Function<GtinSyncModels.ProductKey,GtinMarketplaceAdapter> adapters,BiConsumer<Shop,String> authority){
-        this(plans,gtins,edits,reader,targets,adapters,authority,(shop,selected)->{});
+        this(plans,gtins,edits,reader,targets,adapters,authority,defaultSourceRefresh());
     }
     public CatalogSyncService(CatalogSyncRepository plans,GtinSyncRepository gtins,ProductBulkEditService edits,
                               ProductSnapshotReader reader,Function<Shop,ListingTargetAdapter> targets,
                               Function<GtinSyncModels.ProductKey,GtinMarketplaceAdapter> adapters,BiConsumer<Shop,String> authority,SourceRefresh refresh){
         this.refresh=refresh;
         this.plans=plans;this.gtins=gtins;this.edits=edits;this.reader=reader;this.targets=targets;this.adapters=adapters;this.authority=authority;
-        queue=new GtinSyncCoordinator(gtins,adapters,Clock.systemUTC(),3,Duration.ofSeconds(1));
+        queue=new GtinSyncCoordinator(gtins,adapters,Clock.systemUTC(),3,Duration.ofSeconds(1),cohort->{
+            if(cohort.isEmpty())return;
+            var first=cohort.keySet().iterator().next();var shop=new com.vncode.app.features.shop.ShopRepository().findById(first.shopId());
+            if(shop==null||shop.getMarketplace()!=first.marketplace())throw new SecurityException("shop_mismatch");ListingIdentity.require(shop);
+            for(var key:cohort.keySet())if(key.shopId()!=shop.getId()||key.marketplace()!=shop.getMarketplace())throw new SecurityException("shop_mismatch");
+            // The parent refreshed this exact queued cohort before dispatch. Recheck its
+            // current proof in one batch rather than perform a duplicate Catalog scan.
+            var adapter=adapters.apply(first);
+            if(adapter instanceof GtinBatchAdapter batch)batch.validateRegistrations(cohort.values());
+            else for(var entry:cohort.entrySet())authority.accept(shop,entry.getValue());
+            var observed=gtins.catalogItems(shop.getId(),shop.getMarketplace(),cohort.values());
+            for(var gtin:cohort.values())if(!RegisteredGtinProof.currentObservation(observed.get(gtin),Instant.now()))throw new IllegalArgumentException("unverified_catalog_gtin");
+        });
     }
     public Job preview(Shop shop,List<Selection> selection,Options options)throws Exception {
         return ShopOperationCoordinator.withActiveShop(shop.getId(),()->previewActive(shop,selection,options));
@@ -60,10 +72,11 @@ public final class CatalogSyncService {
         ListingIdentity.require(shop);LicenseRuntime.require(Permission.SELLER_API);
         int maximum=options.fields().equals(Set.of(Field.GTIN))?GtinBatchAdapter.MAX_PLAN_ROWS:1000;
         if(selection.isEmpty()||selection.size()>maximum||selection.stream().map(Selection::key).distinct().count()!=selection.size())throw new IllegalArgumentException("CATALOG_SELECTION_LIMIT");
+        for(var item:selection)if(item.key().shopId()!=shop.getId()||item.key().marketplace()!=shop.getMarketplace())throw new SecurityException("shop_mismatch");
+        if(options.fields().contains(Field.GTIN)||options.fields().contains(Field.DOCUMENTS))refresh.refresh(shop,selection.stream().map(Selection::gtin).collect(java.util.stream.Collectors.toSet()),options.fields().contains(Field.DOCUMENTS));
         if(options.fields().equals(Set.of(Field.GTIN))&&adapters.apply(selection.getFirst().key()) instanceof GtinBatchAdapter batch)return previewGtins(shop,selection,options,batch);
         var groups=new LinkedHashMap<String,List<Selection>>();
         for(var item:selection){if(item.key().shopId()!=shop.getId()||item.key().marketplace()!=shop.getMarketplace())throw new SecurityException("shop_mismatch");groups.computeIfAbsent(item.key().productId(),k->new ArrayList<>()).add(item);}
-        if(options.fields().contains(Field.DOCUMENTS))refresh.refresh(shop,selection.stream().map(Selection::gtin).collect(java.util.stream.Collectors.toSet()));
         var dictionaries=new HashMap<String,List<TargetAttribute>>();var rows=new ArrayList<Row>();long bytes=0;
         for(var group:groups.values()) {
             var first=group.getFirst();var productKey=productKey(first.key());var fresh=reader.read(shop,productKey);
@@ -84,11 +97,11 @@ public final class CatalogSyncService {
             }
             for(var item:group) {
                 var source=sources.get(item);var diffs=new ArrayList<>(patches.get(item).differences());
-                var actual=adapters.apply(item.key()).read(item.key());
+                var identityAdapter=adapters.apply(item.key());var actual=identityAdapter.read(item.key());
                 if(!actual.key().equals(item.key()))throw new SecurityException("product_mismatch");
                 if(options.fields().contains(Field.GTIN)) {
                     String code="";
-                    if(!RegisteredGtinProof.contains(actual.barcodes(),source.gtin()))new GtinPreviewService(gtins,adapters).create(item.key(),GtinSyncModels.Operation.ADD,"",source.gtin());else code="CURRENT";
+                    if(!RegisteredGtinProof.contains(actual.barcodes(),source.gtin()))new GtinPreviewService(gtins,adapters).create(item.key(),GtinSyncModels.Operation.ADD,"",source.gtin());else{identityAdapter.validateIdentity(actual,source);code="CURRENT";}
                     diffs.addFirst(new Diff("gtin",actual.barcodes(),List.of(source.gtin()),code,false));
                 }
                 if(conflict)diffs.add(new Diff("card",List.of(),List.of(),"CARD_VALUES_CONFLICT",true));
@@ -130,6 +143,13 @@ public final class CatalogSyncService {
     private Job runActive(Shop shop,String id,boolean confirmed,Consumer<GtinSyncModels.JobItem> progress)throws Exception {
         var job=plans.read(shop,id);
         if(!job.confirmed()){if(!confirmed||job.readyCount()==0)throw new IllegalArgumentException("Explicit confirmation required");plans.confirm(shop,id);}
+        if(job.fields().contains(Field.GTIN)||job.fields().contains(Field.DOCUMENTS)){
+            var queuedChildren=new HashMap<String,Boolean>();
+            var pending=job.rows().stream().filter(row->row.state()!=State.BLOCKED&&row.state()!=State.SUCCEEDED)
+                    .filter(row->row.gtinJob().isBlank()||queuedChildren.computeIfAbsent(row.gtinJob(),child->gtins.jobItems(UUID.fromString(child)).stream().anyMatch(item->item.status()==GtinSyncModels.Status.QUEUED||item.status()==GtinSyncModels.Status.VALIDATING)))
+                    .map(row->row.catalog().gtin()).collect(java.util.stream.Collectors.toSet());
+            if(!pending.isEmpty())refresh.refresh(shop,pending,job.fields().contains(Field.DOCUMENTS));
+        }
         if(job.fields().equals(Set.of(Field.GTIN))&&!job.rows().isEmpty()&&job.rows().stream().allMatch(r->r.editJob().isBlank())&&adapters.apply(job.rows().getFirst().key()) instanceof GtinBatchAdapter batch)return runGtins(shop,job,batch,progress);
         for(var saved:job.rows()) {
             if(Thread.currentThread().isInterrupted()||plans.paused(shop,id))break;
@@ -159,8 +179,9 @@ public final class CatalogSyncService {
                 var adapter=adapters.apply(row.key());
                 if(row.gtinJob().isBlank()) {
                     var actual=adapter.read(row.key());
+                    if(!actual.key().equals(row.key()))throw new SecurityException("product_mismatch");
                     if(row.originalBarcodes().stream().anyMatch(code->!RegisteredGtinProof.contains(actual.barcodes(),code)))throw new IllegalStateException("BARCODES_CHANGED");
-                    if(RegisteredGtinProof.contains(actual.barcodes(),row.catalog().gtin())){gtins.recordVerifiedMapping(row.key(),row.catalog().gtin());plans.update(shop,id,row.next(State.SUCCEEDED,"",""));continue;}
+                    if(RegisteredGtinProof.contains(actual.barcodes(),row.catalog().gtin())){adapter.validateIdentity(actual,row.catalog());gtins.recordVerifiedMapping(row.key(),row.catalog().gtin());plans.update(shop,id,row.next(State.SUCCEEDED,"",""));continue;}
                     if(!new HashSet<>(actual.barcodes()).equals(new HashSet<>(row.originalBarcodes())))throw new IllegalStateException("BARCODES_CHANGED");
                     var preview=new GtinPreviewService(gtins,adapters).create(row.key(),GtinSyncModels.Operation.ADD,"",row.catalog().gtin());
                     UUID child=queue.confirm(List.of(preview));row=row.next(State.GTIN_PENDING,child.toString(),"");plans.update(shop,id,row);
@@ -191,8 +212,8 @@ public final class CatalogSyncService {
         for(var keys:owners.values())if(keys.size()>1)for(var key:keys)issues.put(key,"GTIN_ON_ANOTHER_PRODUCT");
         var products=new HashMap<String,ProductSnapshot>();var actual=new LinkedHashMap<GtinSyncModels.ProductKey,GtinSyncModels.ProductSnapshot>();var requested=new LinkedHashMap<GtinSyncModels.ProductKey,String>();
         for(var item:selection){if(!sources.containsKey(item.gtin()))throw new IllegalArgumentException("unverified_catalog_gtin");if(issues.containsKey(item.key()))continue;
-            try{var source=sources.get(item.gtin());var fresh=products.get(item.key().productId());if(fresh==null){fresh=reader.read(shop,productKey(item.key()));products.put(item.key().productId(),fresh);}GtinTnvedIdentity.requireCompatible(fresh,source);
-                var current=adapter.read(item.key());if(!current.key().equals(item.key()))throw new SecurityException("product_mismatch");actual.put(item.key(),current);if(!RegisteredGtinProof.contains(current.barcodes(),source.gtin()))requested.put(item.key(),source.gtin());
+            try{var source=sources.get(item.gtin());if(!RegisteredGtinProof.currentObservation(source,Instant.now()))throw new IllegalArgumentException("unverified_catalog_gtin");var fresh=products.get(item.key().productId());if(fresh==null){fresh=reader.read(shop,productKey(item.key()));products.put(item.key().productId(),fresh);}GtinTnvedIdentity.requireCompatible(fresh,source);
+                var current=adapter.read(item.key());if(!current.key().equals(item.key()))throw new SecurityException("product_mismatch");actual.put(item.key(),current);if(!RegisteredGtinProof.contains(current.barcodes(),source.gtin()))requested.put(item.key(),source.gtin());else adapter.validateIdentity(current,source);
             }catch(com.vncode.app.features.license.LicenseGate.LicenseDeniedException|SecurityException denied){throw denied;}
             catch(Exception invalid){issues.put(item.key(),com.vncode.app.features.sync.SyncFailure.of(invalid,0).code());}
         }
@@ -227,10 +248,10 @@ public final class CatalogSyncService {
         var sourceIssues=new HashMap<GtinSyncModels.ProductKey,String>();validateSources(adapter,active.stream().map(r->new Selection(r.key(),r.catalog().gtin())).toList(),sourceIssues);
         var changed=new LinkedHashMap<GtinSyncModels.ProductKey,Row>();var requested=new LinkedHashMap<GtinSyncModels.ProductKey,String>();var products=new HashMap<String,ProductSnapshot>();
         for(var row:active){
-            try{String issue=sourceIssues.get(row.key());if(issue!=null)throw new IllegalArgumentException(issue);var current=sources.get(row.catalog().gtin());if(current==null||!current.source().equals(row.catalog().source())||!current.details().equals(row.catalog().details())||!current.article().equals(row.catalog().article())||!current.color().equals(row.catalog().color())||!current.size().equals(row.catalog().size()))throw new IllegalArgumentException("CATALOG_CHANGED");
+            try{String issue=sourceIssues.get(row.key());if(issue!=null)throw new IllegalArgumentException(issue);var current=sources.get(row.catalog().gtin());if(!RegisteredGtinProof.currentObservation(current,Instant.now())||!current.source().equals(row.catalog().source())||!current.details().equals(row.catalog().details())||!current.article().equals(row.catalog().article())||!current.color().equals(row.catalog().color())||!current.size().equals(row.catalog().size()))throw new IllegalArgumentException("CATALOG_CHANGED");
                 var product=products.get(row.key().productId());if(product==null){product=reader.read(shop,productKey(row.key()));products.put(row.key().productId(),product);}GtinTnvedIdentity.requireCompatible(product,row.catalog());
-                if(row.gtinJob().isBlank()){var identity=row.differences().stream().filter(d->d.field().equals("identity")&&!d.before().isEmpty()).map(d->d.before().getFirst()).findFirst().orElse("");if(!identity.isBlank()&&!identity.equals(GtinProductIdentity.fingerprint(product)))throw new IllegalArgumentException("PRODUCT_CHANGED");var actual=adapter.read(row.key());if(row.originalBarcodes().stream().anyMatch(code->!RegisteredGtinProof.contains(actual.barcodes(),code)))throw new IllegalStateException("BARCODES_CHANGED");
-                    if(RegisteredGtinProof.contains(actual.barcodes(),row.catalog().gtin())){gtins.recordVerifiedMapping(row.key(),row.catalog().gtin());changed.put(row.key(),row.next(State.SUCCEEDED,"",""));continue;}
+                if(row.gtinJob().isBlank()){var identity=row.differences().stream().filter(d->d.field().equals("identity")&&!d.before().isEmpty()).map(d->d.before().getFirst()).findFirst().orElse("");if(!identity.isBlank()&&!identity.equals(GtinProductIdentity.fingerprint(product)))throw new IllegalArgumentException("PRODUCT_CHANGED");var actual=adapter.read(row.key());if(!actual.key().equals(row.key()))throw new SecurityException("product_mismatch");if(row.originalBarcodes().stream().anyMatch(code->!RegisteredGtinProof.contains(actual.barcodes(),code)))throw new IllegalStateException("BARCODES_CHANGED");
+                    if(RegisteredGtinProof.contains(actual.barcodes(),row.catalog().gtin())){adapter.validateIdentity(actual,row.catalog());gtins.recordVerifiedMapping(row.key(),row.catalog().gtin());changed.put(row.key(),row.next(State.SUCCEEDED,"",""));continue;}
                     if(!new HashSet<>(actual.barcodes()).equals(new HashSet<>(row.originalBarcodes())))throw new IllegalStateException("BARCODES_CHANGED");requested.put(row.key(),row.catalog().gtin());
                 }
                 changed.put(row.key(),row);
@@ -258,9 +279,26 @@ public final class CatalogSyncService {
     public Job read(Shop shop,String id){return plans.read(shop,id);}
     public List<String> list(Shop shop){return plans.list(shop);}
     public void pause(Shop shop,String id,boolean pause){plans.pause(shop,id,pause);}
+    /** A selected refresh must never merge an incomplete set and silently reuse the old missing rows. */
+    static void requireSelectedObservations(Set<String> selected,List<GtinSyncModels.RegisteredGtin> observed){
+        var expected=new HashSet<String>();for(String gtin:selected)expected.add(RegisteredGtinProof.canonicalCode(gtin));
+        var actual=new HashSet<String>();for(var row:observed){String code=RegisteredGtinProof.canonicalCode(row.gtin());if(!expected.contains(code)||!actual.add(code)||!RegisteredGtinProof.identifiedObservation(row))throw new IllegalStateException("CATALOG_REFRESH_INCOMPLETE");}
+        if(!actual.equals(expected))throw new IllegalStateException("CATALOG_REFRESH_INCOMPLETE");
+    }
+    private static SourceRefresh defaultSourceRefresh(){return new SourceRefresh(){
+        public void refresh(Shop shop,Set<String> selected)throws Exception{refreshCatalog(shop,selected,false);}
+        @Override public void refresh(Shop shop,Set<String> selected,boolean includeDocuments)throws Exception{refreshCatalog(shop,selected,includeDocuments);}
+    };}
+    private static void refreshCatalog(Shop shop,Set<String> selected,boolean includeDocuments)throws Exception {
+        var observations=com.vncode.app.integration.znack.registration.NationalCatalogGtinSource.forSelection(shop,selected,includeDocuments).read(shop.getId());
+        requireSelectedObservations(selected,observations);
+        ListingIdentity.require(shop);var repository=new GtinSyncRepository();
+        if(!includeDocuments)RegisteredGtinProof.requireKnownDocumentState(repository.catalogItems(shop.getId(),shop.getMarketplace(),selected).values(),observations);
+        repository.mergeCatalog(shop.getId(),shop.getMarketplace(),observations);
+    }
     private GtinSyncModels.RegisteredGtin current(Shop shop,String gtin){
         authority.accept(shop,gtin);var row=gtins.catalogItem(shop.getId(),shop.getMarketplace(),gtin);var now=Instant.now();
-        if(!RegisteredGtinValidator.isValid(gtin)||!row.tradeUnit()||!row.published()||row.syncedAt().isBefore(now.minus(Duration.ofHours(24)))||row.syncedAt().isAfter(now.plusSeconds(300)))throw new IllegalArgumentException("CATALOG_STALE");return row;
+        if(!RegisteredGtinValidator.isValid(gtin)||!RegisteredGtinProof.currentObservation(row,now))throw new IllegalArgumentException("CATALOG_STALE");return row;
     }
     private void assertSource(Shop shop,GtinSyncModels.RegisteredGtin expected){var actual=current(shop,expected.gtin());if(!actual.source().equals(expected.source())||!actual.details().equals(expected.details())||!actual.article().equals(expected.article())||!actual.color().equals(expected.color())||!actual.size().equals(expected.size()))throw new IllegalArgumentException("CATALOG_CHANGED");}
     private static GtinSyncModels.RegisteredGtin withValues(GtinSyncModels.RegisteredGtin source,Map<String,List<String>> values){

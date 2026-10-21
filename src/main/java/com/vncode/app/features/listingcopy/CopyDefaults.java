@@ -105,7 +105,7 @@ public final class CopyDefaults {
         if(source.key().marketplace()==Marketplace.OZON){
             var product=object(payload(source).get("attributes"));var codes=new LinkedHashSet<String>();String primary=text(product,"barcode");if(!primary.isBlank())codes.add(primary);codes.addAll(strings(array(product,"barcodes")));if(!codes.isEmpty())return List.copyOf(codes);
         }
-        return variant.gtin()==null||variant.gtin().isBlank()?List.of():List.of(variant.gtin());
+        return variant.barcodes();
     }
     private static JsonObject payload(ProductSnapshot source){try{return object(JsonParser.parseString(source.metadata().getOrDefault("source.payload","{}")));}catch(JsonParseException invalid){return new JsonObject();}}
 }

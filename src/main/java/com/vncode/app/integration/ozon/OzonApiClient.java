@@ -127,10 +127,16 @@ public final class OzonApiClient {
     }
 
     public JsonObject listProducts(String lastId, int limit) throws IOException {
+        return listProducts(lastId,limit,null);
+    }
+
+    /** Explicit partitions for complete owned-catalog reads; ALL excludes archived products. */
+    public JsonObject listProducts(String lastId,int limit,String visibility)throws IOException {
         if (limit < 1 || limit > 1000) {
             throw new IllegalArgumentException("Ozon product page limit must be between 1 and 1000");
         }
         JsonObject filter = new JsonObject();
+        if(visibility!=null){if(!java.util.Set.of("ALL","ARCHIVED").contains(visibility))throw new IllegalArgumentException("Invalid Ozon product visibility");filter.addProperty("visibility",visibility);}
         JsonObject request = new JsonObject();
         request.add("filter", filter);
         request.addProperty("last_id", lastId == null ? "" : lastId);

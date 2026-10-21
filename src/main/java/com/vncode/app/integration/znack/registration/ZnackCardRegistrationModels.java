@@ -59,7 +59,7 @@ public final class ZnackCardRegistrationModels {
         public boolean canRegisterNew() { return status == Status.PUBLISHED && hasGtin() || status==Status.ERROR && hasGtin() && hasFeed(); }
 
         public boolean canSignApproved() {
-            return hasGtin() && hasFeed() && (status == Status.READY_TO_SIGN || status == Status.SIGNING
+            return hasGtin() && (hasFeed() || goodId!=null&&goodId>0) && (status == Status.READY_TO_SIGN || status == Status.SIGNING
                     || status == Status.PROCESSING || status == Status.FEED_SUBMITTED);
         }
 

@@ -31,18 +31,18 @@ class ZnackCardBatchSigningTest {
         System.setProperty("vncode.appdata.dir", root.toString());
         Database.initDatabase();
         shop = GtinWriteTestFixture.shop(Marketplace.WILDBERRIES);
-        repository = new ZnackCardRegistrationRepository();
+        repository = RegistrationWorkflowTestFixtures.repository(shop);
         api = new FixtureApi();
         var catalog = new ZnackNationalCatalogService(api, null,
                 (xml, context) -> new CryptoProSigningResult(new byte[] {1}, ""), ZnackModels.Settings.empty());
-        workflow = new ZnackCardRegistrationWorkflow(repository,
+        workflow = RegistrationWorkflowTestFixtures.workflow(repository,
                 ignored -> new ZnackCardRegistrationWorkflow.CatalogSession("fixture-token", catalog), Runnable::run);
     }
 
     @AfterEach void cleanup() { System.clearProperty("vncode.appdata.dir"); }
 
     List<Sku> seed(int count, boolean consent) throws Exception {
-        var draft = new Draft("6204", 1, "Fixture", "Brand", Map.of());
+        var draft = new Draft("6204420000", "6204420000",1, "Fixture", "Brand", Map.of(),Map.of(),false);
         for (long id = 1; id <= count; id++) {
             try (var connection = Database.getConnection();
                     var card = connection.prepareStatement("INSERT INTO wb_product_cards(shop_id,nm_id,vendor_code,title,synced_at) VALUES(?,?,?,?,?)");
@@ -74,7 +74,7 @@ class ZnackCardBatchSigningTest {
     }
 
     @Test void twentyFiveApprovedCardsUseTenTenFiveAndPersistEachSigningCheckpoint() throws Exception {
-        assertTrue(workflow.signApproved(shop, seed(25, false), true, null));
+        assertTrue(RegistrationWorkflowTestFixtures.sign(workflow,shop, seed(25, false), true, null));
         assertEquals(List.of(10, 10, 5), api.batchSizes);
         assertEquals(25, api.signedDocuments);
         for (var row : current()) {
@@ -204,7 +204,10 @@ class ZnackCardBatchSigningTest {
         @Override public JsonElement productCards(String base, String token, String gtin)throws IOException {
             long id = identities.get(gtin); boolean complete = published.contains(id);
             if(id==missingCard)throw new ZnackApiException("fixture card temporarily missing",404,"{}");
-            return json("{\"result\":[{\"gtin\":\"" + gtin + "\",\"good_id\":" + (id==wrongCardIdentity?999:id) + ",\"good_status\":\"" + (complete ? "published" : "draft") + "\",\"good_detailed_status\":[\"" + (complete ? "published" : "notsigned") + "\"]}]}");
+            var card=JsonParser.parseString(repository.payload(shop.getId(),id)).getAsJsonObject();
+            card.addProperty("good_id",id==wrongCardIdentity?999:id);card.addProperty("good_status",complete?"published":"draft");
+            var states=new JsonArray();states.add(complete?"published":"notsigned");card.add("good_detailed_status",states);
+            var cards=new JsonArray();cards.add(card);var result=new JsonObject();result.add("result",cards);return result;
         }
         @Override public JsonElement nationalCatalogSigningDocument(String base, String token, JsonObject body) throws IOException {
             long id = identities.get(body.getAsJsonArray("gtins").get(0).getAsString());

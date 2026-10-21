@@ -38,7 +38,7 @@ class OzonCardBatchSigningTest {
         return new ZnackCardRegistrationWorkflow.CatalogSession("fixture-token",catalog,ZnackRegistrationScope.fromSettings(settings));
     }
     List<ProductKey> seed(int count,boolean consent){
-        var scope=session().scope();var draft=new Draft("6204",1,"Fixture","Brand",Map.of());
+        var scope=session().scope();var draft=new Draft("6204430000","6204",1,"Fixture","Brand",Map.of(13933L,"6204430000"),Map.of());
         for(long id=1;id<=count;id++){
             var key=new ProductKey(shop.getId(),Marketplace.OZON,Long.toString(500+id),"offer-"+id);String gtin=gtin(id);
             keys.put(id,key);identities.put(gtin,id);
@@ -54,8 +54,8 @@ class OzonCardBatchSigningTest {
         for(int at=digits.length()-1;at>=0;at--){sum+=(digits.charAt(at)-'0')*weight;weight=4-weight;}
         return digits+(10-sum%10)%10;
     }
-    @Test void twentyFiveApprovedCardsUseThreeRealArrayPostsOfTenTenFive(){
-        var selected=seed(25,false);assertTrue(workflow.signApproved(shop,selected,true,null));
+    @Test void twentyFiveApprovedCardsUseThreeRealArrayPostsOfTenTenFive()throws Exception{
+        var selected=seed(25,false);var review=workflow.prepareApprovedSigning(shop,selected);assertEquals(25,review.cards().size());assertEquals(0,api.signedDocuments);assertTrue(workflow.signApprovedReviewed(shop,review,null));
         assertEquals(List.of(10,10,5),api.batchSizes);assertEquals(25,api.signedDocuments);
         for(var key:selected){var row=repository.find(key);assertEquals(Status.PUBLISHED,row.status());assertEquals("CONFIRMED",row.signatureState());assertTrue(RegistrationSigningConsent.allowed(shop,key,row.gtin()));}
     }
@@ -126,7 +126,7 @@ class OzonCardBatchSigningTest {
         }
         @Override public JsonElement productCards(String base,String token,String gtin){
             long id=identities.get(gtin);boolean complete=published.contains(id);
-            return json("{\"result\":[{\"gtin\":\""+gtin+"\",\"good_id\":"+id+",\"good_status\":\""+(complete?"published":"draft")+"\",\"good_detailed_status\":[\""+(complete?"published":"notsigned")+"\"]}]}");
+            var card=JsonParser.parseString(repository.find(keys.get(id)).payload()).getAsJsonObject();card.addProperty("good_id",id);card.addProperty("good_status",complete?"published":"draft");var status=new JsonArray();status.add(complete?"published":"notsigned");card.add("good_detailed_status",status);var identifiers=new JsonArray();var identifier=new JsonObject();identifier.addProperty("type","gtin");identifier.addProperty("value",gtin);identifier.addProperty("level","trade-unit");identifiers.add(identifier);card.add("identified_by",identifiers);var cards=new JsonArray();cards.add(card);var response=new JsonObject();response.add("result",cards);return response;
         }
         @Override public JsonElement nationalCatalogSigningDocument(String base,String token,JsonObject body)throws IOException {
             long id=identities.get(body.getAsJsonArray("gtins").get(0).getAsString());int count=documentReads.merge(id,1,Integer::sum);

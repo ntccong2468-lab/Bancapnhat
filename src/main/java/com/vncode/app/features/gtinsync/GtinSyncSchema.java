@@ -64,6 +64,7 @@ public final class GtinSyncSchema {
                   REFERENCES gtin_sync_items(id) ON DELETE CASCADE,
                   status TEXT NOT NULL, created_at TEXT NOT NULL)
                 """);
+            s.execute("CREATE INDEX IF NOT EXISTS gtin_sync_dispatch_events ON gtin_sync_events(item_id,status,id DESC)");
         }
     }
 }

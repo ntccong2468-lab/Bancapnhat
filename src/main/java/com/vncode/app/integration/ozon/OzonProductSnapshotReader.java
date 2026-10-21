@@ -20,7 +20,7 @@ public final class OzonProductSnapshotReader implements ProductSnapshotReader {
     public ProductSnapshot read(Shop shop,ProductKey key)throws IOException{return read(shop,key,true);}
     public ProductSnapshot readForSynchronization(Shop shop,ProductKey key)throws IOException{return read(shop,key,false);}
     /** Barcode/add never changes certificates or prices; neither needs a per-product API read. */
-    public ProductSnapshot readForGtinSync(Shop shop,ProductKey key)throws IOException{return read(shop,key,false,false,false);}
+    public ProductSnapshot readForGtinSync(Shop shop,ProductKey key)throws IOException{return read(shop,key,false,false,false,false);}
     /** Attribute-only PATCH does not read or overwrite certificates, prices or the full local cache. */
     public ProductSnapshot readForProductEdit(Shop shop,ProductKey key)throws IOException{
         var value=read(shop,key,false,false,false);
@@ -30,22 +30,25 @@ public final class OzonProductSnapshotReader implements ProductSnapshotReader {
         return read(shop,key,includePrices,true,true);
     }
     private ProductSnapshot read(Shop shop,ProductKey key,boolean includePrices,boolean includeDocuments,boolean persist)throws IOException{
+        return read(shop,key,includePrices,includeDocuments,persist,true);
+    }
+    private ProductSnapshot read(Shop shop,ProductKey key,boolean includePrices,boolean includeDocuments,boolean persist,boolean includeEvidence)throws IOException{
         ListingIdentity.require(shop,key);if(key.marketplace()!=Marketplace.OZON)throw new SecurityException("Not an Ozon card");var client=clients.apply(shop);
         var ids=new JsonArray();ids.add(key.cardId());var b=new JsonObject();b.add("product_id",ids);
         var info=find(array(object(client.call("v3/product/info/list",b,false)),"items"),key.cardId());
         var filter=new JsonObject();filter.add("product_id",ids);b=new JsonObject();b.add("filter",filter);b.addProperty("limit",1);
         var attr=find(array(object(client.call("v4/product/info/attributes",b,false)),"result"),key.cardId());
         if(info==null||attr==null||!attr.has("attributes")||!attr.has("dimension_unit")||!attr.has("weight_unit")||!attr.has("description_category_id")||!attr.has("type_id"))throw new IOException("Complete Ozon card unavailable");
-        if(!text(info,"offer_id").equals(text(attr,"offer_id"))||(!key.variantId().isBlank()&&!key.variantId().equals(text(attr,"offer_id"))))throw new IOException("Ozon variant identity changed");
+        if(text(attr,"offer_id").isBlank()||!text(info,"offer_id").equals(text(attr,"offer_id"))||(!key.variantId().isBlank()&&!key.variantId().equals(text(attr,"offer_id"))))throw new IOException("Ozon variant identity changed");
         var attributes=new ArrayList<ProductAttribute>();String description="",brand="",size="",color="",russianSize="";var cat=new JsonObject();cat.addProperty("description_category_id",new java.math.BigInteger(text(attr,"description_category_id")));cat.addProperty("type_id",new java.math.BigInteger(text(attr,"type_id")));cat.addProperty("language","DEFAULT");var names=new HashMap<String,String>();for(var e:array(object(client.call("v1/description-category/attribute",cat,false)),"result")){var a=object(e);names.put(text(a,"id"),text(a,"name"));}
         var groups=new HashMap<String,Integer>();var all=new JsonArray();array(attr,"attributes").forEach(all::add);array(attr,"complex_attributes").forEach(all::add);
         for(var e:all){var a=object(e);var values=new ArrayList<String>();for(var v:array(a,"values"))values.add(text(object(v),"value"));String id=text(a,"id"),complex=text(a,"complex_id"),name=names.getOrDefault(id,"");int group=complex.isBlank()||complex.equals("0")?0:groups.merge(complex+":"+id,1,Integer::sum)-1;attributes.add(new ProductAttribute(id,name,values,null,complex,group));if(!values.isEmpty()){if(id.equals("4191"))description=values.getFirst();if(name.equals("Бренд")||name.equals("Бренд в одежде и обуви")||id.equals("85"))brand=values.getFirst();if(name.equals("Размер производителя"))size=values.getFirst();if(name.equals("Цвет товара"))color=values.getFirst();}}
         var media=new ArrayList<ProductMedia>();for(var url:OzonListingImages.ordered(info,attr))media.add(new ProductMedia(URI.create(url),null,null,null,null));
         var dimensions=new PackageDimensions(cm(attr,"depth"),cm(attr,"width"),cm(attr,"height"),kg(attr));
         var codes=new ArrayList<>(strings(array(attr,"barcodes")));if(!text(attr,"barcode").isBlank()&&!codes.contains(text(attr,"barcode")))codes.addFirst(text(attr,"barcode"));
-        String proof=ListingIdentity.verifiedGtin(new ProductKey(shop.getId(),shop.getMarketplace(),key.cardId(),text(attr,"offer_id")),codes);
         for(var attribute:attributes)if(ProductFieldNames.matches("russianSize",attribute.name())&&!attribute.values().isEmpty())russianSize=attribute.values().getFirst();
-        var variants=List.of(new ProductVariant(text(attr,"offer_id"),text(attr,"offer_id"),color,size,proof.isBlank()?(codes.isEmpty()?"":codes.getFirst()):proof,!proof.isBlank(),russianSize));
+        var proof=includeEvidence?ListingIdentity.verifiedGtinEvidence(shop,new ProductKey(shop.getId(),shop.getMarketplace(),key.cardId(),text(attr,"offer_id")),codes,text(attr,"offer_id"),color,size,russianSize):Optional.<ListingIdentity.VerifiedGtin>empty();
+        var variants=List.of(new ProductVariant(text(attr,"offer_id"),text(attr,"offer_id"),color,size,proof.map(ListingIdentity.VerifiedGtin::gtin).orElse(""),proof.isPresent(),russianSize,codes,proof.map(ListingIdentity.VerifiedGtin::evidence).orElse(ProductVariant.GtinEvidence.UNVERIFIED)));
         var docs=new ArrayList<ProductDocument>();var now=Instant.now();int pages=1;
         for(int page=1;includeDocuments&&page<=pages;page++){
             b=new JsonObject();b.addProperty("offer_id",text(attr,"offer_id"));b.addProperty("page",page);b.addProperty("page_size",100);
@@ -72,7 +75,7 @@ public final class OzonProductSnapshotReader implements ProductSnapshotReader {
         }catch(IOException unavailable){inherited.put("source.price.unavailable","true");}
         var raw=new JsonObject();raw.add("info",info);raw.add("attributes",attr);raw.add("documents",ProductJson.GSON.toJsonTree(docs.stream().map(ProductDocument::metadata).toList()));String payload=ListingIdentity.canonical(raw);
         inherited.putAll(Map.of("source.payload",payload,"owner",ListingIdentity.fingerprint(shop),"sku",text(info,"sku"),"complex.ambiguous",Boolean.toString(groups.values().stream().anyMatch(v->v>1))));
-        var snapshot=new ProductSnapshot(key,"live:"+ListingIdentity.hash(payload+ListingIdentity.canonical(ProductJson.GSON.toJsonTree(inherited))),text(attr,"name"),description,brand,text(attr,"offer_id"),text(attr,"description_category_id")+":"+text(attr,"type_id"),media,attributes,variants,dimensions,docs,now,inherited);if(persist)new ProductRepository().saveVerifiedSnapshot(shop,snapshot);return snapshot;
+        var snapshot=new ProductSnapshot(key,"live:"+ListingIdentity.hash(payload+ListingIdentity.canonical(ProductJson.GSON.toJsonTree(inherited))),text(attr,"name"),description,brand,text(attr,"offer_id"),text(attr,"description_category_id")+":"+text(attr,"type_id"),media,attributes,variants,dimensions,docs,now,inherited);if(persist)new ProductRepository().saveVerifiedSnapshot(shop,snapshot);else ListingIdentity.require(shop,key);return snapshot;
     }
     private static BigDecimal price(JsonObject item){var value=item.get("price");if(value==null||value.isJsonNull())return null;try{return value.isJsonObject()?decimal(value.getAsJsonObject(),"price"):value.getAsBigDecimal();}catch(RuntimeException invalid){return null;}}
     private static JsonObject find(JsonArray a,String id)throws IOException{JsonObject found=null;for(var e:a){var o=object(e);if(text(o,"id").equals(id)){if(found!=null)throw new IOException("Ambiguous Ozon identity");found=o;}}return found;}

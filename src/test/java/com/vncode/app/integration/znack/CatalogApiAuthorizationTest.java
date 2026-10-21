@@ -43,9 +43,11 @@ class CatalogApiAuthorizationTest {
     @Test void catalogProductListIsNotRestrictedToTheTrueApiLpGroupAndPaginatesByOffset()throws Exception{
         var seen=new ArrayList<Request>();
         var transport=new OkHttpClient.Builder().addInterceptor(chain->{seen.add(chain.request());return response(chain.request(),200,"{\"result\":{\"goods\":[{\"gtin\":\"04645588781154\"}],\"total\":2300}}");}).build();
-        var response=ZnackApiClient.forCatalogKey(transport,KEY,()->{}).products(BASE,null,2,10_000).getAsJsonObject();
+        var api=ZnackApiClient.forCatalogKey(transport,KEY,()->{});
+        var response=api.products(BASE,null,2,1_000).getAsJsonObject();
         assertEquals(2300,response.get("total").getAsInt());assertEquals(1,response.getAsJsonArray("results").size());
         var request=seen.getFirst();assertEquals("1000",request.url().queryParameter("limit"));assertEquals("2000",request.url().queryParameter("offset"));assertNull(request.url().queryParameter("pg"));assertNull(request.header("Authorization"));assertEquals(KEY,request.url().queryParameter("apikey"));
+        var unsupported=assertThrows(IllegalArgumentException.class,()->api.products(BASE,null,2,10_000));assertEquals("CATALOG_LIST_RANGE_UNSUPPORTED",unsupported.getMessage());assertEquals(1,seen.size(),"An unsupported range is rejected locally without another authenticated request");
     }
     @Test void catalogListAlwaysIncludesOneStableDateIntervalAcrossConnectionCheckAndAllPages()throws Exception {
         var seen=new ArrayList<Request>();

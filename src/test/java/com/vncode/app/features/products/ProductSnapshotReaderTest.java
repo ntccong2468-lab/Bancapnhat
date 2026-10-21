@@ -36,7 +36,7 @@ class ProductSnapshotReaderTest {
         var snapshot=reader.read(wb,new ProductKey(1,Marketplace.WILDBERRIES,"123","101"));
         assertTrue(snapshot.revision().startsWith("live:"));assertEquals(2,snapshot.media().size());assertTrue(snapshot.media().get(1).uri().toString().endsWith("2.jpg"));
         assertEquals(2,snapshot.variants().size());assertEquals("46",snapshot.variants().getFirst().russianSize());assertEquals("Black",snapshot.variants().getFirst().color());
-        assertEquals(new BigDecimal("0.123"),snapshot.dimensions().weightKg());assertEquals("04610689132457",snapshot.variants().getFirst().gtin());
+        assertEquals(new BigDecimal("0.123"),snapshot.dimensions().weightKg());assertEquals("",snapshot.variants().getFirst().gtin());assertEquals(List.of("04610689132457"),snapshot.variants().getFirst().barcodes());
         assertFalse(snapshot.variants().getFirst().gtinVerified());assertEquals(DocumentState.VALID,snapshot.documents().getFirst().state());
         assertNull(snapshot.documents().getFirst().file());assertEquals("Scope",snapshot.documents().getFirst().metadata().get("productNumber"));
         assertThrows(UnsupportedOperationException.class,()->snapshot.metadata().put("secret","bad"));
@@ -80,14 +80,69 @@ class ProductSnapshotReaderTest {
         assertThrows(java.io.IOException.class,()->reader.read(wb,new ProductKey(1,Marketplace.WILDBERRIES,"123","101")));
     }
     @Test void onlyPublishedOwnedTradeUnitVerifiesFreshBarcode() throws Exception {
-        try(var c=Database.getConnection();var p=c.prepareStatement("INSERT INTO gtin_sync_catalog VALUES(1,'WILDBERRIES','04610689132457',?)")){
-            p.setString(1,"{\"published\":true,\"tradeUnit\":true}");p.executeUpdate();
-            try(var s=c.createStatement()){s.execute("INSERT INTO gtin_sync_mappings VALUES(1,'WILDBERRIES','123','101','04610689132457','now')");}
-        }
+        currentProof(wb,new ProductKey(1,Marketplace.WILDBERRIES,"123","101"),"Black","M",java.time.Instant.now(),null);
         var reader=new WbProductSnapshotReader(s->(p,b,m)->JsonParser.parseString(WB));
         var snapshot=reader.read(wb,new ProductKey(1,Marketplace.WILDBERRIES,"123","101"));
         assertTrue(snapshot.variants().getFirst().gtinVerified());assertFalse(snapshot.variants().get(1).gtinVerified());
+        assertEquals("04610689132457",snapshot.variants().getFirst().gtin());assertTrue(snapshot.variants().getFirst().gtinEvidence().source().startsWith("National Catalog@"));assertNotNull(snapshot.variants().getFirst().gtinEvidence().checkedAt());assertEquals("published",snapshot.variants().getFirst().gtinEvidence().catalogStatus());
         assertEquals(snapshot.revision(),reader.read(wb,snapshot.key()).revision());
+    }
+    @Test void transientWbGtinReadKeepsNativeFactsWithoutProjectingProofOrReplacingTheFullCache()throws Exception{
+        var key=new ProductKey(1,Marketplace.WILDBERRIES,"123","101");currentProof(wb,key,"Black","M",java.time.Instant.now(),null);
+        var reader=new WbProductSnapshotReader(s->(p,b,m)->JsonParser.parseString(WB));var full=reader.readForSynchronization(wb,key);assertTrue(full.variants().getFirst().gtinVerified());String cached=storedPayload(key);
+        var transientRead=reader.readForGtinSync(wb,key);var actual=transientRead.variants().getFirst();assertFalse(actual.gtinVerified());assertEquals("",actual.gtin());assertEquals(ProductVariant.Verification.UNVERIFIED,actual.gtinEvidence().status());assertEquals(List.of("04610689132457"),actual.barcodes());assertEquals("Black",actual.color());assertEquals("M",actual.size());assertEquals("46",actual.russianSize());assertEquals(full.revision(),transientRead.revision());assertEquals(com.vncode.app.features.gtinsync.GtinProductIdentity.fingerprint(full),com.vncode.app.features.gtinsync.GtinProductIdentity.fingerprint(transientRead));assertEquals(cached,storedPayload(key));
+    }
+    @Test void transientOzonGtinReadKeepsNativeFactsWithoutProjectingProofOrReplacingTheFullCache()throws Exception{
+        var key=new ProductKey(2,Marketplace.OZON,"321","ARTICLE");currentProof(ozon,key,"Black","M",java.time.Instant.now(),null);
+        var reader=new OzonProductSnapshotReader(s->(p,b,m)->JsonParser.parseString(switch(p){
+            case "v3/product/info/list" -> "{\"items\":[{\"id\":321,\"offer_id\":\"ARTICLE\",\"sku\":99}]}";
+            case "v4/product/info/attributes" -> "{\"result\":[{\"id\":321,\"offer_id\":\"ARTICLE\",\"name\":\"Full\",\"description_category_id\":12,\"type_id\":13,\"dimension_unit\":\"mm\",\"weight_unit\":\"g\",\"barcodes\":[\"04610689132457\"],\"attributes\":[{\"id\":1001,\"values\":[{\"value\":\"M\"}]},{\"id\":1002,\"values\":[{\"value\":\"46\"}]},{\"id\":1003,\"values\":[{\"value\":\"Black\"}]}]}]}";
+            case "v1/description-category/attribute" -> "{\"result\":[{\"id\":1001,\"name\":\"Размер производителя\"},{\"id\":1002,\"name\":\"Российский размер\"},{\"id\":1003,\"name\":\"Цвет товара\"}]}";
+            default -> "{\"result\":{\"certificates\":[],\"page_count\":1}}";
+        }));
+        var full=reader.readForSynchronization(ozon,key);assertTrue(full.variants().getFirst().gtinVerified());String cached=storedPayload(key);
+        var transientRead=reader.readForGtinSync(ozon,key);var actual=transientRead.variants().getFirst();assertFalse(actual.gtinVerified());assertEquals("",actual.gtin());assertEquals(ProductVariant.Verification.UNVERIFIED,actual.gtinEvidence().status());assertEquals(List.of("04610689132457"),actual.barcodes());assertEquals("Black",actual.color());assertEquals("M",actual.size());assertEquals("46",actual.russianSize());assertEquals(full.revision(),transientRead.revision());assertEquals(com.vncode.app.features.gtinsync.GtinProductIdentity.fingerprint(full),com.vncode.app.features.gtinsync.GtinProductIdentity.fingerprint(transientRead));assertEquals(cached,storedPayload(key));
+    }
+    @Test void transientGtinReadStillRejectsCredentialsChangedDuringTheMarketplaceRead(){
+        var reader=new WbProductSnapshotReader(s->(p,b,m)->{try(var c=Database.getConnection();var q=c.createStatement()){q.executeUpdate("UPDATE shops SET api_key='rotated' WHERE id=1");}catch(Exception e){throw new java.io.IOException(e);}return JsonParser.parseString(WB);});
+        assertThrows(SecurityException.class,()->reader.readForGtinSync(wb,new ProductKey(1,Marketplace.WILDBERRIES,"123","101")));
+    }
+    private String storedPayload(ProductKey key)throws Exception{
+        try(var c=Database.getConnection();var query=c.prepareStatement("SELECT payload FROM product_snapshots WHERE shop_id=? AND marketplace=? AND card_id=? AND variant_id=?")){query.setInt(1,key.shopId());query.setString(2,key.marketplace().name());query.setString(3,key.cardId());query.setString(4,key.variantId());try(var rows=query.executeQuery()){assertTrue(rows.next());return rows.getString(1);}}
+    }
+    @Test void staleForeignOrConflictingProofNeverUpgradesTheMarketplaceBarcode()throws Exception{
+        var key=new ProductKey(1,Marketplace.WILDBERRIES,"123","101");var reader=new WbProductSnapshotReader(s->(p,b,m)->JsonParser.parseString(WB));
+        for(String issue:List.of("stale","foreign","color","size")){
+            currentProof(wb,key,issue.equals("color")?"White":"Black",issue.equals("size")?"L":"M",issue.equals("stale")?java.time.Instant.now().minusSeconds(90000):java.time.Instant.now(),issue.equals("foreign")?"National Catalog@"+"b".repeat(64):null);
+            var variant=reader.readForSynchronization(wb,key).variants().getFirst();assertFalse(variant.gtinVerified(),issue);assertEquals("",variant.gtin());assertEquals(List.of("04610689132457"),variant.barcodes());
+        }
+    }
+    @Test void missingOrRepeatedWbVariantIdentityCannotBeReplacedByRowPosition()throws Exception{
+        for(String id:List.of("","101")){
+            var response=JsonParser.parseString(WB);var sizes=response.getAsJsonObject().getAsJsonArray("cards").get(0).getAsJsonObject().getAsJsonArray("sizes");sizes.get(1).getAsJsonObject().addProperty("chrtID",id);
+            var reader=new WbProductSnapshotReader(s->(p,b,m)->response);assertThrows(java.io.IOException.class,()->reader.readForSynchronization(wb,new ProductKey(1,Marketplace.WILDBERRIES,"123","101")));
+        }
+    }
+    @Test void failedMarketplaceReadPreservesThePreviousSnapshotAndRawCodes()throws Exception{
+        var key=new ProductKey(1,Marketplace.WILDBERRIES,"123","101");new WbProductSnapshotReader(s->(p,b,m)->JsonParser.parseString(WB)).readForSynchronization(wb,key);
+        String before;try(var c=Database.getConnection();var p=c.createStatement();var r=p.executeQuery("SELECT payload FROM product_snapshots")){assertTrue(r.next());before=r.getString(1);}
+        var failing=new WbProductSnapshotReader(s->(p,b,m)->{throw new java.net.SocketTimeoutException("fixture marketplace unavailable");});assertThrows(java.net.SocketTimeoutException.class,()->failing.readForSynchronization(wb,key));
+        try(var c=Database.getConnection();var p=c.createStatement();var r=p.executeQuery("SELECT payload FROM product_snapshots")){assertTrue(r.next());assertEquals(before,r.getString(1));}
+        var cached=new ProductRepository().localSnapshot(key).orElseThrow();assertFalse(cached.variants().getFirst().gtinVerified());assertEquals(List.of("04610689132457"),cached.variants().getFirst().barcodes());
+    }
+    @Test void theSamePhysicalVariantCanHaveCurrentEvidenceInBothMarketplaces()throws Exception{
+        var wbKey=new ProductKey(1,Marketplace.WILDBERRIES,"123","101");var ozonKey=new ProductKey(2,Marketplace.OZON,"321","O-1");
+        currentProof(wb,wbKey,"Black","M",java.time.Instant.now(),null);currentProof(ozon,ozonKey,"Black","M",java.time.Instant.now(),null);
+        var wbProof=com.vncode.app.integration.listing.ListingIdentity.verifiedGtinEvidence(wb,wbKey,List.of("04610689132457"),"ARTICLE","Black","M","").orElseThrow();
+        var ozonProof=com.vncode.app.integration.listing.ListingIdentity.verifiedGtinEvidence(ozon,ozonKey,List.of("4610689132457"),"ARTICLE","Black","M","").orElseThrow();
+        assertEquals(wbProof.gtin(),ozonProof.gtin());assertNotEquals(wbProof.evidence().source(),ozonProof.evidence().source());
+        assertTrue(com.vncode.app.integration.listing.ListingIdentity.verifiedGtinEvidence(wb,new ProductKey(1,Marketplace.WILDBERRIES,"123","102"),List.of("04610689132457")).isEmpty());
+    }
+    private void currentProof(Shop shop,ProductKey key,String color,String size,java.time.Instant checked,String source)throws Exception{
+        com.vncode.app.features.gtinsync.GtinWriteTestFixture.saveSettings(shop,com.vncode.app.features.gtinsync.GtinWriteTestFixture.CERTIFICATE,com.vncode.app.integration.znack.ZnackModels.PRODUCTION_TRUE_API);
+        var evidence=new com.vncode.app.features.catalogsync.CatalogProductData(java.util.Map.of("@catalog_id",List.of("91"),"@catalog_status",List.of("published")),List.of(),List.of());
+        var repo=new com.vncode.app.features.gtinsync.GtinSyncRepository();repo.saveCatalog(shop.getId(),shop.getMarketplace(),List.of(new com.vncode.app.features.gtinsync.GtinSyncModels.RegisteredGtin("04610689132457","ARTICLE",color,size,true,true,source==null?com.vncode.app.features.gtinsync.RegisteredGtinProof.source(shop):source,checked,evidence)));
+        repo.saveMapping(new com.vncode.app.features.gtinsync.GtinSyncModels.ProductKey(key.shopId(),key.marketplace(),key.cardId(),key.variantId()),"04610689132457");
     }
     @Test void documentFileMissingIsExplicitAndOzonUnitsExact() throws Exception {
         var reader=new OzonProductSnapshotReader(s->(p,b,m)->JsonParser.parseString(switch(p){
@@ -99,6 +154,7 @@ class ProductSnapshotReaderTest {
         assertEquals(new BigDecimal("12.3"),snapshot.dimensions().lengthCm());assertEquals(new BigDecimal("0.123"),snapshot.dimensions().weightKg());
         assertEquals("Description",snapshot.description());assertEquals(2,snapshot.media().size());assertNull(snapshot.documents().getFirst().file());
         assertEquals(DocumentState.UNVERIFIED,snapshot.documents().getFirst().state());assertEquals("12:13",snapshot.categoryId());
+        assertEquals(List.of("04610689132457"),snapshot.variants().getFirst().barcodes());assertEquals("",snapshot.variants().getFirst().gtin());assertFalse(snapshot.variants().getFirst().gtinVerified());
         assertEquals(snapshot.revision(),reader.read(ozon,snapshot.key()).revision());
     }
     @Test void completeOzonReaderPreservesComplexValuesAndFlagsAmbiguousGrouping()throws Exception{

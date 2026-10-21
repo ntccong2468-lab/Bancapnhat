@@ -28,6 +28,9 @@ public final class ListingHttpClient implements ListingTransport {
     }
     public JsonElement call(String path,JsonElement body,boolean mutation)throws IOException{return call(path,body,mutation,()->{});}
     public JsonElement call(String path,JsonElement body,boolean mutation,Runnable beforeSend)throws IOException{
+        return call(path,body,mutation,()->{},beforeSend);
+    }
+    @Override public JsonElement call(String path,JsonElement body,boolean mutation,ListingTransport.CheckedGuard freshRead,Runnable beforeSend)throws IOException{
         ListingIdentity.require(shop);if(path==null||!path.matches("[a-zA-Z0-9/_?=&%.,:-]{1,2048}"))throw new IllegalArgumentException("Invalid listing endpoint");
         HttpUrl url=origin.resolve(path);if(url==null||!url.host().equals(origin.host()))throw new IOException("Invalid listing origin");
         var b=new Request.Builder().url(url).header("Accept","application/json");
@@ -36,6 +39,9 @@ public final class ListingHttpClient implements ListingTransport {
         if(body==null)b.get();else b.post(RequestBody.create(MediaType.get("application/json"),body.toString()));
         if(origin.host().equals("content-api.wildberries.ru"))com.vncode.app.integration.wb.WbContentApiRateLimiter.awaitTurn(shop.getApiKey(),path);
         if(origin.host().equals("api-seller.ozon.ru"))try{OZON_LIMITER.awaitTurn(ListingIdentity.hash(shop.getClientId()),"catalog");}catch(InterruptedException e){Thread.currentThread().interrupt();throw new InterruptedIOException("Listing request cancelled");}
+        // A guard may re-read a marketplace card. Never hold the background/FBS HTTP permit
+        // while it does so; a nested background acquire would otherwise deadlock.
+        ListingIdentity.require(shop);freshRead.check();
         try(var slot=com.vncode.app.shared.MarketplaceRequestBudget.acquire()){
             ListingIdentity.require(shop);beforeSend.run();
             try(var r=http.newCall(b.build()).execute()){
@@ -55,7 +61,7 @@ public final class ListingHttpClient implements ListingTransport {
                             if(value!=null&&value.isJsonPrimitive()){reason=ListingRejectedException.safe(shop,value.getAsString());if(!reason.isBlank())break;}
                         }
                     }catch(IOException|RuntimeException unavailable){/* Status is still an explicit rejection. */}
-                    throw new ListingRejectedException("Listing API HTTP "+r.code()+(reason.isBlank()?"":": "+reason));
+                    throw new ListingRejectedException(shop.getMarketplace(),r.code(),"Listing API HTTP "+r.code()+(reason.isBlank()?"":": "+reason));
                 }
                 throw new IOException("Listing API HTTP "+r.code());
             }

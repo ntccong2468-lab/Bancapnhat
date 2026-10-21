@@ -11,7 +11,9 @@ import java.util.*;
 /** Safe, per-item progress. Payloads and upstream exception messages are never report fields. */
 public final class SyncRunRepository {
     public record Run(String id,int shopId,String marketplace,String kind,String state,String step,int total,String created,String updated,String error) {}
-    public record Item(String id,String runId,String productId,String variantId,String sku,String article,String color,String size,String gtin,String state,String step,String error,String childJob,String evidence) {}
+    public record Item(String id,String runId,String productId,String variantId,String sku,String article,String color,String size,String gtin,String state,String step,String error,String childJob,String evidence,String updatedAt) {
+        public Item(String id,String runId,String productId,String variantId,String sku,String article,String color,String size,String gtin,String state,String step,String error,String childJob,String evidence){this(id,runId,productId,variantId,sku,article,color,size,gtin,state,step,error,childJob,evidence,"");}
+    }
     public record Event(String step,String state,String error,String time) {}
     public String begin(Shop shop,String kind,String step){
         ListingIdentity.require(shop);String id=UUID.randomUUID().toString(),now=Instant.now().toString();
@@ -38,7 +40,7 @@ public final class SyncRunRepository {
             try(var p=c.prepareStatement("UPDATE sync_runs SET total=(SELECT count(*) FROM sync_run_items WHERE run_id=?),updated_at=? WHERE id=?")){p.setString(1,run);p.setString(2,Instant.now().toString());p.setString(3,run);p.executeUpdate();}
             return null;
         }); }catch(SQLException e){throw storage(e);}
-        try(var c=Database.getConnection();var p=c.prepareStatement("SELECT id,child_job FROM sync_run_items WHERE run_id=? AND product_id=? AND variant_id=?")){p.setString(1,run);p.setString(2,product);p.setString(3,variant);try(var r=p.executeQuery()){if(!r.next())throw new SQLException("Missing item");return new Item(r.getString(1),run,product,variant,sku,article,color,size,gtin,state,"MATCHING",code(error),r.getString(2),evidence);}}catch(SQLException e){throw storage(e);}
+        try(var c=Database.getConnection();var p=c.prepareStatement("SELECT * FROM sync_run_items WHERE run_id=? AND product_id=? AND variant_id=?")){p.setString(1,run);p.setString(2,product);p.setString(3,variant);try(var r=p.executeQuery()){if(!r.next())throw new SQLException("Missing item");return readItem(r,run);}}catch(SQLException e){throw storage(e);}
     }
     /** Persist a Catalog snapshot report in one bounded transaction, not a connection per GTIN. */
     public void addBatch(Shop shop,String run,List<Item> items){
@@ -125,13 +127,16 @@ public final class SyncRunRepository {
     }
     public void linkReviewed(Shop shop,String run,com.vncode.app.features.catalogsync.CatalogSyncModels.Job child){
         if(!child.confirmed()||!child.fields().contains(com.vncode.app.features.catalogsync.CatalogSyncModels.Field.GTIN)||child.shopId()!=shop.getId()||!child.owner().equals(ListingIdentity.fingerprint(shop)))throw new SecurityException("SYNC_REVIEW_OWNER_CHANGED");
+        var dispatched=new HashMap<com.vncode.app.features.gtinsync.GtinSyncModels.ProductKey,Boolean>();
+        var seenJobs=new HashSet<String>();var queue=new com.vncode.app.features.gtinsync.GtinSyncRepository();
+        for(var row:child.rows())if(row.gtinJob()!=null&&!row.gtinJob().isBlank()&&seenJobs.add(row.gtinJob()))for(var item:queue.jobItems(UUID.fromString(row.gtinJob())))dispatched.put(item.preview().before().key(),item.dispatchedAt()!=null||Set.of("AWAITING_VERIFICATION","RECONCILE_REQUIRED","SUCCEEDED").contains(item.status().name()));
         try { SqliteWriteTransaction.run(c->{
             require(c,shop,run);
-            try(var p=c.prepareStatement("UPDATE sync_run_items SET gtin=?,child_job=?,state=?,step='READBACK',error_code=?,updated_at=?,evidence_json=json_set(COALESCE(evidence_json,'{}'),'$.marketplaceVerified',json(?)) WHERE run_id=? AND product_id=? AND variant_id=? AND state NOT IN ('SUCCEEDED','UNCHANGED')")){
+            try(var p=c.prepareStatement("UPDATE sync_run_items SET gtin=?,child_job=?,state=?,step='READBACK',error_code=?,updated_at=?,evidence_json=json_set(CASE WHEN json_valid(evidence_json) THEN evidence_json ELSE '{}' END,'$.marketplaceVerified',json(?),'$.marketplaceSubmitted',json(?),'$.syncResult',?,'$.nextAction',?) WHERE run_id=? AND product_id=? AND variant_id=? AND state NOT IN ('SUCCEEDED','UNCHANGED')")){
               for(var row:child.rows()){
                     // Let the sync worker activate the native registration candidate after
                     // the confirmed child has verified the target. UI callbacks cannot skip it.
-                    p.setString(1,row.catalog().gtin());p.setString(2,child.id());p.setString(3,row.state()==com.vncode.app.features.catalogsync.CatalogSyncModels.State.BLOCKED?"NEEDS_ACTION":"WAITING_REMOTE");p.setString(4,code(row.issue()));p.setString(5,Instant.now().toString());p.setString(6,row.state()==com.vncode.app.features.catalogsync.CatalogSyncModels.State.SUCCEEDED?"true":"false");p.setString(7,run);p.setString(8,row.key().productId());p.setString(9,row.key().variantId());p.addBatch();
+                    p.setString(1,row.catalog().gtin());p.setString(2,child.id());p.setString(3,row.state()==com.vncode.app.features.catalogsync.CatalogSyncModels.State.BLOCKED?"NEEDS_ACTION":"WAITING_REMOTE");p.setString(4,code(row.issue()));p.setString(5,Instant.now().toString());p.setString(6,row.state()==com.vncode.app.features.catalogsync.CatalogSyncModels.State.SUCCEEDED?"true":"false");boolean applied=row.state()==com.vncode.app.features.catalogsync.CatalogSyncModels.State.SUCCEEDED;boolean sent=applied||dispatched.getOrDefault(row.key(),false);p.setString(7,sent?"true":"false");p.setString(8,applied?"APPLIED":row.state()==com.vncode.app.features.catalogsync.CatalogSyncModels.State.BLOCKED?"FAILED":sent?"PENDING":"NOT_SUBMITTED");p.setString(9,applied?"GTIN_READBACK_COMPLETE":row.state()==com.vncode.app.features.catalogsync.CatalogSyncModels.State.BLOCKED?"GTIN_REVIEW_SOURCE":"GTIN_WAIT_READBACK");p.setString(10,run);p.setString(11,row.key().productId());p.setString(12,row.key().variantId());p.addBatch();
               }p.executeBatch();
             }
             try(var p=c.prepareStatement("UPDATE sync_runs SET state='RUNNING',step='READBACK',finished_at=NULL,updated_at=? WHERE id=?")){p.setString(1,Instant.now().toString());p.setString(2,run);p.executeUpdate();}
@@ -148,10 +153,22 @@ public final class SyncRunRepository {
     public Map<String,Long> counts(String id){try(var c=Database.getConnection();var p=c.prepareStatement("SELECT state,count(*) FROM sync_run_items WHERE run_id=? GROUP BY state")){p.setString(1,id);var out=new LinkedHashMap<String,Long>();try(var r=p.executeQuery()){while(r.next())out.put(r.getString(1),r.getLong(2));}return Collections.unmodifiableMap(out);}catch(SQLException e){throw storage(e);}}
     /** Marketplace readback counts are separate from activating the local registration pointer. */
     public Map<String,Long> marketplaceCounts(String run){
-        try(var c=Database.getConnection();var p=c.prepareStatement("SELECT COUNT(*),COALESCE(SUM(CASE WHEN NULLIF(gtin,'') IS NOT NULL THEN 1 ELSE 0 END),0),COALESCE(SUM(CASE WHEN state IN ('SUCCEEDED','UNCHANGED') OR json_extract(evidence_json,'$.marketplaceVerified')=1 THEN 1 ELSE 0 END),0),COALESCE(SUM(CASE WHEN state IN ('NEEDS_ACTION','FAILED') AND NULLIF(gtin,'') IS NOT NULL THEN 1 ELSE 0 END),0) FROM sync_run_items WHERE run_id=? AND product_id NOT LIKE 'catalog:%'")){
-            p.setString(1,run);try(var r=p.executeQuery()){r.next();long total=r.getLong(1),with=r.getLong(2),updated=r.getLong(3);return Map.of("TOTAL",total,"WITH_GTIN",with,"WITHOUT_GTIN",total-with,"UPDATED",updated,"NOT_UPDATED",Math.max(0,with-updated),"BLOCKED",r.getLong(4));}
+        // A confirmed child is a queued plan, not evidence of a marketplace POST.
+        String safe="CASE WHEN json_valid(evidence_json) THEN evidence_json ELSE '{}' END";
+        String has="NULLIF(trim(gtin),'') IS NOT NULL";
+        String verified="("+has+") AND (state IN ('SUCCEEDED','UNCHANGED') OR COALESCE(json_extract("+safe+",'$.marketplaceVerified'),0)=1)";
+        String submitted="("+has+") AND (("+verified+") OR COALESCE(json_extract("+safe+",'$.marketplaceSubmitted'),0)=1)";
+        String unknown="NOT ("+verified+") AND (COALESCE(json_extract("+safe+",'$.checkResult'),'')='UNKNOWN' OR COALESCE(json_extract("+safe+",'$.syncResult'),'')='UNKNOWN' OR state='RECONCILING')";
+        String without="NOT ("+has+") AND NOT COALESCE(("+unknown+"),0)";
+        String failed="NOT ("+verified+") AND (state='FAILED' OR COALESCE(json_extract("+safe+",'$.syncResult'),'')='FAILED')",blocked="state IN ('NEEDS_ACTION','FAILED','CANCELLED')";
+        String pending="("+has+") AND NOT ("+verified+") AND NOT ("+unknown+") AND state IN ('QUEUED','RUNNING','WAITING_REMOTE','RECONCILING','SENDING','READBACK')";
+        String query="SELECT COUNT(*),"+sum(has)+","+sum(verified)+","+sum(submitted)+","+sum(pending)+","+sum(failed)+","+sum(blocked)+","+sum(unknown)+","+sum(without)+" FROM sync_run_items WHERE run_id=? AND product_id NOT LIKE 'catalog:%'";
+        try(var c=Database.getConnection();var p=c.prepareStatement(query)){
+            p.setString(1,run);try(var r=p.executeQuery()){r.next();long total=r.getLong(1),with=r.getLong(2),updated=r.getLong(3);var result=new LinkedHashMap<String,Long>();
+                result.put("TOTAL",total);result.put("WITH_GTIN",with);result.put("WITHOUT_GTIN",r.getLong(9));result.put("SUBMITTED",r.getLong(4));result.put("UPDATED",updated);result.put("NOT_UPDATED",Math.max(0,with-updated));result.put("PENDING",r.getLong(5));result.put("FAILED",r.getLong(6));result.put("UNVERIFIED",r.getLong(8));result.put("BLOCKED",r.getLong(7));return Collections.unmodifiableMap(result);}
         }catch(SQLException e){throw storage(e);}
     }
+    private static String sum(String condition){return "COALESCE(SUM(CASE WHEN "+condition+" THEN 1 ELSE 0 END),0)";}
     public List<Run> list(int shopId,int offset,int limit){
         if(offset<0||limit<1||limit>1000)throw new IllegalArgumentException("SYNC_PAGE_LIMIT");
         try(var c=Database.getConnection();var p=c.prepareStatement("SELECT * FROM sync_runs WHERE (?=0 OR shop_id=?) ORDER BY created_at DESC LIMIT ? OFFSET ?")){
@@ -181,12 +198,12 @@ public final class SyncRunRepository {
         }catch(SQLException failure){throw storage(failure);}
     }
     private static Item readItem(ResultSet r,String run)throws SQLException{
-        return new Item(r.getString("id"),run,r.getString("product_id"),r.getString("variant_id"),r.getString("sku"),r.getString("article"),r.getString("color"),r.getString("size"),r.getString("gtin"),r.getString("state"),r.getString("step"),r.getString("error_code"),r.getString("child_job"),r.getString("evidence_json"));
+        return new Item(r.getString("id"),run,r.getString("product_id"),r.getString("variant_id"),r.getString("sku"),r.getString("article"),r.getString("color"),r.getString("size"),r.getString("gtin"),r.getString("state"),r.getString("step"),r.getString("error_code"),r.getString("child_job"),r.getString("evidence_json"),r.getString("updated_at"));
     }
     public List<Item> items(String run,int offset,int limit){
         if(offset<0||limit<1||limit>1000)throw new IllegalArgumentException("SYNC_PAGE_LIMIT");
         try(var c=Database.getConnection();var p=c.prepareStatement("SELECT * FROM sync_run_items WHERE run_id=? ORDER BY rowid LIMIT ? OFFSET ?")){
-            p.setString(1,run);p.setInt(2,limit);p.setInt(3,offset);var out=new ArrayList<Item>();try(var r=p.executeQuery()){while(r.next())out.add(new Item(r.getString("id"),run,r.getString("product_id"),r.getString("variant_id"),r.getString("sku"),r.getString("article"),r.getString("color"),r.getString("size"),r.getString("gtin"),r.getString("state"),r.getString("step"),r.getString("error_code"),r.getString("child_job"),r.getString("evidence_json")));}return List.copyOf(out);
+            p.setString(1,run);p.setInt(2,limit);p.setInt(3,offset);var out=new ArrayList<Item>();try(var r=p.executeQuery()){while(r.next())out.add(readItem(r,run));}return List.copyOf(out);
         }catch(SQLException e){throw storage(e);}
     }
     public List<Event> events(String run,String item,int limit){
@@ -203,6 +220,6 @@ public final class SyncRunRepository {
             p.setString(1,run);p.setString(2,item);p.setString(3,step);p.setString(4,state);p.setString(5,code(error));p.setString(6,Instant.now().toString());p.executeUpdate();
         }
     }
-    public static String code(String text){if(text==null||text.isBlank())return "";String value=text.toUpperCase(Locale.ROOT);return value.matches("(?:API|CATALOG|GS1|ZNACK|OZON|WB|GTIN|FBS|FBO|SYNC|NETWORK|LICENSE|CRYPTOPRO|PRODUCT|VARIANT|BARCODE|BARCODES|ATTRIBUTES|TARGET|CARD|ITEMS|SIGNATURE|CERTIFICATE|REGISTRY|PARTICIPANT|GOODS|UNVERIFIED|INVALID|MISSING|AMBIGUOUS|INCOMPLETE|REPEATED|READBACK|LEGACY|DETAIL|SHOP|SOURCE)_[A-Z0-9_]{1,64}")||Set.of("ALREADY_PRESENT","UNSUPPORTED_OPERATION","CAPABILITY_CHANGED").contains(value)?value:"DETAIL_NOT_AVAILABLE";}
+    public static String code(String text){if(text==null||text.isBlank())return "";String value=text.toUpperCase(Locale.ROOT);return value.matches("(?:API|MARKETPLACE|CATALOG|GS1|ZNACK|OZON|WB|GTIN|FBS|FBO|SYNC|NETWORK|LICENSE|CRYPTOPRO|PRODUCT|VARIANT|BARCODE|BARCODES|ATTRIBUTES|TARGET|CARD|ITEMS|SIGNATURE|CERTIFICATE|REGISTRY|PARTICIPANT|GOODS|UNVERIFIED|INVALID|MISSING|AMBIGUOUS|INCOMPLETE|REPEATED|READBACK|LEGACY|DETAIL|SHOP|SOURCE)_[A-Z0-9_]{1,64}")||Set.of("ALREADY_PRESENT","UNSUPPORTED_OPERATION","CAPABILITY_CHANGED").contains(value)?value:"DETAIL_NOT_AVAILABLE";}
     private static IllegalStateException storage(SQLException e){return new IllegalStateException("SYNC_STORAGE",e);}
 }

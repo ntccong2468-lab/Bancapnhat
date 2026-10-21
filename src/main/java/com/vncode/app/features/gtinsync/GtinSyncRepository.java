@@ -11,6 +11,8 @@ import static com.vncode.app.features.gtinsync.GtinSyncModels.*;
 
 /** Persists only normalized, credential-free data. Every public scoped read verifies ownership. */
 public final class GtinSyncRepository {
+    // Local receipt at the actual transport boundary, not an upstream task identifier.
+    private static final String ITEM_SELECT="SELECT i.*,(SELECT e.created_at FROM gtin_sync_events e WHERE e.item_id=i.id AND e.status='DISPATCHED' ORDER BY e.id DESC LIMIT 1) AS dispatched_at FROM gtin_sync_items i";
     public record Change(JobItem item,Status next,String remoteTask,String issue){}
     public void issue(UUID item,String code){write(c->{itemFor(c,item);try(var p=c.prepareStatement("INSERT INTO sync_gtin_issues VALUES(?,?,?) ON CONFLICT(item_id) DO UPDATE SET code=excluded.code,updated_at=excluded.updated_at")){p.setString(1,item.toString());p.setString(2,com.vncode.app.features.sync.SyncRunRepository.code(code));p.setString(3,Instant.now().toString());p.executeUpdate();}return null;});}
     public String issue(UUID item){return transaction(c->{itemFor(c,item);try(var p=c.prepareStatement("SELECT code FROM sync_gtin_issues WHERE item_id=?")){p.setString(1,item.toString());try(var r=p.executeQuery()){return r.next()?r.getString(1):"";}}});}
@@ -165,7 +167,7 @@ public final class GtinSyncRepository {
     public List<JobItem> jobItems(UUID jobId) {
         return transaction(c -> {
             requireJob(c,jobId);var result=new ArrayList<JobItem>();
-            try(var p=c.prepareStatement("SELECT * FROM gtin_sync_items WHERE job_id=? ORDER BY updated_at,id")) {
+            try(var p=c.prepareStatement(ITEM_SELECT+" WHERE i.job_id=? ORDER BY i.updated_at,i.id")) {
                 p.setString(1,jobId.toString());try(var r=p.executeQuery()){while(r.next())result.add(item(r));}
             }
             return List.copyOf(result);
@@ -174,7 +176,7 @@ public final class GtinSyncRepository {
     private List<JobItem> items(int shopId, Marketplace marketplace, boolean ignored) {
         return transaction(c -> {
             requireShop(c,shopId,marketplace);var result=new ArrayList<JobItem>();
-            try(var p=c.prepareStatement("SELECT * FROM gtin_sync_items WHERE shop_id=? AND marketplace=? ORDER BY updated_at,id")) {
+            try(var p=c.prepareStatement(ITEM_SELECT+" WHERE i.shop_id=? AND i.marketplace=? ORDER BY i.updated_at,i.id")) {
                 p.setInt(1,shopId);p.setString(2,marketplace.name());try(var r=p.executeQuery()) {while(r.next()) result.add(item(r));}
             }
             return List.copyOf(result);
@@ -182,7 +184,7 @@ public final class GtinSyncRepository {
     }
     public JobItem item(UUID id) {
         return transaction(c -> {
-            try(var p=c.prepareStatement("SELECT * FROM gtin_sync_items WHERE id=?")) {
+            try(var p=c.prepareStatement(ITEM_SELECT+" WHERE i.id=?")) {
                 p.setString(1,id.toString());try(var r=p.executeQuery()) {
                     if(!r.next()) throw new IllegalArgumentException("unknown_item");
                     requireShop(c,r.getInt("shop_id"),Marketplace.valueOf(r.getString("marketplace")));return item(r);
@@ -231,7 +233,7 @@ public final class GtinSyncRepository {
                 if(item.status()!=Status.QUEUED||blocked.contains(key.productId()))continue;
                 var cardJob=cardJobs.putIfAbsent(key.productId(),item.jobId());if(cardJob!=null&&!cardJob.equals(item.jobId()))continue;
                 try(var p=c.prepareStatement("UPDATE gtin_sync_items SET status='VALIDATING',updated_at=? WHERE id=? AND status='QUEUED' AND EXISTS(SELECT 1 FROM gtin_sync_jobs j WHERE j.id=gtin_sync_items.job_id AND j.paused=0)")){
-                    p.setString(1,Instant.now().toString());p.setString(2,item.id().toString());if(p.executeUpdate()==1){event(c,item.id(),Status.VALIDATING);result.add(new JobItem(item.id(),item.jobId(),item.preview(),Status.VALIDATING,item.remoteTaskId()));}
+                    p.setString(1,Instant.now().toString());p.setString(2,item.id().toString());if(p.executeUpdate()==1){event(c,item.id(),Status.VALIDATING);result.add(new JobItem(item.id(),item.jobId(),item.preview(),Status.VALIDATING,item.remoteTaskId(),item.dispatchedAt()));}
                 }
             }return List.copyOf(result);
         });
@@ -257,14 +259,15 @@ public final class GtinSyncRepository {
                     try(var p=c.prepareStatement("UPDATE gtin_sync_items SET status=?,remote_task_id=?,updated_at=? WHERE id=? AND status=?")){
                         p.setString(1,change.next().name());p.setString(2,remote);p.setString(3,Instant.now().toString());p.setString(4,actual.id().toString());p.setString(5,expected.status().name());if(p.executeUpdate()!=1)continue;
                     }
-                    if(change.issue()!=null)putIssue(c,actual.id(),change.issue());if(change.next()==Status.SUCCEEDED)saveVerified(c,key,actual.preview().newGtin());event(c,actual.id(),change.next());completed.add(new JobItem(actual.id(),actual.jobId(),actual.preview(),change.next(),remote));
+                    if(change.issue()!=null)putIssue(c,actual.id(),change.issue());if(change.next()==Status.SUCCEEDED)saveVerified(c,key,actual.preview().newGtin());event(c,actual.id(),change.next());completed.add(new JobItem(actual.id(),actual.jobId(),actual.preview(),change.next(),remote,actual.dispatchedAt()));
                 }return completed;
             }));
         }return List.copyOf(result);
     }
     public void requireSendingBatch(List<JobItem> items) {
-        transaction(c->{var jobs=new HashSet<UUID>();for(var expected:items){var item=itemFor(c,expected.id());if(item.status()!=Status.SENDING)throw new IllegalStateException("GTIN_BATCH_CHECKPOINT_CHANGED");jobs.add(item.jobId());}
-            for(var id:jobs)try(var p=c.prepareStatement("SELECT paused FROM gtin_sync_jobs WHERE id=?")){p.setString(1,id.toString());try(var r=p.executeQuery()){if(!r.next()||r.getInt(1)!=0)throw new IllegalStateException("GTIN_BATCH_PAUSED");}}return null;
+        write(c->{var jobs=new HashSet<UUID>();for(var expected:items){var item=itemFor(c,expected.id());var key=item.preview().before().key();requireShop(c,key.shopId(),key.marketplace());if(!item.jobId().equals(expected.jobId())||!key.equals(expected.preview().before().key())||item.status()!=Status.SENDING)throw new IllegalStateException("GTIN_BATCH_CHECKPOINT_CHANGED");jobs.add(item.jobId());}
+            for(var id:jobs)try(var p=c.prepareStatement("SELECT paused FROM gtin_sync_jobs WHERE id=?")){p.setString(1,id.toString());try(var r=p.executeQuery()){if(!r.next()||r.getInt(1)!=0)throw new IllegalStateException("GTIN_BATCH_PAUSED");}}
+            String now=Instant.now().toString();try(var p=c.prepareStatement("INSERT INTO gtin_sync_events(item_id,status,created_at) VALUES(?,'DISPATCHED',?)")){for(var item:items){p.setString(1,item.id().toString());p.setString(2,now);p.addBatch();}p.executeBatch();}return null;
         });
     }
     /** Only for an adapter's proven pre-dispatch failure, never a timeout or response loss. */
@@ -319,16 +322,16 @@ public final class GtinSyncRepository {
         return switch(from) {
             case QUEUED -> to==Status.VALIDATING || to==Status.CANCELLED;
             case VALIDATING -> to==Status.SENDING || to==Status.FAILED || to==Status.QUEUED || to==Status.CANCELLED;
-            case SENDING -> to==Status.AWAITING_VERIFICATION || to==Status.RECONCILE_REQUIRED;
+            case SENDING -> to==Status.AWAITING_VERIFICATION || to==Status.RECONCILE_REQUIRED || to==Status.FAILED;
             case AWAITING_VERIFICATION, RECONCILE_REQUIRED -> to==Status.SUCCEEDED || to==Status.FAILED || to==Status.RECONCILE_REQUIRED;
             default -> false;
         };
     }
     private static JobItem itemFor(Connection c, UUID id) throws SQLException {
-        try(var p=c.prepareStatement("SELECT * FROM gtin_sync_items WHERE id=?")){p.setString(1,id.toString());try(var r=p.executeQuery()){if(!r.next())throw new IllegalArgumentException("unknown_item");return item(r);}}
+        try(var p=c.prepareStatement(ITEM_SELECT+" WHERE i.id=?")){p.setString(1,id.toString());try(var r=p.executeQuery()){if(!r.next())throw new IllegalArgumentException("unknown_item");return item(r);}}
     }
     private static JobItem item(ResultSet r) throws SQLException {
-        return new JobItem(UUID.fromString(r.getString("id")),UUID.fromString(r.getString("job_id")),GtinJson.GSON.fromJson(r.getString("preview_json"),Preview.class),Status.valueOf(r.getString("status")),r.getString("remote_task_id"));
+        return new JobItem(UUID.fromString(r.getString("id")),UUID.fromString(r.getString("job_id")),GtinJson.GSON.fromJson(r.getString("preview_json"),Preview.class),Status.valueOf(r.getString("status")),r.getString("remote_task_id"),r.getString("dispatched_at")==null?null:Instant.parse(r.getString("dispatched_at")));
     }
     private static void requireShop(Connection c,int id,Marketplace marketplace) throws SQLException {
         try(var p=c.prepareStatement("SELECT marketplace FROM shops WHERE id=?")){p.setInt(1,id);try(var r=p.executeQuery()){if(!r.next()||!marketplace.name().equals(r.getString(1)))throw new IllegalArgumentException("shop_mismatch");}}

@@ -16,6 +16,11 @@ public final class ProductSuggestionService {
     public record Suggestions(List<String> values,String category,boolean marketplaceValues) {
         public Suggestions {values=List.copyOf(values);}
     }
+    public record ProposalRow(ProductKey key,String field,String before,String proposed,String source,String reason,
+                              boolean automatic,String revision,Instant checkedAt){}
+    public record DefaultProposal(String value,List<ProposalRow> rows,Map<ProductKey,String> expectedRevisions){
+        public DefaultProposal {rows=List.copyOf(rows);expectedRevisions=Map.copyOf(expectedRevisions);}
+    }
     private record CacheKey(String owner,String category,String field) {}
     private record Cached(Instant expires,List<String> values) {}
     private final Map<CacheKey,Cached> cache=new LinkedHashMap<>();
@@ -35,16 +40,60 @@ public final class ProductSuggestionService {
     }
     /** A proposal from this shop's saved reads, never an arbitrary dictionary entry. */
     public String defaultValue(Shop shop,List<ProductKey> keys,String field){
+        return defaultProposal(shop,keys,field).value();
+    }
+    /** Missing or conflicting cards never inherit a majority value from other selected products. */
+    public DefaultProposal defaultProposal(Shop shop,List<ProductKey> keys,String field){
         ListingIdentity.require(shop);String owner=ListingIdentity.fingerprint(shop);
-        var counts=new LinkedHashMap<String,Integer>();var cards=new HashSet<String>();
-        for(var key:keys){
-            ListingIdentity.require(shop,key);if(!cards.add(key.cardId()))continue;
-            var snapshot=snapshots.apply(key).filter(p->p.revision().startsWith("live:")&&owner.equals(p.metadata().get("owner"))).orElse(null);
-            if(snapshot==null)continue;ListingIdentity.require(shop,snapshot.key());if(!snapshot.key().cardId().equals(key.cardId()))throw new SecurityException("Own suggestion card required");
-            String candidate=field.equals("brand")?Objects.toString(snapshot.brand(),"").strip():String.join(" | ",ProductFieldNames.sourceAttributes(field,snapshot.attributes()).stream().flatMap(a->a.values().stream()).map(String::strip).filter(v->!v.isBlank()).toList());
-            if(!candidate.isBlank())counts.merge(candidate,1,Integer::sum);
+        if(!Set.of("brand","material","gender","tnved").contains(field))return new DefaultProposal("",List.of(),Map.of());
+        var frozen=List.copyOf(keys);var cards=new HashMap<String,Optional<ProductSnapshot>>();var rows=new ArrayList<ProposalRow>();
+        String configuredBrand=field.equals("brand")&&shop.getMarketplace()==Marketplace.OZON?new OzonShopBrand().load(shop):"";
+        for(var key:frozen){
+            ListingIdentity.require(shop,key);
+            var snapshot=cards.computeIfAbsent(key.cardId(),ignored->snapshots.apply(key)
+                    .filter(p->p.revision().startsWith("live:")&&owner.equals(p.metadata().get("owner")))).orElse(null);
+            if(snapshot==null){rows.add(new ProposalRow(key,field,"","","","unverified",false,"",null));continue;}
+            ListingIdentity.require(shop,snapshot.key());if(!snapshot.key().cardId().equals(key.cardId()))throw new SecurityException("Own suggestion card required");
+            var attributes=ProductFieldNames.sourceAttributes(field,snapshot.attributes());
+            String before=field.equals("brand")?Objects.toString(snapshot.brand(),"").strip():String.join(" | ",attributes.stream()
+                    .flatMap(a->a.values().stream()).map(String::strip).filter(v->!v.isBlank()).toList());
+            String source="marketplace",reason="current",candidate=before;
+            boolean ambiguous=attributes.size()>1||Set.of("gender","tnved").contains(field)&&attributes.stream().flatMap(a->a.values().stream()).filter(v->!v.isBlank()).distinct().count()>1;
+            if(ambiguous){candidate="";reason="conflicting_attributes";}
+            else if(candidate.isBlank()){
+                if(field.equals("brand")&&!configuredBrand.isBlank()){candidate=configuredBrand;source="shop_brand";reason="shop_brand";}
+                else reason="missing";
+            }
+            if(field.equals("tnved")&&!candidate.isBlank()){
+                candidate=ProductFieldNames.tnvedCode(candidate);if(!candidate.matches("[0-9]{10}")){candidate="";reason="missing";}
+            }
+            rows.add(new ProposalRow(key,field,before,candidate,source,reason,!candidate.isBlank(),snapshot.revision(),snapshot.checkedAt()));
         }
-        return counts.entrySet().stream().max(Map.Entry.comparingByValue()).map(Map.Entry::getKey).orElseGet(()->field.equals("brand")&&shop.getMarketplace()==Marketplace.OZON?new OzonShopBrand().load(shop):"");
+        var unique=rows.stream().map(ProposalRow::proposed).filter(v->!v.isBlank()).distinct().toList();
+        boolean ready=!rows.isEmpty()&&rows.stream().allMatch(ProposalRow::automatic)&&unique.size()==1;
+        var revisions=new LinkedHashMap<ProductKey,String>();if(ready)rows.forEach(row->revisions.put(row.key(),proposalRevision(shop,cards.get(row.key().cardId()).orElseThrow(),field)));
+        if(!ready&&unique.size()>1)rows.replaceAll(row->new ProposalRow(row.key(),row.field(),row.before(),row.proposed(),row.source(),
+                row.automatic()?"conflicting_selection":row.reason(),false,row.revision(),row.checkedAt()));
+        return new DefaultProposal(ready?unique.getFirst():"",rows,revisions);
+    }
+    /** Stable proposal facts across full/attribute API reads; final request revisions remain separate. */
+    public static String proposalRevision(Shop shop,ProductSnapshot snapshot,String field){
+        ListingIdentity.require(shop,snapshot.key());var facts=new TreeMap<String,Object>();
+        facts.put("owner",ListingIdentity.fingerprint(shop));facts.put("marketplace",snapshot.key().marketplace().name());facts.put("card",snapshot.key().cardId());
+        facts.put("category",snapshot.categoryId());facts.put("field",field);facts.put("article",snapshot.vendorArticle());
+        if(shop.getMarketplace()==Marketplace.OZON)facts.put("offer",snapshot.key().variantId());
+        facts.put("variants",snapshot.variants().stream().sorted(Comparator.comparing(v->Objects.toString(v.id(),""))).map(v->List.of(
+                Objects.toString(v.id(),""),Objects.toString(v.sellerArticle(),""),Objects.toString(v.color(),""),Objects.toString(v.size(),""),Objects.toString(v.russianSize(),""))).toList());
+        if(field.equals("brand")){
+            String brand=Objects.toString(snapshot.brand(),"").strip();facts.put("before",brand);
+            if(brand.isBlank()&&shop.getMarketplace()==Marketplace.OZON)facts.put("shop_brand",new OzonShopBrand().load(shop));
+        }else{
+            var attributes=(field.equals("tnved")?snapshot.attributes():ProductFieldNames.sourceAttributes(field,snapshot.attributes())).stream()
+                    .sorted(Comparator.comparing(ProductAttribute::mappingKey).thenComparingInt(ProductAttribute::groupIndex)).toList();
+            facts.put("attributes",attributes);
+            if(field.equals("tnved")){facts.put("title",snapshot.title());facts.put("category_name",snapshot.metadata().getOrDefault("source.category.name",""));}
+        }
+        return "live:proposal:"+ListingIdentity.hash(ListingIdentity.canonical(ProductJson.GSON.toJsonTree(facts)));
     }
     public Suggestions suggest(Shop shop,List<ProductKey> keys,String field,String query,java.util.function.Consumer<Suggestions> partial)throws IOException {
         ListingIdentity.require(shop);if(keys.isEmpty())return new Suggestions(List.of(),"",false);

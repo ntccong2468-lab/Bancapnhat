@@ -77,17 +77,38 @@ public final class RegisteredGtinProof {
         com.vncode.app.features.gtinsync.GtinSyncModels.RegisteredGtin row;
         try{row=new GtinSyncRepository().catalogItem(shop.getId(),shop.getMarketplace(),gtin);}
         catch(IllegalArgumentException missing){throw new IllegalArgumentException("unverified_catalog_gtin");}
-        boolean found=row.source().equals(source)&&row.published()&&row.tradeUnit()
-                &&!row.syncedAt().isBefore(now.minus(Duration.ofHours(24)))&&!row.syncedAt().isAfter(now.plusSeconds(300));
+        boolean found=row.source().equals(source)&&sameCode(gtin,row.gtin())&&currentObservation(row,now);
         if (!RegisteredGtinValidator.isValid(gtin) || !found) throw new IllegalArgumentException("unverified_catalog_gtin");
     }
     public static Map<String,GtinSyncModels.RegisteredGtin> requireCurrent(Shop shop,Collection<String> gtins) {
         var now=Instant.now();var scope=current(shop);requireProduction(scope);
         var rows=new GtinSyncRepository().catalogItems(shop.getId(),shop.getMarketplace(),gtins);
         for(var gtin:gtins){var row=rows.get(gtin);
-            if(!RegisteredGtinValidator.isValid(gtin)||row==null||!row.source().equals(scope.source())||!row.published()||!row.tradeUnit()
-                    ||row.syncedAt().isBefore(now.minus(Duration.ofHours(24)))||row.syncedAt().isAfter(now.plusSeconds(300)))throw new IllegalArgumentException("unverified_catalog_gtin");
+            if(!RegisteredGtinValidator.isValid(gtin)||row==null||!row.source().equals(scope.source())||!sameCode(gtin,row.gtin())||!currentObservation(row,now))throw new IllegalArgumentException("unverified_catalog_gtin");
         }return rows;
+    }
+    /** A historical flag is not remote identity/publication evidence for a seller write. */
+    public static boolean currentObservation(GtinSyncModels.RegisteredGtin row,Instant now){
+        if(row==null||!RegisteredGtinValidator.isValid(row.gtin())||!row.published()||!row.tradeUnit()
+                ||row.syncedAt().isBefore(now.minus(Duration.ofHours(24)))||row.syncedAt().isAfter(now.plusSeconds(300)))return false;
+        if(!identifiedObservation(row)||!"published".equalsIgnoreCase(row.details().single("@catalog_status").strip()))return false;
+        // Do not invent permit applicability for optional categories. An existing permit
+        // cannot authorize a write while its explicit current registry check is unknown.
+        return row.details().documents().isEmpty()||row.details().values("@documents_status").stream().noneMatch(value->value.startsWith("REGISTRY_DOCUMENTS_"));
+    }
+    /** Known unpublished cards are valid observations; missing identity/status remain unknown. */
+    public static boolean identifiedObservation(GtinSyncModels.RegisteredGtin row){
+        if(row==null)return false;String id=row.details().single("@catalog_id"),status=row.details().single("@catalog_status");
+        return id.matches("[0-9]{1,64}")&&id.chars().anyMatch(character->character!='0')&&java.util.Set.of("draft","published").contains(status.strip().toLowerCase(Locale.ROOT));
+    }
+    /** A card-only read cannot resolve an explicit unknown check for an existing permit. */
+    public static void requireKnownDocumentState(Collection<GtinSyncModels.RegisteredGtin> previous,Collection<GtinSyncModels.RegisteredGtin> observed){
+        var byCode=new java.util.HashMap<String,GtinSyncModels.RegisteredGtin>();for(var row:previous)byCode.put(canonicalCode(row.gtin()),row);
+        for(var row:observed){
+            var prior=byCode.get(canonicalCode(row.gtin()));if(prior==null||!prior.source().equals(row.source())||prior.details().documents().isEmpty())continue;
+            var unresolved=prior.details().values("@documents_status").stream().filter(value->value.startsWith("REGISTRY_DOCUMENTS_")).findFirst();
+            if(unresolved.isPresent())throw new IllegalArgumentException(unresolved.get().equals("REGISTRY_DOCUMENTS_PENDING")?"REGISTRY_DOCUMENTS_PENDING":"REGISTRY_DOCUMENTS_UNAVAILABLE");
+        }
     }
     /** Production seller endpoints cannot consume a sandbox or arbitrary registry observation. */
     public static void requireProduction(Scope scope) {

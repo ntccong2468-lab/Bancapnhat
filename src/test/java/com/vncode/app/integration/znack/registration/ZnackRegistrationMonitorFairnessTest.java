@@ -53,8 +53,8 @@ class ZnackRegistrationMonitorFairnessTest {
                 }
                 if(wb){cards.executeBatch();sizes.executeBatch();}row.executeBatch();
             }
-            try(var p=c.prepareStatement("INSERT INTO znack_registration_signing_consents VALUES(?,?,?,?,?,?,1,'fixture')")){
-                for(int n:new int[]{10001,10003}){p.setInt(1,shop.getId());p.setString(2,shop.getMarketplace().name());p.setString(3,Integer.toString(n));p.setString(4,wb?Integer.toString(n):"offer-"+n);p.setString(5,gtin(n));p.setString(6,n==10001?owner:"foreign-owner");p.addBatch();}p.executeBatch();
+            try(var p=c.prepareStatement("INSERT INTO znack_registration_signing_consents(shop_id,marketplace,product_id,variant_id,gtin,owner,enabled,updated_at,approval_kind,scope_sha256) VALUES(?,?,?,?,?,?,1,'fixture','PAYLOAD',?)")){
+                for(int n:new int[]{10001,10003}){p.setInt(1,shop.getId());p.setString(2,shop.getMarketplace().name());p.setString(3,Integer.toString(n));p.setString(4,wb?Integer.toString(n):"offer-"+n);p.setString(5,gtin(n));p.setString(6,n==10001?owner:"foreign-owner");p.setString(7,ZnackRegistrationMonitor.signingScopeHash(shop.getId()));p.addBatch();}p.executeBatch();
             }
             c.commit();
         }

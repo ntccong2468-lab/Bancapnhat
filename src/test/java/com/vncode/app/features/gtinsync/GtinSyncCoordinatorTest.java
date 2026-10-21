@@ -20,8 +20,8 @@ class GtinSyncCoordinatorTest {
         System.setProperty("vncode.appdata.dir",temp.toString());Database.initDatabase();
         try(var c=Database.getConnection();var s=c.createStatement()){s.execute("INSERT INTO shops(id,name,marketplace,api_key) VALUES(1,'Test','WILDBERRIES','test')");}
         repo=new GtinSyncRepository();adapter=new GtinPreviewServiceTest.Adapter();
-        repo.saveCatalog(1,Marketplace.WILDBERRIES,List.of(new RegisteredGtin("00000000000017","PANTS","Đen","XL",true,true,"NK",Instant.now())));
-        runner=new GtinSyncCoordinator(repo,k->adapter,Clock.systemUTC(),1,Duration.ZERO);
+        repo.saveCatalog(1,Marketplace.WILDBERRIES,List.of(new RegisteredGtin("00000000000017","PANTS","Đen","XL",true,true,"NK",Instant.now(),new com.vncode.app.features.catalogsync.CatalogProductData(java.util.Map.of("@catalog_id",List.of("91"),"@catalog_status",List.of("published")),List.of(),List.of()))));
+        runner=new GtinSyncCoordinator(repo,k->adapter,Clock.systemUTC(),1,Duration.ZERO,cohort->{});
     }
     @AfterEach void clear(){System.clearProperty("vncode.appdata.dir");}
     Preview preview()throws Exception{return new GtinPreviewService(repo,k->adapter).create(adapter.product.key(),Operation.REPLACE,"old","00000000000017");}
@@ -58,7 +58,7 @@ class GtinSyncCoordinatorTest {
                     var response=super.submit(p);LicenseRuntime.install(denied);return response;
                 }
             };
-            var coordinator=new GtinSyncCoordinator(repo,k->accepting,Clock.systemUTC(),1,Duration.ZERO);
+            var coordinator=new GtinSyncCoordinator(repo,k->accepting,Clock.systemUTC(),1,Duration.ZERO,cohort->{});
             var job=coordinator.confirm(List.of(preview()));
             try {
                 coordinator.runPending(1,Marketplace.WILDBERRIES);
@@ -152,4 +152,25 @@ class GtinSyncCoordinatorTest {
         adapter.outcome=Verification.APPLIED;runner.reconcile(item.id());
         assertEquals(Status.SUCCEEDED,repo.item(item.id()).status());assertEquals(1,shops.delete(1));
     }
+    @Test void actualDispatchTimeSurvivesUnknownResponseAndRestartWithoutFreshMutationReads()throws Exception{
+        int[] refreshes={0};var coordinator=new GtinSyncCoordinator(repo,k->adapter,Clock.systemUTC(),1,Duration.ZERO,cohort->{refreshes[0]++;assertEquals(java.util.Map.of(adapter.product.key(),"00000000000017"),cohort);});
+        var job=coordinator.confirm(List.of(preview()));assertEquals(1,refreshes[0]);assertNull(repo.jobItems(job).getFirst().dispatchedAt());
+        adapter.loseResponse=true;adapter.outcome=Verification.UNKNOWN;var before=Instant.now();coordinator.runJob(job);
+        var sent=repo.jobItems(job).getFirst();assertEquals(Status.RECONCILE_REQUIRED,sent.status());assertNotNull(sent.dispatchedAt());assertFalse(sent.dispatchedAt().isBefore(before));assertEquals(2,refreshes[0]);
+        repo.recoverInterrupted();coordinator.runJob(job);assertEquals(sent.dispatchedAt(),repo.item(sent.id()).dispatchedAt());assertEquals(2,refreshes[0]);assertEquals(1,adapter.sends);
+    }
+    @Test void freshSourceFailurePausesOnlyQueuedMutationAndCannotSendOrCreateFalseResult()throws Exception{
+        boolean[] fail={false};var unavailable=new java.net.SocketTimeoutException("synthetic source timeout");
+        var coordinator=new GtinSyncCoordinator(repo,k->adapter,Clock.systemUTC(),1,Duration.ZERO,cohort->{if(fail[0])throw unavailable;});
+        var job=coordinator.confirm(List.of(preview()));fail[0]=true;coordinator.runJob(job);
+        var item=repo.jobItems(job).getFirst();assertEquals(Status.QUEUED,item.status());assertTrue(repo.paused(job));assertNull(item.dispatchedAt());assertEquals(0,adapter.sends);
+        assertSame(unavailable,assertThrows(java.net.SocketTimeoutException.class,()->coordinator.confirm(List.of(preview()))));assertEquals(1,repo.history(1,Marketplace.WILDBERRIES).size());
+    }
+    @Test void explicitHttp400AfterDispatchIsFailedAndNeverReplayedOnRestart()throws Exception{
+        var rejected=new GtinPreviewServiceTest.Adapter(){@Override public Submission submit(Preview p)throws java.io.IOException{sends++;throw new com.vncode.app.integration.listing.ListingRejectedException(Marketplace.WILDBERRIES,400,"synthetic rejected request");}};
+        var coordinator=new GtinSyncCoordinator(repo,k->rejected,Clock.systemUTC(),1,Duration.ZERO,cohort->{});var job=coordinator.confirm(List.of(preview()));
+        coordinator.runJob(job);var item=repo.jobItems(job).getFirst();assertEquals(Status.FAILED,item.status());assertEquals("WB_HTTP_400",repo.issue(item.id()));assertNotNull(item.dispatchedAt());
+        repo.recoverInterrupted();coordinator.runJob(job);assertEquals(1,rejected.sends);assertEquals(Status.FAILED,repo.item(item.id()).status());
+    }
+
 }

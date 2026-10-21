@@ -202,7 +202,7 @@ class ZnackRegistrationBatchHttpIntegrationTest {
         var catalog = new ZnackNationalCatalogService(api, auth, (bytes, context) -> {
             throw new AssertionError("Submission must not wait for moderation or sign a card");
         }, settings);
-        var workflow = new ZnackCardRegistrationWorkflow(repository,
+        var workflow = RegistrationWorkflowTestFixtures.workflow(repository,
                 ignored -> new ZnackCardRegistrationWorkflow.CatalogSession("fixture-token", catalog), Runnable::run);
         var service = new ZnackRegistrationBatchService(repository, workflow, (owner, row, sign) -> {
             throw new AssertionError("Resume the exact saved payload without preparing or allocating again");
@@ -275,6 +275,10 @@ class ZnackRegistrationBatchHttpIntegrationTest {
             String[] pair = part.split("=", 2);
             query.put(URLDecoder.decode(pair[0], StandardCharsets.UTF_8),
                     URLDecoder.decode(pair.length == 1 ? "" : pair[1], StandardCharsets.UTF_8));
+        }
+        if(path.equals("/api/v3/true-api/nk/attributes")){
+            assertEquals("1",query.get("cat_id"));assertTrue(Set.of("m","a").contains(query.get("attr_type")));
+            return "{\"result\":[{\"attr_id\":2478,\"attr_name\":\"Наименование товара\",\"attr_field_type\":\"text\"},{\"attr_id\":2504,\"attr_name\":\"Бренд\",\"attr_field_type\":\"text\"}]}";
         }
         if (path.equals("/v3/feed-status")) {
             feedReads.incrementAndGet();

@@ -126,4 +126,13 @@ class GtinSyncRepositoryTest {
         }
         assertEquals(1,repo.jobItems(job).size());assertEquals(Status.QUEUED,repo.jobItems(job).getFirst().status());
     }
+    @Test void actualTransportBoundaryIsDurableAndPausedOrLegacyClaimsDoNotInventIt(){
+        var job=repo.createJob(List.of(preview(1,Marketplace.WILDBERRIES)));var item=repo.jobItems(job).getFirst();
+        assertTrue(repo.transition(item.id(),Status.QUEUED,Status.VALIDATING,null));assertTrue(repo.transition(item.id(),Status.VALIDATING,Status.SENDING,null));assertNull(repo.item(item.id()).dispatchedAt());
+        repo.pause(job,true);assertThrows(IllegalStateException.class,()->repo.requireSendingBatch(List.of(repo.item(item.id()))));assertNull(repo.item(item.id()).dispatchedAt());
+        repo.pause(job,false);var before=Instant.now();repo.requireSendingBatch(List.of(repo.item(item.id())));var actual=repo.item(item.id()).dispatchedAt();assertNotNull(actual);assertFalse(actual.isBefore(before));
+        repo.recoverInterrupted();assertEquals(Status.RECONCILE_REQUIRED,repo.item(item.id()).status());assertEquals(actual,repo.jobItems(job).getFirst().dispatchedAt());
+        assertEquals(actual,repo.pending(1,Marketplace.WILDBERRIES).getFirst().dispatchedAt());assertEquals(actual,repo.history(1,Marketplace.WILDBERRIES).getFirst().dispatchedAt());
+    }
+
 }

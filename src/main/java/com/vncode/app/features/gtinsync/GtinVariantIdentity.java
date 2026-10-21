@@ -13,7 +13,17 @@ public final class GtinVariantIdentity {
     }
     public static boolean sizeMatches(GtinSyncModels.RegisteredGtin source,String primarySize,String russianSize){
         String actual=russianSize(source)&&russianSize!=null&&!russianSize.isBlank()?russianSize:primarySize;
-        return GtinMatchingService.normalize(actual).equals(GtinMatchingService.normalize(source.size()));
+        String target=GtinMatchingService.normalize(actual),registered=GtinMatchingService.normalize(source.size());
+        return !target.isBlank()&&!registered.isBlank()&&target.equals(registered);
+    }
+    /** Shared GTINs require the same physical variant, rather than merely the same size label. */
+    public static boolean samePhysicalVariant(com.vncode.app.features.products.ProductRow left,com.vncode.app.features.products.ProductRow right){
+        String article=GtinMatchingService.normalizeArticle(left.vendorArticle()),size=GtinMatchingService.normalize(primarySize(left));
+        return !article.isBlank()&&article.equals(GtinMatchingService.normalizeArticle(right.vendorArticle()))
+                &&OzonSkuGtinMatcher.sameColor(left.color(),right.color())
+                &&!size.isBlank()&&size.equals(GtinMatchingService.normalize(primarySize(right)))
+                &&(left.russianSize().isBlank()||right.russianSize().isBlank()
+                    ||GtinMatchingService.normalize(left.russianSize()).equals(GtinMatchingService.normalize(right.russianSize())));
     }
     public static String size(Marketplace marketplace,ProductVariant variant){
         return marketplace==Marketplace.OZON&&variant.russianSize()!=null&&!variant.russianSize().isBlank()

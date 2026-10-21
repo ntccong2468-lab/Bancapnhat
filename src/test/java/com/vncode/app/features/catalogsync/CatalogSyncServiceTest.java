@@ -27,10 +27,10 @@ class CatalogSyncServiceTest {
         try(var c=Database.getConnection();var p=c.prepareStatement("INSERT INTO shops(id,name,api_key,marketplace,client_id) VALUES(1,'Owner','fixture',?,?)")){p.setString(1,marketplace.name());p.setString(2,shop.getClientId());p.executeUpdate();}
         key=new GtinSyncModels.ProductKey(1,marketplace,"123","variant");
         snapshot=new ProductSnapshot(new ProductKey(1,marketplace,"123","variant"),"live:old","Title","Keep","Brand","article","9",List.of(),List.of(new ProductAttribute("77","Состав",List.of("Old"),""),new ProductAttribute("88","ТН ВЭД",List.of("6103230000"),"")),List.of(),null,List.of(),Instant.now());
-        source=new GtinSyncModels.RegisteredGtin("00000000000017","article","","",true,true,"National Catalog@fixture",Instant.now(),new CatalogProductData(Map.of("material",List.of("Cotton"),"tnved",List.of("6103220000")),List.of(),List.of()));
+        source=new GtinSyncModels.RegisteredGtin("00000000000017","article","","",true,true,"National Catalog@fixture",Instant.now(),proofDetails(Map.of("material",List.of("Cotton"),"tnved",List.of("6103220000"))));
         gtins=new GtinSyncRepository();gtins.saveCatalog(1,marketplace,List.of(source));plans=new CatalogSyncRepository();listing=new Listing();codes=new Codes();
         var edits=new ProductBulkEditService(new ProductEditRepository(),(s,k)->snapshot,s->listing);
-        service=new CatalogSyncService(plans,gtins,edits,(s,k)->snapshot,s->listing,k->codes,(s,g)->{});
+        service=new CatalogSyncService(plans,gtins,edits,(s,k)->snapshot,s->listing,k->codes,(s,g)->{},(s,selected)->{});
     }
     @AfterEach void clear(){System.clearProperty("vncode.appdata.dir");}
     @Test void wbChangedGroupCannotPreviewOldRegisteredGtin()throws Exception{changedGroup(Marketplace.WILDBERRIES);}
@@ -90,7 +90,7 @@ class CatalogSyncServiceTest {
     }
     @Test void changedNoOpTargetRequiresAnotherPreviewWithoutSendingGtin()throws Exception{
         setup(Marketplace.OZON);
-        source=new GtinSyncModels.RegisteredGtin(source.gtin(),"article","","",true,true,source.source(),Instant.now(),new CatalogProductData(Map.of("material",List.of("Old")),List.of(),List.of()));
+        source=new GtinSyncModels.RegisteredGtin(source.gtin(),"article","","",true,true,source.source(),Instant.now(),proofDetails(Map.of("material",List.of("Old"))));
         gtins.saveCatalog(1,shop.getMarketplace(),List.of(source));
         var plan=service.preview(shop,List.of(new Selection(key,source.gtin())),new Options(Set.of(Field.GTIN,Field.MATERIAL),Map.of()));
         assertEquals("",plan.rows().getFirst().editJob());
@@ -104,6 +104,49 @@ class CatalogSyncServiceTest {
             new Options(Set.of(Field.MATERIAL),Map.of(),Map.of(sibling,Map.of("material",List.of("Different")))));
         assertEquals(0,plan.readyCount());assertTrue(plan.rows().stream().allMatch(r->r.state()==State.BLOCKED&&r.editJob().isBlank()));assertEquals(0,listing.writes);
     }
+    @Test void freshCatalogReadFailureBeforeDispatchPreservesCacheAndSendsNothing()throws Exception{
+        setup(Marketplace.WILDBERRIES);var refreshed=new ArrayList<Set<String>>();
+        service=withRefresh((s,selected)->{refreshed.add(Set.copyOf(selected));if(refreshed.size()==2)throw new com.vncode.app.integration.znack.ZnackApiClient.ZnackApiException("fixture",401,"{}");});
+        var plan=preview();var failure=assertThrows(com.vncode.app.integration.znack.ZnackApiClient.ZnackApiException.class,()->service.run(shop,plan.id(),true));
+        assertEquals(401,failure.statusCode());assertEquals(List.of(Set.of(source.gtin()),Set.of(source.gtin())),refreshed);assertEquals(source,gtins.catalogItem(1,shop.getMarketplace(),source.gtin()));assertEquals(State.READY,service.read(shop,plan.id()).rows().getFirst().state());assertEquals(0,listing.writes);assertEquals(0,codes.writes);
+    }
+    @Test void currentCatalogRevocationIsReadAgainBeforeAnyMarketplaceWrite()throws Exception{
+        setup(Marketplace.OZON);var reads=new java.util.concurrent.atomic.AtomicInteger();
+        service=withRefresh((s,selected)->{if(reads.incrementAndGet()==2){var details=proofDetails(Map.of("material",List.of("Cotton"),"tnved",List.of("6103220000")));var fields=new LinkedHashMap<>(details.fields());fields.put("@catalog_status",List.of("draft"));gtins.saveCatalog(1,s.getMarketplace(),List.of(new GtinSyncModels.RegisteredGtin(source.gtin(),source.article(),"","",true,false,source.source(),Instant.now(),new CatalogProductData(fields,List.of(),List.of()))));}});
+        var plan=preview();var result=service.run(shop,plan.id(),true);assertEquals(2,reads.get());assertEquals(State.BLOCKED,result.rows().getFirst().state());assertEquals(0,listing.writes);assertEquals(0,codes.writes);
+    }
+    @Test void selectedRefreshRejectsMissingDuplicateAndForeignCardsBeforeMerge()throws Exception{
+        setup(Marketplace.WILDBERRIES);assertDoesNotThrow(()->CatalogSyncService.requireSelectedObservations(Set.of(source.gtin()),List.of(source)));
+        assertThrows(IllegalStateException.class,()->CatalogSyncService.requireSelectedObservations(Set.of(source.gtin()),List.of()));
+        assertThrows(IllegalStateException.class,()->CatalogSyncService.requireSelectedObservations(Set.of(source.gtin()),List.of(source,source)));
+        assertThrows(IllegalStateException.class,()->CatalogSyncService.requireSelectedObservations(Set.of("00000000000024"),List.of(source)));
+        var unknown=new GtinSyncModels.RegisteredGtin(source.gtin(),source.article(),"","",true,true,source.source(),Instant.now());assertThrows(IllegalStateException.class,()->CatalogSyncService.requireSelectedObservations(Set.of(source.gtin()),List.of(unknown)));
+        assertEquals(source,gtins.catalogItem(1,shop.getMarketplace(),source.gtin()));
+    }
+    @Test void foreignSelectionIsRejectedBeforeAnyCatalogRefreshOrAdapterRead()throws Exception{
+        setup(Marketplace.WILDBERRIES);var calls=new java.util.concurrent.atomic.AtomicInteger();service=withRefresh((s,selected)->calls.incrementAndGet());
+        var foreign=new GtinSyncModels.ProductKey(2,shop.getMarketplace(),"123","variant");assertThrows(SecurityException.class,()->service.preview(shop,List.of(new Selection(foreign,source.gtin())),new Options(Set.of(Field.GTIN),Map.of())));assertEquals(0,calls.get());assertEquals(0,codes.writes);
+    }
+    @Test void sevenArgumentProductionConstructorCannotSilentlySkipTheFreshCatalogGate()throws Exception{
+        setup(Marketplace.WILDBERRIES);
+        service=new CatalogSyncService(plans,gtins,new ProductBulkEditService(new ProductEditRepository(),(s,k)->snapshot,s->listing),(s,k)->snapshot,s->listing,k->codes,(s,g)->{});
+        // This synthetic shop intentionally has no tested Catalog identity. The real
+        // default gate must reject locally before HTTP, despite a permissive DI authority.
+        var failure=assertThrows(RegisteredGtinProof.UnverifiedOwnerException.class,()->service.preview(shop,List.of(new Selection(key,source.gtin())),new Options(Set.of(Field.GTIN),Map.of())));
+        assertEquals(RegisteredGtinProof.OwnerFailure.SIGNATURE_NOT_TESTED,failure.reason());assertEquals(0,codes.writes);assertEquals(0,listing.writes);assertEquals(source,gtins.catalogItem(1,shop.getMarketplace(),source.gtin()));
+    }
+    @Test void gtinCohortReadsCardsWithoutBlanketRegistryRequestsWhileDocumentScopeStillRequestsThem()throws Exception{
+        setup(Marketplace.WILDBERRIES);var flags=new ArrayList<Boolean>();
+        service=withRefresh(new CatalogSyncService.SourceRefresh(){
+            public void refresh(Shop owner,Set<String> selected){throw new AssertionError("The operation must specify its document scope");}
+            @Override public void refresh(Shop owner,Set<String> selected,boolean includeDocuments){assertEquals(Set.of(source.gtin()),selected);flags.add(includeDocuments);}
+        });
+        var plan=preview();assertEquals(State.ATTRIBUTES_PENDING,service.run(shop,plan.id(),true).rows().getFirst().state());
+        service.preview(shop,List.of(new Selection(key,source.gtin())),new Options(Set.of(Field.DOCUMENTS),Map.of()));
+        assertEquals(List.of(false,false,true),flags);assertEquals(0,codes.writes);
+    }
+    private CatalogSyncService withRefresh(CatalogSyncService.SourceRefresh refresh){return new CatalogSyncService(plans,gtins,new ProductBulkEditService(new ProductEditRepository(),(s,k)->snapshot,s->listing),(s,k)->snapshot,s->listing,k->codes,(s,g)->{},refresh);}
+    private static CatalogProductData proofDetails(Map<String,List<String>> fields){var details=new LinkedHashMap<>(fields);details.put("@catalog_id",List.of("91"));details.put("@catalog_status",List.of("published"));return new CatalogProductData(details,List.of(),List.of());}
     class Listing implements ListingTargetAdapter {
         int writes;boolean ready,lostRead;Map<String,List<String>> changes;
         public List<TargetCategory> categories(Shop s){return List.of();}
@@ -126,6 +169,7 @@ class CatalogSyncServiceTest {
         int writes;boolean lostReply;
         public GtinSyncModels.Capability capability(GtinSyncModels.ProductKey key){return new GtinSyncModels.Capability(true,false,"");}
         public GtinSyncModels.ProductSnapshot read(GtinSyncModels.ProductKey key){return new GtinSyncModels.ProductSnapshot(key,"article","","",barcodes,ListingIdentity.hash(snapshot.revision()+barcodes),Instant.now());}
+        public void validateIdentity(GtinSyncModels.ProductSnapshot target,GtinSyncModels.RegisteredGtin registered){if(!target.article().equals(registered.article()))throw new IllegalArgumentException("GTIN_VARIANT_IDENTITY_UNVERIFIED");}
         public boolean conflicts(GtinSyncModels.ProductKey key,String gtin){return false;}
         public GtinSyncModels.Submission submit(GtinSyncModels.Preview p)throws IOException {
             assertEquals("live:updated",snapshot.revision(),"Attributes must have completed readback before barcode submission");

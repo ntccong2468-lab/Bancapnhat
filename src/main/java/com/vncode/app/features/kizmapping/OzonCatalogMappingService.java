@@ -82,8 +82,11 @@ public final class OzonCatalogMappingService {
             // Its validity is rechecked, but a rule is not promoted into a remote barcode readback.
             var existing=RegisteredGtinValidator.isValid(target.existing())?catalog.get(normalized(target.existing())):null;
             boolean observedCatalogCode=codes.stream().anyMatch(catalog::containsKey);
-            if(!observedCatalogCode&&existing!=null&&problem(target,existing,scope,Set.of()).isBlank()){
-                mapped++;continue;
+            if(!observedCatalogCode&&codes.stream().noneMatch(failures::containsKey)&&existing!=null
+                    &&!failures.containsKey(normalized(existing.gtin()))){
+                String existingProblem=problem(target,existing,scope,duplicate);
+                if(existingProblem.isBlank()){mapped++;continue;}
+                issues.add(issue(target,existing.gtin(),existingProblem));continue;
             }
             if(codes.isEmpty()){issues.add(issue(target,"","GTIN_BARCODE_MISSING"));continue;}
             String code=codes.stream().filter(catalog::containsKey).findFirst().orElse(codes.iterator().next());
@@ -113,9 +116,12 @@ public final class OzonCatalogMappingService {
         return out;
     }
     private static Set<String> duplicates(List<Target> targets){
-        var products=new HashMap<String,Set<ProductKey>>();
-        for(var target:targets)if(!target.exempt())for(String code:codes(target.row()))products.computeIfAbsent(code,k->new HashSet<>()).add(target.row().key());
-        var out=new HashSet<String>();products.forEach((code,keys)->{if(keys.size()>1)out.add(code);});return out;
+        var first=new HashMap<String,ProductRow>();var out=new HashSet<String>();
+        for(var target:targets)if(!target.exempt()){
+            var relevant=new LinkedHashSet<>(codes(target.row()));
+            if(RegisteredGtinValidator.isValid(target.existing()))relevant.add(normalized(target.existing()));
+            for(String code:relevant){var previous=first.putIfAbsent(code,target.row());if(previous!=null&&!GtinVariantIdentity.samePhysicalVariant(previous,target.row()))out.add(code);}
+        }return out;
     }
     private static String problem(Target target,RegisteredGtin card,String scope,Set<String> duplicate){
         if(target.sku().isBlank())return "OZON_SKU_MISSING";
@@ -128,7 +134,7 @@ public final class OzonCatalogMappingService {
         if(!card.tradeUnit())return "GTIN_NOT_TRADE_UNIT";
         var row=target.row();
         if(!GtinVariantIdentity.sizeMatches(card,GtinVariantIdentity.primarySize(row),row.russianSize()))return "GTIN_SIZE_MISMATCH";
-        if(!row.color().isBlank()&&!card.color().isBlank()&&!OzonSkuGtinMatcher.sameColor(row.color(),card.color()))return "GTIN_COLOR_MISMATCH";
+        if(!OzonSkuGtinMatcher.sameColor(row.color(),card.color()))return "GTIN_COLOR_MISMATCH";
         if(!GtinTnvedIdentity.compatible(row.tnved(),card.details().values("tnved")))return "GTIN_TNVED_GROUP_CHANGED";
         if(card.details().documents().stream().noneMatch(OzonCatalogMappingService::activeDocument))return "GTIN_DOCUMENT_MISSING";
         return "";

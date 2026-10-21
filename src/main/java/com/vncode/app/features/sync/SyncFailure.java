@@ -15,6 +15,7 @@ public record SyncFailure(String code,Duration delay,boolean actionRequired) {
             if(e instanceof com.vncode.app.shared.RateLimitDeferral.Deferred deferred)return new SyncFailure("API_COOLDOWN",deferred.delay(),false);
             if(e instanceof com.vncode.app.integration.listing.ListingRateLimitException rate)return new SyncFailure("API_COOLDOWN",rate.retryAfter(),false);
             if(e instanceof com.vncode.app.features.gtinsync.GtinRateLimitedException rate)return new SyncFailure(rate.code(),rate.retryAfter(),false);
+            if(e instanceof com.vncode.app.integration.listing.ListingRejectedException rejected)return new SyncFailure(rejected.code(),Duration.ofMinutes(5),true);
             if(e instanceof LicenseDeniedException)return new SyncFailure("LICENSE_REQUIRED",Duration.ofMinutes(1),true);
             if(e instanceof com.vncode.app.integration.znack.signature.CryptoProException crypto)
                 return new SyncFailure("CRYPTOPRO_"+crypto.code().name(),Duration.ofMinutes(5),true);

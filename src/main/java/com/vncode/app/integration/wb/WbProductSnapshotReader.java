@@ -20,11 +20,14 @@ public final class WbProductSnapshotReader implements ProductSnapshotReader {
     public ProductSnapshot read(Shop shop,ProductKey key)throws IOException{return read(shop,key,true);}
     public ProductSnapshot readForSynchronization(Shop shop,ProductKey key)throws IOException{return read(shop,key,false);}
     /** The GTIN-only path does not replace the complete product-page snapshot cache. */
-    public ProductSnapshot readForGtinSync(Shop shop,ProductKey key)throws IOException{return read(shop,key,false,false);}
+    public ProductSnapshot readForGtinSync(Shop shop,ProductKey key)throws IOException{return read(shop,key,false,false,false);}
     private ProductSnapshot read(Shop shop,ProductKey key,boolean includePrices)throws IOException{
         return read(shop,key,includePrices,true);
     }
     private ProductSnapshot read(Shop shop,ProductKey key,boolean includePrices,boolean persist)throws IOException{
+        return read(shop,key,includePrices,persist,true);
+    }
+    private ProductSnapshot read(Shop shop,ProductKey key,boolean includePrices,boolean persist,boolean includeEvidence)throws IOException{
         ListingIdentity.require(shop,key);if(key.marketplace()!=Marketplace.WILDBERRIES)throw new SecurityException("Not a WB card");
         JsonObject filter=new JsonObject();filter.addProperty("textSearch",key.cardId());filter.addProperty("withPhoto",-1);
         JsonObject cursor=new JsonObject();cursor.addProperty("limit",100);JsonObject settings=new JsonObject();settings.add("filter",filter);settings.add("cursor",cursor);
@@ -44,9 +47,9 @@ public final class WbProductSnapshotReader implements ProductSnapshotReader {
         var attributes=new ArrayList<ProductAttribute>();for(var e:array(card,"characteristics")){var a=object(e);var v=a.get("value");attributes.add(new ProductAttribute(text(a,"id"),text(a,"name"),v!=null&&v.isJsonArray()?strings(v.getAsJsonArray()):v==null?List.of():List.of(v.getAsString()),null));}
         var colors=attributes.stream().filter(a->ProductFieldNames.matches("color",a.name())).flatMap(a->a.values().stream()).filter(v->v!=null&&!v.isBlank()).distinct().toList();
         String variantColor=colors.size()==1?colors.getFirst():"";
-        var variants=new ArrayList<ProductVariant>();for(var e:array(card,"sizes")){
-            var v=object(e);String id=text(v,"chrtID");var skus=strings(array(v,"skus"));String proof=ListingIdentity.verifiedGtin(new ProductKey(shop.getId(),shop.getMarketplace(),key.cardId(),id),skus);
-            variants.add(new ProductVariant(id,text(card,"vendorCode"),variantColor,text(v,"techSize"),proof.isBlank()?(skus.isEmpty()?"":skus.getFirst()):proof,!proof.isBlank(),text(v,"wbSize")));
+        var variants=new ArrayList<ProductVariant>();var variantIds=new HashSet<String>();for(var e:array(card,"sizes")){
+            var v=object(e);String id=text(v,"chrtID");if(id.isBlank()||!variantIds.add(id))throw new IOException("Ambiguous WB variant identity");var skus=strings(array(v,"skus"));var proof=includeEvidence?ListingIdentity.verifiedGtinEvidence(shop,new ProductKey(shop.getId(),shop.getMarketplace(),key.cardId(),id),skus,text(card,"vendorCode"),variantColor,text(v,"techSize"),text(v,"wbSize")):Optional.<ListingIdentity.VerifiedGtin>empty();
+            variants.add(new ProductVariant(id,text(card,"vendorCode"),variantColor,text(v,"techSize"),proof.map(ListingIdentity.VerifiedGtin::gtin).orElse(""),proof.isPresent(),text(v,"wbSize"),skus,proof.map(ListingIdentity.VerifiedGtin::evidence).orElse(ProductVariant.GtinEvidence.UNVERIFIED)));
         }
         if(!key.variantId().isBlank()&&variants.stream().noneMatch(v->v.id().equals(key.variantId())))throw new IOException("WB variant identity changed");
         var d=obj(card,"dimensions");var dimensions=new PackageDimensions(decimal(d,"length"),decimal(d,"width"),decimal(d,"height"),decimal(d,"weightBrutto"));
@@ -66,6 +69,6 @@ public final class WbProductSnapshotReader implements ProductSnapshotReader {
                 if(amounts.size()==1)inherited.put("source.price",amounts.iterator().next().toPlainString());
             }
         }catch(IOException unavailable){inherited.put("source.price.unavailable","true");}
-        String raw=ListingIdentity.canonical(card);inherited.put("source.payload",raw);inherited.put("owner",ListingIdentity.fingerprint(shop));var snapshot=new ProductSnapshot(key,"live:"+ListingIdentity.hash(raw+ListingIdentity.canonical(ProductJson.GSON.toJsonTree(inherited))),text(card,"title"),text(card,"description"),text(card,"brand"),text(card,"vendorCode"),text(card,"subjectID"),media,attributes,variants,dimensions,docs,now,inherited);if(persist)new ProductRepository().saveVerifiedSnapshot(shop,snapshot);return snapshot;
+        String raw=ListingIdentity.canonical(card);inherited.put("source.payload",raw);inherited.put("owner",ListingIdentity.fingerprint(shop));var snapshot=new ProductSnapshot(key,"live:"+ListingIdentity.hash(raw+ListingIdentity.canonical(ProductJson.GSON.toJsonTree(inherited))),text(card,"title"),text(card,"description"),text(card,"brand"),text(card,"vendorCode"),text(card,"subjectID"),media,attributes,variants,dimensions,docs,now,inherited);if(persist)new ProductRepository().saveVerifiedSnapshot(shop,snapshot);else ListingIdentity.require(shop,key);return snapshot;
     }
 }

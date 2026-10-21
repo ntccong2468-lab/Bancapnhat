@@ -33,12 +33,14 @@ final class RegistrationAutomaticDraft {
         if(selected.automatic()==null||selected.requiresReview())throw new RegistrationValidationException("ZNACK_PRODUCT_DOCUMENT_REVIEW_REQUIRED");
         var snapshotForReview=snapshot;
         var resolved=ZnackCategoryResolver.resolve(inputs.sku().subjectName(),inputs.sku().title(),preflight.categories()).or(()->RegistrationReviewedValues.reviewedCategory(shop,snapshotForReview,preflight.categories())).orElseThrow(()->new RegistrationValidationException("ZNACK_CATEGORY_REVIEW_REQUIRED"));
+        try(var countryRead=session.catalog().registrationCountryReadScope()){
         var required=session.catalog().registrationAttributes(resolved.id(),preflight.token());
         var mapped=new ZnackWbAttributeMapper().map(inputs.sku(),inputs.characteristics(),required,preflight.tnved(),preflight.categoryTnved(),selected.automatic());
         var draft=new Draft(preflight.tnved(),preflight.categoryTnved(),resolved.id(),mapped.goodName(),mapped.brand(),mapped.attributes(),mapped.attributeTypes(),autoSign).withProductCategory(inputs.sku().subjectName());
         draft=RegistrationVerifiedDefaults.applyAutomatic(draft,required,session.catalog(),selected.automatic(),snapshot);
         draft=RegistrationReviewedValues.apply(shop,snapshot,draft,required);
         return complete(draft,required,inputs.sku().wbSize());
+        }
     }
     /** Normalize known source values; a sole allowed option is not proof of a product fact. */
     static Draft complete(Draft draft,List<Attribute> schema,String wbSize) {

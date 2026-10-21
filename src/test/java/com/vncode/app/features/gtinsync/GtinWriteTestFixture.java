@@ -30,6 +30,7 @@ public final class GtinWriteTestFixture {
         new ZnackRepository(new ZnackModels.ShopContext(shop.getId(),shop.getName())).saveSettings(settings);
     }
     public static void catalog(Shop shop) {
-        new GtinSyncRepository().saveCatalog(shop.getId(),shop.getMarketplace(),List.of(new RegisteredGtin(GTIN,"Fixture","","",true,true,RegisteredGtinProof.source(shop),Instant.now())));
+        var details=new com.vncode.app.features.catalogsync.CatalogProductData(java.util.Map.of("@catalog_id",List.of("91"),"@catalog_status",List.of("published")),List.of(),List.of());
+        new GtinSyncRepository().saveCatalog(shop.getId(),shop.getMarketplace(),List.of(new RegisteredGtin(GTIN,"Fixture","","",true,true,RegisteredGtinProof.source(shop),Instant.now(),details)));
     }
 }

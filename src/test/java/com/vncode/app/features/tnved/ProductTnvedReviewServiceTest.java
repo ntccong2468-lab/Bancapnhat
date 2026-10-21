@@ -21,9 +21,15 @@ class ProductTnvedReviewServiceTest {
     @Test void eachProductReceivesItsOwnCodeAndSizesOfOneCardAgree(){
         var first=key("100","1");var secondSize=key("100","2");var second=key("200","3");cache(first,"хлопок 90%, полиэстер 10%");cache(second,"полиэстер 95%, эластан 5%");
         var review=new ProductTnvedReviewService().review(shop,List.of(first,secondSize,second));assertEquals(2,review.proposals().size());assertEquals(3,review.values().size());assertEquals(List.of("6112110000"),review.values().get(first));assertEquals(review.values().get(first),review.values().get(secondSize));assertEquals(List.of("6112120000"),review.values().get(second));
+        assertEquals(3,review.expectedRevisions().size());assertEquals(review.expectedRevisions().get(first),review.expectedRevisions().get(secondSize));
     }
     @Test void anUnavailableProductPreventsAnIncompleteAutomaticBatch(){
         var first=key("100","1");cache(first,"хлопок");var review=new ProductTnvedReviewService().review(shop,List.of(first,key("missing","")));assertTrue(review.values().isEmpty());assertTrue(review.proposals().stream().anyMatch(p->p.reason().equals("unloaded")));
         assertThrows(SecurityException.class,()->new ProductTnvedReviewService().review(shop,List.of(new ProductKey(2,Marketplace.WILDBERRIES,"100","1"))));
+    }
+    @Test void legacySnapshotWithoutVerifiedOwnerCannotAuthorizeATariffProposal()throws Exception{
+        var first=key("100","1");cache(first,"хлопок");
+        try(var connection=Database.getConnection();var statement=connection.createStatement()){statement.executeUpdate("UPDATE product_snapshots SET payload=json_remove(payload,'$.metadata.owner')");}
+        var review=new ProductTnvedReviewService().review(shop,List.of(first));assertTrue(review.values().isEmpty());assertTrue(review.expectedRevisions().isEmpty());assertEquals("unloaded",review.proposals().getFirst().reason());
     }
 }

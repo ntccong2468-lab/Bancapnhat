@@ -10,7 +10,10 @@ import static com.vncode.app.integration.znack.registration.ZnackCardRegistratio
 public final class RegistrationVerifiedDefaults {
     private static final Set<Long> SUPPORTED=Set.of(13836L);
     private static final long PRODUCTION_COUNTRY=2630L;
-    private static final Set<String> COUNTRY_FIELDS=Set.of("странапроизводства","странапроисхождения","странаизготовления","странапроизводитель","странаизготовитель","countryoforigin","countryofmanufacture","manufacturingcountry","productioncountry","country","countryiso","countrycode","nướcsảnxuất","quốcgiasảnxuất","xuấtxứ");
+    // Explicit owner configuration; this name must still resolve through the current
+    // official dictionary. It is not an inferred country or a hard-coded dictionary ID.
+    private static final String OWNER_PRODUCTION_COUNTRY="Россия";
+    private static final Set<String> PRODUCTION_COUNTRY_FIELDS=Set.of("странапроизводства","странаизготовления","странаизготовитель","countryofmanufacture","manufacturingcountry","productioncountry","nướcsảnxuất","quốcgiasảnxuất");
     private RegistrationVerifiedDefaults(){}
 
     /** Read-only auto-fill shared by background registration and the manual registration screen. */
@@ -29,7 +32,7 @@ public final class RegistrationVerifiedDefaults {
         var codes=new LinkedHashSet<String>();
         for(String sourceValue:sourceValues){String code=resolve.apply(sourceValue,schema);if(code==null||code.isBlank())return "";codes.add(code);}
         if(codes.size()>1)return "";
-        String value=codes.isEmpty()?"RU":codes.getFirst();
+        String value=codes.isEmpty()?resolve.apply(OWNER_PRODUCTION_COUNTRY,schema):codes.getFirst();
         return value!=null&&field.presets().contains(value)&&RegistrationAttributeRules.validFieldValue(field,value)?value:"";
     }
     /** Applies only an ISO country allowed by the current enriched Catalog country dictionary. */
@@ -50,15 +53,16 @@ public final class RegistrationVerifiedDefaults {
     private static Set<String> sourceCountries(ProductSnapshot source,List<Attribute> schema){
         var fields=schema.stream().filter(attribute->attribute.id()==PRODUCTION_COUNTRY).toList();var values=new LinkedHashSet<String>();
         if(source==null||fields.size()!=1)return values;
-        String targetName=normalized(fields.getFirst().name());
         for(var attribute:source.attributes()){
             if(attribute.complexId()!=null&&!attribute.complexId().isBlank()&&!attribute.complexId().equals("0"))continue;
-            String name=normalized(attribute.name());
-            if(!Long.toString(PRODUCTION_COUNTRY).equals(attribute.id())&&!name.equals(targetName)&&!COUNTRY_FIELDS.contains(name.replaceAll("[^\\p{L}\\p{N}]","")))continue;
+            // Marketplace attribute IDs belong to their own namespaces. A coincident
+            // numeric ID, origin country or legal-entity country cannot supply 2630.
+            if(!productionCountryField(attribute.name()))continue;
             for(String raw:attribute.values()){String value=RegistrationTemplate.clean(raw);if(!value.isBlank())values.add(value);}
         }
         return values;
     }
+    static boolean productionCountryField(String name){return PRODUCTION_COUNTRY_FIELDS.contains(normalized(name).replaceAll("[^\\p{L}\\p{N}]",""));}
     private static Draft fill(Draft draft,List<Attribute> schema,Map<Long,String> verified,ProductSnapshot source,Set<Long> allowed){
         if(verified.isEmpty())return draft;
         var values=new LinkedHashMap<>(draft.attributes());var types=new LinkedHashMap<>(draft.attributeTypes());

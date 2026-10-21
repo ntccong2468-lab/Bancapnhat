@@ -106,7 +106,7 @@ return readComplete(owner,selected,entered,documents,Map.of());
         if(findings.isEmpty()&&!current.dynamic().plans().isEmpty()){var plan=current.dynamic().plans().getFirst();var finding=new Finding("catalog_confirmation",plan.snapshot().key(),plan.snapshot().vendorArticle(),plan.draft().goodName(),plan.draft().goodName(),"",null,null,"changed",List.of());findings.put("confirmation",finding);}
         return new Review(List.copyOf(findings.values()),current.selected(),current.dynamic());
     }
-    private static final class Editor {
+    static final class Editor {
         final Shop owner;Review review;final Dialog<Boolean> dialog=new Dialog<>();
         final TableView<Finding> table=new TableView<>();final Label status=new Label();
         final Map<Finding,String> values=new LinkedHashMap<>();final Map<Finding,String> types=new LinkedHashMap<>();
@@ -116,6 +116,9 @@ return readComplete(owner,selected,entered,documents,Map.of());
         final RegistrationPreflightCorrections corrections=new RegistrationPreflightCorrections();
         final javafx.animation.PauseTransition retry=new javafx.animation.PauseTransition(javafx.util.Duration.seconds(2));
         RegistrationPreflightCorrections.Session session;volatile boolean disposed;boolean busy;int polls;
+        final Set<Task<?>> reads=new HashSet<>();
+        @FunctionalInterface interface ReviewReader{Review read(Shop shop,List<ProductKey> keys,Map<ProductKey,Map<Long,RegistrationReviewedValues.Value>> values,Map<ProductKey,String> documents,Map<ProductKey,Long> categories);}
+        ReviewReader reviewReader=RegistrationBatchPreflight::readComplete;
         Editor(javafx.stage.Window window,Shop owner,Review review){
             this.owner=owner;this.review=review;if(window!=null)dialog.initOwner(window);
             dialog.setTitle(tr("znack.registration.batch_preflight"));dialog.setHeaderText(tr("znack.registration.complete_missing_hint"));
@@ -146,7 +149,7 @@ return readComplete(owner,selected,entered,documents,Map.of());
             var content=new VBox(10,hint,table,status);VBox.setVgrow(table,Priority.ALWAYS);dialog.getDialogPane().setContent(content);dialog.getDialogPane().setPrefSize(880,550);dialog.getDialogPane().setId("registrationMissingFieldsDialog");
             dialog.getDialogPane().getButtonTypes().setAll(applyType,new ButtonType(tr("common.cancel"),ButtonBar.ButtonData.CANCEL_CLOSE));var apply=(Button)dialog.getDialogPane().lookupButton(applyType);apply.setId("registrationMissingApply");apply.getStyleClass().add("btn-primary");
             apply.addEventFilter(javafx.event.ActionEvent.ACTION,e->{e.consume();if(!busy)apply();});dialog.setResultConverter(button->false);
-            dialog.setOnHidden(e->{disposed=true;retry.stop();});retry.setOnFinished(e->advance());DialogLayout.install(dialog.getDialogPane());AlertService.applyTheme(dialog);
+            dialog.setOnHidden(e->{disposed=true;retry.stop();for(var read:List.copyOf(reads))read.cancel(true);reads.clear();});retry.setOnFinished(e->advance());DialogLayout.install(dialog.getDialogPane());AlertService.applyTheme(dialog);
         }
         boolean show(){loadSuggestions();return dialog.showAndWait().orElse(false);}
         void loadSuggestions(){
@@ -155,7 +158,7 @@ return readComplete(owner,selected,entered,documents,Map.of());
                 var service=new ProductSuggestionService();for(var entry:groups.entrySet()){
                     if(disposed)return null;if(entry.getValue().field().equals("documents")||entry.getValue().attribute()!=null||entry.getValue().field().startsWith("catalog_"))continue;try{var found=service.suggest(owner,List.of(entry.getValue().key()),entry.getValue().field(),"",partial->offer(entry.getKey(),partial.values()));offer(entry.getKey(),found.values());}catch(Exception unavailable){/* Manual input remains available. */}
                 }return null;
-            }}};AppTaskExecutor.executeCatalog(task,error->{});
+            }}};executeRead(task,error->{});
         }
         void offer(String key,List<String> options){Platform.runLater(()->{if(!disposed&&!busy){suggestions.put(key,List.copyOf(options));table.refresh();}});}
         void completeDocuments(Finding finding){
@@ -176,7 +179,7 @@ return readComplete(owner,selected,entered,documents,Map.of());
                 return !session.catalog().reviewDocuments(session.token(),selected,codes.getFirst()).candidates().isEmpty();
             }}};
             task.setOnSucceeded(e->{busy=false;if(disposed)return;table.setDisable(false);dialog.getDialogPane().lookupButton(applyType).setDisable(false);if(task.getValue())values.put(finding,tr("znack.registration.complete_missing_documents_saved"));status.setText(tr(task.getValue()?"znack.registration.complete_missing_documents_saved":"znack.registration.complete_missing_documents_pending"));table.refresh();});
-            java.util.function.Consumer<Throwable> failed=error->{busy=false;if(disposed)return;table.setDisable(false);dialog.getDialogPane().lookupButton(applyType).setDisable(false);status.setText(FriendlyErrorService.format(error));};task.setOnFailed(e->failed.accept(task.getException()));AppTaskExecutor.executeCatalog(task,failed);
+            java.util.function.Consumer<Throwable> failed=error->{busy=false;if(disposed)return;table.setDisable(false);dialog.getDialogPane().lookupButton(applyType).setDisable(false);status.setText(FriendlyErrorService.format(error));};task.setOnFailed(e->failed.accept(task.getException()));executeRead(task,failed);
         }
         void apply(){
             if(session!=null){advance();return;}
@@ -197,19 +200,31 @@ return readComplete(owner,selected,entered,documents,Map.of());
             busy=true;table.setDisable(true);dialog.getDialogPane().lookupButton(applyType).setDisable(true);status.setText(tr("znack.registration.complete_missing_saving"));
             var task=new Task<Boolean>(){protected Boolean call()throws Exception{try(var lane=MarketplaceRequestBudget.lane(true)){return worker.run();}}};
             task.setOnSucceeded(e->{busy=false;if(disposed)return;if(task.getValue()){session=null;if(review.selected().isEmpty()){dialog.setResult(true);dialog.close();}else freshReview(true);}else if(++polls<60)retry.playFromStart();else{status.setText(tr("znack.registration.complete_missing_pending"));dialog.getDialogPane().lookupButton(applyType).setDisable(false);}});
-            java.util.function.Consumer<Throwable> failed=error->{busy=false;if(disposed)return;status.setText(FriendlyErrorService.format(error));dialog.getDialogPane().lookupButton(applyType).setDisable(false);if(session==null)table.setDisable(false);};task.setOnFailed(e->failed.accept(task.getException()));AppTaskExecutor.executeCatalog(task,failed);
+            var notified=new java.util.concurrent.atomic.AtomicBoolean();
+            java.util.function.Consumer<Throwable> failed=error->{if(!notified.compareAndSet(false,true))return;busy=false;if(disposed)return;status.setText(FriendlyErrorService.format(error));dialog.getDialogPane().lookupButton(applyType).setDisable(false);if(session==null)table.setDisable(false);};task.setOnFailed(e->failed.accept(task.getException()));task.setOnCancelled(e->Platform.runLater(()->failed.accept(readTimeout())));AppTaskExecutor.executeCatalog(task,failed);
         }
         void approveDocument(Finding finding){if(review.dynamic()!=null)review.dynamic().plans().stream().filter(p->p.snapshot().key().equals(finding.key())&&p.documents()!=null).findFirst().ifPresent(p->approvedDocuments.put(finding.key(),RegistrationReviewedValues.permitRevision(p.documents())));}
         void freshReview(boolean saveWhenComplete){
             busy=true;table.setDisable(true);dialog.getDialogPane().lookupButton(applyType).setDisable(true);status.setText(tr("znack.registration.preflight.checking_schema"));
             var entered=new LinkedHashMap<ProductKey,Map<Long,RegistrationReviewedValues.Value>>();reviewed.forEach((key,map)->entered.put(key,Map.copyOf(map)));var keys=review.selected();var previous=review.dynamic();var acknowledged=Map.copyOf(approvedDocuments);var categories=Map.copyOf(chosenCategories);
-            var task=new Task<Review>(){protected Review call()throws Exception{try(var lane=MarketplaceRequestBudget.lane(true)){var checked=readComplete(owner,keys,Map.copyOf(entered),acknowledged,categories);if(previous!=null&&checked.dynamic()!=null&&!sameFacts(previous,checked.dynamic()))return forceReview(checked);if(saveWhenComplete&&checked.findings().isEmpty()&&checked.dynamic()!=null)RegistrationReviewedValues.save(owner,RegistrationDynamicPreflight.approvals(checked.dynamic()));return checked;}}};
+            var task=new Task<Review>(){protected Review call()throws Exception{try(var lane=MarketplaceRequestBudget.lane(true)){var checked=reviewReader.read(owner,keys,Map.copyOf(entered),acknowledged,categories);if(previous!=null&&checked.dynamic()!=null&&!sameFacts(previous,checked.dynamic()))return forceReview(checked);if(isCancelled()||disposed||Thread.currentThread().isInterrupted())throw new InterruptedException("Registration preflight cancelled");if(saveWhenComplete&&checked.findings().isEmpty()&&checked.dynamic()!=null)RegistrationReviewedValues.save(owner,RegistrationDynamicPreflight.approvals(checked.dynamic()));return checked;}}};
             task.setOnSucceeded(e->{busy=false;if(disposed)return;review=task.getValue();if(review.findings().isEmpty()){dialog.setResult(true);dialog.close();return;}values.clear();values.putAll(initialValues(review));types.clear();review.findings().forEach(f->types.put(f,f.suggestedType()));table.getItems().setAll(review.findings());table.setDisable(false);dialog.getDialogPane().lookupButton(applyType).setDisable(false);status.setText(tr("znack.registration.preflight.review_next_fields"));loadSuggestions();});
-            java.util.function.Consumer<Throwable> failed=error->{busy=false;if(disposed)return;table.setDisable(false);dialog.getDialogPane().lookupButton(applyType).setDisable(false);status.setText(FriendlyErrorService.format(error));};task.setOnFailed(e->failed.accept(task.getException()));AppTaskExecutor.executeCatalog(task,failed);
+            java.util.function.Consumer<Throwable> failed=error->{busy=false;if(disposed)return;table.setDisable(false);dialog.getDialogPane().lookupButton(applyType).setDisable(false);status.setText(FriendlyErrorService.format(error));};task.setOnFailed(e->failed.accept(task.getException()));executeRead(task,failed);
+        }
+        void executeRead(Task<?> task,java.util.function.Consumer<Throwable> failed){
+            reads.add(task);task.stateProperty().addListener((observable,previous,current)->{if(current==javafx.concurrent.Worker.State.CANCELLED||current==javafx.concurrent.Worker.State.FAILED||current==javafx.concurrent.Worker.State.SUCCEEDED)reads.remove(task);});
+            var notified=new java.util.concurrent.atomic.AtomicBoolean();java.util.function.Consumer<Throwable> once=error->{if(notified.compareAndSet(false,true))failed.accept(error);};
+            task.setOnFailed(e->once.accept(task.getException()));task.setOnCancelled(e->Platform.runLater(()->once.accept(readTimeout())));AppTaskExecutor.executeCatalog(task,once);
         }
         private static String group(Finding f){return f.field()+"\n"+f.category();}
         interface Work{boolean run()throws Exception;}
     }
+    static void readPill(StackPane host,String id,Task<?> task,Runnable cancelled){
+        var pill=RegistrationStatusPill.show(host,id,tr("znack.registration.preflight.checking_schema"),true);
+        var cancel=new Button(tr("common.cancel"));cancel.setId(id+"Cancel");cancel.setOnAction(event->{cancelled.run();task.cancel(true);});pill.getChildren().add(cancel);
+        task.stateProperty().addListener((observable,previous,current)->{if(current==javafx.concurrent.Worker.State.SUCCEEDED||current==javafx.concurrent.Worker.State.FAILED||current==javafx.concurrent.Worker.State.CANCELLED)host.getChildren().remove(pill);});
+    }
+    static java.net.SocketTimeoutException readTimeout(){return new java.net.SocketTimeoutException("National Catalog preflight read exceeded its deadline.");}
     private static void column(TableView<Finding> table,String label,java.util.function.Function<Finding,String> value){var column=new TableColumn<Finding,String>(label);column.setCellValueFactory(row->new ReadOnlyStringWrapper(value.apply(row.getValue())));column.setPrefWidth(160);RegistrationTextCells.wrap(column);table.getColumns().add(column);}
     private static String tr(String key){return I18nService.getInstance().tr(key);}
 }

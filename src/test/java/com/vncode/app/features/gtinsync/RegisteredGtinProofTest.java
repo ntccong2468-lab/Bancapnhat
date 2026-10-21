@@ -28,7 +28,8 @@ class RegisteredGtinProofTest {
     }
     @Test void staleUnpublishedOrBoxRowsDoNotAuthorizeWrites() {
         var source=RegisteredGtinProof.source(shop);var repo=new GtinSyncRepository();
-        for(var row:List.of(new RegisteredGtin(GTIN,"","","",true,true,source,Instant.now().minusSeconds(86401)),new RegisteredGtin(GTIN,"","","",false,true,source,Instant.now()),new RegisteredGtin(GTIN,"","","",true,false,source,Instant.now()))){
+        var evidence=observed(java.util.Map.of("@catalog_id",List.of("91"),"@catalog_status",List.of("published")));
+        for(var row:List.of(new RegisteredGtin(GTIN,"","","",true,true,source,Instant.now().minusSeconds(86401),evidence),new RegisteredGtin(GTIN,"","","",false,true,source,Instant.now(),evidence),new RegisteredGtin(GTIN,"","","",true,false,source,Instant.now(),evidence))){
             repo.saveCatalog(1,Marketplace.WILDBERRIES,List.of(row));assertThrows(IllegalArgumentException.class,()->RegisteredGtinProof.requireCurrent(shop,GTIN));
         }
     }
@@ -40,6 +41,37 @@ class RegisteredGtinProofTest {
     }
     @Test void normalizedLeadingZerosNeverLoseUnrelatedBarcodes() {
         assertTrue(RegisteredGtinProof.sameCode("00000017",GTIN));assertFalse(RegisteredGtinProof.sameCode("legacy",GTIN));
+    }
+    @Test void publicationFlagWithoutExactRemoteIdentityAndRawStatusCannotAuthorizeWrites(){
+        var source=RegisteredGtinProof.source(shop);var repository=new GtinSyncRepository();
+        for(var fields:List.<java.util.Map<String,List<String>>>of(java.util.Map.of(),java.util.Map.of("@catalog_id",List.of("91")),java.util.Map.of("@catalog_id",List.of("0"),"@catalog_status",List.of("published")),java.util.Map.of("@catalog_id",List.of("91.5"),"@catalog_status",List.of("published")),java.util.Map.of("@catalog_id",List.of("91"),"@catalog_status",List.of("draft")))){
+            repository.saveCatalog(1,Marketplace.WILDBERRIES,List.of(new RegisteredGtin(GTIN,"Fixture","","",true,true,source,Instant.now(),observed(fields))));
+            assertThrows(IllegalArgumentException.class,()->RegisteredGtinProof.requireCurrent(shop,GTIN));assertThrows(IllegalArgumentException.class,()->RegisteredGtinProof.requireCurrent(shop,List.of(GTIN)));
+        }
+    }
+    @Test void rawPublishedIdentityWorksForSingleAndBatchProofWithNoInventedPermitRequirement(){
+        RegisteredGtinProof.requireCurrent(shop,GTIN);assertEquals(GTIN,RegisteredGtinProof.requireCurrent(shop,List.of(GTIN)).get(GTIN).gtin());
+    }
+    @Test void existingPermitCannotBeUsedWhileItsExplicitRegistryCheckIsUnavailable(){
+        var fields=java.util.Map.of("@catalog_id",List.of("91"),"@catalog_status",List.of("published"),"@documents_status",List.of("REGISTRY_DOCUMENTS_UNAVAILABLE"));
+        var document=new com.vncode.app.features.catalogsync.CatalogProductData.Document("DECLARATION","FIXTURE-PERMIT","2026-01-01","2029-01-01",false,"",java.util.Map.of());
+        var details=new com.vncode.app.features.catalogsync.CatalogProductData(fields,List.of(),List.of(document));
+        new GtinSyncRepository().saveCatalog(1,Marketplace.WILDBERRIES,List.of(new RegisteredGtin(GTIN,"Fixture","","",true,true,RegisteredGtinProof.source(shop),Instant.now(),details)));
+        assertThrows(IllegalArgumentException.class,()->RegisteredGtinProof.requireCurrent(shop,GTIN));
+    }
+    @Test void aFreshCardOnlyReadCannotSilentlyEraseKnownSameSourcePermitUncertainty(){
+        var source=RegisteredGtinProof.source(shop);var fields=java.util.Map.of("@catalog_id",List.of("91"),"@catalog_status",List.of("published"),"@documents_status",List.of("REGISTRY_DOCUMENTS_PENDING"));
+        var permit=new com.vncode.app.features.catalogsync.CatalogProductData.Document("DECLARATION","FIXTURE-PERMIT","2026-01-01","2029-01-01",false,"",java.util.Map.of());
+        var prior=new RegisteredGtin(GTIN,"Fixture","","",true,true,source,Instant.now(),new com.vncode.app.features.catalogsync.CatalogProductData(fields,List.of(),List.of(permit)));
+        var fresh=new RegisteredGtin(GTIN,"Fixture","","",true,true,source,Instant.now(),observed(java.util.Map.of("@catalog_id",List.of("91"),"@catalog_status",List.of("published"))));
+        var error=assertThrows(IllegalArgumentException.class,()->RegisteredGtinProof.requireKnownDocumentState(List.of(prior),List.of(fresh)));assertEquals("REGISTRY_DOCUMENTS_PENDING",error.getMessage());assertEquals("REGISTRY_DOCUMENTS_PENDING",prior.details().single("@documents_status"));
+        var anotherScope=new RegisteredGtin(GTIN,"Fixture","","",true,true,"National Catalog@different",Instant.now(),fresh.details());assertDoesNotThrow(()->RegisteredGtinProof.requireKnownDocumentState(List.of(prior),List.of(anotherScope)));
+    }
+    @Test void anAbsentInlinePermitDoesNotInventAMandatoryDocumentRequirement(){
+        var source=RegisteredGtinProof.source(shop);var fields=java.util.Map.of("@catalog_id",List.of("91"),"@catalog_status",List.of("published"),"@documents_status",List.of("REGISTRY_DOCUMENTS_UNAVAILABLE"));
+        var prior=new RegisteredGtin(GTIN,"Fixture","","",true,true,source,Instant.now(),observed(fields));
+        var fresh=new RegisteredGtin(GTIN,"Fixture","","",true,true,source,Instant.now(),observed(java.util.Map.of("@catalog_id",List.of("91"),"@catalog_status",List.of("published"))));
+        assertDoesNotThrow(()->RegisteredGtinProof.requireKnownDocumentState(List.of(prior),List.of(fresh)));
     }
     @Test void configuredGoodsOwnerCannotChangeToAnotherEnterpriseUnderExistingProof() {
         var repository=new ZnackRepository(new ZnackModels.ShopContext(1,"Fixture"));var settings=repository.getSettings();
@@ -77,4 +109,5 @@ class RegisteredGtinProofTest {
     private static ZnackModels.Settings copy(ZnackModels.Settings base,String participant,String owner,String selector,String metadata,Instant tested){
         return new ZnackModels.Settings(base.trueApiBaseUrl(),base.suzBaseUrl(),base.omsId(),base.omsConnection(),participant,base.producerInn(),owner,base.signerExecutable(),selector,base.signerArgumentsJson(),base.documentNumber(),base.documentDate(),base.pdfFolder(),base.autoIntroduction(),base.certificateListExecutable(),base.certificateListArgumentsJson(),metadata,tested);
     }
+    private static com.vncode.app.features.catalogsync.CatalogProductData observed(java.util.Map<String,List<String>> fields){return new com.vncode.app.features.catalogsync.CatalogProductData(fields,List.of(),List.of());}
 }

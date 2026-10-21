@@ -11,8 +11,12 @@ public final class GtinCatalogIndex {
     private final Map<Attributes,List<RegisteredGtin>> attributes=new HashMap<>();
     private final OzonSkuGtinMatcher ozon;
     public GtinCatalogIndex(List<RegisteredGtin> rows){
-        ozon=new OzonSkuGtinMatcher(rows);
-        for(var row:rows)if(row.published()&&row.tradeUnit()&&RegisteredGtinValidator.isValid(row.gtin())&&!GtinNormalizer.isTechnicalRange(row.gtin())){
+        this(rows,false);
+    }
+    /** Registration must also find existing drafts/errors; ordinary write matching stays published-only. */
+    public GtinCatalogIndex(List<RegisteredGtin> rows,boolean includeDrafts){
+        ozon=new OzonSkuGtinMatcher(rows,includeDrafts);
+        for(var row:rows)if((row.published()||includeDrafts)&&(row.tradeUnit()||includeDrafts)&&RegisteredGtinValidator.isValid(row.gtin())&&!GtinNormalizer.isTechnicalRange(row.gtin())){
             codes.computeIfAbsent(GtinNormalizer.normalize(row.gtin()),key->new ArrayList<>()).add(row);
             attributes.computeIfAbsent(key(row.article(),row.color(),row.size()),key->new ArrayList<>()).add(row);
         }

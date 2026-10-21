@@ -15,7 +15,10 @@ import java.util.function.Consumer;
 /** Global code or a reviewed, complete per-product proposal; neither path writes a seller API. */
 public final class ProductTnvedPicker {
     private ProductTnvedPicker(){}
-    public record Choice(String globalCode,Map<ProductKey,List<String>> perProduct){public Choice{perProduct=Map.copyOf(perProduct);}}
+    public record Choice(String globalCode,Map<ProductKey,List<String>> perProduct,Map<ProductKey,String> expectedRevisions){
+        public Choice(String globalCode,Map<ProductKey,List<String>> perProduct){this(globalCode,perProduct,Map.of());}
+        public Choice{perProduct=Map.copyOf(perProduct);expectedRevisions=Map.copyOf(expectedRevisions);}
+    }
     public static void show(Window owner,Shop shop,List<ProductKey> selected,Consumer<Choice> onSelect){
         var dialog=new Dialog<Void>();if(owner!=null)dialog.initOwner(owner);dialog.setTitle(tr("products.edit_tnved"));dialog.getDialogPane().setId("productTnvedPicker");
         var browser=new FashionTnvedBrowser();var hint=new Label(tr("tnved.picker_scope")+" "+selected.stream().map(ProductKey::cardId).distinct().count());hint.setWrapText(true);
@@ -53,7 +56,7 @@ public final class ProductTnvedPicker {
             for(var group:groups.entrySet()){var entry=group.getValue().getFirst().candidates().getFirst();var chip=new Button(entry.code()+" · "+(entry.name().length()>50?entry.name().substring(0,50)+"…":entry.name())+" ("+group.getValue().size()+")");chip.setTooltip(new Tooltip(entry.name()));chip.setOnAction(e->browser.selectCode(entry.code()));chips.getChildren().add(chip);}
             applyEach.setText(tr("tnved.use_each")+" ("+review.proposals().size()+")");
             table.getItems().setAll(review.proposals());progress.setText(tr("tnved.proposal_hint"));updateApply.run();
-            applyEach.setOnAction(e->{if(applyEach.isDisabled())return;var values=new LinkedHashMap<ProductKey,List<String>>();for(var key:frozen)values.put(key,List.of(chosen.get(key.cardId()).code()));onSelect.accept(new Choice("",values));dialog.close();});
+            applyEach.setOnAction(e->{if(applyEach.isDisabled())return;var values=new LinkedHashMap<ProductKey,List<String>>();for(var key:frozen)values.put(key,List.of(chosen.get(key.cardId()).code()));onSelect.accept(new Choice("",values,review.expectedRevisions()));dialog.close();});
         }));dialog.show();
     }
     private static <T> void column(TableView<T> table,String name,java.util.function.Function<T,String> value,double width){var c=new TableColumn<T,String>(name);c.setMinWidth(90);c.setPrefWidth(width);c.setCellValueFactory(v->new ReadOnlyStringWrapper(value.apply(v.getValue())));c.setCellFactory(v->new TableCell<>(){protected void updateItem(String text,boolean empty){super.updateItem(text,empty);setText(empty?null:text);setTooltip(empty||text==null?null:new Tooltip(text));}});table.getColumns().add(c);}

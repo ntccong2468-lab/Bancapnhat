@@ -149,7 +149,9 @@ public final class ListingCopyPane extends BorderPane {
         variantBox.getChildren().clear();variantControls.clear();var allowed=new HashSet<String>();
         for(var key:frozen)if(key.cardId().equals(snapshot.key().cardId())){if(key.variantId().isBlank())snapshot.variants().forEach(v->allowed.add(v.id()));else allowed.add(key.variantId());}
         for(var variant:snapshot.variants())if(allowed.contains(variant.id())){
-            var check=new CheckBox(variant.id()+" · GTIN "+variant.gtin());check.setSelected(options.variantIds().contains(variant.id()));
+            String identity=variant.id()+" · "+i18n.tr("products.barcode")+": "+String.join(", ",CopyDefaults.barcodes(snapshot,variant));
+            if(variant.gtinVerified())identity+=" · GTIN: "+variant.gtin();
+            var check=new CheckBox(identity);check.setSelected(options.variantIds().contains(variant.id()));
             var newArticle=new TextField();baseline(newArticle,options.newArticles().getOrDefault(variant.id(),CopyDefaults.article(snapshot,editing,variant)));newArticle.setPrefWidth(180);
             var size=new TextField();baseline(size,options.variantValues().getOrDefault(variant.id(),Map.of()).getOrDefault("@size",List.of(Objects.toString(variant.size(),""))).getFirst());size.setPrefWidth(80);size.setId("copyVariantSize_"+variant.id());
             var ru=new TextField();baseline(ru,options.variantValues().getOrDefault(variant.id(),Map.of()).getOrDefault("@russianSize",List.of(Objects.toString(variant.russianSize(),""))).getFirst());ru.setPrefWidth(80);
