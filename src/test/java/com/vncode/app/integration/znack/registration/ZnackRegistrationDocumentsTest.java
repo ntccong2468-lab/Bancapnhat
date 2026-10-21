@@ -17,6 +17,17 @@ class ZnackRegistrationDocumentsTest {
         return new ProductSnapshot(new ProductKey(1,Marketplace.OZON,"101","offer"),"live:fixture","","","","","",
                 List.of(),List.of(),List.of(),null,List.of(docs),Instant.now());
     }
+    @Test void changingConfiguredPermitDoesNotCarryThePreviousPermitExpiry(){
+        var gson=new com.google.gson.GsonBuilder().registerTypeAdapter(Instant.class,(com.google.gson.JsonSerializer<Instant>)(value,type,context)->new com.google.gson.JsonPrimitive(value.toString())).registerTypeAdapter(Instant.class,(com.google.gson.JsonDeserializer<Instant>)(value,type,context)->Instant.parse(value.getAsString())).create();
+        var json=gson.toJsonTree(com.vncode.app.integration.znack.ZnackModels.Settings.empty().withDefaultGoodsDocument("CONFORMITY_DECLARATION","OLD","01.01.2024")).getAsJsonObject();
+        json.addProperty("documentExpiryDate","01.01.2025");
+        var original=gson.fromJson(json,com.vncode.app.integration.znack.ZnackModels.Settings.class);
+        assertEquals("01.01.2025",original.withDefaultGoodsDocument("CONFORMITY_DECLARATION","OLD","01.01.2024").documentExpiryDate());
+        var revised=original.withDefaultGoodsDocument("CONFORMITY_DECLARATION","NEW","28.05.2026");
+        assertEquals("",revised.documentExpiryDate());
+        var selection=ZnackRegistrationDocuments.select(snapshot(),revised,TODAY);
+        assertNotNull(selection.automatic());assertFalse(selection.requiresReview());assertEquals("NEW",selection.automatic().number());
+    }
     @Test void usesOneCurrentlyVerifiedProductPermit() {
         var result=ZnackRegistrationDocuments.select(snapshot(document("a",DocumentState.VALID,TODAY.plusDays(1))),null,TODAY);
         assertNotNull(result.automatic());assertEquals(ZnackRegistrationDocuments.Source.PRODUCT,result.source());assertFalse(result.requiresReview());

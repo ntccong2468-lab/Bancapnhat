@@ -33,7 +33,9 @@ public final class CatalogErrorRepairService {
         var receipt=new RegistrationSources().require(shop);String source=RegisteredGtinProof.source(shop);var products=new ArrayList<ProductRow>();String cursor=null;
         do{var page=new ProductRepository().loadPage(new ProductQuery(shop.getId(),shop.getMarketplace(),"",List.of(),null,false,cursor,1000),receipt.run());products.addAll(page.rows());cursor=page.nextCursor();if(products.size()>100000)throw new IllegalStateException("SYNC_REPORT_LIMIT");}while(cursor!=null);
         var out=new ArrayList<ErrorCard>();
-        for(var card:new GtinSyncRepository().catalog(shop.getId(),shop.getMarketplace())){
+        var catalog=new GtinSyncRepository().catalog(shop.getId(),shop.getMarketplace());
+        var nonErrors=catalog.stream().filter(card->source.equals(card.source())&&CatalogCardState.of(card)!=CatalogCardState.ERRORS).map(card->card.gtin().replaceFirst("^0+","")).collect(java.util.stream.Collectors.toSet());
+        for(var card:catalog){
             if(!source.equals(card.source())||!card.tradeUnit()||CatalogCardState.of(card)!=CatalogCardState.ERRORS)continue;
             var matches=candidates(card,products);
             if(all||matches.stream().anyMatch(p->selected.contains(p.key())))out.add(new ErrorCard(card.gtin(),card.article(),card.color(),card.size(),"CATALOG_CARD_ERRORS",matches));
@@ -43,18 +45,17 @@ public final class CatalogErrorRepairService {
             var repo=new ZnackCardRegistrationRepository();
             for(var row:repo.search(new SearchCriteria(shop.getId(),"",List.of(),"ALL",100000,0))){
                 var key=new ProductKey(shop.getId(),shop.getMarketplace(),Long.toString(row.nmId()),Long.toString(row.chrtId()));
-                if(!repairError(row.status())||!byKey.containsKey(key)||!all&&!selected.contains(key)||row.hasIdentity()&&!ListingIdentity.fingerprint(shop).equals(repo.ownerHash(shop.getId(),row.chrtId())))continue;
+                if(row.status()!=Status.ERROR||!row.hasGtin()||row.goodId()==null&&!row.hasFeed()||nonErrors.contains(row.gtin().replaceFirst("^0+",""))||!byKey.containsKey(key)||!all&&!selected.contains(key)||row.hasIdentity()&&!ListingIdentity.fingerprint(shop).equals(repo.ownerHash(shop.getId(),row.chrtId())))continue;
                 if(row.hasGtin()&&out.stream().anyMatch(c->RegisteredGtinProof.sameCode(c.gtin(),row.gtin())))continue;
                 out.add(new ErrorCard(safe(row.gtin()),row.vendorCode(),row.color(),row.size(),ZnackSanitizer.message(row.errorMessage()),List.of(byKey.get(key))));
             }
         }else for(var row:new OzonCardRegistrationRepository().findMany(new ArrayList<>(byKey.keySet())).values()){
-            if(!repairError(row.status())||!all&&!selected.contains(row.key())||!ListingIdentity.fingerprint(shop).equals(row.owner()))continue;
+            if(row.status()!=Status.ERROR||row.gtin().isBlank()||row.goodId()==null&&row.feedId().isBlank()||nonErrors.contains(row.gtin().replaceFirst("^0+",""))||!all&&!selected.contains(row.key())||!ListingIdentity.fingerprint(shop).equals(row.owner()))continue;
             if(!row.gtin().isBlank()&&out.stream().anyMatch(c->RegisteredGtinProof.sameCode(c.gtin(),row.gtin())))continue;
             var product=byKey.get(row.key());out.add(new ErrorCard(row.gtin(),product.vendorArticle(),product.color(),product.size(),ZnackSanitizer.message(row.error()),List.of(product)));
         }
         return List.copyOf(out);
     }
-    private static boolean repairError(Status status){return Set.of(Status.ERROR,Status.PREFLIGHT_ERROR,Status.PRE_SUBMIT_ERROR,Status.GTIN_REVIEW_REQUIRED,Status.FEED_REVIEW_REQUIRED).contains(status);}
     /** Exact codes rank first; an incorrect old size may only offer variants of the same article/color. */
     public static List<ProductRow> candidates(GtinSyncModels.RegisteredGtin card,List<ProductRow> products){
         var exact=products.stream().filter(p->RegisteredGtinProof.contains(p.barcodes(),card.gtin())).toList();if(!exact.isEmpty())return exact;

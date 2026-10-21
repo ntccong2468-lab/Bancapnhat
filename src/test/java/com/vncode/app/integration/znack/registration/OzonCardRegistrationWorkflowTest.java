@@ -288,7 +288,7 @@ class OzonCardRegistrationWorkflowTest {
         try{
             assertTrue(batch.resumePending(shop));long until=System.nanoTime()+java.util.concurrent.TimeUnit.SECONDS.toNanos(8);
             while(System.nanoTime()<until&&!queue.latest(shop).state().equals("WAITING_REMOTE"))Thread.sleep(10);
-            assertEquals("WAITING_REMOTE",queue.latest(shop).state());assertEquals(1,queue.counts(run).submitted());assertEquals(1,queue.counts(run).remaining());
+            assertEquals("WAITING_REMOTE",queue.latest(shop).state());assertEquals(1,queue.counts(run).submitted());assertEquals(1,queue.counts(run).remaining());assertEquals(2,queue.counts(run).acceptedFeeds());assertEquals(1,queue.counts(run).awaitingReadback());
             assertEquals(2,api.submissions.get(),"A missing card must not block the later selected product");assertEquals(2,api.allocations.get());
             assertEquals(Status.FEED_SUBMITTED,repository.find(key).status());assertTrue(OzonCardRegistrationWorkflow.verifiedSubmission(repository.find(second)));
             String firstFeed=repository.find(key).feedId();api.missingGtins.clear();

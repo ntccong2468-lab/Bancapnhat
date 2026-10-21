@@ -88,6 +88,7 @@ class ZnackRegistrationBatchServiceTest {
 
         assertEquals(3,api.submits.get(),"A pending import must not stop later selected products being sent");
         assertEquals(0,first.latest(shop).submitted());assertEquals(3,first.latest(shop).remaining());assertEquals(0,first.latest(shop).failed());
+        assertEquals(3,first.latest(shop).acceptedFeeds());assertEquals(3,first.latest(shop).awaitingReadback());
         assertEquals(ZnackRegistrationBatchService.State.WAITING_REMOTE,first.latest(shop).state());
         for(var row:selection()){assertTrue(row.hasFeed());assertTrue(row.hasGtin());assertNull(row.goodId());assertNotEquals(Status.PUBLISHED,row.status());}
 
@@ -250,11 +251,17 @@ class ZnackRegistrationBatchServiceTest {
         assertTrue(store.items(shop,run).getFirst().detail().contains("ZNACK_REVIEWED_VALUES_CHANGED"));
     }
 
+    @Test void acceptedReceiptCountAdvancesBeforeTheFirstCardReadbackReturns(){
+        var batch=service((owner,row,sign)->draft,Runnable::run);var reads=new java.util.concurrent.atomic.AtomicInteger();
+        api.beforeFeedRead=()->{assertEquals(api.submits.get(),batch.latest(shop).acceptedFeeds());reads.incrementAndGet();};
+        batch.start(shop,selection(),false);assertEquals(3,reads.get());assertEquals(3,batch.latest(shop).submitted());
+    }
     private void retryNow(String run)throws Exception {
         try(var c=Database.getConnection();var p=c.prepareStatement("UPDATE znack_registration_batches SET retry_at=NULL WHERE id=?")){p.setString(1,run);p.executeUpdate();}
     }
 
     class FixtureApi extends ZnackApiClient {
+        Runnable beforeFeedRead=()->{};
         AtomicInteger allocations=new AtomicInteger(),submits=new AtomicInteger(),statusReads=new AtomicInteger(),cardReads=new AtomicInteger();boolean failFirstFeed,cardsVisible=true;
         String failedFeed="",failureStatus="Rejected";int statusReadFailure;Runnable onSubmit;
         java.util.concurrent.CountDownLatch feedReadEntered,releaseFeedRead;
@@ -273,7 +280,7 @@ class ZnackRegistrationBatchServiceTest {
         }
         @Override public JsonElement nationalCatalogFeedStatus(String base,String token,String feed)throws IOException {
             if(feedReadEntered!=null){feedReadEntered.countDown();try{if(!releaseFeedRead.await(5,java.util.concurrent.TimeUnit.SECONDS))throw new IOException("fixture monitor timed out");}catch(InterruptedException interrupted){Thread.currentThread().interrupt();throw new IOException(interrupted);}}
-            statusReads.incrementAndGet();
+            beforeFeedRead.run();statusReads.incrementAndGet();
             if(statusReadFailure>0)throw new ZnackApiException("read unavailable",statusReadFailure,"{}");
             String status=feed.equals(failedFeed)?failureStatus:"Processing";
             return json("{\"result\":{\"status\":\""+status+"\",\"item\":[{\"gtin\":\""+feedGtins.get(feed)+"\"}]}}");

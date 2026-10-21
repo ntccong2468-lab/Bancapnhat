@@ -135,7 +135,7 @@ public final class ZnackModels {
                     ownerInn, signerExecutable, signerCertificate, signerArgumentsJson, number, date, pdfFolder,
                     autoIntroduction, certificateListExecutable, certificateListArgumentsJson,
                     certificateMetadataJson, signerTestedAt, certmgrPath, cryptcpPath, csptestPath,
-                    cryptoProTimeoutSeconds, documentExpiryDate, type);
+                    cryptoProTimeoutSeconds, defaultGoodsDocument().equals(new GoodsDocument(type,number,date))?documentExpiryDate:"", type);
         }
 
         public boolean hasDefaultGoodsDocument() {

@@ -1,0 +1,123 @@
+{
+  "status": "verified-source-not-packaged",
+  "baseVersion": "1.5.10",
+  "branch": "fix/znack-processing-visibility",
+  "tests": 241,
+  "distinctClasses": 14,
+  "runs": [
+    {
+      "log": "znack-receipt-immediate-check.log",
+      "cases": [
+        {
+          "class": "com.vncode.app.features.sync.RegistrationCardIndexTest",
+          "tests": 18,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "class": "com.vncode.app.integration.znack.registration.OzonCardRegistrationWorkflowTest",
+          "tests": 67,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "class": "com.vncode.app.integration.znack.registration.ZnackRegistrationBatchServiceTest",
+          "tests": 20,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "class": "com.vncode.app.integration.znack.registration.CatalogErrorRepairServiceTest",
+          "tests": 12,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        }
+      ],
+      "tests": 117
+    },
+    {
+      "log": "znack-processing-ui-http-final.log",
+      "cases": [
+        {
+          "class": "com.vncode.app.integration.znack.registration.ZnackRegistrationDocumentsTest",
+          "tests": 9,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "class": "com.vncode.app.integration.znack.registration.RegistrationDynamicPreflightTest",
+          "tests": 12,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "class": "com.vncode.app.integration.znack.registration.ZnackRegistrationBatchHttpIntegrationTest",
+          "tests": 4,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "class": "com.vncode.app.integration.znack.registration.OzonAutomaticDraftSchemaTest",
+          "tests": 20,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "class": "com.vncode.app.ui.znackregistration.RegistrationSyncReportDialogTest",
+          "tests": 9,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "class": "com.vncode.app.ui.znackregistration.ZnackCardRegistrationControllerTest",
+          "tests": 28,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "class": "com.vncode.app.ui.znackregistration.RegistrationBatchPreflightTest",
+          "tests": 6,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "class": "com.vncode.app.ui.znackregistration.ZnackRegistrationQueryRepositoryTest",
+          "tests": 10,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "class": "com.vncode.app.ui.znackregistration.OzonRegistrationPaneTest",
+          "tests": 22,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "class": "com.vncode.app.ui.znackregistration.CatalogErrorRepairDialogTest",
+          "tests": 4,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        }
+      ],
+      "tests": 124
+    }
+  ],
+  "installerBuilt": false,
+  "latestChangedForThisFix": false,
+  "productionCatalogWriteVerified": false,
+  "sellerSixCardsVerified": false
+}

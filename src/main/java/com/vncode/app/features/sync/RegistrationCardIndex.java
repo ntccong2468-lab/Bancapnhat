@@ -37,6 +37,17 @@ public final class RegistrationCardIndex {
             default -> false;
         };
     }
+    /** A readback/variant warning blocks writes, not visibility of an accepted request. */
+    public static boolean awaitingCatalog(View view,Status status,String feedId){
+        if(Set.of("source.draft","source.processing","source.moderation").contains(view.status()))return true;
+        return !view.published()&&confirmedSubmission(status,feedId)
+                &&(!view.blocked()||view.detail().equals("GTIN_VARIANT_UNVERIFIED"));
+    }
+    /** Unsent preparation and uncertain requests have their own filters, not Catalog errors. */
+    public static boolean rejectedCard(View view,Status status,Long goodId,String feedId){
+        if(view.published()||awaitingCatalog(view,status,feedId))return false;
+        return view.status().equals("source.errors")||status==Status.ERROR&&(goodId!=null||!safe(feedId).isBlank());
+    }
     private final Map<String,List<RegisteredGtin>> codes=new HashMap<>(),attributes=new HashMap<>();
     private final OzonSkuGtinMatcher ozon;
     private final Set<Long> wbOwners=new HashSet<>();
@@ -135,6 +146,8 @@ public final class RegistrationCardIndex {
                 return new View(observed,card.gtin(),"GTIN_VARIANT_UNVERIFIED",true,false,true);
             }
             if(card.published())return new View("status.published",card.gtin(),"SOURCE_PUBLISHED_CONFIRMED",true,true,false);
+            if(status==Status.ERROR&&com.vncode.app.integration.znack.registration.CatalogCardState.of(card)==com.vncode.app.integration.znack.registration.CatalogCardState.MODERATION)
+                return new View("source.moderation",card.gtin(),"CATALOG_CARD_MODERATION",true,false,true);
             if(com.vncode.app.integration.znack.registration.CatalogCardState.reviewableDraft(card))return new View("source.draft",card.gtin(),"CATALOG_CARD_DRAFT",true,false,true,true);
             if(!nativeExists||status==Status.PUBLISHED||safe(gtin).isBlank()&&notSubmitted(status,gtin,null,"",false)){
                 var observed=com.vncode.app.integration.znack.registration.CatalogCardState.of(card);

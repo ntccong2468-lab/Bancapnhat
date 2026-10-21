@@ -18,7 +18,8 @@ import static com.vncode.app.integration.znack.registration.ZnackCardRegistratio
 /** Durable, sequential Catalog submission. Moderation/signing stays with the existing monitor. */
 public final class OzonRegistrationBatchService {
     public enum State { QUEUED,RUNNING,WAITING,WAITING_REMOTE,COMPLETED,FAILED,PAUSED,CANCELLED }
-    public record Progress(String runId,int total,int submitted,int failed,int remaining,String currentArticle,String currentSize,String detail,State state,String lastSubmittedArticle,String lastSubmittedSize,int cancelled,int retryCount,java.time.Instant nextRetryAt) {
+    public record Progress(String runId,int total,int submitted,int failed,int remaining,String currentArticle,String currentSize,String detail,State state,String lastSubmittedArticle,String lastSubmittedSize,int cancelled,int retryCount,java.time.Instant nextRetryAt,int acceptedFeeds,int awaitingReadback) {
+        public Progress(String runId,int total,int submitted,int failed,int remaining,String currentArticle,String currentSize,String detail,State state,String lastSubmittedArticle,String lastSubmittedSize,int cancelled,int retryCount,java.time.Instant nextRetryAt){this(runId,total,submitted,failed,remaining,currentArticle,currentSize,detail,state,lastSubmittedArticle,lastSubmittedSize,cancelled,retryCount,nextRetryAt,0,0);}
         public Progress(String runId,int total,int submitted,int failed,int remaining,String currentArticle,String currentSize,String detail,State state,String lastSubmittedArticle,String lastSubmittedSize){this(runId,total,submitted,failed,remaining,currentArticle,currentSize,detail,state,lastSubmittedArticle,lastSubmittedSize,0,0,null);}
     }
     private static final ScheduledExecutorService WORKERS=Executors.newScheduledThreadPool(2,r->{var t=new Thread(r,"ozon-registration-batch");t.setDaemon(true);return t;});
@@ -55,7 +56,7 @@ public final class OzonRegistrationBatchService {
     public Progress latest(Shop shop) {
         var batch=batches.latest(shop);if(batch==null)return null;
         var c=batches.counts(batch.id());var next=batches.next(batch);var last=batches.lastSubmitted(batch);
-        return new Progress(batch.id(),c.total(),c.submitted(),c.failed(),c.remaining(),next==null?"":next.key().variantId(),"",batch.detail(),State.valueOf(batch.state()),last==null?"":last.key().variantId(),"",c.cancelled(),batch.retryCount(),batch.nextRetryAt());
+        return new Progress(batch.id(),c.total(),c.submitted(),c.failed(),c.remaining(),next==null?"":next.key().variantId(),"",batch.detail(),State.valueOf(batch.state()),last==null?"":last.key().variantId(),"",c.cancelled(),batch.retryCount(),batch.nextRetryAt(),c.acceptedFeeds(),c.awaitingReadback());
     }
     public boolean pause(Shop selected){return control(selected,"PAUSED");}
     public boolean cancel(Shop selected){return control(selected,"CANCELLED");}
@@ -123,14 +124,16 @@ public final class OzonRegistrationBatchService {
                         if(row.status()==Status.FEED_SUBMITTING)cards.uncertain(item.key(),Status.FEED_REVIEW_REQUIRED,"CATALOG_FEED_READBACK_REQUIRED");
                         item(shop,item,"FAILED",row.status().name());continue;
                     }
+                    var member=item;
+                    java.util.function.BiConsumer<Status,String> receiptListener=(state,detail)->{if(state==Status.FEED_SUBMITTED)item(shop,member,"WAITING_REMOTE","CATALOG_REQUEST_ACCEPTED_CARD_PENDING");};
                     boolean accepted;
-                    if(row!=null&&row.status()==Status.READY_TO_SUBMIT)accepted=workflow.resumeForBatch(shop,item.key(),batch.autoSign());
+                    if(row!=null&&row.status()==Status.READY_TO_SUBMIT)accepted=workflow.resumeForBatch(shop,item.key(),batch.autoSign(),receiptListener);
                     else {
                         if(row!=null&&row.status()==Status.CHECKING)cards.transition(item.key(),Status.CHECKING,Status.PREFLIGHT_ERROR);
                         var prepared=workflow.prepare(shop,item.key());
                         var draft=OzonCardRegistrationWorkflow.suggestedDraft(prepared);
                         if(draft.isEmpty()||prepared.documents().automatic()==null){item(shop,item,"FAILED",draft.isEmpty()?"REGISTRATION_MISSING_REQUIRED_FIELDS":"REGISTRATION_DOCUMENT_REVIEW_REQUIRED");continue;}
-                        accepted=workflow.registerReviewedForBatch(shop,prepared,draft.get().withAutoSign(batch.autoSign()),null,lookup);
+                        accepted=workflow.registerReviewedForBatch(shop,prepared,draft.get().withAutoSign(batch.autoSign()),receiptListener,lookup);
                     }
                     if(!accepted){item(shop,item,"PENDING","");defer(shop,namespace,directory,batch.id(),"REGISTRATION_BUSY",2);deferred=true;return;}
                     workflow.completion(shop).toCompletableFuture().join();

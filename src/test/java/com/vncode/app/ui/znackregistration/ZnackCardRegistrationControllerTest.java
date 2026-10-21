@@ -392,6 +392,25 @@ class ZnackCardRegistrationControllerTest {
             return null;
         });
     }
+    @Test void selectAllAcrossPagesDoesNotMisrouteAnUnsentPreSubmitErrorToCatalogRepair()throws Exception{
+        try(var c=Database.getConnection();var q=c.createStatement()){
+            q.execute("UPDATE znack_card_registrations SET status='PRE_SUBMIT_ERROR',gtin='00000000000017' WHERE shop_id=1 AND chrt_id=2");
+            for(int id=4;id<=305;id++){
+                q.execute("INSERT INTO wb_product_cards(shop_id,nm_id,vendor_code,title,synced_at) VALUES(1,"+(100+id)+",'SKU-"+id+"','Fixture','fixture')");
+                q.execute("INSERT INTO wb_product_sizes(shop_id,chrt_id,nm_id,tech_size) VALUES(1,"+id+","+(100+id)+",'XL')");
+            }
+        }
+        com.vncode.app.testsupport.RegistrationSourceFixture.ready(new Shop(1,"Fixture","fixture"));
+        var controller=(ZnackCardRegistrationController)loader.getController();var dispatched=new CountDownLatch(1);var count=new java.util.concurrent.atomic.AtomicInteger();
+        fx(()->{
+            var preflight=controller.getClass().getDeclaredField("preflightReader");preflight.setAccessible(true);preflight.set(controller,(java.util.function.BiFunction<Shop,java.util.List<com.vncode.app.features.products.ProductKey>,RegistrationBatchPreflight.Review>)(owner,selection)->new RegistrationBatchPreflight.Review(java.util.List.of()));
+            var starter=controller.getClass().getDeclaredField("batchStarter");starter.setAccessible(true);starter.set(controller,(ZnackCardRegistrationController.BatchStarter)(owner,selection,sign)->{count.set(selection.size());dispatched.countDown();return "all-unsent-fixture";});
+            ((ComboBox<?>)loader.getNamespace().get("statusFilter")).getSelectionModel().select(1);return null;
+        });awaitTasks();
+        fx(()->{((CheckBox)loader.getNamespace().get("allFilteredCheckBox")).fire();return null;});awaitTasks();
+        fx(()->{assertEquals(300,table().getItems().size());assertEquals(I18nService.getInstance().tr("znack.registration.register_short"),button("registerSelectedButton").getText());button("registerSelectedButton").fire();return null;});
+        assertTrue(dispatched.await(5,TimeUnit.SECONDS),"Select all and one Register click must start submission, not error repair");assertEquals(304,count.get());awaitTasks();
+    }
     @Test void oneRegisterClickDispatchesTheFrozenSelectionWhileFiltersRemainUsable()throws Exception{
         var controller=(ZnackCardRegistrationController)loader.getController();
         var dispatched=new CountDownLatch(1);var finish=new CountDownLatch(1);

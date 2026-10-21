@@ -355,7 +355,10 @@ public final class OzonCardRegistrationWorkflow {
         return resume(selected,key,automaticSigning,callback,false);
     }
     public boolean resumeForBatch(Shop selected,ProductKey key,boolean automaticSigning) {
-        return resume(selected,key,automaticSigning,null,true);
+        return resumeForBatch(selected,key,automaticSigning,null);
+    }
+    public boolean resumeForBatch(Shop selected,ProductKey key,boolean automaticSigning,BiConsumer<Status,String> callback){
+        return resume(selected,key,automaticSigning,callback,true);
     }
     private boolean resume(Shop selected,ProductKey key,Boolean automaticSigning,BiConsumer<Status,String> callback,boolean submitOnly) {
         Shop shop=capture(selected);
