@@ -42,16 +42,17 @@ final class RegistrationSyncReportDialog {
             table.setId("registrationSyncReportItems");table.setColumnResizePolicy(TableView.UNCONSTRAINED_RESIZE_POLICY);
             column("Marketplace",row->owner.getMarketplace().name());column(tr("jobs.shop"),row->owner.getName());
             column("Product / variant",row->row.productId()+" / "+row.variantId());column("SKU",SyncRunRepository.Item::sku);column("Article",SyncRunRepository.Item::article);
+            column(tr("jobs.reason"),RegistrationSyncReportDialog::itemReason);
             column(tr("fbo.column.color"),SyncRunRepository.Item::color);column(tr("fbo.column.size"),SyncRunRepository.Item::size);column("GTIN",SyncRunRepository.Item::gtin);column("Feed ID",row->identifier(row,"feedId"));column(tr("znack.registration.report_card_id"),row->identifier(row,"goodId"));
             column(tr("znack.registration.report_barcode"),row->RegistrationReportData.field(row,"barcodes"));column(tr("znack.registration.report_catalog_state"),RegistrationReportData::catalogState);column(tr("znack.registration.report_catalog_checked"),row->RegistrationReportData.field(row,"catalogCheckedAt"));column(tr("znack.registration.report_check_result"),row->result(row,"checkResult"));column(tr("znack.registration.report_sync_result"),row->result(row,"syncResult"));column(tr("znack.registration.report_updated"),SyncRunRepository.Item::updatedAt);column(tr("znack.registration.report_next_action"),RegistrationSyncReportDialog::nextAction);
-            column(tr("znack.registration.status"),row->itemState(runs.getValue(),row));column(tr("jobs.step"),row->label("znack.registration.report_step."+row.step(),row.step()));column(tr("jobs.reason"),RegistrationSyncReportDialog::itemReason);
+            column(tr("znack.registration.status"),row->itemState(runs.getValue(),row));column(tr("jobs.step"),row->label("znack.registration.report_step."+row.step(),row.step()));
             getChildren().setAll(new FlowPane(8,8,runs,refresh),new FlowPane(8,8,search,state,export),summary,table,events,new HBox(8,previous,next));VBox.setVgrow(table,Priority.ALWAYS);
             runs.setOnAction(e->{if(busy)return;var run=runs.getValue();selected=run==null?"":run.id();offset=0;load();});
             previous.setOnAction(e->{offset=Math.max(0,offset-300);load();});next.setOnAction(e->{offset+=300;load();});refresh.setOnAction(e->load());
             filterDebounce.setOnFinished(e->{offset=0;load();});search.textProperty().addListener((o,a,b)->filterDebounce.playFromStart());state.valueProperty().addListener((o,before,current)->{if(!applyingFilters){offset=0;load();}});export.setOnAction(e->export());
             timer.setOnFinished(e->load());load();
         }
-        private record Page(List<SyncRunRepository.Run> runs,SyncRunRepository.Run run,List<SyncRunRepository.Item> items,Map<String,Long> counts,List<SyncRunRepository.Event> events,long matched,Set<String> states,String scopeKey){}
+        private record Page(List<SyncRunRepository.Run> runs,SyncRunRepository.Run run,List<SyncRunRepository.Item> items,Map<String,Long> counts,List<SyncRunRepository.Event> events,long matched,Set<String> states,String scopeKey,List<SyncRunRepository.Item> failures){}
         private void load(){
             if(closed)return;if(busy){pendingReload=true;return;}timer.stop();busy=true;buttons();String requested=selected;int start=offset;var filter=filter();
             Task<Page> task=new Task<>(){protected Page call(){
@@ -60,15 +61,15 @@ final class RegistrationSyncReportDialog {
                     try{reports.assertOwner(owner,run.id());owned.add(run);}catch(SecurityException oldOwner){/* historical account */}
                 }
                 var run=owned.stream().filter(r->r.id().equals(requested)).findFirst().orElse(owned.stream().filter(r->RegistrationAttemptReports.KIND.equals(r.kind())).findFirst().orElse(owned.isEmpty()?null:owned.getFirst()));
-                if(run==null)return new Page(owned,null,List.of(),Map.of(),List.of(),0,Set.of(),"znack.registration.report_scope_batch");
+                if(run==null)return new Page(owned,null,List.of(),Map.of(),List.of(),0,Set.of(),"znack.registration.report_scope_batch",List.of());
                 var items=reports.items(run.id(),start,300);RegistrationAttemptReports.refreshAll(owner,run);com.vncode.app.integration.znack.registration.CatalogErrorRepairService.refresh(owner,run,items);
                 run=reports.find(run.id()).orElseThrow();var filtered=RegistrationReportData.page(owner,run.id(),filter,start,300);items=filtered.rows();
                 for(int i=0;i<owned.size();i++)if(owned.get(i).id().equals(run.id()))owned.set(i,run);
-                return new Page(owned,run,items,"znack_marketplace".equals(run.kind())?reports.marketplaceCounts(run.id()):reports.counts(run.id()),reports.events(run.id(),null,4),filtered.matched(),filtered.states(),RegistrationReportData.scopeKey(run,reports.items(run.id(),0,1)));
+                return new Page(owned,run,items,"znack_marketplace".equals(run.kind())?reports.marketplaceCounts(run.id()):reports.counts(run.id()),reports.events(run.id(),null,4),filtered.matched(),filtered.states(),RegistrationReportData.scopeKey(run,reports.items(run.id(),0,1)),filtered.failures());
             }};running=task;
             task.setOnSucceeded(e->{if(closed)return;if(pendingReload){pendingReload=false;busy=false;load();return;}var page=task.getValue();runs.getItems().setAll(page.runs());runs.setValue(page.run());selected=page.run()==null?"":page.run().id();table.getItems().setAll(page.items());matched=page.matched();
                 String chosen=state.getValue();var states=new LinkedHashSet<String>();states.add("ALL");if(chosen!=null)states.add(chosen);page.states().stream().sorted().forEach(states::add);applyingFilters=true;try{state.getItems().setAll(states);state.setValue(chosen==null?"ALL":chosen);}finally{applyingFilters=false;}
-                summary.setText(page.run()==null?tr("znack.registration.report_empty"):owner.getMarketplace()+" · "+owner.getName()+" · "+tr(page.scopeKey())+"\n"+runState(page.run())+" · "+label("znack.registration.report_step."+page.run().step(),page.run().step())+" · "+reasonCode(page.run().error())+"\n"+summary(page.run(),page.counts())+"\n"+tr("znack.registration.report_filtered")+": "+(page.items().isEmpty()?0:start+1)+"–"+(start+page.items().size())+" / "+matched+" · "+tr(page.scopeKey())+": "+page.run().total());
+                summary.setText(page.run()==null?tr("znack.registration.report_empty"):owner.getMarketplace()+" · "+owner.getName()+" · "+tr(page.scopeKey())+"\n"+runState(page.run())+" · "+label("znack.registration.report_step."+page.run().step(),page.run().step())+" · "+reasonCode(page.run().error())+"\n"+summary(page.run(),page.counts())+"\n"+tr("znack.registration.report_filtered")+": "+(page.items().isEmpty()?0:start+1)+"–"+(start+page.items().size())+" / "+matched+" · "+tr(page.scopeKey())+": "+page.run().total()+failureSummary(page.failures()));
                 events.setText(page.events().stream().map(event->event.time()+" · "+label("znack.registration.report_step."+event.step(),event.step())+" · "+label("jobs.status."+event.state(),event.state())+(event.error().isBlank()?"":" · "+reasonCode(event.error()))).collect(java.util.stream.Collectors.joining("\n")));
                 pendingReload=false;busy=false;buttons();timer.playFromStart();
             });
@@ -95,6 +96,13 @@ final class RegistrationSyncReportDialog {
         String message=reasonCode(code);
         String detail=identifier(row,"reason");
         return message+(detail.isBlank()||detail.equals(code)?"":" · "+detail);
+    }
+    static String failureSummary(List<SyncRunRepository.Item> failures){
+        return failures.stream().map(row->{
+            String detail=itemReason(row);
+            if(detail.length()>300)detail=detail.substring(0,300)+"…";
+            return "\n"+tr("jobs.reason")+" · "+row.article()+" / "+row.size()+": "+detail;
+        }).collect(java.util.stream.Collectors.joining());
     }
     static String nextAction(SyncRunRepository.Item row){return reasonCode(RegistrationReportData.field(row,"nextAction"));}
     private static String reasonCode(String code){

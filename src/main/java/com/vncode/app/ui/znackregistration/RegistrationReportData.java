@@ -12,7 +12,7 @@ import java.util.*;
 /** An allowlisted read-only projection. Raw evidence/payloads never become an exported column. */
 final class RegistrationReportData {
     record Filter(String text,String state){Filter{text=Objects.toString(text,"").strip().toLowerCase(Locale.ROOT);state=Objects.toString(state,"ALL");}}
-    record Page(List<SyncRunRepository.Item> rows,long matched,Set<String> states){}
+    record Page(List<SyncRunRepository.Item> rows,long matched,Set<String> states,List<SyncRunRepository.Item> failures){}
     private static final List<String> HEADERS=List.of("Marketplace","Shop","Scope","Run","Product","Variant","SKU","Article","Color","Size","Barcodes","GTIN","Catalog ID","Catalog raw status","Catalog checked at","Check result","Sync result","State","Step","Updated at","Error","Next action");
     private RegistrationReportData(){}
     static String field(SyncRunRepository.Item row,String name){
@@ -32,13 +32,18 @@ final class RegistrationReportData {
         return java.util.stream.Stream.of(row.productId(),row.variantId(),row.sku(),row.article(),row.color(),row.size(),row.gtin(),row.state(),row.error(),field(row,"barcodes"),field(row,"goodId"),catalogState(row),field(row,"checkResult"),field(row,"syncResult"),field(row,"nextAction")).anyMatch(value->safe(value).toLowerCase(Locale.ROOT).contains(filter.text()));
     }
     static Page page(Shop owner,String run,Filter filter,int offset,int limit){
-        var repository=new SyncRunRepository();var result=new ArrayList<SyncRunRepository.Item>();var states=new LinkedHashSet<String>();long matched=0;
+        var repository=new SyncRunRepository();var result=new ArrayList<SyncRunRepository.Item>();var states=new LinkedHashSet<String>();var failures=new ArrayList<SyncRunRepository.Item>();long matched=0;
         for(int cursor=0;;cursor=Math.addExact(cursor,1000)){
             interrupted();repository.assertOwner(owner,run);var rows=repository.items(run,cursor,1000);
-            for(var row:rows){states.add(row.state());if(matches(row,filter)){if(matched>=offset&&result.size()<limit)result.add(row);matched++;}}
+            for(var row:rows){
+                states.add(row.state());
+                // Keep the first actionable reasons visible even on another page/filter.
+                if(failures.size()<3&&Set.of("NEEDS_ACTION","FAILED").contains(row.state()))failures.add(row);
+                if(matches(row,filter)){if(matched>=offset&&result.size()<limit)result.add(row);matched++;}
+            }
             if(rows.size()<1000)break;
         }
-        repository.assertOwner(owner,run);return new Page(List.copyOf(result),matched,Set.copyOf(states));
+        repository.assertOwner(owner,run);return new Page(List.copyOf(result),matched,Set.copyOf(states),List.copyOf(failures));
     }
     static void exportCsv(Shop owner,SyncRunRepository.Run run,Filter filter,Path target)throws IOException{
         var repository=new SyncRunRepository();repository.assertOwner(owner,run.id());var before=repository.find(run.id()).orElseThrow();

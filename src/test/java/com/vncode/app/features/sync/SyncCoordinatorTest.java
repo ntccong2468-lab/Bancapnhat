@@ -83,6 +83,12 @@ class SyncCoordinatorTest {
     @Test void unsafeUpstreamMessageIsNeverStoredAsErrorCode(){
         var failure=SyncFailure.of(new IllegalStateException("Authorization: secret-token @ private endpoint"),2);assertEquals("SYNC_INTERNAL",failure.code());assertFalse(failure.toString().contains("secret-token"));
     }
+    @Test void fieldSpecificRegistrationErrorsKeepTheirCodeWithoutPersistingPrivateDetails(){
+        var failure=SyncFailure.of(new IllegalStateException("ZNACK_INVALID_ATTRIBUTE_VALUE: Размер одежды [35]; token=private-secret"),0);
+        assertEquals("ZNACK_INVALID_ATTRIBUTE_VALUE",failure.code());
+        assertFalse(failure.toString().contains("private-secret"));
+        assertEquals("SYNC_INTERNAL",SyncFailure.of(new IllegalStateException("Authorization: secret-token"),0).code());
+    }
     @Test void blockedSqliteWriterCannotBlockUiSelectionRefreshOrShutdown()throws Exception{
         create((s,stream,cursor)->SyncCoordinator.Page.complete(0));
         var scheduler=java.util.concurrent.Executors.newSingleThreadExecutor();

@@ -58,6 +58,23 @@ class ZnackCurrentSchemaSubmissionTest {
         var value=payload(Map.of(1L,"Suit"));var original=value.deepCopy();var marker=new AtomicInteger();
         assertEquals("fixture-feed",catalog.submit("fixture",value,marker::incrementAndGet));assertEquals(1,marker.get());assertEquals(1,api.posts);assertEquals(original,api.submitted);assertEquals(original,value);
     }
+    @Test void catalogSizeTypeDashLiteralSurvivesPreparationAndReachesTheFeed()throws Exception {
+        // /v3/attributes, category 30696: the size dictionary explicitly includes "---".
+        // A numeric marketplace size without a sizing system must not become a Russian size.
+        var size=field(35,"Размер одежды / изделия");
+        size.add("attr_value_type",JsonParser.parseString("[\"РОССИЯ\",\"МЕЖДУНАРОДНЫЙ\",\"---\"]"));
+        api.required=api.all=fields(size);
+        var model=ZnackNationalCatalogService.parseAttributes(api.required);
+        var draft=RegistrationAutomaticDraft.complete(draft(Map.of(35L,"52")),model,"");
+        assertEquals("---",draft.attributeTypes().get(35L));
+        catalog.validateCurrentRegistrationDraft("fixture",draft);
+        var body=ZnackNationalCatalogService.buildPayload("04631993764370",draft,"");
+        assertEquals("---",body.getAsJsonArray("good_attrs").get(0).getAsJsonObject().get("attr_value_type").getAsString());
+        assertEquals("fixture-feed",catalog.submit("fixture",body));
+        assertEquals(1,api.posts);
+        assertEquals(body,api.submitted);
+        assertEquals("---",ZnackCardRegistrationWorkflow.draftFromPayload(body).attributeTypes().get(35L));
+    }
     @Test void finalSubmitRefreshesTheModelEvenInsideAnExistingOperation()throws Exception {
         try(var operation=catalog.registrationCountryReadScope()){
             catalog.validateCurrentRegistrationDraft("fixture",draft(Map.of(1L,"Suit")));api.required=fields(field(1,"Kind"),field(2,"Added after approval"));

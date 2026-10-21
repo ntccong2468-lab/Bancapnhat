@@ -600,6 +600,7 @@ public final class ZnackNationalCatalogService {
     }
 
     public ZnackRegistrationDocuments.Selection reviewDocuments(String token,ZnackRegistrationDocuments.Selection selected,String tnved)throws Exception {
+        if(selected.candidates().isEmpty())return selected;
         var valid=new ArrayList<ZnackModels.GoodsDocument>();var issues=new ArrayList<String>();var reviewRequired=new HashSet<ZnackModels.GoodsDocument>();
         for(var document:selected.candidates()){
             var cached=permitReadbacks.get(document);
@@ -1093,7 +1094,10 @@ public final class ZnackNationalCatalogService {
             attribute.addProperty("attr_id", entry.getKey());
             attribute.addProperty("attr_value", RegistrationTemplate.clean(entry.getValue()));
             String type=RegistrationTemplate.clean(draft.attributeTypes().getOrDefault(entry.getKey(), ""));
-            attribute.addProperty("attr_value_type",Set.of("---","...").contains(type)?"":type);
+            // Value types are Catalog dictionary literals, not UI placeholders. In particular
+            // clothing size models allow "---"; erasing it makes a reviewed draft fail the
+            // current-model check before /v3/feed is ever called (WB and Ozon share this path).
+            attribute.addProperty("attr_value_type",type);
             attributes.add(attribute);
         });
         payload.add("good_attrs", attributes);
