@@ -72,9 +72,12 @@ Chỉ có nghiệm thu cục bộ Level 1. Không có bằng chứng sandbox Lev
 Level 3 hay công bố Level 4. Không cấp GTIN, gửi thẻ, ký hoặc đồng bộ seller thật.
 Chưa kiểm tra CryptoPro/chứng thư, DPAPI và nâng cấp native trên Windows cho 1.5.8.
 
-`api.github.com` bị proxy CONNECT 403 cả khi không xác thực, nên quyền GitHub/Windows CI
-chưa được xác minh. Bản nháp mạng thêm host này đã lưu, **chưa áp dụng**; cần review và
-Save trong Environment settings rồi Publish môi trường. Không tự nới gate phát hành.
+Khi chuẩn bị Linux ban đầu, proxy chặn `api.github.com`. Ở bước phát hành tiếp theo,
+API và quyền push đã được xác minh lại; mã đã push và Windows CI đầy đủ đang chạy từ
+`06408f3a35fddd2952b64374f75e5761d0b43502`, run `39641010813`. 110 kiểm thử công cụ
+phát hành hiện tại đã qua; kết quả 107 ca phía trên là snapshot trước bổ sung quyền phát hành.
+Chủ dự án yêu cầu công bố Latest; quyền này được ghi riêng đúng source/run, giữ các cờ
+nghiệm thu production false và vẫn kiểm tra toàn bộ Windows/native/upgrade thật.
 
 ## Bằng chứng giữ trong workspace
 

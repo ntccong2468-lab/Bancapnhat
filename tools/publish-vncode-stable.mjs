@@ -536,6 +536,23 @@ export function validateOwner158UpgradeProof(proof,version,installerDigest) {
     assert.equal(proof.passiveExeHandoffVerified,true);assert.match(installerDigest,/^[a-f0-9]{64}$/);
     assert.equal(proof.passiveExeInstallerSha256,installerDigest);assert.match(proof.passiveExeEmbeddedMsiSha256,/^[a-f0-9]{64}$/);
 }
+export function formatOwner158RequestReport(template,decision,status) {
+    validateOwnerRequested158(decision,status,'1.5.8',decision.buildSourceCommit,decision.runId);
+    const marker='## Đóng gói và phát hành',offset=template.indexOf(marker);
+    assert.ok(offset>=0,'Missing release report section');
+    const java=decision.windowsJava,proofs=decision.verifiedNativeProofs;
+    return template.slice(0,offset).trim()+'\n\n'+marker+'\n\n'+
+        `Windows build [${decision.runId}](https://github.com/${REPO}/actions/runs/${decision.runId}) `+
+        `từ đúng source \`${decision.buildSourceCommit}\` đã qua; chạy mới toàn bộ Java, không dùng lại artifact cũ.\n\n`+
+        `Java/FXML: ${java.tests} ca, ${java.passed} đạt, ${java.failures} failures, ${java.errors} errors, ${java.skipped} bỏ qua đúng nền tảng. `+
+        `${proofs.length} bằng chứng native, gồm ${proofs.filter(name=>name.startsWith('upgrade-')).length} ca nâng cấp, `+
+        `workspace, DPI, bố cục và DPAPI đã được đối chiếu. Nâng cấp từ đúng byte/checksum 1.5.7 qua EXE \`/passive /norestart\` `+
+        `giữ fingerprint dữ liệu và một registration.\n\n`+
+        `Bộ cài \`VN-code-1.5.8-Windows-x64.exe\`: ${decision.installerBytes} byte; SHA-256 \`${decision.installerSha256}\`.\n\n`+
+        `Đủ điều kiện công bố Latest theo yêu cầu trực tiếp của chủ dự án. Chưa nghiệm thu license production, `+
+        `CryptoPro/chứng thư doanh nghiệp, cấp mã/gửi thẻ hay ghi GTIN seller thật; các cờ nghiệm thu tương ứng vẫn false. `+
+        `Bộ cài chưa ký Authenticode. Thông báo trên máy seller chưa được quan sát; ứng dụng kiểm tra GitHub Latest ở lần kiểm tra cập nhật tiếp theo.\n`;
+}
 
 async function main(runId,sha,mode='prepare') {
     assert.match(runId??'',/^[1-9][0-9]{0,15}$/);assert.match(sha??'',/^[a-f0-9]{40}$/);
@@ -882,7 +899,7 @@ async function main(runId,sha,mode='prepare') {
         status.blocked=['Production license/CryptoPro/seller acceptance remains unverified.'];
         await writeFile(path.join(directory,'release-acceptance.json'),JSON.stringify(ownerDecision,null,2)+'\n');
         await writeFile(path.join(directory,'release-status.json'),JSON.stringify(status,null,2)+'\n');
-        await writeFile(path.join(directory,'request-report.md'),await readFile('docs/ZNACK_1.5.8_UPDATE.md'));
+        await writeFile(path.join(directory,'request-report.md'),formatOwner158RequestReport(await readFile('docs/ZNACK_1.5.8_UPDATE.md','utf8'),ownerDecision,status));
         names.push('release-acceptance.json','release-status.json','request-report.md');
     }
     const digests={};for(const file of names)digests[file]=hash(await readFile(path.join(directory,file)));

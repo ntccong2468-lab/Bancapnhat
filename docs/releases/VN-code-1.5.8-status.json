@@ -51,5 +51,10 @@
     "authorizedByOwner": true,
     "requestedChannel": "Latest",
     "published": false
+  },
+  "publicationToolTests": {
+    "tests": 110,
+    "passed": 110,
+    "failures": 0
   }
 }

@@ -473,3 +473,12 @@ test('158 requires passive EXE upgrade from the exact published157 installer byt
   {passiveExeInstallerSha256:'b'.repeat(64)},{passiveExeHandoffVerified:false},{dataPreserved:false},{singleRegistration:false},{liveMarketplaceMutations:true}])
   assert.throws(()=>s.validateOwner158UpgradeProof({...proof,...patch},'1.5.8',digest));
 });
+
+test('158 release report replaces pending build text with verified source Java installer and upgrade evidence',async()=>{
+ const s=await import('./publish-vncode-stable.mjs');assert.equal(typeof s.formatOwner158RequestReport,'function');
+ const f=owner158Fixture(),scope='# Bản sửa đăng ký Znack 1.5.8\n\nSCOPE: giữ nguyên toàn bộ màn hình/nút 1.5.7.';
+ const report=s.formatOwner158RequestReport(scope+'\n\n## Đóng gói và phát hành\n\nPENDING_BUILD_SENTINEL',f.decision,f.status);
+ assert.ok(report.startsWith(scope));assert.ok(!report.includes('PENDING_BUILD_SENTINEL'));
+ for(const value of [f.sha,f.runId,f.decision.installerSha256,String(f.decision.installerBytes),'2838','27 bằng chứng','22 ca nâng cấp','1.5.7','/passive /norestart','CryptoPro','production','chưa được quan sát'])assert.ok(report.includes(value),value);
+ const pending=owner158Fixture(true);assert.throws(()=>s.formatOwner158RequestReport(scope,pending.decision,pending.status));
+});
