@@ -252,7 +252,7 @@ class WbGtinAdapterTest {
     @Test void batchRejectionAcceptsTheExactSubmittedArticleWhilePreservingInternalSpaces()throws Exception {
         transport.card.addProperty("vendorCode"," Fixture - model ");catalogProof("Fixture - model","Black","XL",false);var p=preview();transport.apply=false;adapter.submitBatch(List.of(p),()->{});
         transport.errors=errorList("Fixture - model",Instant.now().plusSeconds(1));var result=adapter.verifyBatch(List.of(awaiting(p))).get(key);
-        assertEquals(Verification.REJECTED,result.outcome());assertEquals("WB_GTIN_CARD_REJECTED",result.issue());assertEquals(1,transport.writes.get());
+        assertEquals(Verification.REJECTED,result.outcome());assertEquals("WB_GTIN_CARD_REJECTED",result.issue());assertTrue(result.detail().contains("Invalid"));assertFalse(result.detail().contains(shop.getApiKey()));assertEquals(1,transport.writes.get());
     }
     @Test void originalArticleRejectionCannotMatchAnotherEdgeSpellingOldTimeOrFutureTime()throws Exception {
         String original=" Fixture - model ";transport.card.addProperty("vendorCode",original);catalogProof("Fixture - model","Black","XL",false);var p=preview();transport.apply=false;var sent=adapter.submit(p);
