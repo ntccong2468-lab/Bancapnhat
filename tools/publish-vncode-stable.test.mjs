@@ -411,5 +411,74 @@ test('157 adds its latest upgrade checks before mutation and preserves the ordin
     const mutation=source.indexOf("const refs=api(`git/matching-refs/tags/${tag}`)");
     assert.ok(checks>0&&checks<mutation);
     assert.match(source,/assert\.equal\(status\.complete,true,'Release functionality acceptance is incomplete'\)/);
-    assert.match(source,/mode==='owner-requested-157'\)publicDownload|\['owner-requested-155','owner-requested-157'\]\.includes\(mode\)\)publicDownload/);
+    assert.match(source,/mode==='owner-requested-157'\)publicDownload|\['owner-requested-155','owner-requested-157'(?:,'owner-requested-158')?\]\.includes\(mode\)\)publicDownload/);
+});
+
+function owner158Fixture(pending=false) {
+ const version='1.5.8',sha='06408f3a35fddd2952b64374f75e5761d0b43502',runId='39641010813';
+ const java={tests:2838,failures:0,errors:0,skipped:2,passed:2836};
+ const decision={version,buildSourceCommit:sha,runId:Number(runId),ownerRequestedPublication:true,
+  ownerInstruction:'tạo phát hành bản cập nhật mới lên latest để thông báo xuống ứng dụng',
+  unverifiedChecksDisclosedBeforePublication:true,standardFullAcceptanceClaimed:false,
+  productionLicenseAcceptance:false,enterpriseCryptoProSigningAccepted:false,liveMarketplaceWritesAccepted:false,
+  phase:pending?'authorized-awaiting-verified-windows-build':'verified-for-publication',
+  installerSha256:pending?null:'a'.repeat(64),installerBytes:pending?null:149000000,
+  windowsJava:pending?null:java,windowsArtifactId:pending?null:123456,
+  verifiedNativeProofs:pending?null:[...owner154RequiredNativeProofs.slice(0,-3),'upgrade-stable-154-smoke.json','upgrade-stable-155-smoke.json','upgrade-stable-157-smoke.json',...owner154RequiredNativeProofs.slice(-3)],
+  passiveExeHandoffVerified:pending?null:true};
+ const status={version,complete:false,databaseSchema:6,baseline:'v1.5.7',
+  registrationUi:{identicalTo157:true,separateV3Screen:false},licenseIntegration:{productionReady:false,changedInThisVersion:false},
+  validation:{productionLicenseVerified:false,liveCryptoProSigningThisVersion:false,liveMarketplaceWritesThisVersion:false,
+   windowsBuild:{state:pending?'running':'passed',sourceCommit:sha,runId:Number(runId),freshFullJavaExecutionRequired:true,
+    upgradeFrom157Required:true,windowsArtifactId:decision.windowsArtifactId,
+    ...(pending?{}:{fullJavaSuite:java,allNativeChecksPassed:true,installerPackaged:true,passiveExeHandoffVerified:true,upgradeFrom157Passed:true})}}};
+ return {version,sha,runId,decision,status};
+}
+test('158 Latest authorization binds the exact fresh Windows build and retains unverified live acceptance',async()=>{
+ const s=await import('./publish-vncode-stable.mjs');assert.equal(typeof s.validateOwnerRequest158,'function');
+ for(const pending of [true,false]){
+  const f=owner158Fixture(pending),args=[f.version,f.sha,f.runId];s.validateOwnerRequest158(f.decision,f.status,...args);
+  if(!pending)s.validateOwnerRequested158(f.decision,f.status,...args);
+  for(const patch of [{ownerRequestedPublication:false},{ownerInstruction:'other'},{buildSourceCommit:'b'.repeat(40)},{runId:1},
+   {standardFullAcceptanceClaimed:true},{unverifiedChecksDisclosedBeforePublication:false},{productionLicenseAcceptance:true},
+   {enterpriseCryptoProSigningAccepted:true},{liveMarketplaceWritesAccepted:true}])assert.throws(()=>s.validateOwnerRequest158({...f.decision,...patch},f.status,...args));
+  for(const patch of [{complete:true},{baseline:'v1.5.5'},{registrationUi:{identicalTo157:false,separateV3Screen:true}}])
+   assert.throws(()=>s.validateOwnerRequest158(f.decision,{...f.status,...patch},...args));
+  for(const field of ['productionLicenseVerified','liveCryptoProSigningThisVersion','liveMarketplaceWritesThisVersion'])
+   assert.throws(()=>s.validateOwnerRequest158(f.decision,{...f.status,validation:{...f.status.validation,[field]:true}},...args));
+  for(const [sha,runId] of [['b'.repeat(40),f.runId],[f.sha,'1']]){
+   const decision={...f.decision,buildSourceCommit:sha,runId:Number(runId)};
+   const status={...f.status,validation:{...f.status.validation,windowsBuild:{...f.status.validation.windowsBuild,sourceCommit:sha,runId:Number(runId)}}};
+   assert.throws(()=>s.validateOwnerRequest158(decision,status,f.version,sha,runId));
+  }
+ }
+ const f=owner158Fixture(true);assert.throws(()=>s.validateOwnerRequested158(f.decision,f.status,f.version,f.sha,f.runId));
+ for(const field of ['installerSha256','installerBytes','windowsJava','windowsArtifactId','verifiedNativeProofs','passiveExeHandoffVerified'])
+  assert.throws(()=>s.validateOwnerRequest158({...f.decision,[field]:owner158Fixture().decision[field]},f.status,f.version,f.sha,f.runId));
+ const done=owner158Fixture();
+ for(const patch of [{windowsJava:{...done.decision.windowsJava,tests:2788}},{verifiedNativeProofs:done.decision.verifiedNativeProofs.filter(n=>!n.includes('157'))},{windowsArtifactId:0}])
+  assert.throws(()=>s.validateOwnerRequested158({...done.decision,...patch},done.status,done.version,done.sha,done.runId));
+ for(const patch of [{freshFullJavaExecutionRequired:false},{upgradeFrom157Passed:false},{allNativeChecksPassed:false},{windowsArtifactId:98765}])
+  assert.throws(()=>s.validateOwnerRequested158(done.decision,{...done.status,validation:{...done.status.validation,windowsBuild:{...done.status.validation.windowsBuild,...patch}}},done.version,done.sha,done.runId));
+});
+test('158 requires passive EXE upgrade from the exact published157 installer bytes',async()=>{
+ const s=await import('./publish-vncode-stable.mjs');assert.equal(typeof s.validateOwner158UpgradeProof,'function');
+ const digest='a'.repeat(64),proof={appName:'VN code',version:'1.5.8',fromVersion:'1.5.7',result:'passed',
+  installerUpgradeUuid:'8CBBA0E2-6E73-4F56-9101-6BC0948D3C72',singleRegistration:true,dataPreserved:true,liveMarketplaceMutations:false,
+  fingerprint:'b'.repeat(64),baselineTag:'v1.5.7',baselineInstallerBytes:147257344,
+  baselineInstallerSha256:'b51a0049481296ef9d5ad1f2be67a729a366526965dfd18571b9adac30b9a693',
+  passiveExeHandoffVerified:true,passiveExeInstallerSha256:digest,passiveExeEmbeddedMsiSha256:'c'.repeat(64)};
+ s.validateOwner158UpgradeProof(proof,'1.5.8',digest);
+ for(const patch of [{baselineTag:'v1.5.5'},{baselineInstallerBytes:1},{baselineInstallerSha256:'b'.repeat(64)},
+  {passiveExeInstallerSha256:'b'.repeat(64)},{passiveExeHandoffVerified:false},{dataPreserved:false},{singleRegistration:false},{liveMarketplaceMutations:true}])
+  assert.throws(()=>s.validateOwner158UpgradeProof({...proof,...patch},'1.5.8',digest));
+});
+
+test('158 release report replaces pending build text with verified source Java installer and upgrade evidence',async()=>{
+ const s=await import('./publish-vncode-stable.mjs');assert.equal(typeof s.formatOwner158RequestReport,'function');
+ const f=owner158Fixture(),scope='# Bản sửa đăng ký Znack 1.5.8\n\nSCOPE: giữ nguyên toàn bộ màn hình/nút 1.5.7.';
+ const report=s.formatOwner158RequestReport(scope+'\n\n## Đóng gói và phát hành\n\nPENDING_BUILD_SENTINEL',f.decision,f.status);
+ assert.ok(report.startsWith(scope));assert.ok(!report.includes('PENDING_BUILD_SENTINEL'));
+ for(const value of [f.sha,f.runId,f.decision.installerSha256,String(f.decision.installerBytes),'2838','27 bằng chứng','22 ca nâng cấp','1.5.7','/passive /norestart','CryptoPro','production','chưa được quan sát'])assert.ok(report.includes(value),value);
+ const pending=owner158Fixture(true);assert.throws(()=>s.formatOwner158RequestReport(scope,pending.decision,pending.status));
 });

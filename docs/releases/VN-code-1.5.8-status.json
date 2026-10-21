@@ -1,7 +1,7 @@
 {
   "version": "1.5.8",
   "complete": false,
-  "state": "locally-verified-awaiting-windows-build",
+  "state": "authorized-awaiting-verified-windows-build",
   "databaseSchema": 6,
   "baseline": "v1.5.7",
   "registrationUi": {
@@ -26,21 +26,35 @@
   },
   "validation": {
     "windowsBuild": {
-      "state": "not-started",
+      "state": "running",
       "freshFullJavaExecutionRequired": true,
-      "upgradeFrom157Required": true
+      "upgradeFrom157Required": true,
+      "sourceCommit": "06408f3a35fddd2952b64374f75e5761d0b43502",
+      "runId": 39641010813,
+      "windowsArtifactId": null,
+      "runUrl": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/39641010813"
     },
     "linuxNativeLauncher": "passed",
     "linuxDatabaseIntegrity": "ok",
     "liveCryptoProSigningThisVersion": false,
-    "liveMarketplaceWritesThisVersion": false
+    "liveMarketplaceWritesThisVersion": false,
+    "productionLicenseVerified": false
   },
   "developmentJarSha256": "78395e4dcc16dc416e5de487f37ae1829ad473abd3a57378525d32ca66feddc7",
   "blocked": [
-    "Windows full build and native/data-preserving upgrade from1.5.7 have not run.",
-    "Production license/CryptoPro/seller acceptance remains unverified.",
-    "GitHub API is currently blocked by the cloud proxy; network draft requires review/save and Publish."
+    "Windows full build and native/data-preserving upgrade from1.5.7 are running.",
+    "Production license/CryptoPro/seller acceptance remains unverified."
   ],
   "requestReport": "../ZNACK_1.5.8_UPDATE.md",
-  "testReport": "../ZNACK_V3_TEST_REPORT.md"
+  "testReport": "../ZNACK_V3_TEST_REPORT.md",
+  "publication": {
+    "authorizedByOwner": true,
+    "requestedChannel": "Latest",
+    "published": false
+  },
+  "publicationToolTests": {
+    "tests": 110,
+    "passed": 110,
+    "failures": 0
+  }
 }

@@ -1,4 +1,5 @@
 name: Wbcode 1.3.9 desktop audit (manual)
+name: Historical reference UI check (manual)
 on:
   workflow_dispatch:
     inputs:
@@ -24,6 +25,7 @@ jobs:
         if: always()
         with:
           name: wbcode-1.3.9-desktop-audit
+          name: reference-ui-observation
           path: out/wcode-observation/*
           if-no-files-found: error
   report:

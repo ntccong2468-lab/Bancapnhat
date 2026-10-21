@@ -1,0 +1,30 @@
+{
+  "version": "1.5.8",
+  "buildSourceCommit": "06408f3a35fddd2952b64374f75e5761d0b43502",
+  "runId": 39641010813,
+  "runUrl": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/39641010813",
+  "ownerInstruction": "tạo phát hành bản cập nhật mới lên latest để thông báo xuống ứng dụng",
+  "ownerRequestedPublication": true,
+  "unverifiedChecksDisclosedBeforePublication": true,
+  "standardFullAcceptanceClaimed": false,
+  "productionLicenseAcceptance": false,
+  "enterpriseCryptoProSigningAccepted": false,
+  "liveMarketplaceWritesAccepted": false,
+  "phase": "authorized-awaiting-verified-windows-build",
+  "required": [
+    "fresh full Windows Java execution",
+    "native startup and DPAPI",
+    "workspace and all UI layouts",
+    "side-by-side installation",
+    "data-preserving passive EXE upgrade from published v1.5.7",
+    "all historical upgrade checks",
+    "exact source/run/artifact/hash validation",
+    "public installer bytes and Latest readback"
+  ],
+  "installerSha256": null,
+  "installerBytes": null,
+  "windowsJava": null,
+  "windowsArtifactId": null,
+  "verifiedNativeProofs": null,
+  "passiveExeHandoffVerified": null
+}

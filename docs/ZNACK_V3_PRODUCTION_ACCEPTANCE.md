@@ -5,7 +5,7 @@ Luồng mới chạy bên dưới màn hình/nút 1.5.7. Không có màn hình V
 cấp GTIN/gửi thẻ/ký/đồng bộ seller thật, không có bằng chứng Level 2, 3 hoặc 4.
 
 Điều kiện tiếp tục:
-1. Áp dụng cấu hình mạng GitHub, xác minh quyền, chạy Windows build đầy đủ trên đúng commit;
+1. Mạng GitHub/quyền đã xác minh; Windows build đang chạy trên đúng commit;
    giữ fresh Java execution, native smoke, DPAPI và probe nâng cấp trực tiếp `-FromStable157`.
    So sánh fingerprint dữ liệu, registration, shortcut và hash EXE/embedded MSI.
 2. Seller cấu hình tài khoản/chứng thư an toàn trên Windows, kiểm tra quyền, GS1, hạn mức.
@@ -18,8 +18,9 @@ cấp GTIN/gửi thẻ/ký/đồng bộ seller thật, không có bằng chứng
    Kết quả chưa rõ chỉ được đối chiếu, không cấp thêm/gửi lại để né trạng thái UNKNOWN.
 6. Kiểm tra đồng bộ WB bằng preview/consent/readback hiện hữu, giữ toàn bộ size/barcode.
    Kiểm tra hồi quy Ozon và các tác vụ cũ đang chờ trong cùng database.
-7. Ghi hồ sơ nghiệm thu đúng 1.5.8 trước khi gọi publisher. Không dùng ngoại lệ hoặc proof
-   phát hành của 1.5.7 cho 1.5.8; không nới gate license/production hoặc giả lập kết quả native.
+7. Nghiệm thu production đầy đủ cần hồ sơ đúng 1.5.8. Quyền phát hành Latest trực tiếp của
+   chủ dự án được ghi riêng, giới hạn đúng commit/run 1.5.8 và vẫn cần toàn bộ Windows/native/upgrade
+   thật; không dùng proof 1.5.7 thay kết quả mới hoặc gọi quyền phát hành là nghiệm thu seller.
 
 Level 2 cần sandbox thực; Level 3 cần production tiếp nhận và đọc lại; Level 4 cần API
 production xác nhận công bố đúng nội dung. Mock/unit tests và app-image Linux không thay
