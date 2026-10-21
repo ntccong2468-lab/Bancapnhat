@@ -1,0 +1,18 @@
+{
+  "version": "1.5.7",
+  "testedApplicationCommit": "9b580f42f3ea5b64a89a56591a598740cc7f5f45",
+  "command": "DISPLAY=:99 XDG_CACHE_HOME=/tmp/vncode-ui-cache /workspace/toolchains/mvn-vncode -o clean verify",
+  "result": "passed",
+  "classes": 393,
+  "java": {
+    "tests": 2788,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 2,
+    "passed": 2786
+  },
+  "logSha256": "e4d48abb69d75f4b098bdce67a5d507f8b44919c21f8cdf86a41a246f014aec5",
+  "finishedAt": "2026-10-21T06:36:41Z",
+  "liveProductionAcceptance": false,
+  "runtimeRepair": "Do not sleep after draining an active CryptoPro writer; retain bounded capture/deadline/cancellation."
+}
