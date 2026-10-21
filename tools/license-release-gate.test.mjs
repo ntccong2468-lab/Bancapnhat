@@ -1,0 +1,9 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import {generateKeyPairSync} from 'node:crypto';
+import {validateLicenseReadiness} from './license-release-gate.mjs';
+const sha='a'.repeat(40),version='1.4.0';
+function fixture(){const {publicKey}=generateKeyPairSync('ed25519');const key=publicKey.export({format:'der',type:'spki'}).subarray(-32).toString('base64url');return {status:{licenseIntegration:{implemented:true,productionReady:true}},keys:{'vncode-1':key},evidence:{sourceCommit:sha,version,result:'passed',keyId:'vncode-1',publicKey:key,backendSourceSha256:'b'.repeat(64),windowsDpapiPassed:true,foreignWindowsIdentityRejected:true,backendGmailApprovalPassed:true,deviceLimitConcurrencyPassed:true,activationRetryPassed:true,signedOfflinePassed:true,revocationPassed:true,readonlyDataPreserved:true}};}
+test('license release gate accepts matching complete evidence',()=>{const f=fixture();validateLicenseReadiness(f.status,f.keys,f.evidence,version,sha);});
+test('license release gate refuses incomplete implementation and fixture/empty trust map',()=>{const f=fixture();assert.throws(()=>validateLicenseReadiness({...f.status,licenseIntegration:{implemented:false}},f.keys,f.evidence,version,sha));assert.throws(()=>validateLicenseReadiness(f.status,{},f.evidence,version,sha));assert.throws(()=>validateLicenseReadiness(f.status,{'test-key':f.evidence.publicKey},f.evidence,version,sha));});
+test('license release gate refuses stale or missing native/backend acceptance',()=>{const f=fixture();for(const change of [{sourceCommit:'c'.repeat(40)},{backendGmailApprovalPassed:false},{windowsDpapiPassed:false},{foreignWindowsIdentityRejected:null},{publicKey:'A'.repeat(43)},{keyId:'other'}])assert.throws(()=>validateLicenseReadiness(f.status,f.keys,{...f.evidence,...change},version,sha));});

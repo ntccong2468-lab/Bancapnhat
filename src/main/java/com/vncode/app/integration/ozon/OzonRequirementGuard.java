@@ -18,6 +18,11 @@ public final class OzonRequirementGuard {
             OzonPostingDto posting,
             Map<String, String> skuToGtin,
             Set<String> exemptSkus) {
+        return plan(posting,skuToGtin,exemptSkus,Set.of());
+    }
+
+    public static PreparationPlan plan(OzonPostingDto posting,Map<String,String> skuToGtin,
+                                       Set<String> exemptSkus,Set<String> categorySkus) {
         Objects.requireNonNull(posting, "posting");
         Map<String, String> mappings = skuToGtin == null ? Map.of() : Map.copyOf(skuToGtin);
         Set<String> exemptions = exemptSkus == null ? Set.of() : Set.copyOf(exemptSkus);
@@ -36,11 +41,11 @@ public final class OzonRequirementGuard {
             boolean userExempt = !item.sku().isBlank() && exemptions.contains(item.sku());
             if (userExempt && !mandatoryMark) continue;
             String gtin = mappings.get(item.sku());
-            if (gtin == null || gtin.isBlank()) {
+            if ((gtin == null || gtin.isBlank()) && !categorySkus.contains(item.sku())) {
                 throw new MissingMappingException(item.sku().isBlank() ? item.productId() : item.sku());
             }
             required.add(new RequiredItem(
-                    item.itemIndex(), item.productId(), item.sku(), gtin, item.quantity(), mandatoryMark || optionalMark));
+                    item.itemIndex(), item.productId(), item.sku(), gtin==null?"":gtin, item.quantity(), mandatoryMark || optionalMark));
         }
         if (!mandatory.isEmpty()) {
             Set<String> covered = required.stream().map(RequiredItem::productId).collect(java.util.stream.Collectors.toSet());

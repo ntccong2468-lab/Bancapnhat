@@ -1,122 +1,36 @@
 package com.vncode.app.features.kiz;
 
 import okhttp3.Headers;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.io.IOException;
+import java.io.*;
 import java.time.Duration;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.LongSupplier;
 
+/** Separate official families: read/delete 300/min; add 1000/min. No HTTP slot or
+ * monitor is retained while waiting. FBS polling can yield on an existing cooldown. */
 class WbLabelIdentifierRateLimiter {
-    private static final Logger LOGGER = LoggerFactory.getLogger(WbLabelIdentifierRateLimiter.class);
-    private static final long MIN_INTERVAL_MS = 70L;
-    private static final long CLIENT_ERROR_PENALTY_MS = 700L;
-    private static final long DEFAULT_RATE_LIMIT_COOLDOWN_MS = Duration.ofMinutes(1).toMillis();
-    private static final long MAX_RATE_LIMIT_COOLDOWN_MS = Duration.ofMinutes(10).toMillis();
-    private static final ConcurrentHashMap<String, Bucket> BUCKETS = new ConcurrentHashMap<>();
-
-    private WbLabelIdentifierRateLimiter() {
+    private static final ConcurrentHashMap<String,Gate> READS=new ConcurrentHashMap<>(),WRITES=new ConcurrentHashMap<>();
+    static void awaitTurn(String key)throws IOException{awaitTurn(key,false);}
+    static void awaitTurn(String key,boolean write)throws IOException{gate(key,write).await();}
+    static void registerResponse(String key,int status,Headers headers){registerResponse(key,status,headers,false);}
+    static void registerResponse(String key,int status,Headers headers,boolean write){
+        if(status<400)return;
+        gate(key,write).cooldown(status==429?com.vncode.app.integration.listing.ListingRateLimitException.delay(headers):Duration.ofMillis(write?600:2000));
     }
-
-    static void awaitTurn(String apiKey) throws IOException {
-        Bucket bucket = bucketFor(apiKey);
-        synchronized (bucket) {
-            while (true) {
-                long now = System.currentTimeMillis();
-                long waitUntil = Math.max(bucket.nextAllowedAtMs, bucket.cooldownUntilMs);
-                long waitMs = waitUntil - now;
-                if (waitMs <= 0) {
-                    bucket.nextAllowedAtMs = now + MIN_INTERVAL_MS;
-                    return;
-                }
-                waitQuietly(waitMs);
+    private static Gate gate(String key,boolean write){return (write?WRITES:READS).computeIfAbsent(com.vncode.app.integration.listing.ListingIdentity.hash(key==null?"":key),k->new Gate(Duration.ofMillis(write?60:200),System::nanoTime,n->{try{Thread.sleep(n/1_000_000L,(int)(n%1_000_000L));}catch(InterruptedException e){Thread.currentThread().interrupt();throw new InterruptedIOException("WB label identifier wait cancelled");}}));}
+    @FunctionalInterface interface Sleeper{void sleep(long nanos)throws IOException;}
+    static final class Gate {
+        private final long interval;private final LongSupplier clock;private final Sleeper sleeper;
+        private long next=Long.MIN_VALUE,cooldown=Long.MIN_VALUE;
+        Gate(Duration interval,LongSupplier clock,Sleeper sleeper){this.interval=interval.toNanos();this.clock=clock;this.sleeper=sleeper;}
+        void await()throws IOException{
+            long slot; synchronized(this){slot=Math.max(clock.getAsLong(),Math.max(next,cooldown));next=slot+interval;}
+            while(true){long wait;
+                synchronized(this){long now=clock.getAsLong();if(cooldown>slot&&cooldown>now){slot=Math.max(cooldown,next);next=slot+interval;}wait=slot-now;}
+                if(wait<=0)return;
+                com.vncode.app.shared.RateLimitDeferral.waiting(wait);sleeper.sleep(wait);
             }
         }
-    }
-
-    static void registerResponse(String apiKey, int statusCode, Headers headers) {
-        if (statusCode < 400) {
-            return;
-        }
-        Bucket bucket = bucketFor(apiKey);
-        synchronized (bucket) {
-            long now = System.currentTimeMillis();
-            if (statusCode == 429) {
-                long cooldownMs = resolveCooldownMs(headers);
-                long cooldownUntil = now + cooldownMs;
-                bucket.cooldownUntilMs = Math.max(bucket.cooldownUntilMs, cooldownUntil);
-                bucket.nextAllowedAtMs = Math.max(bucket.nextAllowedAtMs, cooldownUntil);
-                LOGGER.warn("WB FBS label identifier cooldown set for {} ms", cooldownMs);
-                return;
-            }
-            bucket.nextAllowedAtMs = Math.max(bucket.nextAllowedAtMs, now + CLIENT_ERROR_PENALTY_MS);
-        }
-    }
-
-    private static Bucket bucketFor(String apiKey) {
-        return BUCKETS.computeIfAbsent(fingerprint(apiKey), ignored -> new Bucket());
-    }
-
-    private static String fingerprint(String apiKey) {
-        if (apiKey == null || apiKey.isBlank()) {
-            return "";
-        }
-        return Integer.toHexString(apiKey.hashCode());
-    }
-
-    private static long resolveCooldownMs(Headers headers) {
-        Long retryAfterSeconds = parsePositiveLong(firstHeader(headers, "Retry-After"));
-        if (retryAfterSeconds != null) {
-            return clamp(retryAfterSeconds * 1000L, MIN_INTERVAL_MS, MAX_RATE_LIMIT_COOLDOWN_MS);
-        }
-        Long resetSeconds = parsePositiveLong(firstHeader(headers, "X-Ratelimit-Reset", "X-RateLimit-Reset"));
-        if (resetSeconds != null) {
-            return clamp(resetSeconds * 1000L, MIN_INTERVAL_MS, MAX_RATE_LIMIT_COOLDOWN_MS);
-        }
-        return DEFAULT_RATE_LIMIT_COOLDOWN_MS;
-    }
-
-    private static String firstHeader(Headers headers, String... names) {
-        if (headers == null) {
-            return null;
-        }
-        for (String name : names) {
-            String value = headers.get(name);
-            if (value != null && !value.isBlank()) {
-                return value;
-            }
-        }
-        return null;
-    }
-
-    private static Long parsePositiveLong(String value) {
-        if (value == null || value.isBlank()) {
-            return null;
-        }
-        try {
-            long parsed = Long.parseLong(value.trim());
-            return parsed > 0 ? parsed : null;
-        } catch (NumberFormatException ignored) {
-            return null;
-        }
-    }
-
-    private static long clamp(long value, long min, long max) {
-        return Math.max(min, Math.min(max, value));
-    }
-
-    private static void waitQuietly(long waitMs) throws IOException {
-        try {
-            Thread.sleep(waitMs);
-        } catch (InterruptedException ex) {
-            Thread.currentThread().interrupt();
-            throw new IOException("Interrupted while waiting for WB FBS label identifier rate limit", ex);
-        }
-    }
-
-    private static class Bucket {
-        private long nextAllowedAtMs;
-        private long cooldownUntilMs;
+        synchronized void cooldown(Duration delay){long until=clock.getAsLong()+delay.toNanos();cooldown=Math.max(cooldown,until);next=Math.max(next,cooldown);}
     }
 }

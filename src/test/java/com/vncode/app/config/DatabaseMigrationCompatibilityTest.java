@@ -21,6 +21,26 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class DatabaseMigrationCompatibilityTest {
     @TempDir Path temp;
+    @Test void schema4ToCurrentKeepsShopTemplatesAndHistory()throws Exception {
+        System.setProperty("vncode.appdata.dir",temp.toString());Database.initDatabase();
+        try(var c=Database.getConnection();var s=c.createStatement()){
+            s.execute("INSERT INTO shops(id,name,marketplace,client_id,api_key) VALUES(41,'Synthetic WB','WILDBERRIES',NULL,'fixture'),(42,'Synthetic Ozon','OZON','42','fixture')");
+            s.execute("INSERT INTO print_templates(id,name,layout_json,created_at,updated_at) VALUES(41,'Synthetic template','{}','fixture','fixture')");
+            s.execute("INSERT INTO print_jobs(id,shop_id,shop_name,printed_at,item_count,template_id,template_layout_json,status) VALUES(91,41,'Synthetic WB','fixture',1,41,'{}','COMPLETED')");
+            for(String table:List.of("listing_copy_events","listing_copy_articles","listing_copy_jobs","product_documents","product_snapshots"))s.execute("DROP TABLE "+table);
+            s.execute("PRAGMA user_version=4");
+        }
+        try(var ignored=LocalDataMigrationGate.prepare(temp,"1.4.0","javafx")){
+            assertEquals(Database.currentSchemaVersion(),scalarInt("PRAGMA user_version"));assertEquals(2,scalarInt("SELECT count(*) FROM shops"));assertEquals("fixture",scalarText("SELECT api_key FROM shops WHERE id=42"));
+            assertEquals("Synthetic template",scalarText("SELECT name FROM print_templates WHERE id=41"));assertEquals(41,scalarInt("SELECT template_id FROM print_jobs WHERE id=91"));
+            assertTrue(tableExists("product_snapshots"));assertTrue(columnExists("listing_copy_jobs","summary"));assertTrue(columnExists("listing_copy_jobs","source_owner"));assertEquals("ok",scalarText("PRAGMA integrity_check"));assertEquals(0,resultRowCount("PRAGMA foreign_key_check"));
+        }
+        try(var files=java.nio.file.Files.walk(temp.resolve("snapshots"))){var snapshot=files.filter(p->p.getFileName().toString().equals("database.db")).findFirst().orElseThrow();try(var c=java.sql.DriverManager.getConnection("jdbc:sqlite:"+snapshot);var s=c.createStatement();var r=s.executeQuery("PRAGMA user_version")){assertTrue(r.next());assertEquals(4,r.getInt(1));}}
+    }
+    @Test void newerSchemaFailsClosed()throws Exception {
+        System.setProperty("vncode.appdata.dir",temp.toString());Database.initDatabase();try(var c=Database.getConnection();var s=c.createStatement()){s.execute("INSERT INTO shops(id,name,api_key) VALUES(41,'Synthetic sentinel','fixture')");s.execute("PRAGMA user_version="+(Database.currentSchemaVersion()+1));}
+        org.junit.jupiter.api.Assertions.assertThrows(java.io.IOException.class,()->LocalDataMigrationGate.prepare(temp,"1.4.0","javafx"));assertEquals(Database.currentSchemaVersion()+1,scalarInt("PRAGMA user_version"));assertEquals(1,scalarInt("SELECT count(*) FROM shops"));assertFalse(java.nio.file.Files.exists(temp.resolve("writer-state/javafx-1.4.0.ready")));
+    }
 
     @AfterEach void clear() {
         System.clearProperty("vncode.appdata.dir");
@@ -173,7 +193,7 @@ class DatabaseMigrationCompatibilityTest {
 
         try (LocalDataMigrationGate.Session ignored =
                 LocalDataMigrationGate.prepare(temp, "1.1.10", "javafx")) {
-            assertEquals(4, scalarInt("PRAGMA user_version"));
+            assertEquals(Database.currentSchemaVersion(), scalarInt("PRAGMA user_version"));
             assertEquals("WILDBERRIES", scalarText("SELECT marketplace FROM shops WHERE id=41"));
             assertEquals("preserve-token", scalarText("SELECT api_key FROM shops WHERE id=41"));
             assertEquals("ARTICLE-119", scalarText(
@@ -241,7 +261,7 @@ class DatabaseMigrationCompatibilityTest {
 
         try (LocalDataMigrationGate.Session ignored =
                 LocalDataMigrationGate.prepare(temp, "1.1.10", "javafx")) {
-            assertEquals(4, scalarInt("PRAGMA user_version"));
+            assertEquals(Database.currentSchemaVersion(), scalarInt("PRAGMA user_version"));
             assertEquals("WILDBERRIES", scalarText("SELECT marketplace FROM shops WHERE id=41"));
             assertEquals("preserve-token", scalarText("SELECT api_key FROM shops WHERE id=41"));
             assertEquals("90071992547409931234", scalarText("SELECT external_id FROM legacy_orders WHERE id=7"));
@@ -338,32 +358,40 @@ class DatabaseMigrationCompatibilityTest {
                           (1,'00000000000123','Padded',NULL,'2026-01-02T00:00:00Z')
                     """);
             st.execute("""
-                    INSERT INTO kiz_orders(id,shop_id,gtin,quantity,local_status,created_at,updated_at)
-                    VALUES(1,1,'123',1,'DRAFT','2026-01-01T00:00:00Z','2026-01-01T00:00:00Z')
+                    INSERT INTO kiz_orders(id,shop_id,external_order_id,gtin,quantity,local_status,created_at,updated_at)
+                    VALUES(1,1,'remote-short','123',1,'SUBMITTED','2026-01-01T00:00:00Z','2026-01-01T00:00:00Z'),
+                          (2,1,'remote-padded','00000000000123',1,'SUBMITTED','2026-01-02T00:00:00Z','2026-01-02T00:00:00Z')
                     """);
             st.execute("""
-                    INSERT INTO znack_purchase_pipelines(shop_id,gtin,quantity,stage,created_at,updated_at)
-                    VALUES(1,'123',1,'POLLING_ORDER','2026-01-01T00:00:00Z','2026-01-01T00:00:00Z'),
-                          (1,'00000000000123',1,'POLLING_ORDER','2026-01-02T00:00:00Z','2026-01-02T00:00:00Z')
+                    INSERT INTO znack_purchase_pipelines(id,shop_id,gtin,quantity,order_id,request_key,stage,error_message,created_at,updated_at)
+                    VALUES(1,1,'123',1,1,'request-short','POLLING_ORDER','short-pending','2026-01-01T00:00:00Z','2026-01-01T00:00:00Z'),
+                          (2,1,'00000000000123',1,2,'request-padded','POLLING_ORDER','padded-pending','2026-01-02T00:00:00Z','2026-01-02T00:00:00Z')
                     """);
         }
 
-        Database.initDatabase();
-
-        assertEquals(1, count("SELECT COUNT(*) FROM znack_products WHERE gtin='00000000000123'"));
-        assertEquals(1, count("SELECT COUNT(*) FROM kiz_orders WHERE gtin='00000000000123'"));
-        assertEquals(1, count("""
-                SELECT COUNT(*) FROM znack_purchase_pipelines
-                WHERE gtin='00000000000123' AND stage='POLLING_ORDER'
-                """));
-        assertEquals(1, count("""
-                SELECT COUNT(*) FROM znack_purchase_pipelines
-                WHERE gtin='00000000000123' AND stage='QUEUED'
-                """));
-        assertEquals(1, count("""
-                SELECT COUNT(*) FROM znack_products
-                WHERE gtin='00000000000123' AND tn_ved='6201'
-                """));
+        for (int initialization = 0; initialization < 2; initialization++) {
+            Database.initDatabase();
+            assertEquals(1, count("SELECT COUNT(*) FROM znack_products WHERE gtin='00000000000123'"));
+            assertEquals(2, count("SELECT COUNT(*) FROM kiz_orders WHERE gtin='00000000000123'"));
+            // Both remote purchases already exist. Canonicalizing their GTIN may not
+            // turn either receipt into a fresh queued purchase to satisfy an index.
+            assertEquals(2, count("""
+                    SELECT COUNT(*) FROM znack_purchase_pipelines
+                    WHERE gtin='00000000000123' AND stage='POLLING_ORDER'
+                    """));
+            assertEquals(0, count("SELECT COUNT(*) FROM znack_purchase_pipelines WHERE stage='QUEUED'"));
+            for (int id = 1; id <= 2; id++) {
+                String label = id == 1 ? "short" : "padded";
+                assertEquals("remote-" + label, scalarText("SELECT o.external_order_id FROM znack_purchase_pipelines p JOIN kiz_orders o ON o.id=p.order_id AND o.shop_id=p.shop_id WHERE p.id=" + id));
+                assertEquals("request-" + label, scalarText("SELECT request_key FROM znack_purchase_pipelines WHERE id=" + id));
+                assertEquals(label + "-pending", scalarText("SELECT error_message FROM znack_purchase_pipelines WHERE id=" + id));
+                assertEquals("2026-01-0" + id + "T00:00:00Z", scalarText("SELECT updated_at FROM znack_purchase_pipelines WHERE id=" + id));
+            }
+            assertEquals(1, count("""
+                    SELECT COUNT(*) FROM znack_products
+                    WHERE gtin='00000000000123' AND tn_ved='6201'
+                    """));
+        }
     }
 
     private boolean tableExists(String name) throws Exception {

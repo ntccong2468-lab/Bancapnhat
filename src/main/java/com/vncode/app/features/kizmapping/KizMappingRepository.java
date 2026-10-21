@@ -65,7 +65,8 @@ public class KizMappingRepository {
                     ) THEN 1 ELSE 0 END) discardable_count,
                   ((SELECT COUNT(*) FROM znack_gtin_mapping_rules r WHERE r.shop_id=p.shop_id AND r.gtin=p.gtin)
                    + (SELECT COUNT(*) FROM ozon_product_gtin_mappings o WHERE o.shop_id=p.shop_id AND o.gtin=p.gtin)
-                   + (SELECT COUNT(*) FROM ozon_article_gtin_mappings a WHERE a.shop_id=p.shop_id AND a.gtin=p.gtin)) rule_count,
+                   + (SELECT COUNT(*) FROM ozon_article_gtin_mappings a WHERE a.shop_id=p.shop_id AND a.gtin=p.gtin)
+                   + (SELECT COUNT(*) FROM gtin_sync_verified_mappings v WHERE v.shop_id=p.shop_id AND v.gtin=p.gtin)) rule_count,
                   (SELECT o.local_status FROM kiz_orders o WHERE o.shop_id=p.shop_id AND o.gtin=p.gtin ORDER BY o.updated_at DESC LIMIT 1) order_status,
                   (SELECT x.id FROM znack_purchase_pipelines x WHERE x.shop_id=p.shop_id AND x.gtin=p.gtin ORDER BY x.updated_at DESC LIMIT 1) pipeline_id,
                   (SELECT x.stage FROM znack_purchase_pipelines x WHERE x.shop_id=p.shop_id AND x.gtin=p.gtin ORDER BY x.updated_at DESC LIMIT 1) pipeline_stage,
@@ -400,6 +401,12 @@ public class KizMappingRepository {
     }
 
     public List<ZnackGtinInventorySummary> findGtinSummaries(int shopId) {
+        return findGtinSummaries(shopId,false);
+    }
+    public List<ZnackGtinInventorySummary> findPurchasedGtinSummaries(int shopId) {
+        return findGtinSummaries(shopId,true);
+    }
+    private List<ZnackGtinInventorySummary> findGtinSummaries(int shopId,boolean purchasedOnly) {
         String sql = """
                 SELECT p.gtin,p.product_name,p.category,
                   SUM(CASE WHEN c.status='AVAILABLE' AND c.legal_status='IN_CIRCULATION' THEN 1 ELSE 0 END) available_count,
@@ -413,20 +420,22 @@ public class KizMappingRepository {
                     ) THEN 1 ELSE 0 END) discardable_count,
                   ((SELECT COUNT(*) FROM znack_gtin_mapping_rules r WHERE r.shop_id=p.shop_id AND r.gtin=p.gtin)
                    + (SELECT COUNT(*) FROM ozon_product_gtin_mappings o WHERE o.shop_id=p.shop_id AND o.gtin=p.gtin)
-                   + (SELECT COUNT(*) FROM ozon_article_gtin_mappings a WHERE a.shop_id=p.shop_id AND a.gtin=p.gtin)) rule_count,
-                  (SELECT o.local_status FROM kiz_orders o WHERE o.shop_id=p.shop_id AND o.gtin=p.gtin ORDER BY o.updated_at DESC LIMIT 1) order_status,
+                   + (SELECT COUNT(*) FROM ozon_article_gtin_mappings a WHERE a.shop_id=p.shop_id AND a.gtin=p.gtin)
+                   + (SELECT COUNT(*) FROM gtin_sync_verified_mappings v WHERE v.shop_id=p.shop_id AND v.gtin=p.gtin)) rule_count,
+                  (SELECT o.local_status FROM kiz_orders o WHERE o.shop_id=p.shop_id AND o.gtin=p.gtin {KIZ_ORDER_FILTER} ORDER BY o.updated_at DESC LIMIT 1) order_status,
                   (SELECT x.id FROM znack_purchase_pipelines x WHERE x.shop_id=p.shop_id AND x.gtin=p.gtin ORDER BY x.updated_at DESC LIMIT 1) pipeline_id,
                   (SELECT x.stage FROM znack_purchase_pipelines x WHERE x.shop_id=p.shop_id AND x.gtin=p.gtin ORDER BY x.updated_at DESC LIMIT 1) pipeline_stage,
                   COALESCE((SELECT x.error_message FROM znack_purchase_pipelines x WHERE x.shop_id=p.shop_id AND x.gtin=p.gtin ORDER BY x.updated_at DESC LIMIT 1),
-                           (SELECT o.error_message FROM kiz_orders o WHERE o.shop_id=p.shop_id AND o.gtin=p.gtin ORDER BY o.updated_at DESC LIMIT 1)) latest_error,
+                           (SELECT o.error_message FROM kiz_orders o WHERE o.shop_id=p.shop_id AND o.gtin=p.gtin {KIZ_ORDER_FILTER} ORDER BY o.updated_at DESC LIMIT 1)) latest_error,
                   p.synced_at
                 FROM znack_products p
-                LEFT JOIN kiz_codes c ON c.shop_id=p.shop_id AND c.gtin=p.gtin
+                LEFT JOIN kiz_codes c ON c.shop_id=p.shop_id AND c.gtin=p.gtin {KIZ_SOURCE_FILTER}
                 WHERE p.shop_id=? AND p.gtin NOT LIKE '029%' AND p.deleted_at IS NULL
                 GROUP BY p.shop_id,p.gtin,p.product_name,p.category,p.synced_at
                 ORDER BY CASE WHEN p.category IS NULL OR p.category='' THEN 1 ELSE 0 END,
                          p.category COLLATE NOCASE,p.gtin
-                """;
+                """.replace("{KIZ_SOURCE_FILTER}",purchasedOnly?"AND NOT EXISTS(SELECT 1 FROM kiz_import_entries imported WHERE imported.code_id=c.id)":"")
+                    .replace("{KIZ_ORDER_FILTER}",purchasedOnly?"AND COALESCE(o.local_status,'')<>'IMPORTED'":"");
         try (Connection c = Database.getConnection(); PreparedStatement ps = c.prepareStatement(sql)) {
             ps.setInt(1, shopId);
             try (ResultSet rs = ps.executeQuery()) {

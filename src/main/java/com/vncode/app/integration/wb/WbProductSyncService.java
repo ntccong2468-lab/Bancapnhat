@@ -1,6 +1,9 @@
 package com.vncode.app.integration.wb;
 
 import com.vncode.app.models.Shop;
+import com.vncode.app.features.license.LicenseRuntime;
+import com.vncode.app.features.license.LicenseGate.LicenseDeniedException;
+import static com.vncode.app.features.license.LicenseModels.Permission.SELLER_API;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,23 +33,42 @@ public class WbProductSyncService {
         this.syncRunRepository = syncRunRepository;
     }
 
-    public int sync(Shop shop) throws IOException {
+    public int sync(Shop shop) throws IOException { return sync(shop,false,cards->{}); }
+
+    /** A registration snapshot must revisit every page, including existing cards. */
+    public int syncFromStart(Shop shop,java.util.function.Consumer<List<WbProductCard>> page) throws IOException {
+        return sync(shop,true,page);
+    }
+    private int sync(Shop shop,boolean complete,java.util.function.Consumer<List<WbProductCard>> page) throws IOException {
+        LicenseRuntime.require(SELLER_API);
+        com.vncode.app.integration.listing.ListingIdentity.require(shop);
         WbShopSyncState state = syncStateRepository.getShopSyncState(shop.getId());
         long runId = syncRunRepository.startSyncRun(shop.getId(), "products");
         int read = 0;
         int written = 0;
-        String cursorUpdatedAt = state.productsCursorUpdatedAt();
-        Long cursorNmId = state.productsCursorNmId();
+        String cursorUpdatedAt = complete?null:state.productsCursorUpdatedAt();
+        Long cursorNmId = complete?null:state.productsCursorNmId();
+        var cursors=new java.util.HashSet<String>();
+        if(cursorUpdatedAt!=null&&cursorNmId!=null)cursors.add(cursorUpdatedAt+"/"+cursorNmId);
+        int pages=0;
         try {
             while (true) {
+                if(++pages>20000 || Thread.currentThread().isInterrupted())throw new IOException("WB_SNAPSHOT_INTERRUPTED_OR_LIMIT");
+                LicenseRuntime.require(SELLER_API);
                 WbProductCardsResponse response = apiClient.getProductCards(shop.getApiKey(), "ru", cursorUpdatedAt, cursorNmId, PAGE_LIMIT);
-                if (response == null || response.getCards() == null || response.getCards().isEmpty()) {
+                requireCompletePage(response);
+                com.vncode.app.integration.listing.ListingIdentity.require(shop);
+                if (response.getCards().isEmpty()) {
+                    if(response.getCursor().getTotal()!=0)throw new IOException("WB_INCOMPLETE_PRODUCT_CURSOR");
                     syncStateRepository.updateProductsCursor(shop.getId(), cursorUpdatedAt, cursorNmId, Instant.now().toString());
                     syncRunRepository.finishSyncRun(runId, true, read, written, null, null);
                     return written;
                 }
 
+                var next=response.getCursor();
+                if(!cursors.add(next.getUpdatedAt()+"/"+next.getNmID()))throw new IOException("WB_REPEATED_PRODUCT_CURSOR");
                 productRepository.saveProductBatch(shop.getId(), response.getCards());
+                page.accept(List.copyOf(response.getCards()));
                 read += response.getCards().size();
                 written += response.getCards().size();
 
@@ -55,26 +77,44 @@ public class WbProductSyncService {
                     cursorNmId = response.getCursor().getNmID();
                 }
 
-                syncStateRepository.updateProductsCursor(shop.getId(), cursorUpdatedAt, cursorNmId, Instant.now().toString());
+                syncStateRepository.saveProductsCheckpoint(shop.getId(), cursorUpdatedAt, cursorNmId);
                 Integer total = response.getCursor() == null ? null : response.getCursor().getTotal();
                 if (total == null || total < PAGE_LIMIT) {
+                    syncStateRepository.updateProductsCursor(shop.getId(), cursorUpdatedAt, cursorNmId, Instant.now().toString());
                     syncRunRepository.finishSyncRun(runId, true, read, written, null, null);
                     return written;
                 }
             }
+        } catch (LicenseDeniedException paused) {
+            reportFailure(shop,runId,read,written,"license_required",paused);throw paused;
         } catch (IOException | RuntimeException ex) {
             if (ex instanceof WbApiException wb && wb.isRateLimited()) {
                 LOGGER.warn("Sync products bị WB rate limit cho shop {}: {}", shop.getId(), wb.getMessage());
             } else {
                 LOGGER.error("Sync products thất bại cho shop {}", shop.getId(), ex);
             }
-            syncStateRepository.saveSyncError(shop.getId(), ex.getMessage());
-            syncRunRepository.finishSyncRun(runId, false, read, written, ex instanceof WbApiException wb ? String.valueOf(wb.getStatusCode()) : "local_error", ex.getMessage());
+            reportFailure(shop,runId,read,written,ex instanceof WbApiException wb ? String.valueOf(wb.getStatusCode()) : "local_error",ex);
             throw ex;
         }
     }
 
+    private void reportFailure(Shop shop,long run,int read,int written,String code,Exception failure){
+        try{syncStateRepository.saveSyncError(shop.getId(),failure.getMessage());}catch(RuntimeException reporting){failure.addSuppressed(reporting);}
+        try{syncRunRepository.finishSyncRun(run,false,read,written,code,failure.getMessage());}catch(RuntimeException reporting){failure.addSuppressed(reporting);}
+    }
+
+    /** A cursor/page contradiction is an unknown read, never an empty or complete catalog. */
+    private static void requireCompletePage(WbProductCardsResponse response)throws IOException {
+        if(response==null||response.getCards()==null||response.getCards().size()>PAGE_LIMIT)throw new IOException("WB_INCOMPLETE_PRODUCT_PAGE");
+        var cursor=response.getCursor();
+        if(cursor==null||cursor.getTotal()==null||cursor.getTotal()!=response.getCards().size())throw new IOException("WB_INCOMPLETE_PRODUCT_CURSOR");
+        if(!response.getCards().isEmpty()&&(cursor.getUpdatedAt()==null||cursor.getUpdatedAt().isBlank()||cursor.getNmID()==null||cursor.getNmID()<=0))throw new IOException("WB_INCOMPLETE_PRODUCT_CURSOR");
+        var ids=new java.util.HashSet<Long>();
+        for(var card:response.getCards())if(card==null||card.getNmID()==null||card.getNmID()<=0||!ids.add(card.getNmID()))throw new IOException("WB_INCOMPLETE_PRODUCT_PAGE");
+    }
+
     public int recoverProductsByNmIds(Shop shop, List<Long> nmIds) throws IOException {
+        LicenseRuntime.require(SELLER_API);
         Set<Long> remaining = new LinkedHashSet<>();
         if (nmIds != null) {
             for (Long nmId : nmIds) {
@@ -92,12 +132,17 @@ public class WbProductSyncService {
         int written = 0;
         String cursorUpdatedAt = null;
         Long cursorNmId = null;
+        var cursors=new java.util.HashSet<String>();int pages=0;
         try {
             while (true) {
+                if(++pages>20000||Thread.currentThread().isInterrupted())throw new IOException("WB_SNAPSHOT_INTERRUPTED_OR_LIMIT");
+                LicenseRuntime.require(SELLER_API);
                 WbProductCardsResponse response = apiClient.getProductCards(shop.getApiKey(), "ru", cursorUpdatedAt, cursorNmId, PAGE_LIMIT);
-                if (response == null || response.getCards() == null || response.getCards().isEmpty()) {
+                requireCompletePage(response);
+                if (response.getCards().isEmpty()) {
                     break;
                 }
+                if(!cursors.add(response.getCursor().getUpdatedAt()+"/"+response.getCursor().getNmID()))throw new IOException("WB_REPEATED_PRODUCT_CURSOR");
 
                 read += response.getCards().size();
                 List<WbProductCard> foundCards = response.getCards().stream()
@@ -129,6 +174,8 @@ public class WbProductSyncService {
             String message = "Sản phẩm không tồn tại trên WB: nmId " + missing + ". Vui lòng kiểm tra lại thùng rác.";
             syncRunRepository.finishSyncRun(runId, false, read, written, "not_found", message);
             throw new IOException(message);
+        } catch (LicenseDeniedException paused) {
+            syncRunRepository.finishSyncRun(runId,false,read,written,"license_required",paused.getMessage());throw paused;
         } catch (IOException | RuntimeException ex) {
             if (ex instanceof WbApiException wb && wb.isRateLimited()) {
                 LOGGER.warn("Recover products bị WB rate limit cho shop {}: {}", shop.getId(), wb.getMessage());

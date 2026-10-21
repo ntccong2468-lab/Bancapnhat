@@ -2,6 +2,8 @@ package com.vncode.app.integration.wb;
 
 import com.vncode.app.integration.marketplace.MarketplaceGuard;
 import com.vncode.app.models.Shop;
+import com.vncode.app.features.license.LicenseRuntime;
+import static com.vncode.app.features.license.LicenseModels.Permission.SELLER_API;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,11 +18,20 @@ public class WbSyncWorkflow {
 
     public int syncProducts(Shop shop) throws IOException {
         MarketplaceGuard.requireWildberries(shop);
+        LicenseRuntime.require(SELLER_API);
         return productSyncService.sync(shop);
+    }
+
+    /** An explicit catalogue refresh includes unchanged cards, not only the checkpoint tail. */
+    public int syncAllProducts(Shop shop) throws IOException {
+        MarketplaceGuard.requireWildberries(shop);
+        LicenseRuntime.require(SELLER_API);
+        return productSyncService.syncFromStart(shop, cards -> {});
     }
 
     public WbSyncReport syncOverview(Shop shop) throws IOException {
         MarketplaceGuard.requireWildberries(shop);
+        LicenseRuntime.require(SELLER_API);
         WbShopSyncState state = syncStateRepository.getShopSyncState(shop.getId());
         boolean needsInitialProductSync = state.productsLastSyncedAt() == null || state.productsLastSyncedAt().isBlank();
         boolean needsInitialSupplySync = state.suppliesLastSyncedAt() == null || state.suppliesLastSyncedAt().isBlank();
@@ -45,6 +56,7 @@ public class WbSyncWorkflow {
 
     public WbSyncReport syncAll(Shop shop) throws IOException {
         MarketplaceGuard.requireWildberries(shop);
+        LicenseRuntime.require(SELLER_API);
         int products = syncProductsIfAvailable(shop);
         int supplies = supplySyncService.sync(shop);
         int newOrders = orderSyncService.syncNewOrders(shop);
@@ -58,6 +70,7 @@ public class WbSyncWorkflow {
 
     public WbSyncReport refetchSupplies(Shop shop) throws IOException {
         MarketplaceGuard.requireWildberries(shop);
+        LicenseRuntime.require(SELLER_API);
         int supplies = supplySyncService.refreshOpenSuppliesFromStart(shop);
         int openSupplyDetails = supplySyncService.syncOpenSupplyDetails(shop);
         int openSupplyCounts = supplySyncService.syncOpenSupplyCounts(shop);
@@ -66,6 +79,7 @@ public class WbSyncWorkflow {
 
     public int syncSupplyOrdersAndStatuses(Shop shop, String supplyId) throws IOException {
         MarketplaceGuard.requireWildberries(shop);
+        LicenseRuntime.require(SELLER_API);
         orderSyncService.syncOrdersWindow(shop);
         int supplyOrders = orderSyncService.syncSupplyOrders(shop, supplyId);
         int statuses = orderSyncService.syncOrderStatusesForSupply(shop, supplyId);

@@ -140,7 +140,9 @@ test("manual Windows installer builds can skip the macOS jobs", async () => {
   const workflow = await readFile(new URL(".github/workflows/build-java.yml", root), "utf8");
   assert.match(workflow, /workflow_dispatch:\s*\n\s*inputs:\s*\n\s*windows_only:/);
   assert.match(workflow, /windows_only:[\s\S]*?type:\s*boolean\s*\n\s*default:\s*true/);
-  assert.match(workflow, /build-macos-test:\s*\n\s*if:\s*\$\{\{\s*github\.event_name != 'workflow_dispatch' \|\| !inputs\.windows_only\s*\}\}/);
+  assert.match(workflow, /build-macos-test:\s*\n\s*if:\s*\$\{\{\s*github\.event_name != 'workflow_dispatch' \|\| \(!inputs\.windows_only && !inputs\.portal_only\)\s*\}\}/);
+  assert.match(workflow, /portal_only:[\s\S]*?type:\s*boolean\s*\n\s*default:\s*false/);
+  assert.match(workflow, /build-and-test:\s*\n\s*if:\s*\$\{\{\s*!inputs\.msi_inspection_only && !inputs\.portal_only && !inputs\.license_diagnostics_only\s*\}\}/);
 });
 
 test("Znack registration test EXE is isolated, has its own update channel, and cannot update WB", async () => {
@@ -209,12 +211,14 @@ test("tagged releases publish native macOS packages for Intel and Apple Silicon"
   }
 });
 
-// A personal fork must not package the original vendor entitlement/report clients.
-test("the personal app has no original license server dependency", async () => {
-  assert.equal(await exists("src/main/java/com/vncode/app/integration/license"), false);
-  assert.equal(await exists("src/main/java/com/vncode/app/ui/license"), false);
+// VN code licenses belong to its own portal; the original vendor clients stay absent.
+test("VN code uses its own license portal and has no original vendor server dependency", async () => {
+  const client = await readFile(new URL("src/main/java/com/vncode/app/integration/license/WebLicenseApi.java", root), "utf8");
+  assert.match(client, /https:\/\/vncode\.id\.vn/);
+  assert.match(client, /followRedirects\(false\)/);
+  assert.match(await readFile(new URL("src/main/java/com/vncode/app/MainApplication.java", root), "utf8"), /LicenseRuntime\.bootstrap\(\)/);
   for (const file of await textFiles("src/main")) {
     const content = await readFile(new URL(file, root), "utf8");
-    assert.doesNotMatch(content, /wcode\.online|LicenseDialogService|LicenseService/, file);
+    assert.doesNotMatch(content, /wcode\.online|LicenseDialogService/, file);
   }
 });

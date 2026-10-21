@@ -1,0 +1,383 @@
+{
+  "method": "Final result per class from initial run and affected-class reruns; overlapping phases are not unique totals.",
+  "attempts": [
+    {
+      "log": "/tmp/vncode-master-E-tests.log",
+      "classes": 37,
+      "tests": 491,
+      "failures": 39,
+      "errors": 8,
+      "skipped": 0,
+      "build_success": false
+    },
+    {
+      "log": "/tmp/vncode-master-E-rerun.log",
+      "classes": 15,
+      "tests": 275,
+      "failures": 2,
+      "errors": 0,
+      "skipped": 0,
+      "build_success": false
+    },
+    {
+      "log": "/tmp/vncode-master-E-final.log",
+      "classes": 5,
+      "tests": 187,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "build_success": true
+    },
+    {
+      "log": "/tmp/vncode-master-E-lookup-final.log",
+      "classes": 1,
+      "tests": 14,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "build_success": true
+    }
+  ],
+  "final": {
+    "classes": 37,
+    "tests": 498,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "results": [
+    {
+      "class": "com.vncode.app.features.catalogsync.CatalogProductDataParserTest",
+      "tests": 10,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.014,
+      "log": "/tmp/vncode-master-E-tests.log"
+    },
+    {
+      "class": "com.vncode.app.features.gtinsync.GtinCatalogIndexTest",
+      "tests": 6,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.029,
+      "log": "/tmp/vncode-master-E-tests.log"
+    },
+    {
+      "class": "com.vncode.app.features.gtinsync.RegisteredGtinSourceTest",
+      "tests": 10,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.157,
+      "log": "/tmp/vncode-master-E-tests.log"
+    },
+    {
+      "class": "com.vncode.app.features.sync.RegistrationCardIndexTest",
+      "tests": 17,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 1.393,
+      "log": "/tmp/vncode-master-E-tests.log"
+    },
+    {
+      "class": "com.vncode.app.integration.listing.CatalogIdentityEvidenceTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.064,
+      "log": "/tmp/vncode-master-E-tests.log"
+    },
+    {
+      "class": "com.vncode.app.integration.znack.CatalogApiAuthorizationTest",
+      "tests": 6,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.273,
+      "log": "/tmp/vncode-master-E-rerun.log"
+    },
+    {
+      "class": "com.vncode.app.integration.znack.ZnackCatalogEndpointRoutingTest",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.108,
+      "log": "/tmp/vncode-master-E-tests.log"
+    },
+    {
+      "class": "com.vncode.app.integration.znack.ZnackMutationTransportTest",
+      "tests": 7,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.019,
+      "log": "/tmp/vncode-master-E-tests.log"
+    },
+    {
+      "class": "com.vncode.app.integration.znack.ZnackProductServicePaginationTest",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.154,
+      "log": "/tmp/vncode-master-E-tests.log"
+    },
+    {
+      "class": "com.vncode.app.integration.znack.registration.CatalogCardStateTest",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.001,
+      "log": "/tmp/vncode-master-E-tests.log"
+    },
+    {
+      "class": "com.vncode.app.integration.znack.registration.CatalogErrorRepairServiceTest",
+      "tests": 12,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.939,
+      "log": "/tmp/vncode-master-E-final.log"
+    },
+    {
+      "class": "com.vncode.app.integration.znack.registration.NationalCatalogBatchReadTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.002,
+      "log": "/tmp/vncode-master-E-tests.log"
+    },
+    {
+      "class": "com.vncode.app.integration.znack.registration.NationalCatalogListWindowTest",
+      "tests": 7,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.552,
+      "log": "/tmp/vncode-master-E-tests.log"
+    },
+    {
+      "class": "com.vncode.app.integration.znack.registration.OzonAutomaticDraftSchemaTest",
+      "tests": 20,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 4.21,
+      "log": "/tmp/vncode-master-E-rerun.log"
+    },
+    {
+      "class": "com.vncode.app.integration.znack.registration.OzonCardBatchSigningTest",
+      "tests": 10,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 5.848,
+      "log": "/tmp/vncode-master-E-rerun.log"
+    },
+    {
+      "class": "com.vncode.app.integration.znack.registration.OzonCardRegistrationWorkflowTest",
+      "tests": 60,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 23.94,
+      "log": "/tmp/vncode-master-E-final.log"
+    },
+    {
+      "class": "com.vncode.app.integration.znack.registration.OzonRegistrationAttemptReportsTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.157,
+      "log": "/tmp/vncode-master-E-tests.log"
+    },
+    {
+      "class": "com.vncode.app.integration.znack.registration.RegistrationDynamicPreflightTest",
+      "tests": 10,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 1.049,
+      "log": "/tmp/vncode-master-E-tests.log"
+    },
+    {
+      "class": "com.vncode.app.integration.znack.registration.RegistrationExistingCardsTest",
+      "tests": 14,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 1.11,
+      "log": "/tmp/vncode-master-E-lookup-final.log"
+    },
+    {
+      "class": "com.vncode.app.integration.znack.registration.RegistrationReviewedValuesTest",
+      "tests": 19,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.99,
+      "log": "/tmp/vncode-master-E-tests.log"
+    },
+    {
+      "class": "com.vncode.app.integration.znack.registration.RegistrationSigningConsentTest",
+      "tests": 11,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.661,
+      "log": "/tmp/vncode-master-E-rerun.log"
+    },
+    {
+      "class": "com.vncode.app.integration.znack.registration.RegistrationTemplateTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.002,
+      "log": "/tmp/vncode-master-E-tests.log"
+    },
+    {
+      "class": "com.vncode.app.integration.znack.registration.RegistrationVerifiedDefaultsTest",
+      "tests": 11,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.003,
+      "log": "/tmp/vncode-master-E-tests.log"
+    },
+    {
+      "class": "com.vncode.app.integration.znack.registration.ZnackCardBatchSigningTest",
+      "tests": 10,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 4.964,
+      "log": "/tmp/vncode-master-E-rerun.log"
+    },
+    {
+      "class": "com.vncode.app.integration.znack.registration.ZnackCardRegistrationWorkflowTest",
+      "tests": 67,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 5.574,
+      "log": "/tmp/vncode-master-E-final.log"
+    },
+    {
+      "class": "com.vncode.app.integration.znack.registration.ZnackCatalogObservationGuardTest",
+      "tests": 9,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.009,
+      "log": "/tmp/vncode-master-E-tests.log"
+    },
+    {
+      "class": "com.vncode.app.integration.znack.registration.ZnackCatalogSigningBatchTest",
+      "tests": 12,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.063,
+      "log": "/tmp/vncode-master-E-tests.log"
+    },
+    {
+      "class": "com.vncode.app.integration.znack.registration.ZnackCurrentSchemaSubmissionTest",
+      "tests": 11,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.019,
+      "log": "/tmp/vncode-master-E-final.log"
+    },
+    {
+      "class": "com.vncode.app.integration.znack.registration.ZnackNationalCatalogServiceTest",
+      "tests": 37,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.022,
+      "log": "/tmp/vncode-master-E-final.log"
+    },
+    {
+      "class": "com.vncode.app.integration.znack.registration.ZnackRegistrationBatchHttpIntegrationTest",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 1.217,
+      "log": "/tmp/vncode-master-E-rerun.log"
+    },
+    {
+      "class": "com.vncode.app.integration.znack.registration.ZnackRegistrationBatchServiceTest",
+      "tests": 19,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 5.983,
+      "log": "/tmp/vncode-master-E-rerun.log"
+    },
+    {
+      "class": "com.vncode.app.integration.znack.registration.ZnackRegistrationCountryModelTest",
+      "tests": 21,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.03,
+      "log": "/tmp/vncode-master-E-tests.log"
+    },
+    {
+      "class": "com.vncode.app.integration.znack.registration.ZnackRegistrationMonitorFairnessTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.213,
+      "log": "/tmp/vncode-master-E-rerun.log"
+    },
+    {
+      "class": "com.vncode.app.ui.znackregistration.OzonRegistrationPaneTest",
+      "tests": 20,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 3.924,
+      "log": "/tmp/vncode-master-E-rerun.log"
+    },
+    {
+      "class": "com.vncode.app.ui.znackregistration.RegistrationDiagnosticsTest",
+      "tests": 7,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.01,
+      "log": "/tmp/vncode-master-E-rerun.log"
+    },
+    {
+      "class": "com.vncode.app.ui.znackregistration.RegistrationSigningReviewDialogTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.193,
+      "log": "/tmp/vncode-master-E-rerun.log"
+    },
+    {
+      "class": "com.vncode.app.ui.znackregistration.ZnackCardRegistrationControllerTest",
+      "tests": 25,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 9.683,
+      "log": "/tmp/vncode-master-E-rerun.log"
+    }
+  ]
+}

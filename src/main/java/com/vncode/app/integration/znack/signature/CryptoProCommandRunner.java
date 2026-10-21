@@ -2,7 +2,9 @@ package com.vncode.app.integration.znack.signature;
 
 import com.vncode.app.integration.znack.ZnackSanitizer;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -14,10 +16,15 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.LockSupport;
 
 public class CryptoProCommandRunner {
+    // Allows the existing 4 MiB CMS limit in Base64 and the GS1 XML output without truncation.
+    static final int MAX_CAPTURE_BYTES = 16 * 1024 * 1024;
+    private static final long POLL_NANOS = TimeUnit.MILLISECONDS.toNanos(10);
+    private static final long OUTPUT_POLL_NANOS = TimeUnit.MILLISECONDS.toNanos(1);
+    private static final long CLEANUP_NANOS = TimeUnit.MILLISECONDS.toNanos(500);
     public record Result(int exitCode, byte[] stdout, byte[] stderr) {
         public String stdoutText() {
             return decode(stdout);
@@ -29,22 +36,113 @@ public class CryptoProCommandRunner {
     }
 
     public Result run(List<String> command, Duration timeout) throws CryptoProException {
+        if (timeout == null || timeout.isZero() || timeout.isNegative())
+            throw new IllegalArgumentException("CryptoPro timeout must be positive.");
+        long budget = timeout.toNanos();
+        long started = System.nanoTime();
+        Process process = null;
+        Set<ProcessHandle> descendants = new LinkedHashSet<>();
         try {
-            Process process = new ProcessBuilder(new ArrayList<>(command)).redirectInput(ProcessBuilder.Redirect.INHERIT).start();
-            CompletableFuture<byte[]> stdout = CompletableFuture.supplyAsync(() -> read(process.getInputStream()));
-            CompletableFuture<byte[]> stderr = CompletableFuture.supplyAsync(() -> read(process.getErrorStream()));
-            if (!process.waitFor(timeout.toMillis(), TimeUnit.MILLISECONDS)) {
-                process.destroyForcibly();
-                throw new CryptoProException(CryptoProErrorCode.TIMEOUT,
-                        "CryptoPro command timed out after " + timeout.toSeconds() + " seconds.");
+            if (Thread.currentThread().isInterrupted()) throw new InterruptedException();
+            process = new ProcessBuilder(new ArrayList<>(command)).redirectInput(ProcessBuilder.Redirect.INHERIT).start();
+            var stdout = new ByteArrayOutputStream();
+            var stderr = new ByteArrayOutputStream();
+            byte[] buffer = new byte[8192];
+            long lastOutput = started;
+            while (true) {
+                if (Thread.currentThread().isInterrupted()) throw new InterruptedException();
+                rememberDescendants(process, descendants);
+                if (System.nanoTime() - started >= budget)
+                    throw new CryptoProException(CryptoProErrorCode.TIMEOUT,
+                            "CryptoPro command timed out after " + timeout.toSeconds() + " seconds.");
+                // No blocking read/EOF join: a shell can exit while a child still holds its pipes.
+                int captured = drainAvailable(process.getInputStream(), stdout, buffer)
+                        + drainAvailable(process.getErrorStream(), stderr, buffer);
+                if (captured > 0) lastOutput = System.nanoTime();
+                if (!process.isAlive() && descendants.stream().noneMatch(ProcessHandle::isAlive)) {
+                    drainAvailable(process.getInputStream(), stdout, buffer);
+                    drainAvailable(process.getErrorStream(), stderr, buffer);
+                    if (process.getInputStream().available() > 0 || process.getErrorStream().available() > 0) continue;
+                    return new Result(process.exitValue(), stdout.toByteArray(), stderr.toByteArray());
+                }
+                long remaining = budget - (System.nanoTime() - started);
+                // Windows pipes can hold only a few KiB. Sleeping after every successful drain
+                // throttles a valid multi-MiB signature (or the overflow check) until it times out.
+                // Keep draining active writers; retain bounded passes and the deadline above.
+                if (captured > 0) continue;
+                if (remaining > 0) {
+                    long pause = System.nanoTime() - lastOutput < TimeUnit.MILLISECONDS.toNanos(100)
+                            ? OUTPUT_POLL_NANOS : POLL_NANOS;
+                    if (process.isAlive()) process.waitFor(Math.min(pause, remaining), TimeUnit.NANOSECONDS);
+                    else TimeUnit.NANOSECONDS.sleep(Math.min(pause, remaining));
+                }
             }
-            return new Result(process.exitValue(), stdout.join(), stderr.join());
         } catch (IOException e) {
-            throw new CryptoProException(CryptoProErrorCode.CRYPTOPRO_MISSING, "CryptoPro command could not be started.", e);
+            throw new CryptoProException(process == null ? CryptoProErrorCode.CRYPTOPRO_MISSING : CryptoProErrorCode.SIGNING_FAILED,
+                    process == null ? "CryptoPro command could not be started." : "CryptoPro command output could not be read.", e);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             throw new CryptoProException(CryptoProErrorCode.CANCELLED, "CryptoPro command was cancelled.", e);
+        } finally {
+            if (process != null) cleanup(process, descendants);
         }
+    }
+
+    private static int drainAvailable(InputStream stream, ByteArrayOutputStream output, byte[] buffer)
+            throws IOException, CryptoProException {
+        // Bound each pass so a continuously writing process cannot postpone the deadline check.
+        int remaining = 64 * 1024;
+        while (remaining > 0) {
+            int available = stream.available();
+            if (available <= 0) break;
+            int count = stream.read(buffer, 0, Math.min(Math.min(buffer.length, available), remaining));
+            if (count <= 0) break;
+            if (output.size() > MAX_CAPTURE_BYTES - count)
+                throw new CryptoProException(CryptoProErrorCode.INVALID_SIGNATURE_OUTPUT,
+                        "CryptoPro command output exceeded the 16 MiB capture limit.");
+            output.write(buffer, 0, count);
+            remaining -= count;
+        }
+        return 64 * 1024 - remaining;
+    }
+
+    private static void rememberDescendants(Process process, Set<ProcessHandle> descendants) {
+        // ProcessHandle is best effort, not a Windows Job Object: remember children before a shell exits.
+        try (var children = process.descendants()) { children.forEach(descendants::add); }
+        catch (SecurityException | UnsupportedOperationException ignored) { }
+    }
+
+    private static void cleanup(Process process, Set<ProcessHandle> descendants) {
+        boolean interrupted = Thread.interrupted();
+        long started = System.nanoTime();
+        try {
+            rememberDescendants(process, descendants);
+            // Keep the parent alive briefly to reap children before stopping the parent itself.
+            descendants.forEach(CryptoProCommandRunner::destroy);
+            while (process.isAlive() && descendants.stream().anyMatch(ProcessHandle::isAlive)
+                    && System.nanoTime() - started < CLEANUP_NANOS / 2)
+                LockSupport.parkNanos(POLL_NANOS);
+            rememberDescendants(process, descendants);
+            destroy(process.toHandle());
+            descendants.forEach(CryptoProCommandRunner::destroy);
+            while ((process.isAlive() || descendants.stream().anyMatch(ProcessHandle::isAlive))
+                    && System.nanoTime() - started < CLEANUP_NANOS)
+                LockSupport.parkNanos(POLL_NANOS);
+        } finally {
+            close(process.getInputStream());
+            close(process.getErrorStream());
+            close(process.getOutputStream());
+            if (interrupted) Thread.currentThread().interrupt();
+        }
+    }
+
+    private static void destroy(ProcessHandle process) {
+        try { if (process.isAlive()) process.destroyForcibly(); }
+        catch (SecurityException | UnsupportedOperationException ignored) { }
+    }
+
+    private static void close(java.io.Closeable stream) {
+        try { stream.close(); } catch (IOException ignored) { }
     }
 
     public String resolve(String override, String command) throws CryptoProException {
@@ -163,8 +261,4 @@ public class CryptoProCommandRunner {
         return count;
     }
 
-    private static byte[] read(java.io.InputStream stream) {
-        try { return stream.readAllBytes(); }
-        catch (IOException e) { return new byte[0]; }
-    }
 }

@@ -52,11 +52,12 @@ public final class OzonGtinMappingEditor {
             host.busy(false);
             if (host.isCurrent()) openDialog(shopId, gtin, task.getValue(), host);
         });
-        task.setOnFailed(event -> {
+        java.util.function.Consumer<Throwable> taskFailure = rejection -> {
             host.busy(false);
-            host.error(task.getException());
-        });
-        AppTaskExecutor.execute(task);
+            host.error(rejection);
+        };
+        task.setOnFailed(event -> taskFailure.accept(task.getException()));
+        AppTaskExecutor.execute(task, taskFailure);
     }
 
     private void openDialog(int shopId, String gtin, Data data, KizGtinMappingEditor.Host host) {
@@ -196,7 +197,7 @@ public final class OzonGtinMappingEditor {
         container.setMaxSize(52, 62);
         if (!product.primaryImageUrl().isBlank()) {
             String requestedUrl = product.primaryImageUrl();
-            images.loadImage(requestedUrl).whenComplete((bytes, error) -> Platform.runLater(() -> {
+            images.loadThumbnailBytes(requestedUrl).whenComplete((bytes, error) -> Platform.runLater(() -> {
                 if (bytes == null || bytes.length == 0) return;
                 imageView.setImage(new Image(new ByteArrayInputStream(bytes)));
                 placeholder.setVisible(false);
@@ -218,11 +219,12 @@ public final class OzonGtinMappingEditor {
             host.busy(false);
             host.saved();
         });
-        task.setOnFailed(event -> {
+        java.util.function.Consumer<Throwable> taskFailure = rejection -> {
             host.busy(false);
-            host.error(task.getException());
-        });
-        AppTaskExecutor.execute(task);
+            host.error(rejection);
+        };
+        task.setOnFailed(event -> taskFailure.accept(task.getException()));
+        AppTaskExecutor.execute(task, taskFailure);
     }
 
     private static boolean matches(OzonProductDto product, String query) {

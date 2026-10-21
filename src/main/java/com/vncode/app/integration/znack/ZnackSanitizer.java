@@ -15,8 +15,11 @@ public final class ZnackSanitizer {
 
     public static String diagnostic(String value) {
         return displayCode(value == null ? "" : value)
+                .replaceAll("(?i)(https?://)[^/@\\s\"'<>]+:[^/@\\s\"'<>]+@", "$1[REDACTED]@")
+                .replaceAll("(?i)(https?://[^\\s?\\#\"'<>]+)\\?[^\\s\"'<>]*", "$1?[REDACTED]")
+                .replaceAll("(?im)((?:Authorization|Proxy-Authorization|Cookie|Set-Cookie)\\s*:\\s*)[^\\r\\n]+", "$1[REDACTED]")
                 .replaceAll("(?i)Bearer\\s+\\S+", "Bearer [REDACTED]")
-                .replaceAll("(?i)([\"']?(?:clientToken|token|signature|pin)[\"']?\\s*[:=]\\s*)[\"']?[^\\s,}\"']+[\"']?", "$1[REDACTED]")
+                .replaceAll("(?i)([\"']?(?:apikey|api_key|clientToken|token|signature|pin)[\"']?\\s*[:=]\\s*)[\"']?[^\\s,}&\"']+[\"']?", "$1[REDACTED]")
                 .replaceAll("(?i)\\b[A-Za-z0-9+/]{80,}={0,2}\\b", "[REDACTED]");
     }
 

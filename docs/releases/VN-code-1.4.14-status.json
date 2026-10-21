@@ -1,0 +1,269 @@
+{
+  "version": "1.4.14",
+  "baseVersion": "1.4.13",
+  "complete": false,
+  "developmentComplete": true,
+  "officialReleasePublished": false,
+  "phase": "draft-superseded-by-1.4.15-final-fixture-stability",
+  "licenseIntegration": {
+    "implemented": true,
+    "productionReady": false,
+    "activeKeyId": "vncode-2",
+    "changedInThisVersion": false
+  },
+  "scope": [
+    "Bounded local SQLite write transactions and original sync failure preservation",
+    "WB characteristic order stability during fresh read/preview/confirmed save",
+    "Marketplace-backed product value suggestions and explicit save/readback UI",
+    "WB card-level product view and verified readback projection",
+    "Fashion TN VED reference, filtered browser and per-product proposal review",
+    "Stable paged task reports and distinct marketplace/local KIZ statuses",
+    "Category KIZ reimport recovery with state-aware counts and explicit free-stock relocation",
+    "Znack TN VED group replacement with archived cards and one fresh GTIN per approved replacement",
+    "Per-card automatic signing consent with restart and uncertain-send reconciliation",
+    "Catalog article normalization without deleting model separators",
+    "Infinite virtualized Znack lists and progressively loaded WB shop/marketplace brands",
+    "GS1 signed PDF/photo regression and compact owner-bounded dialogs",
+    "Structured per-product edit keys survive persisted preview/save/reopen",
+    "Explicit Catalog size systems and separate Ozon manufacturer/Russian size persistence",
+    "Native WB GTIN fingerprint stability and product-bound asynchronous rejection reporting",
+    "Shared Liquid Glass materials and persistent live-preview transparency settings",
+    "Unicode article edge cleanup with own-card collision prevention and readback",
+    "Ozon seller SKU model/color/explicit-size matching including structured supplier articles",
+    "Stable virtualized GTIN inventory scroll during periodic refresh",
+    "Fair per-database bounded SQLite writer queue with connection reuse and unchanged FULL durability",
+    "Continuous FBS has reserved workers and an HTTP slot protected from background reads",
+    "Unified WB automatic/manual FBS response validation and completed history watermark protection",
+    "Strict Ozon posting identity, product quantity and current-credential validation",
+    "Complete FBO pagination with non-destructive failure handling and resumable Ozon history",
+    "GS1 source error propagation and coalesced-reader completion",
+    "Atomic WB status pages and bounded 100-card Catalog metadata writes prevent partial commits and reduce SQLite contention"
+  ],
+  "validation": {
+    "fullJavaRegression": {
+      "tests": 1664,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 2,
+      "source": "6ba183cd5fb4420e37df13035581fee08c2d2155",
+      "result": "passed",
+      "logSha256": "6847449bd0f504d64fab07c12728d98c053c338bab46af4ba471f9828388dbc7",
+      "elapsed": "11:39",
+      "finishedAt": "2026-10-17T07:21:40Z",
+      "platformSkips": [
+        {
+          "suite": "com.vncode.app.features.gs1.Gs1PrefixTemplateStoreTest",
+          "skipped": 1
+        },
+        {
+          "suite": "com.vncode.app.shared.WindowsSecretProtectorTest",
+          "skipped": 1
+        }
+      ]
+    },
+    "windowsNativeBuildThisVersion": true,
+    "liveMarketplaceRead": true,
+    "liveWbSameValueWriteReadback": "RECONCILED",
+    "liveOzonSameValueWrite": "acknowledged_readback_pending",
+    "liveNewGtinWrite": true,
+    "livePurchase": false,
+    "liveKizAssignment": false,
+    "liveCatalogThisVersion": true,
+    "productionLicenseVerified": false,
+    "uploadedKizSample": {
+      "valid": true,
+      "uniqueCodes": 600,
+      "shortCis": 600,
+      "duplicatesInFile": 0,
+      "issues": 0,
+      "remoteRequests": 0
+    },
+    "targetedRegression": {
+      "result": "passed",
+      "source": "ece7aa48a98caad78cc58da14923bd19c8b75c93",
+      "tests": 70,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "log": "/tmp/vncode-1414-ui-fixture-final-focused.log"
+    },
+    "visualProductEdit": {
+      "dataset": "synthetic native WB transport; signed test-only license",
+      "cards": 12,
+      "variants": 24,
+      "distinctTnvedCodes": 2,
+      "nativeUpdates": 12,
+      "readbackVerified": true,
+      "productionLicenseVerified": false
+    },
+    "liveNewCatalogRegistration": "one_draft_created_under_moderation",
+    "liveWbGtinWrite": "not_retested_tnved_mismatch",
+    "liveOzonGtinWrite": "APPLIED_with_native_readback_contract",
+    "fullLiveCatalogCounts": {
+      "listed": 1276,
+      "details": 1276,
+      "published": 1237,
+      "draft": 39
+    },
+    "liveMarketplaceCounts": {
+      "wbCards": 388,
+      "wbVariants": 1982,
+      "ozonProducts": 175
+    },
+    "nativeWindowsRun": {
+      "source": "6ba183cd5fb4420e37df13035581fee08c2d2155",
+      "run": 39012628654,
+      "url": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/39012628654",
+      "result": "success",
+      "java": {
+        "tests": 1664,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 2,
+        "passed": 1662
+      },
+      "releaseEvidence": "docs/validation/2026-10-17-vncode-1414-windows-release-checks.json"
+    },
+    "acceptanceReport": "docs/validation/2026-10-17-liquid-glass-ozon-sku.json",
+    "nodeRegression": {
+      "source": "ece7aa48a98caad78cc58da14923bd19c8b75c93",
+      "tests": 60,
+      "passed": 60,
+      "failed": 0,
+      "skipped": 0,
+      "logSha256": "1e99153f7fc3cdfc42398aefc165592b7c4df23343239b11aeecfe0faad3a042"
+    },
+    "priorAcceptanceReport": "docs/validation/2026-10-17-vncode-1414-live-acceptance.json",
+    "liveWbArticleTrim": "APPLIED_readback_all_writable_fields_preserved",
+    "liveSkuMatching": {
+      "ozonProducts": 175,
+      "uniqueCandidates": 10,
+      "ambiguous": 0,
+      "verifiedNewWrites": 1
+    },
+    "finalMatcherRegression": {
+      "source": "8a51b72b1563940d6481706de23260e8ddae7eef",
+      "result": "passed_via_full_regression"
+    },
+    "glassSettings": {
+      "defaultPercent": 55,
+      "minimumPercent": 0,
+      "maximumPercent": 100,
+      "savedAcrossRestart": true,
+      "opaqueText": true,
+      "previewSaveCancelVerified": true,
+      "nativeDesktopBlur": false,
+      "style": "approved-blue-reference-style-only",
+      "defaultTheme": "light",
+      "oneTimeUpgradeStyle": "blue-glass-1",
+      "laterThemeChoicePreserved": true
+    },
+    "blueFocusedRegression": {
+      "source": "8a51b72b1563940d6481706de23260e8ddae7eef",
+      "tests": 12,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "logSha256": "75507d3e8e6cb6b95d9c9faf54b9e005f120f2af763a005ec5cdd5a1e9ec9b81"
+    },
+    "finalPaletteRegression": {
+      "source": "788267089291ad2adff023cfd60a4575147d12dd",
+      "result": "passed",
+      "tests": 13,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "logSha256": "0cc7125bf5ba1b874018955a0d2dee649b5e504f0753d276d34c83c8654e0e26",
+      "pages": 26,
+      "languages": 4,
+      "themes": 2,
+      "sizes": 2,
+      "fixedActionChecks": 1934,
+      "clippedActions": 0
+    },
+    "syncAudit": {
+      "report": "docs/validation/2026-10-17-sync-release-audit.json",
+      "source": "6ba183cd5fb4420e37df13035581fee08c2d2155",
+      "focusedPassed": 145,
+      "ownerChecksPassed": 42,
+      "fullRegression": "passed",
+      "nativeWindowsRun": 39012628654,
+      "nativeWindowsResult": "success",
+      "liveOzonFbsPostings": 244,
+      "liveOzonFbsPages": 3,
+      "liveWbFbs": "passed_with_owner_supplied_token",
+      "remoteMutations": 0,
+      "visibleFbsSchedulerChecks": 11,
+      "priorNativeRunSuperseded": 39010074435,
+      "fullRegressionTests": 1664,
+      "batchFocusedPassed": 116,
+      "priorWindowsJavaPassed": 1660,
+      "wbBatchCommitsBefore": 1000,
+      "wbBatchCommitsAfter": 1,
+      "catalogBatchCommitsBefore": 410,
+      "catalogBatchCommitsAfter": 5,
+      "liveWbHistoryOrders": 1547,
+      "liveWbFboSupplies": 4
+    },
+    "previousFullJavaRegression": {
+      "tests": 1660,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 2,
+      "source": "e2b6471467212429b66ed095a23510cd30807ffe",
+      "result": "passed",
+      "logSha256": "cdfaf3e746ea420d79f3bea49ddf6af509182698ac843c79fc1b41d047e866a3",
+      "elapsed": "09:38",
+      "finishedAt": "2026-10-17T06:49:25Z",
+      "platformSkips": [
+        {
+          "suite": "com.vncode.app.features.gs1.Gs1PrefixTemplateStoreTest",
+          "skipped": 1
+        },
+        {
+          "suite": "com.vncode.app.shared.WindowsSecretProtectorTest",
+          "skipped": 1
+        }
+      ]
+    },
+    "priorFailedNativeWindowsRun": {
+      "source": "788267089291ad2adff023cfd60a4575147d12dd",
+      "run": 39007018087,
+      "url": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/39007018087",
+      "result": "failure",
+      "failure": "SyncRunRepositoryConcurrencyTest timeout; assertions and timeout retained in fix"
+    },
+    "nativeWindowsUiLayouts": {
+      "layouts": 288,
+      "clippedActions": 0,
+      "source": "6ba183cd5fb4420e37df13035581fee08c2d2155"
+    },
+    "ownerRequestedFinalRecheck": "docs/validation/2026-10-17-vncode-1414-final-recheck.json"
+  },
+  "publication": {
+    "published": false,
+    "latestChanged": false,
+    "currentSellerLatest": "1.4.15",
+    "ownerRequestedPublication": true,
+    "draftReleaseId": 415658561,
+    "uploadInProgress": false,
+    "draftUrl": "https://github.com/ntccong2468-lab/Bancapnhat/releases/tag/untagged-24b8ad394edf6e9a8fcb",
+    "draft": true,
+    "uploadWorkflowRunId": 39014660248,
+    "uploadWorkflowResult": "success",
+    "assetCount": 22,
+    "allAssetSizesAndDigestsMatch": true,
+    "ownerGitHubLoginRequired": true,
+    "blockers": [
+      "Exact-version production license acceptance required by existing automated publisher remains outstanding"
+    ],
+    "ownerRequestedFinalRecheckAndLatest": true,
+    "repeatBuildRunId": 39015146530,
+    "supersededByPublishedRelease": "https://github.com/ntccong2468-lab/Bancapnhat/releases/tag/v1.4.15"
+  },
+  "inheritedImplementation": "docs/releases/VN-code-1.4.13-status.json",
+  "sourceCommit": "6ba183cd5fb4420e37df13035581fee08c2d2155",
+  "applicationSource": "6ba183cd5fb4420e37df13035581fee08c2d2155",
+  "previousApplicationSource": "788267089291ad2adff023cfd60a4575147d12dd",
+  "supersededByVersion": "1.4.15"
+}

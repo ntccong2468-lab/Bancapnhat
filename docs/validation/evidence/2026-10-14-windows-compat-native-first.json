@@ -1,0 +1,37 @@
+{
+  "sourceCommit": "517191dd7477a1fd4c6283c01d9bce654ade9779",
+  "githubRunId": 38485324937,
+  "runConclusion": "failure",
+  "installerCreated": false,
+  "platform": "Windows GitHub-hosted",
+  "gs1TemplateStore": {
+    "tests": 9,
+    "errors": 0,
+    "failures": 0,
+    "skipped": 1,
+    "seconds": 0.479
+  },
+  "ozonReservationSuite": {
+    "tests": 4,
+    "errors": 0,
+    "failures": 0,
+    "skipped": 0,
+    "seconds": 178.616
+  },
+  "previousCancelledRunReservationSuiteSeconds": 638.5,
+  "reservationSuiteFixture": {
+    "shops": 10,
+    "ordersPerShop": 1000,
+    "synthetic": true,
+    "marketplaceRequests": false
+  },
+  "remainingErrors": [
+    "ProductBulkEditPaneTest.shopChangeDropsSelectionAndApproval: temp database cleanup while a read is still finishing",
+    "ProductBulkEditPaneTest.fieldsAndInlineLookupTranslateInAllLocales: same cleanup race",
+    "ProductRefreshUiTest.credentialRotationRefreshesContextWithTheSameShopId: same cleanup race"
+  ],
+  "platformSpecificSkippedCases": [
+    "Gs1PrefixTemplateStoreTest.privatePermissionsAreAppliedWhereSupported",
+    "WindowsSecretProtectorTest.neverFallsBackToPlaintextOffWindows"
+  ]
+}

@@ -21,8 +21,8 @@ import static org.junit.jupiter.api.Assertions.*;
 class GtinSyncControllerTest {
     @TempDir Path temp;
     final GtinSyncRepository repository=new GtinSyncRepository();
-    final RegisteredGtin first=new RegisteredGtin("00000000000017","PANTS","Đen","XL",true,true,"NK",Instant.now());
-    final RegisteredGtin alternate=new RegisteredGtin("00000000000024","PANTS","Đen","L",true,true,"NK",Instant.now());
+    final RegisteredGtin first=new RegisteredGtin("00000000000017","PANTS","Đen","XL",true,true,"NK",Instant.now(),catalogDetails("91"));
+    final RegisteredGtin alternate=new RegisteredGtin("00000000000024","PANTS","Đen","L",true,true,"NK",Instant.now(),catalogDetails("92"));
     final List<ProductSnapshot> products=List.of(
             ProductFingerprints.snapshot(new ProductKey(1,Marketplace.WILDBERRIES,"101","11"),"PANTS","Đen","XL",List.of("old","keep")),
             ProductFingerprints.snapshot(new ProductKey(1,Marketplace.WILDBERRIES,"102","12"),"PANTS","Đen","L",List.of("other")));
@@ -42,7 +42,7 @@ class GtinSyncControllerTest {
         releaseSend.countDown();
         if(controller!=null)fx(()->{controller.dispose();return null;});
         await(()->!com.vncode.app.shared.AppTaskExecutor.hasRunningTasks());
-        System.clearProperty("vncode.appdata.dir");
+        com.vncode.app.testsupport.ShopReadTestCleanup.awaitSharedIdle();System.clearProperty("vncode.appdata.dir");
     }
     @Test void previewUsesEditedOperationTargetAndOldBarcodeWithoutSavingMapping()throws Exception {
         load(null,List.of());
@@ -68,6 +68,7 @@ class GtinSyncControllerTest {
             public Capability capability(ProductKey key){return cap;}
             public ProductSnapshot read(ProductKey key){return products.stream().filter(p->p.key().equals(key)).findFirst().orElseThrow();}
             public boolean conflicts(ProductKey key,String gtin){return false;}
+            public void validateIdentity(ProductSnapshot target,RegisteredGtin source){assertExactIdentity(target,source);}
             public Submission submit(Preview p){submissions.incrementAndGet();return new Submission("personal-fixture");}
             public Verification verify(Preview p,Submission submission){return Verification.APPLIED;}
         };
@@ -92,6 +93,7 @@ class GtinSyncControllerTest {
             public Capability capability(ProductKey key){return cap;}
             public ProductSnapshot read(ProductKey key){return products.stream().filter(p->p.key().equals(key)).findFirst().orElseThrow();}
             public boolean conflicts(ProductKey key,String gtin){return false;}
+            public void validateIdentity(ProductSnapshot target,RegisteredGtin source){assertExactIdentity(target,source);}
             public Submission submit(Preview p)throws Exception{sendEntered.countDown();assertTrue(releaseSend.await(10,TimeUnit.SECONDS));return new Submission("fixture-task");}
             public Verification verify(Preview p,Submission submission){return Verification.APPLIED;}
         };
@@ -108,16 +110,47 @@ class GtinSyncControllerTest {
         await(()->repository.jobItems(job).stream().anyMatch(i->i.status()==Status.SUCCEEDED));
         assertEquals(1,repository.jobItems(job).stream().filter(i->i.status()==Status.CANCELLED).count());
     }
+    @Test void manualGtinQueueReservesAnHttpSlotForContinuousFbsTraffic()throws Exception{
+        var cap=new Capability(true,true,"");UUID job=repository.createJob(List.of(new Preview(products.getFirst(),Operation.ADD,"",first.gtin(),cap)));
+        var adapter=new GtinMarketplaceAdapter(){
+            public Capability capability(ProductKey key){return cap;}public ProductSnapshot read(ProductKey key){return products.getFirst();}public boolean conflicts(ProductKey key,String gtin){return false;}
+            public void validateIdentity(ProductSnapshot target,RegisteredGtin source){assertExactIdentity(target,source);}
+            public Submission submit(Preview preview)throws Exception{try(var slot=com.vncode.app.shared.MarketplaceRequestBudget.acquire()){sendEntered.countDown();assertTrue(releaseSend.await(10,TimeUnit.SECONDS));return new Submission("synthetic-submit");}}
+            public Verification verify(Preview preview,Submission submitted){return Verification.APPLIED;}
+        };
+        load(adapter,repository.jobItems(job));var workers=Executors.newFixedThreadPool(2);var backgroundStarted=new CountDownLatch(1);var backgroundAcquired=new CountDownLatch(1);
+        try{
+            fx(()->{table("historyTable").getSelectionModel().select(0);button("resumeButton").fire();return null;});assertTrue(sendEntered.await(5,TimeUnit.SECONDS));
+            var anotherCatalog=workers.submit(()->{try(var lane=com.vncode.app.shared.MarketplaceRequestBudget.lane(true)){backgroundStarted.countDown();try(var slot=com.vncode.app.shared.MarketplaceRequestBudget.acquire()){backgroundAcquired.countDown();}}return true;});assertTrue(backgroundStarted.await(2,TimeUnit.SECONDS));assertFalse(backgroundAcquired.await(100,TimeUnit.MILLISECONDS),"A second background request must wait while manual GTIN sending occupies its one background slot");
+            var fbs=workers.submit(()->{try(var lane=com.vncode.app.shared.MarketplaceRequestBudget.lane(false);var slot=com.vncode.app.shared.MarketplaceRequestBudget.acquire()){return true;}});assertTrue(fbs.get(2,TimeUnit.SECONDS),"FBS must acquire the reserved HTTP slot without waiting for the GTIN submission");
+            releaseSend.countDown();assertTrue(anotherCatalog.get(5,TimeUnit.SECONDS));await(()->repository.jobItems(job).getFirst().status()==Status.SUCCEEDED);
+        }finally{releaseSend.countDown();workers.shutdownNow();assertTrue(workers.awaitTermination(5,TimeUnit.SECONDS));}
+    }
     private void load(GtinMarketplaceAdapter adapter,List<JobItem> history)throws Exception {
         fx(()->{
             loader=new FXMLLoader(GtinSyncController.class.getResource("gtin-sync-view.fxml"));
-            if(adapter!=null){var workspace=new GtinSyncWorkspace(repository,key->adapter);loader.setControllerFactory(type->new GtinSyncController(workspace));}
+            if(adapter!=null){var workspace=new GtinSyncWorkspace(repository,key->adapter,cohort->{
+                assertFalse(cohort.isEmpty());
+                for(var entry:cohort.entrySet()){
+                    var target=products.stream().filter(p->p.key().equals(entry.getKey())).findFirst().orElseThrow();
+                    var expected=target.key().equals(products.getFirst().key())?first:alternate;
+                    assertEquals(expected.gtin(),entry.getValue());
+                    assertExactIdentity(target,repository.catalogItem(entry.getKey().shopId(),entry.getKey().marketplace(),entry.getValue()));
+                }
+            });loader.setControllerFactory(type->new GtinSyncController(workspace));}
             Parent root=loader.load();controller=loader.getController();controller.setShop(new Shop(1,"Fixture","test"));
             var field=GtinSyncController.class.getDeclaredField("model");field.setAccessible(true);var model=(GtinSyncViewModel)field.get(controller);
             var accept=GtinSyncController.class.getDeclaredMethod("accept",GtinSyncViewModel.LoadToken.class,GtinSyncWorkspace.Data.class);accept.setAccessible(true);
             accept.invoke(controller,model.token(),new GtinSyncWorkspace.Data(List.of(first,alternate),products,history,Map.of()));return null;
         });
         await(()->!com.vncode.app.shared.AppTaskExecutor.hasRunningTasks());
+    }
+    private static com.vncode.app.features.catalogsync.CatalogProductData catalogDetails(String id){
+        return new com.vncode.app.features.catalogsync.CatalogProductData(Map.of("@catalog_id",List.of(id),"@catalog_status",List.of("published")),List.of(),List.of());
+    }
+    private static void assertExactIdentity(ProductSnapshot target,RegisteredGtin source){
+        assertNotNull(source);assertEquals(target.article(),source.article());assertEquals(target.color(),source.color());assertEquals(target.size(),source.size());
+        assertTrue(source.published());assertTrue(source.tradeUnit());assertFalse(source.details().single("@catalog_id").isBlank());assertEquals("published",source.details().single("@catalog_status"));
     }
     private Button button(String id){return (Button)loader.getNamespace().get(id);}
     @SuppressWarnings("unchecked") private <T>TableView<T> table(String id){return (TableView<T>)loader.getNamespace().get(id);}

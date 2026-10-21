@@ -23,6 +23,58 @@ class ZnackCardRegistrationRepositoryTest {
     }
     @AfterEach void cleanup(){System.clearProperty("vncode.appdata.dir");}
     Sku current(){return repository.search(new SearchCriteria(1,"",List.of(),"ALL",20,0)).getFirst();}
+    @Test void credentialBindingIsInsertOnlyAndOldSchemaMigrationDoesNotInventIt()throws Exception {
+        assertTrue(repository.claim(1,current(),RegistrationAction.REGISTER));
+        var scope=new ZnackRegistrationScope("7707083893","production","a".repeat(40));
+        var shop=new com.vncode.app.models.Shop(1,"WB","fixture");repository.bindScope(shop,11,scope);
+        String original=repository.ownerHash(1,11);assertEquals(com.vncode.app.integration.listing.ListingIdentity.fingerprint(shop),original);
+        try(var c=Database.getConnection();var s=c.createStatement()){s.execute("UPDATE shops SET api_key='rotated-fixture' WHERE id=1");}
+        assertThrows(ZnackRegistrationScope.ScopeChangedException.class,()->repository.bindScope(new com.vncode.app.models.Shop(1,"WB","rotated-fixture"),11,scope));
+        assertEquals(original,repository.ownerHash(1,11));
+        try(var c=Database.getConnection();var s=c.createStatement()){
+            s.execute("ALTER TABLE znack_card_registration_scopes DROP COLUMN owner_hash");
+            ZnackCardRegistrationSchema.initialize(c);
+            assertEquals(scope,repository.scope(1,11));assertEquals("",repository.ownerHash(1,11));
+            try(var r=s.executeQuery("PRAGMA foreign_key_check")){assertFalse(r.next());}
+        }
+    }
+    @Test void publicationRecoveryIsScopedFreshAndCannotRepeatUsingAStaleSnapshot() {
+        var shop=new com.vncode.app.models.Shop(1,"WB","fixture");
+        com.vncode.app.features.gtinsync.GtinWriteTestFixture.saveSettings(shop,"A".repeat(40),com.vncode.app.integration.znack.ZnackModels.PRODUCTION_TRUE_API);
+        var proof=com.vncode.app.features.gtinsync.RegisteredGtinProof.current(shop);
+        repository.saveGenerated(1,current(),"04631993764363","6204",1,"Fixture","{}");
+        repository.bindScope(shop,11,new ZnackRegistrationScope(proof.inn(),proof.environment(),proof.fingerprint()));
+        repository.updateProgress(1,11,Status.PUBLISHED,"feed-1",91L,null,true);var original=current();
+        assertEquals(1,repository.unconfirmedPublications(shop,3).size());
+        var gtins=new com.vncode.app.features.gtinsync.GtinSyncRepository();
+        var details=publicationDetails("91","published");
+        gtins.saveCatalog(1,shop.getMarketplace(),List.of(new com.vncode.app.features.gtinsync.GtinSyncModels.RegisteredGtin("04631993764363","PANTS","","XL",true,true,proof.source(),java.time.Instant.now(),details)));
+        assertTrue(repository.unconfirmedPublications(shop,3).isEmpty());
+        gtins.saveCatalog(1,shop.getMarketplace(),List.of(new com.vncode.app.features.gtinsync.GtinSyncModels.RegisteredGtin("04631993764363","PANTS","","XL",true,true,proof.source(),java.time.Instant.now().minus(java.time.Duration.ofDays(2)),details)));
+        assertEquals(1,repository.unconfirmedPublications(shop,3).size());
+        assertTrue(repository.reconcilePublication(shop,original,Status.PROCESSING,"CATALOG_PUBLICATION_NOT_CONFIRMED"));
+        assertFalse(repository.reconcilePublication(shop,original,Status.READY_TO_SIGN,""));
+        assertEquals(original.gtin(),current().gtin());assertEquals(original.feedId(),current().feedId());assertTrue(current().wbUpdated());
+    }
+    @Test void localPublicationFlagsAndAnotherCatalogIdentityCannotSuppressReadback() {
+        var shop=new com.vncode.app.models.Shop(1,"WB","fixture");
+        com.vncode.app.features.gtinsync.GtinWriteTestFixture.saveSettings(shop,"A".repeat(40),com.vncode.app.integration.znack.ZnackModels.PRODUCTION_TRUE_API);
+        var proof=com.vncode.app.features.gtinsync.RegisteredGtinProof.current(shop);
+        repository.saveGenerated(1,current(),"04631993764363","6204",1,"Fixture","{}");
+        repository.bindScope(shop,11,new ZnackRegistrationScope(proof.inn(),proof.environment(),proof.fingerprint()));
+        repository.updateProgress(1,11,Status.PUBLISHED,"feed-1",91L,null,true);
+        var gtins=new com.vncode.app.features.gtinsync.GtinSyncRepository();
+        for(var details:List.of(com.vncode.app.features.catalogsync.CatalogProductData.EMPTY,publicationDetails("92","published"),publicationDetails("91","draft"))){
+            gtins.saveCatalog(1,shop.getMarketplace(),List.of(new com.vncode.app.features.gtinsync.GtinSyncModels.RegisteredGtin("04631993764363","PANTS","","XL",true,true,proof.source(),java.time.Instant.now(),details)));
+            assertEquals(1,repository.unconfirmedPublications(shop,3).size());
+        }
+        gtins.saveCatalog(1,shop.getMarketplace(),List.of(new com.vncode.app.features.gtinsync.GtinSyncModels.RegisteredGtin("04631993764363","PANTS","","XL",true,true,proof.source(),java.time.Instant.now().plusSeconds(600),publicationDetails("91","published"))));
+        assertEquals(1,repository.unconfirmedPublications(shop,3).size());
+        assertEquals("feed-1",current().feedId());assertEquals(91L,current().goodId());assertTrue(current().wbUpdated());
+    }
+    private static com.vncode.app.features.catalogsync.CatalogProductData publicationDetails(String id,String status){
+        return new com.vncode.app.features.catalogsync.CatalogProductData(java.util.Map.of("@catalog_id",List.of(id),"@catalog_status",List.of(status)),List.of(),List.of());
+    }
     @Test void refusesToReplaceAnExistingGtinAndPreservesSubmissionIdentity() {
         repository.saveGenerated(1,current(),"04631993764363","6204",1,"Fixture","{}");
         repository.updateProgress(1,11,Status.FEED_SUBMITTED,"feed-1",91L,null,false);
@@ -81,7 +133,7 @@ class ZnackCardRegistrationRepositoryTest {
         try(var c=Database.getConnection();var s=c.createStatement()){s.execute("PRAGMA user_version=3");}
         try(var session=com.vncode.app.shared.LocalDataMigrationGate.prepare(temp,"1.1.33","javafx")) {
             try(var c=Database.getConnection();var s=c.createStatement()) {
-                var version=s.executeQuery("PRAGMA user_version");assertEquals(4,version.getInt(1));version.close();
+                var version=s.executeQuery("PRAGMA user_version");assertEquals(Database.currentSchemaVersion(),version.getInt(1));version.close();
                 var integrity=s.executeQuery("PRAGMA integrity_check");assertEquals("ok",integrity.getString(1));integrity.close();
                 assertFalse(s.executeQuery("PRAGMA foreign_key_check").next());
             }
@@ -111,6 +163,51 @@ class ZnackCardRegistrationRepositoryTest {
         assertEquals(Status.PUBLISHED,current().status());
         assertEquals("feed-published",current().feedId());assertEquals(91L,current().goodId());
         assertTrue(current().wbUpdated());
+    }
+    @Test void replacementPreservesActiveBarcodeUntilPublishedAndVerifiedCompletion()throws Exception {
+        try(var c=Database.getConnection();var s=c.createStatement()){s.execute("INSERT INTO wb_product_size_skus(shop_id,chrt_id,sku) VALUES(1,11,'fixture-barcode')");}
+        repository.saveGenerated(1,current(),"04631993764363","6204",1,"Fixture","{}");
+        repository.updateProgress(1,11,Status.PUBLISHED,"old-feed",91L,null,true);
+        Sku old=current();assertTrue(repository.claimReplacement(1,old));assertFalse(repository.claimReplacement(1,old));
+        assertEquals("04631993764363",repository.activeGtin(1,11));
+        assertEquals("04631993764363",repository.activeGtinsByBarcode(1).get("fixture-barcode"));
+        assertTrue(repository.claimedGtins().contains("04631993764363"));
+        repository.saveGenerated(1,current(),"04631993764370","6204",1,"New card","{}");
+        assertFalse(repository.completeReplacement(1,11,"04631993764370"));
+        repository.updateProgress(1,11,Status.PUBLISHED,"new-feed",92L,null,false);
+        assertEquals("04631993764363",repository.activeGtin(1,11));
+        assertFalse(repository.completeReplacement(1,11,"other-gtin"));
+        assertFalse(repository.completeReplacement(1,11,"04631993764370"),"A local success label is not Catalog identity proof");
+        var shop=new com.vncode.app.models.Shop(1,"WB","fixture");
+        com.vncode.app.features.gtinsync.GtinWriteTestFixture.saveSettings(shop,"A".repeat(40),com.vncode.app.integration.znack.ZnackModels.PRODUCTION_TRUE_API);
+        var gtins=new com.vncode.app.features.gtinsync.GtinSyncRepository();var source=com.vncode.app.features.gtinsync.RegisteredGtinProof.source(shop);
+        gtins.saveCatalog(1,shop.getMarketplace(),List.of(new com.vncode.app.features.gtinsync.GtinSyncModels.RegisteredGtin("04631993764370","PANTS","","XL",true,true,source,java.time.Instant.now(),publicationDetails("91","published"))));
+        assertFalse(repository.completeReplacement(1,11,"04631993764370"),"Another card with the same code cannot activate this native candidate");
+        gtins.saveCatalog(1,shop.getMarketplace(),List.of(new com.vncode.app.features.gtinsync.GtinSyncModels.RegisteredGtin("04631993764370","PANTS","","XL",true,true,source,java.time.Instant.now(),publicationDetails("92","published"))));
+        assertTrue(repository.completeReplacement(1,11,"04631993764370"));
+        assertEquals("04631993764370",repository.activeGtin(1,11));
+        assertEquals("04631993764370",repository.activeGtinsByBarcode(1).get("fixture-barcode"));
+        assertFalse(repository.hasPendingReplacement(1,11));
+    }
+    @Test void scopeBindingIsInsertOnlyAndNoOtherShopCanReadIt() {
+        assertTrue(repository.claim(1,current(),RegistrationAction.REGISTER));
+        var owner=new ZnackRegistrationScope("7707083893","fixture-environment","a".repeat(40));
+        repository.bindScope(1,11,owner);assertEquals(owner,repository.scope(1,11));assertNull(repository.scope(2,11));
+        assertThrows(ZnackRegistrationScope.ScopeChangedException.class,()->repository.bindScope(1,11,
+                new ZnackRegistrationScope("7807083893","fixture-environment","b".repeat(40))));
+        assertEquals(owner,repository.scope(1,11));
+    }
+    @Test void frozenSigningDocumentCannotBeChangedOrPostedTwiceAndReadbackCanResolveIt() {
+        repository.saveGenerated(1,current(),"04631993764363","6204",1,"Fixture","{}");
+        repository.updateProgress(1,11,Status.READY_TO_SIGN,"feed",91L,null,false);
+        var original=new ZnackNationalCatalogService.SigningDocument(91,"<review>one</review>".getBytes(java.nio.charset.StandardCharsets.UTF_8));
+        repository.prepareSignature(1,11,"04631993764363",original);
+        assertThrows(IllegalStateException.class,()->repository.prepareSignature(1,11,"04631993764363",
+                new ZnackNationalCatalogService.SigningDocument(91,"<review>changed</review>".getBytes(java.nio.charset.StandardCharsets.UTF_8))));
+        assertTrue(repository.claimSignatureSend(1,11,original.sha256()));assertFalse(repository.claimSignatureSend(1,11,original.sha256()));
+        repository.finishSignature(1,11,false);assertEquals("RECONCILE_REQUIRED",repository.signingCheckpoint(1,11).state());
+        assertFalse(repository.claimSignatureSend(1,11,original.sha256()));
+        repository.finishSignature(1,11,true);assertEquals("CONFIRMED",repository.signingCheckpoint(1,11).state());
     }
     void insertPending(String status) throws Exception {
         try(var c=Database.getConnection();var s=c.prepareStatement("""

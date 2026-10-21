@@ -1,0 +1,187 @@
+{
+  "stage": "C",
+  "mode": "Linux Java25 JavaFX Xvfb + localhost and fixtures",
+  "productionWrites": false,
+  "tests": 341,
+  "failures": 0,
+  "errors": 0,
+  "skipped": 0,
+  "classes": [
+    {
+      "tests": 10,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "classname": "com.vncode.app.shared.FriendlyErrorCodeTest"
+    },
+    {
+      "tests": 8,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "classname": "com.vncode.app.shared.CatalogReadFailureTest"
+    },
+    {
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "classname": "com.vncode.app.shared.AppTaskExecutorTest"
+    },
+    {
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "classname": "com.vncode.app.integration.znack.ZnackErrorDetailsTest"
+    },
+    {
+      "tests": 6,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "classname": "com.vncode.app.integration.znack.CatalogApiAuthorizationTest"
+    },
+    {
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "classname": "com.vncode.app.integration.znack.ZnackSanitizerTest"
+    },
+    {
+      "tests": 10,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "classname": "com.vncode.app.integration.znack.registration.RegistrationDynamicPreflightTest"
+    },
+    {
+      "tests": 48,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "classname": "com.vncode.app.integration.znack.registration.OzonCardRegistrationWorkflowTest"
+    },
+    {
+      "tests": 12,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "classname": "com.vncode.app.integration.znack.registration.CatalogErrorRepairServiceTest"
+    },
+    {
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "classname": "com.vncode.app.integration.znack.registration.RegistrationTemplateTest"
+    },
+    {
+      "tests": 21,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "classname": "com.vncode.app.integration.znack.registration.ZnackRegistrationCountryModelTest"
+    },
+    {
+      "tests": 6,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "classname": "com.vncode.app.integration.znack.registration.RegistrationAutomaticDraftTest"
+    },
+    {
+      "tests": 14,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "classname": "com.vncode.app.integration.znack.registration.ZnackWbAttributeMapperTest"
+    },
+    {
+      "tests": 20,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "classname": "com.vncode.app.integration.znack.registration.OzonAutomaticDraftSchemaTest"
+    },
+    {
+      "tests": 60,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "classname": "com.vncode.app.integration.znack.registration.ZnackCardRegistrationWorkflowTest"
+    },
+    {
+      "tests": 36,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "classname": "com.vncode.app.integration.znack.registration.ZnackNationalCatalogServiceTest"
+    },
+    {
+      "tests": 10,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "classname": "com.vncode.app.integration.znack.registration.RegistrationVerifiedDefaultsTest"
+    },
+    {
+      "tests": 7,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "classname": "com.vncode.app.integration.znack.ZnackMutationTransportTest"
+    },
+    {
+      "tests": 10,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "classname": "com.vncode.app.integration.znack.CatalogCountryDiagnosticsTest"
+    },
+    {
+      "tests": 21,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "classname": "com.vncode.app.ui.znackregistration.ZnackCardRegistrationControllerTest"
+    },
+    {
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "classname": "com.vncode.app.ui.znackregistration.RegistrationBatchPreflightTest"
+    },
+    {
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "classname": "com.vncode.app.ui.znackregistration.RegistrationPreflightCancellationTest"
+    },
+    {
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "classname": "com.vncode.app.ui.znackregistration.RegistrationCountryDisplayTest"
+    },
+    {
+      "tests": 16,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "classname": "com.vncode.app.ui.znackregistration.OzonRegistrationPaneTest"
+    },
+    {
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "classname": "com.vncode.app.ui.znackregistration.RegistrationDiagnosticsTest"
+    }
+  ],
+  "note": "Final per-class results after one combined run and affected reruns; not one all-pass repository run."
+}

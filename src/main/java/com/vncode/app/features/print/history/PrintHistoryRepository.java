@@ -12,6 +12,73 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class PrintHistoryRepository {
+    private record PrintScope(java.nio.file.Path directory,int shopId,String kind,String item){}
+    private static final java.util.Set<PrintScope> ACTIVE_PRINTS=new java.util.HashSet<>();
+    /** Only active operations retain claims; same-profile duplicate exports fail before reserving. */
+    public static PrintClaim claimKizExport(int shopId,String gtin){
+        return claim(shopId,"KIZ",List.of(com.vncode.app.integration.znack.GtinNormalizer.normalize(gtin)));
+    }
+    public static PrintClaim claimOrders(int shopId,List<Long> orders){
+        var ids=orders.stream().filter(id->id!=null&&id>0).map(String::valueOf).distinct().toList();
+        return claim(shopId,"WB",ids.isEmpty()?List.of("unidentified"):ids);
+    }
+    private static PrintClaim claim(int shopId,String kind,List<String> items){
+        var directory=com.vncode.app.shared.AppPaths.appDataDir().toAbsolutePath().normalize();
+        var keys=items.stream().map(id->new PrintScope(directory,shopId,kind,id)).collect(java.util.stream.Collectors.toUnmodifiableSet());
+        synchronized(ACTIVE_PRINTS){
+            if(keys.stream().anyMatch(ACTIVE_PRINTS::contains))throw new IllegalStateException("Đang xuất nhãn cho các mã hoặc đơn hàng này. Chờ thao tác hiện tại kết thúc.");
+            ACTIVE_PRINTS.addAll(keys);
+        }
+        return new PrintClaim(keys);
+    }
+    public static final class PrintClaim implements AutoCloseable {
+        private final java.util.Set<PrintScope> keys;private boolean closed;
+        private PrintClaim(java.util.Set<PrintScope> keys){this.keys=keys;}
+        @Override public void close(){synchronized(ACTIVE_PRINTS){if(!closed){ACTIVE_PRINTS.removeAll(keys);closed=true;}}}
+    }
+    public void requireNoRecoverableOrders(int shopId,List<Long> orders) {
+        for(int start=0;start<orders.size();start+=400){var batch=orders.subList(start,Math.min(start+400,orders.size()));
+            try(var c=Database.getConnection();var p=c.prepareStatement("SELECT 1 FROM print_jobs j JOIN print_job_items i ON i.print_job_id=j.id WHERE j.shop_id=? AND j.status='pdf_ready' AND j.supply_id NOT LIKE 'FBO/%' AND j.supply_id NOT LIKE 'KIZ/%' AND i.order_id IN ("+String.join(",",java.util.Collections.nCopies(batch.size(),"?"))+") LIMIT 1")){
+                p.setInt(1,shopId);for(int i=0;i<batch.size();i++)p.setLong(i+2,batch.get(i));
+                try(var r=p.executeQuery()){if(r.next())throw recoveryRequired();}
+            }catch(SQLException failure){throw new IllegalStateException("Không thể kiểm tra lịch sử nhãn đã lưu.",failure);}
+        }
+    }
+    public void requireNoRecoverableKiz(int shopId,String gtin) {
+        try(var c=Database.getConnection();var p=c.prepareStatement("SELECT 1 FROM print_jobs WHERE shop_id=? AND status='pdf_ready' AND supply_id LIKE 'KIZ/%' AND json_extract(template_layout_json,'$.gtin')=? LIMIT 1")){
+            p.setInt(1,shopId);p.setString(2,gtin);try(var r=p.executeQuery()){if(r.next())throw recoveryRequired();}
+        }catch(SQLException failure){throw new IllegalStateException("Không thể kiểm tra lịch sử nhãn KIZ đã lưu.",failure);}
+    }
+    private static IllegalStateException recoveryRequired(){return new IllegalStateException("Có nhãn đã sử dụng mã nhưng chưa xuất xong. Mở Lịch sử in và in lại bản đã lưu trước khi lấy mã mới.");}
+    public long insertPreparedJob(com.vncode.app.models.Shop shop,String supplyId,String supplyName,
+                                  String printedAt,Integer templateId,String templateName,String templateJson,
+                                  List<PrintHistoryItem> items) {
+        com.vncode.app.integration.listing.ListingIdentity.require(shop);
+        return insertJob(shop.getId(),shop.getName(),shop.getMarketplace().name(),supplyId,supplyName,
+                printedAt,items.size(),templateId,templateName,templateJson,"prepared",null,items);
+    }
+    public void finishPrintJob(int shopId,long id,String expected,String target) {
+        if(!java.util.Set.of("prepared","pdf_ready").contains(expected)
+                ||!java.util.Set.of("success","failed").contains(target))throw new IllegalArgumentException("Invalid print checkpoint");
+        try(var c=Database.getConnection();var p=c.prepareStatement("UPDATE print_jobs SET status=? WHERE id=? AND shop_id=? AND status IN (?,?)")){
+            p.setString(1,target);p.setLong(2,id);p.setInt(3,shopId);p.setString(4,expected);p.setString(5,target);
+            if(p.executeUpdate()!=1)throw new IllegalStateException("Print checkpoint changed");
+        }catch(SQLException failure){throw new IllegalStateException("Unable to update print checkpoint",failure);}
+    }
+    public long insertPreparedFboJob(com.vncode.app.models.Shop shop,String templateName,String templateJson,List<PrintHistoryItem> items) {
+        com.vncode.app.integration.listing.ListingIdentity.require(shop);
+        return insertJob(shop.getId(),shop.getName(),shop.getMarketplace().name(),"FBO/"+java.util.UUID.randomUUID(),"FBO",Instant.now().toString(),items.size(),null,templateName,templateJson,"prepared",null,items);
+    }
+    public void finishFboJob(int shopId,long id,String expected,String target) {
+        if(!java.util.Set.of("prepared","pdf_ready").contains(expected)||!java.util.Set.of("success","failed","pdf_ready").contains(target))throw new IllegalArgumentException("Invalid print checkpoint");
+        try(var c=Database.getConnection();var p=c.prepareStatement("UPDATE print_jobs SET status=? WHERE id=? AND shop_id=? AND status=? AND supply_id LIKE 'FBO/%'")){p.setString(1,target);p.setLong(2,id);p.setInt(3,shopId);p.setString(4,expected);if(p.executeUpdate()!=1)throw new IllegalStateException("FBO print checkpoint changed");}catch(SQLException failure){throw new IllegalStateException("Unable to update FBO print checkpoint");}
+    }
+    /** Called only during process startup, while the app-data lock is held. */
+    public void recoverInterruptedFboJobs() {
+        // A prepared snapshot has not committed inventory consumption. pdf_ready is
+        // deliberately retained: its exact codes can be exported again without buying.
+        try(var c=Database.getConnection();var p=c.prepareStatement("UPDATE print_jobs SET status='failed',error_message=CASE WHEN supply_id LIKE 'FBO/%' THEN 'FBO_EXPORT_INTERRUPTED' ELSE 'Quá trình xuất nhãn bị gián đoạn trước khi sử dụng mã.' END WHERE status='prepared'")){p.executeUpdate();}catch(SQLException failure){throw new IllegalStateException("Unable to recover print checkpoints",failure);}
+    }
 
     public long insertSuccessfulJob(int shopId,
                                     String shopName,

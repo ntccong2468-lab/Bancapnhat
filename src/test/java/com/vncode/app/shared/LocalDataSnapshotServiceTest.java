@@ -26,6 +26,17 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 class LocalDataSnapshotServiceTest {
+    @Test void consistentSnapshotRestoresForeignKeys()throws Exception {
+        Path root=tempDir.resolve("foreign-keys");Files.createDirectories(root);Path database=root.resolve("database.db");
+        try(var owner=AppDataLock.acquire(root,"fixture")){
+            try(var c=DriverManager.getConnection("jdbc:sqlite:"+database);var s=c.createStatement()){s.execute("PRAGMA foreign_keys=ON");s.execute("CREATE TABLE parent(id INTEGER PRIMARY KEY)");s.execute("CREATE TABLE child(id INTEGER PRIMARY KEY,parent_id INTEGER REFERENCES parent(id))");s.execute("INSERT INTO parent VALUES(1)");s.execute("INSERT INTO child VALUES(1,1)");}
+            var service=new LocalDataSnapshotService();var snapshot=service.create(owner,"1.4.0",4,"test");
+            try(var c=DriverManager.getConnection("jdbc:sqlite:"+database);var s=c.createStatement()){s.execute("DELETE FROM child");s.execute("DELETE FROM parent");}
+            service.restore(owner,snapshot,"1.4.0");try(var c=DriverManager.getConnection("jdbc:sqlite:"+database);var s=c.createStatement()){
+                try(var r=s.executeQuery("PRAGMA integrity_check")){assertTrue(r.next());assertEquals("ok",r.getString(1));}try(var r=s.executeQuery("PRAGMA foreign_key_check")){assertFalse(r.next());}try(var r=s.executeQuery("SELECT count(*) FROM child JOIN parent ON child.parent_id=parent.id")){assertTrue(r.next());assertEquals(1,r.getInt(1));}
+            }
+        }
+    }
     @TempDir Path tempDir;
 
     @Test
@@ -112,6 +123,21 @@ class LocalDataSnapshotServiceTest {
             assertEquals(LocalDataSnapshotService.IntegrityStatus.VERIFIED, result.recoveryBundle().integrityStatus());
             assertEquals(1, service.list(ownership).size());
             assertFalse(Files.exists(pendingJournal(appData)));
+        }
+    }
+
+    @Test
+    void retentionDoesNotReadWholeDatabasesWhenNoSnapshotCanBeDeleted() throws Exception {
+        Path appData = tempDir.resolve("fast-retention");Files.createDirectories(appData);
+        createInventoryDatabase(appData.resolve("database.db"), "retention");
+        Instant now=Instant.parse("2026-10-18T00:00:00Z");
+        try(var ownership=AppDataLock.acquire(appData,"retention-test")) {
+            var snapshots=new java.util.ArrayList<LocalDataSnapshotService.Snapshot>();
+            for(int days:new int[]{10,8,5,1})snapshots.add(snapshotAt(ownership,now.minus(days,ChronoUnit.DAYS)));
+            Files.writeString(snapshots.getFirst().database(),"Unknown integrity is retained when no deletion is allowed");
+            var result=new LocalDataSnapshotService(InstantSource.fixed(now)).retainRollbackWindow(ownership);
+            assertEquals(0,result.deleted());assertEquals(4,result.retained());
+            for(var snapshot:snapshots)assertTrue(Files.exists(snapshot.database()));
         }
     }
 

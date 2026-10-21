@@ -1,0 +1,106 @@
+{
+  "version": "1.4.10",
+  "baseVersion": "1.4.9",
+  "complete": false,
+  "officialReleasePublished": true,
+  "licenseIntegration": {
+    "implemented": true,
+    "productionReady": false,
+    "activeKeyId": "vncode-2",
+    "serverSigningKeyMatch": "owner-confirmed-Portal035-vncode2",
+    "ownerReportedActivationVersion": "1.4.4"
+  },
+  "scope": [
+    "Automatic credential-free connection selection, HTTP/1.1 and IPv4-preferred fallback retaining IPv6",
+    "Fixed backup hostname with fresh Ed25519 issuer/nonce/origin proof before credentials",
+    "One bounded workflow recovery with fresh device challenge, preserving device identity",
+    "Separate Cloudflare gateway via service binding to Portal 0.3.6; same DB and signing authority",
+    "Sanitized in-app Java network diagnostics; support operations preserve signed license state"
+  ],
+  "validation": {
+    "windowsFullBuild": {
+      "runId": 38694827579,
+      "sourceCommit": "735890f58937e7ee9d3c534956b27d51eed72d82",
+      "result": "passed",
+      "javaSuites": 219,
+      "javaTests": 1264,
+      "javaPassed": 1262,
+      "javaFailures": 0,
+      "javaErrors": 0,
+      "javaSkippedPlatformSpecific": 2,
+      "nativeLauncher": "passed",
+      "gs1AndCatalogDpapi": "passed",
+      "installerArtifactId": 11954527132,
+      "nativeInstallAndUpgrade": "passed",
+      "upgradeFromVersions": [
+        "1.1.34",
+        "1.2.0",
+        "1.2.1",
+        "1.2.2",
+        "1.3.0",
+        "1.4.0",
+        "1.4.6"
+      ],
+      "desktopLayouts": 272,
+      "horizontalButtonOverflow": 0,
+      "workspaceDpi": [
+        100,
+        125,
+        150
+      ],
+      "workspaceDatasets": [
+        "6wb4ozon",
+        "10ozon"
+      ],
+      "windowsLowEndHardwareMeasured": false
+    },
+    "secondMachineHotspotActivation": "not-verified; owner reports 1.4.9 timeout despite two-device allowance",
+    "productionMultiDeviceOfflineRevocation": "not-verified",
+    "productionCloudflareRulesModified": false,
+    "backupWorkerDeployed": false,
+    "cloudflareGateway": "deployment package prepared; owner deployment required",
+    "localFocusedTests": {
+      "javaJavaFx": 73,
+      "portal": 60,
+      "releaseContracts": 53,
+      "result": "passed"
+    },
+    "separateWindowsLicenseValidation": {
+      "runId": 38694830498,
+      "sourceCommit": "735890f58937e7ee9d3c534956b27d51eed72d82",
+      "tests": 184,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "result": "passed"
+    },
+    "shippedJavaProductionProbe": "Read-only cloud path: primary GET 200 and empty activation POST 401 in HTTP/2 and HTTP/1.1; synthetic status rejected 401. Backup not deployed/reachable. No real account/device/license created.",
+    "publicArtifactVerification": "Shipped updater parsed public Latest, detected AVAILABLE for 1.4.4, selected Windows EXE and verified actual public file bytes/SHA-256 on Linux. Windows native install/upgrade verified separately. All other 17 public assets independently verified against GitHub size/SHA-256.",
+    "livePortalVersionAtVerification": "0.3.5"
+  },
+  "releaseChannel": {
+    "repository": "ntccong2468-lab/Bancapnhat",
+    "tag": "v1.4.10",
+    "appAutomaticFeed": "/releases/latest",
+    "publicationAuthorization": "Owner requested Published/Latest for future updates and correction of second-machine 1.4.9 license timeout. Real affected-carrier acceptance remains outstanding.",
+    "installerSha256": "e6017013c999455c85adce4c371e1bf1b3da65ab80c222136327bdc096cea587",
+    "installerBytes": 144763904,
+    "prepareRunId": 38697879356,
+    "draftPreparation": "passed",
+    "publishedAt": "2026-10-15T07:21:16Z",
+    "releaseId": 413518941,
+    "url": "https://github.com/ntccong2468-lab/Bancapnhat/releases/tag/v1.4.10",
+    "publicLatestVerified": true,
+    "publicInstallerDownloadedAndSha256Verified": true
+  },
+  "portalPackage": {
+    "version": "0.3.6",
+    "filename": "VNCode-Portal-0.3.6-License-Network.zip",
+    "bytes": 111443,
+    "sha256": "35b05b8cb301220a3aab9c670f10802da6bfbe6bd58a89c0ada0a7231b988dbc",
+    "artifactId": 11953766832,
+    "deployed": false,
+    "instructions": "website/license-portal/DEPLOY-LICENSE-NETWORK-VI.md",
+    "infrastructureLimitation": "Both routes use Cloudflare and the same Portal service/DB; not an independent-provider outage fallback."
+  }
+}

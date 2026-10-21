@@ -58,6 +58,8 @@ if [[ "$(uname -s)" == "Linux" ]]; then
   if [[ "$PACKAGE_TYPE" != "app-image" ]]; then
     JPACKAGE_OPTIONS+=(--linux-package-name vncode)
   fi
+elif [[ "$(uname -s)" == "Darwin" ]]; then
+  JPACKAGE_OPTIONS+=(--icon logo.icns)
 fi
 
 echo "Packaging JavaFX application as ${PACKAGE_TYPE}..."

@@ -9,6 +9,17 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class OzonDashboardControllerTest {
+    @Test void shipmentDateRetainsOzonOffsetAndHandlesMissingOrUnknownValues() {
+        var p = posting(List.of());
+        for (var value : List.of("2026-10-15T00:30:00+03:00", "", "unknown-date")) {
+            var dated = new OzonPostingDto(p.postingNumber(), p.orderId(), p.orderNumber(), p.status(),
+                    p.substatus(), p.warehouseId(), value, p.inProcessAt(), p.lowerBarcode(), p.upperBarcode(),
+                    p.requirements(), p.availableActions(), p.shipAvailable(), p.items());
+            assertEquals(value.isEmpty() ? "—" : value.equals("unknown-date") ? value : "15.10.2026\n00:30 +03:00",
+                    OzonDashboardController.shipmentText(dated));
+        }
+    }
+    @Test void uncertainShipIsShownAsPendingRatherThanFailed(){org.junit.jupiter.api.Assertions.assertTrue(OzonDashboardController.reconciliationRequired(new com.vncode.app.integration.ozon.OzonApiException("reconcile_required",0,false,true,null)));org.junit.jupiter.api.Assertions.assertFalse(OzonDashboardController.reconciliationRequired(new IllegalArgumentException("invalid")));}
     @Test
     void itemTextShowsEveryProductInAMultiProductPosting() {
         OzonPostingDto posting = posting(List.of(
@@ -24,7 +35,7 @@ class OzonDashboardControllerTest {
         OzonPostingDto posting = posting(List.of(item(0, "SKU-1", "Product", 2)));
 
         assertEquals("Product × 2", OzonDashboardController.itemsText(posting));
-        assertEquals(76.0, OzonDashboardController.orderRowHeight(posting));
+        assertEquals(124.0, OzonDashboardController.orderRowHeight(posting));
     }
 
     @Test
@@ -33,7 +44,7 @@ class OzonDashboardControllerTest {
                 item(0, "SKU-1", "First product", 1),
                 item(1, "SKU-2", "Second product", 1)));
 
-        assertEquals(140.0, OzonDashboardController.orderRowHeight(posting));
+        assertEquals(244.0, OzonDashboardController.orderRowHeight(posting));
     }
 
     private static OzonPostingDto posting(List<OzonPostingItemDto> items) {

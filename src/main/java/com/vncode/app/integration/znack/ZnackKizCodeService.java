@@ -23,7 +23,11 @@ public class ZnackKizCodeService {
         JsonElement response=api.codes(s.resolvedSuzBaseUrl(),auth.suzToken(s),s.omsId(),
                 order.externalOrderId(),remaining,order.gtin());
         int inserted=storeResponse(id,order.gtin(),response,null);
-        if(!codes(response).isEmpty())repository.updateOrder(id,null,"READY",OrderStatus.CODES_DOWNLOADED,null);
+        int stored=repository.findCodes(id).size();
+        // A nonempty response can still be a partial block. Only the durable count proves that
+        // every purchased code was received; callers must not mistake partial delivery for done.
+        repository.updateOrder(id,null,stored>=order.quantity()?"READY":order.remoteStatus(),
+                stored>=order.quantity()?OrderStatus.CODES_DOWNLOADED:OrderStatus.WAITING_CODES,null);
         repository.log("DOWNLOAD_CODES",String.valueOf(id),"INFO","Downloaded "+inserted+" new codes",200);
         return inserted;
     }

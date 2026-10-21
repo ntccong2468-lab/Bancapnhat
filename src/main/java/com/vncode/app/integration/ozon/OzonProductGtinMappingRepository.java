@@ -13,6 +13,8 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Locale;
 import java.util.Map;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Set;
 
 public final class OzonProductGtinMappingRepository {
@@ -178,10 +180,71 @@ public final class OzonProductGtinMappingRepository {
             }
             // Posting data may outlive a catalog row. Preserve its legacy fallback as well.
             legacy.forEach(resolved::putIfAbsent);
+            // A reviewed native candidate switches exactly one SKU. A broad article rule must
+            // not override that completed choice or alter sibling sizes using the same article.
+            verifiedBarcodeMappings(connection,shopId).forEach(resolved::put);
+            com.vncode.app.features.kizmapping.VerifiedKizMappings.read(connection,shopId,com.vncode.app.integration.marketplace.Marketplace.OZON).forEach(resolved::put);
+            activeNativeMappings(connection,shopId).forEach(resolved::put);
             return Map.copyOf(resolved);
         } catch (SQLException exception) {
             throw new RuntimeException(exception);
         }
+    }
+
+    private static Map<String,String> verifiedBarcodeMappings(Connection connection,int shopId)throws SQLException {
+        var candidates=new HashMap<String,Set<String>>();
+        try(var p=connection.prepareStatement("""
+          SELECT p.sku,g.gtin FROM ozon_products p JOIN ozon_product_barcodes b ON b.shop_id=p.shop_id AND b.product_id=p.product_id
+          JOIN gtin_sync_catalog g ON g.shop_id=p.shop_id AND g.marketplace='OZON' AND g.gtin IN (b.barcode,substr('00000000000000'||b.barcode,-14),substr('00000000000000'||b.barcode,-13),substr('00000000000000'||b.barcode,-12),substr('00000000000000'||b.barcode,-8)) AND length(b.barcode) IN (8,12,13,14) AND b.barcode NOT GLOB '*[^0-9]*' AND ltrim(g.gtin,'0')=ltrim(b.barcode,'0')
+          WHERE p.shop_id=? AND p.archived=0 AND json_extract(g.data_json,'$.owner')=? AND json_extract(g.data_json,'$.published')=1 AND json_extract(g.data_json,'$.tradeUnit')=1
+          """)){p.setInt(1,shopId);p.setString(2,com.vncode.app.integration.listing.ListingIdentity.fingerprint(connection,shopId,com.vncode.app.integration.marketplace.Marketplace.OZON));try(var r=p.executeQuery()){while(r.next()){String g=r.getString(2);if(com.vncode.app.features.gtinsync.RegisteredGtinValidator.isValid(g)&&!GtinNormalizer.isTechnicalRange(g))candidates.computeIfAbsent(r.getString(1),k->new HashSet<>()).add(GtinNormalizer.normalize(g));}}}
+        var verified=new HashMap<String,String>();candidates.forEach((sku,gtins)->{if(gtins.size()==1)verified.put(sku,gtins.iterator().next());});return Map.copyOf(verified);
+    }
+
+    private static Map<String,String> activeNativeMappings(Connection connection,int shopId)throws SQLException {
+        String owner,scopeJson,registrySource;
+        try(var p=connection.prepareStatement("""
+          SELECT s.name,s.client_id,s.api_key,z.true_api_base_url,z.participant_inn,z.owner_inn,
+                 z.signer_certificate,z.certificate_metadata_json,z.signer_tested_at
+          FROM shops s JOIN znack_settings z ON z.shop_id=s.id WHERE s.id=? AND s.marketplace='OZON'
+          """)){
+            p.setInt(1,shopId);try(var r=p.executeQuery()){
+                if(!r.next()||r.getString(9)==null)return Map.of();
+                try {
+                    var shop=new com.vncode.app.models.Shop(shopId,r.getString(1),com.vncode.app.integration.marketplace.Marketplace.OZON,r.getString(2),r.getString(3));
+                    if(!shop.isCredentialConfigured())return Map.of();
+                    var metadata=com.google.gson.JsonParser.parseString(r.getString(8)).getAsJsonObject();
+                    String inn=metadata.get("inn").getAsString(),fingerprint=metadata.get("thumbprint").getAsString().replaceAll("\\s","").toUpperCase(Locale.ROOT);
+                    String selector=r.getString(7)==null?"":r.getString(7);String normalized=selector.replaceAll("\\s","").toUpperCase(Locale.ROOT);
+                    if(!metadata.get("hasPrivateKey").getAsBoolean()||(!normalized.equals(fingerprint)&&(!metadata.has("selector")||!selector.equals(metadata.get("selector").getAsString())))
+                            ||(r.getString(5)!=null&&!r.getString(5).isBlank()&&!inn.equals(r.getString(5).strip()))
+                            ||(r.getString(6)!=null&&!r.getString(6).isBlank()&&!inn.equals(r.getString(6).strip()))
+                            ||Instant.parse(r.getString(9)).isAfter(Instant.now().plusSeconds(300)))return Map.of();
+                    // Expiration affects new signing, not an already completed local GTIN choice.
+                    Instant.parse(metadata.get("validFrom").getAsString());Instant.parse(metadata.get("validTo").getAsString());
+                    String environment=r.getString(4)==null||r.getString(4).isBlank()?com.vncode.app.integration.znack.ZnackModels.PRODUCTION_TRUE_API:r.getString(4).strip();
+                    var scope=new com.vncode.app.integration.znack.registration.ZnackRegistrationScope(inn,environment,fingerprint);
+                    scopeJson=new com.google.gson.Gson().toJson(scope);owner=com.vncode.app.integration.listing.ListingIdentity.fingerprint(shop);
+                    registrySource="National Catalog@"+com.vncode.app.integration.listing.ListingIdentity.hash(String.join("\n",owner,inn,fingerprint,environment.replaceAll("/+$","")));
+                }catch(RuntimeException invalid){return Map.of();}
+            }
+        }
+        var result=new LinkedHashMap<String,String>();
+        try(var p=connection.prepareStatement("""
+          SELECT r.sku,r.active_gtin FROM ozon_card_registrations r
+          JOIN znack_products z ON z.shop_id=r.shop_id AND z.gtin=r.active_gtin
+          JOIN gtin_sync_catalog g ON g.shop_id=r.shop_id AND g.marketplace='OZON' AND g.gtin=r.active_gtin
+          WHERE r.shop_id=? AND r.active_gtin<>'' AND r.owner=? AND r.scope_json=?
+            AND z.deleted_at IS NULL AND z.identity_archived_at IS NULL
+            AND json_extract(g.data_json,'$.published')=1 AND json_extract(g.data_json,'$.tradeUnit')=1
+            AND json_extract(g.data_json,'$.source')=?
+          """)){
+            p.setInt(1,shopId);p.setString(2,owner);p.setString(3,scopeJson);p.setString(4,registrySource);
+            var conflicting=new LinkedHashSet<String>();
+            try(var r=p.executeQuery()){while(r.next()){String sku=r.getString(1),gtin=r.getString(2);String prior=result.putIfAbsent(sku,gtin);if(prior!=null&&!prior.equals(gtin))conflicting.add(sku);}}
+            conflicting.forEach(result::remove);
+        }
+        return Map.copyOf(result);
     }
 
     /** Atomically replaces every Ozon article assigned to one Znack GTIN. */

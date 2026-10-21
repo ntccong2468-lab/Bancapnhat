@@ -1,0 +1,19 @@
+{
+  "sourceCommit": "184815755a92a3b92e85e45cb6622475fa17fbbd",
+  "githubRunId": 38487231744,
+  "runConclusion": "failure",
+  "installerCreated": false,
+  "counts": {
+    "tests": 1177,
+    "failures": 0,
+    "errors": 2,
+    "skipped": 2
+  },
+  "cleanupErrors": [
+    "com.vncode.app.ui.listingcopy.ListingCopyPaneTest.leavingViewPreservesSentJob",
+    "com.vncode.app.ui.gs1.Gs1PaneTest.automaticReminderRequiresTheDisplayedConsentAndCancelLeavesItDisabled"
+  ],
+  "productsCleanupErrors": 0,
+  "ozonReservationSuiteSeconds": 193.5,
+  "nativeLauncherAndInstallerChecks": "unrun"
+}

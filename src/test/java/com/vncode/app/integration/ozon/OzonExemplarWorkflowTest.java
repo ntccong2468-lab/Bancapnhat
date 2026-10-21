@@ -93,6 +93,81 @@ class OzonExemplarWorkflowTest {
         assertEquals(1, count("SELECT COUNT(*) FROM ozon_exemplars"));
         assertEquals(1, count("SELECT COUNT(*) FROM kiz_codes WHERE status='RESERVED'"));
     }
+    @Test void productionPrintFlowUsesCategoryStockWithDifferentGtinAndReusesItsDurableProof()throws Exception{
+        new OzonCatalogRepository().upsertPage(1,java.util.List.of(new OzonProductDto("9001","sku-a","101","Synthetic","",false,"",java.util.List.of())),"");
+        try(var c=Database.getConnection();var s=c.createStatement()){s.execute("DELETE FROM ozon_product_gtin_mappings");}
+        com.vncode.app.testsupport.CategoryStockFixture.add(shop,"9001",temporaryDirectory,1);
+        server.enqueue(json(posting()));server.enqueue(json(posting()));var service=service();
+        assertTrue(service.stageForPrint(shop,"POST-1").shipReady());assertTrue(service.stageForPrint(shop,"POST-1").shipReady());
+        assertEquals(com.vncode.app.testsupport.CategoryStockFixture.GTIN,scalar("SELECT k.gtin FROM ozon_exemplars e JOIN kiz_codes k ON k.id=e.kiz_id"));
+        assertEquals(1,count("SELECT count(*) FROM kiz_stock_category_reservations"));assertEquals(2,server.getRequestCount());
+    }
+    @Test void deletingCategoryKeepsTheExistingOzonPostingPrintableWithoutBuyingOrReservingAgain()throws Exception{
+        new OzonCatalogRepository().upsertPage(1,java.util.List.of(new OzonProductDto("9001","sku-a","101","Synthetic","",false,"",java.util.List.of("OZN0000000101"))),"");
+        try(var c=Database.getConnection();var s=c.createStatement()){s.execute("DELETE FROM ozon_product_gtin_mappings");}
+        String category=com.vncode.app.testsupport.CategoryStockFixture.add(shop,"9001",temporaryDirectory,1);
+        server.enqueue(json(posting()));server.enqueue(json(posting()));var service=service();
+        assertTrue(service.stageForPrint(shop,"POST-1").shipReady());
+        String original=scalar("SELECT kiz_id FROM ozon_exemplars");
+        new com.vncode.app.features.kiz.KizStockCategoryRepository().delete(shop,category);
+        assertTrue(service.stageForPrint(shop,"POST-1").shipReady());
+        assertEquals(original,scalar("SELECT kiz_id FROM ozon_exemplars"));
+        assertEquals(1,count("SELECT count(*) FROM kiz_stock_category_reservations"));
+        assertEquals(2,server.getRequestCount());
+        assertEquals("/v3/posting/fbs/get",takeRequest().getPath());assertEquals("/v3/posting/fbs/get",takeRequest().getPath());
+        server.enqueue(json(posting()));
+        var bundle=new OzonPrintBundleService(new OzonPostingRepository(),new OzonExemplarJobRepository(),
+                OzonPrintBundleService.defaultPreparation(service),(selected,number,target)->{
+                    try(var pdf=new com.itextpdf.kernel.pdf.PdfDocument(new com.itextpdf.kernel.pdf.PdfWriter(target))){pdf.addNewPage(new com.itextpdf.kernel.geom.PageSize(200,100));}return target;
+                });
+        for(int i=0;i<2;i++){
+            var labels=temporaryDirectory.resolve("after-delete-"+i+".pdf");
+            var exported=bundle.export(shop,"POST-1",labels.toFile(),temporaryDirectory.resolve("picking-"+i+".pdf").toFile());
+            assertEquals(2,exported.totalPages());try(var pdf=org.apache.pdfbox.Loader.loadPDF(labels.toFile())){assertEquals(2,pdf.getNumberOfPages());}
+        }
+        assertEquals("CONSUMED",scalar("SELECT k.status FROM ozon_exemplars e JOIN kiz_codes k ON k.id=e.kiz_id"));
+        assertEquals(3,server.getRequestCount());assertEquals("/v3/posting/fbs/get",takeRequest().getPath());
+        server.enqueue(json(posting().replace("POST-1","POST-2")));
+        org.junit.jupiter.api.Assertions.assertThrows(OzonRequirementGuard.MissingMappingException.class,()->service.stageForPrint(shop,"POST-2"));
+        assertEquals(1,count("SELECT count(*) FROM kiz_stock_category_reservations"));
+    }
+
+    @Test void explicitSellerSourceSkipsCatalogAndNeverUsesPaidStock()throws Exception{
+        new OzonCatalogRepository().upsertPage(1,java.util.List.of(new OzonProductDto("9001","sku-a","101","Synthetic","",false,"",java.util.List.of())),"");
+        try(var c=Database.getConnection();var st=c.createStatement()){st.execute("DELETE FROM ozon_product_gtin_mappings");}
+        com.vncode.app.testsupport.CategoryStockFixture.add(shop,"9001",temporaryDirectory,1);
+        new OzonPostingRepository().upsertDetail(1,OzonJson.parsePostingDetail(com.google.gson.JsonParser.parseString(posting()).getAsJsonObject()));
+        var source=com.vncode.app.features.kiz.KizSourceSelection.SELLER_ONLY;
+        assertTrue(new OzonPrintReadinessService().inspect(shop,"POST-1",source).ready());
+        server.enqueue(json(posting()));server.enqueue(json(posting()));
+        assertTrue(service().openPrintBatch(shop,source).stageForPrint("POST-1").shipReady());
+        assertTrue(service().openPrintBatch(shop,source).stageForPrint("POST-1").shipReady());
+        assertEquals("AVAILABLE",scalar("SELECT status FROM kiz_codes WHERE id=1"));
+        assertEquals(com.vncode.app.testsupport.CategoryStockFixture.GTIN,scalar("SELECT k.gtin FROM ozon_exemplars e JOIN kiz_codes k ON k.id=e.kiz_id"));
+        assertEquals(2,server.getRequestCount());
+    }
+    @Test void explicitPurchasedSourceExcludesImportsAndMixedUsesImportFirst()throws Exception{
+        for(boolean includeImports:java.util.List.of(false,true)){
+            String number=includeImports?"POST-2":"POST-1";
+            new OzonCatalogRepository().upsertPage(1,java.util.List.of(new OzonProductDto("9001","sku-a","101","Synthetic","",false,"",java.util.List.of())),"");
+            if(!includeImports)com.vncode.app.testsupport.CategoryStockFixture.add(shop,"9001",temporaryDirectory,1);
+            var source=new com.vncode.app.features.kiz.KizSourceSelection(includeImports,true);
+            server.enqueue(json(posting().replace("POST-1",number)));
+            assertTrue(service().openPrintBatch(shop,source).stageForPrint(number).shipReady());
+            assertEquals(includeImports?com.vncode.app.testsupport.CategoryStockFixture.GTIN:"04600000000001",scalar("SELECT k.gtin FROM ozon_exemplars e JOIN ozon_exemplar_jobs j ON j.id=e.job_id JOIN kiz_codes k ON k.id=e.kiz_id WHERE j.posting_number='"+number+"'"));
+        }
+    }
+    @Test void sellerOnlyShortageRollsBackAndCannotFallBackToAvailablePaidCode()throws Exception{
+        var source=com.vncode.app.features.kiz.KizSourceSelection.SELLER_ONLY;
+        new OzonCatalogRepository().upsertPage(1,java.util.List.of(new OzonProductDto("9001","sku-a","101","Synthetic","",false,"",java.util.List.of())),"");
+        com.vncode.app.testsupport.CategoryStockFixture.add(shop,"9001",temporaryDirectory,1);
+        server.enqueue(json(posting().replace("\"quantity\":1","\"quantity\":2")));
+        var result=service().openPrintBatch(shop,source).stageForPrint("POST-1");
+        org.junit.jupiter.api.Assertions.assertFalse(result.shipReady());
+        assertEquals(0,count("SELECT count(*) FROM kiz_codes WHERE status='RESERVED'"));
+        assertEquals(0,count("SELECT count(*) FROM ozon_exemplars WHERE kiz_id IS NOT NULL"));
+        assertEquals(1,server.getRequestCount());
+    }
 
     @Test
     void receivedKizIsSkippedInFavorOfAnInCirculationCode() throws Exception {
@@ -148,6 +223,81 @@ class OzonExemplarWorkflowTest {
         assertEquals(1, count("SELECT COUNT(*) FROM ozon_exemplars"));
         assertEquals(1, count("SELECT COUNT(*) FROM kiz_codes WHERE status='RESERVED'"));
         assertEquals(0, count("SELECT COUNT(*) FROM kiz_codes WHERE status='CONSUMED'"));
+    }
+
+    @Test
+    void hundredPostingBatchUsesOneClientBoundedFreshReadsAndOrderedExactReservations() throws Exception {
+        try (Connection connection = Database.getConnection();
+                var insert = connection.prepareStatement("""
+                        INSERT INTO kiz_codes(id,shop_id,order_id,raw_code,display_code,gtin,status,legal_status,created_at,updated_at)
+                        VALUES(?,1,1,?,?,'04600000000001','AVAILABLE','IN_CIRCULATION',?,?)
+                        """)) {
+            for (int index = 2; index <= 100; index++) {
+                insert.setInt(1, index);
+                insert.setString(2, "010460000000000121OFFLINE-" + index);
+                insert.setString(3, "OFFLINE-" + index);
+                insert.setString(4, "2026-10-13T00:00:00Z");
+                insert.setString(5, "2026-10-13T00:00:00Z");
+                insert.addBatch();
+            }
+            insert.executeBatch();
+        }
+        java.util.concurrent.atomic.AtomicInteger active = new java.util.concurrent.atomic.AtomicInteger();
+        java.util.concurrent.atomic.AtomicInteger peak = new java.util.concurrent.atomic.AtomicInteger();
+        java.util.concurrent.atomic.AtomicInteger clients = new java.util.concurrent.atomic.AtomicInteger();
+        CountDownLatch firstReads = new CountDownLatch(2);
+        server.setDispatcher(new okhttp3.mockwebserver.Dispatcher() {
+            @Override public MockResponse dispatch(RecordedRequest request) throws InterruptedException {
+                assertEquals("/v3/posting/fbs/get", request.getPath());
+                peak.accumulateAndGet(active.incrementAndGet(), Math::max);
+                try {
+                    firstReads.countDown();
+                    assertTrue(firstReads.await(3, TimeUnit.SECONDS));
+                    String number = com.google.gson.JsonParser.parseString(request.getBody().readUtf8())
+                            .getAsJsonObject().get("posting_number").getAsString();
+                    return json(posting().replace("POST-1", number));
+                } finally { active.decrementAndGet(); }
+            }
+        });
+        var service = new OzonExemplarService(new OzonPostingRepository(), new OzonProductGtinMappingRepository(),
+                new OzonExemplarJobRepository(), (shopId, credentials) -> {
+                    clients.incrementAndGet();
+                    return new OzonApiClient(shopId, credentials, server.url("/"),
+                            new OkHttpClient.Builder().callTimeout(5, TimeUnit.SECONDS).build(),
+                            new OzonApiRateLimiter(Duration.ZERO),
+                            new OzonRetryPolicy(1, Duration.ofMillis(1), Duration.ofMillis(1)));
+                });
+        java.util.List<String> numbers = java.util.stream.IntStream.range(0, 100)
+                .mapToObj(index -> "BATCH-" + index).toList();
+        java.util.List<Integer> progress = new java.util.ArrayList<>();
+        var result = service.stageForPrintBatch(shop, numbers, progress::add);
+        assertEquals(100, result.completedCount());
+        assertEquals(100, result.results().size());
+        assertTrue(result.failed().isEmpty());
+        assertEquals(numbers, result.results().stream().map(OzonPreparationResult::postingNumber).toList());
+        assertEquals(java.util.stream.IntStream.rangeClosed(1, 100).boxed().toList(), progress);
+        assertEquals(1, clients.get());
+        assertEquals(2, peak.get(), "Two read-only details, with no 100-thread or unbounded queue fan-out");
+        assertEquals(100, server.getRequestCount());
+        assertEquals(100, count("SELECT COUNT(DISTINCT kiz_id) FROM ozon_exemplars"));
+        assertEquals(100, count("SELECT COUNT(*) FROM kiz_codes WHERE status='RESERVED'"));
+        assertEquals("1", scalar("SELECT e.kiz_id FROM ozon_exemplars e JOIN ozon_exemplar_jobs j ON j.id=e.job_id WHERE j.posting_number='BATCH-0'"));
+        assertEquals("100", scalar("SELECT e.kiz_id FROM ozon_exemplars e JOIN ozon_exemplar_jobs j ON j.id=e.job_id WHERE j.posting_number='BATCH-99'"));
+        var resumed = service.stageForPrintBatch(shop, numbers, null);
+        assertEquals(100, resumed.results().size());
+        assertEquals(200, server.getRequestCount(), "Retry rechecks fresh details, never sends any KIZ/exemplar mutation");
+        assertEquals(100, count("SELECT COUNT(*) FROM ozon_exemplars"));
+        assertEquals(100, count("SELECT COUNT(*) FROM kiz_codes WHERE status='RESERVED'"));
+        // The production PDF preparation boundary uses the same bounded two-detail window.
+        var printOperation=OzonPrintBundleService.defaultPreparation(service).forBatch(shop);
+        printOperation.prefetch(shop,numbers.subList(0,2));
+        assertEquals(202,server.getRequestCount());
+        assertEquals(numbers.getFirst(),printOperation.prepare(shop,numbers.getFirst()).postingNumber());
+        assertEquals(numbers.get(1),printOperation.prepare(shop,numbers.get(1)).postingNumber());
+        assertEquals(202,server.getRequestCount(),"PDF composition must consume the prepared window without duplicate detail reads");
+        printOperation.prefetch(shop,numbers.subList(2,4));
+        printOperation.prepare(shop,numbers.get(2));printOperation.prepare(shop,numbers.get(3));
+        assertEquals(204,server.getRequestCount());
     }
 
     private OzonExemplarService service() {

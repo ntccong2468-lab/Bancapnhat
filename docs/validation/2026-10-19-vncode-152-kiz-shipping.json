@@ -1,0 +1,89 @@
+{
+  "recordedAt": "2026-10-19T22:45:27.356375+00:00",
+  "scope": "Synthetic API readbacks and JavaFX controls; no seller order was delivered in production.",
+  "focus": [
+    {
+      "class": "com.vncode.app.integration.wb.WbShippingServiceTest",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.integration.wb.WbShippingContractTest",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.integration.wb.WbShippingPreferenceServiceTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.features.kiz.status.Kn3BatchReplacementTest",
+      "tests": 12,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.integration.wb.WbShippingHistoryServiceTest",
+      "tests": 7,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.ui.FxmlSmokeTest",
+      "tests": 55,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.ui.kiz.Kn3BatchUiTest",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.features.license.LicenseOperationalBoundaryTest",
+      "tests": 9,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.ui.supply.WbShippingHistoryPaneTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.integration.wb.WbShippingTransportTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  ],
+  "total": {
+    "tests": 100,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "replacementAttemptsVerified": 30,
+  "rejectedCisCryptoCopiesPermanentlyExcluded": true,
+  "sameFilenameImportAllowed": true,
+  "onlyGlobalShipmentReplacementButton": true,
+  "automaticHistoricalShippingSelection": true,
+  "earlyDeliverySelectionDoesNotBlockFx": true,
+  "remoteWritesPerformed": false
+}

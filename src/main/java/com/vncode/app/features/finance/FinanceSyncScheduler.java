@@ -10,6 +10,9 @@ import com.vncode.app.integration.ozon.finance.OzonFinanceApiClient;
 import com.vncode.app.integration.ozon.finance.OzonFinanceApiException;
 import com.vncode.app.integration.ozon.finance.OzonFinancePage;
 import com.vncode.app.models.Shop;
+import com.vncode.app.features.license.LicenseGate.LicenseDeniedException;
+import com.vncode.app.features.license.LicenseRuntime;
+import static com.vncode.app.features.license.LicenseModels.Permission.SELLER_API;
 import com.vncode.app.shared.AppTaskExecutor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -63,7 +66,8 @@ public final class FinanceSyncScheduler {
         return INSTANCE;
     }
 
-    public void updateShops(Collection<Shop> currentShops) {
+    public void updateShops(Collection<Shop> currentShops) { updateShops(currentShops,true); }
+    public void updateShops(Collection<Shop> currentShops,boolean ownScheduler) {
         Path databasePath = AnalyticsDatabase.databasePath().toAbsolutePath().normalize();
         shopsDatabasePath = databasePath;
         Map<Integer, Shop> snapshots = new ConcurrentHashMap<>();
@@ -76,17 +80,19 @@ public final class FinanceSyncScheduler {
         shops.putAll(snapshots);
         FinanceExecutor.executeSync(() -> {
             if (!databasePath.equals(AnalyticsDatabase.databasePath().toAbsolutePath().normalize())) return;
+            try { LicenseRuntime.require(SELLER_API); } catch (LicenseDeniedException paused) { return; }
             Instant now = clock.instant();
             LocalDate today = LocalDate.now(clock.withZone(WeeklyFinanceSchedule.VIETNAM_ZONE));
             for (Shop shop : snapshots.values()) {
                 repository.ensureShopState(shop.getId(), shop.getMarketplace(), today, now);
             }
         });
-        start();
+        if(ownScheduler)start();
     }
 
     public void requestRecentSync(int shopId) {
-        FinanceExecutor.executeSync(() -> repository.requestRecentSync(shopId, clock.instant()));
+        LicenseRuntime.require(SELLER_API);
+        FinanceExecutor.executeSync(() -> { try { LicenseRuntime.require(SELLER_API); } catch (LicenseDeniedException paused) { return; } repository.requestRecentSync(shopId, clock.instant()); });
     }
 
     public void removeShop(int shopId, boolean deleteAnalytics) {
@@ -117,6 +123,8 @@ public final class FinanceSyncScheduler {
         FinanceExecutor.executeSync(() -> {
             try {
                 runOneRequest();
+            } catch (LicenseDeniedException paused) {
+                // Licensing pauses new requests without changing API error/retry state.
             } catch (RuntimeException exception) {
                 LOGGER.warn("Finance analytics tick failed", exception);
             } finally {
@@ -125,7 +133,13 @@ public final class FinanceSyncScheduler {
         });
     }
 
+    public void runCoordinatedStep(){
+        if(shops.isEmpty()||!workRunning.compareAndSet(false,true))return;
+        try{runOneRequest();}finally{workRunning.set(false);}
+    }
+
     void runOneRequest() {
+        LicenseRuntime.require(SELLER_API);
         Instant now = clock.instant();
         LocalDate today = LocalDate.now(clock.withZone(WeeklyFinanceSchedule.VIETNAM_ZONE));
         List<PlannedShopWork> candidates = new ArrayList<>();
@@ -145,6 +159,7 @@ public final class FinanceSyncScheduler {
     }
 
     private void execute(Shop shop, FinanceWorkItem work, Instant now) {
+        LicenseRuntime.require(SELLER_API);
         FinanceSyncState state = work.state();
         if (work.newWindow()) {
             repository.startWindow(state, work.phase(), work.from(), work.to(), now);
@@ -162,12 +177,15 @@ public final class FinanceSyncScheduler {
         state = repository.loadState(shop.getId(), state.streamName());
         if (state == null) return;
         try {
+            LicenseRuntime.require(SELLER_API);
             switch (state.apiFamily()) {
                 case "FINANCE" -> syncFinance(shop, state, nextAllowed, now);
                 case "ADVERTISING" -> syncAdvertising(shop, state, nextAllowed, now);
                 case "OZON_FINANCE" -> syncOzonFinance(shop, state, nextAllowed, now);
                 default -> throw new IllegalStateException("Unsupported finance API family: " + state.apiFamily());
             }
+        } catch (LicenseDeniedException paused) {
+            throw paused;
         } catch (RuntimeException exception) {
             handleFailure(state, exception, now);
         }

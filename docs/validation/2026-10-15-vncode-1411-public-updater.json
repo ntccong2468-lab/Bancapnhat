@@ -1,0 +1,13 @@
+{
+  "shippedAppVersion": "1.4.11",
+  "latestVersion": "1.4.11",
+  "statusForInstalled1410": "AVAILABLE",
+  "source": "https://api.github.com/repos/ntccong2468-lab/Bancapnhat",
+  "installerUrl": "https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.4.11/VN-code-1.4.11-Windows-x64.exe",
+  "bytes": 144919552,
+  "sha256": "983d481a0b320a57bbb7606d790161120aae1d454bee82f77086480c7d9479bd",
+  "releaseNotesPresent": true,
+  "windowsInstallButtonSupported": true,
+  "actualPublicInstallerDownloadedAndVerified": true,
+  "installerExecuted": false
+}

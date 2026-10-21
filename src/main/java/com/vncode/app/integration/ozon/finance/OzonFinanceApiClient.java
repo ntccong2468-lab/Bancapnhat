@@ -66,12 +66,12 @@ public final class OzonFinanceApiClient {
                 .header("Accept", "application/json")
                 .post(RequestBody.create(payload.toString(), JSON))
                 .build();
-        try (Response response = client.newCall(request).execute()) {
+        try (var slot=com.vncode.app.shared.MarketplaceRequestBudget.acquire(); Response response = client.newCall(request).execute()) {
             ResponseBody responseBody = response.body();
             if (responseBody == null || responseBody.contentLength() > MAX_RESPONSE_BYTES) {
                 throw new OzonFinanceApiException(response.code(), "Ozon Finance trả dữ liệu không hợp lệ", null);
             }
-            String body = responseBody.string();
+            String body = com.vncode.app.shared.BoundedHttpBody.utf8(responseBody,(int)MAX_RESPONSE_BYTES);
             if (body.length() > MAX_RESPONSE_BYTES) {
                 throw new OzonFinanceApiException(response.code(), "Ozon Finance trả dữ liệu quá lớn", null);
             }

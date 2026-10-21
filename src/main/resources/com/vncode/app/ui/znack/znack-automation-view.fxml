@@ -3,15 +3,78 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <?import org.kordamp.ikonli.javafx.FontIcon?>
-<VBox spacing="8" styleClass="znack-root" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.vncode.app.ui.znack.ZnackAutomationController">
+<VBox spacing="8" styleClass="znack-root,app-page" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.vncode.app.ui.znack.ZnackAutomationController">
  <padding><Insets top="8" right="8" bottom="8" left="8"/></padding>
  <Label fx:id="titleLabel" styleClass="h2" text="%znack.title"/>
  <Label fx:id="authStatusLabel" styleClass="text-muted"/>
  <TabPane styleClass="packing-tabs" VBox.vgrow="ALWAYS">
   <tabs>
+   <Tab fx:id="informationTab" closable="false" text="%znack.tab.information">
+    <ScrollPane fitToWidth="true" styleClass="edge-to-edge">
+     <VBox spacing="16">
+      <padding><Insets top="12" bottom="12"/></padding>
+      <HBox alignment="CENTER_RIGHT" spacing="8">
+       <ProgressIndicator fx:id="accountBusyIndicator" visible="false" managed="false" prefWidth="22" prefHeight="22"/>
+       <Button fx:id="accountSettingsButton" onAction="#showAccountSettings" text="%znack.account.open_settings"/>
+       <Button fx:id="refreshAccountButton" onAction="#refreshAccountInfo" styleClass="btn-primary" text="%znack.account.refresh"/>
+      </HBox>
+      <HBox fx:id="accountOwnerCard" spacing="16" alignment="CENTER_LEFT" styleClass="card">
+       <VBox spacing="6" HBox.hgrow="ALWAYS">
+        <Label fx:id="accountOwnerTitleLabel" styleClass="text-muted" text="%znack.account.owner"/>
+        <Label fx:id="accountOwnerLabel" styleClass="h3" wrapText="true"/>
+        <Label fx:id="accountInnLabel" styleClass="text-muted"/>
+       </VBox>
+       <Label fx:id="accountStatusLabel" styleClass="activation-warning" wrapText="true" maxWidth="260"/>
+      </HBox>
+      <HBox spacing="16">
+       <VBox fx:id="accountBalanceCard" minWidth="0" maxWidth="Infinity" spacing="10" styleClass="card" HBox.hgrow="ALWAYS">
+        <Label fx:id="accountBalanceTitleLabel" styleClass="text-muted" text="%znack.account.balance"/>
+        <Label fx:id="accountBalanceLabel" styleClass="h2"/>
+        <ComboBox fx:id="accountBalanceCombo" maxWidth="Infinity" promptText="%znack.account.choose_balance" visible="false" managed="false"/>
+        <Label fx:id="accountBalanceUpdatedLabel" styleClass="text-muted" wrapText="true"/>
+       </VBox>
+       <VBox fx:id="accountCertificateCard" minWidth="0" maxWidth="Infinity" spacing="10" styleClass="card" HBox.hgrow="ALWAYS">
+        <Label fx:id="accountCertificateTitleLabel" styleClass="text-muted" text="%znack.account.certificate"/>
+        <Label fx:id="accountCertificateLabel" styleClass="h2"/>
+        <Label fx:id="accountCertificateDaysLabel" styleClass="text-muted" wrapText="true"/>
+       </VBox>
+      </HBox>
+      <Label fx:id="accountEvidenceLabel" styleClass="text-muted" wrapText="true"/>
+     </VBox>
+    </ScrollPane>
+   </Tab>
+    <Tab fx:id="ordersTab" closable="false" text="%znack.tab.kiz_history">
+        <TableView fx:id="ordersTable">
+            <columnResizePolicy><TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/></columnResizePolicy>
+            <columns>
+                <TableColumn fx:id="orderIdColumn" prefWidth="180" />
+                <TableColumn fx:id="orderGtinColumn" prefWidth="180" />
+                <TableColumn fx:id="orderStatusColumn" prefWidth="300" />
+            </columns>
+        </TableView>
+    </Tab>
+    <Tab fx:id="deletedTab" closable="false" text="%znack.tab.deleted">
+        <VBox spacing="8">
+            <padding><Insets top="8"/></padding>
+            <HBox alignment="CENTER_LEFT" spacing="8">
+                <TextField fx:id="deletedSearchField" promptText="%kiz_mapping.search_gtin" prefWidth="260" maxWidth="300"/>
+                <MenuButton fx:id="deletedCategoryFilterButton" text="%znack.filter.button">
+                    <graphic><FontIcon iconLiteral="fth-filter" iconSize="14"/></graphic>
+                </MenuButton>
+            </HBox>
+            <TableView fx:id="deletedTable" VBox.vgrow="ALWAYS">
+                <columnResizePolicy><TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/></columnResizePolicy>
+                <columns>
+                    <TableColumn fx:id="deletedGtinColumn" prefWidth="150" />
+                    <TableColumn fx:id="deletedNameColumn" prefWidth="400" />
+                    <TableColumn fx:id="deletedActionsColumn" prefWidth="110" />
+                </columns>
+            </TableView>
+        </VBox>
+    </Tab>
    <Tab fx:id="settingsTab" closable="false" text="%znack.tab.settings">
     <ScrollPane fitToWidth="true" styleClass="edge-to-edge">
-     <VBox fx:id="basicSettingsCard" spacing="16" styleClass="card">
+     <VBox fx:id="basicSettingsCard" spacing="12" styleClass="card">
       <Label fx:id="settingsTitleLabel" styleClass="h3" text="%znack.settings.basic"/>
       <GridPane hgap="12" vgap="9">
        <Label fx:id="omsIdLabel" text="%znack.oms_id" GridPane.rowIndex="0"/>
@@ -38,9 +101,20 @@
        <Label fx:id="omsHelpRecognizeLabel" styleClass="text-muted" wrapText="true"/>
        <Label fx:id="omsHelpWarningLabel" styleClass="help-warning" wrapText="true"/>
       </VBox>
-      <VBox spacing="8" styleClass="surface">
+      <GridPane fx:id="connectionPanels" hgap="12" vgap="10">
+      <VBox fx:id="catalogPanel" spacing="8" styleClass="surface" minWidth="0">
+       <Label fx:id="catalogTitleLabel" text="%znack.catalog.title" styleClass="h3"/>
+       <Label fx:id="catalogHelpLabel" text="%znack.catalog.help" wrapText="true" styleClass="text-muted"/>
+       <PasswordField fx:id="catalogKeyField" promptText="%znack.catalog.key_prompt"/>
+       <FlowPane hgap="8" vgap="6">
+        <Button fx:id="checkCatalogButton" onAction="#checkCatalogConnection" text="%znack.catalog.check" styleClass="btn-primary"/>
+        <Button fx:id="removeCatalogButton" onAction="#removeCatalogKey" text="%znack.catalog.remove"/>
+       </FlowPane>
+       <Label fx:id="catalogStatusLabel" wrapText="true" styleClass="text-muted"/>
+      </VBox>
+      <VBox fx:id="signaturePanel" spacing="8" styleClass="surface" minWidth="0">
        <Label fx:id="signatureTitleLabel" styleClass="h3" text="%znack.digital_signature"/>
-       <ComboBox fx:id="signatureCertificateCombo" maxWidth="Infinity"/>
+       <ComboBox fx:id="signatureCertificateCombo" minWidth="0" maxWidth="Infinity"/>
        <HBox spacing="8">
         <Button fx:id="testSignatureButton" onAction="#testSignature" styleClass="btn-primary" text="%znack.signature.test">
          <tooltip><Tooltip text="%znack.signature.help"/></tooltip>
@@ -48,6 +122,7 @@
        </HBox>
        <Label fx:id="signatureSummaryLabel" styleClass="text-muted"/>
       </VBox>
+      </GridPane>
       <VBox spacing="9" styleClass="surface">
        <CheckBox fx:id="autoIntroductionCheck" text="%znack.auto_introduction"/>
       </VBox>
@@ -81,35 +156,6 @@
                 </columns>
             </TableView>
         </VBox>
-    </Tab>
-    <Tab fx:id="deletedTab" closable="false" text="%znack.tab.deleted">
-        <VBox spacing="8">
-            <padding><Insets top="8"/></padding>
-            <HBox alignment="CENTER_LEFT" spacing="8">
-                <TextField fx:id="deletedSearchField" promptText="%kiz_mapping.search_gtin" prefWidth="260" maxWidth="300"/>
-                <MenuButton fx:id="deletedCategoryFilterButton" text="%znack.filter.button">
-                    <graphic><FontIcon iconLiteral="fth-filter" iconSize="14"/></graphic>
-                </MenuButton>
-            </HBox>
-            <TableView fx:id="deletedTable" VBox.vgrow="ALWAYS">
-                <columnResizePolicy><TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/></columnResizePolicy>
-                <columns>
-                    <TableColumn fx:id="deletedGtinColumn" prefWidth="150" />
-                    <TableColumn fx:id="deletedNameColumn" prefWidth="400" />
-                    <TableColumn fx:id="deletedActionsColumn" prefWidth="110" />
-                </columns>
-            </TableView>
-        </VBox>
-    </Tab>
-    <Tab fx:id="ordersTab" closable="false" text="%znack.tab.orders">
-        <TableView fx:id="ordersTable">
-            <columnResizePolicy><TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/></columnResizePolicy>
-            <columns>
-                <TableColumn fx:id="orderIdColumn" prefWidth="180" />
-                <TableColumn fx:id="orderGtinColumn" prefWidth="180" />
-                <TableColumn fx:id="orderStatusColumn" prefWidth="300" />
-            </columns>
-        </TableView>
     </Tab>
     <Tab fx:id="logsTab" closable="false" text="%znack.tab.logs">
         <TableView fx:id="logsTable">

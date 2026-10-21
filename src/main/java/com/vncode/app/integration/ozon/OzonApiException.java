@@ -51,7 +51,7 @@ public final class OzonApiException extends IOException {
         return ambiguousMutation;
     }
 
-    Duration retryAfter() {
+    public Duration retryAfter() {
         return retryAfter;
     }
 

@@ -119,11 +119,10 @@ public final class OzonPrintBundleOfflineCli {
         BufferedImage page = new PDFRenderer(document).renderImageWithDPI(pageIndex, dpi, ImageType.GRAY);
         float scale = dpi / 72f;
         int margin = Math.round(3 * scale);
-        int x = Math.max(0, Math.round(7 * scale) - margin);
-        int y = Math.max(0, Math.round(
-                (document.getPage(pageIndex).getMediaBox().getHeight() - 25 - 62) * scale) - margin);
+        int x = Math.max(0, Math.round((float) (2.5 * 72 / 25.4) * scale) - margin);
+        int y = Math.max(0, Math.round((float) (5 * 72 / 25.4) * scale) - margin);
         int side = Math.min(
-                Math.round(62 * scale) + margin * 2,
+                Math.round(50 * scale) + margin * 2,
                 Math.min(page.getWidth() - x, page.getHeight() - y));
         BufferedImage barcode = page.getSubimage(x, y, side, side);
         BinaryBitmap bitmap = new BinaryBitmap(

@@ -19,6 +19,7 @@ public record PrintHistoryItem(
         String externalOrderId,
         String externalItemId
 ) {
+    @Override public String toString(){return "PrintHistoryItem[jobId="+printJobId+", index="+sortIndex+"]";}
     public PrintHistoryItem(
             long printJobId, int sortIndex, long orderId, String brand, String name, String subjectName,
             String size, String ruSize, String color, String article, String barcode, String sticker,

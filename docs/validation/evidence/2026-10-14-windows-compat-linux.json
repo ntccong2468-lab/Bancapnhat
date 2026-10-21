@@ -1,0 +1,17 @@
+{
+  "tests": 1177,
+  "failures": 0,
+  "errors": 0,
+  "skipped": 2,
+  "passed": 1175,
+  "reportFiles": 204,
+  "skippedCases": [
+    "com.vncode.app.features.gs1.Gs1PrefixTemplateStoreTest.refusesNtfsJunctionDirectoryAndAncestors",
+    "com.vncode.app.shared.WindowsSecretProtectorTest.separatesLicenseAndExistingMailEntropyOnWindows"
+  ],
+  "jarSha256": "0f0307abcdbac6dcc1adf7a745c0be19d55b1f0563ff53b497af24954a2fc539",
+  "nodePassed": 42,
+  "platform": "Linux cloud",
+  "heapMiB": 768,
+  "windowsNativeAcceptance": "unrun"
+}

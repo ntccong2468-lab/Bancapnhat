@@ -1,0 +1,32 @@
+{
+  "version": "1.5.7",
+  "complete": false,
+  "state": "owner-authorized-awaiting-windows-build",
+  "databaseSchema": 6,
+  "baseline": "v1.5.5",
+  "auditedApplicationCommit": "43727101c0f3b4aba1c238d17f5926fb7bea72b0",
+  "linuxTests": {
+    "tests": 2788,
+    "passed": 2786,
+    "failures": 0,
+    "errors": 0,
+    "windowsOnlySkipped": 2
+  },
+  "licenseIntegration": {
+    "productionReady": false,
+    "changedInThisVersion": false
+  },
+  "validation": {
+    "windowsBuild": {
+      "state": "running",
+      "runId": 39549870900,
+      "sourceCommit": "2a44ebda0879ad844cefb86a3e4b97dfaa45c7de",
+      "freshFullJavaExecutionRequired": true
+    },
+    "productionLicenseVerified": false,
+    "liveCryptoProSigningThisVersion": false,
+    "liveMarketplaceWritesThisVersion": false
+  },
+  "ownerAuthorization": "../validation/2026-10-21-vncode-157-owner-publication.json",
+  "requestReport": "../VNCODE_ZNACK_TEST_REPORT.md"
+}

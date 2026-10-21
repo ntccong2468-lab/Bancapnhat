@@ -328,6 +328,60 @@ class CryptoProSignatureTest {
         assertEquals(CryptoProErrorCode.CADESCOM_MISSING, error.code());
     }
 
+    @Test void windowsCadesAvailabilityPreservesCancellationAndDoesNotTryAnotherHost() {
+        var cause = new InterruptedException("local probe cancelled");
+        var cancelled = new CryptoProException(CryptoProErrorCode.CANCELLED, "Probe cancelled", cause);
+        var commands = new ArrayList<List<String>>();
+        var runner = new CryptoProCommandRunner() {
+            @Override public Result run(List<String> command, Duration timeout) throws CryptoProException {
+                commands.add(List.copyOf(command));
+                throw cancelled;
+            }
+        };
+
+        var error = assertThrows(CryptoProException.class,
+                () -> WindowsCadesSignatureProvider.requireAvailable(runner, Duration.ofSeconds(2)));
+
+        assertSame(cancelled, error);
+        assertEquals(CryptoProErrorCode.CANCELLED, error.code());
+        assertSame(cause, error.getCause());
+        assertEquals(1, commands.size());
+    }
+
+    @Test void windowsCadesAvailabilityPreservesTimeoutAndDoesNotTryAnotherHost() {
+        var cause = new java.util.concurrent.TimeoutException("local probe expired");
+        var timeout = new CryptoProException(CryptoProErrorCode.TIMEOUT, "Probe timed out", cause);
+        var commands = new ArrayList<List<String>>();
+        var runner = new CryptoProCommandRunner() {
+            @Override public Result run(List<String> command, Duration limit) throws CryptoProException {
+                commands.add(List.copyOf(command));
+                throw timeout;
+            }
+        };
+
+        var error = assertThrows(CryptoProException.class,
+                () -> WindowsCadesSignatureProvider.requireAvailable(runner, Duration.ofSeconds(2)));
+
+        assertSame(timeout, error);
+        assertEquals(CryptoProErrorCode.TIMEOUT, error.code());
+        assertSame(cause, error.getCause());
+        assertEquals(1, commands.size());
+    }
+
+    @Test void windowsCadesAvailabilityStillReportsAnActuallyMissingComComponent() {
+        var runner = new CryptoProCommandRunner() {
+            @Override public Result run(List<String> command, Duration timeout) {
+                return new Result(1, new byte[0], "CAdESCOM.CadesSignedData is unavailable.".getBytes());
+            }
+        };
+
+        var error = assertThrows(CryptoProException.class,
+                () -> WindowsCadesSignatureProvider.requireAvailable(runner, Duration.ofSeconds(2)));
+
+        assertEquals(CryptoProErrorCode.CADESCOM_MISSING, error.code());
+        assertTrue(error.getMessage().contains("CAdESCOM.CadesSignedData is unavailable"));
+    }
+
     @Test void windowsCadesDoesNotMisclassifyCertificateStoreOpenFailureAsMissingCertificate() {
         CryptoProCommandRunner runner = new CryptoProCommandRunner() {
             @Override public Result run(List<String> command, Duration timeout) {

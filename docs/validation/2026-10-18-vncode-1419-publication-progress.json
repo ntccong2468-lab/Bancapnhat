@@ -1,0 +1,51 @@
+{
+  "version": "1.4.19",
+  "recordedAtUtc": "2026-10-18T09:59:59.964621+00:00",
+  "requestReportDelivered": true,
+  "applicationBuildSource": "d25718c6a69f94f08d9515d36f7444650b1eebd1",
+  "branchPushedThrough": "2941ca1",
+  "windowsBuildRun": 39114287816,
+  "windowsBuildUrl": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/39114287816",
+  "lastObserved": {
+    "windows": "success: full 1766 Java tests (2 platform skips), native startup, DPAPI, multi-shop/DPI, 288 layouts and 14 upgrades",
+    "portal": "success",
+    "publication": "success"
+  },
+  "localChecks": {
+    "releaseContractsPassed": 70,
+    "nativeUpgradeProbeTestsPassed": 3
+  },
+  "githubAuthentication": {
+    "api": "restored",
+    "gitRead": "restored"
+  },
+  "publishedByThisTask": true,
+  "latestLastVerified": "1.4.19",
+  "automaticSellerUpdateFor1419Published": true,
+  "productionDesktopGtinWriteAccepted": false,
+  "resumeSteps": [],
+  "previousBuilds": [
+    {
+      "runId": 39111878315,
+      "sourceCommit": "e87d0ef2fc0bc89a6487a955d64e183b55778b2e",
+      "tests": 1766,
+      "failures": 0,
+      "errors": 1,
+      "skipped": 2,
+      "failedClass": "ProductReferenceLayoutTest",
+      "failedAssertion": "The action bar stays one compact row at the reference width",
+      "installerBuilt": false
+    },
+    {
+      "runId": 39114169104,
+      "state": "cancelled-before-completion"
+    }
+  ],
+  "currentWindowsJavaEvidence": "2026-10-18-vncode-1419-windows-java.json",
+  "publicationRunId": 39116801568,
+  "releaseId": 416368799,
+  "publicInstallerSha256": "e2d43bdca42031b6e583dea8efa298addc142e46fadfb2a21ca00b6e5cc31084",
+  "publicDownloadVerified": true,
+  "realUpdateServiceResult": "AVAILABLE for installed 1.4.18",
+  "sellerDesktopNotificationDeliveryVerified": false
+}

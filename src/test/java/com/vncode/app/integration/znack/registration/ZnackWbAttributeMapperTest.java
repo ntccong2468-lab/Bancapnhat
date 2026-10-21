@@ -22,7 +22,8 @@ class ZnackWbAttributeMapperTest {
                 new WbCharacteristic(1, "Состав", List.of("полиэстер 20%, лайкра 5%, хлопок 75%")),
                 new WbCharacteristic(2, "Пол", List.of("Женский")),
                 new WbCharacteristic(3, "ТНВЭД", List.of("6204510000")),
-                new WbCharacteristic(4, "Страна производства", List.of("Россия"))
+                new WbCharacteristic(4, "Страна производства", List.of("Россия")),
+                new WbCharacteristic(5, "Технический регламент", List.of("ТР ТС 017/2011"))
         );
         List<Attribute> required = List.of(
                 attribute(2478, "Полное наименование товара"),
@@ -69,13 +70,24 @@ class ZnackWbAttributeMapperTest {
     }
 
     @Test
-    void usesRussianNoBrandValueWhenWbHasNoBrand() {
+    void missingBrandRequiresSellerInputInsteadOfInventingANoBrandClaim() {
         Sku sku = new Sku(1, 2, 3, "ART-1", "Брюки", "", "Брюки",
                 "", "44", List.of(), "", true, "", null, "", Status.NOT_CREATED, "", false);
 
         var result = new ZnackWbAttributeMapper().map(sku, List.of(),
                 List.of(attribute(2504, "Товарный знак")), "6204510000", "6204",
                 new ZnackModels.GoodsDocument("CONFORMITY_DECLARATION", "DOC-1", "2026-09-07"));
+
+        assertFalse(result.complete());
+        assertTrue(result.missingFields().stream().anyMatch(value -> value.contains("Товарный знак")));
+        assertEquals("", result.brand());
+        assertEquals("", result.attributes().get(2504L));
+    }
+
+    @Test
+    void preservesAnExplicitNoBrandValueFromTheActualProduct() {
+        var sku = sku("\u00a0Нет бренда\u200b", "Сумка", "BAG-1");
+        var result = map(sku, List.of(), List.of(attribute(2504, "Товарный знак")));
 
         assertTrue(result.complete(), result.missingFields().toString());
         assertEquals(ZnackWbAttributeMapper.NO_BRAND, result.brand());
@@ -98,7 +110,7 @@ class ZnackWbAttributeMapperTest {
     }
 
     @Test
-    void usesNeutralGenderOnlyWhenTheNationalCatalogCategorySupportsIt() {
+    void unknownGenderRequiresInputEvenWhenTheCategoryOffersUnisex() {
         Sku sku = new Sku(1, 2, 3, "Bag-02/черный", "Сумки", "Brand", "Сумка",
                 "Черный", "ONE SIZE", List.of(), "", true, "", null, "", Status.NOT_CREATED, "", false);
 
@@ -107,8 +119,9 @@ class ZnackWbAttributeMapperTest {
                 "4202221000", "4202",
                 new ZnackModels.GoodsDocument("CONFORMITY_DECLARATION", "DOC-1", "2026-09-07"));
 
-        assertTrue(result.complete(), result.missingFields().toString());
-        assertEquals("УНИСЕКС", result.attributes().get(14013L));
+        assertFalse(result.complete());
+        assertFalse(result.attributes().containsKey(14013L));
+        assertTrue(result.missingFields().stream().anyMatch(value -> value.contains("Целевой пол")));
     }
 
     @Test
@@ -124,6 +137,107 @@ class ZnackWbAttributeMapperTest {
 
         assertTrue(result.complete(), result.missingFields().toString());
         assertEquals("Унисекс", result.attributes().get(14013L));
+    }
+
+    @Test
+    void mapsExplicitUnisexWithoutGuessingFromAnArticle() {
+        var schema = List.of(preset(14013, "Целевой пол", "Для мужчин", "Для женщин", "Унисекс"));
+        var actual = map(sku("Brand", "Сумка", "MENS-BAG-1"),
+                List.of(new WbCharacteristic(10, "Пол", List.of("Unisex"))), schema);
+        assertTrue(actual.complete(), actual.missingFields().toString());
+        assertEquals("Унисекс", actual.attributes().get(14013L));
+
+        var unknown = map(sku("Brand", "Сумка", "women-BAG-1"), List.of(), schema);
+        assertFalse(unknown.complete());
+        assertFalse(unknown.attributes().containsKey(14013L));
+    }
+
+    @Test
+    void explicitGenderWinsOverConflictingTitleAndRequiresAnUnambiguousSchemaLabel() {
+        var characteristics = List.of(new WbCharacteristic(10, "Пол", List.of("Мужской")));
+        var actual = map(sku("Brand", "Женская сумка", "ART-1"), characteristics,
+                List.of(preset(14013, "Целевой пол", "Для мужчин", "Для женщин", "Унисекс")));
+        assertTrue(actual.complete(), actual.missingFields().toString());
+        assertEquals("Для мужчин", actual.attributes().get(14013L));
+
+        var ambiguous = map(sku("Brand", "Сумка", "ART-1"), characteristics,
+                List.of(preset(14013, "Целевой пол", "Мужской", "Для мужчин", "Унисекс")));
+        assertFalse(ambiguous.complete());
+        assertFalse(ambiguous.attributes().containsKey(14013L));
+    }
+
+    @Test
+    void missingTechnicalRegulationDoesNotCopyTheGreenExampleOrTheSolePreset() {
+        var schema = List.of(preset(13836, "Номер технического регламента",
+                "ТР ТС 017/2011 О безопасности продукции легкой промышленности"));
+        var result = map(sku("Brand", "Сумка", "ART-1"), List.of(), schema);
+        assertFalse(result.complete());
+        assertFalse(result.attributes().containsKey(13836L));
+        assertTrue(result.missingFields().stream().anyMatch(value -> value.contains("13836")));
+    }
+
+    @Test
+    void matchesTheActualRegulationCodeAndDoesNotPickTheFirstWhenAmbiguous() {
+        String adult = "ТР ТС 017/2011 О безопасности продукции легкой промышленности";
+        String children = "ТР ТС 007/2011 О безопасности продукции для детей и подростков";
+        var source = List.of(new WbCharacteristic(10, "Номер технического регламента", List.of("007/2011")));
+        var actual = map(sku("Brand", "Сумка", "ART-1"), source,
+                List.of(preset(13836, "Номер технического регламента", adult, children)));
+        assertTrue(actual.complete(), actual.missingFields().toString());
+        assertEquals(children, actual.attributes().get(13836L));
+
+        var ambiguous = map(sku("Brand", "Сумка", "ART-1"), source,
+                List.of(preset(13836, "Номер технического регламента", children, "ТР ТС 007/2011 Другой вариант")));
+        assertFalse(ambiguous.complete());
+        assertFalse(ambiguous.attributes().containsKey(13836L));
+    }
+
+    @Test
+    void ambiguousOrMerelySimilarPresetsDoNotBecomeProductFacts() {
+        for (var options : List.of(List.of("СИНИЙ", "СВЕТЛО-СИНИЙ"), List.of("ТЕМНО-СИНИЙ"))) {
+            var result = map(sku("Brand", "Сумка", "ART-1"),
+                    List.of(new WbCharacteristic(10, "Цвет", List.of("синий оттенок"))),
+                    List.of(preset(36, "Цвет", options.toArray(String[]::new))));
+            assertFalse(result.complete());
+            assertFalse(result.attributes().containsKey(36L));
+        }
+        assertEquals("ЧЁРНЫЙ", ZnackWbAttributeMapper.resolvePreset(preset(36, "Цвет", "ЧЁРНЫЙ", "БЕЛЫЙ"), "\u00a0черный\u200b"));
+        assertEquals("СПОРТИВНЫЕ КОСТЮМЫ", ZnackWbAttributeMapper.resolvePreset(preset(12, "Вид товара", "СПОРТИВНЫЕ КОСТЮМЫ"), "Костюмы спортивные"));
+    }
+
+    @Test
+    void selectedMarketplaceSportsuitCategoryMapsToItsExactCurrentCatalogGarment() {
+        var sku = new Sku(1, 2, 3, "ART-1", "Костюмы спортивные", "Brand", "Костюм",
+                "", "52", List.of(), "", true, "", null, "", Status.NOT_CREATED, "", false);
+        var result = map(sku, List.of(), List.of(preset(12, "Вид товара", "КОСТЮМ", "КОМПЛЕКТ", "КОСТЮМ СПОРТИВНЫЙ")));
+        assertTrue(result.complete(), result.missingFields().toString());
+        assertEquals("КОСТЮМ СПОРТИВНЫЙ", result.attributes().get(12L));
+    }
+
+    @Test
+    void productionCountryDoesNotFallBackToOriginLegalOrGenericCountry() {
+        var otherRoles=List.of(new WbCharacteristic(1,"Страна происхождения",List.of("RU")),
+                new WbCharacteristic(2,"Страна регистрации изготовителя",List.of("DE")),
+                new WbCharacteristic(3,"Страна",List.of("RU")));
+        var production=preset(2630,"Страна производства","RU","CN","DE");
+        var missing=map(sku("Brand","Сумка","ART-1"),otherRoles,List.of(production));
+        assertFalse(missing.complete());assertFalse(missing.attributes().containsKey(2630L));
+        var explicit=new java.util.ArrayList<>(otherRoles);explicit.add(new WbCharacteristic(4,"Страна производства",List.of("CN")));
+        var actual=map(sku("Brand","Сумка","ART-1"),explicit,List.of(production));
+        assertTrue(actual.complete(),actual.missingFields().toString());assertEquals("CN",actual.attributes().get(2630L));
+        var ambiguous=new java.util.ArrayList<>(explicit);ambiguous.add(new WbCharacteristic(5,"Страна изготовления",List.of("RU")));
+        var conflict=map(sku("Brand","Сумка","ART-1"),ambiguous,List.of(production));
+        assertFalse(conflict.complete());assertFalse(conflict.attributes().containsKey(2630L));
+    }
+
+    private static Sku sku(String brand, String title, String article) {
+        return new Sku(1, 2, 3, article, "Сумки", brand, title,
+                "", "ONE SIZE", List.of(), "", true, "", null, "", Status.NOT_CREATED, "", false);
+    }
+
+    private static ZnackWbAttributeMapper.MappingResult map(Sku sku, List<WbCharacteristic> characteristics, List<Attribute> required) {
+        return new ZnackWbAttributeMapper().map(sku, characteristics, required, "4202221000", "4202",
+                new ZnackModels.GoodsDocument("CONFORMITY_DECLARATION", "DOC-1", "2026-09-07"));
     }
 
     private static Attribute attribute(long id, String name) {

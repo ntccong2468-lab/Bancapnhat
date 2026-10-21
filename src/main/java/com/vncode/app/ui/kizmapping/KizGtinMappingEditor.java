@@ -65,11 +65,12 @@ public class KizGtinMappingEditor {
                 openDialog(shopId, gtin, task.getValue(), host);
             }
         });
-        task.setOnFailed(event -> {
+        java.util.function.Consumer<Throwable> taskFailure = rejection -> {
             host.busy(false);
-            host.error(task.getException());
-        });
-        AppTaskExecutor.execute(task);
+            host.error(rejection);
+        };
+        task.setOnFailed(event -> taskFailure.accept(task.getException()));
+        AppTaskExecutor.execute(task, taskFailure);
     }
 
     private void openDialog(int shopId, String gtin, MappingDialogData data, Host host) {
@@ -117,11 +118,12 @@ public class KizGtinMappingEditor {
             host.busy(false);
             host.saved();
         });
-        task.setOnFailed(event -> {
+        java.util.function.Consumer<Throwable> taskFailure = rejection -> {
             host.busy(false);
-            host.error(task.getException());
-        });
-        AppTaskExecutor.execute(task);
+            host.error(rejection);
+        };
+        task.setOnFailed(event -> taskFailure.accept(task.getException()));
+        AppTaskExecutor.execute(task, taskFailure);
     }
 
     private Map<String, SelectionState> loadState(int shopId, String gtin) {

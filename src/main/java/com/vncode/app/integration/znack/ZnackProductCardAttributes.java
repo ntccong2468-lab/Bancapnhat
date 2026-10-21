@@ -8,11 +8,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 /** Flattens attributes from both documented feed cards and the catalog UI card schema. */
-final class ZnackProductCardAttributes {
+public final class ZnackProductCardAttributes {
     private ZnackProductCardAttributes() {
     }
 
-    static List<JsonObject> from(JsonObject card) {
+    public static List<JsonObject> from(JsonObject card) {
         if (card == null) return List.of();
         List<JsonObject> attributes = new ArrayList<>();
         addObjects(attributes, array(card, "good_attrs", "goodAttrs"));
@@ -28,15 +28,15 @@ final class ZnackProductCardAttributes {
         return List.copyOf(attributes);
     }
 
-    static String id(JsonObject attribute) {
+    public static String id(JsonObject attribute) {
         return text(attribute, "attr_id", "attrId", "id");
     }
 
-    static String name(JsonObject attribute) {
+    public static String name(JsonObject attribute) {
         return text(attribute, "attr_name", "attrName", "name");
     }
 
-    static String text(JsonObject object, String... keys) {
+    public static String text(JsonObject object, String... keys) {
         if (object == null) return "";
         for (String key : keys) {
             if (object.has(key) && !object.get(key).isJsonNull() && object.get(key).isJsonPrimitive()) {
@@ -46,7 +46,7 @@ final class ZnackProductCardAttributes {
         return "";
     }
 
-    static JsonObject object(JsonObject object, String... keys) {
+    public static JsonObject object(JsonObject object, String... keys) {
         if (object == null) return null;
         for (String key : keys) {
             if (object.has(key) && object.get(key).isJsonObject()) return object.getAsJsonObject(key);

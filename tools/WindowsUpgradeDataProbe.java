@@ -26,6 +26,16 @@ public final class WindowsUpgradeDataProbe {
    }
    return;
   }
+  if("verify-kiz-priority".equals(args[0])) {verifyLegacyKizPriority(root);return;}
+  System.out.println(fingerprint(root));
+ }
+ public static void verifyLegacyKizPriority(Path root)throws Exception {
+  try(var c=DriverManager.getConnection("jdbc:sqlite:"+root.resolve("database.db"));var s=c.createStatement();
+      var r=s.executeQuery("SELECT count(*) FROM kiz_codes WHERE source_priority IS NULL OR source_priority<>1 OR stock_instance IS NULL OR stock_instance<>''")) {
+   if(!r.next()||r.getInt(1)!=0)throw new IllegalStateException("Legacy KIZ must retain purchased-stock priority and identity");
+  }
+ }
+ public static String fingerprint(Path root)throws Exception {
   MessageDigest hash=MessageDigest.getInstance("SHA-256");
   try(var c=DriverManager.getConnection("jdbc:sqlite:"+root.resolve("database.db"));var s=c.createStatement()){
    try(var r=s.executeQuery("PRAGMA integrity_check")){if(!r.next()||!"ok".equals(r.getString(1)))throw new IllegalStateException("Integrity failure");}
@@ -33,11 +43,15 @@ public final class WindowsUpgradeDataProbe {
    for(String table:new String[]{"shops","print_templates","fbo_print_templates","znack_card_registrations","print_jobs","print_job_items","kiz_orders","kiz_codes"}){
     hash.update(table.getBytes(java.nio.charset.StandardCharsets.UTF_8));
     try(var r=s.executeQuery("SELECT * FROM "+table+" ORDER BY rowid")){var meta=r.getMetaData();while(r.next()){for(int col=1;col<=meta.getColumnCount();col++){
+      // Additive columns have no counterpart in older baselines: source_priority
+      // arrived in 1.4.11 and stock_instance in 1.4.19. Their purchased-stock
+      // defaults are checked separately; every legacy column still participates.
+      if("kiz_codes".equals(table)&&java.util.Set.of("source_priority","stock_instance").contains(meta.getColumnName(col)))continue;
       byte[] value=r.getString(col)==null?new byte[0]:r.getString(col).getBytes(java.nio.charset.StandardCharsets.UTF_8);
       hash.update(java.nio.ByteBuffer.allocate(4).putInt(r.getString(col)==null?-1:value.length).array());hash.update(value);
     }}}
    }
   }
-  System.out.println(HexFormat.of().formatHex(hash.digest()));
+  return HexFormat.of().formatHex(hash.digest());
  }
 }

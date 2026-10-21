@@ -15,10 +15,10 @@ public static class WCodeObservationWindow {
 '@
 $root=Join-Path $env:RUNNER_TEMP ('wcode-observe-'+[guid]::NewGuid());New-Item -ItemType Directory $root | Out-Null
 $out=Join-Path $PWD 'out/wcode-observation';New-Item -ItemType Directory -Force $out | Out-Null
-$exe=Join-Path $root 'WCode-1.3.1.exe';$msi=Join-Path $root 'Wbcode-1.3.1.msi'
-Invoke-WebRequest 'https://github.com/rupphi/relatest-wcode/releases/download/v1.3.1/WCode.exe' -OutFile $exe
+$exe=Join-Path $root 'WCode-1.3.9.exe';$msi=Join-Path $root 'Wbcode-1.3.9.msi'
+Invoke-WebRequest 'https://github.com/rupphi/relatest-wcode/releases/download/v1.3.9/WCode.exe' -OutFile $exe
 $hash=(Get-FileHash $exe -Algorithm SHA256).Hash.ToLowerInvariant()
-if($hash -cne '2632e9a06db84990476d97f1f962b61f5dffcec40ccc2c90c7bb7b304b4a0533'){throw 'Official Wbcode checksum mismatch.'}
+if($hash -cne 'e78ce1f018dc34934153bd24c8b5559a18afe8a29c1d320993ad59177d1d285a'){throw 'Official Wbcode checksum mismatch.'}
 [VNcode.Smoke.EmbeddedMsi]::Extract($exe,$msi)
 $installed=$false;$app=$null
 try {
@@ -39,15 +39,58 @@ try {
   $bitmap=New-Object Drawing.Bitmap $bounds.Width,$bounds.Height;$graphics=[Drawing.Graphics]::FromImage($bitmap)
   try{$graphics.CopyFromScreen($bounds.Left,$bounds.Top,0,0,$bitmap.Size);$bitmap.Save((Join-Path $out $Name),[Drawing.Imaging.ImageFormat]::Png)}finally{$graphics.Dispose();$bitmap.Dispose()}
  }
- Save-ObservationImage 'official-wbcode-1.3.1-first-run.png'
- # The book icon was visually identified in the previous maximized capture.
- # Only open the public guide page; do not enter credentials or activate a license.
- if($bounds.Width -eq 1024 -and $bounds.Height -eq 768){
-  [WCodeObservationWindow]::SetCursorPos(36,474)|Out-Null;Start-Sleep -Seconds 2
-  Save-ObservationImage 'official-wbcode-1.3.1-guides-hover.png'
+ Save-ObservationImage 'official-wbcode-1.3.9-first-run.png'
+ # Inspect accessibility labels and public navigation only. Fresh profile, no
+ # credential entry, license activation, shop creation or seller API mutations.
+ Add-Type -AssemblyName UIAutomationClient
+ Add-Type -AssemblyName UIAutomationTypes
+ $observed=@()
+ try {
+  $element=[System.Windows.Automation.AutomationElement]::FromHandle($handle)
+  $elements=$element.FindAll([System.Windows.Automation.TreeScope]::Descendants,[System.Windows.Automation.Condition]::TrueCondition)
+  for($i=0;$i -lt [Math]::Min($elements.Count,2000);$i++){
+   $v=$elements.Item($i).Current;$r=$v.BoundingRectangle
+   $observed+=@{name=$v.Name;type=$v.ControlType.ProgrammaticName;enabled=$v.IsEnabled;offscreen=$v.IsOffscreen;x=$r.X;y=$r.Y;width=$r.Width;height=$r.Height}
+  }
+ }catch{ 'UI Automation provider unavailable; use captured pixels.' | Set-Content (Join-Path $out 'accessibility-unavailable.txt') }
+ $observed|ConvertTo-Json -Depth 4|Set-Content (Join-Path $out 'visible-controls.json') -Encoding utf8
+ # Targets are the named sidebar buttons seen in the first capture. Opening
+ # screens is read-only; no form submission, shop creation or key activation.
+ $routes=@(
+  @{name='Товары';file='products'},@{name='Упаковка FBS';file='fbs'},
+  @{name='FBO упаковка';file='fbo'},@{name='KIZ Mapping';file='mapping'},
+  @{name='Регистрация в ЧЗ';file='registration'},@{name='Настройка Znack';file='znack'},
+  @{name='ГС1 РУС';file='gs1'},@{name='История печати';file='history'},
+  @{name='Дизайн шаблона';file='designer'},@{name='Инструкции';file='guides'},
+  @{name='ТН ВЭД';file='tnved'},@{name='Настройки';file='settings'}
+ )
+ foreach($route in $routes){
+  $condition=New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::NameProperty,$route.name)
+  $button=$element.FindAll([System.Windows.Automation.TreeScope]::Descendants,$condition) | Where-Object {$_.Current.ControlType -eq [System.Windows.Automation.ControlType]::Button -and $_.Current.IsEnabled} | Select-Object -First 1
+  if(-not $button){continue}
+  $r=$button.Current.BoundingRectangle
+  if([double]::IsInfinity($r.X) -or $r.Width -le 0){continue}
+  [WCodeObservationWindow]::SetCursorPos([int]($r.X+$r.Width/2),[int]($r.Y+$r.Height/2))|Out-Null
   [WCodeObservationWindow]::mouse_event(2,0,0,0,[UIntPtr]::Zero);[WCodeObservationWindow]::mouse_event(4,0,0,0,[UIntPtr]::Zero)
-  Start-Sleep -Seconds 8;Save-ObservationImage 'official-wbcode-1.3.1-guides.png'
+  Start-Sleep -Seconds 3
+  Save-ObservationImage ('official-wbcode-1.3.9-'+$route.file+'.png')
+  $labels=@();$controls=$element.FindAll([System.Windows.Automation.TreeScope]::Descendants,[System.Windows.Automation.Condition]::TrueCondition)
+  for($i=0;$i -lt [Math]::Min($controls.Count,2000);$i++){$c=$controls.Item($i).Current;if(-not $c.IsOffscreen -and $c.Name){$labels+=@{name=$c.Name;type=$c.ControlType.ProgrammaticName;enabled=$c.IsEnabled}}}
+  $labels|ConvertTo-Json -Depth 3|Set-Content (Join-Path $out ($route.file+'-labels.json')) -Encoding utf8
  }
+ # Settings popup position was inspected in the preceding Windows capture.
+ # Open the license screen only; do not enter account details or activate.
+ [WCodeObservationWindow]::SetCursorPos(75,626)|Out-Null
+ [WCodeObservationWindow]::mouse_event(2,0,0,0,[UIntPtr]::Zero);[WCodeObservationWindow]::mouse_event(4,0,0,0,[UIntPtr]::Zero)
+ Start-Sleep -Seconds 3
+ Save-ObservationImage 'official-wbcode-1.3.9-license.png'
+ [Windows.Forms.SendKeys]::SendWait('{ESC}')
+ Start-Sleep -Seconds 1
+ # Add-shop opens an empty local configuration dialog. Never click Save.
+ [WCodeObservationWindow]::SetCursorPos(36,97)|Out-Null
+ [WCodeObservationWindow]::mouse_event(2,0,0,0,[UIntPtr]::Zero);[WCodeObservationWindow]::mouse_event(4,0,0,0,[UIntPtr]::Zero)
+ Start-Sleep -Seconds 2
+ Save-ObservationImage 'official-wbcode-1.3.9-add-shop.png'
  $windows=@($ids|ForEach-Object {[VNcode.Smoke.VisibleWindows]::Titles($_)})
- @{source='official release installer';release='v1.3.1';installerSha256=$hash;nativeLaunch='passed';visibleTitles=$windows;windowMaximized=($handle -ne [IntPtr]::Zero);screenWidth=$bounds.Width;screenHeight=$bounds.Height;freshRunner=$true;shopCredentialsEntered=$false;liveMarketplaceMutations=$false;licenseActivated=$false;scope='First-run UI only; authenticated workflows not tested';screenshot='official-wbcode-1.3.1-first-run.png'}|ConvertTo-Json|Set-Content (Join-Path $out 'observation.json') -Encoding utf8
+ @{source='official release installer';release='v1.3.9';installerSha256=$hash;nativeLaunch='passed';visibleTitles=$windows;windowMaximized=($handle -ne [IntPtr]::Zero);screenWidth=$bounds.Width;screenHeight=$bounds.Height;freshRunner=$true;shopCredentialsEntered=$false;liveMarketplaceMutations=$false;licenseActivated=$false;scope='Fresh first-run pixels and accessibility; authenticated seller/CryptoPro workflows untested';screenshot='official-wbcode-1.3.9-first-run.png'}|ConvertTo-Json|Set-Content (Join-Path $out 'observation.json') -Encoding utf8
 }finally{if($app -and -not $app.HasExited){Stop-Process -Id $app.Id -Force;$app.WaitForExit()};if($installed){$p=Start-Process msiexec.exe -ArgumentList @('/x',"`"$msi`"",'/qn','/norestart') -Wait -PassThru;if($p.ExitCode -notin @(0,3010)){throw 'Official app uninstall failed.'}}}

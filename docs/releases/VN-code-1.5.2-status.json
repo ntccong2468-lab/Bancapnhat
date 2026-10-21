@@ -1,0 +1,137 @@
+{
+  "version": "1.5.2",
+  "state": "published-latest-under-owner-request",
+  "baseline": "v1.5.1",
+  "databaseSchema": 6,
+  "published": true,
+  "complete": false,
+  "requestReport": "VN-code-1.5.2-request-report.md",
+  "licenseIntegration": {
+    "productionReady": false,
+    "changedInThisVersion": false
+  },
+  "validation": {
+    "preProductRegression": {
+      "tests": 1937,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 2
+    },
+    "productFocusedTests": {
+      "tests": 66,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "releaseToolTests": {
+      "tests": 78,
+      "failures": 0
+    },
+    "windowsBuild": {
+      "state": "passed",
+      "freshFullJavaExecutionRequired": true,
+      "allNativeChecksMustRunAgain": true,
+      "sourceCommit": "6fe8ef21871657a38151897ddc13c3b1b5028fd5",
+      "runId": 39337203593,
+      "url": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/39337203593",
+      "upgradeFrom151Passed": true,
+      "allNativeChecksPassed": true,
+      "fullJavaSuite": {
+        "tests": 1954,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 2,
+        "passed": 1952
+      },
+      "verifiedNativeProofs": [
+        "native-smoke.json",
+        "side-by-side-smoke.json",
+        "upgrade-smoke.json",
+        "upgrade-preview-smoke.json",
+        "upgrade-latest-preview-smoke.json",
+        "upgrade-current-preview-smoke.json",
+        "upgrade-gs1-preview-smoke.json",
+        "upgrade-license-test-smoke.json",
+        "upgrade-stable-146-smoke.json",
+        "upgrade-stable-1410-smoke.json",
+        "upgrade-stable-1411-smoke.json",
+        "upgrade-stable-1412-smoke.json",
+        "upgrade-stable-1413-smoke.json",
+        "upgrade-stable-1415-smoke.json",
+        "upgrade-stable-1416-smoke.json",
+        "upgrade-stable-1418-smoke.json",
+        "upgrade-stable-1419-smoke.json",
+        "upgrade-stable-150-smoke.json",
+        "upgrade-stable-151-smoke.json",
+        "seller-workspace-smoke.json",
+        "ui-layout.json",
+        "gs1-smoke.json"
+      ]
+    },
+    "productionLicenseVerified": false,
+    "liveCryptoProSigningThisVersion": false,
+    "liveLicensedDesktopGtinWriteThisVersion": false,
+    "liveApiWbGtinWriteThisVersion": false,
+    "liveApiOzonGtinWriteThisVersion": false,
+    "liveCatalogCardCreatedThisVersion": false,
+    "liveCatalogCardRepairedThisVersion": false,
+    "linuxFullSuite": {
+      "tests": 1954,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 2,
+      "command": "mvn-vncode -o -q clean verify",
+      "sourceCommit": "6fe8ef21871657a38151897ddc13c3b1b5028fd5"
+    },
+    "windowsPriorAttempt": {
+      "runId": 39330524258,
+      "sourceCommit": "b2ad06aa0b495932dd0e80ce90fa1c8f544a64f1",
+      "tests": 1942,
+      "failures": 0,
+      "errors": 1,
+      "skipped": 2,
+      "result": "failed-exclusive-lock-test-fixture",
+      "acceptedForRelease": false
+    },
+    "correctedFxmlFixture": {
+      "tests": 55,
+      "failures": 0,
+      "errors": 0,
+      "responseDeadlineMillis": 300
+    },
+    "supersededBuild": {
+      "state": "cancelled-to-include-owner-kiz-and-shipping-request",
+      "freshFullJavaExecutionRequired": true,
+      "allNativeChecksMustRunAgain": true,
+      "sourceCommit": "fb9474ab4850e73542691d1a49d52948b2c95abf",
+      "runId": 39334212949,
+      "url": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/39334212949",
+      "acceptedForRelease": false
+    },
+    "kizShippingFocusedTests": {
+      "tests": 100,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "evidence": "docs/validation/2026-10-19-vncode-152-kiz-shipping.json"
+    },
+    "publicDownloadVerified": true,
+    "updater": {
+      "updaterParserVerified": true,
+      "baseline": "1.5.1",
+      "offeredVersion": "1.5.2",
+      "installerUrlVerified": true,
+      "digestVerified": true,
+      "sizeVerified": true
+    },
+    "liveShipmentHandover": false,
+    "wbShipmentSecretAllowedDomains": [
+      "content-api.wildberries.ru"
+    ]
+  },
+  "publishedAt": "2026-10-19T23:53:08Z",
+  "releaseUrl": "https://github.com/ntccong2468-lab/Bancapnhat/releases/tag/v1.5.2",
+  "sourceCommit": "6fe8ef21871657a38151897ddc13c3b1b5028fd5",
+  "installerSha256": "4f1b28dbb8eaffa4f86a5512f8155b00f7c7688d744e778e87c9f03120feb31c",
+  "installerBytes": 146716672
+}

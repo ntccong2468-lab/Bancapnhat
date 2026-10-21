@@ -1,0 +1,18 @@
+{
+  "version": "1.4.19",
+  "productionUpdaterParserVerified": true,
+  "realPublicLatestResponse": true,
+  "defaultSource": "https://api.github.com/repos/ntccong2468-lab/Bancapnhat",
+  "windowsDownloadUrl": "https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.4.19/VN-code-1.4.19-Windows-x64.exe",
+  "sha256": "e2d43bdca42031b6e583dea8efa298addc142e46fadfb2a21ca00b6e5cc31084",
+  "bytes": 145632256,
+  "updateStatuses": {
+    "1.4.10": "AVAILABLE",
+    "1.4.13": "AVAILABLE",
+    "1.4.16": "AVAILABLE",
+    "1.4.17": "AVAILABLE",
+    "1.4.18": "AVAILABLE",
+    "1.4.19": "CURRENT"
+  },
+  "deliveredToSellerDesktopVerified": false
+}

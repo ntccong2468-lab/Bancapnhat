@@ -29,6 +29,7 @@ class WbMarketplaceApiRateLimiter {
                     bucket.nextAllowedAtMs = now + MIN_INTERVAL_MS;
                     return;
                 }
+                com.vncode.app.shared.RateLimitDeferral.waiting(java.util.concurrent.TimeUnit.MILLISECONDS.toNanos(waitMs));
                 waitQuietly(waitMs);
             }
         }
@@ -53,7 +54,7 @@ class WbMarketplaceApiRateLimiter {
         if (apiKey == null || apiKey.isBlank()) {
             return "";
         }
-        return Integer.toHexString(apiKey.hashCode());
+        return com.vncode.app.integration.listing.ListingIdentity.hash(apiKey);
     }
 
     private static long resolveCooldownMs(Headers headers) {

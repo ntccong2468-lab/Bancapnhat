@@ -258,7 +258,7 @@ class ZnackGtinWorkflowTest {
         long firstOrder = repository.createDraft(A, 1);
         long secondOrder = other.createDraft(A, 1);
         try (Connection c = Database.getConnection(); Statement st = c.createStatement()) {
-            st.execute("DROP INDEX uq_kiz_codes_raw_code");
+            st.execute("DROP INDEX uq_kiz_codes_purchased_raw");
         }
         assertEquals(1, repository.insertCodes(firstOrder, A, new DownloadedCodes(List.of("same"), "first")));
         assertEquals(1, other.insertCodes(secondOrder, A, new DownloadedCodes(List.of("same"), "second")));
@@ -874,8 +874,8 @@ class ZnackGtinWorkflowTest {
             @Override public JsonElement cisesInfo(String base, String token, JsonElement body) {
                 requested.set(body.getAsJsonArray().get(0).getAsString());
                 return JsonParser.parseString("""
-                        [{"cisInfo":{"gtin":"%s","productName":"A","status":"APPLIED","statusEx":"EMPTY"}}]
-                        """.formatted(A));
+                        [{"cisInfo":{"requestedCis":"%s","cis":"%s","gtin":"%s","productName":"A","status":"APPLIED","statusEx":"EMPTY"}}]
+                        """.formatted(requested.get(),requested.get(),A));
             }
         };
         ZnackAuthService auth = new ZnackAuthService(api, (input, context) -> null) {

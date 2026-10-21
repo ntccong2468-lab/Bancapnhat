@@ -23,13 +23,41 @@ import com.vncode.app.integration.znack.registration.ZnackCardRegistrationSchema
 public class Database {
     private static final Logger LOGGER = LoggerFactory.getLogger(Database.class);
     private static final String DB_NAME = "database.db";
-    private static final int CURRENT_SCHEMA_VERSION = 4;
+    private static final int CURRENT_SCHEMA_VERSION = 6;
 
     public static int currentSchemaVersion() {
         return CURRENT_SCHEMA_VERSION;
     }
 
+    /**
+     * Keep SQLite open for a bounded batch without holding a transaction or a read lock.
+     * Each repository still owns and commits its own transaction. In WAL mode this prevents
+     * closing the last connection (and checkpointing/deleting/recreating WAL files) per order.
+     * No connection is retained globally, and synchronous/durability settings are unchanged.
+     */
+    public static BatchSession openBatchSession() {
+        Connection connection = getConnection();
+        try (Statement statement = connection.createStatement();
+             ResultSet schema = statement.executeQuery("PRAGMA schema_version")) {
+            if (!schema.next()) throw new SQLException("Cannot open database batch session");
+            return new BatchSession(connection);
+        } catch (SQLException | RuntimeException failure) {
+            try { connection.close(); } catch (SQLException closeFailure) { failure.addSuppressed(closeFailure); }
+            throw new IllegalStateException("Cannot open database batch session", failure);
+        }
+    }
+
+    public static final class BatchSession implements AutoCloseable {
+        private final Connection connection;
+        private BatchSession(Connection connection) { this.connection = connection; }
+        @Override public void close() {
+            try { connection.close(); }
+            catch (SQLException failure) { throw new IllegalStateException("Cannot close database batch session", failure); }
+        }
+    }
+
     public static Connection getConnection() {
+        com.vncode.app.features.sync.SyncDataScope.requireCurrent();
         try {
             Path dir = AppPaths.appDataDir();
 
@@ -187,14 +215,24 @@ public class Database {
             WbSchemaSupport.initialize(conn);
             ZnackSchemaSupport.initialize(conn);
             ZnackCardRegistrationSchema.initialize(conn);
+            com.vncode.app.integration.znack.registration.v3.RegistrationStore.initialize(conn);
+            com.vncode.app.integration.znack.registration.OzonCardRegistrationRepository.initialize(conn);
             OzonSchemaSupport.initialize(conn);
             com.vncode.app.features.gtinsync.GtinSyncSchema.initialize(conn);
+            com.vncode.app.features.products.ProductSchema.ensureTables(conn);
+            com.vncode.app.features.listingcopy.ListingCopySchema.ensureTables(conn);
+            com.vncode.app.features.products.ProductEditRepository.ensureTables(conn);
+                com.vncode.app.features.gs1.Gs1BalanceSchema.ensureTables(conn);
+                com.vncode.app.features.news.SellerNewsSchema.ensureTables(conn);
+                com.vncode.app.features.news.NewsTranslationService.ensureTables(conn);
+                com.vncode.app.integration.translation.TranslationSettingsRepository.ensureTables(conn);
             int inactiveMappings = ZnackMappingLifecycle.removeInactiveMappings(conn);
             if (inactiveMappings > 0) {
                 LOGGER.info("Đã gỡ {} mapping tham chiếu GTIN không còn hoạt động", inactiveMappings);
             }
             dropLegacyKizTables(conn);
             ShopCredentialSchema.initialize(conn);
+            com.vncode.app.features.sync.SyncSchema.initialize(conn);
             st.execute("PRAGMA user_version = " + CURRENT_SCHEMA_VERSION);
         } catch (SQLException e) {
             throw new RuntimeException(e);

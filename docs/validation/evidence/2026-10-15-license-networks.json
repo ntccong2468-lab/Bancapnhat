@@ -1,0 +1,29 @@
+{
+  "dateMoscow": "2026-10-15",
+  "sourceCommit": "9c9c68b88f4c8b7f3b64e3da3c6af74e417db31d",
+  "publicPortalConfig": {
+    "portal_version": "0.3.5",
+    "desktop_registration_mode": "gmail_admin"
+  },
+  "readOnlyDesktopStatusProbe": "401 REGISTRATION_EXPIRED as expected using a synthetic credential",
+  "transport": "actual WebLicenseApi; verified HTTPS via cloud session proxy and trusted CA",
+  "realCarrierAcceptance": false,
+  "productionCloudflareRulesModified": false,
+  "newUserOrLicenseCreated": false,
+  "ownerConnectivityProbes": {
+    "ipv4Config": {
+      "status": 200,
+      "portalVersion": "0.3.5",
+      "serverDateUtc": "2026-10-15T05:25:30Z"
+    },
+    "ipv6Config": "owner reports a response equivalent to IPv4",
+    "desktopRegistrationStatus": {
+      "status": 401,
+      "code": "AUTH_REQUIRED",
+      "userAgent": "okhttp/4.12.0",
+      "serverDateUtc": "2026-10-15T05:33:01Z",
+      "noCredentialSent": true
+    },
+    "meaning": "Public config and unauthenticated desktop GET are reachable on the reported network. Does not prove Java connectivity or authenticated activation POST success."
+  }
+}

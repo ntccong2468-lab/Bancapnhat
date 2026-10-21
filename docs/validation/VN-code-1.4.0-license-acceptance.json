@@ -1,0 +1,20 @@
+{
+  "version": "1.4.0",
+  "result": "blocked",
+  "sourceCommit": null,
+  "keyId": "vncode-1",
+  "publicKey": "Gg7F92gqXnCLGdMbI130qHcBJ2hiI6KseZBgWkNCTeI",
+  "backendSourceSha256": null,
+  "windowsDpapiPassed": false,
+  "foreignWindowsIdentityRejected": false,
+  "backendGmailApprovalPassed": false,
+  "deviceLimitConcurrencyPassed": false,
+  "activationRetryPassed": false,
+  "signedOfflinePassed": false,
+  "revocationPassed": false,
+  "readonlyDataPreserved": false,
+  "publicKeySource": "Provided by the website owner in this session; canonical Base64URL and 32-byte format validated",
+  "serverSigningKeyMatch": "unverified",
+  "note": "Owner public key is pinned. Authenticated admin settings supplied by the website owner report mail_ready=true, signing_ready=true and key_id=vncode-1. These flags confirm configuration presence; production signature/key-pair match and native/backend activation acceptance remain pending.",
+  "serverSigningConfiguration": "owner-provided-authenticated-settings-signing-ready"
+}

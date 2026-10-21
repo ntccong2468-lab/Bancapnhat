@@ -25,11 +25,12 @@ public class ZnackIntroductionReadinessService {
     public Readiness check(Settings settings, Product current, List<KizCode> codes) throws Exception {
         String token = auth.trueApiToken(settings);
         Product product = refreshProductCard(settings, token, current);
-        repository.updateProductReadiness(product);
+        if(product!=null)repository.updateProductReadiness(product);
         if (codes == null || codes.isEmpty()) {
             return Readiness.waiting("No downloaded KIZ codes are available for introduction.");
         }
 
+        if(!ZnackCisReadback.validRequests(codes,current.gtin(),null))return Readiness.waiting("Chưa xác minh đầy đủ từng mã KIZ từ Честный знак; giữ nguyên kết quả đã lưu và chờ đối chiếu.");
         int applied = 0;
         int introduced = 0;
         int pending = 0;
@@ -40,8 +41,8 @@ public class ZnackIntroductionReadinessService {
                     Math.min(start + ZnackApiClient.CISES_MAX_CODES_PER_REQUEST, codes.size()));
             JsonArray request = new JsonArray();
             batch.forEach(code -> request.add(ZnackCisNormalizer.forTrueApi(code.rawCode())));
-            CisBatch result = inspectCises(api.cisesInfo(settings.resolvedTrueApiBaseUrl(), token, request),
-                    product.gtin(), batch.size());
+            ZnackCisReadback.Result result = ZnackCisReadback.inspect(api.cisesInfo(settings.resolvedTrueApiBaseUrl(), token, request),
+                    batch, current.gtin());
             applied += result.applied();
             introduced += result.introduced();
             pending += result.pending();
@@ -55,6 +56,7 @@ public class ZnackIntroductionReadinessService {
         if (pending > 0 || applied + introduced != codes.size() || introduced > 0) {
             return Readiness.waiting(progressMessage(codes.size(), applied, introduced, pending, pendingReason));
         }
+        if(product==null)return Readiness.waiting("Chưa xác minh được trạng thái thẻ sản phẩm hiện tại; giữ nguyên dữ liệu đã lưu và chờ đối chiếu.");
         if (!product.cardReadyForIntroduction()) {
             String missing = java.util.stream.Stream.of(
                             Boolean.TRUE.equals(product.goodMarkFlag()) ? null : "goodMarkFlag=true",
@@ -81,19 +83,20 @@ public class ZnackIntroductionReadinessService {
         JsonElement response = api.productCards(settings.resolvedTrueApiBaseUrl(), token, current.gtin());
         JsonArray cards = array(response, "result");
         if (cards == null) {
-            return withReadiness(current, null, null, "", "", current.productName());
+            return null;
         }
         for (JsonElement element : cards) {
             if (!element.isJsonObject()) continue;
             JsonObject card = element.getAsJsonObject();
             if (!matchesGtin(card, current.gtin())) continue;
-            return withReadiness(current, bool(card, "goodMarkFlag", "good_mark_flag"),
-                    bool(card, "goodTurnFlag", "good_turn_flag"),
+            Boolean mark=bool(card,"goodMarkFlag","good_mark_flag"),turn=bool(card,"goodTurnFlag","good_turn_flag");
+            if(mark==null||turn==null)return null;
+            return withReadiness(current, mark, turn,
                     text(card, "goodStatus", "good_status", "cardStatus", "status"),
                     text(card, "goodDetailedStatus", "good_detailed_status", "cardDetailedStatus"),
                     first(text(card, "good_name", "productName", "name"), current.productName()));
         }
-        return withReadiness(current, null, null, "", "", current.productName());
+        return null;
     }
 
     private Product withReadiness(Product current, Boolean mark, Boolean turn, String status, String detailed,
@@ -118,68 +121,6 @@ public class ZnackIntroductionReadinessService {
         return false;
     }
 
-    private CisBatch inspectCises(JsonElement response, String expectedGtin, int expectedCount) {
-        JsonArray entries = new JsonArray();
-        if (response != null && response.isJsonArray()) {
-            response.getAsJsonArray().forEach(entries::add);
-        } else if (response != null && response.isJsonObject()) {
-            entries.add(response);
-        } else {
-            return new CisBatch(0, 0, expectedCount, false, "True API did not return a KIZ list.");
-        }
-        int applied = 0;
-        int introduced = 0;
-        int pending = 0;
-        boolean missingName = false;
-        String reason = null;
-        for (JsonElement element : entries) {
-            if (!element.isJsonObject()) continue;
-            JsonObject entry = element.getAsJsonObject();
-            String error = text(entry, "errorMessage", "error_message", "errorCode", "error_code");
-            JsonObject info = object(entry, "cisInfo");
-            if (info == null && entry.has("status")) info = entry;
-            if (info == null) {
-                pending++;
-                if (reason == null) reason = "True API did not return KIZ details.";
-                continue;
-            }
-            if (!error.isBlank()) {
-                pending++;
-                if (reason == null) reason = "True API KIZ lookup is not ready: " + error;
-                continue;
-            }
-            String gtin = text(info, "gtin");
-            if (!gtin.isBlank() && !normalizedEquals(gtin, expectedGtin)) {
-                pending++;
-                if (reason == null) reason = "True API returned a KIZ for a different GTIN.";
-                continue;
-            }
-            String status = text(info, "status");
-            String statusEx = text(info, "statusEx", "status_ex");
-            if ("INTRODUCED".equalsIgnoreCase(status)) introduced++;
-            else if ("APPLIED".equalsIgnoreCase(status)) {
-                if (!statusEx.isBlank() && !"EMPTY".equalsIgnoreCase(statusEx)) {
-                    pending++;
-                    if (reason == null) reason = "KIZ has a special status: " + statusEx;
-                    continue;
-                }
-                applied++;
-            } else {
-                pending++;
-                if (reason == null) reason = "KIZ is not APPLIED yet" + (status.isBlank() ? "." : ": " + status);
-                continue;
-            }
-            String productName = text(info, "productName");
-            if (productName.isBlank() || "-".equals(productName.trim())) missingName = true;
-        }
-        int missing = Math.max(0, expectedCount - applied - introduced - pending);
-        if (missing > 0) {
-            pending += missing;
-            if (reason == null) reason = "Not all downloaded KIZ codes are visible in True API yet.";
-        }
-        return new CisBatch(applied, introduced, pending, missingName, reason);
-    }
-
     private boolean normalizedEquals(String value, String expected) {
         try {
             return GtinNormalizer.normalize(value).equals(expected);
@@ -194,11 +135,6 @@ public class ZnackIntroductionReadinessService {
         if (!value.isJsonObject()) return null;
         JsonElement nested = value.getAsJsonObject().get(key);
         return nested != null && nested.isJsonArray() ? nested.getAsJsonArray() : null;
-    }
-
-    private JsonObject object(JsonObject value, String key) {
-        JsonElement nested = value.get(key);
-        return nested != null && nested.isJsonObject() ? nested.getAsJsonObject() : null;
     }
 
     private Boolean bool(JsonObject value, String... keys) {
@@ -235,6 +171,4 @@ public class ZnackIntroductionReadinessService {
         static Readiness waiting(String reason) { return new Readiness(false, false, reason); }
     }
 
-    private record CisBatch(int applied, int introduced, int pending, boolean missingName, String reason) {
-    }
 }

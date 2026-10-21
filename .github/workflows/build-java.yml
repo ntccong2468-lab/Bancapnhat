@@ -7,10 +7,26 @@ on:
         description: Build only the Windows test installer
         type: boolean
         default: true
+      portal_only:
+        description: Validate and package Portal sources without desktop builds
+        type: boolean
+        default: false
+      license_diagnostics_only:
+        description: Build a license/update diagnostic candidate with focused tests and native startup checks
+        type: boolean
+        default: false
       msi_inspection_only:
         description: Read-only inspection of the original MSI, no install/build/publication
         type: boolean
         default: false
+      reuse_verified_java_run_id:
+        description: Bounded verified Java recovery; application/test/dependency inputs must be identical
+        type: string
+        default: ''
+      recover_fixture_failure_run_id:
+        description: Bounded 1.4.18 recovery after the Windows analytics fixture cleanup error
+        type: string
+        default: ''
   push:
     branches: [dev, main]
     paths-ignore:
@@ -20,8 +36,41 @@ on:
 
 permissions:
   contents: read
+  actions: read
 
 jobs:
+  license-portal:
+    if: ${{ !inputs.msi_inspection_only }}
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: website/license-portal
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: '22'
+      - name: Verify Gmail registration, manual approval and shared-key activation
+        run: |
+          npm ci
+          npm run check
+          npm test
+          npx wrangler deploy --dry-run --outdir "$RUNNER_TEMP/portal-worker"
+          npx wrangler deploy --config wrangler.license-gateway.jsonc --dry-run --outdir "$RUNNER_TEMP/license-gateway"
+      - name: Package tracked Portal sources without credentials
+        run: |
+          git ls-files -z . | xargs -0 zip -X "$RUNNER_TEMP/VNCode-Portal-0.3.6-License-Network.zip"
+          cd "$RUNNER_TEMP"
+          sha256sum VNCode-Portal-0.3.6-License-Network.zip > VNCode-Portal-0.3.6-License-Network.sha256
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: VNCode-Portal-0.3.6-License-Network
+          path: |
+            ${{ runner.temp }}/VNCode-Portal-0.3.6-License-Network.zip
+            ${{ runner.temp }}/VNCode-Portal-0.3.6-License-Network.sha256
+          if-no-files-found: error
+          retention-days: 14
+
   inspect-msi:
     if: ${{ inputs.msi_inspection_only }}
     runs-on: windows-latest
@@ -32,10 +81,12 @@ jobs:
         run: ./tools/windows-side-by-side-smoke.ps1 -Version (node tools/release-version.mjs) -InspectOnly
 
   build-and-test:
-    if: ${{ !inputs.msi_inspection_only }}
+    if: ${{ !inputs.msi_inspection_only && !inputs.portal_only && !inputs.license_diagnostics_only }}
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
 
       - name: Set up JDK 25
         uses: actions/setup-java@03ad4de0992f5dab5e18fcb136590ce7c4a0ac95 # v5.6.0
@@ -56,9 +107,97 @@ jobs:
         run: >-
           node --test tools/*.test.mjs
 
-      - name: Run Java and FXML test suite
+      - name: Verify Windows asynchronous UI fixture cleanup
+        if: ${{ inputs.recover_fixture_failure_run_id != '' }}
         shell: pwsh
+        env:
+          LOCALAPPDATA: ${{ runner.temp }}\vncode-java-fixture-cleanup-${{ github.run_id }}
+        run: .\mvnw.cmd -B "-Dtest=Gs1PaneTest,ListingCopyPaneTest,ProductBulkEditPaneTest,ProductRefreshUiTest,CatalogSyncPaneTest,KizWarehousePaneTest,FxmlSmokeTest,FinanceTestCleanupTest" test
+
+      - name: Verify product action layout, all FXML viewports and GS1 consent on Windows
+        if: ${{ !inputs.reuse_verified_java_run_id && !inputs.recover_fixture_failure_run_id }}
+        shell: pwsh
+        env:
+          LOCALAPPDATA: ${{ runner.temp }}\vncode-product-reference-${{ github.run_id }}
+        run: .\mvnw.cmd -B "-Dtest=CryptoProCommandRunnerTest,ProductReferenceLayoutTest,WorkspacePagesLayoutTest,Gs1PaneTest,OzonBulkUiTest,RegistrationDraftCompletionDialogTest,CatalogErrorRepairDialogTest,FxmlSmokeTest" test
+
+      - name: Run Java and FXML test suite
+        if: ${{ !inputs.reuse_verified_java_run_id && !inputs.recover_fixture_failure_run_id }}
+        shell: pwsh
+        env:
+          LOCALAPPDATA: ${{ runner.temp }}\vncode-java-fixtures-${{ github.run_id }}
         run: .\mvnw.cmd -B clean verify
+
+      - name: Reconcile unchanged passing Java methods after the fixture-only cleanup repair
+        if: ${{ inputs.recover_fixture_failure_run_id != '' }}
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VNCODE_FIXTURE_RECOVERY_RUN: ${{ inputs.recover_fixture_failure_run_id }}
+          LOCALAPPDATA: ${{ runner.temp }}\vncode-java-fixture-cleanup-${{ github.run_id }}
+        run: |
+          python tools/recover-windows-fixture-java.py prepare
+          if ($LASTEXITCODE -ne 0) { throw 'Windows fixture recovery validation failed.' }
+          .\mvnw.cmd -B -DskipTests package
+          if ($LASTEXITCODE -ne 0) { throw 'Packaging after the focused fixture rerun failed.' }
+          python tools/recover-windows-fixture-java.py finalize
+          if ($LASTEXITCODE -ne 0) { throw 'Windows fixture recovery finalization failed.' }
+
+      - name: Restore byte-verified Windows Java after the baseline-checksum-only repair
+        if: ${{ inputs.reuse_verified_java_run_id != '' && env.APP_VERSION != '1.5.1' }}
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VNCODE_REUSE_JAVA_RUN: ${{ inputs.reuse_verified_java_run_id }}
+        run: node tools/reuse-verified-windows-java.mjs
+
+      - name: Restore exact 151 Java bytes after the GitHub baseline download failure
+        if: ${{ inputs.reuse_verified_java_run_id != '' && env.APP_VERSION == '1.5.1' }}
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VNCODE_REUSE_JAVA_RUN: ${{ inputs.reuse_verified_java_run_id }}
+        run: node tools/reuse-verified-windows-java-151.mjs
+
+      - name: Compile unchanged native UI fixtures without replacing the verified application JAR
+        if: ${{ inputs.reuse_verified_java_run_id != '' }}
+        shell: pwsh
+        run: |
+          $jar = "target\VNcode-$env:APP_VERSION.jar"
+          $before = (Get-FileHash $jar -Algorithm SHA256).Hash.ToLowerInvariant()
+          New-Item -ItemType Directory -Path target\test-classes -Force | Out-Null
+          $classpath = "$PWD\target\VNcode-$env:APP_VERSION.jar;$PWD\target\lib\*"
+          & javac -cp $classpath -d target\test-classes src\test\java\com\vncode\app\performance\SellerWorkspaceFixture.java src\test\java\com\vncode\app\features\license\LicenseDomainFixture.java
+          if ($LASTEXITCODE -ne 0) { throw 'Cannot compile unchanged native UI test fixtures.' }
+          if ((Get-FileHash $jar -Algorithm SHA256).Hash.ToLowerInvariant() -cne $before) {
+            throw 'Test-fixture compilation replaced the verified application JAR.'
+          }
+          $proof = Get-Content target\java-verification-reuse.json -Raw | ConvertFrom-Json
+          $proof | Add-Member -NotePropertyName fixtureClassesCompiledWithoutChangingJar -NotePropertyValue $true
+          $proof | Add-Member -NotePropertyName applicationJarSha256 -NotePropertyValue $before
+          $proof | ConvertTo-Json -Depth 8 | Set-Content target\java-verification-reuse.json -Encoding utf8
+
+      - name: Preserve verified Windows Java inputs
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: VN-code-${{ env.APP_VERSION }}-Windows-verified-java
+          path: |
+            target/VNcode-${{ env.APP_VERSION }}.jar
+            target/lib/**
+            target/surefire-reports/TEST-*.xml
+            target/java-verification-reuse.json
+            target/java-fixture-recovery.json
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Preserve failed Windows test reports
+        if: failure()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: VN-code-Windows-failed-tests-${{ github.run_id }}
+          path: target/surefire-reports/TEST-*.xml
+          if-no-files-found: ignore
+          retention-days: 7
 
       - name: Build unsigned JavaFX EXE installer
         shell: cmd
@@ -70,6 +209,19 @@ jobs:
       - name: Verify native Windows launcher and schema-3 history migration
         shell: pwsh
         run: ./tools/windows-native-smoke.ps1 -Version $env:APP_VERSION
+
+      - name: Verify GS1 Windows DPAPI and additive local storage
+        shell: pwsh
+        run: ./tools/windows-gs1-smoke.ps1 -Version $env:APP_VERSION
+
+      - name: Verify ten-shop workspaces and actual Windows DPI 100 125 150
+        if: env.APP_VERSION != '1.2.0' && env.APP_VERSION != '1.2.1' && env.APP_VERSION != '1.2.2' && env.APP_VERSION != '1.3.0'
+        shell: pwsh
+        run: ./tools/windows-seller-workspace-smoke.ps1 -Version $env:APP_VERSION
+
+      - name: Verify all desktop layouts in four languages and both themes
+        shell: pwsh
+        run: ./tools/windows-ui-layout-smoke.ps1 -Version $env:APP_VERSION
 
       - name: Verify independent installation, fresh data and safe uninstall
         shell: pwsh
@@ -89,6 +241,140 @@ jobs:
         shell: pwsh
         run: ./tools/windows-upgrade-smoke.ps1 -Version $env:APP_VERSION -FromLatestPreview
 
+      - name: Verify upgrade from VN code 1.2.2 Preview with saved data
+        if: env.APP_VERSION != '1.2.0' && env.APP_VERSION != '1.2.1' && env.APP_VERSION != '1.2.2'
+        # Test the most recently published VN code installer as an additional baseline.
+        # The hash is pinned in windows-upgrade-smoke.ps1.
+        shell: pwsh
+        run: ./tools/windows-upgrade-smoke.ps1 -Version $env:APP_VERSION -FromCurrentPreview
+
+      - name: Verify upgrade from VN code 1.3.0 Preview with saved data
+        if: env.APP_VERSION != '1.2.0' && env.APP_VERSION != '1.2.1' && env.APP_VERSION != '1.2.2' && env.APP_VERSION != '1.3.0'
+        shell: pwsh
+        run: ./tools/windows-upgrade-smoke.ps1 -Version $env:APP_VERSION -FromGs1Preview
+
+      - name: Verify upgrade from VN code 1.4.0 license-test with saved data
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if ([version]$env:APP_VERSION -gt [version]"1.4.0") {
+            ./tools/windows-upgrade-smoke.ps1 -Version $env:APP_VERSION -FromLicenseTest
+          }
+
+      - name: Verify data-preserving upgrade from Published VN code 1.4.6
+        shell: pwsh
+        run: |
+          if ([version]$env:APP_VERSION -gt [version]"1.4.6") {
+            ./tools/windows-upgrade-smoke.ps1 -Version $env:APP_VERSION -FromStable146
+          }
+
+      - name: Verify data-preserving upgrade from Published VN code 1.4.10
+        shell: pwsh
+        run: |
+          if ([version]$env:APP_VERSION -gt [version]"1.4.10") {
+            ./tools/windows-upgrade-smoke.ps1 -Version $env:APP_VERSION -FromStable1410
+          }
+
+      - name: Verify data-preserving upgrade from Published VN code 1.4.11
+        shell: pwsh
+        run: |
+          if ([version]$env:APP_VERSION -gt [version]"1.4.11") {
+            ./tools/windows-upgrade-smoke.ps1 -Version $env:APP_VERSION -FromStable1411
+          }
+
+      - name: Verify data-preserving upgrade from Published VN code 1.4.12
+        shell: pwsh
+        run: |
+          if ([version]$env:APP_VERSION -gt [version]"1.4.12") {
+            ./tools/windows-upgrade-smoke.ps1 -Version $env:APP_VERSION -FromStable1412
+          }
+
+      - name: Verify data-preserving upgrade from Published VN code 1.4.13
+        shell: pwsh
+        run: |
+          if ([version]$env:APP_VERSION -gt [version]"1.4.13") {
+            ./tools/windows-upgrade-smoke.ps1 -Version $env:APP_VERSION -FromStable1413
+          }
+
+      - name: Verify data-preserving upgrade from Published VN code 1.4.15
+        shell: pwsh
+        run: |
+          if ([version]$env:APP_VERSION -gt [version]"1.4.15") {
+            ./tools/windows-upgrade-smoke.ps1 -Version $env:APP_VERSION -FromStable1415
+          }
+
+      - name: Verify data-preserving upgrade from Latest VN code 1.4.16
+        shell: pwsh
+        run: |
+          if ([version]$env:APP_VERSION -gt [version]"1.4.16") {
+            ./tools/windows-upgrade-smoke.ps1 -Version $env:APP_VERSION -FromStable1416
+          }
+
+      - name: Verify data-preserving upgrade from Latest VN code 1.4.18
+        shell: pwsh
+        run: |
+          if ([version]$env:APP_VERSION -gt [version]"1.4.18") {
+            ./tools/windows-upgrade-smoke.ps1 -Version $env:APP_VERSION -FromStable1418
+          }
+
+      - name: Verify data-preserving upgrade from Latest VN code 1.4.19
+        shell: pwsh
+        run: |
+          if ([version]$env:APP_VERSION -gt [version]"1.4.19") {
+            ./tools/windows-upgrade-smoke.ps1 -Version $env:APP_VERSION -FromStable1419
+          }
+
+      - name: Verify data-preserving upgrade from Latest VN code 1.5.0
+        shell: pwsh
+        run: |
+          if ([version]$env:APP_VERSION -gt [version]"1.5.0") {
+            ./tools/windows-upgrade-smoke.ps1 -Version $env:APP_VERSION -FromStable150
+          }
+
+      - name: Verify data-preserving upgrade from Latest VN code 1.5.1
+        shell: pwsh
+        run: |
+          if ([version]$env:APP_VERSION -gt [version]"1.5.1") {
+            ./tools/windows-upgrade-smoke.ps1 -Version $env:APP_VERSION -FromStable151
+          }
+
+      - name: Verify data-preserving upgrade from Latest VN code 1.5.2
+        shell: pwsh
+        run: |
+          if ([version]$env:APP_VERSION -gt [version]"1.5.2") {
+            ./tools/windows-upgrade-smoke.ps1 -Version $env:APP_VERSION -FromStable152
+          }
+
+      - name: Verify data-preserving upgrade from Latest VN code 1.5.3
+        shell: pwsh
+        run: |
+          if ([version]$env:APP_VERSION -gt [version]"1.5.3") {
+            ./tools/windows-upgrade-smoke.ps1 -Version $env:APP_VERSION -FromStable153
+          }
+
+      - name: Verify data-preserving upgrade from Latest VN code 1.5.4
+        shell: pwsh
+        run: |
+          if ([version]$env:APP_VERSION -gt [version]"1.5.4") {
+            ./tools/windows-upgrade-smoke.ps1 -Version $env:APP_VERSION -FromStable154
+          }
+
+      - name: Verify data-preserving upgrade from VN code 1.5.5
+        shell: pwsh
+        run: |
+          if ([version]$env:APP_VERSION -gt [version]"1.5.5") {
+            ./tools/windows-upgrade-smoke.ps1 -Version $env:APP_VERSION -FromStable155
+          }
+
+      - name: Verify data-preserving upgrade from VN code 1.5.7
+        shell: pwsh
+        run: |
+          if ([version]$env:APP_VERSION -gt [version]"1.5.7") {
+            ./tools/windows-upgrade-smoke.ps1 -Version $env:APP_VERSION -FromStable157
+            if ($LASTEXITCODE -ne 0) { throw '1.5.7 upgrade probe failed.' }
+          }
+
       - name: Verify and name test installer
         shell: pwsh
         run: |
@@ -103,6 +389,12 @@ jobs:
           $hash = (Get-FileHash $target -Algorithm SHA256).Hash.ToLowerInvariant()
           $checksum = Join-Path $PWD "out\VN-code-$env:APP_VERSION-Windows-x64.sha256"
           "$hash  VN-code-$env:APP_VERSION-Windows-x64.exe" | Set-Content $checksum -Encoding ascii
+          if (Test-Path target\java-verification-reuse.json) {
+            Copy-Item target\java-verification-reuse.json out\java-verification-reuse.json
+          }
+          if (Test-Path target\java-fixture-recovery.json) {
+            Copy-Item target\java-fixture-recovery.json out\java-fixture-recovery.json
+          }
 
       - name: Preserve Windows test installer
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
@@ -111,16 +403,96 @@ jobs:
           path: |
             out/VN-code-${{ env.APP_VERSION }}-Windows-x64.exe
             out/VN-code-${{ env.APP_VERSION }}-Windows-x64.sha256
+            out/java-verification-reuse.json
+            out/java-fixture-recovery.json
             out/native-smoke.json
             out/side-by-side-smoke.json
-            out/upgrade-smoke.json
-            out/upgrade-preview-smoke.json
-            out/upgrade-latest-preview-smoke.json
+            out/upgrade-*.json
+            out/gs1-smoke.json
+            out/seller-workspace-smoke.json
+            out/seller-workspace-evidence.zip
+            out/ui-layout.json
+            out/ui-layout-evidence.zip
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Preserve native diagnostics and candidate after packaging failure
+        if: failure()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: VN-code-${{ env.APP_VERSION }}-Windows-native-diagnostics-${{ github.run_id }}
+          path: |
+            out/*.exe
+            out/*.sha256
+            out/*.json
+            out/*.zip
+            out/*.log
+            target/jpackage-temp/msi/*.msi
+          if-no-files-found: ignore
+          retention-days: 7
+
+  build-license-diagnostics:
+    if: ${{ inputs.license_diagnostics_only && !inputs.portal_only && !inputs.msi_inspection_only }}
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-java@03ad4de0992f5dab5e18fcb136590ce7c4a0ac95
+        with:
+          java-version: "25"
+          distribution: oracle
+          cache: maven
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: "22"
+      - name: Resolve diagnostic version
+        shell: pwsh
+        run: '"APP_VERSION=$(node tools/release-version.mjs)" >> $env:GITHUB_ENV'
+      - name: Verify packaging contracts
+        run: node --test tools/*.test.mjs
+      - name: Verify license and updater transport, verification, storage and UI on Windows
+        shell: pwsh
+        run: .\mvnw.cmd -B "-Dtest=LicensePaneTest,WebLicenseApiTest,LicenseNetworkDiagnosticsTest,LicenseConnectionRouterTest,LicenseServiceTest,LicenseVerifierTest,LicenseStoreTest,LicenseDeviceKeysTest,LicenseClockTest,LicenseRefreshCadenceTest,LicenseTrustRotationTest,PortalClientContractTest,RegisteredGtinProofTest,RegisteredCatalogOwnershipTest,RegisteredGtinSourceTest,FriendlyErrorCodeTest,ZnackAutomationControllerTest,ZnackAutomationInformationTest,CatalogApiAuthorizationTest,CatalogCredentialRepositoryTest,NationalCatalogGs1ClientTest,ZnackNationalCatalogServiceTest,ZnackMutationTransportTest,UpdateApiClientTest,UpdateSourceIsolationTest,UpdateServiceTest,UpdateInstallerServiceTest,UpdateDownloadVerificationTest,SignedUpdateManifestTest,UpdatePresentationTest,UpdateTransportTest" package
+      - name: Package diagnostic installer from focused verified inputs
+        shell: cmd
+        env:
+          VNCODE_REUSE_VERIFIED_BUILD: "true"
+        run: build.bat exe
+      - name: Verify native launcher and preserved history
+        shell: pwsh
+        run: ./tools/windows-native-smoke.ps1 -Version $env:APP_VERSION
+      - name: Verify Windows secret protection
+        shell: pwsh
+        run: ./tools/windows-gs1-smoke.ps1 -Version $env:APP_VERSION
+      - name: Name and checksum diagnostic candidate
+        shell: pwsh
+        run: |
+          $installers = @(Get-ChildItem out -Filter 'VN code*.exe' -File)
+          if ($installers.Count -ne 1 -or $installers[0].Length -lt 1MB) { throw 'Missing diagnostic installer.' }
+          $file = "VN-code-$env:APP_VERSION-License-Diagnostics-Windows-x64.exe"
+          Copy-Item -LiteralPath $installers[0].FullName -Destination (Join-Path out $file)
+          $hash = (Get-FileHash (Join-Path out $file) -Algorithm SHA256).Hash.ToLowerInvariant()
+          "$hash  $file" | Set-Content "out\$file.sha256" -Encoding ascii
+          @'
+          VNCode license diagnostic candidate: focused license and updater tests, native launcher/history and Windows secret-protection checks.
+          This candidate has not completed the full application, shop-workspace and installer-upgrade matrix. It is not an official release.
+          Close VNCode before installing. Open License, retry activation and send the displayed error code; do not send your license key.
+          No server signing key or license permissions are bypassed. Portal updates are separate from installing this desktop candidate.
+          '@ | Set-Content out\LICENSE-DIAGNOSTICS-README.txt -Encoding utf8
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: VN-code-${{ env.APP_VERSION }}-License-Diagnostics-Windows-x64
+          path: |
+            out/VN-code-${{ env.APP_VERSION }}-License-Diagnostics-Windows-x64.exe
+            out/VN-code-${{ env.APP_VERSION }}-License-Diagnostics-Windows-x64.exe.sha256
+            out/LICENSE-DIAGNOSTICS-README.txt
+            out/native-smoke.json
+            out/gs1-smoke.json
+            target/surefire-reports/TEST-*.xml
           if-no-files-found: error
           retention-days: 14
 
   build-macos-test:
-    if: ${{ github.event_name != 'workflow_dispatch' || !inputs.windows_only }}
+    if: ${{ github.event_name != 'workflow_dispatch' || (!inputs.windows_only && !inputs.portal_only) }}
     name: Build macOS ${{ matrix.architecture }} test package
     runs-on: ${{ matrix.runner }}
     strategy:

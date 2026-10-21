@@ -1,6 +1,8 @@
 package com.vncode.app.features.print;
 
 import com.vncode.app.features.kizmapping.KizMappingRepository;
+import com.vncode.app.features.license.LicenseModels.Permission;
+import com.vncode.app.features.license.LicenseRuntime;
 import com.vncode.app.features.kizmapping.ZnackKizLabelMetadata;
 import com.vncode.app.integration.znack.GtinNormalizer;
 import com.vncode.app.integration.znack.ZnackGtinInventoryService;
@@ -27,24 +29,48 @@ public class ZnackKizExportService {
     }
 
     public ExportResult export(int shopId, String gtin, int quantity, File target) throws IOException {
+        LicenseRuntime.require(Permission.PRINT_NEW);
         if (shopId <= 0 || quantity <= 0 || target == null) {
             throw new IllegalArgumentException("Shop, quantity and target file are required.");
         }
+        try(var claim=com.vncode.app.features.print.history.PrintHistoryRepository.claimKizExport(shopId,gtin)){
+            return com.vncode.app.features.shop.ShopOperationCoordinator.withActiveShop(shopId,()->exportCurrent(shopId,gtin,quantity,target));
+        }
+        catch(IOException|RuntimeException failure){throw failure;}
+        catch(Exception failure){throw new IOException("Không thể xuất nhãn KIZ.",failure);}
+    }
+
+    private ExportResult exportCurrent(int shopId,String gtin,int quantity,File target)throws IOException {
+        var shop=new com.vncode.app.features.shop.ShopRepository().findById(shopId);
+        com.vncode.app.integration.listing.ListingIdentity.require(shop);
+        var history=new com.vncode.app.features.print.history.PrintHistoryService();
+        var historyRepository=new com.vncode.app.features.print.history.PrintHistoryRepository();
         String normalized = GtinNormalizer.normalize(gtin);
+        historyRepository.requireNoRecoverableKiz(shopId,normalized);
         List<Kiz> reserved = List.of();
         File staging = null;
         boolean consumed = false;
+        long printJobId=0;
         try {
+            LicenseRuntime.require(Permission.PRINT_NEW);
             reserved = inventory.reserveAvailable(shopId, normalized, quantity);
             ZnackKizLabelMetadata metadata = mappings.findLabelMetadata(shopId, normalized);
             staging = AtomicFilePublisher.stagingFile(target, ".pdf");
             exporter.write(reserved, metadata, staging);
-            inventory.consume(shopId, reserved);
+            LicenseRuntime.require(Permission.PRINT_NEW);
+            com.vncode.app.integration.listing.ListingIdentity.require(shop);
+            printJobId=history.recordPreparedKizJob(shop,metadata,reserved,normalized);
+            inventory.consumeForPrint(shopId, reserved,printJobId);
             consumed = true;
             AtomicFilePublisher.publish(staging, target);
+            historyRepository.finishPrintJob(shopId,printJobId,"pdf_ready","success");
             return new ExportResult(target, reserved.size());
         } catch (IOException | RuntimeException error) {
-            if (!consumed) inventory.release(shopId, reserved);
+            if (!consumed) {
+                inventory.release(shopId, reserved);
+                if(printJobId>0)try{historyRepository.finishPrintJob(shopId,printJobId,"prepared","failed");}
+                catch(RuntimeException checkpointFailure){error.addSuppressed(checkpointFailure);}
+            }
             throw error;
         } finally {
             AtomicFilePublisher.deleteQuietly(staging);

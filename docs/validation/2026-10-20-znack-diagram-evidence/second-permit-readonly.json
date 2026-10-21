@@ -1,0 +1,71 @@
+{
+  "mode": "production-read-only-user-supplied-permit",
+  "writesPerformed": false,
+  "checkedAt": "2026-10-20T20:04:28.110786+00:00",
+  "requests": [
+    {
+      "service": "Catalog",
+      "method": "GET",
+      "path": "/v4/product-list",
+      "purpose": "find genuine errored card permit reference",
+      "httpStatus": 200,
+      "responseBytes": 346456
+    },
+    {
+      "service": "Catalog",
+      "method": "GET",
+      "path": "/v4/product-list",
+      "purpose": "find genuine errored card permit reference",
+      "httpStatus": 200,
+      "responseBytes": 94870
+    },
+    {
+      "service": "Catalog",
+      "method": "GET",
+      "path": "/v3/feed-product",
+      "purpose": "compare supplied number with actual existing card reference",
+      "httpStatus": 200,
+      "responseBytes": 4378
+    },
+    {
+      "service": "Catalog",
+      "method": "POST",
+      "path": "/v4/rd-info",
+      "purpose": "read registry for exact user number and actual reference issue date",
+      "httpStatus": 200,
+      "responseBytes": 1999
+    }
+  ],
+  "sanitization": {
+    "containsCredentialValues": false,
+    "containsProductIdentifiers": false,
+    "containsGtinValues": false,
+    "containsSellerRawData": false
+  },
+  "containsPermitNumbers": false,
+  "existingErrorCardReference": {
+    "sameCanonicalNumber": true,
+    "referenceCount": 1,
+    "matchedReferenceCount": 1,
+    "source": "genuine inline error-card reference, not guessed date"
+  },
+  "registry": [
+    {
+      "canonicalNumberMatches": true,
+      "type": "CONFORMITY_DECLARATION",
+      "attrId": 23557,
+      "statusGroup": 1,
+      "fromDate": "2026-06-07",
+      "toDate": "2031-06-03",
+      "tnvedScopeCodes": [
+        "6101",
+        "6201",
+        "6202",
+        "6211"
+      ],
+      "coversSourceTnved6109100000": false
+    }
+  ],
+  "status": "COMPLETE",
+  "completedAt": "2026-10-20T20:04:34.224867+00:00"
+}

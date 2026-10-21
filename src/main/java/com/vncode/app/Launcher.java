@@ -2,8 +2,8 @@ package com.vncode.app;
 
 import com.vncode.app.shared.AppPaths;
 import com.vncode.app.shared.AppDataLock;
+import com.vncode.app.shared.AppInstanceActivation;
 import com.vncode.app.shared.LocalDataMigrationGate;
-import com.vncode.app.shared.LocalDataSnapshotService;
 import javafx.application.Application;
 
 import java.io.PrintWriter;
@@ -13,20 +13,56 @@ import java.nio.file.Path;
 import java.time.LocalDateTime;
 
 public class Launcher {
+    private static volatile LocalDataMigrationGate.Session dataSession;
+    private static final Object SESSION_LOCK=new Object();
+    private static boolean exiting;
     public static void main(String[] args) {
         configureStartupEnvironment();
-        try (LocalDataMigrationGate.Session ignored = LocalDataMigrationGate.prepare(
-                AppPaths.appDataDir(), BuildConfig.getAppVersion(), "javafx")) {
+        synchronized(SESSION_LOCK){exiting=false;}
+        try {
             Application.launch(MainApplication.class, args);
-        } catch (AppDataLock.AlreadyRunningException exception) {
-            System.err.println("VN code is already running for this app-data directory.");
-        } catch (LocalDataSnapshotService.InsufficientDiskSpaceException exception) {
-            writeStartupLog("main", exception);
-            System.err.println(exception.getMessage());
         } catch (Exception exception) {
             writeStartupLog("main", exception);
             System.err.println("VN code could not acquire its app-data directory.");
+        }finally{
+            synchronized(SESSION_LOCK){exiting=true;var session=dataSession;dataSession=null;if(session!=null)try{session.close();}catch(java.io.IOException failed){writeStartupLog("close",failed);}}
         }
+    }
+    /** The visible startup scene precedes recovery; no application writer opens first. */
+    static void prepareDataSession(java.util.function.Consumer<String> phase)throws Exception {
+        prepareDataSession(phase,null);
+    }
+    static void prepareDataSession(java.util.function.Consumer<String> phase,
+                                   java.util.function.Supplier<? extends java.util.concurrent.CompletionStage<Void>> restore)throws Exception {
+        LocalDataMigrationGate.Session session;
+        try{session=LocalDataMigrationGate.prepare(AppPaths.appDataDir(),BuildConfig.getAppVersion(),"javafx",phase,restore);}
+        catch(AppDataLock.AlreadyRunningException alreadyRunning){
+            try{
+                if(AppInstanceActivation.requestActivation(AppPaths.appDataDir(),java.time.Duration.ofSeconds(3)))
+                    throw new AppInstanceActivation.ActivatedException();
+            }catch(AppInstanceActivation.ActivatedException activated){throw activated;
+            }catch(java.io.IOException unavailable){alreadyRunning.addSuppressed(unavailable);}
+            throw alreadyRunning;
+        }
+        synchronized(SESSION_LOCK){
+            if(exiting||Thread.currentThread().isInterrupted()){session.close();throw new java.io.InterruptedIOException("STARTUP_CANCELLED");}
+            dataSession=session;
+        }
+    }
+    static void stopInstanceActivation(){
+        synchronized(SESSION_LOCK){if(dataSession!=null)dataSession.closeActivation();}
+    }
+    public static void prepareUpdateSnapshot()throws java.io.IOException {
+        prepareUpdateSnapshot(null);
+    }
+    public static void prepareUpdateSnapshot(String targetVersion)throws java.io.IOException {
+        prepareUpdateSnapshot(targetVersion,progress->{});
+    }
+    public static void prepareUpdateSnapshot(String targetVersion,java.util.function.Consumer<com.vncode.app.shared.LocalDataSnapshotService.Progress> progress)throws java.io.IOException {
+        var session=dataSession;
+        if(session==null)throw new java.io.IOException("UPDATE_BACKUP_UNAVAILABLE");
+        try{session.createSignedUpdateSnapshot(targetVersion,progress);}
+        catch(Exception failed){throw new java.io.IOException("UPDATE_BACKUP_FAILED", failed);}
     }
 
     private static void configureStartupEnvironment() {
@@ -55,7 +91,7 @@ public class Launcher {
         return value != null && value.chars().allMatch(ch -> ch >= 32 && ch <= 126);
     }
 
-    private static void writeStartupLog(String threadName, Throwable throwable) {
+    static void writeStartupLog(String threadName, Throwable throwable) {
         try {
             Path logsDir = AppPaths.logsDir();
             Files.createDirectories(logsDir);
@@ -66,6 +102,8 @@ public class Launcher {
 
             String content = """
                     [%s] Thread: %s
+                    app.version=%s
+                    process.pid=%s
                     user.home=%s
                     LOCALAPPDATA=%s
                     APPDATA=%s
@@ -77,6 +115,8 @@ public class Launcher {
                     """.formatted(
                     LocalDateTime.now(),
                     threadName,
+                    BuildConfig.getAppVersion(),
+                    ProcessHandle.current().pid(),
                     System.getProperty("user.home"),
                     System.getenv("LOCALAPPDATA"),
                     System.getenv("APPDATA"),

@@ -1,0 +1,11 @@
+{
+  "version": "1.5.7",
+  "url": "https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.5.7/VN-code-1.5.7-Windows-x64.exe",
+  "sha256": "b51a0049481296ef9d5ad1f2be67a729a366526965dfd18571b9adac30b9a693",
+  "bytes": 147257344,
+  "evidenceRepository": "ntccong2468-lab/Bancapnhat",
+  "evidenceCommit": "15d062e89fe7c5ede4a34afb63694d2eef7b1f16",
+  "evidencePath": "docs/validation/2026-10-21-vncode-157-published-latest.json",
+  "downloadVerifiedByThisTask": false,
+  "ciMustVerifyBytesAndChecksumBeforeInstallation": true
+}

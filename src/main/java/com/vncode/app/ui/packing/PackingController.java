@@ -61,6 +61,7 @@ import java.util.Set;
 import java.util.function.Consumer;
 
 public class PackingController {
+    private final com.vncode.app.shared.TableRows.Tracked<Order,Long> renderedOrders=new com.vncode.app.shared.TableRows.Tracked<>();
     private static final Logger LOGGER = LoggerFactory.getLogger(PackingController.class);
     private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm");
     private final PackingWorkflow packingWorkflow = new PackingWorkflow();
@@ -112,6 +113,10 @@ public class PackingController {
     private Consumer<WbSupplySummary> onPrintSupply;
     private PauseTransition delayTransition;
     private long shopGeneration;
+    private long localGeneration;
+    private boolean disposed;
+    private final com.vncode.app.shared.ShopReadCoordinator reads=com.vncode.app.shared.ShopReadCoordinator.shared();
+    private final com.vncode.app.shared.ThumbnailLoader thumbnails=new com.vncode.app.shared.ThumbnailLoader();
 
     @FXML
     private void initialize() {
@@ -131,7 +136,7 @@ public class PackingController {
     }
 
     public void setShop(Shop shop, boolean tokenValid) {
-        shopGeneration++;
+        renderedOrders.clear();shopGeneration++;
         dispatchEpoch++;dispatchLoading=false;dispatchOffset=0;dispatchTable.getItems().clear();dispatchMoreButton.setDisable(true);
         this.shop = shop;
         this.tokenValid = tokenValid;
@@ -144,11 +149,7 @@ public class PackingController {
             setBoard(new PackingWorkflow.PackingBoard(List.of(), List.of(), List.of()));
             return;
         }
-        if (newOrdersTab != null && newOrdersTab.isSelected()) {
-            delayTransition.playFromStart();
-        } else {
-            refresh();
-        }
+        refresh();
     }
 
     @FXML private void onLoadMoreDispatch() {
@@ -160,8 +161,9 @@ public class PackingController {
         task.setOnSucceeded(e->{if(!isCurrent(owner,generation)||epoch!=dispatchEpoch||offset!=dispatchOffset)return;dispatchLoading=false;
             dispatchTable.getItems().addAll(task.getValue().items());dispatchOffset+=task.getValue().items().size();
             dispatchMoreButton.setDisable(dispatchOffset>=task.getValue().totalItems());});
-        task.setOnFailed(e->{if(!isCurrent(owner,generation)||epoch!=dispatchEpoch||offset!=dispatchOffset)return;dispatchLoading=false;dispatchMoreButton.setDisable(false);AlertService.showError(FriendlyErrorService.format(task.getException()));});
-        AppTaskExecutor.execute(task);
+        java.util.function.Consumer<Throwable> taskFailure = rejection ->{if(!isCurrent(owner,generation)||epoch!=dispatchEpoch||offset!=dispatchOffset)return;dispatchLoading=false;dispatchMoreButton.setDisable(false);AlertService.showError(FriendlyErrorService.format(rejection));};
+        task.setOnFailed(e -> taskFailure.accept(task.getException()));
+        AppTaskExecutor.execute(task, taskFailure);
     }
 
     @FXML
@@ -230,29 +232,19 @@ public class PackingController {
         });
     }
 
+    public void refreshLocalData(){refresh();}
+
     private void refresh() {
         if (shop == null) {
             return;
         }
         Shop selectedShop = shop;
         long generation = shopGeneration;
-        Task<PackingWorkflow.PackingBoard> task = new Task<>() {
-            @Override
-            protected PackingWorkflow.PackingBoard call() {
-                return packingWorkflow.loadBoard(selectedShop);
-            }
-        };
-        task.setOnSucceeded(e -> {
-            if (!isCurrent(selectedShop, generation)) return;
-            setBoard(task.getValue());
-        });
-        task.setOnFailed(e -> {
-            if (!isCurrent(selectedShop, generation)
-                    || ShopOperationCoordinator.isShopUnavailable(task.getException())) return;
-            LOGGER.error("Не удалось загрузить упаковку для shop {}", selectedShop.getId(), task.getException());
-            AlertService.showError(FriendlyErrorService.format(task.getException()));
-        });
-        AppTaskExecutor.execute(task);
+        long request=++localGeneration;
+        reads.submitLocal(new com.vncode.app.shared.ShopReadCoordinator.Key(selectedShop.getId(),"wb-packing-local",Long.toString(generation)),()->packingWorkflow.loadBoardData(selectedShop)).whenComplete((board,error)->javafx.application.Platform.runLater(()->{
+            if(disposed||request!=localGeneration||!isCurrent(selectedShop,generation))return;
+            if(error==null)setBoard(board);
+        }));
     }
 
     private void refreshFromWb() {
@@ -276,10 +268,10 @@ public class PackingController {
             setLoading(false);
             setBoard(task.getValue());
         });
-        task.setOnFailed(e -> {
+        java.util.function.Consumer<Throwable> taskFailure = rejection -> {
             if (!isCurrent(selectedShop, generation)) return;
             setLoading(false);
-            Throwable failure = task.getException();
+            Throwable failure = rejection;
             if (ShopOperationCoordinator.isShopUnavailable(failure)) return;
             LOGGER.error("Не удалось обновить упаковку для shop {}", selectedShop.getId(), failure);
             if (isTimeoutFailure(failure)) {
@@ -287,8 +279,9 @@ public class PackingController {
                 return;
             }
             AlertService.showError(FriendlyErrorService.format(failure));
-        });
-        AppTaskExecutor.execute(task);
+        };
+        task.setOnFailed(e -> taskFailure.accept(task.getException()));
+        AppTaskExecutor.execute(task, taskFailure);
     }
 
     private boolean isTimeoutFailure(Throwable failure) {
@@ -325,24 +318,25 @@ public class PackingController {
             selectedOrderIds.clear();
             refreshFromWb();
         });
-        task.setOnFailed(e -> {
+        java.util.function.Consumer<Throwable> taskFailure = rejection -> {
             if (!isCurrent(selectedShop, generation)) return;
             setLoading(false);
-            if (ShopOperationCoordinator.isShopUnavailable(task.getException())) return;
-            LOGGER.error("WB write action failed", task.getException());
-            AlertService.showError(FriendlyErrorService.format(task.getException()));
-        });
-        AppTaskExecutor.execute(task);
+            if (ShopOperationCoordinator.isShopUnavailable(rejection)) return;
+            LOGGER.error("WB write action failed", rejection);
+            AlertService.showError(FriendlyErrorService.format(rejection));
+        };
+        task.setOnFailed(e -> taskFailure.accept(task.getException()));
+        AppTaskExecutor.execute(task, taskFailure);
     }
 
     private void setBoard(PackingWorkflow.PackingBoard board) {
-        selectedOrderIds.clear();
+        var retained=new java.util.HashSet<Long>();if(board.newOrders()!=null)for(var row:board.newOrders())if(row.getId()!=null)retained.add(row.getId());selectedOrderIds.retainAll(retained);
         allNewOrders = board.newOrders() == null ? List.of() : List.copyOf(board.newOrders());
         updateCategoryFilterOptions();
         applyNewOrderFilters();
-        preparationTable.getItems().setAll(board.preparationSupplies());
+        com.vncode.app.shared.TableRows.merge(preparationTable.getItems(),board.preparationSupplies(),WbSupplySummary::getSupplyId,com.vncode.app.shared.FbsRowValues::sameSupply);
         dispatchEpoch++;
-        dispatchTable.getItems().setAll(board.dispatchSupplies());
+        com.vncode.app.shared.TableRows.merge(dispatchTable.getItems(),board.dispatchSupplies(),WbSupplySummary::getSupplyId,com.vncode.app.shared.FbsRowValues::sameSupply);
         dispatchOffset=board.dispatchSupplies().size();dispatchLoading=false;
         dispatchMoreButton.setDisable(shop==null||board.dispatchSupplies().size()<20);
         updateSelectionState();
@@ -418,7 +412,9 @@ public class PackingController {
         newShipmentButton.setDisable(loading || selectedOrderIds.isEmpty() || !tokenValid);
         addToShipmentButton.setDisable(loading || selectedOrderIds.isEmpty() || !tokenValid);
         refreshButton.setDisable(loading || shop == null || !tokenValid);
-        refreshLoading.setVisible(loading);
+        refreshLoading.setVisible(false);
+        if(loading)newOrdersTable.setPlaceholder(new com.vncode.app.shared.LoadingSkeleton(I18nService.getInstance().tr("supply.loading_orders")));
+        else newOrdersTable.setPlaceholder(new Label(I18nService.getInstance().tr("supply_list.empty")));
         newOrdersTable.setDisable(loading);
         newOrderSearchField.setDisable(loading);
         categoryFilterMenuButton.setDisable(loading);
@@ -476,11 +472,8 @@ public class PackingController {
             return;
         }
         packingTabPane.getSelectionModel().selectedItemProperty().addListener((obs, oldTab, newTab) -> {
-            if (newTab == newOrdersTab && shop != null && !refreshLoading.isVisible()) {
-                delayTransition.playFromStart();
-            } else {
-                delayTransition.stop();
-            }
+            delayTransition.stop();
+            if(shop!=null&&!refreshLoading.isVisible())refresh();
         });
     }
 
@@ -562,7 +555,7 @@ public class PackingController {
                 .filter(id -> id != null)
                 .collect(java.util.stream.Collectors.toCollection(LinkedHashSet::new));
         selectedOrderIds.retainAll(visibleIds);
-        newOrdersTable.getItems().setAll(filtered);
+        renderedOrders.merge(newOrdersTable.getItems(),filtered,Order::getId,com.vncode.app.shared.FbsRowValues::snapshot);
         emptyNewOrdersLabel.setVisible(filtered.isEmpty());
         emptyNewOrdersLabel.setManaged(filtered.isEmpty());
         updateSelectionState();
@@ -598,12 +591,19 @@ public class PackingController {
 
     private TableCell<Order, byte[]> imageCell() {
         return new TableCell<>() {
+            private long imageGeneration;
             @Override
             protected void updateItem(byte[] imageBytes, boolean empty) {
                 super.updateItem(imageBytes, empty);
+                long request=++imageGeneration,ownerGeneration=shopGeneration;
                 if (empty) {
                     setGraphic(null);
                     return;
+                }
+                var order=getTableRow()==null?null:getTableRow().getItem();
+                if(order!=null&&order.getImageUrl()!=null&&!order.getImageUrl().isBlank()){
+                    var view=new ImageView();view.setFitWidth(36);view.setFitHeight(48);view.setPreserveRatio(true);setGraphic(view);
+                    try{thumbnails.load(java.net.URI.create(order.getImageUrl()),72,96).whenComplete((image,error)->javafx.application.Platform.runLater(()->{if(!disposed&&request==imageGeneration&&ownerGeneration==shopGeneration&&getTableRow()!=null&&getTableRow().getItem()==order&&error==null)view.setImage(image);}));}catch(IllegalArgumentException invalid){}return;
                 }
                 if (imageBytes == null || imageBytes.length == 0) {
                     StackPane placeholder = new StackPane();
@@ -614,14 +614,16 @@ public class PackingController {
                     setGraphic(placeholder);
                     return;
                 }
-                ImageView imageView = new ImageView(new Image(new ByteArrayInputStream(imageBytes)));
+                ImageView imageView = new ImageView();
                 imageView.setFitWidth(36);
                 imageView.setFitHeight(48);
                 imageView.setPreserveRatio(true);
                 setGraphic(imageView);
+                thumbnails.loadBytes(imageBytes,72,96).whenComplete((loaded,error)->javafx.application.Platform.runLater(()->{if(!disposed&&ownerGeneration==shopGeneration&&request==imageGeneration&&getTableRow()!=null&&getTableRow().getItem()==order&&error==null)imageView.setImage(loaded);}));
             }
         };
     }
+    public void dispose(){disposed=true;shopGeneration++;localGeneration++;if(delayTransition!=null)delayTransition.stop();thumbnails.close();}
 
     private TableCell<WbSupplySummary, Void> dispatchActionCell() {
         return new TableCell<>() {
@@ -685,12 +687,13 @@ public class PackingController {
                 AlertService.showError(ex.getMessage());
             }
         });
-        task.setOnFailed(e -> {
+        java.util.function.Consumer<Throwable> taskFailure = rejection -> {
             if (!isCurrent(selectedShop, generation)
-                    || ShopOperationCoordinator.isShopUnavailable(task.getException())) return;
-            AlertService.showError(FriendlyErrorService.format(task.getException()));
-        });
-        AppTaskExecutor.execute(task);
+                    || ShopOperationCoordinator.isShopUnavailable(rejection)) return;
+            AlertService.showError(FriendlyErrorService.format(rejection));
+        };
+        task.setOnFailed(e -> taskFailure.accept(task.getException()));
+        AppTaskExecutor.execute(task, taskFailure);
     }
 
     private boolean isCurrent(Shop expectedShop, long generation) {

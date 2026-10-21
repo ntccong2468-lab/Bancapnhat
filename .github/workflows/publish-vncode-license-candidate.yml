@@ -1,0 +1,38 @@
+name: Attach verified Windows installer to license-test draft
+on:
+  workflow_dispatch:
+    inputs:
+      build_run_id:
+        description: Successful build-java.yml run
+        required: true
+        type: string
+      build_source_commit:
+        description: Exact source commit of that build
+        required: true
+        type: string
+      candidate_tag:
+        description: Draft tag such as v1.4.0-license-test.1
+        required: true
+        type: string
+permissions:
+  contents: write
+  actions: read
+jobs:
+  attach:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: '22'
+      - name: Verify publication contracts
+        run: node --test tools/*.test.mjs
+      - name: Validate immutable build and attach installer without publishing
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BUILD_RUN_ID: ${{ inputs.build_run_id }}
+          BUILD_SOURCE_COMMIT: ${{ inputs.build_source_commit }}
+          CANDIDATE_TAG: ${{ inputs.candidate_tag }}
+        run: node tools/publish-vncode-license-candidate.mjs "$BUILD_RUN_ID" "$BUILD_SOURCE_COMMIT" "$CANDIDATE_TAG"

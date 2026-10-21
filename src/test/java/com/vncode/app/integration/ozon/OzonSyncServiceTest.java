@@ -42,10 +42,10 @@ class OzonSyncServiceTest {
                 new OzonCredentials("client-1", "secret"),
                 server.url("/"),
                 new OkHttpClient.Builder()
-                        .connectTimeout(200, TimeUnit.MILLISECONDS)
-                        .readTimeout(200, TimeUnit.MILLISECONDS)
-                        .writeTimeout(200, TimeUnit.MILLISECONDS)
-                        .callTimeout(500, TimeUnit.MILLISECONDS)
+                        .connectTimeout(2, TimeUnit.SECONDS)
+                        .readTimeout(2, TimeUnit.SECONDS)
+                        .writeTimeout(2, TimeUnit.SECONDS)
+                        .callTimeout(5, TimeUnit.SECONDS)
                         .build(),
                 new OzonApiRateLimiter(Duration.ZERO),
                 new OzonRetryPolicy(1, Duration.ofMillis(1), Duration.ofMillis(1)));
@@ -57,6 +57,82 @@ class OzonSyncServiceTest {
         server.shutdown();
     }
 
+    @Test void registrationSnapshotRejectsMalformedOrSilentlySkippedProductLists() throws Exception {
+        for(String payload:java.util.List.of("{}","{\"result\":{\"items\":[{}]}}")) {
+            server.enqueue(json(payload));
+            assertThrows(IOException.class,()->new OzonCatalogSyncService(1,api).syncForRegistration(p->{}));
+        }
+        assertEquals(0,count("SELECT count(*) FROM ozon_products"));
+    }
+    private void rotateCredentialsDuringResponse(String body) {
+        server.setDispatcher(new okhttp3.mockwebserver.Dispatcher(){
+            @Override public MockResponse dispatch(okhttp3.mockwebserver.RecordedRequest request) {
+                try(var c=Database.getConnection();var s=c.createStatement()){s.execute("UPDATE shops SET api_key='rotated-synthetic-key' WHERE id=1");}
+                catch(java.sql.SQLException e){throw new AssertionError(e);}
+                return json(body);
+            }
+        });
+    }
+    @Test void aCatalogResponseCannotBeSavedAfterTheShopCredentialWasChanged()throws Exception{
+        rotateCredentialsDuringResponse("{\"result\":{\"items\":[{\"product_id\":\"101\",\"offer_id\":\"A\"}],\"last_id\":\"next\"}}");
+        assertThrows(SecurityException.class,()->new OzonCatalogSyncService(1,api).syncFromStart());
+        assertEquals(1,server.getRequestCount());assertEquals(0,count("SELECT count(*) FROM ozon_products"));
+        assertEquals("",new OzonSyncStateRepository().find(1).productsLastId());
+    }
+    @Test void aPostingResponseCannotBeSavedAfterTheShopCredentialWasChanged()throws Exception{
+        rotateCredentialsDuringResponse("{\"result\":{\"posting_number\":\"P-1\",\"status\":\"awaiting_packaging\",\"products\":[]}}");
+        assertThrows(SecurityException.class,()->new OzonPostingSyncService(1,api).refresh("P-1",false));
+        assertEquals(1,server.getRequestCount());assertEquals(0,count("SELECT count(*) FROM ozon_postings"));
+    }
+    @Test void registrationSnapshotCannotTurnMissingDetailsIntoAPlaceholderProduct() throws Exception {
+        server.enqueue(json("{\"result\":{\"items\":[{\"product_id\":\"101\",\"offer_id\":\"A\"}],\"last_id\":\"next\"}}"));
+        server.enqueue(json("{\"items\":[]}"));server.enqueue(json("{\"result\":[]} "));
+        assertEquals("OZON_INCOMPLETE_PRODUCT_PAGE",assertThrows(IOException.class,()->new OzonCatalogSyncService(1,api).syncForRegistration(p->failSnapshot())).getMessage());
+        assertEquals(0,count("SELECT count(*) FROM ozon_products"));assertEquals("",new OzonSyncStateRepository().find(1).productsLastId());
+    }
+    private static void failSnapshot(){throw new AssertionError("Partial details cannot emit a completed page");}
+    @Test void postingHistoryCannotAdvanceItsWindowOnMalformedSuccess()throws Exception{
+        server.enqueue(json("{}"));
+        assertThrows(IOException.class,()->new OzonPostingSyncService(1,api).sync());
+        assertEquals("",new OzonSyncStateRepository().find(1).postingsChangedSince());assertEquals(0,count("SELECT count(*) FROM ozon_postings"));
+    }
+    @Test void unfulfilledQueueCannotIgnoreMalformedProducts()throws Exception{
+        server.enqueue(json("{\"postings\":[{\"posting_number\":\"P-1\",\"status\":\"awaiting_packaging\",\"products\":[{}]}],\"has_next\":false}"));
+        assertThrows(IOException.class,()->new OzonPostingSyncService(1,api).syncUnfulfilled());assertEquals(0,count("SELECT count(*) FROM ozon_postings"));
+    }
+    @Test void refreshRejectsAForeignPostingWithoutWritingIt()throws Exception{
+        server.enqueue(json("{\"result\":{\"posting_number\":\"OTHER\",\"status\":\"awaiting_deliver\",\"products\":[]}}"));
+        assertEquals("FBS_FOREIGN_POSTING",assertThrows(IOException.class,()->new OzonPostingSyncService(1,api).refresh("EXPECTED",false)).getMessage());assertEquals(0,count("SELECT count(*) FROM ozon_postings"));
+    }
+    @Test void missingQuantityCannotOverwriteThePreviouslyObservedOrderItems()throws Exception{
+        new OzonPostingRepository().upsertDetail(1,OzonJson.parsePostingDetail(com.google.gson.JsonParser.parseString(posting()).getAsJsonObject()));
+        server.enqueue(json("{\"result\":{\"posting_number\":\"POST-TEXT-1\",\"status\":\"awaiting_packaging\",\"products\":[{\"sku\":\"101\",\"offer_id\":\"offer-1\"}]}}"));
+        assertThrows(IOException.class,()->new OzonPostingSyncService(1,api).refresh("POST-TEXT-1",false));assertEquals(2,new OzonPostingRepository().find(1,"POST-TEXT-1").items().getFirst().quantity());
+    }
+    @Test void ordinaryRefreshRejectsMalformedListInsteadOfRecordingAnEmptySuccess()throws Exception{
+        for(String payload:java.util.List.of("{}","{\"result\":{\"items\":[{}]}}")){
+            server.enqueue(json(payload));assertThrows(IOException.class,()->new OzonCatalogSyncService(1,api).syncFromStart());
+        }
+        assertEquals("",new OzonSyncStateRepository().find(1).productsLastId());
+    }
+    @Test void ordinaryRefreshCannotEraseAnExistingProductWhenDetailsAreMissing()throws Exception{
+        var old=new OzonProductDto("101","A","501","Existing product","https://cdn.example/old.jpg",false,"",java.util.List.of("existing-barcode")).withCardAttributes("A","Blue","M","Clothing","Male");
+        new OzonCatalogRepository().upsertPage(1,java.util.List.of(old),"previous-cursor");
+        server.enqueue(json("{\"result\":{\"items\":[{\"product_id\":\"101\",\"offer_id\":\"A\"}],\"last_id\":\"next\"}}"));
+        server.enqueue(json("{\"items\":[]}"));server.enqueue(json("{\"result\":[]}"));
+        assertThrows(IOException.class,()->new OzonCatalogSyncService(1,api).syncFromStart());
+        var retained=new OzonCatalogRepository().findAll(1).getFirst();assertEquals(old.name(),retained.name());assertEquals(old.barcodes(),retained.barcodes());assertEquals(old.sku(),retained.sku());assertEquals("previous-cursor",new OzonSyncStateRepository().find(1).productsLastId());
+    }
+    @Test void explicitSizeMigrationPreservesOldProductsAndBarcodesWithoutGuessingTheirSizeSystem()throws Exception{
+        var product=new OzonProductDto("101","A-52","501","Synthetic","",false,"",java.util.List.of("legacy-code")).withCardAttributes("A","Blue","52","Clothing","Male","L","52");
+        new OzonCatalogRepository().upsertPage(1,java.util.List.of(product),"old-cursor");
+        try(var c=Database.getConnection();var s=c.createStatement()){
+            s.execute("ALTER TABLE ozon_products DROP COLUMN manufacturer_size");s.execute("ALTER TABLE ozon_products DROP COLUMN russian_size");
+            OzonSchemaSupport.initialize(c);OzonSchemaSupport.initialize(c);
+        }
+        var restored=new OzonCatalogRepository().findAll(1).getFirst();assertEquals("52",restored.size());assertEquals("",restored.manufacturerSize());assertEquals("",restored.russianSize());
+        assertEquals(java.util.List.of("legacy-code"),restored.barcodes());assertEquals("501",restored.sku());assertEquals("",new OzonSyncStateRepository().find(1).productsLastId());
+    }
     @Test
     void catalogDoesNotAdvanceCursorWhenDetailFetchFails() throws Exception {
         server.enqueue(json("{\"result\":{\"items\":[{\"product_id\":\"90071992547409931234\","
@@ -147,10 +223,10 @@ class OzonSyncServiceTest {
                 + "\",\"offer_id\":\"offer-1\",\"sku\":\"sku-1\",\"name\":\"Item\","
                 + "\"primary_image\":\"https://cdn.example/item.jpg\"}]}"));
         server.enqueue(json("{\"result\":[{\"id\":\"" + externalId
-                + "\",\"offer_id\":\"offer-card\",\"description_category_id\":\"17000001\","
+                + "\",\"offer_id\":\"offer-1\",\"description_category_id\":\"17000001\","
                 + "\"type_id\":\"90001\",\"attributes\":["
                 + "{\"id\":10096,\"values\":[{\"value\":\"deep black\"}]},"
-                + "{\"id\":4295,\"values\":[{\"value\":\"176\"}]},"
+                + "{\"id\":4295,\"values\":[{\"value\":\"176\"}]},{\"id\":9533,\"values\":[{\"value\":\"XXL\"}]},"
                 + "{\"id\":9163,\"values\":[{\"value\":\"Women\"}]},"
                 + "{\"id\":9024,\"values\":[{\"value\":\"seller-article\"}]}]}]}"));
         server.enqueue(json("{\"result\":[{\"description_category_id\":17000001,"
@@ -158,7 +234,7 @@ class OzonSyncServiceTest {
                 + "\"type_name\":\"Sportswear\",\"children\":[]}]}]}"));
         server.enqueue(json("{\"result\":["
                 + "{\"id\":10096,\"name\":\"Цвет товара\"},"
-                + "{\"id\":4295,\"name\":\"Российский размер\"},"
+                + "{\"id\":4295,\"name\":\"Российский размер\"},{\"id\":9533,\"name\":\"Размер производителя\"},"
                 + "{\"id\":9163,\"name\":\"Пол\"},"
                 + "{\"id\":9024,\"name\":\"Код продавца\"}]}"));
 
@@ -169,6 +245,8 @@ class OzonSyncServiceTest {
         assertEquals("seller-article", scalar("SELECT article FROM ozon_products"));
         assertEquals("deep black", scalar("SELECT color FROM ozon_products"));
         assertEquals("176", scalar("SELECT size FROM ozon_products"));
+        assertEquals("176",scalar("SELECT russian_size FROM ozon_products"));assertEquals("XXL",scalar("SELECT manufacturer_size FROM ozon_products"));
+        assertEquals("176",new OzonCatalogRepository().findAll(1).getFirst().russianSize());assertEquals("XXL",new OzonCatalogRepository().findAll(1).getFirst().manufacturerSize());
         assertEquals("Sportswear", scalar("SELECT category FROM ozon_products"));
         assertEquals("Women", scalar("SELECT gender FROM ozon_products"));
         assertEquals("cursor-2", new OzonSyncStateRepository().find(1).productsLastId());
@@ -200,6 +278,12 @@ class OzonSyncServiceTest {
                 ResultSet result = connection.createStatement().executeQuery(sql)) {
             return result.next() ? result.getInt(1) : 0;
         }
+    }
+    @Test void activeDetailsDoNotStopAtThousandOrSkipRowsAsStatusesDisappear()throws Exception{
+        var rows=new java.util.ArrayList<OzonPostingDto>();for(int i=0;i<1001;i++)rows.add(new OzonPostingDto(String.format("POST-%04d",i),"","","awaiting_packaging","","","","","","",new OzonRequirements(java.util.List.of(),java.util.List.of(),java.util.List.of()),java.util.List.of(),false,java.util.List.of()));new OzonPostingRepository().upsertPage(1,rows);
+        server.setDispatcher(new okhttp3.mockwebserver.Dispatcher(){@Override public MockResponse dispatch(okhttp3.mockwebserver.RecordedRequest request){String number=com.google.gson.JsonParser.parseString(request.getBody().readUtf8()).getAsJsonObject().get("posting_number").getAsString();return json("{\"result\":{\"posting_number\":\""+number+"\",\"status\":\"cancelled\",\"products\":[]}}");}});
+        assertEquals(1001,new OzonPostingSyncService(1,api).refreshActiveDetails());
+        assertEquals(0,count("SELECT count(*) FROM ozon_postings WHERE status='awaiting_packaging'"));
     }
 
     private String scalar(String sql) throws Exception {

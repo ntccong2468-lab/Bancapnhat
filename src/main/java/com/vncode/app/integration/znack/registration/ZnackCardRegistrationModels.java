@@ -26,12 +26,12 @@ public final class ZnackCardRegistrationModels {
         ERROR
     }
 
-    public enum RegistrationAction { REGISTER, REQUEST_NEW_GTIN, RESUME }
+    public enum RegistrationAction { REGISTER, REQUEST_NEW_GTIN, RESUME, REGISTER_NEW, SIGN_APPROVED }
 
     public record Sku(long nmId, long chrtId, int subjectId, String vendorCode, String subjectName, String brand,
                       String title, String color, String size, List<String> barcodes, String imageUrl,
                       boolean needKiz, String gtin, Long goodId, String feedId, Status status,
-                      String errorMessage, boolean wbUpdated, String wbSize, String registrationRevision) {
+                      String errorMessage, boolean wbUpdated, String wbSize, String registrationRevision,boolean tnvedGroupChanged) {
         public Sku {
             barcodes = barcodes == null ? List.of() : List.copyOf(barcodes);
             status = status == null ? Status.NOT_CREATED : status;
@@ -39,6 +39,9 @@ public final class ZnackCardRegistrationModels {
             registrationRevision = registrationRevision == null ? "" : registrationRevision;
         }
 
+        public Sku(long nmId,long chrtId,int subjectId,String vendorCode,String subjectName,String brand,String title,String color,String size,List<String> barcodes,String imageUrl,boolean needKiz,String gtin,Long goodId,String feedId,Status status,String errorMessage,boolean wbUpdated,String wbSize,String registrationRevision) {
+            this(nmId,chrtId,subjectId,vendorCode,subjectName,brand,title,color,size,barcodes,imageUrl,needKiz,gtin,goodId,feedId,status,errorMessage,wbUpdated,wbSize,registrationRevision,false);
+        }
         public Sku(long nmId, long chrtId, int subjectId, String vendorCode, String subjectName, String brand,
                    String title, String color, String size, List<String> barcodes, String imageUrl,
                    boolean needKiz, String gtin, Long goodId, String feedId, Status status,
@@ -53,6 +56,13 @@ public final class ZnackCardRegistrationModels {
 
         public boolean hasGtin() { return gtin != null && !gtin.isBlank(); }
 
+        public boolean canRegisterNew() { return status == Status.PUBLISHED && hasGtin() || status==Status.ERROR && hasGtin() && hasFeed(); }
+
+        public boolean canSignApproved() {
+            return hasGtin() && (hasFeed() || goodId!=null&&goodId>0) && (status == Status.READY_TO_SIGN || status == Status.SIGNING
+                    || status == Status.PROCESSING || status == Status.FEED_SUBMITTED);
+        }
+
         public boolean needsGtinReview() {
             return !hasIdentity() && (status == Status.CHECKING || status == Status.ALLOCATING_GTIN
                     || status == Status.GTIN_REVIEW_REQUIRED || status == Status.ERROR);
@@ -60,9 +70,13 @@ public final class ZnackCardRegistrationModels {
 
         public boolean canRegister() {
             return ((status == Status.NOT_CREATED || status == Status.PREFLIGHT_ERROR) && !hasIdentity())
+                    || canReviewExistingDraft()
                     || (status == Status.ERROR && hasGtin() && hasFeed())
                     || (status == Status.PRE_SUBMIT_ERROR && hasGtin() && !hasFeed() && goodId==null);
         }
+        /** This opens fresh seller review; it is never permission to replay a previous send. */
+        public boolean canReviewExistingDraft(){return hasGtin()&&goodId!=null&&goodId>0&&!hasFeed()
+                &&status==Status.PROCESSING&&"CATALOG_CARD_DRAFT".equals(errorMessage);}
 
         public boolean hasFeed() { return feedId != null && !feedId.isBlank(); }
 
@@ -74,7 +88,7 @@ public final class ZnackCardRegistrationModels {
 
         public boolean canResume() {
             return hasGtin() && (hasFeed() || status==Status.READY_TO_SUBMIT)
-                    && status != Status.PUBLISHED && status != Status.ERROR
+                    && status != Status.PUBLISHED && (status != Status.ERROR || CatalogFeedback.interrupted(errorMessage))
                     && status != Status.NOT_CREATED && status != Status.GTIN_REVIEW_REQUIRED
                     && status != Status.FEED_SUBMITTING && status != Status.FEED_REVIEW_REQUIRED;
         }
@@ -111,10 +125,15 @@ public final class ZnackCardRegistrationModels {
 
     public record Attribute(long id, String name, String fieldType, boolean presetOnly,
                             boolean multiple, boolean firstLayer, boolean secondLayer,
-                            List<String> presets, List<String> valueTypes) {
+                            List<String> presets, List<String> valueTypes, Map<String,List<Attribute>> dependencies) {
         public Attribute {
             presets = presets == null ? List.of() : List.copyOf(presets);
             valueTypes = valueTypes == null ? List.of() : List.copyOf(valueTypes);
+            var copy=new java.util.LinkedHashMap<String,List<Attribute>>();if(dependencies!=null)dependencies.forEach((k,v)->copy.put(k,List.copyOf(v)));dependencies=Map.copyOf(copy);
+        }
+
+        public Attribute(long id,String name,String fieldType,boolean presetOnly,boolean multiple,boolean firstLayer,boolean secondLayer,List<String> presets,List<String> valueTypes){
+            this(id,name,fieldType,presetOnly,multiple,firstLayer,secondLayer,presets,valueTypes,Map.of());
         }
 
         public Attribute(long id, String name, String fieldType, boolean presetOnly,
@@ -133,13 +152,28 @@ public final class ZnackCardRegistrationModels {
     }
 
     public record Draft(String tnved, String feedTnved, long categoryId, String goodName, String brand,
-                        Map<Long, String> attributes, Map<Long, String> attributeTypes) {
+                        Map<Long, String> attributes, Map<Long, String> attributeTypes,boolean autoSign,boolean isKit) {
         public Draft {
             feedTnved = feedTnved == null || feedTnved.isBlank() ? tnved : feedTnved;
             attributes = attributes == null ? Map.of() : Map.copyOf(attributes);
             attributeTypes = attributeTypes == null ? Map.of() : Map.copyOf(attributeTypes);
         }
 
+        public Draft(String tnved,String feedTnved,long categoryId,String goodName,String brand,Map<Long,String> attributes,Map<Long,String> types) {
+            this(tnved,feedTnved,categoryId,goodName,brand,attributes,types,false);
+        }
+        public Draft(String tnved,String feedTnved,long categoryId,String goodName,String brand,Map<Long,String> attributes,Map<Long,String> types,boolean autoSign){
+            this(tnved,feedTnved,categoryId,goodName,brand,attributes,types,autoSign,false);
+        }
+        public Draft withAutoSign(boolean enabled){return new Draft(tnved,feedTnved,categoryId,goodName,brand,attributes,attributeTypes,enabled,isKit);}
+        public Draft withKit(boolean enabled){return new Draft(tnved,feedTnved,categoryId,goodName,brand,attributes,attributeTypes,autoSign,enabled);}
+        public Draft withProductCategory(String category){
+            String leaf=java.util.Arrays.stream((category==null?"":category).split("[>/→]")).reduce((a,b)->b).orElse("").strip().toLowerCase(java.util.Locale.ROOT);
+            boolean sport=java.util.Set.of("костюмы спортивные","спортивный костюм","спортивные костюмы").contains(leaf);
+            boolean kit=!(sport&&"6112120000".equals(tnved==null?"":tnved.replaceAll("\\D","")))
+                    &&(isKit||sport||java.util.Set.of("костюмы","костюм").contains(leaf));
+            return new Draft(tnved,feedTnved,categoryId,goodName,brand,attributes,attributeTypes,autoSign,kit);
+        }
         public Draft(String tnved, String feedTnved, long categoryId, String goodName, String brand,
                      Map<Long, String> attributes) {
             this(tnved, feedTnved, categoryId, goodName, brand, attributes, Map.of());

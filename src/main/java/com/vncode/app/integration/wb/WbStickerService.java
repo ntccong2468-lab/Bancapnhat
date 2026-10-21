@@ -83,14 +83,14 @@ public class WbStickerService {
                 .post(body)
                 .build();
 
-        try (Response response = client.newCall(request).execute()) {
+        try (var slot=com.vncode.app.shared.MarketplaceRequestBudget.acquire(); Response response = client.newCall(request).execute()) {
             if (response.isSuccessful()) {
                 if (response.body() == null) {
                     throw new IOException("Wildberries returned an empty sticker response.");
                 }
                 StickerResponse stickerResponse;
                 try {
-                    stickerResponse = GSON.fromJson(response.body().string(), StickerResponse.class);
+                    stickerResponse = GSON.fromJson(com.vncode.app.shared.BoundedHttpBody.utf8(response.body(),20*1024*1024), StickerResponse.class);
                 } catch (RuntimeException exception) {
                     throw new IOException("Wildberries returned an invalid sticker response.", exception);
                 }

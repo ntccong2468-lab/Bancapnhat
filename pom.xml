@@ -6,7 +6,7 @@
 
     <groupId>com.vncode</groupId>
     <artifactId>VNcode</artifactId>
-    <version>1.2.2</version>
+    <version>1.5.8</version>
     <name>VN code</name>
 
     <properties>
@@ -14,13 +14,23 @@
         <junit.version>5.12.1</junit.version>
         <slf4j.version>1.7.36</slf4j.version>
         <log4j.version>2.24.3</log4j.version>
-        <app.version>1.2.2</app.version>
+        <app.version>1.5.8</app.version>
         <app.vendor>VN code</app.vendor>
         <app.update.public-key></app.update.public-key>
         <app.update.publisher></app.update.publisher>
     </properties>
 
     <dependencies>
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-media</artifactId>
+            <version>25.0.2</version>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.angus</groupId>
+            <artifactId>jakarta.mail</artifactId>
+            <version>2.0.3</version>
+        </dependency>
         <dependency>
             <groupId>com.itextpdf</groupId>
             <artifactId>barcodes</artifactId>
@@ -149,8 +159,20 @@
             <scope>test</scope>
         </dependency>
         <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-params</artifactId>
+            <version>${junit.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
             <groupId>com.squareup.okhttp3</groupId>
             <artifactId>mockwebserver</artifactId>
+            <version>4.12.0</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.squareup.okhttp3</groupId>
+            <artifactId>okhttp-tls</artifactId>
             <version>4.12.0</version>
             <scope>test</scope>
         </dependency>
@@ -198,6 +220,7 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>3.2.5</version>
+                <configuration><systemPropertyVariables><junit.jupiter.extensions.autodetection.enabled>true</junit.jupiter.extensions.autodetection.enabled></systemPropertyVariables></configuration>
             </plugin>
             <plugin>
                 <groupId>org.openjfx</groupId>

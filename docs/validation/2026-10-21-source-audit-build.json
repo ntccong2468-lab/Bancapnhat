@@ -1,0 +1,755 @@
+{
+  "created_at": "2026-10-21T08:16:55.225769+03:00",
+  "version": "1.5.7",
+  "kind": "JAR và thư viện runtime cho kiểm chứng Linux; không phải bộ cài Windows hoặc bản phát hành seller",
+  "branch": "upgrade/znack-source-audit-20261021",
+  "base_commit": "b4672258090b51d6e40f1266cc180c6d1c4946f7",
+  "worktree_changes_included": true,
+  "maven_command": [
+    "DISPLAY=:99",
+    "XDG_CACHE_HOME=/tmp/vncode-ui-cache",
+    "/workspace/toolchains/mvn-vncode",
+    "-o",
+    "-Dtest=RegistrationDynamicPreflightTest",
+    "verify"
+  ],
+  "build_log": "/tmp/vncode-source-audit-final-retry.log",
+  "test_report": "docs/validation/2026-10-21-source-audit-tests.json",
+  "production_source_manifest_sha256": "d00c440d9e63fcf939c5799d6e44ef8df6732d410ca4e2930e316ef4dd28544f",
+  "production_source_file_count": 688,
+  "jar": {
+    "path": "target/VNcode-1.5.7.jar",
+    "review_copy": "target/source-audit/VNcode-1.5.7-source-audit.jar",
+    "bytes": 6248355,
+    "sha256": "e43d364d76a885dd78a25db24e116aba6dd98acb05381e7f1b5b2e2025d9e063",
+    "main_class": "com.vncode.app.Launcher",
+    "crc_check": "Tất cả entry JAR hợp lệ"
+  },
+  "runtime_library_count": 74,
+  "runtime_libraries": [
+    {
+      "path": "lib/javafx-media-25.0.2.jar",
+      "bytes": 303,
+      "sha256": "bc56b2fdf68eecbb906fce8908c9906ecd98ef06ba14c7c53b3adbb3381a67e5"
+    },
+    {
+      "path": "lib/javafx-media-25.0.2-linux.jar",
+      "bytes": 1579521,
+      "sha256": "081f8f2df8a613a17235644ea2b2b9c7282825571027db9079ada5eeeccc3034"
+    },
+    {
+      "path": "lib/javafx-graphics-25.0.2.jar",
+      "bytes": 306,
+      "sha256": "c11e6949fd9b57302a826d4d38a1d281279d109c0da3194cda85047a9e6efdc1"
+    },
+    {
+      "path": "lib/javafx-graphics-25.0.2-linux.jar",
+      "bytes": 5419386,
+      "sha256": "a43e751003621f9f0b19666e92a147d62da924fb2c0229c1e49ec39d9d21c4b2"
+    },
+    {
+      "path": "lib/javafx-base-25.0.2.jar",
+      "bytes": 302,
+      "sha256": "8c456bf4f3324d0cd4349eca62235da78c7cfe94351f07253a7ea305db693fdb"
+    },
+    {
+      "path": "lib/javafx-base-25.0.2-linux.jar",
+      "bytes": 749713,
+      "sha256": "eb11384d3ac0c13b42c27d49a1cb01d469dec640f245828d323bca016c2311c0"
+    },
+    {
+      "path": "lib/jakarta.mail-2.0.3.jar",
+      "bytes": 723787,
+      "sha256": "efb946424933806bc6f8136752d22fdb3ba887ea0527ff849c474e51f7b3715e"
+    },
+    {
+      "path": "lib/jakarta.activation-api-2.1.3.jar",
+      "bytes": 66514,
+      "sha256": "01b176d718a169263e78290691fc479977186bcc6b333487325084d6586f4627"
+    },
+    {
+      "path": "lib/angus-activation-2.0.2.jar",
+      "bytes": 27050,
+      "sha256": "6dd3bcffc22bce83b07376a0e2e094e4964a3195d4118fb43e380ef35436cc1e"
+    },
+    {
+      "path": "lib/barcodes-8.0.3.jar",
+      "bytes": 151296,
+      "sha256": "4742aa98a9352539dfceb924a189a715f8bb005ae8b2209df9459f1c4a3a4ba9"
+    },
+    {
+      "path": "lib/slf4j-api-1.7.36.jar",
+      "bytes": 41125,
+      "sha256": "d3ef575e3e4979678dc01bf1dcce51021493b4d11fb7f1be8ad982877c16a1c0"
+    },
+    {
+      "path": "lib/bouncy-castle-connector-8.0.3.jar",
+      "bytes": 11091,
+      "sha256": "0ce17327bc78cdf9d7350c5cd3b943deda56e790bf57edadfbb51110d2397c2d"
+    },
+    {
+      "path": "lib/commons-8.0.3.jar",
+      "bytes": 176679,
+      "sha256": "2f074fb7b5fbc9c8d8153e52adc6c97ea5976efb1058d8ff235fe59ae16708f5"
+    },
+    {
+      "path": "lib/font-asian-8.0.3.jar",
+      "bytes": 2816939,
+      "sha256": "1ba476b13820e4bc661f5782dfb3bd1d0fc31dd7955d66a567a412fc9fb7b885"
+    },
+    {
+      "path": "lib/forms-8.0.3.jar",
+      "bytes": 273891,
+      "sha256": "5bb62bb3b524cc236e4018d02a7f4ff1c630a2d8c7c5c40deef1bcc934ecf363"
+    },
+    {
+      "path": "lib/io-8.0.3.jar",
+      "bytes": 813053,
+      "sha256": "1216d1be6f8e7219913020ad4b3581f4426cac70d2c09a57e1ee3c1adf96062d"
+    },
+    {
+      "path": "lib/kernel-8.0.3.jar",
+      "bytes": 1279888,
+      "sha256": "676fb520a011a5cac1ae5dd61d0e0aa6cfb1d7bb6df10a5075246ea61fcbe79e"
+    },
+    {
+      "path": "lib/layout-8.0.3.jar",
+      "bytes": 582751,
+      "sha256": "58153e6722b4ed1657ea90fe6ec1d3873413cef7ce0940565bc307b1776a3251"
+    },
+    {
+      "path": "lib/svg-8.0.3.jar",
+      "bytes": 171704,
+      "sha256": "f3abeb09eb5ec0d4431729770fa19ae695933f0efc0ea4e1879f86958622821c"
+    },
+    {
+      "path": "lib/styled-xml-parser-8.0.3.jar",
+      "bytes": 619547,
+      "sha256": "c41488cb79643725493836b5a03dfbd361c371b902f8cde4e97ab802abdf9430"
+    },
+    {
+      "path": "lib/pdfbox-3.0.6.jar",
+      "bytes": 2058310,
+      "sha256": "87b9122b78f521fef83e2806d98e7e483e049f087ea6267b72d319f672019101"
+    },
+    {
+      "path": "lib/pdfbox-io-3.0.6.jar",
+      "bytes": 47746,
+      "sha256": "191eac63756ff0dbc841e397e97cfa0cbdfd2515972d60ef5639a0aa884a7e47"
+    },
+    {
+      "path": "lib/fontbox-3.0.6.jar",
+      "bytes": 1644618,
+      "sha256": "7a09fcb0c630e471ac26b347ca45a0d8aef5a969cc59aebff1c57fe92293e2b1"
+    },
+    {
+      "path": "lib/commons-logging-1.3.5.jar",
+      "bytes": 73737,
+      "sha256": "6d7a744e4027649fbb50895df9497d109f98c766a637062fe8d2eabbb3140ba4"
+    },
+    {
+      "path": "lib/core-3.5.4.jar",
+      "bytes": 610364,
+      "sha256": "71de5d89341b5fcf5dd89da7f44e84d825d0e084cdf3ec77c9abe26b0f0ceb13"
+    },
+    {
+      "path": "lib/javase-3.5.4.jar",
+      "bytes": 38108,
+      "sha256": "1966831f473d72ff7720578419ab113f6417a97234a1710d2bccc650f5ae0c12"
+    },
+    {
+      "path": "lib/jcommander-1.85.jar",
+      "bytes": 93826,
+      "sha256": "fa7552d2831a2b20778d86851d093edca68fbc0a77f792b6223110e4fae67a70"
+    },
+    {
+      "path": "lib/jai-imageio-core-1.4.0.jar",
+      "bytes": 628053,
+      "sha256": "8ad3c68e9efffb10ac87ff8bc589adf64b04a729c5194c079efd0643607fd72a"
+    },
+    {
+      "path": "lib/poi-ooxml-5.5.1.jar",
+      "bytes": 2052603,
+      "sha256": "bd7be2fdfe3fd2c1684fa813351c2798fd636b44f6236e0674500d4f8ff1c2f9"
+    },
+    {
+      "path": "lib/poi-5.5.1.jar",
+      "bytes": 3006527,
+      "sha256": "6c52e876ca75775a11b56e4b36a7541f682827f56406725fcd87560b792ee3d8"
+    },
+    {
+      "path": "lib/commons-codec-1.20.0.jar",
+      "bytes": 401021,
+      "sha256": "6af66595f9f6a7bb58ce66518d6888d40b547c366d2262f06676eee19528ff66"
+    },
+    {
+      "path": "lib/commons-math3-3.6.1.jar",
+      "bytes": 2213560,
+      "sha256": "1e56d7b058d28b65abd256b8458e3885b674c1d588fa43cd7d1cbb9c7ef2b308"
+    },
+    {
+      "path": "lib/SparseBitSet-1.3.jar",
+      "bytes": 25843,
+      "sha256": "f76b85adb0c00721ae267b7cfde4da7f71d3121cc2160c9fc00c0c89f8c53c8a"
+    },
+    {
+      "path": "lib/poi-ooxml-lite-5.5.1.jar",
+      "bytes": 5995475,
+      "sha256": "e6e37adeb6d6ee8b40ec491ad955d934d8f99827ab050f105b18286e59b1d9e7"
+    },
+    {
+      "path": "lib/xmlbeans-5.3.0.jar",
+      "bytes": 2211661,
+      "sha256": "6cc69da3b4d35b83c5e477cd4daba204e44109833e34af2b9a8a2c8788289917"
+    },
+    {
+      "path": "lib/commons-compress-1.28.0.jar",
+      "bytes": 1117221,
+      "sha256": "e1522945218456f3649a39bc4afd70ce4bd466221519dba7d378f2141a4642ca"
+    },
+    {
+      "path": "lib/commons-lang3-3.18.0.jar",
+      "bytes": 702952,
+      "sha256": "4eeeae8d20c078abb64b015ec158add383ac581571cddc45c68f0c9ae0230720"
+    },
+    {
+      "path": "lib/commons-io-2.21.0.jar",
+      "bytes": 585274,
+      "sha256": "7d643a2afea8b058b762aa6fb90e5b256f6c729739f8b3784c3370ddc609e88d"
+    },
+    {
+      "path": "lib/curvesapi-1.08.jar",
+      "bytes": 117159,
+      "sha256": "ad95b08b8bbf9d7d17e5e00814898fa23324f32bc5b62f1a37801e6a56ce0079"
+    },
+    {
+      "path": "lib/log4j-api-2.24.3.jar",
+      "bytes": 348513,
+      "sha256": "5b4a0a0cd0e751ded431c162442bdbdd53328d1f8bb2bae5fc1bbeee0f66d80f"
+    },
+    {
+      "path": "lib/commons-collections4-4.5.0.jar",
+      "bytes": 898652,
+      "sha256": "00f93263c267be201b8ae521b44a7137271b16688435340bf629db1bac0a5845"
+    },
+    {
+      "path": "lib/gson-2.13.2.jar",
+      "bytes": 289901,
+      "sha256": "dd0ce1b55a3ed2080cb70f9c655850cda86c206862310009dcb5e5c95265a5e0"
+    },
+    {
+      "path": "lib/error_prone_annotations-2.41.0.jar",
+      "bytes": 20389,
+      "sha256": "a56e782b5b50811ac204073a355a21d915a2107fce13ec711331ad036f660fcc"
+    },
+    {
+      "path": "lib/bcprov-jdk18on-1.84.jar",
+      "bytes": 8919063,
+      "sha256": "64d6c5a6121fcd927152dd182cbed39afe0fda641a970d9bcc0c9cb1858b2731"
+    },
+    {
+      "path": "lib/okhttp-4.12.0.jar",
+      "bytes": 789531,
+      "sha256": "b1050081b14bb7a3a7e55a4d3ef01b5dcfabc453b4573a4fc019767191d5f4e0"
+    },
+    {
+      "path": "lib/okio-3.6.0.jar",
+      "bytes": 25744,
+      "sha256": "8e63292e5c53bb93c4a6b0c213e79f15990fed250c1340f1c343880e1c9c39b5"
+    },
+    {
+      "path": "lib/okio-jvm-3.6.0.jar",
+      "bytes": 359580,
+      "sha256": "67543f0736fc422ae927ed0e504b98bc5e269fda0d3500579337cb713da28412"
+    },
+    {
+      "path": "lib/kotlin-stdlib-common-1.9.10.jar",
+      "bytes": 225141,
+      "sha256": "cde3341ba18a2ba262b0b7cf6c55b20c90e8d434e42c9a13e6a3f770db965a88"
+    },
+    {
+      "path": "lib/kotlin-stdlib-jdk8-1.8.21.jar",
+      "bytes": 968,
+      "sha256": "3db752a30074f06ee6c57984aa6f27da44f4d2bbc7f5442651f6988f1cb2b7d7"
+    },
+    {
+      "path": "lib/kotlin-stdlib-1.8.21.jar",
+      "bytes": 1670468,
+      "sha256": "042a1cd1ac976cdcfe5eb63f1d8e0b0b892c9248e15a69c8cfba495d546ea52a"
+    },
+    {
+      "path": "lib/annotations-13.0.jar",
+      "bytes": 17536,
+      "sha256": "ace2a10dc8e2d5fd34925ecac03e4988b2c0f851650c94b8cef49ba1bd111478"
+    },
+    {
+      "path": "lib/kotlin-stdlib-jdk7-1.8.21.jar",
+      "bytes": 963,
+      "sha256": "33d148db0e11debd0d90677d28242bced907f9c77730000fd597867089039d86"
+    },
+    {
+      "path": "lib/sqlite-jdbc-3.45.3.0.jar",
+      "bytes": 13513352,
+      "sha256": "cd55db695548e9b1ba38070109f809052e9ed377256f6218b9e4cd4ee603ab55"
+    },
+    {
+      "path": "lib/imageio-webp-3.12.0.jar",
+      "bytes": 79713,
+      "sha256": "43dc447ccfe34c5c5c6f5d31190270e1f9bf65f60375d697ae2a8ff433468526"
+    },
+    {
+      "path": "lib/imageio-core-3.12.0.jar",
+      "bytes": 119909,
+      "sha256": "34c6f91bf3b217ed0115bce8283238fbd0264562aa682b4226a3960d0ede9815"
+    },
+    {
+      "path": "lib/imageio-metadata-3.12.0.jar",
+      "bytes": 83615,
+      "sha256": "797d026b67d07e6d5eb00a1ab53a55acaab6f80a71c5ee325572093eb90c0caa"
+    },
+    {
+      "path": "lib/common-lang-3.12.0.jar",
+      "bytes": 121817,
+      "sha256": "5c65e504b5b64d80683e0fa70a1dd154dd83d4de7da37f21e950f5a9c03bc66d"
+    },
+    {
+      "path": "lib/common-io-3.12.0.jar",
+      "bytes": 92346,
+      "sha256": "bfacfeb02acac47dbfd1fab0002eaeca65547d04249498b654320c9e0fdf6647"
+    },
+    {
+      "path": "lib/common-image-3.12.0.jar",
+      "bytes": 79655,
+      "sha256": "62a3821c724fadfda346c1e2d83b0c506a0c4074be269a52bf4e3192c7dd92bc"
+    },
+    {
+      "path": "lib/javafx-controls-25.0.2.jar",
+      "bytes": 306,
+      "sha256": "45d43338f1ce778053bfbd72a0febdbec9d2b45748f967b59f77703aac74e590"
+    },
+    {
+      "path": "lib/javafx-controls-25.0.2-linux.jar",
+      "bytes": 2605588,
+      "sha256": "3937b7215c0a9b02fdaafd2bb694a6efce27fa226809c6ca970a8a02b1691cb9"
+    },
+    {
+      "path": "lib/javafx-fxml-25.0.2.jar",
+      "bytes": 302,
+      "sha256": "cb6a9ba337ab12b25adc1bb3c0ea7bf509642d0f156d458cd65cc6ecbdd31d39"
+    },
+    {
+      "path": "lib/javafx-fxml-25.0.2-linux.jar",
+      "bytes": 126706,
+      "sha256": "a96b973c0083a03385948ee02d7cfbd28b807d98f4498ae3e920f6da6caf7ab6"
+    },
+    {
+      "path": "lib/materialfx-11.17.0.jar",
+      "bytes": 5225058,
+      "sha256": "69c4276e73af130d2b6bdff85c7077bcadde5a3b1d9decb5fdb9f5cb908e33b3"
+    },
+    {
+      "path": "lib/mfxcore-11.8.0.jar",
+      "bytes": 404543,
+      "sha256": "42cc2cd432c54d1f6a7b4766c61e17af42d00facda1d937a429b73a3d839e051"
+    },
+    {
+      "path": "lib/mfxlocalization-11.1.0.jar",
+      "bytes": 15417,
+      "sha256": "9c6a5912148afa3cc01b21da1d0eb03555bf8f94565cdce9fb5bf5a5e70b50ed"
+    },
+    {
+      "path": "lib/mfxresources-11.9.1.jar",
+      "bytes": 7209355,
+      "sha256": "237ff3ea736b6200e4211c86f89c60861547fe6051b70a7252b4d28293275edc"
+    },
+    {
+      "path": "lib/mfxeffects-11.3.0.jar",
+      "bytes": 134210,
+      "sha256": "9206442e8099459df9552fd17391edd06a4399a244615827aea933a41216cf03"
+    },
+    {
+      "path": "lib/virtualizedfx-11.9.6.jar",
+      "bytes": 339727,
+      "sha256": "19245f7b6bcaaa0e9554444a9b183894f29e4d778a16674aee747ed0118ebac4"
+    },
+    {
+      "path": "lib/ikonli-javafx-12.3.1.jar",
+      "bytes": 37509,
+      "sha256": "b71ef3f352c369e0e7f08c14ef89cabf8842f495a1e6c9949037d95ef4a90d8a"
+    },
+    {
+      "path": "lib/ikonli-core-12.3.1.jar",
+      "bytes": 14473,
+      "sha256": "18dd0b3af5bbd7a64abef5af746ce49bbd66bd80f1fb89743d1e3a0f8b0fe56b"
+    },
+    {
+      "path": "lib/ikonli-feather-pack-12.3.1.jar",
+      "bytes": 55262,
+      "sha256": "6631f751da1d4b247b5e02c524d4eb35142db6180d6ba3c4151eaa33d7193ad1"
+    },
+    {
+      "path": "lib/slf4j-simple-1.7.36.jar",
+      "bytes": 15333,
+      "sha256": "2f39bed943d624dfa8f4102d0571283a10870b6aa36f197a8a506f147010c10f"
+    },
+    {
+      "path": "lib/log4j-core-2.24.3.jar",
+      "bytes": 1914666,
+      "sha256": "7eb4084596ae25bd3c61698e48e8d0ab65a9260758884ed5cbb9c6e55c44a56a"
+    }
+  ],
+  "changed_source_and_test_files": [
+    {
+      "path": "pom.xml",
+      "sha256": "28dcfaf07427b99464a3c2b3ba507df4f7756eba07fc58426bf713ef12d31eb7"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/features/fbo/FboPurchaseService.java",
+      "sha256": "41453bfc58f4bcdcc038eef6b935c44f9c8a918b3d178010f4bfb857a626f2ec"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/features/fbo/FboVerifiedGtinRepository.java",
+      "sha256": "68f8ba2f9e2c5dc2100452e833b0f9723e2808a983c4e9d5fbbf541dbbb171da"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/features/kiz/KizPurchaseMappingProof.java",
+      "sha256": "1b9f217274f3c6a861642ce3b4c96fb514b2f06a7cb97b47fd82f2058778bc8b"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/features/kiz/KizWarehouseService.java",
+      "sha256": "9cb90d10ac0f73628c934145a7d54ec8a7e98d78bb1601e0bed0d58885ecb33a"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/features/print/OrderExportWorkflow.java",
+      "sha256": "83d5b6300f6bd31c0fe39da00eee24931d7b32e69ee5eb645406b4b40538d4c8"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/features/print/ZnackKizExportService.java",
+      "sha256": "56938e7e304edff06c5b8eec6e7ab6af36861b3c6aa3de9adb4accecf3014c05"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/features/print/history/PrintHistoryJobSummary.java",
+      "sha256": "b9a24c2d961b4213c0607696448e279d3f3428c57880f8db1afb91c09b751bef"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/features/print/history/PrintHistoryRepository.java",
+      "sha256": "c57648c572bdbbd07fb7c9620e1d21c15ad5d787afe2fe256f03a94b6a7ed497"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/features/print/history/PrintHistoryService.java",
+      "sha256": "e498440d2172aa5c30317c91f935ce1a490fa7b5f423c34b5f582d8a1664915d"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/features/sync/RegistrationCardIndex.java",
+      "sha256": "7d2d3b55c5c4462b945139d1890cb7b668e19a4e578146794ac858ae4cfb7899"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/wb/WbContentApiRateLimiter.java",
+      "sha256": "08e6ccb380bd7315b09d18fdf0fe0189672a7b65a90bd4c4e85ea0536c8af720"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/wb/WbProductSyncService.java",
+      "sha256": "aa2a72373d83a746dd322455fbc9ca279efed70acd55e3bd6dd2297d8cdf36da"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/znack/ZnackCisReadback.java",
+      "sha256": "3879831c312c1a6b6b03e3686229a8e227ab5573fd5b950503e9ca943388b2ec"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/znack/ZnackErrorMessages.java",
+      "sha256": "1df36e9ca031c4e8996ea3395b91a18a4218bba183882818ca49679719f203a8"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/znack/ZnackGtinInventoryService.java",
+      "sha256": "9e7aa160888e9b69f01d5a5c9cfaebf160d1f3d1be983dd6827ffd6f027a1502"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/znack/ZnackIntroductionReadinessService.java",
+      "sha256": "fab96da5dae0745026d686e6c66020131703c8c6e213734e5719dee78a37397f"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/znack/ZnackIntroductionService.java",
+      "sha256": "7b8eda51fe8fefdcc802f864354015e11927b5b8a943023e882bde9753e22ed7"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/znack/ZnackKizOrderService.java",
+      "sha256": "f8db475e9749c69038f0a7750ed006587cd53a7f93332743e9a37b97663c9edc"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/znack/ZnackPurchaseCoordinator.java",
+      "sha256": "9f012dcc257346382895d907d9b6083841c77567116494b05a52d93e13b8369e"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/znack/ZnackSchemaSupport.java",
+      "sha256": "9c1a423b9dab1e2f55a508c095eba762504d25f77164835af958365d7c02c519"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/znack/registration/CatalogCardState.java",
+      "sha256": "9239276109f7933f0b4db4f1333b72d50a5ad1c80cadbcd6996d3e992d50c6f7"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/znack/registration/OzonCardRegistrationRepository.java",
+      "sha256": "143613e6d60178bf79a998a411e1823be174416dc06fabade1256e87882b6c81"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/znack/registration/OzonCardRegistrationWorkflow.java",
+      "sha256": "1c3327b924c7b19f65ce9038e7ad14fc96910ece70f7c970bbf6efd48149c9b4"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/znack/registration/RegistrationAutomaticDraft.java",
+      "sha256": "202f68d06bb8acce0424b447f2666986170823eb481efd9c6e4fbe14c915655c"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/znack/registration/RegistrationDynamicPreflight.java",
+      "sha256": "c8484e7ca38358e94e2929b654e6aec05868b3d5bd88fb4f2e837bb0121d71f2"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/znack/registration/ZnackCardRegistrationModels.java",
+      "sha256": "14f2763e1afb1926f5c53a659fcbe32a849a78f84f0a1b7e49be4000d0c6b94a"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/znack/registration/ZnackCardRegistrationWorkflow.java",
+      "sha256": "e5d6a9d8b063b3e3212c0a19ef7f28a7774c58c9c70af678d86a58c307fcfd53"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/znack/registration/ZnackNationalCatalogService.java",
+      "sha256": "2491d9ac496b738bf6ddd081053d4e60edf314c1bb57ce4cb2f762a6cf895346"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/znack/registration/ZnackRegistrationBatchService.java",
+      "sha256": "d8181f041bdbd3bb4d6286c8c244d1e87e0cfe3871be06a9c151739ad9b1cd8f"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/znack/signature/CryptoProCommandRunner.java",
+      "sha256": "37e1ed2f00431bf6ec08b364b6b15150b23d208e33d0f6dd7ebc5b0a25181950"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/znack/signature/WindowsCadesSignatureProvider.java",
+      "sha256": "f28a62ab6c16d8897f102e6c53125e997503f988c6f7d1781830d2291c34b565"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/shared/FriendlyErrorService.java",
+      "sha256": "2195bfac6985dae1a0a584916d3977c97e910b0dd31d3e9f0b7f6ff79f6b5b41"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/ui/history/PrintHistoryController.java",
+      "sha256": "032b56174bc00826cd38f4b60b44943b48ee0a5f2f69b5c8564309dd421819e9"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/ui/znackregistration/OzonRegistrationPane.java",
+      "sha256": "19613aa42be0aae8e8da52a7d9f75c75ad30a589429545de5ea3c12d32640873"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/ui/znackregistration/RegistrationBatchPreflight.java",
+      "sha256": "bddfa612526b900881815ab928ac48ab3edb4e27503aaa7014c458b2d9612a26"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/ui/znackregistration/RegistrationDiagnostics.java",
+      "sha256": "9b7794bd1b8f794676f0f02b6b09743a2e14e73848394f13cd33aacf89929d1b"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/ui/znackregistration/RegistrationSigningReviewDialog.java",
+      "sha256": "c74852b1b8f9400c2c3f071543d236da2937e740a4752bc8b0d42afcd3c4f334"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/ui/znackregistration/RegistrationTableText.java",
+      "sha256": "ca33713ef6dd39a725a000d69b90302cf3866e19673b0e8945cf612752f08259"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/ui/znackregistration/ZnackCardRegistrationController.java",
+      "sha256": "824e420f0cbd6127c8592a440081a2af6184851b3e1fc1561d0a34ebf189abe4"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/ui/znackregistration/ZnackRegistrationQueryRepository.java",
+      "sha256": "685c82587cf25b69eed0ab4ee7b423920cf19e8bdc0162b245053bda2a61afe4"
+    },
+    {
+      "path": "src/main/resources/com/vncode/app/i18n/messages_en.properties",
+      "sha256": "716fe8e414d69b60495bbf4372c685e6ee73467bd70ce8d1d33530c7117c92f1"
+    },
+    {
+      "path": "src/main/resources/com/vncode/app/i18n/messages_ru.properties",
+      "sha256": "75e4ed3fd2e9ce147de006cb16eec475a4c544e6f3b3a0dcb4ad9dfab11a4655"
+    },
+    {
+      "path": "src/main/resources/com/vncode/app/i18n/messages_vi.properties",
+      "sha256": "3bda8b0ec6e9d4fc57c7a12bd28024921a35cba3077448c6c1fff2bd5973e130"
+    },
+    {
+      "path": "src/main/resources/com/vncode/app/i18n/messages_zh.properties",
+      "sha256": "1ffd0bac52df5811b4fab40d1bdf1535a89c9c5f8f19f7fa5234e0af56cf4f96"
+    },
+    {
+      "path": "src/main/resources/com/vncode/app/ui/znackregistration/znack-card-registration-view.fxml",
+      "sha256": "54b660766b9a81cee2f33df7e7a17dfd7e59e58340091fbdc1081d63c31cbe5f"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/config/DatabaseMigrationCompatibilityTest.java",
+      "sha256": "f550e0067d6f7606d5570aeab163f730724ae7ce8a9e5a7da318c1a70d52fc6a"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/features/fbo/FboKizPrintPlannerTest.java",
+      "sha256": "384bab4ae76a3e8a0a01aa4952ac755e7f73f3be8b371ea055df24b6785cfe89"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/features/fbo/FboPurchaseServiceTest.java",
+      "sha256": "d50277809d3ece7aab6ca36bb73c73a11edafd5395aab90b89359931909376cb"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/features/fbo/FboVerifiedGtinRepositoryTest.java",
+      "sha256": "835c5b19dc6d4a210188afebf812a91b42ebbe84bfe37d6260bf46083c0544d0"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/features/kiz/KizPurchaseMappingProofTest.java",
+      "sha256": "439a62bf3e2b00471dcce620cb95a75c6a12dceecd4169cffb07b4c9d102387a"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/features/kiz/KizWarehouseTest.java",
+      "sha256": "3af0e1ae8fe36ccf6686946780b6429af2e702a8ac1e835809eead02b77d5fa3"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/features/print/PrintPublishRecoveryTest.java",
+      "sha256": "7994415f8371561adb0ef4f7bf6741794dfe8a28e48affbc4bb8b99ced00389c"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/integration/ozon/OzonFboCombinedPrintTest.java",
+      "sha256": "af59bd88277f0594072a712d7e25cd06150e181807a66a79615cde0018f451a3"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/integration/ozon/OzonFboWorkflowTest.java",
+      "sha256": "6837863c535c235bbd381f9248ca66813b9d95e31ba36f706dda3e31c610bd89"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/integration/wb/WbContentApiRateLimiterTest.java",
+      "sha256": "d5fffeb7a2e9dadf3908e9ca0ddbd16556903c9384d9487f23815028e15b11fa"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/integration/wb/WbRegistrationSnapshotTest.java",
+      "sha256": "7b8c4ee095df35a41f60836843494fbf1987b545c4ddfdea43190ca15c3b1092"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/integration/znack/ZnackCisReadbackTest.java",
+      "sha256": "ac5ebc05e46f89ee5f35cab22d53f353c61460fc1cd7ae578eee05eb90340ae1"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/integration/znack/ZnackGtinWorkflowTest.java",
+      "sha256": "199ca30764431b1247a66f09b261d74c7f2e59d29e150f8e2914e170ad4164ee"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/integration/znack/ZnackIntroductionIdentityTest.java",
+      "sha256": "21edcb5e99721615c6f849e350046657a21e25560a84e7a5ed3b3cccee58f289"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/integration/znack/ZnackModuleTest.java",
+      "sha256": "3bba6585ec300c900c276760ea49c756aab2cd045bd20659491e9049ea3a51c2"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/integration/znack/ZnackOrderReconciliationSafetyTest.java",
+      "sha256": "fab7b025ed69a6b12495b3b2398c30af1d04788e492ea32f31af5b35a59755ed"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/integration/znack/ZnackPurchaseMigrationSafetyTest.java",
+      "sha256": "635052a7415a83388a8d1bc43ccfd94d12516e2af8ca8cf5379cc75616501b3d"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/integration/znack/registration/OzonCardRegistrationRepositoryTest.java",
+      "sha256": "6baea5f84128dc2c8ba1edda36da09b8f5d393f2f506554da051f09dc137fe8e"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/integration/znack/registration/OzonCardRegistrationWorkflowTest.java",
+      "sha256": "990d6c460338c070c501578f1bf6aa2d4516143550842318b65d2030449171a2"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/integration/znack/registration/RegistrationDynamicPreflightTest.java",
+      "sha256": "24a31efce83d53bf8522a53bb11e0b42219421934fc6ee5bedfc4ccfb1690369"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/integration/znack/registration/ZnackCardRegistrationWorkflowTest.java",
+      "sha256": "9d6a598f91b98fdc13d8f0e7ab89a43baee724abbec4152f0adfe803e6ae6437"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/integration/znack/registration/ZnackNationalCatalogServiceTest.java",
+      "sha256": "d6c1cf025bf147905a9217ea51aa592792452b98ad8b3442e8f545fdb55f02d5"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/integration/znack/registration/ZnackReviewedDraftSubmissionTest.java",
+      "sha256": "1c306fd385f6c302505275e02965df22d1243731ec2fe1ae96c00afa7d914a36"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/integration/znack/signature/CryptoProCommandRunnerTest.java",
+      "sha256": "41ed01f55fe233a7ed376ff1a49049792a463ef26a9ac21d439534df18323d6f"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/integration/znack/signature/CryptoProSignatureTest.java",
+      "sha256": "ab01fb0311b8fb6b39cc9b6318c0caaaa4b883909c7e8deb89c0606a1bca0a97"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/shared/FriendlyErrorCodeTest.java",
+      "sha256": "16309d06a16e15373479627f7b7dd8de904a769bc75c65b7668669f7de42cd48"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/ui/znackregistration/ExistingDraftReviewTest.java",
+      "sha256": "890d772d22b327121a50d32d66dcfa41221ad011d02092c81b089f5b5e5c04ac"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/ui/znackregistration/OzonRegistrationPaneTest.java",
+      "sha256": "b7926559db7f0695f0ab7fa1919abcf43f25fa70d975e545a853dfe8fab36cb3"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/ui/znackregistration/RegistrationSigningReviewDialogTest.java",
+      "sha256": "51ae0e85ed9455f032858d21cd5a52d202d9d7ea1d2b04f1a184c8457a3ed9ce"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/ui/znackregistration/RegistrationTableTextTest.java",
+      "sha256": "3221e0a04dc0caf1041772e00e57c5ed15c42f0013fe2862889ff290c093fdc3"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/ui/znackregistration/ZnackCardRegistrationControllerTest.java",
+      "sha256": "4850af09eb580daca5b7461f2271191ad301ed7324a1bb2fe41a1c23e56d8013"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/ui/znackregistration/ZnackRegistrationQueryRepositoryTest.java",
+      "sha256": "3c390b8a0e8fd331da02ef4dff3853a3068ac60b792e9dfbc71e9cc6990be85e"
+    }
+  ],
+  "startup_smoke": {
+    "platform": "Linux/JavaFX dưới Xvfb",
+    "isolated_empty_appdata": true,
+    "data_directory": "/tmp/vncode-source-audit-startup-157-verified/data",
+    "command": [
+      "/workspace/toolchains/jdk-25.0.4.1/bin/java",
+      "--enable-native-access=ALL-UNNAMED",
+      "-Dvncode.appdata.dir=/tmp/vncode-source-audit-startup-157-verified/data",
+      "-Duser.home=/tmp/vncode-source-audit-startup-157-verified/home",
+      "-Djava.io.tmpdir=/tmp/vncode-source-audit-startup-157-verified/native",
+      "-jar",
+      "/workspace/Bancapnhat/target/VNcode-1.5.7.jar"
+    ],
+    "license_acceptance_verified": false,
+    "pid": 185542,
+    "result": "main_window_opened",
+    "title": "VN code v1.5.7",
+    "screenshot": "target/source-audit/startup-linux-source-audit-1.5.7.png",
+    "cleanup": "Chỉ dừng tiến trình kiểm tra dữ liệu riêng vừa khởi chạy; không tác động tiến trình khác.",
+    "sqlite_integrity": "ok",
+    "foreign_key_violations": 0,
+    "shops": 0,
+    "startup_exception_log_present": false,
+    "stdout_log": "/tmp/vncode-source-audit-startup-157-verified/stdout.log",
+    "checked_at": "2026-10-21T08:16:18.645514+03:00",
+    "visual_review": "Đã xem ảnh: Dashboard, thanh điều hướng và các thẻ chức năng đã hiện; không chỉ quan sát tiêu đề lúc chuyển màn chờ.",
+    "initial_title_only_capture_rejected": true
+  },
+  "not_verified": [
+    "Bộ cài/nâng cấp Windows",
+    "CryptoPro/chứng thư/USB token thật",
+    "License production",
+    "Tạo thẻ/cấp GTIN/mua KIZ/ký pháp lý/lưu thông/ghi marketplace production",
+    "Máy in vật lý",
+    "Hiệu năng và quota với 10.000 GTIN production"
+  ],
+  "production_writes_performed": false,
+  "latest_changed": false,
+  "windows_installer_created": false,
+  "remote_push_performed": false
+}

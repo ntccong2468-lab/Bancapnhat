@@ -1,6 +1,9 @@
 package com.vncode.app.integration.znack;
 
 import com.google.gson.*;
+import com.vncode.app.features.license.LicenseGate.LicenseDeniedException;
+import com.vncode.app.features.license.LicenseModels.Permission;
+import com.vncode.app.features.license.LicenseRuntime;
 import com.vncode.app.integration.znack.ZnackModels.*;
 import com.vncode.app.integration.znack.signature.ZnackSignatureContext;
 import com.vncode.app.integration.znack.signature.ZnackSignatureProvider;
@@ -15,6 +18,7 @@ public class ZnackIntroductionService {
     public long submit(Settings s,KizOrder order,Product product,List<KizCode> codes)throws Exception{
         ZnackSafety.requireSigned(s,true);
         if(product.tnVed()==null||product.tnVed().isBlank())throw new IllegalStateException("TN VED is required before introduction.");
+        LicenseRuntime.require(Permission.KIZ);
         String participant=required(auth.resolvedParticipantInn(s),"Participant INN is required for introduction.");
         String producer=valueOr(s.producerInn(),participant),owner=valueOr(s.ownerInn(),participant);
         String registryOwner=s.ownerInn()==null?"":s.ownerInn().trim();
@@ -42,9 +46,14 @@ public class ZnackIntroductionService {
             JsonArray certificates=new JsonArray();for(GoodsDocument goodsDocument:goodsDocuments){JsonObject certificate=new JsonObject();certificate.addProperty("certificate_type",goodsDocument.type().trim());certificate.addProperty("certificate_number",goodsDocument.number().trim());certificate.addProperty("certificate_date",goodsDocument.date().trim());certificates.add(certificate);}
             item.add("certificate_document_data",certificates);items.add(item);}
         payload.add("products",items);byte[] documentBytes=payload.toString().getBytes(StandardCharsets.UTF_8);
+        LicenseRuntime.require(Permission.KIZ);
         byte[] sig=signer.sign(documentBytes, ZnackSignatureContext.TRUE_API_DOCUMENT).cms();
         JsonObject request=new JsonObject();request.addProperty("document_format","MANUAL");request.addProperty("type","LP_INTRODUCE_GOODS");request.addProperty("product_document",Base64.getEncoder().encodeToString(documentBytes));request.addProperty("signature",Base64.getEncoder().encodeToString(sig));
+        // Finish preflight/signature waits before claiming a new, not-yet-sent introduction.
+        LicenseRuntime.require(Permission.KIZ);
         long documentId=repository.createDocument(order.id(),payload.toString());
+        try{LicenseRuntime.require(Permission.KIZ);}
+        catch(LicenseDeniedException denied){repository.updateDocument(documentId,null,"NOT_SUBMITTED",denied.getMessage());throw denied;}
         try{String external=required(api.createDocument(s.resolvedTrueApiBaseUrl(),token,request),"Znack document response did not contain a document ID.");
             repository.updateDocument(documentId,external,"SUBMITTED",null);repository.markCodes(order.id(),KizLegalStatus.INTRO_SENT,null,documentId);repository.updateOrder(order.id(),null,null,OrderStatus.INTRO_SENT,null);return documentId;
         }catch(Exception e){repository.updateDocument(documentId,null,e instanceof ZnackApiClient.ZnackApiException?"REJECTED":"FAILED",e.getMessage());throw e;}
@@ -77,6 +86,8 @@ public class ZnackIntroductionService {
             return new ConfirmResult(ConfirmStatus.PENDING,null);
         }
         if(codes==null||codes.isEmpty())throw new IllegalStateException("No KIZ codes are available for introduction confirmation.");
+        if(codes.size()!=order.quantity()||!ZnackCisReadback.validRequests(codes,order.gtin(),order.id()))
+            return new ConfirmResult(ConfirmStatus.PENDING,null);
         String token=auth.trueApiToken(s);
         for(int start=0;start<codes.size();start+=ZnackApiClient.CISES_MAX_CODES_PER_REQUEST){
             List<KizCode> batch=codes.subList(start,
@@ -84,7 +95,7 @@ public class ZnackIntroductionService {
             JsonArray values=new JsonArray();
             batch.forEach(c->values.add(ZnackCisNormalizer.forTrueApi(c.rawCode())));
             JsonElement info=api.cisesInfo(s.resolvedTrueApiBaseUrl(),token,values);
-            if(!allIntroduced(info,batch.size()))return new ConfirmResult(ConfirmStatus.PENDING,null);
+            if(ZnackCisReadback.inspect(info,batch,order.gtin()).introduced()!=batch.size())return new ConfirmResult(ConfirmStatus.PENDING,null);
         }
         repository.updateDocument(document.id(),null,"CHECKED_OK",null);
         repository.markCodes(order.id(),KizLegalStatus.IN_CIRCULATION,null,null);repository.updateOrder(order.id(),null,null,OrderStatus.INTRODUCED,null);
@@ -124,8 +135,6 @@ public class ZnackIntroductionService {
         else if(e.isJsonArray())for(JsonElement x:e.getAsJsonArray())collectErrorValues(x,out);
         else if(e.isJsonObject())for(var x:e.getAsJsonObject().entrySet())collectErrorValues(x.getValue(),out);
     }
-    private boolean allIntroduced(JsonElement e,int expected){int[] count={0};walk(e,count);return count[0]>=expected;}
-    private void walk(JsonElement e,int[] count){if(e==null)return;if(e.isJsonObject()){JsonObject o=e.getAsJsonObject();if(o.has("status")&&!o.get("status").isJsonNull()&&"INTRODUCED".equalsIgnoreCase(o.get("status").getAsString())){count[0]++;return;}for(var x:o.entrySet())walk(x.getValue(),count);}else if(e.isJsonArray())for(JsonElement x:e.getAsJsonArray())walk(x,count);}
     private String text(JsonObject o,String...k){for(String x:k)if(o.has(x)&&!o.get(x).isJsonNull())return o.get(x).getAsString();return "";}
     private String valueOr(String value,String fallback){return value==null||value.isBlank()?fallback:value.trim();}
     private String required(String value,String message){if(value==null||value.isBlank())throw new IllegalStateException(message);return value.trim();}

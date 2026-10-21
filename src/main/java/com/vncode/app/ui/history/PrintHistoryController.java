@@ -38,6 +38,7 @@ public class PrintHistoryController {
     @FXML
     private TableColumn<PrintHistoryJobSummary, Void> actionTC;
     private Consumer<PrintHistoryJobSummary> onReprint;
+    private Consumer<PrintHistoryJobSummary> onReconcile;
 
     @FXML
     public void initialize() {
@@ -45,9 +46,11 @@ public class PrintHistoryController {
         supplyNameTC.setCellValueFactory(cell -> new ReadOnlyStringWrapper(cell.getValue().supplyName()));
         supplyIdTC.setCellValueFactory(cell -> new ReadOnlyStringWrapper(cell.getValue().supplyId()));
         itemCountTC.setCellValueFactory(cell -> new ReadOnlyObjectWrapper<>(cell.getValue().itemCount()));
-        statusTC.setCellValueFactory(cell -> new ReadOnlyStringWrapper(cell.getValue().status()));
+        statusTC.setCellValueFactory(cell -> new ReadOnlyStringWrapper(I18nService.getInstance().tr("history.status."+cell.getValue().status())));
         actionTC.setCellFactory(col -> new TableCell<>() {
             private final Button button = new Button();
+            private final Button reconcile = new Button();
+            private final javafx.scene.layout.HBox actions=new javafx.scene.layout.HBox(6,button,reconcile);
             {
                 button.getStyleClass().add("btn-icon");
                 button.getStyleClass().add("btn-primary");
@@ -61,6 +64,8 @@ public class PrintHistoryController {
                         onReprint.accept(job);
                     }
                 });
+                reconcile.getStyleClass().add("btn-secondary");
+                reconcile.setOnAction(event->{var job=getTableRow()==null?null:getTableRow().getItem();if(job!=null&&job.canReprint()&&onReconcile!=null)onReconcile.accept(job);});
             }
 
             @Override
@@ -71,7 +76,9 @@ public class PrintHistoryController {
                     setGraphic(null);
                 } else {
                     button.setDisable(!job.canReprint());
-                    setGraphic(button);
+                    reconcile.setText(I18nService.getInstance().tr("history.reconcile_kiz"));
+                    reconcile.setDisable(!job.canReprint()||job.isFbo()||job.isKizExport()||onReconcile==null);
+                    setGraphic(actions);
                 }
             }
         });
@@ -90,6 +97,7 @@ public class PrintHistoryController {
     public void setOnReprint(Consumer<PrintHistoryJobSummary> onReprint) {
         this.onReprint = onReprint;
     }
+    public void setOnReconcile(Consumer<PrintHistoryJobSummary> action){onReconcile=action;jobsTable.refresh();}
 
     public void applyTranslations() {
         I18nService i18n = I18nService.getInstance();
@@ -100,6 +108,7 @@ public class PrintHistoryController {
         supplyIdTC.setText(i18n.tr("history.col.supply_id"));
         itemCountTC.setText(i18n.tr("history.col.item_count"));
         statusTC.setText(i18n.tr("history.col.status"));
+        jobsTable.refresh();
     }
 
     private String formatTimestamp(String value) {

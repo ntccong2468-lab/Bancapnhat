@@ -1,0 +1,206 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import {DatabaseSync} from 'node:sqlite';
+import {readFileSync} from 'node:fs';
+import worker, {ITERATIONS,hashPassword,verifyPassword} from '../src/index.js';
+
+import {envSetup,req} from './fixtures.js';
+const creds=(email)=>({email,password:'A_Strong_Password_12345',confirm:'A_Strong_Password_12345'});
+
+test('register, admin activation and client entitlement flow',async()=>{
+  const env=envSetup();
+  let r=await req(env,'/api/register','POST',creds('owner@example.com'));
+  assert.equal(r.status,201);
+  r=await req(env,'/api/register','POST',creds('owner@example.com'));
+  assert.equal(r.status,409);
+  r=await req(env,'/api/login','POST',{email:'owner@example.com',password:'wrong'});
+  assert.equal(r.status,401);
+  const owner=await req(env,'/api/login','POST',creds('owner@example.com'));
+  assert.equal(owner.status,200);
+  assert.equal(owner.data.user.active,false);
+  const cookie=owner.cookie.split(';')[0];
+  assert.ok(cookie.startsWith('__Host-vncode_session='));
+  assert.equal((await req(env,'/api/admin/users','GET',null,cookie)).status,403);
+  env.sqlite.prepare("UPDATE users SET role='admin',status='approved' WHERE email='owner@example.com'").run();
+  const adm=await req(env,'/api/admin/users','GET',null,cookie);
+  assert.equal(adm.status,200);
+  assert.equal(adm.data.total,1);
+  await req(env,'/api/register','POST',creds('buyer@example.com'));
+  let all=await req(env,'/api/admin/users','GET',null,cookie);
+  const buyer=all.data.users.find(u=>u.email==='buyer@example.com');
+  assert.ok(buyer);
+  r=await req(env,`/api/admin/users/${buyer.id}/status`,'POST',{status:'approved'},cookie);
+  assert.equal(r.status,200);
+  r=await req(env,`/api/admin/users/${buyer.id}/grant`,'POST',{days:30},cookie);
+  assert.equal(r.status,200);
+  const client=await req(env,'/api/client/login','POST',creds('buyer@example.com'));
+  assert.equal(client.status,200);
+  assert.equal(client.data.user.active,true);
+  assert.ok(client.data.access_token);
+  const identity=await req(env,'/api/client/me','GET',null,'',{authorization:'Bearer '+client.data.access_token});
+  assert.equal(identity.data.user.email,'buyer@example.com');
+  r=await req(env,`/api/admin/users/${buyer.id}/status`,'POST',{status:'suspended'},cookie);
+  assert.equal(r.status,200);
+  assert.equal((await req(env,'/api/client/me','GET',null,'',{authorization:'Bearer '+client.data.access_token})).status,401);
+  env.sqlite.close();
+});
+
+test('email verification and password reset with email binding',async()=>{
+  const sent=[];
+  const env=envSetup({REQUIRE_EMAIL_VERIFICATION:'1',EMAIL_FROM:'no-reply@vncode.example',PUBLIC_BASE_URL:'https://vncode.example',EMAIL:{send:async(msg)=>{sent.push(msg);return {messageId:'fake'}}}});
+  const registered=await req(env,'/api/register','POST',creds('verified@example.com'));
+  assert.equal(registered.status,201);
+  assert.equal(sent.length,1);
+  const token=sent[0].text.split('?verify=')[1].split('\n')[0];
+  let r=await req(env,'/api/email/verify','POST',{token});
+  assert.equal(r.status,200);
+  const login=await req(env,'/api/login','POST',creds('verified@example.com'));
+  assert.equal(login.data.user.email_verified,true);
+  r=await req(env,'/api/password/forgot','POST',{email:'verified@example.com'});
+  assert.equal(r.status,200);
+  assert.equal(sent.length,2);
+  const resetToken=sent[1].text.split('?reset=')[1].trim();
+  const fresh={password:'AnEvenMoreSecurePassword2026!',confirm:'AnEvenMoreSecurePassword2026!',token:resetToken};
+  r=await req(env,'/api/password/reset','POST',fresh);
+  assert.equal(r.status,200);
+  r=await req(env,'/api/login','POST',creds('verified@example.com'));
+  assert.equal(r.status,401);
+  r=await req(env,'/api/login','POST',{email:'verified@example.com',password:fresh.password});
+  assert.equal(r.status,200);
+  env.sqlite.close();
+});
+
+// Regression guard: deployed Cloudflare Workers reject PBKDF2 requests above 100,000 rounds.
+test('password hashing stays under Cloudflare PBKDF2 per-call cap', async()=>{
+  assert.ok(ITERATIONS >= 1 && ITERATIONS <= 100000);
+  const credentials=await hashPassword('A_Strong_Password_12345');
+  assert.equal(await verifyPassword('A_Strong_Password_12345',credentials.salt,credentials.hash),true);
+  assert.equal(await verifyPassword('not-correct-password',credentials.salt,credentials.hash),false);
+});
+
+
+test('license keys bind to one account, single-use, and extend entitlement',async()=>{
+  const env=envSetup();
+  await req(env,'/api/register','POST',creds('boss@example.com'));
+  env.sqlite.prepare("UPDATE users SET role='admin',status='approved' WHERE email='boss@example.com'").run();
+  await req(env,'/api/register','POST',creds('customer@example.com'));
+  await req(env,'/api/register','POST',creds('stranger@example.com'));
+  const owner=await req(env,'/api/login','POST',creds('boss@example.com'));
+  const cookie=owner.cookie.split(';')[0];
+  const customer=env.sqlite.prepare("SELECT id FROM users WHERE email='customer@example.com'").get();
+  env.sqlite.prepare("UPDATE users SET status='approved' WHERE id=?").run(customer.id);
+  const issued=await req(env,'/api/admin/license-codes','POST',{user_id:customer.id,days:30},cookie);
+  assert.equal(issued.status,201);
+  assert.match(issued.data.code,/^VNC(?:-[0-9A-F]{4}){8}$/);
+  assert.ok(!JSON.stringify(env.sqlite.prepare('SELECT * FROM license_codes').get()).includes(issued.data.code));
+  const customerLogin=await req(env,'/api/login','POST',creds('customer@example.com'));
+  const customerCookie=customerLogin.cookie.split(';')[0];
+  env.sqlite.prepare("UPDATE users SET status='approved' WHERE email='stranger@example.com'").run();
+  const stranger=await req(env,'/api/login','POST',creds('stranger@example.com'));
+  const strangerCookie=stranger.cookie.split(';')[0];
+  let result=await req(env,'/api/license/redeem','POST',{code:issued.data.code},strangerCookie);
+  assert.equal(result.status,409);
+  const prior=Math.floor(Date.now()/1000);
+  result=await req(env,'/api/license/redeem','POST',{code:issued.data.code},customerCookie);
+  assert.equal(result.status,200);
+  assert.equal(result.data.user.active,true);
+  assert.ok(result.data.user.expires_at>=prior+30*86400);
+  assert.ok(result.data.user.expires_at<=prior+30*86400+5);
+  result=await req(env,'/api/license/redeem','POST',{code:issued.data.code},customerCookie);
+  assert.equal(result.status,409);
+  const row=env.sqlite.prepare("SELECT license_expires_at FROM users WHERE email='customer@example.com'").get();
+  assert.equal(row.license_expires_at,result.data?.user?.expires_at??row.license_expires_at);
+  const history=await req(env,'/api/license','GET',null,customerCookie);
+  assert.equal(history.data.history.length,1);
+  const list=await req(env,'/api/admin/license-codes','GET',null,cookie);
+  assert.equal(list.status,200);
+  assert.equal(list.data.codes.length,1);
+  assert.equal(list.data.codes[0].state,'redeemed');
+  assert.ok(!JSON.stringify(list.data).includes(issued.data.code));
+  const voidUsed=await req(env,`/api/admin/license-codes/${list.data.codes[0].id}/void`,'POST',{},cookie);
+  assert.equal(voidUsed.status,409);
+  env.sqlite.close();
+});
+
+test('admin can void unused code and revoke entitlement without deleting account',async()=>{
+  const env=envSetup();
+  await req(env,'/api/register','POST',creds('boss@example.com'));
+  env.sqlite.prepare("UPDATE users SET role='admin',status='approved' WHERE email='boss@example.com'").run();
+  await req(env,'/api/register','POST',creds('customer@example.com'));
+  const owner=await req(env,'/api/login','POST',creds('boss@example.com'));
+  const cookie=owner.cookie.split(';')[0];
+  const customer=env.sqlite.prepare("SELECT id FROM users WHERE email='customer@example.com'").get();
+  env.sqlite.prepare("UPDATE users SET status='approved' WHERE id=?").run(customer.id);
+  let issued=await req(env,'/api/admin/license-codes','POST',{user_id:customer.id,days:30},cookie);
+  const code=issued.data.code;
+  const list=await req(env,'/api/admin/license-codes','GET',null,cookie);
+  assert.equal((await req(env,`/api/admin/license-codes/${list.data.codes[0].id}/void`,'POST',{},cookie)).status,200);
+  const buyer=await req(env,'/api/login','POST',creds('customer@example.com'));
+  const buyerCookie=buyer.cookie.split(';')[0];
+  assert.equal((await req(env,'/api/license/redeem','POST',{code},buyerCookie)).status,409);
+  assert.equal((await req(env,`/api/admin/users/${customer.id}/grant`,'POST',{days:30},cookie)).status,200);
+  assert.equal((await req(env,'/api/client/me','GET',null,'', {authorization:'Bearer junk'})).status,401);
+  const client=await req(env,'/api/client/login','POST',creds('customer@example.com'));
+  // Returning to pending blocks access even after a direct grant.
+  await req(env,`/api/admin/users/${customer.id}/status`,'POST',{status:'pending'},cookie);
+  const pending=await req(env,'/api/client/me','GET',null,'',{authorization:'Bearer '+client.data.access_token});
+  assert.equal(pending.data.user.active,false);
+  assert.equal((await req(env,`/api/admin/users/${customer.id}/status`,'POST',{status:'approved'},cookie)).status,200);
+  assert.equal((await req(env,'/api/client/me','GET',null,'',{authorization:'Bearer '+client.data.access_token})).data.user.active,true);
+  assert.equal((await req(env,`/api/admin/users/${customer.id}/license/revoke`,'POST',{},cookie)).status,200);
+  assert.equal((await req(env,'/api/client/me','GET',null,'',{authorization:'Bearer '+client.data.access_token})).status,401);
+  const fresh=await req(env,'/api/client/login','POST',creds('customer@example.com'));
+  assert.equal(fresh.data.user.active,false);
+  assert.equal(env.sqlite.prepare("SELECT COUNT(*) AS n FROM users WHERE email='customer@example.com'").get().n,1);
+  env.sqlite.close();
+});
+
+test('license issue rejects invalid days, client cannot access admin endpoints',async()=>{
+  const env=envSetup();
+  await req(env,'/api/register','POST',creds('boss@example.com'));
+  env.sqlite.prepare("UPDATE users SET role='admin',status='approved' WHERE email='boss@example.com'").run();
+  await req(env,'/api/register','POST',creds('customer@example.com'));
+  const buyer=await req(env,'/api/login','POST',creds('customer@example.com'));
+  const cookie=buyer.cookie.split(';')[0];
+  const userId=env.sqlite.prepare("SELECT id FROM users WHERE email='customer@example.com'").get().id;
+  assert.equal((await req(env,'/api/admin/license-codes','POST',{user_id:userId,days:30},cookie)).status,403);
+  const owner=await req(env,'/api/login','POST',creds('boss@example.com'));
+  const adminCookie=owner.cookie.split(';')[0];
+  assert.equal((await req(env,'/api/admin/license-codes','POST',{user_id:userId,days:0},adminCookie)).status,400);
+  assert.equal((await req(env,'/api/admin/license-codes','POST',{user_id:userId,days:1.5},adminCookie)).status,400);
+  assert.equal((await req(env,'/api/admin/license-codes','POST',{user_id:userId,days:30},adminCookie)).status,403);
+  assert.equal((await req(env,`/api/admin/users/${userId}/status`,'POST',{status:'approved'},adminCookie)).status,200);
+  assert.equal((await req(env,'/api/admin/license-codes','POST',{user_id:userId,days:30},adminCookie)).status,201);
+  const status=await req(env,'/api/license','GET',null,cookie);
+  assert.equal(status.data.user.active,false);
+  env.sqlite.close();
+});
+
+test('migration is additive/idempotent and revoke voids outstanding codes',async()=>{
+  const db=new DatabaseSync(':memory:');
+  const migration=readFileSync(new URL('../migrations/0001_license_codes.sql',import.meta.url),'utf8');
+  const schema=readFileSync(new URL('../schema.sql',import.meta.url),'utf8');
+  db.exec(schema.split('-- License extension for new databases.')[0]);
+  db.prepare("INSERT INTO users(id,email,password_salt,password_hash,role,status,email_verified,created_at,updated_at) VALUES('u1','u@example.test','salt','hash','user','approved',0,1,1)").run();
+  db.exec(migration);
+  db.exec(migration);
+  assert.equal(db.prepare('SELECT count(*) as n FROM users').get().n,1);
+  db.close();
+
+  const env=envSetup();
+  await req(env,'/api/register','POST',creds('boss@example.com'));
+  env.sqlite.prepare("UPDATE users SET role='admin',status='approved' WHERE email='boss@example.com'").run();
+  await req(env,'/api/register','POST',creds('buyer@example.com'));
+  const boss=await req(env,'/api/login','POST',creds('boss@example.com'));
+  const buyer=env.sqlite.prepare("SELECT id FROM users WHERE email='buyer@example.com'").get();
+  env.sqlite.prepare("UPDATE users SET status='approved' WHERE id=?").run(buyer.id);
+  const issue=await req(env,'/api/admin/license-codes','POST',{user_id:buyer.id,days:90},boss.cookie.split(';')[0]);
+  assert.equal(issue.status,201);
+  assert.equal(env.sqlite.prepare("SELECT state FROM license_codes").get().state,'unused');
+  const revoked=await req(env,`/api/admin/users/${buyer.id}/license/revoke`,'POST',{},boss.cookie.split(';')[0]);
+  assert.equal(revoked.status,200);
+  assert.equal(env.sqlite.prepare("SELECT state FROM license_codes").get().state,'void');
+  const login=await req(env,'/api/login','POST',creds('buyer@example.com'));
+  assert.equal((await req(env,'/api/license/redeem','POST',{code:issue.data.code},login.cookie.split(';')[0])).status,409);
+  env.sqlite.close();
+});

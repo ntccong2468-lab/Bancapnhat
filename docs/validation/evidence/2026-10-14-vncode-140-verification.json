@@ -1,0 +1,18 @@
+{
+  "date": "2026-10-14",
+  "timezone": "Asia/Ho_Chi_Minh",
+  "platform": "Linux cloud / Java 25 / Xorg :99",
+  "command": "mvn -B -DargLine=-Xmx768m clean verify",
+  "reportFiles": 203,
+  "tests": 1175,
+  "failures": 0,
+  "errors": 0,
+  "skipped": 1,
+  "passed": 1174,
+  "skippedWindowsOnly": 1,
+  "nodePassed": 42,
+  "portalPassed": 28,
+  "linuxJarStartup": "passed",
+  "jarSha256": "075823c392c2c5485c7bc163730b80124b2988d448e6388ac6bf9d16afa21e31",
+  "liveProductionAcceptance": false
+}

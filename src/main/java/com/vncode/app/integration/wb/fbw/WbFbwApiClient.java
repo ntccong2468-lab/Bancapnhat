@@ -97,14 +97,14 @@ public final class WbFbwApiClient {
         }
         Request.Builder request = new Request.Builder().url(url).header("Authorization", token);
         if ("POST".equals(method)) request.post(body); else request.get();
-        try (Response response = http.newCall(request.build()).execute()) {
+        try (var slot=com.vncode.app.shared.MarketplaceRequestBudget.acquire(); Response response = http.newCall(request.build()).execute()) {
             if (!response.isSuccessful()) {
                 if (response.code() == 429) limiter.registerRateLimit(shopId, response.headers());
                 throw new WbApiException("WB FBW API request failed", response.code(), "");
             }
             ResponseBody responseBody = response.body();
             if (responseBody == null || responseBody.contentLength() > MAX_RESPONSE_BYTES) throw invalidResponse();
-            byte[] bytes = responseBody.bytes();
+            byte[] bytes = com.vncode.app.shared.BoundedHttpBody.bytes(responseBody,(int)MAX_RESPONSE_BYTES);
             if (bytes.length > MAX_RESPONSE_BYTES) throw invalidResponse();
             try {
                 return JsonParser.parseString(new String(bytes, java.nio.charset.StandardCharsets.UTF_8));

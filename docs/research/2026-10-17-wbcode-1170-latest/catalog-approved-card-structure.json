@@ -1,0 +1,296 @@
+{
+  "readOnly": true,
+  "checkedAt": "2026-10-17T20:42:26.523803+00:00",
+  "listHttp": 200,
+  "attempts": [
+    {
+      "http": 200
+    }
+  ],
+  "mutations": false,
+  "rows": 1000,
+  "total": 1276,
+  "statusCounts": {
+    "published": 998,
+    "draft": 2
+  },
+  "detailCount": 1,
+  "firstDetailKeys": [
+    "good_id",
+    "identified_by",
+    "good_name",
+    "is_kit",
+    "is_set",
+    "set_gtins",
+    "good_url",
+    "good_img",
+    "good_status",
+    "good_detailed_status",
+    "good_signed",
+    "good_mark_flag",
+    "good_turn_flag",
+    "flags_updated_date",
+    "create_date",
+    "update_date",
+    "producer_inn",
+    "producer_name",
+    "categories",
+    "brand_id",
+    "brand_name",
+    "good_rating",
+    "good_images",
+    "good_attrs",
+    "good_reviews",
+    "good_reviews_count",
+    "good_prices",
+    "remainder_type",
+    "is_tech_gtin",
+    "first_sign_date"
+  ],
+  "detailStatus": "published",
+  "detailKeys": [
+    "brand_id",
+    "brand_name",
+    "categories",
+    "create_date",
+    "first_sign_date",
+    "flags_updated_date",
+    "good_attrs",
+    "good_detailed_status",
+    "good_id",
+    "good_images",
+    "good_img",
+    "good_mark_flag",
+    "good_name",
+    "good_prices",
+    "good_rating",
+    "good_reviews",
+    "good_reviews_count",
+    "good_signed",
+    "good_status",
+    "good_turn_flag",
+    "good_url",
+    "identified_by",
+    "is_kit",
+    "is_set",
+    "is_tech_gtin",
+    "producer_inn",
+    "producer_name",
+    "remainder_type",
+    "set_gtins",
+    "update_date"
+  ],
+  "attributes": [
+    {
+      "attr_id": 12,
+      "keys": [
+        "attr_group_id",
+        "attr_group_name",
+        "attr_id",
+        "attr_name",
+        "attr_value",
+        "attr_value_type",
+        "published_date",
+        "value_id"
+      ],
+      "valueType": "",
+      "valueLength": 5
+    },
+    {
+      "attr_id": 35,
+      "keys": [
+        "attr_group_id",
+        "attr_group_name",
+        "attr_id",
+        "attr_name",
+        "attr_value",
+        "attr_value_type",
+        "published_date",
+        "value_id"
+      ],
+      "valueType": "КИТАЙ",
+      "valueLength": 3
+    },
+    {
+      "attr_id": 36,
+      "keys": [
+        "attr_group_id",
+        "attr_group_name",
+        "attr_id",
+        "attr_name",
+        "attr_value",
+        "attr_value_type",
+        "published_date",
+        "value_id"
+      ],
+      "valueType": "",
+      "valueLength": 12
+    },
+    {
+      "attr_id": 2478,
+      "keys": [
+        "attr_group_id",
+        "attr_group_name",
+        "attr_id",
+        "attr_name",
+        "attr_value",
+        "attr_value_type",
+        "published_date",
+        "value_id"
+      ],
+      "valueType": "",
+      "valueLength": 14
+    },
+    {
+      "attr_id": 2483,
+      "keys": [
+        "attr_group_id",
+        "attr_group_name",
+        "attr_id",
+        "attr_name",
+        "attr_value",
+        "attr_value_type",
+        "published_date",
+        "value_id"
+      ],
+      "valueType": "",
+      "valueLength": 9
+    },
+    {
+      "attr_id": 2504,
+      "keys": [
+        "attr_group_id",
+        "attr_group_name",
+        "attr_id",
+        "attr_name",
+        "attr_value",
+        "attr_value_id",
+        "attr_value_type",
+        "published_date",
+        "value_id"
+      ],
+      "valueType": "",
+      "valueLength": 20
+    },
+    {
+      "attr_id": 3959,
+      "keys": [
+        "attr_group_id",
+        "attr_group_name",
+        "attr_id",
+        "attr_name",
+        "attr_value",
+        "attr_value_type",
+        "published_date",
+        "value_id"
+      ],
+      "valueType": "",
+      "valueLength": 4
+    },
+    {
+      "attr_id": 3961,
+      "keys": [
+        "attr_group_id",
+        "attr_group_name",
+        "attr_id",
+        "attr_name",
+        "attr_value",
+        "attr_value_type",
+        "published_date",
+        "value_id"
+      ],
+      "valueType": "",
+      "valueLength": 12
+    },
+    {
+      "attr_id": 13836,
+      "keys": [
+        "attr_group_id",
+        "attr_group_name",
+        "attr_id",
+        "attr_name",
+        "attr_value",
+        "attr_value_type",
+        "published_date",
+        "value_id"
+      ],
+      "valueType": "",
+      "valueLength": 63
+    },
+    {
+      "attr_id": 13914,
+      "keys": [
+        "attr_group_id",
+        "attr_group_name",
+        "attr_id",
+        "attr_name",
+        "attr_value",
+        "attr_value_type",
+        "published_date",
+        "value_id"
+      ],
+      "valueType": "Модель",
+      "valueLength": 14
+    },
+    {
+      "attr_id": 13933,
+      "keys": [
+        "attr_group_id",
+        "attr_group_name",
+        "attr_id",
+        "attr_name",
+        "attr_value",
+        "attr_value_type",
+        "published_date",
+        "value_id"
+      ],
+      "valueType": "",
+      "valueLength": 10
+    },
+    {
+      "attr_id": 14013,
+      "keys": [
+        "attr_group_id",
+        "attr_group_name",
+        "attr_id",
+        "attr_name",
+        "attr_value",
+        "attr_value_type",
+        "published_date",
+        "value_id"
+      ],
+      "valueType": "",
+      "valueLength": 7
+    },
+    {
+      "attr_id": 23557,
+      "keys": [
+        "attr_group_id",
+        "attr_group_name",
+        "attr_id",
+        "attr_name",
+        "attr_value",
+        "attr_value_type",
+        "published_date",
+        "value_id"
+      ],
+      "valueType": "",
+      "valueLength": 43
+    }
+  ],
+  "identityStructure": [
+    {
+      "value": "<OWN_GTIN>",
+      "type": "gtin",
+      "multiplier": 1,
+      "level": "trade-unit"
+    }
+  ],
+  "categoryStructure": [
+    "dict",
+    "dict",
+    "dict"
+  ],
+  "publicationVerified": true,
+  "sampleSha256": "878c2024e77ef9be697999467270c53f1a50395dd17533810d3d08b36aaf2b29"
+}

@@ -6,6 +6,9 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.vncode.app.config.Database;
+import com.vncode.app.features.license.LicenseDomainFixture;
+import com.vncode.app.features.license.LicenseGate;
+import com.vncode.app.features.license.LicenseRuntime;
 import com.vncode.app.integration.marketplace.Marketplace;
 import com.vncode.app.models.Shop;
 import java.io.IOException;
@@ -57,6 +60,46 @@ class OzonLabelServiceTest {
     void tearDown() throws Exception {
         System.clearProperty("vncode.appdata.dir");
         server.shutdown();
+    }
+
+    @Test
+    void deniedNewLabelLeavesNoNewJobAndSendsNoHttp() throws Exception {
+        var prior = LicenseRuntime.service();
+        try (var denied = LicenseDomainFixture.denied(temporaryDirectory.resolve("denied"))) {
+            LicenseRuntime.install(denied);
+            var repository = new OzonLabelRepository();
+            assertThrows(LicenseGate.LicenseDeniedException.class, () ->
+                    new OzonLabelService(repository, this::client).downloadOfficialPdf(
+                            new Shop(1, "Ozon", Marketplace.OZON, "client-1", "secret"),
+                            "posting-1", temporaryDirectory.resolve("denied.pdf").toFile()));
+            assertNull(repository.find(1, "posting-1"));
+            assertEquals(0, server.getRequestCount());
+        } finally {
+            LicenseRuntime.install(prior);
+        }
+    }
+
+    @Test
+    void deniedLicenseCanFinishAnAlreadySubmittedLabelJobWithoutRecreatingIt() throws Exception {
+        var repository = new OzonLabelRepository();
+        repository.findOrCreate(1, "posting-1");
+        repository.update(1, "posting-1", "task-1", "POLLING", null, null);
+        server.enqueue(json("{\"result\":{\"status\":\"completed\",\"file_url\":\""
+                + server.url("/cdn/accepted.pdf") + "\"}}"));
+        server.enqueue(new MockResponse().setResponseCode(200).setBody("%PDF-1.7\nexisting-label"));
+        var prior = LicenseRuntime.service();
+        try (var denied = LicenseDomainFixture.denied(temporaryDirectory.resolve("denied"))) {
+            LicenseRuntime.install(denied);
+            var target = temporaryDirectory.resolve("finished.pdf").toFile();
+            new OzonLabelService(repository, this::client).downloadOfficialPdf(
+                    new Shop(1, "Ozon", Marketplace.OZON, "client-1", "secret"), "posting-1", target);
+            assertTrue(target.isFile());
+            assertEquals("READY", repository.find(1, "posting-1").status());
+            assertEquals(2, server.getRequestCount());
+            assertTrue(server.takeRequest(1, TimeUnit.SECONDS).getPath().contains("/get"));
+        } finally {
+            LicenseRuntime.install(prior);
+        }
     }
 
     @Test

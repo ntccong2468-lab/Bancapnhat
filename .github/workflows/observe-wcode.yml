@@ -1,18 +1,57 @@
+name: Wbcode 1.3.9 desktop audit (manual)
 name: Historical reference UI check (manual)
 on:
   workflow_dispatch:
+    inputs:
+      report_only:
+        description: 'Package the completed audit report without running or building either application'
+        type: boolean
+        default: false
 permissions:
   contents: read
 jobs:
   observe:
+    if: ${{ !inputs.report_only }}
     runs-on: windows-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
       - name: Launch checksum-verified reference fixture in a fresh Windows runner
         shell: pwsh
         run: ./tools/windows-wcode-ui-observe.ps1
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        if: always()
         with:
+          name: wbcode-1.3.9-desktop-audit
           name: reference-ui-observation
           path: out/wcode-observation/*
+          if-no-files-found: error
+  report:
+    if: ${{ inputs.report_only }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - name: Package diagrams, table, offline HTML and captured evidence
+        run: |
+          mkdir -p out
+          python - <<'PY'
+          from pathlib import Path
+          import zipfile, hashlib
+          root = Path('docs/research/vncode-wbcode-2026-10-14')
+          target = Path('out/VNCode-Wbcode-Audit-2026-10-14.zip')
+          with zipfile.ZipFile(target, 'w', zipfile.ZIP_DEFLATED) as bundle:
+              for file in sorted(root.rglob('*')):
+                  if file.is_file():
+                      bundle.write(file, file.relative_to(root))
+          Path('out/checksums.sha256').write_text(hashlib.sha256(target.read_bytes()).hexdigest() + '  ' + target.name + '\n')
+          PY
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: VNCode-Wbcode-Audit-2026-10-14
+          path: out/*
           if-no-files-found: error

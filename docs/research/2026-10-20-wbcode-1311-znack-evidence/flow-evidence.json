@@ -1,0 +1,591 @@
+{
+  "observedAtUtc": "2026-10-20T19:39:24.175853+00:00",
+  "evidenceType": "Static bytecode/disassembly and public release metadata only; no vendor runtime execution or production mutations",
+  "officialLatest": {
+    "tag": "v1.3.11",
+    "publishedAt": "2026-10-20T04:57:25Z",
+    "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.3.11",
+    "exeSha256": "6103163af499d6d54cf08672f4b8cda33d9c29b12f35d9a7a12f872e08b314d8",
+    "applicationJarSha256": "cfaf50305212bfd60d8839654df2d769b7180672b9a54e59dbec62bdcf3435c5"
+  },
+  "publicSourceBaseline": {
+    "repository": "https://github.com/rupphi/test-wcode",
+    "branch": "znack-registration-test",
+    "commit": "8f7c3d1ac8598158029b8d037e2d3c128e240727",
+    "version": "1.1.32",
+    "deliberateLimit": "ZnackCardRegistrationWorkflow.java:180–183 explicitly does not write GTIN to Wildberries; not current source"
+  },
+  "currentSource": {
+    "url": "https://api.github.com/repos/rupphi/source-wcode",
+    "httpStatus": 404,
+    "claim": "Not publicly accessible with current access; no current proprietary Java source or authenticated runtime claimed"
+  },
+  "flow": [
+    {
+      "stage": "sync",
+      "packagedClass": "ZnackCardRegistrationController",
+      "classSha256": null,
+      "method": "startZnackSync",
+      "evidenceFile": "javap/ZnackCardRegistrationController.txt",
+      "selectedCallEdges": [
+        {
+          "line": 7946,
+          "caller": "lambda$new$1",
+          "call": "integration/znack/registration/RegistrationRunner.syncZnack"
+        }
+      ],
+      "comparison": "VNCode has owner-scoped catalog sync and persisted catalog cursor; current releases claim >10k fix. Different implementations, no authenticated Wbcode runtime comparison."
+    },
+    {
+      "stage": "select/preflight",
+      "packagedClass": "ZnackCardRegistrationController",
+      "classSha256": null,
+      "method": "onRegisterSelected",
+      "evidenceFile": "javap/ZnackCardRegistrationController.txt",
+      "selectedCallEdges": [
+        {
+          "line": 6080,
+          "caller": "lambda$createCard$0",
+          "call": "reviewTnvedThen"
+        },
+        {
+          "line": 7624,
+          "caller": "lambda$onRegisterSelected$1",
+          "call": "reviewTnvedThen"
+        }
+      ],
+      "comparison": "VNCode selected durable batch/preflight exists. Parent audit separately identifies incomplete dynamic full-schema preflight."
+    },
+    {
+      "stage": "prepare payload",
+      "packagedClass": "RegistrationDraftPreparer",
+      "classSha256": "13663297e442de96d6209669285f29c0b0664ee8e748fdb66ca7206d87646989",
+      "method": "prepareSnapshot",
+      "evidenceFile": "javap/RegistrationDraftPreparer.txt",
+      "selectedCallEdges": [
+        {
+          "line": 57,
+          "caller": "com.tuandev.fbsbarcode.integration.znack.registration.RegistrationDraftPreparer",
+          "call": "\"<init>\""
+        },
+        {
+          "line": 67,
+          "caller": "com.tuandev.fbsbarcode.integration.znack.registration.RegistrationDraftPreparer",
+          "call": "\"<init>\""
+        },
+        {
+          "line": 77,
+          "caller": "com.tuandev.fbsbarcode.integration.znack.registration.RegistrationDraftPreparer",
+          "call": "java/util/HashMap.\"<init>\""
+        },
+        {
+          "line": 82,
+          "caller": "com.tuandev.fbsbarcode.integration.znack.registration.RegistrationDraftPreparer",
+          "call": "java/util/HashMap.\"<init>\""
+        },
+        {
+          "line": 87,
+          "caller": "com.tuandev.fbsbarcode.integration.znack.registration.RegistrationDraftPreparer",
+          "call": "java/util/HashMap.\"<init>\""
+        },
+        {
+          "line": 102,
+          "caller": "com.tuandev.fbsbarcode.integration.znack.registration.RegistrationDraftPreparer",
+          "call": "integration/znack/registration/RegistrationCategoryResolver.\"<init>\""
+        },
+        {
+          "line": 238,
+          "caller": "prepareSnapshot",
+          "call": "integration/znack/registration/ZnackCardRegistrationRepository.characteristics"
+        },
+        {
+          "line": 250,
+          "caller": "prepareSnapshot",
+          "call": "integration/znack/registration/ZnackNationalCatalogService.verifiedExistingClassification"
+        }
+      ],
+      "comparison": "Current VNCode prepares and validates draft, source documents and identity; do not copy stale 1.1.32 defaults."
+    },
+    {
+      "stage": "category",
+      "packagedClass": "RegistrationCategoryResolver",
+      "classSha256": "a3af60fe07cdbc89627c5b06698979163187f7e3fe953c64b89e1837357d43f5",
+      "method": "resolve",
+      "evidenceFile": "javap/RegistrationCategoryResolver.txt",
+      "selectedCallEdges": [
+        {
+          "line": 101,
+          "caller": "resolve",
+          "call": "Interfaceintegration/znack/registration/RegistrationCategoryResolver$Chooser.choose"
+        }
+      ],
+      "comparison": "1.3.11 attempts deterministic category first; chooser exists for ambiguity. VNCode likewise must preserve ambiguity blocking."
+    },
+    {
+      "stage": "GTIN allocation",
+      "packagedClass": "ZnackCardRegistrationWorkflow",
+      "classSha256": "17715c74ae8c27e85f09a01e5571891f704ae35bc837e68b3e6457e8442715d8",
+      "method": "execute",
+      "evidenceFile": "javap/ZnackCardRegistrationWorkflow.txt",
+      "selectedCallEdges": [
+        {
+          "line": 1586,
+          "caller": "execute",
+          "call": "integration/znack/registration/ZnackNationalCatalogService.generateOne"
+        },
+        {
+          "line": 1627,
+          "caller": "execute",
+          "call": "integration/znack/registration/ZnackCardRegistrationRepository.saveGenerated"
+        },
+        {
+          "line": 1731,
+          "caller": "execute",
+          "call": "integration/znack/registration/ZnackCardRegistrationRepository.saveGenerated"
+        },
+        {
+          "line": 1951,
+          "caller": "execute",
+          "call": "integration/znack/registration/ZnackCardRegistrationRepository.saveGenerated"
+        },
+        {
+          "line": 2012,
+          "caller": "execute",
+          "call": "integration/znack/registration/ZnackCardRegistrationRepository.saveGenerated"
+        },
+        {
+          "line": 2065,
+          "caller": "execute",
+          "call": "integration/znack/registration/ZnackCardRegistrationRepository.saveGenerated"
+        }
+      ],
+      "comparison": "VNCode saves allocated GTIN/payload before submission and preserves uncertain allocation/submission."
+    },
+    {
+      "stage": "feed submit",
+      "packagedClass": "ZnackCardRegistrationWorkflow",
+      "classSha256": "17715c74ae8c27e85f09a01e5571891f704ae35bc837e68b3e6457e8442715d8",
+      "method": "submitFeed",
+      "evidenceFile": "javap/ZnackCardRegistrationWorkflow.txt",
+      "selectedCallEdges": [
+        {
+          "line": 309,
+          "caller": "inspectRecovery",
+          "call": "integration/znack/registration/ZnackCardRegistrationRepository.updateProgress"
+        },
+        {
+          "line": 658,
+          "caller": "retryKnown",
+          "call": "integration/znack/registration/ZnackCardRegistrationRepository.updateProgress"
+        },
+        {
+          "line": 1575,
+          "caller": "execute",
+          "call": "integration/znack/registration/ZnackCardRegistrationRepository.updateProgress"
+        },
+        {
+          "line": 1605,
+          "caller": "execute",
+          "call": "integration/znack/registration/ZnackCardRegistrationRepository.updateProgress"
+        },
+        {
+          "line": 1817,
+          "caller": "execute",
+          "call": "integration/znack/registration/ZnackCardRegistrationRepository.updateProgress"
+        },
+        {
+          "line": 1824,
+          "caller": "execute",
+          "call": "shouldSubmitFeed"
+        },
+        {
+          "line": 1833,
+          "caller": "execute",
+          "call": "submitFeed"
+        },
+        {
+          "line": 1959,
+          "caller": "execute",
+          "call": "submitFeed"
+        }
+      ],
+      "comparison": "Both current paths have real Catalog feed transport; absence of actual remote proof must remain pending, not success."
+    },
+    {
+      "stage": "wire import",
+      "packagedClass": "ZnackApiClient",
+      "classSha256": "6d032c935e438d640297297233714cbcad808de273f78ede021ad6dcc40a61d2",
+      "method": "submitNationalCatalogFeed",
+      "evidenceFile": "javap/ZnackApiClient.txt",
+      "selectedCallEdges": [
+        {
+          "line": 829,
+          "caller": "submitNationalCatalogFeed",
+          "call": "postWithoutRetry"
+        },
+        {
+          "line": 852,
+          "caller": "nationalCatalogSigningDocument",
+          "call": "postWithoutRetry"
+        },
+        {
+          "line": 877,
+          "caller": "signNationalCatalogProduct",
+          "call": "postWithoutRetry"
+        },
+        {
+          "line": 1038,
+          "caller": "createDocument",
+          "call": "postWithoutRetry"
+        }
+      ],
+      "comparison": "1.3.11 invokes no-retry POST /v3/feed; VNCode has same real endpoint with durable request boundary."
+    },
+    {
+      "stage": "poll feed",
+      "packagedClass": "ZnackNationalCatalogService",
+      "classSha256": "6a4aafc6d02b98154f544f539548553235bcf5d169bda23fbd7f064f991330b6",
+      "method": "progress",
+      "evidenceFile": "javap/ZnackNationalCatalogService.txt",
+      "selectedCallEdges": [
+        {
+          "line": 1355,
+          "caller": "progress",
+          "call": "integration/znack/ZnackApiClient.nationalCatalogFeedStatus"
+        }
+      ],
+      "comparison": "1.3.11 reads feed status; VNCode current submissionStatus additionally reads exact card and does not count receipt alone."
+    },
+    {
+      "stage": "publication readback",
+      "packagedClass": "ZnackNationalCatalogService",
+      "classSha256": "6a4aafc6d02b98154f544f539548553235bcf5d169bda23fbd7f064f991330b6",
+      "method": "publication",
+      "evidenceFile": "javap/ZnackNationalCatalogService.txt",
+      "selectedCallEdges": [
+        {
+          "line": 505,
+          "caller": "readSubmission",
+          "call": "integration/znack/ZnackApiClient.productCards"
+        },
+        {
+          "line": 1589,
+          "caller": "publication",
+          "call": "integration/znack/ZnackApiClient.productCards"
+        },
+        {
+          "line": 1618,
+          "caller": "publicationBatch",
+          "call": "integration/znack/ZnackApiClient.productCards"
+        }
+      ],
+      "comparison": "Both read exact GTIN card. Authentic Wbcode runtime acceptance was not exercised."
+    },
+    {
+      "stage": "sign",
+      "packagedClass": "ZnackNationalCatalogService",
+      "classSha256": "6a4aafc6d02b98154f544f539548553235bcf5d169bda23fbd7f064f991330b6",
+      "method": "signLocked",
+      "evidenceFile": "javap/ZnackNationalCatalogService.txt",
+      "selectedCallEdges": [
+        {
+          "line": 1723,
+          "caller": "signBatch",
+          "call": "integration/znack/ZnackApiClient.nationalCatalogSigningDocument"
+        },
+        {
+          "line": 1852,
+          "caller": "signBatch",
+          "call": "integration/znack/signature/CryptoProSigningResult.cms"
+        },
+        {
+          "line": 1922,
+          "caller": "signBatch",
+          "call": "integration/znack/ZnackApiClient.signNationalCatalogProduct"
+        },
+        {
+          "line": 2292,
+          "caller": "signLocked",
+          "call": "integration/znack/ZnackApiClient.nationalCatalogSigningDocument"
+        },
+        {
+          "line": 2374,
+          "caller": "signLocked",
+          "call": "integration/znack/signature/CryptoProSigningResult.cms"
+        },
+        {
+          "line": 2424,
+          "caller": "signLocked",
+          "call": "integration/znack/ZnackApiClient.signNationalCatalogProduct"
+        }
+      ],
+      "comparison": "Packaged 1.3.11 constructs signing doc, CryptoPro CMS, POST PKCS signature. VNCode production signing still needs actual Windows certificate/license verification."
+    },
+    {
+      "stage": "batch sign",
+      "packagedClass": "ZnackNationalCatalogService",
+      "classSha256": "6a4aafc6d02b98154f544f539548553235bcf5d169bda23fbd7f064f991330b6",
+      "method": "signBatch",
+      "evidenceFile": "javap/ZnackNationalCatalogService.txt",
+      "selectedCallEdges": [
+        {
+          "line": 1723,
+          "caller": "signBatch",
+          "call": "integration/znack/ZnackApiClient.nationalCatalogSigningDocument"
+        },
+        {
+          "line": 1922,
+          "caller": "signBatch",
+          "call": "integration/znack/ZnackApiClient.signNationalCatalogProduct"
+        },
+        {
+          "line": 2292,
+          "caller": "signLocked",
+          "call": "integration/znack/ZnackApiClient.nationalCatalogSigningDocument"
+        },
+        {
+          "line": 2424,
+          "caller": "signLocked",
+          "call": "integration/znack/ZnackApiClient.signNationalCatalogProduct"
+        }
+      ],
+      "comparison": "Confirmed difference: Wbcode 1.3.11 builds a real batch of 1-10 signed XML documents per POST. VNCode accepts multiple selected cards but iterates serially, with exactly one XML per POST. Both retain uncertain-result guards; UI multi-selection is not transport batching.",
+      "vendorBatchEvidence": {
+        "method": "signBatch",
+        "javapLines": [
+          1670,
+          1688,
+          1884,
+          1922
+        ],
+        "apiMethod": "signNationalCatalogProduct",
+        "apiJavapLines": [
+          855,
+          877
+        ],
+        "maxXmlPerPost": 10
+      },
+      "vncodeEvidence": [
+        "src/main/java/com/vncode/app/integration/znack/registration/ZnackCardRegistrationWorkflow.java:114-145",
+        "src/main/java/com/vncode/app/integration/znack/registration/OzonCardRegistrationWorkflow.java:321-332",
+        "src/main/java/com/vncode/app/integration/znack/registration/ZnackNationalCatalogService.java:511-522"
+      ]
+    },
+    {
+      "stage": "WB write/readback",
+      "packagedClass": "RegistrationPublicationMonitor",
+      "classSha256": "7b3c4fd13829c87227528936ea881b3e363d1d017698c9162b49e1af8d250031",
+      "method": "reconcilePendingBatch",
+      "evidenceFile": "javap/RegistrationPublicationMonitor.txt",
+      "selectedCallEdges": [
+        {
+          "line": 454,
+          "caller": "reconcilePendingBatch",
+          "call": "java/util/LinkedHashSet.contains"
+        },
+        {
+          "line": 728,
+          "caller": "reconcilePendingBatch",
+          "call": "Interfacejava/util/Set.contains"
+        },
+        {
+          "line": 887,
+          "caller": "reconcilePendingBatch",
+          "call": "integration/znack/registration/ZnackCardRegistrationRepository.updateProgress"
+        },
+        {
+          "line": 1003,
+          "caller": "reconcilePendingBatch",
+          "call": "Interfacejava/util/Map.containsKey"
+        },
+        {
+          "line": 1057,
+          "caller": "reconcilePendingBatch",
+          "call": "contains"
+        },
+        {
+          "line": 1143,
+          "caller": "reconcilePendingBatch",
+          "call": "integration/znack/registration/WbRegisteredGtinWriter.append"
+        },
+        {
+          "line": 1258,
+          "caller": "reconcilePendingBatch",
+          "call": "integration/wb/WbApiClient.updateProductCards"
+        },
+        {
+          "line": 1327,
+          "caller": "reconcilePendingBatch",
+          "call": "integration/znack/registration/ZnackCardRegistrationRepository.updateProgress"
+        }
+      ],
+      "comparison": "1.3.11 writer preserves full card/size structure and read-checks exact nmID/chrtID/GTIN. VNCode separate GTIN coordinator/gateway has write/readback."
+    },
+    {
+      "stage": "Ozon write/readback",
+      "packagedClass": "OzonRegistrationBarcodeBinder",
+      "classSha256": "b0d5118af53620e79860f05d7526c3e882ddbaf7ff015f351fc05f0c40e381cf",
+      "method": "bind",
+      "evidenceFile": "javap/OzonRegistrationBarcodeBinder.txt",
+      "selectedCallEdges": [
+        {
+          "line": 103,
+          "caller": "bind",
+          "call": "refresh"
+        },
+        {
+          "line": 144,
+          "caller": "bind",
+          "call": "carries"
+        },
+        {
+          "line": 197,
+          "caller": "bind",
+          "call": "Interfaceintegration/znack/registration/OzonRegistrationBarcodeBinder$Api.addBarcodes"
+        },
+        {
+          "line": 241,
+          "caller": "bind",
+          "call": "refresh"
+        },
+        {
+          "line": 265,
+          "caller": "bind",
+          "call": "carries"
+        }
+      ],
+      "comparison": "1.3.11 refreshes before and after addBarcodes then confirms GTIN membership; VNCode separate coordinator/gateway does corresponding checks."
+    },
+    {
+      "stage": "resume",
+      "packagedClass": "RegistrationRunner",
+      "classSha256": "870f12ae5d1cf010aa838bd5b1f09bbb2760d89130bc1a493d55967f32d2d76f",
+      "method": "start",
+      "evidenceFile": "javap/RegistrationRunner.txt",
+      "selectedCallEdges": [
+        {
+          "line": 96,
+          "caller": "start",
+          "call": "integration/znack/registration/RegistrationQueueStore.recoverInterrupted"
+        },
+        {
+          "line": 104,
+          "caller": "start",
+          "call": "Interfacejava/util/concurrent/ScheduledExecutorService.scheduleWithFixedDelay"
+        },
+        {
+          "line": 111,
+          "caller": "start",
+          "call": "Interfacejava/util/concurrent/ScheduledExecutorService.scheduleWithFixedDelay"
+        },
+        {
+          "line": 118,
+          "caller": "start",
+          "call": "Interfacejava/util/concurrent/ScheduledExecutorService.scheduleWithFixedDelay"
+        }
+      ],
+      "comparison": "Persistent work resumes at next running process/network availability; it cannot perform HTTP while process is shut down."
+    },
+    {
+      "stage": "Ozon registration resume",
+      "packagedClass": "OzonZnackRegistrationService",
+      "classSha256": "909f9335bbc37fdc3be87e0705525062e5aa6a5abfaa36c116f5cfffd76e3362",
+      "method": "advanceOwned",
+      "evidenceFile": "javap/OzonZnackRegistrationService.txt",
+      "selectedCallEdges": [
+        {
+          "line": 744,
+          "caller": "startOwned",
+          "call": "integration/znack/registration/OzonZnackRegistrationRepository.checkpoint"
+        },
+        {
+          "line": 763,
+          "caller": "startOwned",
+          "call": "integration/znack/registration/OzonZnackRegistrationRepository.checkpoint"
+        },
+        {
+          "line": 828,
+          "caller": "startOwned",
+          "call": "integration/znack/registration/OzonZnackRegistrationRepository.checkpoint"
+        },
+        {
+          "line": 848,
+          "caller": "startOwned",
+          "call": "integration/znack/registration/OzonZnackRegistrationRepository.checkpoint"
+        },
+        {
+          "line": 1061,
+          "caller": "resubmit",
+          "call": "integration/znack/registration/OzonZnackRegistrationRepository.checkpoint"
+        },
+        {
+          "line": 1082,
+          "caller": "resubmit",
+          "call": "integration/znack/registration/OzonZnackRegistrationRepository.checkpoint"
+        },
+        {
+          "line": 1111,
+          "caller": "resubmit",
+          "call": "integration/znack/registration/OzonZnackRegistrationRepository.checkpoint"
+        },
+        {
+          "line": 1130,
+          "caller": "resubmit",
+          "call": "integration/znack/registration/OzonZnackRegistrationRepository.checkpoint"
+        }
+      ],
+      "comparison": "Packaged durable per-product checkpoint + publication monitor exists; VNCode Ozon persistent batch/workflow is analogous."
+    },
+    {
+      "stage": "Ozon map button",
+      "packagedClass": "OzonGtinMappingSyncService",
+      "classSha256": "f6a5faa36a5a68b57cb2c62c95149dc0524816fc63c4cb032dfbc16cf8da8ded",
+      "method": "syncAndMap",
+      "evidenceFile": "javap/OzonGtinMappingSyncService.txt",
+      "selectedCallEdges": [
+        {
+          "line": 77,
+          "caller": "syncAndMap",
+          "call": "Interfacefeatures/kizmapping/OzonGtinMappingSyncService$ProductSync.sync"
+        },
+        {
+          "line": 92,
+          "caller": "syncAndMap",
+          "call": "Interfacefeatures/kizmapping/OzonGtinMappingSyncService$CatalogSync.sync"
+        },
+        {
+          "line": 138,
+          "caller": "syncAndMap",
+          "call": "integration/ozon/OzonProductDto.barcodes"
+        },
+        {
+          "line": 162,
+          "caller": "syncAndMap",
+          "call": "Interfacefeatures/kizmapping/OzonGtinMappingSyncService$Store.resolved"
+        },
+        {
+          "line": 168,
+          "caller": "syncAndMap",
+          "call": "Interfacefeatures/kizmapping/OzonGtinMappingSyncService$Store.exempt"
+        },
+        {
+          "line": 214,
+          "caller": "syncAndMap",
+          "call": "integration/ozon/OzonProductDto.barcodes"
+        }
+      ],
+      "comparison": "CONFIRMED GAP: VNCode Ozon Mapping refresh only Catalog sync, no product sync/current-barcode adoption/per-product mapping issue result in that action."
+    }
+  ],
+  "confirmedVncodeGap": {
+    "stage": "Ozon map button",
+    "vncodeEvidence": [
+      "src/main/java/com/vncode/app/ui/kizmapping/KizMappingController.java:179–183",
+      "src/main/java/com/vncode/app/features/sync/ZnackCatalogSyncService.java:51–71",
+      "src/main/java/com/vncode/app/features/sync/ZnackCatalogSyncService.java:95–111"
+    ],
+    "missing": "Ozon product refresh + existing marketplace barcode GTIN adoption + per-product mapping issues on Mapping button"
+  },
+  "vncodeComparedSource": "3ea8216 plus CatalogErrorRepairDialog completion-pill correction",
+  "evidenceFileNote": "evidenceFile and line refer to temporary javap analysis text. Only hashes and selected call edges are archived; reproduce by statically inspecting the official installer with the recorded checksum. Vendor binaries were not executed."
+}

@@ -1,0 +1,152 @@
+{
+  "version": "1.4.11",
+  "baseVersion": "1.4.10",
+  "complete": false,
+  "officialReleasePublished": true,
+  "scope": [
+    "Durable National Catalog attributes and product documents to WB/Ozon with explicit preview and readback before adding GTIN",
+    "Verified variant GTIN handoff to KIZ planning and explicit WB assignment failures",
+    "Scoped imported KIZ stock, identity deduplication, True API owner/circulation verification and atomic stock-first allocation",
+    "User-enabled shortage replenishment through the existing durable Znack purchase pipeline",
+    "Multi-format CIS/DataMatrix imports including Notepad text and source-comparison evidence"
+  ],
+  "licenseIntegration": {
+    "implemented": true,
+    "productionReady": false,
+    "activeKeyId": "vncode-2",
+    "serverSigningKeyMatch": "owner-confirmed-Portal035-vncode2",
+    "ownerReportedActivationVersion": "1.4.4"
+  },
+  "validation": {
+    "sourceComparison": "docs/research/2026-10-15-catalog-kiz-comparison.md",
+    "windowsFullBuild": {
+      "runId": 38731269718,
+      "sourceCommit": "793850d5d29964164a46e774befe1fa6b991af00",
+      "result": "passed",
+      "javaSuites": 229,
+      "javaTests": 1320,
+      "javaPassed": 1318,
+      "javaFailures": 0,
+      "javaErrors": 0,
+      "javaSkippedPlatformSpecific": 2,
+      "verifiedJavaArtifactId": 11971493403,
+      "nativeLauncher": "passed",
+      "gs1AndCatalogDpapi": "passed",
+      "desktopLayouts": 272,
+      "tenShopWorkspaceAndDpi": "passed",
+      "independentInstallAndUninstall": "passed",
+      "upgradeBaselines": [
+        "1.1.34",
+        "1.2.0",
+        "1.2.1",
+        "1.2.2",
+        "1.3.0",
+        "1.4.0",
+        "1.4.6"
+      ],
+      "windowsInstallerArtifactId": 11973605166
+    },
+    "sellerSampleParse": {
+      "result": "passed",
+      "marks": 600,
+      "shortCis": 600,
+      "fullDataMatrix": 0,
+      "duplicates": 0,
+      "issues": 0,
+      "preservedEveryOriginalLine": true,
+      "liveApiVerification": false,
+      "evidence": "docs/validation/2026-10-15-kiz-import-sample.json",
+      "shippedJavaEvidence": "docs/validation/2026-10-15-vncode-1411-shipped-parser.json"
+    },
+    "liveMarketplaceWriteAcceptance": false,
+    "liveKizAssignmentAcceptance": false,
+    "livePurchasePerformed": false,
+    "releaseContractTests": {
+      "tests": 53,
+      "passed": 53,
+      "failed": 0
+    },
+    "windowsBuildRegressionFixes": {
+      "previousRunId": 38713519391,
+      "previousResult": "failed: 2 assertions in 1318 tests",
+      "migrationFixture": "drop and assert all six GTIN tables, including the new verified mapping table",
+      "readFairnessFixture": "hold one of two network workers to assert scheduler dispatch order without OS call-start races",
+      "focusedTests": 14,
+      "focusedFailures": 0,
+      "focusedErrors": 0,
+      "focusedResult": "passed"
+    },
+    "previousWindowsBuilds": [
+      {
+        "runId": 38727071234,
+        "sourceCommit": "6a468b972bde02e368cc95623f79f464da2bc0ac",
+        "result": "failed-native-upgrade-probe",
+        "javaSuites": 228,
+        "javaTests": 1318,
+        "javaPassed": 1316,
+        "javaFailures": 0,
+        "javaErrors": 0,
+        "javaSkippedPlatformSpecific": 2,
+        "verifiedJavaArtifactId": 11969397778,
+        "nativeLauncher": "passed",
+        "gs1AndCatalogDpapi": "passed",
+        "desktopLayouts": 272,
+        "tenShopWorkspaceAndDpi": "passed",
+        "independentInstallAndUninstall": "passed",
+        "nativeUpgradeFailure": "Fingerprint compared a newly added source_priority column with a schema lacking that column; fixed in the probe with a separate required default-priority assertion"
+      }
+    ],
+    "nativeUpgradeProbeRegression": {
+      "tests": 2,
+      "result": "passed",
+      "fullFocusedTests": 16,
+      "focusedFailures": 0,
+      "preservationCoverage": [
+        "All legacy stock columns still participate in the fingerprint",
+        "Paid marking and saved-template mutations still change the fingerprint",
+        "Missing or incorrect default legacy stock priority is rejected"
+      ],
+      "fixedInput": "tools/WindowsUpgradeDataProbe.java and tools/windows-upgrade-smoke.ps1"
+    },
+    "directUpgradeFrom1410": {
+      "runId": 38735538493,
+      "verificationSourceCommit": "2bf3b0e09a528a5fbdc6b42e35aeaa31a78adf2a",
+      "appSourceCommit": "793850d5d29964164a46e774befe1fa6b991af00",
+      "result": "passed",
+      "baselineVersion": "1.4.10",
+      "baselineSha256": "e6017013c999455c85adce4c371e1bf1b3da65ab80c222136327bdc096cea587",
+      "installerSha256": "983d481a0b320a57bbb7606d790161120aae1d454bee82f77086480c7d9479bd",
+      "dataPreserved": true,
+      "singleRegistration": true,
+      "evidence": "docs/validation/2026-10-15-vncode-1411-upgrade-from-1410.json"
+    }
+  },
+  "limitations": [
+    "WBCode 1.3.8 internals are not public; release notes and prior native UI evidence are distinguished from WCode public source",
+    "Imported stock is local to one computer; independent computers must use disjoint code inventories",
+    "Short CIS does not contain a complete cryptographic DataMatrix tail; the application never fabricates it",
+    "No production seller GTIN write, KIZ assignment or paid purchase was performed during implementation",
+    "The existing license fallback still needs Portal 0.3.6/gateway deployment and acceptance on the affected second-machine network"
+  ],
+  "releaseChannel": {
+    "repository": "ntccong2468-lab/Bancapnhat",
+    "tag": "v1.4.11",
+    "appAutomaticFeed": "/releases/latest",
+    "publicationAuthorization": "Owner cancelled separate trial/repository and explicitly requested publication of the seller update on 2026-10-15. Live seller/API and affected second-machine carrier acceptance remain unverified.",
+    "publicLatestVerified": true,
+    "draftReleaseId": 413770759,
+    "prepareRunId": 38735175477,
+    "prepareResult": "passed",
+    "sourceDescendsFromPublished1410": true,
+    "releaseId": 413770759,
+    "publishedAt": "2026-10-15T12:36:09Z",
+    "releaseUrl": "https://github.com/ntccong2468-lab/Bancapnhat/releases/tag/v1.4.11",
+    "installerUrl": "https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.4.11/VN-code-1.4.11-Windows-x64.exe",
+    "installerBytes": 144919552,
+    "installerSha256": "983d481a0b320a57bbb7606d790161120aae1d454bee82f77086480c7d9479bd",
+    "publicUpdaterEvidence": "docs/validation/2026-10-15-vncode-1411-public-updater.json",
+    "publicAssetCount": 18,
+    "publicAssetDownloadsVerified": 18,
+    "publicAssetEvidence": "docs/validation/2026-10-15-vncode-1411-public-assets.json"
+  }
+}

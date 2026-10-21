@@ -1,0 +1,28 @@
+{
+  "timeUtc": "2026-10-18T08:27:57.370338904Z",
+  "version": "1.4.19",
+  "entrypoint": "com.vncode.app.Launcher -> MainApplication",
+  "platform": "Linux",
+  "profile": "new isolated cloud profile; no seller session imported",
+  "fixtureLicenseInstalled": false,
+  "productionLicenseStatus": "UNVERIFIED",
+  "productionLicenseError": "LICENSE_UNAVAILABLE",
+  "productionSellerPermission": false,
+  "productionGtinPermission": false,
+  "stageTitle": "VN code v1.4.19",
+  "registrationNavigation": "clicked with JavaFX Robot",
+  "gtinUpdateButton": "disabled",
+  "gtinUpdateClicked": false,
+  "liveSellerMutationRequested": false,
+  "liveButtonAcceptance": "BLOCKED",
+  "blockers": [
+    "No configured production Windows application session in this cloud environment",
+    "Windows DPAPI unavailable on Linux",
+    "No production license or verified Znack certificate profile available"
+  ],
+  "sourceCommit": "97ebbe2",
+  "applicationJarSha256": "1ec1df5830c351517a2c28ee89281cbfbfdb8ca813baa4d88f6a9e14f250d061",
+  "timeMoscow": "2026-10-18T11:27:57.370338904+03:00",
+  "note": "The update button is disabled in a fresh cloud profile with no shop. License initialization is separately UNVERIFIED on Linux. This is blocked acceptance, not proof of a GTIN write failure in a licensed Windows seller session.",
+  "evidenceScreenshot": "2026-10-18-vncode-1419-button-blocked.png"
+}

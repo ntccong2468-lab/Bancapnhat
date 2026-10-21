@@ -1,0 +1,37 @@
+[
+  {
+    "path": "src/main/java/com/tuandev/fbsbarcode/integration/ozon/OzonCatalogSyncService.java",
+    "sourceCommit": "8f7c3d1ac8598158029b8d037e2d3c128e240727",
+    "url": "https://raw.githubusercontent.com/rupphi/test-wcode/8f7c3d1ac8598158029b8d037e2d3c128e240727/src/main/java/com/tuandev/fbsbarcode/integration/ozon/OzonCatalogSyncService.java",
+    "sha256": "45beb90cbc823b0881ffeb4dd10ac9a1809efbf3e50dd7c77d683a719c46c33d",
+    "bytes": 5595
+  },
+  {
+    "path": "src/main/java/com/tuandev/fbsbarcode/integration/wb/WbSyncWorkflow.java",
+    "sourceCommit": "8f7c3d1ac8598158029b8d037e2d3c128e240727",
+    "url": "https://raw.githubusercontent.com/rupphi/test-wcode/8f7c3d1ac8598158029b8d037e2d3c128e240727/src/main/java/com/tuandev/fbsbarcode/integration/wb/WbSyncWorkflow.java",
+    "sha256": "a407f36284652006ac9423c20e6cf5f927f2e1d28f598b3138e330318a3384cc",
+    "bytes": 4433
+  },
+  {
+    "path": "src/main/java/com/tuandev/fbsbarcode/integration/znack/ZnackApiClient.java",
+    "sourceCommit": "8f7c3d1ac8598158029b8d037e2d3c128e240727",
+    "url": "https://raw.githubusercontent.com/rupphi/test-wcode/8f7c3d1ac8598158029b8d037e2d3c128e240727/src/main/java/com/tuandev/fbsbarcode/integration/znack/ZnackApiClient.java",
+    "sha256": "d73dd3cea81ece330fe115eae7caca346d1d0008276053fafa23b0b9b2c58fcb",
+    "bytes": 18794
+  },
+  {
+    "path": "src/main/java/com/tuandev/fbsbarcode/integration/znack/ZnackAuthService.java",
+    "sourceCommit": "8f7c3d1ac8598158029b8d037e2d3c128e240727",
+    "url": "https://raw.githubusercontent.com/rupphi/test-wcode/8f7c3d1ac8598158029b8d037e2d3c128e240727/src/main/java/com/tuandev/fbsbarcode/integration/znack/ZnackAuthService.java",
+    "sha256": "b242ce750f104d8410d9f3e9d1e8b27b8555890da472a17fcec2a585a37865d3",
+    "bytes": 4503
+  },
+  {
+    "path": "src/main/java/com/tuandev/fbsbarcode/integration/znack/ZnackProductService.java",
+    "sourceCommit": "8f7c3d1ac8598158029b8d037e2d3c128e240727",
+    "url": "https://raw.githubusercontent.com/rupphi/test-wcode/8f7c3d1ac8598158029b8d037e2d3c128e240727/src/main/java/com/tuandev/fbsbarcode/integration/znack/ZnackProductService.java",
+    "sha256": "591daf260f75e6db69969be597f3dc432f33f2e7fca35aee21895a2f7adc2df7",
+    "bytes": 17551
+  }
+]

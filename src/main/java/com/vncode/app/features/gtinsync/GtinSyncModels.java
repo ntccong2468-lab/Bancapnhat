@@ -12,6 +12,10 @@ public final class GtinSyncModels {
     public enum Operation { ADD, REPLACE }
     public enum Status { QUEUED, VALIDATING, SENDING, AWAITING_VERIFICATION, SUCCEEDED, FAILED, RECONCILE_REQUIRED, CANCELLED }
     public enum Verification { PENDING, APPLIED, REJECTED, UNKNOWN }
+    public record VerificationResult(Verification outcome,String issue){
+        public VerificationResult {Objects.requireNonNull(outcome);issue=com.vncode.app.features.sync.SyncRunRepository.code(issue);}
+        public VerificationResult(Verification outcome){this(outcome,"");}
+    }
     public record ProductKey(int shopId, Marketplace marketplace, String productId, String variantId) {
         public ProductKey {
             if (shopId <= 0) throw new IllegalArgumentException("Positive shop identity required");
@@ -20,8 +24,11 @@ public final class GtinSyncModels {
         }
     }
     public record RegisteredGtin(String gtin, String article, String color, String size,
-                                 boolean tradeUnit, boolean published, String source, Instant syncedAt) {
+                                 boolean tradeUnit, boolean published, String source, Instant syncedAt,
+                                 com.vncode.app.features.catalogsync.CatalogProductData details) {
+        public RegisteredGtin(String gtin,String article,String color,String size,boolean tradeUnit,boolean published,String source,Instant syncedAt){this(gtin,article,color,size,tradeUnit,published,source,syncedAt,com.vncode.app.features.catalogsync.CatalogProductData.EMPTY);}
         public RegisteredGtin {
+            details=details==null?com.vncode.app.features.catalogsync.CatalogProductData.EMPTY:details;
             gtin = required(gtin); article = safe(article); color = safe(color); size = safe(size);
             source = required(source); Objects.requireNonNull(syncedAt);
         }
@@ -47,8 +54,13 @@ public final class GtinSyncModels {
             oldGtin = safe(oldGtin); newGtin = required(newGtin);
         }
     }
-    public record Submission(String remoteTaskId) { public Submission { remoteTaskId = safe(remoteTaskId); } }
-    public record JobItem(UUID id, UUID jobId, Preview preview, Status status, String remoteTaskId) {}
+    public record Submission(String remoteTaskId, Instant dispatchedAt) {
+        public Submission(String remoteTaskId){this(remoteTaskId,null);}
+        public Submission { remoteTaskId = safe(remoteTaskId); }
+    }
+    public record JobItem(UUID id, UUID jobId, Preview preview, Status status, String remoteTaskId, Instant dispatchedAt) {
+        public JobItem(UUID id,UUID jobId,Preview preview,Status status,String remoteTaskId){this(id,jobId,preview,status,remoteTaskId,null);}
+    }
     static String safe(String value) { return value == null ? "" : value.strip(); }
     private static String required(String value) {
         String result = safe(value);

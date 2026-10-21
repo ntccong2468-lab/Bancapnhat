@@ -1,0 +1,79 @@
+{
+  "version": "1.4.8",
+  "baseVersion": "1.4.7",
+  "complete": false,
+  "officialReleasePublished": true,
+  "licenseIntegration": {
+    "implemented": true,
+    "productionReady": false,
+    "activeKeyId": "vncode-2",
+    "serverSigningKeyMatch": "owner-confirmed-Portal035-vncode2",
+    "ownerReportedActivationVersion": "1.4.4"
+  },
+  "scope": [
+    "Fix JavaFX Task value access during post-download installer handoff",
+    "Report preparation failures separately and preserve snapshot failure cause"
+  ],
+  "validation": {
+    "updateHandoffRegression": {
+      "beforeFix": "failed with the exact reported FX Application Thread error",
+      "afterFix": "23 focused update tests passed, including both JavaFX handoff cases; 53 release-contract tests passed",
+      "installerLaunchInUiTests": "mocked; does not execute EXE or quit test JVM"
+    },
+    "windowsFullBuild": {
+      "runId": 38680028079,
+      "sourceCommit": "7643b6c859c722486193a30e028da7be88c10bf6",
+      "result": "passed",
+      "javaSuites": 217,
+      "javaTests": 1239,
+      "javaPassed": 1237,
+      "javaFailures": 0,
+      "javaErrors": 0,
+      "javaSkippedPlatformSpecific": 2,
+      "nativeLauncher": "passed",
+      "gs1AndCatalogDpapi": "passed",
+      "installerArtifactId": 11947923973,
+      "nativeInstallAndUpgrade": "passed",
+      "upgradeFromVersions": [
+        "1.1.34",
+        "1.2.0",
+        "1.2.1",
+        "1.2.2",
+        "1.3.0",
+        "1.4.0",
+        "1.4.6"
+      ],
+      "desktopLayouts": 272,
+      "horizontalButtonOverflow": 0,
+      "workspaceDpi": [
+        100,
+        125,
+        150
+      ],
+      "workspaceDatasets": [
+        "6wb4ozon",
+        "10ozon"
+      ],
+      "windowsLowEndHardwareMeasured": false
+    },
+    "productionMultiDeviceOfflineRevocation": "not-verified"
+  },
+  "releaseChannel": {
+    "repository": "ntccong2468-lab/Bancapnhat",
+    "tag": "v1.4.8",
+    "appAutomaticFeed": "/releases/latest",
+    "publicationAuthorization": "Owner requested Published/Latest updates and correction of reported 100%-download failure. Outstanding production acceptance remains disclosed.",
+    "requiresManualBootstrapFromBrokenVersions": true,
+    "installerSha256": "b51ae21d97265af87c4dbdd74e0d8b2d02532feff981980552b174e211e6354c",
+    "installerBytes": 144735232,
+    "prepareRunId": 38682442217,
+    "draftPreparation": "passed",
+    "publishedAt": "2026-10-15T04:39:28Z",
+    "releaseId": 413422987,
+    "url": "https://github.com/ntccong2468-lab/Bancapnhat/releases/tag/v1.4.8",
+    "publicLatestVerified": true,
+    "publicInstallerDownloadedAndSha256Verified": true,
+    "desktop148UpdaterDiscovery": "AVAILABLE for current version 1.4.4; Windows install action supported",
+    "desktop148UpdaterDownload": "passed on Linux using session HTTPS proxy and trusted CA; exact public EXE byte size and SHA-256 verified; no EXE execution in library probe; native installer checked separately on Windows CI"
+  }
+}

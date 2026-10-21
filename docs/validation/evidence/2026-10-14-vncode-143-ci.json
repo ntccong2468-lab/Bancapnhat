@@ -1,0 +1,47 @@
+{
+  "sourceCommit": "f070581bafd1af06b7d31af7e2aa0b40c45543a9",
+  "run": 38560360144,
+  "officialRelease": false,
+  "productionActivationVerified": false,
+  "installer": {
+    "artifact": 11892310257,
+    "sha256": "c64ab113da8697b33cf9f6e41f362d3424d1476116d9448d3d578cee364fc0a0"
+  },
+  "portal": {
+    "version": "0.3.4",
+    "artifact": 11890734415,
+    "sha256": "0296ffaf22303cdf860c7eea7e3bdaa04bffc1125e3b75a7321a089cdd0875f2",
+    "tests": 54,
+    "productionDeployment": false
+  },
+  "windowsTests": {
+    "tests": 86,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "nodeContracts": {
+    "tests": 48,
+    "failures": 0
+  },
+  "nativeSmoke": {
+    "version": "1.4.3",
+    "platform": "windows-x64",
+    "historyPreserved": true,
+    "appName": "VN code",
+    "rollbackSnapshotVerified": true,
+    "liveMarketplaceMutations": false,
+    "schemaMigration": "3 to 5",
+    "nativeLauncher": "passed",
+    "windowTitle": "VN code v1.4.3"
+  },
+  "gs1Smoke": {
+    "appName": "VN code",
+    "version": "1.4.3",
+    "result": "passed",
+    "dpapiRoundTrip": true,
+    "protectedPasswordPersistence": true,
+    "unverifiedInvoiceBlocked": true,
+    "liveGS1Mutations": false
+  }
+}

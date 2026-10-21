@@ -1,0 +1,308 @@
+{
+  "version": "1.3.11",
+  "vendorBinaryExecuted": false,
+  "msiHeaderOffset": 583948,
+  "cabinetCrcValidated": true,
+  "applications": [
+    {
+      "cabinetFilename": "file4fbfcc29a16130c58cf0bb0dac1f7139",
+      "jar": "wbcode-1.3.11-application.jar",
+      "jarSha256": "cfaf50305212bfd60d8839654df2d769b7180672b9a54e59dbec62bdcf3435c5",
+      "jarBytes": 5509299,
+      "classes": [
+        {
+          "class": "com/tuandev/fbsbarcode/features/kizmapping/GtinMappingSyncService$ApprovedCardSigner.class",
+          "sha256": "2bc8b46a587baece039a05120b701e2316941b8a9eb5acc6ab78afbfb6c0892e"
+        },
+        {
+          "class": "com/tuandev/fbsbarcode/features/kizmapping/GtinMappingSyncService$CandidateProvider.class",
+          "sha256": "1aafc0f881f8cac8491577e88bc4f48e0098e75ee3a1c9dbddfc4bde7d50140e"
+        },
+        {
+          "class": "com/tuandev/fbsbarcode/features/kizmapping/GtinMappingSyncService$LastZnackSync.class",
+          "sha256": "eb388c08c0ee99c7b04ec5ec67334906bb977c5b4ca2cf0894e3a77f46e35de8"
+        },
+        {
+          "class": "com/tuandev/fbsbarcode/features/kizmapping/GtinMappingSyncService$MappingVerifier.class",
+          "sha256": "3d2164bc7894f18cee18933cfe33c171cccab502a3d2b5f2e54453509da1e33c"
+        },
+        {
+          "class": "com/tuandev/fbsbarcode/features/kizmapping/GtinMappingSyncService$Progress.class",
+          "sha256": "9f9f7bed83f573ee76df9b2c8c26f9750427d59070238ad4b2cfc48522e5a35e"
+        },
+        {
+          "class": "com/tuandev/fbsbarcode/features/kizmapping/GtinMappingSyncService$ReadinessCheck.class",
+          "sha256": "217ae4d8961bda078c1842ef1fac245b022bd3b3f48b4d5739425cccec7d4c12"
+        },
+        {
+          "class": "com/tuandev/fbsbarcode/features/kizmapping/GtinMappingSyncService$Reconciler.class",
+          "sha256": "3336e05a867dd153a414822631c604e1b8f017925cf0b3580de4c1d80ceb7767"
+        },
+        {
+          "class": "com/tuandev/fbsbarcode/features/kizmapping/GtinMappingSyncService$Result.class",
+          "sha256": "059da860ab072726c127a2262ab1399bec923ea5768321b1e3968d8e6522e850"
+        },
+        {
+          "class": "com/tuandev/fbsbarcode/features/kizmapping/GtinMappingSyncService$Stage.class",
+          "sha256": "f509a6be9c181ed993109f62fddace63a23bb3cd27d5ff6b37e78d2dd72601a8"
+        },
+        {
+          "class": "com/tuandev/fbsbarcode/features/kizmapping/GtinMappingSyncService$WbProductSync.class",
+          "sha256": "ba996133111d0819f980af0e7b494ee2e8dc61cd0b8b6fa891f369771e061134"
+        },
+        {
+          "class": "com/tuandev/fbsbarcode/features/kizmapping/GtinMappingSyncService$ZnackCatalogSync.class",
+          "sha256": "d03e0b1999e97bb77a87fcca78dbb4c2c45cf858699b9c23e6f84da4082215b4"
+        },
+        {
+          "class": "com/tuandev/fbsbarcode/features/kizmapping/GtinMappingSyncService.class",
+          "sha256": "63e01c5c7f73f0ef750d1db7a8468b5ef3f70d6c53b426492e1b8afc1cce6609"
+        },
+        {
+          "class": "com/tuandev/fbsbarcode/features/kizmapping/OzonGtinMappingSyncService$1.class",
+          "sha256": "b9ca9dfedc53f212cdddcf957202beea6282dc98540e569c3be30f8b96b5fb37"
+        },
+        {
+          "class": "com/tuandev/fbsbarcode/features/kizmapping/OzonGtinMappingSyncService$CatalogSync.class",
+          "sha256": "ab1bfb01908bfb553d37673ec6c1e4299671ca8e74454d342ebf6f7dfe31c59e"
+        },
+        {
+          "class": "com/tuandev/fbsbarcode/features/kizmapping/OzonGtinMappingSyncService$Issue.class",
+          "sha256": "e6b80af0a129e92bf75cb94939c505847030baa1834ccd9b89dead19e70df8dd"
+        },
+        {
+          "class": "com/tuandev/fbsbarcode/features/kizmapping/OzonGtinMappingSyncService$Lookup.class",
+          "sha256": "f73134892ffb0267c9d45532541f29b6d6bbdc340ea511c5e547c299265a34ec"
+        },
+        {
+          "class": "com/tuandev/fbsbarcode/features/kizmapping/OzonGtinMappingSyncService$ProductSync.class",
+          "sha256": "8b136f564b1c980ae8b033bba7919f5d64d17600a7b7f611af18285c7784398e"
+        },
+        {
+          "class": "com/tuandev/fbsbarcode/features/kizmapping/OzonGtinMappingSyncService$Progress.class",
+          "sha256": "9395bf819590dc9c3a07b71470b6fd5c5a995e7b9ec3f054057b55ddbf68afdf"
+        },
+        {
+          "class": "com/tuandev/fbsbarcode/features/kizmapping/OzonGtinMappingSyncService$Reason.class",
+          "sha256": "3be6fc6fa19dd67045c2a1de4ad3d82d10750f2cc8baeaf0524dda2d58738016"
+        },
+        {
+          "class": "com/tuandev/fbsbarcode/features/kizmapping/OzonGtinMappingSyncService$Result.class",
+          "sha256": "a1c12c0350fef58c6e49989280e655d65b04e4df06a7a1e7e09ec33947e11c24"
+        },
+        {
+          "class": "com/tuandev/fbsbarcode/features/kizmapping/OzonGtinMappingSyncService$Stage.class",
+          "sha256": "f11f1739d92c425df19d0b7e565a94b7c27c48060d52bf31da88dcc2361bcaff"
+        },
+        {
+          "class": "com/tuandev/fbsbarcode/features/kizmapping/OzonGtinMappingSyncService$Store.class",
+          "sha256": "c01e3dcfbeaeb1debf6cde40d8f7c970744b318dbf17f050522ff1281785e97b"
+        },
+        {
+          "class": "com/tuandev/fbsbarcode/features/kizmapping/OzonGtinMappingSyncService$Verified.class",
+          "sha256": "5b59faafac76768326a78363a7beded1801996a1bc17be6b1370afb336673425"
+        },
+        {
+          "class": "com/tuandev/fbsbarcode/features/kizmapping/OzonGtinMappingSyncService.class",
+          "sha256": "f6a5faa36a5a68b57cb2c62c95149dc0524816fc63c4cb032dfbc16cf8da8ded"
+        },
+        {
+          "class": "com/tuandev/fbsbarcode/integration/znack/registration/ApprovedCardSigningService.class",
+          "sha256": "70bb56bd64fd293fff894f81b06c993405c80e0980da8ec97b28e587b4e1dad5"
+        },
+        {
+          "class": "com/tuandev/fbsbarcode/integration/znack/registration/ApprovedCardSigningStore.class",
+          "sha256": "e9d73631e3fbd419f108534f2d16957ae6c281a798fc12c64b1a90e3770c3830"
+        },
+        {
+          "class": "com/tuandev/fbsbarcode/integration/znack/registration/CatalogApprovedCardSigningStore.class",
+          "sha256": "a9428f9a37a39a8d463d28ae02e15a294ad82455e75d55d393bf1dbaa7f13fbb"
+        },
+        {
+          "class": "com/tuandev/fbsbarcode/integration/znack/registration/CatalogArticle.class",
+          "sha256": "ba1f25058222b098f1b117bbf91b66be801ab69224b9f0490b18810b75207a77"
+        },
+        {
+          "class": "com/tuandev/fbsbarcode/integration/znack/registration/CatalogChangedException.class",
+          "sha256": "0a931a3979c5bbe11fe239a0ff409fec0f111a85ae5e727d2bc045570572ce89"
+        },
+        {
+          "class": "com/tuandev/fbsbarcode/integration/znack/registration/ChildClothingHeight.class",
+          "sha256": "a8fa7ad8f85c48d4418a53507307c787be4879dd3044f6a3d39fdfd10d4d648e"
+        },
+        {
+          "class": "com/tuandev/fbsbarcode/integration/znack/registration/OzonMarketplaceGtinAdoption.class",
+          "sha256": "0c9dc5d4ab15699e42a30fae769f85e1b0b3f252cd7bf23769c8436c8a40f1ef"
+        },
+        {
+          "class": "com/tuandev/fbsbarcode/integration/znack/registration/OzonRegistrationBarcodeBinder.class",
+          "sha256": "b0d5118af53620e79860f05d7526c3e882ddbaf7ff015f351fc05f0c40e381cf"
+        },
+        {
+          "class": "com/tuandev/fbsbarcode/integration/znack/registration/OzonRegistrationBrandSettings.class",
+          "sha256": "4c0c8dbf0f3a0a39b155f82bc0906e8dc1e2d7ff87130ca6cf4fc73d7a2c970b"
+        },
+        {
+          "class": "com/tuandev/fbsbarcode/integration/znack/registration/OzonRegistrationPublicationMonitor.class",
+          "sha256": "632cef49e16da7fcb591c3aecc7c294cccd2152cc7504c3d99bf68dd68826797"
+        },
+        {
+          "class": "com/tuandev/fbsbarcode/integration/znack/registration/OzonZnackRegistrationRepository.class",
+          "sha256": "443cdfa288da707ea261494d1c4698b0a27d25352069e922bd2c94dbb2a0e694"
+        },
+        {
+          "class": "com/tuandev/fbsbarcode/integration/znack/registration/OzonZnackRegistrationService.class",
+          "sha256": "909f9335bbc37fdc3be87e0705525062e5aa6a5abfaa36c116f5cfffd76e3362"
+        },
+        {
+          "class": "com/tuandev/fbsbarcode/integration/znack/registration/PublishedCardReplacement.class",
+          "sha256": "da2ea453ba375aabd3f0bb940e9e0fa944fbadd1ee38eb6eba83623291832aaa"
+        },
+        {
+          "class": "com/tuandev/fbsbarcode/integration/znack/registration/RegistrationAutoSigner.class",
+          "sha256": "180712c71b3c5c75c7f1ef5f4a54f8407f3f76d9b1d8da831907c00997a488aa"
+        },
+        {
+          "class": "com/tuandev/fbsbarcode/integration/znack/registration/RegistrationCategoryException.class",
+          "sha256": "1a1bb5a01725be4310449347b89a0b90d38c87fa0ce4812bc8cafc766b65dab1"
+        },
+        {
+          "class": "com/tuandev/fbsbarcode/integration/znack/registration/RegistrationCategoryResolver.class",
+          "sha256": "a3af60fe07cdbc89627c5b06698979163187f7e3fe953c64b89e1837357d43f5"
+        },
+        {
+          "class": "com/tuandev/fbsbarcode/integration/znack/registration/RegistrationDocuments.class",
+          "sha256": "32fc6eae06542e90e036a5d30e9d20fae26faa389b40d636bbbb54a6645bc14c"
+        },
+        {
+          "class": "com/tuandev/fbsbarcode/integration/znack/registration/RegistrationDraftPreparer.class",
+          "sha256": "13663297e442de96d6209669285f29c0b0664ee8e748fdb66ca7206d87646989"
+        },
+        {
+          "class": "com/tuandev/fbsbarcode/integration/znack/registration/RegistrationPublication.class",
+          "sha256": "c28ce9ce2b6b20846cf5fa20eaa79cf7171fcb1dbdedfb015c6e607e75ec64f5"
+        },
+        {
+          "class": "com/tuandev/fbsbarcode/integration/znack/registration/RegistrationPublicationMonitor.class",
+          "sha256": "7b3c4fd13829c87227528936ea881b3e363d1d017698c9162b49e1af8d250031"
+        },
+        {
+          "class": "com/tuandev/fbsbarcode/integration/znack/registration/RegistrationPublicationStore.class",
+          "sha256": "5a652c4bce12f9106b15ca6f372a460f4007c0b86b8ba77f0e17ee05ff423cc8"
+        },
+        {
+          "class": "com/tuandev/fbsbarcode/integration/znack/registration/RegistrationQueueStore.class",
+          "sha256": "b8080bccfa7fa4b0bc4fbbf000647a2ec2d1bf2cf3a0c18b60f8be7a46559025"
+        },
+        {
+          "class": "com/tuandev/fbsbarcode/integration/znack/registration/RegistrationRunner.class",
+          "sha256": "870f12ae5d1cf010aa838bd5b1f09bbb2760d89130bc1a493d55967f32d2d76f"
+        },
+        {
+          "class": "com/tuandev/fbsbarcode/integration/znack/registration/RegistrationSelection.class",
+          "sha256": "92668fbf4debbdba04a287d55fe84c6a2447afe5f02dc06fca853901a6c08daf"
+        },
+        {
+          "class": "com/tuandev/fbsbarcode/integration/znack/registration/ShopRegistrationDispatcher.class",
+          "sha256": "a06ae8023d9a11a7a3e2696681cdd2c5f8d53df303a6622e09591d02340ea8d5"
+        },
+        {
+          "class": "com/tuandev/fbsbarcode/integration/znack/registration/SignedCardAdoption.class",
+          "sha256": "05fa56be57f7ae004e0a618750dbdc34456d2b6df68e5692b791dbf8827fecc3"
+        },
+        {
+          "class": "com/tuandev/fbsbarcode/integration/znack/registration/SignedCardAdoptionStore.class",
+          "sha256": "e81298d42cfce1fe21f222fd0e66b471a45e4148356d4fbb4c09d048025196fc"
+        },
+        {
+          "class": "com/tuandev/fbsbarcode/integration/znack/registration/VariantCardDiscovery.class",
+          "sha256": "fd14346d8b02fe4de6f23b6a6d28d751e9855a92ad967ea19849993fd7b5232e"
+        },
+        {
+          "class": "com/tuandev/fbsbarcode/integration/znack/registration/VariantCardRecovery.class",
+          "sha256": "a91ecbed99abb18559480494359814d4854cc8faa227f4070920e6201bd971b9"
+        },
+        {
+          "class": "com/tuandev/fbsbarcode/integration/znack/registration/VariantCardSnapshot.class",
+          "sha256": "07c537409fa06cc794cfae29d03e38cd638567f7db4e16cb29c68772bcf47e5c"
+        },
+        {
+          "class": "com/tuandev/fbsbarcode/integration/znack/registration/WbCardFieldUpdater.class",
+          "sha256": "22abd30b0ba27a554ef9be4d8a7e3a54fc46c497f8282cdf6c00cd904124f267"
+        },
+        {
+          "class": "com/tuandev/fbsbarcode/integration/znack/registration/WbGoodsKindMapping.class",
+          "sha256": "4715f0ff2611cedc95524dc531f54eb04c2b8491a22ea5078adf5d86a01bc48f"
+        },
+        {
+          "class": "com/tuandev/fbsbarcode/integration/znack/registration/WbGtinAdoptionIssue.class",
+          "sha256": "0f75c2742e48294be1dddaebaf02693aec083ea18c025e4800cd43c0abda0939"
+        },
+        {
+          "class": "com/tuandev/fbsbarcode/integration/znack/registration/WbPrintDemand.class",
+          "sha256": "21c16367f71c3ea87721e292aed282b2d8d60c2012ef908fbd36a7901ae8dfb4"
+        },
+        {
+          "class": "com/tuandev/fbsbarcode/integration/znack/registration/WbPrintDemandStore.class",
+          "sha256": "07cbb6993501a1b51161a9a3b341cf57ea38766f958623edde9f2474dca76091"
+        },
+        {
+          "class": "com/tuandev/fbsbarcode/integration/znack/registration/WbRegisteredGtinWriter.class",
+          "sha256": "de80397ef3dd4384e3a1b3e29024c10b8021cf5807c8bb82a623c9be1b2b26ac"
+        },
+        {
+          "class": "com/tuandev/fbsbarcode/integration/znack/registration/ZnackAccountKey.class",
+          "sha256": "a06cdc76334e53a6b93b1473ad717919c77a3afa5deab28686e00c9b849c16f1"
+        },
+        {
+          "class": "com/tuandev/fbsbarcode/integration/znack/registration/ZnackCardRegistrationModels.class",
+          "sha256": "132562fed60f00a6eb77ad1cbc26d0f830071be0c08915882d2711c6bafb25b2"
+        },
+        {
+          "class": "com/tuandev/fbsbarcode/integration/znack/registration/ZnackCardRegistrationRepository.class",
+          "sha256": "751b77c34b5ac164e863c091498ec4998b20d86ab7cb19e51be76fe666e7ef69"
+        },
+        {
+          "class": "com/tuandev/fbsbarcode/integration/znack/registration/ZnackCardRegistrationSchema.class",
+          "sha256": "97efce8c258e3660be19e840a7ae6915b96be5427f980790d7af1da9935021cb"
+        },
+        {
+          "class": "com/tuandev/fbsbarcode/integration/znack/registration/ZnackCardRegistrationWorkflow.class",
+          "sha256": "17715c74ae8c27e85f09a01e5571891f704ae35bc837e68b3e6457e8442715d8"
+        },
+        {
+          "class": "com/tuandev/fbsbarcode/integration/znack/registration/ZnackCategoryMatcher.class",
+          "sha256": "a01ad8195a7997061fa7d078cbb00e3c076c9488095a7c74ba7e5acab9ea06b7"
+        },
+        {
+          "class": "com/tuandev/fbsbarcode/integration/znack/registration/ZnackNationalCatalogService.class",
+          "sha256": "6a4aafc6d02b98154f544f539548553235bcf5d169bda23fbd7f064f991330b6"
+        },
+        {
+          "class": "com/tuandev/fbsbarcode/integration/znack/registration/ZnackVariantIdentity.class",
+          "sha256": "5354dd298191e8b538d786fe5a4dbecba97698bedd8552a0a9c1d55020352e24"
+        },
+        {
+          "class": "com/tuandev/fbsbarcode/integration/znack/registration/ZnackVariantIdentityBackfill.class",
+          "sha256": "57124d1cd07265431d904d2c604e3b092039178099f98eec77cbe9b517a70c83"
+        },
+        {
+          "class": "com/tuandev/fbsbarcode/integration/znack/registration/ZnackVariantIdentityRepository.class",
+          "sha256": "f27ebd0497e0029351667708d0c017d2a4ca4b7bc473549e6215e003502521dc"
+        },
+        {
+          "class": "com/tuandev/fbsbarcode/integration/znack/registration/ZnackWbAttributeMapper.class",
+          "sha256": "b3cbee0fe9e4e4d480d8f6c0267673c10d3ee4bce4bf820416a5e7adb93dab5a"
+        },
+        {
+          "class": "com/tuandev/fbsbarcode/integration/znack/ZnackApiClient.class",
+          "sha256": "6d032c935e438d640297297233714cbcad808de273f78ede021ad6dcc40a61d2"
+        },
+        {
+          "class": "com/tuandev/fbsbarcode/integration/znack/ZnackProductService.class",
+          "sha256": "a34e224534679492c762218d557e9fe11a610800b4ac7f9a1ec987ad05b3dbda"
+        }
+      ]
+    }
+  ]
+}

@@ -322,7 +322,10 @@ class ZnackModuleTest {
                 """).getFirst();
         assertEquals("abc",certificate.selector());
         assertTrue(certificate.hasPrivateKey());
-        assertEquals("ООО Example / INN 7701234567 / 01.01.2027", certificate.displayName());
+        assertEquals("Example",certificate.organizationName());
+        assertEquals("7701234567",certificate.inn());
+        assertEquals("Example / INN 7701234567 / 01.01.2027", certificate.displayName(),
+                "A company account displays O rather than a potentially personal CN");
         assertEquals(ZnackSafety.UNVERIFIED_SIGNATURE,
                 assertThrows(IllegalStateException.class,()->ZnackSafety.requireSigned(
                         new Settings("","","","connection","","","","signer","cert","[]","","","",false),true)).getMessage());
@@ -579,6 +582,10 @@ class ZnackModuleTest {
             assertEquals(429,error.statusCode());
             assertEquals(1,attempts.get());
             assertTrue(delays.isEmpty());
+            assertEquals(java.time.Duration.ofSeconds(301),error.retryAfter());
+            assertEquals(java.time.Duration.ofSeconds(301),
+                    com.vncode.app.features.sync.SyncFailure.of(error,0).delay(),
+                    "A deferred worker must retain the server delay even when inline retry is refused");
         } finally { server.stop(0); }
     }
 
@@ -935,7 +942,7 @@ class ZnackModuleTest {
             }
             @Override public JsonElement cisesInfo(String base,String token,JsonElement body){
                 cisesRequest.set(body);
-                return JsonParser.parseString("[{\"status\":\"INTRODUCED\"}]");
+                return introducedCises(body,"04601234567890");
             }
         };
         ZnackAuthService auth=new ZnackAuthService(api,testSigner()){
@@ -960,7 +967,7 @@ class ZnackModuleTest {
                         "{\"status\":\"CHECKED_OK\",\"items\":[{\"status\":\"REJECTED\"}]}");
             }
             @Override public JsonElement cisesInfo(String base,String token,JsonElement body){
-                return JsonParser.parseString("[{\"status\":\"INTRODUCED\"}]");
+                return introducedCises(body,"04601234567890");
             }
         };
         ZnackAuthService auth=new ZnackAuthService(api,testSigner()){
@@ -1018,9 +1025,7 @@ class ZnackModuleTest {
             @Override public JsonElement cisesInfo(String base,String token,JsonElement body){
                 JsonArray request=body.getAsJsonArray();
                 requestSizes.add(request.size());
-                JsonArray response=new JsonArray();
-                request.forEach(ignored->{JsonObject item=new JsonObject();item.addProperty("status","INTRODUCED");response.add(item);});
-                return response;
+                return introducedCises(body,product.gtin());
             }
         };
         ZnackAuthService auth=new ZnackAuthService(api,testSigner()){
@@ -1060,9 +1065,7 @@ class ZnackModuleTest {
             @Override public JsonElement cisesInfo(String base,String token,JsonElement body){
                 JsonArray request=body.getAsJsonArray();
                 requestSizes.add(request.size());
-                JsonArray response=new JsonArray();
-                request.forEach(ignored->{JsonObject item=new JsonObject();item.addProperty("status","INTRODUCED");response.add(item);});
-                return response;
+                return introducedCises(body,product.gtin());
             }
         };
         ZnackAuthService auth=new ZnackAuthService(api,testSigner()){
@@ -2001,6 +2004,13 @@ class ZnackModuleTest {
 
     private static String jwtWithInn(String inn){
         return "header."+java.util.Base64.getUrlEncoder().withoutPadding().encodeToString(("{\"participant_inn\":\""+inn+"\"}").getBytes(StandardCharsets.UTF_8))+".signature";
+    }
+
+    private static JsonArray introducedCises(JsonElement request,String gtin){
+        var response=new JsonArray();for(var code:request.getAsJsonArray()){
+            var info=new JsonObject();info.addProperty("requestedCis",code.getAsString());info.addProperty("cis",code.getAsString());info.addProperty("gtin",gtin);info.addProperty("status","INTRODUCED");
+            var row=new JsonObject();row.add("cisInfo",info);response.add(row);
+        }return response;
     }
 
     private static ZnackRepository repository(int id, String name) {

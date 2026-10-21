@@ -21,7 +21,9 @@ public final class WindowsDataProbe {
         Path database = "snapshot".equals(args[0]) ? data : data.resolve("database.db");
         try (var c = DriverManager.getConnection("jdbc:sqlite:" + database); var s = c.createStatement()) {
             try (var r = s.executeQuery("PRAGMA user_version")) {
-                int expected = "snapshot".equals(args[0]) ? 3 : Database.currentSchemaVersion();
+                int expected = "snapshot".equals(args[0]) ? 3
+                        : "fresh".equals(args[0]) && args.length > 2
+                        ? Integer.parseInt(args[2]) : Database.currentSchemaVersion();
                 if (!r.next() || r.getInt(1) != expected) throw new IllegalStateException("Schema is not ready");
             }
             if ("ready".equals(args[0])) return;

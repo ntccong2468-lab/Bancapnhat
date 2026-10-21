@@ -29,29 +29,26 @@ public final class OzonApiClient {
     private static final long MAX_DOCUMENT_BYTES = 100L * 1024 * 1024;
     private static final long MAX_ERROR_BYTES = 256L * 1024;
     private static final Gson GSON = new Gson();
+    private static final OkHttpClient SHARED_HTTP=new OkHttpClient.Builder().connectTimeout(10,TimeUnit.SECONDS).readTimeout(25,TimeUnit.SECONDS).writeTimeout(25,TimeUnit.SECONDS).callTimeout(40,TimeUnit.SECONDS).retryOnConnectionFailure(false).followRedirects(false).followSslRedirects(false).build();
     private static final OzonApiRateLimiter SHARED_LIMITER = new OzonApiRateLimiter();
 
     private final int shopId;
+    private final String quotaScope;
     private final OzonCredentials credentials;
     private final HttpUrl baseUrl;
     private final OkHttpClient http;
     private final OzonApiRateLimiter limiter;
     private final OzonRetryPolicy retryPolicy;
+    private final BeforeSend beforeMutation;
 
     public OzonApiClient(int shopId, OzonCredentials credentials) {
         this(
                 shopId,
                 credentials,
                 Objects.requireNonNull(HttpUrl.parse(DEFAULT_BASE_URL)),
-                new OkHttpClient.Builder()
-                        .connectTimeout(10, TimeUnit.SECONDS)
-                        .readTimeout(25, TimeUnit.SECONDS)
-                        .writeTimeout(25, TimeUnit.SECONDS)
-                        .callTimeout(40, TimeUnit.SECONDS)
-                        .retryOnConnectionFailure(false)
-                        .build(),
+                SHARED_HTTP,
                 SHARED_LIMITER,
-                new OzonRetryPolicy());
+                new OzonRetryPolicy(), productionGuard(shopId, credentials));
     }
 
     public OzonApiClient(
@@ -61,15 +58,53 @@ public final class OzonApiClient {
             OkHttpClient http,
             OzonApiRateLimiter limiter,
             OzonRetryPolicy retryPolicy) {
+        this(shopId, credentials, baseUrl, http, limiter, retryPolicy, null);
+    }
+
+    /** Injected transport fixtures can opt in to the same final ownership/send guard. */
+    public OzonApiClient(
+            int shopId, OzonCredentials credentials, HttpUrl baseUrl, OkHttpClient http,
+            OzonApiRateLimiter limiter, OzonRetryPolicy retryPolicy, BeforeSend beforeMutation) {
         if (shopId <= 0) {
             throw new IllegalArgumentException("shopId must be positive");
         }
         this.shopId = shopId;
         this.credentials = Objects.requireNonNull(credentials, "credentials");
         this.baseUrl = Objects.requireNonNull(baseUrl, "baseUrl");
+        this.quotaScope=com.vncode.app.integration.listing.ListingIdentity.hash(this.baseUrl+"\n"+credentials.clientId()+"\n"+credentials.apiKey());
         this.http = Objects.requireNonNull(http, "http");
         this.limiter = Objects.requireNonNull(limiter, "limiter");
         this.retryPolicy = Objects.requireNonNull(retryPolicy, "retryPolicy");
+        this.beforeMutation = beforeMutation;
+    }
+
+    public static BeforeSend productionGuard(int shopId, OzonCredentials credentials) {
+        com.vncode.app.models.Shop owner = new com.vncode.app.models.Shop(shopId, "",
+                com.vncode.app.integration.marketplace.Marketplace.OZON, credentials.clientId(), credentials.apiKey());
+        return (path, family) -> {
+            try {
+                com.vncode.app.integration.listing.ListingIdentity.require(owner);
+            } catch (SecurityException | IllegalStateException changed) {
+                throw new OzonApiException("identity_changed", 0, false, false, null);
+            }
+            var permission = switch (family) {
+                case "labels" -> com.vncode.app.features.license.LicenseModels.Permission.PRINT_NEW;
+                case "ship", "exemplars" -> com.vncode.app.features.license.LicenseModels.Permission.PACKING;
+                default -> com.vncode.app.features.license.LicenseModels.Permission.SELLER_API;
+            };
+            com.vncode.app.features.license.LicenseRuntime.require(permission);
+        };
+    }
+
+    /** Sync responses may be persisted only for the credentials that issued their request. */
+    void requireSyncOwner(int expectedShop) {
+        if (shopId != expectedShop) throw new SecurityException("SYNC_OWNER_CHANGED");
+        com.vncode.app.integration.listing.ListingIdentity.require(new com.vncode.app.models.Shop(shopId, "",
+                com.vncode.app.integration.marketplace.Marketplace.OZON, credentials.clientId(), credentials.apiKey()));
+    }
+
+    @FunctionalInterface public interface BeforeSend {
+        void check(String path, String family) throws IOException;
     }
 
     public OzonConnectionCheck checkConnection() throws IOException {
@@ -92,10 +127,16 @@ public final class OzonApiClient {
     }
 
     public JsonObject listProducts(String lastId, int limit) throws IOException {
+        return listProducts(lastId,limit,null);
+    }
+
+    /** Explicit partitions for complete owned-catalog reads; ALL excludes archived products. */
+    public JsonObject listProducts(String lastId,int limit,String visibility)throws IOException {
         if (limit < 1 || limit > 1000) {
             throw new IllegalArgumentException("Ozon product page limit must be between 1 and 1000");
         }
         JsonObject filter = new JsonObject();
+        if(visibility!=null){if(!java.util.Set.of("ALL","ARCHIVED").contains(visibility))throw new IllegalArgumentException("Invalid Ozon product visibility");filter.addProperty("visibility",visibility);}
         JsonObject request = new JsonObject();
         request.add("filter", filter);
         request.addProperty("last_id", lastId == null ? "" : lastId);
@@ -186,10 +227,15 @@ public final class OzonApiClient {
     }
 
     public JsonObject getPosting(String postingNumber, boolean withExemplars) throws IOException {
+        return getPosting(postingNumber,withExemplars,false);
+    }
+
+    public JsonObject getPosting(String postingNumber, boolean withExemplars, boolean relatedPostings) throws IOException {
         JsonObject with = new JsonObject();
         with.addProperty("analytics_data", false);
         with.addProperty("financial_data", false);
         with.addProperty("product_exemplars", withExemplars);
+        if(relatedPostings)with.addProperty("related_postings",true);
         JsonObject request = new JsonObject();
         request.addProperty("posting_number", requireExternalId(postingNumber, "posting number"));
         request.add("with", with);
@@ -339,7 +385,7 @@ public final class OzonApiClient {
             throws IOException {
         String safePath = requirePath(path);
         String safeFamily = requireFamily(family);
-        int attempts = mutation || "fbo-supplies".equals(safeFamily) ? 1 : retryPolicy.maximumAttempts();
+        int attempts = mutation || com.vncode.app.shared.RateLimitDeferral.active() || "fbo-supplies".equals(safeFamily) ? 1 : retryPolicy.maximumAttempts();
         IOException lastFailure = null;
         Duration retryAfter = null;
         for (int attempt = 1; attempt <= attempts; attempt++) {
@@ -348,8 +394,8 @@ public final class OzonApiClient {
                 retryAfter = null;
             }
             try {
-                limiter.awaitTurn(shopId, safeFamily);
-                return executeOnce(safePath, body, mutation, maxBytes, attempt, attempts);
+                limiter.awaitTurn(quotaScope, safeFamily);
+                return executeOnce(safePath, body, safeFamily, mutation, maxBytes, attempt, attempts);
             } catch (InterruptedException exception) {
                 Thread.currentThread().interrupt();
                 throw new OzonApiException("cancelled", 0, false, mutation, exception);
@@ -357,7 +403,7 @@ public final class OzonApiClient {
                 lastFailure = exception;
                 retryAfter = exception.retryAfter();
                 if ("rate_limited".equals(exception.kind())) {
-                    limiter.registerRateLimit(shopId, safeFamily, retryAfter);
+                    limiter.registerRateLimit(quotaScope, safeFamily, retryAfter);
                 }
                 if (mutation || !exception.retryable() || attempt >= attempts) {
                     throw exception;
@@ -380,7 +426,7 @@ public final class OzonApiClient {
     }
 
     private byte[] executeOnce(
-            String path, JsonObject body, boolean mutation, long maxBytes, int attempt, int attempts)
+            String path, JsonObject body, String family, boolean mutation, long maxBytes, int attempt, int attempts)
             throws IOException {
         HttpUrl url = Objects.requireNonNull(baseUrl.resolve(path));
         Request request = new Request.Builder()
@@ -390,7 +436,22 @@ public final class OzonApiClient {
                 .header("Content-Type", "application/json")
                 .post(RequestBody.create(JSON, GSON.toJson(body == null ? new JsonObject() : body)))
                 .build();
+        try (var slot = com.vncode.app.shared.MarketplaceRequestBudget.acquire()) {
+            if (!mutation || beforeMutation == null) return executeRequest(request, mutation, maxBytes);
+            try {
+                return com.vncode.app.features.shop.ShopOperationCoordinator.withActiveShop(shopId, () -> {
+                    beforeMutation.check(path, family);
+                    return executeRequest(request, true, maxBytes);
+                });
+            } catch (com.vncode.app.features.shop.ShopOperationCoordinator.ShopUnavailableException deleted) {
+                throw new OzonApiException("identity_changed", 0, false, false, null);
+            }
+        }
+    }
+
+    private byte[] executeRequest(Request request, boolean mutation, long maxBytes) throws IOException {
         try (Response response = http.newCall(request).execute()) {
+
             int status = response.code();
             if (!response.isSuccessful()) {
                 boolean retryable = retryPolicy.isRetryableStatus(status);
@@ -408,7 +469,8 @@ public final class OzonApiClient {
             if (length > maxBytes) {
                 throw new OzonApiException("response_too_large", status, false, mutation, null);
             }
-            byte[] bytes = responseBody.bytes();
+            byte[] bytes;
+            try(var stream=responseBody.byteStream()){bytes=stream.readNBytes((int)maxBytes+1);}
             if (bytes.length > maxBytes) {
                 throw new OzonApiException("response_too_large", status, false, mutation, null);
             }

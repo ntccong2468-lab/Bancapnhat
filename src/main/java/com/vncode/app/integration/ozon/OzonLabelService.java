@@ -3,6 +3,8 @@ package com.vncode.app.integration.ozon;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.vncode.app.features.license.LicenseModels.Permission;
+import com.vncode.app.features.license.LicenseRuntime;
 import com.vncode.app.integration.marketplace.MarketplaceGuard;
 import com.vncode.app.models.Shop;
 import com.vncode.app.shared.AtomicFilePublisher;
@@ -38,7 +40,11 @@ public final class OzonLabelService {
         }
         OzonApiClient api = apiClients.apply(
                 shop.getId(), new OzonCredentials(shop.getClientId(), shop.getApiKey()));
-        OzonLabelRepository.LabelJob job = labels.findOrCreate(shop.getId(), postingNumber);
+        OzonLabelRepository.LabelJob job = labels.find(shop.getId(), postingNumber);
+        if (job == null) {
+            LicenseRuntime.require(Permission.PRINT_NEW);
+            job = labels.findOrCreate(shop.getId(), postingNumber);
+        }
         String taskId = job.taskId();
         if (taskId == null || taskId.isBlank()) {
             if ("RECONCILE_REQUIRED".equals(job.status())) {
@@ -49,6 +55,7 @@ public final class OzonLabelService {
             postings.add(postingNumber);
             JsonObject create = new JsonObject();
             create.add("posting_number", postings);
+            LicenseRuntime.require(Permission.PRINT_NEW);
             try {
                 taskId = bigLabelTaskId(api.createLabelJob(create));
                 if (taskId.isBlank()) {

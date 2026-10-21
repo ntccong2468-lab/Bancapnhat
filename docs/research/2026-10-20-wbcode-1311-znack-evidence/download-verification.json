@@ -1,0 +1,19 @@
+{
+  "version": "v1.3.11",
+  "assets": [
+    {
+      "name": "checksums.sha256",
+      "bytes": 256,
+      "sha256": "68b46892357e4c619296ce6a6a5677443399a00d5ff68627a8102c7bc129fea9",
+      "githubDigestMatched": true
+    },
+    {
+      "name": "WCode.exe",
+      "bytes": 149511168,
+      "sha256": "6103163af499d6d54cf08672f4b8cda33d9c29b12f35d9a7a12f872e08b314d8",
+      "githubDigestMatched": true
+    }
+  ],
+  "officialChecksumsMatched": true,
+  "vendorBinaryExecuted": false
+}

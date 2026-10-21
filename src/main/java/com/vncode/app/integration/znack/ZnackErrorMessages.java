@@ -1,6 +1,7 @@
 package com.vncode.app.integration.znack;
 
 import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
 import java.util.ArrayList;
@@ -39,16 +40,44 @@ public final class ZnackErrorMessages {
     private ZnackErrorMessages() {
     }
 
+    /** True API CIS lookup: only literal number/string zero is a successful supplied error code. */
+    public static boolean hasCisLookupError(JsonObject object){
+        if(object==null)return true;
+        for(String key:List.of("errorMessage","error_message")){
+            var value=object.get(key);if(value!=null&&!value.isJsonNull()&&(!value.isJsonPrimitive()||!value.getAsJsonPrimitive().isString()||!value.getAsString().isBlank()))return true;
+        }
+        for(String key:List.of("errorCode","error_code")){
+            var value=object.get(key);if(value==null||value.isJsonNull())continue;
+            if(!value.isJsonPrimitive())return true;
+            var code=value.getAsJsonPrimitive();
+            if(code.isString()&&code.getAsString().isBlank())continue;
+            if((code.isString()||code.isNumber())&&"0".equals(code.getAsString()))continue;
+            return true;
+        }return false;
+    }
     /** Mã lỗi Znack (nếu có), ví dụ "1110"; rỗng nếu không tìm thấy. */
     public static String errorCode(String raw) {
         if (raw == null) return "";
         Matcher matcher = ERROR_CODE.matcher(raw);
-        return matcher.find() ? matcher.group(1) : "";
+        if(matcher.find())return matcher.group(1);
+        for(var code:com.vncode.app.integration.znack.signature.CryptoProErrorCode.values())
+            if(Pattern.compile("(?<![A-Z_])(?:CRYPTOPRO_|code=)?"+code.name()+"(?![A-Z_])").matcher(raw).find())return "CRYPTOPRO_"+code.name();
+        return "";
     }
 
     /** Human-readable form of a stored error; falls back to the raw text when nothing better is found. */
     public static String display(String raw) {
         if (raw == null || raw.isBlank()) return "";
+        String bufferIssue = kizOrderBufferIssueCode(raw);
+        if (!bufferIssue.isBlank()) {
+            String key = switch (bufferIssue) {
+                case ZnackKizOrderService.BUFFER_MULTIPLE -> "multiple";
+                case ZnackKizOrderService.BUFFER_MISSING -> "missing";
+                default -> "status_missing";
+            };
+            return com.vncode.app.shared.I18nService.getInstance().tr("znack.error.order_buffer." + key);
+        }
+        if(raw.toLowerCase(java.util.Locale.ROOT).contains("несоответствие рд к тг"))return com.vncode.app.shared.I18nService.getInstance().tr("znack.error.document_group_mismatch");
         if (isSuzAuthError(raw)) {
             return com.vncode.app.shared.I18nService.getInstance().tr("znack.error.suz_auth_invalid");
         }
@@ -69,6 +98,22 @@ public final class ZnackErrorMessages {
         Matcher status = HTTP_STATUS.matcher(raw);
         String prefix = status.find() ? "HTTP " + status.group(1) + ": " : "";
         return prefix + String.join("; ", messages);
+    }
+
+    /** A missing/ambiguous readback does not prove that an existing purchase failed. */
+    public static String kizOrderBufferIssueCode(String raw) {
+        return switch (raw == null ? "" : raw.trim()) {
+            case ZnackKizOrderService.BUFFER_MULTIPLE,
+                    "SUZ returned several buffers for the purchased GTIN; keep checking the existing order." ->
+                    ZnackKizOrderService.BUFFER_MULTIPLE;
+            case ZnackKizOrderService.BUFFER_MISSING,
+                    "SUZ did not return the purchased GTIN buffer; keep checking the existing order." ->
+                    ZnackKizOrderService.BUFFER_MISSING;
+            case ZnackKizOrderService.BUFFER_STATUS_MISSING,
+                    "SUZ did not return the purchased GTIN buffer status; keep checking the existing order." ->
+                    ZnackKizOrderService.BUFFER_STATUS_MISSING;
+            default -> "";
+        };
     }
 
     /**

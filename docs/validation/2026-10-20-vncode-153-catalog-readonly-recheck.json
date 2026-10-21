@@ -1,0 +1,103 @@
+{
+  "mode": "read-only",
+  "writes_performed": false,
+  "checked_at": "2026-10-20T08:30:45.443952+00:00",
+  "pages": [
+    {
+      "http": 200,
+      "count": 1000,
+      "total": 1277
+    },
+    {
+      "http": 200,
+      "count": 277,
+      "total": 1277
+    }
+  ],
+  "listing_complete": true,
+  "total": 1277,
+  "statuses": {
+    "published": 1241,
+    "draft": 36
+  },
+  "detailed_statuses": {
+    "['published', 'draft']": 1,
+    "['published']": 1240,
+    "['draft']": 2,
+    "['errors']": 34
+  },
+  "error_count": 34,
+  "error_tnved_groups": {
+    "6110": 24,
+    "6106": 7,
+    "6103": 3
+  },
+  "error_detail_requests": [
+    {
+      "http": 200,
+      "count": 25
+    },
+    {
+      "http": 200,
+      "count": 9
+    }
+  ],
+  "error_details_read": 34,
+  "error_detail_card_fields": [
+    "brand_id",
+    "brand_name",
+    "categories",
+    "create_date",
+    "flags_updated_date",
+    "good_attrs",
+    "good_detailed_status",
+    "good_id",
+    "good_images",
+    "good_img",
+    "good_mark_flag",
+    "good_name",
+    "good_prices",
+    "good_rating",
+    "good_reviews",
+    "good_reviews_count",
+    "good_signed",
+    "good_status",
+    "good_turn_flag",
+    "good_url",
+    "identified_by",
+    "is_kit",
+    "is_set",
+    "is_tech_gtin",
+    "producer_inn",
+    "producer_name",
+    "remainder_type",
+    "set_gtins",
+    "update_date"
+  ],
+  "error_detail_feed_id_present_count": 0,
+  "error_reason_fields_nonempty_counts": {
+    "errors": 0,
+    "error": 0,
+    "error_details": 0,
+    "reject_reason": 0,
+    "rejection_reason": 0,
+    "moderation_reason": 0,
+    "good_reviews": 0
+  },
+  "known_literal_permit_group_error_occurrences": 0,
+  "remote_reason_unavailable_without_feed_id": true,
+  "sanitization": {
+    "containsProductIdentifiers": false,
+    "containsGtinValues": false,
+    "containsCredentialValues": false,
+    "scope": "Aggregate counts, HTTP statuses and response field names only; no response card values."
+  },
+  "interpretation": {
+    "published": 1241,
+    "errors": 34,
+    "draftsWithoutErrors": 2,
+    "coarseDraftIncludesErrors": true,
+    "moderationCauseEstablishedByThisRead": false,
+    "newProductionWriteProved": false
+  }
+}

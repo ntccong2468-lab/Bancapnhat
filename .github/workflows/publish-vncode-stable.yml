@@ -20,6 +20,7 @@ on:
         required: true
         default: prepare
         type: choice
+        options: [prepare, publish, owner-approved-1416, owner-approved-1418, owner-approved-1419, owner-requested-150, owner-requested-151, owner-requested-152, owner-requested-153, owner-requested-154, owner-requested-155, owner-requested-157, owner-requested-158]
         options: [prepare, publish]
 permissions:
   contents: write
@@ -39,6 +40,8 @@ jobs:
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
         with:
           node-version: '22'
+      - if: inputs.mode != 'owner-approved-1416'
+        run: node --test tools/*.test.mjs
       - run: node --test tools/*.test.mjs
       - name: Verify build and release assets
         env:
@@ -46,4 +49,10 @@ jobs:
           RELEASE_BUILD_RUN: ${{ inputs.build_run_id }}
           RELEASE_BUILD_SOURCE: ${{ inputs.build_source_commit }}
           RELEASE_MODE: ${{ inputs.mode }}
+        run: |
+          if [ "$RELEASE_MODE" = "owner-approved-1416" ]; then
+            node tools/publish-owner-approved-1416.mjs
+          else
+            node tools/publish-vncode-stable.mjs "$RELEASE_BUILD_RUN" "$RELEASE_BUILD_SOURCE" "$RELEASE_MODE"
+          fi
         run: node tools/publish-vncode-stable.mjs "$RELEASE_BUILD_RUN" "$RELEASE_BUILD_SOURCE" "$RELEASE_MODE"

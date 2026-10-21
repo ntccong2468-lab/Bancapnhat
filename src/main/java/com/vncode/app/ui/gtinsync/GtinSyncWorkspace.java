@@ -20,8 +20,12 @@ final class GtinSyncWorkspace {
     private final Function<ProductKey,GtinMarketplaceAdapter> adapters;
     GtinSyncWorkspace(){this(new GtinSyncRepository(),null);}
     GtinSyncWorkspace(GtinSyncRepository repository,Function<ProductKey,GtinMarketplaceAdapter> adapters) {
+        this(repository,adapters,null);
+    }
+    GtinSyncWorkspace(GtinSyncRepository repository,Function<ProductKey,GtinMarketplaceAdapter> adapters,GtinSyncCoordinator.SourceRefresh sourceRefresh) {
         this.repository=Objects.requireNonNull(repository);this.adapters=adapters;
-        coordinator=new GtinSyncCoordinator(repository,this::adapter,Clock.systemUTC(),6,Duration.ofSeconds(2));
+        coordinator=sourceRefresh==null?new GtinSyncCoordinator(repository,this::adapter,Clock.systemUTC(),6,Duration.ofSeconds(2)):
+                new GtinSyncCoordinator(repository,this::adapter,Clock.systemUTC(),6,Duration.ofSeconds(2),sourceRefresh);
     }
     Shop require(int id,Marketplace marketplace) {
         var shop=new ShopRepository().findById(id);

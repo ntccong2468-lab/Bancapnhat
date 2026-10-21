@@ -1,7 +1,9 @@
 package com.vncode.app.integration.ozon;
 
 import com.itextpdf.barcodes.BarcodeDataMatrix;
+import com.itextpdf.barcodes.Barcode128;
 import com.itextpdf.kernel.colors.ColorConstants;
+import com.itextpdf.kernel.font.PdfFont;
 import com.itextpdf.kernel.geom.PageSize;
 import com.itextpdf.kernel.pdf.PdfDocument;
 import com.itextpdf.kernel.pdf.PdfPage;
@@ -15,12 +17,15 @@ import com.vncode.app.features.print.PrintTemplateService;
 import com.vncode.app.models.Shop;
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
-/** Appends one 58 x 40 mm physical DataMatrix label for each accepted Ozon exemplar. */
+/** Appends one combined 58 x 40 mm KIZ/product-barcode label per Ozon exemplar. */
 final class OzonKizLabelAppender {
     private static final float WIDTH = (float) PrintTemplateService.PAGE_WIDTH;
     private static final float HEIGHT = (float) PrintTemplateService.PAGE_HEIGHT;
     private static final PageSize PAGE_SIZE = new PageSize(WIDTH, HEIGHT);
+    private static final float MATRIX_SIDE = 50;
+    private static final float MINIMUM_MODULE = 2 * 72f / 203; // Two dots on a 203 dpi printer.
     private final OzonCatalogRepository catalog = new OzonCatalogRepository();
 
     int append(
@@ -28,44 +33,75 @@ final class OzonKizLabelAppender {
             Shop shop,
             OzonPostingDto posting,
             List<OzonExemplarJobRepository.KizBinding> bindings) throws IOException {
-        List<OzonProductDto> products = catalog.findAll(shop.getId());
+        return append(document, shop, posting, bindings, catalog.findBySkusForPrinting(shop.getId(),
+                posting.items().stream().map(OzonPostingItemDto::sku).distinct().toList()));
+    }
+
+    int append(
+            PdfDocument document, Shop shop, OzonPostingDto posting,
+            List<OzonExemplarJobRepository.KizBinding> bindings, Map<String, OzonProductDto> products)
+            throws IOException {
         int appended = 0;
+        var slots=new java.util.ArrayList<com.vncode.app.features.kiz.status.Kn3PrintProjection.Slot>();
+        for (var binding : bindings) {
+            OzonPostingItemDto selected = item(posting, binding.itemIndex());
+            if (!selected.productId().equals(binding.productId())
+                    || binding.exemplarIndex() < 0 || binding.exemplarIndex() >= selected.quantity()) {
+                throw OzonProductLabelBarcode.failure("OZON_LABEL_BINDING_MISMATCH", "ozon.label.binding.mismatch",
+                        "Mã KIZ đã lưu không khớp với sản phẩm trong đơn. Đồng bộ lại đơn trước khi in.", selected);
+            }
+            slots.add(new com.vncode.app.features.kiz.status.Kn3PrintProjection.Slot(
+                    selected.sku(), binding.exemplarId(), binding.rawCode()));
+        }
+        var codes=com.vncode.app.features.kiz.status.Kn3PrintProjection.codes(shop,posting.postingNumber(),slots);
+        int codeIndex=0;
         for (OzonExemplarJobRepository.KizBinding binding : bindings) {
             OzonPostingItemDto item = item(posting, binding.itemIndex());
-            OzonProductDto product = findProduct(products, item);
-            String code = KizService.scannerSafeCode(binding.rawCode());
+            OzonProductDto product = products.get(item.sku());
+            String code = KizService.scannerSafeCode(codes.get(codeIndex++));
             if (code == null || code.isBlank()) {
                 throw new IOException("An accepted Ozon exemplar has no printable KIZ.");
             }
-            appendPage(document, item, product, code);
+            OzonCombinedLabelRenderer.append(document, item, product, code);
             appended++;
         }
         return appended;
     }
 
-    private static void appendPage(
+    static void appendProductPage(
             PdfDocument document,
             OzonPostingItemDto item,
             OzonProductDto product,
             String code) throws IOException {
+        String productBarcode = OzonProductLabelBarcode.resolve(item, product);
+        Barcode128 barcode = productBarcode(document, item, productBarcode);
+        BarcodeDataMatrix matrix = code == null || code.isBlank() ? null : dataMatrix(code);
         PdfPage page = document.addNewPage(PAGE_SIZE);
-        drawDataMatrix(page, code);
+        if (matrix != null) drawDataMatrix(page, matrix);
+        drawProductBarcode(page, barcode);
 
         try (Canvas canvas = new Canvas(page, PAGE_SIZE)) {
-            canvas.setFont(GenerateBarcode.getArialFont());
-            String name = first(product == null ? "" : product.name(), item.name());
-            String article = first(product == null ? "" : product.article(), item.offerId());
-            canvas.add(text(compact(name, 56), 72, 62, WIDTH - 78, 8, true));
-            canvas.add(text("Article: " + compact(article, 30), 72, 38, WIDTH - 78, 7, true));
+            PdfFont font = GenerateBarcode.getArialFont();
+            canvas.setFont(font);
+            float x = mm(22), width = mm(34);
+            canvas.add(text(fitLines(first(product.name(), item.name()), font, width, 8, 3),
+                    x, HEIGHT - mm(2.5) - 25, width, 8, true).setHeight(25));
+            canvas.add(text(fitLines("Article: " + first(product.article(), item.offerId()), font, width, 7, 2),
+                    x, HEIGHT - mm(12.5) - 14, width, 7, true).setHeight(14));
+            canvas.add(text(fitLines("Màu: " + product.color(), font, width, 7, 1),
+                    x, HEIGHT - mm(18.5) - 8, width, 7, true).setHeight(8));
+            canvas.add(text(fitLines("Size: " + first(product.russianSize(), product.size()), font, width, 8, 1),
+                    x, HEIGHT - mm(23.5) - 9, width, 8, true).setHeight(9));
+            if (matrix != null) {
+                canvas.add(text("KIZ", mm(2.5), HEIGHT - mm(24.5), MATRIX_SIDE, 6, false)
+                        .setTextAlignment(TextAlignment.CENTER));
+            }
+            canvas.add(text(productBarcode, mm(2.5), HEIGHT - mm(36.5) - 8, mm(53), 7, false)
+                    .setTextAlignment(TextAlignment.CENTER));
         }
-    }
-
-    private static OzonProductDto findProduct(List<OzonProductDto> products, OzonPostingItemDto item) {
-        return products.stream().filter(product ->
-                (!item.productId().isBlank() && item.productId().equals(product.productId()))
-                        || (!item.sku().isBlank() && item.sku().equals(product.sku()))
-                        || (!item.offerId().isBlank() && item.offerId().equals(product.offerId())))
-                .findFirst().orElse(null);
+        new PdfCanvas(page).saveState().setStrokeColor(ColorConstants.BLACK).setLineWidth(0.4f)
+                .moveTo(mm(2.5), HEIGHT - mm(27)).lineTo(mm(55.5), HEIGHT - mm(27))
+                .stroke().restoreState();
     }
 
     private static Paragraph text(
@@ -76,7 +112,7 @@ final class OzonKizLabelAppender {
         return bold ? paragraph.setBold() : paragraph;
     }
 
-    private static void drawDataMatrix(PdfPage page, String code) throws IOException {
+    private static BarcodeDataMatrix dataMatrix(String code) throws IOException {
         BarcodeDataMatrix matrix = new BarcodeDataMatrix();
         matrix.setOptions(BarcodeDataMatrix.DM_AUTO | BarcodeDataMatrix.DM_EXTENSION);
         matrix.setWs(1);
@@ -86,15 +122,49 @@ final class OzonKizLabelAppender {
         if (status != BarcodeDataMatrix.DM_NO_ERROR) {
             throw new IOException("An accepted Ozon KIZ cannot be encoded as GS1 DataMatrix.");
         }
+        if (MATRIX_SIDE / (matrix.getWidth() + 2f * matrix.getWs()) < MINIMUM_MODULE) {
+            throw new IOException("OZON_LABEL_KIZ_TOO_DENSE: Mã KIZ quá dài để in rõ trên nhãn 58 × 40 mm.");
+        }
+        return matrix;
+    }
+
+    private static void drawDataMatrix(PdfPage page, BarcodeDataMatrix matrix) {
         // PdfCanvas keeps every module printer-sharp; unlike createAwtImage(), it is not a
         // 36x36 bitmap stretched across the label. Source (iText 8.0.3):
         // https://api.itextpdf.com/iText/java/8.0.3/com/itextpdf/barcodes/BarcodeDataMatrix.html
-        float moduleSide = 62f / (matrix.getWidth() + 2f * matrix.getWs());
+        float moduleSide = MATRIX_SIDE / (matrix.getWidth() + 2f * matrix.getWs());
         PdfCanvas canvas = new PdfCanvas(page);
-        canvas.saveState().concatMatrix(1, 0, 0, 1, 7, 25);
+        canvas.saveState().concatMatrix(1, 0, 0, 1, mm(2.5), HEIGHT - mm(5) - MATRIX_SIDE);
         matrix.placeBarcode(canvas, ColorConstants.BLACK, moduleSide);
         canvas.restoreState();
     }
+
+    private static Barcode128 productBarcode(PdfDocument document, OzonPostingItemDto item, String value)
+            throws IOException {
+        Barcode128 barcode = new Barcode128(document);
+        barcode.setCode(value);
+        barcode.setFont(null);
+        barcode.setBarHeight(22);
+        barcode.setX(1);
+        // Code128's bounding box excludes quiet zones: reserve ten modules on each side.
+        float module = mm(53) / (barcode.getBarcodeSize().getWidth() + 20);
+        if (module < MINIMUM_MODULE) {
+            throw OzonProductLabelBarcode.failure("OZON_LABEL_BARCODE_TOO_DENSE", "ozon.label.barcode.too_dense",
+                    "Barcode sản phẩm quá dài để in rõ trên nhãn 58 × 40 mm. Kiểm tra barcode ngắn hơn đã đăng ký trên Ozon.", item);
+        }
+        barcode.setX(module);
+        return barcode;
+    }
+
+    private static void drawProductBarcode(PdfPage page, Barcode128 barcode) {
+        float x = (WIDTH - barcode.getBarcodeSize().getWidth()) / 2;
+        PdfCanvas canvas = new PdfCanvas(page);
+        canvas.saveState().concatMatrix(1, 0, 0, 1, x, HEIGHT - mm(28.2) - 22);
+        barcode.placeBarcode(canvas, ColorConstants.BLACK, null);
+        canvas.restoreState();
+    }
+
+    private static float mm(double value) { return (float) (value * 72 / 25.4); }
 
     private static OzonPostingItemDto item(OzonPostingDto posting, int itemIndex) throws IOException {
         return posting.items().stream()
@@ -103,10 +173,27 @@ final class OzonKizLabelAppender {
                 .orElseThrow(() -> new IOException("An accepted Ozon exemplar no longer matches a posting item."));
     }
 
-    private static String compact(String value, int maximum) {
+    private static String fitLines(String value, PdfFont font, float width, float size, int maximumLines) {
         String safe = value == null ? "" : value.replaceAll("\\p{Cntrl}", " ").strip();
-        if (safe.length() <= maximum) return safe;
-        return safe.substring(0, Math.max(0, maximum - 3)).stripTrailing() + "...";
+        var lines = new java.util.ArrayList<String>();
+        while (!safe.isEmpty() && lines.size() < maximumLines) {
+            int end = safe.length();
+            while (end > 0 && font.getWidth(safe.substring(0, end), size) > width - 2) end--;
+            if (end < safe.length() && lines.size() + 1 < maximumLines) {
+                int space = safe.lastIndexOf(' ', end);
+                if (space > 0) end = space;
+            }
+            if (end <= 0) break;
+            String line = safe.substring(0, end).stripTrailing();
+            safe = safe.substring(end).stripLeading();
+            if (!safe.isEmpty() && lines.size() + 1 == maximumLines) {
+                while (!line.isEmpty() && font.getWidth(line + "...", size) > width - 2)
+                    line = line.substring(0, line.length() - 1).stripTrailing();
+                line += "...";
+            }
+            lines.add(line);
+        }
+        return String.join("\n", lines);
     }
 
     private static String first(String preferred, String fallback) {

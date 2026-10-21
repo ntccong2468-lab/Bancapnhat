@@ -1,0 +1,257 @@
+{
+  "version": "1.5.4",
+  "state": "published-latest-under-owner-request",
+  "baseline": "v1.5.3",
+  "baselineArtifact": {
+    "version": "1.5.3",
+    "tag": "v1.5.3",
+    "sourceCommit": "69ffc7ecb60a91c874510522c4aae3c5be069ccd",
+    "releaseUrl": "https://github.com/ntccong2468-lab/Bancapnhat/releases/tag/v1.5.3",
+    "installerFile": "VN-code-1.5.3-Windows-x64.exe",
+    "installerBytes": 146864128,
+    "installerSha256": "ec608d3677581c12901ee702e516cb2eea2757a5a9ee8fd84a2ce2438e8a3f31",
+    "installerUrl": "https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.5.3/VN-code-1.5.3-Windows-x64.exe",
+    "immutable": true
+  },
+  "databaseSchema": 6,
+  "published": true,
+  "complete": false,
+  "sourceCommit": "688bd01982898e18c9770300fa20cfe29bde1245",
+  "sourceRuntimeIsFinal": true,
+  "requestReport": "VN-code-1.5.4-request-report.md",
+  "licenseIntegration": {
+    "productionReady": false,
+    "changedInThisVersion": false
+  },
+  "publication": {
+    "state": "published-latest-under-owner-request",
+    "latestReleaseAtPreparation": "v1.5.3",
+    "latestReleaseChangedByThisWork": true,
+    "ownerRequestedPublication": true,
+    "standardAcceptanceClaimed": false,
+    "releaseUrl": "https://github.com/ntccong2468-lab/Bancapnhat/releases/tag/v1.5.4",
+    "installerSha256": "e7079a4aca07c1ae2fec26e46c4e3a3d77096a14b1c0485a88cefe95a3f7a18b",
+    "installerBytes": 146868224,
+    "runId": 39417571803,
+    "credentialValuesRecorded": false,
+    "published": true,
+    "latestReleaseChanged": true,
+    "publishedAt": "2026-10-20T12:34:31Z",
+    "buildRun": 39415265129,
+    "publishRun": 39417571803,
+    "publishSourceCommit": "232c31fef55ef6828a50107096e6a4ea6039eca9",
+    "verifiedAt": "2026-10-20T12:35:22.463033+00:00",
+    "reason": "Fresh final-source Java/native/upgrade evidence and public bytes/updater availability verified; paid KIZ, seller mutations, CryptoPro and production license acceptance remain unverified."
+  },
+  "changes": [
+    {
+      "area": "updater",
+      "state": "implemented-final-automated-regression-passed",
+      "scope": "Pin SQLite source read view during backup; real byte/hash/integrity progress and cancellation while preserving snapshot/restore checks."
+    },
+    {
+      "area": "kiz-stock-replenishment",
+      "state": "implemented-final-automated-regression-passed",
+      "scope": "Canonical per-GTIN UUID for new stock purchase requests on the shared WB/Ozon coordinator."
+    },
+    {
+      "area": "kiz-paid-code-readback",
+      "state": "implemented-final-automated-regression-passed",
+      "scope": "Do not replay codes GET; retain partial quantity checkpoint; match the exact GTIN buffer and report missing/ambiguous status."
+    },
+    {
+      "area": "kiz-error-ui",
+      "state": "implemented-final-automated-regression-passed",
+      "scope": "Localized missing/ambiguous buffer diagnosis and continued reconciliation of the existing paid order."
+    }
+  ],
+  "preservationRequirements": [
+    "Published 1.5.3 seller data, schema 6, synchronized products/cards and KIZ inventory",
+    "Default Catalog registration template and permit TN VED scope rules",
+    "Priority FBS, durable registration, GTIN readback, Liquid Glass and updater integrity/licensing/signature checks"
+  ],
+  "validation": {
+    "linuxFullSuite": {
+      "sourceCommit": "688bd01982898e18c9770300fa20cfe29bde1245",
+      "command": "DISPLAY=:99 XDG_CACHE_HOME=/tmp/vncode-ui-cache /workspace/toolchains/mvn-vncode -o clean verify",
+      "fullSuiteExecuted": true,
+      "cleanVerifyExecuted": true,
+      "suites": 340,
+      "tests": 2088,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 2,
+      "skippedCases": [
+        "com.vncode.app.shared.WindowsSecretProtectorTest.separatesLicenseAndExistingMailEntropyOnWindows",
+        "com.vncode.app.features.gs1.Gs1PrefixTemplateStoreTest.refusesNtfsJunctionDirectoryAndAncestors"
+      ],
+      "log": "/tmp/vncode-154-final-full-verify.log",
+      "passed": 2086,
+      "finishedAt": "2026-10-20T11:41:08Z",
+      "totalTime": "12:11 min",
+      "state": "passed",
+      "countsRecorded": true,
+      "freshFullExecutionRequired": true,
+      "acceptedForFinalScope": true,
+      "acceptedForRelease": false,
+      "scope": "Final frozen source complete Linux clean verify; Windows/native/public evidence remains mandatory."
+    },
+    "releaseToolTests": {
+      "state": "passed",
+      "sourceCommit": "688bd01982898e18c9770300fa20cfe29bde1245",
+      "tests": 92,
+      "failures": 0,
+      "fullSuiteExecuted": true,
+      "countsRecorded": true,
+      "command": "node --test tools/*.test.mjs",
+      "log": "/tmp/vncode-154-final-report-node.log",
+      "acceptedForFinalScope": true,
+      "scope": "Full release-tool suite including final154 report formatting, exact source/run binding and final publication metadata; Windows/native/public evidence is recorded separately.",
+      "toolingSourceCommit": "232c31fef55ef6828a50107096e6a4ea6039eca9",
+      "postPublicationDocsCheck": {
+        "tests": 92,
+        "passed": 92,
+        "failures": 0,
+        "errors": 0,
+        "log": "/tmp/vncode-154-published-final-docs-node.log"
+      }
+    },
+    "windowsBuild": {
+      "state": "passed",
+      "sourceCommit": "688bd01982898e18c9770300fa20cfe29bde1245",
+      "runId": 39415265129,
+      "url": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/39415265129",
+      "observedCreatedAt": "2026-10-20T11:29:04Z",
+      "freshFullJavaExecutionRequired": true,
+      "allNativeChecksMustRunAgain": true,
+      "upgradeFrom153Passed": true,
+      "passiveExeHandoffVerified": true,
+      "allNativeChecksPassed": true,
+      "installerPackaged": true,
+      "verifiedNativeProofs": [
+        "native-smoke.json",
+        "side-by-side-smoke.json",
+        "upgrade-smoke.json",
+        "upgrade-preview-smoke.json",
+        "upgrade-latest-preview-smoke.json",
+        "upgrade-current-preview-smoke.json",
+        "upgrade-gs1-preview-smoke.json",
+        "upgrade-license-test-smoke.json",
+        "upgrade-stable-146-smoke.json",
+        "upgrade-stable-1410-smoke.json",
+        "upgrade-stable-1411-smoke.json",
+        "upgrade-stable-1412-smoke.json",
+        "upgrade-stable-1413-smoke.json",
+        "upgrade-stable-1415-smoke.json",
+        "upgrade-stable-1416-smoke.json",
+        "upgrade-stable-1418-smoke.json",
+        "upgrade-stable-1419-smoke.json",
+        "upgrade-stable-150-smoke.json",
+        "upgrade-stable-151-smoke.json",
+        "upgrade-stable-152-smoke.json",
+        "upgrade-stable-153-smoke.json",
+        "seller-workspace-smoke.json",
+        "ui-layout.json",
+        "gs1-smoke.json"
+      ],
+      "fullJavaSuite": {
+        "tests": 2088,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 2,
+        "passed": 2086
+      },
+      "observedCompletedAt": "2026-10-20T12:33:17Z"
+    },
+    "productionLicenseVerified": false,
+    "liveCryptoProSigningThisVersion": false,
+    "liveLicensedDesktopGtinWriteThisVersion": false,
+    "liveApiWbGtinWriteThisVersion": false,
+    "liveApiOzonGtinWriteThisVersion": false,
+    "liveCatalogCardCreatedThisVersion": false,
+    "liveCatalogCardRepairedThisVersion": false,
+    "liveKizPurchaseThisVersion": false,
+    "livePaidKizOrderThisVersion": false,
+    "liveApiWbKizPurchaseThisVersion": false,
+    "liveApiOzonKizPurchaseThisVersion": false,
+    "publicDownloadVerified": true,
+    "sellerDesktopPopupObserved": false,
+    "focusedRuntimeSuite": {
+      "state": "passed",
+      "sourceCommit": "688bd01982898e18c9770300fa20cfe29bde1245",
+      "tests": 193,
+      "passed": 193,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "acceptedForFinalScope": true,
+      "scope": "Final frozen runtime focused regression observed by root before commit; full clean verify and Windows proof remain mandatory."
+    },
+    "updater": {
+      "previousVersion": "1.5.3",
+      "installerUrlVerified": true,
+      "sellerDesktopPopupObserved": false,
+      "status": "AVAILABLE",
+      "installerSha256Verified": true,
+      "installerBytesVerified": true,
+      "latestVersion": "1.5.4"
+    },
+    "publicReleaseVerification": {
+      "checkedAt": "2026-10-20T12:35:22.463033+00:00",
+      "published": true,
+      "latestVersion": "1.5.4",
+      "releaseUrl": "https://github.com/ntccong2468-lab/Bancapnhat/releases/tag/v1.5.4",
+      "publishedAt": "2026-10-20T12:34:31Z",
+      "buildRun": 39415265129,
+      "publishRun": 39417571803,
+      "publishSourceCommit": "232c31fef55ef6828a50107096e6a4ea6039eca9",
+      "sourceCommit": "688bd01982898e18c9770300fa20cfe29bde1245",
+      "installerSha256": "e7079a4aca07c1ae2fec26e46c4e3a3d77096a14b1c0485a88cefe95a3f7a18b",
+      "installerBytes": 146868224,
+      "downloadUrl": "https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.5.4/VN-code-1.5.4-Windows-x64.exe",
+      "publicDownloadVerified": true,
+      "windowsJava": {
+        "tests": 2088,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 2,
+        "passed": 2086
+      },
+      "updater": {
+        "previousVersion": "1.5.3",
+        "installerUrlVerified": true,
+        "sellerDesktopPopupObserved": false,
+        "status": "AVAILABLE",
+        "installerSha256Verified": true,
+        "installerBytesVerified": true,
+        "latestVersion": "1.5.4"
+      },
+      "passiveExeHandoffVerified": true,
+      "realSellerMutationsPerformed": false,
+      "paidKizPurchasePerformed": false,
+      "liveKizPurchaseThisVersion": false,
+      "livePaidKizOrderThisVersion": false,
+      "verifiedNativeProofFiles": 24,
+      "verifiedUpgradeProbes": 19
+    },
+    "windowsTrayVerifiedOnWindows": false
+  },
+  "requiredUpgradeFrom153": {
+    "baseline": {
+      "version": "1.5.3",
+      "tag": "v1.5.3",
+      "sourceCommit": "69ffc7ecb60a91c874510522c4aae3c5be069ccd",
+      "releaseUrl": "https://github.com/ntccong2468-lab/Bancapnhat/releases/tag/v1.5.3",
+      "installerFile": "VN-code-1.5.3-Windows-x64.exe",
+      "installerBytes": 146864128,
+      "installerSha256": "ec608d3677581c12901ee702e516cb2eea2757a5a9ee8fd84a2ce2438e8a3f31",
+      "installerUrl": "https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.5.3/VN-code-1.5.3-Windows-x64.exe",
+      "immutable": true
+    },
+    "actualPassiveExeHandoffRequired": true,
+    "existingNativeAndUpgradeChecksPreserved": true,
+    "verified": true
+  },
+  "updatePreparationEvidence": "docs/validation/2026-10-20-vncode-154-update-preparation.md",
+  "postPublicationRecordedAt": "2026-10-20T12:35:51.838990+00:00"
+}

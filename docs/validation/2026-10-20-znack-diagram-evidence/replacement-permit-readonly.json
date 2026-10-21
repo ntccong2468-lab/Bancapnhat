@@ -1,0 +1,53 @@
+{
+  "mode": "production-read-only-exact-permit",
+  "writesPerformed": false,
+  "checkedAt": "2026-10-20T19:58:27.147085+00:00",
+  "requests": [
+    {
+      "service": "Catalog",
+      "method": "POST",
+      "path": "/v4/rd-info",
+      "purpose": "exact user-supplied permit number and actual issued date registry lookup",
+      "httpStatus": 200,
+      "responseBytes": 2353
+    }
+  ],
+  "sanitization": {
+    "containsCredentialValues": false,
+    "containsProductIdentifiers": false,
+    "containsGtinValues": false,
+    "containsSellerRawData": false
+  },
+  "containsPermitNumbers": false,
+  "registry": [
+    {
+      "canonicalNumberMatches": true,
+      "issueDateMatches": true,
+      "type": "CONFORMITY_DECLARATION",
+      "attrId": 23557,
+      "statusGroup": 1,
+      "status": "Действует",
+      "fromDate": "2026-05-28",
+      "toDate": "2031-05-26",
+      "dateRangeValidToday": true,
+      "tnvedScopeCodes": [
+        "6103",
+        "6104",
+        "6105",
+        "6106",
+        "6110",
+        "6112"
+      ],
+      "technicalRegulations": "ТР ТС 017/2011 О безопасности продукции легкой промышленности",
+      "priorErrorTnvedCoverage": {
+        "6106909000": true,
+        "6110209100": true,
+        "6103420001": true
+      }
+    }
+  ],
+  "errorCodes": [],
+  "errorMessagesRedacted": [],
+  "status": "COMPLETE",
+  "completedAt": "2026-10-20T19:58:28.851670+00:00"
+}

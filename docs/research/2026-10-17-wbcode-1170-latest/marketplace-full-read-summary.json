@@ -1,0 +1,27 @@
+{
+  "checkedAt": "2026-10-17T21:02:56.342126+00:00",
+  "readOnly": true,
+  "liveMutations": false,
+  "services": [
+    {
+      "service": "WB_CONTENT",
+      "status": "read_ok",
+      "cards": 388,
+      "variants": 1982,
+      "pages": 4,
+      "completeCatalogRead": true,
+      "duplicateVariants": 0,
+      "writes": 0
+    },
+    {
+      "service": "OZON_CATALOG",
+      "status": "read_ok",
+      "products": 175,
+      "details": 175,
+      "attributes": 175,
+      "pages": 1,
+      "completeCatalogRead": true,
+      "writes": 0
+    }
+  ]
+}

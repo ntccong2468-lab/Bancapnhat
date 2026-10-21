@@ -10,4 +10,10 @@ class SupplyOrderPresentationTest {
   assertEquals("",SupplyOrderPresentation.gtin(order,Map.of(11L,"other-product")));
   order.setKiz("010001234567890521fixture");assertEquals("00012345678905",SupplyOrderPresentation.gtin(order,Map.of()));
  }
+ @Test void sellerAndMarketplaceStatusesRemainDistinctFromLocalKiz(){
+  var order=new Order();order.setSupplierStatus("confirm");order.setWbStatus("waiting");order.setKiz("local-code");
+  var i=com.vncode.app.shared.I18nService.getInstance();String text=SupplyOrderPresentation.status(order);
+  assertTrue(text.contains(i.tr("supply.order_status.confirm")));assertTrue(text.contains(i.tr("supply.order_status.waiting")));assertFalse(text.contains("local-code"));
+  order.setWbStatus("future_status");assertTrue(SupplyOrderPresentation.status(order).contains("future_status"));
+ }
 }

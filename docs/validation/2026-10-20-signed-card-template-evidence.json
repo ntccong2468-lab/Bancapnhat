@@ -1,0 +1,1010 @@
+{
+  "checkedAt": "2026-10-20T20:21:56.669889+00:00",
+  "completedAt": "2026-10-20T20:22:07.396812+00:00",
+  "mode": "production-read-only-green-template-structure",
+  "writesPerformed": false,
+  "gtinAllocationPerformed": false,
+  "sanitization": {
+    "containsCredentialValues": false,
+    "containsProductIdentifiers": false,
+    "containsGtinValues": false,
+    "containsSellerRawData": false
+  },
+  "requests": [
+    {
+      "service": "Catalog",
+      "method": "GET",
+      "path": "/v4/product-list",
+      "purpose": "fresh published-only representative sample selection",
+      "httpStatus": 200,
+      "responseBytes": 346456
+    },
+    {
+      "service": "Catalog",
+      "method": "GET",
+      "path": "/v4/product-list",
+      "purpose": "fresh published-only representative sample selection",
+      "httpStatus": 200,
+      "responseBytes": 94870
+    },
+    {
+      "service": "Catalog",
+      "method": "GET",
+      "path": "/v3/feed-product",
+      "purpose": "exact published sample signed status and field structure",
+      "httpStatus": 200,
+      "responseBytes": 122855
+    },
+    {
+      "service": "Catalog",
+      "method": "GET",
+      "path": "/v3/attributes",
+      "purpose": "current mandatory schema for actual green sample category",
+      "httpStatus": 200,
+      "responseBytes": 17316
+    },
+    {
+      "service": "Catalog",
+      "method": "GET",
+      "path": "/v3/attributes",
+      "purpose": "current mandatory schema for actual green sample category",
+      "httpStatus": 200,
+      "responseBytes": 17316
+    },
+    {
+      "service": "Catalog",
+      "method": "GET",
+      "path": "/v3/attributes",
+      "purpose": "current mandatory schema for actual green sample category",
+      "httpStatus": 200,
+      "responseBytes": 17316
+    },
+    {
+      "service": "Catalog",
+      "method": "GET",
+      "path": "/v3/attributes",
+      "purpose": "current mandatory schema for actual green sample category",
+      "httpStatus": 200,
+      "responseBytes": 17316
+    }
+  ],
+  "selection": {
+    "listedTotal": 1277,
+    "eligibleCleanPublishedListCount": 1240,
+    "eligiblePublishedTnvedGroupCounts": {
+      "6103": 1193,
+      "6110": 29,
+      "6112": 1,
+      "6114": 10,
+      "6201": 1,
+      "6203": 6
+    },
+    "exactDetailsRequested": 24,
+    "exactDetailsReceived": 24,
+    "strictSignedPublishedSamples": 24,
+    "excludedUnsignedOrActiveRevisionCount": 0,
+    "sampleKitCounts": {
+      "False": 9,
+      "True": 15
+    },
+    "sampleTnvedCounts": {
+      "6114200000": 2,
+      "6103420001": 3,
+      "6103220000": 10,
+      "6203299000": 2,
+      "6110209100": 2,
+      "6103109000": 3,
+      "6201400000": 1,
+      "6112110000": 1
+    }
+  },
+  "structureSummary": {
+    "nonemptyAttributeCounts": {
+      "12": 24,
+      "35": 24,
+      "36": 24,
+      "2478": 24,
+      "2483": 24,
+      "2504": 24,
+      "3959": 24,
+      "13836": 24,
+      "13914": 24,
+      "13933": 24,
+      "14013": 24,
+      "23557": 23
+    },
+    "valueTypeDistribution": {
+      "12": {
+        "": 24
+      },
+      "35": {
+        "РОССИЯ": 22,
+        "РОСТ-ОГ": 1,
+        "МЕЖДУНАРОДНЫЙ": 1
+      },
+      "36": {
+        "": 24
+      },
+      "2478": {
+        "": 24
+      },
+      "2483": {
+        "": 24
+      },
+      "2504": {
+        "": 24
+      },
+      "3959": {
+        "": 24
+      },
+      "13836": {
+        "": 24
+      },
+      "13914": {
+        "Артикул": 23,
+        "Модель": 1
+      },
+      "13933": {
+        "": 24
+      },
+      "14013": {
+        "": 24
+      },
+      "23557": {
+        "": 23
+      }
+    },
+    "samplesWithInlinePermit": 23,
+    "samplesWithoutInlinePermit": 1,
+    "kitByTnvedGroup": {
+      "6114": {
+        "False": 2
+      },
+      "6103": {
+        "False": 3,
+        "True": 13
+      },
+      "6203": {
+        "True": 2
+      },
+      "6110": {
+        "False": 2
+      },
+      "6201": {
+        "False": 1
+      },
+      "6112": {
+        "False": 1
+      }
+    },
+    "sampleSizeLiteralOneCount": 0,
+    "note": "Published acceptance alone is not proof all supplied field values, permit scope or product classification are correct."
+  },
+  "strictSampleReceipts": [
+    {
+      "reference": "signed-green-01",
+      "rawResponseSha256": "164ad06e6fa0dfd1c7e6eaaff3983da76b8bfe4f941930cfee5c68c5cebb945f",
+      "good_status": "published",
+      "good_signed": true,
+      "good_detailed_status": [
+        "published"
+      ],
+      "is_kit": false,
+      "is_set": false,
+      "tnvedCode": "6114200000",
+      "categories": [
+        {
+          "cat_id": 30734,
+          "cat_name": "Нижние части спортивных костюмов"
+        },
+        {
+          "cat_id": 554626,
+          "cat_name": "6114200000 Предметы одежды прочие трикотажные машинного или ручного вязания, из хлопчатобумажной пряжи"
+        }
+      ],
+      "sizeValueType": "РОССИЯ",
+      "articleValueType": "Артикул"
+    },
+    {
+      "reference": "signed-green-02",
+      "rawResponseSha256": "9211aae8c47e32530c43e8216223ca8a915c0d178112d88c977290cdb2578090",
+      "good_status": "published",
+      "good_signed": true,
+      "good_detailed_status": [
+        "published"
+      ],
+      "is_kit": false,
+      "is_set": false,
+      "tnvedCode": "6103420001",
+      "categories": [
+        {
+          "cat_id": 30683,
+          "cat_name": "Брюки, бриджи, шорты"
+        },
+        {
+          "cat_id": 550212,
+          "cat_name": "6103 Костюмы, комплекты, пиджаки, блайзеры, брюки, комбинезоны с нагрудниками и лямками, бриджи и шорты (кроме купальных) трикотажные машинного или ручного вязания, мужские или для мальчиков"
+        }
+      ],
+      "sizeValueType": "РОССИЯ",
+      "articleValueType": "Артикул"
+    },
+    {
+      "reference": "signed-green-03",
+      "rawResponseSha256": "b748a89100a5532de5e74607b9ad62abfa2d45282d310d6060372e5b3e74fda6",
+      "good_status": "published",
+      "good_signed": true,
+      "good_detailed_status": [
+        "published"
+      ],
+      "is_kit": true,
+      "is_set": false,
+      "tnvedCode": "6103220000",
+      "categories": [
+        {
+          "cat_id": 30733,
+          "cat_name": "Спортивные костюмы"
+        },
+        {
+          "cat_id": 550212,
+          "cat_name": "6103 Костюмы, комплекты, пиджаки, блайзеры, брюки, комбинезоны с нагрудниками и лямками, бриджи и шорты (кроме купальных) трикотажные машинного или ручного вязания, мужские или для мальчиков"
+        }
+      ],
+      "sizeValueType": "РОССИЯ",
+      "articleValueType": "Артикул"
+    },
+    {
+      "reference": "signed-green-04",
+      "rawResponseSha256": "29721c636d661f09dc3d6a62d9b3c1b873575f05a798ae3356fc4718d31dc011",
+      "good_status": "published",
+      "good_signed": true,
+      "good_detailed_status": [
+        "published"
+      ],
+      "is_kit": true,
+      "is_set": false,
+      "tnvedCode": "6103220000",
+      "categories": [
+        {
+          "cat_id": 30733,
+          "cat_name": "Спортивные костюмы"
+        },
+        {
+          "cat_id": 550212,
+          "cat_name": "6103 Костюмы, комплекты, пиджаки, блайзеры, брюки, комбинезоны с нагрудниками и лямками, бриджи и шорты (кроме купальных) трикотажные машинного или ручного вязания, мужские или для мальчиков"
+        }
+      ],
+      "sizeValueType": "РОССИЯ",
+      "articleValueType": "Артикул"
+    },
+    {
+      "reference": "signed-green-05",
+      "rawResponseSha256": "b13f82c87f444fdebba4ce8c5b0a4406662d8191a1747ae303061c3c70e1e9b6",
+      "good_status": "published",
+      "good_signed": true,
+      "good_detailed_status": [
+        "published"
+      ],
+      "is_kit": true,
+      "is_set": false,
+      "tnvedCode": "6103220000",
+      "categories": [
+        {
+          "cat_id": 30733,
+          "cat_name": "Спортивные костюмы"
+        },
+        {
+          "cat_id": 550212,
+          "cat_name": "6103 Костюмы, комплекты, пиджаки, блайзеры, брюки, комбинезоны с нагрудниками и лямками, бриджи и шорты (кроме купальных) трикотажные машинного или ручного вязания, мужские или для мальчиков"
+        }
+      ],
+      "sizeValueType": "РОССИЯ",
+      "articleValueType": "Артикул"
+    },
+    {
+      "reference": "signed-green-06",
+      "rawResponseSha256": "d9f82eb106af566a1cbf4b9434a65cdd26bf95d6fa516ea051544c735177339d",
+      "good_status": "published",
+      "good_signed": true,
+      "good_detailed_status": [
+        "published"
+      ],
+      "is_kit": true,
+      "is_set": false,
+      "tnvedCode": "6203299000",
+      "categories": [
+        {
+          "cat_id": 30733,
+          "cat_name": "Спортивные костюмы"
+        },
+        {
+          "cat_id": 550218,
+          "cat_name": "6203 Костюмы, комплекты, пиджаки, блайзеры, брюки, комбинезоны с нагрудниками и лямками, бриджи и шорты (кроме купальных) мужские или для мальчиков"
+        }
+      ],
+      "sizeValueType": "РОССИЯ",
+      "articleValueType": "Артикул"
+    },
+    {
+      "reference": "signed-green-07",
+      "rawResponseSha256": "612f79fe7c95ad510c04afd60165ae57ed33662ec74db2819f5751e1f3304bed",
+      "good_status": "published",
+      "good_signed": true,
+      "good_detailed_status": [
+        "published"
+      ],
+      "is_kit": false,
+      "is_set": false,
+      "tnvedCode": "6114200000",
+      "categories": [
+        {
+          "cat_id": 30734,
+          "cat_name": "Нижние части спортивных костюмов"
+        },
+        {
+          "cat_id": 554626,
+          "cat_name": "6114200000 Предметы одежды прочие трикотажные машинного или ручного вязания, из хлопчатобумажной пряжи"
+        }
+      ],
+      "sizeValueType": "РОССИЯ",
+      "articleValueType": "Артикул"
+    },
+    {
+      "reference": "signed-green-08",
+      "rawResponseSha256": "2e46de380ecfcfbc484772cb1b444e3c138c97ed31a49b7486fdf6509540c743",
+      "good_status": "published",
+      "good_signed": true,
+      "good_detailed_status": [
+        "published"
+      ],
+      "is_kit": false,
+      "is_set": false,
+      "tnvedCode": "6103420001",
+      "categories": [
+        {
+          "cat_id": 30683,
+          "cat_name": "Брюки, бриджи, шорты"
+        },
+        {
+          "cat_id": 550212,
+          "cat_name": "6103 Костюмы, комплекты, пиджаки, блайзеры, брюки, комбинезоны с нагрудниками и лямками, бриджи и шорты (кроме купальных) трикотажные машинного или ручного вязания, мужские или для мальчиков"
+        }
+      ],
+      "sizeValueType": "РОССИЯ",
+      "articleValueType": "Артикул"
+    },
+    {
+      "reference": "signed-green-09",
+      "rawResponseSha256": "6f15c3597d8d709dcdf173fa75eaa327727073d2dbe30407ad5a1c4c5df9af49",
+      "good_status": "published",
+      "good_signed": true,
+      "good_detailed_status": [
+        "published"
+      ],
+      "is_kit": false,
+      "is_set": false,
+      "tnvedCode": "6110209100",
+      "categories": [
+        {
+          "cat_id": 31326,
+          "cat_name": "Одежда второго и третьего слоя"
+        },
+        {
+          "cat_id": 550215,
+          "cat_name": "6110 Свитеры, пуловеры, кардиганы, жилеты и аналогичные изделия трикотажные машинного или ручного вязания"
+        }
+      ],
+      "sizeValueType": "РОССИЯ",
+      "articleValueType": "Артикул"
+    },
+    {
+      "reference": "signed-green-10",
+      "rawResponseSha256": "a7a772e3a885875dfc94b005a4bdba2b743f31ffc20c4ab323ba8e26a87a5d2b",
+      "good_status": "published",
+      "good_signed": true,
+      "good_detailed_status": [
+        "published"
+      ],
+      "is_kit": true,
+      "is_set": false,
+      "tnvedCode": "6103220000",
+      "categories": [
+        {
+          "cat_id": 30733,
+          "cat_name": "Спортивные костюмы"
+        },
+        {
+          "cat_id": 550212,
+          "cat_name": "6103 Костюмы, комплекты, пиджаки, блайзеры, брюки, комбинезоны с нагрудниками и лямками, бриджи и шорты (кроме купальных) трикотажные машинного или ручного вязания, мужские или для мальчиков"
+        }
+      ],
+      "sizeValueType": "РОССИЯ",
+      "articleValueType": "Артикул"
+    },
+    {
+      "reference": "signed-green-11",
+      "rawResponseSha256": "469d394ebd6c471f6c5ef19f3274cf5692f9c4034d3b4807080337bb48141bcb",
+      "good_status": "published",
+      "good_signed": true,
+      "good_detailed_status": [
+        "published"
+      ],
+      "is_kit": true,
+      "is_set": false,
+      "tnvedCode": "6103220000",
+      "categories": [
+        {
+          "cat_id": 30733,
+          "cat_name": "Спортивные костюмы"
+        },
+        {
+          "cat_id": 550212,
+          "cat_name": "6103 Костюмы, комплекты, пиджаки, блайзеры, брюки, комбинезоны с нагрудниками и лямками, бриджи и шорты (кроме купальных) трикотажные машинного или ручного вязания, мужские или для мальчиков"
+        }
+      ],
+      "sizeValueType": "РОССИЯ",
+      "articleValueType": "Артикул"
+    },
+    {
+      "reference": "signed-green-12",
+      "rawResponseSha256": "c9d0fa7049594a3e737994181ff3446d144a0b736a23c4ee1c8063035733b3a2",
+      "good_status": "published",
+      "good_signed": true,
+      "good_detailed_status": [
+        "published"
+      ],
+      "is_kit": true,
+      "is_set": false,
+      "tnvedCode": "6203299000",
+      "categories": [
+        {
+          "cat_id": 30733,
+          "cat_name": "Спортивные костюмы"
+        },
+        {
+          "cat_id": 550218,
+          "cat_name": "6203 Костюмы, комплекты, пиджаки, блайзеры, брюки, комбинезоны с нагрудниками и лямками, бриджи и шорты (кроме купальных) мужские или для мальчиков"
+        }
+      ],
+      "sizeValueType": "РОССИЯ",
+      "articleValueType": "Артикул"
+    },
+    {
+      "reference": "signed-green-13",
+      "rawResponseSha256": "446f652fd7dfa1cd7890d1fdfa0466cd20cfa9b3ce24d490a3a8a27ddbc069d4",
+      "good_status": "published",
+      "good_signed": true,
+      "good_detailed_status": [
+        "published"
+      ],
+      "is_kit": true,
+      "is_set": false,
+      "tnvedCode": "6103109000",
+      "categories": [
+        {
+          "cat_id": 30733,
+          "cat_name": "Спортивные костюмы"
+        },
+        {
+          "cat_id": 550212,
+          "cat_name": "6103 Костюмы, комплекты, пиджаки, блайзеры, брюки, комбинезоны с нагрудниками и лямками, бриджи и шорты (кроме купальных) трикотажные машинного или ручного вязания, мужские или для мальчиков"
+        }
+      ],
+      "sizeValueType": "РОССИЯ",
+      "articleValueType": "Артикул"
+    },
+    {
+      "reference": "signed-green-14",
+      "rawResponseSha256": "a13d09b7961c81e15a2282e8def48d293762f1bda90f77e470cea6154f3bfcfb",
+      "good_status": "published",
+      "good_signed": true,
+      "good_detailed_status": [
+        "published"
+      ],
+      "is_kit": true,
+      "is_set": false,
+      "tnvedCode": "6103220000",
+      "categories": [
+        {
+          "cat_id": 30733,
+          "cat_name": "Спортивные костюмы"
+        },
+        {
+          "cat_id": 550212,
+          "cat_name": "6103 Костюмы, комплекты, пиджаки, блайзеры, брюки, комбинезоны с нагрудниками и лямками, бриджи и шорты (кроме купальных) трикотажные машинного или ручного вязания, мужские или для мальчиков"
+        }
+      ],
+      "sizeValueType": "РОССИЯ",
+      "articleValueType": "Артикул"
+    },
+    {
+      "reference": "signed-green-15",
+      "rawResponseSha256": "f018a259ad53a4bddcc358d6f072cffe742065412410d4d4c046117a48e57b22",
+      "good_status": "published",
+      "good_signed": true,
+      "good_detailed_status": [
+        "published"
+      ],
+      "is_kit": false,
+      "is_set": false,
+      "tnvedCode": "6201400000",
+      "categories": [
+        {
+          "cat_id": 31326,
+          "cat_name": "Одежда второго и третьего слоя"
+        },
+        {
+          "cat_id": 234389,
+          "cat_name": "6201 Пальто, полупальто, накидки, плащи, куртки (включая лыжные), ветровки, штормовки и аналогичные изделия мужские или для мальчиков, кроме изделий товарной позиции 6203"
+        }
+      ],
+      "sizeValueType": "РОСТ-ОГ",
+      "articleValueType": "Модель"
+    },
+    {
+      "reference": "signed-green-16",
+      "rawResponseSha256": "975cdaa622c473556dc2d5274d30fa05a0537b8114dde5685294951fd57e4eac",
+      "good_status": "published",
+      "good_signed": true,
+      "good_detailed_status": [
+        "published"
+      ],
+      "is_kit": true,
+      "is_set": false,
+      "tnvedCode": "6103109000",
+      "categories": [
+        {
+          "cat_id": 30733,
+          "cat_name": "Спортивные костюмы"
+        },
+        {
+          "cat_id": 550212,
+          "cat_name": "6103 Костюмы, комплекты, пиджаки, блайзеры, брюки, комбинезоны с нагрудниками и лямками, бриджи и шорты (кроме купальных) трикотажные машинного или ручного вязания, мужские или для мальчиков"
+        }
+      ],
+      "sizeValueType": "РОССИЯ",
+      "articleValueType": "Артикул"
+    },
+    {
+      "reference": "signed-green-17",
+      "rawResponseSha256": "7940473993b50ce35a5943a1ae1e991c8f937b5172c86fea580b1cdde86dbeb4",
+      "good_status": "published",
+      "good_signed": true,
+      "good_detailed_status": [
+        "published"
+      ],
+      "is_kit": true,
+      "is_set": false,
+      "tnvedCode": "6103220000",
+      "categories": [
+        {
+          "cat_id": 30733,
+          "cat_name": "Спортивные костюмы"
+        },
+        {
+          "cat_id": 550212,
+          "cat_name": "6103 Костюмы, комплекты, пиджаки, блайзеры, брюки, комбинезоны с нагрудниками и лямками, бриджи и шорты (кроме купальных) трикотажные машинного или ручного вязания, мужские или для мальчиков"
+        }
+      ],
+      "sizeValueType": "РОССИЯ",
+      "articleValueType": "Артикул"
+    },
+    {
+      "reference": "signed-green-18",
+      "rawResponseSha256": "36841cb2f3c1c933e2eae5f44976c60bc7a88cb8e12881d6ee1e9cfd63ab5962",
+      "good_status": "published",
+      "good_signed": true,
+      "good_detailed_status": [
+        "published"
+      ],
+      "is_kit": true,
+      "is_set": false,
+      "tnvedCode": "6103220000",
+      "categories": [
+        {
+          "cat_id": 30733,
+          "cat_name": "Спортивные костюмы"
+        },
+        {
+          "cat_id": 550212,
+          "cat_name": "6103 Костюмы, комплекты, пиджаки, блайзеры, брюки, комбинезоны с нагрудниками и лямками, бриджи и шорты (кроме купальных) трикотажные машинного или ручного вязания, мужские или для мальчиков"
+        }
+      ],
+      "sizeValueType": "РОССИЯ",
+      "articleValueType": "Артикул"
+    },
+    {
+      "reference": "signed-green-19",
+      "rawResponseSha256": "31805c1c309480f5d9b1275a4294b9c7faa98671e1415b67bebc3cd49322df62",
+      "good_status": "published",
+      "good_signed": true,
+      "good_detailed_status": [
+        "published"
+      ],
+      "is_kit": false,
+      "is_set": false,
+      "tnvedCode": "6110209100",
+      "categories": [
+        {
+          "cat_id": 31326,
+          "cat_name": "Одежда второго и третьего слоя"
+        },
+        {
+          "cat_id": 550215,
+          "cat_name": "6110 Свитеры, пуловеры, кардиганы, жилеты и аналогичные изделия трикотажные машинного или ручного вязания"
+        }
+      ],
+      "sizeValueType": "РОССИЯ",
+      "articleValueType": "Артикул"
+    },
+    {
+      "reference": "signed-green-20",
+      "rawResponseSha256": "6733428bfa0e485fbd4a2cc044adefccda1b41ad017f004b0c9328a918e2a258",
+      "good_status": "published",
+      "good_signed": true,
+      "good_detailed_status": [
+        "published"
+      ],
+      "is_kit": false,
+      "is_set": false,
+      "tnvedCode": "6112110000",
+      "categories": [
+        {
+          "cat_id": 30733,
+          "cat_name": "Спортивные костюмы"
+        },
+        {
+          "cat_id": 554613,
+          "cat_name": "6112110000 Костюмы спортивные трикотажные машинного или ручного вязания, из хлопчатобумажной пряжи"
+        }
+      ],
+      "sizeValueType": "МЕЖДУНАРОДНЫЙ",
+      "articleValueType": "Артикул"
+    },
+    {
+      "reference": "signed-green-21",
+      "rawResponseSha256": "8f8c6aa7c2666fe5e8a3bf9de6df583535ad20010ccfe483bfdfa15b3bc7fcb3",
+      "good_status": "published",
+      "good_signed": true,
+      "good_detailed_status": [
+        "published"
+      ],
+      "is_kit": true,
+      "is_set": false,
+      "tnvedCode": "6103109000",
+      "categories": [
+        {
+          "cat_id": 30733,
+          "cat_name": "Спортивные костюмы"
+        },
+        {
+          "cat_id": 550212,
+          "cat_name": "6103 Костюмы, комплекты, пиджаки, блайзеры, брюки, комбинезоны с нагрудниками и лямками, бриджи и шорты (кроме купальных) трикотажные машинного или ручного вязания, мужские или для мальчиков"
+        }
+      ],
+      "sizeValueType": "РОССИЯ",
+      "articleValueType": "Артикул"
+    },
+    {
+      "reference": "signed-green-22",
+      "rawResponseSha256": "324dc0579c1701f594debfa1dc9a70c4c085ed07b2db5248becd6552f249203a",
+      "good_status": "published",
+      "good_signed": true,
+      "good_detailed_status": [
+        "published"
+      ],
+      "is_kit": true,
+      "is_set": false,
+      "tnvedCode": "6103220000",
+      "categories": [
+        {
+          "cat_id": 30733,
+          "cat_name": "Спортивные костюмы"
+        },
+        {
+          "cat_id": 550212,
+          "cat_name": "6103 Костюмы, комплекты, пиджаки, блайзеры, брюки, комбинезоны с нагрудниками и лямками, бриджи и шорты (кроме купальных) трикотажные машинного или ручного вязания, мужские или для мальчиков"
+        }
+      ],
+      "sizeValueType": "РОССИЯ",
+      "articleValueType": "Артикул"
+    },
+    {
+      "reference": "signed-green-23",
+      "rawResponseSha256": "330271fd49a385f032e2824ce1e01e5a518d838d681a6c682bcac6a5f0c2f53c",
+      "good_status": "published",
+      "good_signed": true,
+      "good_detailed_status": [
+        "published"
+      ],
+      "is_kit": true,
+      "is_set": false,
+      "tnvedCode": "6103220000",
+      "categories": [
+        {
+          "cat_id": 30733,
+          "cat_name": "Спортивные костюмы"
+        },
+        {
+          "cat_id": 550212,
+          "cat_name": "6103 Костюмы, комплекты, пиджаки, блайзеры, брюки, комбинезоны с нагрудниками и лямками, бриджи и шорты (кроме купальных) трикотажные машинного или ручного вязания, мужские или для мальчиков"
+        }
+      ],
+      "sizeValueType": "РОССИЯ",
+      "articleValueType": "Артикул"
+    },
+    {
+      "reference": "signed-green-24",
+      "rawResponseSha256": "e9488ef9e82ccda3f7969d9f170d044da85da5c6459e18f945cbb7ace156e822",
+      "good_status": "published",
+      "good_signed": true,
+      "good_detailed_status": [
+        "published"
+      ],
+      "is_kit": false,
+      "is_set": false,
+      "tnvedCode": "6103420001",
+      "categories": [
+        {
+          "cat_id": 30683,
+          "cat_name": "Брюки, бриджи, шорты"
+        },
+        {
+          "cat_id": 550212,
+          "cat_name": "6103 Костюмы, комплекты, пиджаки, блайзеры, брюки, комбинезоны с нагрудниками и лямками, бриджи и шорты (кроме купальных) трикотажные машинного или ручного вязания, мужские или для мальчиков"
+        }
+      ],
+      "sizeValueType": "РОССИЯ",
+      "articleValueType": "Артикул"
+    }
+  ],
+  "currentSchemaCategoryIds": [
+    30734,
+    30683,
+    30733,
+    31326
+  ],
+  "mandatorySchema": [
+    {
+      "attr_id": 13933,
+      "name": "Код ТНВЭД",
+      "presetOnly": true,
+      "presetCount": 248,
+      "allowedValueTypes": [],
+      "dependentAttributes": []
+    },
+    {
+      "attr_id": 36,
+      "name": "Цвет",
+      "presetOnly": false,
+      "presetCount": 77,
+      "allowedValueTypes": [],
+      "dependentAttributes": []
+    },
+    {
+      "attr_id": 2478,
+      "name": "Полное наименование товара",
+      "presetOnly": false,
+      "presetCount": 0,
+      "allowedValueTypes": [],
+      "dependentAttributes": []
+    },
+    {
+      "attr_id": 2483,
+      "name": "Состав",
+      "presetOnly": false,
+      "presetCount": 0,
+      "allowedValueTypes": [],
+      "dependentAttributes": []
+    },
+    {
+      "attr_id": 2504,
+      "name": "Товарный знак",
+      "presetOnly": false,
+      "presetCount": 0,
+      "allowedValueTypes": [],
+      "dependentAttributes": []
+    },
+    {
+      "attr_id": 3959,
+      "name": "Группа ТНВЭД",
+      "presetOnly": true,
+      "presetCount": 0,
+      "allowedValueTypes": [],
+      "dependentAttributes": []
+    },
+    {
+      "attr_id": 13914,
+      "name": "Модель / артикул производителя",
+      "presetOnly": false,
+      "presetCount": 0,
+      "allowedValueTypes": [
+        "Модель",
+        "Артикул",
+        "Модель / Артикул"
+      ],
+      "dependentAttributes": []
+    },
+    {
+      "attr_id": 14013,
+      "name": "Целевой пол",
+      "presetOnly": true,
+      "presetCount": 4,
+      "allowedValueTypes": [],
+      "dependentAttributes": []
+    },
+    {
+      "attr_id": 35,
+      "name": "Размер одежды / изделия",
+      "presetOnly": false,
+      "presetCount": 0,
+      "allowedValueTypes": [
+        "РОССИЯ",
+        "АВСТРАЛИЯ",
+        "АНГЛИЯ",
+        "БЕЛОРУССИЯ",
+        "ВЕЛИКОБРИТАНИЯ",
+        "ЕВРОПА",
+        "ИТАЛИЯ",
+        "КИТАЙ",
+        "МЕЖДУНАРОДНЫЙ",
+        "США",
+        "ФРАНЦИЯ",
+        "ЯПОНИЯ",
+        "---",
+        "РОСТ",
+        "ОБ",
+        "ОГ",
+        "ОТ",
+        "ОШ",
+        "ОБХВАТ ГОЛОВЫ",
+        "ОБХВАТ ЛАДОНИ",
+        "ОБХВАТ ПОД ГРУДЬЮ",
+        "ОГ-ОБ",
+        "ОГ-ОБХВАТ ПОД ГРУДЬЮ",
+        "ОГ-ОБХВАТ ПОД ГРУДЬЮ-ОБ",
+        "ОГ-ОТ",
+        "ОГ-ОТ-ОБ",
+        "ОТ-ОБ",
+        "ОШ-ДЛИНА РУКАВА",
+        "ОШ-ОБ",
+        "ОШ-ОГ",
+        "ОШ-ОГ-ОТ",
+        "ОШ-ОТ",
+        "РОСТ-ОБ",
+        "РОСТ-ОБ-ДЛИНА СТОПЫ",
+        "РОСТ-ОГ",
+        "РОСТ-ОГ-ДЛИНА СТОПЫ",
+        "РОСТ-ОГ-ОБ",
+        "РОСТ-ОГ-ОБХВАТ ПОД ГРУДЬЮ-ОБ",
+        "РОСТ-ОГ-ОБХВАТ ПОД ГРУДЬЮ-ОТ-ОБ",
+        "РОСТ-ОГ-ОТ",
+        "РОСТ-ОГ-ОТ-ОБ",
+        "РОСТ-ОГ-ОШ",
+        "РОСТ-ОТ",
+        "РОСТ-ОТ-ОБ",
+        "РОСТ-ОШ",
+        "РОСТ-ОШ-ДЛИНА РУКИ",
+        "РОСТ-ОШ-ОБ",
+        "РОСТ-ОШ-ОГ",
+        "РОСТ-ОШ-ОГ-ОТ",
+        "РОСТ-ОШ-ОТ",
+        "ДЛИНА",
+        "ДЛИНА СТОПЫ",
+        "ДЛИНА-ШИРИНА",
+        "РАЗМЕР СМОТРОВОГО ОКНА"
+      ],
+      "dependentAttributes": []
+    },
+    {
+      "attr_id": 13836,
+      "name": "Номер технического регламента",
+      "presetOnly": true,
+      "presetCount": 8,
+      "allowedValueTypes": [],
+      "dependentAttributes": []
+    },
+    {
+      "attr_id": 12,
+      "name": "Вид товара",
+      "presetOnly": true,
+      "presetCount": 241,
+      "allowedValueTypes": [],
+      "dependentAttributes": [
+        {
+          "value": "НЕТ В СПРАВОЧНИКЕ",
+          "attrs": [
+            {
+              "attr_value_type": [],
+              "second_layer": true,
+              "attr_preset": [],
+              "attr_type": "m",
+              "first_layer": false,
+              "attr_id": 23828
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "publicDocs": "https://docs.crpt.ru/gismt/API_%D0%9D%D0%9A/",
+  "readResponseIsNotWritePayload": true,
+  "observedMandatorySchemasEquivalent": true,
+  "observedPublicTaxonomy": {
+    "checkedAt": "2026-10-20T20:25:38.938683+00:00",
+    "groups": [
+      {
+        "categoryId": 30734,
+        "categoryName": "Нижние части спортивных костюмов",
+        "tnvedGroup": "6114",
+        "goodsKind": "БРЮКИ СПОРТИВНЫЕ",
+        "technicalRegulation": "ТР ТС 017/2011 \"О безопасности продукции легкой промышленности\"",
+        "goodsKindInCurrentPreset": true,
+        "regulationInCurrentPreset": true,
+        "samples": 2
+      },
+      {
+        "categoryId": 30683,
+        "categoryName": "Брюки, бриджи, шорты",
+        "tnvedGroup": "6103",
+        "goodsKind": "БРЮКИ",
+        "technicalRegulation": "ТР ТС 017/2011 \"О безопасности продукции легкой промышленности\"",
+        "goodsKindInCurrentPreset": true,
+        "regulationInCurrentPreset": true,
+        "samples": 3
+      },
+      {
+        "categoryId": 30733,
+        "categoryName": "Спортивные костюмы",
+        "tnvedGroup": "6103",
+        "goodsKind": "КОСТЮМ СПОРТИВНЫЙ",
+        "technicalRegulation": "ТР ТС 017/2011 \"О безопасности продукции легкой промышленности\"",
+        "goodsKindInCurrentPreset": true,
+        "regulationInCurrentPreset": true,
+        "samples": 13
+      },
+      {
+        "categoryId": 30733,
+        "categoryName": "Спортивные костюмы",
+        "tnvedGroup": "6203",
+        "goodsKind": "КОСТЮМ СПОРТИВНЫЙ",
+        "technicalRegulation": "ТР ТС 017/2011 \"О безопасности продукции легкой промышленности\"",
+        "goodsKindInCurrentPreset": true,
+        "regulationInCurrentPreset": true,
+        "samples": 2
+      },
+      {
+        "categoryId": 31326,
+        "categoryName": "Одежда второго и третьего слоя",
+        "tnvedGroup": "6110",
+        "goodsKind": "СВИТШОТ",
+        "technicalRegulation": "ТР ТС 017/2011 \"О безопасности продукции легкой промышленности\"",
+        "goodsKindInCurrentPreset": true,
+        "regulationInCurrentPreset": true,
+        "samples": 2
+      },
+      {
+        "categoryId": 31326,
+        "categoryName": "Одежда второго и третьего слоя",
+        "tnvedGroup": "6201",
+        "goodsKind": "КУРТКА",
+        "technicalRegulation": "ТР ТС 017/2011 \"О безопасности продукции легкой промышленности\"",
+        "goodsKindInCurrentPreset": true,
+        "regulationInCurrentPreset": true,
+        "samples": 1
+      },
+      {
+        "categoryId": 30733,
+        "categoryName": "Спортивные костюмы",
+        "tnvedGroup": "6112",
+        "goodsKind": "КОСТЮМ",
+        "technicalRegulation": "ТР ТС 017/2011 \"О безопасности продукции легкой промышленности\"",
+        "goodsKindInCurrentPreset": true,
+        "regulationInCurrentPreset": true,
+        "samples": 1
+      }
+    ],
+    "writesPerformed": false,
+    "limitation": "Observed category/TNVED grouping is evidence, not a constant mapping for every product; select goods type from actual source kind and current schema."
+  }
+}

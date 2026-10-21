@@ -1,0 +1,43 @@
+{
+  "checkedOn": "2026-10-14",
+  "url": "https://vncode.id.vn",
+  "requestsModifyAccountOrLicense": false,
+  "config": {
+    "httpStatus": 200,
+    "portal_version": "0.3.2",
+    "desktop_registration_mode": "gmail_admin",
+    "mail_ready": true,
+    "email_verification_required": false
+  },
+  "adminAsset": {
+    "httpStatus": 200,
+    "path": "/desktop-admin.js",
+    "matchesRepository": true,
+    "sha256": "f94c36f69adea23d07b0e5f5130d33421bb2233ecd13860fa3ff33e8f4e71bb6"
+  },
+  "routes": [
+    {
+      "path": "/api/client/registration/register",
+      "method": "POST",
+      "input": {
+        "email": ""
+      },
+      "httpStatus": 400,
+      "error": "GMAIL_REQUIRED",
+      "databaseWrites": false
+    },
+    {
+      "path": "/api/client/registration/license",
+      "method": "POST",
+      "input": {
+        "code": ""
+      },
+      "httpStatus": 400,
+      "error": "INVALID_LICENSE",
+      "databaseWrites": false
+    }
+  ],
+  "positiveRegistration": "unrun",
+  "productionSignatureMatchesClientPin": "unverified",
+  "desktopProductionActivation": "unrun"
+}

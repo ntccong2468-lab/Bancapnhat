@@ -1,0 +1,54 @@
+{
+  "version": "1.4.4",
+  "baseVersion": "1.4.3",
+  "complete": false,
+  "officialReleasePublished": false,
+  "changes": [
+    "Thêm public pin vncode-2, giữ vncode-1 cho quyền cũ còn hạn.",
+    "Portal 0.3.5 đồng bộ key ID mặc định và pin chẩn đoán với VNCode 1.4.4.",
+    "Công cụ kiểm tra tệp private key cục bộ trước khi nhập Cloudflare Secret; không in khóa riêng.",
+    "Kiểm thử xoay khóa vẫn giữ Gmail, mã VNC, thiết bị và hạn license."
+  ],
+  "licenseIntegration": {
+    "implemented": true,
+    "productionReady": false,
+    "status": "owner-reports-activation-after-clock-change",
+    "trustedProductionKeys": 2,
+    "pinnedKeyIds": [
+      "vncode-1",
+      "vncode-2"
+    ],
+    "activeKeyId": "vncode-2",
+    "publicKey": "SPtRxTUJ78fqt5YMJ4DJ_PZwB2cMYegs-J7nY62ADMQ",
+    "serverSigningKeyMatch": "owner-diagnostics-confirmed-vncode-2",
+    "oldServerSigningKey": "owner-diagnostics-invalid",
+    "database": "owner-diagnostics-ready",
+    "privateKeyReceivedByAgent": false,
+    "ownerReportedActivation": true
+  },
+  "validation": {
+    "focusedJavaTests": 88,
+    "focusedJavaFailures": 0,
+    "portalTests": 56,
+    "portalFailures": 0,
+    "releaseContractTests": 49,
+    "releaseContractFailures": 0,
+    "portalDryRun": "passed",
+    "windowsNative": "passed",
+    "fullApplicationMatrix": "not-run-for-1.4.4",
+    "portalDeployment": "owner-deployed-0.3.5",
+    "productionActivation": "owner-reported-success-after-clock-change",
+    "focusedWindowsTests": 88,
+    "focusedWindowsFailures": 0,
+    "windowsDiagnosticRun": 38615048269,
+    "windowsDiagnosticArtifact": 11920585481,
+    "windowsDiagnosticSourceCommit": "07c085aab3472e730669acb3ba97073d64155cf6",
+    "windowsDiagnosticSha256": "c73a6998e551859ebc66be06d5fd0d574087963363b2a986a027ffa47c5bc2bb",
+    "portalSourceArtifact": 11920515061,
+    "portalSourceSha256": "b47122a7c8563dfdcf86f0600e4cc0a4c76326784ccfb003e9383eae438b58e3"
+  },
+  "updateIntegration": {
+    "stablePublicReleaseAvailable": false,
+    "diagnosticArtifactsAreUpdates": false
+  }
+}

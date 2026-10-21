@@ -1,0 +1,273 @@
+{
+  "version": "1.5.1",
+  "state": "published-latest-with-byte-verified-java-and-fresh-native-checks-under-owner-request",
+  "baseline": "v1.5.0",
+  "databaseSchema": 6,
+  "published": true,
+  "complete": false,
+  "requestReport": "VN-code-1.5.1-request-report.md",
+  "licenseIntegration": {
+    "productionReady": false,
+    "changedInThisVersion": false
+  },
+  "validation": {
+    "linuxRelatedTests": {
+      "tests": 263,
+      "failures": 0,
+      "errors": 0,
+      "additionalLegacyTests": {
+        "tests": 2,
+        "failures": 0,
+        "errors": 0
+      },
+      "combinedLatestCases": 265,
+      "singleInvocationClaimed": false
+    },
+    "releaseToolTests": {
+      "tests": 77,
+      "failures": 0
+    },
+    "windowsBuild": {
+      "state": "passed",
+      "freshFullJavaExecutionRequired": false,
+      "javaExecutionPlan": {
+        "kind": "byte-verified-java-origin",
+        "runId": 39286749991,
+        "sourceCommit": "96e20614882488a2d60319fc29f4ca62b6cb9b81",
+        "artifactId": 12205273211,
+        "archiveSha256": "a069bfc06c520cc3f35c4ad4db2f2d96420496a2c959b3ba362c1a3de1384f30"
+      },
+      "allNativeChecksMustRunAgain": true,
+      "sourceCommit": "f9da70ca98734b8c5daed0a6ef49b38df9723f54",
+      "runId": 39294782641,
+      "url": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/39294782641",
+      "freshJavaExecutedInThisRun": false,
+      "javaVerificationOrigin": {
+        "version": "1.5.1",
+        "sourceCommit": "f9da70ca98734b8c5daed0a6ef49b38df9723f54",
+        "originRunId": 39286749991,
+        "originSourceCommit": "96e20614882488a2d60319fc29f4ca62b6cb9b81",
+        "artifactId": 12205273211,
+        "archiveSha256": "a069bfc06c520cc3f35c4ad4db2f2d96420496a2c959b3ba362c1a3de1384f30",
+        "restoredApplicationJarSha256": "15fb154ceb416f48d1366267db7e1953b59195a2c9529f68ae46e1266db51e67",
+        "applicationAndJavaTestInputsUnchanged": true,
+        "tests": {
+          "tests": 1924,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 2
+        },
+        "javaExecutedInOriginRun": true,
+        "nativeChecksMustRunAgain": true,
+        "reason": "transient-github-baseline-download",
+        "fixtureClassesCompiledWithoutChangingJar": true,
+        "applicationJarSha256": "15fb154ceb416f48d1366267db7e1953b59195a2c9529f68ae46e1266db51e67"
+      },
+      "fullJavaSuite": {
+        "tests": 1924,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 2,
+        "passed": 1922
+      },
+      "installerPackaged": true,
+      "nativeLauncherSchema3Migration": "passed",
+      "gs1WindowsDpapi": "passed",
+      "upgradeFrom150Passed": true,
+      "upgradePaths": 16,
+      "uiLayouts": 288,
+      "nativeEvidence": "../validation/2026-10-19-vncode-151-windows-native.json",
+      "installer": {
+        "name": "VN-code-1.5.1-Windows-x64.exe",
+        "bytes": 146651136,
+        "sha256": "57dae2a5932697789c1cec8acc53de768e458516b0158f0ae83ed96b065d3788",
+        "artifactChecksumMatched": true,
+        "peHeaderVerified": true,
+        "fullPublicDownloadVerified": true,
+        "checksumAssetMatched": true,
+        "url": "https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.5.1/VN-code-1.5.1-Windows-x64.exe"
+      },
+      "artifactId": 12209925606,
+      "artifactArchiveBytes": 198490233,
+      "artifactArchiveSha256": "sha256:36bf2799175734da2ce38364ffb217de3ca6580f8fbd7c6ddbef1a568df6a3e6"
+    },
+    "productionLicenseVerified": false,
+    "liveCryptoProSigningThisVersion": false,
+    "liveLicensedDesktopGtinWriteThisVersion": false,
+    "liveApiWbGtinWriteThisVersion": false,
+    "liveApiOzonGtinWriteThisVersion": false,
+    "liveCatalogCardCreatedThisVersion": false,
+    "liveCatalogCardRepairedThisVersion": false,
+    "modalDriverRegression": {
+      "tests": 16,
+      "failures": 0,
+      "errors": 0,
+      "platform": "Linux Xvfb",
+      "windowsEarlyGate": "passed"
+    },
+    "previousWindowsBuild": {
+      "state": "cancelled",
+      "freshFullJavaExecutionRequired": true,
+      "sourceCommit": "85fd0e060ad75031d21b1ed54fb6a4821d46d9e7",
+      "runId": 39268181948,
+      "url": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/39268181948",
+      "supersededRuns": [
+        {
+          "runId": 39254561526,
+          "sourceCommit": "b7478b78d711f372257a66d5bf27c4d7471e50ec",
+          "state": "cancelled",
+          "reason": "Added immediate predecessor binding to the new 1.5.0 upgrade probe before packaging."
+        },
+        {
+          "runId": 39254860432,
+          "sourceCommit": "67f259b8454f3b943de9fbbcb72d878e525eacef",
+          "state": "cancelled",
+          "reason": "Added observed Russian-size fallback for Catalog categories without international sizing, and its regression case."
+        },
+        {
+          "runId": 39255533688,
+          "sourceCommit": "835ad5041290c0330420d21fa13f82b686ac065c",
+          "state": "failed",
+          "reason": "1913 full Windows tests executed: 0 assertion failures, 2 modal-driver timeouts, 2 platform skips. Replaced animation-dependent cancellation drivers; all original assertions remain. Full suite is rerunning on the fixed test source.",
+          "fullJavaSuite": {
+            "tests": 1913,
+            "failures": 0,
+            "errors": 2,
+            "skipped": 2
+          }
+        }
+      ],
+      "fullJavaSuite": {
+        "tests": 1913,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 2,
+        "passed": 1911
+      },
+      "reason": "Owner requested published API 5.68 rules; Java passed on this older source, publication and remaining native probes cancelled before any release."
+    },
+    "officialCatalogContract": {
+      "version": "5.68",
+      "date": "2026-09-28",
+      "source": "https://docs.crpt.ru/gismt/API_%D0%9D%D0%9A/",
+      "sha256": "d2d0f01e96a060f73ba55f48d819292e7d5d0f9092e9129a80d1e44405130491",
+      "template": "vncode-catalog-official-v3",
+      "sellerLiveMutations": 0
+    },
+    "cancelledPublicationRun": 39268835904,
+    "localPackage": {
+      "state": "passed",
+      "platform": "Linux",
+      "windowsInstaller": false
+    },
+    "fullJavaRegression": {
+      "version": "1.5.1",
+      "sourceCommit": "96e20614882488a2d60319fc29f4ca62b6cb9b81",
+      "runId": 39286749991,
+      "freshFullExecution": true,
+      "result": "passed",
+      "java": {
+        "tests": 1924,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 2,
+        "passed": 1922
+      },
+      "reportCount": 323,
+      "skips": [
+        {
+          "class": "com.vncode.app.features.gs1.Gs1PrefixTemplateStoreTest",
+          "method": "privatePermissionsAreAppliedWhereSupported",
+          "reason": ""
+        },
+        {
+          "class": "com.vncode.app.shared.WindowsSecretProtectorTest",
+          "method": "neverFallsBackToPlaintextOffWindows",
+          "reason": "Disabled on operating system: Windows Server 2025"
+        }
+      ],
+      "artifactId": 12205273211,
+      "artifactArchiveBytes": 85494041,
+      "artifactArchiveSha256": "a069bfc06c520cc3f35c4ad4db2f2d96420496a2c959b3ba362c1a3de1384f30",
+      "applicationJarSha256": "15fb154ceb416f48d1366267db7e1953b59195a2c9529f68ae46e1266db51e67",
+      "liveSellerMutations": false,
+      "packagedRegistrationTemplate": {
+        "id": "vncode-catalog-official-v3",
+        "resourceSha256": "fd95100cda99ace09d6cdcbb182bfcf4998aa0b96f68e5c0fa621b688a71f549",
+        "dependentAttributeValidatorClassPresent": true,
+        "testFixturesBundled": false
+      }
+    },
+    "previousOfficialRulesWindowsBuild": {
+      "state": "failed",
+      "freshFullJavaExecutionRequired": true,
+      "sourceCommit": "bd421bbccab297db31ea68dfac3d6c707b319e99",
+      "runId": 39277937972,
+      "url": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/39277937972",
+      "fullJavaSuite": {
+        "tests": 1924,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 2,
+        "passed": 1922
+      },
+      "upgradePathsPassed": 15,
+      "upgradeFrom150Passed": false,
+      "reason": "The 1.5.0 baseline hash was correct, but the missing URL branch downloaded 1.1.34. Checksum protection blocked publication before installing the wrong baseline. Fixed URL without changing expected hash; fresh full Windows rerun required."
+    },
+    "cancelledPublicationRuns": [
+      39268835904,
+      39278090180
+    ],
+    "previousFullJavaWindowsBuild": {
+      "state": "failed",
+      "freshFullJavaExecutionRequired": true,
+      "sourceCommit": "96e20614882488a2d60319fc29f4ca62b6cb9b81",
+      "runId": 39286749991,
+      "url": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/39286749991",
+      "fullJavaSuite": {
+        "tests": 1924,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 2,
+        "passed": 1922
+      },
+      "reason": "GitHub returned its Unicorn server-error page while downloading the old 1.3.0 baseline. Java and preceding native checks passed; no application/test/dependency changes are needed."
+    },
+    "publishedDownloadAndUpdater": {
+      "installedVersion": "1.5.0",
+      "latestVersion": "1.5.1",
+      "decision": "AVAILABLE",
+      "productionUpdaterSourceUnchangedSince150": true,
+      "realProductionServiceRequest": true,
+      "hostPlatform": "Linux",
+      "installedVersionOverride": "1.5.0",
+      "windowsAssetMetadataSelectorChecked": true,
+      "actualSellerDesktopNotificationObserved": false,
+      "fullPublicInstallerDownloadVerified": true,
+      "evidence": "../validation/2026-10-19-vncode-151-published-latest.json"
+    }
+  },
+  "latest": "1.5.1",
+  "ownerRequestedPublication": true,
+  "windowsInstaller": {
+    "name": "VN-code-1.5.1-Windows-x64.exe",
+    "bytes": 146651136,
+    "sha256": "57dae2a5932697789c1cec8acc53de768e458516b0158f0ae83ed96b065d3788",
+    "artifactChecksumMatched": true,
+    "peHeaderVerified": true,
+    "fullPublicDownloadVerified": true,
+    "checksumAssetMatched": true,
+    "url": "https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.5.1/VN-code-1.5.1-Windows-x64.exe"
+  },
+  "release": {
+    "id": 417581335,
+    "url": "https://github.com/ntccong2468-lab/Bancapnhat/releases/tag/v1.5.1",
+    "tag": "v1.5.1",
+    "sourceCommit": "f9da70ca98734b8c5daed0a6ef49b38df9723f54",
+    "publishedAtUtc": "2026-10-19T17:55:42Z",
+    "publicationRunId": 39294977095,
+    "publicationRunAttempt": 1,
+    "publicAssetCount": 30
+  }
+}

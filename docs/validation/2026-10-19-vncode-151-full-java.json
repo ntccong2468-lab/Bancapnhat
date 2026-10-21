@@ -1,0 +1,38 @@
+{
+  "version": "1.5.1",
+  "sourceCommit": "96e20614882488a2d60319fc29f4ca62b6cb9b81",
+  "runId": 39286749991,
+  "freshFullExecution": true,
+  "result": "passed",
+  "java": {
+    "tests": 1924,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 2,
+    "passed": 1922
+  },
+  "reportCount": 323,
+  "skips": [
+    {
+      "class": "com.vncode.app.features.gs1.Gs1PrefixTemplateStoreTest",
+      "method": "privatePermissionsAreAppliedWhereSupported",
+      "reason": ""
+    },
+    {
+      "class": "com.vncode.app.shared.WindowsSecretProtectorTest",
+      "method": "neverFallsBackToPlaintextOffWindows",
+      "reason": "Disabled on operating system: Windows Server 2025"
+    }
+  ],
+  "artifactId": 12205273211,
+  "artifactArchiveBytes": 85494041,
+  "artifactArchiveSha256": "a069bfc06c520cc3f35c4ad4db2f2d96420496a2c959b3ba362c1a3de1384f30",
+  "applicationJarSha256": "15fb154ceb416f48d1366267db7e1953b59195a2c9529f68ae46e1266db51e67",
+  "liveSellerMutations": false,
+  "packagedRegistrationTemplate": {
+    "id": "vncode-catalog-official-v3",
+    "resourceSha256": "fd95100cda99ace09d6cdcbb182bfcf4998aa0b96f68e5c0fa621b688a71f549",
+    "dependentAttributeValidatorClassPresent": true,
+    "testFixturesBundled": false
+  }
+}

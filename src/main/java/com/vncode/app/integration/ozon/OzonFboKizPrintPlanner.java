@@ -1,90 +1,41 @@
 package com.vncode.app.integration.ozon;
 
-import com.vncode.app.features.fbo.FboBarcodePrintItem;
-import com.vncode.app.features.fbo.FboPrintPage;
-import com.vncode.app.features.fbo.FboPrintPlan;
+import com.vncode.app.features.fbo.*;
+import com.vncode.app.integration.marketplace.Marketplace;
 import com.vncode.app.integration.znack.ZnackGtinInventoryService;
-import com.vncode.app.models.Kiz;
+import java.io.IOException;
+import java.util.*;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-
-/** Builds Ozon FBO labels in physical order: two product barcodes, then one KIZ page. */
+/** Ozon keeps native identity and atomic reservations, then merges marked units into one label. */
 public final class OzonFboKizPrintPlanner {
-    private final OzonProductGtinMappingRepository mappingRepository;
-    private final ZnackGtinInventoryService inventoryService;
-
-    public OzonFboKizPrintPlanner() {
-        this(new OzonProductGtinMappingRepository(), new ZnackGtinInventoryService());
-    }
-
-    OzonFboKizPrintPlanner(
-            OzonProductGtinMappingRepository mappingRepository,
-            ZnackGtinInventoryService inventoryService) {
-        this.mappingRepository = mappingRepository;
-        this.inventoryService = inventoryService;
-    }
-
-    public FboPrintPlan plan(int shopId, List<FboBarcodePrintItem> items) {
-        List<FboBarcodePrintItem> safeItems = items == null ? List.of() : items.stream()
-                .filter(item -> item != null && item.product() != null && item.quantity() > 0)
-                .toList();
-        if (safeItems.isEmpty()) return new FboPrintPlan(List.of(), List.of());
-
-        Map<String, String> mappings = mappingRepository.findResolvedBySku(shopId);
-        Map<String, Integer> neededByGtin = new LinkedHashMap<>();
-        Map<String, String> gtinBySku = new HashMap<>();
-        List<String> missing = new ArrayList<>();
-        for (FboBarcodePrintItem item : safeItems) {
-            if (!item.product().requiresKiz()) continue;
-            String catalogSku = item.product().catalogSku();
-            String gtin = mappings.get(catalogSku);
-            if (gtin == null || gtin.isBlank()) {
-                missing.add("SKU " + safe(catalogSku) + " | article " + safe(item.product().vendorCode()));
-                continue;
+    private final FboKizPrintPlanner planner=new FboKizPrintPlanner();
+    public FboPrintPlan plan(int shopId,List<FboBarcodePrintItem> items){
+        var selected=items==null?List.<FboBarcodePrintItem>of():items.stream().filter(i->i!=null&&i.product()!=null&&i.quantity()>0).toList();
+        if(selected.size()>10000||selected.stream().mapToLong(FboBarcodePrintItem::quantity).sum()>100000)throw new IllegalArgumentException("FBO batch is too large");
+        var products=new OzonCatalogRepository().findBySkusForPrinting(shopId,selected.stream().map(i->i.product().catalogSku()).distinct().toList());
+        var canonical=new ArrayList<FboBarcodePrintItem>();
+        // Resolve actual registered barcodes before reserving any KIZ. The UI row is not proof.
+        for(var item:selected){var prior=item.product();var actual=products.get(prior.catalogSku());
+            try{
+                if(actual!=null&&!prior.productId().equals(actual.productId()))throw OzonProductLabelBarcode.failure("OZON_LABEL_PRODUCT_MISMATCH","ozon.label.product.mismatch","Dữ liệu sản phẩm không khớp với sản phẩm Ozon đã chọn. Đồng bộ lại Sản phẩm.",expected(prior));
+                String barcode=OzonCombinedLabelRenderer.barcodeFor(expected(prior),actual);
+                var product=new FboProductSku(prior.nmId(),first(actual.article(),actual.offerId()),actual.category(),prior.brand(),actual.name(),actual.color(),first(actual.size(),actual.russianSize()),first(actual.russianSize(),actual.size()),barcode,actual.primaryImageUrl(),prior.requiresKiz(),actual.sku(),actual.offerId(),prior.verifiedGtin(),actual.productId());
+                canonical.add(new FboBarcodePrintItem(product,item.quantity()));
+            }catch(IOException invalid){throw new IllegalStateException(invalid.getMessage(),invalid);}
+        }
+        var reserved=planner.plan(shopId,Marketplace.OZON,canonical);
+        try{
+            var units=new LinkedHashMap<Integer,List<FboPrintPage>>();for(var page:reserved.pages())units.computeIfAbsent(page.pairNumber(),k->new ArrayList<>()).add(page);
+            var pages=new ArrayList<FboPrintPage>();
+            for(var unit:units.values()){
+                var codes=unit.stream().filter(p->p.kind()==FboPrintPage.Kind.KIZ).toList();
+                if(codes.size()>1||codes.isEmpty()&&unit.getFirst().product().requiresKiz())throw new IllegalStateException("OZON_FBO_KIZ_BINDING_MISMATCH");
+                if(codes.isEmpty())pages.addAll(unit); // The existing two unmarked barcode copies remain.
+                else{var kiz=codes.getFirst();pages.add(new FboPrintPage(kiz.product(),kiz.kizCode(),kiz.pairNumber(),FboPrintPage.Kind.COMBINED,kiz.categoryStock()));}
             }
-            gtinBySku.put(catalogSku, gtin);
-            neededByGtin.merge(gtin, item.quantity(), Integer::sum);
-        }
-        if (!missing.isEmpty()) {
-            throw new IllegalStateException("Products requiring KIZ are not mapped:\n" + String.join("\n", missing));
-        }
-
-        Map<String, List<Kiz>> reservedByGtin = new HashMap<>();
-        List<Kiz> allReserved = new ArrayList<>();
-        try {
-            for (Map.Entry<String, Integer> entry : neededByGtin.entrySet()) {
-                List<Kiz> reserved = inventoryService.reserveAvailable(shopId, entry.getKey(), entry.getValue());
-                reservedByGtin.put(entry.getKey(), reserved);
-                allReserved.addAll(reserved);
-            }
-        } catch (RuntimeException error) {
-            inventoryService.release(shopId, allReserved);
-            throw error;
-        }
-
-        Map<String, Integer> nextIndex = new HashMap<>();
-        List<FboPrintPage> pages = new ArrayList<>();
-        int pairNumber = 1;
-        for (FboBarcodePrintItem item : safeItems) {
-            for (int unit = 0; unit < item.quantity(); unit++) {
-                pages.add(FboPrintPage.barcode(item.product(), pairNumber));
-                pages.add(FboPrintPage.barcode(item.product(), pairNumber));
-                if (item.product().requiresKiz()) {
-                    String gtin = gtinBySku.get(item.product().catalogSku());
-                    int index = nextIndex.merge(gtin, 1, Integer::sum) - 1;
-                    pages.add(FboPrintPage.kiz(item.product(), reservedByGtin.get(gtin).get(index).getCode(), pairNumber));
-                }
-                pairNumber++;
-            }
-        }
-        return new FboPrintPlan(List.copyOf(pages), List.copyOf(allReserved));
+            return new FboPrintPlan(List.copyOf(pages),reserved.usedKizs());
+        }catch(RuntimeException failure){new ZnackGtinInventoryService().release(shopId,reserved.usedKizs());throw failure;}
     }
-
-    private static String safe(String value) {
-        return value == null || value.isBlank() ? "-" : value.trim();
-    }
+    private static OzonPostingItemDto expected(FboProductSku p){return new OzonPostingItemDto(0,p.productId(),p.catalogSku(),p.variantId(),p.title(),1,"","");}
+    private static String first(String value,String fallback){return value==null||value.isBlank()?fallback:value;}
 }

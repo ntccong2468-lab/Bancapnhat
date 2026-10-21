@@ -1,6 +1,7 @@
 package com.vncode.app.integration.wb;
 
 import com.vncode.app.config.Database;
+import com.vncode.app.config.SqliteWriteTransaction;
 import com.vncode.app.models.Order;
 
 import java.sql.Connection;
@@ -166,19 +167,23 @@ public class WbOrderRepository {
                 SET supplier_status = ?, wb_status = ?, is_cancellable = ?, status_synced_at = ?
                 WHERE shop_id = ? AND order_id = ?
                 """;
-        try (Connection conn = Database.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            String now = Instant.now().toString();
-            for (WbOrderStatusDto status : statuses) {
-                ps.setString(1, status.getSupplierStatus());
-                ps.setString(2, status.getWbStatus());
-                setNullableBoolean(ps, 3, status.getIsCancellable());
-                ps.setString(4, now);
-                ps.setInt(5, shopId);
-                ps.setLong(6, safeLong(status.getId()));
-                ps.addBatch();
-            }
-            ps.executeBatch();
+        try {
+            SqliteWriteTransaction.run(conn -> {
+                try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                    String now = Instant.now().toString();
+                    for (WbOrderStatusDto status : statuses) {
+                        ps.setString(1, status.getSupplierStatus());
+                        ps.setString(2, status.getWbStatus());
+                        setNullableBoolean(ps, 3, status.getIsCancellable());
+                        ps.setString(4, now);
+                        ps.setInt(5, shopId);
+                        ps.setLong(6, safeLong(status.getId()));
+                        ps.addBatch();
+                    }
+                    ps.executeBatch();
+                }
+                return null;
+            });
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
@@ -371,6 +376,7 @@ public class WbOrderRepository {
                 order.setRequiresKiz(rs.getInt("requires_kiz") > 0);
                 orders.add(order);
             }
+            rs.close();new com.vncode.app.features.kiz.status.Kn3Repository().enrichWb(conn,shopId,orders);
             return orders;
         } catch (SQLException e) {
             throw new RuntimeException(e);
@@ -387,6 +393,11 @@ public class WbOrderRepository {
         return getPackingOrders(shopId, where);
     }
 
+    public List<Order> getOrders(int shopId,List<Long> ids) {
+        if(ids==null||ids.size()>10000)throw new IllegalArgumentException("WB_ORDER_SCOPE_LIMIT");
+        if(ids.isEmpty())return List.of();
+        return getPackingOrders(shopId,"AND o.order_id IN ("+ids.stream().map(id->Long.toString(java.util.Objects.requireNonNull(id))).collect(java.util.stream.Collectors.joining(","))+")");
+    }
     private List<Order> getPackingOrders(int shopId, String extraWhere) {
         List<Order> orders = new ArrayList<>();
         String sql = """
@@ -451,6 +462,7 @@ public class WbOrderRepository {
                 order.setRequiresKiz(rs.getInt("requires_kiz") > 0);
                 orders.add(order);
             }
+            rs.close();new com.vncode.app.features.kiz.status.Kn3Repository().enrichWb(conn,shopId,orders);
             return orders;
         } catch (SQLException e) {
             throw new RuntimeException(e);

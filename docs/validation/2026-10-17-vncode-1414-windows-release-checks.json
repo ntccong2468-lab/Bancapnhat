@@ -1,0 +1,317 @@
+{
+  "version": "1.4.14",
+  "sourceCommit": "6ba183cd5fb4420e37df13035581fee08c2d2155",
+  "runId": 39012628654,
+  "java": {
+    "tests": 1664,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 2,
+    "passed": 1662
+  },
+  "installer": {
+    "filename": "VN-code-1.4.14-Windows-x64.exe",
+    "bytes": 145456128,
+    "sha256": "ec9b0e71fef0edd20de106aeedec6f5ed6fa27de8df36d5ddbeedbaee2215385"
+  },
+  "licenseProductionAcceptance": false,
+  "native": {
+    "schemaMigration": "3 to 5",
+    "nativeLauncher": "passed",
+    "rollbackSnapshotVerified": true,
+    "historyPreserved": true,
+    "liveMarketplaceMutations": false,
+    "windowTitle": "VN code v1.4.14",
+    "appName": "VN code",
+    "version": "1.4.14",
+    "platform": "windows-x64"
+  },
+  "channel": "stable-after-publication",
+  "authenticodeSigned": false,
+  "result": "passed",
+  "workflowUrl": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/39012628654",
+  "workflowCompletedAt": "2026-10-17T07:37:46Z",
+  "javaLogSha256": "af10e1a816ebbb7080255143ae3e7fd69c851418ad18b6dfa37a7d5e485000cf",
+  "sqliteConcurrentReports": {
+    "tests": 4,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "suiteSeconds": 3.147,
+    "originalTestTimeoutSeconds": 30
+  },
+  "ui": {
+    "layouts": 288,
+    "clippedActions": 0,
+    "synthetic": true
+  },
+  "sellerWorkspace": {
+    "result": "passed",
+    "scales": [
+      "1.0",
+      "1.25",
+      "1.5"
+    ],
+    "datasets": [
+      "6wb4ozon",
+      "10ozon"
+    ],
+    "targetWindowsLowEndMeasured": false
+  },
+  "upgradeFrom1413": {
+    "windowTitle": "VN code v1.4.14",
+    "singleShortcutPerLocation": true,
+    "liveMarketplaceMutations": false,
+    "installerUpgradeUuid": "8CBBA0E2-6E73-4F56-9101-6BC0948D3C72",
+    "fromVersion": "1.4.13",
+    "fingerprint": "c0cb375e0daf91e0bfc6ee8997b74cbde47537e3e166a33f701f35abccfd6868",
+    "singleRegistration": true,
+    "dataPreserved": true,
+    "version": "1.4.14",
+    "result": "passed",
+    "appName": "VN code"
+  },
+  "proofFiles": [
+    {
+      "name": "gs1-smoke.json",
+      "sha256": "f41cea3b33c125c7f72d5429a5f69884c1be8dc8088ff3ca191c36ffda6b489e"
+    },
+    {
+      "name": "native-smoke.json",
+      "sha256": "b98f69bc3fc3dd77bc1979a30e7185637d7abcb8e6d536028252aa8340d5b3a2"
+    },
+    {
+      "name": "seller-workspace-smoke.json",
+      "sha256": "ee9de5798253acb536aaedbf30c8d23db593aad8ada0c78786672bd9d2233458"
+    },
+    {
+      "name": "side-by-side-smoke.json",
+      "sha256": "49cf86e3faedb1b0005593dad759134df5f34aff9d8d80afa129b6b08fb7aaac"
+    },
+    {
+      "name": "upgrade-current-preview-smoke.json",
+      "sha256": "8ebc11a067b2ad0483e45166766ea60abdad30932e7ab57a69f91e013cad177e"
+    },
+    {
+      "name": "upgrade-gs1-preview-smoke.json",
+      "sha256": "6d38dad14b1e88fff5dfa49c079a76b5442367e8db132589d6485b2f6b352d3b"
+    },
+    {
+      "name": "upgrade-latest-preview-smoke.json",
+      "sha256": "f788cb02c40f79cbdbfec7ac807923f18cf8cfe52a32be5c83229e0d28efdf74"
+    },
+    {
+      "name": "upgrade-license-test-smoke.json",
+      "sha256": "d3ae8811f47e292eca549ba0a223ed2e538ed547cfcd9f0da5055e1152ee0dcf"
+    },
+    {
+      "name": "upgrade-preview-smoke.json",
+      "sha256": "38d9575f97749c88dbe18cc3fafe5e55b59165732f1e2bb752df524be7652d62"
+    },
+    {
+      "name": "upgrade-smoke.json",
+      "sha256": "fd0d912302c55d48357c3dbae854b3e300c08f11bebe98ee8239581f8e557d3b"
+    },
+    {
+      "name": "upgrade-stable-1410-smoke.json",
+      "sha256": "7cb56517bf939eb9c4a364efa1952ad3afdba8f05867fec8b6881f15774bcf7b"
+    },
+    {
+      "name": "upgrade-stable-1411-smoke.json",
+      "sha256": "11e3abc04b03501deed67e0502da114862debb6bcf1262e389d3ece23f8b1705"
+    },
+    {
+      "name": "upgrade-stable-1412-smoke.json",
+      "sha256": "8cd15e9a659fd8ac545aa6a5399b4d56c38ed3cb66a7e072f831563f2acd3a20"
+    },
+    {
+      "name": "upgrade-stable-1413-smoke.json",
+      "sha256": "e9e9d72b7a01019ad4071ef1ba2b8891531dd2dd3f7a725ac2d658a030fd97f7"
+    },
+    {
+      "name": "upgrade-stable-146-smoke.json",
+      "sha256": "a2b2b2b2018211d31e57f4e54dfc136bc1ccfa6c8d1c4dfb58d8231d21f2adcc"
+    },
+    {
+      "name": "ui-layout.json",
+      "sha256": "8ad3e060d5e360959e0195aa0b5ab62e857b5a38925a562a0e8574484938bcba"
+    }
+  ],
+  "liveProductionLicenseAccepted": false,
+  "liveCryptoProAccepted": false,
+  "liveWbFbsAccepted": false,
+  "publication": {
+    "draftReleaseId": 415658561,
+    "published": false,
+    "currentSellerLatest": "1.4.13",
+    "uploadInProgress": false,
+    "draftUrl": "https://github.com/ntccong2468-lab/Bancapnhat/releases/tag/untagged-24b8ad394edf6e9a8fcb",
+    "draft": true,
+    "latestChanged": false,
+    "uploadWorkflowRunId": 39014660248,
+    "uploadWorkflowResult": "success",
+    "assetCount": 22,
+    "allAssetSizesAndDigestsMatch": true,
+    "ownerGitHubLoginRequired": true,
+    "blockers": [
+      "WB FBS/FBO live API returns HTTP 401 pending owner environment token update",
+      "Exact-version production license acceptance required by existing automated publisher remains outstanding"
+    ]
+  },
+  "assets": [
+    {
+      "id": 649886388,
+      "name": "build-info.json",
+      "size": 820,
+      "state": "uploaded",
+      "digest": "sha256:36cd4023a6bd985cc76603f3d65a987681513e769db7d802b54828feedc7cd42"
+    },
+    {
+      "id": 649887361,
+      "name": "gs1-smoke.json",
+      "size": 287,
+      "state": "uploaded",
+      "digest": "sha256:f41cea3b33c125c7f72d5429a5f69884c1be8dc8088ff3ca191c36ffda6b489e"
+    },
+    {
+      "id": 649886467,
+      "name": "native-smoke.json",
+      "size": 288,
+      "state": "uploaded",
+      "digest": "sha256:b98f69bc3fc3dd77bc1979a30e7185637d7abcb8e6d536028252aa8340d5b3a2"
+    },
+    {
+      "id": 649886421,
+      "name": "release-notes.md",
+      "size": 10219,
+      "state": "uploaded",
+      "digest": "sha256:9d721239e47369465d462c14832132c220ac4fc3210c6c8cb4a6e22a9953dc4b"
+    },
+    {
+      "id": 649887228,
+      "name": "seller-workspace-smoke.json",
+      "size": 13162,
+      "state": "uploaded",
+      "digest": "sha256:ee9de5798253acb536aaedbf30c8d23db593aad8ada0c78786672bd9d2233458"
+    },
+    {
+      "id": 649886514,
+      "name": "side-by-side-smoke.json",
+      "size": 411,
+      "state": "uploaded",
+      "digest": "sha256:49cf86e3faedb1b0005593dad759134df5f34aff9d8d80afa129b6b08fb7aaac"
+    },
+    {
+      "id": 649887288,
+      "name": "ui-layout.json",
+      "size": 33302,
+      "state": "uploaded",
+      "digest": "sha256:8ad3e060d5e360959e0195aa0b5ab62e857b5a38925a562a0e8574484938bcba"
+    },
+    {
+      "id": 649886718,
+      "name": "upgrade-current-preview-smoke.json",
+      "size": 427,
+      "state": "uploaded",
+      "digest": "sha256:8ebc11a067b2ad0483e45166766ea60abdad30932e7ab57a69f91e013cad177e"
+    },
+    {
+      "id": 649886767,
+      "name": "upgrade-gs1-preview-smoke.json",
+      "size": 427,
+      "state": "uploaded",
+      "digest": "sha256:6d38dad14b1e88fff5dfa49c079a76b5442367e8db132589d6485b2f6b352d3b"
+    },
+    {
+      "id": 649886666,
+      "name": "upgrade-latest-preview-smoke.json",
+      "size": 427,
+      "state": "uploaded",
+      "digest": "sha256:f788cb02c40f79cbdbfec7ac807923f18cf8cfe52a32be5c83229e0d28efdf74"
+    },
+    {
+      "id": 649886827,
+      "name": "upgrade-license-test-smoke.json",
+      "size": 427,
+      "state": "uploaded",
+      "digest": "sha256:d3ae8811f47e292eca549ba0a223ed2e538ed547cfcd9f0da5055e1152ee0dcf"
+    },
+    {
+      "id": 649886622,
+      "name": "upgrade-preview-smoke.json",
+      "size": 427,
+      "state": "uploaded",
+      "digest": "sha256:38d9575f97749c88dbe18cc3fafe5e55b59165732f1e2bb752df524be7652d62"
+    },
+    {
+      "id": 649886568,
+      "name": "upgrade-smoke.json",
+      "size": 428,
+      "state": "uploaded",
+      "digest": "sha256:fd0d912302c55d48357c3dbae854b3e300c08f11bebe98ee8239581f8e557d3b"
+    },
+    {
+      "id": 649886975,
+      "name": "upgrade-stable-1410-smoke.json",
+      "size": 428,
+      "state": "uploaded",
+      "digest": "sha256:7cb56517bf939eb9c4a364efa1952ad3afdba8f05867fec8b6881f15774bcf7b"
+    },
+    {
+      "id": 649887031,
+      "name": "upgrade-stable-1411-smoke.json",
+      "size": 428,
+      "state": "uploaded",
+      "digest": "sha256:11e3abc04b03501deed67e0502da114862debb6bcf1262e389d3ece23f8b1705"
+    },
+    {
+      "id": 649887101,
+      "name": "upgrade-stable-1412-smoke.json",
+      "size": 428,
+      "state": "uploaded",
+      "digest": "sha256:8cd15e9a659fd8ac545aa6a5399b4d56c38ed3cb66a7e072f831563f2acd3a20"
+    },
+    {
+      "id": 649887158,
+      "name": "upgrade-stable-1413-smoke.json",
+      "size": 428,
+      "state": "uploaded",
+      "digest": "sha256:e9e9d72b7a01019ad4071ef1ba2b8891531dd2dd3f7a725ac2d658a030fd97f7"
+    },
+    {
+      "id": 649886916,
+      "name": "upgrade-stable-146-smoke.json",
+      "size": 427,
+      "state": "uploaded",
+      "digest": "sha256:a2b2b2b2018211d31e57f4e54dfc136bc1ccfa6c8d1c4dfb58d8231d21f2adcc"
+    },
+    {
+      "id": 649886073,
+      "name": "VN-code-1.4.14-Windows-x64.exe",
+      "size": 145456128,
+      "state": "uploaded",
+      "digest": "sha256:ec9b0e71fef0edd20de106aeedec6f5ed6fa27de8df36d5ddbeedbaee2215385"
+    },
+    {
+      "id": 649886349,
+      "name": "VN-code-1.4.14-Windows-x64.sha256",
+      "size": 98,
+      "state": "uploaded",
+      "digest": "sha256:0da35c9f47f8ca8446037a688845d9e5c9df3cf6e0bcd7c16b5d8535fb6f0690"
+    },
+    {
+      "id": 649887456,
+      "name": "VNCode-Portal-0.3.6-License-Network.sha256",
+      "size": 106,
+      "state": "uploaded",
+      "digest": "sha256:3ee834ad5ef33d36ab4fc941d7519a8973c58fe08d454cb462f98eec969d6acc"
+    },
+    {
+      "id": 649887413,
+      "name": "VNCode-Portal-0.3.6-License-Network.zip",
+      "size": 111443,
+      "state": "uploaded",
+      "digest": "sha256:d27b910a7eb384e880aa993a0de92823cbc30e3710f87e58764e0b47e5d94225"
+    }
+  ]
+}

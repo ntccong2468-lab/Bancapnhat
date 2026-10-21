@@ -1,6 +1,9 @@
 package com.vncode.app.features.packing;
 
 import com.vncode.app.features.print.SupplyBarcodePdfExporter;
+import com.vncode.app.features.license.LicenseGate.LicenseDeniedException;
+import com.vncode.app.features.license.LicenseModels.Permission;
+import com.vncode.app.features.license.LicenseRuntime;
 import com.vncode.app.features.print.history.PrintHistoryService;
 import com.vncode.app.integration.wb.WbActionLogRepository;
 import com.vncode.app.integration.wb.WbApiClient;
@@ -83,31 +86,37 @@ public class PackingWorkflow {
 
     public String createShipment(Shop shop, String name, List<Long> orderIds) throws IOException {
         MarketplaceGuard.requireWildberries(shop);
+        LicenseRuntime.require(Permission.PACKING);
         Boolean orderB2b = validateOrderB2bSelection(shop.getId(), orderIds);
         String requestJson = "{\"name\":\"" + sanitize(name) + "\",\"orders\":" + orderIds + "}";
+        LicenseRuntime.require(Permission.PACKING);
+        String supplyId;
         try {
             WbCreateSupplyResponse response = apiClient.createSupply(shop.getApiKey(), name);
-            String supplyId = response == null ? null : response.getId();
+            supplyId = response == null ? null : response.getId();
             if (supplyId == null || supplyId.isBlank()) {
                 throw new IOException("WB không trả về supplyId sau khi tạo shipment");
             }
             supplyRepository.saveCreatedSupply(shop.getId(), supplyId, name, orderB2b);
-            addOrdersToSupply(shop, supplyId, orderIds);
             actionLogRepository.record(shop.getId(), "CREATE_SUPPLY", supplyId, orderIds, "success", requestJson, "{\"id\":\"" + supplyId + "\"}", null);
-            return supplyId;
         } catch (IOException | RuntimeException ex) {
             actionLogRepository.record(shop.getId(), "CREATE_SUPPLY", null, orderIds, "failed", requestJson, null, ex.getMessage());
             throw ex;
         }
+        // Preserve the accepted create checkpoint even if rights expire before assigning orders.
+        addOrdersToSupply(shop, supplyId, orderIds);
+        return supplyId;
     }
 
     public void addOrdersToSupply(Shop shop, String supplyId, List<Long> orderIds) throws IOException {
         MarketplaceGuard.requireWildberries(shop);
+        LicenseRuntime.require(Permission.PACKING);
         List<Long> safeOrderIds = orderIds == null ? List.of() : new ArrayList<>(orderIds);
         validateSupplyB2bCompatibility(shop.getId(), supplyId, safeOrderIds);
         try {
             for (int i = 0; i < safeOrderIds.size(); i += ADD_ORDER_BATCH_SIZE) {
                 List<Long> batch = safeOrderIds.subList(i, Math.min(i + ADD_ORDER_BATCH_SIZE, safeOrderIds.size()));
+                LicenseRuntime.require(Permission.PACKING);
                 apiClient.addOrdersToSupply(shop.getApiKey(), supplyId, batch);
                 actionLogRepository.record(shop.getId(), "ADD_ORDERS_TO_SUPPLY", supplyId, batch, "success", "{\"orders\":" + batch + "}", null, null);
             }
@@ -115,11 +124,15 @@ public class PackingWorkflow {
             orderRepository.replaceSupplyOrders(shop.getId(), supplyId, safeOrderIds);
             try {
                 syncWorkflow.syncSupplyOrdersAndStatuses(shop, supplyId);
+            } catch (LicenseDeniedException deniedRefresh) {
+                // The assignment succeeded; a newly forbidden refresh cannot undo that result.
             } catch (IOException ex) {
                 if (!isTimeout(ex)) {
                     throw ex;
                 }
             }
+        } catch (LicenseDeniedException denial) {
+            throw denial;
         } catch (IOException | RuntimeException ex) {
             actionLogRepository.record(shop.getId(), "ADD_ORDERS_TO_SUPPLY", supplyId, safeOrderIds, "failed", "{\"orders\":" + safeOrderIds + "}", null, ex.getMessage());
             throw ex;
@@ -131,6 +144,8 @@ public class PackingWorkflow {
     }
     public void deliverSupply(Shop shop,WbSupplySummary supply,com.vncode.app.integration.wb.WbShippingContract.Parameters shipping) throws IOException {
         MarketplaceGuard.requireWildberries(shop);
+        LicenseRuntime.require(Permission.PACKING);
+        com.vncode.app.integration.listing.ListingIdentity.require(shop);
         DeliveryPreflight preflight = inspectDelivery(shop.getId(), supply);
         if (!preflight.labelsPrinted()) {
             throw new IllegalStateException("Сначала распечатайте этикетки для поставки.");
@@ -143,11 +158,17 @@ public class PackingWorkflow {
             if(!supply.getSupplyId().equals(shipping.supplyId()))throw new IllegalArgumentException("WB_SUPPLY_ID_MISMATCH");
             new com.vncode.app.integration.wb.WbShippingService(apiClient,actionLogRepository,java.time.Clock.systemDefaultZone()).ensureShipping(shop,shipping,true);
         }
+        LicenseRuntime.require(Permission.PACKING);
+        com.vncode.app.integration.listing.ListingIdentity.require(shop);
         try {
             apiClient.deliverSupply(shop.getApiKey(), supply.getSupplyId());
             supplyRepository.markSupplyDelivered(shop.getId(), supply.getSupplyId());
-            syncWorkflow.syncSupplyOrdersAndStatuses(shop, supply.getSupplyId());
             actionLogRepository.record(shop.getId(), "DELIVER_SUPPLY", supply.getSupplyId(), List.of(), "success", null, null, null);
+            try {
+                syncWorkflow.syncSupplyOrdersAndStatuses(shop, supply.getSupplyId());
+            } catch (LicenseDeniedException deniedRefresh) {
+                // Keep the accepted delivery and let an authorized later sync refresh the board.
+            }
         } catch (IOException | RuntimeException ex) {
             actionLogRepository.record(shop.getId(), "DELIVER_SUPPLY", supply.getSupplyId(), List.of(), "failed", null, null, ex.getMessage());
             throw ex;
@@ -167,7 +188,9 @@ public class PackingWorkflow {
     }
 
     public byte[] getSupplyBarcodePdf(Shop shop, WbSupplySummary supply) throws IOException {
+        LicenseRuntime.require(Permission.PRINT_NEW);
         byte[] imageBytes = getSupplyBarcode(shop, supply);
+        LicenseRuntime.require(Permission.PRINT_NEW);
         return SupplyBarcodePdfExporter.exportSingleLabel(imageBytes);
     }
 

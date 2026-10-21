@@ -39,6 +39,16 @@ public final class ShopOperationCoordinator {
         }
     }
 
+    /** Stable ordering prevents two cross-shop operations from acquiring opposing locks. */
+    public static <T, E extends Exception> T withActiveShops(java.util.Collection<Integer> shopIds, Operation<T, E> operation) throws E {
+        return withActiveShops(shopIds.stream().distinct().sorted().toList(), 0, operation);
+    }
+
+    private static <T, E extends Exception> T withActiveShops(java.util.List<Integer> shops, int index, Operation<T, E> operation) throws E {
+        if (index == shops.size()) return operation.run();
+        return withActiveShop(shops.get(index), () -> withActiveShops(shops, index + 1, operation));
+    }
+
     public static boolean isShopUnavailable(Throwable failure) {
         Throwable current = failure;
         while (current != null) {

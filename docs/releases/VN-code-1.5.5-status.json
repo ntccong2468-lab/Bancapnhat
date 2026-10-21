@@ -1,0 +1,294 @@
+{
+  "version": "1.5.5",
+  "state": "published-latest-under-owner-request",
+  "baseline": "v1.5.4",
+  "baselineArtifact": {
+    "version": "1.5.4",
+    "tag": "v1.5.4",
+    "sourceCommit": "688bd01982898e18c9770300fa20cfe29bde1245",
+    "releaseUrl": "https://github.com/ntccong2468-lab/Bancapnhat/releases/tag/v1.5.4",
+    "installerFile": "VN-code-1.5.4-Windows-x64.exe",
+    "installerBytes": 146868224,
+    "installerSha256": "e7079a4aca07c1ae2fec26e46c4e3a3d77096a14b1c0485a88cefe95a3f7a18b",
+    "installerUrl": "https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.5.4/VN-code-1.5.4-Windows-x64.exe",
+    "immutable": true
+  },
+  "databaseSchema": 6,
+  "published": true,
+  "complete": false,
+  "sourceCommit": "cc73b32ae50ed21a25196653291df2996ecef1bf",
+  "sourceRuntimeIsFinal": true,
+  "requestReport": "VN-code-1.5.5-request-report.md",
+  "licenseIntegration": {
+    "productionReady": false,
+    "changedInThisVersion": false
+  },
+  "publication": {
+    "state": "published-latest-under-owner-request",
+    "latestReleaseAtPreparation": "v1.5.4",
+    "latestReleaseChangedByThisWork": true,
+    "ownerRequestedPublication": true,
+    "standardAcceptanceClaimed": false,
+    "published": true,
+    "credentialValuesRecorded": false,
+    "tag": "v1.5.5",
+    "releaseUrl": "https://github.com/ntccong2468-lab/Bancapnhat/releases/tag/v1.5.5",
+    "publishedAt": "2026-10-20T22:05:02Z",
+    "publishRun": 39497248970,
+    "publishRunAttempt": 3,
+    "publishSourceCommit": "5b6ef1df779fa57bf90952825601cf45e0d37377",
+    "ownerPromotedWithConfiguredConnection": true,
+    "ownerImmediatePublicationInstruction": "cập nhật lên cho tao ngay và luôn"
+  },
+  "changes": [
+    {
+      "area": "znack-registration",
+      "state": "implemented-and-published",
+      "scope": "Full WB/Ozon schema preflight and exact remote-card confirmation"
+    },
+    {
+      "area": "automatic-defaults",
+      "state": "implemented-and-published",
+      "scope": "Signed-reference template v4; verified product/permit facts; Russia display default"
+    },
+    {
+      "area": "registration-status",
+      "state": "implemented-and-published",
+      "scope": "Durable per-card queue, live processing filter and dismissing completion pill"
+    },
+    {
+      "area": "signing-and-diagnostics",
+      "state": "implemented-and-published",
+      "scope": "Up to 10 cards per signature POST and local-versus-remote failure classification"
+    },
+    {
+      "area": "ozon-mapping",
+      "state": "implemented-and-published",
+      "scope": "Product/Catalog/variant/barcode mapping and per-product diagnostics"
+    },
+    {
+      "area": "startup-and-recovery",
+      "state": "implemented-and-published",
+      "scope": "Restore existing owned workspace, actionable startup diagnostics and unreadable DB protection"
+    },
+    {
+      "area": "ozon-labels",
+      "state": "implemented-and-published",
+      "scope": "Remove only fully covered redundant product labels"
+    }
+  ],
+  "preservationRequirements": [
+    "Immutable 1.5.4 release and data-preserving schema 6 upgrades",
+    "Seller stores, products, Catalog cards, KIZ stock and priority FBS",
+    "Permit TN VED scope, actual source identity and uncertain-submit/signing checkpoints",
+    "Runtime license, certificate, TLS, checksum and snapshot/restore guards"
+  ],
+  "validation": {
+    "linuxFullSuite": {
+      "state": "passed",
+      "sourceCommit": "cc73b32ae50ed21a25196653291df2996ecef1bf",
+      "command": "DISPLAY=:99 XDG_CACHE_HOME=/tmp/vncode-ui-cache /workspace/toolchains/mvn-vncode -o clean verify",
+      "fullSuiteExecuted": true,
+      "cleanVerifyExecuted": true,
+      "suites": 361,
+      "tests": 2309,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 2,
+      "passed": 2307,
+      "skippedCases": [
+        "com.vncode.app.features.gs1.Gs1PrefixTemplateStoreTest.refusesNtfsJunctionDirectoryAndAncestors",
+        "com.vncode.app.shared.WindowsSecretProtectorTest.separatesLicenseAndExistingMailEntropyOnWindows"
+      ],
+      "finishedAt": "2026-10-20T21:02:38Z",
+      "totalTime": "06:40 min",
+      "log": "/tmp/vncode-155-final-full-verify.log",
+      "logSha256": "b2522f8360e6d292aaae7fb9530af774d0e1a8fb62169107ab5fb509cc58a06f",
+      "freshFullExecutionRequired": true,
+      "countsRecorded": true,
+      "acceptedForFinalScope": true,
+      "scope": "Fresh complete clean verify on the final application and Java test source; Windows/native/public-byte evidence is verified independently."
+    },
+    "releaseToolTests": {
+      "state": "passed",
+      "sourceCommit": "cc73b32ae50ed21a25196653291df2996ecef1bf",
+      "tests": 103,
+      "passed": 103,
+      "failures": 0,
+      "fullSuiteExecuted": true,
+      "command": "node --test tools/*.test.mjs",
+      "log": "/tmp/vncode-155-final-release-tools.log",
+      "logSha256": "94cb10dc92faee6f231146a8db56f24737bfd69b9b3a41808cd3dfaf7851466b",
+      "countsRecorded": true,
+      "scope": "All release-tool checks including the publication-only155 publisher changes; GitHub publication job will execute these checks again from its exact tooling source."
+    },
+    "windowsBuild": {
+      "state": "passed",
+      "sourceCommit": "cc73b32ae50ed21a25196653291df2996ecef1bf",
+      "runId": 39496207125,
+      "windowsArtifactId": 12301419643,
+      "freshFullJavaExecutionRequired": true,
+      "allNativeChecksMustRunAgain": true,
+      "url": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/39496207125",
+      "observedCreatedAt": "2026-10-20T20:56:06Z",
+      "windowsArtifactDigest": "sha256:b72056c52c51572ef0d3edfb46f43a7a72484e4544d721bece797e3b453649ab",
+      "fullJavaSuite": {
+        "tests": 2309,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 2,
+        "passed": 2307
+      },
+      "upgradeFrom154Passed": true,
+      "allNativeChecksPassed": true,
+      "installerPackaged": true,
+      "passiveExeHandoffVerified": true,
+      "verifiedNativeProofs": [
+        "native-smoke.json",
+        "side-by-side-smoke.json",
+        "upgrade-smoke.json",
+        "upgrade-preview-smoke.json",
+        "upgrade-latest-preview-smoke.json",
+        "upgrade-current-preview-smoke.json",
+        "upgrade-gs1-preview-smoke.json",
+        "upgrade-license-test-smoke.json",
+        "upgrade-stable-146-smoke.json",
+        "upgrade-stable-1410-smoke.json",
+        "upgrade-stable-1411-smoke.json",
+        "upgrade-stable-1412-smoke.json",
+        "upgrade-stable-1413-smoke.json",
+        "upgrade-stable-1415-smoke.json",
+        "upgrade-stable-1416-smoke.json",
+        "upgrade-stable-1418-smoke.json",
+        "upgrade-stable-1419-smoke.json",
+        "upgrade-stable-150-smoke.json",
+        "upgrade-stable-151-smoke.json",
+        "upgrade-stable-152-smoke.json",
+        "upgrade-stable-153-smoke.json",
+        "upgrade-stable-154-smoke.json",
+        "seller-workspace-smoke.json",
+        "ui-layout.json",
+        "gs1-smoke.json"
+      ],
+      "observedCompletedAt": "2026-10-20T21:59:15Z"
+    },
+    "productionLicenseVerified": false,
+    "liveCryptoProSigningThisVersion": false,
+    "liveLicensedDesktopGtinWriteThisVersion": false,
+    "liveApiWbGtinWriteThisVersion": false,
+    "liveApiOzonGtinWriteThisVersion": false,
+    "liveCatalogCardCreatedThisVersion": false,
+    "liveCatalogCardRepairedThisVersion": false,
+    "liveKizPurchaseThisVersion": false,
+    "livePaidKizOrderThisVersion": false,
+    "liveApiWbKizPurchaseThisVersion": false,
+    "liveApiOzonKizPurchaseThisVersion": false,
+    "publicDownloadVerified": true,
+    "sellerDesktopPopupObserved": false,
+    "firstWindowsContractAttempt": {
+      "runId": 39494876484,
+      "sourceCommit": "c167d87cb34e8b938b83920ba55bfa08feb87749",
+      "state": "failed-before-java",
+      "reason": "New Node passive-upgrade test assumed LF; fixed to verify LF and Windows CRLF. Application and Java inputs unchanged.",
+      "javaExecuted": false,
+      "acceptedForRelease": false
+    },
+    "initialLinuxFullAttempt": {
+      "sourceCommit": "7cf11cb21755ae36f680d8c634e261f10abef747",
+      "state": "failed",
+      "tests": 2309,
+      "failures": 0,
+      "errors": 5,
+      "skipped": 2,
+      "acceptedForRelease": false,
+      "log": "/tmp/vncode-155-full-verify.log",
+      "reason": "Concurrent-monitor registration fixture left its own WAITING_REMOTE batch pending. Five updater tests correctly encountered the busy guard. The fixture now completes its own durable queue without replay; focused 17-test regression passed. Full clean verify is rerun on the final test source."
+    },
+    "supersededWindowsAttempt": {
+      "runId": 39495135354,
+      "sourceCommit": "7cf11cb21755ae36f680d8c634e261f10abef747",
+      "state": "cancelled",
+      "acceptedForRelease": false,
+      "reason": "Superseded after Java fixture cleanup correction; require fresh complete Windows execution on the final source, without reuse."
+    },
+    "publicReleaseVerification": {
+      "checkedAt": "2026-10-20T22:06:38.556327+00:00",
+      "published": true,
+      "latestVersion": "1.5.5",
+      "releaseUrl": "https://github.com/ntccong2468-lab/Bancapnhat/releases/tag/v1.5.5",
+      "publishedAt": "2026-10-20T22:05:02Z",
+      "buildRun": 39496207125,
+      "publishRun": 39497248970,
+      "publishRunAttempt": 3,
+      "publishSourceCommit": "5b6ef1df779fa57bf90952825601cf45e0d37377",
+      "sourceCommit": "cc73b32ae50ed21a25196653291df2996ecef1bf",
+      "installerSha256": "e966b8d36101f8d0c62b5340e7804ff574fb1453e89d713dbcd604b7446b4b13",
+      "installerBytes": 147044352,
+      "downloadUrl": "https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.5.5/VN-code-1.5.5-Windows-x64.exe",
+      "publicDownloadVerified": true,
+      "anonymousDownload": {
+        "bytes": 147044352,
+        "sha256": "e966b8d36101f8d0c62b5340e7804ff574fb1453e89d713dbcd604b7446b4b13",
+        "anonymousDownloadVerified": true
+      },
+      "windowsJava": {
+        "tests": 2309,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 2,
+        "passed": 2307
+      },
+      "windowsArtifactId": 12301419643,
+      "verifiedNativeProofFiles": 25,
+      "verifiedUpgradeProbes": 20,
+      "passiveExeHandoffVerified": true,
+      "sellerDesktopPopupObserved": false,
+      "actualUpdaterProbeExecuted": false,
+      "realSellerMutationsPerformed": false,
+      "paidKizPurchasePerformed": false
+    },
+    "actualUpdaterProbeExecuted": false
+  },
+  "requiredUpgradeFrom154": {
+    "baseline": {
+      "version": "1.5.4",
+      "tag": "v1.5.4",
+      "sourceCommit": "688bd01982898e18c9770300fa20cfe29bde1245",
+      "releaseUrl": "https://github.com/ntccong2468-lab/Bancapnhat/releases/tag/v1.5.4",
+      "installerFile": "VN-code-1.5.4-Windows-x64.exe",
+      "installerBytes": 146868224,
+      "installerSha256": "e7079a4aca07c1ae2fec26e46c4e3a3d77096a14b1c0485a88cefe95a3f7a18b",
+      "installerUrl": "https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.5.4/VN-code-1.5.4-Windows-x64.exe",
+      "immutable": true
+    },
+    "actualPassiveExeHandoffRequired": true,
+    "existingNativeAndUpgradeChecksPreserved": true,
+    "verified": true
+  },
+  "postPublicationRecordedAt": "2026-10-20T22:06:38.556327+00:00",
+  "publicationRecovery": {
+    "workflowAttempts": [
+      {
+        "attempt": 1,
+        "result": "failed",
+        "reason": "GITHUB_TOKEN HTTP 403 creating tag; no release mutation"
+      },
+      {
+        "attempt": 2,
+        "result": "failed",
+        "reason": "GITHUB_TOKEN HTTP 403 creating release with target_commitish"
+      },
+      {
+        "attempt": 3,
+        "result": "success",
+        "reason": "Tag and draft created through existing project connection; same verified artifact uploaded by workflow"
+      }
+    ],
+    "localPublisherAttempt": {
+      "result": "failed-before-upload",
+      "reason": "uploads.github.com returned HTTP 401; no installer assets uploaded by that attempt"
+    },
+    "noApplicationRebuildForRecovery": true,
+    "noAdditionalApplicationTestsAfterOwnerImmediateInstruction": true
+  }
+}

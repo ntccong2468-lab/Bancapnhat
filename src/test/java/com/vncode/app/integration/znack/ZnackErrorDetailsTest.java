@@ -6,6 +6,13 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class ZnackErrorDetailsTest {
+    @Test void wrappedSigningErrorIncludesItsCodeAndRedactsDiagnostics() {
+        var crypto=new com.vncode.app.integration.znack.signature.CryptoProException(
+                com.vncode.app.integration.znack.signature.CryptoProErrorCode.PRIVATE_KEY_UNAVAILABLE,"token=secret-value pin=1234");
+        String text=ZnackErrorDetails.format(new java.io.IOException("Catalog certificate signing failed",crypto));
+        assertTrue(text.contains("ERROR CHAIN"));assertTrue(text.contains("CryptoPro code: PRIVATE_KEY_UNAVAILABLE"));
+        assertFalse(text.contains("secret-value"));assertFalse(text.contains("1234"));
+    }
     @Test
     void includesFullHttpContextAndRedactsSecrets() {
         String longMessage = "validation detail; ".repeat(90);

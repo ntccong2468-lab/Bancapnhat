@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {validatePreview,validateInstaller,validatePreviewUpgrades} from './publish-vncode-preview.mjs';
+import {validatePreview,validateInstaller,validatePreviewUpgrades,validateGs1Smoke} from './publish-vncode-preview.mjs';
 test('incomplete builds can only be published as explicitly disclosed previews',()=>{
  const status={version:'1.2.0',complete:false,blocked:['Ozon workflow remains incomplete']};
  assert.doesNotThrow(()=>validatePreview(status,'v1.2.0-preview.1'));
@@ -27,4 +27,17 @@ test('a newer preview requires upgrades from both already published previews',()
 });
 test('the preceding 1.2.1 preview still needs only its 1.2.0 baseline',()=>{
  assert.doesNotThrow(()=>validatePreviewUpgrades('1.2.1',{...upgrade('1.2.0'),version:'1.2.1'},null));
+});
+test('the GS1 update must also preserve data from the published 1.2.2 preview',()=>{
+ const baseline=fromVersion=>({...upgrade(fromVersion),version:'1.3.0'});
+ assert.throws(()=>validatePreviewUpgrades('1.3.0',baseline('1.2.0'),baseline('1.2.1'),null));
+ assert.doesNotThrow(()=>validatePreviewUpgrades('1.3.0',baseline('1.2.0'),baseline('1.2.1'),baseline('1.2.2')));
+ assert.throws(()=>validatePreviewUpgrades('1.3.0',baseline('1.2.0'),baseline('1.2.1'),baseline('1.2.1')));
+});
+test('GS1 preview publication requires native Windows DPAPI and invoice migration evidence',()=>{
+ const report={appName:'VN code',version:'1.3.0',result:'passed',dpapiRoundTrip:true,protectedPasswordPersistence:true,unverifiedInvoiceBlocked:true,liveGS1Mutations:false};
+ assert.doesNotThrow(()=>validateGs1Smoke(report,'1.3.0'));
+ for(const key of ['dpapiRoundTrip','protectedPasswordPersistence','unverifiedInvoiceBlocked'])assert.throws(()=>validateGs1Smoke({...report,[key]:false},'1.3.0'));
+ assert.throws(()=>validateGs1Smoke({...report,version:'1.2.2'},'1.3.0'));
+ assert.throws(()=>validateGs1Smoke({...report,liveGS1Mutations:true},'1.3.0'));
 });

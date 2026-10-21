@@ -33,7 +33,7 @@ import java.time.Duration;
 import java.util.List;
 
 public class KizMappingController {
-    @FXML private Label titleLabel, emptyStateLabel;
+    @FXML private Label titleLabel, emptyStateLabel, syncStatusLabel;
     @FXML private TextField searchField;
     @FXML private MenuButton categoryFilterButton;
     @FXML private Button refreshButton;
@@ -55,6 +55,10 @@ public class KizMappingController {
     private boolean loading;
     private boolean syncing;
     private long shopGeneration;
+    private final javafx.animation.PauseTransition syncRetry=new javafx.animation.PauseTransition();
+    private record MappingIssue(String article,String size,String sku,String gtin,String reason){}
+    private record MappingReport(int mapped,int exempt,List<MappingIssue> issues){MappingReport{issues=List.copyOf(issues);}}
+    private record Synced(List<ZnackGtinInventorySummary> summaries,MappingReport mapping){}
 
     @FXML
     private void initialize() {
@@ -87,7 +91,7 @@ public class KizMappingController {
                     ZnackGtinInventorySummary row = getTableRow() == null ? null : getTableRow().getItem();
                     if (row != null && shop != null) {
                         com.vncode.app.ui.report.ErrorReportDialog.show(
-                                shop.getName(), row.gtin(), "PURCHASE_PIPELINE", row.latestError());
+                                shop.getName(), row.gtin(), "PURCHASE_PIPELINE", ZnackPurchaseDiagnostics.text(row.latestError(),row.latestPipelineStage(),row.latestPipelineId()==null?null:ZnackPurchaseCoordinator.nextCheckAt(shop.getId(),row.latestPipelineId())));
                     }
                 } : null);
             }
@@ -112,7 +116,7 @@ public class KizMappingController {
     }
 
     public void setShop(Shop selected) {
-        shopGeneration++;
+        shopGeneration++;syncRetry.stop();if(syncStatusLabel!=null){syncStatusLabel.setText("");syncStatusLabel.setVisible(false);}
         shop = selected;
         syncing = false;
         summaries = List.of();
@@ -145,8 +149,11 @@ public class KizMappingController {
         titleLabel.setText(tr(ozon ? "ozon.mapping.title" : "kiz_mapping.title"));
         searchField.setPromptText(tr("kiz_mapping.search_gtin"));
         categoryFilter.setTexts(tr("znack.filter.button"), tr("znack.filter.no_category"), tr("znack.filter.clear"));
-        refreshButton.setTooltip(new Tooltip(tr("kiz_mapping.refresh")));
-        refreshButton.setAccessibleText(tr("kiz_mapping.refresh"));
+        refreshButton.setText(tr("mapping.sync_and_map"));
+        refreshButton.getStyleClass().remove("btn-icon");
+        if(!refreshButton.getStyleClass().contains("btn-primary"))refreshButton.getStyleClass().add("btn-primary");
+        refreshButton.setTooltip(new Tooltip(tr("mapping.sync_and_map")));
+        refreshButton.setAccessibleText(tr("mapping.sync_and_map"));
         gtinColumn.setText(tr("znack.field.gtin"));
         nameColumn.setText(tr("znack.field.name"));
         mappingColumn.setText(tr(ozon ? "ozon.mapping.column.mapping" : "kiz_mapping.column.mapping"));
@@ -167,11 +174,23 @@ public class KizMappingController {
         long generation = shopGeneration;
         int shopId = shop.getId();
         ZnackRepository current = znackRepository;
-        Task<List<ZnackGtinInventorySummary>> task = new Task<>() {
-            @Override protected List<ZnackGtinInventorySummary> call() throws Exception {
+        var owner=new Shop(shop.getId(),shop.getName(),shop.getMarketplace(),shop.getClientId(),shop.getApiKey());
+        Task<Synced> task = new Task<>() {
+            @Override protected Synced call() throws Exception {
                 try {
-                    syncProducts(current);
-                    return mappingRepository.findGtinSummaries(shopId);
+                    java.util.function.Consumer<com.vncode.app.integration.znack.registration.NationalCatalogGtinSource.Progress> progress=p->javafx.application.Platform.runLater(()->{
+                        if(generation==shopGeneration){syncStatusLabel.setText(tr("mapping.progress."+p.phase())+" · "+p.completed()+" / "+p.total());syncStatusLabel.setVisible(true);}
+                    });
+                    MappingReport mapped;
+                    if(owner.getMarketplace()==Marketplace.WILDBERRIES){
+                        var result=new com.vncode.app.features.kizmapping.WbCatalogMappingService().synchronize(owner,progress);
+                        mapped=new MappingReport(result.mapped(),0,result.issues().stream().map(issue->new MappingIssue(issue.article(),issue.size(),"",issue.gtin(),issue.reason())).toList());
+                    }else{
+                        var result=new com.vncode.app.features.kizmapping.OzonCatalogMappingService().synchronize(owner,progress);
+                        mapped=new MappingReport(result.mapped(),result.exempt(),result.issues().stream().map(issue->new MappingIssue(issue.article(),issue.size(),issue.sku(),issue.gtin(),issue.reason())).toList());
+                    }
+                    ZnackPurchaseCoordinator.create(current).resumeEligibleIntroductionsAsync(current.getSettings());
+                    return new Synced(mappingRepository.findGtinSummaries(shopId),mapped);
                 } catch (Exception error) {
                     current.log("GTIN_SYNC", null, "ERROR", error.getMessage(), null);
                     throw error;
@@ -183,7 +202,10 @@ public class KizMappingController {
         task.setOnSucceeded(event -> {
             if (generation != shopGeneration || shop == null || shop.getId() != shopId) return;
             syncing = false;
-            summaries = task.getValue();
+            summaries = task.getValue().summaries();
+            var result=task.getValue().mapping();
+            syncStatusLabel.setText(java.text.MessageFormat.format(tr("mapping.complete_counts"),result.mapped(),result.exempt(),result.issues().size()));syncStatusLabel.setVisible(true);
+            if(task.getValue().mapping()!=null&&!task.getValue().mapping().issues().isEmpty())showMappingIssues(task.getValue().mapping());
             categoryFilter.rebuild(summaries.stream().map(ZnackGtinInventorySummary::category).toList());
             applyFilter();
             setLoadingState();
@@ -192,15 +214,33 @@ public class KizMappingController {
             ZnackSuzAuthDialogService.promptIfNeeded(current, summaries);
             ZnackMissingDocumentsDialogService.promptIfNeeded(current, summaries);
         });
-        task.setOnFailed(event -> {
+        java.util.function.Consumer<Throwable> taskFailure = rejection -> {
             if (generation != shopGeneration) return;
             syncing = false;
             setLoadingState();
-            if (showErrors) AlertService.showError(friendlyError(task.getException()));
+            var failure=com.vncode.app.features.sync.SyncFailure.of(rejection,0);
+            if(com.vncode.app.integration.znack.registration.CatalogFeedback.rateLimited(rejection)){
+                syncStatusLabel.setText(tr("mapping.wait_until")+" "+java.time.ZonedDateTime.now().plus(failure.delay()).format(java.time.format.DateTimeFormatter.ofPattern("HH:mm:ss")));syncStatusLabel.setVisible(true);
+                syncRetry.setDuration(javafx.util.Duration.millis(failure.delay().toMillis()));syncRetry.setOnFinished(e->{if(generation==shopGeneration)requestSync(showErrors);});syncRetry.playFromStart();
+            }else{syncStatusLabel.setText(friendlyError(rejection));syncStatusLabel.setVisible(true);if(showErrors)AlertService.showError(friendlyError(rejection));}
             refresh();
-        });
-        AppTaskExecutor.execute(task);
+        };
+        task.setOnFailed(event -> taskFailure.accept(task.getException()));
+        AppTaskExecutor.execute(task, taskFailure);
     }
+
+    private void showMappingIssues(MappingReport result){
+        var dialog=new Dialog<Void>();if(gtinTable.getScene()!=null)dialog.initOwner(gtinTable.getScene().getWindow());dialog.setTitle(tr(shop!=null&&shop.getMarketplace()==Marketplace.OZON?"ozon.mapping.issues":"mapping.issues"));
+        var table=new TableView<MappingIssue>();table.setId("mappingIssueTable");table.getItems().setAll(result.issues());table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
+        for(String field:shop!=null&&shop.getMarketplace()==Marketplace.OZON?List.of("article","size","sku","gtin","reason"):List.of("article","size","gtin","reason")){
+            var col=new TableColumn<MappingIssue,String>(tr("mapping.column."+field));
+            col.setCellValueFactory(cell->new SimpleStringProperty(switch(field){case "article"->cell.getValue().article();case "size"->cell.getValue().size();case "sku"->cell.getValue().sku();case "gtin"->cell.getValue().gtin();default->mappingReason(cell.getValue().reason());}));
+            col.setCellFactory(c->new TableCell<>(){protected void updateItem(String text,boolean empty){super.updateItem(text,empty);setText(empty?null:text);setWrapText(true);}});table.getColumns().add(col);
+        }
+        dialog.getDialogPane().setId("mappingIssuesDialog");dialog.getDialogPane().setContent(table);dialog.getDialogPane().setPrefSize(980,500);dialog.getDialogPane().getButtonTypes().add(ButtonType.CLOSE);com.vncode.app.shared.DialogLayout.install(dialog.getDialogPane());AlertService.applyTheme(dialog);dialog.show();
+    }
+
+    private String mappingReason(String code){return I18nService.getInstance().tr("mapping.reason."+code,FriendlyErrorService.format(new IllegalArgumentException(code)));}
 
     public void refresh() {
         if (loading) return;
@@ -231,13 +271,14 @@ public class KizMappingController {
                 ZnackMissingDocumentsDialogService.promptIfNeeded(currentRepository, summaries);
             }
         });
-        task.setOnFailed(e -> {
+        java.util.function.Consumer<Throwable> taskFailure = rejection -> {
             if (generation == shopGeneration) {
                 setLoading(false);
-                AlertService.showError(task.getException().getMessage());
+                AlertService.showError(rejection.getMessage());
             }
-        });
-        AppTaskExecutor.execute(task);
+        };
+        task.setOnFailed(e -> taskFailure.accept(task.getException()));
+        AppTaskExecutor.execute(task, taskFailure);
     }
 
     private void showMapping(ZnackGtinInventorySummary summary) {
@@ -333,13 +374,14 @@ public class KizMappingController {
             setLoading(false);
             refresh();
         });
-        task.setOnFailed(e -> {
+        java.util.function.Consumer<Throwable> taskFailure = rejection -> {
             if (generation != shopGeneration) return;
             setLoading(false);
-            AlertService.showError(friendlyError(task.getException()));
+            AlertService.showError(friendlyError(rejection));
             refresh();
-        });
-        AppTaskExecutor.execute(task);
+        };
+        task.setOnFailed(e -> taskFailure.accept(task.getException()));
+        AppTaskExecutor.execute(task, taskFailure);
     }
 
     private void runBackground(Runnable action) {
@@ -350,7 +392,7 @@ public class KizMappingController {
         task.setOnSucceeded(e -> {
             if (generation == shopGeneration) refresh();
         });
-        AppTaskExecutor.execute(task);
+        AppTaskExecutor.execute(task,error->{if(generation==shopGeneration)AlertService.showError(friendlyError(error));});
     }
 
     private void setLoading(boolean loading) {
@@ -485,7 +527,9 @@ public class KizMappingController {
                 : new CryptoProSignatureProvider(settings.cryptcpPath(), settings.signerCertificate(),
                 Duration.ofSeconds(settings.resolvedCryptoProTimeoutSeconds()));
         ZnackApiClient api = new ZnackApiClient();
-        new ZnackProductService(api, new ZnackAuthService(api, signer), repository).sync(settings);
+        var sourceShop=new com.vncode.app.features.shop.ShopRepository().findById(repository.shop().shopId());
+        if(sourceShop==null)throw new IllegalStateException("SHOP_CREDENTIALS_UNAVAILABLE");
+        new com.vncode.app.features.sync.ZnackCatalogSyncService().refresh(sourceShop,false,p->{});
         ZnackPurchaseCoordinator.create(repository).resumeEligibleIntroductionsAsync(settings);
     }
 

@@ -15,6 +15,38 @@ import javafx.scene.control.ToggleGroup;
 import java.util.function.Consumer;
 
 public class ShopSidebarController {
+    @FXML private javafx.scene.layout.VBox sidebarRoot;
+    @FXML private Label sidebarTitle;
+    private boolean compact;private Boolean compactOverride;private double viewportWidth;
+    @FXML private Button sidebarToggleButton;
+    private MenuItem automaticLayoutItem;
+    @FXML private void onToggleSidebar(){compactOverride=!compact;setViewportWidth(viewportWidth);}
+    public void resetSidebarLayout(){compactOverride=null;setViewportWidth(viewportWidth);}
+
+    private final java.util.Map<javafx.scene.control.ButtonBase,String> fullLabels=new java.util.HashMap<>();
+    public void setViewportWidth(double width){viewportWidth=width;compact=compactOverride!=null?compactOverride:width>0&&width<1240;applyCompact();}
+    private void applyCompact(){if(sidebarRoot==null)return;double width=compact?64:224;sidebarRoot.setMinWidth(width);sidebarRoot.setMaxWidth(width);sidebarRoot.setPrefWidth(width);if(compact&&!sidebarRoot.getStyleClass().contains("sidebar-compact"))sidebarRoot.getStyleClass().add("sidebar-compact");else if(!compact)sidebarRoot.getStyleClass().remove("sidebar-compact");sidebarTitle.setVisible(!compact);sidebarTitle.setManaged(!compact);if(toolsPane!=null){toolsPane.setMinWidth(0);toolsPane.setText(compact?"":I18nService.getInstance().tr("sidebar.tools"));toolsPane.setAccessibleText(I18nService.getInstance().tr("sidebar.tools"));toolsPane.setGraphic(compact?new org.kordamp.ikonli.javafx.FontIcon("fth-more-horizontal"):null);}compactButtons(sidebarRoot);editionStatusLabel.setVisible(!compact);editionStatusLabel.setManaged(!compact);
+        if(sidebarToggleButton!=null){String text=I18nService.getInstance().tr(compact?"sidebar.expand":"sidebar.collapse");sidebarToggleButton.setTooltip(new javafx.scene.control.Tooltip(text));sidebarToggleButton.setAccessibleText(text);((org.kordamp.ikonli.javafx.FontIcon)sidebarToggleButton.getGraphic()).setIconLiteral(compact?"fth-chevrons-right":"fth-chevrons-left");}
+    }
+    private void compactButtons(javafx.scene.Parent parent){for(var n:parent.getChildrenUnmodifiable()){
+        if(n instanceof javafx.scene.control.ButtonBase button&&button!=sidebarToggleButton){if(!button.getText().isBlank())fullLabels.put(button,button.getText());button.setTooltip(new javafx.scene.control.Tooltip(fullLabels.getOrDefault(button,"")));button.setAccessibleText(fullLabels.getOrDefault(button,""));button.setMinWidth(0);button.setPrefWidth(javafx.scene.layout.Region.USE_COMPUTED_SIZE);button.setContentDisplay(compact?javafx.scene.control.ContentDisplay.GRAPHIC_ONLY:javafx.scene.control.ContentDisplay.LEFT);button.setText(compact?"":fullLabels.getOrDefault(button,button.getText()));}
+        if(n instanceof javafx.scene.Parent child)compactButtons(child);
+        if(n instanceof javafx.scene.control.ScrollPane scroll&&scroll.getContent() instanceof javafx.scene.Parent content)compactButtons(content);
+        if(n instanceof javafx.scene.control.TitledPane titled&&titled.getContent() instanceof javafx.scene.Parent content)compactButtons(content);
+    }}
+
+    @FXML private Button listingCopyButton;
+    private Runnable onListingCopy;
+    public void setOnListingCopy(Runnable callback){onListingCopy=callback;}
+    @FXML private void onListingCopy(){if(onListingCopy!=null)onListingCopy.run();}
+    @FXML private MenuItem translationMenuItem;
+    private Runnable onTranslationSettings;
+    public void setOnTranslationSettings(Runnable action){onTranslationSettings=action;}
+    @FXML private void onTranslationSettings(){if(onTranslationSettings!=null)onTranslationSettings.run();}
+    @FXML private Button productsButton;
+    private Runnable onProducts;
+    public void setOnProducts(Runnable action){onProducts=action;}
+    @FXML private void onProducts(){if(onProducts!=null)onProducts.run();}
     @FXML private Button guidesButton;
     private Runnable onGuides;
     public void setOnGuides(Runnable action){onGuides=action;}
@@ -24,15 +56,19 @@ public class ShopSidebarController {
     private Runnable onFinance;
     public void setOnFinance(Runnable action){onFinance=action;}
     @FXML private void onFinance(){if(onFinance!=null)onFinance.run();}
-    public void selectNavigation(String id){for(Button button:java.util.List.of(dashboardButton,packingButton,fboPackingButton,templateButton,kizMappingButton,znackRegistrationButton,znackAutomationButton,btnPrintHistory,gtinSyncButton,tnvedButton,fboOrdersButton,financeButton,guidesButton)){button.getStyleClass().remove("nav-selected");if(id.equals(button.getId()))button.getStyleClass().add("nav-selected");}}
+    public void selectNavigation(String id){for(Button button:java.util.List.of(listingCopyButton,productsButton,dashboardButton,packingButton,fboPackingButton,templateButton,kizMappingButton,znackRegistrationButton,znackAutomationButton,btnPrintHistory,gs1Button,fboOrdersButton,financeButton,guidesButton,tnvedButton)){button.getStyleClass().remove("nav-selected");if(id.equals(button.getId()))button.getStyleClass().add("nav-selected");}}
     @FXML private Button tnvedButton;
     private Runnable onTnved;
-    public void setOnTnved(Runnable action) { onTnved=action; }
-    @FXML private void onTnved() { if(onTnved!=null)onTnved.run(); }
-    @FXML private Button gtinSyncButton;
-    private Runnable onGtinSync;
-    public void setOnGtinSync(Runnable action) { onGtinSync = action; }
-    @FXML private void onGtinSync() { if (onGtinSync != null) onGtinSync.run(); }
+    public void setOnTnved(Runnable action){onTnved=action;}
+    @FXML private void onTnved(){if(onTnved!=null)onTnved.run();}
+    @FXML private Button gs1Button;
+    private Runnable onGs1;
+    private int gs1Unread;
+    private boolean gs1Attention;
+    public void setOnGs1(Runnable action){onGs1=action;}
+    public void setGs1Unread(int count){gs1Unread=Math.max(0,count);if(gs1Button!=null)gs1Button.setText(" "+I18nService.getInstance().tr("gs1.title")+(gs1Attention?" !":"")+(gs1Unread>0?" ("+gs1Unread+")":""));if(sidebarRoot!=null)applyCompact();}
+    public void setGs1Attention(boolean required){gs1Attention=required;setGs1Unread(gs1Unread);}
+    @FXML private void onGs1(){if(onGs1!=null)onGs1.run();}
     @FXML
     private Button dashboardButton;
     @FXML
@@ -67,6 +103,7 @@ public class ShopSidebarController {
     private RadioMenuItem languageViMenuItem;
     @FXML
     private Menu themeMenu;
+    @FXML private MenuItem glassSettingsMenuItem;
     @FXML
     private RadioMenuItem themeDarkMenuItem;
     @FXML
@@ -96,9 +133,29 @@ public class ShopSidebarController {
     private Consumer<AppLanguage> onLanguageChanged;
     private Consumer<String> onThemeChanged;
     private Marketplace marketplace = Marketplace.WILDBERRIES;
+    private com.vncode.app.features.license.LicenseModels.Status licenseStatus =
+            com.vncode.app.features.license.LicenseModels.Status.UNREGISTERED;
+
+    public void setLicenseStatus(com.vncode.app.features.license.LicenseModels.Status status) {
+        licenseStatus = status == null ? com.vncode.app.features.license.LicenseModels.Status.UNREGISTERED : status;
+        renderLicenseStatus();
+    }
+
+    private void renderLicenseStatus() {
+        if (editionStatusLabel == null) return;
+        editionStatusLabel.setText(com.vncode.app.ui.license.LicensePane.statusText(licenseStatus));
+        editionStatusLabel.setWrapText(true);
+        editionStatusLabel.getStyleClass().removeAll("text-danger", "text-secondary");
+        switch (licenseStatus) {
+            case EXPIRED, DENIED, UNVERIFIED -> editionStatusLabel.getStyleClass().add("text-danger");
+            default -> editionStatusLabel.getStyleClass().add("text-secondary");
+        }
+        editionStatusLabel.setStyle("");
+    }
 
     @FXML
     private void initialize() {
+        automaticLayoutItem=new MenuItem();automaticLayoutItem.setOnAction(e->resetSidebarLayout());sidebarToggleButton.setContextMenu(new javafx.scene.control.ContextMenu(automaticLayoutItem));
         ToggleGroup languageGroup = new ToggleGroup();
         languageRuMenuItem.setToggleGroup(languageGroup);
         languageEnMenuItem.setToggleGroup(languageGroup);
@@ -173,6 +230,8 @@ public class ShopSidebarController {
         this.onThemeChanged = onThemeChanged;
     }
 
+    @FXML private void onGlassSettings(){com.vncode.app.ui.GlassSettingsDialog.show();}
+
     public void setSelectedTheme(String themeName) {
         if ("light".equalsIgnoreCase(themeName)) {
             themeLightMenuItem.setSelected(true);
@@ -210,6 +269,8 @@ public class ShopSidebarController {
     }
 
     public void applyTranslations() {
+        tnvedButton.setText(" "+I18nService.getInstance().tr("tnved.title"));
+        if(automaticLayoutItem!=null)automaticLayoutItem.setText(I18nService.getInstance().tr("sidebar.automatic"));
         I18nService i18n = I18nService.getInstance();
         templateButton.setText(" " + i18n.tr("sidebar.template"));
         addShopButton.setText(" " + i18n.tr("sidebar.add_shop"));
@@ -219,22 +280,25 @@ public class ShopSidebarController {
         fboPackingButton.setText(" " + i18n.tr("sidebar.fbo_packing"));
         fboOrdersButton.setText(" " + i18n.tr("sidebar.fbo_orders"));
         kizMappingButton.setText(" " + i18n.tr("sidebar.kiz_mapping"));
-        gtinSyncButton.setText(" " + i18n.tr("gtinsync.sidebar"));
         znackAutomationButton.setText(" " + i18n.tr("sidebar.znack_automation"));
         znackRegistrationButton.setText(" " + i18n.tr("sidebar.znack_registration"));
         settingsMenuButton.setText(" " + i18n.tr("settings.menu"));
         languageMenu.setText(i18n.tr("sidebar.language"));
         themeMenu.setText(i18n.tr("settings.theme"));
+        glassSettingsMenuItem.setText(i18n.tr("settings.glass.title"));
         themeDarkMenuItem.setText(i18n.tr("settings.theme.dark"));
         themeLightMenuItem.setText(i18n.tr("settings.theme.light"));
         checkVersionMenuItem.setText(i18n.tr("settings.check_version"));
-        personalEditionMenuItem.setText(i18n.tr("edition.personal"));
+        personalEditionMenuItem.setText(i18n.tr("license.account.title"));
         aboutMenuItem.setText(i18n.tr("settings.about"));
         applyMarketplaceTexts();
-        financeButton.setText(i18n.tr("sidebar.finance"));toolsPane.setText(i18n.tr("sidebar.tools"));tnvedButton.setText(i18n.tr("sidebar.tnved"));
+        financeButton.setText(i18n.tr("sidebar.finance"));toolsPane.setText(i18n.tr("sidebar.tools"));setGs1Unread(gs1Unread);
+        translationMenuItem.setText(i18n.tr("news.translation_settings"));
+        productsButton.setText(" "+i18n.tr("products.title"));
+        listingCopyButton.setText(i18n.tr("copy.title"));
         guidesButton.setText(i18n.tr("guides.title"));
-        editionStatusLabel.setText("• " + i18n.tr("edition.personal"));
-        editionStatusLabel.setStyle("-fx-text-fill: #22c55e; -fx-font-weight: 700;");
+        renderLicenseStatus();
+        applyCompact();
     }
 
     private void applyMarketplaceTexts() {

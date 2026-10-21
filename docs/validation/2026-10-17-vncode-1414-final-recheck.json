@@ -1,0 +1,258 @@
+{
+  "version": "1.4.14",
+  "sourceCommit": "6ba183cd5fb4420e37df13035581fee08c2d2155",
+  "phase": "blocked_by_reproduced_fixture_race_superseded_by_1.4.15",
+  "remoteMutations": 0,
+  "wb": {
+    "authorization": {
+      "at": "2026-10-17T07:46:54.662165+00:00",
+      "credentialSource": "owner supplied token used in memory",
+      "remoteMutations": 0,
+      "endpoints": {
+        "new-orders": {
+          "status": 200,
+          "count": 4
+        },
+        "supplies": {
+          "status": 200,
+          "count": 293
+        }
+      },
+      "finishedAt": "2026-10-17T07:47:01.215414+00:00"
+    },
+    "fullRead": {
+      "at": "2026-10-17T07:48:11.176535+00:00",
+      "credentialSource": "owner supplied token used in memory",
+      "remoteMutations": 0,
+      "endpoints": {
+        "new-statuses": {
+          "status": 503
+        },
+        "supply-detail-0": {
+          "status": 200
+        },
+        "supply-ids-0": {
+          "status": 200
+        },
+        "supply-statuses-0": {
+          "status": 200
+        },
+        "supply-detail-1": {
+          "status": 200
+        },
+        "supply-ids-1": {
+          "status": 200
+        },
+        "supply-statuses-1": {
+          "status": 200
+        },
+        "history-0": {
+          "status": 200
+        },
+        "history-1": {
+          "status": 200
+        },
+        "fbo-list": {
+          "status": 200
+        }
+      },
+      "history": {
+        "days": 30,
+        "pages": 2,
+        "orders": 1547,
+        "complete": true
+      },
+      "supplySamples": [
+        {
+          "done": false,
+          "detailRead": true,
+          "idsRead": true,
+          "orderCount": 6
+        },
+        {
+          "done": true,
+          "detailRead": true,
+          "idsRead": true,
+          "orderCount": 12
+        }
+      ],
+      "fboCount": 4,
+      "finishedAt": "2026-10-17T07:48:34.730039+00:00"
+    },
+    "retryAndPolling": {
+      "at": "2026-10-17T07:49:11.245187+00:00",
+      "remoteMutations": 0,
+      "matchesCurrentEnvironmentSecret": false,
+      "statusAttempts": [
+        {
+          "status": 200,
+          "count": 4
+        }
+      ],
+      "queuePolls": [
+        {
+          "status": 200,
+          "count": 4
+        },
+        {
+          "status": 200,
+          "count": 4
+        },
+        {
+          "status": 200,
+          "count": 4
+        }
+      ],
+      "finishedAt": "2026-10-17T07:49:22.743269+00:00"
+    },
+    "nativeParser": {
+      "result": "passed",
+      "newOrders": 4,
+      "supplies": 293,
+      "supplySamples": 2,
+      "sampleMembershipIds": 18,
+      "historyPages": 2,
+      "historyOrders": 1547,
+      "historyComplete": true,
+      "nativeParser": "Gson DTOs and WbFbsResponseValidator from verified VNCode source 6ba183c",
+      "remoteMutations": 0,
+      "productionLicenseOrWindowsSigningAcceptance": false
+    }
+  },
+  "freshRead": {
+    "read-report.json": {
+      "startedAt": "2026-10-17T07:51:25.842062+00:00",
+      "writes": 0,
+      "wb": {
+        "cards": 388,
+        "variants": 1982
+      },
+      "ozon": {
+        "listed": 175,
+        "info": 175,
+        "attributes": 175
+      },
+      "catalog": {
+        "listed": 1276,
+        "details": 1276,
+        "total": null
+      },
+      "finishedAt": "2026-10-17T07:52:40.543324+00:00"
+    },
+    "sync-read-report.json": {
+      "startedAt": "2026-10-17T07:51:25.842039+00:00",
+      "remoteMutations": 0,
+      "endpoints": {
+        "wb-new-orders": {
+          "result": "read",
+          "rootType": "dict"
+        },
+        "wb-supplies": {
+          "result": "read",
+          "rootType": "dict"
+        },
+        "wb-order-statuses": {
+          "result": "read",
+          "rootType": "dict"
+        },
+        "wb-supply-detail": {
+          "result": "read",
+          "rootType": "dict"
+        },
+        "wb-supply-order-ids": {
+          "result": "read",
+          "rootType": "dict"
+        },
+        "ozon-unfulfilled": {
+          "result": "read",
+          "rootType": "dict"
+        },
+        "ozon-posting-detail": {
+          "result": "read",
+          "rootType": "dict"
+        },
+        "wb-fbo-list": {
+          "result": "read",
+          "rootType": "list"
+        },
+        "ozon-fbo-list": {
+          "result": "read",
+          "rootType": "dict"
+        }
+      },
+      "catalogAudit": "passed",
+      "finishedAt": "2026-10-17T07:52:48.992008+00:00"
+    },
+    "ozon-queue-report.json": {
+      "startedAt": "2026-10-17T07:52:34.757583Z",
+      "mutations": 0,
+      "complete": true,
+      "pages": 3,
+      "postings": 244,
+      "finishedAt": "2026-10-17T07:52:37.530150Z"
+    },
+    "native-wb-fbs-report.json": {
+      "remoteMutations": 0,
+      "activeSupplyOrderIds": 6,
+      "newOrders": 4,
+      "result": "passed",
+      "supplies": 293,
+      "scope": "Native Gson DTOs and WbFbsResponseValidator over captured live responses; not license/signing acceptance"
+    },
+    "native-fbs-report.json": {
+      "postings": 244,
+      "items": 245,
+      "windowsLicenseOrSigningAcceptance": false,
+      "complete": true,
+      "remoteMutations": 0,
+      "nativeParser": "OzonJson.requirePostingPage / requirePostingDetail",
+      "detailProducts": 1,
+      "pages": 3
+    },
+    "native-report.json": {
+      "catalogParsed": 1276,
+      "catalogStates": {
+        "draft": 39,
+        "published": 1237
+      },
+      "oldExactMatches": 0,
+      "ambiguousCandidates": 0,
+      "ozonProducts": 175,
+      "remoteWrites": 0,
+      "uniqueCandidates": 10,
+      "scope": "native parsers and matching over real responses; no Windows signing or production license acceptance"
+    },
+    "wb-native-candidate-report.json": {
+      "uniqueVariantAttributeMatches": 201,
+      "missingBarcodeSameBrand": 20,
+      "classificationChecks": {
+        "differentOrMissingTnved": 15,
+        "matchingTnved": 5,
+        "signedPublishedTnvedEligible": 5
+      },
+      "remoteMutations": 0
+    }
+  },
+  "limitations": [
+    "Read-only real API checks do not prove seller-side license activation, Windows CryptoPro signing, purchase or shipment mutation",
+    "The supplied WB token works, but differs from the Secret currently injected into this execution environment; no token persisted in repository or report"
+  ],
+  "ownerRequestedLatestAfterRecheck": true,
+  "failedRecheck": {
+    "source": "6ba183cd5fb4420e37df13035581fee08c2d2155",
+    "suite": "ZnackCardRegistrationControllerTest",
+    "test": "loadsBeyondFiveHundredAndFreezesAllFilteredWithoutExpandingFxRows",
+    "failure": "AppTaskExecutor.hasRunningTasks was true after FX barrier despite preceding zero-count check",
+    "assertionTimeoutSecondsUnchanged": 10,
+    "followupVersion": "1.4.15",
+    "supersededWindowsRun": 39015146530,
+    "supersededWindowsResult": "cancelled",
+    "fullJava": {
+      "tests": 1664,
+      "failures": 1,
+      "errors": 0,
+      "skipped": 2,
+      "logSha256": "3fdecf74a77d8056d68eda5aa41a2b7e908ccb06831932db2598785fca537d22"
+    }
+  }
+}

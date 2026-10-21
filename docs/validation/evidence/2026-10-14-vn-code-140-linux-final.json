@@ -1,0 +1,13 @@
+{
+  "tests": 1177,
+  "failures": 0,
+  "errors": 0,
+  "skipped": 2,
+  "passed": 1175,
+  "sourceCommit": "304c38fea659d100743eb0ed2611ec19b4b8f084",
+  "reportFiles": 204,
+  "nodePassed": 46,
+  "platform": "Linux cloud",
+  "heapMiB": 768,
+  "jarSha256": "75e29d18c06f71a19d8c1a0da67d5970360f1e2f40a839ab1bb1498a86da11e2"
+}

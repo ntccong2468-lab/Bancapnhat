@@ -78,16 +78,17 @@ public final class ZnackInsufficientFundsDialogService {
             }
         };
         task.setOnSucceeded(event -> run(refresh));
-        task.setOnFailed(event -> {
+        java.util.function.Consumer<Throwable> taskFailure = rejection -> {
             PROMPTED_PIPELINES.remove(promptKey);
-            Throwable error = task.getException();
+            Throwable error = rejection;
             String message = error == null ? "" : error.getMessage();
             if (!ZnackErrorMessages.isInsufficientFunds(message)) {
                 AlertService.showError(ZnackErrorMessages.display(message));
             }
             run(refresh);
-        });
-        AppTaskExecutor.execute(task);
+        };
+        task.setOnFailed(event -> taskFailure.accept(task.getException()));
+        AppTaskExecutor.execute(task, taskFailure);
     }
 
     private static String promptKey(ZnackRepository repository, long pipelineId) {

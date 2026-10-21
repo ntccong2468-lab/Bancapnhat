@@ -1,0 +1,2336 @@
+{
+  "method": "Final per test case; 42-class completed run, affected-class rerun, then only the two corrected fixture methods/classes. Partial performance-aborted first attempt is not accepted.",
+  "logs": [
+    "/tmp/vncode-master-F-tests.log",
+    "/tmp/vncode-master-F-rerun.log",
+    "/tmp/vncode-master-F-final.log",
+    "/tmp/vncode-master-F-fixtures-final.log"
+  ],
+  "final": {
+    "classes": 42,
+    "tests": 386,
+    "passed": 386,
+    "failed": 0,
+    "error": 0,
+    "skipped": 0
+  },
+  "cases": [
+    {
+      "class": "com.vncode.app.features.catalogsync.CatalogProductDataParserTest",
+      "method": "actualCatalogCardLifecycleFieldsAreStoredWithoutInventingFeedOrSignatureIdentities",
+      "result": "passed",
+      "seconds": 0.0
+    },
+    {
+      "class": "com.vncode.app.features.catalogsync.CatalogProductDataParserTest",
+      "method": "actualRemoteCardIdentityIsPreservedAsLocalMetadataWithoutBorrowingOtherIds",
+      "result": "passed",
+      "seconds": 0.001
+    },
+    {
+      "class": "com.vncode.app.features.catalogsync.CatalogProductDataParserTest",
+      "method": "documentedNumericIdsRestoreArticleMaterialAndFullCustomsCodeWithoutLosingConflicts",
+      "result": "passed",
+      "seconds": 0.001
+    },
+    {
+      "class": "com.vncode.app.features.catalogsync.CatalogProductDataParserTest",
+      "method": "explicitCatalogSizeSystemIsPreservedWithoutConvertingTheSize",
+      "result": "passed",
+      "seconds": 0.001
+    },
+    {
+      "class": "com.vncode.app.features.catalogsync.CatalogProductDataParserTest",
+      "method": "explicitSignedFlagIsPreservedAndMalformedFlagsStayUnknown",
+      "result": "passed",
+      "seconds": 0.0
+    },
+    {
+      "class": "com.vncode.app.features.catalogsync.CatalogProductDataParserTest",
+      "method": "feedDocumentLegacyFormatStaysSeparateFromOrdinaryAttributes",
+      "result": "passed",
+      "seconds": 0.0
+    },
+    {
+      "class": "com.vncode.app.features.catalogsync.CatalogProductDataParserTest",
+      "method": "malformedRemoteIdsCannotBecomeTrustedCatalogIdentity",
+      "result": "passed",
+      "seconds": 0.0
+    },
+    {
+      "class": "com.vncode.app.features.catalogsync.CatalogProductDataParserTest",
+      "method": "pendingRegistryAndUnrecognizedResponseCannotAuthorizeDocumentSync",
+      "result": "passed",
+      "seconds": 0.001
+    },
+    {
+      "class": "com.vncode.app.features.catalogsync.CatalogProductDataParserTest",
+      "method": "registryKeepsOnlyActiveDocumentAndDoesNotBorrowDatesFromOtherPapers",
+      "result": "passed",
+      "seconds": 0.001
+    },
+    {
+      "class": "com.vncode.app.features.catalogsync.CatalogProductDataParserTest",
+      "method": "uiCardDocumentsKeepDatesAndNeverInventExpiryOrInfiniteStatus",
+      "result": "passed",
+      "seconds": 0.0
+    },
+    {
+      "class": "com.vncode.app.features.catalogsync.CatalogProductDataParserTest",
+      "method": "uiDictionaryDisplayNamesAreUsedInsteadOfInternalCatalogValueIds",
+      "result": "passed",
+      "seconds": 0.0
+    },
+    {
+      "class": "com.vncode.app.features.catalogsync.CatalogSyncServiceTest",
+      "method": "aBlockedSiblingStopsTheSharedCardPatchForEveryVariant",
+      "result": "passed",
+      "seconds": 0.041
+    },
+    {
+      "class": "com.vncode.app.features.catalogsync.CatalogSyncServiceTest",
+      "method": "changedNoOpTargetRequiresAnotherPreviewWithoutSendingGtin",
+      "result": "passed",
+      "seconds": 0.05
+    },
+    {
+      "class": "com.vncode.app.features.catalogsync.CatalogSyncServiceTest",
+      "method": "currentCatalogRevocationIsReadAgainBeforeAnyMarketplaceWrite",
+      "result": "passed",
+      "seconds": 0.069
+    },
+    {
+      "class": "com.vncode.app.features.catalogsync.CatalogSyncServiceTest",
+      "method": "explicitSellerOverrideIsFrozenAndDoesNotRewriteCatalogProof",
+      "result": "passed",
+      "seconds": 0.09
+    },
+    {
+      "class": "com.vncode.app.features.catalogsync.CatalogSyncServiceTest",
+      "method": "foreignSelectionIsRejectedBeforeAnyCatalogRefreshOrAdapterRead",
+      "result": "passed",
+      "seconds": 0.04
+    },
+    {
+      "class": "com.vncode.app.features.catalogsync.CatalogSyncServiceTest",
+      "method": "freshCatalogReadFailureBeforeDispatchPreservesCacheAndSendsNothing",
+      "result": "passed",
+      "seconds": 0.051
+    },
+    {
+      "class": "com.vncode.app.features.catalogsync.CatalogSyncServiceTest",
+      "method": "gtinCohortReadsCardsWithoutBlanketRegistryRequestsWhileDocumentScopeStillRequestsThem",
+      "result": "passed",
+      "seconds": 0.105
+    },
+    {
+      "class": "com.vncode.app.features.catalogsync.CatalogSyncServiceTest",
+      "method": "isolatedQueueOzon",
+      "result": "passed",
+      "seconds": 0.132
+    },
+    {
+      "class": "com.vncode.app.features.catalogsync.CatalogSyncServiceTest",
+      "method": "isolatedQueueWb",
+      "result": "passed",
+      "seconds": 0.135
+    },
+    {
+      "class": "com.vncode.app.features.catalogsync.CatalogSyncServiceTest",
+      "method": "lostRepliesOzon",
+      "result": "passed",
+      "seconds": 0.18
+    },
+    {
+      "class": "com.vncode.app.features.catalogsync.CatalogSyncServiceTest",
+      "method": "lostRepliesWb",
+      "result": "passed",
+      "seconds": 0.154
+    },
+    {
+      "class": "com.vncode.app.features.catalogsync.CatalogSyncServiceTest",
+      "method": "metadataBeforeGtinOzon",
+      "result": "passed",
+      "seconds": 0.155
+    },
+    {
+      "class": "com.vncode.app.features.catalogsync.CatalogSyncServiceTest",
+      "method": "metadataBeforeGtinWb",
+      "result": "passed",
+      "seconds": 0.156
+    },
+    {
+      "class": "com.vncode.app.features.catalogsync.CatalogSyncServiceTest",
+      "method": "ozonChangedGroupCannotPreviewOldRegisteredGtin",
+      "result": "passed",
+      "seconds": 0.032
+    },
+    {
+      "class": "com.vncode.app.features.catalogsync.CatalogSyncServiceTest",
+      "method": "selectedRefreshRejectsMissingDuplicateAndForeignCardsBeforeMerge",
+      "result": "passed",
+      "seconds": 0.032
+    },
+    {
+      "class": "com.vncode.app.features.catalogsync.CatalogSyncServiceTest",
+      "method": "sevenArgumentProductionConstructorCannotSilentlySkipTheFreshCatalogGate",
+      "result": "passed",
+      "seconds": 0.036
+    },
+    {
+      "class": "com.vncode.app.features.catalogsync.CatalogSyncServiceTest",
+      "method": "sourceAndOwnerScopeOzon",
+      "result": "passed",
+      "seconds": 0.105
+    },
+    {
+      "class": "com.vncode.app.features.catalogsync.CatalogSyncServiceTest",
+      "method": "sourceAndOwnerScopeWb",
+      "result": "passed",
+      "seconds": 0.058
+    },
+    {
+      "class": "com.vncode.app.features.catalogsync.CatalogSyncServiceTest",
+      "method": "tnvedGroupIsRecheckedAfterPreviewBeforeDispatch",
+      "result": "passed",
+      "seconds": 0.054
+    },
+    {
+      "class": "com.vncode.app.features.catalogsync.CatalogSyncServiceTest",
+      "method": "wbChangedGroupCannotPreviewOldRegisteredGtin",
+      "result": "passed",
+      "seconds": 0.036
+    },
+    {
+      "class": "com.vncode.app.features.gtinsync.GtinCatalogIndexTest",
+      "method": "automaticIndexAndManualMatchingUseTheSameCatalogArticleRules",
+      "result": "passed",
+      "seconds": 0.0
+    },
+    {
+      "class": "com.vncode.app.features.gtinsync.GtinCatalogIndexTest",
+      "method": "indexesNormalizedArticlesWithoutInventingPunctuationOrSizeEquivalence",
+      "result": "passed",
+      "seconds": 0.002
+    },
+    {
+      "class": "com.vncode.app.features.gtinsync.GtinCatalogIndexTest",
+      "method": "missingAttributesDraftsAndAmbiguousMatchesDoNotSelectAnArbitraryGtin",
+      "result": "passed",
+      "seconds": 0.0
+    },
+    {
+      "class": "com.vncode.app.features.gtinsync.GtinCatalogIndexTest",
+      "method": "ozonAutomaticIndexUsesSellerSkuSizeWithoutChangingTheWbArticleRules",
+      "result": "passed",
+      "seconds": 0.002
+    },
+    {
+      "class": "com.vncode.app.features.gtinsync.GtinCatalogIndexTest",
+      "method": "registrationLookupCanDetectDraftsAndUnknownPackagingWithoutMakingThemEligibleForWrites",
+      "result": "passed",
+      "seconds": 0.0
+    },
+    {
+      "class": "com.vncode.app.features.gtinsync.GtinCatalogIndexTest",
+      "method": "russianSizeRequiresTheCatalogTypeAndTheMarketplaceExplicitRussianSize",
+      "result": "passed",
+      "seconds": 0.001
+    },
+    {
+      "class": "com.vncode.app.features.gtinsync.GtinMatchingServiceTest",
+      "method": "blocksMissingAttributesDraftsPackagingAndAmbiguity",
+      "result": "passed",
+      "seconds": 0.001
+    },
+    {
+      "class": "com.vncode.app.features.gtinsync.GtinMatchingServiceTest",
+      "method": "charactersRemovedByCatalogDoNotCauseFalseDifferentProductButCollisionsStayAmbiguous",
+      "result": "passed",
+      "seconds": 0.005
+    },
+    {
+      "class": "com.vncode.app.features.gtinsync.GtinMatchingServiceTest",
+      "method": "matchesExactlyAndKeepsUnrelatedBarcodes",
+      "result": "passed",
+      "seconds": 0.0
+    },
+    {
+      "class": "com.vncode.app.features.gtinsync.GtinMatchingServiceTest",
+      "method": "neverInfersModelPunctuationOrSizeConversion",
+      "result": "passed",
+      "seconds": 0.001
+    },
+    {
+      "class": "com.vncode.app.features.gtinsync.GtinMatchingServiceTest",
+      "method": "validatesIdentityAndCopiesCollections",
+      "result": "passed",
+      "seconds": 0.0
+    },
+    {
+      "class": "com.vncode.app.features.gtinsync.GtinPreviewServiceTest",
+      "method": "anAdapterWithoutCurrentPhysicalVariantProofFailsClosed",
+      "result": "passed",
+      "seconds": 0.035
+    },
+    {
+      "class": "com.vncode.app.features.gtinsync.GtinPreviewServiceTest",
+      "method": "blocksStaleCatalogAndExistingNewCode",
+      "result": "passed",
+      "seconds": 0.06
+    },
+    {
+      "class": "com.vncode.app.features.gtinsync.GtinPreviewServiceTest",
+      "method": "blocksUnsupportedAndUnregisteredOperations",
+      "result": "passed",
+      "seconds": 0.032
+    },
+    {
+      "class": "com.vncode.app.features.gtinsync.GtinPreviewServiceTest",
+      "method": "canonicalEquivalentExistingBarcodeCannotBeAddedAgain",
+      "result": "passed",
+      "seconds": 0.042
+    },
+    {
+      "class": "com.vncode.app.features.gtinsync.GtinPreviewServiceTest",
+      "method": "legacyPublishedFlagWithoutActualCardIdentityCannotCreateAPreview",
+      "result": "passed",
+      "seconds": 0.036
+    },
+    {
+      "class": "com.vncode.app.features.gtinsync.GtinPreviewServiceTest",
+      "method": "validatesReplacementAndPreservesUnrelatedBarcode",
+      "result": "passed",
+      "seconds": 0.035
+    },
+    {
+      "class": "com.vncode.app.features.gtinsync.GtinProductReaderTest",
+      "method": "ozonBindsProductAndOfferIdentity",
+      "result": "passed",
+      "seconds": 0.076
+    },
+    {
+      "class": "com.vncode.app.features.gtinsync.GtinProductReaderTest",
+      "method": "wbReadsExactSizeAndStableFingerprint",
+      "result": "passed",
+      "seconds": 0.005
+    },
+    {
+      "class": "com.vncode.app.features.gtinsync.GtinSyncCoordinatorTest",
+      "method": "actualDispatchTimeSurvivesUnknownResponseAndRestartWithoutFreshMutationReads",
+      "result": "passed",
+      "seconds": 0.069
+    },
+    {
+      "class": "com.vncode.app.features.gtinsync.GtinSyncCoordinatorTest",
+      "method": "asyncRejectionIsRecordedWithoutRetry",
+      "result": "passed",
+      "seconds": 0.053
+    },
+    {
+      "class": "com.vncode.app.features.gtinsync.GtinSyncCoordinatorTest",
+      "method": "cancelCancelsValidationThatHasNotSent",
+      "result": "passed",
+      "seconds": 0.039
+    },
+    {
+      "class": "com.vncode.app.features.gtinsync.GtinSyncCoordinatorTest",
+      "method": "changedProductOrCapabilityStopsBeforeSending",
+      "result": "passed",
+      "seconds": 0.045
+    },
+    {
+      "class": "com.vncode.app.features.gtinsync.GtinSyncCoordinatorTest",
+      "method": "definitiveRejectionAllowsExplicitNewConfirmation",
+      "result": "passed",
+      "seconds": 0.111
+    },
+    {
+      "class": "com.vncode.app.features.gtinsync.GtinSyncCoordinatorTest",
+      "method": "deniedConfirmationCreatesNoNewJob",
+      "result": "passed",
+      "seconds": 0.033
+    },
+    {
+      "class": "com.vncode.app.features.gtinsync.GtinSyncCoordinatorTest",
+      "method": "duplicateConfirmCreatesOneJobAndOneMutation",
+      "result": "passed",
+      "seconds": 0.057
+    },
+    {
+      "class": "com.vncode.app.features.gtinsync.GtinSyncCoordinatorTest",
+      "method": "expiryAfterSendClaimPausesKnownUnsentInsteadOfCreatingAmbiguity",
+      "result": "passed",
+      "seconds": 0.086
+    },
+    {
+      "class": "com.vncode.app.features.gtinsync.GtinSyncCoordinatorTest",
+      "method": "explicitHttp400AfterDispatchIsFailedAndNeverReplayedOnRestart",
+      "result": "passed",
+      "seconds": 0.071
+    },
+    {
+      "class": "com.vncode.app.features.gtinsync.GtinSyncCoordinatorTest",
+      "method": "freshConfirmationAfterUnsentCancellationCreatesNewAttempt",
+      "result": "passed",
+      "seconds": 0.07
+    },
+    {
+      "class": "com.vncode.app.features.gtinsync.GtinSyncCoordinatorTest",
+      "method": "freshSourceFailurePausesOnlyQueuedMutationAndCannotSendOrCreateFalseResult",
+      "result": "passed",
+      "seconds": 0.044
+    },
+    {
+      "class": "com.vncode.app.features.gtinsync.GtinSyncCoordinatorTest",
+      "method": "pauseAndCancelOnlyUnsentItems",
+      "result": "passed",
+      "seconds": 0.043
+    },
+    {
+      "class": "com.vncode.app.features.gtinsync.GtinSyncCoordinatorTest",
+      "method": "pauseArrivingAtSendClaimLeavesItemResumable",
+      "result": "passed",
+      "seconds": 0.082
+    },
+    {
+      "class": "com.vncode.app.features.gtinsync.GtinSyncCoordinatorTest",
+      "method": "progressDisplayFailureDoesNotInterruptMutationOrVerification",
+      "result": "passed",
+      "seconds": 0.056
+    },
+    {
+      "class": "com.vncode.app.features.gtinsync.GtinSyncCoordinatorTest",
+      "method": "queuedJobMustBeCancelledBeforeDeletingItsShop",
+      "result": "passed",
+      "seconds": 0.044
+    },
+    {
+      "class": "com.vncode.app.features.gtinsync.GtinSyncCoordinatorTest",
+      "method": "revocationInsideAcceptedSubmissionStillStoresAndReconcilesResult",
+      "result": "passed",
+      "seconds": 0.056
+    },
+    {
+      "class": "com.vncode.app.features.gtinsync.GtinSyncCoordinatorTest",
+      "method": "timeoutThenRestartReconcilesWithoutResending",
+      "result": "passed",
+      "seconds": 0.071
+    },
+    {
+      "class": "com.vncode.app.features.gtinsync.GtinSyncCoordinatorTest",
+      "method": "unknownRemoteOutcomeKeepsShopAndHistoryUntilReconciled",
+      "result": "passed",
+      "seconds": 0.098
+    },
+    {
+      "class": "com.vncode.app.features.gtinsync.GtinSyncRepositoryTest",
+      "method": "actualTransportBoundaryIsDurableAndPausedOrLegacyClaimsDoNotInventIt",
+      "result": "passed",
+      "seconds": 0.051
+    },
+    {
+      "class": "com.vncode.app.features.gtinsync.GtinSyncRepositoryTest",
+      "method": "deduplicatesConfirmsAndClaimsTransitions",
+      "result": "passed",
+      "seconds": 0.038
+    },
+    {
+      "class": "com.vncode.app.features.gtinsync.GtinSyncRepositoryTest",
+      "method": "migratesVersionTwoWithSnapshotAndPreservesData",
+      "result": "passed",
+      "seconds": 0.086
+    },
+    {
+      "class": "com.vncode.app.features.gtinsync.GtinSyncRepositoryTest",
+      "method": "pauseAtomicallyPreventsSendingAfterValidation",
+      "result": "passed",
+      "seconds": 0.034
+    },
+    {
+      "class": "com.vncode.app.features.gtinsync.GtinSyncRepositoryTest",
+      "method": "productEditClaimBlocksGtinForAllSizes",
+      "result": "passed",
+      "seconds": 0.032
+    },
+    {
+      "class": "com.vncode.app.features.gtinsync.GtinSyncRepositoryTest",
+      "method": "queuesTwoSizesAndSerializesClaimsAtCardLevel",
+      "result": "passed",
+      "seconds": 0.033
+    },
+    {
+      "class": "com.vncode.app.features.gtinsync.GtinSyncRepositoryTest",
+      "method": "rejectsMixedShopJobsAtomically",
+      "result": "passed",
+      "seconds": 0.029
+    },
+    {
+      "class": "com.vncode.app.features.gtinsync.GtinSyncRepositoryTest",
+      "method": "savesInternalMappingWithoutRemoteJob",
+      "result": "passed",
+      "seconds": 0.031
+    },
+    {
+      "class": "com.vncode.app.features.gtinsync.GtinSyncRepositoryTest",
+      "method": "siblingBatchClaimsExcludeAnotherJobEvenAfterRecoveryAndDirectSql",
+      "result": "passed",
+      "seconds": 0.053
+    },
+    {
+      "class": "com.vncode.app.features.gtinsync.GtinSyncRepositoryTest",
+      "method": "storesLeadingZerosAndRejectsWrongMarketplace",
+      "result": "passed",
+      "seconds": 0.032
+    },
+    {
+      "class": "com.vncode.app.features.gtinsync.GtinSyncRepositoryTest",
+      "method": "upgradesTheOldUniqueClaimIndexWithoutChangingExistingJobs",
+      "result": "passed",
+      "seconds": 0.033
+    },
+    {
+      "class": "com.vncode.app.features.gtinsync.GtinTnvedIdentityTest",
+      "method": "acceptsTheVerifiedLiveCardAndOzonDictionaryLabels",
+      "result": "passed",
+      "seconds": 0.001
+    },
+    {
+      "class": "com.vncode.app.features.gtinsync.GtinTnvedIdentityTest",
+      "method": "missingHistoricalMetadataDoesNotReplaceTheOtherExistingIdentityChecks",
+      "result": "passed",
+      "seconds": 0.0
+    },
+    {
+      "class": "com.vncode.app.features.gtinsync.GtinTnvedIdentityTest",
+      "method": "rejectsTheGroupChangeObservedOnTheLiveR21Card",
+      "result": "passed",
+      "seconds": 0.002
+    },
+    {
+      "class": "com.vncode.app.features.gtinsync.OzonSkuGtinMatcherTest",
+      "method": "detectingAnExistingDraftDoesNotMakeItEligibleForGtinWriting",
+      "result": "passed",
+      "seconds": 0.001
+    },
+    {
+      "class": "com.vncode.app.features.gtinsync.OzonSkuGtinMatcherTest",
+      "method": "draftsAmbiguityDifferentBrandAndDifferentProductKindRemainBlocked",
+      "result": "passed",
+      "seconds": 0.001
+    },
+    {
+      "class": "com.vncode.app.features.gtinsync.OzonSkuGtinMatcherTest",
+      "method": "modelNumbersPrefixesAndNumericOzonSkusNeverBecomeFuzzyMatches",
+      "result": "passed",
+      "seconds": 0.0
+    },
+    {
+      "class": "com.vncode.app.features.gtinsync.OzonSkuGtinMatcherTest",
+      "method": "sellerExampleRequiresModelColorAndExplicitRussianSize",
+      "result": "passed",
+      "seconds": 0.001
+    },
+    {
+      "class": "com.vncode.app.features.gtinsync.RegisteredGtinProofTest",
+      "method": "aFreshCardOnlyReadCannotSilentlyEraseKnownSameSourcePermitUncertainty",
+      "result": "passed",
+      "seconds": 0.038
+    },
+    {
+      "class": "com.vncode.app.features.gtinsync.RegisteredGtinProofTest",
+      "method": "anAbsentInlinePermitDoesNotInventAMandatoryDocumentRequirement",
+      "result": "passed",
+      "seconds": 0.061
+    },
+    {
+      "class": "com.vncode.app.features.gtinsync.RegisteredGtinProofTest",
+      "method": "configuredGoodsOwnerCannotChangeToAnotherEnterpriseUnderExistingProof",
+      "result": "passed",
+      "seconds": 0.043
+    },
+    {
+      "class": "com.vncode.app.features.gtinsync.RegisteredGtinProofTest",
+      "method": "existingPermitCannotBeUsedWhileItsExplicitRegistryCheckIsUnavailable",
+      "result": "passed",
+      "seconds": 0.047
+    },
+    {
+      "class": "com.vncode.app.features.gtinsync.RegisteredGtinProofTest",
+      "method": "expiredOrUntestedCertificateCannotProduceScope",
+      "result": "passed",
+      "seconds": 0.05
+    },
+    {
+      "class": "com.vncode.app.features.gtinsync.RegisteredGtinProofTest",
+      "method": "freshPublishedTradeUnitBelongsToExactTestedEnterpriseEnvironmentAndCredentials",
+      "result": "passed",
+      "seconds": 0.059
+    },
+    {
+      "class": "com.vncode.app.features.gtinsync.RegisteredGtinProofTest",
+      "method": "normalizedLeadingZerosNeverLoseUnrelatedBarcodes",
+      "result": "passed",
+      "seconds": 0.216
+    },
+    {
+      "class": "com.vncode.app.features.gtinsync.RegisteredGtinProofTest",
+      "method": "ownerFailureNamesTheFailedConditionWithoutDisclosingCertificateOrAccountValues",
+      "result": "passed",
+      "seconds": 0.035
+    },
+    {
+      "class": "com.vncode.app.features.gtinsync.RegisteredGtinProofTest",
+      "method": "publicationFlagWithoutExactRemoteIdentityAndRawStatusCannotAuthorizeWrites",
+      "result": "passed",
+      "seconds": 0.092
+    },
+    {
+      "class": "com.vncode.app.features.gtinsync.RegisteredGtinProofTest",
+      "method": "rawPublishedIdentityWorksForSingleAndBatchProofWithNoInventedPermitRequirement",
+      "result": "passed",
+      "seconds": 0.046
+    },
+    {
+      "class": "com.vncode.app.features.gtinsync.RegisteredGtinProofTest",
+      "method": "sandboxAndUnverifiedOriginsCannotAuthorizeProductionSellerWrite",
+      "result": "passed",
+      "seconds": 0.065
+    },
+    {
+      "class": "com.vncode.app.features.gtinsync.RegisteredGtinProofTest",
+      "method": "staleUnpublishedOrBoxRowsDoNotAuthorizeWrites",
+      "result": "passed",
+      "seconds": 0.051
+    },
+    {
+      "class": "com.vncode.app.features.gtinsync.RegisteredGtinSourceTest",
+      "method": "aShortPageWithAKnownTotalStillReadsAllRemainingPagesBeforeReturningCards",
+      "result": "passed",
+      "seconds": 0.001
+    },
+    {
+      "class": "com.vncode.app.features.gtinsync.RegisteredGtinSourceTest",
+      "method": "appRegisteredCardOutsideListedGroupIsFreshlyReadAndNeverMergedFromCachedStatus",
+      "result": "passed",
+      "seconds": 0.001
+    },
+    {
+      "class": "com.vncode.app.features.gtinsync.RegisteredGtinSourceTest",
+      "method": "authenticationFailureIsUnknownAndAFreshReadCanRecoverWithoutANegativeCache",
+      "result": "passed",
+      "seconds": 0.002
+    },
+    {
+      "class": "com.vncode.app.features.gtinsync.RegisteredGtinSourceTest",
+      "method": "cardReadTimeAndActualIdentityComeFromEachReceivedCardNotTheStartOfTheScan",
+      "result": "passed",
+      "seconds": 0.007
+    },
+    {
+      "class": "com.vncode.app.features.gtinsync.RegisteredGtinSourceTest",
+      "method": "changingTotalsRepeatedRowsOrTransportFailuresNeverReturnAPartialVerifiedCatalog",
+      "result": "passed",
+      "seconds": 0.001
+    },
+    {
+      "class": "com.vncode.app.features.gtinsync.RegisteredGtinSourceTest",
+      "method": "explicitlyUnsignedPublishedCardCannotAuthorizeMarketplaceWritesAndMalformedFlagCannotRefreshTruth",
+      "result": "passed",
+      "seconds": 0.001
+    },
+    {
+      "class": "com.vncode.app.features.gtinsync.RegisteredGtinSourceTest",
+      "method": "malformedMissingAndAmbiguousCardReadbackCannotMasqueradeAsAnEmptySuccessfulLookup",
+      "result": "passed",
+      "seconds": 0.0
+    },
+    {
+      "class": "com.vncode.app.features.gtinsync.RegisteredGtinSourceTest",
+      "method": "paginatesAndBindsPackagingLevelToRequestedGtin",
+      "result": "passed",
+      "seconds": 0.001
+    },
+    {
+      "class": "com.vncode.app.features.gtinsync.RegisteredGtinSourceTest",
+      "method": "rejectsTruncatedPagesAndUnknownResponses",
+      "result": "passed",
+      "seconds": 0.0
+    },
+    {
+      "class": "com.vncode.app.features.gtinsync.RegisteredGtinSourceTest",
+      "method": "unknownPublicationAndLevelAreIneligible",
+      "result": "passed",
+      "seconds": 0.001
+    },
+    {
+      "class": "com.vncode.app.features.gtinsync.RegisteredGtinSourceTest",
+      "method": "zeroPaddingDoesNotLoseThePublishedTradeUnitProof",
+      "result": "passed",
+      "seconds": 0.0
+    },
+    {
+      "class": "com.vncode.app.features.products.ProductSnapshotReaderTest",
+      "method": "changedCredentialsDuringHttpCannotPopulateOldOwnerCache",
+      "result": "passed",
+      "seconds": 0.034
+    },
+    {
+      "class": "com.vncode.app.features.products.ProductSnapshotReaderTest",
+      "method": "completeOzonReaderPreservesComplexValuesAndFlagsAmbiguousGrouping",
+      "result": "passed",
+      "seconds": 0.038
+    },
+    {
+      "class": "com.vncode.app.features.products.ProductSnapshotReaderTest",
+      "method": "completeReadRemovesDocumentsThatMarketplaceRemoved",
+      "result": "passed",
+      "seconds": 0.069
+    },
+    {
+      "class": "com.vncode.app.features.products.ProductSnapshotReaderTest",
+      "method": "documentFileMissingIsExplicitAndOzonUnitsExact",
+      "result": "passed",
+      "seconds": 0.055
+    },
+    {
+      "class": "com.vncode.app.features.products.ProductSnapshotReaderTest",
+      "method": "failedMarketplaceReadPreservesThePreviousSnapshotAndRawCodes",
+      "result": "passed",
+      "seconds": 0.068
+    },
+    {
+      "class": "com.vncode.app.features.products.ProductSnapshotReaderTest",
+      "method": "missingOrRepeatedWbVariantIdentityCannotBeReplacedByRowPosition",
+      "result": "passed",
+      "seconds": 0.039
+    },
+    {
+      "class": "com.vncode.app.features.products.ProductSnapshotReaderTest",
+      "method": "onlyPublishedOwnedTradeUnitVerifiesFreshBarcode",
+      "result": "passed",
+      "seconds": 0.06
+    },
+    {
+      "class": "com.vncode.app.features.products.ProductSnapshotReaderTest",
+      "method": "ozonSourcePriceUsesTheNativeProductAndKeepsItsCurrency",
+      "result": "passed",
+      "seconds": 0.038
+    },
+    {
+      "class": "com.vncode.app.features.products.ProductSnapshotReaderTest",
+      "method": "realSnapshotReadPopulatesLocalDetailsAndDocumentFilter",
+      "result": "passed",
+      "seconds": 0.062
+    },
+    {
+      "class": "com.vncode.app.features.products.ProductSnapshotReaderTest",
+      "method": "shopOwnerMustMatchBeforeHttp",
+      "result": "passed",
+      "seconds": 0.03
+    },
+    {
+      "class": "com.vncode.app.features.products.ProductSnapshotReaderTest",
+      "method": "snapshotKeepsAllPhotosVariantsAndPrecision",
+      "result": "passed",
+      "seconds": 0.044
+    },
+    {
+      "class": "com.vncode.app.features.products.ProductSnapshotReaderTest",
+      "method": "staleForeignOrConflictingProofNeverUpgradesTheMarketplaceBarcode",
+      "result": "passed",
+      "seconds": 0.12
+    },
+    {
+      "class": "com.vncode.app.features.products.ProductSnapshotReaderTest",
+      "method": "summaryCannotPretendComplete",
+      "result": "passed",
+      "seconds": 0.035
+    },
+    {
+      "class": "com.vncode.app.features.products.ProductSnapshotReaderTest",
+      "method": "theSamePhysicalVariantCanHaveCurrentEvidenceInBothMarketplaces",
+      "result": "passed",
+      "seconds": 0.058
+    },
+    {
+      "class": "com.vncode.app.features.products.ProductSnapshotReaderTest",
+      "method": "transientGtinReadStillRejectsCredentialsChangedDuringTheMarketplaceRead",
+      "result": "passed",
+      "seconds": 0.031
+    },
+    {
+      "class": "com.vncode.app.features.products.ProductSnapshotReaderTest",
+      "method": "transientOzonGtinReadKeepsNativeFactsWithoutProjectingProofOrReplacingTheFullCache",
+      "result": "passed",
+      "seconds": 0.063
+    },
+    {
+      "class": "com.vncode.app.features.products.ProductSnapshotReaderTest",
+      "method": "transientWbGtinReadKeepsNativeFactsWithoutProjectingProofOrReplacingTheFullCache",
+      "result": "passed",
+      "seconds": 0.054
+    },
+    {
+      "class": "com.vncode.app.features.products.ProductSnapshotReaderTest",
+      "method": "wbSourcePriceReadIsScopedToTheExactCardAndEachSize",
+      "result": "passed",
+      "seconds": 0.043
+    },
+    {
+      "class": "com.vncode.app.features.sync.GtinBulkPipelineTest",
+      "method": "delayedWbReadbackIsPolledByPageAndDoesNotResendAcknowledgedWrites",
+      "result": "passed",
+      "seconds": 2.413
+    },
+    {
+      "class": "com.vncode.app.features.sync.GtinBulkPipelineTest",
+      "method": "explicit429MayRetryButA503ResponseMustOnlyReconcile",
+      "result": "passed",
+      "seconds": 0.267
+    },
+    {
+      "class": "com.vncode.app.features.sync.GtinBulkPipelineTest",
+      "method": "ozonChangedColorBeforeDispatchIsBlockedWithoutAWrite",
+      "result": "passed",
+      "seconds": 0.11
+    },
+    {
+      "class": "com.vncode.app.features.sync.GtinBulkPipelineTest",
+      "method": "ozonPartialRejectionDoesNotRejectItsSuccessfulSiblings",
+      "result": "passed",
+      "seconds": 1.059
+    },
+    {
+      "class": "com.vncode.app.features.sync.GtinBulkPipelineTest",
+      "method": "ozonTenThousandGtinUseOneHundredDedicatedBarcodeWrites",
+      "result": "passed",
+      "seconds": 96.283
+    },
+    {
+      "class": "com.vncode.app.features.sync.GtinBulkPipelineTest",
+      "method": "responseLossIsReconciledForEveryMemberWithoutReplayingAnyBatch",
+      "result": "passed",
+      "seconds": 3.153
+    },
+    {
+      "class": "com.vncode.app.features.sync.GtinBulkPipelineTest",
+      "method": "siblingsOfOneWbCardShareOneUpdateWithoutLosingAnyOriginalSize",
+      "result": "passed",
+      "seconds": 0.18
+    },
+    {
+      "class": "com.vncode.app.features.sync.GtinBulkPipelineTest",
+      "method": "theSecondOzonPartitionReselectsRetainedTargetsWithoutLosingItsApprovedScope",
+      "result": "passed",
+      "seconds": 1.833
+    },
+    {
+      "class": "com.vncode.app.features.sync.GtinBulkPipelineTest",
+      "method": "wbTenThousandGtinUseFourWholeCardWritesAndReadBackEveryMember",
+      "result": "passed",
+      "seconds": 18.692
+    },
+    {
+      "class": "com.vncode.app.features.sync.GtinBulkPipelineTest",
+      "method": "workerAdvancesSharedParentOnceAndReportsEveryMembersOwnResult",
+      "result": "passed",
+      "seconds": 1.188
+    },
+    {
+      "class": "com.vncode.app.features.sync.GtinRunStatusSnapshotTest",
+      "method": "durableReadbackPreservesSelectedScopeAndMarketplaceTruthDespiteLocalActivationFailure",
+      "result": "passed",
+      "seconds": 0.066
+    },
+    {
+      "class": "com.vncode.app.features.sync.GtinRunStatusSnapshotTest",
+      "method": "lateSnapshotRejectsChangedConnectionOwnerAndDifferentRunOwner",
+      "result": "passed",
+      "seconds": 0.05
+    },
+    {
+      "class": "com.vncode.app.features.sync.GtinRunStatusSnapshotTest",
+      "method": "selectedKeyMissingFromTheDurableReportIsCountedExactlyOnce",
+      "result": "passed",
+      "seconds": 0.054
+    },
+    {
+      "class": "com.vncode.app.features.sync.SyncRunRepositoryConcurrencyTest",
+      "method": "catalogSaveAlsoWaitsBeforeItsOwnerReadAndPreservesTheCompletedSnapshot",
+      "result": "passed",
+      "seconds": 0.21
+    },
+    {
+      "class": "com.vncode.app.features.sync.SyncRunRepositoryConcurrencyTest",
+      "method": "failingEventInsertRollsBackProgressAndDoesNotCreatePartialHistory",
+      "result": "passed",
+      "seconds": 0.034
+    },
+    {
+      "class": "com.vncode.app.features.sync.SyncRunRepositoryConcurrencyTest",
+      "method": "progressWaitsForAnotherWriterInsteadOfFailingDuringReadToWriteUpgrade",
+      "result": "passed",
+      "seconds": 0.215
+    },
+    {
+      "class": "com.vncode.app.features.sync.SyncRunRepositoryConcurrencyTest",
+      "method": "tenShopsCanPersistConcurrentProgressAndItemsWithoutLosingHistory",
+      "result": "passed",
+      "seconds": 0.495
+    },
+    {
+      "class": "com.vncode.app.features.sync.SyncRunRepositoryMetricsTest",
+      "method": "countersSeparatePlannedSentPendingFailedUnknownAndActualAppliedEvidence",
+      "result": "passed",
+      "seconds": 0.062
+    },
+    {
+      "class": "com.vncode.app.features.sync.SyncRunRepositoryMetricsTest",
+      "method": "duplicateAddAndAllReadPathsReturnPersistedTimestampAndOriginalFacts",
+      "result": "passed",
+      "seconds": 0.045
+    },
+    {
+      "class": "com.vncode.app.features.sync.ZnackAutoSyncServiceTest",
+      "method": "automaticMatchingReportsChangedTnvedGroupInsteadOfReusingTheOldCard",
+      "result": "passed",
+      "seconds": 0.066
+    },
+    {
+      "class": "com.vncode.app.features.sync.ZnackAutoSyncServiceTest",
+      "method": "changedOzonNameAndForeignReportCannotBeSelected",
+      "result": "passed",
+      "seconds": 0.092
+    },
+    {
+      "class": "com.vncode.app.features.sync.ZnackAutoSyncServiceTest",
+      "method": "changedOzonSkuStopsBeforeAnyMarketplaceWrite",
+      "result": "passed",
+      "seconds": 0.084
+    },
+    {
+      "class": "com.vncode.app.features.sync.ZnackAutoSyncServiceTest",
+      "method": "marketplaceReadFailureCannotPresentOldProductsAsSuccessfullySynchronized",
+      "result": "passed",
+      "seconds": 0.049
+    },
+    {
+      "class": "com.vncode.app.features.sync.ZnackAutoSyncServiceTest",
+      "method": "olderPausedReportCannotStarveANewConfirmedReview",
+      "result": "passed",
+      "seconds": 0.209
+    },
+    {
+      "class": "com.vncode.app.features.sync.ZnackAutoSyncServiceTest",
+      "method": "onlyExplicitlyRegisteredExactOzonSkuIsAutomaticallyLinkedThenVerified",
+      "result": "passed",
+      "seconds": 0.222
+    },
+    {
+      "class": "com.vncode.app.features.sync.ZnackAutoSyncServiceTest",
+      "method": "onlyExplicitlyRegisteredExactWbCardIsAutomaticallyLinkedThenVerified",
+      "result": "passed",
+      "seconds": 0.217
+    },
+    {
+      "class": "com.vncode.app.features.sync.ZnackAutoSyncServiceTest",
+      "method": "ozonChangedRussianSizeStillBlocksTheReviewEvenWhenManufacturerSizeIsUnchanged",
+      "result": "passed",
+      "seconds": 0.091
+    },
+    {
+      "class": "com.vncode.app.features.sync.ZnackAutoSyncServiceTest",
+      "method": "ozonInternationalCatalogCardUsesManufacturerSizeWhileTheVisibleCatalogKeepsRussianSize",
+      "result": "passed",
+      "seconds": 0.186
+    },
+    {
+      "class": "com.vncode.app.features.sync.ZnackAutoSyncServiceTest",
+      "method": "ozonRussianSizeFromTheCatalogIsComparedToTheExplicitRussianSizeOnFreshReadback",
+      "result": "passed",
+      "seconds": 0.187
+    },
+    {
+      "class": "com.vncode.app.features.sync.ZnackAutoSyncServiceTest",
+      "method": "ozonSkuProposalIsPersistedAndRechecksFreshBrandBeforeConfirmation",
+      "result": "passed",
+      "seconds": 0.121
+    },
+    {
+      "class": "com.vncode.app.features.sync.ZnackAutoSyncServiceTest",
+      "method": "ozonSourceRequiresReviewWithAlphanumericOfferAndExactSku",
+      "result": "passed",
+      "seconds": 0.198
+    },
+    {
+      "class": "com.vncode.app.features.sync.ZnackAutoSyncServiceTest",
+      "method": "pausedRunCannotStartOrAdvanceWrites",
+      "result": "passed",
+      "seconds": 0.07
+    },
+    {
+      "class": "com.vncode.app.features.sync.ZnackAutoSyncServiceTest",
+      "method": "repeatedNetworkFailureEndsInAnActionableReportInsteadOfSynchronizingForever",
+      "result": "passed",
+      "seconds": 0.299
+    },
+    {
+      "class": "com.vncode.app.features.sync.ZnackAutoSyncServiceTest",
+      "method": "reportingFailureCannotReplaceTheOriginalCatalogReadFailure",
+      "result": "passed",
+      "seconds": 0.049
+    },
+    {
+      "class": "com.vncode.app.features.sync.ZnackAutoSyncServiceTest",
+      "method": "selectedReviewUsesExactlyRequestedCohortAndPreservesSourceEvidenceAndUnknownMissingMember",
+      "result": "passed",
+      "seconds": 0.073
+    },
+    {
+      "class": "com.vncode.app.features.sync.ZnackAutoSyncServiceTest",
+      "method": "unpublishedCardCannotReachPreviewOrWrite",
+      "result": "passed",
+      "seconds": 0.081
+    },
+    {
+      "class": "com.vncode.app.features.sync.ZnackAutoSyncServiceTest",
+      "method": "wbCatalogRussianSizeUsesObservedWbSizeWhileReviewKeepsNativeManufacturerSize",
+      "result": "passed",
+      "seconds": 0.191
+    },
+    {
+      "class": "com.vncode.app.features.sync.ZnackAutoSyncServiceTest",
+      "method": "wbSourceRequiresReviewThenChainsToSingleVerifiedGtinWriteAndDurableReport",
+      "result": "passed",
+      "seconds": 0.196
+    },
+    {
+      "class": "com.vncode.app.features.sync.ZnackAutoSyncServiceTest",
+      "method": "wrongSizeDoesNotFallBackToArticleAndDoesNotWrite",
+      "result": "passed",
+      "seconds": 0.073
+    },
+    {
+      "class": "com.vncode.app.features.sync.ZnackGtinBackgroundServiceTest",
+      "method": "aLaterFailedWriteKeepsTheReportAndEarlierConfirmedResults",
+      "result": "passed",
+      "seconds": 0.025
+    },
+    {
+      "class": "com.vncode.app.features.sync.ZnackGtinBackgroundServiceTest",
+      "method": "blockedValidationIsReportedAndNeverSent",
+      "result": "passed",
+      "seconds": 0.025
+    },
+    {
+      "class": "com.vncode.app.features.sync.ZnackGtinBackgroundServiceTest",
+      "method": "explicitRejectedDispatchCountsAttemptWithoutClaimingMarketplaceApplied",
+      "result": "passed",
+      "seconds": 0.025
+    },
+    {
+      "class": "com.vncode.app.features.sync.ZnackGtinBackgroundServiceTest",
+      "method": "explicitSelectionCannotWriteOtherVariantsOrShops",
+      "result": "passed",
+      "seconds": 0.026
+    },
+    {
+      "class": "com.vncode.app.features.sync.ZnackGtinBackgroundServiceTest",
+      "method": "failedSourceSigningStopsBeforeAnyGtinWriteAndReportsTheActualCause",
+      "result": "passed",
+      "seconds": 0.074
+    },
+    {
+      "class": "com.vncode.app.features.sync.ZnackGtinBackgroundServiceTest",
+      "method": "largeButtonActionChunksAtTenThousandAndShowsSentBeforeVerification",
+      "result": "passed",
+      "seconds": 0.043
+    },
+    {
+      "class": "com.vncode.app.features.sync.ZnackGtinBackgroundServiceTest",
+      "method": "oneInvalidVariantDoesNotPreventValidVariantsFromBeingWritten",
+      "result": "passed",
+      "seconds": 0.025
+    },
+    {
+      "class": "com.vncode.app.features.sync.ZnackGtinBackgroundServiceTest",
+      "method": "processesEveryPageInBoundedChildrenAndReportsActualProgress",
+      "result": "passed",
+      "seconds": 0.028
+    },
+    {
+      "class": "com.vncode.app.features.sync.ZnackGtinBackgroundServiceTest",
+      "method": "uncertainWriteIsNeverAutomaticallyReplayed",
+      "result": "passed",
+      "seconds": 0.028
+    },
+    {
+      "class": "com.vncode.app.features.sync.ZnackGtinBackgroundServiceTest",
+      "method": "unmatchedSelectionReturnsAnHonestZeroUpdateReportInsteadOfLosingTheRun",
+      "result": "passed",
+      "seconds": 0.024
+    },
+    {
+      "class": "com.vncode.app.features.sync.ZnackGtinBackgroundServiceTest",
+      "method": "wholeShopReportCountsUnmatchedCardsAndBlockedGtinsWithoutSendingThem",
+      "result": "passed",
+      "seconds": 0.028
+    },
+    {
+      "class": "com.vncode.app.features.sync.ZnackMarketplaceActivationTest",
+      "method": "oneFailedCandidateDoesNotHideVerifiedSiblingOrReplayEitherMarketplaceWrite",
+      "result": "passed",
+      "seconds": 0.239
+    },
+    {
+      "class": "com.vncode.app.features.sync.ZnackMarketplaceActivationTest",
+      "method": "singleCandidateRetainsVerifiedCountWhenItsLocalActivationFails",
+      "result": "passed",
+      "seconds": 0.151
+    },
+    {
+      "class": "com.vncode.app.integration.listing.CatalogIdentityEvidenceTest",
+      "method": "exactVariantEvidenceCarriesTheActualCatalogIdThroughStorageWithoutInventingIt",
+      "result": "passed",
+      "seconds": 0.084
+    },
+    {
+      "class": "com.vncode.app.integration.listing.GtinBatchTransportTest",
+      "method": "archivedProductStillOwnsItsBarcodeAndIsIncludedInTheConflictIndex",
+      "result": "passed",
+      "seconds": 0.035
+    },
+    {
+      "class": "com.vncode.app.integration.listing.GtinBatchTransportTest",
+      "method": "contradictoryOrFractionalTotalsDoNotBecomeACatalogSnapshot",
+      "result": "passed",
+      "seconds": 0.035
+    },
+    {
+      "class": "com.vncode.app.integration.listing.GtinBatchTransportTest",
+      "method": "declaredRemainingRowsContinueAfterAShortNonemptyPage",
+      "result": "passed",
+      "seconds": 0.034
+    },
+    {
+      "class": "com.vncode.app.integration.listing.GtinBatchTransportTest",
+      "method": "earlyEmptyPageAndDuplicateProductAcrossPagesCannotAuthorizeALaterWrite",
+      "result": "passed",
+      "seconds": 0.091
+    },
+    {
+      "class": "com.vncode.app.integration.listing.GtinBatchTransportTest",
+      "method": "missingTotalCannotProveAnEmptyOwnedCatalog",
+      "result": "passed",
+      "seconds": 0.031
+    },
+    {
+      "class": "com.vncode.app.integration.listing.GtinSnapshotStoreTest",
+      "method": "oneLargeDescriptionCanStayOnDiskWithoutExceedingMemoryLimit",
+      "result": "passed",
+      "seconds": 0.001
+    },
+    {
+      "class": "com.vncode.app.integration.listing.GtinSnapshotStoreTest",
+      "method": "tenThousandSelectedCardsSurviveEvictionAndKeepLatestReadback",
+      "result": "passed",
+      "seconds": 0.165
+    },
+    {
+      "class": "com.vncode.app.integration.listing.ListingBeforeSendGuardTest",
+      "method": "changedShopDuringSharedRequestBudgetWaitCannotSendOldCredentials",
+      "result": "passed",
+      "seconds": 0.033
+    },
+    {
+      "class": "com.vncode.app.integration.listing.ListingBeforeSendGuardTest",
+      "method": "explicitHttp400PreservesTheReasonAndRedactsCredentials",
+      "result": "passed",
+      "seconds": 0.046
+    },
+    {
+      "class": "com.vncode.app.integration.listing.ListingBeforeSendGuardTest",
+      "method": "failedFreshDispatchReadKeepsItsCauseAndNeverSendsTheMutation",
+      "result": "passed",
+      "seconds": 0.051
+    },
+    {
+      "class": "com.vncode.app.integration.listing.ListingBeforeSendGuardTest",
+      "method": "freshDispatchReadUsesNoHeldBackgroundPermitAndCanCallTheMarketplace",
+      "result": "passed",
+      "seconds": 0.08
+    },
+    {
+      "class": "com.vncode.app.integration.listing.ListingBeforeSendGuardTest",
+      "method": "http503RetryAfterZeroCannotReplayMutationWithinOneCall",
+      "result": "passed",
+      "seconds": 0.036
+    },
+    {
+      "class": "com.vncode.app.integration.listing.ListingBeforeSendGuardTest",
+      "method": "licenseRevokedDuringBudgetWaitIsCheckedImmediatelyBeforeNetwork",
+      "result": "passed",
+      "seconds": 0.034
+    },
+    {
+      "class": "com.vncode.app.integration.listing.ListingBeforeSendGuardTest",
+      "method": "reusedOwnerStatementStillDetectsCredentialRotationDuringBudgetWait",
+      "result": "passed",
+      "seconds": 0.031
+    },
+    {
+      "class": "com.vncode.app.integration.listing.ListingOwnerCheckBatchTest",
+      "method": "changingTheDatasetInvalidatesAReusedStatement",
+      "result": "passed",
+      "seconds": 0.028
+    },
+    {
+      "class": "com.vncode.app.integration.listing.ListingOwnerCheckBatchTest",
+      "method": "nestedScopesRestoreTheirParentAndReadEachCredentialChange",
+      "result": "passed",
+      "seconds": 0.03
+    },
+    {
+      "class": "com.vncode.app.integration.listing.ListingRateLimitExceptionTest",
+      "method": "handlesHttpDateWithoutExposingHeaders",
+      "result": "passed",
+      "seconds": 0.002
+    },
+    {
+      "class": "com.vncode.app.integration.listing.ListingRateLimitExceptionTest",
+      "method": "invalidHeadersBackOffAndZeroIsBounded",
+      "result": "passed",
+      "seconds": 0.001
+    },
+    {
+      "class": "com.vncode.app.integration.listing.ListingRateLimitExceptionTest",
+      "method": "usesTheLongestExplicitCooldownAndKeepsItInTheReport",
+      "result": "passed",
+      "seconds": 0.0
+    },
+    {
+      "class": "com.vncode.app.integration.ozon.OzonApiClientTest",
+      "method": "classifiesNumericUpstreamErrorsWithAllowlistedDiagnosticTags",
+      "result": "passed",
+      "seconds": 0.002
+    },
+    {
+      "class": "com.vncode.app.integration.ozon.OzonApiClientTest",
+      "method": "createsAsynchronousLabelJobThroughCurrentVersionTwoEndpoint",
+      "result": "passed",
+      "seconds": 0.003
+    },
+    {
+      "class": "com.vncode.app.integration.ozon.OzonApiClientTest",
+      "method": "listsCurrentUnfulfilledPostingsThroughVersionFourCutoffContract",
+      "result": "passed",
+      "seconds": 0.001
+    },
+    {
+      "class": "com.vncode.app.integration.ozon.OzonApiClientTest",
+      "method": "listsPostingsThroughCursorBasedVersionFourContract",
+      "result": "passed",
+      "seconds": 0.004
+    },
+    {
+      "class": "com.vncode.app.integration.ozon.OzonApiClientTest",
+      "method": "malformedSuccessResponseAfterMutationIsTreatedAsAmbiguous",
+      "result": "passed",
+      "seconds": 0.003
+    },
+    {
+      "class": "com.vncode.app.integration.ozon.OzonApiClientTest",
+      "method": "neverBlindlyRetriesAmbiguousMutationAndDoesNotLeakCredential",
+      "result": "passed",
+      "seconds": 0.004
+    },
+    {
+      "class": "com.vncode.app.integration.ozon.OzonApiClientTest",
+      "method": "rejectsUntrustedOfficialDocumentUrlBeforeSendingAnyRequest",
+      "result": "passed",
+      "seconds": 0.001
+    },
+    {
+      "class": "com.vncode.app.integration.ozon.OzonApiClientTest",
+      "method": "retainsOnlyAllowlistedUpstreamErrorCodeAndDropsResponseMessage",
+      "result": "passed",
+      "seconds": 0.013
+    },
+    {
+      "class": "com.vncode.app.integration.ozon.OzonApiClientTest",
+      "method": "retriesBoundedReadsAndSendsCredentialsOnlyInOzonHeaders",
+      "result": "passed",
+      "seconds": 0.049
+    },
+    {
+      "class": "com.vncode.app.integration.ozon.OzonGtinAdapterTest",
+      "method": "aChangedVariantAfterAnAcceptedPostCannotBeReportedAsVerified",
+      "result": "passed",
+      "seconds": 0.082
+    },
+    {
+      "class": "com.vncode.app.integration.ozon.OzonGtinAdapterTest",
+      "method": "aLateLocalReservationConflictCannotBeRecordedAsADispatchedRequest",
+      "result": "passed",
+      "seconds": 0.096
+    },
+    {
+      "class": "com.vncode.app.integration.ozon.OzonGtinAdapterTest",
+      "method": "actualReadbackUpdatesOnlyTheSelectedOwnedProductCache",
+      "result": "passed",
+      "seconds": 0.097
+    },
+    {
+      "class": "com.vncode.app.integration.ozon.OzonGtinAdapterTest",
+      "method": "allOldBarcodesMustRemainForAppliedResult",
+      "result": "passed",
+      "seconds": 0.049
+    },
+    {
+      "class": "com.vncode.app.integration.ozon.OzonGtinAdapterTest",
+      "method": "anArchivedProductWithTheSameGtinAlsoBlocksSending",
+      "result": "passed",
+      "seconds": 0.048
+    },
+    {
+      "class": "com.vncode.app.integration.ozon.OzonGtinAdapterTest",
+      "method": "batchFreshReadAfterLimiterWaitPreservesEveryOriginalBarcode",
+      "result": "passed",
+      "seconds": 0.056
+    },
+    {
+      "class": "com.vncode.app.integration.ozon.OzonGtinAdapterTest",
+      "method": "changedColorDuringTheLimiterWaitIsCheckedAgainstTheActualCatalogVariant",
+      "result": "passed",
+      "seconds": 0.061
+    },
+    {
+      "class": "com.vncode.app.integration.ozon.OzonGtinAdapterTest",
+      "method": "changedProductNamePreventsSendingAndCannotVerifyAnOldPreview",
+      "result": "passed",
+      "seconds": 0.053
+    },
+    {
+      "class": "com.vncode.app.integration.ozon.OzonGtinAdapterTest",
+      "method": "changedSkuBeforeMutationAndAfterTimeoutCannotMatchOriginalPreview",
+      "result": "passed",
+      "seconds": 0.054
+    },
+    {
+      "class": "com.vncode.app.integration.ozon.OzonGtinAdapterTest",
+      "method": "changedSkuDuringBarcodeLimiterWaitStopsBeforeAnyPost",
+      "result": "passed",
+      "seconds": 0.057
+    },
+    {
+      "class": "com.vncode.app.integration.ozon.OzonGtinAdapterTest",
+      "method": "deniedLicenseDuringRateLimitWaitPausesKnownUnsentJob",
+      "result": "passed",
+      "seconds": 0.097
+    },
+    {
+      "class": "com.vncode.app.integration.ozon.OzonGtinAdapterTest",
+      "method": "exactRejectionHasNoReplayAndCanStillReconcileObservedSuccess",
+      "result": "passed",
+      "seconds": 0.077
+    },
+    {
+      "class": "com.vncode.app.integration.ozon.OzonGtinAdapterTest",
+      "method": "explicit429RetainsRetryAfterAndDoesNotMasqueradeAsAnUnknownAcceptedPost",
+      "result": "passed",
+      "seconds": 0.07
+    },
+    {
+      "class": "com.vncode.app.integration.ozon.OzonGtinAdapterTest",
+      "method": "explicitRussianSizeCanMatchButAnInternationalSizeCannotBeConverted",
+      "result": "passed",
+      "seconds": 0.062
+    },
+    {
+      "class": "com.vncode.app.integration.ozon.OzonGtinAdapterTest",
+      "method": "http200DoesNotProveApplication",
+      "result": "passed",
+      "seconds": 0.07
+    },
+    {
+      "class": "com.vncode.app.integration.ozon.OzonGtinAdapterTest",
+      "method": "limitOf100CurrentBarcodesStopsBeforeMutation",
+      "result": "passed",
+      "seconds": 0.05
+    },
+    {
+      "class": "com.vncode.app.integration.ozon.OzonGtinAdapterTest",
+      "method": "missingExplicitColorDoesNotBecomeAnInferredVariantMatch",
+      "result": "passed",
+      "seconds": 0.043
+    },
+    {
+      "class": "com.vncode.app.integration.ozon.OzonGtinAdapterTest",
+      "method": "publishedGtinForAnotherExplicitSizeCannotBeAdded",
+      "result": "passed",
+      "seconds": 0.043
+    },
+    {
+      "class": "com.vncode.app.integration.ozon.OzonGtinAdapterTest",
+      "method": "sameGtinOnOtherProductOrForeignOfferBlocksSending",
+      "result": "passed",
+      "seconds": 0.055
+    },
+    {
+      "class": "com.vncode.app.integration.ozon.OzonGtinAdapterTest",
+      "method": "skuOutsideTheOfficialInt64RangeCannotAuthorizeAWrite",
+      "result": "passed",
+      "seconds": 0.032
+    },
+    {
+      "class": "com.vncode.app.integration.ozon.OzonGtinAdapterTest",
+      "method": "theExplicitSellerSkuAliasStillNeedsAndMatchesTheRealColorAndSize",
+      "result": "passed",
+      "seconds": 0.077
+    },
+    {
+      "class": "com.vncode.app.integration.ozon.OzonGtinAdapterTest",
+      "method": "timeoutThenRestartDoesNotReplayBarcodeAdd",
+      "result": "passed",
+      "seconds": 0.112
+    },
+    {
+      "class": "com.vncode.app.integration.ozon.OzonGtinAdapterTest",
+      "method": "unknownOrForeignResponseCannotMarkJobRejected",
+      "result": "passed",
+      "seconds": 0.07
+    },
+    {
+      "class": "com.vncode.app.integration.ozon.OzonGtinAdapterTest",
+      "method": "usesExactCurrentSkuAndOnlyBarcodeAddEndpoint",
+      "result": "passed",
+      "seconds": 0.089
+    },
+    {
+      "class": "com.vncode.app.integration.ozon.OzonGtinProductReaderTest",
+      "method": "aShrinkingTotalDuringPaginationCannotTurnMissingProductsIntoAbsence",
+      "result": "passed",
+      "seconds": 0.129
+    },
+    {
+      "class": "com.vncode.app.integration.ozon.OzonGtinProductReaderTest",
+      "method": "aWrongCapturedShopCannotBorrowAnApiClientsCurrentAccount",
+      "result": "passed",
+      "seconds": 0.036
+    },
+    {
+      "class": "com.vncode.app.integration.ozon.OzonGtinProductReaderTest",
+      "method": "declaredRemainingProductsWithoutACursorCannotBeReportedAsComplete",
+      "result": "passed",
+      "seconds": 0.084
+    },
+    {
+      "class": "com.vncode.app.integration.ozon.OzonGtinProductReaderTest",
+      "method": "duplicateDetailsCannotStandInForAMissingProductEvenWhenCountsMatch",
+      "result": "passed",
+      "seconds": 0.08
+    },
+    {
+      "class": "com.vncode.app.integration.ozon.OzonGtinProductReaderTest",
+      "method": "duplicateExactReadbackIsAmbiguous",
+      "result": "passed",
+      "seconds": 0.042
+    },
+    {
+      "class": "com.vncode.app.integration.ozon.OzonGtinProductReaderTest",
+      "method": "failedAuthorizationDoesNotBecomeAnEmptyCatalog",
+      "result": "passed",
+      "seconds": 0.038
+    },
+    {
+      "class": "com.vncode.app.integration.ozon.OzonGtinProductReaderTest",
+      "method": "foreignDetailsCannotReplaceTheRequestedIdentity",
+      "result": "passed",
+      "seconds": 0.034
+    },
+    {
+      "class": "com.vncode.app.integration.ozon.OzonGtinProductReaderTest",
+      "method": "invalidBarcodeTypeIsNotSilentlyDropped",
+      "result": "passed",
+      "seconds": 0.036
+    },
+    {
+      "class": "com.vncode.app.integration.ozon.OzonGtinProductReaderTest",
+      "method": "missingItemsIsNotAnEmptyCatalog",
+      "result": "passed",
+      "seconds": 0.037
+    },
+    {
+      "class": "com.vncode.app.integration.ozon.OzonGtinProductReaderTest",
+      "method": "missingOrConflictingTotalsCannotProveACompleteRead",
+      "result": "passed",
+      "seconds": 0.082
+    },
+    {
+      "class": "com.vncode.app.integration.ozon.OzonGtinProductReaderTest",
+      "method": "missingProductRemainsUnknownInsteadOfReturningAnotherProduct",
+      "result": "passed",
+      "seconds": 0.053
+    },
+    {
+      "class": "com.vncode.app.integration.ozon.OzonGtinProductReaderTest",
+      "method": "readsActiveAndArchivedPartitionsAndPreservesLeadingZeros",
+      "result": "passed",
+      "seconds": 0.168
+    },
+    {
+      "class": "com.vncode.app.integration.ozon.OzonGtinProductReaderTest",
+      "method": "repeatedIdAcrossPagesFailsTheWholeIncompleteRead",
+      "result": "passed",
+      "seconds": 0.127
+    },
+    {
+      "class": "com.vncode.app.integration.ozon.OzonGtinProductReaderTest",
+      "method": "rotatedCredentialsCannotReadOrPublishTheOldAccountsSnapshot",
+      "result": "passed",
+      "seconds": 0.033
+    },
+    {
+      "class": "com.vncode.app.integration.ozon.OzonGtinProductReaderTest",
+      "method": "shortPageStillFollowsCursorWhenTotalItemsShowsMoreProducts",
+      "result": "passed",
+      "seconds": 0.211
+    },
+    {
+      "class": "com.vncode.app.integration.ozon.OzonGtinProductReaderTest",
+      "method": "wrongOfferCannotBecomeTheSelectedVariant",
+      "result": "passed",
+      "seconds": 0.041
+    },
+    {
+      "class": "com.vncode.app.integration.wb.WbGtinAdapterTest",
+      "method": "aCardErrorAfterPreviewButBeforeActualDispatchCannotRejectTheNewRequest",
+      "result": "passed",
+      "seconds": 0.065
+    },
+    {
+      "class": "com.vncode.app.integration.wb.WbGtinAdapterTest",
+      "method": "aContradictoryOrMissingConflictPageCannotProveTheGtinIsUnused",
+      "result": "passed",
+      "seconds": 0.035
+    },
+    {
+      "class": "com.vncode.app.integration.wb.WbGtinAdapterTest",
+      "method": "aFailedFinalReadCannotSendAnOldFullCard",
+      "result": "passed",
+      "seconds": 0.063
+    },
+    {
+      "class": "com.vncode.app.integration.wb.WbGtinAdapterTest",
+      "method": "aFreshNativeProductErrorEndsTheAcknowledgedJobWithoutReplayingIt",
+      "result": "passed",
+      "seconds": 0.107
+    },
+    {
+      "class": "com.vncode.app.integration.wb.WbGtinAdapterTest",
+      "method": "aLastMomentReservationConflictCannotCreateADispatchMarker",
+      "result": "passed",
+      "seconds": 0.08
+    },
+    {
+      "class": "com.vncode.app.integration.wb.WbGtinAdapterTest",
+      "method": "aLegacyJobWithoutDurableDispatchEvidenceCannotAttributeACardError",
+      "result": "passed",
+      "seconds": 0.045
+    },
+    {
+      "class": "com.vncode.app.integration.wb.WbGtinAdapterTest",
+      "method": "aReadFailureAfterTheAcceptedPostRemainsUnknownAndNeverPostsAgain",
+      "result": "passed",
+      "seconds": 0.113
+    },
+    {
+      "class": "com.vncode.app.integration.wb.WbGtinAdapterTest",
+      "method": "aSellerEditDuringTransportWaitBlocksTheEntireFullCardBatchBeforeItsBoundary",
+      "result": "passed",
+      "seconds": 0.057
+    },
+    {
+      "class": "com.vncode.app.integration.wb.WbGtinAdapterTest",
+      "method": "aSellerEditDuringTransportWaitCannotBeOverwrittenByASingleGtinWrite",
+      "result": "passed",
+      "seconds": 0.056
+    },
+    {
+      "class": "com.vncode.app.integration.wb.WbGtinAdapterTest",
+      "method": "additionPreservesCompleteCardAndOtherSizeBarcodes",
+      "result": "passed",
+      "seconds": 0.069
+    },
+    {
+      "class": "com.vncode.app.integration.wb.WbGtinAdapterTest",
+      "method": "anArticleAliasSharedByDifferentProductOwnersCannotAttributeARejection",
+      "result": "passed",
+      "seconds": 0.045
+    },
+    {
+      "class": "com.vncode.app.integration.wb.WbGtinAdapterTest",
+      "method": "anObservedMarketplaceTnvedCannotBeWrittenWithAnUnverifiedOrDifferentRegisteredScope",
+      "result": "passed",
+      "seconds": 0.064
+    },
+    {
+      "class": "com.vncode.app.integration.wb.WbGtinAdapterTest",
+      "method": "articleTrimCannotTakeAnotherCardsArticle",
+      "result": "passed",
+      "seconds": 0.042
+    },
+    {
+      "class": "com.vncode.app.integration.wb.WbGtinAdapterTest",
+      "method": "barcodeOnTheSameIdWithChangedPhysicalVariantFactsIsNotVerifiedAsApplied",
+      "result": "passed",
+      "seconds": 0.074
+    },
+    {
+      "class": "com.vncode.app.integration.wb.WbGtinAdapterTest",
+      "method": "batchRejectionAcceptsTheExactSubmittedArticleWhilePreservingInternalSpaces",
+      "result": "passed",
+      "seconds": 0.066
+    },
+    {
+      "class": "com.vncode.app.integration.wb.WbGtinAdapterTest",
+      "method": "cardAdditionalGtinAndActualFalseKizConfirmationRemainOutsideTheSkuAddition",
+      "result": "passed",
+      "seconds": 0.062
+    },
+    {
+      "class": "com.vncode.app.integration.wb.WbGtinAdapterTest",
+      "method": "changedUntouchedFieldBlocksOverwrite",
+      "result": "passed",
+      "seconds": 0.047
+    },
+    {
+      "class": "com.vncode.app.integration.wb.WbGtinAdapterTest",
+      "method": "changingTheRegisteredVariantAfterPreviewBlocksTheFinalDispatch",
+      "result": "passed",
+      "seconds": 0.059
+    },
+    {
+      "class": "com.vncode.app.integration.wb.WbGtinAdapterTest",
+      "method": "confirmedGtinAdditionTrimsOnlyArticleEdgesAndRequiresReadback",
+      "result": "passed",
+      "seconds": 0.073
+    },
+    {
+      "class": "com.vncode.app.integration.wb.WbGtinAdapterTest",
+      "method": "explicitRejectionIsBoundToReadbackInsteadOfResend",
+      "result": "passed",
+      "seconds": 0.064
+    },
+    {
+      "class": "com.vncode.app.integration.wb.WbGtinAdapterTest",
+      "method": "http200RequiresReadbackAndCannotDiscardOldCode",
+      "result": "passed",
+      "seconds": 0.07
+    },
+    {
+      "class": "com.vncode.app.integration.wb.WbGtinAdapterTest",
+      "method": "incompleteFullCardAndForeignShopNeverWrite",
+      "result": "passed",
+      "seconds": 0.036
+    },
+    {
+      "class": "com.vncode.app.integration.wb.WbGtinAdapterTest",
+      "method": "nativeCharacteristicReorderingDoesNotInvalidateAnOtherwiseUnchangedGtinPreview",
+      "result": "passed",
+      "seconds": 0.072
+    },
+    {
+      "class": "com.vncode.app.integration.wb.WbGtinAdapterTest",
+      "method": "oldUnscopedRegistryCacheCannotAuthorizePreview",
+      "result": "passed",
+      "seconds": 0.036
+    },
+    {
+      "class": "com.vncode.app.integration.wb.WbGtinAdapterTest",
+      "method": "originalArticleAliasRequiresTheUnchangedOwnedPreimage",
+      "result": "passed",
+      "seconds": 0.072
+    },
+    {
+      "class": "com.vncode.app.integration.wb.WbGtinAdapterTest",
+      "method": "originalArticleRejectionCannotMatchAnotherEdgeSpellingOldTimeOrFutureTime",
+      "result": "passed",
+      "seconds": 0.094
+    },
+    {
+      "class": "com.vncode.app.integration.wb.WbGtinAdapterTest",
+      "method": "originalEdgeArticleRejectionEndsTheAcknowledgedBatchWithWhitespaceDetail",
+      "result": "passed",
+      "seconds": 0.106
+    },
+    {
+      "class": "com.vncode.app.integration.wb.WbGtinAdapterTest",
+      "method": "ownerChangedAfterTransportWaitIsKnownUnsentAndPaused",
+      "result": "passed",
+      "seconds": 0.092
+    },
+    {
+      "class": "com.vncode.app.integration.wb.WbGtinAdapterTest",
+      "method": "physicalVariantProofRejectsWrongArticleColorOrSizeBeforeAnyPost",
+      "result": "passed",
+      "seconds": 0.079
+    },
+    {
+      "class": "com.vncode.app.integration.wb.WbGtinAdapterTest",
+      "method": "registryRussiaSizeUsesTheObservedWbSizeWithoutConvertingTheManufacturerSize",
+      "result": "passed",
+      "seconds": 0.071
+    },
+    {
+      "class": "com.vncode.app.integration.wb.WbGtinAdapterTest",
+      "method": "rejectionOfAnUnverifiedSiblingDoesNotOverrideVerifiedReadback",
+      "result": "passed",
+      "seconds": 0.052
+    },
+    {
+      "class": "com.vncode.app.integration.wb.WbGtinAdapterTest",
+      "method": "sameGtinOnAnotherSizeIsAConflict",
+      "result": "passed",
+      "seconds": 0.046
+    },
+    {
+      "class": "com.vncode.app.integration.wb.WbGtinAdapterTest",
+      "method": "singleRejectionAcceptsExactOriginalAndSubmittedArticlesAndClassifiesTheRawSource",
+      "result": "passed",
+      "seconds": 0.074
+    },
+    {
+      "class": "com.vncode.app.integration.wb.WbGtinAdapterTest",
+      "method": "staleOrAnotherArticlesErrorsCannotRejectTheCurrentGtinWrite",
+      "result": "passed",
+      "seconds": 0.067
+    },
+    {
+      "class": "com.vncode.app.integration.wb.WbGtinAdapterTest",
+      "method": "timeoutIsReconciledWithoutAnotherMutation",
+      "result": "passed",
+      "seconds": 0.099
+    },
+    {
+      "class": "com.vncode.app.integration.wb.WbGtinAdapterTest",
+      "method": "visibleBarcodeCacheChangesOnlyAfterActualReadbackNotAfterAnAcknowledgement",
+      "result": "passed",
+      "seconds": 0.073
+    },
+    {
+      "class": "com.vncode.app.integration.wb.WbGtinProductReaderTest",
+      "method": "aCompleteMultiPageReadRetainsEveryExactVariantAndBarcode",
+      "result": "passed",
+      "seconds": 0.034
+    },
+    {
+      "class": "com.vncode.app.integration.wb.WbGtinProductReaderTest",
+      "method": "aLaterPageFailureCannotReturnTheFirstHundredProductsAsACompleteCatalog",
+      "result": "passed",
+      "seconds": 0.041
+    },
+    {
+      "class": "com.vncode.app.integration.wb.WbGtinProductReaderTest",
+      "method": "duplicateVariantIdentityNeverReturnsAnArbitraryFirstSize",
+      "result": "passed",
+      "seconds": 0.029
+    },
+    {
+      "class": "com.vncode.app.integration.wb.WbGtinProductReaderTest",
+      "method": "knownNativeColorAliasesAreReadAndConflictingAttributesRemainUnverified",
+      "result": "passed",
+      "seconds": 0.031
+    },
+    {
+      "class": "com.vncode.app.integration.wb.WbGtinProductReaderTest",
+      "method": "missingOrContradictoryTotalsCannotMasqueradeAsACompleteTwentyProductCatalog",
+      "result": "passed",
+      "seconds": 0.034
+    },
+    {
+      "class": "com.vncode.app.integration.wb.WbGtinProductReaderTest",
+      "method": "ownerChangeDuringAReadDiscardsTheWholeResult",
+      "result": "passed",
+      "seconds": 0.033
+    },
+    {
+      "class": "com.vncode.app.integration.wb.WbGtinProductReaderTest",
+      "method": "theSameCardOnTwoCursorPagesIsAnIncompleteChangingSnapshot",
+      "result": "passed",
+      "seconds": 0.043
+    },
+    {
+      "class": "com.vncode.app.shared.FriendlyErrorCodeTest",
+      "method": "catalogModelReadFailuresHaveLocalizedAdviceAndKeepTheirCodesThroughWrappers",
+      "result": "passed",
+      "seconds": 0.033
+    },
+    {
+      "class": "com.vncode.app.shared.FriendlyErrorCodeTest",
+      "method": "catalogOwnerFailuresShowSpecificLocalizedAdviceForWrappedErrors",
+      "result": "passed",
+      "seconds": 0.036
+    },
+    {
+      "class": "com.vncode.app.shared.FriendlyErrorCodeTest",
+      "method": "missingOrAmbiguousPurchaseBuffersKeepDistinctLocalizedCheckingAdvice",
+      "result": "passed",
+      "seconds": 0.033
+    },
+    {
+      "class": "com.vncode.app.shared.FriendlyErrorCodeTest",
+      "method": "networkFailuresHaveLocalizedCodeWithoutLeakingRawHostDetails",
+      "result": "passed",
+      "seconds": 0.032
+    },
+    {
+      "class": "com.vncode.app.shared.FriendlyErrorCodeTest",
+      "method": "otherStorageErrorsKeepTheirOwnLocalizedCode",
+      "result": "passed",
+      "seconds": 0.029
+    },
+    {
+      "class": "com.vncode.app.shared.FriendlyErrorCodeTest",
+      "method": "sqliteBusyExplainsLocalContentionWithoutExposingDatabasePaths",
+      "result": "passed",
+      "seconds": 0.21
+    },
+    {
+      "class": "com.vncode.app.shared.FriendlyErrorCodeTest",
+      "method": "unrelatedSuzErrorsAreNotReclassifiedAsIncompletePurchaseBuffers",
+      "result": "passed",
+      "seconds": 0.027
+    },
+    {
+      "class": "com.vncode.app.shared.FriendlyErrorCodeTest",
+      "method": "wrappedCryptoProFailureShowsItsSpecificAdviceAndDurableActionCode",
+      "result": "passed",
+      "seconds": 0.034
+    },
+    {
+      "class": "com.vncode.app.shared.FriendlyErrorCodeTest",
+      "method": "wrappedHttpFailuresRetainSafeStatusCode",
+      "result": "passed",
+      "seconds": 0.032
+    },
+    {
+      "class": "com.vncode.app.shared.FriendlyErrorCodeTest",
+      "method": "wrappedPurchaseBufferWaitsRetainCodesWithoutLeakingUnrelatedWrapperDetails",
+      "result": "passed",
+      "seconds": 0.033
+    },
+    {
+      "class": "com.vncode.app.ui.gtinsync.GtinSyncControllerTest",
+      "method": "manualGtinQueueReservesAnHttpSlotForContinuousFbsTraffic",
+      "result": "passed",
+      "seconds": 0.224
+    },
+    {
+      "class": "com.vncode.app.ui.gtinsync.GtinSyncControllerTest",
+      "method": "personalAppConfirmsFixtureOperationWithoutWcodeActivation",
+      "result": "passed",
+      "seconds": 0.126
+    },
+    {
+      "class": "com.vncode.app.ui.gtinsync.GtinSyncControllerTest",
+      "method": "previewUsesEditedOperationTargetAndOldBarcodeWithoutSavingMapping",
+      "result": "passed",
+      "seconds": 0.083
+    },
+    {
+      "class": "com.vncode.app.ui.gtinsync.GtinSyncControllerTest",
+      "method": "runningQueuePublishesStateAndAllowsCancellingUnsentRows",
+      "result": "passed",
+      "seconds": 0.29
+    },
+    {
+      "class": "com.vncode.app.ui.gtinsync.GtinSyncHistoryExporterTest",
+      "method": "csvEscapesFormulaTextAndKeepsGtinDigits",
+      "result": "passed",
+      "seconds": 0.002
+    },
+    {
+      "class": "com.vncode.app.ui.gtinsync.GtinSyncHistoryExporterTest",
+      "method": "xlsxUsesStringCellsForLeadingZeros",
+      "result": "passed",
+      "seconds": 0.353
+    },
+    {
+      "class": "com.vncode.app.ui.gtinsync.GtinSyncViewModelTest",
+      "method": "exactMatchSuggestsAddButNeverReplacement",
+      "result": "passed",
+      "seconds": 0.001
+    },
+    {
+      "class": "com.vncode.app.ui.gtinsync.GtinSyncViewModelTest",
+      "method": "rejectsOldResponseAfterSwitchingShop",
+      "result": "passed",
+      "seconds": 0.001
+    },
+    {
+      "class": "com.vncode.app.ui.gtinsync.GtinSyncViewModelTest",
+      "method": "selectingInternalMappingDoesNotCreateJobs",
+      "result": "passed",
+      "seconds": 0.001
+    },
+    {
+      "class": "com.vncode.app.ui.gtinsync.GtinTranslationTest",
+      "method": "hasEquivalentNonemptyTranslationsInAllLanguages",
+      "result": "passed",
+      "seconds": 0.003
+    },
+    {
+      "class": "com.vncode.app.ui.znackregistration.GtinBackgroundStatusTest",
+      "method": "aRejectedQueuedMutationCannotReplaceANewerShopsStatusPill",
+      "result": "passed",
+      "seconds": 0.03
+    },
+    {
+      "class": "com.vncode.app.ui.znackregistration.GtinBackgroundStatusTest",
+      "method": "completedPillDisappearsWithoutRemovingTheNextRunningTask",
+      "result": "passed",
+      "seconds": 0.233
+    },
+    {
+      "class": "com.vncode.app.ui.znackregistration.GtinBackgroundStatusTest",
+      "method": "detachingPendingViewRemovesOnlyItsPillAndReopeningReadsTheCompletedDurableRun",
+      "result": "passed",
+      "seconds": 0.11
+    },
+    {
+      "class": "com.vncode.app.ui.znackregistration.GtinBackgroundStatusTest",
+      "method": "failedCatalogAuthenticationReplacesSpinnerWithSpecificCryptoProError",
+      "result": "passed",
+      "seconds": 0.107
+    },
+    {
+      "class": "com.vncode.app.ui.znackregistration.GtinBackgroundStatusTest",
+      "method": "gtinUpdateUsesTheShopMutationQueueInsteadOfTheReadDeadlineExecutor",
+      "result": "passed",
+      "seconds": 0.189
+    },
+    {
+      "class": "com.vncode.app.ui.znackregistration.GtinBackgroundStatusTest",
+      "method": "missingRequestedRowsRemainUnknownAndAreNotReportedAsAbsentGtins",
+      "result": "passed",
+      "seconds": 0.027
+    },
+    {
+      "class": "com.vncode.app.ui.znackregistration.GtinBackgroundStatusTest",
+      "method": "oldRunAndChangedOwnerNeverOverwriteTheCurrentStatusPill",
+      "result": "passed",
+      "seconds": 0.119
+    },
+    {
+      "class": "com.vncode.app.ui.znackregistration.GtinBackgroundStatusTest",
+      "method": "oneBackgroundTaskUpdatesBothOriginalAndReopenedViewsWithoutDialogs",
+      "result": "passed",
+      "seconds": 0.04
+    },
+    {
+      "class": "com.vncode.app.ui.znackregistration.GtinBackgroundStatusTest",
+      "method": "persistedPendingReadbackRefreshesCountsAndDismissesOnlyAfterSettlement",
+      "result": "passed",
+      "seconds": 0.279
+    },
+    {
+      "class": "com.vncode.app.ui.znackregistration.GtinBackgroundStatusTest",
+      "method": "reopeningCancelledTaskNeverRestartsSpinnerOrClaimsCryptoProFailed",
+      "result": "passed",
+      "seconds": 0.027
+    },
+    {
+      "class": "com.vncode.app.ui.znackregistration.GtinBackgroundStatusTest",
+      "method": "resultCopySeparatesMarketplaceUpdatesFromUnmatchedAndUnconfirmedGtins",
+      "result": "passed",
+      "seconds": 0.026
+    },
+    {
+      "class": "com.vncode.app.ui.znackregistration.OzonRegistrationPaneTest",
+      "method": "aChangedOwnerCannotSeeRetainedRowsOrUseTheirProof",
+      "result": "passed",
+      "seconds": 0.153
+    },
+    {
+      "class": "com.vncode.app.ui.znackregistration.OzonRegistrationPaneTest",
+      "method": "aFailedNewReadRetainsLastGoodRowsAsHistoryAndCannotEnableMutationActions",
+      "result": "passed",
+      "seconds": 0.208
+    },
+    {
+      "class": "com.vncode.app.ui.znackregistration.OzonRegistrationPaneTest",
+      "method": "backgroundRefreshPreservesTheEntireFrozenNotCreatedSelection",
+      "result": "passed",
+      "seconds": 0.302
+    },
+    {
+      "class": "com.vncode.app.ui.znackregistration.OzonRegistrationPaneTest",
+      "method": "categoryFilterUsesShopCategoriesForAllMatchingSelectionAndSurvivesSoftRefresh",
+      "result": "passed",
+      "seconds": 0.417
+    },
+    {
+      "class": "com.vncode.app.ui.znackregistration.OzonRegistrationPaneTest",
+      "method": "changedOzonTnvedNewCardActionCancelsCleanlyAndPassesExplicitNewCardIntent",
+      "result": "passed",
+      "seconds": 0.144
+    },
+    {
+      "class": "com.vncode.app.ui.znackregistration.OzonRegistrationPaneTest",
+      "method": "disposingOzonRegistrationCancelsThePendingCountryReadAndCannotStartTheBatch",
+      "result": "passed",
+      "seconds": 0.129
+    },
+    {
+      "class": "com.vncode.app.ui.znackregistration.OzonRegistrationPaneTest",
+      "method": "gtinActionStartsTheInjectedBackgroundActionWithoutOpeningTheReportBrowser",
+      "result": "passed",
+      "seconds": 0.106
+    },
+    {
+      "class": "com.vncode.app.ui.znackregistration.OzonRegistrationPaneTest",
+      "method": "knownUnsentGtinStaysNotCreatedAndAcceptedFeedMovesToProcessing",
+      "result": "passed",
+      "seconds": 0.112
+    },
+    {
+      "class": "com.vncode.app.ui.znackregistration.OzonRegistrationPaneTest",
+      "method": "loadMoreUsesTheNativeCursorAndReachesAllThousandRowsWithoutDuplicateKeys",
+      "result": "passed",
+      "seconds": 0.23
+    },
+    {
+      "class": "com.vncode.app.ui.znackregistration.OzonRegistrationPaneTest",
+      "method": "notCreatedSelectAllFreezesEveryMatchingCardBeyondTheVisiblePage",
+      "result": "passed",
+      "seconds": 0.21
+    },
+    {
+      "class": "com.vncode.app.ui.znackregistration.OzonRegistrationPaneTest",
+      "method": "openingNativeOzonRegistrationPagesLocallyWithoutAllocatingOrSigningAnything",
+      "result": "passed",
+      "seconds": 0.106
+    },
+    {
+      "class": "com.vncode.app.ui.znackregistration.OzonRegistrationPaneTest",
+      "method": "ozonDurableQueueCanPauseResumeAndCancelPendingWithAnExplicitConfirmation",
+      "result": "passed",
+      "seconds": 0.205
+    },
+    {
+      "class": "com.vncode.app.ui.znackregistration.OzonRegistrationPaneTest",
+      "method": "processingRefreshKeepsTheRowsAlreadyLoadedByScrolling",
+      "result": "passed",
+      "seconds": 0.384
+    },
+    {
+      "class": "com.vncode.app.ui.znackregistration.OzonRegistrationPaneTest",
+      "method": "progressReadFailureIsVisibleSafeAndRecoversWithTheSameCounters",
+      "result": "passed",
+      "seconds": 0.221
+    },
+    {
+      "class": "com.vncode.app.ui.znackregistration.OzonRegistrationPaneTest",
+      "method": "receiptMembershipExcludesCachedProductNotReturnedByTheCurrentMarketplaceRead",
+      "result": "passed",
+      "seconds": 0.154
+    },
+    {
+      "class": "com.vncode.app.ui.znackregistration.OzonRegistrationPaneTest",
+      "method": "separateOzonBarcodeAndGtinProofColumnsKeepUnknownAndConfirmedCodesDistinct",
+      "result": "passed",
+      "seconds": 0.2
+    },
+    {
+      "class": "com.vncode.app.ui.znackregistration.OzonRegistrationPaneTest",
+      "method": "syncedCatalogDraftAppearsInProcessingWithoutInventingANativeFeed",
+      "result": "passed",
+      "seconds": 0.098
+    },
+    {
+      "class": "com.vncode.app.ui.znackregistration.OzonRegistrationPaneTest",
+      "method": "unavailableCountryModelShowsCopyableDiagnosticsWithoutStartingAnOzonBatch",
+      "result": "passed",
+      "seconds": 0.254
+    },
+    {
+      "class": "com.vncode.app.ui.znackregistration.OzonRegistrationPaneTest",
+      "method": "unchangedPendingCountersStillRefreshNewCatalogDraftsInProcessing",
+      "result": "passed",
+      "seconds": 0.254
+    },
+    {
+      "class": "com.vncode.app.ui.znackregistration.OzonRegistrationPaneTest",
+      "method": "waitingAndRunningProgressShowTheLocalizedSpecificReason",
+      "result": "passed",
+      "seconds": 0.108
+    },
+    {
+      "class": "com.vncode.app.ui.znackregistration.RegistrationDiagnosticsTest",
+      "method": "aFeedReceiptDoesNotShowModerationUntilTheCardIsObserved",
+      "result": "passed",
+      "seconds": 0.001
+    },
+    {
+      "class": "com.vncode.app.ui.znackregistration.RegistrationDiagnosticsTest",
+      "method": "acceptedRequestAndRetryDiagnosticsAreTranslatedInEveryLanguage",
+      "result": "passed",
+      "seconds": 0.011
+    },
+    {
+      "class": "com.vncode.app.ui.znackregistration.RegistrationDiagnosticsTest",
+      "method": "oneRowReportContainsExactRemoteRequestAndReasonWithoutACredential",
+      "result": "passed",
+      "seconds": 0.001
+    },
+    {
+      "class": "com.vncode.app.ui.znackregistration.RegistrationDiagnosticsTest",
+      "method": "registrationModelFailuresAreLocalizedInRowReports",
+      "result": "passed",
+      "seconds": 0.005
+    },
+    {
+      "class": "com.vncode.app.ui.znackregistration.RegistrationDiagnosticsTest",
+      "method": "retainedReadWarningKeepsBothLocalizedCauseAndStableDiagnosticCode",
+      "result": "passed",
+      "seconds": 0.0
+    },
+    {
+      "class": "com.vncode.app.ui.znackregistration.RegistrationDiagnosticsTest",
+      "method": "rowReportSeparatesTheNativeQueueFromTheActualCatalogStatusAndReadTime",
+      "result": "passed",
+      "seconds": 0.003
+    },
+    {
+      "class": "com.vncode.app.ui.znackregistration.RegistrationDiagnosticsTest",
+      "method": "storedCountryInfraFailureHasActionableReasonWithoutPretendingTheGtinIsMissing",
+      "result": "passed",
+      "seconds": 0.0
+    },
+    {
+      "class": "com.vncode.app.ui.znackregistration.RegistrationReportDataTest",
+      "method": "aChangedOwnerCannotOverwriteAnExistingExport",
+      "result": "passed",
+      "seconds": 0.037
+    },
+    {
+      "class": "com.vncode.app.ui.znackregistration.RegistrationReportDataTest",
+      "method": "csvExportsEveryRowWithRawCodesRedactedEvidenceAndFormulaProtection",
+      "result": "passed",
+      "seconds": 2.099
+    },
+    {
+      "class": "com.vncode.app.ui.znackregistration.RegistrationReportDataTest",
+      "method": "filtersScanTheEntireRunAndDoNotStopAtTenThousandRows",
+      "result": "passed",
+      "seconds": 1.083
+    },
+    {
+      "class": "com.vncode.app.ui.znackregistration.RegistrationReportDataTest",
+      "method": "literalOwnerCredentialIsRemovedEvenWhenItHasNoTokenLabel",
+      "result": "passed",
+      "seconds": 0.045
+    },
+    {
+      "class": "com.vncode.app.ui.znackregistration.RegistrationSyncReportDialogTest",
+      "method": "actualRegistrationReportIsSelectableAndKeepsItsFailure",
+      "result": "passed",
+      "seconds": 0.105
+    },
+    {
+      "class": "com.vncode.app.ui.znackregistration.RegistrationSyncReportDialogTest",
+      "method": "freeTextSearchFindsItemsBeyondTheLoadedPage",
+      "result": "passed",
+      "seconds": 0.426
+    },
+    {
+      "class": "com.vncode.app.ui.znackregistration.RegistrationSyncReportDialogTest",
+      "method": "marketplaceReadbackIsReportedAsUpdatedWhileLocalActivationIsPending",
+      "result": "passed",
+      "seconds": 0.102
+    },
+    {
+      "class": "com.vncode.app.ui.znackregistration.RegistrationSyncReportDialogTest",
+      "method": "reportFiltersTheWholeRunAndShowsActualBarcodeCatalogTimeAndNextAction",
+      "result": "passed",
+      "seconds": 0.125
+    },
+    {
+      "class": "com.vncode.app.ui.znackregistration.RegistrationSyncReportDialogTest",
+      "method": "reportReadsNewTerminalStateAndItsSafeError",
+      "result": "passed",
+      "seconds": 0.093
+    },
+    {
+      "class": "com.vncode.app.ui.znackregistration.RegistrationSyncReportDialogTest",
+      "method": "reportShowsRealReceiptStateAndUsesBoundedPages",
+      "result": "passed",
+      "seconds": 0.126
+    },
+    {
+      "class": "com.vncode.app.ui.znackregistration.RegistrationSyncReportDialogTest",
+      "method": "sourceReceiptExplicitlyStatesThatItDidNotRegisterCards",
+      "result": "passed",
+      "seconds": 0.069
+    },
+    {
+      "class": "com.vncode.app.ui.znackregistration.RegistrationSyncReportDialogTest",
+      "method": "transientReportReadFailureKeepsPreviousResultsAndOwnerChangeClearsThem",
+      "result": "passed",
+      "seconds": 0.103
+    },
+    {
+      "class": "com.vncode.app.ui.znackregistration.ZnackCardRegistrationControllerTest",
+      "method": "aTransientManualPreflightReadHasThreeTotalAttemptsAndNoUnboundedRetryLoop",
+      "result": "passed",
+      "seconds": 0.162
+    },
+    {
+      "class": "com.vncode.app.ui.znackregistration.ZnackCardRegistrationControllerTest",
+      "method": "backgroundRefreshPreservesSelectedNotCreatedCardsAndKeepsThePageVisible",
+      "result": "passed",
+      "seconds": 0.289
+    },
+    {
+      "class": "com.vncode.app.ui.znackregistration.ZnackCardRegistrationControllerTest",
+      "method": "cancellingFreshGtinConfirmationLeavesThePendingCardUnchanged",
+      "result": "passed",
+      "seconds": 0.266
+    },
+    {
+      "class": "com.vncode.app.ui.znackregistration.ZnackCardRegistrationControllerTest",
+      "method": "changedTnvedRowNewCardButtonRequiresExplicitConfirmationAndUsesReplacementFlow",
+      "result": "passed",
+      "seconds": 0.141
+    },
+    {
+      "class": "com.vncode.app.ui.znackregistration.ZnackCardRegistrationControllerTest",
+      "method": "completedSourceMembershipExcludesCachedProductsThatWereNotObserved",
+      "result": "passed",
+      "seconds": 0.189
+    },
+    {
+      "class": "com.vncode.app.ui.znackregistration.ZnackCardRegistrationControllerTest",
+      "method": "countryDictionaryFailureKeepsTheBatchUnstartedAndProvidesCopyableRootCause",
+      "result": "passed",
+      "seconds": 0.374
+    },
+    {
+      "class": "com.vncode.app.ui.znackregistration.ZnackCardRegistrationControllerTest",
+      "method": "dispatchesOzonToItsOwnHostAndClearsWbSelection",
+      "result": "passed",
+      "seconds": 0.164
+    },
+    {
+      "class": "com.vncode.app.ui.znackregistration.ZnackCardRegistrationControllerTest",
+      "method": "durableQueueControlsPauseResumeAndCancelOnlyAfterSellerConfirmation",
+      "result": "passed",
+      "seconds": 0.268
+    },
+    {
+      "class": "com.vncode.app.ui.znackregistration.ZnackCardRegistrationControllerTest",
+      "method": "errorFilterSelectAllOpensCompleteCatalogReportEvenForUnmatchedHistoricalCards",
+      "result": "passed",
+      "seconds": 0.33
+    },
+    {
+      "class": "com.vncode.app.ui.znackregistration.ZnackCardRegistrationControllerTest",
+      "method": "failedReadKeepsLastGoodRowsButMarksNewVerificationUnknownAndBlocksMutations",
+      "result": "passed",
+      "seconds": 0.256
+    },
+    {
+      "class": "com.vncode.app.ui.znackregistration.ZnackCardRegistrationControllerTest",
+      "method": "headerAndFooterMatchTheApprovedRegistrationLayout",
+      "result": "passed",
+      "seconds": 0.206
+    },
+    {
+      "class": "com.vncode.app.ui.znackregistration.ZnackCardRegistrationControllerTest",
+      "method": "loadsBeyondFiveHundredAndFreezesAllFilteredWithoutExpandingFxRows",
+      "result": "passed",
+      "seconds": 0.689
+    },
+    {
+      "class": "com.vncode.app.ui.znackregistration.ZnackCardRegistrationControllerTest",
+      "method": "navigatingAwayInterruptsAnInitialCatalogReadWithoutDispatchingARegistration",
+      "result": "passed",
+      "seconds": 0.188
+    },
+    {
+      "class": "com.vncode.app.ui.znackregistration.ZnackCardRegistrationControllerTest",
+      "method": "oneRegisterClickDispatchesTheFrozenSelectionWhileFiltersRemainUsable",
+      "result": "passed",
+      "seconds": 0.296
+    },
+    {
+      "class": "com.vncode.app.ui.znackregistration.ZnackCardRegistrationControllerTest",
+      "method": "ownerChangeCannotRetainAnotherScopeLastGoodRows",
+      "result": "passed",
+      "seconds": 0.197
+    },
+    {
+      "class": "com.vncode.app.ui.znackregistration.ZnackCardRegistrationControllerTest",
+      "method": "processingRefreshPreservesAlreadyLoadedPagesAndSelection",
+      "result": "passed",
+      "seconds": 0.383
+    },
+    {
+      "class": "com.vncode.app.ui.znackregistration.ZnackCardRegistrationControllerTest",
+      "method": "progressReadFailureIsVisibleSafeAndRecoversWithoutLosingKnownCounts",
+      "result": "passed",
+      "seconds": 0.221
+    },
+    {
+      "class": "com.vncode.app.ui.znackregistration.ZnackCardRegistrationControllerTest",
+      "method": "publishedCatalogCardWithoutLocalRegistrationIsVisibleAndEffectiveFiltersAgree",
+      "result": "passed",
+      "seconds": 0.345
+    },
+    {
+      "class": "com.vncode.app.ui.znackregistration.ZnackCardRegistrationControllerTest",
+      "method": "recoveryCopyExistsInEverySupportedLanguage",
+      "result": "passed",
+      "seconds": 0.141
+    },
+    {
+      "class": "com.vncode.app.ui.znackregistration.ZnackCardRegistrationControllerTest",
+      "method": "registrationProgressCountsAcceptedFeedsAndDoesNotLockBrowsing",
+      "result": "passed",
+      "seconds": 0.157
+    },
+    {
+      "class": "com.vncode.app.ui.znackregistration.ZnackCardRegistrationControllerTest",
+      "method": "selectAllIncludesPublishedRowsForTheSeparateNewCardAction",
+      "result": "passed",
+      "seconds": 0.161
+    },
+    {
+      "class": "com.vncode.app.ui.znackregistration.ZnackCardRegistrationControllerTest",
+      "method": "separateBarcodeAndCatalogProofColumnsPreserveRawValuesAndNeverVerifyByLength",
+      "result": "passed",
+      "seconds": 0.213
+    },
+    {
+      "class": "com.vncode.app.ui.znackregistration.ZnackCardRegistrationControllerTest",
+      "method": "sourceActionsExistAndOpeningOrRefreshingDoesNotResumeRemoteRegistration",
+      "result": "passed",
+      "seconds": 0.199
+    },
+    {
+      "class": "com.vncode.app.ui.znackregistration.ZnackCardRegistrationControllerTest",
+      "method": "terminalBatchShowsActionReasonAndKeepsMoreRecentReport",
+      "result": "passed",
+      "seconds": 0.159
+    },
+    {
+      "class": "com.vncode.app.ui.znackregistration.ZnackCardRegistrationControllerTest",
+      "method": "unchangedRemotePendingCountersRefreshANewCatalogDraftInProcessing",
+      "result": "passed",
+      "seconds": 0.273
+    }
+  ],
+  "productionWrites": false
+}

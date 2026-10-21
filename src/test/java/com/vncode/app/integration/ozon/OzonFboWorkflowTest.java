@@ -25,7 +25,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class OzonFboWorkflowTest {
-    private static final String GTIN = "04601234567890";
+    private static final String GTIN = "04610689132457";
     @TempDir Path appData;
 
     @BeforeEach
@@ -37,7 +37,7 @@ class OzonFboWorkflowTest {
                     + "VALUES(1,'Ozon','OZON','client','secret')");
         }
         new OzonCatalogRepository().upsertPage(1, List.of(
-                product("101", "SKU-42", "BARCODE-42", "42", "Jackets", false),
+                product("101", "SKU-42", "OZN0000000042", "42", "Jackets", false),
                 product("102", "SKU-44", "BARCODE-44", "44", "Trousers", false),
                 product("103", "SKU-OLD", "BARCODE-OLD", "46", "Archived", true)), "cursor");
         new OzonProductKizPolicyRepository().setRequired(1, "SKU-44", false);
@@ -50,6 +50,13 @@ class OzonFboWorkflowTest {
             statement.execute("UPDATE kiz_codes SET legal_status='IN_CIRCULATION' WHERE shop_id=1");
         }
         new OzonProductGtinMappingRepository().put(1, "SKU-42", GTIN);
+        try(var c=Database.getConnection();var st=c.createStatement()) {
+            st.execute("INSERT INTO ozon_product_barcodes(shop_id,product_id,barcode) SELECT shop_id,product_id,'"+GTIN+"' FROM ozon_products WHERE sku='SKU-42'");
+        }
+        var shop=new com.vncode.app.models.Shop(1,"Ozon",com.vncode.app.integration.marketplace.Marketplace.OZON,"client","secret");
+        com.vncode.app.features.gtinsync.GtinWriteTestFixture.saveSettings(shop,com.vncode.app.features.gtinsync.GtinWriteTestFixture.CERTIFICATE,com.vncode.app.integration.znack.ZnackModels.PRODUCTION_TRUE_API);
+        var details=new com.vncode.app.features.catalogsync.CatalogProductData(java.util.Map.of("@catalog_id",List.of("91"),"@catalog_status",List.of("published")),List.of(),List.of());
+        new com.vncode.app.features.gtinsync.GtinSyncRepository().saveCatalog(1,shop.getMarketplace(),List.of(new com.vncode.app.features.gtinsync.GtinSyncModels.RegisteredGtin(GTIN,"ART-42","Black","42",true,true,com.vncode.app.features.gtinsync.RegisteredGtinProof.source(shop),java.time.Instant.now(),details)));
     }
 
     @AfterEach
@@ -66,7 +73,7 @@ class OzonFboWorkflowTest {
         FboProductSku size42 = products.stream().filter(product -> "42".equals(product.size())).findFirst().orElseThrow();
         FboProductSku size44 = products.stream().filter(product -> "44".equals(product.size())).findFirst().orElseThrow();
         assertEquals("SKU-42", size42.catalogSku());
-        assertEquals("BARCODE-42", size42.sku());
+        assertEquals("OZN0000000042", size42.sku());
         assertEquals("ART-42", size42.vendorCode());
         assertTrue(size42.requiresKiz());
         assertFalse(size44.requiresKiz());
@@ -86,7 +93,7 @@ class OzonFboWorkflowTest {
     }
 
     @Test
-    void printsTwoBarcodePagesThenOneKizPageForEachRequiredSize() {
+    void printsOneCombinedPageForEachRequiredSize() {
         FboProductSku required = new OzonFboProductRepository().search(
                 new FboProductSearchCriteria(1, "SKU-42", List.of(), 10, 0)).getFirst();
 
@@ -94,10 +101,9 @@ class OzonFboWorkflowTest {
                 1, List.of(new FboBarcodePrintItem(required, 2)));
 
         assertEquals(List.of(
-                        FboPrintPage.Kind.BARCODE, FboPrintPage.Kind.BARCODE, FboPrintPage.Kind.KIZ,
-                        FboPrintPage.Kind.BARCODE, FboPrintPage.Kind.BARCODE, FboPrintPage.Kind.KIZ),
+                        FboPrintPage.Kind.COMBINED,FboPrintPage.Kind.COMBINED),
                 plan.pages().stream().map(FboPrintPage::kind).toList());
-        assertEquals(java.util.Arrays.asList(null, null, "KIZ-1", null, null, "KIZ-2"),
+        assertEquals(List.of("KIZ-1","KIZ-2"),
                 plan.pages().stream().map(FboPrintPage::kizCode).toList());
         assertEquals(2, plan.usedKizs().size());
     }

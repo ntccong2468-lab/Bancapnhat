@@ -48,8 +48,8 @@ public class WbAdvertisingApiClient {
                 .header("Accept", "application/json")
                 .get()
                 .build();
-        try (Response response = client.newCall(request).execute()) {
-            String body = response.body() == null ? "" : response.body().string();
+        try (var slot=com.vncode.app.shared.MarketplaceRequestBudget.acquire(); Response response = client.newCall(request).execute()) {
+            String body = com.vncode.app.shared.BoundedHttpBody.utf8(response.body(),20*1024*1024);
             if (!response.isSuccessful()) {
                 throw WbFinanceApiClient.apiError(response, body, "WB Advertising");
             }

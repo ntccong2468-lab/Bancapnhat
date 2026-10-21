@@ -66,6 +66,18 @@ class OzonPostingRepositoryTest {
         assertEquals(List.of(), postings.findPage(1, "all", "%", 2, 0));
     }
 
+    @Test
+    void freezesAllFilteredOrdersRegardlessOfVisiblePageAndRefusesOverLimit() {
+        var query = new com.vncode.app.features.ozon.OzonFbsQuery(1, "", "", "article", 100, 1);
+        assertEquals(4, postings.freezeFilteredNumbers(query, 10).size());
+        assertEquals(1, postings.findSortedPage(new com.vncode.app.features.ozon.OzonFbsQuery(
+                1, "", "", "article", 0, 1)).size());
+        org.junit.jupiter.api.Assertions.assertThrows(IllegalArgumentException.class,
+                () -> postings.freezeFilteredNumbers(query, 3));
+        assertEquals(List.of("PACK-NOW"), postings.freezeFilteredNumbers(
+                new com.vncode.app.features.ozon.OzonFbsQuery(1, "awaiting_packaging", "pack", "", 0, 1), 10));
+    }
+
     private static OzonPostingDto posting(String number, String status, String shipmentAt) {
         return new OzonPostingDto(
                 number, number, number, status, "", "warehouse", shipmentAt, "", "", "",

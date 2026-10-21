@@ -1,0 +1,51 @@
+{
+  "version": "1.5.0",
+  "result": "passed",
+  "publicInstaller": {
+    "version": "1.5.0",
+    "releaseId": 416488658,
+    "tag": "v1.5.0",
+    "publishedAtUtc": "2026-10-18T14:14:48Z",
+    "publicAssetCount": 30,
+    "url": "https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.5.0/VN-code-1.5.0-Windows-x64.exe",
+    "bytes": 145660928,
+    "sha256": "b5b5ddd562213aa655c3183bc8e7e998ba58d42abd1563442a397865a5faea3f",
+    "http": 200,
+    "fullPublicDownloadVerified": true,
+    "checksumAssetMatched": true,
+    "peHeaderVerified": true
+  },
+  "realProductionClients": [
+    {
+      "checkedAtUtc": "2026-10-18T14:15:11.358117191Z",
+      "version": "1.5.0",
+      "source": "https://api.github.com/repos/ntccong2468-lab/Bancapnhat",
+      "realProductionUpdateServiceRequest": true,
+      "runningApplicationVersion": "1.4.19",
+      "windowsUrl": "https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.5.0/VN-code-1.5.0-Windows-x64.exe",
+      "sha256": "b5b5ddd562213aa655c3183bc8e7e998ba58d42abd1563442a397865a5faea3f",
+      "bytes": 145660928,
+      "statuses": {
+        "1.4.19": "AVAILABLE",
+        "1.5.0": "CURRENT"
+      },
+      "sellerDesktopNotificationDelivered": false
+    },
+    {
+      "checkedAtUtc": "2026-10-18T14:15:13.883705061Z",
+      "version": "1.5.0",
+      "source": "https://api.github.com/repos/ntccong2468-lab/Bancapnhat",
+      "realProductionUpdateServiceRequest": true,
+      "runningApplicationVersion": "1.5.0",
+      "windowsUrl": "https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.5.0/VN-code-1.5.0-Windows-x64.exe",
+      "sha256": "b5b5ddd562213aa655c3183bc8e7e998ba58d42abd1563442a397865a5faea3f",
+      "bytes": 145660928,
+      "statuses": {
+        "1.4.19": "AVAILABLE",
+        "1.5.0": "CURRENT"
+      },
+      "sellerDesktopNotificationDelivered": false
+    }
+  ],
+  "sellerDesktopNotificationDelivered": false
+}

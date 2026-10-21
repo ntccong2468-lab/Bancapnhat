@@ -1,0 +1,18 @@
+{
+  "tests": 1177,
+  "failures": 0,
+  "errors": 0,
+  "skipped": 2,
+  "passed": 1175,
+  "reportFiles": 204,
+  "skippedCases": [
+    "com.vncode.app.shared.WindowsSecretProtectorTest.neverFallsBackToPlaintextOffWindows",
+    "com.vncode.app.features.gs1.Gs1PrefixTemplateStoreTest.privatePermissionsAreAppliedWhereSupported"
+  ],
+  "sourceCommit": "379197531ac1869e0a645e04f5c8ab9e8418be2c",
+  "githubRunId": 38492821195,
+  "platform": "Windows x64",
+  "publicKeyPinVerified": true,
+  "jarSha256": "75714a29bfbb2a9f78c0a161cc8f95faa64290dd2fe0eba8f83c04e55b692377",
+  "installerAndUpgradeAcceptance": "pending"
+}

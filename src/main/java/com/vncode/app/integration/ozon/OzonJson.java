@@ -42,11 +42,8 @@ public final class OzonJson {
             if (productId.isBlank()) productId = text(item, "product_id");
             if (productId.isBlank()) continue;
             List<String> barcodes = strings(item.get("barcodes"));
-            String primaryImage = text(item, "primary_image");
-            if (primaryImage.isBlank()) {
-                List<String> images = strings(item.get("images"));
-                primaryImage = images.isEmpty() ? "" : images.getFirst();
-            }
+            var orderedImages=OzonListingImages.ordered(item,new JsonObject());
+            String primaryImage=orderedImages.isEmpty()?"":orderedImages.getFirst();
             String sku = text(item, "sku");
             if (sku.isBlank()) sku = text(item, "fbo_sku");
             result.add(new OzonProductDto(
@@ -73,6 +70,37 @@ public final class OzonJson {
         boolean hasNext = bool(result, "has_next", false) || bool(response, "has_next", false);
         String cursor = firstNonBlank(text(result, "cursor"), text(response, "cursor"));
         return new PostingPage(List.copyOf(parsed), hasNext, cursor);
+    }
+
+    /** A partial successful HTTP response must never replace stored orders or advance a cursor. */
+    public static PostingPage requirePostingPage(JsonObject response)throws java.io.IOException {
+        JsonObject container=response!=null&&response.has("result")&&response.get("result").isJsonObject()?response.getAsJsonObject("result"):response;
+        var hasNext=container==null?null:container.get("has_next");if(hasNext==null&&response!=null)hasNext=response.get("has_next");
+        if(container==null||!container.has("postings")||!container.get("postings").isJsonArray()||hasNext==null||!hasNext.isJsonPrimitive()||!hasNext.getAsJsonPrimitive().isBoolean())throw new java.io.IOException("FBS_INVALID_RESPONSE");
+        var raw=container.getAsJsonArray("postings");var page=parsePostingPage(response);
+        if(page.postings().size()!=raw.size()||page.postings().stream().map(OzonPostingDto::postingNumber).distinct().count()!=raw.size())throw new java.io.IOException("FBS_INVALID_RESPONSE");
+        for(int i=0;i<raw.size();i++)requirePosting(raw.get(i).getAsJsonObject(),page.postings().get(i));
+        if(page.hasNext()&&(page.postings().isEmpty()||page.cursor().isBlank()))throw new java.io.IOException("FBS_INVALID_CURSOR");
+        return page;
+    }
+
+    public static OzonPostingDto requirePostingDetail(JsonObject response,String expected)throws java.io.IOException {
+        var nested=object(response,"result");var raw=nested.isEmpty()?response:nested;
+        if(raw==null)throw new java.io.IOException("FBS_INVALID_RESPONSE");
+        var posting=parsePosting(raw).orElseThrow(()->new java.io.IOException("FBS_INVALID_RESPONSE"));
+        if(!posting.postingNumber().equals(expected))throw new java.io.IOException("FBS_FOREIGN_POSTING");
+        requirePosting(raw,posting);return posting;
+    }
+    private static void requirePosting(JsonObject raw,OzonPostingDto posting)throws java.io.IOException {
+        var items=raw.has("products")?raw.get("products"):raw.get("items");
+        if(posting.status().isBlank()||items==null||!items.isJsonArray()||items.getAsJsonArray().size()!=posting.items().size())throw new java.io.IOException("FBS_INCOMPLETE_POSTING");
+        for(int i=0;i<posting.items().size();i++){
+            if(posting.items().get(i).productId().isBlank())throw new java.io.IOException("FBS_INCOMPLETE_POSTING");
+            try{
+                var quantity=items.getAsJsonArray().get(i).getAsJsonObject().get("quantity").getAsBigDecimal().intValueExact();
+                if(quantity<=0||quantity!=posting.items().get(i).quantity())throw new IllegalArgumentException();
+            }catch(RuntimeException invalid){throw new java.io.IOException("FBS_INCOMPLETE_POSTING");}
+        }
     }
 
     public static OzonPostingDto parsePostingDetail(JsonObject response) {

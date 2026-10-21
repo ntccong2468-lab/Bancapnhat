@@ -1,0 +1,118 @@
+{
+  "checkedAt": "2026-10-20T20:01:37.092398+00:00",
+  "mode": "production-read-only-exact-WB-source",
+  "writesPerformed": false,
+  "gtinAllocationPerformed": false,
+  "requests": [
+    {
+      "service": "WB",
+      "path": "/content/v2/get/cards/list",
+      "method": "POST",
+      "httpStatus": 200
+    }
+  ],
+  "sanitization": {
+    "containsCredentialValues": false,
+    "containsGtinValues": false,
+    "containsProductIdentifiers": false,
+    "containsPermitNumbers": false
+  },
+  "source": {
+    "exactSourceMatches": 1,
+    "titlePresent": true,
+    "vendorArticlePresent": true,
+    "brandPresent": true,
+    "categoryPresent": true,
+    "sourceFieldPresence": {
+      "tnved": true,
+      "color": true,
+      "composition": true,
+      "gender": false
+    },
+    "tnvedCodes": [
+      "6109100000"
+    ],
+    "tnvedCoveredByConfirmedPermit": {
+      "6109100000": false
+    },
+    "variantCount": 6,
+    "variantSizePairs": [
+      {
+        "manufacturerSize": "2XL",
+        "russianSize": "52-54",
+        "barcodesPresent": true,
+        "barcodeCount": 1,
+        "hasNumericGtinFormatBarcode": true
+      },
+      {
+        "manufacturerSize": "3XL",
+        "russianSize": "54-56",
+        "barcodesPresent": true,
+        "barcodeCount": 1,
+        "hasNumericGtinFormatBarcode": true
+      },
+      {
+        "manufacturerSize": "4XL",
+        "russianSize": "56-58",
+        "barcodesPresent": true,
+        "barcodeCount": 1,
+        "hasNumericGtinFormatBarcode": true
+      },
+      {
+        "manufacturerSize": "L",
+        "russianSize": "48-50",
+        "barcodesPresent": true,
+        "barcodeCount": 1,
+        "hasNumericGtinFormatBarcode": true
+      },
+      {
+        "manufacturerSize": "M",
+        "russianSize": "46-48",
+        "barcodesPresent": true,
+        "barcodeCount": 1,
+        "hasNumericGtinFormatBarcode": true
+      },
+      {
+        "manufacturerSize": "XL",
+        "russianSize": "50-52",
+        "barcodesPresent": true,
+        "barcodeCount": 1,
+        "hasNumericGtinFormatBarcode": true
+      }
+    ],
+    "missingSourceFields": [
+      "giới tính"
+    ],
+    "hasMultiplePossibleDraftVariants": true,
+    "draftBindingConfirmed": false,
+    "technicalRegulationFromConfirmedPermit": "ТР ТС 017/2011 О безопасности продукции легкой промышленности",
+    "catalogDraftBrandMatchesSourceBrand": false,
+    "requiredSellerDecisions": [
+      "Confirm linkage/brand discrepancy between actual source and existing drafts",
+      "Select actual variant size for each draft or request new cards for specified/all variants",
+      "Provide an applicable real permit for actual TNVED6109100000; currently confirmed replacement permit does not cover6109"
+    ],
+    "doNotChangeTnvedToFitPermit": true,
+    "sellerConfirmedGender": {
+      "value": "МУЖСКОЙ",
+      "source": "explicit user answer Nam",
+      "appliedToRemoteCard": false
+    },
+    "latestUserPermit": {
+      "matchesExistingErrorCardPermit": true,
+      "issuedDateReadFromActualReference": "2026-06-07",
+      "expiryDate": "2031-06-03",
+      "statusGroup": 1,
+      "scope": [
+        "6101",
+        "6201",
+        "6202",
+        "6211"
+      ],
+      "coversActualSourceTnved6109100000": false,
+      "readbackEvidence": "vncode-next-user-permit-check.json"
+    }
+  },
+  "status": "COMPLETE",
+  "completedAt": "2026-10-20T20:01:39.877215+00:00"
+}
