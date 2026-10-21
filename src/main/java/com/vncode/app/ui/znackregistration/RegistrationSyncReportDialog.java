@@ -57,10 +57,10 @@ final class RegistrationSyncReportDialog {
             if(closed)return;if(busy){pendingReload=true;return;}timer.stop();busy=true;buttons();String requested=selected;int start=offset;var filter=filter();
             Task<Page> task=new Task<>(){protected Page call(){
                 ListingIdentity.require(owner);var owned=new ArrayList<SyncRunRepository.Run>();
-                for(var run:reports.list(owner.getId(),0,100))if(Set.of(RegistrationSources.KIND,RegistrationAttemptReports.KIND,"catalog_repair","znack_catalog_read","znack_marketplace").contains(run.kind())) {
+                for(var run:reports.list(owner.getId(),0,100))if(Set.of(RegistrationSources.KIND,RegistrationAttemptReports.KIND,RegistrationPreflightReport.KIND,"catalog_repair","znack_catalog_read","znack_marketplace").contains(run.kind())) {
                     try{reports.assertOwner(owner,run.id());owned.add(run);}catch(SecurityException oldOwner){/* historical account */}
                 }
-                var run=owned.stream().filter(r->r.id().equals(requested)).findFirst().orElse(owned.stream().filter(r->RegistrationAttemptReports.KIND.equals(r.kind())).findFirst().orElse(owned.isEmpty()?null:owned.getFirst()));
+                var run=owned.stream().filter(r->r.id().equals(requested)).findFirst().orElse(owned.stream().filter(r->Set.of(RegistrationAttemptReports.KIND,RegistrationPreflightReport.KIND).contains(r.kind())).findFirst().orElse(owned.isEmpty()?null:owned.getFirst()));
                 if(run==null)return new Page(owned,null,List.of(),Map.of(),List.of(),0,Set.of(),"znack.registration.report_scope_batch",List.of());
                 var items=reports.items(run.id(),start,300);RegistrationAttemptReports.refreshAll(owner,run);com.vncode.app.integration.znack.registration.CatalogErrorRepairService.refresh(owner,run,items);
                 run=reports.find(run.id()).orElseThrow();var filtered=RegistrationReportData.page(owner,run.id(),filter,start,300);items=filtered.rows();

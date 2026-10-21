@@ -13,6 +13,17 @@ import static org.junit.jupiter.api.Assertions.*;
 class RegistrationBatchPreflightTest {
     @TempDir Path directory;
     @AfterEach void clean(){System.clearProperty("vncode.appdata.dir");}
+    @Test void missingConfiguredPermitIsReportedForAllSixSelectedSizes()throws Exception{
+        System.setProperty("vncode.appdata.dir",directory.toString());Database.initDatabase();
+        var shop=GtinWriteTestFixture.shop(Marketplace.WILDBERRIES);
+        var keys=java.util.stream.IntStream.range(0,6).mapToObj(n->new ProductKey(shop.getId(),shop.getMarketplace(),"101",Integer.toString(201+n))).toList();
+        var finding=new RegistrationBatchPreflight.Finding("documents",keys.getFirst(),"Article","Missing configured permit","","",null,null,"ZNACK_MISSING_PRODUCT_DOCUMENT",List.of());
+        RegistrationPreflightReport.write(shop,keys,List.of(finding),null);
+        var reports=new com.vncode.app.features.sync.SyncRunRepository();var run=reports.list(shop.getId(),0,10).stream().filter(r->r.kind().equals(RegistrationPreflightReport.KIND)).findFirst().orElseThrow();
+        assertEquals(6,run.total());var rows=reports.items(run.id(),0,10);assertEquals(6,rows.size());
+        assertTrue(rows.stream().allMatch(row->row.state().equals("NEEDS_ACTION")&&row.evidence().contains("ZNACK_MISSING_PRODUCT_DOCUMENT")&&row.evidence().contains("\"catalogSubmitted\":false")));
+        assertEquals(6,rows.stream().map(row->row.variantId()).distinct().count());
+    }
     @Test void validExistingSuitCodeIsNotReclassifiedMerelyFromTheSportsCategory()throws Exception{
         System.setProperty("vncode.appdata.dir",directory.toString());Database.initDatabase();var shop=GtinWriteTestFixture.shop(Marketplace.WILDBERRIES);var key=new ProductKey(1,shop.getMarketplace(),"101","201");
         var attrs=List.of(new ProductAttribute("1","ТН ВЭД",List.of("6103109000"),""),new ProductAttribute("2","Пол",List.of("Мужской"),""),new ProductAttribute("3","Состав",List.of("хлопок 80%, полиэстер 20%"),""),new ProductAttribute("4","Тип ткани",List.of("Трикотаж"),""));

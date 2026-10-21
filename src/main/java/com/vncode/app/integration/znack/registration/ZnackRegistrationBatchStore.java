@@ -72,15 +72,15 @@ final class ZnackRegistrationBatchStore {
             p.setString(1,id);try(var r=p.executeQuery()){while(r.next())out.add(new Item(id,r.getInt("position"),JSON.fromJson(r.getString("sku_json"),Sku.class),JSON.fromJson(r.getString("draft_json"),Draft.class),r.getString("state"),r.getString("detail")));}return List.copyOf(out);
         }catch(SQLException e){throw storage(e);}
     }
-    record Summary(int total,int submitted,int failed,int cancelled,Sku current,Sku last){}
+    record Summary(int total,int submitted,int failed,int cancelled,Sku current,Sku last,int acceptedFeeds,int awaitingReadback){}
     Summary summary(Shop shop,String id){
         get(shop,id);
         try(var c=Database.getConnection()){
-            c.setAutoCommit(false);int total,submitted,failed,cancelled;
-            try(var p=c.prepareStatement("SELECT count(*),COALESCE(sum(state='SUBMITTED'),0),COALESCE(sum(state='NEEDS_ACTION'),0),COALESCE(sum(state='CANCELLED'),0) FROM znack_registration_batch_items WHERE run_id=?")){
-                p.setString(1,id);try(var r=p.executeQuery()){r.next();total=r.getInt(1);submitted=r.getInt(2);failed=r.getInt(3);cancelled=r.getInt(4);}
+            c.setAutoCommit(false);int total,submitted,failed,cancelled,acceptedFeeds,awaitingReadback;
+            try(var p=c.prepareStatement("SELECT count(*),COALESCE(sum(state='SUBMITTED'),0),COALESCE(sum(state='NEEDS_ACTION'),0),COALESCE(sum(state='CANCELLED'),0),COALESCE(sum(NULLIF(TRIM(feed_id),'') IS NOT NULL),0),COALESCE(sum(state='WAITING_REMOTE' AND NULLIF(TRIM(feed_id),'') IS NOT NULL),0) FROM znack_registration_batch_items WHERE run_id=?")){
+                p.setString(1,id);try(var r=p.executeQuery()){r.next();total=r.getInt(1);submitted=r.getInt(2);failed=r.getInt(3);cancelled=r.getInt(4);acceptedFeeds=r.getInt(5);awaitingReadback=r.getInt(6);}
             }
-            Sku current=summarySku(c,id,false),last=summarySku(c,id,true);c.commit();return new Summary(total,submitted,failed,cancelled,current,last);
+            Sku current=summarySku(c,id,false),last=summarySku(c,id,true);c.commit();return new Summary(total,submitted,failed,cancelled,current,last,acceptedFeeds,awaitingReadback);
         }catch(SQLException e){throw storage(e);}
     }
     private static Sku summarySku(Connection c,String id,boolean last)throws SQLException {
