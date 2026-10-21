@@ -3,7 +3,7 @@
 Yêu cầu đã chốt: giữ toàn bộ màn hình/nút và cách thao tác của 1.5.7, thay xử lý bên dưới;
 không đưa người dùng sang màn hình bảy bước hay cửa sổ V3 khác.
 Nền `v1.5.7` / `9b580f42f3ea5b64a89a56591a598740cc7f5f45`.
-Nhánh cập nhật local: `update/vn-code-1.5.8`; chưa push hoặc phát hành.
+Nhánh cập nhật: `update/vn-code-1.5.8`; đã push. Chủ dự án yêu cầu phát hành lên Latest.
 
 ## Điểm tích hợp thực tế
 
@@ -51,16 +51,20 @@ cuối và những phần chưa được nghiệm thu ghi trong `ZNACK_V3_TEST_R
 POM và app.version cùng là 1.5.8. Release notes: `releases/VN-code-1.5.8.md`.
 Giữ `WINDOWS_UPGRADE_UUID`, install-dir và cơ chế bảo toàn dữ liệu của 1.5.7.
 Thêm probe nâng cấp trực tiếp `-FromStable157`, ghim checksum/kích thước EXE đã công bố;
-giữ mọi baseline cũ và thu proof mới vào artifact. 107 Node contracts đã qua; probe
-Windows chưa chạy. Nguồn pin nằm trong `docs/evidence/vncode-1.5.7-installer.json`.
-Quy trình Windows hiện hữu trong `.github/workflows/build-java.yml` cần build đầy đủ để tạo
-artifact cài đặt, với bằng chứng native/upgrade đúng commit. Bước công bố trong các workflow
-`publish-vncode-stable.yml` / `publish-vncode-preview.yml` còn yêu cầu hồ sơ nghiệm thu phù hợp
-phiên bản. Publisher Windows cũ dành riêng 1.2.0 không dùng để phát hành 1.5.8. Không thêm
-ngoại lệ 1.5.8, không dùng artifact 1.5.7 hoặc bằng chứng cũ, không nới gate license/production.
+giữ mọi baseline cũ và thu proof mới vào artifact. Nguồn pin nằm trong
+`docs/evidence/vncode-1.5.7-installer.json`.
 
-Cloud hiện tại là Linux. Proxy trả CONNECT 403 cho `api.github.com` cả khi gọi không xác thực.
-GitHub CLI báo GH_TOKEN không hợp lệ nhưng chưa thể kết luận về token khi API bị chặn; quyền
-GitHub chưa được xác minh. Chưa thể gọi Windows CI/công bố bộ cài qua API từ môi trường này.
-Không in/đổi token, không bỏ qua proxy hoặc gate phát hành.
-Các thay đổi vẫn được chuẩn bị, kiểm thử và commit local để tiếp tục phát hành khi có quyền.
+GitHub API và quyền push đã được xác minh lại. Windows build đầy đủ đang chạy từ
+`06408f3a35fddd2952b64374f75e5761d0b43502`, run `39641010813`; không dùng lại Java/artifact 1.5.7.
+Publisher Windows cũ dành riêng 1.2.0 không dùng cho bản này.
+
+Yêu cầu trực tiếp mới: “tạo phát hành bản cập nhật mới lên latest để thông báo xuống ứng dụng”.
+Hồ sơ `validation/2026-10-21-vncode-158-owner-publication.json` ghi quyền công bố đúng 1.5.8,
+commit và run trên. Mode `owner-requested-158` chỉ nhận bộ cài vượt toàn bộ kiểm tra Windows,
+native, lịch sử nâng cấp và passive EXE từ đúng checksum 1.5.7. Gate `publish` thông thường
+vẫn yêu cầu nghiệm thu production đầy đủ; quyền phát hành riêng này không phải nghiệm thu
+license production, CryptoPro hay thao tác seller thật. Những cờ đó vẫn false.
+
+Publisher kiểm tra Latest còn là 1.5.7 trước tạo tag và trước công bố, không thay tag đã tồn tại,
+đối chiếu hash/kích thước asset rồi tải lại bộ cài công khai. Ứng dụng nhận 1.5.8 từ GitHub
+Latest ở lần kiểm tra cập nhật tiếp theo; chưa có bằng chứng thông báo đã hiện trên máy seller.
