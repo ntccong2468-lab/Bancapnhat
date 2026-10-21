@@ -23,6 +23,7 @@ public class CryptoProCommandRunner {
     // Allows the existing 4 MiB CMS limit in Base64 and the GS1 XML output without truncation.
     static final int MAX_CAPTURE_BYTES = 16 * 1024 * 1024;
     private static final long POLL_NANOS = TimeUnit.MILLISECONDS.toNanos(10);
+    private static final long OUTPUT_POLL_NANOS = TimeUnit.MILLISECONDS.toNanos(1);
     private static final long CLEANUP_NANOS = TimeUnit.MILLISECONDS.toNanos(500);
     public record Result(int exitCode, byte[] stdout, byte[] stderr) {
         public String stdoutText() {
@@ -47,6 +48,7 @@ public class CryptoProCommandRunner {
             var stdout = new ByteArrayOutputStream();
             var stderr = new ByteArrayOutputStream();
             byte[] buffer = new byte[8192];
+            long lastOutput = started;
             while (true) {
                 if (Thread.currentThread().isInterrupted()) throw new InterruptedException();
                 rememberDescendants(process, descendants);
@@ -54,8 +56,9 @@ public class CryptoProCommandRunner {
                     throw new CryptoProException(CryptoProErrorCode.TIMEOUT,
                             "CryptoPro command timed out after " + timeout.toSeconds() + " seconds.");
                 // No blocking read/EOF join: a shell can exit while a child still holds its pipes.
-                drainAvailable(process.getInputStream(), stdout, buffer);
-                drainAvailable(process.getErrorStream(), stderr, buffer);
+                int captured = drainAvailable(process.getInputStream(), stdout, buffer)
+                        + drainAvailable(process.getErrorStream(), stderr, buffer);
+                if (captured > 0) lastOutput = System.nanoTime();
                 if (!process.isAlive() && descendants.stream().noneMatch(ProcessHandle::isAlive)) {
                     drainAvailable(process.getInputStream(), stdout, buffer);
                     drainAvailable(process.getErrorStream(), stderr, buffer);
@@ -63,9 +66,15 @@ public class CryptoProCommandRunner {
                     return new Result(process.exitValue(), stdout.toByteArray(), stderr.toByteArray());
                 }
                 long remaining = budget - (System.nanoTime() - started);
+                // Windows pipes can hold only a few KiB. Sleeping after every successful drain
+                // throttles a valid multi-MiB signature (or the overflow check) until it times out.
+                // Keep draining active writers; retain bounded passes and the deadline above.
+                if (captured > 0) continue;
                 if (remaining > 0) {
-                    if (process.isAlive()) process.waitFor(Math.min(POLL_NANOS, remaining), TimeUnit.NANOSECONDS);
-                    else TimeUnit.NANOSECONDS.sleep(Math.min(POLL_NANOS, remaining));
+                    long pause = System.nanoTime() - lastOutput < TimeUnit.MILLISECONDS.toNanos(100)
+                            ? OUTPUT_POLL_NANOS : POLL_NANOS;
+                    if (process.isAlive()) process.waitFor(Math.min(pause, remaining), TimeUnit.NANOSECONDS);
+                    else TimeUnit.NANOSECONDS.sleep(Math.min(pause, remaining));
                 }
             }
         } catch (IOException e) {
@@ -79,21 +88,22 @@ public class CryptoProCommandRunner {
         }
     }
 
-    private static void drainAvailable(InputStream stream, ByteArrayOutputStream output, byte[] buffer)
+    private static int drainAvailable(InputStream stream, ByteArrayOutputStream output, byte[] buffer)
             throws IOException, CryptoProException {
         // Bound each pass so a continuously writing process cannot postpone the deadline check.
         int remaining = 64 * 1024;
         while (remaining > 0) {
             int available = stream.available();
-            if (available <= 0) return;
+            if (available <= 0) break;
             int count = stream.read(buffer, 0, Math.min(Math.min(buffer.length, available), remaining));
-            if (count <= 0) return;
+            if (count <= 0) break;
             if (output.size() > MAX_CAPTURE_BYTES - count)
                 throw new CryptoProException(CryptoProErrorCode.INVALID_SIGNATURE_OUTPUT,
                         "CryptoPro command output exceeded the 16 MiB capture limit.");
             output.write(buffer, 0, count);
             remaining -= count;
         }
+        return 64 * 1024 - remaining;
     }
 
     private static void rememberDescendants(Process process, Set<ProcessHandle> descendants) {
