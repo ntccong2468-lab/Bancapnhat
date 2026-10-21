@@ -1,0 +1,114 @@
+{
+  "source": "https://docs.crpt.ru/gismt/API_%D0%9D%D0%9A/",
+  "documentVersion": "5.68",
+  "documentDate": "2026-09-28",
+  "retrievedAt": "2026-10-21T10:49:31.342307+00:00",
+  "httpStatus": 200,
+  "sha256": "d2d0f01e96a060f73ba55f48d819292e7d5d0f9092e9129a80d1e44405130491",
+  "retainedOriginal": "/workspace/znack-v3-research/official-api-nk.html",
+  "scope": "Official documentation verification only; no sandbox or production request with seller credentials was made.",
+  "confirmed": {
+    "productionBase": "https://апи.национальный-каталог.рф",
+    "sandboxBase": "https://api.nk.sandbox.crptech.ru",
+    "authentication": [
+      "apikey query parameter",
+      "Authorization: Bearer GIS MT token"
+    ],
+    "organizationRateLimit": "General and per-method counters in API-Usage-Limit and API-Method-Usage-Limit; new series five minutes after first request; no universal numeric quota asserted.",
+    "allocation": {
+      "method": "GET",
+      "path": "/v3/generate-gtins",
+      "section": "3.2.1",
+      "mutation": true,
+      "parameters": [
+        "quantity",
+        "exist",
+        "supplier_key"
+      ],
+      "response": [
+        "monthly-limit.limit",
+        "monthly-limit.usage",
+        "drafts[].gtin"
+      ],
+      "automaticWriteRetry": false
+    },
+    "feed": {
+      "method": "POST",
+      "path": "/v3/feed",
+      "section": "3.2.2",
+      "contentType": "application/json",
+      "maximumProducts": 500,
+      "response": "result.feed_id",
+      "errors": {
+        "400": "schema error",
+        "413": "feed too large or too many products"
+      },
+      "automaticWriteRetry": false,
+      "documentedMaximumSize": "25 МБ"
+    },
+    "feedStatus": {
+      "method": "GET",
+      "path": "/v3/feed-status",
+      "parameters": [
+        "feed_id",
+        "verbose"
+      ],
+      "statuses": [
+        "Received",
+        "Moderated",
+        "Signed",
+        "Rejected",
+        "Processing"
+      ],
+      "retention": "one year"
+    },
+    "ownCard": {
+      "method": "GET",
+      "path": "/v3/feed-product",
+      "identity": [
+        "gtin/identified_by",
+        "good_id"
+      ],
+      "publication": "Read exact identity, business revision and explicit signed/published state; never infer from feed ack."
+    },
+    "signingDocument": {
+      "method": "POST",
+      "path": "/v3/feed-product-document",
+      "section": "3.4.1",
+      "maximumProducts": 10,
+      "request": [
+        "goodIds",
+        "gtins",
+        "publicationAgreement"
+      ],
+      "response": [
+        "xmls[].goodId",
+        "xmls[].xml",
+        "errors"
+      ]
+    },
+    "signature": {
+      "method": "POST",
+      "path": "/v3/feed-product-sign-pkcs",
+      "section": "3.4.3",
+      "maximumProducts": 10,
+      "request": [
+        "goodId",
+        "base64Xml",
+        "signature"
+      ],
+      "profile": "detached CAdES PKCS#7; original XML and signature encoded separately as Base64",
+      "response": [
+        "signed[]",
+        "errors[].goodId",
+        "errors[].message"
+      ],
+      "automaticWriteRetry": false
+    }
+  },
+  "unverified": [
+    "Current official WB write contract; V3 WB writes remain denied",
+    "Sandbox authentication support in existing productionCatalog factory; V3 sandbox writes remain denied",
+    "Actual Windows CryptoPro and seller acceptance"
+  ]
+}

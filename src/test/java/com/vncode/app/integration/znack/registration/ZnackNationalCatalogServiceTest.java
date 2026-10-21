@@ -511,6 +511,17 @@ class ZnackNationalCatalogServiceTest {
         assertEquals(2, selected.id());
     }
 
+    @Test void v3PublicationMustMatchTheReviewedBusinessPayloadNotAnOlderPublishedCard()throws Exception {
+        var desired=JsonParser.parseString("{\"gtin\":\"04631993764370\",\"good_name\":\"Áo mới\",\"brand\":\"VN\",\"tnved\":\"6109100000\",\"categories\":[1],\"good_attrs\":[{\"attr_id\":35,\"attr_value\":\"46\",\"attr_value_type\":\"RU\"}]}").getAsJsonObject();
+        var card=desired.deepCopy();card.addProperty("good_id",91);card.addProperty("good_status","published");card.addProperty("good_signed",true);
+        var api=new ZnackApiClient(){@Override public JsonElement productCards(String base,String token,String gtins){var result=new JsonObject();var rows=new com.google.gson.JsonArray();rows.add(card.deepCopy());result.add("result",rows);return result;}};
+        assertTrue(service(api).verifyReviewedPublication("fixture","04631993764370",91L,desired));
+        card.addProperty("good_name","Áo phiên bản cũ");assertFalse(service(api).verifyReviewedPublication("fixture","04631993764370",91L,desired));
+        card.addProperty("good_name","Áo mới");card.addProperty("good_signed",false);assertFalse(service(api).verifyReviewedPublication("fixture","04631993764370",91L,desired));
+        card.addProperty("good_status","draft");assertTrue(service(api).matchesReviewedCard("fixture","04631993764370",91L,desired));
+        card.addProperty("good_name","Không phải nội dung đã duyệt");assertFalse(service(api).matchesReviewedCard("fixture","04631993764370",91L,desired));
+    }
+
     private static ZnackNationalCatalogService service(ZnackApiClient api) {
         return new ZnackNationalCatalogService(api, null, null, ZnackModels.Settings.empty());
     }

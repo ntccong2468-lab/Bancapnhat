@@ -58,6 +58,14 @@ import java.util.Locale;
 import java.util.Objects;
 
 public final class ZnackCardRegistrationController {
+    @FXML private void onOpenV3() {
+        if(shop==null)return;
+        var pane=new RegistrationV3Pane(shop);
+        var dialog=new Dialog<Void>();dialog.setTitle("Đăng ký Znack V3 — "+shop.getName());
+        dialog.getDialogPane().setContent(pane);dialog.getDialogPane().getButtonTypes().add(new ButtonType("Đóng",ButtonBar.ButtonData.CANCEL_CLOSE));
+        DialogLayout.install(dialog.getDialogPane());AlertService.applyTheme(dialog);
+        dialog.setOnHidden(event->pane.close());dialog.show();
+    }
     private static final int PAGE_SIZE = ZnackRegistrationQueryRepository.PAGE_SIZE;
     private static final DateTimeFormatter RU_DATE = DateTimeFormatter.ofPattern("dd.MM.uuuu");
     private final ZnackCardRegistrationRepository repository = new ZnackCardRegistrationRepository();

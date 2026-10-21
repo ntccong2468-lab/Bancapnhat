@@ -901,6 +901,20 @@ public final class ZnackNationalCatalogService {
         var approved=normalizedFeed(approvedPayload);var card=readCard(token,gtin,expectedId);
         if(card==null)throw signingReviewRequired();validateObservedOwner(card);
         if(!observedCard(card).readyToSign())throw signingReviewRequired();
+        validateReviewedBusinessFields(card,approvedPayload);
+    }
+    /** V3 must verify the reviewed revision, rather than an older published card of the same GTIN. */
+    public boolean verifyReviewedPublication(String token,String gtin,Long expectedId,JsonObject approvedPayload)throws Exception {
+        assertRegistrationReadScope();
+        if(expectedId==null||expectedId<=0||approvedPayload==null||!com.vncode.app.features.gtinsync.RegisteredGtinProof.sameCode(gtin,string(approvedPayload,"gtin")))return false;
+        var card=readCard(token,gtin,expectedId);if(card==null)return false;validateObservedOwner(card);
+        if(!observedCard(card).signed()||!card.has("good_signed")||!card.get("good_signed").isJsonPrimitive()
+                ||!card.getAsJsonPrimitive("good_signed").isBoolean()||!card.get("good_signed").getAsBoolean())return false;
+        try{validateReviewedBusinessFields(card,approvedPayload);return true;}
+        catch(RegistrationValidationException mismatch){return false;}
+    }
+    private static void validateReviewedBusinessFields(JsonObject card,JsonObject approvedPayload) {
+        var approved=normalizedFeed(approvedPayload);
         var data=CatalogProductDataParser.parse(card);
         for(var field:java.util.Map.of("good_name","title","brand","brand").entrySet()){
             String requested=string(approved,field.getKey());
@@ -914,6 +928,14 @@ public final class ZnackNationalCatalogService {
         if(approved.has("is_kit")?!approved.get("is_kit").equals(card.get("is_kit")):card.has("is_kit")&&(!card.get("is_kit").isJsonPrimitive()||!card.get("is_kit").getAsJsonPrimitive().isBoolean()||card.get("is_kit").getAsBoolean()))throw signingReviewRequired();
         var desired=businessAttributes(approved);var observed=businessAttributes(card);
         if(!desired.equals(observed))throw signingReviewRequired();
+    }
+    /** Content equivalence is evidence for reconciliation, never proof of publication by itself. */
+    public boolean matchesReviewedCard(String token,String gtin,Long expectedId,JsonObject approvedPayload)throws Exception {
+        assertRegistrationReadScope();
+        if(expectedId==null||expectedId<=0||approvedPayload==null||!com.vncode.app.features.gtinsync.RegisteredGtinProof.sameCode(gtin,string(approvedPayload,"gtin")))return false;
+        var card=readCard(token,gtin,expectedId);if(card==null)return false;validateObservedOwner(card);
+        try{validateReviewedBusinessFields(card,approvedPayload);return true;}
+        catch(RegistrationValidationException mismatch){return false;}
     }
     private static java.util.Map<Long,List<String>> businessAttributes(JsonObject payload){
         var result=new java.util.TreeMap<Long,List<String>>();
