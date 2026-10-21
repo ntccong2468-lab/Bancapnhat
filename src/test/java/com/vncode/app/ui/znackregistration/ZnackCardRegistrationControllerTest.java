@@ -411,6 +411,21 @@ class ZnackCardRegistrationControllerTest {
         fx(()->{assertEquals(300,table().getItems().size());assertEquals(I18nService.getInstance().tr("znack.registration.register_short"),button("registerSelectedButton").getText());button("registerSelectedButton").fire();return null;});
         assertTrue(dispatched.await(5,TimeUnit.SECONDS),"Select all and one Register click must start submission, not error repair");assertEquals(304,count.get());awaitTasks();
     }
+    @Test void automaticRefreshKeepsFilteredLoadedExtentAndSelection()throws Exception{
+        try(var c=Database.getConnection();var q=c.createStatement()){
+            for(int id=4;id<=405;id++){
+                q.execute("INSERT INTO wb_product_cards(shop_id,nm_id,vendor_code,title,synced_at) VALUES(1,"+(100+id)+",'SKU-"+id+"','Fixture','fixture')");
+                q.execute("INSERT INTO wb_product_sizes(shop_id,chrt_id,nm_id,tech_size) VALUES(1,"+id+","+(100+id)+",'XL')");
+            }
+        }
+        com.vncode.app.testsupport.RegistrationSourceFixture.ready(new Shop(1,"Fixture","fixture"));
+        fx(()->{((ComboBox<?>)loader.getNamespace().get("statusFilter")).getSelectionModel().select(1);return null;});awaitTasks();
+        fx(()->{button("loadMoreButton").fire();return null;});awaitTasks();
+        var timerDone=new CountDownLatch(1);var changes=new java.util.concurrent.atomic.AtomicInteger();
+        fx(()->{assertEquals(404,table().getItems().size());table().getSelectionModel().select(0);table().getItems().addListener((javafx.collections.ListChangeListener<Sku>)change->changes.incrementAndGet());((ZnackCardRegistrationController)loader.getController()).refreshLocal();var timer=new javafx.animation.PauseTransition(javafx.util.Duration.millis(650));timer.setOnFinished(e->timerDone.countDown());timer.play();return null;});
+        assertTrue(timerDone.await(3,TimeUnit.SECONDS));awaitTasks();
+        fx(()->{assertEquals(404,table().getItems().size());assertEquals(1,((ComboBox<?>)loader.getNamespace().get("statusFilter")).getSelectionModel().getSelectedIndex());assertEquals(1,table().getSelectionModel().getSelectedItems().size());assertEquals(0,changes.get(),"An unchanged background sync must not replace the current table contents");return null;});
+    }
     @Test void oneRegisterClickDispatchesTheFrozenSelectionWhileFiltersRemainUsable()throws Exception{
         var controller=(ZnackCardRegistrationController)loader.getController();
         var dispatched=new CountDownLatch(1);var finish=new CountDownLatch(1);

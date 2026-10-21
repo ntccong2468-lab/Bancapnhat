@@ -12,8 +12,9 @@ public final class GtinSyncModels {
     public enum Operation { ADD, REPLACE }
     public enum Status { QUEUED, VALIDATING, SENDING, AWAITING_VERIFICATION, SUCCEEDED, FAILED, RECONCILE_REQUIRED, CANCELLED }
     public enum Verification { PENDING, APPLIED, REJECTED, UNKNOWN }
-    public record VerificationResult(Verification outcome,String issue){
-        public VerificationResult {Objects.requireNonNull(outcome);issue=com.vncode.app.features.sync.SyncRunRepository.code(issue);}
+    public record VerificationResult(Verification outcome,String issue,String detail){
+        public VerificationResult {Objects.requireNonNull(outcome);issue=com.vncode.app.features.sync.SyncRunRepository.code(issue);detail=com.vncode.app.integration.znack.ZnackSanitizer.message(detail);}
+        public VerificationResult(Verification outcome,String issue){this(outcome,issue,"");}
         public VerificationResult(Verification outcome){this(outcome,"");}
     }
     public record ProductKey(int shopId, Marketplace marketplace, String productId, String variantId) {

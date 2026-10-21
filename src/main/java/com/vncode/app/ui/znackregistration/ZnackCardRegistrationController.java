@@ -495,11 +495,11 @@ public final class ZnackCardRegistrationController {
     }
 
     private void requestBatchRowsRefresh(){
-        if(shop==null||loading||preparing||batchRowsReadInFlight)return;
+        if(shop==null||loading||preparing||batchRowsReadInFlight||GtinBackgroundStatus.holdsRows((StackPane)productTable.getParent()))return;
         if(batchRowsRefresh.getStatus()!=javafx.animation.Animation.Status.RUNNING)batchRowsRefresh.playFromStart();
     }
     private void refreshBatchRows(){
-        if(shop==null||loading||preparing||batchRowsReadInFlight)return;
+        if(shop==null||loading||preparing||batchRowsReadInFlight||GtinBackgroundStatus.holdsRows((StackPane)productTable.getParent()))return;
         lastBatchRowsRefreshNanos=System.nanoTime();++loadSequence;loadPage(false,true);
     }
 
@@ -612,7 +612,7 @@ public final class ZnackCardRegistrationController {
 
     public void refreshLocal(){
         if(ozonRegistrationHost!=null&&ozonRegistrationHost.isVisible()){for(var child:ozonRegistrationHost.getChildren())if(child instanceof OzonRegistrationPane pane)pane.refreshLocal();return;}
-        if(loading)return;reload();
+        if(loading||preparing||GtinBackgroundStatus.holdsRows((StackPane)productTable.getParent()))return;requestBatchRowsRefresh();
     }
     private void reload() {
         debounce.stop();batchRowsRefresh.stop();++loadSequence;batchRowsReadInFlight=false;frozenSelection=List.of();frozenSelectionIds=Set.of();frozenActions=null;
@@ -675,7 +675,7 @@ public final class ZnackCardRegistrationController {
                     productTable.getItems().addAll(page.rows().stream().filter(row->!existing.contains(row.chrtId())).toList());
                 } else {
                     if(backgroundRefresh){frozenSelection=retained;frozenSelectionIds=retained.stream().map(Sku::chrtId).collect(java.util.stream.Collectors.toSet());frozenActions=null;}
-                    productTable.getItems().setAll(page.rows());
+                    if(!backgroundRefresh||!productTable.getItems().equals(page.rows()))productTable.getItems().setAll(page.rows());
                     if(backgroundRefresh)for(int n=0;n<productTable.getItems().size();n++)if(frozenSelectionIds.contains(productTable.getItems().get(n).chrtId()))productTable.getSelectionModel().select(n);
                 }
             } finally {selectingProgrammatically=false;}
@@ -1173,7 +1173,7 @@ public final class ZnackCardRegistrationController {
                 : tr("znack.registration.categories") + " (" + selectedSubjects.size() + ")");
     }
     private String registrationStatus(Sku row){
-        return tr("znack.registration."+view(row).status());
+        var observed=view(row);String text=tr("znack.registration."+observed.status());return observed.status().equals("source.unverified")?text+" · "+reason(observed.detail()):text;
     }
     private void updateOneGtin(Sku row){
         if(row==null||shop==null||!ready()||preparing||loading)return;

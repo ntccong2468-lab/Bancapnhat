@@ -6,6 +6,8 @@ import static com.vncode.app.features.gtinsync.GtinSyncModels.*;
 /** One HTTP mutation per bounded batch. Each member keeps its own durable state and readback. */
 public interface GtinBatchAdapter extends GtinMarketplaceAdapter {
     int MAX_PLAN_ROWS = 10_000;
+    /** Called for each partition, including the first; run-scoped adapters retain cadence across child jobs. */
+    default void beforeNextBatch()throws InterruptedException{}
     void prepareBatch(Collection<ProductKey> keys) throws Exception;
     default void refreshBatch(Collection<ProductKey> keys)throws Exception{prepareBatch(keys);}
     void validateRegistrations(Collection<String> gtins) throws Exception;

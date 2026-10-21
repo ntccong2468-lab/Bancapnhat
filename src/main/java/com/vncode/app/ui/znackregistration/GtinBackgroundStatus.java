@@ -17,6 +17,7 @@ final class GtinBackgroundStatus {
     private static final Map<String,Task<ZnackGtinBackgroundService.Result>> RUNNING=new HashMap<>();
     private static final Map<Task<ZnackGtinBackgroundService.Result>,GtinRunStatusSnapshot.Context> CONTEXTS=new java.util.concurrent.ConcurrentHashMap<>();
     private GtinBackgroundStatus(){}
+    static boolean holdsRows(StackPane host){return host.getChildren().stream().filter(node->"gtinBackgroundPill".equals(node.getId())).filter(HBox.class::isInstance).map(HBox.class::cast).anyMatch(box->box.getChildren().stream().anyMatch(ProgressIndicator.class::isInstance));}
     static void start(StackPane host,Shop owner,Set<ProductKey> selected,Runnable refresh){
         start(host,owner,selected,refresh,result->{});
     }
@@ -84,7 +85,7 @@ final class GtinBackgroundStatus {
         if(failure!=null){var details=new Button(I18nService.getInstance().tr("znack.signature.error.details"));details.setId("gtinBackgroundErrorDetails");details.setOnAction(e->AlertService.showDetailedError(FriendlyErrorService.format(failure),com.vncode.app.integration.znack.ZnackErrorDetails.format(failure)));pill.getChildren().add(details);}
         var scene=host.getScene();
         final class Observer {
-            int failures;String last="";
+            int failures;String last="";java.util.function.Consumer<GtinRunStatusSnapshot.Snapshot> report;
             boolean current(){
                 if(!host.getChildren().contains(pill))return false;
                 if(host.getScene()!=scene){host.getChildren().remove(pill);return false;}
@@ -101,13 +102,28 @@ final class GtinBackgroundStatus {
                         if(++failures<3){next();return;}finishFailure(host,cause);return;
                     }
                     failures=0;String message=summary(snapshot.result())+(failure==null?"":"\n"+FriendlyErrorService.format(failure));text.setText(message);
-                    if(!message.equals(last)){last=message;completed.accept(snapshot.result());if(host.getScene()!=null)refresh.run();}
-                    if(snapshot.settled()){pill.getChildren().remove(spinner);RegistrationStatusPill.dismissAfter(host,pill,dismiss);}
+                    if(!message.equals(last)){last=message;completed.accept(snapshot.result());}
+                    if(report==null)report=showResult(host,context,snapshot);else report.accept(snapshot);
+                    if(snapshot.settled()){pill.getChildren().remove(spinner);if(host.getScene()!=null)refresh.run();RegistrationStatusPill.dismissAfter(host,pill,dismiss);}
                     else next();
                 }));
             }
         }
         new Observer().read();
+    }
+    static String resultText(GtinRunStatusSnapshot.Snapshot snapshot){
+        var result=snapshot.result();var stock=result.inventory();int updated=result.progress().succeeded();
+        var i18n=I18nService.getInstance();String counts=java.text.MessageFormat.format(i18n.tr("gtin.background.final_counts"),updated,Math.max(0,stock.withGtin()-updated),stock.withoutGtin(),stock.unknown());
+        String reasons=snapshot.reasons().entrySet().stream().sorted(Map.Entry.comparingByKey()).limit(12).map(e->e.getValue()+" · "+RegistrationDiagnostics.reason(e.getKey())).collect(java.util.stream.Collectors.joining("\n"));
+        return counts+(reasons.isBlank()?"":"\n\n"+reasons);
+    }
+    private static java.util.function.Consumer<GtinRunStatusSnapshot.Snapshot> showResult(StackPane host,GtinRunStatusSnapshot.Context context,GtinRunStatusSnapshot.Snapshot initial){
+        if(host.getScene()==null||host.getScene().getWindow()==null||!host.getScene().getWindow().isShowing())return ignored->{};
+        var dialog=new Dialog<Void>();dialog.initOwner(host.getScene().getWindow());AlertService.applyTheme(dialog);dialog.setTitle(I18nService.getInstance().tr("gtin.background.final_title"));dialog.getDialogPane().setId("gtinUpdateResultDialog");
+        var text=new TextArea(resultText(initial));text.setEditable(false);text.setWrapText(true);text.setPrefRowCount(Math.min(12,4+initial.reasons().size()));text.setId("gtinUpdateResultText");dialog.getDialogPane().setContent(text);dialog.getDialogPane().setPrefWidth(620);
+        var details=new ButtonType(I18nService.getInstance().tr("znack.registration.report"),ButtonBar.ButtonData.HELP);dialog.getDialogPane().getButtonTypes().setAll(details,ButtonType.CLOSE);
+        dialog.getDialogPane().lookupButton(details).addEventFilter(javafx.event.ActionEvent.ACTION,event->{event.consume();RegistrationSyncReportDialog.show(host.getScene().getWindow(),context.shop(),initial.result().run());});DialogLayout.install(dialog.getDialogPane());dialog.show();
+        return snapshot->{if(dialog.isShowing())text.setText(resultText(snapshot));};
     }
     static String summary(ZnackGtinBackgroundService.Result result){
         var p=result.progress();var stock=result.inventory();

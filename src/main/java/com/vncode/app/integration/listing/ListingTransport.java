@@ -9,6 +9,8 @@ public interface ListingTransport {
     @FunctionalInterface
     interface CheckedGuard { void check() throws IOException; }
     JsonElement call(String path,JsonElement body,boolean mutation) throws IOException;
+    /** Between complete mutation batches, outside HTTP permits; fixtures may advance a virtual clock. */
+    default void pauseBetweenWrites(java.time.Duration delay)throws InterruptedException{Thread.sleep(delay.toMillis());}
     /** Production transports run this after limiter/budget waits, immediately before the request.
      * The default supports deterministic fixture transports without introducing retries. */
     default JsonElement call(String path,JsonElement body,boolean mutation,Runnable beforeSend)throws IOException {

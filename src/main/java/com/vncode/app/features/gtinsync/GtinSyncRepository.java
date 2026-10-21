@@ -15,6 +15,11 @@ public final class GtinSyncRepository {
     private static final String ITEM_SELECT="SELECT i.*,(SELECT e.created_at FROM gtin_sync_events e WHERE e.item_id=i.id AND e.status='DISPATCHED' ORDER BY e.id DESC LIMIT 1) AS dispatched_at FROM gtin_sync_items i";
     public record Change(JobItem item,Status next,String remoteTask,String issue){}
     public void issue(UUID item,String code){write(c->{itemFor(c,item);try(var p=c.prepareStatement("INSERT INTO sync_gtin_issues VALUES(?,?,?) ON CONFLICT(item_id) DO UPDATE SET code=excluded.code,updated_at=excluded.updated_at")){p.setString(1,item.toString());p.setString(2,com.vncode.app.features.sync.SyncRunRepository.code(code));p.setString(3,Instant.now().toString());p.executeUpdate();}return null;});}
+    public void issueDetail(UUID item,String detail){
+        String safe=com.vncode.app.integration.znack.ZnackSanitizer.message(detail);if(safe.length()>2000)safe=safe.substring(0,2000);final String value=safe;
+        write(c->{itemFor(c,item);try(var p=c.prepareStatement("INSERT INTO sync_gtin_issue_details(item_id,detail,updated_at) VALUES(?,?,?) ON CONFLICT(item_id) DO UPDATE SET detail=excluded.detail,updated_at=excluded.updated_at")){p.setString(1,item.toString());p.setString(2,value);p.setString(3,Instant.now().toString());p.executeUpdate();}return null;});
+    }
+    public Map<ProductKey,String> issueDetails(UUID job){return transaction(c->{requireJob(c,job);var values=new HashMap<ProductKey,String>();try(var p=c.prepareStatement("SELECT i.shop_id,i.marketplace,i.product_id,i.variant_id,d.detail FROM gtin_sync_items i JOIN sync_gtin_issue_details d ON d.item_id=i.id WHERE i.job_id=?")){p.setString(1,job.toString());try(var rows=p.executeQuery()){while(rows.next())values.put(new ProductKey(rows.getInt(1),Marketplace.valueOf(rows.getString(2)),rows.getString(3),rows.getString(4)),rows.getString(5));}}return Map.copyOf(values);});}
     public String issue(UUID item){return transaction(c->{itemFor(c,item);try(var p=c.prepareStatement("SELECT code FROM sync_gtin_issues WHERE item_id=?")){p.setString(1,item.toString());try(var r=p.executeQuery()){return r.next()?r.getString(1):"";}}});}
     public Map<UUID,String> issues(Collection<UUID> ids){
         return transaction(c->{var all=new ArrayList<>(new LinkedHashSet<>(ids));var result=new HashMap<UUID,String>();

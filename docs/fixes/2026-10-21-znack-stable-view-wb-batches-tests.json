@@ -1,0 +1,58 @@
+{
+  "branch": "fix/znack-stable-view-wb-gtin-batches",
+  "state": "verified-source-not-released",
+  "runs": [
+    {
+      "scope": "regression",
+      "log": "znack-stable-view-wb-accepted.log",
+      "tests": 147,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "scope": "preserve-existing-reason",
+      "log": "znack-wb-rejection-evidence-final.log",
+      "tests": 25,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "scope": "wb-10000",
+      "log": "znack-wb-10000-accepted.log",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "scope": "settled-marketplace-proof",
+      "log": "znack-wb-final-settlement.log",
+      "tests": 16,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  ],
+  "overlappingRunsNotSummed": true,
+  "wbScale": {
+    "marketplace": "WILDBERRIES",
+    "gtins": 10000,
+    "liveSellerMutations": false,
+    "simulatedApi": true,
+    "realApplicationPlannerAdaptersAndSqlite": true,
+    "writes": 4,
+    "reads": 214,
+    "maximumRequestItems": 3000,
+    "maximumRequestBytes": 1396356,
+    "verified": 10000,
+    "elapsedMs": 62628.65754,
+    "quotaWaitSimulatedSeparately": true
+  },
+  "wbPauseBetweenBatchesMillis": 15000,
+  "pauseDurationsAssertedWithSimulatedTransport": true,
+  "productionMarketplaceWriteVerified": false,
+  "installerBuilt": false,
+  "latestChanged": false
+}

@@ -22,12 +22,19 @@ class GtinRunStatusSnapshotTest {
         repo.add(shop,run,"catalog:orphan","","","","","",GtinWriteTestFixture.GTIN,"NEEDS_ACTION","CATALOG_NOT_FOUND","{}");
         assertEquals(1L,repo.marketplaceCounts(run).get("UPDATED"),"The whole-run count already contains the verified, unselected size");
         var context=GtinRunStatusSnapshot.capture(shop,Set.of(new ProductKey(1,Marketplace.WILDBERRIES,"100","101"),new ProductKey(1,Marketplace.WILDBERRIES,"100","102")));
-        var pending=GtinRunStatusSnapshot.read(context,run);assertFalse(pending.settled());assertEquals(1,pending.result().progress().pending());assertEquals(2,pending.result().inventory().total());assertEquals(1,pending.result().inventory().withoutGtin());
+        var pending=GtinRunStatusSnapshot.read(context,run);assertFalse(pending.settled());assertEquals(1,pending.reasons().get("GTIN_READBACK_PENDING"));assertEquals(1,pending.reasons().get("MISSING_GTIN"));assertEquals(1,pending.result().progress().pending());assertEquals(2,pending.result().inventory().total());assertEquals(1,pending.result().inventory().withoutGtin());
         repo.registrationProgress(shop,first,first.gtin(),"NEEDS_ACTION","LOCAL_ACTIVATION","GTIN_LOCAL_ACTIVATION_FAILED","{\"marketplaceVerified\":true}");
         // A later outer worker failure updates state only; previously persisted marketplace truth survives.
         repo.update(shop,repo.item(run,first.id()).orElseThrow(),"NEEDS_ACTION","READBACK","SYNC_STORAGE",null);
         assertEquals(2L,repo.marketplaceCounts(run).get("UPDATED"),"Whole-run count includes both the newly verified selected size and the already verified unselected size");
         var verified=GtinRunStatusSnapshot.read(context,run);assertTrue(verified.settled());assertEquals(1,verified.result().progress().succeeded());assertEquals(0,verified.result().progress().pending());assertEquals(2,verified.result().progress().blocked());assertEquals(1,verified.result().inventory().withGtin());
+    }
+    @Test void verifiedMarketplaceReadbackSettlesEvenWhileLocalActivationIsPending()throws Exception{
+        var shop=GtinWriteTestFixture.shop(Marketplace.WILDBERRIES);var repo=new SyncRunRepository();String run=repo.begin(shop,"znack_marketplace","READBACK");
+        var item=repo.add(shop,run,"100","101","","","","",GtinWriteTestFixture.GTIN,"WAITING_REMOTE","","{}");
+        repo.registrationProgress(shop,item,item.gtin(),"WAITING_REMOTE","LOCAL_ACTIVATION","","{\"marketplaceVerified\":true}");
+        var snapshot=GtinRunStatusSnapshot.read(GtinRunStatusSnapshot.capture(shop,Set.of()),run);
+        assertTrue(snapshot.settled());assertEquals(1,snapshot.result().progress().succeeded());assertEquals(0,snapshot.result().progress().pending());
     }
     @Test void lateSnapshotRejectsChangedConnectionOwnerAndDifferentRunOwner()throws Exception{
         var shop=GtinWriteTestFixture.shop(Marketplace.WILDBERRIES);var repo=new SyncRunRepository();var context=GtinRunStatusSnapshot.capture(shop,Set.of());

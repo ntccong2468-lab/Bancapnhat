@@ -14,6 +14,7 @@ import static com.vncode.app.integration.listing.ListingJson.*;
  * Ozon reads info/attributes in groups of 1000; only the explicit selected cards are retained.
  * A failed/partial scan invalidates the scope before any later write can use it. */
 public final class GtinBatchTransport implements ListingTransport, AutoCloseable {
+    @Override public void pauseBetweenWrites(java.time.Duration delay)throws InterruptedException{upstream.pauseBetweenWrites(delay);}
     private static final long MAX_RETAINED_BYTES=64L*1024*1024;
     private final Shop shop;
     private final ListingTransport upstream;
