@@ -19,13 +19,30 @@
   "validation": {
     "windowsBuild": {
       "state": "running",
-      "runId": 39549870900,
-      "sourceCommit": "2a44ebda0879ad844cefb86a3e4b97dfaa45c7de",
+      "runId": 39555455512,
+      "sourceCommit": "9b580f42f3ea5b64a89a56591a598740cc7f5f45",
       "freshFullJavaExecutionRequired": true
     },
     "productionLicenseVerified": false,
     "liveCryptoProSigningThisVersion": false,
-    "liveMarketplaceWritesThisVersion": false
+    "liveMarketplaceWritesThisVersion": false,
+    "priorWindowsFailure": {
+      "runId": 39549870900,
+      "sourceCommit": "2a44ebda0879ad844cefb86a3e4b97dfaa45c7de",
+      "tests": 2788,
+      "failures": 1,
+      "errors": 0,
+      "skipped": 2,
+      "failure": "CryptoProCommandRunnerTest.rejectsOversizedOutputExplicitlyAndStopsTheWriter: INVALID_SIGNATURE_OUTPUT expected, TIMEOUT observed",
+      "resolution": "Drain active Windows pipes without sleeping after successful reads; retain deadline and output bounds. Fresh full Windows run required."
+    },
+    "linuxCryptoProRepair": {
+      "sourceCommit": "9b580f42f3ea5b64a89a56591a598740cc7f5f45",
+      "tests": 10,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    }
   },
   "ownerAuthorization": "../validation/2026-10-21-vncode-157-owner-publication.json",
   "requestReport": "../VNCODE_ZNACK_TEST_REPORT.md"

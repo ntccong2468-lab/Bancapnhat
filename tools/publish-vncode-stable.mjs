@@ -467,8 +467,8 @@ export async function verifyPublicInstaller(asset,version,digest,size,fetcher=fe
 // This authorization applies only to the audited 1.5.7 source and its fresh Windows run.
 // Keep production acceptance false; all artifact, Java, native and upgrade checks still run.
 export function validateOwnerRequest157(decision,status,version,sha,runId) {
-    assert.equal(version,'1.5.7');assert.equal(sha,'2a44ebda0879ad844cefb86a3e4b97dfaa45c7de');
-    assert.equal(String(runId),'39549870900');assert.equal(decision.version,version);
+    assert.equal(version,'1.5.7');assert.equal(sha,'9b580f42f3ea5b64a89a56591a598740cc7f5f45');
+    assert.equal(String(runId),'39555455512');assert.equal(decision.version,version);
     assert.equal(decision.buildSourceCommit,sha);assert.equal(String(decision.runId),String(runId));
     assert.equal(decision.ownerRequestedPublication,true);assert.equal(decision.ownerInstruction,'tạo bộ cài và thay latest');
     assert.equal(decision.unverifiedChecksDisclosedBeforePublication,true);assert.equal(decision.standardFullAcceptanceClaimed,false);

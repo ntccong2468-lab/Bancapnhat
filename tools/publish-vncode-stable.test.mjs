@@ -392,7 +392,7 @@ test('1.5.4 report formatting refuses pending or inconsistent evidence instead o
 
 test('157 owner release is bounded to its exact build and never claims live acceptance',async()=>{
     const {validateOwnerRequest157,validateOwnerRequested157}=await import('./publish-vncode-stable.mjs');
-    const sha='2a44ebda0879ad844cefb86a3e4b97dfaa45c7de',run='39549870900';
+    const sha='9b580f42f3ea5b64a89a56591a598740cc7f5f45',run='39555455512';
     const decision={version:'1.5.7',buildSourceCommit:sha,runId:Number(run),ownerRequestedPublication:true,ownerInstruction:'tạo bộ cài và thay latest',unverifiedChecksDisclosedBeforePublication:true,standardFullAcceptanceClaimed:false,productionLicenseAcceptance:false,enterpriseCryptoProSigningAccepted:false,liveMarketplaceWritesAccepted:false,phase:'authorized-awaiting-verified-windows-build'};
     const status={version:'1.5.7',complete:false,databaseSchema:6,licenseIntegration:{productionReady:false,changedInThisVersion:false},validation:{productionLicenseVerified:false,liveCryptoProSigningThisVersion:false,liveMarketplaceWritesThisVersion:false,windowsBuild:{state:'running',sourceCommit:sha,runId:Number(run),freshFullJavaExecutionRequired:true}}};
     assert.doesNotThrow(()=>validateOwnerRequest157(decision,status,'1.5.7',sha,run));
