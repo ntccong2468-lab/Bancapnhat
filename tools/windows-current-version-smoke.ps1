@@ -1,7 +1,7 @@
 param([Parameter(Mandatory = $true)][string] $Version)
 $ErrorActionPreference = 'Stop'
 . (Join-Path $PSScriptRoot 'windows-smoke-common.ps1')
-if ($Version -cne '1.5.9') { throw 'This owner-requested release is limited to 1.5.9.' }
+if ($Version -cne '1.5.10') { throw 'This owner-requested release is limited to 1.5.10.' }
 $probeRoot = Join-Path $env:RUNNER_TEMP ('vncode-current-' + [guid]::NewGuid())
 $data = Join-Path $probeRoot 'data'
 $imageRoot = Join-Path $probeRoot 'image'

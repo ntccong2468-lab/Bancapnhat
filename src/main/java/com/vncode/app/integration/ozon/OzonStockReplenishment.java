@@ -33,6 +33,6 @@ public final class OzonStockReplenishment {
         var replenisher=new KizStockReplenisher();
         java.util.function.Consumer<Map<String,Integer>> proof=missing->KizPurchaseMappingProof.require(shop,candidates,missing.keySet());
         var result=sources==null?replenisher.ensure(shop,required,proof):replenisher.ensurePurchased(shop,required,proof);
-        if(result.waiting())throw new KizAssignmentException("KIZ_PURCHASE_PENDING","","");
+        if(result.waiting())throw new KizPurchasePendingException(required,result);
     }
 }

@@ -1081,8 +1081,9 @@ public class HomeController implements Initializable {
                 supplyDetailController.setStickerLoading(false);
             }
             Throwable ex = rejection;
-            LOGGER.error("Verify KIZ thất bại cho shop {}", shop.getId(), ex);
-            AlertService.showError(com.vncode.app.shared.FriendlyErrorService.format(ex));
+            if(com.vncode.app.features.kiz.KizPurchasePendingException.isPending(ex))LOGGER.info("Printing waits for KIZ stock for shop {}",shop.getId());
+            else LOGGER.error("Verify KIZ thất bại cho shop {}", shop.getId(), ex);
+            AlertService.showPrintFailure(ex);
         };
         checkTask.setOnFailed(e -> checkTaskFailure.accept(checkTask.getException()));
         checkTask.setOnSucceeded(e -> {
@@ -1145,8 +1146,9 @@ public class HomeController implements Initializable {
                             supplyDetailController.setStickerLoading(false);
                         }
                         Throwable ex = rejection;
-                        LOGGER.error("Export thất bại cho shop {}", shop.getId(), ex);
-                        AlertService.showError(com.vncode.app.shared.FriendlyErrorService.format(ex));
+                        if(com.vncode.app.features.kiz.KizPurchasePendingException.isPending(ex))LOGGER.info("Export waits for KIZ stock for shop {}",shop.getId());
+                        else LOGGER.error("Export thất bại cho shop {}", shop.getId(), ex);
+                        AlertService.showPrintFailure(ex);
                     };
         exportTask.setOnFailed(ev -> exportTaskFailure.accept(exportTask.getException()));
                     exportTask.setOnSucceeded(ev -> {

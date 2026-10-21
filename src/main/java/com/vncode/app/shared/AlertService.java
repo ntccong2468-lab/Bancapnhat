@@ -31,6 +31,19 @@ public final class AlertService {
         alert.showAndWait();
     }
 
+    public static void showPrintFailure(Throwable failure){
+        if(com.vncode.app.features.kiz.KizPurchasePendingException.isPending(failure)){
+            pendingKizAlert(failure).showAndWait();
+        }else showError(FriendlyErrorService.format(failure));
+    }
+    static Alert pendingKizAlert(Throwable failure){
+        var alert=new Alert(Alert.AlertType.INFORMATION);applyTheme(alert);
+        String title=I18nService.getInstance().tr("kiz.pending.title");alert.setTitle(title);alert.setHeaderText(title);
+        var details=new TextArea(FriendlyErrorService.format(failure));details.setEditable(false);details.setWrapText(true);
+        details.setPrefColumnCount(64);details.setPrefRowCount(10);alert.getDialogPane().setContent(details);
+        return alert;
+    }
+
     /** Shows diagnostics in full and keeps the dialog open while its Copy button is used. */
     public static void showDetailedError(String summary, String details) {
         I18nService i18n = I18nService.getInstance();

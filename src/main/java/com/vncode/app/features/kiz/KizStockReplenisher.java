@@ -20,7 +20,10 @@ public final class KizStockReplenisher {
         public void resume(){coordinator.resumeAsync(settings);}
     };});}
     KizStockReplenisher(java.util.function.Function<Shop,Purchases> purchases){this.purchases=purchases;}
-    public record Result(Map<String,Integer> missing,int enqueued,boolean waiting){public Result{missing=Map.copyOf(missing);}}
+    public record Result(Map<String,Integer> missing,int enqueued,boolean waiting,String reason){
+        public Result(Map<String,Integer> missing,int enqueued,boolean waiting){this(missing,enqueued,waiting,"review");}
+        public Result{missing=Map.copyOf(missing);}
+    }
     public Result ensure(Shop shop,Map<String,Integer> quantities)throws Exception {
         return ensure(shop,quantities,missing->{});
     }
@@ -56,7 +59,14 @@ public final class KizStockReplenisher {
                     p.setInt(1,shop.getId());p.setInt(2,shop.getId());try(var r=p.executeQuery()){while(r.next())waiting.add(r.getString(1));}
                 }
                 var toBuy=new TreeMap<>(missing);waiting.forEach(toBuy::remove);
-                if(toBuy.isEmpty())return new Result(missing,0,true);
+                if(toBuy.isEmpty()){
+                    // A click after restart must wake the existing durable operation too.
+                    // resume() reconciles its original request key; it never enqueues a second buy.
+                    boolean active=new ZnackRepository(new ZnackModels.ShopContext(shop.getId(),shop.getName()))
+                            .findActivePipelines().stream().anyMatch(p->missing.containsKey(p.gtin()));
+                    if(active)purchases.apply(shop).resume();
+                    return new Result(missing,0,true,active?"existing":"review");
+                }
                 purchaseProof.accept(Map.copyOf(toBuy));
                 var buyer=purchases.apply(shop);
                 for(var entry:toBuy.entrySet())buyer.validate(entry.getKey(),entry.getValue());
@@ -66,7 +76,7 @@ public final class KizStockReplenisher {
                     ListingIdentity.require(shop);buyer.enqueue(entry.getKey(),entry.getValue(),UUID.randomUUID().toString());enqueued++;
                 }
                 if(enqueued>0)buyer.resume();
-                return new Result(missing,enqueued,!missing.isEmpty());
+                return new Result(missing,enqueued,!missing.isEmpty(),"queued");
             });
         }
     }

@@ -78,6 +78,22 @@ class KizStockReplenisherTest {
         new KizWarehouseRepository().autoPurchase(shop,true);
         var first=stock.ensure(shop,Map.of(KizWarehouseTest.GTIN,5));assertEquals(3,buyer.bought);assertEquals(1,first.enqueued());assertEquals(1,buyer.resumes);
         var again=stock.ensure(shop,Map.of(KizWarehouseTest.GTIN,5));assertEquals(0,again.enqueued());assertTrue(again.waiting());assertEquals(3,buyer.bought);
+        assertEquals(2,buyer.resumes,"Printing again must resume the existing purchase, not merely report pending forever");
+    }
+    @Test void readyPurchasedStockWinsOverAnOlderPendingPurchase()throws Exception {
+        new ZnackRepository(new ZnackModels.ShopContext(1,"WB")).enqueuePipeline(KizWarehouseTest.GTIN,200,UUID.randomUUID().toString());
+        try(var c=Database.getConnection();var p=c.prepareStatement("INSERT INTO kiz_codes(shop_id,order_id,gtin,raw_code,display_code,status,legal_status,created_at,updated_at) VALUES(1,1,?,?,'fixture','AVAILABLE','IN_CIRCULATION','fixture','fixture')")){
+            for(int i=0;i<175;i++){p.setString(1,KizWarehouseTest.GTIN);p.setString(2,"ready-"+i);p.addBatch();}p.executeBatch();
+        }
+        for(var market:List.of(Marketplace.WILDBERRIES,Marketplace.OZON)){
+            try(var c=Database.getConnection();var p=c.prepareStatement("UPDATE shops SET marketplace=?,client_id=? WHERE id=1")){p.setString(1,market.name());p.setString(2,market==Marketplace.OZON?"fixture-client":null);p.executeUpdate();}
+            var owner=new Shop(1,"Fixture",market,"fixture-client","fixture");
+            var ready=stock.ensurePurchased(owner,Map.of(KizWarehouseTest.GTIN,177),missing->fail("Ready stock needs no purchase proof"));
+            assertFalse(ready.waiting());assertEquals(0,ready.enqueued());assertTrue(ready.missing().isEmpty());
+            var inventory=new ZnackGtinInventoryService();var reserved=inventory.reservePurchasedBulk(1,Map.of(KizWarehouseTest.GTIN,177)).get(KizWarehouseTest.GTIN);
+            assertEquals(177,reserved.size());inventory.release(1,reserved);
+        }
+        assertEquals(0,buyer.bought);assertEquals(0,buyer.resumes);
     }
     @Test void unverifiedStockRequiresVerificationRatherThanAnotherPaidOrder()throws Exception {
         new KizWarehouseRepository().autoPurchase(shop,true);

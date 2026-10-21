@@ -586,7 +586,7 @@ public final class OzonDashboardController {
                     final long[] published={0};
                     var result=work.run(count->{updateProgress(count,numbers.size());long now=System.nanoTime();if(count==numbers.size()||now-published[0]>250_000_000L){published[0]=now;updateMessage(MessageFormat.format(tr("ozon.batch.progress"),count,numbers.size()));}});
                     report.finish(selected,true);return result;
-                }catch(Exception failed){try{report.finish(selected,false);}catch(RuntimeException storage){failed.addSuppressed(storage);}throw failed;}
+                }catch(Exception failed){try{if(com.vncode.app.features.kiz.KizPurchasePendingException.isPending(failed))report.waitingForStock(selected);else report.finish(selected,false);}catch(RuntimeException storage){failed.addSuppressed(storage);}throw failed;}
             }
         };
         if(disposed||!isCurrent(selected)||busy)return;
@@ -610,7 +610,7 @@ public final class OzonDashboardController {
             open.setOnFailed(e->{if(!disposed&&isCurrent(selected))AlertService.showWarning(tr("ozon.dashboard.open_files.title"),tr("ozon.dashboard.open_files.failed"),tr("ozon.dashboard.open_files.unsupported"));});
             AppTaskExecutor.execute(open,error->{});
         });
-        java.util.function.Consumer<Throwable> taskFailure = rejection -> {lease.close();if(!com.vncode.app.shared.ShopBatchRegistry.hasShop(selected.getId()))onBusy.accept(selected.getId(),false);if(!disposed&&isCurrent(selected)){batchResultsArea.setText(numbers.stream().map(n->n+" · "+tr("ozon.fbs.batch_incomplete")).collect(java.util.stream.Collectors.joining("\n")));batchResultsPanel.setVisible(true);batchResultsPanel.setManaged(true);batchResultsPanel.setExpanded(true);}finishFailure(token, selected, rejection);};
+        java.util.function.Consumer<Throwable> taskFailure = rejection -> {lease.close();if(!com.vncode.app.shared.ShopBatchRegistry.hasShop(selected.getId()))onBusy.accept(selected.getId(),false);if(!disposed&&isCurrent(selected)){batchResultsArea.setText(numbers.stream().map(n->n+" · "+tr(com.vncode.app.features.kiz.KizPurchasePendingException.isPending(rejection)?"kiz.pending.title":"ozon.fbs.batch_incomplete")).collect(java.util.stream.Collectors.joining("\n")));batchResultsPanel.setVisible(true);batchResultsPanel.setManaged(true);batchResultsPanel.setExpanded(true);}finishFailure(token, selected, rejection);};
         task.setOnFailed(event -> taskFailure.accept(task.getException()));
         AppTaskExecutor.execute(task, taskFailure);
     }
@@ -620,8 +620,8 @@ public final class OzonDashboardController {
     private void finishFailure(long token, Shop selected, Throwable failure) {
         if (token != requestToken || !isCurrent(selected)) return;
         setBusy(false);
-        statusLabel.setText(I18nService.getInstance().tr("ozon.dashboard.error"));
-        AlertService.showError(com.vncode.app.shared.FriendlyErrorService.format(failure));
+        statusLabel.setText(I18nService.getInstance().tr(com.vncode.app.features.kiz.KizPurchasePendingException.isPending(failure)?"kiz.pending.title":"ozon.dashboard.error"));
+        AlertService.showPrintFailure(failure);
         loadLocal();
         refreshGtinInventory();
     }

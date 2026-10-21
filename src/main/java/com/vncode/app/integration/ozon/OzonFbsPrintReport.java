@@ -17,6 +17,10 @@ public final class OzonFbsPrintReport {
   reports.addBatch(shop,run,items);
  }
  public String id(){return run;}
+ public void waitingForStock(Shop shop){
+  var out=items.stream().map(item->new SyncRunRepository.Item(item.id(),run,item.productId(),item.variantId(),item.sku(),item.article(),item.color(),item.size(),item.gtin(),"WAITING_REMOTE","FBS_PRINT","KIZ_PURCHASE_PENDING","","{\"pdfBatchComplete\":false,\"remoteKizConfirmedByThisTask\":false}")).toList();
+  reports.updateBatch(shop,run,out);reports.stage(shop,run,"WAITING_REMOTE","FBS_PRINT","KIZ_PURCHASE_PENDING");
+ }
  public void finish(Shop shop,boolean completed){
   var jobs=new OzonExemplarJobRepository().findMany(shop.getId(),items.stream().map(SyncRunRepository.Item::productId).toList());
   var out=new ArrayList<SyncRunRepository.Item>();

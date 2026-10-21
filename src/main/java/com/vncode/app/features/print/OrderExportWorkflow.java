@@ -68,7 +68,7 @@ public class OrderExportWorkflow {
                     java.util.function.Consumer<Map<String,Integer>> proof=missing->com.vncode.app.features.kiz.KizPurchaseMappingProof.require(shop,products,missing.keySet());
                     var stock=new com.vncode.app.features.kiz.KizStockReplenisher();
                     var result=sources==null?stock.ensure(shop,quantities,proof):stock.ensurePurchased(shop,quantities,proof);
-                    if(result.waiting())throw new com.vncode.app.features.kiz.KizAssignmentException("KIZ_PURCHASE_PENDING","","");
+                    if(result.waiting())throw new com.vncode.app.features.kiz.KizPurchasePendingException(quantities,result);
                     return sources==null?inventoryService.reserveAvailableBulk(shop.getId(),quantities):inventoryService.reservePurchasedBulk(shop.getId(),quantities);
                 }catch(RuntimeException failure){throw failure;}catch(Exception failure){throw new IllegalStateException("KIZ_REPLENISH_FAILED",failure);}
             }
@@ -129,7 +129,7 @@ public class OrderExportWorkflow {
                 if(preparedJobId>0)try{new com.vncode.app.features.print.history.PrintHistoryRepository().finishPrintJob(request.shop().getId(),preparedJobId,"prepared","failed");}
                 catch(RuntimeException checkpointFailure){ex.addSuppressed(checkpointFailure);}
             }
-            if (!successRecorded&&preparedJobId==0) {
+            if (!successRecorded&&preparedJobId==0&&!com.vncode.app.features.kiz.KizPurchasePendingException.isPending(ex)) {
                 printHistoryService.recordFailedJob(
                         request.shop(),
                         request.supplyId(),

@@ -1,17 +1,17 @@
-name: Publish VNCode registration hotfix
+name: Publish VNCode KIZ hotfix
 
 on:
   push:
-    branches: [fix/znack-catalog-submit-158-20261021]
+    branches: [fix/kiz-ready-stock-and-pending-159]
     paths: [.github/workflows/publish-vncode-registration-hotfix.yml]
   workflow_dispatch:
     inputs:
       source_commit:
-        description: Exact committed VNCode 1.5.9 source, also targeted by the existing release tag
+        description: Exact committed VNCode 1.5.10 source, also targeted by the existing release tag
         required: true
         type: string
       release_id:
-        description: Existing unpublished GitHub release ID for v1.5.9
+        description: Existing unpublished GitHub release ID for v1.5.10
         required: true
         type: string
 
@@ -31,8 +31,8 @@ jobs:
       GH_TOKEN: ${{ github.token }}
       EXPECTED_SOURCE: ${{ inputs.source_commit || github.sha }}
       RELEASE_ID: ${{ inputs.release_id }}
-      HOTFIX_VERSION: '1.5.9'
-      FOCUSED_TESTS: ZnackRegistrationCountryModelTest,RegistrationDynamicPreflightTest,OzonAutomaticDraftSchemaTest,OzonCardRegistrationWorkflowTest,RegistrationVerifiedDefaultsTest
+      HOTFIX_VERSION: '1.5.10'
+      FOCUSED_TESTS: KizStockReplenisherTest,ZnackGtinInventoryBulkTest,OrderExportWorkflowKizPlanningTest,PrintPublishRecoveryTest,Ozon*Print*Test,FriendlyErrorCodeTest,KizPendingNoticeTest,SyncCoordinatorTest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
@@ -51,7 +51,7 @@ jobs:
           if ($env:RELEASE_ID -and $env:RELEASE_ID -notmatch '^[1-9][0-9]*$') { throw 'Invalid release ID.' }
           if ((git rev-parse HEAD).Trim() -cne $env:EXPECTED_SOURCE) { throw 'Checkout does not match the authorized source.' }
           $version = (node tools/release-version.mjs).Trim()
-          if ($LASTEXITCODE -ne 0 -or $version -cne $env:HOTFIX_VERSION) { throw 'Source is not VNCode 1.5.9.' }
+          if ($LASTEXITCODE -ne 0 -or $version -cne $env:HOTFIX_VERSION) { throw 'Source is not VNCode 1.5.10.' }
           if (-not (Test-Path "docs/releases/VN-code-$version.md")) { throw 'Missing hotfix release notes.' }
 
       - name: Set up JDK 25 with Maven cache
@@ -61,13 +61,13 @@ jobs:
           distribution: oracle
           cache: maven
 
-      - name: Verify focused registration regressions and package Java
+      - name: Verify focused KIZ regressions and package Java
         shell: pwsh
         env:
           LOCALAPPDATA: ${{ runner.temp }}\vncode-registration-hotfix-${{ github.run_id }}
         run: |
           .\mvnw.cmd -B "-Dtest=$env:FOCUSED_TESTS" clean package
-          if ($LASTEXITCODE -ne 0) { throw 'Focused registration tests failed.' }
+          if ($LASTEXITCODE -ne 0) { throw 'Focused KIZ tests failed.' }
 
       - name: Build Windows EXE from this job's focused verified Java
         id: package
@@ -110,7 +110,7 @@ jobs:
             ownerRequestedExpeditedHotfix = $true
             installer = @{ name = $file; bytes = (Get-Item -LiteralPath $target).Length; sha256 = $hash }
             verification = @{
-              scope = 'focused-registration-hotfix'; focusedTestClasses = $env:FOCUSED_TESTS.Split(',')
+              scope = 'focused-kiz-hotfix'; focusedTestClasses = $env:FOCUSED_TESTS.Split(',')
               focusedJava = @{ tests = $tests; failures = $failures; errors = $errors; skipped = $skipped; passed = $tests - $skipped }
               fullJavaSuiteRun = $false; nativeSmokeRun = $true; legacyUpgradeMatrixRun = $false
               productionAcceptanceClaimed = $false; liveCatalogWriteVerified = $false; liveMarketplaceWriteVerified = $false
@@ -122,7 +122,7 @@ jobs:
         if: ${{ always() && steps.package.outcome == 'success' }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
-          name: VN-code-1.5.9-Windows-x64
+          name: VN-code-1.5.10-Windows-x64
           path: |
             out/*.exe
             out/*.sha256
@@ -147,7 +147,7 @@ jobs:
             $releases = @(gh api "repos/$env:GITHUB_REPOSITORY/releases?per_page=100" | ConvertFrom-Json)
             if ($LASTEXITCODE -ne 0) { throw 'Could not read existing releases.' }
             $hotfixReleases = @($releases | Where-Object { $_.tag_name -ceq $tag })
-            if ($hotfixReleases.Count -ne 1) { throw 'Expected exactly one existing v1.5.9 draft release.' }
+            if ($hotfixReleases.Count -ne 1) { throw 'Expected exactly one existing v1.5.10 draft release.' }
             $release = $hotfixReleases[0]
           }
           if ($LASTEXITCODE -ne 0 -or $release.tag_name -cne $tag -or -not $release.draft -or $release.prerelease) { throw 'Release is no longer the authorized unpublished draft.' }
@@ -176,5 +176,5 @@ jobs:
             "Published [$tag]($($latest.html_url)) as Latest.",
             "Installer: $($asset[0].browser_download_url)",
             "SHA256: $($info.installer.sha256); bytes: $($info.installer.bytes).",
-            'Verification scope: focused registration tests only; fresh native startup passed; no full Java suite, legacy upgrade matrix or live production write acceptance claimed.'
+            'Verification scope: focused KIZ tests only; fresh native startup passed; no full Java suite, legacy upgrade matrix or live production write acceptance claimed.'
           ) | Add-Content $env:GITHUB_STEP_SUMMARY
