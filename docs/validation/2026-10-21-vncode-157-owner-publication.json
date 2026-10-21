@@ -1,0 +1,21 @@
+{
+  "version": "1.5.7",
+  "auditedApplicationCommit": "43727101c0f3b4aba1c238d17f5926fb7bea72b0",
+  "ownerInstruction": "tạo bộ cài và thay latest",
+  "ownerRequestedPublication": true,
+  "unverifiedChecksDisclosedBeforePublication": true,
+  "standardFullAcceptanceClaimed": false,
+  "productionLicenseAcceptance": false,
+  "enterpriseCryptoProSigningAccepted": false,
+  "liveMarketplaceWritesAccepted": false,
+  "phase": "authorized-awaiting-verified-windows-build",
+  "required": [
+    "fresh full Windows Java execution",
+    "native startup",
+    "workspace and UI layout",
+    "side-by-side installation",
+    "data-preserving passive EXE upgrade from v1.5.5",
+    "exact artifact/source/hash validation",
+    "public installer and Latest readback"
+  ]
+}
