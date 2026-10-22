@@ -326,7 +326,7 @@ public final class ZnackRepository {
                   card_detailed_status=COALESCE(NULLIF(excluded.card_detailed_status,''),znack_products.card_detailed_status),
                   readiness_checked_at=COALESCE(excluded.readiness_checked_at,znack_products.readiness_checked_at),
                   cis_type=COALESCE(NULLIF(excluded.cis_type,''),znack_products.cis_type),
-                  deleted_at=CASE WHEN znack_products.identity_archived_at IS NOT NULL
+                  deleted_at=CASE WHEN znack_products.identity_archived_at IS NOT NULL OR znack_products.card_status='pending_registration'
                                   THEN NULL ELSE znack_products.deleted_at END,
                   identity_archived_at=NULL,
                   synced_at=excluded.synced_at
@@ -442,7 +442,7 @@ public final class ZnackRepository {
         }catch(SQLException e){throw new RuntimeException(e);}
     }
     public List<Product> findProducts(){try(Connection c=Database.getConnection();PreparedStatement ps=c.prepareStatement("SELECT * FROM znack_products WHERE shop_id=? AND gtin NOT LIKE '029%' AND deleted_at IS NULL AND identity_archived_at IS NULL ORDER BY gtin")){ps.setInt(1,shop.shopId());try(ResultSet r=ps.executeQuery()){List<Product> o=new ArrayList<>();while(r.next())o.add(product(r));return o;}}catch(SQLException e){throw new RuntimeException(e);}}
-    public List<Product> findDeletedProducts(){try(Connection c=Database.getConnection();PreparedStatement ps=c.prepareStatement("SELECT * FROM znack_products WHERE shop_id=? AND gtin NOT LIKE '029%' AND deleted_at IS NOT NULL AND identity_archived_at IS NULL ORDER BY gtin")){ps.setInt(1,shop.shopId());try(ResultSet r=ps.executeQuery()){List<Product> o=new ArrayList<>();while(r.next())o.add(product(r));return o;}}catch(SQLException e){throw new RuntimeException(e);}}
+    public List<Product> findDeletedProducts(){try(Connection c=Database.getConnection();PreparedStatement ps=c.prepareStatement("SELECT * FROM znack_products WHERE shop_id=? AND gtin NOT LIKE '029%' AND deleted_at IS NOT NULL AND identity_archived_at IS NULL AND COALESCE(card_status,'')<>'pending_registration' ORDER BY gtin")){ps.setInt(1,shop.shopId());try(ResultSet r=ps.executeQuery()){List<Product> o=new ArrayList<>();while(r.next())o.add(product(r));return o;}}catch(SQLException e){throw new RuntimeException(e);}}
     /**
      * Hides GTINs and releases every WB/Ozon mapping they own in the same transaction. A later
      * catalog sync keeps them hidden until explicitly restored, but removed mappings stay removed.
@@ -482,8 +482,8 @@ public final class ZnackRepository {
         }catch(SQLException e){throw new RuntimeException(e);}
     }
     /** Point lookup for multi-GTIN purchase validation; hidden/archived products never authorize buying. */
-    public Optional<Product> findActiveProduct(String gtin){try(Connection c=Database.getConnection();PreparedStatement ps=c.prepareStatement("SELECT * FROM znack_products WHERE shop_id=? AND gtin=? AND deleted_at IS NULL AND identity_archived_at IS NULL AND COALESCE(card_status,'')<>'imported_unverified'")){ps.setInt(1,shop.shopId());ps.setString(2,GtinNormalizer.normalize(gtin));try(ResultSet r=ps.executeQuery()){return r.next()?Optional.of(product(r)):Optional.empty();}}catch(SQLException e){throw new RuntimeException(e);}}
-    public Optional<Product> findProduct(String gtin){try(Connection c=Database.getConnection();PreparedStatement ps=c.prepareStatement("SELECT * FROM znack_products WHERE shop_id=? AND gtin=? AND identity_archived_at IS NULL")){ps.setInt(1,shop.shopId());ps.setString(2,GtinNormalizer.normalize(gtin));try(ResultSet r=ps.executeQuery()){return r.next()?Optional.of(product(r)):Optional.empty();}}catch(SQLException e){throw new RuntimeException(e);}}
+    public Optional<Product> findActiveProduct(String gtin){try(Connection c=Database.getConnection();PreparedStatement ps=c.prepareStatement("SELECT * FROM znack_products WHERE shop_id=? AND gtin=? AND deleted_at IS NULL AND identity_archived_at IS NULL AND COALESCE(card_status,'') NOT IN ('imported_unverified','pending_registration')")){ps.setInt(1,shop.shopId());ps.setString(2,GtinNormalizer.normalize(gtin));try(ResultSet r=ps.executeQuery()){return r.next()?Optional.of(product(r)):Optional.empty();}}catch(SQLException e){throw new RuntimeException(e);}}
+    public Optional<Product> findProduct(String gtin){try(Connection c=Database.getConnection();PreparedStatement ps=c.prepareStatement("SELECT * FROM znack_products WHERE shop_id=? AND gtin=? AND identity_archived_at IS NULL AND COALESCE(card_status,'')<>'pending_registration'")){ps.setInt(1,shop.shopId());ps.setString(2,GtinNormalizer.normalize(gtin));try(ResultSet r=ps.executeQuery()){return r.next()?Optional.of(product(r)):Optional.empty();}}catch(SQLException e){throw new RuntimeException(e);}}
     public void updateProductCisType(String gtin,String cisType){execute("UPDATE znack_products SET cis_type=? WHERE shop_id=? AND gtin=?",ps->{ps.setString(1,cisType);ps.setInt(2,shop.shopId());ps.setString(3,GtinNormalizer.normalize(gtin));});}
     private static final String PRODUCT_DOCUMENTS_UPDATE="UPDATE znack_products SET permit_documents_json=?,certificate_type=?,certificate_number=?,certificate_date=? WHERE shop_id=? AND gtin=?";
     private static final String PRODUCT_LABEL_UPDATE="UPDATE znack_products SET gender=?,size=? WHERE shop_id=? AND gtin=?";
@@ -538,7 +538,16 @@ public final class ZnackRepository {
     public void updateProductMetadata(Product p){execute("UPDATE znack_products SET tn_ved=?,certificate_type=?,certificate_number=?,certificate_date=?,production_date=? WHERE shop_id=? AND gtin=?",ps->{ps.setString(1,p.tnVed());ps.setString(2,p.certificateType());ps.setString(3,p.certificateNumber());ps.setString(4,p.certificateDate());ps.setString(5,p.productionDate());ps.setInt(6,shop.shopId());ps.setString(7,GtinNormalizer.normalize(p.gtin()));});}
     public void updateProductReadiness(Product p){execute("UPDATE znack_products SET product_name=COALESCE(NULLIF(?,''),product_name),good_mark_flag=?,good_turn_flag=?,card_status=?,card_detailed_status=?,readiness_checked_at=? WHERE shop_id=? AND gtin=?",ps->{ps.setString(1,p.productName());nullableBoolean(ps,2,p.goodMarkFlag());nullableBoolean(ps,3,p.goodTurnFlag());ps.setString(4,p.cardStatus());ps.setString(5,p.cardDetailedStatus());ps.setString(6,p.readinessCheckedAt()==null?null:p.readinessCheckedAt().toString());ps.setInt(7,shop.shopId());ps.setString(8,GtinNormalizer.normalize(p.gtin()));});}
 
-    public long createDraft(String gtin,int quantity){String now=Instant.now().toString();try(Connection c=Database.getConnection();PreparedStatement ps=c.prepareStatement("INSERT INTO kiz_orders(shop_id,gtin,quantity,local_status,created_at,updated_at) VALUES(?,?,?,?,?,?)",Statement.RETURN_GENERATED_KEYS)){ps.setInt(1,shop.shopId());ps.setString(2,GtinNormalizer.normalize(gtin));ps.setInt(3,quantity);ps.setString(4,OrderStatus.DRAFT.name());ps.setString(5,now);ps.setString(6,now);ps.executeUpdate();try(ResultSet r=ps.getGeneratedKeys()){r.next();return r.getLong(1);}}catch(SQLException e){throw new RuntimeException(e);}}
+    public long createDraft(String gtin,int quantity){
+        String normalized=GtinNormalizer.normalize(gtin),now=Instant.now().toString();
+        try{return com.vncode.app.config.SqliteWriteTransaction.run(c->{
+            requireActiveProduct(c,normalized);
+            try(var ps=c.prepareStatement("INSERT INTO kiz_orders(shop_id,gtin,quantity,local_status,created_at,updated_at) VALUES(?,?,?,?,?,?)",Statement.RETURN_GENERATED_KEYS)){
+                ps.setInt(1,shop.shopId());ps.setString(2,normalized);ps.setInt(3,quantity);ps.setString(4,OrderStatus.DRAFT.name());ps.setString(5,now);ps.setString(6,now);ps.executeUpdate();
+                try(var r=ps.getGeneratedKeys()){r.next();return r.getLong(1);}
+            }
+        });}catch(SQLException error){throw new RuntimeException(error);}
+    }
     public void updateOrder(long id,String external,String remote,OrderStatus status,String error){execute("UPDATE kiz_orders SET external_order_id=COALESCE(?,external_order_id),remote_status=?,local_status=?,error_message=?,updated_at=? WHERE shop_id=? AND id=?",ps->{ps.setString(1,external);ps.setString(2,remote);ps.setString(3,status.name());ps.setString(4,ZnackSanitizer.message(error));ps.setString(5,Instant.now().toString());ps.setInt(6,shop.shopId());ps.setLong(7,id);});}
     public Optional<KizOrder> findOrder(long id){try(Connection c=Database.getConnection();PreparedStatement ps=c.prepareStatement("SELECT * FROM kiz_orders WHERE shop_id=? AND id=?")){ps.setInt(1,shop.shopId());ps.setLong(2,id);try(ResultSet r=ps.executeQuery()){return r.next()?Optional.of(order(r)):Optional.empty();}}catch(SQLException e){throw new RuntimeException(e);}}
     public List<KizOrder> findOrders(){try(Connection c=Database.getConnection();PreparedStatement ps=c.prepareStatement("SELECT * FROM kiz_orders WHERE shop_id=? ORDER BY id DESC")){ps.setInt(1,shop.shopId());try(ResultSet r=ps.executeQuery()){List<KizOrder> o=new ArrayList<>();while(r.next())o.add(order(r));return o;}}catch(SQLException e){throw new RuntimeException(e);}}
@@ -588,19 +597,35 @@ public final class ZnackRepository {
                 long id=insertPipeline(c,normalized,quantity,key,busy?PurchaseStage.QUEUED:PurchaseStage.VALIDATING,now);
                 tx.execute("COMMIT");
                 return id;
-            }catch(SQLException error){tx.execute("ROLLBACK");throw error;}
+            }catch(SQLException | RuntimeException error){tx.execute("ROLLBACK");throw error;}
         }catch(SQLException e){throw new RuntimeException(e);}
     }
     private void requireActiveProduct(Connection connection,String gtin)throws SQLException{
-        try(PreparedStatement product=connection.prepareStatement("""
-                SELECT 1 FROM znack_products
-                WHERE shop_id=? AND gtin=? AND deleted_at IS NULL AND identity_archived_at IS NULL
-                """)){
+        try(var product=connection.prepareStatement("SELECT deleted_at,identity_archived_at,card_status FROM znack_products WHERE shop_id=? AND gtin=?")){
             product.setInt(1,shop.shopId());product.setString(2,gtin);
-            try(ResultSet rows=product.executeQuery()){
-                if(!rows.next())throw new IllegalArgumentException(
-                        "GTIN is no longer active for the selected signing certificate.");
+            try(var rows=product.executeQuery()){
+                if(rows.next()){
+                    if(!"pending_registration".equals(rows.getString("card_status"))){
+                        if(rows.getString("deleted_at")==null&&rows.getString("identity_archived_at")==null)return;
+                        throw new IllegalArgumentException("GTIN is no longer active for the selected signing certificate.");
+                    }
+                    if(rows.getString("identity_archived_at")!=null)throw new IllegalArgumentException("GTIN is no longer active for the selected signing certificate.");
+                }
             }
+        }
+        // The write transaction freezes the owned registration and current variant while
+        // this read resolves its reviewed facts. The anchor is never a published product.
+        var pending=new com.vncode.app.features.kiz.KizRegistrationIdentityRepository().product(shop.shopId(),gtin)
+                .orElseThrow(()->new IllegalArgumentException("GTIN is no longer active for the selected signing certificate."));
+        try(var insert=connection.prepareStatement("""
+                INSERT INTO znack_products(shop_id,gtin,product_name,tn_ved,cis_type,card_status,card_detailed_status,deleted_at,synced_at)
+                VALUES(?,?,?,?,?,'pending_registration','KIZ_REVIEWED_REGISTRATION',?,?)
+                ON CONFLICT(shop_id,gtin) DO UPDATE SET product_name=excluded.product_name,tn_ved=excluded.tn_ved,
+                  cis_type=excluded.cis_type,card_detailed_status=excluded.card_detailed_status,
+                  deleted_at=COALESCE(znack_products.deleted_at,excluded.deleted_at),good_mark_flag=NULL,good_turn_flag=NULL,readiness_checked_at=NULL
+                """)){
+            insert.setInt(1,shop.shopId());insert.setString(2,gtin);insert.setString(3,pending.productName());insert.setString(4,pending.tnVed());insert.setString(5,pending.cisType());
+            String now=Instant.now().toString();insert.setString(6,now);insert.setString(7,now);insert.executeUpdate();
         }
     }
     private long insertPipeline(String gtin,int quantity,String requestKey,PurchaseStage stage){

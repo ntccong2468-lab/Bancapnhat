@@ -14,6 +14,50 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class OrderExportWorkflowKizPlanningTest {
     @TempDir Path directory;
+    @Test void invalidPendingIdentityDoesNotBlockAppliedMarksNonKizOrdersOrImportedStock()throws Exception{
+        System.setProperty("vncode.appdata.dir",directory.toString());Database.initDatabase();
+        try{
+            var shop=com.vncode.app.features.kiz.PendingKizFixture.create(com.vncode.app.integration.marketplace.Marketplace.WILDBERRIES);
+            com.vncode.app.features.kiz.PendingKizFixture.sql("UPDATE znack_card_registrations SET status='ERROR'");
+            var data=new PlanningData(1){
+                public Set<Long> required(int selected,List<Long> ids){return Set.of();}
+                public com.vncode.app.features.kiz.KizRegistrationIdentityRepository.Snapshot pendingIdentities(Shop selected){return new com.vncode.app.features.kiz.KizRegistrationIdentityRepository().read(selected);}
+                public Map<Long,String> stockCategories(int selected,List<Long> ids){return Map.of(101L,"trousers");}
+                public Map<Long,List<Kiz>> reserveCategoryStock(int selected,Map<Long,Integer> quantities){return Map.of(101L,List.of(new Kiz(901,"010464558878115421imported","fixture")));}
+            };
+            var order=new Order();order.setId(1L);order.setNmId(101L);order.setBarcode("S-M");order.setRequiresKiz(true);
+            var workflow=new OrderExportWorkflow(data);String mark="010464558878115421applied";
+            data.metadata=Map.of(1L,new KizService.SgtinMetadata(true,mark));
+            assertTrue(workflow.assignKizCodes(List.of(order),shop,new com.vncode.app.features.kiz.KizSourceSelection(false,true)).usedKizs().isEmpty());
+            assertEquals(mark,order.getKiz());
+            data.metadata=Map.of();order.setRequiresKiz(false);order.setNmId(999L);
+            assertTrue(workflow.assignKizCodes(List.of(order),shop,new com.vncode.app.features.kiz.KizSourceSelection(false,true)).usedKizs().isEmpty());
+            order.setRequiresKiz(true);order.setNmId(101L);
+            assertEquals(1,workflow.assignKizCodes(List.of(order),shop,new com.vncode.app.features.kiz.KizSourceSelection(true,true)).usedKizs().size());
+            assertTrue(order.getKiz().endsWith("imported"));assertEquals(0,data.reserveCalls);
+        }finally{System.clearProperty("vncode.appdata.dir");}
+    }
+    @Test void exactPendingVariantSelectsReadyPurchasedStockAndRejectsAnotherNativeProduct()throws Exception{
+        System.setProperty("vncode.appdata.dir",directory.toString());Database.initDatabase();
+        try{
+            var shop=com.vncode.app.features.kiz.PendingKizFixture.create(com.vncode.app.integration.marketplace.Marketplace.WILDBERRIES);
+            String gtin=com.vncode.app.features.kiz.PendingKizFixture.GTIN;
+            com.vncode.app.features.kiz.PendingKizFixture.sql("INSERT INTO znack_products(shop_id,gtin,card_status,synced_at) VALUES(1,'"+gtin+"','pending_registration','fixture')");
+            com.vncode.app.features.kiz.PendingKizFixture.sql("INSERT INTO kiz_orders(id,shop_id,gtin,quantity,local_status,created_at,updated_at) VALUES(1,1,'"+gtin+"',2,'READY','fixture','fixture')");
+            com.vncode.app.features.kiz.PendingKizFixture.sql("INSERT INTO kiz_codes(shop_id,order_id,gtin,raw_code,display_code,status,legal_status,created_at,updated_at) VALUES(1,1,'"+gtin+"','01"+gtin+"21ready','ready','AVAILABLE','IN_CIRCULATION','fixture','fixture'),(1,1,'"+gtin+"','01"+gtin+"21waiting','waiting','AVAILABLE','RECEIVED','fixture','fixture')");
+            var data=new PlanningData(1){
+                public com.vncode.app.features.kiz.KizRegistrationIdentityRepository.Snapshot pendingIdentities(Shop selected){return new com.vncode.app.features.kiz.KizRegistrationIdentityRepository().read(selected);}
+                public Map<String,List<Kiz>> reserve(int selected,Map<String,Integer> quantities){return new com.vncode.app.integration.znack.ZnackGtinInventoryService().reservePurchasedBulk(selected,quantities);}
+            };
+            var order=new Order();order.setId(1L);order.setNmId(101L);order.setBarcode("S-M");order.setRequiresKiz(true);
+            var workflow=new OrderExportWorkflow(data);var result=workflow.assignKizCodes(List.of(order),shop,new com.vncode.app.features.kiz.KizSourceSelection(false,true));
+            assertEquals("01"+gtin+"21ready",order.getKiz());assertEquals(1,result.usedKizs().size());
+            new com.vncode.app.integration.znack.ZnackGtinInventoryService().release(1,result.usedKizs());
+            order.setNmId(999L);
+            assertThrows(com.vncode.app.features.kiz.KizAssignmentException.class,()->workflow.assignKizCodes(List.of(order),shop,new com.vncode.app.features.kiz.KizSourceSelection(false,true)));
+            assertEquals(1,new com.vncode.app.integration.znack.ZnackGtinInventoryService().purchasedAvailableCounts(1,List.of(gtin)).get(gtin));
+        }finally{System.clearProperty("vncode.appdata.dir");}
+    }
     @Test void sellerOnlyNeverReadsPurchaseMappingsAndReportsEveryMissingOrder()throws Exception{
         var data=new PlanningData(7){
             public Map<Long,String> mappings(int shop,List<Long> ids){fail("Seller stock must not read Catalog mappings");return Map.of();}

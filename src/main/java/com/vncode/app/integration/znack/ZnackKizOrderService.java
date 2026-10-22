@@ -138,8 +138,7 @@ public class ZnackKizOrderService {
     private String text(JsonObject o,String...k){for(String x:k)if(o.has(x)&&!o.get(x).isJsonNull())return o.get(x).getAsString();return "";}
     private int integer(JsonObject o,String k){return o.has(k)&&!o.get(k).isJsonNull()?o.get(k).getAsInt():0;}
     private String resolveCisType(Settings settings,String gtin)throws Exception{
-        Product stored=repository.findProduct(gtin).orElseThrow(
-                ()->new IllegalArgumentException("GTIN is not registered for the selected shop."));
+        Product stored=repository.findProduct(gtin).orElseGet(()->new com.vncode.app.features.kiz.KizRegistrationIdentityRepository().product(repository.shop().shopId(),gtin).orElseThrow(()->new IllegalArgumentException("GTIN is not registered for the selected shop.")));
         if(stored.cisType()!=null)return lightIndustryCisType(stored.cisType());
         JsonElement response=api.productInfo(settings.resolvedTrueApiBaseUrl(),auth.trueApiToken(settings),gtin);
         JsonArray products=response.isJsonArray()?response.getAsJsonArray():response.getAsJsonObject().getAsJsonArray("results");
