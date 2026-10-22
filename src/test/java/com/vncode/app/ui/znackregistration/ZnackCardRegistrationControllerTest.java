@@ -542,4 +542,27 @@ class ZnackCardRegistrationControllerTest {
         assertFalse(AppTaskExecutor.hasRunningTasks());
         fail("JavaFX callbacks and their follow-up tasks must settle within ten seconds");
     }
+    @Test void catalogRejectedRowOffersAnEnabledEditAction()throws Exception{
+        var owner=new Shop(1,"Fixture","fixture");
+        var raw=com.google.gson.JsonParser.parseString("{\"good_status\":\"draft\",\"good_detailed_status\":[\"errors\"]}").getAsJsonObject();
+        var card=new com.vncode.app.features.gtinsync.GtinSyncModels.RegisteredGtin("00000000000017","SKU-1","Blue","XL",true,false,com.vncode.app.features.gtinsync.RegisteredGtinProof.source(owner),java.time.Instant.now(),com.vncode.app.integration.znack.registration.CatalogProductDataParser.parse(raw));
+        new com.vncode.app.features.gtinsync.GtinSyncRepository().saveCatalog(1,owner.getMarketplace(),java.util.List.of(card));
+        fx(()->{button("refreshButton").fire();return null;});awaitTasks();
+        fx(()->{
+            var row=table().getItems().stream().filter(r->r.chrtId()==1).findFirst().orElseThrow();
+            var column=(TableColumn<Sku,Sku>)loader.getNamespace().get("actionColumn");var cell=column.getCellFactory().call(column);
+            var update=cell.getClass().getDeclaredMethod("updateItem",Sku.class,boolean.class);update.setAccessible(true);update.invoke(cell,row,false);
+            assertInstanceOf(Button.class,cell.getGraphic());var edit=(Button)cell.getGraphic();
+            assertEquals(I18nService.getInstance().tr("repair.edit"),edit.getText());assertFalse(edit.isDisabled());return null;
+        });
+    }
+    @Test void selectingUnsentLocalFailuresKeepsRegistrationInsteadOfOpeningCatalogRepair()throws Exception{
+        try(var c=Database.getConnection();var q=c.createStatement()){
+            q.execute("UPDATE znack_card_registrations SET status='PRE_SUBMIT_ERROR',gtin='00000000000017',error_message='ZNACK_REQUIRED_ATTRIBUTES_MISSING' WHERE shop_id=1 AND chrt_id=2");
+        }
+        fx(()->{button("refreshButton").fire();return null;});awaitTasks();
+        fx(()->{button("selectAllButton").fire();return null;});awaitTasks();
+        fx(()->{assertEquals(I18nService.getInstance().tr("znack.registration.register_short"),button("registerSelectedButton").getText());assertFalse(button("registerSelectedButton").isDisabled());return null;});
+    }
+
 }

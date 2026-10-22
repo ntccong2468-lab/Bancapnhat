@@ -24,7 +24,17 @@ final class RegistrationBatchPreflight {
     record Review(List<Finding> findings,List<ProductKey> selected,RegistrationDynamicPreflight.Review dynamic){
         Review(List<Finding> findings){this(findings,List.of(),null);}
         Review{findings=List.copyOf(findings);selected=List.copyOf(selected);}List<ProductKey> keys(String field){return findings.stream().filter(f->f.field().equals(field)).map(Finding::key).distinct().toList();}}
-    static Map<Finding,String> initialValues(Review review){var values=new LinkedHashMap<Finding,String>();review.findings().forEach(f->values.put(f,f.field().equals("documents")?"":f.suggestion().isBlank()?f.before():f.suggestion()));return values;}
+    static Map<Finding,String> initialValues(Review review){
+        var values=new LinkedHashMap<Finding,String>();
+        for(var f:review.findings()){
+            String value=f.suggestion().isBlank()?f.before():f.suggestion();
+            if(f.field().equals("documents"))value=RegistrationPermitValidator.advisory(f.reason())?tr("znack.registration.preflight.keep_document"):"";
+            else if(f.attribute()!=null)value=RegistrationDraftCompletionDialog.suggestion(f.attribute(),value,f.suggestedType(),"").text();
+            else if(f.field().equals("catalog_category")&&f.options().size()==1)value=f.options().getFirst();
+            values.put(f,value);
+        }
+        return values;
+    }
     static Review read(Shop owner,List<ProductKey> selected){
         ListingIdentity.require(owner);var findings=new ArrayList<Finding>();var repo=new ProductRepository();var advisor=new ProductTnvedAdvisor();var cards=new HashSet<String>();
         var sources=new RegistrationSources();boolean sourceReady=sources.check(owner).ready();
@@ -128,7 +138,7 @@ return readComplete(owner,selected,entered,documents,Map.of());
             Review review=reviewAllFields&&initial.dynamic()!=null?forceReview(initial):initial;
             this.owner=owner;this.review=review;awaitingFullReview=reviewAllFields&&initial.dynamic()==null;if(window!=null)dialog.initOwner(window);
             dialog.setTitle(tr("znack.registration.batch_preflight"));dialog.setHeaderText(tr("znack.registration.complete_missing_hint"));
-            values.putAll(initialValues(review));review.findings().forEach(f->types.put(f,f.suggestedType()));
+            values.putAll(initialValues(review));review.findings().forEach(f->types.put(f,f.attribute()==null?f.suggestedType():RegistrationDraftCompletionDialog.suggestion(f.attribute(),values.get(f),f.suggestedType(),"").type()));
             table.getItems().setAll(review.findings());table.setPrefHeight(390);table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
             column(table,"Article / "+tr("znack.registration.preflight.variant"),f->variantLabel(this.review,f));column(table,tr("znack.registration.complete_missing_field"),RegistrationBatchPreflight::fieldLabel);column(table,tr("znack.registration.preflight.target"),f->tr(f.attribute()==null&&!f.field().startsWith("catalog_")?"znack.registration.preflight.marketplace":"znack.registration.preflight.catalog_only"));column(table,tr("edit.before"),f->RegistrationCountryDisplay.label(f.attribute()==null?0:f.attribute().id(),f.before()));
             column(table,tr("jobs.reason"),RegistrationBatchPreflight::findingReason);
@@ -142,7 +152,7 @@ return readComplete(owner,selected,entered,documents,Map.of());
                         var target=active;var edit=new Button(tr("products.edit_documents"));edit.setId("registrationMissingDocuments");edit.setOnAction(e->completeDocuments(target));
                         var read=new Button(tr("znack.registration.refresh"));read.setOnAction(e->verifyDocuments(target));
                         var saved=new Label(values.getOrDefault(target,""));saved.setWrapText(true);var content=new VBox(4,new HBox(8,edit,read),saved);
-                        if(!target.reason().isBlank()&&RegistrationPermitValidator.advisory(target.reason())){var keep=new CheckBox(tr("znack.registration.preflight.keep_document"));keep.setWrapText(true);keep.setId("registrationKeepDocument");keep.setSelected(approvedDocuments.containsKey(target.key()));keep.selectedProperty().addListener((o,a,b)->{if(b){approveDocument(target);values.put(target,tr("znack.registration.preflight.keep_document"));}else{approvedDocuments.remove(target.key());values.put(target,"");}});content.getChildren().add(keep);}setGraphic(content);return;
+                        if(!target.reason().isBlank()&&RegistrationPermitValidator.advisory(target.reason())){var keep=new CheckBox(tr("znack.registration.preflight.keep_document"));keep.setWrapText(true);keep.setId("registrationKeepDocument");keep.setSelected(!values.getOrDefault(target,"").isBlank());keep.selectedProperty().addListener((o,a,b)->{if(b){approveDocument(target);values.put(target,tr("znack.registration.preflight.keep_document"));}else{approvedDocuments.remove(target.key());values.put(target,"");}});content.getChildren().add(keep);}setGraphic(content);return;
                     }
                     rendering=true;long attributeId=active.attribute()==null?0:active.attribute().id();RegistrationCountryDisplay.configure(box,attributeId);var options=new LinkedHashSet<String>();if(!active.suggestion().isBlank())options.add(active.suggestion());if(active.attribute()!=null)options.addAll(active.attribute().presets());else{options.addAll(active.options());options.addAll(suggestions.getOrDefault(group(active),List.of()));}box.getItems().setAll(options);box.setValue(values.getOrDefault(active,""));box.getEditor().setText(RegistrationCountryDisplay.label(attributeId,values.getOrDefault(active,"")));rendering=false;setGraphic(box);}
             });table.getColumns().add(input);
@@ -159,9 +169,14 @@ return readComplete(owner,selected,entered,documents,Map.of());
         }
         boolean show(){loadSuggestions();return dialog.showAndWait().orElse(false);}
         void loadSuggestions(){
-            var groups=new LinkedHashMap<String,Finding>();review.findings().forEach(f->groups.putIfAbsent(group(f),f));
+            var findings=review.findings();var groups=new LinkedHashMap<String,Finding>();findings.forEach(f->groups.putIfAbsent(group(f),f));
             var task=new Task<Void>(){protected Void call()throws Exception{try(var lane=MarketplaceRequestBudget.lane(true)){
-                var service=new ProductSuggestionService();for(var entry:groups.entrySet()){
+                var service=new ProductSuggestionService();
+                for(var finding:findings){
+                    if(disposed)return null;String proposal=service.defaultValue(owner,List.of(finding.key()),finding.field());
+                    if(!proposal.isBlank())Platform.runLater(()->{if(!disposed&&!busy&&values.getOrDefault(finding,"").isBlank()){values.put(finding,proposal);table.refresh();}});
+                }
+                for(var entry:groups.entrySet()){
                     if(disposed)return null;if(entry.getValue().field().equals("documents")||entry.getValue().attribute()!=null||entry.getValue().field().startsWith("catalog_"))continue;try{var found=service.suggest(owner,List.of(entry.getValue().key()),entry.getValue().field(),"",partial->offer(entry.getKey(),partial.values()));offer(entry.getKey(),found.values());}catch(Exception unavailable){/* Manual input remains available. */}
                 }return null;
             }}};executeRead(task,error->{});
@@ -215,7 +230,7 @@ return readComplete(owner,selected,entered,documents,Map.of());
             busy=true;table.setDisable(true);dialog.getDialogPane().lookupButton(applyType).setDisable(true);status.setText(tr("znack.registration.preflight.checking_schema"));
             var entered=new LinkedHashMap<ProductKey,Map<Long,RegistrationReviewedValues.Value>>();reviewed.forEach((key,map)->entered.put(key,Map.copyOf(map)));var keys=review.selected();var previous=review.dynamic();var acknowledged=Map.copyOf(approvedDocuments);var categories=Map.copyOf(chosenCategories);boolean requireFullReview=awaitingFullReview;
             var task=new Task<Review>(){protected Review call()throws Exception{try(var lane=MarketplaceRequestBudget.lane(true)){var checked=reviewReader.read(owner,keys,Map.copyOf(entered),acknowledged,categories);if(requireFullReview&&checked.dynamic()!=null)return forceReview(checked);if(previous!=null&&checked.dynamic()!=null&&!sameFacts(previous,checked.dynamic()))return forceReview(checked);if(isCancelled()||disposed||Thread.currentThread().isInterrupted())throw new InterruptedException("Registration preflight cancelled");if(saveWhenComplete&&checked.findings().isEmpty()&&checked.dynamic()!=null)RegistrationReviewedValues.save(owner,RegistrationDynamicPreflight.approvals(checked.dynamic()));return checked;}}};
-            task.setOnSucceeded(e->{busy=false;if(disposed)return;review=task.getValue();if(requireFullReview&&review.dynamic()!=null)awaitingFullReview=false;if(review.findings().isEmpty()){dialog.setResult(true);dialog.close();return;}values.clear();values.putAll(initialValues(review));types.clear();review.findings().forEach(f->types.put(f,f.suggestedType()));table.getItems().setAll(review.findings());table.setDisable(false);dialog.getDialogPane().lookupButton(applyType).setDisable(false);status.setText(tr("znack.registration.preflight.review_next_fields"));loadSuggestions();});
+            task.setOnSucceeded(e->{busy=false;if(disposed)return;review=task.getValue();if(requireFullReview&&review.dynamic()!=null)awaitingFullReview=false;if(review.findings().isEmpty()){dialog.setResult(true);dialog.close();return;}values.clear();values.putAll(initialValues(review));types.clear();review.findings().forEach(f->types.put(f,f.attribute()==null?f.suggestedType():RegistrationDraftCompletionDialog.suggestion(f.attribute(),values.get(f),f.suggestedType(),"").type()));table.getItems().setAll(review.findings());table.setDisable(false);dialog.getDialogPane().lookupButton(applyType).setDisable(false);status.setText(tr("znack.registration.preflight.review_next_fields"));loadSuggestions();});
             java.util.function.Consumer<Throwable> failed=error->{busy=false;if(disposed)return;table.setDisable(false);dialog.getDialogPane().lookupButton(applyType).setDisable(false);status.setText(FriendlyErrorService.format(error));};task.setOnFailed(e->failed.accept(task.getException()));executeRead(task,failed);
         }
         void executeRead(Task<?> task,java.util.function.Consumer<Throwable> failed){

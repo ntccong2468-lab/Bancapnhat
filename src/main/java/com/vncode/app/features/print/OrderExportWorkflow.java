@@ -57,6 +57,7 @@ public class OrderExportWorkflow {
                 var result=new java.util.LinkedHashMap<Long,List<Kiz>>();reserved.forEach((id,codes)->result.put(Long.parseLong(id),codes));return Map.copyOf(result);
             }
             public Map<String,String> activeGtinsByBarcode(int shopId){return new ZnackCardRegistrationRepository().activeGtinsByBarcode(shopId);}
+            public com.vncode.app.features.kiz.KizRegistrationIdentityRepository.Snapshot pendingIdentities(Shop shop){return new com.vncode.app.features.kiz.KizRegistrationIdentityRepository().read(shop);}
             public Map<String,List<Kiz>> reserve(int shopId,Map<String,Integer> quantities){return inventoryService.reserveAvailableBulk(shopId,quantities);}
             public void release(int shopId,List<Kiz> codes){inventoryService.release(shopId,codes);}
             public Map<String,List<Kiz>> reserveForOrders(Shop shop,Map<String,Integer> quantities,Map<Order,String> orders){
@@ -217,6 +218,7 @@ public class OrderExportWorkflow {
         java.util.Map<Long, String> mappingByNmId = usePurchased?planning.mappings(shop.getId(), nmIds):Map.of();
         Set<Long> kizRequiredNmIds = planning.required(shop.getId(), nmIds);
         Map<String,String> activeGtinsByBarcode=usePurchased?planning.activeGtinsByBarcode(shop.getId()):Map.of();
+        var pendingIdentities=usePurchased?planning.pendingIdentities(shop):null;
         var categories=planning.stockCategories(shop.getId(),nmIds);
         var needs=new ArrayList<Order>();var gtinForOrder=new java.util.IdentityHashMap<Order,String>();
         java.util.Map<String, List<Order>> ordersByGtin = new java.util.LinkedHashMap<>();
@@ -262,6 +264,10 @@ public class OrderExportWorkflow {
                 }
                 if(!usePurchased){String category=order.getSubjectName();if(category==null||category.isBlank())category=order.getNmId()==null?"":categories.getOrDefault(order.getNmId(),"");shortages.add(new KizStockShortageException.Missing(String.valueOf(order.getId()),String.valueOf(order.getNmId()),category));continue;}
                 String gtin=gtinForOrder.get(order);
+                if(pendingIdentities!=null){
+                    var pending=pendingIdentities.select(String.valueOf(order.getNmId()),order.getBarcode());
+                    if(pending!=null)gtin=pending.gtin();
+                }
                 if(gtin==null)throw new com.vncode.app.features.kiz.KizAssignmentException("KIZ_GTIN_MAPPING_MISSING",String.valueOf(order.getId()),String.valueOf(order.getNmId()));
                 ordersByGtin.computeIfAbsent(GtinNormalizer.normalize(gtin),key->new ArrayList<>()).add(order);
             }
@@ -380,6 +386,7 @@ public class OrderExportWorkflow {
         Map<Long,String> mappings(int shopId,List<Long> ids);
         Set<Long> required(int shopId,List<Long> ids);
         default Map<String,String> activeGtinsByBarcode(int shopId){return Map.of();}
+        default com.vncode.app.features.kiz.KizRegistrationIdentityRepository.Snapshot pendingIdentities(Shop shop){return null;}
         default Map<Long,String> stockCategories(int shopId,List<Long> ids){return Map.of();}
         default Map<Long,List<Kiz>> reserveCategoryStock(int shopId,Map<Long,Integer> quantities){return Map.of();}
         default void validate(Shop shop)throws IOException{}

@@ -50,6 +50,7 @@ class ZnackRegistrationBatchHttpIntegrationTest {
     private int responseWithoutFeedId;
     private volatile boolean cardsVisible = true;
     private volatile int cardReadFailure;
+    private String readRetryAfter="0";
     private boolean rejectOptional;
     private final Map<String,JsonObject> feedPayloads=new ConcurrentHashMap<>();
 
@@ -108,6 +109,14 @@ class ZnackRegistrationBatchHttpIntegrationTest {
         }
         assertFalse(batch.resumePending(shop));
         assertEquals(3, posts.get(), "A completed durable batch must not be replayed");
+    }
+    @Test void aLongCatalogCooldownYieldsTheWorkerAndResumesTheSameSavedBatch()throws Exception{
+        cardReadFailure=429;readRetryAfter="30";var batch=batch();
+        String run=assertTimeoutPreemptively(java.time.Duration.ofSeconds(5),()->batch.start(shop,selection(),false));
+        assertEquals(1,posts.get());assertEquals(1,batch.latest(shop).acceptedFeeds());assertEquals(0,batch.latest(shop).submitted());
+        assertEquals(ZnackRegistrationBatchService.State.WAITING_REMOTE,batch.latest(shop).state());
+        cardReadFailure=0;retryNow(run);assertTrue(batch.resumePending(shop));
+        assertEquals(3,posts.get());assertEquals(3,batch.latest(shop).submitted());assertEquals(3,new java.util.HashSet<>(postedGtins).size());
     }
 
     @Test void http200WithoutFeedIdDoesNotCountAsCreatedOrReplayTheRequest() throws Exception {
@@ -244,7 +253,7 @@ class ZnackRegistrationBatchHttpIntegrationTest {
                 response = readback(exchange, path);
                 if (path.endsWith("/nk/feed-product") && cardReadFailure != 0) {
                     code = cardReadFailure;
-                    exchange.getResponseHeaders().set("Retry-After", "0");
+                    exchange.getResponseHeaders().set("Retry-After", readRetryAfter);
                 }
                 writeResponse(exchange, code, response);
                 return;

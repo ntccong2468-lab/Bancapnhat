@@ -1,0 +1,168 @@
+name: Build complete VNCode baseline
+on:
+  push:
+    branches: [release/vn-code-1.5.11]
+    paths: [.github/workflows/publish-vncode-baseline.yml]
+  workflow_call:
+    inputs:
+      source_commit:
+        required: true
+        type: string
+      rebuild_current:
+        default: false
+        type: boolean
+  workflow_dispatch:
+    inputs:
+      source_commit:
+        description: Exact source commit to verify and package
+        required: true
+        type: string
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: vncode-complete-baseline
+  cancel-in-progress: false
+jobs:
+  baseline:
+    runs-on: windows-latest
+    timeout-minutes: 75
+    env:
+      GH_TOKEN: ${{ github.token }}
+      EXPECTED_SOURCE: ${{ inputs.source_commit || github.sha }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ inputs.source_commit || github.sha }}
+          fetch-depth: 0
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: '22'
+      - uses: actions/setup-java@03ad4de0992f5dab5e18fcb136590ce7c4a0ac95
+        with:
+          java-version: '25'
+          distribution: oracle
+          cache: maven
+      - name: Pin exact source and currently published baseline
+        shell: pwsh
+        run: |
+          $ErrorActionPreference='Stop'
+          if($env:EXPECTED_SOURCE -cnotmatch '^[a-f0-9]{40}$' -or (git rev-parse HEAD).Trim() -cne $env:EXPECTED_SOURCE){throw 'Source changed.'}
+          $version=(node tools/release-version.mjs).Trim()
+          if($LASTEXITCODE -ne 0){throw 'Invalid version declarations.'}
+          "APP_VERSION=$version" >> $env:GITHUB_ENV
+          $mode=if('${{ inputs.rebuild_current }}' -ceq 'true'){'previous-current'}else{'previous'}
+          node tools/baseline-release.mjs $mode "$env:RUNNER_TEMP/baseline-pinned"
+          if($LASTEXITCODE -ne 0){throw 'Cannot pin previous public baseline.'}
+          $baseline=Get-Content "$env:RUNNER_TEMP/baseline-pinned/previous-baseline.json" -Raw | ConvertFrom-Json
+          "BASELINE_UPGRADE_REQUIRED=$((-not $baseline.skipUpgrade).ToString().ToLowerInvariant())" >> $env:GITHUB_ENV
+      - name: Verify release tools
+        run: node --test tools/*.test.mjs
+      - name: Verify whole Java application and package
+        shell: pwsh
+        env:
+          LOCALAPPDATA: ${{ runner.temp }}\vncode-baseline-${{ github.run_id }}
+        run: |
+          .\mvnw.cmd -B clean verify
+          if($LASTEXITCODE -ne 0){throw 'Full Windows Java verification failed.'}
+      - name: Build final EXE from verified Java
+        id: package
+        shell: cmd
+        env:
+          VNCODE_REUSE_VERIFIED_BUILD: 'true'
+        run: build.bat exe
+      - name: Restore pinned baseline after installer packaging
+        shell: pwsh
+        run: Copy-Item "$env:RUNNER_TEMP/baseline-pinned/previous-baseline.json" out/previous-baseline.json
+      - name: Verify native migration and startup
+        shell: pwsh
+        run: ./tools/windows-native-smoke.ps1 -Version $env:APP_VERSION
+      - name: Verify actual Windows data protection
+        shell: pwsh
+        run: ./tools/windows-gs1-smoke.ps1 -Version $env:APP_VERSION
+      - name: Verify fresh install, coexistence and uninstall
+        shell: pwsh
+        run: ./tools/windows-side-by-side-smoke.ps1 -Version $env:APP_VERSION
+      - name: Verify passive upgrade from pinned current Latest
+        if: env.BASELINE_UPGRADE_REQUIRED == 'true'
+        shell: pwsh
+        run: ./tools/windows-baseline-upgrade-smoke.ps1 -Version $env:APP_VERSION -BaselineManifest out/previous-baseline.json
+      - name: Record same-version rebuild scope
+        if: env.BASELINE_UPGRADE_REQUIRED != 'true'
+        shell: pwsh
+        run: |
+          @{version=$env:APP_VERSION;result='same-version-rebuild';baselineUpgradeRun=$false} | ConvertTo-Json | Set-Content out/upgrade-baseline-smoke.json -Encoding utf8NoBOM
+      - name: Preserve final MSI before building portable runtime
+        shell: pwsh
+        run: |
+          $ErrorActionPreference='Stop'
+          Copy-Item "target/jpackage-temp/msi/VN code-$env:APP_VERSION.msi" "out/VN-code-$env:APP_VERSION-Windows-x64.msi"
+          $saved=Join-Path $env:RUNNER_TEMP 'baseline-installer-proofs'
+          New-Item -ItemType Directory -Force $saved | Out-Null
+          Copy-Item out/* $saved -Recurse
+      - name: Build complete portable runtime from same verified Java
+        shell: cmd
+        env:
+          VNCODE_REUSE_VERIFIED_BUILD: 'true'
+        run: build.bat app-image
+      - name: Package all source, Git history, runtime and verification
+        shell: pwsh
+        run: |
+          $ErrorActionPreference='Stop'
+          $version=$env:APP_VERSION
+          Copy-Item "$env:RUNNER_TEMP/baseline-installer-proofs/*" out -Recurse
+          $installers=@(Get-ChildItem out -Filter 'VN code*.exe' -File)
+          if($installers.Count -ne 1){throw 'Expected exactly one final installer.'}
+          $name="VN-code-$version-Windows-x64.exe"
+          Move-Item $installers[0].FullName "out/$name"
+          $hash=(Get-FileHash "out/$name" -Algorithm SHA256).Hash.ToLowerInvariant()
+          "$hash  $name" | Set-Content "out/VN-code-$version-Windows-x64.sha256" -Encoding ascii
+          Compress-Archive -Path 'out/VN code' -DestinationPath "out/VN-code-$version-Windows-x64.zip"
+          git archive --format=zip "--prefix=VN-code-$version-source/" -o "out/VN-code-$version-source.zip" HEAD
+          if($LASTEXITCODE -ne 0){throw 'Source archive failed.'}
+          git bundle create "out/VN-code-$version-history.bundle" --all
+          if($LASTEXITCODE -ne 0){throw 'History bundle failed.'}
+          git bundle verify "out/VN-code-$version-history.bundle"
+          if($LASTEXITCODE -ne 0){throw 'History bundle verification failed.'}
+          Copy-Item "docs/releases/VN-code-$version.md" out/release-notes.md
+          $proof=Join-Path $env:RUNNER_TEMP 'baseline-verification'
+          New-Item -ItemType Directory -Force $proof | Out-Null
+          Copy-Item target/surefire-reports $proof -Recurse
+          Copy-Item out/*smoke.json,out/previous-baseline.json $proof
+          Copy-Item target/gtin-bulk-*.json $proof
+          Compress-Archive -Path "$proof/*" -DestinationPath "out/VN-code-$version-verification.zip"
+          $tests=0;$failures=0;$errors=0;$skipped=0
+          foreach($report in Get-ChildItem target/surefire-reports -Filter 'TEST-*.xml'){
+            [xml]$xml=Get-Content $report.FullName -Raw
+            $tests+=[int]$xml.testsuite.tests;$failures+=[int]$xml.testsuite.failures;$errors+=[int]$xml.testsuite.errors;$skipped+=[int]$xml.testsuite.skipped
+          }
+          if($tests -lt 2800 -or $failures -ne 0 -or $errors -ne 0){throw 'Full Java evidence missing or failed.'}
+          $info=[ordered]@{version=$version;sourceCommit=$env:EXPECTED_SOURCE;runId=[long]$env:GITHUB_RUN_ID;runAttempt=[int]$env:GITHUB_RUN_ATTEMPT;workflow='publish-vncode-baseline.yml';installer=@{name=$name;bytes=(Get-Item "out/$name").Length;sha256=$hash};verification=@{fullJavaSuiteRun=$true;java=@{tests=$tests;failures=$failures;errors=$errors;skipped=$skipped;passed=$tests-$skipped};nativeSmokeRun=$true;baselineUpgradeRun=($env:BASELINE_UPGRADE_REQUIRED -ceq 'true');legacyUpgradeMatrixRun=$false;liveCatalogWriteVerified=$false;liveMarketplaceWriteVerified=$false;paidKizPurchaseVerified=$false}}
+          $info | ConvertTo-Json -Depth 8 | Set-Content out/build-info.json -Encoding utf8NoBOM
+          node tools/baseline-release.mjs manifest out $env:EXPECTED_SOURCE
+          if($LASTEXITCODE -ne 0){throw 'Complete baseline manifest failed.'}
+      - name: Preserve installer and all rebuild inputs
+        if: ${{ always() && steps.package.outcome == 'success' }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: VN-code-${{ env.APP_VERSION }}-complete-baseline
+          path: |
+            out/VN-code-*.exe
+            out/VN-code-*.msi
+            out/VN-code-*.zip
+            out/VN-code-*.sha256
+            out/VN-code-*.bundle
+            out/*.json
+            out/SHA256SUMS
+            out/release-notes.md
+          if-no-files-found: error
+          retention-days: 90
+      - name: Preserve failed verification reports
+        if: failure()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: baseline-failed-verification-${{ github.run_id }}
+          path: |
+            target/surefire-reports/TEST-*.xml
+            out/*.json
+          if-no-files-found: ignore

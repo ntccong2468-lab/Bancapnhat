@@ -33,6 +33,11 @@ public final class CatalogFeedback {
         String value=message==null?"":message.strip().toLowerCase(Locale.ROOT);
         return value.equals("registration interrupted")||value.equals("registration_interrupted");
     }
+    /** Persisted only after a feed readback confirms Catalog rejection. */
+    public static boolean rejectionMessage(String message) {
+        String value=message==null?"":message.strip();
+        return value.equals("CATALOG_REJECTED")||value.startsWith("CATALOG_REJECTED:");
+    }
     public static String rejection(ZnackNationalCatalogService.FeedProgress progress) {
         String detail=display(progress.errorMessage());return detail.isBlank()?"CATALOG_REJECTED":"CATALOG_REJECTED: "+detail;
     }

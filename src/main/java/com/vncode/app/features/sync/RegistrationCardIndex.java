@@ -37,17 +37,26 @@ public final class RegistrationCardIndex {
             default -> false;
         };
     }
-    /** A readback/variant warning blocks writes, not visibility of an accepted request. */
-    public static boolean awaitingCatalog(View view,Status status,String feedId){
-        if(Set.of("source.draft","source.processing","source.moderation").contains(view.status()))return true;
-        return !view.published()&&confirmedSubmission(status,feedId)
-                &&(!view.blocked()||view.detail().equals("GTIN_VARIANT_UNVERIFIED"));
-    }
     public static boolean needsMatchReview(View view){return view.exists()&&Set.of("source.ambiguous","source.unverified").contains(view.status());}
-    /** Unsent preparation and uncertain requests have their own filters, not Catalog errors. */
-    public static boolean rejectedCard(View view,Status status,Long goodId,String feedId){
-        if(view.published()||awaitingCatalog(view,status,feedId))return false;
-        return view.status().equals("source.errors")||status==Status.ERROR&&(goodId!=null||!safe(feedId).isBlank());
+    /** Filter membership is presentation only and never permission to replay a write. */
+    public static boolean catalogRejected(Status status,String error,View observed) {
+        if(observed!=null){
+            if(observed.published())return false;
+            if(observed.status().startsWith("source."))return observed.status().equals("source.errors");
+        }
+        return status==Status.ERROR&&com.vncode.app.integration.znack.registration.CatalogFeedback.rejectionMessage(error);
+    }
+    public static boolean registrationInProgress(Status status,String feedId,View observed) {
+        if(observed!=null){
+            if(observed.published()||observed.status().equals("source.errors"))return false;
+            if(Set.of("source.draft","source.processing","source.moderation").contains(observed.status()))return true;
+        }
+        return status==Status.FEED_SUBMITTING||status==Status.FEED_REVIEW_REQUIRED
+                ||status!=Status.PUBLISHED&&confirmedSubmission(status,feedId);
+    }
+    public static boolean unconfirmedRegistration(Status status,String feedId,String error,View observed) {
+        return (observed==null||!observed.published())&&!catalogRejected(status,error,observed)
+                &&!registrationInProgress(status,feedId,observed);
     }
     private final Map<String,List<RegisteredGtin>> codes=new HashMap<>(),attributes=new HashMap<>();
     private final OzonSkuGtinMatcher ozon;
@@ -143,12 +152,15 @@ public final class RegistrationCardIndex {
                 // A real remote card may still be in moderation/draft while its variant is unproven.
                 // Preserve that independent stage, but never present its GTIN as verified/published.
                 String observed=card.published()?"source.unverified":com.vncode.app.integration.znack.registration.CatalogCardState.of(card).viewStatus;
-                if(Set.of(Status.FEED_SUBMITTED,Status.PROCESSING,Status.READY_TO_SIGN,Status.SIGNING).contains(status))observed="status."+status.name().toLowerCase(Locale.ROOT);
+                if(Set.of(Status.FEED_SUBMITTING,Status.FEED_REVIEW_REQUIRED,Status.FEED_SUBMITTED,Status.PROCESSING,Status.READY_TO_SIGN,Status.SIGNING).contains(status))observed="status."+status.name().toLowerCase(Locale.ROOT);
                 return new View(observed,card.gtin(),"GTIN_VARIANT_UNVERIFIED",true,false,true);
             }
             if(card.published())return new View("status.published",card.gtin(),"SOURCE_PUBLISHED_CONFIRMED",true,true,false);
             if(status==Status.ERROR&&com.vncode.app.integration.znack.registration.CatalogCardState.of(card)==com.vncode.app.integration.znack.registration.CatalogCardState.MODERATION)
                 return new View("source.moderation",card.gtin(),"CATALOG_CARD_MODERATION",true,false,true);
+            if(com.vncode.app.integration.znack.registration.CatalogCardState.of(card)==com.vncode.app.integration.znack.registration.CatalogCardState.ERRORS
+                    &&!Set.of(Status.FEED_SUBMITTING,Status.FEED_REVIEW_REQUIRED,Status.FEED_SUBMITTED,Status.PROCESSING,Status.READY_TO_SIGN,Status.SIGNING).contains(status))
+                return new View("source.errors",card.gtin(),"CATALOG_CARD_ERRORS",true,false,true);
             if(com.vncode.app.integration.znack.registration.CatalogCardState.reviewableDraft(card))return new View("source.draft",card.gtin(),"CATALOG_CARD_DRAFT",true,false,true,true);
             if(!nativeExists||status==Status.PUBLISHED||safe(gtin).isBlank()&&notSubmitted(status,gtin,null,"",false)){
                 var observed=com.vncode.app.integration.znack.registration.CatalogCardState.of(card);

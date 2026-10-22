@@ -277,4 +277,18 @@ class OzonRegistrationPaneTest {
     private Button button(String name)throws Exception{var field=OzonRegistrationPane.class.getDeclaredField(name);field.setAccessible(true);return (Button)field.get(pane);}
     private void awaitRows(int count)throws Exception{long end=System.nanoTime()+TimeUnit.SECONDS.toNanos(5);while(System.nanoTime()<end){if(fx(()->table().getItems().size()==count&&!button("more").isDisabled()))return;Thread.sleep(10);}fail("Native Ozon page did not arrive");}
     private static <T>T fx(Callable<T> work)throws Exception{var task=new FutureTask<>(work);Platform.runLater(task);return task.get(10,TimeUnit.SECONDS);}
+    @Test void errorsContainOnlyCatalogRefusalsAndSendingAppearsImmediately(){
+        var key=new com.vncode.app.features.products.ProductKey(1,Marketplace.OZON,"1","offer-1");
+        for(var status:java.util.List.of(com.vncode.app.integration.znack.registration.ZnackCardRegistrationModels.Status.PREFLIGHT_ERROR,com.vncode.app.integration.znack.registration.ZnackCardRegistrationModels.Status.ERROR,com.vncode.app.integration.znack.registration.ZnackCardRegistrationModels.Status.GTIN_REVIEW_REQUIRED)){
+            var row=new com.vncode.app.integration.znack.registration.OzonCardRegistrationRepository.Row(key,"sku",status,"00000000000017","","",null,"{}","{}","owner",null,"","","ZNACK_REQUIRED_ATTRIBUTES_MISSING");
+            var view=new com.vncode.app.features.sync.RegistrationCardIndex.View("status."+status.name().toLowerCase(java.util.Locale.ROOT),row.gtin(),"SOURCE_NATIVE_CHECKPOINT",true,false,false);
+            assertFalse(OzonRegistrationPane.matchesFilter("ERROR",row,view));assertTrue(OzonRegistrationPane.matchesFilter("NOT_CREATED",row,view));
+        }
+        var sending=new com.vncode.app.integration.znack.registration.OzonCardRegistrationRepository.Row(key,"sku",com.vncode.app.integration.znack.registration.ZnackCardRegistrationModels.Status.FEED_SUBMITTING,"00000000000017","","",null,"{}","{}","owner",null,"","","");
+        var view=new com.vncode.app.features.sync.RegistrationCardIndex.View("status.feed_submitting",sending.gtin(),"SOURCE_NATIVE_CHECKPOINT",true,false,false);
+        assertTrue(OzonRegistrationPane.matchesFilter("IN_PROGRESS",sending,view));assertFalse(OzonRegistrationPane.matchesFilter("ERROR",sending,view));assertFalse(OzonRegistrationPane.matchesFilter("NOT_CREATED",sending,view));
+        var rejected=new com.vncode.app.integration.znack.registration.OzonCardRegistrationRepository.Row(key,"sku",com.vncode.app.integration.znack.registration.ZnackCardRegistrationModels.Status.ERROR,sending.gtin(),"","feed",null,"{}","{}","owner",null,"","","CATALOG_REJECTED: invalid size");
+        assertTrue(OzonRegistrationPane.matchesFilter("ERROR",rejected,view));
+    }
+
 }

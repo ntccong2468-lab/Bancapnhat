@@ -211,7 +211,10 @@ public class ZnackCardRegistrationRepository {
                 }
             }
             com.vncode.app.features.kizmapping.VerifiedKizMappings.read(c,shopId,com.vncode.app.integration.marketplace.Marketplace.WILDBERRIES).forEach(result::putIfAbsent);
-            ambiguous.forEach(result::remove);return java.util.Map.copyOf(result);
+            ambiguous.forEach(result::remove);
+            var shop=new com.vncode.app.features.shop.ShopRepository().findById(shopId);
+            if(shop!=null)new com.vncode.app.features.kiz.KizRegistrationIdentityRepository().read(shop).applyTo(result);
+            return java.util.Map.copyOf(result);
         }catch(SQLException error){throw new RuntimeException(error);}
     }
 

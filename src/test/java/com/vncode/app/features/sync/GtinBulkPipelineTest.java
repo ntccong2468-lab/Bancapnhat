@@ -8,6 +8,7 @@ import com.vncode.app.features.gtinsync.GtinSyncModels.*;
 import com.vncode.app.features.catalogsync.CatalogProductData;
 import com.vncode.app.integration.listing.*;
 import com.vncode.app.integration.marketplace.Marketplace;
+import com.vncode.app.integration.wb.WbGtinAdapter;
 import com.vncode.app.models.Shop;
 import java.io.IOException;
 import java.nio.file.*;
@@ -99,6 +100,42 @@ class GtinBulkPipelineTest {
         try(var session=new GtinBulkSession(shop,api,n->{},GtinBulkPipelineTest::freshSyntheticSource)){session.prepare(selected.stream().map(Selection::key).toList());var plan=session.catalog.preview(shop,selected,new Options(Set.of(Field.GTIN),Map.of()));id=plan.id();var done=session.catalog.run(shop,id,true);assertTrue(done.rows().stream().allMatch(r->r.state()==State.GTIN_PENDING));assertEquals(1,api.writes);assertEquals(3,api.errorListReads,"One error-list read per poll, never one per SKU");assertTrue(api.reads<25);}
         api.acceptPending();new GtinSyncRepository().recoverInterrupted();
         try(var reopened=new GtinBulkSession(shop,api,n->{},GtinBulkPipelineTest::freshSyntheticSource)){var done=reopened.catalog.run(shop,id,false);assertTrue(done.rows().stream().allMatch(r->r.state()==State.SUCCEEDED));assertEquals(1,api.writes);}
+    }
+    @Test void wbTenThousandDelayedReadbacksKeepDurableReportPendingUntilVerifiedWithoutReplay()throws Exception {
+        var shop=GtinWriteTestFixture.shop(Marketplace.WILDBERRIES);var api=new Api(Marketplace.WILDBERRIES,10_000);api.apply=false;
+        var selected=seed(shop,api);var reports=new SyncRunRepository();String run=reports.begin(shop,"znack_marketplace","MATCHING");
+        reports.addBatch(shop,run,selected.stream().map(s->new SyncRunRepository.Item(UUID.randomUUID().toString(),run,s.key().productId(),s.key().variantId(),"","article","Blue","52",s.gtin(),"AWAITING_CONFIRMATION","REVIEW","","","{}")).toList());
+        var cohort=selected.stream().map(s->new com.vncode.app.features.products.ProductKey(shop.getId(),shop.getMarketplace(),s.key().productId(),s.key().variantId())).collect(java.util.stream.Collectors.toSet());
+        var context=GtinRunStatusSnapshot.capture(shop,cohort);long started=System.nanoTime();String planId;Map<String,Long> pendingCounts;
+        try(var session=new GtinBulkSession(shop,api,n->{},GtinBulkPipelineTest::freshSyntheticSource)){
+            session.prepare(selected.stream().map(Selection::key).toList());
+            var plan=session.catalog.preview(shop,selected,new Options(Set.of(Field.GTIN),Map.of()));assertEquals(10_000,plan.readyCount());planId=plan.id();
+            reports.linkReviewed(shop,run,session.catalog.confirm(shop,planId));
+            assertEquals(0L,reports.marketplaceCounts(run).get("SUBMITTED"),"Confirming a durable plan does not submit it");
+            var acknowledged=session.catalog.run(shop,planId,true);reports.linkReviewed(shop,run,acknowledged);
+            assertTrue(acknowledged.rows().stream().allMatch(row->row.state()==State.GTIN_PENDING));assertEquals(4,api.writes);assertTrue(api.applied.isEmpty());
+            pendingCounts=reports.marketplaceCounts(run);
+            assertEquals(10_000L,pendingCounts.get("TOTAL"));assertEquals(10_000L,pendingCounts.get("SUBMITTED"));assertEquals(0L,pendingCounts.get("UPDATED"));assertEquals(10_000L,pendingCounts.get("PENDING"));
+            var pending=GtinRunStatusSnapshot.read(context,run);assertFalse(pending.settled());
+            assertEquals(10_000,pending.result().progress().submitted());assertEquals(0,pending.result().progress().succeeded());assertEquals(10_000,pending.result().progress().pending());assertEquals(0,pending.result().progress().blocked());
+            assertEquals(10_000,pending.result().inventory().total());assertEquals(10_000,pending.result().inventory().withGtin());
+            int reads=api.reads;GtinRunStatusSnapshot.read(context,run);assertEquals(reads,api.reads,"Observing the durable report makes no marketplace requests");assertEquals(4,api.writes);
+        }
+        api.acceptPending();new GtinSyncRepository().recoverInterrupted();Map<String,Long> verifiedCounts;
+        try(var reopened=new GtinBulkSession(shop,api,n->{},GtinBulkPipelineTest::freshSyntheticSource)){
+            var worker=new ZnackAutoSyncService((s,issues)->{throw new AssertionError("A confirmed child must not refresh unrelated sources");},(s,k)->{throw new AssertionError("The approved plan already freezes product identity");},reopened.catalog);
+            assertFalse(worker.step(shop,"").complete());
+            verifiedCounts=reports.marketplaceCounts(run);assertEquals(10_000L,verifiedCounts.get("TOTAL"));assertEquals(10_000L,verifiedCounts.get("SUBMITTED"));assertEquals(10_000L,verifiedCounts.get("UPDATED"));assertEquals(0L,verifiedCounts.get("PENDING"));assertEquals(0L,verifiedCounts.get("NOT_UPDATED"));assertEquals(0L,verifiedCounts.get("BLOCKED"));
+            var verified=GtinRunStatusSnapshot.read(context,run);assertTrue(verified.settled());
+            assertEquals(10_000,verified.result().progress().submitted());assertEquals(10_000,verified.result().progress().succeeded());assertEquals(0,verified.result().progress().pending());assertEquals(0,verified.result().progress().blocked());
+            assertEquals(10_000L,reports.counts(run).get("SUCCEEDED"));assertEquals(10_000,api.applied.size());assertEquals(4,api.writes,"Delayed application and restart must never resend acknowledged batches");
+            for(int i=0;i<10_000;i++)assertTrue(api.info.get(Integer.toString(100000+i)).getAsJsonArray("sizes").get(0).getAsJsonObject().getAsJsonArray("skus").asList().contains(new JsonPrimitive("legacy-"+i)),"Original barcode lost for member "+i);
+            assertTrue(worker.step(shop,"").complete());assertEquals("SUCCEEDED",reports.find(run).orElseThrow().state());
+            reopened.catalog.run(shop,planId,false);assertEquals(4,api.writes,"Reopening a verified plan must not replay its writes");
+        }
+        assertTrue(api.maximumItems<=WbGtinAdapter.MAX_UPDATE_CARDS);assertTrue(api.maximumBodyBytes<=WbGtinAdapter.MAX_UPDATE_BYTES);
+        var evidence=new LinkedHashMap<String,Object>();evidence.put("marketplace",Marketplace.WILDBERRIES.name());evidence.put("gtins",10_000);evidence.put("simulatedApi",true);evidence.put("liveSellerMutations",false);evidence.put("realApplicationPlannerAdaptersWorkerReportsAndSqlite",true);evidence.put("actualShopCountersKnown",false);evidence.put("beforeReadback",pendingCounts);evidence.put("afterReadback",verifiedCounts);evidence.put("writes",api.writes);evidence.put("reads",api.reads);evidence.put("maximumRequestItems",api.maximumItems);evidence.put("maximumRequestBytes",api.maximumBodyBytes);evidence.put("elapsedMs",(System.nanoTime()-started)/1_000_000.0);evidence.put("quotaWaitSimulatedSeparately",true);
+        Files.writeString(Path.of("target","gtin-bulk-wildberries-10000-delayed-report.json"),new GsonBuilder().setPrettyPrinting().create().toJson(evidence));
     }
     @Test void explicit429MayRetryButA503ResponseMustOnlyReconcile()throws Exception {
         var shop=GtinWriteTestFixture.shop(Marketplace.OZON);var api=new Api(Marketplace.OZON,12);api.rateLimitOnce=true;var selected=seed(shop,api);

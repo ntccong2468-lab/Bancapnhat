@@ -185,6 +185,8 @@ public final class OzonProductGtinMappingRepository {
             verifiedBarcodeMappings(connection,shopId).forEach(resolved::put);
             com.vncode.app.features.kizmapping.VerifiedKizMappings.read(connection,shopId,com.vncode.app.integration.marketplace.Marketplace.OZON).forEach(resolved::put);
             activeNativeMappings(connection,shopId).forEach(resolved::put);
+            var shop=new com.vncode.app.features.shop.ShopRepository().findById(shopId);
+            if(shop!=null)new com.vncode.app.features.kiz.KizRegistrationIdentityRepository().read(shop).applyTo(resolved);
             return Map.copyOf(resolved);
         } catch (SQLException exception) {
             throw new RuntimeException(exception);

@@ -508,7 +508,8 @@ public class ZnackPurchaseCoordinator {
             throw new IllegalStateException("This GTIN already has purchased KIZ waiting for circulation. "
                     + "Synchronize its National Catalog document to resume the existing purchase.");
         }
-        Product product = repository.findActiveProduct(normalized).orElse(null);
+        Product product = repository.findActiveProduct(normalized).orElseGet(()->
+                new com.vncode.app.features.kiz.KizRegistrationIdentityRepository().product(repository.shop().shopId(),normalized).orElse(null));
         if (product == null) {
             throw new IllegalArgumentException("GTIN is not registered for the selected shop.");
         }
@@ -780,7 +781,8 @@ public class ZnackPurchaseCoordinator {
     }
 
     private Product product(String gtin) {
-        return repository.findProduct(gtin).orElseThrow();
+        return repository.findProduct(gtin).orElseGet(()->new com.vncode.app.features.kiz.KizRegistrationIdentityRepository()
+                .product(repository.shop().shopId(),gtin).orElseThrow(()->new IllegalArgumentException("GTIN is not registered for the selected shop.")));
     }
 
     private static boolean hasCompletePermit(Product product) {

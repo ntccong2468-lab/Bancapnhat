@@ -1,0 +1,38 @@
+{
+  "marketplace": "WILDBERRIES",
+  "gtins": 10000,
+  "simulatedApi": true,
+  "liveSellerMutations": false,
+  "realApplicationPlannerAdaptersWorkerReportsAndSqlite": true,
+  "actualShopCountersKnown": false,
+  "beforeReadback": {
+    "TOTAL": 10000,
+    "WITH_GTIN": 10000,
+    "WITHOUT_GTIN": 0,
+    "SUBMITTED": 10000,
+    "UPDATED": 0,
+    "NOT_UPDATED": 10000,
+    "PENDING": 10000,
+    "FAILED": 0,
+    "UNVERIFIED": 0,
+    "BLOCKED": 0
+  },
+  "afterReadback": {
+    "TOTAL": 10000,
+    "WITH_GTIN": 10000,
+    "WITHOUT_GTIN": 0,
+    "SUBMITTED": 10000,
+    "UPDATED": 10000,
+    "NOT_UPDATED": 0,
+    "PENDING": 0,
+    "FAILED": 0,
+    "UNVERIFIED": 0,
+    "BLOCKED": 0
+  },
+  "writes": 4,
+  "reads": 227,
+  "maximumRequestItems": 3000,
+  "maximumRequestBytes": 1396461,
+  "elapsedMs": 45210.187528,
+  "quotaWaitSimulatedSeparately": true
+}

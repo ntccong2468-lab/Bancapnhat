@@ -87,12 +87,14 @@ public final class ZnackRegistrationQueryRepository {
             if(count(c,query)>MAX_SELECTION)throw new IllegalArgumentException("registration_selection_limit");
             try(var p=prepare(c,SELECT+query.where()+" ORDER BY c.vendor_code COLLATE NOCASE,s.tech_size COLLATE NOCASE,c.nm_id,s.chrt_id",query.parameters());var r=p.executeQuery()) {
                 while(r.next()) {Sku row=map(r);if(!matches(criteria,row))continue;var view=observations==null?null:view(row);boolean change=groupChanged(r);boolean register=!row.canReviewExistingDraft()&&(row.canRegister()||row.canResume()||row.needsGtinReview())||change;boolean replace=row.canRegisterNew()&&(!r.getBoolean("pending_replacement")||row.status()==Status.ERROR);
-                    if(view!=null){register=view.canReviewDraft()&&!row.hasFeed()||register&&!view.blocked()&&(!view.published()||change);replace=replace&&!view.blocked()&&(view.published()||row.status()==Status.ERROR);}if(switch(mode){case 1->row.canSignApproved()&&(view==null||(!view.blocked()&&!view.published()));case 2->register||replace;case 3->replace;default->register;})rows.add(row);}
+                    if(view!=null){register=view.canReviewDraft()&&!row.hasFeed()||register&&!view.blocked()&&(!view.published()||change);replace=replace&&!view.blocked()&&(view.published()||row.status()==Status.ERROR);}if(switch(mode){case 1->row.canSignApproved()&&(view==null||(!view.blocked()&&!view.published()));case 2->register||replace||RegistrationCardIndex.catalogRejected(row.status(),row.errorMessage(),view);case 3->replace;default->register;})rows.add(row);}
             }
             c.commit();return List.copyOf(rows);
         }catch(SQLException error){throw new IllegalStateException("registration_read_error",error);}
     }
 
+    private static final String REJECTED="(COALESCE(r.status,'')='ERROR' AND (TRIM(COALESCE(r.error_message,''))='CATALOG_REJECTED' OR SUBSTR(TRIM(COALESCE(r.error_message,'')),1,17)='CATALOG_REJECTED:'))";
+    private static final String IN_PROGRESS="(COALESCE(r.status,'') IN ('FEED_SUBMITTING','FEED_REVIEW_REQUIRED') OR (NULLIF(TRIM(r.feed_id),'') IS NOT NULL AND COALESCE(r.status,'') IN ('FEED_SUBMITTED','PROCESSING','READY_TO_SIGN','SIGNING')))";
     private Query filter(SearchCriteria criteria) {
         var params=new ArrayList<Object>();params.add(criteria.shopId());var sql=new StringBuilder(FROM);
         if(!receipt.isBlank()){sql.append(" AND EXISTS(SELECT 1 FROM sync_run_items member JOIN sync_runs source ON source.id=member.run_id WHERE source.id=? AND source.state='SUCCEEDED' AND source.shop_id=c.shop_id AND member.product_id=CAST(c.nm_id AS TEXT) AND member.variant_id=CAST(s.chrt_id AS TEXT))");params.add(receipt);}
@@ -106,11 +108,11 @@ public final class ZnackRegistrationQueryRepository {
         String status=observations==null?safe(criteria.status()):"ALL";
         switch(status) {
             case "","ALL" -> {}
-            case "NOT_CREATED" -> sql.append(" AND r.good_id IS NULL AND NULLIF(TRIM(r.feed_id),'') IS NULL AND COALESCE(r.wb_updated,0)=0 AND ((COALESCE(r.status,'NOT_CREATED') IN ('NOT_CREATED','PREFLIGHT_ERROR','CHECKING') AND NULLIF(TRIM(r.gtin),'') IS NULL) OR r.status IN ('READY_TO_SUBMIT','PRE_SUBMIT_ERROR'))");
+            case "NOT_CREATED" -> sql.append(" AND COALESCE(r.status,'NOT_CREATED')<>'PUBLISHED' AND NOT ").append(REJECTED).append(" AND NOT ").append(IN_PROGRESS);
             case "GTIN_REVIEW_REQUIRED" -> sql.append(" AND NULLIF(TRIM(r.gtin),'') IS NULL AND r.good_id IS NULL AND NULLIF(TRIM(r.feed_id),'') IS NULL AND COALESCE(r.wb_updated,0)=0 AND r.status IN ('CHECKING','ALLOCATING_GTIN','GTIN_REVIEW_REQUIRED','ERROR')");
             case "FEED_REVIEW_REQUIRED" -> sql.append(" AND NULLIF(TRIM(r.gtin),'') IS NOT NULL AND (r.status IN ('FEED_SUBMITTING','FEED_REVIEW_REQUIRED') OR (NULLIF(TRIM(r.feed_id),'') IS NULL AND r.status IN ('ERROR','GTIN_GENERATED','CHECKING')))");
-            case "IN_PROGRESS" -> sql.append(" AND NULLIF(TRIM(r.feed_id),'') IS NOT NULL AND r.status IN ('FEED_SUBMITTED','PROCESSING','READY_TO_SIGN','SIGNING')");
-            case "ERROR" -> sql.append(" AND r.status='ERROR' AND (r.good_id IS NOT NULL OR NULLIF(TRIM(r.feed_id),'') IS NOT NULL)");
+            case "IN_PROGRESS" -> sql.append(" AND ").append(IN_PROGRESS);
+            case "ERROR" -> sql.append(" AND ").append(REJECTED);
             case "COMPLETED" -> sql.append(" AND r.status='PUBLISHED'");
             default -> {sql.append(" AND r.status=?");params.add(status);}
         }
@@ -124,11 +126,10 @@ public final class ZnackRegistrationQueryRepository {
         return switch(safe(criteria.status())){
             case "", "ALL" -> true;
             case "COMPLETED" -> onMarketplace;
-            case "NOT_CREATED" -> !state.published()&&!state.blocked()&&RegistrationCardIndex.notSubmitted(row);
-            case "IN_PROGRESS" -> RegistrationCardIndex.awaitingCatalog(state,row.status(),row.feedId())
-                    ||!onMarketplace&&!state.blocked()&&state.published();
             case "MATCH_REVIEW" -> RegistrationCardIndex.needsMatchReview(state);
-            case "ERROR" -> RegistrationCardIndex.rejectedCard(state,row.status(),row.goodId(),row.feedId());
+            case "NOT_CREATED" -> !RegistrationCardIndex.needsMatchReview(state)&&RegistrationCardIndex.unconfirmedRegistration(row.status(),row.feedId(),row.errorMessage(),state);
+            case "IN_PROGRESS" -> !onMarketplace&&(state.published()||RegistrationCardIndex.registrationInProgress(row.status(),row.feedId(),state));
+            case "ERROR" -> RegistrationCardIndex.catalogRejected(row.status(),row.errorMessage(),state);
             case "GTIN_REVIEW_REQUIRED" -> !state.blocked()&&!state.published()&&row.needsGtinReview();
             case "FEED_REVIEW_REQUIRED" -> !state.blocked()&&!state.published()&&row.needsFeedReview();
             default -> state.status().equals("status."+criteria.status().toLowerCase(Locale.ROOT));
@@ -180,20 +181,20 @@ public final class ZnackRegistrationQueryRepository {
                 while(rows.next()){
                     var row=map(rows);var state=view(row);total++;
                     if(state.published())published++;
-                    else if(RegistrationCardIndex.awaitingCatalog(state,row.status(),row.feedId())){if(row.status()==Status.READY_TO_SIGN)ready++;else waiting++;}
-                    else if(RegistrationCardIndex.rejectedCard(state,row.status(),row.goodId(),row.feedId()))errors++;
-                    else if(RegistrationCardIndex.confirmedSubmission(row.status(),row.feedId())) {
+                    else if(Set.of("source.moderation","source.draft").contains(state.status()))waiting++;
+                    else if(RegistrationCardIndex.catalogRejected(row.status(),row.errorMessage(),state))errors++;
+                    else if(RegistrationCardIndex.registrationInProgress(row.status(),row.feedId(),state)) {
                         if(row.status()==Status.READY_TO_SIGN)ready++;else waiting++;
                     }
                 }
             }
         }else{
-        try(var p=prepare(c,"SELECT COALESCE(r.status,'NOT_CREATED') state,COUNT(*) n,NULLIF(TRIM(r.feed_id),'') IS NOT NULL has_feed,NULLIF(TRIM(r.gtin),'') IS NOT NULL has_gtin,r.good_id IS NOT NULL has_good "+scope.where()+" GROUP BY state,has_feed,has_gtin,has_good",scope.parameters());var r=p.executeQuery()) {
+        try(var p=prepare(c,"SELECT COALESCE(r.status,'NOT_CREATED') state,COUNT(*) n,NULLIF(TRIM(r.feed_id),'') IS NOT NULL has_feed,NULLIF(TRIM(r.gtin),'') IS NOT NULL has_gtin,r.error_message "+scope.where()+" GROUP BY state,has_feed,has_gtin,r.error_message",scope.parameters());var r=p.executeQuery()) {
             while(r.next()) {long n=r.getLong(2);String state=r.getString(1);total+=n;Status status;
                 try{status=Status.valueOf(state);}catch(IllegalArgumentException invalid){status=Status.ERROR;}
                 if(status==Status.PUBLISHED)published+=n;
-                else if(status==Status.ERROR&&(r.getBoolean("has_feed")||r.getBoolean("has_good")))errors+=n;
-                else if(RegistrationCardIndex.confirmedSubmission(status,r.getBoolean("has_feed")?"accepted":"")) {
+                else if(status==Status.ERROR&&com.vncode.app.integration.znack.registration.CatalogFeedback.rejectionMessage(r.getString("error_message")))errors+=n;
+                else if(RegistrationCardIndex.registrationInProgress(status,r.getBoolean("has_feed")?"accepted":"",null)) {
                     if(status==Status.READY_TO_SIGN)ready+=n;else waiting+=n;
                 }
             }

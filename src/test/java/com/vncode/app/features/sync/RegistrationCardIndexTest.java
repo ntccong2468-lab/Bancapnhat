@@ -23,13 +23,13 @@ class RegistrationCardIndexTest {
     @Test void errorFilterExcludesUnsentWorkAndAcceptedProcessingEvenWithVariantWarnings(){
         for(var state:List.of(Status.CHECKING,Status.ALLOCATING_GTIN,Status.GTIN_GENERATED,Status.READY_TO_SUBMIT,Status.PRE_SUBMIT_ERROR,Status.FEED_SUBMITTING,Status.GTIN_REVIEW_REQUIRED,Status.FEED_REVIEW_REQUIRED)){
             var view=new RegistrationCardIndex.View("status."+state.name().toLowerCase(Locale.ROOT),"","",true,false,false);
-            assertFalse(RegistrationCardIndex.rejectedCard(view,state,null,""),state.name());
+            assertFalse(RegistrationCardIndex.catalogRejected(state,"",view),state.name());
         }
         var pending=new RegistrationCardIndex.View("status.processing","","GTIN_VARIANT_UNVERIFIED",true,false,true);
-        assertFalse(RegistrationCardIndex.rejectedCard(pending,Status.PROCESSING,null,"accepted"));
-        assertTrue(RegistrationCardIndex.awaitingCatalog(pending,Status.PROCESSING,"accepted"));
-        assertTrue(RegistrationCardIndex.rejectedCard(new RegistrationCardIndex.View("source.errors","","CATALOG_CARD_ERRORS",true,false,true),Status.NOT_CREATED,null,""));
-        assertTrue(RegistrationCardIndex.rejectedCard(new RegistrationCardIndex.View("status.error","","rejected",true,false,false),Status.ERROR,91L,"rejected-feed"));
+        assertFalse(RegistrationCardIndex.catalogRejected(Status.PROCESSING,"",pending));
+        assertTrue(RegistrationCardIndex.registrationInProgress(Status.PROCESSING,"accepted",pending));
+        assertTrue(RegistrationCardIndex.catalogRejected(Status.NOT_CREATED,"",new RegistrationCardIndex.View("source.errors","","CATALOG_CARD_ERRORS",true,false,true)));
+        assertTrue(RegistrationCardIndex.catalogRejected(Status.ERROR,"CATALOG_REJECTED",new RegistrationCardIndex.View("status.error","","rejected",true,false,false)));
     }
     @Test void publishedExistingCatalogCardIsDisplayedWithoutCreatingANativeCheckpoint(){
         var view=index(card(GtinWriteTestFixture.GTIN,true)).view(Status.NOT_CREATED,"",List.of(GtinWriteTestFixture.GTIN),"A","Blue","M",true);
@@ -112,7 +112,7 @@ class RegistrationCardIndexTest {
             var observed=new RegisteredGtin(base.gtin(),base.article(),base.color(),base.size(),true,false,base.source(),base.syncedAt(),details);var cards=index(observed);
             var sourceView=cards.view(Status.NOT_CREATED,"",List.of(base.gtin()),"A","","M",true);
             assertEquals("source."+remote,sourceView.status());assertEquals("GTIN_VARIANT_UNVERIFIED",sourceView.detail());assertTrue(sourceView.exists());assertTrue(sourceView.blocked());assertFalse(sourceView.published());
-            for(var state:List.of(Status.FEED_SUBMITTED,Status.PROCESSING,Status.READY_TO_SIGN,Status.SIGNING)){
+            for(var state:List.of(Status.FEED_SUBMITTING,Status.FEED_REVIEW_REQUIRED,Status.FEED_SUBMITTED,Status.PROCESSING,Status.READY_TO_SIGN,Status.SIGNING)){
                 var nativeView=cards.view(state,base.gtin(),List.of(),"A","Blue","",true);
                 assertEquals("status."+state.name().toLowerCase(Locale.ROOT),nativeView.status());assertEquals("GTIN_VARIANT_UNVERIFIED",nativeView.detail());assertTrue(nativeView.exists());assertTrue(nativeView.blocked());assertFalse(nativeView.published());
             }

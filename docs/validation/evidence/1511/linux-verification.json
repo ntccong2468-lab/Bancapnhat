@@ -1,0 +1,30 @@
+{
+  "version": "1.5.11",
+  "platform": "Linux",
+  "fullJavaBeforeFinalReview": {
+    "tests": 2876,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 2,
+    "skipReason": "Windows-only integration cases",
+    "log": "1511-full-verify.log"
+  },
+  "finalKizReviewRegression": {
+    "tests": 76,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "log": "1511-final-review-green.log",
+    "redEvidence": "1511-final-review-red.log"
+  },
+  "node": {
+    "tests": 117,
+    "passed": 117,
+    "failures": 0
+  },
+  "windowsFullSuiteRequiredBeforePublication": true,
+  "simulatedApi": true,
+  "liveSellerMutations": false,
+  "actualShopCountersKnown": false,
+  "paidKizPurchaseVerified": false
+}

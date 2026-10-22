@@ -7,6 +7,10 @@ on:
         description: Build only the Windows test installer
         type: boolean
         default: true
+      legacy_upgrade_matrix:
+        description: Historical probes only; requires deleted legacy release fixtures, use false for the new complete baseline
+        type: boolean
+        default: false
       portal_only:
         description: Validate and package Portal sources without desktop builds
         type: boolean
@@ -39,6 +43,12 @@ permissions:
   actions: read
 
 jobs:
+  complete-baseline:
+    if: ${{ !inputs.legacy_upgrade_matrix && !inputs.portal_only && !inputs.license_diagnostics_only && !inputs.msi_inspection_only }}
+    uses: ./.github/workflows/publish-vncode-baseline.yml
+    with:
+      source_commit: ${{ github.sha }}
+      rebuild_current: true
   license-portal:
     if: ${{ !inputs.msi_inspection_only }}
     runs-on: ubuntu-latest
@@ -81,7 +91,7 @@ jobs:
         run: ./tools/windows-side-by-side-smoke.ps1 -Version (node tools/release-version.mjs) -InspectOnly
 
   build-and-test:
-    if: ${{ !inputs.msi_inspection_only && !inputs.portal_only && !inputs.license_diagnostics_only }}
+    if: ${{ inputs.legacy_upgrade_matrix && !inputs.msi_inspection_only && !inputs.portal_only && !inputs.license_diagnostics_only }}
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
