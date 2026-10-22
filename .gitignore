@@ -63,3 +63,14 @@ license-server/
 
 # Tài liệu API Znack + script RAG (có .env) — không thuộc app repo
 znack_api/
+
+# AI memory: keep only sanitized, portable repo files
+__pycache__/
+*.pyc
+/memory/private/
+/memory/local/
+/memory/raw/
+/memory/transcripts/
+/.codex-memory/private/
+/.codex-memory/local/
+/.codex-memory/*.db*

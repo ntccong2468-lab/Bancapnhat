@@ -1,0 +1,38 @@
+name: Check AI memory
+on:
+  pull_request:
+    paths:
+      - 'AGENTS.md'
+      - '.agents/skills/**'
+      - '.codex-memory/**'
+      - 'memory/**'
+      - 'tools/memory/**'
+      - 'docs/ai-memory.md'
+      - '.github/workflows/check-ai-memory.yml'
+  push:
+    paths:
+      - 'AGENTS.md'
+      - '.agents/skills/**'
+      - '.codex-memory/**'
+      - 'memory/**'
+      - 'tools/memory/**'
+      - 'docs/ai-memory.md'
+      - '.github/workflows/check-ai-memory.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate Smart Project Memory
+        run: python3 -B .agents/skills/codex-smart-project-memory/scripts/validate_memory_workspace.py --root .codex-memory
+      - name: Validate Deja Vu records and rules
+        run: node tools/memory/deja-vu/scripts/deja-vu.mjs doctor --json

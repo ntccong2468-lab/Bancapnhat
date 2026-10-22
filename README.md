@@ -29,3 +29,9 @@ Workflow **Build complete VNCode baseline** kiểm tra và đóng gói từ mộ
 ## Phạm vi kiểm chứng
 
 Xem [báo cáo WB 10.000 GTIN](docs/validation/2026-10-22-wb-10000-audit.md) và [đăng ký, bộ lọc, bảng đề xuất](docs/validation/2026-10-22-znack-registration-filters-proposals.md). Kết quả mô phỏng được ghi riêng với nghiệm thu trên shop thật; số liệu thực tế Mpp fashion hiện chưa được đọc trong phiên cloud này. Không coi HTTP đã nhận yêu cầu là xác nhận đã cập nhật GTIN.
+
+## Bộ nhớ cho Codex
+
+Đã tích hợp Smart Project Memory và Deja Vu bằng file trong repo; phiên mới đọc
+[AGENTS.md](AGENTS.md) để khôi phục công việc và kinh nghiệm. Codex-Mem đã được
+đối chiếu nhưng chưa kích hoạt trong Web. [Cách dùng và giới hạn](docs/ai-memory.md).
