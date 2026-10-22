@@ -35,6 +35,7 @@ final class ZnackRegistrationBatchStore {
         }
         ensureColumn(c,"retry_count","INTEGER NOT NULL DEFAULT 0");
         ensureColumn(c,"waiting_since","TEXT");
+        ensureColumn(c,"correction_resumed","INTEGER NOT NULL DEFAULT 0");
     }
     private static void ensureColumn(Connection c,String name,String definition)throws SQLException {
         try(var s=c.createStatement();var r=s.executeQuery("PRAGMA table_info(znack_registration_batches)")){while(r.next())if(name.equals(r.getString("name")))return;}
@@ -72,15 +73,15 @@ final class ZnackRegistrationBatchStore {
             p.setString(1,id);try(var r=p.executeQuery()){while(r.next())out.add(new Item(id,r.getInt("position"),JSON.fromJson(r.getString("sku_json"),Sku.class),JSON.fromJson(r.getString("draft_json"),Draft.class),r.getString("state"),r.getString("detail")));}return List.copyOf(out);
         }catch(SQLException e){throw storage(e);}
     }
-    record Summary(int total,int submitted,int failed,int cancelled,Sku current,Sku last){}
+    record Summary(int total,int submitted,int failed,int cancelled,Sku current,Sku last,int acceptedFeeds,int awaitingReadback){}
     Summary summary(Shop shop,String id){
         get(shop,id);
         try(var c=Database.getConnection()){
-            c.setAutoCommit(false);int total,submitted,failed,cancelled;
-            try(var p=c.prepareStatement("SELECT count(*),COALESCE(sum(state='SUBMITTED'),0),COALESCE(sum(state='NEEDS_ACTION'),0),COALESCE(sum(state='CANCELLED'),0) FROM znack_registration_batch_items WHERE run_id=?")){
-                p.setString(1,id);try(var r=p.executeQuery()){r.next();total=r.getInt(1);submitted=r.getInt(2);failed=r.getInt(3);cancelled=r.getInt(4);}
+            c.setAutoCommit(false);int total,submitted,failed,cancelled,acceptedFeeds,awaitingReadback;
+            try(var p=c.prepareStatement("SELECT count(*),COALESCE(sum(state='SUBMITTED'),0),COALESCE(sum(state='NEEDS_ACTION'),0),COALESCE(sum(state='CANCELLED'),0),COALESCE(sum(NULLIF(TRIM(feed_id),'') IS NOT NULL),0),COALESCE(sum(state='WAITING_REMOTE' AND NULLIF(TRIM(feed_id),'') IS NOT NULL),0) FROM znack_registration_batch_items WHERE run_id=?")){
+                p.setString(1,id);try(var r=p.executeQuery()){r.next();total=r.getInt(1);submitted=r.getInt(2);failed=r.getInt(3);cancelled=r.getInt(4);acceptedFeeds=r.getInt(5);awaitingReadback=r.getInt(6);}
             }
-            Sku current=summarySku(c,id,false),last=summarySku(c,id,true);c.commit();return new Summary(total,submitted,failed,cancelled,current,last);
+            Sku current=summarySku(c,id,false),last=summarySku(c,id,true);c.commit();return new Summary(total,submitted,failed,cancelled,current,last,acceptedFeeds,awaitingReadback);
         }catch(SQLException e){throw storage(e);}
     }
     private static Sku summarySku(Connection c,String id,boolean last)throws SQLException {
@@ -107,6 +108,20 @@ final class ZnackRegistrationBatchStore {
             }
             if(changed[0]&&"CANCELLED".equals(state))try(var p=c.prepareStatement("UPDATE znack_registration_batch_items SET state='CANCELLED',detail='ZNACK_BATCH_CANCELLED',updated_at=? WHERE run_id=? AND state='QUEUED'")){
                 p.setString(1,Instant.now().toString());p.setString(2,id);p.executeUpdate();
+            }
+            return null;
+        });return changed[0];
+    }
+    /** Reopen only terminal rejections whose saved request has a deterministic correction.
+     * Accepted receipts remain intact until a fresh server rejection authorizes a new POST. */
+    boolean reopenRejected(Shop shop,String id,List<Integer> positions){
+        if(positions.isEmpty())return false;var changed=new boolean[1];
+        write(shop,id,c->{
+            try(var p=c.prepareStatement("UPDATE znack_registration_batches SET state='QUEUED',detail='CATALOG_CORRECTING_OPTIONAL_FIELDS',retry_at=NULL,retry_count=0,waiting_since=NULL,correction_resumed=1,updated_at=? WHERE id=? AND state='NEEDS_ACTION' AND correction_resumed=0")){
+                p.setString(1,Instant.now().toString());p.setString(2,id);changed[0]=p.executeUpdate()==1;
+            }
+            if(changed[0])try(var p=c.prepareStatement("UPDATE znack_registration_batch_items SET state='WAITING_REMOTE',detail='CATALOG_CORRECTING_OPTIONAL_FIELDS',updated_at=? WHERE run_id=? AND position=? AND state='NEEDS_ACTION' AND feed_id<>''")){
+                for(int position:positions){p.setString(1,Instant.now().toString());p.setString(2,id);p.setInt(3,position);p.addBatch();}p.executeBatch();
             }
             return null;
         });return changed[0];

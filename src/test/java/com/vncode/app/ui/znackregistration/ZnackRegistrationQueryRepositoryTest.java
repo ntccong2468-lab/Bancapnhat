@@ -81,6 +81,20 @@ class ZnackRegistrationQueryRepositoryTest {
         var other=repository.page(new SearchCriteria(2,"",List.of(),"ALL",300,0));
         assertEquals(1,other.filtered());assertEquals("Foreign",other.rows().getFirst().title());assertTrue(other.details().get(1L).gender().isBlank());
     }
+    @Test void publishedBarcodeWithDifferentArticleIsMatchReviewNotANewCardOrCatalogError()throws Exception {
+        var shop=new com.vncode.app.models.Shop(1,"Fixture WB","fixture");String receipt=com.vncode.app.testsupport.RegistrationSourceFixture.ready(shop);
+        String code="00000000000017";
+        try(var c=Database.getConnection();var st=c.createStatement()){
+            st.execute("INSERT INTO wb_product_size_skus(shop_id,chrt_id,sku) VALUES(1,501,'"+code+"')");
+        }
+        var data=com.vncode.app.integration.znack.registration.CatalogProductDataParser.parse(com.google.gson.JsonParser.parseString("{\"good_status\":\"published\"}").getAsJsonObject());
+        new GtinSyncRepository().saveCatalog(1,Marketplace.WILDBERRIES,List.of(new RegisteredGtin(code,"another-article","Blue","XL",true,true,com.vncode.app.features.gtinsync.RegisteredGtinProof.source(shop),Instant.now(),data)));
+        var observed=new ZnackRegistrationQueryRepository(receipt,new com.vncode.app.features.sync.RegistrationCardIndex(shop));
+        assertTrue(observed.page(new SearchCriteria(1,"",List.of(),"MATCH_REVIEW",300,0)).rows().stream().anyMatch(r->r.chrtId()==501));
+        for(String filter:List.of("ERROR","NOT_CREATED","IN_PROGRESS","COMPLETED"))assertTrue(observed.page(new SearchCriteria(1,"",List.of(),filter,300,0)).rows().stream().noneMatch(r->r.chrtId()==501),filter);
+        var row=observed.page(new SearchCriteria(1,"",List.of(),"MATCH_REVIEW",300,0)).rows().stream().filter(r->r.chrtId()==501).findFirst().orElseThrow();
+        assertEquals(Status.NOT_CREATED,row.status());assertFalse(row.hasFeed());assertFalse(row.hasGtin());
+    }
     @Test void observedModerationAndDraftsAreNotCountedOrFilteredAsCatalogErrors()throws Exception {
         var shop=new com.vncode.app.models.Shop(1,"Fixture WB","fixture");
         String receipt=com.vncode.app.testsupport.RegistrationSourceFixture.ready(shop);
@@ -133,6 +147,25 @@ class ZnackRegistrationQueryRepositoryTest {
         observed=new ZnackRegistrationQueryRepository(receipt,new com.vncode.app.features.sync.RegistrationCardIndex(shop));
         assertTrue(observed.allEligible(criteria).isEmpty(),"A known feed stays on readback rather than becoming another reviewed POST");
     }
+    @Test void acceptedFeedWithIncompleteCatalogVariantRemainsVisibleInProcessing()throws Exception {
+        var shop=new com.vncode.app.models.Shop(1,"Fixture WB","fixture");
+        String receipt=com.vncode.app.testsupport.RegistrationSourceFixture.ready(shop);
+        var scope=com.vncode.app.integration.znack.registration.ZnackRegistrationScope.fromSettings(
+                new com.vncode.app.integration.znack.ZnackRepository(new com.vncode.app.integration.znack.ZnackModels.ShopContext(1,"Fixture WB")).getSettings());
+        try(var c=Database.getConnection();var s=c.createStatement()){
+            s.execute("INSERT INTO znack_card_registrations(shop_id,chrt_id,nm_id,gtin,feed_id,status,created_at,updated_at) VALUES(1,503,100,'00000000000017','accepted-503','PROCESSING','fixture','fixture')");
+        }
+        new com.vncode.app.integration.znack.registration.ZnackCardRegistrationRepository().bindScope(shop,503,scope);
+        var data=com.vncode.app.integration.znack.registration.CatalogProductDataParser.parse(
+                com.google.gson.JsonParser.parseString("{\"good_status\":\"draft\",\"good_detailed_status\":[\"moderation\"]}").getAsJsonObject());
+        new GtinSyncRepository().saveCatalog(1,Marketplace.WILDBERRIES,List.of(new RegisteredGtin("00000000000017","same-article","","XL",true,false,com.vncode.app.features.gtinsync.RegisteredGtinProof.source(shop),Instant.now(),data)));
+        var index=new com.vncode.app.features.sync.RegistrationCardIndex(shop);
+        var query=new ZnackRegistrationQueryRepository(receipt,index);
+        var page=query.page(new SearchCriteria(1,"",List.of(),"IN_PROGRESS",300,0));
+        assertTrue(page.rows().stream().anyMatch(row->row.chrtId()==503),"A variant verification warning must not hide an accepted feed");
+        assertEquals(1,page.summary().waiting());
+        assertTrue(query.allEligible(new SearchCriteria(1,"",List.of(),"NOT_CREATED",300,0)).stream().noneMatch(row->row.chrtId()==503),"Visibility must never authorize another POST");
+    }
     @Test void unsentLocalWorkStaysNotCreatedUntilCatalogAcceptsItsFeed()throws Exception {
         var shop=new com.vncode.app.models.Shop(1,"Fixture WB","fixture");
         String receipt=com.vncode.app.testsupport.RegistrationSourceFixture.ready(shop);
@@ -161,7 +194,9 @@ class ZnackRegistrationQueryRepositoryTest {
             assertEquals(List.of(15L,16L,17L,19L),processing.rows().stream().map(Sku::chrtId).toList());
             assertEquals(3,processing.summary().waiting());assertEquals(1,processing.summary().readyToSign());
             var errors=query.page(new SearchCriteria(1,"",List.of(),"ERROR",300,0)).rows().stream().map(Sku::chrtId).toList();
-            assertTrue(errors.isEmpty(),"Local uncertainty is not a confirmed Catalog refusal");
+            assertTrue(errors.isEmpty(),"Allocations and uncertain requests are not rejected Catalog cards");
+            var review=query.page(new SearchCriteria(1,"",List.of(),"FEED_REVIEW_REQUIRED",300,0)).rows().stream().map(Sku::chrtId).toList();
+            assertTrue(review.containsAll(List.of(14L,15L,16L,20L)),"Unknown sends stay visible for readback and must not trigger a new POST");
         }
     }
     @Test void filtersSeparateCatalogRejectionFromLocalErrorsAndUncertainGtins()throws Exception {

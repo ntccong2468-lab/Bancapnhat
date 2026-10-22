@@ -37,6 +37,8 @@ public final class RegistrationCardIndex {
             default -> false;
         };
     }
+    public static boolean needsMatchReview(View view){return view.exists()&&(view.status().equals("source.ambiguous")
+            ||view.status().equals("source.unverified")&&Set.of("GTIN_VARIANT_CONFLICT","GTIN_VARIANT_UNVERIFIED").contains(view.detail()));}
     /** Filter membership is presentation only and never permission to replay a write. */
     public static boolean catalogRejected(Status status,String error,View observed) {
         if(observed!=null){
@@ -155,6 +157,8 @@ public final class RegistrationCardIndex {
                 return new View(observed,card.gtin(),"GTIN_VARIANT_UNVERIFIED",true,false,true);
             }
             if(card.published())return new View("status.published",card.gtin(),"SOURCE_PUBLISHED_CONFIRMED",true,true,false);
+            if(status==Status.ERROR&&com.vncode.app.integration.znack.registration.CatalogCardState.of(card)==com.vncode.app.integration.znack.registration.CatalogCardState.MODERATION)
+                return new View("source.moderation",card.gtin(),"CATALOG_CARD_MODERATION",true,false,true);
             if(com.vncode.app.integration.znack.registration.CatalogCardState.of(card)==com.vncode.app.integration.znack.registration.CatalogCardState.ERRORS
                     &&!Set.of(Status.FEED_SUBMITTING,Status.FEED_REVIEW_REQUIRED,Status.FEED_SUBMITTED,Status.PROCESSING,Status.READY_TO_SIGN,Status.SIGNING).contains(status))
                 return new View("source.errors",card.gtin(),"CATALOG_CARD_ERRORS",true,false,true);

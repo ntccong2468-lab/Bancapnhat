@@ -49,7 +49,7 @@ public final class OzonCatalogSyncService {
         LicenseRuntime.require(SELLER_API);
         api.requireSyncOwner(shopId);
         String cursor = initialCursor;
-        int synced = 0;
+        int synced = 0,listed=0;
         var cursors=new java.util.HashSet<String>();
         if(initialCursor!=null&&!initialCursor.isBlank())cursors.add(initialCursor);
         Map<OzonProductCardAttributeParser.CategoryKey, Map<String, String>> definitionCache = new LinkedHashMap<>();
@@ -64,6 +64,7 @@ public final class OzonCatalogSyncService {
                 OzonJson.ProductPage page = OzonJson.parseProductPage(response);
                 if(page.items().size()!=response.getAsJsonObject("result").getAsJsonArray("items").size() || page.items().size()>PAGE_SIZE || page.items().stream().map(OzonJson.ProductReference::productId).distinct().count()!=page.items().size() || page.items().stream().anyMatch(row->row.offerId().isBlank()))throw new IOException("OZON_INCOMPLETE_PRODUCT_PAGE");
                 if (page.items().isEmpty()) {
+                    if(page.total()>listed)throw new IOException("OZON_INCOMPLETE_PRODUCT_PAGE");
                     products.upsertPage(shopId, List.of(), cursor);
                     return synced;
                 }
@@ -120,7 +121,8 @@ public final class OzonCatalogSyncService {
                 api.requireSyncOwner(shopId);
                 synced += products.upsertPage(shopId, complete, next);
                 observer.accept(List.copyOf(complete));
-                if (page.items().size() < PAGE_SIZE) return synced;
+                listed+=page.items().size();
+                if (page.items().size() < PAGE_SIZE && (page.total()==0||listed>=page.total())) return synced;
                 cursor = next;
             }
             throw new IOException("Ozon catalog exceeded the safe pagination bound.");

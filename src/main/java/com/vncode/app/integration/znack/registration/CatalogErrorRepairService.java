@@ -192,7 +192,7 @@ public final class CatalogErrorRepairService {
                     p.session().catalog().validateCurrentRegistrationDraft(p.session().token(),draft);
                     repairSchema=p.session().catalog().registrationAttributes(draft.categoryId(),p.session().token());
                 }
-                var payload=ZnackNationalCatalogService.buildPayload(p.card().gtin(),draft,p.snapshot().media().isEmpty()?"":p.snapshot().media().getFirst().uri().toString());
+                var payload=ZnackNationalCatalogService.buildPayload(p.card().gtin(),draft,ZnackCardRegistrationWorkflow.retryImageUrl(p.snapshot().media().isEmpty()?"":p.snapshot().media().getFirst().uri().toString(),p.card().reason()));
                 if(p.goodId()>0)payload.addProperty("good_id",p.goodId()); // Existing cards require their exact identity.
                 if(p.feedRejection()!=null&&key.marketplace()==Marketplace.WILDBERRIES){
                     var command=new com.vncode.app.integration.znack.registration.v3.RegistrationCommandJournal.Command(com.vncode.app.integration.znack.registration.v3.RegistrationJob.Action.SUBMIT,key.cardId()+"/"+key.variantId(),p.feedRejection().payload());

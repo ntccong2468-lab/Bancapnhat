@@ -43,7 +43,8 @@ final class RegistrationBatchPreflight {
             var snapshot=repo.localSnapshot(key).orElse(null);if(snapshot==null)continue;
             if(!ListingIdentity.fingerprint(owner).equals(snapshot.metadata().get("owner"))){if(!sourceReady)continue;sources.requireMember(owner,key.cardId(),key.variantId());}
             if((snapshot.brand()==null||snapshot.brand().isBlank())&&(owner.getMarketplace()!=com.vncode.app.integration.marketplace.Marketplace.OZON||new com.vncode.app.integration.ozon.OzonShopBrand().load(owner).isBlank()))findings.add(new Finding("brand",key,snapshot.vendorArticle(),"","",snapshot.categoryId()));
-            if(com.vncode.app.integration.znack.registration.ZnackRegistrationDocuments.select(snapshot,settings,java.time.LocalDate.now()).candidates().isEmpty())findings.add(new Finding("documents",key,snapshot.vendorArticle(),"","",snapshot.categoryId()));
+            var permit=com.vncode.app.integration.znack.registration.ZnackRegistrationDocuments.select(snapshot,settings,java.time.LocalDate.now());
+            if(permit.candidates().isEmpty()){String detail=permit.issues().isEmpty()?"ZNACK_MISSING_PRODUCT_DOCUMENT":String.join("; ",permit.issues());findings.add(new Finding("documents",key,snapshot.vendorArticle(),RegistrationDiagnostics.reason(detail),"",snapshot.categoryId(),null,null,detail,List.of()));}
             for(String field:List.of("gender","material"))if(snapshot.attributes().stream().filter(a->a.complexId().isBlank()||a.complexId().equals("0")).filter(a->ProductFieldNames.matches(field,a.name())).flatMap(a->a.values().stream()).allMatch(String::isBlank))findings.add(new Finding(field,key,snapshot.vendorArticle(),"","",snapshot.categoryId()));
             var proposal=advisor.propose(snapshot);
             String gender=snapshot.attributes().stream().filter(a->ProductFieldNames.matches("gender",a.name())).flatMap(a->a.values().stream()).collect(java.util.stream.Collectors.joining(" "));
@@ -70,13 +71,14 @@ return readComplete(owner,selected,entered,documents,Map.of());
         try{
             var snapshots=new RegistrationSnapshotReview().read(owner,selected);
             var common=read(owner,selected);
-            if(!common.findings().isEmpty())return new Review(common.findings(),selected,null);
+            if(!common.findings().isEmpty()){RegistrationPreflightReport.write(owner,selected,common.findings(),null);return new Review(common.findings(),selected,null);}
             var dynamic=new RegistrationDynamicPreflight().read(owner,snapshots,entered,documents,categories);var findings=new ArrayList<Finding>();
             for(var missing:dynamic.missing())findings.add(new Finding("catalog:"+missing.attribute().id(),missing.key(),missing.article(),missing.before(),missing.suggestion(),"",missing.attribute(),missing.suggestedType(),missing.reason(),List.of()));
             for(var warning:dynamic.documents())findings.add(new Finding("documents",warning.key(),warning.article(),RegistrationDiagnostics.reason(warning.detail()),"","",null,null,warning.detail(),List.of()));
             for(var block:dynamic.blocked())findings.add(new Finding(block.field(),block.key(),block.article(),RegistrationDiagnostics.reason(block.detail()),"","",null,null,block.detail(),block.categories().stream().map(Object::toString).toList()));
+            RegistrationPreflightReport.write(owner,selected,findings,null);
             return new Review(findings,selected,dynamic);
-        }catch(RuntimeException failure){throw failure;}catch(Exception failure){throw new IllegalStateException("ZNACK_PREFLIGHT_READ_FAILED",failure);}
+        }catch(Exception failure){try{RegistrationPreflightReport.write(owner,selected,List.of(),failure);}catch(RuntimeException reportFailure){failure.addSuppressed(reportFailure);}if(failure instanceof RuntimeException runtime)throw runtime;throw new IllegalStateException("ZNACK_PREFLIGHT_READ_FAILED",failure);}
     }
     static String fieldLabel(Finding finding){
         if(finding.field().equals("catalog_category"))return tr("znack.registration.choose_category");
@@ -182,10 +184,11 @@ return readComplete(owner,selected,entered,documents,Map.of());
         void offer(String key,List<String> options){Platform.runLater(()->{if(!disposed&&!busy){suggestions.put(key,List.copyOf(options));table.refresh();}});}
         void completeDocuments(Finding finding){
             if(disposed||busy)return;
-            com.vncode.app.ui.products.ProductBulkEditPane.showDialog(dialog.getDialogPane().getScene().getWindow(),owner,"documents",List.of(finding.key()),()->{
+            RegistrationDocumentConfigDialog.show(dialog.getDialogPane().getScene().getWindow(),owner,()->{
                 if(!disposed)verifyDocuments(finding);
             });
         }
+
         void verifyDocuments(Finding finding){
             if(disposed||busy)return;values.put(finding,"");busy=true;table.setDisable(true);dialog.getDialogPane().lookupButton(applyType).setDisable(true);
             var task=new Task<Boolean>(){protected Boolean call()throws Exception{try(var lane=MarketplaceRequestBudget.lane(true)){

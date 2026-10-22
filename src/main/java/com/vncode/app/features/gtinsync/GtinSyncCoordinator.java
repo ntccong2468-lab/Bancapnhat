@@ -148,6 +148,7 @@ public final class GtinSyncCoordinator {
         var sent=new ArrayList<JobItem>();
         for(var part:partitions){var members=part.stream().map(p->lookup.get(p.before().key())).toList();
             if(Thread.currentThread().isInterrupted()){repository.releaseUnsentBatch(members,"ZNACK_SYNC_CANCELLED",true);break;}
+            try{adapter.beforeNextBatch();}catch(InterruptedException interrupted){Thread.currentThread().interrupt();repository.releaseUnsentBatch(members,"ZNACK_SYNC_CANCELLED",true);break;}
             if(!repository.sendingBatch(members)){repository.releaseUnsentBatch(members,"GTIN_BATCH_PAUSED",false);continue;}
             for(var item:members)publishItem(progress,new JobItem(item.id(),item.jobId(),item.preview(),Status.SENDING,item.remoteTaskId()));
             try {
@@ -202,6 +203,7 @@ public final class GtinSyncCoordinator {
             catch(Exception unavailable){for(var item:pending)issues.put(item.id(),com.vncode.app.features.sync.SyncFailure.of(unavailable,0).code());if(unavailable instanceof InterruptedException)Thread.currentThread().interrupt();break;}
             var next=new ArrayList<JobItem>();var changes=new ArrayList<GtinSyncRepository.Change>();boolean unknown=false;
             for(var item:pending){var checked=result.getOrDefault(item.preview().before().key(),new VerificationResult(Verification.UNKNOWN));var outcome=checked.outcome();
+                if(!checked.detail().isBlank())repository.issueDetail(item.id(),checked.detail());
                 if(outcome==Verification.APPLIED||outcome==Verification.REJECTED){String issue=outcome==Verification.APPLIED?"":checked.issue().isBlank()?"GTIN_REJECTED":checked.issue();changes.add(new GtinSyncRepository.Change(item,outcome==Verification.APPLIED?Status.SUCCEEDED:Status.FAILED,null,issue));}
                 else {if(!checked.issue().isBlank())issues.put(item.id(),checked.issue());next.add(item);unknown|=outcome==Verification.UNKNOWN;}
             }

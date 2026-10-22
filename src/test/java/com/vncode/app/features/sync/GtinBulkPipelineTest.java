@@ -25,6 +25,24 @@ class GtinBulkPipelineTest {
     @AfterEach void restore(){if(previous==null)System.clearProperty("vncode.appdata.dir");else System.setProperty("vncode.appdata.dir",previous);}
     @Test void wbTenThousandGtinUseFourWholeCardWritesAndReadBackEveryMember()throws Exception{large(Marketplace.WILDBERRIES);}
     @Test void ozonTenThousandGtinUseOneHundredDedicatedBarcodeWrites()throws Exception{large(Marketplace.OZON);}
+    @Test void wbCadenceSurvivesSeparateCohortsInTheSameFrozenRun()throws Exception{
+        var shop=GtinWriteTestFixture.shop(Marketplace.WILDBERRIES);var api=new Api(Marketplace.WILDBERRIES,2);var selected=seed(shop,api);
+        try(var session=new GtinBulkSession(shop,api,id->{},GtinBulkPipelineTest::freshSyntheticSource)){
+            session.prepare(selected.stream().map(Selection::key).toList());
+            for(var member:selected){var plan=session.catalog.preview(shop,List.of(member),new Options(Set.of(Field.GTIN),Map.of()));var done=session.catalog.run(shop,plan.id(),true);assertEquals(State.SUCCEEDED,done.rows().getFirst().state());}
+            assertEquals(2,api.writes);assertEquals(List.of(Duration.ofSeconds(15)),api.batchPauses);
+        }
+    }
+    @Test void explicitWbRejectionReachesTheFinalReportWithoutCredentialsOrAReplay()throws Exception{
+        var shop=GtinWriteTestFixture.shop(Marketplace.WILDBERRIES);var api=new Api(Marketplace.WILDBERRIES,1);api.apply=false;api.wbError="Barcode refused by WB; token=private-test; "+shop.getApiKey();var selected=seed(shop,api);
+        try(var session=new GtinBulkSession(shop,api,id->{},GtinBulkPipelineTest::freshSyntheticSource)){
+            session.prepare(selected.stream().map(Selection::key).toList());var plan=session.catalog.preview(shop,selected,new Options(Set.of(Field.GTIN),Map.of()));var done=session.catalog.run(shop,plan.id(),true);
+            assertEquals(State.BLOCKED,done.rows().getFirst().state());assertEquals(1,api.writes);assertEquals(0,api.applied.size());assertTrue(api.errorListReads>0);
+            var reports=new SyncRunRepository();String run=reports.begin(shop,"znack_marketplace","READBACK");var key=selected.getFirst().key();reports.add(shop,run,key.productId(),key.variantId(),"","","","",selected.getFirst().gtin(),"WAITING_REMOTE","","{}");reports.linkReviewed(shop,run,done);
+            var context=GtinRunStatusSnapshot.capture(shop,Set.of(new com.vncode.app.features.products.ProductKey(shop.getId(),shop.getMarketplace(),key.productId(),key.variantId())));
+            var result=GtinRunStatusSnapshot.read(context,run);assertEquals(0,result.result().progress().succeeded());assertTrue(result.settled());String reason=result.reasons().keySet().iterator().next();assertTrue(reason.contains("Barcode refused by WB"));assertFalse(reason.contains("private-test"));assertFalse(reason.contains(shop.getApiKey()));
+        }
+    }
     @Test void theSecondOzonPartitionReselectsRetainedTargetsWithoutLosingItsApprovedScope()throws Exception{
         var shop=GtinWriteTestFixture.shop(Marketplace.OZON);var api=new Api(Marketplace.OZON,105);var selected=seed(shop,api);
         try(var session=new GtinBulkSession(shop,api,ignored->{},GtinBulkPipelineTest::freshSyntheticSource)){
@@ -41,7 +59,7 @@ class GtinBulkPipelineTest {
             var plan=session.catalog.preview(shop,selections,new Options(Set.of(Field.GTIN),Map.of()));assertEquals(10_000,plan.readyCount());assertEquals(0,api.writes);
             var result=session.catalog.run(shop,plan.id(),true,progress::add);
             assertTrue(result.rows().stream().allMatch(r->r.state()==State.SUCCEEDED),()->"Unfinished: "+result.rows().stream().filter(r->r.state()!=State.SUCCEEDED).limit(3).toList());
-            assertEquals(marketplace==Marketplace.WILDBERRIES?4:100,api.writes);assertEquals(10_000,api.applied.size());assertTrue(api.maximumBodyBytes<=10_000_000);assertTrue(api.maximumItems<=(marketplace==Marketplace.WILDBERRIES?3000:100));
+            assertEquals(marketplace==Marketplace.WILDBERRIES?4:100,api.writes);assertEquals(10_000,api.applied.size());if(marketplace==Marketplace.WILDBERRIES)assertEquals(java.util.Collections.nCopies(3,Duration.ofSeconds(15)),api.batchPauses);assertTrue(api.maximumBodyBytes<=10_000_000);assertTrue(api.maximumItems<=(marketplace==Marketplace.WILDBERRIES?3000:100));
             assertTrue(api.reads<=(marketplace==Marketplace.WILDBERRIES?240:300),()->"Read requests must scale with pages/batches, not GTIN²: "+api.reads);
             assertTrue(progress.stream().anyMatch(i->i.status()==Status.AWAITING_VERIFICATION));assertEquals(10_000,progress.stream().filter(i->i.status()==Status.SUCCEEDED).count());
             int before=api.writes;session.catalog.run(shop,plan.id(),false);assertEquals(before,api.writes,"Reopening a completed job cannot replay its writes");
@@ -146,8 +164,10 @@ class GtinBulkPipelineTest {
     static String text(JsonObject value,String key){return value.has(key)?value.get(key).getAsString():"";}
 
     static final class Api implements ListingTransport {
+        final List<java.time.Duration> batchPauses=new ArrayList<>();
+        @Override public void pauseBetweenWrites(java.time.Duration delay){batchPauses.add(delay);}
         final Marketplace market;final LinkedHashMap<String,JsonObject> info=new LinkedHashMap<>(),attributes=new LinkedHashMap<>();final Map<String,String> applied=new HashMap<>();final Set<String> rejected=new HashSet<>();
-        final List<JsonElement> waiting=new ArrayList<>();int reads,writes,attempts,maximumItems,maximumBodyBytes,errorListReads;boolean apply=true,loseResponse,rateLimitOnce;long revision=1;
+        final List<JsonElement> waiting=new ArrayList<>();int reads,writes,attempts,maximumItems,maximumBodyBytes,errorListReads;boolean apply=true,loseResponse,rateLimitOnce;String wbError="";long revision=1;
         Api(Marketplace market,int count){this.market=market;for(int i=0;i<count;i++){
             String id=Integer.toString(100000+i);JsonObject card;
             if(market==Marketplace.WILDBERRIES)card=JsonParser.parseString("{\"nmID\":"+id+",\"subjectID\":77,\"vendorCode\":\"article-"+i+"\",\"title\":\"Synthetic product "+i+"\",\"brand\":\"Fixture\",\"description\":\"Keep this description\",\"kizMarked\":true,\"dimensions\":{\"length\":12,\"width\":13,\"height\":14,\"weightBrutto\":0.25},\"characteristics\":[{\"id\":99,\"name\":\"Цвет\",\"value\":[\"Blue\"]},{\"id\":88,\"name\":\"ТН ВЭД\",\"value\":[\"6112110000\"]}],\"sizes\":[{\"chrtID\":"+(200000+i)+",\"techSize\":\"52\",\"wbSize\":\"52\",\"skus\":[\"legacy-"+i+"\"]}],\"documents\":{\"items\":[{\"id\":\"doc-"+i+"\",\"type\":2,\"number\":\"D-"+i+"\"}]}} ").getAsJsonObject();
@@ -156,7 +176,7 @@ class GtinBulkPipelineTest {
         }}
         @Override public JsonElement call(String path,JsonElement body,boolean mutation)throws IOException {
             if(mutation){attempts++;if(rateLimitOnce){rateLimitOnce=false;throw new ListingRateLimitException(new okhttp3.Headers.Builder().add("Retry-After","0").build());}writes++;maximumBodyBytes=Math.max(maximumBodyBytes,body.toString().getBytes(java.nio.charset.StandardCharsets.UTF_8).length);maximumItems=Math.max(maximumItems,market==Marketplace.WILDBERRIES?body.getAsJsonArray().size():body.getAsJsonObject().getAsJsonArray("barcodes").size());if(apply)apply(body);else waiting.add(body.deepCopy());if(loseResponse)throw new IOException("Synthetic response lost after commit");
-                if(market==Marketplace.WILDBERRIES)return JsonParser.parseString("{\"error\":false}");var errors=new JsonArray();for(var e:body.getAsJsonObject().getAsJsonArray("barcodes")){var value=e.getAsJsonObject();String id=Long.toString(value.get("sku").getAsLong()-200000);if(rejected.contains(id)){var error=value.deepCopy();error.addProperty("code","BAD_CODE");errors.add(error);}}var result=new JsonObject();result.add("errors",errors);return result;}
+                if(market==Marketplace.WILDBERRIES){var result=new JsonObject();result.addProperty("error",!wbError.isBlank());result.addProperty("errorText",wbError);return result;}var errors=new JsonArray();for(var e:body.getAsJsonObject().getAsJsonArray("barcodes")){var value=e.getAsJsonObject();String id=Long.toString(value.get("sku").getAsLong()-200000);if(rejected.contains(id)){var error=value.deepCopy();error.addProperty("code","BAD_CODE");errors.add(error);}}var result=new JsonObject();result.add("errors",errors);return result;}
             reads++;var request=body.getAsJsonObject();
             if(path.equals("content/v2/get/cards/trash"))return JsonParser.parseString("{\"cards\":[],\"cursor\":{\"total\":0}}");
             if(path.equals("content/v2/get/cards/list")){

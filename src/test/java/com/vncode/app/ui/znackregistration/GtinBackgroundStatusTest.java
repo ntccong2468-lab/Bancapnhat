@@ -44,6 +44,11 @@ class GtinBackgroundStatusTest {
   var result=new ZnackGtinBackgroundService.Result("run",new ZnackGtinBackgroundService.Progress(10,10,7,2,1),new ZnackGtinBackgroundService.Inventory(15,12,3,2));
   String text=GtinBackgroundStatus.summary(result);assertTrue(text.contains("7/12"));assertTrue(text.contains("5"));assertTrue(text.contains("3"));assertFalse(text.contains("gtin.background.summary"));
  }
+ @Test void conciseFinalReportKeepsUnconfirmedGtinsSeparateAndShowsReasons(){
+  var result=new ZnackGtinBackgroundService.Result("run",new ZnackGtinBackgroundService.Progress(10,10,7,2,1),new ZnackGtinBackgroundService.Inventory(15,12,3,0));
+  var snapshot=new com.vncode.app.features.sync.GtinRunStatusSnapshot.Snapshot(result,true,java.util.Map.of("GTIN_READBACK_PENDING",2,"GTIN_VARIANT_UNVERIFIED",3));
+  var text=GtinBackgroundStatus.resultText(snapshot);assertTrue(text.contains("7"));assertTrue(text.contains("5"));assertTrue(text.contains("3"));assertFalse(text.contains("gtin.background.final_counts"));assertFalse(text.contains("GTIN_READBACK_PENDING"));assertFalse(text.contains("GTIN_VARIANT_UNVERIFIED"));
+ }
  @Test void missingRequestedRowsRemainUnknownAndAreNotReportedAsAbsentGtins(){
   var result=new ZnackGtinBackgroundService.Result("run",new ZnackGtinBackgroundService.Progress(0,0,0,0,0),new ZnackGtinBackgroundService.Inventory(3,0,0,0,3));
   var i18n=I18nService.getInstance();String known=java.text.MessageFormat.format(i18n.tr("gtin.background.summary"),0,0,0,0,0,0);
@@ -98,14 +103,14 @@ class GtinBackgroundStatusTest {
   var item=repo.add(shop,run,"100","101","","","","",com.vncode.app.features.gtinsync.GtinWriteTestFixture.GTIN,"WAITING_REMOTE","","{}");
   var context=com.vncode.app.features.sync.GtinRunStatusSnapshot.capture(shop,java.util.Set.of());
   var initial=com.vncode.app.features.sync.GtinRunStatusSnapshot.read(context,run).result();
-  var pending=new CountDownLatch(1);var verified=new CountDownLatch(1);var gone=new CountDownLatch(1);
+  var pending=new CountDownLatch(1);var verified=new CountDownLatch(1);var gone=new CountDownLatch(1);var refreshes=new java.util.concurrent.atomic.AtomicInteger();
   var pane=fx(()->{var host=new StackPane();new Scene(host,800,500);
-   GtinBackgroundStatus.observe(host,context,initial,()->{},value->{if(value.progress().pending()==1)pending.countDown();if(value.progress().succeeded()==1)verified.countDown();},javafx.util.Duration.millis(30),javafx.util.Duration.millis(160));
+   GtinBackgroundStatus.observe(host,context,initial,refreshes::incrementAndGet,value->{if(value.progress().pending()==1)pending.countDown();if(value.progress().succeeded()==1)verified.countDown();},javafx.util.Duration.millis(30),javafx.util.Duration.millis(160));
    host.getChildren().addListener((javafx.collections.ListChangeListener<javafx.scene.Node>)change->{if(host.lookup("#gtinBackgroundPill")==null)gone.countDown();});return host;});
-  assertTrue(pending.await(4,TimeUnit.SECONDS));assertEquals(1,gone.getCount());
+  assertTrue(pending.await(4,TimeUnit.SECONDS));assertEquals(1,gone.getCount());fx(()->{assertEquals(0,refreshes.get());assertTrue(GtinBackgroundStatus.holdsRows(pane));return null;});
   repo.registrationProgress(shop,item,item.gtin(),"SUCCEEDED","VERIFIED","","{\"marketplaceVerified\":true}");
   assertTrue(verified.await(4,TimeUnit.SECONDS));fx(()->{assertTrue(pane.lookupAll(".progress-indicator").isEmpty());assertTrue(pane.lookupAll(".label").stream().map(n->((Label)n).getText()).anyMatch(t->t.contains("1/1")));return null;});
-  assertTrue(gone.await(4,TimeUnit.SECONDS));
+  assertTrue(gone.await(4,TimeUnit.SECONDS));assertEquals(1,refreshes.get());
  }
  @Test void oldRunAndChangedOwnerNeverOverwriteTheCurrentStatusPill()throws Exception{
   var shop=com.vncode.app.features.gtinsync.GtinWriteTestFixture.shop(com.vncode.app.integration.marketplace.Marketplace.WILDBERRIES);

@@ -325,7 +325,7 @@ public final class ZnackCardRegistrationWorkflow {
             var completion=new java.util.concurrent.CompletableFuture<Void>();COMPLETIONS.put(key,completion);
             try {
                 executor.execute(()->{
-                    try{execute(shop,action==RegistrationAction.REGISTER_NEW?freshCandidate(sku):sku,draft,action==RegistrationAction.REQUEST_NEW_GTIN || action==RegistrationAction.REGISTER_NEW,action==RegistrationAction.SIGN_APPROVED,action!=RegistrationAction.RESUME&&action!=RegistrationAction.SIGN_APPROVED,listener,submissionOnly,lookup);}
+                    try(var deferral=submissionOnly?com.vncode.app.shared.RateLimitDeferral.enter():null){execute(shop,action==RegistrationAction.REGISTER_NEW?freshCandidate(sku):sku,draft,action==RegistrationAction.REQUEST_NEW_GTIN || action==RegistrationAction.REGISTER_NEW,action==RegistrationAction.SIGN_APPROVED,action!=RegistrationAction.RESUME&&action!=RegistrationAction.SIGN_APPROVED,listener,submissionOnly,lookup);}
                     catch(LicenseDeniedException denied){if(submissionOnly)SUBMISSION_FAILURES.put(key,denied);pauseKnownUnsent(shop,sku,denied,listener);}
                     catch(Exception error){if(submissionOnly)SUBMISSION_FAILURES.put(key,error);fail(shop,sku,error,listener);}
                     finally{requestUnsentContinuation(shop,sku);finish(key,completion);}
@@ -344,6 +344,13 @@ public final class ZnackCardRegistrationWorkflow {
 
     /** Reconcile an acknowledged request without creating, signing or repeating it. */
     public boolean verifySubmissionForBatch(Shop requested, Sku sku) throws Exception {
+        return verifySubmissionForBatch(requested,sku,false);
+    }
+    /** The seller's durable batch may correct a proven rejection without a second click. */
+    public boolean advanceSubmissionForBatch(Shop requested,Sku sku)throws Exception {
+        return verifySubmissionForBatch(requested,sku,true);
+    }
+    private boolean verifySubmissionForBatch(Shop requested,Sku sku,boolean correctRejected)throws Exception {
         Shop shop = freezeShop(requested);
         String key = operationKey(shop, sku);
         if (!RUNNING.add(key)) return false;
@@ -359,6 +366,7 @@ public final class ZnackCardRegistrationWorkflow {
                 if(preserveUnknownDraft(shop,sku,card))return true;
                 adoptExisting(shop,sku,card,session,null);
             }
+            else if(correctRejected)observeSubmissionWithCorrection(shop,sku,session,null);
             else observeSubmission(shop, sku, session, null);
             return true;
         } catch (Exception error) {
@@ -367,6 +375,26 @@ public final class ZnackCardRegistrationWorkflow {
         } finally {
             RUNNING.remove(key);
         }
+    }
+
+    private void observeSubmissionWithCorrection(Shop shop,Sku sku,CatalogSession session,BiConsumer<Status,String> listener)throws Exception {
+        observeSubmission(shop,sku,session,listener);
+        var rejected=registrations.find(shop.getId(),sku.chrtId());
+        if(rejected==null||rejected.status()!=Status.ERROR||!rejected.hasFeed())return;
+        String stored=registrations.payload(shop.getId(),sku.chrtId());if(stored.isBlank())return;
+        var progress=observedProgress(shop,session,rejected);
+        var corrected=CatalogPackingPolicy.correctedPayload(progress,JsonParser.parseString(stored).getAsJsonObject());
+        if(corrected==null)return;
+        var draft=draftFromPayload(corrected);
+        if(progress.goodId()!=null)corrected.addProperty("good_id",progress.goodId());
+        guard(shop,rejected);LicenseRuntime.require(Permission.GTIN);
+        if(!registrations.prepareRejectedRetry(shop,rejected,rejected.gtin(),rejected.feedId(),progress.goodId(),draft.tnved(),draft.categoryId(),draft.goodName(),corrected.toString(),CatalogFeedback.rejection(progress)))throw new IllegalStateException("REGISTRATION_CHANGED");
+        notify(listener,Status.READY_TO_SUBMIT,"CATALOG_CORRECTING_OPTIONAL_FIELDS");
+        String feed=submitWithJournal(shop,rejected,session,corrected,ZnackNationalCatalogService.hasReviewedDraft(corrected),()->{guard(shop,rejected);update(shop,rejected,Status.FEED_SUBMITTING,null,null,listener);});
+        registrations.updateProgress(shop.getId(),rejected.chrtId(),Status.FEED_SUBMITTED,feed,null,null,null);
+        notify(listener,Status.FEED_SUBMITTED,feed);
+        // Exactly one correction in this turn. Another rejection remains visible, never loops.
+        observeSubmission(shop,registrations.find(shop.getId(),rejected.chrtId()),session,listener);
     }
 
     static boolean verifiedSubmission(Sku sku) {
@@ -502,12 +530,9 @@ public final class ZnackCardRegistrationWorkflow {
         if(progress.signed()){status=Status.PUBLISHED;registrations.finishSignature(shop.getId(),sku.chrtId(),true);}
         else if(progress.failed())status=Status.ERROR;
         else if(sku.status()==Status.SIGNING||signature!=null&&Set.of("SENDING","RECONCILE_REQUIRED").contains(signature.state()))status=Status.SIGNING;
-        else status=progress.failed()?Status.ERROR:progress.readyToSign()?Status.READY_TO_SIGN:Status.PROCESSING;
+        else status=!progress.cardVerified()?Status.FEED_SUBMITTED:progress.readyToSign()?Status.READY_TO_SIGN:Status.PROCESSING;
         String error=progress.failed()?CatalogFeedback.rejection(progress):CatalogFeedback.stage(progress);
-        if(status==Status.PROCESSING&&java.time.Instant.now().isAfter(registrations.submissionStarted(shop.getId(),sku).plus(java.time.Duration.ofMinutes(5)))
-                &&!session.catalog().cardExists(session.token(),sku.gtin(),progress.goodId())){
-            status=Status.ERROR;error="CATALOG_CARD_NOT_CREATED_AFTER_WAIT";
-        }
+        if(status==Status.FEED_SUBMITTED)error="CATALOG_REQUEST_ACCEPTED_CARD_PENDING";
         if(sku.status()==Status.PUBLISHED&&status!=Status.PUBLISHED){
             if(!registrations.reconcilePublication(shop,sku,status,error==null?"CATALOG_PUBLICATION_NOT_CONFIRMED":error))return false;
         }else registrations.updateProgress(shop.getId(),sku.chrtId(),status,sku.feedId(),progress.goodId(),error,null);
@@ -733,7 +758,7 @@ public final class ZnackCardRegistrationWorkflow {
         }
 
         if(submissionOnly){
-            observeSubmission(shop, registrations.find(shop.getId(), sku.chrtId()), session, listener);
+            observeSubmissionWithCorrection(shop, registrations.find(shop.getId(), sku.chrtId()), session, listener);
             return;
         }
 
@@ -1075,7 +1100,13 @@ public final class ZnackCardRegistrationWorkflow {
         String error = previousError == null ? "" : previousError.toLowerCase(java.util.Locale.ROOT);
         boolean unavailableImage = error.contains("изображение не доступно по url")
                 || error.contains("изображение недоступно по url");
-        return unavailableImage ? "" : imageUrl;
+        if(unavailableImage)return "";
+        // WB supplies CDN thumbnails; Catalog's own fetcher rejects some of these hosts.
+        // Images are optional: keep marketplace media, omit only these URLs from the feed.
+        try{String host=java.net.URI.create(Objects.requireNonNullElse(imageUrl,"")).getHost();
+            if(host!=null&&(host.equals("wbbasket.ru")||host.endsWith(".wbbasket.ru")))return "";
+        }catch(IllegalArgumentException invalid){return "";}
+        return imageUrl;
     }
 
     private void fail(Shop shop, Sku sku, Exception error, BiConsumer<Status, String> listener) {

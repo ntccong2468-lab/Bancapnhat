@@ -20,9 +20,8 @@ final class RegistrationAutomaticDraft {
                 ||!ListingIdentity.fingerprint(shop).equals(snapshot.metadata().get("owner")))
             snapshot=new WbProductSnapshotReader().readForSynchronization(shop,key);
         var inputs=RegistrationProductInputs.from(sku,snapshot);
-        String tnved=ZnackWbAttributeMapper.findTnved(inputs.characteristics());
-        var codes=snapshot.attributes().stream().filter(a->ProductFieldNames.matches("tnved",a.name())).flatMap(a->a.values().stream()).filter(v->v.matches("[0-9]{4,10}")).distinct().toList();
-        if(codes.size()==1)tnved=codes.getFirst();
+        var codes=snapshot.attributes().stream().filter(a->ProductFieldNames.matches("tnved",a.name())).flatMap(a->a.values().stream()).map(ProductFieldNames::tnvedCode).filter(v->!v.isBlank()).distinct().toList();
+        String tnved=codes.size()==1?codes.getFirst():"";
         if(tnved.isBlank())throw new RegistrationValidationException("ZNACK_MISSING_TNVED");
         var selected=ZnackRegistrationDocuments.select(snapshot,settings,LocalDate.now());
         if(selected.candidates().isEmpty())throw new RegistrationValidationException("ZNACK_MISSING_PRODUCT_DOCUMENT");

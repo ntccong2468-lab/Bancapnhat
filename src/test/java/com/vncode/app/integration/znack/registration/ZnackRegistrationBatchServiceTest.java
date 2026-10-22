@@ -88,6 +88,7 @@ class ZnackRegistrationBatchServiceTest {
 
         assertEquals(3,api.submits.get(),"A pending import must not stop later selected products being sent");
         assertEquals(0,first.latest(shop).submitted());assertEquals(3,first.latest(shop).remaining());assertEquals(0,first.latest(shop).failed());
+        assertEquals(3,first.latest(shop).acceptedFeeds());assertEquals(3,first.latest(shop).awaitingReadback());
         assertEquals(ZnackRegistrationBatchService.State.WAITING_REMOTE,first.latest(shop).state());
         for(var row:selection()){assertTrue(row.hasFeed());assertTrue(row.hasGtin());assertNull(row.goodId());assertNotEquals(Status.PUBLISHED,row.status());}
 
@@ -233,13 +234,14 @@ class ZnackRegistrationBatchServiceTest {
         api.statusReadFailure=0;assertTrue(service.resumePaused(shop));assertEquals(3,service.latest(shop).submitted());
         assertEquals(3,api.submits.get());assertEquals(3,api.allocations.get());
     }
-    @Test void anImportWithoutACardHasBoundedGraceAndKeepsEveryReceipt()throws Exception{
+    @Test void aHealthySlowImportKeepsPollingWithoutAnotherRegisterClick()throws Exception{
         api.cardsVisible=false;var service=service((owner,row,sign)->draft,Runnable::run);
         String run=service.start(shop,selection(),false);
         try(var c=Database.getConnection();var p=c.prepareStatement("UPDATE znack_registration_batches SET waiting_since='2020-01-01T00:00:00Z',retry_at=NULL WHERE id=?")){p.setString(1,run);p.executeUpdate();}
-        assertTrue(service.resumePending(shop));assertEquals(ZnackRegistrationBatchService.State.PAUSED,service.latest(shop).state());
+        for(int n=0;n<8;n++){retryNow(run);assertTrue(service.resumePending(shop));}
+        assertEquals(ZnackRegistrationBatchService.State.WAITING_REMOTE,service.latest(shop).state());
         assertEquals(3,api.submits.get());assertEquals(3,api.allocations.get());assertTrue(selection().stream().allMatch(Sku::hasFeed));
-        api.cardsVisible=true;assertTrue(service.resumePaused(shop));assertEquals(3,service.latest(shop).submitted());assertEquals(3,api.submits.get());
+        api.cardsVisible=true;retryNow(run);assertTrue(service.resumePending(shop));assertEquals(3,service.latest(shop).submitted());assertEquals(3,api.submits.get());
     }
     @Test void changedPreparedValuesRequireNewReviewBeforeAnyAllocation(){
         var workers=new ArrayDeque<Runnable>();var service=service((owner,row,sign)->new Draft("6204",1,"Changed","Brand",Map.of(1L,"Fixture")),workers::add);
@@ -250,12 +252,59 @@ class ZnackRegistrationBatchServiceTest {
         assertTrue(store.items(shop,run).getFirst().detail().contains("ZNACK_REVIEWED_VALUES_CHANGED"));
     }
 
+    @Test void acceptedReceiptCountAdvancesBeforeTheFirstCardReadbackReturns(){
+        var batch=service((owner,row,sign)->draft,Runnable::run);var reads=new java.util.concurrent.atomic.AtomicInteger();
+        api.beforeFeedRead=()->{assertEquals(api.submits.get(),batch.latest(shop).acceptedFeeds());reads.incrementAndGet();};
+        batch.start(shop,selection(),false);assertEquals(3,reads.get());assertEquals(3,batch.latest(shop).submitted());
+    }
+    @Test void selectedBatchCorrectsRejectedKitAndImageAndSubmitsWithoutAnotherClick(){
+        api.rejectOptional=true;
+        var codes=List.of("04631993764370","04631993764363","04631993764387");
+        int n=0;for(var row:selection()){
+            var invalid=new Draft("6112110000","6112110000",1,"Fixture","Brand",draft.attributes(),Map.of(),false,true);
+            repository.saveReadyToSubmitGenerated(1,row,codes.get(n++),invalid.tnved(),1,"Fixture",ZnackNationalCatalogService.buildPayload(codes.get(n-1),invalid,"https://basket-33.wbbasket.ru/image.jpg").toString());
+        }
+        var service=service((owner,row,sign)->{throw new AssertionError("Keep the assigned GTIN and saved product facts");},Runnable::run);
+        String run=service.start(shop,selection(),false);
+        assertEquals(3,service.latest(shop).submitted(),()->selection().toString());assertEquals(0,service.latest(shop).failed());assertEquals(0,service.latest(shop).remaining());
+        assertEquals(6,api.submits.get());assertEquals(0,api.allocations.get());
+        for(var row:selection()){
+            var sent=api.payloads.get(row.feedId());assertFalse(sent.has("is_kit"));assertFalse(sent.has("good_images"));assertEquals("6112110000",sent.get("tnved").getAsString());
+        }
+        assertEquals(3,new SyncRunRepository().items(run,0,20).size());assertFalse(service.resumePending(shop));assertEquals(6,api.submits.get());
+    }
+    @Test void delayedCatalogRejectionIsCorrectedByTheSameDurableBatch(){
+        api.cardsVisible=false;
+        var service=service((owner,row,sign)->draft.withKit(true),Runnable::run);
+        String run=service.start(shop,selection(),false);assertEquals(3,api.submits.get());
+        api.rejectOptional=true;api.cardsVisible=true;
+        try{retryNow(run);}catch(Exception error){throw new RuntimeException(error);}
+        assertTrue(service.resumePending(shop));assertEquals(3,service.latest(shop).submitted(),()->selection().toString());assertEquals(0,service.latest(shop).failed());
+        assertEquals(6,api.submits.get());assertEquals(3,api.allocations.get());
+    }
+
+    @Test void previousBuildTerminalRejectionsResumeWithTheSameGtinsWithoutAnotherRegisterClick()throws Exception {
+        api.cardsVisible=false;var service=service((owner,row,sign)->draft.withKit(true),Runnable::run);
+        String run=service.start(shop,selection(),false);
+        // Reproduce the persisted terminal result left by the previous build's read-only path.
+        for(var row:selection())repository.updateProgress(1,row.chrtId(),Status.ERROR,row.feedId(),null,"CATALOG_REJECTED: Исключите параметр is_kit. is_kit не допускается",null);
+        try(var c=Database.getConnection();var s=c.createStatement()){
+            s.execute("UPDATE znack_registration_batches SET state='NEEDS_ACTION',retry_at=NULL");
+            s.execute("UPDATE znack_registration_batch_items SET state='NEEDS_ACTION'");
+        }
+        api.rejectOptional=true;api.cardsVisible=true;
+        assertTrue(service.resumePending(shop));assertEquals(3,service.latest(shop).submitted(),()->selection().toString());
+        assertEquals(3,api.allocations.get());assertEquals(6,api.submits.get());assertEquals(run,service.latest(shop).runId());assertFalse(service.resumePending(shop));
+    }
+
     private void retryNow(String run)throws Exception {
         try(var c=Database.getConnection();var p=c.prepareStatement("UPDATE znack_registration_batches SET retry_at=NULL WHERE id=?")){p.setString(1,run);p.executeUpdate();}
     }
 
     class FixtureApi extends ZnackApiClient {
+        Runnable beforeFeedRead=()->{};
         AtomicInteger allocations=new AtomicInteger(),submits=new AtomicInteger(),statusReads=new AtomicInteger(),cardReads=new AtomicInteger();boolean failFirstFeed,cardsVisible=true;
+        boolean rejectOptional;final Map<String,JsonObject> payloads=new HashMap<>();
         String failedFeed="",failureStatus="Rejected";int statusReadFailure;Runnable onSubmit;
         java.util.concurrent.CountDownLatch feedReadEntered,releaseFeedRead;
         final Map<String,String> feedGtins=new HashMap<>();final Set<String> hiddenGtins=new HashSet<>();
@@ -269,12 +318,19 @@ class ZnackRegistrationBatchServiceTest {
         @Override public JsonElement nationalCatalogAllAttributes(String base,String token,long id){return nationalCatalogAttributes(base,token,id);}
         @Override public JsonElement submitNationalCatalogFeed(String base,String token,JsonElement payload)throws IOException {
             try(var c=Database.getConnection();var s=c.createStatement();var r=s.executeQuery("SELECT count(*) FROM znack_registration_batch_items")){assertTrue(r.next());assertTrue(r.getInt(1)>0,"Selection must be durable before any POST");}catch(java.sql.SQLException e){throw new IOException(e);}
-            int count=submits.incrementAndGet();if(onSubmit!=null&&count==1)onSubmit.run();if(failFirstFeed&&count==1)throw new IOException("response lost");feedGtins.put("feed-"+count,payload.getAsJsonObject().get("gtin").getAsString());return json("{\"result\":{\"feed_id\":\"feed-"+count+"\"}}");
+            int count=submits.incrementAndGet();if(onSubmit!=null&&count==1)onSubmit.run();if(failFirstFeed&&count==1)throw new IOException("response lost");payloads.put("feed-"+count,payload.getAsJsonObject().deepCopy());feedGtins.put("feed-"+count,payload.getAsJsonObject().get("gtin").getAsString());return json("{\"result\":{\"feed_id\":\"feed-"+count+"\"}}");
         }
         @Override public JsonElement nationalCatalogFeedStatus(String base,String token,String feed)throws IOException {
             if(feedReadEntered!=null){feedReadEntered.countDown();try{if(!releaseFeedRead.await(5,java.util.concurrent.TimeUnit.SECONDS))throw new IOException("fixture monitor timed out");}catch(InterruptedException interrupted){Thread.currentThread().interrupt();throw new IOException(interrupted);}}
-            statusReads.incrementAndGet();
+            beforeFeedRead.run();statusReads.incrementAndGet();
             if(statusReadFailure>0)throw new ZnackApiException("read unavailable",statusReadFailure,"{}");
+            var payload=payloads.get(feed);
+            if(rejectOptional&&payload!=null&&(payload.has("is_kit")||payload.has("good_images"))){
+                var result=new JsonObject();result.addProperty("status","Rejected");var items=new JsonArray();var item=new JsonObject();item.addProperty("gtin",feedGtins.get(feed));var errors=new JsonArray();
+                if(payload.has("is_kit")){var error=new JsonObject();error.addProperty("text","Создание комплектов в товарной группе с ТНВЭД:6112110000 не допускается. Исключите параметр is_kit.");errors.add(error);}
+                if(payload.has("good_images")){var error=new JsonObject();error.addProperty("text","Изображение не доступно по URL https://basket-33.wbbasket.ru/image.jpg");errors.add(error);}
+                item.add("errors",errors);items.add(item);var details=new JsonObject();details.add("items",items);result.add("error_details",details);var identity=new JsonObject();identity.addProperty("gtin",feedGtins.get(feed));var identities=new JsonArray();identities.add(identity);result.add("item",identities);var response=new JsonObject();response.add("result",result);return response;
+            }
             String status=feed.equals(failedFeed)?failureStatus:"Processing";
             return json("{\"result\":{\"status\":\""+status+"\",\"item\":[{\"gtin\":\""+feedGtins.get(feed)+"\"}]}}");
         }

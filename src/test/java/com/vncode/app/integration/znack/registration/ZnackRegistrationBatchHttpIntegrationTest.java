@@ -50,6 +50,9 @@ class ZnackRegistrationBatchHttpIntegrationTest {
     private int responseWithoutFeedId;
     private volatile boolean cardsVisible = true;
     private volatile int cardReadFailure;
+    private String readRetryAfter="0";
+    private boolean rejectOptional;
+    private final Map<String,JsonObject> feedPayloads=new ConcurrentHashMap<>();
 
     @BeforeEach void setup() throws Exception {
         System.setProperty("vncode.appdata.dir", directory.toString());
@@ -106,6 +109,14 @@ class ZnackRegistrationBatchHttpIntegrationTest {
         }
         assertFalse(batch.resumePending(shop));
         assertEquals(3, posts.get(), "A completed durable batch must not be replayed");
+    }
+    @Test void aLongCatalogCooldownYieldsTheWorkerAndResumesTheSameSavedBatch()throws Exception{
+        cardReadFailure=429;readRetryAfter="30";var batch=batch();
+        String run=assertTimeoutPreemptively(java.time.Duration.ofSeconds(5),()->batch.start(shop,selection(),false));
+        assertEquals(1,posts.get());assertEquals(1,batch.latest(shop).acceptedFeeds());assertEquals(0,batch.latest(shop).submitted());
+        assertEquals(ZnackRegistrationBatchService.State.WAITING_REMOTE,batch.latest(shop).state());
+        cardReadFailure=0;retryNow(run);assertTrue(batch.resumePending(shop));
+        assertEquals(3,posts.get());assertEquals(3,batch.latest(shop).submitted());assertEquals(3,new java.util.HashSet<>(postedGtins).size());
     }
 
     @Test void http200WithoutFeedIdDoesNotCountAsCreatedOrReplayTheRequest() throws Exception {
@@ -184,6 +195,23 @@ class ZnackRegistrationBatchHttpIntegrationTest {
         assertEquals(1, posts.get());
     }
 
+    @Test void realHttpBatchCorrectsTheReportedKitAndPhotoRejectionsWithNoSecondClick()throws Exception {
+        rejectOptional=true;
+        for(int i=0;i<gtins.size();i++){
+            var row=repository.find(1,11+i);var draft=new Draft("6112110000",1,"Fixture","Brand",Map.of()).withKit(true);
+            repository.saveReadyToSubmitGenerated(1,row,gtins.get(i),draft.tnved(),1,draft.goodName(),ZnackNationalCatalogService.buildPayload(gtins.get(i),draft,"https://basket-33.wbbasket.ru/image.jpg").toString());
+        }
+        var batch=batch();String run=batch.start(shop,selection(),false);
+        assertNull(serverFailure.get(),()->"HTTP fixture assertion failed: "+serverFailure.get());
+        assertEquals(3,batch.latest(shop).submitted());assertEquals(0,batch.latest(shop).failed());assertEquals(6,posts.get());
+        assertEquals(List.of(gtins.get(0),gtins.get(0),gtins.get(1),gtins.get(1),gtins.get(2),gtins.get(2)),postedGtins);
+        for(var row:selection()){
+            var sent=feedPayloads.get(row.feedId());assertFalse(sent.has("is_kit"));assertFalse(sent.has("good_images"));assertEquals("6112110000",sent.get("tnved").getAsString());assertNotNull(row.goodId());
+        }
+        assertFalse(batch.resumePending(shop));assertEquals(6,posts.get());
+        assertEquals(3,new com.vncode.app.features.sync.SyncRunRepository().items(run,0,20).size());
+    }
+
     private void retryNow(String run) throws Exception {
         try (var connection = Database.getConnection(); var query = connection.prepareStatement(
                 "UPDATE znack_registration_batches SET retry_at=NULL WHERE id=?")) {
@@ -225,7 +253,7 @@ class ZnackRegistrationBatchHttpIntegrationTest {
                 response = readback(exchange, path);
                 if (path.endsWith("/nk/feed-product") && cardReadFailure != 0) {
                     code = cardReadFailure;
-                    exchange.getResponseHeaders().set("Retry-After", "0");
+                    exchange.getResponseHeaders().set("Retry-After", readRetryAfter);
                 }
                 writeResponse(exchange, code, response);
                 return;
@@ -243,13 +271,15 @@ class ZnackRegistrationBatchHttpIntegrationTest {
             }
             var payload = JsonParser.parseString(new String(exchange.getRequestBody().readAllBytes(),
                     StandardCharsets.UTF_8)).getAsJsonObject();
-            assertEquals(gtins.get(number - 1), payload.get("gtin").getAsString());
-            assertEquals(JsonParser.parseString(repository.payload(1, 10 + number)), payload,
+            int variant=gtins.indexOf(payload.get("gtin").getAsString());assertTrue(variant>=0);
+            if(!rejectOptional)assertEquals(gtins.get(number - 1), payload.get("gtin").getAsString());
+            feedPayloads.put("wire-feed-"+number,payload.deepCopy());
+            assertEquals(JsonParser.parseString(repository.payload(1, 11 + variant)), payload,
                     "Send the exact persisted GTIN payload through ZnackApiClient");
-            assertEquals(Status.FEED_SUBMITTING, repository.find(1, 10 + number).status(),
+            assertEquals(Status.FEED_SUBMITTING, repository.find(1, 11 + variant).status(),
                     "The uncertain-send checkpoint must precede the real POST");
             postedGtins.add(payload.get("gtin").getAsString());
-            if (number > 1 && number - 1 != responseWithoutFeedId) {
+            if (!rejectOptional && number > 1 && number - 1 != responseWithoutFeedId) {
                 assertEquals("wire-feed-" + (number - 1), repository.find(1, 9 + number).feedId(),
                         "Save the preceding accepted card before dispatching the next one");
             }
@@ -283,8 +313,15 @@ class ZnackRegistrationBatchHttpIntegrationTest {
         if (path.equals("/v3/feed-status")) {
             feedReads.incrementAndGet();
             String feed = query.get("feed_id");
-            int index = Integer.parseInt(feed.substring("wire-feed-".length())) - 1;
+            var payload=feedPayloads.get(feed);int index=gtins.indexOf(payload.get("gtin").getAsString());
             assertEquals(feed, repository.find(1, 11 + index).feedId(), "Save the accepted feed before GET readback");
+            if(rejectOptional&&(payload.has("is_kit")||payload.has("good_images"))){
+                var item=new JsonObject();item.addProperty("gtin",gtins.get(index));var errors=new com.google.gson.JsonArray();
+                if(payload.has("is_kit")){var error=new JsonObject();error.addProperty("text","Создание комплектов в товарной группе с ТНВЭД:6112110000 не допускается. Исключите параметр is_kit.");errors.add(error);}
+                if(payload.has("good_images")){var error=new JsonObject();error.addProperty("text","Изображение не доступно по URL https://basket-33.wbbasket.ru/image.jpg");errors.add(error);}
+                item.add("errors",errors);var items=new com.google.gson.JsonArray();items.add(item);var details=new JsonObject();details.add("items",items);
+                var result=new JsonObject();result.addProperty("status","Rejected");result.add("error_details",details);var identity=new JsonObject();identity.addProperty("gtin",gtins.get(index));var identities=new com.google.gson.JsonArray();identities.add(identity);result.add("item",identities);var root=new JsonObject();root.add("result",result);return root.toString();
+            }
             return "{\"result\":{\"status\":\"Processing\",\"item\":[{\"gtin\":\"" + gtins.get(index) + "\"}]}}";
         }
         assertEquals("/api/v3/true-api/nk/feed-product", path);

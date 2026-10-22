@@ -17,6 +17,15 @@ class CatalogTaskExecutorTest {
    assertTrue(AppTaskExecutor.executeCatalog(catalog,e->fail(e)));assertTrue(ran.await(5,TimeUnit.SECONDS));catalog.get(5,TimeUnit.SECONDS);
   }finally{release.countDown();for(var task:blockers)task.get(10,TimeUnit.SECONDS);}
  }
+ @Test void localViewRunsWhileBothGeneralWorkersAreBlocked()throws Exception{
+  var started=new CountDownLatch(2);var release=new CountDownLatch(1);var blockers=new java.util.ArrayList<Task<Void>>();
+  try{
+   for(int n=0;n<2;n++){var blocker=new Task<Void>(){protected Void call()throws Exception{started.countDown();release.await(10,TimeUnit.SECONDS);return null;}};blockers.add(blocker);assertTrue(AppTaskExecutor.execute(blocker));}
+   assertTrue(started.await(5,TimeUnit.SECONDS));var ran=new CountDownLatch(1);
+   var local=new Task<Void>(){protected Void call(){ran.countDown();return null;}};
+   AppTaskExecutor.executeLocal(1,local,error->fail(error));assertTrue(ran.await(3,TimeUnit.SECONDS));local.get(3,TimeUnit.SECONDS);
+  }finally{release.countDown();for(var blocker:blockers)blocker.get(10,TimeUnit.SECONDS);}
+ }
  @RepeatedTest(3) void deadlineInterruptsAStuckReadAndDeliversFxCancellationCleanup()throws Exception{
   var started=new CountDownLatch(1);var cancelled=new CountDownLatch(1);var exited=new CountDownLatch(1);var writes=new AtomicInteger();
   var task=new Task<Void>(){protected Void call()throws Exception{started.countDown();try{new CountDownLatch(1).await(10,TimeUnit.SECONDS);writes.incrementAndGet();return null;}finally{exited.countDown();}}};

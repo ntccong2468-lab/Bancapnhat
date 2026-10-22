@@ -1,0 +1,306 @@
+{
+  "recordedAt": "2026-10-22T20:01:08.680106+00:00",
+  "baseline": "v1.5.11",
+  "baselineCommit": "2abe716d77a0f2d4d5f08ed0ae6451bf29ea2495",
+  "scope": "Latest passing result per class; 27-class run followed by a focused four-class rerun after fixing two filter failures. Not the complete application suite.",
+  "classes": 27,
+  "tests": 504,
+  "failures": 0,
+  "errors": 0,
+  "skipped": 0,
+  "fullApplicationSuiteRun": false,
+  "nativeWindowsRun": false,
+  "productionCatalogMutationsVerified": false,
+  "productionMarketplaceMutationsVerified": false,
+  "liveReadObservation": {
+    "endpoint": "National Catalog /v3/etagslist",
+    "http": 429,
+    "retriedLiveRead": false
+  },
+  "results": [
+    {
+      "class": "com.vncode.app.ui.znackregistration.ZnackCardRegistrationControllerTest",
+      "tests": 32,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 12.626
+    },
+    {
+      "class": "com.vncode.app.ui.znackregistration.OzonRegistrationPaneTest",
+      "tests": 24,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 12.773
+    },
+    {
+      "class": "com.vncode.app.ui.znackregistration.ZnackRegistrationQueryRepositoryTest",
+      "tests": 13,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 3.18
+    },
+    {
+      "class": "com.vncode.app.features.sync.RegistrationCardIndexTest",
+      "tests": 19,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 3.07
+    },
+    {
+      "class": "com.vncode.app.integration.znack.registration.CatalogErrorRepairServiceTest",
+      "tests": 17,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 3.262
+    },
+    {
+      "class": "com.vncode.app.ui.znackregistration.CatalogErrorRepairDialogTest",
+      "tests": 6,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 5.568
+    },
+    {
+      "class": "com.vncode.app.ui.znackregistration.RegistrationBatchPreflightTest",
+      "tests": 7,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.616
+    },
+    {
+      "class": "com.vncode.app.ui.znackregistration.RegistrationDiagnosticsTest",
+      "tests": 8,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.052
+    },
+    {
+      "class": "com.vncode.app.integration.znack.registration.OzonCardRegistrationWorkflowTest",
+      "tests": 74,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 34.69
+    },
+    {
+      "class": "com.vncode.app.integration.znack.registration.ZnackCardRegistrationWorkflowTest",
+      "tests": 78,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 16.595
+    },
+    {
+      "class": "com.vncode.app.integration.znack.registration.ZnackRegistrationBatchServiceTest",
+      "tests": 23,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 17.512
+    },
+    {
+      "class": "com.vncode.app.integration.znack.registration.ZnackRegistrationBatchHttpIntegrationTest",
+      "tests": 6,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 4.584
+    },
+    {
+      "class": "com.vncode.app.integration.znack.registration.ZnackRegistrationMonitorFairnessTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.378
+    },
+    {
+      "class": "com.vncode.app.integration.znack.registration.NationalCatalogVersionSourceTest",
+      "tests": 7,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 3.95
+    },
+    {
+      "class": "com.vncode.app.integration.znack.registration.NationalCatalogListWindowTest",
+      "tests": 8,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 1.004
+    },
+    {
+      "class": "com.vncode.app.integration.znack.registration.NationalCatalogBatchReadTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.008
+    },
+    {
+      "class": "com.vncode.app.integration.znack.ZnackCatalogEndpointRoutingTest",
+      "tests": 6,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.023
+    },
+    {
+      "class": "com.vncode.app.features.sync.ZnackCatalogSyncServiceTest",
+      "tests": 11,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 1.285
+    },
+    {
+      "class": "com.vncode.app.features.kizmapping.WbCatalogMappingServiceTest",
+      "tests": 14,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.017
+    },
+    {
+      "class": "com.vncode.app.features.kizmapping.OzonCatalogMappingServiceTest",
+      "tests": 19,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.555
+    },
+    {
+      "class": "com.vncode.app.integration.wb.WbGtinAdapterTest",
+      "tests": 36,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 4.767
+    },
+    {
+      "class": "com.vncode.app.integration.ozon.OzonGtinAdapterTest",
+      "tests": 24,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 3.146
+    },
+    {
+      "class": "com.vncode.app.features.sync.GtinBulkPipelineTest",
+      "tests": 13,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 315.191
+    },
+    {
+      "class": "com.vncode.app.features.products.ProductRefreshServiceTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 2.181
+    },
+    {
+      "class": "com.vncode.app.integration.ozon.OzonSyncServiceTest",
+      "tests": 21,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 51.049
+    },
+    {
+      "class": "com.vncode.app.features.kiz.KizPendingIdentityTest",
+      "tests": 15,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 2.894
+    },
+    {
+      "class": "com.vncode.app.features.print.OrderExportWorkflowKizPlanningTest",
+      "tests": 15,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 1.032
+    }
+  ],
+  "bulkScenarios": [
+    {
+      "marketplace": "OZON",
+      "gtins": 10000,
+      "liveSellerMutations": false,
+      "simulatedApi": true,
+      "realApplicationPlannerAdaptersAndSqlite": true,
+      "writes": 100,
+      "reads": 272,
+      "maximumRequestItems": 100,
+      "maximumRequestBytes": 4114,
+      "verified": 10000,
+      "elapsedMs": 196534.440086,
+      "quotaWaitSimulatedSeparately": true
+    },
+    {
+      "marketplace": "WILDBERRIES",
+      "gtins": 10000,
+      "simulatedApi": true,
+      "liveSellerMutations": false,
+      "realApplicationPlannerAdaptersWorkerReportsAndSqlite": true,
+      "actualShopCountersKnown": false,
+      "beforeReadback": {
+        "TOTAL": 10000,
+        "WITH_GTIN": 10000,
+        "WITHOUT_GTIN": 0,
+        "SUBMITTED": 10000,
+        "UPDATED": 0,
+        "NOT_UPDATED": 10000,
+        "PENDING": 10000,
+        "FAILED": 0,
+        "UNVERIFIED": 0,
+        "BLOCKED": 0
+      },
+      "afterReadback": {
+        "TOTAL": 10000,
+        "WITH_GTIN": 10000,
+        "WITHOUT_GTIN": 0,
+        "SUBMITTED": 10000,
+        "UPDATED": 10000,
+        "NOT_UPDATED": 0,
+        "PENDING": 0,
+        "FAILED": 0,
+        "UNVERIFIED": 0,
+        "BLOCKED": 0
+      },
+      "writes": 4,
+      "reads": 227,
+      "maximumRequestItems": 3000,
+      "maximumRequestBytes": 1396466,
+      "elapsedMs": 47959.749158,
+      "quotaWaitSimulatedSeparately": true
+    },
+    {
+      "marketplace": "WILDBERRIES",
+      "gtins": 10000,
+      "liveSellerMutations": false,
+      "simulatedApi": true,
+      "realApplicationPlannerAdaptersAndSqlite": true,
+      "writes": 4,
+      "reads": 214,
+      "maximumRequestItems": 3000,
+      "maximumRequestBytes": 1396456,
+      "verified": 10000,
+      "elapsedMs": 36038.987793,
+      "quotaWaitSimulatedSeparately": true
+    }
+  ]
+}

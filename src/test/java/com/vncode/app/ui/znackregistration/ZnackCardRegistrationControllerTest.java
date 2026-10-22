@@ -191,7 +191,7 @@ class ZnackCardRegistrationControllerTest {
         var owner=new Shop(1,"Fixture","fixture");var raw=com.google.gson.JsonParser.parseString("{\"good_status\":\"draft\",\"good_detailed_status\":[\"errors\"]}").getAsJsonObject();
         var card=new com.vncode.app.features.gtinsync.GtinSyncModels.RegisteredGtin("00000000000017","UNMATCHED","ЧЕРНЫЙ","1",true,false,com.vncode.app.features.gtinsync.RegisteredGtinProof.source(owner),java.time.Instant.now(),com.vncode.app.integration.znack.registration.CatalogProductDataParser.parse(raw));
         new com.vncode.app.features.gtinsync.GtinSyncRepository().saveCatalog(1,owner.getMarketplace(),java.util.List.of(card));
-        fx(()->{((ComboBox<?>)loader.getNamespace().get("statusFilter")).getSelectionModel().selectLast();return null;});awaitTasks();
+        fx(()->{var filter=(ComboBox<?>)loader.getNamespace().get("statusFilter");filter.getSelectionModel().select(filter.getItems().stream().filter(value->value instanceof Enum<?> item&&item.name().equals("ERROR")).mapToInt(value->filter.getItems().indexOf(value)).findFirst().orElseThrow());return null;});awaitTasks();
         fx(()->{assertFalse(button("registerSelectedButton").isDisabled(),"Catalog-only errors still have a report action");((CheckBox)loader.getNamespace().get("allFilteredCheckBox")).fire();return null;});
         long deadline=System.nanoTime()+TimeUnit.SECONDS.toNanos(8);boolean found=false;
         while(!found&&System.nanoTime()<deadline){found=fx(()->{var dialog=Window.getWindows().stream().filter(Window::isShowing).map(w->w.getScene().getRoot()).filter(n->"catalogErrorReportDialog".equals(n.getId())).findFirst().orElse(null);if(dialog==null)return false;assertEquals(1,((TableView<?>)dialog.lookup("#catalogErrorReportTable")).getItems().size());var pane=(DialogPane)dialog;var cancel=pane.getButtonTypes().stream().filter(b->b.getButtonData()==ButtonBar.ButtonData.CANCEL_CLOSE).findFirst().orElseThrow();((Button)pane.lookupButton(cancel)).fire();return true;});if(!found)Thread.sleep(20);}
@@ -220,6 +220,15 @@ class ZnackCardRegistrationControllerTest {
             statement.execute("INSERT INTO wb_product_sizes(shop_id,chrt_id,nm_id,tech_size) VALUES(1,999,999,'XL')");
         }
         fx(()->{button("refreshButton").fire();return null;});awaitTasks();fx(()->{assertEquals(3,table().getItems().size());assertTrue(table().getItems().stream().noneMatch(row->row.chrtId()==999));return null;});
+    }
+    @Test void reopeningTheSameShopDoesNotClearTheCurrentTableOrShowAnEmptyLoadingScreen()throws Exception {
+        fx(()->{
+            var controller=(ZnackCardRegistrationController)loader.getController();var original=java.util.List.copyOf(table().getItems());assertFalse(original.isEmpty());
+            table().getSelectionModel().select(0);
+            controller.setShop(new Shop(1,"Fixture","fixture"));
+            assertEquals(original,java.util.List.copyOf(table().getItems()));assertFalse(table().getSelectionModel().getSelectedItems().isEmpty());
+            assertFalse(((Label)loader.getNamespace().get("loadingLabel")).isVisible());return null;
+        });awaitTasks();
     }
     @Test void publishedCatalogCardWithoutLocalRegistrationIsVisibleAndEffectiveFiltersAgree()throws Exception {
         var owner=new Shop(1,"Fixture","fixture");
@@ -391,6 +400,40 @@ class ZnackCardRegistrationControllerTest {
             assertFalse(((TableColumn<?,?>)loader.getNamespace().get("detailColumn")).isVisible());
             return null;
         });
+    }
+    @Test void selectAllAcrossPagesDoesNotMisrouteAnUnsentPreSubmitErrorToCatalogRepair()throws Exception{
+        try(var c=Database.getConnection();var q=c.createStatement()){
+            q.execute("UPDATE znack_card_registrations SET status='PRE_SUBMIT_ERROR',gtin='00000000000017' WHERE shop_id=1 AND chrt_id=2");
+            for(int id=4;id<=305;id++){
+                q.execute("INSERT INTO wb_product_cards(shop_id,nm_id,vendor_code,title,synced_at) VALUES(1,"+(100+id)+",'SKU-"+id+"','Fixture','fixture')");
+                q.execute("INSERT INTO wb_product_sizes(shop_id,chrt_id,nm_id,tech_size) VALUES(1,"+id+","+(100+id)+",'XL')");
+            }
+        }
+        com.vncode.app.testsupport.RegistrationSourceFixture.ready(new Shop(1,"Fixture","fixture"));
+        var controller=(ZnackCardRegistrationController)loader.getController();var dispatched=new CountDownLatch(1);var count=new java.util.concurrent.atomic.AtomicInteger();
+        fx(()->{
+            var preflight=controller.getClass().getDeclaredField("preflightReader");preflight.setAccessible(true);preflight.set(controller,(java.util.function.BiFunction<Shop,java.util.List<com.vncode.app.features.products.ProductKey>,RegistrationBatchPreflight.Review>)(owner,selection)->new RegistrationBatchPreflight.Review(java.util.List.of()));
+            var starter=controller.getClass().getDeclaredField("batchStarter");starter.setAccessible(true);starter.set(controller,(ZnackCardRegistrationController.BatchStarter)(owner,selection,sign)->{count.set(selection.size());dispatched.countDown();return "all-unsent-fixture";});
+            ((ComboBox<?>)loader.getNamespace().get("statusFilter")).getSelectionModel().select(1);return null;
+        });awaitTasks();
+        fx(()->{((CheckBox)loader.getNamespace().get("allFilteredCheckBox")).fire();return null;});awaitTasks();
+        fx(()->{assertEquals(300,table().getItems().size());assertEquals(I18nService.getInstance().tr("znack.registration.register_short"),button("registerSelectedButton").getText());button("registerSelectedButton").fire();return null;});
+        assertTrue(dispatched.await(5,TimeUnit.SECONDS),"Select all and one Register click must start submission, not error repair");assertEquals(304,count.get());awaitTasks();
+    }
+    @Test void automaticRefreshKeepsFilteredLoadedExtentAndSelection()throws Exception{
+        try(var c=Database.getConnection();var q=c.createStatement()){
+            for(int id=4;id<=405;id++){
+                q.execute("INSERT INTO wb_product_cards(shop_id,nm_id,vendor_code,title,synced_at) VALUES(1,"+(100+id)+",'SKU-"+id+"','Fixture','fixture')");
+                q.execute("INSERT INTO wb_product_sizes(shop_id,chrt_id,nm_id,tech_size) VALUES(1,"+id+","+(100+id)+",'XL')");
+            }
+        }
+        com.vncode.app.testsupport.RegistrationSourceFixture.ready(new Shop(1,"Fixture","fixture"));
+        fx(()->{((ComboBox<?>)loader.getNamespace().get("statusFilter")).getSelectionModel().select(1);return null;});awaitTasks();
+        fx(()->{button("loadMoreButton").fire();return null;});awaitTasks();
+        var timerDone=new CountDownLatch(1);var changes=new java.util.concurrent.atomic.AtomicInteger();
+        fx(()->{assertEquals(404,table().getItems().size());table().getSelectionModel().select(0);table().getItems().addListener((javafx.collections.ListChangeListener<Sku>)change->changes.incrementAndGet());((ZnackCardRegistrationController)loader.getController()).refreshLocal();var timer=new javafx.animation.PauseTransition(javafx.util.Duration.millis(650));timer.setOnFinished(e->timerDone.countDown());timer.play();return null;});
+        assertTrue(timerDone.await(3,TimeUnit.SECONDS));awaitTasks();
+        fx(()->{assertEquals(404,table().getItems().size());assertEquals(1,((ComboBox<?>)loader.getNamespace().get("statusFilter")).getSelectionModel().getSelectedIndex());assertEquals(1,table().getSelectionModel().getSelectedItems().size());assertEquals(0,changes.get(),"An unchanged background sync must not replace the current table contents");return null;});
     }
     @Test void oneRegisterClickDispatchesTheFrozenSelectionWhileFiltersRemainUsable()throws Exception{
         var controller=(ZnackCardRegistrationController)loader.getController();

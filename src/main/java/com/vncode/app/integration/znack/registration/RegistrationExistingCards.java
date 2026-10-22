@@ -34,7 +34,8 @@ public final class RegistrationExistingCards {
     }
     public static LookupContext currentOperation(){
         return new LookupContext((shop,session)->{
-            String source=RegisteredGtinProof.source(shop);var rows=NationalCatalogGtinSource.forRegistrationLookup(shop).read(shop.getId());
+            String source=RegisteredGtinProof.source(shop);List<RegisteredGtin> rows;
+            try(var cooldown=com.vncode.app.shared.RateLimitDeferral.enter()){rows=NationalCatalogGtinSource.forRegistrationLookup(shop).read(shop.getId());}
             if(rows.stream().anyMatch(row->!source.equals(row.source())))throw new ZnackRegistrationScope.ScopeChangedException();return rows;
         },(session,gtin,id)->session.catalog().observedCardStatus(session.token(),gtin,id),RegistrationExistingCards::currentScope);
     }
