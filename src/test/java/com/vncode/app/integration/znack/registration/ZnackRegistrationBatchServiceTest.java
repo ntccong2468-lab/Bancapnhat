@@ -234,13 +234,14 @@ class ZnackRegistrationBatchServiceTest {
         api.statusReadFailure=0;assertTrue(service.resumePaused(shop));assertEquals(3,service.latest(shop).submitted());
         assertEquals(3,api.submits.get());assertEquals(3,api.allocations.get());
     }
-    @Test void anImportWithoutACardHasBoundedGraceAndKeepsEveryReceipt()throws Exception{
+    @Test void aHealthySlowImportKeepsPollingWithoutAnotherRegisterClick()throws Exception{
         api.cardsVisible=false;var service=service((owner,row,sign)->draft,Runnable::run);
         String run=service.start(shop,selection(),false);
         try(var c=Database.getConnection();var p=c.prepareStatement("UPDATE znack_registration_batches SET waiting_since='2020-01-01T00:00:00Z',retry_at=NULL WHERE id=?")){p.setString(1,run);p.executeUpdate();}
-        assertTrue(service.resumePending(shop));assertEquals(ZnackRegistrationBatchService.State.PAUSED,service.latest(shop).state());
+        for(int n=0;n<8;n++){retryNow(run);assertTrue(service.resumePending(shop));}
+        assertEquals(ZnackRegistrationBatchService.State.WAITING_REMOTE,service.latest(shop).state());
         assertEquals(3,api.submits.get());assertEquals(3,api.allocations.get());assertTrue(selection().stream().allMatch(Sku::hasFeed));
-        api.cardsVisible=true;assertTrue(service.resumePaused(shop));assertEquals(3,service.latest(shop).submitted());assertEquals(3,api.submits.get());
+        api.cardsVisible=true;retryNow(run);assertTrue(service.resumePending(shop));assertEquals(3,service.latest(shop).submitted());assertEquals(3,api.submits.get());
     }
     @Test void changedPreparedValuesRequireNewReviewBeforeAnyAllocation(){
         var workers=new ArrayDeque<Runnable>();var service=service((owner,row,sign)->new Draft("6204",1,"Changed","Brand",Map.of(1L,"Fixture")),workers::add);

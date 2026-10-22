@@ -65,7 +65,17 @@ public final class OzonRegistrationBatchService {
     /** Called by the existing sync monitor at startup and after network recovery. */
     public boolean resumePending(Shop selected) {
         if(selected==null||selected.getMarketplace()!=Marketplace.OZON)return false;
-        var batch=batches.latest(selected);if(batch==null||Set.of("COMPLETED","FAILED","PAUSED","CANCELLED").contains(batch.state())){String key=namespace(selected);if(DEFERRED.remove(key)!=null)ACTIVE.remove(key);return false;}
+        var batch=batches.latest(selected);
+        if(batch!=null&&Set.of("COMPLETED","FAILED").contains(batch.state())){
+            var eligible=new ArrayList<OzonRegistrationBatchRepository.Item>();
+            for(var item:batches.failedItems(batch)){
+                var row=cards.find(item.key());if(row==null||row.status()!=Status.ERROR||row.feedId().isBlank()||Set.of("SENDING","RECONCILE_REQUIRED").contains(row.signatureState()))continue;
+                cards.guard(selected,item.key(),scope(selected));
+                if(CatalogPackingPolicy.correctedPayload(new ZnackNationalCatalogService.FeedProgress("Rejected",row.goodId(),List.of(row.error())),com.google.gson.JsonParser.parseString(row.payload()).getAsJsonObject())!=null)eligible.add(item);
+            }
+            if(batches.reopenRejected(selected,batch,eligible))batch=batches.latest(selected);
+        }
+        if(batch==null||Set.of("COMPLETED","FAILED","PAUSED","CANCELLED").contains(batch.state())){String key=namespace(selected);if(DEFERRED.remove(key)!=null)ACTIVE.remove(key);return false;}
         Shop shop=capture(selected);String namespace=namespace(shop);
         if(ACTIVE.add(namespace)){var directory=AppPaths.appDataDir().toAbsolutePath().normalize();long delay=batch.nextRetryAt()==null?0:Math.max(0,java.time.Duration.between(java.time.Instant.now(),batch.nextRetryAt()).toSeconds());if(delay>0)schedule(shop,namespace,directory,delay);else WORKERS.execute(()->run(shop,namespace,directory));}
         return true;
@@ -75,7 +85,7 @@ public final class OzonRegistrationBatchService {
     public static boolean hasPendingJobs(){return !ACTIVE.isEmpty();}
     private void run(Shop shop,String namespace,java.nio.file.Path directory) {
         boolean deferred=false;OzonRegistrationBatchRepository.Batch batch=null;
-        try(var dataScope=com.vncode.app.features.sync.SyncDataScope.enter(directory);var lane=com.vncode.app.shared.MarketplaceRequestBudget.lane(true)) {
+        try(var dataScope=com.vncode.app.features.sync.SyncDataScope.enter(directory);var lane=com.vncode.app.shared.MarketplaceRequestBudget.lane(true);var cooldown=com.vncode.app.shared.RateLimitDeferral.enter()) {
             com.vncode.app.features.sync.SyncDataScope.requireCurrent();
             batch=batches.latest(shop);if(batch==null||Set.of("COMPLETED","FAILED","PAUSED","CANCELLED").contains(batch.state()))return;
             if(!batch.owner().equals(ListingIdentity.fingerprint(shop))||!batch.scope().equals(new Gson().toJson(scope(shop)))){failPending(shop,batch.id(),"SOURCE_CONFIGURATION_CHANGED");return;}
@@ -91,7 +101,7 @@ public final class OzonRegistrationBatchService {
                         if(!checkedReceipts.add(waiting.position()))continue;
                         new RegistrationSources().require(shop);scope(shop).assertCurrent(shop);ListingIdentity.require(shop);
                         try{
-                            if(workflow.verifySubmissionForBatch(shop,waiting.key()))observeReceipt(shop,waiting);
+                            if(workflow.advanceSubmissionForBatch(shop,waiting.key()))observeReceipt(shop,waiting);
                             if(deferReadbackLimit(shop,namespace,directory,batch.id())){deferred=true;return;}
                         }catch(Exception unavailable){
                             if(unavailable instanceof ZnackRegistrationScope.ScopeChangedException changed)throw changed;
@@ -113,7 +123,7 @@ public final class OzonRegistrationBatchService {
                     var row=cards.find(item.key());
                     if(row!=null&&(!row.feedId().isBlank()||row.goodId()!=null)) {
                         checkedReceipts.add(item.position());cards.guard(shop,item.key(),scope(shop));
-                        if(workflow.verifySubmissionForBatch(shop,item.key()))observeReceipt(shop,item);
+                        if(workflow.advanceSubmissionForBatch(shop,item.key()))observeReceipt(shop,item);
                         else item(shop,item,"WAITING_REMOTE","REGISTRATION_BUSY");
                         if(deferReadbackLimit(shop,namespace,directory,batch.id())){deferred=true;return;}
                         continue;
@@ -184,7 +194,7 @@ public final class OzonRegistrationBatchService {
     }
     private void defer(Shop shop,String namespace,java.nio.file.Path directory,String run,String detail,long seconds){
         if(!detail.equals("REGISTRATION_BUSY"))LOOKUPS.remove(namespace);
-        var latest=batches.latest(shop);boolean counted=!detail.equals("REGISTRATION_BUSY");
+        var latest=batches.latest(shop);boolean counted=!Set.of("REGISTRATION_BUSY","CATALOG_REQUEST_ACCEPTED_CARD_PENDING").contains(detail);
         long delay=Math.max(seconds,counted?Math.min(300,5L<<Math.min(6,latest==null?0:latest.retryCount())):1);
         if(!batches.defer(run,detail,delay,counted,MAX_RETRIES)){ACTIVE.remove(namespace);LOOKUPS.remove(namespace);var stopped=batches.latest(shop);if(stopped!=null&&stopped.state().equals("PAUSED"))OzonRegistrationAttemptReports.control(shop,run,"PAUSED");return;}
         schedule(shop,namespace,directory,delay);

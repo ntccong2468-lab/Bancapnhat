@@ -325,7 +325,7 @@ public final class ZnackCardRegistrationWorkflow {
             var completion=new java.util.concurrent.CompletableFuture<Void>();COMPLETIONS.put(key,completion);
             try {
                 executor.execute(()->{
-                    try{execute(shop,action==RegistrationAction.REGISTER_NEW?freshCandidate(sku):sku,draft,action==RegistrationAction.REQUEST_NEW_GTIN || action==RegistrationAction.REGISTER_NEW,action==RegistrationAction.SIGN_APPROVED,action!=RegistrationAction.RESUME&&action!=RegistrationAction.SIGN_APPROVED,listener,submissionOnly,lookup);}
+                    try(var deferral=submissionOnly?com.vncode.app.shared.RateLimitDeferral.enter():null){execute(shop,action==RegistrationAction.REGISTER_NEW?freshCandidate(sku):sku,draft,action==RegistrationAction.REQUEST_NEW_GTIN || action==RegistrationAction.REGISTER_NEW,action==RegistrationAction.SIGN_APPROVED,action!=RegistrationAction.RESUME&&action!=RegistrationAction.SIGN_APPROVED,listener,submissionOnly,lookup);}
                     catch(LicenseDeniedException denied){if(submissionOnly)SUBMISSION_FAILURES.put(key,denied);pauseKnownUnsent(shop,sku,denied,listener);}
                     catch(Exception error){if(submissionOnly)SUBMISSION_FAILURES.put(key,error);fail(shop,sku,error,listener);}
                     finally{requestUnsentContinuation(shop,sku);finish(key,completion);}
@@ -530,12 +530,9 @@ public final class ZnackCardRegistrationWorkflow {
         if(progress.signed()){status=Status.PUBLISHED;registrations.finishSignature(shop.getId(),sku.chrtId(),true);}
         else if(progress.failed())status=Status.ERROR;
         else if(sku.status()==Status.SIGNING||signature!=null&&Set.of("SENDING","RECONCILE_REQUIRED").contains(signature.state()))status=Status.SIGNING;
-        else status=progress.failed()?Status.ERROR:progress.readyToSign()?Status.READY_TO_SIGN:Status.PROCESSING;
+        else status=!progress.cardVerified()?Status.FEED_SUBMITTED:progress.readyToSign()?Status.READY_TO_SIGN:Status.PROCESSING;
         String error=progress.failed()?CatalogFeedback.rejection(progress):CatalogFeedback.stage(progress);
-        if(status==Status.PROCESSING&&java.time.Instant.now().isAfter(registrations.submissionStarted(shop.getId(),sku).plus(java.time.Duration.ofMinutes(5)))
-                &&!session.catalog().cardExists(session.token(),sku.gtin(),progress.goodId())){
-            status=Status.ERROR;error="CATALOG_CARD_NOT_CREATED_AFTER_WAIT";
-        }
+        if(status==Status.FEED_SUBMITTED)error="CATALOG_REQUEST_ACCEPTED_CARD_PENDING";
         if(sku.status()==Status.PUBLISHED&&status!=Status.PUBLISHED){
             if(!registrations.reconcilePublication(shop,sku,status,error==null?"CATALOG_PUBLICATION_NOT_CONFIRMED":error))return false;
         }else registrations.updateProgress(shop.getId(),sku.chrtId(),status,sku.feedId(),progress.goodId(),error,null);

@@ -55,6 +55,15 @@ class NationalCatalogListWindowTest {
         var seen=new ArrayList<Integer>();var source=new NationalCatalogGtinSource(shop.getId(),page->{seen.add(page);return page==0?page(1,10_000,10_001):page(10_001,1,10_001);},NationalCatalogListWindowTest::card);
         assertEquals(10_001,source.read(shop.getId()).size());assertEquals(List.of(0,1),seen);
     }
+    @Test void offlineAndServerFailuresKeepTheLastCompletedListPage()throws Exception{
+        for(Exception failure:List.of(new java.net.UnknownHostException("fixture"),new java.net.ConnectException("fixture"),new com.vncode.app.integration.znack.ZnackApiClient.ZnackApiException("fixture",503,"{}"))){
+            String scope="National Catalog@"+failure.getClass().getSimpleName();
+            var first=new NationalCatalogGtinSource(shop.getId(),p->{if(p==1)throw failure;return page(1,1,2);},NationalCatalogListWindowTest::card,scope).catalogListWindow().resumable();
+            assertSame(failure,assertThrows(Exception.class,()->first.read(shop.getId())));
+            var pages=new ArrayList<Integer>();var resumed=new NationalCatalogGtinSource(shop.getId(),p->{pages.add(p);return page(2,1,2);},NationalCatalogListWindowTest::card,scope).catalogListWindow().resumable();
+            assertEquals(2,resumed.read(shop.getId()).size());assertEquals(List.of(1),pages);
+        }
+    }
     @Test void registrationLookupRequiresACompleteKnownTotalEvenWhenUsingTheSeparateLegacyReader()throws Exception{
         for(JsonElement response:List.of(new JsonArray(),JsonParser.parseString("{\"results\":[]}"))){
             var strict=new NationalCatalogGtinSource(shop.getId(),p->response,g->{fail("Unknown completeness cannot authorise registration");return null;}).requireCompleteTotal();assertThrows(IOException.class,()->strict.read(shop.getId()));

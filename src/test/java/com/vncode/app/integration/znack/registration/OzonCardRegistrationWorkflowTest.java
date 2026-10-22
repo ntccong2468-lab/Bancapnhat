@@ -142,6 +142,70 @@ class OzonCardRegistrationWorkflowTest {
         assertTrue(workflow.resume(shop,key,false,null));assertEquals(gtin,row().gtin());assertEquals(Status.READY_TO_SIGN,row().status());assertEquals(1,api.allocations.get());assertEquals(2,api.submissions.get());assertTrue(JsonParser.parseString(row().payload()).getAsJsonObject().get("is_kit").getAsBoolean());
         try(var c=Database.getConnection();var s=c.createStatement();var r=s.executeQuery("SELECT payload_json FROM ozon_card_registration_history")){assertTrue(r.next());assertFalse(JsonParser.parseString(r.getString(1)).getAsJsonObject().has("is_kit"));}
     }
+    @Test void savedBatchCorrectsAProvenKitRejectionWithoutAnotherCreateClick()throws Exception{
+        ready();String gtin=row().gtin(),feed=row().feedId();api.rejectedFeed=feed;
+        api.rejectionMessage="Карточка должна быть создана с типом Комплект";
+        assertTrue(workflow.advanceSubmissionForBatch(shop,key));
+        assertEquals(gtin,row().gtin());assertEquals(Status.READY_TO_SIGN,row().status());
+        assertEquals(1,api.allocations.get());assertEquals(2,api.submissions.get());
+        assertTrue(api.lastPayload.get("is_kit").getAsBoolean());
+        assertFalse(row().feedId().equals(feed));assertEquals(0,api.signatures.get());
+    }
+    @Test void optionalImageRepairPreservesFactsAndReceiptHistory()throws Exception{
+        ready();String gtin=row().gtin(),feed=row().feedId();
+        try(var c=Database.getConnection();var p=c.prepareStatement("UPDATE ozon_card_registrations SET payload_json=? WHERE shop_id=2")){
+            var payload=JsonParser.parseString(row().payload()).getAsJsonObject();var images=new JsonArray();images.add("https://fixture.invalid/image.jpg");payload.add("good_images",images);p.setString(1,payload.toString());p.executeUpdate();
+        }
+        api.rejectedFeed=feed;api.rejectionMessage="Изображение не доступно по URL https://fixture.invalid/image.jpg";
+        assertTrue(workflow.advanceSubmissionForBatch(shop,key));
+        assertEquals(2,api.submissions.get());assertEquals(1,api.allocations.get());assertEquals(gtin,row().gtin());
+        assertFalse(api.lastPayload.has("good_images"));assertEquals("6204",api.lastPayload.get("tnved").getAsString());
+        try(var c=Database.getConnection();var s=c.createStatement();var r=s.executeQuery("SELECT feed_id,payload_json FROM ozon_card_registration_history WHERE feed_id='"+feed+"'")){
+            assertTrue(r.next());assertTrue(JsonParser.parseString(r.getString(2)).getAsJsonObject().has("good_images"));
+        }
+    }
+    @Test void automaticRepairNeverRetriesAnUncertainFeedOrHidesRequiredFieldErrors()throws Exception{
+        ready();api.rejectedFeed=row().feedId();api.rejectionStatus="Processing";
+        api.rejectionMessage="Карточка должна быть создана с типом Комплект";
+        assertTrue(workflow.advanceSubmissionForBatch(shop,key));assertEquals(1,api.submissions.get());
+        api.rejectionStatus="Rejected";api.rejectionMessage="required attribute missing";
+        assertTrue(workflow.advanceSubmissionForBatch(shop,key));assertEquals(1,api.submissions.get());assertEquals(Status.ERROR,row().status());
+        assertEquals(1,api.allocations.get());
+    }
+    @Test void healthyRemoteWaitDoesNotSpendOzonsFailureRetryBudget(){
+        var queue=new OzonRegistrationBatchRepository();String run=queue.create(shop,List.of(key),false,session().scope());
+        for(int n=0;n<10;n++)assertTrue(queue.defer(run,"CATALOG_REQUEST_ACCEPTED_CARD_PENDING",15,false,5));
+        assertEquals("WAITING_REMOTE",queue.latest(shop).state());assertEquals(0,queue.latest(shop).retryCount());assertNotNull(queue.latest(shop).nextRetryAt());
+    }
+    @Test void firstCreateClickCorrectsAndSubmitsAnOzonBatchWithoutASecondAction()throws Exception{
+        api.rejectedFeed="feed-1";api.rejectionMessage="Карточка должна быть создана с типом Комплект";
+        var queue=singleCardBatch("PENDING");var batch=new OzonRegistrationBatchService(queue,repository,workflow);
+        assertTrue(batch.resumePending(shop));awaitSubmitted(queue);
+        assertEquals(1,queue.counts(queue.latest(shop).id()).submitted());assertEquals(0,queue.counts(queue.latest(shop).id()).failed());
+        assertEquals(1,api.allocations.get());assertEquals(2,api.submissions.get());assertEquals(Status.READY_TO_SIGN,row().status());assertTrue(api.lastPayload.get("is_kit").getAsBoolean());
+        assertFalse(batch.resumePending(shop));
+    }
+    @Test void anOldTerminalOzonBatchCanCorrectOnceOnlyAfterFreshRemoteRejection()throws Exception{
+        ready();String gtin=row().gtin();api.rejectedFeed=row().feedId();api.rejectionMessage="Карточка должна быть создана с типом Комплект";
+        workflow.refreshStatus(shop,key);var queue=singleCardBatch("PENDING");String run=queue.latest(shop).id();
+        queue.item(queue.next(queue.latest(shop)),"FAILED",row().error());queue.state(run,"COMPLETED","");
+        var batch=new OzonRegistrationBatchService(queue,repository,workflow);assertTrue(batch.resumePending(shop));awaitSubmitted(queue);
+        assertEquals(gtin,row().gtin());assertEquals(1,queue.counts(run).submitted());assertEquals(2,api.submissions.get());assertEquals(1,api.allocations.get());
+        api.rejectedFeed=row().feedId();api.rejectionMessage="is_kit не допускается. Исключите параметр";workflow.refreshStatus(shop,key);
+        queue.item(new OzonRegistrationBatchRepository.Item(run,0,key,"SUBMITTED",""),"FAILED",row().error());queue.state(run,"COMPLETED","");
+        assertFalse(batch.resumePending(shop));assertEquals(2,api.submissions.get());assertEquals(1,api.allocations.get());
+    }
+    @Test void aSlowOzonImportIsPendingRatherThanRejectedByTheLocalClock()throws Exception{
+        ready();String feed=row().feedId();api.cardMissing=true;
+        try(var c=Database.getConnection();var s=c.createStatement()){s.execute("UPDATE ozon_card_registrations SET created_at='2020-01-01T00:00:00Z'");}
+        assertFalse(workflow.refreshStatus(shop,key));assertEquals(Status.FEED_SUBMITTED,row().status());assertEquals("CATALOG_REQUEST_ACCEPTED_CARD_PENDING",row().error());
+        api.cardMissing=false;assertFalse(workflow.refreshStatus(shop,key));assertEquals(Status.READY_TO_SIGN,row().status());assertEquals(feed,row().feedId());assertEquals(1,api.submissions.get());assertEquals(1,api.allocations.get());
+    }
+    private void awaitSubmitted(OzonRegistrationBatchRepository queue)throws Exception{
+        long until=System.nanoTime()+java.util.concurrent.TimeUnit.SECONDS.toNanos(8);
+        while(System.nanoTime()<until&&(!queue.latest(shop).state().equals("COMPLETED")||OzonRegistrationBatchService.hasPendingJobs()))Thread.sleep(10);
+        assertEquals("COMPLETED",queue.latest(shop).state());assertFalse(OzonRegistrationBatchService.hasPendingJobs());
+    }
     @Test void automaticSigningConsentSurvivesReopeningAndDoesNotRepeatTheSignature()throws Exception {
         draft=new Draft("6204430000","6204",1,"Fixture","Brand",Map.of(1L,"Fixture",13933L,"6204430000",ZnackNationalCatalogService.DECLARATION_ATTRIBUTE_ID,"D:::2025-01-01"),Map.of());
         sourceTnved("6204430000");api.pendingModeration=true;assertTrue(workflow.register(shop,key,draft.withAutoSign(true),true,false,null));assertEquals(Status.PROCESSING,row().status());assertEquals(0,api.signatures.get());

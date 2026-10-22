@@ -176,6 +176,9 @@ public final class OzonCardRegistrationRepository {
         return retryRejected(shop,key,expected,scope,null);
     }
     public boolean retryRejected(Shop shop,ProductKey key,Row expected,ZnackRegistrationScope scope,Boolean isKit){
+        return retryRejected(shop,key,expected,scope,isKit,false);
+    }
+    public boolean retryRejected(Shop shop,ProductKey key,Row expected,ZnackRegistrationScope scope,Boolean isKit,boolean removeImages){
         requireShop(shop,key);
         return transaction(c->{
             requireCurrentOwner(c,shop,key,scope);var current=row(c,key);
@@ -185,6 +188,7 @@ public final class OzonCardRegistrationRepository {
             var json=com.google.gson.JsonParser.parseString(current.payload()).getAsJsonObject();
             if(current.goodId()!=null&&current.goodId()>0)json.addProperty("good_id",current.goodId());
             if(isKit!=null){if(isKit)json.addProperty("is_kit",true);else json.remove("is_kit");}
+            if(removeImages)json.remove("good_images");
             String payload=json.toString();
             try(var p=c.prepareStatement("UPDATE ozon_card_registrations SET feed_id='',status='READY_TO_SUBMIT',error='',signature_xml=NULL,signature_sha256='',signature_state='',payload_json=?,updated_at=? WHERE shop_id=? AND product_id=? AND offer_id=?")){
                 p.setString(1,payload);p.setString(2,Instant.now().toString());bindKey(p,3,key);return p.executeUpdate()==1;

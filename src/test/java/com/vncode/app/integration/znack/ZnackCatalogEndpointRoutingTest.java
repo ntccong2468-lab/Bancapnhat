@@ -35,4 +35,12 @@ class ZnackCatalogEndpointRoutingTest {
         api.products(ZnackModels.PRODUCTION_TRUE_API,"unused");assertEquals("0",seen.getLast().url().queryParameter("offset"));assertEquals("1000",seen.getLast().url().queryParameter("limit"));
         new ZnackApiClient(transport).products("http://127.0.0.1:12345","synthetic-bearer",0,10000);assertEquals("10000",seen.getLast().url().queryParameter("limit"));
     }
+    @Test void versionIndexAndGoodIdRequestsUseTheirOwnOfficialRoutesAndBounds()throws Exception{
+        var seen=new ArrayList<Request>();var transport=new OkHttpClient.Builder().addInterceptor(chain->{seen.add(chain.request());return new Response.Builder().request(chain.request()).protocol(Protocol.HTTP_1_1).code(200).message("Fixture").body(ResponseBody.create("{\"result\":[]}",MediaType.get("application/json"))).build();}).build();
+        var api=ZnackApiClient.forCatalogKey(transport,"synthetic-routing-key-42",()->{});
+        api.catalogVersions(ZnackModels.PRODUCTION_TRUE_API,"unused","1234567890",10000);
+        assertEquals("/v3/etagslist",seen.getLast().url().encodedPath());assertEquals("10000",seen.getLast().url().queryParameter("offset"));assertEquals("1234567890",seen.getLast().url().queryParameter("owner_inn"));assertNull(seen.getLast().header("Authorization"));
+        api.productCardsByIds(ZnackModels.PRODUCTION_TRUE_API,"unused",List.of("1","2"));assertEquals("/v3/feed-product",seen.getLast().url().encodedPath());assertEquals("1;2",seen.getLast().url().queryParameter("good_ids"));assertNull(seen.getLast().url().queryParameter("gtins"));
+        int count=seen.size();assertThrows(IllegalArgumentException.class,()->api.productCardsByIds(ZnackModels.PRODUCTION_TRUE_API,"unused",java.util.stream.IntStream.rangeClosed(1,26).mapToObj(Integer::toString).toList()));assertThrows(IllegalArgumentException.class,()->api.productCardsByIds(ZnackModels.PRODUCTION_TRUE_API,"unused",List.of("1","1")));assertThrows(IllegalArgumentException.class,()->api.catalogVersions(ZnackModels.PRODUCTION_TRUE_API,"unused","invalid",0));assertEquals(count,seen.size());
+    }
 }

@@ -248,11 +248,10 @@ public final class ZnackRegistrationBatchService {
     private void waitRemote(Shop shop,String run,String detail,Duration delay,boolean failure){
         if(!active(store.get(shop,run).state()))return;
         boolean exhausted=failure&&store.retry(shop,run)>=5;
-        // Busy actors are not remote import failures and do not consume the retry/grace budget.
-        boolean pending=store.items(shop,run).stream().anyMatch(i->"WAITING_REMOTE".equals(i.state())&&!"REGISTRATION_BUSY".equals(i.detail()));
-        Instant since=pending?store.waitingSince(shop,run):null;
-        if(exhausted||since!=null&&Instant.now().isAfter(since.plus(Duration.ofMinutes(5)))){
-            store.control(shop,run,"PAUSED",exhausted?"ZNACK_BATCH_RETRY_LIMIT_REACHED":"CATALOG_CARD_NOT_CREATED_AFTER_WAIT");PENDING.remove(key(shop));return;
+        // A healthy acknowledged import is read-only pending work, not a failed create.
+        // Slow Catalog processing must never require a second Register click.
+        if(exhausted){
+            store.control(shop,run,"PAUSED","ZNACK_BATCH_RETRY_LIMIT_REACHED");PENDING.remove(key(shop));return;
         }
         store.state(shop,run,"WAITING_REMOTE",detail,Instant.now().plus(delay));
     }

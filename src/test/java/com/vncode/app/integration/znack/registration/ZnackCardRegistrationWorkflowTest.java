@@ -191,10 +191,10 @@ class ZnackCardRegistrationWorkflowTest {
         assertTrue(workflow.start(shop,failed,draft,null));assertEquals(Status.PUBLISHED,current().status());assertEquals(failed.gtin(),current().gtin());
         assertEquals(1,api.allocations.get());assertEquals(2,api.submissions.get());
     }
-    @Test void fiveMinuteWaitWithoutACardBecomesActionableAndStillNeverResends()throws Exception {
+    @Test void aSlowCatalogImportStaysPendingAndNeverBecomesAnInventedRejection()throws Exception {
         api.pendingModeration=true;assertTrue(workflow.start(shop,current(),draft,null));
         try(var c=Database.getConnection();var statement=c.createStatement()){statement.execute("UPDATE znack_card_registrations SET created_at='2020-01-01T00:00:00Z'");}
-        api.cardMissing=true;assertFalse(workflow.refreshStatus(shop,current()));assertEquals(Status.ERROR,current().status());assertEquals("CATALOG_CARD_NOT_CREATED_AFTER_WAIT",current().errorMessage());
+        api.cardMissing=true;assertFalse(workflow.refreshStatus(shop,current()));assertEquals(Status.FEED_SUBMITTED,current().status());assertEquals("CATALOG_REQUEST_ACCEPTED_CARD_PENDING",current().errorMessage());
         assertEquals(1,repository.pendingStatus(1,3).size());assertEquals(1,api.allocations.get());assertEquals(1,api.submissions.get());
         api.cardMissing=false;api.pendingModeration=false;assertTrue(workflow.refreshStatus(shop,current()));assertEquals(Status.PUBLISHED,current().status());
         assertEquals(1,api.allocations.get());assertEquals(1,api.submissions.get());

@@ -179,7 +179,7 @@ public class KizMappingController {
             @Override protected Synced call() throws Exception {
                 try {
                     java.util.function.Consumer<com.vncode.app.integration.znack.registration.NationalCatalogGtinSource.Progress> progress=p->javafx.application.Platform.runLater(()->{
-                        if(generation==shopGeneration){syncStatusLabel.setText(tr("mapping.progress."+p.phase())+" · "+p.completed()+" / "+p.total());syncStatusLabel.setVisible(true);}
+                        if(generation==shopGeneration){String key="mapping.progress."+p.phase(),label=tr(key);if(label.equals(key))label=tr("znack.catalog.phase."+p.phase());syncStatusLabel.setText(label+" · "+p.completed()+" / "+p.total());syncStatusLabel.setVisible(true);}
                     });
                     MappingReport mapped;
                     if(owner.getMarketplace()==Marketplace.WILDBERRIES){

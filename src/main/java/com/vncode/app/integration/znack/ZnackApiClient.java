@@ -145,6 +145,19 @@ public class ZnackApiClient {
         if (!catalogKey.isEmpty()) return get(nationalCatalogBase(base), "/v3/feed-product?gtins=" + url(gtins), null);
         return get(trueApiBase(base, 3), "/nk/feed-product?gtins=" + url(gtins), token);
     }
+    /** National Catalog API: etagslist is offset-based and is not product-list's 10k window. */
+    public JsonElement catalogVersions(String base,String token,String ownerInn,int offset)throws IOException{
+        if(offset<0||offset>100_000||ownerInn==null||!ownerInn.matches("[0-9]{10}|[0-9]{12}"))throw new IllegalArgumentException("CATALOG_INDEX_RANGE_INVALID");
+        String path="/etagslist?format=json&owner_inn="+url(ownerInn)+"&offset="+offset;
+        return hasCatalogKey()?get(nationalCatalogBase(base),"/v3"+path,null):get(trueApiBase(base,3),"/nk"+path,token);
+    }
+    /** feed-product allows at most 25 combined IDs/GTINs; this request uses IDs only. */
+    public JsonElement productCardsByIds(String base,String token,java.util.List<String> ids)throws IOException{
+        var unique=new java.util.LinkedHashSet<>(ids);
+        if(unique.isEmpty()||unique.size()>25||unique.size()!=ids.size()||unique.stream().anyMatch(id->id==null||!id.matches("[1-9][0-9]{0,63}")))throw new IllegalArgumentException("CATALOG_CARD_IDS_INVALID");
+        String path="/feed-product?good_ids="+url(String.join(";",unique));
+        return hasCatalogKey()?get(nationalCatalogBase(base),"/v3"+path,null):get(trueApiBase(base,3),"/nk"+path,token);
+    }
     public JsonElement permitDocuments(String base,String token,String gtin,String inn)throws IOException{
         JsonObject body=new JsonObject();body.addProperty("gtin",gtin);
         if(inn!=null&&!inn.isBlank())body.addProperty("inn",inn.trim());

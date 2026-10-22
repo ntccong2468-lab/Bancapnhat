@@ -35,7 +35,7 @@ public final class NationalCatalogGtinSource implements RegisteredGtinSource {
         progress.accept(new Progress(phase,completed,total));
     }
     private java.util.function.Consumer<CardIssue> issues;
-    private NationalCatalogGtinSource tolerate(java.util.function.Consumer<CardIssue> consumer){issues=consumer;return this;}
+    NationalCatalogGtinSource tolerate(java.util.function.Consumer<CardIssue> consumer){issues=consumer;return this;}
     private final int shopId;
     private final PageReader pages;
     private final CardReader cards;
@@ -96,7 +96,15 @@ public final class NationalCatalogGtinSource implements RegisteredGtinSource {
             if(api.hasCatalogKey())result.catalogListWindow();
             if(!resumeScan&&selectedGtins==null)result.requireCompleteTotal();
             if(selectedGtins==null&&resumeScan)result.resumable();
-            var rows=result.read(id);
+            List<RegisteredGtin> rows;
+            try{rows=result.read(id);}
+            catch(IOException outsideWindow){
+                if(!api.hasCatalogKey()||selectedGtins!=null||!"CATALOG_LIST_RANGE_UNSUPPORTED".equals(outsideWindow.getMessage()))throw outsideWindow;
+                rows=new NationalCatalogVersionSource(id,owner.source(),
+                        offset->{requireOwner(shop,owner.source());return api.catalogVersions(settings.resolvedTrueApiBaseUrl(),token,owner.inn(),offset);},
+                        ids->{requireOwner(shop,owner.source());return api.productCardsByIds(settings.resolvedTrueApiBaseUrl(),token,ids);},
+                        result.cards,result.additional,result.documents,issues,progress,()->requireOwner(shop,owner.source()),resumeScan).read(id);
+            }
             requireOwner(shop,owner.source());
             return rows;
         };
@@ -171,12 +179,19 @@ public final class NationalCatalogGtinSource implements RegisteredGtinSource {
         return List.copyOf(result);
         }catch(Exception failure){
             if(cursor!=null){
-                if(CatalogFeedback.rateLimited(failure)||failure instanceof java.net.SocketTimeoutException)
+                if(resumableReadFailure(failure))
                     cursor.save(new CatalogScanCheckpoint.State(nextPage,total,complete,List.copyOf(gtins),checked,result,observedIssues,pageSize));
                 else cursor.clear();
             }
             throw failure;
         }
+    }
+    private static boolean resumableReadFailure(Exception failure){
+        if(CatalogFeedback.rateLimited(failure)||failure instanceof java.net.SocketTimeoutException
+                ||failure instanceof java.net.UnknownHostException||failure instanceof java.net.ConnectException
+                ||failure instanceof java.net.SocketException||failure instanceof java.io.EOFException)return true;
+        for(Throwable error=failure;error!=null;error=error.getCause())if(error instanceof ZnackApiClient.ZnackApiException api)return api.statusCode()==408||api.statusCode()==425||api.statusCode()>=500;
+        return false;
     }
     private RegisteredGtin readCard(String gtin)throws Exception {
             var response=cards.read(gtin);
