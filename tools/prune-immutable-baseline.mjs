@@ -30,19 +30,19 @@ const remote=api(`contents/${inventoryPath}?ref=${checkpoint}`);
 const blob=createHash('sha1').update(Buffer.from(`blob ${archiveBytes.length}\0`)).update(archiveBytes).digest('hex');
 assert.equal(remote.sha,blob,'Archive is not stored at the public checkpoint');assert.equal(remote.size,archiveBytes.length);
 const archived=new Map(archive.releases.map(r=>[r.id,r]));assert.equal(archived.size,archive.releases.length);assert.ok(archived.has(release.id));
-const query='query { repository(owner:"ntccong2468-lab", name:"Bancapnhat") { releases(first:100) { nodes { tagName } pageInfo { hasNextPage } } latestRelease { tagName } } }';
+const query='query { repository(owner:"ntccong2468-lab", name:"Bancapnhat") { latestRelease { tagName } } }';
 const snapshot=()=>JSON.parse(gh('api','graphql','-f',`query=${query}`)).data.repository;
-const current=snapshot();assert.equal(current.releases.pageInfo.hasNextPage,false);assert.equal(current.latestRelease.tagName,release.tag_name);
-const archivedTags=new Set(archive.releases.map(r=>r.tag_name));
-assert.ok(current.releases.nodes.some(r=>r.tagName===release.tag_name));for(const row of current.releases.nodes)assert.ok(archivedTags.has(row.tagName),`Unarchived concurrent release: ${row.tagName}`);
-const dry=options.includes('--dry-run'),removed=[],alreadyAbsent=[];
-const deleted=await pruneOlderReleases({release,manifest,sourceCommit:source,releases:archive.releases,readLatest:async()=>{if(dry)return release;assert.equal(snapshot().latestRelease.tagName,release.tag_name,'Latest changed');assert.equal(api(`git/ref/tags/${release.tag_name}`).object.sha,source);return api('releases/latest');},deleteRelease:async id=>{
+const current=api('releases?per_page=100');assert.ok(current.length<100,'Complete enumeration required before cleanup');assert.ok(current.some(r=>r.id===release.id));assert.equal(snapshot().latestRelease.tagName,release.tag_name);
+for(const row of current){assert.ok(archived.has(row.id),`Unarchived concurrent release: ${row.tag_name}`);assert.equal(row.tag_name,archived.get(row.id).tag_name);}
+const present=new Set(current.map(r=>r.id)),targets=archive.releases.filter(r=>present.has(r.id));
+const dry=options.includes('--dry-run'),removed=[],alreadyAbsent=archive.releases.filter(r=>r.id!==release.id&&!present.has(r.id)).map(r=>({id:r.id,tag:r.tag_name}));
+const deleted=await pruneOlderReleases({release,manifest,sourceCommit:source,releases:targets,readLatest:async()=>{if(dry)return release;assert.equal(snapshot().latestRelease.tagName,release.tag_name,'Latest changed');assert.equal(api(`git/ref/tags/${release.tag_name}`).object.sha,source);return api('releases/latest');},deleteRelease:async id=>{
  if(dry){console.log(`Would remove older release ${id}`);return;}
  let row;try{row=api(`releases/${id}`);}catch(error){if(String(error.stderr).includes('HTTP 404')){alreadyAbsent.push({id,tag:archived.get(id).tag_name});console.log(`Already absent older release ${id}`);return;}throw error;}
  assert.equal(row.id,id);assert.equal(row.tag_name,archived.get(id).tag_name,'Release identity changed');
  gh('api','--method','DELETE',`repos/${repo}/releases/${id}`);removed.push({id,tag:row.tag_name});console.log(`Removed older release ${id}`);
 }});
 const proof={version:manifest.version,sourceCommit:source,retainedRelease:release.id,archiveCommit:checkpoint,archivePath:inventoryPath,archiveSha256:hash(archiveBytes),gitHistoryPreserved:true,immutableReleaseAssetsUnchanged:true,deletedThisRun:removed,alreadyAbsent,cleanupToolCommit:execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim(),dryRun:dry};
-if(!dry){const remaining=snapshot();assert.equal(remaining.releases.pageInfo.hasNextPage,false);assert.deepEqual(remaining.releases.nodes.map(r=>r.tagName),[release.tag_name]);assert.equal(remaining.latestRelease.tagName,release.tag_name);proof.deleted=archive.releases.filter(r=>r.id!==release.id).map(r=>({id:r.id,tag:r.tag_name}));proof.completedAt=new Date().toISOString();}
+if(!dry){const remaining=api('releases?per_page=100');assert.deepEqual(remaining.map(r=>r.id),[release.id]);assert.equal(snapshot().latestRelease.tagName,release.tag_name);const retained=api(`releases/tags/${release.tag_name}`);assert.equal(retained.id,release.id);validateCompleteRelease(retained,manifest,source);proof.deleted=archive.releases.filter(r=>r.id!==release.id).map(r=>({id:r.id,tag:r.tag_name}));proof.completedAt=new Date().toISOString();}
 await writeFile(path.join(directory,dry?'baseline-cleanup-plan.json':'baseline-cleanup.json'),JSON.stringify(proof,null,2)+'\n');
 console.log(JSON.stringify({version:manifest.version,dryRun:dry,candidates:deleted.length,archiveCommit:checkpoint,remainingRelease:release.id}));
