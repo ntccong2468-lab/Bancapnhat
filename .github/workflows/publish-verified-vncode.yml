@@ -1,0 +1,148 @@
+name: Publish verified VNCode baseline
+on:
+  workflow_dispatch:
+    inputs:
+      source_commit:
+        description: Exact application commit verified by the complete build
+        required: true
+        type: string
+      build_run_id:
+        description: Successful complete-baseline Actions run
+        required: true
+        type: string
+      operation:
+        description: Publish verified assets or clean older releases after updater verification
+        type: choice
+        options: [publish, cleanup]
+        default: publish
+      updater_proof:
+        description: Actual desktop updater verification JSON, required for cleanup
+        type: string
+        default: ''
+permissions:
+  contents: write
+  actions: read
+concurrency:
+  group: vncode-verified-publication
+  cancel-in-progress: false
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      GH_TOKEN: ${{ github.token }}
+      SOURCE_COMMIT: ${{ inputs.source_commit }}
+      BUILD_RUN_ID: ${{ inputs.build_run_id }}
+      OPERATION: ${{ inputs.operation }}
+      UPDATER_PROOF: ${{ inputs.updater_proof }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ inputs.source_commit }}
+          fetch-depth: 0
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: '22'
+      - name: Validate selected source and operation
+        run: |
+          node --input-type=module <<'JS'
+          import assert from 'node:assert/strict';
+          import {execFileSync} from 'node:child_process';
+          assert.equal(process.env.GITHUB_REPOSITORY,'ntccong2468-lab/Bancapnhat');
+          assert.match(process.env.SOURCE_COMMIT,/^[a-f0-9]{40}$/);
+          assert.match(process.env.BUILD_RUN_ID,/^[0-9]+$/);
+          assert.ok(['publish','cleanup'].includes(process.env.OPERATION));
+          assert.equal(execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim(),process.env.SOURCE_COMMIT);
+          JS
+      - name: Verify complete build provenance and publish exact assets
+        if: inputs.operation == 'publish'
+        run: |
+          node --input-type=module <<'JS'
+          import assert from 'node:assert/strict';
+          import {execFileSync} from 'node:child_process';
+          import {readFileSync,writeFileSync,readdirSync,lstatSync} from 'node:fs';
+          import {createHash} from 'node:crypto';
+          import {requiredAssets,validateCompleteRelease} from './tools/baseline-release.mjs';
+          import {resolveReleaseVersion} from './tools/release-version.mjs';
+          const repo=process.env.GITHUB_REPOSITORY,sha=process.env.SOURCE_COMMIT,run=process.env.BUILD_RUN_ID;
+          const gh=(...args)=>execFileSync('gh',args,{encoding:'utf8',maxBuffer:32*1024*1024}).trim();
+          const api=path=>JSON.parse(gh('api',`repos/${repo}/${path}`));
+          const digest=file=>createHash('sha256').update(readFileSync(file)).digest('hex');
+          const build=api(`actions/runs/${run}`);
+          assert.equal(build.status,'completed');assert.equal(build.conclusion,'success');assert.equal(build.head_sha,sha);
+          assert.equal(build.path.split('@')[0],'.github/workflows/publish-vncode-baseline.yml');
+          const {version}=await resolveReleaseVersion(),tag=`v${version}`;
+          gh('run','download',run,'--repo',repo,'--name',`VN-code-${version}-complete-baseline`,'--dir','baseline');
+          const manifest=JSON.parse(readFileSync('baseline/asset-manifest.json','utf8'));
+          assert.equal(manifest.version,version);assert.equal(manifest.sourceCommit,sha);
+          for(const name of requiredAssets(version)){
+            const file=`baseline/${name}`,entry=manifest.files[name];assert.ok(entry,name);
+            assert.equal(lstatSync(file).size,entry.bytes,name);assert.equal(digest(file),entry.sha256,name);
+          }
+          const sums=readFileSync('baseline/SHA256SUMS','utf8').trim().split(/\r?\n/);
+          const seen=new Set();for(const line of sums){const m=/^([a-f0-9]{64})  ([A-Za-z0-9._-]+)$/.exec(line);assert.ok(m);assert.ok(!seen.has(m[2]));seen.add(m[2]);assert.equal(digest(`baseline/${m[2]}`),m[1]);}
+          for(const name of ['asset-manifest.json',...requiredAssets(version)])assert.ok(seen.has(name),name);
+          const info=JSON.parse(readFileSync('baseline/build-info.json','utf8'));
+          assert.equal(info.sourceCommit,sha);assert.equal(info.version,version);assert.equal(String(info.runId),run);
+          for(const flag of ['fullJavaSuiteRun','nativeSmokeRun','baselineUpgradeRun'])assert.equal(info.verification[flag],true);
+          assert.ok(info.verification.java.tests>=2800);assert.equal(info.verification.java.failures,0);assert.equal(info.verification.java.errors,0);
+          const previous=JSON.parse(readFileSync('baseline/previous-baseline.json','utf8'));
+          const upgrade=JSON.parse(readFileSync('baseline/upgrade-baseline-smoke.json','utf8'));
+          const native=JSON.parse(readFileSync('baseline/native-smoke.json','utf8'));
+          const exe=`VN-code-${version}-Windows-x64.exe`,msi=`VN-code-${version}-Windows-x64.msi`;
+          assert.equal(native.nativeLauncher,'passed');assert.equal(native.version,version);assert.equal(native.historyPreserved,true);
+          assert.equal(upgrade.result,'passed');assert.equal(upgrade.version,version);assert.equal(upgrade.baselineTag,previous.tag);
+          assert.equal(upgrade.passiveExeHandoffVerified,true);assert.equal(upgrade.dataPreserved,true);assert.equal(upgrade.singleRegistration,true);
+          assert.equal(upgrade.passiveExeInstallerSha256,manifest.files[exe].sha256);
+          assert.equal(upgrade.passiveExeEmbeddedMsiSha256,manifest.files[msi].sha256);
+          assert.equal(upgrade.baselineInstallerSha256,previous.sha256);assert.equal(upgrade.baselineInstallerBytes,previous.bytes);
+          execFileSync('git',['bundle','verify',`baseline/VN-code-${version}-history.bundle`],{stdio:'inherit'});
+          assert.equal(api(`git/ref/tags/${tag}`).object.sha,sha);
+          let release=api(`releases/tags/${tag}`);
+          assert.equal(release.tag_name,tag);assert.equal(release.prerelease,false);
+          const latest=api('releases/latest');
+          if(!release.draft){assert.equal(latest.id,release.id);validateCompleteRelease(release,manifest,sha);process.exit(0);}
+          assert.equal(latest.tag_name,previous.tag,'Latest changed after the verified upgrade');
+          const prior=latest.assets.find(a=>a.browser_download_url===previous.url);assert.ok(prior);assert.equal(prior.digest,`sha256:${previous.sha256}`);assert.equal(prior.size,previous.bytes);
+          writeFileSync('baseline/publication-checks.json',JSON.stringify({version,sourceCommit:sha,buildRunId:run,completeBuildProvenanceVerified:true,allManifestBytesVerified:true,passiveUpgradeMatchesDeliveredExeAndMsi:true,java:info.verification.java},null,2)+'\n');
+          writeFileSync('baseline/publication-workflow.yml',execFileSync('git',['show',`${process.env.GITHUB_SHA}:.github/workflows/publish-verified-vncode.yml`]));
+          const files=readdirSync('baseline');
+          for(const name of files){
+            const file=`baseline/${name}`;assert.ok(lstatSync(file).isFile()&&!lstatSync(file).isSymbolicLink());
+            const existing=release.assets.find(a=>a.name===name);
+            if(existing){assert.equal(existing.state,'uploaded');assert.equal(existing.size,lstatSync(file).size);assert.equal(existing.digest,`sha256:${digest(file)}`);}
+            else gh('release','upload',tag,file,'--repo',repo);
+          }
+          release=api(`releases/${release.id}`);
+          for(const name of files){const asset=release.assets.find(a=>a.name===name);assert.ok(asset,name);assert.equal(asset.state,'uploaded');assert.equal(asset.size,lstatSync(`baseline/${name}`).size);assert.equal(asset.digest,`sha256:${digest(`baseline/${name}`)}`);}
+          assert.equal(api('releases/latest').id,latest.id,'Latest changed during upload');assert.equal(api(`git/ref/tags/${tag}`).object.sha,sha);
+          gh('release','edit',tag,'--repo',repo,'--draft=false','--latest');
+          assert.equal(api('releases/latest').id,release.id);
+          console.log(`Published ${tag} from verified complete build ${run}`);
+          JS
+      - name: Verify all public release bytes
+        run: node tools/baseline-release.mjs verify-public baseline-public "$SOURCE_COMMIT"
+      - name: Preserve publication verification
+        if: inputs.operation == 'publish'
+        run: gh release upload "v$(node tools/release-version.mjs)" baseline-public/public-verification.json --repo "$GITHUB_REPOSITORY"
+      - name: Verify desktop updater proof and remove older release records
+        if: inputs.operation == 'cleanup'
+        run: |
+          node --input-type=module <<'JS'
+          import assert from 'node:assert/strict';
+          import {readFileSync,writeFileSync} from 'node:fs';
+          import {execFileSync} from 'node:child_process';
+          import {resolveReleaseVersion} from './tools/release-version.mjs';
+          const {version}=await resolveReleaseVersion(),repo=process.env.GITHUB_REPOSITORY;
+          const manifest=JSON.parse(readFileSync('baseline-public/asset-manifest.json','utf8'));
+          const latest=JSON.parse(execFileSync('gh',['api',`repos/${repo}/releases/latest`],{encoding:'utf8'}));
+          const proof=JSON.parse(process.env.UPDATER_PROOF);
+          assert.equal(proof.version,version);assert.equal(proof.releaseId,latest.id);assert.equal(proof.latest,true);assert.equal(proof.draft,false);assert.equal(proof.prerelease,false);
+          assert.equal(proof.actualUpdateApiClientParser,true);assert.equal(proof.actualVersionComparator,true);assert.equal(proof.actualUpdateServiceAutomaticCheck,'AVAILABLE');
+          const exe=`VN-code-${version}-Windows-x64.exe`;
+          assert.equal(proof.installerSha256,manifest.files[exe].sha256);assert.equal(proof.installerBytes,manifest.files[exe].bytes);
+          assert.equal(proof.windowsInstallerUrl,`https://github.com/${repo}/releases/download/v${version}/${exe}`);
+          writeFileSync('baseline-public/updater-verification.json',JSON.stringify(proof,null,2)+'\n');
+          if(!latest.assets.some(a=>a.name==='updater-verification.json'))execFileSync('gh',['release','upload',`v${version}`,'baseline-public/updater-verification.json','--repo',repo],{stdio:'inherit'});
+          JS
+          node tools/baseline-release.mjs prune baseline-public "$SOURCE_COMMIT"
