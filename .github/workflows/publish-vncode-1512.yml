@@ -97,10 +97,6 @@ jobs:
         run: |
           set -euo pipefail
           node tools/baseline-release.mjs verify-public "$RUNNER_TEMP/vncode-public-1512" "$EXPECTED_SOURCE"
-          gh api "repos/$GITHUB_REPOSITORY/releases/$RELEASE_ID" > "$RUNNER_TEMP/published-1512.json"
-          if ! node --input-type=module -e "import fs from 'node:fs';const r=JSON.parse(fs.readFileSync(process.env.RUNNER_TEMP+'/published-1512.json','utf8'));process.exit(r.assets.some(a=>a.name==='public-verification.json')?0:1)"; then
-            gh release upload v1.5.12 --repo "$GITHUB_REPOSITORY" "$RUNNER_TEMP/vncode-public-1512/public-verification.json"
-          fi
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         if: always()
         with:
