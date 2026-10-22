@@ -1,0 +1,19 @@
+{
+  "version": "1.5.11",
+  "sourceCommit": "2abe716d77a0f2d4d5f08ed0ae6451bf29ea2495",
+  "completeTrackedSourceFiles": 1839,
+  "allManifestBytesVerified": true,
+  "sourceMatchesGitTree": true,
+  "windowsEolConvertedFiles": 1732,
+  "byteExactGitBlobsAvailableInHistoryBundle": true,
+  "portableJavaRuntimeIncluded": true,
+  "passiveUpgradeMatchesDeliveredExeAndMsi": true,
+  "java": {
+    "passed": 2877,
+    "skipped": 2,
+    "failures": 0,
+    "tests": 2879,
+    "errors": 0
+  },
+  "runId": 39760334344
+}

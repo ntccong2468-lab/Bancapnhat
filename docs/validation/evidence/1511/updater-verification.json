@@ -1,0 +1,40 @@
+{
+  "version": "1.5.11",
+  "releaseId": 420825131,
+  "latest": true,
+  "draft": false,
+  "prerelease": false,
+  "checkedAt": "2026-10-22T18:06:41.507593233+03:00",
+  "actualUpdateApiClientParser": true,
+  "actualVersionComparator": true,
+  "actualUpdateServiceAutomaticCheck": "AVAILABLE",
+  "windowsInstallerUrl": "https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.5.11/VN-code-1.5.11-Windows-x64.msi",
+  "installerSha256": "1d86ae2b4b6168c0bf77941d98e8158003a6f6aadf7a19c5bfc9de4de1ca592f",
+  "installerBytes": 146572553,
+  "selectedInstallerName": "VN-code-1.5.11-Windows-x64.msi",
+  "installerType": "msi",
+  "updateAvailableFrom1510": true,
+  "sellerDesktopNotificationObserved": false,
+  "sourceCommit": "2abe716d77a0f2d4d5f08ed0ae6451bf29ea2495",
+  "actualReleasedApplicationJar": true,
+  "releasedJarSha256": "8ea366e9b59a749d23db17140e6326fb65d75a5ddc9c8d966319a41482d4e2cd",
+  "artifactVerification": {
+    "version": "1.5.11",
+    "sourceCommit": "2abe716d77a0f2d4d5f08ed0ae6451bf29ea2495",
+    "completeTrackedSourceFiles": 1839,
+    "allManifestBytesVerified": true,
+    "sourceMatchesGitTree": true,
+    "windowsEolConvertedFiles": 1732,
+    "byteExactGitBlobsAvailableInHistoryBundle": true,
+    "portableJavaRuntimeIncluded": true,
+    "passiveUpgradeMatchesDeliveredExeAndMsi": true,
+    "java": {
+      "passed": 2877,
+      "skipped": 2,
+      "failures": 0,
+      "tests": 2879,
+      "errors": 0
+    },
+    "runId": 39760334344
+  }
+}

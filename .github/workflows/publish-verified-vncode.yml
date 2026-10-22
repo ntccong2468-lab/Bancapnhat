@@ -11,14 +11,10 @@ on:
         required: true
         type: string
       operation:
-        description: Publish verified assets or clean older releases after updater verification
+        description: Publish exact assets from the successful complete build
         type: choice
-        options: [publish, cleanup]
+        options: [publish]
         default: publish
-      updater_proof:
-        description: Actual desktop updater verification JSON, required for cleanup
-        type: string
-        default: ''
 permissions:
   contents: write
   actions: read
@@ -34,7 +30,6 @@ jobs:
       SOURCE_COMMIT: ${{ inputs.source_commit }}
       BUILD_RUN_ID: ${{ inputs.build_run_id }}
       OPERATION: ${{ inputs.operation }}
-      UPDATER_PROOF: ${{ inputs.updater_proof }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
@@ -51,7 +46,7 @@ jobs:
           assert.equal(process.env.GITHUB_REPOSITORY,'ntccong2468-lab/Bancapnhat');
           assert.match(process.env.SOURCE_COMMIT,/^[a-f0-9]{40}$/);
           assert.match(process.env.BUILD_RUN_ID,/^[0-9]+$/);
-          assert.ok(['publish','cleanup'].includes(process.env.OPERATION));
+          assert.equal(process.env.OPERATION,'publish');
           assert.equal(execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim(),process.env.SOURCE_COMMIT);
           JS
       - name: Verify complete build provenance and publish exact assets
@@ -124,31 +119,16 @@ jobs:
           console.log(`Published ${tag} from verified complete build ${run}`);
           JS
       - name: Verify all public release bytes
-        run: node tools/baseline-release.mjs verify-public baseline-public "$SOURCE_COMMIT"
-      - name: Preserve publication verification
-        if: inputs.operation == 'publish'
-        run: gh release upload "v$(node tools/release-version.mjs)" baseline-public/public-verification.json --repo "$GITHUB_REPOSITORY"
-      - name: Verify desktop updater proof and remove older release records
-        if: inputs.operation == 'cleanup'
         run: |
-          node --input-type=module <<'JS'
-          import assert from 'node:assert/strict';
-          import {readFileSync,writeFileSync} from 'node:fs';
-          import {execFileSync} from 'node:child_process';
-          import {resolveReleaseVersion} from './tools/release-version.mjs';
-          const {version}=await resolveReleaseVersion(),repo=process.env.GITHUB_REPOSITORY;
-          const manifest=JSON.parse(readFileSync('baseline-public/asset-manifest.json','utf8'));
-          const latest=JSON.parse(execFileSync('gh',['api',`repos/${repo}/releases/latest`],{encoding:'utf8'}));
-          const proof=JSON.parse(process.env.UPDATER_PROOF);
-          assert.equal(proof.version,version);assert.equal(proof.releaseId,latest.id);assert.equal(proof.latest,true);assert.equal(proof.draft,false);assert.equal(proof.prerelease,false);
-          assert.equal(proof.actualUpdateApiClientParser,true);assert.equal(proof.actualVersionComparator,true);assert.equal(proof.actualUpdateServiceAutomaticCheck,'AVAILABLE');
-          const exe=`VN-code-${version}-Windows-x64.exe`;
-          assert.equal(proof.installerSha256,manifest.files[exe].sha256);assert.equal(proof.installerBytes,manifest.files[exe].bytes);
-          assert.equal(proof.windowsInstallerUrl,`https://github.com/${repo}/releases/download/v${version}/${exe}`);
-          writeFileSync('baseline-public/updater-verification.json',JSON.stringify(proof,null,2)+'\n');
-          if(!latest.assets.some(a=>a.name==='updater-verification.json'))execFileSync('gh',['release','upload',`v${version}`,'baseline-public/updater-verification.json','--repo',repo],{stdio:'inherit'});
-          JS
-          node tools/baseline-release.mjs prune baseline-public "$SOURCE_COMMIT"
+          node tools/baseline-release.mjs verify-public baseline-public "$SOURCE_COMMIT" > public-verification.log 2>&1 || { cat public-verification.log; exit 1; }
+          cat public-verification.log
+      - name: Preserve publication verification
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: publication-verification-${{ github.run_id }}
+          path: baseline-public/public-verification.json
+          if-no-files-found: error
+          retention-days: 90
       - name: Preserve publication diagnostics
         if: failure()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
@@ -156,6 +136,7 @@ jobs:
           name: publication-failure-${{ github.run_id }}
           path: |
             publication-error.json
+            public-verification.log
             baseline/publication-checks.json
           if-no-files-found: ignore
           retention-days: 14
