@@ -2,7 +2,7 @@
 
 **VN code** là ứng dụng Windows do Nguyễn Thành Công phát triển và quản lý, phục vụ seller trên Wildberries và Ozon.
 
-Bản nền đầy đủ đã công bố: **VNCode 1.5.11 — Latest**. [Release Latest](https://github.com/ntccong2468-lab/Bancapnhat/releases/latest) · [Bản nền và cách phát triển tiếp](docs/releases/BASELINE.md) · [Ghi chú 1.5.11](docs/releases/VN-code-1.5.11.md).
+Bản nền đầy đủ đã công bố: **VNCode 1.5.11 — Latest**. Đã gỡ 30 bản phát hành cũ, giữ lịch sử và tag mã nguồn. [Release Latest](https://github.com/ntccong2468-lab/Bancapnhat/releases/latest) · [Bản nền và cách phát triển tiếp](docs/releases/BASELINE.md) · [Ghi chú 1.5.11](docs/releases/VN-code-1.5.11.md).
 
 Ứng dụng quản lý đơn, đồng bộ sản phẩm/GTIN, đăng ký thẻ Catalog, mua và gán KIZ, in tem và báo cáo. Repository chứa toàn bộ mã nguồn ứng dụng, website/Portal, kiểm thử và công cụ build. Bản phát hành mới đóng gói mã nguồn ZIP, Git bundle, bộ cài EXE/MSI, runtime Windows kèm Java và checksum để tiếp tục chỉnh sửa từ một bản nền.
 

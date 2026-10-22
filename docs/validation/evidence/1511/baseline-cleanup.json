@@ -1,0 +1,292 @@
+{
+  "version": "1.5.11",
+  "sourceCommit": "2abe716d77a0f2d4d5f08ed0ae6451bf29ea2495",
+  "retainedRelease": 420825131,
+  "archiveCommit": "477499aa3eac9784f461307992869ba0b37c24ea",
+  "archivePath": "docs/validation/evidence/1511/previous-release-inventory.json",
+  "archiveSha256": "61c20fe2c4e9576cde6716f73668b7fff071d7d74f7ff3da5c1c87732c14f6ce",
+  "gitHistoryPreserved": true,
+  "immutableReleaseAssetsUnchanged": true,
+  "deletedThisRun": [],
+  "alreadyAbsent": [
+    {
+      "id": 416143322,
+      "tag": "v1.4.17"
+    },
+    {
+      "id": 415658561,
+      "tag": "v1.4.14"
+    },
+    {
+      "id": 412248433,
+      "tag": "v1.4.0-license-test.1"
+    },
+    {
+      "id": 419986203,
+      "tag": "v1.5.10"
+    },
+    {
+      "id": 419963515,
+      "tag": "v1.5.9"
+    },
+    {
+      "id": 419913555,
+      "tag": "v1.5.8"
+    },
+    {
+      "id": 419280803,
+      "tag": "v1.5.7"
+    },
+    {
+      "id": 418953871,
+      "tag": "v1.5.6"
+    },
+    {
+      "id": 418924163,
+      "tag": "v1.5.5"
+    },
+    {
+      "id": 418378469,
+      "tag": "v1.5.4"
+    },
+    {
+      "id": 418241115,
+      "tag": "v1.5.3"
+    },
+    {
+      "id": 417863386,
+      "tag": "v1.5.2"
+    },
+    {
+      "id": 417581335,
+      "tag": "v1.5.1"
+    },
+    {
+      "id": 416488658,
+      "tag": "v1.5.0"
+    },
+    {
+      "id": 416368799,
+      "tag": "v1.4.19"
+    },
+    {
+      "id": 416284006,
+      "tag": "v1.4.18"
+    },
+    {
+      "id": 416022169,
+      "tag": "v1.4.16"
+    },
+    {
+      "id": 415683721,
+      "tag": "v1.4.15"
+    },
+    {
+      "id": 415370557,
+      "tag": "v1.4.13"
+    },
+    {
+      "id": 414102966,
+      "tag": "v1.4.12"
+    },
+    {
+      "id": 413770759,
+      "tag": "v1.4.11"
+    },
+    {
+      "id": 413518941,
+      "tag": "v1.4.10"
+    },
+    {
+      "id": 413462253,
+      "tag": "v1.4.9"
+    },
+    {
+      "id": 413422987,
+      "tag": "v1.4.8"
+    },
+    {
+      "id": 413193348,
+      "tag": "v1.4.7"
+    },
+    {
+      "id": 413161994,
+      "tag": "v1.4.6"
+    },
+    {
+      "id": 408712192,
+      "tag": "v1.3.0-preview.1"
+    },
+    {
+      "id": 408308222,
+      "tag": "v1.2.2-preview.1"
+    },
+    {
+      "id": 408280744,
+      "tag": "v1.2.1-preview.1"
+    },
+    {
+      "id": 407383249,
+      "tag": "v1.2.0-preview.1"
+    }
+  ],
+  "cleanupToolCommit": "749b9dcbfc31404df352d4be97d40e29509caef9",
+  "dryRun": false,
+  "deleted": [
+    {
+      "id": 416143322,
+      "tag": "v1.4.17"
+    },
+    {
+      "id": 415658561,
+      "tag": "v1.4.14"
+    },
+    {
+      "id": 412248433,
+      "tag": "v1.4.0-license-test.1"
+    },
+    {
+      "id": 419986203,
+      "tag": "v1.5.10"
+    },
+    {
+      "id": 419963515,
+      "tag": "v1.5.9"
+    },
+    {
+      "id": 419913555,
+      "tag": "v1.5.8"
+    },
+    {
+      "id": 419280803,
+      "tag": "v1.5.7"
+    },
+    {
+      "id": 418953871,
+      "tag": "v1.5.6"
+    },
+    {
+      "id": 418924163,
+      "tag": "v1.5.5"
+    },
+    {
+      "id": 418378469,
+      "tag": "v1.5.4"
+    },
+    {
+      "id": 418241115,
+      "tag": "v1.5.3"
+    },
+    {
+      "id": 417863386,
+      "tag": "v1.5.2"
+    },
+    {
+      "id": 417581335,
+      "tag": "v1.5.1"
+    },
+    {
+      "id": 416488658,
+      "tag": "v1.5.0"
+    },
+    {
+      "id": 416368799,
+      "tag": "v1.4.19"
+    },
+    {
+      "id": 416284006,
+      "tag": "v1.4.18"
+    },
+    {
+      "id": 416022169,
+      "tag": "v1.4.16"
+    },
+    {
+      "id": 415683721,
+      "tag": "v1.4.15"
+    },
+    {
+      "id": 415370557,
+      "tag": "v1.4.13"
+    },
+    {
+      "id": 414102966,
+      "tag": "v1.4.12"
+    },
+    {
+      "id": 413770759,
+      "tag": "v1.4.11"
+    },
+    {
+      "id": 413518941,
+      "tag": "v1.4.10"
+    },
+    {
+      "id": 413462253,
+      "tag": "v1.4.9"
+    },
+    {
+      "id": 413422987,
+      "tag": "v1.4.8"
+    },
+    {
+      "id": 413193348,
+      "tag": "v1.4.7"
+    },
+    {
+      "id": 413161994,
+      "tag": "v1.4.6"
+    },
+    {
+      "id": 408712192,
+      "tag": "v1.3.0-preview.1"
+    },
+    {
+      "id": 408308222,
+      "tag": "v1.2.2-preview.1"
+    },
+    {
+      "id": 408280744,
+      "tag": "v1.2.1-preview.1"
+    },
+    {
+      "id": 407383249,
+      "tag": "v1.2.0-preview.1"
+    }
+  ],
+  "completedAt": "2026-10-22T15:30:51.722Z",
+  "gitTagRefsVerifiedFromBuildBundle": 30,
+  "verifiedGitTagRefs": {
+    "refs/tags/v1.2.0-preview.1": "e7c4c9e1031f64d576cb696b9a7fa396fc7c86a3",
+    "refs/tags/v1.2.1-preview.1": "b5034df00a1e898124210437c522c92448ead5b3",
+    "refs/tags/v1.2.2-preview.1": "d17ced942afd4231ca6821013c34e0e1ee11e11c",
+    "refs/tags/v1.3.0-preview.1": "7858f9c3502980c6e1d3141bbeef719c85493d04",
+    "refs/tags/v1.4.10": "735890f58937e7ee9d3c534956b27d51eed72d82",
+    "refs/tags/v1.4.11": "793850d5d29964164a46e774befe1fa6b991af00",
+    "refs/tags/v1.4.12": "fdce2e185d17afaf2a72643700b8ddf233f1d525",
+    "refs/tags/v1.4.13": "eb25ecb5f9cee5cde32a283e57067642be836bc5",
+    "refs/tags/v1.4.14": "6ba183cd5fb4420e37df13035581fee08c2d2155",
+    "refs/tags/v1.4.15": "16f7b43047f50057df88f4bda70939da4b634a38",
+    "refs/tags/v1.4.16": "536567835f6a044626d00be273b2217bb1c4fc7c",
+    "refs/tags/v1.4.17": "8146dfc61efe6a7b4ac925fed6eedc274576316d",
+    "refs/tags/v1.4.18": "e77a746128fa51f183a2a193275b6b1ef894c251",
+    "refs/tags/v1.4.19": "d25718c6a69f94f08d9515d36f7444650b1eebd1",
+    "refs/tags/v1.4.6": "1174273ddf9a5a45ff376d156cb5af4bde3f45b1",
+    "refs/tags/v1.4.7": "68fc1b85ef2f838e3cd7bb269c298ce396e3b277",
+    "refs/tags/v1.4.8": "7643b6c859c722486193a30e028da7be88c10bf6",
+    "refs/tags/v1.4.9": "9c9c68b88f4c8b7f3b64e3da3c6af74e417db31d",
+    "refs/tags/v1.5.0": "2eea069123737e2c9f7bcddcecaa51f21a1645dc",
+    "refs/tags/v1.5.1": "f9da70ca98734b8c5daed0a6ef49b38df9723f54",
+    "refs/tags/v1.5.10": "e9cd5243ad98b1ba178bb2a4a7863d9710d8d948",
+    "refs/tags/v1.5.11": "2abe716d77a0f2d4d5f08ed0ae6451bf29ea2495",
+    "refs/tags/v1.5.2": "6fe8ef21871657a38151897ddc13c3b1b5028fd5",
+    "refs/tags/v1.5.3": "69ffc7ecb60a91c874510522c4aae3c5be069ccd",
+    "refs/tags/v1.5.4": "688bd01982898e18c9770300fa20cfe29bde1245",
+    "refs/tags/v1.5.5": "cc73b32ae50ed21a25196653291df2996ecef1bf",
+    "refs/tags/v1.5.6": "541e982b47ff702522ede392dadb3cea433157bc",
+    "refs/tags/v1.5.7": "9b580f42f3ea5b64a89a56591a598740cc7f5f45",
+    "refs/tags/v1.5.8": "06408f3a35fddd2952b64374f75e5761d0b43502",
+    "refs/tags/v1.5.9": "a80f56d20612d6637b5cc3a59735ab4d520bf566"
+  },
+  "remainingReleaseCount": 1
+}
