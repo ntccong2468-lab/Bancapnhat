@@ -1,5 +1,20 @@
 # Bàn giao VNCode 1.5.12 — 22.10.2026
 
+## Trạng thái cuối — hoàn tất
+
+**1.5.12 đã lên Latest**, Release [v1.5.12](https://github.com/ntccong2468-lab/Bancapnhat/releases/tag/v1.5.12), công bố `2026-10-22T21:52:20Z`, ID `421236216`, bất biến. [Tải EXE Windows x64](https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.5.12/VN-code-1.5.12-Windows-x64.exe).
+
+- Mã ứng dụng/tag: `2f9f194d26a9d840e9ab1097f51d91811abc3bbf`. Các commit sau đó chỉ sửa quy trình công bố/tài liệu; diff `src/main`, pom và build script so với tag rỗng.
+- [Windows build](https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/39851955943) đạt: **2.923/2.925 ca, 2 ca bỏ qua theo OS, 0 thất bại/lỗi**. Native launch, migration, DPAPI, cài/gỡ và nâng cấp từ Latest 1.5.11 giữ dữ liệu đều đạt. Hai ca bỏ qua: quyền POSIX và kiểm tra fallback khi không ở Windows.
+- [Công bố/xác minh](https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/39860902344) đạt; tất cả tài sản bắt buộc đã tải công khai và đối chiếu byte/digest/checksum/tag. Bộ cài EXE 147.192.320 byte, SHA256 `7d01b89677d59b29527d01a519d6b06bef6ca1689b1aec88e91d9665168699a6`.
+- Kiểm tra JAR thật: version 1.5.12, CSS/FXML/logo/Inter Bold mới và lớp CatalogVersionSource có trong runtime. Bộ cập nhật của đúng JAR này phân tích phản hồi Latest thật, chọn đúng MSI và khớp digest/kích thước. Chưa quan sát trực tiếp thông báo trên thiết bị seller.
+- Upload từ Codex báo 401 riêng ở uploads.github.com. Đã dùng Actions để upload nguyên artifact đã kiểm tra. GitHub từ chối thêm biên nhận sau Publish vì Release bất biến (422); đã sửa workflow giữ biên nhận trong repo/Actions và chạy lại thành công, không thay bộ cài hay hạ Latest.
+- Không xóa Release cũ. Bộ nhớ/quyết định/kinh nghiệm đã cập nhật ở [PROJECT_MEMORY](../PROJECT_MEMORY.md). Không thực hiện giao dịch mua có phí hoặc ghi tài khoản seller production.
+
+Bằng chứng: [biên nhận Latest](2026-10-22-vncode-1512-published-latest.json), [tải công khai](2026-10-22-vncode-1512-public-verification.json), [Windows build-info](2026-10-22-vncode-1512-windows-build-info.json), [đối chiếu artifact/runtime](2026-10-22-vncode-1512-candidate-verification.json), [bộ cập nhật](2026-10-22-vncode-1512-updater-metadata.json), [nâng cấp](2026-10-22-vncode-1512-upgrade-smoke.json).
+
+Phần dưới lưu trạng thái trước đóng gói tại commit nguồn. Bốn bước phát hành được liệt kê ở đó đã hoàn tất.
+
 ## Trạng thái trước đóng gói
 
 Hoàn tất luồng Znack/đồng bộ trên nền 1.5.11 trước khi làm giao diện. PR #12 và commit `017412f` chứa phần luồng; commit `b27d799` chứa giao diện tham chiếu và 5 tab. Nhánh phát hành: `release/vn-code-1.5.12`.

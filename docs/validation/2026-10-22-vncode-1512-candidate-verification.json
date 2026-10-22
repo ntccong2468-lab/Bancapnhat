@@ -1,0 +1,41 @@
+{
+  "version": "1.5.12",
+  "sourceCommit": "2f9f194d26a9d840e9ab1097f51d91811abc3bbf",
+  "runId": 39851955943,
+  "assets": 11,
+  "manifestAndChecksumsVerified": true,
+  "sourceLogoAndMemoryVerified": true,
+  "historyBundleVerified": true,
+  "java": {
+    "tests": 2925,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 2
+  },
+  "skips": [
+    {
+      "class": "com.vncode.app.features.gs1.Gs1PrefixTemplateStoreTest",
+      "test": "privatePermissionsAreAppliedWhereSupported",
+      "reason": ""
+    },
+    {
+      "class": "com.vncode.app.shared.WindowsSecretProtectorTest",
+      "test": "neverFallsBackToPlaintextOffWindows",
+      "reason": "Disabled on operating system: Windows Server 2025"
+    }
+  ],
+  "runtimeJarSha256": "c15e82c3574c471d75e8da0fbed3de856c4ef4b200aa3298ad9a04e4b275dfda",
+  "runtimeResourcesMatchSource": [
+    "com/vncode/app/styles/reference-dark.css",
+    "com/vncode/app/ui/znack/znack-automation-view.fxml",
+    "com/vncode/app/ui/znackregistration/znack-card-registration-view.fxml",
+    "com/vncode/app/assets/images/logo.png",
+    "com/vncode/app/assets/fonts/Inter-Bold.ttf"
+  ],
+  "textResourcesComparedAfterCrLfNormalization": [
+    "com/vncode/app/styles/reference-dark.css",
+    "com/vncode/app/ui/znack/znack-automation-view.fxml",
+    "com/vncode/app/ui/znackregistration/znack-card-registration-view.fxml"
+  ],
+  "runtimeVersionVerified": true
+}

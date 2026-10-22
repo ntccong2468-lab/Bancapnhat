@@ -1,7 +1,7 @@
 # VNCode consolidated baseline
 
-Bản nền mới đang chuẩn bị: **VNCode 1.5.12**, tag bất biến `v1.5.12`.
-Nguồn dựa trên `v1.5.11`, luồng đăng ký/đồng bộ trong PR #12 và giao diện nền đen `b27d799`. Chỉ coi là đã công bố sau khi có biên nhận public-verification trong Release.
+Bản nền hiện hành đã công bố: **VNCode 1.5.12**, tag bất biến `v1.5.12`.
+Nguồn dựa trên `v1.5.11`, luồng đăng ký/đồng bộ trong PR #12 và giao diện nền đen `b27d799`. Đã xác minh API Latest, toàn bộ tệp công khai và checksum; [biên nhận](../validation/2026-10-22-vncode-1512-published-latest.json). Release được GitHub khóa bất biến sau công bố. Biên nhận tải công khai được giữ trong repo và artifact Actions vì không thể thêm tài sản sau khi khóa.
 
 Gói đầy đủ gồm:
 
@@ -15,7 +15,7 @@ Không tự động xóa Release cũ khi công bố Latest. Nếu được yêu 
 
 ## Sửa và dựng bản tiếp theo
 
-Clone repository hoặc Git bundle; dùng tag `v1.5.12` làm mốc, tạo nhánh sửa mới. Giữ Java 25, schema 6, UUID nâng cấp, các khóa phạm vi tài khoản, đối soát yêu cầu chưa rõ, mua KIZ đúng một lần và xác nhận GTIN bằng readback.
+Clone repository hoặc Git bundle; dùng commit `2f9f194d26a9d840e9ab1097f51d91811abc3bbf` trong build-info làm mốc, tạo nhánh sửa mới. Tag `v1.5.12` trên GitHub trỏ đúng commit này; bundle được đóng trước khi tạo tag nên có thể chưa chứa tên tag mới. Giữ Java 25, schema 6, UUID nâng cấp, các khóa phạm vi tài khoản, đối soát yêu cầu chưa rõ, mua KIZ đúng một lần và xác nhận GTIN bằng readback.
 
 Trên Windows: chạy `mvnw.cmd -B clean verify`, `node --test tools/*.test.mjs`, rồi `build.bat exe`. Để có toàn bộ runtime dùng `build.bat app-image` sau khi lưu bộ cài và bằng chứng: script build sẽ dọn `out` mỗi lần.
 

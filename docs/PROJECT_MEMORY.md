@@ -5,8 +5,11 @@
 - Bản công khai tại thời điểm bắt đầu: `v1.5.11`, commit `2abe716d77a0f2d4d5f08ed0ae6451bf29ea2495`.
 - Luồng đăng ký/đồng bộ được hoàn tất trước giao diện: nhánh `fix/znack-workflow-parity`, PR #12, commit cuối `017412f`. Không có bộ cài riêng cho bước này.
 - Giao diện nền đen và tab Kho KIZ: commit `b27d799`, nhánh `ui/wbcode-dark-reference`, đã push. 115 ca/11 lớp kiểm thử UI đạt; ảnh view thật với dữ liệu tổng hợp nằm trong `docs/fixes/images/2026-10-22-dark-reference`.
-- Chủ dự án đã yêu cầu kiểm tra lại mua KIZ, GTIN và đăng ký Znack, sửa lỗi nếu có, sau đó build và đưa bản mới lên Latest. Bản dự kiến: **1.5.12**. Chưa được coi là phát hành chỉ vì đã commit hoặc có artifact; phải kiểm tra Windows, upload, xác minh tài sản và API Latest.
-- Chi tiết kết quả cuối và biên nhận phát hành được bổ sung trong bàn giao của phiên này.
+- **Đã công bố 1.5.12 lên Latest lúc 2026-10-22T21:52:20Z**, Release ID `421236216`, tag `v1.5.12`, mã ứng dụng `2f9f194d26a9d840e9ab1097f51d91811abc3bbf`. Nhánh phát triển tiếp: `release/vn-code-1.5.12`; các commit sau tag chỉ cập nhật quy trình công bố/tài liệu.
+- Windows build `39851955943` thành công: 2.925 ca, 2.923 đạt, 2 bỏ qua theo hệ điều hành, không lỗi/thất bại; mở app, bảo vệ dữ liệu và nâng cấp từ 1.5.11 đều đạt. 117 ca công cụ phát hành đạt.
+- Công bố/xác minh `39860902344` thành công; tải công khai và checksum đủ 11 tài sản bắt buộc đã xác minh. Release có 16 tài sản và được khóa bất biến. Bộ cập nhật trong JAR Windows đã đọc đúng Latest 1.5.12, URL MSI và digest; chưa quan sát thông báo trực tiếp trên máy seller.
+- Không mua KIZ có phí, ghi Catalog/WB/Ozon production hay ký bằng chứng thư seller trong phiên này. Các bài nghiệp vụ dùng fixture/API giả lập và app Windows thật cho phần native.
+- Xem [bàn giao hoàn tất](validation/2026-10-22-vncode-1512-handoff.md) và [biên nhận công bố](validation/2026-10-22-vncode-1512-published-latest.json).
 
 ## Quyết định cần giữ
 
@@ -33,3 +36,12 @@
 - Đóng gói `app-image` sẽ dọn `out`; phải giữ bộ cài và chứng cứ trước khi tạo runtime. Chỉ đổi Latest sau khi kiểm chứng tài sản cuối.
 
 Nguồn chi tiết: [luồng đăng ký](fixes/2026-10-22-znack-workflow-parity.md), [giao diện](fixes/2026-10-22-dark-reference-ui.md), [bản nền](releases/BASELINE.md), [ghi chú 1.5.12](releases/VN-code-1.5.12.md).
+
+## Kinh nghiệm công bố 1.5.12
+
+- `api.github.com` và Git push có thể vẫn dùng được khi upload từ Codex tới `uploads.github.com` báo 401. Đợt này giải quyết bằng workflow GitHub Actions với `contents: write` và token của repository, sử dụng nguyên artifact Windows đã kiểm tra; không xin token qua chat.
+- GitHub khóa Release ngay khi công bố (`immutable: true`). Phải tải hết tệp vào bản nháp, đối chiếu checksum rồi mới Publish/Latest. Không thêm hoặc ghi đè tệp, kể cả biên nhận, sau công bố; lưu bằng chứng tải công khai trong repo/Actions.
+- Workflow một lần `publish-vncode-1512.yml` pin nguồn/build/release cụ thể và chặn mã ứng dụng khác với SHA đã kiểm tra, chặn hạ Latest. Lượt đầu tải công khai đã đạt nhưng lỗi thêm biên nhận sau khóa; lượt sau chỉ đọc/xác minh và lưu artifact đã đạt. Không dựng lại hoặc thay binary.
+- Tệp văn bản trong JAR Windows có CRLF khác Git LF. So nội dung CSS/FXML sau chuẩn hóa xuống dòng, còn ảnh/font và tài sản phát hành đối chiếu byte/hash nguyên gốc.
+- Bộ cập nhật Windows ưu tiên MSI; liên kết EXE vẫn dùng cho tải/cài thủ công. Đã dùng đúng JAR phát hành để phân tích phản hồi Latest công khai và kiểm tra version/URL/digest/size.
+- Kiểm thử toàn bộ Java trên Windows ở lượt này mất khoảng 52 phút. Không khẳng định thành công trước khi có kết quả; các lượt sửa quy trình công bố/tài liệu giữ nguyên mã ứng dụng và không yêu cầu dựng lại app.

@@ -1,0 +1,52 @@
+{
+  "recordedAt": "2026-10-22T21:58:34.290447+00:00",
+  "version": "1.5.12",
+  "tag": "v1.5.12",
+  "sourceCommit": "2f9f194d26a9d840e9ab1097f51d91811abc3bbf",
+  "branch": "release/vn-code-1.5.12",
+  "releaseId": 421236216,
+  "publishedAt": "2026-10-22T21:52:20Z",
+  "immutableRelease": true,
+  "latestConfirmed": true,
+  "releaseUrl": "https://github.com/ntccong2468-lab/Bancapnhat/releases/tag/v1.5.12",
+  "downloadUrl": "https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.5.12/VN-code-1.5.12-Windows-x64.exe",
+  "installer": {
+    "sha256": "7d01b89677d59b29527d01a519d6b06bef6ca1689b1aec88e91d9665168699a6",
+    "name": "VN-code-1.5.12-Windows-x64.exe",
+    "bytes": 147192320
+  },
+  "buildRun": {
+    "id": 39851955943,
+    "conclusion": "success",
+    "url": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/39851955943"
+  },
+  "publicationRun": {
+    "id": 39860902344,
+    "conclusion": "success",
+    "url": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/39860902344"
+  },
+  "publicAssets": 16,
+  "requiredAssetsVerified": 11,
+  "java": {
+    "skipped": 2,
+    "failures": 0,
+    "passed": 2923,
+    "tests": 2925,
+    "errors": 0
+  },
+  "nodeTestsPassed": 117,
+  "nativeLauncherVerified": true,
+  "baselineUpgradeVerified": true,
+  "dataPreserved": true,
+  "publicDownloadsAndChecksumsVerified": true,
+  "runtimeUpdaterParsedLatest": true,
+  "sellerDeviceNotificationObserved": false,
+  "liveCatalogWriteVerified": false,
+  "liveMarketplaceWriteVerified": false,
+  "paidKizPurchaseVerified": false,
+  "oldReleasesDeleted": false,
+  "publicationNotes": [
+    "Codex API access and Git push worked, but uploads.github.com returned 401; uploaded with repository GITHUB_TOKEN in GitHub Actions.",
+    "All public bytes verified successfully. The first publication job then attempted to append proof to an immutable published release and received HTTP 422. Fixed workflow keeps proof in Actions/repository; read-only rerun succeeded without changing published assets."
+  ]
+}
