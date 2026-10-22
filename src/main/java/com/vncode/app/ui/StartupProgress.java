@@ -30,9 +30,10 @@ public final class StartupProgress {
         var copy=new Button(messages.getString("startup.copy_diagnostics"));copy.setId("startupCopyDiagnostics");
         var actions=new HBox(10,copy,close);actions.setAlignment(Pos.CENTER);actions.setVisible(false);actions.setManaged(false);
         var root=new VBox(18,title,spinner,phase,actions);root.setAlignment(Pos.CENTER);root.setStyle("-fx-padding:36;");
-        root.getStyleClass().addAll("liquid-glass","theme-light");
+        root.getStyleClass().addAll("theme-dark","reference-dark");
         com.vncode.app.shared.UiFonts.install();
         var scene=new Scene(root,580,260);scene.getProperties().put(com.vncode.app.shared.ThemeService.STARTUP_SCENE,Boolean.TRUE);scene.getStylesheets().add(StartupProgress.class.getResource("/com/vncode/app/styles/theme.css").toExternalForm());scene.getStylesheets().add(StartupProgress.class.getResource("/com/vncode/app/styles/liquid-glass.css").toExternalForm());
+        scene.getStylesheets().add(StartupProgress.class.getResource("/com/vncode/app/styles/reference-dark.css").toExternalForm());
         stage.setTitle("VN code · "+messages.getString("startup.opening"));stage.setScene(scene);
         var lastPhase=new java.util.concurrent.atomic.AtomicReference<>("RECOVERING_DATA");
         var task=new Task<T>(){@Override protected T call()throws Exception{return preparation.run(step->{lastPhase.set(step);updateMessage(messages.getString("startup.phase."+step));});}};

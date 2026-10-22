@@ -1,0 +1,196 @@
+/* Seller's Wbcode screenshots: opaque black canvas, charcoal controls, violet actions. */
+.root.reference-dark, .reference-dark.dialog-pane    {
+    -bg-primary: #101318;
+    -bg-secondary: #181d24;
+    -bg-tertiary: #232831;
+    -bg-odd-row: #181d24;
+    -border-color: #2c323c;
+    -border-color-hover: #454d5a;
+    -text-primary: #f1f3f6;
+    -text-secondary: #bcc4d0;
+    -text-muted: #929baa;
+    -accent: #8952f6;
+    -accent-hover: #9b6aff;
+    -accent-active: #7741df;
+    -accent-transparent: rgba(137,82,246,.15);
+    -success: #2fbd91;
+    -warning: #e5a910;
+    -btn-bg: #232831;
+    -btn-bg-hover: #2c333d;
+    -btn-bg-pressed: #1c2129;
+    -btn-text-color: #f1f3f6;
+    -glass-popup: #1d222a;
+    -glass-line: #2c323c;
+    -glass-selected: rgba(137,82,246,.15);
+    -fx-background-color: #101318;
+    -fx-background-radius: 0;
+    -fx-font-family: "Inter";
+    -fx-font-size: 16px;
+}
+.reference-dark .label, .reference-dark .text-input    { -fx-text-fill: #f1f3f6; }
+.reference-dark .text-muted    { -fx-text-fill: #929baa; }
+.reference-dark .h2    { -fx-font-size: 24px; -fx-font-weight: bold; }
+.reference-dark .h3    { -fx-font-size: 20px; -fx-font-weight: bold; }
+.reference-dark .sidebar, .reference-dark .header    {
+    -fx-background-color: #101318;
+    -fx-background-radius: 0;
+    -fx-border-radius: 0;
+    -fx-border-color: #2c323c;
+}
+.reference-dark .card, .reference-dark .surface, .reference-dark .feature-card,
+.reference-dark .copy-card, .reference-dark .news-card, .reference-dark .guide-section,
+.reference-dark .products-bulk, .reference-dark .supply-detail, .reference-dark .gtin-inventory-card    {
+    -fx-background-color: #181d24;
+    -fx-background-radius: 20;
+    -fx-border-radius: 20;
+    -fx-border-color: #2c323c;
+    -fx-border-width: 1;
+    -fx-effect: null;
+}
+.reference-dark .button, .reference-dark .menu-button, .reference-dark .toggle-button,
+.reference-dark .combo-box, .reference-dark .choice-box, .reference-dark .text-input,
+.reference-dark .date-picker, .reference-dark .spinner    {
+    -fx-background-color: #232831;
+    -fx-background-radius: 12;
+    -fx-border-radius: 12;
+    -fx-border-color: transparent;
+    -fx-border-width: 1;
+    -fx-min-height: 40;
+    -fx-padding: 8 15;
+    -fx-text-fill: #f1f3f6;
+    -fx-effect: null;
+    -fx-font-size: 16px;
+}
+.reference-dark .button, .reference-dark .menu-button    { -fx-font-weight: bold; }
+.reference-dark .text-input, .reference-dark .combo-box, .reference-dark .choice-box    {
+    -fx-background-color: #1e232b;
+    -fx-border-color: #383f4b;
+    -fx-prompt-text-fill: #929baa;
+    -fx-min-height: 38;
+    -fx-padding: 7 14;
+}
+.reference-dark .combo-box > .list-cell    { -fx-padding: 0; -fx-text-fill: #f1f3f6; }
+.reference-dark .menu-button > .label    { -fx-padding: 0; }
+.reference-dark .button:hover, .reference-dark .menu-button:hover    { -fx-background-color: #2c333d; }
+.reference-dark .button:pressed    { -fx-background-color: #1c2129; }
+.reference-dark .button.btn-primary, .reference-dark .button.accent,
+.reference-dark #productsPane .products-bulk .button.btn-primary ,
+.reference-dark#productsPane .products-bulk .button.btn-primary    {
+    -fx-background-color: #8952f6;
+    -fx-border-color: transparent;
+    -fx-text-fill: white;
+}
+.reference-dark .button.btn-primary:hover    { -fx-background-color: #9b6aff; }
+.reference-dark .button:disabled, .reference-dark .menu-button:disabled    { -fx-opacity: .5; }
+.reference-dark .btn-icon    { -fx-min-width: 38; -fx-min-height: 38; -fx-padding: 8; -fx-background-radius: 10; -fx-border-radius: 10; }
+.reference-dark .button .ikonli-font-icon, .reference-dark .menu-button .ikonli-font-icon    { -fx-icon-color: #f1f3f6; }
+.reference-dark .text-input:focused, .reference-dark .combo-box:focused    { -fx-border-color: #8952f6; }
+.reference-dark .check-box    { -fx-text-fill: #f1f3f6; -fx-font-size: 16px; }
+.reference-dark .check-box > .box    { -fx-background-color: #181d24; -fx-border-color: #3a424e; -fx-border-width: 2; -fx-background-radius: 7; -fx-border-radius: 7; -fx-padding: 3; -fx-min-width: 24; -fx-min-height: 24; }
+.reference-dark .check-box:selected > .box, .reference-dark .check-box:indeterminate > .box    { -fx-background-color: #8952f6; -fx-border-color: #8952f6; }
+.reference-dark .check-box:selected > .box > .mark, .reference-dark .check-box:indeterminate > .box > .mark    { -fx-background-color: white; }
+.reference-dark .table-view, .reference-dark .list-view    {
+    -fx-background-color: #181d24;
+    -fx-border-color: #2c323c;
+    -fx-border-radius: 20;
+    -fx-background-radius: 20;
+    -fx-padding: 1;
+}
+.reference-dark .table-view .column-header-background    { -fx-background-color: #181d24; -fx-background-radius: 20 20 0 0; }
+.reference-dark .table-view .column-header    { -fx-background-color: transparent; -fx-size: 56; -fx-border-color: #2c323c; -fx-border-width: 0 0 1 0; }
+.reference-dark .table-view .column-header .label    { -fx-text-fill: #bcc4d0; -fx-font-size: 16px; -fx-font-weight: bold; }
+.reference-dark .table-row-cell, .reference-dark .table-row-cell:odd, .reference-dark .list-cell    { -fx-background-color: transparent; }
+.reference-dark .table-row-cell:selected, .reference-dark .list-cell:selected    { -fx-background-color: rgba(137,82,246,.14); }
+.reference-dark .table-cell    { -fx-border-width: 0 0 1 0; -fx-border-color: #2c323c; -fx-padding: 9 12; -fx-font-size: 16px; -fx-alignment: CENTER_LEFT; -fx-text-fill: #f1f3f6; }
+.reference-dark .scroll-bar, .reference-dark .scroll-bar .track    { -fx-background-color: transparent; }
+.reference-dark .scroll-bar:vertical    { -fx-pref-width: 12; }
+.reference-dark .scroll-bar .thumb    { -fx-background-color: #2a303a; -fx-background-radius: 8; -fx-background-insets: 2; }
+.reference-dark .scroll-bar .increment-button, .reference-dark .scroll-bar .decrement-button    { -fx-padding: 0; }
+.reference-dark .scroll-bar .increment-arrow, .reference-dark .scroll-bar .decrement-arrow    { -fx-shape: ""; -fx-padding: 0; }
+.reference-dark .tab-pane > .tab-header-area > .tab-header-background    { -fx-background-color: #232831; -fx-background-radius: 16; }
+.reference-dark .tab-pane > .tab-header-area > .headers-region > .tab    { -fx-background-color: transparent; -fx-padding: 12 15; -fx-background-radius: 12; -fx-border-radius: 12; -fx-border-width: 1; -fx-border-color: transparent; }
+.reference-dark .tab-pane > .tab-header-area > .headers-region > .tab:selected    { -fx-background-color: #181d24; -fx-border-color: #3a414d; }
+.reference-dark .tab .tab-label    { -fx-font-size: 16px; }
+.reference-dark .task-status-pill    { -fx-background-color: #101318; -fx-border-color: #303642; -fx-border-width: 1; -fx-border-radius: 999; -fx-background-radius: 999; -fx-padding: 12 20; -fx-effect: null; }
+.reference-dark .dialog-pane    { -fx-background-color: #181d24; -fx-background-radius: 20; -fx-border-radius: 20; }
+.reference-dark #productsPane ,
+.reference-dark#productsPane    { -fx-background-color: #101318; -fx-font-family: "Inter"; }
+.reference-dark #productsPane .list-view ,
+.reference-dark#productsPane .list-view    { -fx-background-color: #101318; -fx-border-radius: 10; -fx-background-radius: 10; }
+.reference-dark #productsPane .product-row ,
+.reference-dark#productsPane .product-row    { -fx-border-color: #2c323c; -fx-border-width: 0 0 1 0; }
+.reference-dark #productsPane .product-issue-chip ,
+.reference-dark#productsPane .product-issue-chip    { -fx-background-color: #211d12; -fx-border-color: #624914; -fx-text-fill: #e5a910; -fx-min-height: 32; -fx-padding: 5 14; -fx-background-radius: 999; -fx-border-radius: 999; }
+.reference-dark #productsPane .product-issue-chip:selected ,
+.reference-dark#productsPane .product-issue-chip:selected    { -fx-background-color: #e5a910; -fx-text-fill: #101318; }
+.reference-dark #productsPane .products-bulk ,
+.reference-dark#productsPane .products-bulk    { -fx-background-color: #181d24; -fx-background-radius: 16; -fx-border-radius: 16; }
+.reference-dark .registration-reference .table-row-cell  ,
+.reference-dark.registration-reference .table-row-cell    { -fx-cell-size: 96; }
+.reference-dark .registration-reference .table-cell .button,
+.reference-dark.registration-reference .table-cell .button, .reference-dark .registration-reference .table-cell .menu-button  , .reference-dark.registration-reference .table-cell .menu-button    { -fx-font-size: 14px; -fx-padding: 10 12; -fx-font-weight: bold; -fx-min-height: 56; -fx-background-radius: 10; -fx-border-radius: 10; }
+.reference-dark .registration-reference .table-cell .button.btn-primary  ,
+.reference-dark.registration-reference .table-cell .button.btn-primary    { -fx-background-color: #232831; }
+.reference-dark .gs1-workspace .h2   ,
+.reference-dark.gs1-workspace .h2    { -fx-font-size: 24px; }
+.reference-dark .gs1-workspace .feature-card .h2   ,
+.reference-dark.gs1-workspace .feature-card .h2    { -fx-font-size: 18px; }
+.reference-dark #gs1PrefixTable .table-row-cell    { -fx-cell-size: 54; }
+.reference-dark #gs1WorkspaceSplit    { -fx-background-color: transparent; -fx-padding: 0; }
+.reference-dark #gs1WorkspaceSplit > .split-pane-divider    { -fx-background-color: transparent; -fx-padding: 0 8; }
+.reference-dark .gs1-readiness-dot    { -fx-background-radius: 999; -fx-min-width: 13; -fx-pref-width: 13; -fx-max-width: 13; -fx-min-height: 13; -fx-pref-height: 13; -fx-max-height: 13; }
+.reference-dark .gs1-readiness-dot.ready    { -fx-background-color: #35b58c; }
+.reference-dark .gs1-readiness-dot.unknown    { -fx-background-color: #303640; }
+.reference-dark .gs1-readiness-dot.error    { -fx-background-color: #ef585e; }
+.reference-dark .membership-badge    { -fx-background-color: #16342d; -fx-text-fill: #2fbd91; -fx-background-radius: 10; -fx-padding: 5 10; -fx-font-weight: bold; }
+.reference-dark #basicSettingsCard    { -fx-padding: 16 14; }
+.reference-dark #basicSettingsCard .surface    { -fx-padding: 0; -fx-border-width: 0; -fx-background-color: transparent; }
+.reference-dark .activation-active, .reference-dark .document-valid    { -fx-text-fill: #2fbd91; }
+.reference-dark .text-danger, .reference-dark .document-rejected    { -fx-text-fill: #ef585e; }
+.reference-dark .document-pending, .reference-dark .text-warning    { -fx-text-fill: #e5a910; }
+.reference-dark .ikonli-font-icon.document-valid    { -fx-icon-color: #2fbd91; }
+.reference-dark .ikonli-font-icon.document-pending    { -fx-icon-color: #e5a910; }
+.reference-dark .ikonli-font-icon.document-rejected    { -fx-icon-color: #ef585e; }
+.reference-dark .settings-readonly    { -fx-text-fill: #747e8e; }
+.reference-dark .membership-badge.unknown    { -fx-background-color: #252b34; -fx-text-fill: #929baa; }
+.reference-dark .membership-badge.error    { -fx-background-color: #3b232b; -fx-text-fill: #ef585e; }
+.reference-dark .membership-badge.warning    { -fx-background-color: #352c19; -fx-text-fill: #e5a910; }
+.reference-dark #productTnvedPicker    { -fx-padding: 16 20 0 20; }
+.reference-dark #productTnvedPicker > .button-bar    { -fx-padding: 0; -fx-pref-height: 0; -fx-max-height: 0; }
+.reference-dark #tnvedSuggestionPanel    { -fx-padding: 16 18 12 18; }
+.reference-dark #tnvedSuggestionChips .button    { -fx-background-color: #29213e; -fx-border-color: #8952f6; -fx-border-width: 1.5; -fx-padding: 8 12; -fx-font-size: 14px; -fx-min-height: 38; }
+.reference-dark #tnvedReferenceRows    { -fx-background-radius: 12; -fx-border-radius: 12; }
+.reference-dark #tnvedReferenceRows .list-cell    { -fx-padding: 0 8; -fx-border-color: #2c323c; -fx-border-width: 0 0 1 0; }
+.reference-dark .tnved-reference-picker    { -fx-padding: 0; }
+
+/* A view may be the scene root in dialogs and a child in the main workspace. */
+.reference-dark .button.feature-card { -fx-background-color: #181d24; -fx-background-radius: 20; -fx-border-radius: 20; }
+.reference-dark .combo-box > .list-cell { -fx-background-color: transparent; }
+.reference-dark .text-muted { -fx-font-weight: normal; }
+.reference-dark .text-bold { -fx-font-weight: bold; }
+.reference-dark .registration-reference .table-cell .button.btn-primary,
+.reference-dark.registration-reference .table-cell .button.btn-primary,
+.reference-dark .registration-reference .table-cell .menu-button,
+.reference-dark.registration-reference .table-cell .menu-button { -fx-background-color: #232831; -fx-font-weight: bold; -fx-min-height: 56; }
+.reference-dark .registration-reference #registerSelectedButton,
+.reference-dark.registration-reference #registerSelectedButton { -fx-background-color: #232831; }
+.reference-dark #productsPane .product-row .label,
+.reference-dark#productsPane .product-row .label { -fx-font-weight: normal; }
+.reference-dark #productsPane .product-row .product-name,
+.reference-dark#productsPane .product-row .product-name { -fx-font-weight: bold; }
+.reference-dark #productsPane .combo-box,
+.reference-dark#productsPane .combo-box { -fx-font-weight: normal; -fx-padding: 7 12; }
+.reference-dark #productsPane .combo-box .list-cell,
+.reference-dark#productsPane .combo-box .list-cell { -fx-font-weight: normal; -fx-background-color: transparent; }
+.reference-dark .gs1-workspace .feature-card .h2,
+.reference-dark.gs1-workspace .feature-card .h2 { -fx-font-size: 16px; -fx-font-weight: bold; }
+.reference-dark .tab-pane > .tab-header-area { -fx-padding: 0; }
+
+.reference-dark .combo-box > .arrow-button { -fx-padding: 0 0 0 10; }
+.reference-dark #categoryMenuButton { -fx-background-color: #1e232b; -fx-border-color: #383f4b; -fx-font-weight: normal; }
+
+.reference-dark .table-view .column-header .label { -fx-padding: 0 6; }
+.reference-dark .table-row-cell:empty .table-cell { -fx-border-width: 0; }
+.reference-dark #productsPane .product-row,
+.reference-dark#productsPane .product-row { -fx-border-width: 0; }
+.reference-dark #productRows .list-cell:selected { -fx-background-color: #101318; }

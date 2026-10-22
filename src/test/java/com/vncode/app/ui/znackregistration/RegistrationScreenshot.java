@@ -8,7 +8,7 @@ import java.nio.file.*;
 final class RegistrationScreenshot {
     static void capture(Parent root,String name)throws Exception {
         String directory=System.getProperty("vncode.item4.capture.dir");if(directory==null)return;
-        var scene=new Scene(root,1366,768);scene.getStylesheets().add(RegistrationScreenshot.class.getResource("/com/vncode/app/styles/theme.css").toExternalForm());
+        var scene=new Scene(root,1336,826);com.vncode.app.shared.ThemeService.initializeAppearance();com.vncode.app.shared.ThemeService.applyTheme(scene);
         root.applyCss();root.layout();var image=scene.snapshot(null);
         var png=new java.awt.image.BufferedImage((int)image.getWidth(),(int)image.getHeight(),java.awt.image.BufferedImage.TYPE_INT_ARGB);
         for(int y=0;y<png.getHeight();y++)for(int x=0;x<png.getWidth();x++)png.setRGB(x,y,image.getPixelReader().getArgb(x,y));

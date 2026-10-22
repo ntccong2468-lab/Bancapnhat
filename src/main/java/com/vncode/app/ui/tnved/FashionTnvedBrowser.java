@@ -26,6 +26,8 @@ public final class FashionTnvedBrowser extends BorderPane {
     private Runnable defaultApply;
     private boolean defaultApplyAvailable;
     private final FlowPane pickerActions=new FlowPane(8,8);
+    private Label sourceLabel;
+    private Button resetButton;
     public FashionTnvedBrowser(){
         setId("fashionTnvedBrowser");setMinSize(0,0);setPadding(new Insets(12));
         query.setId("tnvedReferenceSearch");query.setPromptText(tr("tnved.search"));query.setPrefWidth(300);
@@ -34,12 +36,12 @@ public final class FashionTnvedBrowser extends BorderPane {
         configure(gender,catalog.genders(),"tnved.filter_gender");configure(material,catalog.materials(),"tnved.filter_material");configure(fabric,catalog.fabrics(),"tnved.filter_fabric");
         gender.setId("tnvedReferenceGender");material.setId("tnvedReferenceMaterial");fabric.setId("tnvedReferenceFabric");
         var reset=new Button(tr("znack.registration.clear"));reset.setOnAction(e->{query.clear();selectedCategories.clear();for(var menu:categories.getItems())((CheckMenuItem)menu).setSelected(false);gender.setValue("");material.setValue("");fabric.setValue("");filter();});
-        var source=new Label(tr("tnved.reference_source"));source.setWrapText(true);source.getStyleClass().add("text-muted");
+        resetButton=reset;var source=new Label(tr("tnved.reference_source"));sourceLabel=source;source.setWrapText(true);source.getStyleClass().add("text-muted");
         var top=new VBox(8,source,new FlowPane(8,8,query,categories,gender,material,fabric,reset),count);top.setPadding(new Insets(0,0,10,0));setTop(top);
         rows.setId("tnvedReferenceRows");rows.setFixedCellSize(100);rows.setMinHeight(80);rows.setCellFactory(v->new ListCell<>(){
-            private final Label code=new Label(),name=new Label(),tags=new Label();private final Button copy=new Button("⧉");private final VBox description=new VBox(4,name,tags);private final HBox box=new HBox(12,code,copy,description);
+            private final Label code=new Label(),name=new Label(),tags=new Label();private final Button copy=new Button();private final VBox description=new VBox(4,name,tags);private final HBox box=new HBox(12,code,copy,description);
             {code.setMinWidth(100);code.getStyleClass().add("text-bold");name.setWrapText(true);name.setMaxHeight(48);tags.setMaxHeight(28);tags.getStyleClass().add("text-muted");description.setMinWidth(0);HBox.setHgrow(description,Priority.ALWAYS);box.setMinWidth(0);box.prefWidthProperty().bind(rows.widthProperty().subtract(30));box.setMaxWidth(Double.MAX_VALUE);name.setMinWidth(0);name.setMaxWidth(Double.MAX_VALUE);tags.setMinWidth(0);tags.setMaxWidth(Double.MAX_VALUE);box.setPadding(new Insets(10,8,10,8));copy.setMinSize(36,36);copy.setPrefSize(36,36);copy.setMaxSize(36,36);copy.setAccessibleText(tr("tnved.copy"));copy.setTooltip(new Tooltip(tr("tnved.copy")));copy.setOnAction(e->{e.consume();var item=getItem();if(item!=null)copyCode(item.code(),0);});copy.addEventFilter(MouseEvent.MOUSE_CLICKED,e->e.consume());}
-            protected void updateItem(Entry entry,boolean empty){super.updateItem(entry,empty);setText(null);if(empty||entry==null){copy.setId(null);setGraphic(null);return;}copy.setId("tnvedCopy_"+entry.code());code.setText(entry.code());name.setText(entry.name());name.setTooltip(new Tooltip(entry.name()));tags.setText(String.join(", ",entry.categories())+" · "+entry.gender()+" · "+String.join(", ",entry.materials())+(entry.fabric().isBlank()?"":" · "+entry.fabric()));tags.setTooltip(new Tooltip(tags.getText()));setGraphic(box);}
+            protected void updateItem(Entry entry,boolean empty){super.updateItem(entry,empty);setText(null);if(empty||entry==null){copy.setId(null);setGraphic(null);return;}copy.setGraphic(new org.kordamp.ikonli.javafx.FontIcon("fth-copy"));copy.setId("tnvedCopy_"+entry.code());code.setText(entry.code());name.setText(entry.name());name.setTooltip(new Tooltip(entry.name()));tags.setText(String.join(", ",entry.categories())+" · "+entry.gender()+" · "+String.join(", ",entry.materials())+(entry.fabric().isBlank()?"":" · "+entry.fabric()));tags.setTooltip(new Tooltip(tags.getText()));setGraphic(box);}
         });
         rows.getSelectionModel().selectedItemProperty().addListener((o,a,b)->apply.setDisable(b==null&&!defaultApplyAvailable));rows.setOnMouseClicked(e->{if(e.getClickCount()==2)use();});setCenter(rows);
         rows.addEventFilter(KeyEvent.KEY_PRESSED,e->{if(new KeyCodeCombination(KeyCode.C,KeyCombination.SHORTCUT_DOWN).match(e)){var item=rows.getSelectionModel().getSelectedItem();if(item!=null){copyCode(item.code(),0);e.consume();}}});
@@ -50,6 +52,8 @@ public final class FashionTnvedBrowser extends BorderPane {
     private void filter(){rows.getItems().setAll(catalog.search(query.getText(),selectedCategories,gender.getValue(),material.getValue(),fabric.getValue()));count.setText(rows.getItems().size()+" / "+catalog.entries().size());categories.setText(tr("products.categories")+(selectedCategories.isEmpty()?"":" ("+selectedCategories.size()+")"));}
     public void setOnSelect(Consumer<Entry> action){onSelect=action;apply.setVisible(action!=null);apply.setManaged(action!=null);}
     public void setPickerLeadingAction(javafx.scene.Node action){pickerActions.getChildren().setAll(copyStatus,action,apply);}
+    public void setPickerTrailingAction(javafx.scene.Node action){pickerActions.getChildren().add(action);}
+    public void useCompactPicker(){apply.setText(tr("common.apply"));sourceLabel.setVisible(false);sourceLabel.setManaged(false);resetButton.setVisible(false);resetButton.setManaged(false);query.setPrefWidth(274);categories.setPrefWidth(160);gender.setPrefWidth(205);material.setPrefWidth(205);fabric.setPrefWidth(205);getStyleClass().add("tnved-reference-picker");}
     public void setDefaultApply(Runnable action,boolean available){defaultApply=action;defaultApplyAvailable=available;apply.setDisable(rows.getSelectionModel().getSelectedItem()==null&&!available);}
     public void setCategoryFilter(Set<String> names){selectedCategories.clear();selectedCategories.addAll(names);for(var item:categories.getItems())if(item instanceof CheckMenuItem check)check.setSelected(names.contains(check.getText()));filter();}
     public void selectCode(String code){for(var entry:rows.getItems())if(entry.code().equals(code)){rows.getSelectionModel().select(entry);rows.scrollTo(entry);return;}}

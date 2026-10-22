@@ -5,10 +5,10 @@
 <?import javafx.scene.layout.*?>
 
 <VBox spacing="8" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="com.vncode.app.ui.znackregistration.ZnackCardRegistrationController" styleClass="app-page">
+      fx:controller="com.vncode.app.ui.znackregistration.ZnackCardRegistrationController" styleClass="app-page,registration-reference">
     <StackPane fx:id="ozonRegistrationHost" VBox.vgrow="ALWAYS" visible="false" managed="false"/>
-    <VBox fx:id="wbRegistrationContent" spacing="8" VBox.vgrow="ALWAYS">
-    <padding><Insets top="12" right="12" bottom="12" left="12"/></padding>
+    <VBox fx:id="wbRegistrationContent" spacing="10" VBox.vgrow="ALWAYS">
+    <padding><Insets top="38" right="18" bottom="20" left="30"/></padding>
     <HBox fx:id="registrationHeader" alignment="CENTER_LEFT" spacing="10">
         <Label fx:id="titleLabel" text="Đăng ký thẻ Znack" styleClass="h2" minWidth="210" prefWidth="240" maxWidth="260"/>
         <Pane HBox.hgrow="ALWAYS"/>
@@ -18,8 +18,8 @@
         <Button fx:id="syncZnackButton" text="Đồng bộ Znack" onAction="#onSyncZnack" styleClass="btn-secondary" minWidth="100" prefWidth="237" wrapText="true"/>
     </HBox>
     <Label fx:id="loadingLabel" text="Đang tải..." visible="false" managed="false" styleClass="text-muted"/>
-    <Label fx:id="readinessLabel" wrapText="true" styleClass="text-muted"/>
-    <Label fx:id="operationLabel" wrapText="true" styleClass="text-muted"/>
+    <Label fx:id="readinessLabel" visible="false" managed="false" wrapText="true" styleClass="text-muted"/>
+    <Label fx:id="operationLabel" visible="false" managed="false" wrapText="true" styleClass="text-muted"/>
     <VBox fx:id="extraActions" visible="false" managed="false">
         <Button fx:id="refreshButton" text="Làm mới" onAction="#onRefresh"/>
         <Button fx:id="reportButton" text="Báo cáo đồng bộ" onAction="#onReport"/>
@@ -29,30 +29,31 @@
         <CheckBox fx:id="autoSignCheckBox" selected="true" wrapText="true" text="Tự ký khi thẻ được duyệt"/>
         <Button fx:id="newCardsSelectedButton" text="Tạo thẻ mới cho tập đã chọn" onAction="#onNewCardsSelected"/>
     </VBox>
-    <FlowPane alignment="CENTER_LEFT" hgap="8" vgap="6">
-        <TextField fx:id="searchField" promptText="Tìm theo tên, article, SKU..." prefWidth="300"/>
+    <FlowPane alignment="CENTER_LEFT" hgap="10" vgap="6">
+        <VBox.margin><Insets top="45" bottom="14" left="15"/></VBox.margin>
+        <TextField fx:id="searchField" promptText="Tìm theo tên, article, SKU..." prefWidth="375"/>
         <MenuButton fx:id="categoryMenuButton" text="Danh mục"/>
-        <ComboBox fx:id="statusFilter" prefWidth="180"/>
+        <ComboBox fx:id="statusFilter" prefWidth="225"/>
         <Button fx:id="clearFiltersButton" text="Xóa bộ lọc" onAction="#onClearFilters"/>
     </FlowPane>
     <StackPane fx:id="registrationTableHost" VBox.vgrow="ALWAYS">
         <TableView fx:id="productTable">
             <columns>
-                <TableColumn fx:id="selectionColumn" text="✓" minWidth="42" prefWidth="46" maxWidth="50" sortable="false"/>
-                <TableColumn fx:id="imageColumn" text="Ảnh" prefWidth="72" maxWidth="82"/>
-                <TableColumn fx:id="nameColumn" text="Sản phẩm" prefWidth="230"/>
-                <TableColumn fx:id="articleColumn" text="Article" prefWidth="130"/>
-                <TableColumn fx:id="genderColumn" text="Giới tính" prefWidth="90"/>
-                <TableColumn fx:id="colorColumn" text="Màu" prefWidth="100"/>
-                <TableColumn fx:id="sizeColumn" text="Size" prefWidth="70"/>
-                <TableColumn fx:id="russianSizeColumn" text="Size RU" prefWidth="88"/>
-                <TableColumn fx:id="barcodeColumn" text="Barcode WB" prefWidth="150"/>
-                <TableColumn fx:id="verifiedGtinColumn" text="GTIN đã xác minh" prefWidth="175"/>
-                <TableColumn fx:id="statusColumn" text="Trạng thái" prefWidth="135"/>
-                <TableColumn fx:id="moderationColumn" text="Kiểm duyệt" prefWidth="185"/>
-                <TableColumn fx:id="marketplaceSyncColumn" text="Đồng bộ WB" prefWidth="180"/>
+                <TableColumn fx:id="selectionColumn" text="✓" minWidth="48" prefWidth="64" maxWidth="64" sortable="false"/>
+                <TableColumn fx:id="imageColumn" text="Ảnh" prefWidth="90" maxWidth="90"/>
+                <TableColumn fx:id="nameColumn" text="Sản phẩm" prefWidth="250"/>
+                <TableColumn fx:id="articleColumn" text="Article" prefWidth="142"/>
+                <TableColumn fx:id="genderColumn" text="Giới tính" prefWidth="80"/>
+                <TableColumn fx:id="colorColumn" text="Màu" prefWidth="80"/>
+                <TableColumn fx:id="sizeColumn" text="Size" prefWidth="62" minWidth="62"/>
+                <TableColumn fx:id="russianSizeColumn" visible="false" text="Size RU" prefWidth="88"/>
+                <TableColumn fx:id="barcodeColumn" text="Barcode WB" prefWidth="210"/>
+                <TableColumn fx:id="verifiedGtinColumn" visible="false" text="GTIN đã xác minh" prefWidth="175"/>
+                <TableColumn fx:id="statusColumn" text="Trạng thái" prefWidth="154"/>
+                <TableColumn fx:id="moderationColumn" visible="false" text="Kiểm duyệt" prefWidth="185"/>
+                <TableColumn fx:id="marketplaceSyncColumn" visible="false" text="Đồng bộ WB" prefWidth="180"/>
                 <TableColumn fx:id="detailColumn" text="Chi tiết" prefWidth="180" visible="false"/>
-                <TableColumn fx:id="actionColumn" text="Thao tác" prefWidth="170" maxWidth="210"/>
+                <TableColumn fx:id="actionColumn" text="Thao tác" prefWidth="134" maxWidth="160"/>
             </columns>
         </TableView>
         <Label fx:id="emptyLabel" text="Không có SKU" visible="false" managed="false" styleClass="text-muted"/>

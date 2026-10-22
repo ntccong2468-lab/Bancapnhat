@@ -54,7 +54,7 @@ class ZnackAutomationInformationTest {
             var field=node("catalogKeyField",javafx.scene.control.PasswordField.class);
             for(var language:AppLanguage.values()) {
                 i18n.setLanguage(language);controller.applyTranslations();
-                assertEquals(i18n.tr("znack.catalog.title"),label("catalogTitleLabel"));
+                assertEquals(i18n.tr("znack.settings.catalog_key"),label("catalogTitleLabel"));
                 assertFalse(node("checkCatalogButton",Button.class).getText().contains("znack.catalog."));
             }
             field.setText("synthetic-private-key");
@@ -92,7 +92,7 @@ class ZnackAutomationInformationTest {
             controller.accountReader((settings, owner, existing, active) -> { remoteCalls.incrementAndGet(); throw new AssertionError("No automatic login"); });
             var information = node("informationTab", Tab.class);
             assertSame(information, information.getTabPane().getSelectionModel().getSelectedItem());
-            assertEquals(List.of("informationTab", "ordersTab", "deletedTab", "settingsTab", "productsTab", "logsTab", "warehouseTab"),
+            assertEquals(List.of("informationTab", "ordersTab", "deletedTab", "settingsTab", "warehouseTab"),
                     information.getTabPane().getTabs().stream().map(Tab::getId).toList());
             for (var language : AppLanguage.values()) {
                 i18n.setLanguage(language); controller.applyTranslations();

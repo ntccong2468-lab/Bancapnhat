@@ -78,14 +78,14 @@ public final class ProductsPane extends BorderPane {
     public ProductsPane(Function<ProductQuery,ProductPage> reader,ShopReadCoordinator reads,ProductRefreshService refreshService) {
         this.reader=reader==null?repository::loadProductPage:reader;this.reads=Objects.requireNonNull(reads);
         this.refreshService=Objects.requireNonNull(refreshService);reload.setId("productSync");status.setId("productStatus");
-        setId("productsPane");getStyleClass().add("products-workspace");setPadding(new Insets(20,8,6,8));
+        setId("productsPane");getStyleClass().add("products-workspace");setPadding(new Insets(34,30,20,34));
         rows.setId("productRows");rows.setFixedCellSize(135);rows.setCellFactory(list->new ProductCell());
         rows.skinProperty().addListener((o,a,b)->Platform.runLater(this::installScrollPaging));
         var headingSpacer=new Region();HBox.setHgrow(headingSpacer,Priority.ALWAYS);
         var heading=new HBox(12,title,count,headingSpacer,reload);heading.setAlignment(Pos.CENTER_LEFT);heading.setMinHeight(42);
         title.getStyleClass().add("h2");count.getStyleClass().add("text-muted");reload.setGraphic(new FontIcon("fth-refresh-cw"));
         search.setId("productSearch");search.setMinWidth(180);search.setPrefWidth(375);
-        category.setPrefWidth(148);document.setPrefWidth(263);
+        category.setPrefWidth(134);document.setPrefWidth(263);
         category.setId("productCategoryFilter");document.setId("productDocumentFilter");
         category.setConverter(new StringConverter<>(){public String toString(String value){return value==null?tr("products.categories"):value;}public String fromString(String value){return value;}});
         document.getItems().add(null);document.getItems().addAll(DocumentState.values());

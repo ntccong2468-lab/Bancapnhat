@@ -49,7 +49,7 @@ class Gs1PaneTest {
             var method=Gs1Pane.class.getDeclaredMethod("profileEmail");method.setAccessible(true);assertEquals("source@example.invalid",method.invoke(pane));
             assertEquals(1,pane.lookupAll("#gs1CheckAllButton").size());assertNotNull(pane.lookup("#gs1ConfigureZnack"));assertNotNull(pane.lookup("#gs1SyncReport"));
             var checks=(GridPane)pane.lookup("#gs1ReadinessGrid");assertEquals(6,checks.getChildren().size());
-            var detailField=Gs1Pane.class.getDeclaredField("detail");detailField.setAccessible(true);assertTrue(((Label)detailField.get(pane)).getText().contains(I18nService.getInstance().tr("gs1.sync.catalog_checked")));
+            var detailField=Gs1Pane.class.getDeclaredField("detail");detailField.setAccessible(true);assertTrue(((Label)detailField.get(pane)).getTooltip().getText().contains(I18nService.getInstance().tr("gs1.sync.catalog_checked")));
             capture("gs1-ready",1366,768);capture("gs1-ready-small",1024,600);return null;
         });
     }
@@ -76,7 +76,7 @@ class Gs1PaneTest {
     private void capture(String name,int width,int height)throws Exception{
         String directory=System.getProperty("vncode.item5.capture.dir");if(directory==null)return;
         var language=I18nService.getInstance().getCurrentLanguage();I18nService.getInstance().setLanguage(AppLanguage.VI);render();
-        pane.resize(width,height);pane.setPrefSize(width,height);var scene=pane.getScene();scene.getStylesheets().add(Gs1Pane.class.getResource("/com/vncode/app/styles/theme.css").toExternalForm());pane.applyCss();pane.layout();var image=pane.snapshot(null,null);
+        pane.resize(width,height);pane.setPrefSize(width,height);var scene=pane.getScene();com.vncode.app.shared.ThemeService.initializeAppearance();com.vncode.app.shared.ThemeService.applyTheme(scene);pane.applyCss();pane.layout();var image=pane.snapshot(null,null);
         var png=new java.awt.image.BufferedImage((int)image.getWidth(),(int)image.getHeight(),java.awt.image.BufferedImage.TYPE_INT_ARGB);for(int y=0;y<png.getHeight();y++)for(int x=0;x<png.getWidth();x++)png.setRGB(x,y,image.getPixelReader().getArgb(x,y));java.nio.file.Files.createDirectories(Path.of(directory));javax.imageio.ImageIO.write(png,"png",Path.of(directory,name+".png").toFile());I18nService.getInstance().setLanguage(language);render();
     }
     @Test void anotherPrefixPreventsFalseShortageAndRenewalOnlyAppearsWhenDue()throws Exception{
@@ -126,10 +126,10 @@ class Gs1PaneTest {
             field("membership",data);render();var table=(TableView<Gs1Membership.Prefix>)pane.lookup("#gs1PrefixTable");assertEquals(2,table.getItems().size());assertEquals(4,table.getColumns().size());
             assertEquals(explicit.expiry(),Gs1Pane.prefixValidUntil(explicit,data));assertEquals(data.expiry(),Gs1Pane.prefixValidUntil(inherited,data));
             assertNull(Gs1Pane.prefixValidUntil(inherited,member(true,null,List.of())));
-            assertEquals(I18nService.getInstance().tr("gs1.unknown_value"),table.getColumns().get(3).getCellObservableValue(inherited).getValue());
+            assertEquals("—",table.getColumns().get(3).getCellObservableValue(inherited).getValue());
             var unknown=member(true,null,List.of(inherited));field("membership",unknown);render();var unknownTable=(TableView<Gs1Membership.Prefix>)pane.lookup("#gs1PrefixTable");
             assertEquals(1,unknownTable.getItems().size(),"Known prefixes remain visible while membership expiry is unverified");
-            assertEquals(I18nService.getInstance().tr("gs1.unknown_value"),unknownTable.getColumns().get(2).getCellObservableValue(inherited).getValue());return null;
+            assertEquals("—",unknownTable.getColumns().get(2).getCellObservableValue(inherited).getValue());return null;
         });
     }
     @Test void agreementRemainsUnverifiedInEveryLanguageEvenWithReportedAuthentication()throws Exception{

@@ -8,5 +8,11 @@
     "source": "https://github.com/google/fonts/blob/66928797f271fed5ee428544e7229685e2d90127/ofl/inter/OFL.txt",
     "gitBlobSha": "21f6aff961064c2e429f570995e446bcdd555422",
     "sha256": "5b9321a4298cfeb6b34354164a1c3afc3db114569984c502b9b35d988fd58c57"
+  },
+  "Inter-Bold.ttf": {
+    "derivedFrom": "Inter.ttf",
+    "method": "fontTools.varLib.instancer: wght=700, opsz=14; Bold style names and weight metadata for JavaFX",
+    "license": "Inter-OFL.txt",
+    "sha256": "33a2072be629ef1b34706e9c77ea3ca1aea763592bf4e7cadb4f054c492768a4"
   }
 }

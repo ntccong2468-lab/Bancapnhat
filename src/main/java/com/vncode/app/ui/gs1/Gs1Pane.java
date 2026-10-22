@@ -124,7 +124,7 @@ public final class Gs1Pane extends BorderPane {
     private record Context(Shop shop,ZnackModels.Settings settings,String inn,String fingerprint,CryptoProCertificateInfo certificate){}
     private record Application(NationalCatalogGs1Client.Session session,NationalCatalogGs1Client.AccountSnapshot snapshot,Map<String,List<NationalCatalogGs1Client.Choice>> dictionaries,CryptoProCertificateInfo certificate,Gs1ActionPolicy.Decision decision){}
     public Gs1Pane(){
-        setPadding(new Insets(20));getStyleClass().add("gs1-workspace");
+        setPadding(new Insets(30,30,20,38));getStyleClass().add("gs1-workspace");
         requests.setCellFactory(list->new ListCell<>(){@Override protected void updateItem(Gs1Repository.Request item,boolean empty){super.updateItem(item,empty);setText(empty||item==null?null:item.subject()+"\n"+tr("gs1.state."+item.state().name())+" · "+displayTime(item.createdAt()));}});
         requests.getSelectionModel().selectedItemProperty().addListener((o,a,b)->showThread(b));
         i18n.addListener(languageListener);render();
@@ -206,15 +206,20 @@ public final class Gs1Pane extends BorderPane {
     }
     private VBox readinessCard(){
         var snapshot=readiness();
-        var card=new VBox(12,cardHeading("gs1.readiness.title",new Region()));card.setId("gs1ReadinessCard");card.getStyleClass().add("feature-card");card.setPadding(new Insets(16));
+        var checked=new Label(catalogCheckedAt==null?"":tr("gs1.checked_at")+" "+displayTime(catalogCheckedAt));checked.getStyleClass().add("text-muted");
+        var verify=button("gs1.reference.check",this::checkAll);var headingAction=new HBox(14,checked,verify);headingAction.setAlignment(Pos.CENTER_RIGHT);
+        var card=new VBox(18,cardHeading("gs1.readiness.title",headingAction));card.setId("gs1ReadinessCard");card.getStyleClass().add("feature-card");card.setPadding(new Insets(16));
         var checks=new GridPane();checks.setId("gs1ReadinessGrid");checks.setHgap(18);checks.setVgap(14);var cells=new ArrayList<VBox>();
         for(var check:snapshot.checks()){
-            var name=new Label(tr("gs1.readiness.kind."+check.kind().name()));name.setWrapText(true);name.getStyleClass().add("text-secondary");
+            var name=new Label(tr("gs1.readiness.kind."+check.kind().name()));name.setWrapText(true);name.getStyleClass().add("text-bold");
             String marker=switch(check.state()){case READY->"✓ ";case ACTION_REQUIRED->"! ";case UNKNOWN->"? ";};
             var state=new Label(marker+tr("gs1.readiness.state."+check.state().name()));state.setId("gs1ReadinessState"+check.kind().name());state.setWrapText(true);
             state.getStyleClass().add(switch(check.state()){case READY->"activation-active";case ACTION_REQUIRED->"text-danger";case UNKNOWN->"text-muted";});
             var hint=new Label(tr(check.messageKey()));hint.setWrapText(true);hint.getStyleClass().add("text-muted");
-            var cell=new VBox(5,name,state,hint);cell.setId("gs1Readiness"+check.kind().name());cell.setMinWidth(0);cell.setMaxWidth(Double.MAX_VALUE);
+            var markerDot=new Region();markerDot.getStyleClass().addAll("gs1-readiness-dot",switch(check.state()){case READY->"ready";case ACTION_REQUIRED->"error";case UNKNOWN->"unknown";});
+            state.setVisible(false);state.setManaged(false);
+            var content=new VBox(4,name,hint,state);content.setMinWidth(0);HBox.setHgrow(content,Priority.ALWAYS);var checkRow=new HBox(14,markerDot,content);checkRow.setAlignment(Pos.CENTER_LEFT);
+            var cell=new VBox(5,checkRow);cell.setId("gs1Readiness"+check.kind().name());cell.setMinWidth(0);cell.setMaxWidth(Double.MAX_VALUE);
             if(check.kind()==Gs1ReadinessService.Kind.GTIN&&snapshot.availability().available().isPresent()){
                 var amount=new Label(snapshot.availability().available().getAsLong()+" GTIN"+(snapshot.availability().complete()?"":" · "+tr("gs1.partial")));amount.setWrapText(true);cell.getChildren().add(amount);
             }
@@ -228,6 +233,7 @@ public final class Gs1Pane extends BorderPane {
             }
             cells.add(cell);checks.getChildren().add(cell);
         }
+        var description=new Label(tr("gs1.reference.readiness_hint"));description.setWrapText(true);description.getStyleClass().add("text-muted");card.getChildren().add(description);
         arrangeChecks(checks,cells,2);checks.widthProperty().addListener((o,a,b)->arrangeChecks(checks,cells,b.doubleValue()<520?1:2));card.getChildren().add(checks);
         publishAttention();return card;
     }
@@ -253,55 +259,63 @@ public final class Gs1Pane extends BorderPane {
         case NONE->{}
     }}
     private void render(){
-        Label title=new Label(tr("gs1.title"));title.getStyleClass().add("h2");
-        var sync=button("gs1.check_all",this::checkAll);sync.setId("gs1CheckAllButton");sync.setDisable(busy||syncing||shop==null);
+        Label title=new Label(tr("gs1.reference.title"));title.getStyleClass().add("h2");
+        var subtitle=new Label(inn.isBlank()?"":membershipName()+" · ИНН "+inn);subtitle.getStyleClass().add("text-muted");
+        var sync=button("gs1.reference.recheck",this::checkAll);sync.setId("gs1CheckAllButton");sync.setDisable(busy||syncing||shop==null);sync.getStyleClass().add("btn-primary");sync.setGraphic(new org.kordamp.ikonli.javafx.FontIcon("fth-refresh-cw"));
         var configure=new Button(tr("gs1.sync.configure"));configure.setId("gs1ConfigureZnack");configure.setOnAction(e->configureSignature.run());
         var report=new Button(tr("gs1.sync.report"));report.setId("gs1SyncReport");report.setDisable(shop==null);report.setOnAction(e->Gs1SyncReportDialog.show(getScene()==null?null:getScene().getWindow(),shop));
-        sync.setTooltip(new Tooltip(tr("gs1.guide")));
-        var heading=new VBox(5,new FlowPane(12,8,title,sync,configure,report));heading.setPadding(new Insets(0,0,10,0));setTop(heading);
-        summary.setWrapText(true);summary.getStyleClass().setAll("label","h2");detail.setWrapText(true);detail.getStyleClass().setAll("label","text-muted");status.setWrapText(true);
-        var left=new VBox(10,membershipCard(),readinessCard(),prefixCard());left.setId("gs1AccountPanel");left.setPadding(new Insets(0,12,8,0));left.setMinWidth(0);
+        var extras=new HBox(configure,report);extras.setVisible(false);extras.setManaged(false);
+        var menu=new ContextMenu();var settingsItem=new MenuItem(configure.getText());settingsItem.setOnAction(e->configure.fire());var reportItem=new MenuItem(report.getText());reportItem.setOnAction(e->report.fire());menu.getItems().addAll(settingsItem,reportItem);title.setContextMenu(menu);
+        var pageTitle=new VBox(3,title,subtitle);HBox.setHgrow(pageTitle,Priority.ALWAYS);var heading=new HBox(16,pageTitle,sync,extras);heading.setAlignment(Pos.CENTER_LEFT);heading.setPadding(new Insets(0,0,18,0));setTop(heading);
+        summary.setWrapText(true);summary.getStyleClass().setAll("label","text-bold");detail.setWrapText(true);detail.getStyleClass().setAll("label","text-muted");status.setWrapText(true);
+        var left=new VBox(18,membershipCard(),readinessCard(),prefixCard());left.setId("gs1AccountPanel");left.setPadding(new Insets(0,8,8,0));left.setMinWidth(0);
         headerScroll.setId("gs1AccountScroll");headerScroll.setFitToWidth(true);headerScroll.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);headerScroll.setMinWidth(0);headerScroll.setMinHeight(0);headerScroll.setMaxHeight(Double.MAX_VALUE);headerScroll.setContent(left);
         var inboxActions=new FlowPane(8,8,button("gs1.mail_settings",this::mailSettings),button("gs1.inbox_refresh",this::refreshInbox));inboxActions.setDisable(busy||inn.isBlank());
-        requests.setId("gs1Requests");requests.setPlaceholder(new Label(tr("gs1.requests_empty")));requests.setMinHeight(80);requests.setPrefHeight(145);requests.setMaxHeight(190);
+        boolean hasRequests=!requests.getItems().isEmpty();inboxActions.setManaged(hasRequests);inboxActions.setVisible(hasRequests);
+        requests.setId("gs1Requests");requests.setPlaceholder(new Label(tr("gs1.requests_empty")));requests.setMinHeight(80);requests.setPrefHeight(145);requests.setMaxHeight(190);requests.setManaged(hasRequests);requests.setVisible(hasRequests);
         conversationScroll.setFitToWidth(true);conversationScroll.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
-        conversationScroll.setId("gs1Conversation");conversationScroll.setMinHeight(100);conversation.setPadding(new Insets(8));
-        if(conversation.getChildren().isEmpty()){var empty=new Label(tr("gs1.inbox_empty"));empty.setWrapText(true);empty.getStyleClass().add("text-muted");conversation.getChildren().add(empty);}
-        var inboxTitle=new Label(tr("gs1.inbox_title"));inboxTitle.getStyleClass().add("h2");inboxTitle.setWrapText(true);
-        var inbox=new VBox(10,inboxTitle,inboxActions,new Label(tr("gs1.requests")),requests,conversationScroll);inbox.setId("gs1InboxPanel");inbox.setPadding(new Insets(12));inbox.setMinWidth(0);inbox.setMinHeight(0);inbox.getStyleClass().add("feature-card");VBox.setVgrow(conversationScroll,Priority.ALWAYS);
-        SplitPane split=new SplitPane(headerScroll,inbox);split.setId("gs1WorkspaceSplit");split.setDividerPositions(.64);split.widthProperty().addListener((o,a,b)->adaptWorkspace(split,b.doubleValue()));setCenter(split);adaptWorkspace(split,getWidth()-getPadding().getLeft()-getPadding().getRight());
-        setBottom(status);BorderPane.setMargin(status,new Insets(8,0,0,0));
+        conversationScroll.setId("gs1Conversation");conversationScroll.setMinHeight(100);conversation.setPadding(Insets.EMPTY);
+        if(conversation.getChildren().isEmpty()||requests.getSelectionModel().getSelectedItem()==null){var empty=new Label(tr("gs1.reference.inbox_empty"));empty.setWrapText(true);empty.getStyleClass().add("text-muted");conversation.getChildren().setAll(empty);}
+        var inboxTitle=new Label(tr("gs1.reference.inbox_title"));inboxTitle.getStyleClass().add("text-bold");inboxTitle.setWrapText(true);
+        var inboxMenu=new ContextMenu();var mail=new MenuItem(tr("gs1.mail_settings"));mail.setOnAction(e->mailSettings());var refreshMail=new MenuItem(tr("gs1.inbox_refresh"));refreshMail.setOnAction(e->refreshInbox());inboxMenu.getItems().setAll(mail,refreshMail);inboxTitle.setContextMenu(inboxMenu);
+        var requestTitle=new Label(tr("gs1.requests"));requestTitle.setManaged(hasRequests);requestTitle.setVisible(hasRequests);
+        var inbox=new VBox(12,inboxTitle,inboxActions,requestTitle,requests,conversationScroll);inbox.setId("gs1InboxPanel");inbox.setPadding(new Insets(20));inbox.setMinWidth(0);inbox.setMinHeight(0);inbox.getStyleClass().add("feature-card");VBox.setVgrow(conversationScroll,Priority.ALWAYS);
+        SplitPane split=new SplitPane(headerScroll,inbox);split.setId("gs1WorkspaceSplit");split.setDividerPositions(.69);split.widthProperty().addListener((o,a,b)->adaptWorkspace(split,b.doubleValue()));setCenter(split);adaptWorkspace(split,getWidth()-getPadding().getLeft()-getPadding().getRight());
+        status.managedProperty().unbind();status.visibleProperty().unbind();status.managedProperty().bind(status.textProperty().isNotEmpty());status.visibleProperty().bind(status.managedProperty());setBottom(status);BorderPane.setMargin(status,new Insets(8,0,0,0));
         requests.refresh();if(requests.getSelectionModel().getSelectedItem()!=null)showThread(requests.getSelectionModel().getSelectedItem());
     }
+    private String membershipName(){var certificate=signedCertificate!=null?signedCertificate:currentContext==null?null:currentContext.certificate();return membership!=null&&!membership.legalName().isBlank()?membership.legalName():certificate==null?(shop==null?"":shop.getName()):certificate.ownerName();}
     private static void adaptWorkspace(SplitPane split,double width){
         var orientation=width>0&&width<840?Orientation.VERTICAL:Orientation.HORIZONTAL;
-        if(split.getOrientation()!=orientation){split.setOrientation(orientation);split.setDividerPositions(orientation==Orientation.HORIZONTAL?.64:.56);}
+        if(split.getOrientation()!=orientation)split.setOrientation(orientation);
+        split.setDividerPositions(orientation==Orientation.HORIZONTAL?.69:.56);
     }
     private VBox membershipCard(){
-        var card=new VBox(9,cardHeading("gs1.account_title",new Region()),summary,detail);card.setId("gs1MembershipCard");card.getStyleClass().add("feature-card");card.setPadding(new Insets(16));
         var snapshot=readiness();var assertion=snapshot.check(Gs1ReadinessService.Kind.MEMBERSHIP).state()==Gs1ReadinessService.State.UNKNOWN?Gs1Membership.Status.UNKNOWN:membership.status(LocalDate.now(ZoneId.of("Europe/Moscow")));
-        var certificate=signedCertificate!=null?signedCertificate:currentContext==null?null:currentContext.certificate();
-        String name=membership!=null&&!membership.legalName().isBlank()?membership.legalName():certificate==null?"":certificate.ownerName();
-        summary.setText(inn.isBlank()?tr(shop==null?"gs1.no_shop":"gs1.no_signer"):name+" · INN: "+inn+"\n"+tr("gs1.status."+assertion.name()));
-        String facts=membership==null?tr("gs1.not_checked"):tr("gs1.expiry")+": "+Objects.toString(membership.expiry(),tr("gs1.unknown_value"))+" · "+(membership.stale(Instant.now())?tr("gs1.stale"):tr("gs1.cached"));
-        if(certificate!=null&&inn.equals(certificate.inn())&&!certificate.ownerName().equals(name)&&!certificate.ownerName().matches("[A-Fa-f0-9]{40}"))facts+="\n"+tr("gs1.signed_account")+": "+certificate.ownerName();if(!profileEmail.isBlank())facts+="\nEmail: "+profileEmail;
-        if(catalogCheckedAt!=null)facts+="\n"+tr("gs1.sync.catalog_checked")+": "+displayTime(catalogCheckedAt);
-        if(balanceCheckedAt!=null)facts+=" · "+tr("gs1.sync.balance_checked")+": "+displayTime(balanceCheckedAt);detail.setText(facts);detail.setTooltip(new Tooltip(tr("gs1.source_catalog")+(membership==null?"":" · "+displayTime(membership.checkedAt()))));
-        var policy=decision();var join=button(joinKey(policy),this::join);join.setId("gs1Join");join.setDisable(busy||inn.isBlank()||joinDisabled(policy));var renewal=button("gs1.renew",()->draft(Gs1LettersService.Kind.RENEWAL));renewal.setId("gs1Renew");renewal.setDisable(busy||inn.isBlank()||!policy.renewal());var actions=new FlowPane(8,8,join,renewal);
+        var badge=new Label(tr(assertion==Gs1Membership.Status.ACTIVE?"gs1.reference.active":"gs1.status."+assertion.name()));badge.getStyleClass().add("membership-badge");
+        switch(assertion){case UNKNOWN->badge.getStyleClass().add("unknown");case EXPIRED,EXCLUDED,NON_MEMBER->badge.getStyleClass().add("error");case EXPIRING->badge.getStyleClass().add("warning");default->{}}
+        LocalDate expiry=membership==null?null:membership.expiry();long days=expiry==null?0:java.time.temporal.ChronoUnit.DAYS.between(LocalDate.now(ZoneId.of("Europe/Moscow")),expiry);
+        summary.setText(expiry==null?tr("gs1.not_checked"):tr("gs1.expiry")+": "+expiry.format(java.time.format.DateTimeFormatter.ofPattern("dd.MM.yyyy"))+" ("+java.text.MessageFormat.format(tr(days>=0?"gs1.reference.days_left":"gs1.reference.days_expired"),Math.abs(days))+")");
+        var line=new HBox(14,badge,summary);line.setAlignment(Pos.CENTER_LEFT);
+        var explanation=new Label(tr(assertion==Gs1Membership.Status.ACTIVE||assertion==Gs1Membership.Status.EXPIRING?"gs1.reference.member_ready":"gs1.status."+assertion.name()));explanation.setWrapText(true);
+        detail.setText(catalogCheckedAt==null?tr("gs1.not_checked"):tr("gs1.checked_at")+" "+displayTime(catalogCheckedAt));
+        detail.setTooltip(new Tooltip(tr("gs1.source_catalog")+"\n"+tr("gs1.sync.catalog_checked")+": "+(catalogCheckedAt==null?"—":displayTime(catalogCheckedAt))+"\n"+tr("gs1.sync.balance_checked")+": "+(balanceCheckedAt==null?"—":displayTime(balanceCheckedAt))+(profileEmail.isBlank()?"":"\nEmail: "+profileEmail)));
+        var policy=decision();var join=button(joinKey(policy),this::join);join.setId("gs1Join");join.setDisable(busy||inn.isBlank()||joinDisabled(policy));var renewal=button("gs1.renew",()->draft(Gs1LettersService.Kind.RENEWAL));renewal.setId("gs1Renew");renewal.setDisable(busy||inn.isBlank()||!policy.renewal());
+        var more=button("gs1.more_codes",()->draft(Gs1LettersService.Kind.MORE_CODES));more.setId("gs1MoreCodes");more.setDisable(busy||inn.isBlank()||!Gs1ActionPolicy.canOpenPrefixRequest(membership,Instant.now(),LocalDate.now(ZoneId.of("Europe/Moscow"))));more.getStyleClass().add("btn-primary");
+        var issue=button("gs1.catalog_issue",()->draft(Gs1LettersService.Kind.CATALOG_ISSUE));issue.setDisable(busy||inn.isBlank());issue.getStyleClass().add("btn-primary");
+        var actions=new FlowPane(10,8,more,issue,join,renewal);boolean showJoin=policy.joinAction()!=Gs1ActionPolicy.JoinAction.ALREADY_MEMBER;join.setVisible(showJoin);join.setManaged(showJoin);renewal.setVisible(policy.renewal());renewal.setManaged(policy.renewal());
         if(policy.joiningInvoice()){var invoice=button("gs1.joining_invoice",()->draft(Gs1LettersService.Kind.JOINING_INVOICE));invoice.setDisable(busy||inn.isBlank());actions.getChildren().add(invoice);}
-        boolean showActions=policy.joinAction()!=Gs1ActionPolicy.JoinAction.ALREADY_MEMBER||policy.renewal()||policy.joiningInvoice();
-        actions.setVisible(showActions);actions.setManaged(showActions);card.getChildren().add(actions);return card;
+        var card=new VBox(10,line,explanation,detail,actions);card.setId("gs1MembershipCard");card.getStyleClass().add("feature-card");card.setPadding(new Insets(20));return card;
     }
     private VBox prefixCard(){
-        var more=button("gs1.more_codes",()->draft(Gs1LettersService.Kind.MORE_CODES));more.setId("gs1MoreCodes");more.setDisable(busy||inn.isBlank()||!Gs1ActionPolicy.canOpenPrefixRequest(membership,Instant.now(),LocalDate.now(ZoneId.of("Europe/Moscow"))));
-        var table=new TableView<Gs1Membership.Prefix>();table.setId("gs1PrefixTable");table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);table.setPlaceholder(new Label(tr("gs1.prefixes_unknown")));table.setMinHeight(110);
-        var gcp=new TableColumn<Gs1Membership.Prefix,String>(tr("gs1.prefix.gcp"));gcp.setCellValueFactory(cell->new javafx.beans.property.SimpleStringProperty(cell.getValue().gcp()));gcp.setMinWidth(85);
-        var gln=new TableColumn<Gs1Membership.Prefix,String>(tr("gs1.prefix.gln"));gln.setCellValueFactory(cell->new javafx.beans.property.SimpleStringProperty(cell.getValue().glns().isEmpty()?tr("gs1.unknown_value"):String.join("\n",cell.getValue().glns())));gln.setMinWidth(110);
-        var paid=new TableColumn<Gs1Membership.Prefix,String>(tr("gs1.prefix.valid_until"));paid.setCellValueFactory(cell->new javafx.beans.property.SimpleStringProperty(Objects.toString(prefixValidUntil(cell.getValue(),membership),tr("gs1.unknown_value"))));paid.setMinWidth(105);
-        var remaining=new TableColumn<Gs1Membership.Prefix,String>(tr("gs1.prefix.remaining"));remaining.setCellValueFactory(cell->new javafx.beans.property.SimpleStringProperty(Objects.toString(cell.getValue().gtinsLeft(),tr("gs1.unknown_value"))));remaining.setMinWidth(100);table.getColumns().addAll(gcp,gln,paid,remaining);
+        var table=new TableView<Gs1Membership.Prefix>();table.setId("gs1PrefixTable");table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);table.setPlaceholder(new Label(tr("gs1.prefixes_unknown")));table.setMinHeight(110);table.setFixedCellSize(54);
+        var gcp=new TableColumn<Gs1Membership.Prefix,String>(tr("gs1.reference.gcp"));gcp.setCellValueFactory(cell->new javafx.beans.property.SimpleStringProperty(cell.getValue().gcp()));gcp.setMinWidth(85);gcp.setPrefWidth(235);
+        var gln=new TableColumn<Gs1Membership.Prefix,String>(tr("gs1.prefix.gln"));gln.setCellValueFactory(cell->new javafx.beans.property.SimpleStringProperty(cell.getValue().glns().isEmpty()?"—":String.join("\n",cell.getValue().glns())));gln.setMinWidth(110);gln.setPrefWidth(245);
+        var paid=new TableColumn<Gs1Membership.Prefix,String>(tr("gs1.reference.paid_until"));paid.setCellValueFactory(cell->new javafx.beans.property.SimpleStringProperty(prefixValidUntil(cell.getValue(),membership)==null?"—":prefixValidUntil(cell.getValue(),membership).format(java.time.format.DateTimeFormatter.ofPattern("dd.MM.yyyy"))));paid.setMinWidth(105);paid.setPrefWidth(220);
+        var remaining=new TableColumn<Gs1Membership.Prefix,String>(tr("gs1.reference.remaining"));remaining.setCellValueFactory(cell->new javafx.beans.property.SimpleStringProperty(cell.getValue().gtinsLeft()==null?"—":cell.getValue().gtinsLeft().toString()));remaining.setMinWidth(100);remaining.setPrefWidth(200);table.getColumns().addAll(gcp,gln,paid,remaining);
         if(membership!=null&&inn.equals(membership.inn())&&"production".equals(environment))table.getItems().setAll(Gs1ActionPolicy.prefixesForDisplay(membership,Instant.now(),LocalDate.now(ZoneId.of("Europe/Moscow"))));
-        table.setPrefHeight(Math.min(260,60+Math.max(1,table.getItems().size())*54));table.setMaxHeight(300);
-        var source=new Label(tr("gs1.prefix.source_notice"));source.setWrapText(true);source.getStyleClass().add("text-muted");var issue=button("gs1.catalog_issue",()->draft(Gs1LettersService.Kind.CATALOG_ISSUE));issue.setDisable(busy||inn.isBlank());var card=new VBox(10,cardHeading("gs1.prefixes_title",more),table,source,issue);card.setId("gs1PrefixesCard");card.getStyleClass().add("feature-card");card.setPadding(new Insets(16));return card;
+        table.setPrefHeight(58+Math.max(1,table.getItems().size())*54);table.setMaxHeight(Double.MAX_VALUE);
+        var card=new VBox(table);card.setId("gs1PrefixesCard");return card;
     }
     static LocalDate prefixValidUntil(Gs1Membership.Prefix prefix,Gs1Membership member){return prefix.expiry()!=null?prefix.expiry():member==null?null:member.expiry();}
     private void checkAll(){

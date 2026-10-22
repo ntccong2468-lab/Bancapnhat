@@ -168,6 +168,7 @@ public final class ZnackCardRegistrationController {
     @FXML
     private void initialize() {
         configureColumns();
+        readinessLabel.textProperty().addListener((o,a,b)->{boolean warning=!ready()&&b!=null&&!b.isBlank();readinessLabel.setVisible(warning);readinessLabel.setManaged(warning);});
         batchProgressLabel.setCursor(javafx.scene.Cursor.HAND);batchProgressLabel.setOnMouseClicked(event->onReport());
         extraActions.getChildren().clear();
         var extraMenu=new ContextMenu(new CustomMenuItem(refreshButton,false),new CustomMenuItem(reportButton,false),new CustomMenuItem(newCardsSelectedButton,false),
@@ -259,12 +260,12 @@ public final class ZnackCardRegistrationController {
         statusFilter.setCellFactory(ignored->statusFilterCell());
         imageColumn.setText(i18n.tr("fbo.column.image"));
         nameColumn.setText(i18n.tr("fbo.column.name"));
-        articleColumn.setText("Article");
+        articleColumn.setText(tr("products.seller_article"));
         colorColumn.setText(i18n.tr("fbo.column.color"));
         sizeColumn.setText(tr("znack.registration.column_size_original"));
         russianSizeColumn.setText(tr("znack.registration.column_size_ru"));
-        barcodeColumn.setText(tr("znack.registration.barcode_wb"));verifiedGtinColumn.setText(tr("znack.registration.verified_gtin"));
-        statusColumn.setText(tr("znack.registration.column_registration"));
+        barcodeColumn.setText("Barcode WB / GTIN");verifiedGtinColumn.setText(tr("znack.registration.verified_gtin"));
+        statusColumn.setText(tr("znack.registration.status"));
         moderationColumn.setText(tr("znack.registration.column_moderation"));
         marketplaceSyncColumn.setText(java.text.MessageFormat.format(tr("znack.registration.column_marketplace_sync"),"WB"));
         actionColumn.setText(i18n.tr("znack.registration.action"));
@@ -969,6 +970,7 @@ public final class ZnackCardRegistrationController {
     }
 
     private void configureColumns() {
+        operationLabel.textProperty().addListener((o,a,b)->{boolean shown=b!=null&&!b.isBlank();operationLabel.setVisible(shown);operationLabel.setManaged(shown);});
         productTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
         selectionColumn.setCellValueFactory(cell->new ReadOnlyObjectWrapper<>(cell.getValue()));
         selectionColumn.setCellFactory(column->new TableCell<>(){
@@ -986,8 +988,8 @@ public final class ZnackCardRegistrationController {
             private final StackPane pane = new StackPane(placeholder, imageView);
             private String currentUrl;
             {
-                imageView.setFitWidth(44);
-                imageView.setFitHeight(58);
+                imageView.setFitWidth(50);
+                imageView.setFitHeight(75);
                 imageView.setPreserveRatio(true);
                 imageView.setSmooth(true);
                 placeholder.setMinSize(44, 58);
@@ -1026,7 +1028,13 @@ public final class ZnackCardRegistrationController {
                 rowDetails.getOrDefault(cell.getValue().chrtId(),new ZnackRegistrationQueryRepository.Details("","")).gender()));
         sizeColumn.setCellValueFactory(cell -> new ReadOnlyStringWrapper(cell.getValue().size()));
         russianSizeColumn.setCellValueFactory(cell -> new ReadOnlyStringWrapper(RegistrationTableText.russianSize(cell.getValue().wbSize())));
-        barcodeColumn.setCellValueFactory(cell -> new ReadOnlyStringWrapper(String.join(", ",cell.getValue().barcodes())));
+        barcodeColumn.setCellValueFactory(cell -> new ReadOnlyStringWrapper(combinedBarcode(cell.getValue())));
+        nameColumn.setCellFactory(column->new TableCell<>(){
+            private final Label name=new Label(),meta=new Label(),code=new Label();
+            private final javafx.scene.layout.VBox body=new javafx.scene.layout.VBox(4,name,meta,code);
+            {meta.getStyleClass().add("text-muted");code.getStyleClass().add("text-muted");body.setMinWidth(0);body.prefWidthProperty().bind(column.widthProperty().subtract(22));for(var label:List.of(name,meta,code)){label.setMinWidth(0);label.setMaxWidth(Double.MAX_VALUE);label.setTextOverrun(javafx.scene.control.OverrunStyle.ELLIPSIS);}}
+            protected void updateItem(String value,boolean empty){super.updateItem(value,empty);setText(null);if(empty||value==null){setGraphic(null);return;}var lines=value.split("\\n",3);name.setText(lines[0]);meta.setText(lines.length>1?lines[1]:"");code.setText(lines.length>2?lines[2]:"");setTooltip(new Tooltip(value));setGraphic(body);}
+        });
         RegistrationTextCells.wrap(barcodeColumn);RegistrationTextCells.wrap(verifiedGtinColumn);
         verifiedGtinColumn.setCellValueFactory(cell->new ReadOnlyStringWrapper(verifiedGtinText(cell.getValue())));
         RegistrationTextCells.wrap(detailColumn);
@@ -1054,7 +1062,7 @@ public final class ZnackCardRegistrationController {
             private final Label waiting = new Label();
             private final MenuButton publishedActions=new MenuButton();
             private final MenuItem newCard=new MenuItem(),switchCard=new MenuItem(),retryOriginal=new MenuItem();
-            { button.getStyleClass().add("btn-primary");button.setOnAction(event->createCard(getItem()));
+            { button.setWrapText(true);button.setMinWidth(0);button.prefWidthProperty().bind(actionColumn.widthProperty().subtract(24));button.getStyleClass().add("btn-primary");button.setOnAction(event->createCard(getItem()));
               publishedActions.getStyleClass().add("btn-secondary");publishedActions.getItems().setAll(newCard,switchCard,retryOriginal);retryOriginal.setOnAction(event->createCard(getItem()));
               newCard.setOnAction(event->replaceCard(getItem()));switchCard.setOnAction(event->completeReplacement(getItem())); }
             @Override protected void updateItem(Sku item, boolean empty) {
@@ -1165,7 +1173,7 @@ public final class ZnackCardRegistrationController {
     }
     private void updateCounts() {
         if(paginationLabel==null)return;
-        paginationLabel.setText(tr("znack.registration.report_scope_filter")+" · "+java.text.MessageFormat.format(tr("znack.registration.page_count"),productTable.getItems().size(),filteredCount));
+        paginationLabel.setText(java.text.MessageFormat.format(tr("znack.registration.page_count"),productTable.getItems().size(),filteredCount));
         selectionLabel.setText(java.text.MessageFormat.format(tr("znack.registration.selection_count"),selectedRows().size()));
         allFilteredCheckBox.setSelected(filteredCount>0&&selectedRows().size()==filteredCount);
         boolean more=productTable.getItems().size()<filteredCount;loadMoreButton.setVisible(false);loadMoreButton.setManaged(false);
@@ -1173,11 +1181,16 @@ public final class ZnackCardRegistrationController {
         String pipeline=java.text.MessageFormat.format(tr("znack.registration.pipeline_summary"),summary.total(),summary.published(),summary.readyToSign(),summary.waiting(),summary.errors());
         String catalog=summary.syncedAt()==null?tr("znack.registration.catalog_unknown"):
                 java.text.MessageFormat.format(tr("znack.registration.catalog_summary"),summary.catalog(),summary.catalogPublished(),summary.catalog()-summary.catalogPublished(),summary.catalogUnlinked());
-        summaryLabel.setText(tr("znack.registration.report_scope_store")+" · "+pipeline+"\n"+catalog+(cardIndex==null?"":" · "+tr("znack.registration.catalog_error_total")+": "+cardIndex.catalogErrorCount()));
+        summaryLabel.setText(pipeline);
+        summaryLabel.setTooltip(new Tooltip(tr("znack.registration.report_scope_store")+" · "+pipeline+"\n"+catalog+(cardIndex==null?"":" · "+tr("znack.registration.catalog_error_total")+": "+cardIndex.catalogErrorCount())));
+    }
+    private String combinedBarcode(Sku row){
+        String gtin=first(view(row).gtin(),row.gtin());
+        return String.join(", ",row.barcodes())+(gtin.isBlank()?"":"\nGTIN: "+gtin);
     }
     private String productName(Sku sku) {
         var detail=rowDetails.get(sku.chrtId());
-        return first(sku.title(),sku.subjectName())+"\n"+first(sku.brand(),sku.subjectName())
+        return first(sku.title(),sku.subjectName())+"\n"+java.util.stream.Stream.of(sku.brand(),sku.subjectName()).filter(v->v!=null&&!v.isBlank()).collect(java.util.stream.Collectors.joining(" · "))
                 +(detail==null||detail.tnved().isBlank()?"":"\nTN VED: "+detail.tnved());
     }
     private static boolean confirm(String message) {

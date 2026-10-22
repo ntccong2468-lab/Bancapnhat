@@ -48,6 +48,11 @@ public class ZnackAutomationController {
     @FXML private Label omsHelpTitleLabel, omsHelpDescriptionLabel, omsHelpStepsTitleLabel, omsHelpStepsLabel;
     @FXML private Label omsHelpRecognizeTitleLabel, omsHelpRecognizeLabel, omsHelpWarningLabel;
     @FXML private Label signatureTitleLabel;
+    @FXML private Button editSettingsButton;
+    @FXML private ComboBox<String> productionMethodCombo;
+    @FXML private Label purchaseMethodLabel,purchaseMethodHint;
+    @FXML private javafx.scene.layout.FlowPane catalogActions;
+    private boolean settingsEditing;
     private final com.vncode.app.ui.kiz.KizWarehousePane warehousePane=new com.vncode.app.ui.kiz.KizWarehousePane();
     private final Tab warehouseTab=new Tab();
     @FXML private Tab informationTab, settingsTab, productsTab, deletedTab, ordersTab, logsTab;
@@ -139,7 +144,13 @@ public class ZnackAutomationController {
 
     @FXML
     private void initialize() {
-        warehouseTab.setId("warehouseTab");warehouseTab.setClosable(false);warehouseTab.setContent(warehousePane);informationTab.getTabPane().getTabs().add(warehouseTab);
+        warehouseTab.setId("warehouseTab");warehouseTab.setContent(warehousePane);
+        var tabs=informationTab.getTabPane();warehouseTab.setClosable(false);tabs.getTabs().setAll(informationTab,ordersTab,deletedTab,settingsTab,warehouseTab);
+        var extraPages=new ContextMenu();
+        for(var tab:List.of(productsTab,logsTab)){
+            var entry=new MenuItem();entry.textProperty().bind(tab.textProperty());entry.setOnAction(e->{if(!tabs.getTabs().contains(tab))tabs.getTabs().add(tab);tab.setClosable(true);tabs.getSelectionModel().select(tab);});extraPages.getItems().add(entry);
+        }
+        var introduction=new CheckMenuItem();introduction.textProperty().bind(autoIntroductionCheck.textProperty());introduction.selectedProperty().bindBidirectional(autoIntroductionCheck.selectedProperty());extraPages.getItems().addAll(new SeparatorMenuItem(),introduction);titleLabel.setContextMenu(extraPages);
         warehouseTab.selectedProperty().addListener((o,a,b)->{if(b)warehousePane.reload();});
         connectionPanels.widthProperty().addListener((ignored,old,width)->arrangeConnectionPanels(width.doubleValue()));
         arrangeConnectionPanels(0);
@@ -249,7 +260,7 @@ public class ZnackAutomationController {
     }
 
     private void arrangeConnectionPanels(double width) {
-        int columns=width>=780?2:1;
+        int columns=1;
         if(columns==connectionColumns)return;
         connectionColumns=columns;
         connectionPanels.getColumnConstraints().clear();
@@ -261,7 +272,7 @@ public class ZnackAutomationController {
         javafx.scene.layout.GridPane.setColumnIndex(catalogPanel,0);
         javafx.scene.layout.GridPane.setRowIndex(catalogPanel,0);
         javafx.scene.layout.GridPane.setColumnIndex(signaturePanel,columns==2?1:0);
-        javafx.scene.layout.GridPane.setRowIndex(signaturePanel,columns==2?0:1);
+        javafx.scene.layout.GridPane.setRowIndex(signaturePanel,2);
         javafx.scene.layout.GridPane.setValignment(catalogPanel,javafx.geometry.VPos.TOP);
         javafx.scene.layout.GridPane.setValignment(signaturePanel,javafx.geometry.VPos.TOP);
     }
@@ -297,7 +308,9 @@ public class ZnackAutomationController {
         warehouseTab.setText(I18nService.getInstance().tr("kiz.warehouse.title"));warehousePane.applyTranslations();
         omsConnectionField.setPromptText(tr("znack.oms_connection_prompt"));
         if(repository==null)authStatusLabel.setText(tr("znack.error.select_shop"));
-        catalogTitleLabel.setText(tr("znack.catalog.title"));
+        catalogTitleLabel.setText(tr("znack.settings.catalog_key"));
+        productionMethodCombo.getItems().setAll(tr("znack.settings.production"));productionMethodCombo.getSelectionModel().selectFirst();
+        purchaseMethodLabel.setText(tr("znack.settings.purchase_method"));purchaseMethodHint.setText(tr("znack.settings.purchase_hint"));applyEditMode();
         catalogHelpLabel.setText(tr("znack.catalog.help"));
         catalogKeyField.setPromptText(tr("znack.catalog.key_prompt"));
         checkCatalogButton.setText(tr("znack.catalog.check"));
@@ -319,7 +332,7 @@ public class ZnackAutomationController {
         deletedGtinColumn.setText(tr("znack.field.gtin"));
         deletedNameColumn.setText(tr("znack.field.name"));
         deletedActionsColumn.setText(tr("znack.field.actions"));
-        settingsTitleLabel.setText(tr("znack.settings.basic"));
+        settingsTitleLabel.setText(tr("znack.settings.connection_title"));
         omsIdLabel.setText(tr("znack.oms_id"));
         omsConnectionLabel.setText(tr("znack.oms_connection"));
         omsIdHelpButton.setTooltip(new Tooltip(tr("common.help")));
@@ -363,6 +376,15 @@ public class ZnackAutomationController {
     private void showOmsIdHelp() {
         showOmsHelp("oms_id");
     }
+    @FXML private void showCatalogHelp(){AlertService.showInfo(tr("znack.catalog.title"),tr("znack.settings.catalog_key"),tr("znack.catalog.help"));}
+    @FXML private void editSettings(){settingsEditing=!settingsEditing;if(!settingsEditing&&repository!=null)load();applyEditMode();updateSaveState();}
+    private void applyEditMode(){
+        omsIdField.setEditable(settingsEditing);omsConnectionField.setEditable(settingsEditing);catalogKeyField.setEditable(settingsEditing);
+        editSettingsButton.setText(tr(settingsEditing?"common.cancel":"znack.settings.edit"));
+        catalogActions.setVisible(settingsEditing);catalogActions.setManaged(settingsEditing);saveButton.setVisible(settingsEditing);saveButton.setManaged(settingsEditing);
+        boolean catalogFeedback=settingsEditing||catalogStatusKey.contains("failed")||catalogStatusKey.contains("error");catalogStatusLabel.setVisible(catalogFeedback);catalogStatusLabel.setManaged(catalogFeedback);
+        for(var field:List.of(omsIdField,omsConnectionField,catalogKeyField)){field.getStyleClass().remove("settings-readonly");if(!settingsEditing)field.getStyleClass().add("settings-readonly");}
+    }
 
     @FXML
     private void showOmsConnectionHelp() {
@@ -403,6 +425,7 @@ public class ZnackAutomationController {
             repository.saveSettings(settings);
             repository.log("SETTINGS_SAVE", null, "INFO", "SAVED", null);
             loaded = settings;
+            settingsEditing=false;applyEditMode();
             resetAccountSession();
             savedFingerprint = fingerprint();
             authStatusLabel.setText(tr("znack.status.saved"));
@@ -853,6 +876,7 @@ public class ZnackAutomationController {
         catalogStatusKey = new com.vncode.app.integration.znack.CatalogCredentialRepository().hasSaved(repository.shop().shopId())
                 ? "znack.catalog.saved" : "znack.catalog.not_saved";
         catalogStatusLabel.setText(tr(catalogStatusKey));
+        catalogKeyField.setPromptText(new com.vncode.app.integration.znack.CatalogCredentialRepository().hasSaved(repository.shop().shopId())?"●".repeat(16):tr("znack.catalog.key_prompt"));
         signerCertificate = value(loaded.signerCertificate());
         certificateMetadata = value(loaded.certificateMetadataJson());
         signerTestedAt = loaded.signerTestedAt();
@@ -1273,7 +1297,8 @@ public class ZnackAutomationController {
         saveButton.setDisable(repository == null || loading || verificationRequired
                 || accountRefreshRunning || catalogCheckRunning
                 || Objects.equals(savedFingerprint, fingerprint()));
-        signatureCertificateCombo.setDisable(repository == null || signatureTestRunning || accountRefreshRunning || catalogCheckRunning);
+        signatureCertificateCombo.setDisable(!settingsEditing || repository == null || signatureTestRunning || accountRefreshRunning || catalogCheckRunning);
+        editSettingsButton.setDisable(repository==null||loading);applyEditMode();
         testSignatureButton.setDisable(repository == null || certificateDiscoveryRunning
                 || signatureTestRunning || accountRefreshRunning || catalogCheckRunning || blank(selectedCertificate())
                 || selectedCertificateExpired());
