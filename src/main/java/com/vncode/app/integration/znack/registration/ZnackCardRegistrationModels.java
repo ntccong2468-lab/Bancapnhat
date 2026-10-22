@@ -170,7 +170,7 @@ public final class ZnackCardRegistrationModels {
         public Draft withProductCategory(String category){
             String leaf=java.util.Arrays.stream((category==null?"":category).split("[>/→]")).reduce((a,b)->b).orElse("").strip().toLowerCase(java.util.Locale.ROOT);
             boolean sport=java.util.Set.of("костюмы спортивные","спортивный костюм","спортивные костюмы").contains(leaf);
-            boolean kit=!(sport&&"6112120000".equals(tnved==null?"":tnved.replaceAll("\\D","")))
+            boolean kit=!java.util.Set.of("6112110000","6112120000").contains(tnved==null?"":tnved.replaceAll("\\D",""))
                     &&(isKit||sport||java.util.Set.of("костюмы","костюм").contains(leaf));
             return new Draft(tnved,feedTnved,categoryId,goodName,brand,attributes,attributeTypes,autoSign,kit);
         }

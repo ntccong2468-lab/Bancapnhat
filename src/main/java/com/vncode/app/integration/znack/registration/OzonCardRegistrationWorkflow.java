@@ -288,6 +288,8 @@ public final class OzonCardRegistrationWorkflow {
             if(preparation!=null&&(!preparation.owner.equals(ListingIdentity.fingerprint(shop))||!preparation.snapshot().revision().equals(snapshot.revision())))throw new IllegalArgumentException("registration_review_changed");
             var scope=ZnackRegistrationScope.fromSettings(settings(shop));var session=preparation==null?catalogs.open(shop):preparation.session;checkSession(shop,scope,session);
             if(preparation!=null&&!preparation.session.scope().equals(scope))throw new ZnackRegistrationScope.ScopeChangedException();
+            String sourceTnved=tnved(snapshot);
+            if(!sourceTnved.isBlank()&&!sourceTnved.equals(draft.tnved()))throw new RegistrationValidationException("ZNACK_SOURCE_TNVED_CHANGED");
             var previous=repository.find(key);
             var preflight=previous!=null&&!newCard&&previous.reviewableDraft()?session.catalog().preflightExisting(draft.tnved(),session.token()):session.catalog().preflight(draft.tnved());
             if(preflight.categories().stream().noneMatch(c->c.id()==draft.categoryId())||!preflight.categoryTnved().equals(draft.feedTnved()))throw new IllegalArgumentException("foreign_category");

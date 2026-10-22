@@ -64,6 +64,34 @@ class OzonSyncServiceTest {
         }
         assertEquals(0,count("SELECT count(*) FROM ozon_products"));
     }
+    @Test void aShortCatalogPageWithRemainingTotalMustReadTheNextPage()throws Exception {
+        server.setDispatcher(new okhttp3.mockwebserver.Dispatcher(){
+            @Override public MockResponse dispatch(okhttp3.mockwebserver.RecordedRequest request){
+                var body=com.google.gson.JsonParser.parseString(request.getBody().readUtf8()).getAsJsonObject();String path=request.getPath();
+                if(path.endsWith("/v3/product/list")){
+                    boolean first=!body.has("last_id")||body.get("last_id").getAsString().isBlank();String id=first?"101":"102",offer=first?"A":"B";
+                    return json("{\"result\":{\"total\":2,\"items\":[{\"product_id\":\""+id+"\",\"offer_id\":\""+offer+"\"}],\"last_id\":\"cursor-"+id+"\"}}");
+                }
+                if(path.endsWith("/v3/product/info/list")){
+                    String id=body.getAsJsonArray("product_id").get(0).getAsString();String offer=id.equals("101")?"A":"B";
+                    return json("{\"items\":[{\"id\":\""+id+"\",\"offer_id\":\""+offer+"\",\"name\":\"Fixture\",\"sku\":\""+id+"\"}]}");
+                }
+                if(path.endsWith("/v4/product/info/attributes")){
+                    String id=body.getAsJsonObject("filter").getAsJsonArray("product_id").get(0).getAsString();String offer=id.equals("101")?"A":"B";
+                    return json("{\"result\":[{\"id\":\""+id+"\",\"offer_id\":\""+offer+"\",\"description_category_id\":1,\"type_id\":2,\"attributes\":[]}]}");
+                }
+                return json("{\"result\":[]}");
+            }
+        });
+        var observed=new java.util.ArrayList<OzonProductDto>();assertEquals(2,new OzonCatalogSyncService(1,api).syncForRegistration(observed::addAll));
+        assertEquals(2,observed.size());assertEquals(2,count("SELECT count(*) FROM ozon_products"));
+        assertEquals("cursor-102",new OzonSyncStateRepository().find(1).productsLastId());
+    }
+    @Test void anEmptyCatalogPageCannotClaimSuccessWithProductsStillMissing()throws Exception {
+        server.enqueue(json("{\"result\":{\"items\":[],\"total\":2,\"last_id\":\"\"}}"));
+        assertEquals("OZON_INCOMPLETE_PRODUCT_PAGE",assertThrows(IOException.class,()->new OzonCatalogSyncService(1,api).syncForRegistration(p->failSnapshot())).getMessage());
+    }
+
     private void rotateCredentialsDuringResponse(String body) {
         server.setDispatcher(new okhttp3.mockwebserver.Dispatcher(){
             @Override public MockResponse dispatch(okhttp3.mockwebserver.RecordedRequest request) {

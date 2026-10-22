@@ -31,6 +31,12 @@ public final class AppTaskExecutor {
         try{CATALOG_EXECUTOR.execute(()->{try(var lane=MarketplaceRequestBudget.lane(true)){task.run();}finally{timeout.cancel(false);ACTIVE_TASK_COUNT.decrementAndGet();}});return true;}
         catch(RejectedExecutionException full){timeout.cancel(false);ACTIVE_TASK_COUNT.decrementAndGet();task.cancel(false);rejected.accept(full);return false;}
     }
+    /** Local SQLite views must not wait behind network/signing tasks. Reuse the reserved read lane. */
+    public static void executeLocal(int shopId,Task<?> task,Consumer<Throwable> rejected){
+        Objects.requireNonNull(task);ACTIVE_TASK_COUNT.incrementAndGet();
+        ShopReadCoordinator.shared().submitLocal(new ShopReadCoordinator.Key(shopId,"fx-local-view",Integer.toString(System.identityHashCode(task))),()->{task.run();return null;})
+            .whenComplete((value,error)->{ACTIVE_TASK_COUNT.decrementAndGet();if(error!=null)javafx.application.Platform.runLater(()->{task.cancel(false);rejected.accept(error);});});
+    }
     private AppTaskExecutor() {
     }
 

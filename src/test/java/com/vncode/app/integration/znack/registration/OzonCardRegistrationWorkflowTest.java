@@ -46,6 +46,10 @@ class OzonCardRegistrationWorkflowTest {
         var document=new ProductDocument("D-ID","DECLARATION","D",LocalDate.parse("2025-01-01"),LocalDate.now().plusYears(1),"Fixture","",null,Marketplace.OZON,DocumentState.VALID,"https://api-seller.ozon.ru/v1/product/certificate/list",Instant.now());
         return new ProductSnapshot(key,revision,"Fixture","","Brand","fixture-offer","1:2",List.of(),attributes,List.of(new ProductVariant("fixture-offer","fixture-offer","","","",false)),null,List.of(document),Instant.now(),Map.of("sku","9001","owner",com.vncode.app.integration.listing.ListingIdentity.fingerprint(shop)));
     }
+    void sourceTnved(String code){
+        var attrs=new ArrayList<>(snapshot.attributes().stream().filter(a->!ProductFieldNames.matches("tnved",a.name())).toList());attrs.add(new ProductAttribute("tnved","ТН ВЭД",List.of(code),null));
+        snapshot=new ProductSnapshot(snapshot.key(),snapshot.revision(),snapshot.title(),snapshot.description(),snapshot.brand(),snapshot.vendorArticle(),snapshot.categoryId(),snapshot.media(),attrs,snapshot.variants(),snapshot.dimensions(),snapshot.documents(),Instant.now(),snapshot.metadata());
+    }
     OzonCardRegistrationRepository.Row row(){return repository.find(key);}
     void ready(){assertTrue(workflow.register(shop,key,draft,true,false,null));assertEquals(Status.READY_TO_SIGN,row().status());}
     void published(){ready();assertTrue(sign());assertEquals(Status.PUBLISHED,row().status());}
@@ -104,7 +108,7 @@ class OzonCardRegistrationWorkflowTest {
         ready();String gtin=row().gtin(),feed=row().feedId();assertTrue(workflow.register(shop,key,draft,true,false,null));assertEquals(gtin,row().gtin());assertEquals(feed,row().feedId());assertEquals(Status.READY_TO_SIGN,row().status());assertEquals(1,api.allocations.get());assertEquals(1,api.submissions.get());assertEquals(0,api.signatures.get());
     }
     @Test void changedTnvedGroupNeedsExplicitNewCardApprovalAndArchivesTheOldPendingCard()throws Exception {
-        ready();String old=row().gtin();var changed=new Draft("6104",1,"Fixture","Brand",draft.attributes());
+        ready();String old=row().gtin();sourceTnved("6104");var changed=new Draft("6104",1,"Fixture","Brand",draft.attributes());
         assertTrue(workflow.register(shop,key,changed,true,false,null));assertEquals(old,row().gtin());assertEquals(Status.READY_TO_SIGN,row().status());assertEquals(1,api.allocations.get());assertEquals(1,api.submissions.get());assertTrue(row().error().contains("TN VED")||row().error().contains("TNVED"));assertFalse(repository.claim(shop,key,"9001","",session().scope(),false,"6104"));
         assertTrue(workflow.register(shop,key,changed,true,true,null));assertEquals("00000000000024",row().gtin());assertEquals(Status.READY_TO_SIGN,row().status());assertEquals(2,api.allocations.get());assertEquals(2,api.submissions.get());assertEquals("",row().activeGtin());assertTrue(repository.claimedGtins().contains(old));
         try(var c=Database.getConnection();var st=c.createStatement();var r=st.executeQuery("SELECT gtin,feed_id,payload_json FROM ozon_card_registration_history")){assertTrue(r.next());assertEquals(old,r.getString(1));assertEquals("feed-1",r.getString(2));assertTrue(r.getString(3).contains("6204"));}
@@ -140,12 +144,12 @@ class OzonCardRegistrationWorkflowTest {
     }
     @Test void automaticSigningConsentSurvivesReopeningAndDoesNotRepeatTheSignature()throws Exception {
         draft=new Draft("6204430000","6204",1,"Fixture","Brand",Map.of(1L,"Fixture",13933L,"6204430000",ZnackNationalCatalogService.DECLARATION_ATTRIBUTE_ID,"D:::2025-01-01"),Map.of());
-        api.pendingModeration=true;assertTrue(workflow.register(shop,key,draft.withAutoSign(true),true,false,null));assertEquals(Status.PROCESSING,row().status());assertEquals(0,api.signatures.get());
+        sourceTnved("6204430000");api.pendingModeration=true;assertTrue(workflow.register(shop,key,draft.withAutoSign(true),true,false,null));assertEquals(Status.PROCESSING,row().status());assertEquals(0,api.signatures.get());
         api.pendingModeration=false;var reopened=workflow(Runnable::run);var monitor=new ZnackRegistrationMonitor(null,reopened);assertEquals(1,monitor.poll(shop,3).published());assertEquals(Status.PUBLISHED,row().status());assertEquals(1,api.signatures.get());monitor.poll(shop,3);assertEquals(1,api.signatures.get());assertEquals(1,api.allocations.get());assertEquals(1,api.submissions.get());
     }
     @Test void automaticSigningTimeoutNeverReplaysTheSignatureInTheBackground()throws Exception {
         draft=new Draft("6204430000","6204",1,"Fixture","Brand",Map.of(1L,"Fixture",13933L,"6204430000",ZnackNationalCatalogService.DECLARATION_ATTRIBUTE_ID,"D:::2025-01-01"),Map.of());
-        api.pendingModeration=true;workflow.register(shop,key,draft.withAutoSign(true),true,false,null);api.pendingModeration=false;api.signTimeout=true;var monitor=new ZnackRegistrationMonitor(null,workflow(Runnable::run));monitor.poll(shop,3);assertEquals(Status.SIGNING,row().status());assertEquals(1,api.signatures.get());monitor.poll(shop,3);assertEquals(1,api.signatures.get());api.accepted=true;assertEquals(1,monitor.poll(shop,3).published());assertEquals(1,api.signatures.get());
+        sourceTnved("6204430000");api.pendingModeration=true;workflow.register(shop,key,draft.withAutoSign(true),true,false,null);api.pendingModeration=false;api.signTimeout=true;var monitor=new ZnackRegistrationMonitor(null,workflow(Runnable::run));monitor.poll(shop,3);assertEquals(Status.SIGNING,row().status());assertEquals(1,api.signatures.get());monitor.poll(shop,3);assertEquals(1,api.signatures.get());api.accepted=true;assertEquals(1,monitor.poll(shop,3).published());assertEquals(1,api.signatures.get());
     }
     @Test void backgroundMonitorReadsTheNativeOzonFeedWithoutAnyNewWrite()throws Exception {
         ready();var monitor=new ZnackRegistrationMonitor(null,workflow);var waiting=monitor.poll(shop,3);

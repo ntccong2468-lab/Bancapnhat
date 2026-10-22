@@ -15,13 +15,13 @@ class WbRegistrationSnapshotTest {
     @BeforeEach void init()throws Exception{System.setProperty("vncode.appdata.dir",directory.toString());Database.initDatabase();try(var c=Database.getConnection();var s=c.createStatement()){s.execute("INSERT INTO shops(id,name,api_key) VALUES(1,'Fixture','synthetic')");}}
     @AfterEach void clean(){System.clearProperty("vncode.appdata.dir");}
     private WbProductSyncService service(List<WbProductCardsResponse> responses){return new WbProductSyncService(new WbApiClient(){int n;
-        @Override public WbProductCardsResponse getProductCards(String key,String locale,String updated,Long nm,int limit){seen.add(updated==null?"FIRST":updated);return responses.get(n++);}
+        @Override public WbProductCardsResponse getProductCards(String key,String locale,String updated,Long nm,int limit){seen.add(updated==null?"FIRST":updated);return n<responses.size()?responses.get(n++):page("{\"cards\":[],\"cursor\":{\"total\":0}}");}
     },new WbProductRepository(),new WbSyncStateRepository(),new WbSyncRunRepository());}
     private WbProductCardsResponse page(String json){return new Gson().fromJson(json,WbProductCardsResponse.class);}
     @Test void completeRegistrationReadIgnoresAnOldIncrementalCursor()throws Exception{
         new WbSyncStateRepository().updateProductsCursor(1,"old",999L,"old");var emitted=new ArrayList<WbProductCard>();
         int count=service(List.of(page("{\"cards\":[{\"nmID\":101,\"vendorCode\":\"A\",\"sizes\":[{\"chrtID\":201}]}],\"cursor\":{\"total\":1,\"updatedAt\":\"now\",\"nmID\":101}}"))).syncFromStart(shop,emitted::addAll);
-        assertEquals(List.of("FIRST"),seen);assertEquals(1,count);assertEquals(101L,emitted.getFirst().getNmID());
+        assertEquals(List.of("FIRST","now"),seen);assertEquals(1,count);assertEquals(101L,emitted.getFirst().getNmID());
     }
     @Test void absentCardsAndMissingCursorCannotClaimACompletedSnapshot(){
         for(String json:List.of("{}","{\"cards\":[{\"nmID\":101,\"sizes\":[]}]}"))assertThrows(java.io.IOException.class,()->service(List.of(page(json))).syncFromStart(shop,p->{}));
@@ -65,8 +65,14 @@ class WbRegistrationSnapshotTest {
     @Test void aCompleteHundredRowPageAndAValidTwentyRowPageReadTheWholeSnapshot()throws Exception {
         var emitted=new ArrayList<WbProductCard>();var next=shortPage(20,20,201);
         assertEquals(120,service(List.of(fullPage("page-1"),next)).syncFromStart(shop,emitted::addAll));
-        assertEquals(120,emitted.size());assertEquals(List.of("FIRST","page-1"),seen);assertEquals("1/120/120",latestRun());
+        assertEquals(120,emitted.size());assertEquals(List.of("FIRST","page-1","short-page"),seen);assertEquals("1/120/120",latestRun());
         assertEquals(220L,emitted.getLast().getNmID());assertNotNull(new WbSyncStateRepository().getShopSyncState(1).productsLastSyncedAt());
+    }
+    @Test void fullRefreshDoesNotStopAfterAnApparentlyTerminalTwentyRowPage()throws Exception {
+        var emitted=new ArrayList<WbProductCard>();
+        assertEquals(50,service(List.of(shortPage(20,20,101),shortPage(30,30,201))).syncFromStart(shop,emitted::addAll));
+        assertEquals(50,emitted.size());assertEquals(List.of("FIRST","short-page","short-page"),seen);
+        assertEquals("1/50/50",latestRun());
     }
     @Test void nullCardsAndAnActualParserFailureLeaveThePreviousSnapshotIntact()throws Exception {
         seedKnownProduct();var malformed=page("{\"cards\":[null],\"cursor\":{\"total\":1,\"updatedAt\":\"next\",\"nmID\":101}}");

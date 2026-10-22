@@ -143,7 +143,7 @@ public final class CatalogErrorRepairService {
                     p.session().catalog().validateCurrentRegistrationDraft(p.session().token(),draft);
                     repairSchema=p.session().catalog().registrationAttributes(draft.categoryId(),p.session().token());
                 }
-                var payload=ZnackNationalCatalogService.buildPayload(p.card().gtin(),draft,p.snapshot().media().isEmpty()?"":p.snapshot().media().getFirst().uri().toString());
+                var payload=ZnackNationalCatalogService.buildPayload(p.card().gtin(),draft,ZnackCardRegistrationWorkflow.retryImageUrl(p.snapshot().media().isEmpty()?"":p.snapshot().media().getFirst().uri().toString(),p.card().reason()));
                 payload.addProperty("good_id",p.goodId()); // §3.2.2: updating an existing card requires its exact identity.
                 if(!CatalogRepairCheckpoint.prepare(shop,key,current.metadata().getOrDefault("sku",""),p.card().gtin(),p.goodId(),payload.toString(),draft,p.session().scope()))throw new IllegalStateException("CATALOG_REPAIR_CHECKPOINT_BUSY");
                 if(key.marketplace()==Marketplace.OZON)new OzonCardRegistrationRepository().rememberReview(key,RegistrationReviewedValues.productRevision(new com.vncode.app.integration.ozon.OzonShopBrand().apply(shop,current)),RegistrationReviewedValues.schemaRevision(repairSchema),payload.toString());

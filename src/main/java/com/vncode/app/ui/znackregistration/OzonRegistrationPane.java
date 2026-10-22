@@ -89,7 +89,7 @@ public final class OzonRegistrationPane extends VBox {
         pauseBatchAction.setId("ozonZnackPauseBatch");resumeBatchAction.setId("ozonZnackResumeBatch");cancelPendingBatchAction.setId("ozonZnackCancelPendingBatch");
         pauseBatchAction.setOnAction(e->controlBatch("PAUSE"));resumeBatchAction.setOnAction(e->controlBatch("RESUME"));cancelPendingBatchAction.setOnAction(e->{if(cancelPendingConfirmation.getAsBoolean())controlBatch("CANCEL");});options.getItems().addAll(new SeparatorMenuItem(),pauseBatchAction,resumeBatchAction,cancelPendingBatchAction);
         title.setContextMenu(options);title.setFocusTraversable(true);title.setTooltip(new Tooltip(tr("znack.registration.more_actions_hint")));
-        statusFilter.getItems().setAll("ALL","NOT_CREATED","IN_PROGRESS","GTIN_REVIEW_REQUIRED","FEED_REVIEW_REQUIRED","COMPLETED","ERROR");statusFilter.setValue("ALL");statusFilter.setId("ozonRegistrationStatusFilter");statusFilter.setPrefWidth(220);
+        statusFilter.getItems().setAll("ALL","NOT_CREATED","IN_PROGRESS","GTIN_REVIEW_REQUIRED","FEED_REVIEW_REQUIRED","COMPLETED","ERROR","MATCH_REVIEW");statusFilter.setValue("ALL");statusFilter.setId("ozonRegistrationStatusFilter");statusFilter.setPrefWidth(220);
         statusFilter.setConverter(new javafx.util.StringConverter<>(){public String toString(String value){return tr("znack.registration.filter."+(value==null?"all":value.toLowerCase(java.util.Locale.ROOT)));}public String fromString(String value){throw new UnsupportedOperationException();}});
         statusFilter.valueProperty().addListener((observable,previous,current)->reload());
         var clearFilters=new Button(tr("znack.registration.clear"));clearFilters.setOnAction(e->{search.clear();categories.clear();statusFilter.setValue("ALL");reload();});
@@ -303,6 +303,7 @@ public final class OzonRegistrationPane extends VBox {
     static boolean matchesFilter(String filter,OzonCardRegistrationRepository.Row row,RegistrationCardIndex.View observed){
         Status state=row==null?Status.NOT_CREATED:row.status();
         return switch(filter){
+            case "MATCH_REVIEW" -> RegistrationCardIndex.needsMatchReview(observed);
             case "ERROR" -> RegistrationCardIndex.rejectedCard(observed,state,row==null?null:row.goodId(),row==null?"":row.feedId());
             case "NOT_CREATED" -> !observed.published()&&!observed.blocked()&&(row==null?!observed.exists():RegistrationCardIndex.notSubmitted(state,row.gtin(),row.goodId(),row.feedId(),false));
             case "IN_PROGRESS" -> RegistrationCardIndex.awaitingCatalog(observed,state,row==null?"":row.feedId());
@@ -490,7 +491,7 @@ public final class OzonRegistrationPane extends VBox {
     }
     private Status state(ProductKey key){var row=states.get(key);return row==null?Status.NOT_CREATED:row.status();}
     private String observation(ProductRow row){return RegistrationDiagnostics.observation(state(row.key()),cardIndex==null?Optional.empty():cardIndex.observation(view(row)),latestReadUnknown);}
-    private void showRegistrationReport(ProductRow row){var r=states.get(row.key());RegistrationDiagnostics.show(row.vendorArticle(),r==null?view(row).gtin():r.gtin(),r==null?"":r.feedId(),tr("znack.registration."+view(row).status()),observation(row)+"\n"+reason(view(row).detail())+"\n"+(r==null?"":r.error()));}
+    private void showRegistrationReport(ProductRow row){var r=states.get(row.key());RegistrationDiagnostics.show(row.vendorArticle(),r==null||safe(r.gtin()).isBlank()?view(row).gtin():r.gtin(),r==null?"":r.feedId(),tr("znack.registration."+view(row).status()),observation(row)+"\n"+reason(view(row).detail())+"\n"+(r==null?"":r.error()));}
     private String candidateText(ProductKey key){var row=states.get(key);return row==null||safe(row.activeGtin()).isBlank()||safe(row.activeGtin()).equals(safe(row.gtin()))?"":"\n"+tr("znack.registration.active_gtin")+": "+row.activeGtin()+" · "+tr("znack.registration.gtin_unverified");}
     private static boolean confirm(String message){var alert=new Alert(Alert.AlertType.CONFIRMATION,message,ButtonType.OK,ButtonType.CANCEL);return alert.showAndWait().orElse(ButtonType.CANCEL)==ButtonType.OK;}
     private static String reason(String code){String key="znack.registration.reason."+code;String text=tr(key);return text.equals(key)?code:text;}
