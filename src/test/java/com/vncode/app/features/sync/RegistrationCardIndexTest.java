@@ -101,7 +101,7 @@ class RegistrationCardIndexTest {
             var observed=new RegisteredGtin(base.gtin(),base.article(),base.color(),base.size(),true,false,base.source(),base.syncedAt(),details);var cards=index(observed);
             var sourceView=cards.view(Status.NOT_CREATED,"",List.of(base.gtin()),"A","","M",true);
             assertEquals("source."+remote,sourceView.status());assertEquals("GTIN_VARIANT_UNVERIFIED",sourceView.detail());assertTrue(sourceView.exists());assertTrue(sourceView.blocked());assertFalse(sourceView.published());
-            for(var state:List.of(Status.FEED_SUBMITTED,Status.PROCESSING,Status.READY_TO_SIGN,Status.SIGNING)){
+            for(var state:List.of(Status.FEED_SUBMITTING,Status.FEED_REVIEW_REQUIRED,Status.FEED_SUBMITTED,Status.PROCESSING,Status.READY_TO_SIGN,Status.SIGNING)){
                 var nativeView=cards.view(state,base.gtin(),List.of(),"A","Blue","",true);
                 assertEquals("status."+state.name().toLowerCase(Locale.ROOT),nativeView.status());assertEquals("GTIN_VARIANT_UNVERIFIED",nativeView.detail());assertTrue(nativeView.exists());assertTrue(nativeView.blocked());assertFalse(nativeView.published());
             }

@@ -33,13 +33,23 @@ class CatalogErrorRepairDialogTest {
             });return CatalogErrorRepairDialog.report(new StackPane(),List.of(card,unmatched));
         });Platform.runLater(future);var result=future.get(15,TimeUnit.SECONDS);assertEquals(Map.of(card,b.key()),result);
     }
+    @Test void clickedVariantOpensItsPrefilledProposalWithoutAnotherSelection(){
+        var a=row("201","52");var b=row("202","54");var rejected=card(List.of(a,b));
+        assertEquals(Map.of(rejected,b.key()),CatalogErrorRepairDialog.automaticChoices(List.of(rejected),Set.of(b.key())));
+        assertTrue(CatalogErrorRepairDialog.automaticChoices(List.of(rejected),Set.of()).isEmpty(),"An ambiguous bulk mapping needs review");
+        var duplicate=new ErrorCard("00000000000024","SUIT","ЧЕРНЫЙ","1","CATALOG_CARD_ERRORS",List.of(b));
+        assertTrue(CatalogErrorRepairDialog.automaticChoices(List.of(rejected,duplicate),Set.of(b.key())).isEmpty(),"Two rejected cards for one variant must keep the report selection");
+    }
     Proposal proposal(){
         var row=row("201","52");var key=row.key();var snapshot=new ProductSnapshot(key,"live:fixture","Suit","","Fixture","SUIT","1",List.of(),List.of(),List.of(new ProductVariant("201","SUIT","ЧЕРНЫЙ","52","",false,"52")),null,List.of(),Instant.now());
         var doc=new ZnackModels.GoodsDocument("CONFORMITY_DECLARATION","FIXTURE-PERMIT","2026-01-01");var attrs=Map.of(2478L,"Suit",2504L,"Fixture",13914L,"SUIT",13933L,"6112110000",35L,"52",36L,"ЧЕРНЫЙ",2483L,"хлопок",14013L,"Мужской",23557L,"FIXTURE-PERMIT:::2026-01-01");
-        return new Proposal(card(List.of(row)),snapshot,"fixture",91,new Draft("6112110000","6112",1,"Suit","Fixture",attrs,Map.of(35L,"РОССИЯ")),List.of(new Attribute(35,"Размер","",false,false,false,false,List.of(),List.of("РОССИЯ"))),List.of(doc),Map.of(35L,"1",23557L,"OLD:::2026-01-01"),List.of(),null,"fixture");
+        return new Proposal(card(List.of(row)),snapshot,"fixture",91,new Draft("6112110000","6112",1,"Suit","Fixture",attrs,Map.of(35L,"РОССИЯ")),List.of(new Attribute(35,"Размер","",false,false,false,false,List.of(),List.of("РОССИЯ"))),List.of(doc),Map.of(35L,"1",23557L,"OLD:::2026-01-01"),List.of(),null,"fixture",null);
     }
-    @Test void applyClosesProposalAndReturnsReviewedRealSizeAndPermit()throws Exception{
-        var p=proposal();var future=new FutureTask<List<Draft>>(() -> {Platform.runLater(()->{var pane=pane("catalogErrorProposalDialog");pane.applyCss();pane.layout();assertTrue(((TableView<?>)pane.lookup("#catalogErrorProposalTable")).getItems().size()>=10);var window=pane.getScene().getWindow();((Button)pane.lookup("#catalogRepairApply")).fire();assertFalse(window.isShowing());});return CatalogErrorRepairDialog.proposals(new StackPane(),new CatalogErrorRepairDialog.Prepared(List.of(p),List.of()));});Platform.runLater(future);var result=future.get(15,TimeUnit.SECONDS);assertEquals("52",result.getFirst().attributes().get(35L));assertEquals("FIXTURE-PERMIT:::2026-01-01",result.getFirst().attributes().get(23557L));
+    @org.junit.jupiter.params.ParameterizedTest @org.junit.jupiter.params.provider.ValueSource(booleans={false,true})
+    void applyClosesProposalAndReturnsReviewedRealSizeAndPermit(boolean missingUniqueChoice)throws Exception{
+        var original=proposal();var schema=new ArrayList<>(original.required());
+        if(missingUniqueChoice)schema.add(new Attribute(999,"Product type","text",true,false,true,false,List.of("Одежда"),List.of("---")));
+        var p=new Proposal(original.card(),original.snapshot(),original.remoteRevision(),original.goodId(),original.draft(),schema,original.documents(),original.before(),original.issues(),original.session(),original.owner(),original.feedRejection());var future=new FutureTask<List<Draft>>(() -> {Platform.runLater(()->{var pane=pane("catalogErrorProposalDialog");pane.applyCss();pane.layout();assertTrue(((TableView<?>)pane.lookup("#catalogErrorProposalTable")).getItems().size()>=10);var window=pane.getScene().getWindow();((Button)pane.lookup("#catalogRepairApply")).fire();assertFalse(window.isShowing());});return CatalogErrorRepairDialog.proposals(new StackPane(),new CatalogErrorRepairDialog.Prepared(List.of(p),List.of()));});Platform.runLater(future);var result=future.get(15,TimeUnit.SECONDS);if(missingUniqueChoice)assertEquals("Одежда",result.getFirst().attributes().get(999L));assertEquals("52",result.getFirst().attributes().get(35L));assertEquals("FIXTURE-PERMIT:::2026-01-01",result.getFirst().attributes().get(23557L));
     }
     @Test void cancelNeverReturnsAnApprovedCorrection()throws Exception{
         var future=new FutureTask<List<Draft>>(() -> {Platform.runLater(()->{var pane=pane("catalogErrorProposalDialog");var cancel=pane.getButtonTypes().stream().filter(b->b.getButtonData()==ButtonBar.ButtonData.CANCEL_CLOSE).findFirst().orElseThrow();((Button)pane.lookupButton(cancel)).fire();});return CatalogErrorRepairDialog.proposals(new StackPane(),new CatalogErrorRepairDialog.Prepared(List.of(proposal()),List.of()));});Platform.runLater(future);assertNull(future.get(15,TimeUnit.SECONDS));

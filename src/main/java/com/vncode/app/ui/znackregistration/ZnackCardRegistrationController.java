@@ -293,7 +293,7 @@ public final class ZnackCardRegistrationController {
         Task<PreparedSelection> task=new Task<>() {@Override protected PreparedSelection call(){
             var rows=readyQueries(owner).allSelectable(criteria).stream().filter(row->!workflow.isRunning(owner,row)).toList();
             boolean register=false,repair=false,replace=false;var ids=new HashSet<Long>();
-            for(var row:rows){ids.add(row.chrtId());register|=reviewableDraft(row)||row.canRegister()||row.canResume()||row.needsGtinReview()||row.tnvedGroupChanged();repair|=isError(row.status())&&row.hasGtin();replace|=row.canRegisterNew();}
+            for(var row:rows){ids.add(row.chrtId());register|=reviewableDraft(row)||row.canRegister()||row.canResume()||row.needsGtinReview()||row.tnvedGroupChanged();repair|=errorRow(row);replace|=row.canRegisterNew();}
             return new PreparedSelection(rows,Set.copyOf(ids),new SelectionActions(register,repair,replace));
         }};
         task.setOnSucceeded(event->{
@@ -387,7 +387,10 @@ public final class ZnackCardRegistrationController {
 
     @FXML private void onRegisterSelected() {
         if(shop==null || !ready() || preparing || loading || batchProgress!=null&&batchProgress.running()) return;
-        if(statusFilter.getValue()==StatusFilter.ERROR||selectionActions().repair()){openErrorRepair(selectedRows().isEmpty());return;}
+        if(statusFilter.getValue()==StatusFilter.ERROR||selectionActions().repair()){
+            var selected=selectedRows();
+            openErrorRepair(selected.isEmpty());return;
+        }
         List<Sku> selected=frozenActions==null?selectedRows().stream().filter(this::eligible).toList():frozenSelection.stream().filter(row->reviewableDraft(row)||row.canRegister()||row.canResume()||row.needsGtinReview()||row.tnvedGroupChanged()).toList();
         if(selected.isEmpty())return;
         long fresh=selected.stream().filter(row->!RegistrationCardIndex.notSubmitted(row)&&row.needsGtinReview()).count();
@@ -523,7 +526,12 @@ public final class ZnackCardRegistrationController {
         prepareCard(owner,epoch,selected.get(index),false,true,()->prepareReplacementNext(selected,index+1,owner,epoch));
     }
     private boolean selectable(Sku sku){return errorRow(sku)||eligible(sku)||(sku!=null&&replaceable(sku)&&(!rowDetails.getOrDefault(sku.chrtId(),new ZnackRegistrationQueryRepository.Details("","")).pendingReplacement()||sku.status()==Status.ERROR)&&!workflow.isRunning(shop,sku));}
-    private boolean errorRow(Sku row){return row!=null&&(view(row).status().equals("source.errors")||isError(row.status()));}
+    private boolean errorRow(Sku row){return row!=null&&RegistrationCardIndex.catalogRejected(row.status(),row.errorMessage(),view(row));}
+    private void editRejected(Sku row){
+        if(shop==null||row==null||!ready()||preparing||loading||workflow.isRunning(shop,row)||!errorRow(row))return;
+        var key=new com.vncode.app.features.products.ProductKey(shop.getId(),shop.getMarketplace(),Long.toString(row.nmId()),Long.toString(row.chrtId()));
+        CatalogErrorRepairDialog.open((StackPane)productTable.getParent(),shop,Set.of(key),false,this::scheduleReload);
+    }
     private void openErrorRepair(boolean all){
         var keys=selectedRows().stream().map(row->new com.vncode.app.features.products.ProductKey(shop.getId(),shop.getMarketplace(),Long.toString(row.nmId()),Long.toString(row.chrtId()))).collect(java.util.stream.Collectors.toSet());
         CatalogErrorRepairDialog.open((StackPane)productTable.getParent(),shop,keys,all,this::scheduleReload);
@@ -1093,6 +1101,11 @@ public final class ZnackCardRegistrationController {
             @Override protected void updateItem(Sku item, boolean empty) {
                 super.updateItem(item, empty);
                 if (empty || item == null) { setGraphic(null); return; }
+                if(errorRow(item)){
+                    button.setContextMenu(null);button.setText(tr("repair.edit"));button.setOnAction(event->editRejected(getItem()));
+                    button.setDisable(!ready()||preparing||loading||workflow.isRunning(shop,item));
+                    setAlignment(Pos.CENTER);setGraphic(button);return;
+                }
                 String pendingAction=reviewableDraft(item)?"":RegistrationDiagnostics.pendingCardAction(item.status(),item.goodId(),item.feedId(),item.errorMessage(),view(item).status());
                 if(!pendingAction.isBlank()){
                     waiting.setText(tr(pendingAction));waiting.setWrapText(true);
@@ -1167,7 +1180,7 @@ public final class ZnackCardRegistrationController {
         if(frozenActions!=null)return frozenActions;
         boolean register=false,repair=false,replace=false;
         for(var row:selectedRows()){
-            var observed=view(row);repair|=observed.status().equals("source.errors")||row.status()==Status.ERROR&&row.hasGtin();
+            var observed=view(row);repair|=errorRow(row);
             register|=eligible(row)||errorRow(row);replace|=replaceable(row);
             if(register&&repair&&replace)break;
         }
@@ -1228,7 +1241,6 @@ public final class ZnackCardRegistrationController {
         var key=new com.vncode.app.features.products.ProductKey(shop.getId(),shop.getMarketplace(),Long.toString(row.nmId()),Long.toString(row.chrtId()));
         GtinBackgroundStatus.start((StackPane)productTable.getParent(),shop,java.util.Set.of(key),this::scheduleReload,result->{lastRegistrationRun=result.run();operationLabel.setText(GtinBackgroundStatus.summary(result));});
     }
-    private static boolean isError(Status status){return java.util.Set.of(Status.ERROR,Status.PREFLIGHT_ERROR,Status.PRE_SUBMIT_ERROR,Status.GTIN_REVIEW_REQUIRED,Status.FEED_REVIEW_REQUIRED).contains(status);}
     private static boolean isBusy(Status status) {
         return status != Status.NOT_CREATED && status != Status.ERROR
                 && status != Status.PUBLISHED;

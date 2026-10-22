@@ -14,16 +14,19 @@ import java.util.function.Consumer;
 import static com.vncode.app.integration.znack.registration.ZnackCardRegistrationModels.*;
 import static com.vncode.app.integration.znack.registration.ZnackCardRegistrationWorkflow.CatalogSession;
 
-/** Explicit correction of existing rejected cards, using the same default and native feed workflow.
+/** Explicit correction of rejected cards and confirmed rejected feeds, using the same default and native feed workflow.
  * Preparation is read-only. Apply rechecks both sources, then journals before any POST. */
 public final class CatalogErrorRepairService {
     @FunctionalInterface public interface Snapshots {ProductSnapshot read(Shop shop,ProductKey key)throws Exception;}
     @FunctionalInterface public interface Dispatch {void resume(Shop shop,ProductKey key,CatalogSession session,Consumer<Status> progress)throws Exception;}
     public record ErrorCard(String gtin,String article,String color,String size,String reason,List<ProductRow> candidates){public ErrorCard{candidates=List.copyOf(candidates);}}
     public record Proposal(ErrorCard card,ProductSnapshot snapshot,String remoteRevision,long goodId,Draft draft,
-                           List<Attribute> required,List<ZnackModels.GoodsDocument> documents,Map<Long,String> before,List<String> issues,CatalogSession session,String owner){
+                           List<Attribute> required,List<ZnackModels.GoodsDocument> documents,Map<Long,String> before,List<String> issues,CatalogSession session,String owner,FeedRejection feedRejection){
         public Proposal{required=List.copyOf(required);documents=List.copyOf(documents);before=Map.copyOf(before);issues=List.copyOf(issues);}
         @Override public String toString(){return "CatalogRepairProposal[gtin="+card.gtin()+"]";}
+    }
+    public record FeedRejection(String feedId,String payload){
+        @Override public String toString(){return "FeedRejection[redacted]";}
     }
     public record Progress(int completed,int total,String gtin,Status status,String detail){}
     private final ZnackCardRegistrationWorkflow.CatalogFactory catalogs;private final Snapshots snapshots;private final Dispatch dispatch;
@@ -32,10 +35,30 @@ public final class CatalogErrorRepairService {
     public List<ErrorCard> report(Shop shop,Set<ProductKey> selected,boolean all)throws Exception {
         var receipt=new RegistrationSources().require(shop);String source=RegisteredGtinProof.source(shop);var products=new ArrayList<ProductRow>();String cursor=null;
         do{var page=new ProductRepository().loadPage(new ProductQuery(shop.getId(),shop.getMarketplace(),"",List.of(),null,false,cursor,1000),receipt.run());products.addAll(page.rows());cursor=page.nextCursor();if(products.size()>100000)throw new IllegalStateException("SYNC_REPORT_LIMIT");}while(cursor!=null);
+        var index=new RegistrationCardIndex(shop);var rejected=new HashMap<ProductKey,Boolean>();var superseded=new HashMap<ProductKey,Boolean>();
+        if(shop.getMarketplace()==Marketplace.WILDBERRIES){
+            for(var row:new ZnackCardRegistrationRepository().search(new SearchCriteria(shop.getId(),"",List.of(),"ALL",100000,0))){
+                var key=new ProductKey(shop.getId(),shop.getMarketplace(),Long.toString(row.nmId()),Long.toString(row.chrtId()));
+                var observed=index.view(row.status(),row.gtin(),row.barcodes(),row.vendorCode(),row.color(),row.size(),row.wbSize(),index.ownsWb(row.chrtId()));
+                rejected.put(key,RegistrationCardIndex.catalogRejected(row.status(),row.errorMessage(),observed));
+                superseded.put(key,observed.published()||RegistrationCardIndex.registrationInProgress(row.status(),row.feedId(),null));
+            }
+        }else{
+            var states=new OzonCardRegistrationRepository().findMany(products.stream().map(ProductRow::key).toList());
+            for(var product:products){var row=states.get(product.key());var status=row==null?Status.NOT_CREATED:row.status();
+                var observed=index.viewOzon(status,row==null?"":row.gtin(),product,row!=null&&index.ownsOzon(row.owner(),row.scopeJson()));
+                rejected.put(product.key(),RegistrationCardIndex.catalogRejected(status,row==null?"":row.error(),observed));
+                superseded.put(product.key(),observed.published()||RegistrationCardIndex.registrationInProgress(status,row==null?"":row.feedId(),null));
+            }
+        }
         var out=new ArrayList<ErrorCard>();
         for(var card:new GtinSyncRepository().catalog(shop.getId(),shop.getMarketplace())){
-            if(!source.equals(card.source())||!card.tradeUnit()||CatalogCardState.of(card)!=CatalogCardState.ERRORS)continue;
+            if(!source.equals(card.source())||!card.tradeUnit()||CatalogCardState.of(card)!=CatalogCardState.ERRORS||card.syncedAt().isBefore(Instant.now().minusSeconds(86400))||card.syncedAt().isAfter(Instant.now().plusSeconds(300)))continue;
             var matches=candidates(card,products);
+            if(!matches.isEmpty()){
+                matches=matches.stream().filter(p->!superseded.getOrDefault(p.key(),false)).toList();
+                if(matches.isEmpty())continue;
+            }
             if(all||matches.stream().anyMatch(p->selected.contains(p.key())))out.add(new ErrorCard(card.gtin(),card.article(),card.color(),card.size(),"CATALOG_CARD_ERRORS",matches));
         }
         var byKey=new HashMap<ProductKey,ProductRow>();products.forEach(p->byKey.put(p.key(),p));
@@ -43,18 +66,18 @@ public final class CatalogErrorRepairService {
             var repo=new ZnackCardRegistrationRepository();
             for(var row:repo.search(new SearchCriteria(shop.getId(),"",List.of(),"ALL",100000,0))){
                 var key=new ProductKey(shop.getId(),shop.getMarketplace(),Long.toString(row.nmId()),Long.toString(row.chrtId()));
-                if(!repairError(row.status())||!byKey.containsKey(key)||!all&&!selected.contains(key)||row.hasIdentity()&&!ListingIdentity.fingerprint(shop).equals(repo.ownerHash(shop.getId(),row.chrtId())))continue;
+                if(!repairError(row.status(),row.errorMessage())||!rejected.getOrDefault(key,false)||!byKey.containsKey(key)||!all&&!selected.contains(key)||row.hasIdentity()&&!ListingIdentity.fingerprint(shop).equals(repo.ownerHash(shop.getId(),row.chrtId())))continue;
                 if(row.hasGtin()&&out.stream().anyMatch(c->RegisteredGtinProof.sameCode(c.gtin(),row.gtin())))continue;
                 out.add(new ErrorCard(safe(row.gtin()),row.vendorCode(),row.color(),row.size(),ZnackSanitizer.message(row.errorMessage()),List.of(byKey.get(key))));
             }
         }else for(var row:new OzonCardRegistrationRepository().findMany(new ArrayList<>(byKey.keySet())).values()){
-            if(!repairError(row.status())||!all&&!selected.contains(row.key())||!ListingIdentity.fingerprint(shop).equals(row.owner()))continue;
+            if(!repairError(row.status(),row.error())||!rejected.getOrDefault(row.key(),false)||!all&&!selected.contains(row.key())||!ListingIdentity.fingerprint(shop).equals(row.owner()))continue;
             if(!row.gtin().isBlank()&&out.stream().anyMatch(c->RegisteredGtinProof.sameCode(c.gtin(),row.gtin())))continue;
             var product=byKey.get(row.key());out.add(new ErrorCard(row.gtin(),product.vendorArticle(),product.color(),product.size(),ZnackSanitizer.message(row.error()),List.of(product)));
         }
         return List.copyOf(out);
     }
-    private static boolean repairError(Status status){return Set.of(Status.ERROR,Status.PREFLIGHT_ERROR,Status.PRE_SUBMIT_ERROR,Status.GTIN_REVIEW_REQUIRED,Status.FEED_REVIEW_REQUIRED).contains(status);}
+    private static boolean repairError(Status status,String error){return status==Status.ERROR&&CatalogFeedback.rejectionMessage(error);}
     /** Exact codes rank first; an incorrect old size may only offer variants of the same article/color. */
     public static List<ProductRow> candidates(GtinSyncModels.RegisteredGtin card,List<ProductRow> products){
         var exact=products.stream().filter(p->RegisteredGtinProof.contains(p.barcodes(),card.gtin())).toList();if(!exact.isEmpty())return exact;
@@ -67,7 +90,10 @@ public final class CatalogErrorRepairService {
         ListingIdentity.require(shop,key);new RegistrationSources().requireMember(shop,key.cardId(),key.variantId());
         if(card.candidates().stream().noneMatch(row->row.key().equals(key)))throw new IllegalArgumentException("CATALOG_REPAIR_VARIANT_REQUIRED");
         var session=catalogs.open(shop);session.scope().assertCurrent(shop);
-        var raw=session.catalog().rejectedCard(session.token(),card.gtin(),null);var data=CatalogProductDataParser.parse(raw);
+        FeedRejection rejection=null;JsonObject raw;
+        if(session.catalog().cardExists(session.token(),card.gtin(),null))raw=session.catalog().rejectedCard(session.token(),card.gtin(),null);
+        else{rejection=feedRejection(shop,key,card.gtin(),session);raw=JsonParser.parseString(rejection.payload()).getAsJsonObject();}
+        var data=CatalogProductDataParser.parse(raw);
         var snapshot=snapshots.read(shop,key);var variant=snapshot.variants().stream().filter(v->v.id().equals(key.variantId())).findFirst().orElseThrow(()->new IllegalStateException("VARIANT_NOT_FOUND"));
         String tnved=single(snapshot,"tnved");if(!tnved.matches("[0-9]{10}"))throw new IllegalArgumentException("ZNACK_MISSING_TNVED");
         if(TnvedGroupChange.changed(data.single("tnved"),tnved))throw new IllegalArgumentException("CATALOG_REPAIR_GROUP_CHANGED_NEW_GTIN_REQUIRED");
@@ -78,7 +104,8 @@ public final class CatalogErrorRepairService {
         for(var doc:data.documents())if(!doc.from().isBlank())choices.add(new ZnackModels.GoodsDocument(doc.type().equals("DECLARATION")?"CONFORMITY_DECLARATION":"CONFORMITY_CERTIFICATE",doc.number(),doc.from()));
         var checked=session.catalog().reviewDocuments(session.token(),new ZnackRegistrationDocuments.Selection(List.copyOf(choices),null,ZnackRegistrationDocuments.Source.PRODUCT,true),tnved);
         var preflight=session.catalog().preflightExisting(tnved,session.token());var category=ZnackCategoryResolver.resolve(snapshot,preflight.categories()).orElseThrow(()->new IllegalArgumentException("ZNACK_CATEGORY_UNRESOLVED"));
-        var required=session.catalog().requiredAttributes(category.id(),session.token());
+        List<Attribute> required;
+        try(var read=session.catalog().registrationCountryReadScope()){required=session.catalog().registrationAttributes(category.id(),session.token());}
         var values=new LinkedHashMap<Long,String>();var types=new LinkedHashMap<Long,String>();
         // Retain category-specific existing facts; replace identity/size/material/permit from current sources.
         for(var a:ZnackProductCardAttributes.from(raw))try{long id=Long.parseLong(ZnackProductCardAttributes.id(a));String value=ZnackProductCardAttributes.text(a,"attr_value");if(!value.isBlank())values.put(id,value);types.put(id,ZnackProductCardAttributes.text(a,"attr_value_type"));}catch(NumberFormatException ignored){}
@@ -98,10 +125,31 @@ public final class CatalogErrorRepairService {
                 &&ZnackWbAttributeMapper.resolveValueType(sizeSchema,variant.russianSize(),variant.russianSize())!=null)
             values.put(35L,variant.russianSize());
         values.remove(23557L);values.remove(23561L);values.remove(23765L);
-        if(checked.candidates().size()==1){var document=checked.candidates().getFirst();values.put(RegistrationPermitValidator.attribute(document),document.number()+":::"+document.date());}
+        if(!checked.candidates().isEmpty()){var document=checked.candidates().getFirst();values.put(RegistrationPermitValidator.attribute(document),document.number()+":::"+document.date());}
         for(var a:required){String type=ZnackWbAttributeMapper.resolveValueType(a,values.getOrDefault(a.id(),""),variant.russianSize());if(type!=null)types.put(a.id(),type);}
         var draft=new Draft(tnved,preflight.categoryTnved(),category.id(),snapshot.title(),snapshot.brand(),values,types).withProductCategory(snapshot.metadata().get("source.category.name"));
-        return new Proposal(card,snapshot,revision(raw),raw.get("good_id").getAsLong(),draft,required,checked.candidates(),before,checked.issues(),session,ListingIdentity.fingerprint(shop));
+        try(var read=session.catalog().registrationCountryReadScope()){
+            // Country defaults do not depend on the permit the seller may change in this review.
+            // Keep regulation facts from the product/card; do not derive them from a provisional permit.
+            draft=RegistrationVerifiedDefaults.applyProductionCountry(draft,required,RegistrationVerifiedDefaults.productionCountry(snapshot,required,session.catalog()::registrationCountryCode),snapshot);
+        }
+        return new Proposal(card,snapshot,revision(raw),rejection==null?raw.get("good_id").getAsLong():0,draft,required,checked.candidates(),before,checked.issues(),session,ListingIdentity.fingerprint(shop),rejection);
+    }
+    private static FeedRejection feedRejection(Shop shop,ProductKey key,String gtin,CatalogSession session)throws Exception {
+        String feed,payload,error;Status status;
+        if(key.marketplace()==Marketplace.WILDBERRIES){
+            var repo=new ZnackCardRegistrationRepository();var row=repo.find(shop.getId(),Long.parseLong(key.variantId()));
+            if(row==null||!ListingIdentity.fingerprint(shop).equals(repo.ownerHash(shop.getId(),row.chrtId()))||!session.scope().equals(repo.scope(shop.getId(),row.chrtId())))throw new IllegalStateException("CATALOG_REPAIR_CHECKPOINT_BUSY");
+            feed=row.feedId();payload=repo.payload(shop.getId(),row.chrtId());error=row.errorMessage();status=row.status();
+            if(!RegisteredGtinProof.sameCode(gtin,row.gtin()))throw new IllegalStateException("CATALOG_IDENTITY_CHANGED");
+        }else{
+            var repo=new OzonCardRegistrationRepository();repo.guard(shop,key,session.scope());var row=repo.find(key);
+            feed=row.feedId();payload=row.payload();error=row.error();status=row.status();
+            if(!RegisteredGtinProof.sameCode(gtin,row.gtin()))throw new IllegalStateException("CATALOG_IDENTITY_CHANGED");
+        }
+        if(!repairError(status,error)||safe(feed).isBlank()||safe(payload).isBlank()
+                ||!CatalogFeedback.confirmedRejection(session.catalog().progress(session.token(),feed,gtin)))throw new IllegalStateException("CATALOG_FEED_NOT_REJECTED");
+        return new FeedRejection(feed,payload);
     }
     public static Draft validate(Proposal p,Draft draft){
         if(draft.categoryId()!=p.draft().categoryId()||!draft.tnved().equals(p.draft().tnved())||!draft.feedTnved().equals(p.draft().feedTnved())||draft.goodName().isBlank()||draft.brand().isBlank())throw new IllegalArgumentException("CATALOG_REPAIR_REVIEW_CHANGED");
@@ -134,7 +182,9 @@ public final class CatalogErrorRepairService {
                 ListingIdentity.require(shop,key);new RegistrationSources().requireMember(shop,key.cardId(),key.variantId());p.session().scope().assertCurrent(shop);
                 if(!p.owner().equals(ListingIdentity.fingerprint(shop)))throw new SecurityException("SHOP_CREDENTIALS_CHANGED");
                 var current=snapshots.read(shop,key);if(!productRevision(current).equals(productRevision(p.snapshot())))throw new IllegalStateException("PRODUCT_REVIEW_CHANGED");
-                var raw=p.session().catalog().rejectedCard(p.session().token(),p.card().gtin(),p.goodId());if(!revision(raw).equals(p.remoteRevision()))throw new IllegalStateException("CATALOG_REPAIR_REVIEW_CHANGED");
+                if(p.feedRejection()==null){
+                    var raw=p.session().catalog().rejectedCard(p.session().token(),p.card().gtin(),p.goodId());if(!revision(raw).equals(p.remoteRevision()))throw new IllegalStateException("CATALOG_REPAIR_REVIEW_CHANGED");
+                }else if(!p.feedRejection().equals(feedRejection(shop,key,p.card().gtin(),p.session()))||p.session().catalog().cardExists(p.session().token(),p.card().gtin(),null))throw new IllegalStateException("CATALOG_REPAIR_REVIEW_CHANGED");
                 p.session().catalog().validateDocuments(p.session().token(),draft);
                 com.vncode.app.features.license.LicenseRuntime.require(com.vncode.app.features.license.LicenseModels.Permission.GTIN);
                 List<Attribute> repairSchema=List.of();
@@ -143,8 +193,12 @@ public final class CatalogErrorRepairService {
                     repairSchema=p.session().catalog().registrationAttributes(draft.categoryId(),p.session().token());
                 }
                 var payload=ZnackNationalCatalogService.buildPayload(p.card().gtin(),draft,p.snapshot().media().isEmpty()?"":p.snapshot().media().getFirst().uri().toString());
-                payload.addProperty("good_id",p.goodId()); // §3.2.2: updating an existing card requires its exact identity.
-                if(!CatalogRepairCheckpoint.prepare(shop,key,current.metadata().getOrDefault("sku",""),p.card().gtin(),p.goodId(),payload.toString(),draft,p.session().scope()))throw new IllegalStateException("CATALOG_REPAIR_CHECKPOINT_BUSY");
+                if(p.goodId()>0)payload.addProperty("good_id",p.goodId()); // Existing cards require their exact identity.
+                if(p.feedRejection()!=null&&key.marketplace()==Marketplace.WILDBERRIES){
+                    var command=new com.vncode.app.integration.znack.registration.v3.RegistrationCommandJournal.Command(com.vncode.app.integration.znack.registration.v3.RegistrationJob.Action.SUBMIT,key.cardId()+"/"+key.variantId(),p.feedRejection().payload());
+                    new com.vncode.app.integration.znack.registration.v3.RegistrationCommandJournal().reject(new ZnackCardRegistrationWorkflow(new ZnackCardRegistrationRepository()).commandOwner(shop,p.session()),command,p.feedRejection().feedId());
+                }
+                if(!CatalogRepairCheckpoint.prepare(shop,key,current.metadata().getOrDefault("sku",""),p.card().gtin(),p.goodId(),payload.toString(),draft,p.session().scope(),p.feedRejection()))throw new IllegalStateException("CATALOG_REPAIR_CHECKPOINT_BUSY");
                 if(key.marketplace()==Marketplace.OZON)new OzonCardRegistrationRepository().rememberReview(key,RegistrationReviewedValues.productRevision(new com.vncode.app.integration.ozon.OzonShopBrand().apply(shop,current)),RegistrationReviewedValues.schemaRevision(repairSchema),payload.toString());
                 final int done=completed;final Status[] state={Status.READY_TO_SUBMIT};
                 dispatch.resume(shop,key,p.session(),s->{state[0]=s;listener.accept(new Progress(done,proposals.size(),p.card().gtin(),s,""));});

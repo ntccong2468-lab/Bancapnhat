@@ -193,6 +193,11 @@ public final class OzonRegistrationPane extends VBox {
             @Override protected void updateItem(ProductRow row,boolean empty) {
                 super.updateItem(row,empty);if(empty||row==null){setGraphic(null);return;}
                 Status state=state(row.key());var checkpoint=states.get(row.key());
+                if(RegistrationCardIndex.catalogRejected(state,checkpoint==null?"":checkpoint.error(),view(row))){
+                    var edit=new Button(tr("repair.edit"));edit.getStyleClass().add("btn-primary");edit.setDisable(busy||!ready());
+                    edit.setOnAction(e->CatalogErrorRepairDialog.open((StackPane)table.getParent(),owner,Set.of(row.key()),false,OzonRegistrationPane.this::refreshLocal));
+                    setGraphic(edit);return;
+                }
                 String pendingAction=reviewableDraft(row)?"":RegistrationDiagnostics.pendingCardAction(state,checkpoint==null?null:checkpoint.goodId(),checkpoint==null?"":checkpoint.feedId(),checkpoint==null?"":checkpoint.error(),view(row).status());
                 if(!pendingAction.isBlank()){var waiting=new Label(tr(pendingAction));waiting.setWrapText(true);setGraphic(waiting);return;}
                 boolean candidate=checkpoint!=null&&!safe(checkpoint.gtin()).isBlank()&&!checkpoint.activeGtin().equals(checkpoint.gtin());
@@ -302,9 +307,9 @@ public final class OzonRegistrationPane extends VBox {
     static boolean matchesFilter(String filter,OzonCardRegistrationRepository.Row row,RegistrationCardIndex.View observed){
         Status state=row==null?Status.NOT_CREATED:row.status();
         return switch(filter){
-            case "ERROR" -> observed.status().equals("source.errors")||Set.of(Status.ERROR,Status.PREFLIGHT_ERROR,Status.PRE_SUBMIT_ERROR,Status.GTIN_REVIEW_REQUIRED,Status.FEED_REVIEW_REQUIRED).contains(state);
-            case "NOT_CREATED" -> !observed.published()&&!observed.blocked()&&(row==null?!observed.exists():RegistrationCardIndex.notSubmitted(state,row.gtin(),row.goodId(),row.feedId(),false));
-            case "IN_PROGRESS" -> row!=null&&RegistrationCardIndex.confirmedSubmission(state,row.feedId())&&state!=Status.PUBLISHED||observed.status().equals("source.processing")||observed.status().equals("source.moderation")||observed.status().equals("source.draft");
+            case "ERROR" -> RegistrationCardIndex.catalogRejected(state,row==null?"":row.error(),observed);
+            case "NOT_CREATED" -> RegistrationCardIndex.unconfirmedRegistration(state,row==null?"":row.feedId(),row==null?"":row.error(),observed);
+            case "IN_PROGRESS" -> RegistrationCardIndex.registrationInProgress(state,row==null?"":row.feedId(),observed);
             case "COMPLETED" -> observed.published();
             default -> true;
         };

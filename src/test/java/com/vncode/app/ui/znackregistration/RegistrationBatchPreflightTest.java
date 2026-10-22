@@ -28,6 +28,15 @@ class RegistrationBatchPreflightTest {
         var values=RegistrationBatchPreflight.initialValues(new RegistrationBatchPreflight.Review(List.of(changed,ambiguous)));
         assertEquals("6112110000",values.get(changed));assertEquals("",values.get(ambiguous));
     }
+    @Test void proposalTablePrefillsUniqueCatalogChoicesAndPreservesSellerValues(){
+        var key=new ProductKey(1,Marketplace.WILDBERRIES,"101","201");
+        var attribute=new com.vncode.app.integration.znack.registration.ZnackCardRegistrationModels.Attribute(999,"Product type","text",true,false,true,false,List.of("Одежда"),List.of("---"));
+        var field=new RegistrationBatchPreflight.Finding("catalog:999",key,"Article","","","",attribute,null,"missing",List.of());
+        var category=new RegistrationBatchPreflight.Finding("catalog_category",key,"Article","","","",null,null,"missing",List.of("Костюмы спортивные"));
+        var review=new RegistrationBatchPreflight.Review(List.of(field,category));
+        var values=RegistrationBatchPreflight.initialValues(review);
+        assertEquals("Одежда",values.get(field));assertEquals("Костюмы спортивные",values.get(category));
+    }
     @Test void missingFactsAreGroupedBeforeAllocationAndTheReviewDoesNotChangeTheSource()throws Exception{
         System.setProperty("vncode.appdata.dir",directory.toString());Database.initDatabase();var shop=GtinWriteTestFixture.shop(Marketplace.WILDBERRIES);
         var key=new ProductKey(1,Marketplace.WILDBERRIES,"101","201");

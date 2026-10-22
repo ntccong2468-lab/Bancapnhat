@@ -25,7 +25,8 @@ final class CatalogErrorRepairDialog {
         host.getProperties().put(BUSY,true);var service=new CatalogErrorRepairService();
         work(()->service.report(shop,selected,all),cards->{
             host.getProperties().remove(BUSY);
-            var choices=report(host, cards);if(choices.isEmpty())return;
+            var defaults=automaticChoices(cards,selected);
+            var choices=defaults.isEmpty()?report(host,cards):defaults;if(choices.isEmpty())return;
             host.getProperties().put(BUSY,true);
             work(()->{
                 var prepared=new ArrayList<Proposal>();var blocked=new ArrayList<String>();
@@ -35,6 +36,15 @@ final class CatalogErrorRepairDialog {
         },error->{host.getProperties().remove(BUSY);failure(error);});
     }
     record Prepared(List<Proposal> proposals,List<String> blocked){}
+    static Map<ErrorCard,ProductKey> automaticChoices(List<ErrorCard> cards,Set<ProductKey> selected){
+        var choices=new LinkedHashMap<ErrorCard,ProductKey>();var targets=new HashSet<ProductKey>();
+        for(var card:cards){
+            var candidates=card.candidates().stream().filter(row->selected.isEmpty()||selected.contains(row.key())).toList();
+            if(candidates.size()!=1||!targets.add(candidates.getFirst().key()))return Map.of();
+            choices.put(card,candidates.getFirst().key());
+        }
+        return choices;
+    }
     static Map<ErrorCard,ProductKey> report(StackPane host,List<ErrorCard> cards){
         var dialog=new Dialog<Map<ErrorCard,ProductKey>>();owner(dialog,host);dialog.setTitle(tr("repair.report"));dialog.setHeaderText(tr("repair.report_hint")+" · "+cards.size());dialog.getDialogPane().setId("catalogErrorReportDialog");
         var table=new TableView<ErrorCard>();table.setId("catalogErrorReportTable");table.getItems().setAll(cards);table.setPrefHeight(400);
@@ -55,8 +65,10 @@ final class CatalogErrorRepairDialog {
         var fields=new ArrayList<Field>();var values=new HashMap<Field,String>();var types=new HashMap<Field,String>();
         for(var p:prepared.proposals()){
             var active=RegistrationAttributeRules.required(p.required(),p.draft().attributes());var ids=new LinkedHashSet<Long>(List.of(2478L,2504L,13914L,13933L,35L,36L,2483L,14013L));active.forEach(a->ids.add(a.id()));ids.removeAll(Set.of(3959L,23557L,23561L,23765L));
-            for(long id:ids){var a=active.stream().filter(s->s.id()==id).findFirst().orElse(null);var f=new Field(p,id,a==null?fieldName(id):a.name(),p.before().getOrDefault(id,""),a==null?List.of():a.presets(),a==null?List.of():a.valueTypes(),Set.of(13914L,13933L,35L,36L).contains(id));fields.add(f);values.put(f,p.draft().attributes().getOrDefault(id,""));types.put(f,p.draft().attributeTypes().getOrDefault(id,""));}
-            var selected=p.documents().size()==1?p.documents().getFirst():null;
+            for(long id:ids){var a=active.stream().filter(s->s.id()==id).findFirst().orElse(null);var f=new Field(p,id,a==null?fieldName(id):a.name(),p.before().getOrDefault(id,""),a==null?List.of():a.presets(),a==null?List.of():a.valueTypes(),Set.of(13914L,13933L,35L,36L).contains(id));fields.add(f);String value=p.draft().attributes().getOrDefault(id,"");String valueType=p.draft().attributeTypes().getOrDefault(id,"");
+                if(a!=null){String russian=p.snapshot().variants().stream().filter(v->v.id().equals(p.snapshot().key().variantId())).map(ProductVariant::russianSize).findFirst().orElse("");var proposed=RegistrationDraftCompletionDialog.suggestion(a,value,valueType,russian);value=proposed.text();valueType=proposed.type();}
+                values.put(f,value);types.put(f,valueType);}
+            var selected=p.documents().stream().filter(d->Objects.equals(p.draft().attributes().get(RegistrationPermitValidator.attribute(d)),d.number()+":::"+d.date())).findFirst().orElse(p.documents().size()==1?p.documents().getFirst():null);
             var prior=p.before().getOrDefault(23557L,p.before().getOrDefault(23561L,"")).split(":::",2);
             var docType=new Field(p,-1,tr("znack.registration.document_type"),p.before().containsKey(23561L)?"Сертификат":"Декларация",List.of("Декларация","Сертификат"),List.of(),false);
             var docNumber=new Field(p,-2,tr("znack.registration.document_number"),prior[0],p.documents().stream().map(d->d.number()).distinct().toList(),List.of(),false);

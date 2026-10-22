@@ -49,7 +49,7 @@ class ZnackRegistrationQueryRepositoryTest {
             var page=repository.page(criteria("",offset));
             assertEquals(1_230,page.filtered());assertTrue(page.rows().size()<=300);
             for(var row:page.rows())assertTrue(seen.add(row.chrtId()),"Duplicate tied order");
-            assertEquals(1_230,page.summary().total());assertEquals(1,page.summary().published());assertEquals(1,page.summary().errors());
+            assertEquals(1_230,page.summary().total());assertEquals(1,page.summary().published());assertEquals(0,page.summary().errors());
         }
         assertEquals(1_230,seen.size());assertEquals(1L,seen.iterator().next());assertTrue(seen.contains(1_230L));
     }
@@ -73,7 +73,7 @@ class ZnackRegistrationQueryRepositoryTest {
                 new RegisteredGtin("04631993764387","unlinked","","XL",true,false,"fixture",at)));
         var summary=repository.page(criteria("",0)).summary();
         assertEquals(2,summary.catalog());assertEquals(1,summary.catalogPublished());assertEquals(1,summary.catalogUnlinked());
-        assertEquals(1,summary.errors());assertEquals(at,summary.syncedAt());
+        assertEquals(0,summary.errors());assertEquals(at,summary.syncedAt());
     }
     @Test void rejectsMissingOrWrongMarketplaceOwnerAndNeverLeaksOtherShop() {
         assertThrows(IllegalArgumentException.class,()->repository.page(new SearchCriteria(3,"",List.of(),"ALL",300,0)));
@@ -97,6 +97,8 @@ class ZnackRegistrationQueryRepositoryTest {
         var observed=new ZnackRegistrationQueryRepository(receipt,new com.vncode.app.features.sync.RegistrationCardIndex(shop));
         assertEquals(existingErrors+1,observed.page(criteria("",0)).summary().errors());assertEquals(2,observed.page(criteria("",0)).summary().waiting());
         var errors=observed.page(new SearchCriteria(1,"",List.of(),"ERROR",300,0)).rows();
+        assertEquals(List.of(501L),observed.allSelectable(new SearchCriteria(1,"",List.of(),"ERROR",300,0)).stream().map(Sku::chrtId).toList(),"Background selection must retain rejected Catalog rows");
+        assertTrue(observed.allEligible(new SearchCriteria(1,"",List.of(),"ERROR",300,0)).isEmpty(),"Repair selection is not permission to register blindly");
         assertTrue(errors.stream().anyMatch(r->r.chrtId()==501));assertFalse(errors.stream().anyMatch(r->r.chrtId()==502||r.chrtId()==503));
         var processing=observed.page(new SearchCriteria(1,"",List.of(),"IN_PROGRESS",300,0)).rows();
         assertEquals(List.of(502L,503L),processing.stream().map(Sku::chrtId).toList(),
@@ -151,15 +153,50 @@ class ZnackRegistrationQueryRepositoryTest {
         var observed=new ZnackRegistrationQueryRepository(receipt,new com.vncode.app.features.sync.RegistrationCardIndex(shop));
         for(var query:List.of(repository,observed)){
             var notCreated=new SearchCriteria(1,"",List.of(),"NOT_CREATED",300,0);
-            assertEquals(1_220,query.page(notCreated).filtered());
+            assertEquals(query==repository?1_225:1_226,query.page(notCreated).filtered());
             var selected=query.allEligible(notCreated).stream().map(Sku::chrtId).toList();
             assertTrue(selected.containsAll(List.of(10L,11L,12L,13L,1_230L)),"Selection must include every safe unsent checkpoint, beyond the loaded page");
-            assertFalse(selected.stream().anyMatch(id->id>=14&&id<=21),"An accepted or uncertain feed must not be submitted as a new card");
+            assertFalse(selected.stream().anyMatch(id->id>=14&&id<=20),"An accepted or uncertain feed must not be submitted as a new card");
             var processing=query.page(new SearchCriteria(1,"",List.of(),"IN_PROGRESS",300,0));
-            assertEquals(List.of(17L,19L),processing.rows().stream().map(Sku::chrtId).toList());
-            assertEquals(1,processing.summary().waiting());assertEquals(1,processing.summary().readyToSign());
+            assertEquals(List.of(15L,16L,17L,19L),processing.rows().stream().map(Sku::chrtId).toList());
+            assertEquals(3,processing.summary().waiting());assertEquals(1,processing.summary().readyToSign());
             var errors=query.page(new SearchCriteria(1,"",List.of(),"ERROR",300,0)).rows().stream().map(Sku::chrtId).toList();
-            assertTrue(errors.containsAll(List.of(14L,15L,16L,20L)),"Legacy allocations and uncertain POST outcomes need a report/reconciliation, never another POST");
+            assertTrue(errors.isEmpty(),"Local uncertainty is not a confirmed Catalog refusal");
         }
     }
+    @Test void filtersSeparateCatalogRejectionFromLocalErrorsAndUncertainGtins()throws Exception {
+        var shop=new com.vncode.app.models.Shop(1,"Fixture WB","fixture");
+        String receipt=com.vncode.app.testsupport.RegistrationSourceFixture.ready(shop);
+        var scope=com.vncode.app.integration.znack.registration.ZnackRegistrationScope.fromSettings(
+                new com.vncode.app.integration.znack.ZnackRepository(new com.vncode.app.integration.znack.ZnackModels.ShopContext(1,shop.getName())).getSettings());
+        var statuses=List.of(Status.PREFLIGHT_ERROR,Status.PRE_SUBMIT_ERROR,Status.GTIN_REVIEW_REQUIRED,
+                Status.GTIN_GENERATED,Status.FEED_SUBMITTING,Status.FEED_REVIEW_REQUIRED,Status.FEED_SUBMITTED,Status.ERROR,Status.ERROR);
+        try(var c=Database.getConnection();var p=c.prepareStatement("INSERT INTO znack_card_registrations(shop_id,chrt_id,nm_id,gtin,feed_id,status,error_message,created_at,updated_at) VALUES(1,?,100,?,?,?,?,'fixture','fixture')")){
+            for(int i=0;i<statuses.size();i++){
+                p.setInt(1,100+i);p.setString(2,String.format(Locale.ROOT,"%014d",700000+i));
+                p.setString(3,i==6||i==8?"feed-"+i:"");p.setString(4,statuses.get(i).name());
+                p.setString(5,i==8?"CATALOG_REJECTED: invalid composition":"ZNACK_REQUIRED_ATTRIBUTES_MISSING");p.executeUpdate();
+            }
+        }
+        var nativeRows=new com.vncode.app.integration.znack.registration.ZnackCardRegistrationRepository();
+        for(int id=100;id<109;id++)nativeRows.bindScope(shop,id,scope);
+        var observed=new ZnackRegistrationQueryRepository(receipt,new com.vncode.app.features.sync.RegistrationCardIndex(shop));
+        for(var query:List.of(repository,observed)){
+            assertEquals(List.of(108L),query.page(new SearchCriteria(1,"",List.of(),"ERROR",300,0)).rows().stream().map(Sku::chrtId).toList(),"Only confirmed Catalog refusal belongs in Errors");
+            assertEquals(List.of(104L,105L,106L),query.page(new SearchCriteria(1,"",List.of(),"IN_PROGRESS",300,0)).rows().stream().map(Sku::chrtId).toList(),"A newly dispatched feed must be visible before its receipt arrives");
+            var unconfirmed=query.page(new SearchCriteria(1,"",List.of(),"NOT_CREATED",300,0));
+            assertTrue(unconfirmed.rows().stream().map(Sku::chrtId).toList().containsAll(List.of(100L,101L,102L,103L,107L)));
+            assertEquals(1,unconfirmed.summary().errors(),"Summary must use the same Catalog-only error definition");
+            assertFalse(query.allEligible(new SearchCriteria(1,"",List.of(),"NOT_CREATED",300,0)).stream().anyMatch(row->Set.of(102L,103L,104L,105L,106L).contains(row.chrtId())),"Display membership must not permit replay of uncertain operations");
+        }
+    }
+    @Test void aLocallyPublishedGtinWithoutCatalogConfirmationReturnsToNotCreated()throws Exception {
+        var shop=new com.vncode.app.models.Shop(1,"Fixture WB","fixture");
+        String receipt=com.vncode.app.testsupport.RegistrationSourceFixture.ready(shop);
+        var observed=new ZnackRegistrationQueryRepository(receipt,new com.vncode.app.features.sync.RegistrationCardIndex(shop));
+        assertTrue(observed.page(new SearchCriteria(1,"",List.of(),"NOT_CREATED",300,0)).rows().stream().anyMatch(row->row.chrtId()==1),"Local published status is not Catalog proof");
+        assertTrue(observed.page(new SearchCriteria(1,"",List.of(),"ERROR",300,0)).rows().isEmpty(),"Unconfirmed GTIN is not a Catalog rejection");
+        assertFalse(observed.allEligible(new SearchCriteria(1,"",List.of(),"NOT_CREATED",300,0)).stream().anyMatch(row->row.chrtId()==1),"Do not allocate a replacement automatically");
+    }
+
 }

@@ -9,15 +9,28 @@ import java.sql.*;
 import java.time.Instant;
 import java.util.*;
 
-/** Imports a server-confirmed rejected card into the existing durable feed state machine.
+/** Imports a server-confirmed rejected card or feed into the existing durable feed state machine.
  * Never resets pending POSTs, published cards, signatures or a different GTIN. */
 final class CatalogRepairCheckpoint {
     static boolean prepare(Shop shop,ProductKey key,String sku,String gtin,long goodId,String payload,
                            ZnackCardRegistrationModels.Draft draft,ZnackRegistrationScope scope)throws SQLException {
+        return prepare(shop,key,sku,gtin,goodId,payload,draft,scope,null);
+    }
+    static boolean prepare(Shop shop,ProductKey key,String sku,String gtin,long goodId,String payload,
+                           ZnackCardRegistrationModels.Draft draft,ZnackRegistrationScope scope,CatalogErrorRepairService.FeedRejection rejection)throws SQLException {
         ListingIdentity.require(shop,key);scope.assertCurrent(shop);
-        if(payload.length()>2*1024*1024||goodId<=0||!com.vncode.app.features.gtinsync.RegisteredGtinValidator.isValid(gtin))throw new IllegalArgumentException("CATALOG_REPAIR_INVALID");
+        if(payload.length()>2*1024*1024||goodId<0||goodId==0&&rejection==null||!com.vncode.app.features.gtinsync.RegisteredGtinValidator.isValid(gtin))throw new IllegalArgumentException("CATALOG_REPAIR_INVALID");
         return SqliteWriteTransaction.run(c->{
             if(!ListingIdentity.fingerprint(shop).equals(ListingIdentity.fingerprint(c,shop.getId(),shop.getMarketplace())))throw new SecurityException("SHOP_CREDENTIALS_CHANGED");
+            if(rejection!=null){
+                String table=key.marketplace()==Marketplace.WILDBERRIES?"znack_card_registrations":"ozon_card_registrations";
+                String identity=key.marketplace()==Marketplace.WILDBERRIES?"nm_id=? AND chrt_id=?":"product_id=? AND offer_id=?";
+                String error=key.marketplace()==Marketplace.WILDBERRIES?"error_message":"error";
+                try(var p=c.prepareStatement("SELECT "+error+" FROM "+table+" WHERE shop_id=? AND "+identity+" AND gtin=? AND status='ERROR' AND feed_id=? AND payload_json=?")){
+                    bindKey(p,key);p.setString(4,gtin);p.setString(5,rejection.feedId());p.setString(6,rejection.payload());
+                    try(var r=p.executeQuery()){if(!r.next()||!CatalogFeedback.rejectionMessage(r.getString(1)))return false;}
+                }
+            }
             return key.marketplace()==Marketplace.WILDBERRIES?wb(c,shop,key,gtin,goodId,payload,draft,scope):ozon(c,shop,key,sku,gtin,goodId,payload,scope);
         });
     }
@@ -40,7 +53,7 @@ final class CatalogRepairCheckpoint {
             SELECT ?,?,?,vendor_code,'',?,?,'',?,?,?,?, 'READY_TO_SUBMIT',0,?,? FROM wb_product_cards WHERE shop_id=? AND nm_id=?
             ON CONFLICT(shop_id,chrt_id) DO UPDATE SET gtin=excluded.gtin,good_id=excluded.good_id,feed_id='',tnved=excluded.tnved,category_id=excluded.category_id,good_name=excluded.good_name,payload_json=excluded.payload_json,status='READY_TO_SUBMIT',error_message=NULL,updated_at=excluded.updated_at
             """)){
-            p.setInt(1,shop.getId());p.setLong(2,variant);p.setLong(3,card);p.setString(4,gtin);p.setLong(5,goodId);p.setString(6,draft.tnved());p.setLong(7,draft.categoryId());p.setString(8,draft.goodName());p.setString(9,payload);p.setString(10,now);p.setString(11,now);p.setInt(12,shop.getId());p.setLong(13,card);if(p.executeUpdate()!=1)return false;
+            p.setInt(1,shop.getId());p.setLong(2,variant);p.setLong(3,card);p.setString(4,gtin);p.setObject(5,goodId>0?goodId:null);p.setString(6,draft.tnved());p.setLong(7,draft.categoryId());p.setString(8,draft.goodName());p.setString(9,payload);p.setString(10,now);p.setString(11,now);p.setInt(12,shop.getId());p.setLong(13,card);if(p.executeUpdate()!=1)return false;
         }
         try(var p=c.prepareStatement("INSERT OR IGNORE INTO znack_card_registration_scopes(shop_id,chrt_id,participant_inn,environment,fingerprint,owner_hash,created_at) VALUES(?,?,?,?,?,?,?)")){p.setInt(1,shop.getId());p.setLong(2,variant);p.setString(3,scope.inn());p.setString(4,scope.environment());p.setString(5,scope.fingerprint());p.setString(6,ListingIdentity.fingerprint(shop));p.setString(7,now);p.executeUpdate();}
         try(var p=c.prepareStatement("DELETE FROM znack_card_registration_signatures WHERE shop_id=? AND chrt_id=?")){p.setInt(1,shop.getId());p.setLong(2,variant);p.executeUpdate();}
@@ -63,7 +76,7 @@ final class CatalogRepairCheckpoint {
             SELECT ?,?,?,?,'READY_TO_SUBMIT',?,?,?,?,?,?,? WHERE EXISTS(SELECT 1 FROM ozon_products WHERE shop_id=? AND product_id=? AND offer_id=?)
             ON CONFLICT(shop_id,product_id,offer_id) DO UPDATE SET status='READY_TO_SUBMIT',gtin=excluded.gtin,good_id=excluded.good_id,feed_id='',payload_json=excluded.payload_json,signature_xml=NULL,signature_sha256='',signature_state='',error='',updated_at=excluded.updated_at
             """)){
-            bindKey(p,key);p.setString(4,sku);p.setString(5,gtin);p.setLong(6,goodId);p.setString(7,payload);p.setString(8,scopeJson);p.setString(9,owner);p.setString(10,now);p.setString(11,now);p.setInt(12,key.shopId());p.setString(13,key.cardId());p.setString(14,key.variantId());return p.executeUpdate()==1;
+            bindKey(p,key);p.setString(4,sku);p.setString(5,gtin);p.setObject(6,goodId>0?goodId:null);p.setString(7,payload);p.setString(8,scopeJson);p.setString(9,owner);p.setString(10,now);p.setString(11,now);p.setInt(12,key.shopId());p.setString(13,key.cardId());p.setString(14,key.variantId());return p.executeUpdate()==1;
         }
     }
     private static boolean replaceable(String status,String old,String gtin){return Set.of("NOT_CREATED","PREFLIGHT_ERROR","PRE_SUBMIT_ERROR","ERROR").contains(status)&&(old==null||old.isBlank()||com.vncode.app.features.gtinsync.RegisteredGtinProof.sameCode(old,gtin));}

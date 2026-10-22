@@ -571,7 +571,7 @@ public final class ZnackCardRegistrationWorkflow {
         scope.assertCurrent(shop);
         return new CatalogSession(token,catalog,scope);
     }
-    private com.vncode.app.integration.znack.registration.v3.RegistrationJob.Owner commandOwner(Shop shop,CatalogSession session){
+    com.vncode.app.integration.znack.registration.v3.RegistrationJob.Owner commandOwner(Shop shop,CatalogSession session){
         com.vncode.app.integration.listing.ListingIdentity.require(shop);
         var scope=session.scope()!=null?session.scope():ZnackRegistrationScope.fromSettings(new ZnackRepository(new ZnackModels.ShopContext(shop.getId(),shop.getName())).getSettings());
         if(strictScope)scope.assertCurrent(shop);
