@@ -1085,8 +1085,16 @@ public final class ZnackNationalCatalogService {
             payload.add("good_images", images);
         }
 
+        // Category discovery may use a four-digit API node, but the actual product code
+        // must remain the marketplace code, never a permit's group or a reviewed suggestion.
+        String productTnved=RegistrationTemplate.clean(draft.tnved());
+        String feedTnved=RegistrationTemplate.clean(draft.feedTnved());
+        if(productTnved.matches("[0-9]{10}")&&!feedTnved.equals(productTnved)
+                &&!feedTnved.equals(productTnved.substring(0,4)))throw new RegistrationValidationException("ZNACK_TNVED_GROUP_MISMATCH");
+        var productAttributes=new java.util.LinkedHashMap<>(draft.attributes());
+        if(productTnved.matches("[0-9]{10}")&&feedTnved.length()==4)productAttributes.put(13933L,productTnved);
         JsonArray attributes = new JsonArray();
-        draft.attributes().entrySet().stream().sorted(java.util.Map.Entry.comparingByKey()).forEach(entry -> {
+        productAttributes.entrySet().stream().sorted(java.util.Map.Entry.comparingByKey()).forEach(entry -> {
             // §3.2.2: the feed carries the registered tariff node; do not duplicate its generated attributes.
             if(entry.getKey()==3959L||entry.getKey()==13933L&&draft.feedTnved().length()==10)return;
             if (entry.getValue() == null || entry.getValue().isBlank()) return;

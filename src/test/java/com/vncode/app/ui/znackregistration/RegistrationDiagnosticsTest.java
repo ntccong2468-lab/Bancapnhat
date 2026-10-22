@@ -59,6 +59,13 @@ class RegistrationDiagnosticsTest {
         String receiptOnly=RegistrationDiagnostics.observation(com.vncode.app.integration.znack.registration.ZnackCardRegistrationModels.Status.FEED_SUBMITTED,java.util.Optional.empty(),false);
         assertTrue(receiptOnly.contains(i18n.tr("znack.registration.catalog_observation")+": —"));assertFalse(receiptOnly.contains("moderation"));assertFalse(receiptOnly.contains(i18n.tr("znack.registration.status.published")));
     }
+    @Test void aFoundPublishedCardDoesNotClaimThatNoCardExistsJustBecauseTheLocalQueueIsEmpty(){
+        var actual=new com.vncode.app.features.gtinsync.GtinSyncModels.RegisteredGtin("00000000000017","Another article","Blue","M",true,true,"National Catalog@synthetic",java.time.Instant.now());
+        String report=RegistrationDiagnostics.observation(com.vncode.app.integration.znack.registration.ZnackCardRegistrationModels.Status.NOT_CREATED,java.util.Optional.of(actual),false);
+        var i18n=com.vncode.app.shared.I18nService.getInstance();
+        assertTrue(report.contains(i18n.tr("znack.registration.local_not_sent")));
+        assertFalse(report.contains(i18n.tr("znack.registration.local_queue")+": "+i18n.tr("znack.registration.status.not_created")));
+    }
     @Test void retainedReadWarningKeepsBothLocalizedCauseAndStableDiagnosticCode(){
         var i18n=com.vncode.app.shared.I18nService.getInstance();String warning=RegistrationDiagnostics.readWarning("NETWORK_TIMEOUT",true);
         assertTrue(warning.contains(i18n.tr("znack.registration.latest_read_unknown")));assertTrue(warning.contains(i18n.tr("znack.registration.reason.NETWORK_TIMEOUT")));assertTrue(warning.contains("NETWORK_TIMEOUT"));

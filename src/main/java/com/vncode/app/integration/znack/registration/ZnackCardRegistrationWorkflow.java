@@ -344,6 +344,13 @@ public final class ZnackCardRegistrationWorkflow {
 
     /** Reconcile an acknowledged request without creating, signing or repeating it. */
     public boolean verifySubmissionForBatch(Shop requested, Sku sku) throws Exception {
+        return verifySubmissionForBatch(requested,sku,false);
+    }
+    /** The seller's durable batch may correct a proven rejection without a second click. */
+    public boolean advanceSubmissionForBatch(Shop requested,Sku sku)throws Exception {
+        return verifySubmissionForBatch(requested,sku,true);
+    }
+    private boolean verifySubmissionForBatch(Shop requested,Sku sku,boolean correctRejected)throws Exception {
         Shop shop = freezeShop(requested);
         String key = operationKey(shop, sku);
         if (!RUNNING.add(key)) return false;
@@ -359,6 +366,7 @@ public final class ZnackCardRegistrationWorkflow {
                 if(preserveUnknownDraft(shop,sku,card))return true;
                 adoptExisting(shop,sku,card,session,null);
             }
+            else if(correctRejected)observeSubmissionWithCorrection(shop,sku,session,null);
             else observeSubmission(shop, sku, session, null);
             return true;
         } catch (Exception error) {
@@ -367,6 +375,26 @@ public final class ZnackCardRegistrationWorkflow {
         } finally {
             RUNNING.remove(key);
         }
+    }
+
+    private void observeSubmissionWithCorrection(Shop shop,Sku sku,CatalogSession session,BiConsumer<Status,String> listener)throws Exception {
+        observeSubmission(shop,sku,session,listener);
+        var rejected=registrations.find(shop.getId(),sku.chrtId());
+        if(rejected==null||rejected.status()!=Status.ERROR||!rejected.hasFeed())return;
+        String stored=registrations.payload(shop.getId(),sku.chrtId());if(stored.isBlank())return;
+        var progress=observedProgress(shop,session,rejected);
+        var corrected=CatalogPackingPolicy.correctedPayload(progress,JsonParser.parseString(stored).getAsJsonObject());
+        if(corrected==null)return;
+        var draft=draftFromPayload(corrected);
+        if(progress.goodId()!=null)corrected.addProperty("good_id",progress.goodId());
+        guard(shop,rejected);LicenseRuntime.require(Permission.GTIN);
+        if(!registrations.prepareRejectedRetry(shop,rejected,rejected.gtin(),rejected.feedId(),progress.goodId(),draft.tnved(),draft.categoryId(),draft.goodName(),corrected.toString(),CatalogFeedback.rejection(progress)))throw new IllegalStateException("REGISTRATION_CHANGED");
+        notify(listener,Status.READY_TO_SUBMIT,"CATALOG_CORRECTING_OPTIONAL_FIELDS");
+        String feed=submitWithJournal(shop,rejected,session,corrected,ZnackNationalCatalogService.hasReviewedDraft(corrected),()->{guard(shop,rejected);update(shop,rejected,Status.FEED_SUBMITTING,null,null,listener);});
+        registrations.updateProgress(shop.getId(),rejected.chrtId(),Status.FEED_SUBMITTED,feed,null,null,null);
+        notify(listener,Status.FEED_SUBMITTED,feed);
+        // Exactly one correction in this turn. Another rejection remains visible, never loops.
+        observeSubmission(shop,registrations.find(shop.getId(),rejected.chrtId()),session,listener);
     }
 
     static boolean verifiedSubmission(Sku sku) {
@@ -733,7 +761,7 @@ public final class ZnackCardRegistrationWorkflow {
         }
 
         if(submissionOnly){
-            observeSubmission(shop, registrations.find(shop.getId(), sku.chrtId()), session, listener);
+            observeSubmissionWithCorrection(shop, registrations.find(shop.getId(), sku.chrtId()), session, listener);
             return;
         }
 
@@ -1075,7 +1103,13 @@ public final class ZnackCardRegistrationWorkflow {
         String error = previousError == null ? "" : previousError.toLowerCase(java.util.Locale.ROOT);
         boolean unavailableImage = error.contains("изображение не доступно по url")
                 || error.contains("изображение недоступно по url");
-        return unavailableImage ? "" : imageUrl;
+        if(unavailableImage)return "";
+        // WB supplies CDN thumbnails; Catalog's own fetcher rejects some of these hosts.
+        // Images are optional: keep marketplace media, omit only these URLs from the feed.
+        try{String host=java.net.URI.create(Objects.requireNonNullElse(imageUrl,"")).getHost();
+            if(host!=null&&(host.equals("wbbasket.ru")||host.endsWith(".wbbasket.ru")))return "";
+        }catch(IllegalArgumentException invalid){return "";}
+        return imageUrl;
     }
 
     private void fail(Shop shop, Sku sku, Exception error, BiConsumer<Status, String> listener) {

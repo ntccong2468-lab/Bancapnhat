@@ -43,6 +43,7 @@ public final class RegistrationCardIndex {
         return !view.published()&&confirmedSubmission(status,feedId)
                 &&(!view.blocked()||view.detail().equals("GTIN_VARIANT_UNVERIFIED"));
     }
+    public static boolean needsMatchReview(View view){return view.exists()&&Set.of("source.ambiguous","source.unverified").contains(view.status());}
     /** Unsent preparation and uncertain requests have their own filters, not Catalog errors. */
     public static boolean rejectedCard(View view,Status status,Long goodId,String feedId){
         if(view.published()||awaitingCatalog(view,status,feedId))return false;

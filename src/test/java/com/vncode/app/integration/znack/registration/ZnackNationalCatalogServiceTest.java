@@ -303,8 +303,8 @@ class ZnackNationalCatalogServiceTest {
                 + "Изображение не доступно по URL " + url
                 + ". В ответе на запрос получен код отличный от кода 200.";
         assertEquals("", ZnackCardRegistrationWorkflow.retryImageUrl(url, mixed));
-        assertEquals(url, ZnackCardRegistrationWorkflow.retryImageUrl(url, "Размер одежды не заполнен"));
-        assertEquals(url, ZnackCardRegistrationWorkflow.retryImageUrl(url, null));
+        assertEquals("", ZnackCardRegistrationWorkflow.retryImageUrl(url, "Размер одежды не заполнен"));
+        assertEquals("", ZnackCardRegistrationWorkflow.retryImageUrl(url, null));
     }
 
     @Test
