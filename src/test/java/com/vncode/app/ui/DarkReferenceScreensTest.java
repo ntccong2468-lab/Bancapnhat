@@ -71,7 +71,7 @@ class DarkReferenceScreensTest {
         fx(()->{var pane=picker();pane.applyCss();pane.layout();capture(pane,"tnved-picker");var copy=pane.lookup("#tnvedCopy_6112110000");assertNotNull(copy);assertNotNull(((Button)copy).getGraphic());var window=pane.getScene().getWindow();((Button)pane.lookup("#tnvedPickerCancel")).fire();assertFalse(window.isShowing());assertNull(selected.get());return null;});
     }
     static Parent picker(){for(var window:Window.getWindows())if(window.getScene()!=null){var node=window.getScene().getRoot().lookup("#productTnvedPicker");if(node instanceof Parent parent)return parent;}return null;}
-    static Stage show(Parent view,int width,int height){var scene=new Scene(view,width,height);ThemeService.applyTheme(scene);var stage=new Stage();stage.setScene(scene);stage.show();return stage;}
+    static Stage show(Parent view,int width,int height){var scene=new Scene(view,width,height);ThemeService.applyTheme(scene);var stage=new Stage();stage.setScene(scene);stage.show();double frame=stage.getWidth()-scene.getWidth();stage.setMinWidth(width+frame);stage.setWidth(width+frame);return stage;}
     static void capture(Parent view,String name)throws Exception{
         String dir=System.getProperty("vncode.reference.capture.dir");if(dir==null)return;Files.createDirectories(Path.of(dir));var image=view.snapshot(null,null);var png=new java.awt.image.BufferedImage((int)image.getWidth(),(int)image.getHeight(),java.awt.image.BufferedImage.TYPE_INT_ARGB);for(int y=0;y<png.getHeight();y++)for(int x=0;x<png.getWidth();x++)png.setRGB(x,y,image.getPixelReader().getArgb(x,y));javax.imageio.ImageIO.write(png,"png",Path.of(dir,name+".png").toFile());
     }

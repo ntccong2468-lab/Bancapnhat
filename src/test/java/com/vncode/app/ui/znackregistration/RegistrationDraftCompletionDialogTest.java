@@ -70,20 +70,23 @@ class RegistrationDraftCompletionDialogTest {
             });return RegistrationDraftCompletionDialog.show(null,current,List.of(country),"");
         });Platform.runLater(future);assertEquals("Вьетнам",future.get(15,TimeUnit.SECONDS).attributes().get(10L));
     }
-    @Test void missingDocumentsOpenTheExistingSuggestionFormFromTheirRowWithoutAllocatingAnything()throws Exception{
+    @Test void missingDocumentsOpenRegistrationPermitConfigurationWithoutAllocatingAnything()throws Exception{
         var shop=com.vncode.app.features.gtinsync.GtinWriteTestFixture.shop(com.vncode.app.integration.marketplace.Marketplace.WILDBERRIES);
         var key=new com.vncode.app.features.products.ProductKey(1,shop.getMarketplace(),"101","201");var review=new RegistrationBatchPreflight.Review(List.of(new RegistrationBatchPreflight.Finding("documents",key,"Synthetic article","","","1")));
-        var future=new FutureTask<Boolean>(()->{
-            Platform.runLater(()->{
-                var pane=Window.getWindows().stream().filter(Window::isShowing).map(w->w.getScene().getRoot()).filter(n->"registrationMissingFieldsDialog".equals(n.getId())).findFirst().orElseThrow();pane.applyCss();pane.layout();
-                ((Button)pane.lookup("#registrationMissingApply")).fire();assertTrue(pane.getScene().getWindow().isShowing());
-                var complete=(Button)pane.lookup("#registrationMissingDocuments");assertNotNull(complete);complete.fire();
-                var documents=Window.getWindows().stream().filter(Window::isShowing).map(w->w.getScene().getRoot()).filter(n->"productBulkEditDialog".equals(n.getId())).findFirst().orElseThrow();documents.applyCss();documents.layout();assertNotNull(documents.lookup("#bulkExistingDocument"));assertNotNull(documents.lookup("#editApply"));assertEquals(2,documents.lookupAll(".date-picker").size());
-                ((Button)documents.lookup(".button:cancel")).fire();((Button)pane.lookup(".button:cancel")).fire();
-            });return RegistrationBatchPreflight.show(null,shop,review);
-        });Platform.runLater(future);assertFalse(future.get(15,TimeUnit.SECONDS));
-        try(var c=com.vncode.app.config.Database.getConnection();var s=c.createStatement();var r=s.executeQuery("SELECT COUNT(*) FROM znack_card_registrations")){assertTrue(r.next());assertEquals(0,r.getInt(1));}
-    }    @Test void completeSelectionDialogNamesTheExactCatalogAttributeAndVariantAndDoesNotCloseWithMissingValues()throws Exception{
+        var future=new FutureTask<Boolean>(()->RegistrationBatchPreflight.show(null,shop,review));Platform.runLater(future);
+        com.vncode.app.testsupport.FxDialogDriver.choose(()->{
+            var pane=Window.getWindows().stream().filter(Window::isShowing).map(w->w.getScene().getRoot()).filter(n->"registrationMissingFieldsDialog".equals(n.getId())).findFirst().orElseThrow();pane.applyCss();pane.layout();
+            ((Button)pane.lookup("#registrationMissingApply")).fire();assertTrue(pane.getScene().getWindow().isShowing());
+            var complete=(Button)pane.lookup("#registrationMissingDocuments");assertNotNull(complete);complete.fire();
+        },pane->"registrationConfiguredDocumentDialog".equals(pane.getId()),pane->{
+            pane.applyCss();pane.layout();assertNotNull(pane.lookup("#registrationConfiguredDocumentNumber"));assertNotNull(pane.lookup("#registrationConfiguredDocumentDate"));assertEquals(1,pane.lookupAll(".combo-box").size());assertNull(pane.lookup("#bulkExistingDocument"),"Registration uses its configured permit, not marketplace product editing");
+            return ButtonType.CANCEL;
+        });
+        com.vncode.app.testsupport.FxDialogDriver.choose(()->{},pane->"registrationMissingFieldsDialog".equals(pane.getId()),pane->pane.getButtonTypes().stream().filter(type->type.getButtonData()==ButtonBar.ButtonData.CANCEL_CLOSE).findFirst().orElseThrow());
+        assertFalse(future.get(5,TimeUnit.SECONDS));
+        try(var c=com.vncode.app.config.Database.getConnection();var statement=c.createStatement();var result=statement.executeQuery("SELECT COUNT(*) FROM znack_card_registrations")){assertTrue(result.next());assertEquals(0,result.getInt(1));}
+    }
+    @Test void completeSelectionDialogNamesTheExactCatalogAttributeAndVariantAndDoesNotCloseWithMissingValues()throws Exception{
         var shop=com.vncode.app.features.gtinsync.GtinWriteTestFixture.shop(com.vncode.app.integration.marketplace.Marketplace.WILDBERRIES);
         var key=new com.vncode.app.features.products.ProductKey(shop.getId(),shop.getMarketplace(),"101","201");
         var finding=new RegistrationBatchPreflight.Finding("catalog:10",key,"Selected Article","","","",country,null,"value",List.of());

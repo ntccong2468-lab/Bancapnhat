@@ -63,3 +63,6 @@ license-server/
 
 # Tài liệu API Znack + script RAG (có .env) — không thuộc app repo
 znack_api/
+
+# Generated Python tool cache
+__pycache__/

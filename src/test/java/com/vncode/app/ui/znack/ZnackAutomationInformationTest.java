@@ -63,6 +63,9 @@ class ZnackAutomationInformationTest {
             controller.setShop(shop(2));assertEquals("",field.getText());
             assertEquals(i18n.tr("znack.catalog.not_saved"),label("catalogStatusLabel"));
             controller.setShop(null);assertTrue(field.isDisabled());assertTrue(node("checkCatalogButton",Button.class).isDisabled());
+            var feedback=node("authStatusLabel",Label.class);
+            feedback.setText(i18n.tr("znack.catalog.failed"));assertTrue(feedback.isVisible());assertTrue(feedback.isManaged());
+            feedback.setText("");assertFalse(feedback.isVisible());assertFalse(feedback.isManaged());
             return null;
         });
     }

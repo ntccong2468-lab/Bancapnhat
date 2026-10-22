@@ -144,6 +144,9 @@ public class ZnackAutomationController {
 
     @FXML
     private void initialize() {
+        // Keep the reference layout empty while idle, but never hide action feedback/errors.
+        authStatusLabel.visibleProperty().bind(authStatusLabel.textProperty().isNotEmpty());
+        authStatusLabel.managedProperty().bind(authStatusLabel.visibleProperty());
         warehouseTab.setId("warehouseTab");warehouseTab.setContent(warehousePane);
         var tabs=informationTab.getTabPane();warehouseTab.setClosable(false);tabs.getTabs().setAll(informationTab,ordersTab,deletedTab,settingsTab,warehouseTab);
         var extraPages=new ContextMenu();

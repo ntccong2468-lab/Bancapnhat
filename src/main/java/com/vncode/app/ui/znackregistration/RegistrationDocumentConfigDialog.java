@@ -19,7 +19,7 @@ final class RegistrationDocumentConfigDialog {
         AppTaskExecutor.execute(read,error->AlertService.showError(FriendlyErrorService.format(error)));
     }
     static void show(Window window,Shop owner,ZnackModels.Settings settings,Runnable saved){
-        var dialog=new Dialog<ZnackModels.GoodsDocument>();if(window!=null)dialog.initOwner(window);AlertService.applyTheme(dialog);
+        var dialog=new Dialog<ZnackModels.GoodsDocument>();dialog.getDialogPane().setId("registrationConfiguredDocumentDialog");if(window!=null)dialog.initOwner(window);AlertService.applyTheme(dialog);
         dialog.setTitle(tr("znack.registration.config"));
         var type=new ComboBox<String>();type.getItems().setAll("CONFORMITY_DECLARATION","CONFORMITY_CERTIFICATE");
         type.setValue(java.util.Set.of("1","CONFORMITY_CERTIFICATE","CERTIFICATE","CERTIFICATE_OF_CONFORMITY","СЕРТИФИКАТ").contains(text(settings.documentType()).toUpperCase(java.util.Locale.ROOT))?"CONFORMITY_CERTIFICATE":"CONFORMITY_DECLARATION");

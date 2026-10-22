@@ -3,6 +3,8 @@
 VN code là ứng dụng Java 25 + JavaFX cho Wildberries và Ozon FBS. Maven là build system duy nhất.
 JavaFX/FXML trong `src/main` là production UI; không có frontend web hoặc desktop runtime thứ hai.
 
+Trước khi tiếp tục công việc, đọc trạng thái và quyết định trong [docs/PROJECT_MEMORY.md](docs/PROJECT_MEMORY.md); đối chiếu biên nhận phát hành trước khi khẳng định một bản đã lên Latest.
+
 ## Commands
 
 ```bash

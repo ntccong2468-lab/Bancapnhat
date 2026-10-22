@@ -164,7 +164,7 @@
 .reference-dark .tnved-reference-picker    { -fx-padding: 0; }
 
 /* A view may be the scene root in dialogs and a child in the main workspace. */
-.reference-dark .button.feature-card { -fx-background-color: #181d24; -fx-background-radius: 20; -fx-border-radius: 20; }
+.reference-dark .button.feature-card { -fx-background-color: #181d24; -fx-background-radius: 20; -fx-border-radius: 20; -fx-min-height: 110; -fx-padding: 14; }
 .reference-dark .combo-box > .list-cell { -fx-background-color: transparent; }
 .reference-dark .text-muted { -fx-font-weight: normal; }
 .reference-dark .text-bold { -fx-font-weight: bold; }

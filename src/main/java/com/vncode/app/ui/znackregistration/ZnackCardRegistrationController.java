@@ -264,7 +264,7 @@ public final class ZnackCardRegistrationController {
         colorColumn.setText(i18n.tr("fbo.column.color"));
         sizeColumn.setText(tr("znack.registration.column_size_original"));
         russianSizeColumn.setText(tr("znack.registration.column_size_ru"));
-        barcodeColumn.setText("Barcode WB / GTIN");verifiedGtinColumn.setText(tr("znack.registration.verified_gtin"));
+        barcodeColumn.setText(tr("znack.registration.barcode_wb")+" / GTIN");verifiedGtinColumn.setText(tr("znack.registration.verified_gtin"));
         statusColumn.setText(tr("znack.registration.status"));
         moderationColumn.setText(tr("znack.registration.column_moderation"));
         marketplaceSyncColumn.setText(java.text.MessageFormat.format(tr("znack.registration.column_marketplace_sync"),"WB"));
