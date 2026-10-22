@@ -20,6 +20,11 @@ class RegistrationCardIndexTest {
     @AfterEach void clean(){System.clearProperty("vncode.appdata.dir");}
     RegisteredGtin card(String gtin,boolean published){return new RegisteredGtin(gtin,"A","Blue","M",true,published,RegisteredGtinProof.source(shop),Instant.now());}
     RegistrationCardIndex index(RegisteredGtin... cards){new GtinSyncRepository().saveCatalog(shop.getId(),shop.getMarketplace(),List.of(cards));return new RegistrationCardIndex(shop);}
+    @Test void aLocalUnverifiedCheckpointIsNotAnObservedCatalogMatchingConflict(){
+        assertFalse(RegistrationCardIndex.needsMatchReview(new RegistrationCardIndex.View("source.unverified","","SOURCE_PUBLISHED_NOT_CONFIRMED",true,false,true)));
+        assertFalse(RegistrationCardIndex.needsMatchReview(new RegistrationCardIndex.View("source.unverified","","SOURCE_REGISTRATION_OWNER_CHANGED",true,false,true)));
+        assertTrue(RegistrationCardIndex.needsMatchReview(new RegistrationCardIndex.View("source.unverified","","GTIN_VARIANT_UNVERIFIED",true,false,true)));
+    }
     @Test void errorFilterExcludesUnsentWorkAndAcceptedProcessingEvenWithVariantWarnings(){
         for(var state:List.of(Status.CHECKING,Status.ALLOCATING_GTIN,Status.GTIN_GENERATED,Status.READY_TO_SUBMIT,Status.PRE_SUBMIT_ERROR,Status.FEED_SUBMITTING,Status.GTIN_REVIEW_REQUIRED,Status.FEED_REVIEW_REQUIRED)){
             var view=new RegistrationCardIndex.View("status."+state.name().toLowerCase(Locale.ROOT),"","",true,false,false);

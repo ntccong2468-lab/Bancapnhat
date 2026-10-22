@@ -37,7 +37,8 @@ public final class RegistrationCardIndex {
             default -> false;
         };
     }
-    public static boolean needsMatchReview(View view){return view.exists()&&Set.of("source.ambiguous","source.unverified").contains(view.status());}
+    public static boolean needsMatchReview(View view){return view.exists()&&(view.status().equals("source.ambiguous")
+            ||view.status().equals("source.unverified")&&Set.of("GTIN_VARIANT_CONFLICT","GTIN_VARIANT_UNVERIFIED").contains(view.detail()));}
     /** Filter membership is presentation only and never permission to replay a write. */
     public static boolean catalogRejected(Status status,String error,View observed) {
         if(observed!=null){
