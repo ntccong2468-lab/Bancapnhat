@@ -64,6 +64,7 @@ jobs:
           import {createHash} from 'node:crypto';
           import {requiredAssets,validateCompleteRelease} from './tools/baseline-release.mjs';
           import {resolveReleaseVersion} from './tools/release-version.mjs';
+          process.on('uncaughtException',error=>{writeFileSync('publication-error.json',JSON.stringify({name:error.name,message:String(error.message).replace(/\?[^\s]+/g,'?[redacted]'),actual:error.actual,expected:error.expected},null,2));console.error(error.name,error.message);process.exitCode=1;});
           const repo=process.env.GITHUB_REPOSITORY,sha=process.env.SOURCE_COMMIT,run=process.env.BUILD_RUN_ID;
           const gh=(...args)=>execFileSync('gh',args,{encoding:'utf8',maxBuffer:32*1024*1024}).trim();
           const api=path=>JSON.parse(gh('api',`repos/${repo}/${path}`));
@@ -98,7 +99,9 @@ jobs:
           assert.equal(upgrade.baselineInstallerSha256,previous.sha256);assert.equal(upgrade.baselineInstallerBytes,previous.bytes);
           execFileSync('git',['bundle','verify',`baseline/VN-code-${version}-history.bundle`],{stdio:'inherit'});
           assert.equal(api(`git/ref/tags/${tag}`).object.sha,sha);
-          let release=api(`releases/tags/${tag}`);
+          const releases=[];for(let page=1;;page++){const batch=api(`releases?per_page=100&page=${page}`);releases.push(...batch);if(batch.length<100)break;}
+          const candidates=releases.filter(r=>r.tag_name===tag);assert.equal(candidates.length,1,'Expected one owned release, including drafts');
+          let release=api(`releases/${candidates[0].id}`);
           assert.equal(release.tag_name,tag);assert.equal(release.prerelease,false);
           const latest=api('releases/latest');
           if(!release.draft){assert.equal(latest.id,release.id);validateCompleteRelease(release,manifest,sha);process.exit(0);}
@@ -146,3 +149,13 @@ jobs:
           if(!latest.assets.some(a=>a.name==='updater-verification.json'))execFileSync('gh',['release','upload',`v${version}`,'baseline-public/updater-verification.json','--repo',repo],{stdio:'inherit'});
           JS
           node tools/baseline-release.mjs prune baseline-public "$SOURCE_COMMIT"
+      - name: Preserve publication diagnostics
+        if: failure()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: publication-failure-${{ github.run_id }}
+          path: |
+            publication-error.json
+            baseline/publication-checks.json
+          if-no-files-found: ignore
+          retention-days: 14
