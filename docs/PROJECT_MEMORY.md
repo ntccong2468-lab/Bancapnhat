@@ -1,5 +1,11 @@
 # Bộ nhớ dự án VNCode
 
+## Chuẩn bị phát hành 1.5.13 — 23.10.2026
+
+- Chủ dự án yêu cầu «đưa bản sửa này phát hành xuống app đang cài» sau khi đã được báo rõ khác biệt giữa thử API thật và nghiệm thu nút trên Windows. Đã cho phép đóng gói và thay Latest; không cần hỏi lại.
+- Nhánh phát hành `release/vn-code-1.5.13`, bao gồm bản sửa `674eada`. Dùng Windows baseline workflow để kiểm tra toàn bộ, đóng gói và nghiệm thu nâng cấp từ Latest 1.5.12; chỉ công bố sau khi đúng SHA và toàn bộ tài sản đạt kiểm tra.
+- Chưa được ghi là đã phát hành cho tới khi API Latest, checksum và bộ cập nhật đã được đối chiếu. Không gửi lại fixture Catalog đã tạo, không mua KIZ/ký thẻ/ghi GTIN production trong quá trình đóng gói.
+
 ## Phiên 23.10.2026 — đã sửa và kiểm chứng, chưa phát hành
 
 - Nhánh `fix/catalog-readback-compact-rows`, nền mã ứng dụng 1.5.12. Sửa điều kiện bộ lọc Đang xử lý để cần bằng chứng đọc thẻ thật, đọc lại receipt còn chờ cuối lô, đưa tạo từng thẻ Ozon vào cùng hàng đợi và giảm hàng Sản phẩm/Đăng ký còn 104/76 px. Giữ luồng khôi phục lô Ozon cũ và bổ sung ánh xạ tên Китай chỉ khi dictionary thật xác nhận CN với tên đầy đủ tương ứng.
