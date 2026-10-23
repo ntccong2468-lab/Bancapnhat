@@ -1,0 +1,10 @@
+{
+  "version": "1.5.13",
+  "newerThan1_5_12": true,
+  "usesPublishedRuntimeUpdater": true,
+  "windowsInstallerUrl": "https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.5.13/VN-code-1.5.13-Windows-x64.msi",
+  "sha256": "a0a64b71962879c64ed64dea02fa6198f1ebfe9d16e9b2332a3e84a46827ebe7",
+  "bytes": 146523401,
+  "metadataSource": "GitHub releases/latest public response",
+  "sellerDeviceNotificationObserved": false
+}

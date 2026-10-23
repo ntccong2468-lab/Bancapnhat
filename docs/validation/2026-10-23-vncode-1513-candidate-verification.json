@@ -1,0 +1,26 @@
+{
+  "checkedAt": "2026-10-23T19:14:10.312131+00:00",
+  "version": "1.5.13",
+  "sourceCommit": "7e88dc0e5e4e491025874f560c3ac069b6718644",
+  "buildRunId": 40002256619,
+  "allManifestBytesVerified": true,
+  "packagedVersionVerified": true,
+  "catalogFixMethodsPresent": true,
+  "productionSourcesMatchLocalRelease": true,
+  "compactStylesMatch": true,
+  "nativeLaunchVerified": true,
+  "upgradeDataPreserved": true,
+  "java": {
+    "passed": 2927,
+    "tests": 2929,
+    "errors": 0,
+    "skipped": 2,
+    "failures": 0
+  },
+  "installer": {
+    "sha256": "7593e46c6eb243b5f310025c43c4e6d9fc25f7e0aed201e7cd347af8c4fea9a9",
+    "name": "VN-code-1.5.13-Windows-x64.exe",
+    "bytes": 147192320
+  },
+  "sellerDeviceNotificationObserved": false
+}

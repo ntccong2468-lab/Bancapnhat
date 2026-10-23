@@ -1,24 +1,29 @@
 # VNCode consolidated baseline
 
-Bản nền hiện hành đã công bố: **VNCode 1.5.12**, tag bất biến `v1.5.12`.
-Nguồn dựa trên `v1.5.11`, luồng đăng ký/đồng bộ trong PR #12 và giao diện nền đen `b27d799`. Đã xác minh API Latest, toàn bộ tệp công khai và checksum; [biên nhận](../validation/2026-10-22-vncode-1512-published-latest.json). Release được GitHub khóa bất biến sau công bố. Biên nhận tải công khai được giữ trong repo và artifact Actions vì không thể thêm tài sản sau khi khóa.
+Bản nền hiện hành đã công bố: **VNCode 1.5.13**, tag bất biến `v1.5.13`, mã ứng dụng `7e88dc0e5e4e491025874f560c3ac069b6718644`.
+
+Nguồn kế thừa 1.5.12 và bổ sung bản sửa `674eada`: đọc lại cuối lô Catalog, xác nhận thẻ trước khi đưa vào Đang xử lý, dùng chung luồng tạo từng thẻ/theo lô Ozon, ánh xạ tên nước có bằng chứng và hàng sản phẩm thu gọn. Đã đối chiếu mã sửa trong JAR/runtime và toàn bộ nguồn sản xuất trong gói source. [Biên nhận Latest](../validation/2026-10-23-vncode-1513-published-latest.json), [bàn giao](../validation/2026-10-23-vncode-1513-handoff.md).
 
 Gói đầy đủ gồm:
 
-- `VN-code-1.5.12-Windows-x64.exe` và `.msi`: bộ cài giữ định danh nâng cấp.
-- `VN-code-1.5.12-Windows-x64.zip`: bộ chạy độc lập kèm Java và các thư viện.
-- `VN-code-1.5.12-source.zip`: toàn bộ file được Git quản lý tại commit phát hành, gồm ứng dụng, website/Portal, công cụ build, kiểm thử và tài liệu.
-- `VN-code-1.5.12-history.bundle`: lịch sử Git và các ref để tiếp tục phát triển/khôi phục mã.
-- `VN-code-1.5.12-verification.zip`, `build-info.json`, native/upgrade smoke, `asset-manifest.json` và `SHA256SUMS`.
+- `VN-code-1.5.13-Windows-x64.exe` và `.msi`: bộ cài giữ định danh nâng cấp.
+- `VN-code-1.5.13-Windows-x64.zip`: bộ chạy độc lập kèm Java và thư viện.
+- `VN-code-1.5.13-source.zip`: toàn bộ file được Git quản lý tại commit phát hành.
+- `VN-code-1.5.13-history.bundle`: lịch sử Git và các ref tại lúc đóng gói. Bundle có đúng SHA nguồn nhưng có thể chưa chứa tên tag được tạo sau lượt checkout.
+- `VN-code-1.5.13-verification.zip`, `build-info.json`, native/upgrade smoke, `asset-manifest.json` và `SHA256SUMS`.
 
-Không tự động xóa Release cũ khi công bố Latest. Nếu được yêu cầu xóa riêng, các bản cũ chỉ được xoá sau khi bộ cài, mã nguồn, runtime, lịch sử và kiểm thử của bản mới đã được tải công khai và đối chiếu digest/kích thước. Lưu danh sách release cũ trong `previous-release-inventory.json`; giữ Git history và tag như chứng cứ nguồn. Không xóa dữ liệu cài đặt của seller.
+Windows `clean verify`: 2.929 ca, 2.927 đạt, 2 bỏ qua theo OS, không lỗi/thất bại. Mở app, DPAPI, cài/gỡ và nâng cấp từ Latest 1.5.12 giữ dữ liệu đều đạt. 117 ca Node đạt. Tài sản bắt buộc được tải công khai và kiểm tra digest/kích thước/checksum; bộ cập nhật trong JAR phát hành đọc đúng Latest 1.5.13 và chọn MSI. Chưa quan sát thông báo trên máy seller.
+
+Một thẻ đã được gửi và đọc lại bằng API Catalog production theo phê duyệt cụ thể của chủ dự án trong phiên sửa; đây là bằng chứng riêng, không phải giao dịch của CI. Thẻ đang nháp/chờ duyệt, chưa ký xanh. Không mua KIZ có phí hoặc ghi GTIN WB/Ozon trong lượt này. Xem [biên nhận API](../validation/2026-10-23-catalog-one-card-api-live.json).
+
+Release được GitHub khóa bất biến sau công bố. Biên nhận tải công khai giữ trong repo và Actions; không thêm hoặc ghi đè tài sản sau Publish. Không tự động xóa Release cũ khi đưa bản mới lên Latest. Nếu được yêu cầu xóa riêng, phải xác minh bản mới đầy đủ trước và giữ Git history/tag; không xóa dữ liệu seller.
 
 ## Sửa và dựng bản tiếp theo
 
-Clone repository hoặc Git bundle; dùng commit `2f9f194d26a9d840e9ab1097f51d91811abc3bbf` trong build-info làm mốc, tạo nhánh sửa mới. Tag `v1.5.12` trên GitHub trỏ đúng commit này; bundle được đóng trước khi tạo tag nên có thể chưa chứa tên tag mới. Giữ Java 25, schema 6, UUID nâng cấp, các khóa phạm vi tài khoản, đối soát yêu cầu chưa rõ, mua KIZ đúng một lần và xác nhận GTIN bằng readback.
+Clone repository hoặc Git bundle; dùng SHA nguồn trong build-info làm mốc. Giữ Java 25, schema 6, UpgradeCode `8CBBA0E2-6E73-4F56-9101-6BC0948D3C72`, dữ liệu và phạm vi tài khoản, đối soát yêu cầu chưa rõ, mua KIZ đúng một lần và xác nhận GTIN bằng readback.
 
-Trên Windows: chạy `mvnw.cmd -B clean verify`, `node --test tools/*.test.mjs`, rồi `build.bat exe`. Để có toàn bộ runtime dùng `build.bat app-image` sau khi lưu bộ cài và bằng chứng: script build sẽ dọn `out` mỗi lần.
+Trên Windows: chạy `mvnw.cmd -B clean verify`, `node --test tools/*.test.mjs`, rồi `build.bat exe`. Lưu bộ cài/bằng chứng trước khi chạy `build.bat app-image`, vì script sẽ dọn `out`.
 
-Workflow **Build complete VNCode baseline** dựng toàn bộ từ một SHA, kiểm tra Windows và nâng cấp từ bản Latest được pin tại đầu lượt chạy. Workflow **Build & Test JavaFX Desktop App** chuyển đường mặc định sang workflow bản nền này; ma trận lịch sử cũ chỉ là chế độ tuỳ chọn và đòi hỏi các fixture đã lưu riêng. Các bản dựng thường không phụ thuộc bộ cài release cũ đã xoá. Dựng lại đúng phiên bản Latest được phép để kiểm tra, nhưng không được báo là đã kiểm tra nâng cấp hay công bố lại cùng tag.
+Workflow **Build complete VNCode baseline** dựng toàn bộ từ một SHA, kiểm tra Windows và nâng cấp từ Latest được pin tại đầu lượt chạy. Các bản dựng thường không phụ thuộc ma trận bộ cài lịch sử. Dựng lại đúng phiên bản Latest không được coi là thử nâng cấp hoặc công bố lại cùng tag. Chỉ đổi Latest sau khi tài sản cuối và native checks đạt; giữ tag/SHA/binary đã kiểm tra bất biến.
 
-Xem [ghi chú 1.5.12](VN-code-1.5.12.md), [WB 10.000](../validation/2026-10-22-wb-10000-audit.md) và [luồng đăng ký](../validation/2026-10-22-znack-registration-filters-proposals.md). Các file ghi chú cũ trong mã nguồn là tài liệu lịch sử, không phải danh sách bản còn tải được.
+Xem [ghi chú 1.5.13](VN-code-1.5.13.md), [bộ nhớ dự án](../PROJECT_MEMORY.md), [quy tắc Catalog và hàng thu gọn](../fixes/2026-10-23-catalog-readback-compact-rows.md). Các ghi chú cũ trong nguồn là tài liệu lịch sử.

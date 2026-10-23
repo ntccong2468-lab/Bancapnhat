@@ -1,0 +1,19 @@
+{
+  "fromVersion": "1.5.12",
+  "singleShortcutPerLocation": true,
+  "baselineInstallerBytes": 147192320,
+  "baselineInstallerSha256": "7d01b89677d59b29527d01a519d6b06bef6ca1689b1aec88e91d9665168699a6",
+  "baselineTag": "v1.5.12",
+  "installerUpgradeUuid": "8CBBA0E2-6E73-4F56-9101-6BC0948D3C72",
+  "dataPreserved": true,
+  "appName": "VN code",
+  "windowTitle": "VN code v1.5.13",
+  "passiveExeHandoffVerified": true,
+  "passiveExeInstallerSha256": "7593e46c6eb243b5f310025c43c4e6d9fc25f7e0aed201e7cd347af8c4fea9a9",
+  "result": "passed",
+  "passiveExeEmbeddedMsiSha256": "a0a64b71962879c64ed64dea02fa6198f1ebfe9d16e9b2332a3e84a46827ebe7",
+  "liveMarketplaceMutations": false,
+  "version": "1.5.13",
+  "singleRegistration": true,
+  "fingerprint": "122cbbeb665a527e7310a1d1a646af08905107f4f5f38c00670cc338f3dd62d9"
+}

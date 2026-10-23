@@ -1,0 +1,52 @@
+{
+  "recordedAt": "2026-10-23T19:15:46.591091+00:00",
+  "version": "1.5.13",
+  "tag": "v1.5.13",
+  "sourceCommit": "7e88dc0e5e4e491025874f560c3ac069b6718644",
+  "branch": "release/vn-code-1.5.13",
+  "releaseId": 422171061,
+  "publishedAt": "2026-10-23T19:14:18Z",
+  "immutableRelease": true,
+  "latestConfirmed": true,
+  "releaseUrl": "https://github.com/ntccong2468-lab/Bancapnhat/releases/tag/v1.5.13",
+  "downloadUrl": "https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.5.13/VN-code-1.5.13-Windows-x64.exe",
+  "installer": {
+    "sha256": "7593e46c6eb243b5f310025c43c4e6d9fc25f7e0aed201e7cd347af8c4fea9a9",
+    "name": "VN-code-1.5.13-Windows-x64.exe",
+    "bytes": 147192320
+  },
+  "buildRun": {
+    "id": 40002256619,
+    "conclusion": "success",
+    "url": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/40002256619"
+  },
+  "publicationRun": {
+    "id": 40002567923,
+    "conclusion": "success",
+    "url": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/40002567923"
+  },
+  "publicAssets": 16,
+  "requiredAssetsVerified": 11,
+  "java": {
+    "passed": 2927,
+    "tests": 2929,
+    "errors": 0,
+    "skipped": 2,
+    "failures": 0
+  },
+  "nodeTestsPassed": 117,
+  "nativeLauncherVerified": true,
+  "baselineUpgradeVerified": true,
+  "upgradeFromVersion": "1.5.12",
+  "dataPreserved": true,
+  "publicDownloadsAndChecksumsVerified": true,
+  "runtimeUpdaterParsedLatest": true,
+  "installedBaselineUpdaterSourceUnchanged": true,
+  "sellerDeviceNotificationObserved": false,
+  "liveCatalogWriteVerifiedSeparately": true,
+  "liveCatalogEvidence": "2026-10-23-catalog-one-card-api-live.json",
+  "productionSignatureVerified": false,
+  "liveMarketplaceWriteVerified": false,
+  "paidKizPurchaseVerified": false,
+  "oldReleasesDeleted": false
+}

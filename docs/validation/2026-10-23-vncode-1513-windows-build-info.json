@@ -1,0 +1,28 @@
+{
+  "version": "1.5.13",
+  "sourceCommit": "7e88dc0e5e4e491025874f560c3ac069b6718644",
+  "runId": 40002256619,
+  "runAttempt": 1,
+  "workflow": "publish-vncode-baseline.yml",
+  "installer": {
+    "sha256": "7593e46c6eb243b5f310025c43c4e6d9fc25f7e0aed201e7cd347af8c4fea9a9",
+    "name": "VN-code-1.5.13-Windows-x64.exe",
+    "bytes": 147192320
+  },
+  "verification": {
+    "nativeSmokeRun": true,
+    "legacyUpgradeMatrixRun": false,
+    "fullJavaSuiteRun": true,
+    "java": {
+      "passed": 2927,
+      "tests": 2929,
+      "errors": 0,
+      "skipped": 2,
+      "failures": 0
+    },
+    "baselineUpgradeRun": true,
+    "liveCatalogWriteVerified": false,
+    "liveMarketplaceWriteVerified": false,
+    "paidKizPurchaseVerified": false
+  }
+}

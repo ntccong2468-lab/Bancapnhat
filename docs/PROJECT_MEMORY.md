@@ -1,12 +1,16 @@
 # Bộ nhớ dự án VNCode
 
-## Chuẩn bị phát hành 1.5.13 — 23.10.2026
+## Đã phát hành 1.5.13 — 23.10.2026
 
-- Chủ dự án yêu cầu «đưa bản sửa này phát hành xuống app đang cài» sau khi đã được báo rõ khác biệt giữa thử API thật và nghiệm thu nút trên Windows. Đã cho phép đóng gói và thay Latest; không cần hỏi lại.
-- Nhánh phát hành `release/vn-code-1.5.13`, bao gồm bản sửa `674eada`. Dùng Windows baseline workflow để kiểm tra toàn bộ, đóng gói và nghiệm thu nâng cấp từ Latest 1.5.12; chỉ công bố sau khi đúng SHA và toàn bộ tài sản đạt kiểm tra.
-- Chưa được ghi là đã phát hành cho tới khi API Latest, checksum và bộ cập nhật đã được đối chiếu. Không gửi lại fixture Catalog đã tạo, không mua KIZ/ký thẻ/ghi GTIN production trong quá trình đóng gói.
+- Chủ dự án yêu cầu «đưa bản sửa này phát hành xuống app đang cài» sau khi được báo rõ phạm vi thử API và Windows. **1.5.13 đã lên Latest lúc 2026-10-23T19:14:18Z**, Release ID `422171061`, bất biến; tag `v1.5.13` và mã ứng dụng `7e88dc0e5e4e491025874f560c3ac069b6718644`. Nhánh bàn giao `release/vn-code-1.5.13`.
+- Gói Windows đã xác minh chứa bản sửa Catalog `674eada`, country alias và hàng thu gọn. Build `40002256619` đạt toàn bộ 2.929 ca: 2.927 đạt, 2 bỏ qua theo OS, không lỗi/thất bại. Mở app, DPAPI, cài/gỡ và nâng cấp thật từ 1.5.12 giữ dữ liệu đều đạt. Công cụ Node 117/117 đạt.
+- Công bố `40002567923` đạt; 16 tài sản, 11 tài sản bắt buộc đã được tải công khai/đối chiếu byte, digest, checksum và tag. Bộ cập nhật của JAR Windows đọc Latest thật, nhận 1.5.13 và chọn đúng MSI. Chưa quan sát thông báo trên thiết bị seller; có thể dùng Cài đặt → Kiểm tra phiên bản để nhận ngay. App tự kiểm tra khi mở và theo chu kỳ 45–60 phút.
+- Bộ cài EXE 147.192.320 byte, SHA256 `7593e46c6eb243b5f310025c43c4e6d9fc25f7e0aed201e7cd347af8c4fea9a9`. Không đổi định danh nâng cấp hoặc xóa Release cũ. Sau tag chỉ cập nhật quy trình công bố/tài liệu; không thay binary/tag đã kiểm tra.
+- Thử Catalog production một thẻ đã được chủ dự án bấm Đăng ký là bằng chứng riêng của phiên sửa, không phải giao dịch trong CI. Đọc lại lần nữa trước công bố vẫn có đúng thẻ draft/moderation; không cấp/gửi thêm, ký CryptoPro, mua KIZ có phí hoặc ghi GTIN WB/Ozon. Cờ live trong build-info phản ánh đúng giới hạn của CI, không phủ nhận biên nhận API riêng.
+- Biên nhận công khai giữ trong repo/Actions vì Release khóa bất biến sau Publish. Workflow 1.5.13 chờ đúng Windows run, đối chiếu đúng source/tag/draft/assets và chặn hạ Latest. Windows Java mất khoảng 52 phút; không khẳng định hoàn tất khi mới có trạng thái running.
+- [Bàn giao hoàn tất](validation/2026-10-23-vncode-1513-handoff.md), [biên nhận Latest](validation/2026-10-23-vncode-1513-published-latest.json). Quy tắc gửi/đọc lại Catalog và giới hạn nghiệm thu ký ở phần dưới tiếp tục áp dụng.
 
-## Phiên 23.10.2026 — đã sửa và kiểm chứng, chưa phát hành
+## Phiên sửa 23.10.2026 — trước đóng gói 1.5.13
 
 - Nhánh `fix/catalog-readback-compact-rows`, nền mã ứng dụng 1.5.12. Sửa điều kiện bộ lọc Đang xử lý để cần bằng chứng đọc thẻ thật, đọc lại receipt còn chờ cuối lô, đưa tạo từng thẻ Ozon vào cùng hàng đợi và giảm hàng Sản phẩm/Đăng ký còn 104/76 px. Giữ luồng khôi phục lô Ozon cũ và bổ sung ánh xạ tên Китай chỉ khi dictionary thật xác nhận CN với tên đầy đủ tương ứng.
 - 187 ca mục tiêu có kết quả cuối đạt. Lượt toàn bộ đầu phát hiện một lỗi khôi phục lô Ozon; đã sửa và chạy lại 103 ca liên quan đạt. Lượt `clean verify` cuối **BUILD SUCCESS: 2.929 ca, 2.927 đạt, 2 bỏ qua theo hệ điều hành, không lỗi/thất bại**. [Biên nhận kiểm thử](validation/2026-10-23-catalog-readback-compact-verify.json), [bàn giao](validation/2026-10-23-catalog-readback-compact-handoff.md). Ảnh hàng thu gọn đã xem từ view thật với dữ liệu tổng hợp.
