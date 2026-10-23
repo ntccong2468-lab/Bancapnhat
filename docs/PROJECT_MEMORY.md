@@ -1,5 +1,15 @@
 # Bộ nhớ dự án VNCode
 
+## Phiên 23.10.2026 — đã sửa và kiểm chứng, chưa phát hành
+
+- Nhánh `fix/catalog-readback-compact-rows`, nền mã ứng dụng 1.5.12. Sửa điều kiện bộ lọc Đang xử lý để cần bằng chứng đọc thẻ thật, đọc lại receipt còn chờ cuối lô, đưa tạo từng thẻ Ozon vào cùng hàng đợi và giảm hàng Sản phẩm/Đăng ký còn 104/76 px. Giữ luồng khôi phục lô Ozon cũ và bổ sung ánh xạ tên Китай chỉ khi dictionary thật xác nhận CN với tên đầy đủ tương ứng.
+- 187 ca mục tiêu có kết quả cuối đạt. Lượt toàn bộ đầu phát hiện một lỗi khôi phục lô Ozon; đã sửa và chạy lại 103 ca liên quan đạt. Lượt `clean verify` cuối **BUILD SUCCESS: 2.929 ca, 2.927 đạt, 2 bỏ qua theo hệ điều hành, không lỗi/thất bại**. [Biên nhận kiểm thử](validation/2026-10-23-catalog-readback-compact-verify.json), [bàn giao](validation/2026-10-23-catalog-readback-compact-handoff.md). Ảnh hàng thu gọn đã xem từ view thật với dữ liệu tổng hợp.
+- Người dùng đã bấm Đăng ký cho đúng một fixture production đã trình bày. Đã xin đúng 1 GTIN mới và POST `/v3/feed` đúng 1 lần bằng API Catalog thật; đọc lại xác nhận good_id và article/màu/size/TN VED khớp. Catalog tăng từ 1.253 lên 1.254 thẻ; thẻ mới là `draft / moderation`, chưa ký. Biên nhận công khai đã loại dữ liệu seller: [kết quả API thật](validation/2026-10-23-catalog-one-card-api-live.json). Đây là thử API của phiên, không phải nghiệm thu thao tác trên app Windows của seller.
+- Payload, GTIN, feed_id và good_id thật nằm riêng trong `/tmp/vncode-live-catalog-20261023/`, không commit dữ liệu seller vào repo. `live-attempt.json` đã có và trạng thái `CATALOG_CONFIRMED`: chỉ đọc/đối soát nếu tiếp tục, không cấp GTIN hoặc gửi lại. Chưa ký CryptoPro hoặc ghi barcode lên WB/Ozon trong lượt thử này.
+- Trước khi nghiệm thu tự ký/xuất bản, cần đối chiếu thêm chuẩn hóa phản hồi: lần gửi thật dùng `categories` là danh sách ID và nước là ISO, còn API đọc lại trả danh mục dạng object và tên nước chính thức. Đọc `submissionStatus`/bộ lọc đã đạt với phản hồi thật; phép so sánh nguyên JSON ở `validateReviewedBusinessFields` chưa được nghiệm thu cho luồng ký. Không suy từ thử tạo thẻ sang kết luận ký/xuất bản đã đạt.
+- Latest vẫn là 1.5.12 đã công bố trước đây. Không tạo tag/bộ cài hoặc đổi Latest trong lượt sửa này.
+- Chi tiết: [gửi API, đọc lại và hàng thu gọn](fixes/2026-10-23-catalog-readback-compact-rows.md).
+
 ## Trạng thái phiên 22.10.2026
 
 - Bản công khai tại thời điểm bắt đầu: `v1.5.11`, commit `2abe716d77a0f2d4d5f08ed0ae6451bf29ea2495`.

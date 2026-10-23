@@ -96,12 +96,14 @@ public final class OzonRegistrationBatchService {
                 var item=batches.next(batch);
                 if(item==null){
                     // Delayed imports never prevent the remaining selected products being sent.
-                    // Each saved receipt is read at most once in this worker pass.
+                    // One final read-only pass also covers imports sent earlier in this run.
                     for(var waiting:batches.waitingReadback(batch)){
-                        if(!checkedReceipts.add(waiting.position()))continue;
                         new RegistrationSources().require(shop);scope(shop).assertCurrent(shop);ListingIdentity.require(shop);
                         try{
-                            if(workflow.advanceSubmissionForBatch(shop,waiting.key()))observeReceipt(shop,waiting);
+                            // A new receipt gets only a final read. An older resumed request
+                            // retains its existing one-time, server-proven repair policy.
+                            boolean checked=checkedReceipts.contains(waiting.position());
+                            if(checked?workflow.verifySubmissionForBatch(shop,waiting.key()):workflow.advanceSubmissionForBatch(shop,waiting.key()))observeReceipt(shop,waiting);
                             if(deferReadbackLimit(shop,namespace,directory,batch.id())){deferred=true;return;}
                         }catch(Exception unavailable){
                             if(unavailable instanceof ZnackRegistrationScope.ScopeChangedException changed)throw changed;

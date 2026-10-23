@@ -236,6 +236,29 @@ public final class ZnackRegistrationBatchService {
                 store.item(shop,item,"NEEDS_ACTION",ZnackSanitizer.error(error),null,"");attempt.failed(error);
             }
         }
+        // Imports may become visible only after the later POSTs finish. Read each still-pending
+        // receipt once more now, without allocating, submitting, correcting or signing anything.
+        if(!readFailureObserved)for(var item:store.items(shop,run)){
+            if(!active(store.get(shop,run).state()))return;
+            if(!"WAITING_REMOTE".equals(item.state()))continue;
+            var current=registrations.find(shop.getId(),item.sku().chrtId());
+            if(current==null||!current.hasFeed())continue;
+            assertScope(shop,batch);assertNativeScope(shop,current,batch);
+            var attempt=reports.begin(item.sku());
+            try{
+                if(workflow.verifySubmissionForBatch(shop,current))observeReceipt(shop,item,registrations.find(shop.getId(),current.chrtId()),attempt);
+            }catch(Exception error){
+                if(error instanceof SecurityException||error instanceof ZnackRegistrationScope.ScopeChangedException)throw error;
+                if(!CatalogFeedback.retryableRead(error)&&!CatalogFeedback.notFound(error)){
+                    store.item(shop,item,"NEEDS_ACTION",ZnackSanitizer.error(error),null,current.feedId());attempt.failed(error);continue;
+                }
+                var retry=SyncFailure.of(error,0);if(retry.delay().compareTo(readbackDelay)>0)readbackDelay=retry.delay();
+                readbackDetail="CATALOG_READBACK_RETRY_PENDING";readFailureObserved=true;
+                store.item(shop,item,"WAITING_REMOTE",readbackDetail,null,current.feedId());attempt.waiting(error);
+                // Stop this read pass at a service limit; the saved queue resumes later.
+                if(CatalogFeedback.rateLimited(error))break;
+            }
+        }
         var progress=latest(shop);
         if(progress.remaining()>0){
             waitRemote(shop,run,readbackDetail,readbackDelay,readFailureObserved);

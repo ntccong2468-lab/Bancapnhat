@@ -1,0 +1,34 @@
+{
+  "checkedAt": "2026-10-23T18:04:20.816124+00:00",
+  "environment": "production",
+  "userApprovedExactFixture": true,
+  "transport": "HTTPS National Catalog API",
+  "payloadBuiltBy": "VNCode RegistrationTemplate + ZnackWbAttributeMapper + live schema",
+  "allocationRequests": 1,
+  "feedPostRequests": 1,
+  "endpoint": "POST /v3/feed",
+  "feedReceiptReceived": true,
+  "exactGtinCardReadback": true,
+  "exactIdentityChecks": {
+    "article": true,
+    "color": true,
+    "size": true,
+    "tnved": true
+  },
+  "catalogCardStatus": "draft",
+  "catalogDetailedStatus": [
+    "moderation"
+  ],
+  "catalogTotalBefore": 1253,
+  "catalogTotalAfter": 1254,
+  "liveCatalogWriteVerified": true,
+  "liveMarketplaceWriteVerified": false,
+  "productionSignatureVerified": false,
+  "signed": false,
+  "receiptAndSellerPayloadRetainedPrivately": true,
+  "secretsIncluded": false,
+  "nativeDomainParserVerifiedAgainstActualResponse": true,
+  "nativeDomainStage": "CardModeration",
+  "nativeProcessingFilterRecognizedActualReadback": true,
+  "sellerWindowsButtonAcceptanceVerified": false
+}

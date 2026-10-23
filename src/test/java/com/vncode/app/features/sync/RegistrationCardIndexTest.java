@@ -15,6 +15,18 @@ import java.util.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 class RegistrationCardIndexTest {
+    @Test void processingFilterRequiresAnObservedCardRatherThanAnAllocationOrFeedReceipt(){
+        var local=new RegistrationCardIndex.View("status.feed_submitted","00000000000017","SOURCE_NATIVE_CHECKPOINT",true,false,false);
+        for(var state:List.of(Status.READY_TO_SUBMIT,Status.FEED_SUBMITTING,Status.FEED_SUBMITTED,Status.FEED_REVIEW_REQUIRED)){
+            assertFalse(RegistrationCardIndex.catalogCardInProgress(state,null,"",local),state.name());
+            assertTrue(RegistrationCardIndex.awaitingCatalogCard(state,null,"",local),state.name());
+        }
+        assertFalse(RegistrationCardIndex.catalogCardInProgress(Status.PROCESSING,91L,"CATALOG_REQUEST_ACCEPTED_CARD_PENDING",local));
+        assertTrue(RegistrationCardIndex.catalogCardInProgress(Status.PROCESSING,91L,"CATALOG_CARD_IN_MODERATION",local));
+        assertFalse(RegistrationCardIndex.awaitingCatalogCard(Status.PROCESSING,91L,"CATALOG_CARD_IN_MODERATION",local));
+        var foreign=new RegistrationCardIndex.View("source.unverified",local.gtin(),"SOURCE_REGISTRATION_OWNER_CHANGED",true,false,true);
+        assertFalse(RegistrationCardIndex.catalogCardInProgress(Status.PROCESSING,91L,"CATALOG_CARD_IN_MODERATION",foreign));
+    }
     @TempDir Path directory;Shop shop;
     @BeforeEach void init()throws Exception{System.setProperty("vncode.appdata.dir",directory.toString());Database.initDatabase();shop=GtinWriteTestFixture.shop(Marketplace.WILDBERRIES);RegistrationSourceFixture.ready(shop);}
     @AfterEach void clean(){System.clearProperty("vncode.appdata.dir");}

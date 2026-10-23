@@ -263,6 +263,12 @@ public final class ZnackNationalCatalogService {
             canonical.put(code,name);
             for(String alias:List.of(code,name)){String key=countryKey(alias);var previous=aliases.putIfAbsent(key,code);if(previous!=null&&!previous.equals(code))ambiguous.add(key);}
         }
+        // WB uses the short name Китай; the live Catalog dictionary spells CN out in full.
+        // Add the short alias only when that exact official CN entry was actually read.
+        if(Set.of("кнр (китайская народная республика)","китайская народная республика").contains(countryKey(canonical.getOrDefault("CN","")))){
+            var previous=aliases.putIfAbsent(countryKey("Китай"),"CN");
+            if(previous!=null&&!previous.equals("CN"))ambiguous.add(countryKey("Китай"));
+        }
         ambiguous.forEach(aliases::remove);
         var content=new JsonArray();canonical.forEach((code,name)->{var row=new JsonObject();row.addProperty("country_iso",code);row.addProperty("country_name",name);content.add(row);});
         var evidence=new CountryDictionaryEvidence(api.nationalCatalogCountrySource(settings.resolvedTrueApiBaseUrl()),countryEnvironment(),credential,operation,3,etag,

@@ -126,9 +126,9 @@
 .reference-dark #productsPane .products-bulk ,
 .reference-dark#productsPane .products-bulk    { -fx-background-color: #181d24; -fx-background-radius: 16; -fx-border-radius: 16; }
 .reference-dark .registration-reference .table-row-cell  ,
-.reference-dark.registration-reference .table-row-cell    { -fx-cell-size: 96; }
+.reference-dark.registration-reference .table-row-cell    { -fx-cell-size: 76; }
 .reference-dark .registration-reference .table-cell .button,
-.reference-dark.registration-reference .table-cell .button, .reference-dark .registration-reference .table-cell .menu-button  , .reference-dark.registration-reference .table-cell .menu-button    { -fx-font-size: 14px; -fx-padding: 10 12; -fx-font-weight: bold; -fx-min-height: 56; -fx-background-radius: 10; -fx-border-radius: 10; }
+.reference-dark.registration-reference .table-cell .button, .reference-dark .registration-reference .table-cell .menu-button  , .reference-dark.registration-reference .table-cell .menu-button    { -fx-font-size: 14px; -fx-padding: 6 10; -fx-font-weight: bold; -fx-min-height: 40; -fx-background-radius: 10; -fx-border-radius: 10; }
 .reference-dark .registration-reference .table-cell .button.btn-primary  ,
 .reference-dark.registration-reference .table-cell .button.btn-primary    { -fx-background-color: #232831; }
 .reference-dark .gs1-workspace .h2   ,
@@ -171,7 +171,7 @@
 .reference-dark .registration-reference .table-cell .button.btn-primary,
 .reference-dark.registration-reference .table-cell .button.btn-primary,
 .reference-dark .registration-reference .table-cell .menu-button,
-.reference-dark.registration-reference .table-cell .menu-button { -fx-background-color: #232831; -fx-font-weight: bold; -fx-min-height: 56; }
+.reference-dark.registration-reference .table-cell .menu-button { -fx-background-color: #232831; -fx-font-weight: bold; -fx-min-height: 40; }
 .reference-dark .registration-reference #registerSelectedButton,
 .reference-dark.registration-reference #registerSelectedButton { -fx-background-color: #232831; }
 .reference-dark #productsPane .product-row .label,

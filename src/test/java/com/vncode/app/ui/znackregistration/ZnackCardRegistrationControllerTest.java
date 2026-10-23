@@ -156,7 +156,7 @@ class ZnackCardRegistrationControllerTest {
                 for(int id=4;id<=603;id++){card.setInt(1,100+id);card.addBatch();size.setInt(1,id);size.setInt(2,100+id);size.addBatch();}card.executeBatch();size.executeBatch();
             }
             try(var s=c.createStatement()){
-                s.execute("INSERT INTO znack_card_registrations(shop_id,chrt_id,nm_id,status,feed_id,created_at,updated_at) SELECT shop_id,chrt_id,nm_id,'FEED_SUBMITTED','feed-'||chrt_id,'fixture','fixture' FROM wb_product_sizes WHERE shop_id=1 AND chrt_id>3");
+                s.execute("INSERT INTO znack_card_registrations(shop_id,chrt_id,nm_id,status,feed_id,good_id,error_message,created_at,updated_at) SELECT shop_id,chrt_id,nm_id,'PROCESSING','feed-'||chrt_id,chrt_id,'CATALOG_CARD_IN_MODERATION','fixture','fixture' FROM wb_product_sizes WHERE shop_id=1 AND chrt_id>3");
                 s.execute("INSERT INTO znack_card_registration_scopes(shop_id,chrt_id,participant_inn,environment,fingerprint,owner_hash,created_at) SELECT r.shop_id,r.chrt_id,o.participant_inn,o.environment,o.fingerprint,o.owner_hash,'fixture' FROM znack_card_registrations r JOIN znack_card_registration_scopes o ON o.shop_id=r.shop_id AND o.chrt_id=2 WHERE r.shop_id=1 AND r.chrt_id>3");
             }c.commit();
         }

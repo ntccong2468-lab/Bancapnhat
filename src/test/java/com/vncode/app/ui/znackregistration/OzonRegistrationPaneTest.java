@@ -76,13 +76,15 @@ class OzonRegistrationPaneTest {
         fx(()->{button("all").fire();return null;});awaitIdle();
         fx(()->{var selected=OzonRegistrationPane.class.getDeclaredMethod("selected");selected.setAccessible(true);assertEquals(1000,((java.util.List<?>)selected.invoke(pane)).size());assertEquals(300,table().getItems().size());return null;});
     }
-    @Test void knownUnsentGtinStaysNotCreatedAndAcceptedFeedMovesToProcessing(){
+    @Test void onlyCatalogReadbackMovesAnAcceptedFeedToProcessing(){
         var key=new com.vncode.app.features.products.ProductKey(1,Marketplace.OZON,"1","offer-1");
         var unsent=new com.vncode.app.integration.znack.registration.OzonCardRegistrationRepository.Row(key,"10001",com.vncode.app.integration.znack.registration.ZnackCardRegistrationModels.Status.READY_TO_SUBMIT,"00000000000017","","",null,"{}","{}","owner",null,"","","");
         var nativeView=new com.vncode.app.features.sync.RegistrationCardIndex.View("status.ready_to_submit",unsent.gtin(),"",true,false,false);
         assertTrue(OzonRegistrationPane.matchesFilter("NOT_CREATED",unsent,nativeView));assertFalse(OzonRegistrationPane.matchesFilter("IN_PROGRESS",unsent,nativeView));
         var submitted=new com.vncode.app.integration.znack.registration.OzonCardRegistrationRepository.Row(key,"10001",com.vncode.app.integration.znack.registration.ZnackCardRegistrationModels.Status.FEED_SUBMITTED,unsent.gtin(),"","accepted-feed",null,"{}","{}","owner",null,"","","");
-        assertFalse(OzonRegistrationPane.matchesFilter("NOT_CREATED",submitted,nativeView));assertTrue(OzonRegistrationPane.matchesFilter("IN_PROGRESS",submitted,nativeView));
+        assertTrue(OzonRegistrationPane.matchesFilter("NOT_CREATED",submitted,nativeView));assertFalse(OzonRegistrationPane.matchesFilter("IN_PROGRESS",submitted,nativeView));
+        var confirmed=new com.vncode.app.integration.znack.registration.OzonCardRegistrationRepository.Row(key,"10001",com.vncode.app.integration.znack.registration.ZnackCardRegistrationModels.Status.PROCESSING,unsent.gtin(),"","accepted-feed",91L,"{}","{}","owner",null,"","","CATALOG_CARD_IN_MODERATION");
+        assertFalse(OzonRegistrationPane.matchesFilter("NOT_CREATED",confirmed,nativeView));assertTrue(OzonRegistrationPane.matchesFilter("IN_PROGRESS",confirmed,nativeView));
     }
     @Test void aPublishedCandidateWithVariantConflictBelongsOnlyToMatchingReview(){
         var candidate=new com.vncode.app.features.sync.RegistrationCardIndex.View("source.ambiguous","00000000000017","GTIN_VARIANT_CONFLICT",true,false,true);
@@ -126,7 +128,7 @@ class OzonRegistrationPaneTest {
         var owner=new Shop(1,"Ozon fixture",Marketplace.OZON,"fixture","synthetic");
         var settings=new com.vncode.app.integration.znack.ZnackRepository(new com.vncode.app.integration.znack.ZnackModels.ShopContext(1,owner.getName())).getSettings();
         String scope=new com.google.gson.Gson().toJson(com.vncode.app.integration.znack.registration.ZnackRegistrationScope.fromSettings(settings));
-        try(var c=Database.getConnection();var p=c.prepareStatement("INSERT INTO ozon_card_registrations(shop_id,product_id,offer_id,sku,status,feed_id,scope_json,owner,created_at,updated_at) SELECT shop_id,product_id,offer_id,sku,'FEED_SUBMITTED','feed-'||product_id,?,?,'fixture','fixture' FROM ozon_products WHERE shop_id=1")){
+        try(var c=Database.getConnection();var p=c.prepareStatement("INSERT INTO ozon_card_registrations(shop_id,product_id,offer_id,sku,status,feed_id,good_id,error,scope_json,owner,created_at,updated_at) SELECT shop_id,product_id,offer_id,sku,'PROCESSING','feed-'||product_id,CAST(product_id AS INTEGER),'CATALOG_CARD_IN_MODERATION',?,?,'fixture','fixture' FROM ozon_products WHERE shop_id=1")){
             p.setString(1,scope);p.setString(2,com.vncode.app.integration.listing.ListingIdentity.fingerprint(owner));p.executeUpdate();
         }
         fx(()->{stopBatchPolling();((javafx.scene.control.ComboBox<String>)pane.lookup("#ozonRegistrationStatusFilter")).setValue("IN_PROGRESS");return null;});awaitRows(300);
@@ -204,6 +206,27 @@ class OzonRegistrationPaneTest {
         fx(()->{var selected=OzonRegistrationPane.class.getDeclaredMethod("selected");selected.setAccessible(true);var keys=(java.util.List<com.vncode.app.features.products.ProductKey>)selected.invoke(pane);assertEquals(500,keys.size());assertTrue(keys.stream().allMatch(key->Integer.parseInt(key.cardId())<=500));var refresh=OzonRegistrationPane.class.getDeclaredMethod("refreshBatchRows");refresh.setAccessible(true);refresh.invoke(pane);return null;});awaitIdle();
         fx(()->{assertTrue(((javafx.scene.control.MenuButton)pane.lookup("#ozonRegistrationCategoryFilter")).getText().endsWith("(1)"));assertEquals("NOT_CREATED",((javafx.scene.control.ComboBox<?>)pane.lookup("#ozonRegistrationStatusFilter")).getValue());assertTrue(table().getItems().stream().allMatch(row->Integer.parseInt(row.key().cardId())<=500));return null;});
     }
+    @Test void createOneCardUsesTheSameBatchPreflightAsRegisterSelected()throws Exception{
+        var calls=new java.util.concurrent.atomic.AtomicInteger();
+        var create=fx(()->{
+            var row=table().getItems().getFirst();
+            var reader=OzonRegistrationPane.class.getDeclaredField("preflightReader");reader.setAccessible(true);
+            reader.set(pane,(java.util.function.BiFunction<Shop,java.util.List<ProductKey>,RegistrationBatchPreflight.Review>)(owner,keys)->{
+                assertEquals(java.util.List.of(row.key()),keys);calls.incrementAndGet();
+                throw new IllegalStateException("FIXTURE_SINGLE_CREATE_PREFLIGHT");
+            });
+            var legacy=OzonRegistrationPane.class.getDeclaredField("preparationStarter");legacy.setAccessible(true);
+            legacy.set(pane,(java.util.function.BiConsumer<ProductKey,Boolean>)(key,fresh)->{throw new AssertionError("Use the durable batch entry point");});
+            var column=(javafx.scene.control.TableColumn<ProductRow,ProductRow>)table().getColumns().getLast();
+            var cell=column.getCellFactory().call(column);var update=cell.getClass().getDeclaredMethod("updateItem",ProductRow.class,boolean.class);update.setAccessible(true);update.invoke(cell,row,false);
+            return ((javafx.scene.control.MenuButton)cell.getGraphic()).getItems().getFirst();
+        });
+        com.vncode.app.testsupport.FxDialogDriver.choose(create::fire,dialog->dialog.lookup(".text-area") instanceof javafx.scene.control.TextArea,dialog->{
+            assertTrue(((javafx.scene.control.TextArea)dialog.lookup(".text-area")).getText().contains("FIXTURE_SINGLE_CREATE_PREFLIGHT"));
+            return dialog.getButtonTypes().stream().filter(type->type.getButtonData()==javafx.scene.control.ButtonBar.ButtonData.CANCEL_CLOSE).findFirst().orElseThrow();
+        });awaitIdle();assertEquals(1,calls.get());
+    }
+
     @Test void unavailableCountryModelShowsCopyableDiagnosticsWithoutStartingAnOzonBatch()throws Exception{
         var preparing=OzonRegistrationPane.class.getDeclaredField("selectionPreparing");preparing.setAccessible(true);var registerButton=fx(()->button("register"));
         fx(()->{var reader=OzonRegistrationPane.class.getDeclaredField("preflightReader");reader.setAccessible(true);reader.set(pane,(java.util.function.BiFunction<Shop,java.util.List<com.vncode.app.features.products.ProductKey>,RegistrationBatchPreflight.Review>)(owner,keys)->{assertFalse(Platform.isFxApplicationThread());assertTrue(Thread.currentThread().getName().startsWith("vncode-catalog-read-"));throw new IllegalStateException("CATALOG_COUNTRY_DICTIONARY_UNAVAILABLE",new java.net.SocketTimeoutException("fixture dictionary timeout"));});table().getSelectionModel().select(0);return null;});
@@ -286,7 +309,7 @@ class OzonRegistrationPaneTest {
         }
         var sending=new com.vncode.app.integration.znack.registration.OzonCardRegistrationRepository.Row(key,"sku",com.vncode.app.integration.znack.registration.ZnackCardRegistrationModels.Status.FEED_SUBMITTING,"00000000000017","","",null,"{}","{}","owner",null,"","","");
         var view=new com.vncode.app.features.sync.RegistrationCardIndex.View("status.feed_submitting",sending.gtin(),"SOURCE_NATIVE_CHECKPOINT",true,false,false);
-        assertTrue(OzonRegistrationPane.matchesFilter("IN_PROGRESS",sending,view));assertFalse(OzonRegistrationPane.matchesFilter("ERROR",sending,view));assertFalse(OzonRegistrationPane.matchesFilter("NOT_CREATED",sending,view));
+        assertFalse(OzonRegistrationPane.matchesFilter("IN_PROGRESS",sending,view));assertFalse(OzonRegistrationPane.matchesFilter("ERROR",sending,view));assertTrue(OzonRegistrationPane.matchesFilter("NOT_CREATED",sending,view));
         var rejected=new com.vncode.app.integration.znack.registration.OzonCardRegistrationRepository.Row(key,"sku",com.vncode.app.integration.znack.registration.ZnackCardRegistrationModels.Status.ERROR,sending.gtin(),"","feed",null,"{}","{}","owner",null,"","","CATALOG_REJECTED: invalid size");
         assertTrue(OzonRegistrationPane.matchesFilter("ERROR",rejected,view));
     }

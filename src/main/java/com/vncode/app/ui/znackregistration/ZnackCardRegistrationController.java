@@ -167,6 +167,7 @@ public final class ZnackCardRegistrationController {
 
     @FXML
     private void initialize() {
+        productTable.setFixedCellSize(76);
         configureColumns();
         readinessLabel.textProperty().addListener((o,a,b)->{boolean warning=!ready()&&b!=null&&!b.isBlank();readinessLabel.setVisible(warning);readinessLabel.setManaged(warning);});
         batchProgressLabel.setCursor(javafx.scene.Cursor.HAND);batchProgressLabel.setOnMouseClicked(event->onReport());
@@ -988,8 +989,8 @@ public final class ZnackCardRegistrationController {
             private final StackPane pane = new StackPane(placeholder, imageView);
             private String currentUrl;
             {
-                imageView.setFitWidth(50);
-                imageView.setFitHeight(75);
+                imageView.setFitWidth(40);
+                imageView.setFitHeight(56);
                 imageView.setPreserveRatio(true);
                 imageView.setSmooth(true);
                 placeholder.setMinSize(44, 58);
@@ -1140,6 +1141,7 @@ public final class ZnackCardRegistrationController {
     private boolean eligible(Sku sku) {
         if(reviewableDraft(sku))return ready()&&shop!=null&&!workflow.isRunning(shop,sku);
         if(sku!=null&&sku.canReviewExistingDraft())return false;
+        if(statusFilter.getValue()==StatusFilter.NOT_CREATED&&sku!=null&&!RegistrationCardIndex.notSubmitted(sku))return false;
         return ready() && shop!=null && sku!=null && !view(sku).blocked() && (!view(sku).published()||groupReplacement(sku)) && !workflow.isRunning(shop,sku)
                 && (sku.canRegister() || sku.canResume() || sku.needsGtinReview()||groupReplacement(sku));
     }

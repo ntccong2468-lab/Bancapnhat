@@ -49,6 +49,7 @@ class ZnackRegistrationBatchHttpIntegrationTest {
     private ZnackCardRegistrationRepository repository;
     private int responseWithoutFeedId;
     private volatile boolean cardsVisible = true;
+    private boolean visibleAfterAllPosts;
     private volatile int cardReadFailure;
     private String readRetryAfter="0";
     private boolean rejectOptional;
@@ -152,6 +153,12 @@ class ZnackRegistrationBatchHttpIntegrationTest {
         assertEquals(3, first.latest(shop).remaining());
         assertEquals(0, first.latest(shop).failed());
         assertEquals(ZnackRegistrationBatchService.State.WAITING_REMOTE, first.latest(shop).state());
+        var queries=new com.vncode.app.ui.znackregistration.ZnackRegistrationQueryRepository();
+        assertEquals(0,queries.page(new SearchCriteria(1,"",List.of(),"IN_PROGRESS",20,0)).filtered(),
+                "Receipt IDs cannot move products to the Catalog processing filter");
+        assertEquals(3,queries.page(new SearchCriteria(1,"",List.of(),"NOT_CREATED",20,0)).filtered());
+        assertTrue(queries.allEligible(new SearchCriteria(1,"",List.of(),"NOT_CREATED",20,0)).isEmpty(),
+                "Select all must not re-submit requests that are awaiting Catalog readback");
         for (int i = 0; i < 3; i++) {
             var row = repository.find(1, 11 + i);
             assertEquals(gtins.get(i), row.gtin());
@@ -168,8 +175,8 @@ class ZnackRegistrationBatchHttpIntegrationTest {
         assertEquals(0, resumed.latest(shop).remaining());
         assertEquals(ZnackRegistrationBatchService.State.COMPLETE, resumed.latest(shop).state());
         assertEquals(3, posts.get(), "Late card visibility must only read the original feeds");
-        assertEquals(6, feedReads.get());
-        assertEquals(6, cardReads.get());
+        assertEquals(9, feedReads.get());
+        assertEquals(9, cardReads.get());
     }
 
     @Test void readbackRateLimitAfterAcceptedPostPreservesIdentityAndNeverReplaysPost() throws Exception {
@@ -210,6 +217,19 @@ class ZnackRegistrationBatchHttpIntegrationTest {
         }
         assertFalse(batch.resumePending(shop));assertEquals(6,posts.get());
         assertEquals(3,new com.vncode.app.features.sync.SyncRunRepository().items(run,0,20).size());
+    }
+
+    @Test void finalReadbackConfirmsDelayedCardsWithoutAnotherRegisterClickOrPost() throws Exception {
+        visibleAfterAllPosts=true;
+        var batch=batch();batch.start(shop,selection(),false);
+        assertNull(serverFailure.get());
+        assertEquals(3,posts.get());assertEquals(3,batch.latest(shop).submitted());
+        assertEquals(ZnackRegistrationBatchService.State.COMPLETE,batch.latest(shop).state());
+        assertEquals(5,cardReads.get(),"Read the two delayed imports again after the last POST");
+        var queries=new com.vncode.app.ui.znackregistration.ZnackRegistrationQueryRepository();
+        assertEquals(3,queries.page(new SearchCriteria(1,"",List.of(),"IN_PROGRESS",20,0)).filtered());
+        assertEquals(0,queries.page(new SearchCriteria(1,"",List.of(),"NOT_CREATED",20,0)).filtered());
+        assertFalse(batch.resumePending(shop));assertEquals(3,posts.get());
     }
 
     private void retryNow(String run) throws Exception {
@@ -329,7 +349,7 @@ class ZnackRegistrationBatchHttpIntegrationTest {
         String gtin = query.get("gtins");
         assertTrue(gtins.contains(gtin), "Read the exact allocated GTIN, not an unrelated list");
         if (cardReadFailure != 0) return "{\"error\":\"readback temporarily unavailable\"}";
-        if (!cardsVisible) return "{\"result\":[]}";
+        if (!cardsVisible || visibleAfterAllPosts && posts.get()<gtins.size()) return "{\"result\":[]}";
         verifiedCards.add(gtin);
         return "{\"result\":[{\"gtin\":\"" + gtin + "\",\"good_id\":" + (100 + gtins.indexOf(gtin))
                 + ",\"good_status\":\"draft\",\"good_detailed_status\":[\"moderation\"]}]}";

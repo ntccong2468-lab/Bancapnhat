@@ -166,7 +166,7 @@ class ZnackRegistrationQueryRepositoryTest {
         assertEquals(1,page.summary().waiting());
         assertTrue(query.allEligible(new SearchCriteria(1,"",List.of(),"NOT_CREATED",300,0)).stream().noneMatch(row->row.chrtId()==503),"Visibility must never authorize another POST");
     }
-    @Test void unsentLocalWorkStaysNotCreatedUntilCatalogAcceptsItsFeed()throws Exception {
+    @Test void localWorkAndFeedReceiptsStayNotCreatedUntilCatalogCardReadback()throws Exception {
         var shop=new com.vncode.app.models.Shop(1,"Fixture WB","fixture");
         String receipt=com.vncode.app.testsupport.RegistrationSourceFixture.ready(shop);
         var scope=com.vncode.app.integration.znack.registration.ZnackRegistrationScope.fromSettings(
@@ -186,13 +186,13 @@ class ZnackRegistrationQueryRepositoryTest {
         var observed=new ZnackRegistrationQueryRepository(receipt,new com.vncode.app.features.sync.RegistrationCardIndex(shop));
         for(var query:List.of(repository,observed)){
             var notCreated=new SearchCriteria(1,"",List.of(),"NOT_CREATED",300,0);
-            assertEquals(query==repository?1_225:1_226,query.page(notCreated).filtered());
+            assertEquals(query==repository?1_229:1_230,query.page(notCreated).filtered());
             var selected=query.allEligible(notCreated).stream().map(Sku::chrtId).toList();
             assertTrue(selected.containsAll(List.of(10L,11L,12L,13L,1_230L)),"Selection must include every safe unsent checkpoint, beyond the loaded page");
             assertFalse(selected.stream().anyMatch(id->id>=14&&id<=20),"An accepted or uncertain feed must not be submitted as a new card");
             var processing=query.page(new SearchCriteria(1,"",List.of(),"IN_PROGRESS",300,0));
-            assertEquals(List.of(15L,16L,17L,19L),processing.rows().stream().map(Sku::chrtId).toList());
-            assertEquals(3,processing.summary().waiting());assertEquals(1,processing.summary().readyToSign());
+            assertTrue(processing.rows().isEmpty(),"Receipt IDs and local states do not prove Catalog card creation");
+            assertEquals(0,processing.summary().waiting());assertEquals(0,processing.summary().readyToSign());
             var errors=query.page(new SearchCriteria(1,"",List.of(),"ERROR",300,0)).rows().stream().map(Sku::chrtId).toList();
             assertTrue(errors.isEmpty(),"Allocations and uncertain requests are not rejected Catalog cards");
             var review=query.page(new SearchCriteria(1,"",List.of(),"FEED_REVIEW_REQUIRED",300,0)).rows().stream().map(Sku::chrtId).toList();
@@ -218,9 +218,9 @@ class ZnackRegistrationQueryRepositoryTest {
         var observed=new ZnackRegistrationQueryRepository(receipt,new com.vncode.app.features.sync.RegistrationCardIndex(shop));
         for(var query:List.of(repository,observed)){
             assertEquals(List.of(108L),query.page(new SearchCriteria(1,"",List.of(),"ERROR",300,0)).rows().stream().map(Sku::chrtId).toList(),"Only confirmed Catalog refusal belongs in Errors");
-            assertEquals(List.of(104L,105L,106L),query.page(new SearchCriteria(1,"",List.of(),"IN_PROGRESS",300,0)).rows().stream().map(Sku::chrtId).toList(),"A newly dispatched feed must be visible before its receipt arrives");
+            assertTrue(query.page(new SearchCriteria(1,"",List.of(),"IN_PROGRESS",300,0)).rows().isEmpty(),"Dispatch and receipts cannot prove a Catalog card exists");
             var unconfirmed=query.page(new SearchCriteria(1,"",List.of(),"NOT_CREATED",300,0));
-            assertTrue(unconfirmed.rows().stream().map(Sku::chrtId).toList().containsAll(List.of(100L,101L,102L,103L,107L)));
+            assertTrue(unconfirmed.rows().stream().map(Sku::chrtId).toList().containsAll(List.of(100L,101L,102L,103L,104L,105L,106L,107L)),"Pending sends stay visible without permitting another POST");
             assertEquals(1,unconfirmed.summary().errors(),"Summary must use the same Catalog-only error definition");
             assertFalse(query.allEligible(new SearchCriteria(1,"",List.of(),"NOT_CREATED",300,0)).stream().anyMatch(row->Set.of(102L,103L,104L,105L,106L).contains(row.chrtId())),"Display membership must not permit replay of uncertain operations");
         }

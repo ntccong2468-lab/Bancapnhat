@@ -1244,7 +1244,7 @@
 #productsPane .product-name { -fx-font-size: 18px; -fx-font-weight: bold; }
 #productsPane .product-row { -fx-border-width: 0; }
 #productRows { -fx-background-radius: 10; -fx-border-radius: 10; -fx-border-color: -border-color; -fx-padding: 0; }
-#productRows .list-cell { -fx-padding: 13 16 12 16; -fx-border-color: transparent transparent -border-color transparent; -fx-border-width: 0 0 1 0; }
+#productRows .list-cell { -fx-padding: 8 14 7 14; -fx-border-color: transparent transparent -border-color transparent; -fx-border-width: 0 0 1 0; }
 #productRows .list-cell:empty { -fx-border-width: 0; }
 #productsPane .products-bulk { -fx-padding: 12 16; -fx-background-radius: 16; -fx-border-radius: 16; -fx-border-color: -border-color; -fx-border-width: 1; }
 #productsPane .products-bulk .button { -fx-font-size: 15px; -fx-font-weight: bold; -fx-background-radius: 12; -fx-border-radius: 12; -fx-padding: 8 14; -fx-min-height: 40; }

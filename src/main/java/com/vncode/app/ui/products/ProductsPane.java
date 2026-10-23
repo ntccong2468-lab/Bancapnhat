@@ -79,7 +79,7 @@ public final class ProductsPane extends BorderPane {
         this.reader=reader==null?repository::loadProductPage:reader;this.reads=Objects.requireNonNull(reads);
         this.refreshService=Objects.requireNonNull(refreshService);reload.setId("productSync");status.setId("productStatus");
         setId("productsPane");getStyleClass().add("products-workspace");setPadding(new Insets(34,30,20,34));
-        rows.setId("productRows");rows.setFixedCellSize(135);rows.setCellFactory(list->new ProductCell());
+        rows.setId("productRows");rows.setFixedCellSize(104);rows.setCellFactory(list->new ProductCell());
         rows.skinProperty().addListener((o,a,b)->Platform.runLater(this::installScrollPaging));
         var headingSpacer=new Region();HBox.setHgrow(headingSpacer,Priority.ALWAYS);
         var heading=new HBox(12,title,count,headingSpacer,reload);heading.setAlignment(Pos.CENTER_LEFT);heading.setMinHeight(42);
@@ -197,23 +197,24 @@ public final class ProductsPane extends BorderPane {
     }
     private final class ProductCell extends ListCell<ProductRow> {
         private final CheckBox check=new CheckBox();private final ImageView image=new ImageView();private final Label name=new Label(),meta=new Label(),article=new Label(),barcode=new Label(),paper=new Label(),material=new Label(),tnved=new Label(),genderText=new Label();
-        private final HBox box;private final VBox right=new VBox(8),taxonomy=new VBox(8);private long imageRequest;
+        private final HBox box;private final VBox right=new VBox(3),taxonomy=new VBox(3);private long imageRequest;
         ProductCell(){
             for(var label:List.of(meta,material,tnved,genderText))label.getStyleClass().add("text-muted");
-            image.setFitWidth(84);image.setFitHeight(110);image.setPreserveRatio(true);
-            var photo=new StackPane(image);photo.setMinSize(84,110);photo.setMaxSize(84,110);photo.getStyleClass().add("product-photo");
+            image.setFitWidth(64);image.setFitHeight(88);image.setPreserveRatio(true);
+            var photo=new StackPane(image);photo.setMinSize(64,88);photo.setMaxSize(64,88);photo.getStyleClass().add("product-photo");
             name.setWrapText(false);name.setMaxWidth(Double.MAX_VALUE);name.getStyleClass().add("product-name");
-            var middle=new VBox(3,name,meta,article,barcode);HBox.setHgrow(middle,Priority.ALWAYS);middle.setMinWidth(120);middle.setPrefWidth(580);
+            var middle=new VBox(1,name,meta,article,barcode);HBox.setHgrow(middle,Priority.ALWAYS);middle.setMinWidth(120);middle.setPrefWidth(580);
             for(var label:List.of(meta,article,barcode))label.setMaxWidth(Double.MAX_VALUE);
             right.getChildren().setAll(paper,material);right.setMinWidth(170);right.setPrefWidth(280);right.setMaxWidth(280);material.setWrapText(true);
             taxonomy.setMinWidth(210);taxonomy.setPrefWidth(235);taxonomy.setMaxWidth(235);
-            box=new HBox(18,check,photo,middle,right);box.setAlignment(Pos.TOP_LEFT);box.getStyleClass().add("product-row");box.prefWidthProperty().bind(widthProperty().subtract(32));
-            check.setMinWidth(24);check.setMaxWidth(24);HBox.setMargin(check,new Insets(42,0,0,0));
+            box=new HBox(14,check,photo,middle,right);box.setAlignment(Pos.TOP_LEFT);box.getStyleClass().add("product-row");box.prefWidthProperty().bind(widthProperty().subtract(32));
+            check.setMinWidth(24);check.setMaxWidth(24);HBox.setMargin(check,new Insets(32,0,0,0));
             check.setOnAction(e->{var row=getItem();if(row!=null){selection.setSelected(row.key(),check.isSelected());updateSelection();}});
             setOnMouseClicked(e->{if(e.getClickCount()==2&&getItem()!=null)details(getItem());});widthProperty().addListener((o,a,b)->adaptRow());
         }
         private void adaptRow(){
             boolean wide=getWidth()>=1100;taxonomy.getChildren().clear();right.getChildren().setAll(paper,material);
+            material.setWrapText(wide);material.setTooltip(new Tooltip(material.getText()));
             if(wide){taxonomy.getChildren().setAll(genderText,tnved);if(!box.getChildren().contains(taxonomy))box.getChildren().add(taxonomy);}
             else{box.getChildren().remove(taxonomy);right.getChildren().addAll(genderText,tnved);}
             var row=getItem();if(row!=null)meta.setText(java.util.stream.Stream.of(row.category(),row.brand()).filter(v->v!=null&&!v.isBlank()).collect(java.util.stream.Collectors.joining(" · ")));

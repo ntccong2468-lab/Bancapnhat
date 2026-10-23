@@ -1,0 +1,40 @@
+{
+  "checkedAt": "2026-10-23T18:09:44.618698+00:00",
+  "command": "DISPLAY=:99 Maven clean verify (offline dependencies; temporary test app-data)",
+  "operatingSystem": "Linux",
+  "buildSuccess": true,
+  "suites": 401,
+  "tests": 2929,
+  "failures": 0,
+  "errors": 0,
+  "skipped": 2,
+  "passed": 2927,
+  "skippedTests": [
+    {
+      "suite": "com.vncode.app.features.gs1.Gs1PrefixTemplateStoreTest",
+      "test": "refusesNtfsJunctionDirectoryAndAncestors"
+    },
+    {
+      "suite": "com.vncode.app.shared.WindowsSecretProtectorTest",
+      "test": "separatesLicenseAndExistingMailEntropyOnWindows"
+    }
+  ],
+  "logSha256": "3b29ea4706dce3d8a8349055a1d92362120937d1b2c57c202c9aebab54f16992",
+  "sourceBase": "v1.5.12",
+  "sourceBranch": "fix/catalog-readback-compact-rows",
+  "sourceFileSha256": {
+    "src/main/java/com/vncode/app/features/sync/RegistrationCardIndex.java": "1d3b5aab34d73bbc46f42a62df706145ca29987778b19807ca4e90e9eb9f66d3",
+    "src/main/java/com/vncode/app/integration/znack/registration/OzonRegistrationBatchService.java": "3d1c3eeecd0951f5ec23f36e16030432784a45a8b934aa69e24298e00d78ab47",
+    "src/main/java/com/vncode/app/integration/znack/registration/ZnackNationalCatalogService.java": "61a58bd5e52766d37ca72f4b6caaf8ca7a481abafe75cdf49ca59d427b7b5c9f",
+    "src/main/java/com/vncode/app/integration/znack/registration/ZnackRegistrationBatchService.java": "c4112f602647e9c1e5324d1cd985df186cf318ed2c65fd43e1c9a56dbc88c850",
+    "src/main/java/com/vncode/app/ui/products/ProductsPane.java": "e4ecf97f681238f16d3420a9838ee5252c3f00f5a104831cceb6d43b89d91fbd",
+    "src/main/java/com/vncode/app/ui/znackregistration/OzonRegistrationPane.java": "e582f5132c467f6de982ef1cadc1726f46cd85383a52fc5fc4424af99c13f940",
+    "src/main/java/com/vncode/app/ui/znackregistration/ZnackCardRegistrationController.java": "0915148b4aea2c6ef2587ca677aa9ceff50caf7fa9a3318fbfee9d0cce992b6f",
+    "src/main/java/com/vncode/app/ui/znackregistration/ZnackRegistrationQueryRepository.java": "2cd0173e6fbad9e1eea217fbea7dcd392b87872572e22ec11b0a61c211f6a616",
+    "src/main/resources/com/vncode/app/styles/reference-dark.css": "d2ee7379b73e4db0dcc94a9dc02bf84d0b0c6ad30dea706bad756aaad572c577",
+    "src/main/resources/com/vncode/app/styles/theme.css": "bcd5c262cfc93cb35a771756a621a71c262c51c8e9ac6c57c77b9a1b2d3ae27d"
+  },
+  "liveCatalogWriteEvidence": "2026-10-23-catalog-one-card-api-live.json",
+  "windowsButtonAcceptanceVerified": false,
+  "installerPublished": false
+}

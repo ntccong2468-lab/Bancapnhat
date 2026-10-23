@@ -59,6 +59,24 @@ public final class RegistrationCardIndex {
         return (observed==null||!observed.published())&&!catalogRejected(status,error,observed)
                 &&!registrationInProgress(status,feedId,observed);
     }
+    /** A feed receipt or an in-flight POST does not prove that Catalog has a product card. */
+    public static boolean catalogCardInProgress(Status status,Long goodId,String detail,View observed) {
+        if(observed!=null){
+            if(observed.published()||observed.status().equals("source.errors")||needsMatchReview(observed))return false;
+            if(Set.of("source.draft","source.processing","source.moderation","source.unpublished").contains(observed.status()))return true;
+            // This detail is produced only after reading a real non-published matching card.
+            // Missing size/color still blocks GTIN writes, not visibility of that remote card.
+            if(observed.detail().equals("GTIN_VARIANT_UNVERIFIED")&&observed.status().startsWith("status.")&&status!=Status.ERROR)return true;
+            if(observed.status().startsWith("source."))return false;
+        }
+        if(goodId==null||goodId<=0)return false;
+        return status==Status.READY_TO_SIGN||status==Status.SIGNING
+                ||status==Status.PROCESSING&&Set.of("CATALOG_CARD_DRAFT","CATALOG_CARD_IN_MODERATION").contains(safe(detail));
+    }
+    public static boolean awaitingCatalogCard(Status status,Long goodId,String error,View observed) {
+        return (observed==null||!observed.published())&&!catalogRejected(status,error,observed)
+                &&!catalogCardInProgress(status,goodId,error,observed);
+    }
     private final Map<String,List<RegisteredGtin>> codes=new HashMap<>(),attributes=new HashMap<>();
     private final OzonSkuGtinMatcher ozon;
     private final Set<Long> wbOwners=new HashSet<>();

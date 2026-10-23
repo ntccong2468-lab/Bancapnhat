@@ -70,6 +70,15 @@ class ZnackRegistrationCountryModelTest {
         assertEquals(clock.now,evidence.loadedAt());assertEquals(2,evidence.entries());assertTrue(evidence.reusePolicy().contains("no-store"));assertFalse(evidence.toString().contains("fixture-secret-token"));
         nextOperation();catalog.registrationAttributes(1,"fixture");assertEquals(2,api.dictionaryReads,"Even immediate later operations must freshly read a no-store dictionary");
     }
+    @Test void shortWbChinaNameResolvesOnlyAgainstTheLiveOfficialCnEntry()throws Exception {
+        api.chinaName="КНР (Китайская Народная Республика)";
+        var schema=catalog.registrationAttributes(1,"fixture");
+        assertEquals("CN",catalog.registrationCountryCode("Китай",schema));
+        assertEquals("CN",catalog.registrationCountryCode(api.chinaName,schema));
+        assertEquals("",catalog.registrationCountryCode("Тайвань (Китай)",schema));
+        nextOperation();api.chinaName="Unrecognized official name";
+        assertEquals("",catalog.registrationCountryCode("Китай",catalog.registrationAttributes(1,"fixture")));
+    }
     @Test void ambiguousNamesStayUnmappedButOfficialCodesNeedNotBelongToTheJdkLocaleList()throws Exception {
         api.russiaName="Одинаковое название";api.chinaName="Одинаковое название";
         var schema=catalog.registrationAttributes(1,"fixture");assertEquals("",catalog.registrationCountryCode("Одинаковое название",schema));assertEquals("",catalog.registrationCountryCode("XX",schema));assertEquals("CN",catalog.registrationCountryCode("CN",schema));
