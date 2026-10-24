@@ -55,7 +55,9 @@ jobs:
           if ! gh release view v1.5.14 --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
             gh release create v1.5.14 --repo "$GITHUB_REPOSITORY" --verify-tag --target "$EXPECTED_SOURCE" --draft --title 'VN code 1.5.14' --notes-file docs/releases/VN-code-1.5.14.md
           fi
-          gh api "repos/$GITHUB_REPOSITORY/releases/tags/v1.5.14" > "$RUNNER_TEMP/prepared-release.json"
+          release_api_url="$(gh release view v1.5.14 --repo "$GITHUB_REPOSITORY" --json apiUrl --jq .apiUrl)"
+          [[ "$release_api_url" =~ ^https://api.github.com/repos/ntccong2468-lab/Bancapnhat/releases/[0-9]+$ ]]
+          gh api "$release_api_url" > "$RUNNER_TEMP/prepared-release.json"
           node --input-type=module <<'NODE'
           import assert from 'node:assert/strict';import {readFile,appendFile} from 'node:fs/promises';
           const release=JSON.parse(await readFile(`${process.env.RUNNER_TEMP}/prepared-release.json`,'utf8'));
