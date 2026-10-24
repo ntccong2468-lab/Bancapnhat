@@ -108,28 +108,29 @@ public final class ZnackGtinBackgroundService {
         catch(Exception failure){throw new PreparationException(failure);}
         var last=new Progress[]{new Progress(0,0,0,0,0)};
         Consumer<Progress> updates=value->{last[0]=value;progress.accept(value);};
-        var rows=new ArrayList<SyncRunRepository.Item>();int covered=0,missing=0,excluded=0,unknown=0;var seen=new HashSet<ProductKey>();
+        var rows=new ArrayList<SyncRunRepository.Item>();int covered=0,missing=0,excluded=0,unknown=0,alreadyUpdated=0;var seen=new HashSet<ProductKey>();
         for(int offset=0;;offset+=300){var page=operations.page(shop,run,offset);
             for(var row:page){
                 if(row.productId().startsWith("catalog:")||(!selected.isEmpty()&&!selected.contains(new ProductKey(shop.getId(),shop.getMarketplace(),row.productId(),row.variantId()))))continue;
                 seen.add(new ProductKey(shop.getId(),shop.getMarketplace(),row.productId(),row.variantId()));covered++;if(row.gtin().isBlank()){if(unknownSource(row.evidence()))unknown++;else missing++;}
-                if(ZnackGtinReviewService.eligible(row))rows.add(row);else if(!row.gtin().isBlank())excluded++;
+                if(ZnackGtinReviewService.eligible(row))rows.add(row);else if(!row.gtin().isBlank()&&Set.of("SUCCEEDED","UNCHANGED").contains(row.state()))alreadyUpdated++;else if(!row.gtin().isBlank())excluded++;
             }
             if(page.size()<300)break;
         }
         for(var key:selected)if(!seen.contains(key)){covered++;unknown++;}
         var inventory=new Inventory(covered,covered-missing-unknown,missing,excluded,unknown);
         if(rows.isEmpty()){
-            operations.noEligible(shop,run);
-            var empty=new Progress(0,0,0,0,0);updates.accept(empty);
+            if(alreadyUpdated>0)operations.finish(shop,run);else operations.noEligible(shop,run);
+            var empty=new Progress(alreadyUpdated,alreadyUpdated,alreadyUpdated,0,0);updates.accept(empty);
             return new Result(run,empty,inventory);
         }
-        int done=0,ok=0,pending=0,blocked=0;var submitted=new HashSet<com.vncode.app.features.gtinsync.GtinSyncModels.ProductKey>();updates.accept(new Progress(0,rows.size(),0,0,0));
+        int total=rows.size()+alreadyUpdated;int done=alreadyUpdated,ok=alreadyUpdated,pending=0,blocked=0;var submitted=new HashSet<com.vncode.app.features.gtinsync.GtinSyncModels.ProductKey>();updates.accept(new Progress(done,total,ok,0,0));
         var chunks=new ArrayDeque<List<SyncRunRepository.Item>>();int size=Math.max(1,Math.min(operations.batchSize(),com.vncode.app.features.gtinsync.GtinBatchAdapter.MAX_PLAN_ROWS));
         for(int offset=0;offset<rows.size();offset+=size)chunks.addLast(List.copyOf(rows.subList(offset,Math.min(offset+size,rows.size()))));
         try {
         phase.accept("READING_MARKETPLACE");operations.prepareBatchRun(shop,rows);
         while(!chunks.isEmpty()){
+            com.vncode.app.shared.UpdateHandoff.checkpoint();
             if(Thread.currentThread().isInterrupted())throw new java.io.InterruptedIOException("GTIN_SYNC_CANCELLED");
             var batch=chunks.removeFirst();Job plan;
             try{plan=operations.preview(shop,operations.select(shop,run,batch));}
@@ -140,7 +141,7 @@ public final class ZnackGtinBackgroundService {
                 var item=batch.getFirst();
                 operations.invalid(shop,run,item,invalid);
                 if(SyncFailure.of(invalid,0).actionRequired())blocked++;else pending++;
-                updates.accept(new Progress(++done,rows.size(),ok,pending,blocked,submitted.size()));continue;
+                updates.accept(new Progress(++done,total,ok,pending,blocked,submitted.size()));continue;
             }
             if(plan.readyCount()>0){
                 plan=operations.confirm(shop,plan);if(plan.confirmed())operations.link(shop,run,plan);
@@ -150,7 +151,7 @@ public final class ZnackGtinBackgroundService {
                     var status=item.status();var key=item.preview().before().key();var previous=observed.put(key,status);
                     if(previous!=null)countStatus(previous,counts,-1);countStatus(status,counts,1);
                     if(item.dispatchedAt()!=null||Set.of(com.vncode.app.features.gtinsync.GtinSyncModels.Status.AWAITING_VERIFICATION,com.vncode.app.features.gtinsync.GtinSyncModels.Status.RECONCILE_REQUIRED,com.vncode.app.features.gtinsync.GtinSyncModels.Status.SUCCEEDED).contains(status))submitted.add(key);
-                    updates.accept(new Progress(baseDone+counts[0],rows.size(),baseOk+counts[1],basePending+counts[2],baseBlocked+counts[3],submitted.size()));
+                    updates.accept(new Progress(baseDone+counts[0],total,baseOk+counts[1],basePending+counts[2],baseBlocked+counts[3],submitted.size()));
                 });operations.link(shop,run,plan);
             }
             operations.blocked(shop,run,batch,plan);
@@ -159,10 +160,10 @@ public final class ZnackGtinBackgroundService {
                 case BLOCKED -> blocked++;
                 default -> pending++;
             }
-            done+=batch.size();updates.accept(new Progress(done,rows.size(),ok,pending,blocked,submitted.size()));
+            done+=batch.size();updates.accept(new Progress(done,total,ok,pending,blocked,submitted.size()));
         }
         operations.finish(shop,run);
-        return new Result(run,new Progress(done,rows.size(),ok,pending,blocked,submitted.size()),inventory);
+        return new Result(run,new Progress(done,total,ok,pending,blocked,submitted.size()),inventory);
         }catch(Exception failure){throw new RunException(new Result(run,last[0],inventory),failure);}
         finally{operations.close();}
     }

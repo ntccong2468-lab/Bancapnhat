@@ -1,0 +1,144 @@
+{
+  "dateUtc": "2026-10-24",
+  "branch": "fix/update-gtin-ozon-fbs-layout",
+  "baseCommit": "b4e3a8d",
+  "sourceTreeSha256": "45374c8c7b833c3859712911f024552f59fa7b4174a1e5cf3189facd71b29b6c",
+  "sourceTreeHashMethod": "Sorted pom.xml, src/main and src/test files: relative path + NUL + binary SHA256 digest per file",
+  "maven": {
+    "command": "DISPLAY=:99 /workspace/toolchains/mvn-vncode -o -B clean verify",
+    "result": "BUILD SUCCESS",
+    "tests": 2956,
+    "passed": 2954,
+    "skipped": 2,
+    "failures": 0,
+    "errors": 0,
+    "duration": "17:34 min",
+    "finishedUtc": "2026-10-24T07:08:32Z"
+  },
+  "node": {
+    "command": "node --test tools/*.test.mjs",
+    "tests": 117,
+    "passed": 117,
+    "failed": 0
+  },
+  "targetedFinal": {
+    "tests": 48,
+    "passed": 48,
+    "failed": 0
+  },
+  "layout": {
+    "allWorkspaceRoutes": 20,
+    "fxmlPages": 16,
+    "fxmlFixedActionChecks": 896,
+    "javaPages": 10,
+    "javaFixedActionChecks": 987,
+    "locales": 4,
+    "themes": 2,
+    "sizes": 2,
+    "clipped": 0,
+    "nativeWindowsTaskbarVerified": false
+  },
+  "gtinSynthetic10000": [
+    {
+      "marketplace": "WILDBERRIES",
+      "gtins": 10000,
+      "liveSellerMutations": false,
+      "simulatedApi": true,
+      "realApplicationPlannerAdaptersAndSqlite": true,
+      "writes": 4,
+      "reads": 214,
+      "maximumRequestItems": 3000,
+      "maximumRequestBytes": 1396406,
+      "verified": 10000,
+      "elapsedMs": 38925.684932,
+      "quotaWaitSimulatedSeparately": true
+    },
+    {
+      "marketplace": "OZON",
+      "gtins": 10000,
+      "liveSellerMutations": false,
+      "simulatedApi": true,
+      "realApplicationPlannerAdaptersAndSqlite": true,
+      "writes": 100,
+      "reads": 272,
+      "maximumRequestItems": 100,
+      "maximumRequestBytes": 4114,
+      "verified": 10000,
+      "elapsedMs": 212800.061183,
+      "quotaWaitSimulatedSeparately": true
+    }
+  ],
+  "ozonLabels": {
+    "syntheticPostings": 1000,
+    "createCalls": 1,
+    "getCalls": 1,
+    "pdfDownloads": 1,
+    "outOfOrderPagesVerified": true,
+    "singleReprintSubsetVerified": true,
+    "productionExportVerified": false
+  },
+  "sellerFile": {
+    "name": "zl.txt",
+    "sha256": "56a9868354cc142696c6dae36a3bea488abe077f01f9ed2f5baa2de5950e345e",
+    "codes": 200,
+    "unique": 200,
+    "gtinGroups": 2,
+    "cisCharacters": 31,
+    "fullDataMatrix": 0,
+    "localAppImport": {
+      "accepted": 200,
+      "structureDamaged": 0,
+      "strictCisParse": 200
+    },
+    "localAppPayloadProbe": {
+      "http": "MOCK",
+      "setPayloads": 200,
+      "codesUnchanged": 200
+    },
+    "localRejectionProbe": {
+      "http": "MOCK_WITH_PRODUCTION_VALIDATION_SHAPE",
+      "blockedBeforeSet": 200,
+      "setCalls": 0
+    },
+    "productionValidation": {
+      "endpoint": "/v5/fbs/posting/product/exemplar/validate",
+      "method": "POST, read-only preassignment validation",
+      "codesCheckedIndividually": 200,
+      "http200Responses": 200,
+      "accepted": 0,
+      "rejected": 200,
+      "unverified": 0,
+      "errorCounts": {
+        "MANDATORY_MARK_HAS_INCORRECT_CRYPTOTAIL": 200,
+        "MANDATORY_MARK_IN_INCORRECT_STATUS": 7
+      },
+      "overlappingErrors": true,
+      "negativeControl": "BAD-KIZ -> MANDATORY_MARK_HAS_INVALID_LENGTH",
+      "gtinMatchToPosting": "UNCONFIRMED",
+      "marksAssigned": false,
+      "stockConsumed": false,
+      "postingReceived": false,
+      "postAssignmentKn3Verified": false
+    }
+  },
+  "liveMarketplaceMutations": false,
+  "liveCatalogWrites": false,
+  "paidKizPurchases": false,
+  "windowsInstallerCreated": false,
+  "latestChanged": false,
+  "latestUnchanged": "1.5.13",
+  "limitations": [
+    "Windows native installer/taskbar acceptance still needs a Windows build.",
+    "API validation is not a successful mark assignment; this file was rejected before assignment.",
+    "No raw KIZ, credentials, posting IDs, seller SKU or upstream responses are included."
+  ],
+  "earlierAttempts": [
+    "Initial full run exposed two obsolete nonnumeric Ozon SKU fixtures; fixtures corrected.",
+    "Another full run was interrupted before completion to apply optional-mark handling and batch owner checks; not counted as a pass."
+  ],
+  "localEvidencePaths": [
+    "/tmp/vncode-update-gtin-ozon-verified-tip.log",
+    "/tmp/vncode-update-node-tests.log",
+    "/tmp/vncode-file-ozon-check/each-readonly-validation-result.json"
+  ]
+}

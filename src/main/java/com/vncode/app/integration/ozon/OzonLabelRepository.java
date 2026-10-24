@@ -8,6 +8,23 @@ import java.sql.SQLException;
 import java.time.Instant;
 
 public final class OzonLabelRepository {
+    /** Short batch transactions; no network or PDF work under the writer lock. */
+    void updateBatch(int shopId,java.util.List<String> numbers,String task,String status,String error) {
+        try {com.vncode.app.config.SqliteWriteTransaction.run(connection->{
+            try(var statement=connection.prepareStatement("UPDATE ozon_label_jobs SET task_id=COALESCE(?,task_id),status=?,safe_error_code=?,updated_at=? WHERE shop_id=? AND posting_number=?")) {
+                for(String number:numbers){statement.setString(1,task);statement.setString(2,status);statement.setString(3,error);statement.setString(4,Instant.now().toString());statement.setInt(5,shopId);statement.setString(6,number);statement.addBatch();}
+                for(int count:statement.executeBatch())if(count!=1)throw new SQLException("OZON_LABEL_BATCH_CHANGED");
+            }return null;
+        });}catch(SQLException error1){throw new IllegalStateException("OZON_LABEL_STORAGE",error1);}
+    }
+    void claimBatch(int shopId,java.util.List<String> numbers) {
+        try {com.vncode.app.config.SqliteWriteTransaction.run(connection->{
+            try(var statement=connection.prepareStatement("UPDATE ozon_label_jobs SET status='RECONCILE_REQUIRED',updated_at=? WHERE shop_id=? AND posting_number=? AND (task_id IS NULL OR task_id='') AND status IN ('CREATED','FAILED')")) {
+                for(String number:numbers){statement.setString(1,Instant.now().toString());statement.setInt(2,shopId);statement.setString(3,number);statement.addBatch();}
+                for(int count:statement.executeBatch())if(count!=1)throw new SQLException("OZON_LABEL_BATCH_CHANGED");
+            }return null;
+        });}catch(SQLException error){throw new IllegalStateException("OZON_LABEL_TASK_UNKNOWN",error);}
+    }
     public LabelJob findOrCreate(int shopId, String postingNumber) {
         String now = Instant.now().toString();
         try (Connection connection = Database.getConnection();

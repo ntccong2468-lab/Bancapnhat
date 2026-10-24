@@ -99,6 +99,7 @@ public class MainApplication extends Application {
         stage.setScene(scene);
         stage.sizeToScene();
         stage.show();
+        com.vncode.app.ui.WorkspaceWindowBounds.install(stage);
         gs1Reminders.start();
         com.vncode.app.shared.RuntimeDiagnostics.startPulseMonitor();
     }
@@ -131,6 +132,7 @@ public class MainApplication extends Application {
     @Override
     public void stop() {
         stopping=true;
+        com.vncode.app.shared.UpdateHandoff.stopping();
         Launcher.stopInstanceActivation();
         if (registrationBackgroundLifetime != null) registrationBackgroundLifetime.close();
         gs1Reminders.close();

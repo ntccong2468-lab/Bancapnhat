@@ -399,6 +399,42 @@ class FxmlSmokeTest {
             try {stage.show();root.applyCss();root.layout();assertTrue(((javafx.scene.layout.Region)root).minWidth(730)<=740,"Supply header must allow the workspace to shrink");assertTrue(table.lookupAll(".scroll-bar").stream().anyMatch(n->n instanceof javafx.scene.control.ScrollBar b&&b.getOrientation()==javafx.geometry.Orientation.HORIZONTAL&&b.isVisible()&&b.getMax()>b.getMin()&&b.getHeight()>=10),"Narrow supply must keep barcode and price accessible before opening inventory");}finally {stage.close();}return null;
         });Platform.runLater(task);task.get(15,TimeUnit.SECONDS);
     }
+    @Test void everyWorkspaceRouteUsesTheScrollableWorkAreaAtSmallWindowSizes() throws Exception {
+        var task=new java.util.concurrent.FutureTask<Void>(() -> {
+            var loader=FxmlViewLoader.loader(HomeController.class,"home-view.fxml");Parent root=FxmlViewLoader.load(loader);
+            var home=(HomeController)loader.getController();stopAutomaticSync(home);
+            var field=HomeController.class.getDeclaredField("workspaceNavigator");field.setAccessible(true);
+            var navigation=(com.vncode.app.ui.workspace.WorkspaceNavigator)field.get(home);navigation.setAccessGuard(route->true);
+            var scene=new javafx.scene.Scene(root,1024,560);scene.getStylesheets().add(getClass().getResource("/com/vncode/app/styles/theme.css").toExternalForm());
+            var stage=new javafx.stage.Stage();stage.setScene(scene);
+            try {stage.show();
+                for(String route:java.util.List.of("welcome","license","designer","guides","news","finance","supplies","packing","fbo-packing","fbo-orders","ozon","kiz-mapping","znack","znack-registration","print-history","gs1","tnved","products","listing-copy","product-edit")) {
+                    navigation.show(route);root.applyCss();root.layout();
+                    var viewport=(com.vncode.app.ui.workspace.WorkspaceViewport)root.lookup(".workspace-viewport");
+                    assertNotNull(viewport,route);var bounds=viewport.localToScene(viewport.getLayoutBounds());
+                    assertTrue(bounds.getMaxY()<=scene.getHeight()+1,route+" cannot extend under the taskbar");
+                    assertTrue(viewport.getViewportBounds().getHeight()>60,route+" must leave a usable work area");
+                    var page=viewport.getContent();var min=page.minHeight(viewport.getViewportBounds().getWidth());
+                    assertTrue(page.getLayoutBounds().getHeight()+1>=min,route+" must scroll rather than clip its minimum content");
+                    viewport.setVvalue(1);root.layout();
+                }
+            } finally {stage.close();home.dispose();}return null;
+        });Platform.runLater(task);task.get(35,TimeUnit.SECONDS);
+    }
+    @Test void workAreaKeepsFooterActionsVisibleAndScrollsTallForms() throws Exception {
+        var task=new java.util.concurrent.FutureTask<Void>(() -> {
+            var footer=new Button("Apply");var table=new TableView<>();var page=new VBox(8,new Label("Orders"),table,footer);
+            VBox.setVgrow(table,javafx.scene.layout.Priority.ALWAYS);
+            var viewport=new com.vncode.app.ui.workspace.WorkspaceViewport(page);
+            var scene=new javafx.scene.Scene(viewport,500,180);viewport.applyCss();viewport.layout();
+            assertTrue(table.getHeight()>=79);assertTrue(footer.localToScene(footer.getBoundsInLocal()).getMaxY()<=scene.getHeight()+1);
+            var form=new VBox();for(int i=0;i<40;i++){var input=new TextField("Field "+i);input.setMinHeight(32);form.getChildren().add(input);}
+            var apply=new Button("Apply");form.getChildren().add(apply);var tall=new com.vncode.app.ui.workspace.WorkspaceViewport(form);
+            scene.setRoot(tall);tall.applyCss();tall.layout();tall.setVvalue(1);tall.layout();
+            assertTrue(form.getHeight()>tall.getHeight());assertTrue(apply.localToScene(apply.getBoundsInLocal()).getMaxY()<=scene.getHeight()+1,"Last action must be reachable by scrolling");
+            return null;
+        });Platform.runLater(task);task.get(10,TimeUnit.SECONDS);
+    }
     @Test void homeRootFitsAResizedWindowInsteadOfClippingTheWorkspace() throws Exception {
         var task=new java.util.concurrent.FutureTask<Void>(() -> {
             var loader=FxmlViewLoader.loader(HomeController.class,"home-view.fxml");Parent root=FxmlViewLoader.load(loader);var home=(HomeController)loader.getController();var scene=new javafx.scene.Scene(root,1040,760);scene.getStylesheets().add(getClass().getResource("/com/vncode/app/styles/theme.css").toExternalForm());var stage=new javafx.stage.Stage();stage.setScene(scene);

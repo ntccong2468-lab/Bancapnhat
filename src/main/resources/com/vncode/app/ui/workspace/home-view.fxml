@@ -7,15 +7,15 @@
 
 <BorderPane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0" minWidth="0" prefHeight="700.0" prefWidth="1300.0" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.vncode.app.ui.workspace.HomeController">
    <left>
-      <StackPane fx:id="sidebarContainer" BorderPane.alignment="CENTER" />
+      <StackPane fx:id="sidebarContainer" minHeight="0" BorderPane.alignment="CENTER" />
    </left>
    <center>
-      <BorderPane fx:id="contentPane" prefHeight="200.0" prefWidth="200.0" style="-fx-background-color: -bg-primary;" BorderPane.alignment="CENTER">
+      <BorderPane fx:id="contentPane" minHeight="0" prefHeight="200.0" prefWidth="200.0" style="-fx-background-color: -bg-primary;" BorderPane.alignment="CENTER">
          <top>
             <StackPane fx:id="headerContainer" BorderPane.alignment="CENTER" />
          </top>
          <center>
-            <StackPane fx:id="dynamicContentContainer" BorderPane.alignment="CENTER">
+            <StackPane fx:id="dynamicContentContainer" minHeight="0" BorderPane.alignment="CENTER">
                <padding>
                   <Insets bottom="12.0" left="12.0" right="12.0" top="12.0" />
                </padding>

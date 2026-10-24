@@ -21,6 +21,8 @@ public final class FriendlyErrorService {
             "CATALOG_COUNTRY_DICTIONARY_INVALID", "GTIN_VARIANT_IDENTITY_UNVERIFIED",
             "unverified_catalog_gtin", "UNVERIFIED_CATALOG_GTIN", "MARKETPLACE_REQUEST_REJECTED");
 
+    private static final java.util.Set<String> OZON_FLOW_ERRORS=java.util.Set.of("OZON_ACCEPT_KIZ_STOCK_REQUIRED","OZON_ACCEPT_KIZ_EXISTING_MARKS","OZON_ACCEPT_KIZ_REJECTED","OZON_ACCEPT_KIZ_PENDING","OZON_LABEL_BATCH_IDENTITY_UNVERIFIED","OZON_LABEL_TASK_UNKNOWN","OZON_LABEL_BATCH_TASK_CHANGED","OZON_LABEL_BATCH_PENDING","OZON_LABEL_BATCH_FAILED","OZON_LABEL_BATCH_INVALID_PDF");
+
     private static final Pattern NOT_ENOUGH_KIZ = Pattern.compile(
             "Not enough available KIZ for GTIN ([0-9]{14}): required (\\d+), available (\\d+)");
 
@@ -44,6 +46,7 @@ public final class FriendlyErrorService {
         Throwable cause=error;
         for(int depth=0;cause!=null&&depth<8;depth++,cause=cause.getCause()) {
             if("SUZ_ORDER_RECONCILIATION_INVALID".equals(cause.getMessage())){code="SUZ_ORDER_RECONCILIATION_INVALID";break;}
+            if(OZON_FLOW_ERRORS.contains(cause.getMessage()==null?"":cause.getMessage())){code=cause.getMessage();break;}
             if("PRODUCT_PROPOSAL_CHANGED".equals(cause.getMessage())){code="PRODUCT_PROPOSAL_CHANGED";break;}
             if(REGISTRATION_MODEL_ERRORS.contains(cause.getMessage()==null?"":cause.getMessage())){code=cause.getMessage();break;}
             String bufferIssue = ZnackErrorMessages.kizOrderBufferIssueCode(cause.getMessage());
@@ -71,6 +74,7 @@ public final class FriendlyErrorService {
         Throwable cause=error;
         for(int depth=0;cause!=null&&depth<8;depth++,cause=cause.getCause()) {
             if("SUZ_ORDER_RECONCILIATION_INVALID".equals(cause.getMessage()))return I18nService.getInstance().tr("znack.error.suz_order_reconciliation_invalid");
+            if(OZON_FLOW_ERRORS.contains(cause.getMessage()==null?"":cause.getMessage()))return I18nService.getInstance().tr("ozon.flow."+cause.getMessage());
             if("PRODUCT_PROPOSAL_CHANGED".equals(cause.getMessage()))return I18nService.getInstance().tr("bulk.proposal.changed");
             if(REGISTRATION_MODEL_ERRORS.contains(cause.getMessage()==null?"":cause.getMessage()))
                 return I18nService.getInstance().tr("znack.registration.reason."+cause.getMessage());

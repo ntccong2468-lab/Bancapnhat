@@ -20,6 +20,7 @@ public final class ZnackGtinReviewService {
     private final MarketplaceRefresh marketplace;
     private final ZnackAutoSyncService source;
     private final ProductSnapshotReader products;
+    private boolean refreshSelectedProof;
     private final SyncRunRepository reports=new SyncRunRepository();
     public ZnackGtinReviewService(){this(new MarketplaceRefresh(){
         public void refresh(Shop shop)throws Exception{refresh(shop,step->{});}
@@ -28,7 +29,7 @@ public final class ZnackGtinReviewService {
             if(!ready.ready())ready=sources.refresh(shop,progress);
             if(!ready.ready())throw new IllegalStateException(ready.reason());
         }
-    },new ZnackAutoSyncService(false),(shop,key)->shop.getMarketplace()==Marketplace.OZON?new OzonProductSnapshotReader().readForSynchronization(shop,key):new WbProductSnapshotReader().readForSynchronization(shop,key));}
+    },new ZnackAutoSyncService(false),(shop,key)->shop.getMarketplace()==Marketplace.OZON?new OzonProductSnapshotReader().readForSynchronization(shop,key):new WbProductSnapshotReader().readForSynchronization(shop,key));refreshSelectedProof=true;}
     ZnackGtinReviewService(MarketplaceRefresh marketplace,ZnackAutoSyncService source,ProductSnapshotReader products){this.marketplace=marketplace;this.source=source;this.products=products;}
     public String prepare(Shop shop)throws Exception {
         return prepare(shop,step->{});
@@ -51,7 +52,15 @@ public final class ZnackGtinReviewService {
             require(shop,run);
             if(rows.isEmpty()||rows.size()>GtinBatchAdapter.MAX_PLAN_ROWS||rows.stream().map(SyncRunRepository.Item::id).distinct().count()!=rows.size())throw new IllegalArgumentException("CATALOG_SELECTION_LIMIT");
             var observed=reports.selectedItems(run,rows.stream().map(SyncRunRepository.Item::id).toList());
-            new RegistrationSources().requireMembers(shop,rows);RegisteredGtinProof.requireCurrent(shop,rows.stream().map(SyncRunRepository.Item::gtin).toList());
+            new RegistrationSources().requireMembers(shop,rows);
+            if(refreshSelectedProof) {
+                var repository=new GtinSyncRepository();var cached=repository.catalog(shop.getId(),shop.getMarketplace());var codes=rows.stream().map(SyncRunRepository.Item::gtin).collect(java.util.stream.Collectors.toSet());
+                var current=new HashSet<String>();var now=java.time.Instant.now();String scope=RegisteredGtinProof.source(shop);
+                for(var card:cached)if(codes.contains(card.gtin())&&scope.equals(card.source())&&RegisteredGtinProof.currentObservation(card,now))current.add(card.gtin());
+                var missing=new HashSet<>(codes);missing.removeAll(current);
+                if(!missing.isEmpty())repository.mergeCatalog(shop.getId(),shop.getMarketplace(),com.vncode.app.integration.znack.registration.NationalCatalogGtinSource.forSelection(shop,missing,true).read(shop.getId()));
+            }
+            RegisteredGtinProof.requireCurrent(shop,rows.stream().map(SyncRunRepository.Item::gtin).toList());
             var result=new ArrayList<Selection>();
             for(var row:rows){
                 if(!row.equals(observed.get(row.id()))||!eligible(row))throw new IllegalArgumentException("GTIN_REVIEW_CHANGED");

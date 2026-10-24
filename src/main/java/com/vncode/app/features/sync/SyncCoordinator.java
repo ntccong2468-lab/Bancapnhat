@@ -68,7 +68,7 @@ public final class SyncCoordinator implements AutoCloseable {
         try(var scope=SyncDataScope.enter(dataDirectory)){tickScoped();}
     }
     private void tickScoped(){
-        if(closed)return;
+        if(closed||com.vncode.app.shared.UpdateHandoff.requested())return;
         if(!dataDirectory.equals(com.vncode.app.shared.AppPaths.appDataDir().toAbsolutePath().normalize())){close();return;}
         List<Map.Entry<Key,Entry>> ordered; int firstShop,visibleShop;
         synchronized(this){
@@ -119,7 +119,7 @@ public final class SyncCoordinator implements AutoCloseable {
         };
     }
     private void execute(Key key,Entry entry,SyncStreamStore.State before,boolean interactive){
-        try(var scope=SyncDataScope.enter(dataDirectory);var lane=com.vncode.app.shared.MarketplaceRequestBudget.lane(!interactive)){executeScoped(key,entry,before,interactive);}
+        try(var work=com.vncode.app.shared.UpdateHandoff.work();var scope=SyncDataScope.enter(dataDirectory);var lane=com.vncode.app.shared.MarketplaceRequestBudget.lane(!interactive)){executeScoped(key,entry,before,interactive);}
     }
     private void executeScoped(Key key,Entry entry,SyncStreamStore.State before,boolean interactive){
         Page result=null;SyncFailure failure=null;

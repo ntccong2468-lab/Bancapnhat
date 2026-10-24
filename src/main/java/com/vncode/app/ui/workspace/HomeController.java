@@ -139,6 +139,7 @@ public class HomeController implements Initializable {
     private final UpdateService updateService = new UpdateService();
     private final UpdateInstallerService updateInstallerService;
     private final Runnable exitAfterUpdate;
+    private volatile com.vncode.app.shared.UpdateHandoff.Lease updateHandoff;
     private final PreparedLocalData preparedLocalData;
     private final I18nService i18nService = I18nService.getInstance();
 
@@ -577,6 +578,11 @@ public class HomeController implements Initializable {
         refreshSupplyList(supply.getSupplyId());
     }
 
+    private Node displayedPage;
+    private final java.util.Map<Node, WorkspaceViewport> pageViewports = new java.util.IdentityHashMap<>();
+
+    private boolean isDisplayed(Node view) { return view != null && displayedPage == view; }
+
     private void displayDynamicContent(Node view) {
         clearFboQuantitiesIfLeaving(view);
         stopPackingDelayIfLeaving(view);
@@ -585,7 +591,8 @@ public class HomeController implements Initializable {
             shopSidebarController.selectNavigation(selected);
         }
         if(guidesPane!=null&&view!=guidesPane)guidesPane.stopMedia();
-        dynamicContentContainer.getChildren().setAll(view);
+        dynamicContentContainer.getChildren().setAll(pageViewports.computeIfAbsent(view, WorkspaceViewport::new));
+        displayedPage = view;
         view.setOpacity(1.0);
     }
 
@@ -593,7 +600,7 @@ public class HomeController implements Initializable {
         if (fboPackingController == null || fboPackingView == null || nextView == fboPackingView) {
             return;
         }
-        if (dynamicContentContainer.getChildren().contains(fboPackingView)) {
+        if (isDisplayed(fboPackingView)) {
             fboPackingController.clearQuantities();
         }
     }
@@ -602,7 +609,7 @@ public class HomeController implements Initializable {
         if (packingController == null || packingView == null || nextView == packingView) {
             return;
         }
-        if (dynamicContentContainer.getChildren().contains(packingView)) {
+        if (isDisplayed(packingView)) {
             packingController.cancelPendingRequests();
         }
     }
@@ -901,13 +908,13 @@ public class HomeController implements Initializable {
 
     private void startInstallerUpdate(UpdateInfo info,boolean downloadOnly) {
         if(disposed||updateDownloadRunning)return;
-        if(!downloadOnly&&hasUpdateBlockingWork()){AlertService.showError(i18nService.tr("update.busy"));return;}
         updateDownloadRunning=true;
         var preparing=new java.util.concurrent.atomic.AtomicBoolean();
         var installing=new java.util.concurrent.atomic.AtomicBoolean();
         UpdateDialogService dialogService = new UpdateDialogService();
         Task<java.nio.file.Path> task = new Task<>() {
             @Override protected java.nio.file.Path call() throws Exception {
+                try {
                 updateMessage(i18nService.tr("update.progress.connecting"));updateProgress(-1,1);
                 var file=updateInstallerService.downloadInstaller(info,new UpdateInstallerService.ProgressListener(){
                     @Override public void onProgress(long downloadedBytes,long totalBytes){
@@ -926,15 +933,30 @@ public class HomeController implements Initializable {
                     file=updateInstallerService.saveDownloadedInstaller(info,file);
                 }else{
                     preparing.set(true);updateProgress(-1,1);updateMessage(i18nService.tr("update.progress.phase.VERIFYING"));
+                    updateHandoff=com.vncode.app.shared.UpdateHandoff.pause();
+                    updateMessage(i18nService.tr("update.progress.phase.WAITING_WORK"));
                     final long[] lastSnapshotUpdate={0};final String[] lastSnapshotPhase={""};
                     // Keep one worker/dialog through download, rollback and launch. A completed
                     // download is never advertised as a completed installation or queued twice.
                     var gate=new java.util.concurrent.FutureTask<Boolean>(()->{
-                        if(disposed||isDone()||hasUpdateBlockingWork())return false;
+                        if(disposed||isDone())return false;
                         contentPane.setDisable(true);sidebarContainer.setDisable(true);return true;
                     });
                     Platform.runLater(gate);
                     if(!gate.get(15,java.util.concurrent.TimeUnit.SECONDS))throw new java.io.IOException(i18nService.tr("update.busy"));
+                    boolean idle=false;
+                    while(!idle) {
+                        if(!kizAttachmentCoordinator.prepareForUpdate())throw new java.io.IOException("KIZ_CHECKPOINT_UNAVAILABLE");
+                        while(!com.vncode.app.shared.UpdateHandoff.awaitIdle(250)) {
+                            if(isCancelled()||disposed||Thread.currentThread().isInterrupted())throw new java.io.InterruptedIOException("UPDATE_CANCELLED");
+                        }
+                        // Drain completed task callbacks before the final snapshot boundary.
+                        var callbacks=new java.util.concurrent.FutureTask<Void>(()->null);Platform.runLater(callbacks);
+                        callbacks.get(15,java.util.concurrent.TimeUnit.SECONDS);
+                        if(!kizAttachmentCoordinator.prepareForUpdate())throw new java.io.IOException("KIZ_CHECKPOINT_UNAVAILABLE");
+                        idle=com.vncode.app.shared.UpdateHandoff.awaitIdle(0);
+                    }
+                    if(isCancelled()||disposed)throw new java.io.InterruptedIOException("UPDATE_CANCELLED");
                     updateInstallerService.launchInstallerAfterExit(file,phase->{
                         if(phase==UpdateInstallerService.Phase.STARTING_INSTALLER)installing.set(true);
                         updateMessage(i18nService.tr("update.progress.phase."+phase));
@@ -949,6 +971,7 @@ public class HomeController implements Initializable {
                     });
                 }
                 updateProgress(1,1);return file;
+                } finally { if(isCancelled())resumeUpdateWork(); }
             }
         };
         updateDownloadTask=task;
@@ -956,6 +979,7 @@ public class HomeController implements Initializable {
         progressDialog.setOnCloseRequest(event->{if(task.isRunning()){if(installing.get())event.consume();else task.cancel(true);}});
         task.messageProperty().addListener((o,a,b)->{if(installing.get())progressDialog.getDialogPane().lookupButton(ButtonType.CANCEL).setDisable(true);});
         java.util.function.Consumer<Throwable> failed=rejection->{
+            resumeUpdateWork();
             updateDownloadRunning=false;progressDialog.close();if(disposed)return;
             contentPane.setDisable(false);sidebarContainer.setDisable(false);
             String summaryKey=preparing.get()?"update.error.launch_failed":"update.error.download_generic";
@@ -963,13 +987,17 @@ public class HomeController implements Initializable {
             AlertService.showDetailedError(i18nService.tr(summaryKey),com.vncode.app.integration.znack.ZnackErrorDetails.format(rejection));
         };
         task.setOnFailed(event->failed.accept(task.getException()));
-        task.setOnCancelled(event->{updateDownloadRunning=false;progressDialog.close();if(!disposed){contentPane.setDisable(false);sidebarContainer.setDisable(false);}});
+        task.setOnCancelled(event->{resumeUpdateWork();updateDownloadRunning=false;progressDialog.close();if(!disposed){contentPane.setDisable(false);sidebarContainer.setDisable(false);}});
         task.setOnSucceeded(event->{
             updateDownloadRunning=false;progressDialog.close();if(disposed)return;
             if(downloadOnly)AlertService.showInfo(i18nService.tr("update.saved"),info.getVersion(),task.getValue().toAbsolutePath().toString());
             else exitAfterUpdate.run();
         });
         progressDialog.show();executeUpdateTask(task,failed);
+    }
+
+    private synchronized void resumeUpdateWork() {
+        var handoff=updateHandoff;updateHandoff=null;if(handoff!=null)handoff.close();
     }
 
     private String formatBytes(long bytes) {
@@ -1117,7 +1145,7 @@ public class HomeController implements Initializable {
                         @Override
                         protected OrderExportWorkflow.ExportResult call() throws Exception {
                             List<Order> ordersWithStickers = supplyLoadWorkflow.enrichStickers(shop, exportOrders);
-                            return orderExportWorkflow.export(
+                            var result=orderExportWorkflow.export(
                                     new OrderExportWorkflow.ExportRequest(
                                             shop,
                                             supplyId,
@@ -1129,6 +1157,9 @@ public class HomeController implements Initializable {
                                             kizSources
                                     )
                             );
+                            if(result.kizAttachments()!=null&&!result.kizAttachments().isEmpty())
+                                kizAttachmentCoordinator.enqueue(shop,supplyId,supplyName,result.kizAttachments());
+                            return result;
                         }
                     };
 
@@ -1155,10 +1186,6 @@ public class HomeController implements Initializable {
                         outputLease.close();
                         markShopRunning(shop.getId(), false);
                         OrderExportWorkflow.ExportResult result = exportTask.getValue();
-                        // A confirmed job still reconciles its own shop even if its page was closed.
-                        if (result.kizAttachments() != null && !result.kizAttachments().isEmpty()) {
-                            enqueueBackgroundKizAttachment(shop, supplyId, supplyName, result);
-                        }
                         if (!isCurrentExportRequest(shop.getId(), supplyId, exportRequestToken)) return;
                         supplyDetailController.setStickerLoading(false);
                         state.setLoadedOrdersRaw(result.exportedOrders());
@@ -1294,7 +1321,9 @@ public class HomeController implements Initializable {
         Task<List<Shop>> task = new Task<>() {
             @Override
             protected List<Shop> call() throws Exception {
-                return shopWorkflow.loadShops();
+                var shops=shopWorkflow.loadShops();
+                for(var shop:shops)kizAttachmentCoordinator.resumePending(shop);
+                return shops;
             }
         };
         task.setOnSucceeded(e -> {
@@ -1435,7 +1464,7 @@ public class HomeController implements Initializable {
         if (znackRegistrationController != null && isZnackRegistrationVisible()) {
             znackRegistrationController.setShop(shop);
         }
-        if (kizMappingController != null && dynamicContentContainer.getChildren().contains(kizMappingView)) {
+        if (kizMappingController != null && isDisplayed(kizMappingView)) {
             kizMappingController.setShop(shop);
         }
         if (fboSupplyOrdersController != null && isFboSupplyOrdersVisible()) {
@@ -1783,12 +1812,22 @@ public class HomeController implements Initializable {
             Runnable render = () -> {
                 if (!disposed && shopSidebarController != null) {
                     shopSidebarController.setLicenseStatus(licenseService.snapshot().status());
+                    resumeSavedKizQueues();
                 }
             };
             if (Platform.isFxApplicationThread()) render.run();
             else Platform.runLater(render);
         });
         sidebarContainer.getChildren().setAll(root);
+    }
+
+    private final java.util.concurrent.atomic.AtomicBoolean kizResumeReading=new java.util.concurrent.atomic.AtomicBoolean();
+    private void resumeSavedKizQueues() {
+        if(disposed||state.getShops().isEmpty()||!kizResumeReading.compareAndSet(false,true))return;
+        var shops=List.copyOf(state.getShops());
+        var task=new Task<Void>(){protected Void call(){for(var shop:shops)kizAttachmentCoordinator.resumePending(shop);return null;}};
+        task.setOnSucceeded(event->kizResumeReading.set(false));task.setOnCancelled(event->kizResumeReading.set(false));task.setOnFailed(event->kizResumeReading.set(false));
+        AppTaskExecutor.execute(task,failure->kizResumeReading.set(false));
     }
 
     private void showTranslationSettings(){
@@ -2127,24 +2166,24 @@ public class HomeController implements Initializable {
     }
 
     private boolean isPrintHistoryVisible() {
-        return dynamicContentContainer.getChildren().contains(printHistoryView);
+        return isDisplayed(printHistoryView);
     }
 
     private boolean isDashboardVisible() {
-        return (welcomePane != null && dynamicContentContainer.getChildren().contains(welcomePane))
-            || (financeDashboardView != null && dynamicContentContainer.getChildren().contains(financeDashboardView));
+        return (welcomePane != null && isDisplayed(welcomePane))
+            || (financeDashboardView != null && isDisplayed(financeDashboardView));
     }
 
     private boolean isOzonDashboardVisible() {
-        return ozonDashboardView != null && dynamicContentContainer.getChildren().contains(ozonDashboardView);
+        return ozonDashboardView != null && isDisplayed(ozonDashboardView);
     }
 
     private boolean isZnackAutomationVisible() {
-        return znackAutomationView != null && dynamicContentContainer.getChildren().contains(znackAutomationView);
+        return znackAutomationView != null && isDisplayed(znackAutomationView);
     }
 
     private boolean isZnackRegistrationVisible() {
-        return znackRegistrationView != null && dynamicContentContainer.getChildren().contains(znackRegistrationView);
+        return znackRegistrationView != null && isDisplayed(znackRegistrationView);
     }
 
     private boolean isOzonSelected() {
@@ -2153,19 +2192,19 @@ public class HomeController implements Initializable {
     }
 
     private boolean isPackingVisible() {
-        return dynamicContentContainer.getChildren().contains(packingView);
+        return isDisplayed(packingView);
     }
 
     private boolean isFboPackingVisible() {
-        return dynamicContentContainer.getChildren().contains(fboPackingView);
+        return isDisplayed(fboPackingView);
     }
 
     private boolean isFboSupplyOrdersVisible() {
-        return fboSupplyOrdersView != null && dynamicContentContainer.getChildren().contains(fboSupplyOrdersView);
+        return fboSupplyOrdersView != null && isDisplayed(fboSupplyOrdersView);
     }
 
     private boolean isKizMappingVisible() {
-        return dynamicContentContainer.getChildren().contains(kizMappingView);
+        return isDisplayed(kizMappingView);
     }
 
     private boolean isCurrentSupplyRequest(int shopId, String supplyId, long requestToken) {
@@ -2329,19 +2368,6 @@ public class HomeController implements Initializable {
         }
     }
 
-    private void enqueueBackgroundKizAttachment(Shop shop,
-                                                String supplyId,
-                                                String supplyName,
-                                                OrderExportWorkflow.ExportResult result) {
-        if (result == null || result.kizAttachments() == null || result.kizAttachments().isEmpty()) {
-            if (supplyDetailController != null) {
-                supplyDetailController.setStickerLoading(false);
-            }
-            return;
-        }
-        kizAttachmentCoordinator.enqueue(shop, supplyId, supplyName, result.kizAttachments());
-    }
-
     private void refreshCurrentKizAttachmentProgress() {
         if (supplyDetailController == null) {
             return;
@@ -2428,6 +2454,7 @@ public class HomeController implements Initializable {
             return;
         }
         disposed = true;
+        resumeUpdateWork();
         updatePolling.stop();
         syncUiDebounce.stop();if(syncRuntime!=null)syncRuntime.close();
         if(updateCheckTask!=null)updateCheckTask.cancel(true);

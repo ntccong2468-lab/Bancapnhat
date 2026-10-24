@@ -85,13 +85,14 @@ public final class OzonRegistrationBatchService {
     public static boolean hasPendingJobs(){return !ACTIVE.isEmpty();}
     private void run(Shop shop,String namespace,java.nio.file.Path directory) {
         boolean deferred=false;OzonRegistrationBatchRepository.Batch batch=null;
-        try(var dataScope=com.vncode.app.features.sync.SyncDataScope.enter(directory);var lane=com.vncode.app.shared.MarketplaceRequestBudget.lane(true);var cooldown=com.vncode.app.shared.RateLimitDeferral.enter()) {
+        try(var work=com.vncode.app.shared.UpdateHandoff.work();var dataScope=com.vncode.app.features.sync.SyncDataScope.enter(directory);var lane=com.vncode.app.shared.MarketplaceRequestBudget.lane(true);var cooldown=com.vncode.app.shared.RateLimitDeferral.enter()) {
             com.vncode.app.features.sync.SyncDataScope.requireCurrent();
             batch=batches.latest(shop);if(batch==null||Set.of("COMPLETED","FAILED","PAUSED","CANCELLED").contains(batch.state()))return;
             if(!batch.owner().equals(ListingIdentity.fingerprint(shop))||!batch.scope().equals(new Gson().toJson(scope(shop)))){failPending(shop,batch.id(),"SOURCE_CONFIGURATION_CHANGED");return;}
             var frozenBatch=batch;var lookup=LOOKUPS.compute(namespace,(key,old)->old!=null&&old.run().equals(frozenBatch.id())?old:new LookupRun(frozenBatch.id(),workflow.lookupOperation())).context();
             var checkedReceipts=new HashSet<Integer>();
             for(;;) {
+                com.vncode.app.shared.UpdateHandoff.checkpoint();
                 var current=batches.latest(shop);if(current==null||!current.id().equals(batch.id())||Set.of("PAUSED","CANCELLED").contains(current.state()))return;
                 var item=batches.next(batch);
                 if(item==null){

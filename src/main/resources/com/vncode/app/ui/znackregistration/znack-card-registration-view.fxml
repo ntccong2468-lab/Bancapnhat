@@ -4,10 +4,10 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<VBox spacing="8" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1"
+<VBox spacing="8" minHeight="0" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="com.vncode.app.ui.znackregistration.ZnackCardRegistrationController" styleClass="app-page,registration-reference">
-    <StackPane fx:id="ozonRegistrationHost" VBox.vgrow="ALWAYS" visible="false" managed="false"/>
-    <VBox fx:id="wbRegistrationContent" spacing="10" VBox.vgrow="ALWAYS">
+    <StackPane fx:id="ozonRegistrationHost" minHeight="0" VBox.vgrow="ALWAYS" visible="false" managed="false"/>
+    <VBox fx:id="wbRegistrationContent" minHeight="0" spacing="10" VBox.vgrow="ALWAYS">
     <padding><Insets top="38" right="18" bottom="20" left="30"/></padding>
     <HBox fx:id="registrationHeader" alignment="CENTER_LEFT" spacing="10">
         <Label fx:id="titleLabel" text="Đăng ký thẻ Znack" styleClass="h2" minWidth="210" prefWidth="240" maxWidth="260"/>
@@ -36,8 +36,8 @@
         <ComboBox fx:id="statusFilter" prefWidth="225"/>
         <Button fx:id="clearFiltersButton" text="Xóa bộ lọc" onAction="#onClearFilters"/>
     </FlowPane>
-    <StackPane fx:id="registrationTableHost" VBox.vgrow="ALWAYS">
-        <TableView fx:id="productTable">
+    <StackPane fx:id="registrationTableHost" minHeight="0" VBox.vgrow="ALWAYS">
+        <TableView fx:id="productTable" minHeight="0">
             <columns>
                 <TableColumn fx:id="selectionColumn" text="✓" minWidth="48" prefWidth="64" maxWidth="64" sortable="false"/>
                 <TableColumn fx:id="imageColumn" text="Ảnh" prefWidth="90" maxWidth="90"/>

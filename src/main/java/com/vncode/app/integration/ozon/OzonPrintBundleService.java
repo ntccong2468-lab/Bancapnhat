@@ -42,12 +42,20 @@ public final class OzonPrintBundleService {
                 new OzonPostingRepository(),
                 new OzonExemplarJobRepository(),
                 defaultPreparation(),
-                new OzonLabelService()::downloadOfficialPdf);
+                defaultLabels());
     }
 
     public OzonPrintBundleService(KizSourceSelection sources){
-        this(new OzonPostingRepository(),new OzonExemplarJobRepository(),defaultPreparation(new OzonExemplarService(),Objects.requireNonNull(sources)),new OzonLabelService()::downloadOfficialPdf);
+        this(new OzonPostingRepository(),new OzonExemplarJobRepository(),defaultPreparation(new OzonExemplarService(),Objects.requireNonNull(sources)),defaultLabels());
     }
+    private static OfficialLabelDownloader defaultLabels() {
+        var service=new OzonLabelService();
+        return new OfficialLabelDownloader() {
+            public File download(Shop shop,String number,File target)throws IOException{return service.downloadOfficialPdf(shop,number,target);}
+            public OfficialLabelDownloader forBatch(Shop shop,List<String> numbers){return new OzonBatchLabelDownloader(service,shop,numbers);}
+        };
+    }
+
     private static Preparation defaultPreparation() {
         return defaultPreparation(new OzonExemplarService());
     }
@@ -148,6 +156,10 @@ public final class OzonPrintBundleService {
             boolean consumeAfterPublish,
             PrintContext context)
             throws IOException {
+        return exportInternal(shop,postingNumber,labelTarget,pickingTarget,consumeAfterPublish,context,null);
+    }
+    private ExportResult exportInternal(Shop shop,String postingNumber,File labelTarget,File pickingTarget,
+            boolean consumeAfterPublish,PrintContext context,PdfDocument destination)throws IOException {
         String safePosting = OzonApiClient.requireExternalId(postingNumber, "posting number");
         OzonPostingDto posting = context == null ? postings.find(shop.getId(), safePosting)
                 : context.postings.get(safePosting);
@@ -195,18 +207,18 @@ public final class OzonPrintBundleService {
         File pickingStaging = null;
         try {
             officialStaging = AtomicFilePublisher.stagingFile(labelTarget, ".official.pdf");
-            labelStaging = AtomicFilePublisher.stagingFile(labelTarget, ".bundle.pdf");
+            if(destination==null)labelStaging = AtomicFilePublisher.stagingFile(labelTarget, ".bundle.pdf");
             if (pickingTarget != null) {
                 pickingStaging = AtomicFilePublisher.stagingFile(pickingTarget, ".picking.pdf");
             }
             if (newPrint) LicenseRuntime.require(Permission.PRINT_NEW);
-            labels.download(shop, safePosting, officialStaging);
+            (context==null?labels:context.labels).download(shop, safePosting, officialStaging);
             Map<String, OzonProductDto> products = context == null ? catalogFor(shop, List.of(posting))
                     : context.products;
-            int officialPages = compose(officialStaging, labelStaging, shop, posting, bindings, products);
+            int officialPages = destination==null?compose(officialStaging,labelStaging,shop,posting,bindings,products):composeInto(officialStaging,destination,shop,posting,bindings,products);
             if (pickingStaging != null) pickingLists.export(pickingStaging, shop, posting);
             File finishedLabels=labelStaging,finishedPicking=pickingStaging;OzonExemplarJob finishedJob=job;
-            ownedPublish(shop,operation.validateShopOwner(),newPrint,()->{
+            if(destination==null)ownedPublish(shop,operation.validateShopOwner(),newPrint,()->{
                 AtomicFilePublisher.publish(finishedLabels,labelTarget);
                 if(consumeAfterPublish&&!bindings.isEmpty())consumePrinted(finishedJob);
                 if(finishedPicking!=null)AtomicFilePublisher.publish(finishedPicking,pickingTarget);
@@ -258,6 +270,7 @@ public final class OzonPrintBundleService {
         if (containsNewPrint) LicenseRuntime.require(Permission.PRINT_NEW);
         PrintContext context = new PrintContext(selected, selectedJobs, policies.findExemptSkus(frozenShop.getId()),
                 catalogFor(frozenShop, selected.values()), preparation.forBatch(frozenShop));
+        context.labels=labels.forBatch(frozenShop,safePostings);
 
         // Only the current posting's PDF part exists on disk; completed parts stream into staging.
         Path temporaryDirectory = Files.createTempDirectory("vncode-ozon-print-");
@@ -277,17 +290,7 @@ public final class OzonPrintBundleService {
                                 .filter(number->!accepted(context.jobs.get(number))).toList();
                         context.preparation.prefetch(frozenShop,window);
                     }
-                    ExportResult result = exportLabelOnly(frozenShop, safePostings.get(index), labelPart, context);
-                    try (PdfDocument source = new PdfDocument(new PdfReader(labelPart))) {
-                        if (source.getNumberOfPages() < 1) throw new IOException("An Ozon PDF part has no pages.");
-                        int firstPage = destination.getNumberOfPages() + 1;
-                        source.copyPagesTo(1, source.getNumberOfPages(), destination);
-                        destination.flushCopiedObjects(source);
-                        for (int page = firstPage; page <= destination.getNumberOfPages(); page++) {
-                            destination.getPage(page).flush();
-                        }
-                    }
-                    AtomicFilePublisher.deleteQuietly(labelPart);
+                    ExportResult result = exportInternal(frozenShop,safePostings.get(index),labelPart,null,false,context,destination);
                     totalPages += result.totalPages();
                     kizPages += result.kizPages();
                     if (completed != null) completed.accept(index + 1);
@@ -306,6 +309,7 @@ public final class OzonPrintBundleService {
             labelStaging=null;pickingStaging=null;
             return new BatchExportResult(labelTarget, pickingTarget, safePostings.size(), totalPages, kizPages);
         } finally {
+            context.labels.close();
             AtomicFilePublisher.deleteQuietly(labelStaging);
             AtomicFilePublisher.deleteQuietly(pickingStaging);
             AtomicFilePublisher.deleteQuietly(labelPart);
@@ -345,6 +349,7 @@ public final class OzonPrintBundleService {
         final Set<String> exemptions;
         final Map<String, OzonProductDto> products;
         final Preparation preparation;
+        OfficialLabelDownloader labels;
         PrintContext(Map<String, OzonPostingDto> postings, Map<String, OzonExemplarJob> jobs,
                 Set<String> exemptions, Map<String, OzonProductDto> products, Preparation preparation) {
             this.postings = new LinkedHashMap<>(postings);
@@ -362,11 +367,15 @@ public final class OzonPrintBundleService {
             OzonPostingDto posting,
             List<OzonExemplarJobRepository.KizBinding> bindings,
             Map<String, OzonProductDto> products) throws IOException {
-        if (!Files.isRegularFile(official.toPath())) {
-            throw new IOException("Ozon did not provide an official shipping label PDF.");
+        try(var destination=new PdfDocument(new PdfWriter(target))) {
+            return composeInto(official,destination,shop,posting,bindings,products);
         }
-        try (PdfDocument source = new PdfDocument(new PdfReader(official));
-                PdfDocument destination = new PdfDocument(new PdfWriter(target))) {
+    }
+    private int composeInto(File official,PdfDocument destination,Shop shop,OzonPostingDto posting,
+            List<OzonExemplarJobRepository.KizBinding> bindings,Map<String,OzonProductDto> products)throws IOException {
+        if(!Files.isRegularFile(official.toPath()))throw new IOException("OZON_LABEL_FILE_MISSING");
+        try(PdfDocument source=new PdfDocument(new PdfReader(official))) {
+            int firstPage=destination.getNumberOfPages()+1;
             if (source.getNumberOfPages() < 1) {
                 throw new IOException("The official Ozon shipping label PDF has no pages.");
             }
@@ -390,6 +399,8 @@ public final class OzonPrintBundleService {
             if (appended != bindings.size()) {
                 throw new IOException("The Ozon KIZ label page count is incomplete.");
             }
+            destination.flushCopiedObjects(source);
+            for(int page=firstPage;page<=destination.getNumberOfPages();page++)destination.getPage(page).flush();
             return retainedPages.size();
         } catch (IOException exception) {
             throw exception;
@@ -454,8 +465,10 @@ public final class OzonPrintBundleService {
     }
 
     @FunctionalInterface
-    interface OfficialLabelDownloader {
+    interface OfficialLabelDownloader extends AutoCloseable {
         File download(Shop shop, String postingNumber, File target) throws IOException;
+        default OfficialLabelDownloader forBatch(Shop shop,List<String> numbers)throws IOException{return this;}
+        @Override default void close(){}
     }
 
     public record ExportResult(

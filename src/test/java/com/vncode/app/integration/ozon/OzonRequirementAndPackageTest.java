@@ -14,7 +14,7 @@ class OzonRequirementAndPackageTest {
     void buildsOneCompleteV4ShipRequestForManyItemsAndQuantities() {
         OzonPostingDto posting = posting(
                 new OzonRequirements(List.of(), List.of(), List.of()),
-                List.of(item(0, "101", "sku-a", 2), item(1, "102", "sku-b", 3)));
+                List.of(item(0, "101", "501", 2), item(1, "102", "502", 3)));
 
         var request = OzonPackageBuilder.singleCompletePackage(posting);
 
@@ -22,9 +22,9 @@ class OzonRequirementAndPackageTest {
         var products = request.getAsJsonArray("packages")
                 .get(0).getAsJsonObject().getAsJsonArray("products");
         assertEquals(2, products.size());
-        assertEquals(101, products.get(0).getAsJsonObject().get("product_id").getAsLong());
+        assertEquals(501, products.get(0).getAsJsonObject().get("product_id").getAsLong());
         assertEquals(2, products.get(0).getAsJsonObject().get("quantity").getAsInt());
-        assertEquals(102, products.get(1).getAsJsonObject().get("product_id").getAsLong());
+        assertEquals(502, products.get(1).getAsJsonObject().get("product_id").getAsLong());
         assertEquals(3, products.get(1).getAsJsonObject().get("quantity").getAsInt());
         assertFalse(request.getAsJsonObject("with").get("additional_data").getAsBoolean());
     }
@@ -33,7 +33,7 @@ class OzonRequirementAndPackageTest {
     void mergesDuplicateProductRowsIntoTheSinglePackage() {
         OzonPostingDto posting = posting(
                 new OzonRequirements(List.of(), List.of(), List.of()),
-                List.of(item(0, "101", "sku-a", 2), item(1, "101", "sku-a", 3)));
+                List.of(item(0, "101", "501", 2), item(1, "101", "501", 3)));
 
         var products = OzonPackageBuilder.singleCompletePackage(posting)
                 .getAsJsonArray("packages").get(0).getAsJsonObject().getAsJsonArray("products");

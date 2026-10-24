@@ -167,6 +167,56 @@ class OzonLabelServiceTest {
         assertEquals("3001", new OzonLabelRepository().find(1, "posting-1").taskId());
     }
 
+    @Test void oneThousandLabelsUseOneTaskAndKeepIdentityWhenPdfPagesAreReversed()throws Exception {
+        var numbers=java.util.stream.IntStream.range(0,1000).mapToObj(i->"90000000-"+String.format("%04d",i)+"-1").toList();
+        try(var c=Database.getConnection();var p=c.prepareStatement("INSERT INTO ozon_postings(shop_id,posting_number,status,synced_at) VALUES(1,?,'awaiting_deliver','2026-08-18T00:00:00Z')")) {
+            for(String number:numbers){p.setString(1,number);p.addBatch();}p.executeBatch();
+        }
+        var bytes=new java.io.ByteArrayOutputStream();
+        try(var pdf=new com.itextpdf.kernel.pdf.PdfDocument(new com.itextpdf.kernel.pdf.PdfWriter(bytes))) {
+            var font=com.itextpdf.kernel.font.PdfFontFactory.createFont();
+            for(int i=numbers.size()-1;i>=0;i--)new com.itextpdf.kernel.pdf.canvas.PdfCanvas(pdf.addNewPage()).beginText().setFontAndSize(font,12).moveText(20,20).showText(numbers.get(i)).endText();
+        }
+        server.enqueue(json("{\"tasks\":[{\"task_id\":7001,\"task_type\":\"big_label\"}]}"));
+        server.enqueue(json("{\"status\":{\"code\":\"completed\",\"postings_count\":1000,\"printed_postings_count\":1000},\"file_url\":\""+server.url("/cdn/batch.pdf")+"\"}"));
+        server.enqueue(new MockResponse().setBody(new okio.Buffer().write(bytes.toByteArray())));
+        var shop=new Shop(1,"Ozon",Marketplace.OZON,"client-1","secret");
+        long start=System.nanoTime();
+        try(var batch=new OzonBatchLabelDownloader(new OzonLabelService(new OzonLabelRepository(),this::client),shop,numbers)) {
+            for(int i:new int[]{0,499,999}) {
+                var target=temporaryDirectory.resolve("label-"+i+".pdf").toFile();batch.download(shop,numbers.get(i),target);
+                try(var actual=new com.itextpdf.kernel.pdf.PdfDocument(new com.itextpdf.kernel.pdf.PdfReader(target))) {
+                    assertEquals(1,actual.getNumberOfPages());assertEquals(numbers.get(i),com.itextpdf.kernel.pdf.canvas.parser.PdfTextExtractor.getTextFromPage(actual.getPage(1)).strip());
+                }
+            }
+        }
+        assertEquals(3,server.getRequestCount(),"1000 postings require one create, one get and one download");
+        var create=server.takeRequest(1,TimeUnit.SECONDS);assertEquals("/v3/posting/fbs/package-label/create",create.getPath());
+        assertEquals(1000,com.google.gson.JsonParser.parseString(create.getBody().readUtf8()).getAsJsonObject().getAsJsonArray("posting_numbers").size());
+        assertEquals("/v2/posting/fbs/package-label/get",server.takeRequest(1,TimeUnit.SECONDS).getPath());
+        assertEquals("v3:7001",new OzonLabelRepository().find(1,numbers.getLast()).taskId());
+        assertEquals("/cdn/batch.pdf",server.takeRequest(1,TimeUnit.SECONDS).getPath());
+        server.enqueue(json("{\"status\":{\"code\":\"completed\"},\"file_url\":\""+server.url("/cdn/batch.pdf")+"\"}"));
+        server.enqueue(new MockResponse().setBody(new okio.Buffer().write(bytes.toByteArray())));
+        var single=temporaryDirectory.resolve("reprint-one.pdf").toFile();
+        new OzonLabelService(new OzonLabelRepository(),this::client).downloadOfficialPdf(shop,numbers.get(499),single);
+        try(var pdf=new com.itextpdf.kernel.pdf.PdfDocument(new com.itextpdf.kernel.pdf.PdfReader(single))) {
+            assertEquals(1,pdf.getNumberOfPages(),"A single reprint from a shared task must not print all 1000 labels");
+            assertEquals(numbers.get(499),com.itextpdf.kernel.pdf.canvas.parser.PdfTextExtractor.getTextFromPage(pdf.getPage(1)).strip());
+        }
+        assertEquals(5,server.getRequestCount(),"A reprint uses the saved task without another create");
+        java.nio.file.Files.writeString(temporaryDirectory.resolve("batch-timing.txt"),"1000-label mock task and identity index: "+java.util.concurrent.TimeUnit.NANOSECONDS.toMillis(System.nanoTime()-start)+" ms");
+    }
+    @Test void ambiguousBulkTaskIsNotCreatedAgainAfterRestart()throws Exception {
+        var shop=new Shop(1,"Ozon",Marketplace.OZON,"client-1","secret");
+        server.enqueue(json("{}"));
+        var first=new OzonLabelService(new OzonLabelRepository(),this::client);
+        assertThrows(IOException.class,()->first.downloadOfficialBatchPdf(shop,java.util.List.of("posting-1"),temporaryDirectory.resolve("first.pdf").toFile()));
+        var restarted=new OzonLabelService(new OzonLabelRepository(),this::client);
+        assertThrows(IOException.class,()->restarted.downloadOfficialBatchPdf(shop,java.util.List.of("posting-1"),temporaryDirectory.resolve("second.pdf").toFile()));
+        assertEquals(1,server.getRequestCount());assertEquals("RECONCILE_REQUIRED",new OzonLabelRepository().find(1,"posting-1").status());
+    }
+
     private OzonApiClient client(int shopId, OzonCredentials credentials) {
         return new OzonApiClient(
                 shopId,

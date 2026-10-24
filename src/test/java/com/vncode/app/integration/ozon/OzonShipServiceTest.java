@@ -92,18 +92,11 @@ class OzonShipServiceTest {
     }
 
     @Test
-    void markedPostingShipsWithoutUploadingOrCheckingKizOnOzon() throws Exception {
+    void markedPostingCannotShipWithoutRequiredKizMapping() throws Exception {
         server.enqueue(json(markedPosting("awaiting_packaging", true)));
-        server.enqueue(json("{}"));
-        server.enqueue(json(markedPosting("awaiting_deliver", false)));
-
-        OzonShipResult result = service().ship(shop, "POST-1", true);
-
-        assertEquals("awaiting_deliver", result.status());
-        assertEquals("/v3/posting/fbs/get", server.takeRequest(1, TimeUnit.SECONDS).getPath());
-        assertEquals("/v4/posting/fbs/ship", server.takeRequest(1, TimeUnit.SECONDS).getPath());
-        assertEquals("/v3/posting/fbs/get", server.takeRequest(1, TimeUnit.SECONDS).getPath());
-        assertEquals(3, server.getRequestCount());
+        assertThrows(OzonRequirementGuard.MissingMappingException.class,()->service().ship(shop,"POST-1",true));
+        assertEquals(1,server.getRequestCount());
+        assertEquals(0,count("SELECT COUNT(*) FROM ozon_action_log WHERE action_type='ship'"));
     }
 
     @Test

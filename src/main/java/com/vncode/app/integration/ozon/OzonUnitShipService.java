@@ -26,10 +26,15 @@ final class OzonUnitShipService {
         ListingIdentity.require(shop);number=OzonApiClient.requireExternalId(number,"posting number");
         var receipt=receipts.find(shop,number);
         var api=clients.apply(shop.getId(),new OzonCredentials(shop.getClientId(),shop.getApiKey()));
-        if(receipt!=null&&!receipt.state().equals("REJECTED"))return reconcile(shop,api,receipt,true);
+        if(receipt!=null&&!receipt.state().equals("REJECTED"))return splitOnly(receipt)?finishMarkedSplit(shop,api,receipt):reconcile(shop,api,receipt,true);
         LicenseRuntime.require(Permission.PACKING);
         var raw=api.getPosting(number,true,true);
         var source=OzonJson.requirePostingDetail(raw,number);
+        if(OzonAcceptanceKizService.requiredBeforeAccept(shop,source)) {
+            if(OzonPackageBuilder.unitCount(source)>1)return startMarkedSplit(shop,api,source,raw);
+            new OzonAcceptanceKizService(jobs).ensure(shop,source,api);
+            source=OzonJson.requirePostingDetail(api.getPosting(number,true,true),number);
+        }
         if(!source.canShip()||!"awaiting_packaging".equals(source.status()))throw new IllegalStateException("OZON_SPLIT_NOT_SHIPPABLE");
         if(source.orderId().isBlank()||source.warehouseId().isBlank())throw new IllegalStateException("OZON_SPLIT_MISSING_IDENTITY");
         int units=OzonPackageBuilder.unitCount(source);
@@ -51,6 +56,59 @@ final class OzonUnitShipService {
         }catch(com.vncode.app.features.license.LicenseGate.LicenseDeniedException denied){receipts.update(shop,number,"REJECTED",null);throw denied;
         }catch(IOException malformed){receipts.update(shop,number,"AMBIGUOUS",null);}
         return reconcile(shop,api,receipts.find(shop,number),false);
+    }
+
+    private static boolean splitOnly(OzonUnitShipRepository.Receipt receipt) {
+        return JsonParser.parseString(receipt.request()).getAsJsonObject().has("postings");
+    }
+    private OzonShipResult startMarkedSplit(Shop shop,OzonApiClient api,OzonPostingDto source,JsonObject raw)throws IOException {
+        if(!"awaiting_packaging".equals(source.status()))throw new IllegalStateException("OZON_SPLIT_NOT_SHIPPABLE");
+        if(source.orderId().isBlank()||source.warehouseId().isBlank())throw new IllegalStateException("OZON_SPLIT_MISSING_IDENTITY");
+        if(containsMarks(OzonJson.object(raw,"result")))throw new IllegalStateException("OZON_SPLIT_HAS_BOUND_KIZ");
+        var packages=OzonPackageBuilder.perUnitPackages(source);var request=new JsonObject();
+        request.addProperty("posting_number",source.postingNumber());request.add("postings",packages.get("packages"));
+        int units=OzonPackageBuilder.unitCount(source);String fingerprint=hash(request.toString());
+        if(receipts.begin(shop,source,request.toString(),fingerprint,units)) {
+            try {
+                ListingIdentity.require(shop);LicenseRuntime.require(Permission.PACKING);
+                var response=api.splitWithoutAssembly(request);var children=new LinkedHashSet<String>();
+                var parent=response.get("parent_posting");
+                if(parent!=null&&parent.isJsonObject()&&!OzonJson.array(parent.getAsJsonObject(),"products").isEmpty())children.add(OzonJson.text(parent.getAsJsonObject(),"posting_number"));
+                for(var child:OzonJson.array(response,"postings")) {
+                    if(!child.isJsonObject())throw pending("OZON_SPLIT_READBACK_REQUIRED",null);
+                    children.add(OzonJson.text(child.getAsJsonObject(),"posting_number"));
+                }
+                if(children.size()!=units||children.stream().anyMatch(String::isBlank))throw pending("OZON_SPLIT_READBACK_REQUIRED",null);
+                receipts.update(shop,source.postingNumber(),"ACCEPTED",List.copyOf(children));
+            } catch(OzonApiException failure) {
+                receipts.update(shop,source.postingNumber(),failure.ambiguousMutation()?"AMBIGUOUS":"REJECTED",null);throw failure;
+            } catch(com.vncode.app.features.license.LicenseGate.LicenseDeniedException denied) {
+                receipts.update(shop,source.postingNumber(),"REJECTED",null);throw denied;
+            } catch(IOException failure) {receipts.update(shop,source.postingNumber(),"AMBIGUOUS",null);throw failure;}
+        }
+        return finishMarkedSplit(shop,api,receipts.find(shop,source.postingNumber()));
+    }
+    private OzonShipResult finishMarkedSplit(Shop shop,OzonApiClient api,OzonUnitShipRepository.Receipt receipt)throws IOException {
+        var source=receipt.source();int expected=OzonPackageBuilder.unitCount(source);var numbers=new LinkedHashSet<>(receipt.children());
+        if(numbers.size()!=expected) {
+            var raw=api.getPosting(source.postingNumber(),true,true);var parent=OzonJson.requirePostingDetail(raw,source.postingNumber());
+            if(!parent.orderId().equals(source.orderId()))throw pending("OZON_SPLIT_FOREIGN_CHILD",null);
+            for(var value:OzonJson.array(OzonJson.object(OzonJson.object(raw,"result"),"related_postings"),"related_posting_numbers"))numbers.add(childNumber(value));
+            if(OzonPackageBuilder.unitCount(parent)==1)numbers.add(parent.postingNumber());
+            if(numbers.size()!=expected)throw pending("OZON_SPLIT_READBACK_REQUIRED",null);
+            receipts.update(shop,source.postingNumber(),"ACCEPTED",List.copyOf(numbers));
+        }
+        var children=new LinkedHashMap<String,OzonPostingDto>();var actual=new TreeMap<String,Integer>();
+        for(var number:numbers) {
+            var child=OzonJson.requirePostingDetail(api.getPosting(number,true,true),number);
+            if(!source.orderId().equals(child.orderId())||!source.warehouseId().equals(child.warehouseId())||OzonPackageBuilder.unitCount(child)!=1)throw pending("OZON_SPLIT_FOREIGN_CHILD",null);
+            for(var item:child.items())actual.merge(sku(item),item.quantity(),Math::addExact);children.put(number,child);
+        }
+        if(!quantities(source).equals(actual))throw pending("OZON_SPLIT_QUANTITY_MISMATCH",null);
+        // Conserve every unit before assigning marks or assembling any child. Restart resumes native IDs.
+        var shipper=new OzonShipService(postings,new OzonProductGtinMappingRepository(),jobs,clients);
+        for(var child:children.values())if("awaiting_packaging".equals(child.status()))shipper.ship(shop,child.postingNumber(),true);
+        return reconcile(shop,api,receipts.find(shop,source.postingNumber()),false);
     }
 
     private OzonShipResult reconcile(Shop shop,OzonApiClient api,OzonUnitShipRepository.Receipt receipt,boolean resumed)throws IOException {

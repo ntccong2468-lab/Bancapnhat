@@ -26,7 +26,10 @@ public final class ZnackAutoSyncService {
     private final ProductSnapshotReader reader;
     private boolean bulkProduction;
     public ZnackAutoSyncService(){this(false);}
-    ZnackAutoSyncService(boolean force){this((shop,issues)->{var result=new ZnackCatalogSyncService().refresh(shop,force,p->{});result.issues().forEach(issues);return result.cards();},
+    ZnackAutoSyncService(boolean force){this((shop,issues)->{
+        if(!force){var cached=new GtinSyncRepository().catalog(shop.getId(),shop.getMarketplace());String scope=RegisteredGtinProof.source(shop);
+            if(!cached.isEmpty()&&cached.stream().allMatch(card->scope.equals(card.source())))return cached;}
+        var result=new ZnackCatalogSyncService().refresh(shop,force,p->{});result.issues().forEach(issues);return result.cards();},
         (shop,key)->shop.getMarketplace()==Marketplace.OZON?new OzonProductSnapshotReader().readForSynchronization(shop,key):new WbProductSnapshotReader().readForSynchronization(shop,key),new CatalogSyncService());bulkProduction=true;}
     ZnackAutoSyncService(Source source,ProductSnapshotReader reader,CatalogSyncService catalog){this.source=Objects.requireNonNull(source);this.reader=Objects.requireNonNull(reader);this.catalog=Objects.requireNonNull(catalog);}
     /** Prepare a fresh, read-only report for an explicit marketplace GTIN review. */
@@ -119,6 +122,7 @@ public final class ZnackAutoSyncService {
             var buffered=new ArrayList<SyncRunRepository.Item>();
             if(selected.isEmpty())for(var issue:issues){buffered.add(reportItem(id,"catalog:"+issue.gtin(),"catalog","","","","",issue.gtin(),"NEEDS_ACTION",issue.code(),"{}"));if(buffered.size()==1000){runs.addBatch(shop,id,buffered);buffered.clear();}}
             var index=new GtinCatalogIndex(source);
+            var verified=gtins.verifiedMappings(shop);
             String cursor=null;int productCount=0;var seen=new HashSet<ProductKey>();
             do{
                 if(Thread.currentThread().isInterrupted())throw new java.io.InterruptedIOException("ZNACK_SYNC_CANCELLED");
@@ -132,7 +136,10 @@ public final class ZnackAutoSyncService {
                     String sku=sku(shop,row.key());String gtin=candidates.size()==1?candidates.getFirst().gtin():"";
                     var evidence=reportEvidence(row,candidates.size()==1?candidates.getFirst():null,selected.isEmpty()?"STORE":"SELECTED",error);if(candidates.isEmpty()&&!issues.isEmpty())evidence.addProperty("checkResult","UNKNOWN");
                     if(shop.getMarketplace()==Marketplace.OZON&&candidates.size()==1&&index.attributes(row.vendorArticle(),row.color(),GtinVariantIdentity.primarySize(row),row.russianSize()).isEmpty()&&index.ozon(row).contains(candidates.getFirst()))evidence.addProperty("matchRule","OZON_SELLER_SKU_MODEL_SIZE");
-                    buffered.add(reportItem(id,row.key().cardId(),row.key().variantId(),sku,row.vendorArticle(),row.color(),row.size(),gtin,error.isBlank()?"AWAITING_CONFIRMATION":"NEEDS_ACTION",error.isBlank()?"GTIN_CONFIRMATION_REQUIRED":error,evidence.toString()));
+                    var previous=verified.get(new GtinSyncModels.ProductKey(shop.getId(),shop.getMarketplace(),row.key().cardId(),row.key().variantId()));
+                    boolean unchanged=error.isBlank()&&previous!=null&&RegisteredGtinProof.sameCode(previous.gtin(),gtin)&&previous.stillApplied(row.barcodes());
+                    if(unchanged){evidence.addProperty("marketplaceVerified",true);evidence.addProperty("marketplaceVerifiedAt",previous.verifiedAt().toString());evidence.addProperty("syncResult","ALREADY_UPDATED");evidence.addProperty("nextAction","");}
+                    buffered.add(reportItem(id,row.key().cardId(),row.key().variantId(),sku,row.vendorArticle(),row.color(),row.size(),gtin,unchanged?"SUCCEEDED":error.isBlank()?"AWAITING_CONFIRMATION":"NEEDS_ACTION",unchanged?"":error.isBlank()?"GTIN_CONFIRMATION_REQUIRED":error,evidence.toString()));
                 }
                 if(!buffered.isEmpty()){runs.addBatch(shop,id,buffered);buffered.clear();}
                 cursor=page.nextCursor();

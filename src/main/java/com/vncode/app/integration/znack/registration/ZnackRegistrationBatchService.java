@@ -111,14 +111,16 @@ public final class ZnackRegistrationBatchService {
     }
     private void dispatch(Shop shop,String run){
         String key=key(shop);PENDING.add(key);if(!RUNNING.add(key))return;
+        var continuation=com.vncode.app.shared.UpdateHandoff.continuation();
         try{executor.execute(()->{
-            try(var data=SyncDataScope.enter(directory);var lane=com.vncode.app.shared.MarketplaceRequestBudget.lane(true);var cooldown=com.vncode.app.shared.RateLimitDeferral.enter()){
+            try(var work=com.vncode.app.shared.UpdateHandoff.work(continuation);var data=SyncDataScope.enter(directory);var lane=com.vncode.app.shared.MarketplaceRequestBudget.lane(true);var cooldown=com.vncode.app.shared.RateLimitDeferral.enter()){
                 run(shop,run);
             }catch(Exception error){
+                if(com.vncode.app.shared.UpdateHandoff.isStopping())return;
                 try{if(directory.equals(AppPaths.appDataDir().toAbsolutePath().normalize()))pause(shop,run,error);}catch(RuntimeException ignored){PENDING.remove(key);}
             }finally{
                 RUNNING.remove(key);
-                if(directory.equals(AppPaths.appDataDir().toAbsolutePath().normalize())){
+                if(!com.vncode.app.shared.UpdateHandoff.isStopping()&&directory.equals(AppPaths.appDataDir().toAbsolutePath().normalize())){
                     try{var batch=store.get(shop,run);if(active(batch.state()))scheduleRetry(shop,run,batch.retryAt());else PENDING.remove(key);}catch(RuntimeException changed){PENDING.remove(key);}
                 }else PENDING.remove(key);
             }
@@ -130,6 +132,7 @@ public final class ZnackRegistrationBatchService {
         try(var lookup=workflow.existingCardsOperation()){
         boolean readFailureObserved=false;Duration readbackDelay=Duration.ofSeconds(15);String readbackDetail="CATALOG_REQUEST_ACCEPTED_CARD_PENDING";
         for(var item:store.items(shop,run)){
+            com.vncode.app.shared.UpdateHandoff.checkpoint();
             if(!active(store.get(shop,run).state()))return;
             if(Set.of("SUBMITTED","NEEDS_ACTION","CANCELLED").contains(item.state()))continue;
             assertScope(shop,batch);LicenseRuntime.require(Permission.GTIN);

@@ -106,6 +106,23 @@ class ZnackAutoSyncServiceTest {
         for(int n=0;n<5;n++)if(service.step(shop,"").complete())break;
         assertEquals(1,writes);assertEquals("SUCCEEDED",runs.items(active,0,10).getFirst().state());assertTrue(barcodes.contains(observation.gtin()));
     }
+    @Test void wbSecondClickKeepsTheVerifiedResultAndSkipsTheCompletedWrite()throws Exception{reusesVerified(Marketplace.WILDBERRIES);}
+    @Test void ozonSecondClickKeepsTheVerifiedResultAndSkipsTheCompletedWrite()throws Exception{reusesVerified(Marketplace.OZON);}
+    private void reusesVerified(Marketplace market)throws Exception {
+        pipeline(market);
+        try(var c=Database.getConnection();var p=c.prepareStatement("UPDATE "+(market==Marketplace.OZON?"ozon_products":"wb_product_cards")+" SET synced_at=? WHERE shop_id=?")) {
+            p.setString(1,Instant.now().minusSeconds(60).toString());p.setInt(2,shop.getId());p.executeUpdate();
+        }
+        assertEquals(1,new GtinSyncRepository().verifiedMappings(shop).size());
+        String next=service.review(shop);var reports=new SyncRunRepository();var row=reports.items(next,0,10).getFirst();
+        assertEquals("SUCCEEDED",row.state());assertTrue(row.evidence().contains("marketplaceVerifiedAt"));assertFalse(ZnackGtinReviewService.eligible(row));assertEquals(1,writes);
+        // A new, contradictory marketplace read must re-open only this missing binding.
+        try(var c=Database.getConnection();var p=c.prepareStatement("UPDATE "+(market==Marketplace.OZON?"ozon_products":"wb_product_cards")+" SET synced_at=? WHERE shop_id=?")) {
+            p.setString(1,Instant.now().plusSeconds(1).toString());p.setInt(2,shop.getId());p.executeUpdate();
+        }
+        String changed=service.review(shop);assertEquals("AWAITING_CONFIRMATION",reports.items(changed,0,10).getFirst().state());
+        assertEquals(1,new GtinSyncRepository().verifiedMappings(shop).size(),"A contradictory read does not erase historical verification");assertEquals(1,writes);
+    }
     private void pipeline(Marketplace market)throws Exception{
         init(market);assertFalse(service.step(shop,"").complete());assertEquals(0,writes);assertEquals(1,sourceReads);
         assertTrue(service.step(shop,"").complete());assertEquals(0,writes,"A source refresh must never approve a write");

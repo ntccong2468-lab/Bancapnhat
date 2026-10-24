@@ -96,6 +96,25 @@ class UpdateHandoffUiTest {
         assertEquals(data.resolve("downloaded-installer.exe"), handedOff.get());
         assertFalse(fx(() -> (boolean) field("updateDownloadRunning")));
     }
+    @Test void busyApplicationStillDownloadsAndAutomaticallyInstallsAfterTheSavedBoundary() throws Exception {
+        var entered=new CountDownLatch(1);var finish=new CountDownLatch(1);
+        try(var executor=Executors.newSingleThreadExecutor()) {
+            var writer=executor.submit(()->{try(var work=UpdateHandoff.work()){entered.countDown();finish.await();}return null;});
+            assertTrue(entered.await(2,TimeUnit.SECONDS));
+            try {
+                start();
+                long until=System.nanoTime()+TimeUnit.SECONDS.toNanos(5);
+                while(!reached100.get()&&System.nanoTime()<until)Thread.sleep(10);
+                assertTrue(reached100.get(),"Download must not be rejected because another operation is running");
+                until=System.nanoTime()+TimeUnit.SECONDS.toNanos(5);
+                while(!UpdateHandoff.requested()&&System.nanoTime()<until)Thread.sleep(10);
+                assertTrue(UpdateHandoff.requested());assertFalse(exited.isDone());assertNull(handedOff.get());
+                assertTrue(fx(()->home.contentPane.isDisabled()));
+            } finally {finish.countDown();}
+            writer.get(2,TimeUnit.SECONDS);exited.get(5,TimeUnit.SECONDS);
+            assertEquals(data.resolve("downloaded-installer.exe"),handedOff.get());assertFalse(wrongThread.get());
+        }
+    }
     @Test void realBackupByteProgressKeepsFxResponsiveAndResetsBeforeIntegrityVerification()throws Exception {
         emitSnapshotProgress=true;preparationEntered=new CountDownLatch(1);allowPreparation=new CountDownLatch(1);
         verificationEntered=new CountDownLatch(1);allowVerification=new CountDownLatch(1);start();

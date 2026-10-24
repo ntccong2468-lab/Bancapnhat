@@ -46,6 +46,11 @@ public final class OzonLabelService {
             job = labels.findOrCreate(shop.getId(), postingNumber);
         }
         String taskId = job.taskId();
+        if(taskId!=null&&taskId.startsWith("v3:")) {
+            try(var batch=new OzonBatchLabelDownloader(this,shop,List.of(postingNumber))) {
+                return batch.download(shop,postingNumber,target);
+            }
+        }
         if (taskId == null || taskId.isBlank()) {
             if ("RECONCILE_REQUIRED".equals(job.status())) {
                 throw new IOException(
@@ -73,9 +78,9 @@ public final class OzonLabelService {
         }
 
         JsonObject get = new JsonObject();
-        get.addProperty("task_id", taskId);
+        if(taskId.startsWith("v3:"))get.addProperty("task_id",new java.math.BigInteger(taskId.substring(3)));else get.addProperty("task_id",taskId);
         for (int attempt = 0; attempt < MAX_POLLS; attempt++) {
-            LabelPoll poll = labelPoll(api.getLabelJob(get));
+            LabelPoll poll = labelPoll(taskId.startsWith("v3:")?api.getBatchLabelJob(get):api.getLabelJob(get));
             if (poll.failed()) {
                 labels.update(shop.getId(), postingNumber, taskId, "FAILED", null, "label_failed");
                 throw new IOException("Ozon could not generate the official shipping label.");
@@ -106,13 +111,61 @@ public final class OzonLabelService {
         throw new IOException("Ozon label is still being generated. Retry will continue the same job.");
     }
 
-    private static boolean isPdf(byte[] value) {
+    /** One durable task for up to 1,000 postings. Existing uncertain tasks are never recreated. */
+    File downloadOfficialBatchPdf(Shop shop,List<String> numbers,File target)throws IOException {
+        MarketplaceGuard.requireOzon(shop);com.vncode.app.integration.listing.ListingIdentity.require(shop);
+        if(numbers.isEmpty()||numbers.size()>1000||numbers.stream().distinct().count()!=numbers.size())throw new IllegalArgumentException("OZON_LABEL_BATCH_LIMIT");
+        var api=apiClients.apply(shop.getId(),new OzonCredentials(shop.getClientId(),shop.getApiKey()));
+        String task=null;
+        for(String number:numbers) {
+            var job=labels.find(shop.getId(),number);
+            if(job==null){LicenseRuntime.require(Permission.PRINT_NEW);job=labels.findOrCreate(shop.getId(),number);}
+            if(job.taskId()!=null&&!job.taskId().isBlank()) {
+                if(!job.taskId().startsWith("v3:")||task!=null&&!task.equals(job.taskId()))throw new IOException("OZON_LABEL_BATCH_TASK_CHANGED");
+                task=job.taskId();
+            } else if("RECONCILE_REQUIRED".equals(job.status()))throw new IOException("OZON_LABEL_TASK_UNKNOWN");
+        }
+        if(task==null) {
+            LicenseRuntime.require(Permission.PRINT_NEW);
+            // Save the uncertainty boundary BEFORE task creation, also across an abrupt app exit.
+            labels.claimBatch(shop.getId(),numbers);
+            var body=new JsonObject();var ids=new JsonArray();numbers.forEach(ids::add);body.add("posting_numbers",ids);
+            try {
+                String remote=bigLabelTaskId(api.createBatchLabelJob(body));
+                if(!remote.matches("[1-9][0-9]{0,18}"))throw new IOException("OZON_LABEL_TASK_UNKNOWN");
+                task="v3:"+remote;
+                labels.updateBatch(shop.getId(),numbers,task,"POLLING",null);
+            } catch(OzonApiException failed) {
+                if(!failed.ambiguousMutation())labels.updateBatch(shop.getId(),numbers,null,"FAILED",failed.safeErrorCode());
+                throw failed;
+            }
+        } else {
+            // A partially saved membership cannot be silently attached to another task.
+            for(String number:numbers)if(!task.equals(labels.find(shop.getId(),number).taskId()))throw new IOException("OZON_LABEL_BATCH_TASK_CHANGED");
+        }
+        var request=new JsonObject();request.addProperty("task_id",new java.math.BigInteger(task.substring(3)));
+        for(int attempt=0;attempt<60;attempt++) {
+            var poll=labelPoll(api.getBatchLabelJob(request));
+            if(poll.failed())throw new IOException("OZON_LABEL_BATCH_FAILED");
+            if(!poll.fileUrl().isBlank()) {
+                byte[] pdf=api.downloadOfficialDocument(poll.fileUrl());
+                if(!isPdf(pdf))throw new IOException("OZON_LABEL_BATCH_INVALID_PDF");
+                Files.write(target.toPath(),pdf);
+                labels.updateBatch(shop.getId(),numbers,task,"READY",null);
+                return target;
+            }
+            if(attempt+1<60)sleep(Duration.ofSeconds(1));
+        }
+        throw new IOException("OZON_LABEL_BATCH_PENDING");
+    }
+
+    static boolean isPdf(byte[] value) {
         return value != null && value.length >= 5
                 && value[0] == '%' && value[1] == 'P' && value[2] == 'D' && value[3] == 'F' && value[4] == '-';
     }
 
-    private static String bigLabelTaskId(JsonObject response) {
-        JsonObject result = OzonJson.object(response, "result");
+    static String bigLabelTaskId(JsonObject response) {
+        JsonObject result = response.has("result")?OzonJson.object(response,"result"):response;
         // Current v2 responses return one selected label task directly. Older responses returned
         // a task list containing both regular (big) and small label variants.
         String direct = safeTaskId(OzonJson.text(result, "task_id"));
@@ -132,10 +185,12 @@ public final class OzonLabelService {
         return soleTask;
     }
 
-    private static LabelPoll labelPoll(JsonObject response) {
-        JsonObject result = OzonJson.object(response, "result");
-        String status = OzonJson.text(result, "status").toLowerCase(java.util.Locale.ROOT);
-        String error = OzonJson.text(result, "error");
+    static LabelPoll labelPoll(JsonObject response) {
+        JsonObject result = response.has("result")?OzonJson.object(response,"result"):response;
+        var state=result.get("status");
+        String status = (state!=null&&state.isJsonObject()?OzonJson.text(state.getAsJsonObject(),"code"):OzonJson.text(result,"status")).toLowerCase(java.util.Locale.ROOT);
+        var failure=result.get("error");
+        String error = failure!=null&&failure.isJsonObject()?OzonJson.text(failure.getAsJsonObject(),"code")+OzonJson.text(failure.getAsJsonObject(),"message"):OzonJson.text(result,"error");
         String fileUrl = OzonJson.text(result, "file_url");
         boolean failed = !error.isBlank() || List.of("failed", "error", "rejected").contains(status);
         return new LabelPoll(fileUrl, failed);
@@ -147,7 +202,7 @@ public final class OzonLabelService {
         return normalized.matches("[A-Za-z0-9][A-Za-z0-9._:-]{0,255}") ? normalized : "";
     }
 
-    private record LabelPoll(String fileUrl, boolean failed) {
+    record LabelPoll(String fileUrl, boolean failed) {
     }
 
     private static void sleep(Duration duration) throws IOException {

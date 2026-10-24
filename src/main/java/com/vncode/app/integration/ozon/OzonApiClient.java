@@ -304,12 +304,23 @@ public final class OzonApiClient {
         return mutateJson("v6/fbs/posting/product/exemplar/set", request, "exemplars");
     }
 
+    public JsonObject splitWithoutAssembly(JsonObject request) throws IOException {
+        return mutateJson("v1/posting/fbs/split", request, "ship");
+    }
+
     public JsonObject exemplarStatus(JsonObject request) throws IOException {
         return postJson("v5/fbs/posting/product/exemplar/status", request, "exemplars");
     }
 
     public JsonObject ship(JsonObject request) throws IOException {
         return mutateJson("v4/posting/fbs/ship", request, "ship");
+    }
+
+    public JsonObject createBatchLabelJob(JsonObject request) throws IOException {
+        return mutateJson("v3/posting/fbs/package-label/create", request, "labels");
+    }
+    public JsonObject getBatchLabelJob(JsonObject request) throws IOException {
+        return postJson("v2/posting/fbs/package-label/get", request, "labels");
     }
 
     public JsonObject createLabelJob(JsonObject request) throws IOException {

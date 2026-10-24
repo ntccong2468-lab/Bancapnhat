@@ -107,6 +107,37 @@ public final class GtinSyncRepository {
     }
     /** A completed remote readback, never a proposed matching rule, authorizes KIZ resolution. */
     public void recordVerifiedMapping(ProductKey key,String gtin){write(c->{requireShop(c,key.shopId(),key.marketplace());saveVerified(c,key,gtin);return null;});}
+    /** Historical readback is durable. It can skip a completed write, never authorize a new one. */
+    public record VerifiedMapping(String gtin,Instant verifiedAt,Instant marketplaceReadAt) {
+        public boolean stillApplied(Collection<String> barcodes) {
+            return barcodes.stream().anyMatch(code->RegisteredGtinProof.sameCode(code,gtin))
+                    || marketplaceReadAt==null || !marketplaceReadAt.isAfter(verifiedAt);
+        }
+    }
+    public Map<ProductKey,VerifiedMapping> verifiedMappings(com.vncode.app.models.Shop shop) {
+        com.vncode.app.integration.listing.ListingIdentity.require(shop);
+        String owner=com.vncode.app.integration.listing.ListingIdentity.fingerprint(shop);
+        String source=RegisteredGtinProof.source(shop);
+        return transaction(c->{
+            requireShop(c,shop.getId(),shop.getMarketplace());
+            String nativeJoin=shop.getMarketplace()==Marketplace.OZON
+                    ? "LEFT JOIN ozon_products p ON p.shop_id=m.shop_id AND p.product_id=m.product_id AND COALESCE(p.offer_id,'')=m.variant_id"
+                    : "LEFT JOIN wb_product_cards p ON p.shop_id=m.shop_id AND p.nm_id=CAST(m.product_id AS INTEGER) AND CAST(p.nm_id AS TEXT)=m.product_id";
+            var result=new HashMap<ProductKey,VerifiedMapping>();
+            try(var p=c.prepareStatement("SELECT m.product_id,m.variant_id,m.gtin,m.verified_at,p.synced_at FROM gtin_sync_verified_mappings m "+nativeJoin+" WHERE m.shop_id=? AND m.marketplace=? AND m.owner=? AND m.source=?")){
+                p.setInt(1,shop.getId());p.setString(2,shop.getMarketplace().name());p.setString(3,owner);p.setString(4,source);
+                try(var rows=p.executeQuery()){while(rows.next()){
+                    try {
+                        var verified=Instant.parse(rows.getString(4));String read=rows.getString(5);
+                        if(verified.isAfter(Instant.now().plusSeconds(300))||!RegisteredGtinValidator.isValid(rows.getString(3)))continue;
+                        result.put(new ProductKey(shop.getId(),shop.getMarketplace(),rows.getString(1),rows.getString(2)),
+                                new VerifiedMapping(rows.getString(3),verified,read==null||read.isBlank()?null:Instant.parse(read)));
+                    } catch(java.time.format.DateTimeParseException invalid) { /* Unusable evidence never skips a write. */ }
+                }}
+            }
+            return Map.copyOf(result);
+        });
+    }
     private static void saveVerified(Connection c,ProductKey key,String gtin)throws SQLException {
         String owner=com.vncode.app.integration.listing.ListingIdentity.fingerprint(c,key.shopId(),key.marketplace()),source;
         try(var p=c.prepareStatement("SELECT data_json FROM gtin_sync_catalog WHERE shop_id=? AND marketplace=? AND gtin=?")){

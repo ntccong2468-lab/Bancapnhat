@@ -59,12 +59,36 @@ public final class KizAttachmentCoordinator {
     @Deprecated public void clearErrors(){var shops=failedAttachments.keySet().stream().map(OrderKey::shopId).distinct().toList();if(shops.size()==1)clearErrors(shops.getFirst());}
     public void addListener(Consumer<KizAttachmentProgress> listener){if(listener!=null)listeners.addIfAbsent(listener);}
     public void removeListener(Consumer<KizAttachmentProgress> listener){listeners.remove(listener);}
+    /** Installer worker only. Save every accepted queue before allowing workers to yield. */
+    public boolean prepareForUpdate() {
+        if(!(journal instanceof KizAttachmentCheckpointRepository))return true;
+        boolean safe=true;
+        for(var job:List.copyOf(activeJobs.values())) {
+            try {job.durable=new KizAttachmentResumeStore().save(job.shop,job.key.supplyId(),job.supplyName,job.assignments);}
+            catch(RuntimeException unavailable){job.durable=false;/* This legacy/unavailable queue must drain safely. */}
+            if(!job.durable&&!job.started)safe=false;
+        }
+        return safe;
+    }
+    /** Resume only saved stock bindings under the original account; never allocate replacement codes. */
+    public void resumePending(Shop shop) {
+        if(shop.getMarketplace()!=com.vncode.app.integration.marketplace.Marketplace.WILDBERRIES)return;
+        try {
+            for(var saved:new KizAttachmentResumeStore().pending(shop)) {
+                if(hasActiveJobForSupply(shop.getId(),saved.supply()))continue;
+                enqueue(shop,saved.supply(),saved.name(),saved.assignments(),true);
+            }
+        }catch(RuntimeException blocked){LOGGER.debug("Saved KIZ queue cannot resume yet. shopId={}, type={}",shop.getId(),blocked.getClass().getSimpleName());}
+    }
     public boolean hasActiveJobs(){return !activeJobs.isEmpty();}
     public boolean hasActiveJobForShop(int shopId){return activeJobs.keySet().stream().anyMatch(key->key.shopId()==shopId);}
     public boolean hasActiveJobForSupply(int shopId,String supplyId){return findActiveJobForSupply(shopId,supplyId).isPresent();}
     public Optional<KizAttachmentProgress> findActiveJobForSupply(int shopId,String supplyId){if(supplyId==null||supplyId.isBlank())return Optional.empty();Job job=activeJobs.get(new JobKey(shopId,supplyId));return job==null?Optional.empty():Optional.of(job.progress);}
 
     public void enqueue(Shop shop,String supplyId,String supplyName,List<OrderExportWorkflow.KizAttachmentAssignment> assignments){
+        enqueue(shop,supplyId,supplyName,assignments,false);
+    }
+    private void enqueue(Shop shop,String supplyId,String supplyName,List<OrderExportWorkflow.KizAttachmentAssignment> assignments,boolean durable){
         if(shop==null||assignments==null||assignments.isEmpty())return;
         MarketplaceGuard.requireWildberries(shop);LicenseRuntime.require(Permission.KIZ);
         if(shop.getId()<=0||assignments.size()>100000)throw new IllegalArgumentException("KIZ_JOB_INVALID");
@@ -80,7 +104,7 @@ public final class KizAttachmentCoordinator {
             String occurrence=a.sourceKiz()!=null&&imported.contains(a.sourceKiz().getId())?":"+a.sourceKiz().getId():"";
             if(a.orderId()==null||a.orderId()<=0||a.kizCode()==null||a.kizCode().isBlank()||!ids.add(a.orderId())||!codes.add(hash(a.kizCode())+occurrence)||a.sourceKiz()!=null&&!Objects.equals(KizService.scannerSafeCode(a.kizCode()),KizService.scannerSafeCode(a.sourceKiz().getCode())))throw new IllegalArgumentException("KIZ_ASSIGNMENT_DUPLICATE_OR_INVALID");
         }
-        Job job=new Job(shop,new JobKey(shop.getId(),supplyId==null?"":supplyId),supplyName==null?"":supplyName,copy);
+        Job job=new Job(shop,new JobKey(shop.getId(),supplyId==null?"":supplyId),supplyName==null?"":supplyName,copy);job.durable=durable;
         synchronized(lock){
             if(activeJobs.size()>=128)throw new IllegalStateException("KIZ_QUEUE_FULL");
             if(activeJobs.putIfAbsent(job.key,job)!=null)throw new IllegalStateException("KIZ_JOB_ALREADY_ACTIVE");
@@ -88,6 +112,7 @@ public final class KizAttachmentCoordinator {
             for(long id:ids)orderOwners.put(new OrderKey(shop.getId(),id),job);
             ready.computeIfAbsent(shop.getId(),ignored->new ArrayDeque<>()).addLast(job);
         }
+        if(com.vncode.app.shared.UpdateHandoff.requested())prepareForUpdate();
         publish(job,true,true);dispatch();
     }
     /** Cancellation stops unsent orders; an already submitted request is checkpointed to its result. */
@@ -97,7 +122,8 @@ public final class KizAttachmentCoordinator {
     private void dispatch(){
         List<Job> starts=new ArrayList<>();
         synchronized(lock){while(workers<MAX_WORKERS){Job job=take();if(job==null)break;workers++;starts.add(job);}}
-        for(Job job:starts){try{executor.execute(()->run(job));}catch(RuntimeException rejected){job.failures.add("KIZ_QUEUE_UNAVAILABLE");finish(job);synchronized(lock){runningShops.remove(job.key.shopId());workers--;}dispatch();}}
+        var continuation=com.vncode.app.shared.UpdateHandoff.continuation();
+        for(Job job:starts){try{executor.execute(()->{try(var work=com.vncode.app.shared.UpdateHandoff.work(continuation)){job.started=true;run(job);}});}catch(RuntimeException rejected){job.failures.add("KIZ_QUEUE_UNAVAILABLE");finish(job);synchronized(lock){runningShops.remove(job.key.shopId());workers--;}dispatch();}}
     }
     private Job take(){
         var iterator=ready.entrySet().iterator();
@@ -107,6 +133,7 @@ public final class KizAttachmentCoordinator {
     private void run(Job initial){
         Job job=initial;
         while(job!=null){
+            if(job.durable)com.vncode.app.shared.UpdateHandoff.checkpoint();
             try(var lane=com.vncode.app.shared.MarketplaceRequestBudget.lane(true)){step(job);}catch(LicenseDeniedException denied){fail(job,"LICENSE_REQUIRED",true);}
             catch(IOException|RuntimeException failure){String code=failure.getMessage();if(code==null||!Set.of("SHOP_CREDENTIALS_CHANGED","SHOP_CREDENTIALS_UNAVAILABLE","KIZ_REQUEST_CANCELLED","KIZ_CHECKPOINT_UNAVAILABLE").contains(code))code="KIZ_RECONCILIATION_REQUIRED";fail(job,code,true);LOGGER.warn("KIZ job stopped. shopId={}, errorType={}",job.key.shopId(),failure.getClass().getSimpleName());}
             boolean done=job.cancelled||job.stopped||job.index>=job.assignments.size();
@@ -172,6 +199,7 @@ public final class KizAttachmentCoordinator {
         catch(RuntimeException unavailable){LOGGER.warn("Cannot checkpoint KIZ replacement outcome. shopId={}",job.key.shopId());}
     }
     private void finish(Job job){
+        if(job.durable)try{new KizAttachmentResumeStore().remove(job.shop,job.key.supplyId());}catch(RuntimeException unavailable){LOGGER.debug("KIZ queue cleanup will resume at next startup. shopId={}",job.key.shopId());}
         synchronized(lock){activeJobs.remove(job.key,job);for(var a:job.assignments)orderOwners.remove(new OrderKey(job.key.shopId(),a.orderId()),job);}
         publish(job,false,true);
     }
@@ -257,10 +285,10 @@ public final class KizAttachmentCoordinator {
     }
     public enum Reconciliation{CONFIRMED,EMPTY,OTHER_CODE,UNAVAILABLE}
     private static final class Job{
-        final JobKey key;final String shopName,supplyName,token;final List<OrderExportWorkflow.KizAttachmentAssignment> assignments;
+        final Shop shop;volatile boolean durable,started;final JobKey key;final String shopName,supplyName,token;final List<OrderExportWorkflow.KizAttachmentAssignment> assignments;
         final List<String> failures=new ArrayList<>(),successful=new ArrayList<>();
         volatile KizAttachmentProgress progress;volatile boolean cancelled;boolean stopped;int index,completed,skipped,lastPublished;long lastPublishedAt;Long currentOrder;
-        Job(Shop shop,JobKey key,String supplyName,List<OrderExportWorkflow.KizAttachmentAssignment> assignments){this.key=key;this.shopName=shop.getName();this.supplyName=supplyName;this.token=shop.getApiKey();this.assignments=assignments;this.progress=new KizAttachmentProgress(key.shopId(),shopName,key.supplyId(),supplyName,0,assignments.size(),true,"Отправка KIZ в WB 0/"+assignments.size(),List.of(),List.of());}
+        Job(Shop shop,JobKey key,String supplyName,List<OrderExportWorkflow.KizAttachmentAssignment> assignments){this.shop=new Shop(shop.getId(),shop.getName(),shop.getMarketplace(),shop.getClientId(),shop.getApiKey());this.key=key;this.shopName=shop.getName();this.supplyName=supplyName;this.token=shop.getApiKey();this.assignments=assignments;this.progress=new KizAttachmentProgress(key.shopId(),shopName,key.supplyId(),supplyName,0,assignments.size(),true,"Отправка KIZ в WB 0/"+assignments.size(),List.of(),List.of());}
     }
     public record KizAttachmentProgress(int shopId,String shopName,String supplyId,String supplyName,int completed,int total,boolean active,String message,List<String> failures,List<String> successfulKizCodes){
         public KizAttachmentProgress{failures=List.copyOf(failures);successfulKizCodes=List.copyOf(successfulKizCodes);}

@@ -219,12 +219,13 @@ public final class LicenseService implements AutoCloseable {
         private final long expected;
         private final Callable<Snapshot> task;
         private final CompletableFuture<Snapshot> future=new CompletableFuture<>();
+        private final com.vncode.app.shared.UpdateHandoff.Ticket continuation=com.vncode.app.shared.UpdateHandoff.continuation();
         private Request(long expected,Callable<Snapshot> task){this.expected=expected;this.task=task;}
         public void run() {
             if(closed||generation.get()!=expected){future.complete(snapshot);return;}
             operationGeneration.set(expected);setBusy(true);
             Lease previousLease=lease;long previousDeadline=onlineDeadline;
-            try {task.call();}
+            try (var work=com.vncode.app.shared.UpdateHandoff.work(continuation)){task.call();}
             catch(Exception failure){if(generation.get()==expected&&!closed)handleFailure(failure,previousLease,previousDeadline);}
             finally {operationGeneration.remove();if(generation.get()==expected&&!closed)setBusy(false);future.complete(snapshot);}
         }

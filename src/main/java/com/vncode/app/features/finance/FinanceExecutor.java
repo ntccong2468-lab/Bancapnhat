@@ -32,9 +32,10 @@ public final class FinanceExecutor {
     }
 
     public static void executeSync(Runnable task) {
+        var continuation=com.vncode.app.shared.UpdateHandoff.continuation();
         try {
             SYNC_WORKER.execute(() -> {
-                try(var lane=com.vncode.app.shared.MarketplaceRequestBudget.lane(true)){task.run();}
+                try(var work=com.vncode.app.shared.UpdateHandoff.work(continuation);var lane=com.vncode.app.shared.MarketplaceRequestBudget.lane(true)){task.run();}
             });
         } catch (RejectedExecutionException ignored) {
             // Application is shutting down.
@@ -42,8 +43,9 @@ public final class FinanceExecutor {
     }
 
     public static void executeQuery(Task<?> task) {
+        var continuation=com.vncode.app.shared.UpdateHandoff.continuation();
         try {
-            QUERY_WORKER.execute(task);
+            QUERY_WORKER.execute(()->{try(var work=com.vncode.app.shared.UpdateHandoff.work(continuation)){task.run();}});
         } catch (RejectedExecutionException ignored) {
             // Application is shutting down.
         }

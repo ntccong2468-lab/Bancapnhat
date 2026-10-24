@@ -94,18 +94,7 @@ public final class OzonPackageBuilder {
         // edge even though VN code deliberately stores all external identifiers as TEXT.
         Map<Long, Integer> quantities = new LinkedHashMap<>();
         for (OzonPostingItemDto item : posting.items()) {
-            if (item.productId().isBlank()) {
-                throw new IllegalStateException("Ozon product id is required before shipping.");
-            }
-            long productId;
-            try {
-                productId = Long.parseLong(item.productId());
-            } catch (NumberFormatException exception) {
-                throw new IllegalStateException("Ozon product id must be a positive int64 before shipping.", exception);
-            }
-            if (productId <= 0) {
-                throw new IllegalStateException("Ozon product id must be a positive int64 before shipping.");
-            }
+            long productId = shippingSku(item);
             quantities.merge(productId, item.quantity(), Math::addExact);
         }
         JsonObject request = new JsonObject();

@@ -29,6 +29,14 @@ class ZnackGtinBackgroundServiceTest {
   public Job execute(Shop s,String id)throws Exception{executions++;if(unknown)throw new java.io.IOException("uncertain send");return new Job(current.id(),current.shopId(),current.marketplace(),current.owner(),current.fields(),current.createdAt(),true,false,current.rows().stream().map(r->r.next(State.SUCCEEDED,"","")).toList());}
   public void link(Shop s,String run,Job j){assertTrue(j.confirmed());assertEquals(Set.of(Field.GTIN),j.fields());links++;}
  }
+ @Test void keepsEarlierVerifiedCountsAndWritesOnlyTheRemainingRows()throws Exception {
+  var operations=new Operations(3);var old=operations.items.getFirst();
+  operations.items.set(0,new SyncRunRepository.Item(old.id(),old.runId(),old.productId(),old.variantId(),old.sku(),old.article(),old.color(),old.size(),old.gtin(),"SUCCEEDED","READBACK","","","{\"marketplaceVerified\":true}"));
+  var pulses=new ArrayList<ZnackGtinBackgroundService.Progress>();
+  var result=new ZnackGtinBackgroundService(operations).run(shop,Set.of(),pulses::add);
+  assertEquals(3,result.progress().succeeded());assertEquals(3,result.progress().total());assertEquals(2,operations.executions);
+  assertEquals(1,pulses.getFirst().succeeded());assertEquals(0,result.inventory().blockedBeforeUpdate());
+ }
  @Test void unmatchedSelectionReturnsAnHonestZeroUpdateReportInsteadOfLosingTheRun()throws Exception {
   var marked=new java.util.concurrent.atomic.AtomicInteger();
   var operations=new Operations(3){public void noEligible(Shop s,String run){marked.incrementAndGet();}};

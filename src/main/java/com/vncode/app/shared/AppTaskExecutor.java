@@ -26,15 +26,17 @@ public final class AppTaskExecutor {
     static boolean executeCatalog(Task<?> task,java.time.Duration deadline,Consumer<Throwable> rejected){
         if(deadline==null||deadline.isNegative()||deadline.isZero()||deadline.toMillis()>600000)throw new IllegalArgumentException("Catalog deadline is invalid");
         Objects.requireNonNull(task);ACTIVE_TASK_COUNT.incrementAndGet();
+        var continuation=UpdateHandoff.continuation();
         // Set CANCELLED on FX before an interrupted worker can enqueue its FAILED event.
         var timeout=CATALOG_TIMEOUT.schedule(()->javafx.application.Platform.runLater(()->task.cancel(true)),Math.max(1,deadline.toMillis()),TimeUnit.MILLISECONDS);
-        try{CATALOG_EXECUTOR.execute(()->{try(var lane=MarketplaceRequestBudget.lane(true)){task.run();}finally{timeout.cancel(false);ACTIVE_TASK_COUNT.decrementAndGet();}});return true;}
+        try{CATALOG_EXECUTOR.execute(()->{try(var work=UpdateHandoff.work(continuation);var lane=MarketplaceRequestBudget.lane(true)){task.run();}catch(CancellationException stopped){task.cancel(false);}finally{timeout.cancel(false);ACTIVE_TASK_COUNT.decrementAndGet();}});return true;}
         catch(RejectedExecutionException full){timeout.cancel(false);ACTIVE_TASK_COUNT.decrementAndGet();task.cancel(false);rejected.accept(full);return false;}
     }
     /** Local SQLite views must not wait behind network/signing tasks. Reuse the reserved read lane. */
     public static void executeLocal(int shopId,Task<?> task,Consumer<Throwable> rejected){
         Objects.requireNonNull(task);ACTIVE_TASK_COUNT.incrementAndGet();
-        ShopReadCoordinator.shared().submitLocal(new ShopReadCoordinator.Key(shopId,"fx-local-view",Integer.toString(System.identityHashCode(task))),()->{task.run();return null;})
+        var continuation=UpdateHandoff.continuation();
+        ShopReadCoordinator.shared().submitLocal(new ShopReadCoordinator.Key(shopId,"fx-local-view",Integer.toString(System.identityHashCode(task))),()->{try(var work=UpdateHandoff.work(continuation)){task.run();return null;}})
             .whenComplete((value,error)->{ACTIVE_TASK_COUNT.decrementAndGet();if(error!=null)javafx.application.Platform.runLater(()->{task.cancel(false);rejected.accept(error);});});
     }
     private AppTaskExecutor() {
@@ -42,11 +44,14 @@ public final class AppTaskExecutor {
 
     public static boolean execute(Task<?> task) {
         Objects.requireNonNull(task);
+        var continuation=UpdateHandoff.continuation();
         ACTIVE_TASK_COUNT.incrementAndGet();
         try {
             EXECUTOR.execute(() -> {
-                try {
+                try (var work=UpdateHandoff.work(continuation)) {
                     task.run();
+                } catch (CancellationException stopped) {
+                    task.cancel(false);
                 } finally {
                     ACTIVE_TASK_COUNT.updateAndGet(current -> Math.max(0, current - 1));
                 }

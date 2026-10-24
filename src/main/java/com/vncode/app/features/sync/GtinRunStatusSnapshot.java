@@ -20,8 +20,9 @@ public final class GtinRunStatusSnapshot {
     public record Snapshot(ZnackGtinBackgroundService.Result result,boolean settled,Map<String,Integer> reasons) {public Snapshot(ZnackGtinBackgroundService.Result result,boolean settled){this(result,settled,Map.of());}public Snapshot{reasons=Map.copyOf(reasons);}}
     public static Context capture(Shop owner,Set<ProductKey> selected) {
         var shop=new Shop(owner.getId(),owner.getName(),owner.getMarketplace(),owner.getClientId(),owner.getApiKey());
-        ListingIdentity.require(shop);
-        for(var key:selected)ListingIdentity.require(shop,key);
+        try(var checks=ListingIdentity.batchChecks(shop)) {
+            for(var key:selected)ListingIdentity.require(shop,key);
+        }
         return new Context(shop,selected,AppPaths.appDataDir(),revision(shop));
     }
     public static Snapshot read(Context context,String run) {
