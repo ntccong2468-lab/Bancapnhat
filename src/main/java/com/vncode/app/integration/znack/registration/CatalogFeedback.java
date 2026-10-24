@@ -5,6 +5,10 @@ import java.util.Locale;
 
 public final class CatalogFeedback {
     private CatalogFeedback(){}
+    /** An actual HTTP 429 response rejects this request; a timeout/message mentioning 429 does not. */
+    public static boolean rateLimitRejectedRequest(Throwable failure){
+        return failure instanceof com.vncode.app.integration.znack.ZnackApiClient.ZnackApiException api&&api.statusCode()==429;
+    }
     public static boolean notFound(Throwable failure){
         for(Throwable error=failure;error!=null;error=error.getCause())if(error instanceof com.vncode.app.integration.znack.ZnackApiClient.ZnackApiException api&&api.statusCode()==404)return true;
         return false;

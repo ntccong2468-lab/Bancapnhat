@@ -1184,6 +1184,11 @@ public final class ZnackCardRegistrationWorkflow {
             registrations.updateProgress(shop.getId(),sku.chrtId(),Status.READY_TO_SIGN,null,null,message,null);
             notify(listener,Status.READY_TO_SIGN,message);return;
         }
+        if(!checkpoint.hasFeed()&&CatalogFeedback.rateLimitRejectedRequest(error)){
+            Status retryable=checkpoint.status()==Status.ALLOCATING_GTIN&&!checkpoint.hasGtin()?Status.PREFLIGHT_ERROR
+                    :checkpoint.status()==Status.FEED_SUBMITTING&&checkpoint.hasGtin()?Status.READY_TO_SUBMIT:null;
+            if(retryable!=null){registrations.updateProgress(shop.getId(),sku.chrtId(),retryable,null,null,message,null);notify(listener,retryable,message);return;}
+        }
         boolean scopeBlocked=error instanceof ZnackRegistrationScope.ScopeChangedException||error instanceof RegistrationValidationException;
         Status failure=scopeBlocked && checkpoint.status()==Status.ALLOCATING_GTIN?Status.PREFLIGHT_ERROR
                 :error instanceof RegistrationValidationException && checkpoint.hasFeed()?Status.ERROR

@@ -52,6 +52,31 @@ class OzonCardRegistrationWorkflowTest {
     }
     OzonCardRegistrationRepository.Row row(){return repository.find(key);}
     void ready(){assertTrue(workflow.register(shop,key,draft,true,false,null));assertEquals(Status.READY_TO_SIGN,row().status());}
+    @Test void explicitFeed429RetainsTheSameGtinForRetryInsteadOfAnUncertainSend(){
+        api.feedRateLimits=2;assertTrue(workflow.register(shop,key,draft,true,false,null));
+        assertEquals(Status.READY_TO_SUBMIT,row().status());String gtin=row().gtin();assertTrue(row().feedId().isBlank());
+        assertTrue(workflow.resumeForBatch(shop,key,false,null));assertEquals(Status.READY_TO_SUBMIT,row().status());assertEquals(gtin,row().gtin());
+        assertTrue(workflow.resumeForBatch(shop,key,false,null));assertEquals(gtin,row().gtin());assertFalse(row().feedId().isBlank());
+        assertEquals(1,api.allocations.get());assertEquals(3,api.submissions.get());
+    }
+    @Test void explicitAllocation429IsNotAnUnknownAllocation(){
+        api.allocationRateLimits=1;assertTrue(workflow.register(shop,key,draft,true,false,null));
+        assertEquals(Status.PREFLIGHT_ERROR,row().status());assertTrue(row().gtin().isBlank());assertEquals(0,api.submissions.get());
+        assertTrue(workflow.register(shop,key,draft,true,false,null));assertEquals(Status.READY_TO_SIGN,row().status());assertEquals(2,api.allocations.get());assertEquals(1,api.submissions.get());
+    }
+    @Test void batchPersistsTheServersLongerWriteRetryDeadlineAndKeepsTheSameIdentity()throws Exception{
+        api.feedRateLimits=1;api.writeRetryAfter=Duration.ofHours(1);
+        var queue=singleCardBatch("PENDING");var batch=new OzonRegistrationBatchService(queue,repository,workflow);
+        try{
+            assertTrue(batch.resumePending(shop));long until=System.nanoTime()+java.util.concurrent.TimeUnit.SECONDS.toNanos(8);
+            while(System.nanoTime()<until&&!queue.latest(shop).state().equals("WAITING"))Thread.sleep(10);
+            assertEquals("WAITING",queue.latest(shop).state());assertEquals(Status.READY_TO_SUBMIT,row().status());
+            assertFalse(row().gtin().isBlank());assertTrue(row().feedId().isBlank());
+            var reopened=new OzonRegistrationBatchRepository();assertTrue(reopened.latest(shop).nextRetryAt().isAfter(Instant.now().plusSeconds(3590)));
+            assertEquals(1,api.allocations.get());assertEquals(1,api.submissions.get());assertEquals(1,queue.counts(queue.latest(shop).id()).remaining());
+            assertTrue(batch.resumePending(shop));assertEquals(1,api.submissions.get());
+        }finally{batch.cancel(shop);}
+    }
     void published(){ready();assertTrue(sign());assertEquals(Status.PUBLISHED,row().status());}
     @Test void externallySignedCardWithLaggedFeedDoesNotSignAgain()throws Exception{
         ready();api.accepted=true;api.laggedModeration=true;assertTrue(workflow.refreshStatus(shop,key));
@@ -628,18 +653,18 @@ class OzonCardRegistrationWorkflowTest {
         boolean multipleCategories,allocationTimeout,feedTimeout,signTimeout,changeSigningDocument,accepted,rejected,pendingModeration,laggedModeration,cardMissing,readbackFailure;
         final Set<String> missingGtins=java.util.concurrent.ConcurrentHashMap.newKeySet();
         final Map<String,String> feedGtins=new java.util.concurrent.ConcurrentHashMap<>();
-        int readbackStatus;
+        int readbackStatus,feedRateLimits,allocationRateLimits;Duration writeRetryAfter;
         String emptyDetailFailure="";
         volatile String invalidFeedIdentity="";
         boolean unitEvidence=true,forbidQuota;
         String currentGtin=GtinWriteTestFixture.GTIN;
         public JsonElement generatedGtins(String base,String token){if(forbidQuota)throw new AssertionError("An existing draft update does not allocate or require allocation quota");return json(knownQuota?"{\"result\":{\"drafts\":[],\"monthly-limit\":{\"limit\":100,\"usage\":0}}}":"{\"result\":{\"drafts\":[]}}");}
-        public JsonElement generateGtins(String base,String token,int quantity)throws IOException{assertEquals(Status.ALLOCATING_GTIN,repository.find(activeKey).status());int count=allocations.incrementAndGet();if(allocationTimeout)throw new IOException("fixture allocation timeout");currentGtin=count==1?GtinWriteTestFixture.GTIN:"00000000000024";return json("{\"result\":{\"drafts\":[{\"gtin\":\""+currentGtin+"\"}]}}");}
+        public JsonElement generateGtins(String base,String token,int quantity)throws IOException{assertEquals(Status.ALLOCATING_GTIN,repository.find(activeKey).status());int count=allocations.incrementAndGet();if(allocationRateLimits>0){allocationRateLimits--;throw new ZnackApiClient.ZnackApiException("fixture allocation rate limit",429,"{}");}if(allocationTimeout)throw new IOException("fixture allocation timeout");currentGtin=count==1?GtinWriteTestFixture.GTIN:"00000000000024";return json("{\"result\":{\"drafts\":[{\"gtin\":\""+currentGtin+"\"}]}}");}
         public JsonElement nationalCatalogCategories(String base,String token,String tnved){if(tnved.length()==10)return json("{\"result\":[]}");return json(multipleCategories?"{\"result\":[{\"cat_id\":1,\"cat_name\":\"Fixture\",\"category_active\":true},{\"cat_id\":2,\"cat_name\":\"Fixture 2\",\"category_active\":true}]}":"{\"result\":[{\"cat_id\":1,\"cat_name\":\"Fixture\",\"category_active\":true}]}");}
         public JsonElement nationalCatalogAttributes(String base,String token,long category){var response=json("{\"result\":[{\"attr_id\":1,\"attr_name\":\"Fixture\",\"attr_field_type\":\"text\"},{\"attr_id\":23557,\"attr_name\":\"Declaration\",\"attr_field_type\":\"text\"},{\"attr_id\":23561,\"attr_name\":\"Certificate\",\"attr_field_type\":\"text\"}]}").getAsJsonObject();if(mandatoryCountry)response.getAsJsonArray("result").add(json("{\"attr_id\":2630,\"attr_name\":\"Страна производства\",\"attr_field_type\":\"text\",\"attr_preset_only\":true,\"attr_preset\":[]}"));return response;}
         public JsonElement nationalCatalogAllAttributes(String base,String token,long category){var response=nationalCatalogAttributes(base,token,category).getAsJsonObject();var all=response.getAsJsonArray("result");for(String field:List.of("{\"attr_id\":35,\"attr_name\":\"Размер\",\"attr_field_type\":\"text\"}","{\"attr_id\":36,\"attr_name\":\"Цвет\",\"attr_field_type\":\"text\"}","{\"attr_id\":13914,\"attr_name\":\"Артикул\",\"attr_field_type\":\"text\"}"))all.add(json(field));return response;}
         public JsonElement nationalCatalogCountries(String base,String token){countryReads.incrementAndGet();return json("{\"apiversion\":3,\"result\":{\"_etag\":\"fixture-country-etag\",\"_list\":[{\"country_iso\":\"RU\",\"country_name\":\"Россия\"},{\"country_iso\":\"CN\",\"country_name\":\"Китай\"}]}}");}
-        public JsonElement submitNationalCatalogFeed(String base,String token,JsonElement body)throws IOException{assertEquals(Status.FEED_SUBMITTING,repository.find(activeKey).status());lastPayload=body.getAsJsonObject().deepCopy();assertFalse(lastPayload.has("_vncode_reviewed_draft"));if(preExisting!=null&&lastPayload.has("moderation")){preExisting=lastPayload.deepCopy();preExisting.addProperty("good_status","draft");var state=new JsonArray();state.add(pendingModeration?"moderation":"notsigned");preExisting.add("good_detailed_status",state);}submissions.incrementAndGet();if(feedTimeout)throw new IOException("fixture feed timeout");String feed="feed-"+submissions.get();feedGtins.put(feed,lastPayload.get("gtin").getAsString());return json("{\"result\":{\"feed_id\":\""+feed+"\"}}");}
+        public JsonElement submitNationalCatalogFeed(String base,String token,JsonElement body)throws IOException{assertEquals(Status.FEED_SUBMITTING,repository.find(activeKey).status());lastPayload=body.getAsJsonObject().deepCopy();assertFalse(lastPayload.has("_vncode_reviewed_draft"));if(preExisting!=null&&lastPayload.has("moderation")){preExisting=lastPayload.deepCopy();preExisting.addProperty("good_status","draft");var state=new JsonArray();state.add(pendingModeration?"moderation":"notsigned");preExisting.add("good_detailed_status",state);}submissions.incrementAndGet();if(feedRateLimits>0){feedRateLimits--;throw new ZnackApiClient.ZnackApiException("fixture feed rate limit",429,"{}","POST","https://fixture.invalid/v3/feed",writeRetryAfter);}if(feedTimeout)throw new IOException("fixture feed timeout");String feed="feed-"+submissions.get();feedGtins.put(feed,lastPayload.get("gtin").getAsString());return json("{\"result\":{\"feed_id\":\""+feed+"\"}}");}
         public JsonElement productCards(String base,String token,String gtins)throws IOException {
             if(readbackStatus>0)throw new ZnackApiClient.ZnackApiException("fixture readback deferred",readbackStatus,"{}");
             if(readbackFailure)throw new IOException("fixture readback offline");

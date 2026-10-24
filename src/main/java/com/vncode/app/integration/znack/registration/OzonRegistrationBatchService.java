@@ -157,7 +157,10 @@ public final class OzonRegistrationBatchService {
                         checkedReceipts.add(item.position());observeReceipt(shop,item);
                         if(deferReadbackLimit(shop,namespace,directory,batch.id())){deferred=true;return;}
                     }
-                    else if(row!=null&&row.status()==Status.READY_TO_SUBMIT){item(shop,item,"PENDING",row.error());defer(shop,namespace,directory,batch.id(),"NETWORK_RETRY",10);deferred=true;return;}
+                    else if(row!=null&&row.status()==Status.READY_TO_SUBMIT){
+                        var failure=workflow.failure(shop);var reason=failure==null?null:SyncFailure.of(failure,0);
+                        item(shop,item,"PENDING",row.error());defer(shop,namespace,directory,batch.id(),reason==null?"NETWORK_RETRY":reason.code(),Math.max(10,reason==null?10:reason.delay().toSeconds()));deferred=true;return;
+                    }
                     else if((row==null||row.status()==Status.PREFLIGHT_ERROR)&&workflow.failure(shop)!=null&&!SyncFailure.of(workflow.failure(shop),0).actionRequired()){
                         var reason=SyncFailure.of(workflow.failure(shop),0);item(shop,item,"PENDING",reason.code());defer(shop,namespace,directory,batch.id(),reason.code(),Math.max(2,reason.delay().toSeconds()));deferred=true;return;
                     }

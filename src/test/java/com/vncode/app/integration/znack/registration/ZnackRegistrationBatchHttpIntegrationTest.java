@@ -52,7 +52,7 @@ class ZnackRegistrationBatchHttpIntegrationTest {
     private boolean visibleAfterAllPosts;
     private volatile int cardReadFailure;
     private String readRetryAfter="0";
-    private boolean rejectOptional;
+    private boolean rejectOptional,rejectFirstFeed;
     private final Map<String,JsonObject> feedPayloads=new ConcurrentHashMap<>();
 
     @BeforeEach void setup() throws Exception {
@@ -118,6 +118,18 @@ class ZnackRegistrationBatchHttpIntegrationTest {
         assertEquals(ZnackRegistrationBatchService.State.WAITING_REMOTE,batch.latest(shop).state());
         cardReadFailure=0;retryNow(run);assertTrue(batch.resumePending(shop));
         assertEquals(3,posts.get());assertEquals(3,batch.latest(shop).submitted());assertEquals(3,new java.util.HashSet<>(postedGtins).size());
+    }
+    @Test void actualHttp429RetriesTheSameSavedGtinAfterItsPersistedDeadline()throws Exception{
+        rejectFirstFeed=true;readRetryAfter="3600";var batch=batch();String run=batch.start(shop,selection(),false);
+        assertNull(serverFailure.get());assertEquals(1,posts.get());assertEquals(0,acceptedResponses.get());
+        assertEquals(ZnackRegistrationBatchService.State.WAITING_NETWORK,batch.latest(shop).state());
+        assertEquals(Status.READY_TO_SUBMIT,repository.find(1,11).status());assertEquals(gtins.getFirst(),repository.find(1,11).gtin());
+        assertTrue(new ZnackRegistrationBatchStore().latest(shop).retryAt().isAfter(java.time.Instant.now().plusSeconds(3590)));
+        assertTrue(batch.resumePending(shop));assertEquals(1,posts.get(),"A future deadline cannot dispatch another request");
+        retryNow(run);assertTrue(batch.resumePending(shop));assertNull(serverFailure.get());
+        assertEquals(4,posts.get());assertEquals(3,acceptedResponses.get());assertEquals(3,batch.latest(shop).submitted());
+        assertEquals(List.of(gtins.get(0),gtins.get(0),gtins.get(1),gtins.get(2)),postedGtins);
+        assertEquals(ZnackRegistrationBatchService.State.COMPLETE,batch.latest(shop).state());assertFalse(batch.resumePending(shop));
     }
 
     @Test void http200WithoutFeedIdDoesNotCountAsCreatedOrReplayTheRequest() throws Exception {
@@ -292,14 +304,15 @@ class ZnackRegistrationBatchHttpIntegrationTest {
             var payload = JsonParser.parseString(new String(exchange.getRequestBody().readAllBytes(),
                     StandardCharsets.UTF_8)).getAsJsonObject();
             int variant=gtins.indexOf(payload.get("gtin").getAsString());assertTrue(variant>=0);
-            if(!rejectOptional)assertEquals(gtins.get(number - 1), payload.get("gtin").getAsString());
-            feedPayloads.put("wire-feed-"+number,payload.deepCopy());
+            if(!rejectOptional&&!rejectFirstFeed)assertEquals(gtins.get(number - 1), payload.get("gtin").getAsString());
             assertEquals(JsonParser.parseString(repository.payload(1, 11 + variant)), payload,
                     "Send the exact persisted GTIN payload through ZnackApiClient");
             assertEquals(Status.FEED_SUBMITTING, repository.find(1, 11 + variant).status(),
                     "The uncertain-send checkpoint must precede the real POST");
             postedGtins.add(payload.get("gtin").getAsString());
-            if (!rejectOptional && number > 1 && number - 1 != responseWithoutFeedId) {
+            if(rejectFirstFeed&&number==1){exchange.getResponseHeaders().set("Retry-After",readRetryAfter);writeResponse(exchange,429,"{\"error\":\"rate limit\"}");return;}
+            feedPayloads.put("wire-feed-"+number,payload.deepCopy());
+            if (!rejectOptional && !rejectFirstFeed && number > 1 && number - 1 != responseWithoutFeedId) {
                 assertEquals("wire-feed-" + (number - 1), repository.find(1, 9 + number).feedId(),
                         "Save the preceding accepted card before dispatching the next one");
             }

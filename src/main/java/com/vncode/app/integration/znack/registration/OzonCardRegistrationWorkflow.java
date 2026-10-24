@@ -751,6 +751,11 @@ public final class OzonCardRegistrationWorkflow {
         if(key==null){notify(callback,Status.ERROR,error);return;}
         var row=repository.find(key);if(row==null){notify(callback,Status.PREFLIGHT_ERROR,error);return;}
         if(row.status()==Status.PUBLISHED){notify(callback,Status.ERROR,error);return;}
+        if(row.feedId().isBlank()&&CatalogFeedback.rateLimitRejectedRequest(failure)){
+            Status retryable=row.status()==Status.ALLOCATING_GTIN&&row.gtin().isBlank()?Status.PREFLIGHT_ERROR
+                    :row.status()==Status.FEED_SUBMITTING&&!row.gtin().isBlank()?Status.READY_TO_SUBMIT:null;
+            if(retryable!=null){repository.uncertain(key,retryable,error);notify(callback,retryable,error);return;}
+        }
         boolean documentPending=CatalogFeedback.notFound(failure)&&!row.feedId().isBlank()
                 &&!Set.of("SENDING","RECONCILE_REQUIRED").contains(row.signatureState());
         Status state=failure instanceof RegistrationValidationException&&row.feedId().isBlank()&&row.goodId()==null?Status.PRE_SUBMIT_ERROR:documentPending?Status.PROCESSING:switch(row.status()){

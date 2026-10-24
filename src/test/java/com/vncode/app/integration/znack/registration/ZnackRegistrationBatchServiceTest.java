@@ -36,6 +36,29 @@ class ZnackRegistrationBatchServiceTest {
         workflow=RegistrationWorkflowTestFixtures.workflow(repository,ignored->new ZnackCardRegistrationWorkflow.CatalogSession("fixture-token",catalog),Runnable::run);
     }
     @AfterEach void cleanup(){System.clearProperty("vncode.appdata.dir");}
+    @Test @Timeout(90) void continuous117CardQueueSurvivesWriteLimitsAndDelayedReadbacksWithoutDuplicateIdentities()throws Exception{
+        try(var c=Database.getConnection();var s=c.createStatement()){
+            c.setAutoCommit(false);
+            for(int i=4;i<=117;i++){
+                s.addBatch("INSERT INTO wb_product_cards(shop_id,nm_id,vendor_code,title,synced_at) VALUES(1,"+(100+i)+",'ARTICLE-"+i+"','Fixture','2026-10-06T00:00:00Z')");
+                s.addBatch("INSERT INTO wb_product_sizes(shop_id,chrt_id,nm_id,tech_size) VALUES(1,"+(10+i)+","+(100+i)+",'XL')");
+            }s.executeBatch();c.commit();
+        }
+        api.syntheticGtins=true;api.cardsVisible=false;api.readRateEvery=7;api.feedRateLimitedAttempts.addAll(Set.of(1,22,55,89,120));
+        var rows=repository.search(new SearchCriteria(1,"",List.of(),"ALL",1000,0));assertEquals(117,rows.size());
+        var service=service((owner,row,sign)->draft,Runnable::run);String run=service.start(shop,rows,false);int passes=1;
+        while(api.feedGtins.size()<117&&passes++<100){
+            assertTrue(service.latest(shop).running(),()->service.latest(shop).toString());
+            assertNotNull(new ZnackRegistrationBatchStore().latest(shop).retryAt());retryNow(run);assertTrue(service.resumePending(shop));
+        }
+        assertEquals(117,api.feedGtins.size());assertEquals(117,service.latest(shop).acceptedFeeds());assertEquals(0,service.latest(shop).submitted());
+        api.cardsVisible=true;
+        while(service.latest(shop).running()&&passes++<100){retryNow(run);assertTrue(service.resumePending(shop));}
+        assertTrue(passes>5);assertEquals(ZnackRegistrationBatchService.State.COMPLETE,service.latest(shop).state());
+        assertEquals(117,service.latest(shop).submitted());assertEquals(0,service.latest(shop).failed());assertEquals(0,service.latest(shop).remaining());
+        assertEquals(117,api.allocations.get());assertEquals(122,api.submits.get());assertEquals(117,new HashSet<>(api.feedGtins.values()).size());
+        assertEquals(117,new SyncRunRepository().items(run,0,1000).size());assertFalse(service.resumePending(shop));
+    }
     @Test void quotaReadRateLimitBeforeAllocationAutomaticallyResumesTheSameUnsentBatch()throws Exception{
         api.poolReadFailure=429;var service=service((owner,row,sign)->draft,Runnable::run);
         String run=service.start(shop,selection(),false);
@@ -48,6 +71,15 @@ class ZnackRegistrationBatchServiceTest {
         api.poolReadFailure=0;retryNow(run);assertTrue(service.resumePending(shop));
         assertEquals(run,service.latest(shop).runId());assertEquals(3,service.latest(shop).submitted());assertEquals(3,api.allocations.get());assertEquals(3,api.submits.get());
         assertEquals(ZnackRegistrationBatchService.State.COMPLETE,service.latest(shop).state());
+    }
+    @Test void allocationPost429AutomaticallyRetriesTheOriginalBatchWithoutAnUncertainWrite()throws Exception{
+        api.syntheticGtins=true;api.allocationRateLimits=1;
+        var service=service((owner,row,sign)->draft,Runnable::run);String run=service.start(shop,selection(),false);
+        assertEquals(ZnackRegistrationBatchService.State.WAITING_NETWORK,service.latest(shop).state());
+        assertEquals(Status.PREFLIGHT_ERROR,repository.find(1,11).status());assertEquals(0,api.submits.get());
+        retryNow(run);assertTrue(service.resumePending(shop));assertEquals(run,service.latest(shop).runId());
+        assertEquals(ZnackRegistrationBatchService.State.COMPLETE,service.latest(shop).state());assertEquals(3,service.latest(shop).submitted());
+        assertEquals(4,api.allocations.get());assertEquals(3,api.submits.get());assertEquals(3,new HashSet<>(api.feedGtins.values()).size());
     }
     @Test void serialBatchHandsEachPreparedSessionToItsOneCardWriterWithoutReopening()throws Exception{
         workflow=RegistrationWorkflowTestFixtures.workflow(repository,ignored->{throw new AssertionError("Do not reopen the prepared Catalog connection");},Runnable::run);
@@ -364,12 +396,15 @@ class ZnackRegistrationBatchServiceTest {
         Runnable beforeFeedRead=()->{};
         AtomicInteger allocations=new AtomicInteger(),submits=new AtomicInteger(),statusReads=new AtomicInteger(),cardReads=new AtomicInteger(),categoryReads=new AtomicInteger(),poolReads=new AtomicInteger();boolean failFirstFeed,cardsVisible=true;
         boolean rejectOptional;final Map<String,JsonObject> payloads=new HashMap<>();
+        boolean syntheticGtins;int readRateEvery,allocationRateLimits;final Set<Integer> feedRateLimitedAttempts=new HashSet<>();final Map<String,Long> syntheticGoodIds=new HashMap<>();
         String failedFeed="",failureStatus="Rejected";int statusReadFailure,poolReadFailure;Runnable onSubmit;
         java.util.concurrent.CountDownLatch feedReadEntered,releaseFeedRead;
         final Map<String,String> feedGtins=new HashMap<>();final Set<String> hiddenGtins=new HashSet<>();
         @Override public JsonElement generatedGtins(String base,String token)throws IOException{poolReads.incrementAndGet();if(poolReadFailure!=0)throw new ZnackApiException("pool read unavailable",poolReadFailure,"{}");return json("{\"result\":{\"drafts\":[]}}");}
-        @Override public JsonElement generateGtins(String base,String token,int quantity){
-            int index=allocations.getAndIncrement();String gtin=List.of("04631993764370","04631993764363","04631993764387").get(index);
+        @Override public JsonElement generateGtins(String base,String token,int quantity)throws IOException{
+            int index=allocations.getAndIncrement();if(allocationRateLimits>0){allocationRateLimits--;throw new ZnackApiException("allocation rejected by rate limit",429,"{}");}
+            String gtin=syntheticGtins?syntheticGtin(index):List.of("04631993764370","04631993764363","04631993764387").get(index);
+            if(syntheticGtins)syntheticGoodIds.put(gtin,100L+index);
             return json("{\"result\":{\"drafts\":[{\"gtin\":\""+gtin+"\"}]}}");
         }
         @Override public JsonElement nationalCatalogCategories(String base,String token,String tnved){categoryReads.incrementAndGet();return json("{\"result\":[{\"cat_id\":1,\"cat_name\":\"Clothes\",\"category_active\":true}]}");}
@@ -377,12 +412,13 @@ class ZnackRegistrationBatchServiceTest {
         @Override public JsonElement nationalCatalogAllAttributes(String base,String token,long id){return nationalCatalogAttributes(base,token,id);}
         @Override public JsonElement submitNationalCatalogFeed(String base,String token,JsonElement payload)throws IOException {
             try(var c=Database.getConnection();var s=c.createStatement();var r=s.executeQuery("SELECT count(*) FROM znack_registration_batch_items")){assertTrue(r.next());assertTrue(r.getInt(1)>0,"Selection must be durable before any POST");}catch(java.sql.SQLException e){throw new IOException(e);}
-            int count=submits.incrementAndGet();if(onSubmit!=null&&count==1)onSubmit.run();if(failFirstFeed&&count==1)throw new IOException("response lost");payloads.put("feed-"+count,payload.getAsJsonObject().deepCopy());feedGtins.put("feed-"+count,payload.getAsJsonObject().get("gtin").getAsString());return json("{\"result\":{\"feed_id\":\"feed-"+count+"\"}}");
+            int count=submits.incrementAndGet();if(onSubmit!=null&&count==1)onSubmit.run();if(failFirstFeed&&count==1)throw new IOException("response lost");if(feedRateLimitedAttempts.contains(count))throw new ZnackApiException("feed rejected by rate limit",429,"{}");payloads.put("feed-"+count,payload.getAsJsonObject().deepCopy());feedGtins.put("feed-"+count,payload.getAsJsonObject().get("gtin").getAsString());return json("{\"result\":{\"feed_id\":\"feed-"+count+"\"}}");
         }
         @Override public JsonElement nationalCatalogFeedStatus(String base,String token,String feed)throws IOException {
             if(feedReadEntered!=null){feedReadEntered.countDown();try{if(!releaseFeedRead.await(5,java.util.concurrent.TimeUnit.SECONDS))throw new IOException("fixture monitor timed out");}catch(InterruptedException interrupted){Thread.currentThread().interrupt();throw new IOException(interrupted);}}
             beforeFeedRead.run();statusReads.incrementAndGet();
             if(statusReadFailure>0)throw new ZnackApiException("read unavailable",statusReadFailure,"{}");
+            if(readRateEvery>0&&statusReads.get()%readRateEvery==0)throw new ZnackApiException("status read rate limit",429,"{}");
             var payload=payloads.get(feed);
             if(rejectOptional&&payload!=null&&(payload.has("is_kit")||payload.has("good_images"))){
                 var result=new JsonObject();result.addProperty("status","Rejected");var items=new JsonArray();var item=new JsonObject();item.addProperty("gtin",feedGtins.get(feed));var errors=new JsonArray();
@@ -396,7 +432,13 @@ class ZnackRegistrationBatchServiceTest {
         @Override public JsonElement productCards(String base,String token,String gtin){
             cardReads.incrementAndGet();
             if(!cardsVisible||hiddenGtins.contains(gtin))return json("{\"result\":[]}");
-            return json("{\"result\":[{\"gtin\":\""+gtin+"\",\"good_id\":"+(100+List.of("04631993764370","04631993764363","04631993764387").indexOf(gtin))+",\"good_status\":\"draft\",\"good_detailed_status\":[\"moderation\"]}]}");
+            long good=syntheticGtins?syntheticGoodIds.getOrDefault(gtin,0L):100+List.of("04631993764370","04631993764363","04631993764387").indexOf(gtin);
+            return json("{\"result\":[{\"gtin\":\""+gtin+"\",\"good_id\":"+good+",\"good_status\":\"draft\",\"good_detailed_status\":[\"moderation\"]}]}");
+        }
+        private String syntheticGtin(int index){
+            String body=String.format(java.util.Locale.ROOT,"046319937%04d",index);
+            for(int n=0;n<10;n++)if(com.vncode.app.features.gtinsync.RegisteredGtinValidator.isValid(body+n))return body+n;
+            throw new AssertionError("Invalid synthetic GTIN fixture");
         }
         private JsonElement json(String value){return JsonParser.parseString(value);}
     }
