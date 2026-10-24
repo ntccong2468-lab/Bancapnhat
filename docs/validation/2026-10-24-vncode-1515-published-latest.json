@@ -1,0 +1,121 @@
+{
+  "recordedAt": "2026-10-24T19:47:51.473082+00:00",
+  "version": "1.5.15",
+  "tag": "v1.5.15",
+  "sourceCommit": "9f6155dbbbdd6af80e09897f2f2863b479b97a33",
+  "sourceTreeSha256": "92e3150566270de6ef53ef92592bb4f1e112b4e4c78fd0e843a8097decb8e4c7",
+  "branch": "release/vn-code-1.5.15",
+  "releaseId": 422945241,
+  "publishedAt": "2026-10-24T19:47:09Z",
+  "immutableRelease": true,
+  "latestConfirmed": true,
+  "releaseUrl": "https://github.com/ntccong2468-lab/Bancapnhat/releases/tag/v1.5.15",
+  "downloadUrl": "https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.5.15/VN-code-1.5.15-Windows-x64.exe",
+  "installer": {
+    "sha256": "c70aea8d2cf5697e046ecf35095c89d959977d8130578d0c66314489b5cc3349",
+    "bytes": 147270144,
+    "name": "VN-code-1.5.15-Windows-x64.exe"
+  },
+  "buildRun": {
+    "id": 40123187426,
+    "conclusion": "success",
+    "url": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/40123187426"
+  },
+  "publicationRun": {
+    "id": 40124695253,
+    "conclusion": "success",
+    "url": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/40124695253"
+  },
+  "publicAssets": 16,
+  "requiredAssetsVerified": 11,
+  "javaWindows": {
+    "skipped": 2,
+    "failures": 0,
+    "errors": 0,
+    "tests": 3009,
+    "passed": 3007
+  },
+  "javaLinux": {
+    "tests": 3009,
+    "passed": 3007,
+    "skipped": 2,
+    "failures": 0,
+    "errors": 0
+  },
+  "nodeTestsPassed": 117,
+  "catalogRegressionPassed": 1246,
+  "native": {
+    "liveMarketplaceMutations": false,
+    "appName": "VN code",
+    "nativeLauncher": "passed",
+    "windowTitle": "VN code v1.5.15",
+    "historyPreserved": true,
+    "schemaMigration": "3 to 6",
+    "version": "1.5.15",
+    "rollbackSnapshotVerified": true,
+    "platform": "windows-x64"
+  },
+  "upgrade": {
+    "windowTitle": "VN code v1.5.15",
+    "baselineInstallerSha256": "2a17102b3b32b3839d0710c4244270094fb48e6b7fc567ef5c665c2c01ccd18c",
+    "singleRegistration": true,
+    "passiveExeInstallerSha256": "c70aea8d2cf5697e046ecf35095c89d959977d8130578d0c66314489b5cc3349",
+    "appName": "VN code",
+    "passiveExeEmbeddedMsiSha256": "d4cc481b46d3eaf4c5099abbfcf4575f33ec0ef19dbcd7e5b6533d5898b192d5",
+    "result": "passed",
+    "version": "1.5.15",
+    "installerUpgradeUuid": "8CBBA0E2-6E73-4F56-9101-6BC0948D3C72",
+    "fingerprint": "225a6badcabf735421213a71267401b5826886ee0115b69619b82feb4f8d82d9",
+    "liveMarketplaceMutations": false,
+    "singleShortcutPerLocation": true,
+    "baselineTag": "v1.5.14",
+    "fromVersion": "1.5.14",
+    "passiveExeHandoffVerified": true,
+    "dataPreserved": true,
+    "baselineInstallerBytes": 147270144
+  },
+  "updater": {
+    "version": "1.5.15",
+    "newerThan1_5_14": true,
+    "usesPublishedRuntimeUpdater": true,
+    "windowsInstallerUrl": "https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.5.15/VN-code-1.5.15-Windows-x64.msi",
+    "sha256": "d4cc481b46d3eaf4c5099abbfcf4575f33ec0ef19dbcd7e5b6533d5898b192d5",
+    "bytes": 146601225,
+    "metadataSource": "GitHub releases/latest public response",
+    "sellerDeviceNotificationObserved": false
+  },
+  "package": {
+    "checkedAt": "2026-10-24T19:46:38.955416+00:00",
+    "version": "1.5.15",
+    "sourceCommit": "9f6155dbbbdd6af80e09897f2f2863b479b97a33",
+    "buildRunId": 40123187426,
+    "allManifestBytesVerified": true,
+    "packagedVersionVerified": true,
+    "catalogFixMethodsPresent": true,
+    "productionSourcesMatchLocalRelease": true,
+    "sourceArchiveFilesCompared": 1149,
+    "compactStylesMatch": true,
+    "nativeLaunchVerified": true,
+    "upgradeDataPreserved": true,
+    "java": {
+      "skipped": 2,
+      "failures": 0,
+      "errors": 0,
+      "tests": 3009,
+      "passed": 3007
+    },
+    "installer": {
+      "sha256": "c70aea8d2cf5697e046ecf35095c89d959977d8130578d0c66314489b5cc3349",
+      "bytes": 147270144,
+      "name": "VN-code-1.5.15-Windows-x64.exe"
+    },
+    "sellerDeviceNotificationObserved": false
+  },
+  "publicDownloadsAndChecksumsVerified": true,
+  "publicVerificationEvidence": "2026-10-24-vncode-1515-public-verification.json",
+  "liveCatalogWriteVerifiedForThisBuild": false,
+  "liveMarketplaceWriteVerified": false,
+  "paidKizPurchaseVerified": false,
+  "sellerDeviceNotificationObserved": false,
+  "oldReleasesDeleted": false
+}

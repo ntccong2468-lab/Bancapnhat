@@ -5,11 +5,11 @@
   "sourceTreeSha256": "92e3150566270de6ef53ef92592bb4f1e112b4e4c78fd0e843a8097decb8e4c7",
   "windowsBuildRun": 40123187426,
   "windowsBuildUrl": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/40123187426",
-  "state": "LINUX_FULL_PASSED_WINDOWS_BUILD_RUNNING",
+  "state": "PUBLISHED_LATEST_PUBLIC_BYTES_NATIVE_UPGRADE_AND_OLD_UPDATER_VERIFIED",
   "releaseRequested": true,
-  "installerBuilt": false,
-  "published": false,
-  "latestChanged": false,
+  "installerBuilt": true,
+  "published": true,
+  "latestChanged": true,
   "previousLatest": {
     "tag": "v1.5.14",
     "releaseId": 422637565
@@ -23,7 +23,7 @@
     "conclusion": "cancelled",
     "reason": "Increase only the 117-card persistence stress test timeout for measured slower native Windows SQLite writes; application behavior unchanged."
   },
-  "recordedAt": "2026-10-24T19:03:00.957149+00:00",
+  "recordedAt": "2026-10-24T19:48:59.864697+00:00",
   "linuxFull": {
     "command": "DISPLAY=:99 /workspace/toolchains/mvn-vncode -o -B clean verify",
     "result": "BUILD SUCCESS",
@@ -38,5 +38,24 @@
     "duration": "18:44 min",
     "finishedUtc": "2026-10-24T19:17:47Z"
   },
-  "publisherWorkflow": "publish-vncode-1515.yml"
+  "publisherWorkflow": "publish-vncode-1515.yml",
+  "publisherRun": 40124695253,
+  "publisherSource": "5a7c0fcdabb6c5f4e9cbafb5b411d96d97e4ebbe",
+  "publisherUrl": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/40124695253",
+  "releaseId": 422945241,
+  "publishedAt": "2026-10-24T19:47:09Z",
+  "windowsBuildConclusion": "success",
+  "windowsJava": {
+    "skipped": 2,
+    "failures": 0,
+    "errors": 0,
+    "tests": 3009,
+    "passed": 3007
+  },
+  "nativeWindowsVerified": true,
+  "upgradeFromVersion": "1.5.14",
+  "dataPreserved": true,
+  "publicAssetsVerified": true,
+  "runtimeUpdaterVerified": true,
+  "sellerDeviceNotificationObserved": false
 }

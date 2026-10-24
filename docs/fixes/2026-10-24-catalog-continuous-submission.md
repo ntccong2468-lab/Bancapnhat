@@ -32,3 +32,5 @@ Seller muốn lô tiếp tục chạy đến hết, không tự tạm dừng sau
 - Hồi quy tiếp các trường hợp mất phản hồi sau cấp/gửi/ký, chống hai worker gửi trùng, scope/owner, UI, bộ lọc, báo cáo và giới hạn request.
 
 Mã chốt `59c3dc524d0bc0578aaaa1f320f225bf6769a841` đạt **1.246/1.246 ca hồi quy, không thất bại/lỗi/bỏ qua**, kết thúc 18:53:33 UTC ngày 24.10.2026. Kết quả và hash mã/log nằm trong [biên nhận](../validation/2026-10-24-catalog-continuous-submission-verify.json). Chỉ dùng dữ liệu tổng hợp, SQLite, HTTP localhost và JavaFX/Xvfb. Không tạo thẻ production hoặc đo throughput tài khoản seller. Chưa dựng bộ cài mới hoặc thay Latest 1.5.14; khi đóng gói phải dùng phiên bản mới và kiểm tra Windows đúng mã nguồn.
+
+Cập nhật sau yêu cầu phát hành: các sửa này đã được đưa vào **Latest 1.5.15**, công bố 19:47:09 UTC cùng ngày. Full suite Windows/Linux đạt 3.009 ca, mở app và nâng cấp từ 1.5.14 giữ dữ liệu đạt. [Bàn giao phát hành](../validation/2026-10-24-vncode-1515-handoff.md).
