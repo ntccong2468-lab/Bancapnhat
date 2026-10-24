@@ -4,7 +4,7 @@
 
 - Toàn bộ sửa đổi đã commit/push trên `release/vn-code-1.5.14`. Mã ứng dụng chốt `09718c80133528808047b01399e004ef9329ff64`, hash cây mã `77b135a319ba056f5022885792dc4829344004b899dbbb9f5d857b06230a0fb4`. 136 ca mục tiêu và 117 Node contracts đạt.
 - Windows build `40079053601` đang chạy từ đúng SHA. Full Linux `/tmp/vncode-1514-full-verify.log` đã BUILD SUCCESS lúc 08:59:55 UTC, 17:58: 2.986 ca, 2.984 đạt, 2 bỏ qua OS, không lỗi/thất bại. Chưa tag/draft/publish. Latest vẫn v1.5.13 ở lần đọc gần nhất. [Trạng thái phát hành](validation/2026-10-24-vncode-1514-release-state.json).
-- Chủ dự án đã yêu cầu gộp/phát hành Latest: tiếp tục đến khi Windows full/native/upgrade và tài sản đạt, tạo tag đúng SHA, chuẩn bị draft, dùng quy trình công bố có pin source/build/release ID, tải công khai/đối chiếu và kiểm tra bộ cập nhật thật. Không cần hỏi lại quyền phát hành. Không prune Release cũ.
+- Workflow `publish-vncode-1514.yml` chờ Windows `40079053601` thành công, đối chiếu receipt Linux và đúng SHA, sau đó mới tạo tag/draft có điều kiện, xác minh asset/native/upgrade rồi công bố Latest và tải công khai kiểm tra byte. Quyền công bố đã được chủ dự án cấp rõ. Node 117/117, YAML không khóa lặp, bash và 5 đoạn JavaScript nhúng kiểm tra cú pháp đạt. Tiếp tục tới khi public verification và kiểm tra bộ cập nhật thật xong. Không cần hỏi lại quyền phát hành. Không prune Release cũ.
 
 ## Bổ sung Ozon FBS trước phát hành 1.5.14 — 24.10.2026
 
