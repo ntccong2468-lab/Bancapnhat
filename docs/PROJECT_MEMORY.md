@@ -1,8 +1,20 @@
 # Bộ nhớ dự án VNCode
 
+## Chỉ đạo phát hành tiếp theo — 24.10.2026
+
+- Người dùng đã yêu cầu rõ: sau khi xong, gộp toàn bộ sửa đổi thành bản mới và đưa lên Latest. Chuẩn bị **1.5.14**, kế thừa 1.5.13, gồm cập nhật/GTIN/Ozon/PDF/vùng hiển thị, proof mua và session mua thiếu → lưu thông → xuất nhãn. Không cần hỏi lại quyền phát hành.
+- Phải hoàn tất kiểm tra mã cuối, Node contracts và build Windows đúng SHA, native/upgrade smoke từ Latest đang công bố. Chỉ publish sau xác minh đủ assets/digest/tag; giữ release cũ, không prune. Trạng thái dưới ghi “chưa đóng gói/đổi Latest” là mốc trước chỉ đạo mới, chưa phải kết luận phát hành.
+
+## Sửa tiếp 24.10.2026 — Áp dụng mua KIZ rồi tự xuất nhãn
+
+- Yêu cầu mới: chọn Mua KIZ → Xuất nhãn → bảng đề xuất phần thiếu → Áp dụng → mua/kiểm tra lưu thông → tự xuất. Đã nối session dùng chung vào WB và Ozon; preflight/readiness không enqueue. Bảng có số cần/sẵn dùng/thiếu/mua thêm; hủy không mua mới, pending không mua trùng. Viên thuốc tiến trình tự ẩn khi kết thúc.
+- Profile riêng của lượt mua phục vụ in bật tự đưa vào lưu thông, giữ kết nối/chữ ký gốc trong cùng transaction enqueue, không đổi cấu hình toàn cửa hàng hoặc pipeline cũ. Chỉ AVAILABLE / IN_CIRCULATION được tính; dữ liệu RECEIVED hoặc đã gửi document chưa đủ. Đổi owner/cấu hình chặn tác vụ in cũ.
+- Continuation tự xuất chỉ trong phiên app đang mở. Pipeline mua bền vững và đối soát qua restart; chưa thêm hàng đợi PDF tự xuất sau restart. Handoff cập nhật được checkpoint khi đang chờ mua đã lưu, không checkpoint ở giữa reservation/ghi PDF.
+- 118 ca mục tiêu đạt, gồm FxmlSmoke, session/hộp thoại, kho/print/readiness/profile và hàng đợi/handoff; sau sửa nhãn nút RU/ZH, 21 ca liên quan cuối đạt. Full đầu 2.980 ca có một phép đo fairness theo callback phụ thuộc lịch CPU. Giữ stress 10.000 đơn và thêm tình huống fairness xác định với một writer bị giữ; 37 ca liên quan đạt, Node 117/117. Chạy full 1.5.14 `/tmp/vncode-1514-full-verify.log`, hash `06df14f553ad61b717ccbfe021a6b7b9ab76bb7eafabb7ff7a2e8c0dd585c4a8` và build Windows đúng SHA. Chưa mua KIZ có phí/mutation production, chưa đóng gói/đổi Latest. [Chi tiết và luồng](fixes/2026-10-24-kiz-print-purchase-continuation.md).
+
 ## Sửa tiếp 24.10.2026 — cổng mua KIZ
 
-- Phần cập nhật/GTIN/Ozon/workspace trước đó đã commit và push `585d15c` trên `fix/update-gtin-ozon-fbs-layout`; chưa phát hành bộ cài mới. Sau đó người dùng gửi ảnh `KIZ_GTIN_MAPPING_MISSING` kèm dòng đơn/SKU trống, yêu cầu kiểm tra mua KIZ.
+- Bản sửa proof mua đã commit `ce56ee3`; phần cập nhật/GTIN/Ozon/workspace trước đó đã commit và push `585d15c` trên `fix/update-gtin-ozon-fbs-layout`; chưa phát hành bộ cài mới. Sau đó người dùng gửi ảnh `KIZ_GTIN_MAPPING_MISSING` kèm dòng đơn/SKU trống, yêu cầu kiểm tra mua KIZ.
 - Đã tái hiện lỗi trên WB và Ozon: đăng ký chuyển sang PUBLISHED làm cổng mua mất proof nếu barcode sàn chưa có GTIN. Bổ sung view proof chỉ dành cho mua, cần đăng ký đúng scope/payload/native SKU và quan sát Catalog mới, đúng owner/source/publication/article/màu/cỡ. Không bỏ guard ghi GTIN, không dùng rule danh mục để mua.
 - Metadata khi đã published lấy giấy tờ hiện hành Catalog; hàng đợi dự phòng vẫn dùng anchor không active, không dựng publication giả. Giữ kiểm tra tồn kho/pipeline cũ trước mua thiếu, UUID, idempotency, license, OMS và ký thật. Lỗi giữ order/posting/SKU, bỏ dòng trống và mã lặp, bản dịch đủ bốn ngôn ngữ.
 - 111 ca mục tiêu cuối đạt. Full sửa mua BUILD SUCCESS: 2.963 ca, 2.961 đạt, 2 bỏ qua OS, không lỗi/thất bại; log `/tmp/vncode-kiz-purchase-final-verify.log`, kết thúc 07:46:15 UTC (17:18). Hash cây mã hiện kiểm tra `3088a54e0c24b40dc6f4cfc60b666eae06f2a73579a91cbf652f65d586ace9d2`. Chưa mua KIZ có phí hoặc thực hiện mutation production. [Chi tiết](fixes/2026-10-24-kiz-purchase-published-identity.md).

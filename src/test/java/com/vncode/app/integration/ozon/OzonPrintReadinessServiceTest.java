@@ -140,6 +140,20 @@ class OzonPrintReadinessServiceTest {
         var batch=service.inspectAll(shop,List.of("POST-1","POST-2"));assertFalse(batch.ready());assertEquals(List.of("POST-1"),batch.readyPostingNumbers());assertEquals(List.of("SKU-1"),batch.postings().getLast().missingSkus());
     }
 
+    @Test void purchaseSelectionAllowsOnlyStockShortageAndReadinessNeverBuys()throws Exception{
+        var purchased=new com.vncode.app.features.kiz.KizSourceSelection(false,true);
+        var service=new OzonPrintReadinessService();
+        assertFalse(OzonStockReplenishment.canResolveByPurchase(service.inspect(shop,"POST-1",purchased),purchased),"Missing mapping cannot be fixed by buying");
+        assertFalse(OzonStockReplenishment.canResolveByPurchase(service.inspect(shop,"UNKNOWN",purchased),purchased));
+        new OzonProductGtinMappingRepository().put(1,"SKU-1",GTIN);
+        var readiness=service.inspectAll(shop,List.of("POST-1"),purchased);
+        assertFalse(readiness.ready());assertTrue(OzonStockReplenishment.canResolveByPurchase(readiness,purchased));
+        assertFalse(OzonStockReplenishment.canResolveByPurchase(readiness,com.vncode.app.features.kiz.KizSourceSelection.SELLER_ONLY));
+        var unsupported=new OzonPrintReadiness("POST-1",false,true,2,List.of(),List.of(),List.of("requires_tracking"),"");
+        assertFalse(OzonStockReplenishment.canResolveByPurchase(unsupported,purchased));
+        try(var c=Database.getConnection();var s=c.createStatement();var r=s.executeQuery("SELECT COUNT(*) FROM znack_purchase_pipelines")){assertTrue(r.next());assertEquals(0,r.getInt(1));}
+    }
+
     private void insertKiz(int id) throws Exception {
         try (Connection connection = Database.getConnection(); Statement statement = connection.createStatement()) {
             statement.execute("INSERT INTO kiz_codes(id,shop_id,order_id,raw_code,display_code,gtin,status,legal_status,created_at,updated_at) "

@@ -139,6 +139,12 @@ public class ZnackPurchaseCoordinator {
 
     /** Persists an idempotent purchase before any remote mutation, then advances it asynchronously. */
     public long enqueue(Settings settings, String gtin, int quantity, String requestKey) throws Exception {
+        return enqueue(settings,gtin,quantity,requestKey,null);
+    }
+    public long enqueueForPrint(Settings original,String gtin,int quantity,String requestKey)throws Exception {
+        return enqueue(original.withAutoIntroduction(true),gtin,quantity,requestKey,original);
+    }
+    private long enqueue(Settings settings, String gtin, int quantity, String requestKey,Settings printOriginal) throws Exception {
         requireRequestKey(requestKey);
         ZnackPurchasePipelineState replay = replay(requestKey, gtin, quantity);
         if (replay != null) {
@@ -157,7 +163,7 @@ public class ZnackPurchaseCoordinator {
                 return replay.id();
             }
             LicenseRuntime.require(Permission.KIZ);
-            pipelineId = repository.enqueuePipeline(gtin, quantity, requestKey);
+            pipelineId = printOriginal==null?repository.enqueuePipeline(gtin, quantity, requestKey):repository.enqueuePrintPipeline(gtin,quantity,requestKey,printOriginal);
         }
         ZnackSigningSession.authorizePipeline(repository.shop().shopId(), pipelineId);
         ZnackPipelineQueueExecutor.submit(repository.shop().shopId(), gtin, () -> advanceEnqueued(pipelineId));

@@ -138,6 +138,13 @@ public final class ZnackModels {
                     cryptoProTimeoutSeconds, defaultGoodsDocument().equals(new GoodsDocument(type,number,date))?documentExpiryDate:"", type);
         }
 
+        public Settings withAutoIntroduction(boolean enabled) {
+            return new Settings(trueApiBaseUrl,suzBaseUrl,omsId,omsConnection,participantInn,producerInn,ownerInn,
+                    signerExecutable,signerCertificate,signerArgumentsJson,documentNumber,documentDate,pdfFolder,enabled,
+                    certificateListExecutable,certificateListArgumentsJson,certificateMetadataJson,signerTestedAt,
+                    certmgrPath,cryptcpPath,csptestPath,cryptoProTimeoutSeconds,documentExpiryDate,documentType);
+        }
+
         public boolean hasDefaultGoodsDocument() {
             return defaultGoodsDocument().complete();
         }

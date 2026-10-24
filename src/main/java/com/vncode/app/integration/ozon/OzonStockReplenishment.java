@@ -6,6 +6,14 @@ import java.util.*;
 
 /** Called only from a seller's print action, never from background readiness rendering. */
 public final class OzonStockReplenishment {
+    public static boolean canResolveByPurchase(OzonBatchPrintReadiness readiness,KizSourceSelection sources){
+        return sources!=null&&sources.purchased()&&!readiness.postings().isEmpty()
+                &&readiness.postings().stream().allMatch(row->canResolveByPurchase(row,sources));
+    }
+    public static boolean canResolveByPurchase(OzonPrintReadiness row,KizSourceSelection sources){
+        return row.ready()||sources!=null&&sources.purchased()&&row.postingAvailable()
+                &&row.missingSkus().isEmpty()&&row.unsupportedRequirements().isEmpty()&&!row.gtinAvailability().isEmpty();
+    }
     public void forPrint(Shop shop,List<String> numbers)throws Exception {forPrint(shop,numbers,null);}
     public void forPrint(Shop shop,List<String> numbers,KizSourceSelection sources)throws Exception {
         if(sources!=null&&!sources.purchased())return;

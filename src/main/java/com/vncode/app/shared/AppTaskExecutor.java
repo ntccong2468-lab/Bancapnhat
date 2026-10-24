@@ -19,6 +19,8 @@ public final class AppTaskExecutor {
         }
     },new ThreadPoolExecutor.AbortPolicy());
 
+    // Print workers may wait for a paid pipeline for minutes. Keep ordinary UI work available.
+    private static final ThreadPoolExecutor PRINT_EXECUTOR=new ThreadPoolExecutor(2,2,0,TimeUnit.MILLISECONDS,new ArrayBlockingQueue<>(16),r->{Thread t=new Thread(r,"vncode-print-"+THREAD_COUNTER.getAndIncrement());t.setDaemon(true);return t;},new ThreadPoolExecutor.AbortPolicy());
     private static final ThreadPoolExecutor CATALOG_EXECUTOR=new ThreadPoolExecutor(2,2,0,TimeUnit.MILLISECONDS,new ArrayBlockingQueue<>(20),r->{Thread t=new Thread(r,"vncode-catalog-read-"+THREAD_COUNTER.getAndIncrement());t.setDaemon(true);return t;},new ThreadPoolExecutor.AbortPolicy());
     private static final ScheduledExecutorService CATALOG_TIMEOUT=Executors.newSingleThreadScheduledExecutor(r->{Thread t=new Thread(r,"vncode-catalog-deadline");t.setDaemon(true);return t;});
     /** Catalog reads cannot starve UI tasks. Their wait is bounded, including queue time. */
@@ -42,12 +44,17 @@ public final class AppTaskExecutor {
     private AppTaskExecutor() {
     }
 
-    public static boolean execute(Task<?> task) {
+    public static boolean execute(Task<?> task) {return execute(task,EXECUTOR);}
+    public static boolean executePrint(Task<?> task,Consumer<Throwable> rejected){
+        if(execute(task,PRINT_EXECUTOR))return true;
+        rejected.accept(new RejectedExecutionException(I18nService.getInstance().tr("runtime.queue_full")));return false;
+    }
+    private static boolean execute(Task<?> task,ThreadPoolExecutor executor) {
         Objects.requireNonNull(task);
         var continuation=UpdateHandoff.continuation();
         ACTIVE_TASK_COUNT.incrementAndGet();
         try {
-            EXECUTOR.execute(() -> {
+            executor.execute(() -> {
                 try (var work=UpdateHandoff.work(continuation)) {
                     task.run();
                 } catch (CancellationException stopped) {
@@ -69,7 +76,7 @@ public final class AppTaskExecutor {
         if(execute(task))return true;
         rejected.accept(new RejectedExecutionException(I18nService.getInstance().tr("runtime.queue_full")));return false;
     }
-    public static int pendingCount(){return EXECUTOR.getQueue().size();}
+    public static int pendingCount(){return EXECUTOR.getQueue().size()+PRINT_EXECUTOR.getQueue().size();}
 
     public static boolean hasRunningTasks() {
         return ACTIVE_TASK_COUNT.get() > 0 || SellerMutationExecutor.activeCount() > 0 || SellerMutationExecutor.pendingCount() > 0 || com.vncode.app.features.sync.SyncRuntime.hasActiveWrites();
@@ -80,6 +87,6 @@ public final class AppTaskExecutor {
     }
 
     public static void shutdown() {
-        EXECUTOR.shutdown();CATALOG_EXECUTOR.shutdown();CATALOG_TIMEOUT.shutdownNow();
+        EXECUTOR.shutdown();PRINT_EXECUTOR.shutdown();CATALOG_EXECUTOR.shutdown();CATALOG_TIMEOUT.shutdownNow();
     }
 }

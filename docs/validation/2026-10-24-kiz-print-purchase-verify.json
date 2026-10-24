@@ -1,0 +1,88 @@
+{
+  "dateUtc": "2026-10-24",
+  "branch": "fix/update-gtin-ozon-fbs-layout",
+  "baseCommit": "ce56ee3",
+  "sourceTreeSha256": "06df14f553ad61b717ccbfe021a6b7b9ab76bb7eafabb7ff7a2e8c0dd585c4a8",
+  "sourceTreeHashMethod": "Sorted pom.xml, src/main and src/test files: relative path + NUL + binary SHA256 digest per file",
+  "maven": {
+    "command": "DISPLAY=:99 /workspace/toolchains/mvn-vncode -o -B clean verify",
+    "result": "PENDING",
+    "log": "/tmp/vncode-1514-full-verify.log"
+  },
+  "targeted": {
+    "mainTests": 118,
+    "mainPassed": 118,
+    "afterFinalLocaleChangeTests": 21,
+    "afterFinalLocaleChangePassed": 21,
+    "fxmlSmokeTests": 57,
+    "sessionTests": 12,
+    "dialogTests": 3,
+    "languages": 4,
+    "dialogReportRows": 200
+  },
+  "purchaseProofBeforeContinuation": {
+    "commit": "ce56ee3",
+    "sourceTreeSha256": "3088a54e0c24b40dc6f4cfc60b666eae06f2a73579a91cbf652f65d586ace9d2",
+    "tests": 2963,
+    "passed": 2961,
+    "skipped": 2,
+    "failures": 0,
+    "errors": 0
+  },
+  "scenarios": [
+    "no purchase before Apply",
+    "Cancel sends no paid request",
+    "WB and Ozon shortage 5 needed / 2 available buys 3",
+    "RECEIVED is not circulation",
+    "one export after circulation",
+    "pending purchase resumes without duplicate",
+    "ambiguous result retains one original request",
+    "failed introduction blocks export",
+    "changed owner/settings stops old print",
+    "per-print circulation profile survives repository restart",
+    "global and older pipeline settings unchanged",
+    "profile conflict rolls back with clean integrity and FK checks",
+    "two waiting print tasks leave ordinary UI workers available"
+  ],
+  "livePaidKizPurchaseVerified": false,
+  "liveProductionIntroductionVerified": false,
+  "liveMarketplaceAttachmentVerified": false,
+  "simulatedPurchaseTests": true,
+  "actualJavaFxButtonsOnXvfb": true,
+  "nativeWindowsVerifiedForThisCode": false,
+  "pdfAutoContinuationPersistsAcrossRestart": false,
+  "paidPipelinePersistsAcrossRestart": true,
+  "installerBuilt": false,
+  "latestChanged": false,
+  "priorUploadedFileValidation": {
+    "file": "zl.txt",
+    "realOzonValidation": true,
+    "requests": 200,
+    "accepted": 0,
+    "rejected": 200,
+    "cryptotailError": 200,
+    "alsoIncorrectStatus": 7,
+    "attachedToLiveOrders": false
+  },
+  "version": "1.5.14",
+  "mavenBeforeFairnessFixtureFix": {
+    "sourceTreeSha256": "04fdda4f13c00784a66f5639c9229f904f9263d0ae6389dcba5ee82d703578b0",
+    "tests": 2980,
+    "failures": 1,
+    "errors": 0,
+    "skipped": 2,
+    "result": "BUILD FAILURE",
+    "reason": "Concurrent callback order depended on OS scheduling; replaced with a deterministic queue fairness scenario while retaining 10000-order stress coverage."
+  },
+  "lastTargeted": {
+    "tests": 37,
+    "passed": 37,
+    "failed": 0
+  },
+  "node": {
+    "tests": 117,
+    "passed": 117,
+    "failed": 0
+  },
+  "releaseRequested": true
+}

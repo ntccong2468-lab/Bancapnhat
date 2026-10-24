@@ -10,6 +10,21 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class AppTaskExecutorTest {
     @BeforeAll static void fx() throws Exception {var ready=new CountDownLatch(1);try{Platform.startup(ready::countDown);}catch(IllegalStateException started){Platform.runLater(ready::countDown);}assertTrue(ready.await(5,TimeUnit.SECONDS));Platform.setImplicitExit(false);}
+    @Test void twoPrintsWaitingForCirculationDoNotStarveOrdinaryUiWork()throws Exception{
+        var started=new CountDownLatch(2);var release=new CountDownLatch(1);var tasks=new java.util.ArrayList<Task<Void>>();
+        try{
+            for(int i=0;i<2;i++){
+                var task=new Task<Void>(){protected Void call()throws Exception{started.countDown();release.await(10,TimeUnit.SECONDS);return null;}};
+                tasks.add(task);assertTrue(AppTaskExecutor.executePrint(task,error->fail(error)));
+            }
+            assertTrue(started.await(5,TimeUnit.SECONDS));
+            var ordinary=new Task<String>(){protected String call(){return "UI remains available";}};
+            assertTrue(AppTaskExecutor.execute(ordinary));assertEquals("UI remains available",ordinary.get(2,TimeUnit.SECONDS));
+            assertTrue(AppTaskExecutor.hasRunningTasks());
+        }finally{release.countDown();for(var task:tasks)task.get(10,TimeUnit.SECONDS);
+            long deadline=System.nanoTime()+TimeUnit.SECONDS.toNanos(5);while(AppTaskExecutor.hasRunningTasks()&&System.nanoTime()<deadline)Thread.sleep(5);
+        }
+    }
     @Test void fullQueueRejectsBeforeActionAndDoesNotLeaveBusy() throws Exception {
         var started=new CountDownLatch(2);var release=new CountDownLatch(1);var accepted=new java.util.ArrayList<Task<Void>>();var writes=new AtomicInteger();var busy=new AtomicBoolean(true);
         try {

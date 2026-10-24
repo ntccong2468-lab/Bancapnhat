@@ -19,6 +19,7 @@ public final class KizPurchasePendingException extends IllegalStateException {
         rows.sort(Comparator.comparing(Deficit::gtin));deficits=List.copyOf(rows);
     }
     public List<Deficit> deficits(){return deficits;}
+    public String reason(){return reason;}
     public String display(){
         var i18n=I18nService.getInstance();
         String rows=deficits.stream().map(d->MessageFormat.format(i18n.tr("kiz.pending.deficit"),d.gtin(),d.required(),d.available(),d.missing()))

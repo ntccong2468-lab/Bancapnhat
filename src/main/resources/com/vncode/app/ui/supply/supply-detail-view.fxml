@@ -56,12 +56,7 @@
             </children>
         </FlowPane>
         <Label fx:id="supplyMetaLabel" managed="false" style="-fx-text-fill: #6c757d;" text="" visible="false" />
-        <HBox fx:id="stickerLoadingBox" alignment="CENTER_LEFT" managed="false" spacing="8.0" visible="false">
-            <children>
-                <ProgressIndicator fx:id="stickerLoading" maxHeight="18.0" maxWidth="18.0" prefHeight="18.0" prefWidth="18.0" visible="false" />
-                <Label fx:id="stickerLoadingLabel" style="-fx-text-fill: #6c757d;" text="%supply.loading_stickers" />
-            </children>
-        </HBox>
+
         <HBox fx:id="sortOptionsBox" alignment="CENTER_LEFT" managed="false" spacing="14.0" visible="false">
             <children>
                 <CheckBox fx:id="sortBySubjectCheckBox" mnemonicParsing="false" selected="true" text="%supply.sort.subject" />
@@ -94,6 +89,13 @@
                                 <Label fx:id="orderLoadingLabel" style="-fx-text-fill: #6c757d;" text="%supply.loading_orders" />
                             </children>
                         </VBox>
+        <HBox fx:id="stickerLoadingBox" alignment="CENTER" maxWidth="940" maxHeight="-Infinity" styleClass="task-status-pill" StackPane.alignment="BOTTOM_CENTER" managed="false" spacing="8.0" visible="false">
+            <StackPane.margin><Insets bottom="12" left="12" right="12"/></StackPane.margin>
+            <children>
+                <ProgressIndicator fx:id="stickerLoading" maxHeight="18.0" maxWidth="18.0" prefHeight="18.0" prefWidth="18.0" visible="false" />
+                <Label fx:id="stickerLoadingLabel" wrapText="true" maxWidth="860" text="%supply.loading_stickers" />
+            </children>
+        </HBox>
                     </children>
                 </StackPane>
                 <VBox fx:id="gtinInventoryPane" visible="false" managed="false" maxWidth="520.0" minWidth="360.0" prefWidth="420.0" spacing="10.0" styleClass="surface, gtin-inventory-pane">

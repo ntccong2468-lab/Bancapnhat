@@ -191,7 +191,7 @@ class KizAttachmentCoordinatorTest {
         queued.getFirst().run();assertEquals(100,calls.get());assertFalse(coordinator.hasActiveJobs());
     }
 
-    @Test void tenShopsWithThousandOrdersStayBoundedFairScopedAndThrottled()throws Exception {
+    @Test void tenShopsWithThousandOrdersStayBoundedScopedAndThrottled()throws Exception {
         var executor=Executors.newFixedThreadPool(4);var started=new CountDownLatch(2);var release=new CountDownLatch(1);var finished=new CountDownLatch(10);
         var inFlight=new AtomicInteger();var peak=new AtomicInteger();var calls=new AtomicInteger();
         Map<String,AtomicInteger> perShop=new ConcurrentHashMap<>();Set<String> sent=ConcurrentHashMap.newKeySet();List<Integer> orderOfShops=new CopyOnWriteArrayList<>();
@@ -213,8 +213,34 @@ class KizAttachmentCoordinatorTest {
             for(int shop=1;shop<=10;shop++)coordinator.enqueue(new Shop(shop,"Shop "+shop,"token-"+shop),"SUP-"+shop,"Supply",assignments(shop,1000));
             assertTrue(started.await(5,TimeUnit.SECONDS));assertEquals(2,inFlight.get());release.countDown();
             assertTrue(finished.await(20,TimeUnit.SECONDS));assertEquals(10000,calls.get());assertEquals(10000,sent.size());assertEquals(2,peak.get());assertFalse(coordinator.hasActiveJobs());
-            for(int shop=1;shop<=10;shop++){assertEquals(1000,last.get(shop).completed());assertEquals(1000,last.get(shop).successfulKizCodes().size());assertTrue(updates.get(shop)<=27,"Progress must have at most 25 intermediate updates plus start/end");assertTrue(orderOfShops.indexOf(shop)<50,"Waiting shop "+shop+" must start before a large supply monopolizes workers");}
+            for(int shop=1;shop<=10;shop++){assertEquals(1000,last.get(shop).completed());assertEquals(1000,last.get(shop).successfulKizCodes().size());assertTrue(updates.get(shop)<=27,"Progress must have at most 25 intermediate updates plus start/end");}
         } finally {release.countDown();executor.shutdownNow();}
+    }
+
+    @Test void waitingShopsRotateWhileAnotherWriterIsBlocked()throws Exception{
+        // A reserved writer may be descheduled by the OS. Test queue fairness with one
+        // writer deliberately held, instead of asserting callback order across CPU threads.
+        var scheduled=new CopyOnWriteArrayList<Runnable>();var entered=new CountDownLatch(1);var release=new CountDownLatch(1);
+        var order=new CopyOnWriteArrayList<Integer>();var calls=new AtomicInteger();
+        try(var worker=Executors.newSingleThreadExecutor()){
+            var coordinator=new KizAttachmentCoordinator(scheduled::add,new KizAttachmentCoordinator.AttachmentClient(){
+                public KizService.RemoveMetaResult remove(String token,long id){throw new AssertionError();}
+                public KizService.AttachCodeResult attach(String token,long id,String code)throws java.io.IOException{
+                    int shop=Integer.parseInt(token.substring(6));
+                    if(shop==1&&id==1){entered.countDown();try{if(!release.await(10,TimeUnit.SECONDS))throw new AssertionError("Held writer not released");}
+                        catch(InterruptedException interrupted){Thread.currentThread().interrupt();throw new java.io.IOException(interrupted);}}
+                    order.add(shop);calls.incrementAndGet();return new KizService.AttachCodeResult(true,204,"");
+                }
+            });
+            try{
+                for(int shop=1;shop<=10;shop++)coordinator.enqueue(new Shop(shop,"Shop "+shop,"token-"+shop),"SUP-"+shop,"Supply",assignments(shop,100));
+                assertEquals(2,scheduled.size());var held=worker.submit(scheduled.getFirst());assertTrue(entered.await(5,TimeUnit.SECONDS));
+                scheduled.get(1).run();
+                for(int shop=2;shop<=10;shop++){assertTrue(order.indexOf(shop)<20,"A waiting shop must run before a large queue drains");assertFalse(coordinator.hasActiveJobForShop(shop));}
+                assertTrue(coordinator.hasActiveJobForShop(1));assertEquals(900,calls.get());
+                release.countDown();held.get(10,TimeUnit.SECONDS);assertEquals(1000,calls.get());assertFalse(coordinator.hasActiveJobs());
+            }finally{release.countDown();}
+        }
     }
 
     @Test void cancellationKeepsAcceptedFirstUnitAndDoesNotSendRemainingUnits()throws Exception {

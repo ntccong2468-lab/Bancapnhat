@@ -576,7 +576,12 @@ public final class ZnackRepository {
     public long createPipeline(String gtin,int quantity){return createPipeline(gtin,quantity,null);}
     public long createPipeline(String gtin,int quantity,String requestKey){return insertPipeline(gtin,quantity,requestKey,PurchaseStage.VALIDATING);}
     /** Persists a FIFO request without rejecting a second click for the same GTIN. */
-    public long enqueuePipeline(String gtin,int quantity,String requestKey){
+    public long enqueuePipeline(String gtin,int quantity,String requestKey){return enqueuePipeline(gtin,quantity,requestKey,null);}
+    /** Print consent includes introduction; keep it in this pipeline without changing shop preferences. */
+    public long enqueuePrintPipeline(String gtin,int quantity,String requestKey,Settings expected){
+        return enqueuePipeline(gtin,quantity,requestKey,java.util.Objects.requireNonNull(expected));
+    }
+    private long enqueuePipeline(String gtin,int quantity,String requestKey,Settings expected){
         String normalized=GtinNormalizer.normalize(gtin);
         String key=requestKey==null||requestKey.isBlank()?java.util.UUID.randomUUID().toString():requestKey;
         String now=Instant.now().toString();
@@ -595,6 +600,13 @@ public final class ZnackRepository {
                     try(ResultSet rows=active.executeQuery()){busy=rows.next();}
                 }
                 long id=insertPipeline(c,normalized,quantity,key,busy?PurchaseStage.QUEUED:PurchaseStage.VALIDATING,now);
+                if(expected!=null){
+                    if(!expected.equals(getSettings(c)))throw new SettingsConflictException();
+                    try(var profile=c.prepareStatement("UPDATE znack_pipeline_connections SET settings_json=? WHERE shop_id=? AND pipeline_id=?")){
+                        profile.setString(1,com.vncode.app.features.products.ProductJson.GSON.toJson(expected.withAutoIntroduction(true)));
+                        profile.setInt(2,shop.shopId());profile.setLong(3,id);profile.executeUpdate();
+                    }
+                }
                 tx.execute("COMMIT");
                 return id;
             }catch(SQLException | RuntimeException error){tx.execute("ROLLBACK");throw error;}

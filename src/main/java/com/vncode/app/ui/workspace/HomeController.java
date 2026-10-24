@@ -1088,131 +1088,77 @@ public class HomeController implements Initializable {
         catch(IllegalStateException unavailable){AlertService.showError(com.vncode.app.shared.FriendlyErrorService.format(unavailable));return;}
         if(!kizSources.anySelected()){AlertService.showError(com.vncode.app.features.kiz.KizErrorMessages.message("KIZ_SOURCE_REQUIRED"));return;}
 
-        Task<Void> checkTask = new Task<>() {
-            @Override
-            protected Void call() throws Exception {
-                orderExportWorkflow.verifyKizAvailability(exportOrders, shop,kizSources);
+        Task<Void> preflight=new Task<>(){
+            protected Void call()throws Exception{
+                com.vncode.app.features.kiz.KizPrintPurchaseSession.preflight(shop,()->{orderExportWorkflow.verifyKizAvailability(exportOrders,shop,kizSources);return null;});
                 return null;
             }
         };
-
-        checkTask.setOnRunning(e -> {
-            markShopRunning(shop.getId(), true);
-            if (isCurrentExportRequest(shop.getId(), supplyId, exportRequestToken)) {
-                supplyDetailController.setStickerLoading(true, i18nService.tr("supply.loading_orders"));
-            }
-        });
-        java.util.function.Consumer<Throwable> checkTaskFailure = rejection -> {
-            markShopRunning(shop.getId(), false);
-            if (!isCurrentExportRequest(shop.getId(), supplyId, exportRequestToken)) return;
-            if (supplyDetailController != null) {
-                supplyDetailController.setStickerLoading(false);
-            }
-            Throwable ex = rejection;
-            if(com.vncode.app.features.kiz.KizPurchasePendingException.isPending(ex))LOGGER.info("Printing waits for KIZ stock for shop {}",shop.getId());
-            else LOGGER.error("Verify KIZ thất bại cho shop {}", shop.getId(), ex);
-            AlertService.showPrintFailure(ex);
+        markShopRunning(shop.getId(),true);
+        supplyDetailController.setStickerLoading(true,i18nService.tr("supply.loading_orders"));
+        java.util.function.Consumer<Throwable> failed=error->{
+            markShopRunning(shop.getId(),false);
+            if(!isCurrentExportRequest(shop.getId(),supplyId,exportRequestToken))return;
+            supplyDetailController.setStickerLoading(false);AlertService.showPrintFailure(error);
         };
-        checkTask.setOnFailed(e -> checkTaskFailure.accept(checkTask.getException()));
-        checkTask.setOnSucceeded(e -> {
-            if (!isCurrentExportRequest(shop.getId(), supplyId, exportRequestToken)) {
-                markShopRunning(shop.getId(), false);
-                return;
-            }
-            if (supplyDetailController != null) {
-                supplyDetailController.setStickerLoading(false);
-            }
-
-            javafx.application.Platform.runLater(() -> {
-                boolean exportStarted = false;
-                try {
-                    if (!isCurrentExportRequest(shop.getId(), supplyId, exportRequestToken)) return;
-                    Optional<PrintJobOptions> printOptions = printOptionsDialogService.chooseOptions();
-                    if (printOptions.isEmpty() || !isCurrentExportRequest(shop.getId(), supplyId, exportRequestToken)) {
-                        return;
-                    }
-
-                    preparePdfSaveChooser();
-                    File file = fileChooser.showSaveDialog(null);
-                    if (file == null || !isCurrentExportRequest(shop.getId(), supplyId, exportRequestToken)) {
-                        return;
-                    }
-
-                    File orderDetailsFile = new File(file.getParent(), "NHAT_HANG-" + file.getName());
-                    var outputLease=com.vncode.app.shared.ShopBatchRegistry.claim(shop,"wb-print",List.of(file.toPath(),orderDetailsFile.toPath())).orElse(null);
-                    if(outputLease==null){AlertService.showError(i18nService.tr("ozon.batch.target_busy"));return;}
-                    Task<OrderExportWorkflow.ExportResult> exportTask = new Task<>() {
-                        @Override
-                        protected OrderExportWorkflow.ExportResult call() throws Exception {
-                            List<Order> ordersWithStickers = supplyLoadWorkflow.enrichStickers(shop, exportOrders);
-                            var result=orderExportWorkflow.export(
-                                    new OrderExportWorkflow.ExportRequest(
-                                            shop,
-                                            supplyId,
-                                            supplyName,
-                                            ordersWithStickers,
-                                            printOptions.get(),
-                                            file,
-                                            orderDetailsFile,
-                                            kizSources
-                                    )
-                            );
-                            if(result.kizAttachments()!=null&&!result.kizAttachments().isEmpty())
-                                kizAttachmentCoordinator.enqueue(shop,supplyId,supplyName,result.kizAttachments());
-                            return result;
-                        }
-                    };
-
-                    exportTask.setOnRunning(ev -> {
-                        markShopRunning(shop.getId(), true);
-                        if (isCurrentExportRequest(shop.getId(), supplyId, exportRequestToken)) {
-                            supplyDetailController.setStickerLoading(true, i18nService.tr("supply.preparing_pdf"));
-                        }
-                    });
-                    java.util.function.Consumer<Throwable> exportTaskFailure = rejection -> {
-                        outputLease.close();
-                        markShopRunning(shop.getId(), false);
-                        if (!isCurrentExportRequest(shop.getId(), supplyId, exportRequestToken)) return;
-                        if (supplyDetailController != null) {
-                            supplyDetailController.setStickerLoading(false);
-                        }
-                        Throwable ex = rejection;
-                        if(com.vncode.app.features.kiz.KizPurchasePendingException.isPending(ex))LOGGER.info("Export waits for KIZ stock for shop {}",shop.getId());
-                        else LOGGER.error("Export thất bại cho shop {}", shop.getId(), ex);
-                        AlertService.showPrintFailure(ex);
-                    };
-        exportTask.setOnFailed(ev -> exportTaskFailure.accept(exportTask.getException()));
-                    exportTask.setOnSucceeded(ev -> {
-                        outputLease.close();
-                        markShopRunning(shop.getId(), false);
-                        OrderExportWorkflow.ExportResult result = exportTask.getValue();
-                        if (!isCurrentExportRequest(shop.getId(), supplyId, exportRequestToken)) return;
-                        supplyDetailController.setStickerLoading(false);
-                        state.setLoadedOrdersRaw(result.exportedOrders());
-                        applySortAndDisplayOrders();
-                        clearKizDraft();
-                        tryOpenFile(orderDetailsFile);
-                        tryOpenFile(file);
-                        if (isPrintHistoryVisible()) {
-                            refreshPrintHistory();
-                        }
-                        if (isPackingVisible()) {
-                            refreshPackingView();
-                        }
-                    });
-                    exportStarted = AppTaskExecutor.execute(exportTask, exportTaskFailure);
-                } finally {
-                    if (!exportStarted) markShopRunning(shop.getId(), false);
-                }
-            });
+        preflight.setOnFailed(event->failed.accept(preflight.getException()));
+        preflight.setOnSucceeded(event->{
+            if(!isCurrentExportRequest(shop.getId(),supplyId,exportRequestToken)){markShopRunning(shop.getId(),false);return;}
+            startWbLabelExport(shop,supplyId,supplyName,exportRequestToken,exportOrders,kizSources);
         });
-        markShopRunning(shop.getId(), true);
-        try {
-            AppTaskExecutor.execute(checkTask, checkTaskFailure);
-        } catch (RuntimeException error) {
-            markShopRunning(shop.getId(), false);
-            throw error;
-        }
+        AppTaskExecutor.execute(preflight,failed);
+    }
+
+    private void startWbLabelExport(Shop shop,String supplyId,String supplyName,long exportRequestToken,List<Order> exportOrders,com.vncode.app.features.kiz.KizSourceSelection kizSources){
+        boolean started=false;
+        try{
+            Optional<PrintJobOptions> printOptions = printOptionsDialogService.chooseOptions();
+            if(printOptions.isEmpty()||!isCurrentExportRequest(shop.getId(),supplyId,exportRequestToken))return;
+            preparePdfSaveChooser();
+            File file=fileChooser.showSaveDialog(null);
+            if(file==null||!isCurrentExportRequest(shop.getId(),supplyId,exportRequestToken))return;
+            File orderDetailsFile=new File(file.getParent(),"NHAT_HANG-"+file.getName());
+            var outputLease=com.vncode.app.shared.ShopBatchRegistry.claim(shop,"wb-print",List.of(file.toPath(),orderDetailsFile.toPath())).orElse(null);
+            if(outputLease==null){AlertService.showError(i18nService.tr("ozon.batch.target_busy"));return;}
+            Task<OrderExportWorkflow.ExportResult> exportTask=new Task<>(){
+                protected OrderExportWorkflow.ExportResult call()throws Exception{
+                    var session=new com.vncode.app.features.kiz.KizPrintPurchaseSession(shop,
+                        proposal->com.vncode.app.ui.kiz.KizPrintPurchaseDialog.confirm(shop,proposal,this::isCancelled),
+                        this::updateMessage,this::isCancelled);
+                    return session.run(()->{
+                        orderExportWorkflow.verifyKizAvailability(exportOrders,shop,kizSources);
+                        updateMessage(i18nService.tr("supply.preparing_pdf"));
+                        var enriched=supplyLoadWorkflow.enrichStickers(shop,exportOrders);
+                        var result=orderExportWorkflow.export(new OrderExportWorkflow.ExportRequest(shop,supplyId,supplyName,enriched,printOptions.get(),file,orderDetailsFile,kizSources));
+                        if(result.kizAttachments()!=null&&!result.kizAttachments().isEmpty())kizAttachmentCoordinator.enqueue(shop,supplyId,supplyName,result.kizAttachments());
+                        return result;
+                    });
+                }
+            };
+            exportTask.messageProperty().addListener((obs,oldValue,text)->{
+                if(isCurrentExportRequest(shop.getId(),supplyId,exportRequestToken)&&supplyDetailController!=null)supplyDetailController.setStickerLoading(true,text);
+            });
+            markShopRunning(shop.getId(),true);
+            supplyDetailController.setStickerLoading(true,i18nService.tr("supply.loading_orders"));
+            java.util.function.Consumer<Throwable> failed=error->{
+                outputLease.close();markShopRunning(shop.getId(),false);
+                if(!isCurrentExportRequest(shop.getId(),supplyId,exportRequestToken))return;
+                supplyDetailController.setStickerLoading(false);
+                if(error instanceof java.util.concurrent.CancellationException)return;
+                AlertService.showPrintFailure(error);
+            };
+            exportTask.setOnFailed(event->failed.accept(exportTask.getException()));
+            exportTask.setOnCancelled(event->failed.accept(new java.util.concurrent.CancellationException()));
+            exportTask.setOnSucceeded(event->{
+                outputLease.close();markShopRunning(shop.getId(),false);
+                if(!isCurrentExportRequest(shop.getId(),supplyId,exportRequestToken))return;
+                var result=exportTask.getValue();supplyDetailController.setStickerLoading(false);
+                state.setLoadedOrdersRaw(result.exportedOrders());applySortAndDisplayOrders();clearKizDraft();
+                tryOpenFile(orderDetailsFile);tryOpenFile(file);
+                if(isPrintHistoryVisible())refreshPrintHistory();if(isPackingVisible())refreshPackingView();
+            });
+            started=AppTaskExecutor.executePrint(exportTask,failed);
+        }finally{if(!started){markShopRunning(shop.getId(),false);if(isCurrentExportRequest(shop.getId(),supplyId,exportRequestToken))supplyDetailController.setStickerLoading(false);}}
     }
 
     private boolean isCurrentExportRequest(int shopId, String supplyId, long requestToken) {

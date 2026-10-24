@@ -16,6 +16,7 @@ public final class KizErrorMessages {
             case "KIZ_GTIN_MAPPING_MISSING"->"mapping";
             case "KIZ_INVENTORY_SHORTAGE"->"shortage";
             case "KIZ_PURCHASE_PENDING"->"purchase_pending";
+            case "KIZ_PRINT_PURCHASE_NEEDS_ACTION"->"print_purchase_action";
             case "KIZ_NOT_VERIFIED"->"not_verified";
             case "KIZ_CATEGORY_REQUIRED"->"category_required";
             case "KIZ_CATEGORY_STOCK_SHORTAGE"->"category_shortage";

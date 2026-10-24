@@ -130,7 +130,7 @@ public class OrderExportWorkflow {
                 if(preparedJobId>0)try{new com.vncode.app.features.print.history.PrintHistoryRepository().finishPrintJob(request.shop().getId(),preparedJobId,"prepared","failed");}
                 catch(RuntimeException checkpointFailure){ex.addSuppressed(checkpointFailure);}
             }
-            if (!successRecorded&&preparedJobId==0&&!com.vncode.app.features.kiz.KizPurchasePendingException.isPending(ex)) {
+            if (!successRecorded&&preparedJobId==0&&!com.vncode.app.features.kiz.KizPurchasePendingException.isPending(ex)&&!(ex instanceof com.vncode.app.features.kiz.KizPrintPurchaseSession.ProposalRequired)) {
                 printHistoryService.recordFailedJob(
                         request.shop(),
                         request.supplyId(),

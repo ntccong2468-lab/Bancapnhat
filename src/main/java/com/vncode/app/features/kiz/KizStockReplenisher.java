@@ -14,9 +14,9 @@ public final class KizStockReplenisher {
     private static final Object[] LOCKS=new Object[64];static{Arrays.setAll(LOCKS,i->new Object());}
     interface Purchases {void validate(String gtin,int quantity)throws Exception;void enqueue(String gtin,int quantity,String key)throws Exception;void resume();}
     private final java.util.function.Function<Shop,Purchases> purchases;
-    public KizStockReplenisher(){this(shop->{var repository=new ZnackRepository(new ZnackModels.ShopContext(shop.getId(),shop.getName()));var settings=repository.getSettings();var coordinator=ZnackPurchaseCoordinator.create(repository);return new Purchases(){
+    public KizStockReplenisher(){this(shop->{var repository=new ZnackRepository(new ZnackModels.ShopContext(shop.getId(),shop.getName()));var original=repository.getSettings();boolean print=KizPrintPurchaseSession.active();var settings=print?original.withAutoIntroduction(true):original;var coordinator=ZnackPurchaseCoordinator.create(repository);return new Purchases(){
         public void validate(String gtin,int quantity)throws Exception{coordinator.validatePrerequisites(settings,gtin,quantity);}
-        public void enqueue(String gtin,int quantity,String key)throws Exception{coordinator.enqueue(settings,gtin,quantity,key);}
+        public void enqueue(String gtin,int quantity,String key)throws Exception{if(print)coordinator.enqueueForPrint(original,gtin,quantity,key);else coordinator.enqueue(settings,gtin,quantity,key);}
         public void resume(){coordinator.resumeAsync(settings);}
     };});}
     KizStockReplenisher(java.util.function.Function<Shop,Purchases> purchases){this.purchases=purchases;}
@@ -59,6 +59,7 @@ public final class KizStockReplenisher {
                     p.setInt(1,shop.getId());p.setInt(2,shop.getId());try(var r=p.executeQuery()){while(r.next())waiting.add(r.getString(1));}
                 }
                 var toBuy=new TreeMap<>(missing);waiting.forEach(toBuy::remove);
+                KizPrintPurchaseSession.authorize(shop,normalized,counts,missing,toBuy);
                 if(toBuy.isEmpty()){
                     // A click after restart must wake the existing durable operation too.
                     // resume() reconciles its original request key; it never enqueues a second buy.
@@ -73,7 +74,7 @@ public final class KizStockReplenisher {
                 int enqueued=0;
                 for(var entry:toBuy.entrySet()){
                     // The shared purchase coordinator accepts one canonical UUID per paid request.
-                    ListingIdentity.require(shop);buyer.enqueue(entry.getKey(),entry.getValue(),UUID.randomUUID().toString());enqueued++;
+                    ListingIdentity.require(shop);KizPrintPurchaseSession.requesting(entry.getKey(),entry.getValue());buyer.enqueue(entry.getKey(),entry.getValue(),UUID.randomUUID().toString());enqueued++;
                 }
                 if(enqueued>0)buyer.resume();
                 return new Result(missing,enqueued,!missing.isEmpty(),"queued");
