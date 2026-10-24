@@ -5,7 +5,7 @@
   "sourceTreeSha256": "92e3150566270de6ef53ef92592bb4f1e112b4e4c78fd0e843a8097decb8e4c7",
   "windowsBuildRun": 40123187426,
   "windowsBuildUrl": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/40123187426",
-  "state": "FULL_WINDOWS_AND_LINUX_VERIFICATION_RUNNING",
+  "state": "LINUX_FULL_PASSED_WINDOWS_BUILD_RUNNING",
   "releaseRequested": true,
   "installerBuilt": false,
   "published": false,
@@ -23,5 +23,20 @@
     "conclusion": "cancelled",
     "reason": "Increase only the 117-card persistence stress test timeout for measured slower native Windows SQLite writes; application behavior unchanged."
   },
-  "recordedAt": "2026-10-24T19:03:00.957149+00:00"
+  "recordedAt": "2026-10-24T19:03:00.957149+00:00",
+  "linuxFull": {
+    "command": "DISPLAY=:99 /workspace/toolchains/mvn-vncode -o -B clean verify",
+    "result": "BUILD SUCCESS",
+    "sourceCommit": "9f6155dbbbdd6af80e09897f2f2863b479b97a33",
+    "log": "/tmp/vncode-1515-final-full-verify.log",
+    "logSha256": "b291eaf34e5cbdfe7ecbd64716b5564c0f9a891d0b6e0f0a8d87273fbae539fa",
+    "tests": 3009,
+    "passed": 3007,
+    "skipped": 2,
+    "failures": 0,
+    "errors": 0,
+    "duration": "18:44 min",
+    "finishedUtc": "2026-10-24T19:17:47Z"
+  },
+  "publisherWorkflow": "publish-vncode-1515.yml"
 }

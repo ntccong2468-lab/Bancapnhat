@@ -4,6 +4,7 @@
 
 - Người dùng yêu cầu tạo bộ cài và đưa lên Latest sau sửa gửi Catalog liên tục. Nhánh `release/vn-code-1.5.15`, mã chốt `9f6155dbbbdd6af80e09897f2f2863b479b97a33`, hash cây `92e3150566270de6ef53ef92592bb4f1e112b4e4c78fd0e843a8097decb8e4c7`. Kế thừa toàn bộ 1.5.14 và ba phần sửa trên nhánh `perf/catalog-single-card-throughput`. Release notes đã có; 117 Node contracts đạt. Bộ hồi quy Catalog trước đóng gói đạt 1.246 ca.
 - Windows build `40123187426` và Linux `clean verify` đang chạy. Lượt `40123011112` đã hủy sớm để tăng riêng timeout bài stress 117 thẻ từ 90 lên 600 giây: kiểm chứng bản trước cho thấy các bài SQLite Windows chậm hơn nhiều. Không đổi hành vi ứng dụng cho điều chỉnh này. Không tái dùng kết quả full suite bị hủy làm bằng chứng thành công.
+- Linux `clean verify` đúng SHA chốt đã **BUILD SUCCESS: 3.009 ca, 3.007 đạt, 2 bỏ qua theo OS, không lỗi/thất bại**, 18 phút 44 giây, kết thúc 19:17:47 UTC. Publisher mới ghim đúng nguồn/build/phiên bản, yêu cầu Windows đủ 3.009 ca và bằng chứng native/upgrade trước khi tạo tag/draft, kiểm tra đủ tài sản rồi mới đặt Latest. Năm khối JavaScript trong YAML đã kiểm tra cú pháp; 117 Node contracts đạt. [Biên nhận trước công bố](validation/2026-10-24-vncode-1515-prebuild.json).
 - Latest vẫn là v1.5.14. Chỉ công bố 1.5.15 sau khi build đúng SHA, full suite, native/DPAPI/cài-gỡ/nâng cấp từ 1.5.14 giữ dữ liệu, asset/checksum/tag đều đạt. Giữ các release cũ. [Trạng thái bàn giao](validation/2026-10-24-vncode-1515-release-state.json).
 
 ## Tối ưu gửi từng thẻ sau 1.5.14 — 24.10.2026

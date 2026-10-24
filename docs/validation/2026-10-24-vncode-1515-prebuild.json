@@ -1,0 +1,42 @@
+{
+  "recordedAt": "2026-10-24T19:18:17.949910+00:00",
+  "version": "1.5.15",
+  "branch": "release/vn-code-1.5.15",
+  "sourceCommit": "9f6155dbbbdd6af80e09897f2f2863b479b97a33",
+  "sourceTreeSha256": "92e3150566270de6ef53ef92592bb4f1e112b4e4c78fd0e843a8097decb8e4c7",
+  "sourceTreeHashMethod": "Sorted pom.xml, src/main and src/test files: relative path + NUL + binary SHA256 digest per file",
+  "maven": {
+    "command": "DISPLAY=:99 /workspace/toolchains/mvn-vncode -o -B clean verify",
+    "result": "BUILD SUCCESS",
+    "sourceCommit": "9f6155dbbbdd6af80e09897f2f2863b479b97a33",
+    "log": "/tmp/vncode-1515-final-full-verify.log",
+    "logSha256": "b291eaf34e5cbdfe7ecbd64716b5564c0f9a891d0b6e0f0a8d87273fbae539fa",
+    "tests": 3009,
+    "passed": 3007,
+    "skipped": 2,
+    "failures": 0,
+    "errors": 0,
+    "duration": "18:44 min",
+    "finishedUtc": "2026-10-24T19:17:47Z"
+  },
+  "node": {
+    "tests": 117,
+    "passed": 117,
+    "failed": 0,
+    "logSha256": "fe4b95cb37b9ce624f0acdc5f0430143329f01cc4ea55b1e2c4116078434e515"
+  },
+  "catalogRegression": {
+    "tests": 1246,
+    "passed": 1246,
+    "sourceCommit": "59c3dc524d0bc0578aaaa1f320f225bf6769a841",
+    "evidence": "2026-10-24-catalog-continuous-submission-verify.json",
+    "subsumedByReleaseFullSuite": true
+  },
+  "releaseRequested": true,
+  "windowsBuildRun": 40123187426,
+  "windowsBuildPending": true,
+  "liveCatalogWriteVerified": false,
+  "liveMarketplaceWriteVerified": false,
+  "paidKizPurchaseVerified": false,
+  "latestChanged": false
+}
