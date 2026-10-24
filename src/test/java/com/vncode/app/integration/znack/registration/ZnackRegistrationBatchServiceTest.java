@@ -258,15 +258,40 @@ class ZnackRegistrationBatchServiceTest {
         assertEquals(List.of("SUBMITTED","CANCELLED","CANCELLED"),items.stream().map(ZnackRegistrationBatchStore.Item::state).toList());
         assertTrue(repository.find(1,items.getFirst().sku().chrtId()).hasFeed());
     }
-    @Test void fiveReadFailuresPauseWithoutRepeatingAnAcceptedFeedAndResumeReconcilesOnly()throws Exception{
+    @Test void repeatedReadFailuresKeepWaitingAndReconcileWithoutRepeatingAcceptedFeeds()throws Exception{
         api.statusReadFailure=503;var service=service((owner,row,sign)->draft,Runnable::run);
         String run=service.start(shop,selection(),false);
-        for(int attempt=1;attempt<5;attempt++){retryNow(run);assertTrue(service.resumePending(shop));}
-        assertEquals(ZnackRegistrationBatchService.State.PAUSED,service.latest(shop).state());
-        assertTrue(service.latest(shop).detail().contains("ZNACK_BATCH_RETRY_LIMIT_REACHED"));
-        assertEquals(3,api.submits.get());assertEquals(3,api.allocations.get());assertFalse(service.resumePending(shop));
-        api.statusReadFailure=0;assertTrue(service.resumePaused(shop));assertEquals(3,service.latest(shop).submitted());
+        for(int attempt=1;attempt<12;attempt++){retryNow(run);assertTrue(service.resumePending(shop));}
+        assertEquals(ZnackRegistrationBatchService.State.WAITING_REMOTE,service.latest(shop).state());
+        assertEquals("CATALOG_READBACK_RETRY_PENDING",service.latest(shop).detail());
+        assertTrue(new ZnackRegistrationBatchStore().latest(shop).retryAt().isAfter(java.time.Instant.now().plusSeconds(299)));
         assertEquals(3,api.submits.get());assertEquals(3,api.allocations.get());
+        api.statusReadFailure=0;retryNow(run);assertTrue(service.resumePending(shop));assertEquals(3,service.latest(shop).submitted());
+        assertEquals(3,api.submits.get());assertEquals(3,api.allocations.get());
+    }
+    @Test void remainingUnsentCardsPrecedeOldReadbacksAfterACooldown()throws Exception{
+        api.statusReadFailure=429;var service=service((owner,row,sign)->draft,Runnable::run);String run=service.start(shop,selection(),false);
+        assertEquals(1,api.submits.get());assertEquals(1,service.latest(shop).acceptedFeeds());
+        var firstReadAfterResume=new AtomicInteger();api.beforeFeedRead=()->firstReadAfterResume.compareAndSet(0,api.submits.get());
+        api.statusReadFailure=0;retryNow(run);assertTrue(service.resumePending(shop));
+        assertEquals(2,firstReadAfterResume.get(),"Send the next unsent card before querying the older accepted receipt again");
+        assertEquals(3,service.latest(shop).submitted());assertEquals(3,api.submits.get());assertEquals(3,api.allocations.get());
+    }
+    @Test void upgradeRecoversOnlyTheOldAutomaticPauseAndPreservesEveryReceipt()throws Exception{
+        api.cardsVisible=false;var service=service((owner,row,sign)->draft,Runnable::run);String run=service.start(shop,selection(),false);
+        var before=selection().stream().map(row->row.gtin()+"|"+row.feedId()).toList();var store=new ZnackRegistrationBatchStore();
+        assertTrue(store.control(shop,run,"PAUSED","ZNACK_BATCH_RETRY_LIMIT_REACHED"));
+        var reopened=service((owner,row,sign)->draft,Runnable::run);int reads=api.statusReads.get();assertTrue(reopened.resumePending(shop));
+        assertEquals(ZnackRegistrationBatchService.State.WAITING_REMOTE,reopened.latest(shop).state());assertTrue(store.latest(shop).retryAt().isAfter(java.time.Instant.now()));
+        assertEquals(reads,api.statusReads.get());assertEquals(before,selection().stream().map(row->row.gtin()+"|"+row.feedId()).toList());
+        api.cardsVisible=true;retryNow(run);assertTrue(reopened.resumePending(shop));assertEquals(3,reopened.latest(shop).submitted());
+        assertEquals(3,api.submits.get());assertEquals(3,api.allocations.get());
+    }
+    @Test void manualPauseAndCancellationAreNeverRecoveredAsAutomaticRetryPauses(){
+        var workers=new ArrayDeque<Runnable>();var service=service((owner,row,sign)->draft,workers::add);String run=service.start(shop,selection(),false);
+        assertTrue(service.pause(shop));assertFalse(new ZnackRegistrationBatchStore().recoverRetryPause(shop,run));assertFalse(service.resumePending(shop));
+        assertTrue(service.cancel(shop));assertFalse(new ZnackRegistrationBatchStore().recoverRetryPause(shop,run));assertFalse(service.resumePending(shop));
+        workers.remove().run();assertEquals(0,api.submits.get());
     }
     @Test void aHealthySlowImportKeepsPollingWithoutAnotherRegisterClick()throws Exception{
         api.cardsVisible=false;var service=service((owner,row,sign)->draft,Runnable::run);

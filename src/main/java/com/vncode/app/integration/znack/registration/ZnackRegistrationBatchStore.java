@@ -127,7 +127,14 @@ final class ZnackRegistrationBatchStore {
         });return changed[0];
     }
     int retry(Shop shop,String id){
-        write(shop,id,c->{try(var p=c.prepareStatement("UPDATE znack_registration_batches SET retry_count=retry_count+1 WHERE id=? AND state IN ('QUEUED','RUNNING','WAITING_NETWORK','WAITING_REMOTE')")){p.setString(1,id);p.executeUpdate();}return null;});return get(shop,id).retries();
+        write(shop,id,c->{try(var p=c.prepareStatement("UPDATE znack_registration_batches SET retry_count=MIN(retry_count+1,1000000) WHERE id=? AND state IN ('QUEUED','RUNNING','WAITING_NETWORK','WAITING_REMOTE')")){p.setString(1,id);p.executeUpdate();}return null;});return get(shop,id).retries();
+    }
+    /** Upgrade recovery only for the old automatic retry cap, never a seller pause/cancel. */
+    boolean recoverRetryPause(Shop shop,String id){
+        var changed=new boolean[1];
+        write(shop,id,c->{try(var p=c.prepareStatement("UPDATE znack_registration_batches SET state='WAITING_REMOTE',detail='CATALOG_READBACK_RETRY_PENDING',retry_at=?,updated_at=? WHERE id=? AND state='PAUSED' AND detail='ZNACK_BATCH_RETRY_LIMIT_REACHED'")){
+            p.setString(1,Instant.now().plusSeconds(30).toString());p.setString(2,Instant.now().toString());p.setString(3,id);changed[0]=p.executeUpdate()==1;
+        }return null;});return changed[0];
     }
     Instant waitingSince(Shop shop,String id){
         write(shop,id,c->{try(var p=c.prepareStatement("UPDATE znack_registration_batches SET waiting_since=COALESCE(waiting_since,?) WHERE id=? AND state IN ('QUEUED','RUNNING','WAITING_NETWORK','WAITING_REMOTE')")){p.setString(1,Instant.now().toString());p.setString(2,id);p.executeUpdate();}return null;});return get(shop,id).waitingSince();

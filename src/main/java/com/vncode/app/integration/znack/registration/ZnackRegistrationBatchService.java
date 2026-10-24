@@ -40,6 +40,7 @@ public final class ZnackRegistrationBatchService {
     };
     private static final Gson JSON=new Gson();
     private static final Set<String> RUNNING=ConcurrentHashMap.newKeySet(),PENDING=ConcurrentHashMap.newKeySet();
+    private static final Map<String,Object> SCHEDULED=new ConcurrentHashMap<>();
     private static final ScheduledExecutorService EXECUTOR=Executors.newScheduledThreadPool(2,r->{var t=new Thread(r,"znack-durable-batch");t.setDaemon(true);return t;});
     private final Path directory=AppPaths.appDataDir().toAbsolutePath().normalize();
     private final ZnackRegistrationBatchStore store=new ZnackRegistrationBatchStore();
@@ -92,6 +93,10 @@ public final class ZnackRegistrationBatchService {
     public boolean resumePending(Shop requested){
         if(requested.getMarketplace()!=Marketplace.WILDBERRIES)return false;
         Shop shop=freeze(requested);var batch=store.latest(shop);if(batch==null)return false;
+        if("PAUSED".equals(batch.state())&&"ZNACK_BATCH_RETRY_LIMIT_REACHED".equals(batch.detail())){
+            assertScope(shop,batch);
+            store.recoverRetryPause(shop,batch.id());batch=store.get(shop,batch.id());
+        }
         if("NEEDS_ACTION".equals(batch.state())){
             assertScope(shop,batch);var correctable=new ArrayList<Integer>();
             for(var item:store.items(shop,batch.id()))if("NEEDS_ACTION".equals(item.state())){
@@ -107,6 +112,7 @@ public final class ZnackRegistrationBatchService {
         if(!active(batch.state()))return false;
         PENDING.add(key(shop));
         if(batch.retryAt()==null||!batch.retryAt().isAfter(Instant.now()))dispatch(shop,batch.id());
+        else scheduleRetry(shop,batch.id(),batch.retryAt());
         return true;
     }
     public boolean pause(Shop requested){return control(requested,"PAUSED","ZNACK_BATCH_PAUSED");}
@@ -120,10 +126,11 @@ public final class ZnackRegistrationBatchService {
     private boolean control(Shop requested,String state,String detail){
         Shop shop=freeze(requested);var batch=store.latest(shop);if(batch==null)return false;
         assertScope(shop,batch);boolean changed=store.control(shop,batch.id(),state,detail);
-        if(changed){PENDING.remove(key(shop));if("CANCELLED".equals(state))RegistrationAttemptReports.attach(shop,batch.id()).stopPending(detail,true);request(shop);}return changed;
+        if(changed){PENDING.remove(key(shop));SCHEDULED.remove(key(shop)+":"+batch.id());if("CANCELLED".equals(state))RegistrationAttemptReports.attach(shop,batch.id()).stopPending(detail,true);request(shop);}return changed;
     }
     private void dispatch(Shop shop,String run){
         String key=key(shop);PENDING.add(key);if(!RUNNING.add(key))return;
+        SCHEDULED.remove(key+":"+run);
         var continuation=com.vncode.app.shared.UpdateHandoff.continuation();
         try{executor.execute(()->{
             try(var work=com.vncode.app.shared.UpdateHandoff.work(continuation);var data=SyncDataScope.enter(directory);var lane=com.vncode.app.shared.MarketplaceRequestBudget.lane(true);var cooldown=com.vncode.app.shared.RateLimitDeferral.enter()){
@@ -144,7 +151,11 @@ public final class ZnackRegistrationBatchService {
         var reports=RegistrationAttemptReports.attach(shop,run);
         try(var lookup=workflow.existingCardsOperation()){
         boolean readFailureObserved=false;Duration readbackDelay=Duration.ofSeconds(15);String readbackDetail="CATALOG_REQUEST_ACCEPTED_CARD_PENDING";
-        for(var item:store.items(shop,run)){
+        // Send still-unsubmitted cards before re-reading older accepted receipts. A slow
+        // status endpoint must not spend the whole pass ahead of the remaining selection.
+        var ordered=new ArrayList<>(store.items(shop,run));
+        ordered.sort(Comparator.comparingInt(item->"WAITING_REMOTE".equals(item.state())?1:0));
+        for(var item:ordered){
             com.vncode.app.shared.UpdateHandoff.checkpoint();
             if(!active(store.get(shop,run).state()))return;
             if(Set.of("SUBMITTED","NEEDS_ACTION","CANCELLED").contains(item.state()))continue;
@@ -287,12 +298,9 @@ public final class ZnackRegistrationBatchService {
     }
     private void waitRemote(Shop shop,String run,String detail,Duration delay,boolean failure){
         if(!active(store.get(shop,run).state()))return;
-        boolean exhausted=failure&&store.retry(shop,run)>=5;
         // A healthy acknowledged import is read-only pending work, not a failed create.
         // Slow Catalog processing must never require a second Register click.
-        if(exhausted){
-            store.control(shop,run,"PAUSED","ZNACK_BATCH_RETRY_LIMIT_REACHED");PENDING.remove(key(shop));return;
-        }
+        if(failure)delay=retryDelay(delay,store.retry(shop,run));
         store.state(shop,run,"WAITING_REMOTE",detail,Instant.now().plus(delay));
     }
     private void observeReceipt(Shop shop,ZnackRegistrationBatchStore.Item item,Sku current,RegistrationAttemptReports.Attempt attempt){
@@ -310,14 +318,25 @@ public final class ZnackRegistrationBatchService {
     private void pause(Shop shop,String run,Throwable error){
         var failure=SyncFailure.of(error,0);
         boolean retry=!failure.actionRequired()&&CatalogFeedback.retryableRead(error);
-        if(retry&&store.retry(shop,run)>=5){store.control(shop,run,"PAUSED","ZNACK_BATCH_RETRY_LIMIT_REACHED");PENDING.remove(key(shop));request(shop);return;}
-        store.state(shop,run,retry?"WAITING_NETWORK":"NEEDS_ACTION",failure.code(),retry?Instant.now().plus(failure.delay()):null);
+        Duration delay=retry?retryDelay(failure.delay(),store.retry(shop,run)):failure.delay();
+        store.state(shop,run,retry?"WAITING_NETWORK":"NEEDS_ACTION",failure.code(),retry?Instant.now().plus(delay):null);
         if(!retry){PENDING.remove(key(shop));RegistrationAttemptReports.attach(shop,run).stopPending(failure.code(),false);}
         request(shop);
     }
+    private static Duration retryDelay(Duration serviceDelay,int retries){
+        var backoff=Duration.ofSeconds(Math.min(300,5L<<Math.min(6,Math.max(0,retries-1))));
+        return serviceDelay.compareTo(backoff)>0?serviceDelay:backoff;
+    }
     private void scheduleRetry(Shop shop,String run,Instant retry){
         if(executor!=EXECUTOR)return;long delay=Math.max(1,retry==null?5:Duration.between(Instant.now(),retry).toMillis()/1000);
-        EXECUTOR.schedule(()->{try(var scope=SyncDataScope.enter(directory)){var batch=store.get(shop,run);if(active(batch.state()))dispatch(shop,run);}catch(RuntimeException error){PENDING.remove(key(shop));}},delay,TimeUnit.SECONDS);
+        String scheduledKey=key(shop)+":"+run;Object ticket=new Object();if(SCHEDULED.putIfAbsent(scheduledKey,ticket)!=null)return;
+        EXECUTOR.schedule(()->{if(!SCHEDULED.remove(scheduledKey,ticket))return;
+            try(var scope=SyncDataScope.enter(directory)){
+                var batch=store.get(shop,run);if(!active(batch.state()))return;
+                if(batch.retryAt()!=null&&batch.retryAt().isAfter(Instant.now()))scheduleRetry(shop,run,batch.retryAt());
+                else dispatch(shop,run);
+            }catch(RuntimeException error){PENDING.remove(key(shop));}
+        },delay,TimeUnit.SECONDS);
     }
     private void assertScope(Shop shop,ZnackRegistrationBatchStore.Batch batch){
         ListingIdentity.require(shop);if(strictScope&&!JSON.fromJson(batch.scope(),ZnackRegistrationScope.class).equals(currentScope(shop)))throw new ZnackRegistrationScope.ScopeChangedException();

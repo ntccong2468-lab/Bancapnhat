@@ -27,7 +27,6 @@ public final class OzonRegistrationBatchService {
     private static final Map<String,Object> DEFERRED=new ConcurrentHashMap<>();
     private record LookupRun(String run,RegistrationExistingCards.LookupContext context){}
     private static final Map<String,LookupRun> LOOKUPS=new ConcurrentHashMap<>();
-    private static final int MAX_RETRIES=5;
     private final OzonRegistrationBatchRepository batches;
     private final OzonCardRegistrationRepository cards;
     private final OzonCardRegistrationWorkflow workflow;
@@ -66,6 +65,9 @@ public final class OzonRegistrationBatchService {
     public boolean resumePending(Shop selected) {
         if(selected==null||selected.getMarketplace()!=Marketplace.OZON)return false;
         var batch=batches.latest(selected);
+        if(batch!=null&&batch.state().equals("PAUSED")&&batch.detail().startsWith("REGISTRATION_BATCH_RETRY_LIMIT: ")){
+            batches.recoverRetryPause(selected);batch=batches.latest(selected);
+        }
         if(batch!=null&&Set.of("COMPLETED","FAILED").contains(batch.state())){
             var eligible=new ArrayList<OzonRegistrationBatchRepository.Item>();
             for(var item:batches.failedItems(batch)){
@@ -199,7 +201,7 @@ public final class OzonRegistrationBatchService {
         if(!detail.equals("REGISTRATION_BUSY"))LOOKUPS.remove(namespace);
         var latest=batches.latest(shop);boolean counted=!Set.of("REGISTRATION_BUSY","CATALOG_REQUEST_ACCEPTED_CARD_PENDING").contains(detail);
         long delay=Math.max(seconds,counted?Math.min(300,5L<<Math.min(6,latest==null?0:latest.retryCount())):1);
-        if(!batches.defer(run,detail,delay,counted,MAX_RETRIES)){ACTIVE.remove(namespace);LOOKUPS.remove(namespace);var stopped=batches.latest(shop);if(stopped!=null&&stopped.state().equals("PAUSED"))OzonRegistrationAttemptReports.control(shop,run,"PAUSED");return;}
+        if(!batches.defer(run,detail,delay,counted)){ACTIVE.remove(namespace);LOOKUPS.remove(namespace);return;}
         schedule(shop,namespace,directory,delay);
     }
     private void schedule(Shop shop,String namespace,java.nio.file.Path directory,long seconds){Object ticket=new Object();DEFERRED.put(namespace,ticket);WORKERS.schedule(()->{if(DEFERRED.remove(namespace,ticket))run(shop,namespace,directory);},Math.max(1,seconds),TimeUnit.SECONDS);}

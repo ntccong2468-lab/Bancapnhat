@@ -174,7 +174,7 @@ class OzonCardRegistrationWorkflowTest {
     }
     @Test void healthyRemoteWaitDoesNotSpendOzonsFailureRetryBudget(){
         var queue=new OzonRegistrationBatchRepository();String run=queue.create(shop,List.of(key),false,session().scope());
-        for(int n=0;n<10;n++)assertTrue(queue.defer(run,"CATALOG_REQUEST_ACCEPTED_CARD_PENDING",15,false,5));
+        for(int n=0;n<10;n++)assertTrue(queue.defer(run,"CATALOG_REQUEST_ACCEPTED_CARD_PENDING",15,false));
         assertEquals("WAITING_REMOTE",queue.latest(shop).state());assertEquals(0,queue.latest(shop).retryCount());assertNotNull(queue.latest(shop).nextRetryAt());
     }
     @Test void firstCreateClickCorrectsAndSubmitsAnOzonBatchWithoutASecondAction()throws Exception{
@@ -434,15 +434,27 @@ class OzonCardRegistrationWorkflowTest {
         var queue=new OzonRegistrationBatchRepository();var scope=session().scope();String cancelled=queue.create(shop,List.of(key),true,scope);assertTrue(queue.control(shop,"CANCELLED"));assertTrue(queue.blocksSigning(shop,key));
         String approved=queue.create(shop,List.of(key),true,scope);assertNotEquals(cancelled,approved);assertFalse(queue.blocksSigning(shop,key));assertTrue(queue.ownsPending(shop,key));assertEquals("QUEUED",queue.latest(shop).state());
     }
-    @Test void boundedRetriesRemainPausedAfterReopeningAndPreserveTheFrozenSelection(){
+    @Test void repeatedFailuresKeepTheirRetryDeadlineAndFrozenSelectionAfterReopening(){
         var queue=new OzonRegistrationBatchRepository();String run=OzonRegistrationAttemptReports.queue(shop,List.of(key));queue.create(shop,List.of(key),true,session().scope(),run);
-        for(int attempt=1;attempt<=5;attempt++)assertEquals(attempt<5,queue.defer(run,"NETWORK_TIMEOUT",3600,true,5));
-        var reopened=new OzonRegistrationBatchRepository();assertEquals("PAUSED",reopened.latest(shop).state());assertEquals(5,reopened.latest(shop).retryCount());assertNull(reopened.latest(shop).nextRetryAt());assertEquals(1,reopened.counts(run).remaining());assertTrue(reopened.latest(shop).autoSign());assertEquals(run,reopened.create(shop,List.of(new ProductKey(2,Marketplace.OZON,"502","other")),false,session().scope()));
+        for(int attempt=1;attempt<=12;attempt++)assertTrue(queue.defer(run,"NETWORK_TIMEOUT",3600,true));
+        var reopened=new OzonRegistrationBatchRepository();assertEquals("WAITING",reopened.latest(shop).state());assertEquals(12,reopened.latest(shop).retryCount());assertNotNull(reopened.latest(shop).nextRetryAt());assertTrue(reopened.latest(shop).nextRetryAt().isAfter(java.time.Instant.now().plusSeconds(3599)));assertEquals(1,reopened.counts(run).remaining());assertTrue(reopened.latest(shop).autoSign());assertEquals(run,reopened.create(shop,List.of(new ProductKey(2,Marketplace.OZON,"502","other")),false,session().scope()));
+        assertTrue(reopened.control(shop,"PAUSED"));assertFalse(reopened.recoverRetryPause(shop));
         assertTrue(reopened.control(shop,"QUEUED"));assertEquals(0,reopened.latest(shop).retryCount());assertEquals(key,reopened.next(reopened.latest(shop)).key());assertTrue(reopened.latest(shop).autoSign());
     }
     @Test void futureRetryDeadlineIsHonoredAndCancellationReleasesTheScheduledGuard(){
-        var queue=new OzonRegistrationBatchRepository();String run=OzonRegistrationAttemptReports.queue(shop,List.of(key));queue.create(shop,List.of(key),false,session().scope(),run);assertTrue(queue.defer(run,"ZNACK_RATE_LIMIT",3600,true,5));var batch=new OzonRegistrationBatchService(queue,repository,workflow);
+        var queue=new OzonRegistrationBatchRepository();String run=OzonRegistrationAttemptReports.queue(shop,List.of(key));queue.create(shop,List.of(key),false,session().scope(),run);assertTrue(queue.defer(run,"ZNACK_RATE_LIMIT",3600,true));var batch=new OzonRegistrationBatchService(queue,repository,workflow);
         assertTrue(batch.resumePending(shop));assertTrue(OzonRegistrationBatchService.hasPendingJobs());assertEquals(0,api.allocations.get());assertEquals(0,api.submissions.get());assertTrue(batch.cancel(shop));assertFalse(OzonRegistrationBatchService.hasPendingJobs());assertEquals(0,api.allocations.get());assertEquals(0,api.submissions.get());
+    }
+    @Test void anOldAutomaticRetryPauseIsRecoveredWithoutChangingTheAcceptedCard()throws Exception{
+        ready();String gtin=row().gtin(),feed=row().feedId();int sends=api.submissions.get(),allocations=api.allocations.get();
+        var queue=singleCardBatch("WAITING_REMOTE");String run=queue.latest(shop).id();
+        try(var c=Database.getConnection();var p=c.prepareStatement("UPDATE ozon_registration_batches SET state='PAUSED',detail='REGISTRATION_BATCH_RETRY_LIMIT: CATALOG_READBACK_RETRY_PENDING',retry_count=5,next_retry_at=NULL WHERE run_id=?")){
+            p.setString(1,run);p.executeUpdate();
+        }
+        var batch=new OzonRegistrationBatchService(queue,repository,workflow);
+        assertTrue(batch.resumePending(shop));assertEquals("WAITING_REMOTE",queue.latest(shop).state());assertNotNull(queue.latest(shop).nextRetryAt());
+        assertEquals(1,queue.counts(run).remaining());assertEquals(gtin,row().gtin());assertEquals(feed,row().feedId());assertEquals(sends,api.submissions.get());assertEquals(allocations,api.allocations.get());
+        assertTrue(batch.pause(shop));assertFalse(queue.recoverRetryPause(shop));assertFalse(batch.resumePending(shop));assertTrue(batch.cancel(shop));
     }
     @Test void aChangedApprovedSourceCannotResumeTheOldKnownUnsentPayload()throws Exception{
         api.feedTimeout=false;var prior=LicenseRuntime.service();try(var denied=LicenseDomainFixture.denied(root.resolve("source-review-license"))){
