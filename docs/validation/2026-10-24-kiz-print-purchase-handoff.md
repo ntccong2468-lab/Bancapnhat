@@ -14,7 +14,7 @@ Tự xuất PDF là continuation khi phiên app còn mở. Pipeline mua được
 
 - Full trước phần continuation: 2.963 ca, 2.961 đạt, 2 bỏ qua OS, không lỗi/thất bại. Mã `ce56ee3`, hash `3088a54e0c24b40dc6f4cfc60b666eae06f2a73579a91cbf652f65d586ace9d2`.
 - Continuation: 118 ca mục tiêu đạt; 21 ca liên quan cuối đạt sau chỉnh nhãn nút RU/ZH. Có thao tác nút JavaFX thực trên Xvfb, 200 dòng/bốn ngôn ngữ, giả lập WB/Ozon cần 5/sẵn 2 chỉ mua 3 và chưa xuất với RECEIVED. Có ca hủy, pending, owner/config đổi, mất phản hồi, lỗi lưu thông, rollback profile và worker thường vẫn chạy khi hai print chờ.
-- Full đầu 2.980 ca có một thất bại ở phép đo thứ tự callback đa luồng. Đã giữ stress 10.000 đơn và chuyển kiểm tra fairness sang một writer bị giữ chủ động; 37 ca liên quan cuối đạt, Node 117/117. Chạy full mới trên 1.5.14 trong `/tmp/vncode-1514-full-verify.log`, hash `77b135a319ba056f5022885792dc4829344004b899dbbb9f5d857b06230a0fb4` và Windows build đúng SHA trước công bố.
+- Full đầu 2.980 ca có một thất bại ở phép đo thứ tự callback đa luồng. Đã giữ stress 10.000 đơn và chuyển kiểm tra fairness sang một writer bị giữ chủ động; 37 ca liên quan cuối đạt, Node 117/117. Full mới trên 1.5.14 BUILD SUCCESS, 2.986 ca (2.984 đạt, 2 bỏ qua OS), không lỗi/thất bại; log `/tmp/vncode-1514-full-verify.log`, hash `77b135a319ba056f5022885792dc4829344004b899dbbb9f5d857b06230a0fb4` và Windows build đúng SHA trước công bố.
 - File `zl.txt`: kết quả API Ozon validation thật trước đó 0/200 đạt, 200 mã báo `MANDATORY_MARK_HAS_INCORRECT_CRYPTOTAIL`, trong đó 7 mã còn `MANDATORY_MARK_IN_INCORRECT_STATUS`. Không gán file bị từ chối hoặc mua KIZ production trong lượt này. File được app đọc/nhập không chứng minh sàn chấp nhận.
 
 ## Kiểm tra khi phát hành

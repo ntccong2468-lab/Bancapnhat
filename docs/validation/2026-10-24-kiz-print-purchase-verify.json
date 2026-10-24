@@ -6,8 +6,16 @@
   "sourceTreeHashMethod": "Sorted pom.xml, src/main and src/test files: relative path + NUL + binary SHA256 digest per file",
   "maven": {
     "command": "DISPLAY=:99 /workspace/toolchains/mvn-vncode -o -B clean verify",
-    "result": "PENDING",
-    "log": "/tmp/vncode-1514-full-verify.log"
+    "result": "BUILD SUCCESS",
+    "log": "/tmp/vncode-1514-full-verify.log",
+    "sourceCommit": "09718c80133528808047b01399e004ef9329ff64",
+    "tests": 2986,
+    "passed": 2984,
+    "skipped": 2,
+    "failures": 0,
+    "errors": 0,
+    "duration": "17:58 min",
+    "finishedUtc": "2026-10-24T08:59:55Z"
   },
   "targeted": {
     "mainTests": 118,
@@ -102,5 +110,6 @@
     "windowsBuild": 40077739159,
     "result": "cancelled_for_user_requested_ozon_tabs",
     "published": false
-  }
+  },
+  "ozonPrintedGroupingPersistsAcrossRestart": true
 }
