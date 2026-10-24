@@ -39,6 +39,9 @@ public final class ZnackNationalCatalogService {
     private record SchemaReadback(List<Attribute> attributes,java.time.Instant checkedAt){}
     private final java.util.Map<Long,SchemaReadback> schemas=new java.util.concurrent.ConcurrentHashMap<>();
     private final java.util.Map<Long,SchemaReadback> completeSchemas=new java.util.concurrent.ConcurrentHashMap<>();
+    private record CategoryKey(String credentialScope,String tnved){}
+    private record CategoryReadback(List<Category> categories,java.time.Instant checkedAt){}
+    private final java.util.Map<CategoryKey,CategoryReadback> categoryReadbacks=new java.util.HashMap<>();
     public record CountryDictionaryEvidence(String source,String environment,String scopeFingerprint,
             String operationId,int apiVersion,String etag,String contentHash,java.time.Instant loadedAt,
             int entries,String reusePolicy){}
@@ -112,16 +115,12 @@ public final class ZnackNationalCatalogService {
         String token = catalogToken();
         LicenseRuntime.require(Permission.SELLER_API);
         Gs1Status gs1 = parseGs1(api.generatedGtins(settings.resolvedTrueApiBaseUrl(), token));
-        if (gs1.quotaKnown() && !gs1.canGenerate() && gs1.existingDrafts() == 0) {
-            throw new IllegalStateException("GS1/GTIN quota is unavailable or exhausted (" + gs1.usage()
-                    + "/" + gs1.limit() + "). Check the active GS1 RUS membership in National Catalog.");
-        }
+        requireUsableGs1(gs1);
         List<Category> categories = List.of();
         String categoryTnved = normalized;
         for (String lookupTnved : categoryLookupCodes(normalized)) {
             LicenseRuntime.require(Permission.SELLER_API);
-            categories = parseCategories(api.nationalCatalogCategories(
-                    settings.resolvedTrueApiBaseUrl(), token, lookupTnved));
+            categories = currentCategories(lookupTnved,token);
             if (!categories.isEmpty()) {
                 categoryTnved = lookupTnved;
                 break;
@@ -140,10 +139,32 @@ public final class ZnackNationalCatalogService {
         if(tnved==null||!tnved.matches("(?:[0-9]{4}|[0-9]{10})"))throw new IllegalArgumentException("ZNACK_MISSING_TNVED");
         for(String code:categoryLookupCodes(tnved)){
             LicenseRuntime.require(Permission.SELLER_API);
-            var categories=parseCategories(api.nationalCatalogCategories(settings.resolvedTrueApiBaseUrl(),token,code));
+            var categories=currentCategories(code,token);
             if(!categories.isEmpty())return new Preflight(tnved,code,new Gs1Status(0,0,0,false),categories,token);
         }
         throw new IllegalArgumentException("ZNACK_CATEGORY_UNRESOLVED");
+    }
+
+    /** Only positive category metadata from this bound session, for at most 60 seconds.
+     * Country/schema reads and exact-card/GTIN verification remain fresh operations. */
+    private List<Category> currentCategories(String tnved,String token)throws Exception {
+        assertRegistrationReadScope();var key=new CategoryKey(countryScope(token),tnved);var now=permitClock.instant();
+        synchronized(categoryReadbacks){
+            var cached=categoryReadbacks.get(key);
+            if(cached!=null&&!cached.checkedAt().isAfter(now)&&cached.checkedAt().isAfter(now.minusSeconds(60)))return cached.categories();
+        }
+        var categories=List.copyOf(parseCategories(api.nationalCatalogCategories(settings.resolvedTrueApiBaseUrl(),token,tnved)));
+        assertRegistrationReadScope();
+        if(!categories.isEmpty())synchronized(categoryReadbacks){
+            categoryReadbacks.entrySet().removeIf(entry->!entry.getValue().checkedAt().isAfter(now.minusSeconds(60))||entry.getValue().checkedAt().isAfter(now));
+            if(categoryReadbacks.size()>=128)categoryReadbacks.clear();
+            categoryReadbacks.put(key,new CategoryReadback(categories,now));
+        }
+        return categories;
+    }
+    private static void requireUsableGs1(Gs1Status gs1){
+        if(gs1.quotaKnown()&&!gs1.canGenerate()&&gs1.existingDrafts()==0)
+            throw new IllegalStateException("GS1/GTIN quota is unavailable or exhausted ("+gs1.usage()+"/"+gs1.limit()+"). Check the active GS1 RUS membership in National Catalog.");
     }
 
     /** Read a rejected draft by its exact identity; active published revisions are protected. */
@@ -329,6 +350,7 @@ public final class ZnackNationalCatalogService {
         synchronized (GTIN_ALLOCATION_LOCK) {
             LicenseRuntime.require(Permission.GTIN);
             JsonElement beforeResponse = api.generatedGtins(settings.resolvedTrueApiBaseUrl(), token);
+            requireUsableGs1(parseGs1(beforeResponse));
             List<String> before = draftGtins(beforeResponse);
             String reusable = firstUnclaimed(before, claimed);
             if (reuseExisting && !reusable.isBlank()) {

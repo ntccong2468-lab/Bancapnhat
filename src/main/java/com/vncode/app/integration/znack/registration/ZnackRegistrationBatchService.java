@@ -24,7 +24,20 @@ public final class ZnackRegistrationBatchService {
         public boolean running(){return state==State.QUEUED||state==State.RUNNING||state==State.WAITING_NETWORK||state==State.WAITING_REMOTE;}
         public boolean waitingOffline(){return state==State.WAITING_NETWORK&&!"API_COOLDOWN".equals(detail);}
     }
-    @FunctionalInterface interface DraftFactory { Draft prepare(Shop shop,Sku sku,boolean autoSign)throws Exception; }
+    record PreparedDraft(Draft draft,ZnackCardRegistrationWorkflow.CatalogSession session){
+        PreparedDraft{Objects.requireNonNull(draft);}
+        @Override public String toString(){return "PreparedDraft[sessionBound="+(session!=null)+"]";}
+    }
+    @FunctionalInterface interface DraftFactory {
+        Draft prepare(Shop shop,Sku sku,boolean autoSign)throws Exception;
+        default PreparedDraft prepareForSubmission(Shop shop,Sku sku,boolean autoSign)throws Exception {
+            return new PreparedDraft(prepare(shop,sku,autoSign),null);
+        }
+    }
+    private static final DraftFactory PRODUCTION_DRAFTS=new DraftFactory(){
+        @Override public Draft prepare(Shop shop,Sku sku,boolean autoSign)throws Exception{return RegistrationAutomaticDraft.prepare(shop,sku,autoSign);}
+        @Override public PreparedDraft prepareForSubmission(Shop shop,Sku sku,boolean autoSign)throws Exception{return RegistrationAutomaticDraft.prepareForSubmission(shop,sku,autoSign);}
+    };
     private static final Gson JSON=new Gson();
     private static final Set<String> RUNNING=ConcurrentHashMap.newKeySet(),PENDING=ConcurrentHashMap.newKeySet();
     private static final ScheduledExecutorService EXECUTOR=Executors.newScheduledThreadPool(2,r->{var t=new Thread(r,"znack-durable-batch");t.setDaemon(true);return t;});
@@ -36,7 +49,7 @@ public final class ZnackRegistrationBatchService {
     private final Executor executor;
     private final boolean strictScope;
     public ZnackRegistrationBatchService(){this(new ZnackCardRegistrationRepository());}
-    public ZnackRegistrationBatchService(ZnackCardRegistrationRepository registrations){this(registrations,new ZnackCardRegistrationWorkflow(registrations),RegistrationAutomaticDraft::prepare,EXECUTOR,true);}
+    public ZnackRegistrationBatchService(ZnackCardRegistrationRepository registrations){this(registrations,new ZnackCardRegistrationWorkflow(registrations),PRODUCTION_DRAFTS,EXECUTOR,true);}
     ZnackRegistrationBatchService(ZnackCardRegistrationRepository registrations,ZnackCardRegistrationWorkflow workflow,DraftFactory drafts,Executor executor,boolean strictScope){
         this.registrations=registrations;this.workflow=workflow;this.drafts=drafts;this.executor=executor;this.strictScope=strictScope;
     }
@@ -181,12 +194,13 @@ public final class ZnackRegistrationBatchService {
                     if(!current.canRegister())throw new RegistrationValidationException("ZNACK_REGISTRATION_STATE_REQUIRES_REVIEW");
                     store.item(shop,item,"PREPARING","ZNACK_PREPARING_CARD",null,"");
                     store.state(shop,run,"RUNNING","ZNACK_PREPARING_CARD",null);
-                    Draft draft=drafts.prepare(shop,current,batch.autoSign());
+                    var prepared=drafts.prepareForSubmission(shop,current,batch.autoSign());
+                    Draft draft=prepared.draft();
                     if(item.draft()!=null&&!ZnackNationalCatalogService.buildPayload("",item.draft(),"").equals(ZnackNationalCatalogService.buildPayload("",draft,"")))
                         throw new RegistrationValidationException("ZNACK_REVIEWED_VALUES_CHANGED");
                     assertScope(shop,batch);store.item(shop,item,"READY","ZNACK_CARD_READY",draft,"");
                     current=registrations.find(shop.getId(),current.chrtId());
-                    started=workflow.submitOnly(shop,current,draft.withAutoSign(batch.autoSign()),receiptListener,lookup);
+                    started=workflow.submitOnly(shop,current,draft.withAutoSign(batch.autoSign()),receiptListener,lookup,prepared.session());
                 }
                 if(!started&&!workflow.isRunning(shop,current))throw new RegistrationValidationException("ZNACK_REGISTRATION_CHANGED_REFRESH_REQUIRED");
                 workflow.completion(shop,current).toCompletableFuture().join();

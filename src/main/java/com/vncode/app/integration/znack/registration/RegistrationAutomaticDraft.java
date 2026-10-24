@@ -13,6 +13,9 @@ import java.util.*;
 final class RegistrationAutomaticDraft {
     private static final Set<Long> OMITTED=Set.of(3959L,ZnackNationalCatalogService.DECLARATION_ATTRIBUTE_ID,ZnackNationalCatalogService.CERTIFICATE_ATTRIBUTE_ID);
     static Draft prepare(Shop shop,Sku sku,boolean autoSign)throws Exception {
+        return prepareForSubmission(shop,sku,autoSign).draft();
+    }
+    static ZnackRegistrationBatchService.PreparedDraft prepareForSubmission(Shop shop,Sku sku,boolean autoSign)throws Exception {
         var settings=new ZnackRepository(new ZnackModels.ShopContext(shop.getId(),shop.getName())).getSettings();
         var key=new ProductKey(shop.getId(),shop.getMarketplace(),Long.toString(sku.nmId()),Long.toString(sku.chrtId()));
         var snapshot=new ProductRepository().localSnapshot(key).orElse(null);
@@ -46,7 +49,7 @@ final class RegistrationAutomaticDraft {
         var draft=new Draft(preflight.tnved(),preflight.categoryTnved(),resolved.id(),mapped.goodName(),mapped.brand(),mapped.attributes(),mapped.attributeTypes(),autoSign).withProductCategory(inputs.sku().subjectName());
         draft=RegistrationVerifiedDefaults.applyAutomatic(draft,required,session.catalog(),selected.automatic(),snapshot);
         draft=RegistrationReviewedValues.apply(shop,snapshot,draft,required);
-        return complete(draft,required,inputs.sku().wbSize());
+        return new ZnackRegistrationBatchService.PreparedDraft(complete(draft,required,inputs.sku().wbSize()),session);
         }
     }
     /** Normalize known source values; a sole allowed option is not proof of a product fact. */

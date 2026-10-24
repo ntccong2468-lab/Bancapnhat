@@ -60,14 +60,16 @@ class ZnackCardRegistrationWorkflowTest {
         api.staleCardContent=false;assertTrue(scoped.refreshStatusWithoutSigning(shop,saved));assertEquals(Status.PUBLISHED,current().status());
         assertEquals(saved.gtin(),current().gtin());assertEquals(saved.feedId(),current().feedId());assertEquals(1,api.submissions.get());assertEquals(0,api.signatures.get());
     }
-    @Test void failedAllocationReadBeforeMutationCanBeReviewedAndRetriedWithoutFreezingThePool()throws Exception {
-        api.failGeneratedReadNumber=2;
+    @Test void failedAllocationReadBeforeMutationRetriesNormallyWithoutRequestingAnotherIdentity()throws Exception {
+        api.failGeneratedReadNumber=1;
         assertTrue(workflow.start(shop,current(),draft,null));assertEquals(0,api.allocations.get());
         try(var c=Database.getConnection();var q=c.createStatement();var r=q.executeQuery("SELECT state FROM znack_v3_dispatches WHERE action='ALLOCATE_GTIN'")){
             assertTrue(r.next());assertEquals("REJECTED",r.getString(1));
         }
         api.failGeneratedReadNumber=0;
-        assertTrue(workflow.requestNewGtin(shop,current(),draft,true,null));assertEquals(1,api.allocations.get());assertEquals(1,api.submissions.get());
+        assertEquals(Status.PREFLIGHT_ERROR,current().status());
+        assertFalse(workflow.requestNewGtin(shop,current(),draft,true,null),"No uncertain allocation needs a replacement identity");
+        assertTrue(workflow.start(shop,current(),draft,null));assertEquals(1,api.allocations.get());assertEquals(1,api.submissions.get());
     }
     @Test void explicitRejectedReplacementAdvancesGenerationInsideTheArchiveTransaction()throws Exception {
         api.firstRejection="required attribute missing";workflow.start(shop,current(),draft,null);assertEquals(Status.ERROR,current().status());
@@ -812,12 +814,33 @@ class ZnackCardRegistrationWorkflowTest {
     @Test void accessDeniedRemainsAnActionableErrorInsteadOfAnAutomaticReadRetry(){
         api.statusReadFailure=403;assertTrue(workflow.start(shop,current(),draft,null));assertEquals(Status.ERROR,current().status());assertEquals(1,api.submissions.get());
     }
+    @Test void preparedBatchSessionAvoidsReopeningAndRepeatingQuotaAndCategoryPreflight()throws Exception{
+        var prepared=fixtureSession();prepared.catalog().preflight(draft.tnved());
+        var sending=RegistrationWorkflowTestFixtures.workflow(repository,ignored->{throw new AssertionError("Reuse this card's verified session");},Runnable::run);
+        try(var lookup=RegistrationWorkflowTestFixtures.emptyLookup()){
+            assertTrue(sending.submitOnly(shop,current(),draft,null,lookup,prepared));
+        }
+        assertNull(sending.consumeSubmissionFailure(shop,current()));assertEquals(1,api.submissions.get());
+        assertEquals(2,api.generatedReads,"Prepare plus authoritative allocation read; no duplicate preflight pool read");
+        assertEquals(1,api.categoryReads,"Send reuses the positive category result from this card's preparation");
+        assertNotNull(current().feedId());assertNotNull(current().goodId());
+    }
+    @Test void preparedBatchSessionCannotSendAfterItsCredentialGuardChanges()throws Exception{
+        var prepared=fixtureSession();prepared.catalog().preflight(draft.tnved());api.invalidReadScope=true;
+        try(var lookup=RegistrationWorkflowTestFixtures.emptyLookup()){
+            assertTrue(workflow.submitOnly(shop,current(),draft,null,lookup,prepared));
+        }
+        assertEquals(0,api.allocations.get());assertEquals(0,api.submissions.get());
+        assertInstanceOf(SecurityException.class,workflow.consumeSubmissionFailure(shop,current()));
+    }
     class FixtureApi extends ZnackApiClient {
         AtomicInteger allocations=new AtomicInteger(),submissions=new AtomicInteger(),signatures=new AtomicInteger(),documents=new AtomicInteger(),countryReads=new AtomicInteger();
         boolean mandatoryCountry,staleCardContent;
         boolean allocationTimeout,feedTimeout,existingDraft,rejectExistingFeed,readRejected;
         boolean pendingModeration,moderated,signTimeout,signatureAccepted,changeSigningDocument,delayPublication,laggedModeration;
-        int statusReadFailure,temporaryCardReads,generatedReads,failGeneratedReadNumber;
+        int statusReadFailure,temporaryCardReads,generatedReads,failGeneratedReadNumber,categoryReads;
+        boolean invalidReadScope;
+        @Override public void assertCatalogReadScope(){if(invalidReadScope)throw new SecurityException("fixture credential changed");}
         boolean cardHttp404;
         boolean cardPublished=true,cardMissing,completedWithoutCard,signingDocumentMissing;
         Map<String,String> bulkGtins=new HashMap<>();
@@ -836,6 +859,7 @@ class ZnackCardRegistrationWorkflowTest {
             return json("{\"result\":{\"drafts\":[{\"gtin\":\"04631993764370\"}]}}");
         }
         @Override public JsonElement nationalCatalogCategories(String base,String token,String tnved) {
+            categoryReads++;
             return json("{\"result\":[{\"cat_id\":1,\"cat_name\":\"Clothes\",\"category_active\":true}]}");
         }
         @Override public JsonElement nationalCatalogAttributes(String base,String token,long category) {

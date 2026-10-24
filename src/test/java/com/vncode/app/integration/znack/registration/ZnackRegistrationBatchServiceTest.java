@@ -36,6 +36,40 @@ class ZnackRegistrationBatchServiceTest {
         workflow=RegistrationWorkflowTestFixtures.workflow(repository,ignored->new ZnackCardRegistrationWorkflow.CatalogSession("fixture-token",catalog),Runnable::run);
     }
     @AfterEach void cleanup(){System.clearProperty("vncode.appdata.dir");}
+    @Test void quotaReadRateLimitBeforeAllocationAutomaticallyResumesTheSameUnsentBatch()throws Exception{
+        api.poolReadFailure=429;var service=service((owner,row,sign)->draft,Runnable::run);
+        String run=service.start(shop,selection(),false);
+        assertEquals(0,api.allocations.get());assertEquals(0,api.submits.get());assertEquals(3,service.latest(shop).remaining());
+        assertEquals(ZnackRegistrationBatchService.State.WAITING_NETWORK,service.latest(shop).state());
+        assertEquals(Status.PREFLIGHT_ERROR,selection().stream().filter(row->row.chrtId()==11).findFirst().orElseThrow().status());
+        try(var c=Database.getConnection();var q=c.createStatement();var r=q.executeQuery("SELECT state FROM znack_v3_dispatches WHERE action='ALLOCATE_GTIN'")){
+            assertTrue(r.next());assertEquals("REJECTED",r.getString(1));
+        }
+        api.poolReadFailure=0;retryNow(run);assertTrue(service.resumePending(shop));
+        assertEquals(run,service.latest(shop).runId());assertEquals(3,service.latest(shop).submitted());assertEquals(3,api.allocations.get());assertEquals(3,api.submits.get());
+        assertEquals(ZnackRegistrationBatchService.State.COMPLETE,service.latest(shop).state());
+    }
+    @Test void serialBatchHandsEachPreparedSessionToItsOneCardWriterWithoutReopening()throws Exception{
+        workflow=RegistrationWorkflowTestFixtures.workflow(repository,ignored->{throw new AssertionError("Do not reopen the prepared Catalog connection");},Runnable::run);
+        var preparations=new AtomicInteger();
+        var factory=new ZnackRegistrationBatchService.DraftFactory(){
+            @Override public Draft prepare(Shop owner,Sku row,boolean sign){throw new AssertionError("Use preparation with its bound session");}
+            @Override public ZnackRegistrationBatchService.PreparedDraft prepareForSubmission(Shop owner,Sku row,boolean sign)throws Exception{
+                preparations.incrementAndGet();
+                var auth=new ZnackAuthService(api,null){@Override public String trueApiToken(ZnackModels.Settings settings){return "fixture-token";}};
+                var catalog=new ZnackNationalCatalogService(api,auth,(payload,context)->{throw new AssertionError("No signing");},ZnackModels.Settings.empty());
+                catalog.preflight(draft.tnved());
+                return new ZnackRegistrationBatchService.PreparedDraft(draft,new ZnackCardRegistrationWorkflow.CatalogSession("fixture-token",catalog));
+            }
+        };
+        var service=service(factory,Runnable::run);service.start(shop,selection(),false);
+        assertEquals(3,preparations.get());assertEquals(3,api.allocations.get());assertEquals(3,api.submits.get());
+        assertEquals(3,api.categoryReads.get());assertEquals(6,api.poolReads.get());
+        assertEquals(3,api.statusReads.get());assertEquals(3,api.cardReads.get());
+        assertEquals(3,service.latest(shop).submitted());assertEquals(0,service.latest(shop).failed());assertEquals(0,service.latest(shop).remaining());
+        assertEquals(ZnackRegistrationBatchService.State.COMPLETE,service.latest(shop).state());
+        assertEquals(3,selection().stream().map(Sku::feedId).distinct().count());assertEquals(3,selection().stream().map(Sku::gtin).distinct().count());
+    }
     List<Sku> selection(){return repository.search(new SearchCriteria(1,"",List.of(),"ALL",20,0));}
     ZnackRegistrationBatchService service(ZnackRegistrationBatchService.DraftFactory drafts,java.util.concurrent.Executor executor){return new ZnackRegistrationBatchService(repository,workflow,drafts,executor,false);}
     @Test void freezesEveryCardAndCountsOnlyExactCardsWithoutWaitingForModeration(){
@@ -303,17 +337,17 @@ class ZnackRegistrationBatchServiceTest {
 
     class FixtureApi extends ZnackApiClient {
         Runnable beforeFeedRead=()->{};
-        AtomicInteger allocations=new AtomicInteger(),submits=new AtomicInteger(),statusReads=new AtomicInteger(),cardReads=new AtomicInteger();boolean failFirstFeed,cardsVisible=true;
+        AtomicInteger allocations=new AtomicInteger(),submits=new AtomicInteger(),statusReads=new AtomicInteger(),cardReads=new AtomicInteger(),categoryReads=new AtomicInteger(),poolReads=new AtomicInteger();boolean failFirstFeed,cardsVisible=true;
         boolean rejectOptional;final Map<String,JsonObject> payloads=new HashMap<>();
-        String failedFeed="",failureStatus="Rejected";int statusReadFailure;Runnable onSubmit;
+        String failedFeed="",failureStatus="Rejected";int statusReadFailure,poolReadFailure;Runnable onSubmit;
         java.util.concurrent.CountDownLatch feedReadEntered,releaseFeedRead;
         final Map<String,String> feedGtins=new HashMap<>();final Set<String> hiddenGtins=new HashSet<>();
-        @Override public JsonElement generatedGtins(String base,String token){return json("{\"result\":{\"drafts\":[]}}");}
+        @Override public JsonElement generatedGtins(String base,String token)throws IOException{poolReads.incrementAndGet();if(poolReadFailure!=0)throw new ZnackApiException("pool read unavailable",poolReadFailure,"{}");return json("{\"result\":{\"drafts\":[]}}");}
         @Override public JsonElement generateGtins(String base,String token,int quantity){
             int index=allocations.getAndIncrement();String gtin=List.of("04631993764370","04631993764363","04631993764387").get(index);
             return json("{\"result\":{\"drafts\":[{\"gtin\":\""+gtin+"\"}]}}");
         }
-        @Override public JsonElement nationalCatalogCategories(String base,String token,String tnved){return json("{\"result\":[{\"cat_id\":1,\"cat_name\":\"Clothes\",\"category_active\":true}]}");}
+        @Override public JsonElement nationalCatalogCategories(String base,String token,String tnved){categoryReads.incrementAndGet();return json("{\"result\":[{\"cat_id\":1,\"cat_name\":\"Clothes\",\"category_active\":true}]}");}
         @Override public JsonElement nationalCatalogAttributes(String base,String token,long id){return json("{\"result\":[{\"attr_id\":1,\"attr_name\":\"Fixture\",\"attr_field_type\":\"text\"}]}");}
         @Override public JsonElement nationalCatalogAllAttributes(String base,String token,long id){return nationalCatalogAttributes(base,token,id);}
         @Override public JsonElement submitNationalCatalogFeed(String base,String token,JsonElement payload)throws IOException {

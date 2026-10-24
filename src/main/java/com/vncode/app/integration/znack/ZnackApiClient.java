@@ -13,6 +13,10 @@ import java.time.Duration;
 public class ZnackApiClient {
     private static final Logger LOGGER = LoggerFactory.getLogger(ZnackApiClient.class);
     private static final MediaType JSON = MediaType.parse("application/json");
+    // Transport only: credentials/guards remain on each scoped client and request.
+    // Reuse keep-alive/TLS connections when the next card opens its own Catalog session.
+    private static final OkHttpClient DEFAULT_TRANSPORT = new OkHttpClient.Builder()
+            .callTimeout(Duration.ofSeconds(40)).build();
     /** True API cises/info accepts no more than 1,000 identification codes per request. */
     static final int CISES_MAX_CODES_PER_REQUEST = 1_000;
     // National Catalog API v5.62 sections 2.1/2.5: Retry-After is seconds and a limit window is at most five minutes.
@@ -387,7 +391,7 @@ public class ZnackApiClient {
         try{var parsed=HttpUrl.parse(url);return parsed==null?"[REDACTED URL]":parsed.newBuilder().username("").password("").query(null).fragment(null).build().toString();}
         catch(IllegalArgumentException invalid){return "[REDACTED URL]";}
     }
-    private static OkHttpClient defaultClient(){return new OkHttpClient.Builder().callTimeout(Duration.ofSeconds(40)).build();}
+    private static OkHttpClient defaultClient(){return DEFAULT_TRANSPORT;}
     private static boolean isIdempotent(Request request){return "GET".equals(request.method())||"HEAD".equals(request.method());}
     private static long rateLimitDelay(String retryAfter,int attempt){
         if(retryAfter!=null)try{

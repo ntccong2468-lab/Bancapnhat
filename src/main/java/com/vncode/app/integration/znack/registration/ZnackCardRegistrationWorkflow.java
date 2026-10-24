@@ -276,6 +276,10 @@ public final class ZnackCardRegistrationWorkflow {
     public boolean submitOnly(Shop shop,Sku sku,Draft draft,BiConsumer<Status,String> listener,RegistrationExistingCards.LookupContext lookup) {
         return schedule(shop,sku,draft,RegistrationAction.REGISTER,listener,true,lookup);
     }
+    /** Reuse only this card's just-verified preparation session, with all send-time guards. */
+    boolean submitOnly(Shop shop,Sku sku,Draft draft,BiConsumer<Status,String> listener,RegistrationExistingCards.LookupContext lookup,CatalogSession prepared) {
+        return schedule(shop,sku,draft,RegistrationAction.REGISTER,listener,true,lookup,prepared);
+    }
     public boolean resumeSubmissionOnly(Shop shop,Sku sku,BiConsumer<Status,String> listener) {
         return resumeSubmissionOnly(shop,sku,null,listener);
     }
@@ -300,6 +304,10 @@ public final class ZnackCardRegistrationWorkflow {
     }
     private boolean schedule(Shop requestedShop,Sku sku,Draft draft,RegistrationAction action,
                              BiConsumer<Status,String> listener,boolean submissionOnly,RegistrationExistingCards.LookupContext lookup) {
+        return schedule(requestedShop,sku,draft,action,listener,submissionOnly,lookup,null);
+    }
+    private boolean schedule(Shop requestedShop,Sku sku,Draft draft,RegistrationAction action,
+                             BiConsumer<Status,String> listener,boolean submissionOnly,RegistrationExistingCards.LookupContext lookup,CatalogSession prepared) {
         Shop shop=freezeShop(requestedShop);
         if(shop==null || sku==null || draft==null || shop.getMarketplace()!=Marketplace.WILDBERRIES) return false;
         // A submitted feed may still be read back after expiry. An unsent claim needs current rights.
@@ -325,7 +333,7 @@ public final class ZnackCardRegistrationWorkflow {
             var completion=new java.util.concurrent.CompletableFuture<Void>();COMPLETIONS.put(key,completion);
             try {
                 executor.execute(()->{
-                    try(var deferral=submissionOnly?com.vncode.app.shared.RateLimitDeferral.enter():null){execute(shop,action==RegistrationAction.REGISTER_NEW?freshCandidate(sku):sku,draft,action==RegistrationAction.REQUEST_NEW_GTIN || action==RegistrationAction.REGISTER_NEW,action==RegistrationAction.SIGN_APPROVED,action!=RegistrationAction.RESUME&&action!=RegistrationAction.SIGN_APPROVED,listener,submissionOnly,lookup);}
+                    try(var deferral=submissionOnly?com.vncode.app.shared.RateLimitDeferral.enter():null){execute(shop,action==RegistrationAction.REGISTER_NEW?freshCandidate(sku):sku,draft,action==RegistrationAction.REQUEST_NEW_GTIN || action==RegistrationAction.REGISTER_NEW,action==RegistrationAction.SIGN_APPROVED,action!=RegistrationAction.RESUME&&action!=RegistrationAction.SIGN_APPROVED,listener,submissionOnly,lookup,prepared);}
                     catch(LicenseDeniedException denied){if(submissionOnly)SUBMISSION_FAILURES.put(key,denied);pauseKnownUnsent(shop,sku,denied,listener);}
                     catch(Exception error){if(submissionOnly)SUBMISSION_FAILURES.put(key,error);fail(shop,sku,error,listener);}
                     finally{requestUnsentContinuation(shop,sku);finish(key,completion);}
@@ -619,8 +627,19 @@ public final class ZnackCardRegistrationWorkflow {
         return commands.run(owner,pool,List.of(command),sent->{
             guard(shop,sku);LicenseRuntime.require(Permission.GTIN);
             var claimed=new java.util.HashSet<>(registrations.claimedGtins());claimed.addAll(new com.vncode.app.integration.znack.registration.v3.RegistrationStore().claimedGtins(owner));
-            Runnable boundary=()->{guard(shop,sku);LicenseRuntime.require(Permission.GTIN);sent.run();};
-            return List.of(fresh?session.catalog().generateFreshOne(token,claimed,boundary):session.catalog().generateOne(token,claimed,boundary));
+            var dispatched=new java.util.concurrent.atomic.AtomicBoolean();
+            Runnable boundary=()->{guard(shop,sku);LicenseRuntime.require(Permission.GTIN);sent.run();dispatched.set(true);};
+            try{return List.of(fresh?session.catalog().generateFreshOne(token,claimed,boundary):session.catalog().generateOne(token,claimed,boundary));}
+            catch(Exception failure){
+                // Only this live invocation proves that the pool/quota read failed before
+                // an allocation. Unknown journal entries and sent requests stay protected.
+                if(!dispatched.get())try{
+                    guard(shop,sku);var checkpoint=registrations.checkpoint(shop.getId(),sku.chrtId());
+                    if(checkpoint.status()==Status.ALLOCATING_GTIN&&!checkpoint.hasGtin()&&!checkpoint.hasFeed())
+                        registrations.updateProgress(shop.getId(),sku.chrtId(),Status.PREFLIGHT_ERROR,null,null,ZnackErrorDetails.summary(failure),null);
+                }catch(RuntimeException changed){failure.addSuppressed(changed);}
+                throw failure;
+            }
         }).getFirst();
     }
     private String submitWithJournal(Shop shop,Sku sku,CatalogSession session,JsonObject payload,boolean reviewed,Runnable beforeSend)throws Exception {
@@ -657,11 +676,16 @@ public final class ZnackCardRegistrationWorkflow {
     }
     private void execute(Shop shop,Sku sku,Draft draft,boolean requestFresh,boolean signingOnly,boolean recordConsent,
                          BiConsumer<Status,String> listener,boolean submissionOnly,RegistrationExistingCards.LookupContext lookup)throws Exception {
+        execute(shop,sku,draft,requestFresh,signingOnly,recordConsent,listener,submissionOnly,lookup,null);
+    }
+    private void execute(Shop shop,Sku sku,Draft draft,boolean requestFresh,boolean signingOnly,boolean recordConsent,
+                         BiConsumer<Status,String> listener,boolean submissionOnly,RegistrationExistingCards.LookupContext lookup,CatalogSession prepared)throws Exception {
         if(!sku.hasFeed())LicenseRuntime.require(Permission.GTIN);
         guard(shop,sku);
-        CatalogSession session=catalogFactory.open(shop);
+        CatalogSession session=prepared==null?catalogFactory.open(shop):prepared;
         guard(shop,sku);
         if(strictScope && !registrations.scope(shop.getId(),sku.chrtId()).equals(session.scope()))throw new ZnackRegistrationScope.ScopeChangedException();
+        if(prepared!=null){if(prepared.scope()!=null)prepared.scope().assertCurrent(shop);prepared.catalog().assertRegistrationReadScope();}
         ZnackNationalCatalogService catalog=session.catalog();
         String token=session.token();
         if(signingOnly){signApprovedOne(shop,sku,session,listener);return;}
@@ -710,7 +734,9 @@ public final class ZnackCardRegistrationWorkflow {
                     }
                 }finally{if(lookup==null)context.close();}
             }
-            ZnackNationalCatalogService.Preflight preflight = catalog.preflight(draft.tnved());
+            // Category is checked here; allocation reads the current quota/drafts itself under
+            // its lock. Do not fetch that same draft pool once more in a full preflight.
+            catalog.preflightExisting(draft.tnved(),token);
             // Keep selection and the durable local checkpoint atomic across the two workflow
             // workers. Otherwise both can observe the same reusable catalog draft GTIN.
             synchronized (GTIN_CHECKPOINT_LOCK) {
@@ -718,7 +744,7 @@ public final class ZnackCardRegistrationWorkflow {
                 update(shop,sku,Status.ALLOCATING_GTIN,null,null,listener);
                 LicenseRuntime.require(Permission.GTIN);
                 guard(shop,sku);
-                gtin = allocateWithJournal(shop,sku,session,preflight.token(),draft,imageUrl,requestFresh);
+                gtin = allocateWithJournal(shop,sku,session,token,draft,imageUrl,requestFresh);
                 payload = ZnackNationalCatalogService.buildPayload(gtin, draft, imageUrl);
                 registrations.saveReadyToSubmitGenerated(shop.getId(), sku, gtin, draft.tnved(), draft.categoryId(),
                         draft.goodName(), payload.toString());
@@ -1162,6 +1188,7 @@ public final class ZnackCardRegistrationWorkflow {
         Status failure=scopeBlocked && checkpoint.status()==Status.ALLOCATING_GTIN?Status.PREFLIGHT_ERROR
                 :error instanceof RegistrationValidationException && checkpoint.hasFeed()?Status.ERROR
                 :scopeBlocked && checkpoint.status()==Status.FEED_SUBMITTING?Status.PRE_SUBMIT_ERROR
+                :checkpoint.status()==Status.PREFLIGHT_ERROR&&!checkpoint.hasGtin()&&!checkpoint.hasFeed()?Status.PREFLIGHT_ERROR
                 :checkpoint.status()==Status.ALLOCATING_GTIN ? Status.GTIN_REVIEW_REQUIRED
                 : checkpoint.status()==Status.FEED_SUBMITTING ? Status.FEED_REVIEW_REQUIRED
                 : checkpoint.hasGtin() && !checkpoint.hasFeed() ? Status.PRE_SUBMIT_ERROR
