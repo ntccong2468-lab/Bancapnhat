@@ -1,5 +1,11 @@
 # Bộ nhớ dự án VNCode
 
+## Đang phát hành 1.5.15 — 24.10.2026
+
+- Người dùng yêu cầu tạo bộ cài và đưa lên Latest sau sửa gửi Catalog liên tục. Nhánh `release/vn-code-1.5.15`, mã chốt `9f6155dbbbdd6af80e09897f2f2863b479b97a33`, hash cây `92e3150566270de6ef53ef92592bb4f1e112b4e4c78fd0e843a8097decb8e4c7`. Kế thừa toàn bộ 1.5.14 và ba phần sửa trên nhánh `perf/catalog-single-card-throughput`. Release notes đã có; 117 Node contracts đạt. Bộ hồi quy Catalog trước đóng gói đạt 1.246 ca.
+- Windows build `40123187426` và Linux `clean verify` đang chạy. Lượt `40123011112` đã hủy sớm để tăng riêng timeout bài stress 117 thẻ từ 90 lên 600 giây: kiểm chứng bản trước cho thấy các bài SQLite Windows chậm hơn nhiều. Không đổi hành vi ứng dụng cho điều chỉnh này. Không tái dùng kết quả full suite bị hủy làm bằng chứng thành công.
+- Latest vẫn là v1.5.14. Chỉ công bố 1.5.15 sau khi build đúng SHA, full suite, native/DPAPI/cài-gỡ/nâng cấp từ 1.5.14 giữ dữ liệu, asset/checksum/tag đều đạt. Giữ các release cũ. [Trạng thái bàn giao](validation/2026-10-24-vncode-1515-release-state.json).
+
 ## Tối ưu gửi từng thẻ sau 1.5.14 — 24.10.2026
 
 - Nhánh `perf/catalog-single-card-throughput`, nền bàn giao `537dfa2`. Người dùng yêu cầu tăng tốc nhưng vẫn gửi từng thẻ; không đổi thành feed 500 thẻ hoặc ghi đè bản Latest bất biến. Đây là mã sửa tiếp, chưa có bộ cài mới.

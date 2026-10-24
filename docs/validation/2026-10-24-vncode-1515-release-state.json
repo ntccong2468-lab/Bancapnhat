@@ -1,0 +1,27 @@
+{
+  "version": "1.5.15",
+  "branch": "release/vn-code-1.5.15",
+  "sourceCommit": "9f6155dbbbdd6af80e09897f2f2863b479b97a33",
+  "sourceTreeSha256": "92e3150566270de6ef53ef92592bb4f1e112b4e4c78fd0e843a8097decb8e4c7",
+  "windowsBuildRun": 40123187426,
+  "windowsBuildUrl": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/40123187426",
+  "state": "FULL_WINDOWS_AND_LINUX_VERIFICATION_RUNNING",
+  "releaseRequested": true,
+  "installerBuilt": false,
+  "published": false,
+  "latestChanged": false,
+  "previousLatest": {
+    "tag": "v1.5.14",
+    "releaseId": 422637565
+  },
+  "localFullLog": "/tmp/vncode-1515-final-full-verify.log",
+  "catalogRegressionPassed": 1246,
+  "nodeContractsPassed": 117,
+  "supersededBuild": {
+    "run": 40123011112,
+    "sourceCommit": "b906a0674b4b109a6452c82114ef7c1a271776c3",
+    "conclusion": "cancelled",
+    "reason": "Increase only the 117-card persistence stress test timeout for measured slower native Windows SQLite writes; application behavior unchanged."
+  },
+  "recordedAt": "2026-10-24T19:03:00.957149+00:00"
+}
