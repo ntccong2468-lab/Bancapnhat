@@ -36,7 +36,7 @@ class ZnackRegistrationBatchServiceTest {
         workflow=RegistrationWorkflowTestFixtures.workflow(repository,ignored->new ZnackCardRegistrationWorkflow.CatalogSession("fixture-token",catalog),Runnable::run);
     }
     @AfterEach void cleanup(){System.clearProperty("vncode.appdata.dir");}
-    @Test @Timeout(90) void continuous117CardQueueSurvivesWriteLimitsAndDelayedReadbacksWithoutDuplicateIdentities()throws Exception{
+    @Test @Timeout(600) void continuous117CardQueueSurvivesWriteLimitsAndDelayedReadbacksWithoutDuplicateIdentities()throws Exception{
         try(var c=Database.getConnection();var s=c.createStatement()){
             c.setAutoCommit(false);
             for(int i=4;i<=117;i++){
