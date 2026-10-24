@@ -1,6 +1,6 @@
 {
   "dateUtc": "2026-10-24",
-  "branch": "fix/update-gtin-ozon-fbs-layout",
+  "branch": "release/vn-code-1.5.14",
   "baseCommit": "ce56ee3",
   "sourceTreeSha256": "77b135a319ba056f5022885792dc4829344004b899dbbb9f5d857b06230a0fb4",
   "sourceTreeHashMethod": "Sorted pom.xml, src/main and src/test files: relative path + NUL + binary SHA256 digest per file",
@@ -57,11 +57,11 @@
   "liveMarketplaceAttachmentVerified": false,
   "simulatedPurchaseTests": true,
   "actualJavaFxButtonsOnXvfb": true,
-  "nativeWindowsVerifiedForThisCode": false,
+  "nativeWindowsVerifiedForThisCode": true,
   "pdfAutoContinuationPersistsAcrossRestart": false,
   "paidPipelinePersistsAcrossRestart": true,
-  "installerBuilt": false,
-  "latestChanged": false,
+  "installerBuilt": true,
+  "latestChanged": true,
   "priorUploadedFileValidation": {
     "file": "zl.txt",
     "realOzonValidation": true,
@@ -111,5 +111,14 @@
     "result": "cancelled_for_user_requested_ozon_tabs",
     "published": false
   },
-  "ozonPrintedGroupingPersistsAcrossRestart": true
+  "ozonPrintedGroupingPersistsAcrossRestart": true,
+  "publishedEvidence": "2026-10-24-vncode-1514-published-latest.json",
+  "windowsJava": {
+    "errors": 0,
+    "tests": 2986,
+    "passed": 2984,
+    "failures": 0,
+    "skipped": 2
+  },
+  "windowsBuildRun": 40079053601
 }

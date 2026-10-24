@@ -1,17 +1,18 @@
 # Bộ nhớ dự án VNCode
 
-## Đang dựng 1.5.14 — mã chốt 24.10.2026
+## Đã phát hành 1.5.14 — 24.10.2026
 
 - Toàn bộ sửa đổi đã commit/push trên `release/vn-code-1.5.14`. Mã ứng dụng chốt `09718c80133528808047b01399e004ef9329ff64`, hash cây mã `77b135a319ba056f5022885792dc4829344004b899dbbb9f5d857b06230a0fb4`. 136 ca mục tiêu và 117 Node contracts đạt.
-- Windows build `40079053601` đang chạy từ đúng SHA. Full Linux `/tmp/vncode-1514-full-verify.log` đã BUILD SUCCESS lúc 08:59:55 UTC, 17:58: 2.986 ca, 2.984 đạt, 2 bỏ qua OS, không lỗi/thất bại. Chưa tag/draft/publish. Latest vẫn v1.5.13 ở lần đọc gần nhất. [Trạng thái phát hành](validation/2026-10-24-vncode-1514-release-state.json).
-- Công bố `40080996847` (`48cfe8b`) đã chạy và đang chờ Windows. Workflow `publish-vncode-1514.yml` chờ Windows `40079053601` thành công, đối chiếu receipt Linux và đúng SHA, sau đó mới tạo tag/draft có điều kiện, xác minh asset/native/upgrade rồi công bố Latest và tải công khai kiểm tra byte. Quyền công bố đã được chủ dự án cấp rõ. Node 117/117, YAML không khóa lặp, bash và 5 đoạn JavaScript nhúng kiểm tra cú pháp đạt. Tiếp tục tới khi public verification và kiểm tra bộ cập nhật thật xong. Không cần hỏi lại quyền phát hành. Không prune Release cũ.
+- **Latest v1.5.14 đã công bố lúc 09:34:12 UTC**, Release `422637565`, bất biến. Windows build `40079053601` thành công từ đúng SHA; Windows và Linux cùng 2.986 ca, 2.984 đạt, 2 bỏ qua OS, không lỗi/thất bại. Mở app native, DPAPI, cài/gỡ và nâng cấp từ 1.5.13 giữ dữ liệu đạt. [Biên nhận công bố](validation/2026-10-24-vncode-1514-published-latest.json).
+- Công bố `40082452101` (`2aee714`) thành công: 16 tài sản, tải công khai/kiểm tra byte đủ 11 tài sản bắt buộc, checksum và tag. JAR bộ cập nhật của 1.5.13 đã đọc Latest thật, chọn đúng MSI/hash/kích thước 1.5.14. Tải runtime công khai, xác minh lớp mới và FXML/bốn ngôn ngữ; 1.147 file nguồn/test/pom trong source ZIP khớp SHA chốt. Chưa quan sát thông báo trên máy seller, chưa mua KIZ có phí hoặc ghi GTIN/gán đơn production trong phiên này. Giữ các release cũ.
+- Lượt công bố đầu `40080996847` dừng sau tạo draft do API tra draft theo tag trả 404. Chỉ sửa workflow lấy URL API release bằng CLI đã xác thực, không sửa ứng dụng hoặc dùng lại kiểm thử cho nguồn khác. Kinh nghiệm: draft cần tra bằng ID/API URL; chỉ publish khi đủ bằng chứng và tài sản, không sửa tài sản sau khi bất biến.
 
 ## Bổ sung Ozon FBS trước phát hành 1.5.14 — 24.10.2026
 
 - Sau khi bắt đầu dựng, người dùng yêu cầu tách đơn mới nhận/chưa in khỏi đơn đã in. Đã hủy Windows `40077739159` của `e6aa47c` và full local đang dở; chưa tag/công bố ứng viên đó. Bản cuối tiếp tục dùng số 1.5.14.
 - Ozon có bốn nhóm: Chờ nhận (`awaiting_packaging`), Đơn mới (đã nhận/chưa in), Đang giao hàng (đã xuất PDF/chờ bàn giao), Đã bàn giao (`delivering`), cộng tab Kho KIZ. Giữ status Ozon thật; chỉ local grouping theo receipt xuất thành công.
 - Bảng receipt additive, đúng owner/shop/posting, ghi sau toàn bộ PDF thành công, backfill chỉ báo cáo SUCCEEDED có pdfBatchComplete=true. SQL dùng cùng điều kiện cho đếm, sort, phân trang và In tất cả. Giữ qua đồng bộ/restart; lỗi/hủy không chuyển nhóm. Có in lại từng đơn đã in.
-- 136 ca mục tiêu cuối đạt, gồm UI nút in thật, 1.001 đơn/phân trang/lọc/freeze, migration/idempotency/FK/integrity, PDF 1.000 đơn và mua KIZ/session/handoff. [Chi tiết](fixes/2026-10-24-ozon-new-unprinted-orders.md). Phải build/full/native Windows lại đúng SHA cuối trước Latest.
+- 136 ca mục tiêu cuối đạt, gồm UI nút in thật, 1.001 đơn/phân trang/lọc/freeze, migration/idempotency/FK/integrity, PDF 1.000 đơn và mua KIZ/session/handoff. [Chi tiết](fixes/2026-10-24-ozon-new-unprinted-orders.md). Đã build/full/native Windows đúng SHA cuối và phát hành Latest; xem mốc công bố trên.
 
 ## Chỉ đạo phát hành tiếp theo — 24.10.2026
 

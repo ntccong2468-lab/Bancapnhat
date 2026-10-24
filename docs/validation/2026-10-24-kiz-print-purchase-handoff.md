@@ -1,6 +1,6 @@
 # Bàn giao — mua KIZ thiếu và tự xuất nhãn
 
-Nhánh `fix/update-gtin-ozon-fbs-layout`, nền `ce56ee3` (proof mua sau khi Catalog published). Nền trước `585d15c` đã sửa cập nhật/GTIN/Ozon/PDF và vùng hiển thị toàn app. Mã sửa tiếp chưa phải bộ cài mới hoặc release Latest.
+Đã gộp và phát hành **1.5.14 lên Latest** lúc 09:34:12 UTC ngày 24.10.2026; nhánh bàn giao `release/vn-code-1.5.14`, nguồn chốt `09718c80133528808047b01399e004ef9329ff64`. Kế thừa proof mua `ce56ee3`, phần cập nhật/GTIN/Ozon/PDF/vùng hiển thị `585d15c`, thêm continuation và bốn nhóm đơn Ozon. [Biên nhận công bố](2026-10-24-vncode-1514-published-latest.json).
 
 ## Đã nối
 
@@ -19,6 +19,6 @@ Tự xuất PDF là continuation khi phiên app còn mở. Pipeline mua được
 
 ## Kiểm tra khi phát hành
 
-Nghiệm thu Windows native cho mã mới khi đóng gói. Thử mua có phí chỉ sau phê duyệt fixture cụ thể, đối chiếu đúng GTIN, số lượng, giấy tờ và chứng thư. Không dùng các ca mock, kết quả CI hoặc lần mua đã enqueue để tuyên bố mua/lưu thông/gán production đã được xác minh. Chủ dự án đã yêu cầu gộp và phát hành 1.5.14 sau khi kiểm tra xong; Latest hiện vẫn 1.5.13.
+Windows native và nâng cấp giữ dữ liệu từ 1.5.13 đã đạt, 2.986 ca/không lỗi. Công bố `40082452101` thành công, đủ 16 assets, tải công khai và checksum 11 assets bắt buộc đạt; JAR updater thật 1.5.13 đọc đúng Latest/MSI/hash/kích thước. Runtime công khai chứa thay đổi mới, 1.147 file source/test/pom trong source ZIP khớp mã chốt. Chưa quan sát thông báo trên máy seller. Thử mua có phí cần fixture cụ thể, đúng GTIN, số lượng, giấy tờ và chứng thư; không dùng mock/CI hoặc enqueue để tuyên bố mua/lưu thông/gán production đã được xác minh.
 
 [Luồng và chi tiết](../fixes/2026-10-24-kiz-print-purchase-continuation.md), [bản sửa proof mua](../fixes/2026-10-24-kiz-purchase-published-identity.md), [bàn giao phần cập nhật/GTIN/Ozon](2026-10-24-update-gtin-ozon-handoff.md).

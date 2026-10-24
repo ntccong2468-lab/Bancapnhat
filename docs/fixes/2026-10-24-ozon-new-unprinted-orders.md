@@ -23,4 +23,4 @@ Bảng additive `ozon_fbs_print_receipts` lưu shop/posting/owner hash và thờ
 - PDF thành công ghi receipt, lỗi PDF/thiếu quyền không ghi. Giữ các ca hai nhãn, 1.000 đơn, đọc barcode/DataMatrix, in lại và reservation.
 - 57 FxmlSmokeTest, các ca bốn nhóm trên bốn ngôn ngữ, hai theme và hai cỡ cửa sổ; kiểm tra nút/khung phân trang không bị cắt.
 
-Full Linux trên SHA cuối đạt 2.986 ca (2.984 đạt, 2 bỏ qua OS), không lỗi/thất bại, lúc 08:59:55 UTC. Chờ full Windows và native upgrade trước công bố 1.5.14. Không nhận/gán KIZ/mua có phí hoặc chuyển trạng thái đơn production để thử tính năng này.
+Full Linux trên SHA cuối đạt 2.986 ca (2.984 đạt, 2 bỏ qua OS), không lỗi/thất bại, lúc 08:59:55 UTC. Windows đạt cùng số ca; native và nâng cấp từ 1.5.13 giữ dữ liệu đạt. **1.5.14 đã lên Latest lúc 09:34:12 UTC**, runtime công khai chứa lớp receipt/PrintState và FXML bốn nhóm đúng mã chốt `09718c8`. [Bằng chứng phát hành](../validation/2026-10-24-vncode-1514-published-latest.json). Không nhận/gán KIZ/mua có phí hoặc chuyển trạng thái đơn production để thử tính năng này.

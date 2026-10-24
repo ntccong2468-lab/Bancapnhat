@@ -1,0 +1,114 @@
+{
+  "recordedAt": "2026-10-24T09:35:59.496666+00:00",
+  "version": "1.5.14",
+  "tag": "v1.5.14",
+  "sourceCommit": "09718c80133528808047b01399e004ef9329ff64",
+  "sourceTreeSha256": "77b135a319ba056f5022885792dc4829344004b899dbbb9f5d857b06230a0fb4",
+  "branch": "release/vn-code-1.5.14",
+  "releaseId": 422637565,
+  "publishedAt": "2026-10-24T09:34:12Z",
+  "immutableRelease": true,
+  "latestConfirmed": true,
+  "releaseUrl": "https://github.com/ntccong2468-lab/Bancapnhat/releases/tag/v1.5.14",
+  "downloadUrl": "https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.5.14/VN-code-1.5.14-Windows-x64.exe",
+  "installer": {
+    "name": "VN-code-1.5.14-Windows-x64.exe",
+    "sha256": "2a17102b3b32b3839d0710c4244270094fb48e6b7fc567ef5c665c2c01ccd18c",
+    "bytes": 147270144
+  },
+  "buildRun": {
+    "id": 40079053601,
+    "conclusion": "success",
+    "url": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/40079053601"
+  },
+  "publicationRun": {
+    "id": 40082452101,
+    "conclusion": "success",
+    "url": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/40082452101"
+  },
+  "publicAssets": 16,
+  "requiredAssetsVerified": 11,
+  "javaWindows": {
+    "errors": 0,
+    "tests": 2986,
+    "passed": 2984,
+    "failures": 0,
+    "skipped": 2
+  },
+  "javaLinux": {
+    "tests": 2986,
+    "passed": 2984,
+    "skipped": 2,
+    "failures": 0,
+    "errors": 0
+  },
+  "nodeTestsPassed": 117,
+  "targetedTestsPassed": 136,
+  "native": {
+    "platform": "windows-x64",
+    "version": "1.5.14",
+    "historyPreserved": true,
+    "appName": "VN code",
+    "liveMarketplaceMutations": false,
+    "schemaMigration": "3 to 6",
+    "nativeLauncher": "passed",
+    "windowTitle": "VN code v1.5.14",
+    "rollbackSnapshotVerified": true
+  },
+  "upgrade": {
+    "passiveExeHandoffVerified": true,
+    "singleShortcutPerLocation": true,
+    "singleRegistration": true,
+    "baselineInstallerSha256": "7593e46c6eb243b5f310025c43c4e6d9fc25f7e0aed201e7cd347af8c4fea9a9",
+    "liveMarketplaceMutations": false,
+    "baselineInstallerBytes": 147192320,
+    "version": "1.5.14",
+    "windowTitle": "VN code v1.5.14",
+    "baselineTag": "v1.5.13",
+    "fromVersion": "1.5.13",
+    "result": "passed",
+    "fingerprint": "b89f2b191a00da43bf51296a63128141c6e44bfa82b2fbcd4d075233c603b26e",
+    "appName": "VN code",
+    "installerUpgradeUuid": "8CBBA0E2-6E73-4F56-9101-6BC0948D3C72",
+    "dataPreserved": true,
+    "passiveExeEmbeddedMsiSha256": "bfa3e30b05840b85b1693a2851d019ec7a2c8443dd1aab1b7be0ba1dfec3626e",
+    "passiveExeInstallerSha256": "2a17102b3b32b3839d0710c4244270094fb48e6b7fc567ef5c665c2c01ccd18c"
+  },
+  "updater": {
+    "version": "1.5.14",
+    "newerThan1_5_13": true,
+    "usesPublishedRuntimeUpdater": true,
+    "windowsInstallerUrl": "https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.5.14/VN-code-1.5.14-Windows-x64.msi",
+    "sha256": "bfa3e30b05840b85b1693a2851d019ec7a2c8443dd1aab1b7be0ba1dfec3626e",
+    "bytes": 146601225,
+    "metadataSource": "GitHub releases/latest public response",
+    "sellerDeviceNotificationObserved": false
+  },
+  "package": {
+    "version": "1.5.14",
+    "sourceCommit": "09718c80133528808047b01399e004ef9329ff64",
+    "publicRuntimeSha256Verified": true,
+    "packagedNewClasses": [
+      "com/vncode/app/features/kiz/KizPrintPurchaseSession.class",
+      "com/vncode/app/features/ozon/OzonFbsQuery$PrintState.class",
+      "com/vncode/app/integration/ozon/OzonPrintReceiptRepository.class"
+    ],
+    "packagedOzonFxmlAndFourLocalesMatchSource": true,
+    "sourceArchiveFilesCompared": 1147,
+    "sourceArchiveMatchesPinnedCommit": true,
+    "lineEndingsNormalized": true,
+    "verifiedAt": "2026-10-24T09:35:21.980944+00:00"
+  },
+  "publicDownloadsAndChecksumsVerified": true,
+  "publicVerificationEvidence": "2026-10-24-vncode-1514-public-verification.json",
+  "liveCatalogWriteVerifiedForThisBuild": false,
+  "liveMarketplaceWriteVerified": false,
+  "paidKizPurchaseVerified": false,
+  "sellerDeviceNotificationObserved": false,
+  "oldReleasesDeleted": false,
+  "firstPublisherAttempt": {
+    "run": 40080996847,
+    "conclusion": "failure",
+    "reason": "Draft release lookup by tag returned HTTP 404 after draft creation; changed only publisher to use authenticated release API URL."
+  }
+}

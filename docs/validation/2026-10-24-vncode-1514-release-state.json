@@ -5,15 +5,15 @@
   "sourceTreeSha256": "77b135a319ba056f5022885792dc4829344004b899dbbb9f5d857b06230a0fb4",
   "windowsBuildRun": 40079053601,
   "windowsBuildUrl": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/40079053601",
-  "state": "WINDOWS_RUNNING_PUBLICATION_GATED",
+  "state": "PUBLISHED_LATEST_PUBLIC_BYTES_AND_OLD_UPDATER_VERIFIED",
   "targetedTestsPassed": 136,
   "nodeContractsPassed": 117,
   "localFullLog": "/tmp/vncode-1514-full-verify.log",
-  "releaseId": null,
-  "tagCreated": false,
-  "draftCreated": false,
-  "published": false,
-  "latestChanged": false,
+  "releaseId": 422637565,
+  "tagCreated": true,
+  "draftCreated": true,
+  "published": true,
+  "latestChanged": true,
   "previousLatest": {
     "tag": "v1.5.13",
     "releaseId": 422171061
@@ -34,7 +34,27 @@
   "publisherWorkflow": "publish-vncode-1514.yml",
   "publicationGate": "Windows success at pinned source, Linux full receipt, native/upgrade/artifact checks, safe tag/draft, public byte verification",
   "publisherNodeTestsPassed": 117,
-  "publisherRun": 40080996847,
-  "publisherSource": "48cfe8bdad94ece7c680ebc1fa81b34f139eea11",
-  "publisherUrl": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/40080996847"
+  "publisherRun": 40082452101,
+  "publisherSource": "2aee714026149a1e930314b3c067399538c4aa01",
+  "publisherUrl": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/40082452101",
+  "publishedAt": "2026-10-24T09:34:12Z",
+  "windowsBuildConclusion": "success",
+  "windowsJava": {
+    "errors": 0,
+    "tests": 2986,
+    "passed": 2984,
+    "failures": 0,
+    "skipped": 2
+  },
+  "nativeWindowsVerified": true,
+  "upgradeFromVersion": "1.5.13",
+  "dataPreserved": true,
+  "publicAssetsVerified": true,
+  "runtimeUpdaterVerified": true,
+  "sellerDeviceNotificationObserved": false,
+  "firstPublisherAttempt": {
+    "run": 40080996847,
+    "conclusion": "failure",
+    "reason": "Draft release lookup by tag returned HTTP 404 after draft creation; changed only publisher to use authenticated release API URL."
+  }
 }
