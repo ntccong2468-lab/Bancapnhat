@@ -1,0 +1,64 @@
+{
+  "recordedAt": "2026-10-24T18:54:09.904044+00:00",
+  "branch": "perf/catalog-single-card-throughput",
+  "sourceBase": "v1.5.14",
+  "sourceCommit": "59c3dc524d0bc0578aaaa1f320f225bf6769a841",
+  "previousRetryFix": "3ede7581ab17425ff975b75f603df93c9166ce7c",
+  "sourceTreeSha256": "9f02144cd8760f31ea1cdd07d843f6de093e8fafc9c91e0f747222bcc4d4283d",
+  "sourceTreeHashAlgorithm": "SHA256 of lexically sorted tracked src/ and pom.xml: UTF8(path), NUL, file bytes, NUL",
+  "command": "DISPLAY=:99 /workspace/toolchains/mvn-vncode -o -B '-Dtest=*Znack*Test,*Registration*Test,*Catalog*Test,NationalCatalog*Test,*Permit*Test,MarketplaceRequestBudgetTest' test",
+  "finalRegression": {
+    "log": "/tmp/vncode-catalog-continuous-final-regression.log",
+    "logSha256": "4c0fad81ff72966a942537bc4e1ec124d35e6c730924a7ec54e5b783cd306b92",
+    "tests": 1246,
+    "passed": 1246,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "buildSuccess": true,
+    "finishedAt": "2026-10-24T18:53:33Z"
+  },
+  "stressScenario": {
+    "test": "ZnackRegistrationBatchServiceTest.continuous117CardQueueSurvivesWriteLimitsAndDelayedReadbacksWithoutDuplicateIdentities",
+    "total": 117,
+    "confirmed": 117,
+    "remaining": 0,
+    "failed": 0,
+    "successfulGtinAllocations": 117,
+    "postAttempts": 122,
+    "acceptedFeeds": 117,
+    "explicit429PostAttempts": [
+      1,
+      22,
+      55,
+      89,
+      120
+    ],
+    "read429Every": 7,
+    "delayedCardVisibility": true,
+    "manualResumeRequired": false,
+    "duplicateAcceptedFeedPosts": 0,
+    "deadlineAdvanceSimulatedInTest": true,
+    "livePerformanceBenchmark": false
+  },
+  "verifiedScenarios": [
+    "WB and Ozon explicit allocation HTTP 429 remain safely retryable",
+    "WB and Ozon explicit feed HTTP 429 retain original GTIN and saved payload",
+    "localhost real ZnackApiClient POST 429 persists one-hour deadline then confirms three exact cards",
+    "Ozon one-hour Retry-After after write rejection survives repository reopen without early POST",
+    "more than five transient failures do not auto-pause the queue",
+    "uncertain allocation/feed/signature outcomes retain existing no-replay protection",
+    "owner, scope, account, license, signing, request-budget, UI and report regressions pass"
+  ],
+  "limits": [
+    "Retry-After must be honored; continuous means automatic continuation, not ignoring service limits",
+    "unknown write outcomes require reconciliation before retry",
+    "invalid data, account permissions and GS1 quota need corrective action",
+    "fully terminated app cannot send HTTP; durable queue resumes when app/network returns"
+  ],
+  "liveCatalogWriteVerified": false,
+  "windowsNativeVerifiedForThisChange": false,
+  "installerBuilt": false,
+  "latestChanged": false,
+  "latestRemains": "v1.5.14"
+}
