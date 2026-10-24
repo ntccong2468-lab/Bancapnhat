@@ -27,7 +27,7 @@ public final class OzonStockReplenishment {
             for(var row:readiness.postings()){
                 var posting=postingSnapshot.get(row.postingNumber());if(posting==null)continue;
                 var needed=row.gtinAvailability().stream().map(OzonPrintReadiness.GtinAvailability::gtin).collect(java.util.stream.Collectors.toSet());
-                for(var item:posting.items()){String gtin=skuMappings.get(item.sku());if(gtin!=null&&needed.contains(gtin))candidates.add(new KizPurchaseMappingProof.Product(products.get(item.sku()),item.sku(),gtin));}
+                for(var item:posting.items()){String gtin=skuMappings.get(item.sku());if(gtin!=null&&needed.contains(gtin))candidates.add(new KizPurchaseMappingProof.Product(products.get(item.sku()),item.sku(),gtin,posting.postingNumber()));}
             }
         }
         var replenisher=new KizStockReplenisher();

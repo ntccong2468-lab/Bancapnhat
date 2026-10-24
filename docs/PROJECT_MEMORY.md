@@ -1,5 +1,12 @@
 # Bộ nhớ dự án VNCode
 
+## Sửa tiếp 24.10.2026 — cổng mua KIZ
+
+- Phần cập nhật/GTIN/Ozon/workspace trước đó đã commit và push `585d15c` trên `fix/update-gtin-ozon-fbs-layout`; chưa phát hành bộ cài mới. Sau đó người dùng gửi ảnh `KIZ_GTIN_MAPPING_MISSING` kèm dòng đơn/SKU trống, yêu cầu kiểm tra mua KIZ.
+- Đã tái hiện lỗi trên WB và Ozon: đăng ký chuyển sang PUBLISHED làm cổng mua mất proof nếu barcode sàn chưa có GTIN. Bổ sung view proof chỉ dành cho mua, cần đăng ký đúng scope/payload/native SKU và quan sát Catalog mới, đúng owner/source/publication/article/màu/cỡ. Không bỏ guard ghi GTIN, không dùng rule danh mục để mua.
+- Metadata khi đã published lấy giấy tờ hiện hành Catalog; hàng đợi dự phòng vẫn dùng anchor không active, không dựng publication giả. Giữ kiểm tra tồn kho/pipeline cũ trước mua thiếu, UUID, idempotency, license, OMS và ký thật. Lỗi giữ order/posting/SKU, bỏ dòng trống và mã lặp, bản dịch đủ bốn ngôn ngữ.
+- 111 ca mục tiêu cuối đạt. Full sửa mua BUILD SUCCESS: 2.963 ca, 2.961 đạt, 2 bỏ qua OS, không lỗi/thất bại; log `/tmp/vncode-kiz-purchase-final-verify.log`, kết thúc 07:46:15 UTC (17:18). Hash cây mã hiện kiểm tra `3088a54e0c24b40dc6f4cfc60b666eae06f2a73579a91cbf652f65d586ace9d2`. Chưa mua KIZ có phí hoặc thực hiện mutation production. [Chi tiết](fixes/2026-10-24-kiz-purchase-published-identity.md).
+
 ## Phiên sửa 24.10.2026 — cập nhật, GTIN và Ozon
 
 - Nhánh `fix/update-gtin-ozon-fbs-layout`, nền bàn giao 1.5.13 `b4e3a8d`. Đây là mã nguồn sửa tiếp; **chưa tạo bộ cài, chưa thay Latest 1.5.13**. Không dùng kết quả Windows của release cũ làm bằng chứng cho mã mới.

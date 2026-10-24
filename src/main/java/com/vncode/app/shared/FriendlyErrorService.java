@@ -65,7 +65,7 @@ public final class FriendlyErrorService {
                 "SYNC_STORAGE".equals(code)?I18nService.getInstance().tr("error.database_storage"):formatDetail(error);
         if(error instanceof com.vncode.app.features.sync.ZnackGtinBackgroundService.PreparationException)
             detail=I18nService.getInstance().tr("gtin.background.prepare_failed")+"\n"+detail;
-        return detail+"\n["+code+"]";
+        return detail+(detail.contains("["+code+"]")?"":"\n["+code+"]");
     }
 
     private static String formatDetail(Throwable error) {
@@ -86,7 +86,7 @@ public final class FriendlyErrorService {
                     .collect(java.util.stream.Collectors.joining("\n"))+"\n"+MessageFormat.format(I18nService.getInstance().tr("kiz.shipment.missing_count"),shortage.missing().size());
             if(cause instanceof com.vncode.app.features.kiz.KizPurchasePendingException pending)return pending.display();
             if(cause instanceof com.vncode.app.features.kiz.KizAssignmentException kiz)
-                return com.vncode.app.features.kiz.KizErrorMessages.message(kiz.code())+"\n"+java.text.MessageFormat.format(I18nService.getInstance().tr("kiz.error.order_product"),kiz.order(),kiz.product());
+                return com.vncode.app.features.kiz.KizErrorMessages.message(kiz.code())+(kiz.order().isBlank()&&kiz.product().isBlank()?"":"\n"+java.text.MessageFormat.format(I18nService.getInstance().tr("kiz.error.order_product"),kiz.order().isBlank()?"—":kiz.order(),kiz.product().isBlank()?"—":kiz.product()));
             if(cause.getMessage()!=null&&cause.getMessage().matches("KIZ_[A-Z0-9_]{1,70}"))return com.vncode.app.features.kiz.KizErrorMessages.message(cause.getMessage());
             if(cause instanceof com.vncode.app.features.gtinsync.RegisteredGtinProof.UnverifiedOwnerException owner)
                 return I18nService.getInstance().tr("error.catalog_owner_unverified")+"\n"+I18nService.getInstance().tr("error.catalog_owner."+owner.reason().name().toLowerCase(java.util.Locale.ROOT));

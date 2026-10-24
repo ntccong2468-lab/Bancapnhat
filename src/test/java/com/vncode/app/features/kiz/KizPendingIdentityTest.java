@@ -32,6 +32,56 @@ class KizPendingIdentityTest {
         assertEquals(PendingKizFixture.GTIN,new ZnackCardRegistrationRepository().activeGtinsByBarcode(1).get("S-M"));
         assertFalse(new ZnackCardRegistrationRepository().activeGtinsByBarcode(1).containsKey("S-L"));
     }
+    @ParameterizedTest @EnumSource(value=Marketplace.class,names={"WILDBERRIES","OZON"})
+    void publishingAnOwnedRegistrationDoesNotBreakPurchaseBeforeBarcodeWriteback(Marketplace market)throws Exception{
+        var shop=PendingKizFixture.create(market);
+        PendingKizFixture.sql("UPDATE "+(market==Marketplace.WILDBERRIES?"znack_card_registrations":"ozon_card_registrations")+" SET status='PUBLISHED'");
+        var details=new com.vncode.app.features.catalogsync.CatalogProductData(Map.of("@catalog_id",List.of("91"),"@catalog_status",List.of("published")),List.of(),List.of());
+        var registered=new com.vncode.app.features.gtinsync.GtinSyncModels.RegisteredGtin(PendingKizFixture.GTIN,"Fixture","Black","M",true,true,com.vncode.app.features.gtinsync.RegisteredGtinProof.source(shop),java.time.Instant.now(),details);
+        new com.vncode.app.features.gtinsync.GtinSyncRepository().saveCatalog(shop.getId(),market,List.of(registered));
+        String id=market==Marketplace.WILDBERRIES?"101":"9001";
+        assertDoesNotThrow(()->KizPurchaseMappingProof.require(shop,List.of(new KizPurchaseMappingProof.Product(id,"S-M",PendingKizFixture.GTIN)),Set.of(PendingKizFixture.GTIN)));
+        assertThrows(KizAssignmentException.class,()->KizPurchaseMappingProof.require(shop,List.of(new KizPurchaseMappingProof.Product(id,"S-L",PendingKizFixture.GTIN)),Set.of(PendingKizFixture.GTIN)));
+    }
+    @ParameterizedTest @EnumSource(value=Marketplace.class,names={"WILDBERRIES","OZON"})
+    void publishedPurchaseStillRejectsMissingStaleForeignOrDifferentVariantCatalogProof(Marketplace market)throws Exception{
+        var shop=PendingKizFixture.create(market);String id=market==Marketplace.WILDBERRIES?"101":"9001";
+        PendingKizFixture.sql("UPDATE "+(market==Marketplace.WILDBERRIES?"znack_card_registrations":"ozon_card_registrations")+" SET status='PUBLISHED'");
+        var selected=List.of(new KizPurchaseMappingProof.Product(id,"S-M",PendingKizFixture.GTIN,"ORDER-1"));
+        Runnable purchase=()->KizPurchaseMappingProof.require(shop,selected,Set.of(PendingKizFixture.GTIN));
+        var missing=assertThrows(KizAssignmentException.class,purchase::run);assertEquals("ORDER-1",missing.order());assertTrue(missing.product().contains("S-M"));
+        var details=new com.vncode.app.features.catalogsync.CatalogProductData(Map.of("@catalog_id",List.of("91"),"@catalog_status",List.of("published")),List.of(),List.of());
+        var repository=new com.vncode.app.features.gtinsync.GtinSyncRepository();String scope=com.vncode.app.features.gtinsync.RegisteredGtinProof.source(shop);
+        for(var card:List.of(
+                new com.vncode.app.features.gtinsync.GtinSyncModels.RegisteredGtin(PendingKizFixture.GTIN,"Fixture","Black","M",true,true,scope,java.time.Instant.now().minusSeconds(90000),details),
+                new com.vncode.app.features.gtinsync.GtinSyncModels.RegisteredGtin(PendingKizFixture.GTIN,"Fixture","Black","L",true,true,scope,java.time.Instant.now(),details),
+                new com.vncode.app.features.gtinsync.GtinSyncModels.RegisteredGtin(PendingKizFixture.GTIN,"Fixture","Black","M",false,true,scope,java.time.Instant.now(),details))){
+            repository.saveCatalog(shop.getId(),market,List.of(card));assertThrows(KizAssignmentException.class,purchase::run);
+        }
+        var valid=new com.vncode.app.features.gtinsync.GtinSyncModels.RegisteredGtin(PendingKizFixture.GTIN,"Fixture","Black","M",true,true,scope,java.time.Instant.now(),details);
+        repository.saveCatalog(shop.getId(),market,List.of(valid));assertDoesNotThrow(purchase::run);
+        PendingKizFixture.sql("UPDATE gtin_sync_catalog SET data_json=json_set(data_json,'$.owner','foreign-fixture-owner')");
+        assertThrows(KizAssignmentException.class,purchase::run);
+    }
+    @ParameterizedTest @EnumSource(value=Marketplace.class,names={"WILDBERRIES","OZON"})
+    void publishedMetadataReachesPurchasePrerequisitesAndDurableQueueWithoutInventingPublication(Marketplace market)throws Exception{
+        var shop=PendingKizFixture.create(market);
+        PendingKizFixture.sql("UPDATE "+(market==Marketplace.WILDBERRIES?"znack_card_registrations":"ozon_card_registrations")+" SET status='PUBLISHED'");
+        var parsed=com.vncode.app.integration.znack.registration.CatalogProductDataParser.parse(PendingKizFixture.payload());
+        var fields=new HashMap<>(parsed.fields());fields.put("@catalog_id",List.of("91"));fields.put("@catalog_status",List.of("published"));
+        var details=new com.vncode.app.features.catalogsync.CatalogProductData(fields,parsed.attributes(),parsed.documents());
+        var registered=new com.vncode.app.features.gtinsync.GtinSyncModels.RegisteredGtin(PendingKizFixture.GTIN,"Fixture","Black","M",true,true,com.vncode.app.features.gtinsync.RegisteredGtinProof.source(shop),java.time.Instant.now(),details);
+        new com.vncode.app.features.gtinsync.GtinSyncRepository().saveCatalog(shop.getId(),market,List.of(registered));
+        PendingKizFixture.sql("UPDATE znack_settings SET oms_connection='fixture-connection',auto_introduction=1");
+        var repository=new ZnackRepository(new ZnackModels.ShopContext(shop.getId(),shop.getName()));
+        var coordinator=new ZnackPurchaseCoordinator(repository,null,null,null);
+        var failure=assertThrows(IllegalStateException.class,()->coordinator.validatePrerequisites(repository.getSettings(),PendingKizFixture.GTIN,1));
+        assertEquals("omsId is required before buying KIZ.",failure.getMessage());
+        long queued=repository.enqueuePipeline(PendingKizFixture.GTIN,1,UUID.randomUUID().toString());
+        assertTrue(repository.findPipeline(queued).isPresent());assertTrue(repository.findActiveProduct(PendingKizFixture.GTIN).isEmpty());
+        PendingKizFixture.sql("UPDATE gtin_sync_catalog SET data_json=json_set(data_json,'$.owner','foreign-fixture-owner')");
+        assertThrows(IllegalArgumentException.class,()->repository.enqueuePipeline(PendingKizFixture.GTIN,1,UUID.randomUUID().toString()));
+    }
     @Test void ozonPendingIdentityResolvesTheExactNativeSkuBeforeMarketplacePublication()throws Exception{
         PendingKizFixture.create(Marketplace.OZON);
         assertEquals(PendingKizFixture.GTIN,new OzonProductGtinMappingRepository().findResolvedBySku(2).get("S-M"));

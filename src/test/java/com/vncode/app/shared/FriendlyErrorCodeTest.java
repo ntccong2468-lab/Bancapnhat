@@ -22,6 +22,17 @@ class FriendlyErrorCodeTest {
    assertTrue(text.contains("[VN_NETWORK]"));assertFalse(text.contains("private-host"));assertFalse(text.contains("secret-value"));assertFalse(text.contains("error.network"));}}
   finally{i18n.setLanguage(previous);}
  }
+ @Test void kizMappingErrorsKeepOrderContextAndShowTheCodeOnceWithoutEmptyRows(){
+  var i18n=I18nService.getInstance();var previous=i18n.getCurrentLanguage();
+  try{for(var language:AppLanguage.values()){
+   i18n.setLanguage(language);
+   String code="KIZ_GTIN_MAPPING_MISSING";
+   String detail=FriendlyErrorService.format(new com.vncode.app.features.kiz.KizAssignmentException(code,"ORDER-1","101-SKU-M"));
+   assertTrue(detail.contains("ORDER-1"));assertTrue(detail.contains("101-SKU-M"));assertEquals(1,detail.split("\\["+code+"\\]",-1).length-1);
+   String empty=FriendlyErrorService.format(new com.vncode.app.features.kiz.KizAssignmentException(code,"",""));
+   assertEquals(com.vncode.app.features.kiz.KizErrorMessages.message(code),empty);
+  }}finally{i18n.setLanguage(previous);}
+ }
  @Test void wrappedHttpFailuresRetainSafeStatusCode() {
   var error=new RuntimeException("Cannot load supply",new com.vncode.app.integration.wb.WbApiException("upstream",503,"private raw body"));
   String text=FriendlyErrorService.format(error);assertTrue(text.contains("[WB_HTTP_503]"));assertFalse(text.contains("private raw body"));

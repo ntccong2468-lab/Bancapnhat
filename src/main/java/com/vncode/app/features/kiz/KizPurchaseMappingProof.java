@@ -7,18 +7,22 @@ import java.util.*;
 
 /** A broad legacy category/article rule can select stock, but cannot authorize a new paid purchase. */
 public final class KizPurchaseMappingProof {
-    public record Product(String nativeId,String sku,String gtin){}
+    public record Product(String nativeId,String sku,String gtin,String order){
+        public Product(String nativeId,String sku,String gtin){this(nativeId,sku,gtin,"");}
+    }
     public static void require(Shop shop,List<Product> products,Set<String> toBuy){
         var requested=new HashSet<String>();for(var gtin:toBuy)requested.add(GtinNormalizer.normalize(gtin));
         var selected=products.stream().filter(p->p.gtin()!=null&&requested.contains(GtinNormalizer.normalize(p.gtin()))).toList();
-        var pending=new KizRegistrationIdentityRepository().read(shop);
+        var pending=new KizRegistrationIdentityRepository().readForPurchase(shop);
         var covered=new HashSet<String>();
         var references=new LinkedHashMap<Product,FboProductSku>();
         for(var product:selected){
-            if(product.nativeId()==null||product.nativeId().isBlank()||product.sku()==null||product.sku().isBlank())throw missing();
-            var identity=pending.select(product.nativeId(),product.sku());
+            if(product.nativeId()==null||product.nativeId().isBlank()||product.sku()==null||product.sku().isBlank())throw missing(product);
+            KizRegistrationIdentityRepository.Identity identity;
+            try{identity=pending.select(product.nativeId(),product.sku());}
+            catch(KizAssignmentException incomplete){throw missing(product);}
             if(identity!=null){
-                if(!identity.gtin().equals(GtinNormalizer.normalize(product.gtin())))throw missing();
+                if(!identity.gtin().equals(GtinNormalizer.normalize(product.gtin())))throw missing(product);
                 covered.add(identity.gtin());continue;
             }
             // These are native lookup keys only. The repository must obtain physical
@@ -26,8 +30,9 @@ public final class KizPurchaseMappingProof {
             references.put(product,new FboProductSku(1,"","","","","","","",product.sku(),"",true,product.sku(),"","",product.nativeId()));
         }
         var verified=references.isEmpty()?Map.<FboProductSku,String>of():new FboVerifiedGtinRepository().resolve(shop.getId(),shop.getMarketplace(),List.copyOf(references.values()));
-        references.forEach((product,reference)->{String gtin=verified.get(reference);if(gtin==null||!GtinNormalizer.normalize(gtin).equals(GtinNormalizer.normalize(product.gtin())))throw missing();covered.add(GtinNormalizer.normalize(gtin));});
+        references.forEach((product,reference)->{String gtin=verified.get(reference);if(gtin==null||!GtinNormalizer.normalize(gtin).equals(GtinNormalizer.normalize(product.gtin())))throw missing(product);covered.add(GtinNormalizer.normalize(gtin));});
         if(!covered.containsAll(requested))throw missing();
     }
     private static KizAssignmentException missing(){return new KizAssignmentException("KIZ_GTIN_MAPPING_MISSING","","");}
+    private static KizAssignmentException missing(Product product){return new KizAssignmentException("KIZ_GTIN_MAPPING_MISSING",product.order(),Objects.toString(product.nativeId(),"")+"-"+Objects.toString(product.sku(),""));}
 }

@@ -65,7 +65,7 @@ public class OrderExportWorkflow {
             }
             public Map<String,List<Kiz>> reserveForOrders(Shop shop,Map<String,Integer> quantities,Map<Order,String> orders,KizSourceSelection sources){
                 try{
-                    var products=orders.entrySet().stream().map(e->new com.vncode.app.features.kiz.KizPurchaseMappingProof.Product(String.valueOf(e.getKey().getNmId()),e.getKey().getBarcode(),e.getValue())).toList();
+                    var products=orders.entrySet().stream().map(e->new com.vncode.app.features.kiz.KizPurchaseMappingProof.Product(String.valueOf(e.getKey().getNmId()),e.getKey().getBarcode(),e.getValue(),String.valueOf(e.getKey().getId()))).toList();
                     java.util.function.Consumer<Map<String,Integer>> proof=missing->com.vncode.app.features.kiz.KizPurchaseMappingProof.require(shop,products,missing.keySet());
                     var stock=new com.vncode.app.features.kiz.KizStockReplenisher();
                     var result=sources==null?stock.ensure(shop,quantities,proof):stock.ensurePurchased(shop,quantities,proof);
