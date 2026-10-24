@@ -1,5 +1,12 @@
 # Bộ nhớ dự án VNCode
 
+## Bổ sung Ozon FBS trước phát hành 1.5.14 — 24.10.2026
+
+- Sau khi bắt đầu dựng, người dùng yêu cầu tách đơn mới nhận/chưa in khỏi đơn đã in. Đã hủy Windows `40077739159` của `e6aa47c` và full local đang dở; chưa tag/công bố ứng viên đó. Bản cuối tiếp tục dùng số 1.5.14.
+- Ozon có bốn nhóm: Chờ nhận (`awaiting_packaging`), Đơn mới (đã nhận/chưa in), Đang giao hàng (đã xuất PDF/chờ bàn giao), Đã bàn giao (`delivering`), cộng tab Kho KIZ. Giữ status Ozon thật; chỉ local grouping theo receipt xuất thành công.
+- Bảng receipt additive, đúng owner/shop/posting, ghi sau toàn bộ PDF thành công, backfill chỉ báo cáo SUCCEEDED có pdfBatchComplete=true. SQL dùng cùng điều kiện cho đếm, sort, phân trang và In tất cả. Giữ qua đồng bộ/restart; lỗi/hủy không chuyển nhóm. Có in lại từng đơn đã in.
+- 136 ca mục tiêu cuối đạt, gồm UI nút in thật, 1.001 đơn/phân trang/lọc/freeze, migration/idempotency/FK/integrity, PDF 1.000 đơn và mua KIZ/session/handoff. [Chi tiết](fixes/2026-10-24-ozon-new-unprinted-orders.md). Phải build/full/native Windows lại đúng SHA cuối trước Latest.
+
 ## Chỉ đạo phát hành tiếp theo — 24.10.2026
 
 - Người dùng đã yêu cầu rõ: sau khi xong, gộp toàn bộ sửa đổi thành bản mới và đưa lên Latest. Chuẩn bị **1.5.14**, kế thừa 1.5.13, gồm cập nhật/GTIN/Ozon/PDF/vùng hiển thị, proof mua và session mua thiếu → lưu thông → xuất nhãn. Không cần hỏi lại quyền phát hành.
@@ -10,7 +17,7 @@
 - Yêu cầu mới: chọn Mua KIZ → Xuất nhãn → bảng đề xuất phần thiếu → Áp dụng → mua/kiểm tra lưu thông → tự xuất. Đã nối session dùng chung vào WB và Ozon; preflight/readiness không enqueue. Bảng có số cần/sẵn dùng/thiếu/mua thêm; hủy không mua mới, pending không mua trùng. Viên thuốc tiến trình tự ẩn khi kết thúc.
 - Profile riêng của lượt mua phục vụ in bật tự đưa vào lưu thông, giữ kết nối/chữ ký gốc trong cùng transaction enqueue, không đổi cấu hình toàn cửa hàng hoặc pipeline cũ. Chỉ AVAILABLE / IN_CIRCULATION được tính; dữ liệu RECEIVED hoặc đã gửi document chưa đủ. Đổi owner/cấu hình chặn tác vụ in cũ.
 - Continuation tự xuất chỉ trong phiên app đang mở. Pipeline mua bền vững và đối soát qua restart; chưa thêm hàng đợi PDF tự xuất sau restart. Handoff cập nhật được checkpoint khi đang chờ mua đã lưu, không checkpoint ở giữa reservation/ghi PDF.
-- 118 ca mục tiêu đạt, gồm FxmlSmoke, session/hộp thoại, kho/print/readiness/profile và hàng đợi/handoff; sau sửa nhãn nút RU/ZH, 21 ca liên quan cuối đạt. Full đầu 2.980 ca có một phép đo fairness theo callback phụ thuộc lịch CPU. Giữ stress 10.000 đơn và thêm tình huống fairness xác định với một writer bị giữ; 37 ca liên quan đạt, Node 117/117. Chạy full 1.5.14 `/tmp/vncode-1514-full-verify.log`, hash `06df14f553ad61b717ccbfe021a6b7b9ab76bb7eafabb7ff7a2e8c0dd585c4a8` và build Windows đúng SHA. Chưa mua KIZ có phí/mutation production, chưa đóng gói/đổi Latest. [Chi tiết và luồng](fixes/2026-10-24-kiz-print-purchase-continuation.md).
+- 118 ca mục tiêu đạt, gồm FxmlSmoke, session/hộp thoại, kho/print/readiness/profile và hàng đợi/handoff; sau sửa nhãn nút RU/ZH, 21 ca liên quan cuối đạt. Full đầu 2.980 ca có một phép đo fairness theo callback phụ thuộc lịch CPU. Giữ stress 10.000 đơn và thêm tình huống fairness xác định với một writer bị giữ; 37 ca liên quan đạt, Node 117/117. Chạy full 1.5.14 `/tmp/vncode-1514-full-verify.log`, hash `77b135a319ba056f5022885792dc4829344004b899dbbb9f5d857b06230a0fb4` và build Windows đúng SHA. Chưa mua KIZ có phí/mutation production, chưa đóng gói/đổi Latest. [Chi tiết và luồng](fixes/2026-10-24-kiz-print-purchase-continuation.md).
 
 ## Sửa tiếp 24.10.2026 — cổng mua KIZ
 

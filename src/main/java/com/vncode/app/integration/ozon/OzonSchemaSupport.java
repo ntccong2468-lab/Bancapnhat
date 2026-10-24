@@ -12,6 +12,12 @@ public final class OzonSchemaSupport {
     public static void initialize(Connection connection) throws SQLException {
         try (Statement statement = connection.createStatement()) {
             statement.execute("""
+                CREATE TABLE IF NOT EXISTS ozon_fbs_print_receipts(
+                  shop_id INTEGER NOT NULL,posting_number TEXT NOT NULL,owner TEXT NOT NULL,
+                  printed_at TEXT NOT NULL,PRIMARY KEY(shop_id,posting_number,owner),
+                  FOREIGN KEY(shop_id,posting_number) REFERENCES ozon_postings(shop_id,posting_number) ON DELETE CASCADE)
+                """);
+            statement.execute("""
                     CREATE TABLE IF NOT EXISTS ozon_sync_state(
                         shop_id INTEGER PRIMARY KEY,
                         products_last_id TEXT,

@@ -20,7 +20,10 @@ public final class OzonPostingRepository {
 
     public long countFiltered(int shop,String status,String text){try(var c=Database.getConnection()){return countFiltered(c,shop,status,text);}catch(SQLException e){throw new IllegalStateException("Cannot count Ozon postings");}}
     public long countFiltered(Connection c,int shop,String status,String text)throws SQLException{
-        var q=new com.vncode.app.features.ozon.OzonFbsQuery(shop,status,text,"",0,100);registerSearch(c);
+        return countFiltered(c,new com.vncode.app.features.ozon.OzonFbsQuery(shop,status,text,"",0,100));
+    }
+    public long countFiltered(Connection c,com.vncode.app.features.ozon.OzonFbsQuery q)throws SQLException{
+        registerSearch(c);
         try(var p=c.prepareStatement("SELECT COUNT(*) FROM ozon_postings p WHERE "+filter(q)+unitShipExclusion(c))){bindFilter(p,q);try(var r=p.executeQuery()){return r.getLong(1);}}
     }
     public List<OzonPostingDto> findSortedPage(com.vncode.app.features.ozon.OzonFbsQuery q){try(var c=Database.getConnection()){return findSortedPage(c,q);}catch(SQLException e){throw new IllegalStateException("Cannot page Ozon postings");}}
@@ -113,8 +116,12 @@ public final class OzonPostingRepository {
     }
 
     private static void registerSearch(Connection c)throws SQLException{org.sqlite.Function.create(c,"vn_fold",new org.sqlite.Function(){protected void xFunc()throws SQLException{String v=value_text(0);result(v==null?"":java.text.Normalizer.normalize(v,java.text.Normalizer.Form.NFKC).toLowerCase(java.util.Locale.ROOT));}});}
-    private static String filter(com.vncode.app.features.ozon.OzonFbsQuery q){return "p.shop_id=?"+(q.status().isBlank()?"":" AND p.status=?")+(q.text().isBlank()?"":" AND (vn_fold(p.posting_number) LIKE ? ESCAPE '\\' OR vn_fold(p.order_id) LIKE ? ESCAPE '\\' OR vn_fold(p.order_number) LIKE ? ESCAPE '\\' OR EXISTS(SELECT 1 FROM ozon_posting_items x WHERE x.shop_id=p.shop_id AND x.posting_number=p.posting_number AND (vn_fold(x.sku) LIKE ? ESCAPE '\\' OR vn_fold(x.offer_id) LIKE ? ESCAPE '\\' OR vn_fold(x.name) LIKE ? ESCAPE '\\')))");}
-    private static int bindFilter(PreparedStatement p,com.vncode.app.features.ozon.OzonFbsQuery q)throws SQLException{int n=1;p.setInt(n++,q.shopId());if(!q.status().isBlank())p.setString(n++,q.status());if(!q.text().isBlank()){String s="%"+java.text.Normalizer.normalize(q.text(),java.text.Normalizer.Form.NFKC).toLowerCase(java.util.Locale.ROOT).replace("\\","\\\\").replace("%","\\%").replace("_","\\_")+"%";for(int i=0;i<6;i++)p.setString(n++,s);}return n;}
+    private static String printFilter(com.vncode.app.features.ozon.OzonFbsQuery q){
+        if(q.printState()==com.vncode.app.features.ozon.OzonFbsQuery.PrintState.ALL)return "";
+        return " AND "+(q.printState()==com.vncode.app.features.ozon.OzonFbsQuery.PrintState.UNPRINTED?"NOT ":"")+"EXISTS(SELECT 1 FROM ozon_fbs_print_receipts printed WHERE printed.shop_id=p.shop_id AND printed.posting_number=p.posting_number AND printed.owner=?)";
+    }
+    private static String filter(com.vncode.app.features.ozon.OzonFbsQuery q){return "p.shop_id=?"+(q.status().isBlank()?"":" AND p.status=?")+(q.text().isBlank()?"":" AND (vn_fold(p.posting_number) LIKE ? ESCAPE '\\' OR vn_fold(p.order_id) LIKE ? ESCAPE '\\' OR vn_fold(p.order_number) LIKE ? ESCAPE '\\' OR EXISTS(SELECT 1 FROM ozon_posting_items x WHERE x.shop_id=p.shop_id AND x.posting_number=p.posting_number AND (vn_fold(x.sku) LIKE ? ESCAPE '\\' OR vn_fold(x.offer_id) LIKE ? ESCAPE '\\' OR vn_fold(x.name) LIKE ? ESCAPE '\\')))")+printFilter(q);}
+    private static int bindFilter(PreparedStatement p,com.vncode.app.features.ozon.OzonFbsQuery q)throws SQLException{int n=1;p.setInt(n++,q.shopId());if(!q.status().isBlank())p.setString(n++,q.status());if(!q.text().isBlank()){String s="%"+java.text.Normalizer.normalize(q.text(),java.text.Normalizer.Form.NFKC).toLowerCase(java.util.Locale.ROOT).replace("\\","\\\\").replace("%","\\%").replace("_","\\_")+"%";for(int i=0;i<6;i++)p.setString(n++,s);}if(q.printState()!=com.vncode.app.features.ozon.OzonFbsQuery.PrintState.ALL)p.setString(n++,com.vncode.app.integration.listing.ListingIdentity.fingerprint(p.getConnection(),q.shopId(),com.vncode.app.integration.marketplace.Marketplace.OZON));return n;}
 
     public int upsertPage(int shopId, List<OzonPostingDto> postings) {
         try (Connection connection = Database.getConnection()) {

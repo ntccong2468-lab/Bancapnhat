@@ -233,6 +233,7 @@ public class Database {
             dropLegacyKizTables(conn);
             ShopCredentialSchema.initialize(conn);
             com.vncode.app.features.sync.SyncSchema.initialize(conn);
+            com.vncode.app.integration.ozon.OzonPrintReceiptRepository.migrate(conn);
             st.execute("PRAGMA user_version = " + CURRENT_SCHEMA_VERSION);
         } catch (SQLException e) {
             throw new RuntimeException(e);

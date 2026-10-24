@@ -1,5 +1,6 @@
 # VNCode 1.5.14
 
+- Ozon FBS tách rõ Chờ nhận, Đơn mới (đã nhận nhưng chưa in), Đang giao hàng (đã xuất nhãn, chờ bàn giao) và Đã bàn giao. Nút In tất cả ở Đơn mới chỉ lấy các đơn chưa in, kể cả các trang chưa hiển thị; in thành công mới chuyển nhóm. Giữ lịch sử qua đồng bộ/mở lại app và cho phép in lại từng đơn đã in.
 - Mua KIZ khi xuất nhãn WB/Ozon: khi chọn nguồn Mua KIZ mà kho còn thiếu, app hiện bảng từng GTIN với số cần, sẵn dùng, thiếu và mua thêm. Nhấn Áp dụng để mua phần thiếu, chờ xác nhận từng mã đã lưu thông rồi tự xuất nhãn vào tệp đã chọn. Hủy không gửi lượt mua mới; yêu cầu đang chờ được tiếp tục, không mua trùng. Viên thuốc hiển thị tiến trình và tự ẩn khi kết thúc. Nếu đóng app lúc chờ, lượt mua vẫn được giữ; mở lại và chọn xuất nhãn để tiếp tục.
 - Sửa cổng mua KIZ cho sản phẩm đã xuất bản trên Catalog nhưng GTIN chưa xuất hiện trong barcode sàn. App vẫn kiểm tra đúng cửa hàng, chủ sở hữu, article, màu, cỡ và dữ liệu Catalog hiện hành trước khi mua. Thông báo thiếu ghép GTIN có thông tin đơn/SKU, không còn dòng trống hoặc mã lỗi lặp.
 - Tải bản cập nhật khi app đang có tác vụ nền. Trước khi cài, app chờ phần đang ghi hoàn tất hoặc lưu điểm tiếp tục an toàn; giữ yêu cầu KIZ đã gửi và dữ liệu hiện có. Không ép đóng giữa giao dịch.

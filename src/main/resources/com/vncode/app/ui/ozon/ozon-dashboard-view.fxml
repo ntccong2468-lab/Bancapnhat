@@ -110,6 +110,27 @@
                                 </VBox>
                             </content>
                         </Tab>
+                        <Tab fx:id="printedOrdersTab" text="Shipping">
+                            <content>
+                                <VBox spacing="8.0">
+                                    <children>
+                                        <Label fx:id="printedHintLabel" text="%ozon.dashboard.printed_hint" wrapText="true" styleClass="text-muted"/>
+                                        <Label fx:id="emptyPrintedOrdersLabel" managed="false" styleClass="text-muted" text="No packing orders" visible="false" />
+                                        <TableView fx:id="printedOrdersTable" VBox.vgrow="ALWAYS">
+                                            <columnResizePolicy><TableView fx:constant="CONSTRAINED_RESIZE_POLICY" /></columnResizePolicy>
+                                            <columns>
+                                                <TableColumn fx:id="printedOrderNumberTC" maxWidth="110.0" minWidth="100.0" prefWidth="100.0" resizable="false" text="Order" />
+                                                <TableColumn fx:id="printedOrderShipmentTC" minWidth="144.0" prefWidth="144.0" maxWidth="144.0" text="Ship by" />
+                                                <TableColumn fx:id="printedOrderImageTC" maxWidth="58.0" minWidth="58.0" prefWidth="58.0" resizable="false" text="" />
+                                                <TableColumn fx:id="printedOrderItemsTC" minWidth="130.0" prefWidth="235.0" text="Items" />
+                                                <TableColumn fx:id="printedOrderPriceTC" minWidth="82.0" prefWidth="100.0" maxWidth="120.0" text="Price" />
+                                                <TableColumn fx:id="printedLabelTC" maxWidth="54.0" minWidth="54.0" prefWidth="54.0" resizable="false" text="" />
+                                            </columns>
+                                        </TableView>
+                                    </children>
+                                </VBox>
+                            </content>
+                        </Tab>
                         <Tab fx:id="deliveringOrdersTab" text="Delivering">
                             <content>
                                 <VBox spacing="8.0">

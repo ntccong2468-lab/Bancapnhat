@@ -20,7 +20,7 @@ class OzonFbsUiTest {
     @TempDir Path root;
     @BeforeAll static void start(){try{Platform.startup(()->Platform.setImplicitExit(false));}catch(IllegalStateException started){}}
     static <T>T fx(Callable<T> f)throws Exception{var t=new FutureTask<>(f);Platform.runLater(t);return t.get(10,TimeUnit.SECONDS);}
-    @Test void allThreeTabsKeepActionsAndPagingVisibleAcrossLanguagesThemesAndSmallWindows() throws Exception {
+    @Test void allFourOrderTabsKeepActionsAndPagingVisibleAcrossLanguagesThemesAndSmallWindows() throws Exception {
         System.setProperty("vncode.appdata.dir", root.toString()); Database.initDatabase();
         var originalLanguage = I18nService.getInstance().getCurrentLanguage();
         var stage = new javafx.stage.Stage[1];
@@ -34,7 +34,7 @@ class OzonFbsUiTest {
         try {
             for (var language : AppLanguage.values()) for (var theme : List.of("theme-dark", "theme-light"))
                 for (var size : List.of(new int[]{824, 600}, new int[]{1140, 768}))
-                    for (var tab : List.of("newOrdersTab", "packingOrdersTab", "deliveringOrdersTab")) fx(() -> {
+                    for (var tab : List.of("newOrdersTab", "packingOrdersTab", "printedOrdersTab", "deliveringOrdersTab")) fx(() -> {
                         I18nService.getInstance().setLanguage(language); controller.applyTranslations();
                         var scene = stage[0].getScene(); var content = scene.getRoot();
                         content.getStyleClass().removeAll("theme-dark", "theme-light"); content.getStyleClass().add(theme);
@@ -52,7 +52,7 @@ class OzonFbsUiTest {
                                     language + " " + tab + " clipped vertically: " + node.getId());
                         }
                         var paging = (Button) loader.getNamespace().get("nextPageButton");
-                        var table = (TableView<?>) loader.getNamespace().get(tab.equals("newOrdersTab") ? "newOrdersTable" : tab.equals("packingOrdersTab") ? "packingOrdersTable" : "deliveringOrdersTable");
+                        var table = (TableView<?>) loader.getNamespace().get(tab.equals("newOrdersTab") ? "newOrdersTable" : tab.equals("packingOrdersTab") ? "packingOrdersTable" : tab.equals("printedOrdersTab") ? "printedOrdersTable" : "deliveringOrdersTable");
                         assertTrue(paging.localToScene(paging.getBoundsInLocal()).getMinY() >= table.localToScene(table.getBoundsInLocal()).getMaxY(), "Paging remains beneath the active table");
                         return null;
                     });
@@ -75,7 +75,7 @@ class OzonFbsUiTest {
                 var language = I18nService.getInstance().getCurrentLanguage();
                 try {
                     fx(() -> { I18nService.getInstance().setLanguage(AppLanguage.VI); controller.applyTranslations(); return null; });
-                    for (var tab : List.of("newOrdersTab", "packingOrdersTab", "deliveringOrdersTab")) {
+                    for (var tab : List.of("newOrdersTab", "packingOrdersTab", "printedOrdersTab", "deliveringOrdersTab")) {
                         fx(() -> { ((TabPane) loader.getNamespace().get("orderStatusTabs")).getSelectionModel().select((Tab) loader.getNamespace().get(tab)); return null; });
                         fx(() -> {
                             var scene = window.get().getScene(); scene.getRoot().applyCss(); scene.getRoot().layout();

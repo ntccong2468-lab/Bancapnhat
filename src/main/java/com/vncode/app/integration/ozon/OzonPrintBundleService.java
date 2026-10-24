@@ -222,6 +222,7 @@ public final class OzonPrintBundleService {
                 AtomicFilePublisher.publish(finishedLabels,labelTarget);
                 if(consumeAfterPublish&&!bindings.isEmpty())consumePrinted(finishedJob);
                 if(finishedPicking!=null)AtomicFilePublisher.publish(finishedPicking,pickingTarget);
+                if(consumeAfterPublish)new OzonPrintReceiptRepository().record(shop,List.of(safePosting));
             });
             labelStaging=null;pickingStaging=null;
             return new ExportResult(
@@ -305,6 +306,7 @@ public final class OzonPrintBundleService {
                 AtomicFilePublisher.publish(finishedLabels,labelTarget);
                 jobs.consumePrintedBatch(frozenShop.getId(),safePostings);
                 AtomicFilePublisher.publish(finishedPicking,pickingTarget);
+                new OzonPrintReceiptRepository().record(frozenShop,safePostings);
             });
             labelStaging=null;pickingStaging=null;
             return new BatchExportResult(labelTarget, pickingTarget, safePostings.size(), totalPages, kizPages);

@@ -124,7 +124,7 @@ public final class OzonDashboardController {
         var owner=shop;if(owner==null||com.vncode.app.ui.kiz.Kn3BatchDialog.running(kn3StatusHost))return;String status=activeStatus(),text=postingSearch.getText(),sort=sortFields();long generation=shopGeneration;var sources=shipmentKizPane.snapshot();
         addAgainKizButton.setDisable(true);
         reads.submitLocal(new com.vncode.app.shared.ShopReadCoordinator.Key(owner.getId(),"kn3-report",status+":"+text+":"+generation),()->{
-            var ids=postings.freezeFilteredNumbers(new com.vncode.app.features.ozon.OzonFbsQuery(owner.getId(),status,text,sort,0,100),10000);
+            var ids=postings.freezeFilteredNumbers(pageQuery(owner.getId(),status,text,sort,0,100),10000);
             return new com.vncode.app.features.kiz.status.Kn3BatchReplacement().report(owner,ids);
         }).whenComplete((report,error)->Platform.runLater(()->{
             addAgainKizButton.setDisable(false);if(!isCurrent(owner)||generation!=shopGeneration||!status.equals(activeStatus())||!text.equals(postingSearch.getText()))return;
@@ -159,10 +159,16 @@ public final class OzonDashboardController {
     @FXML private Tab newOrdersTab;
     @FXML private Tab packingOrdersTab;
     @FXML private Tab deliveringOrdersTab;
+    @FXML private Tab printedOrdersTab;
+    @FXML private TableView<OzonPostingDto> printedOrdersTable;
+    @FXML private Label emptyPrintedOrdersLabel,printedHintLabel;
+    @FXML private TableColumn<OzonPostingDto,String> printedOrderNumberTC,printedOrderItemsTC;
+    @FXML private TableColumn<OzonPostingDto,OzonPostingDto> printedOrderImageTC;
+    @FXML private TableColumn<OzonPostingDto,Void> printedLabelTC;
     @FXML private FlowPane selectionActionBar;
     @FXML private Button clearSearchButton;
-    @FXML private TableColumn<OzonPostingDto, String> newOrderShipmentTC, packingOrderShipmentTC, deliveringOrderShipmentTC;
-    @FXML private TableColumn<OzonPostingDto, OzonPostingDto> newOrderPriceTC, packingOrderPriceTC, deliveringOrderPriceTC;
+    @FXML private TableColumn<OzonPostingDto, String> newOrderShipmentTC, packingOrderShipmentTC, printedOrderShipmentTC, deliveringOrderShipmentTC;
+    @FXML private TableColumn<OzonPostingDto, OzonPostingDto> newOrderPriceTC, packingOrderPriceTC, printedOrderPriceTC, deliveringOrderPriceTC;
     @FXML private Label selectedCountLabel;
     @FXML private Button moveToPackingButton;
     @FXML private Label emptyNewOrdersLabel;
@@ -261,7 +267,7 @@ public final class OzonDashboardController {
             setBusy(false);
             selectedPostingNumbers.clear();offsets.clear();totals.clear();pageGeneration++;
             productsBySku=Map.of();verifiedGtinsBySku=Map.of();catalogProducts=List.of();kn3Marks=Map.of();addAgainKizButton.setVisible(false);addAgainKizButton.setManaged(false);
-            newOrdersTable.getItems().clear();packingOrdersTable.getItems().clear();deliveringOrdersTable.getItems().clear();
+            newOrdersTable.getItems().clear();packingOrdersTable.getItems().clear();printedOrdersTable.getItems().clear();deliveringOrdersTable.getItems().clear();
         }
         this.shop = selected;
         if(!sameContext){lastTransitionResult=null;transitionRevision++;batchResultsArea.clear();batchResultsPanel.setVisible(false);batchResultsPanel.setManaged(false);}
@@ -341,9 +347,9 @@ public final class OzonDashboardController {
         String clearSearch = i18n.tr("ozon.fbs.clear_search");
         clearSearchButton.setAccessibleText(clearSearch);
         clearSearchButton.setTooltip(new Tooltip(clearSearch));
-        for (var column : List.of(newOrderShipmentTC, packingOrderShipmentTC, deliveringOrderShipmentTC))
+        for (var column : List.of(newOrderShipmentTC, packingOrderShipmentTC, printedOrderShipmentTC, deliveringOrderShipmentTC))
             column.setText(i18n.tr("ozon.dashboard.col.shipment"));
-        for (var column : List.of(newOrderPriceTC, packingOrderPriceTC, deliveringOrderPriceTC))
+        for (var column : List.of(newOrderPriceTC, packingOrderPriceTC, printedOrderPriceTC, deliveringOrderPriceTC))
             column.setText(i18n.tr("packing.col.price"));
         postingSearch.setPromptText(i18n.tr("ozon.fbs.search"));previousPageButton.setText(i18n.tr("ozon.fbs.previous"));nextPageButton.setText(i18n.tr("ozon.fbs.next"));workflowLabel.setText(i18n.tr("ozon.fbs.workflow"));gtinInventoryPanel.setText(i18n.tr("supply.gtin_inventory.title"));
         kizInventoryButton.setText(i18n.tr("kiz.shipment.title"));shipmentKizTab.setText(i18n.tr("kiz.shipment.title"));shipmentKizPane.applyTranslations();
@@ -381,11 +387,13 @@ public final class OzonDashboardController {
         newOrderImageTC.setText(i18n.tr("ozon.dashboard.col.image"));
         packingOrderImageTC.setText(i18n.tr("ozon.dashboard.col.image"));
         deliveringOrderImageTC.setText(i18n.tr("ozon.dashboard.col.image"));
-        packingLabelTC.setText("");
+        packingLabelTC.setText("");printedLabelTC.setText("");
+        printedHintLabel.setText(i18n.tr("ozon.dashboard.printed_hint"));emptyPrintedOrdersLabel.setText(i18n.tr("ozon.dashboard.empty.printed"));printedOrdersTable.setPlaceholder(new Label(i18n.tr("ozon.dashboard.empty.printed")));
+        printedOrderNumberTC.setText(i18n.tr("ozon.dashboard.col.order"));printedOrderItemsTC.setText(i18n.tr("ozon.dashboard.col.items"));printedOrderImageTC.setText(i18n.tr("ozon.dashboard.col.image"));
         updateSelectionState();
         renderGtinSummaries(gtinSummaries);
         newOrdersTable.refresh();
-        packingOrdersTable.refresh();
+        packingOrdersTable.refresh();printedOrdersTable.refresh();
         deliveringOrdersTable.refresh();
     }
 
@@ -405,7 +413,7 @@ public final class OzonDashboardController {
     @FXML private void onClearBatchSelection(){selectedPostingNumbers.clear();newOrdersTable.refresh();updateSelectionState();}
     @FXML private void onSelectFiltered(){
         Shop selected=shop;if(selected==null||busy)return;String text=postingSearch.getText();String sort=sortFields();long token=++requestToken;long epoch=pageGeneration;
-        Task<List<String>> task=new Task<>(){@Override protected List<String> call(){return postings.freezeFilteredNumbers(new com.vncode.app.features.ozon.OzonFbsQuery(selected.getId(),"awaiting_packaging",text,sort,0,100),10000);}};
+        Task<List<String>> task=new Task<>(){@Override protected List<String> call(){return postings.freezeFilteredNumbers(pageQuery(selected.getId(),"awaiting_packaging",text,sort,0,100),10000);}};
         setBusy(true);task.setOnSucceeded(e->{if(token!=requestToken||!isCurrent(selected))return;setBusy(false);if(epoch!=pageGeneration||!text.equals(postingSearch.getText()))return;
             selectedPostingNumbers.clear();selectedPostingNumbers.addAll(task.getValue());newOrdersTable.refresh();updateSelectionState();});
         java.util.function.Consumer<Throwable> failed=error->finishFailure(token,selected,error);task.setOnFailed(e->failed.accept(task.getException()));AppTaskExecutor.execute(task,failed);
@@ -468,7 +476,7 @@ public final class OzonDashboardController {
         KizSourceSelection sources=selectedKizSources();if(sources==null)return;
         String text=postingSearch.getText(),sort=sortFields();long epoch=pageGeneration;
         long token = ++requestToken;
-        Task<List<String>> task=new Task<>(){@Override protected List<String> call(){return postings.freezeFilteredNumbers(new com.vncode.app.features.ozon.OzonFbsQuery(selected.getId(),"awaiting_deliver",text,sort,0,100),10000);}};
+        Task<List<String>> task=new Task<>(){@Override protected List<String> call(){return postings.freezeFilteredNumbers(pageQuery(selected.getId(),"awaiting_deliver",text,sort,0,100),10000);}};
         setBusy(true);
         task.setOnSucceeded(event -> {
             if (token != requestToken || !isCurrent(selected)) return;
@@ -642,13 +650,13 @@ public final class OzonDashboardController {
 
     public void refreshLocalData(){if(!disposed&&!busy)loadLocal();}
     private void loadLocal() {
-        Shop selected=shop;if(disposed||selected==null){newOrdersTable.getItems().clear();packingOrdersTable.getItems().clear();deliveringOrdersTable.getItems().clear();updateTabTitles();updatePaging();return;}
+        Shop selected=shop;if(disposed||selected==null){newOrdersTable.getItems().clear();packingOrdersTable.getItems().clear();printedOrdersTable.getItems().clear();deliveringOrdersTable.getItems().clear();updateTabTitles();updatePaging();return;}
         long epoch=++pageGeneration,started=System.nanoTime();String text=postingSearch.getText();String currentStatus=activeStatus();String sort=sortFields();var frozenOffsets=Map.copyOf(offsets);
         var owner=selected;var transferReport=lastTransitionResult;String scope=com.vncode.app.integration.listing.ListingIdentity.fingerprint(owner)+"|"+currentStatus+"|"+text+"|"+sort+"|"+frozenOffsets+"|batch:"+transitionRevision;
         reads.submitLocal(new com.vncode.app.shared.ShopReadCoordinator.Key(selected.getId(),"ozon-fbs-page",scope),()->{
             var pages=new java.util.LinkedHashMap<String,com.vncode.app.features.ozon.OzonFbsPage>();
-            for(String status:List.of("awaiting_packaging","awaiting_deliver","delivering"))pages.put(status,fbsReader.apply(new com.vncode.app.features.ozon.OzonFbsQuery(owner.getId(),status,text,sort,frozenOffsets.getOrDefault(status,0),100)));
-            var ids=postings.freezeFilteredNumbers(new com.vncode.app.features.ozon.OzonFbsQuery(owner.getId(),currentStatus,text,sort,0,100),10000);
+            for(String status:List.of("awaiting_packaging","awaiting_deliver","printed_awaiting_deliver","delivering"))pages.put(status,fbsReader.apply(pageQuery(owner.getId(),status,text,sort,frozenOffsets.getOrDefault(status,0),100)));
+            var ids=postings.freezeFilteredNumbers(pageQuery(owner.getId(),currentStatus,text,sort,0,100),10000);
             boolean red;try(var c=com.vncode.app.config.Database.getConnection()){red=new com.vncode.app.features.kiz.status.Kn3Repository().read(c,owner.getId(),owner.getMarketplace(),ids).values().stream().flatMap(List::stream).anyMatch(m->m.state()==com.vncode.app.features.kiz.status.Kn3Mark.State.REJECTED);}
             var completed=transferReport==null||transferReport.pending().isEmpty()?Map.<String,List<String>>of():shipService.completedUnitPostings(owner,transferReport.pending());
             return new Kn3Pages(pages,red,completed);
@@ -662,7 +670,10 @@ public final class OzonDashboardController {
                 lastTransitionResult=new BatchTransitionResult(transferReport.requested(),List.copyOf(completed),transferReport.failed(),List.copyOf(pending),Map.copyOf(children),transferReport.reasons());
                 selectedPostingNumbers.removeAll(result.completedTransfers().keySet());transitionRevision++;renderTransitionResult(lastTransitionResult);
             }
-            var pages=result.pages();addAgainKizButton.setVisible(result.rejected());addAgainKizButton.setManaged(result.rejected());
+            var pages=result.pages();boolean repage=false;
+            for(var entry:pages.entrySet()){int offset=offsets.getOrDefault(entry.getKey(),0);long total=entry.getValue().total();if(offset>0&&offset>=total){offsets.put(entry.getKey(),total==0?0:(int)((total-1)/100)*100);repage=true;}}
+            if(repage){loadLocal();return;}
+            addAgainKizButton.setVisible(result.rejected());addAgainKizButton.setManaged(result.rejected());
             var previousMarks=kn3Marks;var nextMarks=new java.util.HashMap<String,List<com.vncode.app.features.kiz.status.Kn3Mark>>();pages.values().forEach(page->nextMarks.putAll(page.kn3Marks()));kn3Marks=Map.copyOf(nextMarks);
             var changedMarks=new java.util.HashSet<String>();changedMarks.addAll(previousMarks.keySet());changedMarks.addAll(kn3Marks.keySet());changedMarks.removeIf(id->java.util.Objects.equals(previousMarks.get(id),kn3Marks.get(id)));
             var previousProducts=productsBySku;var previousGtins=verifiedGtinsBySku;
@@ -670,15 +681,20 @@ public final class OzonDashboardController {
             var enrichedSkus=new java.util.HashSet<String>();enrichedSkus.addAll(previousProducts.keySet());enrichedSkus.addAll(productsBySku.keySet());enrichedSkus.addAll(previousGtins.keySet());enrichedSkus.addAll(verifiedGtinsBySku.keySet());
             enrichedSkus.removeIf(sku->java.util.Objects.equals(previousProducts.get(sku),productsBySku.get(sku))&&java.util.Objects.equals(previousGtins.get(sku),verifiedGtinsBySku.get(sku)));
             java.util.function.BiPredicate<OzonPostingDto,OzonPostingDto> unchanged=(old,value)->old.equals(value)&&!changedMarks.contains(value.postingNumber())&&value.items().stream().noneMatch(item->enrichedSkus.contains(item.sku()));
-            var newSelection=selectedPostingNumber(newOrdersTable);var packingSelection=selectedPostingNumber(packingOrdersTable);var deliveringSelection=selectedPostingNumber(deliveringOrdersTable);
-            com.vncode.app.shared.TableRows.merge(newOrdersTable.getItems(),pages.get("awaiting_packaging").postings(),OzonPostingDto::postingNumber,unchanged);packingOrdersRaw=pages.get("awaiting_deliver").postings();com.vncode.app.shared.TableRows.merge(packingOrdersTable.getItems(),packingOrdersRaw,OzonPostingDto::postingNumber,unchanged);com.vncode.app.shared.TableRows.merge(deliveringOrdersTable.getItems(),pages.get("delivering").postings(),OzonPostingDto::postingNumber,unchanged);
-            pages.forEach((status,page)->totals.put(status,page.total()));selectPosting(newOrdersTable,newSelection);selectPosting(packingOrdersTable,packingSelection);selectPosting(deliveringOrdersTable,deliveringSelection);
+            var newSelection=selectedPostingNumber(newOrdersTable);var packingSelection=selectedPostingNumber(packingOrdersTable);var deliveringSelection=selectedPostingNumber(deliveringOrdersTable);var printedSelection=selectedPostingNumber(printedOrdersTable);
+            com.vncode.app.shared.TableRows.merge(newOrdersTable.getItems(),pages.get("awaiting_packaging").postings(),OzonPostingDto::postingNumber,unchanged);packingOrdersRaw=pages.get("awaiting_deliver").postings();com.vncode.app.shared.TableRows.merge(packingOrdersTable.getItems(),packingOrdersRaw,OzonPostingDto::postingNumber,unchanged);com.vncode.app.shared.TableRows.merge(printedOrdersTable.getItems(),pages.get("printed_awaiting_deliver").postings(),OzonPostingDto::postingNumber,unchanged);com.vncode.app.shared.TableRows.merge(deliveringOrdersTable.getItems(),pages.get("delivering").postings(),OzonPostingDto::postingNumber,unchanged);
+            pages.forEach((status,page)->totals.put(status,page.total()));selectPosting(newOrdersTable,newSelection);selectPosting(packingOrdersTable,packingSelection);selectPosting(deliveringOrdersTable,deliveringSelection);selectPosting(printedOrdersTable,printedSelection);
             updateEmptyStates();updateSelectionState();updatePrintAllState();updateTabTitles();updatePaging();
             com.vncode.app.shared.RuntimeDiagnostics.afterNextPulse("ozon-fbs-render",started);
         }));
     }
     private String sortFields(){var fields=new ArrayList<String>();var options=getSortOptions();if(options.bySubject())fields.add("product");if(options.byArticle())fields.add("article");if(options.byColor())fields.add("color");if(options.bySize())fields.add("size");return String.join(",",fields);}
-    private String activeStatus(){return orderStatusTabs.getSelectionModel().getSelectedItem()==packingOrdersTab?"awaiting_deliver":orderStatusTabs.getSelectionModel().getSelectedItem()==deliveringOrdersTab?"delivering":"awaiting_packaging";}
+    private static com.vncode.app.features.ozon.OzonFbsQuery pageQuery(int shop,String key,String text,String sort,int offset,int limit){
+        var state=key.equals("awaiting_deliver")?com.vncode.app.features.ozon.OzonFbsQuery.PrintState.UNPRINTED:
+            key.equals("printed_awaiting_deliver")?com.vncode.app.features.ozon.OzonFbsQuery.PrintState.PRINTED:com.vncode.app.features.ozon.OzonFbsQuery.PrintState.ALL;
+        return new com.vncode.app.features.ozon.OzonFbsQuery(shop,key.equals("printed_awaiting_deliver")?"awaiting_deliver":key,text,sort,offset,limit,state);
+    }
+    private String activeStatus(){return orderStatusTabs.getSelectionModel().getSelectedItem()==packingOrdersTab?"awaiting_deliver":orderStatusTabs.getSelectionModel().getSelectedItem()==deliveringOrdersTab?"delivering":orderStatusTabs.getSelectionModel().getSelectedItem()==printedOrdersTab?"printed_awaiting_deliver":"awaiting_packaging";}
     @FXML private void onPreviousPage(){String status=activeStatus();offsets.put(status,Math.max(0,offsets.getOrDefault(status,0)-100));loadLocal();}
     @FXML private void onNextPage(){String status=activeStatus();if(offsets.getOrDefault(status,0)+100<totals.getOrDefault(status,0L)){offsets.put(status,offsets.getOrDefault(status,0)+100);loadLocal();}}
     private void updatePaging(){if(pageStatusLabel==null)return;String status=activeStatus();long total=totals.getOrDefault(status,0L);int offset=offsets.getOrDefault(status,0);pageStatusLabel.setText((total==0?0:offset+1)+"–"+Math.min(offset+100,total)+" / "+total);previousPageButton.setDisable(shop==null||offset==0);nextPageButton.setDisable(shop==null||offset+100>=total);}
@@ -688,12 +704,13 @@ public final class OzonDashboardController {
         I18nService i18n = I18nService.getInstance();
         newOrdersTab.setText(i18n.tr("ozon.dashboard.tab.new") + " (" + totals.getOrDefault("awaiting_packaging",0L) + ")");
         packingOrdersTab.setText(i18n.tr("ozon.dashboard.tab.packing") + " (" + totals.getOrDefault("awaiting_deliver",0L) + ")");
+        printedOrdersTab.setText(i18n.tr("ozon.dashboard.tab.printed")+" ("+totals.getOrDefault("printed_awaiting_deliver",0L)+")");
         deliveringOrdersTab.setText(i18n.tr("ozon.dashboard.tab.delivering") + " ("
                 + totals.getOrDefault("delivering",0L) + ")");
     }
 
     private void updateEmptyStates() {
-        setEmptyState(emptyNewOrdersLabel,newOrdersTable.getItems().isEmpty());setEmptyState(emptyPackingOrdersLabel,packingOrdersTable.getItems().isEmpty());setEmptyState(emptyDeliveringOrdersLabel,deliveringOrdersTable.getItems().isEmpty());
+        setEmptyState(emptyNewOrdersLabel,newOrdersTable.getItems().isEmpty());setEmptyState(emptyPackingOrdersLabel,packingOrdersTable.getItems().isEmpty());setEmptyState(emptyPrintedOrdersLabel,printedOrdersTable.getItems().isEmpty());setEmptyState(emptyDeliveringOrdersLabel,deliveringOrdersTable.getItems().isEmpty());
     }
 
     private static void setEmptyState(Label label, boolean empty) {
@@ -702,9 +719,9 @@ public final class OzonDashboardController {
     }
 
     private void setupTables() {
-        for (var column : List.of(newOrderShipmentTC, packingOrderShipmentTC, deliveringOrderShipmentTC))
+        for (var column : List.of(newOrderShipmentTC, packingOrderShipmentTC, printedOrderShipmentTC, deliveringOrderShipmentTC))
             column.setCellValueFactory(data -> new SimpleStringProperty(shipmentText(data.getValue())));
-        for (var column : List.of(newOrderPriceTC, packingOrderPriceTC, deliveringOrderPriceTC))
+        for (var column : List.of(newOrderPriceTC, packingOrderPriceTC, printedOrderPriceTC, deliveringOrderPriceTC))
             configurePriceColumn(column);
         selectAllCheckBox.setOnAction(event -> onSelectAll());
         newOrderSelectTC.setGraphic(selectAllCheckBox);
@@ -712,18 +729,18 @@ public final class OzonDashboardController {
                 new ReadOnlyObjectWrapper<>(selectedPostingNumbers.contains(data.getValue().postingNumber())));
         newOrderSelectTC.setCellFactory(column -> selectionCell());
         configureImageColumn(newOrderImageTC);
-        configureImageColumn(packingOrderImageTC);
+        configureImageColumn(packingOrderImageTC);configureImageColumn(printedOrderImageTC);
         configureImageColumn(deliveringOrderImageTC);
         configureOrderColumns(newOrderNumberTC, newOrderItemsTC);
-        configureOrderColumns(packingOrderNumberTC, packingOrderItemsTC);
+        configureOrderColumns(packingOrderNumberTC, packingOrderItemsTC);configureOrderColumns(printedOrderNumberTC,printedOrderItemsTC);
         configureOrderColumns(deliveringOrderNumberTC, deliveringOrderItemsTC);
         deliveringOrderStatusTC.setCellValueFactory(data ->
                 new SimpleStringProperty(statusText(data.getValue().status())));
         deliveringOrderStatusTC.setCellFactory(column->new TableCell<>(){
             protected void updateItem(String text,boolean empty){super.updateItem(text,empty);setText(empty?null:text);var posting=getTableRow()==null?null:getTableRow().getItem();setTooltip(empty||posting==null?null:new Tooltip(text+"\n"+posting.status()));}
         });
-        packingLabelTC.setCellFactory(column -> labelCell());
-        for (TableView<OzonPostingDto> table : List.of(newOrdersTable, packingOrdersTable, deliveringOrdersTable)) {
+        packingLabelTC.setCellFactory(column -> labelCell());printedLabelTC.setCellFactory(column->labelCell());
+        for (TableView<OzonPostingDto> table : List.of(newOrdersTable, packingOrdersTable, printedOrdersTable, deliveringOrdersTable)) {
             table.setSortPolicy(ignored -> false);
             table.setRowFactory(ignored -> new TableRow<>() {
                 @Override protected void updateItem(OzonPostingDto posting, boolean empty) {
@@ -933,7 +950,7 @@ public final class OzonDashboardController {
         loadingIndicator.setManaged(busy);
         refreshButton.setDisable(busy || shop == null);
         newOrdersTable.setDisable(busy);
-        packingOrdersTable.setDisable(busy);
+        packingOrdersTable.setDisable(busy);printedOrdersTable.setDisable(busy);
         deliveringOrdersTable.setDisable(busy);
         selectAllCheckBox.setDisable(busy);
         kizPolicyButton.setDisable(busy || gtinLoading || gtinSyncing || shop == null);
@@ -946,7 +963,7 @@ public final class OzonDashboardController {
         catalogProducts = List.of();productsBySku=Map.of();verifiedGtinsBySku=Map.of();totals.clear();offsets.clear();
         packingOrdersRaw = List.of();
         newOrdersTable.getItems().clear();
-        packingOrdersTable.getItems().clear();
+        packingOrdersTable.getItems().clear();printedOrdersTable.getItems().clear();
         deliveringOrdersTable.getItems().clear();
         statusLabel.setText("");
         setBusy(false);

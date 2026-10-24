@@ -1106,7 +1106,11 @@ class FxmlSmokeTest {
                 CheckBox selectAll = (CheckBox) selectColumn.getGraphic();
                 selectAll.fire();
                 valid.set(tabs != null
-                        && tabs.getTabs().size() == 4
+                        && tabs.getTabs().size() == 5
+                        && loader.getNamespace().get("printedOrdersTab") != null
+                        && loader.getNamespace().get("printedOrdersTable") != null
+                        && loader.getNamespace().get("printedLabelTC") != null
+                        && loader.getNamespace().get("printedHintLabel") != null
                         && loader.getNamespace().get("shipmentKizTab") != null
                         && loader.getNamespace().get("shipmentKizHost") != null
                         && tabs.getSelectionModel().getSelectedItem() == loader.getNamespace().get("newOrdersTab")
@@ -1150,7 +1154,7 @@ class FxmlSmokeTest {
             }
         });
         assertTrue(latch.await(5, TimeUnit.SECONDS));
-        assertTrue(valid.get(), "Ozon FBS orders should expose three states, bulk selection and packing labels");
+        assertTrue(valid.get(), "Ozon FBS orders should expose four states plus KIZ stock, bulk selection and packing labels");
     }
 
     @Test

@@ -2,7 +2,7 @@
   "dateUtc": "2026-10-24",
   "branch": "fix/update-gtin-ozon-fbs-layout",
   "baseCommit": "ce56ee3",
-  "sourceTreeSha256": "06df14f553ad61b717ccbfe021a6b7b9ab76bb7eafabb7ff7a2e8c0dd585c4a8",
+  "sourceTreeSha256": "77b135a319ba056f5022885792dc4829344004b899dbbb9f5d857b06230a0fb4",
   "sourceTreeHashMethod": "Sorted pom.xml, src/main and src/test files: relative path + NUL + binary SHA256 digest per file",
   "maven": {
     "command": "DISPLAY=:99 /workspace/toolchains/mvn-vncode -o -B clean verify",
@@ -84,5 +84,23 @@
     "passed": 117,
     "failed": 0
   },
-  "releaseRequested": true
+  "releaseRequested": true,
+  "finalTargeted": {
+    "tests": 136,
+    "passed": 136,
+    "failed": 0,
+    "log": "/tmp/vncode-1514-all-changes-targeted.log"
+  },
+  "ozonOrderGroups": [
+    "awaiting_packaging",
+    "awaiting_deliver/unprinted",
+    "awaiting_deliver/printed",
+    "delivering"
+  ],
+  "supersededCandidate": {
+    "source": "e6aa47c8b961149895af4e475e127155c1a2bb12",
+    "windowsBuild": 40077739159,
+    "result": "cancelled_for_user_requested_ozon_tabs",
+    "published": false
+  }
 }

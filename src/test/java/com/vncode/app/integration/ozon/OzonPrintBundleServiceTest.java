@@ -113,6 +113,7 @@ class OzonPrintBundleServiceTest {
             assertFalse(Files.exists(target));
             assertEquals("RESERVED", scalar("SELECT status FROM kiz_codes WHERE id=100"));
             assertEquals("VALIDATED", scalar("SELECT stage FROM ozon_exemplar_jobs WHERE id=51"));
+            assertEquals("0",scalar("SELECT count(*) FROM ozon_fbs_print_receipts"));
         } finally {
             LicenseRuntime.install(prior);
         }
@@ -230,6 +231,7 @@ class OzonPrintBundleServiceTest {
             assertTrue(imageCount(document, 0) >= 1, "The picking list must embed the catalog product image");
             assertPageMillimeters(document, 0, 210, 297);
         }
+        assertEquals("1",scalar("SELECT count(*) FROM ozon_fbs_print_receipts WHERE shop_id=1 AND posting_number='POST-1'"));
     }
 
     @Test
@@ -407,6 +409,7 @@ class OzonPrintBundleServiceTest {
 
         assertEquals("RESERVED", scalar("SELECT status FROM kiz_codes WHERE id=100"));
         assertEquals("VALIDATED", scalar("SELECT stage FROM ozon_exemplar_jobs WHERE id=51"));
+        assertEquals("0",scalar("SELECT count(*) FROM ozon_fbs_print_receipts"));
     }
 
     @Test
