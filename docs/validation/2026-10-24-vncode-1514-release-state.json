@@ -5,7 +5,7 @@
   "sourceTreeSha256": "77b135a319ba056f5022885792dc4829344004b899dbbb9f5d857b06230a0fb4",
   "windowsBuildRun": 40079053601,
   "windowsBuildUrl": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/40079053601",
-  "state": "LINUX_VERIFIED_WINDOWS_RUNNING",
+  "state": "WINDOWS_RUNNING_PUBLICATION_GATED",
   "targetedTestsPassed": 136,
   "nodeContractsPassed": 117,
   "localFullLog": "/tmp/vncode-1514-full-verify.log",
@@ -33,5 +33,8 @@
   },
   "publisherWorkflow": "publish-vncode-1514.yml",
   "publicationGate": "Windows success at pinned source, Linux full receipt, native/upgrade/artifact checks, safe tag/draft, public byte verification",
-  "publisherNodeTestsPassed": 117
+  "publisherNodeTestsPassed": 117,
+  "publisherRun": 40080996847,
+  "publisherSource": "48cfe8bdad94ece7c680ebc1fa81b34f139eea11",
+  "publisherUrl": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/40080996847"
 }
