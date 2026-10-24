@@ -1,0 +1,80 @@
+{
+  "recordedAt": "2026-10-24T18:33:08.886500+00:00",
+  "branch": "perf/catalog-single-card-throughput",
+  "sourceBase": "v1.5.14",
+  "sourceCommit": "9f798edce0391974ad1102a22ec0a5f4b745909f",
+  "sourceTreeSha256": "f9e29fa5224af2d2629e9b22f715c1aebcc2c32d0c7d9d5eda62f376d0ced789",
+  "broadRegressionBeforeLastWbRecoveryRefinement": {
+    "log": "/tmp/vncode-catalog-throughput-regression.log",
+    "sha256": "0a5c22d32e02d942d84ef4093e8101eff4610c8f50cd676c765f632b1d169298",
+    "tests": 1235,
+    "passed": 1235,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "buildSuccess": true
+  },
+  "broadRegressionSourceTreeSha256": "dec06d7614bd7dacb573942f9e6fc778f0664c3a9b4d3802e93b07c26f0dc659",
+  "finalRelated": {
+    "log": "/tmp/vncode-catalog-throughput-final-related.log",
+    "sha256": "ac3c208136561e40f89f6c4a2ebf920b1e2631fa54da3960cc7292dbbdcfbba7",
+    "tests": 162,
+    "passed": 162,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "buildSuccess": true
+  },
+  "keepsOneCardPerFeed": true,
+  "newTests": {
+    "sameSocketAcrossSeparateClients": true,
+    "requestAuthenticationRemainsSeparate": true,
+    "categoryMetadataChecks": 200,
+    "categoryHttpReadsInOneWarmSession": 1,
+    "quotaReadsFor100Preflights": 100,
+    "threeCardBatch": {
+      "uniqueGtin": 3,
+      "separateFeedPosts": 3,
+      "categoryReads": 3,
+      "poolReads": 6,
+      "feedReads": 3,
+      "cardReads": 3,
+      "confirmed": 3
+    },
+    "checksChangedScopeTtlEmptyReadsAndQuota": true,
+    "preAllocationRead429ResumesWithoutNewRegisterClick": true
+  },
+  "priorFinalRuns": [
+    {
+      "log": "/tmp/vncode-catalog-throughput-before-state-fix.log",
+      "sha256": "cc35baa8815296b02540167c0f60070601ade35327864e9ac70a4b4300e84d8c",
+      "tests": 162,
+      "passed": 161,
+      "failures": 1,
+      "errors": 0,
+      "skipped": 0,
+      "buildSuccess": false
+    },
+    {
+      "log": "/tmp/vncode-catalog-throughput-before-recovery-test-update.log",
+      "sha256": "d92cdcc6b857c8b9ea49db81cddcd1ad9749f72f54871cfce56705264114bd65",
+      "tests": 162,
+      "passed": 161,
+      "failures": 1,
+      "errors": 0,
+      "skipped": 0,
+      "buildSuccess": false
+    }
+  ],
+  "resolvedPriorFailures": [
+    "Known-unsent PREFLIGHT_ERROR was overwritten as ERROR by the common failure handler; preserved it.",
+    "Changed recovery semantics reject Request new GTIN for a provably unsent request; updated the existing test to assert normal Register succeeds exactly once instead."
+  ],
+  "liveCatalogWriteVerified": false,
+  "livePerformanceBenchmark": false,
+  "windowsNativeVerifiedForThisChange": false,
+  "installerPublished": false,
+  "latestChanged": false,
+  "latestRemains": "v1.5.14",
+  "combinedFinalEvidence": "2026-10-24-catalog-registration-retry-continuation-verify.json"
+}

@@ -1,0 +1,57 @@
+{
+  "recordedAt": "2026-10-24T18:39:29.935051+00:00",
+  "branch": "perf/catalog-single-card-throughput",
+  "sourceBase": "v1.5.14",
+  "sourceCommit": "3ede7581ab17425ff975b75f603df93c9166ce7c",
+  "performanceCommit": "9f798edce0391974ad1102a22ec0a5f4b745909f",
+  "sourceTreeSha256": "4f205e14fd7707150466fbe12212930aa5bbf2dc02c2fac5a116457c1e75d9a5",
+  "command": "DISPLAY=:99 /workspace/toolchains/mvn-vncode -o -B '-Dtest=*Znack*Test,*Registration*Test,*Catalog*Test,NationalCatalog*Test,*Permit*Test,MarketplaceRequestBudgetTest' test",
+  "finalRegression": {
+    "log": "/tmp/vncode-catalog-single-card-final-regression.log",
+    "logSha256": "0c79181b76745da0dbf7722d8a385d4a012b2080cb5d23bce0921c40135e74a0",
+    "tests": 1240,
+    "passed": 1240,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "buildSuccess": true
+  },
+  "retryTargeted": {
+    "log": "/tmp/vncode-catalog-retry-continuation-targeted.log",
+    "logSha256": "613314eea7898f9174c3f9207618057a008372bb2675ee3a4f0a1c10045fba24",
+    "tests": 190,
+    "passed": 190,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "buildSuccess": true
+  },
+  "performanceEvidence": "2026-10-24-catalog-single-card-throughput-verify.json",
+  "sellerScreenshot": {
+    "total": 117,
+    "catalogConfirmed": 14,
+    "catalogAcceptedFeeds": 25,
+    "awaitingReadback": 11,
+    "remainingUnconfirmed": 103,
+    "reportedErrors": 0,
+    "pauseReason": "ZNACK_BATCH_RETRY_LIMIT_REACHED",
+    "liveAccountModified": false
+  },
+  "verifiedScenarios": [
+    "12 transient read failures keep the same durable queue waiting",
+    "exponential backoff up to 300 seconds preserves longer service delay",
+    "WB unsent rows before earlier accepted pending receipts",
+    "no duplicate GTIN allocation or feed submission after retry",
+    "legacy automatic pause recovery keeps GTIN/feed and scope",
+    "manual pause and cancel are not recovered",
+    "Ozon one-hour retry deadline survives repository reopen",
+    "future deadline prevents immediate retry",
+    "WB/Ozon UI, reports, background lifetime and API replay guards pass"
+  ],
+  "liveCatalogWriteVerified": false,
+  "livePerformanceBenchmark": false,
+  "windowsNativeVerifiedForThisChange": false,
+  "installerBuilt": false,
+  "latestChanged": false,
+  "latestRemains": "v1.5.14"
+}

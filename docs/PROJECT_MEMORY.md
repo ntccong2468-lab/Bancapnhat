@@ -1,5 +1,14 @@
 # Bộ nhớ dự án VNCode
 
+## Tối ưu gửi từng thẻ sau 1.5.14 — 24.10.2026
+
+- Nhánh `perf/catalog-single-card-throughput`, nền bàn giao `537dfa2`. Người dùng yêu cầu tăng tốc nhưng vẫn gửi từng thẻ; không đổi thành feed 500 thẻ hoặc ghi đè bản Latest bất biến. Đây là mã sửa tiếp, chưa có bộ cài mới.
+- WB chuyển session vừa chuẩn bị đúng thẻ tới worker gửi; dùng lại giấy tờ/schema theo giới hạn sẵn có, kiểm tra owner/credential/license tại worker. Transport credential-free dùng chung keep-alive/TLS; auth/guard/no-replay vẫn từng client/request.
+- Danh mục dương dùng lại tối đa 60 giây, 128 mục, đúng session/token/profile/TN VED, kiểm tra guard cả khi cache hit; không cache rỗng/lỗi. Không kéo dài quy tắc country/model. Bỏ một đọc pool/quota preflight WB bị trùng với đọc có khóa ngay trước cấp GTIN; kiểm tra quota đưa vào lần đọc có khóa, không cache quota.
+- Mã tối ưu `9f798ed`: 1.235 ca hồi quy đạt trước chỉnh trạng thái lỗi đọc, sau đó 162 ca liên quan cuối đạt. Có hai ca bắt lỗi trong quá trình phát triển (ghi đè known-unsent và kỳ vọng nút Xin GTIN mới); đã sửa nghiệp vụ và kiểm thử khôi phục bằng Đăng ký thường. Chưa ghi Catalog production hoặc đo tốc độ production cho thay đổi này. [Biên nhận](validation/2026-10-24-catalog-single-card-throughput-verify.json), [chi tiết](fixes/2026-10-24-catalog-single-card-throughput.md).
+- Ảnh seller mới: 14/117 xác nhận, 25 feed được nhận, 11 chờ đọc lại nhưng lô tự PAUSED sau 5 lỗi đọc. Đã sửa WB/Ozon chờ và tự tiếp tục với backoff/Retry-After, ưu tiên thẻ WB chưa gửi trước receipt đang chờ, khôi phục riêng pause tự động của bản cũ và timer lưu deadline/khử trùng. Giữ manual Pause/Cancel, owner/scope và GTIN/feed gốc. Mã tổng hợp `3ede7581ab17425ff975b75f603df93c9166ce7c`, hash cây `4f205e14fd7707150466fbe12212930aa5bbf2dc02c2fac5a116457c1e75d9a5`: **1.240 ca hồi quy cuối và 190 ca mục tiêu đạt, không lỗi/thất bại**. Chưa đóng gói hoặc đổi Latest 1.5.14. [Biên nhận cuối](validation/2026-10-24-catalog-registration-retry-continuation-verify.json), [bàn giao](fixes/2026-10-24-catalog-registration-retry-continuation.md).
+- Kinh nghiệm: tách lỗi đọc trước callback cấp GTIN khỏi lần gửi chưa rõ; số lần thử lại không được tự hủy ý định đăng ký của seller. Timer cũ phải đọc lại deadline hiện hành. Khôi phục upgrade phải so đúng mã pause tự động, không dùng thao tác resume chung làm mở lại pause do seller chọn. Lần đóng gói sau dùng phiên bản mới; không ghi đè v1.5.14 bất biến.
+
 ## Đã phát hành 1.5.14 — 24.10.2026
 
 - Toàn bộ sửa đổi đã commit/push trên `release/vn-code-1.5.14`. Mã ứng dụng chốt `09718c80133528808047b01399e004ef9329ff64`, hash cây mã `77b135a319ba056f5022885792dc4829344004b899dbbb9f5d857b06230a0fb4`. 136 ca mục tiêu và 117 Node contracts đạt.
