@@ -1,0 +1,26 @@
+{
+  "version": "1.5.14",
+  "branch": "release/vn-code-1.5.14",
+  "sourceCommit": "09718c80133528808047b01399e004ef9329ff64",
+  "sourceTreeSha256": "77b135a319ba056f5022885792dc4829344004b899dbbb9f5d857b06230a0fb4",
+  "windowsBuildRun": 40079053601,
+  "windowsBuildUrl": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/40079053601",
+  "state": "BUILD_AND_FULL_VERIFICATION_RUNNING",
+  "targetedTestsPassed": 136,
+  "nodeContractsPassed": 117,
+  "localFullLog": "/tmp/vncode-1514-full-verify.log",
+  "releaseId": null,
+  "tagCreated": false,
+  "draftCreated": false,
+  "published": false,
+  "latestChanged": false,
+  "previousLatest": {
+    "tag": "v1.5.13",
+    "releaseId": 422171061
+  },
+  "supersededBuild": {
+    "run": 40077739159,
+    "sourceCommit": "e6aa47c8b961149895af4e475e127155c1a2bb12",
+    "conclusion": "cancelled_for_requested_ozon_tabs"
+  }
+}
