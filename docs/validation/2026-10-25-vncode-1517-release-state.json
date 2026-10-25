@@ -1,0 +1,32 @@
+{
+  "version": "1.5.17",
+  "branch": "release/vn-code-1.5.17",
+  "sourceCommit": "85ee7e97eb350073c01ab093daef68809d56f903",
+  "sourceTreeSha256": "a482d756e9231fed85edc0cc107e26d4d29264c92dfe227bd96d8a63500e043a",
+  "windowsBuildRun": 40189545605,
+  "windowsBuildUrl": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/40189545605",
+  "state": "VERIFYING_WINDOWS_AND_LINUX_BEFORE_PUBLICATION",
+  "releaseRequested": true,
+  "installerBuilt": false,
+  "published": false,
+  "latestChanged": false,
+  "previousLatest": {
+    "tag": "v1.5.16",
+    "releaseId": 423202074
+  },
+  "localFullLog": "/tmp/vncode-1517-full-verify.log",
+  "relatedRegressionPassed": 1043,
+  "nodeContractsPassed": 117,
+  "manualSyncFixPassed": 43,
+  "supersededAttempts": [
+    {
+      "sourceCommit": "0c25657e02c02cea9c3495ad18522b2b1280cea9",
+      "windowsBuildRun": 40189154399,
+      "windowsConclusion": "cancelled",
+      "localLog": "/tmp/vncode-1517-full-verify-superseded-0c25657.log",
+      "reason": "Full suite found manual Ozon refresh reusing old catalog; corrected automatic versus manual paths and restarted both full checks",
+      "usedForPublication": false
+    }
+  ],
+  "recordedAtUtc": "2026-10-25T11:38:26.517950+00:00"
+}

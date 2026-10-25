@@ -1,5 +1,12 @@
 # Bộ nhớ dự án VNCode
 
+## Đang đóng gói 1.5.17 — 25.10.2026
+
+- Chủ dự án yêu cầu **«tạo bộ cài đẩy lên latest»**, đã xác nhận ba nhóm sửa trước đó và tiếp tục phát hành. Nhánh `release/vn-code-1.5.17`, nguồn chốt `85ee7e97eb350073c01ab093daef68809d56f903`, hash cây `a482d756e9231fed85edc0cc107e26d4d29264c92dfe227bd96d8a63500e043a`. Kế thừa đầy đủ khung danh sách theo FBS WB, KIZ/GTIN/PDF WB/Ozon và lưu dữ liệu qua cập nhật.
+- Bộ kiểm thử toàn bộ đầu tiên tìm ra thêm lỗi: đường Đồng bộ thủ công Ozon cũng bỏ qua catalog đã lưu. Đã giữ `syncOverview` cho thao tác thủ công lấy mới, thêm `syncOverviewIfNeeded` cho mở màn tự động; khi có SyncRuntime, mở màn không ép yêu cầu CATALOG. Bài UI kiểm tra mở lại giữ Initial, bấm thủ công nhận Updated đạt, cùng 43/43 ca liên quan. Nguồn đầu `0c25657`/Windows `40189154399` đã hủy và không dùng để phát hành.
+- Windows mới **40189545605** đang kiểm thử/dựng/nâng cấp từ Latest 1.5.16; Linux full `clean verify` đúng nguồn đang chạy tại `/tmp/vncode-1517-full-verify.log`. Node 117/117 đã đạt. Latest hiện vẫn 1.5.16; chưa tạo tag, chưa công bố 1.5.17. Publisher đã chuẩn bị ở `/tmp/vncode-1517-publisher.yml`, chỉ đưa vào repo khi có bằng chứng full và native đạt. Không đổi ứng dụng sau khi chốt nguồn; giữ release v1.5.16 bất biến.
+- [Trạng thái để tiếp tục](validation/2026-10-25-vncode-1517-release-state.json). Sau khi Windows/Linux đạt: thu prebuild, xác minh artifact/source/native/upgrade, công bố đủ tài sản, kiểm tra tải công khai và bộ updater từ runtime 1.5.16, rồi cập nhật bàn giao/memory. Không dùng lượt đã hủy làm bằng chứng.
+
 ## Giữ dữ liệu đồng bộ qua cập nhật/mở lại — 25.10.2026
 
 - Yêu cầu mới: lưu các dữ liệu đã đồng bộ để cập nhật app không buộc đồng bộ lại từ đầu. Nhánh **`fix/persist-synchronized-data`**, mã ứng dụng `b82f1abfed8841e6aaaa95541d1962c11279f0ba`, hash cây `e79d483fab1637282a19047a0579dc9d7ce4994975d8ce86acdca3d0fd75c341`. Nhánh này kế thừa đầy đủ hai nhóm sửa chưa phát hành ngay dưới: diện tích bảng và KIZ/GTIN/PDF WB/Ozon. Dùng nguồn này khi đóng gói tiếp.
