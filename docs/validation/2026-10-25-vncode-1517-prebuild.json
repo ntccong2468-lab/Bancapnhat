@@ -1,0 +1,79 @@
+{
+  "recordedAt": "2026-10-25T12:41:59.004818+00:00",
+  "version": "1.5.17",
+  "branch": "release/vn-code-1.5.17",
+  "sourceCommit": "d49b7165064f30fd9aaa27a3a619bb3de072e0cb",
+  "sourceTreeSha256": "8d72fadeb7ec4fc2dd4d1d9c414c39768d9db968dd94ebc88e66a116daca4880",
+  "sourceTreeHashMethod": "Sorted pom.xml, src/main and src/test files: relative path + NUL + binary SHA256 digest per file",
+  "maven": {
+    "command": "DISPLAY=:99 /workspace/toolchains/mvn-vncode -o -B clean verify",
+    "result": "BUILD SUCCESS",
+    "sourceCommit": "d49b7165064f30fd9aaa27a3a619bb3de072e0cb",
+    "log": "/tmp/vncode-1517-full-verify.log",
+    "logSha256": "4377c100f6a37cc4407b20de8637ebf275f788f17bab8460d1379fbc984dd7ea",
+    "tests": 3044,
+    "passed": 3042,
+    "skipped": 2,
+    "failures": 0,
+    "errors": 0,
+    "duration": "18:48 min",
+    "finishedUtc": "2026-10-25T12:41:07Z"
+  },
+  "node": {
+    "tests": 117,
+    "passed": 117,
+    "failed": 0,
+    "logSha256": "aa203c022f1ee68368def61884f88dc693e5d87a0ae7a5c189df8c5599896433"
+  },
+  "finalRelated": {
+    "tests": 1043,
+    "passed": 1043,
+    "sourceCommit": "b82f1abfed8841e6aaaa95541d1962c11279f0ba",
+    "evidence": "2026-10-25-persist-synchronized-data-verify.json",
+    "subsumedByReleaseFullSuite": true
+  },
+  "manualSyncFix": {
+    "tests": 43,
+    "passed": 43,
+    "failures": 0,
+    "errors": 0,
+    "log": "/tmp/vncode-1517-manual-sync-fix.log",
+    "logSha256": "889937c1f9f6a5a668577ccebe058522298ad8cd56ba24ba78acaff4923d7806",
+    "subsumedByReleaseFullSuite": true
+  },
+  "supersededWindowsBuild": 40189154399,
+  "newOrdersPrintQueue": {
+    "tests": 34,
+    "passed": 34,
+    "failures": 0,
+    "errors": 0,
+    "sourceCommit": "52345de1e24c93907f4e45e82fac36ad22a864e5",
+    "log": "/tmp/vncode-1517-new-orders-print-queue.log",
+    "logSha256": "db352d8145f9327d8f797faed4eeb0da9f8256eb2d093df4450cd05989577d3c",
+    "subsumedByReleaseFullSuite": true
+  },
+  "supersededBeforeAdditionalEdits": {
+    "sourceCommit": "85ee7e97eb350073c01ab093daef68809d56f903",
+    "windowsBuildRun": 40189545605,
+    "linuxFullPassed": true,
+    "usedForPublication": false
+  },
+  "printHistoryFix": {
+    "tests": 40,
+    "passed": 40,
+    "failures": 0,
+    "errors": 0,
+    "sourceCommit": "d49b7165064f30fd9aaa27a3a619bb3de072e0cb",
+    "log": "/tmp/vncode-1517-print-history-fix.log",
+    "logSha256": "fb44115fc9ac24d58ce7d12f12cee184e0d90184b676e1d12e32fce794f2b870",
+    "legacyReportNamesCaseInsensitive": true,
+    "subsumedByReleaseFullSuite": true
+  },
+  "releaseRequested": true,
+  "windowsBuildRun": 40192806404,
+  "windowsBuildPending": true,
+  "liveCatalogWriteVerified": false,
+  "liveMarketplaceWriteVerified": false,
+  "paidKizPurchaseVerified": false,
+  "latestChanged": false
+}

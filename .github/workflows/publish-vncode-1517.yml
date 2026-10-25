@@ -1,0 +1,144 @@
+name: Publish verified VNCode 1.5.17
+on:
+  push:
+    branches: [release/vn-code-1.5.17]
+    paths: [.github/workflows/publish-vncode-1517.yml]
+  workflow_dispatch:
+permissions:
+  contents: write
+  actions: read
+concurrency:
+  group: vncode-stable-release
+  cancel-in-progress: false
+jobs:
+  publish:
+    if: github.repository == 'ntccong2468-lab/Bancapnhat'
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      GH_TOKEN: ${{ github.token }}
+      EXPECTED_SOURCE: d49b7165064f30fd9aaa27a3a619bb3de072e0cb
+      BUILD_RUN_ID: '40192806404'
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: '22'
+      - name: Wait for the pinned Windows build
+        run: gh run watch "$BUILD_RUN_ID" --repo "$GITHUB_REPOSITORY" --exit-status --interval 30
+      - name: Prepare owner-approved draft only after the verified Windows build
+        shell: bash
+        run: |
+          set -euo pipefail
+          git diff --exit-code "$EXPECTED_SOURCE" HEAD -- src/main src/test pom.xml build.bat build.sh proguard.conf tools/baseline-release.mjs tools/release-version.mjs .github/workflows/publish-vncode-baseline.yml
+          gh api "repos/$GITHUB_REPOSITORY/actions/runs/$BUILD_RUN_ID" > "$RUNNER_TEMP/approved-build-run.json"
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';import {readFile} from 'node:fs/promises';
+          const run=JSON.parse(await readFile(`${process.env.RUNNER_TEMP}/approved-build-run.json`,'utf8'));
+          assert.equal(run.status,'completed');assert.equal(run.conclusion,'success');assert.equal(run.head_sha,process.env.EXPECTED_SOURCE);
+          assert.equal(run.path,'.github/workflows/publish-vncode-baseline.yml');assert.equal(run.repository.full_name,process.env.GITHUB_REPOSITORY);
+          const receipt=JSON.parse(await readFile('docs/validation/2026-10-25-vncode-1517-prebuild.json','utf8'));
+          assert.equal(receipt.version,'1.5.17');assert.equal(receipt.sourceTreeSha256,'8d72fadeb7ec4fc2dd4d1d9c414c39768d9db968dd94ebc88e66a116daca4880');
+          assert.equal(receipt.maven.result,'BUILD SUCCESS');assert.equal(receipt.maven.sourceCommit,process.env.EXPECTED_SOURCE);
+          assert.ok(receipt.maven.tests>=3019);assert.equal(receipt.maven.failures,0);assert.equal(receipt.maven.errors,0);
+          assert.equal(receipt.finalRelated.passed,1043);assert.equal(receipt.manualSyncFix.passed,43);assert.equal(receipt.newOrdersPrintQueue.passed,34);assert.equal(receipt.printHistoryFix.passed,40);assert.equal(receipt.node.passed,117);assert.equal(receipt.releaseRequested,true);
+          NODE
+          git fetch origin --tags
+          if git show-ref --verify --quiet refs/tags/v1.5.17; then
+            test "$(git rev-parse v1.5.17)" = "$EXPECTED_SOURCE"
+          else
+            gh api --method POST "repos/$GITHUB_REPOSITORY/git/refs" -f ref=refs/tags/v1.5.17 -f sha="$EXPECTED_SOURCE" > "$RUNNER_TEMP/created-tag.json"
+            git fetch origin tag v1.5.17
+          fi
+          if ! gh release view v1.5.17 --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release create v1.5.17 --repo "$GITHUB_REPOSITORY" --verify-tag --target "$EXPECTED_SOURCE" --draft --title 'VN code 1.5.17' --notes-file docs/releases/VN-code-1.5.17.md
+          fi
+          release_api_url="$(gh release view v1.5.17 --repo "$GITHUB_REPOSITORY" --json apiUrl --jq .apiUrl)"
+          [[ "$release_api_url" =~ ^https://api.github.com/repos/ntccong2468-lab/Bancapnhat/releases/[0-9]+$ ]]
+          gh api "$release_api_url" > "$RUNNER_TEMP/prepared-release.json"
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';import {readFile,appendFile} from 'node:fs/promises';
+          const release=JSON.parse(await readFile(`${process.env.RUNNER_TEMP}/prepared-release.json`,'utf8'));
+          assert.equal(release.tag_name,'v1.5.17');assert.equal(release.target_commitish,process.env.EXPECTED_SOURCE);assert.equal(release.prerelease,false);
+          assert.ok(Number.isSafeInteger(release.id)&&release.id>0);
+          await appendFile(process.env.GITHUB_ENV,`RELEASE_ID=${release.id}\n`);
+          NODE
+      - name: Verify immutable application source and successful Windows build
+        id: release
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse v1.5.17)" = "$EXPECTED_SOURCE"
+          git diff --exit-code "$EXPECTED_SOURCE" HEAD -- src/main pom.xml build.bat build.sh proguard.conf
+          gh api "repos/$GITHUB_REPOSITORY/actions/runs/$BUILD_RUN_ID" > "$RUNNER_TEMP/build-run.json"
+          gh api "repos/$GITHUB_REPOSITORY/releases/$RELEASE_ID" > "$RUNNER_TEMP/release.json"
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          import {readFile,appendFile} from 'node:fs/promises';
+          const run=JSON.parse(await readFile(`${process.env.RUNNER_TEMP}/build-run.json`,'utf8'));
+          assert.equal(run.status,'completed');assert.equal(run.conclusion,'success');assert.equal(run.head_sha,process.env.EXPECTED_SOURCE);
+          assert.equal(run.path,'.github/workflows/publish-vncode-baseline.yml');assert.equal(run.repository.full_name,process.env.GITHUB_REPOSITORY);
+          const release=JSON.parse(await readFile(`${process.env.RUNNER_TEMP}/release.json`,'utf8'));
+          assert.equal(release.id,Number(process.env.RELEASE_ID));assert.equal(release.tag_name,'v1.5.17');assert.equal(release.target_commitish,process.env.EXPECTED_SOURCE);assert.equal(release.prerelease,false);
+          await appendFile(process.env.GITHUB_OUTPUT,`needs_publish=${release.draft}\n`);
+          NODE
+          gh run download "$BUILD_RUN_ID" --repo "$GITHUB_REPOSITORY" --name VN-code-1.5.17-complete-baseline --dir "$RUNNER_TEMP/vncode-candidate-1517"
+      - name: Verify every required candidate byte and native evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          import {readFile,appendFile,lstat} from 'node:fs/promises';
+          import {createHash} from 'node:crypto';
+          import {requiredAssets} from './tools/baseline-release.mjs';
+          const root=`${process.env.RUNNER_TEMP}/vncode-candidate-1517`;
+          const read=name=>readFile(`${root}/${name}`);const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
+          const info=JSON.parse(await read('build-info.json')),manifest=JSON.parse(await read('asset-manifest.json'));
+          for(const record of [info,manifest]){assert.equal(record.version,'1.5.17');assert.equal(record.sourceCommit,process.env.EXPECTED_SOURCE);}
+          assert.equal(info.runId,Number(process.env.BUILD_RUN_ID));assert.equal(info.workflow,'publish-vncode-baseline.yml');
+          for(const flag of ['fullJavaSuiteRun','nativeSmokeRun','baselineUpgradeRun'])assert.equal(info.verification[flag],true);
+          const prebuild=JSON.parse(await readFile('docs/validation/2026-10-25-vncode-1517-prebuild.json','utf8'));
+          const tests=info.verification.java;assert.equal(tests.tests,prebuild.maven.tests);assert.equal(tests.failures,0);assert.equal(tests.errors,0);assert.equal(tests.passed,tests.tests-tests.skipped);
+          for(const name of requiredAssets('1.5.17')){assert.match(name,/^[A-Za-z0-9._-]+$/);const expected=manifest.files[name];assert.ok(expected);const file=await lstat(`${root}/${name}`);assert.ok(file.isFile()&&!file.isSymbolicLink());const bytes=await read(name);assert.equal(bytes.length,expected.bytes,name);assert.equal(hash(bytes),expected.sha256,name);}
+          for(const line of (await read('SHA256SUMS')).toString('utf8').trim().split(/\r?\n/)){const parts=/^([a-f0-9]{64})  ([A-Za-z0-9._-]+)$/.exec(line);assert.ok(parts);assert.equal(hash(await read(parts[2])),parts[1],parts[2]);}
+          assert.equal(info.installer.name,'VN-code-1.5.17-Windows-x64.exe');assert.equal(info.installer.sha256,manifest.files[info.installer.name].sha256);assert.equal(info.installer.bytes,manifest.files[info.installer.name].bytes);
+          const native=JSON.parse(await read('native-smoke.json')),upgrade=JSON.parse(await read('upgrade-baseline-smoke.json'));
+          assert.equal(native.version,'1.5.17');assert.equal(native.nativeLauncher,'passed');assert.equal(native.historyPreserved,true);assert.equal(upgrade.version,'1.5.17');assert.equal(upgrade.result,'passed');assert.equal(upgrade.dataPreserved,true);assert.equal(upgrade.fromVersion,'1.5.16');assert.equal(upgrade.baselineTag,'v1.5.16');assert.equal(upgrade.passiveExeInstallerSha256,info.installer.sha256);
+          await appendFile(process.env.GITHUB_STEP_SUMMARY,`Verified VNCode 1.5.17, source ${info.sourceCommit}. Java: ${tests.passed} passed, ${tests.skipped} OS-specific skips, zero failures/errors. Native launch and upgrade passed.\n`);
+          NODE
+          git bundle verify "$RUNNER_TEMP/vncode-candidate-1517/VN-code-1.5.17-history.bundle"
+      - name: Upload the verified files to the existing draft
+        if: steps.release.outputs.needs_publish == 'true'
+        shell: bash
+        run: gh release upload v1.5.17 --repo "$GITHUB_REPOSITORY" --clobber "$RUNNER_TEMP/vncode-candidate-1517/"*
+      - name: Verify uploaded assets and prevent replacing a newer Latest
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh api "repos/$GITHUB_REPOSITORY/releases/$RELEASE_ID" > "$RUNNER_TEMP/uploaded.json"
+          gh api "repos/$GITHUB_REPOSITORY/releases/latest" > "$RUNNER_TEMP/current-latest.json"
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';import {readFile,readdir,lstat} from 'node:fs/promises';import {createHash} from 'node:crypto';
+          const root=`${process.env.RUNNER_TEMP}/vncode-candidate-1517`,release=JSON.parse(await readFile(`${process.env.RUNNER_TEMP}/uploaded.json`,'utf8'));
+          assert.equal(release.id,Number(process.env.RELEASE_ID));assert.equal(release.tag_name,'v1.5.17');assert.equal(release.target_commitish,process.env.EXPECTED_SOURCE);
+          for(const name of await readdir(root)){assert.match(name,/^[A-Za-z0-9._-]+$/);const file=await lstat(`${root}/${name}`);assert.ok(file.isFile()&&!file.isSymbolicLink());const bytes=await readFile(`${root}/${name}`),assets=release.assets.filter(a=>a.name===name);assert.equal(assets.length,1,name);assert.equal(assets[0].state,'uploaded');assert.equal(assets[0].size,bytes.length,name);assert.equal(assets[0].digest,`sha256:${createHash('sha256').update(bytes).digest('hex')}`,name);}
+          const latest=JSON.parse(await readFile(`${process.env.RUNNER_TEMP}/current-latest.json`,'utf8'));
+          const version=/^v(\d+)\.(\d+)\.(\d+)$/.exec(latest.tag_name);assert.ok(version,'Unknown current Latest version');const parts=version.slice(1).map(Number),target=[1,5,17];let newer=false;for(let i=0;i<3;i++){if(parts[i]!==target[i]){newer=parts[i]>target[i];break;}}assert.equal(newer,false,'A newer Latest already exists');
+          NODE
+      - name: Publish the complete draft as Latest
+        if: steps.release.outputs.needs_publish == 'true'
+        run: gh release edit v1.5.17 --repo "$GITHUB_REPOSITORY" --draft=false --latest
+      - name: Download public assets and verify checksums again
+        shell: bash
+        run: |
+          set -euo pipefail
+          node tools/baseline-release.mjs verify-public "$RUNNER_TEMP/vncode-public-1517" "$EXPECTED_SOURCE"
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        if: always()
+        with:
+          name: VN-code-1.5.17-public-verification
+          path: ${{ runner.temp }}/vncode-public-1517/public-verification.json
+          if-no-files-found: ignore
