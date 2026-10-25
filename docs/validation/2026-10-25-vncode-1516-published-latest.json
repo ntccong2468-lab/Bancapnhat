@@ -1,0 +1,135 @@
+{
+  "recordedAt": "2026-10-25T07:01:56.573897+00:00",
+  "version": "1.5.16",
+  "tag": "v1.5.16",
+  "sourceCommit": "96b439d50b14f78d973fb24420f6ac46c078e95c",
+  "sourceTreeSha256": "6382ff208a91569bb09a39b31dcc09ddcf2a78a8098135c47f1c77a2efd1f439",
+  "branch": "release/vn-code-1.5.16",
+  "releaseId": 423202074,
+  "publishedAt": "2026-10-25T07:01:10Z",
+  "immutableRelease": true,
+  "latestConfirmed": true,
+  "releaseUrl": "https://github.com/ntccong2468-lab/Bancapnhat/releases/tag/v1.5.16",
+  "downloadUrl": "https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.5.16/VN-code-1.5.16-Windows-x64.exe",
+  "installer": {
+    "name": "VN-code-1.5.16-Windows-x64.exe",
+    "sha256": "57afd4f82c378cab5e2ae114e998b78effa65cab0c99212a91cbf3abc84cd7f4",
+    "bytes": 147282432
+  },
+  "buildRun": {
+    "id": 40167802021,
+    "conclusion": "success",
+    "url": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/40167802021"
+  },
+  "publicationRun": {
+    "id": 40168947162,
+    "conclusion": "success",
+    "url": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/40168947162"
+  },
+  "publicAssets": 16,
+  "requiredAssetsVerified": 11,
+  "javaWindows": {
+    "tests": 3019,
+    "skipped": 2,
+    "errors": 0,
+    "failures": 0,
+    "passed": 3017
+  },
+  "javaLinux": {
+    "tests": 3019,
+    "passed": 3017,
+    "skipped": 2,
+    "failures": 0,
+    "errors": 0
+  },
+  "nodeTestsPassed": 117,
+  "relatedRegressionPassed": 161,
+  "native": {
+    "historyPreserved": true,
+    "rollbackSnapshotVerified": true,
+    "nativeLauncher": "passed",
+    "version": "1.5.16",
+    "platform": "windows-x64",
+    "liveMarketplaceMutations": false,
+    "schemaMigration": "3 to 6",
+    "windowTitle": "VN code v1.5.16",
+    "appName": "VN code"
+  },
+  "upgrade": {
+    "fromVersion": "1.5.15",
+    "result": "passed",
+    "passiveExeHandoffVerified": true,
+    "windowTitle": "VN code v1.5.16",
+    "appName": "VN code",
+    "singleShortcutPerLocation": true,
+    "baselineTag": "v1.5.15",
+    "version": "1.5.16",
+    "baselineInstallerSha256": "c70aea8d2cf5697e046ecf35095c89d959977d8130578d0c66314489b5cc3349",
+    "passiveExeInstallerSha256": "57afd4f82c378cab5e2ae114e998b78effa65cab0c99212a91cbf3abc84cd7f4",
+    "dataPreserved": true,
+    "liveMarketplaceMutations": false,
+    "installerUpgradeUuid": "8CBBA0E2-6E73-4F56-9101-6BC0948D3C72",
+    "baselineInstallerBytes": 147270144,
+    "fingerprint": "d0810c086361bd6c1d206edd27cfc2275261b7130d8014e8da9075f7ff8e71b5",
+    "singleRegistration": true,
+    "passiveExeEmbeddedMsiSha256": "6ba2225a98a25e8876c3c7a8e052aaebe129a1718adc2833d67691c41132680d"
+  },
+  "updater": {
+    "version": "1.5.16",
+    "newerThan1_5_15": true,
+    "usesPublishedRuntimeUpdater": true,
+    "windowsInstallerUrl": "https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.5.16/VN-code-1.5.16-Windows-x64.msi",
+    "sha256": "6ba2225a98a25e8876c3c7a8e052aaebe129a1718adc2833d67691c41132680d",
+    "bytes": 146613513,
+    "metadataSource": "GitHub releases/latest public response",
+    "sellerDeviceNotificationObserved": false,
+    "previousRuntime": {
+      "version": "1.5.15",
+      "runtimeArchive": "VN-code-1.5.15-Windows-x64.zip",
+      "sha256": "382d3c28986a0b182da6fbec1767a60d24d336e56ffec49ce4cfe768e0b95680",
+      "bytes": 146193495,
+      "matchesPublishedAssetDigest": true,
+      "packagedVersionVerified": true,
+      "sourceCommit": "9f6155dbbbdd6af80e09897f2f2863b479b97a33",
+      "javaLibrariesExtracted": 75,
+      "probeCompiled": true,
+      "latestResponseCheckPending": false
+    }
+  },
+  "package": {
+    "checkedAt": "2026-10-25T07:01:13.633474+00:00",
+    "version": "1.5.16",
+    "sourceCommit": "96b439d50b14f78d973fb24420f6ac46c078e95c",
+    "buildRunId": 40167802021,
+    "allManifestBytesVerified": true,
+    "packagedVersionVerified": true,
+    "catalogFixMethodsPresent": true,
+    "ozonLabelIdentityAndIsolatedReceiptMethodsPresent": true,
+    "ozonFbsReferenceLayoutPresent": true,
+    "productionSourcesMatchLocalRelease": true,
+    "sourceArchiveFilesCompared": 1150,
+    "compactStylesMatch": true,
+    "nativeLaunchVerified": true,
+    "upgradeDataPreserved": true,
+    "java": {
+      "tests": 3019,
+      "skipped": 2,
+      "errors": 0,
+      "failures": 0,
+      "passed": 3017
+    },
+    "installer": {
+      "name": "VN-code-1.5.16-Windows-x64.exe",
+      "sha256": "57afd4f82c378cab5e2ae114e998b78effa65cab0c99212a91cbf3abc84cd7f4",
+      "bytes": 147282432
+    },
+    "sellerDeviceNotificationObserved": false
+  },
+  "publicDownloadsAndChecksumsVerified": true,
+  "publicVerificationEvidence": "2026-10-25-vncode-1516-public-verification.json",
+  "liveCatalogWriteVerifiedForThisBuild": false,
+  "liveMarketplaceWriteVerified": false,
+  "paidKizPurchaseVerified": false,
+  "sellerDeviceNotificationObserved": false,
+  "oldReleasesDeleted": false
+}

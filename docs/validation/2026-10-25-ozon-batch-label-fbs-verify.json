@@ -77,5 +77,17 @@
   "windowsNativeVerifiedForThisChange": false,
   "installerBuilt": false,
   "latestChanged": false,
-  "latestRemains": "v1.5.15"
+  "latestRemains": "v1.5.15",
+  "initialVerificationSnapshot": true,
+  "subsequentRelease": {
+    "version": "1.5.16",
+    "sourceCommit": "96b439d50b14f78d973fb24420f6ac46c078e95c",
+    "releaseId": 423202074,
+    "latestConfirmed": true,
+    "installerBuilt": true,
+    "windowsNativeVerified": true,
+    "upgradeFromVersion": "1.5.15",
+    "dataPreserved": true,
+    "evidence": "2026-10-25-vncode-1516-published-latest.json"
+  }
 }

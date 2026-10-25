@@ -1,6 +1,6 @@
 # Sửa nhãn khi In tất cả Ozon và bố cục FBS theo WB
 
-Nguồn nền là 1.5.15 đã phát hành. Nhánh sửa `fix/ozon-batch-label-identity-fbs-layout`; mã chốt `0f5c527126a16b0047faae62528ba6dca46a9a47`. Chưa đóng gói hoặc thay Latest trong lượt sửa này.
+Nguồn nền là 1.5.15 đã phát hành. Nhánh sửa `fix/ozon-batch-label-identity-fbs-layout`; mã chốt `0f5c527126a16b0047faae62528ba6dca46a9a47`. Lượt sửa ban đầu chưa đóng gói; sau yêu cầu của chủ dự án, các thay đổi đã được phát hành trong **1.5.16**. [Bàn giao bộ cài/Latest](../validation/2026-10-25-vncode-1516-handoff.md).
 
 ## Nguyên nhân và cách sửa nhãn
 
@@ -37,4 +37,4 @@ Giữ dữ liệu ngày thật của Ozon, không gọi hạn giao là ngày t�
 - JavaFX kiểm tra đủ cột/mã đơn/ngày/barcode/GTIN/KN3 trên bốn tab; nhiều sản phẩm cùng dòng; bốn ngôn ngữ, hai theme, cửa sổ hẹp/rộng, phân trang và nút thao tác. Kiểm tra FXML, theme và các phần shipment WB liên quan đạt. Node contracts **117/117**.
 - **API Ozon thật chỉ đọc**: danh sách có `with.barcodes=true` và chi tiết posting trả HTTP 200; chi tiết có cả barcode vận chuyển trên/dưới. Không tạo tác vụ nhãn, đổi đơn, gán hoặc tiêu KIZ trên tài khoản thật trong lượt này. Việc xuất PDF và ghép KIZ được kiểm tra bằng dữ liệu tổng hợp/HTTP localhost, chưa nghiệm thu thao tác trên Windows của seller.
 
-[Biên nhận và hash nguồn/log](../validation/2026-10-25-ozon-batch-label-fbs-verify.json). Latest vẫn là v1.5.15 bất biến; khi phát hành các sửa này phải dùng phiên bản mới và chạy bộ cài/native/upgrade Windows đúng mã nguồn.
+[Biên nhận và hash nguồn/log](../validation/2026-10-25-ozon-batch-label-fbs-verify.json). Các sửa này đã được kiểm thử toàn bộ, native/upgrade Windows đúng mã nguồn và phát hành dưới Latest v1.5.16; [biên nhận công bố](../validation/2026-10-25-vncode-1516-published-latest.json).
