@@ -1,0 +1,128 @@
+{
+  "recordedAtUtc": "2026-10-25T11:22:54.195706+00:00",
+  "branch": "fix/persist-synchronized-data",
+  "sourceCommit": "b82f1abfed8841e6aaaa95541d1962c11279f0ba",
+  "baseCommit": "4b25e8a9b2e58c238f1e964e15ef5985a329178e",
+  "baseRelease": "v1.5.16",
+  "sourceTreeSha256": "e79d483fab1637282a19047a0579dc9d7ce4994975d8ce86acdca3d0fd75c341",
+  "sourceTreeHashMethod": "Sorted pom.xml, src/main and src/test files: relative path + NUL + binary SHA256 digest per file",
+  "requirement": "Save synchronized data so application updates do not require synchronizing it from scratch",
+  "applicationData": {
+    "windowsDirectory": "%LOCALAPPDATA%\\VNcodeData",
+    "database": "database.db",
+    "versionInDirectoryName": false,
+    "directoryChanged": false,
+    "databaseResetForUpgrade": false,
+    "existingBackupAndMigrationPreserved": true
+  },
+  "changes": {
+    "persistedSuccessfulSourceMembershipRestoredForWbAndOzon": true,
+    "historicalReceiptReadableBeyond24Hours": true,
+    "failedRefreshDoesNotReplaceSuccessfulMembership": true,
+    "recreatedScreensReadSavedCatalogState": true,
+    "historicalPagingAndFiltersAvailable": true,
+    "historicalObservationDoesNotAuthorizeNewWrites": true,
+    "credentialAndCertificateScopeChecksPreserved": true,
+    "ozonCatalogCompletionSavedAtomicallyWithPageCursorAndBarcodes": true,
+    "completionBoundToShopFingerprint": true,
+    "legacyOverviewReusesCompletedCatalog": true,
+    "legacyOrInterruptedCatalogResumesSavedCursor": true,
+    "emptyTailCannotClaimCompletionWhileObservedCountIsInsufficient": true,
+    "explicitFullRefreshStillAvailable": true,
+    "existingBackgroundScheduleAndItsPersistedDeadlinesPreserved": true,
+    "newOzonDeltaProtocolClaimed": false
+  },
+  "upgradeAndReopenChecks": {
+    "markets": [
+      "WILDBERRIES",
+      "OZON"
+    ],
+    "migrationLabels": [
+      "1.5.16",
+      "1.5.17",
+      "1.5.17"
+    ],
+    "labelsAreTestParametersNotPublishedInstallers": true,
+    "gate": "LocalDataMigrationGate.prepare",
+    "allBusinessTableContentHashesPreserved": true,
+    "populatedData": [
+      "native product cards and variants",
+      "product snapshot and brand",
+      "TN VED, material and gender",
+      "documents",
+      "Catalog observations",
+      "registration GTIN, feed and payload",
+      "confirmed GTIN mapping ledger",
+      "KIZ inventory and purchase records",
+      "print history",
+      "sync membership",
+      "sync cursor, result and retry deadline"
+    ],
+    "repositoryReadsAfterReopenVerified": true,
+    "newSourceSyncRunsRequiredForOpeningSavedScreens": 0,
+    "ozonSavedRowsPaged": 1000,
+    "wbSavedCompletedFilterVerified": true,
+    "completedOzonCatalogAdditionalHttpRequests": 0,
+    "legacySavedCatalogEmptyTailFixtureRequests": 1,
+    "liveSellerDataUsed": false
+  },
+  "finalRegression": {
+    "log": "/tmp/vncode-20261025-persist-regression.log",
+    "sha256": "3e11c98ab5632942157fe94f5453208488e1327ae3242ceb6f70076d053ce6fd",
+    "buildSuccess": true,
+    "tests": 1043,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "classes": 97,
+    "durationSeconds": 408,
+    "finishedAtUtc": "2026-10-25T11:21:38Z",
+    "command": "DISPLAY=:99 /workspace/toolchains/mvn-vncode -o -B '-Dtest=*Registration*Test,Product*Test,*Migration*Test,LocalData*Test,UpdateSnapshot*Test,AppPathsTest,AppDataLockTest,AppDataRecovery*Test,WindowsUpgradeDataProbeTest,SynchronizedDataUpgradeTest,Sync*Test,FbsSyncServiceTest,ZnackCatalogSyncServiceTest,ZnackAutoSyncServiceTest,GtinSyncRepositoryTest,RegisteredGtin*Test,OzonSyncServiceTest,OzonRepositoryTest,KizPendingIdentityTest,KizPurchaseMappingProofTest,OrderExportWorkflowKizPlanningTest,OzonPrintReadinessServiceTest,OzonPrintBundleServiceTest,OzonLabelServiceTest,WorkspaceListAreaTest' test"
+  },
+  "earlyReopenAndUpgradeChecks": {
+    "log": "/tmp/vncode-20261025-persist-upgrade.log",
+    "sha256": "392d8d62c174f8d2528bdc6e5608fb01a4320741ee1703a268e53b56b67f238f",
+    "buildSuccess": true,
+    "tests": 3,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "initialTargetedRun": {
+    "log": "/tmp/vncode-20261025-persist-targeted.log",
+    "sha256": "3d6d83bc42947d4e10e11d21f053c519341797709278a215ba4393e6e2458099",
+    "buildSuccess": false,
+    "tests": 120,
+    "failures": 1,
+    "errors": 0,
+    "skipped": 0
+  },
+  "testCompilationCorrected": {
+    "log": "/tmp/vncode-20261025-persist-targeted-final.log",
+    "sha256": "d824a102b66fc77cd183c25d108dde4a6364058760108c4e7af02621dcc75d03",
+    "buildSuccess": false,
+    "testsRun": false
+  },
+  "initialRunNotes": [
+    "Initial UI test expected Completed without putting the GTIN into the WB native size barcode; corrected the fixture, preserved filter semantics",
+    "New upgrade test initially used ProductKey from the products domain where GTIN-domain ProductKey was required; corrected the test types",
+    "Final regression includes all corrected checks; do not sum overlapping runs"
+  ],
+  "productionApiCallsMade": false,
+  "paidKizPurchasedOrConsumed": false,
+  "fullJavaSuiteRunForThisFix": false,
+  "nativeWindowsVerifiedForThisFix": false,
+  "installerBuiltForThisFix": false,
+  "latestChanged": false,
+  "lastObservedLatest": {
+    "id": 423202074,
+    "tag_name": "v1.5.16",
+    "immutable": true,
+    "published_at": "2026-10-25T07:01:10Z"
+  },
+  "inheritedUnreleasedFixes": [
+    "WB-sized workspace list areas",
+    "WB/Ozon KIZ purchase GTIN resolution and Ozon PDF task protocol/recovery"
+  ],
+  "nextRelease": "Build from this branch with a new version after 1.5.16 and run release checks; never overwrite immutable v1.5.16"
+}
