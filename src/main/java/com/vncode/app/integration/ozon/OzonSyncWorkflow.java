@@ -17,6 +17,12 @@ public final class OzonSyncWorkflow {
     }
 
     public OzonSyncReport syncOverview(Shop shop) throws IOException {
+        return syncOverview(shop,true);
+    }
+    public OzonSyncReport syncOverviewIfNeeded(Shop shop)throws IOException{
+        return syncOverview(shop,false);
+    }
+    private OzonSyncReport syncOverview(Shop shop,boolean refreshCatalog)throws IOException{
         MarketplaceGuard.requireOzon(shop);
         LicenseRuntime.require(SELLER_API);
         OzonApiClient api = client(shop);
@@ -25,7 +31,8 @@ public final class OzonSyncWorkflow {
         OzonSyncReport postings = postingSync.sync();
         reconcilePackages(shop,api);
         postingSync.refreshActiveDetails();
-        int products = new OzonCatalogSyncService(shop.getId(), api).syncIfNeeded();
+        var catalog=new OzonCatalogSyncService(shop.getId(),api);
+        int products = refreshCatalog?catalog.syncFromStart():catalog.syncIfNeeded();
         return new OzonSyncReport(products, postings.postings(), postings.items());
     }
 

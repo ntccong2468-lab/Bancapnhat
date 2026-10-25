@@ -286,12 +286,15 @@ public final class OzonDashboardController {
         loadLocal();
         if(com.vncode.app.shared.ShopBatchRegistry.hasShop(selected.getId()))setBusy(true);
         if(gtinInventoryPanel.isExpanded())refreshGtinInventory();
-        if (syncRemote) sync();
+        if (syncRemote) sync(false);
     }
 
     public void sync() {
+        sync(true);
+    }
+    private void sync(boolean refreshCatalog){
         if(shop!=null&&com.vncode.app.features.sync.SyncRuntime.requestIfRunning(shop,com.vncode.app.features.sync.SyncCoordinator.Stream.FBS_QUEUE)){
-            com.vncode.app.features.sync.SyncRuntime.requestIfRunning(shop,com.vncode.app.features.sync.SyncCoordinator.Stream.CATALOG);loadLocal();return;
+            if(refreshCatalog)com.vncode.app.features.sync.SyncRuntime.requestIfRunning(shop,com.vncode.app.features.sync.SyncCoordinator.Stream.CATALOG);loadLocal();return;
         }
         Shop selected = shop;
         if (selected == null || busy) return;
@@ -300,7 +303,7 @@ public final class OzonDashboardController {
             @Override protected Void call() throws Exception {
                 return ShopOperationCoordinator.withActiveShop(selected.getId(), () -> {
                     syncWorkflow.checkConnection(selected);
-                    syncWorkflow.syncOverview(selected);
+                    if(refreshCatalog)syncWorkflow.syncOverview(selected);else syncWorkflow.syncOverviewIfNeeded(selected);
                     return null;
                 });
             }

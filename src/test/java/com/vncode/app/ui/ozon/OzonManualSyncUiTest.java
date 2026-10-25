@@ -49,6 +49,12 @@ class OzonManualSyncUiTest {
                     title.set(expected);fx(()->{controller.sync();return null;});long end=System.nanoTime()+TimeUnit.SECONDS.toNanos(10);while(busy.get()&&System.nanoTime()<end)Thread.sleep(10);assertFalse(busy.get());
                     var page=new ProductRepository().loadPage(new ProductQuery(1,Marketplace.OZON,"",List.of(),null,false,null,100));assertEquals(1,page.total());assertEquals(expected,page.rows().getFirst().title());
                     assertEquals("cancelled",repository.find(1,"OLD").status());
+                    if(expected.equals("Initial")){
+                        title.set("Updated");fx(()->{controller.setShop(new Shop(1,"Ozon",Marketplace.OZON,"11","fixture"),true);return null;});
+                        long reopened=System.nanoTime()+TimeUnit.SECONDS.toNanos(10);while(busy.get()&&System.nanoTime()<reopened)Thread.sleep(10);assertFalse(busy.get());
+                        assertEquals(List.of(""),starts,"Automatic reopening must reuse the saved catalog");
+                        assertEquals("Initial",new ProductRepository().loadPage(new ProductQuery(1,Marketplace.OZON,"",List.of(),null,false,null,100)).rows().getFirst().title());
+                    }
                 }
                 assertEquals(List.of("",""),starts,"An explicit refresh must revisit products from the first page");
             }finally{fx(()->{controller.dispose();return null;});}
