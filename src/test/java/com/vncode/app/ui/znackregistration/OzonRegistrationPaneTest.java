@@ -49,6 +49,20 @@ class OzonRegistrationPaneTest {
         fx(()->{button("refresh").fire();return null;});awaitIdle();fx(()->{assertEquals(before,table().getItems().stream().map(ProductRow::key).toList());for(String action:new String[]{"gtin","sign","register","all"})assertTrue(button(action).isDisabled(),action);assertFalse(button("sync").isDisabled());assertFalse(button("documents").isDisabled());var status=OzonRegistrationPane.class.getDeclaredField("status");status.setAccessible(true);assertTrue(((javafx.scene.control.Label)status.get(pane)).getText().contains(com.vncode.app.shared.I18nService.getInstance().tr("znack.registration.latest_read_unknown")));return null;});
         com.vncode.app.testsupport.RegistrationSourceFixture.ready(new Shop(1,"Ozon fixture",Marketplace.OZON,"fixture","synthetic"));fx(()->{button("refresh").fire();return null;});awaitRows(300);fx(()->{assertFalse(button("gtin").isDisabled());return null;});
     }
+    @Test void reopeningAfterAWeekRestoresAllSavedPagesWithoutASourceSync()throws Exception{
+        try(var c=Database.getConnection();var p=c.prepareStatement("UPDATE sync_runs SET finished_at=? WHERE kind='registration_sources'")){p.setString(1,java.time.Instant.now().minusSeconds(7*86400).toString());p.executeUpdate();}
+        fx(()->{pane.dispose();pane=new OzonRegistrationPane(new Shop(1,"Ozon fixture",Marketplace.OZON,"fixture","synthetic"),gtinOpens::incrementAndGet);return null;});awaitRows(300);
+        fx(()->{assertTrue(button("gtin").isDisabled());assertTrue(button("register").isDisabled());button("more").fire();return null;});awaitRows(600);
+        fx(()->{button("more").fire();return null;});awaitRows(900);fx(()->{button("more").fire();return null;});awaitRows(1000);
+        try(var c=Database.getConnection();var s=c.createStatement();var r=s.executeQuery("SELECT count(*) FROM sync_runs WHERE kind='registration_sources'")){assertEquals(1,r.getInt(1),"Reopening and paging saved data must not start another network sync");}
+    }
+    @Test void reopeningAfterAFailedRefreshRestoresThePreviousSuccessfulList()throws Exception{
+        var owner=new Shop(1,"Ozon fixture",Marketplace.OZON,"fixture","synthetic");var reports=new com.vncode.app.features.sync.SyncRunRepository();String failed=reports.begin(owner,"registration_sources","READING_ZNACK");
+        try(var c=Database.getConnection();var p=c.prepareStatement("UPDATE sync_runs SET source_revision=? WHERE id=?")){p.setString(1,com.vncode.app.features.gtinsync.RegisteredGtinProof.source(owner));p.setString(2,failed);p.executeUpdate();}
+        reports.stage(owner,failed,"FAILED","READING_ZNACK","NETWORK_TIMEOUT");
+        fx(()->{pane.dispose();pane=new OzonRegistrationPane(owner,gtinOpens::incrementAndGet);return null;});awaitRows(300);
+        fx(()->{assertTrue(button("gtin").isDisabled());assertTrue(button("register").isDisabled());return null;});
+    }
     @Test void aChangedOwnerCannotSeeRetainedRowsOrUseTheirProof()throws Exception {
         try(var c=Database.getConnection();var s=c.createStatement()){s.execute("UPDATE shops SET api_key='rotated-fixture' WHERE id=1");}
         fx(()->{button("refresh").fire();return null;});awaitIdle();fx(()->{assertTrue(table().getItems().isEmpty());assertTrue(button("gtin").isDisabled());assertTrue(button("register").isDisabled());return null;});

@@ -17,7 +17,9 @@ import java.util.function.Consumer;
 /** Read-only paired source receipt. Neither cached rows nor a partial page can unlock registration. */
 public final class RegistrationSources {
     public static final String KIND="registration_sources";
-    public record Readiness(boolean ready,String run,String step,String reason,String completed) {}
+    public record Readiness(boolean ready,String run,String step,String reason,String completed) {
+        public boolean hasSnapshot(){return !run.isBlank()&&!completed.isBlank();}
+    }
     public record Member(String product,String variant,String sku,String article,String color,String size) {}
     @FunctionalInterface interface MarketReader {void read(Shop shop,Consumer<List<Member>> page)throws Exception;}
     @FunctionalInterface interface CatalogReader {ZnackCatalogSyncService.Result read(Shop shop)throws Exception;}
@@ -48,6 +50,26 @@ public final class RegistrationSources {
         catch(RuntimeException e){return blocked("","",SyncFailure.of(e,0).code());}
     }
     public Readiness require(Shop shop){var ready=check(shop);if(!ready.ready())throw new IllegalStateException(ready.reason());return ready;}
+    /** Durable list membership survives restarts, upgrades and failed refreshes.
+     * A historical receipt is display data only; require() still gates every new action. */
+    public Readiness display(Shop shop){
+        var current=check(shop);if(current.ready())return current;
+        try{
+            ListingIdentity.require(shop);var scope=RegisteredGtinProof.current(shop);RegisteredGtinProof.requireProduction(scope);
+            try(var c=Database.getConnection();var p=c.prepareStatement("SELECT id,step,finished_at FROM sync_runs WHERE shop_id=? AND owner=? AND kind=? AND state='SUCCEEDED' AND source_revision=? ORDER BY created_at DESC,rowid DESC LIMIT 1")){
+                p.setInt(1,shop.getId());p.setString(2,ListingIdentity.fingerprint(shop));p.setString(3,KIND);p.setString(4,scope.source());
+                try(var row=p.executeQuery()){
+                    if(row.next()){
+                        Instant completed=Instant.parse(row.getString(3));
+                        if(!completed.isAfter(Instant.now().plusSeconds(300)))return new Readiness(false,row.getString(1),row.getString(2),current.reason(),completed.toString());
+                    }
+                }
+            }
+        }catch(SQLException failure){throw new IllegalStateException("SYNC_STORAGE",failure);}
+        catch(RuntimeException unavailable){return current;}
+        return current;
+    }
+    public Readiness requireDisplay(Shop shop){var saved=display(shop);if(!saved.hasSnapshot())throw new IllegalStateException(saved.reason());return saved;}
     public void requireMember(Shop shop,String product,String variant){
         String run=require(shop).run();
         try(var c=Database.getConnection();var p=c.prepareStatement("SELECT 1 FROM sync_run_items WHERE run_id=? AND product_id=? AND variant_id=?")){

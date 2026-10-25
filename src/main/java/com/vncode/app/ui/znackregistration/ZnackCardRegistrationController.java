@@ -657,9 +657,9 @@ public final class ZnackCardRegistrationController {
         Task<LoadedRegistration> task=new Task<>() {
             @Override protected LoadedRegistration call(){
                 retain.set(previous!=null&&previous.currentScope(owner));
-                var ready=sources.check(owner);
-                if(!ready.ready())return new LoadedRegistration(ready,null,null);
-                var index=new RegistrationCardIndex(owner);
+                var ready=sources.display(owner);
+                if(!ready.hasSnapshot())return new LoadedRegistration(ready,null,null);
+                var index=RegistrationCardIndex.forDisplay(owner);
                 var query=new ZnackRegistrationQueryRepository(ready.run(),index);
                 var page=query.page(criteria);
                 if(backgroundRefresh&&visibleExtent>PAGE_SIZE){
@@ -672,7 +672,7 @@ public final class ZnackCardRegistrationController {
                     }
                     page=new ZnackRegistrationQueryRepository.Page(List.copyOf(rows.values()),java.util.Map.copyOf(details),page.filtered(),page.summary());
                 }
-                var current=sources.require(owner);
+                var current=sources.requireDisplay(owner);
                 if(!current.run().equals(ready.run()))throw new IllegalStateException("SOURCE_CONFIGURATION_CHANGED");
                 return new LoadedRegistration(ready,index,page);
             }
@@ -682,8 +682,9 @@ public final class ZnackCardRegistrationController {
             var retained=backgroundRefresh?List.copyOf(selectedRows()):List.<Sku>of();
             var result=task.getValue();if(backgroundRefresh)batchRowsReadInFlight=false;else loading=false;readiness=result.readiness();
             readinessLabel.setText(readiness.ready()?tr("znack.registration.sources_ready")+" · "+readiness.completed():tr("znack.registration.sources_required")+" · "+readiness.reason());
-            if(!readiness.ready()){sourceReadUnavailable(readiness.reason(),retain.get());setLoading(false);updateEmpty();return;}
-            cardIndex=result.index();latestReadUnknown=false;sourceReadAt=readiness.completed();
+            if(result.page()==null){sourceReadUnavailable(readiness.reason(),retain.get());setLoading(false);updateEmpty();return;}
+            cardIndex=result.index();latestReadUnknown=!readiness.ready();sourceReadAt=readiness.completed();
+            if(latestReadUnknown)readinessLabel.setText(RegistrationDiagnostics.readWarning(readiness.reason(),true)+" · "+sourceReadAt);
             var page=result.page();summary=page.summary();filteredCount=page.filtered();if(!append)rowDetails.clear();rowDetails.putAll(page.details());
             selectingProgrammatically=true;
             try {
@@ -1170,7 +1171,7 @@ public final class ZnackCardRegistrationController {
         if(paused)newCardsSelectedButton.setDisable(true);
         pauseBatchAction.setDisable(shop==null||batchControlBusy||batchProgress==null||!batchProgress.running());resumeBatchAction.setDisable(shop==null||batchControlBusy||!paused||!ready());cancelPendingBatchAction.setDisable(shop==null||batchControlBusy||batchProgress==null||!batchProgress.running()&&!paused);
         configButton.setDisable(unavailable);signApprovedButton.setDisable(disabled);updateWbButton.setDisable(disabled);syncZnackButton.setDisable(unavailable);reportButton.setDisable(shop==null);
-        loadMoreButton.setDisable(shop==null||loading||!ready()||productTable.getItems().size()>=filteredCount);
+        loadMoreButton.setDisable(shop==null||loading||readiness==null||!readiness.hasSnapshot()||productTable.getItems().size()>=filteredCount);
         clearSelectionButton.setDisable(disabled||selectedRows().isEmpty());updateCounts();productTable.refresh();
     }
     private void updateCounts() {

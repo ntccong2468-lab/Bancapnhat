@@ -40,6 +40,9 @@ public final class OzonCatalogRepository {
 
     /** Product rows, barcodes and cursor are committed together. */
     public int upsertPage(int shopId, List<OzonProductDto> products, String nextLastId) {
+        return upsertPage(shopId,products,nextLastId,false);
+    }
+    int upsertPage(int shopId,List<OzonProductDto> products,String nextLastId,boolean complete){
         try (Connection connection = Database.getConnection()) {
             connection.setAutoCommit(false);
             try {
@@ -92,7 +95,7 @@ public final class OzonCatalogRepository {
                     }
                     barcode.executeBatch();
                 }
-                syncState.advanceProducts(connection, shopId, nextLastId);
+                syncState.advanceProducts(connection, shopId, nextLastId,complete);
                 connection.commit();
                 return products.size();
             } catch (RuntimeException | SQLException exception) {

@@ -49,6 +49,15 @@ class ZnackCardRegistrationControllerTest {
         awaitTasks();
     }
     @AfterEach void cleanup() throws Exception {fx(()->{((ZnackCardRegistrationController)loader.getController()).dispose();return null;});awaitTasks();com.vncode.app.testsupport.ShopReadTestCleanup.awaitSharedIdle();System.clearProperty("vncode.appdata.dir");}
+    @Test void reopeningAfterAWeekRestoresSavedRowsAndFiltersWithoutASourceSync()throws Exception{
+        try(var c=Database.getConnection();var s=c.createStatement()){s.execute("INSERT INTO wb_product_size_skus(shop_id,chrt_id,sku) VALUES(1,3,'04631993764370')");}
+        try(var c=Database.getConnection();var p=c.prepareStatement("UPDATE sync_runs SET finished_at=? WHERE kind='registration_sources'")){p.setString(1,java.time.Instant.now().minusSeconds(7*86400).toString());p.executeUpdate();}
+        fx(()->{((ZnackCardRegistrationController)loader.getController()).dispose();loader=new FXMLLoader(ZnackCardRegistrationController.class.getResource("znack-card-registration-view.fxml"));loader.load();((ZnackCardRegistrationController)loader.getController()).setShop(new Shop(1,"Fixture","fixture"));return null;});awaitTasks();
+        fx(()->{assertEquals(3,table().getItems().size());assertTrue(button("updateWbButton").isDisabled());assertTrue(button("registerSelectedButton").isDisabled());assertTrue(((Label)loader.getNamespace().get("readinessLabel")).getText().contains("SOURCE_SYNC_EXPIRED"));
+            var filter=(ComboBox<?>)loader.getNamespace().get("statusFilter");filter.getSelectionModel().select(filter.getItems().stream().filter(value->value instanceof Enum<?> item&&item.name().equals("COMPLETED")).mapToInt(value->filter.getItems().indexOf(value)).findFirst().orElseThrow());return null;});awaitTasks();
+        fx(()->{assertEquals(1,table().getItems().size());assertEquals(3,table().getItems().getFirst().chrtId());return null;});
+        try(var c=Database.getConnection();var s=c.createStatement();var r=s.executeQuery("SELECT count(*) FROM sync_runs WHERE kind='registration_sources'")){assertEquals(1,r.getInt(1),"Opening or filtering saved data must not start another network sync");}
+    }
     @Test void registrationProgressCountsAcceptedFeedsAndDoesNotLockBrowsing()throws Exception{
         fx(()->{
             var controller=(ZnackCardRegistrationController)loader.getController();

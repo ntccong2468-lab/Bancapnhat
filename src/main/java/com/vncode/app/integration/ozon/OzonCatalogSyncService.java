@@ -41,6 +41,11 @@ public final class OzonCatalogSyncService {
         LicenseRuntime.require(SELLER_API);
         return sync(state.find(shopId).productsLastId());
     }
+    /** Opening the workspace never scans a completed catalog again. Interrupted reads resume. */
+    public int syncIfNeeded()throws IOException{
+        LicenseRuntime.require(SELLER_API);api.requireSyncOwner(shopId);
+        return state.productCatalogComplete(shopId)?0:sync();
+    }
     /** User-requested refresh revisits already synced cards; cursor recovery remains available in sync(). */
     public int syncFromStart()throws IOException{return sync("");}
     public int syncForRegistration(java.util.function.Consumer<List<OzonProductDto>> page)throws IOException {return sync("",page);}
@@ -64,8 +69,12 @@ public final class OzonCatalogSyncService {
                 OzonJson.ProductPage page = OzonJson.parseProductPage(response);
                 if(page.items().size()!=response.getAsJsonObject("result").getAsJsonArray("items").size() || page.items().size()>PAGE_SIZE || page.items().stream().map(OzonJson.ProductReference::productId).distinct().count()!=page.items().size() || page.items().stream().anyMatch(row->row.offerId().isBlank()))throw new IOException("OZON_INCOMPLETE_PRODUCT_PAGE");
                 if (page.items().isEmpty()) {
-                    if(page.total()>listed)throw new IOException("OZON_INCOMPLETE_PRODUCT_PAGE");
-                    products.upsertPage(shopId, List.of(), cursor);
+                    long observed=listed;
+                    if(initialCursor!=null&&!initialCursor.isBlank())try(var c=com.vncode.app.config.Database.getConnection();var p=c.prepareStatement("SELECT count(*) FROM ozon_products WHERE shop_id=?")){
+                        p.setInt(1,shopId);try(var r=p.executeQuery()){if(!r.next())throw new IOException("OZON_CATALOG_STORAGE");observed=r.getLong(1);}
+                    }catch(java.sql.SQLException failure){throw new IOException("OZON_CATALOG_STORAGE",failure);}
+                    if(page.total()>observed)throw new IOException("OZON_INCOMPLETE_PRODUCT_PAGE");
+                    products.upsertPage(shopId, List.of(), cursor,true);
                     return synced;
                 }
                 String next = page.lastId();
@@ -119,10 +128,11 @@ public final class OzonCatalogSyncService {
                     complete.add(product);
                 }
                 api.requireSyncOwner(shopId);
-                synced += products.upsertPage(shopId, complete, next);
+                boolean finished=page.items().size()<PAGE_SIZE&&(page.total()==0||listed+page.items().size()>=page.total());
+                synced += products.upsertPage(shopId, complete, next,finished);
                 observer.accept(List.copyOf(complete));
                 listed+=page.items().size();
-                if (page.items().size() < PAGE_SIZE && (page.total()==0||listed>=page.total())) return synced;
+                if (finished) return synced;
                 cursor = next;
             }
             throw new IOException("Ozon catalog exceeded the safe pagination bound.");

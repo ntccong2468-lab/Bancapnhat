@@ -8,6 +8,13 @@ import java.sql.SQLException;
 import java.time.Instant;
 
 public final class OzonSyncStateRepository {
+    /** Completion belongs to the saved account, never to an application version. */
+    public boolean productCatalogComplete(int shopId){
+        try(var c=Database.getConnection();var p=c.prepareStatement("SELECT value FROM app_config WHERE key=?")){
+            String owner=com.vncode.app.integration.listing.ListingIdentity.fingerprint(c,shopId,com.vncode.app.integration.marketplace.Marketplace.OZON);
+            p.setString(1,"ozon.catalog.complete."+shopId);try(var r=p.executeQuery()){return r.next()&&owner.equals(r.getString(1))&&!find(shopId).productsLastSyncedAt().isBlank();}
+        }catch(SQLException failure){throw new IllegalStateException("Cannot read saved Ozon catalog completion",failure);}
+    }
     public OzonSyncState find(int shopId) {
         try (Connection connection = Database.getConnection();
                 PreparedStatement statement = connection.prepareStatement("""
@@ -28,6 +35,9 @@ public final class OzonSyncStateRepository {
     }
 
     public void advanceProducts(Connection connection, int shopId, String lastId) throws SQLException {
+        advanceProducts(connection,shopId,lastId,false);
+    }
+    public void advanceProducts(Connection connection,int shopId,String lastId,boolean complete)throws SQLException{
         String now = Instant.now().toString();
         try (PreparedStatement statement = connection.prepareStatement("""
                 INSERT INTO ozon_sync_state(shop_id,products_last_id,products_last_synced_at,last_error)
@@ -39,6 +49,10 @@ public final class OzonSyncStateRepository {
             statement.setString(2, safe(lastId));
             statement.setString(3, now);
             statement.executeUpdate();
+        }
+        String owner=com.vncode.app.integration.listing.ListingIdentity.fingerprint(connection,shopId,com.vncode.app.integration.marketplace.Marketplace.OZON);
+        try(var p=connection.prepareStatement("INSERT INTO app_config(key,value) VALUES(?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value")){
+            p.setString(1,"ozon.catalog.complete."+shopId);p.setString(2,complete?owner:"");p.executeUpdate();
         }
     }
 

@@ -32,6 +32,15 @@ class RegistrationCardIndexTest {
     @AfterEach void clean(){System.clearProperty("vncode.appdata.dir");}
     RegisteredGtin card(String gtin,boolean published){return new RegisteredGtin(gtin,"A","Blue","M",true,published,RegisteredGtinProof.source(shop),Instant.now());}
     RegistrationCardIndex index(RegisteredGtin... cards){new GtinSyncRepository().saveCatalog(shop.getId(),shop.getMarketplace(),List.of(cards));return new RegistrationCardIndex(shop);}
+    @Test void historicalCatalogStatusCanBeDisplayedAfterRestartWithoutAuthorizingANewWrite()throws Exception{
+        var old=new RegisteredGtin(GtinWriteTestFixture.GTIN,"A","Blue","M",true,true,RegisteredGtinProof.source(shop),Instant.now().minusSeconds(7*86400));
+        new GtinSyncRepository().saveCatalog(shop.getId(),shop.getMarketplace(),List.of(old));
+        try(var c=Database.getConnection();var p=c.prepareStatement("UPDATE sync_runs SET finished_at=? WHERE kind='registration_sources'")){p.setString(1,old.syncedAt().toString());p.executeUpdate();}
+        assertThrows(IllegalStateException.class,()->new RegistrationCardIndex(shop));
+        var saved=RegistrationCardIndex.forDisplay(shop);var observed=saved.view(Status.NOT_CREATED,"",List.of(old.gtin()),"A","Blue","M",true);
+        assertTrue(observed.published());assertEquals(old.gtin(),observed.gtin());assertTrue(saved.observation(observed).isPresent());
+        assertThrows(IllegalArgumentException.class,()->RegisteredGtinProof.requireCurrent(shop,old.gtin()));
+    }
     @Test void aLocalUnverifiedCheckpointIsNotAnObservedCatalogMatchingConflict(){
         assertFalse(RegistrationCardIndex.needsMatchReview(new RegistrationCardIndex.View("source.unverified","","SOURCE_PUBLISHED_NOT_CONFIRMED",true,false,true)));
         assertFalse(RegistrationCardIndex.needsMatchReview(new RegistrationCardIndex.View("source.unverified","","SOURCE_REGISTRATION_OWNER_CHANGED",true,false,true)));

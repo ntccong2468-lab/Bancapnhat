@@ -25,7 +25,7 @@ public final class OzonSyncWorkflow {
         OzonSyncReport postings = postingSync.sync();
         reconcilePackages(shop,api);
         postingSync.refreshActiveDetails();
-        int products = new OzonCatalogSyncService(shop.getId(), api).syncFromStart();
+        int products = new OzonCatalogSyncService(shop.getId(), api).syncIfNeeded();
         return new OzonSyncReport(products, postings.postings(), postings.items());
     }
 

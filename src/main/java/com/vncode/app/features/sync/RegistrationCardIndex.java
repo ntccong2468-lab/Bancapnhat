@@ -11,7 +11,7 @@ import com.vncode.app.models.Shop;
 import java.time.Instant;
 import java.util.*;
 
-/** Presentation only: fresh Catalog observations never invent native feed/checkpoint identities. */
+/** Presentation only: scoped Catalog observations never invent native feed/checkpoint identities. */
 public final class RegistrationCardIndex {
     public record View(String status,String gtin,String detail,boolean exists,boolean published,boolean blocked,boolean draftReview) {
         public View(String status,String gtin,String detail,boolean exists,boolean published,boolean blocked){this(status,gtin,detail,exists,published,blocked,false);}
@@ -83,14 +83,18 @@ public final class RegistrationCardIndex {
     private final String owner,scopeJson,catalogSource;
     private final long catalogErrors;
     public RegistrationCardIndex(Shop shop) {
-        var ready=new RegistrationSources().require(shop);
+        this(shop,false);
+    }
+    public static RegistrationCardIndex forDisplay(Shop shop){return new RegistrationCardIndex(shop,true);}
+    private RegistrationCardIndex(Shop shop,boolean historical) {
+        var sources=new RegistrationSources();var ready=historical?sources.requireDisplay(shop):sources.require(shop);
         var scope=RegisteredGtinProof.current(shop);owner=ListingIdentity.fingerprint(shop);catalogSource=scope.source();
         var settings=new com.vncode.app.integration.znack.ZnackRepository(new com.vncode.app.integration.znack.ZnackModels.ShopContext(shop.getId(),shop.getName())).getSettings();
         var nativeScope=com.vncode.app.integration.znack.registration.ZnackRegistrationScope.fromSettings(settings);
         scopeJson=new com.google.gson.Gson().toJson(nativeScope);
-        Instant now=Instant.now();var scoped=new ArrayList<RegisteredGtin>();
+        Instant now=Instant.now();boolean includeHistory=historical&&!ready.ready();var scoped=new ArrayList<RegisteredGtin>();
         for(var row:new GtinSyncRepository().catalog(shop.getId(),shop.getMarketplace())) {
-            if(!scope.source().equals(row.source())||!row.tradeUnit()||!RegisteredGtinValidator.isValid(row.gtin())||GtinNormalizer.isTechnicalRange(row.gtin())||row.syncedAt().isBefore(now.minusSeconds(86400))||row.syncedAt().isAfter(now.plusSeconds(300)))continue;
+            if(!scope.source().equals(row.source())||!row.tradeUnit()||!RegisteredGtinValidator.isValid(row.gtin())||GtinNormalizer.isTechnicalRange(row.gtin())||(!includeHistory&&row.syncedAt().isBefore(now.minusSeconds(86400)))||row.syncedAt().isAfter(now.plusSeconds(300)))continue;
             scoped.add(row);codes.computeIfAbsent(normal(row.gtin()),k->new ArrayList<>()).add(row);
             attributes.computeIfAbsent(key(row.article(),row.color(),row.size()),k->new ArrayList<>()).add(row);
         }
@@ -100,7 +104,7 @@ public final class RegistrationCardIndex {
             p.setInt(1,shop.getId());p.setString(2,owner);p.setString(3,nativeScope.inn());p.setString(4,nativeScope.environment());p.setString(5,nativeScope.fingerprint());
             try(var rows=p.executeQuery()){while(rows.next())wbOwners.add(rows.getLong(1));}
         }catch(java.sql.SQLException e){throw new IllegalStateException("SYNC_STORAGE",e);}
-        if(!ready.run().equals(new RegistrationSources().require(shop).run()))throw new IllegalStateException("SOURCE_CONFIGURATION_CHANGED");
+        if(!ready.run().equals((historical?sources.requireDisplay(shop):sources.require(shop)).run()))throw new IllegalStateException("SOURCE_CONFIGURATION_CHANGED");
     }
     public long catalogErrorCount(){return catalogErrors;}
     /** Called on a read worker before retaining a previous observation, never from a cell renderer. */

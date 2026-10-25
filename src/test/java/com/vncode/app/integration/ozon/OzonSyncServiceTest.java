@@ -64,6 +64,36 @@ class OzonSyncServiceTest {
         }
         assertEquals(0,count("SELECT count(*) FROM ozon_products"));
     }
+    @Test void aCompletedCatalogSurvivesReopeningAndVersionUpgradeWithoutAnotherNetworkScan()throws Exception{
+        var old=new OzonProductDto("101","A","501","Saved product","",false,"",java.util.List.of("saved-barcode"));
+        new OzonCatalogRepository().upsertPage(1,java.util.List.of(old),"saved-cursor",true);
+        try(var ignored=com.vncode.app.shared.LocalDataMigrationGate.prepare(temporaryDirectory,"1.5.16","javafx")){}
+        try(var ignored=com.vncode.app.shared.LocalDataMigrationGate.prepare(temporaryDirectory,"1.5.17","javafx")){
+            assertTrue(new OzonSyncStateRepository().productCatalogComplete(1));assertEquals(0,new OzonCatalogSyncService(1,api).syncIfNeeded());
+            var saved=new OzonCatalogRepository().findAll(1).getFirst();assertEquals(old.name(),saved.name());assertEquals(old.barcodes(),saved.barcodes());assertEquals("saved-cursor",new OzonSyncStateRepository().find(1).productsLastId());
+        }
+        assertEquals(0,server.getRequestCount());
+    }
+    @Test void anOlderSavedCatalogResumesItsCursorOnceInsteadOfStartingAgain()throws Exception{
+        var old=new OzonProductDto("101","A","501","Saved product","",false,"",java.util.List.of("saved-barcode"));
+        new OzonCatalogRepository().upsertPage(1,java.util.List.of(old),"saved-cursor");
+        server.enqueue(json("{\"result\":{\"items\":[],\"total\":1,\"last_id\":\"saved-cursor\"}}"));
+        assertEquals(0,new OzonCatalogSyncService(1,api).syncIfNeeded());assertTrue(new OzonSyncStateRepository().productCatalogComplete(1));
+        var request=server.takeRequest(1,TimeUnit.SECONDS);assertTrue(request.getPath().endsWith("/v3/product/list"));
+        assertEquals("saved-cursor",com.google.gson.JsonParser.parseString(request.getBody().readUtf8()).getAsJsonObject().get("last_id").getAsString());
+        assertEquals(0,new OzonCatalogSyncService(1,api).syncIfNeeded());assertEquals(1,server.getRequestCount());
+    }
+    @Test void completedCatalogReceiptCannotBeUsedByARotatedAccount()throws Exception{
+        new OzonCatalogRepository().upsertPage(1,java.util.List.of(),"saved-cursor",true);assertTrue(new OzonSyncStateRepository().productCatalogComplete(1));
+        try(var c=Database.getConnection();var s=c.createStatement()){s.execute("UPDATE shops SET api_key='rotated-fixture' WHERE id=1");}
+        assertTrue(!new OzonSyncStateRepository().productCatalogComplete(1));assertThrows(SecurityException.class,()->new OzonCatalogSyncService(1,api).syncIfNeeded());assertEquals(0,server.getRequestCount());
+    }
+    @Test void anIncompleteSavedCatalogCannotBePromotedToCompleteByAnEmptyTail()throws Exception{
+        new OzonCatalogRepository().upsertPage(1,java.util.List.of(new OzonProductDto("101","A","501","Saved product","",false,"",java.util.List.of())),"saved-cursor");
+        server.enqueue(json("{\"result\":{\"items\":[],\"total\":2}}"));
+        assertThrows(IOException.class,()->new OzonCatalogSyncService(1,api).syncIfNeeded());assertTrue(!new OzonSyncStateRepository().productCatalogComplete(1));
+        assertEquals(1,count("SELECT count(*) FROM ozon_products"));assertEquals("saved-cursor",new OzonSyncStateRepository().find(1).productsLastId());
+    }
     @Test void aShortCatalogPageWithRemainingTotalMustReadTheNextPage()throws Exception {
         server.setDispatcher(new okhttp3.mockwebserver.Dispatcher(){
             @Override public MockResponse dispatch(okhttp3.mockwebserver.RecordedRequest request){
