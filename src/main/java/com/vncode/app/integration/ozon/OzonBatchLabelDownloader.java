@@ -21,7 +21,7 @@ final class OzonBatchLabelDownloader implements OzonPrintBundleService.OfficialL
         for(String number:numbers) {
             var job=repo.find(shop.getId(),number);
             if(job==null||job.taskId()==null||job.taskId().isBlank())fresh.add(number);
-            else if(Set.of("ISOLATING","ISOLATE_REQUIRED").contains(job.status())){
+            else if("ISOLATING".equals(job.status())||OzonLabelService.requiresNewTask(job)){
                 var group=List.of(number);known.put("isolated:"+number,group);isolated.add(group);
             }else known.computeIfAbsent(job.taskId().startsWith("v3:")?job.taskId():"legacy:"+number,k->new ArrayList<>()).add(number);
         }

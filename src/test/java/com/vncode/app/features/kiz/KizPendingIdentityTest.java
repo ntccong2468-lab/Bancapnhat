@@ -33,6 +33,26 @@ class KizPendingIdentityTest {
         assertFalse(new ZnackCardRegistrationRepository().activeGtinsByBarcode(1).containsKey("S-L"));
     }
     @ParameterizedTest @EnumSource(value=Marketplace.class,names={"WILDBERRIES","OZON"})
+    void publishedRegistrationRemainsVisibleToThePrintAndPurchasePlannerBeforeBarcodeWriteback(Marketplace market)throws Exception{
+        var shop=PendingKizFixture.create(market);
+        PendingKizFixture.sql("UPDATE "+(market==Marketplace.WILDBERRIES?"znack_card_registrations":"ozon_card_registrations")+" SET status='PUBLISHED'");
+        var details=new com.vncode.app.features.catalogsync.CatalogProductData(Map.of("@catalog_id",List.of("91"),"@catalog_status",List.of("published")),List.of(),List.of());
+        var card=new com.vncode.app.features.gtinsync.GtinSyncModels.RegisteredGtin(PendingKizFixture.GTIN,"Fixture","Black","M",true,true,com.vncode.app.features.gtinsync.RegisteredGtinProof.source(shop),java.time.Instant.now(),details);
+        new com.vncode.app.features.gtinsync.GtinSyncRepository().saveCatalog(shop.getId(),market,List.of(card));
+        var mappings=market==Marketplace.WILDBERRIES?new ZnackCardRegistrationRepository().activeGtinsByBarcode(shop.getId()):new OzonProductGtinMappingRepository().findResolvedBySku(shop.getId());
+        assertEquals(PendingKizFixture.GTIN,mappings.get("S-M"),"A published exact registration must reach the planner, not only pass a later paid-purchase guard");
+        assertFalse(mappings.containsKey("S-L"));
+        if(market==Marketplace.OZON){
+            var item=new com.vncode.app.integration.ozon.OzonPostingItemDto(0,"S-M","S-M","offer-M","Synthetic",1,"RUB","100");
+            var posting=new com.vncode.app.integration.ozon.OzonPostingDto("published-order","","","awaiting_deliver","","","","","","",new com.vncode.app.integration.ozon.OzonRequirements(List.of("S-M"),List.of(),List.of()),List.of(),false,List.of(item));
+            new com.vncode.app.integration.ozon.OzonPostingRepository().upsertDetail(shop.getId(),posting);
+            var sources=new KizSourceSelection(false,true);
+            var readiness=new com.vncode.app.integration.ozon.OzonPrintReadinessService().inspect(shop,posting.postingNumber(),sources);
+            assertTrue(readiness.missingSkus().isEmpty());assertEquals(PendingKizFixture.GTIN,readiness.gtinAvailability().getFirst().gtin());
+            assertTrue(com.vncode.app.integration.ozon.OzonStockReplenishment.canResolveByPurchase(readiness,sources));
+        }
+    }
+    @ParameterizedTest @EnumSource(value=Marketplace.class,names={"WILDBERRIES","OZON"})
     void publishingAnOwnedRegistrationDoesNotBreakPurchaseBeforeBarcodeWriteback(Marketplace market)throws Exception{
         var shop=PendingKizFixture.create(market);
         PendingKizFixture.sql("UPDATE "+(market==Marketplace.WILDBERRIES?"znack_card_registrations":"ozon_card_registrations")+" SET status='PUBLISHED'");

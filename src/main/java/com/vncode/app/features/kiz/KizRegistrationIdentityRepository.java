@@ -41,7 +41,7 @@ public final class KizRegistrationIdentityRepository {
     }
     /** Buying for an exact, scoped published registration does not depend on barcode writeback.
      * This view is never used to promote a Catalog product or authorize marketplace GTIN writes. */
-    Snapshot readForPurchase(Shop shop){return read(shop,true);}
+    public Snapshot readForPurchase(Shop shop){return read(shop,true);}
     private Snapshot read(Shop shop,boolean includePublished){
         ListingIdentity.require(shop);var result=new Snapshot();
         RegisteredGtinProof.Scope proof=null;

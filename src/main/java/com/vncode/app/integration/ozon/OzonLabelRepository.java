@@ -52,7 +52,7 @@ public final class OzonLabelRepository {
 
     /** Retain the shared receipt until a separate, single-posting task is acknowledged. */
     boolean claimIsolation(int shopId,String number,String originalTask) {
-        return isolationState(shopId,number,originalTask,"ISOLATING",null,"READY","ISOLATE_REQUIRED");
+        return isolationState(shopId,number,originalTask,"ISOLATING",null,"READY","ISOLATE_REQUIRED","FAILED");
     }
     boolean isolationReceipt(int shopId,String number,String originalTask,String receipt) {
         return isolationState(shopId,number,originalTask,"POLLING",receipt,"ISOLATING");
@@ -62,7 +62,7 @@ public final class OzonLabelRepository {
     }
     private boolean isolationState(int shopId,String number,String originalTask,String state,String receipt,String... expected) {
         try{return com.vncode.app.config.SqliteWriteTransaction.run(c->{
-            String sql="UPDATE ozon_label_jobs SET task_id=COALESCE(?,task_id),status=?,safe_error_code='BATCH_PAGE_IDENTITY',updated_at=? WHERE shop_id=? AND posting_number=? AND task_id=? AND status IN ("+String.join(",",java.util.Collections.nCopies(expected.length,"?"))+")";
+            String sql="UPDATE ozon_label_jobs SET task_id=COALESCE(?,task_id),status=?,safe_error_code=CASE WHEN status='FAILED' OR safe_error_code='label_failed' THEN 'label_failed' ELSE 'BATCH_PAGE_IDENTITY' END,updated_at=? WHERE shop_id=? AND posting_number=? AND task_id=? AND (status<>'FAILED' OR safe_error_code='label_failed') AND status IN ("+String.join(",",java.util.Collections.nCopies(expected.length,"?"))+")";
             try(var p=c.prepareStatement(sql)){
                 p.setString(1,receipt);p.setString(2,state);p.setString(3,Instant.now().toString());p.setInt(4,shopId);p.setString(5,number);p.setString(6,originalTask);
                 for(int i=0;i<expected.length;i++)p.setString(7+i,expected[i]);return p.executeUpdate()==1;

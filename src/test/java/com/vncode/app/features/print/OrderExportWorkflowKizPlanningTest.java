@@ -14,6 +14,62 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class OrderExportWorkflowKizPlanningTest {
     @TempDir Path directory;
+    @Test void wbNativeGtinExportsBothPdfsWithRealPurchasedStockAndRecordsTheConsumedCode()throws Exception{
+        System.setProperty("vncode.appdata.dir",directory.toString());Database.initDatabase();
+        try{
+            var shop=com.vncode.app.features.kiz.PendingKizFixture.create(com.vncode.app.integration.marketplace.Marketplace.WILDBERRIES);String gtin=com.vncode.app.features.kiz.PendingKizFixture.GTIN;
+            try(var c=Database.getConnection();var s=c.createStatement()){
+                s.execute("DELETE FROM znack_card_registrations");
+                s.execute("INSERT INTO wb_product_size_skus(shop_id,chrt_id,sku) VALUES(1,11,'"+gtin+"')");
+                s.execute("INSERT INTO znack_products(shop_id,gtin,card_status,synced_at) VALUES(1,'"+gtin+"','published','fixture')");
+                s.execute("INSERT INTO kiz_orders(id,shop_id,gtin,quantity,local_status,created_at,updated_at) VALUES(1,1,'"+gtin+"',1,'READY','fixture','fixture')");
+                s.execute("INSERT INTO kiz_codes(shop_id,order_id,gtin,raw_code,display_code,status,legal_status,created_at,updated_at) VALUES(1,1,'"+gtin+"','01"+gtin+"21synthetic-ready','synthetic-ready','AVAILABLE','IN_CIRCULATION','fixture','fixture')");
+            }
+            var details=new com.vncode.app.features.catalogsync.CatalogProductData(Map.of("@catalog_id",List.of("91"),"@catalog_status",List.of("published")),List.of(),List.of());
+            new com.vncode.app.features.gtinsync.GtinSyncRepository().saveCatalog(1,shop.getMarketplace(),List.of(new com.vncode.app.features.gtinsync.GtinSyncModels.RegisteredGtin(gtin,"Fixture","Black","M",true,true,com.vncode.app.features.gtinsync.RegisteredGtinProof.source(shop),java.time.Instant.now(),details)));
+            var data=new PlanningData(1){
+                public Map<Long,String> mappings(int id,List<Long> ids){return Map.of();}
+                public Map<Order,String> verifiedGtins(Shop owner,List<Order> selected){return OrderExportWorkflow.verifiedPurchaseGtins(owner,selected);}
+                public Map<String,List<Kiz>> reserve(int id,Map<String,Integer> quantities){return new com.vncode.app.integration.znack.ZnackGtinInventoryService().reservePurchasedBulk(id,quantities);}
+            };
+            var order=new Order();order.setId(1L);order.setNmId(101L);order.setBarcode("S-M");order.setName("Synthetic WB product");order.setRequiresKiz(true);order.setStickerCode("WB-SYNTHETIC-STICKER");
+            var labels=directory.resolve("wb-labels.pdf");var picking=directory.resolve("wb-picking.pdf");
+            var request=new OrderExportWorkflow.ExportRequest(shop,"SUP-SYNTHETIC","Synthetic",List.of(order),PrintJobOptions.defaults(),labels.toFile(),picking.toFile(),new com.vncode.app.features.kiz.KizSourceSelection(false,true));
+            var result=new OrderExportWorkflow(data).export(request);assertEquals(1,result.consumedKizs().size());
+            for(var path:List.of(labels,picking))try(var pdf=new com.itextpdf.kernel.pdf.PdfDocument(new com.itextpdf.kernel.pdf.PdfReader(path.toFile()))){assertTrue(pdf.getNumberOfPages()>0);}
+            try(var c=Database.getConnection();var s=c.createStatement();var r=s.executeQuery("SELECT status FROM kiz_codes")){assertEquals("CONSUMED",r.getString(1));}
+            assertEquals(1,new PrintHistoryService().getJobs(shop.getId()).size());assertEquals(gtin,com.vncode.app.features.kiz.KizService.extractGtin(result.exportedOrders().getFirst().getKiz()));
+        }finally{System.clearProperty("vncode.appdata.dir");}
+    }
+    @Test void aNativeWbGtinReachesPurchasedStockWithoutAnAppRegistrationOrCategoryRule()throws Exception{
+        System.setProperty("vncode.appdata.dir",directory.toString());Database.initDatabase();
+        try{
+            var shop=com.vncode.app.features.gtinsync.GtinWriteTestFixture.shop(com.vncode.app.integration.marketplace.Marketplace.WILDBERRIES);String gtin=com.vncode.app.features.gtinsync.GtinWriteTestFixture.GTIN;
+            try(var c=Database.getConnection();var s=c.createStatement()){
+                s.execute("INSERT INTO wb_product_cards(shop_id,nm_id,vendor_code,synced_at) VALUES(1,101,'Fixture','fixture')");
+                s.execute("INSERT INTO wb_product_sizes(shop_id,chrt_id,nm_id,tech_size) VALUES(1,11,101,'M')");
+                s.execute("INSERT INTO wb_product_characteristics(shop_id,nm_id,characteristic_id,name,value_json) VALUES(1,101,14177449,'Цвет','[\"Black\"]')");
+                s.execute("INSERT INTO wb_product_size_skus(shop_id,chrt_id,sku) VALUES(1,11,'WB-ORDER-BARCODE'),(1,11,'"+gtin+"')");
+            }
+            var details=new com.vncode.app.features.catalogsync.CatalogProductData(Map.of("@catalog_id",List.of("91"),"@catalog_status",List.of("published")),List.of(),List.of());
+            var card=new com.vncode.app.features.gtinsync.GtinSyncModels.RegisteredGtin(gtin,"Fixture","Black","M",true,true,com.vncode.app.features.gtinsync.RegisteredGtinProof.source(shop),java.time.Instant.now(),details);
+            new com.vncode.app.features.gtinsync.GtinSyncRepository().saveCatalog(1,shop.getMarketplace(),List.of(card));
+            var data=new PlanningData(1){
+                public Map<Long,String> mappings(int id,List<Long> ids){return Map.of();}
+                public Map<Order,String> verifiedGtins(Shop owner,List<Order> selected){return OrderExportWorkflow.verifiedPurchaseGtins(owner,selected);}
+                public Map<String,List<Kiz>> reserveForOrders(Shop owner,Map<String,Integer> quantities,Map<Order,String> selected,com.vncode.app.features.kiz.KizSourceSelection sources){
+                    var products=selected.entrySet().stream().map(e->new com.vncode.app.features.kiz.KizPurchaseMappingProof.Product("101",e.getKey().getBarcode(),e.getValue(),"1")).toList();
+                    com.vncode.app.features.kiz.KizPurchaseMappingProof.require(owner,products,quantities.keySet());return reserve(owner.getId(),quantities);
+                }
+            };
+            var order=new Order();order.setId(1L);order.setNmId(101L);order.setBarcode("WB-ORDER-BARCODE");order.setRequiresKiz(true);
+            var workflow=new OrderExportWorkflow(data);var result=workflow.assignKizCodes(List.of(order),shop,new com.vncode.app.features.kiz.KizSourceSelection(false,true));
+            assertEquals(1,result.usedKizs().size());assertEquals(Map.of(gtin,1),data.quantities);assertTrue(order.getKiz().startsWith("01"+gtin));
+            try(var c=Database.getConnection();var s=c.createStatement()){s.execute("UPDATE wb_product_sizes SET tech_size='L'");}
+            assertThrows(com.vncode.app.features.kiz.KizAssignmentException.class,()->workflow.assignKizCodes(List.of(order),shop,new com.vncode.app.features.kiz.KizSourceSelection(false,true)));
+            assertEquals(1,data.reserveCalls,"An unrelated size must never reserve or trigger a paid purchase");
+        }finally{System.clearProperty("vncode.appdata.dir");}
+    }
     @Test void invalidPendingIdentityDoesNotBlockAppliedMarksNonKizOrdersOrImportedStock()throws Exception{
         System.setProperty("vncode.appdata.dir",directory.toString());Database.initDatabase();
         try{
