@@ -103,8 +103,10 @@ import org.kordamp.ikonli.javafx.FontIcon;
 
 /** JavaFX-first Ozon FBS workspace aligned with the existing WB packing workflow. */
 public final class OzonDashboardController {
-    private static final double ITEM_HEIGHT = 116;
-    private static final double ITEM_GAP = 4;
+    private static final double ITEM_HEIGHT = 96;
+    private static final double ITEM_GAP = 8;
+    private final List<TableColumn<OzonPostingDto,?>> rowNumberColumns=new ArrayList<>();
+    private final List<TableColumn<OzonPostingDto,?>> barcodeColumns=new ArrayList<>();
     private static final Set<String> ACTIVE_PURCHASE_STAGES = Set.of(
             "QUEUED", "VALIDATING", "CREATING_ORDER", "RECONCILING_ORDER", "POLLING_ORDER", "DOWNLOADING_CODES",
             "WAITING_INTRODUCTION_READINESS", "SUBMITTING_INTRODUCTION", "POLLING_INTRODUCTION");
@@ -343,6 +345,8 @@ public final class OzonDashboardController {
 
     public void applyTranslations() {
         I18nService i18n = I18nService.getInstance();
+        rowNumberColumns.forEach(column->column.setText(i18n.tr("supply.col.no")));
+        barcodeColumns.forEach(column->column.setText(i18n.tr("ozon.fbs.barcodes")));
         addAgainKizButton.setText(i18n.tr("kn3.batch.title"));
         String clearSearch = i18n.tr("ozon.fbs.clear_search");
         clearSearchButton.setAccessibleText(clearSearch);
@@ -380,16 +384,16 @@ public final class OzonDashboardController {
         newOrderNumberTC.setText(i18n.tr("ozon.dashboard.col.order"));
         packingOrderNumberTC.setText(i18n.tr("ozon.dashboard.col.order"));
         deliveringOrderNumberTC.setText(i18n.tr("ozon.dashboard.col.order"));
-        newOrderItemsTC.setText(i18n.tr("ozon.dashboard.col.items"));
-        packingOrderItemsTC.setText(i18n.tr("ozon.dashboard.col.items"));
-        deliveringOrderItemsTC.setText(i18n.tr("ozon.dashboard.col.items"));
+        newOrderItemsTC.setText(i18n.tr("supply.col.details"));
+        packingOrderItemsTC.setText(i18n.tr("supply.col.details"));
+        deliveringOrderItemsTC.setText(i18n.tr("supply.col.details"));
         deliveringOrderStatusTC.setText(i18n.tr("ozon.dashboard.col.status"));
         newOrderImageTC.setText(i18n.tr("ozon.dashboard.col.image"));
         packingOrderImageTC.setText(i18n.tr("ozon.dashboard.col.image"));
         deliveringOrderImageTC.setText(i18n.tr("ozon.dashboard.col.image"));
         packingLabelTC.setText("");printedLabelTC.setText("");
         printedHintLabel.setText(i18n.tr("ozon.dashboard.printed_hint"));emptyPrintedOrdersLabel.setText(i18n.tr("ozon.dashboard.empty.printed"));printedOrdersTable.setPlaceholder(new Label(i18n.tr("ozon.dashboard.empty.printed")));
-        printedOrderNumberTC.setText(i18n.tr("ozon.dashboard.col.order"));printedOrderItemsTC.setText(i18n.tr("ozon.dashboard.col.items"));printedOrderImageTC.setText(i18n.tr("ozon.dashboard.col.image"));
+        printedOrderNumberTC.setText(i18n.tr("ozon.dashboard.col.order"));printedOrderItemsTC.setText(i18n.tr("supply.col.details"));printedOrderImageTC.setText(i18n.tr("ozon.dashboard.col.image"));
         updateSelectionState();
         renderGtinSummaries(gtinSummaries);
         newOrdersTable.refresh();
@@ -719,8 +723,12 @@ public final class OzonDashboardController {
     }
 
     private void setupTables() {
-        for (var column : List.of(newOrderShipmentTC, packingOrderShipmentTC, printedOrderShipmentTC, deliveringOrderShipmentTC))
+        printAllButton.visibleProperty().bind(orderStatusTabs.getSelectionModel().selectedItemProperty().isEqualTo(packingOrdersTab));
+        printAllButton.managedProperty().bind(printAllButton.visibleProperty());
+        for (var column : List.of(newOrderShipmentTC, packingOrderShipmentTC, printedOrderShipmentTC, deliveringOrderShipmentTC)){
             column.setCellValueFactory(data -> new SimpleStringProperty(shipmentText(data.getValue())));
+            column.setVisible(false);
+        }
         for (var column : List.of(newOrderPriceTC, packingOrderPriceTC, printedOrderPriceTC, deliveringOrderPriceTC))
             configurePriceColumn(column);
         selectAllCheckBox.setOnAction(event -> onSelectAll());
@@ -740,6 +748,10 @@ public final class OzonDashboardController {
             protected void updateItem(String text,boolean empty){super.updateItem(text,empty);setText(empty?null:text);var posting=getTableRow()==null?null:getTableRow().getItem();setTooltip(empty||posting==null?null:new Tooltip(text+"\n"+posting.status()));}
         });
         packingLabelTC.setCellFactory(column -> labelCell());printedLabelTC.setCellFactory(column->labelCell());
+        configureReferenceTable(newOrdersTable,newOrderNumberTC,newOrderItemsTC,"awaiting_packaging");
+        configureReferenceTable(packingOrdersTable,packingOrderNumberTC,packingOrderItemsTC,"awaiting_deliver");
+        configureReferenceTable(printedOrdersTable,printedOrderNumberTC,printedOrderItemsTC,"printed_awaiting_deliver");
+        configureReferenceTable(deliveringOrdersTable,deliveringOrderNumberTC,deliveringOrderItemsTC,"delivering");
         for (TableView<OzonPostingDto> table : List.of(newOrdersTable, packingOrdersTable, printedOrdersTable, deliveringOrdersTable)) {
             table.setSortPolicy(ignored -> false);
             table.setRowFactory(ignored -> new TableRow<>() {
@@ -759,18 +771,49 @@ public final class OzonDashboardController {
 
     private void configureOrderColumns(TableColumn<OzonPostingDto, String> orderColumn,
             TableColumn<OzonPostingDto, String> itemsColumn) {
-        orderColumn.setCellValueFactory(data -> new SimpleStringProperty(orderText(data.getValue())));
+        orderColumn.setCellValueFactory(data -> new SimpleStringProperty(orderText(data.getValue())+"\n"+shipmentText(data.getValue())));
+        orderColumn.setResizable(true);orderColumn.setMaxWidth(280);orderColumn.setMinWidth(150);orderColumn.setPrefWidth(190);
+        orderColumn.setCellFactory(column->new TableCell<>(){
+            @Override protected void updateItem(String text,boolean empty){
+                super.updateItem(text,empty);setText(null);var posting=getTableRow()==null?null:getTableRow().getItem();
+                if(empty||posting==null){setGraphic(null);return;}
+                var number=new Label(orderText(posting));number.getStyleClass().add("text-bold");number.setWrapText(true);
+                var due=new Label(shipmentText(posting));due.getStyleClass().add("text-muted");
+                due.setTooltip(new Tooltip(tr("ozon.dashboard.col.shipment")+": "+shipmentText(posting)));
+                var content=new VBox(6,number,due);content.setAlignment(Pos.CENTER_LEFT);setAlignment(Pos.CENTER_LEFT);setGraphic(content);
+            }
+        });
         itemsColumn.setCellValueFactory(data -> new SimpleStringProperty(itemsText(data.getValue())));
         itemsColumn.setCellFactory(column -> new OrderItemsCell());
+        itemsColumn.setMinWidth(230);itemsColumn.setPrefWidth(330);
+    }
+
+    private void configureReferenceTable(TableView<OzonPostingDto> table,TableColumn<OzonPostingDto,String> order,TableColumn<OzonPostingDto,String> details,String status){
+        table.getStyleClass().addAll("supply-orders","ozon-posting-table");
+        var index=new TableColumn<OzonPostingDto,Number>();index.setId("ozonRowNumber");index.setMinWidth(50);index.setPrefWidth(54);index.setMaxWidth(64);
+        index.setCellValueFactory(data->new ReadOnlyObjectWrapper<>(0));index.setCellFactory(column->new TableCell<>(){
+            @Override protected void updateItem(Number value,boolean empty){super.updateItem(value,empty);setText(empty?null:String.valueOf(offsets.getOrDefault(status,0)+getIndex()+1));setAlignment(Pos.CENTER_LEFT);}
+        });
+        rowNumberColumns.add(index);table.getColumns().add(table==newOrdersTable?1:0,index);
+        var identifiers=new TableColumn<OzonPostingDto,OzonPostingDto>();identifiers.setId("ozonBarcodes");identifiers.setMinWidth(190);identifiers.setPrefWidth(230);
+        identifiers.setCellValueFactory(data->new ReadOnlyObjectWrapper<>(data.getValue()));identifiers.setCellFactory(column->new PostingBarcodesCell());
+        barcodeColumns.add(identifiers);table.getColumns().add(table.getColumns().indexOf(details)+1,identifiers);
+        table.widthProperty().addListener((o,a,b)->resizePostingTable(table));resizePostingTable(table);
+    }
+    private void resizePostingTable(TableView<OzonPostingDto> table){
+        double minimum=table.getVisibleLeafColumns().stream().mapToDouble(javafx.scene.control.TableColumnBase::getMinWidth).sum()+20;
+        var policy=table.getWidth()<minimum?TableView.UNCONSTRAINED_RESIZE_POLICY:TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN;
+        if(table.getColumnResizePolicy()!=policy)table.setColumnResizePolicy(policy);
     }
 
     private void configureImageColumn(TableColumn<OzonPostingDto, OzonPostingDto> imageColumn) {
+        imageColumn.setMaxWidth(80);imageColumn.setMinWidth(77);imageColumn.setPrefWidth(80);
         imageColumn.setCellValueFactory(data -> new ReadOnlyObjectWrapper<>(data.getValue()));
         imageColumn.setCellFactory(column -> new TableCell<>() {
             private final VBox images = new VBox(ITEM_GAP);
             private String currentPostingNumber;
             {
-                images.setAlignment(Pos.TOP_CENTER);
+                images.setAlignment(Pos.TOP_CENTER);getStyleClass().add("ozon-thumbnail-cell");
             }
             @Override protected void updateItem(OzonPostingDto posting, boolean empty) {
                 super.updateItem(posting, empty);
@@ -790,25 +833,21 @@ public final class OzonDashboardController {
 
             private StackPane productImage(String postingNumber, OzonPostingItemDto item) {
                 ImageView imageView = new ImageView();
-                imageView.setFitWidth(42);
-                imageView.setFitHeight(50);
+                imageView.setFitWidth(66);
+                imageView.setFitHeight(88);
                 imageView.setPreserveRatio(true);
                 imageView.setSmooth(true);
                 imageView.setVisible(false);
                 StackPane placeholder = new StackPane();
-                placeholder.setPrefSize(42, 50);
-                placeholder.setMaxSize(42, 50);
+                placeholder.setPrefSize(66, 88);
+                placeholder.setMaxSize(66, 88);
                 placeholder.getStyleClass().add("image-placeholder");
-                Label quantityBadge = new Label("× " + item.quantity());
-                quantityBadge.getStyleClass().addAll("badge", "badge-warning");
-                quantityBadge.setMouseTransparent(true);
-                StackPane.setAlignment(quantityBadge, Pos.BOTTOM_RIGHT);
-                StackPane thumbnail = new StackPane(placeholder, imageView, quantityBadge);
-                thumbnail.setMinSize(46, 52); thumbnail.setPrefSize(46, 52); thumbnail.setMaxSize(46, 52);
+                StackPane thumbnail = new StackPane(placeholder, imageView);
+                thumbnail.setMinSize(66, 88); thumbnail.setPrefSize(66, 88); thumbnail.setMaxSize(66, 88);
                 StackPane container = new StackPane(thumbnail);
-                container.setMinSize(46, ITEM_HEIGHT);
-                container.setPrefSize(46, ITEM_HEIGHT);
-                container.setMaxSize(46, ITEM_HEIGHT);
+                container.setMinSize(66, ITEM_HEIGHT);
+                container.setPrefSize(66, ITEM_HEIGHT);
+                container.setMaxSize(66, ITEM_HEIGHT);
                 container.setAlignment(Pos.TOP_CENTER);
 
                 long imageEpoch=shopGeneration;int imageOwner=shop==null?0:shop.getId();String requestedUrl = productImageUrl(item);
@@ -1406,7 +1445,7 @@ public final class OzonDashboardController {
 
     static double orderRowHeight(OzonPostingDto posting) {
         int itemRows = posting == null ? 0 : posting.items().size();
-        return ITEM_HEIGHT + 8 + Math.max(0, itemRows - 1) * (ITEM_HEIGHT + ITEM_GAP);
+        return ITEM_HEIGHT + 16 + Math.max(0, itemRows - 1) * (ITEM_HEIGHT + ITEM_GAP);
     }
 
     static String shipmentText(OzonPostingDto posting) {
@@ -1420,6 +1459,7 @@ public final class OzonDashboardController {
     }
 
     private void configurePriceColumn(TableColumn<OzonPostingDto, OzonPostingDto> column) {
+        column.setMinWidth(100);column.setPrefWidth(100);
         column.setCellValueFactory(data -> new ReadOnlyObjectWrapper<>(data.getValue()));
         column.setCellFactory(ignored -> new TableCell<>() {
             @Override protected void updateItem(OzonPostingDto posting, boolean empty) {
@@ -1537,6 +1577,25 @@ public final class OzonDashboardController {
     }
     private static String value(String value) { return value == null ? "" : value; }
 
+    private final class PostingBarcodesCell extends TableCell<OzonPostingDto,OzonPostingDto>{
+        @Override protected void updateItem(OzonPostingDto posting,boolean empty){
+            super.updateItem(posting,empty);setText(null);
+            if(empty||posting==null){setGraphic(null);return;}
+            var content=new VBox(ITEM_GAP);
+            for(var item:posting.items()){
+                var card=findCatalogProduct(item);
+                var barcode=new Label("Ozon: "+(card==null||card.barcodes().isEmpty()?"—":String.join(", ",card.barcodes())));
+                barcode.getStyleClass().add("text-bold");barcode.setTooltip(new Tooltip(barcode.getText()));
+                var gtin=new Label("GTIN: "+verifiedGtinsBySku.getOrDefault(item.sku(),tr("products.unverified")));
+                gtin.getStyleClass().add("text-secondary");gtin.setTooltip(new Tooltip(gtin.getText()));
+                var sku=new Label("SKU: "+item.sku());sku.getStyleClass().add("text-muted");
+                var values=new VBox(8,barcode,gtin,sku);values.setAlignment(Pos.CENTER_LEFT);
+                values.setMinHeight(ITEM_HEIGHT);values.setPrefHeight(ITEM_HEIGHT);values.setMaxHeight(ITEM_HEIGHT);content.getChildren().add(values);
+            }
+            setAlignment(Pos.TOP_LEFT);setGraphic(content);
+        }
+    }
+
     private final class OrderItemsCell extends TableCell<OzonPostingDto, String> {
         private final VBox box = new VBox(ITEM_GAP);
         OrderItemsCell() {
@@ -1576,13 +1635,14 @@ public final class OzonDashboardController {
             if (!variant.size().isBlank()) details.add(tr("ozon.dashboard.item.size") + ": " + variant.size());
             metadata.setText(String.join(" • ", details));
             metadata.setTooltip(new Tooltip(metadata.getText()));
-            var gtin=new Label("GTIN: "+verifiedGtinsBySku.getOrDefault(item.sku(),tr("products.unverified")));gtin.getStyleClass().add("text-muted");var card=findCatalogProduct(item);var barcode=new Label("SKU: "+item.sku()+" · "+(card==null?"":String.join(", ",card.barcodes())));barcode.getStyleClass().add("text-muted");barcode.setTooltip(new Tooltip(barcode.getText()));
+            var card=findCatalogProduct(item);var category=new Label(card==null?"":card.category());category.getStyleClass().add("text-muted");
+            category.setVisible(!category.getText().isBlank());category.setManaged(category.isVisible());category.setTooltip(new Tooltip(category.getText()));
             var marking=new Label(tr("ozon.fbs.kiz")+": "+(posting.requirements().mandatoryMarkProductIds().contains(item.productId())?tr("ozon.fbs.required"):tr("ozon.fbs.check_before_print")));marking.getStyleClass().add("text-muted");
             var observations=kn3Marks.getOrDefault(posting.postingNumber(),List.of()).stream().filter(m->m.productId().equals(item.sku())).toList();
             var badge=new com.vncode.app.ui.kiz.Kn3Badge();var owner=shop;badge.show(observations,posting.requirements().mandatoryMarkProductIds().contains(item.productId()),owner==null?null:()->com.vncode.app.ui.kiz.Kn3ReplacementDialog.open(kn3StatusHost,owner,observations,()->{if(sameShopContext(shop,owner))loadLocal();}));
-            VBox itemBox = new VBox(3, titleRow, metadata, gtin, barcode, badge.isVisible()?badge:marking);
+            VBox itemBox = new VBox(4, titleRow, metadata, category, badge.isVisible()?badge:marking);
             itemBox.setMinHeight(ITEM_HEIGHT); itemBox.setPrefHeight(ITEM_HEIGHT); itemBox.setMaxHeight(ITEM_HEIGHT);
-            itemBox.setAlignment(Pos.TOP_LEFT);
+            itemBox.setAlignment(Pos.CENTER_LEFT);
             return itemBox;
         }
     }

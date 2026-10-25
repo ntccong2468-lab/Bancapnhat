@@ -1,9 +1,10 @@
 /* Rich Ozon posting details need computed height, including multi-item packages. */
 .ozon-fbs-workspace #newOrdersTable .table-row-cell,
 .ozon-fbs-workspace #packingOrdersTable .table-row-cell,
+.ozon-fbs-workspace #printedOrdersTable .table-row-cell,
 .ozon-fbs-workspace #deliveringOrdersTable .table-row-cell {
     -fx-cell-size: -1;
-    -fx-min-height: 124;
+    -fx-min-height: 112;
 }
 .ozon-fbs-workspace .titled-pane > .title { -fx-background-color: -bg-secondary; -fx-background-radius: 10; }
 .ozon-fbs-workspace .titled-pane > .title > .text { -fx-fill: -text-primary; }
@@ -1261,3 +1262,13 @@
 .document-pending { -fx-text-fill: #b86800; -fx-icon-color: #b86800; }
 .document-rejected { -fx-text-fill: #cf263e; -fx-icon-color: #cf263e; }
 .document-valid { -fx-icon-color: #13b88a; }
+
+/* Ozon FBS uses the same column/row presentation as WB shipment details. */
+.app-page.ozon-fbs-workspace .ozon-posting-table .table-cell { -fx-padding: 7 10; -fx-font-size: 13px; }
+.app-page.ozon-fbs-workspace .ozon-posting-table .column-header { -fx-pref-height: 56; }
+.app-page.ozon-fbs-workspace .ozon-posting-table { -fx-background-radius: 18; -fx-border-radius: 18; }
+.app-page.ozon-fbs-workspace .ozon-posting-table .scroll-bar:horizontal { -fx-min-height: 12; -fx-pref-height: 12; }
+.app-page.ozon-fbs-workspace .ozon-posting-table .scroll-bar:vertical { -fx-min-width: 12; -fx-pref-width: 12; }
+
+.app-page.ozon-fbs-workspace .ozon-posting-table .column-header .label { -fx-wrap-text: true; -fx-text-alignment: left; }
+.app-page.ozon-fbs-workspace .ozon-posting-table .ozon-thumbnail-cell { -fx-padding: 7 4; }

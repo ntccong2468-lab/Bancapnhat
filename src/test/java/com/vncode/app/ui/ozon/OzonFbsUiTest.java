@@ -20,6 +20,31 @@ class OzonFbsUiTest {
     @TempDir Path root;
     @BeforeAll static void start(){try{Platform.startup(()->Platform.setImplicitExit(false));}catch(IllegalStateException started){}}
     static <T>T fx(Callable<T> f)throws Exception{var t=new FutureTask<>(f);Platform.runLater(t);return t.get(10,TimeUnit.SECONDS);}
+    @Test void wbStyleColumnsKeepOrderDateBarcodeGtinAndKn3VisibleOnEveryOrderTab()throws Exception{
+        System.setProperty("vncode.appdata.dir",root.toString());Database.initDatabase();
+        try(var c=Database.getConnection();var s=c.createStatement()){s.execute("INSERT INTO shops(id,name,marketplace,client_id,api_key) VALUES(1,'Fixture','OZON','11','fixture')");}
+        var language=I18nService.getInstance().getCurrentLanguage();var stage=new javafx.stage.Stage[1];
+        var loader=fx(()->{I18nService.getInstance().setLanguage(AppLanguage.VI);var view=FxmlViewLoader.loader(OzonDashboardController.class,"ozon-dashboard-view.fxml");var scene=new Scene(view.load(),1200,720);stage[0]=new javafx.stage.Stage();stage[0].setScene(scene);stage[0].show();return view;});
+        OzonDashboardController controller=loader.getController();
+        try{
+            var item=new OzonPostingItemDto(0,"101","1001","offer-a","Fixture sports suit",1,"RUB","100");
+            var product=new OzonProductDto("101","offer-a","1001","Fixture sports suit","",false,"",List.of("OZN1000001")).withCardAttributes("ART-1","BLUE","XL","Sports suits","");
+            var mark=new com.vncode.app.features.kiz.status.Kn3Mark("90000000-0001-1","1001","1","synthetic",com.vncode.app.features.kiz.status.Kn3Mark.State.ACCEPTED,"");
+            fx(()->{controller.setFbsReader(q->new OzonFbsPage(List.of(new OzonPostingDto("90000000-0001-1","1","90000000-0001",q.status(),"","","2026-10-25T12:00:00+03:00","","","",new OzonRequirements(List.of("101"),List.of(),List.of()),List.of(),false,List.of(item))),1,Map.of("1001",product),Map.of("1001","04631993764370"),Map.of("90000000-0001-1",List.of(mark))));controller.setShop(new Shop(1,"Fixture",Marketplace.OZON,"11","fixture"),false);return null;});
+            for(int n=0;n<500&&!fx(()->((TableView<?>)loader.getNamespace().get("newOrdersTable")).getItems().size()==1);n++)Thread.sleep(10);
+            for(String prefix:List.of("new","packing","printed","delivering")){
+                fx(()->{((TabPane)loader.getNamespace().get("orderStatusTabs")).getSelectionModel().select((Tab)loader.getNamespace().get(prefix.equals("new")?"newOrdersTab":prefix+"OrdersTab"));return null;});
+                var rendered=new CompletableFuture<Void>();fx(()->{new javafx.animation.AnimationTimer(){int frames;public void handle(long now){if(++frames==3){stop();rendered.complete(null);}}}.start();return null;});rendered.get(5,TimeUnit.SECONDS);
+                fx(()->{
+                    var table=(TableView<?>)loader.getNamespace().get(prefix+"OrdersTable");table.applyCss();table.layout();assertTrue(table.getStyleClass().contains("supply-orders"));
+                    var columns=table.getVisibleLeafColumns();assertTrue(columns.stream().anyMatch(c->"ozonRowNumber".equals(c.getId())));assertTrue(columns.stream().anyMatch(c->"ozonBarcodes".equals(c.getId())));
+                    var labels=table.lookupAll(".label").stream().filter(node->node instanceof Label).map(node->((Label)node).getText()).toList();
+                    for(String value:List.of("90000000-0001-1","25.10.2026","OZN1000001","04631993764370","KN3"))assertTrue(labels.stream().anyMatch(text->text.contains(value)),prefix+" missing "+value);
+                    assertTrue(((Button)loader.getNamespace().get("printAllButton")).isVisible()==prefix.equals("packing"));return null;
+                });
+            }
+        }finally{fx(()->{controller.dispose();stage[0].close();I18nService.getInstance().setLanguage(language);return null;});com.vncode.app.testsupport.ShopReadTestCleanup.awaitSharedIdle();System.clearProperty("vncode.appdata.dir");}
+    }
     @Test void allFourOrderTabsKeepActionsAndPagingVisibleAcrossLanguagesThemesAndSmallWindows() throws Exception {
         System.setProperty("vncode.appdata.dir", root.toString()); Database.initDatabase();
         var originalLanguage = I18nService.getInstance().getCurrentLanguage();

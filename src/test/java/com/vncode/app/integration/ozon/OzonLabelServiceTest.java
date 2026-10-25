@@ -217,6 +217,118 @@ class OzonLabelServiceTest {
         assertEquals(1,server.getRequestCount());assertEquals("RECONCILE_REQUIRED",new OzonLabelRepository().find(1,"posting-1").status());
     }
 
+    @Test void sharedPagesMatchShippingBarcodesAndNotTheirReversedPosition()throws Exception{
+        var numbers=twoPostings();transportBarcodes(numbers.get(0),"ROUTE10001");transportBarcodes(numbers.get(1),"ROUTE10002");
+        enqueueBatch(textPdf("ROUTE10002","ROUTE10001"));
+        try(var batch=batch(numbers)){
+            assertEquals("ROUTE10001",pageText(batch.download(owner(),numbers.get(0),temporaryDirectory.resolve("first.pdf").toFile())));
+            assertEquals("ROUTE10002",pageText(batch.download(owner(),numbers.get(1),temporaryDirectory.resolve("second.pdf").toFile())));
+        }assertEquals(3,server.getRequestCount());
+    }
+
+    @Test void barcodeOnlySharedPagesDecodeTheirTransportIdentity()throws Exception{
+        var numbers=twoPostings();transportBarcodes(numbers.get(0),"ROUTE10001");transportBarcodes(numbers.get(1),"ROUTE10002");
+        var bytes=new java.io.ByteArrayOutputStream();
+        try(var pdf=new com.itextpdf.kernel.pdf.PdfDocument(new com.itextpdf.kernel.pdf.PdfWriter(bytes))){
+            for(String value:java.util.List.of("ROUTE10002","ROUTE10001")){
+                var page=pdf.addNewPage(new com.itextpdf.kernel.geom.PageSize(230,150));
+                var barcode=new com.itextpdf.barcodes.Barcode128(pdf);barcode.setCode(value);barcode.setFont(null);barcode.setBarHeight(50);barcode.setX(1);
+                new com.itextpdf.kernel.pdf.canvas.PdfCanvas(page).addXObjectAt(barcode.createFormXObject(pdf),12,30);
+            }
+        }
+        enqueueBatch(bytes.toByteArray());
+        try(var batch=batch(numbers)){
+            var target=batch.download(owner(),numbers.get(0),temporaryDirectory.resolve("barcode.pdf").toFile());
+            try(var pdf=new com.itextpdf.kernel.pdf.PdfDocument(new com.itextpdf.kernel.pdf.PdfReader(target))){assertEquals(1,pdf.getNumberOfPages());}
+            try(var pdf=org.apache.pdfbox.Loader.loadPDF(target)){
+                var image=new org.apache.pdfbox.rendering.PDFRenderer(pdf).renderImageWithDPI(0,203);
+                try{
+                    var bitmap=new com.google.zxing.BinaryBitmap(new com.google.zxing.common.HybridBinarizer(new com.google.zxing.client.j2se.BufferedImageLuminanceSource(image)));
+                    assertEquals("ROUTE10001",new com.google.zxing.oned.Code128Reader().decode(bitmap,java.util.Map.of(com.google.zxing.DecodeHintType.TRY_HARDER,true)).getText());
+                }
+                finally{image.flush();}
+            }
+        }assertEquals(3,server.getRequestCount(),"Barcode identity keeps the shared task fast path");
+    }
+
+    @Test void postingTextAcceptsPrintedDashVariantsAndSpacesWithoutMixingPostings()throws Exception{
+        var numbers=twoPostings();enqueueBatch(textPdf("90000000 \u2013 0002 \u2013 1","90000000 - 0001 - 1"));
+        try(var batch=batch(numbers)){
+            assertTrue(pageText(batch.download(owner(),numbers.get(0),temporaryDirectory.resolve("normalized.pdf").toFile())).contains("0001"));
+        }assertEquals(3,server.getRequestCount());
+    }
+
+    @Test void unidentifiedSharedPagesUseExactSinglePostingTasksAndReprintTheirSavedReceipts()throws Exception{
+        var numbers=twoPostings();enqueueBatch(textPdf("PRODUCT-SHARED","PRODUCT-SHARED"));
+        enqueueSingle("8001",textPdf("FIRST-ONLY","FIRST-PRODUCT"));enqueueSingle("8002",textPdf("SECOND-ONLY","SECOND-PRODUCT"));
+        try(var batch=batch(numbers)){
+            assertTrue(pageText(batch.download(owner(),numbers.get(0),temporaryDirectory.resolve("isolated-first.pdf").toFile())).startsWith("FIRST-ONLY"));
+            assertTrue(pageText(batch.download(owner(),numbers.get(1),temporaryDirectory.resolve("isolated-second.pdf").toFile())).startsWith("SECOND-ONLY"));
+        }
+        for(int i=0;i<3;i++)server.takeRequest(1,TimeUnit.SECONDS);
+        for(int i=0;i<2;i++){
+            var request=server.takeRequest(1,TimeUnit.SECONDS);assertEquals("/v2/posting/fbs/package-label/create",request.getPath());
+            var body=com.google.gson.JsonParser.parseString(request.getBody().readUtf8()).getAsJsonObject().getAsJsonArray("posting_number");assertEquals(1,body.size());assertEquals(numbers.get(i),body.get(0).getAsString());
+            server.takeRequest(1,TimeUnit.SECONDS);assertNull(server.takeRequest(1,TimeUnit.SECONDS).getHeader("Api-Key"));
+        }
+        assertEquals("8001",new OzonLabelRepository().find(1,numbers.get(0)).taskId());
+        server.enqueue(json("{\"result\":{\"status\":\"completed\",\"file_url\":\""+server.url("/cdn/reprint.pdf")+"\"}}"));
+        server.enqueue(new MockResponse().setBody(new okio.Buffer().write(textPdf("FIRST-ONLY"))));
+        new OzonLabelService(new OzonLabelRepository(),this::client).downloadOfficialPdf(owner(),numbers.get(0),temporaryDirectory.resolve("reprint-isolated.pdf").toFile());
+        assertEquals(11,server.getRequestCount(),"Reprinting the isolated task never creates another task");
+    }
+
+    @Test void conflictingPageIdentitiesUseIsolatedLabelsInsteadOfChoosingTheFirstMatch()throws Exception{
+        var numbers=twoPostings();enqueueBatch(textPdf(String.join(" ",numbers)));
+        enqueueSingle("8001",textPdf("FIRST-ONLY"));
+        try(var batch=batch(numbers)){assertEquals("FIRST-ONLY",pageText(batch.download(owner(),numbers.get(0),temporaryDirectory.resolve("conflict.pdf").toFile())));}
+        assertEquals(6,server.getRequestCount());
+    }
+
+    @Test void aLostSingleTaskReceiptIsNotRecreatedOrClearedByTheSharedTask()throws Exception{
+        var numbers=twoPostings();enqueueBatch(textPdf("UNREADABLE-IDENTITY"));server.enqueue(json("{}"));
+        try(var batch=batch(numbers)){assertEquals("OZON_LABEL_TASK_UNKNOWN",assertThrows(IOException.class,()->batch.download(owner(),numbers.get(0),temporaryDirectory.resolve("lost.pdf").toFile())).getMessage());}
+        var repo=new OzonLabelRepository();assertEquals("v3:7001",repo.find(1,numbers.get(0)).taskId());assertEquals("ISOLATING",repo.find(1,numbers.get(0)).status());
+        try(var batch=batch(numbers)){assertThrows(IOException.class,()->batch.download(owner(),numbers.get(0),temporaryDirectory.resolve("lost-retry.pdf").toFile()));}
+        assertThrows(IllegalStateException.class,()->repo.updateBatch(1,java.util.List.of(numbers.get(0)),"v3:7001","READY",null));
+        assertEquals("ISOLATING",repo.find(1,numbers.get(0)).status());assertEquals(4,server.getRequestCount());
+    }
+
+    @Test void explicitRejectionReleasesOnlyTheUnsentIsolationForAControlledRetry()throws Exception{
+        var numbers=twoPostings();enqueueBatch(textPdf("UNREADABLE-IDENTITY"));server.enqueue(new MockResponse().setResponseCode(400).setBody("{}"));
+        try(var batch=batch(numbers)){assertThrows(OzonApiException.class,()->batch.download(owner(),numbers.get(0),temporaryDirectory.resolve("rejected.pdf").toFile()));}
+        assertEquals("ISOLATE_REQUIRED",new OzonLabelRepository().find(1,numbers.get(0)).status());enqueueSingle("8001",textPdf("FIRST-ONLY"));
+        try(var batch=batch(numbers)){assertEquals("FIRST-ONLY",pageText(batch.download(owner(),numbers.get(0),temporaryDirectory.resolve("retry.pdf").toFile())));}
+        assertEquals(7,server.getRequestCount(),"Retry preserves the original batch and sends one single-posting task");
+    }
+
+    private Shop owner(){return new Shop(1,"Ozon",Marketplace.OZON,"client-1","secret");}
+    private java.util.List<String> twoPostings()throws Exception{
+        var result=java.util.List.of("90000000-0001-1","90000000-0002-1");
+        try(var c=Database.getConnection();var p=c.prepareStatement("INSERT INTO ozon_postings(shop_id,posting_number,status,synced_at) VALUES(1,?,'awaiting_deliver','2026-08-18T00:00:00Z')")){
+            for(String number:result){p.setString(1,number);p.addBatch();}p.executeBatch();
+        }return result;
+    }
+    private void transportBarcodes(String number,String barcode)throws Exception{
+        try(var c=Database.getConnection();var p=c.prepareStatement("UPDATE ozon_postings SET upper_barcode=? WHERE shop_id=1 AND posting_number=?")){p.setString(1,barcode);p.setString(2,number);p.executeUpdate();}
+    }
+    private OzonBatchLabelDownloader batch(java.util.List<String> numbers){return new OzonBatchLabelDownloader(new OzonLabelService(new OzonLabelRepository(),this::client),owner(),numbers);}
+    private void enqueueBatch(byte[] bytes){
+        server.enqueue(json("{\"tasks\":[{\"task_id\":7001,\"task_type\":\"big_label\"}]}"));
+        server.enqueue(json("{\"status\":{\"code\":\"completed\"},\"file_url\":\""+server.url("/cdn/batch.pdf")+"\"}"));server.enqueue(new MockResponse().setBody(new okio.Buffer().write(bytes)));
+    }
+    private void enqueueSingle(String task,byte[] bytes){
+        server.enqueue(json("{\"result\":{\"task_id\":\""+task+"\"}}"));server.enqueue(json("{\"result\":{\"status\":\"completed\",\"file_url\":\""+server.url("/cdn/"+task+".pdf")+"\"}}"));server.enqueue(new MockResponse().setBody(new okio.Buffer().write(bytes)));
+    }
+    private byte[] textPdf(String... texts)throws Exception{
+        var bytes=new java.io.ByteArrayOutputStream();try(var pdf=new com.itextpdf.kernel.pdf.PdfDocument(new com.itextpdf.kernel.pdf.PdfWriter(bytes))){
+            var font=com.itextpdf.kernel.font.PdfFontFactory.createFont();for(String text:texts)new com.itextpdf.kernel.pdf.canvas.PdfCanvas(pdf.addNewPage()).beginText().setFontAndSize(font,12).moveText(20,20).showText(text).endText();
+        }return bytes.toByteArray();
+    }
+    private String pageText(java.io.File file)throws Exception{
+        try(var pdf=new com.itextpdf.kernel.pdf.PdfDocument(new com.itextpdf.kernel.pdf.PdfReader(file))){return com.itextpdf.kernel.pdf.canvas.parser.PdfTextExtractor.getTextFromPage(pdf.getPage(1)).strip();}
+    }
+
     private OzonApiClient client(int shopId, OzonCredentials credentials) {
         return new OzonApiClient(
                 shopId,

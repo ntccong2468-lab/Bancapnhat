@@ -188,7 +188,7 @@ public final class OzonApiClient {
         filter.addProperty("to", to);
         JsonObject with = new JsonObject();
         with.addProperty("analytics_data", false);
-        with.addProperty("barcodes", false);
+        with.addProperty("barcodes", true);
         with.addProperty("financial_data", false);
         with.addProperty("legal_info", false);
         JsonObject request = new JsonObject();
@@ -213,7 +213,7 @@ public final class OzonApiClient {
         filter.addProperty("cutoff_to", cutoffTo);
         JsonObject with = new JsonObject();
         with.addProperty("analytics_data", false);
-        with.addProperty("barcodes", false);
+        with.addProperty("barcodes", true);
         with.addProperty("financial_data", false);
         with.addProperty("legal_info", false);
         JsonObject request = new JsonObject();
@@ -233,6 +233,7 @@ public final class OzonApiClient {
     public JsonObject getPosting(String postingNumber, boolean withExemplars, boolean relatedPostings) throws IOException {
         JsonObject with = new JsonObject();
         with.addProperty("analytics_data", false);
+        with.addProperty("barcodes", true);
         with.addProperty("financial_data", false);
         with.addProperty("product_exemplars", withExemplars);
         if(relatedPostings)with.addProperty("related_postings",true);

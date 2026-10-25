@@ -656,6 +656,46 @@ class OzonPrintBundleServiceTest {
                 });
     }
 
+    @Test void sharedPdfWithoutIdentitiesStillExportsTheCorrectIsolatedCarrierAndCombinedKiz()throws Exception{
+        isolatedBatchExport(false);
+    }
+    @Test void failedIsolatedLabelKeepsExistingPdfsAndDoesNotConsumeAnyKiz()throws Exception{
+        isolatedBatchExport(true);
+    }
+    private void isolatedBatchExport(boolean failSecond)throws Exception{
+        seedPosting(1);seedValidatedExemplar(RAW_KIZ);seedUnmarkedPosting("POST-2","SKU-2","offer-blue-68");
+        new OzonProductKizPolicyRepository().setRequired(1,"SKU-2",false);
+        try(var server=new okhttp3.mockwebserver.MockWebServer()){
+            server.start();var labelsService=new OzonLabelService(new OzonLabelRepository(),(id,credentials)->new OzonApiClient(id,credentials,server.url("/"),new okhttp3.OkHttpClient.Builder().callTimeout(java.time.Duration.ofSeconds(5)).build(),new OzonApiRateLimiter(java.time.Duration.ZERO),new OzonRetryPolicy(1,java.time.Duration.ofMillis(1),java.time.Duration.ofMillis(1))));
+            java.util.function.Function<String,okhttp3.mockwebserver.MockResponse> json=text->new okhttp3.mockwebserver.MockResponse().setHeader("Content-Type","application/json").setBody(text);
+            server.enqueue(json.apply("{\"task_id\":7001}"));server.enqueue(json.apply("{\"status\":\"completed\",\"file_url\":\""+server.url("/cdn/shared.pdf")+"\"}"));server.enqueue(new okhttp3.mockwebserver.MockResponse().setBody(new okio.Buffer().write(Files.readAllBytes(officialPdf))));
+            for(int i=1;i<=2;i++){
+                if(failSecond&&i==2){server.enqueue(new okhttp3.mockwebserver.MockResponse().setResponseCode(500).setBody("{}"));break;}
+                var path=temporaryDirectory.resolve("single-"+i+".pdf");
+                try(var pdf=new PdfDocument(new com.itextpdf.kernel.pdf.PdfReader(officialPdf.toFile()),new PdfWriter(path.toFile()))){new PdfCanvas(pdf.getFirstPage()).beginText().setFontAndSize(PdfFontFactory.createFont(),9).moveText(10,40).showText("POST-"+i).endText();}
+                server.enqueue(json.apply("{\"result\":{\"task_id\":"+(8000+i)+"}}"));server.enqueue(json.apply("{\"result\":{\"status\":\"completed\",\"file_url\":\""+server.url("/cdn/"+i+".pdf")+"\"}}"));server.enqueue(new okhttp3.mockwebserver.MockResponse().setBody(new okio.Buffer().write(Files.readAllBytes(path))));
+            }
+            var downloader=new OzonPrintBundleService.OfficialLabelDownloader(){
+                public File download(Shop owner,String number,File target)throws IOException{return labelsService.downloadOfficialPdf(owner,number,target);}
+                public OzonPrintBundleService.OfficialLabelDownloader forBatch(Shop owner,List<String> numbers){return new OzonBatchLabelDownloader(labelsService,owner,numbers);}
+            };
+            var exporter=new OzonPrintBundleService(new OzonPostingRepository(),new OzonExemplarJobRepository(),(owner,number)->{throw new AssertionError("Reuse the validated KIZ reservation");},downloader);
+            var labels=temporaryDirectory.resolve("isolated-batch.pdf");var picking=temporaryDirectory.resolve("isolated-picking.pdf");
+            if(failSecond){
+                Files.writeString(labels,"keep labels");Files.writeString(picking,"keep picking");
+                assertThrows(IOException.class,()->exporter.exportAll(shop,List.of("POST-1","POST-2"),labels.toFile(),picking.toFile()));
+                assertEquals("keep labels",Files.readString(labels));assertEquals("keep picking",Files.readString(picking));assertEquals("RESERVED",scalar("SELECT status FROM kiz_codes WHERE id=100"));assertEquals("0",scalar("SELECT count(*) FROM ozon_fbs_print_receipts"));
+            }else{
+                var result=exporter.exportAll(shop,List.of("POST-1","POST-2"),labels.toFile(),picking.toFile());assertEquals(4,result.totalPages());assertEquals(1,result.kizPages());
+                try(var pdf=Loader.loadPDF(labels.toFile())){
+                    assertTrue(pageText(pdf,0).contains("POST-1"));assertEquals(KizService.scannerSafeCode(RAW_KIZ),KizService.scannerSafeCode(decodeRenderedDataMatrixResult(pdf,1,203).getText()));
+                    assertEquals(PRODUCT_BARCODE,decodeProductBarcode(pdf,1,203));assertTrue(pageText(pdf,2).contains("POST-2"));assertTrue(pageText(pdf,3).contains("Official Ozon product label"));
+                }
+                assertEquals("CONSUMED",scalar("SELECT status FROM kiz_codes WHERE id=100"));assertEquals("2",scalar("SELECT count(*) FROM ozon_fbs_print_receipts"));
+            }
+        }
+    }
+
     private String scalar(String sql) throws Exception {
         try (Connection connection = Database.getConnection();
                 ResultSet result = connection.createStatement().executeQuery(sql)) {

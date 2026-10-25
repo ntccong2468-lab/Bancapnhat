@@ -120,6 +120,7 @@ public final class OzonLabelService {
         for(String number:numbers) {
             var job=labels.find(shop.getId(),number);
             if(job==null){LicenseRuntime.require(Permission.PRINT_NEW);job=labels.findOrCreate(shop.getId(),number);}
+            if("ISOLATING".equals(job.status())||"ISOLATE_REQUIRED".equals(job.status()))throw new IOException("OZON_LABEL_TASK_UNKNOWN");
             if(job.taskId()!=null&&!job.taskId().isBlank()) {
                 if(!job.taskId().startsWith("v3:")||task!=null&&!task.equals(job.taskId()))throw new IOException("OZON_LABEL_BATCH_TASK_CHANGED");
                 task=job.taskId();
@@ -157,6 +158,28 @@ public final class OzonLabelService {
             if(attempt+1<60)sleep(Duration.ofSeconds(1));
         }
         throw new IOException("OZON_LABEL_BATCH_PENDING");
+    }
+
+    /** A PDF without page identities is fetched again through a task for exactly one posting.
+     * This never associates shared pages by their order or by a product barcode. */
+    File downloadIsolatedPdf(Shop shop,String number,File target)throws IOException {
+        MarketplaceGuard.requireOzon(shop);com.vncode.app.integration.listing.ListingIdentity.require(shop);
+        var job=labels.find(shop.getId(),number);if(job==null)throw new IOException("OZON_LABEL_BATCH_TASK_CHANGED");
+        if(job.taskId()!=null&&!job.taskId().startsWith("v3:"))return downloadOfficialPdf(shop,number,target);
+        String original=job.taskId();
+        LicenseRuntime.require(Permission.PRINT_NEW);
+        if(original==null||!labels.claimIsolation(shop.getId(),number,original))throw new IOException("OZON_LABEL_TASK_UNKNOWN");
+        var api=apiClients.apply(shop.getId(),new OzonCredentials(shop.getClientId(),shop.getApiKey()));
+        var request=new JsonObject();var postings=new JsonArray();postings.add(number);request.add("posting_number",postings);
+        try{
+            String receipt=bigLabelTaskId(api.createLabelJob(request));
+            if(receipt.isBlank()||receipt.startsWith("v3:"))throw new IOException("OZON_LABEL_TASK_UNKNOWN");
+            if(!labels.isolationReceipt(shop.getId(),number,original,receipt))throw new IOException("OZON_LABEL_BATCH_TASK_CHANGED");
+        }catch(OzonApiException failed){
+            if(!failed.ambiguousMutation())labels.isolationRejected(shop.getId(),number,original);
+            throw failed;
+        }
+        return downloadOfficialPdf(shop,number,target);
     }
 
     static boolean isPdf(byte[] value) {
