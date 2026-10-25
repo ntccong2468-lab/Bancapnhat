@@ -1,0 +1,42 @@
+{
+  "recordedAt": "2026-10-25T06:23:44.755604+00:00",
+  "version": "1.5.16",
+  "branch": "release/vn-code-1.5.16",
+  "sourceCommit": "96b439d50b14f78d973fb24420f6ac46c078e95c",
+  "sourceTreeSha256": "6382ff208a91569bb09a39b31dcc09ddcf2a78a8098135c47f1c77a2efd1f439",
+  "sourceTreeHashMethod": "Sorted pom.xml, src/main and src/test files: relative path + NUL + binary SHA256 digest per file",
+  "maven": {
+    "command": "DISPLAY=:99 /workspace/toolchains/mvn-vncode -o -B clean verify",
+    "result": "BUILD SUCCESS",
+    "sourceCommit": "96b439d50b14f78d973fb24420f6ac46c078e95c",
+    "log": "/tmp/vncode-1516-full-verify.log",
+    "logSha256": "c01c77b0d2718acdd3f0091ff942cf2191d748486e910239afc3240a2d1130ff",
+    "tests": 3019,
+    "passed": 3017,
+    "skipped": 2,
+    "failures": 0,
+    "errors": 0,
+    "duration": "19:08 min",
+    "finishedUtc": "2026-10-25T06:23:33Z"
+  },
+  "node": {
+    "tests": 117,
+    "passed": 117,
+    "failed": 0,
+    "logSha256": "b44b7496441f5b19b9b61d0434baa6c6a43cf460ddbe5f7bf7f3522079bb574c"
+  },
+  "finalRelated": {
+    "tests": 161,
+    "passed": 161,
+    "sourceCommit": "0f5c527126a16b0047faae62528ba6dca46a9a47",
+    "evidence": "2026-10-25-ozon-batch-label-fbs-verify.json",
+    "subsumedByReleaseFullSuite": true
+  },
+  "releaseRequested": true,
+  "windowsBuildRun": 40167802021,
+  "windowsBuildPending": true,
+  "liveCatalogWriteVerified": false,
+  "liveMarketplaceWriteVerified": false,
+  "paidKizPurchaseVerified": false,
+  "latestChanged": false
+}

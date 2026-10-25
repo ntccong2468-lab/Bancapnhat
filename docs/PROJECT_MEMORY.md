@@ -1,5 +1,11 @@
 # Bộ nhớ dự án VNCode
 
+## Đang đóng gói 1.5.16 — 25.10.2026
+
+- Chủ dự án yêu cầu tạo bộ cài mới và đưa lên Latest sau sửa nhãn/In tất cả và bố cục FBS Ozon. Nhánh `release/vn-code-1.5.16`, mã ứng dụng chốt `96b439d50b14f78d973fb24420f6ac46c078e95c`, hash cây nguồn `6382ff208a91569bb09a39b31dcc09ddcf2a78a8098135c47f1c77a2efd1f439`.
+- Linux `clean verify` đúng nguồn đạt 3.019 ca (3.017 đạt, 2 bỏ qua theo OS, không lỗi/thất bại), 19 phút 08 giây; Windows build `40167802021` vẫn đang chạy. 117 Node contracts đạt. Chưa tạo tag/release hoặc thay Latest. Không coi đang chạy là đã kiểm chứng. Biên nhận trạng thái: [release-state](validation/2026-10-25-vncode-1516-release-state.json).
+- Giữ toàn bộ bản nền 1.5.15, dữ liệu, định danh nâng cấp và hàng đợi Catalog/GTIN. Sau khi cả bộ kiểm thử, native và nâng cấp từ 1.5.15 thành công mới công bố; tải công khai và dùng updater từ runtime 1.5.15 xác minh metadata/hash. Không phát sinh giao dịch KIZ/Catalog/sàn production trong lượt đóng gói.
+
 ## Sửa tiếp nhãn Ozon và FBS — 25.10.2026
 
 - Người dùng báo In tất cả dừng ở `OZON_LABEL_BATCH_IDENTITY_UNVERIFIED`, đồng thời yêu cầu màn FBS giống WB. Nhánh `fix/ozon-batch-label-identity-fbs-layout`, nguồn nền 1.5.15, mã sửa `0f5c527126a16b0047faae62528ba6dca46a9a47`, hash cây `89bbe2c09f2871b2872b2898d3be456d33a4eaca1c7b1186d500a4bc8073d59f`.

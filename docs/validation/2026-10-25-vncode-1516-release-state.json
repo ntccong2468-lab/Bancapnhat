@@ -1,0 +1,40 @@
+{
+  "version": "1.5.16",
+  "branch": "release/vn-code-1.5.16",
+  "sourceCommit": "96b439d50b14f78d973fb24420f6ac46c078e95c",
+  "sourceTreeSha256": "6382ff208a91569bb09a39b31dcc09ddcf2a78a8098135c47f1c77a2efd1f439",
+  "windowsBuildRun": 40167802021,
+  "windowsBuildUrl": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/40167802021",
+  "state": "LINUX_FULL_PASSED_WINDOWS_BUILD_RUNNING",
+  "releaseRequested": true,
+  "installerBuilt": false,
+  "published": false,
+  "latestChanged": false,
+  "previousLatest": {
+    "tag": "v1.5.15",
+    "releaseId": 422945241
+  },
+  "localFullLog": "/tmp/vncode-1516-full-verify.log",
+  "relatedRegressionPassed": 161,
+  "nodeContractsPassed": 117,
+  "recordedAt": "2026-10-25T06:07:24.932649+00:00",
+  "publisherWorkflow": "publish-vncode-1516.yml",
+  "oldBaselineTagVerified": "9f6155dbbbdd6af80e09897f2f2863b479b97a33",
+  "publisherSyntaxVerified": true,
+  "publisherNodeContractsPassed": 117,
+  "oldRuntimeUpdaterProbeCompiled": true,
+  "linuxFull": {
+    "command": "DISPLAY=:99 /workspace/toolchains/mvn-vncode -o -B clean verify",
+    "result": "BUILD SUCCESS",
+    "sourceCommit": "96b439d50b14f78d973fb24420f6ac46c078e95c",
+    "log": "/tmp/vncode-1516-full-verify.log",
+    "logSha256": "c01c77b0d2718acdd3f0091ff942cf2191d748486e910239afc3240a2d1130ff",
+    "tests": 3019,
+    "passed": 3017,
+    "skipped": 2,
+    "failures": 0,
+    "errors": 0,
+    "duration": "19:08 min",
+    "finishedUtc": "2026-10-25T06:23:33Z"
+  }
+}
