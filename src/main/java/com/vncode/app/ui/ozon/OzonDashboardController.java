@@ -120,6 +120,9 @@ public final class OzonDashboardController {
     @FunctionalInterface interface PostingAcceptor {com.vncode.app.integration.ozon.OzonShipResult accept(Shop owner,String number)throws Exception;}
     private PostingAcceptor postingAcceptor=(owner,number)->shipService.shipPerUnit(owner,number,true);
     void setPostingAcceptor(PostingAcceptor acceptor){postingAcceptor=Objects.requireNonNull(acceptor);}
+    @FunctionalInterface interface ExportedFileOpener{void open(List<File> files)throws IOException;}
+    private ExportedFileOpener exportedFileOpener=OzonDashboardController::openExportedFiles;
+    void setExportedFileOpener(ExportedFileOpener opener){exportedFileOpener=Objects.requireNonNull(opener);}
     @FXML private StackPane kn3StatusHost;
     @FXML private Button addAgainKizButton;
     @FXML private void onAddAgainKiz(){
@@ -597,7 +600,7 @@ public final class OzonDashboardController {
                 ? null : packingOrdersTable.getScene().getWindow());
     }
 
-    private void runPrintTask(Shop selected,File labelTarget,File pickingTarget,List<String> numbers,KizSourceSelection sources,PrintWork work) {
+    void runPrintTask(Shop selected,File labelTarget,File pickingTarget,List<String> numbers,KizSourceSelection sources,PrintWork work) {
         Task<PrintOutput> task=new Task<>(){
             protected PrintOutput call()throws Exception{
                 var report=new com.vncode.app.integration.ozon.OzonFbsPrintReport(selected,numbers);
@@ -627,9 +630,10 @@ public final class OzonDashboardController {
             statusLabel.setText(output.message());
             batchResultsArea.setText(output.postingNumbers().stream().map(n->n+" · "+tr("ozon.fbs.pdf_created_local_kiz")).collect(java.util.stream.Collectors.joining("\n")));
             batchResultsPanel.setVisible(true);batchResultsPanel.setManaged(true);
-            loadLocal();
+            offsets.put("printed_awaiting_deliver",0);
+            if(orderStatusTabs.getSelectionModel().getSelectedItem()!=printedOrdersTab)orderStatusTabs.getSelectionModel().select(printedOrdersTab);else loadLocal();
             refreshGtinInventory();
-            Task<Void> open=new Task<>(){@Override protected Void call()throws IOException{openExportedFiles(output.files());return null;}};
+            Task<Void> open=new Task<>(){@Override protected Void call()throws IOException{exportedFileOpener.open(output.files());return null;}};
             open.setOnFailed(e->{if(!disposed&&isCurrent(selected))AlertService.showWarning(tr("ozon.dashboard.open_files.title"),tr("ozon.dashboard.open_files.failed"),tr("ozon.dashboard.open_files.unsupported"));});
             AppTaskExecutor.execute(open,error->{});
         });
@@ -649,7 +653,7 @@ public final class OzonDashboardController {
     }
     private void clearPrintPill(){if(kn3StatusHost!=null)kn3StatusHost.getChildren().removeIf(node->"kizPrintProgressPill".equals(node.getId()));}
 
-    @FunctionalInterface private interface PrintWork{PrintOutput run(java.util.function.IntConsumer progress)throws Exception;}
+    @FunctionalInterface interface PrintWork{PrintOutput run(java.util.function.IntConsumer progress)throws Exception;}
 
     private void finishFailure(long token, Shop selected, Throwable failure) {
         if (token != requestToken || !isCurrent(selected)) return;
@@ -1662,8 +1666,8 @@ public final class OzonDashboardController {
     }
 
     private record BatchTransitionResult(int requested,List<String> completed,List<String> failed,List<String> pending,Map<String,List<String>> children,Map<String,String> reasons) { }
-    private record PrintOutput(String message, List<File> files, List<String> postingNumbers) {
-        private PrintOutput {
+    record PrintOutput(String message, List<File> files, List<String> postingNumbers) {
+        PrintOutput {
             message = message == null ? "" : message;
             files = files == null ? List.of() : List.copyOf(files);
             postingNumbers = postingNumbers == null ? List.of() : List.copyOf(postingNumbers);

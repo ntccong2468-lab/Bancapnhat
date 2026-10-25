@@ -177,6 +177,7 @@ class OzonBulkUiTest {
                         +", receiveEffectiveDisabled="+node("moveToPackingButton",Button.class).isDisabled()
                         +", status="+node("statusLabel",Label.class).getText());
         awaitFx(()->node("packingOrdersTab",Tab.class).getText().contains("198"));
+        fx(()->{assertSame(node("packingOrdersTab",Tab.class),node("orderStatusTabs",TabPane.class).getSelectionModel().getSelectedItem(),"Accepted orders open the new unprinted queue");return null;});
         fx(()->{
             assertEquals(Set.of("split-100","split-101"),selected());
             String report=node("batchResultsArea",TextArea.class).getText();
