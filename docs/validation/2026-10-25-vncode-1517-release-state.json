@@ -89,5 +89,8 @@
   },
   "publisherWorkflow": "publish-vncode-1517.yml",
   "publisherSyntaxVerified": true,
-  "publisherNodeContractsPassed": 117
+  "publisherNodeContractsPassed": 117,
+  "publisherRun": 40194271648,
+  "publisherSource": "2ee364952d44b4ebcfed1197a5ead0743f132f7c",
+  "publisherUrl": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/40194271648"
 }
