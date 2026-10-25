@@ -71,9 +71,19 @@
   },
   "releaseRequested": true,
   "windowsBuildRun": 40192806404,
-  "windowsBuildPending": true,
+  "windowsBuildPending": false,
   "liveCatalogWriteVerified": false,
   "liveMarketplaceWriteVerified": false,
   "paidKizPurchaseVerified": false,
-  "latestChanged": false
+  "latestChanged": true,
+  "windowsJava": {
+    "failures": 0,
+    "skipped": 2,
+    "errors": 0,
+    "tests": 3044,
+    "passed": 3042
+  },
+  "nativeWindowsVerifiedForThisCode": true,
+  "installerBuilt": true,
+  "publishedEvidence": "2026-10-25-vncode-1517-published-latest.json"
 }

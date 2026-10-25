@@ -5,11 +5,11 @@
   "sourceTreeSha256": "8d72fadeb7ec4fc2dd4d1d9c414c39768d9db968dd94ebc88e66a116daca4880",
   "windowsBuildRun": 40192806404,
   "windowsBuildUrl": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/40192806404",
-  "state": "LINUX_FULL_PASSED_WAITING_VERIFIED_WINDOWS_BEFORE_PUBLICATION",
+  "state": "PUBLISHED_LATEST_PUBLIC_BYTES_NATIVE_UPGRADE_AND_OLD_UPDATER_VERIFIED",
   "releaseRequested": true,
-  "installerBuilt": false,
-  "published": false,
-  "latestChanged": false,
+  "installerBuilt": true,
+  "published": true,
+  "latestChanged": true,
   "previousLatest": {
     "tag": "v1.5.16",
     "releaseId": 423202074
@@ -92,5 +92,21 @@
   "publisherNodeContractsPassed": 117,
   "publisherRun": 40194271648,
   "publisherSource": "2ee364952d44b4ebcfed1197a5ead0743f132f7c",
-  "publisherUrl": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/40194271648"
+  "publisherUrl": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/40194271648",
+  "releaseId": 423411451,
+  "publishedAt": "2026-10-25T13:11:04Z",
+  "windowsBuildConclusion": "success",
+  "windowsJava": {
+    "failures": 0,
+    "skipped": 2,
+    "errors": 0,
+    "tests": 3044,
+    "passed": 3042
+  },
+  "nativeWindowsVerified": true,
+  "upgradeFromVersion": "1.5.16",
+  "dataPreserved": true,
+  "publicAssetsVerified": true,
+  "runtimeUpdaterVerified": true,
+  "sellerDeviceNotificationObserved": false
 }

@@ -1,0 +1,138 @@
+{
+  "recordedAtUtc": "2026-10-25T13:11:29.913132+00:00",
+  "version": "1.5.17",
+  "tag": "v1.5.17",
+  "sourceCommit": "d49b7165064f30fd9aaa27a3a619bb3de072e0cb",
+  "sourceTreeSha256": "8d72fadeb7ec4fc2dd4d1d9c414c39768d9db968dd94ebc88e66a116daca4880",
+  "branch": "release/vn-code-1.5.17",
+  "releaseId": 423411451,
+  "publishedAt": "2026-10-25T13:11:04Z",
+  "immutableRelease": true,
+  "latestConfirmed": true,
+  "releaseUrl": "https://github.com/ntccong2468-lab/Bancapnhat/releases/tag/v1.5.17",
+  "downloadUrl": "https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.5.17/VN-code-1.5.17-Windows-x64.exe",
+  "installer": {
+    "name": "VN-code-1.5.17-Windows-x64.exe",
+    "bytes": 147290624,
+    "sha256": "1552ac8f9dcc2ec812b7bc3ee458d1c79280709208a1a8c7732e4d7df9acbb3c"
+  },
+  "buildRun": {
+    "id": 40192806404,
+    "conclusion": "success",
+    "url": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/40192806404"
+  },
+  "publicationRun": {
+    "id": 40194271648,
+    "source": "2ee364952d44b4ebcfed1197a5ead0743f132f7c",
+    "conclusion": "success",
+    "url": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/40194271648"
+  },
+  "publicAssets": 16,
+  "requiredAssetsVerified": 11,
+  "javaWindows": {
+    "failures": 0,
+    "skipped": 2,
+    "errors": 0,
+    "tests": 3044,
+    "passed": 3042
+  },
+  "javaLinux": {
+    "tests": 3044,
+    "passed": 3042,
+    "skipped": 2,
+    "failures": 0,
+    "errors": 0
+  },
+  "nodeTestsPassed": 117,
+  "relatedRegressionPassed": 1043,
+  "manualSyncFixPassed": 43,
+  "newOrdersPrintQueuePassed": 34,
+  "native": {
+    "windowTitle": "VN code v1.5.17",
+    "platform": "windows-x64",
+    "schemaMigration": "3 to 6",
+    "historyPreserved": true,
+    "liveMarketplaceMutations": false,
+    "version": "1.5.17",
+    "nativeLauncher": "passed",
+    "appName": "VN code",
+    "rollbackSnapshotVerified": true
+  },
+  "upgrade": {
+    "passiveExeInstallerSha256": "1552ac8f9dcc2ec812b7bc3ee458d1c79280709208a1a8c7732e4d7df9acbb3c",
+    "fromVersion": "1.5.16",
+    "appName": "VN code",
+    "passiveExeHandoffVerified": true,
+    "fingerprint": "8d276f85b280c69e7aeec58130f8e078a30b547c8a56fec94c0c232b75b44e18",
+    "passiveExeEmbeddedMsiSha256": "a747da3fba36b60e75446389dad19839ff46349896680e875b1cd03dde0b0226",
+    "baselineTag": "v1.5.16",
+    "result": "passed",
+    "baselineInstallerBytes": 147282432,
+    "baselineInstallerSha256": "57afd4f82c378cab5e2ae114e998b78effa65cab0c99212a91cbf3abc84cd7f4",
+    "singleShortcutPerLocation": true,
+    "dataPreserved": true,
+    "installerUpgradeUuid": "8CBBA0E2-6E73-4F56-9101-6BC0948D3C72",
+    "windowTitle": "VN code v1.5.17",
+    "liveMarketplaceMutations": false,
+    "singleRegistration": true,
+    "version": "1.5.17"
+  },
+  "updater": {
+    "version": "1.5.17",
+    "newerThan1_5_16": true,
+    "usesPublishedRuntimeUpdater": true,
+    "windowsInstallerUrl": "https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.5.17/VN-code-1.5.17-Windows-x64.msi",
+    "sha256": "a747da3fba36b60e75446389dad19839ff46349896680e875b1cd03dde0b0226",
+    "bytes": 146621705,
+    "metadataSource": "GitHub releases/latest public response",
+    "sellerDeviceNotificationObserved": false,
+    "previousRuntime": {
+      "version": "1.5.16",
+      "publishedAsset": "VN-code-1.5.16-Windows-x64.zip",
+      "runtimeZipSha256": "7db6665134ca12df5d69b15eef9dae804a818c6c849963ae7059fd94fc3bf70d",
+      "matchesPublishedAssetDigest": true,
+      "packagedVersionVerified": true,
+      "latestResponseCheckPending": false
+    }
+  },
+  "package": {
+    "checkedAt": "2026-10-25T13:10:56.055568+00:00",
+    "version": "1.5.17",
+    "sourceCommit": "d49b7165064f30fd9aaa27a3a619bb3de072e0cb",
+    "buildRunId": 40192806404,
+    "allManifestBytesVerified": true,
+    "packagedVersionVerified": true,
+    "catalogFixMethodsPresent": true,
+    "ozonLabelIdentityAndIsolatedReceiptMethodsPresent": true,
+    "ozonFbsReferenceLayoutPresent": true,
+    "productionSourcesMatchLocalRelease": true,
+    "sourceArchiveFilesCompared": 1152,
+    "compactStylesMatch": true,
+    "savedDataAndManualSyncFixMethodsPresent": true,
+    "wbOzonPurchasedGtinAndV3SingleLabelsPresent": true,
+    "nativeLaunchVerified": true,
+    "upgradeDataPreserved": true,
+    "java": {
+      "failures": 0,
+      "skipped": 2,
+      "errors": 0,
+      "tests": 3044,
+      "passed": 3042
+    },
+    "installer": {
+      "name": "VN-code-1.5.17-Windows-x64.exe",
+      "bytes": 147290624,
+      "sha256": "1552ac8f9dcc2ec812b7bc3ee458d1c79280709208a1a8c7732e4d7df9acbb3c"
+    },
+    "sellerDeviceNotificationObserved": false
+  },
+  "publicDownloadsAndChecksumsVerified": true,
+  "publicVerificationEvidence": "2026-10-25-vncode-1517-public-verification.json",
+  "liveCatalogWriteVerifiedForThisBuild": false,
+  "liveMarketplaceWriteVerified": false,
+  "paidKizPurchaseVerified": false,
+  "sellerDeviceNotificationObserved": false,
+  "oldReleasesDeleted": false,
+  "includesAdditionalOzonPrintQueueRequest": true,
+  "supersededAttemptsUsedForPublication": false
+}

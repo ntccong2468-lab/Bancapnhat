@@ -30,7 +30,7 @@
   "productionApiCallsMade": false,
   "paidKizPurchasedOrConsumed": false,
   "windowsBuildRun": 40192806404,
-  "finalNativeAndPublicationPending": true,
+  "finalNativeAndPublicationPending": false,
   "implementation": {
     "printedTabPageResetToStart": true
   },
@@ -43,5 +43,17 @@
     "log": "/tmp/vncode-1517-print-history-fix.log",
     "sha256": "fb44115fc9ac24d58ce7d12f12cee184e0d90184b676e1d12e32fce794f2b870",
     "uppercaseAndLowercaseLegacyReportsVerified": true
+  },
+  "initialVerificationSnapshot": true,
+  "subsequentRelease": {
+    "version": "1.5.17",
+    "sourceCommit": "d49b7165064f30fd9aaa27a3a619bb3de072e0cb",
+    "releaseId": 423411451,
+    "latestConfirmed": true,
+    "installerBuilt": true,
+    "windowsNativeVerified": true,
+    "upgradeFromVersion": "1.5.16",
+    "dataPreserved": true,
+    "evidence": "2026-10-25-vncode-1517-published-latest.json"
   }
 }

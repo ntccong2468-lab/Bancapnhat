@@ -124,5 +124,17 @@
     "WB-sized workspace list areas",
     "WB/Ozon KIZ purchase GTIN resolution and Ozon PDF task protocol/recovery"
   ],
-  "nextRelease": "Build from this branch with a new version after 1.5.16 and run release checks; never overwrite immutable v1.5.16"
+  "nextRelease": "Build from this branch with a new version after 1.5.16 and run release checks; never overwrite immutable v1.5.16",
+  "initialVerificationSnapshot": true,
+  "subsequentRelease": {
+    "version": "1.5.17",
+    "sourceCommit": "d49b7165064f30fd9aaa27a3a619bb3de072e0cb",
+    "releaseId": 423411451,
+    "latestConfirmed": true,
+    "installerBuilt": true,
+    "windowsNativeVerified": true,
+    "upgradeFromVersion": "1.5.16",
+    "dataPreserved": true,
+    "evidence": "2026-10-25-vncode-1517-published-latest.json"
+  }
 }

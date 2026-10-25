@@ -294,5 +294,17 @@
     "docs/fixes/images/2026-10-25-workspace-list-area/products.png",
     "docs/fixes/images/2026-10-25-workspace-list-area/wb-fbs.png",
     "docs/fixes/images/2026-10-25-workspace-list-area/wb-registration.png"
-  ]
+  ],
+  "initialVerificationSnapshot": true,
+  "subsequentRelease": {
+    "version": "1.5.17",
+    "sourceCommit": "d49b7165064f30fd9aaa27a3a619bb3de072e0cb",
+    "releaseId": 423411451,
+    "latestConfirmed": true,
+    "installerBuilt": true,
+    "windowsNativeVerified": true,
+    "upgradeFromVersion": "1.5.16",
+    "dataPreserved": true,
+    "evidence": "2026-10-25-vncode-1517-published-latest.json"
+  }
 }
