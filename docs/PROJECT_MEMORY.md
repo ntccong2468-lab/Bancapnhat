@@ -1,5 +1,13 @@
 # Bộ nhớ dự án VNCode
 
+## Sửa tiếp nhãn Ozon và FBS — 25.10.2026
+
+- Người dùng báo In tất cả dừng ở `OZON_LABEL_BATCH_IDENTITY_UNVERIFIED`, đồng thời yêu cầu màn FBS giống WB. Nhánh `fix/ozon-batch-label-identity-fbs-layout`, nguồn nền 1.5.15, mã sửa `0f5c527126a16b0047faae62528ba6dca46a9a47`, hash cây `89bbe2c09f2871b2872b2898d3be456d33a4eaca1c7b1186d500a4bc8073d59f`.
+- Thay cách nhận diện chỉ bằng chữ trong PDF: đọc đúng posting/barcode vận chuyển, hỗ trợ barcode-only và dấu gạch nối/khoảng trắng; không dùng barcode sản phẩm hoặc thứ tự trang. Giữ một task/tải PDF chung khi có bằng chứng. Nếu nhóm không xác minh hết trang, lấy tác vụ chính thức riêng cho từng posting bằng luồng v2 hiện có, lưu receipt để in lại. `ISOLATING` được lưu trước gửi, không phát lại kết quả chưa rõ; CAS và cập nhật batch không được xóa trạng thái này. Dùng bảng label hiện có, không thêm backend/schema hoặc bỏ license.
+- FBS dùng bố cục WB: STT, mã đơn/hạn giao, ảnh, thông tin hàng, Barcode Ozon/GTIN/SKU, KN3, giá; giữ bốn tab đơn và Kho KIZ, phân trang/nút vừa cửa sổ nhỏ. Không gọi hạn giao Ozon là ngày tạo. In tất cả ở header hiện trong tab Đơn mới.
+- 72 ca mục tiêu đạt; hồi quy 555 ca có một kỳ vọng FXML cũ đòi cột 100 px, đã sửa. Lượt liên quan cuối **161/161 đạt**, gồm toàn bộ 57 FXML và các UI/label/PDF/WB liên quan; Node **117/117**. PDF ghép đúng KIZ, lỗi đơn sau không thay tệp đích/tiêu KIZ. API Ozon thật đọc danh sách/chi tiết với barcode trả 200, có upper/lower barcode; chưa tạo nhãn hoặc đổi đơn/KIZ production. Chưa native Windows hoặc đóng gói cho thay đổi này.
+- Chưa yêu cầu phát hành riêng trong lượt sửa; giữ Latest v1.5.15 bất biến. [Bàn giao, ảnh và chi tiết](fixes/2026-10-25-ozon-batch-label-fbs.md), [biên nhận](validation/2026-10-25-ozon-batch-label-fbs-verify.json). Khi đóng gói sau này phải tăng phiên bản, kế thừa toàn bộ nguồn sửa, kiểm tra Windows đúng SHA và nâng cấp giữ dữ liệu.
+
 ## Đã phát hành 1.5.15 — 24.10.2026
 
 - **Latest v1.5.15 đã công bố lúc 19:47:09 UTC**, Release `422945241`, bất biến. Người dùng yêu cầu tạo bộ cài và đưa lên Latest sau sửa gửi Catalog liên tục. Nhánh `release/vn-code-1.5.15`, mã ứng dụng/tag `9f6155dbbbdd6af80e09897f2f2863b479b97a33`, hash cây `92e3150566270de6ef53ef92592bb4f1e112b4e4c78fd0e843a8097decb8e4c7`.

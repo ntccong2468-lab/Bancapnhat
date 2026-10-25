@@ -1,0 +1,81 @@
+{
+  "recordedAtUtc": "2026-10-25T05:59:29.388096+00:00",
+  "branch": "fix/ozon-batch-label-identity-fbs-layout",
+  "sourceBase": "v1.5.15",
+  "sourceCommit": "0f5c527126a16b0047faae62528ba6dca46a9a47",
+  "sourceTreeSha256": "89bbe2c09f2871b2872b2898d3be456d33a4eaca1c7b1186d500a4bc8073d59f",
+  "sourceTreeHashMethod": "Sorted pom.xml, src/main and src/test files: relative path + NUL + binary SHA256 digest per file",
+  "finalRelated": {
+    "log": "/tmp/vncode-20261025-ozon-final-related.log",
+    "logSha256": "02d1014473755f88e585e01b44c21c29cc0285e7920db130f843f3780b14f7c6",
+    "tests": 161,
+    "passed": 161,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "buildSuccess": true
+  },
+  "broadRegression": {
+    "log": "/tmp/vncode-20261025-ozon-regression.log",
+    "logSha256": "1a8a986095391fb3eead8c7b241fb13e3212a81d6de62110aead71d14fc8ae4b",
+    "tests": 555,
+    "passed": 554,
+    "failures": 1,
+    "errors": 0,
+    "skipped": 0,
+    "buildSuccess": false,
+    "resolvedFailure": "FxmlSmokeTest required obsolete 100 px order columns; updated for wider WB-style order/date columns and reran all 57 FXML tests in finalRelated."
+  },
+  "earlierTargeted": {
+    "log": "/tmp/vncode-20261025-ozon-combined-targeted.log",
+    "logSha256": "7681ef38c6f321d6090708bd4dc81ddd918ed66c9d3095206f1acfba0623e471",
+    "tests": 72,
+    "passed": 72,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "buildSuccess": true
+  },
+  "node": {
+    "tests": 117,
+    "passed": 117,
+    "failures": 0
+  },
+  "liveApiReadOnly": {
+    "checkedAtUtc": "2026-10-25T05:47:28.203099+00:00",
+    "readOnly": true,
+    "createdLabels": false,
+    "changedPostings": false,
+    "credentialsBound": true,
+    "listHttpStatus": 200,
+    "readWithBarcodes": true,
+    "postingsRead": 2,
+    "detailHttpStatus": 200,
+    "hasUpperTransportBarcode": true,
+    "hasLowerTransportBarcode": true
+  },
+  "scenarios": [
+    "1000 postings share one task/read/download and retain identity after page reorder",
+    "Unicode dashes and whitespace in posting text",
+    "transport barcode aliases from posting data",
+    "barcode-only PDF page decoded and independently verified",
+    "unreadable, foreign or ambiguous shared pages use one isolated official task per posting",
+    "no product barcode or request-order guessing",
+    "same isolated task resumes for reprint",
+    "unknown isolated receipt persists and prevents blind recreation across restart",
+    "shared-task update cannot clear isolation uncertainty",
+    "definite rejection allows controlled isolation retry",
+    "real combined PDF carrier page followed by correct KIZ and product barcode",
+    "failed later label preserves existing PDFs, KIZ reservation and print receipts",
+    "WB-style columns, paging, 4 Ozon order tabs and KIZ tab",
+    "dates, barcode, GTIN and KN3 visible on all order tabs",
+    "4 languages, dark/light, narrow/wide viewports and multi-item rows"
+  ],
+  "productionLabelTasksCreated": false,
+  "livePostingChanged": false,
+  "liveKizConsumed": false,
+  "windowsNativeVerifiedForThisChange": false,
+  "installerBuilt": false,
+  "latestChanged": false,
+  "latestRemains": "v1.5.15"
+}
