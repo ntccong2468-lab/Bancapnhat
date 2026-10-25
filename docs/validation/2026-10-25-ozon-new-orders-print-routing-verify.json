@@ -1,0 +1,47 @@
+{
+  "recordedAtUtc": "2026-10-25T12:08:48.495285+00:00",
+  "branch": "release/vn-code-1.5.17",
+  "sourceCommit": "52345de1e24c93907f4e45e82fac36ad22a864e5",
+  "sourceTreeSha256": "e959b84ecd6a11eb2a1dc1c8b9f3e0af12e4722bfe4079a08c23a3d9c1bd09a6",
+  "request": "Accepted FBS Ozon orders enter Đơn mới; successful Print all opens Đang giao hàng; subsequent printing includes only unprinted new orders",
+  "targeted": {
+    "tests": 34,
+    "passed": 34,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "log": "/tmp/vncode-1517-new-orders-print-queue.log",
+    "sha256": "db352d8145f9327d8f797faed4eeb0da9f8256eb2d093df4450cd05989577d3c",
+    "command": "DISPLAY=:99 /workspace/toolchains/mvn-vncode -o -B '-Dtest=OzonPrintedQueueUiTest,OzonBulkUiTest,OzonFbsPrintStateTest,OzonPrintBundleServiceTest,OzonManualSyncUiTest' test",
+    "result": "BUILD SUCCESS"
+  },
+  "verified": {
+    "acceptedOrdersOpenNewQueue": true,
+    "actualPrintAllButtonExcludesPreviouslyPrintedOrders": true,
+    "asyncPrintSuccessPublishesTwoFixturePdfsAndSelectsPrintedTab": true,
+    "laterArrivalsStayInNewQueue": true,
+    "laterPrintAllFreezeContainsOnlyArrivedOrder": true,
+    "printConfirmationCancellationKeepsNewQueue": true,
+    "pdfFailureKeepsNewQueueAndCreatesNoReceipt": true,
+    "durableShopScopedPrintHistoryPreserved": true,
+    "serverShippingStatusChangedByLocalTabSwitch": false
+  },
+  "validationScope": "JavaFX/Xvfb, real SQLite, synthetic PDF files and Ozon adapters; not seller production orders",
+  "productionApiCallsMade": false,
+  "paidKizPurchasedOrConsumed": false,
+  "windowsBuildRun": 40192806404,
+  "finalNativeAndPublicationPending": true,
+  "implementation": {
+    "printedTabPageResetToStart": true
+  },
+  "subsequentPrintHistoryFix": {
+    "sourceCommit": "d49b7165064f30fd9aaa27a3a619bb3de072e0cb",
+    "tests": 40,
+    "passed": 40,
+    "failures": 0,
+    "errors": 0,
+    "log": "/tmp/vncode-1517-print-history-fix.log",
+    "sha256": "fb44115fc9ac24d58ce7d12f12cee184e0d90184b676e1d12e32fce794f2b870",
+    "uppercaseAndLowercaseLegacyReportsVerified": true
+  }
+}

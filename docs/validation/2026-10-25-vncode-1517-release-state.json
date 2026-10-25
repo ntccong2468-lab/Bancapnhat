@@ -1,11 +1,11 @@
 {
   "version": "1.5.17",
   "branch": "release/vn-code-1.5.17",
-  "sourceCommit": "52345de1e24c93907f4e45e82fac36ad22a864e5",
-  "sourceTreeSha256": "e959b84ecd6a11eb2a1dc1c8b9f3e0af12e4722bfe4079a08c23a3d9c1bd09a6",
-  "windowsBuildRun": 40191235029,
-  "windowsBuildUrl": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/40191235029",
-  "state": "VERIFYING_FINAL_SOURCE_WITH_ADDITIONAL_OZON_PRINT_QUEUE_CHANGES",
+  "sourceCommit": "d49b7165064f30fd9aaa27a3a619bb3de072e0cb",
+  "sourceTreeSha256": "8d72fadeb7ec4fc2dd4d1d9c414c39768d9db968dd94ebc88e66a116daca4880",
+  "windowsBuildRun": 40192806404,
+  "windowsBuildUrl": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/40192806404",
+  "state": "VERIFYING_FINAL_SOURCE_WITH_LEGACY_PRINT_HISTORY_FIX",
   "releaseRequested": true,
   "installerBuilt": false,
   "published": false,
@@ -42,9 +42,25 @@
         "log": "/tmp/vncode-1517-full-verify-before-new-queue.log"
       },
       "usedForPublication": false
+    },
+    {
+      "sourceCommit": "52345de1e24c93907f4e45e82fac36ad22a864e5",
+      "windowsBuildRun": 40191235029,
+      "windowsConclusion": "cancelled",
+      "reason": "Final review confirmed legacy Ozon reports use lowercase names, while migration recognized only uppercase; corrected real backward compatibility",
+      "localFull": {
+        "tests": 3044,
+        "passed": 3042,
+        "skipped": 2,
+        "failures": 0,
+        "errors": 0,
+        "result": "BUILD SUCCESS",
+        "log": "/tmp/vncode-1517-full-verify-before-print-history.log"
+      },
+      "usedForPublication": false
     }
   ],
-  "recordedAtUtc": "2026-10-25T12:02:01.850111+00:00",
+  "recordedAtUtc": "2026-10-25T12:23:42.475678+00:00",
   "publicationHeld": false,
   "additionalRequirementsPending": false,
   "holdReason": "Additional work implemented and targeted checks passed; resume the existing requested release after final checks",
@@ -55,5 +71,6 @@
   "additionalEditsRecordedAtUtc": "2026-10-25T11:56:31.972500+00:00",
   "additionalEditsImplemented": true,
   "newOrdersPrintQueuePassed": 34,
-  "publisherWorkflowPreparedOutsideRepository": true
+  "publisherWorkflowPreparedOutsideRepository": true,
+  "printHistoryFixPassed": 40
 }
