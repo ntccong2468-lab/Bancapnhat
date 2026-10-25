@@ -9,6 +9,7 @@ Yêu cầu bổ sung trong lúc đóng gói 1.5.17: nhận đơn xong mở Đơn
 - Sửa callback xuất PDF thành công: đặt trang Đang giao hàng về đầu, tự chọn `printedOrdersTab` và đọc lại dữ liệu lưu. Dùng sự kiện chọn tab hiện có để tránh gọi tải lại hai lần.
 - Đơn mới đồng bộ/nhận thêm tiếp tục vào Đơn mới. Việc làm mới danh sách không tự kéo người dùng khỏi Đang giao hàng; In tất cả lần sau vẫn chỉ chứa các đơn chưa in.
 - Hủy xác nhận hoặc xuất PDF lỗi giữ nguyên tab Đơn mới và không thêm receipt in thành công. Lịch sử in vẫn tách đúng đơn sau khi đọc lại kho dữ liệu.
+- Khôi phục lịch sử cũ nhận cả `OZON_FBS_PRINT` và `ozon_fbs_print`: phiên bản thực tế đã dùng dạng chữ thường, còn câu SQL trước đó chỉ lấy chữ hoa. Chỉ nhận hàng có trạng thái thành công và `pdfBatchComplete=true`; báo cáo chờ/lỗi vẫn không tạo receipt.
 - Chuyển tab này là nhóm công việc theo lịch sử in; giữ trạng thái sàn. Tab Đã bàn giao riêng vẫn hiện các đơn `delivering`.
 
 Thêm điểm tiêm nội bộ cho thao tác mở file đã xuất để bài UI không mở chương trình PDF thật. Luồng production vẫn dùng Desktop.open như trước; cửa sổ dữ liệu/luồng gọi giữ kiểm tra shop, lease và kết quả tác vụ.

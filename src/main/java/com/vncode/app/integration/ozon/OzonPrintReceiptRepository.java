@@ -17,7 +17,7 @@ public final class OzonPrintReceiptRepository {
                 SELECT r.shop_id,i.product_id,r.owner,i.updated_at FROM sync_runs r
                 JOIN sync_run_items i ON i.run_id=r.id
                 JOIN ozon_postings p ON p.shop_id=r.shop_id AND p.posting_number=i.product_id
-                WHERE r.marketplace='OZON' AND r.kind='OZON_FBS_PRINT' AND i.state='SUCCEEDED'
+                WHERE r.marketplace='OZON' AND upper(r.kind)='OZON_FBS_PRINT' AND i.state='SUCCEEDED'
                   AND i.step='FBS_PDF_CREATED' AND length(r.owner)=64
                   AND json_valid(i.evidence_json) AND json_extract(i.evidence_json,'$.pdfBatchComplete')=1
                 """);

@@ -37,12 +37,13 @@ class OzonFbsPrintStateTest {
         var search=new OzonFbsQuery(1,"awaiting_deliver","POST-1001","",0,100,OzonFbsQuery.PrintState.UNPRINTED);assertEquals(List.of("POST-1001"),postings.freezeFilteredNumbers(search,10000));assertEquals(1,reader.load(search).total());
     }
     @Test void oldCompletedReportsMigrateAdditivelyButWaitingOrFailedReportsDoNot()throws Exception{
-        postings.upsertPage(1,List.of(posting("SUCCESS"),posting("FAILED"),posting("WAITING")));
+        postings.upsertPage(1,List.of(posting("SUCCESS"),posting("LOWERCASE"),posting("FAILED"),posting("WAITING")));
         var reports=new com.vncode.app.features.sync.SyncRunRepository();String run=reports.begin(shop,"OZON_FBS_PRINT","FBS_PRINT");
         for(String number:List.of("SUCCESS","FAILED","WAITING"))reports.addBatch(shop,run,List.of(new com.vncode.app.features.sync.SyncRunRepository.Item(UUID.randomUUID().toString(),run,number,"","","","","","",number.equals("SUCCESS")?"SUCCEEDED":"NEEDS_ACTION","FBS_PDF_CREATED","","",number.equals("WAITING")?"{\"pdfBatchComplete\":false}":"{\"pdfBatchComplete\":true}")));
+        String lower=reports.begin(shop,"ozon_fbs_print","FBS_PRINT");reports.addBatch(shop,lower,List.of(new com.vncode.app.features.sync.SyncRunRepository.Item(UUID.randomUUID().toString(),lower,"LOWERCASE","","","","","","","SUCCEEDED","FBS_PDF_CREATED","","","{\"pdfBatchComplete\":true}")));
         try(var c=Database.getConnection();var s=c.createStatement()){s.execute("DROP TABLE ozon_fbs_print_receipts");}
         Database.initDatabase();Database.initDatabase();
-        assertEquals(List.of("SUCCESS"),reader.load(query(OzonFbsQuery.PrintState.PRINTED,0)).postings().stream().map(OzonPostingDto::postingNumber).toList());
+        assertEquals(Set.of("SUCCESS","LOWERCASE"),new HashSet<>(reader.load(query(OzonFbsQuery.PrintState.PRINTED,0)).postings().stream().map(OzonPostingDto::postingNumber).toList()));
         assertEquals(2,reader.load(query(OzonFbsQuery.PrintState.UNPRINTED,0)).total());
         try(var c=Database.getConnection();var s=c.createStatement()){
             try(var r=s.executeQuery("PRAGMA integrity_check")){assertTrue(r.next());assertEquals("ok",r.getString(1));}
