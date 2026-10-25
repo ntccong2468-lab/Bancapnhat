@@ -1,5 +1,13 @@
 # Bộ nhớ dự án VNCode
 
+## Sửa khung danh sách theo FBS WB sau 1.5.16 — 25.10.2026
+
+- Người dùng xác nhận khung danh sách của Sản phẩm, Đăng ký Znack và FBS Ozon phải rộng/cao, chiếm đầy vùng làm việc như **FBS WB chính**, không phải tăng chữ/ảnh/chiều cao từng hàng. Nhánh `fix/workspace-size-match-wb-fbs`, mã ứng dụng `f11a6af43d546478f76091379ce7cbda6c315682`, hash cây `1886169b4d35291bd461ab74c5857af97c4121b68ffb3c3215db80c76e960e2e`.
+- Dùng lề 16 px, bỏ khoảng trống lớn và kích thước nút cố định ở Znack WB/Ozon, thanh lọc Sản phẩm co vừa một hàng. FBS Ozon bỏ card bọc ngoài; chọn đơn cùng thanh tìm kiếm, phân trang trên toolbar, thông báo rỗng trong bảng và hướng dẫn ở tooltip. Giữ thao tác, bốn tab đơn/Kho KIZ, API và dữ liệu, cỡ chữ/ảnh/row height.
+- Cùng fixture chưa chọn shop ở vùng 1200×720: FBS WB giữ 1168×528; Sản phẩm từ 1136×476 lên 1168×524; Znack WB 1152×409 lên 1168×520; FBS Ozon 1174×390 lên 1168×526. Dữ liệu tổng hợp kiểm tra thêm Znack Ozon và đủ năm màn ở ba kích thước; mỗi bảng tăng 180 px khi vùng cao từ 720 lên 900.
+- **176 ca riêng biệt đạt**, gồm 165 hồi quy UI và 11 tương tác sản phẩm; không lỗi/thất bại/bỏ qua. 896 nút trên 16 trang FXML và 987 nút trên các trang Java/tab, bốn ngôn ngữ/hai theme/hai cỡ, không khuất. Thêm bài hồi quy đo diện tích bảng thực so với FBS WB; bài kiểm tra nút vừa cửa sổ trước đó không đủ phát hiện bảng bị nhỏ.
+- [Chi tiết, ảnh và bàn giao](fixes/2026-10-25-workspace-list-area.md), [biên nhận](validation/2026-10-25-workspace-list-area-verify.json). Đây là sửa mã sau phát hành, **chưa tạo bộ cài hoặc thay Latest 1.5.16**; chưa full Java/native Windows cho sửa này, không ghi API production. Khi được yêu cầu phát hành, dùng phiên bản mới từ nguồn sửa này; giữ v1.5.16 bất biến.
+
 ## Đã phát hành 1.5.16 — 25.10.2026
 
 - **Latest v1.5.16 đã công bố lúc 2026-10-25T07:01:10Z**, Release `423202074`, bất biến. Chủ dự án yêu cầu tạo bộ cài sau sửa nhãn/In tất cả và bố cục FBS Ozon. Nhánh `release/vn-code-1.5.16`, mã ứng dụng/tag `96b439d50b14f78d973fb24420f6ac46c078e95c`, hash cây nguồn `6382ff208a91569bb09a39b31dcc09ddcf2a78a8098135c47f1c77a2efd1f439`.

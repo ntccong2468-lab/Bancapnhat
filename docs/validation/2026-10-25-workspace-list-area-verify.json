@@ -1,0 +1,298 @@
+{
+  "recordedAtUtc": "2026-10-25T10:06:11.311534+00:00",
+  "branch": "fix/workspace-size-match-wb-fbs",
+  "baseRelease": "v1.5.16",
+  "baseReleaseSource": "96b439d50b14f78d973fb24420f6ac46c078e95c",
+  "sourceCommit": "f11a6af43d546478f76091379ce7cbda6c315682",
+  "sourceTreeSha256": "1886169b4d35291bd461ab74c5857af97c4121b68ffb3c3215db80c76e960e2e",
+  "sourceTreeHashMethod": "Sorted pom.xml, src/main and src/test files: relative path + NUL + binary SHA256 digest per file",
+  "requirement": "Khung danh sách phải rộng, cao và chiếm đầy vùng làm việc như FBS WB",
+  "reference": "packing/packing-view.fxml (WB FBS), not supply detail",
+  "sameEmptyFixtureAt1200x720": {
+    "before": {
+      "wb-fbs": {
+        "width": 1168,
+        "height": 528,
+        "top": 176,
+        "bottom": 704
+      },
+      "products": {
+        "width": 1136,
+        "height": 476,
+        "top": 224,
+        "bottom": 700
+      },
+      "wb-registration": {
+        "width": 1152,
+        "height": 409,
+        "top": 215,
+        "bottom": 624
+      },
+      "ozon-fbs": {
+        "width": 1174,
+        "height": 390,
+        "top": 269,
+        "bottom": 659
+      }
+    },
+    "after": {
+      "wb-fbs": {
+        "width": 1168,
+        "height": 528,
+        "top": 176,
+        "bottom": 704
+      },
+      "products": {
+        "width": 1168,
+        "height": 524,
+        "top": 180,
+        "bottom": 704
+      },
+      "wb-registration": {
+        "width": 1168,
+        "height": 520,
+        "top": 112,
+        "bottom": 632
+      },
+      "ozon-fbs": {
+        "width": 1168,
+        "height": 526,
+        "top": 178,
+        "bottom": 704
+      }
+    }
+  },
+  "loadedFixtureAreaMatrix": [
+    {
+      "page": "wb-fbs",
+      "viewport": [
+        940,
+        650
+      ],
+      "list": [
+        908,
+        458
+      ]
+    },
+    {
+      "page": "products",
+      "viewport": [
+        940,
+        650
+      ],
+      "list": [
+        908,
+        483
+      ]
+    },
+    {
+      "page": "wb-registration",
+      "viewport": [
+        940,
+        650
+      ],
+      "list": [
+        908,
+        432
+      ]
+    },
+    {
+      "page": "ozon-registration",
+      "viewport": [
+        940,
+        650
+      ],
+      "list": [
+        908,
+        416
+      ]
+    },
+    {
+      "page": "ozon-fbs",
+      "viewport": [
+        940,
+        650
+      ],
+      "list": [
+        908,
+        456
+      ]
+    },
+    {
+      "page": "wb-fbs",
+      "viewport": [
+        1200,
+        720
+      ],
+      "list": [
+        1168,
+        528
+      ]
+    },
+    {
+      "page": "products",
+      "viewport": [
+        1200,
+        720
+      ],
+      "list": [
+        1168,
+        553
+      ]
+    },
+    {
+      "page": "wb-registration",
+      "viewport": [
+        1200,
+        720
+      ],
+      "list": [
+        1168,
+        520
+      ]
+    },
+    {
+      "page": "ozon-registration",
+      "viewport": [
+        1200,
+        720
+      ],
+      "list": [
+        1168,
+        504
+      ]
+    },
+    {
+      "page": "ozon-fbs",
+      "viewport": [
+        1200,
+        720
+      ],
+      "list": [
+        1168,
+        526
+      ]
+    },
+    {
+      "page": "wb-fbs",
+      "viewport": [
+        1480,
+        900
+      ],
+      "list": [
+        1448,
+        708
+      ]
+    },
+    {
+      "page": "products",
+      "viewport": [
+        1480,
+        900
+      ],
+      "list": [
+        1448,
+        733
+      ]
+    },
+    {
+      "page": "wb-registration",
+      "viewport": [
+        1480,
+        900
+      ],
+      "list": [
+        1448,
+        700
+      ]
+    },
+    {
+      "page": "ozon-registration",
+      "viewport": [
+        1480,
+        900
+      ],
+      "list": [
+        1448,
+        684
+      ]
+    },
+    {
+      "page": "ozon-fbs",
+      "viewport": [
+        1480,
+        900
+      ],
+      "list": [
+        1448,
+        706
+      ]
+    }
+  ],
+  "uiRegression": {
+    "log": "/tmp/vncode-workspace-size-probe/regression.log",
+    "sha256": "a178e903665b552d9ade08440d22f033b394c860e461b6a3351f204cb0d80fff",
+    "tests": 165,
+    "passed": 165,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "buildSuccess": true
+  },
+  "additionalProductInteractions": {
+    "log": "/tmp/vncode-workspace-size-probe/product-interactions.log",
+    "sha256": "24ee076c533bf625058033508745de60abe12dc404b07b81e3cfb086a4f5e6a8",
+    "tests": 11,
+    "passed": 11,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "buildSuccess": true
+  },
+  "geometryOnly": {
+    "log": "/tmp/vncode-workspace-size-probe/area-test.log",
+    "sha256": "eee219cabdf198d3b0b28ed1c5ec2585f53bb3f345a2d02d7f0cd77d77415096",
+    "tests": 1,
+    "passed": 1,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "buildSuccess": true
+  },
+  "totalDistinctFinalTests": 176,
+  "allFxmlPagesLayout": {
+    "pages": 16,
+    "locales": 4,
+    "themes": 2,
+    "sizes": 2,
+    "fixedActionChecks": 896,
+    "clipped": 0
+  },
+  "javaPagesLayout": {
+    "pages": 10,
+    "locales": 4,
+    "themes": 2,
+    "sizes": 2,
+    "fixedActionChecks": 987,
+    "clipped": 0
+  },
+  "rowsAndFontSizesChanged": false,
+  "productionApiCallsMade": false,
+  "nativeWindowsVerifiedForThisFix": false,
+  "fullJavaSuiteRunForThisFix": false,
+  "installerBuiltForThisFix": false,
+  "latestChanged": false,
+  "latestObserved": {
+    "id": 423202074,
+    "immutable": true,
+    "published_at": "2026-10-25T07:01:10Z",
+    "tag_name": "v1.5.16"
+  },
+  "syntheticScreenshots": [
+    "docs/fixes/images/2026-10-25-workspace-list-area/ozon-fbs.png",
+    "docs/fixes/images/2026-10-25-workspace-list-area/ozon-registration.png",
+    "docs/fixes/images/2026-10-25-workspace-list-area/products.png",
+    "docs/fixes/images/2026-10-25-workspace-list-area/wb-fbs.png",
+    "docs/fixes/images/2026-10-25-workspace-list-area/wb-registration.png"
+  ]
+}
