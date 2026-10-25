@@ -80,12 +80,12 @@ public final class OzonRegistrationPane extends VBox {
         if(shop==null||shop.getMarketplace()!=Marketplace.OZON)throw new IllegalArgumentException("shop_mismatch");
         this.owner=new Shop(shop.getId(),shop.getName(),shop.getMarketplace(),shop.getClientId(),shop.getApiKey());
         this.openGtin=openGtin==null?()->GtinBackgroundStatus.start((StackPane)table.getParent(),owner,new HashSet<>(selected()),this::refreshLocal,result->{lastActionRun=result.run();status.setText(GtinBackgroundStatus.summary(result));}):openGtin;
-        setId("ozonRegistrationPane");getStyleClass().add("registration-reference");setSpacing(10);setPadding(new Insets(38,18,20,30));
+        setId("ozonRegistrationPane");getStyleClass().add("registration-reference");setSpacing(8);setPadding(new Insets(16));
         title.getStyleClass().add("h2");status.setWrapText(true);status.getStyleClass().add("text-muted");
         title.setMinWidth(210);title.setPrefWidth(240);title.setMaxWidth(260);var space=new Region();HBox.setHgrow(space,Priority.ALWAYS);
         var header=new HBox(14,title,space,documents,sign,gtin,sync);header.setId("ozonRegistrationHeader");header.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
-        for(var button:List.of(documents,sign,gtin,sync)){button.setMinWidth(100);button.setPrefWidth(210);button.setWrapText(true);}
-        documents.setPrefWidth(158);sign.setPrefWidth(230);gtin.setPrefWidth(264);sync.setPrefWidth(237);
+        for(var button:List.of(documents,sign,gtin,sync)){button.setMinWidth(100);button.setWrapText(true);}
+        for(var label:List.of(status,batchProgress)){label.visibleProperty().bind(label.textProperty().isNotEmpty());label.managedProperty().bind(label.visibleProperty());}
         var options=new ContextMenu();for(var node:List.<javafx.scene.Node>of(refresh,report,newCards,autoSign,clear,stopBatch,selection))options.getItems().add(new CustomMenuItem(node,false));
         pauseBatchAction.setId("ozonZnackPauseBatch");resumeBatchAction.setId("ozonZnackResumeBatch");cancelPendingBatchAction.setId("ozonZnackCancelPendingBatch");
         pauseBatchAction.setOnAction(e->controlBatch("PAUSE"));resumeBatchAction.setOnAction(e->controlBatch("RESUME"));cancelPendingBatchAction.setOnAction(e->{if(cancelPendingConfirmation.getAsBoolean())controlBatch("CANCEL");});options.getItems().addAll(new SeparatorMenuItem(),pauseBatchAction,resumeBatchAction,cancelPendingBatchAction);
@@ -95,7 +95,7 @@ public final class OzonRegistrationPane extends VBox {
         statusFilter.valueProperty().addListener((observable,previous,current)->reload());
         var clearFilters=new Button(tr("znack.registration.clear"));clearFilters.setOnAction(e->{search.clear();categories.clear();statusFilter.setValue("ALL");reload();});
         var brandConfig=new Button(tr("ozon.brand.configure"));brandConfig.setId("ozonConfigureBrand");brandConfig.setOnAction(e->configureBrand());
-        categoryFilter.setId("ozonRegistrationCategoryFilter");var filters=new FlowPane(10,8,search,categoryFilter,statusFilter,clearFilters);autoSign.setSelected(true);autoSign.setWrapText(true);autoSign.setId("ozonRegistrationAutoSign");search.setPrefWidth(375);categoryFilter.setPrefWidth(134);statusFilter.setPrefWidth(225);VBox.setMargin(filters,new Insets(45,0,14,15));
+        categoryFilter.setId("ozonRegistrationCategoryFilter");var filters=new FlowPane(10,8,search,categoryFilter,statusFilter,clearFilters);autoSign.setSelected(true);autoSign.setWrapText(true);autoSign.setId("ozonRegistrationAutoSign");search.setPrefWidth(375);categoryFilter.setPrefWidth(134);statusFilter.setPrefWidth(225);
         options.getItems().add(new CustomMenuItem(brandConfig,false));
         allFiltered.setOnAction(e->{if(allFiltered.isSelected())all.fire();else clear.fire();});
         var footer=new HBox(10,allFiltered,register,count,more);footer.setAlignment(javafx.geometry.Pos.CENTER_LEFT);

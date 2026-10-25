@@ -243,6 +243,11 @@ public final class OzonDashboardController {
     private void initialize() {
         statusLabel.visibleProperty().bind(statusLabel.textProperty().isNotEmpty());
         statusLabel.managedProperty().bind(statusLabel.visibleProperty());
+        var workflowTip=new Tooltip();workflowTip.textProperty().bind(workflowLabel.textProperty());titleLabel.setTooltip(workflowTip);
+        var printedTip=new Tooltip();printedTip.textProperty().bind(printedHintLabel.textProperty());printedOrdersTab.setTooltip(printedTip);
+        for(var button:List.of(selectFilteredButton,clearBatchSelectionButton)){
+            button.visibleProperty().bind(newOrdersTab.selectedProperty());button.managedProperty().bind(button.visibleProperty());
+        }
         setupTables();
         setupSorting();
         setupGtinInventory();
@@ -378,9 +383,9 @@ public final class OzonDashboardController {
         emptyNewOrdersLabel.setText(i18n.tr("ozon.dashboard.empty.new"));
         emptyPackingOrdersLabel.setText(i18n.tr("ozon.dashboard.empty.packing"));
         emptyDeliveringOrdersLabel.setText(i18n.tr("ozon.dashboard.empty.delivering"));
-        newOrdersTable.setPlaceholder(new Label(i18n.tr("ozon.dashboard.empty.new")));
-        packingOrdersTable.setPlaceholder(new Label(i18n.tr("ozon.dashboard.empty.packing")));
-        deliveringOrdersTable.setPlaceholder(new Label(i18n.tr("ozon.dashboard.empty.delivering")));
+        newOrdersTable.setPlaceholder(emptyNewOrdersLabel);
+        packingOrdersTable.setPlaceholder(emptyPackingOrdersLabel);
+        deliveringOrdersTable.setPlaceholder(emptyDeliveringOrdersLabel);
         newOrderNumberTC.setText(i18n.tr("ozon.dashboard.col.order"));
         packingOrderNumberTC.setText(i18n.tr("ozon.dashboard.col.order"));
         deliveringOrderNumberTC.setText(i18n.tr("ozon.dashboard.col.order"));
@@ -392,7 +397,7 @@ public final class OzonDashboardController {
         packingOrderImageTC.setText(i18n.tr("ozon.dashboard.col.image"));
         deliveringOrderImageTC.setText(i18n.tr("ozon.dashboard.col.image"));
         packingLabelTC.setText("");printedLabelTC.setText("");
-        printedHintLabel.setText(i18n.tr("ozon.dashboard.printed_hint"));emptyPrintedOrdersLabel.setText(i18n.tr("ozon.dashboard.empty.printed"));printedOrdersTable.setPlaceholder(new Label(i18n.tr("ozon.dashboard.empty.printed")));
+        printedHintLabel.setText(i18n.tr("ozon.dashboard.printed_hint"));emptyPrintedOrdersLabel.setText(i18n.tr("ozon.dashboard.empty.printed"));printedOrdersTable.setPlaceholder(emptyPrintedOrdersLabel);
         printedOrderNumberTC.setText(i18n.tr("ozon.dashboard.col.order"));printedOrderItemsTC.setText(i18n.tr("supply.col.details"));printedOrderImageTC.setText(i18n.tr("ozon.dashboard.col.image"));
         updateSelectionState();
         renderGtinSummaries(gtinSummaries);

@@ -7,15 +7,15 @@
 <VBox spacing="8" minHeight="0" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="com.vncode.app.ui.znackregistration.ZnackCardRegistrationController" styleClass="app-page,registration-reference">
     <StackPane fx:id="ozonRegistrationHost" minHeight="0" VBox.vgrow="ALWAYS" visible="false" managed="false"/>
-    <VBox fx:id="wbRegistrationContent" minHeight="0" spacing="10" VBox.vgrow="ALWAYS">
-    <padding><Insets top="38" right="18" bottom="20" left="30"/></padding>
+    <VBox fx:id="wbRegistrationContent" minHeight="0" spacing="8" VBox.vgrow="ALWAYS">
+    <padding><Insets top="16" right="16" bottom="16" left="16"/></padding>
     <HBox fx:id="registrationHeader" alignment="CENTER_LEFT" spacing="10">
         <Label fx:id="titleLabel" text="Đăng ký thẻ Znack" styleClass="h2" minWidth="210" prefWidth="240" maxWidth="260"/>
         <Pane HBox.hgrow="ALWAYS"/>
-        <Button fx:id="configButton" text="Cấu hình giấy tờ" onAction="#onConfig" styleClass="btn-secondary" minWidth="100" prefWidth="158" wrapText="true"/>
-        <Button fx:id="signApprovedButton" text="Ký thẻ đã duyệt" onAction="#onSignApproved" styleClass="btn-secondary" minWidth="110" prefWidth="230" wrapText="true"/>
-        <Button fx:id="updateWbButton" text="Cập nhật GTIN lên WB" onAction="#onUpdateWb" styleClass="btn-secondary" minWidth="140" prefWidth="264" wrapText="true"/>
-        <Button fx:id="syncZnackButton" text="Đồng bộ Znack" onAction="#onSyncZnack" styleClass="btn-secondary" minWidth="100" prefWidth="237" wrapText="true"/>
+        <Button fx:id="configButton" text="Cấu hình giấy tờ" onAction="#onConfig" styleClass="btn-secondary" minWidth="100" wrapText="true"/>
+        <Button fx:id="signApprovedButton" text="Ký thẻ đã duyệt" onAction="#onSignApproved" styleClass="btn-secondary" minWidth="110" wrapText="true"/>
+        <Button fx:id="updateWbButton" text="Cập nhật GTIN lên WB" onAction="#onUpdateWb" styleClass="btn-secondary" minWidth="140" wrapText="true"/>
+        <Button fx:id="syncZnackButton" text="Đồng bộ Znack" onAction="#onSyncZnack" styleClass="btn-secondary" minWidth="100" wrapText="true"/>
     </HBox>
     <Label fx:id="loadingLabel" text="Đang tải..." visible="false" managed="false" styleClass="text-muted"/>
     <Label fx:id="readinessLabel" visible="false" managed="false" wrapText="true" styleClass="text-muted"/>
@@ -30,7 +30,6 @@
         <Button fx:id="newCardsSelectedButton" text="Tạo thẻ mới cho tập đã chọn" onAction="#onNewCardsSelected"/>
     </VBox>
     <FlowPane alignment="CENTER_LEFT" hgap="10" vgap="6">
-        <VBox.margin><Insets top="45" bottom="14" left="15"/></VBox.margin>
         <TextField fx:id="searchField" promptText="Tìm theo tên, article, SKU..." prefWidth="375"/>
         <MenuButton fx:id="categoryMenuButton" text="Danh mục"/>
         <ComboBox fx:id="statusFilter" prefWidth="225"/>

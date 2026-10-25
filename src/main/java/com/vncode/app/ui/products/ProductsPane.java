@@ -78,7 +78,7 @@ public final class ProductsPane extends BorderPane {
     public ProductsPane(Function<ProductQuery,ProductPage> reader,ShopReadCoordinator reads,ProductRefreshService refreshService) {
         this.reader=reader==null?repository::loadProductPage:reader;this.reads=Objects.requireNonNull(reads);
         this.refreshService=Objects.requireNonNull(refreshService);reload.setId("productSync");status.setId("productStatus");
-        setId("productsPane");getStyleClass().add("products-workspace");setPadding(new Insets(34,30,20,34));
+        setId("productsPane");getStyleClass().add("products-workspace");setPadding(new Insets(16));
         rows.setId("productRows");rows.setFixedCellSize(104);rows.setCellFactory(list->new ProductCell());
         rows.skinProperty().addListener((o,a,b)->Platform.runLater(this::installScrollPaging));
         var headingSpacer=new Region();HBox.setHgrow(headingSpacer,Priority.ALWAYS);
@@ -93,13 +93,14 @@ public final class ProductsPane extends BorderPane {
         issue.setId("productIssueFilter");issue.getItems().setAll(ProductIssueFilter.values());issue.setValue(ProductIssueFilter.ALL);issue.setPrefWidth(250);
         issue.setConverter(new StringConverter<>(){public String toString(ProductIssueFilter v){return v==null?"":tr("products.issue."+v.name())+(issueCounts.containsKey(v)?" ("+issueCounts.get(v)+")":"");}public ProductIssueFilter fromString(String v){return ProductIssueFilter.ALL;}});
         pageSelection.setId("productSelectAll");
-        var filters=new FlowPane(14,8,pageSelection,search,category,document);filters.setId("productFilters");filters.setAlignment(Pos.CENTER_LEFT);
+        pageSelection.setMinWidth(Region.USE_PREF_SIZE);category.setMinWidth(100);document.setMinWidth(200);
+        var filters=new HBox(14,pageSelection,search,category,document);filters.setId("productFilters");filters.setAlignment(Pos.CENTER_LEFT);
         needsFix.getStyleClass().add("text-muted");issueBar.getChildren().add(needsFix);issueBar.setAlignment(Pos.CENTER_LEFT);
         for(var kind:List.of(ProductIssueFilter.INVALID_TNVED,ProductIssueFilter.MISSING_BRAND,ProductIssueFilter.MISSING_MATERIAL)){
             var chip=new ToggleButton();chip.setId("productIssue_"+kind.name());chip.getStyleClass().add("product-issue-chip");chip.setOnAction(e->issue.setValue(issue.getValue()==kind?ProductIssueFilter.ALL:kind));issueChips.put(kind,chip);issueBar.getChildren().add(chip);
         }
         status.setWrapText(true);status.managedProperty().bind(status.textProperty().isNotEmpty());status.visibleProperty().bind(status.managedProperty());
-        var top=new VBox(14,heading,filters,issueBar,status);top.setPadding(new Insets(0,0,16,0));setTop(top);setCenter(listing);
+        var top=new VBox(8,heading,filters,issueBar,status);top.setPadding(new Insets(0,0,8,0));setTop(top);setCenter(listing);
         bulk.setId("productBulkActions");bulk.getStyleClass().add("products-bulk");
         bulk.setLeft(selected);bulk.setCenter(bulkActions);bulk.setRight(clear);
         BorderPane.setAlignment(selected,Pos.CENTER_LEFT);BorderPane.setAlignment(clear,Pos.CENTER_RIGHT);

@@ -78,7 +78,7 @@ class OzonFbsUiTest {
                         }
                         var paging = (Button) loader.getNamespace().get("nextPageButton");
                         var table = (TableView<?>) loader.getNamespace().get(tab.equals("newOrdersTab") ? "newOrdersTable" : tab.equals("packingOrdersTab") ? "packingOrdersTable" : tab.equals("printedOrdersTab") ? "printedOrdersTable" : "deliveringOrdersTable");
-                        assertTrue(paging.localToScene(paging.getBoundsInLocal()).getMinY() >= table.localToScene(table.getBoundsInLocal()).getMaxY(), "Paging remains beneath the active table");
+                        assertTrue(paging.localToScene(paging.getBoundsInLocal()).getMaxY() <= table.localToScene(table.getBoundsInLocal()).getMinY(), "Paging stays in the toolbar and leaves the remaining height to the active table");
                         return null;
                     });
         } finally {
