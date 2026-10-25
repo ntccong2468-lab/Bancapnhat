@@ -1,0 +1,197 @@
+{
+  "recordedAtUtc": "2026-10-25T10:48:42.884881+00:00",
+  "branch": "fix/kiz-gtin-ozon-pdf",
+  "sourceCommit": "0f74d385e339e4579f3eb033a6ac42cac6390eb9",
+  "sourceTreeSha256": "375715b9f339b34c2784756ebe43b99fd4bca51590e961f23d423f40b2ee1f35",
+  "sourceTreeHashMethod": "Sorted pom.xml, src/main and src/test files: relative path + NUL + binary SHA256 digest per file",
+  "baseCommit": "d7d04b448dbf0c31f2686d629377feb62ee76a05",
+  "baseRelease": "v1.5.16",
+  "requirements": [
+    "Fix KIZ purchase GTIN resolution and Ozon PDF export",
+    "Include WB as requested",
+    "Preserve the unreleased WB-sized workspace layout fixes"
+  ],
+  "fixes": {
+    "ozonPublishedRegistrationReachesPurchaseAndPrintPlanner": true,
+    "wbNativeSizeBarcodeGtinCanResolveWithoutAnAppRegistrationOrCategoryRule": true,
+    "nativeArticleColorSizeAndOwnedCurrentCatalogProofRequired": true,
+    "resolveOnlyOrdersStillNeedingPurchasedStock": true,
+    "newSingleLabelCreate": "v3/posting/fbs/package-label/create",
+    "newSingleLabelCreateBody": "posting_numbers",
+    "newSingleLabelGet": "v2/posting/fbs/package-label/get",
+    "taskIdJsonType": "integer",
+    "newSingleLabelReceiptPrefix": "v3s:",
+    "sharedLabelReceiptPrefix": "v3:",
+    "legacyReceiptsPreserved": true,
+    "pollAttempts": 120,
+    "delayBetweenPendingPollsSeconds": 1,
+    "regenerateOnNextPrintOnlyForExplicitRemoteFailure": true,
+    "localPublishFailureReusesRemoteTask": true,
+    "unknownCreateResultBlocksReplay": true
+  },
+  "finalRegression": {
+    "tests": 779,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "log": "/tmp/vncode-20261025-kiz-label-regression.log",
+    "sha256": "0a325028dae2e76b3a1e3688a0f426548c90367a64e5dc1806d23aec100f0cdd",
+    "buildSuccess": true,
+    "command": "DISPLAY=:99 /workspace/toolchains/mvn-vncode -o -B '-Dtest=*Kiz*Test,Ozon*Test,OrderExportWorkflowKizPlanningTest,FboVerifiedGtin*Test,RegisteredGtin*Test,ZnackModuleTest,FriendlyErrorCodeTest,WorkspaceListAreaTest' test",
+    "classCount": 93,
+    "finishedAtUtc": "2026-10-25T10:43:08Z",
+    "durationSeconds": 293
+  },
+  "targetedBeforeFinal": {
+    "tests": 92,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "log": "/tmp/vncode-20261025-kiz-label-final-targeted.log",
+    "sha256": "fcb7e00ebbaa9ce78fa4db15e050e699fd8b9855ea500932abdb510e688e1b44",
+    "buildSuccess": true
+  },
+  "wbPdfEndToEndBeforeFinal": {
+    "tests": 1,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "log": "/tmp/vncode-20261025-wb-pdf-e2e.log",
+    "sha256": "54dbd3c660f3fc01a73e4f11ff61158d17c1726faba24fc4c751eaadba2025ee",
+    "buildSuccess": true
+  },
+  "doNotSumOverlappingRuns": true,
+  "initialRedReproduction": {
+    "tests": 4,
+    "failures": 1,
+    "errors": 2,
+    "skipped": 0,
+    "log": "/tmp/vncode-20261025-kiz-label-reproduce.log",
+    "sha256": "666fe7f7eb7c1d1dda6b8acd96c944c8f2ba89fcbdc691bdece94b1b447fee2a",
+    "buildSuccess": false
+  },
+  "intermediateFailureThenCorrected": {
+    "tests": 58,
+    "failures": 1,
+    "errors": 0,
+    "skipped": 0,
+    "log": "/tmp/vncode-20261025-kiz-label-targeted.log",
+    "sha256": "ee40db0057e9851a8842f55413bd4c1baa105e0123da8d508535a31d8c5ac099",
+    "buildSuccess": false
+  },
+  "reproductionInterpretation": {
+    "ozonPublishedGtinLoss": "Reproduced against local SQLite before fix; WB positive control passed",
+    "legacyTaskIdString": "Strict schema mock rejected quoted numeric IDs, but the live backend accepted them; not a proven production cause",
+    "oldSingleCreateEndpoint": "Mock modeled retirement; official snapshot schedules retirement on 2026-11-02, not a proven live outage today",
+    "intermediateFailure": "Preserved uncertain receipt handling but wrapped ambiguous API error as OZON_LABEL_TASK_UNKNOWN"
+  },
+  "pdfAssertions": [
+    "WB: both actual PDF files open, one purchased fixture code consumed, one print history record",
+    "WB: wrong size blocked before a second stock reservation or purchase",
+    "Ozon: one task for 1000 synthetic postings; reverse PDF pages still resolve to correct postings",
+    "Ozon: single reprint from shared task yields one page",
+    "Ozon: delayed job, explicit remote failure, lost retry receipt and local publish failure"
+  ],
+  "liveOzonReadOnly": {
+    "taskTypeAndFirstPostingsRead": {
+      "checkedAtUtc": "2026-10-25T10:23:56.447027+00:00",
+      "readOnly": true,
+      "credentialsBound": true,
+      "createdLabelTasks": false,
+      "changedOrders": false,
+      "paidKizPurchased": false,
+      "requests": [
+        {
+          "endpoint": "v1/posting/fbs/package-label/get",
+          "taskIdJsonType": "number",
+          "httpStatus": 404,
+          "apiCode": 5,
+          "taskIdTypeRejected": false
+        },
+        {
+          "endpoint": "v1/posting/fbs/package-label/get",
+          "taskIdJsonType": "string",
+          "httpStatus": 404,
+          "apiCode": 5,
+          "taskIdTypeRejected": false
+        },
+        {
+          "endpoint": "v2/posting/fbs/package-label/get",
+          "taskIdJsonType": "number",
+          "httpStatus": 404,
+          "apiCode": 5,
+          "taskIdTypeRejected": false
+        },
+        {
+          "endpoint": "v2/posting/fbs/package-label/get",
+          "taskIdJsonType": "string",
+          "httpStatus": 404,
+          "apiCode": 5,
+          "taskIdTypeRejected": false
+        }
+      ],
+      "postings": {
+        "httpStatus": 200,
+        "count": 100,
+        "states": {
+          "delivering": 100
+        }
+      }
+    },
+    "eligibleAwaitingDeliverRead": {
+      "checkedAtUtc": "2026-10-25T10:27:13.591997+00:00",
+      "readOnly": true,
+      "credentialsBound": true,
+      "createdLabelTasks": false,
+      "changedOrders": false,
+      "paidKizPurchased": false,
+      "requests": [],
+      "postings": {
+        "httpStatus": 200,
+        "count": 0,
+        "states": {}
+      }
+    },
+    "nonNumericTaskIdRead": {
+      "readOnly": true,
+      "credentialsBound": true,
+      "httpStatus": 400,
+      "apiCode": 3,
+      "numericParsingRejected": true
+    },
+    "eligibleFilter": {
+      "statuses": [
+        "awaiting_deliver"
+      ],
+      "boundedDateWindowDaysEachSide": 30,
+      "limit": 100
+    },
+    "eligiblePostingsFoundInThisQuery": 0,
+    "actualSellerOrderPdfCreationVerified": false,
+    "realKizPurchasedOrConsumed": false,
+    "orderStatusChanged": false,
+    "rawSellerDataCommitted": false
+  },
+  "officialSchema": {
+    "url": "https://docs.ozon.ru/api/seller/swagger.json",
+    "source": "User-supplied official OpenAPI snapshot retrieved on 2026-10-19",
+    "sha256": "4c5756ae6b68177eae367786656f1b4ebdc00f2ca76c0311cf312a011ad1f9e4",
+    "bytes": 4234584,
+    "openapi": "3.0.0",
+    "documentVersion": "2.1",
+    "pathCount": 483,
+    "v2CreateScheduledRetirement": "2026-11-02",
+    "freshDownloadAttempt": "Failed: repeated HTTP 307 redirects; not represented as a fresh schema download"
+  },
+  "fullJavaSuiteRunForThisFix": false,
+  "nativeWindowsVerifiedForThisFix": false,
+  "installerBuiltForThisFix": false,
+  "latestChanged": false,
+  "lastObservedLatest": {
+    "id": 423202074,
+    "tag_name": "v1.5.16",
+    "immutable": true,
+    "published_at": "2026-10-25T07:01:10Z"
+  },
+  "nextRelease": "Use a new version after 1.5.16; include this branch and inherited workspace layout fixes; run release checks before publishing"
+}

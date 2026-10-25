@@ -1,5 +1,14 @@
 # Bộ nhớ dự án VNCode
 
+## Sửa GTIN mua KIZ và PDF cho cả WB/Ozon sau 1.5.16 — 25.10.2026
+
+- Người dùng báo mua KIZ không xác định GTIN, in PDF Ozon lỗi và yêu cầu **sửa cả WB**. Nhánh `fix/kiz-gtin-ozon-pdf`, mã ứng dụng `0f74d385e339e4579f3eb033a6ac42cac6390eb9`, hash cây `375715b9f339b34c2784756ebe43b99fd4bca51590e961f23d423f40b2ee1f35`. Kế thừa đầy đủ sửa diện tích bảng ngay dưới; chưa đóng gói/phát hành cả hai nhóm sửa.
+- Ozon dùng nguồn danh tính mua KIZ có cả đăng ký `PUBLISHED` đúng SKU và proof Catalog hiện hành; tránh mất GTIN khi chưa ghi barcode về sàn. WB đọc hàng loạt native barcode/GTIN đúng size và Catalog có chủ sở hữu khi không có đăng ký/quy tắc danh mục VNCode; barcode cũ của đơn cùng size vẫn dùng được. Chỉ tra đơn còn cần kho mua; giữ giấy tờ/owner/size, trạng thái lưu thông, license và xác nhận mua.
+- Nhãn riêng Ozon chuyển v3 create (`posting_numbers`) / v2 get (`task_id` số), lưu `v3s:` phân biệt shared `v3:` và receipt cũ. Tối đa 120 lượt đọc, nghỉ một giây thay đường in riêng chờ khoảng sáu giây. Lần in sau tiếp tục receipt; chỉ tạo mới khi Ozon đã xác nhận tác vụ thất bại. Lỗi ghi file dùng lại tác vụ cũ, mất receipt giữ `ISOLATING`/`RECONCILE_REQUIRED`, không tạo lặp.
+- **779/779 ca hồi quy liên quan đạt**, không lỗi/thất bại/bỏ qua. Bao gồm PDF WB thực trên kho SQLite tổng hợp (đủ hai PDF, lịch sử/tiêu mã), Ozon HTTP localhost/lô 1.000 nhãn đảo trang, tác vụ chậm và phục hồi/mất receipt. Không cộng lặp 92 ca mục tiêu và một ca WB riêng.
+- API Ozon thật chỉ đọc: 100 đơn trả về đều delivering, truy vấn riêng awaiting_deliver trả 0; chưa tạo nhãn/thay đơn/mua hoặc tiêu KIZ production. Backend hiện chấp nhận task_id chuỗi số; không nhận định đây là nguyên nhân lỗi thật. Schema là snapshot chính thức 19.10 do người dùng cung cấp; tải mới gặp vòng 307, không nhận là bản mới tải. Chỉ lưu số liệu đã loại dữ liệu nhạy cảm.
+- Chưa full suite/native Windows/bộ cài cho sửa này. POM/Latest vẫn 1.5.16; khi được yêu cầu phát hành phải tăng phiên bản, giữ release cũ bất biến. [Nguyên nhân, bằng chứng và bàn giao](fixes/2026-10-25-kiz-gtin-ozon-pdf.md), [biên nhận](validation/2026-10-25-kiz-gtin-ozon-pdf-verify.json).
+
 ## Sửa khung danh sách theo FBS WB sau 1.5.16 — 25.10.2026
 
 - Người dùng xác nhận khung danh sách của Sản phẩm, Đăng ký Znack và FBS Ozon phải rộng/cao, chiếm đầy vùng làm việc như **FBS WB chính**, không phải tăng chữ/ảnh/chiều cao từng hàng. Nhánh `fix/workspace-size-match-wb-fbs`, mã ứng dụng `f11a6af43d546478f76091379ce7cbda6c315682`, hash cây `1886169b4d35291bd461ab74c5857af97c4121b68ffb3c3215db80c76e960e2e`.
