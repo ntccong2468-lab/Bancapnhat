@@ -5,7 +5,7 @@
   "sourceTreeSha256": "a482d756e9231fed85edc0cc107e26d4d29264c92dfe227bd96d8a63500e043a",
   "windowsBuildRun": 40189545605,
   "windowsBuildUrl": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/40189545605",
-  "state": "VERIFYING_WINDOWS_AND_LINUX_BEFORE_PUBLICATION",
+  "state": "PUBLICATION_HELD_FOR_REQUESTED_ADDITIONAL_EDITS",
   "releaseRequested": true,
   "installerBuilt": false,
   "published": false,
@@ -28,5 +28,11 @@
       "usedForPublication": false
     }
   ],
-  "recordedAtUtc": "2026-10-25T11:38:26.517950+00:00"
+  "recordedAtUtc": "2026-10-25T11:38:26.517950+00:00",
+  "publicationHeld": true,
+  "additionalRequirementsPending": true,
+  "holdReason": "Owner said: tôi muốn chỉnh sửa thêm. Clarify and merge the additional work before publishing Latest. Existing release request remains active.",
+  "verificationMayContinue": true,
+  "publisherWorkflowCommitted": false,
+  "holdRecordedAtUtc": "2026-10-25T11:51:42.775747+00:00"
 }
