@@ -239,6 +239,7 @@ public final class ProductBulkEditService {
                 LicenseRuntime.require(LISTING_WRITE);LicenseRuntime.require(SELLER_API);var assets=submitted.withPhase("ASSETS_SENDING",submitted.identities());
                 if(!repo.claimAssets(id,i,assets))continue;
                 try{outcome=i.with(CopyState.REMOTE_PROCESSING,adapter.finishAssets(shop,assets),List.of());}
+                catch(ListingRejectedException rejected){outcome=i.with(CopyState.FAILED,assets,List.of(new CopyIssue("MARKETPLACE_REJECTED",ListingRejectedException.safe(shop,rejected.getMessage()),true)));}
                 catch(IOException|RuntimeException e){outcome=i.with(CopyState.RECONCILE_REQUIRED,assets,List.of(new CopyIssue("RECONCILIATION_REQUIRED","documents",true)));}
                 if(!repo.checkpoint(id,outcome,Set.of(CopyState.SENDING)))throw new IllegalStateException("Product edit checkpoint changed; reconcile before retrying");
             }else{

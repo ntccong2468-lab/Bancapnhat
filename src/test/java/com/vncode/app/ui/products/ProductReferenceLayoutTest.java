@@ -20,6 +20,41 @@ class ProductReferenceLayoutTest {
     @BeforeAll static void start(){try{Platform.startup(()->Platform.setImplicitExit(false));}catch(IllegalStateException started){}}
     static <T>T fx(Callable<T> work)throws Exception{var task=new FutureTask<>(work);Platform.runLater(task);return task.get(10,TimeUnit.SECONDS);}
     static void await(Callable<Boolean> check)throws Exception{long end=System.nanoTime()+TimeUnit.SECONDS.toNanos(8);while(!fx(check)&&System.nanoTime()<end)Thread.sleep(15);assertTrue(fx(check));}
+    @Test void wrappedActionsStayInsideTheirBackgroundAtNarrowAndScaledWorkAreas()throws Exception{
+        System.setProperty("vncode.appdata.dir",root.toString());Database.initDatabase();
+        try(var c=Database.getConnection();var s=c.createStatement()){
+            s.execute("INSERT INTO shops(id,name,api_key,marketplace) VALUES(1,'Fixture shop','fixture','WILDBERRIES')");
+            for(int i=1;i<=131;i++)s.execute("INSERT INTO wb_product_cards(shop_id,nm_id,title,vendor_code,synced_at) VALUES(1,"+i+",'Костюм с футболкой и брюками','DEMO-"+i+"','now')");
+        }
+        var reads=new ShopReadCoordinator(2,16);var pane=fx(()->new ProductsPane(null,reads));var stage=fx(Stage::new);
+        var language=I18nService.getInstance().getCurrentLanguage();var theme=ThemeService.getCurrentTheme();
+        try{
+            fx(()->{I18nService.getInstance().setLanguage(AppLanguage.VI);pane.applyTranslations();ThemeService.switchTheme("dark");stage.setScene(new Scene(pane,1078,650));ThemeService.applyTheme(stage.getScene());stage.show();pane.setShop(new Shop(1,"Fixture shop","fixture"));pane.setOnEdit((field,keys)->{});return null;});
+            await(()->!((Button)pane.lookup("#productSync")).isDisabled());
+            fx(()->{((CheckBox)pane.lookup("#productSelectAll")).fire();return null;});await(()->pane.selectedKeys().size()==131);
+            for(String paint:List.of("dark","light"))for(var locale:AppLanguage.values())for(int width:List.of(1078,760,940,1331)){
+                fx(()->{ThemeService.switchTheme(paint);I18nService.getInstance().setLanguage(locale);pane.applyTranslations();double frame=stage.getWidth()-stage.getScene().getWidth();stage.setMinWidth(width+frame);stage.setWidth(width+frame);return null;});
+                await(()->Math.abs(stage.getScene().getWidth()-width)<1);
+                fx(()->{
+                    pane.applyCss();pane.layout();var bar=(javafx.scene.layout.Region)pane.lookup("#productBulkActions");
+                    capture(stage.getScene(),paint,locale,width);
+                    var bounds=bar.localToScene(bar.getLayoutBounds());var list=pane.lookup("#productRows").localToScene(pane.lookup("#productRows").getLayoutBounds());
+                    assertTrue(bounds.getMaxY()<=stage.getScene().getHeight()+1,"Action background fits the window");assertTrue(list.getMaxY()<=bounds.getMinY()+1,"Actions must not cover product rows");
+                    for(String id:List.of("productEdit_brand","productEdit_material","productEdit_gender","productEdit_tnved","productEdit_documents","productClearSelection")){
+                        var button=pane.lookup("#"+id);var b=button.localToScene(button.getLayoutBounds());
+                        assertTrue(b.getMinX()>=bounds.getMinX()-1&&b.getMaxX()<=bounds.getMaxX()+1&&b.getMinY()>=bounds.getMinY()-1&&b.getMaxY()<=bounds.getMaxY()+1,paint+" "+locale+" "+width+" "+id+" escapes its background: "+b+" / "+bounds);
+                    }
+                    assertTrue(list.getHeight()>290,"Product list must retain its working area");return null;
+                });
+            }
+        }finally{fx(()->{pane.dispose();stage.close();I18nService.getInstance().setLanguage(language);ThemeService.setCurrentTheme(theme);return null;});com.vncode.app.testsupport.ShopReadTestCleanup.closeAndAwait(reads);com.vncode.app.testsupport.ShopReadTestCleanup.awaitSharedIdle();System.clearProperty("vncode.appdata.dir");}
+    }
+    private static void capture(Scene scene,String paint,AppLanguage language,int width)throws Exception{
+        String file=System.getProperty("vncode.products.capture");if(file==null||!paint.equals("dark")||language!=AppLanguage.VI||width!=1078)return;
+        var image=scene.snapshot(null);var png=new java.awt.image.BufferedImage((int)image.getWidth(),(int)image.getHeight(),java.awt.image.BufferedImage.TYPE_INT_ARGB);
+        image.getPixelReader().getPixels(0,0,png.getWidth(),png.getHeight(),javafx.scene.image.PixelFormat.getIntArgbInstance(),((java.awt.image.DataBufferInt)png.getRaster().getDataBuffer()).getData(),0,png.getWidth());
+        javax.imageio.ImageIO.write(png,"png",Path.of(file).toFile());
+    }
     @Test void allFilteredProductsIncludingUnloadedRowsReachEveryBatchActionAndClear()throws Exception{
         System.setProperty("vncode.appdata.dir",root.toString());Database.initDatabase();
         try(var c=Database.getConnection();var s=c.createStatement()){

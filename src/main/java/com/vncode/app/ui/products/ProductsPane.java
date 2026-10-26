@@ -43,10 +43,10 @@ public final class ProductsPane extends BorderPane {
         if(currentEdit!=null&&editListener!=null)currentEdit.backgroundRunning().removeListener(editListener);
         if(progressPill!=null){for(var node:progressPill.getChildren())if(node instanceof Label label)label.textProperty().unbind();listing.getChildren().remove(progressPill);}
         currentEdit=editor;if(editor==null){updateButtons();return;}
-        var text=new Label();text.textProperty().bind(editor.progressText());text.setWrapText(true);text.setMinWidth(0);text.maxWidthProperty().bind(javafx.beans.binding.Bindings.max(160,listing.widthProperty().subtract(160)));
+        var text=new Label();text.textProperty().bind(editor.progressText());text.setWrapText(true);text.setMinWidth(0);text.setMaxWidth(Double.MAX_VALUE);HBox.setHgrow(text,Priority.ALWAYS);
         var spinner=new ProgressIndicator();spinner.setMaxSize(20,20);spinner.visibleProperty().bind(editor.backgroundRunning());spinner.managedProperty().bind(spinner.visibleProperty());
-        var details=new Button(tr("products.details"));details.setOnAction(e->editor.showBackgroundDetails());
-        progressPill=new HBox(10,spinner,text,details);progressPill.setId("productBulkProgressPill");progressPill.getStyleClass().add("task-status-pill");progressPill.setAlignment(javafx.geometry.Pos.CENTER);progressPill.setMaxSize(Region.USE_PREF_SIZE,Region.USE_PREF_SIZE);
+        var details=new Button(tr("products.details"));details.setMinWidth(Region.USE_PREF_SIZE);details.setOnAction(e->editor.showBackgroundDetails());
+        progressPill=new HBox(10,spinner,text,details);progressPill.setId("productBulkProgressPill");progressPill.getStyleClass().add("task-status-pill");progressPill.setAlignment(javafx.geometry.Pos.CENTER);progressPill.setMinWidth(0);progressPill.setMaxHeight(Region.USE_PREF_SIZE);progressPill.maxWidthProperty().bind(javafx.beans.binding.Bindings.max(0,listing.widthProperty().subtract(24)));
         StackPane.setAlignment(progressPill,javafx.geometry.Pos.BOTTOM_CENTER);StackPane.setMargin(progressPill,new Insets(12));listing.getChildren().add(progressPill);
         var installedPill=progressPill;
         Runnable dismiss=()->{progressDismiss.setOnFinished(e->{if(currentEdit==editor&&!editor.backgroundRunning().get()){listing.getChildren().remove(installedPill);}});progressDismiss.playFromStart();};
@@ -60,8 +60,8 @@ public final class ProductsPane extends BorderPane {
     private final CheckBox missing=new CheckBox(),pageSelection=new CheckBox();
     private final Label title=new Label(),count=new Label(),status=new Label(),selected=new Label(),needsFix=new Label();
     private final Button reload=new Button(),more=new Button(),all=new Button(),copy=new Button(),clear=new Button("×");
-    private final BorderPane bulk=new BorderPane();
-    private final FlowPane bulkActions=new FlowPane(12,8),issueBar=new FlowPane(10,6);
+    private final FlowPane bulkActions=new FlowPane(8,6),issueBar=new FlowPane(8,6);
+    private final Region bulk=new ProductActionBar(selected,bulkActions,clear);
     private final Map<ProductIssueFilter,ToggleButton> issueChips=new EnumMap<>(ProductIssueFilter.class);
     private final PauseTransition debounce=new PauseTransition(Duration.millis(300));
     private Consumer<List<ProductKey>> onCopy;
@@ -79,7 +79,7 @@ public final class ProductsPane extends BorderPane {
         this.reader=reader==null?repository::loadProductPage:reader;this.reads=Objects.requireNonNull(reads);
         this.refreshService=Objects.requireNonNull(refreshService);reload.setId("productSync");status.setId("productStatus");
         setId("productsPane");getStyleClass().add("products-workspace");setPadding(new Insets(16));
-        rows.setId("productRows");rows.setFixedCellSize(104);rows.setCellFactory(list->new ProductCell());
+        rows.setId("productRows");rows.setFixedCellSize(92);rows.setCellFactory(list->new ProductCell());
         rows.skinProperty().addListener((o,a,b)->Platform.runLater(this::installScrollPaging));
         var headingSpacer=new Region();HBox.setHgrow(headingSpacer,Priority.ALWAYS);
         var heading=new HBox(12,title,count,headingSpacer,reload);heading.setAlignment(Pos.CENTER_LEFT);heading.setMinHeight(42);
@@ -102,27 +102,37 @@ public final class ProductsPane extends BorderPane {
         status.setWrapText(true);status.managedProperty().bind(status.textProperty().isNotEmpty());status.visibleProperty().bind(status.managedProperty());
         var top=new VBox(8,heading,filters,issueBar,status);top.setPadding(new Insets(0,0,8,0));setTop(top);setCenter(listing);
         bulk.setId("productBulkActions");bulk.getStyleClass().add("products-bulk");
-        bulk.setLeft(selected);bulk.setCenter(bulkActions);bulk.setRight(clear);
-        BorderPane.setAlignment(selected,Pos.CENTER_LEFT);BorderPane.setAlignment(clear,Pos.CENTER_RIGHT);
-        BorderPane.setMargin(bulkActions,new Insets(0,12,0,12));
         selected.getStyleClass().add("text-bold");selected.setMinWidth(Region.USE_PREF_SIZE);bulkActions.setMinWidth(0);bulkActions.setAlignment(Pos.CENTER_LEFT);
-        // BorderPane measures the horizontal FlowPane with its actual available
-        // width. Binding the preferred wrap width to the previous child width
-        // could reserve several rows on the first visible Windows layout pulse.
         for(String field:List.of("brand","material","gender","tnved","documents")) {
             var button=new Button();button.setId("productEdit_"+field);button.getStyleClass().add("btn-primary");button.setDisable(true);button.setUserData(field);
             button.setGraphic(new FontIcon(switch(field){case "brand"->"fth-award";case "material"->"fth-layers";case "gender"->"fth-users";case "tnved"->"fth-hash";default->"fth-shield";}));
             button.setOnAction(event->{var frozen=selection.freeze();if(onEdit!=null&&!frozen.isEmpty()&&!loading&&!syncing&&!selecting)onEdit.accept(field,frozen);});bulkActions.getChildren().add(button);
         }
-        clear.setId("productClearSelection");clear.setText("");clear.setGraphic(new FontIcon("fth-x"));clear.setMinSize(32,38);
+        clear.setId("productClearSelection");clear.setText("");clear.setGraphic(new FontIcon("fth-x"));clear.setMinSize(30,34);
         bulk.setVisible(false);bulk.setManaged(false);
-        var bottom=new VBox(bulk);bottom.setPadding(new Insets(14,0,0,0));bottom.managedProperty().bind(bulk.managedProperty());bottom.visibleProperty().bind(bottom.managedProperty());setBottom(bottom);
+        var bottom=new VBox(bulk);bottom.setPadding(new Insets(10,0,0,0));bottom.managedProperty().bind(bulk.managedProperty());bottom.visibleProperty().bind(bottom.managedProperty());setBottom(bottom);
         reload.setOnAction(e->synchronize());more.setOnAction(e->load(true));
         debounce.setOnFinished(e->filterChanged());search.textProperty().addListener((o,a,b)->{if(!updating){selection.clear();updateSelection();debounce.playFromStart();}});
         category.valueProperty().addListener((o,a,b)->{if(!updating)filterChanged();});document.valueProperty().addListener((o,a,b)->{if(!updating)filterChanged();});issue.valueProperty().addListener((o,a,b)->{refreshIssueCells();if(!updating)filterChanged();});missing.setOnAction(e->filterChanged());
         pageSelection.setOnAction(e->{if(pageSelection.isSelected())selectAllResults();else{selection.clear();updateSelection();}});
         clear.setOnAction(e->{selection.clear();updateSelection();});copy.setOnAction(e->{if(onCopy!=null&&!loading&&!syncing&&!selecting)onCopy.accept(selection.freeze());});
         all.setOnAction(e->selectAllResults());applyTranslations();setShop(null);
+    }
+    /** Measure wrapped actions with the width remaining beside the caption and close button. */
+    private static final class ProductActionBar extends Region {
+        private static final double GAP=10;
+        private final Label caption;private final FlowPane actions;private final Button close;
+        ProductActionBar(Label caption,FlowPane actions,Button close){this.caption=caption;this.actions=actions;this.close=close;getChildren().addAll(caption,actions,close);setMinSize(0,USE_PREF_SIZE);}
+        @Override public Orientation getContentBias(){return Orientation.HORIZONTAL;}
+        private double actionsWidth(double width){return Math.max(1,width-snappedLeftInset()-snappedRightInset()-caption.prefWidth(-1)-close.prefWidth(-1)-2*GAP);}
+        @Override protected double computePrefWidth(double height){return snappedLeftInset()+caption.prefWidth(-1)+GAP+actions.prefWidth(-1)+GAP+close.prefWidth(-1)+snappedRightInset();}
+        @Override protected double computePrefHeight(double width){double available=actionsWidth(width<0?prefWidth(-1):width);return snappedTopInset()+Math.max(actions.prefHeight(available),Math.max(caption.prefHeight(-1),close.prefHeight(-1)))+snappedBottomInset();}
+        @Override protected void layoutChildren(){
+            double x=snappedLeftInset(),y=snappedTopInset(),h=getHeight()-y-snappedBottomInset(),cw=caption.prefWidth(-1),bw=close.prefWidth(-1);
+            caption.resizeRelocate(x,y+(h-caption.prefHeight(cw))/2,cw,caption.prefHeight(cw));
+            actions.resizeRelocate(x+cw+GAP,y,actionsWidth(getWidth()),h);
+            close.resizeRelocate(getWidth()-snappedRightInset()-bw,y+(h-close.prefHeight(bw))/2,bw,close.prefHeight(bw));
+        }
     }
     public void setOnCopy(Consumer<List<ProductKey>> callback){onCopy=callback;updateButtons();}
     public void setOnEdit(BiConsumer<String,List<ProductKey>> callback){onEdit=callback;updateButtons();}
@@ -198,18 +208,18 @@ public final class ProductsPane extends BorderPane {
     }
     private final class ProductCell extends ListCell<ProductRow> {
         private final CheckBox check=new CheckBox();private final ImageView image=new ImageView();private final Label name=new Label(),meta=new Label(),article=new Label(),barcode=new Label(),paper=new Label(),material=new Label(),tnved=new Label(),genderText=new Label();
-        private final HBox box;private final VBox right=new VBox(3),taxonomy=new VBox(3);private long imageRequest;
+        private final HBox box;private final VBox right=new VBox(1),taxonomy=new VBox(1);private long imageRequest;
         ProductCell(){
             for(var label:List.of(meta,material,tnved,genderText))label.getStyleClass().add("text-muted");
-            image.setFitWidth(64);image.setFitHeight(88);image.setPreserveRatio(true);
-            var photo=new StackPane(image);photo.setMinSize(64,88);photo.setMaxSize(64,88);photo.getStyleClass().add("product-photo");
+            image.setFitWidth(56);image.setFitHeight(76);image.setPreserveRatio(true);
+            var photo=new StackPane(image);photo.setMinSize(56,76);photo.setMaxSize(56,76);photo.getStyleClass().add("product-photo");
             name.setWrapText(false);name.setMaxWidth(Double.MAX_VALUE);name.getStyleClass().add("product-name");
             var middle=new VBox(1,name,meta,article,barcode);HBox.setHgrow(middle,Priority.ALWAYS);middle.setMinWidth(120);middle.setPrefWidth(580);
             for(var label:List.of(meta,article,barcode))label.setMaxWidth(Double.MAX_VALUE);
             right.getChildren().setAll(paper,material);right.setMinWidth(170);right.setPrefWidth(280);right.setMaxWidth(280);material.setWrapText(true);
             taxonomy.setMinWidth(210);taxonomy.setPrefWidth(235);taxonomy.setMaxWidth(235);
             box=new HBox(14,check,photo,middle,right);box.setAlignment(Pos.TOP_LEFT);box.getStyleClass().add("product-row");box.prefWidthProperty().bind(widthProperty().subtract(32));
-            check.setMinWidth(24);check.setMaxWidth(24);HBox.setMargin(check,new Insets(32,0,0,0));
+            check.setMinWidth(24);check.setMaxWidth(24);HBox.setMargin(check,new Insets(24,0,0,0));
             check.setOnAction(e->{var row=getItem();if(row!=null){selection.setSelected(row.key(),check.isSelected());updateSelection();}});
             setOnMouseClicked(e->{if(e.getClickCount()==2&&getItem()!=null)details(getItem());});widthProperty().addListener((o,a,b)->adaptRow());
         }

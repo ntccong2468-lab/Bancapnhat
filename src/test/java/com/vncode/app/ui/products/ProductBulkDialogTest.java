@@ -11,6 +11,8 @@ import javafx.scene.Scene;
 import javafx.scene.control.*;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import java.nio.file.Path;
 import java.time.Instant;
 import java.util.*;
@@ -117,13 +119,45 @@ class ProductBulkDialogTest {
     assertFalse(window.isShowing());assertNotNull(host[0].lookup("#productBulkProgressPill"));return null;
    });
    assertTrue(adapter.entered.await(5,TimeUnit.SECONDS));
-   fx(()->{host[0].applyCss();host[0].layout();var pill=host[0].lookup("#productBulkProgressPill");var list=host[0].lookup("#productRows");var p=pill.localToScene(pill.getBoundsInLocal());var l=list.localToScene(list.getBoundsInLocal());assertEquals(l.getCenterX(),p.getCenterX(),3);assertTrue(p.getMaxY()<=l.getMaxY());assertTrue(p.getMaxY()>l.getMinY()+l.getHeight()/2);assertTrue(pane.backgroundRunning().get());return null;});
+   fx(()->{((Label)pane.lookup("#editStatus")).setText("Đang sửa thương hiệu · Tổng 1.000 · Còn 999 · Đã sửa 1 · Thất bại 0 · Đang chờ sàn xác nhận thay đổi ".repeat(3));host[0].applyCss();host[0].layout();var pill=host[0].lookup("#productBulkProgressPill");var list=host[0].lookup("#productRows");var p=pill.localToScene(pill.getLayoutBounds());var l=list.localToScene(list.getLayoutBounds());assertEquals(l.getCenterX(),p.getCenterX(),3);assertTrue(p.getMinX()>=l.getMinX()&&p.getMaxX()<=l.getMaxX(),"Long progress text stays inside the product list");assertTrue(p.getMaxY()<=l.getMaxY());assertTrue(p.getMaxY()>l.getMinY()+l.getHeight()/2);assertTrue(pane.backgroundRunning().get());return null;});
   }finally{adapter.release.countDown();}
   idle();assertEquals(2,adapter.sent.size());fx(()->{assertFalse(pane.backgroundRunning().get());assertTrue(pane.progressText().get().contains(I18nService.getInstance().tr("edit.saved")));host[0].dispose();stage[0].close();return null;});
  }
+ @ParameterizedTest @CsvSource({"WILDBERRIES,brand","WILDBERRIES,material","WILDBERRIES,gender","WILDBERRIES,tnved","WILDBERRIES,documents","OZON,brand","OZON,material","OZON,gender","OZON,tnved","OZON,documents"})
+ void allFiveModalEditorsFitSmallOwnersAndTheirApplyButtonsWork(com.vncode.app.integration.marketplace.Marketplace marketplace,String field)throws Exception{
+  shop=new Shop(1,"Fixture shop",marketplace,marketplace==com.vncode.app.integration.marketplace.Marketplace.OZON?"fixture-client":null,"fixture");
+  keys=List.of(new ProductKey(1,marketplace,"123",""),new ProductKey(1,marketplace,"124",""));
+  try(var c=Database.getConnection();var update=c.prepareStatement("UPDATE shops SET marketplace=?,client_id=? WHERE id=1")){update.setString(1,marketplace.name());update.setString(2,shop.getClientId());update.executeUpdate();}
+  var owner=fx(javafx.stage.Stage::new);
+  try{
+   fx(()->{owner.setScene(new Scene(new javafx.scene.layout.StackPane(),760,500));ThemeService.applyTheme(owner.getScene());owner.show();pane.getScene().setRoot(new javafx.scene.layout.StackPane());pane.open(shop,field,keys);pane.compact();var show=ProductBulkEditPane.class.getDeclaredMethod("showCompact",javafx.stage.Window.class,Runnable.class);show.setAccessible(true);show.invoke(pane,owner,(Runnable)()->{});return null;});idle();
+   fx(()->{
+    var window=javafx.stage.Window.getWindows().stream().filter(w->w.getScene()!=null&&w.getScene().getRoot() instanceof DialogPane d&&"productBulkEditDialog".equals(d.getId())).findFirst().orElseThrow();var dialog=(DialogPane)window.getScene().getRoot();dialog.applyCss();dialog.layout();
+    assertTrue(window.getWidth()<=owner.getWidth()+1,field+" width");assertTrue(window.getHeight()<=owner.getHeight()+1,field+" height");
+    var applyType=dialog.getButtonTypes().stream().filter(t->t.getButtonData()==ButtonBar.ButtonData.OK_DONE).findFirst().orElseThrow();var apply=(Button)dialog.lookupButton(applyType);
+    for(var type:dialog.getButtonTypes()){var button=dialog.lookupButton(type);var bounds=button.localToScene(button.getLayoutBounds());assertTrue(bounds.getMinY()>=0&&bounds.getMaxY()<=window.getScene().getHeight()+1&&bounds.getMinX()>=0&&bounds.getMaxX()<=window.getScene().getWidth()+1,field+" modal actions must remain visible");}
+    switch(field){
+     case "brand","tnved"->((TextField)pane.lookup("#editValue")).setText(field.equals("brand")?"Updated brand":"6112110000");
+     case "gender"->pane.lookupAll(".radio-button").stream().map(n->(RadioButton)n).filter(r->r.getText().contains("Мужской")).findFirst().orElseThrow().fire();
+     case "material"->{((ComboBox<String>)pane.lookup("#bulkMaterialName")).getEditor().setText("хлопок");((Spinner<Integer>)pane.lookup("#bulkMaterialPercent")).getValueFactory().setValue(100);}
+     case "documents"->{((TextField)pane.lookup("#editDocumentNumber")).setText("NEW-DOC");((DatePicker)pane.lookup("#editDocumentFrom")).setValue(java.time.LocalDate.now().minusDays(1));((DatePicker)pane.lookup("#editDocumentUntil")).setValue(java.time.LocalDate.now().plusYears(1));}
+     default->throw new AssertionError(field);
+    }
+    assertFalse(apply.isDisabled(),field+" apply must accept complete input");apply.fire();return null;
+   });idle();assertEquals(2,adapter.sent.size(),marketplace+" "+field);assertTrue(service.result(shop,service.list(shop).getFirst()).items().stream().allMatch(i->i.state()==CopyState.RECONCILED));
+  }finally{fx(()->{for(var window:List.copyOf(javafx.stage.Window.getWindows()))if(window!=owner&&window.getScene()!=null&&window.getScene().getRoot() instanceof DialogPane dialog&&"productBulkEditDialog".equals(dialog.getId()))((Button)dialog.lookupButton(dialog.getButtonTypes().stream().filter(t->t.getButtonData()==ButtonBar.ButtonData.CANCEL_CLOSE).findFirst().orElseThrow())).fire();owner.close();return null;});}
+ }
+ @Test void existingOzonDocumentRetainsItsRemoteIdentityForTheRealAdapter()throws Exception{
+  shop=new Shop(1,"Fixture shop",com.vncode.app.integration.marketplace.Marketplace.OZON,"fixture-client","fixture");keys=List.of(new ProductKey(1,shop.getMarketplace(),"123",""));
+  try(var c=Database.getConnection();var statement=c.createStatement()){statement.execute("UPDATE shops SET marketplace='OZON',client_id='fixture-client' WHERE id=1");}
+  var before=snapshot(keys.getFirst());String source="https://api-seller.ozon.ru/v1/product/certificate/list";var document=new ProductDocument("77","declaration","EXISTING",java.time.LocalDate.now().minusDays(1),java.time.LocalDate.now().plusYears(1),"","",null,shop.getMarketplace(),DocumentState.UNVERIFIED,source,Instant.now());
+  new ProductRepository().saveVerifiedSnapshot(shop,new ProductSnapshot(before.key(),before.revision(),before.title(),before.description(),before.brand(),before.vendorArticle(),before.categoryId(),before.media(),before.attributes(),before.variants(),before.dimensions(),List.of(document),before.checkedAt(),before.metadata()));
+  fx(()->{pane.open(shop,"documents",keys);pane.compact();pane.applyCss();pane.layout();return null;});idle();
+  fx(()->{((ComboBox<ProductDocument>)pane.lookup("#bulkExistingDocument")).getSelectionModel().selectFirst();var edit=ProductBulkEditPane.class.getDeclaredMethod("edit");edit.setAccessible(true);var selected=((ProductBulkEdit)edit.invoke(pane)).documents().getFirst();assertEquals("77",selected.id());assertEquals(source,selected.source());assertEquals(document.checkedAt(),selected.checkedAt());assertNull(selected.file());return null;});
+ }
  class Adapter implements ListingTargetAdapter {
   List<String> sent=new CopyOnWriteArrayList<>();CountDownLatch entered,release;
-  public List<TargetCategory> categories(Shop s){return List.of();}public List<TargetAttribute> attributes(Shop s,String c){return List.of();}
+  public List<TargetCategory> categories(Shop s){return List.of();}public List<TargetAttribute> attributes(Shop s,String c){return List.of(new TargetAttribute("1","Пол","string",false,"",1,"","",false),new TargetAttribute("2","Состав","string",false,"",1,"","",false),new TargetAttribute("3","ТН ВЭД","string",false,"",1,"","",false));}
   public List<String> suggestValues(Shop s,String c,String f,String q){return List.of("New brand");}
   public CopyPreview preview(Shop s,ProductSnapshot p,CopyOptions o){throw new UnsupportedOperationException();}
   public ProductEditPreview previewUpdate(Shop s,ProductSnapshot fresh,Map<String,List<String>> changes,List<ProductDocument> docs){String body=ProductJson.GSON.toJson(changes),owner=ListingIdentity.fingerprint(s);var options=new CopyOptions(changes.keySet(),Set.of(),fresh.categoryId(),Map.of(),changes,Map.of(),null,"RUB",List.of(),null);return new ProductEditPreview(fresh.key(),fresh.revision(),new CopyPreview(s.getId(),s.getMarketplace(),owner,fresh.key(),fresh.revision(),CopyPreview.hash(body,"[]","[]",owner,fresh.revision(),"UPDATE"),body,"[]","[]",Map.of(),List.of(),List.of(fresh.vendorArticle()),options,"UPDATE"));}

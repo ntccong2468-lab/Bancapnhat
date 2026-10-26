@@ -79,7 +79,7 @@ public final class ProductBulkEditPane extends BorderPane {
         this.service=service;this.reads=reads;this.suggestionsService=suggestionsService;
         setId("productBulkEditPane");setPadding(new Insets(18));setMinSize(0,0);
         DocumentDateInput.configure(from);DocumentDateInput.configure(until);
-        from.setId("editDocumentFrom");until.setId("editDocumentUntil");
+        number.setId("editDocumentNumber");from.setId("editDocumentFrom");until.setId("editDocumentUntil");
         name.setId("editDocumentName");country.setId("editDocumentCountry");accordance.setId("editDocumentAccordance");productType.setId("editDocumentProductType");registry.setId("editDocumentRegistry");
         title.getStyleClass().add("h2");notice.setWrapText(true);status.setWrapText(true);suggestionStatus.setWrapText(true);
         var header=new FlowPane(12,8,back,title);setTop(new VBox(10,header,notice));
@@ -170,7 +170,7 @@ public final class ProductBulkEditPane extends BorderPane {
         var metadata=new HashMap<String,String>(selectedDocument==null?Map.of():selectedDocument.metadata());metadata.put("isEndless",Boolean.toString(endless.isSelected()));metadata.put("certificate_type",type.getText().strip());metadata.put("certificate_country",country.getText().strip());metadata.put("accordance_type",accordance.getText().strip());metadata.put("name",name.getText().strip());metadata.put("product_type",productType.getText().strip());metadata.put("link_to_registry",registry.getText().strip());metadata.put("type",type.getText().strip());
         var existing=selectedDocument;boolean reuse=existing!=null&&number.getText().strip().equals(existing.number())&&documentType(type.getText()).equals(documentType(existing.type()));
         String selectedType=reuse?existing.type():type.getText().strip();metadata.put("type",selectedType);metadata.put("certificate_type",reuse?existing.metadata().getOrDefault("certificate_type",selectedType):selectedType);
-        var doc=new ProductDocument(reuse?existing.id():"",selectedType,number.getText().strip(),from.getValue(),endless.isSelected()?null:until.getValue(),existing==null?"":existing.owner(),existing==null?"":existing.scope(),file==null?null:file.toUri(),shop.getMarketplace(),DocumentState.UNVERIFIED,"",null,metadata);
+        var doc=new ProductDocument(reuse?existing.id():"",selectedType,number.getText().strip(),from.getValue(),endless.isSelected()?null:until.getValue(),existing==null?"":existing.owner(),existing==null?"":existing.scope(),file==null?null:file.toUri(),shop.getMarketplace(),DocumentState.UNVERIFIED,reuse?existing.source():"",reuse?existing.checkedAt():null,metadata);
         return new ProductBulkEdit(field,List.of(),List.of(doc),Map.of());
     }
     private void prepare(){
@@ -284,7 +284,7 @@ public final class ProductBulkEditPane extends BorderPane {
     private void showCompact(javafx.stage.Window window,Runnable saved){
         var dialog=new Dialog<Void>();if(window!=null)dialog.initOwner(window);dialog.setTitle(title.getText());
         dialog.getDialogPane().setId("productBulkEditDialog");dialog.getDialogPane().setContent(this);
-        dialog.getDialogPane().setPrefSize(field.equals("material")?660:field.equals("gender")?460:860,field.equals("brand")?620:field.equals("gender")?350:field.equals("tnved")?290:430);
+        dialog.getDialogPane().setPrefSize(field.equals("material")?620:field.equals("gender")?440:720,field.equals("brand")?540:field.equals("gender")?380:field.equals("tnved")?290:460);
         var applyType=new ButtonType(tr("common.apply"),ButtonBar.ButtonData.OK_DONE);
         var cancelType=new ButtonType(tr("common.cancel"),ButtonBar.ButtonData.CANCEL_CLOSE);
         dialog.getDialogPane().getButtonTypes().setAll(applyType,cancelType);
@@ -300,7 +300,7 @@ public final class ProductBulkEditPane extends BorderPane {
         compact=true;setPadding(new Insets(12));compactConfirmation=new Label();compactConfirmation.setId("bulkEditConfirmation");compactConfirmation.setWrapText(true);setTop(new VBox(8,title,compactConfirmation));title.setWrapText(true);status.setText(tr("bulk.choose_apply"));endless.setText(tr("bulk.document_endless"));
         var form=new VBox(10);compactForm=form;form.setMinWidth(0);Consumer<String> defaultValue=value::setText;
         if(field.equals("brand")){
-            value.setPromptText(tr("bulk.brand_search"));suggestions.setPrefHeight(350);suggestions.setMinHeight(120);
+            value.setPromptText(tr("bulk.brand_search"));suggestions.setPrefHeight(250);suggestions.setMinHeight(80);
             suggestions.getSelectionModel().selectedItemProperty().addListener((o,a,b)->{if(b!=null)value.setText(b);});
             form.getChildren().setAll(value,suggestions,suggestionStatus);
         }else if(field.equals("gender")){
@@ -320,7 +320,7 @@ public final class ProductBulkEditPane extends BorderPane {
             var declaration=new RadioButton("Декларация ("+tr("bulk.declaration")+")");var certificate=new RadioButton("Сертификат ("+tr("bulk.certificate")+")");var group=new ToggleGroup();declaration.setToggleGroup(group);certificate.setToggleGroup(group);declaration.setSelected(true);type.setText("declaration");declaration.setOnAction(e->type.setText("declaration"));certificate.setOnAction(e->type.setText("certificate"));
             form.getChildren().setAll(existing,new FlowPane(12,8,declaration,certificate),line("copy.doc.number",number),new FlowPane(8,8,new Label(tr("copy.doc.from")),from),new FlowPane(8,8,new Label(tr("copy.doc.to")),until,endless));
             existing.setOnAction(e->{var d=existing.getValue();if(d==null)return;selectedDocument=d;number.setText(d.number());type.setText(d.type());from.setValue(d.validFrom());until.setValue(d.validUntil());endless.setSelected(Boolean.parseBoolean(d.metadata().getOrDefault("isEndless","false")));name.setText(d.metadata().getOrDefault("name",""));country.setText(d.metadata().getOrDefault("certificate_country",""));accordance.setText(d.metadata().getOrDefault("accordance_type",""));productType.setText(d.metadata().getOrDefault("product_type",""));registry.setText(d.metadata().getOrDefault("link_to_registry",""));file=d.file()==null||!"file".equalsIgnoreCase(d.file().getScheme())?null:java.nio.file.Path.of(d.file());certificate.setSelected(documentType(d.type()).equals("certificate"));declaration.setSelected(!certificate.isSelected());});
-            if(shop.getMarketplace()==com.vncode.app.integration.marketplace.Marketplace.OZON)form.getChildren().add(new TitledPane(tr("edit.technical"),new VBox(6,line("copy.doc.name",name),line("copy.doc.certificate_country",country),line("copy.doc.accordance_type",accordance),line("copy.doc.product_type",productType),line("copy.doc.link_to_registry",registry),chooseFile)));
+            if(shop.getMarketplace()==com.vncode.app.integration.marketplace.Marketplace.OZON){var advanced=new TitledPane(tr("edit.technical"),new VBox(6,line("copy.doc.name",name),line("copy.doc.certificate_country",country),line("copy.doc.accordance_type",accordance),line("copy.doc.product_type",productType),line("copy.doc.link_to_registry",registry),chooseFile));advanced.setExpanded(false);form.getChildren().add(advanced);}
             var captured=shop;long epoch=generation;reads.submitLocal(new ShopReadCoordinator.Key(shop.getId(),"bulk-documents",UUID.randomUUID().toString()),()->new ProductRepository().shopDocuments(captured)).whenComplete((docs,error)->Platform.runLater(()->{if(!disposed&&epoch==generation&&shop==captured&&error==null)existing.getItems().setAll(docs);}));
         }else form.getChildren().setAll(value);
         if(Set.of("brand","gender","material").contains(field)){
@@ -331,7 +331,7 @@ public final class ProductBulkEditPane extends BorderPane {
             proposalColumn("bulk.proposal.reason",r->tr("bulk.proposal.reason."+r.reason()));proposalColumn("znack.registration.status",r->tr(r.automatic()?"bulk.proposal.safe":"bulk.proposal.needs_data"));
             var evidence=new TitledPane(tr("bulk.proposal.details"),proposalRows);evidence.setExpanded(false);form.getChildren().add(evidence);
         }
-        var scroll=new ScrollPane(form);scroll.setFitToWidth(true);setCenter(scroll);BorderPane.setMargin(scroll,new Insets(12,0,8,0));
+        var scroll=new ScrollPane(form);scroll.setFitToWidth(true);scroll.setMinSize(0,0);scroll.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);setCenter(scroll);BorderPane.setMargin(scroll,new Insets(10,0,6,0));
         apply.setText(tr("common.apply"));apply.setOnAction(e->applyOnce());var progress=new ProgressIndicator();progress.setMaxSize(20,20);
         progress.visibleProperty().bind(backgroundRunning);progress.managedProperty().bind(progress.visibleProperty());
         setBottom(new VBox(8,status,new HBox(10,progress,apply)));buttons();
@@ -354,7 +354,7 @@ public final class ProductBulkEditPane extends BorderPane {
     private static String documentType(String value){return switch(Objects.toString(value,"").strip().toLowerCase(Locale.ROOT)){case "1","certificate","certificate_of_conformity"->"certificate";case "2","declaration"->"declaration";default->Objects.toString(value,"").strip().toLowerCase(Locale.ROOT);};}
     private void addMaterial(VBox rows,Label total,Label output){addMaterial(rows,total,output,"",0);}
     private void addMaterial(VBox rows,Label total,Label output,String initial,int amount){
-        var material=new ComboBox<String>();material.setEditable(true);material.setId("bulkMaterialName");material.setMaxWidth(Double.MAX_VALUE);material.getItems().setAll(suggestions.getItems());
+        var material=new ComboBox<String>();material.setEditable(true);material.setId("bulkMaterialName");material.setMinWidth(0);material.setMaxWidth(Double.MAX_VALUE);material.getItems().setAll(suggestions.getItems());
         var percent=new Spinner<Integer>(0,100,Math.clamp(amount,0,100));percent.setId("bulkMaterialPercent");percent.setEditable(true);percent.setPrefWidth(100);percent.getEditor().focusedProperty().addListener((o,a,b)->{if(!b)percent.commitValue();});
         var remove=new Button("×");var row=new HBox(8,material,percent,new Label("%"),remove);HBox.setHgrow(material,Priority.ALWAYS);rows.getChildren().add(row);
         Runnable update=()->{var parts=new ArrayList<String>();int sum=0;for(var node:rows.getChildren())if(node instanceof HBox h){@SuppressWarnings("unchecked")var combo=(ComboBox<String>)h.getChildren().get(0);@SuppressWarnings("unchecked")var spinner=(Spinner<Integer>)h.getChildren().get(1);String text=combo.getEditor().getText().strip();int percentage=spinner.getValue();sum+=percentage;if(!text.isBlank())parts.add(text+(percentage==0?"":" "+percentage+"%"));}value.setText(String.join(" | ",parts));total.setText(tr("bulk.material_total")+" "+sum+"%");output.setText(String.join(", ",parts));};

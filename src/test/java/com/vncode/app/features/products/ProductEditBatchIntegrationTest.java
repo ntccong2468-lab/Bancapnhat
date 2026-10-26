@@ -14,6 +14,7 @@ import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import static org.junit.jupiter.api.Assertions.*;
 import static com.vncode.app.integration.listing.ListingJson.*;
 
@@ -138,6 +139,71 @@ class ProductEditBatchIntegrationTest {
     @Test void ozonWritesGender()throws Exception{ozonRequestedAttributeIsWrittenAndUnrelatedValuesRemain("gender");}
     @Test void ozonWritesMaterial()throws Exception{ozonRequestedAttributeIsWrittenAndUnrelatedValuesRemain("material");}
     @Test void ozonWritesTnved()throws Exception{ozonRequestedAttributeIsWrittenAndUnrelatedValuesRemain("tnved");}
+    @Test void ozonExistingCertificateBindsWithoutUploadingAndWaitsForReadback()throws Exception{
+        var keys=configure(Marketplace.OZON,2);var remote=new CertificateFixture();remote.bound.add("article-100001");var preview=certificatePreview(keys,remote);assertTrue(preview.publishable());
+        assertEquals(0,remote.binds);service.apply(shop,preview.id(),true);assertEquals(0,remote.binds);
+        assertTrue(service.reconcile(shop,preview.id()).items().stream().allMatch(i->i.state()==CopyState.REMOTE_PROCESSING));assertEquals(2,remote.binds);
+        assertTrue(service.reconcile(shop,preview.id()).items().stream().allMatch(i->i.state()==CopyState.RECONCILED));
+        service.apply(shop,preview.id(),true);service.reconcile(shop,preview.id());assertEquals(2,remote.binds);assertEquals(0,api.writes);
+    }
+    @ParameterizedTest @ValueSource(strings={"rejected","expired","id","number","type","date"})
+    void ozonCertificateInvalidOrChangedBeforeApplyCannotBind(String mismatch)throws Exception{
+        var keys=configure(Marketplace.OZON,2);var remote=new CertificateFixture();
+        switch(mismatch){case "rejected","expired"->remote.certificate.addProperty("status_code",mismatch);case "id"->remote.certificate.addProperty("certificate_id",78);case "number"->remote.certificate.addProperty("certificate_number","OTHER");case "type"->remote.certificate.addProperty("type_code","certificate");case "date"->remote.certificate.addProperty("expire_date","2029-01-01T00:00:00Z");default->throw new AssertionError();}
+        var preview=certificatePreview(keys,remote);assertFalse(preview.publishable());assertThrows(IllegalStateException.class,()->service.apply(shop,preview.id(),true));assertEquals(0,remote.binds);assertEquals(0,api.writes);
+    }
+    @Test void ozonExplicitCertificateBindRejectionIsFinal()throws Exception{
+        var keys=configure(Marketplace.OZON,2);var remote=new CertificateFixture();remote.accept=false;var preview=certificatePreview(keys,remote);service.apply(shop,preview.id(),true);
+        var result=service.reconcile(shop,preview.id());assertTrue(result.items().stream().allMatch(i->i.state()==CopyState.FAILED));assertTrue(result.items().stream().flatMap(i->i.issues().stream()).allMatch(i->i.code().equals("MARKETPLACE_REJECTED")));
+        service.reconcile(shop,preview.id());assertEquals(2,remote.binds);assertTrue(remote.bound.isEmpty());
+    }
+    @ParameterizedTest @CsvSource({"true,false","false,true"})
+    void ozonLostCertificateBindResponseIsReconciledWithoutAnotherBind(boolean lost,boolean malformed)throws Exception{
+        var keys=configure(Marketplace.OZON,2);var remote=new CertificateFixture();remote.loseResponse=lost;remote.malformedAcknowledgement=malformed;var preview=certificatePreview(keys,remote);service.apply(shop,preview.id(),true);
+        assertTrue(service.reconcile(shop,preview.id()).items().stream().allMatch(i->i.state()==CopyState.RECONCILE_REQUIRED));new ProductEditRepository().recoverIncomplete();
+        assertTrue(service.reconcile(shop,preview.id()).items().stream().allMatch(i->i.state()==CopyState.RECONCILED));assertEquals(2,remote.binds);
+    }
+    @Test void ozonCertificateNeedsItsExactIdInReadbackAndCanBeOnTheSecondPage()throws Exception{
+        var keys=configure(Marketplace.OZON,2);var remote=new CertificateFixture();remote.readbackId=78;remote.pages=2;var preview=certificatePreview(keys,remote);service.apply(shop,preview.id(),true);service.reconcile(shop,preview.id());
+        assertTrue(service.reconcile(shop,preview.id()).items().stream().allMatch(i->i.state()==CopyState.REMOTE_PROCESSING));remote.readbackId=77;
+        assertTrue(service.reconcile(shop,preview.id()).items().stream().allMatch(i->i.state()==CopyState.RECONCILED));assertEquals(2,remote.binds);
+    }
+    @Test void ozonCertificateChangedAfterPreviewIsBlockedBeforeBinding()throws Exception{
+        var keys=configure(Marketplace.OZON,2);var remote=new CertificateFixture();var preview=certificatePreview(keys,remote);assertTrue(preview.publishable());remote.certificate.addProperty("status_code","rejected");
+        assertThrows(IllegalStateException.class,()->service.apply(shop,preview.id(),true));assertEquals(0,remote.binds);
+    }
+    @Test void ozonCertificateRejectedDuringReadbackIsFailedWithoutRebinding()throws Exception{
+        var keys=configure(Marketplace.OZON,2);var remote=new CertificateFixture();var preview=certificatePreview(keys,remote);service.apply(shop,preview.id(),true);service.reconcile(shop,preview.id());remote.certificate.addProperty("status_code","rejected");
+        assertTrue(service.reconcile(shop,preview.id()).items().stream().allMatch(i->i.state()==CopyState.FAILED));service.reconcile(shop,preview.id());assertEquals(2,remote.binds);
+    }
+    @Test void ozonNewDocumentStillUploadsTheFileAndChecksItsBinding()throws Exception{
+        var keys=configure(Marketplace.OZON,2);var remote=new CertificateFixture();remote.allowCreate=true;remote.certificate.addProperty("certificate_number","NEW-DOC");
+        service=new ProductBulkEditService(new ProductEditRepository(),(s,k)->ProductEditApiSession.open(s,k,remote,true));
+        var file=root.resolve("certificate.pdf");Files.writeString(file,"%PDF-1.7\nSynthetic certificate fixture");
+        var document=new ProductDocument("","declaration","NEW-DOC",java.time.LocalDate.of(2026,1,1),java.time.LocalDate.of(2028,1,1),"","",file.toUri(),Marketplace.OZON,DocumentState.UNVERIFIED,"",null);
+        var preview=service.preview(shop,keys,new ProductBulkEdit("documents",List.of(),List.of(document),Map.of()));assertTrue(preview.publishable());service.apply(shop,preview.id(),true);service.reconcile(shop,preview.id());
+        assertEquals(2,remote.creates);assertEquals(0,remote.binds);assertTrue(service.reconcile(shop,preview.id()).items().stream().allMatch(i->i.state()==CopyState.RECONCILED));service.apply(shop,preview.id(),true);assertEquals(2,remote.creates);
+    }
+    private ProductBulkEditService.ProductEditPreview certificatePreview(List<ProductKey> keys,CertificateFixture remote)throws Exception{
+        service=new ProductBulkEditService(new ProductEditRepository(),(s,k)->ProductEditApiSession.open(s,k,remote,true));
+        var doc=new ProductDocument("77","declaration","EXISTING-DOC",java.time.LocalDate.of(2026,1,1),java.time.LocalDate.of(2028,1,1),"","",null,Marketplace.OZON,DocumentState.UNVERIFIED,"https://api-seller.ozon.ru/v1/product/certificate/list",Instant.now());
+        return service.preview(shop,keys,new ProductBulkEdit("documents",List.of(),List.of(doc),Map.of()));
+    }
+    private final class CertificateFixture implements ListingTransport {
+        final JsonObject certificate=JsonParser.parseString("{\"certificate_id\":77,\"certificate_number\":\"EXISTING-DOC\",\"type_code\":\"declaration\",\"status_code\":\"approved\",\"issue_date\":\"2026-01-01T00:00:00Z\",\"expire_date\":\"2028-01-01T00:00:00Z\"}").getAsJsonObject();
+        final Set<String> bound=new HashSet<>();int binds,creates,readbackId=77,pages=1;boolean accept=true,loseResponse,allowCreate,malformedAcknowledgement;
+        public JsonElement call(String path,JsonElement body,boolean mutation)throws IOException{
+            if(path.equals("v1/product/certificate/info")){assertFalse(mutation);assertEquals("EXISTING-DOC",text(body.getAsJsonObject(),"certificate_number"));var result=new JsonObject();result.add("result",certificate.deepCopy());return result;}
+            if(path.equals("v1/product/certificate/list")){var docs=new JsonArray();if(body.getAsJsonObject().get("page").getAsInt()==pages&&bound.contains(text(body.getAsJsonObject(),"offer_id"))){var value=certificate.deepCopy();value.addProperty("certificate_id",readbackId);docs.add(value);}var data=new JsonObject();data.add("certificates",docs);data.addProperty("page_count",pages);var result=new JsonObject();result.add("result",data);return result;}
+            if(path.equals("v1/product/certificate/bind")){assertTrue(mutation);assertEquals(77,body.getAsJsonObject().get("certificate_id").getAsInt());for(var sku:body.getAsJsonObject().getAsJsonArray("skus")){assertTrue(sku.getAsString().matches("30000[01]"));if(accept)bound.add("article-"+(sku.getAsInt()-200000));}binds++;if(loseResponse)throw new IOException("Synthetic lost bind acknowledgement");return malformedAcknowledgement?new JsonObject():JsonParser.parseString("{\"result\":"+accept+"}");}
+            if(path.equals("v2/product/certification/options"))return JsonParser.parseString("{\"option\":{}}");
+            if(path.equals("v2/product/certification/params"))return JsonParser.parseString("{\"params\":[]}");
+            if(path.equals("v2/product/certificate/create")){
+                if(!allowCreate)throw new AssertionError("An uploaded certificate must be reused");assertTrue(mutation);creates++;var params=body.getAsJsonObject().getAsJsonObject("params");assertEquals("NEW-DOC",text(params,"number"));assertEquals(1,params.getAsJsonArray("files").size());assertTrue(new String(Base64.getDecoder().decode(text(params.getAsJsonArray("files").get(0).getAsJsonObject(),"file_content")),java.nio.charset.StandardCharsets.UTF_8).startsWith("%PDF-1.7"));for(var sku:params.getAsJsonArray("skus"))bound.add("article-"+(sku.getAsInt()-200000));return JsonParser.parseString("{\"status\":\"COMPLETED\",\"certificate_id\":\"77\"}");
+            }
+            return api.call(path,body,mutation);
+        }
+    }
     void ozonRequestedAttributeIsWrittenAndUnrelatedValuesRemain(String field)throws Exception{
         var keys=configure(Marketplace.OZON,2);String value=switch(field){case "gender"->"Мужской";case "material"->"хлопок 100%";case "tnved"->"6110209100";default->"Updated";};
         var p=service.preview(shop,keys,new ProductBulkEdit(field,field.equals("material")?List.of("хлопок 80%","полиэстер 20%"):List.of(value),null,Map.of()));assertTrue(p.publishable());service.apply(shop,p.id(),true);

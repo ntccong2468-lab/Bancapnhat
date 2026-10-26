@@ -107,6 +107,12 @@ public final class OzonListingAdapter extends AbstractListingAdapter implements 
     }
     private JsonObject certificate(Shop shop,ProductDocument d,List<CopyIssue> issues)throws IOException{
         if(!validDocument(d)){issue(issues,"DOCUMENT_INVALID",d.number());return null;}
+        if(d.file()==null&&d.marketplace()==Marketplace.OZON&&Objects.toString(d.id(),"").matches("[1-9][0-9]{0,18}")&&"https://api-seller.ozon.ru/v1/product/certificate/list".equals(d.source())){
+            var actual=readCertificate(shop,d.number());
+            if(!d.id().equals(text(actual,"certificate_id"))||!d.number().equals(text(actual,"certificate_number"))||!d.type().equalsIgnoreCase(text(actual,"type_code"))||invalidCertificate(actual)
+                    ||!Objects.equals(d.validFrom(),date(text(actual,"issue_date")))||!Objects.equals(d.validUntil(),date(text(actual,"expire_date")))){issue(issues,"DOCUMENT_INVALID",d.number());return null;}
+            return certificateReference(actual);
+        }
         if(d.file()==null){issue(issues,"DOCUMENT_FILE_REQUIRED",d.number());return null;}if(!"file".equalsIgnoreCase(d.file().getScheme())){issue(issues,"LOCAL_DOCUMENT_FILE_REQUIRED",d.number());return null;}
         var params=new JsonObject();for(String field:List.of("certificate_type","certificate_country","accordance_type","name","number","issue_date","link_to_registry","product_type")){String value=d.metadata().get(field);if(value!=null&&!value.isBlank())params.addProperty(field,value);}
         if(!params.has("number"))params.addProperty("number",d.number());if(!params.has("issue_date")&&d.validFrom()!=null)params.addProperty("issue_date",d.validFrom()+"T00:00:00Z");
@@ -119,6 +125,23 @@ public final class OzonListingAdapter extends AbstractListingAdapter implements 
         for(var e:array(required,"params")){var p=object(e);String field=text(p,"name").toLowerCase(Locale.ROOT);if("true".equals(text(p,"required"))&&!field.equals("skus")&&!params.has(field))issue(issues,"DOCUMENT_METADATA_REQUIRED",field);var variants=array(p,"variants");if(params.has(field)&&!variants.isEmpty()&&variants.asList().stream().noneMatch(v->text(object(v),"value").equals(text(params,field))))issue(issues,"DOCUMENT_TYPE_MAPPING",field);}
         return params;
     }
+    private JsonObject readCertificate(Shop shop,String number)throws IOException{var request=new JsonObject();request.addProperty("certificate_number",number);return obj(call(shop,"v1/product/certificate/info",request,false),"result");}
+    private static boolean invalidCertificate(JsonObject certificate){var end=date(text(certificate,"expire_date"));return Set.of("rejected","expired","deleted").contains(text(certificate,"status_code").toLowerCase(Locale.ROOT))||end!=null&&end.isBefore(java.time.LocalDate.now());}
+    private static JsonObject certificateReference(JsonObject certificate){
+        var reference=new JsonObject();reference.addProperty("certificate_id",new BigInteger(text(certificate,"certificate_id")));reference.addProperty("number",text(certificate,"certificate_number"));reference.addProperty("type_code",text(certificate,"type_code"));
+        for(String field:List.of("issue_date","expire_date")){var value=date(text(certificate,field));if(value!=null)reference.addProperty(field,value.toString());}return reference;
+    }
+    private enum CertificateBinding { WAITING, ATTACHED, REJECTED }
+    private CertificateBinding certificateBinding(Shop shop,String article,JsonObject reference)throws IOException{
+        int pages=1;
+        for(int page=1;page<=pages;page++){
+            var request=new JsonObject();request.addProperty("offer_id",article);request.addProperty("page",page);request.addProperty("page_size",100);
+            var result=obj(call(shop,"v1/product/certificate/list",request,false),"result");if(!result.has("certificates"))throw new IOException("Ozon document metadata unavailable");
+            pages=Math.max(1,result.has("page_count")?result.get("page_count").getAsInt():1);if(pages>10)throw new IOException("Too many Ozon certificate pages");
+            for(var item:array(result,"certificates")){var actual=object(item);if(text(reference,"number").equals(text(actual,"certificate_number"))&&(!reference.has("certificate_id")||text(reference,"certificate_id").equals(text(actual,"certificate_id"))))return invalidCertificate(actual)?CertificateBinding.REJECTED:CertificateBinding.ATTACHED;}
+        }
+        return CertificateBinding.WAITING;
+    }
     public RemoteSubmission submit(Shop s,CopyPreview p)throws IOException{requirePreview(s,p);if(!p.operation().equals("CREATE"))throw new SecurityException("Wrong listing operation");for(String a:p.articles())if(!find(s,a).isEmpty())throw new IOException("Destination article now exists");return send(s,p);}
     private RemoteSubmission send(Shop s,CopyPreview p)throws IOException{String task=text(obj(call(s,"v3/product/import",JsonParser.parseString(p.requestJson()),true),"result"),"task_id");if(!task.matches("[1-9][0-9]{0,18}"))throw new IOException("Import task unavailable; reconciliation required");return submitted(p,task);}
     public RemoteResult reconcile(Shop s,RemoteSubmission r)throws IOException{
@@ -127,11 +150,21 @@ public final class OzonListingAdapter extends AbstractListingAdapter implements 
         var ids=new LinkedHashMap<String,String>();for(var e:array(object(JsonParser.parseString(r.requestJson())),"items")){var want=object(e);String article=text(want,"offer_id");var found=find(s,article);if(found.size()!=1)return RemoteResult.pending();var info=found.getFirst();String id=text(info,"id");if(!id.matches("[1-9][0-9]*"))throw new IOException("Destination product identity unavailable");if(r.identities().containsKey(article)&&!id.equals(r.identities().get(article)))throw new IOException("Destination product identity changed");
             var filter=new JsonObject();var array=new JsonArray();array.add(id);filter.add("product_id",array);var b=new JsonObject();b.add("filter",filter);b.addProperty("limit",1);var attrs=array(call(s,"v4/product/info/attributes",b,false),"result");if(attrs.size()!=1||!text(object(attrs.get(0)),"id").equals(id)||!matches(want,info,object(attrs.get(0))))return RemoteResult.pending();if(!urls(r.mediaJson()).isEmpty()&&!imagesMatch(r.mediaJson(),OzonListingImages.ordered(info,object(attrs.get(0)))))return RemoteResult.pending();ids.put(article,id);ids.put("sku:"+article,text(info,"sku"));
         }
-        boolean docs=!JsonParser.parseString(r.documentsJson()).getAsJsonArray().isEmpty()&&r.phase().equals("CARD");if(r.phase().equals("ASSETS_SENT")||r.phase().equals("ASSETS_SENDING"))for(var e:JsonParser.parseString(r.documentsJson()).getAsJsonArray())for(String a:r.articles()){var b=new JsonObject();b.addProperty("offer_id",a);b.addProperty("page",1);b.addProperty("page_size",100);String number=text(object(e),"number");if(array(obj(call(s,"v1/product/certificate/list",b,false),"result"),"certificates").asList().stream().noneMatch(v->text(object(v),"certificate_number").equals(number)))return RemoteResult.pending();}
+        boolean docs=!JsonParser.parseString(r.documentsJson()).getAsJsonArray().isEmpty()&&r.phase().equals("CARD");if(r.phase().equals("ASSETS_SENT")||r.phase().equals("ASSETS_SENDING"))for(var e:JsonParser.parseString(r.documentsJson()).getAsJsonArray())for(String a:r.articles()){
+            var binding=certificateBinding(s,a,object(e));if(binding==CertificateBinding.WAITING)return RemoteResult.pending();if(binding==CertificateBinding.REJECTED)return new RemoteResult(CopyState.FAILED,List.of(),List.of(new CopyIssue("DOCUMENT_INVALID",text(object(e),"number"),true)),ids);
+        }
         return new RemoteResult(docs?CopyState.REMOTE_PROCESSING:CopyState.RECONCILED,ids.entrySet().stream().filter(e->!e.getKey().startsWith("sku:")).map(Map.Entry::getValue).toList(),docs?List.of(new CopyIssue("ASSETS_REQUIRED","documents",false)):List.of(),ids);
     }
     public RemoteSubmission finishAssets(Shop s,RemoteSubmission r)throws IOException{
-        owner(s,r);if(!r.phase().equals("ASSETS_SENDING")||r.identities().isEmpty())throw new SecurityException("Assets are not claimed");for(var e:JsonParser.parseString(r.documentsJson()).getAsJsonArray()){var params=object(e).deepCopy();var skus=new JsonArray();for(String a:r.articles()){String sku=r.identities().get("sku:"+a);var actual=find(s,a);if(actual.size()!=1||!text(actual.getFirst(),"sku").equals(sku)||!text(actual.getFirst(),"id").equals(r.identities().get(a)))throw new SecurityException("Destination certificate owner changed");if(sku==null||!sku.matches("[1-9][0-9]*"))throw new IOException("Destination SKU unavailable");skus.add(sku);}params.add("skus",skus);var b=new JsonObject();b.add("params",params);var response=call(s,"v2/product/certificate/create",b,true);if(!text(response,"status").equals("COMPLETED")||text(response,"certificate_id").isBlank())throw new IOException("Certificate submission incomplete");}
+        owner(s,r);if(!r.phase().equals("ASSETS_SENDING")||r.identities().isEmpty())throw new SecurityException("Assets are not claimed");for(var e:JsonParser.parseString(r.documentsJson()).getAsJsonArray()){
+            var params=object(e).deepCopy();var skus=new JsonArray();for(String a:r.articles()){String sku=r.identities().get("sku:"+a);var actual=find(s,a);if(actual.size()!=1||!text(actual.getFirst(),"sku").equals(sku)||!text(actual.getFirst(),"id").equals(r.identities().get(a)))throw new SecurityException("Destination certificate owner changed");if(sku==null||!sku.matches("[1-9][0-9]*"))throw new IOException("Destination SKU unavailable");skus.add(sku);}
+            if(params.has("certificate_id")){
+                var actual=readCertificate(s,text(params,"number"));
+                if(invalidCertificate(actual)||!text(actual,"certificate_id").matches("[1-9][0-9]{0,18}")||!same(params,certificateReference(actual)))throw new SecurityException("Destination certificate identity changed");
+                var request=new JsonObject();request.add("certificate_id",params.get("certificate_id"));request.add("skus",skus);var response=call(s,"v1/product/certificate/bind",request,true);
+                String accepted=text(response,"result");if("false".equals(accepted))throw new ListingRejectedException("Ozon certificate binding rejected");if(!"true".equals(accepted))throw new IOException("Certificate binding acknowledgement unavailable; reconcile before retrying");
+            }else{params.add("skus",skus);var b=new JsonObject();b.add("params",params);var response=call(s,"v2/product/certificate/create",b,true);if(!text(response,"status").equals("COMPLETED")||text(response,"certificate_id").isBlank())throw new IOException("Certificate submission incomplete");}
+        }
         return r.withPhase("ASSETS_SENT",r.identities());
     }
     public ProductEditPreview previewUpdate(Shop s,ProductSnapshot fresh,Map<String,List<String>> changes,List<ProductDocument> documents)throws IOException{
