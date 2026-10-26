@@ -62,6 +62,23 @@ class ProductEditAdapterTest {
         assertEquals(CopyState.RECONCILED,a.reconcile(s,r).state());
     }
     @Test void expiredBulkDocumentBlocksAllWrites()throws Exception{invalidBulkDocumentBlocksAllWrites(DocumentState.EXPIRED);}
+    @Test void ozonReadbackTreatsZeroDictionaryIdAsPlainTextAndStillChecksItsValue()throws Exception{
+        var s=new Shop(2,"Ozon",Marketplace.OZON,"22","fixture");var actual=new java.util.concurrent.atomic.AtomicReference<>("хлопок, лайкра");
+        var adapter=new OzonListingAdapter(owner->(p,b,m)->JsonParser.parseString(p.equals("v3/product/info/list")?"{\"items\":[{\"id\":123,\"offer_id\":\"own\",\"sku\":22}]}":"{\"result\":[{\"id\":123,\"offer_id\":\"own\",\"attributes\":[{\"id\":4604,\"values\":[{\"dictionary_value_id\":0,\"value\":\""+actual.get()+"\"}]}]}]}"),i->{throw new java.io.IOException();});
+        var r=new RemoteSubmission(2,Marketplace.OZON,ListingIdentity.fingerprint(s),"hash",null,List.of("own"),"{\"items\":[{\"offer_id\":\"own\",\"attributes\":[{\"id\":4604,\"values\":[{\"value\":\"хлопок, лайкра\"}]}]}]}","[]","[]","CARD",Map.of());
+        assertEquals(CopyState.RECONCILED,adapter.reconcile(s,r).state());actual.set("полиэстер");assertEquals(CopyState.REMOTE_PROCESSING,adapter.reconcile(s,r).state());
+    }
+    @Test void ozonTnvedUsesTheExactCodeInItsDescriptiveDictionaryLabel()throws Exception{
+        var s=new Shop(2,"Ozon",Marketplace.OZON,"22","fixture");var f=fresh(s,"{\"info\":{},\"attributes\":{\"offer_id\":\"own\",\"description_category_id\":9,\"type_id\":8,\"attributes\":[]}}");
+        var adapter=new OzonListingAdapter(owner->(p,b,m)->JsonParser.parseString(p.endsWith("/search")?"{\"result\":[{\"id\":444,\"value\":\"6103420001 - Брюки мужские\"},{\"id\":445,\"value\":\"6103420002 - Брюки другие\"}]}":"{\"result\":[{\"id\":22232,\"name\":\"ТН ВЭД коды ЕАЭС\",\"type\":\"String\",\"dictionary_id\":7,\"max_value_count\":1}]}"),i->{throw new java.io.IOException();});
+        var preview=adapter.previewUpdate(s,f,Map.of("attribute:22232",List.of("6103420001")),null).preview();assertTrue(preview.publishable(),preview.issues().toString());assertEquals(444,JsonParser.parseString(preview.requestJson()).getAsJsonObject().getAsJsonArray("items").get(0).getAsJsonObject().getAsJsonArray("attributes").get(0).getAsJsonObject().getAsJsonArray("values").get(0).getAsJsonObject().get("dictionary_value_id").getAsInt());
+    }
+    @Test void ozonDictionaryReadbackUsesConfirmedIdAndRejectsADifferentId()throws Exception{
+        var s=new Shop(2,"Ozon",Marketplace.OZON,"22","fixture");var id=new java.util.concurrent.atomic.AtomicInteger(444);
+        var adapter=new OzonListingAdapter(owner->(p,b,m)->JsonParser.parseString(p.equals("v3/product/info/list")?"{\"items\":[{\"id\":123,\"offer_id\":\"own\",\"sku\":22}]}":"{\"result\":[{\"id\":123,\"offer_id\":\"own\",\"attributes\":[{\"id\":22232,\"values\":[{\"dictionary_value_id\":"+id.get()+",\"value\":\"6103420001 - Брюки мужские\"}]}]}]}"),i->{throw new java.io.IOException();});
+        var r=new RemoteSubmission(2,Marketplace.OZON,ListingIdentity.fingerprint(s),"hash",null,List.of("own"),"{\"items\":[{\"offer_id\":\"own\",\"attributes\":[{\"id\":22232,\"values\":[{\"dictionary_value_id\":444,\"value\":\"6103420001\"}]}]}]}","[]","[]","CARD",Map.of());
+        assertEquals(CopyState.RECONCILED,adapter.reconcile(s,r).state());id.set(445);assertEquals(CopyState.REMOTE_PROCESSING,adapter.reconcile(s,r).state());
+    }
     @Test void rejectedBulkDocumentBlocksAllWrites()throws Exception{invalidBulkDocumentBlocksAllWrites(DocumentState.REJECTED);}
     private void invalidBulkDocumentBlocksAllWrites(DocumentState state)throws Exception{
         var file=root.resolve("certificate.pdf");java.nio.file.Files.writeString(file,"%PDF-1.7\nfixture");

@@ -65,7 +65,7 @@ public final class OzonListingAdapter extends AbstractListingAdapter implements 
     private JsonArray mappedAttributes(Shop shop,String cat,List<TargetAttribute> dict,Map<String,List<String>> values,Map<String,Map<String,String>> cache,List<CopyIssue> issues)throws IOException{
         var out=new JsonArray();for(var a:dict){var list=values.getOrDefault(a.id(),List.of());if(!list.isEmpty()&&a.maxValues()==1&&(a.dictionaryId().isBlank()||a.dictionaryId().equals("0"))&&ProductFieldNames.priority("material",a.name())==0)list=composition(list);if(list.isEmpty()){if(a.required())issue(issues,"REQUIRED_ATTRIBUTE",a.id());continue;}if(a.maxValues()>0&&list.size()>a.maxValues())issue(issues,"ATTRIBUTE_VALUE_LIMIT",a.id());
             var entry=new JsonObject();entry.addProperty("id",new BigInteger(a.id()));if(!a.complexId().isBlank()&&!a.complexId().equals("0"))entry.addProperty("complex_id",new BigInteger(a.complexId()));var vals=new JsonArray();Map<String,String> dictionary=Map.of();if(!a.dictionaryId().isBlank()&&!a.dictionaryId().equals("0")){dictionary=cache.get(a.id());boolean large=Set.of("Бренд","Бренд в одежде и обуви").contains(a.name())||ProductFieldNames.matches("tnved",a.name());
-                if(large){var known=new LinkedHashMap<String,String>(dictionary==null?Map.of():dictionary);var missing=list.stream().filter(v->!known.containsKey(v)).toList();if(!missing.isEmpty())known.putAll(exactValues(shop,cat,a.id(),missing));dictionary=Map.copyOf(known);cache.put(a.id(),dictionary);}
+                if(large){var known=new LinkedHashMap<String,String>(dictionary==null?Map.of():dictionary);var missing=list.stream().filter(v->!known.containsKey(v)).toList();if(!missing.isEmpty())known.putAll(exactValues(shop,cat,a.id(),missing,ProductFieldNames.matches("tnved",a.name())));dictionary=Map.copyOf(known);cache.put(a.id(),dictionary);}
                 else if(dictionary==null){dictionary=values(shop,cat,a.id());cache.put(a.id(),dictionary);}}
             for(String value:list){var val=new JsonObject();val.addProperty("value",value);if(!dictionary.isEmpty()||(!a.dictionaryId().isBlank()&&!a.dictionaryId().equals("0"))){String id=dictionary.get(value);if(id==null)issue(issues,"DICTIONARY_VALUE_REQUIRED",a.id());else val.addProperty("dictionary_value_id",new BigInteger(id));}else if(a.type().equals("integer")||a.type().equals("decimal")){try{new BigDecimal(value);}catch(NumberFormatException e){issue(issues,"ATTRIBUTE_NUMBER_REQUIRED",a.id());}}vals.add(val);}entry.add("values",vals);out.add(entry);
         }return out;
@@ -87,7 +87,7 @@ public final class OzonListingAdapter extends AbstractListingAdapter implements 
         var result=new JsonArray();for(var group:grouped.entrySet()){String targetComplex=group.getKey().substring(group.getKey().lastIndexOf(':')+1);var fields=dict.stream().filter(a->a.complexId().equals(targetComplex)).toList();var data=new JsonObject();data.add("attributes",mappedAttributes(s,o.targetCategoryId(),fields,group.getValue(),cache,issues));result.add(data);}if(result.isEmpty()&&dict.stream().anyMatch(a->a.required()&&!a.complexId().isBlank()&&!a.complexId().equals("0")))issue(issues,"COMPLEX_ATTRIBUTE_MAPPING_REQUIRED","attributes");return result;
     }
     /** Resolve only the selected terms in large brand/TN VED dictionaries. */
-    private Map<String,String> exactValues(Shop shop,String cat,String attribute,List<String> selected)throws IOException {
+    private Map<String,String> exactValues(Shop shop,String cat,String attribute,List<String> selected,boolean tnved)throws IOException {
         var result=new LinkedHashMap<String,String>();
         for(String value:selected){
             if(value.strip().length()<2){result.putAll(values(shop,cat,attribute));continue;}
@@ -95,9 +95,9 @@ public final class OzonListingAdapter extends AbstractListingAdapter implements 
             var response=call(shop,"v1/description-category/attribute/values/search",b,false);
             if(!response.has("result")||!response.get("result").isJsonArray())throw new IOException("Dictionary search unavailable");
             for(var e:array(response,"result")){var found=object(e);String term=text(found,"value"),id=text(found,"id");
-                if(!term.equals(value))continue;
-                if(!id.matches("[1-9][0-9]{0,18}")||(result.containsKey(term)&&!result.get(term).equals(id)))throw new IOException("Ambiguous destination dictionary value");
-                result.put(term,id);
+                if(!term.equals(value)&&!(tnved&&value.matches("[0-9]{10}")&&value.equals(ProductFieldNames.tnvedCode(term))))continue;
+                if(!id.matches("[1-9][0-9]{0,18}")||(result.containsKey(value)&&!result.get(value).equals(id)))throw new IOException("Ambiguous destination dictionary value");
+                result.put(value,id);
             }
         }
         return Map.copyOf(result);
@@ -238,12 +238,21 @@ public final class OzonListingAdapter extends AbstractListingAdapter implements 
         for(String key:List.of("offer_id","name","description_category_id","type_id","depth","width","height","weight","dimension_unit","weight_unit"))if(want.has(key)&&!same(want.get(key),attrs.get(key)))return false;
         if(want.has("price")&&(decimal(info,"price")==null||new BigDecimal(text(want,"price")).compareTo(decimal(info,"price"))!=0))return false;
         if(want.has("barcode")&&!strings(array(attrs,"barcodes")).contains(text(want,"barcode"))&&!text(attrs,"barcode").equals(text(want,"barcode")))return false;
-        for(var e:array(want,"attributes")){var a=object(e);if(array(attrs,"attributes").asList().stream().noneMatch(v->text(object(v),"id").equals(text(a,"id"))&&same(importValues(array(a,"values")),importValues(array(object(v),"values")))))return false;}
-        if(want.has("complex_attributes")){var actual=array(attrs,"complex_attributes").asList().stream().map(ListingJson::object).toList();for(var group:array(want,"complex_attributes"))for(var e:array(object(group),"attributes")){var a=object(e);if(actual.stream().noneMatch(v->text(v,"id").equals(text(a,"id"))&&text(v,"complex_id").equals(text(a,"complex_id"))&&same(importValues(array(v,"values")),importValues(array(a,"values")))))return false;}}
+        for(var e:array(want,"attributes")){var a=object(e);if(array(attrs,"attributes").asList().stream().noneMatch(v->text(object(v),"id").equals(text(a,"id"))&&same(comparableValues(array(a,"values")),comparableValues(array(object(v),"values")))))return false;}
+        if(want.has("complex_attributes")){var actual=array(attrs,"complex_attributes").asList().stream().map(ListingJson::object).toList();for(var group:array(want,"complex_attributes"))for(var e:array(object(group),"attributes")){var a=object(e);if(actual.stream().noneMatch(v->text(v,"id").equals(text(a,"id"))&&text(v,"complex_id").equals(text(a,"complex_id"))&&same(comparableValues(array(v,"values")),comparableValues(array(a,"values")))))return false;}}
         if(want.has("pdf_list")&&!same(pdfIdentities(array(want,"pdf_list")),pdfIdentities(array(attrs,"pdf_list"))))return false;
         if(want.has("images")&&OzonListingImages.ordered(info,attrs).size()!=array(want,"images").size())return false;return true;
     }
     private static JsonArray importValues(JsonArray values){var out=new JsonArray();for(var e:values){var value=object(e).deepCopy();if(value.has("dictionaryValueId")){var id=value.remove("dictionaryValueId");if(value.has("dictionary_value_id")&&!same(id,value.get("dictionary_value_id")))throw new IllegalArgumentException("Conflicting dictionary identity");value.add("dictionary_value_id",id);}out.add(value);}return out;}
+    /** Zero denotes plain text; a positive dictionary ID identifies its localized display label. */
+    private static JsonArray comparableValues(JsonArray values){
+        var result=new JsonArray();for(var e:importValues(values)){
+            var value=object(e);String id=text(value,"dictionary_value_id");var normalized=new JsonObject();
+            if(id.matches("[1-9][0-9]{0,18}"))normalized.addProperty("dictionary_value_id",new BigInteger(id));
+            else{if(!id.isBlank()&&!id.equals("0"))throw new IllegalArgumentException("Invalid dictionary identity");if(value.has("value"))normalized.add("value",value.get("value"));}
+            result.add(normalized);
+        }return result;
+    }
     private static JsonArray importAttributes(JsonArray attributes){var out=new JsonArray();for(var e:attributes){var attribute=object(e).deepCopy();attribute.add("values",importValues(array(attribute,"values")));out.add(attribute);}return out;}
     private static JsonArray pdfIdentities(JsonArray pdfs){var out=new JsonArray();for(var e:pdfs){var pdf=object(e);var identity=new JsonObject();identity.addProperty("name",text(pdf,"name"));identity.addProperty("src_url",pdf.has("src_url")?text(pdf,"src_url"):text(pdf,"file_name"));out.add(identity);}return out;}
 }

@@ -16,7 +16,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class WbProductReadStabilityTest {
     @TempDir Path root;Shop shop=new Shop(1,"Owner","fixture");ProductKey key=new ProductKey(1,Marketplace.WILDBERRIES,"123","1");
-    AtomicInteger reads=new AtomicInteger(),writes=new AtomicInteger();String brand="Old";boolean duplicate,reversePhotos;
+    AtomicInteger reads=new AtomicInteger(),writes=new AtomicInteger();String brand="Old";boolean duplicate,reversePhotos,volatileUpdatedAt;
     @BeforeEach void setup()throws Exception{System.setProperty("vncode.appdata.dir",root.toString());Database.initDatabase();try(var c=Database.getConnection();var s=c.createStatement()){s.execute("INSERT INTO shops(id,name,marketplace,api_key) VALUES(1,'Owner','WILDBERRIES','fixture')");}}
     @AfterEach void cleanup(){System.clearProperty("vncode.appdata.dir");}
     ListingTransport transport(){return (path,body,mutation)->{
@@ -30,6 +30,7 @@ class WbProductReadStabilityTest {
          """).getAsJsonObject();card.addProperty("brand",brand);var a=card.getAsJsonArray("characteristics");
         if(duplicate)a.add(a.get(0).deepCopy());
         if(reads.incrementAndGet()%2==0){var reversed=new JsonArray();for(int n=a.size()-1;n>=0;n--)reversed.add(a.get(n));card.add("characteristics",reversed);}
+        if(volatileUpdatedAt)card.addProperty("updatedAt",java.time.Instant.ofEpochSecond(reads.get()).toString());
         if(reversePhotos){var photos=card.getAsJsonArray("photos");var reversed=new JsonArray();reversed.add(photos.get(1));reversed.add(photos.get(0));card.add("photos",reversed);}
         var cards=new JsonArray();cards.add(card);var result=new JsonObject();result.add("cards",cards);return result;
     };}
@@ -44,5 +45,11 @@ class WbProductReadStabilityTest {
     @Test void imageOrderIsMeaningfulAndAmbiguousAttributeIdsAreRejected()throws Exception{
         var reader=new WbProductSnapshotReader(s->transport());var first=reader.readForSynchronization(shop,key);reversePhotos=true;
         assertNotEquals(first.revision(),reader.readForSynchronization(shop,key).revision());duplicate=true;assertThrows(java.io.IOException.class,()->reader.readForSynchronization(shop,key));assertEquals(0,writes.get());
+    }
+    @Test void marketplaceTimestampChangesDoNotInvalidateAnUnchangedProductEdit()throws Exception{
+        volatileUpdatedAt=true;var reader=new WbProductSnapshotReader(s->transport());var adapter=new WbListingAdapter(s->transport(),i->{throw new java.io.IOException();});
+        var first=reader.readForSynchronization(shop,key);var second=reader.readForSynchronization(shop,key);assertNotEquals(first.metadata().get("source.payload"),second.metadata().get("source.payload"));assertEquals(first.revision(),second.revision());
+        var service=new ProductBulkEditService(new ProductEditRepository(),reader::readForSynchronization,s->adapter);var preview=service.preview(shop,List.of(key),new ProductBulkEdit("brand",List.of("New"),null,Map.of()));service.apply(shop,preview.id(),true);
+        assertEquals(CopyState.RECONCILED,service.reconcile(shop,preview.id()).items().getFirst().state());assertEquals(1,writes.get());assertNotEquals(first.revision(),reader.readForSynchronization(shop,key).revision());
     }
 }

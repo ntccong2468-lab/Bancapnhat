@@ -69,6 +69,9 @@ public final class WbProductSnapshotReader implements ProductSnapshotReader {
                 if(amounts.size()==1)inherited.put("source.price",amounts.iterator().next().toPlainString());
             }
         }catch(IOException unavailable){inherited.put("source.price.unavailable","true");}
-        String raw=ListingIdentity.canonical(card);inherited.put("source.payload",raw);inherited.put("owner",ListingIdentity.fingerprint(shop));var snapshot=new ProductSnapshot(key,"live:"+ListingIdentity.hash(raw+ListingIdentity.canonical(ProductJson.GSON.toJsonTree(inherited))),text(card,"title"),text(card,"description"),text(card,"brand"),text(card,"vendorCode"),text(card,"subjectID"),media,attributes,variants,dimensions,docs,now,inherited);if(persist)new ProductRepository().saveVerifiedSnapshot(shop,snapshot);else ListingIdentity.require(shop,key);return snapshot;
+        String raw=ListingIdentity.canonical(card);inherited.put("source.payload",raw);inherited.put("owner",ListingIdentity.fingerprint(shop));
+        // WB can advance updatedAt after an acknowledged earlier write without changing this card's content.
+        var content=card.deepCopy();content.remove("updatedAt");String stable=ListingIdentity.canonical(content);var revisionMetadata=new LinkedHashMap<>(inherited);revisionMetadata.put("source.payload",stable);
+        var snapshot=new ProductSnapshot(key,"live:"+ListingIdentity.hash(stable+ListingIdentity.canonical(ProductJson.GSON.toJsonTree(revisionMetadata))),text(card,"title"),text(card,"description"),text(card,"brand"),text(card,"vendorCode"),text(card,"subjectID"),media,attributes,variants,dimensions,docs,now,inherited);if(persist)new ProductRepository().saveVerifiedSnapshot(shop,snapshot);else ListingIdentity.require(shop,key);return snapshot;
     }
 }
