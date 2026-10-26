@@ -1,0 +1,201 @@
+{
+  "checkedAtUtc": "2026-10-26T19:15:06.090739+00:00",
+  "uiEntry": "Actual ProductBulkEditPane Apply button -> ProductBulkEditService -> ListingHttpClient HTTPS; TN VED existing code filled as picker output",
+  "writeMode": "Resubmit business values already present on the selected products; normalize representation only",
+  "selectedScope": {
+    "wbProducts": 1,
+    "ozonProducts": 1
+  },
+  "ownerReplyReceived": true,
+  "newBusinessValuesProvided": false,
+  "isolatedAppData": true,
+  "ownerAuthorizedSignedTestLicense": true,
+  "productionLicenseModified": false,
+  "nativeSellerWindowsSessionObserved": false,
+  "sourceInitial": "3fd8618bd2d2b3aa5a0b5fbb9c6f4a92b82d6699",
+  "rows": [
+    {
+      "marketplace": "WILDBERRIES",
+      "field": "brand",
+      "state": "RECONCILED",
+      "lastWriteRequests": 1,
+      "lastReadRequests": 13,
+      "mode": "RESUBMIT_EXISTING_BUSINESS_VALUES",
+      "totalWriteRequestsForField": 1,
+      "submissionSource": "3fd8618bd2d2b3aa5a0b5fbb9c6f4a92b82d6699",
+      "confirmationSource": "3fd8618bd2d2b3aa5a0b5fbb9c6f4a92b82d6699"
+    },
+    {
+      "marketplace": "WILDBERRIES",
+      "field": "material",
+      "state": "RECONCILED",
+      "lastWriteRequests": 1,
+      "lastReadRequests": 13,
+      "mode": "RESUBMIT_EXISTING_BUSINESS_VALUES",
+      "totalWriteRequestsForField": 1,
+      "submissionSource": "3fd8618bd2d2b3aa5a0b5fbb9c6f4a92b82d6699",
+      "confirmationSource": "3fd8618bd2d2b3aa5a0b5fbb9c6f4a92b82d6699"
+    },
+    {
+      "marketplace": "WILDBERRIES",
+      "field": "gender",
+      "state": "RECONCILED",
+      "lastWriteRequests": 1,
+      "lastReadRequests": 10,
+      "mode": "RESUBMIT_EXISTING_BUSINESS_VALUES",
+      "totalWriteRequestsForField": 1,
+      "submissionSource": "3fd8618bd2d2b3aa5a0b5fbb9c6f4a92b82d6699",
+      "confirmationSource": "3fd8618bd2d2b3aa5a0b5fbb9c6f4a92b82d6699"
+    },
+    {
+      "marketplace": "WILDBERRIES",
+      "field": "tnved",
+      "state": "RECONCILED",
+      "lastWriteRequests": 1,
+      "lastReadRequests": 10,
+      "mode": "RESUBMIT_EXISTING_BUSINESS_VALUES",
+      "totalWriteRequestsForField": 1,
+      "submissionSource": "fa3aa3a22c78f8780605fa1d3fb48787a465449e",
+      "confirmationSource": "fa3aa3a22c78f8780605fa1d3fb48787a465449e"
+    },
+    {
+      "marketplace": "WILDBERRIES",
+      "field": "documents",
+      "state": "RECONCILED",
+      "lastWriteRequests": 1,
+      "lastReadRequests": 11,
+      "mode": "RESUBMIT_EXISTING_BUSINESS_VALUES",
+      "totalWriteRequestsForField": 1,
+      "submissionSource": "fa3aa3a22c78f8780605fa1d3fb48787a465449e",
+      "confirmationSource": "fa3aa3a22c78f8780605fa1d3fb48787a465449e"
+    },
+    {
+      "marketplace": "OZON",
+      "field": "brand",
+      "state": "MISSING_EXISTING_VALUE",
+      "lastWriteRequests": 0,
+      "lastReadRequests": 4,
+      "mode": "RESUBMIT_EXISTING_BUSINESS_VALUES",
+      "totalWriteRequestsForField": 0,
+      "submissionSource": null,
+      "confirmationSource": null
+    },
+    {
+      "marketplace": "OZON",
+      "field": "material",
+      "state": "RECONCILED",
+      "lastWriteRequests": 0,
+      "lastReadRequests": 7,
+      "mode": "RECONCILE_EXISTING_RECEIPT_ONLY",
+      "totalWriteRequestsForField": 1,
+      "submissionSource": "3fd8618bd2d2b3aa5a0b5fbb9c6f4a92b82d6699",
+      "confirmationSource": "fa3aa3a22c78f8780605fa1d3fb48787a465449e"
+    },
+    {
+      "marketplace": "OZON",
+      "field": "gender",
+      "state": "RECONCILED",
+      "lastWriteRequests": 1,
+      "lastReadRequests": 28,
+      "mode": "RESUBMIT_EXISTING_BUSINESS_VALUES",
+      "totalWriteRequestsForField": 1,
+      "submissionSource": "fa3aa3a22c78f8780605fa1d3fb48787a465449e",
+      "confirmationSource": "fa3aa3a22c78f8780605fa1d3fb48787a465449e"
+    },
+    {
+      "marketplace": "OZON",
+      "field": "tnved",
+      "state": "RECONCILED",
+      "lastWriteRequests": 1,
+      "lastReadRequests": 27,
+      "mode": "RESUBMIT_EXISTING_BUSINESS_VALUES",
+      "totalWriteRequestsForField": 1,
+      "submissionSource": "fa3aa3a22c78f8780605fa1d3fb48787a465449e",
+      "confirmationSource": "fa3aa3a22c78f8780605fa1d3fb48787a465449e"
+    },
+    {
+      "marketplace": "OZON",
+      "field": "documents",
+      "state": "RECONCILED",
+      "lastWriteRequests": 1,
+      "lastReadRequests": 33,
+      "mode": "RESUBMIT_EXISTING_BUSINESS_VALUES",
+      "totalWriteRequestsForField": 1,
+      "submissionSource": "fa3aa3a22c78f8780605fa1d3fb48787a465449e",
+      "confirmationSource": "fa3aa3a22c78f8780605fa1d3fb48787a465449e"
+    }
+  ],
+  "writeRequestsTotal": 9,
+  "wbVerified": 5,
+  "ozonVerified": 4,
+  "ozonBrandBlockedOnMissingValue": true,
+  "existingOzonMaterialReceiptRecoveredWithoutReplay": true,
+  "independentFreshRead": [
+    {
+      "marketplace": "WILDBERRIES",
+      "freshReadHttpStatus": 200,
+      "protectedFieldsPreserved": {
+        "nmID": true,
+        "vendorCode": true,
+        "brand": true,
+        "title": true,
+        "description": true,
+        "sizes": true,
+        "dimensions": true,
+        "kizMarked": true
+      }
+    },
+    {
+      "marketplace": "OZON",
+      "freshReadHttpStatus": 200,
+      "protectedFieldsPreserved": {
+        "id": true,
+        "offer_id": true,
+        "sku": true,
+        "barcodes": true
+      },
+      "existingCertificateSetPreserved": true
+    }
+  ],
+  "existingBusinessMeaningPreserved": true,
+  "tnvedCodeAndDictionaryIdPreserved": true,
+  "materialRepresentationNormalized": true,
+  "newDocumentsCreated": false,
+  "merchantIdentifiersAndPayloadsIncluded": false,
+  "installerBuilt": false,
+  "latestChanged": false,
+  "privateEvidenceDirectory": "/tmp/vncode-product-editor-live-check-20261026",
+  "recordedAtUtc": "2026-10-26T19:17:12.043167+00:00",
+  "applicationCommit": "fa3aa3a22c78f8780605fa1d3fb48787a465449e",
+  "sourceTreeSha256": "5275e80f1ff74d0c5ee02fcb9a22989ea379b0229de6e7d5c28b3cb4b1823a17",
+  "regression": {
+    "tests": 389,
+    "passed": 389,
+    "classes": 48,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "result": "BUILD SUCCESS",
+    "duration": "02:21 min",
+    "finishedUtc": "2026-10-26T19:13:59Z",
+    "logSha256": "566d24bb179077f62b00cde2d7a24db98372e175de2c97e3f48b87fd10bcee28"
+  },
+  "targetedRegressionPassed": 82,
+  "targetedTestsIncludedIn389": true,
+  "newlyReproducedContractFailuresBeforeFix": 4,
+  "basePublishedVersion": "1.5.17",
+  "brandInputQuestionPending": true,
+  "branch": "fix/product-card-bulk-edit-identity",
+  "fieldNotes": {
+    "documents": "Reattach an existing same-owner certificate; no new document upload tested against production.",
+    "material": "Current composition preserved; separators/array representation normalized.",
+    "tnved": "Existing code and Ozon dictionary ID preserved; display label may change.",
+    "otherFields": "Existing business values resubmitted; no alternative factual values were provided."
+  },
+  "privateProbeLoggerFailureBeforeWrites": {
+    "resolved": true,
+    "preparedJobsBeforeFix": 0,
+    "marketplaceWritesBeforeFix": 0
+  },
+  "existingWbDocumentSetPreserved": true
+}

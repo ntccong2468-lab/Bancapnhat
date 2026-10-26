@@ -1,5 +1,14 @@
 # Bộ nhớ dự án VNCode
 
+## Kiểm chứng nút sửa qua API thật — 26.10.2026
+
+- Người dùng hỏi 5 nút có thực sự sửa được; đã đồng ý hai bài thử. Thông báo trước chỉ gửi lại dữ liệu hiện có do chưa có giá trị kinh doanh mới. Đã chạy Apply JavaFX thật → service/reader/adapter/HTTPS thật trong app-data riêng, test license ký riêng theo quyền chủ dự án cấp; không đổi license production.
+- **WB 5/5; Ozon 4/5; tổng 9 lệnh ghi thật**, đọc lại xác nhận. Chất liệu được chuẩn hóa dấu phân cách/mảng, TN VED giữ mã/ID, không tự đổi sự thật hàng hóa. Giấy tờ chỉ dùng giấy tờ đang có. Đọc độc lập xác nhận dữ liệu ngoài phạm vi giữ nguyên. Ozon brand còn thiếu tên: câu hỏi đang chờ, không tự gán.
+- Lượt thật phát hiện/sửa: hash WB bỏ riêng `updatedAt` vì server cập nhật muộn; Ozon plain text trả dictionary_id 0 làm readback chờ; TN VED từ điển là mã + mô tả. Giữ kiểm tra nội dung/owner/size/barcode, ID từ điển; không làm nhẹ đối soát giá trị văn bản thực. Material Ozon dùng receipt cũ xác nhận imported, không gửi lại.
+- **Nguồn mới cần dùng `fa3aa3a22c78f8780605fa1d3fb48787a465449e`**, hash cây `5275e80f1ff74d0c5ee02fcb9a22989ea379b0229de6e7d5c28b3cb4b1823a17`, nhánh `fix/product-card-bulk-edit-identity`, kế thừa toàn bộ sửa ngay dưới. 4 ca red trước sửa; **389/389 hồi quy đạt**, 48 lớp, không lỗi/thất bại/bỏ qua, 2 phút 21 giây; 82 ca mục tiêu nằm trong 389, không cộng.
+- [Bàn giao thật](fixes/2026-10-26-product-edit-live-api-acceptance.md), [biên nhận bỏ dữ liệu seller](validation/2026-10-26-product-edit-live-api-verify.json). Payload, task, mã hàng, kết nối/DB thật chỉ ở `/tmp/vncode-product-editor-live-check-20261026`, không commit. Không chạy lại toàn bộ verifier đã có marker; đối soát receipt cũ trước khi gửi.
+- Chưa full suite/native Windows/bộ cài/Latest cho nguồn mới; POM/Latest vẫn 1.5.17. Khi được yêu cầu phát hành dùng nguồn mới và tăng version; không thay binary/tag 1.5.17. Giữ câu hỏi brand Ozon để thử nốt nếu seller cung cấp tên.
+
 ## Rà soát 5 thao tác sửa và kích thước giao diện — 26.10.2026
 
 - Người dùng yêu cầu kiểm tra thương hiệu/chất liệu/giới tính/TN VED/giấy tờ WB/Ozon và sửa nút quá to/tràn nền. Nhánh **`fix/product-card-bulk-edit-identity`**, nguồn mới `3fd8618bd2d2b3aa5a0b5fbb9c6f4a92b82d6699`, hash cây `7f203631787b2646634aa2ab489e1e753be2ad1843a2e9513316215023c022c1`; kế thừa `b20c8d2` ở dưới. Dùng nguồn mới này cho lần đóng gói sau.
