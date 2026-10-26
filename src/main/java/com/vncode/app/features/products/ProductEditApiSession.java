@@ -25,7 +25,10 @@ public final class ProductEditApiSession implements AutoCloseable {
     public void refreshCache(Shop shop,ProductKey key)throws IOException{reader.read(shop,key);}
     public ListingTargetAdapter adapter(){return adapter;}
     public static ProductEditApiSession open(Shop shop,List<ProductKey> keys)throws IOException{
-        return open(shop,keys,new ListingHttpClient(shop),useIndex(shop,keys));
+        return open(shop,keys,new ListingHttpClient(shop));
+    }
+    public static ProductEditApiSession open(Shop shop,List<ProductKey> keys,ListingTransport upstream)throws IOException{
+        return open(shop,keys,upstream,useIndex(shop,keys));
     }
     public static ProductEditApiSession open(Shop shop,List<ProductKey> keys,ListingTransport upstream,boolean indexed)throws IOException{
         ListingIdentity.require(shop);for(var key:keys)ListingIdentity.require(shop,key);
@@ -33,7 +36,7 @@ public final class ProductEditApiSession implements AutoCloseable {
         GtinBatchTransport batch=null;
         if(indexed){
             batch=new GtinBatchTransport(shop,transport);
-            try{batch.prepare(convert(keys));}catch(IOException|RuntimeException failure){batch.close();throw failure;}
+            try{batch.prepareProducts(keys);}catch(IOException|RuntimeException failure){batch.close();throw failure;}
             transport=batch;
         }
         var api=transport;
@@ -47,8 +50,7 @@ public final class ProductEditApiSession implements AutoCloseable {
             q.setInt(1,shop.getId());try(var r=q.executeQuery()){return r.next()&&r.getLong(1)<=selected*50;}
         }catch(java.sql.SQLException failure){return false;}
     }
-    public void refresh(List<ProductKey> keys)throws IOException{if(batch!=null)batch.refresh(convert(keys));}
+    public void refresh(List<ProductKey> keys)throws IOException{if(batch!=null)batch.refreshProducts(keys);}
     public void beginReadback(){if(cache!=null)cache.beginReadback();}
-    private static List<com.vncode.app.features.gtinsync.GtinSyncModels.ProductKey> convert(List<ProductKey> keys){return keys.stream().map(k->new com.vncode.app.features.gtinsync.GtinSyncModels.ProductKey(k.shopId(),k.marketplace(),k.cardId(),k.variantId())).toList();}
     @Override public void close(){if(batch!=null)batch.close();}
 }

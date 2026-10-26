@@ -45,10 +45,17 @@ public final class GtinBatchTransport implements ListingTransport, AutoCloseable
     }
     public static String attributeIdentity(JsonObject value){var copy=value.deepCopy();for(String field:List.of("barcode","barcodes","updated_at","created_at"))copy.remove(field);return ListingIdentity.canonical(copy);}
     public void prepare(Collection<ProductKey> keys)throws IOException {
-        requireKeys(keys);targets=keys.stream().map(ProductKey::productId).collect(java.util.stream.Collectors.toSet());
+        requireKeys(keys);prepareIds(keys.stream().map(ProductKey::productId).collect(java.util.stream.Collectors.toSet()));
+    }
+    /** Card edits have no selected size. Native variant identities are read from the marketplace. */
+    public void prepareProducts(Collection<com.vncode.app.features.products.ProductKey> keys)throws IOException {
+        requireProductKeys(keys);prepareIds(keys.stream().map(com.vncode.app.features.products.ProductKey::cardId).collect(java.util.stream.Collectors.toSet()));
+    }
+    private void prepareIds(Set<String> ids)throws IOException {
+        targets=ids;
         try {
             if(!ready){clear();selected.addAll(targets);if(shop.getMarketplace()==Marketplace.WILDBERRIES){scanWb(false,false);scanWb(true,false);}else scanOzon();ready=true;}
-            else if(keys.stream().anyMatch(k->owned.containsKey(k.productId())&&owned.get(k.productId()).active()&&get(infoKey(k.productId()))==null)) {
+            else if(targets.stream().anyMatch(id->owned.containsKey(id)&&owned.get(id).active()&&get(infoKey(id))==null)) {
                 selected.addAll(targets);
                 if(shop.getMarketplace()==Marketplace.WILDBERRIES)scanWb(false,false);else infoOzon(targets);
             }
@@ -59,8 +66,14 @@ public final class GtinBatchTransport implements ListingTransport, AutoCloseable
     }
     /** Runs once per request batch/poll, not once per GTIN. No HTTP permit is held while waiting. */
     public void refresh(Collection<ProductKey> keys)throws IOException {
-        requireKeys(keys);if(!ready){prepare(keys);return;}
-        targets=keys.stream().map(ProductKey::productId).collect(java.util.stream.Collectors.toSet());
+        requireKeys(keys);refreshIds(keys.stream().map(ProductKey::productId).collect(java.util.stream.Collectors.toSet()));
+    }
+    public void refreshProducts(Collection<com.vncode.app.features.products.ProductKey> keys)throws IOException {
+        requireProductKeys(keys);refreshIds(keys.stream().map(com.vncode.app.features.products.ProductKey::cardId).collect(java.util.stream.Collectors.toSet()));
+    }
+    private void refreshIds(Set<String> ids)throws IOException {
+        if(!ready){prepareIds(ids);return;}
+        targets=ids;
         selected.addAll(targets);
         try {
             if(shop.getMarketplace()==Marketplace.WILDBERRIES){scanWb(false,activeCursor!=null);scanWb(true,trashCursor!=null);}
@@ -224,6 +237,7 @@ public final class GtinBatchTransport implements ListingTransport, AutoCloseable
     public static String normalize(String value){return RegisteredGtinProof.canonicalCode(value);}
     private void requireReady(){ListingIdentity.require(shop);if(closed||!ready)throw new IllegalStateException("GTIN_BATCH_SNAPSHOT_INCOMPLETE");}
     private void requireKeys(Collection<ProductKey> keys){ListingIdentity.require(shop);if(closed)throw new IllegalStateException("GTIN_BATCH_CLOSED");for(var key:keys)if(key.shopId()!=shop.getId()||key.marketplace()!=shop.getMarketplace())throw new SecurityException("shop_mismatch");}
+    private void requireProductKeys(Collection<com.vncode.app.features.products.ProductKey> keys){ListingIdentity.require(shop);if(closed)throw new IllegalStateException("GTIN_BATCH_CLOSED");for(var key:keys)if(key.shopId()!=shop.getId()||key.marketplace()!=shop.getMarketplace())throw new SecurityException("shop_mismatch");}
     private static JsonArray strictArray(JsonObject value,String key)throws IOException{if(!value.has(key)||!value.get(key).isJsonArray())throw new IOException("GTIN_BATCH_INCOMPLETE_RESPONSE");return value.getAsJsonArray(key);}
     private static List<String> stringCodes(JsonArray values)throws IOException{var result=new ArrayList<String>();for(var value:values){if(!value.isJsonPrimitive()||!value.getAsJsonPrimitive().isString()||value.getAsString().isBlank())throw new IOException("GTIN_BATCH_INVALID_BARCODE");result.add(value.getAsString());}return List.copyOf(result);}
     private void flushObservations(){MarketplaceBarcodeCache.observeBatch(shop,observations);observations.clear();}

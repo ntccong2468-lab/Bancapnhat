@@ -76,6 +76,41 @@ class GtinBatchTransportTest {
             try(var batch=new GtinBatchTransport(shop,api)){assertThrows(IOException.class,()->batch.prepare(List.of(key)));}
         }
     }
+    @Test void cardPreparationAndRefreshRejectForeignScopeBeforeHttp() {
+        var calls=new AtomicInteger();
+        ListingTransport api=(path,body,mutation)->{calls.incrementAndGet();throw new AssertionError("Foreign card must not reach the API");};
+        try(var batch=new GtinBatchTransport(shop,api)){
+            for(var foreign:List.of(new com.vncode.app.features.products.ProductKey(2,Marketplace.OZON,"1",""),new com.vncode.app.features.products.ProductKey(1,Marketplace.WILDBERRIES,"1",""))){
+                assertThrows(SecurityException.class,()->batch.prepareProducts(List.of(foreign)));
+                assertThrows(SecurityException.class,()->batch.refreshProducts(List.of(foreign)));
+            }
+        }
+        assertEquals(0,calls.get());
+    }
+    @Test void cardRefreshRetainsRealOfferIdentityAndReadsFreshBarcodes()throws Exception {
+        var card=new com.vncode.app.features.products.ProductKey(1,Marketplace.OZON,"1","");
+        var currentCode=new java.util.concurrent.atomic.AtomicReference<>("legacy-1");
+        ListingTransport api=(path,body,mutation)->{
+            assertFalse(mutation);
+            if(path.equals("v3/product/list"))return page(List.of("ALL".equals(body.getAsJsonObject().getAsJsonObject("filter").get("visibility").getAsString())?"1":"2"),1,"");
+            var result=details(path,body);
+            if(path.equals("v3/product/info/list"))for(var row:result.getAsJsonArray("items"))if(row.getAsJsonObject().get("id").getAsInt()==1){
+                var codes=new JsonArray();codes.add(currentCode.get());row.getAsJsonObject().add("barcodes",codes);
+            }
+            return result;
+        };
+        var batch=new GtinBatchTransport(shop,api);
+        try(batch){
+            batch.prepareProducts(List.of(card));
+            assertFalse(batch.conflicts(key,"legacy-1"));assertTrue(batch.conflicts(key,"00000000000017"));
+            currentCode.set("00000000000024");batch.refreshProducts(List.of(card));
+            var result=batch.call("v3/product/info/list",JsonParser.parseString("{\"product_id\":[\"1\"]}"),false).getAsJsonObject().getAsJsonArray("items").get(0).getAsJsonObject();
+            assertEquals("offer-1",result.get("offer_id").getAsString());assertEquals("00000000000024",result.getAsJsonArray("barcodes").get(0).getAsString());
+            assertFalse(batch.conflicts(key,"00000000000024"));assertTrue(batch.conflicts(new ProductKey(1,Marketplace.OZON,"3","offer-3"),"00000000000024"));
+        }
+        assertThrows(IllegalStateException.class,()->batch.prepareProducts(List.of(card)));
+        assertThrows(IllegalStateException.class,()->batch.refreshProducts(List.of(card)));
+    }
     private static JsonObject page(List<String> ids,long total,String cursor){
         var result=new JsonObject();var data=new JsonObject();var rows=new JsonArray();for(String id:ids){var row=new JsonObject();row.addProperty("product_id",Long.parseLong(id));rows.add(row);}
         data.add("items",rows);data.addProperty("total_items",total);data.addProperty("last_id",cursor);result.add("result",data);return result;

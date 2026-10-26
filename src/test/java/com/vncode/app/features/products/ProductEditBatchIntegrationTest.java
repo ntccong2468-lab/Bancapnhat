@@ -12,6 +12,8 @@ import java.time.Instant;
 import java.util.*;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import static org.junit.jupiter.api.Assertions.*;
 import static com.vncode.app.integration.listing.ListingJson.*;
 
@@ -31,8 +33,43 @@ class ProductEditBatchIntegrationTest {
     }
     @Test void wbOneThousandProductEditsUseTenWritesAndPageReadback()throws Exception{large(Marketplace.WILDBERRIES);}
     @Test void ozonOneThousandProductEditsUseTenPartialAttributeTasksWithoutPrices()throws Exception{large(Marketplace.OZON);}
+    @ParameterizedTest
+    @CsvSource({"brand,1","brand,19","brand,20","material,20","gender,20","tnved,20","documents,20"})
+    void wbProductPageBatchUsesCardIdentitiesForAllFiveEditors(String field,int count)throws Exception{
+        configure(Marketplace.WILDBERRIES,count);
+        try(var c=Database.getConnection();var insert=c.prepareStatement("INSERT INTO wb_product_cards(shop_id,nm_id,title,vendor_code,brand,synced_at) VALUES(1,?,?,?,'Old','now')")){
+            for(var card:api.info.values()){
+                insert.setString(1,text(card,"nmID"));insert.setString(2,text(card,"title"));insert.setString(3,text(card,"vendorCode"));insert.addBatch();
+            }
+            insert.executeBatch();
+        }
+        var keys=new ProductRepository().freezeProductKeys(new ProductQuery(1,Marketplace.WILDBERRIES,"",List.of(),null,false,null,100));
+        assertEquals(count,keys.size());assertTrue(keys.stream().allMatch(k->k.variantId().isBlank()));
+        ListingTransport transport=(path,body,mutation)->path.startsWith("content/v2/object/charcs/")?JsonParser.parseString("""
+            {"data":[{"charcID":723,"name":"Состав","charcType":1},
+              {"charcID":724,"name":"Пол","charcType":1},{"charcID":725,"name":"ТН ВЭД","charcType":1}]}
+            """):api.call(path,body,mutation);
+        service=new ProductBulkEditService(new ProductEditRepository(),(s,k)->ProductEditApiSession.open(s,k,transport));
+        String value=switch(field){case "gender"->"Мужской";case "material"->"хлопок 100%";case "tnved"->"6112110000";default->"Updated";};
+        var doc=new ProductDocument("","DECLARATION","NEW-DOC",java.time.LocalDate.of(2026,1,1),java.time.LocalDate.of(2028,1,1),"","",null,Marketplace.WILDBERRIES,DocumentState.UNVERIFIED,"",null);
+        var edit=new ProductBulkEdit(field,field.equals("documents")?List.of():List.of(value),field.equals("documents")?List.of(doc):null,Map.of());
+        var events=new ArrayList<ProductBulkEditService.Progress>();
+        var preview=service.preview(shop,keys,edit,events::add);assertTrue(preview.publishable());assertEquals(0,api.writes);
+        service.apply(shop,preview.id(),true,events::add);
+        var result=service.reconcile(shop,preview.id(),events::add);
+        assertEquals(count,result.items().stream().filter(i->i.state()==CopyState.RECONCILED).count());assertEquals(1,api.writes);
+        assertTrue(events.stream().anyMatch(p->p.succeeded()==count&&p.failed()==0&&p.remaining()==0));
+        for(var card:api.info.values()){
+            assertEquals(1,card.getAsJsonArray("sizes").size());
+            assertEquals("04610689132457",card.getAsJsonArray("sizes").get(0).getAsJsonObject().getAsJsonArray("skus").get(0).getAsString());
+            if(field.equals("brand"))assertEquals(value,text(card,"brand"));
+            if(field.equals("documents"))assertEquals(2,card.getAsJsonObject("documents").getAsJsonArray("items").size());
+        }
+        service.apply(shop,preview.id(),true);assertEquals(1,api.writes);
+    }
     void large(Marketplace market)throws Exception{
         var keys=configure(market,1000);long started=System.nanoTime();
+        if(market==Marketplace.WILDBERRIES)keys=keys.stream().map(k->new ProductKey(k.shopId(),k.marketplace(),k.cardId(),"")).toList();
         var events=new ArrayList<ProductBulkEditService.Progress>();
         var p=service.preview(shop,keys,new ProductBulkEdit("brand",List.of("Updated"),null,Map.of()),events::add);assertTrue(p.publishable());
         var sent=service.apply(shop,p.id(),true,events::add);assertTrue(sent.items().stream().allMatch(i->i.state()==CopyState.REMOTE_PROCESSING));
