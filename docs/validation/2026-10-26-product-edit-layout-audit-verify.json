@@ -1,0 +1,131 @@
+{
+  "recordedAtUtc": "2026-10-26T18:32:31.621123+00:00",
+  "branch": "fix/product-card-bulk-edit-identity",
+  "applicationCommit": "3fd8618bd2d2b3aa5a0b5fbb9c6f4a92b82d6699",
+  "sourceTreeSha256": "7f203631787b2646634aa2ab489e1e753be2ad1843a2e9513316215023c022c1",
+  "basePublishedVersion": "1.5.17",
+  "includesPreviousCardIdentityFix": "b20c8d2914e526deee03067efa6a9f968ac7c9f5",
+  "fields": [
+    "brand",
+    "material",
+    "gender",
+    "tnved",
+    "documents"
+  ],
+  "marketplaces": [
+    "WILDBERRIES",
+    "OZON"
+  ],
+  "regression": {
+    "tests": 239,
+    "passed": 239,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "classes": {
+      "com.vncode.app.ui.WorkspaceWindowBoundsTest": 3,
+      "com.vncode.app.ui.tnved.FashionTnvedBrowserTest": 3,
+      "com.vncode.app.ui.products.ProductReferenceLayoutTest": 2,
+      "com.vncode.app.ui.products.ProductRefreshUiTest": 2,
+      "com.vncode.app.ui.products.ProductEditInteractionTest": 5,
+      "com.vncode.app.ui.products.ProductBulkDialogTest": 23,
+      "com.vncode.app.ui.products.ProductSelectionTest": 2,
+      "com.vncode.app.ui.products.ProductBulkEditPaneTest": 2,
+      "com.vncode.app.ui.workspace.WorkspaceListAreaTest": 1,
+      "com.vncode.app.ui.workspace.WorkspacePagesLayoutTest": 1,
+      "com.vncode.app.ui.workspace.WorkspaceJavaPagesLayoutTest": 1,
+      "com.vncode.app.integration.wb.WbListingAdapterTest": 5,
+      "com.vncode.app.integration.ozon.OzonListingAdapterTest": 3,
+      "com.vncode.app.features.listingcopy.ListingCopyWorkflowTest": 1,
+      "com.vncode.app.features.listingcopy.ListingMediaReaderTest": 2,
+      "com.vncode.app.features.listingcopy.ListingCopyServiceTest": 13,
+      "com.vncode.app.features.listingcopy.ListingCopyMappingTest": 6,
+      "com.vncode.app.features.listingcopy.CopyDefaultsTest": 13,
+      "com.vncode.app.features.tnved.TnvedCatalogTest": 6,
+      "com.vncode.app.features.tnved.ProductTnvedReviewServiceTest": 3,
+      "com.vncode.app.features.tnved.FashionTnvedTest": 5,
+      "com.vncode.app.features.tnved.TnvedImporterTest": 4,
+      "com.vncode.app.features.products.ProductEditAdapterTest": 8,
+      "com.vncode.app.features.products.ProductVariantTest": 4,
+      "com.vncode.app.features.products.ProductBulkEditServiceTest": 21,
+      "com.vncode.app.features.products.ProductRefreshServiceTest": 3,
+      "com.vncode.app.features.products.ProductBulkEditWbIntegrationTest": 10,
+      "com.vncode.app.features.products.ProductSnapshotReaderTest": 18,
+      "com.vncode.app.features.products.ProductDefaultProposalTest": 6,
+      "com.vncode.app.features.products.ProductRepositoryTest": 17,
+      "com.vncode.app.features.products.ProductBulkDocumentBudgetTest": 4,
+      "com.vncode.app.features.products.ProductEditBatchIntegrationTest": 35,
+      "com.vncode.app.features.products.ProductSuggestionsTest": 5,
+      "com.vncode.app.features.products.WbProductReadStabilityTest": 2
+    },
+    "result": "BUILD SUCCESS",
+    "duration": "02:37 min",
+    "finishedUtc": "2026-10-26T18:29:32Z",
+    "log": "/tmp/vncode-product-edit-full-audit-regression.log",
+    "logSha256": "2e1784f9cb0e1058f0c6189d54317fe73dc0a701b2e73b22884ed2275a278dcc"
+  },
+  "layout": {
+    "widths": [
+      1078,
+      760,
+      940,
+      1331
+    ],
+    "locales": 4,
+    "themes": 2,
+    "combinations": 32,
+    "allocatedBackgroundBoundsChecked": true,
+    "allFiveActionsAndClearContained": true,
+    "listWorkAreaPreserved": true,
+    "ownerClientSize": [
+      760,
+      500
+    ],
+    "fiveApplyActionsPerMarketplaceVerified": true,
+    "longProgressPillContained": true,
+    "rowHeightBefore": 104,
+    "rowHeightAfter": 92,
+    "productFontBefore": 16,
+    "productFontAfter": 14,
+    "bulkButtonFontBefore": 15,
+    "bulkButtonFontAfter": 13,
+    "images": {
+      "before": {
+        "path": "docs/fixes/images/2026-10-26-product-edit-layout/before.png",
+        "sha256": "39eaaae540767799f52cea98ae6c38d2a042039e354b58bc447f2378c356c0ae",
+        "bytes": 119056
+      },
+      "after": {
+        "path": "docs/fixes/images/2026-10-26-product-edit-layout/after.png",
+        "sha256": "530f03ce9f425b0f17373f60da4f14cf1dd8d2a52018ebb711d264b0660b4eaa",
+        "bytes": 112775
+      }
+    }
+  },
+  "ozonCertificates": {
+    "contractSource": "Previously available official snapshot /tmp/vncode-ozon-swagger-20261024.json; no fresh download claimed",
+    "identityRead": "/v1/product/certificate/info",
+    "existingBind": "/v1/product/certificate/bind",
+    "newUpload": "/v2/product/certificate/create",
+    "boundReadback": "/v1/product/certificate/list",
+    "idNumberTypeDatesAndExpiryChecked": true,
+    "nativeProductAndSkuRechecked": true,
+    "explicitRejectionFinal": true,
+    "missingAcknowledgementReconciledWithoutReplay": true,
+    "lostResponseReconciledWithoutReplay": true,
+    "pageTwoAndExactIdVerified": true,
+    "changedOrRejectedDocumentBlocked": true,
+    "newUploadStillVerified": true
+  },
+  "beforeFix": {
+    "bothBugsReproduced": true,
+    "logSha256": "1cf1f8fc1c8ba21eec046171fa62e65941a82ebc4f52cd0ca82408f0111c0d18"
+  },
+  "fixtureCorrection": "Early new UI test lookup preceded CSS/layout; final test realizes the skin before querying the picker.",
+  "fullApplicationSuiteRun": false,
+  "nativeWindowsRun": false,
+  "sellerProductionWrites": false,
+  "installerBuilt": false,
+  "latestChanged": false,
+  "publishedLatestRemains": "1.5.17"
+}

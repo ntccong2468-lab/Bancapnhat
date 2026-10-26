@@ -1,5 +1,13 @@
 # Bộ nhớ dự án VNCode
 
+## Rà soát 5 thao tác sửa và kích thước giao diện — 26.10.2026
+
+- Người dùng yêu cầu kiểm tra thương hiệu/chất liệu/giới tính/TN VED/giấy tờ WB/Ozon và sửa nút quá to/tràn nền. Nhánh **`fix/product-card-bulk-edit-identity`**, nguồn mới `3fd8618bd2d2b3aa5a0b5fbb9c6f4a92b82d6699`, hash cây `7f203631787b2646634aa2ab489e1e753be2ad1843a2e9513316215023c022c1`; kế thừa `b20c8d2` ở dưới. Dùng nguồn mới này cho lần đóng gói sau.
+- Tái hiện nền cao 66 px trong khi nút đã xuống hai hàng tại width 1078. Action bar đo theo chiều rộng còn lại, tăng đủ chiều cao khi wrap; giữ chọn hết mọi trang và 5 nút/bỏ chọn. Thu gọn riêng Products: chữ 14/tên 16/nút 13/min-height 34, hàng 92/ảnh 56×76 giữ tỷ lệ. Giữ khung danh sách theo FBS WB; pill dài vẫn nằm trong danh sách. Hộp sửa nhỏ hơn, cuộn và giới hạn theo owner; Apply/Hủy vừa cửa sổ.
+- Giấy tờ Ozon đã tải không còn bị đòi file: UI giữ ID/nguồn, đọc certificate/info so ID/số/loại/ngày/hiệu lực rồi bind theo SKU đúng chủ qua `/v1/product/certificate/bind`; tải mới dùng v2/create. Đọc lại đúng certificate_id từng sản phẩm, hỗ trợ trang 2. Từ chối rõ ràng FAILED; mất/thiếu ack đối soát không gửi lặp. Không suy giấy tờ đã được duyệt từ HTTP hoặc bind true.
+- **239/239 ca liên quan đạt**, 34 lớp, 2 phút 37 giây, không lỗi/thất bại/bỏ qua. Có 10 lượt click Apply thực (5 trường × 2 sàn) trong owner 760×500; 32 tổ hợp kích thước/ngôn ngữ/theme kiểm tra 6 nút trong nền thật. Backend qua fixture có lô 1.000 sản phẩm mỗi sàn và giấy tờ mới/cũ/từ chối/mất ack/đổi ID/nhiều trang. Các lượt 25/237 trước là tập con/nguồn trung gian, không cộng vào 239.
+- API giả lập/SQLite/JavaFX; không ghi seller, chưa full suite/native Windows/bộ cài/Latest cho sửa này. POM/Latest vẫn 1.5.17; không đổi tag/binary cũ. [Bàn giao và ảnh](fixes/2026-10-26-product-edit-layout-audit.md), [biên nhận](validation/2026-10-26-product-edit-layout-audit-verify.json).
+
 ## Sửa thương hiệu và danh tính sản phẩm theo lô — 26.10.2026
 
 - Người dùng báo Áp dụng sửa thương hiệu lỗi `Invalid identity or value [VN_LOCAL]`. Nhánh **`fix/product-card-bulk-edit-identity`**, mã ứng dụng `b20c8d2914e526deee03067efa6a9f968ac7c9f5`, hash cây `6e5e842e2c072ef0478bf1524e8366601cc99d4f2671a7f1d4332a15a1fca406`, nền 1.5.17 đã phát hành. Không thay POM/tag/binary hoặc Latest 1.5.17.
