@@ -1,5 +1,13 @@
 # Bộ nhớ dự án VNCode
 
+## Sửa thương hiệu và danh tính sản phẩm theo lô — 26.10.2026
+
+- Người dùng báo Áp dụng sửa thương hiệu lỗi `Invalid identity or value [VN_LOCAL]`. Nhánh **`fix/product-card-bulk-edit-identity`**, mã ứng dụng `b20c8d2914e526deee03067efa6a9f968ac7c9f5`, hash cây `6e5e842e2c072ef0478bf1524e8366601cc99d4f2671a7f1d4332a15a1fca406`, nền 1.5.17 đã phát hành. Không thay POM/tag/binary hoặc Latest 1.5.17.
+- Tái hiện đúng lỗi trước sửa cho cả 5 trường: giao diện WB dùng khóa cấp sản phẩm với `variantId` rỗng; từ 20 sản phẩm, phiên đọc theo lô chuyển nhầm sang khóa GTIN bắt buộc size. Lỗi xảy ra trước request ghi. Bài kiểm thử lô cũ dùng khóa size nên bỏ sót tình huống giao diện.
+- `ProductEditApiSession` dùng `prepareProducts/refreshProducts`, chỉ mục chọn theo mã sản phẩm. Giữ nguồn size/offer/barcode thực, kiểm tra shop/sàn/chứng từ và xác minh đọc lại; khóa GTIN vẫn bắt buộc biến thể. Sửa chung thương hiệu/chất liệu/giới tính/TN VED/giấy tờ, giữ đọc nhanh theo lô và chống gửi lại.
+- **302/302 ca liên quan đạt**, không lỗi/thất bại/bỏ qua, 8 phút 35 giây. Bao gồm 7 trường hợp khóa từ ProductRepository qua chiến lược tự chọn chỉ mục (thương hiệu 1/19/20 sản phẩm, 4 trường còn lại 20), thao tác Apply UI, lô WB/Ozon 1.000 sản phẩm và GTIN 10.000 mã mỗi sàn. Kiểm tra native offer/barcode mới, scope lạ và chỉ mục đã đóng. 7 ca riêng nằm trong 302, không cộng lặp.
+- API giả lập/SQLite/JavaFX; không ghi seller production, chưa full suite/native Windows hoặc bộ cài cho sửa này. Khi được yêu cầu phát hành phải tăng bản mới từ nguồn này, giữ 1.5.17 bất biến. [Nguyên nhân và bàn giao](fixes/2026-10-26-product-card-bulk-edit-identity.md), [biên nhận](validation/2026-10-26-product-card-bulk-edit-identity-verify.json).
+
 ## Đã phát hành 1.5.17 — 25.10.2026
 
 - **Latest v1.5.17 đã công bố 25.10.2026 16:11:04 (Moskva)**, Release `423411451`, bất biến. Lệnh tạo bộ cài/Latest và yêu cầu bổ sung FBS Ozon đã hoàn tất. Nhánh `release/vn-code-1.5.17`, nguồn/tag `d49b7165064f30fd9aaa27a3a619bb3de072e0cb`, hash cây `8d72fadeb7ec4fc2dd4d1d9c414c39768d9db968dd94ebc88e66a116daca4880`.

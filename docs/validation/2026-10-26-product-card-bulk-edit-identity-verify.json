@@ -1,0 +1,102 @@
+{
+  "recordedAtUtc": "2026-10-26T15:08:09.399153+00:00",
+  "branch": "fix/product-card-bulk-edit-identity",
+  "applicationCommit": "b20c8d2914e526deee03067efa6a9f968ac7c9f5",
+  "sourceTreeSha256": "6e5e842e2c072ef0478bf1524e8366601cc99d4f2671a7f1d4332a15a1fca406",
+  "basePublishedVersion": "1.5.17",
+  "basePublishedApplicationCommit": "d49b7165064f30fd9aaa27a3a619bb3de072e0cb",
+  "rootCause": "Card-level ProductKey has a blank variantId; indexed editing converted it into a GTIN key that requires a variant. Failure before marketplace mutation.",
+  "redBeforeFix": {
+    "tests": 5,
+    "errors": 5,
+    "message": "Invalid identity or value",
+    "location": "ProductEditApiSession.convert -> GtinSyncModels.ProductKey",
+    "logSha256": "07583e9e8bae404ae0b8df50424f7af5323b42351f5dde0363f947243c737f76"
+  },
+  "targetedAfterFix": {
+    "passed": 7,
+    "includedInRegression": true,
+    "cases": "brand 1/19/20 cards; material/gender/tnved/documents 20 cards",
+    "transport": "simulated API with real readers, adapters, SQLite journal and readback"
+  },
+  "regression": {
+    "result": "BUILD SUCCESS",
+    "tests": 302,
+    "passed": 302,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "classes": 33,
+    "duration": "08:35 min",
+    "finishedUtc": "2026-10-26T15:07:32Z",
+    "command": "DISPLAY=:99 /workspace/toolchains/mvn-vncode -o -B '-Dtest=com.vncode.app.features.products.*Test,com.vncode.app.ui.products.*Test,com.vncode.app.features.gtinsync.*Test,GtinBatchTransportTest,WbGtinAdapterTest,OzonGtinAdapterTest,GtinBulkPipelineTest' test",
+    "log": "/tmp/vncode-product-card-edit-regression.log",
+    "logSha256": "ccc82406f7d085f2b72ca87202ebaff5c719f7b98f4d0d2099c761265c7c21af"
+  },
+  "batchMetrics": {
+    "wildberries": {
+      "marketplace": "WILDBERRIES",
+      "products": 1000,
+      "simulatedApi": true,
+      "liveSellerMutations": false,
+      "writes": 10,
+      "reads": 67,
+      "dictionaryReads": 2,
+      "taskReads": 0,
+      "maxItems": 100,
+      "verified": 1000,
+      "elapsedMs": 29129.015084,
+      "gtinBulk": {
+        "marketplace": "WILDBERRIES",
+        "gtins": 10000,
+        "liveSellerMutations": false,
+        "simulatedApi": true,
+        "realApplicationPlannerAdaptersAndSqlite": true,
+        "writes": 4,
+        "reads": 214,
+        "maximumRequestItems": 3000,
+        "maximumRequestBytes": 1396441,
+        "verified": 10000,
+        "elapsedMs": 45204.361255,
+        "quotaWaitSimulatedSeparately": true
+      }
+    },
+    "ozon": {
+      "marketplace": "OZON",
+      "products": 1000,
+      "simulatedApi": true,
+      "liveSellerMutations": false,
+      "writes": 10,
+      "reads": 1045,
+      "dictionaryReads": 3,
+      "taskReads": 10,
+      "maxItems": 100,
+      "verified": 1000,
+      "elapsedMs": 21136.610278,
+      "gtinBulk": {
+        "marketplace": "OZON",
+        "gtins": 10000,
+        "liveSellerMutations": false,
+        "simulatedApi": true,
+        "realApplicationPlannerAdaptersAndSqlite": true,
+        "writes": 100,
+        "reads": 272,
+        "maximumRequestItems": 100,
+        "maximumRequestBytes": 4114,
+        "verified": 10000,
+        "elapsedMs": 253713.154023,
+        "quotaWaitSimulatedSeparately": true
+      }
+    }
+  },
+  "crossShopAndMarketplaceGuardsVerified": true,
+  "nativeVariantIdentityRetained": true,
+  "closedIndexRejected": true,
+  "fullApplicationSuiteRunForThisFix": false,
+  "nativeWindowsRunForThisFix": false,
+  "liveSellerWrites": false,
+  "installerBuilt": false,
+  "latestChanged": false,
+  "publishedLatestRemains": "1.5.17",
+  "sourceFiles": 1152
+}
