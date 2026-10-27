@@ -44,7 +44,7 @@ public class ZnackKizLabelPdfExporter {
         PdfPage page = document.addNewPage(PAGE_SIZE);
         drawDataMatrix(page, code);
         try (Canvas canvas = new Canvas(page, PAGE_SIZE)) {
-            canvas.setFont(GenerateBarcode.getArialFont());
+            canvas.setFont(GenerateBarcode.getArialFont(document));
             float textX = 87f;
             float textWidth = WIDTH - textX - 5f;
             canvas.add(chestnyZnakLogo());

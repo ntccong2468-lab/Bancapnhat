@@ -64,6 +64,15 @@ class OzonAcceptanceKizTest {
         assertEquals("OZON_ACCEPT_KIZ_REJECTED",assertThrows(java.io.IOException.class,()->service().shipPerUnit(shop,"PARENT",true)).getMessage());
         assertTrue(shipped.isEmpty());
     }
+    @Test void acceptanceResumesWhenPendingMarksPassWithoutSendingThemAgain()throws Exception {
+        pending=true;
+        assertThrows(java.io.IOException.class,()->service().shipPerUnit(shop,"PARENT",true));
+        pending=false;
+        assertEquals("awaiting_deliver",service().shipPerUnit(shop,"PARENT",true).status());
+        assertEquals(1,trace.stream().filter(p->p.equals("/v6/fbs/posting/product/exemplar/set")).count());
+        assertEquals(1,trace.stream().filter(p->p.equals("/v4/posting/fbs/ship")).count());
+        assertEquals(1,shipped.size());
+    }
     @Test void mandatoryMultiUnitOrderSplitsBeforeAssigningKizToEachNativeChild()throws Exception {
         multi=true;var result=service().shipPerUnit(shop,"PARENT",true);
         assertEquals(List.of("CHILD-A","CHILD-B"),result.resultingPostings());assertEquals(Set.of("CHILD-A","CHILD-B"),sent.keySet());

@@ -2,6 +2,7 @@ package com.vncode.app.integration.ozon;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -239,11 +240,29 @@ class OzonLabelServiceTest {
                 }
             }
         }
-        assertEquals(3,server.getRequestCount(),"1000 postings require one create, one get and one download");
+        try(var batch=new OzonBatchLabelDownloader(new OzonLabelService(new OzonLabelRepository(),this::client),shop,numbers)) {
+            server.enqueue(json("{\"status\":{\"code\":\"completed\"},\"file_url\":\""+server.url("/cdn/batch.pdf")+"\"}"));
+            server.enqueue(new MockResponse().setBody(new okio.Buffer().write(bytes.toByteArray())));
+            var streamed=temporaryDirectory.resolve("verified-shared-pages.pdf");
+            try(var output=new com.itextpdf.kernel.pdf.PdfDocument(new com.itextpdf.kernel.pdf.PdfWriter(streamed.toFile()))){
+                for(int i=0;i<numbers.size();i++){
+                    var page=batch.verifiedCarrierPage(shop,numbers.get(i));assertNotNull(page);
+                    assertEquals(1000-i,page.page(),"Use verified identity rather than the request/page order");
+                    page.source().copyPagesTo(page.page(),page.page(),output);
+                }
+            }
+            try(var output=new com.itextpdf.kernel.pdf.PdfDocument(new com.itextpdf.kernel.pdf.PdfReader(streamed.toFile()))){
+                assertEquals(1000,output.getNumberOfPages());
+                for(int i:new int[]{0,499,999})assertEquals(numbers.get(i),com.itextpdf.kernel.pdf.canvas.parser.PdfTextExtractor.getTextFromPage(output.getPage(i+1)).strip());
+            }
+        }
+        assertEquals(5,server.getRequestCount(),"One task, two read/download passes, no per-posting downloads");
         var create=server.takeRequest(1,TimeUnit.SECONDS);assertEquals("/v3/posting/fbs/package-label/create",create.getPath());
         assertEquals(1000,com.google.gson.JsonParser.parseString(create.getBody().readUtf8()).getAsJsonObject().getAsJsonArray("posting_numbers").size());
         assertEquals("/v2/posting/fbs/package-label/get",server.takeRequest(1,TimeUnit.SECONDS).getPath());
         assertEquals("v3:7001",new OzonLabelRepository().find(1,numbers.getLast()).taskId());
+        assertEquals("/cdn/batch.pdf",server.takeRequest(1,TimeUnit.SECONDS).getPath());
+        assertEquals("/v2/posting/fbs/package-label/get",server.takeRequest(1,TimeUnit.SECONDS).getPath());
         assertEquals("/cdn/batch.pdf",server.takeRequest(1,TimeUnit.SECONDS).getPath());
         server.enqueue(json("{\"status\":{\"code\":\"completed\"},\"file_url\":\""+server.url("/cdn/batch.pdf")+"\"}"));
         server.enqueue(new MockResponse().setBody(new okio.Buffer().write(bytes.toByteArray())));
@@ -253,7 +272,7 @@ class OzonLabelServiceTest {
             assertEquals(1,pdf.getNumberOfPages(),"A single reprint from a shared task must not print all 1000 labels");
             assertEquals(numbers.get(499),com.itextpdf.kernel.pdf.canvas.parser.PdfTextExtractor.getTextFromPage(pdf.getPage(1)).strip());
         }
-        assertEquals(5,server.getRequestCount(),"A reprint uses the saved task without another create");
+        assertEquals(7,server.getRequestCount(),"A reprint uses the saved task without another create");
         java.nio.file.Files.writeString(temporaryDirectory.resolve("batch-timing.txt"),"1000-label mock task and identity index: "+java.util.concurrent.TimeUnit.NANOSECONDS.toMillis(System.nanoTime()-start)+" ms");
     }
     @Test void ambiguousBulkTaskIsNotCreatedAgainAfterRestart()throws Exception {

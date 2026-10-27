@@ -541,6 +541,36 @@ class OzonPrintBundleServiceTest {
         }
     }
 
+    @Test void thousandVerifiedCarrierPagesStreamWithoutWritingIndividualPdfs()throws Exception {
+        List<String> numbers=java.util.stream.IntStream.range(0,1000).mapToObj(i->"FAST-"+i).toList();
+        var selected=numbers.stream().map(number->new OzonPostingDto(number,number,number,"awaiting_deliver","","","","","","",
+                new OzonRequirements(List.of(),List.of(),List.of()),List.of(),false,
+                List.of(new OzonPostingItemDto(0,"FAST-PRODUCT","FAST-SKU","FAST-ARTICLE","Product "+number,1,"RUB","1")))).toList();
+        new OzonPostingRepository().upsertPage(1,selected);new OzonProductKizPolicyRepository().setRequired(1,"FAST-SKU",false);
+        var sourceFile=temporaryDirectory.resolve("shared-source.pdf");
+        try(var pdf=new com.itextpdf.kernel.pdf.PdfDocument(new com.itextpdf.kernel.pdf.PdfWriter(sourceFile.toFile()))){
+            var font=PdfFontFactory.createFont();
+            for(int i=999;i>=0;i--)new com.itextpdf.kernel.pdf.canvas.PdfCanvas(pdf.addNewPage()).beginText().setFontAndSize(font,12).moveText(20,20).showText(numbers.get(i)).endText();
+        }
+        var source=new com.itextpdf.kernel.pdf.PdfDocument(new com.itextpdf.kernel.pdf.PdfReader(sourceFile.toFile()));
+        var downloader=new OzonPrintBundleService.OfficialLabelDownloader(){
+            public java.io.File download(Shop owner,String number,java.io.File target){throw new AssertionError("Verified shared pages must not be written and opened for every posting");}
+            public OzonPrintBundleService.VerifiedCarrierPage verifiedCarrierPage(Shop owner,String number){return new OzonPrintBundleService.VerifiedCarrierPage(source,1000-numbers.indexOf(number));}
+            public void close(){source.close();}
+        };
+        var exporter=new OzonPrintBundleService(new OzonPostingRepository(),new OzonExemplarJobRepository(),
+                (owner,number)->new OzonPreparationResult(number,"NOT_REQUIRED",0,true,false,""),downloader);
+        var labels=temporaryDirectory.resolve("fast-labels.pdf");var picking=temporaryDirectory.resolve("fast-picking.pdf");
+        var progress=new java.util.ArrayList<Integer>();
+        var result=exporter.exportAll(shop,numbers,labels.toFile(),picking.toFile(),progress::add);
+        assertEquals(1000,result.postingCount());assertEquals(1000,result.totalPages());assertTrue(source.isClosed());
+        assertEquals(java.util.stream.IntStream.rangeClosed(1,1000).boxed().toList(),progress);
+        try(var output=new com.itextpdf.kernel.pdf.PdfDocument(new com.itextpdf.kernel.pdf.PdfReader(labels.toFile()))){
+            assertEquals(1000,output.getNumberOfPages());
+            for(int i:new int[]{0,499,999})assertEquals(numbers.get(i),com.itextpdf.kernel.pdf.canvas.parser.PdfTextExtractor.getTextFromPage(output.getPage(i+1)).strip());
+        }
+    }
+
     @Test
     void thousandOrderBatchStreamsAllPagesAndReportsOrderedProgress() throws Exception {
         List<String> numbers = java.util.stream.IntStream.range(0, 1000)

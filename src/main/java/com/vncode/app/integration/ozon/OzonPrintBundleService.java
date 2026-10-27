@@ -206,16 +206,27 @@ public final class OzonPrintBundleService {
         File labelStaging = null;
         File pickingStaging = null;
         try {
-            officialStaging = AtomicFilePublisher.stagingFile(labelTarget, ".official.pdf");
             if(destination==null)labelStaging = AtomicFilePublisher.stagingFile(labelTarget, ".bundle.pdf");
             if (pickingTarget != null) {
                 pickingStaging = AtomicFilePublisher.stagingFile(pickingTarget, ".picking.pdf");
             }
             if (newPrint) LicenseRuntime.require(Permission.PRINT_NEW);
-            (context==null?labels:context.labels).download(shop, safePosting, officialStaging);
             Map<String, OzonProductDto> products = context == null ? catalogFor(shop, List.of(posting))
                     : context.products;
-            int officialPages = destination==null?compose(officialStaging,labelStaging,shop,posting,bindings,products):composeInto(officialStaging,destination,shop,posting,bindings,products);
+            OfficialLabelDownloader downloader=context==null?labels:context.labels;
+            VerifiedCarrierPage carrier=destination==null?null:downloader.verifiedCarrierPage(shop,safePosting);
+            int officialPages;
+            if(carrier!=null){
+                int first=destination.getNumberOfPages()+1;
+                carrier.source().copyPagesTo(carrier.page(),carrier.page(),destination);
+                if(kizLabels.append(destination,shop,posting,bindings,products)!=bindings.size())throw new IOException("The Ozon KIZ label page count is incomplete.");
+                for(int page=first;page<=destination.getNumberOfPages();page++)destination.getPage(page).flush();
+                officialPages=1;
+            }else{
+                officialStaging=AtomicFilePublisher.stagingFile(labelTarget,".official.pdf");
+                downloader.download(shop,safePosting,officialStaging);
+                officialPages=destination==null?compose(officialStaging,labelStaging,shop,posting,bindings,products):composeInto(officialStaging,destination,shop,posting,bindings,products);
+            }
             if (pickingStaging != null) pickingLists.export(pickingStaging, shop, posting);
             File finishedLabels=labelStaging,finishedPicking=pickingStaging;OzonExemplarJob finishedJob=job;
             if(destination==null)ownedPublish(shop,operation.validateShopOwner(),newPrint,()->{
@@ -470,7 +481,13 @@ public final class OzonPrintBundleService {
     interface OfficialLabelDownloader extends AutoCloseable {
         File download(Shop shop, String postingNumber, File target) throws IOException;
         default OfficialLabelDownloader forBatch(Shop shop,List<String> numbers)throws IOException{return this;}
+        /** Borrowed page from a shared PDF whose posting identity has already been verified. */
+        default VerifiedCarrierPage verifiedCarrierPage(Shop shop,String postingNumber)throws IOException{return null;}
         @Override default void close(){}
+    }
+
+    record VerifiedCarrierPage(PdfDocument source,int page) {
+        VerifiedCarrierPage {Objects.requireNonNull(source);if(page<1||page>source.getNumberOfPages())throw new IllegalArgumentException("Invalid verified carrier page");}
     }
 
     public record ExportResult(

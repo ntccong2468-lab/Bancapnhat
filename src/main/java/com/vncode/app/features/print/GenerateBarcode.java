@@ -15,10 +15,12 @@ import com.itextpdf.kernel.colors.ColorConstants;
 import com.itextpdf.kernel.font.PdfFont;
 import com.itextpdf.kernel.font.PdfFontFactory;
 import com.itextpdf.kernel.geom.PageSize;
+import com.itextpdf.kernel.geom.Rectangle;
 import com.itextpdf.kernel.pdf.PdfDocument;
 import com.itextpdf.kernel.pdf.PdfPage;
 import com.itextpdf.kernel.pdf.PdfWriter;
 import com.itextpdf.kernel.pdf.canvas.PdfCanvas;
+import com.itextpdf.kernel.pdf.xobject.PdfFormXObject;
 import com.itextpdf.layout.Document;
 import com.itextpdf.layout.element.*;
 import com.itextpdf.layout.properties.AreaBreakType;
@@ -65,6 +67,16 @@ public class GenerateBarcode {
         }
     }
 
+    /** iText owns this font and its subset for the lifetime of exactly one output PDF. */
+    public static PdfFont getArialFont(PdfDocument document) {
+        try {
+            return document.addFont(PdfFontFactory.createFont("/com/vncode/app/assets/fonts/ARIAL.TTF",
+                    PdfEncodings.IDENTITY_H, document));
+        } catch (IOException error) {
+            throw new IllegalStateException("Bundled label font is unavailable", error);
+        }
+    }
+
     public static void exportTemplateAndSticker(PrintTemplate template, List<Order> orders, File file) throws IOException, WriterException {
         exportTemplateAndSticker(template, orders, file, PrintJobOptions.defaults());
     }
@@ -76,7 +88,7 @@ public class GenerateBarcode {
         PageSize pageSize = new PageSize(WIDTH, HEIGHT);
         Document document = new Document(pdfDocument, pageSize);
         document.setMargins(0, 0, 0, 0);
-        document.setFont(getArialFont());
+        document.setFont(getArialFont(pdfDocument));
         RenderContext renderContext = new RenderContext();
         PrintJobOptions safeOptions = options == null ? PrintJobOptions.defaults() : options.normalized();
         boolean firstPage = true;
@@ -101,7 +113,7 @@ public class GenerateBarcode {
         PageSize pageSize = new PageSize(WIDTH, HEIGHT);
         Document document = new Document(pdfDocument, pageSize);
         document.setMargins(0, 0, 0, 0);
-        document.setFont(getArialFont());
+        document.setFont(getArialFont(pdfDocument));
         RenderContext renderContext = new RenderContext();
         boolean firstPage = true;
 
@@ -365,32 +377,32 @@ public class GenerateBarcode {
     private static void addPageSticker(Order order, Document document, PdfDocument pdfDoc, RenderContext renderContext) throws IOException, WriterException {
         String stickerCode = requiredValue(order.getStickerCode(), "Sticker code", order);
 
-        Image qrCenter = new Image(ImageDataFactory.create(renderContext.getQr(stickerCode, 1000)));
-        qrCenter.scaleToFit(80, 80);
-        qrCenter.setFixedPosition(WIDTH / 2 - 40, HEIGHT / 2 - 40);
-        document.add(qrCenter);
-
-        byte[] smallQr = renderContext.getQr(stickerCode, 30);
-
-        Image qrTL = new Image(ImageDataFactory.create(smallQr));
-        qrTL.scaleToFit(30, 30);
-        qrTL.setFixedPosition(8, HEIGHT - 38);
-        document.add(qrTL);
-
-        Image qrTR = new Image(ImageDataFactory.create(smallQr));
-        qrTR.scaleToFit(30, 30);
-        qrTR.setFixedPosition(WIDTH - 38, HEIGHT - 38);
-        document.add(qrTR);
-
-        Image qrBL = new Image(ImageDataFactory.create(smallQr));
-        qrBL.scaleToFit(30, 30);
-        qrBL.setFixedPosition(8, 8);
-        document.add(qrBL);
-
-        Image qrBR = new Image(ImageDataFactory.create(smallQr));
-        qrBR.scaleToFit(30, 30);
-        qrBR.setFixedPosition(WIDTH - 38, 8);
-        document.add(qrBR);
+        // Encode once at module resolution; all five placements share one sharp vector form.
+        var matrix = new QRCodeWriter().encode(stickerCode, BarcodeFormat.QR_CODE, 0, 0,
+                Map.of(EncodeHintType.CHARACTER_SET, "UTF-8",
+                        EncodeHintType.ERROR_CORRECTION, ErrorCorrectionLevel.H, EncodeHintType.MARGIN, 1));
+        var qr = new PdfFormXObject(new Rectangle(matrix.getWidth(), matrix.getHeight()));
+        var form = new PdfCanvas(qr, pdfDoc);
+        form.setFillColor(ColorConstants.WHITE).rectangle(0, 0, matrix.getWidth(), matrix.getHeight()).fill();
+        form.setFillColor(ColorConstants.BLACK);
+        for (int row = 0; row < matrix.getHeight(); row++) {
+            for (int col = 0; col < matrix.getWidth();) {
+                if (!matrix.get(col, row)) { col++; continue; }
+                int start = col;
+                while (col < matrix.getWidth() && matrix.get(col, row)) col++;
+                form.rectangle(start, matrix.getHeight() - row - 1, col - start, 1);
+            }
+        }
+        form.fill();
+        var page = pdfDoc.getNumberOfPages() == 0
+                ? pdfDoc.addNewPage(new PageSize(WIDTH, HEIGHT)) : pdfDoc.getLastPage();
+        var canvas = new PdfCanvas(page);
+        placeQr(canvas, qr, WIDTH / 2 - 40, HEIGHT / 2 - 40, 80);
+        placeQr(canvas, qr, 8, HEIGHT - 38, 30);
+        placeQr(canvas, qr, WIDTH - 38, HEIGHT - 38, 30);
+        placeQr(canvas, qr, 8, 8, 30);
+        placeQr(canvas, qr, WIDTH - 38, 8, 30);
+        qr.flush();
 
         Paragraph wb = new Paragraph("WB")
                 .setFontSize(18)
@@ -416,6 +428,11 @@ public class GenerateBarcode {
                 .setTextAlignment(TextAlignment.CENTER);
         stickerPathB.setFixedPosition(WIDTH - 2, 36, 51);
         document.add(stickerPathB);
+    }
+
+    private static void placeQr(PdfCanvas canvas, PdfFormXObject qr, float x, float y, float side) {
+        float scale = side / qr.getWidth();
+        canvas.addXObjectWithTransformationMatrix(qr, scale, 0, 0, scale, x, y);
     }
 
     private static String compact(String value, int maxLength) {

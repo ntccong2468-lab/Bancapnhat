@@ -81,7 +81,7 @@ final class OzonKizLabelAppender {
         drawProductBarcode(page, barcode);
 
         try (Canvas canvas = new Canvas(page, PAGE_SIZE)) {
-            PdfFont font = GenerateBarcode.getArialFont();
+            PdfFont font = GenerateBarcode.getArialFont(document);
             canvas.setFont(font);
             float x = mm(22), width = mm(34);
             canvas.add(text(fitLines(first(product.name(), item.name()), font, width, 8, 3),

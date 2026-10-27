@@ -42,6 +42,26 @@ class OzonCombinedLabelRendererTest {
 
     @AfterEach void tearDown() { System.clearProperty("vncode.appdata.dir"); }
 
+    @Test void aBatchSharesItsFontAndAnotherPdfCanRenderAfterTheFirstIsClosed()throws Exception {
+        for(int run=0;run<2;run++){
+            Path target=temporaryDirectory.resolve("font-batch-"+run+".pdf");
+            try(PdfDocument document=new PdfDocument(new PdfWriter(target.toFile()))){
+                for(int page=0;page<50;page++)OzonCombinedLabelRenderer.append(document,item(),product(false),KIZ);
+                var fonts=new java.util.HashSet<com.itextpdf.kernel.pdf.PdfIndirectReference>();
+                for(int page=1;page<=50;page++){
+                    var resources=document.getPage(page).getResources().getPdfObject().getAsDictionary(com.itextpdf.kernel.pdf.PdfName.Font);
+                    for(var name:resources.keySet())fonts.add(resources.getAsDictionary(name).getIndirectReference());
+                }
+                assertEquals(1,fonts.size(),"Font subsets must not multiply with the number of labels");
+            }
+            try(PDDocument document=Loader.loadPDF(target.toFile())){
+                assertEquals(50,document.getNumberOfPages());
+                assertEquals(BARCODE,decode(document,49,203,BarcodeFormat.CODE_128).getText());
+                assertEquals(KizService.scannerSafeCode(KIZ),KizService.scannerSafeCode(decode(document,49,203,BarcodeFormat.DATA_MATRIX).getText()));
+            }
+        }
+    }
+
     @Test void sharedRendererScansBothCodesWithGs1SeparatorsAtThermalPrinterResolutions() throws Exception {
         Path labels = temporaryDirectory.resolve("combined.pdf");
         try (PdfDocument document = new PdfDocument(new PdfWriter(labels.toFile()))) {

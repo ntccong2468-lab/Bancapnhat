@@ -36,6 +36,15 @@ final class OzonBatchLabelDownloader implements OzonPrintBundleService.OfficialL
         try(var output=new PdfDocument(new PdfWriter(target))) { documents.get(number).copyPagesTo(selected,output); }
         return target;
     }
+    @Override public OzonPrintBundleService.VerifiedCarrierPage verifiedCarrierPage(Shop shop,String number)throws IOException {
+        var group=membership.get(number);if(group==null)throw new IOException("OZON_LABEL_BATCH_SELECTION_CHANGED");
+        if(!isolated.contains(group)&&!loaded.contains(group))load(shop,group);
+        if(isolated.contains(group))return null;
+        var selected=pages.get(number);
+        // Multi-page/product-page filtering keeps the existing isolated-file path.
+        if(selected==null||selected.size()!=1)return null;
+        return new OzonPrintBundleService.VerifiedCarrierPage(documents.get(number),selected.getFirst());
+    }
     private void load(Shop shop,List<String> group)throws IOException {
         Path file=Files.createTempFile("vncode-ozon-label-batch-",".pdf");temporaryFiles.add(file);
         var job=new OzonLabelRepository().find(shop.getId(),group.getFirst());
