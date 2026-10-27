@@ -1,0 +1,47 @@
+{
+  "recordedAtUtc": "2026-10-27T18:30:01.846308+00:00",
+  "version": "1.5.18",
+  "branch": "release/vn-code-1.5.18",
+  "sourceCommit": "02559cdcba3962510f22a3d2deadf79770cd8775",
+  "sourceTreeSha256": "07f15623fc5f9dc266497b7e1bbcdfa5206d812f77c020820dcd5e5764865d31",
+  "sourceTreeHashMethod": "Sorted pom.xml, src/main and src/test files: relative path + NUL + binary SHA256 digest per file",
+  "maven": {
+    "command": "DISPLAY=:99 /workspace/toolchains/mvn-vncode -o -B clean verify",
+    "result": "BUILD SUCCESS",
+    "sourceCommit": "02559cdcba3962510f22a3d2deadf79770cd8775",
+    "logSha256": "888f844d1f302bc4e60841cc744fe5ce756c86c9cc6e504a75b5a703200968f6",
+    "tests": 3083,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 2,
+    "passed": 3081,
+    "classes": 413,
+    "duration": "19:52 min",
+    "finishedUtc": "2026-10-27T18:27:57Z"
+  },
+  "node": {
+    "tests": 117,
+    "passed": 117,
+    "failed": 0,
+    "logSha256": "6ee3753dfae796fd218f0ee875d1bd6adb064c1eff3951dfefe0428fda054b89"
+  },
+  "liveRecheck": {
+    "writeRequests": 10,
+    "wbVerified": 5,
+    "ozonVerified": 5,
+    "protectedFieldsPreserved": true,
+    "newBusinessValuesProvided": false,
+    "allTenWritesAcknowledgedAndReadBack": true
+  },
+  "liveEvidence": "2026-10-27-product-edit-live-recheck.json",
+  "windowsBuildRun": 40556964700,
+  "releaseRequested": true,
+  "installerBuilt": false,
+  "latestChanged": false,
+  "nativeWindowsVerifiedForThisCode": false,
+  "paidKizPurchaseVerified": false,
+  "usedForPublication": false,
+  "supersededByAdditionalPdfRequest": true,
+  "windowsBuildCancelled": true,
+  "linuxLog": "/tmp/vncode-1518-before-pdf-full-verify.log"
+}

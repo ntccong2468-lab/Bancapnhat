@@ -1,0 +1,104 @@
+{
+  "recordedAtUtc": "2026-10-27T18:40:26.970270+00:00",
+  "applicationCommit": "9c026d8892519bb991a7ec49684daaff2fa23be5",
+  "sourceTreeSha256": "aef72d30f8e04a3c84a6abeb6c444bca13331e9958de36f8cd0b6ffc9b02b0e7",
+  "baseBeforePdf": "02559cdcba3962510f22a3d2deadf79770cd8775",
+  "benchmark": {
+    "synthetic": true,
+    "realPdfRendering": true,
+    "networkIncluded": false,
+    "kizReservationAndPurchaseIncluded": false,
+    "warmupOrders": 10,
+    "sameFixtureAndJvmHeap": true,
+    "comparisons": [
+      {
+        "marketplace": "WB",
+        "orders": 1000,
+        "beforeMs": 48021.924631,
+        "afterMs": 14178.785792,
+        "speedup": 3.3868855440425008,
+        "beforeBytes": 6629355,
+        "afterBytes": 3217644,
+        "sizeReductionPercent": 51.46369443181125
+      },
+      {
+        "marketplace": "OZON",
+        "orders": 1000,
+        "beforeMs": 5104.729114,
+        "afterMs": 1856.080584,
+        "speedup": 2.7502734299385354,
+        "beforeBytes": 31452982,
+        "afterBytes": 1769534,
+        "sizeReductionPercent": 94.37403423306571
+      }
+    ],
+    "productionSpeedGuarantee": false
+  },
+  "targeted": {
+    "tests": 115,
+    "passed": 115,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "logSha256": "57ac33679a13552828ce52799c9a3750de10b83367e2181fe9899e081820d7b2"
+  },
+  "checks": {
+    "allFiveWbQrPlacementsScannedAt203And300Dpi": true,
+    "bothPageOrdersTested": true,
+    "ozonCombinedKizAndProductBarcodeScannedAt203And300Dpi": true,
+    "fontSubsetSharedWithinOneDocumentNotAcrossDocuments": true,
+    "thousandReversedCarrierPagesMatchVerifiedPostingIdentity": true,
+    "thousandOrderBundleAvoidsPerPostingPdfFilesOnVerifiedPath": true,
+    "unidentifiedAndMultiPageLabelsKeepExistingIsolationAndFiltering": true,
+    "mandatoryAndOptionalMarksVerifiedBeforeOzonShip": true,
+    "multiUnitOzonPostingsSplitBeforeAssigningMarks": true,
+    "pendingKizResumesWithoutDuplicateSetOrShip": true,
+    "newOrdersPrintedAndFailureUiRoutingCovered": true
+  },
+  "liveOzonRead": {
+    "checkedAtUtc": "2026-10-27T18:37:50.645116+00:00",
+    "rows": [
+      {
+        "endpoint": "v4/posting/fbs/list",
+        "httpStatus": 200,
+        "returned": 100,
+        "statuses": {
+          "cancelled": 56,
+          "delivered": 44
+        },
+        "requiresMandatoryMark": 0,
+        "optionalMark": 86,
+        "mutations": 0
+      },
+      {
+        "endpoint": "v4/posting/fbs/unfulfilled/list",
+        "httpStatus": 200,
+        "returned": 100,
+        "statuses": {
+          "delivering": 100
+        },
+        "requiresMandatoryMark": 0,
+        "optionalMark": 66,
+        "mutations": 0
+      }
+    ],
+    "ordersAcceptedByThisProbe": 0,
+    "kizSentByThisProbe": 0,
+    "readOnly": true,
+    "initialProbeUsedObsoleteV3AndReturned404": true,
+    "applicationUsesV4": true,
+    "postingDetailRead": {
+      "endpoint": "v3/posting/fbs/get",
+      "httpStatus": 200,
+      "requestedPostingMatches": true,
+      "status": "delivering",
+      "units": 1,
+      "mandatoryMarkProductCount": 0,
+      "optionalMarkProductCount": 1,
+      "mutationRequests": 0
+    }
+  },
+  "liveAcceptanceMutationPerformed": false,
+  "additionalProductionKizUsed": 0,
+  "subsumedByFinalReleaseFullSuite": true
+}

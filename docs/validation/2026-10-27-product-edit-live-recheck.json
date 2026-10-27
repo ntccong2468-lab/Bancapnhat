@@ -1,0 +1,173 @@
+{
+  "newDocumentUpload": false,
+  "writeRequests": 10,
+  "reads": 271,
+  "newBusinessValuesProvided": false,
+  "productionLicenseModified": false,
+  "rows": [
+    {
+      "marketplace": "WILDBERRIES",
+      "field": "brand",
+      "mode": "RESUBMIT_EXISTING_BUSINESS_VALUES",
+      "state": "RECONCILED",
+      "writeRequests": 1
+    },
+    {
+      "marketplace": "WILDBERRIES",
+      "field": "material",
+      "mode": "RESUBMIT_EXISTING_BUSINESS_VALUES",
+      "state": "RECONCILED",
+      "writeRequests": 1
+    },
+    {
+      "marketplace": "WILDBERRIES",
+      "field": "gender",
+      "mode": "RESUBMIT_EXISTING_BUSINESS_VALUES",
+      "state": "RECONCILED",
+      "writeRequests": 1
+    },
+    {
+      "marketplace": "WILDBERRIES",
+      "field": "tnved",
+      "mode": "RESUBMIT_EXISTING_BUSINESS_VALUES",
+      "state": "RECONCILED",
+      "writeRequests": 1
+    },
+    {
+      "marketplace": "WILDBERRIES",
+      "field": "documents",
+      "mode": "RESUBMIT_EXISTING_BUSINESS_VALUES",
+      "state": "RECONCILED",
+      "writeRequests": 1
+    },
+    {
+      "marketplace": "OZON",
+      "field": "brand",
+      "mode": "RESUBMIT_EXISTING_BUSINESS_VALUES",
+      "state": "RECONCILED",
+      "writeRequests": 1
+    },
+    {
+      "marketplace": "OZON",
+      "field": "material",
+      "mode": "RESUBMIT_EXISTING_BUSINESS_VALUES",
+      "state": "RECONCILED",
+      "writeRequests": 1
+    },
+    {
+      "marketplace": "OZON",
+      "field": "gender",
+      "mode": "RESUBMIT_EXISTING_BUSINESS_VALUES",
+      "state": "RECONCILED",
+      "writeRequests": 1
+    },
+    {
+      "marketplace": "OZON",
+      "field": "tnved",
+      "mode": "RESUBMIT_EXISTING_BUSINESS_VALUES",
+      "state": "RECONCILED",
+      "writeRequests": 1
+    },
+    {
+      "marketplace": "OZON",
+      "field": "documents",
+      "mode": "RESUBMIT_EXISTING_BUSINESS_VALUES",
+      "state": "RECONCILED",
+      "writeRequests": 1
+    }
+  ],
+  "completedAtUtc": "2026-10-27T18:12:22.297881082Z",
+  "protectedFieldsPreserved": true,
+  "freshReadProtectedFields": [
+    {
+      "marketplace": "WILDBERRIES",
+      "protectedFields": {
+        "nmID": true,
+        "vendorCode": true,
+        "brand": true,
+        "title": true,
+        "description": true,
+        "sizes": true,
+        "dimensions": true,
+        "photos": true,
+        "kizMarked": true,
+        "existingDocumentIdentityAndDates": true
+      }
+    },
+    {
+      "marketplace": "OZON",
+      "protectedFields": {
+        "info.id": true,
+        "info.offer_id": true,
+        "info.sku": true,
+        "info.barcodes": true,
+        "attributes.id": true,
+        "attributes.offer_id": true,
+        "attributes.name": true,
+        "attributes.barcodes": true,
+        "attributes.dimension_unit": true,
+        "attributes.weight_unit": true,
+        "attributes.width": true,
+        "attributes.height": true,
+        "attributes.depth": true,
+        "attributes.weight": true,
+        "existingDocumentIdentityAndDates": true
+      }
+    }
+  ],
+  "wbVerified": 5,
+  "ozonVerified": 5,
+  "independentFreshHttps": [
+    {
+      "source": "WILDBERRIES",
+      "httpStatus": 200
+    },
+    {
+      "source": "OZON",
+      "httpStatus": 200
+    },
+    {
+      "source": "OZON_ATTRIBUTES",
+      "httpStatus": 200
+    }
+  ],
+  "applicationCommit": "02559cdcba3962510f22a3d2deadf79770cd8775",
+  "sourceTreeSha256": "07f15623fc5f9dc266497b7e1bbcdfa5206d812f77c020820dcd5e5764865d31",
+  "uiEntry": "Actual product edit service and seller readers/adapters over HTTPS; Apply handler separately covered by JavaFX regression and previous live acceptance",
+  "ownerAuthorizedSignedTestLicense": true,
+  "nativeSellerWindowsSessionObserved": false,
+  "probeContinuation": {
+    "reason": "Fresh Ozon read supplied an existing brand; initial private write budget assumed no brand. Existing-document bind was blocked locally before HTTP and initially read back only. A separate documents-only continuation sent exactly one bind.",
+    "additionalWrites": 1,
+    "ambiguousRequestReplayed": false,
+    "finalActualWrites": 10
+  },
+  "independentFreshHttpsProtectedFieldsPreserved": true,
+  "independentOzonTaskVerification": [
+    {
+      "field": "brand",
+      "httpStatus": 200,
+      "status": "imported",
+      "errors": 0
+    },
+    {
+      "field": "material",
+      "httpStatus": 200,
+      "status": "imported",
+      "errors": 0
+    },
+    {
+      "field": "gender",
+      "httpStatus": 200,
+      "status": "imported",
+      "errors": 0
+    },
+    {
+      "field": "tnved",
+      "httpStatus": 200,
+      "status": "imported",
+      "errors": 0
+    }
+  ],
+  "allTenWritesAcknowledgedAndReadBack": true
+}

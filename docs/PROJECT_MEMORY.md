@@ -1,5 +1,17 @@
 # Bộ nhớ dự án VNCode
 
+## Kiểm tra lại và chuẩn bị 1.5.18 — 27.10.2026
+
+- **Yêu cầu bổ sung PDF/nhận Ozon:** nguồn cuối thay bằng `9c026d8892519bb991a7ec49684daaff2fa23be5`, hash cây `aef72d30f8e04a3c84a6abeb6c444bca13331e9958de36f8cd0b6ffc9b02b0e7`, Windows build `40561909841`. Run `40556964700` hủy/superseded; không phát hành artifact cũ. Full Linux trước tối ưu đã đạt và lưu riêng, phải dùng full suite nguồn mới để phát hành.
+- WB dùng QR vector một form cho năm vị trí; Ozon chia sẻ font theo PDF và ghép trực tiếp trang carrier đã xác minh; nhãn mơ hồ/nhiều trang giữ dự phòng. Benchmark 1.000 fixture: WB 48,02 → 14,18 giây, 6,63 → 3,22 MB; Ozon dựng combined label 5,10 → 1,86 giây, 31,45 → 1,77 MB. Không tính mạng/KIZ/máy in thật.
+- 115/115 liên quan đạt, có quét 203/300 dpi, hai thứ tự trang, 1.000 trang đảo thứ tự/không PDF trung gian và nhận Ozon chờ→đạt không set/ship lặp. API v4 thật đọc 200, chỉ trang đầu 100 mỗi nguồn; không nhận đơn khách thật. [Bàn giao PDF/nhận đơn](fixes/2026-10-27-pdf-speed-ozon-acceptance.md), [biên nhận](validation/2026-10-27-pdf-speed-ozon-acceptance-verify.json). Mã sửa sản phẩm giữ nguyên từng byte từ nguồn đã nghiệm thu ghi thật.
+
+- Chủ dự án yêu cầu kiểm tra lại sửa đổi 26.10, ghi thật qua API rồi đóng gói/phát hành. Nhánh `release/vn-code-1.5.18`, nguồn chốt `02559cdcba3962510f22a3d2deadf79770cd8775`, hash cây `07f15623fc5f9dc266497b7e1bbcdfa5206d812f77c020820dcd5e5764865d31`. Kế thừa toàn bộ `fa3aa3a`, `3fd8618`, `b20c8d2`; chỉ tăng POM/app.version lên 1.5.18, giữ định danh và dữ liệu. Windows build được chốt `40556964700`.
+- **WB 5/5 và Ozon 5/5, 10 lệnh ghi thật** qua service/reader/adapter/HTTPS và đọc lại RECONCILED. Ozon hiện đã có thương hiệu khi đọc mới, gửi lại đúng giá trị đó; câu hỏi thiếu thương hiệu của ngày trước không còn chặn lượt này. Chỉ gửi lại dữ liệu đang có, gắn giấy tờ có sẵn; không cung cấp giá trị kinh doanh mới hoặc upload giấy tờ mới.
+- Đọc HTTPS độc lập WB/info/attributes đều 200, các trường được bảo toàn khớp trước/sau. Bốn task thuộc tính Ozon được tra riêng đều imported, không lỗi. License kiểm thử ký riêng/app-data riêng, không đổi production. CLI lần này đi qua service thật; UI Apply có kiểm chứng thật 26.10 và hồi quy JavaFX.
+- Bộ thử giới hạn nhầm 9 vì dự kiến brand Ozon thiếu; bind giấy tờ cuối bị guard cục bộ chặn trước HTTP. Đã tiếp tục riêng một bind thật, tổng cuối 10; không gửi lại trường khác/unknown request. Giữ marker one-shot và receipt/DB thật ở `/tmp/vncode-1518-live-recheck`, không commit hoặc đưa vào artifact.
+- [Nghiệm thu](fixes/2026-10-27-product-edit-release-recheck.md), [biên nhận bỏ dữ liệu seller](validation/2026-10-27-product-edit-live-recheck.json). Full suite, native Windows và Latest đang được hoàn tất; chưa nhận phần đó là đạt chỉ từ API. Giữ 1.5.17 bất biến và không xóa release cũ.
+
 ## Kiểm chứng nút sửa qua API thật — 26.10.2026
 
 - Người dùng hỏi 5 nút có thực sự sửa được; đã đồng ý hai bài thử. Thông báo trước chỉ gửi lại dữ liệu hiện có do chưa có giá trị kinh doanh mới. Đã chạy Apply JavaFX thật → service/reader/adapter/HTTPS thật trong app-data riêng, test license ký riêng theo quyền chủ dự án cấp; không đổi license production.
