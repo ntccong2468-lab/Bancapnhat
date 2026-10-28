@@ -17,8 +17,8 @@ jobs:
     timeout-minutes: 90
     env:
       GH_TOKEN: ${{ github.token }}
-      EXPECTED_SOURCE: 9c026d8892519bb991a7ec49684daaff2fa23be5
-      BUILD_RUN_ID: '40561909841'
+      EXPECTED_SOURCE: 5330e9931b8b7155ebe26f3b589a7a2a747e0696
+      BUILD_RUN_ID: '40634346229'
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
@@ -39,8 +39,8 @@ jobs:
           const run=JSON.parse(await readFile(`${process.env.RUNNER_TEMP}/approved-build-run.json`,'utf8'));
           assert.equal(run.status,'completed');assert.equal(run.conclusion,'success');assert.equal(run.head_sha,process.env.EXPECTED_SOURCE);
           assert.equal(run.path,'.github/workflows/publish-vncode-baseline.yml');assert.equal(run.repository.full_name,process.env.GITHUB_REPOSITORY);
-          const receipt=JSON.parse(await readFile('docs/validation/2026-10-27-vncode-1518-prebuild.json','utf8'));
-          assert.equal(receipt.version,'1.5.18');assert.equal(receipt.sourceTreeSha256,'aef72d30f8e04a3c84a6abeb6c444bca13331e9958de36f8cd0b6ffc9b02b0e7');
+          const receipt=JSON.parse(await readFile('docs/validation/2026-10-28-vncode-1518-prebuild.json','utf8'));
+          assert.equal(receipt.version,'1.5.18');assert.equal(receipt.sourceTreeSha256,'d3510008fe93d7cfe4b523fd1d797801f01b4cb6c18781e4bd569d207db647fe');
           assert.equal(receipt.maven.result,'BUILD SUCCESS');assert.equal(receipt.maven.sourceCommit,process.env.EXPECTED_SOURCE);
           assert.ok(receipt.maven.tests>=3087);assert.equal(receipt.maven.failures,0);assert.equal(receipt.maven.errors,0);
           assert.equal(receipt.node.passed,117);assert.equal(receipt.releaseRequested,true);
@@ -102,7 +102,7 @@ jobs:
           for(const record of [info,manifest]){assert.equal(record.version,'1.5.18');assert.equal(record.sourceCommit,process.env.EXPECTED_SOURCE);}
           assert.equal(info.runId,Number(process.env.BUILD_RUN_ID));assert.equal(info.workflow,'publish-vncode-baseline.yml');
           for(const flag of ['fullJavaSuiteRun','nativeSmokeRun','baselineUpgradeRun'])assert.equal(info.verification[flag],true);
-          const prebuild=JSON.parse(await readFile('docs/validation/2026-10-27-vncode-1518-prebuild.json','utf8'));
+          const prebuild=JSON.parse(await readFile('docs/validation/2026-10-28-vncode-1518-prebuild.json','utf8'));
           const tests=info.verification.java;assert.equal(tests.tests,prebuild.maven.tests);assert.equal(tests.failures,0);assert.equal(tests.errors,0);assert.equal(tests.passed,tests.tests-tests.skipped);
           for(const name of requiredAssets('1.5.18')){assert.match(name,/^[A-Za-z0-9._-]+$/);const expected=manifest.files[name];assert.ok(expected);const file=await lstat(`${root}/${name}`);assert.ok(file.isFile()&&!file.isSymbolicLink());const bytes=await read(name);assert.equal(bytes.length,expected.bytes,name);assert.equal(hash(bytes),expected.sha256,name);}
           for(const line of (await read('SHA256SUMS')).toString('utf8').trim().split(/\r?\n/)){const parts=/^([a-f0-9]{64})  ([A-Za-z0-9._-]+)$/.exec(line);assert.ok(parts);assert.equal(hash(await read(parts[2])),parts[1],parts[2]);}
@@ -128,7 +128,7 @@ jobs:
           assert.equal(release.id,Number(process.env.RELEASE_ID));assert.equal(release.tag_name,'v1.5.18');assert.equal(release.target_commitish,process.env.EXPECTED_SOURCE);
           for(const name of await readdir(root)){assert.match(name,/^[A-Za-z0-9._-]+$/);const file=await lstat(`${root}/${name}`);assert.ok(file.isFile()&&!file.isSymbolicLink());const bytes=await readFile(`${root}/${name}`),assets=release.assets.filter(a=>a.name===name);assert.equal(assets.length,1,name);assert.equal(assets[0].state,'uploaded');assert.equal(assets[0].size,bytes.length,name);assert.equal(assets[0].digest,`sha256:${createHash('sha256').update(bytes).digest('hex')}`,name);}
           const latest=JSON.parse(await readFile(`${process.env.RUNNER_TEMP}/current-latest.json`,'utf8'));
-          const version=/^v(\d+)\.(\d+)\.(\d+)$/.exec(latest.tag_name);assert.ok(version,'Unknown current Latest version');const parts=version.slice(1).map(Number),target=[1,5,17];let newer=false;for(let i=0;i<3;i++){if(parts[i]!==target[i]){newer=parts[i]>target[i];break;}}assert.equal(newer,false,'A newer Latest already exists');
+          const version=/^v(\d+)\.(\d+)\.(\d+)$/.exec(latest.tag_name);assert.ok(version,'Unknown current Latest version');const parts=version.slice(1).map(Number),target=[1,5,18];let newer=false;for(let i=0;i<3;i++){if(parts[i]!==target[i]){newer=parts[i]>target[i];break;}}assert.equal(newer,false,'A newer Latest already exists');
           NODE
       - name: Publish the complete draft as Latest
         if: steps.release.outputs.needs_publish == 'true'

@@ -27,5 +27,15 @@
     "v1.5.18": "accepted",
     "v1.5.19": "blocked"
   },
-  "windowsBuildRun": 40634346229
+  "windowsBuildRun": 40634346229,
+  "windowsTargeted": {
+    "tests": 8,
+    "passed": 8,
+    "platform": "windows",
+    "errors": 0,
+    "runId": 40635790645,
+    "skipped": 0,
+    "failures": 0,
+    "sourceCommit": "5330e9931b8b7155ebe26f3b589a7a2a747e0696"
+  }
 }
