@@ -1,5 +1,15 @@
 # Bộ nhớ dự án VNCode
 
+## Đã phát hành 1.5.18 — 28.10.2026
+
+- **Latest v1.5.18 công bố 28.10.2026 08:50:37 (Moskva)**, Release `426304599`, bất biến. Nhánh `release/vn-code-1.5.18`, nguồn/tag `5330e9931b8b7155ebe26f3b589a7a2a747e0696`, hash cây `d3510008fe93d7cfe4b523fd1d797801f01b4cb6c18781e4bd569d207db647fe`. Lệnh đóng gói/phát hành đã hoàn tất, gồm toàn bộ sửa sản phẩm/PDF và kiểm tra nhận Ozon.
+- Production giữ đúng `9c026d8`: sửa đủ 5 nút/identity từ 20 sản phẩm, Ozon giấy tờ/TN VED/material readback, WB revision và UI gọn/vừa khung. 10 lệnh seller API thật ngày 27.10, 5/5 mỗi sàn với giá trị hiện có; thương hiệu Ozon đã có khi đọc mới nên không còn chờ đầu vào. Không thử giấy tờ tải mới hoặc giá trị kinh doanh mới.
+- PDF 1.000 fixture: WB 48,02 → 14,18 giây/nhẹ hơn 51,46%; Ozon combined 5,10 → 1,86 giây/nhẹ hơn 94,37%, không tính mạng/KIZ/in thật. Giữ nhận diện nhãn–đơn, đường dự phòng riêng; nhận Ozon có hồi quy KIZ trước ship/split/pending không gửi trùng/Đơn mới→in→Đang giao hàng. API thật đọc đơn, không nhận đơn khách.
+- Windows `40634346229` và Linux nguồn chốt cùng **3087 ca, 3085 đạt, 2 skip OS, không lỗi/thất bại**; Node 117/117. Native mở/DPAPI/cài-gỡ/nâng cấp EXE từ 1.5.17 giữ dữ liệu đạt. Nguồn chỉ đổi thêm fixture GS1 đồng thời và cleanup worker; không dùng build lỗi `40561909841` hoặc build hủy `40556964700`.
+- Publisher `40636084939` đạt, 16 tài sản; công khai/checksum/tag/source ZIP/JAR và updater runtime 1.5.17 nhận đúng MSI đạt. Chưa xem popup thiết bị seller; EXE chưa có Authenticode nhúng. Giữ release cũ. [Bàn giao](validation/2026-10-28-vncode-1518-handoff.md), [Latest](validation/2026-10-28-vncode-1518-published-latest.json), [Full suite](validation/2026-10-28-vncode-1518-prebuild.json).
+- Kinh nghiệm phát hành: publisher gặp 403 tạo tag/release; dùng kết nối GitHub hiện có chuẩn bị tag/draft, sau đó Actions lần 3 upload/công bố/kiểm tra công khai đạt. Upload trực tiếp từ môi trường bị 401, không đổi/copy credential và không build lại nguồn đã đạt. ZIP nguồn chỉ khác CRLF/LF so với Linux, đã đối chiếu đủ 1.153 tệp không khác nội dung. [Chi tiết](fixes/2026-10-28-vncode-1518-windows-gate.md).
+- Phiên sau dùng 1.5.18 làm nền; tăng version và giữ tag/binary cũ bất biến. Không lặp verifier API/KIZ có marker; dữ liệu thật chỉ ở thư mục private `/tmp`, không commit/artifact. Tệp `/tmp` có thể mất khi môi trường thay; không suy ra request thất bại từ việc mất tệp.
+
 ## Tiếp tục phát hành 1.5.18 — 28.10.2026
 
 - Lượt Windows `40561909841` thất bại: đủ 3087 ca, 0 failure/1 error/2 skip; duy nhất fixture GS1 đồng thời timeout 2 giây, còn worker nên temp SQLite không xóa được. Publisher `40565064080` dừng tại chờ build. Khi nối lại Latest vẫn 1.5.17; chưa tạo bộ cài được phát hành từ lượt đó.

@@ -1,0 +1,18 @@
+{
+  "checkedAtUtc": "2026-10-28T05:51:28.843768+00:00",
+  "version": "1.5.18",
+  "sourceCommit": "5330e9931b8b7155ebe26f3b589a7a2a747e0696",
+  "buildRunId": 40634346229,
+  "allManifestBytesVerified": true,
+  "sourceArchiveFilesCompared": 1153,
+  "sourceArchiveByteIdenticalFiles": 7,
+  "sourceArchiveOnlyLineEndingDifferences": 1146,
+  "sourceArchiveComparison": "CRLF/LF normalized; no other differences",
+  "productionSourcesMatchLocalRelease": true,
+  "packagedVersionVerified": true,
+  "productAndPdfFixMethodsPresent": true,
+  "responsiveProductActionBarPresent": true,
+  "compactStylesMatch": true,
+  "testLicenseAuthorityAndPrivateProbeExcluded": true,
+  "installerAuthenticodeEmbedded": false
+}

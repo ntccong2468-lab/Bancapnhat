@@ -41,9 +41,17 @@
   "previousWindowsFailedRun": 40561909841,
   "supersededWindowsRun": 40556964700,
   "releaseRequested": true,
-  "latestChanged": false,
-  "installerBuilt": false,
-  "nativeWindowsVerifiedForThisCode": false,
+  "latestChanged": true,
+  "installerBuilt": true,
+  "nativeWindowsVerifiedForThisCode": true,
   "paidKizPurchaseVerified": false,
-  "gateRecoveryEvidence": "2026-10-28-vncode-1518-gate-recovery.json"
+  "gateRecoveryEvidence": "2026-10-28-vncode-1518-gate-recovery.json",
+  "windowsJava": {
+    "failures": 0,
+    "errors": 0,
+    "skipped": 2,
+    "tests": 3087,
+    "passed": 3085
+  },
+  "publishedEvidence": "2026-10-28-vncode-1518-published-latest.json"
 }

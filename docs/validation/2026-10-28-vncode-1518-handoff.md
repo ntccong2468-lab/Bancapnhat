@@ -1,0 +1,13 @@
+# Bàn giao VN code 1.5.18 — 28.10.2026
+
+Đã công bố Latest **v1.5.18 lúc 28.10.2026 08:50:37 (Moskva)**, Release `426304599`. [Tải bộ cài EXE](https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.5.18/VN-code-1.5.18-Windows-x64.exe) · [Trang phát hành](https://github.com/ntccong2468-lab/Bancapnhat/releases/tag/v1.5.18).
+
+- Nguồn/tag `5330e9931b8b7155ebe26f3b589a7a2a747e0696`, hash cây `d3510008fe93d7cfe4b523fd1d797801f01b4cb6c18781e4bd569d207db647fe`. Giữ nguyên production từ `9c026d8`; thêm sửa fixture GS1 bị timeout trên Windows, giữ kiểm tra độc lập hai cửa hàng và chờ worker đóng DB. Các build lỗi/hủy cũ không được dùng phát hành.
+- Kế thừa 1.5.17: sửa identity hàng loạt, đủ 5 nút sản phẩm, Ozon gắn giấy tờ có sẵn, readback TN VED/material, revision WB và thanh nút vừa khung. Đã ghi 10 lệnh API thật ngày 27.10, WB 5/5 + Ozon 5/5 và đọc lại RECONCILED; dùng giá trị hiện có, không upload giấy tờ mới. Mã sửa sản phẩm không thay đổi sau nghiệm thu thật, không lặp ghi seller API trong lượt đóng gói 28.10.
+- PDF 1.000 fixture, chưa tính mạng/KIZ/máy in: WB 48,02 → 14,18 giây; Ozon combined 5,10 → 1,86 giây. QR vector năm vị trí, font theo từng PDF và ghép trực tiếp trang carrier đã xác minh; nhãn không rõ danh tính giữ đường riêng. Quét 203/300 dpi và thử 1.000 trang đảo thứ tự, không ghép theo vị trí yêu cầu.
+- Nhận Ozon qua hồi quy HTTP/UI: gán/validate/set và đọc KIZ đạt trước ship, tách đơn nhiều đơn vị trước gán, pending tiếp tục không set/ship lặp, Đơn mới/in/Đang giao hàng. API thật list/unfulfilled v4/get v3 chỉ đọc; không nhận đơn khách, tạo Catalog hoặc mua/tiêu KIZ production trong lượt này.
+- Windows `40634346229` và Linux nguồn chốt cùng **3087 ca, 3085 đạt, 2 bỏ qua theo OS, không lỗi/thất bại**; Node 117/117. Các lượt 115/8 là tập con, không cộng. Native mở app, DPAPI, cài-gỡ và nâng cấp EXE từ 1.5.17 giữ dữ liệu đạt; định danh/thư mục dữ liệu giữ nguyên.
+- Publisher `40636084939` thành công, 16 tài sản; tải công khai/checksum 11 tài sản bắt buộc và tag đạt. 1153 tệp nguồn/test/POM so khớp ZIP sau chuẩn hóa CRLF/LF (không khác nội dung); JAR có các sửa sản phẩm/PDF, không có test license authority/private live probe. Updater runtime 1.5.17 công khai nhận 1.5.18/chọn đúng MSI/hash/kích thước; chưa quan sát popup trên thiết bị seller.
+- Giữ release cũ bất biến. EXE chưa có chữ ký Authenticode nhúng. Khi sửa tiếp, tăng version từ 1.5.18, không thay binary/tag đã phát hành.
+
+[Latest](2026-10-28-vncode-1518-published-latest.json) · [Full suite](2026-10-28-vncode-1518-prebuild.json) · [API thật](2026-10-27-product-edit-live-recheck.json) · [PDF/nhận Ozon](2026-10-27-pdf-speed-ozon-acceptance-verify.json) · [Khắc phục gate Windows](../fixes/2026-10-28-vncode-1518-windows-gate.md).

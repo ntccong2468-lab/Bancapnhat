@@ -1,0 +1,53 @@
+{
+  "version": "1.5.18",
+  "sourceCommit": "5330e9931b8b7155ebe26f3b589a7a2a747e0696",
+  "releaseId": 426304599,
+  "verifiedAt": "2026-10-28T05:51:11.881Z",
+  "publicAssetsVerified": true,
+  "files": {
+    "VN-code-1.5.18-Windows-x64.exe": {
+      "bytes": 147294720,
+      "sha256": "edd2a04d79676c2e647e00f9b974982b3b277c3fe878bccae0c75552e87259d5"
+    },
+    "VN-code-1.5.18-Windows-x64.msi": {
+      "bytes": 146625801,
+      "sha256": "e213f93af0ffc1e932373335329b17ae5e1151821314c58ff1b3bb354e9c0a99"
+    },
+    "VN-code-1.5.18-Windows-x64.sha256": {
+      "bytes": 98,
+      "sha256": "a73ba15e361c7d1bdf4464a67f4fdaf108597ff0173ca65d37a928c20af64dc6"
+    },
+    "VN-code-1.5.18-Windows-x64.zip": {
+      "bytes": 146219577,
+      "sha256": "44b963ab31d74ac8559c3d04bf44200d07eab9e399f2abbabd6c910e93480c54"
+    },
+    "VN-code-1.5.18-source.zip": {
+      "bytes": 18256187,
+      "sha256": "6a064e33857869b23c7c95210543d1237943f27043f1458b63b4351eb88e15df"
+    },
+    "VN-code-1.5.18-history.bundle": {
+      "bytes": 25337301,
+      "sha256": "b6e7734f48c637c6eb0336acecc18b85c1aa2e63fc91d9e5cbd625ff975544f0"
+    },
+    "VN-code-1.5.18-verification.zip": {
+      "bytes": 1864995,
+      "sha256": "d708c05b32a15c56f4d9095046caa03f35bed8af6f8c73ef3336bb10533cdf9f"
+    },
+    "build-info.json": {
+      "bytes": 771,
+      "sha256": "8b2fbd2e30a8b40728dc55a68a99de9d634135095747536fcdaffe0ff63d719f"
+    },
+    "release-notes.md": {
+      "bytes": 1902,
+      "sha256": "d433ac94b5e9966f042bd2946cea10b0c109dd279c78d6819b111029bdbe624e"
+    },
+    "native-smoke.json": {
+      "bytes": 288,
+      "sha256": "b14eaae011d42e7ec392a343f081ca765326e4c5593f6103f1366fbcae03e571"
+    },
+    "upgrade-baseline-smoke.json": {
+      "bytes": 835,
+      "sha256": "d79476ccadbbf32b464b86adfcbb55189614a1e37bd8db0df42762659c011a18"
+    }
+  }
+}
