@@ -1,0 +1,43 @@
+name: Verify GS1 session concurrency on Windows
+on:
+  push:
+    branches: [release/vn-code-1.5.18]
+    paths: [.github/workflows/verify-gs1-session-windows.yml]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  gs1-session:
+    runs-on: windows-latest
+    timeout-minutes: 15
+    env:
+      EXPECTED_SOURCE: 5330e9931b8b7155ebe26f3b589a7a2a747e0696
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: 5330e9931b8b7155ebe26f3b589a7a2a747e0696
+      - uses: actions/setup-java@03ad4de0992f5dab5e18fcb136590ce7c4a0ac95
+        with:
+          java-version: '25'
+          distribution: oracle
+          cache: maven
+      - name: Verify the exact previously failing fixture
+        shell: pwsh
+        env:
+          LOCALAPPDATA: ${{ runner.temp }}\vncode-gs1-session-${{ github.run_id }}
+        run: |
+          $ErrorActionPreference='Stop'
+          if((git rev-parse HEAD).Trim() -cne $env:EXPECTED_SOURCE){throw 'Wrong test source.'}
+          .\mvnw.cmd -B '-Dtest=Gs1AutomaticSessionTest' test
+          if($LASTEXITCODE -ne 0){throw 'GS1 session verification failed.'}
+          [xml]$report=Get-Content target/surefire-reports/TEST-com.vncode.app.features.gs1.Gs1AutomaticSessionTest.xml -Raw
+          if([int]$report.testsuite.tests -ne 8 -or [int]$report.testsuite.failures -ne 0 -or [int]$report.testsuite.errors -ne 0 -or [int]$report.testsuite.skipped -ne 0){throw 'Incomplete GS1 evidence.'}
+          @{sourceCommit=$env:EXPECTED_SOURCE;runId=[long]$env:GITHUB_RUN_ID;platform='windows';tests=8;passed=8;failures=0;errors=0;skipped=0} | ConvertTo-Json | Set-Content target/gs1-session-verification.json -Encoding utf8NoBOM
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        if: always()
+        with:
+          name: VN-code-1.5.18-gs1-session-windows
+          path: |
+            target/gs1-session-verification.json
+            target/surefire-reports/TEST-com.vncode.app.features.gs1.Gs1AutomaticSessionTest.xml
+          if-no-files-found: error

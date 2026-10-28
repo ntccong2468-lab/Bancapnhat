@@ -1,5 +1,12 @@
 # Bộ nhớ dự án VNCode
 
+## Tiếp tục phát hành 1.5.18 — 28.10.2026
+
+- Lượt Windows `40561909841` thất bại: đủ 3087 ca, 0 failure/1 error/2 skip; duy nhất fixture GS1 đồng thời timeout 2 giây, còn worker nên temp SQLite không xóa được. Publisher `40565064080` dừng tại chờ build. Khi nối lại Latest vẫn 1.5.17; chưa tạo bộ cài được phát hành từ lượt đó.
+- Chỉ sửa `Gs1AutomaticSessionTest`: giữ HTTP thứ nhất bằng latch/budget dài hơn, chờ thứ hai có giới hạn 15 giây và vẫn assert nó hoàn tất trước khi nhả thứ nhất; join worker trước dọn DB. 8/8 mục tiêu đạt. Không đổi production/POM/build script; toàn bộ sửa sản phẩm và PDF giữ nguyên từ `9c026d8`, không lặp ghi API seller/KIZ.
+- Nguồn chốt mới `5330e9931b8b7155ebe26f3b589a7a2a747e0696`, hash cây `d3510008fe93d7cfe4b523fd1d797801f01b4cb6c18781e4bd569d207db647fe`, nhánh `release/vn-code-1.5.18`, Windows `40634346229`. Full Linux/Windows đang chạy; publisher cần dùng nguồn/run mới và biên nhận 28.10, không dùng artifact lỗi cũ.
+- Guard Latest sửa target thành [1,5,18], cho phép 17/18 và chặn 19; kiểm tra thực ba trường hợp và cú pháp đạt. [Phân tích/bàn giao](fixes/2026-10-28-vncode-1518-windows-gate.md). Giữ mọi release cũ bất biến.
+
 ## Kiểm tra lại và chuẩn bị 1.5.18 — 27.10.2026
 
 - **Yêu cầu bổ sung PDF/nhận Ozon:** nguồn cuối thay bằng `9c026d8892519bb991a7ec49684daaff2fa23be5`, hash cây `aef72d30f8e04a3c84a6abeb6c444bca13331e9958de36f8cd0b6ffc9b02b0e7`, Windows build `40561909841`. Run `40556964700` hủy/superseded; không phát hành artifact cũ. Full Linux trước tối ưu đã đạt và lưu riêng, phải dùng full suite nguồn mới để phát hành.

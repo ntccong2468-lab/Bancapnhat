@@ -1,0 +1,31 @@
+{
+  "recordedAtUtc": "2026-10-28T04:54:01.700672+00:00",
+  "applicationCommit": "5330e9931b8b7155ebe26f3b589a7a2a747e0696",
+  "sourceTreeSha256": "d3510008fe93d7cfe4b523fd1d797801f01b4cb6c18781e4bd569d207db647fe",
+  "productionSourcesUnchangedFrom": "9c026d8892519bb991a7ec49684daaff2fa23be5",
+  "productionSourcesUnchanged": true,
+  "previousWindowsRun": 40561909841,
+  "previousWindows": {
+    "tests": 3087,
+    "failures": 0,
+    "errors": 1,
+    "skipped": 2,
+    "failingTest": "Gs1AutomaticSessionTest.aSlowStoreDoesNotHoldTheOtherStoresSessionLock",
+    "failureType": "java.util.concurrent.TimeoutException"
+  },
+  "previousPublisherRun": 40565064080,
+  "previousCandidatePublished": false,
+  "fixtureTargeted": {
+    "tests": 8,
+    "passed": 8,
+    "failures": 0,
+    "errors": 0,
+    "logSha256": "4577b437eebb282514bb010acbba2d452ae5f5dbef9affde4347585c2e924242"
+  },
+  "latestGuardCases": {
+    "v1.5.17": "accepted",
+    "v1.5.18": "accepted",
+    "v1.5.19": "blocked"
+  },
+  "windowsBuildRun": 40634346229
+}
