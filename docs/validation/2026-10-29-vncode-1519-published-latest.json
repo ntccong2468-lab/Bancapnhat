@@ -1,0 +1,441 @@
+{
+  "recordedAtUtc": "2026-10-29T06:58:12.854976+00:00",
+  "version": "1.5.19",
+  "sourceCommit": "7e123e60e355715806c901f2f7e7838d1d5df065",
+  "sourceTreeSha256": "6fd395cbca94d8952d19eeefd069fddcbf82ca81ab8cf05f0e10f3f43d89dcc9",
+  "branch": "release/vn-code-1.5.19",
+  "releaseId": 427548236,
+  "publishedAtUtc": "2026-10-29T06:57:14Z",
+  "publishedAtMoscow": "29.10.2026 09:57:14",
+  "latestVerified": true,
+  "immutableReleasePolicy": true,
+  "githubImmutableRelease": true,
+  "buildRunId": 40831697288,
+  "publisherRunId": 40831861868,
+  "assetCount": 16,
+  "requiredPublicAssetCount": 11,
+  "publicAssetsVerified": true,
+  "linuxJava": {
+    "tests": 3093,
+    "passed": 3091,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 2
+  },
+  "fullWindowsTestRunId": 40823591106,
+  "fullWindowsTestEvidence": {
+    "sourceCommit": "7e123e60e355715806c901f2f7e7838d1d5df065",
+    "verificationRunId": 40823591106,
+    "verificationRunConclusion": "cancelled",
+    "fullJavaStepConclusion": "success",
+    "fullJavaStepStartedAt": "2026-10-29T05:29:05Z",
+    "fullJavaStepCompletedAt": "2026-10-29T06:42:06Z",
+    "java": {
+      "tests": 3093,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 2,
+      "passed": 3091
+    },
+    "classes": 414,
+    "logSha256": "cbbdee29a363bd3c49b2c8410a79d12b9dd6455be80f9ff3960a2b318186e359",
+    "logSource": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/40823591106",
+    "recompiledExactTestedSource": true,
+    "testExecutionRepeated": false
+  },
+  "windowsJava": {
+    "failures": 0,
+    "skipped": 2,
+    "passed": 3091,
+    "tests": 3093,
+    "errors": 0
+  },
+  "nodePassed": 117,
+  "nativeWindows": {
+    "version": "1.5.19",
+    "historyPreserved": true,
+    "appName": "VN code",
+    "liveMarketplaceMutations": false,
+    "windowTitle": "VN code v1.5.19",
+    "schemaMigration": "3 to 6",
+    "rollbackSnapshotVerified": true,
+    "nativeLauncher": "passed",
+    "platform": "windows-x64"
+  },
+  "upgrade": {
+    "result": "passed",
+    "singleRegistration": true,
+    "appName": "VN code",
+    "installerUpgradeUuid": "8CBBA0E2-6E73-4F56-9101-6BC0948D3C72",
+    "passiveExeInstallerSha256": "13ecaa3296ad8a01dc4f541b3f600b677a629871d04d5ba66e9a53414c0266dc",
+    "passiveExeHandoffVerified": true,
+    "baselineInstallerSha256": "edd2a04d79676c2e647e00f9b974982b3b277c3fe878bccae0c75552e87259d5",
+    "singleShortcutPerLocation": true,
+    "passiveExeEmbeddedMsiSha256": "3fc54f2c522e88dceb7e8286deb9298851938e9898c103840bed778c1129b928",
+    "windowTitle": "VN code v1.5.19",
+    "fromVersion": "1.5.18",
+    "baselineInstallerBytes": 147294720,
+    "fingerprint": "8363c08404110b8b8308f9eef34e80e88e65f41ca78e82df2ef673b2f236353f",
+    "baselineTag": "v1.5.18",
+    "dataPreserved": true,
+    "liveMarketplaceMutations": false,
+    "version": "1.5.19"
+  },
+  "ozonValidation": {
+    "checkedAtUtc": "2026-10-29T05:18:52.431189+00:00",
+    "sourceCommit": "72aad02b8167190f4b2ae27d5853111b75441a0a",
+    "sourceTreeSha256": "a19817fc368b95fa43b5771f4950465d04b32b014b70c0269d61bb1c8b854175",
+    "branch": "fix/ozon-large-fbs-batch-labels",
+    "baseRelease": "v1.5.18",
+    "broadRegression": {
+      "tests": 183,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "classCount": 22,
+      "classes": {
+        "com.vncode.app.ui.ozon.OzonManualSyncUiTest": {
+          "tests": 1,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "com.vncode.app.ui.ozon.OzonPrintedQueueUiTest": {
+          "tests": 2,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "com.vncode.app.ui.ozon.OzonFbsUiTest": {
+          "tests": 4,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "com.vncode.app.ui.ozon.OzonShipmentSourcesUiTest": {
+          "tests": 1,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "com.vncode.app.ui.ozon.OzonBulkUiTest": {
+          "tests": 4,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "com.vncode.app.integration.ozon.OzonApiRateLimiterCooldownTest": {
+          "tests": 2,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "com.vncode.app.integration.ozon.OzonCombinedLabelRendererTest": {
+          "tests": 4,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "com.vncode.app.integration.ozon.OzonDurableReservationTest": {
+          "tests": 1,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "com.vncode.app.integration.ozon.OzonPrintReadinessServiceTest": {
+          "tests": 9,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "com.vncode.app.integration.ozon.OzonProductLabelBarcodeTest": {
+          "tests": 8,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "com.vncode.app.integration.ozon.OzonSyncServiceTest": {
+          "tests": 26,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "com.vncode.app.integration.ozon.OzonPrintBundleServiceTest": {
+          "tests": 24,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "com.vncode.app.integration.ozon.OzonPrintHistoryServiceTest": {
+          "tests": 1,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "com.vncode.app.integration.ozon.OzonLargeShopReservationTest": {
+          "tests": 5,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "com.vncode.app.integration.ozon.OzonLabelServiceTest": {
+          "tests": 24,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "com.vncode.app.integration.ozon.OzonAcceptanceKizTest": {
+          "tests": 8,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "com.vncode.app.integration.ozon.OzonApiClientTest": {
+          "tests": 9,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "com.vncode.app.integration.ozon.OzonSharedCredentialCooldownTest": {
+          "tests": 1,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "com.vncode.app.integration.ozon.OzonPerUnitShipServiceTest": {
+          "tests": 16,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "com.vncode.app.integration.ozon.OzonExemplarWorkflowTest": {
+          "tests": 11,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "com.vncode.app.integration.ozon.OzonPerUnitPackageTest": {
+          "tests": 12,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "com.vncode.app.integration.ozon.OzonOfficialLabelSelectorTest": {
+          "tests": 10,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        }
+      },
+      "logSha256": "6406fb9f180e20d7fa0c4c06cfb8a2a16565120fbb394e8330b637732cfa6d3b"
+    },
+    "finalFocusedRegression": {
+      "tests": 40,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "classCount": 3,
+      "classes": {
+        "com.vncode.app.ui.ozon.OzonBulkUiTest": {
+          "tests": 4,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "com.vncode.app.integration.ozon.OzonLabelServiceTest": {
+          "tests": 25,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "com.vncode.app.integration.ozon.OzonExemplarWorkflowTest": {
+          "tests": 11,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        }
+      },
+      "logSha256": "c212d0556ae13378547d0f54d60efa41b5c3234d839ec50d42266373fa08a43f"
+    },
+    "uniqueTestsAcrossRuns": 184,
+    "overlapExplanation": "Final 40 includes 39 earlier cases and one new reprint-permission case; do not add 183 and 40. Final focused run covers the last batch-license gate and header tooltip changes.",
+    "initialFocusedRun": {
+      "tests": 35,
+      "failures": 1,
+      "errors": 0,
+      "cause": "Concurrency fixture waited for four simultaneous HTTP requests despite the existing shared budget of two. Fixture corrected to two; production HTTP budget kept unchanged.",
+      "logSha256": "49565eab17e2407d4fe377c8302166da535acad9dcf9f7c49d585bf7320afcf0"
+    },
+    "bulkSelection": {
+      "uiRowsPerPage": 100,
+      "selectedAcrossPages": 1000,
+      "acceptanceAttemptedFixtureOrders": 101,
+      "fixtureCompleted": 99,
+      "fixturePending": 1,
+      "fixtureRejected": 1,
+      "remainingSelection": 2,
+      "respectsShopAndFilter": true
+    },
+    "labels": {
+      "maximumPostingsPerTask": 1000,
+      "mixedSavedSingleAndFreshFixtureOrders": 1001,
+      "createRequests": 2,
+      "pollRequests": 2,
+      "pdfDownloads": 2,
+      "reversedPageIdentityVerified": true,
+      "regroupClaimAtomic": true,
+      "unknownReceiptNotRetried": true,
+      "isolatedReceiptPreserved": true,
+      "existingReprintsDoNotRequireNewTaskPermission": true,
+      "nativeOzonCreateEndpoint": "/v3/posting/fbs/package-label/create",
+      "nativeOzonPollEndpoint": "/v2/posting/fbs/package-label/get",
+      "requestCountsUseImmediatelyReadyFixtures": true
+    },
+    "performance": {
+      "repositoryReadPageSize": 500,
+      "missingLabelJobsWrittenInOneTransactionPerGroup": true,
+      "detailReadAhead": 4,
+      "sharedHttpBudgetUnchanged": 2,
+      "kizReservationOrderPreserved": true,
+      "realSellerPdfTimingMeasured": false
+    },
+    "liveReadOnly": {
+      "checkedAtUtc": "2026-10-29T05:11:11.023475+00:00",
+      "endpoint": "/v4/posting/fbs/unfulfilled/list",
+      "readOnly": true,
+      "pages": [
+        {
+          "page": 1,
+          "httpStatus": 200,
+          "postings": 100,
+          "hasNext": true,
+          "cursorPresent": true,
+          "duplicatePostings": 0,
+          "responseFields": [
+            "count",
+            "cursor",
+            "has_next",
+            "postings"
+          ]
+        },
+        {
+          "page": 2,
+          "httpStatus": 200,
+          "postings": 100,
+          "hasNext": true,
+          "cursorPresent": true,
+          "duplicatePostings": 0,
+          "responseFields": [
+            "count",
+            "cursor",
+            "has_next",
+            "postings"
+          ]
+        },
+        {
+          "page": 3,
+          "httpStatus": 200,
+          "postings": 100,
+          "hasNext": true,
+          "cursorPresent": true,
+          "duplicatePostings": 0,
+          "responseFields": [
+            "count",
+            "cursor",
+            "has_next",
+            "postings"
+          ]
+        },
+        {
+          "page": 4,
+          "httpStatus": 200,
+          "postings": 3,
+          "hasNext": false,
+          "cursorPresent": false,
+          "duplicatePostings": 0,
+          "responseFields": [
+            "count",
+            "cursor",
+            "has_next",
+            "postings"
+          ]
+        }
+      ],
+      "uniquePostingCount": 303,
+      "complete": true,
+      "maximumPages": 10,
+      "orderAcceptancePerformed": false,
+      "labelTaskCreated": false
+    },
+    "realOrderAcceptancePerformed": false,
+    "realLabelTaskCreated": false,
+    "paidKizPurchasePerformed": false,
+    "fullJavaSuiteRun": false,
+    "nativeWindowsRun": false,
+    "installerBuilt": false,
+    "latestChanged": false,
+    "currentLatest": "v1.5.18",
+    "currentLatestSource": "5330e9931b8b7155ebe26f3b589a7a2a747e0696"
+  },
+  "liveEvidence": "2026-10-29-ozon-large-fbs-batch-labels.json",
+  "realOrderAcceptancePerformed": false,
+  "realLabelTaskCreated": false,
+  "paidKizPurchasePerformed": false,
+  "updater": {
+    "version": "1.5.19",
+    "newerThan1_5_18": true,
+    "usesPublishedRuntimeUpdater": true,
+    "windowsInstallerUrl": "https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.5.19/VN-code-1.5.19-Windows-x64.msi",
+    "sha256": "3fc54f2c522e88dceb7e8286deb9298851938e9898c103840bed778c1129b928",
+    "bytes": 146629897,
+    "sellerDeviceNotificationObserved": false,
+    "previousRuntime": {
+      "version": "1.5.18",
+      "runtimeZipSha256": "44b963ab31d74ac8559c3d04bf44200d07eab9e399f2abbabd6c910e93480c54",
+      "matchesPublishedAssetDigest": true,
+      "jarCount": 76,
+      "packagedVersionVerified": true
+    }
+  },
+  "package": {
+    "checkedAtUtc": "2026-10-29T06:58:10.460391+00:00",
+    "version": "1.5.19",
+    "sourceCommit": "7e123e60e355715806c901f2f7e7838d1d5df065",
+    "buildRunId": 40831697288,
+    "allManifestBytesVerified": true,
+    "sourceArchiveFilesCompared": 1153,
+    "sourceArchiveByteIdenticalFiles": 7,
+    "sourceArchiveOnlyLineEndingDifferences": 1146,
+    "sourceArchiveComparison": "CRLF/LF normalized; no other differences",
+    "productionSourcesMatchLocalRelease": true,
+    "packagedVersionVerified": true,
+    "productAndPdfFixMethodsPresent": true,
+    "responsiveProductActionBarPresent": true,
+    "compactStylesMatch": true,
+    "testLicenseAuthorityAndPrivateProbeExcluded": true,
+    "installerAuthenticodeEmbedded": false
+  },
+  "oldReleasesRetained": true,
+  "supersededCancelledBuild": 40822913108,
+  "fixtureRepair": {
+    "sourceCommit": "7e123e60e355715806c901f2f7e7838d1d5df065",
+    "test": "FxmlSmokeTest.ozonDashboardShouldExposeFbsOrderGroupsSelectionAndPackingLabels",
+    "targetedPassed": 5,
+    "targetedLogSha256": "2f7691f7c2e960a7cb5adc06ab596481928e63e54f770e504e02b5cf5da0964a",
+    "supersededBuildRunId": 40822913108,
+    "productionChanged": false
+  },
+  "installerUrl": "https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.5.19/VN-code-1.5.19-Windows-x64.exe",
+  "packagingRecovery": {
+    "fullJavaTestRunId": 40823591106,
+    "fullJavaStepConclusion": "success",
+    "originalJobOverallConclusion": "cancelled",
+    "reason": "75-minute job limit after full Java, EXE, native launch and DPAPI passed; cancelled during install/uninstall",
+    "nativePackagingRunId": 40831697288,
+    "nativePackagingWorkflowCommit": "57300e419d09e7f36effdab1eb8ec4e062cf0444",
+    "sourceRecompiled": true,
+    "testExecutionRepeated": false,
+    "failedInitialRecoveryRunId": 40831377668,
+    "recoveryFix": "Decode GitHub metadata JSON from UTF-8 bytes instead of Windows cp1252"
+  }
+}

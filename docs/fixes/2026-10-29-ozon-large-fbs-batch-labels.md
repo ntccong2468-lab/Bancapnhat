@@ -23,3 +23,7 @@ Chuẩn bị chi tiết đặt trước 4 đơn thay cho 2, để đọc dữ li
 - Lượt mục tiêu đầu có một lỗi fixture: chờ 4 HTTP cùng lúc trong budget 2. Đã sửa latch về 2 và giữ budget production; các lượt thành công sau ghi riêng. Không bỏ qua lỗi đó hoặc tính lượt đầu là đạt.
 
 Chưa chạy full Java suite/native Windows hoặc đo xuất PDF trên đơn seller thật cho mã này. API thật chỉ đọc danh sách; không nhận đơn khách, tạo tác vụ nhãn thật, mua hay tiêu KIZ. [Biên nhận](../validation/2026-10-29-ozon-large-fbs-batch-labels.json).
+
+## Đã đưa vào bộ cài
+
+Các sửa Ozon phía trên đã được kiểm thử đầy đủ và phát hành trong **Latest 1.5.19**. [Biên nhận công bố](../validation/2026-10-29-vncode-1519-published-latest.json), [bàn giao bộ cài](../validation/2026-10-29-vncode-1519-handoff.md).

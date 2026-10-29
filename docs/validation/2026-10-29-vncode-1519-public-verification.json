@@ -1,0 +1,53 @@
+{
+  "version": "1.5.19",
+  "sourceCommit": "7e123e60e355715806c901f2f7e7838d1d5df065",
+  "releaseId": 427548236,
+  "verifiedAt": "2026-10-29T06:58:08.247Z",
+  "publicAssetsVerified": true,
+  "files": {
+    "VN-code-1.5.19-Windows-x64.exe": {
+      "bytes": 147298816,
+      "sha256": "13ecaa3296ad8a01dc4f541b3f600b677a629871d04d5ba66e9a53414c0266dc"
+    },
+    "VN-code-1.5.19-Windows-x64.msi": {
+      "bytes": 146629897,
+      "sha256": "3fc54f2c522e88dceb7e8286deb9298851938e9898c103840bed778c1129b928"
+    },
+    "VN-code-1.5.19-Windows-x64.sha256": {
+      "bytes": 98,
+      "sha256": "06abb54cea190f30ca77b8f5fb33662f0991eef9628c8f40ebf7cd0a81890e4b"
+    },
+    "VN-code-1.5.19-Windows-x64.zip": {
+      "bytes": 146221817,
+      "sha256": "d94c2cb7743bb60991431b8eec07d3da9bfef3a8509228afc50a85e9e0643dfb"
+    },
+    "VN-code-1.5.19-source.zip": {
+      "bytes": 18278443,
+      "sha256": "3410c5548760f10a40729ff37ebb2e087030f547102dab12c1ed4fbb1594e994"
+    },
+    "VN-code-1.5.19-history.bundle": {
+      "bytes": 25420748,
+      "sha256": "9bd815821d098b5a0cb854efef94b2a3d6f700b938cd38a01cfc373836ac223d"
+    },
+    "VN-code-1.5.19-verification.zip": {
+      "bytes": 102926,
+      "sha256": "879e994e4e63816c51afb694fd910c344effe3282465b5cca577b4fc85cdc871"
+    },
+    "build-info.json": {
+      "bytes": 1021,
+      "sha256": "6af317061546f017bb38d85466496bdea8b6c2138b98fc06a0cb5c3c8832f81e"
+    },
+    "release-notes.md": {
+      "bytes": 1290,
+      "sha256": "edddc82686f1770c162e86031c1d80ae26af312e162446cb4ff75843d7f0da03"
+    },
+    "native-smoke.json": {
+      "bytes": 288,
+      "sha256": "2e26fad3ae8674155e96c593c1123ff8931c6fbf2ebe294f4dd3aa95f0eaaa87"
+    },
+    "upgrade-baseline-smoke.json": {
+      "bytes": 835,
+      "sha256": "7d71f31aadca67883c64126f65cdfa8233acc440d5a11506f59b306008aa3c43"
+    }
+  }
+}

@@ -1,5 +1,14 @@
 # Bộ nhớ dự án VNCode
 
+## Đã phát hành 1.5.19 — 29.10.2026
+
+- **Latest v1.5.19 công bố 29.10.2026 09:57:14 (Moskva)**, release `427548236`, nguồn/tag `7e123e60e355715806c901f2f7e7838d1d5df065`, hash `6fd395cbca94d8952d19eeefd069fddcbf82ca81ab8cf05f0e10f3f43d89dcc9`, nhánh `release/vn-code-1.5.19`. Đã đưa sửa Ozon nhận đủ qua mọi trang/lấy nhãn theo lô vào bộ cài, kế thừa toàn bộ 1.5.18. Giữ binary/tag cũ.
+- Checkbox chọn đủ tập lọc đến 10.000 thay vì 100 dòng; trạng thái/bỏ chọn theo toàn bộ. Nhãn v3 create/v2 get tối đa 1.000, gộp READY singles đủ điều kiện, SQL nhóm 500 và transaction, giữ marker cách ly khi READY/unknown receipt không tạo lại. Đọc trước 4 đơn nhưng budget HTTP vẫn 2, KIZ ghi theo thứ tự. Không bỏ nhận diện trang/đơn để tăng tốc.
+- Full Linux + Windows **3093 ca, 3091 đạt/2 OS skip, không lỗi/thất bại**, Node 117/117; native/DPAPI/cài-gỡ/nâng cấp từ 1.5.18 giữ dữ liệu đạt. Full Windows `40823591106` đạt nhưng job hết 75 phút ở cài/gỡ; đóng gói tiếp đúng nguồn, không chạy lại JUnit. Build native `40831697288`, publisher `40831861868`. Fixture FXML sửa để dùng DB và chờ selection async, 5/5 trước full; production không đổi sau nghiệm thu Ozon. Run hủy `40822913108` không dùng phát hành.
+- Fixture chọn 1.000/nhận thử 101 và 1.001 nhãn qua 2 tác vụ/2 tải PDF đạt; HTTP thật chỉ đọc đủ 303 đơn qua 4 trang. Không nhận đơn khách hoặc tạo nhãn thật/tiêu KIZ; không tuyên bố tổng thời gian xuất thật là 1,86 giây. Mốc đó chỉ dựng nhãn KIZ/barcode cục bộ từ bản trước.
+- Kinh nghiệm CI: full Windows có thể trên 73 phút, vượt job 75 phút khi còn native. Phiên sau phải tách test và native, lưu ngay JAR/deps/XML/proof sau verify hoặc tăng timeout trước khi chốt source; không hạ gate hoặc chạy lại kiểm thử đã đạt. Bản này dùng full-step log/hash/metadata xác minh nguồn và recompile đúng source vì artifact timeout chỉ còn JSON smoke.
+- Công khai/checksum/tag/source ZIP/JAR đạt; updater runtime 1.5.18 nhận đúng 1.5.19 MSI/hash/size. Chưa xem popup máy seller; EXE chưa có Authenticode nhúng. Phiên sau dùng nền 1.5.19, tăng version mới. [Bàn giao](validation/2026-10-29-vncode-1519-handoff.md), [Latest](validation/2026-10-29-vncode-1519-published-latest.json).
+
 ## Đang đóng gói 1.5.19 — 29.10.2026
 
 - Người dùng đã yêu cầu phát hành bộ cài mới. Nhánh `release/vn-code-1.5.19`, tăng POM/app.version lên 1.5.19, giữ định danh cài đặt và dữ liệu. Nguồn chốt `7e123e60e355715806c901f2f7e7838d1d5df065`, hash cây `6fd395cbca94d8952d19eeefd069fddcbf82ca81ab8cf05f0e10f3f43d89dcc9`; Windows build `40823591106`. Chưa có tag/draft/Latest 1.5.19 ở thời điểm ghi mục này.

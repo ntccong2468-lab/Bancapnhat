@@ -329,9 +329,9 @@
   "paidKizPurchasePerformed": false,
   "realOrderAcceptancePerformed": false,
   "realLabelTaskCreated": false,
-  "installerBuilt": false,
-  "latestChanged": false,
-  "nativeWindowsVerifiedForThisCode": false,
+  "installerBuilt": true,
+  "latestChanged": true,
+  "nativeWindowsVerifiedForThisCode": true,
   "windowsFullTestRunId": 40823591106,
   "packagingWorkflowCommit": "57300e419d09e7f36effdab1eb8ec4e062cf0444",
   "windowsFullTestEvidence": {
@@ -354,5 +354,13 @@
     "recompiledExactTestedSource": true,
     "testExecutionRepeated": false
   },
-  "packagingResumeReason": "Original run completed all Java tests, EXE, native launch and DPAPI, then hit the 75-minute job limit during install/uninstall. Recompile the same source and finish native packaging without rerunning passed tests."
+  "packagingResumeReason": "Original run completed all Java tests, EXE, native launch and DPAPI, then hit the 75-minute job limit during install/uninstall. Recompile the same source and finish native packaging without rerunning passed tests.",
+  "windowsJava": {
+    "failures": 0,
+    "skipped": 2,
+    "passed": 3091,
+    "tests": 3093,
+    "errors": 0
+  },
+  "publishedEvidence": "2026-10-29-vncode-1519-published-latest.json"
 }

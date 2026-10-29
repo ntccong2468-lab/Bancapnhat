@@ -1,0 +1,18 @@
+{
+  "checkedAtUtc": "2026-10-29T06:58:10.460391+00:00",
+  "version": "1.5.19",
+  "sourceCommit": "7e123e60e355715806c901f2f7e7838d1d5df065",
+  "buildRunId": 40831697288,
+  "allManifestBytesVerified": true,
+  "sourceArchiveFilesCompared": 1153,
+  "sourceArchiveByteIdenticalFiles": 7,
+  "sourceArchiveOnlyLineEndingDifferences": 1146,
+  "sourceArchiveComparison": "CRLF/LF normalized; no other differences",
+  "productionSourcesMatchLocalRelease": true,
+  "packagedVersionVerified": true,
+  "productAndPdfFixMethodsPresent": true,
+  "responsiveProductActionBarPresent": true,
+  "compactStylesMatch": true,
+  "testLicenseAuthorityAndPrivateProbeExcluded": true,
+  "installerAuthenticodeEmbedded": false
+}
