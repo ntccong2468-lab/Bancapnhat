@@ -4,7 +4,7 @@
   "sourceCommit": "7e123e60e355715806c901f2f7e7838d1d5df065",
   "sourceTreeSha256": "6fd395cbca94d8952d19eeefd069fddcbf82ca81ab8cf05f0e10f3f43d89dcc9",
   "releaseRequested": true,
-  "windowsBuildRunId": 40823591106,
+  "windowsBuildRunId": 40831697288,
   "maven": {
     "result": "BUILD SUCCESS",
     "sourceCommit": "7e123e60e355715806c901f2f7e7838d1d5df065",
@@ -331,5 +331,28 @@
   "realLabelTaskCreated": false,
   "installerBuilt": false,
   "latestChanged": false,
-  "nativeWindowsVerifiedForThisCode": false
+  "nativeWindowsVerifiedForThisCode": false,
+  "windowsFullTestRunId": 40823591106,
+  "packagingWorkflowCommit": "57300e419d09e7f36effdab1eb8ec4e062cf0444",
+  "windowsFullTestEvidence": {
+    "sourceCommit": "7e123e60e355715806c901f2f7e7838d1d5df065",
+    "verificationRunId": 40823591106,
+    "verificationRunConclusion": "cancelled",
+    "fullJavaStepConclusion": "success",
+    "fullJavaStepStartedAt": "2026-10-29T05:29:05Z",
+    "fullJavaStepCompletedAt": "2026-10-29T06:42:06Z",
+    "java": {
+      "tests": 3093,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 2,
+      "passed": 3091
+    },
+    "classes": 414,
+    "logSha256": "cbbdee29a363bd3c49b2c8410a79d12b9dd6455be80f9ff3960a2b318186e359",
+    "logSource": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/40823591106",
+    "recompiledExactTestedSource": true,
+    "testExecutionRepeated": false
+  },
+  "packagingResumeReason": "Original run completed all Java tests, EXE, native launch and DPAPI, then hit the 75-minute job limit during install/uninstall. Recompile the same source and finish native packaging without rerunning passed tests."
 }

@@ -18,7 +18,9 @@ jobs:
     env:
       GH_TOKEN: ${{ github.token }}
       EXPECTED_SOURCE: 7e123e60e355715806c901f2f7e7838d1d5df065
-      BUILD_RUN_ID: '40823591106'
+      BUILD_RUN_ID: '40831697288'
+      PACKAGING_WORKFLOW_SOURCE: 57300e419d09e7f36effdab1eb8ec4e062cf0444
+      VERIFIED_TEST_RUN_ID: '40823591106'
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
@@ -44,11 +46,16 @@ jobs:
           set -euo pipefail
           git diff --exit-code "$EXPECTED_SOURCE" HEAD -- src/main src/test pom.xml build.bat build.sh proguard.conf tools/baseline-release.mjs tools/release-version.mjs .github/workflows/publish-vncode-baseline.yml
           gh api "repos/$GITHUB_REPOSITORY/actions/runs/$BUILD_RUN_ID" > "$RUNNER_TEMP/approved-build-run.json"
+          gh api "repos/$GITHUB_REPOSITORY/actions/runs/$VERIFIED_TEST_RUN_ID" > "$RUNNER_TEMP/full-test-run.json"
+          gh api "repos/$GITHUB_REPOSITORY/actions/runs/$VERIFIED_TEST_RUN_ID/jobs" > "$RUNNER_TEMP/full-test-jobs.json"
           node --input-type=module <<'NODE'
           import assert from 'node:assert/strict';import {readFile} from 'node:fs/promises';
           const run=JSON.parse(await readFile(`${process.env.RUNNER_TEMP}/approved-build-run.json`,'utf8'));
-          assert.equal(run.status,'completed');assert.equal(run.conclusion,'success');assert.equal(run.head_sha,process.env.EXPECTED_SOURCE);
-          assert.equal(run.path,'.github/workflows/publish-vncode-baseline.yml');assert.equal(run.repository.full_name,process.env.GITHUB_REPOSITORY);
+          assert.equal(run.status,'completed');assert.equal(run.conclusion,'success');assert.equal(run.head_sha,process.env.PACKAGING_WORKFLOW_SOURCE);
+          assert.equal(run.path,'.github/workflows/resume-vncode-1519-packaging.yml');assert.equal(run.repository.full_name,process.env.GITHUB_REPOSITORY);
+          const tested=JSON.parse(await readFile(`${process.env.RUNNER_TEMP}/full-test-run.json`,'utf8')),jobs=JSON.parse(await readFile(`${process.env.RUNNER_TEMP}/full-test-jobs.json`,'utf8'));
+          assert.equal(tested.head_sha,process.env.EXPECTED_SOURCE);assert.equal(tested.status,'completed');assert.equal(tested.path,'.github/workflows/publish-vncode-baseline.yml');
+          assert.ok(jobs.jobs.some(job=>job.steps.some(step=>step.name==='Verify whole Java application and package'&&step.conclusion==='success')));
           const receipt=JSON.parse(await readFile('docs/validation/2026-10-29-vncode-1519-prebuild.json','utf8'));
           assert.equal(receipt.version,'1.5.19');assert.equal(receipt.sourceTreeSha256,'6fd395cbca94d8952d19eeefd069fddcbf82ca81ab8cf05f0e10f3f43d89dcc9');
           assert.equal(receipt.maven.result,'BUILD SUCCESS');assert.equal(receipt.maven.sourceCommit,process.env.EXPECTED_SOURCE);
@@ -84,8 +91,8 @@ jobs:
           import assert from 'node:assert/strict';
           import {readFile,appendFile} from 'node:fs/promises';
           const run=JSON.parse(await readFile(`${process.env.RUNNER_TEMP}/build-run.json`,'utf8'));
-          assert.equal(run.status,'completed');assert.equal(run.conclusion,'success');assert.equal(run.head_sha,process.env.EXPECTED_SOURCE);
-          assert.equal(run.path,'.github/workflows/publish-vncode-baseline.yml');assert.equal(run.repository.full_name,process.env.GITHUB_REPOSITORY);
+          assert.equal(run.status,'completed');assert.equal(run.conclusion,'success');assert.equal(run.head_sha,process.env.PACKAGING_WORKFLOW_SOURCE);
+          assert.equal(run.path,'.github/workflows/resume-vncode-1519-packaging.yml');assert.equal(run.repository.full_name,process.env.GITHUB_REPOSITORY);
           const release=JSON.parse(await readFile(`${process.env.RUNNER_TEMP}/release.json`,'utf8'));
           assert.equal(release.id,Number(process.env.RELEASE_ID));assert.equal(release.tag_name,'v1.5.19');assert.equal(release.target_commitish,process.env.EXPECTED_SOURCE);assert.equal(release.prerelease,false);
           await appendFile(process.env.GITHUB_OUTPUT,`needs_publish=${release.draft}\n`);
@@ -104,7 +111,8 @@ jobs:
           const read=name=>readFile(`${root}/${name}`);const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
           const info=JSON.parse(await read('build-info.json')),manifest=JSON.parse(await read('asset-manifest.json'));
           for(const record of [info,manifest]){assert.equal(record.version,'1.5.19');assert.equal(record.sourceCommit,process.env.EXPECTED_SOURCE);}
-          assert.equal(info.runId,Number(process.env.BUILD_RUN_ID));assert.equal(info.workflow,'publish-vncode-baseline.yml');
+          assert.equal(info.runId,Number(process.env.BUILD_RUN_ID));assert.equal(info.workflow,'resume-vncode-1519-packaging.yml');
+          assert.equal(info.verification.fullJavaTestRunId,Number(process.env.VERIFIED_TEST_RUN_ID));assert.equal(info.verification.fullJavaTestSource,process.env.EXPECTED_SOURCE);assert.equal(info.verification.fullJavaTestLogSha256,'cbbdee29a363bd3c49b2c8410a79d12b9dd6455be80f9ff3960a2b318186e359');assert.equal(info.verification.testExecutionRepeated,false);
           for(const flag of ['fullJavaSuiteRun','nativeSmokeRun','baselineUpgradeRun'])assert.equal(info.verification[flag],true);
           const prebuild=JSON.parse(await readFile('docs/validation/2026-10-29-vncode-1519-prebuild.json','utf8'));
           const tests=info.verification.java;assert.equal(tests.tests,prebuild.maven.tests);assert.equal(tests.failures,0);assert.equal(tests.errors,0);assert.equal(tests.passed,tests.tests-tests.skipped);
