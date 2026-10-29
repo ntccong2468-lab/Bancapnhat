@@ -1,5 +1,12 @@
 # Bộ nhớ dự án VNCode
 
+## Sửa null khi nhận Ozon — 29.10.2026 (chưa phát hành)
+
+- Nhánh `fix/ozon-accept-null-action`, nguồn `7878832176cd3bf3f2550f050de4d74cd161f3e7`, nền 1.5.19. `latestActionStatus` có thể null khi có job KIZ cũ nhưng chưa có `accept_kiz`; chuẩn hóa cục bộ thành chuỗi rỗng, giữ kiểm tra `mutationAttemptedAt` để đối soát trước khi gửi lại. Không đổi hợp đồng repository, không giải phóng KIZ chưa rõ kết quả.
+- 64 ca hồi quy liên quan và thêm một ca HTTP localhost 101/101 đơn/101 KIZ khác nhau; 65 ca duy nhất đạt. Kiểm tra KIZ đã giữ được dùng lại và lần gửi chưa rõ không bị gửi lại. Benchmark 38,934 giây chỉ là localhost.
+- API thật chỉ đọc đủ 286 đơn qua 3 trang, 16 chờ nhận/270 đang giao. Đọc đủ 16, cả 16 có KIZ tùy chọn; không có kho KIZ hay cấu hình miễn trừ app seller trong môi trường. Đơn trong ảnh trả 404 trên kết nối hiện tại. Chưa gán KIZ/nhận đơn thật, không thể khẳng định 16 đơn đã được nhận.
+- Latest vẫn 1.5.19; chưa tạo bộ cài cho sửa này. Phiên phát hành sau tăng version, giữ tag cũ và chạy gate phù hợp. [Chi tiết](fixes/2026-10-29-ozon-null-action.md), [biên nhận](validation/2026-10-29-ozon-null-action-verify.json).
+
 ## Đã phát hành 1.5.19 — 29.10.2026
 
 - **Latest v1.5.19 công bố 29.10.2026 09:57:14 (Moskva)**, release `427548236`, nguồn/tag `7e123e60e355715806c901f2f7e7838d1d5df065`, hash `6fd395cbca94d8952d19eeefd069fddcbf82ca81ab8cf05f0e10f3f43d89dcc9`, nhánh `release/vn-code-1.5.19`. Đã đưa sửa Ozon nhận đủ qua mọi trang/lấy nhãn theo lô vào bộ cài, kế thừa toàn bộ 1.5.18. Giữ binary/tag cũ.

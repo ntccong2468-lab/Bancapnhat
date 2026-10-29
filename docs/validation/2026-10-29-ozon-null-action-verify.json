@@ -1,0 +1,43 @@
+{
+  "sourceCommit": "7878832176cd3bf3f2550f050de4d74cd161f3e7",
+  "baseRelease": "v1.5.19",
+  "branch": "fix/ozon-accept-null-action",
+  "regression": {
+    "relatedTests": 64,
+    "batchAdditionalTests": 1,
+    "uniqueTests": 65,
+    "failures": 0,
+    "errors": 0,
+    "batchOrders": 101,
+    "uniqueKiz": 101,
+    "fixtureMilliseconds": 38934,
+    "logsSha256": [
+      "d60c0df5d2e5967e149687e9e2c38e8ae89c452d5d3c3a07f1073954c6175143",
+      "bc013c850eed2ce09078f810e0a6fe8a7a06073fb033cd1227e460f2e349a7e9"
+    ]
+  },
+  "ozonLiveReadOnly": {
+    "unfulfilledPages": [
+      100,
+      100,
+      86
+    ],
+    "unfulfilledCount": 286,
+    "awaitingPackaging": 16,
+    "delivering": 270,
+    "detailedOrders": 16,
+    "detailHttp200": 16,
+    "shipAvailable": 16,
+    "optionalKiz": 16,
+    "mandatoryKiz": 0,
+    "allSingleUnit": true,
+    "screenshotOrderFound": false,
+    "screenshotOrderHttpStatus": 404,
+    "actualAcceptancePerformed": false,
+    "actualKizSubmitted": false
+  },
+  "sellerAppKizAndPolicyAvailableInEnvironment": false,
+  "installerBuilt": false,
+  "latestChanged": false,
+  "scope": "No production order was accepted; live API results do not prove actual KIZ availability or acceptance."
+}
