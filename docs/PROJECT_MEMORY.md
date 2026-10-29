@@ -5,6 +5,7 @@
 - Nhánh `fix/ozon-accept-null-action`, nguồn `7878832176cd3bf3f2550f050de4d74cd161f3e7`, nền 1.5.19. `latestActionStatus` có thể null khi có job KIZ cũ nhưng chưa có `accept_kiz`; chuẩn hóa cục bộ thành chuỗi rỗng, giữ kiểm tra `mutationAttemptedAt` để đối soát trước khi gửi lại. Không đổi hợp đồng repository, không giải phóng KIZ chưa rõ kết quả.
 - 64 ca hồi quy liên quan và thêm một ca HTTP localhost 101/101 đơn/101 KIZ khác nhau; 65 ca duy nhất đạt. Kiểm tra KIZ đã giữ được dùng lại và lần gửi chưa rõ không bị gửi lại. Benchmark 38,934 giây chỉ là localhost.
 - API thật chỉ đọc đủ 286 đơn qua 3 trang, 16 chờ nhận/270 đang giao. Đọc đủ 16, cả 16 có KIZ tùy chọn; không có kho KIZ hay cấu hình miễn trừ app seller trong môi trường. Đơn trong ảnh trả 404 trên kết nối hiện tại. Chưa gán KIZ/nhận đơn thật, không thể khẳng định 16 đơn đã được nhận.
+- Yêu cầu nhận thật: đọc exemplar/status 16/16 trả ship_available nhưng không có mark khác rỗng. Không có kho KIZ hay chính sách miễn trừ của app seller trong môi trường; không thể thực hiện đúng luồng gán trước nhận. File zl.txt cũ đã bị Ozon từ chối 200/200 vì thiếu crypto, không dùng lại. Chưa nhận thật đơn nào.
 - Latest vẫn 1.5.19; chưa tạo bộ cài cho sửa này. Phiên phát hành sau tăng version, giữ tag cũ và chạy gate phù hợp. [Chi tiết](fixes/2026-10-29-ozon-null-action.md), [biên nhận](validation/2026-10-29-ozon-null-action-verify.json).
 
 ## Đã phát hành 1.5.19 — 29.10.2026

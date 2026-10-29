@@ -34,10 +34,17 @@
     "screenshotOrderFound": false,
     "screenshotOrderHttpStatus": 404,
     "actualAcceptancePerformed": false,
-    "actualKizSubmitted": false
+    "actualKizSubmitted": false,
+    "exemplarStatusRequests": 16,
+    "exemplarStatusHttp200": 16,
+    "shipAvailableOnExemplarStatus": 16,
+    "nonemptyMarksObserved": 0
   },
   "sellerAppKizAndPolicyAvailableInEnvironment": false,
   "installerBuilt": false,
   "latestChanged": false,
-  "scope": "No production order was accepted; live API results do not prove actual KIZ availability or acceptance."
+  "scope": "No production order was accepted; live API results do not prove actual KIZ availability or acceptance.",
+  "liveAcceptanceRequested": true,
+  "liveAcceptanceBlockedReason": "Seller app stock and exemption policy are unavailable; no existing verified KIZ returned by Ozon.",
+  "previousUploadedFile": "zl.txt was rejected 200/200 by Ozon in prior validation due to missing cryptographic tail; not reused."
 }
