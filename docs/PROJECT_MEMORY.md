@@ -1,5 +1,13 @@
 # Bộ nhớ dự án VNCode
 
+## Sửa Ozon trên 100 đơn và batch nhãn — 29.10.2026 (chưa phát hành)
+
+- Nhánh `fix/ozon-large-fbs-batch-labels`, nguồn `72aad02b8167190f4b2ae27d5853111b75441a0a`, hash cây `a19817fc368b95fa43b5771f4950465d04b32b014b70c0269d61bb1c8b854175`, nền 1.5.18. Header chọn tất cả nay chọn đúng toàn bộ tập lọc/cửa hàng đến 10.000 đơn, không chỉ 100 dòng hiển thị; bỏ chọn toàn bộ và trạng thái checkbox theo tập đầy đủ.
+- Native nhãn Ozon v3 create/v2 get tối đa 1.000: gộp receipt lẻ READY đủ điều kiện cùng đơn mới, giảm SQL qua nhóm 500 ID/transaction. Claim atomic trước tạo, mất receipt không gửi lại; giữ marker cách ly khi READY, không gộp lại nhãn thiếu danh tính. Nếu chỉ được in lại thì dùng receipt cũ, không yêu cầu create mới. Read-ahead 4, budget HTTP vẫn 2, reservation KIZ đúng thứ tự.
+- Hồi quy rộng 183/183; lượt cuối 40/40 (39 trùng, 1 mới), 184 duy nhất. Fixture nhận đủ 101 và chọn 1.000, 1.001 nhãn qua 2 create/2 poll/2 download khi sẵn sàng ngay; đảo trang/cách ly/unknown/rollback/readback/atomic PDF đạt. API thật chỉ đọc đủ 303 đơn qua 4 trang 100/100/100/3, không nhận đơn khách hoặc tạo nhãn thật. Không mô tả fixture là nghiệm thu in thật.
+- Kinh nghiệm: đừng tăng limit trang Ozon vượt 100 để chữa giới hạn chọn trên UI; đừng bỏ kiểm tra danh tính PDF hay gộp receipt chưa rõ. Giữ marker cách ly qua bước READY để tránh gộp rồi tách lặp. Giới hạn read-ahead và số HTTP thực là hai mức khác nhau; fixture phải tôn trọng budget chung.
+- **Latest vẫn 1.5.18 tại nguồn `5330e99`, chưa có sửa này trong bộ cài.** Khi được yêu cầu phát hành tăng phiên bản (dự kiến 1.5.19), chạy gate đầy đủ/native/upgrade đúng nguồn mới; không thay binary/tag 1.5.18. [Bàn giao](fixes/2026-10-29-ozon-large-fbs-batch-labels.md), [biên nhận](validation/2026-10-29-ozon-large-fbs-batch-labels.json).
+
 ## Đã phát hành 1.5.18 — 28.10.2026
 
 - **Latest v1.5.18 công bố 28.10.2026 08:50:37 (Moskva)**, Release `426304599`, bất biến. Nhánh `release/vn-code-1.5.18`, nguồn/tag `5330e9931b8b7155ebe26f3b589a7a2a747e0696`, hash cây `d3510008fe93d7cfe4b523fd1d797801f01b4cb6c18781e4bd569d207db647fe`. Lệnh đóng gói/phát hành đã hoàn tất, gồm toàn bộ sửa sản phẩm/PDF và kiểm tra nhận Ozon.
