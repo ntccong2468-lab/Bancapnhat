@@ -52,7 +52,7 @@ jobs:
           import json,subprocess,zipfile,io,os,re,hashlib
           from pathlib import Path
           repo=os.environ['GITHUB_REPOSITORY'];source=os.environ['EXPECTED_SOURCE'];run=os.environ['VERIFIED_RUN_ID']
-          def api(path):return json.loads(subprocess.check_output(['gh','api','repos/'+repo+'/'+path],text=True))
+          def api(path):return json.loads(subprocess.check_output(['gh','api','repos/'+repo+'/'+path]))
           meta=api('actions/runs/'+run);assert meta['status']=='completed' and meta['head_sha']==source and meta['path']=='.github/workflows/publish-vncode-baseline.yml'
           jobs=api('actions/runs/'+run+'/jobs')['jobs'];assert len(jobs)==1
           steps=jobs[0]['steps'];passed=[s for s in steps if s['name']=='Verify whole Java application and package'];assert len(passed)==1 and passed[0]['conclusion']=='success'
