@@ -272,6 +272,24 @@ class OzonSyncServiceTest {
         assertEquals("/v4/posting/fbs/unfulfilled/list", server.takeRequest(1, TimeUnit.SECONDS).getPath());
     }
 
+    @Test void activeOrdersContinueAcrossFourHundredRowPagesWithoutLosingTheTail()throws Exception {
+        for(int page=0;page<4;page++) {
+            var result=new com.google.gson.JsonObject();var rows=new com.google.gson.JsonArray();
+            for(int i=page*100;i<Math.min(page*100+100,303);i++)rows.add(com.google.gson.JsonParser.parseString(posting().replace("POST-TEXT-1","POST-"+i)));
+            result.add("postings",rows);result.addProperty("has_next",page<3);result.addProperty("cursor",page<3?"cursor-"+(page+1):"");
+            server.enqueue(json(result.toString()));
+        }
+        assertEquals(303,new OzonPostingSyncService(1,api).syncUnfulfilled());
+        assertEquals(303,count("SELECT COUNT(*) FROM ozon_postings"));
+        assertEquals("awaiting_packaging",new OzonPostingRepository().find(1,"POST-302").status());
+        for(int page=0;page<4;page++) {
+            var request=server.takeRequest(1,TimeUnit.SECONDS);assertEquals("/v4/posting/fbs/unfulfilled/list",request.getPath());
+            var body=com.google.gson.JsonParser.parseString(request.getBody().readUtf8()).getAsJsonObject();
+            assertEquals(100,body.get("limit").getAsInt());assertEquals(page==0?"":"cursor-"+page,body.get("cursor").getAsString());
+        }
+        assertEquals(4,server.getRequestCount());
+    }
+
     @Test
     void successfulCatalogPageKeepsExternalIdsAsTextAndAdvancesCursorAtomically() throws Exception {
         String externalId = "90071992547409931234";

@@ -137,7 +137,7 @@ public final class OzonDashboardController {
             com.vncode.app.ui.kiz.Kn3BatchDialog.open(kn3StatusHost,owner,report,sources,()->{if(isCurrent(owner))loadLocal();});
         }));
     }
-    private record Kn3Pages(Map<String,com.vncode.app.features.ozon.OzonFbsPage> pages,boolean rejected,Map<String,List<String>> completedTransfers){}
+    private record Kn3Pages(Map<String,com.vncode.app.features.ozon.OzonFbsPage> pages,boolean rejected,Map<String,List<String>> completedTransfers,List<String> selectable){}
     private BatchTransitionResult lastTransitionResult;
     private long transitionRevision;
 
@@ -153,6 +153,7 @@ public final class OzonDashboardController {
     private final OrderSortPreferenceService sortPreferences = new OrderSortPreferenceService();
     private final KizMappingRepository gtinRepository = new KizMappingRepository();
     private final Set<String> selectedPostingNumbers = new LinkedHashSet<>();
+    private Set<String> filteredNewPostingNumbers = Set.of();
     private final Set<String> purchasesStarting = new HashSet<>();
     private final CheckBox selectAllCheckBox = new CheckBox();
 
@@ -275,7 +276,7 @@ public final class OzonDashboardController {
             clearPrintPill();com.vncode.app.ui.kiz.Kn3BatchDialog.clear(kn3StatusHost);
             requestToken++;
             setBusy(false);
-            selectedPostingNumbers.clear();offsets.clear();totals.clear();pageGeneration++;
+            selectedPostingNumbers.clear();filteredNewPostingNumbers=Set.of();offsets.clear();totals.clear();pageGeneration++;
             productsBySku=Map.of();verifiedGtinsBySku=Map.of();catalogProducts=List.of();kn3Marks=Map.of();addAgainKizButton.setVisible(false);addAgainKizButton.setManaged(false);
             newOrdersTable.getItems().clear();packingOrdersTable.getItems().clear();printedOrdersTable.getItems().clear();deliveringOrdersTable.getItems().clear();
         }
@@ -374,6 +375,8 @@ public final class OzonDashboardController {
         moveToPackingButton.setText(i18n.tr("ozon.dashboard.move_to_packing"));
         printAllButton.setText(i18n.tr("ozon.dashboard.print_all"));
         selectFilteredButton.setText(i18n.tr("ozon.batch.select_filtered"));clearBatchSelectionButton.setText(i18n.tr("ozon.batch.clear_selection"));
+        selectAllCheckBox.setTooltip(new Tooltip(i18n.tr("ozon.batch.select_filtered")));
+        selectAllCheckBox.setAccessibleText(i18n.tr("ozon.batch.select_filtered"));
         sortByProductCheckBox.setText(i18n.tr("ozon.dashboard.sort.product"));
         sortByArticleCheckBox.setText(i18n.tr("ozon.dashboard.sort.article"));
         sortByColorCheckBox.setText(i18n.tr("ozon.dashboard.sort.color"));
@@ -416,21 +419,16 @@ public final class OzonDashboardController {
     @FXML private void onClearSearch() { postingSearch.clear(); }
 
     @FXML private void onSelectAll() {
-        if (selectAllCheckBox.isSelected()) {
-            newOrdersTable.getItems().stream().map(OzonPostingDto::postingNumber).forEach(selectedPostingNumbers::add);
-        } else {
-            newOrdersTable.getItems().stream().map(OzonPostingDto::postingNumber).forEach(selectedPostingNumbers::remove);
-        }
-        newOrdersTable.refresh();
-        updateSelectionState();
+        if (selectAllCheckBox.isSelected()) onSelectFiltered();
+        else onClearBatchSelection();
     }
 
     @FXML private void onClearBatchSelection(){selectedPostingNumbers.clear();newOrdersTable.refresh();updateSelectionState();}
     @FXML private void onSelectFiltered(){
         Shop selected=shop;if(selected==null||busy)return;String text=postingSearch.getText();String sort=sortFields();long token=++requestToken;long epoch=pageGeneration;
         Task<List<String>> task=new Task<>(){@Override protected List<String> call(){return postings.freezeFilteredNumbers(pageQuery(selected.getId(),"awaiting_packaging",text,sort,0,100),10000);}};
-        setBusy(true);task.setOnSucceeded(e->{if(token!=requestToken||!isCurrent(selected))return;setBusy(false);if(epoch!=pageGeneration||!text.equals(postingSearch.getText()))return;
-            selectedPostingNumbers.clear();selectedPostingNumbers.addAll(task.getValue());newOrdersTable.refresh();updateSelectionState();});
+        setBusy(true);task.setOnSucceeded(e->{if(token!=requestToken||!isCurrent(selected))return;setBusy(false);if(epoch!=pageGeneration||!text.equals(postingSearch.getText())||!sort.equals(sortFields())){updateSelectionState();return;}
+            filteredNewPostingNumbers=Set.copyOf(task.getValue());selectedPostingNumbers.clear();selectedPostingNumbers.addAll(task.getValue());newOrdersTable.refresh();updateSelectionState();});
         java.util.function.Consumer<Throwable> failed=error->finishFailure(token,selected,error);task.setOnFailed(e->failed.accept(task.getException()));AppTaskExecutor.execute(task,failed);
     }
 
@@ -675,7 +673,8 @@ public final class OzonDashboardController {
             var ids=postings.freezeFilteredNumbers(pageQuery(owner.getId(),currentStatus,text,sort,0,100),10000);
             boolean red;try(var c=com.vncode.app.config.Database.getConnection()){red=new com.vncode.app.features.kiz.status.Kn3Repository().read(c,owner.getId(),owner.getMarketplace(),ids).values().stream().flatMap(List::stream).anyMatch(m->m.state()==com.vncode.app.features.kiz.status.Kn3Mark.State.REJECTED);}
             var completed=transferReport==null||transferReport.pending().isEmpty()?Map.<String,List<String>>of():shipService.completedUnitPostings(owner,transferReport.pending());
-            return new Kn3Pages(pages,red,completed);
+            var selectable="awaiting_packaging".equals(currentStatus)?ids:postings.freezeFilteredNumbers(pageQuery(owner.getId(),"awaiting_packaging",text,sort,0,100),10000);
+            return new Kn3Pages(pages,red,completed,selectable);
         }).whenComplete((result,error)->Platform.runLater(()->{
             if(disposed||epoch!=pageGeneration||!isCurrent(owner))return;
             if(error!=null){statusLabel.setText(tr("products.read_failed"));return;}
@@ -686,6 +685,7 @@ public final class OzonDashboardController {
                 lastTransitionResult=new BatchTransitionResult(transferReport.requested(),List.copyOf(completed),transferReport.failed(),List.copyOf(pending),Map.copyOf(children),transferReport.reasons());
                 selectedPostingNumbers.removeAll(result.completedTransfers().keySet());transitionRevision++;renderTransitionResult(lastTransitionResult);
             }
+            filteredNewPostingNumbers=Set.copyOf(result.selectable());
             var pages=result.pages();boolean repage=false;
             for(var entry:pages.entrySet()){int offset=offsets.getOrDefault(entry.getKey(),0);long total=entry.getValue().total();if(offset>0&&offset>=total){offsets.put(entry.getKey(),total==0?0:(int)((total-1)/100)*100);repage=true;}}
             if(repage){loadLocal();return;}
@@ -970,11 +970,10 @@ public final class OzonDashboardController {
     }
 
     private void updateSelectionState() {
-        int selectedVisible = (int) newOrdersTable.getItems().stream()
-                .filter(posting -> selectedPostingNumbers.contains(posting.postingNumber())).count();
-        int visible = newOrdersTable.getItems().size();
-        selectAllCheckBox.setIndeterminate(selectedVisible > 0 && selectedVisible < visible);
-        selectAllCheckBox.setSelected(visible > 0 && selectedVisible == visible);
+        long selectedFiltered = filteredNewPostingNumbers.stream().filter(selectedPostingNumbers::contains).count();
+        int filtered = filteredNewPostingNumbers.size();
+        selectAllCheckBox.setIndeterminate(selectedFiltered > 0 && selectedFiltered < filtered);
+        selectAllCheckBox.setSelected(filtered > 0 && selectedFiltered == filtered);
         selectedCountLabel.setText(MessageFormat.format(
                 I18nService.getInstance().tr("ozon.dashboard.selected_count"), selectedPostingNumbers.size()));
         boolean hasSelection = !selectedPostingNumbers.isEmpty();
@@ -1011,6 +1010,7 @@ public final class OzonDashboardController {
 
     private void clear() {
         selectedPostingNumbers.clear();
+        filteredNewPostingNumbers=Set.of();
         catalogProducts = List.of();productsBySku=Map.of();verifiedGtinsBySku=Map.of();totals.clear();offsets.clear();
         packingOrdersRaw = List.of();
         newOrdersTable.getItems().clear();

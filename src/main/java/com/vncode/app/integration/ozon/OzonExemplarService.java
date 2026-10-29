@@ -41,7 +41,7 @@ public final class OzonExemplarService {
     private static final int MAX_STATUS_POLLS = 8;
     private static final Duration POLL_DELAY = Duration.ofMillis(250);
     private static final ConcurrentMap<String, PostingLock> POSTING_LOCKS = new ConcurrentHashMap<>();
-    private static final int READ_AHEAD = 2;
+    static final int READ_AHEAD = 4;
     private static final ThreadPoolExecutor DETAIL_READERS = new ThreadPoolExecutor(
             4, 4, 30, TimeUnit.SECONDS, new ArrayBlockingQueue<>(32), runnable -> {
                 Thread thread = new Thread(runnable, "vncode-ozon-detail-read");
@@ -115,7 +115,8 @@ public final class OzonExemplarService {
     }
 
     /**
-     * At most two fresh read-only details are outstanding for one selection, four for the process.
+     * At most four fresh read-only details are queued per selection, with two HTTP attempts
+     * permitted by the shared marketplace budget. Database work can overlap the next reads.
      * Reservations commit in selection order. A failed posting is isolated; no remote KIZ POST occurs.
      */
     public BatchPreparationResult stageForPrintBatch(

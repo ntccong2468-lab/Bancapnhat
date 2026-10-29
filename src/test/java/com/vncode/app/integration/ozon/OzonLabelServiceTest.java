@@ -217,6 +217,101 @@ class OzonLabelServiceTest {
         assertEquals("v3s:3001", new OzonLabelRepository().find(1, "posting-1").taskId());
     }
 
+    @Test void completedSingleTasksAndNewOrdersAreRegroupedIntoBatchesOfAtMost1000()throws Exception {
+        var numbers=java.util.stream.IntStream.range(0,1001).mapToObj(i->"91000000-"+String.format("%04d",i)+"-1").toList();
+        try(var c=Database.getConnection()) {
+            c.setAutoCommit(false);
+            try(var posting=c.prepareStatement("INSERT INTO ozon_postings(shop_id,posting_number,status,synced_at) VALUES(1,?,'awaiting_deliver','2026-10-29T00:00:00Z')");
+                var label=c.prepareStatement("INSERT INTO ozon_label_jobs(shop_id,posting_number,task_id,status,created_at,updated_at) VALUES(1,?,?,'READY','2026-10-29T00:00:00Z','2026-10-29T00:00:00Z')")) {
+                for(int i=0;i<numbers.size();i++) {
+                    posting.setString(1,numbers.get(i));posting.addBatch();
+                    if(i<1000){label.setString(1,numbers.get(i));label.setString(2,"v3s:"+(8000+i));label.addBatch();}
+                }
+                posting.executeBatch();label.executeBatch();c.commit();
+            }
+        }
+        var creates=new java.util.concurrent.atomic.AtomicInteger();var payloads=new java.util.concurrent.ConcurrentHashMap<String,byte[]>();
+        server.setDispatcher(new okhttp3.mockwebserver.Dispatcher(){public MockResponse dispatch(RecordedRequest request){
+            try {
+                String path=request.getPath();
+                if(path.equals("/v3/posting/fbs/package-label/create")) {
+                    var body=com.google.gson.JsonParser.parseString(request.getBody().readUtf8()).getAsJsonObject().getAsJsonArray("posting_numbers");
+                    assertTrue(body.size()<=1000);String task=Integer.toString(7000+creates.incrementAndGet());
+                    var reverse=new java.util.ArrayList<String>();for(var number:body)reverse.add(number.getAsString());java.util.Collections.reverse(reverse);
+                    payloads.put(task,textPdf(reverse.toArray(String[]::new)));
+                    return json("{\"tasks\":[{\"task_id\":"+task+",\"task_type\":\"big_label\"}]}");
+                }
+                if(path.equals("/v2/posting/fbs/package-label/get")) {
+                    String task=com.google.gson.JsonParser.parseString(request.getBody().readUtf8()).getAsJsonObject().get("task_id").getAsString();
+                    return json("{\"status\":{\"code\":\"completed\"},\"file_url\":\""+server.url("/cdn/"+task)+"\"}");
+                }
+                if(path.startsWith("/cdn/"))return new MockResponse().setBody(new okio.Buffer().write(payloads.get(path.substring(5))));
+                return new MockResponse().setResponseCode(404);
+            }catch(Exception failure){throw new AssertionError(failure);}
+        }});
+        try(var batch=batch(numbers)) {
+            for(String number:numbers) {
+                var page=batch.verifiedCarrierPage(owner(),number);assertNotNull(page);
+                assertEquals(number,com.itextpdf.kernel.pdf.canvas.parser.PdfTextExtractor.getTextFromPage(page.source().getPage(page.page())).strip());
+            }
+        }
+        assertEquals(2,creates.get());assertEquals(6,server.getRequestCount(),"1001 orders need two creates, two polls and two PDF downloads, including previously individual tasks");
+        var saved=new OzonLabelRepository().findMany(1,numbers);
+        for(int i=0;i<numbers.size();i++){assertEquals(i<1000?"v3:7001":"v3:7002",saved.get(numbers.get(i)).taskId());assertEquals("READY",saved.get(numbers.get(i)).status());}
+    }
+
+    @Test void regroupClaimRollsBackIfAnySingleTaskIsStillInProgress()throws Exception {
+        var numbers=twoPostings();var repo=new OzonLabelRepository();
+        for(int i=0;i<numbers.size();i++){repo.findOrCreate(1,numbers.get(i));repo.update(1,numbers.get(i),"v3s:"+(8000+i),i==0?"READY":"POLLING",null,null);}
+        assertThrows(IllegalStateException.class,()->repo.claimBatch(1,numbers));
+        assertEquals("READY",repo.find(1,numbers.getFirst()).status());assertEquals("v3s:8000",repo.find(1,numbers.getFirst()).taskId());
+        assertEquals("POLLING",repo.find(1,numbers.getLast()).status());assertEquals("v3s:8001",repo.find(1,numbers.getLast()).taskId());
+        assertEquals(0,server.getRequestCount());
+    }
+
+    @Test void regroupWithoutANewReceiptNeverCreatesASecondTaskOnRetry()throws Exception {
+        var numbers=twoPostings();var repo=new OzonLabelRepository();
+        for(int i=0;i<numbers.size();i++){repo.findOrCreate(1,numbers.get(i));repo.update(1,numbers.get(i),"v3s:"+(8000+i),"READY",null,null);}
+        server.enqueue(json("{}"));
+        for(int attempt=0;attempt<2;attempt++)try(var batch=batch(numbers)) {
+            assertThrows(java.io.IOException.class,()->batch.verifiedCarrierPage(owner(),numbers.getFirst()));
+        }
+        for(String number:numbers){assertEquals("RECONCILE_REQUIRED",repo.find(1,number).status());assertNull(repo.find(1,number).taskId());}
+        assertEquals(1,server.getRequestCount());
+    }
+
+    @Test void isolatedReadyLabelsKeepTheirSingleReceiptWhenPrintingTogether()throws Exception {
+        var numbers=twoPostings();var repo=new OzonLabelRepository();
+        for(int i=0;i<numbers.size();i++) {
+            repo.findOrCreate(1,numbers.get(i));repo.update(1,numbers.get(i),"v3s:"+(8000+i),"READY",null,"BATCH_PAGE_IDENTITY");
+            server.enqueue(json("{\"status\":{\"code\":\"completed\"},\"file_url\":\""+server.url("/cdn/isolated-"+i)+"\"}"));
+            server.enqueue(new MockResponse().setBody(new okio.Buffer().write(textPdf(numbers.get(i)))));
+        }
+        try(var batch=batch(numbers)) {
+            for(int i=0;i<numbers.size();i++)assertEquals(numbers.get(i),pageText(batch.download(owner(),numbers.get(i),temporaryDirectory.resolve("kept-"+i+".pdf").toFile())));
+        }
+        assertEquals(4,server.getRequestCount());
+        for(int i=0;i<numbers.size();i++)assertEquals("v3s:"+(8000+i),repo.find(1,numbers.get(i)).taskId());
+    }
+
+    @Test void reprintingExistingSinglesDoesNotRequirePermissionForANewBatchTask()throws Exception {
+        var numbers=twoPostings();var repo=new OzonLabelRepository();
+        for(int i=0;i<numbers.size();i++) {
+            repo.findOrCreate(1,numbers.get(i));repo.update(1,numbers.get(i),"v3s:"+(8000+i),"READY",null,null);
+            server.enqueue(json("{\"status\":{\"code\":\"completed\"},\"file_url\":\""+server.url("/cdn/saved-"+i)+"\"}"));
+            server.enqueue(new MockResponse().setBody(new okio.Buffer().write(textPdf(numbers.get(i)))));
+        }
+        var prior=LicenseRuntime.service();
+        try(var denied=LicenseDomainFixture.denied(temporaryDirectory.resolve("reprint-only"))) {
+            LicenseRuntime.install(denied);
+            try(var batch=batch(numbers)) {
+                for(int i=0;i<numbers.size();i++)assertEquals(numbers.get(i),pageText(batch.download(owner(),numbers.get(i),temporaryDirectory.resolve("saved-"+i+".pdf").toFile())));
+            }
+        }finally{LicenseRuntime.install(prior);}
+        assertEquals(4,server.getRequestCount());
+        for(int i=0;i<numbers.size();i++)assertEquals("v3s:"+(8000+i),repo.find(1,numbers.get(i)).taskId());
+    }
+
     @Test void oneThousandLabelsUseOneTaskAndKeepIdentityWhenPdfPagesAreReversed()throws Exception {
         var numbers=java.util.stream.IntStream.range(0,1000).mapToObj(i->"90000000-"+String.format("%04d",i)+"-1").toList();
         try(var c=Database.getConnection();var p=c.prepareStatement("INSERT INTO ozon_postings(shop_id,posting_number,status,synced_at) VALUES(1,?,'awaiting_deliver','2026-08-18T00:00:00Z')")) {
@@ -340,6 +435,11 @@ class OzonLabelServiceTest {
             server.takeRequest(1,TimeUnit.SECONDS);assertNull(server.takeRequest(1,TimeUnit.SECONDS).getHeader("Api-Key"));
         }
         assertEquals("v3s:8001",new OzonLabelRepository().find(1,numbers.get(0)).taskId());
+        for(String number:numbers) {
+            var pinned=new OzonLabelRepository().find(1,number);
+            assertEquals("BATCH_PAGE_IDENTITY",pinned.safeErrorCode());
+            assertTrue(!OzonLabelService.canRegroup(pinned),"A label isolated for missing identity must remain isolated after successful download");
+        }
         server.enqueue(json("{\"result\":{\"status\":\"completed\",\"file_url\":\""+server.url("/cdn/reprint.pdf")+"\"}}"));
         server.enqueue(new MockResponse().setBody(new okio.Buffer().write(textPdf("FIRST-ONLY"))));
         new OzonLabelService(new OzonLabelRepository(),this::client).downloadOfficialPdf(owner(),numbers.get(0),temporaryDirectory.resolve("reprint-isolated.pdf").toFile());

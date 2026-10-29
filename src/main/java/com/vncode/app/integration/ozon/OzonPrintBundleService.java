@@ -81,7 +81,7 @@ public final class OzonPrintBundleService {
                     }
                     @Override public void prefetch(Shop selected,List<String> numbers)throws IOException {
                         MarketplaceGuard.requireOzon(selected);
-                        if(selected.getId()!=shop.getId()||numbers.size()>2||!prepared.isEmpty())throw new IOException("Ozon print window changed.");
+                        if(selected.getId()!=shop.getId()||numbers.size()>OzonExemplarService.READ_AHEAD||!prepared.isEmpty())throw new IOException("Ozon print window changed.");
                         if(numbers.isEmpty())return;
                         var result=batch.stageForPrintBatch(numbers);
                         if(!result.failed().isEmpty())throw new IOException("An Ozon posting in the print window needs review.");
@@ -297,8 +297,8 @@ public final class OzonPrintBundleService {
             try (PdfDocument destination = new PdfDocument(new PdfWriter(labelStaging))) {
                 for (int index = 0; index < safePostings.size(); index++) {
                     requireNotInterrupted();
-                    if(index%2==0&&context.preparation.refreshEveryNewPrint()) {
-                        List<String> window=safePostings.subList(index,Math.min(index+2,safePostings.size())).stream()
+                    if(index%OzonExemplarService.READ_AHEAD==0&&context.preparation.refreshEveryNewPrint()) {
+                        List<String> window=safePostings.subList(index,Math.min(index+OzonExemplarService.READ_AHEAD,safePostings.size())).stream()
                                 .filter(number->!accepted(context.jobs.get(number))).toList();
                         context.preparation.prefetch(frozenShop,window);
                     }

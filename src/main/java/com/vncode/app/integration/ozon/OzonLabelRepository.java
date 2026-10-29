@@ -8,6 +8,35 @@ import java.sql.SQLException;
 import java.time.Instant;
 
 public final class OzonLabelRepository {
+    java.util.Map<String,LabelJob> findMany(int shopId,java.util.List<String> numbers) {
+        var result=new java.util.LinkedHashMap<String,LabelJob>();
+        try(var connection=Database.getConnection()) {
+            for(int offset=0;offset<numbers.size();offset+=500) {
+                var page=numbers.subList(offset,Math.min(offset+500,numbers.size()));
+                String sql="SELECT id,shop_id,posting_number,task_id,status,output_path,safe_error_code,created_at,updated_at FROM ozon_label_jobs WHERE shop_id=? AND posting_number IN ("+String.join(",",java.util.Collections.nCopies(page.size(),"?"))+")";
+                try(var statement=connection.prepareStatement(sql)) {
+                    statement.setInt(1,shopId);
+                    for(int i=0;i<page.size();i++)statement.setString(i+2,page.get(i));
+                    try(var rows=statement.executeQuery()) {while(rows.next()) {
+                        var job=new LabelJob(rows.getLong(1),rows.getInt(2),rows.getString(3),rows.getString(4),rows.getString(5),rows.getString(6),rows.getString(7),rows.getString(8),rows.getString(9));
+                        result.put(job.postingNumber(),job);
+                    }}
+                }
+            }
+            return java.util.Collections.unmodifiableMap(result);
+        }catch(SQLException failure){throw new IllegalStateException("OZON_LABEL_STORAGE",failure);}
+    }
+
+    void createMissingBatch(int shopId,java.util.List<String> numbers) {
+        try {com.vncode.app.config.SqliteWriteTransaction.run(connection->{
+            try(var statement=connection.prepareStatement("INSERT OR IGNORE INTO ozon_label_jobs(shop_id,posting_number,status,created_at,updated_at) VALUES(?,?,'CREATED',?,?)")) {
+                String now=Instant.now().toString();
+                for(String number:numbers){statement.setInt(1,shopId);statement.setString(2,OzonApiClient.requireExternalId(number,"posting number"));statement.setString(3,now);statement.setString(4,now);statement.addBatch();}
+                statement.executeBatch();
+            }return null;
+        });}catch(SQLException failure){throw new IllegalStateException("OZON_LABEL_STORAGE",failure);}
+    }
+
     /** Short batch transactions; no network or PDF work under the writer lock. */
     void updateBatch(int shopId,java.util.List<String> numbers,String task,String status,String error) {
         try {com.vncode.app.config.SqliteWriteTransaction.run(connection->{
@@ -19,7 +48,9 @@ public final class OzonLabelRepository {
     }
     void claimBatch(int shopId,java.util.List<String> numbers) {
         try {com.vncode.app.config.SqliteWriteTransaction.run(connection->{
-            try(var statement=connection.prepareStatement("UPDATE ozon_label_jobs SET status='RECONCILE_REQUIRED',updated_at=? WHERE shop_id=? AND posting_number=? AND (task_id IS NULL OR task_id='') AND status IN ('CREATED','FAILED')")) {
+            // Completed, originally single-posting tasks can be replaced by one shared batch.
+            // Isolated labels retain their receipt; an uncertain task must never be recreated.
+            try(var statement=connection.prepareStatement("UPDATE ozon_label_jobs SET task_id=NULL,status='RECONCILE_REQUIRED',updated_at=? WHERE shop_id=? AND posting_number=? AND (((task_id IS NULL OR task_id='') AND status IN ('CREATED','FAILED')) OR (status='READY' AND task_id LIKE 'v3s:%' AND safe_error_code IS NULL))")) {
                 for(String number:numbers){statement.setString(1,Instant.now().toString());statement.setInt(2,shopId);statement.setString(3,number);statement.addBatch();}
                 for(int count:statement.executeBatch())if(count!=1)throw new SQLException("OZON_LABEL_BATCH_CHANGED");
             }return null;

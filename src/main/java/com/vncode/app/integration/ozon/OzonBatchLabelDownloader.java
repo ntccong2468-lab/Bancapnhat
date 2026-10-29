@@ -18,14 +18,19 @@ final class OzonBatchLabelDownloader implements OzonPrintBundleService.OfficialL
     OzonBatchLabelDownloader(OzonLabelService service,Shop shop,List<String> numbers) {
         this.service=service;
         var known=new LinkedHashMap<String,List<String>>();var fresh=new ArrayList<String>();var repo=new OzonLabelRepository();
+        var jobs=repo.findMany(shop.getId(),numbers);
+        long batchable=numbers.stream().filter(number->{var job=jobs.get(number);return job==null||job.taskId()==null||job.taskId().isBlank()||OzonLabelService.canRegroup(job);}).count();
+        boolean regroup=batchable>1&&jobs.values().stream().anyMatch(OzonLabelService::canRegroup);
+        if(regroup)try {com.vncode.app.features.license.LicenseRuntime.require(com.vncode.app.features.license.LicenseModels.Permission.PRINT_NEW);}
+        catch(com.vncode.app.features.license.LicenseGate.LicenseDeniedException denied){regroup=false;}
         for(String number:numbers) {
-            var job=repo.find(shop.getId(),number);
-            if(job==null||job.taskId()==null||job.taskId().isBlank())fresh.add(number);
+            var job=jobs.get(number);
+            if(job==null||job.taskId()==null||job.taskId().isBlank()||regroup&&OzonLabelService.canRegroup(job))fresh.add(number);
             else if("ISOLATING".equals(job.status())||OzonLabelService.requiresNewTask(job)){
                 var group=List.of(number);known.put("isolated:"+number,group);isolated.add(group);
             }else known.computeIfAbsent(job.taskId().startsWith("v3:")?job.taskId():"legacy:"+number,k->new ArrayList<>()).add(number);
         }
-        for(int offset=0;offset<fresh.size();offset+=1000)known.put("fresh:"+offset,new ArrayList<>(fresh.subList(offset,Math.min(offset+1000,fresh.size()))));
+        for(int offset=0;offset<fresh.size();offset+=OzonLabelService.MAX_BATCH_POSTINGS)known.put("fresh:"+offset,new ArrayList<>(fresh.subList(offset,Math.min(offset+OzonLabelService.MAX_BATCH_POSTINGS,fresh.size()))));
         known.values().forEach(group->{var frozen=List.copyOf(group);frozen.forEach(number->membership.put(number,frozen));});
     }
     @Override public File download(Shop shop,String number,File target)throws IOException {
@@ -48,7 +53,7 @@ final class OzonBatchLabelDownloader implements OzonPrintBundleService.OfficialL
     private void load(Shop shop,List<String> group)throws IOException {
         Path file=Files.createTempFile("vncode-ozon-label-batch-",".pdf");temporaryFiles.add(file);
         var job=new OzonLabelRepository().find(shop.getId(),group.getFirst());
-        boolean legacy=job!=null&&job.taskId()!=null&&!job.taskId().isBlank()&&!job.taskId().startsWith("v3:");
+        boolean legacy=group.size()==1&&job!=null&&job.taskId()!=null&&!job.taskId().isBlank()&&!job.taskId().startsWith("v3:");
         if(legacy)service.downloadOfficialPdf(shop,group.getFirst(),file.toFile());else service.downloadOfficialBatchPdf(shop,group,file.toFile());
         var pdf=new PdfDocument(new PdfReader(file.toFile()));
         boolean retained=false;

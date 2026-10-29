@@ -74,7 +74,7 @@ class OzonBulkUiTest {
         fx(() -> {
             assertTrue(node("newOrdersTab", Tab.class).getText().contains("1000"));
             assertEquals(100, controller.currentPageLimit());
-            node("selectFilteredButton", Button.class).fire(); return null;
+            ((CheckBox) node("newOrderSelectTC", TableColumn.class).getGraphic()).fire(); return null;
         });
         awaitFx(() -> selected().size() == 1000 && !node("selectFilteredButton", Button.class).isDisabled());
         fx(() -> {
@@ -86,7 +86,7 @@ class OzonBulkUiTest {
             assertEquals(100, table("newOrdersTable").getItems().size()); assertEquals(1000, selected().size());
             var checkbox = (CheckBox) node("newOrderSelectTC", TableColumn.class).getGraphic();
             assertTrue(checkbox.isSelected()); checkbox.fire();
-            assertEquals(900, selected().size(), "Deselecting a page preserves the selected orders on other pages");
+            assertEquals(0, selected().size(), "The header deselects the full filtered batch across every page");
             node("clearBatchSelectionButton", Button.class).fire(); assertTrue(selected().isEmpty());
             node("postingSearch", TextField.class).setText("order-10"); return null;
         });
@@ -151,7 +151,7 @@ class OzonBulkUiTest {
             controller.setShop(shop,false);return null;
         });
         awaitFx(()->table("newOrdersTable").getItems().size()==100);
-        fx(()->{node("selectFilteredButton",Button.class).fire();return null;});
+        fx(()->{((CheckBox)node("newOrderSelectTC",TableColumn.class).getGraphic()).fire();return null;});
         awaitFx(()->selected().size()==101&&!node("moveToPackingButton",Button.class).isDisabled());
         com.vncode.app.testsupport.FxDialogDriver.choose(()->node("moveToPackingButton",Button.class).fire(),
                 dialog->dialog.getScene().getWindow() instanceof Stage stage&&stage.getOwner()==window,dialog->{
