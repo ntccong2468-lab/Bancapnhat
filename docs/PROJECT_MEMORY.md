@@ -1,5 +1,12 @@
 # Bộ nhớ dự án VNCode
 
+## Đang đóng gói 1.5.19 — 29.10.2026
+
+- Người dùng đã yêu cầu phát hành bộ cài mới. Nhánh `release/vn-code-1.5.19`, tăng POM/app.version lên 1.5.19, giữ định danh cài đặt và dữ liệu. Nguồn chốt `7e123e60e355715806c901f2f7e7838d1d5df065`, hash cây `6fd395cbca94d8952d19eeefd069fddcbf82ca81ab8cf05f0e10f3f43d89dcc9`; Windows build `40823591106`. Chưa có tag/draft/Latest 1.5.19 ở thời điểm ghi mục này.
+- Nguồn đầu `1f83843`, run `40822913108` đã hủy sau khi full Linux phát hiện FxmlSmokeTest vẫn thêm dòng chỉ trong TableView và chờ nút Nhận bật đồng bộ. Sửa riêng fixture: seed shop/đơn vào DB, chờ đọc và chọn async, giữ các assert nút bật/cấu trúc, dispose và xóa shop riêng. 5/5 mục tiêu đạt; production/POM/build script giữ nguyên từ `1f83843`. Full Linux/Windows nguồn chốt đang chạy lại; không dùng artifact run đã hủy.
+- Node release tools 117/117; guard Latest 18/19 cho phép, 20 chặn; JavaScript publisher kiểm tra cú pháp đạt. Native và nâng cấp từ Latest 1.5.18 phải đạt trước công bố. Pipeline publisher mới dùng source/run cố định; chuẩn bị tag/draft bằng kết nối GitHub hiện có để tránh HTTP 403 tạo release của token Actions như bản trước. Không copy token/credential vào CI.
+- Giữ mọi release cũ. Latest vẫn 1.5.18 cho đến khi có biên nhận công khai mới. [Sửa Ozon](fixes/2026-10-29-ozon-large-fbs-batch-labels.md), [ghi chú 1.5.19](releases/VN-code-1.5.19.md). Không gọi nhận đơn khách, tạo nhãn thật, mua hoặc tiêu KIZ trong lượt đóng gói.
+
 ## Sửa Ozon trên 100 đơn và batch nhãn — 29.10.2026 (chưa phát hành)
 
 - Nhánh `fix/ozon-large-fbs-batch-labels`, nguồn `72aad02b8167190f4b2ae27d5853111b75441a0a`, hash cây `a19817fc368b95fa43b5771f4950465d04b32b014b70c0269d61bb1c8b854175`, nền 1.5.18. Header chọn tất cả nay chọn đúng toàn bộ tập lọc/cửa hàng đến 10.000 đơn, không chỉ 100 dòng hiển thị; bỏ chọn toàn bộ và trạng thái checkbox theo tập đầy đủ.
