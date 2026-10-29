@@ -1066,12 +1066,37 @@ class FxmlSmokeTest {
 
     @Test
     void ozonDashboardShouldExposeFbsOrderGroupsSelectionAndPackingLabels() throws Exception {
-        CountDownLatch latch = new CountDownLatch(1);
-        AtomicBoolean valid = new AtomicBoolean(false);
-        Platform.runLater(() -> {
-            try {
-                FXMLLoader loader = FxmlViewLoader.loader(OzonDashboardController.class, "ozon-dashboard-view.fxml");
-                FxmlViewLoader.load(loader);
+        awaitBackgroundTasksBeforeFixtureCleanup();
+        try(var connection=Database.getConnection();var statement=connection.createStatement()) {
+            statement.execute("INSERT INTO shops(id,name,marketplace,client_id,api_key) VALUES(909,'Ozon test','OZON','client-909','secret-909')");
+        }
+        new com.vncode.app.integration.ozon.OzonPostingRepository().upsertDetail(909,new OzonPostingDto(
+                "POST-909", "ORDER-909", "ORDER-909", "awaiting_packaging", "", "warehouse",
+                "2026-08-25T08:30:00Z", "", "", "",
+                new OzonRequirements(java.util.List.of(), java.util.List.of(), java.util.List.of()),
+                java.util.List.of("ship"), true,
+                java.util.List.of(new OzonPostingItemDto(0,"101","SKU-101","offer-101","Item",1,"RUB","100"))));
+        var holder=new java.util.concurrent.atomic.AtomicReference<FXMLLoader>();
+        try {
+            var setup=new java.util.concurrent.FutureTask<Void>(() -> {
+                var loader=FxmlViewLoader.loader(OzonDashboardController.class,"ozon-dashboard-view.fxml");
+                FxmlViewLoader.load(loader);holder.set(loader);
+                ((OzonDashboardController)loader.getController()).setShop(new Shop(909,"Ozon test",
+                        com.vncode.app.integration.marketplace.Marketplace.OZON,"client-909","secret-909"),false);
+                return null;
+            });
+            Platform.runLater(setup);setup.get(10,TimeUnit.SECONDS);
+            awaitBackgroundTasksBeforeFixtureCleanup();
+            // The header freezes all matching database IDs asynchronously, including off-page rows.
+            // Do not insert a display-only row or assert the receive button before that read finishes.
+            var select=new java.util.concurrent.FutureTask<Void>(() -> {
+                var column=(javafx.scene.control.TableColumn<?,?>)holder.get().getNamespace().get("newOrderSelectTC");
+                ((CheckBox)column.getGraphic()).fire();return null;
+            });
+            Platform.runLater(select);select.get(10,TimeUnit.SECONDS);
+            awaitBackgroundTasksBeforeFixtureCleanup();
+            var check=new java.util.concurrent.FutureTask<Void>(() -> {
+                var loader=holder.get();
                 TabPane tabs = (TabPane) loader.getNamespace().get("orderStatusTabs");
                 @SuppressWarnings("unchecked")
                 TableView<OzonPostingDto> newOrders =
@@ -1084,17 +1109,6 @@ class FxmlSmokeTest {
                         (javafx.scene.control.Tab) loader.getNamespace().get("packingOrdersTab");
                 javafx.scene.control.Tab deliveringOrdersTab =
                         (javafx.scene.control.Tab) loader.getNamespace().get("deliveringOrdersTab");
-                OzonDashboardController controller = loader.getController();
-                controller.setShop(new Shop(909, "Ozon test",
-                        com.vncode.app.integration.marketplace.Marketplace.OZON,
-                        "client-909", "secret-909"), false);
-                newOrders.getItems().add(new OzonPostingDto(
-                        "POST-909", "ORDER-909", "ORDER-909", "awaiting_packaging", "", "warehouse",
-                        "2026-08-25T08:30:00Z", "", "", "",
-                        new OzonRequirements(java.util.List.of(), java.util.List.of(), java.util.List.of()),
-                        java.util.List.of("ship"), true,
-                        java.util.List.of(new OzonPostingItemDto(
-                                0, "101", "SKU-101", "offer-101", "Item", 1, "RUB", "100"))));
                 javafx.scene.control.TableColumn<?, ?> selectColumn =
                         (javafx.scene.control.TableColumn<?, ?>) loader.getNamespace().get("newOrderSelectTC");
                 javafx.scene.control.TableColumn<?, ?> newOrderNumber =
@@ -1104,8 +1118,8 @@ class FxmlSmokeTest {
                 javafx.scene.control.TableColumn<?, ?> deliveringOrderNumber =
                         (javafx.scene.control.TableColumn<?, ?>) loader.getNamespace().get("deliveringOrderNumberTC");
                 CheckBox selectAll = (CheckBox) selectColumn.getGraphic();
-                selectAll.fire();
-                valid.set(tabs != null
+                assertTrue(selectAll.isSelected());
+                assertTrue(tabs != null
                         && tabs.getTabs().size() == 5
                         && loader.getNamespace().get("printedOrdersTab") != null
                         && loader.getNamespace().get("printedOrdersTable") != null
@@ -1114,7 +1128,7 @@ class FxmlSmokeTest {
                         && loader.getNamespace().get("shipmentKizTab") != null
                         && loader.getNamespace().get("shipmentKizHost") != null
                         && tabs.getSelectionModel().getSelectedItem() == loader.getNamespace().get("newOrdersTab")
-                        && newOrdersTab.getText().endsWith("(0)")
+                        && newOrdersTab.getText().endsWith("(1)")
                         && packingOrdersTab.getText().endsWith("(0)")
                         && deliveringOrdersTab.getText().endsWith("(0)")
                         && newOrders != null
@@ -1151,12 +1165,17 @@ class FxmlSmokeTest {
                         && loader.getNamespace().get("gtinSearchField") != null
                         && loader.getNamespace().get("gtinInventoryList") != null
                         && loader.getNamespace().get("gtinInventoryRefreshButton") != null);
-            } finally {
-                latch.countDown();
+                return null;
+            });
+            Platform.runLater(check);check.get(10,TimeUnit.SECONDS);
+        } finally {
+            if(holder.get()!=null) {
+                var close=new java.util.concurrent.FutureTask<Void>(() -> {((OzonDashboardController)holder.get().getController()).dispose();return null;});
+                Platform.runLater(close);close.get(10,TimeUnit.SECONDS);
             }
-        });
-        assertTrue(latch.await(5, TimeUnit.SECONDS));
-        assertTrue(valid.get(), "Ozon FBS orders should expose four states plus KIZ stock, bulk selection and packing labels");
+            awaitBackgroundTasksBeforeFixtureCleanup();
+            try(var connection=Database.getConnection();var statement=connection.createStatement()){statement.execute("DELETE FROM shops WHERE id=909");}
+        }
     }
 
     @Test
