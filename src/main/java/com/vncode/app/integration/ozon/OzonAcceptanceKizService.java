@@ -27,7 +27,9 @@ final class OzonAcceptanceKizService {
         ListingIdentity.require(shop);LicenseRuntime.require(Permission.PACKING);
         new OzonPostingRepository().upsertDetail(shop.getId(),posting);
         var prior=jobs.find(shop.getId(),posting.postingNumber());
-        String action=jobs.latestActionStatus(shop.getId(),"accept_kiz",posting.postingNumber());
+        // Older/local print jobs can exist before the first accept_kiz action is logged.
+        // Keep the mutation-attempt check below so an uncertain submission is reconciled.
+        String action=Objects.requireNonNullElse(jobs.latestActionStatus(shop.getId(),"accept_kiz",posting.postingNumber()),"");
         if(prior!=null&&(!action.isBlank()&&!action.equals("rejected")
                 || action.isBlank()&&prior.mutationAttemptedAt()!=null&&!prior.mutationAttemptedAt().isBlank())) {
             verify(shop,posting,api,prior);return;

@@ -42,6 +42,85 @@ class OzonAcceptanceKizTest {
         assertEquals(1,sent.size());assertEquals(1,shipped.size());
         assertEquals("ACCEPTED",new OzonExemplarJobRepository().find(1,"PARENT").stage().name());
     }
+    @Test void existingJobWithoutAcceptanceHistoryCanBeAccepted()throws Exception {
+        var posting=OzonJson.requirePostingDetail(JsonParser.parseString(posting("PARENT")).getAsJsonObject(),"PARENT");
+        new OzonPostingRepository().upsertDetail(1,posting);
+        var jobs=new OzonExemplarJobRepository();jobs.findOrCreate(1,"PARENT");
+        assertNull(jobs.latestActionStatus(1,"accept_kiz","PARENT"));
+
+        assertEquals("awaiting_deliver",service().shipPerUnit(shop,"PARENT",true).status());
+        assertEquals(1,trace.stream().filter(p->p.equals("/v6/fbs/posting/product/exemplar/set")).count());
+        assertEquals(1,trace.stream().filter(p->p.equals("/v4/posting/fbs/ship")).count());
+        assertEquals("ACCEPTED",jobs.find(1,"PARENT").stage().name());
+    }
+    @Test void absentActionHistoryAfterAttemptReconcilesInsteadOfResubmittingMarks()throws Exception {
+        pending=true;
+        assertEquals("OZON_ACCEPT_KIZ_PENDING",assertThrows(java.io.IOException.class,()->service().shipPerUnit(shop,"PARENT",true)).getMessage());
+        var jobs=new OzonExemplarJobRepository();
+        assertNotNull(jobs.find(1,"PARENT").mutationAttemptedAt());
+        try(var c=Database.getConnection();var s=c.createStatement()) {
+            s.executeUpdate("DELETE FROM ozon_action_log WHERE shop_id=1 AND posting_number='PARENT' AND action_type='accept_kiz'");
+        }
+        assertNull(jobs.latestActionStatus(1,"accept_kiz","PARENT"));
+        pending=false;
+        assertEquals("awaiting_deliver",service().shipPerUnit(shop,"PARENT",true).status());
+        assertEquals(1,trace.stream().filter(p->p.equals("/v6/fbs/posting/product/exemplar/set")).count(),"Do not resend marks after an uncertain prior attempt");
+        assertEquals(1,trace.stream().filter(p->p.equals("/v6/fbs/posting/product/exemplar/create-or-get")).count());
+        assertEquals(1,trace.stream().filter(p->p.equals("/v4/posting/fbs/ship")).count());
+        assertEquals("ACCEPTED",jobs.find(1,"PARENT").stage().name());
+    }
+    @Test void alreadyReservedLocalKizWithoutAcceptanceHistoryIsReused()throws Exception {
+        var jobs=new OzonExemplarJobRepository();
+        var preparation=new OzonExemplarService(new OzonPostingRepository(),new OzonProductGtinMappingRepository(),jobs,
+                (id,credentials)->new OzonApiClient(id,credentials,server.url("/"),new OkHttpClient.Builder().readTimeout(1,TimeUnit.SECONDS).build(),new OzonApiRateLimiter(Duration.ZERO),new OzonRetryPolicy(1,Duration.ofMillis(1),Duration.ofMillis(1))));
+        assertEquals("VALIDATED",preparation.stageForPrint(shop,"PARENT").stage());
+        var job=jobs.find(1,"PARENT");var before=jobs.bindings(job.id());
+        assertEquals(1,before.size());assertNull(jobs.latestActionStatus(1,"accept_kiz","PARENT"));
+
+        assertEquals("awaiting_deliver",service().shipPerUnit(shop,"PARENT",true).status());
+        var after=jobs.bindings(job.id());assertEquals(1,after.size());
+        assertEquals(before.getFirst().kizId(),after.getFirst().kizId(),"The original reservation must be used");
+        assertEquals(before.getFirst().rawCode(),after.getFirst().rawCode());
+        assertEquals(1,trace.stream().filter(p->p.equals("/v6/fbs/posting/product/exemplar/set")).count());
+        assertEquals(1,trace.stream().filter(p->p.equals("/v4/posting/fbs/ship")).count());
+        try(var c=Database.getConnection();var s=c.createStatement();var r=s.executeQuery("SELECT SUM(status='CONSUMED'),SUM(status='AVAILABLE'),SUM(status='RESERVED') FROM kiz_codes WHERE shop_id=1")) {
+            assertTrue(r.next());assertEquals(1,r.getInt(1));assertEquals(1,r.getInt(2));assertEquals(0,r.getInt(3));
+        }
+    }
+    @Test void batchOf101ExistingJobsWithoutHistoryAssignsDistinctKizAndAcceptsEveryOrder()throws Exception {
+        var numbers=java.util.stream.IntStream.rangeClosed(1,101).mapToObj(i->"BATCH-"+i).toList();
+        try(var c=Database.getConnection()) {
+            c.setAutoCommit(false);
+            try(var update=c.createStatement();var insert=c.prepareStatement("INSERT INTO kiz_codes(id,shop_id,order_id,raw_code,display_code,gtin,status,legal_status,created_at,updated_at) VALUES(?,1,1,?,?, '04600000000001','AVAILABLE','IN_CIRCULATION','2026-08-18T00:00:00Z','2026-08-18T00:00:00Z')")) {
+                update.executeUpdate("UPDATE kiz_orders SET quantity=101 WHERE id=1");
+                for(int i=3;i<=101;i++){insert.setInt(1,i);insert.setString(2,"010460000000000121FIXTURE"+i);insert.setString(3,"fixture-"+i);insert.addBatch();}
+                insert.executeBatch();c.commit();
+            }
+        }
+        var repository=new OzonPostingRepository();
+        var postings=new ArrayList<OzonPostingDto>();
+        for(String number:numbers)postings.add(OzonJson.requirePostingDetail(JsonParser.parseString(posting(number)).getAsJsonObject(),number));
+        repository.upsertPage(1,postings);
+        try(var c=Database.getConnection();var insert=c.prepareStatement("INSERT INTO ozon_exemplar_jobs(shop_id,posting_number,stage,created_at,updated_at) VALUES(1,?,'CREATED','2026-08-18T00:00:00Z','2026-08-18T00:00:00Z')")) {
+            for(String number:numbers){insert.setString(1,number);insert.addBatch();}insert.executeBatch();
+        }
+        var jobs=new OzonExemplarJobRepository();var assigned=new HashSet<Long>();var shipper=service();
+        long started=System.nanoTime();
+        for(String number:numbers) {
+            assertNull(jobs.latestActionStatus(1,"accept_kiz",number));
+            assertEquals("awaiting_deliver",shipper.shipPerUnit(shop,number,true).status(),number);
+            var job=jobs.find(1,number);assertEquals(OzonExemplarJobStage.ACCEPTED,job.stage());
+            var bindings=jobs.bindings(job.id());assertEquals(1,bindings.size());
+            assertTrue(assigned.add(bindings.getFirst().kizId()),"A KIZ must not be reused across orders");
+        }
+        assertEquals(101,assigned.size());assertEquals(101,sent.size());assertEquals(101,shipped.size());
+        assertEquals(101,trace.stream().filter(p->p.equals("/v6/fbs/posting/product/exemplar/set")).count());
+        assertEquals(101,trace.stream().filter(p->p.equals("/v4/posting/fbs/ship")).count());
+        try(var c=Database.getConnection();var s=c.createStatement();var r=s.executeQuery("SELECT SUM(status='CONSUMED'),SUM(status='AVAILABLE'),SUM(status='RESERVED') FROM kiz_codes WHERE shop_id=1")) {
+            assertTrue(r.next());assertEquals(101,r.getInt(1));assertEquals(0,r.getInt(2));assertEquals(0,r.getInt(3));
+        }
+        System.out.println("OZON_ACCEPTANCE_FIXTURE orders=101 unique_kiz=101 elapsed_ms="+(System.nanoTime()-started)/1_000_000);
+    }
     @Test void optionalMarksAreAlsoAssignedBeforeAcceptanceLikeTheRealOzonResponse()throws Exception {
         optional=true;assertEquals("awaiting_deliver",service().shipPerUnit(shop,"PARENT",true).status());
         assertEquals(1,sent.size());assertTrue(trace.indexOf("/v6/fbs/posting/product/exemplar/set")<trace.indexOf("/v4/posting/fbs/ship"));
