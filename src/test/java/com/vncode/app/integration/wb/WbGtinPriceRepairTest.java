@@ -67,6 +67,48 @@ class WbGtinPriceRepairTest {
         assertEquals(WbGtinPriceRepair.State.PENDING,service.repair("101","old",Set.of(11L,12L),()->{},()->{}).state());
         assertEquals("WB_PRICE_OTHER_REQUEST_PENDING",service.repair("101","new",Set.of(11L,12L),()->{},()->{}).code());assertEquals(1,fixture.writes.get());
     }
+    @Test void changedSizesKeepTheReceiptPendingUntilTheOriginalTaskIsTerminal()throws Exception {
+        fixture.prices.put(11L,100);fixture.prices.put(12L,200);fixture.taskStatus=1;
+        service.repair("101","old",Set.of(11L,12L),()->{},()->{});
+        fixture.prices.put(13L,300);
+        assertEquals(WbGtinPriceRepair.State.PENDING,new WbGtinPriceRepair(shop,fixture).repair("101","old",Set.of(11L,12L),()->{},()->{}).state());
+        assertEquals("WB_PRICE_OTHER_REQUEST_PENDING",service.repair("101","new",Set.of(11L,12L,13L),()->{},()->{}).code());
+        fixture.taskStatus=3;
+        var completed=service.repair("101","old",Set.of(11L,12L),()->{},()->{});
+        assertEquals(WbGtinPriceRepair.State.FAILED,completed.state());assertEquals("WB_PRICE_CHANGED",completed.code());
+        try(var c=Database.getConnection();var s=c.createStatement();var r=s.executeQuery("SELECT state,task_id,before_json FROM wb_gtin_price_repairs WHERE anchor='old'")){
+            assertTrue(r.next());assertEquals("SUPERSEDED",r.getString(1));assertEquals("55",r.getString(2));assertFalse(r.getString(3).contains("13"));
+        }
+        fixture.prices.replaceAll((id,price)->150);
+        assertEquals(WbGtinPriceRepair.State.READY,service.repair("101","new",Set.of(11L,12L,13L),()->{},()->{}).state());assertEquals(1,fixture.writes.get());
+    }
+    @Test void detachedReceiptIsRecoveredWithoutAnyRunnableGtinJob()throws Exception {
+        fixture.prices.put(11L,100);fixture.prices.put(12L,200);
+        service.repair("101","detached",Set.of(11L,12L),()->{},()->{});
+        fixture.prices.replaceAll((id,price)->150);
+        assertFalse(new WbGtinPriceRepair(shop,fixture).reconcileOutstanding());
+        assertEquals(WbGtinPriceRepair.State.READY,service.repair("101","next",Set.of(11L,12L),()->{},()->{}).state());assertEquals(1,fixture.writes.get());
+    }
+    @Test void unknownReceiptAndChangedSizesNeverPermitAnotherUpload()throws Exception {
+        fixture.prices.put(11L,100);fixture.prices.put(12L,200);fixture.timeout=true;
+        service.repair("101","unknown",Set.of(11L,12L),()->{},()->{});fixture.prices.put(13L,300);
+        assertEquals(WbGtinPriceRepair.State.PENDING,service.repair("101","unknown",Set.of(11L,12L),()->{},()->{}).state());
+        assertTrue(service.reconcileOutstanding());
+        assertEquals("WB_PRICE_OTHER_REQUEST_PENDING",service.repair("101","new",Set.of(11L,12L,13L),()->{},()->{}).code());assertEquals(1,fixture.writes.get());
+    }
+    @Test void differentTaskHistoryCannotReleaseAChangedSizeReceipt()throws Exception {
+        fixture.prices.put(11L,100);fixture.prices.put(12L,200);
+        service.repair("101","old",Set.of(11L,12L),()->{},()->{});fixture.prices.put(13L,300);fixture.historyTask=999;
+        assertTrue(service.reconcileOutstanding());
+        assertEquals("WB_PRICE_OTHER_REQUEST_PENDING",service.repair("101","new",Set.of(11L,12L,13L),()->{},()->{}).code());assertEquals(1,fixture.writes.get());
+    }
+    @Test void rejectedTaskCanBeReconciledEvenAfterASizeWasRemoved()throws Exception {
+        fixture.prices.put(11L,100);fixture.prices.put(12L,200);
+        service.repair("101","old",Set.of(11L,12L),()->{},()->{});fixture.prices.remove(12L);fixture.taskStatus=5;
+        assertFalse(service.reconcileOutstanding());
+        assertEquals(WbGtinPriceRepair.State.FAILED,service.repair("101","old",Set.of(11L,12L),()->{},()->{}).state());
+        assertEquals(WbGtinPriceRepair.State.READY,service.repair("101","new",Set.of(11L),()->{},()->{}).state());assertEquals(1,fixture.writes.get());
+    }
     @Test void partialPriceFailureDoesNotPermitGtinWrite()throws Exception {
         fixture.prices.put(11L,100);fixture.prices.put(12L,200);
         assertEquals(WbGtinPriceRepair.State.PENDING,service.repair("101","partial",Set.of(11L,12L),()->{},()->{}).state());
@@ -139,13 +181,13 @@ class WbGtinPriceRepairTest {
         }
     }
     private static class Fixture implements ListingTransport {
-        final Map<Long,Integer> prices=new TreeMap<>();final AtomicInteger reads=new AtomicInteger(),writes=new AtomicInteger();JsonElement sent;String mutationPath;boolean timeout,rate,reject,foreign;int taskStatus=3;
+        final Map<Long,Integer> prices=new TreeMap<>();final AtomicInteger reads=new AtomicInteger(),writes=new AtomicInteger();JsonElement sent;String mutationPath;boolean timeout,rate,reject,foreign;int taskStatus=3;long historyTask=55;
         @Override public JsonElement call(String path,JsonElement body,boolean mutation)throws IOException {
             if(mutation){writes.incrementAndGet();mutationPath=path;sent=body.deepCopy();if(timeout)throw new IOException("timeout");if(rate){rate=false;throw new ListingRateLimitException(new Headers.Builder().add("Retry-After","0").build());}if(reject)throw new ListingRejectedException("rejected");return JsonParser.parseString("{\"error\":false,\"data\":{\"id\":55}}");}
             reads.incrementAndGet();
             if(path.startsWith("api/v2/list/goods/filter"))return JsonParser.parseString("{\"error\":false,\"data\":{\"listGoods\":[{\"nmID\":101,\"currencyIsoCode4217\":\"RUB\",\"editableSizePrice\":true}]}}");
             if(path.startsWith("api/v2/list/goods/size/nm")){var result=new JsonObject();var data=new JsonObject();var rows=new JsonArray();prices.forEach((id,price)->{var p=new JsonObject();p.addProperty("nmID",foreign?102:101);p.addProperty("sizeID",id);p.addProperty("price",price);p.addProperty("currencyIsoCode4217","RUB");rows.add(p);});data.add("listGoods",rows);result.addProperty("error",false);result.add("data",data);return result;}
-            if(path.startsWith("api/v2/history/tasks"))return JsonParser.parseString("{\"error\":false,\"data\":{\"status\":"+taskStatus+"}}");
+            if(path.startsWith("api/v2/history/tasks"))return JsonParser.parseString("{\"error\":false,\"data\":{\"uploadID\":"+historyTask+",\"status\":"+taskStatus+"}}");
             throw new IOException("unexpected endpoint");
         }
     }

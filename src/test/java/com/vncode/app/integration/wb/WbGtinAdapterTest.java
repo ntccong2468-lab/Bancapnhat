@@ -183,6 +183,19 @@ class WbGtinAdapterTest {
         assertTrue(new WbGtinPriceRepair(shop,transport).reconcileCancelled());
         assertEquals("WB_PRICE_CANCELLED_APPLIED",repo.issue(repo.jobItems(job).getFirst().id()));assertEquals(0,transport.writes.get());
     }
+    @Test void priceReceiptIsRecoveredAfterItsGtinItemFailedWithoutReopeningThatItem()throws Exception {
+        var repo=new GtinSyncRepository();var runner=new GtinSyncCoordinator(repo,k->adapter,Clock.systemUTC(),1,Duration.ZERO,requested->{});
+        var job=runner.confirm(List.of(preview()),true);transport.firstPrice=900;transport.secondPrice=1100;runner.runJob(job);
+        try(var c=Database.getConnection();var p=c.prepareStatement("UPDATE gtin_sync_items SET status='FAILED' WHERE job_id=?")){
+            p.setString(1,job.toString());p.executeUpdate();
+        }
+        transport.firstPrice=transport.secondPrice=1000;
+        assertFalse(new WbGtinPriceRepair(shop,transport).reconcileOutstanding());
+        assertEquals(Status.FAILED,repo.jobItems(job).getFirst().status());assertEquals(1,transport.priceWrites.get());assertEquals(0,transport.writes.get());
+        try(var c=Database.getConnection();var p=c.prepareStatement("SELECT state FROM wb_gtin_price_repairs WHERE anchor=?")){
+            p.setString(1,job.toString());try(var r=p.executeQuery()){assertTrue(r.next());assertEquals("READY",r.getString(1));}
+        }
+    }
     @Test void cancelAfterConfirmedPriceReportsAppliedButEqualPriceIsNotReportedAsChanged()throws Exception {
         var repo=new GtinSyncRepository();var runner=new GtinSyncCoordinator(repo,k->adapter,Clock.systemUTC(),1,Duration.ZERO,requested->{});
         var job=runner.confirm(List.of(preview()),true);transport.firstPrice=900;transport.secondPrice=1100;runner.runJob(job);

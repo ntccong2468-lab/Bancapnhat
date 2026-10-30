@@ -65,15 +65,18 @@ public final class WbGtinPriceRepair {
             return new Result(State.FAILED,null,"WB_PRICE_TOKEN_LIMIT");
         Snapshot current;
         try {current=read(nmId,guard);}catch(ListingRateLimitException rate){return rate(nmId,anchor,prior,rate);}
+        // Finish the original price receipt before checking today's GTIN selection.
+        // A changed size list must not orphan an already dispatched price request.
+        if(prior!=null&&Set.of("DISPATCHING","WAITING","READY").contains(prior.state)){
+            Result settled;
+            try {settled=reconcileReceipt(nmId,anchor,prior,current,guard);}
+            catch(ListingRateLimitException rate){return rate(nmId,anchor,prior,rate);}
+            if(settled.state()!=State.READY)return settled;
+            return current.prices.keySet().equals(expectedSizes)?settled:new Result(State.FAILED,null,"WB_PRICE_SIZE_INCOMPLETE");
+        }
         if(!current.prices.keySet().equals(expectedSizes)){
             if(prior!=null&&(prior.state.equals("PLANNED")||prior.state.equals("RATE_LIMIT")))transition(nmId,anchor,prior.state,"FAILED",prior.task,null);
             return new Result(State.FAILED,null,"WB_PRICE_SIZE_INCOMPLETE");
-        }
-        if(prior!=null&&(prior.state.equals("DISPATCHING")||prior.state.equals("WAITING")||prior.state.equals("READY"))){
-            if(matches(prior,current)){transition(nmId,anchor,prior.state,"READY",prior.task,null);return new Result(State.READY,null,"");}
-            if(prior.state.equals("READY"))return new Result(State.FAILED,null,"WB_PRICE_CHANGED");
-            if(prior.task!=null&&!prior.task.isBlank())try {if(taskFailed(prior.task,guard)){transition(nmId,anchor,prior.state,"FAILED",prior.task,null);return new Result(State.FAILED,null,"WB_PRICE_REJECTED");}}catch(ListingRateLimitException rate){return rate(nmId,anchor,prior,rate);}
-            return new Result(State.PENDING,Duration.ofSeconds(30),"WB_PRICE_READBACK_PENDING");
         }
         int target=current.average();
         if(current.equalTo(target)){
@@ -102,31 +105,56 @@ public final class WbGtinPriceRepair {
         catch(ListingRejectedException rejected){transition(nmId,anchor,"DISPATCHING","FAILED","",null);return new Result(State.FAILED,null,"WB_PRICE_REJECTED");}
         catch(IOException|RuntimeException failed){if(!dispatched.get())throw failed;return new Result(State.PENDING,Duration.ofSeconds(30),"WB_PRICE_RECEIPT_UNKNOWN");}
     }
-    /** Only read back already-dispatched price requests whose GTIN job was cancelled. */
+    /** Compatibility entry point; receipt recovery is independent of the GTIN item's state. */
     public boolean reconcileCancelled()throws IOException {
+        return reconcileOutstanding();
+    }
+    public boolean hasOutstanding() {
+        ListingIdentity.require(shop);init();
+        try(var c=Database.getConnection();var p=c.prepareStatement("SELECT 1 FROM wb_gtin_price_repairs WHERE shop_id=? AND owner=? AND state IN ('DISPATCHING','WAITING') LIMIT 1")){
+            p.setInt(1,shop.getId());p.setString(2,ListingIdentity.fingerprint(shop));try(var rows=p.executeQuery()){return rows.next();}
+        }catch(SQLException e){throw new IllegalStateException("WB_PRICE_REPAIR_STORAGE",e);}
+    }
+    /** Read-only recovery also includes failed, paused and detached jobs; never uploads prices. */
+    public boolean reconcileOutstanding()throws IOException {
         ListingIdentity.require(shop);init();var receipts=new ArrayList<String[]>();
-        try(var c=Database.getConnection();var p=c.prepareStatement("SELECT DISTINCT r.nm_id,r.anchor FROM wb_gtin_price_repairs r JOIN gtin_sync_jobs j ON j.id=r.anchor JOIN gtin_sync_items i ON i.job_id=j.id AND i.product_id=r.nm_id WHERE r.shop_id=? AND j.shop_id=? AND i.status='CANCELLED' AND r.state IN ('DISPATCHING','WAITING') ORDER BY r.nm_id,r.anchor")){
-            p.setInt(1,shop.getId());p.setInt(2,shop.getId());try(var r=p.executeQuery()){while(r.next())receipts.add(new String[]{r.getString(1),r.getString(2)});}
+        try(var c=Database.getConnection();var p=c.prepareStatement("SELECT nm_id,anchor FROM wb_gtin_price_repairs WHERE shop_id=? AND owner=? AND state IN ('DISPATCHING','WAITING') ORDER BY nm_id,anchor")){
+            p.setInt(1,shop.getId());p.setString(2,ListingIdentity.fingerprint(shop));try(var r=p.executeQuery()){while(r.next())receipts.add(new String[]{r.getString(1),r.getString(2)});}
         }catch(SQLException e){throw new IllegalStateException("WB_PRICE_REPAIR_STORAGE",e);}
         boolean pending=false;
         for(var entry:receipts){String nm=entry[0],anchor=entry[1];Receipt receipt=load(nm,anchor);if(receipt==null||!Set.of("DISPATCHING","WAITING").contains(receipt.state))continue;
             try {
                 Snapshot current=read(nm,()->ListingIdentity.require(shop));
-                if(matches(receipt,current)){transition(nm,anchor,receipt.state,"READY",receipt.task,null);}
-                else if(receipt.task!=null&&!receipt.task.isBlank()&&taskFailed(receipt.task,()->ListingIdentity.require(shop))){transition(nm,anchor,receipt.state,"FAILED",receipt.task,null);}
-                else pending=true;
+                if(reconcileReceipt(nm,anchor,receipt,current,()->ListingIdentity.require(shop)).state()==State.PENDING)pending=true;
             }catch(ListingRateLimitException unavailable){return true;}
             catch(IOException unavailable){pending=true;}
         }
         return pending;
+    }
+    private Result reconcileReceipt(String nm,String anchor,Receipt receipt,Snapshot current,Runnable guard)throws IOException {
+        if(matches(receipt,current)){transition(nm,anchor,receipt.state,"READY",receipt.task,null);return new Result(State.READY,null,"");}
+        if(receipt.state.equals("READY"))return new Result(State.FAILED,null,"WB_PRICE_CHANGED");
+        if(receipt.task!=null&&!receipt.task.isBlank()){
+            String status=taskStatus(receipt.task,guard);
+            if(Set.of("4","5","6").contains(status)){
+                transition(nm,anchor,receipt.state,"FAILED",receipt.task,null);return new Result(State.FAILED,null,"WB_PRICE_REJECTED");
+            }
+            // WB's terminal success proves the upload is no longer running, but a
+            // changed size/currency/mode is not a successful GTIN preflight.
+            if(status.equals("3")&&!sameStructure(receipt,current)){
+                transition(nm,anchor,receipt.state,"SUPERSEDED",receipt.task,null);return new Result(State.FAILED,null,"WB_PRICE_CHANGED");
+            }
+        }
+        return new Result(State.PENDING,Duration.ofSeconds(30),"WB_PRICE_READBACK_PENDING");
     }
     private void markCancelledIssue(Connection c,String nm,String anchor,String code)throws SQLException {
         try(var p=c.prepareStatement("INSERT INTO sync_gtin_issues(item_id,code,updated_at) SELECT id,?,? FROM gtin_sync_items WHERE shop_id=? AND job_id=? AND product_id=? AND status='CANCELLED' ON CONFLICT(item_id) DO UPDATE SET code=excluded.code,updated_at=excluded.updated_at")){
             p.setString(1,code);p.setString(2,Instant.now().toString());p.setInt(3,shop.getId());p.setString(4,anchor);p.setString(5,nm);p.executeUpdate();
         }
     }
-    private boolean matches(Receipt receipt,Snapshot current){
-        try {var before=JsonParser.parseString(receipt.before).getAsJsonObject();return text(before,"currency").equals(current.currency)&&before.get("editable").getAsBoolean()==current.editable&&before.getAsJsonObject("prices").keySet().equals(current.prices.keySet().stream().map(Object::toString).collect(java.util.stream.Collectors.toSet()))&&current.equalTo(receipt.target);}catch(RuntimeException invalid){return false;}
+    private boolean matches(Receipt receipt,Snapshot current){return sameStructure(receipt,current)&&current.equalTo(receipt.target);}
+    private boolean sameStructure(Receipt receipt,Snapshot current){
+        try {var before=JsonParser.parseString(receipt.before).getAsJsonObject();return text(before,"currency").equals(current.currency)&&before.get("editable").getAsBoolean()==current.editable&&before.getAsJsonObject("prices").keySet().equals(current.prices.keySet().stream().map(Object::toString).collect(java.util.stream.Collectors.toSet()));}catch(RuntimeException invalid){return false;}
     }
     private Result rate(String nm,String anchor,Receipt prior,ListingRateLimitException error){return rate(nm,anchor,prior,error,false);}
     private Result rate(String nm,String anchor,Receipt prior,ListingRateLimitException error,boolean explicitlyRejectedDispatch){
@@ -152,10 +180,11 @@ public final class WbGtinPriceRepair {
         } else for(var value:array(item,"sizes"))add(prices,asObject(value));
         if(prices.isEmpty())throw new IOException("WB_PRICE_MISSING");return new Snapshot(currency,editable,Collections.unmodifiableSortedMap(prices));
     }
-    private boolean taskFailed(String task,Runnable guard)throws IOException {
-        var response=request("api/v2/history/tasks?uploadID="+task,null,guard);if(!response.has("data")||response.get("data").isJsonNull())return false;
+    private String taskStatus(String task,Runnable guard)throws IOException {
+        var response=request("api/v2/history/tasks?uploadID="+task,null,guard);if(!response.has("data")||response.get("data").isJsonNull())return "";
         var value=data(response);
-        String status=text(value,"status");return status.equals("4")||status.equals("5")||status.equals("6");
+        if(!task.equals(text(value,"uploadID")))throw new IOException("WB_PRICE_WRONG_TASK");
+        return text(value,"status");
     }
     private JsonObject request(String path,JsonElement body,Runnable guard)throws IOException {ListingIdentity.require(shop);guard.run();await();var value=asObject(client.call(path,body,false));if(flag(value,"error"))throw new IOException("WB_PRICE_READ_REJECTED");return value;}
     private void await()throws IOException {

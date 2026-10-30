@@ -49,10 +49,25 @@ class CatalogErrorRepairDialogTest {
     void applyClosesProposalAndReturnsReviewedRealSizeAndPermit(boolean missingUniqueChoice)throws Exception{
         var original=proposal();var schema=new ArrayList<>(original.required());
         if(missingUniqueChoice)schema.add(new Attribute(999,"Product type","text",true,false,true,false,List.of("Одежда"),List.of("---")));
-        var p=new Proposal(original.card(),original.snapshot(),original.remoteRevision(),original.goodId(),original.draft(),schema,original.documents(),original.before(),original.issues(),original.session(),original.owner(),original.feedRejection());var future=new FutureTask<List<Draft>>(() -> {Platform.runLater(()->{var pane=pane("catalogErrorProposalDialog");pane.applyCss();pane.layout();assertTrue(((TableView<?>)pane.lookup("#catalogErrorProposalTable")).getItems().size()>=10);var window=pane.getScene().getWindow();((Button)pane.lookup("#catalogRepairApply")).fire();assertFalse(window.isShowing());});return CatalogErrorRepairDialog.proposals(new StackPane(),new CatalogErrorRepairDialog.Prepared(List.of(p),List.of()));});Platform.runLater(future);var result=future.get(15,TimeUnit.SECONDS);if(missingUniqueChoice)assertEquals("Одежда",result.getFirst().attributes().get(999L));assertEquals("52",result.getFirst().attributes().get(35L));assertEquals("FIXTURE-PERMIT:::2026-01-01",result.getFirst().attributes().get(23557L));
+        var p=new Proposal(original.card(),original.snapshot(),original.remoteRevision(),original.goodId(),original.draft(),schema,original.documents(),original.before(),original.issues(),original.session(),original.owner(),original.feedRejection());var future=new FutureTask<CatalogErrorRepairDialog.ReviewedRepair>(() -> {Platform.runLater(()->{var pane=pane("catalogErrorProposalDialog");pane.applyCss();pane.layout();assertTrue(((TableView<?>)pane.lookup("#catalogErrorProposalTable")).getItems().size()>=10);var window=pane.getScene().getWindow();((Button)pane.lookup("#catalogRepairApply")).fire();assertFalse(window.isShowing());});return CatalogErrorRepairDialog.proposals(new StackPane(),new CatalogErrorRepairDialog.Prepared(List.of(p),List.of()));});Platform.runLater(future);var result=future.get(15,TimeUnit.SECONDS);if(missingUniqueChoice)assertEquals("Одежда",result.drafts().getFirst().attributes().get(999L));assertEquals("52",result.drafts().getFirst().attributes().get(35L));assertEquals("FIXTURE-PERMIT:::2026-01-01",result.drafts().getFirst().attributes().get(23557L));assertFalse(result.syncMarketplace());assertFalse(result.drafts().getFirst().autoSign());
     }
     @Test void cancelNeverReturnsAnApprovedCorrection()throws Exception{
-        var future=new FutureTask<List<Draft>>(() -> {Platform.runLater(()->{var pane=pane("catalogErrorProposalDialog");var cancel=pane.getButtonTypes().stream().filter(b->b.getButtonData()==ButtonBar.ButtonData.CANCEL_CLOSE).findFirst().orElseThrow();((Button)pane.lookupButton(cancel)).fire();});return CatalogErrorRepairDialog.proposals(new StackPane(),new CatalogErrorRepairDialog.Prepared(List.of(proposal()),List.of()));});Platform.runLater(future);assertNull(future.get(15,TimeUnit.SECONDS));
+        var future=new FutureTask<CatalogErrorRepairDialog.ReviewedRepair>(() -> {Platform.runLater(()->{var pane=pane("catalogErrorProposalDialog");var cancel=pane.getButtonTypes().stream().filter(b->b.getButtonData()==ButtonBar.ButtonData.CANCEL_CLOSE).findFirst().orElseThrow();((Button)pane.lookupButton(cancel)).fire();});return CatalogErrorRepairDialog.proposals(new StackPane(),new CatalogErrorRepairDialog.Prepared(List.of(proposal()),List.of()));});Platform.runLater(future);assertNull(future.get(15,TimeUnit.SECONDS));
+    }
+    @org.junit.jupiter.params.ParameterizedTest
+    @org.junit.jupiter.params.provider.CsvSource({"true,false","false,true","true,true"})
+    void completionChoicesAreIndependentAndBoundToTheReturnedRepair(boolean sign,boolean sync)throws Exception {
+        var future=new FutureTask<CatalogErrorRepairDialog.ReviewedRepair>(()->{
+            Platform.runLater(()->{
+                var pane=pane("catalogErrorProposalDialog");pane.applyCss();pane.layout();
+                var signing=(CheckBox)pane.lookup("#catalogRepairAutoSign");var marketplace=(CheckBox)pane.lookup("#catalogRepairSyncMarketplace");
+                assertFalse(signing.isSelected());assertFalse(marketplace.isSelected());
+                signing.setSelected(sign);marketplace.setSelected(sync);((Button)pane.lookup("#catalogRepairApply")).fire();
+            });
+            return CatalogErrorRepairDialog.proposals(new StackPane(),new CatalogErrorRepairDialog.Prepared(List.of(proposal()),List.of()));
+        });
+        Platform.runLater(future);var result=future.get(15,TimeUnit.SECONDS);
+        assertEquals(sign,result.drafts().getFirst().autoSign());assertEquals(sync,result.syncMarketplace());
     }
     @Test void completedRepairPillDismissesWithoutLosingTheReportOrRemovingTheNextTask()throws Exception{
         try(var c=com.vncode.app.config.Database.getConnection();var s=c.createStatement()){s.execute("INSERT INTO shops(id,name,marketplace,api_key) VALUES(1,'Fixture','WILDBERRIES','synthetic')");}

@@ -115,9 +115,12 @@ class ZnackMarketplaceActivationTest {
         });
         var rows=new ArrayList<Row>();for(int i=0;i<count;i++){
             var preview=previews.get(i);var snapshot=products.get(new ProductKey(1,Marketplace.WILDBERRIES,preview.before().key().productId(),preview.before().key().variantId()));String identity=GtinProductIdentity.fingerprint(snapshot);
-            rows.add(new Row(UUID.randomUUID().toString(),preview.before().key(),observations.get(i),preview.before().barcodes(),List.of(new Diff("identity",List.of(identity),List.of(identity),"",false)),null,Map.of(),"",queue.toString(),State.GTIN_PENDING,""));
+            rows.add(new Row(UUID.randomUUID().toString(),preview.before().key(),observations.get(i),preview.before().barcodes(),List.of(new Diff("identity",List.of(identity),List.of(identity),"",false)),null,Map.of(),"",queue.toString(),State.READY,""));
         }
-        plan=UUID.randomUUID().toString();var child=new Job(plan,1,Marketplace.WILDBERRIES.name(),ListingIdentity.fingerprint(shop),Set.of(Field.GTIN),Instant.now(),true,false,rows);plans.insert(child);plans.confirm(shop,plan);
+        plan=UUID.randomUUID().toString();plans.insert(new Job(plan,1,Marketplace.WILDBERRIES.name(),ListingIdentity.fingerprint(shop),Set.of(Field.GTIN),Instant.now(),false,false,rows));plans.confirm(shop,plan);
+        // Recreate a genuinely confirmed plan before advancing it to its persisted readback state.
+        for(var row:rows)plans.update(shop,plan,row.next(State.GTIN_PENDING,row.gtinJob(),""));
+        var child=plans.read(shop,plan);
         run=reports.begin(shop,"znack_marketplace","MATCHING");for(int i=0;i<count;i++){
             var preview=previews.get(i);reportItems.add(new SyncRunRepository.Item(UUID.randomUUID().toString(),run,preview.before().key().productId(),preview.before().key().variantId(),"",preview.before().article(),"Blue",preview.before().size(),preview.newGtin(),"AWAITING_CONFIRMATION","MATCHING","","","{}"));
         }

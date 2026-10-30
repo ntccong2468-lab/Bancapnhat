@@ -25,13 +25,14 @@ public final class WbGtinQueueAutoResume {
     public WbGtinQueueAutoResume(GtinSyncRepository repository,GtinSyncCoordinator coordinator,com.vncode.app.integration.wb.WbGtinPriceRepair prices){this.repository=Objects.requireNonNull(repository);this.coordinator=Objects.requireNonNull(coordinator);this.prices=prices;}
     public boolean step(Shop shop){
         if(shop.getMarketplace()!=Marketplace.WILDBERRIES)return false;
-        boolean pendingReceipts;
+        var activePrices=prices==null?new com.vncode.app.integration.wb.WbGtinPriceRepair(shop):prices;
         try(var deferral=com.vncode.app.shared.RateLimitDeferral.enter()){
-            try {pendingReceipts=(prices==null?new com.vncode.app.integration.wb.WbGtinPriceRepair(shop):prices).reconcileCancelled();}
-            catch(java.io.IOException|com.vncode.app.shared.RateLimitDeferral.Deferred unavailable){pendingReceipts=true;}
+            try {activePrices.reconcileOutstanding();}
+            catch(java.io.IOException|com.vncode.app.shared.RateLimitDeferral.Deferred unavailable){ /* Receipts remain durable for the next step. */ }
             if(hasRunnable(shop))coordinator.runPending(shop.getId(),Marketplace.WILDBERRIES);
         }
-        return pendingReceipts||hasRunnable(shop);
+        // The coordinator may have resolved or created a receipt during this step.
+        return activePrices.hasOutstanding()||hasRunnable(shop);
     }
     private boolean hasRunnable(Shop shop){return repository.pending(shop.getId(),Marketplace.WILDBERRIES).stream().map(item->item.jobId()).distinct().anyMatch(job->!repository.paused(job));}
 }

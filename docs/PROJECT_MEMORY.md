@@ -1,5 +1,13 @@
 # Bộ nhớ dự án VNCode
 
+## Sửa đăng ký Znack và phục hồi GTIN — 30.10.2026 (chưa phát hành)
+
+- Nhánh `fix/znack-gtin-recovery-20261030`, nền `release/vn-code-1.6.0` tại `a8e0d9de0ffce25b71e0c8afb195fcedb22779f1`. Đối chiếu 42 nhánh/38 tag/9 release, 64 commit liên quan đăng ký và GTIN. Latest vẫn **1.5.19**; default branch cũ không được dùng làm nền.
+- Bảng sửa thẻ có hai lựa chọn độc lập, mặc định tắt: ký sau khi duyệt và đồng bộ GTIN sau khi xác minh công bố. Lưu quyền theo thẻ, quyền ký gắn với payload đã duyệt, resume giữ lựa chọn; bảo toàn GTIN/good_id/feed và kiểm tra nguồn/schema. Không tuyên bố tự sửa mọi lỗi: phần tự sửa hiện có vẫn giới hạn theo quy tắc đã xác minh; thiếu dữ liệu thực cần bổ sung trong app.
+- Journal không còn lỗi khởi tạo khi runtime thiếu thời điểm bắt đầu tiến trình; metadata không rõ không được coi là bằng chứng worker sống đã chết. WB đối soát receipt giá đang gửi/chờ kể cả item FAILED/hủy/tách khỏi job, xác minh uploadID; size thay đổi không bỏ lại receipt hoặc báo GTIN thành công sai. Kết quả không rõ không gửi lặp.
+- Sửa thêm Ozon ship không báo thành công chỉ vì mất quyền ship hoặc đổi trạng thái: cancelled, vẫn đóng gói, ship_failed tiếp tục cần đối soát. README dùng Releases/latest. Fixture activation sửa theo trình tự READY → xác nhận → GTIN_PENDING; không nới guard production.
+- **420 ca duy nhất / 18 lớp đạt**, 0 lỗi/thất bại/bỏ qua, tổng hợp năm nhóm mục tiêu; có JavaFX thao tác Apply/Hủy. API giả lập/localhost và SQLite; chưa full suite, Windows/CryptoPro thật, ghi shop thật hay bộ cài. Ba hướng tiếp theo: quy tắc sửa thẻ có bằng chứng → hàng đợi phục hồi chung → ánh xạ từng biến thể và đồng bộ phần thay đổi. [Phân tích và ưu/nhược điểm](fixes/2026-10-30-znack-gtin-recovery.md), [biên bản kiểm chứng](validation/2026-10-30-znack-gtin-recovery.json).
+
 ## Sửa null khi nhận Ozon — 29.10.2026 (chưa phát hành)
 
 - Nhánh `fix/ozon-accept-null-action`, nguồn `7878832176cd3bf3f2550f050de4d74cd161f3e7`, nền 1.5.19. `latestActionStatus` có thể null khi có job KIZ cũ nhưng chưa có `accept_kiz`; chuẩn hóa cục bộ thành chuỗi rỗng, giữ kiểm tra `mutationAttemptedAt` để đối soát trước khi gửi lại. Không đổi hợp đồng repository, không giải phóng KIZ chưa rõ kết quả.
