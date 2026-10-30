@@ -19,7 +19,14 @@ public final class VerifiedKizMappings {
             WHERE v.shop_id=? AND v.marketplace=? AND v.owner=?
               AND json_extract(g.data_json,'$.owner')=v.owner AND json_extract(g.data_json,'$.source')=v.source
               AND json_extract(g.data_json,'$.published')=1 AND json_extract(g.data_json,'$.tradeUnit')=1
-            """;
+            """+(market==Marketplace.OZON?"""
+              AND EXISTS (
+                SELECT 1 FROM ozon_product_barcodes b
+                WHERE b.shop_id=p.shop_id AND b.product_id=p.product_id
+                  AND length(b.barcode) BETWEEN 8 AND 14 AND b.barcode NOT GLOB '*[^0-9]*'
+                  AND substr('00000000000000'||b.barcode,-14)=substr('00000000000000'||v.gtin,-14)
+              )
+            """:"");
         try(var p=c.prepareStatement(sql)) {
             p.setInt(1,shopId);p.setString(2,market.name());p.setString(3,ListingIdentity.fingerprint(c,shopId,market));
             try(var r=p.executeQuery()){while(r.next()){

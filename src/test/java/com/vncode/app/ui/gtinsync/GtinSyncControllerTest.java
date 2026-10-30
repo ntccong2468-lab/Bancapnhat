@@ -4,6 +4,7 @@ import com.vncode.app.config.Database;
 import com.vncode.app.features.gtinsync.*;
 import com.vncode.app.integration.marketplace.Marketplace;
 import com.vncode.app.models.Shop;
+import com.vncode.app.shared.I18nService;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -86,6 +87,50 @@ class GtinSyncControllerTest {
         assertFalse(java.nio.file.Files.exists(temp.resolve("license.json")));
         assertEquals(1,submissions.get());
     }
+    @Test void wbPriceWarningIsVisibleBeforeExistingConfirm()throws Exception {
+        var submissions=new java.util.concurrent.atomic.AtomicInteger();
+        var adapter=new GtinMarketplaceAdapter(){
+            public Capability capability(ProductKey key){return new Capability(true,true,"");}
+            public ProductSnapshot read(ProductKey key){return products.getFirst();}
+            public boolean conflicts(ProductKey key,String gtin){return false;}
+            public void validateIdentity(ProductSnapshot target,RegisteredGtin source){assertExactIdentity(target,source);}
+            public Submission submit(Preview p){submissions.incrementAndGet();return new Submission("never");}
+            public Verification verify(Preview p,Submission s){return Verification.APPLIED;}
+        };
+        load(adapter,List.of());
+        fx(()->{table("productTable").getSelectionModel().select(0);this.<RegisteredGtin>combo("gtinBox").setValue(first);this.<Operation>combo("operationBox").setValue(Operation.ADD);button("previewButton").fire();return null;});
+        await(()->!fxUnchecked(()->button("confirmButton").isDisable()));
+        fx(()->{var notice=(javafx.scene.control.Label)loader.getNamespace().get("wbPriceImpactLabel");assertTrue(notice.isVisible());assertEquals(I18nService.getInstance().tr("gtinsync.wb_price_consent_body"),notice.getText());return null;});
+        assertEquals(0,submissions.get());assertTrue(repository.pending(1,Marketplace.WILDBERRIES).isEmpty());
+        assertFalse(fx(()->button("confirmButton").isDisabled()),"The existing confirmation remains available");
+    }
+    @Test void cancelledGtinShowsPriceRequestStillInFlightInHistory()throws Exception {
+        var cap=new Capability(true,true,"");UUID job=repository.createJob(List.of(new Preview(products.getFirst(),Operation.ADD,"",first.gtin(),cap)));
+        repository.cancelKnownUnsent(job);var item=repository.jobItems(job).getFirst();
+        repository.issue(item.id(),"WB_PRICE_REQUEST_IN_FLIGHT");load(null,repository.jobItems(job));
+        await(()->fxUnchecked(()->{
+            var history=this.<JobItem>table("historyTable");if(history.getItems().isEmpty())return false;
+            String status=String.valueOf(history.getColumns().getLast().getCellData(history.getItems().getFirst()));
+            return status.contains(I18nService.getInstance().tr("znack.registration.reason.WB_PRICE_REQUEST_IN_FLIGHT"));
+        }));
+    }
+    @Test void failedHistoryIssueReadReportsFailureAndCanRecoverOnReload()throws Exception {
+        var cap=new Capability(true,true,"");UUID job=repository.createJob(List.of(new Preview(products.getFirst(),Operation.ADD,"",first.gtin(),cap)));
+        repository.cancelKnownUnsent(job);var items=repository.jobItems(job);
+        try(var c=Database.getConnection();var s=c.createStatement()){s.execute("DROP TABLE sync_gtin_issues");}
+        load(null,items);
+        await(()->fxUnchecked(()->{
+            var history=this.<JobItem>table("historyTable");if(history.getItems().isEmpty())return false;
+            String status=String.valueOf(history.getColumns().getLast().getCellData(history.getItems().getFirst()));
+            return status.contains(I18nService.getInstance().tr("gtinsync.history_details_unavailable"));
+        }));
+        Database.initDatabase();repository.issue(items.getFirst().id(),"WB_PRICE_REQUEST_IN_FLIGHT");
+        fx(()->{var method=GtinSyncController.class.getDeclaredMethod("showHistory",List.class);method.setAccessible(true);method.invoke(controller,items);return null;});
+        await(()->fxUnchecked(()->{
+            var history=this.<JobItem>table("historyTable");String status=String.valueOf(history.getColumns().getLast().getCellData(history.getItems().getFirst()));
+            return status.contains(I18nService.getInstance().tr("znack.registration.reason.WB_PRICE_REQUEST_IN_FLIGHT"));
+        }));
+    }
     @Test void runningQueuePublishesStateAndAllowsCancellingUnsentRows()throws Exception {
         var cap=new Capability(true,true,"");
         UUID job=repository.createJob(products.stream().map(p->new Preview(p,Operation.ADD,"",p.key().productId().equals("101")?first.gtin():alternate.gtin(),cap)).toList());
@@ -98,7 +143,8 @@ class GtinSyncControllerTest {
             public Verification verify(Preview p,Submission submission){return Verification.APPLIED;}
         };
         load(adapter,repository.jobItems(job));
-        fx(()->{table("historyTable").getSelectionModel().select(0);button("resumeButton").fire();return null;});
+        fx(()->{table("historyTable").getSelectionModel().select(0);return null;});
+        fx(()->{button("resumeButton").fire();return null;});
         assertTrue(sendEntered.await(10,TimeUnit.SECONDS));
         assertFalse(fx(()->button("pauseButton").isDisable()),"Pause must stay usable while a mutation is running");
         assertFalse(fx(()->button("cancelButton").isDisable()),"Cancel-unsent must stay usable while a mutation is running");
@@ -120,7 +166,8 @@ class GtinSyncControllerTest {
         };
         load(adapter,repository.jobItems(job));var workers=Executors.newFixedThreadPool(2);var backgroundStarted=new CountDownLatch(1);var backgroundAcquired=new CountDownLatch(1);
         try{
-            fx(()->{table("historyTable").getSelectionModel().select(0);button("resumeButton").fire();return null;});assertTrue(sendEntered.await(5,TimeUnit.SECONDS));
+            fx(()->{table("historyTable").getSelectionModel().select(0);return null;});
+            fx(()->{button("resumeButton").fire();return null;});assertTrue(sendEntered.await(5,TimeUnit.SECONDS));
             var anotherCatalog=workers.submit(()->{try(var lane=com.vncode.app.shared.MarketplaceRequestBudget.lane(true)){backgroundStarted.countDown();try(var slot=com.vncode.app.shared.MarketplaceRequestBudget.acquire()){backgroundAcquired.countDown();}}return true;});assertTrue(backgroundStarted.await(2,TimeUnit.SECONDS));assertFalse(backgroundAcquired.await(100,TimeUnit.MILLISECONDS),"A second background request must wait while manual GTIN sending occupies its one background slot");
             var fbs=workers.submit(()->{try(var lane=com.vncode.app.shared.MarketplaceRequestBudget.lane(false);var slot=com.vncode.app.shared.MarketplaceRequestBudget.acquire()){return true;}});assertTrue(fbs.get(2,TimeUnit.SECONDS),"FBS must acquire the reserved HTTP slot without waiting for the GTIN submission");
             releaseSend.countDown();assertTrue(anotherCatalog.get(5,TimeUnit.SECONDS));await(()->repository.jobItems(job).getFirst().status()==Status.SUCCEEDED);

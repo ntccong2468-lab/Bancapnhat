@@ -111,6 +111,9 @@ public final class RegistrationSources {
                 if(!result.issues().isEmpty()) {
                     reports.stage(shop,run,"PARTIAL","READING_ZNACK","SOURCE_CATALOG_PARTIAL");return check(shop);
                 }
+                // A completed paired receipt no longer needs unfinished read progress.
+                // Clear before committing SUCCEEDED so a crash can only cause a safe re-read.
+                if(shop.getMarketplace()==Marketplace.OZON)OzonCatalogSyncService.completeRegistration(shop,scope);
                 reports.stage(shop,run,"SUCCEEDED","SOURCES_COMPLETE","");progress.accept("SOURCES_COMPLETE");return check(shop);
             }catch(Exception error){
                 try{reports.stage(shop,run,"FAILED",reports.step(run),SyncFailure.of(error,0).code());}catch(RuntimeException changed){error.addSuppressed(changed);}
@@ -133,7 +136,7 @@ public final class RegistrationSources {
             });
         }else if(shop.getMarketplace()==Marketplace.OZON) {
             new OzonCatalogSyncService(shop.getId(),new OzonApiClient(shop.getId(),new OzonCredentials(shop.getClientId(),shop.getApiKey())))
-                .syncForRegistration(rows->sink.accept(rows.stream().map(p->new Member(p.productId(),p.offerId(),p.sku(),p.article(),p.color(),p.size())).toList()));
+                .syncForRegistration(shop,RegisteredGtinProof.current(shop).source(),rows->sink.accept(rows.stream().map(p->new Member(p.productId(),p.offerId(),p.sku(),p.article(),p.color(),p.size())).toList()));
         }else throw new IllegalArgumentException("SOURCE_MARKETPLACE_UNSUPPORTED");
     }
     private static String safe(String value){return value==null?"":value;}

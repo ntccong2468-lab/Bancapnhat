@@ -107,13 +107,32 @@ class OzonCatalogMappingServiceTest {
         var rate=new ZnackApiException("Too many requests",429,"");op.failures.put(a,rate);
         assertSame(rate,assertThrows(ZnackApiException.class,()->run(op)));assertTrue(op.verified.isEmpty());assertFalse(op.calls.contains("enrich"));
     }
+    @Test void staleBarcodeSnapshotCannotBeConfirmedWhenFreshOzonReadbackNoLongerContainsIt()throws Exception{
+        var op=new Fake(){@Override public Map<Target,Long> confirm(Shop shop,Map<Target,String> candidates){return Map.of();}};
+        String code=gtin(1);op.cards.add(card(code));op.targets.add(target(1,List.of(code),false,""));
+        var result=run(op);assertEquals(0,result.mapped());assertEquals(List.of("GTIN_NOT_ON_OZON"),reasons(result));
+        assertEquals(code,result.issues().getFirst().gtin());assertTrue(op.verified.isEmpty());
+    }
+    @Test void failedOrRateLimitedFreshReadbackCannotSaveAnyVerifiedMapping(){
+        var rate=new ZnackApiException("Too many requests",429,"");
+        var op=new Fake(){@Override public Map<Target,Long> confirm(Shop shop,Map<Target,String> candidates)throws Exception{throw rate;}};
+        String code=gtin(1);op.cards.add(card(code));op.targets.add(target(1,List.of(code),false,""));
+        assertSame(rate,assertThrows(ZnackApiException.class,()->run(op)));assertTrue(op.verified.isEmpty());
+    }
     @Test void ownershipChangeDuringRegistryReadStopsWithoutSavingAnOldScope()throws Exception{
         var op=new Fake(){@Override public List<RegisteredGtin> details(Shop shop,String code){scope="National Catalog@rotated";return List.of(card(code));}};
         op.targets.add(target(1,List.of(gtin(1)),false,""));assertThrows(SecurityException.class,()->run(op));assertTrue(op.verified.isEmpty());
     }
-    @Test void aValidExistingManualRuleIsKeptWithoutManufacturingBarcodeProof()throws Exception{
+    @Test void aValidExistingManualRuleIsKeptButNotCountedUntilTheBarcodeIsObserved()throws Exception{
         var op=new Fake();String code=gtin(1);op.cards.add(card(code));op.targets.add(target(1,List.of("old-ozon-alias"),false,code));
-        assertEquals(1,run(op).mapped());assertTrue(op.verified.isEmpty());
+        var result=run(op);assertEquals(0,result.mapped());assertEquals(List.of("GTIN_NOT_ON_OZON"),reasons(result));
+        assertEquals(code,result.issues().getFirst().gtin());assertTrue(op.verified.isEmpty());
+    }
+    @Test void aSavedRuleDoesNotCountAsMappedWhenAnUnrelatedValidBarcodeIsObserved()throws Exception{
+        var op=new Fake();String saved=gtin(1),unrelated=gtin(2);op.cards.add(card(saved));
+        op.targets.add(target(1,List.of(unrelated),false,saved));
+        var result=run(op);assertEquals(0,result.mapped());assertEquals(List.of("GTIN_NOT_ON_OZON"),reasons(result));
+        assertEquals(saved,result.issues().getFirst().gtin());assertTrue(op.verified.isEmpty());
     }
     @Test void missingSkuAndWrongMarketplaceCannotAuthorizeMapping()throws Exception{
         var op=new Fake();String code=gtin(1);op.cards.add(card(code));var target=target(1,List.of(code),false,"");op.targets.add(new Target(target.row(),"",false,""));
@@ -126,16 +145,28 @@ class OzonCatalogMappingServiceTest {
             s.execute("INSERT INTO ozon_products(shop_id,product_id,offer_id,sku,article,synced_at) VALUES(2,'1','offer1','sku1','same','fixture'),(2,'2','offer2','sku2','same','fixture')");
             s.execute("INSERT INTO ozon_product_barcodes(shop_id,product_id,barcode) VALUES(2,'1','"+code+"')");
         }
-        var base=card(code);var local=new LocalOperations();var legacy=new RegisteredGtin(code,base.article(),base.color(),base.size(),true,true,RegisteredGtinProof.source(shop),Instant.now(),base.details());new GtinSyncRepository().saveCatalog(shop.getId(),Marketplace.OZON,List.of(legacy));assertThrows(IllegalArgumentException.class,()->local.verified(shop,target(1,List.of(code),false,""),code));
+        var key=new GtinSyncModels.ProductKey(shop.getId(),Marketplace.OZON,"1","offer1");var ownerFingerprint=com.vncode.app.integration.listing.ListingIdentity.fingerprint(shop);var tokens=MarketplaceBarcodeCache.issueOzon(shop.getId(),ownerFingerprint,List.of("1"));var generation=tokens.get("1");assertTrue(MarketplaceBarcodeCache.observe(shop,key,List.of(code),Instant.now(),tokens));
+        var base=card(code);var local=new LocalOperations();var legacy=new RegisteredGtin(code,base.article(),base.color(),base.size(),true,true,RegisteredGtinProof.source(shop),Instant.now(),base.details());new GtinSyncRepository().saveCatalog(shop.getId(),Marketplace.OZON,List.of(legacy));assertThrows(IllegalArgumentException.class,()->local.verified(shop,target(1,List.of(code),false,""),code,generation));
         var details=new CatalogProductData(Map.of("@catalog_id",List.of("91"),"@catalog_status",List.of("published")),base.details().attributes(),base.details().documents());var source=new RegisteredGtin(code,base.article(),base.color(),base.size(),true,true,RegisteredGtinProof.source(shop),Instant.now(),details);new GtinSyncRepository().saveCatalog(shop.getId(),Marketplace.OZON,List.of(source));
         var op=new Fake(){
             @Override public String scope(Shop owner){return local.scope(owner);}
             @Override public List<RegisteredGtin> catalog(Shop owner){return local.catalog(owner);}
             @Override public void enrich(Shop owner,List<RegisteredGtin> cards){local.enrich(owner,cards);}
-            @Override public void verified(Shop owner,Target target,String gtin){local.verified(owner,target,gtin);}
+            @Override public Map<Target,Long> confirm(Shop owner,Map<Target,String> candidates){return Map.of(candidates.keySet().iterator().next(),generation);}
+            @Override public void verified(Shop owner,Target target,String gtin,long observed){local.verified(owner,target,gtin,observed);}
         };op.targets.add(target(1,List.of(code),false,""));
         assertEquals(1,new OzonCatalogMappingService(op).synchronize(shop,p->{}).mapped());
         try(var c=Database.getConnection()){assertEquals(Map.of("sku1",code),VerifiedKizMappings.read(c,shop.getId(),Marketplace.OZON));}
+        try(var c=Database.getConnection();var p=c.prepareStatement("UPDATE gtin_sync_catalog SET data_json=json_set(data_json,'$.published',json('false')) WHERE shop_id=? AND marketplace='OZON' AND gtin=?")){p.setInt(1,shop.getId());p.setString(2,code);p.executeUpdate();}
+        assertEquals("OZON_MAPPING_PROOF_LOST",assertThrows(IllegalStateException.class,()->new GtinSyncRepository().recordObservedOzonMapping(shop,key,"sku1",code,generation)).getMessage());
+        try(var c=Database.getConnection();var p=c.prepareStatement("UPDATE gtin_sync_catalog SET data_json=json_set(data_json,'$.published',json('true')) WHERE shop_id=? AND marketplace='OZON' AND gtin=?")){p.setInt(1,shop.getId());p.setString(2,code);p.executeUpdate();}
+        MarketplaceBarcodeCache.issueOzon(shop.getId(),ownerFingerprint,List.of("1"));
+        assertEquals("OZON_BARCODE_READ_SUPERSEDED",assertThrows(IllegalStateException.class,()->new GtinSyncRepository().recordObservedOzonMapping(shop,key,"sku1",code,generation)).getMessage());
+        var current=MarketplaceBarcodeCache.issueOzon(shop.getId(),ownerFingerprint,List.of("1"));
+        var currentGeneration=current.get("1");assertTrue(MarketplaceBarcodeCache.observe(shop,key,List.of(code),Instant.now(),current));
+        try(var c=Database.getConnection();var p=c.prepareStatement("DELETE FROM ozon_product_barcodes WHERE shop_id=? AND product_id='1'")){p.setInt(1,shop.getId());p.executeUpdate();}
+        assertEquals("OZON_MAPPING_READBACK_CHANGED",assertThrows(IllegalStateException.class,()->local.verified(shop,target(1,List.of(code),false,""),code,currentGeneration)).getMessage());
+        try(var c=Database.getConnection()){assertTrue(VerifiedKizMappings.read(c,shop.getId(),Marketplace.OZON).isEmpty());}
     }
     @Test void moreThanTenThousandProductsAreAllReviewedWithoutATenThousandRowCutoff()throws Exception{
         var op=new Fake();for(int i=1;i<=10001;i++){String code=gtin(i);op.cards.add(card(code));op.targets.add(target(i,List.of(code),false,""));}
@@ -162,6 +193,6 @@ class OzonCatalogMappingServiceTest {
         public List<RegisteredGtin> catalog(Shop shop){calls.add("catalog");return cards;}
         public List<RegisteredGtin> details(Shop shop,String code)throws Exception{calls.add("details:"+code);if(failures.containsKey(code))throw failures.get(code);return details.getOrDefault(code,List.of());}
         public void enrich(Shop shop,List<RegisteredGtin> cards){calls.add("enrich");}
-        public void verified(Shop shop,Target target,String gtin){calls.add("verified:"+target.row().key().cardId());verified.put(target.row().key().cardId(),gtin);}
+        public void verified(Shop shop,Target target,String gtin,long generation){calls.add("verified:"+target.row().key().cardId());verified.put(target.row().key().cardId(),gtin);}
     }
 }

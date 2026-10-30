@@ -53,6 +53,26 @@ class CatalogSyncServiceTest {
     @Test void isolatedQueueWb()throws Exception{readyPipelineDoesNotRunUnrelatedQueuedGtinJobs(Marketplace.WILDBERRIES);}
     @Test void isolatedQueueOzon()throws Exception{readyPipelineDoesNotRunUnrelatedQueuedGtinJobs(Marketplace.OZON);}
     Job preview()throws Exception{return service.preview(shop,List.of(new Selection(key,source.gtin())),new Options(Set.of(Field.GTIN,Field.MATERIAL,Field.TNVED),Map.of()));}
+    @Test void wbPriceConsentIsExplicitDurableAndBoundToExactPlan()throws Exception{
+        setup(Marketplace.WILDBERRIES);var old=preview();service.confirm(shop,old.id());
+        assertFalse(new CatalogSyncRepository().priceConsent(shop,old.id()));
+        assertEquals("WB_PRICE_CONSENT_REQUIRES_NEW_PLAN",assertThrows(IllegalArgumentException.class,()->service.confirm(shop,old.id(),true)).getMessage());
+        var plan=preview();service.confirm(shop,plan.id(),true);
+        assertTrue(new CatalogSyncRepository().priceConsent(shop,plan.id()));
+        var row=plan.rows().getFirst();var altered=new Row(row.id(),row.key(),row.catalog(),List.of("changed"),row.differences(),row.selectedDocuments(),row.values(),row.editJob(),row.gtinJob(),row.state(),row.issue());
+        plans.update(shop,plan.id(),altered);
+        assertFalse(new CatalogSyncRepository().priceConsent(shop,plan.id()));
+    }
+    @Test void priceConsentCannotBeGrantedForOzonOrForPlanWithoutGtin()throws Exception{
+        setup(Marketplace.OZON);var plan=preview();assertThrows(IllegalArgumentException.class,()->service.confirm(shop,plan.id(),true));assertFalse(plans.priceConsent(shop,plan.id()));
+    }
+    @Test void sellerConsentFlowsToPersistedGtinChildAndOldPlansNeverGainIt()throws Exception{
+        setup(Marketplace.WILDBERRIES);listing.ready=true;
+        var plan=preview();service.confirm(shop,plan.id(),true);var done=service.run(shop,plan.id(),false);
+        var child=UUID.fromString(done.rows().getFirst().gtinJob());assertTrue(new GtinSyncRepository().hasWbPriceConsent(child));
+        barcodes.clear();barcodes.add("legacy");barcodes.add("second-fixture-barcode");var old=preview();var oldDone=service.run(shop,old.id(),true);
+        var oldChild=UUID.fromString(oldDone.rows().getFirst().gtinJob());assertFalse(new GtinSyncRepository().hasWbPriceConsent(oldChild));
+    }
     void neverAddsGtinUntilAttributesWereReadBackAndPersistsRecovery(Marketplace marketplace)throws Exception {
         setup(marketplace);var p=preview();assertEquals(1,p.readyCount());assertEquals(0,listing.writes);assertEquals(0,codes.writes);
         assertThrows(IllegalArgumentException.class,()->service.run(shop,p.id(),false));

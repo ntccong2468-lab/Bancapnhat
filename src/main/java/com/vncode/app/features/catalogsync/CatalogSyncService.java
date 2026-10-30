@@ -117,12 +117,16 @@ public final class CatalogSyncService {
     }
     /** Persist exact, validated authorization before a background worker can dispatch a write. */
     public Job confirm(Shop shop,String id){
+        return confirm(shop,id,false);
+    }
+    /** Called only after seller explicitly accepts the WB price adjustment for this preview. */
+    public Job confirm(Shop shop,String id,boolean wbPriceConsent){
         synchronized(LOCKS[(id.hashCode()&Integer.MAX_VALUE)%LOCKS.length]){
             ListingIdentity.require(shop);LicenseRuntime.require(Permission.SELLER_API);
             var job=plans.read(shop,id);
-            if(!job.confirmed()){
+            if(!job.confirmed()||wbPriceConsent){
                 if(job.readyCount()==0)throw new IllegalArgumentException("GTIN_VALIDATION_BLOCKED");
-                plans.confirm(shop,id);
+                plans.confirm(shop,id,wbPriceConsent);
             }
             return plans.read(shop,id);
         }
@@ -184,7 +188,7 @@ public final class CatalogSyncService {
                     if(RegisteredGtinProof.contains(actual.barcodes(),row.catalog().gtin())){adapter.validateIdentity(actual,row.catalog());gtins.recordVerifiedMapping(row.key(),row.catalog().gtin());plans.update(shop,id,row.next(State.SUCCEEDED,"",""));continue;}
                     if(!new HashSet<>(actual.barcodes()).equals(new HashSet<>(row.originalBarcodes())))throw new IllegalStateException("BARCODES_CHANGED");
                     var preview=new GtinPreviewService(gtins,adapters).create(row.key(),GtinSyncModels.Operation.ADD,"",row.catalog().gtin());
-                    UUID child=queue.confirm(List.of(preview));row=row.next(State.GTIN_PENDING,child.toString(),"");plans.update(shop,id,row);
+                    UUID child=queue.confirm(List.of(preview),plans.priceConsent(shop,id));row=row.next(State.GTIN_PENDING,child.toString(),"");plans.update(shop,id,row);
                 }
                 var childId=UUID.fromString(row.gtinJob());
                 var childIssues=gtins.jobItems(childId).stream().map(i->gtins.issue(i.id())).filter(x->!x.isBlank()).toList();
@@ -197,7 +201,9 @@ public final class CatalogSyncService {
                 plans.update(shop,id,row.next(status,row.gtinJob(),childIssue.isBlank()&&status==State.BLOCKED?"GTIN_REJECTED":childIssue));
             } catch(com.vncode.app.features.license.LicenseGate.LicenseDeniedException denied){plans.pause(shop,id,true);throw denied;}
             catch(Exception failed){
-                String code=failed.getMessage();if(code==null||!code.matches("[A-Z][A-Z0-9_]{1,79}"))code="READBACK_REQUIRED";
+                String code=failed.getMessage();
+                if("gtin_on_another_product".equalsIgnoreCase(code))code="GTIN_ON_ANOTHER_PRODUCT";
+                else if(code==null||!code.matches("[A-Z][A-Z0-9_]{1,79}"))code="READBACK_REQUIRED";
                 plans.update(shop,id,row.next(row.state()==State.READY?State.BLOCKED:State.RECONCILE_REQUIRED,row.gtinJob(),code));
             }
         }
@@ -209,7 +215,7 @@ public final class CatalogSyncService {
         var sources=gtins.catalogItems(shop.getId(),shop.getMarketplace(),selection.stream().map(Selection::gtin).toList());
         var issues=new HashMap<GtinSyncModels.ProductKey,String>();validateSources(adapter,selection,issues);
         var owners=new HashMap<String,List<GtinSyncModels.ProductKey>>();for(var item:selection)owners.computeIfAbsent(RegisteredGtinProof.canonicalCode(item.gtin()),k->new ArrayList<>()).add(item.key());
-        for(var keys:owners.values())if(keys.size()>1)for(var key:keys)issues.put(key,"GTIN_ON_ANOTHER_PRODUCT");
+        for(var keys:owners.values())if(keys.size()>1)for(var key:keys)issues.put(key,"GTIN_SELECTED_MULTIPLE_PRODUCTS");
         var products=new HashMap<String,ProductSnapshot>();var actual=new LinkedHashMap<GtinSyncModels.ProductKey,GtinSyncModels.ProductSnapshot>();var requested=new LinkedHashMap<GtinSyncModels.ProductKey,String>();
         for(var item:selection){if(!sources.containsKey(item.gtin()))throw new IllegalArgumentException("unverified_catalog_gtin");if(issues.containsKey(item.key()))continue;
             try{var source=sources.get(item.gtin());if(!RegisteredGtinProof.currentObservation(source,Instant.now()))throw new IllegalArgumentException("unverified_catalog_gtin");var fresh=products.get(item.key().productId());if(fresh==null){fresh=reader.read(shop,productKey(item.key()));products.put(item.key().productId(),fresh);}GtinTnvedIdentity.requireCompatible(fresh,source);
@@ -261,7 +267,7 @@ public final class CatalogSyncService {
         var issues=new HashMap<GtinSyncModels.ProductKey,String>();var previews=validatePreviews(adapter,requested,issues);
         for(var e:issues.entrySet()){var row=changed.get(e.getKey());changed.put(e.getKey(),row.next(State.BLOCKED,row.gtinJob(),e.getValue()));}
         if(!previews.isEmpty()&&!plans.paused(shop,id)){
-            LicenseRuntime.require(Permission.GTIN);UUID child=queue.confirm(List.copyOf(previews.values()));for(var key:previews.keySet()){var row=changed.get(key);changed.put(key,row.next(State.GTIN_PENDING,child.toString(),""));}
+            LicenseRuntime.require(Permission.GTIN);UUID child=queue.confirm(List.copyOf(previews.values()),plans.priceConsent(shop,id));for(var key:previews.keySet()){var row=changed.get(key);changed.put(key,row.next(State.GTIN_PENDING,child.toString(),""));}
         }
         // Parent→child links are durable before any of the child's HTTP batches can be sent.
         plans.updateBatch(shop,id,List.copyOf(changed.values()));

@@ -28,6 +28,13 @@ class RegistrationTableTextTest {
         var text=RegistrationTableText.moderation(Optional.of(card(true,"published","errors")),false);
         assertTrue(text.contains(tr("table_published_revision_error")));assertTrue(text.contains("published / errors"));
     }
+    @Test void rejectedAndAwaitingSignatureRemainDistinctFromAnOrdinaryDraft() {
+        var rejected=RegistrationTableText.moderation(Optional.of(card(false,"draft","errors")),false);
+        assertTrue(rejected.contains(tr("source.errors")));assertTrue(rejected.contains("errors"));
+        var unsigned=RegistrationTableText.moderation(Optional.of(card(false,"draft","notsigned")),false);
+        assertTrue(unsigned.contains(tr("status.ready_to_sign")));assertTrue(unsigned.contains("notsigned"));
+        assertFalse(unsigned.contains(tr("source.errors")));
+    }
     @Test void aFailedFreshReadNeverPromotesHistoricalCatalogOrMarketplaceProof() {
         var observed=Optional.of(card(true,"published","published"));
         var historical=RegistrationTableText.moderation(observed,true);

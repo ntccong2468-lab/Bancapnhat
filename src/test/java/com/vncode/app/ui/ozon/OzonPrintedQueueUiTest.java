@@ -50,15 +50,29 @@ class OzonPrintedQueueUiTest {
             confirmed.get(10,TimeUnit.SECONDS);
             var opened=new java.util.concurrent.CopyOnWriteArrayList<java.io.File>();
             var labels=directory.resolve("new-labels.pdf").toFile();var picking=directory.resolve("new-picking.pdf").toFile();
+            var exporting=new CountDownLatch(1);var continueExport=new CountDownLatch(1);
             fx(()->{assertSame(loader.getNamespace().get("packingOrdersTab"),((TabPane)loader.getNamespace().get("orderStatusTabs")).getSelectionModel().getSelectedItem(),"Cancelling the print confirmation keeps the new orders tab");
                 controller.setExportedFileOpener(opened::addAll);
                 controller.runPrintTask(owner,labels,picking,List.of("NEW"),new com.vncode.app.features.kiz.KizSourceSelection(true,false),progress->{
+                    exporting.countDown();if(!continueExport.await(15,TimeUnit.SECONDS))throw new IllegalStateException("fixture timeout");
                     for(var file:List.of(labels,picking))try(var pdf=new com.itextpdf.kernel.pdf.PdfDocument(new com.itextpdf.kernel.pdf.PdfWriter(file))){pdf.addNewPage();}
                     new OzonPrintReceiptRepository().record(owner,List.of("NEW"));
                     return new OzonDashboardController.PrintOutput("Synthetic export completed",List.of(labels,picking),List.of("NEW"));
                 });return null;});
+            try {
+                assertTrue(exporting.await(5,TimeUnit.SECONDS));
+                fx(()->{
+                    assertFalse(fresh.isDisabled(),"Rows remain browsable during export");
+                    assertTrue(((Button)loader.getNamespace().get("printAllButton")).isDisabled(),"Do not start a second export");
+                    var tabs=(TabPane)loader.getNamespace().get("orderStatusTabs");
+                    tabs.getSelectionModel().select((Tab)loader.getNamespace().get("newOrdersTab"));
+                    assertFalse(((TableView<?>)loader.getNamespace().get("newOrdersTable")).isDisabled(),"Other order tabs remain readable");
+                    return null;
+                });
+            } finally { continueExport.countDown(); }
             await(()->fx(()->fresh.getItems().isEmpty()&&printed.getItems().size()==2&&((TabPane)loader.getNamespace().get("orderStatusTabs")).getSelectionModel().getSelectedItem()==loader.getNamespace().get("printedOrdersTab")));
             await(()->opened.size()==2);for(var file:opened)try(var pdf=new com.itextpdf.kernel.pdf.PdfDocument(new com.itextpdf.kernel.pdf.PdfReader(file))){assertEquals(1,pdf.getNumberOfPages());}
+            fx(()->{assertTrue(((TextArea)loader.getNamespace().get("batchResultsArea")).getText().contains("Thời gian sau khi chọn file:"));assertTrue(((TitledPane)loader.getNamespace().get("batchResultsPanel")).isExpanded());return null;});
             assertFalse(fx(()->((Button)loader.getNamespace().get("printAllButton")).isVisible()));
             postings.upsertDetail(1,posting("ARRIVED","awaiting_deliver"));fx(()->{controller.refreshLocalData();return null;});await(()->fx(()->fresh.getItems().size()==1));
             assertEquals("ARRIVED",fx(()->fresh.getItems().getFirst().postingNumber()));assertEquals(2,fx(()->printed.getItems().size()));assertEquals("awaiting_deliver",postings.find(1,"NEW").status());
@@ -78,7 +92,8 @@ class OzonPrintedQueueUiTest {
             await(()->fx(()->((TableView<?>)loader.getNamespace().get("packingOrdersTable")).getItems().size()==1));
             com.vncode.app.testsupport.FxDialogDriver.choose(()->controller.runPrintTask(owner,directory.resolve("failed-labels.pdf").toFile(),directory.resolve("failed-picking.pdf").toFile(),List.of("NEW"),new com.vncode.app.features.kiz.KizSourceSelection(true,false),progress->{throw new java.io.IOException("Synthetic export failure");}),dialog->dialog.getButtonTypes().contains(ButtonType.OK),dialog->ButtonType.OK);
             com.vncode.app.testsupport.ShopReadTestCleanup.awaitSharedIdle();
-            fx(()->{assertSame(loader.getNamespace().get("packingOrdersTab"),((TabPane)loader.getNamespace().get("orderStatusTabs")).getSelectionModel().getSelectedItem());assertEquals(1,((TableView<?>)loader.getNamespace().get("packingOrdersTable")).getItems().size());assertTrue(((TableView<?>)loader.getNamespace().get("printedOrdersTable")).getItems().isEmpty());return null;});
+            fx(()->{assertSame(loader.getNamespace().get("packingOrdersTab"),((TabPane)loader.getNamespace().get("orderStatusTabs")).getSelectionModel().getSelectedItem());assertEquals(1,((TableView<?>)loader.getNamespace().get("packingOrdersTable")).getItems().size());assertTrue(((TableView<?>)loader.getNamespace().get("printedOrdersTable")).getItems().isEmpty());
+                String prefix=I18nService.getInstance().tr("ozon.fbs.print_timing").split("\\{0\\}",2)[0];assertTrue(((TextArea)loader.getNamespace().get("batchResultsArea")).getText().contains(prefix));return null;});
             try(var c=Database.getConnection();var s=c.createStatement();var r=s.executeQuery("SELECT count(*) FROM ozon_fbs_print_receipts")){assertEquals(0,r.getInt(1));}
         }finally{fx(()->{controller.dispose();return null;});com.vncode.app.testsupport.ShopReadTestCleanup.awaitSharedIdle();System.clearProperty("vncode.appdata.dir");}
     }

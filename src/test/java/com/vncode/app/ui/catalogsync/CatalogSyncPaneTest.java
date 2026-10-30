@@ -45,4 +45,17 @@ class CatalogSyncPaneTest {
             for(var field:Field.values())assertEquals(field==Field.GTIN,((CheckBox)pane.lookup("#catalogSync"+field)).isSelected());
             assertFalse(((CheckBox)pane.lookup("#catalogSyncConfirm")).isSelected());assertTrue(((Button)pane.lookup("#catalogSyncApply")).isDisabled());return null;});
     }
+    @Test void wbPriceWarningIsVisibleBesideExistingConfirmation()throws Exception {
+        var owner=new Shop(1,"First shop","fixture");
+        fx(()->{pane=new CatalogSyncPane();new Scene(pane,1060,700);pane.openGtin(owner,List.of());return null;});
+        com.vncode.app.testsupport.ShopReadTestCleanup.awaitSharedIdle();fx(()->null);
+        var key=new com.vncode.app.features.gtinsync.GtinSyncModels.ProductKey(1,owner.getMarketplace(),"101","11");
+        var gtin=new com.vncode.app.features.gtinsync.GtinSyncModels.RegisteredGtin("00000000000017","A","Blue","M",true,true,"fixture",Instant.now());
+        var row=new Row("row",key,gtin,List.of(),List.of(),null,Map.of(),"","",State.READY,"");
+        var job=new Job("fixture-plan",1,owner.getMarketplace().name(),ListingIdentity.fingerprint(owner),Set.of(Field.GTIN),Instant.now(),false,false,List.of(row));
+        fx(()->{var render=CatalogSyncPane.class.getDeclaredMethod("render",Job.class);render.setAccessible(true);render.invoke(pane,job);
+            var notice=(Label)pane.lookup("#catalogSyncWbPriceImpact");assertTrue(notice.isVisible());assertFalse(notice.getText().isBlank());
+            assertFalse(((CheckBox)pane.lookup("#catalogSyncConfirm")).isSelected());assertTrue(((Button)pane.lookup("#catalogSyncApply")).isDisabled());
+            ((CheckBox)pane.lookup("#catalogSyncConfirm")).setSelected(true);assertFalse(((Button)pane.lookup("#catalogSyncApply")).isDisabled());return null;});
+    }
 }

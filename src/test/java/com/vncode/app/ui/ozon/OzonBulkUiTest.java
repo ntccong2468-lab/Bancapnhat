@@ -104,7 +104,7 @@ class OzonBulkUiTest {
         fx(() -> { controller.setShop(shop, false); return null; });
         awaitFx(() -> table("newOrdersTable").getItems().size() == 100 && table("packingOrdersTable").getItems().size() == 100);
         fx(() -> { node("selectFilteredButton", Button.class).fire(); return null; });
-        awaitFx(() -> selected().size() == 1000 && !node("moveToPackingButton", Button.class).isDisabled());
+        awaitFx(() -> selected().size() == 1000 && stockSourceReady() && !node("moveToPackingButton", Button.class).isDisabled());
         com.vncode.app.testsupport.FxDialogDriver.choose(()->node("moveToPackingButton",Button.class).fire(),
             dialog->dialog.getScene().getWindow() instanceof Stage stage&&stage.getOwner()==window,dialog->{
                 assertTrue(dialog.getHeaderText().contains("1000"));
@@ -130,6 +130,51 @@ class OzonBulkUiTest {
         assertEquals(0, ShopBatchRegistry.activeCount());
     }
 
+    @Test void longAcceptanceKeepsTablesBrowsableButPreventsChangingTheBatch() throws Exception {
+        var repository=new OzonPostingRepository();
+        repository.upsertPage(1,java.util.stream.IntStream.range(0,101)
+                .mapToObj(i->posting("browse-"+i,"awaiting_packaging")).toList());
+        repository.upsertDetail(1,posting("browse-ready","awaiting_deliver"));
+        var started=new CountDownLatch(1);var release=new CountDownLatch(1);
+        var called=new AtomicInteger();
+        fx(()->{
+            controller.setPostingAcceptor((owner,number,sources)->{
+                called.incrementAndGet();started.countDown();
+                if(!release.await(15,TimeUnit.SECONDS))throw new IllegalStateException("fixture timeout");
+                return new OzonShipResult(number,"awaiting_deliver",false);
+            });
+            controller.setShop(shop,false);return null;
+        });
+        awaitFx(()->table("newOrdersTable").getItems().size()==100);
+        fx(()->{node("selectFilteredButton",Button.class).fire();return null;});
+        awaitFx(()->selected().size()==101&&stockSourceReady()&&!node("moveToPackingButton",Button.class).isDisabled());
+        try {
+            com.vncode.app.testsupport.FxDialogDriver.choose(()->node("moveToPackingButton",Button.class).fire(),
+                    dialog->dialog.getScene().getWindow() instanceof Stage stage&&stage.getOwner()==window,
+                    dialog->dialog.getButtonTypes().stream().filter(type->type.getButtonData()==ButtonBar.ButtonData.OK_DONE).findFirst().orElseThrow());
+            assertTrue(started.await(5,TimeUnit.SECONDS));
+            fx(()->{
+                assertFalse(table("newOrdersTable").isDisabled(),"Users can browse rows during a long acceptance");
+                assertTrue(node("moveToPackingButton",Button.class).isDisabled(),"A second acceptance must stay disabled");
+                var header=(CheckBox)node("newOrderSelectTC",TableColumn.class).getGraphic();
+                assertTrue(header.isDisabled(),"Batch selection is frozen until the operation completes");
+                header.fire();assertEquals(101,selected().size());
+                node("nextPageButton",Button.class).fire();return null;
+            });
+            awaitFx(()->node("pageStatusLabel",Label.class).getText().startsWith("101"));
+            fx(()->{
+                assertEquals(1,table("newOrdersTable").getItems().size());
+                assertEquals(101,selected().size(),"Browsing a later page must not change the frozen batch");
+                node("orderStatusTabs",TabPane.class).getSelectionModel().select(node("packingOrdersTab",Tab.class));
+                assertFalse(table("packingOrdersTable").isDisabled(),"Users can read another tab");
+                assertTrue(node("printAllButton",Button.class).isDisabled(),"A conflicting print cannot start");
+                return null;
+            });
+        } finally { release.countDown(); }
+        awaitFx(30,()->called.get()==101&&ShopBatchRegistry.activeCount()==0&&!node("loadingIndicator",ProgressIndicator.class).isVisible(),
+                ()->"Acceptance did not complete after browsing: "+called.get());
+    }
+
     @Test void acceptAllProcessesBeyondTheVisiblePageAndReportsChildrenPendingAndProtectedKizSeparately() throws Exception {
         var repository=new OzonPostingRepository();var sources=new ArrayList<OzonPostingDto>();
         for(int i=1;i<=101;i++){
@@ -139,7 +184,7 @@ class OzonBulkUiTest {
         }
         repository.upsertPage(1,sources);var accepted=new AtomicInteger();
         fx(()->{
-            controller.setPostingAcceptor((owner,number)->{
+            controller.setPostingAcceptor((owner,number,selection)->{
                 assertFalse(Platform.isFxApplicationThread());assertEquals(shop.getId(),owner.getId());accepted.incrementAndGet();
                 if(number.equals("split-100"))throw new OzonApiException("reconcile_required",0,false,true,null);
                 if(number.equals("split-101"))throw new IllegalStateException("OZON_SPLIT_HAS_BOUND_KIZ");
@@ -152,7 +197,7 @@ class OzonBulkUiTest {
         });
         awaitFx(()->table("newOrdersTable").getItems().size()==100);
         fx(()->{((CheckBox)node("newOrderSelectTC",TableColumn.class).getGraphic()).fire();return null;});
-        awaitFx(()->selected().size()==101&&!node("moveToPackingButton",Button.class).isDisabled());
+        awaitFx(()->selected().size()==101&&stockSourceReady()&&!node("moveToPackingButton",Button.class).isDisabled());
         com.vncode.app.testsupport.FxDialogDriver.choose(()->node("moveToPackingButton",Button.class).fire(),
                 dialog->dialog.getScene().getWindow() instanceof Stage stage&&stage.getOwner()==window,dialog->{
                     assertTrue(dialog.getHeaderText().contains("101"));
@@ -211,6 +256,105 @@ class OzonBulkUiTest {
         });
     }
 
+    @Test void missingKizWithPurchasedSourceRunsApprovedReplenishmentThenRetriesOnlyThatOrder() throws Exception {
+        var repository=new OzonPostingRepository();repository.upsertPage(1,List.of(posting("shortage-1","awaiting_packaging"),posting("shortage-2","awaiting_packaging"),posting("shortage-3","awaiting_packaging")));
+        new com.vncode.app.features.kiz.ShipmentKizRepository().saveSelection(shop,"OZON:FBS",new com.vncode.app.features.kiz.KizSourceSelection(false,true));
+        var attempted=new AtomicInteger();var purchases=new AtomicInteger();
+        fx(()->{
+            controller.setPostingAcceptor((owner,number,selection)->{
+                if(attempted.getAndIncrement()==0)throw new java.io.IOException("OZON_ACCEPT_KIZ_STOCK_REQUIRED");
+                repository.upsertDetail(1,posting(number,"awaiting_deliver"));return new OzonShipResult(number,"awaiting_deliver",false);
+            });
+            controller.setAcceptanceStockPurchase((owner,numbers,sources,progress,cancelled)->{
+                assertFalse(Platform.isFxApplicationThread());assertEquals(Set.of("shortage-1","shortage-2","shortage-3"),Set.copyOf(numbers));assertTrue(sources.purchased());purchases.incrementAndGet();
+            });
+            controller.setShop(shop,false);return null;
+        });
+        awaitFx(()->table("newOrdersTable").getItems().size()==3&&window.getScene().lookup("#shipment-kiz-purchased") instanceof CheckBox box&&box.isSelected()&&!box.isDisable());
+        fx(()->{node("selectFilteredButton",Button.class).fire();return null;});
+        awaitFx(()->selected().size()==3&&stockSourceReady()&&!node("moveToPackingButton",Button.class).isDisabled());
+        com.vncode.app.testsupport.FxDialogDriver.choose(()->node("moveToPackingButton",Button.class).fire(),
+                dialog->dialog.getScene().getWindow() instanceof Stage stage&&stage.getOwner()==window,
+                dialog->dialog.getButtonTypes().stream().filter(type->type.getButtonData()==ButtonBar.ButtonData.OK_DONE).findFirst().orElseThrow());
+        awaitFx(()->attempted.get()==4&&purchases.get()==1&&ShopBatchRegistry.activeCount()==0&&node("batchResultsPanel",TitledPane.class).isVisible());
+        fx(()->{assertTrue(selected().isEmpty());assertEquals(3,node("batchResultsArea",TextArea.class).getText().lines().filter(line->line.contains(I18nService.getInstance().tr("ozon.fbs.packaged"))).count());return null;});
+    }
+
+    @Test void failedBatchPurchaseIsReportedForEveryAffectedOrderWithoutRepeatingPurchase() throws Exception {
+        var repository=new OzonPostingRepository();repository.upsertPage(1,List.of(posting("preflight-1","awaiting_packaging"),posting("preflight-2","awaiting_packaging"),posting("preflight-3","awaiting_packaging")));
+        new com.vncode.app.features.kiz.ShipmentKizRepository().saveSelection(shop,"OZON:FBS",new com.vncode.app.features.kiz.KizSourceSelection(false,true));
+        var attempted=new AtomicInteger();var purchases=new AtomicInteger();
+        fx(()->{
+            controller.setPostingAcceptor((owner,number,selection)->{attempted.incrementAndGet();throw new java.io.IOException("OZON_ACCEPT_KIZ_STOCK_REQUIRED");});
+            controller.setAcceptanceStockPurchase((owner,numbers,selection,progress,cancelled)->{purchases.incrementAndGet();throw new java.io.IOException("SYNTHETIC_PREFLIGHT_FAILURE");});
+            controller.setShop(shop,false);return null;
+        });
+        awaitFx(()->table("newOrdersTable").getItems().size()==3&&purchasedSourceReady());
+        fx(()->{node("selectFilteredButton",Button.class).fire();return null;});
+        awaitFx(()->selected().size()==3&&purchasedSourceReady()&&!node("moveToPackingButton",Button.class).isDisabled());
+        com.vncode.app.testsupport.FxDialogDriver.choose(()->node("moveToPackingButton",Button.class).fire(),
+                dialog->dialog.getScene().getWindow() instanceof Stage stage&&stage.getOwner()==window,
+                dialog->dialog.getButtonTypes().stream().filter(type->type.getButtonData()==ButtonBar.ButtonData.OK_DONE).findFirst().orElseThrow());
+        awaitFx(()->attempted.get()==3&&ShopBatchRegistry.activeCount()==0&&node("batchResultsPanel",TitledPane.class).isVisible());
+        fx(()->{
+            var report=node("batchResultsArea",TextArea.class).getText();assertEquals(1,purchases.get());assertEquals(3,selected().size());
+            assertEquals(3,report.lines().filter(line->line.contains("SYNTHETIC_PREFLIGHT_FAILURE")).count());
+            assertEquals(2,report.lines().filter(line->line.contains(I18nService.getInstance().tr("ozon.fbs.purchase_batch_failed"))).count());return null;
+        });
+    }
+
+    @Test void cancellingPurchaseStopsBatchWithoutRepeatingDialogOrAcceptingOtherOrders() throws Exception {
+        var repository=new OzonPostingRepository();repository.upsertPage(1,List.of(posting("cancel-1","awaiting_packaging"),posting("cancel-2","awaiting_packaging"),posting("cancel-3","awaiting_packaging")));
+        new com.vncode.app.features.kiz.ShipmentKizRepository().saveSelection(shop,"OZON:FBS",new com.vncode.app.features.kiz.KizSourceSelection(false,true));
+        var attempted=new AtomicInteger();var purchaseDialogs=new AtomicInteger();
+        fx(()->{
+            controller.setPostingAcceptor((owner,number,selection)->{attempted.incrementAndGet();throw new java.io.IOException("OZON_ACCEPT_KIZ_STOCK_REQUIRED");});
+            controller.setAcceptanceStockPurchase((owner,numbers,selection,progress,cancelled)->{purchaseDialogs.incrementAndGet();throw new java.util.concurrent.CancellationException();});
+            controller.setShop(shop,false);return null;
+        });
+        awaitFx(()->table("newOrdersTable").getItems().size()==3&&purchasedSourceReady());
+        fx(()->{node("selectFilteredButton",Button.class).fire();return null;});
+        awaitFx(()->selected().size()==3&&purchasedSourceReady()&&!node("moveToPackingButton",Button.class).isDisabled());
+        com.vncode.app.testsupport.FxDialogDriver.choose(()->node("moveToPackingButton",Button.class).fire(),
+                dialog->dialog.getScene().getWindow() instanceof Stage stage&&stage.getOwner()==window,
+                dialog->dialog.getButtonTypes().stream().filter(type->type.getButtonData()==ButtonBar.ButtonData.OK_DONE).findFirst().orElseThrow());
+        awaitFx(()->ShopBatchRegistry.activeCount()==0&&node("batchResultsPanel",TitledPane.class).isVisible());
+        fx(()->{
+            var report=node("batchResultsArea",TextArea.class).getText();
+            assertEquals(1,attempted.get());assertEquals(1,purchaseDialogs.get());assertEquals(3,selected().size());
+            assertEquals(2,report.lines().filter(line->line.contains(I18nService.getInstance().tr("ozon.fbs.not_processed"))).count());return null;
+        });
+    }
+
+    @Test void shopConnectionChangeStopsBeforeNextOrderAndReportsEveryUnprocessedOrder() throws Exception {
+        var repository=new OzonPostingRepository();
+        repository.upsertPage(1,List.of(posting("stop-1","awaiting_packaging"),posting("stop-2","awaiting_packaging"),posting("stop-3","awaiting_packaging")));
+        var attempted=new AtomicInteger();
+        fx(()->{
+            controller.setPostingAcceptor((owner,number,selection)->{
+                attempted.incrementAndGet();
+                repository.upsertDetail(1,posting(number,"awaiting_deliver"));
+                try(var c=Database.getConnection();var s=c.createStatement()) {s.executeUpdate("UPDATE shops SET client_id='changed' WHERE id=1");}
+                return new OzonShipResult(number,"awaiting_deliver",false);
+            });
+            controller.setShop(shop,false);return null;
+        });
+        awaitFx(()->table("newOrdersTable").getItems().size()==3);
+        fx(()->{node("selectFilteredButton",Button.class).fire();return null;});
+        awaitFx(()->selected().size()==3&&stockSourceReady()&&!node("moveToPackingButton",Button.class).isDisabled());
+        com.vncode.app.testsupport.FxDialogDriver.choose(()->node("moveToPackingButton",Button.class).fire(),
+                dialog->dialog.getScene().getWindow() instanceof Stage stage&&stage.getOwner()==window,
+                dialog->dialog.getButtonTypes().stream().filter(type->type.getButtonData()==ButtonBar.ButtonData.OK_DONE).findFirst().orElseThrow());
+        awaitFx(()->attempted.get()==1&&ShopBatchRegistry.activeCount()==0&&node("batchResultsPanel",TitledPane.class).isVisible());
+        fx(()->{
+            String report=node("batchResultsArea",TextArea.class).getText();
+            assertEquals(3,report.lines().count());
+            assertEquals(2,report.lines().filter(line->line.contains(I18nService.getInstance().tr("ozon.fbs.not_processed"))).count());
+            assertEquals(2,selected().size(),"Orders not attempted remain selected");
+            return null;
+        });
+    }
+
     @Test void slowBackgroundReadKeepsFxPulsingAndOnlyTheNewestSearchReachesTheTable() throws Exception {
         CountDownLatch entered = new CountDownLatch(1), release = new CountDownLatch(1), pulses = new CountDownLatch(4);
         AtomicBoolean first = new AtomicBoolean(true);
@@ -253,6 +397,14 @@ class OzonBulkUiTest {
     private <T> T node(String key, Class<T> type) { return type.cast(loader.getNamespace().get(key)); }
     @SuppressWarnings("unchecked") private TableView<OzonPostingDto> table(String key) { return (TableView<OzonPostingDto>) loader.getNamespace().get(key); }
     @SuppressWarnings("unchecked") private Set<String> selected() { return (Set<String>) field("selectedPostingNumbers"); }
+    private boolean stockSourceReady() {
+        try { return ((com.vncode.app.ui.kiz.ShipmentKizPane)field("shipmentKizPane")).snapshot().anySelected(); }
+        catch (IllegalStateException loading) { return false; }
+    }
+    private boolean purchasedSourceReady() {
+        try { return ((com.vncode.app.ui.kiz.ShipmentKizPane)field("shipmentKizPane")).snapshot().purchased(); }
+        catch (IllegalStateException loading) { return false; }
+    }
     private Object field(String name) {
         try { var field = OzonDashboardController.class.getDeclaredField(name); field.setAccessible(true); return field.get(controller); }
         catch (ReflectiveOperationException error) { throw new AssertionError(error); }

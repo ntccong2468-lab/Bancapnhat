@@ -17,6 +17,10 @@ import org.apache.pdfbox.rendering.*;
 /** Exact posting/transport identifiers only. SKU, product barcode and page order are not identities. */
 final class OzonLabelPageIdentity implements AutoCloseable {
     private static final int DPI=203;
+    // For these identifiers, a match bounded by the same character class used by
+    // the legacy pattern must be an entire token. Looking it up avoids testing
+    // thousands of alternatives on every page of a large label PDF.
+    private static final Pattern TOKEN=Pattern.compile("[\\p{L}\\p{N}-]+");
     private static final Map<DecodeHintType,Object> HINTS=Map.of(DecodeHintType.TRY_HARDER,true,
             DecodeHintType.POSSIBLE_FORMATS,List.of(BarcodeFormat.CODE_128,BarcodeFormat.QR_CODE,BarcodeFormat.DATA_MATRIX));
     private final Map<String,Set<String>> owners=new LinkedHashMap<>();
@@ -32,9 +36,15 @@ final class OzonLabelPageIdentity implements AutoCloseable {
             add(number,number);var posting=postings.get(number);
             if(posting!=null){add(posting.lowerBarcode(),number);add(posting.upperBarcode(),number);}
         }
-        String alternatives=owners.keySet().stream().sorted(Comparator.comparingInt(String::length).reversed())
-                .map(Pattern::quote).collect(java.util.stream.Collectors.joining("|"));
-        identifiers=Pattern.compile("(?<![\\p{L}\\p{N}-])(?:"+alternatives+")(?![\\p{L}\\p{N}-])");
+        // An identifier containing other characters may overlap another identifier
+        // (e.g. ABC and ABC.); retain the longest-first, non-overlapping legacy
+        // matcher for the whole set in that case.
+        if(owners.keySet().stream().allMatch(value->TOKEN.matcher(value).matches())) identifiers=null;
+        else {
+            String alternatives=owners.keySet().stream().sorted(Comparator.comparingInt(String::length).reversed())
+                    .map(Pattern::quote).collect(java.util.stream.Collectors.joining("|"));
+            identifiers=Pattern.compile("(?<![\\p{L}\\p{N}-])(?:"+alternatives+")(?![\\p{L}\\p{N}-])");
+        }
     }
     private void add(String identifier,String number){
         String value=normalize(identifier);if(!value.isBlank())owners.computeIfAbsent(value,k->new LinkedHashSet<>()).add(number);
@@ -53,10 +63,20 @@ final class OzonLabelPageIdentity implements AutoCloseable {
     }
     private Set<String> decodedPostings(int page,Set<String> result)throws IOException{
         if(raster==null){raster=Loader.loadPDF(file);renderer=new PDFRenderer(raster);renderer.setSubsamplingAllowed(true);}
-        var box=raster.getPage(page-1).getCropBox();double scale=Math.max(1d,raster.getPage(page-1).getUserUnit())*DPI/72d;
-        double pixels=Math.ceil(box.getWidth()*scale)*Math.ceil(box.getHeight()*scale);
+        var sourcePage=raster.getPage(page-1);var box=sourcePage.getCropBox();
+        double unit=Math.max(1d,sourcePage.getUserUnit());
+        double width=box.getWidth()*unit/72d,height=box.getHeight()*unit/72d;
+        double area=width*height;
+        if(!Double.isFinite(area)||width<=0||height<=0||area<=0)return Set.of();
+        // A full A4 label at 203 DPI exceeds the allocation limit, although its
+        // transport barcode can often be decoded at a lower resolution. Keep
+        // the same bounded raster memory while attempting such pages instead of
+        // immediately forcing the entire batch to be downloaded one at a time.
+        double dpi=Math.min(DPI,Math.sqrt(1_950_000d/area));
+        if(!Double.isFinite(dpi)||dpi<90)return Set.of();
+        double pixels=Math.ceil(width*dpi)*Math.ceil(height*dpi);
         if(!Double.isFinite(pixels)||pixels<=0||pixels>2_000_000)return Set.of();
-        var image=renderer.renderImageWithDPI(page-1,DPI,ImageType.GRAY);
+        var image=renderer.renderImageWithDPI(page-1,(float)dpi,ImageType.GRAY);
         try{
             var bitmap=new BinaryBitmap(new HybridBinarizer(new BufferedImageLuminanceSource(image)));
             decode(bitmap,result);
@@ -68,8 +88,8 @@ final class OzonLabelPageIdentity implements AutoCloseable {
         try{for(var barcode:new GenericMultipleBarcodeReader(new MultiFormatReader()).decodeMultiple(bitmap,HINTS))result.addAll(matches(barcode.getText()));}
         catch(NotFoundException unreadable){/* The caller uses a single-posting task instead. */}
     }
-    private Set<String> matches(String text){
-        var result=new LinkedHashSet<String>();var matcher=identifiers.matcher(normalize(text));
+    Set<String> matches(String text){
+        var result=new LinkedHashSet<String>();var matcher=(identifiers==null?TOKEN:identifiers).matcher(normalize(text));
         while(matcher.find())result.addAll(owners.getOrDefault(matcher.group(),Set.of()));return result;
     }
     static String normalize(String text){

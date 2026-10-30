@@ -28,6 +28,7 @@ public final class CatalogErrorRepairService {
     public record FeedRejection(String feedId,String payload){
         @Override public String toString(){return "FeedRejection[redacted]";}
     }
+    private record RejectionDetail(String gtin,Long goodId,String message){}
     public record Progress(int completed,int total,String gtin,Status status,String detail){}
     private final ZnackCardRegistrationWorkflow.CatalogFactory catalogs;private final Snapshots snapshots;private final Dispatch dispatch;
     public CatalogErrorRepairService(){this(ZnackCardRegistrationWorkflow::productionCatalog,(shop,key)->key.marketplace()==Marketplace.WILDBERRIES?new com.vncode.app.integration.wb.WbProductSnapshotReader().readForSynchronization(shop,key):new com.vncode.app.integration.ozon.OzonProductSnapshotReader().readForSynchronization(shop,key),CatalogErrorRepairService::resume);}
@@ -35,13 +36,15 @@ public final class CatalogErrorRepairService {
     public List<ErrorCard> report(Shop shop,Set<ProductKey> selected,boolean all)throws Exception {
         var receipt=new RegistrationSources().require(shop);String source=RegisteredGtinProof.source(shop);var products=new ArrayList<ProductRow>();String cursor=null;
         do{var page=new ProductRepository().loadPage(new ProductQuery(shop.getId(),shop.getMarketplace(),"",List.of(),null,false,cursor,1000),receipt.run());products.addAll(page.rows());cursor=page.nextCursor();if(products.size()>100000)throw new IllegalStateException("SYNC_REPORT_LIMIT");}while(cursor!=null);
-        var index=new RegistrationCardIndex(shop);var rejected=new HashMap<ProductKey,Boolean>();var superseded=new HashMap<ProductKey,Boolean>();
+        var index=new RegistrationCardIndex(shop);var rejected=new HashMap<ProductKey,Boolean>();var superseded=new HashMap<ProductKey,Boolean>();var details=new HashMap<ProductKey,RejectionDetail>();
         if(shop.getMarketplace()==Marketplace.WILDBERRIES){
             for(var row:new ZnackCardRegistrationRepository().search(new SearchCriteria(shop.getId(),"",List.of(),"ALL",100000,0))){
                 var key=new ProductKey(shop.getId(),shop.getMarketplace(),Long.toString(row.nmId()),Long.toString(row.chrtId()));
                 var observed=index.view(row.status(),row.gtin(),row.barcodes(),row.vendorCode(),row.color(),row.size(),row.wbSize(),index.ownsWb(row.chrtId()));
                 rejected.put(key,RegistrationCardIndex.catalogRejected(row.status(),row.errorMessage(),observed));
                 superseded.put(key,observed.published()||RegistrationCardIndex.registrationInProgress(row.status(),row.feedId(),null));
+                if(index.ownsWb(row.chrtId())&&row.hasFeed()&&repairError(row.status(),row.errorMessage())&&row.hasGtin())
+                    details.put(key,new RejectionDetail(row.gtin(),row.goodId(),CatalogFeedback.display(row.errorMessage())));
             }
         }else{
             var states=new OzonCardRegistrationRepository().findMany(products.stream().map(ProductRow::key).toList());
@@ -49,6 +52,8 @@ public final class CatalogErrorRepairService {
                 var observed=index.viewOzon(status,row==null?"":row.gtin(),product,row!=null&&index.ownsOzon(row.owner(),row.scopeJson()));
                 rejected.put(product.key(),RegistrationCardIndex.catalogRejected(status,row==null?"":row.error(),observed));
                 superseded.put(product.key(),observed.published()||RegistrationCardIndex.registrationInProgress(status,row==null?"":row.feedId(),null));
+                if(row!=null&&index.ownsOzon(row.owner(),row.scopeJson())&&!safe(row.feedId()).isBlank()&&repairError(status,row.error())&&!safe(row.gtin()).isBlank())
+                    details.put(product.key(),new RejectionDetail(row.gtin(),row.goodId(),CatalogFeedback.display(row.error())));
             }
         }
         var out=new ArrayList<ErrorCard>();
@@ -59,7 +64,16 @@ public final class CatalogErrorRepairService {
                 matches=matches.stream().filter(p->!superseded.getOrDefault(p.key(),false)).toList();
                 if(matches.isEmpty())continue;
             }
-            if(all||matches.stream().anyMatch(p->selected.contains(p.key())))out.add(new ErrorCard(card.gtin(),card.article(),card.color(),card.size(),"CATALOG_CARD_ERRORS",matches));
+            // Keep the exact rejected feed detail only when it belongs to the same
+            // scoped product, GTIN and (if present) Catalog card identity. Conflicting
+            // or unavailable feedback remains a generic Catalog error, never a guess.
+            String observedId=card.details().single("@catalog_id");
+            var known=matches.stream().map(p->details.get(p.key())).filter(Objects::nonNull)
+                    .filter(d->RegisteredGtinProof.sameCode(d.gtin(),card.gtin()))
+                    .filter(d->d.goodId()==null||d.goodId()<=0||!observedId.isBlank()&&observedId.equals(Long.toString(d.goodId())))
+                    .map(RejectionDetail::message).filter(message->!message.equals("CATALOG_REJECTED")).distinct().toList();
+            String reason=known.size()==1?known.getFirst():"CATALOG_CARD_ERRORS";
+            if(all||matches.stream().anyMatch(p->selected.contains(p.key())))out.add(new ErrorCard(card.gtin(),card.article(),card.color(),card.size(),reason,matches));
         }
         var byKey=new HashMap<ProductKey,ProductRow>();products.forEach(p->byKey.put(p.key(),p));
         if(shop.getMarketplace()==Marketplace.WILDBERRIES){

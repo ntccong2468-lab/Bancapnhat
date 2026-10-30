@@ -26,6 +26,7 @@ public final class OzonCardRegistrationWorkflow {
     @FunctionalInterface public interface CatalogFactory { CatalogSession open(Shop shop)throws Exception; }
     @FunctionalInterface public interface SnapshotSource { ProductSnapshot read(Shop shop,ProductKey key)throws Exception; }
     @FunctionalInterface public interface MarketplaceCompletion { boolean present(Shop shop,ProductKey key,String sku,String gtin)throws Exception; }
+    @FunctionalInterface interface MarketplaceConflict { void require(Shop shop,ProductKey key,String gtin)throws Exception; }
     private static final ExecutorService WORKERS=new ThreadPoolExecutor(4,4,0,TimeUnit.MILLISECONDS,new ArrayBlockingQueue<>(64),task->{var t=new Thread(()->{try(var lane=com.vncode.app.shared.MarketplaceRequestBudget.lane(true)){task.run();}},"ozon-catalog-registration");t.setDaemon(true);return t;},new ThreadPoolExecutor.AbortPolicy());
     // One accepted work item per shop prevents a large shop from filling the shared queue.
     private static final Set<String> RUNNING=ConcurrentHashMap.newKeySet();
@@ -34,12 +35,20 @@ public final class OzonCardRegistrationWorkflow {
     private final OzonCardRegistrationRepository repository;private final CatalogFactory catalogs;
     private final SnapshotSource snapshots;private final Executor executor;private final MarketplaceCompletion completion;
     private final java.util.function.Supplier<RegistrationExistingCards.LookupContext> existingCards;
+    private final MarketplaceConflict marketplaceConflict;
     public OzonCardRegistrationWorkflow(){this(new OzonCardRegistrationRepository());}
     public OzonCardRegistrationWorkflow(OzonCardRegistrationRepository repository){
         this(repository,ZnackCardRegistrationWorkflow::productionCatalog,new OzonProductSnapshotReader()::read,WORKERS,OzonCardRegistrationWorkflow::candidatePresent);
     }
     public OzonCardRegistrationWorkflow(OzonCardRegistrationRepository repository,CatalogFactory catalogs,SnapshotSource snapshots,Executor executor,MarketplaceCompletion completion){this(repository,catalogs,snapshots,executor,completion,RegistrationExistingCards::currentOperation);}
-    public OzonCardRegistrationWorkflow(OzonCardRegistrationRepository repository,CatalogFactory catalogs,SnapshotSource snapshots,Executor executor,MarketplaceCompletion completion,java.util.function.Supplier<RegistrationExistingCards.LookupContext> existingCards){this.repository=Objects.requireNonNull(repository);this.catalogs=Objects.requireNonNull(catalogs);this.snapshots=Objects.requireNonNull(snapshots);this.executor=Objects.requireNonNull(executor);this.completion=Objects.requireNonNull(completion);this.existingCards=Objects.requireNonNull(existingCards);}
+    public OzonCardRegistrationWorkflow(OzonCardRegistrationRepository repository,CatalogFactory catalogs,SnapshotSource snapshots,Executor executor,MarketplaceCompletion completion,java.util.function.Supplier<RegistrationExistingCards.LookupContext> existingCards){this(repository,catalogs,snapshots,executor,completion,existingCards,OzonCardRegistrationWorkflow::requireMarketplaceConflict);}
+    OzonCardRegistrationWorkflow(OzonCardRegistrationRepository repository,CatalogFactory catalogs,SnapshotSource snapshots,Executor executor,MarketplaceCompletion completion,java.util.function.Supplier<RegistrationExistingCards.LookupContext> existingCards,MarketplaceConflict marketplaceConflict){this.repository=Objects.requireNonNull(repository);this.catalogs=Objects.requireNonNull(catalogs);this.snapshots=Objects.requireNonNull(snapshots);this.executor=Objects.requireNonNull(executor);this.completion=Objects.requireNonNull(completion);this.existingCards=Objects.requireNonNull(existingCards);this.marketplaceConflict=Objects.requireNonNull(marketplaceConflict);}
+    private static void requireMarketplaceConflict(Shop shop,ProductKey key,String gtin)throws Exception {
+        var adapter=new com.vncode.app.integration.ozon.OzonGtinAdapter(shop);
+        var target=new com.vncode.app.features.gtinsync.GtinSyncModels.ProductKey(shop.getId(),Marketplace.OZON,key.cardId(),key.variantId());
+        if(com.vncode.app.features.gtinsync.RegisteredGtinProof.contains(adapter.read(target).barcodes(),gtin)||!adapter.conflicts(target,gtin))
+            throw new IllegalStateException("OZON_GTIN_CONFLICT_NO_LONGER_CONFIRMED");
+    }
     RegistrationExistingCards.LookupContext lookupOperation(){return existingCards.get();}
     public record PreflightMetadata(String tnved,String categoryTnved,Gs1Status gs1,List<Category> categories){public PreflightMetadata{categories=List.copyOf(categories);}}
     public static final class Preparation {
@@ -266,6 +275,15 @@ public final class OzonCardRegistrationWorkflow {
         checkSession(shop,preparation.session.scope(),preparation.session);
         return register(shop,preparation.snapshot().key(),preparation,draft,confirmed,newCard,callback,false);
     }
+    /** Explicitly reviewed replacement after a current Ozon conflict, never an automatic retry. */
+    public boolean registerReviewedAfterConflict(Shop shop,Preparation preparation,Draft draft,boolean confirmed,String conflictingGtin,BiConsumer<Status,String> callback) {
+        if(!confirmed||preparation==null||draft==null)return false;
+        if(!com.vncode.app.features.gtinsync.RegisteredGtinValidator.isValid(conflictingGtin))throw new IllegalArgumentException("OZON_GTIN_CONFLICT_REVIEW_CHANGED");
+        require(shop,preparation.snapshot().key());
+        if(preparation.session==null||preparation.categoryId()!=draft.categoryId()||!preparation.owner.equals(ListingIdentity.fingerprint(shop)))throw new IllegalArgumentException("registration_review_changed");
+        checkSession(shop,preparation.session.scope(),preparation.session);
+        return register(shop,preparation.snapshot().key(),preparation,draft,true,true,callback,false,null,conflictingGtin);
+    }
     /** The durable batch advances only after the Catalog POST returned its persisted feed ID. */
     public boolean registerReviewedForBatch(Shop shop,Preparation preparation,Draft draft,BiConsumer<Status,String> callback) {
         return registerReviewedForBatch(shop,preparation,draft,callback,null);
@@ -281,6 +299,9 @@ public final class OzonCardRegistrationWorkflow {
         return register(selected,key,preparation,draft,confirmed,newCard,callback,submitOnly,null);
     }
     private boolean register(Shop selected,ProductKey key,Preparation preparation,Draft draft,boolean confirmed,boolean newCard,BiConsumer<Status,String> callback,boolean submitOnly,RegistrationExistingCards.LookupContext lookup) {
+        return register(selected,key,preparation,draft,confirmed,newCard,callback,submitOnly,lookup,"");
+    }
+    private boolean register(Shop selected,ProductKey key,Preparation preparation,Draft draft,boolean confirmed,boolean newCard,BiConsumer<Status,String> callback,boolean submitOnly,RegistrationExistingCards.LookupContext lookup,String conflictingGtin) {
         Shop shop=capture(selected);
         if(!confirmed||draft==null)return false;require(shop,key);LicenseRuntime.require(Permission.GTIN);
         return schedule(shop,()->{
@@ -319,6 +340,15 @@ public final class OzonCardRegistrationWorkflow {
                 repository.guard(shop,key,scope);if(!reviewed.autoSign())RegistrationSigningConsent.set(shop,key,previous.gtin(),false);poll(shop,key,session,reviewed.autoSign()&&RegistrationSigningConsent.allowed(shop,key,previous.gtin()),callback);return;
             }
             String active=snapshot.variants().stream().filter(ProductVariant::gtinVerified).map(ProductVariant::gtin).filter(g->g!=null&&!g.isBlank()).findFirst().orElse("");
+            boolean claimedConflict=false;
+            if(!conflictingGtin.isBlank()){
+                marketplaceConflict.require(shop,key,conflictingGtin);checkSession(shop,scope,session);
+                var observed=(lookup==null?lookupOperation():lookup).lookup(shop,RegistrationExistingCards.Variant.ozon(snapshot,reviewed),session)
+                        .orElseThrow(()->new IllegalStateException("CATALOG_EXISTING_CARD_NOT_CONFIRMED"));
+                if(!com.vncode.app.features.gtinsync.RegisteredGtinProof.sameCode(conflictingGtin,observed.gtin()))throw new IllegalStateException("CATALOG_IDENTITY_CHANGED");
+                if(!repository.claimVerifiedConflict(shop,key,sku,active,scope,observed))throw new IllegalStateException("OZON_GTIN_CONFLICT_REVIEW_CHANGED");
+                claimedConflict=true;
+            }
             if(!newCard){
                 var observed=(lookup==null?lookupOperation():lookup).lookup(shop,RegistrationExistingCards.Variant.ozon(snapshot,reviewed),session);
                 if(observed.isPresent()){
@@ -334,7 +364,7 @@ public final class OzonCardRegistrationWorkflow {
                     return;
                 }
             }
-            if(!repository.claim(shop,key,sku,active,scope,newCard,reviewed.tnved()))return;
+            if(!claimedConflict&&!repository.claim(shop,key,sku,active,scope,newCard,reviewed.tnved()))return;
             rememberReview(key,snapshot,submissionSchema,reviewed);
             notify(callback,Status.CHECKING,"");
             synchronized(CatalogAllocationLock.MONITOR){

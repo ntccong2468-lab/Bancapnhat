@@ -746,6 +746,13 @@ class FxmlSmokeTest {
                     controller.setLicenseStatus(com.vncode.app.features.license.LicenseModels.Status.PENDING);
                     assertEquals(i18n.tr("license.account.status.pending"), status.getText());
                     assertTrue(status.isVisible());
+                    controller.setLicenseStatus(com.vncode.app.features.license.LicenseModels.Status.OFFLINE, true);
+                    assertEquals(i18n.tr("license.account.summary.valid"), status.getText());
+                    controller.setLicenseStatus(com.vncode.app.features.license.LicenseModels.Status.CHECKING, true);
+                    assertEquals(i18n.tr("license.account.summary.valid"), status.getText());
+                    controller.setLicenseStatus(com.vncode.app.features.license.LicenseModels.Status.OFFLINE, false);
+                    assertEquals(i18n.tr("license.account.status.unverified"), status.getText());
+                    assertTrue(status.getStyleClass().contains("text-danger"));
                     var settings = (javafx.scene.control.MenuButton) loader.getNamespace().get("settingsMenuButton");
                     assertTrue(settings.getItems().stream().anyMatch(item ->
                             item.getText().equals(i18n.tr("license.account.title"))), "VNCode license entry");

@@ -20,6 +20,8 @@ class OzonAcceptanceKizTest {
     final Map<String,JsonObject> sent=new ConcurrentHashMap<>();
     final Set<String> shipped=ConcurrentHashMap.newKeySet(),accepted=ConcurrentHashMap.newKeySet();
     final List<String> trace=new CopyOnWriteArrayList<>();
+    volatile CountDownLatch concurrentChildReads;
+    final java.util.concurrent.atomic.AtomicBoolean childReadsOverlapped=new java.util.concurrent.atomic.AtomicBoolean();
     @BeforeEach void setup()throws Exception {
         System.setProperty("vncode.appdata.dir",directory.toString());Database.initDatabase();
         try(var c=Database.getConnection();var s=c.createStatement()) {
@@ -31,7 +33,17 @@ class OzonAcceptanceKizTest {
         }
         shop=new Shop(1,"Ozon",Marketplace.OZON,"fixture","fixture");server=new MockWebServer();
         server.setDispatcher(new Dispatcher(){@Override public MockResponse dispatch(RecordedRequest request){
-            try{return respond(request);}catch(Throwable failed){return new MockResponse().setResponseCode(500);}
+            try{
+                var gate=concurrentChildReads;
+                if(gate!=null&&request.getPath().equals("/v3/posting/fbs/get")) {
+                    var body=JsonParser.parseString(request.getBody().clone().readUtf8()).getAsJsonObject();
+                    if(body.get("posting_number").getAsString().startsWith("CHILD-")) {
+                        gate.countDown();
+                        if(gate.await(2,TimeUnit.SECONDS))childReadsOverlapped.set(true);
+                    }
+                }
+                return respond(request);
+            }catch(Throwable failed){return new MockResponse().setResponseCode(500);}
         }});server.start();
     }
     @AfterEach void close()throws Exception{server.shutdown();System.clearProperty("vncode.appdata.dir");}
@@ -161,8 +173,67 @@ class OzonAcceptanceKizTest {
         assertEquals(1,trace.stream().filter(p->p.equals("/v1/posting/fbs/split")).count());
         assertEquals(2,trace.stream().filter(p->p.equals("/v4/posting/fbs/ship")).count());
     }
+    @Test void markedSplitReadsIndependentChildrenTogetherBeforeAssigningAnyKiz()throws Exception {
+        multi=true;concurrentChildReads=new CountDownLatch(2);
+        var result=service().shipPerUnit(shop,"PARENT",true);
+        assertTrue(childReadsOverlapped.get(),"Both read-only child requests should be in flight together");
+        assertEquals(List.of("CHILD-A","CHILD-B"),result.resultingPostings());
+        assertEquals(Set.of("CHILD-A","CHILD-B"),sent.keySet());
+        assertEquals(Set.of("CHILD-A","CHILD-B"),shipped);
+        assertEquals("COMPLETE",new OzonUnitShipRepository().find(shop,"PARENT").state());
+    }
     @Test void foreignSplitChildStopsBeforeAnyKizOrShipMutation()throws Exception {
         multi=true;foreign=true;assertThrows(java.io.IOException.class,()->service().shipPerUnit(shop,"PARENT",true));assertTrue(sent.isEmpty());assertTrue(shipped.isEmpty());
+    }
+    @Test void acceptanceShortageProposalUsesRefreshedOzonRequirementsAndCancellationNeverBuys()throws Exception {
+        try(var c=Database.getConnection();var s=c.createStatement()){s.execute("DELETE FROM kiz_codes WHERE shop_id=1");}
+        var preflight=new OzonAcceptanceStockReplenishment(owner->new OzonApiClient(owner.getId(),new OzonCredentials(owner.getClientId(),owner.getApiKey()),server.url("/"),new OkHttpClient.Builder().readTimeout(1,TimeUnit.SECONDS).build(),new OzonApiRateLimiter(Duration.ZERO),new OzonRetryPolicy(1,Duration.ofMillis(1),Duration.ofMillis(1))));
+        var proposal=new java.util.concurrent.atomic.AtomicReference<com.vncode.app.features.kiz.KizPrintPurchaseSession.Proposal>();
+        assertThrows(CancellationException.class,()->preflight.run(shop,List.of("PARENT"),new com.vncode.app.features.kiz.KizSourceSelection(true,true),p->{proposal.set(p);return false;},s->{},()->false));
+        assertEquals(1,proposal.get().quantity());assertEquals(1,proposal.get().rows().getFirst().required());
+        assertEquals(List.of("/v3/posting/fbs/get"),trace);assertTrue(sent.isEmpty());assertTrue(shipped.isEmpty());
+        try(var c=Database.getConnection();var s=c.createStatement();var r=s.executeQuery("SELECT COUNT(*) FROM znack_purchase_pipelines")){assertTrue(r.next());assertEquals(0,r.getInt(1));}
+    }
+    @Test void acceptancePurchaseDoesNotReadOrBuyWhenSellerDisabledBoughtSource()throws Exception {
+        var preflight=new OzonAcceptanceStockReplenishment(owner->{fail("Must not connect when purchase source was not selected");return null;});
+        assertEquals("OZON_ACCEPT_KIZ_STOCK_REQUIRED",assertThrows(java.io.IOException.class,()->preflight.run(shop,List.of("PARENT"),com.vncode.app.features.kiz.KizSourceSelection.SELLER_ONLY,p->true,s->{},()->false)).getMessage());
+        assertTrue(trace.isEmpty());
+    }
+    @Test void alreadySplitPostingProposesOnlyVerifiedChildrenWithoutSplittingAgain()throws Exception {
+        multi=true;
+        try(var c=Database.getConnection();var s=c.createStatement()){s.execute("DELETE FROM kiz_codes WHERE shop_id=1");}
+        assertEquals("OZON_ACCEPT_KIZ_STOCK_REQUIRED",assertThrows(java.io.IOException.class,()->service().shipPerUnit(shop,"PARENT",true,new com.vncode.app.features.kiz.KizSourceSelection(true,true))).getMessage());
+        assertEquals(1,trace.stream().filter("/v1/posting/fbs/split"::equals).count());trace.clear();
+        var preflight=new OzonAcceptanceStockReplenishment(owner->new OzonApiClient(owner.getId(),new OzonCredentials(owner.getClientId(),owner.getApiKey()),server.url("/"),new OkHttpClient.Builder().readTimeout(1,TimeUnit.SECONDS).build(),new OzonApiRateLimiter(Duration.ZERO),new OzonRetryPolicy(1,Duration.ofMillis(1),Duration.ofMillis(1))));
+        var proposal=new java.util.concurrent.atomic.AtomicReference<com.vncode.app.features.kiz.KizPrintPurchaseSession.Proposal>();
+        assertThrows(CancellationException.class,()->preflight.run(shop,List.of("PARENT","CHILD-A"),new com.vncode.app.features.kiz.KizSourceSelection(true,true),p->{proposal.set(p);return false;},s->{},()->false));
+        assertEquals(2,proposal.get().quantity(),"A child already present alongside its parent must not be bought twice");assertEquals(2,trace.stream().filter("/v3/posting/fbs/get"::equals).count());
+        assertFalse(trace.contains("/v1/posting/fbs/split"));assertTrue(sent.isEmpty());assertTrue(shipped.isEmpty());
+        trace.clear();
+        preflight.run(shop,List.of("CHILD-A","PARENT"),new com.vncode.app.features.kiz.KizSourceSelection(false,true),p->{fail("A resumed split must retain its original source selection");return false;},s->{},()->false);
+        assertTrue(sent.isEmpty());assertTrue(shipped.isEmpty());
+        trace.clear();
+        preflight.run(shop,List.of("CHILD-A"),new com.vncode.app.features.kiz.KizSourceSelection(false,true),p->{fail("A child belonging to a pending parent cannot buy from another source");return false;},s->{},()->false);
+        assertTrue(trace.isEmpty());assertTrue(sent.isEmpty());assertTrue(shipped.isEmpty());
+    }
+    @Test void unmappedOrderDoesNotBlockProposalForAnotherMappedOrder()throws Exception {
+        try(var c=Database.getConnection();var s=c.createStatement()){s.execute("DELETE FROM kiz_codes WHERE shop_id=1");}
+        var preflight=new OzonAcceptanceStockReplenishment(owner->new OzonApiClient(owner.getId(),new OzonCredentials(owner.getClientId(),owner.getApiKey()),server.url("/"),new OkHttpClient.Builder().readTimeout(1,TimeUnit.SECONDS).build(),new OzonApiRateLimiter(Duration.ZERO),new OzonRetryPolicy(1,Duration.ofMillis(1),Duration.ofMillis(1))));
+        var proposal=new java.util.concurrent.atomic.AtomicReference<com.vncode.app.features.kiz.KizPrintPurchaseSession.Proposal>();
+        assertThrows(CancellationException.class,()->preflight.run(shop,List.of("UNMAPPED","PARENT"),new com.vncode.app.features.kiz.KizSourceSelection(true,true),p->{proposal.set(p);return false;},s->{},()->false));
+        assertEquals(1,proposal.get().quantity());assertEquals("04600000000001",proposal.get().rows().getFirst().gtin());
+        assertEquals(2,trace.stream().filter("/v3/posting/fbs/get"::equals).count());assertTrue(sent.isEmpty());assertTrue(shipped.isEmpty());
+    }
+    @Test void purchasedOnlyProposalDoesNotCountSellerCategoryStock()throws Exception {
+        try(var c=Database.getConnection();var s=c.createStatement()){s.execute("DELETE FROM kiz_codes WHERE shop_id=1");}
+        new OzonCatalogRepository().upsertPage(1,List.of(new OzonProductDto("9001","fixture","101","Fixture","",false,"",List.of())),"cursor");
+        com.vncode.app.testsupport.CategoryStockFixture.add(shop,"9001",directory,1);
+        var preflight=new OzonAcceptanceStockReplenishment(owner->new OzonApiClient(owner.getId(),new OzonCredentials(owner.getClientId(),owner.getApiKey()),server.url("/"),new OkHttpClient.Builder().readTimeout(1,TimeUnit.SECONDS).build(),new OzonApiRateLimiter(Duration.ZERO),new OzonRetryPolicy(1,Duration.ofMillis(1),Duration.ofMillis(1))));
+        var proposal=new java.util.concurrent.atomic.AtomicReference<com.vncode.app.features.kiz.KizPrintPurchaseSession.Proposal>();
+        assertThrows(CancellationException.class,()->preflight.run(shop,List.of("PARENT"),new com.vncode.app.features.kiz.KizSourceSelection(false,true),p->{proposal.set(p);return false;},s->{},()->false));
+        assertEquals(1,proposal.get().quantity(),"Seller stock must not reduce a purchased-only proposal");
+        preflight.run(shop,List.of("PARENT"),new com.vncode.app.features.kiz.KizSourceSelection(true,true),p->{fail("Seller category covers this order");return false;},s->{},()->false);
+        assertTrue(sent.isEmpty());assertTrue(shipped.isEmpty());
     }
     private OzonShipService service(){return new OzonShipService(new OzonPostingRepository(),new OzonProductGtinMappingRepository(),new OzonExemplarJobRepository(),(id,credentials)->new OzonApiClient(id,credentials,server.url("/"),new OkHttpClient.Builder().readTimeout(1,TimeUnit.SECONDS).build(),new OzonApiRateLimiter(Duration.ZERO),new OzonRetryPolicy(1,Duration.ofMillis(1),Duration.ofMillis(1))));}
     private MockResponse respond(RecordedRequest request) {
@@ -184,7 +255,8 @@ class OzonAcceptanceKizTest {
     }
     private String posting(String number) {
         String status=shipped.contains(number)?"awaiting_deliver":"awaiting_packaging";
-        return "{\"result\":{\"posting_number\":\""+number+"\",\"order_id\":\""+(foreign&&number.equals("CHILD-B")?"FOREIGN":"ORDER")+"\",\"delivery_method\":{\"warehouse_id\":\"WH\"},\"status\":\""+status+"\",\"products\":[{\"sku\":101,\"offer_id\":\"fixture\",\"name\":\"Fixture\",\"quantity\":"+(multi&&number.equals("PARENT")?2:1)+"}],"+(optional?"\"requirements\":{},\"optional\":{\"products_with_possible_mandatory_mark\":[101]},":"\"requirements\":{\"products_requiring_mandatory_mark\":[\"101\"]},")+"\"available_actions\":"+(accepted.contains(number)?"[\"ship\"]":"[]")+",\"ship_available\":"+accepted.contains(number)+"}}";
+        int product=number.equals("UNMAPPED")?202:101;
+        return "{\"result\":{\"posting_number\":\""+number+"\",\"order_id\":\""+(foreign&&number.equals("CHILD-B")?"FOREIGN":"ORDER")+"\",\"delivery_method\":{\"warehouse_id\":\"WH\"},\"status\":\""+status+"\",\"products\":[{\"sku\":"+product+",\"offer_id\":\"fixture\",\"name\":\"Fixture\",\"quantity\":"+(multi&&number.equals("PARENT")?2:1)+"}],"+(optional?"\"requirements\":{},\"optional\":{\"products_with_possible_mandatory_mark\":["+product+"]},":"\"requirements\":{\"products_requiring_mandatory_mark\":[\""+product+"\"]},")+"\"available_actions\":"+(accepted.contains(number)?"[\"ship\"]":"[]")+",\"ship_available\":"+accepted.contains(number)+"}}";
     }
     private static MockResponse json(String value){return new MockResponse().setHeader("Content-Type","application/json").setBody(value);}
 }

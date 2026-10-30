@@ -39,8 +39,11 @@ public final class SyncRuntime implements AutoCloseable {
                 return SyncCoordinator.Page.complete(count);
             }
             case ZNACK:{
+                // Persisted direct WB jobs also resume after a restart or a temporary 429.
+                // The queue preserves paused jobs, consent and ambiguous-write checkpoints.
+                boolean wbPending=shop.getMarketplace()==Marketplace.WILDBERRIES&&new WbGtinQueueAutoResume(shop).step(shop);
                 var settings=new ZnackRepository(new ZnackModels.ShopContext(shop.getId(),shop.getName())).getSettings();
-                if(settings.signerTestedAt()==null)return SyncCoordinator.Page.complete(0);
+                if(settings.signerTestedAt()==null)return wbPending?new SyncCoordinator.Page("",true,0,new SyncFailure("READBACK_PENDING",java.time.Duration.ofSeconds(15),false)):SyncCoordinator.Page.complete(0);
                 var registrations=new com.vncode.app.integration.znack.registration.ZnackRegistrationMonitor().poll(shop,30);
                 if(registrations.warning()!=null)return new SyncCoordinator.Page("",true,registrations.published(),registrations.warning());
                 if(registrations.published()>0)new ZnackCatalogSyncService().refresh(shop,true,p->{});
@@ -48,7 +51,7 @@ public final class SyncRuntime implements AutoCloseable {
                 // Confirmed GTIN children still advance while other cards await moderation.
                 if(registrations.pending()&&registrations.published()==0&&new SyncRunRepository().active(shop,"znack_marketplace").isEmpty())return new SyncCoordinator.Page("",true,0,new SyncFailure("READBACK_PENDING",java.time.Duration.ofSeconds(15),false));
                 if(znack==null)znack=new ZnackAutoSyncService();var page=znack.step(shop,checkpoint);
-                return registrations.pending()&&page.warning()==null?new SyncCoordinator.Page(page.checkpoint(),page.complete(),page.changed(),new SyncFailure("READBACK_PENDING",java.time.Duration.ofSeconds(15),false)):page;
+                return (wbPending||registrations.pending())&&page.warning()==null?new SyncCoordinator.Page(page.checkpoint(),page.complete(),page.changed(),new SyncFailure("READBACK_PENDING",java.time.Duration.ofSeconds(15),false)):page;
             }
             case GS1:{
                 var result=gs1.sync(shop);

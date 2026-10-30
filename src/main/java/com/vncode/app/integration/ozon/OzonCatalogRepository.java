@@ -10,6 +10,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 public final class OzonCatalogRepository {
+    static final class BarcodeSuperseded extends IllegalStateException {
+        BarcodeSuperseded(){super("OZON_CATALOG_BARCODE_SUPERSEDED");}
+    }
     private final OzonSyncStateRepository syncState;
 
     public java.util.Map<String,OzonProductDto> findBySkus(int shop,java.util.Collection<String> skus){try(var c=Database.getConnection()){return findBySkus(c,shop,skus);}catch(SQLException e){throw new IllegalStateException("Cannot load page products");}}
@@ -43,9 +46,30 @@ public final class OzonCatalogRepository {
         return upsertPage(shopId,products,nextLastId,false);
     }
     int upsertPage(int shopId,List<OzonProductDto> products,String nextLastId,boolean complete){
+        return upsertPage(shopId,products,nextLastId,complete,null,null,null);
+    }
+
+    /** New catalog pages fail closed if a newer barcode GET has already been issued. */
+    int upsertPage(int shopId,List<OzonProductDto> products,String nextLastId,boolean complete,Instant barcodeReadStarted,String expectedOwner,java.util.Map<String,Long> readTokens){
+        if((barcodeReadStarted==null)!=(expectedOwner==null)||(barcodeReadStarted==null)!=(readTokens==null))throw new IllegalArgumentException("OZON_OBSERVATION_IDENTITY_REQUIRED");
+        if(readTokens!=null&&(readTokens.size()!=products.size()||products.stream().map(OzonProductDto::productId).distinct().count()!=products.size()
+                ||products.stream().anyMatch(item->readTokens.get(item.productId())==null||readTokens.get(item.productId())<=0)))throw new IllegalArgumentException("OZON_OBSERVATION_TOKEN_REQUIRED");
         try (Connection connection = Database.getConnection()) {
             connection.setAutoCommit(false);
             try {
+                if(barcodeReadStarted!=null){
+                    String owner=com.vncode.app.integration.listing.ListingIdentity.fingerprint(connection,shopId,com.vncode.app.integration.marketplace.Marketplace.OZON);
+                    if(!expectedOwner.equals(owner))throw new SecurityException("SYNC_OWNER_CHANGED");
+                    // The per-product generation is issued transactionally before each GET,
+                    // so even equal wall-clock timestamps and concurrent processes are safe.
+                    try(var read=connection.prepareStatement("SELECT generation FROM gtin_sync_barcode_read_heads WHERE shop_id=? AND owner=? AND product_id=?")){
+                        for(var item:products){read.setInt(1,shopId);read.setString(2,owner);read.setString(3,item.productId());
+                            try(var rows=read.executeQuery()){
+                                if(!rows.next()||rows.getLong(1)!=readTokens.get(item.productId()))throw new BarcodeSuperseded();
+                            }
+                        }
+                    }
+                }
                 String now = Instant.now().toString();
                 try (PreparedStatement product = connection.prepareStatement("""
                                 INSERT INTO ozon_products(shop_id,product_id,offer_id,sku,name,primary_image_url,
@@ -94,6 +118,12 @@ public final class OzonCatalogRepository {
                         }
                     }
                     barcode.executeBatch();
+                }
+                if(barcodeReadStarted!=null){
+                    try(var observed=connection.prepareStatement("INSERT INTO gtin_sync_barcode_observations(shop_id,marketplace,product_id,variant_id,owner,observed_at) VALUES(?,'OZON',?,?,?,?) ON CONFLICT(shop_id,marketplace,product_id,variant_id) DO UPDATE SET owner=excluded.owner,observed_at=excluded.observed_at")){
+                        for(var item:products){observed.setInt(1,shopId);observed.setString(2,item.productId());observed.setString(3,item.offerId());observed.setString(4,expectedOwner);observed.setString(5,barcodeReadStarted.toString());observed.addBatch();}
+                        observed.executeBatch();
+                    }
                 }
                 syncState.advanceProducts(connection, shopId, nextLastId,complete);
                 connection.commit();

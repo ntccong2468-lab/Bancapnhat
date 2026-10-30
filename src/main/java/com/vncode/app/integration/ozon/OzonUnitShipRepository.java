@@ -6,6 +6,7 @@ import com.vncode.app.config.SqliteWriteTransaction;
 import com.vncode.app.integration.listing.ListingIdentity;
 import com.vncode.app.integration.marketplace.Marketplace;
 import com.vncode.app.models.Shop;
+import com.vncode.app.features.kiz.KizSourceSelection;
 import java.sql.*;
 import java.time.Instant;
 import java.util.*;
@@ -14,7 +15,7 @@ import java.util.*;
 final class OzonUnitShipRepository {
     private static final Gson JSON=new Gson();
     record Receipt(String owner,OzonPostingDto source,String request,String fingerprint,List<String> children,String state,
-            Map<String,OzonPostingDto> readbacks,int nextChild) { }
+            Map<String,OzonPostingDto> readbacks,int nextChild,KizSourceSelection sources) { }
 
     static void initialize(Connection connection)throws SQLException {
         try(var statement=connection.createStatement()){
@@ -25,7 +26,7 @@ final class OzonUnitShipRepository {
                         request_json TEXT NOT NULL,request_fingerprint TEXT NOT NULL,
                         children_json TEXT NOT NULL DEFAULT '[]',state TEXT NOT NULL,updated_at TEXT NOT NULL,
                         parent_in_children INTEGER NOT NULL DEFAULT 1,
-                        readback_json TEXT NOT NULL DEFAULT '{}',next_child INTEGER NOT NULL DEFAULT 0,
+                        readback_json TEXT NOT NULL DEFAULT '{}',next_child INTEGER NOT NULL DEFAULT 0,source_mask INTEGER,
                         PRIMARY KEY(shop_id,posting_number))
                     """);
         }
@@ -34,6 +35,9 @@ final class OzonUnitShipRepository {
         try(var statement=connection.createStatement()){
             if(!columns.contains("readback_json"))statement.execute("ALTER TABLE ozon_unit_ship_receipts ADD COLUMN readback_json TEXT NOT NULL DEFAULT '{}'");
             if(!columns.contains("next_child"))statement.execute("ALTER TABLE ozon_unit_ship_receipts ADD COLUMN next_child INTEGER NOT NULL DEFAULT 0");
+            // NULL means an older operation whose source was not recorded. Preserve
+            // its historical all-sources behavior; never invent a past selection.
+            if(!columns.contains("source_mask"))statement.execute("ALTER TABLE ozon_unit_ship_receipts ADD COLUMN source_mask INTEGER");
         }
     }
 
@@ -43,6 +47,51 @@ final class OzonUnitShipRepository {
         catch(SQLException error){throw new IllegalStateException("OZON_SPLIT_STORAGE",error);}
         try(var connection=Database.getConnection()){return find(connection,shop,posting);}
         catch(SQLException error){throw new IllegalStateException("OZON_SPLIT_STORAGE",error);}
+    }
+    /** A child of an unfinished split must not start a second acceptance intent. */
+    Receipt pendingParentOfChild(Shop shop,String child){
+        child=OzonApiClient.requireExternalId(child,"posting number");
+        try{SqliteWriteTransaction.run(connection->{initialize(connection);return null;});}
+        catch(SQLException error){throw new IllegalStateException("OZON_SPLIT_STORAGE",error);}
+        try(var connection=Database.getConnection();var statement=connection.prepareStatement("""
+                SELECT r.posting_number FROM ozon_unit_ship_receipts r
+                WHERE r.shop_id=? AND r.posting_number<>? AND r.state IN ('PENDING','AMBIGUOUS','ACCEPTED')
+                  AND EXISTS(SELECT 1 FROM json_each(r.children_json) child WHERE child.value=?) LIMIT 2
+                """)){
+            statement.setInt(1,shop.getId());statement.setString(2,child);statement.setString(3,child);
+            try(var rows=statement.executeQuery()){
+                if(!rows.next())return null;
+                String parent=rows.getString(1);
+                if(rows.next())throw new IllegalStateException("OZON_SPLIT_MULTIPLE_PARENTS");
+                // find checks the original transaction owner; a changed connection
+                // cannot cause this child to bypass an older incomplete operation.
+                return find(connection,shop,parent);
+            }
+        }catch(SQLException error){throw new IllegalStateException("OZON_SPLIT_STORAGE",error);}
+    }
+    /** Unknown split result: match a potential child conservatively by original order and warehouse. */
+    Receipt pendingParentForPosting(Shop shop,OzonPostingDto posting){
+        if(posting.orderId().isBlank()||posting.warehouseId().isBlank())return null;
+        try{SqliteWriteTransaction.run(connection->{initialize(connection);return null;});}
+        catch(SQLException error){throw new IllegalStateException("OZON_SPLIT_STORAGE",error);}
+        try(var connection=Database.getConnection();var statement=connection.prepareStatement("""
+                SELECT r.posting_number FROM ozon_unit_ship_receipts r
+                WHERE r.shop_id=? AND r.posting_number<>? AND r.state IN ('PENDING','AMBIGUOUS','ACCEPTED')
+                  AND json_extract(r.source_json,'$.orderId')=? AND json_extract(r.source_json,'$.warehouseId')=?
+                """)){
+            statement.setInt(1,shop.getId());statement.setString(2,posting.postingNumber());
+            statement.setString(3,posting.orderId());statement.setString(4,posting.warehouseId());
+            Receipt match=null;
+            try(var rows=statement.executeQuery()){
+                while(rows.next()){
+                    var candidate=find(connection,shop,rows.getString(1));
+                    if(OzonPackageBuilder.unitCount(candidate.source())<=1)continue;
+                    if(match!=null)throw new IllegalStateException("OZON_SPLIT_MULTIPLE_PARENTS");
+                    match=candidate;
+                }
+            }
+            return match;
+        }catch(SQLException error){throw new IllegalStateException("OZON_SPLIT_STORAGE",error);}
     }
     private Receipt find(Connection connection,Shop shop,String posting)throws SQLException {
         try(var statement=connection.prepareStatement("SELECT * FROM ozon_unit_ship_receipts WHERE shop_id=? AND posting_number=?")){
@@ -54,7 +103,7 @@ final class OzonUnitShipRepository {
                 var children=JSON.fromJson(result.getString("children_json"),String[].class);
                 return new Receipt(owner,JSON.fromJson(result.getString("source_json"),OzonPostingDto.class),
                         result.getString("request_json"),result.getString("request_fingerprint"),List.of(children),result.getString("state"),
-                        JSON.fromJson(result.getString("readback_json"),new com.google.gson.reflect.TypeToken<Map<String,OzonPostingDto>>(){}.getType()),result.getInt("next_child"));
+                        JSON.fromJson(result.getString("readback_json"),new com.google.gson.reflect.TypeToken<Map<String,OzonPostingDto>>(){}.getType()),result.getInt("next_child"),decodeSources(result.getObject("source_mask")));
             }
         }
     }
@@ -67,7 +116,7 @@ final class OzonUnitShipRepository {
             // An older candidate may already contain pending receipts. Migrate its
             // checkpoint columns on this worker before loading them, without a
             // write transaction on ordinary ticks or shops that never split.
-            if(!columns.contains("readback_json")||!columns.contains("next_child"))SqliteWriteTransaction.run(writer->{initialize(writer);return null;});
+            if(!columns.contains("readback_json")||!columns.contains("next_child")||!columns.contains("source_mask"))SqliteWriteTransaction.run(writer->{initialize(writer);return null;});
             // One oldest receipt per turn; progress touches updated_at, so a bad receipt
             // cannot monopolize subsequent turns when other receipts are waiting.
             try(var statement=connection.prepareStatement("SELECT posting_number FROM ozon_unit_ship_receipts WHERE shop_id=? AND owner=? AND state IN ('PENDING','AMBIGUOUS','ACCEPTED') ORDER BY updated_at,posting_number LIMIT 1")){
@@ -108,6 +157,9 @@ final class OzonUnitShipRepository {
     }
 
     boolean begin(Shop shop,OzonPostingDto source,String request,String fingerprint,int units){
+        return begin(shop,source,request,fingerprint,units,null);
+    }
+    boolean begin(Shop shop,OzonPostingDto source,String request,String fingerprint,int units,KizSourceSelection sources){
         try{return SqliteWriteTransaction.run(connection->{
             requireOwner(connection,shop);
             var previous=find(connection,shop,source.postingNumber());
@@ -119,16 +171,28 @@ final class OzonUnitShipRepository {
             if(units>1&&hasBoundData(connection,shop,source.postingNumber()))throw new IllegalStateException("OZON_SPLIT_HAS_BOUND_KIZ");
             try(var statement=connection.prepareStatement("""
                     INSERT INTO ozon_unit_ship_receipts(shop_id,posting_number,owner,source_json,request_json,
-                        request_fingerprint,children_json,state,updated_at) VALUES(?,?,?,?,?,?,'[]','PENDING',?)
+                        request_fingerprint,children_json,state,updated_at,source_mask) VALUES(?,?,?,?,?,?,'[]','PENDING',?,?)
                     ON CONFLICT(shop_id,posting_number) DO UPDATE SET owner=excluded.owner,
                         source_json=excluded.source_json,request_json=excluded.request_json,
-                        request_fingerprint=excluded.request_fingerprint,children_json='[]',state='PENDING',parent_in_children=1,readback_json='{}',next_child=0,updated_at=excluded.updated_at
+                        request_fingerprint=excluded.request_fingerprint,children_json='[]',state='PENDING',parent_in_children=1,readback_json='{}',next_child=0,updated_at=excluded.updated_at,source_mask=excluded.source_mask
                     """)){
-                Object[] values={shop.getId(),source.postingNumber(),ListingIdentity.fingerprint(shop),JSON.toJson(source),request,fingerprint,Instant.now().toString()};
+                Object[] values={shop.getId(),source.postingNumber(),ListingIdentity.fingerprint(shop),JSON.toJson(source),request,fingerprint,Instant.now().toString(),encodeSources(sources)};
                 for(int i=0;i<values.length;i++)statement.setObject(i+1,values[i]);statement.executeUpdate();
             }
             return true;
         });}catch(SQLException error){throw new IllegalStateException("OZON_SPLIT_STORAGE",error);}
+    }
+
+    private static Integer encodeSources(KizSourceSelection sources){
+        if(sources==null)return null;
+        if(!sources.anySelected())throw new IllegalArgumentException("KIZ_SOURCE_REQUIRED");
+        return (sources.sellerImported()?1:0)|(sources.purchased()?2:0);
+    }
+    private static KizSourceSelection decodeSources(Object raw){
+        if(raw==null)return null;
+        int mask=((Number)raw).intValue();
+        if(mask<1||mask>3)throw new IllegalStateException("OZON_SPLIT_SOURCE_INVALID");
+        return new KizSourceSelection((mask&1)!=0,(mask&2)!=0);
     }
 
     void update(Shop shop,String posting,String state,List<String> children){

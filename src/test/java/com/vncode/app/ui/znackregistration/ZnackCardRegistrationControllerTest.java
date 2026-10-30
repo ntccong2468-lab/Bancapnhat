@@ -401,6 +401,7 @@ class ZnackCardRegistrationControllerTest {
     }
     @Test void headerAndFooterMatchTheApprovedRegistrationLayout()throws Exception{
         fx(()->{
+            var notice=(Label)loader.getNamespace().get("wbPriceImpactLabel");assertTrue(notice.isVisible());assertEquals(I18nService.getInstance().tr("gtinsync.wb_price_consent_body"),notice.getText());
             var header=(javafx.scene.layout.HBox)loader.getNamespace().get("registrationHeader");
             assertEquals(java.util.List.of("configButton","signApprovedButton","updateWbButton","syncZnackButton"),header.getChildren().stream().filter(n->n instanceof Button).map(javafx.scene.Node::getId).toList());
             var footer=button("registerSelectedButton").getParent();assertSame(footer,loader.getNamespace().get("allFilteredCheckBox") instanceof javafx.scene.Node n?n.getParent():null);

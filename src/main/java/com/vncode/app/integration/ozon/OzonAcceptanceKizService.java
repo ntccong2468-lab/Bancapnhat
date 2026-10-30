@@ -7,6 +7,7 @@ import com.vncode.app.features.license.LicenseModels.Permission;
 import com.vncode.app.features.license.LicenseRuntime;
 import com.vncode.app.integration.listing.ListingIdentity;
 import com.vncode.app.models.Shop;
+import com.vncode.app.features.kiz.KizSourceSelection;
 import java.io.IOException;
 import java.util.*;
 
@@ -23,6 +24,9 @@ final class OzonAcceptanceKizService {
         return posting.items().stream().anyMatch(item->optional.contains(item.productId())&&!exempt.contains(item.sku()));
     }
     void ensure(Shop shop,OzonPostingDto posting,OzonApiClient api)throws IOException {
+        ensure(shop,posting,api,null);
+    }
+    void ensure(Shop shop,OzonPostingDto posting,OzonApiClient api,KizSourceSelection sources)throws IOException {
         if(!requiredBeforeAccept(shop,posting))return;
         ListingIdentity.require(shop);LicenseRuntime.require(Permission.PACKING);
         new OzonPostingRepository().upsertDetail(shop.getId(),posting);
@@ -34,11 +38,14 @@ final class OzonAcceptanceKizService {
                 || action.isBlank()&&prior.mutationAttemptedAt()!=null&&!prior.mutationAttemptedAt().isBlank())) {
             verify(shop,posting,api,prior);return;
         }
-        var categorySkus=new HashSet<>(OzonCategoryStock.categorySkus(shop.getId(),posting.items().stream().map(OzonPostingItemDto::sku).toList()));
+        var categorySkus=new HashSet<String>();
+        if(sources==null||sources.sellerImported())categorySkus.addAll(OzonCategoryStock.categorySkus(shop.getId(),posting.items().stream().map(OzonPostingItemDto::sku).toList()));
+        // Already reserved category bindings must remain valid even if the seller
+        // selects another source on a later retry; they are never reallocated.
         categorySkus.addAll(OzonCategoryStock.reservedCategorySkus(shop.getId(),posting,prior));
         var plan=OzonRequirementGuard.plan(posting,new OzonProductGtinMappingRepository().findResolvedBySku(shop.getId()),
                 new OzonProductKizPolicyRepository().findExemptSkus(shop.getId()),categorySkus);
-        var local=jobs.stageLocalForPrint(shop.getId(),plan,()->{ListingIdentity.require(shop);LicenseRuntime.require(Permission.PACKING);});
+        var local=jobs.stageLocalForPrint(shop.getId(),plan,sources,()->{ListingIdentity.require(shop);LicenseRuntime.require(Permission.PACKING);});
         var job=local.job();
         if(!local.ready())throw new IOException("OZON_ACCEPT_KIZ_STOCK_REQUIRED");
         var remote=api.createOrGetExemplars(OzonExemplarService.createRequest(posting));

@@ -36,7 +36,11 @@ final class OzonBatchLabelDownloader implements OzonPrintBundleService.OfficialL
     @Override public File download(Shop shop,String number,File target)throws IOException {
         var group=membership.get(number);if(group==null)throw new IOException("OZON_LABEL_BATCH_SELECTION_CHANGED");
         if(!isolated.contains(group)&&!loaded.contains(group))load(shop,group);
-        if(isolated.contains(group))return service.downloadIsolatedPdf(shop,number,target);
+        if(isolated.contains(group)) {
+            OzonPrintTiming.isolatedLabel();long started=OzonPrintTiming.tick();
+            try { return service.downloadIsolatedPdf(shop,number,target); }
+            finally { OzonPrintTiming.add(OzonPrintTiming.Stage.LABEL_NETWORK,started); }
+        }
         var selected=pages.get(number);if(selected==null||selected.isEmpty())throw new IOException("OZON_LABEL_BATCH_IDENTITY_UNVERIFIED");
         try(var output=new PdfDocument(new PdfWriter(target))) { documents.get(number).copyPagesTo(selected,output); }
         return target;
@@ -54,7 +58,9 @@ final class OzonBatchLabelDownloader implements OzonPrintBundleService.OfficialL
         Path file=Files.createTempFile("vncode-ozon-label-batch-",".pdf");temporaryFiles.add(file);
         var job=new OzonLabelRepository().find(shop.getId(),group.getFirst());
         boolean legacy=group.size()==1&&job!=null&&job.taskId()!=null&&!job.taskId().isBlank()&&!job.taskId().startsWith("v3:");
-        if(legacy)service.downloadOfficialPdf(shop,group.getFirst(),file.toFile());else service.downloadOfficialBatchPdf(shop,group,file.toFile());
+        OzonPrintTiming.labelGroup();long downloadStarted=OzonPrintTiming.tick();
+        try { if(legacy)service.downloadOfficialPdf(shop,group.getFirst(),file.toFile());else service.downloadOfficialBatchPdf(shop,group,file.toFile()); }
+        finally { OzonPrintTiming.add(OzonPrintTiming.Stage.LABEL_NETWORK,downloadStarted); }
         var pdf=new PdfDocument(new PdfReader(file.toFile()));
         boolean retained=false;
         try {
@@ -63,16 +69,18 @@ final class OzonBatchLabelDownloader implements OzonPrintBundleService.OfficialL
                 var receipt=new OzonLabelRepository().find(shop.getId(),group.getFirst());
                 var members=new OzonLabelRepository().taskPostings(shop.getId(),receipt.taskId());
                 var postings=new OzonPostingRepository().findMany(shop.getId(),members);
+                var selectedNumbers=new HashSet<>(group);
                 var detected=new HashMap<String,List<Integer>>();boolean verified=true;
+                long identityStarted=OzonPrintTiming.tick();
                 try(var identities=new OzonLabelPageIdentity(file.toFile(),pdf,members,postings)){
                     for(int page=1;page<=pdf.getNumberOfPages();page++){
                         if(Thread.currentThread().isInterrupted())throw new IOException("OZON_LABEL_BATCH_INTERRUPTED");
                         var matches=identities.postingNumbers(page);
                         if(matches.size()!=1){verified=false;break;}
                         String number=matches.iterator().next();
-                        if(group.contains(number))detected.computeIfAbsent(number,k->new ArrayList<>()).add(page);
+                        if(selectedNumbers.contains(number))detected.computeIfAbsent(number,k->new ArrayList<>()).add(page);
                     }
-                }
+                } finally { OzonPrintTiming.add(OzonPrintTiming.Stage.PAGE_IDENTITY,identityStarted); }
                 if(!verified||group.stream().anyMatch(number->!detected.containsKey(number))){
                     isolated.add(group);return;
                 }

@@ -19,7 +19,7 @@ class OzonDashboardControllerTest {
                     OzonDashboardController.shipmentText(dated));
         }
     }
-    @Test void uncertainShipIsShownAsPendingRatherThanFailed(){org.junit.jupiter.api.Assertions.assertTrue(OzonDashboardController.reconciliationRequired(new com.vncode.app.integration.ozon.OzonApiException("reconcile_required",0,false,true,null)));org.junit.jupiter.api.Assertions.assertFalse(OzonDashboardController.reconciliationRequired(new IllegalArgumentException("invalid")));}
+    @Test void uncertainShipIsShownAsPendingRatherThanFailed(){org.junit.jupiter.api.Assertions.assertTrue(OzonDashboardController.reconciliationRequired(new com.vncode.app.integration.ozon.OzonApiException("reconcile_required",0,false,true,null)));org.junit.jupiter.api.Assertions.assertTrue(OzonDashboardController.reconciliationRequired(new java.io.IOException("OZON_ACCEPT_KIZ_PENDING")));org.junit.jupiter.api.Assertions.assertFalse(OzonDashboardController.reconciliationRequired(new java.io.IOException("OZON_ACCEPT_KIZ_REJECTED")));org.junit.jupiter.api.Assertions.assertFalse(OzonDashboardController.reconciliationRequired(new IllegalArgumentException("invalid")));}
     @Test
     void itemTextShowsEveryProductInAMultiProductPosting() {
         OzonPostingDto posting = posting(List.of(

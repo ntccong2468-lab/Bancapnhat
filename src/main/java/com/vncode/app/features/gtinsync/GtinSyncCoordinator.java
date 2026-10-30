@@ -27,14 +27,15 @@ public final class GtinSyncCoordinator {
         this.repository=repository;this.adapters=adapters;this.clock=clock;this.maxPolls=maxPolls;this.interval=interval;this.sourceRefresh=Objects.requireNonNull(sourceRefresh);
         this.previews=new GtinPreviewService(repository,adapters,clock);
     }
-    public UUID confirm(List<Preview> selection) throws Exception {
+    public UUID confirm(List<Preview> selection) throws Exception {return confirm(selection,false);}
+    public UUID confirm(List<Preview> selection,boolean wbPriceConsent) throws Exception {
         if(selection.isEmpty())throw new IllegalArgumentException("empty_selection");
         LicenseRuntime.require(Permission.GTIN);
         sourceRefresh.refresh(cohort(selection));
         if(selection.stream().allMatch(p->p.operation()==Operation.ADD)&&adapters.apply(selection.getFirst().before().key()) instanceof GtinBatchAdapter)validateBatch(selection);
         else for(var p:selection) validate(p);
         LicenseRuntime.require(Permission.GTIN);
-        return repository.createJob(selection);
+        return repository.createJob(selection,wbPriceConsent);
     }
     private void validate(Preview p) throws Exception {
         var current=previews.create(p.before().key(),p.operation(),p.oldGtin(),p.newGtin());
@@ -103,7 +104,7 @@ public final class GtinSyncCoordinator {
     }
     private boolean refreshQueued(List<JobItem> queued,Consumer<JobItem> progress){
         try{LicenseRuntime.require(Permission.GTIN);for(int offset=0;offset<queued.size();offset+=GtinBatchAdapter.MAX_PLAN_ROWS){if(Thread.currentThread().isInterrupted())throw new java.io.InterruptedIOException("GTIN_SOURCE_REFRESH_INTERRUPTED");var part=queued.subList(offset,Math.min(offset+GtinBatchAdapter.MAX_PLAN_ROWS,queued.size()));sourceRefresh.refresh(cohort(part.stream().map(JobItem::preview).toList()));}return true;}
-        catch(Exception unavailable){for(var item:queued){repository.issue(item.id(),com.vncode.app.features.sync.SyncFailure.of(unavailable,0).code());repository.pause(item.jobId(),true);publish(progress,item.id());}return false;}
+        catch(Exception unavailable){var failure=com.vncode.app.features.sync.SyncFailure.of(unavailable,0);for(var item:queued){repository.issue(item.id(),failure.code());if(!retryablePreflight(failure))repository.pause(item.jobId(),true);publish(progress,item.id());}if(unavailable instanceof InterruptedException)Thread.currentThread().interrupt();return false;}
     }
     /** A completed selected-card remote observation is mandatory before an unsent mutation. */
     private static void refreshCatalog(GtinSyncRepository repository,Map<ProductKey,String> cohort)throws Exception{
@@ -136,24 +137,54 @@ public final class GtinSyncCoordinator {
         if(queued.isEmpty())return;
         if(retryDepth==0&&!refreshQueued(queued,progress))return;
         try{LicenseRuntime.require(Permission.GTIN);adapter.prepareBatch(queued.stream().map(i->i.preview().before().key()).toList());}
-        catch(Exception denied){for(var item:queued){repository.issue(item.id(),com.vncode.app.features.sync.SyncFailure.of(denied,0).code());repository.pause(item.jobId(),true);publish(progress,item.id());}return;}
+        catch(Exception denied){var failure=com.vncode.app.features.sync.SyncFailure.of(denied,0);for(var item:queued){repository.issue(item.id(),failure.code());if(!retryablePreflight(failure))repository.pause(item.jobId(),true);publish(progress,item.id());}if(denied instanceof InterruptedException)Thread.currentThread().interrupt();return;}
         var claimed=repository.claimBatch(queued);if(claimed.isEmpty())return;
         var owners=new HashMap<String,List<JobItem>>();for(var item:claimed)owners.computeIfAbsent(RegisteredGtinProof.canonicalCode(item.preview().newGtin()),k->new ArrayList<>()).add(item);
-        var duplicated=new HashSet<UUID>();for(var group:owners.values())if(group.stream().map(i->i.preview().before().key()).distinct().count()>1){var changes=group.stream().map(i->new GtinSyncRepository.Change(i,Status.FAILED,null,"GTIN_ON_ANOTHER_PRODUCT")).toList();for(var item:repository.applyBatch(changes)){duplicated.add(item.id());publishItem(progress,item);}}
+        var duplicated=new HashSet<UUID>();for(var group:owners.values())if(group.stream().map(i->i.preview().before().key()).distinct().count()>1){var changes=group.stream().map(i->new GtinSyncRepository.Change(i,Status.FAILED,null,"GTIN_SELECTED_MULTIPLE_PRODUCTS")).toList();for(var item:repository.applyBatch(changes)){duplicated.add(item.id());publishItem(progress,item);}}
         claimed=claimed.stream().filter(i->!duplicated.contains(i.id())).toList();
         var valid=new ArrayList<JobItem>();validateClaimed(claimed,valid,progress);
         if(valid.isEmpty())return;
         var lookup=new HashMap<ProductKey,JobItem>();valid.forEach(i->lookup.put(i.preview().before().key(),i));var partitions=new ArrayList<List<Preview>>();
         partition(adapter,valid,partitions,progress);
         var sent=new ArrayList<JobItem>();
-        for(var part:partitions){var members=part.stream().map(p->lookup.get(p.before().key())).toList();
-            if(Thread.currentThread().isInterrupted()){repository.releaseUnsentBatch(members,"ZNACK_SYNC_CANCELLED",true);break;}
-            try{adapter.beforeNextBatch();}catch(InterruptedException interrupted){Thread.currentThread().interrupt();repository.releaseUnsentBatch(members,"ZNACK_SYNC_CANCELLED",true);break;}
+        for(var original:partitions){var candidates=original.stream().map(p->lookup.get(p.before().key())).toList();
+            if(Thread.currentThread().isInterrupted()){repository.releaseUnsentBatch(candidates,"ZNACK_SYNC_CANCELLED",true);break;}
+            // The WB price task is a separate, durable mutation. It must complete and
+            // read back before the GTIN request is checkpointed or sent. Process each
+            // selected card independently so one pending price does not block others.
+            record PriceGroup(UUID job,String product) {}
+            var products=new LinkedHashMap<PriceGroup,List<JobItem>>();for(var item:candidates)products.computeIfAbsent(new PriceGroup(item.jobId(),item.preview().before().key().productId()),ignored->new ArrayList<>()).add(item);
+            var ready=new ArrayList<JobItem>();
+            for(var group:products.values()) {
+                if(Thread.currentThread().isInterrupted()){repository.releaseUnsentBatch(group,"ZNACK_SYNC_CANCELLED",true);continue;}
+                try {
+                    var preparation=adapter.beforeSubmit(List.copyOf(group),()->repository.requireValidatingBatch(group),()->repository.requireWbPriceConsent(group),c->repository.requirePriceDispatch(c,group));
+                    if(preparation.state()==GtinBatchAdapter.PreparationState.READY)ready.addAll(group);
+                    else if(preparation.state()==GtinBatchAdapter.PreparationState.FAILED){
+                        String code=preparation.code().isBlank()?"WB_PRICE_REJECTED":preparation.code();
+                        for(var changed:repository.applyBatch(group.stream().map(item->new GtinSyncRepository.Change(item,Status.FAILED,null,code)).toList()))publishItem(progress,changed);
+                    }else{
+                        repository.releaseUnsentBatch(group,preparation.code().isBlank()?"WB_PRICE_READBACK_PENDING":preparation.code(),false);
+                        for(var item:group)publish(progress,item.id());
+                    }
+                }catch(LicenseDeniedException|SecurityException denied){repository.releaseUnsentBatch(group,com.vncode.app.features.sync.SyncFailure.of(denied,0).code(),true);for(var item:group)publish(progress,item.id());}
+                catch(Exception unavailable){if(unavailable instanceof IllegalStateException && "WB_PRICE_CONSENT_REQUIRED".equals(unavailable.getMessage())){repository.releaseUnsentBatch(group,"WB_PRICE_CONSENT_REQUIRED",true);for(var item:group)publish(progress,item.id());continue;}
+                    var failure=com.vncode.app.features.sync.SyncFailure.of(unavailable,0);
+                    boolean needsAction=failure.actionRequired()||failure.code().startsWith("WB_PRICE_")&&!failure.code().endsWith("_PENDING")&&!failure.code().endsWith("_RATE_LIMIT");
+                    if(needsAction){for(var changed:repository.applyBatch(group.stream().map(item->new GtinSyncRepository.Change(item,Status.FAILED,null,failure.code())).toList()))publishItem(progress,changed);}
+                    else {repository.releaseUnsentBatch(group,failure.code(),false);for(var item:group)publish(progress,item.id());}
+                    if(unavailable instanceof InterruptedException)Thread.currentThread().interrupt();}
+            }
+            if(ready.isEmpty())continue;
+            var members=List.copyOf(ready);var part=members.stream().map(JobItem::preview).toList();
+            try{adapter.beforeNextBatch();}catch(com.vncode.app.shared.RateLimitDeferral.Deferred deferred){repository.releaseUnsentBatch(members,"API_COOLDOWN",false);for(var item:members)publish(progress,item.id());continue;}
+            catch(InterruptedException interrupted){Thread.currentThread().interrupt();repository.releaseUnsentBatch(members,"ZNACK_SYNC_CANCELLED",true);break;}
             if(!repository.sendingBatch(members)){repository.releaseUnsentBatch(members,"GTIN_BATCH_PAUSED",false);continue;}
             for(var item:members)publishItem(progress,new JobItem(item.id(),item.jobId(),item.preview(),Status.SENDING,item.remoteTaskId()));
+            var dispatchStarted=new java.util.concurrent.atomic.AtomicBoolean(false);
             try {
                 LicenseRuntime.require(Permission.GTIN);
-                var submissions=adapter.submitBatch(part,()->repository.requireSendingBatch(members));
+                var submissions=adapter.submitBatch(part,()->{repository.requireSendingBatch(members);dispatchStarted.set(true);});
                 if(!submissions.keySet().equals(part.stream().map(p->p.before().key()).collect(java.util.stream.Collectors.toSet())))throw new java.io.IOException("GTIN_BATCH_RESPONSE_MISMATCH");
                 var changes=members.stream().map(item->new GtinSyncRepository.Change(new JobItem(item.id(),item.jobId(),item.preview(),Status.SENDING,item.remoteTaskId()),Status.AWAITING_VERIFICATION,submissions.get(item.preview().before().key()).remoteTaskId(),null)).toList();
                 for(var item:repository.applyBatch(changes)){publishItem(progress,item);sent.add(item);}
@@ -170,6 +201,10 @@ public final class GtinSyncCoordinator {
                 repository.releaseUnsentBatch(members,rejected.code(),false);
                 if(retryDepth<3)runBatches(members.stream().map(i->repository.item(i.id())).toList(),adapter,progress,retryDepth+1);
                 else for(var item:members)publish(progress,item.id());
+            }catch(com.vncode.app.shared.RateLimitDeferral.Deferred deferred){
+                if(!dispatchStarted.get())repository.releaseUnsentBatch(members,"API_COOLDOWN",false);
+                else for(var changed:repository.applyBatch(members.stream().map(item->new GtinSyncRepository.Change(new JobItem(item.id(),item.jobId(),item.preview(),Status.SENDING,item.remoteTaskId(),item.dispatchedAt()),Status.RECONCILE_REQUIRED,null,"API_COOLDOWN")).toList()))publishItem(progress,changed);
+                for(var item:members)publish(progress,item.id());
             }catch(Exception ambiguous){
                 var changes=members.stream().map(item->new GtinSyncRepository.Change(new JobItem(item.id(),item.jobId(),item.preview(),Status.SENDING,item.remoteTaskId()),Status.RECONCILE_REQUIRED,null,com.vncode.app.features.sync.SyncFailure.of(ambiguous,0).code())).toList();
                 for(var item:repository.applyBatch(changes)){sent.add(item);publishItem(progress,item);}
@@ -184,9 +219,14 @@ public final class GtinSyncCoordinator {
         try{LicenseRuntime.require(Permission.GTIN);validateBatch(items.stream().map(JobItem::preview).toList());valid.addAll(items);}
         catch(LicenseDeniedException|SecurityException denied){repository.releaseUnsentBatch(items,com.vncode.app.features.sync.SyncFailure.of(denied,0).code(),true);for(var item:items)publish(progress,item.id());}
         catch(Exception invalid){
+            var failure=com.vncode.app.features.sync.SyncFailure.of(invalid,0);
+            if(retryablePreflight(failure)){repository.releaseUnsentBatch(items,failure.code(),false);for(var item:items)publish(progress,item.id());if(invalid instanceof InterruptedException)Thread.currentThread().interrupt();return;}
             if(items.size()>1){int middle=items.size()/2;validateClaimed(items.subList(0,middle),valid,progress);validateClaimed(items.subList(middle,items.size()),valid,progress);}
             else {var item=items.getFirst();repository.issue(item.id(),com.vncode.app.features.sync.SyncFailure.of(invalid,0).code());repository.transition(item.id(),Status.VALIDATING,Status.FAILED,null);publish(progress,item.id());}
         }
+    }
+    private static boolean retryablePreflight(com.vncode.app.features.sync.SyncFailure failure){
+        String code=failure.code();return !failure.actionRequired()&&(code.equals("API_COOLDOWN")||code.endsWith("_RATE_LIMIT")||code.startsWith("NETWORK_")||code.equals("SYNC_STORAGE_BUSY"));
     }
     private void partition(GtinBatchAdapter adapter,List<JobItem> items,List<List<Preview>> result,Consumer<JobItem> progress){
         try{result.addAll(adapter.partition(items.stream().map(JobItem::preview).toList()));}
@@ -219,6 +259,7 @@ public final class GtinSyncCoordinator {
         catch(RuntimeException ignored){/* Display callbacks never decide mutation outcomes; persisted history is authoritative. */}
     }
     public void pause(UUID jobId){repository.pause(jobId,true);}
+    public void grantWbPriceConsent(UUID jobId){LicenseRuntime.require(Permission.GTIN);repository.grantWbPriceConsent(jobId);}
     public void resume(UUID jobId){
         var items=jobItems(jobId);
         if(items.stream().anyMatch(item->item.status()==Status.QUEUED || item.status()==Status.VALIDATING))
@@ -226,11 +267,7 @@ public final class GtinSyncCoordinator {
         repository.pause(jobId,false);
     }
     public void cancelQueued(UUID jobId) {
-        repository.pause(jobId,true);
-        // A concurrent transition to SENDING wins over cancellation; already-sent work is untouched.
-        var shopRows=jobItems(jobId);
-        for(var item:shopRows)if(item.status()==Status.QUEUED || item.status()==Status.VALIDATING)
-            repository.transition(item.id(),item.status(),Status.CANCELLED,null);
+        repository.cancelKnownUnsent(jobId);
     }
     private List<JobItem> jobItems(UUID jobId){return repository.jobItems(jobId);}
     public void reconcile(UUID itemId) {

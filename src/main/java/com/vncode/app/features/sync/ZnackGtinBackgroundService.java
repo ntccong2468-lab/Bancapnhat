@@ -38,6 +38,7 @@ public final class ZnackGtinBackgroundService {
         Job execute(Shop shop,String job)throws Exception;
         default Job execute(Shop shop,String job,Consumer<com.vncode.app.features.gtinsync.GtinSyncModels.JobItem> progress)throws Exception{return execute(shop,job);}
         default Job confirm(Shop shop,Job job){return job;}
+        default Job confirm(Shop shop,Job job,boolean wbPriceConsent){return confirm(shop,job);}
         default int batchSize(){return 1;}
         default boolean ownerChecks(){return false;}
         default void prepareBatchRun(Shop shop,List<SyncRunRepository.Item> rows)throws Exception{}
@@ -64,6 +65,7 @@ public final class ZnackGtinBackgroundService {
             public List<Selection> select(Shop s,String r,List<SyncRunRepository.Item> rows)throws Exception{return bulk==null?review.select(s,r,rows):review.select(s,r,rows,bulk::read);}
             public Job preview(Shop s,List<Selection> rows)throws Exception{return (bulk==null?catalog:bulk.catalog).preview(s,rows,new Options(Set.of(Field.GTIN),Map.of()));}
             public Job confirm(Shop s,Job job){return (bulk==null?catalog:bulk.catalog).confirm(s,job.id());}
+            public Job confirm(Shop s,Job job,boolean wbPriceConsent){return (bulk==null?catalog:bulk.catalog).confirm(s,job.id(),wbPriceConsent);}
             public Job execute(Shop s,String id)throws Exception{return (bulk==null?catalog:bulk.catalog).run(s,id,true);}
             public Job execute(Shop s,String id,Consumer<com.vncode.app.features.gtinsync.GtinSyncModels.JobItem> progress)throws Exception{return (bulk==null?catalog:bulk.catalog).run(s,id,true,progress);}
             public void link(Shop s,String r,Job j){reports.linkReviewed(s,r,j);}
@@ -93,13 +95,16 @@ public final class ZnackGtinBackgroundService {
         return run(shop,selected,progress,phase->{});
     }
     public Result run(Shop shop,Set<ProductKey> selected,Consumer<Progress> progress,Consumer<String> phase)throws Exception {
-        try(var database=com.vncode.app.config.Database.openBatchSession();var checks=operations.ownerChecks()?com.vncode.app.integration.listing.ListingIdentity.batchChecks(shop):null){return runActive(shop,selected,progress,phase);}
+        return run(shop,selected,progress,phase,false);
+    }
+    public Result run(Shop shop,Set<ProductKey> selected,Consumer<Progress> progress,Consumer<String> phase,boolean wbPriceConsent)throws Exception {
+        try(var database=com.vncode.app.config.Database.openBatchSession();var checks=operations.ownerChecks()?com.vncode.app.integration.listing.ListingIdentity.batchChecks(shop):null){return runActive(shop,selected,progress,phase,wbPriceConsent);}
     }
     static boolean unknownSource(String evidence){
         try{var data=com.google.gson.JsonParser.parseString(evidence).getAsJsonObject();return data.has("checkResult")&&"UNKNOWN".equals(data.get("checkResult").getAsString());}
         catch(RuntimeException invalid){return true;}
     }
-    private Result runActive(Shop shop,Set<ProductKey> selected,Consumer<Progress> progress,Consumer<String> phase)throws Exception {
+    private Result runActive(Shop shop,Set<ProductKey> selected,Consumer<Progress> progress,Consumer<String> phase,boolean wbPriceConsent)throws Exception {
         for(var key:selected)if(key.shopId()!=shop.getId()||key.marketplace()!=shop.getMarketplace())throw new SecurityException("SYNC_REVIEW_OWNER_CHANGED");
         phase.accept("PREPARING");
         String run;
@@ -144,7 +149,7 @@ public final class ZnackGtinBackgroundService {
                 updates.accept(new Progress(++done,total,ok,pending,blocked,submitted.size()));continue;
             }
             if(plan.readyCount()>0){
-                plan=operations.confirm(shop,plan);if(plan.confirmed())operations.link(shop,run,plan);
+                plan=operations.confirm(shop,plan,wbPriceConsent);if(plan.confirmed())operations.link(shop,run,plan);
                 final int baseDone=done,baseOk=ok,basePending=pending,baseBlocked=blocked;
                 var observed=new HashMap<com.vncode.app.features.gtinsync.GtinSyncModels.ProductKey,com.vncode.app.features.gtinsync.GtinSyncModels.Status>();var counts=new int[4];
                 plan=operations.execute(shop,plan.id(),item->{

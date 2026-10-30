@@ -6,6 +6,7 @@ import com.vncode.app.features.license.LicenseModels.Permission;
 import com.vncode.app.features.license.LicenseRuntime;
 import com.vncode.app.integration.marketplace.MarketplaceGuard;
 import com.vncode.app.models.Shop;
+import com.vncode.app.features.kiz.KizSourceSelection;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -52,6 +53,9 @@ public final class OzonShipService {
     }
 
     public OzonShipResult ship(Shop shop, String postingNumber, boolean confirmed) throws IOException {
+        return ship(shop,postingNumber,confirmed,null);
+    }
+    public OzonShipResult ship(Shop shop,String postingNumber,boolean confirmed,KizSourceSelection sources)throws IOException {
         MarketplaceGuard.requireOzon(shop);
         if (!confirmed) {
             throw new IllegalArgumentException("Explicit confirmation is required before shipping an Ozon posting.");
@@ -73,7 +77,7 @@ public final class OzonShipService {
             throw new OzonApiException("reconcile_required", 0, false, true, null);
         }
         if(OzonAcceptanceKizService.requiredBeforeAccept(shop,posting)) {
-            new OzonAcceptanceKizService(jobs).ensure(shop,posting,api);
+            new OzonAcceptanceKizService(jobs).ensure(shop,posting,api,sources);
             posting=refresh(api,shop.getId(),posting.postingNumber());
         }
         if (!posting.canShip()) {
@@ -115,7 +119,10 @@ public final class OzonShipService {
 
     /** Receive/accept selection: native Ozon packages contain exactly one physical unit. */
     public OzonShipResult shipPerUnit(Shop shop,String postingNumber,boolean confirmed)throws IOException {
-        return new OzonUnitShipService(postings,jobs,apiClients).ship(shop,postingNumber,confirmed);
+        return shipPerUnit(shop,postingNumber,confirmed,null);
+    }
+    public OzonShipResult shipPerUnit(Shop shop,String postingNumber,boolean confirmed,KizSourceSelection sources)throws IOException {
+        return new OzonUnitShipService(postings,jobs,apiClients).ship(shop,postingNumber,confirmed,sources);
     }
 
     /** Persisted native IDs for a pending report, never guessed from the source number. */

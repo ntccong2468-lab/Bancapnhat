@@ -13,14 +13,18 @@ import javafx.stage.Window;
 import javafx.util.Duration;
 import java.util.*;
 import java.util.function.Function;
+import java.util.function.Consumer;
 
 /** Bounded, owner-scoped report. No HTTP payload, credentials or KIZ data reach this view. */
 final class RegistrationSyncReportDialog {
     static void show(Window window,Shop shop,String initial) {
+        show(window,shop,initial,null);
+    }
+    static void show(Window window,Shop shop,String initial,Consumer<OzonGtinConflictReview.Confirmed> createNewCard) {
         var owner=new Shop(shop.getId(),shop.getName(),shop.getMarketplace(),shop.getClientId(),shop.getApiKey());
         var dialog=new Dialog<Void>();if(window!=null)dialog.initOwner(window);AlertService.applyTheme(dialog);
         dialog.setTitle(tr("znack.registration.report")+" · "+shop.getName());
-        var report=new Report(owner,initial);dialog.getDialogPane().setContent(report);dialog.getDialogPane().setPrefSize(1080,640);
+        var report=new Report(owner,initial,createNewCard==null?null:key->{dialog.close();createNewCard.accept(key);});dialog.getDialogPane().setContent(report);dialog.getDialogPane().setPrefSize(1080,640);
         dialog.getDialogPane().getButtonTypes().add(ButtonType.CLOSE);dialog.setOnHidden(e->report.dispose());dialog.show();
     }
     static final class Report extends VBox {
@@ -30,13 +34,17 @@ final class RegistrationSyncReportDialog {
         private final TableView<SyncRunRepository.Item> table=new TableView<>();
         private final Label summary=new Label(),events=new Label();
         private final Button previous=new Button("←"),next=new Button("→"),refresh=new Button(tr("znack.registration.refresh"));
+        private final Button conflictNewCard=new Button(tr("znack.registration.conflict_new_card"));
+        private final Consumer<OzonGtinConflictReview.Confirmed> createNewCard;
+        private OzonGtinConflictReview conflictReview;
         private final TextField search=new TextField();private final ComboBox<String> state=new ComboBox<>();private final Button export=new Button(tr("jobs.export"));
         private final PauseTransition filterDebounce=new PauseTransition(Duration.millis(250));
         private final PauseTransition timer=new PauseTransition(Duration.seconds(4));
         private String selected;private int offset;private boolean busy,closed,pendingReload,exporting,applyingFilters;private long matched;
         private Task<?> running,exportTask;
-        Report(Shop owner,String initial){
-            this.owner=owner;selected=initial;setId("registrationSyncReport");setSpacing(8);summary.setWrapText(true);events.setWrapText(true);
+        Report(Shop owner,String initial){this(owner,initial,null);}
+        Report(Shop owner,String initial,Consumer<OzonGtinConflictReview.Confirmed> createNewCard){
+            this.owner=owner;this.createNewCard=createNewCard;selected=initial;setId("registrationSyncReport");setSpacing(8);summary.setWrapText(true);events.setWrapText(true);
             runs.setPrefWidth(650);runs.setCellFactory(list->runCell());runs.setButtonCell(runCell());
             search.setId("registrationSyncReportSearch");search.setPromptText(tr("znack.registration.report_search"));search.setPrefWidth(450);state.setId("registrationSyncReportState");state.getItems().setAll("ALL");state.setValue("ALL");state.setConverter(new javafx.util.StringConverter<>(){public String toString(String value){return "ALL".equals(value)?tr("znack.registration.filter.all"):label("jobs.status."+value,value);}public String fromString(String text){throw new UnsupportedOperationException();}});export.setId("registrationSyncReportExport");
             table.setId("registrationSyncReportItems");table.setColumnResizePolicy(TableView.UNCONSTRAINED_RESIZE_POLICY);
@@ -46,11 +54,29 @@ final class RegistrationSyncReportDialog {
             column(tr("fbo.column.color"),SyncRunRepository.Item::color);column(tr("fbo.column.size"),SyncRunRepository.Item::size);column("GTIN",SyncRunRepository.Item::gtin);column("Feed ID",row->identifier(row,"feedId"));column(tr("znack.registration.report_card_id"),row->identifier(row,"goodId"));
             column(tr("znack.registration.report_barcode"),row->RegistrationReportData.field(row,"barcodes"));column(tr("znack.registration.report_catalog_state"),RegistrationReportData::catalogState);column(tr("znack.registration.report_catalog_checked"),row->RegistrationReportData.field(row,"catalogCheckedAt"));column(tr("znack.registration.report_check_result"),row->result(row,"checkResult"));column(tr("znack.registration.report_sync_result"),row->result(row,"syncResult"));column(tr("znack.registration.report_updated"),SyncRunRepository.Item::updatedAt);column(tr("znack.registration.report_next_action"),RegistrationSyncReportDialog::nextAction);
             column(tr("znack.registration.status"),row->itemState(runs.getValue(),row));column(tr("jobs.step"),row->label("znack.registration.report_step."+row.step(),row.step()));
-            getChildren().setAll(new FlowPane(8,8,runs,refresh),new FlowPane(8,8,search,state,export),summary,table,events,new HBox(8,previous,next));VBox.setVgrow(table,Priority.ALWAYS);
+            conflictNewCard.setId("registrationConflictNewCard");conflictNewCard.setVisible(createNewCard!=null);conflictNewCard.setManaged(createNewCard!=null);
+            getChildren().setAll(new FlowPane(8,8,runs,refresh),new FlowPane(8,8,search,state,export,conflictNewCard),summary,table,events,new HBox(8,previous,next));VBox.setVgrow(table,Priority.ALWAYS);
             runs.setOnAction(e->{if(busy)return;var run=runs.getValue();selected=run==null?"":run.id();offset=0;load();});
             previous.setOnAction(e->{offset=Math.max(0,offset-300);load();});next.setOnAction(e->{offset+=300;load();});refresh.setOnAction(e->load());
             filterDebounce.setOnFinished(e->{offset=0;load();});search.textProperty().addListener((o,a,b)->filterDebounce.playFromStart());state.valueProperty().addListener((o,before,current)->{if(!applyingFilters){offset=0;load();}});export.setOnAction(e->export());
+            table.getSelectionModel().selectedItemProperty().addListener((o,a,b)->buttons());conflictNewCard.setOnAction(e->reviewConflict());
             timer.setOnFinished(e->load());load();
+        }
+        void setConflictReview(OzonGtinConflictReview review){conflictReview=Objects.requireNonNull(review);}
+        private void reviewConflict(){
+            var run=runs.getValue();var item=table.getSelectionModel().getSelectedItem();
+            if(busy||closed||createNewCard==null||!OzonGtinConflictReview.candidate(owner,run,item))return;
+            timer.stop();busy=true;buttons();events.setText(tr("znack.registration.conflict_checking"));
+            var task=new Task<OzonGtinConflictReview.Confirmed>(){protected OzonGtinConflictReview.Confirmed call()throws Exception{return (conflictReview==null?new OzonGtinConflictReview(owner):conflictReview).verify(owner,run,item);}};running=task;
+            task.setOnSucceeded(e->{if(closed)return;busy=false;buttons();
+                if(!Objects.equals(run,runs.getValue())||!Objects.equals(item,table.getSelectionModel().getSelectedItem())){events.setText(tr("znack.registration.conflict_selected"));timer.playFromStart();return;}
+                createNewCard.accept(task.getValue());
+            });
+            Consumer<Throwable> failed=error->{if(closed)return;busy=false;buttons();String code=SyncFailure.of(error,0).code();
+                String message="OZON_GTIN_CONFLICT_NO_LONGER_CONFIRMED".equals(code)?"znack.registration.conflict_changed":
+                        "OZON_GTIN_CONFLICT_REVIEW_CHANGED".equals(code)?"znack.registration.conflict_selected":"znack.registration.conflict_check_failed";
+                events.setText(tr(message)+" · "+code);timer.playFromStart();};
+            task.setOnFailed(e->failed.accept(task.getException()));task.setOnCancelled(e->failed.accept(new java.io.InterruptedIOException("GTIN_SYNC_CANCELLED")));AppTaskExecutor.execute(task,failed);
         }
         private record Page(List<SyncRunRepository.Run> runs,SyncRunRepository.Run run,List<SyncRunRepository.Item> items,Map<String,Long> counts,List<SyncRunRepository.Event> events,long matched,Set<String> states,String scopeKey,List<SyncRunRepository.Item> failures){}
         private void load(){
@@ -76,7 +102,7 @@ final class RegistrationSyncReportDialog {
             java.util.function.Consumer<Throwable> failed=error->{if(closed)return;pendingReload=false;if(error instanceof SecurityException){table.getItems().clear();selected="";matched=0;runs.getItems().clear();}busy=false;summary.setText(RegistrationDiagnostics.readWarning(SyncFailure.of(error,0).code(),!table.getItems().isEmpty()));buttons();};
             task.setOnFailed(e->failed.accept(task.getException()));AppTaskExecutor.execute(task,failed);
         }
-        private void buttons(){refresh.setDisable(busy);runs.setDisable(busy);previous.setDisable(busy||offset==0);next.setDisable(busy||offset+table.getItems().size()>=matched);export.setDisable(exporting||busy||selected==null||selected.isBlank());}
+        private void buttons(){refresh.setDisable(busy);runs.setDisable(busy);previous.setDisable(busy||offset==0);next.setDisable(busy||offset+table.getItems().size()>=matched);export.setDisable(exporting||busy||selected==null||selected.isBlank());conflictNewCard.setDisable(busy||createNewCard==null||!OzonGtinConflictReview.candidate(owner,runs.getValue(),table.getSelectionModel().getSelectedItem()));}
         private RegistrationReportData.Filter filter(){return new RegistrationReportData.Filter(search.getText(),state.getValue());}
         private void export(){
             var run=runs.getValue();if(run==null||exporting)return;var chooser=new javafx.stage.FileChooser();chooser.setTitle(tr("jobs.export"));chooser.getExtensionFilters().add(new javafx.stage.FileChooser.ExtensionFilter("CSV","*.csv"));chooser.setInitialFileName("VNCode-"+run.id()+".csv");var file=chooser.showSaveDialog(getScene()==null?null:getScene().getWindow());if(file==null)return;var filter=filter();exporting=true;buttons();var task=new Task<Void>(){protected Void call()throws Exception{RegistrationReportData.exportCsv(owner,run,filter,file.toPath());return null;}};exportTask=task;

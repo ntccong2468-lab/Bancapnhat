@@ -44,6 +44,15 @@ class KizStockReplenisherTest {
         assertFalse(stock.ensure(shop,Map.of(KizWarehouseTest.GTIN,5)).waiting());assertEquals(0,buyer.bought);
         new KizWarehouseRepository().autoPurchase(shop,true);assertTrue(stock.ensure(shop,Map.of(KizWarehouseTest.GTIN,2)).missing().isEmpty());assertEquals(0,buyer.bought);
     }
+    @Test void acceptancePurchaseStopsIfShopCredentialsChangeDuringApproval()throws Exception {
+        var session=new KizPrintPurchaseSession(shop,p->{
+            try(var c=Database.getConnection();var s=c.createStatement()){s.execute("UPDATE shops SET api_key='different' WHERE id=1");}
+            catch(Exception failure){throw new RuntimeException(failure);}
+            return true;
+        },s->{},()->false);
+        assertThrows(SecurityException.class,()->session.run(()->stock.ensurePurchased(shop,Map.of(KizWarehouseTest.GTIN,5),missing->{})));
+        assertEquals(0,buyer.bought);assertEquals(0,buyer.resumes);
+    }
     @Test void shortageKeysReachRealCoordinatorValidationForWbAndOzonWithoutDuplicatePurchases()throws Exception {
         try(var c=Database.getConnection();var s=c.createStatement()){
             s.execute("INSERT INTO shops(id,name,marketplace,client_id,api_key) VALUES(2,'Ozon','OZON','client','ozon-fixture')");

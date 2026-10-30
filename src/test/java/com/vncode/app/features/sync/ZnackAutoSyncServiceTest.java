@@ -108,6 +108,29 @@ class ZnackAutoSyncServiceTest {
     }
     @Test void wbSecondClickKeepsTheVerifiedResultAndSkipsTheCompletedWrite()throws Exception{reusesVerified(Marketplace.WILDBERRIES);}
     @Test void ozonSecondClickKeepsTheVerifiedResultAndSkipsTheCompletedWrite()throws Exception{reusesVerified(Marketplace.OZON);}
+    @Test void ozonFreshBarcodeObservationOverridesAnOlderVerifiedResultWithoutDeletingHistory()throws Exception{
+        pipeline(Marketplace.OZON);
+        try(var c=Database.getConnection();var p=c.prepareStatement("UPDATE ozon_products SET synced_at=? WHERE shop_id=2")){p.setString(1,Instant.now().minusSeconds(60).toString());p.executeUpdate();}
+        var identity=new GtinSyncModels.ProductKey(shop.getId(),Marketplace.OZON,"101","offer-a");
+        var repo=new GtinSyncRepository();assertTrue(repo.verifiedMappings(shop).get(identity).stillApplied(List.of("legacy")));
+        MarketplaceBarcodeCache.observe(shop,identity,List.of("legacy"));
+        var saved=repo.verifiedMappings(shop);assertEquals(1,saved.size());assertFalse(saved.get(identity).stillApplied(List.of("legacy")));
+        String run=service.review(shop);assertEquals("AWAITING_CONFIRMATION",new SyncRunRepository().items(run,0,10).getFirst().state());assertEquals(1,writes);
+    }
+    @Test void ozonUnchangedBarcodeBatchStillRecordsTheActualNewRead()throws Exception{
+        pipeline(Marketplace.OZON);
+        try(var c=Database.getConnection();var p=c.prepareStatement("UPDATE ozon_products SET synced_at=? WHERE shop_id=2")){p.setString(1,Instant.now().minusSeconds(60).toString());p.executeUpdate();}
+        var identity=new GtinSyncModels.ProductKey(shop.getId(),Marketplace.OZON,"101","offer-a");
+        try(var c=Database.getConnection();var p=c.prepareStatement("INSERT INTO ozon_product_barcodes(shop_id,product_id,barcode) VALUES(2,'101','legacy')")){p.executeUpdate();}
+        var repo=new GtinSyncRepository();assertTrue(repo.verifiedMappings(shop).get(identity).stillApplied(List.of("legacy")));
+        MarketplaceBarcodeCache.observeBatch(shop,Map.of(identity,List.of("legacy")));
+        assertFalse(repo.verifiedMappings(shop).get(identity).stillApplied(List.of("legacy")));
+    }
+    @Test void equalObservationAndVerificationTimesDoNotProveAnAbsentBarcode(){
+        var instant=Instant.parse("2026-10-30T12:00:00Z");
+        var saved=new GtinSyncRepository.VerifiedMapping("04645588781154",instant,instant);
+        assertFalse(saved.stillApplied(List.of("other")));assertTrue(saved.stillApplied(List.of("04645588781154")));
+    }
     private void reusesVerified(Marketplace market)throws Exception {
         pipeline(market);
         try(var c=Database.getConnection();var p=c.prepareStatement("UPDATE "+(market==Marketplace.OZON?"ozon_products":"wb_product_cards")+" SET synced_at=? WHERE shop_id=?")) {

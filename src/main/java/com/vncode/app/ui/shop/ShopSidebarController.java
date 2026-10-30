@@ -135,20 +135,36 @@ public class ShopSidebarController {
     private Marketplace marketplace = Marketplace.WILDBERRIES;
     private com.vncode.app.features.license.LicenseModels.Status licenseStatus =
             com.vncode.app.features.license.LicenseModels.Status.UNREGISTERED;
+    private boolean licenseAccessValid;
 
     public void setLicenseStatus(com.vncode.app.features.license.LicenseModels.Status status) {
+        setLicenseStatus(status, false);
+    }
+
+    public void setLicenseStatus(com.vncode.app.features.license.LicenseModels.Status status, boolean accessValid) {
         licenseStatus = status == null ? com.vncode.app.features.license.LicenseModels.Status.UNREGISTERED : status;
+        licenseAccessValid = accessValid;
         renderLicenseStatus();
     }
 
     private void renderLicenseStatus() {
         if (editionStatusLabel == null) return;
-        editionStatusLabel.setText(com.vncode.app.ui.license.LicensePane.statusText(licenseStatus));
+        var i18n = I18nService.getInstance();
+        // A valid cached lease permits work while the online renewal is pending.
+        // Keep the offline expiry and transport error in the detailed license screen.
+        if (licenseStatus == com.vncode.app.features.license.LicenseModels.Status.OFFLINE) {
+            editionStatusLabel.setText(licenseAccessValid ? i18n.tr("license.account.summary.valid")
+                    : i18n.tr("license.account.status.unverified"));
+        } else if (licenseStatus == com.vncode.app.features.license.LicenseModels.Status.CHECKING && licenseAccessValid) {
+            editionStatusLabel.setText(i18n.tr("license.account.summary.valid"));
+        } else {
+            editionStatusLabel.setText(com.vncode.app.ui.license.LicensePane.statusText(licenseStatus));
+        }
         editionStatusLabel.setWrapText(true);
         editionStatusLabel.getStyleClass().removeAll("text-danger", "text-secondary");
         switch (licenseStatus) {
             case EXPIRED, DENIED, UNVERIFIED -> editionStatusLabel.getStyleClass().add("text-danger");
-            default -> editionStatusLabel.getStyleClass().add("text-secondary");
+            default -> editionStatusLabel.getStyleClass().add(licenseStatus == com.vncode.app.features.license.LicenseModels.Status.OFFLINE && !licenseAccessValid ? "text-danger" : "text-secondary");
         }
         editionStatusLabel.setStyle("");
     }

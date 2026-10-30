@@ -143,6 +143,7 @@ public final class ZnackCardRegistrationController {
     @FXML private Button configButton;
     @FXML private Button signApprovedButton;
     @FXML private Button updateWbButton;
+    @FXML private Label wbPriceImpactLabel;
     @FXML private Button syncZnackButton;
     @FXML private Button loadMoreButton;
     @FXML private Button clearSelectionButton;
@@ -244,6 +245,7 @@ public final class ZnackCardRegistrationController {
         configButton.setText(i18n.tr("znack.registration.documents"));
         signApprovedButton.setText(i18n.tr("znack.registration.sign_approved"));
         updateWbButton.setText(i18n.tr("znack.registration.update_wb"));
+        wbPriceImpactLabel.setText(i18n.tr("gtinsync.wb_price_consent_body"));
         syncZnackButton.setText(i18n.tr("znack.registration.sync_znack"));
         reportButton.setText(i18n.tr("znack.registration.report"));detailColumn.setText(i18n.tr("jobs.reason"));
         loadMoreButton.setText(i18n.tr("znack.registration.load_more"));autoSignCheckBox.setText(i18n.tr("znack.registration.auto_sign"));

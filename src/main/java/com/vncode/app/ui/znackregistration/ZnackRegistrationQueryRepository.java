@@ -181,6 +181,7 @@ public final class ZnackRegistrationQueryRepository {
                 while(rows.next()){
                     var row=map(rows);var state=view(row);total++;
                     if(state.published())published++;
+                    else if(state.status().equals("source.not_signed"))ready++;
                     else if(Set.of("source.moderation","source.draft").contains(state.status()))waiting++;
                     else if(RegistrationCardIndex.catalogRejected(row.status(),row.errorMessage(),state))errors++;
                     else if(RegistrationCardIndex.catalogCardInProgress(row.status(),row.goodId(),row.errorMessage(),state)) {

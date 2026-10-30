@@ -91,6 +91,18 @@ class RegistrationCardIndexTest {
             assertEquals("status.ready_to_sign",cards.view(Status.READY_TO_SIGN,base.gtin(),List.of(),"A","Blue","M",true).status(),"An old source receipt never replaces an actionable newer native checkpoint");
         }
     }
+    @Test void unsignedCatalogStatusIsNotARejectionOrPermissionToReplay(){
+        var base=card(GtinWriteTestFixture.GTIN,false);
+        var data=com.vncode.app.integration.znack.registration.CatalogProductDataParser.parse(com.google.gson.JsonParser.parseString("{\"good_id\":91,\"good_status\":\"draft\",\"good_signed\":false,\"good_detailed_status\":[\"notsigned\"]}").getAsJsonObject());
+        var card=new RegisteredGtin(base.gtin(),base.article(),base.color(),base.size(),true,false,base.source(),base.syncedAt(),data);
+        var view=index(card).view(Status.NOT_CREATED,"",List.of(base.gtin()),"A","Blue","M",true);
+        assertEquals("source.not_signed",view.status());assertTrue(view.blocked());assertFalse(view.published());assertFalse(view.canReviewDraft());
+        assertTrue(RegistrationCardIndex.catalogCardInProgress(Status.NOT_CREATED,null,"",view));
+        assertFalse(RegistrationCardIndex.catalogRejected(Status.NOT_CREATED,"",view));
+        var signedFalseOnly=com.vncode.app.integration.znack.registration.CatalogProductDataParser.parse(com.google.gson.JsonParser.parseString("{\"good_id\":91,\"good_status\":\"draft\",\"good_signed\":false,\"good_detailed_status\":[\"draft\"]}").getAsJsonObject());
+        var onlyDraft=new RegisteredGtin(base.gtin(),base.article(),base.color(),base.size(),true,false,base.source(),base.syncedAt(),signedFalseOnly);
+        assertEquals(com.vncode.app.integration.znack.registration.CatalogCardState.DRAFT,com.vncode.app.integration.znack.registration.CatalogCardState.of(onlyDraft),"Unsigned draft alone is not approval to sign");
+    }
     @Test void ambiguousAttributeMatchAndConflictingVariantAreBlocked(){
         var cards=index(card(GtinWriteTestFixture.GTIN,true),card("00000000000024",true));
         assertTrue(cards.view(Status.NOT_CREATED,"",List.of(),"A","Blue","M",true).blocked());

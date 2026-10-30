@@ -31,6 +31,9 @@ public final class ListingHttpClient implements ListingTransport {
         return call(path,body,mutation,()->{},beforeSend);
     }
     @Override public JsonElement call(String path,JsonElement body,boolean mutation,ListingTransport.CheckedGuard freshRead,Runnable beforeSend)throws IOException{
+        return call(path,body,mutation,freshRead,beforeSend,0);
+    }
+    private JsonElement call(String path,JsonElement body,boolean mutation,ListingTransport.CheckedGuard freshRead,Runnable beforeSend,int retries)throws IOException{
         ListingIdentity.require(shop);if(path==null||!path.matches("[a-zA-Z0-9/_?=&%.,:-]{1,2048}"))throw new IllegalArgumentException("Invalid listing endpoint");
         HttpUrl url=origin.resolve(path);if(url==null||!url.host().equals(origin.host()))throw new IOException("Invalid listing origin");
         var b=new Request.Builder().url(url).header("Accept","application/json");
@@ -42,12 +45,16 @@ public final class ListingHttpClient implements ListingTransport {
         // A guard may re-read a marketplace card. Never hold the background/FBS HTTP permit
         // while it does so; a nested background acquire would otherwise deadlock.
         ListingIdentity.require(shop);freshRead.check();
+        // The guard may itself read the prices API. Reserve this request only
+        // after that read, so nested requests cannot violate the shared quota.
+        if(origin.host().equals("discounts-prices-api.wildberries.ru"))com.vncode.app.integration.wb.WbPriceApiRateLimiter.awaitTurn(shop.getApiKey());
         try(var slot=com.vncode.app.shared.MarketplaceRequestBudget.acquire()){
             ListingIdentity.require(shop);beforeSend.run();
             try(var r=http.newCall(b.build()).execute()){
             if(r.code()==429){
                 var rejected=new ListingRateLimitException(r.headers());
                 if(origin.host().equals("content-api.wildberries.ru"))com.vncode.app.integration.wb.WbContentApiRateLimiter.registerRateLimit(shop.getApiKey(),path,r.headers());
+                if(origin.host().equals("discounts-prices-api.wildberries.ru"))com.vncode.app.integration.wb.WbPriceApiRateLimiter.registerRateLimit(shop.getApiKey(),r.headers());
                 if(origin.host().equals("api-seller.ozon.ru"))OZON_LIMITER.registerRateLimit(ListingIdentity.hash(shop.getClientId()),"catalog",rejected.retryAfter());
                 throw rejected;
             }
@@ -68,6 +75,13 @@ public final class ListingHttpClient implements ListingTransport {
             if(r.body()==null||r.body().contentLength()>LIMIT)throw new IOException("Listing response unavailable or too large");
             try(var in=r.body().byteStream()){var bytes=in.readNBytes(LIMIT+1);if(bytes.length>LIMIT)throw new IOException("Listing response too large");return JsonParser.parseString(new String(bytes,StandardCharsets.UTF_8));}
             }
+        }catch(ListingRateLimitException limited){
+            // Read-only WB calls can safely wait for the shared endpoint cooldown
+            // and retry. A mutation is handled by its durable caller, which must
+            // distinguish an explicit 429 rejection from an uncertain delivery.
+            boolean wb=origin.host().equals("content-api.wildberries.ru")||origin.host().equals("discounts-prices-api.wildberries.ru");
+            if(!mutation&&wb&&retries<2)return call(path,body,false,freshRead,beforeSend,retries+1);
+            throw limited;
         }catch(JsonParseException e){throw new IOException("Invalid listing response");}
     }
     private static final class NetworkAttempt{private final java.util.concurrent.atomic.AtomicBoolean sent=new java.util.concurrent.atomic.AtomicBoolean();}

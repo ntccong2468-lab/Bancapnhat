@@ -15,7 +15,7 @@ import java.util.function.*;
 import static com.vncode.app.features.gtinsync.GtinSyncModels.*;
 
 public final class GtinSyncController {
-    @FXML private Label titleLabel,scopeLabel,statusLabel,capabilityLabel;
+    @FXML private Label titleLabel,scopeLabel,statusLabel,capabilityLabel,wbPriceImpactLabel;
     @FXML private Button syncButton,loadButton,selectButton,clearButton,mappingButton,previewButton,fullSyncButton,confirmButton,pauseButton,resumeButton,cancelButton,reconcileButton,csvButton,xlsxButton;
     @FXML private TextField searchField;
     @FXML private ComboBox<RegisteredGtin> gtinBox;
@@ -29,6 +29,9 @@ public final class GtinSyncController {
     private final GtinSyncWorkspace workspace;
     private List<Preview> preview=List.of();
     private List<JobItem> history=List.of();
+    private Map<UUID,String> historyIssues=Map.of();
+    private long historyIssueRevision;
+    private boolean historyIssuesLoaded,historyIssuesReadFailed;
     private boolean busy,disposed;
     private final Set<Task<?>> reads=new HashSet<>();
     private record Scope(int shopId,com.vncode.app.integration.marketplace.Marketplace marketplace) {}
@@ -58,12 +61,12 @@ public final class GtinSyncController {
     }
     public void setShop(Shop shop) {
         for(var task:List.copyOf(reads))task.cancel();reads.clear();busy=false;
-        model.load(shop);shopName=shop==null?"":shop.getName();history=List.of();historyTable.getItems().clear();
+        model.load(shop);shopName=shop==null?"":shop.getName();history=List.of();historyIssues=Map.of();historyIssuesLoaded=false;historyIssuesReadFailed=false;historyIssueRevision++;historyTable.getItems().clear();
         gtinBox.getItems().clear();oldBarcodeBox.getItems().clear();invalidatePreview();renderRows();applyTranslations();
         statusLabel.setText(tr("gtinsync.load_hint"));updateButtons();
         if(shop!=null) {
             var token=model.token();
-            background(token,()->workspace.repository.history(token.shopId(),token.marketplace()),data->{history=data;historyTable.setItems(FXCollections.observableArrayList(data));},false);
+            background(token,()->workspace.repository.history(token.shopId(),token.marketplace()),this::showHistory,false);
         }
     }
     public void dispose(){disposed=true;model.load(null);for(var task:List.copyOf(reads))task.cancel();reads.clear();}
@@ -71,6 +74,9 @@ public final class GtinSyncController {
         reportDetailsPane.setText(tr("jobs.report"));
         titleLabel.setText(tr("gtinsync.title"));scopeLabel.setText(shopName.isBlank()?tr("gtinsync.no_shop"):shopName+" · "+model.token().marketplace().badge());
         capabilityLabel.setText(tr("gtinsync.contract_unverified"));
+        wbPriceImpactLabel.setText(tr("gtinsync.wb_price_consent_body"));
+        boolean wb=!shopName.isBlank()&&model.token().marketplace()==com.vncode.app.integration.marketplace.Marketplace.WILDBERRIES;
+        wbPriceImpactLabel.setVisible(wb);wbPriceImpactLabel.setManaged(wb);
         var buttons=List.of(syncButton,loadButton,selectButton,clearButton,mappingButton,previewButton,confirmButton,pauseButton,resumeButton,cancelButton,reconcileButton,csvButton,xlsxButton);
         var keys=List.of("sync","load","select_exact","clear","mapping","preview","confirm","pause","resume","cancel","reconcile","csv","xlsx");
         for(int i=0;i<keys.size();i++)buttons.get(i).setText(tr("gtinsync."+keys.get(i)));
@@ -84,7 +90,7 @@ public final class GtinSyncController {
         historyTable.getColumns().clear();
         column(historyTable,"product",r->r.preview().before().key().productId()+" / "+r.preview().before().key().variantId());
         column(historyTable,"operation",r->tr("gtinsync.op."+r.preview().operation()));column(historyTable,"old",r->r.preview().oldGtin());
-        column(historyTable,"target",r->r.preview().newGtin());column(historyTable,"status",r->tr("gtinsync.status."+r.status()));
+        column(historyTable,"target",r->r.preview().newGtin());column(historyTable,"status",this::historyStatus);
         operationBox.setButtonCell(new ListCell<>(){@Override protected void updateItem(Operation op,boolean empty){super.updateItem(op,empty);setText(empty||op==null?"":tr("gtinsync.op."+op));}});
     }
     private static <T> void column(TableView<T> table,String key,Function<T,String> value) {
@@ -101,7 +107,7 @@ public final class GtinSyncController {
         if(!model.accept(token,data.catalog(),data.products()))return;
         for(var entry:data.mappings().entrySet())try{model.choose(entry.getKey(),entry.getValue(),Operation.ADD,"");}catch(IllegalArgumentException ignored){}
         gtinBox.setItems(FXCollections.observableArrayList(data.catalog().stream().filter(g->g.published()&&g.tradeUnit()).toList()));
-        history=data.history();historyTable.setItems(FXCollections.observableArrayList(history));renderRows();statusLabel.setText(data.products().size()+" "+tr("gtinsync.products")+" · "+data.catalog().size()+" GTIN");
+        showHistory(data.history());renderRows();statusLabel.setText(data.products().size()+" "+tr("gtinsync.products")+" · "+data.catalog().size()+" GTIN");
     }
     @FXML private void onSelectExact(){productTable.getSelectionModel().clearSelection();var exact=Set.copyOf(model.exactKeys());for(int i=0;i<productTable.getItems().size();i++)if(exact.contains(productTable.getItems().get(i).product().key()))productTable.getSelectionModel().select(i);updateButtons();}
     @FXML private void onClear(){productTable.getSelectionModel().clearSelection();invalidatePreview();updateButtons();}
@@ -139,8 +145,10 @@ public final class GtinSyncController {
     }
     @FXML private void onConfirm() {
         if(preview.isEmpty()||busy||runningQueues.contains(scope(model.token()))||preview.stream().anyMatch(p->!p.capability().supports(p.operation())))return;
-        var selected=preview;var token=model.token();invalidatePreview();
-        background(token,()->new Confirmed(workspace.coordinator.confirm(selected),workspace.repository.history(token.shopId(),token.marketplace())),result->{
+        var selected=List.copyOf(preview);var token=model.token();
+        if(disposed||busy||!token.equals(model.token())||!preview.equals(selected)||runningQueues.contains(scope(token)))return;
+        invalidatePreview();
+        background(token,()->new Confirmed(workspace.coordinator.confirm(selected,token.marketplace()==com.vncode.app.integration.marketplace.Marketplace.WILDBERRIES),workspace.repository.history(token.shopId(),token.marketplace())),result->{
             showHistory(result.items());
             historyTable.getItems().stream().filter(i->i.jobId().equals(result.job())).findFirst().ifPresent(i->historyTable.getSelectionModel().select(i));
             runQueue(token);
@@ -148,9 +156,26 @@ public final class GtinSyncController {
     }
     private void showHistory(List<JobItem> items){
         var selected=historyTable.getSelectionModel().getSelectedItem();
-        history=items;historyTable.setItems(FXCollections.observableArrayList(items));
+        history=List.copyOf(items);historyIssues=Map.of();historyIssuesLoaded=items.isEmpty();historyIssuesReadFailed=false;long revision=++historyIssueRevision;historyTable.setItems(FXCollections.observableArrayList(items));
+        var token=model.token();
+        if(!items.isEmpty()&&token.shopId()>0){
+            var ids=items.stream().map(JobItem::id).toList();
+            var key=new com.vncode.app.shared.ShopReadCoordinator.Key(token.shopId(),"GTIN_HISTORY_ISSUES",UUID.randomUUID().toString());
+            com.vncode.app.shared.ShopReadCoordinator.shared().submitLocal(key,()->workspace.repository.issues(ids)).whenComplete((issues,error)->javafx.application.Platform.runLater(()->{
+                if(disposed||revision!=historyIssueRevision||!token.equals(model.token()))return;
+                historyIssuesReadFailed=error!=null;historyIssues=error==null?Map.copyOf(issues):Map.of();historyIssuesLoaded=true;historyTable.refresh();
+            }));
+        }
         if(selected!=null)items.stream().filter(i->i.id().equals(selected.id())).findFirst().ifPresent(i->historyTable.getSelectionModel().select(i));
         statusLabel.setText(tr("gtinsync.history_updated"));updateButtons();
+    }
+    private String historyStatus(JobItem item){
+        if(item.status()==Status.CANCELLED&&!historyIssuesLoaded)return tr("gtinsync.loading");
+        String status=tr("gtinsync.status."+item.status());String code=historyIssues.getOrDefault(item.id(),"");
+        if(historyIssuesReadFailed)return status+" · "+tr("gtinsync.history_details_unavailable");
+        if(code.isBlank())return status;
+        String key="znack.registration.reason."+code,value=tr(key);
+        return status+" · "+(value.equals(key)?code:value);
     }
     private static Scope scope(GtinSyncViewModel.LoadToken token){return new Scope(token.shopId(),token.marketplace());}
     private void runQueue(GtinSyncViewModel.LoadToken token) {
@@ -158,8 +183,17 @@ public final class GtinSyncController {
         Task<List<JobItem>> task=new Task<>() {
             @Override protected List<JobItem> call() {
                 try(var lane=MarketplaceRequestBudget.lane(true)){
-                workspace.coordinator.runPending(token.shopId(),token.marketplace(),item->updateValue(workspace.repository.history(token.shopId(),token.marketplace())));
-                return workspace.repository.history(token.shopId(),token.marketplace());
+                try{
+                    workspace.coordinator.runPending(token.shopId(),token.marketplace(),item->updateValue(workspace.repository.history(token.shopId(),token.marketplace())));
+                    return workspace.repository.history(token.shopId(),token.marketplace());
+                }finally{
+                    // Continue durable WB readback/retry on the original shop even if
+                    // its view was closed; the scheduler will skip paused/terminal jobs.
+                    if(token.marketplace()==com.vncode.app.integration.marketplace.Marketplace.WILDBERRIES)try{
+                        var original=workspace.require(token.shopId(),token.marketplace());
+                        com.vncode.app.features.sync.SyncRuntime.requestIfRunning(original,com.vncode.app.features.sync.SyncCoordinator.Stream.ZNACK);
+                    }catch(RuntimeException unavailable){/* The durable queue can resume at its next scheduled tick. */}
+                }
                 }
             }
         };
@@ -175,10 +209,19 @@ public final class GtinSyncController {
         background(token,()->{action.accept(item.jobId());return workspace.repository.history(token.shopId(),token.marketplace());},this::showHistory,true,false);
     }
     @FXML private void onPause(){jobAction(workspace.coordinator::pause);}
-    @FXML private void onCancel(){jobAction(workspace.coordinator::cancelQueued);}
+    @FXML private void onCancel(){
+        var item=historyTable.getSelectionModel().getSelectedItem();if(item==null)return;var token=model.token();
+        background(token,()->{workspace.coordinator.cancelQueued(item.jobId());
+            if(token.marketplace()==com.vncode.app.integration.marketplace.Marketplace.WILDBERRIES)try{
+                var original=workspace.require(token.shopId(),token.marketplace());
+                com.vncode.app.features.sync.SyncRuntime.requestIfRunning(original,com.vncode.app.features.sync.SyncCoordinator.Stream.ZNACK);
+            }catch(RuntimeException unavailable){/* Durable receipt reconciliation will continue on its next tick. */}
+            return workspace.repository.history(token.shopId(),token.marketplace());},this::showHistory,true,false);
+    }
     @FXML private void onResume(){
         var item=historyTable.getSelectionModel().getSelectedItem();var token=model.token();
         if(item==null||runningQueues.contains(scope(token)))return;
+        if(disposed||busy||!token.equals(model.token())||!item.equals(historyTable.getSelectionModel().getSelectedItem())||runningQueues.contains(scope(token)))return;
         background(token,()->{workspace.coordinator.resume(item.jobId());return workspace.repository.history(token.shopId(),token.marketplace());},items->{showHistory(items);runQueue(token);},true,false);
     }
     @FXML private void onReconcile(){var item=historyTable.getSelectionModel().getSelectedItem();if(item==null)return;var token=model.token();background(token,()->{workspace.coordinator.reconcile(item.id());return workspace.repository.history(token.shopId(),token.marketplace());},this::showHistory,true,false);}

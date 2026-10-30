@@ -28,7 +28,7 @@ final class GtinBackgroundStatus {
         var task=new Task<ZnackGtinBackgroundService.Result>(){protected ZnackGtinBackgroundService.Result call()throws Exception{
             CONTEXTS.put(this,GtinRunStatusSnapshot.capture(shop,frozen));
             updateMessage(action+"…");return new ZnackGtinBackgroundService().run(shop,frozen,p->{updateProgress(p.completed(),Math.max(1,p.total()));updateMessage(action+"… "+p.completed()+"/"+p.total()+" · "+I18nService.getInstance().tr("gtin.background.sent")+": "+p.submitted()+" · "+I18nService.getInstance().tr("gtin.background.result")+": "+p.succeeded());},
-                    phase->updateMessage(I18nService.getInstance().tr("gtin.background.phase."+phase)));
+                    phase->updateMessage(I18nService.getInstance().tr("gtin.background.phase."+phase)),shop.getMarketplace()==com.vncode.app.integration.marketplace.Marketplace.WILDBERRIES);
         }};
         RUNNING.put(key,task);attach(host,task,refresh,completed);var originalPill=host.lookup("#gtinBackgroundPill");
         task.setOnSucceeded(e->{RUNNING.remove(key,task);CONTEXTS.remove(task);});

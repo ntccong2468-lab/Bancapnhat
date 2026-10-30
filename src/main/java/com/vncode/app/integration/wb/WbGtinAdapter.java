@@ -28,12 +28,17 @@ public final class WbGtinAdapter implements GtinBatchAdapter {
     private static final List<String> DOCUMENT_FIELDS=List.of("id","type","number","productNumber","tradeName","applicant","startDate","endDate","isEndless");
     private final Shop shop;
     private final ListingTransport client;
+    private final WbGtinPriceRepair prices;
 
-    public WbGtinAdapter(Shop shop){this(shop,new ListingHttpClient(shop));}
+    public WbGtinAdapter(Shop shop){this(shop,new ListingHttpClient(shop),new WbGtinPriceRepair(shop));}
     public WbGtinAdapter(Shop shop,ListingTransport client){
+        this(shop,client,client instanceof GtinBatchTransport?new WbGtinPriceRepair(shop):new WbGtinPriceRepair(shop,client));
+    }
+    WbGtinAdapter(Shop shop,ListingTransport client,WbGtinPriceRepair prices){
         MarketplaceGuard.requireWildberries(shop);
         this.shop=new Shop(shop.getId(),shop.getName(),shop.getMarketplace(),shop.getClientId(),shop.getApiKey());
         this.client=Objects.requireNonNull(client);
+        this.prices=Objects.requireNonNull(prices);
     }
     public Capability capability(ProductKey key){requireKey(key);return CAPABILITY;}
     public void validateProduct(ProductKey key)throws IOException{checkedArticle(ownCard(key));}
@@ -97,6 +102,27 @@ public final class WbGtinAdapter implements GtinBatchAdapter {
     @Override public void prepareBatch(Collection<ProductKey> keys)throws IOException{for(var key:keys)requireKey(key);if(client instanceof GtinBatchTransport batch)batch.prepare(keys);}
     @Override public void refreshBatch(Collection<ProductKey> keys)throws IOException{for(var key:keys)requireKey(key);if(client instanceof GtinBatchTransport batch)batch.refresh(keys);}
     @Override public void validateRegistrations(Collection<String> gtins){RegisteredGtinProof.requireCurrent(shop,gtins);}
+    @Override public Preparation beforeSubmit(List<JobItem> items,Runnable guard,Runnable priceConsentGuard,SqlGuard claimGuard)throws Exception {
+        if(items.isEmpty())throw new IllegalArgumentException("empty_selection");
+        var first=items.getFirst();String id=first.preview().before().key().productId();UUID job=first.jobId();
+        for(var item:items)if(!item.jobId().equals(job)||!item.preview().before().key().productId().equals(id))throw new IllegalArgumentException("WB_PRICE_MIXED_PRODUCT");
+        var previews=items.stream().map(JobItem::preview).toList();
+        guard.run();requireWrites(previews);
+        if(client instanceof GtinBatchTransport batch)batch.refresh(previews.stream().map(p->p.before().key()).toList());
+        var card=ownCard(first.preview().before().key());var sizes=new TreeSet<Long>();
+        for(var value:strictArray(card,"sizes"))try{
+            String raw=text(object(value),"chrtID");long size=Long.parseLong(raw);if(size<=0||!sizes.add(size))throw new NumberFormatException();
+        }catch(RuntimeException invalid){throw new IOException("WB_PRICE_SIZE_INCOMPLETE",invalid);}
+        if(sizes.isEmpty())throw new IOException("WB_PRICE_SIZE_INCOMPLETE");
+        var sources=RegisteredGtinProof.requireCurrent(shop,previews.stream().map(Preview::newGtin).toList());
+        for(var preview:previews){var actual=snapshot(preview.before().key(),card);if(!actual.fingerprint().equals(preview.before().fingerprint()))throw new IllegalArgumentException("product_changed");validateIdentity(actual,sources.get(preview.newGtin()),card);}
+        var result=prices.repair(id,job.toString(),sizes,()->{guard.run();requireWrites(previews);},priceConsentGuard,claimGuard::check);
+        return switch(result.state()){
+            case READY -> Preparation.ready();
+            case PENDING,RATE_LIMIT -> new Preparation(PreparationState.PENDING,result.code());
+            case FAILED -> new Preparation(PreparationState.FAILED,result.code());
+        };
+    }
     @Override public List<List<Preview>> partition(List<Preview> previews)throws IOException {
         var groups=new LinkedHashMap<String,List<Preview>>();for(var p:previews){requireKey(p.before().key());groups.computeIfAbsent(p.before().key().productId(),k->new ArrayList<>()).add(p);}
         var result=new ArrayList<List<Preview>>();var current=new ArrayList<Preview>();int cards=0;long bytes=2;

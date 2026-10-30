@@ -49,12 +49,41 @@ public final class OzonCatalogSyncService {
     /** User-requested refresh revisits already synced cards; cursor recovery remains available in sync(). */
     public int syncFromStart()throws IOException{return sync("");}
     public int syncForRegistration(java.util.function.Consumer<List<OzonProductDto>> page)throws IOException {return sync("",page);}
+    /** Resume a paired registration read only from a seller-scoped durable page snapshot. */
+    public int syncForRegistration(com.vncode.app.models.Shop shop,String source,java.util.function.Consumer<List<OzonProductDto>> page)throws IOException {
+        if(shop.getId()!=shopId)throw new IllegalArgumentException("shop_mismatch");
+        var checkpoint=new OzonRegistrationCheckpoint(shop,source);var saved=checkpoint.open();
+        try {
+            if(saved.pages()>0){
+                LicenseRuntime.require(SELLER_API);api.requireSyncOwner(shopId);
+                JsonObject head=api.listProducts("",PAGE_SIZE);api.requireSyncOwner(shopId);
+                if(head==null||!head.has("result")||!head.get("result").isJsonObject()||!head.getAsJsonObject("result").has("items")||!head.getAsJsonObject("result").get("items").isJsonArray())throw new IOException("OZON_INCOMPLETE_PRODUCT_PAGE");
+                var observed=OzonJson.parseProductPage(head);
+                if(observed.items().size()!=head.getAsJsonObject("result").getAsJsonArray("items").size()||observed.items().size()>PAGE_SIZE||observed.items().stream().map(OzonJson.ProductReference::productId).distinct().count()!=observed.items().size()||observed.items().stream().anyMatch(row->row.offerId().isBlank()))throw new IOException("OZON_INCOMPLETE_PRODUCT_PAGE");
+                if(!checkpoint.headMatches(saved,observed)){checkpoint.clear();saved=checkpoint.open();}
+            }
+            checkpoint.replay(saved,page);
+            if(saved.completed())return 0;
+            return sync(saved.cursor(),page,checkpoint,saved);
+        } catch(OzonRegistrationCheckpoint.Invalidated changed){
+            checkpoint.clear();throw new IOException("OZON_REGISTRATION_CATALOG_CHANGED",changed);
+        } catch(IOException invalid){
+            if("OZON_REPEATED_PRODUCT_CURSOR".equals(invalid.getMessage()))checkpoint.clear();
+            throw invalid;
+        }
+    }
+    /** A completed paired marketplace/Catalog receipt is the only point that clears read progress. */
+    public static void completeRegistration(com.vncode.app.models.Shop shop,String source){new OzonRegistrationCheckpoint(shop,source).clear();}
     private int sync(String initialCursor)throws IOException{return sync(initialCursor,page->{});}
     private int sync(String initialCursor,java.util.function.Consumer<List<OzonProductDto>> observer)throws IOException{
+        return sync(initialCursor,observer,null,null);
+    }
+    private int sync(String initialCursor,java.util.function.Consumer<List<OzonProductDto>> observer,OzonRegistrationCheckpoint checkpoint,OzonRegistrationCheckpoint.State saved)throws IOException{
         LicenseRuntime.require(SELLER_API);
         api.requireSyncOwner(shopId);
         String cursor = initialCursor;
-        int synced = 0,listed=0;
+        int synced = 0,listed=saved==null?0:saved.count(),supersededReads=0;
+        var checkpointState=saved;
         var cursors=new java.util.HashSet<String>();
         if(initialCursor!=null&&!initialCursor.isBlank())cursors.add(initialCursor);
         Map<OzonProductCardAttributeParser.CategoryKey, Map<String, String>> definitionCache = new LinkedHashMap<>();
@@ -70,11 +99,13 @@ public final class OzonCatalogSyncService {
                 if(page.items().size()!=response.getAsJsonObject("result").getAsJsonArray("items").size() || page.items().size()>PAGE_SIZE || page.items().stream().map(OzonJson.ProductReference::productId).distinct().count()!=page.items().size() || page.items().stream().anyMatch(row->row.offerId().isBlank()))throw new IOException("OZON_INCOMPLETE_PRODUCT_PAGE");
                 if (page.items().isEmpty()) {
                     long observed=listed;
-                    if(initialCursor!=null&&!initialCursor.isBlank())try(var c=com.vncode.app.config.Database.getConnection();var p=c.prepareStatement("SELECT count(*) FROM ozon_products WHERE shop_id=?")){
+                    if(checkpoint==null&&initialCursor!=null&&!initialCursor.isBlank())try(var c=com.vncode.app.config.Database.getConnection();var p=c.prepareStatement("SELECT count(*) FROM ozon_products WHERE shop_id=?")){
                         p.setInt(1,shopId);try(var r=p.executeQuery()){if(!r.next())throw new IOException("OZON_CATALOG_STORAGE");observed=r.getLong(1);}
                     }catch(java.sql.SQLException failure){throw new IOException("OZON_CATALOG_STORAGE",failure);}
-                    if(page.total()>observed)throw new IOException("OZON_INCOMPLETE_PRODUCT_PAGE");
-                    products.upsertPage(shopId, List.of(), cursor,true);
+                    if(checkpoint!=null)checkpoint.validate(checkpointState,List.of(),page.total());
+                    if(page.total()>observed){if(checkpoint!=null)throw new OzonRegistrationCheckpoint.Invalidated();throw new IOException("OZON_INCOMPLETE_PRODUCT_PAGE");}
+                    products.upsertPage(shopId, List.of(), cursor,true,java.time.Instant.now(),api.syncOwnerFingerprint(shopId),Map.of());
+                    if(checkpoint!=null)checkpointState=checkpoint.append(checkpointState,List.of(),cursor,true,page.total());
                     return synced;
                 }
                 String next = page.lastId();
@@ -83,7 +114,14 @@ public final class OzonCatalogSyncService {
                 }
                 List<String> ids = page.items().stream().map(OzonJson.ProductReference::productId).toList();
                 LicenseRuntime.require(SELLER_API);
-                List<OzonProductDto> detailed = OzonJson.parseProductInfo(api.productInfo(ids));
+                // Claim a monotonic product generation before the HTTP read so
+                // a slow old response cannot replace a newer request's result.
+                String owner=api.syncOwnerFingerprint(shopId);
+                var barcodeReadTokens=com.vncode.app.features.gtinsync.MarketplaceBarcodeCache.issueOzon(shopId,owner,ids);
+                java.time.Instant barcodeReadStarted=java.time.Instant.now();
+                JsonObject details=api.productInfo(ids);
+                requireBarcodeObservations(details);
+                List<OzonProductDto> detailed = OzonJson.parseProductInfo(details);
                 List<OzonProductCardAttributeParser.Card> cards =
                         OzonProductCardAttributeParser.parseCards(api.productAttributes(ids));
                 var byId = new LinkedHashMap<String,OzonProductDto>();
@@ -129,7 +167,17 @@ public final class OzonCatalogSyncService {
                 }
                 api.requireSyncOwner(shopId);
                 boolean finished=page.items().size()<PAGE_SIZE&&(page.total()==0||listed+page.items().size()>=page.total());
-                synced += products.upsertPage(shopId, complete, next,finished);
+                if(checkpoint!=null)checkpoint.validate(checkpointState,complete,page.total());
+                try {
+                    synced += products.upsertPage(shopId, complete, next,finished,barcodeReadStarted,owner,barcodeReadTokens);
+                } catch(OzonCatalogRepository.BarcodeSuperseded superseded){
+                    // Retry the same read-only page; no product, cursor or receipt was committed.
+                    // Bound retries when another reader keeps changing the same products.
+                    if(++supersededReads>3)throw new IOException("OZON_CATALOG_BARCODE_SUPERSEDED",superseded);
+                    cursors.remove(next);continue;
+                }
+                supersededReads=0;
+                if(checkpoint!=null)checkpointState=checkpoint.append(checkpointState,complete,next,finished,page.total());
                 observer.accept(List.copyOf(complete));
                 listed+=page.items().size();
                 if (finished) return synced;
@@ -151,5 +199,17 @@ public final class OzonCatalogSyncService {
     }
     private void reportFailure(String code,Exception failure){
         try{state.recordSafeError(shopId,code);}catch(RuntimeException reporting){failure.addSuppressed(reporting);}
+    }
+    /** A missing/invalid barcode field is unknown, not proof of an empty barcode list. */
+    private static void requireBarcodeObservations(JsonObject details)throws IOException {
+        if(details==null)throw new IOException("OZON_INCOMPLETE_PRODUCT_PAGE");
+        JsonObject container=details.has("items")?details:details.has("result")&&details.get("result").isJsonObject()?details.getAsJsonObject("result"):details;
+        if(!container.has("items")||!container.get("items").isJsonArray())throw new IOException("OZON_INCOMPLETE_PRODUCT_PAGE");
+        for(var element:container.getAsJsonArray("items")){
+            if(!element.isJsonObject())throw new IOException("OZON_INCOMPLETE_PRODUCT_PAGE");
+            var item=element.getAsJsonObject();var values=item.get("barcodes");
+            if(values==null||!values.isJsonArray()||values.getAsJsonArray().size()>100)throw new IOException("OZON_INCOMPLETE_PRODUCT_PAGE");
+            for(var value:values.getAsJsonArray())if(!value.isJsonPrimitive()||!value.getAsJsonPrimitive().isString()||value.getAsString().isBlank()||!value.getAsString().equals(value.getAsString().strip())||value.getAsString().length()>512)throw new IOException("OZON_INCOMPLETE_PRODUCT_PAGE");
+        }
     }
 }

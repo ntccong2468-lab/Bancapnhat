@@ -34,6 +34,37 @@ public final class OzonGtinProductReader {
         var p=products.getFirst();
         return fromProduct(key,p);
     }
+    /** Fresh owned barcode readback in bounded API batches; an omitted or changed SKU cannot confirm a mapping. */
+    public record BarcodeReadback(Map<ProductKey,List<String>> barcodes,Map<String,Long> generations) {}
+    public Map<ProductKey,List<String>> readBarcodes(Map<ProductKey,String> expectedSkus)throws IOException {return readBarcodeSnapshot(expectedSkus).barcodes();}
+    public BarcodeReadback readBarcodeSnapshot(Map<ProductKey,String> expectedSkus)throws IOException {
+        if(expectedSkus.size()>100_000)throw new IllegalArgumentException("ozon_readback_limit");
+        var keys=new ArrayList<>(expectedSkus.keySet());var result=new LinkedHashMap<ProductKey,List<String>>();var started=new LinkedHashMap<ProductKey,java.time.Instant>();var tokens=new LinkedHashMap<String,Long>();
+        var seenIds=new HashSet<String>();
+        for(var key:keys)if(key.shopId()!=shop.getId()||key.marketplace()!=Marketplace.OZON||!numeric(key.productId())
+                ||key.variantId().isBlank()||expectedSkus.get(key)==null||expectedSkus.get(key).isBlank()||!seenIds.add(key.productId()))
+            throw new IllegalArgumentException("ozon_readback_identity");
+        for(int offset=0;offset<keys.size();offset+=1000){
+            var part=keys.subList(offset,Math.min(offset+1000,keys.size()));var requested=new LinkedHashMap<String,String>();
+            var lookup=new HashMap<String,ProductKey>();
+            for(var key:part){requested.put(key.productId(),key.variantId());lookup.put(key.productId(),key);}
+            requireOwner();tokens.putAll(MarketplaceBarcodeCache.issueOzon(shop.getId(),com.vncode.app.integration.listing.ListingIdentity.fingerprint(shop),requested.keySet()));var requestStarted=java.time.Instant.now();var response=api.productInfo(List.copyOf(requested.keySet()));var returned=products(response,requested);requireOwner();
+            var autoArchived=new HashSet<String>();
+            for(var element:array(response,"items")){
+                var item=element.getAsJsonObject();var status=item.get("is_autoarchived");
+                if(status!=null&&!status.isJsonNull()){
+                    if(!status.isJsonPrimitive()||!status.getAsJsonPrimitive().isBoolean())throw new IOException("invalid_ozon_catalog");
+                    if(status.getAsBoolean())autoArchived.add(text(item,"id"));
+                }
+            }
+            for(var product:returned){var key=lookup.get(product.productId());
+                if(!product.archived()&&!autoArchived.contains(product.productId())&&expectedSkus.get(key).equals(product.sku())){result.put(key,product.barcodes());started.put(key,requestStarted);}
+            }
+        }
+        requireOwner();var accepted=MarketplaceBarcodeCache.observeBatch(shop,result,started,tokens);
+        if(!accepted.containsAll(result.keySet()))throw new IOException("OZON_BARCODE_READ_SUPERSEDED");
+        return new BarcodeReadback(Map.copyOf(result),Map.copyOf(tokens));
+    }
     public static ProductSnapshot fromProduct(ProductKey key,OzonProductDto product) {
         if(key.marketplace()!=Marketplace.OZON || !key.productId().equals(product.productId()) || !key.variantId().equals(product.offerId()))throw new IllegalArgumentException("product_mismatch");
         return ProductFingerprints.snapshot(key,product.article(),product.color(),product.size(),product.barcodes());

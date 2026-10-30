@@ -74,6 +74,35 @@ class RegistrationSyncReportDialogTest {
         fx(()->{assertTrue(label("summary").getText().contains("1/3"));assertTrue(label("summary").getText().contains(com.vncode.app.shared.I18nService.getInstance().tr("znack.registration.report_scope_store")));assertEquals(4,table().getItems().size());return null;});
         assertEquals("WAITING_REMOTE",repository.items(gtinRun,0,10).getFirst().state(),"Reporting must not bypass native candidate activation");
     }
+    @Test void sellerSelectsConfirmedOzonConflictAndOpensOnlyThatProductForNewCard()throws Exception {
+        var repository=new com.vncode.app.features.sync.SyncRunRepository();String gtinRun=repository.begin(shop,"znack_marketplace","READBACK");
+        repository.add(shop,gtinRun,"1","offer-1","sku-1","Article","Brown","52","04631993764370","NEEDS_ACTION","GTIN_ON_ANOTHER_PRODUCT","{}");
+        repository.add(shop,gtinRun,"2","offer-2","sku-2","Other","Brown","52","04631993764370","NEEDS_ACTION","GTIN_SELECTED_MULTIPLE_PRODUCTS","{}");
+        var chosen=new java.util.concurrent.atomic.AtomicReference<OzonGtinConflictReview.Confirmed>();
+        fx(()->{report.dispose();report=new RegistrationSyncReportDialog.Report(shop,gtinRun,chosen::set);report.setConflictReview(new OzonGtinConflictReview(new OzonGtinConflictReview.Probe(){
+            public boolean alreadyOnSelected(com.vncode.app.features.gtinsync.GtinSyncModels.ProductKey key,String gtin){return false;}
+            public boolean belongsToAnother(com.vncode.app.features.gtinsync.GtinSyncModels.ProductKey key,String gtin){return key.productId().equals("1");}
+        }));return null;});awaitIdle();
+        fx(()->{
+            var button=(Button)report.lookup("#registrationConflictNewCard");assertTrue(button.isDisabled());
+            table().getSelectionModel().select(1);assertTrue(button.isDisabled(),"A duplicate selected within the batch is not a proven Ozon conflict");
+            table().getSelectionModel().select(0);assertFalse(button.isDisabled());button.fire();return null;
+        });awaitIdle();
+        assertNotNull(chosen.get());assertEquals("1",chosen.get().key().cardId());assertEquals("offer-1",chosen.get().key().variantId());assertEquals("04631993764370",chosen.get().gtin());
+        assertEquals("GTIN_ON_ANOTHER_PRODUCT",repository.items(gtinRun,0,10).getFirst().error());
+    }
+    @Test void unavailableOzonConflictCheckReportsTheFailureAndDoesNotOpenNewCard()throws Exception {
+        var repository=new com.vncode.app.features.sync.SyncRunRepository();String gtinRun=repository.begin(shop,"znack_marketplace","READBACK");
+        repository.add(shop,gtinRun,"1","offer-1","sku-1","Article","Brown","52","04631993764370","NEEDS_ACTION","GTIN_ON_ANOTHER_PRODUCT","{}");
+        var chosen=new java.util.concurrent.atomic.AtomicReference<OzonGtinConflictReview.Confirmed>();
+        fx(()->{report.dispose();report=new RegistrationSyncReportDialog.Report(shop,gtinRun,chosen::set);report.setConflictReview(new OzonGtinConflictReview(new OzonGtinConflictReview.Probe(){
+            public boolean alreadyOnSelected(com.vncode.app.features.gtinsync.GtinSyncModels.ProductKey key,String gtin){return false;}
+            public boolean belongsToAnother(com.vncode.app.features.gtinsync.GtinSyncModels.ProductKey key,String gtin)throws java.io.IOException{throw new java.net.SocketTimeoutException();}
+        }));return null;});awaitIdle();
+        fx(()->{table().getSelectionModel().select(0);((Button)report.lookup("#registrationConflictNewCard")).fire();return null;});awaitIdle();
+        fx(()->{assertTrue(label("events").getText().contains(com.vncode.app.shared.I18nService.getInstance().tr("znack.registration.conflict_check_failed")));return null;});
+        assertNull(chosen.get());assertEquals("GTIN_ON_ANOTHER_PRODUCT",repository.items(gtinRun,0,10).getFirst().error());
+    }
     @Test void reportFiltersTheWholeRunAndShowsActualBarcodeCatalogTimeAndNextAction()throws Exception{
         try(var c=Database.getConnection();var p=c.prepareStatement("UPDATE sync_run_items SET state='FAILED',error_code='NETWORK_TIMEOUT',updated_at='2026-10-21T01:02:03Z',evidence_json=? WHERE run_id=? AND variant_id='offer-650'")){
             p.setString(1,"{\"barcodes\":[\"000123\"],\"goodId\":\"919\",\"catalogStatus\":\"draft\",\"catalogDetailedStatus\":[\"moderation\"],\"catalogCheckedAt\":\"2026-10-21T00:00:00Z\",\"checkResult\":\"UNKNOWN\",\"syncResult\":\"UNKNOWN\",\"nextAction\":\"READBACK_REQUIRED\"}");p.setString(2,run);assertEquals(1,p.executeUpdate());

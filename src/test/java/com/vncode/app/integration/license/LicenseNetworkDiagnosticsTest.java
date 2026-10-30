@@ -100,6 +100,24 @@ class LicenseNetworkDiagnosticsTest {
         assertEquals(List.of(v4,v6),WebLicenseApi.preferIpv4(List.of(v6,v4)));
         assertEquals(List.of(v6),WebLicenseApi.preferIpv4(List.of(v6)));
     }
+    @Test void phaseReportsConnectedAfterSuccessfulHandshakeAndOnPooledConnections() {
+        var phase = new LicenseNetworkDiagnostics.Phase();
+        phase.secureConnectStart(null);
+        assertEquals("TLS", phase.value);
+        // A failed handshake must remain distinguishable from a completed one.
+        phase.secureConnectEnd(null, null);
+        assertEquals("TLS", phase.value);
+        var handshake = Handshake.get(TlsVersion.TLS_1_2,
+                CipherSuite.TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256, List.of(), List.of());
+        phase.secureConnectEnd(null, handshake);
+        assertEquals("CONNECTED", phase.value);
+        phase.requestHeadersStart(null);
+        assertEquals("SEND", phase.value);
+        phase.connectEnd(null, null, null, null);
+        assertEquals("CONNECTED", phase.value);
+        phase.connectionAcquired(null, null);
+        assertEquals("CONNECTED", phase.value);
+    }
     @Test void failedPreferenceWriteDoesNotSwitchClientAndInvalidPreferenceCannotChangeOrigin() throws Exception {
         var file=root.resolve("mode.txt");Files.createDirectory(file);
         var api=new WebLicenseApi(new OkHttpClient(),HttpUrl.get("http://localhost:12345/"),file);

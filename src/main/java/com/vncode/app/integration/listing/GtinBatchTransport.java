@@ -26,6 +26,8 @@ public final class GtinBatchTransport implements ListingTransport, AutoCloseable
     private final Map<String,JsonElement> dictionaries=new HashMap<>();
     private final Set<String> attributesRequested=new HashSet<>();
     private final Map<ProductKey,List<String>> observations=new LinkedHashMap<>();
+    private final Map<ProductKey,java.time.Instant> observationStarts=new LinkedHashMap<>();
+    private final Map<String,Long> observationTokens=new LinkedHashMap<>();
     private Set<String> targets=Set.of();
     private final Set<String> selected=new HashSet<>();
     private JsonObject activeCursor,trashCursor;
@@ -62,7 +64,7 @@ public final class GtinBatchTransport implements ListingTransport, AutoCloseable
             selected.addAll(targets);
             if(shop.getMarketplace()==Marketplace.OZON){var missing=new LinkedHashSet<String>();for(var id:targets)if(!attributesRequested.contains(id)||get("a:"+id)==null&&owned.containsKey(id)&&owned.get(id).active())missing.add(id);attributesOzon(missing);}
             flushObservations();generation++;
-        }catch(IOException|RuntimeException failure){ready=false;observations.clear();throw failure;}
+        }catch(IOException|RuntimeException failure){ready=false;observations.clear();observationStarts.clear();observationTokens.clear();throw failure;}
     }
     /** Runs once per request batch/poll, not once per GTIN. No HTTP permit is held while waiting. */
     public void refresh(Collection<ProductKey> keys)throws IOException {
@@ -79,7 +81,7 @@ public final class GtinBatchTransport implements ListingTransport, AutoCloseable
             if(shop.getMarketplace()==Marketplace.WILDBERRIES){scanWb(false,activeCursor!=null);scanWb(true,trashCursor!=null);}
             else {infoOzon(targets);attributesOzon(targets);}
             flushObservations();ready=true;generation++;
-        }catch(IOException|RuntimeException failure){ready=false;observations.clear();throw failure;}
+        }catch(IOException|RuntimeException failure){ready=false;observations.clear();observationStarts.clear();observationTokens.clear();throw failure;}
     }
     public boolean conflicts(ProductKey key,String gtin){
         requireReady();requireKeys(List.of(key));String code=normalize(gtin);
@@ -205,8 +207,8 @@ public final class GtinBatchTransport implements ListingTransport, AutoCloseable
     }
     private void infoOzon(Collection<String> ids)throws IOException {
         for(var batch:chunks(ids,1000)){
-            var request=new JsonObject();request.add("product_id",new Gson().toJsonTree(batch));var response=object(upstream.call("v3/product/info/list",request,false));var seen=new HashSet<String>();
-            for(var e:strictArray(response,"items")){var product=object(e);String id=text(product,"id"),offer=text(product,"offer_id");if(!batch.contains(id)||!seen.add(id)||offer.isBlank())throw new IOException("foreign_ozon_product");var entries=new ArrayList<Map.Entry<String,ProductKey>>();var key=new ProductKey(shop.getId(),Marketplace.OZON,id,offer);var barcodes=stringCodes(strictArray(product,"barcodes"));for(var code:barcodes)entries.add(Map.entry(code,key));boolean active=!"true".equals(text(product,"is_archived"))&&!"true".equals(text(product,"is_autoarchived"));index(id,new Owned(offer,entries,active));if(targets.contains(id)){retain("i:"+id,product);if(active)observations.put(key,barcodes);}}
+            var request=new JsonObject();request.add("product_id",new Gson().toJsonTree(batch));var tracked=batch.stream().filter(targets::contains).toList();observationTokens.putAll(MarketplaceBarcodeCache.issueOzon(shop.getId(),ListingIdentity.fingerprint(shop),tracked));var started=java.time.Instant.now();var response=object(upstream.call("v3/product/info/list",request,false));var seen=new HashSet<String>();
+            for(var e:strictArray(response,"items")){var product=object(e);String id=text(product,"id"),offer=text(product,"offer_id");if(!batch.contains(id)||!seen.add(id)||offer.isBlank())throw new IOException("foreign_ozon_product");var entries=new ArrayList<Map.Entry<String,ProductKey>>();var key=new ProductKey(shop.getId(),Marketplace.OZON,id,offer);var barcodes=stringCodes(strictArray(product,"barcodes"));for(var code:barcodes)entries.add(Map.entry(code,key));boolean active=!"true".equals(text(product,"is_archived"))&&!"true".equals(text(product,"is_autoarchived"));index(id,new Owned(offer,entries,active));if(targets.contains(id)){retain("i:"+id,product);if(active){observations.put(key,barcodes);observationStarts.put(key,started);}}}
             if(!seen.equals(new HashSet<>(batch)))throw new IOException("incomplete_ozon_catalog");
         }
     }
@@ -240,8 +242,12 @@ public final class GtinBatchTransport implements ListingTransport, AutoCloseable
     private void requireProductKeys(Collection<com.vncode.app.features.products.ProductKey> keys){ListingIdentity.require(shop);if(closed)throw new IllegalStateException("GTIN_BATCH_CLOSED");for(var key:keys)if(key.shopId()!=shop.getId()||key.marketplace()!=shop.getMarketplace())throw new SecurityException("shop_mismatch");}
     private static JsonArray strictArray(JsonObject value,String key)throws IOException{if(!value.has(key)||!value.get(key).isJsonArray())throw new IOException("GTIN_BATCH_INCOMPLETE_RESPONSE");return value.getAsJsonArray(key);}
     private static List<String> stringCodes(JsonArray values)throws IOException{var result=new ArrayList<String>();for(var value:values){if(!value.isJsonPrimitive()||!value.getAsJsonPrimitive().isString()||value.getAsString().isBlank())throw new IOException("GTIN_BATCH_INVALID_BARCODE");result.add(value.getAsString());}return List.copyOf(result);}
-    private void flushObservations(){MarketplaceBarcodeCache.observeBatch(shop,observations);observations.clear();}
+    private void flushObservations()throws IOException{
+        if(shop.getMarketplace()==Marketplace.OZON){var accepted=MarketplaceBarcodeCache.observeBatch(shop,observations,observationStarts,observationTokens);if(!accepted.containsAll(observations.keySet()))throw new IOException("OZON_BARCODE_READ_SUPERSEDED");}
+        else MarketplaceBarcodeCache.observeBatch(shop,observations);
+        observations.clear();observationStarts.clear();observationTokens.clear();
+    }
     private static List<List<String>> chunks(Collection<String> ids,int size){var all=new ArrayList<>(ids);var result=new ArrayList<List<String>>();for(int i=0;i<all.size();i+=size)result.add(List.copyOf(all.subList(i,Math.min(i+size,all.size()))));return result;}
-    private void clear(){ready=false;codes.clear();articles.clear();owned.clear();reserved.clear();retained.clear();attributesRequested.clear();dictionaries.clear();observations.clear();selected.clear();activeCursor=null;trashCursor=null;}
+    private void clear(){ready=false;codes.clear();articles.clear();owned.clear();reserved.clear();retained.clear();attributesRequested.clear();dictionaries.clear();observations.clear();observationStarts.clear();observationTokens.clear();selected.clear();activeCursor=null;trashCursor=null;}
     @Override public void close(){clear();closed=true;}
 }

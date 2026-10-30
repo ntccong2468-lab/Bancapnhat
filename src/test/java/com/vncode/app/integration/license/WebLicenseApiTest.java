@@ -290,6 +290,18 @@ class WebLicenseApiTest {
     }
 
     @Test
+    void stalledLicenseRequestTimesOutWithinTheWholeCallBudget() throws Exception {
+        server.enqueue(new MockResponse().setSocketPolicy(SocketPolicy.NO_RESPONSE));
+        long started = System.nanoTime();
+        var failure = assertThrows(LicenseApi.Failure.class, () -> api.status(TOKEN));
+        long elapsedMillis = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - started);
+        assertEquals("LICENSE_TIMEOUT", failure.code());
+        assertEquals(0, failure.status());
+        assertTrue(elapsedMillis < 19_000, "A stalled call must end near the 15-second total budget");
+        assertEquals(1, server.getRequestCount());
+    }
+
+    @Test
     void activationTriesAnotherDnsRouteBeforeSendingItsOneShotProof() throws Exception {
         var client = new OkHttpClient.Builder().proxy(java.net.Proxy.NO_PROXY)
                 .dns(host -> List.of(java.net.InetAddress.getByName("127.0.0.2"),

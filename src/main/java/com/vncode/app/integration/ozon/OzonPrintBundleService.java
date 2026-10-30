@@ -51,7 +51,11 @@ public final class OzonPrintBundleService {
     private static OfficialLabelDownloader defaultLabels() {
         var service=new OzonLabelService();
         return new OfficialLabelDownloader() {
-            public File download(Shop shop,String number,File target)throws IOException{return service.downloadOfficialPdf(shop,number,target);}
+            public File download(Shop shop,String number,File target)throws IOException{
+                OzonPrintTiming.isolatedLabel();long started=OzonPrintTiming.tick();
+                try { return service.downloadOfficialPdf(shop,number,target); }
+                finally { OzonPrintTiming.add(OzonPrintTiming.Stage.LABEL_NETWORK,started); }
+            }
             public OfficialLabelDownloader forBatch(Shop shop,List<String> numbers){return new OzonBatchLabelDownloader(service,shop,numbers);}
         };
     }
@@ -176,7 +180,10 @@ public final class OzonPrintBundleService {
         if ((newPrint && operation.refreshEveryNewPrint()) || (requiresKiz && !printable(job))) {
             requireNotInterrupted();
             LicenseRuntime.require(Permission.PRINT_NEW);
-            OzonPreparationResult result = operation.prepare(shop, safePosting);
+            long prepareStarted = OzonPrintTiming.tick();
+            OzonPreparationResult result;
+            try { result = operation.prepare(shop, safePosting); }
+            finally { OzonPrintTiming.add(OzonPrintTiming.Stage.PREPARATION, prepareStarted); }
             if (!"ACCEPTED".equals(result.stage()) && !"VALIDATED".equals(result.stage())
                     && !"NOT_REQUIRED".equals(result.stage())) {
                 throw new IOException("Ozon KIZ is not ready for printing yet (stage "
@@ -217,17 +224,26 @@ public final class OzonPrintBundleService {
             VerifiedCarrierPage carrier=destination==null?null:downloader.verifiedCarrierPage(shop,safePosting);
             int officialPages;
             if(carrier!=null){
-                int first=destination.getNumberOfPages()+1;
-                carrier.source().copyPagesTo(carrier.page(),carrier.page(),destination);
-                if(kizLabels.append(destination,shop,posting,bindings,products)!=bindings.size())throw new IOException("The Ozon KIZ label page count is incomplete.");
-                for(int page=first;page<=destination.getNumberOfPages();page++)destination.getPage(page).flush();
+                long composeStarted=OzonPrintTiming.tick();
+                try {
+                    int first=destination.getNumberOfPages()+1;
+                    carrier.source().copyPagesTo(carrier.page(),carrier.page(),destination);
+                    if(kizLabels.append(destination,shop,posting,bindings,products)!=bindings.size())throw new IOException("The Ozon KIZ label page count is incomplete.");
+                    for(int page=first;page<=destination.getNumberOfPages();page++)destination.getPage(page).flush();
+                } finally { OzonPrintTiming.add(OzonPrintTiming.Stage.COMPOSITION,composeStarted); }
                 officialPages=1;
             }else{
                 officialStaging=AtomicFilePublisher.stagingFile(labelTarget,".official.pdf");
                 downloader.download(shop,safePosting,officialStaging);
-                officialPages=destination==null?compose(officialStaging,labelStaging,shop,posting,bindings,products):composeInto(officialStaging,destination,shop,posting,bindings,products);
+                long composeStarted=OzonPrintTiming.tick();
+                try { officialPages=destination==null?compose(officialStaging,labelStaging,shop,posting,bindings,products):composeInto(officialStaging,destination,shop,posting,bindings,products); }
+                finally { OzonPrintTiming.add(OzonPrintTiming.Stage.COMPOSITION,composeStarted); }
             }
-            if (pickingStaging != null) pickingLists.export(pickingStaging, shop, posting);
+            if (pickingStaging != null) {
+                long pickingStarted=OzonPrintTiming.tick();
+                try { pickingLists.export(pickingStaging, shop, posting); }
+                finally { OzonPrintTiming.add(OzonPrintTiming.Stage.PICKING,pickingStarted); }
+            }
             File finishedLabels=labelStaging,finishedPicking=pickingStaging;OzonExemplarJob finishedJob=job;
             if(destination==null)ownedPublish(shop,operation.validateShopOwner(),newPrint,()->{
                 AtomicFilePublisher.publish(finishedLabels,labelTarget);
@@ -300,7 +316,9 @@ public final class OzonPrintBundleService {
                     if(index%OzonExemplarService.READ_AHEAD==0&&context.preparation.refreshEveryNewPrint()) {
                         List<String> window=safePostings.subList(index,Math.min(index+OzonExemplarService.READ_AHEAD,safePostings.size())).stream()
                                 .filter(number->!accepted(context.jobs.get(number))).toList();
-                        context.preparation.prefetch(frozenShop,window);
+                        long prepareStarted=OzonPrintTiming.tick();
+                        try { context.preparation.prefetch(frozenShop,window); }
+                        finally { OzonPrintTiming.add(OzonPrintTiming.Stage.PREPARATION,prepareStarted); }
                     }
                     ExportResult result = exportInternal(frozenShop,safePostings.get(index),labelPart,null,false,context,destination);
                     totalPages += result.totalPages();
@@ -310,7 +328,9 @@ public final class OzonPrintBundleService {
             }
             requireNotInterrupted();
             List<OzonPostingDto> current = safePostings.stream().map(context.postings::get).toList();
-            pickingLists.exportBatch(pickingStaging, frozenShop, current);
+            long pickingStarted=OzonPrintTiming.tick();
+            try { pickingLists.exportBatch(pickingStaging, frozenShop, current); }
+            finally { OzonPrintTiming.add(OzonPrintTiming.Stage.PICKING,pickingStarted); }
             requireNotInterrupted();
             File finishedLabels=labelStaging,finishedPicking=pickingStaging;
             ownedPublish(frozenShop,context.preparation.validateShopOwner(),containsNewPrint,()->{

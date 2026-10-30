@@ -214,12 +214,63 @@ class LicenseServiceTest {
         seconds.set(epoch+100);nano.set(0);
         try(var restarted=new LicenseService(api,new LicenseVerifier(Map.of("test-fixture-v1",api.server.getPublic())),LicenseDomainFixture.store(directory),wall,nano::get)){restarted.initialize().get();assertFalse(restarted.allows(Permission.SELLER_API));}
     }
-    @Test void restartChecksServerBeforeAllowingNewTasks()throws Exception {
+    @Test void restartUsesOnlyVerifiedOfflineLeaseWithoutWaitingAndServerDenialRevokesIt()throws Exception {
         var api=new Api();try(var s=service(api,true)){active(s,api);}
         api.entered=new CountDownLatch(1);api.release=new CountDownLatch(1);api.failure=new LicenseApi.Failure("DEVICE_REVOKED",403);
         try(var restarted=new LicenseService(api,new LicenseVerifier(Map.of("test-fixture-v1",api.server.getPublic())),LicenseDomainFixture.store(directory),Clock.fixed(Instant.ofEpochSecond(epoch),ZoneOffset.UTC),nano::get)){
-            var ready=restarted.initialize();assertTrue(api.entered.await(2,TimeUnit.SECONDS));assertFalse(restarted.allows(Permission.SELLER_API));api.release.countDown();ready.get(5,TimeUnit.SECONDS);assertFalse(restarted.allows(Permission.SELLER_API));
+            var ready=restarted.initialize();ready.get(2,TimeUnit.SECONDS);assertTrue(api.entered.await(2,TimeUnit.SECONDS));
+            assertTrue(restarted.allows(Permission.SELLER_API));
+            var refresh=restarted.refresh();api.release.countDown();refresh.get(5,TimeUnit.SECONDS);
+            assertEquals(Status.DENIED,restarted.snapshot().status());assertFalse(restarted.allows(Permission.SELLER_API));
         }
+    }
+    @Test void restartWithInvalidCachedSignatureNeverAllowsRightsWhileNetworkIsPending()throws Exception {
+        var api=new Api();try(var s=service(api,true)){active(s,api);}
+        var otherKey=KeyPairGenerator.getInstance("Ed25519").generateKeyPair();
+        api.entered=new CountDownLatch(1);api.release=new CountDownLatch(1);api.failure=new LicenseApi.Failure("LICENSE_TIMEOUT",0);
+        try(var restarted=new LicenseService(api,new LicenseVerifier(Map.of("test-fixture-v1",otherKey.getPublic())),LicenseDomainFixture.store(directory),Clock.fixed(Instant.ofEpochSecond(epoch),ZoneOffset.UTC),nano::get)){
+            restarted.initialize().get(2,TimeUnit.SECONDS);assertTrue(api.entered.await(2,TimeUnit.SECONDS));
+            assertFalse(restarted.allows(Permission.SELLER_API));
+            var refresh=restarted.refresh();api.release.countDown();refresh.get(5,TimeUnit.SECONDS);
+            assertFalse(restarted.allows(Permission.SELLER_API));
+        }
+    }
+    @Test void restartWithExpiredOrOnlineOnlyLeaseNeverAllowsRightsWhileNetworkIsPending()throws Exception {
+        for(int hours:List.of(0,1)) {
+            var path=directory.resolve("offline-"+hours);var api=new Api();api.hours=hours;
+            try(var first=new LicenseService(api,new LicenseVerifier(Map.of("test-fixture-v1",api.server.getPublic())),LicenseDomainFixture.store(path),Clock.fixed(Instant.ofEpochSecond(epoch),ZoneOffset.UTC),nano::get)){
+                first.initialize().get(2,TimeUnit.SECONDS);active(first,api);
+            }
+            api.entered=new CountDownLatch(1);api.release=new CountDownLatch(1);api.failure=new LicenseApi.Failure("LICENSE_TIMEOUT",0);
+            long restartTime=epoch+(hours==0?0:3601);
+            try(var restarted=new LicenseService(api,new LicenseVerifier(Map.of("test-fixture-v1",api.server.getPublic())),LicenseDomainFixture.store(path),Clock.fixed(Instant.ofEpochSecond(restartTime),ZoneOffset.UTC),nano::get)){
+                restarted.initialize().get(2,TimeUnit.SECONDS);assertTrue(api.entered.await(2,TimeUnit.SECONDS));
+                assertFalse(restarted.allows(Permission.SELLER_API));
+                var refresh=restarted.refresh();api.release.countDown();refresh.get(5,TimeUnit.SECONDS);
+                assertFalse(restarted.allows(Permission.SELLER_API));
+            }
+        }
+    }
+    @Test void logoutDuringStartupRefreshCannotRestoreCachedRights()throws Exception {
+        var api=new Api();try(var s=service(api,true)){active(s,api);}
+        api.entered=new CountDownLatch(1);api.release=new CountDownLatch(1);
+        try(var restarted=new LicenseService(api,new LicenseVerifier(Map.of("test-fixture-v1",api.server.getPublic())),LicenseDomainFixture.store(directory),Clock.fixed(Instant.ofEpochSecond(epoch),ZoneOffset.UTC),nano::get)){
+            restarted.initialize().get(2,TimeUnit.SECONDS);assertTrue(api.entered.await(2,TimeUnit.SECONDS));assertTrue(restarted.allows(Permission.SELLER_API));
+            var refresh=restarted.refresh();var logout=restarted.logout();assertFalse(restarted.allows(Permission.SELLER_API));api.release.countDown();
+            refresh.get(5,TimeUnit.SECONDS);logout.get(5,TimeUnit.SECONDS);assertFalse(restarted.allows(Permission.SELLER_API));assertEquals(Status.UNREGISTERED,restarted.snapshot().status());
+        }
+    }
+    @Test void logoutDuringLocalLeasePublicationCannotStartOldSessionRefresh()throws Exception {
+        var api=new Api();try(var s=service(api,true)){active(s,api);}
+        api.entered=new CountDownLatch(1);api.release=new CountDownLatch(1);
+        try(var restarted=new LicenseService(api,new LicenseVerifier(Map.of("test-fixture-v1",api.server.getPublic())),LicenseDomainFixture.store(directory),Clock.fixed(Instant.ofEpochSecond(epoch),ZoneOffset.UTC),nano::get)){
+            var logout=new java.util.concurrent.atomic.AtomicReference<CompletableFuture<Snapshot>>();
+            var started=new java.util.concurrent.atomic.AtomicBoolean();
+            var subscription=restarted.subscribe(snapshot->{if(snapshot.status()==Status.OFFLINE&&started.compareAndSet(false,true))logout.set(restarted.logout());});
+            restarted.initialize().get(2,TimeUnit.SECONDS);assertNotNull(logout.get());logout.get().get(2,TimeUnit.SECONDS);
+            assertEquals(1,api.entered.getCount());assertEquals(Status.UNREGISTERED,restarted.snapshot().status());assertFalse(restarted.allows(Permission.SELLER_API));
+            subscription.close();
+        }finally{api.release.countDown();}
     }
 
 }

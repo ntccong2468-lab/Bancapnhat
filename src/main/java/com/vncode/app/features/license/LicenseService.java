@@ -41,6 +41,7 @@ public final class LicenseService implements AutoCloseable {
     }
     public synchronized CompletableFuture<Snapshot> initialize() {
         if(initialization!=null)return initialization;
+        long expectedGeneration=generation.get();
         initialization=submit(()->{
             State saved=store.load().orElse(null);
             if(saved==null){keys=LicenseDeviceKeys.create();clock=new LicenseClock(wall,nanos,0);state=new State(keys.publicKey(),keys.privateKey(),null,null,null,null,clock.now(),0,"");store.save(state);publish(Status.UNREGISTERED,"");}
@@ -55,10 +56,25 @@ public final class LicenseService implements AutoCloseable {
                 else publish(Status.UNREGISTERED,"");
             }
             return snapshot;
-        }).thenCompose(s->{
-            if(!closed&&state!=null&&!blank(state.accessToken())&&blank(state.denialCode())&&verifier.configured()){startupCheckPending=true;publish(Status.CHECKING,"");return refresh();}
-            return CompletableFuture.completedFuture(s);
-        }).thenApply(s->{if(!closed){try{timer.scheduleWithFixedDelay(this::tick,ThreadLocalRandom.current().nextLong(10,61),60,TimeUnit.SECONDS);}catch(RejectedExecutionException ignored){}}return s;});
+        }).thenApply(s->{
+            boolean shouldRefresh=false;
+            synchronized(submissionLock){
+                if(!closed&&generation.get()==expectedGeneration&&state!=null&&!blank(state.accessToken())&&blank(state.denialCode())&&verifier.configured()){
+                    // A verified, device-bound lease explicitly permits offline use until its
+                    // signed deadline. Do not delay startup for the network, but retain the
+                    // gate for sessions without valid cached offline rights. A later server
+                    // refusal still revokes the lease immediately.
+                    startupCheckPending=!hasVerifiedOfflineLease();
+                    publish(Status.CHECKING,"");
+                    shouldRefresh=true;
+                }
+            }
+            // transition/logout may occur after the lock is released: never start a
+            // refresh for a newer session, and preserve the service -> submission lock order.
+            if(shouldRefresh)refreshIfCurrent(expectedGeneration);
+            if(!closed){try{timer.scheduleWithFixedDelay(this::tick,ThreadLocalRandom.current().nextLong(10,61),60,TimeUnit.SECONDS);}catch(RejectedExecutionException ignored){}}
+            return snapshot;
+        });
         return initialization;
     }
     public Snapshot snapshot(){return snapshot;}
@@ -140,6 +156,9 @@ public final class LicenseService implements AutoCloseable {
             }
         });return refreshing;
     }
+    private synchronized void refreshIfCurrent(long expectedGeneration){
+        synchronized(submissionLock){if(!closed&&generation.get()==expectedGeneration)refresh();}
+    }
     public CompletableFuture<Snapshot> logout() {
         return transition(null,()->{requireKeys();state=new State(keys.publicKey(),keys.privateKey(),null,null,null,null,clock.now(),0,"");persist();publish(Status.UNREGISTERED,"");return snapshot;});
     }
@@ -147,6 +166,11 @@ public final class LicenseService implements AutoCloseable {
         Lease current=lease;State saved=state;LicenseClock time=clock;
         if(closed||startupCheckPending||leaseGeneration!=generation.get()||current==null||saved==null||!blank(saved.denialCode())||time==null||time.rollbackDetected()||!current.permissions().contains(permission))return false;
         long now=time.now();return now<current.subscriptionExpiresAt() && (now<onlineDeadline||current.offlineHours()>0&&now<current.expiresAt());
+    }
+    private boolean hasVerifiedOfflineLease(){
+        Lease current=lease;State saved=state;LicenseClock time=clock;
+        if(closed||leaseGeneration!=generation.get()||current==null||saved==null||!blank(saved.denialCode())||time==null||time.rollbackDetected()||current.offlineHours()<=0)return false;
+        long now=time.now();return now<current.subscriptionExpiresAt()&&now<current.expiresAt();
     }
     public int maxShops(){return lease==null?0:lease.maxShops();}
     // Retry the workflow, never a previously signed POST: challenge IDs are single-use.

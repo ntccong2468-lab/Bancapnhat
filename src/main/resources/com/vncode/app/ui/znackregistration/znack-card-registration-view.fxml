@@ -17,6 +17,7 @@
         <Button fx:id="updateWbButton" text="Cập nhật GTIN lên WB" onAction="#onUpdateWb" styleClass="btn-secondary" minWidth="140" wrapText="true"/>
         <Button fx:id="syncZnackButton" text="Đồng bộ Znack" onAction="#onSyncZnack" styleClass="btn-secondary" minWidth="100" wrapText="true"/>
     </HBox>
+    <Label fx:id="wbPriceImpactLabel" wrapText="true" styleClass="text-muted"/>
     <Label fx:id="loadingLabel" text="Đang tải..." visible="false" managed="false" styleClass="text-muted"/>
     <Label fx:id="readinessLabel" visible="false" managed="false" wrapText="true" styleClass="text-muted"/>
     <Label fx:id="operationLabel" visible="false" managed="false" wrapText="true" styleClass="text-muted"/>

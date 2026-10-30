@@ -23,6 +23,7 @@ public class ShipmentKizPane extends VBox {
     private Shop shop;private String shipment;private long generation,stockRevision;private boolean busy,locked,known;
     private KizSourceSelection selection=KizSourceSelection.SELLER_ONLY;
     private Consumer<KizSourceSelection> changed=value->{};
+    private Consumer<Boolean> readyChanged=value->{};
 
     public ShipmentKizPane() {
         setSpacing(8);title.getStyleClass().add("h3");hint.setWrapText(true);hint.getStyleClass().add("text-muted");status.setWrapText(true);
@@ -69,6 +70,8 @@ public class ShipmentKizPane extends VBox {
         if(shop!=null&&shipment!=null&&!shipment.isBlank()){reload();if(getScene()!=null)stockRefresh.play();}else stockRefresh.stop();
     }
     public void setOnSelectionChanged(Consumer<KizSourceSelection> listener){changed=Objects.requireNonNull(listener);changed.accept(selection);}
+    public void setOnReadyChanged(Consumer<Boolean> listener){readyChanged=Objects.requireNonNull(listener);readyChanged.accept(readyForUse());}
+    public boolean readyForUse(){return known&&!busy&&!locked&&shop!=null&&selection.anySelected();}
     public boolean purchaseSelected(){return selection.purchased();}
     public KizSourceSelection snapshot(){if(!known||busy||shop==null)throw new IllegalStateException("KIZ_SOURCE_LOADING");return selection;}
     public void setLocked(boolean value){boolean finished=locked&&!value;locked=value;buttons();if(finished)reload();}
@@ -95,7 +98,7 @@ public class ShipmentKizPane extends VBox {
     }
     private void render(KizSourceSelection value) {
         selection=value;imported.setSelected(value.sellerImported());purchased.setSelected(value.purchased());
-        table.setVisible(value.sellerImported());table.setManaged(value.sellerImported());changed.accept(value);
+        table.setVisible(value.sellerImported());table.setManaged(value.sellerImported());changed.accept(value);readyChanged.accept(readyForUse());
     }
     private void chooseFile(ShipmentKizRepository.CategoryStock category) {
         if(busy||locked||shop==null||!known)return;
@@ -139,6 +142,7 @@ public class ShipmentKizPane extends VBox {
         boolean unavailable=shop==null||shipment==null||shipment.isBlank();
         imported.setDisable(unavailable||busy||locked||!known);purchased.setDisable(unavailable||busy||locked||!known);
         table.setDisable(unavailable||busy||locked||!known);refresh.setDisable(unavailable||busy||locked);progress.setVisible(busy);progress.setManaged(busy);
+        readyChanged.accept(readyForUse());
     }
     public void applyTranslations() {
         title.setText(tr("title"));imported.setText(tr("seller_imported"));purchased.setText(tr("purchase"));refresh.setText(tr("refresh"));hint.setText(tr("help"));

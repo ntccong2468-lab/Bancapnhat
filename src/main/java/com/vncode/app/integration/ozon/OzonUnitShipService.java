@@ -6,15 +6,23 @@ import com.vncode.app.features.license.LicenseRuntime;
 import com.vncode.app.integration.listing.ListingIdentity;
 import com.vncode.app.integration.marketplace.MarketplaceGuard;
 import com.vncode.app.models.Shop;
+import com.vncode.app.features.kiz.KizSourceSelection;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.util.*;
+import java.util.concurrent.*;
 import java.util.function.BiFunction;
 
 /** One native v4 ship request, followed by authoritative per-child readback. */
 final class OzonUnitShipService {
     private static final org.slf4j.Logger LOGGER=org.slf4j.LoggerFactory.getLogger(OzonUnitShipService.class);
+    // Only independent, read-only child lookups overlap. The shared marketplace
+    // HTTP budget and per-endpoint limiter still govern every request.
+    private static final int CHILD_READ_AHEAD=2;
+    private static final ThreadPoolExecutor CHILD_READERS=new ThreadPoolExecutor(2,2,30,TimeUnit.SECONDS,
+            new ArrayBlockingQueue<>(32),task->{var thread=new Thread(task,"vncode-ozon-child-read");thread.setDaemon(true);return thread;},
+            new ThreadPoolExecutor.CallerRunsPolicy());
     private final OzonPostingRepository postings;
     private final OzonExemplarJobRepository jobs;
     private final BiFunction<Integer,OzonCredentials,OzonApiClient> clients;
@@ -22,17 +30,29 @@ final class OzonUnitShipService {
     OzonUnitShipService(OzonPostingRepository postings,OzonExemplarJobRepository jobs,BiFunction<Integer,OzonCredentials,OzonApiClient> clients){this.postings=postings;this.jobs=jobs;this.clients=clients;}
 
     OzonShipResult ship(Shop shop,String number,boolean confirmed)throws IOException {
+        return ship(shop,number,confirmed,null);
+    }
+    OzonShipResult ship(Shop shop,String number,boolean confirmed,KizSourceSelection sources)throws IOException {
         MarketplaceGuard.requireOzon(shop);if(!confirmed)throw new IllegalArgumentException("Explicit confirmation is required before accepting Ozon postings.");
         ListingIdentity.require(shop);number=OzonApiClient.requireExternalId(number,"posting number");
         var receipt=receipts.find(shop,number);
+        // A still-pending parent owns all of its children and the original
+        // source snapshot. Do not create a competing child shipment intent.
+        if(receipt==null&&receipts.pendingParentOfChild(shop,number)!=null)
+            throw new OzonApiException("reconcile_required",0,false,true,null);
         var api=clients.apply(shop.getId(),new OzonCredentials(shop.getClientId(),shop.getApiKey()));
         if(receipt!=null&&!receipt.state().equals("REJECTED"))return splitOnly(receipt)?finishMarkedSplit(shop,api,receipt):reconcile(shop,api,receipt,true);
         LicenseRuntime.require(Permission.PACKING);
         var raw=api.getPosting(number,true,true);
         var source=OzonJson.requirePostingDetail(raw,number);
+        // A split response can be lost before children are recorded. If this
+        // posting shares the unfinished parent order/warehouse, keep it pending
+        // until the original split is reconciled instead of allocating anew.
+        if(receipts.pendingParentForPosting(shop,source)!=null)
+            throw new OzonApiException("reconcile_required",0,false,true,null);
         if(OzonAcceptanceKizService.requiredBeforeAccept(shop,source)) {
-            if(OzonPackageBuilder.unitCount(source)>1)return startMarkedSplit(shop,api,source,raw);
-            new OzonAcceptanceKizService(jobs).ensure(shop,source,api);
+            if(OzonPackageBuilder.unitCount(source)>1)return startMarkedSplit(shop,api,source,raw,sources);
+            new OzonAcceptanceKizService(jobs).ensure(shop,source,api,sources);
             source=OzonJson.requirePostingDetail(api.getPosting(number,true,true),number);
         }
         if(!source.canShip()||!"awaiting_packaging".equals(source.status()))throw new IllegalStateException("OZON_SPLIT_NOT_SHIPPABLE");
@@ -40,7 +60,7 @@ final class OzonUnitShipService {
         int units=OzonPackageBuilder.unitCount(source);
         if(units>1&&containsMarks(OzonJson.object(raw,"result")))throw new IllegalStateException("OZON_SPLIT_HAS_BOUND_KIZ");
         var request=OzonPackageBuilder.perUnitPackages(source);String fingerprint=hash(request.toString());
-        if(!receipts.begin(shop,source,request.toString(),fingerprint,units))return reconcile(shop,api,receipts.find(shop,number),true);
+        if(!receipts.begin(shop,source,request.toString(),fingerprint,units,sources))return reconcile(shop,api,receipts.find(shop,number),true);
         jobs.logAction(shop.getId(),"ship_units",number,"pending",null,fingerprint);
         try {
             ListingIdentity.require(shop);LicenseRuntime.require(Permission.PACKING);
@@ -61,14 +81,14 @@ final class OzonUnitShipService {
     private static boolean splitOnly(OzonUnitShipRepository.Receipt receipt) {
         return JsonParser.parseString(receipt.request()).getAsJsonObject().has("postings");
     }
-    private OzonShipResult startMarkedSplit(Shop shop,OzonApiClient api,OzonPostingDto source,JsonObject raw)throws IOException {
+    private OzonShipResult startMarkedSplit(Shop shop,OzonApiClient api,OzonPostingDto source,JsonObject raw,KizSourceSelection sources)throws IOException {
         if(!"awaiting_packaging".equals(source.status()))throw new IllegalStateException("OZON_SPLIT_NOT_SHIPPABLE");
         if(source.orderId().isBlank()||source.warehouseId().isBlank())throw new IllegalStateException("OZON_SPLIT_MISSING_IDENTITY");
         if(containsMarks(OzonJson.object(raw,"result")))throw new IllegalStateException("OZON_SPLIT_HAS_BOUND_KIZ");
         var packages=OzonPackageBuilder.perUnitPackages(source);var request=new JsonObject();
         request.addProperty("posting_number",source.postingNumber());request.add("postings",packages.get("packages"));
         int units=OzonPackageBuilder.unitCount(source);String fingerprint=hash(request.toString());
-        if(receipts.begin(shop,source,request.toString(),fingerprint,units)) {
+        if(receipts.begin(shop,source,request.toString(),fingerprint,units,sources)) {
             try {
                 ListingIdentity.require(shop);LicenseRuntime.require(Permission.PACKING);
                 var response=api.splitWithoutAssembly(request);var children=new LinkedHashSet<String>();
@@ -99,16 +119,42 @@ final class OzonUnitShipService {
             receipts.update(shop,source.postingNumber(),"ACCEPTED",List.copyOf(numbers));
         }
         var children=new LinkedHashMap<String,OzonPostingDto>();var actual=new TreeMap<String,Integer>();
-        for(var number:numbers) {
-            var child=OzonJson.requirePostingDetail(api.getPosting(number,true,true),number);
+        for(var child:readSplitChildren(shop,api,List.copyOf(numbers))) {
+            var number=child.postingNumber();
             if(!source.orderId().equals(child.orderId())||!source.warehouseId().equals(child.warehouseId())||OzonPackageBuilder.unitCount(child)!=1)throw pending("OZON_SPLIT_FOREIGN_CHILD",null);
             for(var item:child.items())actual.merge(sku(item),item.quantity(),Math::addExact);children.put(number,child);
         }
         if(!quantities(source).equals(actual))throw pending("OZON_SPLIT_QUANTITY_MISMATCH",null);
         // Conserve every unit before assigning marks or assembling any child. Restart resumes native IDs.
         var shipper=new OzonShipService(postings,new OzonProductGtinMappingRepository(),jobs,clients);
-        for(var child:children.values())if("awaiting_packaging".equals(child.status()))shipper.ship(shop,child.postingNumber(),true);
+        // The source was frozen before the original split. On restart, never
+        // silently use the seller's new selection for an existing transaction.
+        for(var child:children.values())if("awaiting_packaging".equals(child.status()))shipper.ship(shop,child.postingNumber(),true,receipt.sources());
         return reconcile(shop,api,receipts.find(shop,source.postingNumber()),false);
+    }
+
+    private static List<OzonPostingDto> readSplitChildren(Shop shop,OzonApiClient api,List<String> numbers)throws IOException {
+        var result=new ArrayList<OzonPostingDto>(numbers.size());
+        for(int offset=0;offset<numbers.size();offset+=CHILD_READ_AHEAD) {
+            if(Thread.currentThread().isInterrupted())throw pending("OZON_SPLIT_READBACK_REQUIRED",null);
+            var window=numbers.subList(offset,Math.min(offset+CHILD_READ_AHEAD,numbers.size()));
+            var reads=new ArrayList<Future<OzonPostingDto>>(window.size());
+            try {
+                for(String number:window)reads.add(CHILD_READERS.submit(()->{
+                    ListingIdentity.require(shop);
+                    return OzonJson.requirePostingDetail(api.getPosting(number,true,true),number);
+                }));
+                for(var read:reads)try {result.add(read.get());}
+                catch(InterruptedException stopped){Thread.currentThread().interrupt();throw pending("OZON_SPLIT_READBACK_REQUIRED",stopped);}
+                catch(ExecutionException failed){
+                    Throwable cause=failed.getCause();
+                    if(cause instanceof IOException io)throw io;
+                    if(cause instanceof RuntimeException runtime)throw runtime;
+                    throw pending("OZON_SPLIT_READBACK_REQUIRED",cause);
+                }
+            } finally {for(var read:reads)if(!read.isDone())read.cancel(true);}
+        }
+        return List.copyOf(result);
     }
 
     private OzonShipResult reconcile(Shop shop,OzonApiClient api,OzonUnitShipRepository.Receipt receipt,boolean resumed)throws IOException {

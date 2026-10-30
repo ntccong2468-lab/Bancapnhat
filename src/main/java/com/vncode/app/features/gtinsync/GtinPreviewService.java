@@ -40,7 +40,7 @@ public final class GtinPreviewService {
         var first=requested.keySet().iterator().next();var adapter=adapters.apply(first);
         if(!(adapter instanceof GtinBatchAdapter batch)){var result=new ArrayList<Preview>();for(var e:requested.entrySet())result.add(create(e.getKey(),Operation.ADD,"",e.getValue()));return List.copyOf(result);}
         if(requested.keySet().stream().anyMatch(k->k.shopId()!=first.shopId()||k.marketplace()!=first.marketplace()))throw new IllegalArgumentException("mixed_shops");
-        var owners=new HashMap<String,ProductKey>();for(var entry:requested.entrySet()){var previous=owners.putIfAbsent(RegisteredGtinProof.canonicalCode(entry.getValue()),entry.getKey());if(previous!=null&&!previous.equals(entry.getKey()))throw new IllegalArgumentException("gtin_on_another_product");}
+        var owners=new HashMap<String,ProductKey>();for(var entry:requested.entrySet()){var previous=owners.putIfAbsent(RegisteredGtinProof.canonicalCode(entry.getValue()),entry.getKey());if(previous!=null&&!previous.equals(entry.getKey()))throw new IllegalArgumentException("GTIN_SELECTED_MULTIPLE_PRODUCTS");}
         LicenseRuntime.require(Permission.SELLER_API);batch.prepareBatch(requested.keySet());
         var observed=repository.catalogItems(first.shopId(),first.marketplace(),requested.values());batch.validateRegistrations(requested.values());
         var now=clock.instant();var result=new ArrayList<Preview>();

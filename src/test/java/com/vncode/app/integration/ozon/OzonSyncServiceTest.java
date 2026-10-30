@@ -104,7 +104,7 @@ class OzonSyncServiceTest {
                 }
                 if(path.endsWith("/v3/product/info/list")){
                     String id=body.getAsJsonArray("product_id").get(0).getAsString();String offer=id.equals("101")?"A":"B";
-                    return json("{\"items\":[{\"id\":\""+id+"\",\"offer_id\":\""+offer+"\",\"name\":\"Fixture\",\"sku\":\""+id+"\"}]}");
+                    return json("{\"items\":[{\"id\":\""+id+"\",\"offer_id\":\""+offer+"\",\"name\":\"Fixture\",\"sku\":\""+id+"\",\"barcodes\":[]}]}");
                 }
                 if(path.endsWith("/v4/product/info/attributes")){
                     String id=body.getAsJsonObject("filter").getAsJsonArray("product_id").get(0).getAsString();String offer=id.equals("101")?"A":"B";
@@ -120,6 +120,43 @@ class OzonSyncServiceTest {
     @Test void anEmptyCatalogPageCannotClaimSuccessWithProductsStillMissing()throws Exception {
         server.enqueue(json("{\"result\":{\"items\":[],\"total\":2,\"last_id\":\"\"}}"));
         assertEquals("OZON_INCOMPLETE_PRODUCT_PAGE",assertThrows(IOException.class,()->new OzonCatalogSyncService(1,api).syncForRegistration(p->failSnapshot())).getMessage());
+    }
+    @Test void missingBarcodeFieldDoesNotEraseTheLastObservedBarcodeOrAdvanceCursor()throws Exception{
+        var old=new OzonProductDto("101","A","501","Saved product","",false,"",java.util.List.of("saved-barcode"));
+        new OzonCatalogRepository().upsertPage(1,java.util.List.of(old),"saved-cursor");
+        server.enqueue(json("{\"result\":{\"total\":1,\"items\":[{\"product_id\":\"101\",\"offer_id\":\"A\"}],\"last_id\":\"next\"}}"));
+        server.enqueue(json("{\"items\":[{\"id\":\"101\",\"offer_id\":\"A\",\"name\":\"Fixture\",\"sku\":\"501\"}]}"));
+        assertEquals("OZON_INCOMPLETE_PRODUCT_PAGE",assertThrows(IOException.class,()->new OzonCatalogSyncService(1,api).syncFromStart()).getMessage());
+        assertEquals(java.util.List.of("saved-barcode"),new OzonCatalogRepository().findAll(1).getFirst().barcodes());
+        assertEquals("saved-cursor",new OzonSyncStateRepository().find(1).productsLastId());
+    }
+    @Test void aSupersededPageIsRetriedBeforeItsBarcodeOrCursorCanBeCommitted()throws Exception{
+        var old=new OzonProductDto("101","A","501","Saved product","",false,"",java.util.List.of("NEW"));
+        new OzonCatalogRepository().upsertPage(1,java.util.List.of(old),"saved-cursor");
+        var firstInfo=new java.util.concurrent.CountDownLatch(1);var allowReturn=new java.util.concurrent.CountDownLatch(1);
+        var listCalls=new java.util.concurrent.atomic.AtomicInteger();var infoCalls=new java.util.concurrent.atomic.AtomicInteger();
+        server.setDispatcher(new okhttp3.mockwebserver.Dispatcher(){@Override public MockResponse dispatch(okhttp3.mockwebserver.RecordedRequest request){
+            String path=request.getPath();
+            if(path.endsWith("/v3/product/list")){listCalls.incrementAndGet();return json("{\"result\":{\"total\":1,\"items\":[{\"product_id\":\"101\",\"offer_id\":\"A\"}],\"last_id\":\"next\"}}");}
+            if(path.endsWith("/v3/product/info/list")){
+                int call=infoCalls.incrementAndGet();if(call==1){firstInfo.countDown();try{if(!allowReturn.await(4,TimeUnit.SECONDS))throw new AssertionError("timed out");}catch(InterruptedException e){Thread.currentThread().interrupt();throw new AssertionError(e);}}
+                return json("{\"items\":[{\"id\":\"101\",\"offer_id\":\"A\",\"name\":\"Fixture\",\"sku\":\"501\",\"barcodes\":[\""+(call==1?"OLD":"NEW")+"\"]}]}");
+            }
+            if(path.endsWith("/v4/product/info/attributes"))return json("{\"result\":[{\"id\":\"101\",\"offer_id\":\"A\",\"description_category_id\":1,\"type_id\":2,\"attributes\":[]}]}");
+            return json("{\"result\":[]}");
+        }});
+        var executor=java.util.concurrent.Executors.newSingleThreadExecutor();
+        try{
+            var sync=executor.submit(()->new OzonCatalogSyncService(1,api).syncFromStart());
+            assertTrue(firstInfo.await(4,TimeUnit.SECONDS));
+            com.vncode.app.features.gtinsync.MarketplaceBarcodeCache.issueOzon(1,api.syncOwnerFingerprint(1),java.util.List.of("101"));
+            try(var c=Database.getConnection();var p=c.prepareStatement("INSERT INTO gtin_sync_barcode_observations(shop_id,marketplace,product_id,variant_id,owner,observed_at) VALUES(1,'OZON','101','A',?,?)")){
+                p.setString(1,api.syncOwnerFingerprint(1));p.setString(2,java.time.Instant.now().toString());p.executeUpdate();
+            }
+            allowReturn.countDown();assertEquals(1,sync.get(10,TimeUnit.SECONDS));assertEquals(2,listCalls.get());assertEquals(2,infoCalls.get());
+            assertEquals(java.util.List.of("NEW"),new OzonCatalogRepository().findAll(1).getFirst().barcodes());
+            assertEquals("next",new OzonSyncStateRepository().find(1).productsLastId());
+        }finally{allowReturn.countDown();executor.shutdownNow();}
     }
 
     private void rotateCredentialsDuringResponse(String body) {
@@ -296,7 +333,7 @@ class OzonSyncServiceTest {
         server.enqueue(json("{\"result\":{\"items\":[{\"product_id\":\"" + externalId
                 + "\",\"offer_id\":\"offer-1\"}],\"last_id\":\"cursor-2\"}}"));
         server.enqueue(json("{\"items\":[{\"id\":\"" + externalId
-                + "\",\"offer_id\":\"offer-1\",\"sku\":\"sku-1\",\"name\":\"Item\","
+                + "\",\"offer_id\":\"offer-1\",\"sku\":\"sku-1\",\"name\":\"Item\",\"barcodes\":[],"
                 + "\"primary_image\":\"https://cdn.example/item.jpg\"}]}"));
         server.enqueue(json("{\"result\":[{\"id\":\"" + externalId
                 + "\",\"offer_id\":\"offer-1\",\"description_category_id\":\"17000001\","

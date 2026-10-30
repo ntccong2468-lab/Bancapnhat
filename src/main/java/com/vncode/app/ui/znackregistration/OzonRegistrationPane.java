@@ -103,7 +103,7 @@ public final class OzonRegistrationPane extends VBox {
         TableScrollLoader.install(table,()->!disposed&&!busy&&!batchReviewing&&readiness!=null&&readiness.hasSnapshot()&&cursor!=null,()->load(true));
         table.setId("ozonRegistrationTable");table.setFixedCellSize(76);table.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
         table.getSelectionModel().getSelectedItems().addListener((javafx.collections.ListChangeListener<ProductRow>)change->{if(!programmaticSelection){frozen=List.of();buttons();}});
-        documents.setOnAction(e->configureDocuments());refresh.setOnAction(e->reload());sync.setOnAction(e->syncCatalog());sign.setOnAction(e->signApproved());gtin.setOnAction(e->{if(ready()&&!busy)this.openGtin.run();});report.setOnAction(e->RegistrationSyncReportDialog.show(getScene()==null?null:getScene().getWindow(),owner,lastActionRun));
+        documents.setOnAction(e->configureDocuments());refresh.setOnAction(e->reload());sync.setOnAction(e->syncCatalog());sign.setOnAction(e->signApproved());gtin.setOnAction(e->{if(ready()&&!busy)this.openGtin.run();});report.setOnAction(e->RegistrationSyncReportDialog.show(getScene()==null?null:getScene().getWindow(),owner,lastActionRun,this::prepareConfirmedConflict));
         stopBatch.setOnAction(e->{cancelBatch.set(true);stopBatch.setDisable(true);status.setText(tr("znack.registration.batch_stopping"));});all.setOnAction(e->selectAll());clear.setOnAction(e->{frozen=List.of();table.getSelectionModel().clearSelection();buttons();});
         register.setOnAction(e->{if("ERROR".equals(statusFilter.getValue())||table.getSelectionModel().getSelectedItems().stream().anyMatch(row->view(row).status().equals("source.errors")))openErrorRepair(selected().isEmpty());else registerSelection();});newCards.setOnAction(e->registerBatch(true));more.setOnAction(e->load(true));
         debounce.setOnFinished(e->reload());refreshDebounce.setOnFinished(e->refreshBatchRows());batchRowsRefresh.setOnFinished(e->refreshBatchRows());search.textProperty().addListener((o,a,b)->debounce.playFromStart());
@@ -383,27 +383,40 @@ public final class OzonRegistrationPane extends VBox {
         if(newCard&&!replacementConfirmation.test(key,true))return;
         preparationStarter.accept(key,newCard);
     }
+    private void prepareConfirmedConflict(OzonGtinConflictReview.Confirmed conflict) {
+        if(busy||disposed||!ready())return;
+        // The report has just re-read Ozon; seller consent is still required
+        // because the existing card is retained and a new GTIN may be allocated.
+        if(!confirm(tr("znack.registration.conflict_confirmed")))return;
+        readConflictPreparation(conflict.key(),conflict.gtin());
+    }
+    private void readConflictPreparation(ProductKey key,String conflictGtin){
+        background(()->{sources.require(owner);return workflow.prepare(owner,key);},prepared->continuePrepare(key,true,prepared,conflictGtin));
+    }
     private void readPreparation(ProductKey key,boolean newCard){
         background(()->{allowedKeys(List.of(key),newCard);return workflow.prepare(owner,key);},prepared->continuePrepare(key,newCard,prepared));
     }
     private void continuePrepare(ProductKey key,boolean newCard,OzonCardRegistrationWorkflow.Preparation prepared) {
+        continuePrepare(key,newCard,prepared,"");
+    }
+    private void continuePrepare(ProductKey key,boolean newCard,OzonCardRegistrationWorkflow.Preparation prepared,String conflictGtin) {
         if(!prepared.documents().issues().isEmpty()&&prepared.documents().candidates().isEmpty()){
             if(prepared.documents().issues().stream().anyMatch(issue->issue.contains("ZNACK_DOCUMENT_REGISTRY_PENDING"))){status.setText(tr("catalogsync.issue.REGISTRY_DOCUMENTS_PENDING"));return;}
             var review=new RegistrationBatchPreflight.Review(List.of(new RegistrationBatchPreflight.Finding("documents",key,prepared.snapshot().vendorArticle(),String.join("; ",prepared.documents().issues()),"")));
-            if(RegistrationBatchPreflight.show(getScene()==null?null:getScene().getWindow(),owner,review)&&!disposed)prepare(key,newCard);
+            if(RegistrationBatchPreflight.show(getScene()==null?null:getScene().getWindow(),owner,review)&&!disposed){if(conflictGtin.isBlank())prepare(key,newCard);else readConflictPreparation(key,conflictGtin);}
             return;
         }
         if(prepared.preflight()==null) {
             var dialog=new TextInputDialog(prepared.tnved());dialog.setTitle(tr("znack.registration.title"));dialog.setHeaderText(tr("znack.registration.ozon_tnved"));
             var value=dialog.showAndWait();if(value.isEmpty())return;
             if(!value.get().strip().matches("[0-9]{10}")){status.setText(tr("znack.registration.ozon_tnved"));return;}
-            background(()->{sources.require(owner);return workflow.prepare(owner,key,value.get().strip());},next->continuePrepare(key,newCard,next));return;
+            background(()->{sources.require(owner);return workflow.prepare(owner,key,value.get().strip());},next->continuePrepare(key,newCard,next,conflictGtin));return;
         }
         if(prepared.categoryId()==0){status.setText(tr("znack.registration.category_auto_missing"));return;}
         var draft=OzonRegistrationReviewDialog.review(prepared);
         if(draft==null)return;
         var authorised=draft.withAutoSign(autoSign.isSelected());
-        background(()->{allowedKeys(List.of(key),newCard);return workflow.registerReviewed(owner,prepared,authorised,true,newCard,listener());},accepted->{status.setText(tr(accepted?"znack.registration.ozon_accepted":"znack.registration.already_running"));refreshDebounce.playFromStart();});
+        background(()->{if(!conflictGtin.isBlank()){sources.require(owner);return workflow.registerReviewedAfterConflict(owner,prepared,authorised,true,conflictGtin,listener());}allowedKeys(List.of(key),newCard);return workflow.registerReviewed(owner,prepared,authorised,true,newCard,listener());},accepted->{status.setText(tr(accepted?"znack.registration.ozon_accepted":"znack.registration.already_running"));refreshDebounce.playFromStart();});
     }
     private void resume(ProductKey key){if(!confirm(tr("znack.registration.confirm_resume")))return;boolean allowed=autoSign.isSelected();background(()->{sources.require(owner);return workflow.resume(owner,key,allowed,listener());},accepted->refreshDebounce.playFromStart());}
     private void complete(ProductKey key){if(!confirm(tr("znack.registration.confirm_switch")))return;background(()->{sources.require(owner);return workflow.complete(owner,key,true,listener());},accepted->refreshDebounce.playFromStart());}

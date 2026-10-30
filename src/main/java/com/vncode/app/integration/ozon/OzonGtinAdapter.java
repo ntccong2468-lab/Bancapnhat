@@ -43,13 +43,15 @@ public final class OzonGtinAdapter implements GtinBatchAdapter {
         if(new GtinCatalogIndex(List.of(source)).ozon(row).size()!=1)throw new IllegalArgumentException("GTIN_VARIANT_IDENTITY_UNVERIFIED");
         GtinTnvedIdentity.requireCompatible(product,source);
     }
-    public ProductSnapshot read(ProductKey key)throws IOException{var actual=snapshot(key,ownProduct(key),null);observe(actual);return actual;}
-    private void observe(ProductSnapshot actual){if(!(client instanceof GtinBatchTransport))MarketplaceBarcodeCache.observe(shop,actual.key(),actual.barcodes());}
+    public ProductSnapshot read(ProductKey key)throws IOException{var tokens=beginRead(key);var started=Instant.now();var actual=snapshot(key,ownProduct(key),null);if(!observe(actual,started,tokens))throw new IOException("OZON_BARCODE_READ_SUPERSEDED");return actual;}
+    private Map<String,Long> beginRead(ProductKey key){requireKey(key);return client instanceof GtinBatchTransport?Map.of():MarketplaceBarcodeCache.issueOzon(shop.getId(),ListingIdentity.fingerprint(shop),List.of(key.productId()));}
+    private boolean observe(ProductSnapshot actual,Instant started,Map<String,Long> tokens){return client instanceof GtinBatchTransport||MarketplaceBarcodeCache.observe(shop,actual.key(),actual.barcodes(),started,tokens);}
     /** Exact owned readback for activating a signed Catalog candidate; no card import or write. */
     public boolean hasBarcode(ProductKey key,String expectedSku,String gtin)throws IOException {
-        var product=ownProduct(key);
+        var tokens=beginRead(key);var started=Instant.now();var product=ownProduct(key);
+        var actual=snapshot(key,product,null);if(!observe(actual,started,tokens))throw new IOException("OZON_BARCODE_READ_SUPERSEDED");
         if(!expectedSku.equals(text(product,"sku"))||!RegisteredGtinProof.contains(strings(strictArray(product,"barcodes")),gtin))return false;
-        try{validateIdentity(snapshot(key,product,null),new GtinSyncRepository().catalogItem(shop.getId(),Marketplace.OZON,gtin));return true;}catch(IllegalArgumentException unknown){return false;}
+        try{validateIdentity(actual,new GtinSyncRepository().catalogItem(shop.getId(),Marketplace.OZON,gtin));return true;}catch(IllegalArgumentException unknown){return false;}
     }
     public boolean conflicts(ProductKey key,String gtin)throws IOException {
         requireKey(key);if(client instanceof GtinBatchTransport batch)return batch.conflicts(key,gtin);
@@ -154,7 +156,7 @@ public final class OzonGtinAdapter implements GtinBatchAdapter {
     private static GtinKnownUnsentException knownUnsent(Exception cause){var error=new GtinKnownUnsentException(com.vncode.app.features.sync.SyncFailure.of(cause,0).code());error.initCause(cause);return error;}
     private static String rejectionCode(JsonObject error){String code=text(error,"code").toUpperCase(Locale.ROOT).replaceAll("[^A-Z0-9_]","_");return code.substring(0,Math.min(60,code.length()));}
     public Verification verify(Preview preview,Submission submission)throws IOException {
-        var key=preview.before().key();requireKey(key);var product=ownProduct(key);var actual=snapshot(key,product,null);observe(actual);
+        var key=preview.before().key();requireKey(key);var tokens=beginRead(key);var started=Instant.now();var product=ownProduct(key);var actual=snapshot(key,product,null);if(!observe(actual,started,tokens))return Verification.UNKNOWN;
         if(RegisteredGtinProof.contains(actual.barcodes(),preview.newGtin())) {
             var restored=actual.barcodes().stream().filter(code->!RegisteredGtinProof.sameCode(code,preview.newGtin())).toList();
             if(!snapshotMatches(preview.before(),snapshot(key,product,restored)))return Verification.UNKNOWN;

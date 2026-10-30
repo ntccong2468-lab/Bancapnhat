@@ -10,6 +10,7 @@ public enum CatalogCardState {
     PUBLISHED("status.published","SUCCEEDED","SOURCE_PUBLISHED_CONFIRMED"),
     ERRORS("source.errors","NEEDS_ACTION","CATALOG_CARD_ERRORS"),
     MODERATION("source.moderation","WAITING_REMOTE","CATALOG_CARD_MODERATION"),
+    NOT_SIGNED("source.not_signed","NEEDS_ACTION","CATALOG_CARD_NOT_SIGNED"),
     DRAFT("source.draft","NEEDS_ACTION","CATALOG_CARD_DRAFT"),
     UNPUBLISHED("source.unpublished","UNCHANGED","SOURCE_NOT_PUBLISHED");
     public final String viewStatus,reportState,reason;
@@ -20,6 +21,9 @@ public enum CatalogCardState {
                 .map(s->s.strip().toLowerCase(Locale.ROOT)).collect(Collectors.toSet());
         if(details.stream().anyMatch(Set.of("errors","rejected","error")::contains))return ERRORS;
         if(details.contains("moderation"))return MODERATION;
+        // Only the explicit remote status is sufficient. A draft or good_signed=false
+        // alone does not mean that moderation has approved it for signature.
+        if(details.contains("notsigned")||card.details().values("@catalog_status").stream().anyMatch(s->"notsigned".equalsIgnoreCase(s.strip())))return NOT_SIGNED;
         if(details.contains("draft")||card.details().values("@catalog_status").stream().anyMatch(s->"draft".equalsIgnoreCase(s.strip())))return DRAFT;
         return UNPUBLISHED;
     }

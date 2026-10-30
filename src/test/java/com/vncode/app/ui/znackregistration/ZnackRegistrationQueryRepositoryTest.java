@@ -124,6 +124,21 @@ class ZnackRegistrationQueryRepositoryTest {
         assertTrue(observed.allEligible(new SearchCriteria(1,"",List.of(),"IN_PROGRESS",300,0))
                 .stream().noneMatch(row->row.chrtId()==503),"An existing draft is not a new submission");
     }
+    @Test void observedUnsignedCardStaysVisibleInProcessingWithoutInventingAFeed()throws Exception {
+        var shop=new com.vncode.app.models.Shop(1,"Fixture WB","fixture");
+        String receipt=com.vncode.app.testsupport.RegistrationSourceFixture.ready(shop);
+        String code="00000000000017";
+        try(var c=Database.getConnection();var q=c.createStatement()){q.execute("INSERT INTO wb_product_size_skus(shop_id,chrt_id,sku) VALUES(1,501,'"+code+"')");}
+        var details=com.vncode.app.integration.znack.registration.CatalogProductDataParser.parse(com.google.gson.JsonParser.parseString("{\"good_id\":901,\"good_status\":\"draft\",\"good_signed\":false,\"good_detailed_status\":[\"notsigned\"]}").getAsJsonObject());
+        new GtinSyncRepository().saveCatalog(1,Marketplace.WILDBERRIES,List.of(new RegisteredGtin(code,"same-article","","XL",true,false,com.vncode.app.features.gtinsync.RegisteredGtinProof.source(shop),Instant.now(),details)));
+        var observed=new ZnackRegistrationQueryRepository(receipt,new com.vncode.app.features.sync.RegistrationCardIndex(shop));
+        var criteria=new SearchCriteria(1,"",List.of(),"IN_PROGRESS",300,0);
+        var row=observed.page(criteria).rows().stream().filter(r->r.chrtId()==501).findFirst().orElseThrow();
+        assertFalse(row.hasFeed());assertFalse(row.hasGtin());
+        assertFalse(observed.page(new SearchCriteria(1,"",List.of(),"ERROR",300,0)).rows().stream().anyMatch(r->r.chrtId()==501));
+        assertFalse(observed.page(new SearchCriteria(1,"",List.of(),"NOT_CREATED",300,0)).rows().stream().anyMatch(r->r.chrtId()==501));
+        assertTrue(observed.allEligible(criteria).stream().noneMatch(r->r.chrtId()==501),"Observation of an unsigned Catalog card is not permission to resend it");
+    }
     @Test void aPureIdentifiedDraftCanBeSelectedForReviewButAnExistingFeedCannotBeReplayed()throws Exception {
         var shop=new com.vncode.app.models.Shop(1,"Fixture WB","fixture");String receipt=com.vncode.app.testsupport.RegistrationSourceFixture.ready(shop);
         try(var c=Database.getConnection();var statement=c.createStatement()){

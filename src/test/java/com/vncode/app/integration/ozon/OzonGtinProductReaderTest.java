@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import okhttp3.OkHttpClient;
 import okhttp3.mockwebserver.*;
@@ -61,5 +62,59 @@ class OzonGtinProductReaderTest {
     }
     @Test void aWrongCapturedShopCannotBorrowAnApiClientsCurrentAccount(){
         var wrong=new Shop(shop.getId(),shop.getName(),Marketplace.OZON,shop.getClientId(),"wrong-synthetic-token");var reader=new OzonGtinProductReader(wrong,api);assertThrows(SecurityException.class,reader::list);assertThrows(SecurityException.class,()->reader.read(key()));assertEquals(0,server.getRequestCount());
+    }
+    @Test void freshBarcodeReadbackChecksTheExactSkuAndUpdatesOnlyObservedProducts()throws Exception{
+        var first=key();var second=new com.vncode.app.features.gtinsync.GtinSyncModels.ProductKey(shop.getId(),Marketplace.OZON,"502","offer-502");
+        try(var c=Database.getConnection();var s=c.createStatement()){
+            s.execute("INSERT INTO ozon_products(shop_id,product_id,offer_id,sku,synced_at) VALUES(2,'501','offer-501','1501','fixture'),(2,'502','offer-502','1502','fixture')");
+            s.execute("INSERT INTO ozon_product_barcodes(shop_id,product_id,barcode) VALUES(2,'501','old'),(2,'502','untouched')");
+        }
+        respond(info(card(501)+","+card(502)));
+        var actual=reader.readBarcodes(Map.of(first,"1501",second,"wrong-sku"));
+        assertEquals(Map.of(first,List.of("00000000000017","OZN-501")),actual);assertEquals(1,server.getRequestCount());
+        try(var c=Database.getConnection();var p=c.prepareStatement("SELECT barcode FROM ozon_product_barcodes WHERE shop_id=2 AND product_id='502'" );var row=p.executeQuery()){
+            assertTrue(row.next());assertEquals("untouched",row.getString(1));
+        }
+    }
+    @Test void freshBarcodeReadbackUsesAtMostOneThousandProductsPerRequest()throws Exception{
+        var requested=new java.util.LinkedHashMap<com.vncode.app.features.gtinsync.GtinSyncModels.ProductKey,String>();
+        var first=new java.util.ArrayList<String>();
+        for(int id=1;id<=1001;id++){
+            requested.put(new com.vncode.app.features.gtinsync.GtinSyncModels.ProductKey(shop.getId(),Marketplace.OZON,Integer.toString(id),"offer-"+id),Integer.toString(id+1000));
+            if(id<=1000)first.add(card(id));
+        }
+        try(var c=Database.getConnection();var p=c.prepareStatement("INSERT INTO ozon_products(shop_id,product_id,offer_id,sku,synced_at) VALUES(2,?,?,?,'fixture')")){
+            for(int id=1;id<=1001;id++){p.setString(1,Integer.toString(id));p.setString(2,"offer-"+id);p.setString(3,Integer.toString(id+1000));p.addBatch();}p.executeBatch();
+        }
+        respond(info(String.join(",",first)));respond(info(card(1001)));
+        assertEquals(1001,reader.readBarcodes(requested).size());assertEquals(2,server.getRequestCount());
+        assertEquals(1000,JsonParser.parseString(server.takeRequest().getBody().readUtf8()).getAsJsonObject().getAsJsonArray("product_id").size());
+        assertEquals(1,JsonParser.parseString(server.takeRequest().getBody().readUtf8()).getAsJsonObject().getAsJsonArray("product_id").size());
+    }
+    @Test void incompleteFreshReadbackCannotConfirmAnyProduct(){
+        respond(info(""));assertThrows(IOException.class,()->reader.readBarcodes(Map.of(key(),"1501")));
+    }
+    @Test void autoArchivedProductCannotBecomeAVerifiedCurrentMapping()throws Exception{
+        respond(info(card(501).replace("\"barcodes\":", "\"is_autoarchived\":true,\"barcodes\":")));
+        assertTrue(reader.readBarcodes(Map.of(key(),"1501")).isEmpty());
+    }
+    @Test void anOlderResponseArrivingLateCannotOverwriteOrConfirmANewerBarcodeRead()throws Exception{
+        try(var c=Database.getConnection();var p=c.prepareStatement("INSERT INTO ozon_products(shop_id,product_id,offer_id,sku,synced_at) VALUES(2,'501','offer-501','1501','fixture')")){p.executeUpdate();}
+        var olderStarted=new java.util.concurrent.CountDownLatch(1);var releaseOlder=new java.util.concurrent.CountDownLatch(1);
+        var order=new java.util.concurrent.atomic.AtomicInteger();
+        server.setDispatcher(new Dispatcher(){@Override public MockResponse dispatch(RecordedRequest request)throws InterruptedException{
+            if(order.incrementAndGet()==1){olderStarted.countDown();releaseOlder.await(5,TimeUnit.SECONDS);return new MockResponse().setHeader("Content-Type","application/json").setBody(info(card(501)));}
+            return new MockResponse().setHeader("Content-Type","application/json").setBody(info(card(501).replace("00000000000017","newer-barcode")));
+        }});
+        var executor=java.util.concurrent.Executors.newSingleThreadExecutor();
+        try{
+            var older=executor.submit(()->reader.readBarcodes(Map.of(key(),"1501")));assertTrue(olderStarted.await(3,TimeUnit.SECONDS));
+            var newer=reader.readBarcodes(Map.of(key(),"1501"));assertTrue(newer.get(key()).contains("newer-barcode"));releaseOlder.countDown();
+            var failure=assertThrows(java.util.concurrent.ExecutionException.class,()->older.get(5,TimeUnit.SECONDS));
+            assertInstanceOf(IOException.class,failure.getCause());assertEquals("OZON_BARCODE_READ_SUPERSEDED",failure.getCause().getMessage());
+            try(var c=Database.getConnection();var p=c.prepareStatement("SELECT barcode FROM ozon_product_barcodes WHERE shop_id=2 AND product_id='501' ORDER BY barcode");var rows=p.executeQuery()){
+                var values=new java.util.ArrayList<String>();while(rows.next())values.add(rows.getString(1));assertEquals(List.of("OZN-501","newer-barcode"),values);
+            }
+        }finally{releaseOlder.countDown();executor.shutdownNow();}
     }
 }

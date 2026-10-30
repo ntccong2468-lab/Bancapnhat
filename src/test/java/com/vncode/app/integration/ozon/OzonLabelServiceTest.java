@@ -312,6 +312,56 @@ class OzonLabelServiceTest {
         for(int i=0;i<numbers.size();i++)assertEquals("v3s:"+(8000+i),repo.find(1,numbers.get(i)).taskId());
     }
 
+    @Test void printAllOneHundredOrdersCreatesOneSharedLabelTaskAndMapsEveryPage() throws Exception {
+        var numbers = java.util.stream.IntStream.range(0,100)
+                .mapToObj(i -> "95000000-" + String.format("%04d",i) + "-1").toList();
+        var selected = numbers.stream().map(number -> new OzonPostingDto(number,number,number,"awaiting_deliver",
+                "","","","","","",new OzonRequirements(java.util.List.of(),java.util.List.of(),java.util.List.of()),
+                java.util.List.of(),false,java.util.List.of(new OzonPostingItemDto(0,"product","sku","offer","Product",1,"RUB","1")))).toList();
+        new OzonPostingRepository().upsertPage(1,selected);
+        new OzonProductKizPolicyRepository().setRequired(1,"sku",false);
+        var reversed = new java.util.ArrayList<>(numbers);
+        java.util.Collections.reverse(reversed);
+        byte[] pdfBytes = textPdf(reversed.toArray(String[]::new));
+        server.enqueue(json("{\"task_id\":7001}"));
+        server.enqueue(json("{\"status\":\"completed\",\"file_url\":\""+server.url("/cdn/hundred.pdf")+"\"}"));
+        server.enqueue(new MockResponse().setBody(new okio.Buffer().write(pdfBytes)));
+
+        var labelService = new OzonLabelService(new OzonLabelRepository(),this::client);
+        var downloader = new OzonPrintBundleService.OfficialLabelDownloader() {
+            public java.io.File download(Shop shop,String number,java.io.File target) throws IOException {
+                throw new AssertionError("Identified shared pages must not trigger individual label downloads");
+            }
+            public OzonPrintBundleService.OfficialLabelDownloader forBatch(Shop shop,java.util.List<String> postings) {
+                return new OzonBatchLabelDownloader(labelService,shop,postings);
+            }
+        };
+        var exporter = new OzonPrintBundleService(new OzonPostingRepository(),new OzonExemplarJobRepository(),
+                (shop,number) -> new OzonPreparationResult(number,"NOT_REQUIRED",0,true,false,""),downloader);
+        var output = temporaryDirectory.resolve("hundred-labels.pdf");
+        OzonPrintBundleService.BatchExportResult result;
+        try(var timer=OzonPrintTiming.begin()) {
+            result=exporter.exportAll(owner(),numbers,output.toFile(),temporaryDirectory.resolve("hundred-picking.pdf").toFile());
+            assertEquals(1,timer.snapshot().labelGroups());
+            assertEquals(0,timer.snapshot().isolatedLabels());
+        }
+        assertEquals(100,result.postingCount());
+        assertEquals(100,result.totalPages());
+        try(var actual=new com.itextpdf.kernel.pdf.PdfDocument(new com.itextpdf.kernel.pdf.PdfReader(output.toFile()))) {
+            assertEquals(100,actual.getNumberOfPages());
+            for(int i=0;i<numbers.size();i++)assertEquals(numbers.get(i),
+                    com.itextpdf.kernel.pdf.canvas.parser.PdfTextExtractor.getTextFromPage(actual.getPage(i+1)).strip());
+        }
+        assertEquals(3,server.getRequestCount(),"One task creation, one status request and one PDF download");
+        var create=server.takeRequest(1,TimeUnit.SECONDS);
+        assertEquals("/v3/posting/fbs/package-label/create",create.getPath());
+        var requestIds=com.google.gson.JsonParser.parseString(create.getBody().readUtf8()).getAsJsonObject()
+                .getAsJsonArray("posting_numbers").asList().stream().map(com.google.gson.JsonElement::getAsString).toList();
+        assertEquals(numbers,requestIds);
+        assertEquals("/v2/posting/fbs/package-label/get",server.takeRequest(1,TimeUnit.SECONDS).getPath());
+        assertEquals("/cdn/hundred.pdf",server.takeRequest(1,TimeUnit.SECONDS).getPath());
+    }
+
     @Test void oneThousandLabelsUseOneTaskAndKeepIdentityWhenPdfPagesAreReversed()throws Exception {
         var numbers=java.util.stream.IntStream.range(0,1000).mapToObj(i->"90000000-"+String.format("%04d",i)+"-1").toList();
         try(var c=Database.getConnection();var p=c.prepareStatement("INSERT INTO ozon_postings(shop_id,posting_number,status,synced_at) VALUES(1,?,'awaiting_deliver','2026-08-18T00:00:00Z')")) {
@@ -414,6 +464,65 @@ class OzonLabelServiceTest {
         }assertEquals(3,server.getRequestCount(),"Barcode identity keeps the shared task fast path");
     }
 
+    @Test void a4BarcodeOnlyPagesUseOneBatchAndPreserveReversedOrder()throws Exception{
+        var numbers=twoPostings();transportBarcodes(numbers.get(0),"ROUTE10001");transportBarcodes(numbers.get(1),"ROUTE10002");
+        enqueueBatch(a4BarcodePdf("ROUTE10002","ROUTE10001"));
+        try(var batch=batch(numbers)){
+            var first=batch.verifiedCarrierPage(owner(),numbers.get(0));
+            var second=batch.verifiedCarrierPage(owner(),numbers.get(1));
+            assertNotNull(first);assertNotNull(second);
+            assertEquals(2,first.page());assertEquals(1,second.page());
+        }
+        assertEquals(3,server.getRequestCount(),"A4 transport barcodes must not trigger per-order tasks");
+    }
+
+    @Test void thirtyA4BarcodeLabelsAvoidThirtyIndividualTasks()throws Exception{
+        var numbers=java.util.stream.IntStream.range(0,30).mapToObj(i->String.format(java.util.Locale.ROOT,"90000000-%04d-1",i)).toList();
+        var codes=new java.util.ArrayList<String>();
+        try(var c=Database.getConnection();var p=c.prepareStatement("INSERT INTO ozon_postings(shop_id,posting_number,status,synced_at,upper_barcode) VALUES(1,?,'awaiting_deliver','2026-08-18T00:00:00Z',?)")){
+            for(int i=0;i<numbers.size();i++){
+                String code=String.format(java.util.Locale.ROOT,"ROUTE%05d",i);
+                codes.add(code);p.setString(1,numbers.get(i));p.setString(2,code);p.addBatch();
+            }p.executeBatch();
+        }
+        java.util.Collections.reverse(codes);enqueueBatch(a4BarcodePdf(codes.toArray(String[]::new)));
+        long started=System.nanoTime();
+        try(var timing=OzonPrintTiming.begin();var batch=batch(numbers)){
+            for(int i=0;i<numbers.size();i++){
+                var page=batch.verifiedCarrierPage(owner(),numbers.get(i));assertNotNull(page);
+                assertEquals(numbers.size()-i,page.page());
+            }
+            assertEquals(1,timing.snapshot().labelGroups());assertEquals(0,timing.snapshot().isolatedLabels());
+        }
+        System.out.printf("OZON_A4_SHARED_LABELS orders=30 elapsed_ms=%d batch_requests=%d%n",java.util.concurrent.TimeUnit.NANOSECONDS.toMillis(System.nanoTime()-started),server.getRequestCount());
+        assertEquals(3,server.getRequestCount(),"One create, poll and download for 30 verified A4 labels");
+    }
+
+    @Test void a4UnknownBarcodeStillUsesVerifiedSinglePostingTasks()throws Exception{
+        var numbers=twoPostings();transportBarcodes(numbers.get(0),"ROUTE10001");transportBarcodes(numbers.get(1),"ROUTE10002");
+        enqueueBatch(a4BarcodePdf("NOT-A-TRANSPORT-ID","ROUTE10001"));
+        enqueueSingle("8001",textPdf("FIRST-ONLY"));enqueueSingle("8002",textPdf("SECOND-ONLY"));
+        try(var batch=batch(numbers)){
+            assertEquals("FIRST-ONLY",pageText(batch.download(owner(),numbers.get(0),temporaryDirectory.resolve("a4-first.pdf").toFile())));
+            assertEquals("SECOND-ONLY",pageText(batch.download(owner(),numbers.get(1),temporaryDirectory.resolve("a4-second.pdf").toFile())));
+        }
+        assertEquals(9,server.getRequestCount(),"An unidentified A4 page must not be assigned by its position");
+    }
+
+    @Test void a4SharedTransportBarcodeNeverIdentifiesEitherPosting()throws Exception{
+        var numbers=twoPostings();transportBarcodes(numbers.get(0),"SHARED-ROUTE");transportBarcodes(numbers.get(1),"SHARED-ROUTE");
+        enqueueBatch(a4BarcodePdf("SHARED-ROUTE","SHARED-ROUTE"));
+        try(var batch=batch(numbers)){assertNull(batch.verifiedCarrierPage(owner(),numbers.get(0)));}
+        assertEquals(3,server.getRequestCount());
+    }
+
+    @Test void a4PageWithTwoTransportIdentitiesNeverChoosesOne()throws Exception{
+        var numbers=twoPostings();transportBarcodes(numbers.get(0),"ROUTE10001");transportBarcodes(numbers.get(1),"ROUTE10002");
+        enqueueBatch(a4BarcodePdf("ROUTE10001 ROUTE10002"));
+        try(var batch=batch(numbers)){assertNull(batch.verifiedCarrierPage(owner(),numbers.get(0)));}
+        assertEquals(3,server.getRequestCount());
+    }
+
     @Test void postingTextAcceptsPrintedDashVariantsAndSpacesWithoutMixingPostings()throws Exception{
         var numbers=twoPostings();enqueueBatch(textPdf("90000000 \u2013 0002 \u2013 1","90000000 - 0001 - 1"));
         try(var batch=batch(numbers)){
@@ -424,9 +533,10 @@ class OzonLabelServiceTest {
     @Test void unidentifiedSharedPagesUseExactSinglePostingTasksAndReprintTheirSavedReceipts()throws Exception{
         var numbers=twoPostings();enqueueBatch(textPdf("PRODUCT-SHARED","PRODUCT-SHARED"));
         enqueueSingle("8001",textPdf("FIRST-ONLY","FIRST-PRODUCT"));enqueueSingle("8002",textPdf("SECOND-ONLY","SECOND-PRODUCT"));
-        try(var batch=batch(numbers)){
+        try(var timer=OzonPrintTiming.begin();var batch=batch(numbers)){
             assertTrue(pageText(batch.download(owner(),numbers.get(0),temporaryDirectory.resolve("isolated-first.pdf").toFile())).startsWith("FIRST-ONLY"));
             assertTrue(pageText(batch.download(owner(),numbers.get(1),temporaryDirectory.resolve("isolated-second.pdf").toFile())).startsWith("SECOND-ONLY"));
+            assertEquals(1,timer.snapshot().labelGroups());assertEquals(2,timer.snapshot().isolatedLabels());
         }
         for(int i=0;i<3;i++)server.takeRequest(1,TimeUnit.SECONDS);
         for(int i=0;i<2;i++){
@@ -518,6 +628,17 @@ class OzonLabelServiceTest {
         var bytes=new java.io.ByteArrayOutputStream();try(var pdf=new com.itextpdf.kernel.pdf.PdfDocument(new com.itextpdf.kernel.pdf.PdfWriter(bytes))){
             var font=com.itextpdf.kernel.font.PdfFontFactory.createFont();for(String text:texts)new com.itextpdf.kernel.pdf.canvas.PdfCanvas(pdf.addNewPage()).beginText().setFontAndSize(font,12).moveText(20,20).showText(text).endText();
         }return bytes.toByteArray();
+    }
+    private byte[] a4BarcodePdf(String... values)throws Exception{
+        var bytes=new java.io.ByteArrayOutputStream();
+        try(var pdf=new com.itextpdf.kernel.pdf.PdfDocument(new com.itextpdf.kernel.pdf.PdfWriter(bytes))){
+            for(String value:values){
+                var page=pdf.addNewPage(com.itextpdf.kernel.geom.PageSize.A4);
+                var barcode=new com.itextpdf.barcodes.Barcode128(pdf);barcode.setCode(value);barcode.setFont(null);barcode.setBarHeight(70);barcode.setX(1.2f);
+                new com.itextpdf.kernel.pdf.canvas.PdfCanvas(page).addXObjectAt(barcode.createFormXObject(pdf),35,650);
+            }
+        }
+        return bytes.toByteArray();
     }
     private String pageText(java.io.File file)throws Exception{
         try(var pdf=new com.itextpdf.kernel.pdf.PdfDocument(new com.itextpdf.kernel.pdf.PdfReader(file))){return com.itextpdf.kernel.pdf.canvas.parser.PdfTextExtractor.getTextFromPage(pdf.getPage(1)).strip();}

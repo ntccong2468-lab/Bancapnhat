@@ -43,6 +43,13 @@ class RegistrationDiagnosticsTest {
             }
         }
     }
+    @Test void wbPriceAndUnsignedReasonsAreAvailableInEveryLanguage(){
+        var i18n=com.vncode.app.shared.I18nService.getInstance();
+        for(String code:new String[]{"CATALOG_CARD_NOT_SIGNED","WB_PRICE_READBACK_PENDING","WB_PRICE_RECEIPT_UNKNOWN","WB_PRICE_RATE_LIMIT","WB_PRICE_TOKEN_LIMIT","WB_PRICE_OTHER_REQUEST_PENDING","WB_PRICE_CHANGED","WB_PRICE_SIZE_INCOMPLETE","WB_PRICE_REJECTED","WB_PRICE_TOO_MANY_SIZES","WB_PRICE_NOT_FOUND","WB_PRICE_CURRENCY_MISSING","WB_PRICE_CONSENT_REQUIRED","WB_PRICE_REQUEST_IN_FLIGHT","WB_PRICE_CANCELLED_APPLIED","WB_PRICE_CANCELLED_REJECTED","WB_PRICE_CANCELLED_NOT_SENT","WB_PRICE_CANCELLED_STATUS_UNKNOWN"}){
+            for(var language:com.vncode.app.shared.AppLanguage.values())assertFalse(java.util.ResourceBundle.getBundle("com.vncode.app.i18n.messages",language.toLocale()).getString("znack.registration.reason."+code).isBlank());
+            assertEquals(i18n.tr("znack.registration.reason."+code),RegistrationDiagnostics.reason(code));
+        }
+    }
     @Test void storedCountryInfraFailureHasActionableReasonWithoutPretendingTheGtinIsMissing(){
         String report=RegistrationDiagnostics.text("Fixture article","00000000000017","","Chưa xác minh",
                 "CATALOG_COUNTRY_DICTIONARY_UNAVAILABLE <- ZnackApiException: CATALOG_COUNTRY_HTTP_403; HTTP 403; token=private-secret");

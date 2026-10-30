@@ -25,6 +25,12 @@ class GtinSyncCoordinatorTest {
     }
     @AfterEach void clear(){System.clearProperty("vncode.appdata.dir");}
     Preview preview()throws Exception{return new GtinPreviewService(repo,k->adapter).create(adapter.product.key(),Operation.REPLACE,"old","00000000000017");}
+    @Test void migrationCreatesPriceReceiptTableBeforeCancellingOldQueuedJob()throws Exception {
+        var job=repo.createJob(List.of(preview()));
+        try(var c=Database.getConnection();var statement=c.createStatement()){statement.execute("DROP TABLE wb_gtin_price_repairs");}
+        Database.initDatabase();runner.cancelQueued(job);
+        assertEquals(Status.CANCELLED,repo.jobItems(job).getFirst().status());assertTrue(repo.paused(job));
+    }
     @Test void deniedConfirmationCreatesNoNewJob()throws Exception {
         var selection=List.of(preview());var prior=LicenseRuntime.service();
         try(var denied=LicenseDomainFixture.denied(temp.resolve("denied-license"))) {
@@ -159,12 +165,13 @@ class GtinSyncCoordinatorTest {
         var sent=repo.jobItems(job).getFirst();assertEquals(Status.RECONCILE_REQUIRED,sent.status());assertNotNull(sent.dispatchedAt());assertFalse(sent.dispatchedAt().isBefore(before));assertEquals(2,refreshes[0]);
         repo.recoverInterrupted();coordinator.runJob(job);assertEquals(sent.dispatchedAt(),repo.item(sent.id()).dispatchedAt());assertEquals(2,refreshes[0]);assertEquals(1,adapter.sends);
     }
-    @Test void freshSourceFailurePausesOnlyQueuedMutationAndCannotSendOrCreateFalseResult()throws Exception{
+    @Test void transientFreshSourceFailureKeepsQueuedMutationRetryableAndCannotSendOrCreateFalseResult()throws Exception{
         boolean[] fail={false};var unavailable=new java.net.SocketTimeoutException("synthetic source timeout");
         var coordinator=new GtinSyncCoordinator(repo,k->adapter,Clock.systemUTC(),1,Duration.ZERO,cohort->{if(fail[0])throw unavailable;});
         var job=coordinator.confirm(List.of(preview()));fail[0]=true;coordinator.runJob(job);
-        var item=repo.jobItems(job).getFirst();assertEquals(Status.QUEUED,item.status());assertTrue(repo.paused(job));assertNull(item.dispatchedAt());assertEquals(0,adapter.sends);
+        var item=repo.jobItems(job).getFirst();assertEquals(Status.QUEUED,item.status());assertFalse(repo.paused(job));assertNull(item.dispatchedAt());assertEquals(0,adapter.sends);
         assertSame(unavailable,assertThrows(java.net.SocketTimeoutException.class,()->coordinator.confirm(List.of(preview()))));assertEquals(1,repo.history(1,Marketplace.WILDBERRIES).size());
+        fail[0]=false;coordinator.runJob(job);assertEquals(Status.SUCCEEDED,repo.jobItems(job).getFirst().status());assertEquals(1,adapter.sends);
     }
     @Test void explicitHttp400AfterDispatchIsFailedAndNeverReplayedOnRestart()throws Exception{
         var rejected=new GtinPreviewServiceTest.Adapter(){@Override public Submission submit(Preview p)throws java.io.IOException{sends++;throw new com.vncode.app.integration.listing.ListingRejectedException(Marketplace.WILDBERRIES,400,"synthetic rejected request");}};

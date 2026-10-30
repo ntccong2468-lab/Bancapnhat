@@ -21,7 +21,7 @@ public final class CatalogSyncPane extends BorderPane {
     private final Map<GtinSyncModels.ProductKey,List<ProductDocument>> documents=new LinkedHashMap<>();
     private final Map<GtinSyncModels.ProductKey,Map<String,List<String>>> values=new LinkedHashMap<>();
     private final Button preview=new Button(),apply=new Button(),advance=new Button(),pause=new Button(),editDocument=new Button(),options=new Button(),editValue=new Button();
-    private final CheckBox confirmed=new CheckBox();private final Label status=new Label(),scope=new Label();
+    private final CheckBox confirmed=new CheckBox();private final Label status=new Label(),scope=new Label(),wbPriceImpact=new Label();
     private final TableView<Row> products=new TableView<>();private final TableView<Diff> differences=new TableView<>();
     private final ComboBox<String> history=new ComboBox<>();private final Supplier<CatalogSyncService> factory;
     private CatalogSyncService service;private Shop shop;private List<Selection> selection=List.of();private Job job;private boolean busy,disposed;private long generation;
@@ -42,7 +42,8 @@ public final class CatalogSyncPane extends BorderPane {
         column(differences,"catalogsync.field",d->fieldName(d.field()));column(differences,"catalogsync.before",d->String.join(" | ",d.before()));column(differences,"catalogsync.after",d->String.join(" | ",d.after()));column(differences,"catalogsync.issue",d->issue(d.code()));
         products.setId("catalogSyncProducts");differences.setId("catalogSyncDifferences");
         var split=new SplitPane(products,differences);split.setOrientation(javafx.geometry.Orientation.VERTICAL);split.setDividerPositions(.45);BorderPane.setMargin(split,new Insets(10,0,10,0));setCenter(split);
-        setBottom(new FlowPane(10,8,confirmed,apply,advance,pause));
+        wbPriceImpact.setId("catalogSyncWbPriceImpact");wbPriceImpact.setText(tr("gtinsync.wb_price_consent_body"));wbPriceImpact.setWrapText(true);
+        setBottom(new VBox(6,wbPriceImpact,new FlowPane(10,8,confirmed,apply,advance,pause)));
         products.getSelectionModel().selectedItemProperty().addListener((o,a,b)->{differences.getItems().setAll(b==null?List.of():b.differences());buttons();});confirmed.selectedProperty().addListener((o,a,b)->buttons());
         preview.setOnAction(e->preview());apply.setOnAction(e->run(true));advance.setOnAction(e->run(false));pause.setOnAction(e->{if(job==null)return;var owner=shop;String id=job.id();boolean paused=!job.paused();mutate(()->{service().pause(owner,id,paused);return service().read(owner,id);});});
         editValue.setOnAction(e->editValue());
@@ -54,7 +55,17 @@ public final class CatalogSyncPane extends BorderPane {
     public void openGtin(Shop owner,List<Selection> selected){fields.forEach((field,box)->box.setSelected(field==Field.GTIN));open(owner,selected);}
     private synchronized CatalogSyncService service(){if(service==null)service=factory.get();return service;}
     private void preview(){if(shop==null||busy||selection.isEmpty())return;var owner=shop;var selected=selection;var chosen=new LinkedHashSet<Field>();fields.forEach((field,box)->{if(box.isSelected())chosen.add(field);});if(chosen.isEmpty()){status.setText(tr("catalogsync.select_fields"));return;}var request=new Options(chosen,documents,values);read(()->service().preview(owner,selected,request),this::render);}
-    private void run(boolean approve){if(job==null||busy||approve&&!confirmed.isSelected())return;var owner=shop;String id=job.id();mutate(()->service().run(owner,id,approve));}
+    private void run(boolean approve){
+        if(job==null||busy||approve&&!confirmed.isSelected())return;
+        var owner=shop;var reviewed=job;String id=reviewed.id();long epoch=generation;
+        boolean wbGtin=approve&&owner!=null&&owner.getMarketplace()==com.vncode.app.integration.marketplace.Marketplace.WILDBERRIES&&reviewed.fields().contains(Field.GTIN);
+        // Confirm only the reviewed plan and the original shop.
+        if(disposed||busy||generation!=epoch||shop!=owner||job!=reviewed||approve&&!confirmed.isSelected())return;
+        mutate(()->{
+            if(wbGtin){service().confirm(owner,id,true);return service().run(owner,id,false);}
+            return service().run(owner,id,approve);
+        });
+    }
     private void mutate(Callable<Job> work){var owner=shop;var observer=onMutationResult;start(()->{var result=work.call();observer.accept(owner,result);return result;},this::render,true);}
     private <T>void read(Callable<T> work,Consumer<T> accept){start(work,accept,false);}
     private <T>void start(Callable<T> work,Consumer<T> accept,boolean mutation){
@@ -103,12 +114,13 @@ public final class CatalogSyncPane extends BorderPane {
     }
     private void invalidate(){job=null;confirmed.setSelected(false);buttons();}
     private void buttons(){
+        boolean showWbPrice=shop!=null&&shop.getMarketplace()==com.vncode.app.integration.marketplace.Marketplace.WILDBERRIES&&(job!=null?job.fields().contains(Field.GTIN):fields.get(Field.GTIN).isSelected());wbPriceImpact.setVisible(showWbPrice);wbPriceImpact.setManaged(showWbPrice);
         preview.setDisable(busy||shop==null||selection.isEmpty());apply.setDisable(busy||job==null||job.confirmed()||job.readyCount()==0||!confirmed.isSelected());advance.setDisable(busy||job==null||!job.confirmed()||job.paused());pause.setDisable(busy||job==null||!job.confirmed());pause.setText(tr(job!=null&&job.paused()?"catalogsync.resume":"catalogsync.pause"));editValue.setDisable(busy||shop==null||products.getSelectionModel().getSelectedItem()==null);editDocument.setDisable(busy||shop==null);options.setDisable(busy||shop==null||shop.getMarketplace()!=com.vncode.app.integration.marketplace.Marketplace.OZON);confirmed.setDisable(busy||job==null||job.confirmed());history.setDisable(busy);fields.values().forEach(box->box.setDisable(busy));
     }
     public void dispose(){disposed=true;generation++;}
     private static <T>void column(TableView<T> table,String key,Function<T,String> value){var column=new TableColumn<T,String>(tr(key));column.setCellValueFactory(c->new ReadOnlyStringWrapper(value.apply(c.getValue())));column.setPrefWidth(220);table.getColumns().add(column);}
     private static String safe(Throwable error){while(error instanceof CompletionException&&error.getCause()!=null)error=error.getCause();String code=error.getMessage();return code!=null&&code.matches("[A-Z][A-Z0-9_]{1,80}")?issue(code):tr("catalogsync.readback_hint");}
     private static String fieldName(String field){try{return tr("catalogsync.field."+Field.valueOf(field.toUpperCase(Locale.ROOT)));}catch(IllegalArgumentException unknown){return field;}}
-    private static String issue(String code){if(code==null||code.isBlank())return "";String key="catalogsync.issue."+code;String value=tr(key);if(!value.equals(key))return value;String common=tr("copy.issue."+code);return common.equals("copy.issue."+code)?code:common;}
+    private static String issue(String code){if(code==null||code.isBlank())return "";String key="catalogsync.issue."+code;String value=tr(key);if(!value.equals(key))return value;String common=tr("copy.issue."+code);if(!common.equals("copy.issue."+code))return common;String registration="znack.registration.reason."+code;String translated=tr(registration);return translated.equals(registration)?code:translated;}
     private static String tr(String key){return I18nService.getInstance().tr(key);}
 }

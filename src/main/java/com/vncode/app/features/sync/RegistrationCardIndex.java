@@ -50,7 +50,7 @@ public final class RegistrationCardIndex {
     public static boolean registrationInProgress(Status status,String feedId,View observed) {
         if(observed!=null){
             if(observed.published()||observed.status().equals("source.errors"))return false;
-            if(Set.of("source.draft","source.processing","source.moderation").contains(observed.status()))return true;
+            if(Set.of("source.draft","source.processing","source.moderation","source.not_signed").contains(observed.status()))return true;
         }
         return status==Status.FEED_SUBMITTING||status==Status.FEED_REVIEW_REQUIRED
                 ||status!=Status.PUBLISHED&&confirmedSubmission(status,feedId);
@@ -63,7 +63,7 @@ public final class RegistrationCardIndex {
     public static boolean catalogCardInProgress(Status status,Long goodId,String detail,View observed) {
         if(observed!=null){
             if(observed.published()||observed.status().equals("source.errors")||needsMatchReview(observed))return false;
-            if(Set.of("source.draft","source.processing","source.moderation","source.unpublished").contains(observed.status()))return true;
+            if(Set.of("source.draft","source.processing","source.moderation","source.not_signed","source.unpublished").contains(observed.status()))return true;
             // This detail is produced only after reading a real non-published matching card.
             // Missing size/color still blocks GTIN writes, not visibility of that remote card.
             if(observed.detail().equals("GTIN_VARIANT_UNVERIFIED")&&observed.status().startsWith("status.")&&status!=Status.ERROR)return true;

@@ -26,12 +26,38 @@ public final class GtinSyncSchema {
                   gtin TEXT NOT NULL,owner TEXT NOT NULL,source TEXT NOT NULL,verified_at TEXT NOT NULL,
                   PRIMARY KEY(shop_id,marketplace,product_id,variant_id))
                 """);
+            // A barcode-only Ozon GET is newer evidence than a complete product sync.
+            // Keep its observation time separately rather than claiming all product fields were refreshed.
+            s.execute("""
+                CREATE TABLE IF NOT EXISTS gtin_sync_barcode_observations(
+                  shop_id INTEGER NOT NULL REFERENCES shops(id) ON DELETE CASCADE,
+                  marketplace TEXT NOT NULL,product_id TEXT NOT NULL,variant_id TEXT NOT NULL,
+                  owner TEXT NOT NULL,observed_at TEXT NOT NULL,
+                  PRIMARY KEY(shop_id,marketplace,product_id,variant_id))
+                """);
+            s.execute("""
+                CREATE TABLE IF NOT EXISTS gtin_sync_barcode_read_heads(
+                  shop_id INTEGER NOT NULL REFERENCES shops(id) ON DELETE CASCADE,
+                  owner TEXT NOT NULL,product_id TEXT NOT NULL,generation INTEGER NOT NULL,
+                  PRIMARY KEY(shop_id,owner,product_id))
+                """);
             s.execute("""
                 CREATE TABLE IF NOT EXISTS gtin_sync_jobs(
                   id TEXT PRIMARY KEY, dedup_key TEXT NOT NULL UNIQUE,
                   shop_id INTEGER NOT NULL REFERENCES shops(id) ON DELETE CASCADE,
                   marketplace TEXT NOT NULL, paused INTEGER NOT NULL DEFAULT 0,
                   created_at TEXT NOT NULL)
+                """);
+            s.execute("""
+                CREATE TABLE IF NOT EXISTS wb_gtin_price_repairs(
+                  shop_id INTEGER NOT NULL,nm_id TEXT NOT NULL,anchor TEXT NOT NULL,owner TEXT NOT NULL,
+                  state TEXT NOT NULL,target INTEGER NOT NULL,before_json TEXT NOT NULL,task_id TEXT NOT NULL,
+                  not_before TEXT,PRIMARY KEY(shop_id,nm_id,anchor))
+                """);
+            s.execute("""
+                CREATE TABLE IF NOT EXISTS wb_gtin_price_consents(
+                  job_id TEXT PRIMARY KEY REFERENCES gtin_sync_jobs(id) ON DELETE CASCADE,
+                  owner TEXT NOT NULL, accepted_at TEXT NOT NULL)
                 """);
             s.execute("""
                 CREATE TABLE IF NOT EXISTS gtin_sync_items(

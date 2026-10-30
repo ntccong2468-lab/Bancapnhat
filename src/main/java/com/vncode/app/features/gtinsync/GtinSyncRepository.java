@@ -107,11 +107,41 @@ public final class GtinSyncRepository {
     }
     /** A completed remote readback, never a proposed matching rule, authorizes KIZ resolution. */
     public void recordVerifiedMapping(ProductKey key,String gtin){write(c->{requireShop(c,key.shopId(),key.marketplace());saveVerified(c,key,gtin);return null;});}
+    /** Save an Ozon mapping only if the just-read owned SKU/barcode still match inside the write transaction. */
+    public void recordObservedOzonMapping(com.vncode.app.models.Shop shop,ProductKey key,String sku,String gtin,long generation){
+        if(shop==null||key.shopId()!=shop.getId()||key.marketplace()!=Marketplace.OZON||shop.getMarketplace()!=Marketplace.OZON||sku==null||sku.isBlank())throw new IllegalArgumentException("shop_mismatch");
+        var scope=RegisteredGtinProof.current(shop);RegisteredGtinProof.requireProduction(scope);
+        String owner=com.vncode.app.integration.listing.ListingIdentity.fingerprint(shop);
+        write(c->{
+            requireShop(c,key.shopId(),key.marketplace());
+            if(!owner.equals(com.vncode.app.integration.listing.ListingIdentity.fingerprint(c,key.shopId(),Marketplace.OZON)))throw new SecurityException("SHOP_CREDENTIALS_CHANGED");
+            if(!MarketplaceBarcodeCache.currentOzonRead(c,key.shopId(),owner,key.productId(),generation))throw new IllegalStateException("OZON_BARCODE_READ_SUPERSEDED");
+            boolean present=false;
+            try(var p=c.prepareStatement("SELECT p.sku,b.barcode FROM ozon_products p LEFT JOIN ozon_product_barcodes b ON b.shop_id=p.shop_id AND b.product_id=p.product_id WHERE p.shop_id=? AND p.product_id=? AND p.offer_id=? AND p.archived=0")){
+                p.setInt(1,key.shopId());p.setString(2,key.productId());p.setString(3,key.variantId());
+                try(var r=p.executeQuery()){while(r.next())if(sku.equals(r.getString(1))&&RegisteredGtinProof.sameCode(gtin,r.getString(2)))present=true;}
+            }
+            if(!present)throw new IllegalStateException("OZON_MAPPING_READBACK_CHANGED");
+            saveVerified(c,key,gtin);
+            try(var p=c.prepareStatement("""
+                    SELECT m.gtin,m.owner,m.source FROM gtin_sync_verified_mappings m
+                    JOIN gtin_sync_catalog g ON g.shop_id=m.shop_id AND g.marketplace=m.marketplace AND g.gtin=m.gtin
+                    WHERE m.shop_id=? AND m.marketplace=? AND m.product_id=? AND m.variant_id=?
+                      AND json_extract(g.data_json,'$.owner')=m.owner AND json_extract(g.data_json,'$.source')=m.source
+                      AND json_extract(g.data_json,'$.published')=1 AND json_extract(g.data_json,'$.tradeUnit')=1
+                    """)){
+                bindKey(p,key);try(var r=p.executeQuery()){
+                    if(!r.next()||!RegisteredGtinProof.sameCode(gtin,r.getString(1))||!owner.equals(r.getString(2))||!scope.source().equals(r.getString(3)))throw new IllegalStateException("OZON_MAPPING_PROOF_LOST");
+                }
+            }
+            return null;
+        });
+    }
     /** Historical readback is durable. It can skip a completed write, never authorize a new one. */
     public record VerifiedMapping(String gtin,Instant verifiedAt,Instant marketplaceReadAt) {
         public boolean stillApplied(Collection<String> barcodes) {
             return barcodes.stream().anyMatch(code->RegisteredGtinProof.sameCode(code,gtin))
-                    || marketplaceReadAt==null || !marketplaceReadAt.isAfter(verifiedAt);
+                    || marketplaceReadAt==null || marketplaceReadAt.isBefore(verifiedAt);
         }
     }
     public Map<ProductKey,VerifiedMapping> verifiedMappings(com.vncode.app.models.Shop shop) {
@@ -123,15 +153,21 @@ public final class GtinSyncRepository {
             String nativeJoin=shop.getMarketplace()==Marketplace.OZON
                     ? "LEFT JOIN ozon_products p ON p.shop_id=m.shop_id AND p.product_id=m.product_id AND COALESCE(p.offer_id,'')=m.variant_id"
                     : "LEFT JOIN wb_product_cards p ON p.shop_id=m.shop_id AND p.nm_id=CAST(m.product_id AS INTEGER) AND CAST(p.nm_id AS TEXT)=m.product_id";
+            String barcodeJoin=shop.getMarketplace()==Marketplace.OZON
+                    ? " LEFT JOIN gtin_sync_barcode_observations o ON o.shop_id=m.shop_id AND o.marketplace=m.marketplace AND o.product_id=m.product_id AND o.variant_id=m.variant_id AND o.owner=m.owner"
+                    : "";
+            String barcodeTime=shop.getMarketplace()==Marketplace.OZON?"o.observed_at":"NULL";
             var result=new HashMap<ProductKey,VerifiedMapping>();
-            try(var p=c.prepareStatement("SELECT m.product_id,m.variant_id,m.gtin,m.verified_at,p.synced_at FROM gtin_sync_verified_mappings m "+nativeJoin+" WHERE m.shop_id=? AND m.marketplace=? AND m.owner=? AND m.source=?")){
+            try(var p=c.prepareStatement("SELECT m.product_id,m.variant_id,m.gtin,m.verified_at,p.synced_at,"+barcodeTime+" FROM gtin_sync_verified_mappings m "+nativeJoin+barcodeJoin+" WHERE m.shop_id=? AND m.marketplace=? AND m.owner=? AND m.source=?")){
                 p.setInt(1,shop.getId());p.setString(2,shop.getMarketplace().name());p.setString(3,owner);p.setString(4,source);
                 try(var rows=p.executeQuery()){while(rows.next()){
                     try {
                         var verified=Instant.parse(rows.getString(4));String read=rows.getString(5);
                         if(verified.isAfter(Instant.now().plusSeconds(300))||!RegisteredGtinValidator.isValid(rows.getString(3)))continue;
+                        Instant latest=read==null||read.isBlank()?null:Instant.parse(read);String barcodeRead=rows.getString(6);
+                        if(barcodeRead!=null&&!barcodeRead.isBlank()){var observed=Instant.parse(barcodeRead);if(latest==null||observed.isAfter(latest))latest=observed;}
                         result.put(new ProductKey(shop.getId(),shop.getMarketplace(),rows.getString(1),rows.getString(2)),
-                                new VerifiedMapping(rows.getString(3),verified,read==null||read.isBlank()?null:Instant.parse(read)));
+                                new VerifiedMapping(rows.getString(3),verified,latest));
                     } catch(java.time.format.DateTimeParseException invalid) { /* Unusable evidence never skips a write. */ }
                 }}
             }
@@ -152,7 +188,8 @@ public final class GtinSyncRepository {
             bindKey(p,key);p.setString(5,gtin);p.setString(6,owner);p.setString(7,source);p.setString(8,Instant.now().toString());p.executeUpdate();
         }
     }
-    public UUID createJob(List<Preview> previews) {
+    public UUID createJob(List<Preview> previews) {return createJob(previews,false);}
+    public UUID createJob(List<Preview> previews,boolean wbPriceConsent) {
         if(previews.isEmpty() || previews.size()>GtinBatchAdapter.MAX_PLAN_ROWS) throw new IllegalArgumentException("invalid_selection");
         var key=previews.getFirst().before().key();
         if(previews.stream().anyMatch(p -> p.before().key().shopId()!=key.shopId() || p.before().key().marketplace()!=key.marketplace()))
@@ -170,7 +207,7 @@ public final class GtinSyncRepository {
             }
             if(previous!=null) {
                 try(var p=c.prepareStatement("SELECT 1 FROM gtin_sync_items WHERE job_id=? AND status NOT IN ('FAILED','CANCELLED') LIMIT 1")) {
-                    p.setString(1,previous.toString());try(var r=p.executeQuery()){if(r.next())return previous;}
+                    p.setString(1,previous.toString());try(var r=p.executeQuery()){if(r.next()){if(wbPriceConsent&&key.marketplace()==Marketplace.WILDBERRIES)grantPriceConsent(c,previous);return previous;}}
                 }
                 // Keep terminal history, but release its confirmation key for an explicit new attempt.
                 // Active, ambiguous and succeeded jobs never reach this branch.
@@ -193,6 +230,7 @@ public final class GtinSyncRepository {
               }
               p.executeBatch();events.executeBatch();
             }
+            if(wbPriceConsent&&key.marketplace()==Marketplace.WILDBERRIES)grantPriceConsent(c,id);
             return id;
         });
     }
@@ -272,6 +310,60 @@ public final class GtinSyncRepository {
                     p.setString(1,Instant.now().toString());p.setString(2,item.id().toString());if(p.executeUpdate()==1){event(c,item.id(),Status.VALIDATING);result.add(new JobItem(item.id(),item.jobId(),item.preview(),Status.VALIDATING,item.remoteTaskId(),item.dispatchedAt()));}
                 }
             }return List.copyOf(result);
+        });
+    }
+    private void grantPriceConsent(Connection c,UUID id)throws SQLException {
+        int shopId;String market;
+        try(var p=c.prepareStatement("SELECT shop_id,marketplace FROM gtin_sync_jobs WHERE id=?")){p.setString(1,id.toString());try(var r=p.executeQuery()){if(!r.next())throw new IllegalArgumentException("unknown_job");shopId=r.getInt(1);market=r.getString(2);}}
+        if(!market.equals(Marketplace.WILDBERRIES.name()))throw new IllegalArgumentException("WB_PRICE_CONSENT_WRONG_MARKETPLACE");
+        try(var p=c.prepareStatement("SELECT COUNT(*),SUM(CASE WHEN status='QUEUED' THEN 1 ELSE 0 END),SUM(CASE WHEN status IN ('VALIDATING','SENDING','AWAITING_VERIFICATION','RECONCILE_REQUIRED') THEN 1 ELSE 0 END) FROM gtin_sync_items WHERE job_id=?")){p.setString(1,id.toString());try(var r=p.executeQuery()){r.next();if(r.getInt(2)==0||r.getInt(3)>0)throw new IllegalStateException("WB_PRICE_CONSENT_JOB_ACTIVE");}}
+        String owner=com.vncode.app.integration.listing.ListingIdentity.fingerprint(c,shopId,Marketplace.WILDBERRIES);
+        try(var p=c.prepareStatement("SELECT owner FROM wb_gtin_price_consents WHERE job_id=?")){p.setString(1,id.toString());try(var r=p.executeQuery()){if(r.next()){if(!owner.equals(r.getString(1)))throw new SecurityException("WB_PRICE_OWNER_CHANGED");return;}}}
+        try(var p=c.prepareStatement("INSERT INTO wb_gtin_price_consents(job_id,owner,accepted_at) VALUES(?,?,?)")){p.setString(1,id.toString());p.setString(2,owner);p.setString(3,Instant.now().toString());p.executeUpdate();}
+    }
+    public void grantWbPriceConsent(UUID id){write(c->{grantPriceConsent(c,id);return null;});}
+    public boolean hasWbPriceConsent(UUID id){return transaction(c->{try(var p=c.prepareStatement("SELECT c.owner,j.shop_id,j.marketplace FROM wb_gtin_price_consents c JOIN gtin_sync_jobs j ON j.id=c.job_id WHERE j.id=?")){p.setString(1,id.toString());try(var r=p.executeQuery()){return r.next()&&Marketplace.WILDBERRIES.name().equals(r.getString(3))&&r.getString(1).equals(com.vncode.app.integration.listing.ListingIdentity.fingerprint(c,r.getInt(2),Marketplace.WILDBERRIES));}}});}
+    public void requireWbPriceConsent(List<JobItem> items){
+        requireValidatingBatch(items);UUID id=items.getFirst().jobId();
+        if(items.stream().anyMatch(i->!i.jobId().equals(id)))throw new IllegalArgumentException("mixed_jobs");
+        if(!hasWbPriceConsent(id))throw new IllegalStateException("WB_PRICE_CONSENT_REQUIRED");
+    }
+    /** Called under the same write transaction that marks the price request DISPATCHING. */
+    public void requirePriceDispatch(Connection c,List<JobItem> items)throws SQLException {
+        if(items.isEmpty())throw new IllegalArgumentException("empty_selection");
+        var first=items.getFirst();var key=first.preview().before().key();
+        if(key.marketplace()!=Marketplace.WILDBERRIES)throw new IllegalArgumentException("WB_PRICE_CONSENT_WRONG_MARKETPLACE");
+        requireShop(c,key.shopId(),key.marketplace());
+        try(var p=c.prepareStatement("SELECT j.paused,j.shop_id,j.marketplace,c.owner FROM gtin_sync_jobs j LEFT JOIN wb_gtin_price_consents c ON c.job_id=j.id WHERE j.id=?")){
+            p.setString(1,first.jobId().toString());try(var r=p.executeQuery()){
+                if(!r.next()||r.getInt(1)!=0||r.getInt(2)!=key.shopId()||!key.marketplace().name().equals(r.getString(3)))throw new IllegalStateException("GTIN_BATCH_PAUSED");
+                if(r.getString(4)==null)throw new IllegalStateException("WB_PRICE_CONSENT_REQUIRED");
+                if(!r.getString(4).equals(com.vncode.app.integration.listing.ListingIdentity.fingerprint(c,key.shopId(),key.marketplace())))throw new SecurityException("WB_PRICE_OWNER_CHANGED");
+            }
+        }
+        for(var expected:items){var item=itemFor(c,expected.id());if(!item.jobId().equals(first.jobId())||!item.preview().before().key().equals(expected.preview().before().key())||!item.preview().newGtin().equals(expected.preview().newGtin())||item.status()!=Status.VALIDATING)throw new IllegalStateException("GTIN_BATCH_CHECKPOINT_CHANGED");}
+    }
+    /** Pause and cancel GTIN atomically with the price-dispatch checkpoint. */
+    public void cancelKnownUnsent(UUID job){write(c->{requireJob(c,job);
+        try(var p=c.prepareStatement("UPDATE gtin_sync_jobs SET paused=1 WHERE id=?")){p.setString(1,job.toString());p.executeUpdate();}
+        var targets=new ArrayList<JobItem>();try(var p=c.prepareStatement(ITEM_SELECT+" WHERE i.job_id=? AND i.status IN ('QUEUED','VALIDATING')")){p.setString(1,job.toString());try(var r=p.executeQuery()){while(r.next())targets.add(item(r));}}
+        for(var item:targets){var key=item.preview().before().key();String priceIssue="";
+            if(key.marketplace()==Marketplace.WILDBERRIES)try(var p=c.prepareStatement("SELECT state,target,before_json FROM wb_gtin_price_repairs WHERE shop_id=? AND nm_id=? AND anchor=?")){
+                p.setInt(1,key.shopId());p.setString(2,key.productId());p.setString(3,job.toString());try(var r=p.executeQuery()){if(r.next()){
+                    String state=r.getString(1);priceIssue=switch(state){case "DISPATCHING","WAITING"->"WB_PRICE_REQUEST_IN_FLIGHT";case "FAILED"->"WB_PRICE_CANCELLED_REJECTED";case "RATE_LIMIT"->"WB_PRICE_CANCELLED_NOT_SENT";default->"";};
+                    if(state.equals("READY")){try{var values=com.google.gson.JsonParser.parseString(r.getString(3)).getAsJsonObject().getAsJsonObject("prices");int target=r.getInt(2);if(values.entrySet().stream().anyMatch(entry->entry.getValue().getAsInt()!=target))priceIssue="WB_PRICE_CANCELLED_APPLIED";}catch(RuntimeException unavailable){priceIssue="WB_PRICE_CANCELLED_STATUS_UNKNOWN";}}
+                }}
+            }
+            try(var p=c.prepareStatement("UPDATE gtin_sync_items SET status='CANCELLED',updated_at=? WHERE id=? AND status IN ('QUEUED','VALIDATING')")){p.setString(1,Instant.now().toString());p.setString(2,item.id().toString());if(p.executeUpdate()!=1)continue;}
+            if(!priceIssue.isBlank())putIssue(c,item.id(),priceIssue);event(c,item.id(),Status.CANCELLED);
+        }return null;});}
+    /** Guard a price preflight before any GTIN request is marked as sent. */
+    public void requireValidatingBatch(List<JobItem> items) {
+        if(items.isEmpty())throw new IllegalArgumentException("empty_selection");
+        transaction(c->{var jobs=new HashSet<UUID>();for(var expected:items){var item=itemFor(c,expected.id());var key=item.preview().before().key();requireShop(c,key.shopId(),key.marketplace());
+                if(!item.jobId().equals(expected.jobId())||!key.equals(expected.preview().before().key())||!item.preview().newGtin().equals(expected.preview().newGtin())||item.status()!=Status.VALIDATING)throw new IllegalStateException("GTIN_BATCH_CHECKPOINT_CHANGED");jobs.add(item.jobId());}
+            for(var id:jobs)try(var p=c.prepareStatement("SELECT paused FROM gtin_sync_jobs WHERE id=?")){p.setString(1,id.toString());try(var r=p.executeQuery()){if(!r.next()||r.getInt(1)!=0)throw new IllegalStateException("GTIN_BATCH_PAUSED");}}
+            return null;
         });
     }
     /** Atomic request checkpoint. A concurrent pause/cancellation prevents the entire request. */

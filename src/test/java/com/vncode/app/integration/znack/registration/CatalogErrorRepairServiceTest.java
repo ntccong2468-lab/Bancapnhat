@@ -97,6 +97,21 @@ class CatalogErrorRepairServiceTest {
         var data=CatalogProductDataParser.parse(raw);new GtinSyncRepository().saveCatalog(1,Marketplace.WILDBERRIES,List.of(new GtinSyncModels.RegisteredGtin(gtin,"MISSING","ЧЕРНЫЙ","1",true,false,RegisteredGtinProof.source(shop),Instant.now(),data)));
         var cards=service.report(shop,Set.of(),true);assertEquals(1,cards.size());assertEquals(gtin,cards.getFirst().gtin());assertEquals(0,api.writes.get());
     }
+    @Test void reportPreservesOnlyScopedMatchingFeedDetailsForARejectedCatalogCard()throws Exception{
+        var proposal=service.prepare(shop,card(),key);
+        assertTrue(CatalogRepairCheckpoint.prepare(shop,key,"",gtin,91,ZnackNationalCatalogService.buildPayload(gtin,proposal.draft(),"").toString(),proposal.draft(),scope));
+        try(var c=Database.getConnection();var q=c.createStatement()){q.execute("UPDATE znack_card_registrations SET status='ERROR',error_message='CATALOG_REJECTED: invalid title',feed_id='rejected-feed',good_id=91");}
+        var data=CatalogProductDataParser.parse(raw);
+        new GtinSyncRepository().saveCatalog(1,Marketplace.WILDBERRIES,List.of(new GtinSyncModels.RegisteredGtin(gtin,"SUIT","ЧЕРНЫЙ","52",true,false,RegisteredGtinProof.source(shop),Instant.now(),data)));
+        var cards=service.report(shop,Set.of(key),false);
+        assertEquals(1,cards.size());assertTrue(cards.getFirst().reason().contains("invalid title"));assertEquals(0,api.writes.get());
+        try(var c=Database.getConnection();var q=c.createStatement()){q.execute("UPDATE znack_card_registrations SET good_id=92");}
+        assertEquals("CATALOG_CARD_ERRORS",service.report(shop,Set.of(key),false).getFirst().reason(),"A different Catalog identity must not inherit another feed's feedback");
+        try(var c=Database.getConnection();var q=c.createStatement()){q.execute("UPDATE znack_card_registrations SET good_id=91");}
+        var noIdentity=raw.deepCopy();noIdentity.remove("good_id");
+        new GtinSyncRepository().saveCatalog(1,Marketplace.WILDBERRIES,List.of(new GtinSyncModels.RegisteredGtin(gtin,"SUIT","ЧЕРНЫЙ","52",true,false,RegisteredGtinProof.source(shop),Instant.now(),CatalogProductDataParser.parse(noIdentity))));
+        assertEquals("CATALOG_CARD_ERRORS",service.report(shop,Set.of(key),false).getFirst().reason(),"An unknown Catalog identity must not inherit identity-bound feedback");
+    }
     @org.junit.jupiter.params.ParameterizedTest @org.junit.jupiter.params.provider.ValueSource(booleans={false,true})
     void ozonRepairRunsNativeFeedAndRetainsProductAndOfferIdentity(boolean feedOnly)throws Exception{
         var ozon=GtinWriteTestFixture.shop(Marketplace.OZON);var nativeKey=new ProductKey(2,Marketplace.OZON,"501","offer-501");

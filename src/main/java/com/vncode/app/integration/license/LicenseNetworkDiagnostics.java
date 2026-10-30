@@ -79,6 +79,11 @@ final class LicenseNetworkDiagnostics {
         @Override public void dnsEnd(Call call, String domainName, List<InetAddress> addresses) { value = "CONNECT"; }
         @Override public void connectStart(Call call, InetSocketAddress address, Proxy proxy) { value = "CONNECT"; }
         @Override public void secureConnectStart(Call call) { value = "TLS"; }
+        // TLS may finish before OkHttp starts the request. Preserve that boundary
+        // so a later stall is not incorrectly reported as a TLS handshake timeout.
+        @Override public void secureConnectEnd(Call call, Handshake handshake) { if (handshake != null) value = "CONNECTED"; }
+        @Override public void connectEnd(Call call, InetSocketAddress address, Proxy proxy, Protocol protocol) { value = "CONNECTED"; }
+        @Override public void connectionAcquired(Call call, Connection connection) { value = "CONNECTED"; }
         @Override public void requestHeadersStart(Call call) { value = "SEND"; }
         @Override public void requestHeadersEnd(Call call, Request request) { if (request.body() == null) value = "RESPONSE"; }
         @Override public void requestBodyEnd(Call call, long byteCount) { value = "RESPONSE"; }

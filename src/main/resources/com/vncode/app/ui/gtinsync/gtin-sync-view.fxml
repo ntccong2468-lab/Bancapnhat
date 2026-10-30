@@ -25,6 +25,7 @@
     <Button fx:id="fullSyncButton" onAction="#onFullSync"/>
     <Button fx:id="confirmButton" onAction="#onConfirm" disable="true"/>
   </FlowPane>
+  <Label fx:id="wbPriceImpactLabel" wrapText="true" visible="false" managed="false" styleClass="text-muted"/>
   <Label fx:id="statusLabel" wrapText="true"/>
   <TitledPane fx:id="reportDetailsPane" text="Report" expanded="false" animated="false"><content><VBox spacing="8">
   <TextArea fx:id="previewArea" editable="false" wrapText="true" prefRowCount="3" maxHeight="100"/>

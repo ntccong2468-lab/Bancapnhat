@@ -254,6 +254,54 @@ class OzonCardRegistrationWorkflowTest {
         installExistingCard("published");assertTrue(workflow.register(shop,key,draft,true,false,null));assertEquals(Status.PUBLISHED,row().status());assertEquals(91L,row().goodId());assertEquals("",row().feedId());assertEquals(0,api.allocations.get());assertEquals(0,api.submissions.get());assertEquals(0,api.signatures.get());assertFalse(RegistrationSigningConsent.allowed(shop,key,row().gtin()));
         assertTrue(workflow.register(shop,key,draft,true,false,null));assertEquals(0,api.allocations.get());assertEquals(0,api.submissions.get());
     }
+    @Test void confirmedOzonConflictCanCreateANewCardWithoutChangingTheExternalPublishedCard()throws Exception {
+        installExistingCard("published");api.allocations.set(1);var old=workflow;
+        var checks=new AtomicInteger();workflow=new OzonCardRegistrationWorkflow(repository,s->session(),(s,k)->snapshot,Runnable::run,(s,k,sku,gtin)->false,old::lookupOperation,(s,k,gtin)->{checks.incrementAndGet();assertEquals(GtinWriteTestFixture.GTIN,gtin);});
+        var prepared=workflow.prepare(shop,key);
+        assertFalse(workflow.registerReviewedAfterConflict(shop,prepared,draft,false,GtinWriteTestFixture.GTIN,null));
+        assertNull(row());assertEquals(1,api.allocations.get());
+        assertTrue(workflow.registerReviewedAfterConflict(shop,prepared,draft,true,GtinWriteTestFixture.GTIN,null));
+        assertEquals(1,checks.get());assertNotNull(row());assertEquals("00000000000024",row().gtin());assertEquals("",row().activeGtin());
+        assertEquals(2,api.allocations.get());assertEquals(1,api.submissions.get());assertFalse(api.lastPayload.has("good_id"),"The new card must not overwrite the old Catalog identity");
+        try(var c=Database.getConnection();var p=c.prepareStatement("SELECT gtin,good_id,payload_json,feed_id FROM ozon_card_registration_history WHERE shop_id=2 AND product_id='501'" );var r=p.executeQuery()){
+            assertTrue(r.next());assertEquals(GtinWriteTestFixture.GTIN,r.getString(1));assertEquals(91,r.getLong(2));assertEquals("",r.getString(3));assertEquals("",r.getString(4));assertFalse(r.next());
+        }
+        // The new candidate is not PUBLISHED yet. A repeated click may schedule work,
+        // but must not allocate or submit a second card.
+        workflow.registerReviewedAfterConflict(shop,prepared,draft,true,GtinWriteTestFixture.GTIN,null);
+        assertEquals(2,api.allocations.get());assertEquals(1,api.submissions.get());
+    }
+    @Test void unknownConflictOrUnpublishedCatalogCardCannotAllocateNewGtin()throws Exception {
+        installExistingCard("published");var old=workflow;
+        workflow=new OzonCardRegistrationWorkflow(repository,s->session(),(s,k)->snapshot,Runnable::run,(s,k,sku,gtin)->false,old::lookupOperation,(s,k,gtin)->{throw new IOException("NETWORK_TIMEOUT");});
+        var prepared=workflow.prepare(shop,key);assertTrue(workflow.registerReviewedAfterConflict(shop,prepared,draft,true,GtinWriteTestFixture.GTIN,null));
+        assertNull(row());assertEquals(0,api.allocations.get());assertEquals(0,api.submissions.get());
+        installExistingCard("draft");old=workflow;
+        workflow=new OzonCardRegistrationWorkflow(repository,s->session(),(s,k)->snapshot,Runnable::run,(s,k,sku,gtin)->false,old::lookupOperation,(s,k,gtin)->{});
+        prepared=workflow.prepare(shop,key);assertTrue(workflow.registerReviewedAfterConflict(shop,prepared,draft,true,GtinWriteTestFixture.GTIN,null));
+        assertNull(row());assertEquals(0,api.allocations.get());assertEquals(0,api.submissions.get());
+    }
+    @Test void explicitlyRejectedAllocationCanResumeWithoutDuplicatingOldCardHistory()throws Exception {
+        installExistingCard("published");api.allocations.set(1);api.allocationRateLimits=1;var old=workflow;
+        workflow=new OzonCardRegistrationWorkflow(repository,s->session(),(s,k)->snapshot,Runnable::run,(s,k,sku,gtin)->false,old::lookupOperation,(s,k,gtin)->{});
+        var prepared=workflow.prepare(shop,key);
+        assertTrue(workflow.registerReviewedAfterConflict(shop,prepared,draft,true,GtinWriteTestFixture.GTIN,null));
+        assertEquals(Status.PREFLIGHT_ERROR,row().status());assertTrue(row().gtin().isBlank());assertEquals(0,api.submissions.get());
+        assertTrue(workflow.registerReviewedAfterConflict(shop,prepared,draft,true,GtinWriteTestFixture.GTIN,null));
+        assertEquals("00000000000024",row().gtin());assertEquals(1,api.submissions.get());
+        try(var c=Database.getConnection();var p=c.prepareStatement("SELECT COUNT(*) FROM ozon_card_registration_history WHERE shop_id=2 AND product_id='501' AND gtin=?")){
+            p.setString(1,GtinWriteTestFixture.GTIN);try(var r=p.executeQuery()){assertTrue(r.next());assertEquals(1,r.getInt(1));}
+        }
+    }
+    @Test void uncertainConflictAllocationNeverRunsTwice()throws Exception {
+        installExistingCard("published");api.allocations.set(1);api.allocationTimeout=true;var old=workflow;
+        workflow=new OzonCardRegistrationWorkflow(repository,s->session(),(s,k)->snapshot,Runnable::run,(s,k,sku,gtin)->false,old::lookupOperation,(s,k,gtin)->{});
+        var prepared=workflow.prepare(shop,key);
+        assertTrue(workflow.registerReviewedAfterConflict(shop,prepared,draft,true,GtinWriteTestFixture.GTIN,null));
+        assertEquals(Status.GTIN_REVIEW_REQUIRED,row().status());assertEquals(2,api.allocations.get());assertEquals(0,api.submissions.get());
+        api.allocationTimeout=false;assertTrue(workflow.registerReviewedAfterConflict(shop,prepared,draft,true,GtinWriteTestFixture.GTIN,null));
+        assertEquals(Status.GTIN_REVIEW_REQUIRED,row().status());assertEquals(2,api.allocations.get());assertEquals(0,api.submissions.get());
+    }
     @Test void linkedCatalogCardCanBeReadAndManuallySignedWithoutInventingAFeedReceipt()throws Exception{
         installExistingCard("draft");assertTrue(workflow.register(shop,key,draft.withAutoSign(true),true,false,null));assertEquals(Status.READY_TO_SIGN,row().status());assertEquals("",row().feedId());assertFalse(RegistrationSigningConsent.allowed(shop,key,row().gtin()));
         assertFalse(workflow.refreshStatusWithoutSigning(shop,key));assertEquals(0,api.signatures.get());assertTrue(sign());assertEquals(Status.PUBLISHED,row().status());assertEquals("",row().feedId());assertEquals(1,api.signatures.get());assertEquals(0,api.allocations.get());assertEquals(0,api.submissions.get());

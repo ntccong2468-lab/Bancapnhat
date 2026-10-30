@@ -101,6 +101,98 @@ class WbGtinAdapterTest {
         runner.runPending(1,Marketplace.WILDBERRIES);repo.recoverInterrupted();runner.runPending(1,Marketplace.WILDBERRIES);
         assertEquals(1,transport.writes.get());assertEquals(Status.SUCCEEDED,repo.jobItems(job).getFirst().status());
     }
+    @Test void selectedWbCardPriceIsReadBackBeforeGtinIsSent()throws Exception {
+        var repo=new GtinSyncRepository();var runner=new GtinSyncCoordinator(repo,k->adapter,Clock.systemUTC(),1,Duration.ZERO,requested->{});
+        var job=runner.confirm(List.of(preview()),true);transport.firstPrice=900;transport.secondPrice=1100;
+        runner.runJob(job);
+        assertEquals(1,transport.priceWrites.get());assertEquals(0,transport.writes.get());
+        assertEquals(Status.QUEUED,repo.jobItems(job).getFirst().status());
+        var price=transport.priceSent.getAsJsonArray("data").get(0).getAsJsonObject();
+        assertEquals(1000,price.get("price").getAsInt());assertEquals(101,price.get("nmID").getAsInt());assertFalse(price.has("discount"));
+        transport.firstPrice=transport.secondPrice=1000;runner.runJob(job);
+        assertEquals(1,transport.priceWrites.get());assertEquals(1,transport.writes.get());assertEquals(Status.SUCCEEDED,repo.jobItems(job).getFirst().status());
+    }
+    @Test void legacyJobCannotChangePriceUntilSellerConsentSurvivesRestart()throws Exception {
+        var repo=new GtinSyncRepository();var runner=new GtinSyncCoordinator(repo,k->adapter,Clock.systemUTC(),1,Duration.ZERO,requested->{});
+        var job=runner.confirm(List.of(preview()));transport.firstPrice=900;transport.secondPrice=1100;
+        runner.runJob(job);assertEquals(0,transport.priceWrites.get());assertEquals(0,transport.writes.get());
+        assertEquals(Status.QUEUED,repo.jobItems(job).getFirst().status());assertTrue(repo.paused(job));assertFalse(new GtinSyncRepository().hasWbPriceConsent(job));
+        runner.grantWbPriceConsent(job);assertTrue(new GtinSyncRepository().hasWbPriceConsent(job));runner.resume(job);runner.runJob(job);
+        assertEquals(1,transport.priceWrites.get());assertEquals(0,transport.writes.get());
+        transport.firstPrice=transport.secondPrice=1000;runner.runJob(job);assertEquals(1,transport.writes.get());
+    }
+    @Test void persistedPriceWaitContinuesThroughBackgroundScheduler()throws Exception {
+        var repo=new GtinSyncRepository();var runner=new GtinSyncCoordinator(repo,k->adapter,Clock.systemUTC(),1,Duration.ZERO,requested->{});
+        var job=runner.confirm(List.of(preview()),true);transport.firstPrice=900;transport.secondPrice=1100;
+        assertTrue(new com.vncode.app.features.sync.WbGtinQueueAutoResume(repo,runner).step(shop));
+        assertEquals(1,transport.priceWrites.get());assertEquals(0,transport.writes.get());
+        transport.firstPrice=transport.secondPrice=1000;
+        assertFalse(new com.vncode.app.features.sync.WbGtinQueueAutoResume(new GtinSyncRepository(),runner).step(shop));
+        assertEquals(Status.SUCCEEDED,repo.jobItems(job).getFirst().status());assertEquals(1,transport.writes.get());
+    }
+    @Test void backgroundSchedulerRetriesKnown429BeforeSendingGtin()throws Exception {
+        var repo=new GtinSyncRepository();var runner=new GtinSyncCoordinator(repo,k->adapter,Clock.systemUTC(),1,Duration.ZERO,requested->{});
+        var job=runner.confirm(List.of(preview()),true);transport.firstPrice=900;transport.secondPrice=1100;transport.priceRateOnce=true;
+        var scheduler=new com.vncode.app.features.sync.WbGtinQueueAutoResume(repo,runner);
+        assertTrue(scheduler.step(shop));assertEquals(1,transport.priceWrites.get());assertEquals(0,transport.writes.get());assertFalse(repo.paused(job));
+        Thread.sleep(20);assertTrue(scheduler.step(shop));assertEquals(2,transport.priceWrites.get());assertEquals(0,transport.writes.get());
+        transport.firstPrice=transport.secondPrice=1000;assertFalse(scheduler.step(shop));assertEquals(1,transport.writes.get());
+    }
+    @Test void cancelBetweenConsentAndClaimPreventsPricePost()throws Exception {
+        var repo=new GtinSyncRepository();var runner=new GtinSyncCoordinator(repo,k->adapter,Clock.systemUTC(),1,Duration.ZERO,requested->{});
+        var job=runner.confirm(List.of(preview()),true);var claimed=repo.claimBatch(repo.jobItems(job));transport.firstPrice=900;transport.secondPrice=1100;
+        var prices=new WbGtinPriceRepair(shop,transport);
+        assertThrows(IllegalStateException.class,()->prices.repair("101",job.toString(),java.util.Set.of(11L,12L),()->repo.requireValidatingBatch(claimed),()->{repo.requireWbPriceConsent(claimed);runner.cancelQueued(job);},c->repo.requirePriceDispatch(c,claimed)));
+        assertEquals(0,transport.priceWrites.get());assertEquals(Status.CANCELLED,repo.jobItems(job).getFirst().status());
+    }
+    @Test void cancelAfterPriceClaimStillReconcilesPriceWithoutGtinAfterRestart()throws Exception {
+        var repo=new GtinSyncRepository();var runner=new GtinSyncCoordinator(repo,k->adapter,Clock.systemUTC(),1,Duration.ZERO,requested->{});
+        var job=runner.confirm(List.of(preview()),true);transport.firstPrice=900;transport.secondPrice=1100;
+        transport.afterPriceClaim=()->{transport.afterPriceClaim=()->{};runner.cancelQueued(job);};runner.runJob(job);
+        assertEquals(Status.CANCELLED,repo.jobItems(job).getFirst().status());assertEquals("WB_PRICE_REQUEST_IN_FLIGHT",repo.issue(repo.jobItems(job).getFirst().id()));
+        assertEquals(1,transport.priceWrites.get());assertEquals(0,transport.writes.get());
+        runner.resume(job); // Seller can resume history; this must not hide the cancelled receipt.
+        transport.firstPrice=transport.secondPrice=1000;
+        var restarted=new com.vncode.app.features.sync.WbGtinQueueAutoResume(new GtinSyncRepository(),runner,new WbGtinPriceRepair(shop,transport));
+        assertFalse(restarted.step(shop));assertEquals("WB_PRICE_CANCELLED_APPLIED",repo.issue(repo.jobItems(job).getFirst().id()));assertEquals(0,transport.writes.get());
+        var next=runner.confirm(List.of(preview()),true);runner.runJob(next);assertEquals(Status.SUCCEEDED,repo.jobItems(next).getFirst().status());assertEquals(1,transport.writes.get());assertEquals(1,transport.priceWrites.get());
+    }
+    @Test void cancelAfterPriceClaimAndExplicit429ReportsPriceNotSent()throws Exception {
+        var repo=new GtinSyncRepository();var runner=new GtinSyncCoordinator(repo,k->adapter,Clock.systemUTC(),1,Duration.ZERO,requested->{});
+        var job=runner.confirm(List.of(preview()),true);transport.firstPrice=900;transport.secondPrice=1100;transport.priceRateOnce=true;
+        transport.afterPriceClaim=()->{transport.afterPriceClaim=()->{};runner.cancelQueued(job);};runner.runJob(job);
+        var item=repo.jobItems(job).getFirst();assertEquals(Status.CANCELLED,item.status());assertEquals("WB_PRICE_CANCELLED_NOT_SENT",repo.issue(item.id()));assertEquals(0,transport.writes.get());
+    }
+    @Test void cancelAfterPriceClaimAndExplicitRejectionReportsRejection()throws Exception {
+        var repo=new GtinSyncRepository();var runner=new GtinSyncCoordinator(repo,k->adapter,Clock.systemUTC(),1,Duration.ZERO,requested->{});
+        var job=runner.confirm(List.of(preview()),true);transport.firstPrice=900;transport.secondPrice=1100;transport.priceReject=true;
+        transport.afterPriceClaim=()->{transport.afterPriceClaim=()->{};runner.cancelQueued(job);};runner.runJob(job);
+        var item=repo.jobItems(job).getFirst();assertEquals(Status.CANCELLED,item.status());assertEquals("WB_PRICE_CANCELLED_REJECTED",repo.issue(item.id()));assertEquals(0,transport.writes.get());
+    }
+    @Test void failedReceiptReadDoesNotStarveOtherCancelledReceipts()throws Exception {
+        var repo=new GtinSyncRepository();var runner=new GtinSyncCoordinator(repo,k->adapter,Clock.systemUTC(),1,Duration.ZERO,requested->{});
+        var job=runner.confirm(List.of(preview()),true);transport.firstPrice=900;transport.secondPrice=1100;
+        transport.afterPriceClaim=()->{transport.afterPriceClaim=()->{};runner.cancelQueued(job);};runner.runJob(job);
+        String other="00000000-0000-0000-0000-000000000999";
+        try(var c=Database.getConnection()){
+            try(var p=c.prepareStatement("INSERT INTO gtin_sync_jobs(id,dedup_key,shop_id,marketplace,paused,created_at) SELECT ?,dedup_key||'other',shop_id,marketplace,1,created_at FROM gtin_sync_jobs WHERE id=?")){p.setString(1,other);p.setString(2,job.toString());p.executeUpdate();}
+            try(var p=c.prepareStatement("INSERT INTO gtin_sync_items(id,job_id,shop_id,marketplace,product_id,variant_id,preview_json,status,remote_task_id,updated_at) SELECT '00000000-0000-0000-0000-000000000998',?,shop_id,marketplace,'100',variant_id,preview_json,'CANCELLED','',updated_at FROM gtin_sync_items WHERE job_id=?")){p.setString(1,other);p.setString(2,job.toString());p.executeUpdate();}
+            try(var p=c.prepareStatement("INSERT INTO wb_gtin_price_repairs(shop_id,nm_id,anchor,owner,state,target,before_json,task_id,not_before) SELECT shop_id,'100',?,owner,state,target,before_json,task_id,not_before FROM wb_gtin_price_repairs WHERE anchor=?")){p.setString(1,other);p.setString(2,job.toString());p.executeUpdate();}
+        }
+        transport.priceReadFail100=true;transport.firstPrice=transport.secondPrice=1000;
+        assertTrue(new WbGtinPriceRepair(shop,transport).reconcileCancelled());
+        assertEquals("WB_PRICE_CANCELLED_APPLIED",repo.issue(repo.jobItems(job).getFirst().id()));assertEquals(0,transport.writes.get());
+    }
+    @Test void cancelAfterConfirmedPriceReportsAppliedButEqualPriceIsNotReportedAsChanged()throws Exception {
+        var repo=new GtinSyncRepository();var runner=new GtinSyncCoordinator(repo,k->adapter,Clock.systemUTC(),1,Duration.ZERO,requested->{});
+        var job=runner.confirm(List.of(preview()),true);transport.firstPrice=900;transport.secondPrice=1100;runner.runJob(job);
+        transport.firstPrice=transport.secondPrice=1000;
+        assertEquals(WbGtinPriceRepair.State.READY,new WbGtinPriceRepair(shop,transport).repair("101",job.toString(),java.util.Set.of(11L,12L),()->{},()->{}).state());
+        runner.cancelQueued(job);assertEquals("WB_PRICE_CANCELLED_APPLIED",repo.issue(repo.jobItems(job).getFirst().id()));assertEquals(0,transport.writes.get());
+        var next=runner.confirm(List.of(preview()),true);
+        assertEquals(WbGtinPriceRepair.State.READY,new WbGtinPriceRepair(shop,transport).repair("101",next.toString(),java.util.Set.of(11L,12L),()->{},()->{}).state());
+        runner.cancelQueued(next);assertTrue(repo.issue(repo.jobItems(next).getFirst().id()).isBlank());assertEquals(1,transport.priceWrites.get());
+    }
     @Test void changedUntouchedFieldBlocksOverwrite()throws Exception {
         var p=preview();transport.card.addProperty("description","Changed outside app");
         assertThrows(GtinKnownUnsentException.class,()->adapter.submit(p));assertEquals(0,transport.writes.get());
@@ -292,14 +384,21 @@ class WbGtinAdapterTest {
           "sizes":[{"chrtID":11,"techSize":"XL","wbSize":"50","skus":["legacy"]},{"chrtID":12,"techSize":"L","wbSize":"48","skus":["other-size"]}],
           "documents":{"items":[{"id":"owned-document","type":2,"number":"D","applicant":"Fixture","verdict":{"verified":true,"status":1}}],"overallVerdict":{"verified":true}},"photos":[{"big":"https://example.invalid/fixture.jpg"}]}
           """).getAsJsonObject();
-        JsonObject conflict,extra;JsonArray sent;JsonElement errors=JsonParser.parseString("{\"data\":{\"items\":[],\"cursor\":{\"next\":false}}}");AtomicInteger writes=new AtomicInteger();boolean apply=true,loseResponse,reject,failReadAfterWrite;IOException readFailure;Runnable beforeSend=()->{};
+        JsonObject conflict,extra,priceSent;JsonArray sent;JsonElement errors=JsonParser.parseString("{\"data\":{\"items\":[],\"cursor\":{\"next\":false}}}");AtomicInteger writes=new AtomicInteger(),priceWrites=new AtomicInteger();int firstPrice=1000,secondPrice=1000;boolean apply=true,loseResponse,reject,failReadAfterWrite,priceRateOnce,priceReject,priceReadFail100;IOException readFailure;Runnable beforeSend=()->{},afterPriceClaim=()->{};
         public JsonElement call(String path,JsonElement body,boolean mutation)throws IOException {
+            if(path.equals("api/v2/upload/task")){assertTrue(mutation);priceWrites.incrementAndGet();if(priceReject)throw new com.vncode.app.integration.listing.ListingRejectedException(Marketplace.WILDBERRIES,400,"rejected");if(priceRateOnce){priceRateOnce=false;throw new com.vncode.app.integration.listing.ListingRateLimitException(new okhttp3.Headers.Builder().add("Retry-After","0").build());}priceSent=body.getAsJsonObject().deepCopy();return JsonParser.parseString("{\"error\":false,\"data\":{\"id\":42}}");}
+            if(path.startsWith("api/v2/list/goods/filter?")){
+                if(priceReadFail100&&path.endsWith("filterNmID=100"))throw new IOException("fixture read unavailable");
+                var sizes=new JsonArray();int index=0;for(var entry:card.getAsJsonArray("sizes")){var price=new JsonObject();price.add("sizeID",entry.getAsJsonObject().get("chrtID"));price.addProperty("price",index++==0?firstPrice:secondPrice);sizes.add(price);}
+                var good=new JsonObject();good.add("nmID",card.get("nmID"));good.addProperty("currencyIsoCode4217","RUB");good.addProperty("editableSizePrice",false);good.add("sizes",sizes);
+                var rows=new JsonArray();rows.add(good);var data=new JsonObject();data.add("listGoods",rows);var response=new JsonObject();response.add("data",data);response.addProperty("error",false);return response;
+            }
             if(mutation){assertEquals("content/v2/cards/update",path);writes.incrementAndGet();sent=body.getAsJsonArray().deepCopy();if(apply){var updated=sent.get(0).getAsJsonObject().deepCopy();for(var next:updated.getAsJsonArray("characteristics"))for(var old:card.getAsJsonArray("characteristics"))if(next.getAsJsonObject().get("id").equals(old.getAsJsonObject().get("id"))&&old.getAsJsonObject().has("name"))next.getAsJsonObject().add("name",old.getAsJsonObject().get("name"));card=updated;}if(failReadAfterWrite)readFailure=new IOException("Listing API HTTP 401");if(loseResponse)throw new IOException("fixture timeout");return JsonParser.parseString(reject?"{\"error\":true}":"{\"error\":false}");}
             if(readFailure!=null)throw readFailure;
             if(path.equals("content/v2/cards/error/list"))return errors.deepCopy();
             assertEquals("content/v2/get/cards/list",path);String search=body.getAsJsonObject().getAsJsonObject("settings").getAsJsonObject("filter").get("textSearch").getAsString();
             var cards=new JsonArray();if(search.equals("101"))cards.add(card.deepCopy());else if(extra!=null&&search.equals(extra.get("nmID").getAsString()))cards.add(extra.deepCopy());else if(conflict!=null)cards.add(conflict.deepCopy());var out=new JsonObject();out.add("cards",cards);var cursor=new JsonObject();cursor.addProperty("total",cards.size());cursor.addProperty("updatedAt","2026-10-21T00:00:00Z");cursor.addProperty("nmID",101);out.add("cursor",cursor);return out;
         }
-        public JsonElement call(String path,JsonElement body,boolean mutation,Runnable guard)throws IOException{beforeSend.run();guard.run();return call(path,body,mutation);}
+        public JsonElement call(String path,JsonElement body,boolean mutation,Runnable guard)throws IOException{beforeSend.run();guard.run();if(path.equals("api/v2/upload/task"))afterPriceClaim.run();return call(path,body,mutation);}
     }
 }

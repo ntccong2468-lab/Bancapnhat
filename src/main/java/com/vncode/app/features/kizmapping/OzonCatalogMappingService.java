@@ -30,7 +30,8 @@ public final class OzonCatalogMappingService {
         List<RegisteredGtin> catalog(Shop shop);
         List<RegisteredGtin> details(Shop shop,String code)throws Exception;
         void enrich(Shop shop,List<RegisteredGtin> cards);
-        void verified(Shop shop,Target target,String gtin);
+        default Map<Target,Long> confirm(Shop shop,Map<Target,String> candidates)throws Exception{var result=new HashMap<Target,Long>();for(var target:candidates.keySet())result.put(target,0L);return Map.copyOf(result);}
+        void verified(Shop shop,Target target,String gtin,long generation);
     }
     private final Operations operations;
     public OzonCatalogMappingService(){this(new LocalOperations());}
@@ -66,7 +67,7 @@ public final class OzonCatalogMappingService {
             }
         }
         requireScope(shop,scope);operations.enrich(shop,enriched);merge(catalog,enriched);
-        var duplicate=duplicates(targets);var issues=new ArrayList<Issue>();int mapped=0,exempt=0;
+        var duplicate=duplicates(targets);var issues=new ArrayList<Issue>();var candidates=new LinkedHashMap<Target,String>();int mapped=0,exempt=0;
         for(var target:targets){
             requireScope(shop,scope);
             if(target.exempt()){exempt++;continue;}
@@ -74,18 +75,19 @@ public final class OzonCatalogMappingService {
             var usable=codes.stream().filter(code->!failures.containsKey(code))
                     .filter(code->problem(target,catalog.get(code),scope,duplicate).isBlank()).toList();
             if(usable.size()==1){
-                // Only an observed barcode can create a new verified variant-level choice.
-                operations.verified(shop,target,catalog.get(usable.getFirst()).gtin());mapped++;continue;
+                // The paired marketplace snapshot can have been resumed after a rate limit;
+                // confirm the barcode with a fresh owned Ozon read before saving proof.
+                candidates.put(target,catalog.get(usable.getFirst()).gtin());continue;
             }
             if(usable.size()>1){issues.add(issue(target,String.join(", ",usable),"GTIN_AMBIGUOUS"));continue;}
-            // Keep a seller's existing manual rule when no contradictory Catalog barcode is present.
-            // Its validity is rechecked, but a rule is not promoted into a remote barcode readback.
+            // A seller's saved rule is retained as a local choice, but it cannot count as
+            // an Ozon mapping until this refresh actually observes the GTIN on that SKU.
             var existing=RegisteredGtinValidator.isValid(target.existing())?catalog.get(normalized(target.existing())):null;
             boolean observedCatalogCode=codes.stream().anyMatch(catalog::containsKey);
             if(!observedCatalogCode&&codes.stream().noneMatch(failures::containsKey)&&existing!=null
                     &&!failures.containsKey(normalized(existing.gtin()))){
                 String existingProblem=problem(target,existing,scope,duplicate);
-                if(existingProblem.isBlank()){mapped++;continue;}
+                if(existingProblem.isBlank()){issues.add(issue(target,existing.gtin(),"GTIN_NOT_ON_OZON"));continue;}
                 issues.add(issue(target,existing.gtin(),existingProblem));continue;
             }
             if(codes.isEmpty()){issues.add(issue(target,"","GTIN_BARCODE_MISSING"));continue;}
@@ -94,6 +96,12 @@ public final class OzonCatalogMappingService {
             issues.add(issue(target,code,reason));
         }
         requireScope(shop,scope);
+        var confirmed=operations.confirm(shop,Map.copyOf(candidates));requireScope(shop,scope);
+        for(var entry:candidates.entrySet()){
+            requireScope(shop,scope);
+            if(!confirmed.containsKey(entry.getKey())){issues.add(issue(entry.getKey(),entry.getValue(),"GTIN_NOT_ON_OZON"));continue;}
+            operations.verified(shop,entry.getKey(),entry.getValue(),confirmed.get(entry.getKey()));mapped++;
+        }
         progress.accept(new NationalCatalogGtinSource.Progress("MAPPING_COMPLETE",mapped+exempt,targets.size()));
         return new Result(mapped,exempt,issues);
     }
@@ -178,9 +186,24 @@ public final class OzonCatalogMappingService {
         public List<RegisteredGtin> catalog(Shop shop){return new GtinSyncRepository().catalog(shop.getId(),Marketplace.OZON);}
         public List<RegisteredGtin> details(Shop shop,String code)throws Exception{return NationalCatalogGtinSource.forSelection(shop,Set.of(code),true).read(shop.getId());}
         public void enrich(Shop shop,List<RegisteredGtin> cards){new GtinSyncRepository().mergeCatalog(shop.getId(),Marketplace.OZON,cards);ZnackCatalogSyncService.project(shop,cards);}
-        public void verified(Shop shop,Target target,String gtin){
+        public Map<Target,Long> confirm(Shop shop,Map<Target,String> candidates)throws Exception{
+            if(candidates.isEmpty())return Map.of();
+            var expected=new LinkedHashMap<GtinSyncModels.ProductKey,String>();
+            for(var target:candidates.keySet()){
+                var row=target.row();var key=new GtinSyncModels.ProductKey(shop.getId(),Marketplace.OZON,row.key().cardId(),row.key().variantId());
+                if(expected.put(key,target.sku())!=null)throw new IllegalStateException("OZON_DUPLICATE_PRODUCT_IDENTITY");
+            }
+            var api=new OzonApiClient(shop.getId(),new OzonCredentials(shop.getClientId(),shop.getApiKey()));
+            var fresh=new OzonGtinProductReader(shop,api).readBarcodeSnapshot(expected);var confirmed=new LinkedHashMap<Target,Long>();
+            for(var entry:candidates.entrySet()){
+                var row=entry.getKey().row();var key=new GtinSyncModels.ProductKey(shop.getId(),Marketplace.OZON,row.key().cardId(),row.key().variantId());
+                if(RegisteredGtinProof.contains(fresh.barcodes().getOrDefault(key,List.of()),entry.getValue()))confirmed.put(entry.getKey(),fresh.generations().get(key.productId()));
+            }
+            return Map.copyOf(confirmed);
+        }
+        public void verified(Shop shop,Target target,String gtin,long generation){
             RegisteredGtinProof.requireCurrent(shop,gtin);
-            new GtinSyncRepository().recordVerifiedMapping(new GtinSyncModels.ProductKey(shop.getId(),Marketplace.OZON,target.row().key().cardId(),target.row().key().variantId()),gtin);
+            new GtinSyncRepository().recordObservedOzonMapping(shop,new GtinSyncModels.ProductKey(shop.getId(),Marketplace.OZON,target.row().key().cardId(),target.row().key().variantId()),target.sku(),gtin,generation);
         }
     }
 }

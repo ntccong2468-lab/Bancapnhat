@@ -1753,11 +1753,11 @@ public class HomeController implements Initializable {
         shopSidebarController.setSelectedTheme(ThemeService.getCurrentTheme().getKey());
         shopSidebarController.applyTranslations();
         var licenseService = com.vncode.app.features.license.LicenseRuntime.service();
-        shopSidebarController.setLicenseStatus(licenseService.snapshot().status());
+        shopSidebarController.setLicenseStatus(licenseService.snapshot().status(), licenseService.allows(com.vncode.app.features.license.LicenseModels.Permission.SELLER_API));
         licenseSubscription = licenseService.subscribe(ignored -> {
             Runnable render = () -> {
                 if (!disposed && shopSidebarController != null) {
-                    shopSidebarController.setLicenseStatus(licenseService.snapshot().status());
+                    shopSidebarController.setLicenseStatus(licenseService.snapshot().status(), licenseService.allows(com.vncode.app.features.license.LicenseModels.Permission.SELLER_API));
                     resumeSavedKizQueues();
                 }
             };

@@ -84,9 +84,11 @@ public final class WebLicenseApi implements LicenseApi {
         this.origin = origin;
         var builder = client.newBuilder()
                 .connectTimeout(Duration.ofSeconds(8))
-                .readTimeout(Duration.ofSeconds(30))
-                .writeTimeout(Duration.ofSeconds(20))
-                .callTimeout(Duration.ofSeconds(45))
+                .readTimeout(Duration.ofSeconds(15))
+                .writeTimeout(Duration.ofSeconds(15))
+                // Bound the entire network call, including connection and response,
+                // rather than allowing individual stages to add up indefinitely.
+                .callTimeout(Duration.ofSeconds(15))
                 .followRedirects(false)
                 .followSslRedirects(false)
                 // Try alternate DNS routes / stale pooled connections after a network switch.
