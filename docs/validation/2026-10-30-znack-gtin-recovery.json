@@ -1,0 +1,1038 @@
+{
+  "checked_at": "2026-10-30T19:58:19.388332+00:00",
+  "repository": "https://github.com/ntccong2468-lab/Bancapnhat",
+  "base_branch": "release/vn-code-1.6.0",
+  "base_sha": "a8e0d9de0ffce25b71e0c8afb195fcedb22779f1",
+  "change_branch": "fix/znack-gtin-recovery-20261030",
+  "latest_published": {
+    "tag": "v1.5.19",
+    "sha": "7e123e60e355715806c901f2f7e7838d1d5df065",
+    "published_at": "2026-10-29T06:57:14Z"
+  },
+  "inventory_scope": [
+    "src/main/java/com/vncode/app/integration/znack/registration",
+    "src/main/java/com/vncode/app/features/gtinsync",
+    "src/main/java/com/vncode/app/integration/wb/WbGtinAdapter.java",
+    "src/main/java/com/vncode/app/integration/wb/WbGtinPriceRepair.java",
+    "src/main/java/com/vncode/app/integration/ozon/OzonGtinAdapter.java"
+  ],
+  "counts": {
+    "remote_branches": 42,
+    "tags": 38,
+    "published_releases": 9,
+    "related_commits": 64
+  },
+  "refs": [
+    {
+      "ref": "origin/audit/wbcode-desktop-2026-10-14",
+      "sha": "2314da31d5dbc0a2eb85338264f19323757625b3",
+      "ancestor": true,
+      "changed_files": 77,
+      "unique_commits": []
+    },
+    {
+      "ref": "origin/chore/install-find-reverse-engineered-skill-20261021",
+      "sha": "b8397fd62d6b7a920c92a172b63f86e859144f7b",
+      "ancestor": false,
+      "changed_files": 41,
+      "unique_commits": []
+    },
+    {
+      "ref": "origin/ci/vn-code-1.6.0-windows-2022",
+      "sha": "fbd12a9cfc52482ed1294caccf216a3701631d58",
+      "ancestor": false,
+      "changed_files": 0,
+      "unique_commits": []
+    },
+    {
+      "ref": "origin/feat/javafx-live-preview-visual-editor-20261016",
+      "sha": "af9e71453e822d53e24bbd8a93c787ce4085b205",
+      "ancestor": false,
+      "changed_files": 79,
+      "unique_commits": []
+    },
+    {
+      "ref": "origin/fix/catalog-readback-compact-rows",
+      "sha": "674eada6152bb193305b50754604ed53d27a3a1f",
+      "ancestor": true,
+      "changed_files": 21,
+      "unique_commits": []
+    },
+    {
+      "ref": "origin/fix/catalog-rejected-kit-and-image",
+      "sha": "adb88aec7d92b1395637ab82bc9c4be3129f7c54",
+      "ancestor": true,
+      "changed_files": 26,
+      "unique_commits": []
+    },
+    {
+      "ref": "origin/fix/kiz-gtin-ozon-pdf",
+      "sha": "4b25e8a9b2e58c238f1e964e15ef5985a329178e",
+      "ancestor": true,
+      "changed_files": 13,
+      "unique_commits": []
+    },
+    {
+      "ref": "origin/fix/kiz-ready-stock-and-pending-159",
+      "sha": "e9cd5243ad98b1ba178bb2a4a7863d9710d8d948",
+      "ancestor": true,
+      "changed_files": 30,
+      "unique_commits": []
+    },
+    {
+      "ref": "origin/fix/ozon-accept-null-action",
+      "sha": "840bbbb88be3b806a1a18ce89dd1b8807f8a491e",
+      "ancestor": true,
+      "changed_files": 13,
+      "unique_commits": []
+    },
+    {
+      "ref": "origin/fix/ozon-batch-label-identity-fbs-layout",
+      "sha": "542fa9a5c5c01194547e560368752742442e3a82",
+      "ancestor": true,
+      "changed_files": 13,
+      "unique_commits": []
+    },
+    {
+      "ref": "origin/fix/ozon-large-fbs-batch-labels",
+      "sha": "683967769c83bab3ed3c2219be914d700dfbaed9",
+      "ancestor": true,
+      "changed_files": 13,
+      "unique_commits": []
+    },
+    {
+      "ref": "origin/fix/persist-synchronized-data",
+      "sha": "9f51923902bde99206c24d64748ec81da08c57a1",
+      "ancestor": true,
+      "changed_files": 13,
+      "unique_commits": []
+    },
+    {
+      "ref": "origin/fix/product-card-bulk-edit-identity",
+      "sha": "5043f41779b8369af7d57c7341243f318cf03990",
+      "ancestor": true,
+      "changed_files": 13,
+      "unique_commits": []
+    },
+    {
+      "ref": "origin/fix/update-gtin-ozon-fbs-layout",
+      "sha": "585d15ce205ce21666985d558799a6ba18badffe",
+      "ancestor": true,
+      "changed_files": 21,
+      "unique_commits": []
+    },
+    {
+      "ref": "origin/fix/workspace-size-match-wb-fbs",
+      "sha": "d7d04b448dbf0c31f2686d629377feb62ee76a05",
+      "ancestor": true,
+      "changed_files": 13,
+      "unique_commits": []
+    },
+    {
+      "ref": "origin/fix/znack-catalog-submit-158-20261021",
+      "sha": "a80f56d20612d6637b5cc3a59735ab4d520bf566",
+      "ancestor": true,
+      "changed_files": 30,
+      "unique_commits": []
+    },
+    {
+      "ref": "origin/fix/znack-processing-visibility",
+      "sha": "0ba374eea16db2e470483d1cb379d7bc760cf4f0",
+      "ancestor": true,
+      "changed_files": 30,
+      "unique_commits": []
+    },
+    {
+      "ref": "origin/fix/znack-registration-filter-semantics",
+      "sha": "3b71216536ab2240567b2c2fa1b267c748f51755",
+      "ancestor": true,
+      "changed_files": 29,
+      "unique_commits": []
+    },
+    {
+      "ref": "origin/fix/znack-stable-view-wb-gtin-batches",
+      "sha": "42f4a76cdf7b158d841ceb3b5a05af3a81a70855",
+      "ancestor": true,
+      "changed_files": 29,
+      "unique_commits": []
+    },
+    {
+      "ref": "origin/fix/znack-workflow-parity",
+      "sha": "017412ffe5a014d3045b34cb14b00847dcbd5f85",
+      "ancestor": true,
+      "changed_files": 21,
+      "unique_commits": []
+    },
+    {
+      "ref": "origin/ops/install-project-memory",
+      "sha": "1f91d60ce7b99e750762079ae2df255ebd7c3205",
+      "ancestor": false,
+      "changed_files": 28,
+      "unique_commits": []
+    },
+    {
+      "ref": "origin/ops/publish-vncode-1511",
+      "sha": "ef5bd2c6de024a0f29eb0e0ec703b2df0330ae66",
+      "ancestor": false,
+      "changed_files": 28,
+      "unique_commits": []
+    },
+    {
+      "ref": "origin/perf/catalog-single-card-throughput",
+      "sha": "90ab7bb3bf722d998f8944bd9f558b3d00abd32f",
+      "ancestor": true,
+      "changed_files": 13,
+      "unique_commits": []
+    },
+    {
+      "ref": "origin/release/vn-code-1.5.11",
+      "sha": "2abe716d77a0f2d4d5f08ed0ae6451bf29ea2495",
+      "ancestor": true,
+      "changed_files": 28,
+      "unique_commits": []
+    },
+    {
+      "ref": "origin/release/vn-code-1.5.12",
+      "sha": "126a19ebbe63fe49a2d54ec665276b96d8cd5760",
+      "ancestor": true,
+      "changed_files": 21,
+      "unique_commits": []
+    },
+    {
+      "ref": "origin/release/vn-code-1.5.13",
+      "sha": "b4e3a8d930fb48311e65c0e48bafb173799ed344",
+      "ancestor": true,
+      "changed_files": 21,
+      "unique_commits": []
+    },
+    {
+      "ref": "origin/release/vn-code-1.5.14",
+      "sha": "537dfa2f47a5f448063e1bf96957fa493129ecdd",
+      "ancestor": true,
+      "changed_files": 21,
+      "unique_commits": []
+    },
+    {
+      "ref": "origin/release/vn-code-1.5.15",
+      "sha": "430d00a86be80c01b08101e23af40b5c1d4066c7",
+      "ancestor": true,
+      "changed_files": 13,
+      "unique_commits": []
+    },
+    {
+      "ref": "origin/release/vn-code-1.5.16",
+      "sha": "239d89e2fe36dcc0a91cababfb33a9a96cdbfe67",
+      "ancestor": true,
+      "changed_files": 13,
+      "unique_commits": []
+    },
+    {
+      "ref": "origin/release/vn-code-1.5.17",
+      "sha": "1c9fbe02d2e677896e2f0c54b86b9d97c165c01b",
+      "ancestor": true,
+      "changed_files": 13,
+      "unique_commits": []
+    },
+    {
+      "ref": "origin/release/vn-code-1.5.18",
+      "sha": "b28a8e770409e3ce5fee6ca03a5a8b93028126ba",
+      "ancestor": true,
+      "changed_files": 13,
+      "unique_commits": []
+    },
+    {
+      "ref": "origin/release/vn-code-1.5.19",
+      "sha": "406389ebb7166c98cedfcf1711338a9226169f9f",
+      "ancestor": true,
+      "changed_files": 13,
+      "unique_commits": []
+    },
+    {
+      "ref": "origin/release/vn-code-1.6.0",
+      "sha": "a8e0d9de0ffce25b71e0c8afb195fcedb22779f1",
+      "ancestor": true,
+      "changed_files": 0,
+      "unique_commits": []
+    },
+    {
+      "ref": "origin/ui/wbcode-dark-reference",
+      "sha": "b27d799e0576f1c75b098d90960ce484639cc3e2",
+      "ancestor": true,
+      "changed_files": 21,
+      "unique_commits": []
+    },
+    {
+      "ref": "origin/update/vn-code-1.3.0",
+      "sha": "1f91d60ce7b99e750762079ae2df255ebd7c3205",
+      "ancestor": false,
+      "changed_files": 28,
+      "unique_commits": []
+    },
+    {
+      "ref": "origin/update/vn-code-1.4.0",
+      "sha": "aa9892eb5ffb567c1d7dbd5730dc198b1326e6cd",
+      "ancestor": true,
+      "changed_files": 77,
+      "unique_commits": []
+    },
+    {
+      "ref": "origin/update/vn-code-1.5.8",
+      "sha": "a75f322455553f2c05727ac8b428e3d70b1bff9d",
+      "ancestor": true,
+      "changed_files": 31,
+      "unique_commits": []
+    },
+    {
+      "ref": "origin/update/vn-code-products-copy-20261011",
+      "sha": "854b65fc3d0a9853718a3219001e4d5f3b5486e6",
+      "ancestor": true,
+      "changed_files": 79,
+      "unique_commits": []
+    },
+    {
+      "ref": "origin/update/vn-code-wbcode-132",
+      "sha": "62e7e327cf06be2607a7c77616a9393e391b4591",
+      "ancestor": true,
+      "changed_files": 79,
+      "unique_commits": []
+    },
+    {
+      "ref": "origin/update/vncode-approved-upgrades",
+      "sha": "5621a4f0addc389a2e023140fb40e5f6be7458f8",
+      "ancestor": true,
+      "changed_files": 55,
+      "unique_commits": []
+    },
+    {
+      "ref": "origin/upgrade/znack-source-audit-20261021",
+      "sha": "15d062e89fe7c5ede4a34afb63694d2eef7b1f16",
+      "ancestor": false,
+      "changed_files": 41,
+      "unique_commits": []
+    },
+    {
+      "ref": "origin/verify/vncode-1411-from-1410",
+      "sha": "2bf3b0e09a528a5fbdc6b42e35aeaa31a78adf2a",
+      "ancestor": false,
+      "changed_files": 76,
+      "unique_commits": []
+    },
+    {
+      "ref": "v1.2.0-preview.1",
+      "sha": "e7c4c9e1031f64d576cb696b9a7fa396fc7c86a3",
+      "ancestor": true,
+      "changed_files": 79,
+      "unique_commits": []
+    },
+    {
+      "ref": "v1.2.1-preview.1",
+      "sha": "b5034df00a1e898124210437c522c92448ead5b3",
+      "ancestor": true,
+      "changed_files": 79,
+      "unique_commits": []
+    },
+    {
+      "ref": "v1.2.2-preview.1",
+      "sha": "d17ced942afd4231ca6821013c34e0e1ee11e11c",
+      "ancestor": true,
+      "changed_files": 79,
+      "unique_commits": []
+    },
+    {
+      "ref": "v1.3.0-preview.1",
+      "sha": "7858f9c3502980c6e1d3141bbeef719c85493d04",
+      "ancestor": true,
+      "changed_files": 79,
+      "unique_commits": []
+    },
+    {
+      "ref": "v1.4.10",
+      "sha": "735890f58937e7ee9d3c534956b27d51eed72d82",
+      "ancestor": true,
+      "changed_files": 76,
+      "unique_commits": []
+    },
+    {
+      "ref": "v1.4.11",
+      "sha": "793850d5d29964164a46e774befe1fa6b991af00",
+      "ancestor": true,
+      "changed_files": 76,
+      "unique_commits": []
+    },
+    {
+      "ref": "v1.4.12",
+      "sha": "fdce2e185d17afaf2a72643700b8ddf233f1d525",
+      "ancestor": true,
+      "changed_files": 75,
+      "unique_commits": []
+    },
+    {
+      "ref": "v1.4.13",
+      "sha": "eb25ecb5f9cee5cde32a283e57067642be836bc5",
+      "ancestor": true,
+      "changed_files": 75,
+      "unique_commits": []
+    },
+    {
+      "ref": "v1.4.14",
+      "sha": "6ba183cd5fb4420e37df13035581fee08c2d2155",
+      "ancestor": true,
+      "changed_files": 70,
+      "unique_commits": []
+    },
+    {
+      "ref": "v1.4.15",
+      "sha": "16f7b43047f50057df88f4bda70939da4b634a38",
+      "ancestor": true,
+      "changed_files": 70,
+      "unique_commits": []
+    },
+    {
+      "ref": "v1.4.16",
+      "sha": "536567835f6a044626d00be273b2217bb1c4fc7c",
+      "ancestor": true,
+      "changed_files": 70,
+      "unique_commits": []
+    },
+    {
+      "ref": "v1.4.17",
+      "sha": "8146dfc61efe6a7b4ac925fed6eedc274576316d",
+      "ancestor": true,
+      "changed_files": 67,
+      "unique_commits": []
+    },
+    {
+      "ref": "v1.4.18",
+      "sha": "e77a746128fa51f183a2a193275b6b1ef894c251",
+      "ancestor": true,
+      "changed_files": 67,
+      "unique_commits": []
+    },
+    {
+      "ref": "v1.4.19",
+      "sha": "d25718c6a69f94f08d9515d36f7444650b1eebd1",
+      "ancestor": true,
+      "changed_files": 66,
+      "unique_commits": []
+    },
+    {
+      "ref": "v1.4.6",
+      "sha": "1174273ddf9a5a45ff376d156cb5af4bde3f45b1",
+      "ancestor": true,
+      "changed_files": 76,
+      "unique_commits": []
+    },
+    {
+      "ref": "v1.4.7",
+      "sha": "68fc1b85ef2f838e3cd7bb269c298ce396e3b277",
+      "ancestor": true,
+      "changed_files": 76,
+      "unique_commits": []
+    },
+    {
+      "ref": "v1.4.8",
+      "sha": "7643b6c859c722486193a30e028da7be88c10bf6",
+      "ancestor": true,
+      "changed_files": 76,
+      "unique_commits": []
+    },
+    {
+      "ref": "v1.4.9",
+      "sha": "9c9c68b88f4c8b7f3b64e3da3c6af74e417db31d",
+      "ancestor": true,
+      "changed_files": 76,
+      "unique_commits": []
+    },
+    {
+      "ref": "v1.5.0",
+      "sha": "2eea069123737e2c9f7bcddcecaa51f21a1645dc",
+      "ancestor": true,
+      "changed_files": 66,
+      "unique_commits": []
+    },
+    {
+      "ref": "v1.5.1",
+      "sha": "f9da70ca98734b8c5daed0a6ef49b38df9723f54",
+      "ancestor": true,
+      "changed_files": 59,
+      "unique_commits": []
+    },
+    {
+      "ref": "v1.5.10",
+      "sha": "e9cd5243ad98b1ba178bb2a4a7863d9710d8d948",
+      "ancestor": true,
+      "changed_files": 30,
+      "unique_commits": []
+    },
+    {
+      "ref": "v1.5.11",
+      "sha": "2abe716d77a0f2d4d5f08ed0ae6451bf29ea2495",
+      "ancestor": true,
+      "changed_files": 28,
+      "unique_commits": []
+    },
+    {
+      "ref": "v1.5.12",
+      "sha": "2f9f194d26a9d840e9ab1097f51d91811abc3bbf",
+      "ancestor": true,
+      "changed_files": 21,
+      "unique_commits": []
+    },
+    {
+      "ref": "v1.5.13",
+      "sha": "7e88dc0e5e4e491025874f560c3ac069b6718644",
+      "ancestor": true,
+      "changed_files": 21,
+      "unique_commits": []
+    },
+    {
+      "ref": "v1.5.14",
+      "sha": "09718c80133528808047b01399e004ef9329ff64",
+      "ancestor": true,
+      "changed_files": 21,
+      "unique_commits": []
+    },
+    {
+      "ref": "v1.5.15",
+      "sha": "9f6155dbbbdd6af80e09897f2f2863b479b97a33",
+      "ancestor": true,
+      "changed_files": 13,
+      "unique_commits": []
+    },
+    {
+      "ref": "v1.5.16",
+      "sha": "96b439d50b14f78d973fb24420f6ac46c078e95c",
+      "ancestor": true,
+      "changed_files": 13,
+      "unique_commits": []
+    },
+    {
+      "ref": "v1.5.17",
+      "sha": "d49b7165064f30fd9aaa27a3a619bb3de072e0cb",
+      "ancestor": true,
+      "changed_files": 13,
+      "unique_commits": []
+    },
+    {
+      "ref": "v1.5.18",
+      "sha": "5330e9931b8b7155ebe26f3b589a7a2a747e0696",
+      "ancestor": true,
+      "changed_files": 13,
+      "unique_commits": []
+    },
+    {
+      "ref": "v1.5.19",
+      "sha": "7e123e60e355715806c901f2f7e7838d1d5df065",
+      "ancestor": true,
+      "changed_files": 13,
+      "unique_commits": []
+    },
+    {
+      "ref": "v1.5.2",
+      "sha": "6fe8ef21871657a38151897ddc13c3b1b5028fd5",
+      "ancestor": true,
+      "changed_files": 59,
+      "unique_commits": []
+    },
+    {
+      "ref": "v1.5.3",
+      "sha": "69ffc7ecb60a91c874510522c4aae3c5be069ccd",
+      "ancestor": true,
+      "changed_files": 58,
+      "unique_commits": []
+    },
+    {
+      "ref": "v1.5.4",
+      "sha": "688bd01982898e18c9770300fa20cfe29bde1245",
+      "ancestor": true,
+      "changed_files": 58,
+      "unique_commits": []
+    },
+    {
+      "ref": "v1.5.5",
+      "sha": "cc73b32ae50ed21a25196653291df2996ecef1bf",
+      "ancestor": true,
+      "changed_files": 55,
+      "unique_commits": []
+    },
+    {
+      "ref": "v1.5.6",
+      "sha": "541e982b47ff702522ede392dadb3cea433157bc",
+      "ancestor": true,
+      "changed_files": 55,
+      "unique_commits": []
+    },
+    {
+      "ref": "v1.5.7",
+      "sha": "9b580f42f3ea5b64a89a56591a598740cc7f5f45",
+      "ancestor": true,
+      "changed_files": 41,
+      "unique_commits": []
+    },
+    {
+      "ref": "v1.5.8",
+      "sha": "06408f3a35fddd2952b64374f75e5761d0b43502",
+      "ancestor": true,
+      "changed_files": 31,
+      "unique_commits": []
+    },
+    {
+      "ref": "v1.5.9",
+      "sha": "a80f56d20612d6637b5cc3a59735ab4d520bf566",
+      "ancestor": true,
+      "changed_files": 30,
+      "unique_commits": []
+    }
+  ],
+  "related_commits": [
+    {
+      "sha": "a8e0d9de0ffce25b71e0c8afb195fcedb22779f1",
+      "subject": "Release VN code 1.6.0 with license and marketplace improvements"
+    },
+    {
+      "sha": "59c3dc524d0bc0578aaaa1f320f225bf6769a841",
+      "subject": "fix: resume Catalog registration after explicit write rate limits"
+    },
+    {
+      "sha": "3ede7581ab17425ff975b75f603df93c9166ce7c",
+      "subject": "fix: resume transient Catalog failures without a five-attempt pause"
+    },
+    {
+      "sha": "9f798edce0391974ad1102a22ec0a5f4b745909f",
+      "subject": "perf: reduce repeated reads and reuse connections for single-card Catalog feeds"
+    },
+    {
+      "sha": "585d15ce205ce21666985d558799a6ba18badffe",
+      "subject": "Fix update handoff, persistent GTIN delta and Ozon FBS workflows"
+    },
+    {
+      "sha": "674eada6152bb193305b50754604ed53d27a3a1f",
+      "subject": "Fix Catalog submission readback and compact product rows"
+    },
+    {
+      "sha": "3a9a4c30dedc38a1d8400e6f0063ee421a6e95a6",
+      "subject": "Integrate Znack workflow changes with the released 1.5.11 baseline"
+    },
+    {
+      "sha": "e04ed790aa24bf5ae1ea31c4f29ec6c6673e356a",
+      "subject": "Implement durable Znack continuation and indexed Catalog scans"
+    },
+    {
+      "sha": "adb88aec7d92b1395637ab82bc9c4be3129f7c54",
+      "subject": "fix: correct Catalog submissions and keep batch views and full sync responsive"
+    },
+    {
+      "sha": "2abe716d77a0f2d4d5f08ed0ae6451bf29ea2495",
+      "subject": "Release 1.5.11: verify WB batches and support pending Catalog KIZ identity"
+    },
+    {
+      "sha": "3b71216536ab2240567b2c2fa1b267c748f51755",
+      "subject": "fix: align Znack filters and prefill rejected-card repairs"
+    },
+    {
+      "sha": "42f4a76cdf7b158d841ceb3b5a05af3a81a70855",
+      "subject": "fix: retain Znack views and report verified WB GTIN batch outcomes"
+    },
+    {
+      "sha": "0ba374eea16db2e470483d1cb379d7bc760cf4f0",
+      "subject": "fix: separate Znack creation, Catalog errors, and receipt progress"
+    },
+    {
+      "sha": "2f802b8c3faa155ef28c811b40ae23135292cecc",
+      "subject": "Fix 1.5.8 Catalog size types, configured permits and actionable reports"
+    },
+    {
+      "sha": "06408f3a35fddd2952b64374f75e5761d0b43502",
+      "subject": "fix(znack): integrate registration engine into 1.5.8 without UI changes"
+    },
+    {
+      "sha": "57d7814d73842278012d571ebb608e60624a258b",
+      "subject": "feat(znack): rebuild registration V3 with durable reviews and recovery"
+    },
+    {
+      "sha": "43727101c0f3b4aba1c238d17f5926fb7bea72b0",
+      "subject": "Harden Znack GTIN and KIZ recovery after source audit"
+    },
+    {
+      "sha": "b4672258090b51d6e40f1266cc180c6d1c4946f7",
+      "subject": "Fix verified Catalog registration and marketplace GTIN synchronization"
+    },
+    {
+      "sha": "541e982b47ff702522ede392dadb3cea433157bc",
+      "subject": "Fix Catalog country dictionary envelope in expedited 1.5.6 hotfix"
+    },
+    {
+      "sha": "3e6a1cd6f868d3dd28e454fd9ec45df3497a27f1",
+      "subject": "Autofill Znack registration from verified Catalog references"
+    },
+    {
+      "sha": "afcbe3252cf74234f04c8af32d3d65c6f3b30b6a",
+      "subject": "Apply complete Catalog preflight and confirmed registration flow for WB and Ozon"
+    },
+    {
+      "sha": "3ea8216021cac529a48e4a53331347360c260681",
+      "subject": "Confirm Catalog cards before counting registration and restore existing app windows"
+    },
+    {
+      "sha": "69ffc7ecb60a91c874510522c4aae3c5be069ccd",
+      "subject": "Repair Ozon registration retries and preserve verified WB GTIN results"
+    },
+    {
+      "sha": "9dfcae6ddf30d82f5fddc8ba5e5252cc362dddd8",
+      "subject": "Keep Ozon restart polling separate from durable submissions"
+    },
+    {
+      "sha": "a65b2b4a0e8ccf590722a7642e3d403cdc7b8338",
+      "subject": "Persist sequential Catalog registration and improve update handoff"
+    },
+    {
+      "sha": "57b0463bc62ffece24f1915605f848d1ddf7019f",
+      "subject": "Fix Znack batch continuation and one-apply product edits for 1.5.2"
+    },
+    {
+      "sha": "bd421bbccab297db31ea68dfac3d6c707b319e99",
+      "subject": "Apply published Catalog 5.68 rules to automatic registration and repair"
+    },
+    {
+      "sha": "835ad5041290c0330420d21fa13f82b686ac065c",
+      "subject": "Use observed Russian size when Catalog rejects international size types"
+    },
+    {
+      "sha": "b7478b78d711f372257a66d5bf27c4d7471e50ec",
+      "subject": "Add reviewed bulk repair of rejected Catalog cards for 1.5.1"
+    },
+    {
+      "sha": "7dbfade37a4d7ef1b0b1e4062e3250d9a362b4d1",
+      "subject": "Batch product updates and resolve verified Catalog permits"
+    },
+    {
+      "sha": "3940698e1d0cd10b657dc7109c42ba98ced22c5c",
+      "subject": "Fix Catalog registration diagnostics and bulk product updates for 1.5.1"
+    },
+    {
+      "sha": "fec7f2a8fc428a439daf8be733a2dfe26e166dab",
+      "subject": "Batch WB and Ozon GTIN updates for 10,000-item jobs with durable readback"
+    },
+    {
+      "sha": "d6b977403173a3952dac1e037bc069bc8f1af22f",
+      "subject": "Show actual Catalog error, moderation and draft states in registration and reports"
+    },
+    {
+      "sha": "81ef06d80e3bb65d21452cde6b2c44d1f06080c1",
+      "subject": "Prepare VNCode 1.5.0 glass controls and sequential registration; repair GTIN and KIZ workflows"
+    },
+    {
+      "sha": "97ebbe22c434ab135e4a6a3eb010b9b5dd733e95",
+      "subject": "Verify one live WB GTIN addition and block changed TN VED groups"
+    },
+    {
+      "sha": "c09bc0d52eeae70f95dd8d9da065c4d309849c6d",
+      "subject": "Complete missing product documents directly from registration preflight"
+    },
+    {
+      "sha": "6396af05ee753b62276c473b4ca76be1cd640727",
+      "subject": "Preserve rejected Catalog feed history and reset only its confirmed identity"
+    },
+    {
+      "sha": "3e26e11257e91cebcb693e1506bcbc4abfb4f6d5",
+      "subject": "Complete missing registration fields inline and correct Liquid Glass news cards"
+    },
+    {
+      "sha": "a6e9a8684e8f3fd595ce395186c32f29811c8dd9",
+      "subject": "Complete rejected-card recovery and reflect verified marketplace GTINs in registration"
+    },
+    {
+      "sha": "8a30b69a2485e86fc1c54940fd20137acf301c85",
+      "subject": "Resume accepted Catalog feeds after transient readback failures"
+    },
+    {
+      "sha": "ceb9e8239db128a683caa4affe5fa3a217a60995",
+      "subject": "Resolve approved Catalog cards with omitted feed good ID before signing"
+    },
+    {
+      "sha": "34066fdb595bcb73b1f1182d5149d7155f34c45c",
+      "subject": "Add approved Catalog registration default and preserve exact-card sync consent"
+    },
+    {
+      "sha": "92b84ef09909591afc2a9eaf6d374d2c9fb30873",
+      "subject": "Verify Catalog publication and preserve registration recovery checkpoints"
+    },
+    {
+      "sha": "42ad35e7df3f07fa59899e346313348b2b3e90f9",
+      "subject": "Prefer exact garment meaning over a broad Catalog category"
+    },
+    {
+      "sha": "10fc13d6ae14419cea6b16098fca41ef27a99316",
+      "subject": "Resolve primary garment categories against actual National Catalog taxonomy"
+    },
+    {
+      "sha": "0b268f02bec476262fa8f06ccb339b680ba4b811",
+      "subject": "Fix VNCode 1.4.16 batch editing, background GTIN, seller KIZ and glass UI"
+    },
+    {
+      "sha": "402bc806378a8a2c3e7679db81cbb3e0d8d157c1",
+      "subject": "fix: match structured Catalog color and supplier model tokens"
+    },
+    {
+      "sha": "ce4ce76ec73cdcf86731034ac3d84a25e4eb7661",
+      "subject": "feat: add shared Liquid Glass and variant-aware Ozon SKU matching"
+    },
+    {
+      "sha": "0bd865aa87320d4c437ea155f3afbc20f36f805f",
+      "subject": "fix: keep GTIN capability checks local and isolate Windows probe data"
+    },
+    {
+      "sha": "4398db987d7d7d767dda58707646248ff6d1f735",
+      "subject": "fix: preserve Ozon size identities and report definitive WB GTIN rejections"
+    },
+    {
+      "sha": "b34bd969432b338abd425d041a41da61ec5cbdff",
+      "subject": "fix: stabilize WB GTIN previews against native characteristic order"
+    },
+    {
+      "sha": "274450218dbd0779834f47b530c79156e0cdc98e",
+      "subject": "fix: reconcile observed marketplace size systems and Ozon customs labels"
+    },
+    {
+      "sha": "17464f060b974ff37f28a02cea0a4292ea11bbb5",
+      "subject": "fix: recover KIZ imports and complete durable Znack registration workflows"
+    },
+    {
+      "sha": "5e69d79aa8d957201b3177d93d8aea1eee4593e9",
+      "subject": "fix: prevent SQLite snapshot lock failures during Znack sync"
+    },
+    {
+      "sha": "9c48480077c72c881d51e2e18c60c5de8c48989c",
+      "subject": "fix: complete reviewed Znack registration and GTIN synchronization"
+    },
+    {
+      "sha": "c25e971d6babd0e87e6a0acf045d045754b30462",
+      "subject": "fix: unify Catalog product and GTIN sync and unlock seller category stock"
+    },
+    {
+      "sha": "38c3d7016fe2e1b1e7ea8a377af58fec78b184cb",
+      "subject": "Implement unified synchronization and automatic GS1 for VNCode 1.4.12"
+    },
+    {
+      "sha": "8ed1f185031f17a1955ddcfec985993f1baf3bd5",
+      "subject": "Add Catalog marketplace sync and seller KIZ stock for VNCode 1.4.11"
+    },
+    {
+      "sha": "7b90774f8a8575850c9b72c1fb8a801fb82eedae",
+      "subject": "Add scoped National Catalog API key settings and verified connection flow"
+    },
+    {
+      "sha": "0f96f8cf16101e10a18e37408b629aa9367830a9",
+      "subject": "Fix fresh license clock skew and diagnose Catalog ownership failures"
+    },
+    {
+      "sha": "92b5d69ce2fefdec583829484bdcef76a2db783e",
+      "subject": "Add approved marketplace batch, FBO recovery and workspace upgrades"
+    },
+    {
+      "sha": "d7d8493744456e4bcd034614b72a9d88c8b41095",
+      "subject": "feat: upgrade VNCode 1.4.0 Znack GS1 licensing and large-shop workflows"
+    },
+    {
+      "sha": "31831779e2c53cd3b313b5022e1fd0069171861e",
+      "subject": "feat: add confirmed product bulk edits with reconciliation"
+    },
+    {
+      "sha": "27c27a4dd77e27d886eb7ad054340b060cc21cda",
+      "subject": "feat: rebrand Windows application as VN code 1.1.34"
+    }
+  ],
+  "validation": {
+    "unique_tests": 420,
+    "classes": [
+      {
+        "class": "com.vncode.app.integration.znack.registration.v3.RegistrationCommandJournalTest",
+        "tests": 17,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "seconds": 1.799,
+        "report_sha256": "2f756b419fae5a9c1f624b4a919fb34af19fdba7513b1e1465eef0f848772924"
+      },
+      {
+        "class": "com.vncode.app.integration.wb.WbGtinPriceRepairTest",
+        "tests": 18,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "seconds": 2.678,
+        "report_sha256": "a8638d7308738c926f578b37b72c763ebfbcd4814b77d2e72747a828c7ebadd6"
+      },
+      {
+        "class": "com.vncode.app.integration.wb.WbGtinAdapterTest",
+        "tests": 47,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "seconds": 11.367,
+        "report_sha256": "28feb61ee2a5f40493bc52eaaef0c8837648d7be0c55367f44cad4595bf7409a"
+      },
+      {
+        "class": "com.vncode.app.features.gtinsync.GtinPricePreflightTest",
+        "tests": 9,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "seconds": 1.209,
+        "report_sha256": "ba92de8cc04de32044a32473c04e469996a329ff0ff99da030321a0ba7ff7cab"
+      },
+      {
+        "class": "com.vncode.app.features.sync.ZnackAutoSyncServiceTest",
+        "tests": 25,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "seconds": 8.786,
+        "report_sha256": "a282370627723af9ea2577238f615c1e0ddb7ddce9221185782f1977ce49d275"
+      },
+      {
+        "class": "com.vncode.app.integration.znack.registration.CatalogErrorRepairServiceTest",
+        "tests": 24,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "seconds": 7.441,
+        "report_sha256": "a8671f9c240650e604b2682d906fd405d6af71558801aeb37366d9f540e89be7"
+      },
+      {
+        "class": "com.vncode.app.integration.znack.registration.ZnackCardRegistrationWorkflowTest",
+        "tests": 80,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "seconds": 20.901,
+        "report_sha256": "ffa485e4ae80860192385699c0df003e5c4eeec42672677ae77fcb5e6866f3e5"
+      },
+      {
+        "class": "com.vncode.app.integration.znack.registration.RegistrationSigningConsentTest",
+        "tests": 11,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "seconds": 1.68,
+        "report_sha256": "49a7be1825ddc33d38bb9dc2f5dc80726bf344bf93dfea6cbaf230011f4b7081"
+      },
+      {
+        "class": "com.vncode.app.integration.znack.registration.OzonCardRegistrationWorkflowTest",
+        "tests": 82,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "seconds": 41.354,
+        "report_sha256": "c6e98913352e9c557e52905a788ae0a78173bea40e3ca30058e02a654272ffff"
+      },
+      {
+        "class": "com.vncode.app.integration.znack.registration.CatalogPackingPolicyTest",
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "seconds": 0.002,
+        "report_sha256": "0c775bd7d31d3b051cf2bc10daa41cb8ac51f257916b8a226f40ce0418cc38a9"
+      },
+      {
+        "class": "com.vncode.app.ui.znackregistration.CatalogErrorRepairDialogTest",
+        "tests": 9,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "seconds": 3.068,
+        "report_sha256": "32ce9dce08bfcbb2d7b4cf28b71a5d70c22476f389029b796feb9f90818668c8"
+      },
+      {
+        "class": "com.vncode.app.features.sync.ZnackMarketplaceActivationTest",
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "seconds": 1.306,
+        "report_sha256": "b4efb34443fd59e891d33a0a919289d76ec2560716da7db720208df3a6fe290d"
+      },
+      {
+        "class": "com.vncode.app.integration.ozon.OzonShipServiceTest",
+        "tests": 12,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "seconds": 2.374,
+        "report_sha256": "6f3fe5a2997bab68972c7915a20e14ce22efa4fcc6e15815e3dc3f37e605ead4"
+      },
+      {
+        "class": "com.vncode.app.integration.ozon.OzonGtinAdapterTest",
+        "tests": 24,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "seconds": 4.191,
+        "report_sha256": "fe1cfd602e193b65008bc553f1538e79152e0020c2dc8c1694816f36ef32187e"
+      },
+      {
+        "class": "com.vncode.app.features.gtinsync.GtinSyncCoordinatorTest",
+        "tests": 19,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "seconds": 2.501,
+        "report_sha256": "2363901454aebdc62d8a54b25b656bfd1af6c9d63ec30d7d0ddfc3413ce33bfc"
+      },
+      {
+        "class": "com.vncode.app.features.gtinsync.RegisteredGtinProofTest",
+        "tests": 12,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "seconds": 1.186,
+        "report_sha256": "2d25a2ba238c2fe6dce98567f1694c2eb7726dfd05d501415cd252436641321f"
+      },
+      {
+        "class": "com.vncode.app.integration.znack.registration.v3.RegistrationOrchestratorTest",
+        "tests": 18,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "seconds": 2.658,
+        "report_sha256": "d5a1af125ef8a89933c733a944cb0eb2534c882e274ca823d96df65e3ca68d4d"
+      },
+      {
+        "class": "com.vncode.app.integration.znack.registration.v3.RegistrationStoreTest",
+        "tests": 8,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "seconds": 1.525,
+        "report_sha256": "e9caecb63445dc0619e304326837aacd086bb2894904b927395277598097a2e6"
+      }
+    ],
+    "aggregation": "Final passing reports per class from five targeted runs; earlier failed or repeated runs are excluded. Each affected module was tested after its corresponding fix. This is not a single full-suite run.",
+    "environment": "Linux; JDK 25; JavaFX 25.0.2 with Xvfb; SQLite and synthetic API/localhost fixtures.",
+    "changed_source_sha256": {
+      "src/main/java/com/vncode/app/features/sync/WbGtinQueueAutoResume.java": "659663a68f1eea31205e684ea7e6755630b5475afabf660f6635b8026e2ec3a4",
+      "src/main/java/com/vncode/app/integration/ozon/OzonShipService.java": "cc5c01dba83437c93041ea76447d371d94d8b61d5d47fc1c13188bacb6f28ff8",
+      "src/main/java/com/vncode/app/integration/wb/WbGtinPriceRepair.java": "c3e81d713be985a3276c6b8cdd793444d17072770516309a58fbed71277bdc84",
+      "src/main/java/com/vncode/app/integration/znack/registration/CatalogErrorRepairService.java": "fbb76874dc0d43252c0b34862a30815c09bfe5f22fb0b21ea6c540ca0d881fbc",
+      "src/main/java/com/vncode/app/integration/znack/registration/v3/RegistrationCommandJournal.java": "66efd7c41984d24064900dfcea99738b234e22abe96859961d5272115bd6d580",
+      "src/main/java/com/vncode/app/ui/znackregistration/CatalogErrorRepairDialog.java": "c0f636f245343660f6705d99036990743356bed0f761febed2558b9d4c59b302",
+      "src/main/resources/com/vncode/app/i18n/messages_en.properties": "0d27a6bd1da8b03d5a4165f3a706f8ad9e5443133eb0379aa518c624f466ff25",
+      "src/main/resources/com/vncode/app/i18n/messages_ru.properties": "488d694dca7d762057d9b3adfbec9c0e175c5ffaf3cabd8248ef09c84910ddbf",
+      "src/main/resources/com/vncode/app/i18n/messages_vi.properties": "cc493fdd3caaa36974f2b370ef33b7f50ee5efcc25a1c30b69135dea55d7f4e0",
+      "src/main/resources/com/vncode/app/i18n/messages_zh.properties": "b5dd26a4d0aefbc9082407bc1f2d007adf42d1e1b2235d43cc231fd80e2ae1a0",
+      "src/test/java/com/vncode/app/features/sync/ZnackMarketplaceActivationTest.java": "62b2a1f883e651222d3af9a16e6e47d37a7dcf7cbdcecaa52c9cbe146d54941b",
+      "src/test/java/com/vncode/app/integration/ozon/OzonShipServiceTest.java": "dc63d948e4695a266bf9587c85910f4711f77fb4bf0a3173c5a053c61572268b",
+      "src/test/java/com/vncode/app/integration/wb/WbGtinAdapterTest.java": "35cf1bf1d1cd50d46868ecf52115627e0e4675697edbab1fcf7933e82db76966",
+      "src/test/java/com/vncode/app/integration/wb/WbGtinPriceRepairTest.java": "651d3d6adba50c626f4d45dc5835c3ac4c99f2f759d16010414504a37262ccf5",
+      "src/test/java/com/vncode/app/integration/znack/registration/CatalogErrorRepairServiceTest.java": "d2b9685c1db7b9616524e25116f3b1fe7071a41ff4844ca3aab8e7a250160084",
+      "src/test/java/com/vncode/app/integration/znack/registration/v3/RegistrationCommandJournalTest.java": "202cc1e8b9999e19fc2b47ef5ef09214e29b1e5c650e5ad2d4f01ac2e8c7575f",
+      "src/test/java/com/vncode/app/ui/znackregistration/CatalogErrorRepairDialogTest.java": "801d3fce69e66898ac831754f1b1d8a46dfddb3514afe4b7c72b277d96997eb6"
+    },
+    "live_seller_writes": 0,
+    "full_application_suite": false,
+    "native_windows_or_cryptopro": false,
+    "installer_build": false,
+    "release_published": false
+  }
+}

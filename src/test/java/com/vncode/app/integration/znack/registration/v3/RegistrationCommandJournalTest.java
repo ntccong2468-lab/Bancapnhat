@@ -23,6 +23,32 @@ class RegistrationCommandJournalTest {
         journal=new RegistrationCommandJournal();
     }
     @AfterEach void clean(){System.clearProperty("vncode.appdata.dir");}
+    @Test void unavailableStartMetadataDoesNotPreventRegistrationOrInventAnEpoch() {
+        String missing=RegistrationCommandJournal.workerIdentity(42,java.util.Optional::empty);
+        String denied=RegistrationCommandJournal.workerIdentity(42,()->{throw new SecurityException("metadata unavailable");});
+        assertTrue(missing.startsWith("42@unknown:"));assertTrue(denied.startsWith("42@unknown:"));assertNotEquals(missing,denied);
+        var start=java.time.Instant.parse("2026-10-30T00:00:00Z");
+        assertEquals("42@"+start,RegistrationCommandJournal.workerIdentity(42,()->java.util.Optional.of(start)));
+    }
+    @Test void onlyTwoKnownDifferentStartTimesProvePidReuse() {
+        var now=java.time.Instant.parse("2026-10-30T00:00:00Z");
+        assertTrue(RegistrationCommandJournal.matchesLiveProcess("unknown:old-worker",java.util.Optional.of(now)));
+        assertTrue(RegistrationCommandJournal.matchesLiveProcess(now.toString(),java.util.Optional.empty()));
+        assertTrue(RegistrationCommandJournal.matchesLiveProcess("malformed",java.util.Optional.of(now)));
+        assertTrue(RegistrationCommandJournal.matchesLiveProcess(now.toString(),java.util.Optional.of(now)));
+        assertFalse(RegistrationCommandJournal.matchesLiveProcess(now.minusSeconds(1).toString(),java.util.Optional.of(now)));
+    }
+    @Test void liveWorkerWithUnknownStartCannotBeReclaimedOrResent()throws Exception {
+        assertThrows(SocketTimeoutException.class,()->journal.run(owner,List.of(submit),sent->{sent.run();throw new SocketTimeoutException();}));
+        try(var c=Database.getConnection();var p=c.prepareStatement("UPDATE znack_v3_dispatches SET state='SENDING',worker=?")){
+            p.setString(1,ProcessHandle.current().pid()+"@unknown:other-runtime");p.executeUpdate();
+        }
+        assertThrows(IllegalStateException.class,()->new RegistrationCommandJournal().run(owner,List.of(submit),sent->{fail("live worker replayed");return List.of();}));
+        assertFalse(journal.reconcile(owner,submit,"unproven-recovery"));
+        try(var c=Database.getConnection();var s=c.createStatement();var rows=s.executeQuery("SELECT state FROM znack_v3_dispatches")){
+            assertTrue(rows.next());assertEquals("SENDING",rows.getString(1));
+        }
+    }
     @Test void acknowledgedFeedSurvivesRestartWithoutAnotherSend()throws Exception {
         var calls=new AtomicInteger();
         assertEquals(List.of("feed-42"),journal.run(owner,List.of(submit),sent->{sent.run();calls.incrementAndGet();return List.of("feed-42");}));

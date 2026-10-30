@@ -185,6 +185,10 @@ public final class CatalogErrorRepairService {
         return draft;
     }
     public String apply(Shop shop,List<Proposal> proposals,List<Draft> drafts,Consumer<Progress> listener)throws Exception {
+        return apply(shop,proposals,drafts,false,listener);
+    }
+    /** Completion choices belong only to these reviewed cards, never a shop-wide default. */
+    public String apply(Shop shop,List<Proposal> proposals,List<Draft> drafts,boolean syncMarketplace,Consumer<Progress> listener)throws Exception {
         if(proposals.isEmpty()||proposals.size()!=drafts.size()||proposals.size()>1000)throw new IllegalArgumentException("CATALOG_REPAIR_SELECTION_LIMIT");
         var keys=new HashSet<ProductKey>();var gtins=new HashSet<String>();for(int i=0;i<proposals.size();i++){validate(proposals.get(i),drafts.get(i));if(!keys.add(proposals.get(i).snapshot().key())||!gtins.add(proposals.get(i).card().gtin()))throw new IllegalArgumentException("CATALOG_REPAIR_DUPLICATE_VARIANT");}
         var reports=new SyncRunRepository();String run=reports.begin(shop,"catalog_repair","READBACK");int completed=0;
@@ -214,6 +218,8 @@ public final class CatalogErrorRepairService {
                 }
                 if(!CatalogRepairCheckpoint.prepare(shop,key,current.metadata().getOrDefault("sku",""),p.card().gtin(),p.goodId(),payload.toString(),draft,p.session().scope(),p.feedRejection()))throw new IllegalStateException("CATALOG_REPAIR_CHECKPOINT_BUSY");
                 if(key.marketplace()==Marketplace.OZON)new OzonCardRegistrationRepository().rememberReview(key,RegistrationReviewedValues.productRevision(new com.vncode.app.integration.ozon.OzonShopBrand().apply(shop,current)),RegistrationReviewedValues.schemaRevision(repairSchema),payload.toString());
+                RegistrationSigningConsent.set(shop,key,p.card().gtin(),draft.autoSign());
+                RegistrationMarketplaceConsent.set(shop,key,p.card().gtin(),syncMarketplace);
                 final int done=completed;final Status[] state={Status.READY_TO_SUBMIT};
                 dispatch.resume(shop,key,p.session(),s->{state[0]=s;listener.accept(new Progress(done,proposals.size(),p.card().gtin(),s,""));});
                 String nativeFeed=key.marketplace()==Marketplace.WILDBERRIES?new ZnackCardRegistrationRepository().find(shop.getId(),Long.parseLong(key.variantId())).feedId():new OzonCardRegistrationRepository().find(key).feedId();
@@ -228,8 +234,8 @@ public final class CatalogErrorRepairService {
         finish(shop,reports,run);new SyncStreamStore().request(shop,"ZNACK");return run;
     }
     private static void resume(Shop shop,ProductKey key,CatalogSession session,Consumer<Status> progress)throws Exception {
-        if(key.marketplace()==Marketplace.WILDBERRIES){var workflow=new ZnackCardRegistrationWorkflow(new ZnackCardRegistrationRepository());var sku=new ZnackCardRegistrationRepository().find(shop.getId(),Long.parseLong(key.variantId()));if(!workflow.resume(shop,sku,false,(s,d)->progress.accept(s)))throw new IllegalStateException("CATALOG_REPAIR_CHECKPOINT_BUSY");workflow.completion(shop,sku).toCompletableFuture().get(5,java.util.concurrent.TimeUnit.MINUTES);}
-        else{var workflow=new OzonCardRegistrationWorkflow();if(!workflow.resume(shop,key,false,(s,d)->progress.accept(s)))throw new IllegalStateException("CATALOG_REPAIR_CHECKPOINT_BUSY");workflow.completion(shop).toCompletableFuture().get(5,java.util.concurrent.TimeUnit.MINUTES);}
+        if(key.marketplace()==Marketplace.WILDBERRIES){var workflow=new ZnackCardRegistrationWorkflow(new ZnackCardRegistrationRepository());var sku=new ZnackCardRegistrationRepository().find(shop.getId(),Long.parseLong(key.variantId()));if(!workflow.resume(shop,sku,null,(s,d)->progress.accept(s)))throw new IllegalStateException("CATALOG_REPAIR_CHECKPOINT_BUSY");workflow.completion(shop,sku).toCompletableFuture().get(5,java.util.concurrent.TimeUnit.MINUTES);}
+        else{var workflow=new OzonCardRegistrationWorkflow();if(!workflow.resume(shop,key,null,(s,d)->progress.accept(s)))throw new IllegalStateException("CATALOG_REPAIR_CHECKPOINT_BUSY");workflow.completion(shop).toCompletableFuture().get(5,java.util.concurrent.TimeUnit.MINUTES);}
     }
     public static void refresh(Shop shop,SyncRunRepository.Run run,List<SyncRunRepository.Item> items){
         if(!"catalog_repair".equals(run.kind()))return;var reports=new SyncRunRepository();reports.assertOwner(shop,run.id());

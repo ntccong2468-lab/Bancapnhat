@@ -10,7 +10,7 @@ import static com.vncode.app.integration.znack.registration.v3.RegistrationJob.*
 /** V3 dispatch boundary shared by the existing 1.5.7 registration controls.
  * Business review remains with the caller. This journal never grants consent. */
 public final class RegistrationCommandJournal {
-    private static final String WORKER=ProcessHandle.current().pid()+"@"+ProcessHandle.current().info().startInstant().orElseThrow();
+    private static final String WORKER=workerIdentity(ProcessHandle.current().pid(),()->ProcessHandle.current().info().startInstant());
     private final java.nio.file.Path profile=com.vncode.app.shared.AppPaths.appDataDir().toAbsolutePath().normalize();
     public record Command(Action action,String resource,String contentHash) {
         public Command { Objects.requireNonNull(action);if(blank(resource)||blank(contentHash))throw new IllegalArgumentException("REGISTRATION_COMMAND_INVALID");contentHash=hash(contentHash); }
@@ -19,6 +19,18 @@ public final class RegistrationCommandJournal {
     @FunctionalInterface public interface Send { List<String> send(Runnable dispatched)throws Exception; }
     @FunctionalInterface private interface Work<T>{T apply(Connection connection)throws SQLException;}
     private record Claim(String id,String receipt){}
+
+    static String workerIdentity(long pid,java.util.function.Supplier<Optional<Instant>> start) {
+        try {var instant=start.get();if(instant.isPresent())return pid+"@"+instant.get();}
+        catch(RuntimeException unavailable) { /* Process metadata is optional on some runtimes. */ }
+        return pid+"@unknown:"+UUID.randomUUID();
+    }
+    /** Missing metadata cannot prove that a live PID belongs to a different worker. */
+    static boolean matchesLiveProcess(String recorded,Optional<Instant> current) {
+        if(current.isEmpty())return true;
+        try{return Instant.parse(recorded).equals(current.get());}
+        catch(RuntimeException unavailable){return true;}
+    }
 
     public static void initialize(Connection c)throws SQLException {
         try(var s=c.createStatement()){
@@ -57,8 +69,11 @@ public final class RegistrationCommandJournal {
     }
     private static boolean alive(String worker){
         if(worker==null||!worker.contains("@"))return true;
-        try{var parts=worker.split("@",2);var process=ProcessHandle.of(Long.parseLong(parts[0]));
-            return process.isPresent()&&process.get().isAlive()&&process.get().info().startInstant().map(start->start.toString().equals(parts[1])).orElse(true);
+        try{var parts=worker.split("@",2);long pid=Long.parseLong(parts[0]);
+            var current=ProcessHandle.current();
+            if(pid==current.pid())return matchesLiveProcess(parts[1],current.info().startInstant());
+            var process=ProcessHandle.of(pid);
+            return process.isPresent()&&process.get().isAlive()&&matchesLiveProcess(parts[1],process.get().info().startInstant());
         }catch(RuntimeException unknown){return true;}
     }
     public List<String> run(Owner owner,List<Command> requested,Send send)throws Exception {return run(owner,owner.key(),requested,send);}

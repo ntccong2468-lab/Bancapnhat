@@ -35,7 +35,7 @@ class CatalogErrorRepairServiceTest {
         api=new FixtureApi();var catalog=new ZnackNationalCatalogService(api,new ZnackAuthService(api,null){public String trueApiToken(ZnackModels.Settings s){return "fixture";}},null,ZnackModels.Settings.empty());session=new ZnackCardRegistrationWorkflow.CatalogSession("fixture",catalog,scope);
         service=new CatalogErrorRepairService(s->session,(s,k)->snapshot,(s,k,cs,progress)->{
             var repo=new ZnackCardRegistrationRepository();var workflow=RegistrationWorkflowTestFixtures.workflow(repo,x->cs,Runnable::run,true,(a,b,c,d)->false);
-            assertTrue(workflow.resume(s,repo.find(s.getId(),Long.parseLong(k.variantId())),false,(status,detail)->progress.accept(status)));
+            assertTrue(workflow.resume(s,repo.find(s.getId(),Long.parseLong(k.variantId())),null,(status,detail)->progress.accept(status)));
         });
     }
     @AfterEach void clean(){System.clearProperty("vncode.appdata.dir");}
@@ -50,6 +50,21 @@ class CatalogErrorRepairServiceTest {
         var row=new ZnackCardRegistrationRepository().find(1,201);assertEquals(gtin,row.gtin());assertEquals("fixture-feed",row.feedId());assertEquals(Status.PROCESSING,row.status());assertEquals("WAITING_REMOTE",new SyncRunRepository().find(run).orElseThrow().state());assertEquals(1,progress.getLast().completed());
         assertThrows(IllegalStateException.class,()->session.catalog().rejectedCard("fixture",gtin,91L));
         var second=service.apply(shop,List.of(p),List.of(p.draft()),ignored->{});assertEquals(1,api.writes.get());assertEquals("PARTIAL",new SyncRunRepository().find(second).orElseThrow().state());
+    }
+    @org.junit.jupiter.params.ParameterizedTest
+    @org.junit.jupiter.params.provider.CsvSource({"false,false","true,false","false,true","true,true"})
+    void reviewedCompletionChoicesPersistWithoutPublishingAnUnapprovedCard(boolean autoSign,boolean sync)throws Exception {
+        var p=service.prepare(shop,card(),key);
+        service.apply(shop,List.of(p),List.of(p.draft().withAutoSign(autoSign)),sync,ignored->{});
+        assertEquals(autoSign,RegistrationSigningConsent.allowed(shop,key,gtin));
+        assertEquals(sync,RegistrationMarketplaceConsent.allowed(shop,key,gtin));
+        assertTrue(RegistrationMarketplaceConsent.publishedCandidates(shop).isEmpty(),"Moderation is not publication");
+        assertEquals(1,api.writes.get());assertEquals(0,api.allocations.get());
+        assertEquals(Status.PROCESSING,new ZnackCardRegistrationRepository().find(1,201).status());
+        try(var c=Database.getConnection();var p1=c.prepareStatement("UPDATE znack_card_registrations SET payload_json=? WHERE shop_id=1 AND chrt_id=201")){
+            var changed=api.sent.deepCopy();changed.addProperty("good_name","Changed after approval");p1.setString(1,changed.toString());p1.executeUpdate();
+        }
+        assertFalse(RegistrationSigningConsent.allowed(shop,key,gtin),"A correction cannot authorize a later changed payload");
     }
     @Test void feedRejectionWithoutRemoteCardCanBeEditedAndSubmittedWithSameGtin()throws Exception {
         var original=service.prepare(shop,card(),key);
@@ -112,14 +127,14 @@ class CatalogErrorRepairServiceTest {
         new GtinSyncRepository().saveCatalog(1,Marketplace.WILDBERRIES,List.of(new GtinSyncModels.RegisteredGtin(gtin,"SUIT","ЧЕРНЫЙ","52",true,false,RegisteredGtinProof.source(shop),Instant.now(),CatalogProductDataParser.parse(noIdentity))));
         assertEquals("CATALOG_CARD_ERRORS",service.report(shop,Set.of(key),false).getFirst().reason(),"An unknown Catalog identity must not inherit identity-bound feedback");
     }
-    @org.junit.jupiter.params.ParameterizedTest @org.junit.jupiter.params.provider.ValueSource(booleans={false,true})
-    void ozonRepairRunsNativeFeedAndRetainsProductAndOfferIdentity(boolean feedOnly)throws Exception{
+    @org.junit.jupiter.params.ParameterizedTest @org.junit.jupiter.params.provider.CsvSource({"false,false","false,true","true,false","true,true"})
+    void ozonRepairRunsNativeFeedAndRetainsProductAndOfferIdentity(boolean feedOnly,boolean complete)throws Exception{
         var ozon=GtinWriteTestFixture.shop(Marketplace.OZON);var nativeKey=new ProductKey(2,Marketplace.OZON,"501","offer-501");
         try(var c=Database.getConnection();var q=c.createStatement()){q.execute("INSERT INTO ozon_products(shop_id,product_id,offer_id,sku,name,synced_at) VALUES(2,'501','offer-501','9001','Suit','test')");}
         RegistrationSourceFixture.ready(ozon);var nativeSnapshot=new ProductSnapshot(nativeKey,"live:fixture",snapshot.title(),"",snapshot.brand(),snapshot.vendorArticle(),snapshot.categoryId(),List.of(),snapshot.attributes(),List.of(new ProductVariant("offer-501","SUIT","ЧЕРНЫЙ","52","",false,"52")),null,List.of(),Instant.now(),Map.of("owner",ListingIdentity.fingerprint(ozon),"source.category.name","Костюмы спортивные","sku","9001"));
         var settings=new ZnackRepository(new ZnackModels.ShopContext(2,"Fixture"));settings.saveSettings(settings.getSettings().withDefaultGoodsDocument("CONFORMITY_DECLARATION","FIXTURE-PERMIT","01.01.2026"));
         var oscope=ZnackRegistrationScope.fromSettings(settings.getSettings());var cs=new ZnackCardRegistrationWorkflow.CatalogSession("fixture",session.catalog(),oscope);
-        var service=new CatalogErrorRepairService(s1->cs,(s1,k)->nativeSnapshot,(s1,k,catalog,progress)->{var workflow=new OzonCardRegistrationWorkflow(new OzonCardRegistrationRepository(),s2->catalog,(s2,k2)->nativeSnapshot,Runnable::run,(a,b,c,d)->false);assertTrue(workflow.resume(s1,k,false,(status,detail)->progress.accept(status)));});
+        var service=new CatalogErrorRepairService(s1->cs,(s1,k)->nativeSnapshot,(s1,k,catalog,progress)->{var workflow=new OzonCardRegistrationWorkflow(new OzonCardRegistrationRepository(),s2->catalog,(s2,k2)->nativeSnapshot,Runnable::run,(a,b,c,d)->false);assertTrue(workflow.resume(s1,k,null,(status,detail)->progress.accept(status)));});
         var row=new ProductRow(nativeKey,"Suit","SUIT","9001","Костюмы спортивные","Fixture","ЧЕРНЫЙ","52",List.of(),"","","хлопок","6112110000",DocumentState.UNVERIFIED,"Мужской",true,"52");
         var card=new CatalogErrorRepairService.ErrorCard(gtin,"SUIT","ЧЕРНЫЙ","1","CATALOG_CARD_ERRORS",List.of(row));if(feedOnly){
             var initial=service.prepare(ozon,card,nativeKey);
@@ -127,8 +142,9 @@ class CatalogErrorRepairServiceTest {
             try(var c=Database.getConnection();var q=c.createStatement()){q.execute("UPDATE ozon_card_registrations SET status='ERROR',error='CATALOG_REJECTED: invalid title',feed_id='rejected-feed',good_id=NULL");}
             api.noCard=true;
         }
-        var proposal=service.prepare(ozon,card,nativeKey);String run=service.apply(ozon,List.of(proposal),List.of(proposal.draft()),ignored->{});
+        var proposal=service.prepare(ozon,card,nativeKey);String run=service.apply(ozon,List.of(proposal),List.of(proposal.draft().withAutoSign(complete)),complete,ignored->{});
         var stored=new OzonCardRegistrationRepository().find(nativeKey);assertEquals("9001",stored.sku());assertEquals(gtin,stored.gtin());assertEquals("fixture-feed",stored.feedId());assertEquals(feedOnly?Status.FEED_SUBMITTED:Status.PROCESSING,stored.status());assertEquals("WAITING_REMOTE",new SyncRunRepository().find(run).orElseThrow().state());assertEquals(1,api.writes.get());assertEquals(0,api.allocations.get());
+        assertEquals(complete,RegistrationSigningConsent.allowed(ozon,nativeKey,gtin));assertEquals(complete,RegistrationMarketplaceConsent.allowed(ozon,nativeKey,gtin));assertTrue(RegistrationMarketplaceConsent.publishedCandidates(ozon).isEmpty());
         var revisions=new OzonCardRegistrationRepository().reviewedRevisions(nativeKey);assertEquals(2,revisions.size());assertTrue(revisions.stream().allMatch(value->value.matches("[0-9a-f]{64}")),"Repair approval must bind both current marketplace source and Catalog schema");
         var expected=ZnackNationalCatalogService.buildPayload(gtin,proposal.draft(),"");if(!feedOnly)expected.addProperty("good_id",91L);assertEquals(expected,JsonParser.parseString(stored.payload()));assertEquals(expected,api.sent,"Review stamping must not rebuild or silently replace the approved repair attributes");
         assertFalse(CatalogRepairCheckpoint.prepare(ozon,nativeKey,"9001",gtin,91,"{}",proposal.draft(),oscope));

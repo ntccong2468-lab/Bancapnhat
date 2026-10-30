@@ -68,7 +68,7 @@ public final class OzonShipService {
         postings.upsertDetail(shop.getId(), posting);
         String previousAction = jobs.latestActionStatus(shop.getId(), "ship", posting.postingNumber());
         if (blocksShipRetry(previousAction)) {
-            if (isPostShipStatus(posting.status())) {
+            if (isPostShipStatus(posting)) {
                 if (!"reconciled".equals(previousAction)) {
                     jobs.logAction(shop.getId(), "ship", posting.postingNumber(), "reconciled", null, null);
                 }
@@ -104,8 +104,7 @@ public final class OzonShipService {
                 throw exception;
             }
             OzonPostingDto readback = refresh(api, shop.getId(), posting.postingNumber());
-            boolean stillShippable = readback.canShip();
-            if (!stillShippable || !readback.status().equalsIgnoreCase(posting.status())) {
+            if (isPostShipStatus(readback)) {
                 jobs.logAction(shop.getId(), "ship", posting.postingNumber(), "reconciled", null, fingerprint);
                 return new OzonShipResult(posting.postingNumber(), readback.status(), true);
             }
@@ -148,7 +147,9 @@ public final class OzonShipService {
         return posting;
     }
 
-    private static boolean isPostShipStatus(String status) {
+    private static boolean isPostShipStatus(OzonPostingDto posting) {
+        if ("ship_failed".equalsIgnoreCase(posting.substatus())) return false;
+        String status = posting.status();
         return status != null && switch (status.toLowerCase(java.util.Locale.ROOT)) {
             case "awaiting_deliver", "delivering", "delivered" -> true;
             default -> false;

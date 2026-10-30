@@ -27,6 +27,8 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 
 class OzonShipServiceTest {
     @TempDir
@@ -145,6 +147,30 @@ class OzonShipServiceTest {
         assertEquals(1, count("SELECT COUNT(*) FROM ozon_action_log WHERE action_type='ship' AND status='rejected' "
                 + "AND safe_error_code='HAS_INCORRECT_PRODUCT_QUANTITY'"));
         assertEquals(1, count("SELECT COUNT(*) FROM ozon_action_log WHERE action_type='ship' AND status='success'"));
+    }
+
+    @ParameterizedTest
+    @CsvSource({"cancelled,none", "awaiting_packaging,none", "awaiting_deliver,ship_failed"})
+    void losingShipActionDoesNotProveSuccessAndCannotResubmit(String status, String substatus) throws Exception {
+        String readback = posting(status, false).replace("\"requirements\":{}",
+                "\"substatus\":\"" + substatus + "\",\"requirements\":{}");
+        server.enqueue(json(posting("awaiting_packaging", true)));
+        server.enqueue(new MockResponse().setSocketPolicy(SocketPolicy.DISCONNECT_AT_START));
+        server.enqueue(json(readback));
+        server.enqueue(json(readback));
+        OzonShipService service = service();
+
+        assertEquals("reconcile_required", assertThrows(OzonApiException.class,
+                () -> service.ship(shop, "POST-1", true)).kind());
+        assertEquals("reconcile_required", assertThrows(OzonApiException.class,
+                () -> service.ship(shop, "POST-1", true)).kind());
+        assertEquals(4, server.getRequestCount());
+        assertEquals("/v3/posting/fbs/get", server.takeRequest(1, TimeUnit.SECONDS).getPath());
+        assertEquals("/v4/posting/fbs/ship", server.takeRequest(1, TimeUnit.SECONDS).getPath());
+        assertEquals("/v3/posting/fbs/get", server.takeRequest(1, TimeUnit.SECONDS).getPath());
+        assertEquals("/v3/posting/fbs/get", server.takeRequest(1, TimeUnit.SECONDS).getPath());
+        assertEquals(1, count("SELECT COUNT(*) FROM ozon_action_log WHERE action_type='ship' AND status='ambiguous'"));
+        assertEquals(0, count("SELECT COUNT(*) FROM ozon_action_log WHERE action_type='ship' AND status IN ('success','reconciled')"));
     }
 
     @Test
