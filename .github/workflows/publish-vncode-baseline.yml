@@ -25,7 +25,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   baseline:
-    runs-on: windows-latest
+    runs-on: windows-2022
     timeout-minutes: 75
     env:
       GH_TOKEN: ${{ github.token }}
